@@ -1,0 +1,158 @@
+#!/bin/bash
+###############################################
+# Title:      Tools/8bit/axe/isaaxe
+# ID:         $Id$
+# Author:     Franz Regensburger
+# Copyright   1995 TU Muenchen
+#
+# open editor axe with isabelle font
+# derived from specaxe
+#
+# Franz Regensburger <regensbu@informatik.tu-muenchen.de> 22.3.95
+# 
+###############################################
+#
+# This script opens the editor axe with the special 8bit font for Isabelle.
+# It also provides keyboard bindings for the access to the graphical characters.
+#
+# The script is configured by the master makefile ../Makefile and
+# the perl script ../bin/gen-isaaxe which reads the configuration file
+# ../config/key-table.inp. Edit these files to make changes!
+
+###############################################
+# do not edit below
+###############################################
+
+ISAAXEDIR=$ISABELLE8BIT/axe
+
+# make bash, axe, and vim accept 8 bit input 
+#export LANG=iso_8859_1
+export LESSCHARSET=latin1
+export INPUTRC=$ISABELLE8BIT/keyboard/bash.inputrc
+
+###############################################
+# Everything below and including the line
+# `*Axe*ed.translations: #override\'
+# is configured by the perl script `gen-isaaxe'. 
+#
+# DO NOT EDIT THE TRANSLATION MAP.
+#
+# In order to make changes to the keyboard mappings you should edit
+# the configuration file `../config/key-table.inp' which is interpreted by
+# the perl script `../bin/gen-isaaxe', 
+###############################################
+
+# start axe ; keyboard translations are given as resource string
+# the fonts can be selected with the font pulldown menu
+
+axe -fn "isacr14" -title "IsaAxe" -geometry 80x40 -xrm "\
+*fontMenu.label:    Fonts" -xrm "\
+*FontList: Isa14:isacr14 Isa24:isacb24" -xrm "\
+*Axe*ed.translations: #override\
+	!Mod2 Shift <Key>g:		insert-string(0xa1)  \n\
+	!Mod2 Shift <Key>d:		insert-string(0xa2)  \n\
+	!Mod2 Shift <Key>j:		insert-string(0xa3)  \n\
+	!Mod2 Shift <Key>l:		insert-string(0xa4)  \n\
+	!Mod2 Shift <Key>p:		insert-string(0xa5)  \n\
+	!Mod2 Shift <Key>s:		insert-string(0xa6)  \n\
+	!Mod2 Shift <Key>f:		insert-string(0xa7)  \n\
+	!Mod2 Shift <Key>q:		insert-string(0xa8)  \n\
+	!Mod2 Shift <Key>w:		insert-string(0xa9)  \n\
+	!Mod2 <Key>a:		insert-string(0xaa)  \n\
+	!Mod2 <Key>b:		insert-string(0xab)  \n\
+	!Mod2 <Key>g:		insert-string(0xac)  \n\
+	!Mod2 <Key>d:		insert-string(0xad)  \n\
+	!Mod2 <Key>e:		insert-string(0xae)  \n\
+	!Mod2 <Key>z:		insert-string(0xaf)  \n\
+	!Mod2 <Key>h:		insert-string(0xb0)  \n\
+	!Mod2 <Key>j:		insert-string(0xb1)  \n\
+	!Mod2 <Key>k:		insert-string(0xb2)  \n\
+	!Mod2 <Key>l:		insert-string(0xb3)  \n\
+	!Mod2 <Key>m:		insert-string(0xb4)  \n\
+	!Mod2 <Key>n:		insert-string(0xb5)  \n\
+	!Mod2 <Key>x:		insert-string(0xb6)  \n\
+	!Mod2 <Key>p:		insert-string(0xb7)  \n\
+	!Mod2 <Key>r:		insert-string(0xb8)  \n\
+	!Mod2 <Key>s:		insert-string(0xb9)  \n\
+	!Mod2 <Key>t:		insert-string(0xba)  \n\
+	!Mod2 <Key>f:		insert-string(0xbb)  \n\
+	!Mod2 <Key>c:		insert-string(0xbc)  \n\
+	!Mod2 <Key>q:		insert-string(0xbd)  \n\
+	!Mod2 <Key>w:		insert-string(0xbe)  \n\
+	!Mod4 <Key>n:		insert-string(0xbf)  \n\
+	!Mod4 <Key>a:		insert-string(0xc0)  \n\
+	!Mod4 <Key>o:		insert-string(0xc1)  \n\
+	!Mod4 <Key>f:		insert-string(0xc2)  \n\
+	!Mod4 <Key>t:		insert-string(0xc3)  \n\
+	!Mod4 Shift <Key>f:		insert-string(0xc4)  \n\
+	!Ctrl <Key>F5:		insert-string(0xc5)  \n\
+	!Ctrl <Key>F6:		insert-string(0xc6)  \n\
+	!Ctrl <Key>F7:		insert-string(0xc7)  \n\
+	!Ctrl <Key>F8:		insert-string(0xc8)  \n\
+	!Ctrl <Key>F9:		insert-string(0xc9)  \n\
+	!Ctrl <Key>F10:		insert-string(0xca)  \n\
+	!Ctrl <Key>F11:		insert-string(0xcb)  \n\
+	!Ctrl <Key>F12:		insert-string(0xcc)  \n\
+	!Mod4 <Key>F5:		insert-string(0xcf)  \n\
+	!Mod4 <Key>F6:		insert-string(0xf9)  \n\
+	!Mod4 <Key>F7:		insert-string(0xfa)  \n\
+	!Mod4 <Key>F1:		insert-string(0xd0)  \n\
+	!Mod4 <Key>F2:		insert-string(0xd1)  \n\
+	!Mod4 <Key>F3:		insert-string(0xd2)  \n\
+	!Mod4 <Key>F4:		insert-string(0xd3)  \n\
+	!Ctrl <Key>F1:		insert-string(0xd4)  \n\
+	!Ctrl <Key>F2:		insert-string(0xd5)  \n\
+	!Ctrl <Key>F3:		insert-string(0xd6)  \n\
+	!Ctrl <Key>F4:		insert-string(0xd7)  \n\
+	!Mod4 <Key>b:		insert-string(0xd8)  \n\
+	!Mod4 <Key>e:		insert-string(0xd9)  \n\
+	!Mod4 Shift <Key>e:		insert-string(0xda)  \n\
+	!Mod4 <Key>u:		insert-string(0xdb)  \n\
+	!Mod4 <Key>p:		insert-string(0xdc)  \n\
+	!Mod4 Shift <Key>p:		insert-string(0xdd)  \n\
+	!Mod4 <Key>l:		insert-string(0xde)  \n\
+	!Mod4 Shift <Key>l:		insert-string(0xdf)  \n\
+	!Mod4 <Key>g:		insert-string(0xe0)  \n\
+	!Mod4 Shift <Key>g:		insert-string(0xe1)  \n\
+	!Mod4 <Key>s:		insert-string(0xe2)  \n\
+	!Mod4 Shift <Key>s:		insert-string(0xe3)  \n\
+	!Shift <Key>F11:		insert-string(0xe4)  \n\
+	!Shift <Key>F12:		insert-string(0xe5)  \n\
+	!Mod2 <Key>F1:		insert-string(0xe6)  \n\
+	!Mod2 <Key>F2:		insert-string(0xe7)  \n\
+	!Mod2 <Key>F3:		insert-string(0xe8)  \n\
+	!Shift <Key>F1:		insert-string(0xe9)  \n\
+	!Shift <Key>F2:		insert-string(0xea)  \n\
+	!Shift <Key>F3:		insert-string(0xeb)  \n\
+	!Mod2 <Key>F5:		insert-string(0xec)  \n\
+	!Mod2 <Key>F6:		insert-string(0xed)  \n\
+	!Mod2 <Key>F7:		insert-string(0xee)  \n\
+	!Mod2 <Key>F8:		insert-string(0xef)  \n\
+	!Mod2 <Key>F9:		insert-string(0xf0)  \n\
+	!Mod2 <Key>F10:		insert-string(0xcd)  \n\
+	!Mod4 <Key>x:		insert-string(0xf2)  \n\
+	!Shift <Key>F5:		insert-string(0xf3)  \n\
+	!Shift <Key>F6:		insert-string(0xf4)  \n\
+	!Shift <Key>F7:		insert-string(0xf5)  \n\
+	!Shift <Key>F8:		insert-string(0xf6)  \n\
+	!Shift <Key>F9:		insert-string(0xf7)  \n\
+	!Shift <Key>F10:		insert-string(0xf8)  \n\
+	!Mod2 <Key>F11:		insert-string(0xce)  \n\
+	!Mod2 <Key>F12:		insert-string(0xf1)  \n\
+	!Mod4 <Key>F8:		insert-string(0xfb)  \n\
+	!Mod4 <Key>F9:		insert-string(0xfc)  \n\
+	!Mod4 <Key>F10:		insert-string(0xfd)  \n\
+	!Mod4 <Key>F11:		insert-string(0xfe)  \n\
+	!Mod4 <Key>F12:		insert-string(0xff)  \n\
+	!Shift <Key>F4:		insert-string(0xe9) insert-string(0xeb)  \n\
+	!Mod2 <Key>F4:		insert-string(0xe6) insert-string(0xe8)  \n\
+	!Mod4 <Key>i:		insert-string(0xe7) insert-string(0xe8)  \n\
+	!Mod4 Shift <Key>i:		insert-string(0xea) insert-string(0xeb)  \n\
+	!Mod4 <Key>m:		insert-string(0xe8)  \n\
+	!Mod4 Shift <Key>m:		insert-string(0xeb)  \n\
+	!Mod4 Shift <Key>n:		insert-string(0xf7)  \n\
+	! <Key>F9:		insert-string(0xc4)  \n\
+	! <Key>F10:		insert-string(0xea) insert-string(0xeb)  \n\
+	! <Key>F11:		insert-string(0xda)  \n\
+	! <Key>F12:		insert-string(0xdb)  \
+" $*

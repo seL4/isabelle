@@ -1,0 +1,199 @@
+.\" @(#)isa2latex
+.TH ISA2LATEX 1 "12 Mar 1995" ""
+.SH NAME
+\fBisa2latex\fP \- converts files containing Isabelle source to LaTeX format
+.IX isa2latex#(1) "" "\fLisa2latex\fP(1)"
+.SH SYNOPSIS
+.B isa2latex
+[\fIoptions\fP]
+
+.SH DESCRIPTION
+.B isa2latex
+converts a file written using the Isabelle font (with graphical 
+characters, or pure ASCII) to a source file for LaTeX (alternatviely to 
+an ASCII representation).
+
+In contrast to its predecessor 
+.B spec2latex,
+the converter
+.B isa2latex
+is capable of converting multi character input sequences. Therefore,
+.B isa2latex 
+can also  be used as a LaTeX pretty printer for Isabelle theories 
+and proofs. Common tasks are the conversion of multi character
+sequences like !! and ==> to corresponding LaTeX code 
+\\bigwedge
+and
+\\Longrightarrow
+respectively.
+
+The converter has several conversion modes 
+(\fIISA\fP, \fIINLINE\fP, \fILATEX\fP, and \fIESC\fP) that depend 
+on the options given and 
+on special mode switches (\\I@isa, \\I@ and \\E@)
+inside the converted files. 
+For a full description, see the manual of the 8bit package.
+
+There is a \fIperl\fP script 
+.B gen-isa2latex
+that allows the extension or redefinition of the standard converter 
+.B isa2latex. 
+The script automatically generates the converter
+from a configuration file that is provided by the user. 
+See the manpage about
+.B gen-isa2latex
+for more details. 
+
+.B isa2latex 
+normally reads its input from stdin and writes its output
+to stdout. The default conversion mode is the same as if option 
+.B \-i
+(described below) was given.
+
+\fIoptions\fP consists of one or a sequence of the following options:
+
+.SH OPTIONS
+.TP 5
+.B "file" "\t"
+read input from
+.I file
+instead of stdin
+
+.TP 5
+.B \-a "\t"
+generate ASCII representation instead of LaTeX source
+
+.TP 5
+.B \-A "\t"
+accept additionally ASCII representations of graphical characters as input
+
+This option is used to pretty print files containing ASCII representations of
+special symbols that could also have been represented using the graphical
+Isabelle font. This conversion is somewhat unsafe because of ambiguities.
+
+.TP 5
+.B \-b "\t"
+generate bigger TABs in the LaTeX source
+
+.TP 5
+.B \-e "\t"
+generate LaTeX2e output (if option 
+.B \-s
+given)
+
+.TP 5
+.B \-f " fontstring"
+use the LaTeX font specified in
+.I fontstring
+instead of
+the default font 'cmr'.
+.I fontstring
+uses directly LaTeX syntax,
+i.e. \\sf for sans serif. In order to prevent the shell from
+interpreting the '\\' the fontstring should be quoted. 
+
+\fIexample:\fP isa2latex \-f '\\sf' HOL.thy > HOL.tex 
+
+
+.TP 5
+.B \-i "\t"
+generate a LaTeX representation of the input, for inclusion into other LaTeX 
+documents
+
+The containing LaTeX document should use the style \fIisa2latex.sty\fP.
+
+The initial conversion mode is \fIISA\fP, and escaping to \fIESC\fP mode
+is possible with the \\E@ switch.
+
+This is the default option, and is mutually exclusive with the
+.B \-s
+and 
+.B \-x
+options.
+
+\fIexample:\fP isa2latex HOL.thy > HOL.tex 
+
+.TP 5
+.B \-h "\t"
+print a help message
+
+.TP 5
+.B \-o " file"
+write output to
+.I file
+instead of stdout
+
+Note: I/O redirection and "piping" are, of course, also possible.
+
+.TP 5
+.B \-s "\t"
+like option 
+.B \-i,
+but generate a standalone LaTeX document including a complete
+document header etc.
+
+This is useful for pretty printing an Isabelle theory or proof file. 
+The document header includes
+also the LaTeX style file \fIisa2latex.sty\fP which should be somewhere
+in your LaTeX include path.
+
+\fIexample:\fP isa2latex \-s HOL.thy -o HOL.tex 
+
+.TP 5
+.B \-t " n"
+set tabstops every
+.B n 
+characters
+
+Default value is 8. 
+
+.TP 5
+.B \-v "\t"
+show version number of the converter program on stderr
+
+.TP 5
+.B \-x "\t"
+generate a pure LaTeX file from LaTeX source with interspersed Isabelle code
+(i.e. support of some primitive form of literate programming)
+
+This option, which excludes the options
+.B \-i
+and
+.B \-s,
+is useful for documenting Isabelle theories and proofs.
+
+In the document source, the style \fIisa2latex.sty\fP should be included.
+
+The initial conversion mode is \fILATEX\fP. You may switch to \fIISA\fP mode
+using \\I@isa and to \fIINLINE\fP mode using \\I@. From both these
+modes, escaping to \fIESC\fP mode is possible with the \\E@ switch.
+
+\fIexample:\fP isa2latex \-x HOL.itex -o HOL.tex 
+
+
+.SH WARNINGS
+If a mode switch is given that is not suitable in the current mode,
+a warning message like 
+
+ "WARNING: line 15: '\\I@isa' inside ESC mode"
+
+is written to stderr.
+
+
+.SH FILES
+ bin/isa2latex           (executable)
+ latex/isa2latex.sty     (LaTeX style file)
+ config/conv-tables.inp  (specification of the conversion table)
+
+.SH RELATED COMMANDS
+ gen-isa2latex gen-isadoc
+
+.SH AUTHORS
+ spec2latex: Franz Huber, David von Oheimb, Bernhard Rumpe
+ isa2latex, extensions: Franz Regensburger, David von Oheimb
+
+.SH BUGS
+ None known
+
+
+

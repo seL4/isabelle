@@ -1,0 +1,388 @@
+\documentclass[]{article}
+\usepackage{latexsym,amssymb,isa2latex}
+
+\newcommand{\bt}[1]{{\tt #1}}
+
+\title{The Isabelle 8bit Package}
+\author{
+David von Oheimb and Franz Regensburger\\
+Technical University of Munich, Germany\\
+E-mail: \bt{\{oheimb|regensbu\}@informatik.tu-muenchen.de}
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+
+
+\section{Introduction}
+
+The 8bit package enables you to view, edit and print Isabelle files and perform
+proofs in a quite pleasant form. 
+
+Instead of representing logical operators with ASCII character sequences, 
+a special graphical character font, resp. a \LaTeX{} 
+command format, is provided. There are editors and a terminal
+capable of inputting and displaying the graphical characters, and converters
+between the different representations. The graphical font extends the normal
+ASCII 7bit character coding with (non-standard) character codes having the
+8th bit set. All this is described in section \ref{graph} of this manual.
+
+Even without employing the 8bit font, the \LaTeX{} output for 
+Isabelle files can be used for manuals, papers etc. This is the focus of
+section \ref{latex}.
+
+
+
+
+\section{Graphical Isabelle}
+\label{graph}
+
+This section describes the main purpose of the 8bit package, which is to provide
+an extension to the ASCII character set that allows to formulate and display 
+many logical operators as graphical symbols. 
+
+\subsection{Usage}
+
+To employ the graphical font within Isabelle, just (re-)formulate the 
+logical operators of your Isabelle theory (and proof) files using this font. 
+A graphical terminal and suitable editors are described in subsection 
+\ref{commands}.
+
+As a typical example, consider the following fragment of an Isabelle theory, 
+an alternative formulation of the bounded universal quantifier within the 
+set theory of \bt{HOL}.
+
+\label{ex}
+Without graphical characters, the operator is defined as follows.
+\I@isa
+consts	
+    	Ball	:: "'a set => ('a => bool) => bool"
+syntax
+	"@Ball"	:: "pttrn => 'a set => bool => bool"	("(3!_:_./ _)" 10)
+translations
+		"!x:A. P" == "Ball A (%x. P)"
+defs
+     Ball_def	"Ball A P == ! x. x:A --> P x"
+\I@isa
+
+Using the graphical font (and assuming a corresponding re-formulation of 
+\bt{HOL} operators), the definition of the operator can be improved to the following.
+
+\I@isa
+consts
+	Ball	:: "'a set ë ('a ë bool) ë bool"
+syntax
+	"GBall"	:: "pttrn ë 'a set ë bool ë bool"	("(3Â_Î_./ _)" 10)
+translations
+		"ÂxÎA. P" == "Ball A (³x. P)"
+defs
+     Ball_def	"Ball A P Ú Âx. xÎA çè P x"
+\I@isa
+
+Note the appearance of the graphical characters, which makes the code much more
+legible.
+
+\label{compat}
+It is also possible to retain pure ASCII versions of the logical operators while
+offering the possibility of graphical input and output.
+This may be necessary for compatibility reasons or for providing
+graphical versions of the meta logic \I@Pure\I@ or object logics already
+defined. In these cases, the graphical syntax can be supplied additionally with 
+appropriate \I@types\I@, \I@syntax\I@, and \I@translations\I@ sections, as done
+for example in the Isabelle distribution of \bt{HOL}.
+
+In the example given above, the ASCII formulation of the quantifier can be
+augmented with a graphical version by the following definition.
+
+\I@isa
+syntax
+	"GBall"	:: "pttrn => 'a set => bool => bool"	("(3Â_Î_./ _)" 10)
+translations
+		"ÂxÎA. P" == "!x:A. P"
+\I@isa
+
+With this approach, the operators can still be entered in ASCII form, which is
+important for the usability of old (pure ASCII) Isabelle files, while they are
+displayed in the new graphical form. The additional level of syntax 
+translations introduced in this way may interfere with other translation rules
+and should therefore be designed carefully.
+
+
+\subsection{User commands}
+\label{commands}
+
+
+A number of commands for manipulating files with graphical characters are 
+available, as described in this subsection.
+
+\subsubsection{Editors}
+
+The first group of commands includes versions of the most common editors that 
+can handle the graphical font for both keyboard input and display input. 
+See the files \bt{doc/\{fontindex|keyindex|fkmatrix\}.dvi} for the keystrokes
+defined for inputting the special characters. The editors are
+
+\begin{itemize}
+\item \bt{isa\_xemacs}		replaces \bt{xemacs}. You may provide a 
+				specific init file called 
+				\bt{.emacs\_isa\_xemacs} (in your home directory)
+				that is executed after the \bt{.emacs} file.
+\item \bt{isa\_gnu\_emacs}	replaces \bt{emacs}. You may provide a 
+				specific init file called 
+				\bt{.emacs\_isa\_gnu\_emacs} (in your home 
+				directory) that is executed after the 
+				\bt{.emacs} file.
+\item \bt{isaaxe}		replaces \bt{axe}
+\item \bt{isavim}		replaces \bt{vim}
+\end{itemize}
+
+For example, as \bt{emacs} user you may type
+\bt{isa\_xemacs doc/Set2g.thy \&} to view and edit
+the above sample theory fragment.
+
+\subsubsection{Display commands}
+
+The next group of commands is used to display files using the graphical font.
+With the terminal, of course also input is possible, using the same keystrokes
+as with the editors.
+
+\begin{itemize}
+\item \bt{isaterm} 		replaces \bt{xterm}. This is used as terminal
+				for your ML interpreter running Isabelle with
+				theories and proofs containing graphical 
+				characters. This terminal is also useful if
+				you want to \bt{cat} or \bt{grep} the Isabelle
+				files within your shell, and as
+				environment for commands like \bt{isapal}.
+\item \bt{isapal}		shows the palette of available graphical 
+				characters. A man page is available.
+\item \bt{codetable}		prints all 8bit characters with their codes
+\item \bt{isa\_xmosaic}	replaces \bt{xmosaic}. This is useful for
+				browsing the index files of Isabelle theories
+				(with graphical operators) that are generated
+				if \I@make_html\I@ is set to \I@true\I@.
+\end{itemize}
+
+\subsubsection{Converters}
+\label{conv}
+
+The last group of commands is built to enable conversion between ASCII, 8bit 
+font and
+\LaTeX\ representations of the graphical characters within papers, manuals, 
+and Isabelle theory and proof files. For the options of the converters, see 
+the corresponding man pages.
+
+\begin{itemize}
+\item \bt{isa2latex}	converts a file with 8bit characters to a LaTeX
+			source. Pure ASCII input and conversion of 8bit 
+			characters to their ASCII representations is also 
+			possible.
+\item \bt{a2isa}	converts Isabelle files, from ASCII to 8bit characters.
+			It is used mainly to convert old files.
+\end{itemize}
+
+In order to output the first theory fragment (formulated without the 8bit
+font) in subsection \ref{ex} as LaTeX\ source using suitable graphical 
+characters, type\\
+\bt{isa2latex -s -A -o Set2.tex doc/Set2\_a.thy}.\\
+(It was necessary to insert some blank characters in the file \bt{Set2\_a.thy} 
+that enable \bt{isa2latex} to recognize all the operators intended to be 
+printed with graphical characters, as discussed in subsection \ref{ambig}.)
+
+For conversion of \bt{Set2.thy} to 8bit characters, type\\
+\bt{a2isa -o Set2\_g.thy doc/Set2.thy}.
+
+Further explanations of the use of the converter \bt{isa2latex} are given
+in section \ref{latex}.
+
+
+
+
+\section{\LaTeX\ output}
+\label{latex}
+
+Independently of whether Isabelle files are formulated with the graphical font
+or not, they can be converted to \LaTeX\ source using \bt{isa2latex}
+and in this way (pretty-)printed with the familiar symbols for quantification, 
+intersection, etc. The tool \bt{isa2latex} can also convert \LaTeX\ source
+files containing Isabelle source to pure \LaTeX\ 
+files, by converting the special character sequences of the Isabelle parts to
+appropriate \LaTeX\ commands, and handing through the rest (almost) verbatim.
+
+For example, this manual itself is converted to a \bt{.tex} file by \\
+\bt{isa2latex -x -e -o manual.tex doc/manual.itex}
+
+\subsection{Conversion modes}
+
+To handle the different parts of an input file, \bt{isa2latex} has several 
+conversion modes, namely
+\begin{itemize}
+\item \bt{LATEX}: The input is is literally copied to the output,
+without conversion of any characters. This mode is used for the \LaTeX\ parts
+ of the input document.
+
+\item \bt{INLINE}: The conversion of characters and scanning for 
+multi character sequences is active, while newline and tab characters are 
+treated as single blank character.
+Use this mode for inserting small parts of Isabelle source within 
+a line of text.
+
+\item \bt{ISA}: The conversion of characters and scanning for 
+multi character sequences is active, while newline and tab characters are 
+treated according to an open tabbing environment. 
+This mode is used for displaying multiple lines of Isabelle source.
+
+\item \bt{ESC}: In this mode the input is literally copied to the output.
+This mode is intended as an escape mode from the \bt{INLINE} and \bt{ESC} modes.
+\end{itemize}
+
+Upon entrance of the conversion modes, \bt{isa2latex} generates the \LaTeX\ 
+commands \bt{\mbox{$\backslash$}isamode} for \bt{ISA}, 
+\bt{\mbox{$\backslash$}isainline} for \bt{INLINE}, 
+and \bt{\mbox{$\backslash$}isaescape} for the \bt{ESC} mode. These act as
+environment delimiters and may also set the appropriate fonts, styles etc. The 
+commands 
+are defined in the file \bt{latex/isa2latex.sty} and may be adapted as desired.
+
+\subsection{Conversion mode switching}
+
+The initial conversion mode of \bt{isa2latex} and the set of available modes 
+depend on the options given on the command line. Switching of the modes
+relies on special toggles (like \I@\I\E@\E@@isa\I@, within the input
+file) that indicate the beginning and end of the different parts of the input.
+
+The following diagrams show the initial mode (enclosed in sqare brackets), 
+the available mode switches (in the arrow symbols)
+and the modes reachable with them.
+
+If the \bt{-x} option is not given:
+
+\I@isa
+[ISA]  <-- \E\E@\E@@ -->  ESC
+\I@isa
+
+If the \bt{-x} option is given:
+
+\I@isa
+[LATEX]  <-- \I\E@\E@@ -->  INLINE  <-- \E\E@\E@@ -->  ESC
+   ^
+   |------ \I\E@\E@@isa -->  ISA  <-- \E\E@\E@@ -->  ESC
+\I@isa
+
+
+\subsection{Ambiguity problems}
+\label{ambig}
+
+As \bt{isa2latex} converts its input files on a lexical level, it has limited
+capability of dealing with ambiguities that are caused by using the same 
+characters for different operators. A typical examle
+is the `\I@|\I@' character, which is used within the object logic \bt{HOL} both
+as disjunction operator and as separator within \I@case\I@ expressions. In the
+former case, it should be converted to `\I@Á\I@', and in the latter case 
+retained as `\I@|\I@'. 
+
+As a workaround, in the current version of \bt{isa2latex},
+such ``dangerous'' characters are converted only if followed by a blank 
+character. Thus to enforce a conversion, append a blank character behind it, and
+to prohibit it even if a blank character follows, you may insert a double 
+\I@\E\E@\E@@\I@, i.e. the string becomes `\I@|\E\E@\E@@\E\E@\E@@ \I@'. 
+
+You may also redefine the critical entries of the conversion tables in the file
+\bt{config/conv-tables.inp}. The entry for the `\I@|\I@' character
+looks like
+\I@isa
+>  "\|\ "		"|"		"\mbox{$\vee$}" 
+\I@isa
+The first string, which (as described by the verbose comments in that file)
+is the lex expression for the ASCII input, could be adapted to require an 
+additional blank character before the `\I@|\I@', for example.
+
+Most of these amibiguity problems can be avoided if you decide to employ the
+graphical font for your Isabelle source files. In this case, we recommend 
+using this font as early as possible, in order to avoid later conversions.
+For the conversion of old files, the tool \bt{a2isa} is provided. It
+normally requires no changes of the original files and only minor corrections
+of the files it produces. Thus the preferred way is to apply \bt{a2isa} once and
+for all on the source files, correct all conversion mistakes, and then use the 
+new files with the graphical font. With these files, the ambiguity problems 
+should have gone.
+
+As the converter \bt{a2isa} is a bit smarter than \bt{isa2latex} in converting
+ASCII input, it is also useful if you do not employ the 8bit font directly. To
+convert a problematic ASCII file containing Isabelle source, first apply
+\bt{a2isa} and then \bt{isa2latex} without option \bt{-A}. For example, type\\
+\bt{a2isa Set2.thy | isa2latex -s -o doc/Set2a.tex}\\
+to generate a better output than in the example conversion given in subsection
+\ref{conv}.
+
+
+\section{Technical issues}
+
+\subsection{Preparations}
+
+To use the 8bit package, you have to set resp. extend the content of the 
+following environment variables:
+
+\begin{itemize}
+\item \bt{ISABELLE8BIT}: set the directory of the Isabelle 8bit package,\\
+	e.g.  \bt{/usr/proj/isabelle/src/Tools/8bit}
+
+\item \bt{PATH}: add the absolute path of the executables,\\
+	e.g.  \bt{\$ISABELLE8BIT/bin}
+
+\item \bt{MANPATH}: add the absolute path of the manual pages,\\
+	e.g.  \bt{\$ISABELLE8BIT/man}
+
+\item \bt{TEXINPUTS}: add the absolute path of special LaTeX style files
+			used by the 8bit package (if necessary),
+	e.g. \bt{\$ISABELLE8BIT/latex:}\\
+                the trailing `\bt{:}' makes latex search subdirectories!\\
+	The 8bit package uses
+	\begin{itemize}
+	\item the AMSFONT package
+        \item the supertab style (clarkson)	
+        \item the special style \bt{isa2latex.sty}
+	\end{itemize}
+	Some of them are contained in that directory.
+\end{itemize}
+
+Before the first use of any executable of subdirectory {\tt bin}, call
+the scripts \bt{fonts/install} and \bt{keyboard/install}. This is done best
+in your \bt{.login} file.
+
+\subsection{Installation and Configuration}
+
+To install the 8bit package, change directory to \bt{\$ISABELLE8BIT} and 
+run \bt{gmake} (the gnu version of \bt{make}) on the \bt{Makefile} there.
+
+If you want to adapt the configuration of the font (keyboard bindings or
+conversion tables used by \bt{isa2latex}), change directory to\\
+\bt{\$ISABELLE8BIT/config} ,
+edit the files \bt{key-table.inp} resp. \bt{conv-tables.inp},
+and run \bt{gmake} in this directory to generate new versions of 
+\bt{isa2latex}, editor support, and documentation.
+
+For adapting the conversion table of \bt{a2isa}, change directory to \\
+\bt{\$ISABELLE8BIT/c-sources/a2isa}, edit the file \bt{lex.x}
+accordingly, and run \bt{gmake} there.
+
+\subsection{Management of alternative sources}
+
+If you retain ASCII versions of logical operators for compatibility reasons,
+as described in subsection \ref{compat}, you may want to export versions of your
+Isabelle theories that contain no 8bit characters. To support this, a patching
+mechanism is provided as follows. Encapsulate each section of your files dealing
+solely with the 8bit font with suitable begin and end pragmas (some pair of 
+unique comment lines) and configure three configuration files analogously to\\
+\bt{\$ISABELLE8BIT/isa-patches/HOL/\{extract|clean|add\}-HOL.cfg}.
+Then you can call the \bt{patcher} with the first file to extract and store to
+a file, the second to remove, and the third to re-add the 8bit section of the
+Isabelle files. See also the man page of \bt{patcher}.
+
+
+\end{document}
+
+

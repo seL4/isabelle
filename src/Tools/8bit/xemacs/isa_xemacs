@@ -1,0 +1,56 @@
+#!/bin/bash
+################################################
+# Title:      Tools/8bit/xemacs/isa_xemacs
+# ID:         $Id$
+# Author:     Franz Regensburger
+# Copyright   1995 TU Muenchen
+#
+# isa_xemacs -- xemacs for Isabelle environment
+#
+# Franz Regensburger <regensbu@informatik.tu-muenchen.de> 22.3.95
+# 
+###############################################
+#
+# The script `isa_xemacs' opens the XEmacs editor with the special
+# 8bit font for Isabelle. It also provides keyboard bindings for the
+# access to the graphical characters.
+#
+# The script is configured by the master makefile ../Makefile and
+# the perl script ../bin/gen-isa_xemacs which reads the configuration file
+#  ../config/key-table.inp. Edit these files to make changes!
+#
+####################################################
+# do not configure macros below, use master Makefile
+####################################################
+
+# emacs command name. Name of your emacs executable 
+ENAME=xemacs
+
+#users init file ($HOME is added). This file is loaded after
+#the init file $PREFIX.emacs 
+INIT=.emacs_xemacs_isa
+
+###############################################
+# do not edit below
+###############################################
+
+# prefix of init file and title of emacs window
+PREFIX=isa_xemacs
+
+# Name of the directory where this file is located
+EDIR=xemacs
+
+#  emacs init file for Isabelle
+INITFILE=$ISABELLE8BIT/$EDIR/$PREFIX.emacs
+
+# set font as XResource
+# needed for versions later than LEmacs 19.9 
+echo "$PREFIX*default.attributeFont: isacr14" | xrdb -merge - >/dev/null
+
+# pop up isabelle emacs
+$ENAME \
+    -title "$PREFIX" \
+    -name "$PREFIX" \
+    -l $INITFILE -l "$HOME/$INIT"\
+    $* 2>/dev/null
+

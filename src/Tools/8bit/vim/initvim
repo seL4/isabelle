@@ -1,0 +1,6 @@
+#!/bin/bash
+
+stty pass8
+
+vim $*
+

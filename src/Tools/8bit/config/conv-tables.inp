@@ -1,0 +1,412 @@
+############################################################
+# conv-tables.inp
+# Franz Regensburger <regensbu@informatik.tu-muenchen.de>
+# 4.3.95
+# 
+# last edited
+# 11.3.95
+# 20-Mar-96 by David von Oheimb: SEQ_TABLE extended
+# 10-May-96 by David von Oheimb: HI_TABLE and SEQ_TABLE rearranged
+#
+#
+############################################################
+#
+# This is the configuration file for the converter isa2latex
+# It is interpreted by the perl script `gen-isa2latex' which
+# produces rsp. changes the followong files of the converter
+# sources:
+#
+#  Makefile, conv-tables.h, conv-defs.h and conv-lex.x
+#
+# In the perl script, regular expressions are used to identify
+# the keywords. In order to be sure that something is treated
+# as a comment, simply begin the line with a # sign. This is
+# fool proof.
+#
+############################################################ 
+
+############################################################ 
+# General setup
+#
+### Absolut path to the sources of the converter, 
+#   Must be readable for user.
+#   
+#   Must be delimited by "
+#
+
+CONV_SOURCE_DIR "/usr/proj/isabelle/8bit/c-sources/isa2latex"
+
+# End of  general setup
+############################################################ 
+
+############################################################ 
+# Setup for translationTableLow in file conv-tables.h
+#
+
+### Start index START_LOW_TABLE of translationTableLow
+#   The index END_LOW_TABLE is computed from the length
+#   of the translation  table LOW_TABLE below.
+#
+#   constraints: 32 <= START_LOW_TABLE <= 127 
+#                START_LOW_TABLE + length(LOW_TABLE) - 1 <= 127 
+#
+#   Must be delimited by "
+#
+
+START_LOW_TABLE "32"
+
+### The translation table LOW_TABLE
+#
+#   Keyword for the begin of the table is BEGIN_LOW_TABLE
+#   Keyword for the end of the table is   END_LOW_TABLE
+#
+#   Lines beginning with # are ignored as everywhere in this file.
+#   Lines obeying the syntax given below are treated as table entries.
+#   All other lines are ignored, too. This is for comments.
+#
+#   Syntax of a table entry:
+#   
+#   > "LaTeX replacement"  anything
+#
+#   The double quotes enclose the LaTeX replacement in pure 
+#   LaTeX syntax. 
+#   Every \ in the string except when used for hex-notation \x?? is
+#   automatically duplicated by the script! The strings are used in
+#   printf output statements in the C code.
+#
+#   Attention: you have to use hex-notation \x22 to produce a " inside 
+#   the double quoted strings. An explicit " will terminate the string.
+#
+#   The following `anything' is ignored by the perl script.
+#   This is for comments.
+#   
+#   The ordering of entries in the table LOW_TABLE is relevant!
+#   Empty table is not allowed.
+#
+#
+
+BEGIN_LOW_TABLE
+>  "\ "			Blank 
+>  "!"
+#
+# if you don't like double quotes to be removed insert the following
+#>  "\\x22{}"		double quotes are not removed 
+>  "\x22{}"		double quotes are not removed 
+#
+>  "\#"
+>  "\$"
+>  "\%"
+>  "\mbox{$\&$}"
+>  "'"
+>  "("
+>  ")"
+>  "\mbox{$*$}"
+>  "\mbox{$+$}"
+>  ","
+>  "\mbox{$-$}"
+>  "."
+>  "/"
+>  "0"
+>  "1"
+>  "2"
+>  "3"
+>  "4"
+>  "5"
+>  "6"
+>  "7"
+>  "8"
+>  "9"
+>  ":"
+>  ";"
+>  "\mbox{$<$}"
+>  "\mbox{$=$}"
+>  "\mbox{$>$}"
+>  "?"
+>  "@"
+>  "A"
+>  "B"
+>  "C"
+>  "D"
+>  "E"
+>  "F"
+>  "G"
+>  "H"
+>  "I"
+>  "J"
+>  "K"
+>  "L"
+>  "M"
+>  "N"
+>  "O"
+>  "P"
+>  "Q"
+>  "R"
+>  "S"
+>  "T"
+>  "U"
+>  "V"
+>  "W"
+>  "X"
+>  "Y"
+>  "Z"
+>  "\mbox{$[$}"
+>  "\mbox{$\backslash$}"	Backslash
+>  "\mbox{$]$}"
+>  "\^{}"			
+>  "\_"	
+>  "`"
+>  "a"
+>  "b"
+>  "c"
+>  "d"
+>  "e"
+>  "f"
+>  "g"
+>  "h"
+>  "i"
+>  "j"
+>  "k"
+>  "l"
+>  "m"
+>  "n"
+>  "o"
+>  "p"
+>  "q"
+>  "r"
+>  "s"
+>  "t"
+>  "u"
+>  "v"
+>  "w"
+>  "x"
+>  "y"
+>  "z"
+>  "\{"
+>  "\mbox{$|$}"
+>  "\}"
+>  "\~{}"	negation
+END_LOW_TABLE
+
+############################################################ 
+# Setup for translationTableHi in file conv-tables.h
+#
+
+### Start index START_HI_TABLE of translationTableHi
+#   The index END_HI_TABLE is computed from the length
+#   of the translation table HI_TABLE below.
+#
+#   constraints: 128 <= START_HI_TABLE <= 255
+#                START_HI_TABLE + length(HI_TABLE) - 1 <= 255 
+#                
+#
+#   Must be delimited by "
+#
+
+START_HI_TABLE "161"
+
+### The translation table HI_TABLE
+#
+#   Keyword for the begin of the table is BEGIN_HI_TABLE
+#   Keyword for the end of the table is   END_HI_TABLE
+#
+#   Lines beginning with # are ignored as everywhere in this file.
+#   Lines obeying the syntax given below are treated as table entries.
+#   All other lines are ignored, too. This is for comments.
+#
+#   Syntax of a table entry:
+#   
+#   > "lex expression ascii" "ascii replacement" "LaTeX replacement"  anything
+#
+#   The double quotes enclose the lex expression, the ascii replacement, and the
+#   LaTeX replacement in pure lex rsp. pure ascii rsp. LaTeX syntax. 
+#
+#   The string for the lex expression is literally passed to lex. Backslashes
+#   are not duplicated!
+#   Every \ in the replacements except when used for hex-notation \x?? is
+#   automatically duplicated by the script! The strings are used in
+#   printf output statements in the C code.
+#
+#   Attention: you have to use hex-notation \x22 to produce a " inside 
+#   the double quoted strings. An explicit " will terminate the string.
+#
+#   The following `anything' is ignored by the perl script.
+#   This is for comments.
+#
+#   The ordering of entries in the table HI_TABLE is relevant!
+#   Empty table is not allowed.
+#
+#
+
+BEGIN_HI_TABLE
+
+# big greek letters
+>  "\\Gamma\ "		"\Gamma"	"\mbox{$\Gamma$}" 
+>  "\\Delta\ "		"\Delta"	"\mbox{$\Delta$}" 
+>  "\\Theta\ "		"\Theta"	"\mbox{$\Theta$}" 
+>  "LAM\ "		"LAM"		"\mbox{$\Lambda$}" 
+>  "\\Pi\ "		"\Pi"		"\mbox{$\Pi$}" 
+>  "\\Sigma\ "		"\Sigma"	"\mbox{$\Sigma$}" 
+>  "\\Phi\ "		"\Phi"		"\mbox{$\Phi$}" 
+>  "\\Psi\ "		"\Psi"		"\mbox{$\Psi$}" 
+>  "\\Omega\ "		"\Omega"	"\mbox{$\Omega$}" 
+
+# small greek letters, HOL, HOLCF
+>  "'a"			"'a"		"\mbox{$\alpha$}" 
+>  "'b"			"'b"		"\mbox{$\beta$}" 
+>  "'c"			"'c"		"\mbox{$\gamma$}" 
+>  "\\delta\ "		"\delta"	"\mbox{$\delta$}" 
+>  "\\varepsilon\ "	"\varepsilon"	"\mbox{$\varepsilon$}" 
+>  "\\zeta\ "		"\zeta"		"\mbox{$\zeta$}" 
+>  "\\eta\ "		"\eta"		"\mbox{$\eta$}" 
+>  "\\vartheta\ "	"\vartheta"	"\mbox{$\vartheta$}" 
+>  "\\kappa\ "		"\kappa"	"\mbox{$\kappa$}" 
+>  "%\ "		"%"		"\mbox{$\lambda$}" 
+>  "\\mu\ "		"\mu"		"\mbox{$\mu$}" 
+>  "\\nu\ "		"\nu"		"\mbox{$\nu$}" 
+>  "\\xi\ "		"\xi"		"\mbox{$\xi$}" 
+>  "\\pi\ "		"\pi"		"\mbox{$\pi$}" 
+>  "'r"			"'r"		"\mbox{$\rho$}" 
+>  "'s"			"'s"		"\mbox{$\sigma$}" 
+>  "'t"			"'t"		"\mbox{$\tau$}" 
+>  "\\varphi\ "		"\varphi"	"\mbox{$\varphi$}" 
+>  "\\chi\ "		"\chi"		"\mbox{$\chi$}" 
+>  "\\psi\ "		"\psi"		"\mbox{$\psi$}" 
+>  "\\omega\ "		"\omega"	"\mbox{$\omega$}" 
+
+# logical symbols, HOL
+>  "~\ "		"~"		"\mbox{$\neg$}" 
+>  "&\ "		"&"		"\mbox{$\wedge$}" 
+>  "\|\ "		"|"		"\mbox{$\vee$}" 
+>  "!\ "		"!"		"\mbox{$\forall$}" 
+>  "\?\ "		"?"		"\mbox{$\exists$}"
+>  "!!"			"!!"		"\mbox{$\bigwedge$}" 
+
+# parenthesis. Pure, HOLCF
+>  "\\lceil\ "		"\lceil"	"\mbox{$\lceil$}" 
+>  "\\rceil\ "		"\rceil"	"\mbox{$\rceil$}" 
+>  "\\lfloor\ "		"\lfloor"	"\mbox{$\lfloor$}" 
+>  "\\rfloor\ "		"\rfloor"	"\mbox{$\rfloor$}" 
+>  "\(\|"		"(|"		"\mbox{$(\!|$}"		#\llparenthesis
+>  "\|\)"		"|)"		"\mbox{$|\!)$}"		#\rrparenthesis
+>  "\[\|"		"[|"		"\mbox{$[\![$}"		#\llbracket
+>  "\|\]"		"|]"		"\mbox{$]\!]$}"		#\rrbracket
+
+# set theory, HOL
+>  "{}"			"\emptyset"	"\mbox{$\emptyset$}"
+>  "\ :\ "		":"		"\mbox{$\in$}" 
+>  "\subseteq\ "	"\subseteq"	"\mbox{$\subseteq$}" 
+>  "\ Int\ "		"Int"		"\mbox{$\cap$}" 
+>  "\ Un\ "		"Un"		"\mbox{$\cup$}" 
+>  "Inter\ "		"Inter"		"\mbox{$\bigcap$}" 
+>  "Union\ "		"Union"		"\mbox{$\bigcup$}" 
+
+# domain theory, HOLCF
+>  "\sqcap\ "		"\sqcap"	"\mbox{$\sqcap$}" 
+>  "\sqcup\ "		"\sqcup"	"\mbox{$\sqcup$}" 
+>  "glb\ "		"glb"		"\mbox{$\overline{|\,\,|}$}" #\bigsqcap
+>  "lub\ "		"lub"		"\mbox{$\bigsqcup$}" 
+>  "UU"			"UU"		"\mbox{$\perp$}" 
+
+# relational symbols, Pure, HOLCF
+>  "==="		"==="		"\mbox{$\doteq$}" 
+>  "=="			"=="		"\mbox{$\equiv$}" 
+>  "~="			"~="		"\mbox{$\not=$}" 
+>  "\\sqsubset\ "	"\sqsubset"	"\mbox{$\sqsubset$}" 
+>  "<<"			"<<"		"\mbox{$\sqsubseteq$}" 
+>  "\\prec\ "		"\prec"		"\mbox{$\prec$}" 
+>  "\\preceq\ "		"\preceq"	"\mbox{$\preceq$}" 
+>  "\\succ\ "		"\succ"		"\mbox{$\succ$}" 
+>  "\\succeq\ "		"\succeq"	"\mbox{$\succeq$}" 
+>  "\\sim\ "		"\sim"		"\mbox{$\sim$}" 
+>  "\\simeq\ "		"\simeq"	"\mbox{$\simeq$}" 
+>  "\\le\ "		"\le"		"\mbox{$\le$}" 
+>  "\\ge\ "		"\ge"		"\mbox{$\ge$}" 
+
+# arrows, Pure, HOL
+>  "<-"		"<-"		"\mbox{$\leftarrow$}" 
+>  "-@@@@@"		"-"		"\mbox{$-$}" 
+>  "->"			"->"		"\mbox{$\rightarrow$}" 
+>  "\\Leftarrow\ "	"<="		"\mbox{$\Leftarrow$}" 
+>  "=@@@@@"		"="		"\mbox{$=$}" 
+>  "=>"			"=>"		"\mbox{$\Rightarrow$}" 
+>  "->>"		"->>"		"\mbox{$\twoheadrightarrow$}" 
+>  "\\mapsto\ "		"\mapsto"	"\mbox{$\mapsto$}" 
+>  "\\leadsto\ "	"\leadsto"	"\mbox{$\leadsto$}" 
+>  "\\uparrow\ "	"\uparrow"	"\mbox{$\uparrow$}" 
+>  "\\downarrow\ "	"\downarrow"	"\mbox{$\downarrow$}" 
+>  "~:"			"~:"		"\mbox{$\notin$}" 
+
+# arithmetic, HOLCF
+>  "\\times\ "		"*"		"\mbox{$\times$}" 
+>  "\\oplus\ "		"++"		"\mbox{$\oplus$}"	#\varoplus
+>  "\\ominus\ "		"\ominus"	"\mbox{$\ominus$}" "	#\varominus
+>  "\\otimes\ "		"**"		"\mbox{$\otimes$}" "	#\varotimes
+>  "\\oslash\ "		"\oslash"	"\mbox{$\oslash$}" 	#\varoslash
+>  "\\natural\ "	"\natural"	"\mbox{$\natural$}" 
+>  "\\infty\ "		"\infty"	"\mbox{$\infty$}" 
+
+# misc
+>  "\\Box\ "		"\Box"		"\mbox{$\Box$}" 
+>  "\\Diamond\ "	"\Diamond"	"\mbox{$\Diamond$}" 
+>  "\\circ\ "		"\circ"		"\mbox{$\circ$}" 
+>  "\\bullet\ "		"\bullet"	"\mbox{$\bullet$}" 
+>  "\|\|"		"||"		"\mbox{$\parallel$}" 
+>  "\\tick\ "		"\tick"		"\mbox{$\surd$}" 
+>  "\\filter\ "		"\filter"	"\mbox{\copyright}"
+END_HI_TABLE
+
+############################################################ 
+# Setup for translationTableSeq in file conv-tables.h
+# and lexer source conv-lex.x
+# 
+#   Keyword for the being of the table is BEGIN_SEQ_TABLE
+#   Keyword for the end of the table is   END_SEQ_TABLE
+#
+#   Lines beginning with # are ignored as everywhere in this file.
+#   Lines obeying the syntax given below are treated as table entries.
+#   All other lines are ignored, too. This is for comments.
+#
+#   Syntax of a table entry:
+#   
+#   > "lex expr 8bit" "lex expr ascii" "ascii replace" "LaTeX replace" anything
+#
+#   The double quotes enclose the lex expressions, the ascii replacement, and
+#   the  LaTeX replacement in pure lex rsp. pure ascii rsp. LaTeX syntax. 
+#   
+#   The strings for the lex expressions are literally passed to lex. Backslashes
+#   are not duplicated!
+#   Every \ in the replacements except when used for hex-notation \x?? is
+#   automatically duplicated by the script! The strings are used in
+#   printf output statements in the C code.
+#
+#   Attention: you have to use hex-notation \x22 to produce a " inside 
+#   the double quoted strings. An explicit " will terminate the string.
+#
+#   The following `anything' is ignored by the perl script.
+#   This is for comments.
+#
+#   The ordering of entries in table SEQ_TABLE is irrelevant!
+#   Empty table is allowed.
+#
+
+BEGIN_SEQ_TABLE
+
+# Pure
+>  "κλ"		"==>"		"==>"		"\mbox{$\Longrightarrow$}"
+
+# HOL
+>  "ηθ"		"-->"		"-->"		"\mbox{$\longrightarrow$}"
+>  "Γ!"		"\?!"		"?!"		"\mbox{$\exists$}!"
+>  "ALL@@@@@"	"ALL\ "		"ALL"		"\mbox{$\forall$}" 
+>  "EX@@@@@"	"EX\ "		"EX"		"\mbox{$\exists$}" 
+
+#HOLCF
+>  "<\|@@@@@"	"<\|"		"<|"		"\mbox{$<\!\mid$}"
+>  "<<\|@@@@@"	"<<\|"		"<<|"		"\mbox{$\ll\!\mid$}"
+
+# misc ?
+>  "ικ"		"<=="		"<=="		"\mbox{$\Longleftarrow$}"
+>  "ιλ"		"<=>"		"<=>"		"\mbox{$\Leftrightarrow$}"
+>  "ζη"		"<--"		"<--"		"\mbox{$\longleftarrow$}"
+>  "ζθ"		"<->"		"<->"		"\mbox{$\leftrightarrow$}"
+END_SEQ_TABLE

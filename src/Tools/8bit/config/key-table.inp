@@ -1,0 +1,186 @@
+############################################################
+# key-tables.inp
+# Franz Regensburger <regensbu@informatik.tu-muenchen.de>
+# 21.3.95
+# 
+# last edited
+# 
+#
+############################################################
+#
+# This is the configuration file for the keyboard mappings
+# which is used by various scripts of the 8-bit package.
+# It is interpreted by several perl scripts.
+#
+# In the perl script, regular expressions are used to identify
+# the keywords. In order to be sure that something is treated
+# as a comment, simply begin the line with a # sign. This is
+# fool proof.
+#
+############################################################ 
+
+############################################################ 
+# General setup
+#
+### Absolut path to the 8-bit package, 
+#   Must be delimited by "
+#
+
+### Directory, where the links to various scripts reside.
+#   
+#   Must be delimited by "
+#
+
+BIN_DIR ""
+
+### Subdirectories where the sources of various scripts reside and
+#   where the configured scripts will be put.
+#
+#   The entries must be delimited by "
+#
+
+
+GNU_EMACS_DIR "gnu_emacs"
+XEMACS_DIR "xemacs"
+
+AXE_DIR "axe"
+VIM_DIR "vim"
+TERM_DIR "term"
+DOC_DIR "doc"
+
+# End of  general setup
+############################################################ 
+
+############################################################ 
+# Setup for the keymap
+#
+# each configuration line has the form
+# MOD mod KEY key CODESEQ codeseq
+# 
+# MOD, KEY and CODE are keywords
+#
+# The emacses are the reason for the restrictions below!
+#
+#     mod: THE modifier used (no modifier sequences).
+#	   known modifiers are Mod1, Mod2, Mod4, Shift, Ctrl and None for
+#          for NO modifier :-)  
+#
+#     key: allowed keys are a-z, A-Z and the function keys F0 - F99.
+#          uppercase letters A-Z are translated to Shift + lowercase for the
+#          xmodmap based tools.   
+#
+#    code: a comma seperated list of twodigit hex-numbers. 
+#          write `af' for \xaf and `af, ae' for the sequence \xaf,\xae 
+#
+# The table must be delimited by BEGIN_KEY_MAP and END_KEY_MAP
+
+BEGIN_KEY_MAP
+	MOD Mod2	KEY G		CODE a1
+	MOD Mod2	KEY D		CODE a2
+	MOD Mod2	KEY J		CODE a3
+	MOD Mod2	KEY L		CODE a4
+	MOD Mod2	KEY P		CODE a5
+	MOD Mod2	KEY S		CODE a6
+	MOD Mod2	KEY F		CODE a7
+	MOD Mod2	KEY Q		CODE a8
+	MOD Mod2	KEY W		CODE a9
+	MOD Mod2	KEY a		CODE aa
+	MOD Mod2	KEY b		CODE ab
+	MOD Mod2	KEY g		CODE ac
+ 	MOD Mod2	KEY d		CODE ad
+	MOD Mod2	KEY e		CODE ae
+	MOD Mod2	KEY z		CODE af
+	MOD Mod2	KEY h		CODE b0
+	MOD Mod2	KEY j		CODE b1
+	MOD Mod2	KEY k		CODE b2
+	MOD Mod2	KEY l		CODE b3
+	MOD Mod2	KEY m		CODE b4
+	MOD Mod2	KEY n		CODE b5
+	MOD Mod2	KEY x		CODE b6
+	MOD Mod2	KEY p		CODE b7
+	MOD Mod2	KEY r		CODE b8
+	MOD Mod2	KEY s		CODE b9
+	MOD Mod2	KEY t		CODE ba
+	MOD Mod2	KEY f		CODE bb
+	MOD Mod2	KEY c		CODE bc
+	MOD Mod2	KEY q		CODE bd
+	MOD Mod2	KEY w		CODE be
+	MOD Mod4	KEY n		CODE bf
+	MOD Mod4	KEY a		CODE c0
+	MOD Mod4	KEY o		CODE c1
+	MOD Mod4	KEY f		CODE c2
+	MOD Mod4	KEY t		CODE c3
+	MOD Mod4	KEY F		CODE c4
+	MOD Ctrl	KEY F5		CODE c5
+	MOD Ctrl	KEY F6		CODE c6
+	MOD Ctrl	KEY F7		CODE c7
+	MOD Ctrl	KEY F8		CODE c8
+	MOD Ctrl	KEY F9		CODE c9
+	MOD Ctrl	KEY F10		CODE ca
+	MOD Ctrl	KEY F11		CODE cb
+	MOD Ctrl	KEY F12		CODE cc
+	MOD Mod4	KEY F5		CODE cf
+	MOD Mod4	KEY F6		CODE f9
+	MOD Mod4	KEY F7		CODE fa
+	MOD Mod4	KEY F1		CODE d0
+	MOD Mod4	KEY F2		CODE d1
+	MOD Mod4	KEY F3		CODE d2
+	MOD Mod4	KEY F4		CODE d3
+	MOD Ctrl	KEY F1		CODE d4
+	MOD Ctrl	KEY F2		CODE d5
+	MOD Ctrl	KEY F3		CODE d6
+	MOD Ctrl	KEY F4		CODE d7
+	MOD Mod4	KEY b		CODE d8
+	MOD Mod4	KEY e		CODE d9
+	MOD Mod4	KEY E		CODE da
+	MOD Mod4	KEY u		CODE db
+	MOD Mod4	KEY p		CODE dc
+	MOD Mod4	KEY P		CODE dd
+	MOD Mod4	KEY l		CODE de
+	MOD Mod4	KEY L		CODE df
+	MOD Mod4	KEY g		CODE e0
+	MOD Mod4	KEY G		CODE e1
+	MOD Mod4	KEY s		CODE e2
+	MOD Mod4	KEY S		CODE e3
+	MOD Shift	KEY F11		CODE e4
+	MOD Shift	KEY F12		CODE e5
+	MOD Mod2	KEY F1		CODE e6
+	MOD Mod2	KEY F2		CODE e7
+	MOD Mod2	KEY F3		CODE e8
+	MOD Shift	KEY F1		CODE e9
+	MOD Shift	KEY F2		CODE ea
+	MOD Shift	KEY F3		CODE eb
+	MOD Mod2	KEY F5		CODE ec
+	MOD Mod2	KEY F6		CODE ed
+	MOD Mod2	KEY F7		CODE ee
+	MOD Mod2	KEY F8		CODE ef
+	MOD Mod2	KEY F9		CODE f0
+	MOD Mod2	KEY F10		CODE cd
+	MOD Mod4	KEY x		CODE f2
+	MOD Shift	KEY F5		CODE f3
+	MOD Shift	KEY F6		CODE f4
+	MOD Shift	KEY F7		CODE f5
+	MOD Shift	KEY F8		CODE f6
+	MOD Shift	KEY F9		CODE f7
+	MOD Shift	KEY F10		CODE f8
+	MOD Mod2	KEY F11		CODE ce
+	MOD Mod2	KEY F12		CODE f1
+	MOD Mod4	KEY F8		CODE fb
+	MOD Mod4	KEY F9		CODE fc
+	MOD Mod4	KEY F10		CODE fd
+	MOD Mod4	KEY F11		CODE fe
+	MOD Mod4	KEY F12		CODE ff
+	MOD Shift	KEY F4		CODE e9,eb
+	MOD Mod2	KEY F4		CODE e6,e8
+	MOD Mod4	KEY i		CODE e7,e8
+	MOD Mod4	KEY I		CODE ea,eb
+	MOD Mod4	KEY m		CODE e8
+	MOD Mod4	KEY M		CODE eb
+	MOD Mod4	KEY N		CODE f7
+	MOD None	KEY F9		CODE c4
+	MOD None	KEY F10		CODE ea,eb
+	MOD None	KEY F11		CODE da
+	MOD None	KEY F12		CODE db
+END_KEY_MAP
+
+

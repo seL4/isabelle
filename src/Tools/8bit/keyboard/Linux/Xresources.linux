@@ -1,0 +1,14 @@
+*xterm*vt100.Translations: #override <Key>F7: keymap(isabelle) 
+*xterm*vt100.isabelleKeymap.translations:\
+        !<Key>F8 : string("show_types:=true;") \n \
+        !<Key>F2 : string("show_types:=false;") \n \
+        !<Key>F9 : string("show_sorts:=true;") \n \
+        !<Key>F3 : string("show_sorts:=false;") \n \
+        !<Key>F12: string("prth ") \n \
+        !<Key>F11: string("pr();\n") \n \
+        !<Key>F1 : keymap(None)  
+
+
+
+
+

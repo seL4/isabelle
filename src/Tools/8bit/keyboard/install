@@ -1,0 +1,28 @@
+#!/bin/bash
+# set the keyboard modifiers used by Isabelle 8bit package
+
+###############################################
+# The variables SUPER_L and HYPER_R are automatically configured 
+# by the Master Makefile. You should configure them there.
+###############################################
+
+#keycode for Super_L       26 on SUN, 64  on Linux box 
+SUPER_L=26
+
+#keycode for Hyper_R       20 on SUN, 113 on Linux box 
+HYPER_R=20
+
+# define modifier keys for Isabelle keystrokes
+# map super-key onto alt-key
+xmodmap -e "keycode $SUPER_L = Super_L"
+
+# map hyper-key onto altgraph-key
+xmodmap -e "keycode $HYPER_R = Hyper_R"
+
+# define new keysyms as Mod2 and Mod4
+xmodmap -e "add Mod2 = Super_L" -e "add Mod4 = Hyper_R"
+
+# make bash, axe, and vim accept 8 bit input 
+#export LANG=iso_8859_1
+export LESSCHARSET=latin1
+export INPUTRC=$ISABELLE8BIT/keyboard/bash.inputrc

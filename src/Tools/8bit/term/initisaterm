@@ -1,0 +1,11 @@
+#!/bin/bash
+# this script is called from script isaterm.
+
+#sunbroy53:
+#stty cs8
+
+#sunbroy52:
+stty pass8
+
+bash $*
+

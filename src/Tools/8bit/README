@@ -1,0 +1,147 @@
+See doc/manual.dvi for a full description of the 8bit package.
+
+
+USAGE of 8bit package:
+======================
+
+Configure or set the following environment variables:
+
+ISABELLE8BIT: set the directory of the isabelle 8bit package
+	e.g.:   /usr/proj/isabelle/src/Tools/8bit
+
+PATH: add the absolute path of the executables
+	e.g.:   $ISABELLE8BIT/bin
+
+MANPATH: add the absolute path of the manual pages
+	e.g.:   $ISABELLE8BIT/man
+
+TEXINPUTS: add the absolute path of special LaTeX style files used by the 8bit
+           package (if necessary)
+	e.g.:   $ISABELLE8BIT/latex: 
+
+
+
+INSTALLATION of 8bit package:
+==============================
+
+to install,
+	- change directory to $ISABELLE8BIT
+	- run gmake (the gnu version of make) on the Makefile there
+
+for adaptions of the configuration (in directory config/):
+	- configure the files: conv-tables.inp key-table.inp
+	- run gmake to generate isa2latex, editor support, and documentation
+
+for adapting the conversion table of a2isa (in directory c-sources/a2isa/):
+	- configure the file: lex.x
+	- run gmake there
+
+
+CONTENTS of the 8bit package distribution:
+==========================================
+
+directory axe/
+
+the files concerning isaaxe
+
+
+directory bin/
+
+available user commands concerning isabelle's graphical 8bit font:
+isa_xemacs	- replaces xemacs
+isa_gnu_emacs	- replaces emacs
+isaaxe		- replaces axe
+isavim		- replaces vim
+
+isaterm		- replaces xterm
+isapal		- shows the palette of available graphical characters
+codetable	- prints a the codes of all 8bit characters
+isa_xmosaic	- replaces xmosaic
+
+isa2latex	- converts a file with 8bit characters into a LaTeX source
+a2isa		- converts isabelle files, from ASCII to graphical characters
+
+gen-*		- for administration
+patcher		- for administration
+
+
+directory c-sources/a2isa/
+
+files concerning a2isa
+change lex.x to adapt its conversion table.
+
+
+directory c-sources/isa2latex/
+
+files concerning isa2latex
+change config/conv-tables.inp to adapt its conversion table.
+
+
+directory config/
+
+configuration files for keyboard input and the conversion table of isa2latex
+
+
+directory doc/
+
+manual.dvi	- manual of the 8bit package
+fontindex.dvi	- table of the 8bit characters, indexed by code
+keyindex.dvi	- table of the 8bit characters, indexed by input keystrokes
+fkmatrix.dvi	- table of the 8bit characters mapped to function keys
+
+directory fonts/
+font definitions for the Isabelle and Spectrum 8bit fonts
+install		- install the 8bit font
+
+directory keyboard/
+install		- set the keyboard modifiers
+subdirectories Solaris/ and Linux/ 
+		contain sample versions of useful .Xmodmap files
+
+directory gnu_emacs/
+
+files concerning isa_gnu_emacs
+
+
+directory isa-patches/ and subdirectories
+
+
+
+
+directory latex/
+
+isa2latex.sty	- Isabelle file style used by isa2latex
+
+directory man/man1/
+
+manual pages of some executables
+
+
+directory perl/
+
+simple perl scripts
+
+
+directory perl/generators/
+
+perl scripts for the configuration of many executables
+
+
+directory term/
+
+files concerning isaterm
+
+
+directory vim/
+
+files concerning isavim
+
+
+directory xemacs/
+
+files concerning isa_xemacs
+
+
+directory xmosaic/
+
+files concerning isa_xmosaic

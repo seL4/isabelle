@@ -1,0 +1,33 @@
+.TH PATCHER 1 "August 8, 1995"
+.AT 3
+.SH NAME
+patcher \- perl4.x script
+.SH SYNOPSIS
+.B patcher [-d -dd] configuration_file
+.SH DESCRIPTION
+.I Patcher
+is a universal perl script that patches textfiles according to commands
+that are given in the 
+.I configuration file.
+Each command specifies two pragmas via regular expressions. Between
+these pragmas certain actions are performed by the patcher. The patcher can
+.I CLEAN
+everthing between the pragmas,
+.I ADD 
+the contents of a certain text file between the pragmas or
+.I EXTRACT
+everything between the pragmas and store it in a certain textfile. 
+.SH ENVIRONMENT
+No environment variables are used.
+.SH FILES
+None.
+.SH AUTHOR
+Franz Regensburger
+.SH "SEE ALSO"
+Some examples can be found in the 
+.I isa-patches
+directory of the 8bit package.
+.SH DIAGNOSTICS
+
+.SH BUGS
+

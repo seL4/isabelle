@@ -1,0 +1,17 @@
+\documentstyle[11pt,a4,latexsym,amssymb,isa2latex]{article}
+\begin{document}
+{\isamode
+\begin{tabbing}
+xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=xxxxxxxx\=\kill{}\hspace{-1ex}
+consts\\
+\>Ball\>::\ "{}'a\ set\ \mbox{$\Rightarrow$}\ ('a\ \mbox{$\Rightarrow$}\ bool)\ \mbox{$\Rightarrow$}\ bool"{}\\
+syntax\\
+\>"{}\mbox{$\varepsilon$}Ball"{}\>::\ "{}pttrn\ \mbox{$\Rightarrow$}\ 'a\ set\ \mbox{$\Rightarrow$}\ bool\ \mbox{$\Rightarrow$}\ bool"{}\>\>\>\>\>("{}(3\mbox{$\forall$}\_\mbox{$\in$}\_./\ \_)"{}\ 10)\\
+translations\\
+\>\>"{}\mbox{$\forall$}x\mbox{$\in$}A.\ P"{}\ \mbox{$=$}\mbox{$=$}\ "{}Ball\ A\ (\mbox{$\lambda$}x.\ P)"{}\\
+defs\\
+\ \ \ \ \ Ball\_def\>\>"{}Ball\ A\ P\ \mbox{$\equiv$}\ \mbox{$\forall$}x.\ x\mbox{$\in$}A\ \mbox{$\longrightarrow$}\ P\ x"{}\\
+\\
+
+\end{tabbing}}
+\end{document}
