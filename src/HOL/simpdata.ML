@@ -90,10 +90,11 @@ in
     handle THM _ =>
     error("Premises and conclusion of congruence rules must be =-equalities");
 
+val not_not = prover "(~ ~ P) = P";
 
-val simp_thms = map prover
+val simp_thms = [not_not] @ map prover
  [ "(x=x) = True",
-   "(~True) = False", "(~False) = True", "(~ ~ P) = P",
+   "(~True) = False", "(~False) = True",
    "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
    "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
    "(True --> P) = P", "(False --> P) = True", 
@@ -203,6 +204,10 @@ prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
 prove "not_iff" "(P~=Q) = (P = (~Q))";
 prove "disj_not1" "(~P | Q) = (P --> Q)";
 prove "disj_not2" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
+prove "imp_conv_disj" "(P --> Q) = ((~P) | Q)";
+
+prove "iff_conv_conj_imp" "(P = Q) = ((P --> Q) & (Q --> P))";
+
 
 (*Avoids duplication of subgoals after split_if, when the true and false 
   cases boil down to the same thing.*) 
@@ -463,3 +468,43 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
+
+
+(*** A general refutation procedure ***)
+ 
+(* Parameters:
+
+   test: term -> bool
+   tests if a term is at all relevant to the refutation proof;
+   if not, then it can be discarded. Can improve performance,
+   esp. if disjunctions can be discarded (no case distinction needed!).
+
+   prep_tac: int -> tactic
+   A preparation tactic to be applied to the goal once all relevant premises
+   have been moved to the conclusion.
+
+   ref_tac: int -> tactic
+   the actual refutation tactic. Should be able to deal with goals
+   [| A1; ...; An |] ==> False
+   where the Ai are atomic, i.e. no top-level &, | or ?
+*)
+
+fun refute_tac test prep_tac ref_tac =
+  let val nnf_simps =
+        [imp_conv_disj,iff_conv_conj_imp,de_Morgan_disj,de_Morgan_conj,
+         not_all,not_ex,not_not];
+      val nnf_simpset =
+        empty_ss setmkeqTrue mk_eq_True
+                 setmksimps (mksimps mksimps_pairs)
+                 addsimps nnf_simps;
+      val prem_nnf_tac = full_simp_tac nnf_simpset;
+
+      val refute_prems_tac =
+        REPEAT(eresolve_tac [conjE, exE] 1 ORELSE
+               filter_prems_tac test 1 ORELSE
+               eresolve_tac [disjE] 1) THEN
+        ref_tac 1;
+  in EVERY'[TRY o filter_prems_tac test,
+            REPEAT o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
+            SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
+  end;
