@@ -1603,7 +1603,7 @@ fun looptest sign prems lhs rhs =
   orelse
    is_Var (head_of lhs)
   orelse
-   (exists (apl (lhs, op Logic.occs)) (rhs :: prems))
+   (exists (apl (lhs, Logic.occs)) (rhs :: prems))
   orelse
    (null prems andalso
     Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
