@@ -24,10 +24,10 @@ sig
   val make: string list -> T
   val pack: T -> string
   val unpack: string -> T
+  val dir: T -> T
   val base: T -> T
   val ext: string -> T -> T
-  val drop_ext: T -> T
-  val dir: T -> T
+  val split_ext: T -> T * string
   val expand: T -> T
   val position: T -> Position.T
 end;
@@ -134,17 +134,16 @@ fun split_path f (path as Path xs) =
     Some (prfx, Basic s) => f (prfx, s)
   | _ => error ("Cannot split path into dir/base: " ^ quote (pack path)));
 
+val dir = split_path (fn (prfx, _) => Path prfx);
 val base = split_path (fn (_, s) => Path [Basic s]);
 
 fun ext "" path = path
   | ext e path = split_path (fn (prfx, s) => append (Path prfx) (basic (s ^ "." ^ e))) path;
 
-val drop_ext = split_path (fn (prfx, s) => append (Path prfx)
+val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
   (case take_suffix (not_equal ".") (explode s) of
-    ([], _) => Path [Basic s]
-  | (cs, _) => Path [Basic (implode (take (length cs - 1, cs)))]));
-
-val dir = split_path (fn (prfx, _) => Path prfx);
+    ([], _) => (Path [Basic s], "")
+  | (cs, e) => (Path [Basic (implode (take (length cs - 1, cs)))], implode e)));
 
 
 (* evaluate variables *)
