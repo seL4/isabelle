@@ -42,16 +42,6 @@ by Auto_tac;
 qed "option_caseE";
 
 
-section "the";
-
-Goalw [the_def] "the (Some x) = x";
-by (Simp_tac 1);
-qed "the_Some";
-
-Addsimps [the_Some];
-
-
-
 section "option_map";
 
 Goalw [option_map_def] "option_map f None = None";

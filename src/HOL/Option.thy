@@ -10,21 +10,19 @@ Option = Datatype +
 
 datatype 'a option = None | Some 'a
 
-constdefs
-
-  the		:: "'a option => 'a"
- "the == %y. case y of None => arbitrary | Some x => x"
-
-  option_map	:: "('a => 'b) => ('a option => 'b option)"
- "option_map == %f y. case y of None => None | Some x => Some (f x)"
-
 consts
-
-  o2s	   :: "'a option => 'a set"
+  the :: "'a option => 'a"
+  o2s :: "'a option => 'a set"
 
 primrec
+ "the (Some x) = x"
 
+primrec
  "o2s  None    = {}"
  "o2s (Some x) = {x}"
+
+constdefs
+  option_map	:: "('a => 'b) => ('a option => 'b option)"
+ "option_map == %f y. case y of None => None | Some x => Some (f x)"
 
 end
