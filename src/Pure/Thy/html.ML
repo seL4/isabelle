@@ -26,7 +26,7 @@ sig
   val begin_index: Url.T * string -> Url.T * string -> Url.T option
     -> Url.T option -> Url.T -> text
   val end_index: text
-  val applet_pages: string -> Url.T -> Url.T * string -> bool -> (string * string) list
+  val applet_pages: string -> Url.T * string -> bool -> (string * string) list
   val theory_entry: Url.T * string -> text
   val session_entries: (Url.T * string) list -> text
   val verbatim_source: Symbol.symbol list -> text
@@ -168,7 +168,7 @@ val end_index = end_document;
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
 
-fun applet_pages session codebase back alt_graph =
+fun applet_pages session back alt_graph =
   let
     val choices = [("none", "small",  "small.html"),
                    ("none", "medium", "medium.html"),
@@ -196,7 +196,7 @@ fun applet_pages session codebase back alt_graph =
           back_link back ^
           para (subsessions ^ browser_size) ^
           "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
-          \codebase=\"" ^ Url.pack codebase ^ "\" width=" ^ width ^ " height=" ^ height ^ ">\n\
+          \width=" ^ width ^ " height=" ^ height ^ ">\n\
           \<param name=\"graphfile\" value=\"" ^
           (if gtype = "all" then "all_sessions.graph" else "session.graph") ^ "\">\n\
           \</applet>\n<hr>" ^ end_document)
