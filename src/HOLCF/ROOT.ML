@@ -14,8 +14,8 @@ print_depth 1;
 
 use_thy "HOLCF";
 
-use "HOLCFLogic";
-use "contconsts";
+use "HOLCFLogic.ML";
+use "contconsts.ML";
 
 (* domain package *)
 use "domain/library.ML";
