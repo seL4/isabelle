@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/isar_thy.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Pure/Isar derived theory operations.
 *)
@@ -518,14 +519,10 @@ fun add_oracle ((name, txt), comment_ignore) =
 
 (* theory init and exit *)
 
-fun gen_begin_theory bg name parents files =
-  let
-    val paths = map (apfst Path.unpack) files;
-    val thy = bg name parents paths;
-  in Present.begin_theory name parents paths thy end;
+fun gen_begin_theory upd name parents files =
+  ThyInfo.begin_theory Present.begin_theory upd name parents (map (apfst Path.unpack) files);
 
-val begin_theory = gen_begin_theory ThyInfo.begin_theory;
-val begin_update_theory = gen_begin_theory ThyInfo.begin_update_theory;
+val begin_theory = gen_begin_theory false;
 
 fun end_theory thy =
   if ThyInfo.check_known_thy (PureThy.get_name thy) then ThyInfo.end_theory thy
@@ -534,9 +531,7 @@ fun end_theory thy =
 val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
 
 
-fun bg_theory (name, parents, files) int =
-  (if int then begin_update_theory else begin_theory) name parents files;
-
+fun bg_theory (name, parents, files) int = gen_begin_theory int name parents files;
 fun en_theory thy = (end_theory thy; ());
 
 fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o PureThy.get_name);
