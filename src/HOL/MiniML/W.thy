@@ -22,7 +22,7 @@ primrec W expr
 		           Ok(s, (s n) -> t, m) )"
   W_App	"W (App e1 e2) a n =
  		 ( (s1,t1,m1) := W e1 a n;
-		   (s2,t2,m2) := W e2 ($ s1 a) m1;
-		   u := mgu ($ s2 t1) (t2 -> (TVar m2));
-		   Ok( ($ u) o (($ s2) o s1), $ u (TVar m2), Suc m2) )"
+		   (s2,t2,m2) := W e2 ($s1 a) m1;
+		   u := mgu ($s2 t1) (t2 -> (TVar m2));
+		   Ok( $u o $s2 o s1, $u (TVar m2), Suc m2) )"
 end
