@@ -3,14 +3,15 @@
     Author:     Stefan Berghofer, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Simplification function for partial proof terms involving
-meta level rules.
+Simplification functions for proof terms involving meta level rules.
 *)
 
 signature PROOF_REWRITE_RULES =
 sig
   val rew : bool -> typ list -> Proofterm.proof -> Proofterm.proof option
   val rprocs : bool -> (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
+  val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
+  val elim_defs : Sign.sg -> thm list -> Proofterm.proof -> Proofterm.proof
   val setup : (theory -> theory) list
 end;
 
@@ -173,5 +174,81 @@ fun rew b =
 
 fun rprocs b = [("Pure/meta_equality", rew b)];
 val setup = [Proofterm.add_prf_rprocs (rprocs false)];
+
+
+(**** apply rewriting function to all terms in proof ****)
+
+fun rewrite_terms r =
+  let
+    fun rew_term Ts t =
+      let
+        val frees = map Free (variantlist
+          (replicate (length Ts) "x", add_term_names (t, [])) ~~ Ts);
+        val t' = r (subst_bounds (frees, t));
+        fun strip [] t = t
+          | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;
+      in
+        strip Ts (foldl (uncurry lambda o Library.swap) (t', frees))
+      end;
+
+    fun rew Ts (prf1 %% prf2) = rew Ts prf1 %% rew Ts prf2
+      | rew Ts (prf % Some t) = rew Ts prf % Some (rew_term Ts t)
+      | rew Ts (Abst (s, Some T, prf)) = Abst (s, Some T, rew (T :: Ts) prf)
+      | rew Ts (AbsP (s, Some t, prf)) = AbsP (s, Some (rew_term Ts t), rew Ts prf)
+      | rew _ prf = prf
+
+  in rew [] end;
+
+
+(**** eliminate definitions in proof ****)
+
+fun abs_def thm =
+  let
+    val (_, cvs) = Drule.strip_comb (fst (dest_equals (cprop_of thm)));
+    val thm' = foldr (fn (ct, thm) =>
+      Thm.abstract_rule (fst (fst (dest_Var (term_of ct)))) ct thm) (cvs, thm);
+  in
+    MetaSimplifier.fconv_rule Thm.eta_conversion thm'
+  end;
+
+fun vars_of t = rev (foldl_aterms
+  (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
+
+fun insert_refl defs Ts (prf1 %% prf2) =
+      insert_refl defs Ts prf1 %% insert_refl defs Ts prf2
+  | insert_refl defs Ts (Abst (s, Some T, prf)) =
+      Abst (s, Some T, insert_refl defs (T :: Ts) prf)
+  | insert_refl defs Ts (AbsP (s, t, prf)) =
+      AbsP (s, t, insert_refl defs Ts prf)
+  | insert_refl defs Ts prf = (case strip_combt prf of
+        (PThm ((s, _), _, prop, Some Ts), ts) =>
+          if s mem defs then
+            let
+              val vs = vars_of prop;
+              val tvars = term_tvars prop;
+              val (_, rhs) = Logic.dest_equals prop;
+              val rhs' = foldl betapply (subst_TVars (map fst tvars ~~ Ts)
+                (foldr (fn p => Abs ("", dummyT, abstract_over p)) (vs, rhs)),
+                map the ts);
+            in
+              change_type (Some [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs'
+            end
+          else prf
+      | (_, []) => prf
+      | (prf', ts) => proof_combt' (insert_refl defs Ts prf', ts));
+
+fun elim_defs sign defs prf =
+  let
+    val tsig = Sign.tsig_of sign;
+    val defs' = map (Logic.dest_equals o prop_of o abs_def) defs;
+    val defnames = map Thm.name_of_thm defs;
+    val cnames = map (fst o dest_Const o fst) defs';
+    val thmnames = map fst (filter_out (fn (s, ps) =>
+      null (foldr add_term_consts (map fst ps, []) inter cnames))
+        (Symtab.dest (thms_of_proof Symtab.empty prf))) \\ defnames
+  in
+    rewrite_terms (Pattern.rewrite_term tsig defs') (insert_refl defnames []
+      (Reconstruct.expand_proof sign thmnames prf))
+  end;
 
 end;
