@@ -52,6 +52,17 @@ val UnE = prove_goalw ZF.thy [Un_def]
     (etac UpairE 1),
     (REPEAT (EVERY1 [resolve_tac prems, etac subst, assume_tac])) ]);
 
+(*Stronger version of the rule above*)
+val UnE' = prove_goal ZF.thy
+    "[| c : A Un B;  c:A ==> P;  [| c:B;  c~:A |] ==> P |] ==> P"
+ (fn major::prems =>
+  [(rtac (major RS UnE) 1),
+   (eresolve_tac prems 1),
+   (rtac classical 1),
+   (eresolve_tac prems 1),
+   (swap_res_tac prems 1),
+   (etac notnotD 1)]);
+
 val Un_iff = prove_goal ZF.thy "c : A Un B <-> (c:A | c:B)"
  (fn _ => [ (fast_tac (lemmas_cs addIs [UnI1,UnI2] addSEs [UnE]) 1) ]);
 
@@ -124,6 +135,17 @@ val consE = prove_goalw ZF.thy [cons_def]
  (fn major::prems=>
   [ (rtac (major RS UnE) 1),
     (REPEAT (eresolve_tac (prems @ [UpairE]) 1)) ]);
+
+(*Stronger version of the rule above*)
+val consE' = prove_goal ZF.thy
+    "[| a : cons(b,A);  a=b ==> P;  [| a:A;  a~=b |] ==> P |] ==> P"
+ (fn major::prems =>
+  [(rtac (major RS consE) 1),
+   (eresolve_tac prems 1),
+   (rtac classical 1),
+   (eresolve_tac prems 1),
+   (swap_res_tac prems 1),
+   (etac notnotD 1)]);
 
 val cons_iff = prove_goal ZF.thy "a : cons(b,A) <-> (a=b | a:A)"
  (fn _ => [ (fast_tac (lemmas_cs addIs [consI1,consI2] addSEs [consE]) 1) ]);
