@@ -21,12 +21,16 @@ consts
   single :: 'a                => 'a multiset   ("{#_#}")
   count  :: ['a multiset, 'a] => nat
   set_of :: 'a multiset => 'a set
+  MCollect :: ['a multiset, 'a => bool] => 'a multiset (*comprehension*)
+
 
 syntax
-  elem   :: ['a multiset, 'a] => bool          ("(_/ :# _)" [50, 51] 50)
+  elem     :: ['a, 'a multiset] => bool              ("(_/ :# _)" [50, 51] 50)
+  "@MColl" :: [pttrn, 'a multiset, bool] => 'a multiset ("(1{# _ : _./ _#})")
 
 translations
-  "M :# a" == "0 < count M a"
+  "a :# M"     == "0 < count M a"
+  "{#x:M. P#}" == "MCollect M (%x. P)"
 
 defs
   count_def  "count == Rep_multiset"
@@ -34,14 +38,16 @@ defs
   single_def "{#a#} == Abs_multiset(%b. if b=a then 1 else 0)"
   union_def  "M+N   == Abs_multiset(%a. Rep_multiset M a + Rep_multiset N a)"
   diff_def   "M-N    == Abs_multiset(%a. Rep_multiset M a - Rep_multiset N a)"
-  set_of_def "set_of M == {x. M :# x}"
+  MCollect_def "MCollect M P ==
+		Abs_multiset(%x. if P x then Rep_multiset M x else 0)"
+  set_of_def "set_of M == {x. x :# M}"
   size_def   "size (M) == setsum (count M) (set_of M)"
   Zero_def   "0 == {#}"
 
 constdefs
   mult1 :: "('a * 'a)set => ('a multiset * 'a multiset)set"
  "mult1(r) == {(N,M) . ? a M0 K. M = M0 + {#a#} & N = M0 + K &
-                                 (!b. K :# b --> (b,a) : r)}"
+                                 (!b. b :# K --> (b,a) : r)}"
 
   mult :: "('a * 'a)set => ('a multiset * 'a multiset)set"
  "mult(r) == (mult1 r)^+"

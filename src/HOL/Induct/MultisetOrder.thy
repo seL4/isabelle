@@ -11,5 +11,5 @@ MultisetOrder = Multiset +
 instance multiset :: (order) order
     (mult_le_refl,mult_le_trans,mult_le_antisym,mult_less_le)
 
-instance multiset :: (term) plus_ac0 (union_comm,union_assoc) {|Auto_tac|}
+instance multiset :: (term) plus_ac0 (union_commute,union_assoc) {|Auto_tac|}
 end

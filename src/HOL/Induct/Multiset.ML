@@ -46,6 +46,7 @@ by (Asm_full_simp_tac 1);
 qed "multiset_eq_conv_Rep_eq";
 Addsimps [multiset_eq_conv_Rep_eq];
 Addsimps [expand_fun_eq];
+
 (*
 Goal
  "[| f : multiset; g : multiset |] ==> \
@@ -74,7 +75,7 @@ Addsimps [union_empty];
 Goalw [union_def]
  "(M::'a multiset) + N = N + M";
 by (simp_tac (simpset() addsimps add_ac) 1);
-qed "union_comm";
+qed "union_commute";
 
 Goalw [union_def]
  "((M::'a multiset)+N)+K = M+(N+K)";
@@ -82,10 +83,10 @@ by (simp_tac (simpset() addsimps add_ac) 1);
 qed "union_assoc";
 
 qed_goal "union_lcomm" thy "M+(N+K) = N+((M+K)::'a multiset)"
- (fn _ => [rtac (union_comm RS trans) 1, rtac (union_assoc RS trans) 1,
-           rtac (union_comm RS arg_cong) 1]);
+ (fn _ => [rtac (union_commute RS trans) 1, rtac (union_assoc RS trans) 1,
+           rtac (union_commute RS arg_cong) 1]);
 
-bind_thms ("union_ac", [union_assoc, union_comm, union_lcomm]);
+bind_thms ("union_ac", [union_assoc, union_commute, union_lcomm]);
 
 (* diff *)
 
@@ -150,6 +151,10 @@ Goalw [set_of_def, empty_def, count_def] "(set_of M = {}) = (M = {#})";
 by Auto_tac;
 qed "set_of_eq_empty_iff";
 
+Goalw [set_of_def] "(x : set_of M) = (x :# M)";
+by Auto_tac; 
+qed "mem_set_of_iff";
+
 (* size *)
 
 Goalw [size_def] "size {#} = 0";
@@ -185,6 +190,17 @@ by (stac Int_commute 1);
 by (asm_simp_tac (simpset() addsimps [setsum_count_Int]) 1);
 qed "size_union";
 Addsimps [size_union];
+
+Goalw [size_def, empty_def, count_def] "(size M = 0) = (M = {#})";
+by Auto_tac; 
+by (asm_full_simp_tac (simpset() addsimps [set_of_def, count_def]) 1); 
+qed "size_eq_0_iff_empty";
+AddIffs [size_eq_0_iff_empty];
+
+Goalw [size_def] "size M = Suc n ==> EX a. a :# M";
+by (dtac setsum_SucD 1);
+by Auto_tac; 
+qed "size_eq_Suc_imp_elem";
 
 
 (* equalities *)
@@ -290,6 +306,7 @@ qed "finite_psubset_induct";
 Better: use wf_finite_psubset in WF_Rel
 *)
 
+
 (** Towards the induction rule **)
 
 Goal "[| finite F; 0 < f a |] ==> \
@@ -362,6 +379,29 @@ by (etac (Abs_multiset_inverse RS subst) 1);
 by (etac(simplify (simpset()) prem2)1);
 qed "multiset_induct";
 
+Goal "M : multiset ==> (%x. if P x then M x else 0) : multiset";
+by (asm_full_simp_tac (simpset() addsimps [multiset_def]) 1);
+by (rtac finite_subset 1);
+by Auto_tac; 
+qed "MCollect_preserves_multiset";
+
+Goalw [count_def,MCollect_def]
+ "count {# x:M. P x #} a = (if P a then count M a else 0)";
+by (asm_full_simp_tac (simpset() addsimps [MCollect_preserves_multiset]) 1); 
+qed "count_MCollect";
+Addsimps [count_MCollect];
+
+Goalw [set_of_def]
+ "set_of {# x:M. P x #} = set_of M Int {x. P x}";
+by Auto_tac; 
+qed "set_of_MCollect";
+Addsimps [set_of_MCollect];
+
+Goal "M = {# x:M. P x #} + {# x:M. ~ P x #}";
+by (stac multiset_eq_conv_count_eq 1);
+by Auto_tac; 
+qed "multiset_partition";
+
 Delsimps [multiset_eq_conv_Rep_eq, expand_fun_eq];
 Delsimps [Abs_multiset_inverse,Rep_multiset_inverse,Rep_multiset];
 
@@ -381,7 +421,7 @@ AddIffs [not_less_empty];
 Goalw [mult1_def]
  "(N,M0 + {#a#}) : mult1(r) = \
 \ ((? M. (M,M0) : mult1(r) & N = M + {#a#}) | \
-\  (? K. (!b. K :# b --> (b,a) : r) & N = M0 + K))";
+\  (? K. (!b. b :# K --> (b,a) : r) & N = M0 + K))";
 by (rtac iffI 1);
  by (asm_full_simp_tac (simpset() addsimps [add_eq_conv_ex]) 1);
  by (Clarify_tac 1);
@@ -455,7 +495,7 @@ qed "wf_mult";
 
 (* Badly needed: a linear arithmetic tactic for multisets *)
 
-Goal "J :# a ==> I+J - {#a#} = I + (J-{#a#})";
+Goal "a :# J ==> I+J - {#a#} = I + (J-{#a#})";
 by (asm_simp_tac (simpset() addsimps [multiset_eq_conv_count_eq]) 1);
 qed "diff_union_single_conv";
 
@@ -469,7 +509,7 @@ by (etac converse_trancl_induct 1);
  by (res_inst_tac [("x","M0")] exI 1);
  by (Simp_tac 1);
 by (Clarify_tac 1);
-by (case_tac "K :# a" 1);
+by (case_tac "a :# K" 1);
  by (res_inst_tac [("x","I")] exI 1);
  by (Simp_tac 1);
  by (res_inst_tac [("x","(K - {#a#}) + Ka")] exI 1);
@@ -478,7 +518,7 @@ by (case_tac "K :# a" 1);
  by (asm_full_simp_tac (simpset() addsimps [diff_union_single_conv]) 1);
  by (full_simp_tac (simpset() addsimps [trans_def]) 1);
  by (Blast_tac 1);
-by (subgoal_tac "I :# a" 1);
+by (subgoal_tac "a :# I" 1);
  by (res_inst_tac [("x","I-{#a#}")] exI 1);
  by (res_inst_tac [("x","J+{#a#}")] exI 1);
  by (res_inst_tac [("x","K + Ka")] exI 1);
@@ -492,10 +532,63 @@ by (subgoal_tac "I :# a" 1);
                              addsplits [nat_diff_split]) 1);
  by (full_simp_tac (simpset() addsimps [trans_def]) 1);
  by (Blast_tac 1);
-by (subgoal_tac "(M0 +{#a#}) :# a" 1);
+by (subgoal_tac "a :# (M0 +{#a#})" 1);
  by (Asm_full_simp_tac 1);
 by (Simp_tac 1);
 qed "mult_implies_one_step";
+
+Goal "a :# M ==> M = M - {#a#} + {#a#}";
+by (asm_simp_tac (simpset() addsimps [multiset_eq_conv_count_eq]) 1);
+qed "elem_imp_eq_diff_union";
+
+Goal "size M = Suc n ==> EX a N. M = N + {#a#}";
+by (etac (size_eq_Suc_imp_elem RS exE) 1);
+by (dtac elem_imp_eq_diff_union 1); 
+by Auto_tac; 
+qed "size_eq_Suc_imp_eq_union";
+
+
+Goal  "trans r ==> \
+\ ALL I J K. \
+\  (size J = n & J ~= {#} & \
+\   (! k : set_of K. ? j : set_of J. (k,j) : r)) --> (I+K, I+J) : mult r";
+by (induct_tac "n" 1);
+by Auto_tac; 
+by (ftac size_eq_Suc_imp_eq_union 1);
+by (Clarify_tac 1); 
+ren "J'" 1;
+by (Asm_full_simp_tac 1); 
+by (etac notE 1); 
+by Auto_tac; 
+by (case_tac "J' = {#}" 1);
+ by (asm_full_simp_tac (simpset() addsimps [mult_def]) 1); 
+ by (rtac r_into_trancl 1); 
+ by (asm_full_simp_tac (simpset() addsimps [mult1_def,set_of_def]) 1);
+ by (Blast_tac 1); 
+(*Now we know J' ~= {#}*)
+by (cut_inst_tac [("M","K"),("P", "%x. (x,a):r")] multiset_partition 1);
+by (eres_inst_tac [("P", "ALL k : set_of K. ?P k")] rev_mp 1); 
+by (etac ssubst 1); 
+by (asm_full_simp_tac (simpset() addsimps [Ball_def]) 1); 
+by Auto_tac; 
+by (subgoal_tac "((I + {# x : K. (x, a) : r#}) + {# x : K. (x, a) ~: r#}, \
+\                 (I + {# x : K. (x, a) : r#}) + J') : mult r" 1);
+ by (Force_tac 2);
+by (full_simp_tac (simpset() addsimps [union_assoc RS sym, mult_def]) 1); 
+by (etac trancl_trans 1); 
+by (rtac r_into_trancl 1); 
+by (asm_full_simp_tac (simpset() addsimps [mult1_def,set_of_def]) 1); 
+by (res_inst_tac [("x", "a")] exI 1); 
+by (res_inst_tac [("x", "I + J'")] exI 1); 
+by (asm_simp_tac (simpset() addsimps union_ac) 1); 
+qed_spec_mp "one_step_implies_mult_lemma";
+
+Goal  "[| trans r;  J ~= {#};  \
+\         ALL k : set_of K. EX j : set_of J. (k,j) : r |] \
+\      ==> (I+K, I+J) : mult r";
+by (rtac one_step_implies_mult_lemma 1); 
+by Auto_tac; 
+qed "one_step_implies_mult";
 
 
 (** Proving that multisets are partially ordered **)
@@ -532,7 +625,7 @@ qed "mult_less_trans";
 (*asymmetry*)
 Goal "M < N ==> ~ N < (M :: ('a::order)multiset)";
 by Auto_tac;
-br (mult_less_not_refl RS notE) 1;
+by (rtac (mult_less_not_refl RS notE) 1);
 by (etac mult_less_trans 1);
 by (assume_tac 1);
 qed "mult_less_not_sym";
@@ -543,6 +636,7 @@ bind_thm ("mult_less_asym", mult_less_not_sym RS swap);
 Goalw [mult_le_def] "M <= (M :: ('a::order)multiset)";
 by Auto_tac;
 qed "mult_le_refl";
+AddIffs [mult_le_refl];
 
 (*anti-symmetry*)
 Goalw [mult_le_def] "[| M <= N;  N <= M |] ==> M = (N :: ('a::order)multiset)";
@@ -558,3 +652,63 @@ qed "mult_le_trans";
 Goalw [mult_le_def] "M < N = (M <= N & M ~= (N :: ('a::order)multiset))";
 by Auto_tac;
 qed "mult_less_le";
+
+
+(** Monotonicity of multiset union **)
+
+Goalw [mult1_def]
+     "[| (B,D) : mult1 r; trans r |] ==> (C + B, C + D) : mult1 r";
+by Auto_tac; 
+by (res_inst_tac [("x", "a")] exI 1); 
+by (res_inst_tac [("x", "C+M0")] exI 1); 
+by (asm_simp_tac (simpset() addsimps [union_assoc]) 1); 
+qed "mult1_union";
+
+Goalw [mult_less_def, mult_def]
+     "!!C:: ('a::order) multiset. B<D ==> C+B < C+D";
+by (etac trancl_induct 1); 
+by (blast_tac (claset() addIs [mult1_union, transI, order_less_trans, 
+                               r_into_trancl]) 1); 
+by (blast_tac (claset() addIs [mult1_union, transI, order_less_trans, 
+                               r_into_trancl, trancl_trans]) 1); 
+qed "union_less_mono2";
+
+Goal "!!C:: ('a::order) multiset. B<D ==> B+C < D+C";
+by (simp_tac (simpset() addsimps [union_commute]) 1); 
+by (etac union_less_mono2 1); 
+qed "union_less_mono1";
+
+Goal "!!C:: ('a::order) multiset. [| A<C; B<D |] ==> A+B < C+D";
+by (blast_tac (claset() addIs [union_less_mono1, union_less_mono2,
+                               mult_less_trans]) 1); 
+qed "union_less_mono";
+
+Goalw [mult_le_def]
+     "!!D:: ('a::order) multiset. [| A<=C;  B<=D |] ==> A+B <= C+D";
+by (blast_tac (claset() addIs [union_less_mono, union_less_mono1, 
+                               union_less_mono2]) 1); 
+qed "union_le_mono";
+
+
+
+Goalw [mult_le_def, mult_less_def]
+     "{#} <= (M :: ('a::order) multiset)";
+by (case_tac "M={#}" 1);
+by (subgoal_tac "({#} + {#}, {#} + M) : mult(Collect (split op <))" 2);
+by (rtac one_step_implies_mult 3);
+bw trans_def;
+by Auto_tac; 
+by (blast_tac (claset() addIs [order_less_trans]) 1); 
+qed "empty_leI";
+AddIffs [empty_leI];
+
+
+Goal "!!A:: ('a::order) multiset. A <= A+B";
+by (subgoal_tac "A+{#} <= A+B" 1);
+by (rtac union_le_mono 2); 
+by Auto_tac; 
+qed "union_upper1";
+
+Goal "!!A:: ('a::order) multiset. B <= A+B";
+by (stac union_commute 1 THEN rtac union_upper1 1);
+qed "union_upper2";
