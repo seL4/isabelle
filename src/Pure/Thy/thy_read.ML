@@ -98,6 +98,7 @@ sig
   val make_html     : bool ref
   val init_html     : unit -> unit
   val finish_html   : unit -> unit
+  val section       : string -> unit
 end;
 
 
@@ -1008,6 +1009,17 @@ val theory_of_thm = theory_of_sign o #sign o rep_thm;
 
 (** Store theorems **)
 
+(*Makes HTML title for list of theorems; as this list may be empty and we
+  don't want a title in that case, mk_theorems_title is only invoked when
+  something is added to the list*)
+fun mk_theorems_title out =
+  if not (!cur_has_title) then
+    (cur_has_title := true;
+     output (out, "<HR><H2>Theorems proved in <A HREF = \"" ^
+                  (!cur_thyname) ^ ".ML\">" ^ (!cur_thyname) ^
+                  ".ML</A>:</H2>\n"))
+  else ();
+
 (*Store a theorem in the thy_info of its theory,
   and in the theory's HTML file*)
 fun store_thm (name, thm) =
@@ -1033,12 +1045,7 @@ fun store_thm (name, thm) =
             | escape (c::s)   = c ^ escape s;
       in case !cur_htmlfile of
              Some out =>
-               (if not (!cur_has_title) then
-                  (cur_has_title := true;
-                   output (out, "<HR><H2>Theorems proved in <A HREF = \"" ^
-                                (!cur_thyname) ^ ".ML\">" ^ (!cur_thyname) ^
-                                ".ML</A>:</H2>\n"))
-                else ();
+               (mk_theorems_title out;
                 output (out, "<EM>" ^ name ^ "</EM>\n<PRE>" ^
                              escape (explode (string_of_thm (freeze thm))) ^
                              "</PRE><P>\n")
@@ -1257,6 +1264,13 @@ fun finish_html () = if not (!make_html) then () else
      if super_index = "" orelse (inside_isabelle andalso level = 0) then ()
         else link_directory ()
   end;
+
+(*Append section heading to HTML file*)
+fun section s =
+  case !cur_htmlfile of
+      Some out => (mk_theorems_title out;
+                   output (out, "<H3>" ^ s ^ "</H3>\n"))
+    | None => ();
 
 
 (*** Print theory ***)
