@@ -8,6 +8,13 @@ Functions in Zermelo-Fraenkel Set Theory
 
 theory func = equalities:
 
+lemma relation_converse_converse [simp]:
+     "relation(r) ==> converse(converse(r)) = r"
+by (simp add: relation_def, blast) 
+
+lemma relation_restrict [simp]:  "relation(restrict(r,A))"
+by (simp add: restrict_def relation_def, blast) 
+
 (*** The Pi operator -- dependent function space ***)
 
 lemma Pi_iff:

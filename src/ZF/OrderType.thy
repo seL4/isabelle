@@ -12,6 +12,7 @@ But a definition by transfinite recursion would be much simpler!
 *)
 
 theory OrderType = OrderArith + OrdQuant:
+
 constdefs
   
   ordermap  :: "[i,i]=>i"
@@ -469,13 +470,38 @@ apply (rule all_lt_imp_le)
 apply (auto simp add: Ord_oadd lt_oadd1) 
 done
 
-(** A couple of strange but necessary results! **)
+(** Various other results **)
 
 lemma id_ord_iso_Memrel: "A<=B ==> id(A) : ord_iso(A, Memrel(A), A, Memrel(B))"
 apply (rule id_bij [THEN ord_isoI])
 apply (simp (no_asm_simp))
 apply blast
 done
+
+lemma subset_ord_iso_Memrel:
+     "[| f: ord_iso(A,Memrel(B),C,r); A<=B |] ==> f: ord_iso(A,Memrel(A),C,r)"
+apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN fun_is_rel]) 
+apply (frule ord_iso_trans [OF id_ord_iso_Memrel], assumption) 
+apply (simp add: right_comp_id) 
+done
+
+lemma restrict_ord_iso:
+     "[| f \<in> ord_iso(i, Memrel(i), Order.pred(A,a,r), r);  a \<in> A; j < i; 
+       trans[A](r) |]
+      ==> restrict(f,j) \<in> ord_iso(j, Memrel(j), Order.pred(A,f`j,r), r)"
+apply (frule ltD) 
+apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN apply_type], assumption) 
+apply (frule ord_iso_restrict_pred, assumption) 
+apply (simp add: pred_iff trans_pred_pred_eq lt_pred_Memrel)
+apply (blast intro!: subset_ord_iso_Memrel le_imp_subset [OF leI]) 
+done
+
+lemma restrict_ord_iso2:
+     "[| f \<in> ord_iso(Order.pred(A,a,r), r, i, Memrel(i));  a \<in> A; 
+       j < i; trans[A](r) |]
+      ==> converse(restrict(converse(f), j)) 
+          \<in> ord_iso(Order.pred(A, converse(f)`j, r), r, j, Memrel(j))"
+by (blast intro: restrict_ord_iso ord_iso_sym ltI)
 
 lemma ordertype_sum_Memrel:
      "[| well_ord(A,r);  k<j |]
@@ -582,6 +608,28 @@ apply (frule Limit_has_0 [THEN ltD])
 apply (simp (no_asm_simp) add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric] Union_eq_UN [symmetric] Limit_Union_eq)
 done
 
+lemma oadd_eq_0_iff: "[| Ord(i); Ord(j) |] ==> (i ++ j) = 0 <-> i=0 & j=0"
+apply (erule trans_induct3 [of j])
+apply (simp_all add: oadd_Limit)
+apply (simp add: Union_empty_iff Limit_def lt_def, blast)
+done
+
+lemma oadd_eq_lt_iff: "[| Ord(i); Ord(j) |] ==> 0 < (i ++ j) <-> 0<i | 0<j"
+by (simp add: Ord_0_lt_iff [symmetric] oadd_eq_0_iff)
+
+lemma oadd_LimitI: "[| Ord(i); Limit(j) |] ==> Limit(i ++ j)"
+apply (simp add: oadd_Limit)
+apply (frule Limit_has_1 [THEN ltD])
+apply (rule increasing_LimitI)
+ apply (rule Ord_0_lt)
+  apply (blast intro: Ord_in_Ord [OF Limit_is_Ord])
+ apply (force simp add: Union_empty_iff oadd_eq_0_iff
+                        Limit_is_Ord [of j, THEN Ord_in_Ord], auto)
+apply (rule_tac x="succ(x)" in bexI)
+ apply (simp add: ltI Limit_is_Ord [of j, THEN Ord_in_Ord])
+apply (simp add: Limit_def lt_def) 
+done
+
 (** Order/monotonicity properties of ordinal addition **)
 
 lemma oadd_le_self2: "Ord(i) ==> i le j++i"
@@ -616,6 +664,13 @@ by (simp del: oadd_succ add: oadd_succ [symmetric] le_Ord2 oadd_lt_mono)
 
 lemma oadd_le_iff2: "[| Ord(j); Ord(k) |] ==> i++j le i++k <-> j le k"
 by (simp del: oadd_succ add: oadd_lt_iff2 oadd_succ [symmetric] Ord_succ)
+
+lemma oadd_lt_self: "[| Ord(i);  0<j |] ==> i < i++j"
+apply (rule lt_trans2) 
+apply (erule le_refl) 
+apply (simp only: lt_Ord2  oadd_1 [of i, symmetric]) 
+apply (blast intro: succ_leI oadd_le_mono)
+done
 
 
 (** Ordinal subtraction; the difference is ordertype(j-i, Memrel(j)). 
