@@ -13,7 +13,9 @@ end;
 signature FILE =
 sig
   include BASIC_FILE
+  val tmp_name: string -> string
   val exists: string -> bool
+  val info: string -> string
   val read: string -> string
   val write: string -> string -> unit
   val append: string -> string -> unit
@@ -24,9 +26,17 @@ structure File: FILE =
 struct
 
 
-(* exists *)
+(* tmp_name *)
+
+fun tmp_name name =
+  Path.pack (Path.evaluate (Path.unpack o getenv)
+    (Path.append (Path.variable "ISABELLE_TMP") (Path.unpack name)));
+
+
+(* exists / info *)
 
 fun exists name = (file_info name <> "");
+val info = file_info;
 
 
 (* read / write files *)
@@ -52,7 +62,7 @@ fun append name txt =
     TextIO.closeOut outstream
   end;
 
-fun copy infile outfile =               (* FIXME improve *)
+fun copy infile outfile =
   if not (exists infile) then error ("File not found: " ^ quote infile)
   else write outfile (read infile);
 
