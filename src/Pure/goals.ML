@@ -275,8 +275,8 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (check, cond_timeit (!proof_timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
-	       error ("The exception above was raised for\n" ^ 
-		      string_of_cterm chorn));
+	       writeln ("The exception above was raised for\n" ^ 
+		      string_of_cterm chorn); raise e);
 
 (*Two variants: one checking the result, one not.  
   Neither prints runtime messages: they are for internal packages.*)
