@@ -17,9 +17,7 @@ consts
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
   hd, last    :: 'a list => 'a
   set         :: 'a list => 'a set
-  list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
-  mem         :: ['a, 'a list] => bool                    (infixl 55)
   nth         :: ['a list, nat] => 'a			  (infixl "!" 100)
   list_update :: 'a list => nat => 'a => 'a list
   take, drop  :: [nat, 'a list] => 'a list
@@ -37,6 +35,9 @@ nonterminals
   lupdbinds  lupdbind
 
 syntax
+  mem         :: ['a, 'a list] => bool                    (infixl 55)
+  list_all    :: ('a => bool) => ('a list => bool)
+
   (* list Enumeration *)
   "@list"     :: args => 'a list                          ("[(_)]")
 
@@ -52,6 +53,9 @@ syntax
   upto        :: nat => nat => nat list                   ("(1[_../_])")
 
 translations
+  "x mem xs"      == "x:set xs"
+  "list_all P xs" == "Ball (set xs) P"
+  
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
   "[x:xs . P]"  == "filter (%x. P) xs"
@@ -93,14 +97,8 @@ primrec
   "butlast [] = []"
   "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
 primrec
-  "x mem [] = False"
-  "x mem (y#ys) = (if y=x then True else x mem ys)"
-primrec
   "set [] = {}"
   "set (x#xs) = insert x (set xs)"
-primrec
-  list_all_Nil  "list_all P [] = True"
-  list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"
 primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
@@ -151,7 +149,7 @@ primrec
   "remdups [] = []"
   "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
 primrec
-  replicate_0   "replicate 0 x       = []"
+  replicate_0   "replicate  0      x = []"
   replicate_Suc "replicate (Suc n) x = x # replicate n x"
 
 (** Lexcicographic orderings on lists **)

@@ -403,22 +403,6 @@ bind_thm ("rev_exhaust",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
 
 
-(** mem **)
-
-section "mem";
-
-Goal "x mem (xs@ys) = (x mem xs | x mem ys)";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "mem_append";
-Addsimps[mem_append];
-
-Goal "x mem [x:xs. P(x)] = (x mem xs & P(x))";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "mem_filter";
-Addsimps[mem_filter];
-
 (** set **)
 
 section "set";
@@ -433,11 +417,6 @@ by (induct_tac "xs" 1);
 by Auto_tac;
 qed "set_append";
 Addsimps[set_append];
-
-Goal "(x mem xs) = (x: set xs)";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "set_mem_eq";
 
 Goal "set l <= set (x#l)";
 by Auto_tac;
@@ -461,7 +440,7 @@ by Auto_tac;
 qed "set_map";
 Addsimps [set_map];
 
-Goal "(x : set(filter P xs)) = (x : set xs & P x)";
+Goal "(x : set (filter P xs)) = (x : set xs & P x)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "in_set_filter";
@@ -494,22 +473,16 @@ AddSIs [in_listsI];
 
 section "list_all";
 
-Goal "list_all (%x. True) xs = True";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "list_all_True";
-Addsimps [list_all_True];
-
-Goal "list_all p (xs@ys) = (list_all p xs & list_all p ys)";
+Goal "list_all P (xs@ys) = (list_all P xs & list_all P ys)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "list_all_append";
 Addsimps [list_all_append];
 
-Goal "list_all P xs = (!x. x mem xs --> P(x))";
+Goal "list_all P xs = (!x. x mem xs --> P x)";
 by (induct_tac "xs" 1);
 by Auto_tac;
-qed "list_all_mem_conv";
+qed "list_all_conv";
 
 
 (** filter **)
@@ -538,9 +511,13 @@ Goal "length (filter P xs) <= length xs";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "length_filter";
+Addsimps[length_filter];
 
+Goal "set (filter P xs) <= set xs";
+by Auto_tac;
+qed "filter_is_subset";
+Addsimps [filter_is_subset];
 
-(** concat **)
 
 section "concat";
 
