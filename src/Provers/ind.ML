@@ -43,7 +43,7 @@ fun qnt_tac i = fn (tac,var) => tac THEN res_inst_tac [(a_name,var)] spec i;
 fun all_frees_tac (var:string) i thm = 
     let val tsig = #tsig(Sign.rep_sg(#sign(rep_thm thm)));
         val frees = add_term_frees tsig (nth_elem(i-1,prems_of thm),[var]);
-        val frees' = sort(op>)(frees \ var) @ [var]
+        val frees' = sort (rev_order o string_ord) (frees \ var) @ [var]
     in foldl (qnt_tac i) (all_tac,frees') thm end;
 
 fun REPEAT_SIMP_TAC simp_tac n i =

@@ -42,7 +42,7 @@ fun cons12 x y (xs, ys, z) = (x :: xs, y :: ys, z);
 fun cancel ts [] vs = (ts, [], vs)
   | cancel [] us vs = ([], us, vs)
   | cancel (t :: ts) (u :: us) vs =
-      (case Logic.term_ord (t, u) of
+      (case Term.term_ord (t, u) of
         EQUAL => cancel ts us (t :: vs)
       | LESS => cons1 t (cancel ts (u :: us) vs)
       | GREATER => cons2 u (cancel (t :: ts) us vs));
@@ -63,7 +63,7 @@ fun proc sg _ t =
     None => None
   | Some bal =>
       let
-        val (ts, us) = pairself (sort Logic.termless o Data.dest_sum) bal;
+        val (ts, us) = pairself (sort Term.term_ord o Data.dest_sum) bal;
         val (ts', us', vs) = cancel ts us [];
       in
         if null vs then None
