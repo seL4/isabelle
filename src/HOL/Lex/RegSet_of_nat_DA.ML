@@ -187,29 +187,29 @@ by (Asm_simp_tac 1);
 qed_spec_mp "regset_spec";
 
 Goalw [bounded_def]
- "!!d. bounded d k ==> !i. i < k --> (!n:set(trace d i xs). n < k)";
+ "bounded d k ==> !i. i < k --> (!n:set(trace d i xs). n < k)";
 by (induct_tac "xs" 1);
  by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "trace_below";
 
-Goal "!!d. [| bounded d k; i < k; j < k |] ==> \
-\         regset d i j k = {xs. deltas d xs i = j}";
+Goal "[| bounded d k; i < k; j < k |] ==> \
+\     regset d i j k = {xs. deltas d xs i = j}";
 by (rtac set_ext 1);
 by (simp_tac (simpset() addsimps [regset_spec]) 1);
 by (blast_tac (claset() addDs [trace_below,in_set_butlastD]) 1);
 qed "regset_below";
 
 Goalw [bounded_def]
- "!!d. bounded d k ==> !i. i < k --> deltas d w i < k";
+ "bounded d k ==> !i. i < k --> deltas d w i < k";
 by (induct_tac "w" 1);
  by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "deltas_below";
 
 Goalw [regset_of_DA_def]
- "!!d. [| bounded (next A) k; start A < k; j < k |] ==> \
-\      w : regset_of_DA A k = accepts A w";
+ "[| bounded (next A) k; start A < k; j < k |] ==> \
+\ w : regset_of_DA A k = accepts A w";
 by(asm_simp_tac (simpset() addcongs [conj_cong] addsimps
  [regset_below,deltas_below,accepts_def,delta_def]) 1);
 qed "regset_DA_equiv";

@@ -49,7 +49,7 @@ qed "cd_diff_r";
 
 (*** gcd ***)
 
-Goalw [gcd_def] "!!n. 0<n ==> n = gcd n n";
+Goalw [gcd_def] "0<n ==> n = gcd n n";
 by (forward_tac [cd_nnn] 1);
 by (rtac (select_equality RS sym) 1);
 by (blast_tac (claset() addDs [cd_le]) 1);

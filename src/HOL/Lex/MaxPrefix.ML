@@ -50,7 +50,7 @@ qed_spec_mp "maxsplit_lemma";
 Addsplits [split_if];
 
 Goalw [is_maxpref_def]
- "!!P. ~(? us. us<=xs & P us) ==> is_maxpref P ps xs = (ps = [])";
+ "~(? us. us<=xs & P us) ==> is_maxpref P ps xs = (ps = [])";
 by(Blast_tac 1);
 qed "is_maxpref_Nil";
 Addsimps [is_maxpref_Nil];

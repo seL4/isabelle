@@ -16,14 +16,14 @@ qed "bound_typ_inst_mk_scheme";
 
 Addsimps [bound_typ_inst_mk_scheme];
 
-Goal "!!S. bound_typ_inst ($S o R) ($S sch) = $S (bound_typ_inst R sch)";
+Goal "bound_typ_inst ($S o R) ($S sch) = $S (bound_typ_inst R sch)";
 by (type_scheme.induct_tac "sch" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "bound_typ_inst_composed_subst";
 
 Addsimps [bound_typ_inst_composed_subst];
 
-Goal "!!S. S = S' ==> sch = sch' ==> bound_typ_inst S sch = bound_typ_inst S' sch'";
+Goal "S = S' ==> sch = sch' ==> bound_typ_inst S sch = bound_typ_inst S' sch'";
 by (Asm_full_simp_tac 1);
 qed "bound_typ_inst_eq";
 
@@ -31,7 +31,7 @@ qed "bound_typ_inst_eq";
 
 (* lemmatas for bound_scheme_inst *)
 
-Goal "!!t. bound_scheme_inst B (mk_scheme t) = mk_scheme t";
+Goal "bound_scheme_inst B (mk_scheme t) = mk_scheme t";
 by (typ.induct_tac "t" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
@@ -39,7 +39,7 @@ qed "bound_scheme_inst_mk_scheme";
 
 Addsimps [bound_scheme_inst_mk_scheme];
 
-Goal "!!S. $S (bound_scheme_inst B sch) = (bound_scheme_inst ($S o B) ($ S sch))";
+Goal "$S (bound_scheme_inst B sch) = (bound_scheme_inst ($S o B) ($ S sch))";
 by (type_scheme.induct_tac "sch" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
@@ -77,9 +77,9 @@ by (Asm_full_simp_tac 1);
 qed_spec_mp "bound_scheme_inst_type";
 
 
-(* lemmatas for subst_to_scheme *)
+(* lemmas for subst_to_scheme *)
 
-Goal "!!sch. new_tv n sch --> subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) \
+Goal "new_tv n sch --> subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) \
 \                                                 (bound_typ_inst (%k. TVar (k + n)) sch) = sch";
 by (type_scheme.induct_tac "sch" 1);
 by (simp_tac (simpset() addsimps [leD]) 1);
@@ -87,14 +87,15 @@ by (simp_tac (simpset() addsimps [le_add2,diff_add_inverse2]) 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "subst_to_scheme_inverse";
 
-Goal "!!t t'. t = t' ==> subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) t = \
-\                            subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) t'";
+Goal "t = t' ==> \
+\     subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) t = \
+\     subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) t'";
 by (Fast_tac 1);
 val aux = result ();
 
 Goal "new_tv n sch --> \
-\        (subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) (bound_typ_inst S sch) = \
-\                         bound_scheme_inst ((subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k)) o S) sch)";
+\     subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k) (bound_typ_inst S sch) = \
+\      bound_scheme_inst ((subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k)) o S) sch";
 by (type_scheme.induct_tac "sch" 1);
 by (simp_tac (simpset() addsimps [leD]) 1);
 by (Asm_simp_tac 1);
@@ -105,7 +106,8 @@ val aux2 = result () RS mp;
 (* lemmata for <= *)
 
 Goalw [le_type_scheme_def,is_bound_typ_instance]
-      "!!(sch::type_scheme) sch'. (sch' <= sch) = (? B. sch' = bound_scheme_inst B sch)";
+  "!!(sch::type_scheme) sch'. \
+\  (sch' <= sch) = (? B. sch' = bound_scheme_inst B sch)";
 by (rtac iffI 1);
 by (cut_inst_tac [("sch","sch")] fresh_variable_type_schemes 1); 
 by (cut_inst_tac [("sch","sch'")] fresh_variable_type_schemes 1);
@@ -175,7 +177,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "le_env_Cons";
 AddIffs [le_env_Cons];
 
-Goalw [is_bound_typ_instance]"!!t. t <| sch ==> $S t <| $S sch";
+Goalw [is_bound_typ_instance]"t <| sch ==> $S t <| $S sch";
 by (etac exE 1);
 by (rename_tac "SA" 1);
 by (hyp_subst_tac 1);
@@ -190,12 +192,13 @@ by (asm_full_simp_tac (simpset() addsimps [substitution_lemma]) 1);
 by (Fast_tac 1);
 qed "S_compatible_le_scheme";
 
-Goalw [le_env_def,app_subst_list] "!!(A::type_scheme list) A'. A' <= A ==> $S A' <= $ S A";
+Goalw [le_env_def,app_subst_list]
+ "!!(A::type_scheme list) A'. A' <= A ==> $S A' <= $ S A";
 by (simp_tac (simpset() addcongs [conj_cong]) 1);
 by (fast_tac (claset() addSIs [S_compatible_le_scheme]) 1);
 qed "S_compatible_le_scheme_lists";
 
-Goalw [le_type_scheme_def] "!!t.[| t <| sch; sch <= sch' |] ==> t <| sch'";
+Goalw [le_type_scheme_def] "[| t <| sch; sch <= sch' |] ==> t <| sch'";
 by (Fast_tac 1);
 qed "bound_typ_instance_trans";
 
@@ -216,7 +219,8 @@ by (Simp_tac 1);
 qed "bound_typ_instance_BVar";
 AddIffs [bound_typ_instance_BVar];
 
-Goalw [le_type_scheme_def,is_bound_typ_instance] "(sch <= FVar n) = (sch = FVar n)";
+Goalw [le_type_scheme_def,is_bound_typ_instance]
+ "(sch <= FVar n) = (sch = FVar n)";
 by (type_scheme.induct_tac "sch" 1);
   by (Simp_tac 1);
  by (Simp_tac 1);
@@ -240,7 +244,7 @@ qed "not_BVar_le_Fun";
 AddIffs [not_BVar_le_Fun];
 
 Goalw [le_type_scheme_def,is_bound_typ_instance]
-  "!!sch1. (sch1 =-> sch2 <= sch1' =-> sch2') ==> sch1 <= sch1' & sch2 <= sch2'";
+  "(sch1 =-> sch2 <= sch1' =-> sch2') ==> sch1 <= sch1' & sch2 <= sch2'";
 by (fast_tac (claset() addss simpset()) 1);
 qed "Fun_le_FunD";
 

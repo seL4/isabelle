@@ -74,7 +74,7 @@ Addsimps [same_prefix_prefix];
 AddIffs
  [simplify (simpset()) (read_instantiate [("zs","[]")] same_prefix_prefix)];
 
-Goalw [prefix_def] "!!xs. xs <= ys ==> xs <= ys@zs";
+Goalw [prefix_def] "xs <= ys ==> xs <= ys@zs";
 by(Clarify_tac 1);
 by (Simp_tac 1);
 qed "prefix_prefix";

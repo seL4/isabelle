@@ -33,18 +33,18 @@ qed_spec_mp "W_var_ge";
 Addsimps [W_var_ge];
 
 Goal
-        "!! s. Some (S,t,m) = W e A n ==> n<=m";
+        "Some (S,t,m) = W e A n ==> n<=m";
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "W_var_geD";
 
-Goal "!! s. new_tv n A ==> Some (S,t,m) = W e A n ==> new_tv m A";
+Goal "new_tv n A ==> Some (S,t,m) = W e A n ==> new_tv m A";
 by (dtac W_var_geD 1);
 by (rtac new_scheme_list_le 1);
 by (assume_tac 1);
 by (assume_tac 1);
 qed "new_tv_compatible_W";
 
-Goal "!!sch. new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
+Goal "new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
 by (type_scheme.induct_tac "sch" 1);
   by (Asm_full_simp_tac 1);
  by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
@@ -155,7 +155,7 @@ by (assume_tac 1);
 by (assume_tac 1);
 qed_spec_mp "new_tv_W";
 
-Goal "!!sch. (v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
+Goal "(v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
 by (type_scheme.induct_tac "sch" 1);
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
@@ -254,11 +254,11 @@ by (fast_tac (claset() addSDs [codD,free_tv_app_subst_scheme_list RS subsetD,W_v
               addDs [less_le_trans]) 1);
 qed_spec_mp "free_tv_W"; 
 
-Goal "!!A. (!x. x : A --> x ~: B) ==> A Int B = {}";
+Goal "(!x. x : A --> x ~: B) ==> A Int B = {}";
 by (Fast_tac 1);
 val weaken_A_Int_B_eq_empty = result();
 
-Goal "!!A. x ~: A | x : B ==> x ~: A - B";
+Goal "x ~: A | x : B ==> x ~: A - B";
 by (Fast_tac 1);
 val weaken_not_elem_A_minus_B = result();
 
@@ -559,7 +559,7 @@ by (simp_tac (simpset() addsimps [o_def,subst_comp_scheme_list RS sym]) 1);
 qed_spec_mp "W_complete_lemma";
 
 Goal
- "!!e. [] |- e :: t' ==>  (? S t. (? m. W e [] n = Some(S,t,m)) &  \
+ "[] |- e :: t' ==>  (? S t. (? m. W e [] n = Some(S,t,m)) &  \
 \                                 (? R. t' = $ R t))";
 by (cut_inst_tac [("A","[]"),("S'","id_subst"),("e","e"),("t'","t'")]
                 W_complete_lemma 1);

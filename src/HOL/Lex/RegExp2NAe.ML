@@ -31,23 +31,20 @@ by(Simp_tac 1);
 qed "in_step_atom_Some";
 Addsimps [in_step_atom_Some];
 
-Goal
- "([False],[False]) : steps (atom a) w = (w = [])";
+Goal "([False],[False]) : steps (atom a) w = (w = [])";
 by (induct_tac "w" 1);
  by(Simp_tac 1);
 by(asm_simp_tac (simpset() addsimps [comp_def]) 1);
 qed "False_False_in_steps_atom";
 
-Goal
- "(start (atom a), [False]) : steps (atom a) w = (w = [a])";
+Goal "(start (atom a), [False]) : steps (atom a) w = (w = [a])";
 by (induct_tac "w" 1);
  by(asm_simp_tac (simpset() addsimps [start_atom,rtrancl_empty]) 1);
 by(asm_full_simp_tac (simpset()
      addsimps [False_False_in_steps_atom,comp_def,start_atom]) 1);
 qed "start_fin_in_steps_atom";
 
-Goal
- "accepts (atom a) w = (w = [a])";
+Goal "accepts (atom a) w = (w = [a])";
 by(simp_tac(simpset() addsimps
        [accepts_def,start_fin_in_steps_atom,fin_atom]) 1);
 qed "accepts_atom";
@@ -90,7 +87,7 @@ AddIffs [True_in_step_union,False_in_step_union];
 (***** True/False ueber epsclosure anheben *****)
 
 Goal
- "!!d. (tp,tq) : (eps(union L R))^* ==> \
+ "(tp,tq) : (eps(union L R))^* ==> \
 \ !p. tp = True#p --> (? q. (p,q) : (eps L)^* & tq = True#q)";
 be rtrancl_induct 1;
  by(Blast_tac 1);
@@ -100,7 +97,7 @@ by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma1a = result();
 
 Goal
- "!!d. (tp,tq) : (eps(union L R))^* ==> \
+ "(tp,tq) : (eps(union L R))^* ==> \
 \ !p. tp = False#p --> (? q. (p,q) : (eps R)^* & tq = False#q)";
 be rtrancl_induct 1;
  by(Blast_tac 1);
@@ -110,14 +107,14 @@ by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma1b = result();
 
 Goal
- "!!p. (p,q) : (eps L)^*  ==> (True#p, True#q) : (eps(union L R))^*";
+ "(p,q) : (eps L)^*  ==> (True#p, True#q) : (eps(union L R))^*";
 be rtrancl_induct 1;
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma2a = result();
 
 Goal
- "!!p. (p,q) : (eps R)^*  ==> (False#p, False#q) : (eps(union L R))^*";
+ "(p,q) : (eps R)^*  ==> (False#p, False#q) : (eps(union L R))^*";
 be rtrancl_induct 1;
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
@@ -291,7 +288,7 @@ AddIffs [True_step_conc, False_step_conc];
 (** False in epsclosure **)
 
 Goal
- "!!d. (tp,tq) : (eps(conc L R))^* ==> \
+ "(tp,tq) : (eps(conc L R))^* ==> \
 \ !p. tp = False#p --> (? q. (p,q) : (eps R)^* & tq = False#q)";
 by(etac rtrancl_induct 1);
  by(Blast_tac 1);
@@ -299,7 +296,7 @@ by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "lemma1b";
 
 Goal
- "!!p. (p,q) : (eps R)^* ==> (False#p, False#q) : (eps(conc L R))^*";
+ "(p,q) : (eps R)^* ==> (False#p, False#q) : (eps(conc L R))^*";
 by(etac rtrancl_induct 1);
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
@@ -329,14 +326,14 @@ AddIffs [False_steps_conc];
 (** True in epsclosure **)
 
 Goal
- "!!L R. (p,q): (eps L)^* ==> (True#p,True#q) : (eps(conc L R))^*";
+ "(p,q): (eps L)^* ==> (True#p,True#q) : (eps(conc L R))^*";
 be rtrancl_induct 1;
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "True_True_eps_concI";
 
 Goal
- "!!L R. !p. (p,q) : steps L w --> (True#p,True#q) : steps (conc L R) w";
+ "!p. (p,q) : steps L w --> (True#p,True#q) : steps (conc L R) w";
 by(induct_tac "w" 1);
  by (simp_tac (simpset() addsimps [True_True_eps_concI]) 1);
 by (Simp_tac 1);
@@ -344,7 +341,7 @@ by(blast_tac (claset() addIs [True_True_eps_concI]) 1);
 qed_spec_mp "True_True_steps_concI";
 
 Goal
- "!!d. (tp,tq) : (eps(conc L R))^* ==> \
+ "(tp,tq) : (eps(conc L R))^* ==> \
 \ !p. tp = True#p --> \
 \ (? q. tq = True#q & (p,q) : (eps L)^*) | \
 \ (? q r. tq = False#q & (p,r):(eps L)^* & fin L r & (start R,q) : (eps R)^*)";
@@ -354,7 +351,7 @@ by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma1a = result();
 
 Goal
- "!!p. (p, q) : (eps L)^* ==> (True#p, True#q) : (eps(conc L R))^*";
+ "(p, q) : (eps L)^* ==> (True#p, True#q) : (eps(conc L R))^*";
 by(etac rtrancl_induct 1);
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
@@ -367,7 +364,7 @@ by (Asm_full_simp_tac 1);
 val lemma = result();
 
 Goal
- "!!L R. (p,q) : (eps R)^* ==> (False#p, False#q) : (eps(conc L R))^*";
+ "(p,q) : (eps R)^* ==> (False#p, False#q) : (eps(conc L R))^*";
 by(etac rtrancl_induct 1);
  by(Blast_tac 1);
 by (dtac lemma 1);
@@ -477,7 +474,7 @@ by(Simp_tac 1);
 qed_spec_mp "True_True_step_starI";
 
 Goal
-  "!!A. (p,r) : (eps A)^* ==> (True#p, True#r) : (eps(star A))^*";
+  "(p,r) : (eps A)^* ==> (True#p, True#r) : (eps(star A))^*";
 be rtrancl_induct 1;
  by(Blast_tac 1);
 by(blast_tac (claset() addIs [True_True_step_starI,rtrancl_into_rtrancl]) 1);
@@ -489,7 +486,7 @@ by(Simp_tac 1);
 qed_spec_mp "True_start_eps_starI";
 
 Goal
- "!!dummy. (tp,s) : (eps(star A))^* ==> (! p. tp = True#p --> \
+ "(tp,s) : (eps(star A))^* ==> (! p. tp = True#p --> \
 \ (? r. ((p,r) : (eps A)^* | \
 \        (? q. (p,q) : (eps A)^* & fin A q & (start A,r) : (eps A)^*)) & \
 \       s = True#r))";
