@@ -25,9 +25,9 @@ signature SYNTAX =
   include MIXFIX1
   include PRINTER0
   datatype 'a trrule =
-    op |-> of 'a * 'a |
-    op <-| of 'a * 'a |
-    op <-> of 'a * 'a
+    |-> of 'a * 'a |
+    <-| of 'a * 'a |
+    <-> of 'a * 'a
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
