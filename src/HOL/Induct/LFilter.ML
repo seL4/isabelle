@@ -59,7 +59,7 @@ qed "Domain_findRelE";
 
 val prems = goal thy
     "[| !!x. p x ==> q x |] ==> Domain (findRel p) <= Domain (findRel q)";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (etac findRel.induct 1);
 by (blast_tac (!claset addIs (findRel.intrs@prems)) 1);
 by (blast_tac (!claset addIs findRel.intrs) 1);
@@ -89,7 +89,7 @@ Addsimps [diverge_find_LNil];
 goal thy "!!p. ~ (p x) ==> find p (LCons x l) = find p l";
 by (case_tac "LCons x l : Domain(findRel p)" 1);
 by (Asm_full_simp_tac 2);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (asm_simp_tac (!simpset addsimps [findRel_imp_find]) 1);
 by (blast_tac (!claset addIs (findRel_imp_find::findRel.intrs)) 1);
 qed "find_LCons_seek";
@@ -335,7 +335,7 @@ by (blast_tac (!claset addIs [findRel_lmap_Domain]) 3);
 by (asm_simp_tac (!simpset addsimps [diverge_lfilter_LNil]) 2);
 by (etac Domain_findRelE 1);
 by (forward_tac [lmap_LCons_findRel] 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (asm_simp_tac (!simpset addsimps [findRel_imp_lfilter]) 1);
 by (Blast_tac 1);
 qed "lfilter_lmap";

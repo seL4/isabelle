@@ -412,8 +412,8 @@ qed "singleton_inject";
 
 (*Redundant? But unlike insertCI, it proves the subgoal immediately!*)
 AddSIs [singletonI];   
-    
 AddSDs [singleton_inject];
+AddSEs [singletonE];
 
 goal Set.thy "{x.x=a} = {a}";
 by(Blast_tac 1);

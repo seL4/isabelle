@@ -152,7 +152,7 @@ by (blast_tac (!claset addIs [select_equality]) 1);
 qed "nat_case_Suc";
 
 goalw thy [wf_def, pred_nat_def] "wf(pred_nat)";
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (nat_ind_tac "x" 1);
 by (ALLGOALS Blast_tac);
 qed "wf_pred_nat";

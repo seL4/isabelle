@@ -80,7 +80,7 @@ by (Blast_tac 1);
 by (Blast_tac 1);
 by (blast_tac (!claset addEs [exec_WHILE_case]) 1);
 by (thin_tac "(?c,s2) -[?ev]-> s3" 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (etac exec_WHILE_case 1);
 by (ALLGOALS Fast_tac);         (*Blast_tac: proof fails*)
 qed "com_Unique";
@@ -197,9 +197,7 @@ by (blast_tac (!claset addIs [valof_valof1, valof_valof2]) 1);
 qed "valof_valof";
 
 
-
 (** Equivalence of  VALOF SKIP RESULTIS e  and  e **)
-
 
 goal thy "!!x. (e',s) -|-> (v,s') ==> \
 \              (e' = VALOF SKIP RESULTIS e) --> \
@@ -218,7 +216,6 @@ by (blast_tac (!claset addIs [valof_skip1, valof_skip2]) 1);
 qed "valof_skip";
 
 
-
 (** Equivalence of  VALOF x:=e RESULTIS x  and  e **)
 
 goal thy "!!x. (e',s) -|-> (v,s'') ==> \
@@ -227,7 +224,7 @@ goal thy "!!x. (e',s) -|-> (v,s'') ==> \
 by (etac eval_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (thin_tac "?PP-->?QQ" 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (Simp_tac 1);
 by (Blast_tac 1); 
 bind_thm ("valof_assign1", refl RSN (2, result() RS mp));

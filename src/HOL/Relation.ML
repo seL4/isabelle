@@ -164,7 +164,7 @@ qed_goalw "ImageE" Relation.thy [Image_def]
     "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS CollectE) 1),
-    (Step_tac 1),
+    (Clarify_tac 1),
     (rtac (hd prems) 1),
     (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ]);
 

@@ -94,7 +94,8 @@ qed "evnodd_empty";
 goalw thy [evnodd_def]
     "evnodd (insert (i,j) C) b = \
 \      (if (i+j) mod 2 = b then insert (i,j) (evnodd C b) else evnodd C b)";
-by (simp_tac (!simpset setloop (split_tac [expand_if] THEN' Step_tac)) 1);
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Blast_tac 1);
 qed "evnodd_insert";
 
 Addsimps [finite_evnodd, evnodd_Un, evnodd_Diff, evnodd_empty, evnodd_insert];
@@ -133,7 +134,7 @@ by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
 by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd ta b" 1);
 by (asm_simp_tac (!simpset addsimps [tiling_domino_finite]) 1);
 by (blast_tac (!claset addSDs [evnodd_subset RS subsetD] addEs [equalityE]) 1);

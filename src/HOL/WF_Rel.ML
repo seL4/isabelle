@@ -34,7 +34,7 @@ AddIffs [less_than_iff];
 
 goal thy "!!r. wf(r) ==> wf(inv_image r (f::'a=>'b))"; 
 by (full_simp_tac (!simpset addsimps [inv_image_def, wf_eq_minimal]) 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (subgoal_tac "? (w::'b). w : {w. ? (x::'a). x: Q & (f x = w)}" 1);
 by (blast_tac (!claset delrules [allE]) 2);
 by (etac allE 1);
@@ -130,7 +130,7 @@ by (rtac iffI 1);
  by (Blast_tac 1);
 by (etac swap 1);
 by (Asm_full_simp_tac 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (subgoal_tac "!n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
  by (res_inst_tac[("x","nat_rec x (%i y. @z. z:Q & (z,y):r)")]exI 1);
  by (rtac allI 1);

@@ -18,19 +18,19 @@ Delrules [equalityI];
 
 goalw Equiv.thy [trans_def,sym_def,inverse_def]
     "!!r. [| sym(r); trans(r) |] ==> r^-1 O r <= r";
-by (fast_tac (!claset addSEs [inverseD]) 1);
+by (blast_tac (!claset addSEs [inverseD]) 1);
 qed "sym_trans_comp_subset";
 
 goalw Equiv.thy [refl_def]
     "!!A r. refl A r ==> r <= r^-1 O r";
-by (fast_tac (!claset addIs [compI]) 1);
+by (Blast_tac 1);
 qed "refl_comp_subset";
 
 goalw Equiv.thy [equiv_def]
     "!!A r. equiv A r ==> r^-1 O r = r";
+by (Clarify_tac 1);
 by (rtac equalityI 1);
-by (REPEAT (ares_tac [sym_trans_comp_subset, refl_comp_subset] 1
-     ORELSE etac conjE 1));
+by (REPEAT (ares_tac [sym_trans_comp_subset, refl_comp_subset] 1));
 qed "equiv_comp_eq";
 
 (*second half*)
@@ -38,9 +38,7 @@ goalw Equiv.thy [equiv_def,refl_def,sym_def,trans_def]
     "!!A r. [| r^-1 O r = r;  Domain(r) = A |] ==> equiv A r";
 by (etac equalityE 1);
 by (subgoal_tac "ALL x y. (x,y) : r --> (y,x) : r" 1);
-by (Step_tac 1);
-by (fast_tac (!claset addIs [compI]) 3);
-by (ALLGOALS (fast_tac (!claset addIs [compI])));
+by (ALLGOALS Fast_tac);
 qed "comp_equivI";
 
 (** Equivalence classes **)
@@ -48,27 +46,24 @@ qed "comp_equivI";
 (*Lemma for the next result*)
 goalw Equiv.thy [equiv_def,trans_def,sym_def]
     "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} <= r^^{b}";
-by (Step_tac 1);
-by (rtac ImageI 1);
-by (Fast_tac 2);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "equiv_class_subset";
 
 goal Equiv.thy "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} = r^^{b}";
 by (REPEAT (ares_tac [equalityI, equiv_class_subset] 1));
 by (rewrite_goals_tac [equiv_def,sym_def]);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "equiv_class_eq";
 
 goalw Equiv.thy [equiv_def,refl_def]
     "!!A r. [| equiv A r;  a: A |] ==> a: r^^{a}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "equiv_class_self";
 
 (*Lemma for the next result*)
 goalw Equiv.thy [equiv_def,refl_def]
     "!!A r. [| equiv A r;  r^^{b} <= r^^{a};  b: A |] ==> (a,b): r";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_equiv_class";
 
 goal Equiv.thy
@@ -79,7 +74,7 @@ qed "eq_equiv_class";
 (*thus r^^{a} = r^^{b} as well*)
 goalw Equiv.thy [equiv_def,trans_def,sym_def]
     "!!A r. [| equiv A r;  x: (r^^{a} Int r^^{b}) |] ==> (a,b): r";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "equiv_class_nondisjoint";
 
 val [major] = goalw Equiv.thy [equiv_def,refl_def]
@@ -89,23 +84,14 @@ qed "equiv_type";
 
 goal Equiv.thy
     "!!A r. equiv A r ==> ((x,y): r) = (r^^{x} = r^^{y} & x:A & y:A)";
-by (Step_tac 1);
-by ((rtac equiv_class_eq 1) THEN (assume_tac 1) THEN (assume_tac 1));
-by ((rtac eq_equiv_class 3) THEN 
-    (assume_tac 4) THEN (assume_tac 4) THEN (assume_tac 3));
-by ((dtac equiv_type 1) THEN (dtac rev_subsetD 1) THEN
-    (assume_tac 1) THEN (dtac SigmaD1 1) THEN (assume_tac 1));
-by ((dtac equiv_type 1) THEN (dtac rev_subsetD 1) THEN
-    (assume_tac 1) THEN (dtac SigmaD2 1) THEN (assume_tac 1));
+by (blast_tac (!claset addSIs [equiv_class_eq]
+	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
 goal Equiv.thy
     "!!A r. [| equiv A r;  x: A;  y: A |] ==> (r^^{x} = r^^{y}) = ((x,y): r)";
-by (Step_tac 1);
-by ((rtac eq_equiv_class 1) THEN 
-    (assume_tac 1) THEN (assume_tac 1) THEN (assume_tac 1));
-by ((rtac equiv_class_eq 1) THEN 
-    (assume_tac 1) THEN (assume_tac 1));
+by (blast_tac (!claset addSIs [equiv_class_eq]
+	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "eq_equiv_class_iff";
 
 (*** Quotients ***)
@@ -113,7 +99,7 @@ qed "eq_equiv_class_iff";
 (** Introduction/elimination rules -- needed? **)
 
 goalw Equiv.thy [quotient_def] "!!A. x:A ==> r^^{x}: A/r";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "quotientI";
 
 val [major,minor] = goalw Equiv.thy [quotient_def]
@@ -122,7 +108,7 @@ val [major,minor] = goalw Equiv.thy [quotient_def]
 by (resolve_tac [major RS UN_E] 1);
 by (rtac minor 1);
 by (assume_tac 2);
-by (Fast_tac 1);
+by (Fast_tac 1);   (*Blast_tac FAILS to prove it*)
 qed "quotientE";
 
 goalw Equiv.thy [equiv_def,refl_def,quotient_def]
@@ -157,7 +143,7 @@ goal Equiv.thy "!!A r. [| equiv A r;  congruent r b;  a: A |] \
 \                      ==> (UN x:r^^{a}. b(x)) = b(a)";
 by (rtac (equiv_class_self RS UN_singleton) 1 THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [equiv_def,congruent_def,sym_def]);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_equiv_class";
 
 (*type checking of  UN x:r``{a}. b(x) *)
@@ -166,7 +152,7 @@ val prems = goalw Equiv.thy [quotient_def]
 \       !!x.  x : A ==> b(x) : B |]             \
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (stac UN_equiv_class 1);
 by (REPEAT (ares_tac prems 1));
 qed "UN_equiv_class_type";
@@ -180,7 +166,7 @@ val prems = goalw Equiv.thy [quotient_def]
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> (x,y):r |]         \
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (rtac equiv_class_eq 1);
 by (REPEAT (ares_tac prems 1));
 by (etac box_equals 1);
@@ -193,18 +179,18 @@ qed "UN_equiv_class_inject";
 
 goalw Equiv.thy [congruent_def,congruent2_def,equiv_def,refl_def]
     "!!A r. [| equiv A r;  congruent2 r b;  a: A |] ==> congruent r (b a)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "congruent2_implies_congruent";
 
 goalw Equiv.thy [congruent_def]
     "!!A r. [| equiv A r;  congruent2 r b;  a: A |] ==> \
 \    congruent r (%x1. UN x2:r^^{a}. b x1 x2)";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (rtac (equiv_type RS subsetD RS SigmaE2) 1 THEN REPEAT (assume_tac 1));
 by (asm_simp_tac (!simpset addsimps [UN_equiv_class,
                                      congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "congruent2_implies_congruent_UN";
 
 goal Equiv.thy
@@ -222,7 +208,7 @@ val prems = goalw Equiv.thy [quotient_def]
 \       !!x1 x2.  [| x1: A; x2: A |] ==> b x1 x2 : B |]    \
 \    ==> (UN x1:X1. UN x2:X2. b x1 x2) : B";
 by (cut_facts_tac prems 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
                              congruent2_implies_congruent_UN,
                              congruent2_implies_congruent, quotientI]) 1));
@@ -237,10 +223,8 @@ val prems = goalw Equiv.thy [congruent2_def,equiv_def,refl_def]
 \       !! y z w. [| w: A;  (y,z) : r |] ==> b w y = b w z       \
 \    |] ==> congruent2 r b";
 by (cut_facts_tac prems 1);
-by (Step_tac 1);
-by (rtac trans 1);
-by (REPEAT (ares_tac prems 1
-     ORELSE etac (subsetD RS SigmaE2) 1 THEN assume_tac 2 THEN assume_tac 1));
+by (Clarify_tac 1);
+by (blast_tac (!claset addIs (trans::prems)) 1);
 qed "congruent2I";
 
 val [equivA,commute,congt] = goal Equiv.thy

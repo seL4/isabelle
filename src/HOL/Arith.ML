@@ -432,7 +432,7 @@ qed "if_Suc_diff_n";
 
 goal Arith.thy "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";
 by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
-by (ALLGOALS (strip_tac THEN' Simp_tac THEN' TRY o Blast_tac));
+by (ALLGOALS (Clarify_tac THEN' Simp_tac THEN' TRY o Blast_tac));
 qed "zero_induct_lemma";
 
 val prems = goal Arith.thy "[| P(k);  !!n. P(Suc(n)) ==> P(n) |] ==> P(0)";

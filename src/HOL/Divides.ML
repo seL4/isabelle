@@ -121,7 +121,7 @@ qed "div_self";
 (* Monotonicity of div in first argument *)
 goal thy "!!n. 0<k ==> ALL m. m <= n --> (m div k) <= (n div k)";
 by (res_inst_tac [("n","n")] less_induct 1);
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (case_tac "na<k" 1);
 (* 1  case n<k *)
 by (subgoal_tac "m<k" 1);
@@ -347,7 +347,7 @@ qed "dvd_mult2";
 AddIffs [dvd_refl RS dvd_mult, dvd_refl RS dvd_mult2];
 
 goalw thy [dvd_def] "!!m. [| f dvd m; f dvd n; 0<n |] ==> f dvd (m mod n)";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (full_simp_tac (!simpset addsimps [zero_less_mult_iff]) 1);
 by (res_inst_tac 
     [("x", "(((k div ka)*ka + k mod ka) - ((f*k) div (f*ka)) * ka)")] 
@@ -369,7 +369,7 @@ by (Blast_tac 1);
 qed "dvd_mult_cancel";
 
 goalw thy [dvd_def] "!!i j. [| i dvd m; j dvd n|] ==> (i*j) dvd (m*n)";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("x","k*ka")] exI 1);
 by (asm_simp_tac (!simpset addsimps mult_ac) 1);
 qed "mult_dvd_mono";
@@ -380,7 +380,7 @@ by (Blast_tac 1);
 qed "dvd_mult_left";
 
 goalw thy [dvd_def] "!!n. [| k dvd n; 0 < n |] ==> k <= n";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (ALLGOALS (full_simp_tac (!simpset addsimps [zero_less_mult_iff])));
 by (etac conjE 1);
 by (rtac le_trans 1);
