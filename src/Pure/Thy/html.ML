@@ -141,16 +141,17 @@ fun begin_document title =
 
 val end_document = "\n</body>\n</html>\n";
 
-fun up_link (up_path, up_name) =
-  para (href_path up_path "Up" ^ " to index of " ^ plain up_name);
+fun gen_link how (path, name) = para (href_path path how ^ " to index of " ^ plain name);
+val up_link = gen_link "Up";
+val back_link = gen_link "Back";
 
 
 (* session index *)
 
 fun begin_index up (index_path, session) opt_readme graph =
-  begin_document ("Index of " ^ session) ^
-  para ("View " ^ href_path graph "graph" ^ " of theories") ^ up_link up ^
-  (case opt_readme of None => "" | Some p => href_path p "README") ^
+  begin_document ("Index of " ^ session) ^ up_link up ^
+  para ("View " ^ href_path graph "theory dependencies" ^
+    (case opt_readme of None => "" | Some p => "<br>\nView " ^ href_path p "README")) ^
   "\n<hr>\n\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
@@ -158,7 +159,7 @@ val end_index = end_document;
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
 
-fun applet_pages session codebase up alt_graph =
+fun applet_pages session codebase back alt_graph =
   let
     val choices = [("none", "small",  "small.html"),
                    ("none", "medium", "medium.html"),
@@ -172,24 +173,27 @@ fun applet_pages session codebase up alt_graph =
                  ("large",  ("800", "640"))];
 
     fun applet_page (gtype, size, name) =
-      let val (Some (width, height)) = assoc (sizes, size)
-      in (name, begin_document ("Theory dependencies of " ^ session) ^
-        (if alt_graph then
-           para ("View subsessions: " ^
-             choice (map (fn (x, _, z) => (x, z)) (filter (fn (_, y, _) => y = size) choices)) gtype)
-         else "") ^
-        para ("Browser size: " ^
-          choice (map (fn (_, y, z) => (y, z)) (filter (fn (x, _, _) => x = gtype) choices)) size) ^
-        up_link up ^ "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
-        \codebase=\"" ^ Url.pack codebase ^ "\" width=" ^ width ^ " height=" ^ height ^ ">\n\
-        \<param name=\"graphfile\" value=\"" ^
-        (if gtype = "all" then "all_sessions.graph" else "session.graph") ^ "\">\n\
-        \</applet>\n<hr>" ^ end_document)
+      let
+        val (width, height) = the (assoc (sizes, size));
+        val subsessions =
+          if alt_graph then
+            "View subsessions: " ^ choice (map (fn (x, _, z) => (x, z))
+              (filter (fn (_, y, _) => y = size) choices)) gtype ^ "<br>\n"
+          else "";
+        val browser_size = "Set browser size: " ^
+          choice (map (fn (_, y, z) => (y, z)) (filter (fn (x, _, _) => x = gtype) choices)) size;
+      in
+        (name, begin_document ("Theory dependencies of " ^ session) ^
+          back_link back ^
+          para (subsessions ^ browser_size) ^
+          "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
+          \codebase=\"" ^ Url.pack codebase ^ "\" width=" ^ width ^ " height=" ^ height ^ ">\n\
+          \<param name=\"graphfile\" value=\"" ^
+          (if gtype = "all" then "all_sessions.graph" else "session.graph") ^ "\">\n\
+          \</applet>\n<hr>" ^ end_document)
       end;
+  in map applet_page (take (if alt_graph then 6 else 3, choices)) end;
 
-  in
-    map applet_page (take (if alt_graph then 6 else 3, choices))
-  end;
 
 fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "\n";
 
