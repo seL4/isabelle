@@ -13,6 +13,8 @@ FUNCTION nodups -- if done to goal clauses too!
 
 writeln"File HOL/ex/meson.";
 
+context HOL.thy;
+
 (*Prove theorems using fast_tac*)
 fun prove_fun s = 
     prove_goal HOL.thy s
@@ -72,7 +74,7 @@ val disj_FalseD2 = prove_fun "P|False ==> P";
 (*** Generation of contrapositives ***)
 
 (*Inserts negated disjunct after removing the negation; P is a literal*)
-val [major,minor] = goal HOL.thy "~P|Q ==> ((~P==>P) ==> Q)";
+val [major,minor] = Goal "~P|Q ==> ((~P==>P) ==> Q)";
 by (rtac (major RS disjE) 1);
 by (rtac notE 1);
 by (etac minor 2);
@@ -80,15 +82,12 @@ by (ALLGOALS assume_tac);
 qed "make_neg_rule";
 
 (*For Plaisted's "Postive refinement" of the MESON procedure*)
-val [major,minor] = goal HOL.thy "~P|Q ==> (P ==> Q)";
-by (rtac (major RS disjE) 1);
-by (rtac notE 1);
-by (rtac minor 2);
-by (ALLGOALS assume_tac);
+Goal "~P|Q ==> (P ==> Q)";
+by (Blast_tac 1);
 qed "make_refined_neg_rule";
 
 (*P should be a literal*)
-val [major,minor] = goal HOL.thy "P|Q ==> ((P==>~P) ==> Q)";
+val [major,minor] = Goal "P|Q ==> ((P==>~P) ==> Q)";
 by (rtac (major RS disjE) 1);
 by (rtac notE 1);
 by (etac minor 1);
@@ -97,13 +96,13 @@ qed "make_pos_rule";
 
 (*** Generation of a goal clause -- put away the final literal ***)
 
-val [major,minor] = goal HOL.thy "~P ==> ((~P==>P) ==> False)";
+val [major,minor] = Goal "~P ==> ((~P==>P) ==> False)";
 by (rtac notE 1);
 by (rtac minor 2);
 by (ALLGOALS (rtac major));
 qed "make_neg_goal";
 
-val [major,minor] = goal HOL.thy "P ==> ((P==>~P) ==> False)";
+val [major,minor] = Goal "P ==> ((P==>~P) ==> False)";
 by (rtac notE 1);
 by (rtac minor 1);
 by (ALLGOALS (rtac major));
@@ -114,28 +113,28 @@ qed "make_pos_goal";
 
 (*NOTE: could handle conjunctions (faster?) by
     nf(th RS conjunct2) RS (nf(th RS conjunct1) RS conjI) *)
-val major::prems = goal HOL.thy
+val major::prems = Goal
     "[| P'&Q';  P' ==> P;  Q' ==> Q |] ==> P&Q";
 by (rtac (major RS conjE) 1);
 by (rtac conjI 1);
 by (ALLGOALS (eresolve_tac prems));
 qed "conj_forward";
 
-val major::prems = goal HOL.thy
+val major::prems = Goal
     "[| P'|Q';  P' ==> P;  Q' ==> Q |] ==> P|Q";
 by (rtac (major RS disjE) 1);
 by (ALLGOALS (dresolve_tac prems));
 by (ALLGOALS (eresolve_tac [disjI1,disjI2]));
 qed "disj_forward";
 
-val major::prems = goal HOL.thy
+val major::prems = Goal
     "[| ! x. P'(x);  !!x. P'(x) ==> P(x) |] ==> ! x. P(x)";
 by (rtac allI 1);
 by (resolve_tac prems 1);
 by (rtac (major RS spec) 1);
 qed "all_forward";
 
-val major::prems = goal HOL.thy
+val major::prems = Goal
     "[| ? x. P'(x);  !!x. P'(x) ==> P(x) |] ==> ? x. P(x)";
 by (rtac (major RS exE) 1);
 by (rtac exI 1);
@@ -249,7 +248,7 @@ fun cnf (th,ths) =
 (**** Removal of duplicate literals ****)
 
 (*Version for removal of duplicate literals*)
-val major::prems = goal HOL.thy
+val major::prems = Goal
     "[| P'|Q';  P' ==> P;  [| Q'; P==>False |] ==> Q |] ==> P|Q";
 by (rtac (major RS disjE) 1);
 by (rtac disjI1 1);
