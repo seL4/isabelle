@@ -5,12 +5,12 @@
 
 theory Group = Main:;
 
-title {* Basic group theory -- demonstrating calculational proofs *};
+title {* Basic group theory *};
 
 section {* Groups *}; 
 
 text {*
- We define an axiomatic type class of general groupes over signature
+ We define an axiomatic type class of general groups over signature
  (op *, one, inv).
 *};
 
@@ -20,95 +20,92 @@ consts
 
 axclass
   group < times
-  assoc:         "(x * y) * z = x * (y * z)"
-  left_unit:     "one * x = x"
-  left_inverse:  "inv x * x = one";
+  group_assoc:         "(x * y) * z = x * (y * z)"
+  group_left_unit:     "one * x = x"
+  group_left_inverse:  "inv x * x = one";
 
 text {*
- The group axioms only state the properties of left unit and inverse, the
- right versions are derivable as follows.  The calculational proof style below
- closely follows a typical presentation given in any basic course on
- algebra.
+ The group axioms only state the properties of left unit and inverse,
+ the right versions are derivable as follows.  The calculational proof
+ style below closely follows typical presentations given in any basic
+ course on algebra.
 *};
 
-theorem right_inverse: "x * inv x = (one::'a::group)";
+theorem group_right_inverse: "x * inv x = (one::'a::group)";
 proof same;
   have "x * inv x = one * (x * inv x)";
-    by (simp add: left_unit);
+    by (simp add: group_left_unit);
   also; have "... = (one * x) * inv x";
-    by (simp add: assoc);
+    by (simp add: group_assoc);
   also; have "... = inv (inv x) * inv x * x * inv x";
-    by (simp add: left_inverse);
+    by (simp add: group_left_inverse);
   also; have "... = inv (inv x) * (inv x * x) * inv x";
-    by (simp add: assoc);
+    by (simp add: group_assoc);
   also; have "... = inv (inv x) * one * inv x";
-    by (simp add: left_inverse);
+    by (simp add: group_left_inverse);
   also; have "... = inv (inv x) * (one * inv x)";
-    by (simp add: assoc);
+    by (simp add: group_assoc);
   also; have "... = inv (inv x) * inv x";
-    by (simp add: left_unit);
+    by (simp add: group_left_unit);
   also; have "... = one";
-    by (simp add: left_inverse);
+    by (simp add: group_left_inverse);
   finally; show ??thesis; .;
 qed;
 
 text {*
-  With right_inverse already at our disposel, right_unit is now
-  obtained much simpler.
+ With group_right_inverse already at our disposal, group_right_unit is
+ now obtained much easier as follows.
 *};
 
-theorem right_unit: "x * one = (x::'a::group)";
+theorem group_right_unit: "x * one = (x::'a::group)";
 proof same;
   have "x * one = x * (inv x * x)";
-    by (simp add: left_inverse);
+    by (simp add: group_left_inverse);
   also; have "... = x * inv x * x";
-    by (simp add: assoc);
+    by (simp add: group_assoc);
   also; have "... = one * x";
-    by (simp add: right_inverse);
+    by (simp add: group_right_inverse);
   also; have "... = x";
-    by (simp add: left_unit);
+    by (simp add: group_left_unit);
   finally; show ??thesis; .;
 qed;
 
 text {*
- There are only two language elements 'also' (for initial or
- intermediate calculational steps), and 'finally' (for picking up the
- result of a calculation).  These constructs are not hardwired into
- Isabelle/Isar, but defined on top of the basic Isar/VM interpreter.
+ There are only two Isar language elements for calculational proofs:
+ 'also' for initial or intermediate calculational steps, and 'finally'
+ for building the result of a calculation.  These constructs are not
+ hardwired into Isabelle/Isar, but defined on top of the basic Isar/VM
+ interpreter.  Expanding the 'also' or 'finally' derived language
+ elements, calculations may be simulated as demonstrated below.
 
- Without referring to 'also' or 'finally', calculations may be
- simulated as follows.  This can be also understood as an expansion of these
- two derived language elements.
-
- Also note that "..." is just a special term binding that happens to
- be bound automatically to the argument of the last fact established by
- assume or any local goal.  Unlike ??thesis, "..." is bound after the
- proof is finished.
+ Note that "..." is just a special term binding that happens to be
+ bound automatically to the argument of the last fact established by
+ assume or any local goal.  In contrast to ??thesis, "..." is bound
+ after the proof is finished.
 *};
 
-theorem right_unit': "x * one = (x::'a::group)";
+theorem "x * one = (x::'a::group)";
 proof same;
-
   have "x * one = x * (inv x * x)";
-    by (simp add: left_inverse);
+    by (simp add: group_left_inverse);
 
   note calculation = facts
-    -- {* first calculational step: init register *};
+    -- {* first calculational step: init calculation register *};
 
   have "... = x * inv x * x";
-    by (simp add: assoc);
+    by (simp add: group_assoc);
 
   note calculation = trans[APP calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = one * x";
-    by (simp add: right_inverse);
+    by (simp add: group_right_inverse);
 
   note calculation = trans[APP calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = x";
-    by (simp add: left_unit);
+    by (simp add: group_left_unit);
 
   note calculation = trans[APP calculation facts]
     -- {* final calculational step: compose with transitivity rule ... *};
@@ -116,8 +113,34 @@ proof same;
     -- {* ... and pick up final result *};
 
   show ??thesis; .;
-
 qed;
+
+
+section {* Groups and monoids *};
+
+text {*
+  Monoids are usually defined like this.
+*};
+
+axclass monoid < times
+  monoid_assoc:       "(x * y) * z = x * (y * z)"
+  monoid_left_unit:   "one * x = x"
+  monoid_right_unit:  "x * one = x";
+
+text {*
+ Groups are *not* yet monoids directly from the definition .  For
+ monoids, right_unit had to be included as an axiom, but for groups
+ both right_unit and right_inverse are derivable from the other
+ axioms.  With group_right_unit derived as a theorem of group theory
+ (see above), we may still instantiate group < monoid properly as
+ follows.
+*};
+
+instance group < monoid;
+  by (expand_classes,
+       rule group_assoc,
+       rule group_left_unit,
+       rule group_right_unit);
 
 
 end;
