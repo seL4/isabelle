@@ -62,7 +62,7 @@ Addsimps [corresp_exC_UU,corresp_exC_nil,corresp_exC_cons];
 section"properties of move";
 
 Goalw [is_ref_map_def]
-   "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \     move A (@x. move A x (f s) a (f t)) (f s) a (f t)";
 
 by (subgoal_tac "? ex. move A ex (f s) a (f t)" 1);
@@ -73,7 +73,7 @@ by (assume_tac 1);
 qed"move_is_move";
 
 Goal
-   "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \    is_exec_frag A (f s,@x. move A x (f s) a (f t))";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
@@ -81,7 +81,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop1";
 
 Goal
-   "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \    Finite ((@x. move A x (f s) a (f t)))";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
@@ -89,7 +89,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop2";
 
 Goal
-   "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \    laststate (f s,@x. move A x (f s) a (f t)) = (f t)";
 by (cut_inst_tac [] move_is_move 1);
 by (REPEAT (assume_tac 1));
@@ -97,7 +97,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"move_subprop3";
 
 Goal
-   "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \     mk_trace A`((@x. move A x (f s) a (f t))) = \
 \       (if a:ext A then a>>nil else nil)";
 
@@ -131,7 +131,7 @@ qed"mk_traceConc";
    ------------------------------------------------------- *)
 Delsplits[split_if];
 Goalw [corresp_ex_def]
-  "!!f.[|is_ref_map f C A; ext C = ext A|] ==>  \     
+  "[|is_ref_map f C A; ext C = ext A|] ==>  \     
 \        !s. reachable C s & is_exec_frag C (s,xs) --> \
 \            mk_trace C`xs = mk_trace A`(snd (corresp_ex A f (s,xs)))";
 
@@ -180,7 +180,7 @@ qed_spec_mp"lemma_2_1";
 
 
 Goalw [corresp_ex_def]
- "!!f.[| is_ref_map f C A |] ==>\
+ "[| is_ref_map f C A |] ==>\
 \ !s. reachable C s & is_exec_frag C (s,xs) \
 \ --> is_exec_frag A (corresp_ex A f (s,xs))"; 
 
@@ -221,7 +221,7 @@ section "Main Theorem: T R A C E - I N C L U S I O N";
 
 
 Goalw [traces_def]
-  "!!f. [| ext C = ext A; is_ref_map f C A |] \
+  "[| ext C = ext A; is_ref_map f C A |] \
 \          ==> traces C <= traces A"; 
 
   by (simp_tac(simpset() addsimps [has_trace_def2])1);
@@ -260,15 +260,13 @@ by Auto_tac;
 qed"fininf";
 
 
-Goal 
-"is_wfair A W (s,ex) = \
+Goal "is_wfair A W (s,ex) = \
 \ (fin_often (%x. ~Enabled A W (snd x)) ex --> inf_often (%x. fst x :W) ex)";
 by (asm_full_simp_tac (simpset() addsimps [is_wfair_def,fin_often_def])1);
 by Auto_tac;
 qed"WF_alt";
 
-Goal  
-"!! ex. [|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex; \
+Goal "[|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex; \
 \         en_persistent A W|] \
 \   ==> inf_often (%x. fst x :W) ex";
 by (dtac persistent 1);

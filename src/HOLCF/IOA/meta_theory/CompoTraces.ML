@@ -60,7 +60,7 @@ by (stac mksch_unfold 1);
 by (Simp_tac 1);
 qed"mksch_nil";
 
-Goal "!!x.[|x:act A;x~:act B|]  \
+Goal "[|x:act A;x~:act B|]  \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \         (Takewhile (%a. a:int A)`schA) \
 \         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a. a:int A)`schA)) \
@@ -71,7 +71,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mksch_cons1";
 
-Goal "!!x.[|x~:act A;x:act B|] \
+Goal "[|x~:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \        (Takewhile (%a. a:int B)`schB)  \
 \         @@ (x>>(mksch A B`tr`schA`(TL`(Dropwhile (%a. a:int B)`schB))  \
@@ -82,7 +82,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mksch_cons2";
 
-Goal "!!x.[|x:act A;x:act B|] \
+Goal "[|x:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \            (Takewhile (%a. a:int A)`schA) \
 \         @@ ((Takewhile (%a. a:int B)`schB)  \
@@ -199,7 +199,7 @@ qed_spec_mp"ForallAnBmksch";
 (* safe-tac makes too many case distinctions with this lemma in the next proof *)
 Delsimps [FiniteConc];
 
-Goal "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
+Goal "[| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \   ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y & \
 \          Filter (%a. a:ext A)`x = Filter (%a. a:act A)`tr & \
 \          Filter (%a. a:ext B)`y = Filter (%a. a:act B)`tr &\
@@ -272,7 +272,7 @@ Addsimps [FiniteConc];
 (* otherwise subst_lemma2 does not fit exactly, just to avoid a subst_lemma3 *)
 Delsimps [FilterConc]; 
 
-Goal " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
+Goal " [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
 \    Filter (%a. a:ext B)`y = Filter (%a. a:act B)`(bs @@ z) \
 \    --> (? y1 y2.  (mksch A B`(bs @@ z)`x`y) = (y1 @@ (mksch A B`z`x`y2)) & \
@@ -326,7 +326,7 @@ bind_thm("reduceA_mksch",conjI RSN (6,conjI RSN (5,reduceA_mksch1)));
 Delsimps [FilterConc]; 
 
 
-Goal " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
+Goal " [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) as &\
 \    Filter (%a. a:ext A)`x = Filter (%a. a:act A)`(as @@ z) \
 \    --> (? x1 x2.  (mksch A B`(as @@ z)`x`y) = (x1 @@ (mksch A B`z`x2`y)) & \
@@ -379,7 +379,7 @@ bind_thm("reduceB_mksch",conjI RSN (6,conjI RSN (5,reduceB_mksch1)));
 (*
 
 
-Goal "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
+Goal "Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
 \                             y = z @@ mksch A B`tr`a`b\
 \                             --> Finite tr";
 by (etac Seq_Finite_ind  1);

@@ -47,7 +47,7 @@ by (Simp_tac 1);
 qed"smap_UU";
 
 Goal 
-"!!x.[|x~=UU|] ==> smap`f`(x##xs)= (f`x)##smap`f`xs"; 
+"[|x~=UU|] ==> smap`f`(x##xs)= (f`x)##smap`f`xs"; 
 by (rtac trans 1);
 by (stac smap_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -74,7 +74,7 @@ by (Simp_tac 1);
 qed"sfilter_UU";
 
 Goal 
-"!!x. x~=UU ==> sfilter`P`(x##xs)=   \
+"x~=UU ==> sfilter`P`(x##xs)=   \
 \             (If P`x then x##(sfilter`P`xs) else sfilter`P`xs fi)";
 by (rtac trans 1);
 by (stac sfilter_unfold 1);
@@ -102,7 +102,7 @@ by (Simp_tac 1);
 qed"sforall2_UU";
 
 Goal 
-"!!x. x~=UU ==> sforall2`P`(x##xs)= ((P`x) andalso sforall2`P`xs)";
+"x~=UU ==> sforall2`P`(x##xs)= ((P`x) andalso sforall2`P`xs)";
 by (rtac trans 1);
 by (stac sforall2_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -131,7 +131,7 @@ by (Simp_tac 1);
 qed"stakewhile_UU";
 
 Goal 
-"!!x. x~=UU ==> stakewhile`P`(x##xs) =   \
+"x~=UU ==> stakewhile`P`(x##xs) =   \
 \             (If P`x then x##(stakewhile`P`xs) else nil fi)";
 by (rtac trans 1);
 by (stac stakewhile_unfold 1);
@@ -160,7 +160,7 @@ by (Simp_tac 1);
 qed"sdropwhile_UU";
 
 Goal 
-"!!x. x~=UU ==> sdropwhile`P`(x##xs) =   \
+"x~=UU ==> sdropwhile`P`(x##xs) =   \
 \             (If P`x then sdropwhile`P`xs else x##xs fi)";
 by (rtac trans 1);
 by (stac sdropwhile_unfold 1);
@@ -191,7 +191,7 @@ by (Simp_tac 1);
 qed"slast_UU";
 
 Goal 
-"!!x. x~=UU ==> slast`(x##xs)= (If is_nil`xs then x else slast`xs fi)";
+"x~=UU ==> slast`(x##xs)= (If is_nil`xs then x else slast`xs fi)";
 by (rtac trans 1);
 by (stac slast_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -281,20 +281,20 @@ by (stac szip_unfold 1);
 by (Simp_tac 1);
 qed"szip_UU1";
 
-Goal "!!x. x~=nil ==> szip`x`UU=UU"; 
+Goal "x~=nil ==> szip`x`UU=UU"; 
 by (stac szip_unfold 1);
 by (Asm_full_simp_tac 1);
 by (res_inst_tac [("x","x")] seq.casedist 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_UU2";
 
-Goal "!!x. x~=UU ==> szip`(x##xs)`nil=UU";
+Goal "x~=UU ==> szip`(x##xs)`nil=UU";
 by (rtac trans 1);
 by (stac szip_unfold 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_cons_nil";
 
-Goal "!!x.[| x~=UU; y~=UU|] ==> szip`(x##xs)`(y##ys) = <x,y>##szip`xs`ys";
+Goal "[| x~=UU; y~=UU|] ==> szip`(x##xs)`(y##ys) = <x,y>##szip`xs`ys";
 by (rtac trans 1);
 by (stac szip_unfold 1);
 by (REPEAT (Asm_full_simp_tac 1));
@@ -317,13 +317,13 @@ Addsimps [sfilter_UU,sfilter_nil,sfilter_cons,
 section "scons, nil";
 
 Goal 
- "!!x. [|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
+ "[|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
 by (rtac iffI 1);
 by (etac (hd seq.injects) 1);
 by Auto_tac;
 qed"scons_inject_eq";
 
-Goal "!!x. nil<<x ==> nil=x";
+Goal "nil<<x ==> nil=x";
 by (res_inst_tac [("x","x")] seq.casedist 1);
 by (hyp_subst_tac 1);
 by (etac antisym_less 1);
@@ -416,7 +416,7 @@ by (fast_tac (HOL_cs addss simpset()) 1);
 by (fast_tac (HOL_cs addSDs seq.injects) 1);
 qed"Finite_cons_a";
 
-Goal "!!x. a~=UU ==>(Finite (a##x)) = (Finite x)";
+Goal "a~=UU ==>(Finite (a##x)) = (Finite x)";
 by (rtac iffI 1);
 by (rtac (Finite_cons_a RS mp RS mp RS mp) 1);
 by (REPEAT (assume_tac 1));
@@ -448,8 +448,7 @@ qed_goalw "seq_finite_ind_lemma" thy  [seq.finite_def]
         ]);
 
 
-Goal 
-"!!P.[|P(UU);P(nil);\
+Goal "!!P.[|P(UU);P(nil);\
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(x##s1)\
 \  |] ==> seq_finite(s) --> P(s)";
 by (rtac seq_finite_ind_lemma 1);

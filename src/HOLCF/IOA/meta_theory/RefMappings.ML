@@ -15,21 +15,21 @@ Refinement Mappings in HOLCF/IOA
 section "transitions and moves";
 
 
-Goal"!!f. s -a--A-> t ==> ? ex. move A ex s a t";
+Goal "s -a--A-> t ==> ? ex. move A ex s a t";
 
 by (res_inst_tac [("x","(a,t)>>nil")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"transition_is_ex";
  
 
-Goal"!!f. (~a:ext A) & s=t ==> ? ex. move A ex s a t";
+Goal "(~a:ext A) & s=t ==> ? ex. move A ex s a t";
 
 by (res_inst_tac [("x","nil")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"nothing_is_ex";
 
 
-Goal"!!f. (s -a--A-> s') & (s' -a'--A-> s'') & (~a':ext A) \
+Goal "(s -a--A-> s') & (s' -a'--A-> s'') & (~a':ext A) \
 \        ==> ? ex. move A ex s a s''";
 
 by (res_inst_tac [("x","(a,s')>>(a',s'')>>nil")] exI 1);
@@ -37,8 +37,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"ei_transitions_are_ex";
 
 
-Goal
-"!!f. (s1 -a1--A-> s2) & (s2 -a2--A-> s3) & (s3 -a3--A-> s4) &\
+Goal "(s1 -a1--A-> s2) & (s2 -a2--A-> s3) & (s3 -a3--A-> s4) &\
 \     (~a2:ext A) & (~a3:ext A) ==> \
 \     ? ex. move A ex s1 a1 s4";
   
@@ -53,7 +52,7 @@ section "weak_ref_map and ref_map";
 
 
 Goalw [is_weak_ref_map_def,is_ref_map_def]
-  "!!f. [| ext C = ext A; \
+  "[| ext C = ext A; \
 \    is_weak_ref_map f C A |] ==> is_ref_map f C A";
 by (safe_tac set_cs);
 by (case_tac "a:ext A" 1);
@@ -69,7 +68,7 @@ val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
 val lemma = result();
 
 Delsplits [split_if];
-Goal "!!f.[| is_weak_ref_map f C A |]\
+Goal "[| is_weak_ref_map f C A |]\
 \                      ==> (is_weak_ref_map f (rename C g) (rename A g))";
 by (asm_full_simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 by (rtac conjI 1);

@@ -9,12 +9,9 @@ The I/O automata of Lynch and Tuttle.
 (* this modification of the simpset is local to this file *)
 Delsimps [split_paired_Ex];
 
-
-open reachable;
-
 val ioa_projections = [asig_of_def, starts_of_def, trans_of_def,wfair_of_def,sfair_of_def];
 
-(* ----------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "asig_of, starts_of, trans_of";
 
@@ -29,7 +26,7 @@ Goal
 qed "ioa_triple_proj";
 
 Goalw [is_trans_of_def,actions_def, is_asig_def]
-  "!!A. [| is_trans_of A; (s1,a,s2):trans_of(A) |] ==> a:act A";
+  "[| is_trans_of A; (s1,a,s2):trans_of(A) |] ==> a:act A";
   by (REPEAT(etac conjE 1));
   by (EVERY1[etac allE, etac impE, atac]);
   by (Asm_full_simp_tac 1);
@@ -55,7 +52,7 @@ by (simp_tac (simpset() addsimps (par_def::ioa_projections)) 1);
 qed "trans_of_par";
 
 
-(* ----------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "actions and par";
 
@@ -107,7 +104,7 @@ by (asm_full_simp_tac (simpset() addsimps [actions_def,asig_of_par,asig_comp_def
       asig_inputs_def,asig_outputs_def,asig_internals_def,Un_def,set_diff_def]) 1);
 qed"internals_of_par";
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------ *)
 
 section "actions and compatibility"; 
 
@@ -117,50 +114,50 @@ by Auto_tac;
 qed"compat_commute";
 
 Goalw [externals_def,actions_def,compatible_def]
- "!! a. [| compatible A1 A2; a:ext A1|] ==> a~:int A2";
+ "[| compatible A1 A2; a:ext A1|] ==> a~:int A2";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"ext1_is_not_int2";
 
 (* just commuting the previous one: better commute compatible *)
 Goalw [externals_def,actions_def,compatible_def]
- "!! a. [| compatible A2 A1 ; a:ext A1|] ==> a~:int A2";
+ "[| compatible A2 A1 ; a:ext A1|] ==> a~:int A2";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"ext2_is_not_int1";
 
 bind_thm("ext1_ext2_is_not_act2",ext1_is_not_int2 RS int_and_ext_is_act);
 bind_thm("ext1_ext2_is_not_act1",ext2_is_not_int1 RS int_and_ext_is_act);
 
 Goalw  [externals_def,actions_def,compatible_def]
- "!! x. [| compatible A B; x:int A |] ==> x~:ext B";
+ "[| compatible A B; x:int A |] ==> x~:ext B";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"intA_is_not_extB";
 
 Goalw [externals_def,actions_def,compatible_def,is_asig_def,asig_of_def]
-"!! a. [| compatible A B; a:int A |] ==> a ~: act B";
+"[| compatible A B; a:int A |] ==> a ~: act B";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"intA_is_not_actB";
 
 (* the only one that needs disjointness of outputs and of internals and _all_ acts *)
 Goalw [asig_outputs_def,asig_internals_def,actions_def,asig_inputs_def,
     compatible_def,is_asig_def,asig_of_def]
-"!! a. [| compatible A B; a:out A ;a:act B|] ==> a : inp B";
+"[| compatible A B; a:out A ;a:act B|] ==> a : inp B";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"outAactB_is_inpB";
 
 (* needed for propagation of input_enabledness from A,B to A||B *)
 Goalw [asig_outputs_def,asig_internals_def,actions_def,asig_inputs_def,
     compatible_def,is_asig_def,asig_of_def]
-"!! a. [| compatible A B; a:inp A ;a:act B|] ==> a : inp B | a: out B";
+"[| compatible A B; a:inp A ;a:act B|] ==> a : inp B | a: out B";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (Blast_tac 1);
 qed"inpAAactB_is_inpBoroutB";
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "input_enabledness and par";  
 
@@ -169,7 +166,7 @@ section "input_enabledness and par";
      1. inpAAactB_is_inpBoroutB ie. internals are really hidden.
      2. inputs_of_par: outputs are no longer inputs of par. This is important here *)
 Goalw [input_enabled_def] 
-"!!A. [| compatible A B; input_enabled A; input_enabled B|] \
+"[| compatible A B; input_enabled A; input_enabled B|] \
 \     ==> input_enabled (A||B)";
 by (asm_full_simp_tac (simpset()addsimps[Let_def,inputs_of_par,trans_of_par])1);
 by (safe_tac set_cs);
@@ -232,7 +229,7 @@ by (res_inst_tac [("x","(aa,s2)")] exI 1);
 by (Asm_full_simp_tac 1);
 qed"input_enabled_par";
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "invariants";
 
@@ -252,20 +249,22 @@ qed"invariantI";
 
 val [p1,p2] = goal thy
  "[| !!s. s : starts_of(A) ==> P(s); \
-\   !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
+\    !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
   by (fast_tac (HOL_cs addSIs [invariantI] addSDs [p1,p2]) 1);
 qed "invariantI1";
 
-val [p1,p2] = goalw thy [invariant_def]
-"[| invariant A P; reachable A s |] ==> P(s)";
-   br(p2 RS (p1 RS spec RS mp))1;
+Goalw [invariant_def] "[| invariant A P; reachable A s |] ==> P(s)";
+by (Blast_tac 1);   
 qed "invariantE";
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "restrict";
 
+
+val reachable_0 = reachable.reachable_0
+and reachable_n = reachable.reachable_n;
 
 Goal "starts_of(restrict ioa acts) = starts_of(ioa) &     \
 \         trans_of(restrict ioa acts) = trans_of(ioa)";
@@ -300,18 +299,18 @@ Goal "starts_of(restrict ioa acts) = starts_of(ioa) &     \
   by (simp_tac (simpset() addsimps [cancel_restrict_a,cancel_restrict_b,acts_restrict]) 1);
 qed"cancel_restrict";
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "rename";
 
 
 
-Goal "!!f. s -a--(rename C f)-> t ==> (? x. Some(x) = f(a) & s -x--C-> t)";
+Goal "s -a--(rename C f)-> t ==> (? x. Some(x) = f(a) & s -x--C-> t)";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,rename_def,trans_of_def]) 1);
 qed"trans_rename";
 
 
-Goal "!!s.[| reachable (rename C g) s |] ==> reachable C s";
+Goal "[| reachable (rename C g) s |] ==> reachable C s";
 by (etac reachable.induct 1);
 by (rtac reachable_0 1);
 by (asm_full_simp_tac (simpset() addsimps [rename_def]@ioa_projections) 1);
@@ -324,49 +323,49 @@ qed"reachable_rename";
 
 
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "trans_of(A||B)";
 
 
-Goal "!!A.[|(s,a,t):trans_of (A||B); a:act A|] \
+Goal "[|(s,a,t):trans_of (A||B); a:act A|] \
 \             ==> (fst s,a,fst t):trans_of A";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_A_proj";
 
-Goal "!!A.[|(s,a,t):trans_of (A||B); a:act B|] \
+Goal "[|(s,a,t):trans_of (A||B); a:act B|] \
 \             ==> (snd s,a,snd t):trans_of B";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_B_proj";
 
-Goal "!!A.[|(s,a,t):trans_of (A||B); a~:act A|]\
+Goal "[|(s,a,t):trans_of (A||B); a~:act A|]\
 \             ==> fst s = fst t";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_A_proj2";
 
-Goal "!!A.[|(s,a,t):trans_of (A||B); a~:act B|]\
+Goal "[|(s,a,t):trans_of (A||B); a~:act B|]\
 \             ==> snd s = snd t";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_B_proj2";
 
-Goal "!!A.(s,a,t):trans_of (A||B) \
+Goal "(s,a,t):trans_of (A||B) \
 \              ==> a :act A | a :act B";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_AB_proj";
 
-Goal "!!A. [|a:act A;a:act B;\
+Goal "[|a:act A;a:act B;\
 \      (fst s,a,fst t):trans_of A;(snd s,a,snd t):trans_of B|]\
 \  ==> (s,a,t):trans_of (A||B)";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_AB";
 
-Goal "!!A. [|a:act A;a~:act B;\
+Goal "[|a:act A;a~:act B;\
 \      (fst s,a,fst t):trans_of A;snd s=snd t|]\
 \  ==> (s,a,t):trans_of (A||B)";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
 qed"trans_A_notB";
 
-Goal "!!A. [|a~:act A;a:act B;\
+Goal "[|a~:act A;a:act B;\
 \      (snd s,a,snd t):trans_of B;fst s=fst t|]\
 \  ==> (s,a,t):trans_of (A||B)";
 by (asm_full_simp_tac (simpset() addsimps [Let_def,par_def,trans_of_def]) 1);
@@ -397,7 +396,7 @@ Goal
 qed "trans_of_par4";
 
 
-(* ---------------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
 
 section "proof obligation generator for IOA requirements";  
 
@@ -407,12 +406,12 @@ by (simp_tac (simpset() addsimps [Let_def,actions_of_par,trans_of_par]) 1);
 qed"is_trans_of_par";
 
 Goalw [is_trans_of_def] 
-"!!A. is_trans_of A ==> is_trans_of (restrict A acts)";
+"is_trans_of A ==> is_trans_of (restrict A acts)";
 by (asm_simp_tac (simpset() addsimps [cancel_restrict,acts_restrict])1);
 qed"is_trans_of_restrict";
 
 Goalw [is_trans_of_def,restrict_def,restrict_asig_def] 
-"!!A. is_trans_of A ==> is_trans_of (rename A f)";
+"is_trans_of A ==> is_trans_of (rename A f)";
 by (asm_full_simp_tac
     (simpset() addsimps [Let_def,actions_def,trans_of_def, asig_internals_def,
 			 asig_outputs_def,asig_inputs_def,externals_def,
@@ -420,31 +419,29 @@ by (asm_full_simp_tac
 by (Blast_tac 1);
 qed"is_trans_of_rename";
 
-Goal "!! A. [| is_asig_of A; is_asig_of B; compatible A B|]  \
+Goal "[| is_asig_of A; is_asig_of B; compatible A B|]  \
 \         ==> is_asig_of (A||B)";
 by (asm_full_simp_tac (simpset() addsimps [is_asig_of_def,asig_of_par,
        asig_comp_def,compatible_def,asig_internals_def,asig_outputs_def,
      asig_inputs_def,actions_def,is_asig_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [asig_of_def]) 1);
 by Auto_tac;
-by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
 qed"is_asig_of_par";
 
 Goalw [is_asig_of_def,is_asig_def,asig_of_def,restrict_def,restrict_asig_def,
            asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,o_def] 
-"!! A. is_asig_of A ==> is_asig_of (restrict A f)";
+"is_asig_of A ==> is_asig_of (restrict A f)";
 by (Asm_full_simp_tac 1);
 by Auto_tac;
-by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
 qed"is_asig_of_restrict";
 
-Goal "!! A. is_asig_of A ==> is_asig_of (rename A f)";
+Goal "is_asig_of A ==> is_asig_of (rename A f)";
 by (asm_full_simp_tac (simpset() addsimps [is_asig_of_def,
      rename_def,rename_set_def,asig_internals_def,asig_outputs_def,
      asig_inputs_def,actions_def,is_asig_def,asig_of_def]) 1);
 by Auto_tac; 
 by   (ALLGOALS(dres_inst_tac [("s","Some ?x")] sym THEN' Asm_full_simp_tac));
-by   (ALLGOALS(best_tac (set_cs addEs [equalityCE])));
+by   (ALLGOALS(Blast_tac));
 qed"is_asig_of_rename";
 
 
@@ -453,28 +450,26 @@ Addsimps [is_asig_of_par,is_asig_of_restrict,is_asig_of_rename,
 
 
 Goalw [compatible_def]
-"!! A. [|compatible A B; compatible A C |]==> compatible A (B||C)";
+"[|compatible A B; compatible A C |]==> compatible A (B||C)";
 by (asm_full_simp_tac (simpset() addsimps [internals_of_par, 
    outputs_of_par,actions_of_par]) 1);
 by Auto_tac;
-by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
 qed"compatible_par";
 
 (*  better derive by previous one and compat_commute *)
 Goalw [compatible_def]
-"!! A. [|compatible A C; compatible B C |]==> compatible (A||B) C";
+"[|compatible A C; compatible B C |]==> compatible (A||B) C";
 by (asm_full_simp_tac (simpset() addsimps [internals_of_par, 
    outputs_of_par,actions_of_par]) 1);
 by Auto_tac;
-by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
 qed"compatible_par2";
 
 Goalw [compatible_def]
-"!! A. [| compatible A B; (ext B - S) Int ext A = {}|] \
+"[| compatible A B; (ext B - S) Int ext A = {}|] \
 \     ==> compatible A (restrict B S)";
 by (asm_full_simp_tac (simpset() addsimps [ioa_triple_proj,asig_triple_proj,
           externals_def,restrict_def,restrict_asig_def,actions_def]) 1);
-by (auto_tac (claset() addEs [equalityCE],simpset()));
+by Auto_tac;
 qed"compatible_restrict";
 
 

@@ -69,7 +69,7 @@ section"properties of move";
 Delsimps [Let_def];
 
 Goalw [is_simulation_def]
-   "!!f. [|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==>\
 \     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     (t,T'): R & move A (@ex2. move A ex2 s' a T') s' a T'";
 
@@ -99,7 +99,7 @@ qed"move_is_move_sim";
 Addsimps [Let_def];
 
 Goal
-   "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \    is_exec_frag A (s',@x. move A x s' a T')";
 by (cut_inst_tac [] move_is_move_sim 1);
@@ -108,7 +108,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop1_sim";
 
 Goal
-   "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \   Finite (@x. move A x s' a T')";
 by (cut_inst_tac [] move_is_move_sim 1);
@@ -117,7 +117,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop2_sim";
 
 Goal
-   "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \    laststate (s',@x. move A x s' a T') = T'";
 by (cut_inst_tac [] move_is_move_sim 1);
@@ -126,7 +126,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop3_sim";
 
 Goal
-   "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     mk_trace A`((@x. move A x s' a T')) = \
 \       (if a:ext A then a>>nil else nil)";
@@ -136,7 +136,7 @@ by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop4_sim";
 
 Goal
-   "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     (t,T'):R";
 by (cut_inst_tac [] move_is_move_sim 1);
@@ -158,7 +158,7 @@ section "Lemmata for <==";
 
 Delsplits[split_if];
 Goal 
-  "!!f.[|is_simulation R C A; ext C = ext A|] ==>  \     
+  "[|is_simulation R C A; ext C = ext A|] ==>  \     
 \        !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R --> \
 \            mk_trace C`ex = mk_trace A`((corresp_ex_simC A R`ex) s')";
 
@@ -188,7 +188,7 @@ Addsplits[split_if];
 
 
 Goal 
- "!!f.[| is_simulation R C A |] ==>\
+ "[| is_simulation R C A |] ==>\
 \ !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R  \
 \ --> is_exec_frag A (s',(corresp_ex_simC A R`ex) s')"; 
 
@@ -240,7 +240,7 @@ section "Main Theorem: T R A C E - I N C L U S I O N";
      S':= @s'. (s,s'):R & s':starts_of A, where s:starts_of C  *)
 
 Goal 
-"!!C. [| is_simulation R C A; s:starts_of C |] \
+"[| is_simulation R C A; s:starts_of C |] \
 \ ==> let S' = @s'. (s,s'):R & s':starts_of A in \
 \     (s,S'):R & S':starts_of A";
   by (asm_full_simp_tac (simpset() addsimps [is_simulation_def,
@@ -259,7 +259,7 @@ bind_thm("sim_starts2",(rewrite_rule [Let_def] simulation_starts) RS conjunct2);
 
 
 Goalw [traces_def]
-  "!!f. [| ext C = ext A; is_simulation R C A |] \
+  "[| ext C = ext A; is_simulation R C A |] \
 \          ==> traces C <= traces A"; 
 
   by (simp_tac(simpset() addsimps [has_trace_def2])1);

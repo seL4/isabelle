@@ -10,7 +10,7 @@ Live I/O Automata
 Delsimps [split_paired_Ex];
 
 Goalw [live_implements_def] 
-"!! A. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
+"[| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
 \     ==> live_implements (A,LA) (C,LC)"; 
 by Auto_tac;
 qed"live_implements_trans";
@@ -24,7 +24,7 @@ section "Correctness of live refmap";
 (* ---------------------------------------------------------------- *)
 
 
-Goal "!! f. [| inp(C)=inp(A); out(C)=out(A); \
+Goal "[| inp(C)=inp(A); out(C)=out(A); \
 \                  is_live_ref_map f (C,M) (A,L) |] \
 \               ==> live_implements (C,M) (A,L)";
 

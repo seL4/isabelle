@@ -61,7 +61,7 @@ qed"oraclebuild_cons";
 (* ---------------------------------------------------------------- *)
 
 Goalw [Cut_def]
-"!! s. [| Forall (%a.~ P a) s; Finite s|] \
+"[| Forall (%a.~ P a) s; Finite s|] \
 \           ==> Cut P s =nil";
 by (subgoal_tac "Filter P`s = nil" 1);
 by (asm_simp_tac (simpset() addsimps [oraclebuild_nil]) 1);
@@ -70,7 +70,7 @@ by (REPEAT (atac 1));
 qed"Cut_nil";
 
 Goalw [Cut_def]
-"!! s. [| Forall (%a.~ P a) s; ~Finite s|] \
+"[| Forall (%a.~ P a) s; ~Finite s|] \
 \           ==> Cut P s =UU";
 by (subgoal_tac "Filter P`s= UU" 1);
 by (asm_simp_tac (simpset() addsimps [oraclebuild_UU]) 1);
@@ -79,7 +79,7 @@ by (REPEAT (atac 1));
 qed"Cut_UU";
 
 Goalw [Cut_def]
-"!! s. [| P t;  Forall (%x.~ P x) ss; Finite ss|] \
+"[| P t;  Forall (%x.~ P x) ss; Finite ss|] \
 \           ==> Cut P (ss @@ (t>> rs)) \
 \                = ss @@ (t >> Cut P rs)";
 
@@ -200,7 +200,7 @@ qed"execThruCut";
 
 
 Goalw [schedules_def,has_schedule_def]
- "!! sch. [|sch : schedules A ; tr = Filter (%a. a:ext A)`sch|] \
+ "[|sch : schedules A ; tr = Filter (%a. a:ext A)`sch|] \
 \   ==> ? sch. sch : schedules A & \
 \              tr = Filter (%a. a:ext A)`sch &\
 \              LastActExtsch A sch";
@@ -239,7 +239,7 @@ qed"exists_LastActExtsch";
 (* ---------------------------------------------------------------- *)
 
 Goalw [LastActExtsch_def]
-  "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = nil |] \
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)`sch = nil |] \
 \   ==> sch=nil";
 by (dtac FilternPnilForallP 1);
 by (etac conjE 1);
@@ -249,7 +249,7 @@ by (Asm_full_simp_tac 1);
 qed"LastActExtimplnil";
 
 Goalw [LastActExtsch_def]
-  "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = UU |] \
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)`sch = UU |] \
 \   ==> sch=UU";
 by (dtac FilternPUUForallP 1);
 by (etac conjE 1);

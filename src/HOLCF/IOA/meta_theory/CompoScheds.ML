@@ -66,7 +66,7 @@ by (stac mkex2_unfold 1);
 by (Simp_tac 1);
 qed"mkex2_nil";
 
-Goal "!!x.[| x:act A; x~:act B; HD`exA=Def a|] \
+Goal "[| x:act A; x~:act B; HD`exA=Def a|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t =   \
 \       (x,snd a,t) >> (mkex2 A B`sch`(TL`exA)`exB) (snd a) t";
 by (rtac trans 1);
@@ -75,7 +75,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mkex2_cons_1";
 
-Goal "!!x.[| x~:act A; x:act B; HD`exB=Def b|] \
+Goal "[| x~:act A; x:act B; HD`exB=Def b|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t = \
 \       (x,s,snd b) >> (mkex2 A B`sch`exA`(TL`exB)) s (snd b)";
 by (rtac trans 1);
@@ -84,7 +84,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mkex2_cons_2";
 
-Goal "!!x.[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
+Goal "[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t =  \
 \        (x,snd a,snd b) >> \
 \           (mkex2 A B`sch`(TL`exA)`(TL`exB)) (snd a) (snd b)";
@@ -109,7 +109,7 @@ Goal "mkex A B nil (s,exA) (t,exB) = ((s,t),nil)";
 by (simp_tac (simpset() addsimps [mkex_def]) 1);
 qed"mkex_nil";
 
-Goal "!!x.[| x:act A; x~:act B |] \
+Goal "[| x:act A; x~:act B |] \
 \   ==> mkex A B (x>>sch) (s,a>>exA) (t,exB)  =  \
 \       ((s,t), (x,snd a,t) >> snd (mkex A B sch (snd a,exA) (t,exB)))";
 by (simp_tac (simpset() addsimps [mkex_def]) 1);
@@ -117,7 +117,7 @@ by (cut_inst_tac [("exA","a>>exA")] mkex2_cons_1 1);
 by Auto_tac;
 qed"mkex_cons_1";
 
-Goal "!!x.[| x~:act A; x:act B |] \
+Goal "[| x~:act A; x:act B |] \
 \   ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =  \ 
 \       ((s,t), (x,s,snd b) >> snd (mkex A B sch (s,exA) (snd b,exB)))";
 by (simp_tac (simpset() addsimps [mkex_def]) 1);
@@ -125,7 +125,7 @@ by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
 by Auto_tac;
 qed"mkex_cons_2";
 
-Goal "!!x.[| x:act A; x:act B |]  \
+Goal "[| x:act A; x:act B |]  \
 \   ==>  mkex A B (x>>sch) (s,a>>exA) (t,b>>exB) = \
 \        ((s,t), (x,snd a,snd b) >> snd (mkex A B sch (snd a,exA) (snd b,exB)))";
 by (simp_tac (simpset() addsimps [mkex_def]) 1);
@@ -277,7 +277,7 @@ by (mkex_induct_tac "sch" "exA" "exB");
 qed"stutterA_mkex";
 
 
-Goal "!! sch.[|  \
+Goal "[|  \
 \ Forall (%x. x:act (A||B)) sch ; \
 \ Filter (%a. a:act A)`sch << filter_act`(snd exA) ;\
 \ Filter (%a. a:act B)`sch << filter_act`(snd exB) |] \
@@ -308,7 +308,7 @@ by (mkex_induct_tac "sch" "exA" "exB");
 qed"stutterB_mkex";
 
 
-Goal "!! sch.[|  \
+Goal "[|  \
 \ Forall (%x. x:act (A||B)) sch ; \
 \ Filter (%a. a:act A)`sch << filter_act`(snd exA) ;\
 \ Filter (%a. a:act B)`sch << filter_act`(snd exB) |] \

@@ -8,7 +8,7 @@ Compositionality of I/O automata
 
 
 
-Goal "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eA | eB) --> A=eA";
+Goal "[|eA --> A ; eB & ~eA --> ~A|] ==> (eA | eB) --> A=eA";
 by Auto_tac;
 qed"compatibility_consequence3";
 
@@ -27,12 +27,11 @@ qed"Filter_actAisFilter_extA";
 
 (* the next two theorems are only necessary, as there is no theorem ext (A||B) = ext (B||A) *)
 
-Goal "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA";
+Goal "[|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA";
 by Auto_tac;
 qed"compatibility_consequence4";
 
-Goal 
-"!! A B. [| compatible A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
+Goal "[| compatible A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
 by (rtac ForallPFilterQR 1);
 by (assume_tac 2);
@@ -48,8 +47,7 @@ qed"Filter_actAisFilter_extA2";
 
 
 
-Goal "!! A1 A2 B1 B2. \
-\         [| is_trans_of A1; is_trans_of A2; is_trans_of B1; is_trans_of B2;\
+Goal "[| is_trans_of A1; is_trans_of A2; is_trans_of B1; is_trans_of B2;\
 \            is_asig_of A1; is_asig_of A2; \
 \            is_asig_of B1; is_asig_of B2; \
 \            compatible A1 B1; compatible A2 B2; \

@@ -37,7 +37,6 @@ val mov_metric4 = read_instantiate_sg (sign_of thy)
 (*The order in which they are applied seems to be critical...*)
 val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4];
 
-
 val metric_simps = [metric_def, vimage_def];
 
 
@@ -109,7 +108,7 @@ by (Force_tac 1);
 by (constrains_tac 1);
 by (ALLGOALS Clarify_tac);
 by (REPEAT_FIRST distinct_tac);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [zle_imp_zle_zadd])));
+by Auto_tac;
 qed "bounded";
 
 
@@ -246,8 +245,6 @@ by (ensures_tac "req_up" 1);
 by Auto_tac;
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
-(** LEVEL 5 **)
-by (dres_inst_tac [("w1","Min")] (zle_iff_zadd RS iffD1) 1);
 by (Blast_tac 1);
 qed "E_thm16a";
 
@@ -260,8 +257,6 @@ by (ensures_tac "req_down" 1);
 by Auto_tac;
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
-(** LEVEL 5 **)
-by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
 by (Blast_tac 1);
 qed "E_thm16b";
 
