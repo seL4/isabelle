@@ -138,7 +138,7 @@ Addsimps [Compl_atMost];
 (*** Combined properties ***)
 
 Goal "atMost n Int atLeast n = {n}";
-by (blast_tac (claset() addIs [le_anti_sym]) 1);
+by (blast_tac (claset() addIs [order_antisym]) 1);
 qed "atMost_Int_atLeast";
 
 
