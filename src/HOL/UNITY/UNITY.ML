@@ -8,7 +8,7 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-set proof_timing;
+set timing;
 
 (*Perhaps equalities.ML shouldn't add this in the first place!*)
 Delsimps [image_Collect];

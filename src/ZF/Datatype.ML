@@ -53,7 +53,7 @@ structure CoData_Package =
 structure DataFree =
 struct
   (*prove while suppressing timing information*)
-  fun prove ct = setmp Goals.proof_timing false (prove_goalw_cterm [] ct);
+  fun prove ct = setmp Library.timing false (prove_goalw_cterm [] ct);
 
   val trace = ref false;
 

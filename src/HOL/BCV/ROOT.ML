@@ -7,6 +7,4 @@ A simple model of dataflow (sub)type analysis of instruction sequences,
 aka `bytecode verification'.
 *)
 
-writeln"Root file for HOL/BCV";
-
 time_use_thy "Machine";

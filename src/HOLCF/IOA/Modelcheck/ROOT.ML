@@ -8,9 +8,8 @@ Modelchecker setup for I/O automata.
 goals_limit := 1;
 
 use "../../../HOL/Modelcheck/mucke_oracle.ML";
-use_thy "../../../HOL/Modelcheck/MuckeSyn";
-use_thy "MuIOAOracle";
+with_path "../../../HOL/Modelcheck" time_use_thy "MuIOAOracle";
 
 (*examples*)
-if_mucke_enabled use_thy "Cockpit";
-if_mucke_enabled use_thy "Ring3";
+if_mucke_enabled time_use_thy "Cockpit";
+if_mucke_enabled time_use_thy "Ring3";

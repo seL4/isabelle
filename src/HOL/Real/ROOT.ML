@@ -8,8 +8,6 @@ Construction of the Reals using Dedekind Cuts, by Jacques Fleuriot
 Linear real arithmetic is installed in RealBin.ML.
 *)
 
-writeln"Root file for HOL/Real";
-
 time_use_thy "RealDef";
 use          "simproc.ML";
 time_use_thy "Real";

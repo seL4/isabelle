@@ -19,7 +19,7 @@ fun prove_hard arg = if even_hard_ones then prove arg else TrueI;
 
 val meson_tac = safe_meson_tac 1;
 
-set proof_timing;
+set timing;
 
 (* ========================================================================= *)
 (* 100 problems selected from the TPTP library                               *)

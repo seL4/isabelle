@@ -1,2 +1,2 @@
 
-use_thy "Inc";
+time_use_thy "Inc";

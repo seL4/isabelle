@@ -6,10 +6,6 @@
 Root file for UNITY proofs.
 *)
 
-writeln"Root file for HOL/UNITY";
-
-set proof_timing;
-
 time_use_thy "UNITY";
 time_use_thy "Deadlock";
 time_use_thy "WFair";
@@ -32,7 +28,5 @@ time_use_thy "Client";
 
 time_use_thy "ELT";  (*obsolete*)
 
-add_path "../Auth";	(*to find Public.thy*)
-use_thy"NSP_Bad";
-
-reset_path ();
+with_path "../Auth"  (*to find Public.thy*)
+  time_use_thy"NSP_Bad";

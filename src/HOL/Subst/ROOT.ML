@@ -22,12 +22,6 @@ Unifier      -  specification of unification and conditions for
                 correctness and termination
 Unify        -  the unification function
 
-To load, type use"ROOT.ML"; into an Isabelle-HOL that has TFL 
-also loaded. 
 *)
 
-writeln"Root file for Substitutions and Unification";
-
-use_thy "Unify";
-
-writeln"END: Root file for Substitutions and Unification";
+time_use_thy "Unify";

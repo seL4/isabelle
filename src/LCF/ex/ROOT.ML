@@ -6,10 +6,7 @@
 Some examples from Lawrence Paulson's book Logic and Computation.
 *)
 
-writeln"Root file for LCF examples";
-
-set proof_timing;
-use_thy "Ex1";
-use_thy "Ex2";
-use_thy "Ex3";
-use_thy "Ex4";
+time_use_thy "Ex1";
+time_use_thy "Ex2";
+time_use_thy "Ex3";
+time_use_thy "Ex4";

@@ -1,5 +1,2 @@
 
-writeln"Root file for Cube examples";
-
-set proof_timing;
-use_thy "ex";
+time_use_thy "ex";

@@ -9,8 +9,6 @@ Also a proof that binary arithmetic on normalized operands
 yields normalized results. 
 *)
 
-set proof_timing;
-
 (**** The Integers ****)
 
 (*** Addition ***)
@@ -372,4 +370,3 @@ by (ALLGOALS
 by (safe_tac (claset() addSDs [normal_BIT_D]));
 by (asm_simp_tac (simpset() addsimps [bin_add_normal]) 1);
 qed_spec_mp "bin_mult_normal";
-

@@ -9,6 +9,5 @@ I/O-Automata.  See the README.html file for details.
 
 goals_limit := 1;
 
-
-use_thy "TrivEx";
-use_thy "TrivEx2";
+time_use_thy "TrivEx";
+time_use_thy "TrivEx2";

@@ -1,12 +1,8 @@
+
 goals_limit:=1;
 
 Unify.search_bound := 40;
 Unify.trace_bound  := 40;
 
-add_path "J";
-add_path "JVM";
-add_path "BV";
-
-
-use_thy "JTypeSafe";
-use_thy "BVSpecTypeSafe";
+with_path "J" (with_path "JVM" (with_path "BV" use_thy)) "JTypeSafe";
+with_path "J" (with_path "JVM" (with_path "BV" use_thy)) "BVSpecTypeSafe";

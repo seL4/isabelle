@@ -9,6 +9,6 @@ I/O-Automata.  See the README.html file for details.
 
 goals_limit := 1;
 
-use_thy "meta_theory/Abstraction";
-use "meta_theory/ioa_package.ML";
-use "meta_theory/ioa_syn.ML";
+time_use_thy "meta_theory/Abstraction";
+time_use "meta_theory/ioa_package.ML";
+time_use "meta_theory/ioa_syn.ML";

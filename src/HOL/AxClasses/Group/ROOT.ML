@@ -8,7 +8,7 @@ Some bits of group theory via axiomatic type classes.
 set show_types;
 set show_sorts;
 
-use_thy "Monoid";
-use_thy "Group";
-use_thy "MonoidGroupInsts";
-use_thy "GroupInsts";
+time_use_thy "Monoid";
+time_use_thy "Group";
+time_use_thy "MonoidGroupInsts";
+time_use_thy "GroupInsts";

@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/ROOT
+(*  Title:      HOL/ex/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -6,15 +6,11 @@
 Executes miscellaneous examples for Higher-Order Logic. 
 *)
 
-writeln "Root file for HOL examples";
-
-set proof_timing;
-
 (*some examples of recursive function definitions: the TFL package*)
 time_use_thy "Recdefs";
 time_use_thy "Primes";
 time_use_thy "Fib";
-with_path "../Induct" use_thy "Factorization";
+with_path "../Induct" time_use_thy "Factorization";
 time_use_thy "Primrec";
 
 time_use_thy "NatSum";
@@ -50,6 +46,3 @@ time_use_thy "LocaleGroup";
 (*expressions with quote / antiquote syntax*)
 time_use_thy "Antiquote";
 time_use_thy "Multiquote";
-
-
-writeln "END: Root file for HOL examples";

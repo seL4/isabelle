@@ -4,8 +4,6 @@
     Copyright   1991  University of Cambridge
 *)
 
-set proof_timing;
-
 writeln "\nTheorems of T\n";
 fun try s = (writeln s; prove_goal T.thy s (fn _=> [T_Prover.solve_tac 2]));
 time_use "Tthms.ML";

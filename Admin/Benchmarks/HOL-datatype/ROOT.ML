@@ -6,7 +6,7 @@ Some rather large datatype examples (from John Harrison).
 
 val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 
-set Toplevel.trace;
+set timing;
 
 warning "\nset quick_and_dirty\n"; set quick_and_dirty;
 seq time_use_thy tests;

@@ -4,4 +4,4 @@
     Copyright   1998 TUM
 *)
 
-use_thy "Examples";
+time_use_thy "Examples";

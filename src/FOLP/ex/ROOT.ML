@@ -6,10 +6,6 @@
 Executes all examples for First-Order Logic. 
 *)
 
-writeln"Root file for FOLP examples";
-
-set proof_timing;
-
 time_use     "intro.ML";
 time_use_thy "Nat";
 time_use     "foundn.ML";

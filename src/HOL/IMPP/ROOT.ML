@@ -4,6 +4,4 @@
     Copyright   1999 TUM
 *)
 
-writeln"Root file for HOL/IMPP";
-
-use_thy "EvenOdd";
+time_use_thy "EvenOdd";

@@ -8,16 +8,16 @@ Basic Modelchecker examples.
 
 (* Mucke -- mu-calculus model checker from Karlsruhe *)
 
-use "mucke_oracle.ML";
-use_thy "MuckeSyn";
+time_use "mucke_oracle.ML";
+time_use_thy "MuckeSyn";
 
-if_mucke_enabled use_thy "MuckeExample1";
-if_mucke_enabled use_thy "MuckeExample2";
+if_mucke_enabled time_use_thy "MuckeExample1";
+if_mucke_enabled time_use_thy "MuckeExample2";
 
 
 (* Einhoven model checker *)
 
-use_thy "CTL";
-use_thy "EindhovenSyn";
+time_use_thy "CTL";
+time_use_thy "EindhovenSyn";
 
-if_eindhoven_enabled use_thy "EindhovenExample";
+if_eindhoven_enabled time_use_thy "EindhovenExample";

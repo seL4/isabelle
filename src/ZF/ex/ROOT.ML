@@ -6,9 +6,6 @@
 Executes miscellaneous examples for Zermelo-Fraenkel Set Theory
 *)
 
-writeln"Root file for ZF Set Theory examples";
-set proof_timing;
-
 time_use     "misc.ML";
 time_use_thy "Primes";          (*GCD theory*)
 time_use_thy "Ramsey";          (*Simple form of Ramsey's theorem*)
@@ -37,5 +34,3 @@ time_use_thy "Primrec";         (*Primitive recursive functions*)
 (** CoDatatypes **)
 time_use_thy "LList";
 time_use_thy "CoUnit";
-
-writeln"END: Root file for ZF Set Theory examples";

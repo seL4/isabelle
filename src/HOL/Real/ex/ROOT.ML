@@ -6,8 +6,4 @@
 HOL/Real examples.
 *)
 
-writeln "Root file for HOL/Real examples";
-
-set proof_timing;
-
 time_use_thy "BinEx";

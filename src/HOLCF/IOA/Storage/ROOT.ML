@@ -8,4 +8,4 @@ Memory storage case study.
 
 goals_limit := 1;
 
-use_thy "Correctness";
+time_use_thy "Correctness";

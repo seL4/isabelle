@@ -6,9 +6,6 @@
 Root file for protocol proofs.
 *)
 
-writeln"Root file for HOL/Auth";
-
-set proof_timing;
 goals_limit := 1;
 
 (*Shared-key protocols*)

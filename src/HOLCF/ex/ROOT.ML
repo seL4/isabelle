@@ -1,14 +1,11 @@
-(*  Title:      HOLCF/ex/ROOT
+(*  Title:      HOLCF/ex/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
-Executes all examples for HOLCF. 
+Misc HOLCF examples.
 *)
 
-writeln"Root file for HOLCF examples";
-
-set proof_timing;
 time_use_thy "Dnat";
 time_use_thy "Stream";
 time_use_thy "Dagstuhl";

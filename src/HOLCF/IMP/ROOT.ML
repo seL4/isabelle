@@ -4,5 +4,4 @@
     Copyright   1997  TU Muenchen
 *)
 
-use_thy "../../HOL/IMP/Natural";
-use_thy "HoareEx";
+with_path "../../HOL/IMP" time_use_thy "HoareEx";

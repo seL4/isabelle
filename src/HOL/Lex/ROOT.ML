@@ -4,8 +4,8 @@
     Copyright   1998 TUM
 *)
 
-use_thy"AutoChopper";
-use_thy"AutoChopper1";
-use_thy"AutoMaxChop";
-use_thy"RegSet_of_nat_DA";
-use_thy"Scanner";
+time_use_thy "AutoChopper";
+time_use_thy "AutoChopper1";
+time_use_thy "AutoMaxChop";
+time_use_thy "RegSet_of_nat_DA";
+time_use_thy "Scanner";

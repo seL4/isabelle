@@ -287,7 +287,7 @@ Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
 
 (*examples:
 print_depth 22;
-set proof_timing;
+set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 

@@ -4,8 +4,6 @@
     Copyright   1998 TUM
 *)
 
-writeln"Root file for HOL/Lambda";
-
 time_use_thy "Eta";
-time_use_thy "../Induct/Acc";
+with_path "../Induct" time_use_thy "Acc";
 time_use_thy "InductTermi";

@@ -13,7 +13,4 @@ Written up as
     Report, Computer Lab, University of Cambridge (1995).
 *)
 
-writeln"Root file for ZF/Coind";
-
-set proof_timing;
 time_use_thy "MT";

@@ -1,9 +1,9 @@
-(*  Title:      LCF/ROOT
+(*  Title:      LCF/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
-Adds LCF to a database containing First-Order Logic.
+LCF on top of First-Order Logic.
 
 This theory is based on Lawrence Paulson's book Logic and Computation.
 *)

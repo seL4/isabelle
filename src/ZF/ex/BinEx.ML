@@ -8,7 +8,6 @@ Examples of performing binary arithmetic by simplification
 
 context Bin.thy;
 
-set proof_timing;
 (*All runtimes below are on a 300MHz Pentium*)
 
 Goal "#13  $+  #19 = #32";

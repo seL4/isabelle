@@ -1,2 +1,2 @@
 
-use_thy "DBuffer";
+time_use_thy "DBuffer";

@@ -12,7 +12,4 @@ MIT Press, 1993.
 
 *)
 
-writeln"Root file for ZF/IMP";
-
-set proof_timing;
 time_use_thy "Equiv";

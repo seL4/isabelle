@@ -11,14 +11,14 @@ reset eta_contract;
 set show_types;
 set show_sorts;
 
-use_thy "Order";
-use_thy "OrdDefs";
-use_thy "OrdInsts";
+time_use_thy "Order";
+time_use_thy "OrdDefs";
+time_use_thy "OrdInsts";
 
-use_thy "Lattice";
-use_thy "CLattice";
+time_use_thy "Lattice";
+time_use_thy "CLattice";
 
-use_thy "LatPreInsts";
-use_thy "LatInsts";
+time_use_thy "LatPreInsts";
+time_use_thy "LatInsts";
 
-use_thy "LatMorph";
+time_use_thy "LatMorph";

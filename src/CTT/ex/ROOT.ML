@@ -1,4 +1,4 @@
-(*  Title:      CTT/ex/ROOT
+(*  Title:      CTT/ex/ROOT.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -6,10 +6,7 @@
 Executes all examples for Constructive Type Theory. 
 *)
 
-writeln"Root file for CTT examples";
-
 print_depth 2;  
-set proof_timing;
 
 time_use "typechk.ML";
 time_use "elim.ML";

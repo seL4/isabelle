@@ -1,2 +1,2 @@
 
-use_thy "MemoryImplementation";
+time_use_thy "MemoryImplementation";

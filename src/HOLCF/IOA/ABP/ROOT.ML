@@ -9,4 +9,4 @@ I/O-Automata.
 
 goals_limit := 1;
 
-use_thy "Correctness";
+time_use_thy "Correctness";

@@ -6,9 +6,6 @@
 Executes the proofs of the AC-equivalences, due to Krzysztof Grabczewski
 *)
 
-writeln"Root file for ZF/AC";
-set proof_timing;
-
 time_use_thy "AC_Equiv";
 
 time_use     "WO1_WO6.ML";
@@ -35,5 +32,3 @@ time_use_thy "AC17_AC1";
 time_use_thy "AC18_AC19";
 
 time_use_thy "DC";
-
-writeln"END: Root file for ZF/AC";

@@ -9,4 +9,4 @@ performed in the I/O automata formalization by Olaf Mueller.
 
 goals_limit := 1;
 
-use_thy "Correctness";
+time_use_thy "Correctness";

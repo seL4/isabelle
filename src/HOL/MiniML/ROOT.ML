@@ -6,6 +6,4 @@
 Type inference for MiniML
 *)
 
-writeln"Root file for HOL/MiniML";
-
 time_use_thy "W";
