@@ -24,7 +24,7 @@ type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) *
   (unit -> unit) * (unit -> unit);
 
 signature PRETTY =
-sig
+  sig
   type T
   val blk: int * T list -> T
   val brk: int -> T
@@ -48,9 +48,9 @@ sig
   val map_strs: (string -> string) -> T -> T
   val setdepth: int -> unit
   val setmargin: int -> unit
-end;
+  end;
 
-functor PrettyFun(): PRETTY =
+structure Pretty : PRETTY =
 struct
 
 (*Printing items: compound phrases, strings, and breaks*)
