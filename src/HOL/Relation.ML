@@ -1,472 +1,103 @@
-(*  Title:      Relation.ML
-    ID:         $Id$
-    Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1996  University of Cambridge
-*)
 
-(** Identity relation **)
-
-Goalw [Id_def] "(a,a) : Id";  
-by (Blast_tac 1);
-qed "IdI";
-
-val major::prems = Goalw [Id_def]
-    "[| p: Id;  !!x.[| p = (x,x) |] ==> P  \
-\    |] ==>  P";  
-by (rtac (major RS CollectE) 1);
-by (etac exE 1);
-by (eresolve_tac prems 1);
-qed "IdE";
-
-Goalw [Id_def] "((a,b):Id) = (a=b)";
-by (Blast_tac 1);
-qed "pair_in_Id_conv";
-AddIffs [pair_in_Id_conv];
-
-Goalw [refl_def] "reflexive Id";
-by Auto_tac;
-qed "reflexive_Id";
-
-(*A strange result, since Id is also symmetric.*)
-Goalw [antisym_def] "antisym Id";
-by Auto_tac;
-qed "antisym_Id";
-
-Goalw [trans_def] "trans Id";
-by Auto_tac;
-qed "trans_Id";
-
-
-(** Diagonal relation: indentity restricted to some set **)
-
-(*** Equality : the diagonal relation ***)
-
-Goalw [diag_def] "[| a=b;  a:A |] ==> (a,b) : diag(A)";
-by (Blast_tac 1);
-qed "diag_eqI";
-
-bind_thm ("diagI", refl RS diag_eqI |> standard);
-
-(*The general elimination rule*)
-val major::prems = Goalw [diag_def]
-    "[| c : diag(A);  \
-\       !!x y. [| x:A;  c = (x,x) |] ==> P \
-\    |] ==> P";
-by (rtac (major RS UN_E) 1);
-by (REPEAT (eresolve_tac [asm_rl,singletonE] 1 ORELSE resolve_tac prems 1));
-qed "diagE";
-
-AddSIs [diagI];
-AddSEs [diagE];
-
-Goal "((x,y) : diag A) = (x=y & x : A)";
-by (Blast_tac 1);
-qed "diag_iff";
-
-Goal "diag(A) <= A <*> A";
-by (Blast_tac 1);
-qed "diag_subset_Times";
-
-
-
-(** Composition of two relations **)
-
-Goalw [rel_comp_def]
-    "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
-by (Blast_tac 1);
-qed "rel_compI";
-
-(*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-val prems = Goalw [rel_comp_def]
-    "[| xz : r O s;  \
-\       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
-\    |] ==> P";
-by (cut_facts_tac prems 1);
-by (REPEAT (eresolve_tac [CollectE, splitE, exE, conjE] 1 
-     ORELSE ares_tac prems 1));
-qed "rel_compE";
-
-val prems = Goal
-    "[| (a,c) : r O s;  \
-\       !!y. [| (a,y):s;  (y,c):r |] ==> P \
-\    |] ==> P";
-by (rtac rel_compE 1);
-by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
-qed "rel_compEpair";
-
-AddIs [rel_compI, IdI];
-AddSEs [rel_compE, IdE];
-
-Goal "R O Id = R";
-by (Fast_tac 1);
-qed "R_O_Id";
-
-Goal "Id O R = R";
-by (Fast_tac 1);
-qed "Id_O_R";
-
-Addsimps [R_O_Id,Id_O_R];
-
-Goal "(R O S) O T = R O (S O T)";
-by (Blast_tac 1);
-qed "O_assoc";
-
-Goalw [trans_def] "trans r ==> r O r <= r";
-by (Blast_tac 1);
-qed "trans_O_subset";
-
-Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
-by (Blast_tac 1);
-qed "rel_comp_mono";
-
-Goal "[| s <= A <*> B;  r <= B <*> C |] ==> (r O s) <= A <*> C";
-by (Blast_tac 1);
-qed "rel_comp_subset_Sigma";
-
-(** Natural deduction for refl(r) **)
-
-val prems = Goalw [refl_def]
-    "[| r <= A <*> A;  !! x. x:A ==> (x,x):r |] ==> refl A r";
-by (REPEAT (ares_tac (prems@[ballI,conjI]) 1));
-qed "reflI";
-
-Goalw [refl_def] "[| refl A r; a:A |] ==> (a,a):r";
-by (Blast_tac 1);
-qed "reflD";
-
-(** Natural deduction for antisym(r) **)
-
-val prems = Goalw [antisym_def]
-    "(!! x y. [| (x,y):r;  (y,x):r |] ==> x=y) ==> antisym(r)";
-by (REPEAT (ares_tac (prems@[allI,impI]) 1));
-qed "antisymI";
-
-Goalw [antisym_def] "[| antisym(r);  (a,b):r;  (b,a):r |] ==> a=b";
-by (Blast_tac 1);
-qed "antisymD";
-
-(** Natural deduction for trans(r) **)
-
-val prems = Goalw [trans_def]
-    "(!! x y z. [| (x,y):r;  (y,z):r |] ==> (x,z):r) ==> trans(r)";
-by (REPEAT (ares_tac (prems@[allI,impI]) 1));
-qed "transI";
-
-Goalw [trans_def] "[| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
-by (Blast_tac 1);
-qed "transD";
-
-(** Natural deduction for r^-1 **)
-
-Goalw [converse_def] "((a,b): r^-1) = ((b,a):r)";
-by (Simp_tac 1);
-qed "converse_iff";
-
-AddIffs [converse_iff];
-
-Goalw [converse_def] "(a,b):r ==> (b,a): r^-1";
-by (Simp_tac 1);
-qed "converseI";
-
-Goalw [converse_def] "(a,b) : r^-1 ==> (b,a) : r";
-by (Blast_tac 1);
-qed "converseD";
-
-(*More general than converseD, as it "splits" the member of the relation*)
-
-val [major,minor] = Goalw [converse_def]
-    "[| yx : r^-1;  \
-\       !!x y. [| yx=(y,x);  (x,y):r |] ==> P \
-\    |] ==> P";
-by (rtac (major RS CollectE) 1);
-by (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1));
-by (assume_tac 1);
-qed "converseE";
-AddSEs [converseE];
-
-Goalw [converse_def] "(r^-1)^-1 = r";
-by (Blast_tac 1);
-qed "converse_converse";
-Addsimps [converse_converse];
-
-Goal "(r O s)^-1 = s^-1 O r^-1";
-by (Blast_tac 1);
-qed "converse_rel_comp";
-
-Goal "Id^-1 = Id";
-by (Blast_tac 1);
-qed "converse_Id";
-Addsimps [converse_Id];
-
-Goal "(diag A) ^-1 = diag A";
-by (Blast_tac 1);
-qed "converse_diag";
-Addsimps [converse_diag];
-
-Goalw [refl_def] "refl A r ==> refl A (converse r)";
-by (Blast_tac 1);
-qed "refl_converse";
-
-Goalw [antisym_def] "antisym (converse r) = antisym r";
-by (Blast_tac 1);
-qed "antisym_converse";
-
-Goalw [trans_def] "trans (converse r) = trans r";
-by (Blast_tac 1);
-qed "trans_converse";
-
-(** Domain **)
-
-Goalw [Domain_def] "(a: Domain(r)) = (EX y. (a,y): r)";
-by (Blast_tac 1);
-qed "Domain_iff";
-
-Goal "(a,b): r ==> a: Domain(r)";
-by (etac (exI RS (Domain_iff RS iffD2)) 1) ;
-qed "DomainI";
-
-val prems= Goal "[| a : Domain(r);  !!y. (a,y): r ==> P |] ==> P";
-by (rtac (Domain_iff RS iffD1 RS exE) 1);
-by (REPEAT (ares_tac prems 1)) ;
-qed "DomainE";
-
-AddIs  [DomainI];
-AddSEs [DomainE];
-
-Goal "Domain {} = {}";
-by (Blast_tac 1); 
-qed "Domain_empty";
-Addsimps [Domain_empty];
-
-Goal "Domain (insert (a, b) r) = insert a (Domain r)";
-by (Blast_tac 1); 
-qed "Domain_insert";
-
-Goal "Domain Id = UNIV";
-by (Blast_tac 1);
-qed "Domain_Id";
-Addsimps [Domain_Id];
-
-Goal "Domain (diag A) = A";
-by Auto_tac;
-qed "Domain_diag";
-Addsimps [Domain_diag];
-
-Goal "Domain(A Un B) = Domain(A) Un Domain(B)";
-by (Blast_tac 1);
-qed "Domain_Un_eq";
-
-Goal "Domain(A Int B) <= Domain(A) Int Domain(B)";
-by (Blast_tac 1);
-qed "Domain_Int_subset";
-
-Goal "Domain(A) - Domain(B) <= Domain(A - B)";
-by (Blast_tac 1);
-qed "Domain_Diff_subset";
-
-Goal "Domain (Union S) = (UN A:S. Domain A)";
-by (Blast_tac 1);
-qed "Domain_Union";
-
-Goal "r <= s ==> Domain r <= Domain s";
-by (Blast_tac 1);
-qed "Domain_mono";
-
-
-(** Range **)
-
-Goalw [Domain_def, Range_def] "(a: Range(r)) = (EX y. (y,a): r)";
-by (Blast_tac 1);
-qed "Range_iff";
-
-Goalw [Range_def] "(a,b): r ==> b : Range(r)";
-by (etac (converseI RS DomainI) 1);
-qed "RangeI";
-
-val major::prems = Goalw [Range_def] 
-    "[| b : Range(r);  !!x. (x,b): r ==> P |] ==> P";
-by (rtac (major RS DomainE) 1);
-by (resolve_tac prems 1);
-by (etac converseD 1) ;
-qed "RangeE";
-
-AddIs  [RangeI];
-AddSEs [RangeE];
-
-Goal "Range {} = {}";
-by (Blast_tac 1); 
-qed "Range_empty";
-Addsimps [Range_empty];
-
-Goal "Range (insert (a, b) r) = insert b (Range r)";
-by (Blast_tac 1); 
-qed "Range_insert";
-
-Goal "Range Id = UNIV";
-by (Blast_tac 1);
-qed "Range_Id";
-Addsimps [Range_Id];
-
-Goal "Range (diag A) = A";
-by Auto_tac;
-qed "Range_diag";
-Addsimps [Range_diag];
-
-Goal "Range(A Un B) = Range(A) Un Range(B)";
-by (Blast_tac 1);
-qed "Range_Un_eq";
-
-Goal "Range(A Int B) <= Range(A) Int Range(B)";
-by (Blast_tac 1);
-qed "Range_Int_subset";
-
-Goal "Range(A) - Range(B) <= Range(A - B)";
-by (Blast_tac 1);
-qed "Range_Diff_subset";
-
-Goal "Range (Union S) = (UN A:S. Range A)";
-by (Blast_tac 1);
-qed "Range_Union";
-
-
-(*** Image of a set under a relation ***)
-
-overload_1st_set "Relation.Image";
-
-Goalw [Image_def] "(b : r``A) = (EX x:A. (x,b):r)";
-by (Blast_tac 1);
-qed "Image_iff";
-
-Goalw [Image_def] "r``{a} = {b. (a,b):r}";
-by (Blast_tac 1);
-qed "Image_singleton";
-
-Goal "(b : r``{a}) = ((a,b):r)";
-by (rtac (Image_iff RS trans) 1);
-by (Blast_tac 1);
-qed "Image_singleton_iff";
-
-AddIffs [Image_singleton_iff];
-
-Goalw [Image_def] "[| (a,b): r;  a:A |] ==> b : r``A";
-by (Blast_tac 1);
-qed "ImageI";
-
-val major::prems = Goalw [Image_def]
-    "[| b: r``A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P";
-by (rtac (major RS CollectE) 1);
-by (Clarify_tac 1);
-by (rtac (hd prems) 1);
-by (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ;
-qed "ImageE";
-
-AddIs  [ImageI];
-AddSEs [ImageE];
-
-(*This version's more effective when we already have the required "a"*)
-Goal  "[| a:A;  (a,b): r |] ==> b : r``A";
-by (Blast_tac 1);
-qed "rev_ImageI";
-
-Goal "R``{} = {}";
-by (Blast_tac 1);
-qed "Image_empty";
-
-Addsimps [Image_empty];
-
-Goal "Id `` A = A";
-by (Blast_tac 1);
-qed "Image_Id";
-
-Goal "diag A `` B = A Int B";
-by (Blast_tac 1);
-qed "Image_diag";
-
-Addsimps [Image_Id, Image_diag];
-
-Goal "R `` (A Int B) <= R `` A Int R `` B";
-by (Blast_tac 1);
-qed "Image_Int_subset";
-
-Goal "R `` (A Un B) = R `` A Un R `` B";
-by (Blast_tac 1);
-qed "Image_Un";
-
-Goal "r <= A <*> B ==> r``C <= B";
-by (rtac subsetI 1);
-by (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ;
-qed "Image_subset";
-
-(*NOT suitable for rewriting*)
-Goal "r``B = (UN y: B. r``{y})";
-by (Blast_tac 1);
-qed "Image_eq_UN";
-
-Goal "[| r'<=r; A'<=A |] ==> (r' `` A') <= (r `` A)";
-by (Blast_tac 1);
-qed "Image_mono";
-
-Goal "(r `` (UNION A B)) = (UN x:A.(r `` (B x)))";
-by (Blast_tac 1);
-qed "Image_UN";
-
-(*Converse inclusion fails*)
-Goal "(r `` (INTER A B)) <= (INT x:A.(r `` (B x)))";
-by (Blast_tac 1);
-qed "Image_INT_subset";
-
-Goal "(r``A <= B) = (A <= - ((r^-1) `` (-B)))";
-by (Blast_tac 1);
-qed "Image_subset_eq";
-
-section "single_valued";
-
-Goalw [single_valued_def]
-     "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r";
-by (assume_tac 1);
-qed "single_valuedI";
-
-Goalw [single_valued_def]
-     "[| single_valued r;  (x,y):r;  (x,z):r|] ==> y=z";
-by Auto_tac;
-qed "single_valuedD";
-
-
-(** Graphs given by Collect **)
-
-Goal "Domain{(x,y). P x y} = {x. EX y. P x y}";
-by Auto_tac; 
-qed "Domain_Collect_split";
-
-Goal "Range{(x,y). P x y} = {y. EX x. P x y}";
-by Auto_tac; 
-qed "Range_Collect_split";
-
-Goal "{(x,y). P x y} `` A = {y. EX x:A. P x y}";
-by Auto_tac; 
-qed "Image_Collect_split";
-
-Addsimps [Domain_Collect_split, Range_Collect_split, Image_Collect_split];
-
-(** Composition of function and relation **)
-
-Goalw [fun_rel_comp_def] "A <= B ==> fun_rel_comp f A <= fun_rel_comp f B";
-by (Fast_tac 1);
-qed "fun_rel_comp_mono";
-
-Goalw [fun_rel_comp_def]
-     "ALL x. EX! y. (f x, y) : R ==> EX! g. g : fun_rel_comp f R";
-by (res_inst_tac [("a","%x. THE y. (f x, y) : R")] ex1I 1);
-by (fast_tac (claset() addSDs [theI']) 1); 
-by (fast_tac (claset() addIs [ext, the1_equality RS sym]) 1);
-qed "fun_rel_comp_unique";
-
-
-section "inverse image";
-
-Goalw [trans_def,inv_image_def]
-    "trans r ==> trans (inv_image r f)";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "trans_inv_image";
-
+(* legacy ML bindings *)
+
+val DomainE = thm "DomainE";
+val DomainI = thm "DomainI";
+val Domain_Collect_split = thm "Domain_Collect_split";
+val Domain_Diff_subset = thm "Domain_Diff_subset";
+val Domain_Id = thm "Domain_Id";
+val Domain_Int_subset = thm "Domain_Int_subset";
+val Domain_Un_eq = thm "Domain_Un_eq";
+val Domain_Union = thm "Domain_Union";
+val Domain_def = thm "Domain_def";
+val Domain_diag = thm "Domain_diag";
+val Domain_empty = thm "Domain_empty";
+val Domain_iff = thm "Domain_iff";
+val Domain_insert = thm "Domain_insert";
+val Domain_mono = thm "Domain_mono";
+val Field_def = thm "Field_def";
+val IdE = thm "IdE";
+val IdI = thm "IdI";
+val Id_O_R = thm "Id_O_R";
+val Id_def = thm "Id_def";
+val ImageE = thm "ImageE";
+val ImageI = thm "ImageI";
+val Image_Collect_split = thm "Image_Collect_split";
+val Image_INT_subset = thm "Image_INT_subset";
+val Image_Id = thm "Image_Id";
+val Image_Int_subset = thm "Image_Int_subset";
+val Image_UN = thm "Image_UN";
+val Image_Un = thm "Image_Un";
+val Image_def = thm "Image_def";
+val Image_diag = thm "Image_diag";
+val Image_empty = thm "Image_empty";
+val Image_eq_UN = thm "Image_eq_UN";
+val Image_iff = thm "Image_iff";
+val Image_mono = thm "Image_mono";
+val Image_singleton = thm "Image_singleton";
+val Image_singleton_iff = thm "Image_singleton_iff";
+val Image_subset = thm "Image_subset";
+val Image_subset_eq = thm "Image_subset_eq";
+val O_assoc = thm "O_assoc";
+val R_O_Id = thm "R_O_Id";
+val RangeE = thm "RangeE";
+val RangeI = thm "RangeI";
+val Range_Collect_split = thm "Range_Collect_split";
+val Range_Diff_subset = thm "Range_Diff_subset";
+val Range_Id = thm "Range_Id";
+val Range_Int_subset = thm "Range_Int_subset";
+val Range_Un_eq = thm "Range_Un_eq";
+val Range_Union = thm "Range_Union";
+val Range_def = thm "Range_def";
+val Range_diag = thm "Range_diag";
+val Range_empty = thm "Range_empty";
+val Range_iff = thm "Range_iff";
+val Range_insert = thm "Range_insert";
+val antisymD = thm "antisymD";
+val antisymI = thm "antisymI";
+val antisym_Id = thm "antisym_Id";
+val antisym_converse = thm "antisym_converse";
+val antisym_def = thm "antisym_def";
+val converseD = thm "converseD";
+val converseE = thm "converseE";
+val converseI = thm "converseI";
+val converse_Id = thm "converse_Id";
+val converse_converse = thm "converse_converse";
+val converse_def = thm "converse_def";
+val converse_diag = thm "converse_diag";
+val converse_iff = thm "converse_iff";
+val converse_rel_comp = thm "converse_rel_comp";
+val diagE = thm "diagE";
+val diagI = thm "diagI";
+val diag_def = thm "diag_def";
+val diag_eqI = thm "diag_eqI";
+val diag_iff = thm "diag_iff";
+val diag_subset_Times = thm "diag_subset_Times";
+val fun_rel_comp_def = thm "fun_rel_comp_def";
+val fun_rel_comp_mono = thm "fun_rel_comp_mono";
+val fun_rel_comp_unique = thm "fun_rel_comp_unique";
+val inv_image_def = thm "inv_image_def";
+val pair_in_Id_conv = thm "pair_in_Id_conv";
+val reflD = thm "reflD";
+val reflI = thm "reflI";
+val refl_converse = thm "refl_converse";
+val refl_def = thm "refl_def";
+val reflexive_Id = thm "reflexive_Id";
+val rel_compE = thm "rel_compE";
+val rel_compEpair = thm "rel_compEpair";
+val rel_compI = thm "rel_compI";
+val rel_comp_def = thm "rel_comp_def";
+val rel_comp_mono = thm "rel_comp_mono";
+val rel_comp_subset_Sigma = thm "rel_comp_subset_Sigma";
+val rev_ImageI = thm "rev_ImageI";
+val single_valuedD = thm "single_valuedD";
+val single_valuedI = thm "single_valuedI";
+val single_valued_def = thm "single_valued_def";
+val sym_def = thm "sym_def";
+val transD = thm "transD";
+val transI = thm "transI";
+val trans_Id = thm "trans_Id";
+val trans_O_subset = thm "trans_O_subset";
+val trans_converse = thm "trans_converse";
+val trans_def = thm "trans_def";
+val trans_inv_image = thm "trans_inv_image";
