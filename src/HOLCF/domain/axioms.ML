@@ -86,6 +86,7 @@ in (dnam,
     [take_def, finite_def])
 end; (* let *)
 
+val add_axioms_i = PureThy.add_axioms_i o map Attribute.none;
 
 in (* local *)
 
@@ -126,14 +127,14 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
     in foldr' mk_conj (mapn one_comp 0 eqs)end ));
   fun add_one (thy,(dnam,axs,dfs)) = thy 
 	|> Theory.add_path dnam
-	|> PureThy.add_store_axioms_i (infer_types thy' dfs)(*add_store_defs_i*)
-	|> PureThy.add_store_axioms_i (infer_types thy' axs)
-	|> Theory.add_path "..";
+	|> add_axioms_i (infer_types thy' dfs)(*add_defs_i*)
+	|> add_axioms_i (infer_types thy' axs)
+	|> Theory.parent_path;
   val thy = foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
 in thy |> Theory.add_path comp_dnam  
-       |> PureThy.add_store_axioms_i (infer_types thy' 
+       |> add_axioms_i (infer_types thy' 
 		(bisim_def::(if length eqs>1 then [copy_def] else [])))
-       |> Theory.add_path ".."
+       |> Theory.parent_path
 end;
 
 end; (* local *)
