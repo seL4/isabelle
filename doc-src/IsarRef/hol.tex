@@ -1,15 +1,142 @@
 
-\chapter{Isabelle/HOL specific tools and packages}
+\chapter{Isabelle/HOL Tools and Packages}
 
 \section{Primitive types}
 
-\section{Records}
+\indexisarcmd{typedecl}\indexisarcmd{typedef}
+\begin{matharray}{rcl}
+  \isarcmd{typedecl} & : & \isartrans{theory}{theory} \\
+  \isarcmd{typedef} & : & \isartrans{theory}{proof(prove)} \\
+\end{matharray}
 
-\section{Datatypes}
+\begin{rail}
+  'typedecl' typespec infix? comment?
+  ;
+  'typedef' parname? typespec infix? \\ '=' term comment?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{typedecl}~(\vec\alpha)t$] is similar to the original
+  $\isarkeyword{typedecl}$ of Isabelle/Pure (see \S\ref{sec:types-pure}), but
+  also declares type arity $t :: (term, \dots, term) term$, making $t$ an
+  actual HOL type constructor.
+\item [$\isarkeyword{typedef}~(\vec\alpha)t = A$] sets up a goal stating
+  non-emptiness of the set $A$.  After finishing the proof, the theory will be
+  augmented by a Gordon/HOL-style type definitions.  See \cite{isabelle-HOL}
+  for more information.  Note that user-level work usually does not directly
+  refer to the HOL $\isarkeyword{typedef}$ primitive, but uses more advanced
+  packages such as $\isarkeyword{record}$ (\S\ref{sec:record}) or
+  $\isarkeyword{datatype}$ (\S\ref{sec:datatype}).
+\end{description}
+
+
+\section{Records}\label{sec:record}
+
+%FIXME record_split method
+\indexisarcmd{record}
+\begin{matharray}{rcl}
+  \isarcmd{record} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+\begin{rail}
+  'record' typespec '=' (type '+')? (field +)
+  ;
+
+  field: name '::' type comment?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{record}~(\vec\alpha)t = \tau + \vec c :: \vec\sigma$]
+  defines extensible record type $(\vec\alpha)t$, derived from the optional
+  parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
+  See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
+  simply-typed records.
+\end{description}
+
+
+\section{Datatypes}\label{sec:datatype}
+
+\indexisarcmd{datatype}\indexisarcmd{rep_datatype}
+\begin{matharray}{rcl}
+  \isarcmd{datatype} & : & \isartrans{theory}{theory} \\
+  \isarcmd{rep_datatype} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+\railalias{repdatatype}{rep\_datatype}
+\railterm{repdatatype}
+
+\begin{rail}
+  'datatype' (parname? typespec infix? \\ '=' (cons + '|') + 'and')
+  ;
+  repdatatype (name * ) \\ 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
+  ;
+
+  cons: name (type * ) mixfix? comment?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{datatype}$] FIXME
+\item [$\isarkeyword{rep_datatype}$] FIXME
+\end{description}
+
 
 \section{Recursive functions}
 
+\indexisarcmd{primrec}\indexisarcmd{recdef}
+\begin{matharray}{rcl}
+  \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
+  \isarcmd{recdef} & : & \isartrans{theory}{theory} \\
+%FIXME
+%  \isarcmd{defer_recdef} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+\begin{rail}
+  'primrec' parname? (thmdecl? prop comment? + )
+  ;
+  'recdef' name term (term comment? +) \\ ('congs' thmrefs)? ('simpset' name)?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{primrec}$] FIXME
+\item [$\isarkeyword{recdef}$] FIXME
+\end{description}
+
+
 \section{(Co)Inductive sets}
+
+\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisarcmd{inductive\_cases}
+\begin{matharray}{rcl}
+  \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
+  \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
+  \isarcmd{inductive_cases} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+\railalias{condefs}{con\_defs}
+\railalias{indcases}{inductive\_cases}
+\railterm{condefs,indcases}
+
+\begin{rail}
+  ('inductive' | 'coinductive') (term comment? +) \\
+    'intrs' attributes? (thmdecl? prop comment? +) \\
+    'monos' thmrefs comment? \\ condefs thmrefs comment?
+  ;
+  indcases thmdef? nameref ':' \\ (prop +) comment?
+  ;
+\end{rail}
+
+\begin{description}
+\item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] FIXME
+\item [$\isarkeyword{inductive_cases}$] FIXME
+\end{description}
+
+
+\section{Proof by induction}
+
+%FIXME induct proof method
 
 
 %%% Local Variables: 

@@ -136,7 +136,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \end{description}
 
 
-\subsection{Types}
+\subsection{Types}\label{sec:types-pure}
 
 \indexisarcmd{typedecl}\indexisarcmd{types}\indexisarcmd{nonterminals}\indexisarcmd{arities}
 \begin{matharray}{rcl}
@@ -327,9 +327,9 @@ declared in the current theory, e.g.\ type-checking of included terms.
 
 \subsection{ML translation functions}
 
-\indexisarcmd{parse_ast_translation}\indexisarcmd{parse_translation}
-\indexisarcmd{print_translation}\indexisarcmd{typed_print_translation}
-\indexisarcmd{print_ast_translation}\indexisarcmd{token_translation}
+\indexisarcmd{parse\_ast\_translation}\indexisarcmd{parse\_translation}
+\indexisarcmd{print\_translation}\indexisarcmd{typed\_print\_translation}
+\indexisarcmd{print\_ast\_translation}\indexisarcmd{token\_translation}
 \begin{matharray}{rcl}
   \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
   \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
@@ -367,7 +367,8 @@ transformations.
 
 \subsection{Goal statements}
 
-\indexisarcmd{}
+\indexisarcmd{theorem}\indexisarcmd{lemma}
+\indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
 \begin{matharray}{rcl}
   \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
@@ -495,15 +496,6 @@ transformations.
   \isarcmd{\}\}} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
-\begin{rail}
-  llbrace
-  ;
-  rrbrace
-  ;
-  'next'
-  ;
-\end{rail}
-
 \begin{description}
 \item [$ $] FIXME
 \end{description}
@@ -533,7 +525,7 @@ transformations.
 
 \subsection{Improper proof steps}
 
-\indexisarcmd{apply}\indexisarcmd{then_apply}\indexisarcmd{back}
+\indexisarcmd{apply}\indexisarcmd{then\_apply}\indexisarcmd{back}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{then_apply}^* & : & \isartrans{proof}{proof} \\
@@ -593,8 +585,8 @@ transformations.
 
 \subsection{System operations}
 
-\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use_thy}\indexisarcmd{use_thy_only}
-\indexisarcmd{update_thy}\indexisarcmd{update_thy_only}
+\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use\_thy}\indexisarcmd{use\_thy\_only}
+\indexisarcmd{update\_thy}\indexisarcmd{update\_thy\_only}
 \begin{matharray}{rcl}
   \isarcmd{cd} & : & \isarkeep{\cdot} \\
   \isarcmd{pwd} & : & \isarkeep{\cdot} \\
