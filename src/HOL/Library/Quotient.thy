@@ -4,7 +4,7 @@
 *)
 
 header {*
-  \title{Quotients}
+  \title{Quotient types}
   \author{Gertrud Bauer and Markus Wenzel}
 *}
 
@@ -136,71 +136,114 @@ text {*
  on quotient types.
 *}
 
-theorem quot_cond_definition1:
+theorem quot_cond_function1:
+  "(!!X. f X == g (pick X)) ==>
+    (!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x = g x') ==>
+    (!!x x'. x \<sim> x' ==> P x = P x') ==>
+  P a ==> f \<lfloor>a\<rfloor> = g a"
+proof -
+  assume cong_g: "!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x = g x'"
+  assume cong_P: "!!x x'. x \<sim> x' ==> P x = P x'"
+  assume P: "P a"
+  assume "!!X. f X == g (pick X)"
+  hence "f \<lfloor>a\<rfloor> = g (pick \<lfloor>a\<rfloor>)" by (simp only:)
+  also have "\<dots> = g a"
+  proof (rule cong_g)
+    show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+    hence "P (pick \<lfloor>a\<rfloor>) = P a" by (rule cong_P)
+    also note P
+    finally show "P (pick \<lfloor>a\<rfloor>)" .
+  qed
+  finally show ?thesis .
+qed
+
+theorem quot_function1:
+  "(!!X. f X == g (pick X)) ==>
+    (!!x x'. x \<sim> x' ==> g x = g x') ==>
+    f \<lfloor>a\<rfloor> = g a"
+proof -
+  case antecedent from this refl TrueI
+  show ?thesis by (rule quot_cond_function1)
+qed
+
+theorem quot_cond_operation1:
   "(!!X. f X == \<lfloor>g (pick X)\<rfloor>) ==>
     (!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x \<sim> g x') ==>
     (!!x x'. x \<sim> x' ==> P x = P x') ==>
   P a ==> f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
 proof -
-  assume cong_g: "!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x \<sim> g x'"
-  assume cong_P: "!!x x'. x \<sim> x' ==> P x = P x'"
-  assume P: "P a"
-  assume "!!X. f X == \<lfloor>g (pick X)\<rfloor>"
-  hence "f \<lfloor>a\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>)\<rfloor>" by (simp only:)
-  also have "\<dots> = \<lfloor>g a\<rfloor>"
-  proof
-    show "g (pick \<lfloor>a\<rfloor>) \<sim> g a"
-    proof (rule cong_g)
-      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
-      hence "P (pick \<lfloor>a\<rfloor>) = P a" by (rule cong_P)
-      also show "P a" .
-      finally show "P (pick \<lfloor>a\<rfloor>)" .
-    qed
-  qed
-  finally show ?thesis .
+  assume defn: "!!X. f X == \<lfloor>g (pick X)\<rfloor>"
+  assume "!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x \<sim> g x'"
+  hence cong_g: "!!x x'. x \<sim> x' ==> P x ==> P x' ==> \<lfloor>g x\<rfloor> = \<lfloor>g x'\<rfloor>" ..
+  assume "!!x x'. x \<sim> x' ==> P x = P x'" and "P a"
+  with defn cong_g show ?thesis by (rule quot_cond_function1)
 qed
 
-theorem quot_definition1:
+theorem quot_operation1:
   "(!!X. f X == \<lfloor>g (pick X)\<rfloor>) ==>
     (!!x x'. x \<sim> x' ==> g x \<sim> g x') ==>
     f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
 proof -
   case antecedent from this refl TrueI
-  show ?thesis by (rule quot_cond_definition1)
+  show ?thesis by (rule quot_cond_operation1)
 qed
 
-theorem quot_cond_definition2:
-  "(!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>) ==>
-    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y' ==> g x y \<sim> g x' y') ==>
+theorem quot_cond_function2:
+  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y'
+      ==> g x y = g x' y') ==>
     (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y') ==>
-    P a b ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
+    P a b ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
 proof -
-  assume cong_g: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y' ==> g x y \<sim> g x' y'"
+  assume cong_g: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y'
+    ==> g x y = g x' y'"
   assume cong_P: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y'"
   assume P: "P a b"
-  assume "!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>"
-  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)\<rfloor>" by (simp only:)
-  also have "\<dots> = \<lfloor>g a b\<rfloor>"
-  proof
-    show "g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) \<sim> g a b"
-    proof (rule cong_g)
-      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
-      moreover show "pick \<lfloor>b\<rfloor> \<sim> b" ..
-      ultimately have "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) = P a b" by (rule cong_P)
-      also show "P a b" .
-      finally show "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" .
-    qed
+  assume "!!X Y. f X Y == g (pick X) (pick Y)"
+  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
+  also have "\<dots> = g a b"
+  proof (rule cong_g)
+    show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+    moreover show "pick \<lfloor>b\<rfloor> \<sim> b" ..
+    ultimately have "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) = P a b" by (rule cong_P)
+    also show "P a b" .
+    finally show "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" .
   qed
   finally show ?thesis .
 qed
 
-theorem quot_definition2:
+theorem quot_function2:
+  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y') ==>
+    f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
+proof -
+  case antecedent from this refl TrueI
+  show ?thesis by (rule quot_cond_function2)
+qed
+
+theorem quot_cond_operation2:
+  "(!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y'
+      ==> g x y \<sim> g x' y') ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y') ==>
+    P a b ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
+proof -
+  assume defn: "!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>"
+  assume "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y'
+    ==> g x y \<sim> g x' y'"
+  hence cong_g: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y'
+    ==> \<lfloor>g x y\<rfloor> = \<lfloor>g x' y'\<rfloor>" ..
+  assume "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y'" and "P a b"
+  with defn cong_g show ?thesis by (rule quot_cond_function2)
+qed
+
+theorem quot_operation2:
   "(!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>) ==>
     (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y \<sim> g x' y') ==>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
 proof -
   case antecedent from this refl TrueI
-  show ?thesis by (rule quot_cond_definition2)
+  show ?thesis by (rule quot_cond_operation2)
 qed
 
 text {*
