@@ -18,7 +18,6 @@ sig
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
   val mk_Trueprop: term -> term
-  val atomic_Trueprop: string -> term
   val dest_Trueprop: term -> term
   val conj: term
   val disj: term
@@ -105,8 +104,6 @@ fun dest_setT (Type ("set", [T])) = T
 val Trueprop = Const ("Trueprop", boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
-
-fun atomic_Trueprop x = mk_Trueprop (Free (x, boolT));
 
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
