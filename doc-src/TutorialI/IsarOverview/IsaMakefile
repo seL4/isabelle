@@ -1,0 +1,25 @@
+## targets
+
+default: Isar
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
+
+
+## Isar
+
+Isar: $(LOG)/HOL-Isar.gz
+
+$(LOG)/HOL-Isar.gz: Isar/ROOT.ML Isar/document/root.tex Isar/*.thy
+	@$(USEDIR) HOL Isar
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Isar.gz
+
