@@ -6,8 +6,6 @@
 Binary arithmetic for the natural numbers
 *)
 
-val zcompare_rls = [];
-
 (** nat (coercion from int to nat) **)
 
 Goal "nat (number_of w) = number_of w";
@@ -17,15 +15,15 @@ Addsimps [nat_number_of];
 
 (*These rewrites should one day be re-oriented...*)
 
-Goal "#0 = 0";
+Goal "#0 = (0::nat)";
 by (simp_tac (simpset_of Int.thy addsimps [nat_0, nat_number_of_def]) 1);
 qed "numeral_0_eq_0";
 
-Goal "#1 = 1";
+Goal "#1 = (1::nat)";
 by (simp_tac (simpset_of Int.thy addsimps [nat_1, nat_number_of_def]) 1);
 qed "numeral_1_eq_1";
 
-Goal "#2 = 2";
+Goal "#2 = (2::nat)";
 by (simp_tac (simpset_of Int.thy addsimps [nat_2, nat_number_of_def]) 1);
 qed "numeral_2_eq_2";
 
@@ -402,26 +400,26 @@ Addsimps (map (rename_numerals thy)
 
 Addsimps [rename_numerals thy card_Pow];
 
-(*** Comparisons involving 0 ***)
+(*** Comparisons involving (0::nat) ***)
 
-Goal "(number_of v = 0) = \
+Goal "(number_of v = (0::nat)) = \
 \     (if neg (number_of v) then True else iszero (number_of v))";
 by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
 qed "eq_number_of_0";
 
-Goal "(0 = number_of v) = \
+Goal "((0::nat) = number_of v) = \
 \     (if neg (number_of v) then True else iszero (number_of v))";
 by (rtac ([eq_sym_conv, eq_number_of_0] MRS trans) 1);
 qed "eq_0_number_of";
 
-Goal "(0 < number_of v) = neg (number_of (bin_minus v))";
+Goal "((0::nat) < number_of v) = neg (number_of (bin_minus v))";
 by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
 qed "less_0_number_of";
 
 (*Simplification already handles n<0, n<=0 and 0<=n.*)
 Addsimps [eq_number_of_0, eq_0_number_of, less_0_number_of];
 
-Goal "neg (number_of v) ==> number_of v = 0";
+Goal "neg (number_of v) ==> number_of v = (0::nat)";
 by (asm_simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
 qed "neg_imp_number_of_eq_0";
 

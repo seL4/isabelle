@@ -9,26 +9,26 @@ Fundamental Theorem of Arithmetic (unique factorization into primes)
 
 (* --- Arithmetic --- *)
 
-Goal "[| m ~= m*k; m ~= 1 |] ==> 1<m";
+Goal "!!m::nat. [| m ~= m*k; m ~= 1 |] ==> 1<m";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "one_less_m";
 
-Goal "[| m ~= m*k; 1<m*k |] ==> 1<k";
+Goal "!!m::nat. [| m ~= m*k; 1<m*k |] ==> 1<k";
 by (case_tac "k" 1);
 by Auto_tac;
 qed "one_less_k";
 
-Goal "[| 0<k; k*n=k*m |] ==> n=m";
+Goal "!!m::nat. [| 0<k; k*n=k*m |] ==> n=m";
 by Auto_tac;
 qed "mult_left_cancel";
 
-Goal "[| 0<m; m*n = m |] ==> n=1";
+Goal "!!m::nat. [| 0<m; m*n = m |] ==> n=1";
 by (case_tac "n" 1);
 by Auto_tac;
 qed "mn_eq_m_one";
 
-Goal "[| 0<n; 0<k |] ==> 1<m --> m*n = k --> n<k";
+Goal "!!m::nat. [| 0<n; 0<k |] ==> 1<m --> m*n = k --> n<k";
 by (induct_tac "m" 1);
 by Auto_tac;
 qed_spec_mp "prod_mn_less_k";

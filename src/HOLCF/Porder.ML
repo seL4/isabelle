@@ -6,8 +6,6 @@
 Lemmas for theory Porder.thy 
 *)
 
-open Porder;
-
 (* ------------------------------------------------------------------------ *)
 (* lubs are unique                                                          *)
 (* ------------------------------------------------------------------------ *)
@@ -241,7 +239,7 @@ qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]
         ]);
 
 qed_goal "lub_bin_chain" thy 
-        "x << y ==> range(%i. if (i=0) then x else y) <<| y"
+        "x << y ==> range(%i::nat. if (i=0) then x else y) <<| y"
 (fn prems=>
         [ (cut_facts_tac prems 1),
         (res_inst_tac [("s","if (Suc 0) = 0 then x else y")] subst 1),

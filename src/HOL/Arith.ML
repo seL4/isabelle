@@ -12,7 +12,7 @@ Some from the Hoare example from Norbert Galm
 
 (** Difference **)
 
-Goal "0 - n = 0";
+Goal "0 - n = (0::nat)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_0_eq_0";
@@ -42,7 +42,7 @@ Delsimps [diff_Suc];
 
 (*** Addition ***)
 
-Goal "m + 0 = m";
+Goal "m + 0 = (m::nat)";
 by (induct_tac "m" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "add_0_right";
@@ -105,42 +105,42 @@ Addsimps [add_left_cancel, add_right_cancel,
 
 (** Reasoning about m+0=0, etc. **)
 
-Goal "(m+n = 0) = (m=0 & n=0)";
+Goal "!!m::nat. (m+n = 0) = (m=0 & n=0)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "add_is_0";
 AddIffs [add_is_0];
 
-Goal "(0 = m+n) = (m=0 & n=0)";
+Goal "!!m::nat. (0 = m+n) = (m=0 & n=0)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "zero_is_add";
 AddIffs [zero_is_add];
 
-Goal "(m+n=1) = (m=1 & n=0 | m=0 & n=1)";
+Goal "!!m::nat. (m+n=1) = (m=1 & n=0 | m=0 & n=1)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "add_is_1";
 
-Goal "(1=m+n) = (m=1 & n=0 | m=0 & n=1)";
+Goal "!!m::nat. (1=m+n) = (m=1 & n=0 | m=0 & n=1)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "one_is_add";
 
-Goal "(0<m+n) = (0<m | 0<n)";
+Goal "!!m::nat. (0<m+n) = (0<m | 0<n)";
 by (simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
 qed "add_gr_0";
 AddIffs [add_gr_0];
 
 (* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
-Goal "0<n ==> m + (n-1) = (m+n)-1";
+Goal "!!m::nat. 0<n ==> m + (n-1) = (m+n)-1";
 by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc, Suc_n_not_n]
                                       addsplits [nat.split])));
 qed "add_pred";
 Addsimps [add_pred];
 
-Goal "m + n = m ==> n = 0";
+Goal "!!m::nat. m + n = m ==> n = 0";
 by (dtac (add_0_right RS ssubst) 1);
 by (asm_full_simp_tac (simpset() addsimps [add_assoc]
                                  delsimps [add_0_right]) 1);
@@ -270,7 +270,7 @@ qed "add_le_mono";
 (*** Multiplication ***)
 
 (*right annihilation in product*)
-Goal "m * 0 = 0";
+Goal "!!m::nat. m * 0 = 0";
 by (induct_tac "m" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "mult_0_right";
@@ -324,15 +324,15 @@ qed "mult_left_commute";
 
 bind_thms ("mult_ac", [mult_assoc,mult_commute,mult_left_commute]);
 
-Goal "(m*n = 0) = (m=0 | n=0)";
+Goal "!!m::nat. (m*n = 0) = (m=0 | n=0)";
 by (induct_tac "m" 1);
 by (induct_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "mult_is_0";
 
-Goal "(0 = m*n) = (0=m | 0=n)";
-by (cut_facts_tac [mult_is_0] 1);
-by (full_simp_tac (simpset() addsimps [eq_commute]) 1);
+Goal "!!m::nat. (0 = m*n) = (0=m | 0=n)";
+by (stac eq_commute 1 THEN stac mult_is_0 1);
+by Auto_tac;
 qed "zero_is_mult";
 
 Addsimps [mult_is_0, zero_is_mult];
@@ -340,7 +340,7 @@ Addsimps [mult_is_0, zero_is_mult];
 
 (*** Difference ***)
 
-Goal "m - m = 0";
+Goal "!!m::nat. m - m = 0";
 by (induct_tac "m" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_self_eq_0";
@@ -432,24 +432,24 @@ by Safe_tac;
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_add_inverse2])));
 qed "le_imp_diff_is_add";
 
-Goal "(m-n = 0) = (m <= n)";
+Goal "!!m::nat. (m-n = 0) = (m <= n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_is_0_eq";
 
-Goal "(0 = m-n) = (m <= n)";
+Goal "!!m::nat. (0 = m-n) = (m <= n)";
 by (stac (diff_is_0_eq RS sym) 1);
 by (rtac eq_sym_conv 1);
 qed "zero_is_diff_eq";
 Addsimps [diff_is_0_eq, zero_is_diff_eq];
 
-Goal "(0<n-m) = (m<n)";
+Goal "!!m::nat. (0<n-m) = (m<n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "zero_less_diff";
 Addsimps [zero_less_diff];
 
-Goal "i < j  ==> ? k. 0<k & i+k = j";
+Goal "i < j  ==> ? k::nat. 0<k & i+k = j";
 by (res_inst_tac [("x","j - i")] exI 1);
 by (asm_simp_tac (simpset() addsimps [add_diff_inverse, less_not_sym]) 1);
 qed "less_imp_add_positive";
@@ -475,7 +475,7 @@ by (asm_simp_tac
     (simpset() addsimps [diff_cancel, inst "n" "k" add_commute]) 1);
 qed "diff_cancel2";
 
-Goal "n - (n+m) = 0";
+Goal "n - (n+m) = (0::nat)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_0";
@@ -514,19 +514,19 @@ by (etac mult_le_mono2 1);
 qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
-Goal "[| i<j; 0<k |] ==> k*i < k*j";
+Goal "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
 by (eres_inst_tac [("m1","0")] (less_eq_Suc_add RS exE) 1);
 by (Asm_simp_tac 1);
 by (induct_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_less_mono])));
 qed "mult_less_mono2";
 
-Goal "[| i<j; 0<k |] ==> i*k < j*k";
+Goal "!!i::nat. [| i<j; 0<k |] ==> i*k < j*k";
 by (dtac mult_less_mono2 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [mult_commute])));
 qed "mult_less_mono1";
 
-Goal "(0 < m*n) = (0<m & 0<n)";
+Goal "!!m::nat. (0 < m*n) = (0<m & 0<n)";
 by (induct_tac "m" 1);
 by (case_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
@@ -549,23 +549,24 @@ by (fast_tac (claset() addss simpset()) 1);
 qed "mult_eq_1_iff";
 Addsimps [mult_eq_1_iff];
 
-Goal "0<k ==> (m*k < n*k) = (m<n)";
+Goal "!!m::nat. 0<k ==> (m*k < n*k) = (m<n)";
 by (safe_tac (claset() addSIs [mult_less_mono1]));
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addIs [mult_less_mono1] addEs [less_asym]) 1);
 qed "mult_less_cancel2";
 
-Goal "0<k ==> (k*m < k*n) = (m<n)";
+Goal "!!m::nat. 0<k ==> (k*m < k*n) = (m<n)";
 by (dtac mult_less_cancel2 1);
-by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
+by (etac subst 1);
+by (simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
-Goal "0<k ==> (m*k <= n*k) = (m<=n)";
+Goal "!!m::nat. 0<k ==> (m*k <= n*k) = (m<=n)";
 by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
 qed "mult_le_cancel2";
 
-Goal "0<k ==> (k*m <= k*n) = (m<=n)";
+Goal "!!m::nat. 0<k ==> (k*m <= k*n) = (m<=n)";
 by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
 qed "mult_le_cancel1";
 Addsimps [mult_le_cancel1, mult_le_cancel2];
@@ -580,7 +581,7 @@ by (simp_tac (simpset_of HOL.thy) 1);
 by (rtac Suc_mult_less_cancel1 1);
 qed "Suc_mult_le_cancel1";
 
-Goal "0<k ==> (m*k = n*k) = (m=n)";
+Goal "0 < (k::nat) ==> (m*k = n*k) = (m=n)";
 by (cut_facts_tac [less_linear] 1);
 by Safe_tac;
 by (assume_tac 2);
@@ -588,7 +589,7 @@ by (ALLGOALS (dtac mult_less_mono1 THEN' assume_tac));
 by (ALLGOALS Asm_full_simp_tac);
 qed "mult_cancel2";
 
-Goal "0<k ==> (k*m = k*n) = (m=n)";
+Goal "0 < (k::nat) ==> (k*m = k*n) = (m=n)";
 by (dtac mult_cancel2 1);
 by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_cancel1";
@@ -601,7 +602,7 @@ qed "Suc_mult_cancel1";
 
 
 (*Lemma for gcd*)
-Goal "m = m*n ==> n=1 | m=0";
+Goal "!!m::nat. m = m*n ==> n=1 | m=0";
 by (dtac sym 1);
 by (rtac disjCI 1);
 by (rtac nat_less_cases 1 THEN assume_tac 2);
@@ -1088,17 +1089,17 @@ by (arith_tac 1);
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
 
-Goal "0 < n ==> (m <= n-1) = (m<n)";
+Goal "!!m::nat. 0 < n ==> (m <= n-1) = (m<n)";
 by (arith_tac 1);
 qed "le_pred_eq";
 
-Goal "0 < n ==> (m-1 < n) = (m<=n)";
+Goal "!!m::nat. 0 < n ==> (m-1 < n) = (m<=n)";
 by (arith_tac 1);
 qed "less_pred_eq";
 
 (*Replaces the previous diff_less and le_diff_less, which had the stronger
   second premise n<=m*)
-Goal "[| 0<n; 0<m |] ==> m - n < m";
+Goal "!!m::nat. [| 0<n; 0<m |] ==> m - n < m";
 by (arith_tac 1);
 qed "diff_less";
 
@@ -1159,23 +1160,23 @@ Goal "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)";
 by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_less_mono2";
 
-Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
+Goal "!!m::nat. [| m-n = 0; n-m = 0 |] ==>  m=n";
 by (asm_full_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diffs0_imp_equal";
 
 (** Lemmas for ex/Factorization **)
 
-Goal "[| 1<n; 1<m |] ==> 1<m*n";
+Goal "!!m::nat. [| 1<n; 1<m |] ==> 1<m*n";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "one_less_mult"; 
 
-Goal "[| 1<n; 1<m |] ==> n<m*n";
+Goal "!!m::nat. [| 1<n; 1<m |] ==> n<m*n";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "n_less_m_mult_n"; 
 
-Goal "[| 1<n; 1<m |] ==> n<n*m";
+Goal "!!m::nat. [| 1<n; 1<m |] ==> n<n*m";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "n_less_n_mult_m"; 

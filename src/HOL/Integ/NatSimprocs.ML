@@ -380,7 +380,7 @@ qed "Suc_diff_eq_diff_pred";
 (*Now just instantiating n to (number_of v) does the right simplification,
   but with some redundant inequality tests.*)
 
-Goal "neg (number_of (bin_pred v)) = (number_of v = 0)";
+Goal "neg (number_of (bin_pred v)) = (number_of v = (0::nat))";
 by (subgoal_tac "neg (number_of (bin_pred v)) = (number_of v < 1)" 1);
 by (Asm_simp_tac 1);
 by (stac less_number_of_Suc 1);
@@ -471,7 +471,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
 
-Goal "(0 < m mod #2) = (m mod #2 = #1)";
+Goal "!!m::nat. (0 < m mod #2) = (m mod #2 = #1)";
 by (subgoal_tac "m mod #2 < #2" 1);
 by (Asm_simp_tac 2);
 by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));

@@ -152,7 +152,7 @@ qed;
 theorem fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)" (is "?P m n");
 proof (induct ?P m n rule: gcd_induct);
   fix m; show "fib (gcd (m, 0)) = gcd (fib m, fib 0)"; by simp;
-  fix n; assume n: "0 < n";
+  fix n :: nat; assume n: "0 < n";
   hence "gcd (m, n) = gcd (n, m mod n)"; by (rule gcd_non_0);
   also; assume hyp: "fib ... = gcd (fib n, fib (m mod n))";
   also; from n; have "... = gcd (fib n, fib m)"; by (rule gcd_fib_mod);

@@ -1151,12 +1151,12 @@ by (induct_tac "ns" 1);
 by Auto_tac;
 qed_spec_mp "start_le_sum";
 
-Goal "n : set ns ==> n <= foldl op+ 0 ns";
+Goal "!!n::nat. n : set ns ==> n <= foldl op+ 0 ns";
 by (force_tac (claset() addIs [start_le_sum],
               simpset() addsimps [in_set_conv_decomp]) 1);
 qed "elem_le_sum";
 
-Goal "!m. (foldl op+ m ns = 0) = (m=0 & (!n : set ns. n=0))";
+Goal "!m::nat. (foldl op+ m ns = 0) = (m=0 & (!n : set ns. n=0))";
 by (induct_tac "ns" 1);
 by Auto_tac;
 qed_spec_mp "sum_eq_0_conv";

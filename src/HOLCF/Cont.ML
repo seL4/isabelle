@@ -3,10 +3,8 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for Cont.thy 
+Results about continuity and monotonicity
 *)
-
-open Cont;
 
 (* ------------------------------------------------------------------------ *)
 (* access to definition                                                     *)
@@ -121,7 +119,7 @@ qed_goalw "monocontlub2cont" thy [cont]
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "binchain_cont" thy
-"[| cont(f); x << y |]  ==> range(%i. f(if i = 0 then x else y)) <<| f(y)"
+"[| cont(f); x << y |]  ==> range(%i::nat. f(if i = 0 then x else y)) <<| f(y)"
 (fn prems => 
         [
         (cut_facts_tac prems 1),

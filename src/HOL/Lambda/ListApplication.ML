@@ -87,9 +87,9 @@ by (Auto_tac);
 qed "size_apps";
 Addsimps [size_apps];
 
-Goal "[| 0 < k; m <= n |] ==> m < n+k";
+Goal "[| (0::nat) < k; m <= n |] ==> m < n+k";
 by (fast_arith_tac 1);
-val lemma = result();
+val lemma0 = result();
 
 (* a customized induction schema for $$ *)
 
@@ -107,7 +107,7 @@ by (etac disjE 1);
  by (Clarify_tac 1);
  by (EVERY[etac allE 1, etac impE 1, etac allE 2, etac mp 2, rtac refl 2]);
  by (Simp_tac 1);
- by (rtac lemma 1);
+ by (rtac lemma0 1);
   by (Force_tac 1);
  by (rtac elem_le_sum 1);
  by (Force_tac 1);
