@@ -113,7 +113,7 @@ each path component. This is a special feature of
 \texttt{ISABELLE_PATH} (and also of \texttt{ISABELLE_OUTPUT}).
 
 
-\section{Installing Isabelle binaries with absolute references -- \texttt{isatool install}}
+\section{Installing standalone Isabelle binaries -- \texttt{isatool install}}
 \label{sec:tool-install}
 
 Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool}
@@ -126,17 +126,22 @@ directory (like \texttt{/usr/local/bin}).
 Doing a plain copy of the Isabelle executables just would not work,
 though.  One should use the \tooldx{install} utility instead:
 \begin{ttbox}
-Usage: install DIR
+Usage: install BINDIR
 
-  Install binaries in directory DIR with absolute references to
-  \$ISABELLE_HOME/bin (non-movable).
+  Options are:
+    -d DISTDIR   use DISTDIR as Isabelle distribution
+                 (default ISABELLE_HOME)
+
+  Install standalone Isabelle binaries in directory BINDIR with absolute
+  references to DISTDIR/bin, which becomes non-relocatable this way.
 \end{ttbox}
 
-The generated executables contain absolute references to
-\texttt{ISABELLE_HOME}, as figured out by the \texttt{isatool}
-invocation.  While the scripts themselves may be relocated afterwards,
-they would cease working if the referenced Isabelle distribution is
-moved.  This is an example use of \texttt{install}:
+This installs standalone executables in \texttt{BINDIR} containing
+absolute references to \texttt{DISTDIR} (the default is
+\texttt{ISABELLE_HOME} as figured out by the current \texttt{isatool}
+invocation).  While the generated scripts themselves may be relocated
+afterwards, they cease working if the referenced Isabelle distribution
+is moved somewhere else.  Here is an example use of \texttt{install}:
 \begin{ttbox}
   isatool install /usr/local/bin
 \end{ttbox}
