@@ -59,7 +59,7 @@ lemma gcd_1 [simp]: "gcd(m,1) = 1"
   done
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
-lemma gcd_dvd_both: "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)"
+lemma gcd_dvd_both: "gcd(m,n) dvd m & gcd(m,n) dvd n"
   apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0)
   apply (blast dest: dvd_mod_imp_dvd)
@@ -71,12 +71,12 @@ lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2];
 
 (*Maximality: for all m,n,k naturals, 
                 if k divides m and k divides n then k divides gcd(m,n)*)
-lemma gcd_greatest [rule_format]: "(k dvd m) --> (k dvd n) --> k dvd gcd(m,n)"
+lemma gcd_greatest [rule_format]: "k dvd m --> k dvd n --> k dvd gcd(m,n)"
   apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 dvd_mod);
   done;
 
-lemma gcd_greatest_iff [iff]: "k dvd gcd(m,n) = (k dvd m & k dvd n)"
+lemma gcd_greatest_iff [iff]: "(k dvd gcd(m,n)) = (k dvd m & k dvd n)"
   apply (blast intro!: gcd_greatest intro: dvd_trans);
   done;
 
@@ -142,14 +142,14 @@ lemma gcd_self [simp]: "gcd(k,k) = k"
   apply (rule gcd_mult [of k 1, simplified])
   done
 
-lemma relprime_dvd_mult: "[| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
+lemma relprime_dvd_mult: "[| gcd(k,n)=1; k dvd m*n |] ==> k dvd m";
   apply (insert gcd_mult_distrib2 [of m k n])
   apply (simp)
   apply (erule_tac t="m" in ssubst);
   apply (simp)
   done
 
-lemma relprime_dvd_mult_iff: "gcd(k,n)=1 ==> k dvd (m*n) = k dvd m";
+lemma relprime_dvd_mult_iff: "gcd(k,n)=1 ==> (k dvd m*n) = (k dvd m)";
   apply (blast intro: relprime_dvd_mult dvd_trans)
   done
 
@@ -163,7 +163,7 @@ lemma prime_imp_relprime: "[| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1"
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.
   If p divides a product of primes then it is one of those primes.*)
-lemma prime_dvd_mult: "[| p: prime; p dvd (m*n) |] ==> p dvd m | p dvd n"
+lemma prime_dvd_mult: "[| p: prime; p dvd m*n |] ==> p dvd m | p dvd n"
   apply (blast intro: relprime_dvd_mult prime_imp_relprime)
   done
 

@@ -241,28 +241,28 @@ by (asm_simp_tac (simpset() addsimps [unit_mult]) 1);
 qed "unit_power";
 
 Goalw [dvd_def]
-  "!! a::'a::ring. [| a dvd b; a dvd c |] ==> a dvd (b + c)";
+  "!! a::'a::ring. [| a dvd b; a dvd c |] ==> a dvd b + c";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "k + ka")] exI 1);
 by (simp_tac (simpset() addsimps [r_distr]) 1);
 qed "dvd_add_right";
 
 Goalw [dvd_def]
-  "!! a::'a::ring. a dvd b ==> a dvd (-b)";
+  "!! a::'a::ring. a dvd b ==> a dvd -b";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "-k")] exI 1);
 by (simp_tac (simpset() addsimps [r_minus]) 1);
 qed "dvd_uminus_right";
 
 Goalw [dvd_def]
-  "!! a::'a::ring. a dvd b ==> a dvd (c * b)";
+  "!! a::'a::ring. a dvd b ==> a dvd c*b";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "c * k")] exI 1);
 by (simp_tac (simpset() addsimps m_ac) 1);
 qed "dvd_l_mult_right";
 
 Goalw [dvd_def]
-  "!! a::'a::ring. a dvd b ==> a dvd (b * c)";
+  "!! a::'a::ring. a dvd b ==> a dvd b*c";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "k * c")] exI 1);
 by (simp_tac (simpset() addsimps m_ac) 1);
@@ -357,7 +357,7 @@ Addsimps [m_lcancel_eq, m_rcancel_eq];
 
 section "Fields";
 
-Goal "!! a::'a::field. a dvd <1> = (a ~= <0>)";
+Goal "!! a::'a::field. (a dvd <1>) = (a ~= <0>)";
 by (blast_tac (claset() addDs [field_ax, unit_imp_nonzero]) 1);
 qed "field_unit";
 

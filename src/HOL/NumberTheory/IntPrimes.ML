@@ -90,43 +90,43 @@ Goalw [dvd_def] "[| k dvd m; k dvd n |] ==> k dvd (m-n :: int)";
 by (blast_tac (claset() addIs [zdiff_zmult_distrib2 RS sym]) 1);
 qed "zdvd_zdiff";
 
-Goal "[| k dvd (m-n); k dvd n |] ==> k dvd (m::int)";
+Goal "[| k dvd m-n; k dvd n |] ==> k dvd (m::int)";
 by (subgoal_tac "m=n+(m-n)" 1);
 by (etac ssubst 1);
 by (blast_tac (claset() addIs [zdvd_zadd]) 1);
 by (Simp_tac 1);
 qed "zdvd_zdiffD";
 
-Goalw [dvd_def] "k dvd (n::int) ==> k dvd (m*n)";
+Goalw [dvd_def] "k dvd (n::int) ==> k dvd m*n";
 by (blast_tac (claset() addIs [zmult_left_commute]) 1);
 qed "zdvd_zmult";
 
-Goal "k dvd (m::int) ==> k dvd (m*n)";
+Goal "k dvd (m::int) ==> k dvd m*n";
 by (stac zmult_commute 1);
 by (etac zdvd_zmult 1);
 qed "zdvd_zmult2";
 
-(* k dvd (m*k) *)
+(* k dvd m*k *)
 AddIffs [zdvd_refl RS zdvd_zmult, zdvd_refl RS zdvd_zmult2];
 
-Goalw [dvd_def] "(j*k) dvd n ==> j dvd (n::int)";
+Goalw [dvd_def] "j*k dvd n ==> j dvd (n::int)";
 by (full_simp_tac (simpset() addsimps [zmult_assoc]) 1);
 by (Blast_tac 1);
 qed "zdvd_zmultD2";
 
-Goal "(j*k) dvd n ==> k dvd (n::int)";
+Goal "j*k dvd n ==> k dvd (n::int)";
 by (rtac zdvd_zmultD2 1);
 by (stac zmult_commute 1);
 by (assume_tac 1);
 qed "zdvd_zmultD";
 
-Goalw [dvd_def] "[| i dvd m; j dvd (n::int) |] ==> (i*j) dvd (m*n)";
+Goalw [dvd_def] "[| i dvd m; j dvd (n::int) |] ==> i*j dvd m*n";
 by (Clarify_tac 1);
 by (res_inst_tac [("x","k*ka")] exI 1);
 by (asm_simp_tac (simpset() addsimps zmult_ac) 1);
 qed "zdvd_zmult_mono";
 
-Goal "k dvd (n + k*m) = k dvd (n::int)";
+Goal "(k dvd n + k*m) = (k dvd (n::int))";
 by (rtac iffI 1);
 by (etac zdvd_zadd 2);
 by (subgoal_tac "n = (n+k*m)-k*m" 1);
@@ -135,12 +135,12 @@ by (etac zdvd_zdiff 1);
 by (ALLGOALS Simp_tac);
 qed "zdvd_reduce";
 
-Goalw [dvd_def] "[| f dvd m; f dvd (n::int) |] ==> f dvd (m mod n)";
+Goalw [dvd_def] "[| f dvd m; f dvd (n::int) |] ==> f dvd m mod n";
 by (auto_tac (claset(), simpset() addsimps [zmod_zmult_zmult1]));
 qed "zdvd_zmod";
 
-Goal "[| k dvd (m mod n);  k dvd n |] ==> k dvd (m::int)";
-by (subgoal_tac "k dvd (n*(m div n) + m mod n)" 1);
+Goal "[| k dvd m mod n;  k dvd n |] ==> k dvd (m::int)";
+by (subgoal_tac "k dvd n*(m div n) + m mod n" 1);
 by (asm_simp_tac (simpset() addsimps [zdvd_zadd, zdvd_zmult2]) 2);
 by (asm_full_simp_tac (simpset() addsimps [zmod_zdiv_equality RS sym]) 1);
 qed "zdvd_zmod_imp_zdvd";
@@ -334,14 +334,14 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "zgcd_zmult_eq_self2";
 Addsimps [zgcd_zmult_eq_self2];
 
-Goal "[| zgcd(n,k)=#1; k dvd (m*n); #0 <= m |] ==> k dvd m";
+Goal "[| zgcd(n,k)=#1; k dvd m*n; #0 <= m |] ==> k dvd m";
 by (subgoal_tac "m = zgcd(m*n, m*k)" 1);
 by (etac ssubst 1 THEN rtac (zgcd_greatest_iff RS iffD2) 1);
 by (ALLGOALS (asm_simp_tac (simpset() 
       addsimps [zgcd_zmult_distrib2 RS sym,int_0_le_mult_iff])));
 val lemma = result();
 
-Goal "[| zgcd(n,k)=#1; k dvd (m*n) |] ==> k dvd m";
+Goal "[| zgcd(n,k)=#1; k dvd m*n |] ==> k dvd m";
 by (case_tac "#0 <= m" 1);
 by (blast_tac (claset() addIs [lemma]) 1); 
 by (subgoal_tac "k dvd -m" 1);
@@ -359,7 +359,7 @@ by (etac zdvd_not_zless 1);
 by (assume_tac 1);
 qed "zless_zprime_imp_zrelprime";
 
-Goal "[| #0<=(m::int); p:zprime; p dvd (m*n) |] ==> p dvd m | p dvd n";
+Goal "[| #0<=(m::int); p:zprime; p dvd m*n |] ==> p dvd m | p dvd n";
 by Safe_tac;
 by (rtac zrelprime_zdvd_zmult 1);
 by (rtac zprime_imp_zrelprime 1);
@@ -510,7 +510,7 @@ Goalw [zcong_def,dvd_def]
       "[| [a = b] (mod m);  [a = b] (mod n);  zgcd(m,n) = #1 |] \
 \     ==> [a=b](mod m*n)";
 by Auto_tac;
-by (subgoal_tac "m dvd (n*ka)" 1);
+by (subgoal_tac "m dvd n*ka" 1);
 by (subgoal_tac "m dvd ka" 1);
 by (case_tac "#0<=ka" 2);
 by (stac (zdvd_zminus_iff RS sym) 3);

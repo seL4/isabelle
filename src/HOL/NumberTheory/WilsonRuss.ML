@@ -65,7 +65,7 @@ by (res_inst_tac [("s","p dvd -((a+#1)+(p*(-a)))")] trans 1);
 by (simp_tac (simpset() addsimps [zmult_commute,zminus_zdiff_eq]) 1);
 by (stac zdvd_zminus_iff 1);
 by (stac zdvd_reduce 1);
-by (res_inst_tac [("s","p dvd ((a+#1)+(p*(-#1)))")] trans 1);
+by (res_inst_tac [("s","p dvd (a+#1)+(p*(-#1))")] trans 1);
 by (stac zdvd_reduce 1);
 by Auto_tac;
 val lemma = result();

@@ -5,7 +5,7 @@
 *)
 
 goalw Ring.thy [assoc_def] "!! c::'a::factorial. \
-\  [| irred c; irred a; irred b; c dvd (a*b) |] ==> c assoc a | c assoc b";
+\  [| irred c; irred a; irred b; c dvd a*b |] ==> c assoc a | c assoc b";
 by (ftac factorial_prime 1);
 by (rewrite_goals_tac [irred_def, prime_def]);
 by (Blast_tac 1);

@@ -19,7 +19,7 @@ instance  nat :: plus_ac0 (add_commute,add_assoc,add_0)
 consts
   div  :: ['a::div, 'a]  => 'a          (infixl 70)
   mod  :: ['a::div, 'a]  => 'a          (infixl 70)
-  dvd  :: ['a::times, 'a] => bool       (infixl 70) 
+  dvd  :: ['a::times, 'a] => bool       (infixl 50) 
 
 
 (*Remainder and quotient are defined here by algorithms and later proved to

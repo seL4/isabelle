@@ -151,12 +151,12 @@ by (auto_tac (claset() addSDs [subsetD],
   simpset() addsimps [pideal_structure]));
 qed "subideal_imp_dvd";
 
-Goal "(ideal_of {a::'a::ring} <= ideal_of {b}) = b dvd a";
+Goal "(ideal_of {a::'a::ring} <= ideal_of {b}) = (b dvd a)";
 by (rtac iffI 1);
 by (REPEAT (ares_tac [subideal_imp_dvd, dvd_imp_subideal] 1));
 qed "subideal_is_dvd";
 
-Goal "(ideal_of {a::'a::ring} < ideal_of {b}) ==> ~ (a dvd b)";
+Goal "(ideal_of {a::'a::ring} < ideal_of {b}) ==> ~ a dvd b";
 by (full_simp_tac (simpset() addsimps [psubset_eq, pideal_structure]) 1);
 by (etac conjE 1);
 by (dres_inst_tac [("c", "a")] subsetD 1);
@@ -164,13 +164,13 @@ by (auto_tac (claset() addIs [dvd_trans_ring],
   simpset()));
 qed "psubideal_not_dvd";
 
-Goal "[| b dvd a; ~ (a dvd b) |] ==> ideal_of {a::'a::ring} < ideal_of {b}";
+Goal "[| b dvd a; ~ a dvd b |] ==> ideal_of {a::'a::ring} < ideal_of {b}";
 by (rtac psubsetI 1);
 by (etac dvd_imp_subideal 1);
 by (blast_tac (claset() addIs [dvd_imp_subideal, subideal_imp_dvd]) 1); 
 qed "not_dvd_psubideal";
 
-Goal "(ideal_of {a::'a::ring} < ideal_of {b}) = (b dvd a & ~ (a dvd b))";
+Goal "(ideal_of {a::'a::ring} < ideal_of {b}) = (b dvd a & ~ a dvd b)";
 by (rtac iffI 1);
 by (REPEAT (ares_tac
   [conjI, psubideal_not_dvd, psubset_imp_subset RS subideal_imp_dvd] 1));
@@ -263,7 +263,7 @@ qed "chain_is_ideal";
 Goal "ALL i. ideal_of {a i} < ideal_of {a (Suc i)} ==> \
 \   EX n. Union ((ideal_of o (%a. {a}))``UNIV) = ideal_of {a n}";
 
-Goal "wf {(a::'a::pid, b). a dvd b & ~ (b dvd a)}";
+Goal "wf {(a::'a::pid, b). a dvd b & ~ b dvd a}";
 by (simp_tac (simpset()
   addsimps [psubideal_is_dvd RS sym, wf_iff_no_infinite_down_chain]
   delsimps [psubideal_is_dvd]) 1);
