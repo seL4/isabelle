@@ -6,7 +6,7 @@
 The division operators div, mod and the divides relation "dvd"
 *)
 
-IntDiv = Bin + Recdef + 
+IntDiv = IntArith + Recdef + 
 
 constdefs
   quorem :: "(int*int) * (int*int) => bool"

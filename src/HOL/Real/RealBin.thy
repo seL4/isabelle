@@ -8,7 +8,7 @@ Binary arithmetic for the reals
 This case is reduced to that for the integers
 *)
 
-RealBin = RealInt + Bin + 
+RealBin = RealInt + IntArith + 
 
 instance
   real :: number 
