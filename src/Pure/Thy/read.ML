@@ -249,13 +249,13 @@ fun use_thy name =
        else
        (
          if thy_uptodate orelse thy_file = "" then ()
-         else (writeln ("Reading thy-file \"" ^ thyl ^ ".thy\"");
+         else (writeln ("Reading \"" ^ thyl ^ ".thy\"");
                read_thy thyl thy_file;
                use (out_name thyl)
               );
 
          if ml_file = "" then () 
-         else (writeln ("Reading ML-file \"" ^ thyl ^ ".ML\"");
+         else (writeln ("Reading \"" ^ thyl ^ ".ML\"");
                use ml_file);
 
          let val outstream = open_out ".tmp.ML"
