@@ -95,19 +95,19 @@ proof same;
   have "... = x * inv x * x";
     by (simp add: group_assoc);
 
-  note calculation = trans[APP calculation facts]
+  note calculation = trans[OF calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = one * x";
     by (simp add: group_right_inverse);
 
-  note calculation = trans[APP calculation facts]
+  note calculation = trans[OF calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = x";
     by (simp add: group_left_unit);
 
-  note calculation = trans[APP calculation facts]
+  note calculation = trans[OF calculation facts]
     -- {* final calculational step: compose with transitivity rule ... *};
   from calculation
     -- {* ... and pick up final result *};

@@ -106,7 +106,7 @@ proof;
   proof (rule exE);
     fix a;
     assume "P(f(a))" (is "P(??witness)");
-    show ??thesis; by (rule exI [with P ??witness]);
+    show ??thesis; by (rule exI [of P ??witness]);
   qed;
 qed;
 
