@@ -189,6 +189,19 @@ goalw thy [schedules_def,has_schedule_def]
 by (fast_tac (claset() addSIs [exec_in_sig]) 1);
 qed"scheds_in_sig";
 
+(*
+
+is ok but needs ForallQFilterP which has to been proven first (is trivial also)
+
+goalw thy [traces_def,has_trace_def]
+  "!! A.[| x:traces A |] ==> \
+\   Forall (%a. a:act A) x";
+ by (safe_tac set_cs );
+br ForallQFilterP 1;
+by (fast_tac (!claset addSIs [ext_is_act]) 1);
+qed"traces_in_sig";
+*)
+
 
 (* -------------------------------------------------------------------------------- *)
 

@@ -359,6 +359,15 @@ qed"Zip_Map_fst_snd";
          lemma for eliminating non admissible equations in assumptions      
   --------------------------------------------------------------------------- *)
 
+(* Versuich 
+goal thy "(y~= nil & Map fst`x <<y) --> x= Zip`y`(Map snd`x)";
+by (Seq_induct_tac "x" [] 1);
+by (Seq_case_simp_tac "y" 2);
+by (pair_tac "a" 1);
+by (Auto_tac());
+
+*)
+
 goal thy "!! sch ex. \
 \ Filter (%a. a:act AB)`sch = filter_act`ex  \
 \ ==> ex = Zip`(Filter (%a. a:act AB)`sch)`(Map snd`ex)";

@@ -105,14 +105,14 @@ szip_def
                           nil => UU 
                         | y##ys => <x,y>##(h`xs`ys))))"
  
-
+(*
 nproj_def 
  "nproj == (%n tr.HD`(iterate n TL tr))"   
 
 
 sproj_def 
  "sproj == (%n tr.iterate n TL tr)"   
-
+*)
 
 
 Partial_def

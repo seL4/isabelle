@@ -15,7 +15,7 @@ ShortExecutions = Traces +
 
 consts 
 
-  LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"
+(*  LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"*)
   LastActExtsch     ::"('a,'s)ioa => 'a Seq         => bool"
 
   Cut               ::"('a => bool) => 'a Seq    => 'a Seq"
@@ -27,8 +27,8 @@ defs
 LastActExtsch_def
   "LastActExtsch A sch == (Cut (%x. x: ext A) sch = sch)"
 
-LastActExtex_def
-  "LastActExtex A ex == LastActExtsch A (filter_act`ex)"
+(* LastActExtex_def
+  "LastActExtex A ex == LastActExtsch A (filter_act`ex)" *)
 
 Cut_def
   "Cut P s == oraclebuild P`s`(Filter P`s)"

@@ -30,15 +30,23 @@ consts
 syntax
 
  "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_>>_)"  [66,65] 65)
+ (* list Enumeration *)
+  "_totlist"      :: args => 'a Seq                          ("[(_)!]")
+  "_partlist"     :: args => 'a Seq                          ("[(_)?]")
+
 
 syntax (symbols)
 
  "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_\\<leadsto>_)"  [66,65] 65)
-
+ 
 
 translations
 
   "a>>s" == "Cons a`s"
+  "[x, xs!]"     == "x>>[xs!]"
+  "[x!]"         == "x>>nil"
+  "[x, xs?]"     == "x>>[xs?]"
+  "[x?]"         == "x>>UU" 
 
 defs
 

@@ -251,6 +251,7 @@ by (asm_full_simp_tac (simpset() addsimps [execThruCut]) 1);
 
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 by (subgoal_tac "Map fst`(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst`y)" 1);
+
 by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (simpset() addsimps [FilterCut RS sym]) 1);
 
