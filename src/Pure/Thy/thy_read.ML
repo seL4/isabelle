@@ -358,20 +358,10 @@ fun use_thy name =
             Some (gen_rems same_thm (#simps(rep_ss (!simpset)), !old_simps)))
          );
 
-       (*Store theory again because it could have been redefined*)
-       use_string
-         ["val _ = (store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ "); " ^
-
-       (*Store new axioms in theorem database; ignore theories which are just
-         copies of existing ones*)
-       let val parents = get_parents tname;
-           val fst_thy = get_theory (hd parents);
-           val this_thy = get_theory tname;
-       in if length parents = 1
-             andalso Sign.eq_sg (sign_of fst_thy, sign_of this_thy) then ""
-          else
-            "map store_thm_db (axioms_of " ^ tname ^ ".thy));"
-       end];
+         use_string
+           ["val _ = (store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");\
+            \map store_thm_db (axioms_of " ^ tname ^ ".thy));"];
+                    (*Store theory again because it could have been redefined*)
 
        (*Now set the correct info*)
        set_info (Some (file_info thy_file)) (Some (file_info ml_file)) tname;
