@@ -12,7 +12,7 @@ theory Examples = Hoare + Arith2:
 
 (** multiplication by successive addition **)
 
-lemma multiply_by_add: "|- VARS m s a b.
+lemma multiply_by_add: "VARS m s a b
   {a=A & b=B}
   m := 0; s := 0;
   WHILE m~=a
@@ -24,7 +24,7 @@ by vcg_simp
 
 (** Euclid's algorithm for GCD **)
 
-lemma Euclid_GCD: "|- VARS a b.
+lemma Euclid_GCD: "VARS a b
  {0<A & 0<B}
  a := A; b := B;
  WHILE  a~=b
@@ -49,7 +49,7 @@ done
 lemmas distribs =
   diff_mult_distrib diff_mult_distrib2 add_mult_distrib add_mult_distrib2
 
-lemma gcd_scm: "|- VARS a b x y.
+lemma gcd_scm: "VARS a b x y
  {0<A & 0<B & a=A & b=B & x=B & y=A}
  WHILE  a ~= b
  INV {0<a & 0<b & gcd A B = gcd a b & 2*A*B = a*x + b*y}
@@ -64,7 +64,7 @@ done
 
 (** Power by iterated squaring and multiplication **)
 
-lemma power_by_mult: "|- VARS a b c.
+lemma power_by_mult: "VARS a b c
  {a=A & b=B}
  c := (1::nat);
  WHILE b ~= 0
@@ -83,7 +83,7 @@ done
 
 (** Factorial **)
 
-lemma factorial: "|- VARS a b.
+lemma factorial: "VARS a b
  {a=A}
  b := 1;
  WHILE a ~= 0
@@ -97,7 +97,7 @@ done
 lemma [simp]: "1 \<le> i \<Longrightarrow> fac (i - Suc 0) * i = fac i"
 by(induct i, simp_all)
 
-lemma "|- VARS i f.
+lemma "VARS i f
  {True}
  i := (1::nat); f := 1;
  WHILE i <= n INV {f = fac(i - 1) & 1 <= i & i <= n+1}
@@ -113,7 +113,7 @@ done
 
 (* the easy way: *)
 
-lemma sqrt: "|- VARS r x.
+lemma sqrt: "VARS r x
  {True}
  x := X; r := (0::nat);
  WHILE (r+1)*(r+1) <= x
@@ -126,7 +126,7 @@ done
 
 (* without multiplication *)
 
-lemma sqrt_without_multiplication: "|- VARS u w r x.
+lemma sqrt_without_multiplication: "VARS u w r x
  {True}
  x := X; u := 1; w := 1; r := (0::nat);
  WHILE w <= x
@@ -140,7 +140,7 @@ done
 
 (*** LISTS ***)
 
-lemma imperative_reverse: "|- VARS y x.
+lemma imperative_reverse: "VARS y x
  {x=X}
  y:=[];
  WHILE x ~= []
@@ -152,7 +152,7 @@ apply vcg_simp
  apply auto
 done
 
-lemma imperative_append: "|- VARS x y.
+lemma imperative_append: "VARS x y
  {x=X & y=Y}
  x := rev(x);
  WHILE x~=[]
@@ -170,7 +170,7 @@ done
 (*** ARRAYS ***)
 
 (* Search for a key *)
-lemma zero_search: "|- VARS A i.
+lemma zero_search: "VARS A i
  {True}
  i := 0;
  WHILE i < length A & A!i ~= key
@@ -198,7 +198,7 @@ by arith
 lemma Partition:
 "[| leq == %A i. !k. k<i --> A!k <= pivot;
     geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==>
- |- VARS A u l.
+ VARS A u l
  {0 < length(A::('a::order)list)}
  l := 0; u := length A - Suc 0;
  WHILE l <= u

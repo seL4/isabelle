@@ -57,10 +57,10 @@ syntax
 
 syntax
  "@hoare_vars" :: "[vars, 'a assn,'a com,'a assn] => bool"
-                 ("|- VARS _.// {_} // _ // {_}" [0,0,55,0] 50)
+                 ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
 syntax ("" output)
  "@hoare"      :: "['a assn,'a com,'a assn] => bool"
-                 ("|- {_} // _ // {_}" [0,55,0] 50)
+                 ("{_} // _ // {_}" [0,55,0] 50)
 
 (** parse translations **)
 

@@ -5,8 +5,6 @@
 
 How to use Hoare logic to verify pointer manipulating programs.
 The old idea: the store is a global mapping from pointers to values.
-Pointers are modelled by type 'a option, where None is Nil.
-Thus the heap is of type 'a \<leadsto> 'a (see theory Map).
 
 The list reversal example is taken from Richard Bornat's paper
 Proving pointer programs in Hoare logic
@@ -16,19 +14,20 @@ chains to HOL lists. This is merely axiomatized by Bornat.
 
 theory Pointers = Hoare:
 
-section "Syntactic sugar"
+subsection "References"
 
-types 'a ref = "'a option"
+datatype 'a ref = Null | Ref 'a
 
-syntax Null  :: "'a ref"
-       Ref :: "'a \<Rightarrow> 'a ref"
-       addr :: "'a ref \<Rightarrow> 'a"
-translations
-  "Null" => "None"
-  "Ref"  => "Some"
-  "addr" => "the"
+lemma not_Null_eq [iff]: "(x ~= Null) = (EX y. x = Ref y)"
+  by (induct x) auto
 
-text "Field access and update:"
+lemma not_Ref_eq [iff]: "(ALL y. x ~= Ref y) = (x = Null)"
+  by (induct x) auto
+
+consts addr :: "'a ref \<Rightarrow> 'a"
+primrec "addr(Ref a) = a"
+
+subsection "Field access and update"
 
 syntax
   "@refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
@@ -38,14 +37,14 @@ syntax
   "@faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
    ("_^._" [65,1000] 65)
 translations
-  "f(r \<rightarrow> v)"  ==  "f(the r := v)"
+  "f(r \<rightarrow> v)"  ==  "f(addr r := v)"
   "p^.f := e"  =>  "f := f(p \<rightarrow> e)"
-  "p^.f"       ==  "f(the p)"
+  "p^.f"       ==  "f(addr p)"
 
 
 text "An example due to Suzuki:"
 
-lemma "|- VARS v n. 
+lemma "VARS v n
   {w = Ref w0 & x = Ref x0 & y = Ref y0 & z = Ref z0 &
    distinct[w0,x0,y0,z0]}
   w^.v := (1::int); w^.n := x;
@@ -61,7 +60,7 @@ section "The heap"
 subsection "Paths in the heap"
 
 consts
- Path :: "('a \<leadsto> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
+ Path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
 primrec
 "Path h x [] y = (x = y)"
 "Path h x (a#as) y = (x = Ref a \<and> Path h (h a) as y)"
@@ -82,7 +81,7 @@ done
 lemma [simp]: "\<And>x. Path f x (as@bs) z = (\<exists>y. Path f x as y \<and> Path f y bs z)"
 by(induct as, simp+)
 
-lemma [simp]: "\<And>x. u \<notin> set as \<Longrightarrow> Path (f(u\<mapsto>v)) x as y = Path f x as y"
+lemma [simp]: "\<And>x. u \<notin> set as \<Longrightarrow> Path (f(u := v)) x as y = Path f x as y"
 by(induct as, simp, simp add:eq_sym_conv)
 
 subsection "Lists on the heap"
@@ -90,7 +89,7 @@ subsection "Lists on the heap"
 subsubsection "Relational abstraction"
 
 constdefs
- List :: "('a \<leadsto> 'a) \<Rightarrow> 'a option \<Rightarrow> 'a list \<Rightarrow> bool"
+ List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool"
 "List h x as == Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
@@ -157,16 +156,17 @@ apply(rule someI_ex)
 apply fast
 done
 
-lemma [simp]: "islist h None"
+lemma [simp]: "islist h Null"
 by(simp add:islist_def)
 
-lemma [simp]: "islist h (Some a) = islist h (h a)"
+lemma [simp]: "islist h (Ref a) = islist h (h a)"
 by(simp add:islist_def)
 
-lemma [simp]: "list h None = []"
+lemma [simp]: "list h Null = []"
 by(simp add:list_def)
 
-lemma [simp]: "islist h (h a) \<Longrightarrow> list h (Some a) = a # list h (h a)"
+lemma list_Ref_conv[simp]:
+ "islist h (h a) \<Longrightarrow> list h (Ref a) = a # list h (h a)"
 apply(insert List_Ref[of h])
 apply(fastsimp simp:List_conv_islist_list)
 done
@@ -176,13 +176,13 @@ apply(insert List_hd_not_in_tl[of h])
 apply(simp add:List_conv_islist_list)
 done
 
-lemma [simp]:
+lemma list_upd_conv[simp]:
  "islist h p \<Longrightarrow> y \<notin> set(list h p) \<Longrightarrow> list (h(y := q)) p = list h p"
 apply(drule notin_List_update[of _ _ h q p])
 apply(simp add:List_conv_islist_list)
 done
 
-lemma [simp]:
+lemma islist_upd[simp]:
  "islist h p \<Longrightarrow> y \<notin> set(list h p) \<Longrightarrow> islist (h(y := q)) p"
 apply(frule notin_List_update[of _ _ h q p])
 apply(simp add:List_conv_islist_list)
@@ -195,7 +195,7 @@ subsection "List reversal"
 
 text "A short but unreadable proof:"
 
-lemma "|- VARS tl p q r.
+lemma "VARS tl p q r
   {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {}}
   WHILE p \<noteq> Null
   INV {\<exists>ps qs. List tl p ps \<and> List tl q qs \<and> set ps \<inter> set qs = {} \<and>
@@ -218,7 +218,7 @@ done
 
 text "A longer readable version:"
 
-lemma "|- VARS tl p q r.
+lemma "VARS tl p q r
   {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {}}
   WHILE p \<noteq> Null
   INV {\<exists>ps qs. List tl p ps \<and> List tl q qs \<and> set ps \<inter> set qs = {} \<and>
@@ -257,7 +257,7 @@ qed
 
 text{* Finaly, the functional version. A bit more verbose, but automatic! *}
 
-lemma "|- VARS tl p q r.
+lemma "VARS tl p q r
   {islist tl p \<and> islist tl q \<and>
    Ps = list tl p \<and> Qs = list tl q \<and> set Ps \<inter> set Qs = {}}
   WHILE p \<noteq> Null
@@ -281,7 +281,7 @@ a simple loop finds an element in a linked list.
 We start with a proof based on the @{term List} predicate. This means it only
 works for acyclic lists. *}
 
-lemma "|- VARS tl p. 
+lemma "VARS tl p
   {List tl p Ps \<and> X \<in> set Ps}
   WHILE p \<noteq> Null \<and> p \<noteq> Ref X
   INV {p \<noteq> Null \<and> (\<exists>ps. List tl p ps \<and> X \<in> set ps)}
@@ -299,7 +299,7 @@ done
 text{*Using @{term Path} instead of @{term List} generalizes the correctness
 statement to cyclic lists as well: *}
 
-lemma "|- VARS tl p. 
+lemma "VARS tl p
   {Path tl p Ps (Ref X)}
   WHILE p \<noteq> Null \<and> p \<noteq> Ref X
   INV {p \<noteq> Null \<and> (\<exists>ps. Path tl p ps (Ref X))}
@@ -332,7 +332,7 @@ apply(rule iffI)
 apply simp
 done
 
-lemma "|- VARS tl p. 
+lemma "VARS tl p
   {Ref X \<in> ({(Ref x,tl x) |x. True}^* `` {p})}
   WHILE p \<noteq> Null \<and> p \<noteq> Ref X
   INV {p \<noteq> Null \<and> Ref X \<in> ({(Ref x,tl x) |x. True}^* `` {p})}
@@ -351,10 +351,10 @@ done
 
 text{*Finally, the simplest version, based on a relation on type @{typ 'a}:*}
 
-lemma "|- VARS tl p. 
-  {p \<noteq> Null \<and> X \<in> ({(x,y). tl x = Ref y}^* `` {the p})}
+lemma "VARS tl p
+  {p \<noteq> Null \<and> X \<in> ({(x,y). tl x = Ref y}^* `` {addr p})}
   WHILE p \<noteq> Null \<and> p \<noteq> Ref X
-  INV {p \<noteq> Null \<and> X \<in> ({(x,y). tl x = Ref y}^* `` {the p})}
+  INV {p \<noteq> Null \<and> X \<in> ({(x,y). tl x = Ref y}^* `` {addr p})}
   DO p := p^.tl OD
   {p = Ref X}"
 apply vcg_simp
@@ -365,7 +365,10 @@ apply vcg_simp
 apply clarsimp
 done
 
+
 subsection "Merging two lists"
+
+text"This is still a bit rough, especially the proof."
 
 consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
 
@@ -381,7 +384,7 @@ by blast
 
 declare imp_disjL[simp del] imp_disjCL[simp]
 
-lemma "|- VARS hd tl p q r s.
+lemma "VARS hd tl p q r s
  {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {} \<and>
   (p \<noteq> Null \<or> q \<noteq> Null)}
  IF if q = Null then True else p \<noteq> Null \<and> p^.hd \<le> q^.hd
@@ -450,6 +453,44 @@ apply fast
 apply(clarsimp simp add:List_app)
 done
 
-(* TODO: functional version of merging *)
+(* TODO: merging with islist/list instead of List *)
+
+subsection "Storage allocation"
+
+constdefs new :: "'a set \<Rightarrow> 'a"
+"new A == SOME a. a \<notin> A"
+
+
+(* useful??*)
+syntax in_list :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" ("(_/ [\<in>] _)" [50, 51] 50)
+       notin_list :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" ("(_/ [\<notin>] _)" [50, 51] 50)
+translations
+ "x [\<in>] xs" == "x \<in> set xs"
+ "x [\<notin>] xs" == "x \<notin> set xs"
+
+lemma new_notin:
+ "\<lbrakk> ~finite(UNIV::'a set); finite(A::'a set); B \<subseteq> A \<rbrakk> \<Longrightarrow> new (A) \<notin> B"
+apply(unfold new_def)
+apply(rule someI2_ex)
+ apply (fast intro:ex_new_if_finite)
+apply (fast)
+done
+
+
+lemma "~finite(UNIV::'a set) \<Longrightarrow>
+  VARS xs elem next alloc p q
+  {Xs = xs \<and> p = (Null::'a ref)}
+  WHILE xs \<noteq> []
+  INV {islist next p \<and> set(list next p) \<subseteq> set alloc \<and>
+       map elem (rev(list next p)) @ xs = Xs}
+  DO q := Ref(new(set alloc)); alloc := (addr q)#alloc;
+     q^.next := p; q^.elem := hd xs; xs := tl xs; p := q
+  OD
+  {islist next p \<and> map elem (rev(list next p)) = Xs}"
+apply vcg_simp
+ apply (clarsimp simp: subset_insert_iff neq_Nil_conv fun_upd_apply new_notin)
+apply fastsimp
+done
+
 
 end

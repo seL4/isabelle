@@ -99,7 +99,7 @@ fun mk_bodyC []      = HOLogic.unit
 fun dest_Goal (Const ("Goal", _) $ P) = P;
 
 (** maps a goal of the form:
-        1. [| P |] ==> |- VARS x1 ... xn. {._.} _ {._.} or to [x1,...,xn]**) 
+        1. [| P |] ==> VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]**) 
 fun get_vars thm = let  val c = dest_Goal (concl_of (thm));
                         val d = Logic.strip_assums_concl c;
                         val Const _ $ pre $ _ $ _ = dest_Trueprop d;

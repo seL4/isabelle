@@ -11,19 +11,22 @@ theory Finite_Set = Divides + Power + Inductive + SetInterval:
 subsection {* Collection of finite sets *}
 
 consts Finites :: "'a set set"
+syntax
+  finite :: "'a set => bool"
+translations
+  "finite A" == "A : Finites"
 
 inductive Finites
   intros
     emptyI [simp, intro!]: "{} : Finites"
     insertI [simp, intro!]: "A : Finites ==> insert a A : Finites"
 
-syntax
-  finite :: "'a set => bool"
-translations
-  "finite A" == "A : Finites"
-
 axclass finite \<subseteq> type
   finite: "finite UNIV"
+
+lemma ex_new_if_finite: -- "does not depend on def of finite at all"
+ "\<lbrakk> ~finite(UNIV::'a set); finite A \<rbrakk> \<Longrightarrow> \<exists>a::'a. a ~: A"
+by(subgoal_tac "A ~= UNIV", blast, blast)
 
 
 lemma finite_induct [case_names empty insert, induct set: Finites]:

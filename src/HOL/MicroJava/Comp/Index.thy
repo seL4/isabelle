@@ -75,7 +75,6 @@ apply (rule conjI)
 apply (simp add: gl_def)
 apply (intro strip, simp)
 apply (simp add: galldefs del: set_append map_append)
-apply (auto simp: the_map_upd)
 done
 
 

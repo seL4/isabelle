@@ -431,10 +431,13 @@ by (induct xs) (auto simp add: o_def)
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
 
+lemma map_eq_conv[simp]: "(map f xs = map g xs) = (!x : set xs. f x = g x)"
+by (induct xs) auto
+
 lemma map_cong [recdef_cong]:
 "xs = ys ==> (!!x. x : set ys ==> f x = g x) ==> map f xs = map g ys"
 -- {* a congruence rule for @{text map} *}
-by (clarify, induct ys) auto
+by simp
 
 lemma map_is_Nil_conv [iff]: "(map f xs = []) = (xs = [])"
 by (cases xs) auto
