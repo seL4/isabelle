@@ -42,7 +42,8 @@ apply auto
 done
 
 lemma subcls1_def2: 
-"subcls1 G = (\<Sigma> C\<in>{C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D})"
+  "subcls1 G = 
+     (SIGMA C: {C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D})"
   by (auto simp add: is_class_def dest: subcls1D intro: subcls1I)
 
 lemma finite_subcls1: "finite (subcls1 G)"

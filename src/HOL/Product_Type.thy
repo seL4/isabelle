@@ -155,12 +155,11 @@ in [("split", split_tr')]
 end
 *}
 
+text{*Deleted x-symbol and html support using @{text"\<Sigma>"} (Sigma) because of the danger of confusion with Sum.*}
 syntax (xsymbols)
-  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
   "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
 syntax (HTML output)
-  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
   "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
 print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
@@ -603,8 +602,7 @@ text {*
 lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
   by (unfold Sigma_def) blast
 
-
-lemma SigmaE:
+lemma SigmaE [elim!]:
     "[| c: Sigma A B;
         !!x y.[| x:A;  y:B(x);  c=(x,y) |] ==> P
      |] ==> P"
@@ -617,18 +615,21 @@ text {*
 *}
 
 lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
-by (erule SigmaE, blast)
+by blast
 
 lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
-by (erule SigmaE, blast)
+by blast
 
 lemma SigmaE2:
     "[| (a, b) : Sigma A B;
         [| a:A;  b:B(a) |] ==> P
      |] ==> P"
-  by (blast dest: SigmaD1 SigmaD2)
+  by blast
 
-declare SigmaE [elim!] SigmaE2 [elim!]
+lemma Sigma_cong:
+     "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
+      \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
+by auto
 
 lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
   by blast

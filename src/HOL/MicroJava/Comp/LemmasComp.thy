@@ -105,21 +105,12 @@ by (case_tac "class G C", auto simp: is_class_def comp_class_None dest: comp_cla
 lemma comp_is_type: "is_type (comp G) T = is_type G T"
   by ((cases T),simp,(induct G)) ((simp),(simp only: comp_is_class),(simp add: comp_is_class),(simp only: comp_is_class))
 
-lemma SIGMA_cong: "\<lbrakk> A = B; !!x. x \<in> B \<Longrightarrow> C x = D x \<rbrakk> 
-  \<Longrightarrow> (\<Sigma> x \<in> A. C x) = (\<Sigma> x \<in> B. D x)"
-by auto
-
 lemma comp_classname: "is_class G C 
   \<Longrightarrow> fst (the (class G C)) = fst (the (class (comp G) C))"
 by (case_tac "class G C", auto simp: is_class_def dest: comp_class_imp)
 
-
 lemma comp_subcls1: "subcls1 (comp G) = subcls1 G"
-apply (simp add: subcls1_def2 comp_is_class)
-apply (rule SIGMA_cong, simp)
-apply (simp add: comp_is_class)
-apply (simp add: comp_classname)
-done
+by (auto simp add: subcls1_def2 comp_classname comp_is_class)
 
 lemma comp_widen: "((ty1,ty2) \<in> widen (comp G)) = ((ty1,ty2) \<in> widen G)"
   apply rule

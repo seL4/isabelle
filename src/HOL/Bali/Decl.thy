@@ -485,13 +485,14 @@ apply auto
 done
 
 lemma subint1_def2:  
-   "subint1 G = (\<Sigma> I\<in>{I. is_iface G I}. set (isuperIfs (the (iface G I))))"
+  "subint1 G = (SIGMA I: {I. is_iface G I}. set (isuperIfs (the (iface G I))))"
 apply (unfold subint1_def)
 apply auto
 done
 
 lemma subcls1_def2: 
- "subcls1 G = (\<Sigma> C\<in>{C. is_class G C}. {D. C\<noteq>Object \<and> super (the(class G C))=D})"
+  "subcls1 G = 
+     (SIGMA C: {C. is_class G C}. {D. C\<noteq>Object \<and> super (the(class G C))=D})"
 apply (unfold subcls1_def)
 apply auto
 done
