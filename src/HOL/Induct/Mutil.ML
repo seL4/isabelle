@@ -10,8 +10,7 @@ Addsimps tiling.intrs;
 
 (** The union of two disjoint tilings is a tiling **)
 
-Goal "t: tiling A ==> \
-\              u: tiling A --> t <= Compl u --> t Un u : tiling A";
+Goal "t: tiling A ==> u: tiling A --> t <= Compl u --> t Un u : tiling A";
 by (etac tiling.induct 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [Un_assoc]) 1);
@@ -141,8 +140,8 @@ qed "tiling_domino_0_1";
 (*Final argument is surprisingly complex.  Note the use of small simpsets
   to avoid moving Sucs, etc.*)
 Goal "[| t = below(Suc m + Suc m) Times below(Suc n + Suc n);   \
-\                   t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}              \
-\                |] ==> t' ~: tiling domino";
+\        t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}              \
+\     |] ==> t' ~: tiling domino";
 by (rtac notI 1);
 by (subgoal_tac "card(evnodd t' 0) < card(evnodd t' 1)" 1);
 by (asm_full_simp_tac (HOL_ss addsimps [less_not_refl, tiling_domino_0_1]) 1);
