@@ -390,13 +390,30 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
       if is_none (get_locale thy name) then []
       else ["Duplicate definition of locale " ^ quote name];
 
-    val errs = err_dup_locale;
+    (* check if definientes are local constants (in the same locale, so no redefining!) *)
+    val err_def_head =
+      let fun peal_appl t = 
+            case t of 
+                 t1 $ t2 => peal_appl t1
+               | Free(t) => t
+               | _ => error ("a bad locale definition");
+	  fun lhs (_, Const ("==" , _) $  d1 $ d2) = peal_appl d1
+	    | lhs _ = error ("an illegal definition");
+          val defs = map lhs loc_defs;
+          val check = defs subset loc_consts
+      in if check then [] 
+         else ["defined item not declared fixed in locale " ^ quote name]
+      end; 
+
+    val errs = err_dup_locale @ err_def_head;
   in
     if null errs then ()
     else error (cat_lines errs);
 
     syntax_thy
-    |> put_locale (name, make_locale loc_consts nosyn loc_rules loc_defs_terms loc_thms defaults)
+    |> put_locale (name, 
+		   make_locale loc_consts nosyn loc_rules loc_defs_terms
+		               loc_thms defaults)
   end;
 
 
