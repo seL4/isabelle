@@ -66,6 +66,7 @@ sig
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
   val quiet: bool ref
+  val debug: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion_result: ((transition * (state -> state -> 'a -> 'a)) list * 'a) -> 'a
@@ -408,12 +409,57 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 (** toplevel transactions **)
 
 val quiet = ref false;
-
+val debug = ref false;  (* Verbose messages for core exceptions. *)
 
 (* print exceptions *)
 
 fun raised name = "exception " ^ name ^ " raised";
 fun raised_msg name msg = raised name ^ ": " ^ msg;
+
+fun msg_on_debug (THM (msg, i, thms)) =
+     if !debug
+     then raised_msg ("THM " ^ string_of_int i)
+       (cat_lines ("" :: msg :: map Display.string_of_thm thms))
+     else raised_msg "THM" msg
+  | msg_on_debug (THEORY (msg, thys)) =
+     if !debug
+     then raised_msg "THEORY" (cat_lines ("" :: msg ::
+       map (Pretty.string_of o Display.pretty_theory) thys))
+     else msg
+  | msg_on_debug (TERM (msg, ts)) =
+     (case (!debug, Context.get_context ()) of
+         (true, Some thy) =>
+           let val sg = Theory.sign_of thy in
+             raised_msg "TERM"
+               (cat_lines
+                 ("" :: msg :: map (Sign.string_of_term sg) ts))
+           end
+       | _ => raised_msg "TERM" msg)
+  | msg_on_debug (TYPE (msg, Ts, ts)) =
+     (case (!debug, Context.get_context ()) of
+         (true, Some thy) =>
+           let val sg = Theory.sign_of thy in
+             raised_msg "TYPE"
+               (cat_lines
+                 ("" :: msg :: map (Sign.string_of_typ sg) Ts @
+                  map (Sign.string_of_term sg) ts))
+           end
+       | _ => raised_msg "TYPE" msg)
+
+(*
+	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
+	  seq print_thm thms)
+   | THEORY (msg,thys) =>
+	 (writeln ("Exception THEORY raised:\n" ^ msg);
+	  seq (Pretty.writeln o Display.pretty_theory) thys)
+   | TERM (msg,ts) =>
+	 (writeln ("Exception TERM raised:\n" ^ msg);
+	  seq (writeln o Sign.string_of_term sign) ts)
+   | TYPE (msg,Ts,ts) =>
+	 (writeln ("Exception TYPE raised:\n" ^ msg);
+	  seq (writeln o Sign.string_of_typ sign) Ts;
+	  seq (writeln o Sign.string_of_term sign) ts)
+*)
 
 fun exn_message TERMINATE = "Exit."
   | exn_message RESTART = "Restart."
@@ -421,7 +467,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message Interrupt = "Interrupt."
   | exn_message ERROR = "ERROR."
   | exn_message (ERROR_MESSAGE msg) = msg
-  | exn_message (THEORY (msg, _)) = msg
+  | exn_message (THEORY (msg, thys)) = msg_on_debug (THEORY (msg, thys))
   | exn_message (ProofContext.CONTEXT (msg, _)) = msg
   | exn_message (Proof.STATE (msg, _)) = msg
   | exn_message (ProofHistory.FAIL msg) = msg
@@ -431,9 +477,9 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
   | exn_message (Antiquote.ANTIQUOTE_FAIL info) = fail_message "antiquotation" info
   | exn_message (Syntax.AST (msg, _)) = raised_msg "AST" msg
-  | exn_message (TYPE (msg, _, _)) = raised_msg "TYPE" msg
-  | exn_message (TERM (msg, _)) = raised_msg "TERM" msg
-  | exn_message (THM (msg, _, _)) = raised_msg "THM" msg
+  | exn_message (TYPE (msg, Ts, ts)) = msg_on_debug (TYPE (msg, Ts, ts))
+  | exn_message (TERM (msg, ts)) = msg_on_debug (TERM (msg, ts))
+  | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))
   | exn_message Library.OPTION = raised "Library.OPTION"
   | exn_message (Library.LIST msg) = raised_msg "Library.LIST" msg
   | exn_message exn = General.exnMessage exn
