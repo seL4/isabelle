@@ -55,10 +55,6 @@ ISABELLE_USEDIR_OPTIONS="-i false"
 ### Document preparation
 ###
 
-#TeX environment hacking (for teTeX)
-unset TEXMF
-PATH="/usr/local/tetex-1.0/bin:$PATH"
-
 TEXINPUTS="$ISABELLE_HOME/lib/texinputs:$TEXINPUTS"
 ISABELLE_LATEX="latex"
 ISABELLE_PDFLATEX="pdflatex"
