@@ -8,8 +8,8 @@ Isabelle distribution.
 
 <!-- _GP_ include("$pwd/docu-contents.dist") -->
 
-The following text files of the Isabelle distribution may be of some
-interest:
+The following text files of the Isabelle distribution may be also of
+some interest:
 <ul>
 <li> <!-- _GP_ href(distname . "/ANNOUNCE", "ANNOUNCE") -->
 <li> <!-- _GP_ href(distname . "/README.html", "README") -->
