@@ -15,9 +15,11 @@ sig
   val keyword: string -> text
   val file_name: string -> text
   val file_path: Path.T -> text
-  val para: text -> text
   val href_name: string -> text -> text
   val href_path: Path.T -> text -> text
+  val href_opt_name: string option -> text -> text
+  val href_opt_path: Path.T option -> text -> text
+  val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
   val begin_document: string -> text
@@ -113,9 +115,16 @@ val file_path = file_name o Path.pack;
 
 (* misc *)
 
-fun para txt = "\n<p>\n" ^ txt ^ "\n</p>\n";
 fun href_name s txt = "<a href=" ^ quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Path.pack path) txt;
+
+fun href_opt_name None txt = txt
+  | href_opt_name (Some s) txt = href_name s txt;
+
+fun href_opt_path None txt = txt
+  | href_opt_path (Some p) txt = href_path p txt;
+
+fun para txt = "\n<p>\n" ^ txt ^ "\n</p>\n";
 fun preform txt = "<pre>" ^ txt ^ "</pre>";
 val verbatim = preform o output;
 
@@ -137,14 +146,14 @@ val end_document =
   "</body>\n\
   \</html>\n";
 
-fun back_link (back_path, back_name) =
-  para (href_path back_path "Back" ^ " to index of " ^ plain back_name);
+fun up_link (up_path, up_name) =
+  para (href_path up_path "Up" ^ " to index of " ^ plain up_name);
 
 
 (* session index *)
 
-fun begin_index back (index_path, session) opt_readme =
-  begin_document ("Index of " ^ session) ^ back_link back ^
+fun begin_index up (index_path, session) opt_readme =
+  begin_document ("Index of " ^ session) ^ up_link up ^
   (case opt_readme of None => "" | Some p => href_path p "README" ^ " file") ^
   "\n<hr>\n\n<h2>Theories</h2>\n";
 
@@ -164,27 +173,20 @@ fun source src = "\n<hr>\n<pre>" ^ output_source src ^ "</pre>\n<hr>\n";
 
 
 local
-  fun file (opt_ref, path, loadit) =
-    (case opt_ref of None => I | Some p => href_path p)
-      ((if not loadit then enclose "(" ")" else I) (file_path path));
+  fun file (opt_ref, path, loadit) = href_opt_path opt_ref
+    ((if not loadit then enclose "(" ")" else I) (file_path path));
 
-  fun colon_last [] = []
-    | colon_last lst = let val (prfx, (x, y)) = split_last lst in prfx @ [(x, y ^ ":")] end;
+  val files = space_implode " + " o map file;
+  val parents = space_implode " + " o map (uncurry href_opt_path o apsnd name);
 
-  fun parent (None, s) = name s
-    | parent (Some p, s) = href_path p (name s);
-
-  val parents = space_implode " + " o map parent;
-
-  fun theory back A =
-    begin_document ("Theory " ^ A) ^ "\n" ^ back_link back ^
+  fun theory up A =
+    begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^
     keyword "theory" ^ " " ^ name A ^ " = ";
 in
 
-fun begin_theory back A Bs [] body = theory back A ^ parents (colon_last Bs) ^ "\n" ^ body
-  | begin_theory back A Bs Ps body =
-      theory back A ^ parents Bs ^ "<br>" ^ keyword "files" ^
-      " " ^ space_implode " + " (map file Ps) ^ ":" ^ "\n" ^ body;
+fun begin_theory up A Bs [] body = theory up A ^ parents Bs ^ ":\n" ^ body
+  | begin_theory up A Bs Ps body = theory up A ^ parents Bs ^ "<br>" ^ keyword "files" ^
+      " " ^ files Ps ^ ":" ^ "\n" ^ body;
 end;
 
 val end_theory = end_document;
@@ -199,8 +201,7 @@ fun ml_file path str =
 
 (* theorem *)
 
-(* FIXME improve freeze_thaw (?) *)
-val string_of_thm =
+val string_of_thm =             (* FIXME improve freeze_thaw (?) *)
   Pretty.setmp_margin 80 Pretty.string_of o
     Display.pretty_thm_no_quote o #1 o Drule.freeze_thaw;
 
