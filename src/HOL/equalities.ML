@@ -201,6 +201,10 @@ Goal "(A Int B = {}) = (A <= -B)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "disjoint_eq_subset_Compl";
 
+Goal "(A Int B = {}) = (ALL x:A. ALL y:B. x ~= y)";
+by  (Blast_tac 1);
+qed "disjoint_iff_not_equal";
+
 Goal "UNIV Int B = B";
 by (Blast_tac 1);
 qed "Int_UNIV_left";
