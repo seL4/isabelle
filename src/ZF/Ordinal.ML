@@ -469,6 +469,10 @@ by (rtac Ord_0 1);
 by (Blast_tac 1);
 qed "Ord_0_lt";
 
+Goal "Ord(i) ==> i~=0 <-> 0<i";
+by (blast_tac (claset() addIs [Ord_0_lt]) 1);
+qed "Ord_0_lt_iff";
+
 (*** Results about less-than or equals ***)
 
 (** For ordinals, j<=i (subset) implies j le i (less-than or equals) **)

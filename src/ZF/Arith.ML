@@ -107,12 +107,34 @@ by (simp_tac (simpset() addsimps [diff_def]) 1);
 qed "diff_natify2";
 Addsimps [diff_natify1, diff_natify2];
 
+(** Remainder **)
+
+Goal "natify(m) mod n = m mod n";
+by (simp_tac (simpset() addsimps [mod_def]) 1);
+qed "mod_natify1";
+
+Goal "m mod natify(n) = m mod n";
+by (simp_tac (simpset() addsimps [mod_def]) 1);
+qed "mod_natify2";
+Addsimps [mod_natify1, mod_natify2];
+
+(** Quotient **)
+
+Goal "natify(m) div n = m div n";
+by (simp_tac (simpset() addsimps [div_def]) 1);
+qed "div_natify1";
+
+Goal "m div natify(n) = m div n";
+by (simp_tac (simpset() addsimps [div_def]) 1);
+qed "div_natify2";
+Addsimps [div_natify1, div_natify2];
+
 
 (*** Typing rules ***)
 
 (** Addition **)
 
-Goal "[| m:nat;  n:nat |] ==> m ##+ n : nat";
+Goal "[| m:nat;  n:nat |] ==> raw_add (m, n) : nat";
 by (induct_tac "m" 1);
 by Auto_tac;
 qed "raw_add_type";
@@ -125,7 +147,7 @@ AddTCs [add_type];
 
 (** Multiplication **)
 
-Goal "[| m:nat;  n:nat |] ==> m ##* n : nat";
+Goal "[| m:nat;  n:nat |] ==> raw_mult (m, n) : nat";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [raw_add_type])));
 qed "raw_mult_type";
@@ -139,7 +161,7 @@ AddTCs [mult_type];
 
 (** Difference **)
 
-Goal "[| m:nat;  n:nat |] ==> m ##- n : nat";
+Goal "[| m:nat;  n:nat |] ==> raw_diff (m, n) : nat";
 by (induct_tac "n" 1);
 by Auto_tac;
 by (fast_tac (claset() addIs [nat_case_type]) 1);
@@ -239,7 +261,7 @@ qed "add_left_commute";
 val add_ac = [add_assoc, add_commute, add_left_commute];
 
 (*Cancellation law on the left*)
-Goal "[| k ##+ m = k ##+ n;  k:nat |] ==> m=n";
+Goal "[| raw_add(k, m) = raw_add(k, n);  k:nat |] ==> m=n";
 by (etac rev_mp 1);
 by (induct_tac "k" 1);
 by Auto_tac;
@@ -357,23 +379,20 @@ qed "diff_self_eq_0";
 (*We need m:nat even if we replace the RHS by natify(m), for consider e.g.
   n=2, m=omega; then n + (m-n) = 2 + (0-2) = 2 ~= 0 = natify(m).*)
 Goal "[| n le m;  m:nat |] ==> n #+ (m#-n) = m";
-by (ftac lt_nat_in_nat 1);
-by (etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by Auto_tac;
 qed "add_diff_inverse";
 
 Goal "[| n le m;  m:nat |] ==> (m#-n) #+ n = m";
-by (ftac lt_nat_in_nat 1);
-by (etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (asm_simp_tac (simpset() addsimps [add_commute, add_diff_inverse]) 1);
 qed "add_diff_inverse2";
 
 (*Proof is IDENTICAL to that of add_diff_inverse*)
 Goal "[| n le m;  m:nat |] ==> succ(m) #- n = succ(m#-n)";
-by (ftac lt_nat_in_nat 1);
-by (etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -444,63 +463,134 @@ qed "div_termination";
 
 val div_rls =   (*for mod and div*)
     nat_typechecks @
-    [Ord_transrec_type, apply_type, div_termination RS ltD, if_type,
+    [Ord_transrec_type, apply_funtype, div_termination RS ltD,
      nat_into_Ord, not_lt_iff_le RS iffD1];
 
 val div_ss = simpset() addsimps [div_termination RS ltD,
 				 not_lt_iff_le RS iffD2];
 
-(*Type checking depends upon termination!*)
-Goalw [mod_def] "[| 0<n;  m:nat;  n:nat |] ==> m mod n : nat";
-by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
+Goalw [raw_mod_def] "[| m:nat;  n:nat |] ==> raw_mod (m, n) : nat";
+by (rtac Ord_transrec_type 1);
+by (auto_tac(claset(), simpset() addsimps [nat_into_Ord RS Ord_0_lt_iff]));
+by (REPEAT (ares_tac div_rls 1));
+qed "raw_mod_type";
+
+Goalw [mod_def] "m mod n : nat";
+by (simp_tac (simpset() addsimps [mod_def, raw_mod_type]) 1);
 qed "mod_type";
 AddTCs [mod_type];
+AddIffs [mod_type];
 
-Goal "[| 0<n;  m<n |] ==> m mod n = m";
-by (rtac (mod_def RS def_transrec RS trans) 1);
-by (asm_simp_tac div_ss 1);
+
+(** Aribtrary definitions for division by zero.  Useful to simplify 
+    certain equations **)
+
+Goalw [div_def] "a div 0 = 0";
+by (rtac (raw_div_def RS def_transrec RS trans) 1);
+by (Asm_simp_tac 1);
+qed "DIVISION_BY_ZERO_DIV";  (*NOT for adding to default simpset*)
+
+Goalw [mod_def] "a mod 0 = natify(a)";
+by (rtac (raw_mod_def RS def_transrec RS trans) 1);
+by (Asm_simp_tac 1);
+qed "DIVISION_BY_ZERO_MOD";  (*NOT for adding to default simpset*)
+
+fun div_undefined_case_tac s i =
+  case_tac s i THEN 
+  asm_full_simp_tac
+         (simpset() addsimps [nat_into_Ord RS Ord_0_lt_iff]) (i+1) THEN
+  asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO_DIV, 
+				    DIVISION_BY_ZERO_MOD]) i;
+
+Goal "m<n ==> raw_mod (m,n) = m";
+by (rtac (raw_mod_def RS def_transrec RS trans) 1);
+by (asm_simp_tac (simpset() addsimps [div_termination RS ltD]) 1);
+qed "raw_mod_less";
+
+Goal "[| m<n; n : nat |] ==> m mod n = m";
+by (ftac lt_nat_in_nat 1 THEN assume_tac 1);
+by (asm_simp_tac (simpset() addsimps [mod_def, raw_mod_less]) 1);
 qed "mod_less";
 
-Goal "[| 0<n;  n le m;  m:nat |] ==> m mod n = (m#-n) mod n";
+Goal "[| 0<n; n le m;  m:nat |] ==> raw_mod (m, n) = raw_mod (m#-n, n)";
 by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
-by (rtac (mod_def RS def_transrec RS trans) 1);
+by (rtac (raw_mod_def RS def_transrec RS trans) 1);
 by (asm_simp_tac div_ss 1);
+by (Blast_tac 1);
+qed "raw_mod_geq";
+
+Goal "[| n le m;  m:nat |] ==> m mod n = (m#-n) mod n";
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
+by (div_undefined_case_tac "n=0" 1);
+by (asm_simp_tac (simpset() addsimps [mod_def, raw_mod_geq]) 1);
 qed "mod_geq";
 
-Addsimps [mod_type, mod_less, mod_geq];
+Addsimps [mod_less];
 
-(*** Quotient ***)
 
-(*Type checking depends upon termination!*)
-Goalw [div_def]
-    "[| 0<n;  m:nat;  n:nat |] ==> m div n : nat";
-by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
+(*** Division ***)
+
+Goalw [raw_div_def] "[| m:nat;  n:nat |] ==> raw_div (m, n) : nat";
+by (rtac Ord_transrec_type 1);
+by (auto_tac(claset(), simpset() addsimps [nat_into_Ord RS Ord_0_lt_iff]));
+by (REPEAT (ares_tac div_rls 1));
+qed "raw_div_type";
+
+Goalw [div_def] "m div n : nat";
+by (simp_tac (simpset() addsimps [div_def, raw_div_type]) 1);
 qed "div_type";
 AddTCs [div_type];
+AddIffs [div_type];
 
-Goal "[| 0<n;  m<n |] ==> m div n = 0";
-by (rtac (div_def RS def_transrec RS trans) 1);
-by (asm_simp_tac div_ss 1);
+Goal "m<n ==> raw_div (m,n) = 0";
+by (rtac (raw_div_def RS def_transrec RS trans) 1);
+by (asm_simp_tac (simpset() addsimps [div_termination RS ltD]) 1);
+qed "raw_div_less";
+
+Goal "[| m<n; n : nat |] ==> m div n = 0";
+by (ftac lt_nat_in_nat 1 THEN assume_tac 1);
+by (asm_simp_tac (simpset() addsimps [div_def, raw_div_less]) 1);
 qed "div_less";
 
-Goal "[| 0<n;  n le m;  m:nat |] ==> m div n = succ((m#-n) div n)";
+Goal "[| 0<n;  n le m;  m:nat |] ==> raw_div(m,n) = succ(raw_div(m#-n, n))";
+by (subgoal_tac "n ~= 0" 1);
+by (Blast_tac 2);
 by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
-by (rtac (div_def RS def_transrec RS trans) 1);
+by (rtac (raw_div_def RS def_transrec RS trans) 1);
 by (asm_simp_tac div_ss 1);
+qed "raw_div_geq";
+
+Goal "[| 0<n;  n le m;  m:nat |] ==> m div n = succ ((m#-n) div n)";
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
+by (asm_simp_tac (simpset() addsimps [div_def, raw_div_geq]) 1);
 qed "div_geq";
 
-Addsimps [div_type, div_less, div_geq];
+Addsimps [div_less, div_geq];
+
 
 (*A key result*)
-Goal "[| 0<n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m";
+Goal "[| m: nat;  n: nat |] ==> (m div n)#*n #+ m mod n = m";
+by (div_undefined_case_tac "n=0" 1);
 by (etac complete_induct 1);
-by (excluded_middle_tac "x<n" 1);
-(*case x<n*)
-by (Asm_simp_tac 2);
+by (case_tac "x<n" 1);
 (*case n le x*)
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, add_assoc,
-                         div_termination RS ltD, add_diff_inverse]) 1);
+     (simpset() addsimps [not_lt_iff_le, add_assoc, mod_geq,
+                         div_termination RS ltD, add_diff_inverse]) 2);
+(*case x<n*)
+by (Asm_simp_tac 1);
+val lemma = result();
+
+Goal "(m div n)#*n #+ m mod n = natify(m)";
+by (subgoal_tac
+    "(natify(m) div natify(n))#*natify(n) #+ natify(m) mod natify(n) = \
+\    natify(m)" 1);
+by (stac lemma 2);
+by Auto_tac;
+qed "mod_div_equality_natify";
+
+Goal "m: nat ==> (m div n)#*n #+ m mod n = m";
+by (asm_simp_tac (simpset() addsimps [mod_div_equality_natify]) 1);
 qed "mod_div_equality";
 
 
@@ -515,42 +605,62 @@ by (asm_simp_tac (simpset() addsimps [nat_le_refl RS lt_trans,
 				      succ_neq_self]) 2);
 by (asm_simp_tac (simpset() addsimps [ltD RS mem_imp_not_eq]) 2);
 (* case n le succ(x) *)
-by (asm_full_simp_tac (simpset() addsimps [not_lt_iff_le]) 1);
+by (asm_full_simp_tac (simpset() addsimps [mod_geq, not_lt_iff_le]) 1);
 by (etac leE 1);
 (*equality case*)
 by (asm_full_simp_tac (simpset() addsimps [diff_self_eq_0]) 2);
-by (asm_simp_tac (simpset() addsimps [div_termination RS ltD, diff_succ]) 1);
+by (asm_simp_tac (simpset() addsimps [mod_geq, div_termination RS ltD, 
+				      diff_succ]) 1);
+val lemma = result();
+
+Goal "n:nat ==> \
+\     succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))";
+by (case_tac "n=0" 1);
+by (asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO_MOD]) 1);
+by (subgoal_tac
+    "natify(succ(m)) mod n = \
+\      (if succ(natify(m) mod n) = n then 0 else succ(natify(m) mod n))" 1);
+by (stac natify_succ 2);
+by (rtac lemma 2);
+by (auto_tac(claset(), 
+	     simpset() delsimps [natify_succ] 
+             addsimps [nat_into_Ord RS Ord_0_lt_iff]));
 qed "mod_succ";
 
-Goal "[| 0<n;  m:nat;  n:nat |] ==> m mod n < n";
-by (etac complete_induct 1);
-by (excluded_middle_tac "x<n" 1);
+Goal "[| 0<n;  n:nat |] ==> m mod n < n";
+by (subgoal_tac "natify(m) mod n < n" 1);
+by (res_inst_tac [("i","natify(m)")] complete_induct 2);
+by (case_tac "x<n" 3);
 (*case x<n*)
-by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
+by (Asm_simp_tac 3);
 (*case n le x*)
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, mod_geq, div_termination RS ltD]) 1);
+     (simpset() addsimps [mod_geq, not_lt_iff_le, div_termination RS ltD]) 3);
+by Auto_tac;
 qed "mod_less_divisor";
 
-
-Goal "[| k: nat; b<2 |] ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
+Goal "b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2: 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor RS ltD]) 2);
 by (dtac ltD 1);
 by Auto_tac;
 qed "mod2_cases";
 
-Goal "m:nat ==> succ(succ(m)) mod 2 = m mod 2";
+Goal "succ(succ(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2: 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor RS ltD]) 2);
-by (asm_simp_tac (simpset() addsimps [mod_succ] setloop Step_tac) 1);
+by (auto_tac (claset(), simpset() addsimps [mod_succ]));  
 qed "mod2_succ_succ";
 
-Goal "m:nat ==> (m#+m) mod 2 = 0";
-by (induct_tac "m" 1);
-by (simp_tac (simpset() addsimps [mod_less]) 1);
-by (asm_simp_tac (simpset() addsimps [mod2_succ_succ, add_succ_right]) 1);
+Addsimps [mod2_succ_succ];
+
+Goal "(m#+m) mod 2 = 0";
+by (subgoal_tac "(natify(m)#+natify(m)) mod 2 = 0" 1);
+by (res_inst_tac [("n","natify(m)")] nat_induct 2);
+by Auto_tac;
 qed "mod2_add_self";
+
+Addsimps [mod2_add_self];
 
 
 (**** Additional theorems about "le" ****)

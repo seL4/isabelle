@@ -17,36 +17,43 @@ constdefs
                                                     else 0)"
 
 consts
-    "##*" :: [i,i]=>i                    (infixl 70)
-    "##+" :: [i,i]=>i                    (infixl 65)
-    "##-" :: [i,i]=>i                    (infixl 65)
+    raw_add, raw_diff, raw_mult  :: [i,i]=>i
 
 primrec
-  raw_add_0     "0 ##+ n = n"
-  raw_add_succ  "succ(m) ##+ n = succ(m ##+ n)"
+  "raw_add (0, n) = n"
+  "raw_add (succ(m), n) = succ(raw_add(m, n))"
 
 primrec
-  raw_diff_0     "m ##- 0 = m"
-  raw_diff_succ  "m ##- succ(n) = nat_case(0, %x. x, m ##- n)"
+  raw_diff_0     "raw_diff(m, 0) = m"
+  raw_diff_succ  "raw_diff(m, succ(n)) = 
+                    nat_case(0, %x. x, raw_diff(m, n))"
 
 primrec
-  raw_mult_0    "0 ##* n = 0"
-  raw_mult_succ "succ(m) ##* n = n ##+ (m ##* n)"
+  "raw_mult(0, n) = 0"
+  "raw_mult(succ(m), n) = raw_add (n, raw_mult(m, n))"
  
 constdefs
   add :: [i,i]=>i                    (infixl "#+" 65)
-    "m #+ n == natify(m) ##+ natify(n)"
+    "m #+ n == raw_add (natify(m), natify(n))"
 
   diff :: [i,i]=>i                    (infixl "#-" 65)
-    "m #- n == natify(m) ##- natify(n)"
+    "m #- n == raw_diff (natify(m), natify(n))"
 
   mult :: [i,i]=>i                    (infixl "#*" 70)
-    "m #* n == natify(m) ##* natify(n)"
+    "m #* n == raw_mult (natify(m), natify(n))"
+
+  raw_div  :: [i,i]=>i
+    "raw_div (m, n) == 
+       transrec(m, %j f. if j<n | n=0 then 0 else succ(f`(j#-n)))"
+
+  raw_mod  :: [i,i]=>i
+    "raw_mod (m, n) == 
+       transrec(m, %j f. if j<n | n=0 then j else f`(j#-n))"
 
   div  :: [i,i]=>i                    (infixl "div" 70) 
-    "m div n == transrec(m, %j f. if j<n then 0 else succ(f`(j#-n)))"
+    "m div n == raw_div (natify(m), natify(n))"
 
   mod  :: [i,i]=>i                    (infixl "mod" 70)
-    "m mod n == transrec(m, %j f. if j<n then j else f`(j#-n))"
+    "m mod n == raw_mod (natify(m), natify(n))"
 
 end

@@ -1,4 +1,4 @@
-(*  Title:      ZF/nat.ML
+(*  Title:      ZF/Nat.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -36,9 +36,9 @@ Goal "2 : nat";
 by (rtac (nat_1I RS nat_succI) 1);
 qed "nat_2I";
 
-Addsimps [nat_0I, nat_1I, nat_2I];
-AddSIs   [nat_0I, nat_1I, nat_2I, nat_succI];
-AddTCs   [nat_0I, nat_1I, nat_2I, nat_succI];
+AddIffs [nat_0I, nat_1I, nat_2I];
+AddSIs  [nat_succI];
+AddTCs  [nat_0I, nat_1I, nat_2I, nat_succI];
 
 Goal "bool <= nat";
 by (blast_tac (claset() addSEs [boolE]) 1);
@@ -104,16 +104,14 @@ Goal "succ(n): nat <-> n: nat";
 by (Blast_tac 1);
 qed "nat_succ_iff";
 
-Addsimps [Ord_nat, Limit_nat, nat_succ_iff];
-AddSIs   [Ord_nat, Limit_nat];
+AddIffs [Ord_nat, Limit_nat, nat_succ_iff];
 
 Goal "Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
 by (blast_tac (claset() addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
-by (REPEAT (ares_tac [Limit_has_0 RS ltD,
-                      Ord_nat, Limit_is_Ord] 1));
+by (REPEAT (ares_tac [Limit_has_0 RS ltD, Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
 
 (* [| succ(i): k;  k: nat |] ==> i: k *)
