@@ -9,8 +9,8 @@
 default: HOL
 images: HOL HOL-Real TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-IMPP HOL-Hoare HOL-Lex HOL-Algebra \
-  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-BCV \
-  HOL-MicroJava HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
+  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML \
+  HOL-BCV HOL-MicroJava HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
   HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
 
@@ -289,6 +289,16 @@ $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
   Lambda/ListBeta.thy Lambda/ListOrder.ML Lambda/ListOrder.thy \
   Lambda/ParRed.ML Lambda/ParRed.thy Lambda/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lambda
+
+
+## HOL-Prolog
+
+HOL-Prolog: HOL $(LOG)/HOL-Prolog.gz
+
+$(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/HOHH.ML Prolog/HOHH.thy \
+  Prolog/Test.ML Prolog/Test.thy  \
+  Prolog/Func.ML Prolog/Func.thy Prolog/Type.ML Prolog/Type.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Prolog
 
 
 ## HOL-W0
