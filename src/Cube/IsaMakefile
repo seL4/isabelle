@@ -1,0 +1,21 @@
+#
+# $Id$
+#
+# IsaMakefile for Cube
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+FILES =	ROOT.ML Cube.thy Cube.ML
+
+$(OUT)/Cube: $(OUT)/Pure $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure Cube
+	@chmod -w $@
+
+$(OUT)/Pure:
+	@cd ../Pure; $(ISATOOL) make
+
+test: ex.ML $(OUT)/Cube
+	@$(ISABELLE) -e 'make_html := $(ISABELLE_HTML); use"ex.ML"; quit();' \
+	  -rq $(OUT)/Cube
+
+.PRECIOUS: $(OUT)/Pure $(OUT)/Cube
