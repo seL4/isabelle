@@ -11,118 +11,57 @@ files ("Tools/record_package.ML"):
 
 subsection {* Abstract product types *}
 
-constdefs
-  product_type :: "('p => 'a * 'b) => ('a * 'b => 'p) =>
-    ('a => 'b => 'p) => ('p => 'a) => ('p => 'b) => bool"
-  "product_type Rep Abs pair dest1 dest2 ==
-    type_definition Rep Abs UNIV \<and>
-    pair = (\<lambda>a b. Abs (a, b)) \<and>
-    dest1 = (\<lambda>p. fst (Rep p)) \<and>
-    dest2 = (\<lambda>p. snd (Rep p))"
+locale product_type =
+  fixes Rep and Abs and pair and dest1 and dest2
+  assumes "typedef": "type_definition Rep Abs UNIV"
+    and pair: "pair == (\<lambda>a b. Abs (a, b))"
+    and dest1: "dest1 == (\<lambda>p. fst (Rep p))"
+    and dest2: "dest2 == (\<lambda>p. snd (Rep p))"
 
-lemma product_typeI:
-  "type_definition Rep Abs UNIV ==>
-    pair == \<lambda>a b. Abs (a, b) ==>
-    dest1 == (\<lambda>p. fst (Rep p)) ==>
-    dest2 == (\<lambda>p. snd (Rep p)) ==>
-    product_type Rep Abs pair dest1 dest2"
-  by (simp add: product_type_def)
+lemmas product_typeI =
+  product_type.intro [OF product_type_axioms.intro]
 
-lemma product_type_typedef:
-    "product_type Rep Abs pair dest1 dest2 ==> type_definition Rep Abs UNIV"
-  by (unfold product_type_def) blast
+lemma (in product_type)
+    "inject": "(pair x y = pair x' y') = (x = x' \<and> y = y')"
+  by (simp add: pair type_definition.Abs_inject [OF "typedef"])
 
-lemma product_type_pair:
-    "product_type Rep Abs pair dest1 dest2 ==> pair a b = Abs (a, b)"
-  by (unfold product_type_def) blast
+lemma (in product_type) conv1: "dest1 (pair x y) = x"
+  by (simp add: pair dest1 type_definition.Abs_inverse [OF "typedef"])
 
-lemma product_type_dest1:
-    "product_type Rep Abs pair dest1 dest2 ==> dest1 p = fst (Rep p)"
-  by (unfold product_type_def) blast
+lemma (in product_type) conv2: "dest2 (pair x y) = y"
+  by (simp add: pair dest2 type_definition.Abs_inverse [OF "typedef"])
 
-lemma product_type_dest2:
-    "product_type Rep Abs pair dest1 dest2 ==> dest2 p = snd (Rep p)"
-  by (unfold product_type_def) blast
-
-
-theorem product_type_inject:
-  "product_type Rep Abs pair dest1 dest2 ==>
-    (pair x y = pair x' y') = (x = x' \<and> y = y')"
-proof -
-  case rule_context
-  show ?thesis
-    by (simp add: product_type_pair [OF rule_context]
-      Abs_inject [OF product_type_typedef [OF rule_context]])
-qed
-
-theorem product_type_conv1:
-  "product_type Rep Abs pair dest1 dest2 ==> dest1 (pair x y) = x"
-proof -
-  case rule_context
-  show ?thesis
-    by (simp add: product_type_pair [OF rule_context]
-      product_type_dest1 [OF rule_context]
-      Abs_inverse [OF product_type_typedef [OF rule_context]])
-qed
-
-theorem product_type_conv2:
-  "product_type Rep Abs pair dest1 dest2 ==> dest2 (pair x y) = y"
-proof -
-  case rule_context
-  show ?thesis
-    by (simp add: product_type_pair [OF rule_context]
-      product_type_dest2 [OF rule_context]
-      Abs_inverse [OF product_type_typedef [OF rule_context]])
-qed
-
-theorem product_type_induct [induct set: product_type]:
-  "product_type Rep Abs pair dest1 dest2 ==>
-    (!!x y. P (pair x y)) ==> P p"
-proof -
-  assume hyp: "!!x y. P (pair x y)"
-  assume prod_type: "product_type Rep Abs pair dest1 dest2"
-  show "P p"
-  proof (rule Abs_induct [OF product_type_typedef [OF prod_type]])
-    fix pair show "P (Abs pair)"
-    proof (rule prod_induct)
-      fix x y from hyp show "P (Abs (x, y))"
-        by (simp only: product_type_pair [OF prod_type])
-    qed
+lemma (in product_type) induct [induct type]:
+  assumes hyp: "!!x y. P (pair x y)"
+  shows "P p"
+proof (rule type_definition.Abs_induct [OF "typedef"])
+  fix q show "P (Abs q)"
+  proof (induct q)
+    fix x y have "P (pair x y)" by (rule hyp)
+    also have "pair x y = Abs (x, y)" by (simp only: pair)
+    finally show "P (Abs (x, y))" .
   qed
 qed
 
-theorem product_type_cases [cases set: product_type]:
-  "product_type Rep Abs pair dest1 dest2 ==>
-    (!!x y. p = pair x y ==> C) ==> C"
-proof -
-  assume prod_type: "product_type Rep Abs pair dest1 dest2"
-  assume "!!x y. p = pair x y ==> C"
-  with prod_type show C
-    by (induct p) (simp only: product_type_inject [OF prod_type], blast)
-qed
+lemma (in product_type) cases [cases type]:
+    "(!!x y. p = pair x y ==> C) ==> C"
+  by (induct p) (auto simp add: "inject")
 
-theorem product_type_surjective_pairing:
-  "product_type Rep Abs pair dest1 dest2 ==>
-    p = pair (dest1 p) (dest2 p)"
-proof -
-  case rule_context
-  thus ?thesis by (induct p)
-    (simp add: product_type_conv1 [OF rule_context] product_type_conv2 [OF rule_context])
-qed
+lemma (in product_type) surjective_pairing:
+    "p = pair (dest1 p) (dest2 p)"
+  by (induct p) (simp only: conv1 conv2)
 
-theorem product_type_split_paired_all:
-  "product_type Rep Abs pair dest1 dest2 ==>
-  (!!x. PROP P x) == (!!a b. PROP P (pair a b))"
+lemma (in product_type) split_paired_all:
+  "(!!x. PROP P x) == (!!a b. PROP P (pair a b))"
 proof
   fix a b
   assume "!!x. PROP P x"
   thus "PROP P (pair a b)" .
 next
-  case rule_context
   fix x
   assume "!!a b. PROP P (pair a b)"
   hence "PROP P (pair (dest1 x) (dest2 x))" .
-  thus "PROP P x" by (simp only: product_type_surjective_pairing [OF rule_context, symmetric])
+  thus "PROP P x" by (simp only: surjective_pairing [symmetric])
 qed
 
 

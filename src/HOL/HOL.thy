@@ -601,15 +601,17 @@ Blast.overloaded ("op <=", domain_type);
 
 subsubsection {* Monotonicity *}
 
-constdefs
-  mono :: "['a::ord => 'b::ord] => bool"
-  "mono f == ALL A B. A <= B --> f A <= f B"
+locale mono =
+  fixes f
+  assumes mono: "A <= B ==> f A <= f B"
 
-lemma monoI [intro?]: "(!!A B. A <= B ==> f A <= f B) ==> mono f"
-  by (unfold mono_def) rules
+lemmas monoI [intro?] = mono.intro [OF mono_axioms.intro]
+  and monoD [dest?] = mono.mono
 
-lemma monoD [dest?]: "mono f ==> A <= B ==> f A <= f B"
-  by (unfold mono_def) rules
+lemma mono_def: "mono f == ALL A B. A <= B --> f A <= f B"
+  -- compatibility
+  by (simp only: atomize_eq mono_def mono_axioms_def)
+
 
 constdefs
   min :: "['a::ord, 'a] => 'a"
