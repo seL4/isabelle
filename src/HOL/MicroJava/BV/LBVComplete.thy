@@ -70,13 +70,84 @@ lemma fitsD2:
 lemma merge_mono:
   assumes merge: "merge cert f r pc ss1 x = OK s1"
   assumes less:  "ss2 <=|Err.le (Opt.le r)| ss1"
+  assumes esl:   "err_semilat (A, r, f)"
+  assumes x:     "x \<in> err (opt A)"
+  assumes ss1:   "\<forall>(pc', s')\<in>set ss1. s' \<in> err (opt A)"
+  assumes ss2:   "\<forall>(pc', s')\<in>set ss2. s' \<in> err (opt A)"
   shows "\<exists>s2. merge cert f r pc ss2 x = s2 \<and> s2 \<le>|r (OK s1)"
 proof-
-  from merge
-  obtain "\<forall>(pc',s')\<in>set ss1. pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))" and
-         "(map snd [(p',t')\<in>ss1 . p' = pc+1] ++|f x) = OK s1"
-    sorry
-  show ?thesis sorry
+  from esl have eosl: "err_semilat (opt A, Opt.le r, Opt.sup f)" 
+    by - (drule semilat_opt, simp add: Opt.esl_def)
+  hence order: "order (Opt.le r)" ..
+  from esl x ss1 have "merge cert f r pc ss1 x =
+    (if \<forall>(pc', s')\<in>set ss1. pc' \<noteq> pc + 1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))
+    then (map snd [(p', t')\<in>ss1 . p'=pc+1]) ++|f x
+    else Err)" 
+    by (rule merge_def)
+  with merge obtain
+    app: "\<forall>(pc',s')\<in>set ss1. pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))" 
+         (is "?app ss1") and
+    sum: "(map snd [(p',t')\<in>ss1 . p' = pc+1] ++|f x) = OK s1" 
+         (is "?map ss1 ++|f x = _" is "?sum ss1 = _")
+    by (simp split: split_if_asm)
+  from app less
+  have "?app ss2" 
+    apply clarify 
+    apply (drule lesub_step_typeD, assumption) 
+    apply clarify
+    apply (drule bspec, assumption)
+    apply clarify
+    apply (drule order_trans [OF order], assumption)
+    apply blast
+    done
+  moreover {
+    have "set (?map ss1) \<subseteq> snd`(set ss1)" by auto
+    also from ss1 have "snd`(set ss1) \<subseteq> err (opt A)" by auto
+    finally have map1: "set (?map ss1) \<subseteq> err (opt A)" . 
+    with eosl x have "?sum ss1 \<in> err (opt A)" 
+      by (auto intro!: plusplus_closed simp add: Err.sl_def)
+    with sum have "OK s1 \<in> err (opt A)" by simp
+    moreover    
+    have mapD: "\<And>x ss. x \<in> set (?map ss) \<Longrightarrow> \<exists>p. (p,x) \<in> set ss \<and> p=pc+1" by auto
+    from eosl x map1 
+    have "\<forall>x \<in> set (?map ss1). x \<le>|r (?sum ss1)" 
+      by clarify (rule ub1, simp add: Err.sl_def)
+    with sum have "\<forall>x \<in> set (?map ss1). x \<le>|r (OK s1)" by simp
+    with less have "\<forall>x \<in> set (?map ss2). x \<le>|r (OK s1)"
+      apply clarify
+      apply (drule mapD)
+      apply clarify
+      apply (drule lesub_step_typeD, assumption)
+      apply clarify
+      apply simp
+      apply (erule allE, erule impE, assumption)
+      apply clarify
+      apply simp
+      apply (rule order_trans [OF order],assumption+)
+      done
+    moreover 
+    from eosl map1 x have "x \<le>|r (?sum ss1)" 
+      by - (rule ub2, simp add: Err.sl_def)
+    with sum have "x \<le>|r (OK s1)" by simp
+    moreover {
+      have "set (?map ss2) \<subseteq> snd`(set ss2)" by auto
+      also from ss2 have "snd`(set ss2) \<subseteq> err (opt A)" by auto
+      finally have "set (?map ss2) \<subseteq> err (opt A)" . }
+    ultimately
+    have "?sum ss2 \<le>|r (OK s1)" using eosl x
+      by - (rule lub, simp add: Err.sl_def)
+    also obtain s2 where sum2: "?sum ss2 = s2" by blast
+    finally have "s2 \<le>|r (OK s1)" . 
+    with sum2 have "\<exists>s2. ?sum ss2 = s2 \<and> s2 \<le>|r (OK s1)" by blast
+  }
+  moreover
+  from esl x ss2 have 
+    "merge cert f r pc ss2 x =
+    (if \<forall>(pc', s')\<in>set ss2. pc' \<noteq> pc + 1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))
+    then map snd [(p', t')\<in>ss2 . p' = pc + 1] ++|f x
+    else Err)" 
+    by (rule merge_def)
+  ultimately show ?thesis by simp
 qed
   
   
@@ -100,10 +171,11 @@ qed
 
 lemma wtl_inst_mono:
   assumes wtl:  "wtl_inst cert f r step pc s1 = OK s1'"
-  assumes fits: "fits step cert phi n"
+  assumes fits: "fits step cert phi"
   assumes pc:   "pc < n" 
   assumes less: "OK s2 \<le>|r (OK s1)"
   shows "\<exists>s2'. wtl_inst cert f r step pc s2 = OK s2' \<and> OK s2' \<le>|r (OK s1')"
+apply (insert wtl)
 apply (simp add: wtl_inst_def)
 
                            
