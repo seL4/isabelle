@@ -10,14 +10,6 @@ translations
   "appendL (appendL xs ys) zs" <= "appendL xs (appendL ys zs)"
 
 
-(* and *)
-syntax (latex output)
-  "_andL" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "\<^raw:\isasymand>" 35)
-translations
-  "_andL A B" <= "A \<and> B" 
-  "_andL (_andL A B) C" <= "_andL A (_andL B C)"
-
-
 (* aligning equations *)
 syntax (tab output)
   "op =" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50)

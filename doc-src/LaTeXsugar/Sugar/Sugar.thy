@@ -85,9 +85,6 @@ line. To avoid this, \texttt{OptionalSugar} contains syntax to group
 line breaking behaviour:
 @{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
 
-\item The same can be done for @{text"\<and>"}:
-@{term[display]"term\<^isub>0 \<and> term\<^isub>1 \<and> term\<^isub>2 \<and> term\<^isub>3 \<and> term\<^isub>4 \<and> term\<^isub>5 \<and> term\<^isub>6 \<and> term\<^isub>7 \<and> term\<^isub>9 \<and> term\<^isub>1\<^isub>0 \<and> term\<^isub>1\<^isub>1"}
-
 \end{itemize}
 *}
 
@@ -172,7 +169,7 @@ subsection {*Definitions and Equations*}
 
 text {*
   The \verb!thm! antiquotation works nicely for proper theorems, but
-  sets of equations as used in defintions are more difficult to
+  sets of equations as used in definitions are more difficult to
   typeset nicely: for some reason people tend to prefer aligned 
   @{text "="} signs.
 
@@ -252,8 +249,8 @@ text {*
 
   You can drive this game even further and extend the syntax of let
   bindings such that certain functions like @{term fst}, @{term hd}, 
-  etc.\ are printed nicely. \texttt{OptionalSugar} provides the
-  following pretty printing patterns:
+  etc.\ are printed as patterns. \texttt{OptionalSugar} provides the
+  following:
   
   \begin{center}
   \begin{tabular}{l@ {~~produced by~~}l}
