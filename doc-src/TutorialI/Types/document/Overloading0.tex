@@ -1,0 +1,45 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Overloading{\isadigit{0}}}%
+%
+\isamarkupsubsubsection{An initial example}
+%
+\begin{isamarkuptext}%
+We start with a concept that is required for type classes but already
+useful on its own: \emph{overloading}. Isabelle allows overloading: a
+constant may have multiple definitions at non-overlapping types. For example,
+if we want to introduce the notion of an \emph{inverse} at arbitrary types we
+give it a polymorphic type%
+\end{isamarkuptext}%
+\isacommand{consts}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+and provide different definitions at different instances:%
+\end{isamarkuptext}%
+\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+inverse{\isacharunderscore}bool{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}b{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isasymequiv}\ {\isasymnot}\ b{\isachardoublequote}\isanewline
+inverse{\isacharunderscore}set{\isacharcolon}\ \ {\isachardoublequote}inverse{\isacharparenleft}A{\isacharcolon}{\isacharcolon}{\isacharprime}a\ set{\isacharparenright}\ {\isasymequiv}\ {\isacharminus}A{\isachardoublequote}\isanewline
+inverse{\isacharunderscore}pair{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}inverse{\isacharparenleft}fst\ p{\isacharparenright}{\isacharcomma}\ inverse{\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+Isabelle will not complain because the three definitions do not overlap: no
+two of the three types \isa{bool}, \isa{{\isacharprime}a\ set} and \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} have a
+common instance. What is more, the recursion in \isa{inverse{\isacharunderscore}pair} is
+benign because the type of \isa{inverse} becomes smaller: on the left it is
+\isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} but on the right \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and \isa{{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}. The \isa{{\isacharparenleft}overloaded{\isacharparenright}} tells Isabelle that the definitions do
+intentionally define \isa{inverse} only at instances of its declared type
+\isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} --- this merely supresses warnings to that effect.
+
+However, there is nothing to prevent the user from forming terms such as
+\isa{inverse\ {\isacharbrackleft}{\isacharbrackright}} and proving theorems as \isa{inverse\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ inverse\ {\isacharbrackleft}{\isacharbrackright}},
+although we never defined inverse on lists. We hasten to say that there is
+nothing wrong with such terms and theorems. But it would be nice if we could
+prevent their formation, simply because it is very likely that the user did
+not mean to write what he did. Thus he had better not waste his time pursuing
+it further. This requires the use of type classes.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

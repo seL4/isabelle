@@ -1,0 +1,27 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Overloading}%
+\isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isachardoublequote}term{\isachardoublequote}{\isacharparenright}ordrel\isanewline
+\isacommand{by}\ intro{\isacharunderscore}classes%
+\begin{isamarkuptext}%
+\noindent
+This means. Of course we should also define the meaning of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
+\isa{{\isacharless}{\isacharless}} on lists.%
+\end{isamarkuptext}%
+\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+prefix{\isacharunderscore}def{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ \ {\isasymequiv}\ \ {\isasymexists}zs{\isachardot}\ ys\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
+strict{\isacharunderscore}prefix{\isacharunderscore}def{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}xs\ {\isacharless}{\isacharless}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ \ \ {\isasymequiv}\ \ xs\ {\isacharless}{\isacharless}{\isacharequal}\ ys\ {\isasymand}\ xs\ {\isasymnoteq}\ ys{\isachardoublequote}%
+\begin{isamarkuptext}%
+We could also have made the second definition non-overloaded once and for
+all: \isa{x\ {\isacharless}{\isacharless}\ y\ {\isasymequiv}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y}.  This would have saved us writing
+many similar definitions at different types, but it would also have fixed
+that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}} and never the other way
+around. Below you will see why we want to avoid this asymmetry.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

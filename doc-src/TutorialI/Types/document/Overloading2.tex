@@ -1,0 +1,25 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Overloading{\isadigit{2}}}%
+%
+\begin{isamarkuptext}%
+Of course this is not the only possible definition of the two relations.
+Componentwise%
+\end{isamarkuptext}%
+\isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ordrel{\isacharparenright}ordrel\isanewline
+\isacommand{by}\ intro{\isacharunderscore}classes\isanewline
+\isanewline
+\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ {\isasymequiv}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+%However, we retract the componetwise comparison of lists and return
+
+Note: only one definition because based on name.%
+\end{isamarkuptext}%
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

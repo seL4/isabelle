@@ -1,0 +1,51 @@
+\chapter{More about Types}
+
+So far we have learned about a few basic types (for example \isa{bool} and
+\isa{nat}), type abbreviations (\isacommand{types}) and recursive datatpes
+(\isacommand{datatype}). This chapter will introduce the following more
+advanced material:
+\begin{itemize}
+\item More about basic types: numbers ({\S}\ref{sec:numbers}), pairs
+  ({\S}\ref{sec:products}) and records ({\S}\ref{sec:records}), and how to reason
+  about them.
+\item Introducing your own types: how to introduce your own new types that
+  cannot be constructed with any of the basic methods ({\S}\ref{sec:typedef}).
+\item Type classes: how to specify and reason about axiomatic collections of
+  types ({\S}\ref{sec:axclass}).
+\end{itemize}
+
+\section{Axiomatic type classes}
+\label{sec:axclass}
+\index{axiomatic type class|(}
+\index{*axclass|(}
+
+
+The programming language Haskell has popularized the notion of type classes.
+Isabelle offers the related concept of an \textbf{axiomatic type class}.
+Roughly speaking, an axiomatic type class is a type class with axioms, i.e.\ 
+an axiomatic specification of a class of types. Thus we can talk about a type
+$t$ being in a class $c$, which is written $\tau :: c$.  This is the case of
+$\tau$ satisfies the axioms of $c$. Furthermore, type classes can be
+organized in a hierarchy. Thus there is the notion of a class $d$ being a
+\textbf{subclass} of a class $c$, written $d < c$. This is the case if all
+axioms of $c$ are also provable in $d$. Let us now introduce these concepts
+by means of a running example, ordering relations.
+
+\subsection{Overloading}
+\label{sec:overloading}
+\index{overloading|(}
+
+\input{Types/document/Overloading0}
+\input{Types/document/Overloading1}
+\input{Types/document/Overloading}
+\input{Types/document/Overloading2}
+
+\index{overloading|)}
+
+Finally we should remind our readers that \isa{Main} contains a much more
+developed theory of orderings phrased in terms of the usual $\leq$ and
+\isa{<}. It is recommended that, if possible, you base your own
+ordering relations on this theory.
+
+\index{axiomatic type class|)}
+\index{*axclass|)}
