@@ -3,10 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Proof context information.
-
-TODO:
-  - pretty_bind: use syntax (!?) (show_types etc.);
-  - smash_unifiers: ever invents new vars (???);
 *)
 
 signature PROOF_CONTEXT =
@@ -40,7 +36,7 @@ sig
   val bind_propp: context * (string * string list) -> context * term
   val bind_propp_i: context * (term * term list) -> context * term
   val auto_bind_goal: term -> context -> context
-  val auto_bind_facts: term list -> context -> context
+  val auto_bind_facts: string -> term list -> context -> context
   val thms_closure: context -> xstring -> thm list option
   val get_thm: context -> string -> thm
   val get_thms: context -> string -> thm list
@@ -50,12 +46,12 @@ sig
   val put_thmss: (string * thm list) list -> context -> context
   val have_thmss: string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
-  val assumptions: context -> thm list
+  val assumptions: context -> cterm list
   val fixed_names: context -> string list
   val assume: string -> context attribute list -> (string * string list) list -> context
-    -> context * (string * thm list)
+    -> context * ((string * thm list) * thm list)
   val assume_i: string -> context attribute list -> (term * term list) list -> context
-    -> context * (string * thm list)
+    -> context * ((string * thm list) * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
   val setup: (theory -> theory) list
@@ -82,7 +78,7 @@ datatype context =
    {thy: theory,                                (*current theory*)
     data: Object.T Symtab.table,                (*user data*)
     asms:
-      (string * thm list) list *                (*assumes: A ==> _*)
+      (cterm list * (string * thm list) list) * (*assumes: A ==> _*)
       ((string * string) list * string list),   (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,           (*term bindings*)
     thms: thm list Symtab.table,                (*local thms*)
@@ -147,7 +143,7 @@ fun print_thms (Context {thms, ...}) =
 
 (* main context *)
 
-fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)), binds = _,
+fun print_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fixes, _)), binds = _,
     thms = _, defs = (types, sorts, maxidx, used)}) =
   let
     val sign = Theory.sign_of thy;
@@ -179,7 +175,7 @@ fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)),
     verb Pretty.writeln pretty_thy;
     if null fixes andalso not (! verbose) then ()
     else Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
-    print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" assumes;
+    print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" prems;
     verb print_binds ctxt;
     verb print_thms ctxt;
     verb Pretty.writeln (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types)));
@@ -278,7 +274,7 @@ fun put_data kind f x ctxt =
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, data, ([], ([], [])), Vartab.empty, Symtab.empty,
+    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty,
       (Vartab.empty, Vartab.empty, ~1, []))
   end;
 
@@ -567,7 +563,7 @@ val bind_propp_i = gen_bind_propp (cert_prop_pat, cert_prop);
 (* auto binds *)
 
 val auto_bind_goal = add_binds_i o AutoBind.goal;
-val auto_bind_facts = add_binds_i o AutoBind.facts;
+val auto_bind_facts = add_binds_i oo AutoBind.facts;
 
 
 
@@ -630,30 +626,34 @@ fun have_thmss name more_attrs ths_attrs ctxt =
 
 (* get assumptions *)
 
-fun assumptions (Context {asms = (asms, _), ...}) = flat (map #2 asms);
+fun assumptions (Context {asms = ((asms_ct, _), _), ...}) = asms_ct;
 fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
 
 
 (* assume *)
 
+fun prems (Context {asms = ((_, asms_th), _), ...}) = flat (map #2 asms_th);
+
 fun gen_assume prepp name attrs raw_prop_pats ctxt =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
     val sign = sign_of ctxt';
+    val Context {defs = (_, _, maxidx, _), ...} = ctxt';
 
-    val asms = map (Thm.assume o Thm.cterm_of sign) props;
+    val cprops = map (Thm.cterm_of sign) props;
+    val asms = map (Drule.forall_elim_vars (maxidx + 1) o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =
       ctxt'
-      |> auto_bind_facts props
+      |> auto_bind_facts name props
       |> have_thmss name (attrs @ [Drule.tag_assumption]) ths;
 
     val ctxt''' =
       ctxt''
-      |> map_context (fn (thy, data, (assumes, fixes), binds, thms, defs) =>
-        (thy, data, (assumes @ [(name, asms)], fixes), binds, thms, defs));
-  in (ctxt''', (name, thms)) end;
+      |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, defs) =>
+        (thy, data, ((asms_ct @ cprops, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
+  in (ctxt''', ((name, thms), prems ctxt')) end;
 
 val assume = gen_assume bind_propp;
 val assume_i = gen_assume bind_propp_i;
