@@ -4,6 +4,8 @@
     Copyright   1998  University of Cambridge
 
 Type "int" is a linear order
+
+And many further lemmas
 *)
 
 Goal "(w<z) = neg(w-z)";
@@ -214,7 +216,18 @@ Goalw [nat_def] "neg z ==> nat z = 0";
 by Auto_tac; 
 qed "neg_nat"; 
 
-(* a case theorem distinguishing positive and negative int *)  
+(*An alternative condition is  int 0 <= w  *)
+Goal "int 0 < z ==> (nat w < nat z) = (w < z)";
+by (stac (zless_int RS sym) 1);
+by (asm_simp_tac (simpset() addsimps [not_neg_nat, not_neg_eq_ge_nat0, 
+				      order_le_less]) 1);
+by (case_tac "neg w" 1);
+by (asm_simp_tac (simpset() addsimps [not_neg_nat]) 2);
+by (asm_full_simp_tac (simpset() addsimps [neg_eq_less_nat0, neg_nat]) 1);
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+qed "zless_nat";
+
+(* a case theorem distinguishing non-negative and negative int *)  
 
 val prems = Goal "[|!! n. P (int n); !! n. P (- (int (Suc n))) |] ==> P z"; 
 by (case_tac "neg z" 1); 
@@ -225,3 +238,166 @@ qed "int_cases";
 
 fun int_case_tac x = res_inst_tac [("z",x)] int_cases; 
 
+
+(*** Monotonicity of Multiplication ***)
+
+Goal "i <= (j::int) ==> i * int k <= j * int k";
+by (induct_tac "k" 1);
+by (stac int_Suc_int_1 2);
+by (ALLGOALS 
+    (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2, zadd_zle_mono])));
+val lemma = result();
+
+Goal "[| i <= j;  int 0 <= k |] ==> i*k <= j*k";
+by (res_inst_tac [("t", "k")] (not_neg_nat RS subst) 1);
+by (etac lemma 2);
+by (full_simp_tac (simpset() addsimps [not_neg_eq_ge_nat0]) 1);
+qed "zmult_zle_mono1";
+
+Goal "[| i <= j;  k <= int 0 |] ==> j*k <= i*k";
+by (rtac (zminus_zle_zminus RS iffD1) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_zminus_right RS sym,
+				      zmult_zle_mono1, zle_zminus]) 1);
+qed "zmult_zle_mono1_neg";
+
+(*<=monotonicity, BOTH arguments*)
+Goal "[| i <= j;  k <= l;  int 0 <= j;  int 0 <= k |] ==> i*k <= j*l";
+by (etac (zmult_zle_mono1 RS order_trans) 1);
+by (assume_tac 1);
+by (rtac order_trans 1);
+by (stac zmult_commute 2);
+by (etac zmult_zle_mono1 2);
+by (assume_tac 2);
+by (simp_tac (simpset() addsimps [zmult_commute]) 1);
+qed "zmult_zle_mono";
+
+
+(** strict, in 1st argument; proof is by induction on k>0 **)
+
+Goal "i<j ==> 0<k --> int k * i < int k * j";
+by (induct_tac "k" 1);
+by (stac int_Suc_int_1 2);
+by (case_tac "n=0" 2);
+by (ALLGOALS (asm_full_simp_tac
+	      (simpset() addsimps [zadd_zmult_distrib, zadd_zless_mono, 
+				   order_le_less])));
+val lemma = result() RS mp;
+
+Goal "[| i<j;  int 0 < k |] ==> k*i < k*j";
+by (res_inst_tac [("t", "k")] (not_neg_nat RS subst) 1);
+by (etac lemma 2);
+by (asm_simp_tac (simpset() addsimps [not_neg_eq_ge_nat0, 
+				      order_le_less]) 1);
+by (forward_tac [zless_nat RS iffD2] 1);
+by Auto_tac;
+qed "zmult_zless_mono2";
+
+Goal "[| i<j;  int 0 < k |] ==> i*k < j*k";
+by (dtac zmult_zless_mono2 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zmult_commute])));
+qed "zmult_zless_mono1";
+
+Goal "[| i<j;  k < int 0 |] ==> j*k < i*k";
+by (rtac (zminus_zless_zminus RS iffD1) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_zminus_right RS sym,
+				      zmult_zless_mono1, zless_zminus]) 1);
+qed "zmult_zless_mono1_neg";
+
+Goal "[| i<j;  k < int 0 |] ==> k*j < k*i";
+by (rtac (zminus_zless_zminus RS iffD1) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_zminus RS sym,
+				      zmult_zless_mono2, zless_zminus]) 1);
+qed "zmult_zless_mono2_neg";
+
+
+(** Products of signs.  Useful?  **)
+
+Goal "[| m < int 0;  n < int 0 |] ==> int 0 < m*n";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac;
+qed "neg_times_neg_is_pos";
+
+Goal "[| m < int 0;  int 0 < n |] ==> m*n < int 0";
+by (dtac zmult_zless_mono1 1);
+by Auto_tac;
+qed "neg_times_pos_is_neg";
+
+Goal "[| int 0 < m;  n < int 0 |] ==> m*n < int 0";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac;
+qed "pos_times_neg_is_neg";
+
+Goal "[| int 0 < m;  int 0 < n |] ==> int 0 < m*n";
+by (dtac zmult_zless_mono1 1);
+by Auto_tac;
+qed "pos_times_pos_is_pos";
+
+Goal "(m*n = int 0) = (m = int 0 | n = int 0)";
+by (case_tac "m < int 0" 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [linorder_not_less, order_le_less, 
+				  linorder_neq_iff])); 
+by (REPEAT 
+    (force_tac (claset() addDs [zmult_zless_mono1_neg, zmult_zless_mono1], 
+		simpset()) 1));
+qed "zmult_eq_iff";
+
+
+Goal "int 0 < k ==> (m*k < n*k) = (m<n)";
+by (safe_tac (claset() addSIs [zmult_zless_mono1]));
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [zmult_zless_mono1] addEs [order_less_asym]) 1);
+qed "zmult_zless_cancel2";
+
+Goal "int 0 < k ==> (k*m < k*n) = (m<n)";
+by (dtac zmult_zless_cancel2 1);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 1);
+qed "zmult_zless_cancel1";
+Addsimps [zmult_zless_cancel1, zmult_zless_cancel2];
+
+Goal "k < int 0 ==> (m*k < n*k) = (n<m)";
+by (safe_tac (claset() addSIs [zmult_zless_mono1_neg]));
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [zmult_zless_mono1_neg] 
+                        addEs [order_less_asym]) 1);
+qed "zmult_zless_cancel2_neg";
+
+Goal "k < int 0 ==> (k*m < k*n) = (n<m)";
+by (dtac zmult_zless_cancel2_neg 1);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 1);
+qed "zmult_zless_cancel1_neg";
+Addsimps [zmult_zless_cancel1_neg, zmult_zless_cancel2_neg];
+
+Goal "int 0 < k ==> (m*k <= n*k) = (m<=n)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "zmult_zle_cancel2";
+
+Goal "int 0 < k ==> (k*m <= k*n) = (m<=n)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "zmult_zle_cancel1";
+Addsimps [zmult_zle_cancel1, zmult_zle_cancel2];
+
+Goal "k < int 0 ==> (m*k <= n*k) = (n<=m)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "zmult_zle_cancel2_neg";
+
+Goal "k < int 0 ==> (k*m <= k*n) = (n<=m)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "zmult_zle_cancel1_neg";
+Addsimps [zmult_zle_cancel1_neg, zmult_zle_cancel2_neg];
+
+Goal "k ~= int 0 ==> (m*k = n*k) = (m=n)";
+by (cut_facts_tac [linorder_less_linear] 1);
+by Safe_tac;
+by (assume_tac 2);
+by (REPEAT 
+    (force_tac (claset() addD2 ("mono_neg", zmult_zless_mono1_neg)
+                         addD2 ("mono_pos", zmult_zless_mono1), 
+		simpset() addsimps [linorder_neq_iff]) 1));
+qed "zmult_cancel2";
+
+Goal "k ~= int 0 ==> (k*m = k*n) = (m=n)";
+by (dtac zmult_cancel2 1);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 1);
+qed "zmult_cancel1";
+Addsimps [zmult_cancel1, zmult_cancel2];
