@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Emacs / Isamode interface.
-#
 # $Id$
+#
+# Emacs / Isamode interface.
 #
 # TODO: isabelle fonts
 
