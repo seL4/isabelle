@@ -36,6 +36,7 @@ types
                   -- "start-pc, end-pc, handler-pc, exception type"
   exception_table = "exception_entry list"
   jvm_method = "nat \<times> nat \<times> bytecode \<times> exception_table"
+             -- "max stacksize, length of local var array, \<dots>"
   jvm_prog = "jvm_method prog" 
 
 end
