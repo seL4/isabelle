@@ -20,7 +20,7 @@ theorem Zorn's_Lemma:
   ==>  EX y: S. ALL z: S. y <= z --> y = z";
 proof (rule Zorn_Lemma2);
   txt_raw {* \footnote{See
-  \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}}*};
+  \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}} \isanewline *};
   assume r: "!!c. c: chain S ==> EX x. x:c ==> Union c : S";
   assume aS: "a:S";
   show "ALL c:chain S. EX y:S. ALL z:c. z <= y";
