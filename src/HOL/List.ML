@@ -1374,6 +1374,7 @@ by (blast_tac (claset() addDs [lexn_length,not_sym]) 1);
 qed "wf_lex";
 AddSIs [wf_lex];
 
+
 Goal
  "lexn r n = \
 \ {(xs,ys). length xs = n & length ys = n & \
@@ -1381,15 +1382,14 @@ Goal
 by (induct_tac "n" 1);
  by (Simp_tac 1);
  by (Blast_tac 1);
-by (asm_full_simp_tac (simpset() 
-				addsimps [lex_prod_def]) 1);
-by (auto_tac (claset(), simpset()));
+by (asm_full_simp_tac (simpset() addsimps [image_Collect, lex_prod_def]) 1);
+by Auto_tac;
   by (Blast_tac 1);
  by (rename_tac "a xys x xs' y ys'" 1);
  by (res_inst_tac [("x","a#xys")] exI 1);
  by (Simp_tac 1);
 by (case_tac "xys" 1);
- by (ALLGOALS (asm_full_simp_tac (simpset())));
+ by (ALLGOALS Asm_full_simp_tac);
 by (Blast_tac 1);
 qed "lexn_conv";
 

@@ -315,7 +315,7 @@ proof -
   hence "is_Inf (dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b}) (dual inf)"
     by (simp only: dual_Inf dual_leq)
   also have "dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b} = {b'. \<forall>a' \<in> dual ` A. a' \<sqsubseteq> b'}"
-    by (auto iff: dual_ball dual_Collect)  (* FIXME !? *)
+    by (auto iff: dual_ball dual_Collect simp add: image_Collect)  (* FIXME !? *)
   finally have "is_Inf \<dots> (dual inf)" .
   hence "is_Sup (dual ` A) (dual inf)"
     by (rule Inf_Sup)
