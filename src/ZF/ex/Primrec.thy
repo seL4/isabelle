@@ -26,8 +26,8 @@ inductive
     PROJ     "i: nat ==> PROJ(i) : prim_rec"
     COMP     "[| g: prim_rec; fs: list(prim_rec) |] ==> COMP(g,fs): prim_rec"
     PREC     "[| f: prim_rec; g: prim_rec |] ==> PREC(f,g): prim_rec"
-  monos      "[list_mono]"
-  con_defs   "[SC_def, CONST_def, PROJ_def, COMP_def, PREC_def]"
+  monos       list_mono
+  con_defs    SC_def, CONST_def, PROJ_def, COMP_def, PREC_def
   type_intrs "nat_typechecks @ list.intrs @                     
               [lam_type, list_case_type, drop_type, map_type,   
               apply_type, rec_type]"

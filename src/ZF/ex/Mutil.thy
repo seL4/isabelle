@@ -18,7 +18,7 @@ inductive
   intrs
     horiz  "[| i: nat;  j: nat |] ==> {<i,j>, <i,succ(j)>} : domino"
     vertl  "[| i: nat;  j: nat |] ==> {<i,j>, <succ(i),j>} : domino"
-  type_intrs "[empty_subsetI, cons_subsetI, PowI, SigmaI, nat_succI]"
+  type_intrs  empty_subsetI, cons_subsetI, PowI, SigmaI, nat_succI
 
 
 inductive
@@ -26,7 +26,7 @@ inductive
   intrs
     empty  "0 : tiling(A)"
     Un     "[| a: A;  t: tiling(A);  a Int t = 0 |] ==> a Un t : tiling(A)"
-  type_intrs "[empty_subsetI, Union_upper, Un_least, PowI]"
+  type_intrs  empty_subsetI, Union_upper, Un_least, PowI
   type_elims "[make_elim PowD]"
 
 constdefs

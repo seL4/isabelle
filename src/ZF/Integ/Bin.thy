@@ -20,6 +20,15 @@ Division is not defined yet!
 
 Bin = Int + Datatype + 
 
+consts  bin :: i
+datatype
+  "bin" = Pls
+        | Min
+        | Cons ("w: bin", "b: bool")
+
+syntax
+  "_Int"           :: xnum => i        ("_")
+
 consts
   integ_of  :: i=>i
   NCons     :: [i,i]=>i
@@ -29,18 +38,6 @@ consts
   bin_add   :: [i,i]=>i
   adding    :: [i,i,i]=>i
   bin_mult  :: [i,i]=>i
-
-  bin       :: i
-
-syntax
-  "_Int"           :: xnum => i        ("_")
-
-datatype
-  "bin" = Pls
-        | Min
-        | Cons ("w: bin", "b: bool")
-  type_intrs "[bool_into_univ]"
-
 
 primrec
   "integ_of (Pls)       = $# 0"

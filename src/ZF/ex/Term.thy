@@ -13,7 +13,7 @@ consts
 
 datatype
   "term(A)" = Apply ("a: A", "l: list(term(A))")
-  monos       "[list_mono]"
+  monos        list_mono
 
   type_elims  "[make_elim (list_univ RS subsetD)]"
 (*Or could have

@@ -22,7 +22,7 @@ coinductive
           {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}:Pow(HasTyRel)  
       |] ==>   
       <v_clos(x,e,ve),t>:HasTyRel" 
-  monos "[Pow_mono]"
+  monos  Pow_mono
   type_intrs "Val_ValEnv.intrs"
   
 (* Pointwise extension to environments *)

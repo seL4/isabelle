@@ -16,8 +16,8 @@ codatatype
           | v_clos ("x:ExVar","e:Exp","ve:ValEnv")
   and
     "ValEnv" = ve_mk ("m:PMap(ExVar,Val)")
-  monos      "[map_mono]"
-  type_intrs "[A_into_univ, mapQU]"
+  monos       map_mono
+  type_intrs  A_into_univ, mapQU
 
 consts
   ve_owr :: [i,i,i] => i

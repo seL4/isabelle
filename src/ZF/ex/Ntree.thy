@@ -19,16 +19,16 @@ datatype
   "ntree(A)" = Branch ("a: A", "h: (UN n:nat. n -> ntree(A))")
   monos       "[[subset_refl, Pi_mono] MRS UN_mono]"    (*MUST have this form*)
   type_intrs  "[nat_fun_univ RS subsetD]"
-  type_elims  "[UN_E]"
+  type_elims   UN_E
 
 datatype
   "maptree(A)" = Sons ("a: A", "h: maptree(A) -||> maptree(A)")
-  monos       "[FiniteFun_mono1]"       (*Use monotonicity in BOTH args*)
+  monos        FiniteFun_mono1         (*Use monotonicity in BOTH args*)
   type_intrs  "[FiniteFun_univ1 RS subsetD]"
 
 datatype
   "maptree2(A,B)" = Sons2 ("a: A", "h: B -||> maptree2(A,B)")
   monos       "[subset_refl RS FiniteFun_mono]"
-  type_intrs  "[FiniteFun_in_univ']"
+  type_intrs   FiniteFun_in_univ'
 
 end
