@@ -327,7 +327,7 @@ fun induct_tac (ctxt, (stripped, args)) facts =
       Seq.map (rpair cases) (Method.multi_resolves facts [thm]);
     val tac = Method.resolveq_cases_tac (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
-    if stripped then tac THEN_ALL_NEW_CASES (REPEAT o resolve_tac [impI, allI, ballI])
+    if stripped then tac THEN_ALL_NEW_CASES (REPEAT o Tactic.match_tac [impI, allI, ballI])
     else tac
   end;
 
