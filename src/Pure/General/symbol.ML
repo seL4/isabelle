@@ -32,6 +32,7 @@ sig
   val length: symbol list -> int
   val strip_blanks: string -> string
   val beginning: symbol list -> string
+  val scan_id: string list -> string * string list
   val scan: string list -> symbol * string list
   val scanner: string -> (symbol list -> 'a * symbol list) -> symbol list -> 'a
   val source: bool -> (string, 'a) Source.source ->
@@ -208,9 +209,14 @@ fun bump_string str =
 
 fun string_size s = (s, real (size s));
 
+val escape = Scan.repeat
+  ((($$ "\\" >> K "\\\\") ^^ Scan.optional ($$ "\\" >> K "\\\\") "" ^^ $$ "<" ^^
+      Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
+   Scan.one not_eof) >> implode;
+
 fun default_output s =
   if not (exists_string (equal "\\") s) then string_size s
-  else string_size (implode (map (fn "\\" => "\\\\" | c => c) (explode s)));    (*sic!*)
+  else string_size (fst (Scan.finite stopper escape (explode s)));
 
 fun default_indent (_: string, k) = spaces k;
 
