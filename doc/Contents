@@ -1,6 +1,7 @@
 Learning Isabelle
   tutorial      Tutorial on Isabelle/HOL
   isar-overview Tutorial on Isar
+  locales       Tutorial on Locales
   exercises     Exercises for Isabelle/HOL
 
 Reference Manuals
