@@ -15,15 +15,53 @@ Tools).  Pure Isabelle and each of the object-logics can be built
 separately using the Makefiles in the respective directories; read them for
 more information.
 
-				THE MAKEFILES
+			HOW TO BUILD ISABELLE
 
-The Makefiles can use two different Standard ML compilers: Poly/ML version
-2.03 or later (from Abstract Hardware Ltd) and Standard ML of New Jersey
-(Version 0.93 or later).  Poly/ML is a commercial product and costs money,
-but it is reliable and its database system is convenient for interactive
-work.  SML of New Jersey requires lots of store and disc space, but it is
-free and its code sometimes runs faster.  Both compilers are perfectly
-satisfactory for running Isabelle.
+Here are brief instructions.  For more detail, read further.
+
+1.  Create a directory to hold the Isabelle executable images, and 
+    set the environment variable ISABELLEBIN to its pathname.
+
+2.  Set the environment variable ISABELLECOMP to the command to execute your
+    Standard ML compiler.
+
+3.  If using Poly/ML, set the environment variable ML_DBASE to the pathname
+    of the empty Poly/ML database.
+
+4.  Change your working directory to that containing this file.
+
+5a. To build ALL logics and run examples, type "make-all" and wait up to 
+    10 hours.  Standard ML of New Jersey will require up to 200M
+    of disc space!  Poly/ML will require about 25M.
+
+-OR-
+5b. To build ALL logics but run no examples, type "make-all -notest".  This
+    is much faster than 5a but needs just as much disc space.
+
+-OR-
+5c. To build just one logic, such as HOL, change to directory HOL and type
+    "make" or "make test".  This may trigger further Makes automatically.
+
+
+			SUITABLE ML COMPILERS
+
+You use two different Standard ML compilers: Poly/ML version 2.03 or later
+(from Abstract Hardware Ltd) and Standard ML of New Jersey (Version 0.93 or
+later).  Poly/ML is a commercial product and costs money, but it is stable and
+efficient; moreover its database system is convenient for interactive work.
+SML of New Jersey requires lots of store and disc space, but it is free and
+its code sometimes runs faster.  Both compilers are perfectly satisfactory for
+running Isabelle.
+
+To obtain Poly/ML, contact Abstract Hardware Ltd, The Howell Building, Brunel
+University, Uxbridge UB8 3PH, England, email lambda@ahl.co.uk.
+
+To obtain Standard ML of New Jersey, see the Web page 
+	http://cm.bell-labs.com/cm/cs/what/smlnj/software.html
+or send email to sml-nj@research.bell-labs.com.
+
+
+			ENVIRONMENT VARIABLES
 
 The Makefiles and make-all use environment variables that you should set
 according to your site configuration.  See file Tools/make-all-nj for an
@@ -37,15 +75,14 @@ directory.  When using Poly/ML, ISABELLEBIN must be an absolute pathname
 ML_DBASE is an *absolute* pathname to the initial Poly/ML database.  It is not
 required for New Jersey ML.
 
-ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "/bin/sml".
+ISABELLECOMP is the command to run ML compiler, typically "/bin/sml" or "poly
+-noDisplay -h 15000".  (The -h switch to Poly specifies an initial heap
+allocation, which you should consider increasing if a command fails with the
+message "Run out of store".)
+
 If, after stripping a leading pathname, the compiler begins with the letters
 "poly" then the Makefiles assume Poly/ML.  If it begins with the letters "sml"
 then they assume Standard ML of New Jersey.
-
-If a Poly/ML session fails with the message "Run out of store" then you
-have used up the entire heap.  If your tactic is not in a loop, allocating
-more heap at startup should correct the problem.  For instance, "poly -h
-15000" allocates sufficient heap space to rebuild all Isabelle examples.
 
 
 			 STRUCTURE OF THIS DIRECTORY
@@ -57,17 +94,19 @@ Important files include...
   Tools		contains shell scripts and utilities 
 
 The following subdirectories contain object-logics:
-  FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
-  FOLP 	  First-Order Logic with Proof terms
-  ZF	  Zermelo-Fraenkel set theory
-  HOL	  Classical Higher-Order Logic
-  LCF     Logic for Computable Functions (domain theory) built upon FOL
-  HOLCF   A version of LCF built upon HOL
-  CTT	  Constructive Type Theory
-  LK	  Classical first-order sequent calculus
-  Modal	  The modal logics T, S4, S43
-  CCL	  Martin Coen's Classical Computational Logic
-  Cube	  Barendregt's Lambda Cube
+  FOL 		natural deduction First-Order Logic 
+			(intuitionistic and classical versions)
+  FOLP 		First-Order Logic with Proof terms
+  ZF		Zermelo-Fraenkel set theory
+  HOL		Classical Higher-Order Logic
+  LCF		Logic for Computable Functions (domain theory) built upon FOL
+  HOLCF		A version of LCF built upon HOL
+  CTT		Constructive Type Theory
+  Sequents	Sequent calcul: first-order logic
+				modal logics T, S4, S43
+				intuitionistic linear logic
+  CCL		Martin Coen's Classical Computational Logic
+  Cube		Barendregt's Lambda Cube
 
 David Aspinall has written a user interface for Isabelle.  It runs under
 GNU Emacs.  It's useful to both novices and experts.  You can get it by ftp
@@ -79,22 +118,10 @@ executed interactively, using the windows on your workstation.  This is a
 good way to get started.
 
 Each object-logic is built on top of Pure Isabelle, and possibly on top of
-another object logic like FOL or LK.  A database or binary called Pure is
+another object logic like FOL or HOL.  A database or binary called Pure is
 first created, then the object-logic is loaded on top.  Poly/ML extends
 Pure using its "make_database" operation.  Standard ML of New Jersey starts
 with the Pure core image and loads the object-logic's ROOT.ML.
-
-		HOW TO GET A STANDARD ML COMPILER
-
-To obtain Poly/ML, contact Mike Crawley <mjc@ahl.co.uk> at Abstract
-Hardware Ltd, The Howell Building, Brunel University, Uxbridge UB8 3PH,
-England.
-
-To obtain Standard ML of New Jersey, contact David MacQueen
-<dbm@com.att.research> at AT&T Bell Laboratories, 600 Mountain Avenue,
-Murray Hill, NJ 07974, USA.  This compiler is available by FTP.  Connect to
-research.att.com; login as anonymous with your userid as password; set
-binary mode; transfer files from the directory dist/ml.
 
 ------------------------------------------------------------------------------
 
