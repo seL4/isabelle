@@ -12,7 +12,7 @@ val simple = [s_b,strip_s,strip_b,app,lam_ss,pi_ss];
 
 val L2_thy =
   Cube.thy
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("pi_bs",  "[| A:[]; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"),
     ("lam_bs", "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |] \
      \  ==> Abs(A,f) : Prod(A,B)")]
@@ -25,7 +25,7 @@ val L2 = simple @ [lam_bs,pi_bs];
 
 val Lomega_thy =
   Cube.thy
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("pi_bb",  "[| A:[]; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
     ("lam_bb", "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |] \
      \  ==> Abs(A,f) : Prod(A,B)")]
@@ -40,7 +40,7 @@ val LOmega = simple @ [lam_bs,pi_bs,lam_bb,pi_bb];
 
 val LP_thy =
   Cube.thy
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("pi_sb",  "[| A:*; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
     ("lam_sb", "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |] \
      \  ==> Abs(A,f) : Prod(A,B)")]

@@ -16,7 +16,7 @@ val ex_thy =
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'a", NoSyn),
     ("K", "('a => 'a) => ('a => 'a)", NoSyn)]
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("P_strict", "P(UU) = UU"),
     ("K", "K = (%h x. P(x) => x | h(h(G(x))))"),
     ("H", "H = FIX(K)")]
@@ -61,7 +61,7 @@ val ex_thy =
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'b => 'b", NoSyn),
     ("K", "('a => 'b => 'b) => ('a => 'b => 'b)", NoSyn)]
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("F_strict", "F(UU) = UU"),
     ("K", "K = (%h x y. P(x) => y | F(h(G(x),y)))"),
     ("H", "H = FIX(K)")]
@@ -90,7 +90,7 @@ val ex_thy =
   |> Theory.add_consts
    [("s", "'a => 'a", NoSyn),
     ("p", "'a => 'a => 'a", NoSyn)]
-  |> Theory.add_axioms
+  |> PureThy.add_store_axioms
    [("p_strict", "p(UU) = UU"),
     ("p_s", "p(s(x),y) = s(p(x,y))")]
   |> Theory.add_name "fix ex";
