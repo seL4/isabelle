@@ -368,10 +368,10 @@ text {*
  binds term abbreviations by higher-order pattern matching.
 *}
 
-lemma "(EX x. P (f x)) --> (EX x. P x)"
+lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
-  thus "EX x. P x"
+  thus "EX y. P y"
   proof (rule exE)             -- {*
     rule \name{exE}: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}
   *}
@@ -390,10 +390,10 @@ text {*
  the text as follows.
 *}
 
-lemma "(EX x. P (f x)) --> (EX x. P x)"
+lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
-  thus "EX x. P x"
+  thus "EX y. P y"
   proof
     fix a
     assume "P (f a)"
@@ -408,11 +408,11 @@ text {*
  generalized existence reasoning.
 *}
 
-lemma "(EX x. P (f x)) --> (EX x. P x)"
+lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
-  then obtain a where "P (f a)" by blast
-  thus "EX x. P x" ..
+  then obtain a where "P (f a)" ..
+  thus "EX y. P y" ..
 qed
 
 text {*
