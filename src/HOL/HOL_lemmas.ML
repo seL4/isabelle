@@ -353,14 +353,14 @@ qed "ex_someI";
 
 (*Easier to apply than someI: conclusion has only one occurrence of P*)
 val prems = Goal
-    "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)";
+    "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
 by (resolve_tac prems 1);
 by (rtac someI 1);
 by (resolve_tac prems 1) ;
 qed "someI2";
 
 (*Easier to apply than someI2 if witness ?a comes from an EX-formula*)
-val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
+val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
 by (rtac (major RS exE) 1);
 by (etac someI2 1 THEN etac minor 1);
 qed "someI2_ex";
