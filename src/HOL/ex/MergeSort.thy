@@ -16,9 +16,9 @@ recdef merge "measure(%(xs,ys). size xs + size ys)"
 "merge(xs,[]) = xs"
 "merge([],ys) = ys"
 
-lemma [simp]: "multiset(merge(xs,ys)) x = multiset xs x + multiset ys x"
+lemma [simp]: "multiset_of (merge(xs,ys)) = multiset_of xs + multiset_of ys"
 apply(induct xs ys rule: merge.induct)
-apply auto
+apply (auto simp: union_ac)
 done
 
 lemma [simp]: "set(merge(xs,ys)) = set xs \<union> set ys"
@@ -43,11 +43,14 @@ recdef msort "measure size"
 lemma "sorted op <= (msort xs)"
 by (induct xs rule: msort.induct) simp_all
 
-lemma "multiset(msort xs) x = multiset xs x"
+lemma "multiset_of (msort xs) = multiset_of xs"
 apply (induct xs rule: msort.induct)
   apply simp
  apply simp
-apply (simp del:multiset_append add:multiset_append[symmetric])
+apply simp
+apply (subst union_commute)
+apply (simp del:multiset_of_append add:multiset_of_append[symmetric] union_assoc)
+apply (simp add: union_ac)
 done
 
 end

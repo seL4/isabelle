@@ -18,13 +18,12 @@ recdef qsort "measure (size o snd)"
 (hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma qsort_permutes[simp]:
- "multiset (qsort(le,xs)) x = multiset xs x"
-by (induct le xs rule: qsort.induct, auto)
-
+ "multiset_of (qsort(le,xs)) = multiset_of xs"
+by (induct le xs rule: qsort.induct) (auto simp: union_ac)
 
 (*Also provable by induction*)
 lemma set_qsort[simp]: "set (qsort(le,xs)) = set xs";
-by(simp add: set_via_multiset)
+by(simp add: set_count_greater_0)
 
 lemma sorted_qsort:
  "total(le) ==> transf(le) ==> sorted le (qsort(le,xs))"
@@ -46,12 +45,12 @@ recdef quickSort "measure size"
 (hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma quickSort_permutes[simp]:
- "multiset (quickSort xs) z = multiset xs z"
-by (induct xs rule: quickSort.induct) auto
+ "multiset_of (quickSort xs) = multiset_of xs"
+by (induct xs rule: quickSort.induct) (auto simp: union_ac)
 
 (*Also provable by induction*)
 lemma set_quickSort[simp]: "set (quickSort xs) = set xs"
-by(simp add: set_via_multiset)
+by(simp add: set_count_greater_0)
 
 lemma sorted_quickSort: "sorted (op <=) (quickSort xs)"
 apply (induct xs rule: quickSort.induct)

@@ -22,15 +22,15 @@ primrec
 
 
 lemma multiset_ins[simp]:
- "\<And>y. multiset(ins le x xs) y = multiset (x#xs) y"
-by (induct "xs") auto
+ "\<And>y. multiset_of (ins le x xs) = multiset_of (x#xs)"
+  by (induct xs) (auto simp: union_ac)
 
 lemma insort_permutes[simp]:
- "\<And>x. multiset(insort le xs) x = multiset xs x";
-by (induct "xs") auto
+ "\<And>x. multiset_of (insort le xs) = multiset_of xs"
+  by (induct "xs") auto
 
 lemma set_ins[simp]: "set(ins le x xs) = insert x (set xs)"
-by (simp add: set_via_multiset) fast
+  by (simp add: set_count_greater_0) fast
 
 lemma sorted_ins[simp]:
  "\<lbrakk> total le; transf le \<rbrakk> \<Longrightarrow> sorted le (ins le x xs) = sorted le xs";

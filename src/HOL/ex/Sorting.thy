@@ -6,12 +6,11 @@
 Specification of sorting
 *)
 
-theory Sorting = Main:
+theory Sorting = Main + Multiset:
 
 consts
   sorted1:: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
   sorted :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  multiset   :: "'a list => ('a => nat)"
 
 primrec
   "sorted1 le [] = True"
@@ -22,9 +21,6 @@ primrec
   "sorted le [] = True"
   "sorted le (x#xs) = ((!y:set xs. le x y) & sorted le xs)"
 
-primrec
-  "multiset [] y = 0"
-  "multiset (x#xs) y = (if x=y then Suc(multiset xs y) else multiset xs y)"
 
 constdefs
   total  :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
@@ -33,18 +29,7 @@ constdefs
   transf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
    "transf f == (ALL x y z. f x y & f y z --> f x z)"
 
-(* Some general lemmas *)
 
-lemma multiset_append[simp]:
- "multiset (xs@ys) x = multiset xs x + multiset ys x"
-by (induct xs, auto)
-
-lemma multiset_compl_add[simp]:
- "multiset [x:xs. ~p(x)] z + multiset [x:xs. p(x)] z = multiset xs z";
-by (induct xs, auto)
-
-lemma set_via_multiset: "set xs = {x. multiset xs x ~= 0}";
-by (induct xs, auto)
 
 (* Equivalence of two definitions of `sorted' *)
 
