@@ -125,7 +125,7 @@ by (REPEAT (blast_tac (claset() addIs prems) 1));
 qed "leadsTo_induct";
 
 
-Goal "[| A<=B;  id: acts |] ==> leadsTo acts A B";
+Goal "[| A<=B;  Id: acts |] ==> leadsTo acts A B";
 by (rtac leadsTo_Basis 1);
 by (rewrite_goals_tac [ensures_def, constrains_def, transient_def]);
 by (Blast_tac 1);
@@ -136,7 +136,7 @@ Addsimps [empty_leadsTo];
 
 
 (*There's a direct proof by leadsTo_Trans and subset_imp_leadsTo, but it
-  needs the extra premise id:acts*)
+  needs the extra premise Id:acts*)
 Goal "leadsTo acts A A' ==> A'<=B' --> leadsTo acts A B'";
 by (etac leadsTo_induct 1);
 by (Clarify_tac 3);
@@ -146,30 +146,30 @@ by (blast_tac (claset() addIs [leadsTo_Basis, ensures_weaken_R]) 1);
 qed_spec_mp "leadsTo_weaken_R";
 
 
-Goal "[| leadsTo acts A A'; B<=A; id: acts |] ==>  \
+Goal "[| leadsTo acts A A'; B<=A; Id: acts |] ==>  \
 \         leadsTo acts B A'";
 by (blast_tac (claset() addIs [leadsTo_Basis, leadsTo_Trans, 
 			       subset_imp_leadsTo]) 1);
 qed_spec_mp "leadsTo_weaken_L";
 
 (*Distributes over binary unions*)
-Goal "id: acts ==> \
+Goal "Id: acts ==> \
 \       leadsTo acts (A Un B) C  =  (leadsTo acts A C & leadsTo acts B C)";
 by (blast_tac (claset() addIs [leadsTo_Un, leadsTo_weaken_L]) 1);
 qed "leadsTo_Un_distrib";
 
-Goal "id: acts ==> \
+Goal "Id: acts ==> \
 \       leadsTo acts (UN i:I. A i) B  =  (ALL i : I. leadsTo acts (A i) B)";
 by (blast_tac (claset() addIs [leadsTo_UN, leadsTo_weaken_L]) 1);
 qed "leadsTo_UN_distrib";
 
-Goal "id: acts ==> \
+Goal "Id: acts ==> \
 \       leadsTo acts (Union S) B  =  (ALL A : S. leadsTo acts A B)";
 by (blast_tac (claset() addIs [leadsTo_Union, leadsTo_weaken_L]) 1);
 qed "leadsTo_Union_distrib";
 
 
-Goal "[| leadsTo acts A A'; id: acts; B<=A; A'<=B' |] \
+Goal "[| leadsTo acts A A'; Id: acts; B<=A; A'<=B' |] \
 \   ==> leadsTo acts B B'";
 by (blast_tac (claset() addIs [leadsTo_weaken_R, leadsTo_weaken_L,
 			       leadsTo_Trans]) 1);
@@ -177,7 +177,7 @@ qed "leadsTo_weaken";
 
 
 (*Set difference: maybe combine with leadsTo_weaken_L??*)
-Goal "[| leadsTo acts (A-B) C; leadsTo acts B C; id: acts |] \
+Goal "[| leadsTo acts (A-B) C; leadsTo acts B C; Id: acts |] \
 \       ==> leadsTo acts A C";
 by (blast_tac (claset() addIs [leadsTo_Un, leadsTo_weaken]) 1);
 qed "leadsTo_Diff";
@@ -220,26 +220,26 @@ qed "leadsTo_Un_Un";
 
 (** The cancellation law **)
 
-Goal "[| leadsTo acts A (A' Un B); leadsTo acts B B'; id: acts |] \
+Goal "[| leadsTo acts A (A' Un B); leadsTo acts B B'; Id: acts |] \
 \   ==> leadsTo acts A (A' Un B')";
 by (blast_tac (claset() addIs [leadsTo_Un_Un, 
 			       subset_imp_leadsTo, leadsTo_Trans]) 1);
 qed "leadsTo_cancel2";
 
-Goal "[| leadsTo acts A (A' Un B); leadsTo acts (B-A') B'; id: acts |] \
+Goal "[| leadsTo acts A (A' Un B); leadsTo acts (B-A') B'; Id: acts |] \
 \   ==> leadsTo acts A (A' Un B')";
 by (rtac leadsTo_cancel2 1);
 by (assume_tac 2);
 by (ALLGOALS Asm_simp_tac);
 qed "leadsTo_cancel_Diff2";
 
-Goal "[| leadsTo acts A (B Un A'); leadsTo acts B B'; id: acts |] \
+Goal "[| leadsTo acts A (B Un A'); leadsTo acts B B'; Id: acts |] \
 \   ==> leadsTo acts A (B' Un A')";
 by (asm_full_simp_tac (simpset() addsimps [Un_commute]) 1);
 by (blast_tac (claset() addSIs [leadsTo_cancel2]) 1);
 qed "leadsTo_cancel1";
 
-Goal "[| leadsTo acts A (B Un A'); leadsTo acts (B-A') B'; id: acts |] \
+Goal "[| leadsTo acts A (B Un A'); leadsTo acts (B-A') B'; Id: acts |] \
 \   ==> leadsTo acts A (B' Un A')";
 by (rtac leadsTo_cancel1 1);
 by (assume_tac 2);
@@ -264,7 +264,7 @@ qed "leadsTo_empty";
 
 (** PSP: Progress-Safety-Progress **)
 
-(*Special case of PSP: Misra's "stable conjunction".  Doesn't need id:acts. *)
+(*Special case of PSP: Misra's "stable conjunction".  Doesn't need Id:acts. *)
 Goalw [stable_def]
    "[| leadsTo acts A A'; stable acts B |] \
 \   ==> leadsTo acts (A Int B) (A' Int B)";
@@ -290,7 +290,7 @@ Goalw [ensures_def, constrains_def]
 by (blast_tac (claset() addIs [transient_strengthen]) 1);
 qed "psp_ensures";
 
-Goal "[| leadsTo acts A A'; constrains acts B B'; id: acts |] \
+Goal "[| leadsTo acts A A'; constrains acts B B'; Id: acts |] \
 \           ==> leadsTo acts (A Int B) ((A' Int B) Un (B' - B))";
 by (etac leadsTo_induct 1);
 by (simp_tac (simpset() addsimps [Int_Union_Union]) 3);
@@ -304,14 +304,14 @@ by (asm_full_simp_tac (simpset() addsimps [Int_Diff, Diff_triv]) 2);
 by (blast_tac (claset() addIs [leadsTo_Basis, psp_ensures]) 1);
 qed "psp";
 
-Goal "[| leadsTo acts A A'; constrains acts B B'; id: acts |] \
+Goal "[| leadsTo acts A A'; constrains acts B B'; Id: acts |] \
 \   ==> leadsTo acts (B Int A) ((B Int A') Un (B' - B))";
 by (asm_simp_tac (simpset() addsimps psp::Int_ac) 1);
 qed "psp2";
 
 
 Goalw [unless_def]
-   "[| leadsTo acts A A'; unless acts B B'; id: acts |] \
+   "[| leadsTo acts A A'; unless acts B B'; Id: acts |] \
 \   ==> leadsTo acts (A Int B) ((A' Int B) Un B')";
 by (dtac psp 1);
 by (assume_tac 1);
@@ -330,7 +330,7 @@ qed "psp_unless";
 Goal "[| wf r;     \
 \        ALL m. leadsTo acts (A Int f-``{m})                     \
 \                            ((A Int f-``(r^-1 ^^ {m})) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts (A Int f-``{m}) B";
 by (eres_inst_tac [("a","m")] wf_induct 1);
 by (subgoal_tac "leadsTo acts (A Int (f -`` (r^-1 ^^ {x}))) B" 1);
@@ -345,7 +345,7 @@ val lemma = result();
 Goal "[| wf r;     \
 \        ALL m. leadsTo acts (A Int f-``{m})                     \
 \                            ((A Int f-``(r^-1 ^^ {m})) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts A B";
 by (res_inst_tac [("t", "A")] subst 1);
 by (rtac leadsTo_UN 2);
@@ -358,7 +358,7 @@ qed "leadsTo_wf_induct";
 Goal "[| wf r;     \
 \        ALL m:I. leadsTo acts (A Int f-``{m})                   \
 \                              ((A Int f-``(r^-1 ^^ {m})) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts A ((A - (f-``I)) Un B)";
 by (etac leadsTo_wf_induct 1);
 by Safe_tac;
@@ -371,7 +371,7 @@ qed "bounded_induct";
 (*Alternative proof is via the lemma leadsTo acts (A Int f-``(lessThan m)) B*)
 Goal "[| ALL m. leadsTo acts (A Int f-``{m})                     \
 \                            ((A Int f-``(lessThan m)) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts A B";
 by (rtac (wf_less_than RS leadsTo_wf_induct) 1);
 by (assume_tac 2);
@@ -380,7 +380,7 @@ qed "lessThan_induct";
 
 Goal "[| ALL m:(greaterThan l). leadsTo acts (A Int f-``{m})   \
 \                                  ((A Int f-``(lessThan m)) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts A ((A Int (f-``(atMost l))) Un B)";
 by (simp_tac (HOL_ss addsimps [Diff_eq RS sym, vimage_Compl, Compl_greaterThan RS sym]) 1);
 by (rtac (wf_less_than RS bounded_induct) 1);
@@ -390,7 +390,7 @@ qed "lessThan_bounded_induct";
 
 Goal "[| ALL m:(lessThan l). leadsTo acts (A Int f-``{m})   \
 \                              ((A Int f-``(greaterThan m)) Un B);   \
-\        id: acts |] \
+\        Id: acts |] \
 \     ==> leadsTo acts A ((A Int (f-``(atLeast l))) Un B)";
 by (res_inst_tac [("f","f"),("f1", "%k. l - k")]
     (wf_less_than RS wf_inv_image RS leadsTo_wf_induct) 1);
@@ -416,13 +416,13 @@ by (blast_tac (claset() addSIs [leadsTo_Union]) 1);
 qed "leadsTo_subset";
 
 (*Misra's property W2*)
-Goal "id: acts ==> leadsTo acts A B = (A <= wlt acts B)";
+Goal "Id: acts ==> leadsTo acts A B = (A <= wlt acts B)";
 by (blast_tac (claset() addSIs [leadsTo_subset, 
 				wlt_leadsTo RS leadsTo_weaken_L]) 1);
 qed "leadsTo_eq_subset_wlt";
 
 (*Misra's property W4*)
-Goal "id: acts ==> B <= wlt acts B";
+Goal "Id: acts ==> B <= wlt acts B";
 by (asm_simp_tac (simpset() addsimps [leadsTo_eq_subset_wlt RS sym,
 				      subset_imp_leadsTo]) 1);
 qed "wlt_increasing";
@@ -439,7 +439,7 @@ val lemma1 = result();
 
 
 (*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
-Goal "[| leadsTo acts A A';  id: acts |] ==> \
+Goal "[| leadsTo acts A A';  Id: acts |] ==> \
 \      EX B. A<=B & leadsTo acts B A' & constrains acts (B-A') (B Un A')";
 by (etac leadsTo_induct 1);
 (*Basis*)
@@ -459,7 +459,7 @@ qed "leadsTo_123";
 
 
 (*Misra's property W5*)
-Goal "id: acts ==> constrains acts (wlt acts B - B) (wlt acts B)";
+Goal "Id: acts ==> constrains acts (wlt acts B - B) (wlt acts B)";
 by (forward_tac [wlt_leadsTo RS leadsTo_123] 1);
 by (Clarify_tac 1);
 by (subgoal_tac "Ba = wlt acts B" 1);
@@ -472,7 +472,7 @@ qed "wlt_constrains_wlt";
 (*** Completion: Binary and General Finite versions ***)
 
 Goal "[| leadsTo acts A A';  stable acts A';   \
-\        leadsTo acts B B';  stable acts B';  id: acts |] \
+\        leadsTo acts B B';  stable acts B';  Id: acts |] \
 \   ==> leadsTo acts (A Int B) (A' Int B')";
 by (subgoal_tac "stable acts (wlt acts B')" 1);
 by (asm_full_simp_tac (simpset() addsimps [stable_def]) 2);
@@ -491,7 +491,7 @@ by (blast_tac (claset() addIs [leadsTo_Trans]) 1);
 qed "stable_completion";
 
 
-Goal "[| finite I;  id: acts |]                     \
+Goal "[| finite I;  Id: acts |]                     \
 \   ==> (ALL i:I. leadsTo acts (A i) (A' i)) -->  \
 \       (ALL i:I. stable acts (A' i)) -->         \
 \       leadsTo acts (INT i:I. A i) (INT i:I. A' i)";
@@ -506,7 +506,7 @@ qed_spec_mp "finite_stable_completion";
 Goal "[| W = wlt acts (B' Un C);     \
 \      leadsTo acts A (A' Un C);  constrains acts A' (A' Un C);   \
 \      leadsTo acts B (B' Un C);  constrains acts B' (B' Un C);   \
-\      id: acts |] \
+\      Id: acts |] \
 \   ==> leadsTo acts (A Int B) ((A' Int B') Un C)";
 by (subgoal_tac "constrains acts (W-C) (W Un B' Un C)" 1);
 by (blast_tac (claset() addIs [[asm_rl, wlt_constrains_wlt] 
@@ -533,7 +533,7 @@ by (blast_tac (claset() addIs [leadsTo_Trans, subset_imp_leadsTo]) 1);
 bind_thm("completion", refl RS result());
 
 
-Goal "[| finite I;  id: acts |] \
+Goal "[| finite I;  Id: acts |] \
 \   ==> (ALL i:I. leadsTo acts (A i) (A' i Un C)) -->  \
 \       (ALL i:I. constrains acts (A' i) (A' i Un C)) --> \
 \       leadsTo acts (INT i:I. A i) ((INT i:I. A' i) Un C)";

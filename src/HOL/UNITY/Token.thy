@@ -43,7 +43,7 @@ locale Token =
   assumes
     N_positive "0<N"
 
-    skip "id: acts"
+    skip "Id: acts"
 
     TR2  "!!i. constrains acts (T i) (T i Un H i)"
 

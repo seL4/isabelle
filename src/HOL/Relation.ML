@@ -8,22 +8,22 @@ open Relation;
 
 (** Identity relation **)
 
-Goalw [id_def] "(a,a) : id";  
+Goalw [Id_def] "(a,a) : Id";  
 by (Blast_tac 1);
-qed "idI";
+qed "IdI";
 
-val major::prems = Goalw [id_def]
-    "[| p: id;  !!x.[| p = (x,x) |] ==> P  \
+val major::prems = Goalw [Id_def]
+    "[| p: Id;  !!x.[| p = (x,x) |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS CollectE) 1);
 by (etac exE 1);
 by (eresolve_tac prems 1);
-qed "idE";
+qed "IdE";
 
-Goalw [id_def] "(a,b):id = (a=b)";
+Goalw [Id_def] "(a,b):Id = (a=b)";
 by (Blast_tac 1);
-qed "pair_in_id_conv";
-Addsimps [pair_in_id_conv];
+qed "pair_in_Id_conv";
+Addsimps [pair_in_Id_conv];
 
 
 (** Composition of two relations **)
@@ -51,18 +51,18 @@ by (rtac compE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
 qed "compEpair";
 
-AddIs [compI, idI];
-AddSEs [compE, idE];
+AddIs [compI, IdI];
+AddSEs [compE, IdE];
 
-Goal "R O id = R";
+Goal "R O Id = R";
 by (Fast_tac 1);
-qed "R_O_id";
+qed "R_O_Id";
 
-Goal "id O R = R";
+Goal "Id O R = R";
 by (Fast_tac 1);
-qed "id_O_R";
+qed "Id_O_R";
 
-Addsimps [R_O_id,id_O_R];
+Addsimps [R_O_Id,Id_O_R];
 
 Goal "(R O S) O T = R O (S O T)";
 by (Blast_tac 1);
@@ -124,10 +124,10 @@ Goal "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
 qed "converse_comp";
 
-Goal "id^-1 = id";
+Goal "Id^-1 = Id";
 by (Blast_tac 1);
-qed "converse_id";
-Addsimps [converse_id];
+qed "converse_Id";
+Addsimps [converse_Id];
 
 (** Domain **)
 
@@ -147,10 +147,10 @@ qed_goal "DomainE" thy
 AddIs  [DomainI];
 AddSEs [DomainE];
 
-Goal "Domain id = UNIV";
+Goal "Domain Id = UNIV";
 by (Blast_tac 1);
-qed "Domain_id";
-Addsimps [Domain_id];
+qed "Domain_Id";
+Addsimps [Domain_Id];
 
 (** Range **)
 
@@ -167,10 +167,10 @@ qed_goalw "RangeE" thy [Range_def]
 AddIs  [RangeI];
 AddSEs [RangeE];
 
-Goal "Range id = UNIV";
+Goal "Range Id = UNIV";
 by (Blast_tac 1);
-qed "Range_id";
-Addsimps [Range_id];
+qed "Range_Id";
+Addsimps [Range_Id];
 
 (*** Image of a set under a relation ***)
 
@@ -213,11 +213,11 @@ qed_goal "Image_empty" thy
 
 Addsimps [Image_empty];
 
-Goal "id ^^ A = A";
+Goal "Id ^^ A = A";
 by (Blast_tac 1);
-qed "Image_id";
+qed "Image_Id";
 
-Addsimps [Image_id];
+Addsimps [Image_Id];
 
 qed_goal "Image_Int_subset" thy
     "R ^^ (A Int B) <= R ^^ A Int R ^^ B"

@@ -31,10 +31,10 @@ by (fast_tac (claset() addEs [selectI]) 1);
 qed "bchoice";
 
 
-section "Id";
+section "id";
 
-qed_goalw "Id_apply" thy [Id_def] "Id x = x" (K [rtac refl 1]);
-Addsimps [Id_apply];
+qed_goalw "id_apply" thy [id_def] "id x = x" (K [rtac refl 1]);
+Addsimps [id_apply];
 
 
 section "o";
@@ -46,13 +46,13 @@ Addsimps [o_apply];
 qed_goalw "o_assoc" thy [o_def] "f o (g o h) = f o g o h"
   (K [rtac ext 1, rtac refl 1]);
 
-qed_goalw "Id_o" thy [Id_def] "Id o g = g"
+qed_goalw "id_o" thy [id_def] "id o g = g"
  (K [rtac ext 1, Simp_tac 1]);
-Addsimps [Id_o];
+Addsimps [id_o];
 
-qed_goalw "o_Id" thy [Id_def] "f o Id = f"
+qed_goalw "o_id" thy [id_def] "f o id = f"
  (K [rtac ext 1, Simp_tac 1]);
-Addsimps [o_Id];
+Addsimps [o_id];
 
 Goalw [o_def] "(f o g)``r = f``(g``r)";
 by (Blast_tac 1);

@@ -21,7 +21,7 @@ Goal "Init (JN i:I. prg i) = (INT i:I. Init (prg i))";
 by (simp_tac (simpset() addsimps [JOIN_def]) 1);
 qed "Init_JN";
 
-Goal "Acts (JN i:I. prg i) = insert id (UN i:I. Acts (prg i))";
+Goal "Acts (JN i:I. prg i) = insert Id (UN i:I. Acts (prg i))";
 by (auto_tac (claset(), simpset() addsimps [JOIN_def]));
 qed "Acts_JN";
 
@@ -142,7 +142,7 @@ by (auto_tac (claset(),
 qed "ensures_Join";
 
 Goalw [stable_def, constrains_def, Join_def]
-    "[| stable (Acts prgF) A;  constrains (Acts prgG) A A';  id: Acts prgG |] \
+    "[| stable (Acts prgF) A;  constrains (Acts prgG) A A';  Id: Acts prgG |] \
 \    ==> constrains (Acts (Join prgF prgG)) A A'";
 by (asm_simp_tac (simpset() addsimps [ball_Un]) 1);
 by (Blast_tac 1);

@@ -97,12 +97,12 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "all_constrains_INT";
 
-Goalw [constrains_def] "[| constrains acts A A'; id: acts |] ==> A<=A'";
+Goalw [constrains_def] "[| constrains acts A A'; Id: acts |] ==> A<=A'";
 by (Blast_tac 1);
 qed "constrains_imp_subset";
 
 Goalw [constrains_def]
-    "[| id: acts; constrains acts A B; constrains acts B C |]   \
+    "[| Id: acts; constrains acts A B; constrains acts B C |]   \
 \    ==> constrains acts A C";
 by (Blast_tac 1);
 qed "constrains_trans";
@@ -160,7 +160,7 @@ qed "elimination_sing";
 
 
 Goalw [constrains_def]
-   "[| constrains acts A (A' Un B); constrains acts B B'; id: acts |] \
+   "[| constrains acts A (A' Un B); constrains acts B B'; Id: acts |] \
 \   ==> constrains acts A (A' Un B')";
 by (Blast_tac 1);
 qed "constrains_cancel";

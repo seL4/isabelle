@@ -17,18 +17,18 @@ val rep_ss = simpset() addsimps
 		 Rep_Program_inverse, Abs_Program_inverse];
 
 
-Goal "id: Acts prg";
+Goal "Id: Acts prg";
 by (cut_inst_tac [("x", "prg")] Rep_Program 1);
 by (auto_tac (claset(), rep_ss));
-qed "id_in_Acts";
-AddIffs [id_in_Acts];
+qed "Id_in_Acts";
+AddIffs [Id_in_Acts];
 
 
 Goal "Init (mk_program (init,acts)) = init";
 by (auto_tac (claset(), rep_ss));
 qed "Init_eq";
 
-Goal "Acts (mk_program (init,acts)) = insert id acts";
+Goal "Acts (mk_program (init,acts)) = insert Id acts";
 by (auto_tac (claset(), rep_ss));
 qed "Acts_eq";
 
@@ -47,7 +47,7 @@ qed "program_equalityI";
 
 val [rew] = goal thy
     "[| prg == mk_program (init,acts) |] \
-\    ==> Init prg = init & Acts prg = insert id acts";
+\    ==> Init prg = init & Acts prg = insert Id acts";
 by (rewtac rew);
 by Auto_tac;
 qed "def_prg_simps";

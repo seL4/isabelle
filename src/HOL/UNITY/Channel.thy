@@ -18,7 +18,7 @@ constdefs
 
 rules
 
-  skip "id: acts"
+  skip "Id: acts"
 
   UC1  "constrains acts (minSet -`` {Some x}) (minSet -`` (Some``atLeast x))"
 

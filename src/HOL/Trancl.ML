@@ -10,7 +10,7 @@ open Trancl;
 
 (** The relation rtrancl **)
 
-Goal "mono(%s. id Un (r O s))";
+Goal "mono(%s. Id Un (r O s))";
 by (rtac monoI 1);
 by (REPEAT (ares_tac [monoI, subset_refl, comp_mono, Un_mono] 1));
 qed "rtrancl_fun_mono";
@@ -343,6 +343,6 @@ qed_goal "trancl_empty" Trancl.thy "{}^+ = {}"
   (K [auto_tac (claset() addEs [trancl_induct], simpset())]);
 Addsimps[trancl_empty];
 
-qed_goal "rtrancl_empty" Trancl.thy "{}^* = id" 
+qed_goal "rtrancl_empty" Trancl.thy "{}^* = Id" 
   (K [rtac (reflcl_trancl RS subst) 1, Simp_tac 1]);
 Addsimps[rtrancl_empty];

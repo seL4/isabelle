@@ -25,7 +25,7 @@ constdefs
 
 consts steps :: "('a,'s)na => 'a list => ('s * 's)set"
 primrec
-"steps A [] = id"
+"steps A [] = Id"
 "steps A (a#w) = steps A w  O  step A a"
 
 end

@@ -6,7 +6,7 @@
 
 Relation = Prod +
 consts
-    id          :: "('a * 'a)set"               (*the identity relation*)
+    Id          :: "('a * 'a)set"               (*the identity relation*)
     O           :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set" (infixr 60)
     converse    :: "('a*'b) set => ('b*'a) set"     ("(_^-1)" [1000] 999)
     "^^"        :: "[('a*'b) set,'a set] => 'b set" (infixl 90)
@@ -15,7 +15,7 @@ consts
     trans       :: "('a * 'a)set => bool"       (*transitivity predicate*)
     Univalent   :: "('a * 'b)set => bool"
 defs
-    id_def        "id == {p. ? x. p = (x,x)}"
+    Id_def        "Id == {p. ? x. p = (x,x)}"
     comp_def      "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
     converse_def   "r^-1 == {(y,x). (x,y):r}"
     Domain_def    "Domain(r) == {x. ? y. (x,y):r}"

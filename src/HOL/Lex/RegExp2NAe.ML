@@ -152,7 +152,7 @@ AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];
 (***** Epsilonhuelle des Startzustands  *****)
 
 Goal
- "R^* = id Un (R^* O R)";
+ "R^* = Id Un (R^* O R)";
 by (rtac set_ext 1);
 by (split_all_tac 1);
 by (rtac iffI 1);

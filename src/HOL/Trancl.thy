@@ -17,7 +17,7 @@ Trancl = Lfp + Relation +
 
 constdefs
   rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [1000] 999)
-  "r^*  ==  lfp(%s. id Un (r O s))"
+  "r^*  ==  lfp(%s. Id Un (r O s))"
 
   trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [1000] 999)
   "r^+  ==  r O rtrancl(r)"
@@ -26,6 +26,6 @@ syntax
   reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 999)
 
 translations
-  "r^=" == "r Un id"
+  "r^=" == "r Un Id"
 
 end

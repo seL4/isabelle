@@ -25,11 +25,11 @@ inductive "traces Init Acts"
 
 
 typedef (Program)
-  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). id:acts}"
+  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). Id:acts}"
 
 constdefs
     mk_program :: "('a set * ('a * 'a)set set) => 'a program"
-    "mk_program == %(init, acts). Abs_Program (init, insert id acts)"
+    "mk_program == %(init, acts). Abs_Program (init, insert Id acts)"
 
     Init :: "'a program => 'a set"
     "Init prg == fst (Rep_Program prg)"

@@ -12,7 +12,7 @@ instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
 consts
 
-  Id          ::  'a => 'a
+  id          ::  'a => 'a
   o           :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
   inj, surj   :: ('a => 'b) => bool                   (*inj/surjective*)
   inj_on      :: ['a => 'b, 'a set] => bool
@@ -37,7 +37,7 @@ translations
 
 defs
 
-  Id_def	"Id             == %x. x"
+  id_def	"id             == %x. x"
   o_def   	"f o g          == %x. f(g(x))"
   inj_def	"inj f          == ! x y. f(x)=f(y) --> x=y"
   inj_on_def	"inj_on f A     == ! x:A. ! y:A. f(x)=f(y) --> x=y"

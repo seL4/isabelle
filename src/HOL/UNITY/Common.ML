@@ -31,7 +31,7 @@ qed "common_Invariant";
 (*** Some programs that implement the safety property above ***)
 
 (*This one is just Skip*)
-Goal "constrains {id} {m} (maxfg m)";
+Goal "constrains {Id} {m} (maxfg m)";
 by (simp_tac (simpset() addsimps [constrains_def, maxfg_def, le_max_iff_disj,
 				  fasc, gasc]) 1);
 result();
