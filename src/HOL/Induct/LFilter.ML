@@ -58,7 +58,7 @@ val prems = goal thy
     "[| !!x. p x ==> q x |] ==> Domain (findRel p) <= Domain (findRel q)";
 by (Clarify_tac 1);
 by (etac findRel.induct 1);
-by (blast_tac (claset() addIs (findRel.intrs@prems)) 1);
+by (blast_tac (claset() addIs findRel.intrs @ prems) 1);
 by (blast_tac (claset() addIs findRel.intrs) 1);
 qed "Domain_findRel_mono";
 

@@ -30,22 +30,22 @@ qed_spec_mp "eval_implies_D";
 
 Goal "!s t. D c`(Discr s) = (Def t) --> <c,s> -c-> t";
 by (induct_tac "c" 1);
-    by (fast_tac ((HOL_cs addSIs evalc.intrs) addss simpset()) 1);
+    by (Force_tac 1);
    by (Force_tac 1);
   by (Force_tac 1);
  by (Simp_tac 1);
- by (fast_tac ((HOL_cs addIs evalc.intrs) addss simpset()) 1);
+ by (Force_tac 1);
 by (Simp_tac 1);
 by (rtac fix_ind 1);
-  by (fast_tac (HOL_cs addSIs (adm_lemmas@[adm_chfindom,ax_flat_lift])) 1);
+  by (fast_tac (claset() addSIs adm_lemmas@[adm_chfindom,ax_flat_lift]) 1);
  by (Simp_tac 1);
 by (Simp_tac 1);
-by (safe_tac HOL_cs);
-  by (fast_tac (HOL_cs addIs evalc.intrs) 1);
- by (fast_tac ((HOL_cs addSIs evalc.intrs) addss simpset()) 1);
+by Safe_tac;
+  by (Fast_tac 1);
+ by (Force_tac 1);
 qed_spec_mp "D_implies_eval";
 
 
 Goal "(D c`(Discr s) = (Def t)) = (<c,s> -c-> t)";
-by (fast_tac (HOL_cs addSEs [D_implies_eval,eval_implies_D]) 1);
+by (fast_tac (claset() addSEs [D_implies_eval,eval_implies_D]) 1);
 qed "D_is_eval";

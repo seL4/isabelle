@@ -28,7 +28,7 @@ qed "TF_mono";
 Goalw [TF_def] "TF(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
 by (blast_tac (claset() addIs  sexp.intrs@[sexp_In0I, sexp_In1I]
-                      addSEs [PartE]) 1);
+                        addSEs [PartE]) 1);
 qed "TF_sexp";
 
 (* A <= sexp ==> TF(A) <= sexp *)
@@ -48,8 +48,7 @@ val major::prems = goalw Simult.thy TF_Rep_defs
 \            |] ==> R(FCONS M N)    \
 \    |] ==> R(i)";
 by (rtac ([TF_def, TF_fun_mono, major] MRS def_induct) 1);
-by (blast_tac (claset() addIs (prems@[PartI])
-                       addEs [usumE, uprodE, PartE]) 1);
+by (blast_tac (claset() addIs prems@[PartI] addEs [usumE, uprodE, PartE]) 1);
 qed "TF_induct";
 
 (*This lemma replaces a use of subgoal_tac to prove tree_forest_induct*)

@@ -51,7 +51,7 @@ by (Fast_tac 1);
 qed "mono_lemma";
 
 val prems = goal Puzzle.thy "m <= n ==> f(m) <= f(n)";
-by (fast_tac (claset() addIs ([mono_lemma,less_imp_le,lemma2]@prems)) 1);
+by (fast_tac (claset() addIs [mono_lemma,less_imp_le,lemma2]@prems) 1);
 qed "f_mono";
 
 Goal "f(n) = n";

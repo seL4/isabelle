@@ -20,8 +20,8 @@ qed "list_into_listn";
 Goal "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (etac listn.induct 1);
-by (safe_tac (claset() addSIs (list_typechecks @
-                            [length_Nil, length_Cons, list_into_listn])));
+by (safe_tac (claset() addSIs list_typechecks @
+                              [length_Nil, length_Cons, list_into_listn]));
 qed "listn_iff";
 
 Goal "listn(A)``{n} = {l:list(A). length(l)=n}";

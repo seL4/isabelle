@@ -12,8 +12,8 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 (*The intended introduction rule*)
 val prems = goal Acc.thy
     "[| !!b. (b,a):r ==> b: acc(r) |] ==> a: acc(r)";
-by (fast_tac (claset() addIs (prems @ 
-                            map (rewrite_rule [pred_def]) acc.intrs)) 1);
+by (fast_tac (claset() addIs prems @ 
+                             map (rewrite_rule [pred_def]) acc.intrs) 1);
 qed "accI";
 
 Goal "[| b: acc(r);  (a,b): r |] ==> a: acc(r)";

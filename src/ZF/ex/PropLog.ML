@@ -17,21 +17,18 @@ open PropLog;
 
 Goal "prop_rec(Fls,b,c,d) = b";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (rewrite_goals_tac prop.con_defs);
-by (Simp_tac 1);
+by (simp_tac (simpset() addsimps prop.con_defs) 1);
 qed "prop_rec_Fls";
 
 Goal "prop_rec(#v,b,c,d) = c(v)";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (rewrite_goals_tac prop.con_defs);
-by (Simp_tac 1);
+by (simp_tac (simpset() addsimps prop.con_defs) 1);
 qed "prop_rec_Var";
 
 Goal "prop_rec(p=>q,b,c,d) = \
 \      d(p, q, prop_rec(p,b,c,d), prop_rec(q,b,c,d))";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (rewrite_goals_tac prop.con_defs);
-by (simp_tac rank_ss 1);
+by (simp_tac (rank_ss addsimps prop.con_defs) 1);
 qed "prop_rec_Imp";
 
 Addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
@@ -41,17 +38,15 @@ Addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
 (** The function is_true **)
 
 Goalw [is_true_def] "is_true(Fls,t) <-> False";
-by (simp_tac (simpset() addsimps [one_not_0 RS not_sym]) 1);
+by (Simp_tac 1);
 qed "is_true_Fls";
 
 Goalw [is_true_def] "is_true(#v,t) <-> v:t";
-by (simp_tac (simpset() addsimps [one_not_0 RS not_sym] 
-              setloop (split_tac [split_if])) 1);
+by (Simp_tac 1);
 qed "is_true_Var";
 
-Goalw [is_true_def]
-    "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
-by (simp_tac (simpset() setloop (split_tac [split_if])) 1);
+Goalw [is_true_def] "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
+by (Simp_tac 1);
 qed "is_true_Imp";
 
 (** The function hyps **)
@@ -176,7 +171,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (safe_tac (claset() addSEs [Fls_Imp RS weaken_left_Un1, 
 			       Fls_Imp RS weaken_left_Un2]));
 by (ALLGOALS (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
-                                     weaken_right, Imp_Fls])));
+					weaken_right, Imp_Fls])));
 qed "hyps_thms_if";
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
@@ -210,7 +205,7 @@ qed "thms_excluded_middle_rule";
 Goal "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
 by (etac prop.induct 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
+by (Asm_simp_tac 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
 by (Asm_simp_tac 1);
 by (Fast_tac 1);
@@ -221,7 +216,7 @@ qed "hyps_Diff";
 Goal "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
 by (etac prop.induct 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
+by (Asm_simp_tac 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
 by (Asm_simp_tac 1);
 by (Fast_tac 1);
@@ -241,8 +236,7 @@ qed "cons_Diff_subset2";
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,0) Un hyps(p,nat))*)
 Goal "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (etac prop.induct 1);
-by (asm_simp_tac (simpset() addsimps [UN_I]
-                  setloop (split_tac [split_if])) 2);
+by (asm_simp_tac (simpset() addsimps [UN_I]) 2);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (claset() addIs Fin.intrs) 1);
 qed "hyps_finite";
@@ -298,7 +292,7 @@ val completeness = completeness_lemma RS bspec RS mp;
 
 val [finite] = goal PropLog.thy "H: Fin(prop) ==> H |- p <-> H |= p & p:prop";
 by (fast_tac (claset() addSEs [soundness, finite RS completeness, 
-                            thms_in_pl]) 1);
+			       thms_in_pl]) 1);
 qed "thms_iff";
 
 writeln"Reached end of file.";
