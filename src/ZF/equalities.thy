@@ -26,6 +26,23 @@ by blast
 lemma the_eq_0 [simp]: "(THE x. False) = 0"
 by (blast intro: the_0)
 
+text {* \medskip Bounded quantifiers.
+
+  The following are not added to the default simpset because
+  (a) they duplicate the body and (b) there are no similar rules for @{text Int}. *}
+
+lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) <-> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))";
+  by blast
+
+lemma bex_Un: "(\<exists>x \<in> A\<union>B. P(x)) <-> (\<exists>x \<in> A. P(x)) | (\<exists>x \<in> B. P(x))";
+  by blast
+
+lemma ball_UN: "(\<forall>z \<in> (UN x:A. B(x)). P(z)) <-> (\<forall>x\<in>A. \<forall>z \<in> B(x). P(z))"
+  by blast
+
+lemma bex_UN: "(\<exists>z \<in> (UN x:A. B(x)). P(z)) <-> (\<exists>x\<in>A. \<exists>z\<in>B(x). P(z))"
+  by blast
+
 (*** converse ***)
 
 lemma converse_iff [iff]: "<a,b>: converse(r) <-> <b,a>:r"
