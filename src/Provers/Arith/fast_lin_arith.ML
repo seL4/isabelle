@@ -550,9 +550,7 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
            \but could not construct a counter example either.\n\
            \Probably the proposition is true but cannot be proved\n\
            \by the incomplete decision procedure.")
-       end
-       handle NotYetImpl =>
- tracing "No counter example: < on real not yet implemented.";
+       end;
 
 fun mknat pTs ixs (atom,i) =
   if LA_Logic.is_nat(pTs,atom)
