@@ -820,7 +820,7 @@ proof -
     qed
     with Direct resTy_widen not_static_old 
     show "?Overrides new old" 
-      by (auto intro: overridesR.Direct) 
+      by (auto intro: overridesR.Direct stat_override_declclasses_relation) 
   next
     case (Indirect inter new old)
     then show "?Overrides new old" 

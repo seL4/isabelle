@@ -689,7 +689,6 @@ translations
 inductive "stat_overridesR G" intros
 
 Direct: "\<lbrakk>\<not> is_static new; msig new = msig old; 
-         G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old);
          G\<turnstile>Method new declared_in (declclass new);  
          G\<turnstile>Method old declared_in (declclass old); 
          G\<turnstile>Method old inheritable_in pid (declclass new);
@@ -791,14 +790,6 @@ lemma ws_overrides_commonD:
   G\<turnstile>Method new declared_in (declclass new) \<and>   
   G\<turnstile>Method old declared_in (declclass old)"
 by (induct set: overridesR) (auto intro: trancl_trans ws_widen_trans)
-
-lemma stat_overrides_commonD:
-"\<lbrakk>G\<turnstile>new overrides\<^sub>S old\<rbrakk> \<Longrightarrow>  
-  declclass new \<noteq> Object \<and> \<not> is_static new \<and> msig new = msig old \<and> 
-  G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old) \<and>
-  G\<turnstile>Method new declared_in (declclass new) \<and>   
-  G\<turnstile>Method old declared_in (declclass old)"
-by (induct set: stat_overridesR) (auto intro: trancl_trans)
 
 lemma overrides_eq_sigD: 
  "\<lbrakk>G\<turnstile>new overrides old\<rbrakk> \<Longrightarrow> msig old=msig new"
@@ -1106,6 +1097,26 @@ lemma member_in_class_relation:
   "G\<turnstile>m member_in C \<Longrightarrow> G\<turnstile>C \<preceq>\<^sub>C declclass m"
 by (auto dest: member_inD member_of_class_relation
         intro: rtrancl_trans)
+
+lemma stat_override_declclasses_relation: 
+"\<lbrakk>G\<turnstile>(declclass new) \<prec>\<^sub>C\<^sub>1 superNew; G \<turnstile>Method old member_of superNew \<rbrakk>
+\<Longrightarrow> G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old)"
+apply (rule trancl_rtrancl_trancl)
+apply (erule r_into_trancl)
+apply (cases old)
+apply (auto dest: member_of_class_relation)
+done
+
+lemma stat_overrides_commonD:
+"\<lbrakk>G\<turnstile>new overrides\<^sub>S old\<rbrakk> \<Longrightarrow>  
+  declclass new \<noteq> Object \<and> \<not> is_static new \<and> msig new = msig old \<and> 
+  G\<turnstile>(declclass new) \<prec>\<^sub>C (declclass old) \<and>
+  G\<turnstile>Method new declared_in (declclass new) \<and>   
+  G\<turnstile>Method old declared_in (declclass old)"
+apply (induct set: stat_overridesR) 
+apply (frule (1) stat_override_declclasses_relation) 
+apply (auto intro: trancl_trans)
+done
 
 lemma member_of_Package: 
  "\<lbrakk>G\<turnstile>m member_of C; accmodi m = Package\<rbrakk> 
