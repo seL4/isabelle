@@ -451,10 +451,10 @@ qed "zless_or_eq_imp_zle";
 
 Goal "(x <= (y::int)) = (x < y | x=y)";
 by (REPEAT(ares_tac [iffI, zless_or_eq_imp_zle, zle_imp_zless_or_eq] 1));
-qed "integ_le_less";
+qed "int_le_less";
 
 Goal "w <= (w::int)";
-by (simp_tac (simpset() addsimps [integ_le_less]) 1);
+by (simp_tac (simpset() addsimps [int_le_less]) 1);
 qed "zle_refl";
 
 Goalw [zle_def] "z < w ==> z <= (w::int)";
@@ -463,7 +463,7 @@ qed "zless_imp_zle";
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 Goal "(z::int) <= w | w <= z";
-by (simp_tac (simpset() addsimps [integ_le_less]) 1);
+by (simp_tac (simpset() addsimps [int_le_less]) 1);
 by (cut_facts_tac [zless_linear] 1);
 by (Blast_tac 1);
 qed "zle_linear";

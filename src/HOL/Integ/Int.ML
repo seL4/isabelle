@@ -243,7 +243,7 @@ Addsimps [negative_eq_positive, not_int_zless_negative];
 
 Goal "(w <= z) = (EX n. z = w + int n)";
 by (auto_tac (claset() addSIs [not_sym RS not0_implies_Suc],
-	      simpset() addsimps [zless_iff_Suc_zadd, integ_le_less]));
+	      simpset() addsimps [zless_iff_Suc_zadd, int_le_less]));
 qed "zle_iff_zadd";
 
 
