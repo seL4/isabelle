@@ -7,13 +7,6 @@ Token translations for xterm and LaTeX output.
 
 signature TOKEN_TRANS =
 sig
-  val token_translation: (string * string * (string -> string * int)) list
-  val class_style: string ref
-  val tfree_style: string ref
-  val tvar_style: string ref
-  val free_style: string ref
-  val bound_style: string ref
-  val var_style: string ref
   val normal: string
   val bold: string
   val underline: string
@@ -26,6 +19,19 @@ sig
   val purple: string
   val cyan: string
   val white: string
+  val xterm_class: string ref
+  val xterm_tfree: string ref
+  val xterm_tvar: string ref
+  val xterm_free: string ref
+  val xterm_bound: string ref
+  val xterm_var: string ref
+  val xterm_color_class: string ref
+  val xterm_color_tfree: string ref
+  val xterm_color_tvar: string ref
+  val xterm_color_free: string ref
+  val xterm_color_bound: string ref
+  val xterm_color_var: string ref
+  val token_translation: (string * string * (string -> string * int)) list
 end;
 
 structure TokenTrans: TOKEN_TRANS =
@@ -48,37 +54,49 @@ val bold = "\^[[1m";
 val underline = "\^[[4m";
 val reverse = "\^[[7m";
 
-val black = "\^[[30m";		(**)
-val red = "\^[[31m";		(**)
-val green = "\^[[32m";		(**)
+val black = "\^[[30m";
+val red = "\^[[31m";
+val green = "\^[[32m";
 val yellow = "\^[[33m";
-val blue = "\^[[34m";		(**)
-val purple = "\^[[35m";		(**)
+val blue = "\^[[34m";
+val purple = "\^[[35m";
 val cyan = "\^[[36m";
 val white = "\^[[37m";
 
-fun style s x = (s ^ x ^ normal, size x);
-fun ref_style (ref s) x = (s ^ x ^ normal, size x);
+fun style (ref s) x = (s ^ x ^ normal, size x);
 
-val class_style = ref normal;
-val tfree_style = ref bold;
-val tvar_style = ref bold;
-val free_style = ref bold;
-val bound_style = ref underline;
-val var_style = ref bold;
 
+(* print modes "xterm" and "xterm_color" *)
+
+val xterm_class = ref normal;
+val xterm_tfree = ref bold;
+val xterm_tvar = ref bold;
+val xterm_free = ref bold;
+val xterm_bound = ref underline;
+val xterm_var = ref bold;
+
+val xterm_color_class = ref red;
+val xterm_color_tfree = ref purple;
+val xterm_color_tvar = ref purple;
+val xterm_color_free = ref blue;
+val xterm_color_bound = ref green;
+val xterm_color_var = ref blue;
 
 val xterm_trans =
  trans_mode "xterm"
-  [("class", ref_style class_style),
-   ("tfree", ref_style tfree_style),
-   ("tvar", ref_style tvar_style),
-   ("free", ref_style free_style),
-   ("bound", ref_style bound_style),
-   ("var", ref_style var_style)]
-
-
-(* FIXME xterm-color *)
+  [("class", style xterm_class),
+   ("tfree", style xterm_tfree),
+   ("tvar", style xterm_tvar),
+   ("free", style xterm_free),
+   ("bound", style xterm_bound),
+   ("var", style xterm_var)] @
+ trans_mode "xterm_color"
+  [("class", style xterm_color_class),
+   ("tfree", style xterm_color_tfree),
+   ("tvar", style xterm_color_tvar),
+   ("free", style xterm_color_free),
+   ("bound", style xterm_color_bound),
+   ("var", style xterm_color_var)];
 
 
 (** LaTeX output **)
