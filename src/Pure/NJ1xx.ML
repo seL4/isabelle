@@ -123,10 +123,14 @@ fun execute command =
 fun xML filename banner =
   let val runtime = List.hd (SMLofNJ.getAllArgs())
       val exec_file = IO.open_out filename
+
       val _ = IO.output (exec_file,
 			 String.concat
 			 ["#!/bin/sh\n",
-			  runtime, " @SMLload=", filename, ".heap\n"])
+			  runtime, " @SMLdebug=/dev/null @SMLload=", filename,
+                          ".heap\n"])
+                             (*"@SMLdebug=..." sends GC messages to /dev/null*)
+
 	val _ = IO.close_out exec_file;
 	val _ = OS.Process.system ("chmod a+x " ^ filename)
     in exportML (filename^".heap");
