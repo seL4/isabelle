@@ -33,6 +33,8 @@ f.simps instead of f.rules;
 * HOL: theory Sexp now in HOL/Induct examples (used to be part of main
 HOL, but was unused); should better use HOL's datatype package anyway;
 
+* HOL: removed obsolete theorem binding expand_if, use split_if instead;
+
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
 
 * HOL/ML: even fewer consts are declared as global (see theories Ord,
@@ -139,6 +141,10 @@ method anyway;
 
 * HOL/Calculation: new rules for substitution in inequalities
 (monotonicity conditions are extracted to be proven terminally);
+
+* HOL: removed obsolete expand_if = split_if; theorems if_splits =
+split_if split_if_asm; datatype package provides theorems foo.splits =
+foo.split foo.split_asm for each datatype;
 
 * names of theorems etc. may be natural numbers as well;
 
