@@ -137,12 +137,12 @@ bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);
 (** min & max **)
 
 Goalw [min_def] "min (x::'a::order) x = x";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "min_same";
 Addsimps [min_same];
 
 Goalw [max_def] "max (x::'a::order) x = x";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "max_same";
 Addsimps [max_same];
 
