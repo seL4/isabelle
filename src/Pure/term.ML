@@ -122,8 +122,8 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val scan_radixint: int * string list -> int * string list
-  val scan_int: string list -> int * string list
+  val read_radixint: int * string list -> int * string list
+  val read_int: string list -> int * string list
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
   val variant_abs: string * typ * term -> string * term
@@ -674,8 +674,8 @@ fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
 (*Dummy type for parsing and printing.  Will be replaced during type inference. *)
 val dummyT = Type("dummy",[]);
 
-(*scan a numeral of the given radix, normally 10*)
-fun scan_radixint (radix: int, cs) : int * string list =
+(*read a numeral of the given radix, normally 10*)
+fun read_radixint (radix: int, cs) : int * string list =
   let val zero = ord"0"
       val limit = zero+radix
       fun scan (num,[]) = (num,[])
@@ -685,7 +685,7 @@ fun scan_radixint (radix: int, cs) : int * string list =
 	      else (num, c::cs)
   in  scan(0,cs)  end;
 
-fun scan_int cs = scan_radixint(10,cs);
+fun read_int cs = read_radixint(10,cs);
 
 
 (*** Printing ***)
