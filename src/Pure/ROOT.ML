@@ -4,7 +4,7 @@
     Copyright   1993  University of Cambridge
 
 Root file for Pure Isabelle: all modules in proper order for loading.
-Loads Pure Isabelle into an empty ML database (see also IsaMakefile).
+Loads Pure Isabelle into an empty ML database (see also README).
 *)
 
 val banner = "Pure Isabelle";
