@@ -201,6 +201,13 @@ by (rtac (major RS notE RS notI) 1);
 by (etac minor 1) ;
 qed "contrapos_nn";
 
+(*not used at all, but we already have the other 3 combinations *)
+val [major,minor] = Goal "[| Q;  P ==> ~Q |] ==> ~P";
+by (rtac (minor RS notE RS notI) 1);
+by (assume_tac 1);
+by (rtac major 1) ;
+qed "contrapos_pn";
+
 Goal "t ~= s ==> s ~= t";
 by (etac contrapos_nn 1); 
 by (etac sym 1); 
