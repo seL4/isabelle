@@ -321,7 +321,8 @@ by (assume_tac 1) ;
 qed "CollectD2";
 
 val prems= Goalw [Collect_def]  
-    "[| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] ==> Collect(A,P) = Collect(B,Q)";
+    "[| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] \
+\    ==> Collect(A, %x. P(x)) = Collect(B, %x. Q(x))";
 by (simp_tac (simpset() addsimps prems) 1) ;
 qed "Collect_cong";
 
