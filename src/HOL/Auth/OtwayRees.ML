@@ -484,8 +484,8 @@ by (REPEAT_FIRST (fast_tac (!claset
 qed_spec_mp"no_nonce_OR1_OR2";
 
 
-(*If the encrypted message appears, and A has used Nonce NA to start a run,
-  then it originated with the Server!*)
+(*Crucial property: If the encrypted message appears, and A has used NA
+  to start a run, then it originated with the Server!*)
 goal thy 
  "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway lost |]                 \
 \    ==> Crypt {|NA, Key K|} (shrK A) : parts (sees lost Spy evs)      \
@@ -528,46 +528,26 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
 qed_spec_mp "NA_Crypt_imp_Server_msg";
 
 
-(*Crucial property: if A receives B's OR4 message and the nonce NA agrees
+(*Corollary: if A receives B's OR4 message and the nonce NA agrees
   then the key really did come from the Server!  CANNOT prove this of the
   bad form of this protocol, even though we can prove
   Spy_not_see_encrypted_key*)
 goal thy 
- "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway lost |]             \
-\        ==> Says B' A {|NA, Crypt {|NA, Key K|} (shrK A)|}        \
-\             : set_of_list evs -->                                \
-\            Says A B {|NA, Agent A, Agent B,                      \
-\                       Crypt {|NA, Agent A, Agent B|} (shrK A)|}  \
-\             : set_of_list evs -->                                \
-\            (EX NB. Says Server B                                 \
+ "!!evs. [| Says B' A {|NA, Crypt {|NA, Key K|} (shrK A)|}         \
+\            : set_of_list evs;                                    \
+\           Says A B {|NA, Agent A, Agent B,                       \
+\                      Crypt {|NA, Agent A, Agent B|} (shrK A)|}   \
+\            : set_of_list evs;                                    \
+\           A ~: lost;  A ~= Spy;  evs : otway lost |]             \
+\        ==> EX NB. Says Server B                                  \
 \                     {|NA,                                        \
 \                       Crypt {|NA, Key K|} (shrK A),              \
 \                       Crypt {|NB, Key K|} (shrK B)|}             \
-\                       : set_of_list evs)";
-by (etac otway.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addcongs [conj_cong])));
-(*OR2*)
-by (Fast_tac 3);
-(*OR1: it cannot be a new Nonce, contradiction.*)
-by (fast_tac (!claset addSIs [parts_insertI]
-                      addEs [Says_imp_old_nonces RS less_irrefl]
-                      addss (!simpset)) 2);
-(*Fake, OR4*) (** LEVEL 4 **)
-by (step_tac (!claset delrules [impCE]) 1);
-by (ALLGOALS Asm_simp_tac);
-by (Fast_tac 4);
-by (fast_tac (!claset addSIs [Crypt_imp_OR1]
-                      addEs  partsEs
-                      addDs [Says_imp_sees_Spy RS parts.Inj]) 3);
-(** LEVEL 8 **)
-(*Still subcases of Fake and OR4*)
-by (fast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
-                      addDs  [impOfSubs analz_subset_parts]) 1);
+\                       : set_of_list evs";
 by (fast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
                       addEs  partsEs
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
-val A_can_trust = 
-    result() RSN (2, rev_mp) RS mp |> standard;
+qed "A_can_trust";
 
 
 (*Describes the form of K and NA when the Server sends this message.*)
