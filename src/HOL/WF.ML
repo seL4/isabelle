@@ -1,4 +1,4 @@
-(*  Title:      HOL/wf.ML
+(*  Title:      HOL/WF.ML
     ID:         $Id$
     Author:     Tobias Nipkow, with minor changes by Konrad Slind
     Copyright   1992  University of Cambridge/1995 TU Munich
@@ -12,7 +12,7 @@ val H_cong2 = (*freeze H!*)
 	      read_instantiate [("H","H")] (result());
 
 val [prem] = Goalw [wf_def]
- "[| !!P x. [| !x. (!y. (y,x) : r --> P(y)) --> P(x) |] ==> P(x) |] ==> wf(r)";
+ "(!!P x. (ALL x. (ALL y. (y,x) : r --> P(y)) --> P(x)) ==> P(x)) ==> wf(r)";
 by (Clarify_tac 1);
 by (rtac prem 1);
 by (assume_tac 1);
@@ -21,14 +21,15 @@ qed "wfUNIVI";
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
 val [prem1,prem2] = Goalw [wf_def]
  "[| r <= A <*> A;  \
-\    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
-\ ==>  wf(r)";
-by (blast_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
+\    !!x P. [| ALL x. (ALL y. (y,x) : r --> P y) --> P x;  x:A |] ==> P x |]  \
+\ ==>  wf r";
+by (cut_facts_tac [prem1] 1);
+by (blast_tac (claset() addIs [prem2]) 1);
 qed "wfI";
 
 val major::prems = Goalw [wf_def]
     "[| wf(r);          \
-\       !!x.[| ! y. (y,x): r --> P(y) |] ==> P(x) \
+\       !!x.[| ALL y. (y,x): r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
 by (rtac (major RS spec RS mp RS spec) 1);
 by (blast_tac (claset() addIs prems) 1);
@@ -40,17 +41,20 @@ fun wf_ind_tac a prems i =
            rename_last_tac a ["1"] (i+1),
            ares_tac prems i];
 
-Goal "wf(r) ==> ! x. (a,x):r --> (x,a)~:r";
+Goal "wf(r) ==> ALL x. (a,x):r --> (x,a)~:r";
 by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed_spec_mp "wf_not_sym";
 
-(* [| wf(r);  (a,x):r;  ~P ==> (x,a):r |] ==> P *)
-bind_thm ("wf_asym", wf_not_sym RS swap);
+(* [| wf r;  ~Z ==> (a,x) : r;  (x,a) ~: r ==> Z |] ==> Z *)
+bind_thm ("wf_asym", cla_make_elim wf_not_sym);
 
-Goal "[| wf(r);  (a,a): r |] ==> P";
+Goal "wf(r) ==> (a,a) ~: r";
 by (blast_tac (claset() addEs [wf_asym]) 1);
-qed "wf_irrefl";
+qed "wf_not_refl";
+
+(* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
+bind_thm ("wf_irrefl", make_elim wf_not_refl);
 
 (*transitive closure of a wf relation is wf! *)
 Goal "wf(r) ==> wf(r^+)";
@@ -63,31 +67,29 @@ by (eres_inst_tac [("a","x")] wf_induct 1);
 by (blast_tac (claset() addEs [tranclE]) 1);
 qed "wf_trancl";
 
-
-val wf_converse_trancl = prove_goal thy 
-"!!X. wf (r^-1) ==> wf ((r^+)^-1)" (K [
-	stac (trancl_converse RS sym) 1,
-	etac wf_trancl 1]);
-bind_thm ("wf_converse_trancl", wf_converse_trancl);
+Goal "wf (r^-1) ==> wf ((r^+)^-1)";
+by (stac (trancl_converse RS sym) 1);
+by (etac wf_trancl 1);
+qed "wf_converse_trancl";
 
 
 (*----------------------------------------------------------------------------
  * Minimal-element characterization of well-foundedness
  *---------------------------------------------------------------------------*)
 
-Goalw [wf_def] "wf r ==> x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)";
+Goalw [wf_def] "wf r ==> x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q)";
 by (dtac spec 1);
 by (etac (mp RS spec) 1);
 by (Blast_tac 1);
 val lemma1 = result();
 
-Goalw [wf_def] "(! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
+Goalw [wf_def] "(ALL Q x. x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q)) ==> wf r";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
 by (Blast_tac 1);
 val lemma2 = result();
 
-Goal "wf r = (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q))";
+Goal "wf r = (ALL Q x. x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q))";
 by (blast_tac (claset() addSIs [lemma1, lemma2]) 1);
 qed "wf_eq_minimal";
 
@@ -130,7 +132,7 @@ by (case_tac "y:Q" 1);
  by (Blast_tac 2);
 by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")] allE 1);
  by (assume_tac 1);
-by (thin_tac "! Q. (? x. x : Q) --> ?P Q" 1);	(*essential for speed*)
+by (thin_tac "ALL Q. (EX x. x : Q) --> ?P Q" 1);	(*essential for speed*)
 (*Blast_tac with new substOccur fails*)
 by (best_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
@@ -155,42 +157,29 @@ AddIffs [wf_insert];
 
 *)
 
-Goal "[| !i:I. wf(r i); \
-\        !i:I.!j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
-\                                  Domain(r j) Int Range(r i) = {} \
+Goal "[| ALL i:I. wf(r i); \
+\        ALL i:I. ALL j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
+\                                         Domain(r j) Int Range(r i) = {} \
 \     |] ==> wf(UN i:I. r i)";
 by (asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
 by (Clarify_tac 1);
 by (rename_tac "A a" 1);
-by (case_tac "? i:I. ? a:A. ? b:A. (b,a) : r i" 1);
- by (Clarify_tac 1);
- by (EVERY1[dtac bspec, assume_tac,
-           eres_inst_tac[("x","{a. a:A & (? b:A. (b,a) : r i)}")]allE]);
- by (EVERY1[etac allE,etac impE]);
-  by (Blast_tac 1);
- by (Clarify_tac 1);
- by (rename_tac "z'" 1);
- by (res_inst_tac [("x","z'")] bexI 1);
-  by (assume_tac 2);
- by (Clarify_tac 1);
- by (rename_tac "j" 1);
- by (case_tac "r j = r i" 1);
-  by (EVERY1[etac allE,etac impE,assume_tac]);
-  by (Asm_full_simp_tac 1);
-  by (Blast_tac 1);
- by (blast_tac (claset() addEs [equalityE]) 1);
-by (Asm_full_simp_tac 1);
-by (fast_tac (claset() delWrapper "bspec") 1); (*faster than Blast_tac*)
+by (case_tac "EX i:I. EX a:A. EX b:A. (b,a) : r i" 1);
+ by (Asm_full_simp_tac 2);
+ by (Best_tac 2);  (*much faster than Blast_tac*)
+by (Clarify_tac 1);
+by (EVERY1[dtac bspec, assume_tac,
+	   eres_inst_tac [("x","{a. a:A & (EX b:A. (b,a) : r i)}")] allE]);
+by (EVERY1[etac allE, etac impE]);
+ by (ALLGOALS Blast_tac);
 qed "wf_UN";
 
 Goalw [Union_def]
- "[| !r:R. wf r; \
-\    !r:R.!s:R. r ~= s --> Domain r Int Range s = {} & \
-\                          Domain s Int Range r = {} \
+ "[| ALL r:R. wf r; \
+\    ALL r:R. ALL s:R. r ~= s --> Domain r Int Range s = {} & \
+\                                 Domain s Int Range r = {} \
 \ |] ==> wf(Union R)";
-by (rtac wf_UN 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addIs [wf_UN]) 1);
 qed "wf_Union";
 
 Goal "[| wf r; wf s; Domain r Int Range s = {}; Domain s Int Range r = {} \
@@ -207,7 +196,7 @@ qed "wf_Un";
 Goal "[| wf r; inj f |] ==> wf(prod_fun f f `` r)";
 by (asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
 by (Clarify_tac 1);
-by (case_tac "? p. f p : Q" 1);
+by (case_tac "EX p. f p : Q" 1);
 by (eres_inst_tac [("x","{p. f p : Q}")]allE 1);
 by (fast_tac (claset() addDs [injD]) 1);
 by (Blast_tac 1);
@@ -215,7 +204,7 @@ qed "wf_prod_fun_image";
 
 (*** acyclic ***)
 
-Goalw [acyclic_def] "!x. (x, x) ~: r^+ ==> acyclic r";
+Goalw [acyclic_def] "ALL x. (x, x) ~: r^+ ==> acyclic r";
 by (assume_tac 1);
 qed "acyclicI";
 
@@ -254,7 +243,7 @@ qed "acyclic_subset";
 
 (*This rewrite rule works upon formulae; thus it requires explicit use of
   H_cong to expose the equality*)
-Goalw [cut_def] "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
+Goalw [cut_def] "(cut f r x = cut g r x) = (ALL y. (y,x):r --> f(y)=g(y))";
 by (simp_tac (HOL_ss addsimps [expand_fun_eq]) 1);
 qed "cuts_eq";
 
@@ -362,20 +351,21 @@ qed "def_wfrec";
 
 (**** TFL variants ****)
 
-Goal "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
+Goal "ALL R. wf R --> \
+\      (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))";
 by (Clarify_tac 1);
 by (res_inst_tac [("r","R"),("P","P"), ("a","x")] wf_induct 1);
 by (assume_tac 1);
 by (Blast_tac 1);
 qed"tfl_wf_induct";
 
-Goal "!f R. (x,a):R --> (cut f R a)(x) = f(x)";
+Goal "ALL f R. (x,a):R --> (cut f R a)(x) = f(x)";
 by (Clarify_tac 1);
 by (rtac cut_apply 1);
 by (assume_tac 1);
 qed"tfl_cut_apply";
 
-Goal "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
+Goal "ALL M R f. (f=wfrec R M) --> wf R --> (ALL x. f x = M (cut f R x) x)";
 by (Clarify_tac 1);
 by (etac wfrec 1);
 qed "tfl_wfrec";
