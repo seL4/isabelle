@@ -1065,14 +1065,12 @@ Theory \thydx{Prod} (Fig.\ts\ref{hol-prod}) defines the product type
 $\alpha\times\beta$, with the ordered pair syntax $(a, b)$.  General
 tuples are simulated by pairs nested to the right:
 \begin{center}
-\begin{tabular}{|c|c|}
-\hline
+\begin{tabular}{c|c}
 external & internal \\
 \hline
 $\tau@1 \times \dots \times \tau@n$ & $\tau@1 \times (\dots (\tau@{n-1} \times \tau@n)\dots)$ \\
 \hline
 $(t@1,\dots,t@n)$ & $(t@1,(\dots,(t@{n-1},t@n)\dots)$ \\
-\hline
 \end{tabular}
 \end{center}
 In addition, it is possible to use tuples
@@ -1459,6 +1457,7 @@ $(\alpha@1,\ldots,\alpha@n)ty$ rather than a particular type.
 \begin{figure}[htbp]
 \begin{rail}
 typedef  : 'typedef' ( () | '(' name ')') type '=' set witness;
+
 type    : typevarlist name ( () | '(' infix ')' );
 set     : string;
 witness : () | '(' id ')';
@@ -1542,68 +1541,71 @@ class of all \HOL\ types.
 
 \section{Records}
 
-At a first approximation, records are just a minor generalization of tuples,
-where components may be addressed by labels instead of just position.  The
-version of records offered by Isabelle/HOL is slightly more advanced, though,
-supporting \emph{extensible record schemes}.  This admits operations that are
-polymorphic wrt.\ record extensions, yielding ``object-oriented'' effects like
-(single) inheritance.  See also \cite{Naraschewski-Wenzel:1998:TPHOL} for more
-details on object-oriented verification and record subtyping in HOL.
+At a first approximation, records are just a minor generalisation of tuples,
+where components may be addressed by labels instead of just position (think of
+{\ML}, for example).  The version of records offered by Isabelle/HOL is
+slightly more advanced, though, supporting \emph{extensible record schemes}.
+This admits operations that are polymorphic with respect to record extension,
+yielding ``object-oriented'' effects like (single) inheritance.  See also
+\cite{Naraschewski-Wenzel:1998:TPHOL} for more details on object-oriented
+verification and record subtyping in HOL.
+
 
 \subsection{Basics}
 
-Isabelle/HOL supports concrete syntax for both fixed and schematic record
-terms and types:
+Isabelle/HOL supports fixed and schematic records both at the level of terms
+and types.  The concrete syntax is as follows:
 
+\begin{center}
 \begin{tabular}{l|l|l}
-  & terms & types \\ \hline
+  & record terms & record types \\ \hline
   fixed & $\record{x = a\fs y = b}$ & $\record{x \ty A\fs y \ty B}$ \\
-  scheme & $\record{x = a\fs y = b\fs \more = more}$ &
-    $\record{x \ty A\fs y \ty B\fs \more \ty \mu}$ \\
+  schematic & $\record{x = a\fs y = b\fs \more = m}$ &
+    $\record{x \ty A\fs y \ty B\fs \more \ty M}$ \\
 \end{tabular}
+\end{center}
 
-The \textsc{ascii} representation of $\record{~}$ is \texttt{(|~|)}.
+\noindent The \textsc{ascii} representation of $\record{x = a}$ is \texttt{(| x = a |)}.
 
 A fixed record $\record{x = a\fs y = b}$ has field $x$ of value $a$ and field
 $y$ of value $b$.  The corresponding type is $\record{x \ty A\fs y \ty B}$,
-assuming $a \ty A$ and $b \ty B$.
+assuming that $a \ty A$ and $b \ty B$.
 
-A record scheme like $\record{x = a\fs y = b\fs \more = more}$ contains fields
-$x$ and $y$ as before, but also possibly further fields as indicated by above
-``$\more$'' notation.  We call ``$\more$'' the \emph{more part}; logically it
-is just a free variable.  In the literature this is also referred to as
-\emph{row variable}.  The more part of record schemes may be instantiated by
-zero or more further components.  For example, above scheme might get
-instantiated to $\record{x = a\fs y = b\fs z = c\fs \more = more'}$, where
-$more'$ refers to a different more part.
-
-Fixed records are special instances of record schemes, where $more$ is
-properly terminated by the $unit$ element $()$.  Thus $\record{x = a\fs y =
-  b}$ is just an abbreviation of $\record{x = a\fs y = b\fs \more = ()}$.
+A record scheme like $\record{x = a\fs y = b\fs \more = m}$ contains fields
+$x$ and $y$ as before, but also possibly further fields as indicated by the
+``$\more$'' notation (which is actually part of the syntax).  The improper
+field ``$\more$'' of a record scheme is called the \emph{more part}.
+Logically it is just a free variable, which is occasionally referred to as
+\emph{row variable} in the literature.  The more part of a record scheme may
+be instantiated by zero or more further components.  For example, above scheme
+might get instantiated to $\record{x = a\fs y = b\fs z = c\fs \more = m'}$,
+where $m'$ refers to a different more part.  Fixed records are special
+instances of record schemes, where ``$\more$'' is properly terminated by the
+$() :: unit$ element.  Actually, $\record{x = a\fs y = b}$ is just an
+abbreviation for $\record{x = a\fs y = b\fs \more = ()}$.
 
 \medskip
 
 There are two key features that make extensible records in a simply typed
 language like HOL feasible:
 \begin{enumerate}
-\item the ``more'' part is internalized (as a free term or type variable),
-\item field names are externalized, i.e.\ cannot be reasoned about within the
-  logic as first class values.
+\item the more part is internalised, as a free term or type variable,
+\item field names are externalised, they cannot be accessed within the logic
+  as first-class values.
 \end{enumerate}
 
 \medskip
 
-Records have to be defined explicitly, fixing their field names and types,
-and (optional) parent record scheme (see \S\ref{sec:HOL:record-def}).
-Afterwards, records may be formed using above syntax, while obeying the
-canonical order of fields according to the declaration hierarchy.
+In Isabelle/HOL record types have to be defined explicitly, fixing their field
+names and types, and their (optional) parent record (see
+\S\ref{sec:HOL:record-def}).  Afterwards, records may be formed using above
+syntax, while obeying the canonical order of fields as given by their
+declaration.  The record package also provides several operations like
+selectors and updates (see \S\ref{sec:HOL:record-ops}), together with
+characteristic properties (see \S\ref{sec:HOL:record-thms}).
 
-The record package also provides several operations like selectors and updates
-(see \S\ref{sec:HOL:record-ops}, together with their characteristics properties
-(see \S\ref{sec:HOL:record-thms}).
-
-There is a simple example exhibiting most basic aspects of extensible records
-available.  See theory \texttt{HOL/ex/Points} in the Isabelle sources.
+There is an example theory demonstrating most basic aspects of extensible
+records (see theory \texttt{HOL/ex/Points} in the Isabelle sources).
 
 
 \subsection{Defining records}\label{sec:HOL:record-def}
@@ -1617,6 +1619,7 @@ Fig.~\ref{fig:HOL:record}.  For the definition of `typevarlist' and `type' see
 \begin{figure}[htbp]
 \begin{rail}
 record  : 'record' typevarlist name '=' parent (field +);
+
 parent  : ( () | type '+');
 field   : name '::' type;
 \end{rail}
@@ -1627,131 +1630,179 @@ field   : name '::' type;
 A general \ttindex{record} specification is of the following form:
 \[
 \mathtt{record}~(\alpha@1, \dots, \alpha@n) \, t ~=~
-  (\tau@1, \dots, \tau@m) \, s + c@1 :: \sigma@1 ~ \dots c@l :: \sigma@k
+  (\tau@1, \dots, \tau@m) \, s ~+~ c@1 :: \sigma@1 ~ \dots ~ c@l :: \sigma@l
 \]
-where $\alpha@i$ are distinct type variables, and $\tau@i$, $\sigma@i$ types
-containing at most variables $\alpha@1, \dots, \alpha@n$; type constructor $t$
-has to be new, while $s$ specifies an existing one.  Also, the $c@i$ have to
-be distinct fields names (which may be safely reused from other records).
-Note that there has to be at least one field.
+where $\vec\alpha@n$ are distinct type variables, and $\vec\tau@m$,
+$\vec\sigma@l$ are types containing at most variables from $\vec\alpha@n$.
+Type constructor $t$ has to be new, while $s$ has to specify an existing
+record type.  Furthermore, the $\vec c@l$ have to be distinct field names.
+There has to be at least one field.
+
+In principle, field names may never be shared with other records.  This is no
+actual restriction in practice, since $\vec c@l$ are internally declared
+within a separate name space qualified by the name $t$ of the record.
 
 \medskip
 
-Above definition introduces a new record type $(\alpha@1, \dots, \alpha@n) \,
-t$ by extending an existing one $(\tau@1, \dots, \tau@m) \, s$ by new fields
-$c@1, \dots, c@n$.  The parent record specification is optional.  By omitting
-it, $(\alpha@1, \dots, \alpha@n) \,t$ becomes a root record which is not
-derived from any other one.  The hierarchy of records declared within any
-theory forms a forest structure.
+Above definition introduces a new record type $(\vec\alpha@n) \, t$ by
+extending an existing one $(\vec\tau@m) \, s$ by new fields $\vec c@l \ty
+\vec\sigma@l$.  The parent record specification is optional, by omitting it
+$t$ becomes a \emph{root record}.  The hierarchy of all records declared
+within a theory forms a forest structure, i.e.\ a set of trees, where any of
+these is rooted by some root record.
 
-The new type $(\alpha@1, \dots, \alpha@n) \, t$ is made an abbreviation for
-the fixed record type $\record{c@1 \ty \sigma@1\fs \dots\fs c@k \ty
-  \sigma@k}$, and $(\alpha@1\fs \dots\fs \alpha@n\fs \mu) \, t_scheme$ is made
-an abbreviation for $\record{c@1 \ty \sigma@1\fs \dots\fs c@k \ty \sigma@k\fs
-  \more \ty \mu}$.
+For convenience, $(\vec\alpha@n) \, t$ is made a type abbreviation for the
+fixed record type $\record{\vec c@l \ty \vec\sigma@l}$, and $(\vec\alpha@n,
+\zeta) \, t_scheme$ is made an abbreviation for $\record{\vec c@l \ty
+  \vec\sigma@l\fs \more \ty \zeta}$.
+
+\medskip
+
+The following simple example defines a root record type $point$ with fields $x
+\ty nat$ and $y \ty nat$, and record type $cpoint$ by extending $point$ with
+an additional $colour$ component.
+
+\begin{ttbox}
+  record point =
+    x :: nat
+    y :: nat
+
+  record cpoint = point +
+    colour :: string
+\end{ttbox}
 
 
 \subsection{Record operations}\label{sec:HOL:record-ops}
 
-Any record definition as above produces selectors, updates and derived
-constructors (make).  To simplify the presentation we assume that $(\alpha@1,
-\dots, \alpha@n) \, t$ is a root record with fields $c@i \ty \sigma@i$.
+Any record definition of the form presented above produces certain standard
+operations.  Selectors and updates are provided for any field, including the
+improper one ``$more$''.  There are also cumulative record constructor
+functions.
 
-Selectors and updates are available for any field proper field and the
-pseudo-field $more$ as follows:
+To simplify the presentation below, we first assume that $(\vec\alpha@n) \, t$
+is a root record with fields $\vec c@l \ty \vec\sigma@l$.
+
+\medskip
+
+\textbf{Selectors} and \textbf{updates} are available for any field (including
+``$more$'') as follows:
 \begin{matharray}{lll}
-  c@i & \ty & (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To \sigma@i \\
-  c@i_update & \ty & \sigma@i \To (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To
-    (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To
+  c@i & \ty & \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \To \sigma@i \\
+  c@i_update & \ty & \sigma@i \To \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \To
+    \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta}
 \end{matharray}
 
-There is special syntax for updates: $r \, \record{x \asn a}$ abbreviates
-$x_update \, a \, r$.  Repeated updates are also supported like $r \,
+There is some special syntax for updates: $r \, \record{x \asn a}$ abbreviates
+term $x_update \, a \, r$.  Repeated updates are also supported: $r \,
 \record{x \asn a} \, \record{y \asn b} \, \record{z \asn c}$ may be written as
 $r \, \record{x \asn a\fs y \asn b\fs z \asn c}$.  Note that because of
-postfix notation the order of fields printed is reverse in the actual term.
-This might be confusion under rare circumstances in conjunction with proof
-tools like ordered rewriting.
+postfix notation the order of fields shown here is reverse than in the actual
+term.  This might lead to confusion in conjunction with proof tools like
+ordered rewriting.
 
-Updates are just function applications, so fields may be freely permuted in
-the $\record{x \asn a\fs y \asn b}$ notation, as far as the logic is
-concerned.  Thus commutativity of updates can be proven within the logic for
-any two fields, not as a general theorem (remember that fields are not
-first-class).
+Since repeated updates are just function applications, fields may be freely
+permuted in $\record{x \asn a\fs y \asn b\fs z \asn c}$, as far as the logic
+is concerned.  Thus commutativity of updates can be proven within the logic
+for any two fields, but not as a general theorem: fields are not first-class
+values.
 
 \medskip
 
-For convenience there are also derived record constructors as follows:
+\textbf{Make} operations provide cumulative record constructor functions:
 \begin{matharray}{lll}
-  make & \ty & \sigma@1 \To \dots \To \sigma@k \To
-    (\alpha@1, \dots, \alpha@n) \, t \\
-  make_scheme & \ty & \sigma@1 \To \dots \To \sigma@k \To \mu \To
-    (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \\
+  make & \ty & \vec\sigma@l \To \record{\vec c@l \ty \vec \sigma@l} \\
+  make_scheme & \ty & \vec\sigma@l \To
+    \zeta \To \record{\vec c@l \ty \vec \sigma@l, \more \ty \zeta} \\
 \end{matharray}
+\noindent
+These functions are curried.  The corresponding definitions in terms of actual
+record terms are part of the standard simpset.  Thus $point\dtt make\,a\,b$
+rewrites to $\record{x = a\fs y = b}$.
 
 \medskip
 
-Any of these operations are declared within a local name space for $t$.  In
-case that different records share field (base) names, one has to qualify
-explicitly, e.g.\ $t.c_update$.  This is recommended especially for generic
-names like $make$, which should be rather $t.make$ to avoid confusion.
+Any of above selector, update and make operations are declared within a local
+name space prefixed by the name $t$ of the record.  In case that different
+records share base names of fields, one has to qualify names explicitly (e.g.\ 
+$t\dtt c@i_update$).  This is recommended especially for operations like
+$make$ or $update_more$ that always have the same base name.  Just use $t\dtt
+make$ etc.\ to avoid confusion.
 
-\medskip
+\bigskip
 
-Reconsider the case of records that are derived of some parent record.  In
-general, the latter may depend on another parent as well, resulting in a list
-of ancestor records.  Appending the lists of fields of all ancestors results
-in a certain field prefix.  The Isabelle/HOL record package automatically
-takes care of this context of parent fields when defining selectors, updates
-etc.
+We reconsider the case of non-root records, which are derived of some parent
+record.  In general, the latter may depend on another parent as well,
+resulting in a list of \emph{ancestor records}.  Appending the lists of fields
+of all ancestors results in a certain field prefix.  The record package
+automatically takes care of this by lifting operations over this context of
+ancestor fields.  Assuming that $(\vec\alpha@n) \, t$ has ancestor fields
+$\vec d@k \ty \vec\rho@k$, selectors will get the following types:
+\begin{matharray}{lll}
+  c@i & \ty & \record{\vec d@k \ty \vec\rho@k, \vec c@l \ty \vec \sigma@l, \more \ty \zeta}
+    \To \sigma@i
+\end{matharray}
+\noindent
+Update and make operations are analogous.
 
 
 \subsection{Proof tools}\label{sec:HOL:record-thms}
 
-The record package provides the following proof rules for any record $t$:
+The record package provides the following proof rules for any record type $t$.
 \begin{enumerate}
-
-\item standard conversions (selectors or updates applied to record constructor
-  terms) are part of the standard simpset,
   
-\item inject equations of the form analogous to $((x, y) = (x', y')) \equiv
-  x=x' \conj y=y'$ are made part of standard simpset and claset (via
-  \texttt{addIffs}),
+\item Standard conversions (selectors or updates applied to record constructor
+  terms, make function definitions) are part of the standard simpset (via
+  \texttt{addsimps}).
   
-\item a tactic for record field splitting (\ttindex{record_split_tac}) is made
-  part of the standard claset (as sage wrapper); this is based on a rule like
-  this: $(\all x PROP~P~x) \equiv (\all{a~b} PROP~P(a, b))$.
+\item Inject equations of a form analogous to $((x, y) = (x', y')) \equiv x=x'
+  \conj y=y'$ are made part of the standard simpset and claset (via
+  \texttt{addIffs}).
+  
+\item A tactic for record field splitting (\ttindex{record_split_tac}) is made
+  part of the standard claset (via \texttt{addSWrapper}).  This tactic is
+  based on rules analogous to $(\All x PROP~P~x) \equiv (\All{a~b} PROP~P(a,
+  b))$ for any field.
 \end{enumerate}
 
-The first two kinds of rules are also stored within the theory as $t.simps$
-and $t.iffs$, respectively.
+The first two kinds of rules are stored within the theory as $t\dtt simps$ and
+$t\dtt iffs$, respectively.  In some situations it might be appropriate to
+expand the definitions of updates: $t\dtt updates$.  Following a new trend in
+Isabelle system architecture, these names are \emph{not} bound at the {\ML}
+level, though.
 
-The example \texttt{HOL/ex/Points} demonstrates typical proofs concerning
-records.  The basic idea is to make \ttindex{record_split_tac} expand
-quantified record variables and then simplify by the conversion rules.  By
-using a combination of the simplifier and classical prover together with the
-default simpset and claset, record problems should be solved (e.g.\ 
-\texttt{Auto_tac} or \texttt{Force_tac}) with a single stroke.
+\medskip
+
+The example theory \texttt{HOL/ex/Points} demonstrates typical proofs
+concerning records.  The basic idea is to make \ttindex{record_split_tac}
+expand quantified record variables and then simplify by the conversion rules.
+By using a combination of the simplifier and classical prover together with
+the default simpset and claset, record problems should be solved with a single
+stroke of \texttt{Auto_tac} or \texttt{Force_tac}.
 
 
 \section{Datatype definitions}
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
-Inductive datatypes, similar to those of \ML, frequently appear in
-non-trivial applications of \HOL.  In principle, such types could be
-defined by hand via \texttt{typedef} (see \S\ref{sec:typedef}), but
-this would be far too tedious.  The \ttindex{datatype} definition
-package of \HOL\ automates such chores.  It generates and proves
-freeness theorems and induction rules, as well as theorems for
-recursion and case combinators from a very simple description of the new type
-provided by the user.
+Inductive datatypes, similar to those of \ML, frequently appear in actual
+applications of Isabelle/HOL.  In principle, such types could be defined by
+hand via \texttt{typedef} (see \S\ref{sec:typedef}), but this would be far too
+tedious.  The \ttindex{datatype} definition package of \HOL\ automates such
+chores.  It generates an appropriate \texttt{typedef} based on a least
+fixed-point construction, and proves freeness theorems and induction rules, as
+well as theorems for recursion and case combinators.  The user just has to
+give a simple specification of new inductive types using a notation similar to
+{\ML} or Haskell.
+
+The current datatype package can handle both mutual and indirect recursion.
+It also offers to represent existing types as datatypes giving the advantage
+of a more uniform view on standard theories.
 
 
 \subsection{Basics}
 \label{subsec:datatype:basics}
 
-The general \HOL\ \texttt{datatype} definition is of the following form:
+A general \texttt{datatype} definition is of the following form:
 \[
 \begin{array}{llcl}
 \mathtt{datatype} & (\alpha@1,\ldots,\alpha@h)t@1 & = &
@@ -1766,9 +1817,9 @@ The general \HOL\ \texttt{datatype} definition is of the following form:
 where $\alpha@i$ are type variables, $C^j@i$ are distinct constructor
 names and $\tau^j@{i,i'}$ are {\em admissible} types containing at
 most the type variables $\alpha@1, \ldots, \alpha@h$. A type $\tau$
-occurring in a \texttt{datatype} definition is {\em admissible} if
+occurring in a \texttt{datatype} definition is {\em admissible} iff
 \begin{itemize}
-\item $\tau$ is non-recursive, i.e. $\tau$ does not contain any of the
+\item $\tau$ is non-recursive, i.e.\ $\tau$ does not contain any of the
 newly defined type constructors $t@1,\ldots,t@n$, or
 \item $\tau = (\alpha@1,\ldots,\alpha@h)t@{j'}$ where $1 \leq j' \leq n$, or
 \item $\tau = (\tau'@1,\ldots,\tau'@{h'})t'$, where $t'$ is
@@ -1780,8 +1831,8 @@ of the form
 \[
 (\ldots,\ldots ~ (\alpha@1,\ldots,\alpha@h)t@{j'} ~ \ldots,\ldots)t'
 \]
-this is called a {\em nested} occurrence. A very simple example of a datatype
-is the type {\tt list}, which can be defined by
+this is called a {\em nested} (or \emph{indirect}) occurrence. A very simple
+example of a datatype is the type {\tt list}, which can be defined by
 \begin{ttbox}
 datatype 'a list = Nil
                  | Cons 'a ('a list)
@@ -1805,26 +1856,26 @@ datatype ('a, 'b) term = Var 'a
 \end{ttbox}
 is an example for a datatype with nested recursion.
 
-Types in HOL must be nonempty. Each of the new datatypes
-$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \le j \le n$ is nonempty iff
-it has a constructor $C^j@i$ with the following property: For all
-argument types $\tau^j@{i,i'}$ of the form $(\alpha@1,\ldots,\alpha@h)t@{j'}$
-the datatype $(\alpha@1,\ldots,\alpha@h)t@{j'}$ is nonempty.
+\medskip
 
-If there are no nested occurrences of the newly defined datatypes,
-obviously at least one of the newly defined datatypes
-$(\alpha@1,\ldots,\alpha@h)t@j$ must have a constructor $C^j@i$ without
-recursive arguments -- a so-called {\em base case} -- to ensure that
-the new types are nonempty. If there are nested occurrences, a datatype
-can even be nonempty without having a base case itself: Since {\tt list}
-is a nonempty datatype, {\tt datatype t = C (t list)} is nonempty
-as well.
+Types in HOL must be non-empty. Each of the new datatypes
+$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \le j \le n$ is non-empty iff it has a
+constructor $C^j@i$ with the following property: for all argument types
+$\tau^j@{i,i'}$ of the form $(\alpha@1,\ldots,\alpha@h)t@{j'}$ the datatype
+$(\alpha@1,\ldots,\alpha@h)t@{j'}$ is non-empty.
 
-The constructors are automatically defined as functions of their respective
-type:
+If there are no nested occurrences of the newly defined datatypes, obviously
+at least one of the newly defined datatypes $(\alpha@1,\ldots,\alpha@h)t@j$
+must have a constructor $C^j@i$ without recursive arguments, a \emph{base
+  case}, to ensure that the new types are non-empty. If there are nested
+occurrences, a datatype can even be non-empty without having a base case
+itself. Since {\tt list} is a non-empty datatype, {\tt datatype t = C (t
+  list)} is non-empty as well.
+
+The datatype constructors are automatically defined as functions of their
+respective type:
 \[ C^j@i :: [\tau^j@{i,1},\dots,\tau^j@{i,m^j@i}] \To (\alpha@1,\dots,\alpha@h)t@j \]
-These functions have certain {\em freeness} properties --- they are
-distinct:
+These functions have certain {\em freeness} properties.  They are distinct:
 \[
 C^j@i~x@1~\dots~x@{m^j@i} \neq C^j@{i'}~y@1~\dots~y@{m^j@{i'}} \qquad
 \mbox{for all}~ i \neq i'.
@@ -1834,10 +1885,9 @@ and they are injective:
 (C^j@i~x@1~\dots~x@{m^j@i} = C^j@i~y@1~\dots~y@{m^j@i}) =
 (x@1 = y@1 \land \dots \land x@{m^j@i} = y@{m^j@i})
 \]
-Because the number of inequalities is quadratic in the number of
-constructors, a different representation is used if there are $7$ or
-more of them.  In that case every constructor term is mapped to a
-natural number:
+Because the number of distinctness inequalities is quadratic in the number of
+constructors, a different representation is used if there are $7$ or more of
+them.  In that case every constructor term is mapped to a natural number:
 \[
 t@j_ord \, (C^j@i \, x@1 \, \dots \, x@{m^j@i}) = i - 1
 \]
@@ -1846,8 +1896,8 @@ Then distinctness of constructor terms is expressed by:
 t@j_ord \, x \neq t@j_ord \, y \Imp x \neq y.
 \]
 
-\medskip For datatypes without nested recursion, the following
-structural induction rule is provided:
+\medskip The datatype package also provides structural induction rules.  For
+datatypes without nested recursion, this is of the following form:
 \[
 \infer{P@1~x@1 \wedge \dots \wedge P@n~x@n}
   {\begin{array}{lcl}
@@ -1883,25 +1933,27 @@ Rec^j@i & := &
        \tau^j@{i,i'} = (\alpha@1,\ldots,\alpha@h)t@{i''}\right.\right\}
 \end{array}
 \]
-i.e.\ the properties $P@j$ can be assumed for all recursive arguments. For
-datatypes with nested recursion such as {\tt term}, things are a bit more
-complicated. Isabelle's datatype package unfolds the definition
+i.e.\ the properties $P@j$ can be assumed for all recursive arguments.
+
+For datatypes with nested recursion, such as the {\tt term} example from
+above, things are a bit more complicated.  Conceptually, Isabelle/HOL unfolds
+a definition like
 \begin{ttbox}
 datatype ('a, 'b) term = Var 'a
                        | App 'b ((('a, 'b) term) list)
 \end{ttbox}
-to the equivalent definition
+to an equivalent definition without nesting:
 \begin{ttbox}
 datatype ('a, 'b) term      = Var
                             | App 'b (('a, 'b) term_list)
 and      ('a, 'b) term_list = Nil'
                             | Cons' (('a,'b) term) (('a,'b) term_list)
 \end{ttbox}
-having no nestings. However, note that the type {\tt ('a,'b) term_list}
-and the constructors {\tt Nil'} and {\tt Cons'} are not really introduced by the datatype
-package. Instead, you can simply use the -- isomorphic -- type {\tt (('a, 'b) term) list}
-and the constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule
-for {\tt term} has the form
+Note however, that the type {\tt ('a,'b) term_list} and the constructors {\tt
+  Nil'} and {\tt Cons'} are not really introduced.  One can directly work the
+original (isomorphic) type {\tt (('a, 'b) term) list} and its existing
+constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule for
+{\tt term} gets the form
 \[
 \infer{P@1~x@1 \wedge P@2~x@2}
   {\begin{array}{l}
@@ -1914,9 +1966,10 @@ for {\tt term} has the form
 Note that there are two predicates $P@1$ and $P@2$, one for the type {\tt ('a,'b) term}
 and one for the type {\tt (('a, 'b) term) list}.
 
-\medskip
-For convenience, the following additional constructions are predefined for
-each datatype.
+\medskip In principle, inductive types are already fully determined by
+freeness and structural induction.  For convenience in actual applications,
+the following derived constructions are automatically provided for any
+datatype.
 
 \subsubsection{The \sdx{case} construct}
 
@@ -1931,9 +1984,9 @@ The type comes with an \ML-like \texttt{case}-construct:
 where the $x@{i,j}$ are either identifiers or nested tuple patterns as in
 \S\ref{subsec:prod-sum}.
 \begin{warn}
-In contrast to \ML, {\em all} constructors must be present, their order is
-fixed, and nested patterns are not supported (with the exception of tuples).
-Violating this restriction results in strange error messages.
+  All constructors must be present, their order is fixed, and nested patterns
+  are not supported (with the exception of tuples).  Violating this
+  restriction results in strange error messages.
 \end{warn}
 
 To perform case distinction on a goal containing a \texttt{case}-construct,
@@ -1954,9 +2007,9 @@ This theorem can be added to a simpset via \ttindex{addsplits}
 
 \subsubsection{The function \cdx{size}}\label{sec:HOL:size}
 
-Theory \texttt{Arith} declares an overloaded function \texttt{size} of type
+Theory \texttt{Arith} declares a generic function \texttt{size} of type
 $\alpha\To nat$.  Each datatype defines a particular instance of \texttt{size}
-according to the following scheme:
+by overloading according to the following scheme:
 \[
 size(C^j@i~x@1~\dots~x@{m^j@i}) = \!
 \left\{
@@ -1971,24 +2024,25 @@ size~x@{r^j@{i,1}} + \cdots \\
 \end{array}
 \right.
 \]
-where $Rec^j@i$ is defined above.  Viewing datatypes as generalized trees, the
+where $Rec^j@i$ is defined above.  Viewing datatypes as generalised trees, the
 size of a leaf is 0 and the size of a node is the sum of the sizes of its
-subtrees $+1$.
+subtrees ${}+1$.
 
 \subsection{Defining datatypes}
 
-Datatypes are defined in a theory definition file using the keyword
-{\tt datatype}.  The definition following this must conform to the
-syntax of {\em typedecl} specified in Fig.~\ref{datatype-grammar} and
-must obey the rules in the previous section.  As a result the theory is
-extended with the new types, the constructors, and the theorems listed
-in the previous section.
+The theory syntax for datatype definitions is shown in
+Fig.~\ref{datatype-grammar}.  In order to be well-formed, a datatype
+definition has to obey the rules stated in the previous section.  As a result
+the theory is extended with the new types, the constructors, and the theorems
+listed in the previous section.
 
 \begin{figure}
 \begin{rail}
-typedecl : ( type '=' (cons + '|') ) + 'and'
+datatype : 'datatype' typedecls;
+
+typedecls: ( newtype '=' (cons + '|') ) + 'and'
          ;
-type     : typevarlist id ( () | '(' infix ')' )
+newtype  : typevarlist id ( () | '(' infix ')' )
          ;
 cons     : name (argtype *) ( () | ( '(' mixfix ')' ) )
          ;
@@ -1999,26 +2053,22 @@ argtype  : id | tid | ('(' typevarlist id ')')
 \label{datatype-grammar}
 \end{figure}
 
-\begin{warn}
-  Every theory containing a datatype declaration must be based, directly or
-  indirectly, on the theory \texttt{Datatype}, if necessary by including it
-  explicitly as a parent.
-\end{warn}
-
-Most of the theorems about the datatypes become part of the default simpset
-and you never need to see them again because the simplifier applies them
-automatically.  Only induction is invoked by hand:
+Most of the theorems about datatypes become part of the default simpset and
+you never need to see them again because the simplifier applies them
+automatically.  Only induction or exhaustion are usually invoked by hand.
 \begin{ttdescription}
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
  applies structural induction on variable $x$ to subgoal $i$, provided the
  type of $x$ is a datatype.
-\item[\ttindexbold{mutual_induct_tac} {\tt["}$x@1${\tt",}$\ldots${\tt,"}$x@n${\tt"]} $i$]
- applies simultaneous structural induction on the variables $x@1,\ldots,x@n$ to subgoal $i$.
- This is needed to prove properties of mutually recursive datatypes such as {\tt aexp} and
- {\tt bexp} or datatypes with nested recursion such as {\tt term}.
+\item[\ttindexbold{mutual_induct_tac}
+  {\tt["}$x@1${\tt",}$\ldots${\tt,"}$x@n${\tt"]} $i$] applies simultaneous
+  structural induction on the variables $x@1,\ldots,x@n$ to subgoal $i$.  This
+  is the canonical way to prove properties of mutually recursive datatypes
+  such as {\tt aexp} and {\tt bexp}, or datatypes with nested recursion such as
+  {\tt term}.
 \end{ttdescription}
 In some cases, induction is overkill and a case distinction over all
-constructors of the datatype suffices:
+constructors of the datatype suffices.
 \begin{ttdescription}
 \item[\ttindexbold{exhaust_tac} {\tt"}$u${\tt"} $i$]
  performs an exhaustive case analysis for the term $u$ whose type
@@ -2027,18 +2077,17 @@ constructors of the datatype suffices:
  contain the additional assumption $u = C^j@{i'}~x@1~\dots~x@{m^j@{i'}}$ for
  $i'=1$, $\dots$,~$k@j$.
 \end{ttdescription}
-\begin{warn}
-  Induction is only allowed on free variables that should not occur among
-  the premises of the subgoal.  Exhaustion works for arbitrary terms.
-\end{warn}
+
+Note that induction is only allowed on free variables that should not occur
+among the premises of the subgoal.  Exhaustion applies to arbitrary terms.
+
 \bigskip
 
 
-For the technically minded, we give a more detailed description.
-Reading the theory file produces an \ML\ structure which, in addition to the
-usual components, contains a structure named $t$ for each datatype $t$
-defined in the file.  Each structure $t$ contains the following
-elements:
+For the technically minded, we exhibit some more details.  Processing the
+theory file produces an \ML\ structure which, in addition to the usual
+components, contains a structure named $t$ for each datatype $t$ defined in
+the file.  Each structure $t$ contains the following elements:
 \begin{ttbox}
 val distinct : thm list
 val inject : thm list
@@ -2060,41 +2109,45 @@ inequalities in both directions.  The reduction rules of the {\tt
 In case of mutually recursive datatypes, {\tt recs}, {\tt size}, {\tt induct}
 and {\tt simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 
-\subsection{Representing types as datatypes}
-For technical reasons, some types such as {\tt nat}, {\tt *}, {\tt +},
-{\tt bool} and {\tt unit} are not directly defined in a {\tt datatype}
-section. To be able to use the tactics {\tt induct_tac} and
-{\tt exhaust_tac} and to define functions by primitive recursion
-on these types, they have to be represented as datatypes.
-This is done by specifying an induction rule, as well as theorems
-stating the distinctness and injectivity of constructors
-in a {\tt rep_datatype} section, e.g.
+
+\subsection{Representing existing types as datatypes}
+
+For foundational reasons, some basic types such as {\tt nat}, {\tt *}, {\tt
+  +}, {\tt bool} and {\tt unit} are not defined in a {\tt datatype} section,
+but by more primitive means using \texttt{typedef}. To be able to use the
+tactics {\tt induct_tac} and {\tt exhaust_tac} and to define functions by
+primitive recursion on these types, such types may be represented as actual
+datatypes.  This is done by specifying an induction rule, as well as theorems
+stating the distinctness and injectivity of constructors in a {\tt
+  rep_datatype} section.  For type \texttt{nat} this works as follows:
 \begin{ttbox}
 rep_datatype nat
   distinct Suc_not_Zero, Zero_not_Suc
   inject   Suc_Suc_eq
   induct   nat_induct
 \end{ttbox}
-The datatype package automatically derives additional theorems
-for recursion and case combinators from these rules.
+The datatype package automatically derives additional theorems for recursion
+and case combinators from these rules.  Any of the basic HOL types mentioned
+above are represented as datatypes.  Try an induction on \texttt{bool}
+today.
+
 
 \subsection{Examples}
 
 \subsubsection{The datatype $\alpha~mylist$}
 
-We want to define the type $\alpha~mylist$.\footnote{This is just an
-  example, there is already a list type in \HOL, of course.} To do
-this we have to build a new theory that contains the type definition.
-We start from the theory \texttt{Datatype}.
+We want to define a type $\alpha~mylist$. To do this we have to build a new
+theory that contains the type definition.  We start from the theory
+\texttt{Datatype} instead of \texttt{Main} in order to avoid clashes with the
+\texttt{List} theory of Isabelle/HOL.
 \begin{ttbox}
 MyList = Datatype +
   datatype 'a mylist = Nil | Cons 'a ('a mylist)
 end
 \end{ttbox}
-After loading the theory (with \verb$use_thy "MyList"$), we can prove
-$Cons~x~xs\neq xs$.  To ease the induction applied below, we state the
-goal with $x$ quantified at the object-level.  This will be stripped
-later using \ttindex{qed_spec_mp}.
+After loading the theory, we can prove $Cons~x~xs\neq xs$, for example.  To
+ease the induction applied below, we state the goal with $x$ quantified at the
+object-level.  This will be stripped later using \ttindex{qed_spec_mp}.
 \begin{ttbox}
 Goal "!x. Cons x xs ~= xs";
 {\out Level 0}
@@ -2111,9 +2164,9 @@ by (induct_tac "xs" 1);
 {\out        ! x. Cons x mylist ~= mylist ==>}
 {\out        ! x. Cons x (Cons a mylist) ~= Cons a mylist}
 \end{ttbox}
-The first subgoal can be proved using the simplifier.
-Isabelle has already added the freeness properties of lists to the 
-default simplification set.
+The first subgoal can be proved using the simplifier.  Isabelle/HOL has
+already added the freeness properties of lists to the default simplification
+set.
 \begin{ttbox}
 by (Simp_tac 1);
 {\out Level 2}
@@ -2152,8 +2205,7 @@ MyList = Datatype +
     Cons 'a ('a mylist)  (infixr "#" 70)
 end
 \end{ttbox}
-Now the theorem in the previous example can be written \verb|x#xs ~= xs|.  The
-proof is the same.
+Now the theorem in the previous example can be written \verb|x#xs ~= xs|.
 
 
 \subsubsection{A datatype for weekdays}
@@ -2180,10 +2232,10 @@ of them automatically.
 \section{Recursive function definitions}\label{sec:HOL:recursive}
 \index{recursive functions|see{recursion}}
 
-Isabelle/HOL provides two means of declaring recursive functions.
-\begin{itemize}
+Isabelle/HOL provides two main mechanisms of defining recursive functions.
+\begin{enumerate}
 \item \textbf{Primitive recursion} is available only for datatypes, and it is
-  highly restrictive.  Recursive calls are only allowed on the argument's
+  somewhat restrictive.  Recursive calls are only allowed on the argument's
   immediate constituents.  On the other hand, it is the form of recursion most
   often wanted, and it is easy to use.
   
@@ -2196,19 +2248,15 @@ Isabelle/HOL provides two means of declaring recursive functions.
   \footnote{This facility is based on Konrad Slind's TFL
     package~\cite{slind-tfl}.  Thanks are due to Konrad for implementing TFL
     and assisting with its installation.}
-\end{itemize}
+\end{enumerate}
 
-
-A theory file may contain any number of recursive function definitions, which
-may be intermixed with other declarations.  Every recursive function must
-already have been declared as a constant.
-
-These declarations do not assert new axioms.  Instead, they define the
-function using a recursion operator.  Both HOL and ZF derive the theory of
-well-founded recursion from first principles~\cite{paulson-set-II}.  Primitive
-recursion over some datatype relies on the recursion operator provided by the
-datatype package.  With either form of function definition, Isabelle proves
-the desired recursion equations as theorems.
+Following good HOL tradition, these declarations do not assert arbitrary
+axioms.  Instead, they define the function using a recursion operator.  Both
+HOL and ZF derive the theory of well-founded recursion from first
+principles~\cite{paulson-set-II}.  Primitive recursion over some datatype
+relies on the recursion operator provided by the datatype package.  With
+either form of function definition, Isabelle proves the desired recursion
+equations as theorems.
 
 
 \subsection{Primitive recursive functions}
@@ -2216,38 +2264,38 @@ the desired recursion equations as theorems.
 \index{recursion!primitive|(}
 \index{*primrec|(}
 
-Datatypes come with a uniform way of defining functions, {\bf
-  primitive recursion}.  In principle, one can define
-primitive recursive functions by asserting their reduction rules as
-new axioms.  Here is an example:
+Datatypes come with a uniform way of defining functions, {\bf primitive
+  recursion}.  In principle, one could introduce primitive recursive functions
+by asserting their reduction rules as new axioms.  Here is a counter-example
+(you should not do such things yourself):
 \begin{ttbox}
-Append = MyList +
-consts app :: ['a mylist, 'a mylist] => 'a mylist
+Append = Main +
+consts app :: ['a list, 'a list] => 'a list
 rules 
    app_Nil   "app [] ys = ys"
    app_Cons  "app (x#xs) ys = x#app xs ys"
 end
 \end{ttbox}
-But asserting axioms brings the danger of accidentally asserting an
-inconsistency, as in \verb$app [] ys = us$.
+But asserting axioms brings the danger of accidentally asserting nonsense, as
+in \verb$app [] ys = us$.
 
 The \ttindex{primrec} declaration is a safe means of defining primitive
 recursive functions on datatypes:
 \begin{ttbox}
-Append = MyList +
-consts app :: ['a mylist, 'a mylist] => 'a mylist
+Append = Main +
+consts app :: ['a list, 'a list] => 'a list
 primrec
    "app [] ys = ys"
    "app (x#xs) ys = x#app xs ys"
 end
 \end{ttbox}
 Isabelle will now check that the two rules do indeed form a primitive
-recursive definition, preserving consistency.  For example
+recursive definition.  For example
 \begin{ttbox}
 primrec
     "app [] ys = us"
 \end{ttbox}
-is rejected with an error message \texttt{Extra variables on rhs}.
+is rejected with an error message ``\texttt{Extra variables on rhs}''.
 
 \bigskip
 
@@ -2258,13 +2306,13 @@ primrec
 \end{ttbox}
 where \textit{reduction rules} specify one or more equations of the form
 \[ f \, x@1 \, \dots \, x@m \, (C \, y@1 \, \dots \, y@k) \, z@1 \,
-\dots \, z@n = r \] such that $C$ is a constructor of the datatype,
-$r$ contains only the free variables on the left-hand side, and all
-recursive calls in $r$ are of the form $f \, \dots \, y@i \, \dots$
-for some $i$.  There must be at most one reduction rule for each
-constructor.  The order is immaterial.  For missing constructors,
-the function is defined to return an arbitrary value.
-Also note that all reduction rules are added to the default simpset.
+\dots \, z@n = r \] such that $C$ is a constructor of the datatype, $r$
+contains only the free variables on the left-hand side, and all recursive
+calls in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$.  There
+must be at most one reduction rule for each constructor.  The order is
+immaterial.  For missing constructors, the function is defined to return a
+default value.  Also note that all reduction rules are added to the default
+simpset.
   
 If you would like to refer to some rule by name, then you must prefix
 the rule with an identifier.  These identifiers, like those in the
@@ -2272,8 +2320,8 @@ the rule with an identifier.  These identifiers, like those in the
 
 The primitive recursive function can have infix or mixfix syntax:
 \begin{ttbox}\underscoreon
-Append = MyList +
-consts "@"  :: ['a mylist, 'a mylist] => 'a mylist  (infixr 60)
+Append = List +
+consts "@"  :: ['a list, 'a list] => 'a list  (infixr 60)
 primrec
    "[] @ ys = ys"
    "(x#xs) @ ys = x#(xs @ ys)"
@@ -2281,7 +2329,7 @@ end
 \end{ttbox}
 
 The reduction rules for {\tt\at} become part of the default simpset, which
-leads to short proofs:
+leads to short proof scripts:
 \begin{ttbox}\underscoreon
 Goal "(xs @ ys) @ zs = xs @ (ys @ zs)";
 by (induct\_tac "xs" 1);
@@ -2337,8 +2385,8 @@ primrec
 \end{ttbox}
 In textbooks about semantics one often finds {\em substitution theorems},
 which express the relationship between substitution and evaluation. For
-{'a aexp} and {'a bexp}, we can prove such a theorem by mutual induction,
-followed by simplification:
+\texttt{'a aexp} and \texttt{'a bexp}, we can prove such a theorem by mutual
+induction, followed by simplification:
 \begin{ttbox}
 Goal
   "eval_aexp env (subst_aexp (Var(v := a')) a) =
@@ -2370,10 +2418,9 @@ primrec
   "subst_term_list f (t # ts) =
      subst_term f t # subst_term_list f ts"
 \end{ttbox}
-Since datatypes with nested recursion are unfolded, the recursion scheme
-follows the structure of the unfolded definition of type {\tt term}
-shown in \S\ref{subsec:datatype:basics}. To prove properties of this
-substitution function, mutual induction is needed:
+The recursion scheme follows the structure of the unfolded definition of type
+{\tt term} shown in \S\ref{subsec:datatype:basics}. To prove properties of
+this substitution function, mutual induction is needed:
 \begin{ttbox}
 Goal
   "(subst_term ((subst_term f1) o f2) t) =
@@ -2414,26 +2461,27 @@ recdef fib "less_than"
 With \texttt{recdef}, function definitions may be incomplete, and patterns may
 overlap, as in functional programming.  The \texttt{recdef} package
 disambiguates overlapping patterns by taking the order of rules into account.
-For missing patterns, the function is defined to return an arbitrary value.
-For example, here is a declaration of the list function \cdx{hd}:
-\begin{ttbox}
-consts hd :: 'a list => 'a
-recdef hd "\{\}"
-    "hd (x#l) = x"
-\end{ttbox}
-Because this function is not recursive, we may supply the empty well-founded
-relation, $\{\}$.
+For missing patterns, the function is defined to return a default value.
+
+%For example, here is a declaration of the list function \cdx{hd}:
+%\begin{ttbox}
+%consts hd :: 'a list => 'a
+%recdef hd "\{\}"
+%    "hd (x#l) = x"
+%\end{ttbox}
+%Because this function is not recursive, we may supply the empty well-founded
+%relation, $\{\}$.
 
 The well-founded relation defines a notion of ``smaller'' for the function's
 argument type.  The relation $\prec$ is \textbf{well-founded} provided it
 admits no infinitely decreasing chains
 \[ \cdots\prec x@n\prec\cdots\prec x@1. \]
-If the function's argument has type~$\tau$, then $\prec$ should be a relation
+If the function's argument has type~$\tau$, then $\prec$ has to be a relation
 over~$\tau$: it must have type $(\tau\times\tau)set$.
 
-Proving well-foundedness can be tricky, so {\HOL} provides a collection of
-operators for building well-founded relations.  The package recognizes these
-operators and automatically proves that the constructed relation is
+Proving well-foundedness can be tricky, so Isabelle/HOL provides a collection
+of operators for building well-founded relations.  The package recognises
+these operators and automatically proves that the constructed relation is
 well-founded.  Here are those operators, in order of importance:
 \begin{itemize}
 \item \texttt{less_than} is ``less than'' on the natural numbers.
@@ -2446,7 +2494,7 @@ well-founded.  Here are those operators, in order of importance:
   called a \textbf{measure function}.  Recall that \texttt{size} is overloaded
   and is defined on all datatypes (see \S\ref{sec:HOL:size}).
                                                     
-\item $\mathop{\mathtt{inv_image}} f\;R$ is a generalization of
+\item $\mathop{\mathtt{inv_image}} f\;R$ is a generalisation of
   \texttt{measure}.  It specifies a relation such that $x\prec y$ iff $f(x)$
   is less than $f(y)$ according to~$R$, which must itself be a well-founded
   relation.
@@ -2485,7 +2533,7 @@ where
 \item \textit{congruence rules} are required only in highly exceptional
   circumstances.
   
-\item the \textit{simplification set} is used to prove that the supplied
+\item The \textit{simplification set} is used to prove that the supplied
   relation is well-founded.  It is also used to prove the \textbf{termination
     conditions}: assertions that arguments of recursive calls decrease under
   \textit{rel}.  By default, simplification uses \texttt{simpset()}, which
@@ -2504,21 +2552,20 @@ where
   as a list of theorems.
 \end{itemize}
 
-With the definition of \texttt{gcd} shown above, Isabelle is unable to prove
-one termination condition.  It remains as a precondition of the recursion
-theorems.  
+With the definition of \texttt{gcd} shown above, Isabelle/HOL is unable to
+prove one termination condition.  It remains as a precondition of the
+recursion theorems.
 \begin{ttbox}
 gcd.rules;
 {\out ["! m n. n ~= 0 --> m mod n < n}
 {\out   ==> gcd (?m, ?n) = (if ?n = 0 then ?m else gcd (?n, ?m mod ?n))"] }
 {\out : thm list}
 \end{ttbox}
-The theory \texttt{Primes} (on the examples directory \texttt{HOL/ex})
-illustrates how to prove termination conditions afterwards.  The function
-\texttt{Tfl.tgoalw} is like the standard function \texttt{goalw}, which sets
-up a goal to prove, but its argument should be the identifier
-$f$\texttt{.rules} and its effect is to set up a proof of the termination
-conditions: 
+The theory \texttt{HOL/ex/Primes} illustrates how to prove termination
+conditions afterwards.  The function \texttt{Tfl.tgoalw} is like the standard
+function \texttt{goalw}, which sets up a goal to prove, but its argument
+should be the identifier $f$\texttt{.rules} and its effect is to set up a
+proof of the termination conditions:
 \begin{ttbox}
 Tfl.tgoalw thy [] gcd.rules;
 {\out Level 0}
@@ -2527,12 +2574,12 @@ Tfl.tgoalw thy [] gcd.rules;
 \end{ttbox}
 This subgoal has a one-step proof using \texttt{simp_tac}.  Once the theorem
 is proved, it can be used to eliminate the termination conditions from
-elements of \texttt{gcd.rules}.  Theory \texttt{Unify} on directory
-\texttt{HOL/Subst} is a much more complicated example of this process, where
-the termination conditions can only be proved by complicated reasoning
-involving the recursive function itself.
+elements of \texttt{gcd.rules}.  Theory \texttt{HOL/Subst/Unify} is a much
+more complicated example of this process, where the termination conditions can
+only be proved by complicated reasoning involving the recursive function
+itself.
 
-Isabelle can prove the \texttt{gcd} function's termination condition
+Isabelle/HOL can prove the \texttt{gcd} function's termination condition
 automatically if supplied with the right simpset.
 \begin{ttbox}
 recdef gcd "measure ((\%(m,n). n) ::nat*nat=>nat)"
@@ -2540,7 +2587,7 @@ recdef gcd "measure ((\%(m,n). n) ::nat*nat=>nat)"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 
-A \texttt{recdef} definition also returns an induction rule specialized for
+A \texttt{recdef} definition also returns an induction rule specialised for
 the recursive function.  For the \texttt{gcd} function above, the induction
 rule is
 \begin{ttbox}
@@ -2549,8 +2596,8 @@ gcd.induct;
 \end{ttbox}
 This rule should be used to reason inductively about the \texttt{gcd}
 function.  It usually makes the induction hypothesis available at all
-recursive calls, leading to very direct proofs.  If any termination
-conditions remain unproved, they will be additional premises of this rule.
+recursive calls, leading to very direct proofs.  If any termination conditions
+remain unproved, they will become additional premises of this rule.
 
 \index{recursion!general|)}
 \index{*recdef|)}
@@ -2566,7 +2613,7 @@ example, a structural operational semantics is an inductive definition of an
 evaluation relation.  Dually, a {\bf coinductive definition} specifies the
 greatest set~$R$ consistent with given rules.  (Every element of~$R$ can be
 seen as arising by applying a rule to elements of~$R$.)  An important example
-is using bisimulation relations to formalize equivalence of processes and
+is using bisimulation relations to formalise equivalence of processes and
 infinite data structures.
 
 A theory file may contain any number of inductive and coinductive
@@ -2578,14 +2625,14 @@ Each (co)inductive definition adds definitions to the theory and also
 proves some theorems.  Each definition creates an \ML\ structure, which is a
 substructure of the main theory structure.
 
-This package is derived from the \ZF\ one, described in a separate
+This package is related to the \ZF\ one, described in a separate
 paper,%
 \footnote{It appeared in CADE~\cite{paulson-CADE}; a longer version is
   distributed with Isabelle.}  %
 which you should refer to in case of difficulties.  The package is simpler
-than \ZF's thanks to \HOL's automatic type-checking.  The types of the
-(co)inductive sets determine the domain of the fixedpoint definition, and the
-package does not use inference rules for type-checking.
+than \ZF's thanks to \HOL's extra-logical automatic type-checking.  The types
+of the (co)inductive sets determine the domain of the fixedpoint definition,
+and the package does not have to use inference rules for type-checking.
 
 
 \subsection{The result structure}
@@ -2615,7 +2662,7 @@ For an inductive definition, the result structure contains the
 rule \texttt{induct}.  For a
 coinductive definition, it contains the rule \verb|coinduct|.
 
-Figure~\ref{def-result-fig} summarizes the two result signatures,
+Figure~\ref{def-result-fig} summarises the two result signatures,
 specifying the types of all these components.
 
 \begin{figure}
@@ -2630,21 +2677,21 @@ val elim         : thm
 val mk_cases     : thm list -> string -> thm
 {\it(Inductive definitions only)} 
 val induct       : thm
-{\it(Coinductive definitions only)}
-val coinduct    : thm
+{\it(coinductive definitions only)}
+val coinduct     : thm
 end
 \end{ttbox}
 \hrule
-\caption{The result of a (co)inductive definition} \label{def-result-fig}
+\caption{The {\ML} result of a (co)inductive definition} \label{def-result-fig}
 \end{figure}
 
 \subsection{The syntax of a (co)inductive definition}
 An inductive definition has the form
 \begin{ttbox}
-inductive    \textit{inductive sets}
-  intrs      \textit{introduction rules}
-  monos      \textit{monotonicity theorems}
-  con_defs   \textit{constructor definitions}
+inductive    {\it inductive sets}
+  intrs      {\it introduction rules}
+  monos      {\it monotonicity theorems}
+  con_defs   {\it constructor definitions}
 \end{ttbox}
 A coinductive definition is identical, except that it starts with the keyword
 {\tt coinductive}.  
@@ -2666,14 +2713,6 @@ each is specified by a list of identifiers.
 
 \item The \textit{constructor definitions} contain definitions of constants
   appearing in the introduction rules.  In most cases it can be omitted.
-\end{itemize}
-
-The package has a few notable restrictions:
-\begin{itemize}
-\item The theory must separately declare the recursive sets as
-  constants.
-  
-\item The names of the recursive sets should be alphanumeric identifiers.
 \end{itemize}
 
 
@@ -2710,11 +2749,11 @@ inductive "acc r"
   monos   Pow_mono
 end
 \end{ttbox}
-The \HOL{} distribution contains many other inductive definitions.
-Simple examples are collected on subdirectory \texttt{Induct}.  The
-theory \texttt{HOL/Induct/LList.thy} contains coinductive definitions.
-Larger examples may be found on other subdirectories, such as {\tt
-  IMP}, \texttt{Lambda} and \texttt{Auth}.
+The Isabelle distribution contains many other inductive definitions.  Simple
+examples are collected on subdirectory \texttt{HOL/Induct}.  The theory
+\texttt{HOL/Induct/LList} contains coinductive definitions.  Larger examples
+may be found on other subdirectories of \texttt{HOL}, such as {\tt IMP},
+\texttt{Lambda} and \texttt{Auth}.
 
 \index{*coinductive|)} \index{*inductive|)}
 
