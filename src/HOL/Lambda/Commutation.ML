@@ -80,8 +80,8 @@ qed "square_reflcl_confluent";
 goal Commutation.thy
  "!!R. [| confluent R; confluent S; commute (R^*) (S^*) |] \
 \      ==> confluent(R Un S)";
-br(trancl_Un_trancl RS subst) 1;
-by(fast_tac (HOL_cs addDs [diamond_Un] addIs [diamond_confluent]) 1);
+br (rtrancl_Un_rtrancl RS subst) 1;
+by (fast_tac (HOL_cs addDs [diamond_Un] addIs [diamond_confluent]) 1);
 qed "confluent_Un";
 
 goal Commutation.thy
