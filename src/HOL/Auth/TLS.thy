@@ -66,7 +66,8 @@ translations
 rules
   inj_PRF       "inj PRF"	
 
-  (*sessionK is collision-free and makes symmetric keys*)
+  (*sessionK is collision-free and makes symmetric keys.  Also, no clientK
+    clashes with any serverK.*)
   inj_sessionK  "inj sessionK"	
 
   isSym_sessionK "isSymKey (sessionK x)"
@@ -74,9 +75,6 @@ rules
   (*serverK is similar*)
   inj_serverK   "inj serverK"	
   isSym_serverK "isSymKey (serverK x)"
-
-  (*Clashes with pubK and priK are impossible, but this axiom is needed.*)
-  clientK_range "range clientK <= Compl (range serverK)"
 
 
 consts    tls :: event list set
@@ -90,12 +88,11 @@ inductive tls
              X: synth (analz (spies evs)) |]
           ==> Says Spy B X # evs : tls"
 
-    SpyKeys (*The spy may apply PRF, clientK & serverK to available nonces*)
+    SpyKeys (*The spy may apply PRF & sessionK to available nonces*)
          "[| evsSK: tls;
 	     Says Spy B {|Nonce NA, Nonce NB, Nonce M|} : set evsSK |]
           ==> Says Spy B {| Nonce (PRF(M,NA,NB)),
-			    Key (clientK(NA,NB,M)),
-			    Key (serverK(NA,NB,M)) |} # evsSK : tls"
+			    Key (sessionK((NA,NB,M),b)) |} # evsSK : tls"
 
     ClientHello
 	 (*(7.4.1.2)
@@ -196,7 +193,8 @@ inductive tls
     ClientAccepts
 	(*Having transmitted ClientFinished and received an identical
           message encrypted with serverK, the client stores the parameters
-          needed to resume this session.*)
+          needed to resume this session.  The "Notes A ..." premise is
+          used to prove Notes_master_imp_Crypt_PMS.*)
          "[| evsCA: tls;
 	     Notes A {|Agent B, Nonce PMS|} : set evsCA;
 	     M = PRF(PMS,NA,NB);  
@@ -211,7 +209,8 @@ inductive tls
     ServerAccepts
 	(*Having transmitted ServerFinished and received an identical
           message encrypted with clientK, the server stores the parameters
-          needed to resume this session.*)
+          needed to resume this session.  The "Says A'' B ..." premise is
+          used to prove Notes_master_imp_Crypt_PMS.*)
          "[| evsSA: tls;
              Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce PMS)|}
 	       : set evsSA;

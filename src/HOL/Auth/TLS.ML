@@ -327,11 +327,12 @@ by (Fake_parts_insert_tac 1);
 qed "UseCertVerify";
 
 
-(*No collection of keys can help the spy get new private keys*)
+(*Key compromise lemma needed to prove analz_image_keys.
+  No collection of keys can help the spy get new private keys.*)
 goal thy  
  "!!evs. evs : tls ==>                                    \
 \  ALL KK. (Key(priK B) : analz (Key``KK Un (spies evs))) =  \
-\            (priK B : KK | B : bad)";
+\          (priK B : KK | B : bad)";
 by (etac tls.induct 1);
 by (ALLGOALS
     (asm_simp_tac (analz_image_keys_ss
@@ -355,7 +356,16 @@ goal thy "!!evs. KK <= range sessionK ==> priK B ~: KK";
 by (Blast_tac 1);
 val range_sessionkeys_not_priK = result();
 
-(*Knowing some session keys is no help in getting new nonces*)
+(** It is a mystery to me why the following formulation is actually slower
+    in simplification:
+
+\    ALL Z. (Nonce N : analz (Key``(sessionK``Z) Un (spies evs))) = \
+\           (Nonce N : analz (spies evs))";
+
+More so as it can take advantage of unconditional rewrites such as 
+     priK B ~: sessionK``Z
+**)
+
 goal thy  
  "!!evs. evs : tls ==>                                 \
 \    ALL KK. KK <= range sessionK -->           \
@@ -378,6 +388,14 @@ by (spy_analz_tac 2);
 by (Blast_tac 1);
 qed_spec_mp "analz_image_keys";
 
+(*Knowing some session keys is no help in getting new nonces*)
+goal thy
+ "!!evs. evs : tls ==>          \
+\        Nonce N : analz (insert (Key (sessionK z)) (spies evs)) =  \
+\        (Nonce N : analz (spies evs))";
+by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 1);
+qed "analz_insert_key";
+Addsimps [analz_insert_key];
 
 goal thy "!!evs. evs : tls ==> Notes A {|Agent B, Nonce (PRF x)|} ~: set evs";
 by (parts_induct_tac 1);
@@ -417,10 +435,8 @@ by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);	(*30 seconds??*)
 (*Oops*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 4);
 by (Blast_tac 4);
 (*SpyKeys*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 3);
 by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj]) 3);
 (*Fake*) 
 by (spy_analz_tac 2);
@@ -533,20 +549,15 @@ goal thy
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs  -->   \
 \            Nonce PMS ~: analz (spies evs)";
 by (analz_induct_tac 1);   (*30 seconds??*)
-(*oops*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 9);
 (*ClientAccepts and ServerAccepts: because PMS ~: range PRF*)
 by (EVERY (map (fast_tac (!claset addss (!simpset))) [7,6]));
-(*ServerHello, ClientCertKeyEx, ServerResume: mostly freshness reasoning*)
+(*ClientHello, ServerHello, ClientCertKeyEx, ServerResume: 
+  mostly freshness reasoning*)
 by (REPEAT (blast_tac (!claset addSEs partsEs
 			       addDs  [Notes_Crypt_parts_spies,
 				       impOfSubs analz_subset_parts,
-				       Says_imp_spies RS analz.Inj]) 4));
-(*ClientHello*)
-by (blast_tac (!claset addSDs [Notes_Crypt_parts_spies]
-                       addSEs spies_partsEs) 3);
+				       Says_imp_spies RS analz.Inj]) 3));
 (*SpyKeys*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 2);
 by (fast_tac (!claset addss (!simpset)) 2);
 (*Fake*)
 by (spy_analz_tac 1);
@@ -571,8 +582,6 @@ goal thy
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs  -->   \
 \            Nonce (PRF(PMS,NA,NB)) ~: analz (spies evs)";
 by (analz_induct_tac 1);   (*35 seconds*)
-(*Oops*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 9);
 (*ClientAccepts and ServerAccepts: because PMS was already visible*)
 by (REPEAT (blast_tac (!claset addDs [Spy_not_see_PMS, 
 				      Says_imp_spies RS analz.Inj,
@@ -580,7 +589,6 @@ by (REPEAT (blast_tac (!claset addDs [Spy_not_see_PMS,
 (*ClientHello*)
 by (Blast_tac 3);
 (*SpyKeys: by secrecy of the PMS, Spy cannot make the MS*)
-by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 2);
 by (blast_tac (!claset addSDs [Spy_not_see_PMS, 
 			       Says_imp_spies RS analz.Inj]) 2);
 (*Fake*)
@@ -712,3 +720,5 @@ goal thy
 by (blast_tac (!claset addSIs [TrustClientMsg, UseCertVerify]
                        addDs  [Says_imp_spies RS parts.Inj]) 1);
 qed "AuthClientFinished";
+
+(*22/9/97: loads in 622s, which is 10 minutes 22 seconds*)
