@@ -17,6 +17,7 @@ TODO:
   - stronger handling of missing files (!?!?);
   - register_theory: do not require finished parents (!?) (no?);
   - observe verbose flag;
+  - touch_thy: msg;
 *)
 
 signature BASIC_THY_INFO =
@@ -38,6 +39,7 @@ sig
   val get_theory: string -> theory
   val put_theory: theory -> unit
   val load_file: Path.T -> unit
+  val time_load_file: Path.T -> unit
   val use_thy_only: string -> unit
   val begin_theory: string -> string list -> theory
   val end_theory: theory -> theory
@@ -65,8 +67,6 @@ struct
 
 (* messages *)
 
-val verbose = ref false;
-
 fun gen_msg txt [] = txt
   | gen_msg txt names = txt ^ " " ^ commas_quote names;
 
@@ -74,6 +74,13 @@ fun loader_msg txt names = gen_msg ("Theory loader: " ^ txt) names;
 
 val show_path = space_implode " via " o map quote;
 fun cycle_msg name names = loader_msg ("cyclic dependency of " ^ show_path (name :: names)) [];
+
+
+(* verbose mode *)
+
+val verbose = ref false;
+
+fun if_verbose f x = if ! verbose then f x else ();
 
 
 (* derived graph operations *)		(* FIXME more abstract (!?) *)
@@ -94,7 +101,7 @@ fun update_node name parents entry G =
 
 type deps =
   {present: bool, outdated: bool,
-    master: File.info option, files: (Path.T * File.info option) list} option;
+    master: (Path.T * File.info) list, files: (Path.T * (Path.T * File.info) option) list} option;
 
 fun make_depends present outdated master files =
   Some {present = present, outdated = outdated, master = master, files = files}: deps;
@@ -194,7 +201,7 @@ fun load_thy ml time initiators name parents =
     if null missing_files then ()
     else warning (loader_msg ("unresolved dependencies on file(s) " ^ commas_quote missing_files ^
       "\nfor theory") [name]);
-    change_deps name (fn _ => make_depends true false (Some master) files)
+    change_deps name (fn _ => make_depends true false master files)
   end;
 
 
@@ -217,13 +224,21 @@ fun load_file path =
   end;
 
 
+fun time_load_file path =
+  let val s = Path.pack path in
+    timeit (fn () =>
+     (writeln ("\n**** Starting " ^ s ^ " ****"); load_file path;
+      writeln ("\n**** Finished " ^ s ^ " ****")))
+  end;
+
+
 (* require_thy *)
 
 fun init_deps master files = make_depends false false master (map (rpair None) files);
 
 fun load_deps name ml =
   let val (master, (parents, files)) = ThyLoad.deps_thy name ml
-  in (Some (init_deps (Some master) files), parents) end;
+  in (Some (init_deps master files), parents) end;
 
 fun file_current (_, None) = false
   | file_current (path, info) = info = ThyLoad.check_file path;
@@ -238,7 +253,7 @@ fun current_deps ml strict name =
         | Some {present, outdated, master, files} =>
             if present andalso not strict then (true, same_deps)
             else
-              let val master' = Some (ThyLoad.check_thy name ml) in
+              let val master' = ThyLoad.check_thy name ml in
                 if master <> master' then (false, load_deps name ml)
                 else (not outdated andalso forall file_current files, same_deps)
               end)
@@ -258,21 +273,22 @@ fun require_thy ml time strict keep_strict initiators name =
     val (current, (new_deps, parents)) = current_deps ml strict name handle ERROR =>
       error (loader_msg "The error(s) above occurred while examining theory" [name] ^ "\n" ^
         required_by initiators);
-    val pre_outdated = outdated name;
+    val parents_current = map require_parent parents;
   in
-    seq require_parent parents;
-    if current andalso pre_outdated = outdated name then ()	(* FIXME ?? *)
+    if current andalso forall I parents_current then true
     else
       ((case new_deps of
         Some deps => change_thys (update_node name parents (untouch deps, None))
-      | None => ()); load_thy ml time initiators name parents)
+      | None => ());
+        load_thy ml time initiators name parents;
+        false)
   end;
 
-val weak_use_thy = require_thy true false false false [];
-val use_thy      = require_thy true false true false [];
-val update_thy   = require_thy true false true true [];
-val time_use_thy = require_thy true true true false [];
-val use_thy_only = require_thy false false true false [];
+val weak_use_thy = K () o require_thy true false false false [];
+val use_thy      = K () o require_thy true false true false [];
+val update_thy   = K () o require_thy true false true true [];
+val time_use_thy = K () o require_thy true true true false [];
+val use_thy_only = K () o require_thy false false true false [];
 
 
 (* begin / end theory *)		(* FIXME tune *)
@@ -281,7 +297,7 @@ fun begin_theory name parents =
   let
     val _ = seq weak_use_thy parents;
     val theory = PureThy.begin_theory name (map get_theory parents);
-    val _ = change_thys (update_node name parents (init_deps None [], Some (theory, Symtab.empty)));
+    val _ = change_thys (update_node name parents (init_deps [] [], Some (theory, Symtab.empty)));
   in theory end;
 
 fun end_theory theory =
@@ -311,7 +327,8 @@ fun finish name = finishs [name];
 
 fun update_all () = ();         (* FIXME fake *)
 
-fun finish_all () = (update_all (); change_thys (Graph.map_nodes (fn (_, entry) => (None, entry))));
+fun finish_all () =
+  (update_all (); change_thys (Graph.map_nodes (fn (_, entry) => (None, entry))));
 
 
 (* register existing theories *)
