@@ -46,6 +46,7 @@ use "search.ML";
 use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
+use "pure.ML";
 
 (*theory parser and loader*)
 cd "Thy";
