@@ -45,6 +45,7 @@ sig
   val writeln: T -> unit
   val str_of: T -> string
   val pprint: T -> pprint_args -> unit
+  val map_strs: (string -> string) -> T -> T
   val setdepth: int -> unit
   val setmargin: int -> unit
 end;
@@ -227,6 +228,11 @@ fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
   in
     pp (prune (! depth) prt)
   end;
+
+(*Map strings*)
+fun map_strs f (Block (prts, ind, _)) = blk (ind, map (map_strs f) prts)
+  | map_strs f (String s) = String (f s)
+  | map_strs _ brk = brk;
 
 
 (*** Initialization ***)
