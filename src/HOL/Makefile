@@ -28,7 +28,7 @@ NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	ind_syntax.ML cladata.ML simpdata.ML\
 	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML\
-	../Provers/hypsubst.ML ../Provers/classical.ML\
+	../Provers/hypsubst.ML ../Provers/classical.ML ../Provers/blast.ML \
 	../Provers/simplifier.ML ../Provers/splitter.ML\
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 

@@ -21,10 +21,10 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =	 ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
-	 thy_data.ML cladata.ML \
-	 ../Provers/hypsubst.ML ../Provers/classical.ML \
-	 ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
+FILES =	ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
+	thy_data.ML cladata.ML \
+	../Provers/hypsubst.ML ../Provers/classical.ML ../Provers/blast.ML \
+	../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
 
 EX_NAMES = If List Nat Nat2 Prolog declIffOracle IffOracle
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML  ex/int.ML ex/intro.ML\
