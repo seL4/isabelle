@@ -214,6 +214,7 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -I           startup Isar interaction mode
+    -P           startup Proof General interaction mode
     -c           tell ML system to compress output image
     -e MLTEXT    pass MLTEXT to the ML session
     -m MODE      add print mode for output
@@ -278,8 +279,9 @@ processing the \texttt{-e} texts). The \texttt{-q} option inhibits
 interaction, thus providing a pure batch mode facility.
 
 \medskip The \texttt{-I} option makes Isabelle enter Isar interaction mode on
-startup, instead of the primitive {\ML} top-level.  User interfaces (such
-Proof~General) take care of this switch automatically.
+startup, instead of the primitive {\ML} top-level.  The \texttt{-P} option
+configures the top-level loop for interaction with the Proof~General user
+interface; do not enable this in ordinary sessions.
 
 
 \subsection*{Examples}
@@ -373,9 +375,9 @@ are available:
     interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,
   the actual Isamode distribution is available elsewhere \cite{isamode}.
   
-\item Proof~General~\cite{proofgeneral}\index{user interface!Proof General} of
-  LFCS Edinburgh is distributed with separate interface wrapper scripts for
-  Isabelle.  See below for more details.
+\item Proof~General~\cite{proofgeneral}\index{user interface!Proof General} is
+  distributed with separate interface wrapper scripts for Isabelle.  See below
+  for more details.
 \end{itemize}
 
 The factory default for \texttt{ISABELLE_INTERFACE} is \texttt{xterm}.  This
