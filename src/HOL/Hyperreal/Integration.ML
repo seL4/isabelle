@@ -356,8 +356,9 @@ by (subgoal_tac
     "abs((rsum(D,p) f - k2) - (rsum(D,p) f - k1)) < abs(k1 - k2)" 1);
 by (arith_tac 1);
 by (dtac real_add_less_mono 1 THEN assume_tac 1);
-by (auto_tac (claset(),HOL_ss addsimps [real_add_mult_distrib RS sym,
-    real_mult_2_right RS sym,real_mult_less_cancel2]));
+by (auto_tac (claset(),
+    HOL_ss addsimps [real_add_mult_distrib RS sym,
+                     real_mult_2_right RS sym, mult_less_cancel_right]));
 by (ALLGOALS(arith_tac));
 qed "Integral_unique";
 

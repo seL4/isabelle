@@ -456,7 +456,7 @@ by (res_inst_tac [("g","%n. K * abs(z ^ n) * inverse (abs(x ^ n))")]
 by (res_inst_tac [("x","0")] exI 1 THEN Step_tac 1);
 by (subgoal_tac "0 < abs (x ^ n)" 1);
 by (res_inst_tac [("z","abs (x ^ n)")] (CLAIM_SIMP 
-    "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [real_mult_le_cancel1]) 1);
+    "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [mult_le_cancel_left]) 1);
 by (auto_tac (claset(),
     simpset() addsimps [real_mult_assoc,realpow_abs]));
 by (dres_inst_tac [("x","0")] spec 2 THEN Force_tac 2); 
@@ -481,7 +481,7 @@ by (auto_tac (claset() addSIs [geometric_sums],
    simpset() addsimps
     [realpow_abs,real_divide_eq_inverse RS sym]));
 by (res_inst_tac [("z","abs(x)")] (CLAIM_SIMP 
-    "[|(0::real)<z; x*z<y*z |] ==> x<y" [real_mult_less_cancel1]) 1);
+    "[|(0::real)<z; x*z<y*z |] ==> x<y" [mult_less_cancel_left]) 1);
 by (auto_tac (claset(),simpset() addsimps [abs_mult RS sym,real_mult_assoc]));
 qed "powser_insidea";
 
@@ -624,7 +624,7 @@ by (ftac real_less_half_sum 2);
 by (dtac real_gt_half_sum 2);
 by (auto_tac (claset(),simpset() addsimps [abs_eqI2]));
 by (res_inst_tac [("z","k/2")] (CLAIM_SIMP 
-    "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [real_mult_le_cancel1]) 2);
+    "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [mult_le_cancel_left]) 2);
 by (auto_tac (claset() addIs [abs_ge_zero RS real_le_trans],simpset()));
 by (dtac real_le_imp_less_or_eq 1);
 by Auto_tac;
@@ -639,7 +639,7 @@ by (res_inst_tac [("x","e")] exI 1 THEN Auto_tac);
 by (res_inst_tac [("y","K * abs x")] order_le_less_trans 1);
 by (res_inst_tac [("R2.0","K * e")] real_less_trans 2);
 by (res_inst_tac [("z","inverse K")] (CLAIM_SIMP 
-    "[|(0::real) <z; z*x<z*y |] ==> x<y" [real_mult_less_cancel1]) 3);
+    "[|(0::real) <z; z*x<z*y |] ==> x<y" [mult_less_cancel_left]) 3);
 by (asm_full_simp_tac (simpset() addsimps [mult_assoc RS sym]) 4);
 by (Force_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mult_less_cancel_left]) 1); 

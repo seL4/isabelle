@@ -19,8 +19,6 @@ qed_spec_mp "hrealpow_not_zero";
 Goal "r ~= (0::hypreal) --> inverse(r ^ n) = (inverse r) ^ n";
 by (induct_tac "n" 1);
 by Auto_tac;
-by (forw_inst_tac [("n","n")] hrealpow_not_zero 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_inverse_distrib]));
 qed_spec_mp "hrealpow_inverse";
 
 Goal "abs (r::hypreal) ^ n = abs (r ^ n)";
@@ -105,13 +103,10 @@ Goal "[| 0 <= x; 0 <= y |] ==> (x+y = 0) = (x = 0 & y = (0::hypreal))";
 by (auto_tac (claset() addIs [order_antisym], simpset()));
 qed "hypreal_add_nonneg_eq_0_iff";
 
-Goal "(x*y = 0) = (x = 0 | y = (0::hypreal))";
-by Auto_tac;
-qed "hypreal_mult_is_0";
-
 Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
 by (simp_tac (HOL_ss addsimps [hypreal_le_square, hypreal_le_add_order, 
-                         hypreal_add_nonneg_eq_0_iff, hypreal_mult_is_0]) 1);
+                         hypreal_add_nonneg_eq_0_iff]) 1);
+by Auto_tac;
 qed "hypreal_three_squares_add_zero_iff";
 
 Goal "(x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = (0::hypreal)) = (x = 0 & y = 0 & z = 0)";

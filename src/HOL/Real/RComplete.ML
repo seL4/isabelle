@@ -199,7 +199,7 @@ Goal "0 < x ==> EX n. inverse (real(Suc n)) < x";
 by (rtac ccontr 1);
 by (subgoal_tac "ALL n. x * real (Suc n) <= 1" 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [linorder_not_less, real_inverse_eq_divide]) 2); 
+    (simpset() addsimps [linorder_not_less, inverse_eq_divide]) 2); 
 by (Clarify_tac 2);
 by (dres_inst_tac [("x","n")] spec 2); 
 by (dres_inst_tac [("k","real (Suc n)")] (real_mult_le_mono1) 2); 

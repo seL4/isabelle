@@ -74,7 +74,7 @@ qed "powr_less_mono";
 Goalw [powr_def] 
    "[| x powr a < x powr b; 1 < x |] ==> a < b";
 by (auto_tac (claset() addDs [ln_gt_zero],
-    simpset() addsimps [rename_numerals real_mult_less_cancel2]));
+              simpset() addsimps [mult_less_cancel_right]));
 qed "powr_less_cancel";
 
 Goal "1 < x ==> (x powr a < x powr b) = (a < b)";

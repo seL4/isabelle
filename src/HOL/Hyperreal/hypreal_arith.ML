@@ -10,7 +10,7 @@ local
 
 (* reduce contradictory <= to False *)
 val simps = [True_implies_equals,inst "w" "number_of ?v" hypreal_add_mult_distrib2,
-             hypreal_divide_1,hypreal_times_divide1_eq,hypreal_times_divide2_eq];
+             divide_1,times_divide_eq_right,times_divide_eq_left];
 
 val simprocs = [hypreal_cancel_numeral_factors_divide];
 

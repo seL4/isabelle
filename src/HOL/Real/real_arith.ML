@@ -30,15 +30,17 @@ where ~~ is an appropriate balancing operation (e.g. =, <=, <, div, /)
 and d = gcd(m,m') and n=m/d and n'=m'/d.
 *)
 
-val real_inverse_eq_divide = thm"real_inverse_eq_divide";
-val real_mult_less_cancel2 = thm"real_mult_less_cancel2";
-val real_mult_le_cancel2 = thm"real_mult_le_cancel2";
-val real_mult_less_cancel1 = thm"real_mult_less_cancel1";
-val real_mult_le_cancel1 = thm"real_mult_le_cancel1";
-val real_mult_eq_cancel1 = thm"real_mult_eq_cancel1";
-val real_mult_eq_cancel2 = thm"real_mult_eq_cancel2";
-val real_mult_div_cancel1 = thm"real_mult_div_cancel1";
-val real_mult_div_cancel_disj = thm"real_mult_div_cancel_disj";
+val inverse_eq_divide = thm"Ring_and_Field.inverse_eq_divide";
+
+val mult_less_cancel_left = thm"Ring_and_Field.mult_less_cancel_left";
+val mult_le_cancel_left = thm"Ring_and_Field.mult_le_cancel_left";
+val mult_less_cancel_right = thm"Ring_and_Field.mult_less_cancel_right";
+val mult_le_cancel_right = thm"Ring_and_Field.mult_le_cancel_right";
+val mult_cancel_left = thm"Ring_and_Field.mult_cancel_left";
+val mult_cancel_right = thm"Ring_and_Field.mult_cancel_right";
+
+val mult_divide_cancel_left = thm"Ring_and_Field.mult_divide_cancel_left";
+val mult_divide_cancel_eq_if = thm"Ring_and_Field.mult_divide_cancel_eq_if";
 
 
 local
@@ -67,7 +69,7 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop "HOL.divide"
   val dest_bal = HOLogic.dest_bin "HOL.divide" HOLogic.realT
-  val cancel = real_mult_div_cancel1 RS trans
+  val cancel = mult_divide_cancel_left RS trans
   val neg_exchanges = false
 )
 
@@ -76,7 +78,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
-  val cancel = real_mult_eq_cancel1 RS trans
+  val cancel = mult_cancel_left RS trans
   val neg_exchanges = false
 )
 
@@ -85,7 +87,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.realT
-  val cancel = real_mult_less_cancel1 RS trans
+  val cancel = mult_less_cancel_left RS trans
   val neg_exchanges = true
 )
 
@@ -94,7 +96,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.realT
-  val cancel = real_mult_le_cancel1 RS trans
+  val cancel = mult_le_cancel_left RS trans
   val neg_exchanges = true
 )
 
@@ -185,7 +187,7 @@ structure EqCancelFactor = ExtractCommonTermFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
-  val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_eq_cancel1
+  val simplify_meta_eq  = cancel_simplify_meta_eq mult_cancel_left
 );
 
 
@@ -194,7 +196,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop "HOL.divide"
   val dest_bal = HOLogic.dest_bin "HOL.divide" HOLogic.realT
-  val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_div_cancel_disj
+  val simplify_meta_eq  = cancel_simplify_meta_eq mult_divide_cancel_eq_if
 );
 
 val real_cancel_factor =

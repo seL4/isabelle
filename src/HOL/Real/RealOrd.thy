@@ -272,9 +272,6 @@ lemma real_inverse_not_zero: "x ~= 0 ==> inverse(x::real) ~= 0"
 lemma real_mult_not_zero: "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::real)"
 by simp
 
-lemma real_inverse_eq_divide: "inverse (x::real) = 1/x"
-  by (rule Ring_and_Field.inverse_eq_divide) 
-
 lemma real_inverse_inverse: "inverse(inverse (x::real)) = x"
   by (rule Ring_and_Field.inverse_inverse_eq)
 
@@ -335,38 +332,6 @@ lemma real_add_right_cancel_le [simp]: "(v+z \<le> w+z) = (v \<le> (w::real))"
 
 lemma real_add_left_cancel_le [simp]: "(z+v \<le> z+w) = (v \<le> (w::real))"
   by (rule Ring_and_Field.add_le_cancel_left)
-
-
-subsection{*Factor Cancellation Theorems for Type @{text real}*}
-
-lemma real_mult_less_cancel2:
-     "(m*k < n*k) = (((0::real) < k & m<n) | (k < 0 & n<m))"
-  by (rule Ring_and_Field.mult_less_cancel_right) 
-
-lemma real_mult_le_cancel2:
-     "(m*k <= n*k) = (((0::real) < k --> m<=n) & (k < 0 --> n<=m))"
-  by (rule Ring_and_Field.mult_le_cancel_right) 
-
-lemma real_mult_less_cancel1:
-     "(k*m < k*n) = (((0::real) < k & m<n) | (k < 0 & n<m))"
-  by (rule Ring_and_Field.mult_less_cancel_left) 
-
-lemma real_mult_le_cancel1:
-     "!!k::real. (k*m <= k*n) = ((0 < k --> m<=n) & (k < 0 --> n<=m))"
-  by (rule Ring_and_Field.mult_le_cancel_left) 
-
-lemma real_mult_eq_cancel1: "!!k::real. (k*m = k*n) = (k = 0 | m=n)"
-  by (rule Ring_and_Field.mult_cancel_left) 
-
-lemma real_mult_eq_cancel2: "!!k::real. (m*k = n*k) = (k = 0 | m=n)"
-  by (rule Ring_and_Field.mult_cancel_right) 
-
-lemma real_mult_div_cancel1: "!!k::real. k~=0 ==> (k*m) / (k*n) = (m/n)"
-  by (rule Ring_and_Field.mult_divide_cancel_left) 
-
-lemma real_mult_div_cancel_disj:
-     "(k*m) / (k*n) = (if k = (0::real) then 0 else m/n)"
-  by (rule Ring_and_Field.mult_divide_cancel_eq_if) 
 
 
 subsection{*Inverse and Division*}

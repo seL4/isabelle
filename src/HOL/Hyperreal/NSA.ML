@@ -330,11 +330,11 @@ by (auto_tac (claset() addSDs [HFiniteD],
 by (ftac hrabs_less_gt_zero 1);
 by (dres_inst_tac [("x","r/t")] bspec 1);
 by (blast_tac (claset() addIs [SReal_divide]) 1);
-by (asm_full_simp_tac (simpset() addsimps [hypreal_0_less_divide_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [thm"Ring_and_Field.zero_less_divide_iff"]) 1);
 by (case_tac "x=0 | y=0" 1);
 by (cut_inst_tac [("u","abs x"),("v","r/t"),("x","abs y")]
     hypreal_mult_less_mono 2);
-by (auto_tac (claset(), simpset() addsimps [hypreal_0_less_divide_iff]));
+by (auto_tac (claset(), simpset() addsimps [thm"Ring_and_Field.zero_less_divide_iff"]));
 qed "Infinitesimal_HFinite_mult";
 
 Goal "[| x : Infinitesimal; y : HFinite |] ==> (y * x) : Infinitesimal";
@@ -347,7 +347,6 @@ Goalw [HInfinite_def,Infinitesimal_def]
      "x: HInfinite ==> inverse x: Infinitesimal";
 by Auto_tac;
 by (eres_inst_tac [("x","inverse r")] ballE 1);
-by (stac hrabs_inverse 1);
 by (forw_inst_tac [("x1","r"),("z","abs x")]
     (hypreal_inverse_gt_0 RS order_less_trans) 1);
 by (assume_tac 1);
@@ -2212,7 +2211,7 @@ Addsimps [epsilon_approx_zero];
 
 Goal "0 < u  ==> \
 \     (u < inverse (real(Suc n))) = (real(Suc n) < inverse u)";
-by (asm_full_simp_tac (simpset() addsimps [real_inverse_eq_divide]) 1);
+by (asm_full_simp_tac (simpset() addsimps [inverse_eq_divide]) 1);
 by (stac pos_real_less_divide_eq 1);
 by (assume_tac 1);
 by (stac pos_real_less_divide_eq 1);
@@ -2235,7 +2234,7 @@ qed "lemma_real_le_Un_eq2";
 
 Goal "(inverse (real(Suc n)) <= r) = (1 <= r * real(Suc n))";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
-by (simp_tac (simpset() addsimps [real_inverse_eq_divide]) 1);
+by (simp_tac (simpset() addsimps [inverse_eq_divide]) 1);
 by (stac pos_real_less_divide_eq 1);
 by (simp_tac (simpset() addsimps [real_of_nat_Suc_gt_zero]) 1);
 by (simp_tac (simpset() addsimps [real_mult_commute]) 1);

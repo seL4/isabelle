@@ -7,6 +7,14 @@
 
 theory HyperOrd = HyperDef:
 
+instance hypreal :: division_by_zero
+proof
+  fix x :: hypreal
+  show "inverse 0 = (0::hypreal)" by (rule HYPREAL_INVERSE_ZERO)
+  show "x/0 = 0" by (rule HYPREAL_DIVISION_BY_ZERO) 
+qed
+
+
 defs (overloaded)
   hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
 
@@ -247,17 +255,6 @@ apply (auto intro: hypreal_mult_order hypreal_mult_less_zero1 order_less_imp_le)
 done
 declare hypreal_le_square [simp]
 
-lemma hypreal_less_minus_square: "- (x*x) \<le> (0::hypreal)"
-apply (unfold hypreal_le_def)
-apply (auto dest!: hypreal_le_square [THEN order_le_less_trans] 
-            simp add: hypreal_minus_zero_less_iff)
-done
-declare hypreal_less_minus_square [simp]
-
-lemma hypreal_mult_0_less: "(0*x<r)=((0::hypreal)<r)"
-apply (simp (no_asm))
-done
-
 lemma hypreal_mult_less_mono1: "[| (0::hypreal) < z; x < y |] ==> x*z < y*z"
 apply (rotate_tac 1)
 apply (drule hypreal_less_minus_iff [THEN iffD1])
@@ -449,8 +446,6 @@ val hypreal_add_zero_less_le_mono = thm"hypreal_add_zero_less_le_mono";
 val hypreal_le_add_right_cancel = thm"hypreal_le_add_right_cancel";
 val hypreal_le_add_left_cancel = thm"hypreal_le_add_left_cancel";
 val hypreal_le_square = thm"hypreal_le_square";
-val hypreal_less_minus_square = thm"hypreal_less_minus_square";
-val hypreal_mult_0_less = thm"hypreal_mult_0_less";
 val hypreal_mult_less_mono1 = thm"hypreal_mult_less_mono1";
 val hypreal_mult_less_mono2 = thm"hypreal_mult_less_mono2";
 val hypreal_mult_less_mono = thm"hypreal_mult_less_mono";

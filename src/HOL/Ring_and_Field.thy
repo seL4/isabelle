@@ -1398,7 +1398,7 @@ done
 lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::ordered_ring)"
   by (force elim: order_less_asym simp add: abs_if)
 
-lemma abs_zero_iff [iff]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
+lemma abs_zero_iff [simp]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
 by (simp add: abs_if)
 
 lemma abs_ge_self: "a \<le> abs (a::'a::ordered_ring)"

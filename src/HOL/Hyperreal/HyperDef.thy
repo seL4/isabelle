@@ -990,13 +990,6 @@ lemma hypreal_divide_one: "x/(1::hypreal) = x"
 by (simp add: hypreal_divide_def)
 declare hypreal_zero_divide [simp] hypreal_divide_one [simp]
 
-lemma hypreal_times_divide1_eq [simp]: "(x::hypreal) * (y/z) = (x*y)/z"
-by (simp add: hypreal_divide_def hypreal_mult_assoc)
-
-lemma hypreal_times_divide2_eq [simp]: "(y/z) * (x::hypreal) = (y*x)/z"
-by (simp add: hypreal_divide_def hypreal_mult_ac)
-
-
 lemma hypreal_divide_divide1_eq [simp]: "(x::hypreal) / (y/z) = (x*z)/y"
 by (simp add: hypreal_divide_def hypreal_inverse_distrib hypreal_mult_ac)
 
@@ -1296,8 +1289,6 @@ val hypreal_of_real_inverse = thm "hypreal_of_real_inverse";
 val hypreal_of_real_divide = thm "hypreal_of_real_divide";
 val hypreal_zero_divide = thm "hypreal_zero_divide";
 val hypreal_divide_one = thm "hypreal_divide_one";
-val hypreal_times_divide1_eq = thm "hypreal_times_divide1_eq";
-val hypreal_times_divide2_eq = thm "hypreal_times_divide2_eq";
 val hypreal_divide_divide1_eq = thm "hypreal_divide_divide1_eq";
 val hypreal_divide_divide2_eq = thm "hypreal_divide_divide2_eq";
 val hypreal_minus_divide_eq = thm "hypreal_minus_divide_eq";
