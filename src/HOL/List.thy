@@ -601,6 +601,8 @@ apply (erule finite_induct, auto)
 apply (rule_tac x="x#l" in exI, auto)
 done
 
+lemma card_length: "card (set xs) \<le> length xs"
+by (induct xs) (auto simp add: card_insert_if)
 
 subsection {* @{text mem} *}
 
@@ -1337,6 +1339,27 @@ apply (erule_tac x = "Suc i" in allE)
 apply (erule_tac x = "Suc j" in allE, simp)
 done
 
+lemma distinct_card: "distinct xs \<Longrightarrow> card (set xs) = size xs"
+  by (induct xs) auto
+
+lemma card_distinct: "card (set xs) = size xs \<Longrightarrow> distinct xs"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> set xs")
+    case False with Cons show ?thesis by simp
+  next
+    case True with Cons.prems
+    have "card (set xs) = Suc (length xs)" 
+      by (simp add: card_insert_if split: split_if_asm)
+    moreover have "card (set xs) \<le> length xs" by (rule card_length)
+    ultimately have False by simp
+    thus ?thesis ..
+  qed
+qed
+
 
 subsection {* @{text replicate} *}
 
@@ -1527,6 +1550,30 @@ lemmas [simp] = take_Cons'[of "number_of v",standard]
                 drop_Cons'[of "number_of v",standard]
                 nth_Cons'[of _ _ "number_of v",standard]
 
+
+lemma distinct_card: "distinct xs \<Longrightarrow> card (set xs) = size xs"
+  by (induct xs) auto
+
+lemma card_length: "card (set xs) \<le> length xs"
+  by (induct xs) (auto simp add: card_insert_if)
+
+lemma "card (set xs) = size xs \<Longrightarrow> distinct xs"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> set xs")
+    case False with Cons show ?thesis by simp
+  next
+    case True with Cons.prems
+    have "card (set xs) = Suc (length xs)" 
+      by (simp add: card_insert_if split: split_if_asm)
+    moreover have "card (set xs) \<le> length xs" by (rule card_length)
+    ultimately have False by simp
+    thus ?thesis ..
+  qed
+qed
 
 subsection {* Characters and strings *}
 
