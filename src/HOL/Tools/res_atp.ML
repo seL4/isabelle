@@ -145,6 +145,8 @@ fun tptp_inputs_tfrees thms n tfrees =
 fun call_resolve_tac thms sg_term (childin, childout,pid)  = let
                             val newprobfile = new_prob_file ()
                              val thmstring = concat_with_and (map string_of_thm thms) ""
+                            val thm_no = length thms
+                            val _ = warning ("number of thms is : "^(string_of_int thm_no))
                            val _ = warning ("thmstring in call_res is: "^thmstring)
                             val goalstr = Sign.string_of_term Mainsign sg_term 
                             val goalproofstring = proofstring goalstr
@@ -153,7 +155,9 @@ fun call_resolve_tac thms sg_term (childin, childout,pid)  = let
                             val _ = warning ("goalstring in call_res is: "^goalstring)
         
                             val prob_file =File.tmp_path (Path.basic newprobfile); 
+                             (*val _ =( warning ("calling make_clauses "))
                              val clauses = make_clauses thms
+                             val _ =( warning ("called make_clauses "))*)
                             (*val _ = tptp_inputs clauses prob_file*)
                             val thmstring = concat_with_and (map string_of_thm thms) ""
                            
@@ -200,7 +204,7 @@ fun resolve_tac sg_term  (childin, childout,pid) =
    let val _ = warning ("in resolve_tac ")
    in
    SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac,skolemize_tac,  METAHYPS(fn negs => (warning ("calling call_resolve_tac next ");call_resolve_tac negs sg_term (childin, childout,pid)))])
+  (EVERY1 [rtac ccontr,atomize_tac,skolemize_tac,  METAHYPS(fn negs => (warning ("calling call_resolve_tac next ");dummy_tac (*call_resolve_tac negs sg_term (childin, childout,pid)*)))])
    end;
 
 
@@ -212,18 +216,19 @@ fun resolve_tac sg_term  (childin, childout,pid) =
 (* write out the current subgoal as a tptp file, probN,   *)
 (* then call dummy_tac - should be call_res_tac           *)
 (**********************************************************)
-
+(* should call call_res_tac here, not resolve_tac *)
+(* if we take tptpinputs out it gets into call_res_tac then falls over as usual after printing out goalstring. but if we leave it in it falls over here *)
 fun call_atp_tac_tfrees thms n tfrees sg_term (childin, childout,pid) = 
-                                         (tptp_inputs_tfrees (make_clauses thms) n tfrees; 
-                                          resolve_tac sg_term (childin, childout, pid);
+                                         ((*tptp_inputs_tfrees (make_clauses thms) n tfrees;*)
+                                          call_resolve_tac thms sg_term (childin, childout, pid);
   					  dummy_tac);
 
 fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n  = 
 let val _ = (warning ("in atp_tac_tfrees "))
    in
 SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid)))]) n
+  (EVERY1 [rtac ccontr,atomize_tac, (*skolemize_tac, *)
+  METAHYPS(fn negs => (call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
 end;
 
 

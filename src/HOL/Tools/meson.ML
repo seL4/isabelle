@@ -124,7 +124,8 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 (*Conjunctive normal form, detecting tautologies early.
   Strips universal quantifiers and breaks up conjunctions. *)
 fun cnf_aux seen (th,ths) =
-  if taut_lits (literals(prop_of th) @ seen)  
+ let val _= (warning ("in cnf_aux"))
+ in if taut_lits (literals(prop_of th) @ seen)  
   then ths     (*tautology ignored*)
   else if not (has_consts ["All","op &"] (prop_of th))  
   then th::ths (*no work to do, terminate*)
@@ -138,8 +139,8 @@ fun cnf_aux seen (th,ths) =
 	(METAHYPS (resop (cnf_nil seen)) 1) THEN
 	(fn st' => st' |>
 		METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
-    in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
-and cnf_nil seen th = cnf_aux seen (th,[]);
+    in  Seq.list_of (tac (th RS disj_forward)) @ ths  end end
+and cnf_nil seen th = ((warning ("in cnf_nil "));cnf_aux seen (th,[]))
 
 (*Top-level call to cnf -- it's safe to reset name_ref*)
 fun cnf (th,ths) =

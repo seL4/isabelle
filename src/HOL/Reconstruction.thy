@@ -13,6 +13,7 @@ theory Reconstruction
 	  "Tools/res_skolem_function.ML"
 	  "Tools/res_axioms.ML"
 	  "Tools/res_types_sorts.ML"
+
           "Tools/reconstruction.ML"
 
 begin
