@@ -43,8 +43,9 @@ end;
 
 
 functor Abel_Cancel (Data: ABEL_CANCEL) =
-let open Data in
 struct
+
+open Data;
 
  val prepare_ss = Data.ss addsimps [add_assoc, diff_def, 
 				    minus_add_distrib, minus_minus,
@@ -189,6 +190,4 @@ struct
        (map (Thm.cterm_of (sign_of Data.thy) o Data.dest_eqI) eqI_rules)
        rel_proc;
 
- end
 end;
-
