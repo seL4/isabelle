@@ -63,7 +63,7 @@ fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
       if ! long_names then name else NameSpace.extern space name;
     val thmss = sort_wrt fst (map (apfst extrn) (Symtab.dest thms_tab));
   in
-    Pretty.writeln (Pretty.strs ("theorem name space:" :: map quote (NameSpace.dest space)));
+    Pretty.writeln (Display.pretty_name_space ("theorem name space", space));
     Pretty.writeln (Pretty.big_list "theorems:" (map prt_thms thmss))
   end;
 

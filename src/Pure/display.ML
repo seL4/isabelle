@@ -19,6 +19,7 @@ signature DISPLAY =
   val print_ctyp	: ctyp -> unit
   val show_consts	: bool ref
   val print_goals	: int -> thm -> unit
+  val pretty_name_space : string * NameSpace.T -> Pretty.T
   val print_syntax	: theory -> unit
   val print_theory	: theory -> unit
   val print_data	: theory -> string -> unit
@@ -107,6 +108,20 @@ val print_syntax = Syntax.print_syntax o syn_of;
 val print_data = Sign.print_data o sign_of;
 
 
+(* pretty_name_space  *)
+
+fun pretty_name_space (kind, space) =
+  let
+    fun prt_entry (name, accs) = Pretty.block
+      (Pretty.str (quote name ^ " =") :: Pretty.brk 1 ::
+        Pretty.commas (map (Pretty.str o quote) accs));
+  in
+    Pretty.fbreaks (Pretty.str (kind ^ ":") :: map prt_entry (NameSpace.dest space))
+    |> Pretty.block
+  end;
+
+
+
 (* print signature *)
 
 fun print_sign sg =
@@ -120,9 +135,6 @@ fun print_sign sg =
     val ext_tycon = Sign.cond_extern sg Sign.typeK;
     val ext_const = Sign.cond_extern sg Sign.constK;
 
-
-    fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
-      (map Pretty.str (kind ^ ":" :: map quote (NameSpace.dest space))));
 
     fun pretty_classes cs = Pretty.block
       (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
@@ -155,7 +167,7 @@ fun print_sign sg =
     Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
     Pretty.writeln (Pretty.strs ("data:" :: Sign.data_kinds data));
     Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
-    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
+    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_name_space spaces'));
     Pretty.writeln (pretty_classes classes);
     Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
     Pretty.writeln (pretty_default default);
