@@ -78,7 +78,7 @@ suitable Standard ML system.
 Installation is very easy.  Basically, just unpack all required
 packages within the same directory.  There is <em>no</em> manual
 configuration required of any of these components, if used according
-the default settings of Isabelle.
+to the default settings of Isabelle.
 
 <p>
 
@@ -108,6 +108,6 @@ changed to anything appropriate).
 
 Users may now invoke Isabelle without further ado, e.g. run the main
 executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the
-Isabelle Proof General interface.
+Proof General interface for Isabelle/Isar.
 
 <p>
