@@ -8,14 +8,6 @@ Unions of programs
 From Misra's Chapter 5: Asynchronous Compositions of Programs
 *)
 
-
-Goal "k:I ==> (INT i:I. A i) Int A k = (INT i:I. A i)";
-by (Blast_tac 1);
-qed "INT_absorb2";
-
-
-val rinst = read_instantiate_sg (sign_of thy);
-
 Addcongs [UN_cong, INT_cong];
 
 

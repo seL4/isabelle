@@ -8,21 +8,6 @@ Extending of state sets
   function g (forgotten) maps the extended state to the "extending part"
 *)
 
-    Goal "inj f ==> (f a : f``A) = (a : A)";
-    by (blast_tac (claset() addDs [injD]) 1);
-    qed "inj_image_mem_iff";
-
-
-		Goal "inj f ==> (f``A = f``B) = (A = B)";
-		by (blast_tac (claset() addSEs [equalityE]
-					addDs [injD]) 1);
-		qed "inj_image_eq_iff";
-
-
-val rinst = read_instantiate_sg (sign_of thy);
-
-    (*** General lemmas ***)
-
 Open_locale "Extend";
 
 val slice_def = thm "slice_def";
