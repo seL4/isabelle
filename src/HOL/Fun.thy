@@ -39,23 +39,26 @@ constdefs
 
   o  :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
     "f o g == %x. f(g(x))"
-
-  inj_on :: ['a => 'b, 'a set] => bool
-    "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
-
-  surj :: ('a => 'b) => bool                   (*surjective*)
-    "surj f == ! y. ? x. y=f(x)"
   
   inv :: ('a => 'b) => ('b => 'a)
     "inv(f::'a=>'b) == % y. @x. f(x)=y"
-  
 
+  inj_on :: ['a => 'b, 'a set] => bool
+    "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
 syntax
   inj   :: ('a => 'b) => bool                   (*injective*)
 
 translations
   "inj f" == "inj_on f UNIV"
+
+constdefs
+  surj :: ('a => 'b) => bool                   (*surjective*)
+    "surj f == ! y. ? x. y=f(x)"
+  
+  bij :: ('a => 'b) => bool                    (*bijective*)
+    "bij f == inj f & surj f"
+  
 
 (*The Pi-operator, by Florian Kammueller*)
   

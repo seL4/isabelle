@@ -185,6 +185,21 @@ by (Blast_tac 1);
 qed "surjD";
 
 
+(** Bijections **)
+
+Goalw [bij_def] "[| inj f; surj f |] ==> bij f";
+by (Blast_tac 1);
+qed "bijI";
+
+Goalw [bij_def] "bij f ==> inj f";
+by (Blast_tac 1);
+qed "bij_is_inj";
+
+Goalw [bij_def] "bij f ==> surj f";
+by (Blast_tac 1);
+qed "bij_is_surj";
+
+
 (*** Lemmas about injective functions and inv ***)
 
 Goalw [o_def] "[| inj_on f A;  inj_on g (f``A) |] ==> inj_on (g o f) A";
