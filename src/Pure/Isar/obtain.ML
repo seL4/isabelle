@@ -84,6 +84,7 @@ fun gen_obtain prep_typ prep_prop fix assume raw_vars raw_asms state =
 
     val (fix_ctxt, skolems) = apsnd flat (foldl_map fix_vars (Proof.context_of state, raw_vars));
     val (asms_ctxt, asms) = apsnd flat (foldl_map prep_asm (fix_ctxt, raw_asms));
+    val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     fun find_free x t =
       (case Proof.find_free t x of Some (Free a) => Some a | _ => None);
