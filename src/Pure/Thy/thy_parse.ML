@@ -3,10 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The parser for theory files.
-
-TODO:
-  remove quote in syn_err (?)
-  check: names vs names1
 *)
 
 infix 5 -- --$$ $$-- ^^;
@@ -233,7 +229,7 @@ fun mk_type_decls tys =
   \|> add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
 
 
-val old_type_decl = names -- nat -- opt_infix >> mk_old_type_decl;
+val old_type_decl = names1 -- nat -- opt_infix >> mk_old_type_decl;
 
 val type_args =
   type_var >> (fn x => [x]) ||
@@ -310,16 +306,15 @@ val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 
 (* sigclass *)
 
-fun mk_sigclass_decl ((c, cs), consts) = 
+fun mk_sigclass_decl ((c, cs), consts) =
   (mk_pair (c, cs) ^ "\n" ^ consts, [strip_quotes c ^ "I"]);
 
 val sigclass_decl = subclass -- optional const_decls "[]" >> mk_sigclass_decl;
 
 
-(* instance *)
+(* subclass, instance *)
 
-fun mk_instance_decl ((((t, ss), c), axths), opt_tac) =
-  mk_triple (t, ss, c) ^ "\n" ^
+fun mk_witness (axths, opt_tac) =
   mk_list (keyfilter axths false) ^ "\n" ^
   mk_list (keyfilter axths true) ^ "\n" ^
   opt_tac;
@@ -328,11 +323,19 @@ val axm_or_thm =
   string >> rpair false ||
   long_id >> rpair true;
 
-val instance_decl =
-  name --$$ "::" -- optional ("(" $$-- sort_list1 --$$")") "[]" -- name --
+val opt_witness =
   optional ("(" $$-- list1 axm_or_thm --$$ ")") [] --
   optional (verbatim >> (pars o cat "Some" o pars)) "None"
-  >> mk_instance_decl;
+  >> mk_witness;
+
+
+val subclass_decl =
+  name --$$ "<" -- name -- opt_witness
+  >> (fn ((c1, c2), witn) => mk_pair (c1, c2) ^ "\n" ^ witn);
+
+val instance_decl =
+  name --$$ "::" -- arity -- opt_witness
+  >> (fn ((t, (ss, s)), wit) => mk_triple (t, ss, s) ^ "\n" ^ wit);
 
 
 
@@ -342,14 +345,14 @@ type syntax =
   lexicon * (token list -> (string * string) * token list) Symtab.table;
 
 fun make_syntax keywords sects =
-  (make_lexicon keywords, Symtab.make sects handle Symtab.DUPS names
-    => error ("Duplicate sections in thy syntax: " ^ commas_quote names));
+  (make_lexicon keywords, Symtab.make sects handle Symtab.DUPS dups
+    => error ("Duplicate sections in thy syntax: " ^ commas_quote dups));
 
 
 (* header *)
 
 fun mk_header (thy_name, bases) =
-  (thy_name, "(base_on " ^ mk_list bases ^ " " ^ quote thy_name ^ ")");
+  (thy_name, "base_on " ^ mk_list bases ^ " " ^ quote thy_name);
 
 val base =
   ident >> (cat "Thy" o quote) ||
@@ -385,13 +388,13 @@ fun mk_structure ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
       "structure " ^ thy_name ^ " =\n\
       \struct\n\
       \\n\
-      \local\n"              ^ " open Mixfix;\n"  (* FIXME tmp *)
+      \local\n"
       ^ trfun_defs ^ "\n\
       \in\n\
       \\n"
       ^ mltxt ^ "\n\
       \\n\
-      \val thy = " ^ old_thys ^ "\n\n\
+      \val thy = (" ^ old_thys ^ " true)\n\n\
       \|> add_trfuns\n"
       ^ trfun_args ^ "\n\
       \\n"
@@ -408,7 +411,7 @@ fun mk_structure ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
       "structure " ^ thy_name ^ " =\n\
       \struct\n\
       \\n\
-      \val thy = " ^ old_thys ^ ";\n\
+      \val thy = (" ^ old_thys ^ " false);\n\
       \\n\
       \end;\n";
 
@@ -437,8 +440,8 @@ fun section name pretxt parse =
 val pure_keywords =
  ["classes", "default", "types", "arities", "consts", "syntax",
   "translations", "MLtrans", "MLtext", "rules", "defns", "axclass",
-  "sigclass", "instance", "end", "ML", "mixfix", "infixr", "infixl",
-  "binder", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
+  "sigclass", "subclass", "instance", "end", "ML", "mixfix", "infixr",
+  "infixl", "binder", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
   "==", "=>", "<="];
 
 val pure_sections =
@@ -455,6 +458,7 @@ val pure_sections =
   axm_section "defns" "|> add_defns" axiom_decls,
   axm_section "axclass" "|> add_axclass" axclass_decl,
   axm_section "sigclass" "|> add_sigclass" sigclass_decl,
+  section "subclass" "|> add_subclass" subclass_decl,
   section "instance" "|> add_instance" instance_decl];
 
 
