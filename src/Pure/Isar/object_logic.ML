@@ -16,6 +16,7 @@ sig
   val fixed_judgment: Sign.sg -> string -> term
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
+  val atomize_cterm: cterm -> cterm
   val atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
   val rulify: thm -> thm
@@ -125,6 +126,10 @@ fun rewrite_prems_tac rews i = PRIMITIVE (MetaSimplifier.fconv_rule
   (MetaSimplifier.goals_conv (Library.equal i)
     (MetaSimplifier.forall_conv
       (MetaSimplifier.goals_conv (K true) (Tactic.rewrite true rews)))));
+
+fun atomize_cterm ct =
+  let val sg = #sign (Thm.rep_cterm ct)
+  in Thm.cterm_fun (drop_judgment sg) (Tactic.rewrite_cterm true (get_atomize sg) ct) end;
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (#prop (Thm.rep_thm st)) i then
