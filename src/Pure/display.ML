@@ -153,7 +153,7 @@ fun print_sign sg =
     val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
-    Pretty.writeln (Pretty.strs ("data:" :: Data.kinds data));
+    Pretty.writeln (Pretty.strs ("data:" :: Sign.data_kinds data));
     Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
     Pretty.writeln (pretty_classes classes);

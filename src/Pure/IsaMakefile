@@ -17,7 +17,7 @@ FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
 	Syntax/type_ext.ML Thy/ROOT.ML Thy/browser_info.ML Thy/file.ML \
 	Thy/path.ML Thy/thm_database.ML Thy/thy_info.ML Thy/thy_parse.ML \
 	Thy/thy_read.ML Thy/thy_scan.ML Thy/thy_syn.ML Thy/use.ML \
-	axclass.ML basis.ML data.ML deriv.ML display.ML drule.ML envir.ML \
+	axclass.ML basis.ML deriv.ML display.ML drule.ML envir.ML \
 	goals.ML install_pp.ML library.ML logic.ML name_space.ML net.ML \
 	pattern.ML pure_thy.ML search.ML section_utils.ML sequence.ML sign.ML \
 	sorts.ML symtab.ML tactic.ML tctical.ML term.ML theory.ML thm.ML \

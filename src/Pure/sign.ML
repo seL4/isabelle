@@ -19,6 +19,7 @@ signature SIGN =
 sig
   type sg
   type sg_ref
+  type data
   val rep_sg: sg ->
    {self: sg_ref,
     tsig: Type.type_sig,
@@ -26,7 +27,7 @@ sig
     syn: Syntax.syntax,
     path: string list,
     spaces: (string * NameSpace.T) list,
-    data: Data.T}
+    data: data}
   val name_of: sg -> string
   val stamp_names_of: sg -> string list
   val tsig_of: sg -> Type.type_sig
@@ -115,8 +116,9 @@ sig
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
+  val data_kinds: data -> string list
   val init_data: string * (object * (object -> object) *
-    (object * object -> object) * (object -> unit)) -> sg -> sg
+    (object * object -> object) * (sg -> object -> unit)) -> sg -> sg
   val get_data: sg -> string -> object
   val put_data: string * object -> sg -> sg
   val print_data: sg -> string -> unit
@@ -134,6 +136,8 @@ struct
 
 (** datatype sg **)
 
+(* types sg, data, sg_ref *)
+
 datatype sg =
   Sg of
    {id: string ref,                             (*id*)
@@ -144,9 +148,16 @@ datatype sg =
     syn: Syntax.syntax,                         (*syntax for parsing and printing*)
     path: string list,                          (*current name space entry prefix*)
     spaces: (string * NameSpace.T) list,        (*name spaces for consts, types etc.*)
-    data: Data.T}                               (*additional data*)
+    data: data}                                 (*anytype data*)
+and data =
+  Data of
+    (object *                             	(*value*)
+     ((object -> object) *                	(*prepare extend method*)
+      (object * object -> object) *       	(*merge and prepare extend method*)
+      (sg -> object -> unit)))                 	(*print method*)
+    Symtab.table
 and sg_ref =
-  SgRef of sg ref option;
+  SgRef of sg ref option
 
 (*make signature*)
 fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
@@ -154,7 +165,7 @@ fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
     syn = syn, path = path, spaces = spaces, data = data});
 
 
-(* basic components *)
+(* basic operations *)
 
 fun rep_sg (Sg (_, args)) = args;
 
@@ -172,15 +183,6 @@ val classes = #classes o Type.rep_tsig o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
-
-
-(* data *)
-
-fun access_data f sg k = f (#data (rep_sg sg)) k
-  handle ERROR => error ("of theory " ^ str_of_sg sg);
-
-val get_data = access_data Data.get;
-val print_data = access_data Data.print;
 
 
 (* id and self *)
@@ -242,7 +244,77 @@ fun is_draft (Sg ({stamps = ref "#" :: _, ...}, _)) = true
   | is_draft _ = false;
 
 
-(* build signature *)
+
+(** signature data **)
+
+(* errors *)
+
+fun of_theory sg = " of theory " ^ str_of_sg sg;
+
+fun err_method name kind =
+  error ("Error while invoking " ^ quote kind ^ " method " ^ name);
+
+fun err_dup_init sg kind =
+  error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
+
+fun err_uninit sg kind =
+  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ of_theory sg);
+
+
+(* prepare data *)
+
+val empty_data = Data Symtab.null;
+
+fun merge_data (Data tab1, Data tab2) =
+  let
+    val data1 = Symtab.dest tab1;
+    val data2 = Symtab.dest tab2;
+    val all_data = data1 @ data2;
+    val kinds = distinct (map fst all_data);
+
+   fun entry data kind =
+     (case assoc (data, kind) of
+       None => []
+     | Some x => [(kind, x)]);
+
+    fun merge_entries [(kind, (e, mths as (ext, _, _)))] =
+          (kind, (ext e handle _ => err_method "prep_ext" kind, mths))
+      | merge_entries [(kind, (e1, mths as (_, mrg, _))), (_, (e2, _))] =
+          (kind, (mrg (e1, e2) handle _ => err_method "merge" kind, mths))
+      | merge_entries _ = sys_error "merge_entries";
+
+    val data = map (fn k => merge_entries (entry data1 k @ entry data2 k)) kinds;
+  in Data (Symtab.make data) end;
+
+fun prep_ext_data data = merge_data (data, empty_data);
+
+fun init_data_sg sg (Data tab) kind e ext mrg prt =
+  Data (Symtab.update_new ((kind, (e, (ext, mrg, prt))), tab))
+    handle Symtab.DUPLICATE _ => err_dup_init sg kind;
+
+
+(* access data *)
+
+fun data_kinds (Data tab) = map fst (Symtab.dest tab);
+
+fun lookup_data sg tab kind =
+  (case Symtab.lookup (tab, kind) of
+    Some x => x
+  | None => err_uninit sg kind);
+
+fun get_data (sg as Sg (_, {data = Data tab, ...})) kind =
+  fst (lookup_data sg tab kind);
+
+fun print_data (sg as Sg (_, {data = Data tab, ...})) kind =
+  let val (e, (_, _, prt)) = lookup_data sg tab kind
+  in prt sg e handle _ => err_method ("print" ^ of_theory sg) kind end;
+
+fun put_data_sg sg (Data tab) kind e =
+  Data (Symtab.update ((kind, (e, snd (lookup_data sg tab kind))), tab));
+
+
+
+(** build signatures **)
 
 fun ext_stamps stamps (id as ref name) =
   let val stmps = (case stamps of ref "#" :: ss => ss | ss => ss) in
@@ -269,7 +341,7 @@ fun extend_sign keep extfun name decls
     val _ = check_stale sg;
     val (self', data') =
       if is_draft sg andalso keep then (self, data)
-      else (SgRef (Some (ref sg)), Data.prep_ext data);
+      else (SgRef (Some (ref sg)), prep_ext_data data);
   in
     create_sign self' stamps name
       (extfun (syn, tsig, const_tab, (path, spaces), data') decls)
@@ -747,11 +819,11 @@ fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
 
 (* signature data *)
 
-fun ext_init_data (syn, tsig, ctab, names, data) (kind, (e, ext, mrg, prt)) =
-  (syn, tsig, ctab, names, Data.init data kind e ext mrg prt);
+fun ext_init_data sg (syn, tsig, ctab, names, data) (kind, (e, ext, mrg, prt)) =
+  (syn, tsig, ctab, names, init_data_sg sg data kind e ext mrg prt);
 
-fun ext_put_data (syn, tsig, ctab, names, data) (kind, e) =
-  (syn, tsig, ctab, names, Data.put data kind e);
+fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, e) =
+  (syn, tsig, ctab, names, put_data_sg sg data kind e);
 
 
 (* the external interfaces *)
@@ -780,8 +852,8 @@ val add_trrules      = extend_sign true (ext_syn Syntax.extend_trrules) "#";
 val add_trrules_i    = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
 val add_path         = extend_sign true ext_path "#";
 val add_space        = extend_sign true ext_space "#";
-val init_data        = extend_sign true ext_init_data "#";
-val put_data         = extend_sign true ext_put_data "#";
+fun init_data arg sg = extend_sign true (ext_init_data sg) "#" arg sg;
+fun put_data arg sg  = extend_sign true (ext_put_data sg) "#" arg sg;
 fun add_name name sg = extend_sign true K name () sg;
 fun prep_ext sg      = extend_sign false K "#" () sg;
 
@@ -846,7 +918,7 @@ fun merge_aux (sg1, sg2) =
           ListPair.map NameSpace.merge
             (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
 
-      val data = Data.merge (data1, data2);
+      val data = merge_data (data1, data2);
 
       val sign = make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps);
     in
@@ -863,11 +935,11 @@ fun merge sg1_sg2 =
 (** partial Pure signature **)
 
 val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
-  Symtab.null, Syntax.pure_syn, [], [], Data.empty, []);
+  Symtab.null, Syntax.pure_syn, [], [], empty_data, []);
 
 val pre_pure =
   create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), Data.empty);
+    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), empty_data);
 
 
 end;

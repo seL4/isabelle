@@ -26,7 +26,6 @@ cd "..";
 use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
-use "data.ML";
 use "sign.ML";
 use "sequence.ML";
 use "envir.ML";
