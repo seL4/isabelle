@@ -6,7 +6,7 @@
 Zermelo-Fraenkel Set Theory
 *)
 
-ZF = FOL + Let + 
+ZF = FOL + Let +
 
 global
 
@@ -198,7 +198,7 @@ rules
   foundation    "A=0 | (EX x:A. ALL y:x. y~:A)"
 
   (*Schema axiom since predicate P is a higher-order variable*)
-  replacement   "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==> 
+  replacement   "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==>
                          b : PrimReplace(A,P) <-> (EX x:A. P(x,b))"
 
 defs
@@ -240,7 +240,7 @@ defs
   Pair_def      "<a,b>  == {{a,a}, {a,b}}"
   fst_def       "fst(p) == THE a. EX b. p=<a,b>"
   snd_def       "snd(p) == THE b. EX a. p=<a,b>"
-  split_def     "split(c,p) == c(fst(p), snd(p))"
+  split_def     "split(c) == %p. c(fst(p), snd(p))"
   Sigma_def     "Sigma(A,B) == UN x:A. UN y:B(x). {<x,y>}"
 
   (* Operations on relations *)
@@ -251,7 +251,7 @@ defs
   domain_def    "domain(r) == {x. w:r, EX y. w=<x,y>}"
   range_def     "range(r) == domain(converse(r))"
   field_def     "field(r) == domain(r) Un range(r)"
-  function_def  "function(r) == ALL x y. <x,y>:r -->   
+  function_def  "function(r) == ALL x y. <x,y>:r -->
                                 (ALL y'. <x,y'>:r --> y=y')"
   image_def     "r `` A  == {y : range(r) . EX x:A. <x,y> : r}"
   vimage_def    "r -`` A == converse(r)``A"
@@ -272,7 +272,7 @@ ML
 
 (* Pattern-matching and 'Dependent' type operators *)
 
-val print_translation = 
+val print_translation =
   [(*("split", split_tr'),*)
    ("Pi",    dependent_tr' ("@PROD", "op ->")),
    ("Sigma", dependent_tr' ("@SUM", "op *"))];
