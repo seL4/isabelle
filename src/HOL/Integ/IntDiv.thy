@@ -31,7 +31,8 @@ Here is the division algorithm in ML:
 *)
 
 
-theory IntDiv = IntArith + Recdef:
+theory IntDiv = IntArith + Recdef
+  files ("IntDiv_setup.ML"):
 
 declare zless_nat_conj [simp]
 
@@ -220,6 +221,14 @@ apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
 apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def div_def mod_def)
 done
+
+lemma zdiv_zmod_equality: "(b * (a div b) + (a mod b)) + k = (a::int)+k"
+by(simp add: zmod_zdiv_equality[symmetric])
+
+lemma zdiv_zmod_equality2: "((a div b) * b + (a mod b)) + k = (a::int)+k"
+by(simp add: zmult_commute zmod_zdiv_equality[symmetric])
+
+use "IntDiv_setup.ML"
 
 lemma pos_mod_conj : "(0::int) < b ==> 0 <= a mod b & a mod b < b"
 apply (cut_tac a = a and b = b in divAlg_correct)
@@ -572,8 +581,7 @@ lemma zmult1_lemma:
      "[| quorem((b,c),(q,r));  c ~= 0 |]  
       ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))"
 by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2
-                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound 
-                    zmod_zdiv_equality)
+                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
 apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
@@ -610,7 +618,13 @@ lemma zmod_zmult_self2 [simp]: "(b*a) mod b = (0::int)"
 by (simp add: zmult_commute zmod_zmult1_eq)
 
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
-by (cut_tac a = m and b = d in zmod_zdiv_equality, auto)
+proof
+  assume "m mod d = 0"
+  from this zmod_zdiv_equality[of m d] show "EX q::int. m = d*q" by auto
+next
+  assume "EX q::int. m = d*q"
+  thus "m mod d = 0" by auto
+qed
 
 declare zmod_eq_0_iff [THEN iffD1, dest!]
 
@@ -621,8 +635,7 @@ lemma zadd1_lemma:
      "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c ~= 0 |]  
       ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))"
 by (force simp add: split_ifs quorem_def linorder_neq_iff zadd_zmult_distrib2
-                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound
-                    zmod_zdiv_equality)
+                    pos_mod_sign pos_mod_bound neg_mod_sign neg_mod_bound)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq:
@@ -720,7 +733,7 @@ done
 
 lemma zmult2_lemma: "[| quorem ((a,b), (q,r));  b ~= 0;  0 < c |]  
       ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))"
-by (auto simp add: zmult_ac zmod_zdiv_equality quorem_def linorder_neq_iff
+by (auto simp add: zmult_ac quorem_def linorder_neq_iff
                    int_0_less_mult_iff zadd_zmult_distrib2 [symmetric] 
                    lemma1 lemma2 lemma3 lemma4)
 
@@ -796,7 +809,7 @@ apply (rule iffI)
 txt{*converse direction*}
 apply (drule_tac x = "n div k" in spec) 
 apply (drule_tac x = "n mod k" in spec) 
-apply (simp add: pos_mod_bound pos_mod_sign zmod_zdiv_equality [symmetric]) 
+apply (simp add: pos_mod_bound pos_mod_sign) 
 done
 
 lemma split_neg_lemma:
@@ -811,7 +824,7 @@ apply (rule iffI)
 txt{*converse direction*}
 apply (drule_tac x = "n div k" in spec) 
 apply (drule_tac x = "n mod k" in spec) 
-apply (simp add: neg_mod_bound neg_mod_sign zmod_zdiv_equality [symmetric]) 
+apply (simp add: neg_mod_bound neg_mod_sign) 
 done
 
 lemma split_zdiv:

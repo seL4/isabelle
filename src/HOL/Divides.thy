@@ -44,11 +44,6 @@ constdefs
 
 use "Divides_lemmas.ML"
 
-lemma mod_div_equality2: "n * (m div n) + m mod n = (m::nat)"
-apply(insert mod_div_equality[of m n])
-apply(simp only:mult_ac)
-done
-
 lemma split_div:
  "P(n div k :: nat) =
  ((k = 0 \<longrightarrow> P 0) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P i)))"
@@ -85,7 +80,7 @@ next
     assume not0: "k \<noteq> 0"
     with Q have R: ?R by simp
     from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
-    show ?P by(simp add:mod_div_equality2)
+    show ?P by simp
   qed
 qed
 
@@ -118,7 +113,7 @@ next
     assume not0: "k \<noteq> 0"
     with Q have R: ?R by simp
     from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
-    show ?P by(simp add:mod_div_equality2)
+    show ?P by simp
   qed
 qed
 
@@ -145,7 +140,7 @@ proof
 next
   assume Q: ?Q
   from m Q[THEN spec,of "n div m",THEN spec, of "n mod m"]
-  show ?P by(simp add:mod_div_equality2)
+  show ?P by simp
 qed
 
 lemma split_mod:
@@ -163,7 +158,7 @@ proof
 next
   assume Q: ?Q
   from m Q[THEN spec,of "n div m",THEN spec, of "n mod m"]
-  show ?P by(simp add:mod_div_equality2)
+  show ?P by simp
 qed
 *)
 end

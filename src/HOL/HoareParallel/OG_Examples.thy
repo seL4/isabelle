@@ -340,43 +340,37 @@ subsection {* Producer/Consumer *}
 
 subsubsection {* Previous lemmas *}
 
-lemma nat_lemma1: "\<lbrakk>(c::nat) \<le> a ;a < b\<rbrakk> \<Longrightarrow> b - a \<le> b - c"
-by (simp split: nat_diff_split)
-
-lemma nat_lemma2: "\<lbrakk> b = m*(n::nat) + t; a = s*n + t ; b - a < n \<rbrakk> \<Longrightarrow> m - s = 0"
+lemma nat_lemma2: "\<lbrakk> b = m*(n::nat) + t; a = s*n + u; t=u; b-a < n \<rbrakk> \<Longrightarrow> m \<le> s"
 proof -
-  assume "b = m*(n::nat) + t" and "a = s*n + t"
+  assume "b = m*(n::nat) + t" "a = s*n + u" "t=u"
   hence "(m - s) * n = b - a" by (simp add: diff_mult_distrib)
   also assume "\<dots> < n"
   finally have "m - s < 1" by simp
   thus ?thesis by arith
 qed
 
-lemma less_imp_diff_is_0: "m < Suc(n) \<Longrightarrow> m-n = 0"
-by arith
 lemma mod_lemma: "\<lbrakk> (c::nat) \<le> a; a < b; b - c < n \<rbrakk> \<Longrightarrow> b mod n \<noteq> a mod n"
 apply(subgoal_tac "b=b div n*n + b mod n" )
  prefer 2  apply (simp add: mod_div_equality [symmetric])
 apply(subgoal_tac "a=a div n*n + a mod n")
  prefer 2
  apply(simp add: mod_div_equality [symmetric])
-apply(frule nat_lemma1 , assumption)
+apply(subgoal_tac "b - a \<le> b - c")
+ prefer 2 apply arith
 apply(drule le_less_trans)
 back
  apply assumption
 apply(frule less_not_refl2)
 apply(drule less_imp_le)
-apply (drule_tac m = "a" in div_le_mono)
-apply(drule_tac m = "a div n" in le_imp_less_Suc)
-apply(drule less_imp_diff_is_0)
+apply (drule_tac m = "a" and k = n in div_le_mono)
 apply(safe)
-apply(simp)
-apply(frule_tac b = "b" and a = "a" and n = "n" in nat_lemma2 , assumption)
+apply(frule_tac b = "b" and a = "a" and n = "n" in nat_lemma2, assumption, assumption)
 apply assumption
-apply(drule  diffs0_imp_equal)
-apply(simp)
+apply(drule order_antisym, assumption)
+apply(rotate_tac -3)
 apply(simp)
 done
+
 
 subsubsection {* Producer/Consumer Algorithm *}
 

@@ -180,10 +180,55 @@ by (ALLGOALS (asm_simp_tac
 				   add_diff_inverse, diff_less])));
 qed "mod_div_equality";
 
+Goal "n * (m div n) + m mod n = (m::nat)";
+by(cut_inst_tac [("m","m"),("n","n")] mod_div_equality 1);
+by(asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
+qed "mod_div_equality2";
+
+(*-----------------------------------------------------------------------*)
+(*Simproc for cancelling div and mod                                     *)
+(*-----------------------------------------------------------------------*)
+
+Goal "((m div n)*n + m mod n) + k = (m::nat) + k";
+by(simp_tac (simpset() addsimps [mod_div_equality]) 1);
+qed "div_mod_equality";
+
+Goal "(n*(m div n) + m mod n) + k = (m::nat) + k";
+by(simp_tac (simpset() addsimps [thm"mod_div_equality2"]) 1);
+qed "div_mod_equality2";
+
+structure CancelDivModData =
+struct
+
+val div_name = "Divides.op div";
+val mod_name = "Divides.op mod";
+val mk_binop = HOLogic.mk_binop;
+val mk_sum = NatArithUtils.mk_sum;
+val dest_sum = NatArithUtils.dest_sum;
+
+(*logic*)
+
+val div_mod_eqs = map mk_meta_eq [div_mod_equality,div_mod_equality2]
+
+val trans = trans
+
+val prove_eq_sums =
+  let val simps = add_0 :: add_0_right :: add_ac
+  in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all simps) end
+
+end;
+
+structure CancelDivMod = CancelDivModFun(CancelDivModData);
+
+val cancel_div_mod_proc = NatArithUtils.prep_simproc
+      ("cancel_div_mod", ["(m::nat) + n"], CancelDivMod.proc);
+
+Addsimprocs[cancel_div_mod_proc];
+
+
 (* a simple rearrangement of mod_div_equality: *)
 Goal "(n::nat) * (m div n) = m - (m mod n)";
-by (cut_inst_tac [("m","m"),("n","n")] mod_div_equality 1);
-by (full_simp_tac (simpset() addsimps mult_ac) 1);
+by (cut_inst_tac [("m","m"),("n","n")] mod_div_equality2 1);
 by (arith_tac 1);
 qed "mult_div_cancel";
 
@@ -240,7 +285,6 @@ by (asm_full_simp_tac (simpset() addsimps [Divides.quorem_def]) 1);
 qed "unique_remainder";
 
 Goal "0 < b ==> quorem ((a, b), (a div b, a mod b))";
-by (cut_inst_tac [("m","a"),("n","b")] mod_div_equality 1);
 by (auto_tac
     (claset() addEs [sym],
      simpset() addsimps mult_ac@[Divides.quorem_def]));
@@ -271,7 +315,6 @@ Addsimps [div_0, mod_0];
 
 Goal "[| quorem((b,c),(q,r));  0 < c |] \
 \     ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))";
-by (cut_inst_tac [("m", "a*r"), ("n","c")] mod_div_equality 1);
 by (auto_tac
     (claset(),
      simpset() addsimps split_ifs@mult_ac@
@@ -304,7 +347,6 @@ qed "mod_mult_distrib_mod";
 
 Goal "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  0 < c |] \
 \     ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))";
-by (cut_inst_tac [("m", "ar+br"), ("n","c")] mod_div_equality 1);
 by (auto_tac
     (claset(),
      simpset() addsimps split_ifs@mult_ac@
@@ -339,7 +381,6 @@ val mod_lemma = result();
 
 Goal "[| quorem ((a,b), (q,r));  0 < b;  0 < c |] \
 \     ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))";
-by (cut_inst_tac [("m", "q"), ("n","c")] mod_div_equality 1);
 by (auto_tac  
     (claset(),
      simpset() addsimps mult_ac@
@@ -357,7 +398,6 @@ qed "div_mult2_eq";
 Goal "a mod (b*c) = b*(a div b mod c) + a mod (b::nat)";
 by (div_undefined_case_tac "b=0" 1);
 by (div_undefined_case_tac "c=0" 1);
-by (cut_inst_tac [("m", "a"), ("n","b")] mod_div_equality 1);
 by (auto_tac (claset(),
 	       simpset() addsimps [mult_commute, 
 				   quorem_div_mod RS lemma RS quorem_mod]));
@@ -614,7 +654,7 @@ qed "dvd_mod";
 
 Goal "[| (k::nat) dvd m mod n;  k dvd n |] ==> k dvd m";
 by (subgoal_tac "k dvd (m div n)*n + m mod n" 1);
-by (asm_simp_tac (simpset() addsimps [dvd_add, dvd_mult]) 2);
+by (asm_simp_tac (HOL_basic_ss addsimps [dvd_add, dvd_mult]) 2);
 by (asm_full_simp_tac (simpset() addsimps [mod_div_equality]) 1);
 qed "dvd_mod_imp_dvd";
 
@@ -690,7 +730,6 @@ AddSDs [mod_eq_0_iff RS iffD1];
 (*Loses information, namely we also have r<d provided d is nonzero*)
 Goal "(m mod d = r) ==> EX q::nat. m = r + q*d";
 by (cut_inst_tac [("m","m")] mod_div_equality 1);
-by (full_simp_tac (simpset() addsimps add_ac) 1); 
+by (full_simp_tac (HOL_basic_ss addsimps add_ac) 1); 
 by (blast_tac (claset() addIs [sym]) 1); 
 qed "mod_eqD";
-

@@ -183,7 +183,7 @@ lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   apply (subgoal_tac "k dvd n * (m div n) + m mod n")
    apply (simp add: zmod_zdiv_equality [symmetric])
-  apply (simp add: zdvd_zadd zdvd_zmult2)
+  apply (simp only: zdvd_zadd zdvd_zmult2)
   done
 
 lemma zdvd_iff_zmod_eq_0: "(k dvd n) = (n mod (k::int) = 0)"
@@ -602,8 +602,7 @@ lemma zcong_zless_unique:
   apply (rule_tac x = "a mod m" in exI)
   apply (auto simp add: pos_mod_sign pos_mod_bound)
   apply (rule_tac x = "-(a div m)" in exI)
-  apply (cut_tac a = a and b = m in zmod_zdiv_equality)
-  apply auto
+  apply (simp add:zdiff_eq_eq eq_zdiff_eq zadd_commute)
   done
 
 lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
@@ -624,13 +623,8 @@ lemma aux: "a = c ==> b = d ==> a - b = c - (d::int)"
   done
 
 lemma aux: "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
-  apply (rule_tac "s" = "(m * (a div m) + a mod m) - (m * (b div m) + b mod m)"
-    in trans)
-   prefer 2
-   apply (simp add: zdiff_zmult_distrib2)
-  apply (rule aux)
-   apply (rule_tac [!] zmod_zdiv_equality)
-  done
+by(simp add: zdiff_zmult_distrib2 zadd_zdiff_eq eq_zdiff_eq zadd_ac)
+
 
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)
@@ -685,9 +679,7 @@ lemma zmod_zdvd_zmod:
    prefer 2
    apply (subst zcong_iff_lin)
    apply (rule_tac x = "k * (a div (m * k))" in exI)
-   apply (subst zadd_commute)
-   apply (subst zmult_assoc [symmetric])
-   apply (rule_tac zmod_zdiv_equality)
+   apply(simp add:zmult_assoc [symmetric])
   apply assumption
   done
 
@@ -756,11 +748,7 @@ lemma aux:
     ==> (r' mod r) = (s' - (r' div r) * s) * m + (t' - (r' div r) * t) * (n::int)"
   apply (rule trans)
    apply (rule_tac [2] aux [symmetric])
-  apply simp
-  apply (subst eq_zdiff_eq)
-  apply (rule trans [symmetric])
-  apply (rule_tac b = "s * m + t * n" in zmod_zdiv_equality)
-  apply (simp add: zmult_commute)
+  apply (simp add: eq_zdiff_eq zmult_commute)
   done
 
 lemma order_le_neq_implies_less: "(x::'a::order) \<le> y ==> x \<noteq> y ==> x < y"

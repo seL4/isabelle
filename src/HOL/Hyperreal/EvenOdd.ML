@@ -253,8 +253,7 @@ qed "odd_num_iff";
 (* Some mod and div stuff *)
 
 Goal "n ~= (0::nat) ==> (m = m div n * n + m mod n) & m mod n < n";
-by (auto_tac (claset() addIs [mod_less_divisor],simpset()
-    addsimps [mod_div_equality]));
+by (auto_tac (claset() addIs [mod_less_divisor],simpset()));
 qed "mod_div_eq_less";
 
 Goal "(k*n + m) mod n = m mod (n::nat)";
@@ -273,7 +272,7 @@ by (cut_inst_tac [("d'","Suc (m mod n) mod n")] (CLAIM "EX d. d' = d") 1);
 by (etac exE 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("t","m"),("n1","n")] (mod_div_equality RS subst) 1);
-by Auto_tac;
+by (auto_tac (claset(),simpset() delsimprocs [cancel_div_mod_proc]));
 qed "mod_Suc_eq_Suc_mod";
 
 Goal "even n = (even (n mod 4))";
@@ -281,7 +280,7 @@ by (cut_inst_tac [("d'","(even (n mod 4))")] (CLAIM "EX d. d' = d") 1);
 by (etac exE 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("t","n"),("n1","4")] (mod_div_equality RS subst) 1);
-by (auto_tac (claset(),simpset() addsimps [even_mult,even_num_iff]));
+by (auto_tac (claset(),simpset() addsimps [even_mult,even_num_iff] delsimprocs [cancel_div_mod_proc]));
 qed "even_even_mod_4_iff";
 
 Goal "odd n = (odd (n mod 4))";
@@ -309,17 +308,17 @@ qed "lemma_mod_4_even_n";
 
 Goal "n mod 4 = 1 ==> odd(n)";
 by (res_inst_tac [("t","n"),("n1","4")] (mod_div_equality RS subst) 1);
-by (auto_tac (claset(),simpset() addsimps [odd_num_iff]));
+by (auto_tac (claset(),simpset() addsimps [odd_num_iff] delsimprocs [cancel_div_mod_proc]));
 qed "lemma_mod_4_odd_n";
 
 Goal "n mod 4 = 2 ==> even(n)";
 by (res_inst_tac [("t","n"),("n1","4")] (mod_div_equality RS subst) 1);
-by (auto_tac (claset(),simpset() addsimps [even_num_iff]));
+by (auto_tac (claset(),simpset() addsimps [even_num_iff] delsimprocs [cancel_div_mod_proc]));
 qed "lemma_mod_4_even_n2";
 
 Goal "n mod 4 = 3 ==> odd(n)";
 by (res_inst_tac [("t","n"),("n1","4")] (mod_div_equality RS subst) 1);
-by (auto_tac (claset(),simpset() addsimps [odd_num_iff]));
+by (auto_tac (claset(),simpset() addsimps [odd_num_iff] delsimprocs [cancel_div_mod_proc]));
 qed "lemma_mod_4_odd_n2";
 
 Goal "even n ==> ((-1) ^ n) = (1::real)";
@@ -344,7 +343,7 @@ Addsimps [lemma_Suc_Suc_4n_div_2_eq2];
 
 Goal "n mod 4 = 3 ==> odd((n - 1) div 2)";
 by (res_inst_tac [("t","n"),("n1","4")] (mod_div_equality RS subst) 1);
-by (asm_full_simp_tac (simpset() addsimps [odd_num_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [odd_num_iff] delsimprocs [cancel_div_mod_proc]) 1);
 val lemma_odd_mod_4_div_2 = result();
 
 Goal "(4 * n) div 2 = (2::nat) * n";

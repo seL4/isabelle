@@ -34,6 +34,7 @@ use "~~/src/Provers/Arith/cancel_numerals.ML";
 use "~~/src/Provers/Arith/combine_numerals.ML";
 use "~~/src/Provers/Arith/cancel_numeral_factor.ML";
 use "~~/src/Provers/Arith/extract_common_term.ML";
+use "~~/src/Provers/Arith/cancel_div_mod.ML";
 
 with_path "Integ" use_thy "Main";
 

@@ -278,14 +278,14 @@ text {* A previous lemma: *}
 
 lemma mod_aux :"\<lbrakk>i < (n::nat); a mod n = i;  j < a + n; j mod n = i; a < j\<rbrakk> \<Longrightarrow> False"
 apply(subgoal_tac "a=a div n*n + a mod n" )
- prefer 2 apply (simp (no_asm_use) only: mod_div_equality [symmetric])
+ prefer 2 apply (simp (no_asm_use))
 apply(subgoal_tac "j=j div n*n + j mod n")
- prefer 2 apply (simp (no_asm_use) only: mod_div_equality [symmetric])
+ prefer 2 apply (simp (no_asm_use))
 apply simp
 apply(subgoal_tac "a div n*n < j div n*n")
 prefer 2 apply arith
 apply(subgoal_tac "j div n*n < (a div n + 1)*n")
-prefer 2 apply simp 
+prefer 2 apply simp
 apply (simp only:mult_less_cancel2)
 apply arith
 done

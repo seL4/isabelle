@@ -9,15 +9,8 @@ Various arithmetic proof procedures.
 (* 1. Cancellation of common terms                                           *)
 (*---------------------------------------------------------------------------*)
 
-signature ARITH_DATA =
-sig
-  val nat_cancel_sums_add: simproc list
-  val nat_cancel_sums: simproc list
-end;
-
-structure ArithData: ARITH_DATA =
+structure NatArithUtils =
 struct
-
 
 (** abstract syntax of structure nat: 0, Suc, + **)
 
@@ -58,11 +51,11 @@ fun dest_sum tm =
 
 val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
-fun prove_conv expand_tac norm_tac sg (t, u) =
-  mk_meta_eq (prove_goalw_cterm_nocheck [] (cterm_of sg (mk_eqv (t, u)))
+fun prove_conv expand_tac norm_tac sg tu =
+  mk_meta_eq (prove_goalw_cterm_nocheck [] (cterm_of sg (mk_eqv tu))
     (K [expand_tac, norm_tac]))
   handle ERROR => error ("The error(s) above occurred while trying to prove " ^
-    (string_of_cterm (cterm_of sg (mk_eqv (t, u)))));
+    (string_of_cterm (cterm_of sg (mk_eqv tu))));
 
 val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
   (fn prems => [cut_facts_tac prems 1, SIMPSET' asm_simp_tac 1]);
@@ -75,6 +68,21 @@ fun simp_all rules = ALLGOALS (simp_tac (HOL_ss addsimps rules));
 val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
 val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
 
+fun prep_simproc (name, pats, proc) =
+  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
+
+end;
+
+signature ARITH_DATA =
+sig
+  val nat_cancel_sums_add: simproc list
+  val nat_cancel_sums: simproc list
+end;
+
+structure ArithData: ARITH_DATA =
+struct
+
+open NatArithUtils;
 
 
 (** cancel common summands **)
@@ -137,9 +145,6 @@ end);
 
 
 (** prepare nat_cancel simprocs **)
-
-fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
 
 val nat_cancel_sums_add = map prep_simproc
   [("nateq_cancel_sums",
