@@ -21,7 +21,7 @@ function usage()
   echo "    -p           include parent logic target"
   echo
   echo "  Prepare session directory, including IsaMakefile, document etc."
-  echo "  with parent LOGIC (default \$ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "  with parent LOGIC (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo
   exit 1
 }
