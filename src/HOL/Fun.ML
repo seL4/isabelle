@@ -253,6 +253,10 @@ by Auto_tac;
 qed "vimage_id";
 Addsimps [vimage_ident, vimage_id];
 
+Goal "f -`` (f `` A) = {y. EX x:A. f x = f y}";
+by (blast_tac (claset() addIs [sym]) 1);
+qed "vimage_image_eq";
+
 Goal "f``(A Int B) <= f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int_subset";
