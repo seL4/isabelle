@@ -262,6 +262,9 @@ qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
 
+qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
+  (fn _ => [split_tac [expand_if] 1, fast_tac HOL_cs 1]);
+
 (** 'if' congruence rules: neither included by default! *)
 
 (*Simplifies x assuming c and y assuming ~c*)
@@ -298,7 +301,8 @@ val HOL_ss = empty_ss
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, imp_disjL, conj_assoc, disj_assoc,
+      addsimps ([if_True, if_False, if_cancel,
+		 o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
@@ -315,9 +319,6 @@ fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
 
-qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
-  (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
-
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
@@ -330,7 +331,7 @@ qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
 
 (*** Install simpsets and datatypes in theory structure ***)
 
-simpset := HOL_ss addsimps [if_cancel];
+simpset := HOL_ss;
 
 exception SS_DATA of simpset;
 
