@@ -57,15 +57,15 @@ translations
 (* THEOREMS *)
 syntax (Rule output)
   "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{>_\<^raw:}>")
+  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
 
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{>_\<^raw:}>")
+  ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{\mbox{>_\<^raw:}}>")
 
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" 
   ("_\<^raw:\\>/ _")
 
-  "_asm" :: "prop \<Rightarrow> asms" ("_")
+  "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
 syntax (IfThen output)
   "==>" :: "prop \<Rightarrow> prop \<Rightarrow> prop"
