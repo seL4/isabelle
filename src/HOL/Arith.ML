@@ -530,9 +530,11 @@ qed "mult_le_mono1";
 
 (*<=monotonicity, BOTH arguments*)
 goal Arith.thy "!!i::nat. [| i<=j; k<=l |] ==> i*k<=j*l";
+by (etac (mult_le_mono1 RS le_trans) 1);
 by (rtac le_trans 1);
-by (ALLGOALS 
-    (deepen_tac (!claset addIs [mult_commute RS ssubst, mult_le_mono1]) 0));
+by (stac mult_commute 2);
+by (etac mult_le_mono1 2);
+by (simp_tac (!simpset addsimps [mult_commute]) 1);
 qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
