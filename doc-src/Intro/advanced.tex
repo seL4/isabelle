@@ -21,8 +21,6 @@ Even experienced users plan large proofs on paper.
 We have covered only the bare essentials of Isabelle, but enough to perform
 substantial proofs.  By occasionally dipping into the {\em Reference
 Manual}, you can learn additional tactics, subgoal commands and tacticals.
-Isabelle's simplifier and classical theorem prover are
-difficult to learn, and can be ignored at first.
 
 
 \section{Deriving rules in Isabelle}
@@ -34,13 +32,15 @@ following section will explain how to declare types, constants, axioms and
 definitions.
 
 
-\subsection{Deriving a rule using tactics} \label{deriving-example}
+\subsection{Deriving a rule using tactics and meta-level assumptions} 
+\label{deriving-example}
 \index{examples!of deriving rules}
+
 The subgoal module supports the derivation of rules.  The \ttindex{goal}
 command, when supplied a goal of the form $\List{\theta@1; \ldots;
 \theta@k} \Imp \phi$, creates $\phi\Imp\phi$ as the initial proof state and
 returns a list consisting of the theorems 
-${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These assumptions are
+${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These meta-assumptions are
 also recorded internally, allowing \ttindex{result} to discharge them in the
 original order.
 
@@ -124,14 +124,6 @@ example, $\forall x.\neg (P(x)\conj \neg R(x,0))$ unfolds to
 {\bf Folding} a definition replaces occurrences of the right-hand side by
 the left.  The occurrences need not be free in the entire formula.
 
-\begin{warn}
-Isabelle does not distinguish sensible definitions, like $1\equiv Suc(0)$, from
-equations like $1\equiv Suc(1)$.  However, meta-rewriting fails for
-equations like ${f(\Var{x})\equiv g(\Var{x},\Var{y})}$: all variables on
-the right-hand side must also be present on the left.
-\index{rewriting!meta-level}
-\end{warn}
-
 When you define new concepts, you should derive rules asserting their
 abstract properties, and then forget their definitions.  This supports
 modularity: if you later change the definitions, without affecting their
@@ -149,16 +141,16 @@ For example, the intuitionistic definition of negation given above may seem
 peculiar.  Using Isabelle, we shall derive pleasanter negation rules:
 \[  \infer[({\neg}I)]{\neg P}{\infer*{\bot}{[P]}}   \qquad
     \infer[({\neg}E)]{Q}{\neg P & P}  \]
-This requires proving the following formulae:
+This requires proving the following meta-formulae:
 $$ (P\Imp\bot)    \Imp \neg P   \eqno(\neg I)$$
 $$ \List{\neg P; P} \Imp Q.       \eqno(\neg E)$$
 
 
-\subsubsection{Deriving the introduction rule}
+\subsection{Deriving the $\neg$ introduction rule}
 To derive $(\neg I)$, we may call \ttindex{goal} with the appropriate
 formula.  Again, {\tt goal} returns a list consisting of the rule's
-premises.  We bind this list, which contains the one element $P\Imp\bot$,
-to the \ML\ identifier {\tt prems}.
+premises.  We bind this one-element list to the \ML\ identifier {\tt
+  prems}.
 \begin{ttbox}
 val prems = goal FOL.thy "(P ==> False) ==> ~P";
 {\out Level 0}
@@ -189,21 +181,22 @@ by (resolve_tac prems 1);
 {\out ~P}
 {\out  1. P ==> P}
 \end{ttbox}
-The rest of the proof is routine.
+The rest of the proof is routine.  Note the form of the final result.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 4}
 {\out ~P}
 {\out No subgoals!}
+\ttbreak
 val notI = result();
 {\out val notI = "(?P ==> False) ==> ~?P" : thm}
 \end{ttbox}
 \indexbold{*notI}
 
-\medskip
 There is a simpler way of conducting this proof.  The \ttindex{goalw}
 command starts a backward proof, as does \ttindex{goal}, but it also
-unfolds definitions:
+unfolds definitions.  Thus there is no need to call
+\ttindex{rewrite_goals_tac}:
 \begin{ttbox}
 val prems = goalw FOL.thy [not_def]
     "(P ==> False) ==> ~P";
@@ -212,17 +205,14 @@ val prems = goalw FOL.thy [not_def]
 {\out  1. P --> False}
 {\out val prems = ["P ==> False  [P ==> False]"] : thm list}
 \end{ttbox}
-The proof continues as above, but without calling \ttindex{rewrite_goals_tac}.
 
 
-\subsubsection{Deriving the elimination rule}
+\subsection{Deriving the $\neg$ elimination rule}
 Let us derive the rule $(\neg E)$.  The proof follows that of~{\tt conjE}
-(\S\ref{deriving-example}), with an additional step to unfold negation in
-the major premise.  Although the {\tt goalw} command is best for this, let
-us try~\ttindex{goal} and examine another way of unfolding definitions.
-
-As usual, we bind the premises to \ML\ identifiers.  We then apply
-\ttindex{FalseE}, which stands for~$(\bot E)$:
+above, with an additional step to unfold negation in the major premise.
+Although the {\tt goalw} command is best for this, let us
+try~\ttindex{goal} to see another way of unfolding definitions.  After
+binding the premises to \ML\ identifiers, we apply \ttindex{FalseE}:
 \begin{ttbox}
 val [major,minor] = goal FOL.thy "[| ~P;  P |] ==> R";
 {\out Level 0}
@@ -247,7 +237,7 @@ by (resolve_tac [mp] 1);
 \end{ttbox}
 For subgoal~1, we transform the major premise from~$\neg P$
 to~${P\imp\bot}$.  The function \ttindex{rewrite_rule}, given a list of
-definitions, unfolds them in a theorem.  Rewriting does {\bf not}
+definitions, unfolds them in a theorem.  Rewriting does not
 affect the theorem's hypothesis, which remains~$\neg P$:
 \begin{ttbox}
 rewrite_rule [not_def] major;
@@ -257,7 +247,7 @@ by (resolve_tac [it] 1);
 {\out R}
 {\out  1. P}
 \end{ttbox}
-The subgoal {\tt?P1} has been instantiate to~{\tt P}, which we can prove
+The subgoal {\tt?P1} has been instantiated to~{\tt P}, which we can prove
 using the minor premise:
 \begin{ttbox}
 by (resolve_tac [minor] 1);
@@ -279,9 +269,9 @@ val [major,minor] = goalw FOL.thy [not_def]
 {\out val major = "P --> False  [~ P]" : thm}
 {\out val minor = "P  [P]" : thm}
 \end{ttbox}
-Observe the difference in {\tt major}; the premises are now {\bf unfolded}
-and we need not call~\ttindex{rewrite_rule}.  Incidentally, the four calls
-to \ttindex{resolve_tac} above can be collapsed to one, with the help
+Observe the difference in {\tt major}; the premises are unfolded without
+calling~\ttindex{rewrite_rule}.  Incidentally, the four calls to
+\ttindex{resolve_tac} above can be collapsed to one, with the help
 of~\ttindex{RS}; this is a typical example of forward reasoning from a
 complex premise.
 \begin{ttbox}
@@ -387,20 +377,17 @@ or during creation of the new theory (say, a type error in a rule).  But if
 all goes well, {\tt use_thy} will finally read the file {\it t}{\tt.ML}, if
 it exists.  This file typically begins with the {\ML} declaration {\tt
 open}~$T$ and contains proofs that refer to the components of~$T$.
-Theories can be defined directly by issuing {\ML} declarations to Isabelle,
-but the calling sequences are extremely cumbersome.
 
-If theory~$T$ is later redeclared in order to delete an incorrect rule,
-bindings to the old rule may persist.  Isabelle ensures that the old and
-new versions of~$T$ are not involved in the same proof.  Attempting to
-combine different versions of~$T$ yields the fatal error
-\begin{ttbox}
-Attempt to merge different versions of theory: \(T\)
-\end{ttbox}
+When a theory file is modified, many theories may have to be reloaded.
+Isabelle records the modification times and dependencies of theory files.
+See the {\em Reference Manual\/}
+\iflabelundefined{sec:reloading-theories}{}{(\S\ref{sec:reloading-theories})}
+for more details.
+
 
 \subsection{Declaring constants and rules}
 \indexbold{constants!declaring}\indexbold{rules!declaring}
-Most theories simply declare constants and some rules.  The {\bf constant
+Most theories simply declare constants and rules.  The {\bf constant
 declaration part} has the form
 \begin{ttbox}
 consts  \(c@1\) :: "\(\tau@1\)"
@@ -476,7 +463,7 @@ arities \(tycon@1\) :: \(arity@1\)
 \end{ttbox}
 where $tycon@1$, \ldots, $tycon@n$ are identifiers and $arity@1$, \ldots,
 $arity@n$ are arities.  Arity declarations add arities to existing
-types; they complement type declarations.
+types; they do not declare the types themselves.
 In the simplest case, for an 0-place type constructor, an arity is simply
 the type's class.  Let us declare a type~$bool$ of class $term$, with
 constants $tt$ and~$ff$.  (In first-order logic, booleans are
@@ -489,23 +476,26 @@ arities bool    :: term
 consts  tt,ff   :: "bool"
 end
 \end{ttbox}
-Type constructors can take arguments.  Each type constructor has an {\bf
-  arity} with respect to classes~(\S\ref{polymorphic}).  A $k$-place type
-constructor may have arities of the form $(s@1,\ldots,s@k)c$, where
-$s@1,\ldots,s@n$ are sorts and $c$ is a class.  Each sort specifies a type
-argument; it has the form $\{c@1,\ldots,c@m\}$, where $c@1$, \dots,~$c@m$
-are classes.  Mostly we deal with singleton sorts, and may abbreviate them
-by dropping the braces.  The arity $(term)term$ is short for
-$(\{term\})term$.
+A $k$-place type constructor may have arities of the form
+$(s@1,\ldots,s@k)c$, where $s@1,\ldots,s@n$ are sorts and $c$ is a class.
+Each sort specifies a type argument; it has the form $\{c@1,\ldots,c@m\}$,
+where $c@1$, \dots,~$c@m$ are classes.  Mostly we deal with singleton
+sorts, and may abbreviate them by dropping the braces.  The arity
+$(term)term$ is short for $(\{term\})term$.  Recall the discussion in
+\S\ref{polymorphic}.
 
 A type constructor may be overloaded (subject to certain conditions) by
-appearing in several arity declarations.  For instance, the built-in type
+appearing in several arity declarations.  For instance, the function type
 constructor~$\To$ has the arity $(logic,logic)logic$; in higher-order
 logic, it is declared also to have arity $(term,term)term$.
 
 Theory {\tt List} declares the 1-place type constructor $list$, gives
 it arity $(term)term$, and declares constants $Nil$ and $Cons$ with
-polymorphic types:
+polymorphic types:%
+\footnote{In the {\tt consts} part, type variable {\tt'a} has the default
+  sort, which is {\tt term}.  See the {\em Reference Manual\/}
+\iflabelundefined{sec:ref-defining-theories}{}%
+{(\S\ref{sec:ref-defining-theories})} for more information.}
 \index{examples!of theories}
 \begin{ttbox}
 List = FOL +
@@ -553,7 +543,7 @@ Q.True \xor Q$ and $\lambda Q.True \nand Q$ are identical.
         If :: "[o,o,o] => o"       ("if _ then _ else _")
 \end{ttbox}
 declares a constant $If$ of type $[o,o,o] \To o$ with concrete syntax {\tt
-  if~$P$ then~$Q$ else~$R$} instead of {\tt If($P$,$Q$,$R$)}.  Underscores
+  if~$P$ then~$Q$ else~$R$} as well as {\tt If($P$,$Q$,$R$)}.  Underscores
 denote argument positions.  Pretty-printing information can be specified in
 order to improve the layout of formulae with mixfix operations.  For
 details, see {\em Isabelle's Object-Logics}.
@@ -580,7 +570,6 @@ precedence, we may of course write
 \begin{quote}\tt
 if (if $P$ then $Q$ else $R$) then $S$ else $T$
 \end{quote}
-Conditional expressions can also be written using the constant {\tt If}.
 
 Binary type constructors, like products and sums, may also be declared as
 infixes.  The type declaration below introduces a type constructor~$*$ with
@@ -621,11 +610,11 @@ subclass of $k$ existing classes:
 \begin{ttbox}
         \(id\) < \(c@1\), \ldots, \(c@k\)
 \end{ttbox}
-Type classes allow constants to be overloaded~(\S\ref{polymorphic}).  As an
-example, we define the class $arith$ of ``arithmetic'' types with the
-constants ${+} :: [\alpha,\alpha]\To \alpha$ and $0,1 :: \alpha$, for
-$\alpha{::}arith$.  We introduce $arith$ as a subclass of $term$ and add
-the three polymorphic constants of this class.
+Type classes allow constants to be overloaded.  As suggested in
+\S\ref{polymorphic}, let us define the class $arith$ of ``arithmetic''
+types with the constants ${+} :: [\alpha,\alpha]\To \alpha$ and $0,1 {::}
+\alpha$, for $\alpha{::}arith$.  We introduce $arith$ as a subclass of
+$term$ and add the three polymorphic constants of this class.
 \index{examples!of theories}
 \begin{ttbox}
 Arith = FOL +
@@ -665,15 +654,11 @@ constraints, the $x$ in $1+x = x$ would have type $\alpha{::}arith$
 and the axiom would hold for any type of class $arith$.  This would
 collapse $nat$ to a trivial type:
 \[ Suc(1) = Suc(0+1) = Suc(0)+1 = 1+1 = 1! \]
-The class $arith$ as defined above is more specific than necessary.  Many
-types come with a binary operation and identity~(0).  On lists,
-$+$ could be concatenation and 0 the empty list --- but what is 1?  Hence it
-may be better to define $+$ and 0 on $arith$ and introduce a separate
-class, say $k$, containing~1.  Should $k$ be a subclass of $term$ or of
-$arith$?  This depends on the structure of your theories; the design of an
-appropriate class hierarchy may require some experimentation.
 
-We will now work through a small example of formalized mathematics
+
+\section{Theory example: the natural numbers}
+
+We shall now work through a small example of formalized mathematics
 demonstrating many of the theory extension features.
 
 
@@ -722,9 +707,9 @@ should satisfy
   0+n      & = & n \\
   Suc(m)+n & = & Suc(m+n)
 \end{eqnarray*}
-This appears to pose difficulties: first-order logic has no functions.
-Following the previous examples, we take advantage of the meta-logic, which
-does have functions.  We also generalise primitive recursion to be
+Primitive recursion appears to pose difficulties: first-order logic has no
+function-valued expressions.  We again take advantage of the meta-logic,
+which does have functions.  We also generalise primitive recursion to be
 polymorphic over any type of class~$term$, and declare the addition
 function:
 \begin{eqnarray*}
@@ -742,24 +727,27 @@ the 0-place type constructor $nat$ and the constants $rec$ and~$Suc$:
 Nat = FOL +
 types   nat
 arities nat         :: term
-consts  "0"         :: "nat"    ("0")
+consts  "0"         :: "nat"                              ("0")
         Suc         :: "nat=>nat"
         rec         :: "[nat, 'a, [nat,'a]=>'a] => 'a"
-        "+"         :: "[nat, nat] => nat"              (infixl 60)
-rules   induct      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
-        Suc_inject  "Suc(m)=Suc(n) ==> m=n"
+        "+"         :: "[nat, nat] => nat"                (infixl 60)
+rules   Suc_inject  "Suc(m)=Suc(n) ==> m=n"
         Suc_neq_0   "Suc(m)=0      ==> R"
+        induct      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
         rec_0       "rec(0,a,f) = a"
         rec_Suc     "rec(Suc(m), a, f) = f(m, rec(m,a,f))"
-        add_def     "m+n == rec(m, n, %x y. Suc(y))"
+        add_def     "m+n == rec(m, n, \%x y. Suc(y))"
 end
 \end{ttbox}
 In axiom {\tt add_def}, recall that \verb|%| stands for~$\lambda$.
-Opening the \ML\ structure {\tt Nat} permits reference to the axioms by \ML\
-identifiers; we may write {\tt induct} instead of {\tt Nat.induct}.
+Loading this theory file creates the \ML\ structure {\tt Nat}, which
+contains the theory and axioms.  Opening structure {\tt Nat} lets us write
+{\tt induct} instead of {\tt Nat.induct}, and so forth.
 \begin{ttbox}
 open Nat;
 \end{ttbox}
+
+\subsection{Proving some recursion equations}
 File {\tt FOL/ex/nat.ML} contains proofs involving this theory of the
 natural numbers.  As a trivial example, let us derive recursion equations
 for \verb$+$.  Here is the zero case:
@@ -817,7 +805,7 @@ and destruct-resolution, respectively.
 \end{description}
 The list {\it insts} consists of pairs $[(v@1,e@1), \ldots, (v@n,e@n)]$,
 where $v@1$, \ldots, $v@n$ are names of schematic variables in the rule ---
-with {\bf no} leading question marks!! --- and $e@1$, \ldots, $e@n$ are
+with no leading question marks!! --- and $e@1$, \ldots, $e@n$ are
 expressions giving their instantiations.  The expressions are type-checked
 in the context of a particular subgoal: free variables receive the same
 types as they have in the subgoal, and parameters may appear.  Type
@@ -1024,7 +1012,7 @@ of the class~$term$ and the type~$o$.  The interpreter does not use the
 rules of~\ttindex{FOL}.
 \begin{ttbox}
 Prolog = FOL +
-types   list 1
+types   'a list
 arities list    :: (term)term
 consts  Nil     :: "'a list"
         ":"     :: "['a, 'a list]=> 'a list"            (infixr 60)
@@ -1086,10 +1074,10 @@ by (REPEAT (resolve_tac [appNil,appCons] 1));
 
 
 \subsection{Backtracking}\index{backtracking}
-Prolog backtracking can handle questions that have multiple solutions.
-Which lists $x$ and $y$ can be appended to form the list $[a,b,c,d]$?
-Using \ttindex{REPEAT} to apply the rules, we quickly find the first
-solution, namely $x=[]$ and $y=[a,b,c,d]$:
+Prolog backtracking can answer questions that have multiple solutions.
+Which lists $x$ and $y$ can be appended to form the list $[a,b,c,d]$?  This
+question has five solutions.  Using \ttindex{REPEAT} to apply the rules, we
+quickly find the first solution, namely $x=[]$ and $y=[a,b,c,d]$:
 \begin{ttbox}
 goal Prolog.thy "app(?x, ?y, a:b:c:d:Nil)";
 {\out Level 0}
@@ -1188,8 +1176,8 @@ val prolog_tac = DEPTH_FIRST (has_fewer_prems 1)
                              (resolve_tac rules 1);
 \end{ttbox}
 Since Prolog uses depth-first search, this tactic is a (slow!) 
-Prolog interpreter.  We return to the start of the proof (using
-\ttindex{choplev}), and apply {\tt prolog_tac}:
+Prolog interpreter.  We return to the start of the proof using
+\ttindex{choplev}, and apply {\tt prolog_tac}:
 \begin{ttbox}
 choplev 0;
 {\out Level 0}

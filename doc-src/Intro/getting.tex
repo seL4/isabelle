@@ -1,15 +1,11 @@
 %% $Id$
-\part{Getting started with Isabelle}
-This Part describes how to perform simple proofs using Isabelle.  Although
-it frequently refers to concepts from the previous Part, a user can get
-started without understanding them in detail.
-
-As of this writing, Isabelle's user interface is \ML.  Proofs are conducted
-by applying certain \ML{} functions, which update a stored proof state.
-Logics are combined and extended by calling \ML{} functions.  All syntax
-must be expressed using {\sc ascii} characters.  Menu-driven graphical
-interfaces are under construction, but Isabelle users will always need to
-know some \ML, at least to use tacticals.
+\part{Getting Started with Isabelle}\label{chap:getting}
+We now consider how to perform simple proofs using Isabelle.  As of this
+writing, Isabelle's user interface is \ML.  Proofs are conducted by
+applying certain \ML{} functions, which update a stored proof state.  All
+syntax must be expressed using {\sc ascii} characters.  Menu-driven
+graphical interfaces are under construction, but Isabelle users will always
+need to know some \ML, at least to use tacticals.
 
 Object-logics are built upon Pure Isabelle, which implements the meta-logic
 and provides certain fundamental data structures: types, terms, signatures,
@@ -40,24 +36,24 @@ valid notation for a set of sets --- but only if \verb|}}| and \verb|{{|
 have not been declared as symbols!  The parser resolves any ambiguity by
 taking the longest possible symbol that has been declared.  Thus the string
 {\tt==>} is read as a single symbol.  But \hbox{\tt= =>} is read as two
-symbols, as is \verb|}}|, as discussed above.
+symbols.
 
 Identifiers that are not reserved words may serve as free variables or
 constants.  A type identifier consists of an identifier prefixed by a
 prime, for example {\tt'a} and \hbox{\tt'hello}.  An unknown (or type
 unknown) consists of a question mark, an identifier (or type identifier),
 and a subscript.  The subscript, a non-negative integer, allows the
-renaming of unknowns prior to unification.
-
-The subscript may appear after the identifier, separated by a dot; this
-prevents ambiguity when the identifier ends with a digit.  Thus {\tt?z6.0}
-has identifier \verb|"z6"| and subscript~0, while {\tt?a0.5} has identifier
-\verb|"a0"| and subscript~5.  If the identifier does not end with a digit,
-then no dot appears and a subscript of~0 is omitted; for example,
-{\tt?hello} has identifier \verb|"hello"| and subscript zero, while
-{\tt?z6} has identifier \verb|"z"| and subscript~6.  The same conventions
-apply to type unknowns.  Note that the question mark is {\bf not} part of the
-identifier! 
+renaming of unknowns prior to unification.%
+%
+\footnote{The subscript may appear after the identifier, separated by a
+  dot; this prevents ambiguity when the identifier ends with a digit.  Thus
+  {\tt?z6.0} has identifier {\tt"z6"} and subscript~0, while {\tt?a0.5}
+  has identifier {\tt"a0"} and subscript~5.  If the identifier does not
+  end with a digit, then no dot appears and a subscript of~0 is omitted;
+  for example, {\tt?hello} has identifier {\tt"hello"} and subscript
+  zero, while {\tt?z6} has identifier {\tt"z"} and subscript~6.  The same
+  conventions apply to type unknowns.  The question mark is {\it not\/}
+  part of the identifier!}
 
 
 \subsection{Syntax of types and terms}
@@ -65,7 +61,7 @@ identifier!
 \index{classes!built-in|bold}
 Classes are denoted by identifiers; the built-in class \ttindex{logic}
 contains the `logical' types.  Sorts are lists of classes enclosed in
-braces~\{ and \}; singleton sorts may be abbreviated by dropping the braces.
+braces~\} and \{; singleton sorts may be abbreviated by dropping the braces.
 
 \index{types!syntax|bold}
 Types are written with a syntax like \ML's.  The built-in type \ttindex{prop}
@@ -150,14 +146,15 @@ as follows:
 To illustrate the notation, consider two axioms for first-order logic:
 $$ \List{P; Q} \Imp P\conj Q                 \eqno(\conj I) $$
 $$ \List{\exists x.P(x);  \Forall x. P(x)\imp Q} \Imp Q  \eqno(\exists E) $$
-Using the {\tt [|\ldots|]} shorthand, $({\conj}I)$ translates literally into
+Using the {\tt [|\ldots|]} shorthand, $({\conj}I)$ translates into
 {\sc ascii} characters as
 \begin{ttbox}
 [| ?P; ?Q |] ==> ?P & ?Q
 \end{ttbox}
-The schematic variables let unification instantiate the rule.  To
-avoid cluttering rules with question marks, Isabelle converts any free
-variables in a rule to schematic variables; we normally write $({\conj}I)$ as
+The schematic variables let unification instantiate the rule.  To avoid
+cluttering logic definitions with question marks, Isabelle converts any
+free variables in a rule to schematic variables; we normally declare
+$({\conj}I)$ as
 \begin{ttbox}
 [| P; Q |] ==> P & Q
 \end{ttbox}
@@ -220,14 +217,14 @@ prth (mp RS mp);
 {\out [| ?P1 --> ?P --> ?Q; ?P1; ?P |] ==> ?Q}
 {\out val it = "[| ?P1 --> ?P --> ?Q; ?P1; ?P |] ==> ?Q" : thm}
 \end{ttbox}
-In the Isabelle documentation, user's input appears in {\tt typewriter
-  characters}, and output appears in {\sltt slanted typewriter characters}.
-\ML's response {\out val }~\ldots{} is compiler-dependent and will
-sometimes be suppressed.  This session illustrates two formats for the
-display of theorems.  Isabelle's top-level displays theorems as ML values,
-enclosed in quotes.\footnote{This works under both Poly/ML and Standard ML
-  of New Jersey.} Printing functions like {\tt prth} omit the quotes and
-the surrounding {\tt val \ldots :\ thm}.
+User input appears in {\tt typewriter characters}, and output appears in
+{\sltt slanted typewriter characters}.  \ML's response {\out val }~\ldots{}
+is compiler-dependent and will sometimes be suppressed.  This session
+illustrates two formats for the display of theorems.  Isabelle's top-level
+displays theorems as ML values, enclosed in quotes.\footnote{This works
+  under both Poly/ML and Standard ML of New Jersey.}  Printing commands
+like {\tt prth} omit the quotes and the surrounding {\tt val \ldots :\ 
+  thm}.  Ignoring their side-effects, the commands are identity functions.
 
 To contrast {\tt RS} with {\tt RSN}, we resolve
 \ttindex{conjunct1}, which stands for~$(\conj E1)$, with~\ttindex{mp}.
@@ -242,25 +239,30 @@ These correspond to the following proofs:
    \qquad
    \infer[({\imp}E)]{Q}{P\imp Q & \infer[({\conj}E1)]{P}{P\conj Q@1}} 
 \]
-The printing commands return their argument; the \ML{} identifier~{\tt it}
-denotes the value just printed.  You may derive a rule by pasting other
-rules together.  Below, \ttindex{spec} stands for~$(\forall E)$:
+%
+Rules can be derived by pasting other rules together.  Let us join
+\ttindex{spec}, which stands for~$(\forall E)$, with {\tt mp} and {\tt
+  conjunct1}.  In \ML{}, the identifier~{\tt it} denotes the value just
+printed.
 \begin{ttbox} 
 spec;
 {\out val it = "ALL x. ?P(x) ==> ?P(?x)" : thm}
 it RS mp;
-{\out val it = "[| ALL x. ?P3(x) --> ?Q2(x); ?P3(?x1) |] ==> ?Q2(?x1)" : thm}
+{\out val it = "[| ALL x. ?P3(x) --> ?Q2(x); ?P3(?x1) |] ==>}
+{\out           ?Q2(?x1)" : thm}
 it RS conjunct1;
-{\out val it = "[| ALL x. ?P4(x) --> ?P6(x) & ?Q5(x); ?P4(?x2) |] ==> ?P6(?x2)"}
+{\out val it = "[| ALL x. ?P4(x) --> ?P6(x) & ?Q5(x); ?P4(?x2) |] ==>}
+{\out           ?P6(?x2)" : thm}
 standard it;
-{\out val it = "[| ALL x. ?P(x) --> ?Pa(x) & ?Q(x); ?P(?x) |] ==> ?Pa(?x)"}
+{\out val it = "[| ALL x. ?P(x) --> ?Pa(x) & ?Q(x); ?P(?x) |] ==>}
+{\out           ?Pa(?x)" : thm}
 \end{ttbox}
 By resolving $(\forall E)$ with (${\imp}E)$ and (${\conj}E1)$, we have
 derived a destruction rule for formulae of the form $\forall x.
 P(x)\imp(Q(x)\conj R(x))$.  Used with destruct-resolution, such specialized
 rules provide a way of referring to particular assumptions.
 
-\subsection{Flex-flex equations} \label{flexflex}
+\subsection{*Flex-flex equations} \label{flexflex}
 \index{flex-flex equations|bold}\index{unknowns!of function type}
 In higher-order unification, {\bf flex-flex} equations are those where both
 sides begin with a function unknown, such as $\Var{f}(0)\qeq\Var{g}(0)$.
@@ -294,7 +296,7 @@ prthq (flexflex_rule it);
 Isabelle simplifies flex-flex equations to eliminate redundant bound
 variables.  In $\lambda x\,y.\Var{f}(k(y),x) \qeq \lambda x\,y.\Var{g}(y)$,
 there is no bound occurrence of~$x$ on the right side; thus, there will be
-none on the left, in a common instance of these terms.  Choosing a new
+none on the left in a common instance of these terms.  Choosing a new
 variable~$\Var{h}$, Isabelle assigns $\Var{f}\equiv \lambda u\,v.?h(u)$,
 simplifying the left side to $\lambda x\,y.\Var{h}(k(y))$.  Dropping $x$
 from the equation leaves $\lambda y.\Var{h}(k(y)) \qeq \lambda
@@ -387,15 +389,14 @@ and the {\it formula\/} is written as an \ML\ string.
 applies the {\it tactic\/} to the current proof
 state, raising an exception if the tactic fails.
 
-\item[\ttindexbold{undo}(); ]  
-reverts to the previous proof state.  Undo can be repeated but cannot be
-undone.  Do not omit the parentheses; typing {\tt undo;} merely causes \ML\
-to echo the value of that function.
+\item[\ttindexbold{undo}(); ] 
+  reverts to the previous proof state.  Undo can be repeated but cannot be
+  undone.  Do not omit the parentheses; typing {\tt\ \ undo;\ \ } merely
+  causes \ML\ to echo the value of that function.
 
 \item[\ttindexbold{result}()] 
 returns the theorem just proved, in a standard format.  It fails if
-unproved subgoals are left or if the main goal does not match the one you
-started with.
+unproved subgoals are left, etc.
 \end{description}
 The commands and tactics given above are cumbersome for interactive use.
 Although our examples will use the full commands, you may prefer Isabelle's
@@ -415,11 +416,13 @@ shortcuts:
 
 \subsection{A trivial example in propositional logic}
 \index{examples!propositional}
-Directory {\tt FOL} of the Isabelle distribution defines the \ML\
-identifier~\ttindex{FOL.thy}, which denotes the theory of first-order
-logic.  Let us try the example from~\S\ref{prop-proof}, entering the goal
-$P\disj P\imp P$ in that theory.\footnote{To run these examples, see the
-file {\tt FOL/ex/intro.ML}.}
+
+Directory {\tt FOL} of the Isabelle distribution defines the theory of
+first-order logic.  Let us try the example from \S\ref{prop-proof},
+entering the goal $P\disj P\imp P$ in that theory.\footnote{To run these
+  examples, see the file {\tt FOL/ex/intro.ML}.  The files {\tt README} and
+  {\tt Makefile} on the directories {\tt Pure} and {\tt FOL} explain how to
+  build first-order logic.}
 \begin{ttbox}
 goal FOL.thy "P|P --> P"; 
 {\out Level 0} 
@@ -448,9 +451,10 @@ by (resolve_tac [disjE] 1);
 {\out 2. [| P | P; ?P1 |] ==> P} 
 {\out 3. [| P | P; ?Q1 |] ==> P}
 \end{ttbox}
-At Level~2 there are three subgoals, each provable by
-assumption.  We deviate from~\S\ref{prop-proof} by tackling subgoal~3
-first, using \ttindex{assume_tac}.  This updates {\tt?Q1} to~{\tt P}.
+At Level~2 there are three subgoals, each provable by assumption.  We
+deviate from~\S\ref{prop-proof} by tackling subgoal~3 first, using
+\ttindex{assume_tac}.  This affects subgoal~1, updating {\tt?Q1} to~{\tt
+  P}.
 \begin{ttbox}
 by (assume_tac 3); 
 {\out Level 3} 
@@ -458,7 +462,7 @@ by (assume_tac 3);
 {\out 1. P | P ==> ?P1 | P} 
 {\out 2. [| P | P; ?P1 |] ==> P}
 \end{ttbox}
-Next we tackle subgoal~2, instantiating {\tt?P1} to~{\tt P}.
+Next we tackle subgoal~2, instantiating {\tt?P1} to~{\tt P} in subgoal~1.
 \begin{ttbox}
 by (assume_tac 2); 
 {\out Level 4} 
@@ -483,19 +487,23 @@ variable~{\tt?P}\@.  Free variables in the proof state remain fixed
 throughout the proof.  Isabelle finally converts them to scheme variables
 so that the resulting theorem can be instantiated with any formula.
 
+As an exercise, try doing the proof as in \S\ref{prop-proof}, observing how
+instantiations affect the proof state.
 
-\subsection{Proving a distributive law}
+
+\subsection{Part of a distributive law}
 \index{examples!propositional}
 To demonstrate the tactics \ttindex{eresolve_tac}, \ttindex{dresolve_tac}
-and the tactical \ttindex{REPEAT}, we shall prove part of the distributive
-law $(P\conj Q)\disj R \iff (P\disj R)\conj (Q\disj R)$.
-
+and the tactical \ttindex{REPEAT}, let us prove part of the distributive
+law 
+\[ (P\conj Q)\disj R \,\bimp\, (P\disj R)\conj (Q\disj R). \]
 We begin by stating the goal to Isabelle and applying~$({\imp}I)$ to it:
 \begin{ttbox}
 goal FOL.thy "(P & Q) | R  --> (P | R)";
 {\out Level 0}
 {\out P & Q | R --> P | R}
 {\out  1. P & Q | R --> P | R}
+\ttbreak
 by (resolve_tac [impI] 1);
 {\out Level 1}
 {\out P & Q | R --> P | R}
@@ -515,7 +523,8 @@ Using \ttindex{dresolve_tac}, we can apply~(${\conj}E1)$ to subgoal~1,
 replacing the assumption $P\conj Q$ by~$P$.  Normally we should apply the
 rule~(${\conj}E)$, given in~\S\ref{destruct}.  That is an elimination rule
 and requires {\tt eresolve_tac}; it would replace $P\conj Q$ by the two
-assumptions~$P$ and~$Q$.  The present example does not need~$Q$.
+assumptions~$P$ and~$Q$.  Because the present example does not need~$Q$, we
+may try out {\tt dresolve_tac}.
 \begin{ttbox}
 by (dresolve_tac [conjunct1] 1);
 {\out Level 3}
@@ -556,7 +565,7 @@ Quantifier rules create terms such as~$\Var{f}(x,z)$, where~$\Var{f}$ is a
 function unknown and $x$ and~$z$ are parameters.  This may be replaced by
 any term, possibly containing free occurrences of $x$ and~$z$.
 
-\subsection{Two quantifier proofs, successful and not}
+\subsection{Two quantifier proofs: a success and a failure}
 \index{examples!with quantifiers}
 Let us contrast a proof of the theorem $\forall x.\exists y.x=y$ with an
 attempted proof of the non-theorem $\exists y.\forall x.x=y$.  The former
@@ -566,7 +575,7 @@ proofs. In $\forall x.\exists y.x=y$ the $y$ that `exists' is simply $x$,
 but we need never say so. This choice is forced by the reflexive law for
 equality, and happens automatically.
 
-\subsubsection{The successful proof}
+\paragraph{The successful proof.}
 The proof of $\forall x.\exists y.x=y$ demonstrates the introduction rules
 $(\forall I)$ and~$(\exists I)$.  We state the goal and apply $(\forall I)$:
 \begin{ttbox}
@@ -583,7 +592,8 @@ by (resolve_tac [allI] 1);
 The variable~{\tt x} is no longer universally quantified, but is a
 parameter in the subgoal; thus, it is universally quantified at the
 meta-level.  The subgoal must be proved for all possible values of~{\tt x}.
-We apply the rule $(\exists I)$:
+
+To remove the existential quantifier, we apply the rule $(\exists I)$:
 \begin{ttbox}
 by (resolve_tac [exI] 1);
 {\out Level 2}
@@ -606,8 +616,8 @@ unified with $\Forall x.x=\Var{y@1}(x)$.  The function unknowns $\Var{f}$
 and~$\Var{y@1}$ are both instantiated to the identity function, and
 $x=\Var{y@1}(x)$ collapses to~$x=x$ by $\beta$-reduction.
 
-\subsubsection{The unsuccessful proof}
-We state the goal $\exists y.\forall x.x=y$, which is {\bf not} a theorem, and
+\paragraph{The unsuccessful proof.}
+We state the goal $\exists y.\forall x.x=y$, which is not a theorem, and
 try~$(\exists I)$:
 \begin{ttbox}
 goal FOL.thy "EX y. ALL x. x=y";
@@ -635,22 +645,21 @@ The reflexivity axiom does not unify with subgoal~1.
 by (resolve_tac [refl] 1);
 {\out by: tactic returned no results}
 \end{ttbox}
-No other choice of rules seems likely to complete the proof.  Of course,
-this is no guarantee that Isabelle cannot prove $\exists y.\forall x.x=y$
-or other invalid assertions.  We must appeal to the soundness of
-first-order logic and the faithfulness of its encoding in
-Isabelle~\cite{paulson89}, and must trust the implementation.
+There can be no proof of $\exists y.\forall x.x=y$ by the soundness of
+first-order logic.  I have elsewhere proved the faithfulness of Isabelle's
+encoding of first-order logic~\cite{paulson89}; there could, of course, be
+faults in the implementation.
 
 
 \subsection{Nested quantifiers}
 \index{examples!with quantifiers}
-Multiple quantifiers create complex terms.  Proving $(\forall x\,y.P(x,y))
-\imp (\forall z\,w.P(w,z))$, will demonstrate how parameters and
-unknowns develop.  If they appear in the wrong order, the proof will fail.
+Multiple quantifiers create complex terms.  Proving 
+\[ (\forall x\,y.P(x,y)) \imp (\forall z\,w.P(w,z)) \] 
+will demonstrate how parameters and unknowns develop.  If they appear in
+the wrong order, the proof will fail.
+
 This section concludes with a demonstration of {\tt REPEAT}
 and~{\tt ORELSE}.  
-
-The start of the proof is routine.
 \begin{ttbox}
 goal FOL.thy "(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
 {\out Level 0}
@@ -663,7 +672,7 @@ by (resolve_tac [impI] 1);
 {\out  1. ALL x y. P(x,y) ==> ALL z w. P(w,z)}
 \end{ttbox}
 
-\subsubsection{The wrong approach}
+\paragraph{The wrong approach.}
 Using \ttindex{dresolve_tac}, we apply the rule $(\forall E)$, bound to the
 \ML\ identifier \ttindex{spec}.  Then we apply $(\forall I)$.
 \begin{ttbox}
@@ -678,7 +687,7 @@ by (resolve_tac [allI] 1);
 {\out  1. !!z. ALL y. P(?x1,y) ==> ALL w. P(w,z)}
 \end{ttbox}
 The unknown {\tt ?u} and the parameter {\tt z} have appeared.  We again
-apply $(\forall I)$ and~$(\forall E)$.
+apply $(\forall E)$ and~$(\forall I)$.
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
 {\out Level 4}
@@ -701,7 +710,7 @@ by (assume_tac 1);
 {\out uncaught exception ERROR}
 \end{ttbox}
 
-\subsubsection{The right approach}
+\paragraph{The right approach.}
 To do this proof, the rules must be applied in the correct order.
 Eigenvariables should be created before unknowns.  The
 \ttindex{choplev} command returns to an earlier stage of the proof;
@@ -712,8 +721,7 @@ choplev 1;
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. ALL x y. P(x,y) ==> ALL z w. P(w,z)}
 \end{ttbox}
-Previously, we made the mistake of applying $(\forall E)$; this time, we
-apply $(\forall I)$ twice.
+Previously we made the mistake of applying $(\forall E)$ before $(\forall I)$.
 \begin{ttbox}
 by (resolve_tac [allI] 1);
 {\out Level 2}
@@ -747,15 +755,11 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 
-\subsubsection{A one-step proof using tacticals}
-\index{tacticals}
-\index{examples!of tacticals}
-Repeated application of rules can be an effective theorem-proving
-procedure, but the rules should be attempted in an order that delays the
-creation of unknowns.  As we have just seen, \ttindex{allI} should be
-attempted before~\ttindex{spec}, while \ttindex{assume_tac} generally can
-be attempted first.  Such priorities can easily be expressed
-using~\ttindex{ORELSE}, and repeated using~\ttindex{REPEAT}.  Let us return
+\paragraph{A one-step proof using tacticals.}
+\index{tacticals} \index{examples!of tacticals} 
+
+Repeated application of rules can be effective, but the rules should be
+attempted in an order that delays the creation of unknowns.  Let us return
 to the original goal using \ttindex{choplev}:
 \begin{ttbox}
 choplev 0;
@@ -763,10 +767,12 @@ choplev 0;
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 \end{ttbox}
-A repetitive procedure proves it:
+As we have just seen, \ttindex{allI} should be attempted
+before~\ttindex{spec}, while \ttindex{assume_tac} generally can be
+attempted first.  Such priorities can easily be expressed
+using~\ttindex{ORELSE}, and repeated using~\ttindex{REPEAT}.
 \begin{ttbox}
-by (REPEAT (assume_tac 1
-     ORELSE resolve_tac [impI,allI] 1
+by (REPEAT (assume_tac 1 ORELSE resolve_tac [impI,allI] 1
      ORELSE dresolve_tac [spec] 1));
 {\out Level 1}
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
@@ -776,8 +782,10 @@ by (REPEAT (assume_tac 1
 
 \subsection{A realistic quantifier proof}
 \index{examples!with quantifiers}
-A proof of $(\forall x. P(x) \imp Q) \imp (\exists x. P(x)) \imp Q$
-demonstrates the practical use of parameters and unknowns. 
+To see the practical use of parameters and unknowns, let us prove half of
+the equivalence 
+\[ (\forall x. P(x) \imp Q) \,\bimp\, ((\exists x. P(x)) \imp Q). \]
+We state the left-to-right half to Isabelle in the normal way.
 Since $\imp$ is nested to the right, $({\imp}I)$ can be applied twice; we
 use \ttindex{REPEAT}:
 \begin{ttbox}
@@ -810,9 +818,8 @@ by (dresolve_tac [spec] 1);
 {\out (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
 {\out  1. !!x. [| P(x); P(?x3(x)) --> Q |] ==> Q}
 \end{ttbox}
-Because the parameter~{\tt x} appeared first, the unknown
-term~{\tt?x3(x)} may depend upon it.  Had we eliminated the universal
-quantifier before the existential, this would not be so.
+Because we applied $(\exists E)$ before $(\forall E)$, the unknown
+term~{\tt?x3(x)} may depend upon the parameter~{\tt x}.
 
 Although $({\imp}E)$ is a destruction rule, it works with 
 \ttindex{eresolve_tac} to perform backward chaining.  This technique is
@@ -874,7 +881,8 @@ goal FOL.thy "ALL x. P(x,f(x)) <-> \ttback
 \ttback       (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 {\out Level 0}
 {\out ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
-{\out  1. ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
+{\out  1. ALL x. P(x,f(x)) <->}
+{\out     (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
 \end{ttbox}
 Again, subgoal~1 succumbs immediately.
 \begin{ttbox}
