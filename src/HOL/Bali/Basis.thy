@@ -62,11 +62,10 @@ apply (case_tac "xa")
 apply auto
 done
 
-(* context (theory "Transitive_Closure") *)
+(* irrefl_tranclI in Transitive_Closure.thy is more general *)
 lemma irrefl_tranclI': "r^-1 Int r^+ = {} ==> !x. (x, x) ~: r^+"
-apply (rule allI)
-apply (erule irrefl_tranclI)
-done
+by(blast elim: tranclE dest: trancl_into_rtrancl)
+
 
 lemma trancl_rtrancl_trancl:
 "\<lbrakk>(x,y)\<in>r^+; (y,z)\<in>r^*\<rbrakk> \<Longrightarrow> (x,z)\<in>r^+"

@@ -43,6 +43,7 @@ by (etac allE 1);
 by (mp_tac 1);
 by (Blast_tac 1);
 qed "wf_inv_image";
+Addsimps [wf_inv_image];
 AddSIs [wf_inv_image];
 
 

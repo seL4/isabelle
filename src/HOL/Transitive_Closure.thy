@@ -341,13 +341,8 @@ lemma tranclD: "(x, y) \<in> R^+ ==> EX z. (x, z) \<in> R \<and> (z, y) \<in> R^
   apply (blast intro: rtrancl_trans)
   done
 
-lemma irrefl_tranclI: "r^-1 \<inter> r^+ = {} ==> (x, x) \<notin> r^+"
-  apply (subgoal_tac "ALL y. (x, y) : r^+ --> x \<noteq> y")
-   apply fast
-  apply (intro strip)
-  apply (erule trancl_induct)
-   apply (auto intro: r_into_trancl)
-  done
+lemma irrefl_tranclI: "r^-1 \<inter> r^* = {} ==> (x, x) \<notin> r^+"
+by(blast elim: tranclE dest: trancl_into_rtrancl)
 
 lemma irrefl_trancl_rD: "!!X. ALL x. (x, x) \<notin> r^+ ==> (x, y) \<in> r ==> x \<noteq> y"
   by (blast dest: r_into_trancl)

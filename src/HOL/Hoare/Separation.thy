@@ -64,7 +64,7 @@ print_translation {* [("singl", singl_tr'),("star", star_tr')] *}
 
 lemma "VARS H x y z w
  {[x\<mapsto>y] ** [z\<mapsto>w]}
- SKIP
+ y := w
  {x \<noteq> z}"
 apply vcg
 apply(auto simp:star_def R_def singl_def)

@@ -52,6 +52,7 @@ bind_thm ("wf_asym", cla_make_elim wf_not_sym);
 Goal "wf(r) ==> (a,a) ~: r";
 by (blast_tac (claset() addEs [wf_asym]) 1);
 qed "wf_not_refl";
+Addsimps [wf_not_refl];
 
 (* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
 bind_thm ("wf_irrefl", make_elim wf_not_refl);

@@ -83,11 +83,10 @@ done
 lemma subcls1_irrefl_lemma1: "ws_prog \<Longrightarrow> subcls1^-1 \<inter> subcls1^+ = {}"
 by (fast dest: subcls1D ws_progD)
 
-(* context (theory "Transitive_Closure") *)
+(* irrefl_tranclI in Transitive_Closure.thy is more general *)
 lemma irrefl_tranclI': "r^-1 Int r^+ = {} ==> !x. (x, x) ~: r^+"
-apply (rule allI)
-apply (erule irrefl_tranclI)
-done
+by(blast elim: tranclE dest: trancl_into_rtrancl)
+
 
 lemmas subcls1_irrefl_lemma2 = subcls1_irrefl_lemma1 [THEN irrefl_tranclI']
 
