@@ -20,6 +20,7 @@ use "../Isar/outer_lex.ML";
 use "html.ML";
 use "latex.ML";
 use "present.ML";
+use "thm_deps.ML";
 
 (*theorem database -- user-level interface*)
 use "thm_database.ML";
