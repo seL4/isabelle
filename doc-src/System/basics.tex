@@ -93,7 +93,7 @@ environment is built as follows:
   
   Thus individual users may override the site-wide defaults. See also
   file \texttt{etc/user-settings.sample} in the distribution.
-  Typically, user settings should be a few lines only, just containing
+  Typically, a user settings file would contain only a few lines, just
   the assigments that are really needed.  One should definitely
   \emph{not} start with a full copy the central
   \texttt{\$ISABELLE_HOME/etc/settings}. This could cause very
@@ -168,6 +168,10 @@ are marked with *.
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap
   files should be stored by default. The \texttt{ML_SYSTEM} identifier
   is appended here, too.
+  
+\item[\settdx{ISABELLE_BROWSER_INFO}] is the directory where theory
+  browser information (HTML and graph data) is stored (see also
+  \S\ref{sec:info}).
 
 \item[\settdx{ISABELLE_LOGIC}] specifies the default logic to load if
   none is given explicitely by the user --- e.g.\ when running
@@ -195,6 +199,12 @@ are marked with *.
   display server. X11 fonts are a non-trivial issue, see
   \S\ref{sec:tool-installfonts} for more information.
   
+\item[\settdx{ISABELLE_TMP_PREFIX}] is the prefix from which any
+  \texttt{isabelle} session derives an individual directory for
+  temporary files.  The default value of \texttt{ISABELLE_TMP_PREFIX}
+  is \texttt{/tmp/isabelle}; this should not need to be changed under
+  normal circumstances.
+  
 \item[\settdx{ISABELLE_INTERFACE}] is an identifier that specifies the
   actual user interface that the capital \texttt{Isabelle} should
   invoke.  Currently available are \texttt{none}, \texttt{xterm} and
@@ -217,19 +227,21 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
     -m MODE      add print mode for output
     -q           non-interactive session
     -r           open heap file read-only
+    -u           pass 'use"ROOT.ML";' to the ML session
+    -w           reset write permissions on OUTPUT
 
   INPUT (default "\$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
   These are either names to be searched in the Isabelle path, or actual
-  file names (then containing at least one /).
+  file names (containing at least one /).
   If INPUT is "RAW_ML_SYSTEM", just start the bare bones ML system.
 \end{ttbox}
 Input files without path specifications are looked up in the
 \texttt{ISABELLE_PATH} setting, which may consist of multiple
 components separated by colons --- these are tried in order.
-Likewise, short output names are relative to the directory specified
-by \texttt{ISABELLE_OUTPUT}.  In any case, actual file locations may
-also be given by including at least one \texttt{/} in the name (hint:
-use \texttt{./} to refer to the current directory).
+Likewise, base names are relative to the directory specified by
+\texttt{ISABELLE_OUTPUT}.  In any case, actual file locations may also
+be given by including at least one \texttt{/} in the name (hint: use
+\texttt{./} to refer to the current directory).
 
 
 \subsection*{Options}
@@ -246,11 +258,18 @@ cannot be changed intermediately. Also note that heap images may
 require considerable amounts of disk space. Users are responsible
 themselves to dispose their heap files when they are no longer needed.
 
+\medskip The \texttt{-w} option makes the output heap file read-only
+after terminating the Isabelle session.  Thus subsequent invocations
+cause logic image to be read-only automatically.
+
 \medskip Using the \texttt{-e} option, arbitrary {\ML} code may be
 passed to the Isabelle session from the command line. Multiple
 \texttt{-e}'s are evaluated in order. Strange things may happen when
 errorneous {\ML} code is given. Also make sure that commands are
 terminated properly by semicolon.
+
+\medskip The \texttt{-u} option is a shortcut for \texttt{-e}, passing
+\texttt{use"ROOT.ML";} to the {\ML} session.
 
 \medskip The \texttt{-m} option adds identifiers of print modes to be
 made active for this session. Typically, this is used by some user
@@ -290,8 +309,6 @@ A read-only \texttt{Foo} session may be started by:
 \begin{ttbox}
 isabelle -r Foo
 \end{ttbox}
-One may also use something like \texttt{chmod~-w} on the logic image
-to have it read-only automatically.
 
 \medskip The next example demonstrates batch execution of Isabelle. We
 print a certain theorem of \texttt{FOL}:
@@ -314,12 +331,13 @@ Usage: isatool TOOL [ARGS ...]
 
   Available tools are:
 
+    browser - Isabelle theory graph browser
     doc - view Isabelle documentation
-    \(\vdots\)
+    \dots
 \end{ttbox}
 Basically, Isabelle tools are ordinary executable scripts.  These are
-run within the same settings environment as Isabelle proper, though,
-see \S\ref{sec:settings}.  The set of available tools is collected by
+run within the same settings environment as Isabelle proper, see
+\S\ref{sec:settings}.  The set of available tools is collected by
 isatool from the directories listed in the \texttt{ISABELLE_TOOLS}
 setting.  Do not try to call the scripts directly. Neither should you
 add the tools directories to your shell's search path.
@@ -341,7 +359,7 @@ setting variable. Currently, the following are recognized:
 \item[none] is just a pass-through to \texttt{isabelle}. Thus
   \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.
   
-\item[xterm] refers to a simple xterm-based interface which is part of
+\item[xterm] refers to a simple xterm based interface which is part of
   the Isabelle distribution.
   
 \item[emacs] refers to David Aspinall's \emph{Isamode} for emacs.

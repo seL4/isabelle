@@ -1,10 +1,12 @@
 
+$Id$
+
 \chapter{Fonts and character encodings}
 
 With the advent of print modes in Isabelle, variant forms of output
 have become very easy. As the canonical application of this feature,
 {\Pure} and major object-logics (\FOL, \ZF, \HOL, \HOLCF) support
-optional input and output of nice mathematical symbols as an built-in
+optional input and output of nice mathematical symbols as built-in
 option.
 
 Symbolic output is enabled by activating the \ttindex{symbols} print
@@ -14,13 +16,13 @@ mode. User interfaces (e.g.\ \texttt{isa-xterm}, see
 \medskip Displaying non-standard characters requires special screen
 fonts, of course. The \texttt{installfonts} utility takes care of
 this, see \S\ref{sec:tool-installfonts}. Furthermore, some {\ML}
-systems disallow non-\textsc{ascii} characters in literal strings.
-This problem is avoided by the \texttt{symbolinput} filter (see
-\S\ref{sec:tool-symbolinput}).
+systems disallow non-\textsc{ascii} characters in literal string
+constants.  This problem is avoided by appropriate input filtering
+(see \S\ref{sec:tool-symbolinput}).
 
-Both of these are invoked transparently in normal operation. So one
-does not actually have to read the explanations below, unless
-something fails to work.
+These things are usually taken care of automatically behind the
+scenes.  Users normally do not have to read the explanations below,
+unless something fails to work.
 
 
 \section{Telling X11 about the Isabelle fonts --- \texttt{isatool installfonts}}
@@ -50,22 +52,22 @@ the client program (Isabelle) and the display server are run on the
 same machine. In this case, most X11 display servers should be happy
 by being told about the Isabelle fonts directory as follows:
 \begin{ttbox}
-ISABELLE_INSTALLFONTS="xset fp+{\thinspace}$ISABELLE_HOME/lib/fonts; xset fp rehash"
+ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 \end{ttbox}
 The same also works for remote X11 sessions in a somewhat homogeneous
-network, where the X11 display machine mounts the Isabelle
-distribution under the same name as the client side.
+network, where any X11 display machine also mounts the Isabelle
+distribution under the \emph{same} name as the client side.
 
 \medskip Above method fails, though, if the display machine does have
 the font files at the same location as the client. In case your server
 is a full workstation with its own file system, you could in principle
 just copy the fonts there and do an appropriate \texttt{xset~fp+}
 manually before running the Isabelle interface. This is very awkward,
-of course. It is even \emph{impossible} for proper X terminals that do
-not have their own file system.
+of course. It is even \emph{impossible} for proper X11 terminals that
+do not have their own file system.
 
 A much better solution is to have a \emph{font server} offer the
-Isabelle fonts to any X display on the network.  There are already
+Isabelle fonts to any X11 display on the network.  There are already
 suitable servers running at Munich and Cambridge. So in case you have
 a sensible Internet connection to either site, you may just attach
 yourself as follows:
@@ -80,11 +82,26 @@ ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
 \medskip In the unfortunate case that neither local fonts work, nor
 accessing our world-wide font service is practical, it might be best
 to start your own in-house font service. This is in principle easy to
-setup. The program is called \texttt{xfs} (or just \texttt{fs)}, see
-the \texttt{man} pages of your system. There is an example
-configuration available in the \texttt{lib/fontserver} directory of
-the Isabelle distribution.
+setup. The program is called \texttt{xfs} (sometimes just
+\texttt{fs)}, see the \texttt{man} pages of your system. There is an
+example fontserver configuration available in the
+\texttt{lib/fontserver} directory of the Isabelle distribution.
 
+
+\section{Check for non-ASCII characters --- \texttt{isatool nonascii}}
+
+The \tooldx{nonascii} utility checks files for non-\textsc{ascii}
+characters:
+\begin{ttbox}
+Usage: nonascii [FILES|DIRS...]
+
+Recursively find .thy/.ML files and check for non-\textsc{ascii}
+characters.
+\end{ttbox}
+Note that under normal circumstances, non-\textsc{ascii} characters
+should not appear in theories or proof scripts.  In particular,
+unexpected problems may happen in conjunction with the Isabelle symbol
+font.
 
 
 \section{Filtering non-ASCII characters --- \texttt{isatool symbolinput}}
@@ -111,17 +128,10 @@ syntax.
 \medskip In many cases, it might be wise not to rely on symbolic
 characters and avoid non-\textsc{ascii} text in files altogether. Then
 symbolic syntax would be really optional, with always suitable
-\textsc{ascii} representations available: In theory definitions
+\textsc{ascii} representations available: In theory definitions,
 symbols appear only in mixfix annotations --- using the
 \verb|\<|$charname$\verb|>| form, proof scripts are just left in plain
 \textsc{ascii}.
 
 Thus users with \textsc{ascii}-only facilities will still be able to
 read your files.
-
-
-%FIXME not yet
-%\section{ --- \texttt{isatool showsymbols}}
-%
-%\begin{ttbox}
-%\end{ttbox}

@@ -22,29 +22,29 @@ the corresponding document displayed.
 
 \medskip The \texttt{ISABELLE_DOCS} setting specifies the list of
 directories (separated by colons) to be scanned for documentations.
-The program for viewing \texttt{dvi} files is set in
-\texttt{DVI_VIEWER}.
+The program for viewing \texttt{dvi} files is determined by the
+\texttt{DVI_VIEWER} setting.
 
 
 \section{Tuning proof scripts --- \texttt{isatool expandshort}}
 
 The \tooldx{expandshort} utility tunes {\ML} proof scripts to enhance
-readability a bit:
+readability:
 \begin{ttbox}
-Usage: isatool expandshort [FILES ...]
+Usage: expandshort [FILES|DIRS...]
 
-  Expand shorthand goal commands in FILES.  Also contracts uses of
-  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on
-  1-element lists; furthermore expands tabs, since they are now
-  forbidden in ML string constants.
+  Recursively find .ML files, expand shorthand goal commands.
+  Also contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
+  rewrite_goals_tac on 1-element lists; furthermore expands tabs,
+  since they are now forbidden in ML string constants.
 
-  Renames old versions of FILES by appending "~~".
+  Renames old versions of files by appending "~~".
 \end{ttbox}
-In the files supplied as arguments, all occurrences of the shorthand
-commands \texttt{br}, \texttt{be} etc.\ are replaced with the
-corresponding full commands.  Shorthand commands should appear one per
-line.  The old versions of the files are renamed to have the
-suffix~\verb'~~'.
+In the files or directories supplied as arguments, all occurrences of
+the shorthand commands \texttt{br}, \texttt{be} etc.\ in proof scripts
+are replaced with the corresponding full commands.  The old versions
+of the files are renamed to have the suffix~\verb'~~'.
+
 
 \section{Get logic images --- \texttt{isatool findlogics}}
 
@@ -81,7 +81,7 @@ Usage: isatool getenv [OPTIONS] [VARNAMES ...]
 With the \texttt{-a} option, one may inspect the full process
 environment that Isabelle related programs are run in. This usually
 contains much more variables than are actually Isabelle settings.
-Normally output is a list of lines of the form
+Normally, output is a list of lines of the form
 \mbox{$varname$\texttt{=}$value$}. The \texttt{-b} option causes only
 the values to be printed.
 
@@ -92,15 +92,15 @@ Get the {\ML} system identifier and the location where the compiler
 binaries are supposed to reside as follows:
 \begin{ttbox}
 isatool getenv ML_SYSTEM ML_HOME
-{\out ML_SYSTEM=smlnj-1.09}
-{\out ML_HOME=/usr/local/sml109.27/bin}
+{\out ML_SYSTEM=smlnj-110}
+{\out ML_HOME=/usr/local/smlnj-110/bin}
 \end{ttbox}
 
 The next one peeks at the search path that \texttt{isabelle} uses to
 locate logic images:
 \begin{ttbox}
 isatool getenv -b ISABELLE_PATH
-{\out /home/me/isabelle/heaps/smlnj-1.09:/proj/isabelle/heaps/smlnj-1.09}
+{\out /home/me/isabelle/heaps/smlnj-110:/usr/local/isabelle/heaps/smlnj-110}
 \end{ttbox}
 We used the \texttt{-b} option to suppress the \texttt{ISABELLE_PATH=}
 prefix.  The value above is what became of the following assignment in
@@ -131,9 +131,29 @@ make file also inherit this environment.  Typically,
 utility, see \S\ref{sec:tool-usedir}.
 
 \medskip The basic \texttt{IsaMakefile} convention is that the default
-target builds the actual logic, including its parents if absent (but
-not if just out of date). Furthermore, the \texttt{test} target shall
-build the logic \emph{and} run it on all distributed examples.
+target builds the actual logic, including its parents if appropriate.
+The \texttt{images} target is intended to build all logic images,
+while the \texttt{test} target shall build all related examples.  The
+\texttt{all} target shall build the images and run the examples.
+
+
+\subsection*{Examples}
+
+Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
+object-logics as a model for your own developements.
+
+
+\section{Make all logics -- \texttt{isatool makeall}}
+
+The \tooldx{makeall} utility applies Isabelle make to all logic
+directories of the Isabelle distribution:
+\begin{ttbox}
+Usage: makeall [ARGS ...]
+
+  Apply isatool make to all logics (passing ARGS).
+\end{ttbox}
+The arguments \texttt{ARGS} are just passed verbatim to any
+\texttt{make} invocation.
 
 
 \section{Running complete logics --- \texttt{isatool usedir}} \label{sec:tool-usedir}
@@ -166,20 +186,21 @@ disabled this way.
 
 Basically, there are two different modes of operation: \emph{build
   mode} (enabled through the \texttt{-b} option) and \emph{example
-  mode}.
+  mode} (default).
 
 Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with
 input image \texttt{LOGIC} and output to \texttt{NAME}, as provided on
-the command line. This will be a batch session, executing just
-\texttt{use_dir".";}\index{*use_dir} and then quitting. It is assumed
-that there is a file \texttt{ROOT.ML} in the current directory
-containing all {\ML} commands required to build the logic.
+the command line. This will be a batch session, running
+\texttt{ROOT.ML} from the current directory and then quitting.  It is
+assumed that \texttt{ROOT.ML} contains all {\ML} commands required to
+build the logic.
 
 In example mode, on the other hand, \texttt{usedir} runs a read-only
-session of \texttt{LOGIC} (typically just built before) and does an
-automatic \texttt{use_dir"NAME";} I.e.\ it assumes that some file
-\texttt{ROOT.ML} in directory \texttt{NAME} contains appropriate {\ML}
-commands to run the desired examples.
+session of \texttt{LOGIC} (typically just built before) and
+automatically runs \texttt{ROOT.ML} from within directory
+\texttt{NAME}.  I.e.\ it assumes that some file \texttt{ROOT.ML} in
+directory \texttt{NAME} contains appropriate {\ML} commands to run the
+desired examples.
 
 \medskip The \texttt{-i} option controls theory browsing data
 generation. It may be explicitely turned on or off --- the last

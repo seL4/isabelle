@@ -2,22 +2,18 @@
 %% $Id$
 
 \documentclass[12pt]{report}
-\usepackage{a4,epsf}
+\usepackage{a4,graphicx,../iman,../extra}
 
-\makeatletter
-\input{../iman.sty}
-\input{../extra.sty}
-\makeatother
 
 \title{The Isabelle System Manual}
 
-\author{{\em Lawrence C. Paulson}\\
-        Computer Laboratory \\ University of Cambridge \\
-        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
-        With Contributions by Tobias Nipkow and Markus Wenzel
-        \thanks{Section~\protect\ref{sec:info} was written by Carsten
-          Clasohm.  Section~\protect\ref{sec:browse} was written by Stefan
-          Berghofer. Other parts are by Markus Wenzel.}}
+\author{{\em Lawrence C. Paulson} \\
+  Computer Laboratory \\ University of Cambridge \\
+  \texttt{lcp@cl.cam.ac.uk}\\[3ex]
+  With Contributions by Tobias Nipkow and Markus
+  Wenzel\thanks{Section~\protect\ref{sec:info} was written by Carsten
+    Clasohm.  Section~\protect\ref{sec:browse} was written by Stefan
+    Berghofer. Other parts are by Markus Wenzel.}}
 
 \makeindex
 
@@ -28,22 +24,17 @@
 \binperiod     %%%treat . like a binary operator
 
 \begin{document}
+
 \underscoreoff
 
 \maketitle 
 \pagenumbering{roman} \tableofcontents \clearfirst
-
-%\include{introduction}
 
 \include{basics}
 \include{misc}
 \include{fonts}
 \include{present}
 
-%\begingroup
-%  \bibliographystyle{plain} \small\raggedright\frenchspacing
-%  \bibliography{string,atp,funprog,general,logicprog,isabelle,theory,crossref}
-%\endgroup
-
 \input{system.ind}
+
 \end{document}
