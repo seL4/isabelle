@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-constructor = "ind_syntax"
+constructor = "intr_elim"
