@@ -6,7 +6,7 @@
 #
 # SML/NJ startup script (for 110 or later).
 
-export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
+export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE
 
 
 ## diagnostics
