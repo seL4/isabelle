@@ -25,6 +25,7 @@ sig
     val classes: sg -> class list
     val subsort: sg -> sort * sort -> bool
     val norm_sort: sg -> sort -> sort
+    val nonempty_sort: sg -> (string * sort) list -> sort -> bool
     val print_sg: sg -> unit
     val pretty_sg: sg -> Pretty.T
     val pprint_sg: sg -> pprint_args -> unit
@@ -62,7 +63,6 @@ sig
     val add_name: string -> sg -> sg
     val make_draft: sg -> sg
     val merge: sg * sg -> sg
-    val nonempty_sort: sg * sort list * sort -> bool
     val proto_pure: sg
     val pure: sg
     val cpure: sg
@@ -120,6 +120,7 @@ val classes = #classes o Type.rep_tsig o tsig_of;
 
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
+val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 fun pretty_sort [c] = Pretty.str c
   | pretty_sort cs = Pretty.str_list "{" "}" cs;
@@ -135,7 +136,8 @@ fun print_sg sg =
     fun prt_typ syn ty = Pretty.quote (Syntax.pretty_typ syn ty);
 
     fun pretty_subclass (cl, cls) = Pretty.block
-      [Pretty.str (cl ^ " <"), Pretty.brk 1, pretty_sort cls];
+      (Pretty.str (cl ^ " <") :: Pretty.brk 1 ::
+        Pretty.commas (map Pretty.str cls));
 
     fun pretty_default cls = Pretty.block
       [Pretty.str "default:", Pretty.brk 1, pretty_sort cls];
@@ -551,12 +553,5 @@ val pure = proto_pure
 val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
-
-(**
-Emptiness-test for sorts: does there exist a type of sort 'sort' whose
-vars have sorts contained in 'sorts'?
-Trivial approximation at the moment.
-**)
-fun nonempty_sort(_,sorts,sort) = exists (fn s => sort subset s) sorts;
 
 end;
