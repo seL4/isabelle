@@ -238,6 +238,7 @@ fun mk_rec_decl ((fname, rel), axms) =
 	 (";\n\n\
           \val _ = writeln \"Recursive function " ^ fid ^ "\"\n\
           \val (thy, pats_" ^ intrnl_name ^ ") = Tfl.define thy " ^ 
+	                 quote fid ^ " " ^ 
 	                 rel ^ "\n" ^ mk_big_list axms ^ ";\n\
           \val thy = thy"
          ,
@@ -245,8 +246,8 @@ fun mk_rec_decl ((fname, rel), axms) =
           \  struct\n\
           \  val _ = writeln \"Proofs for recursive function " ^ fid ^ "\"\n\
           \  val {rules, induct, tcs} = \n\
-          \    \t Tfl.simplify_defn(thy, (\"" ^ fid ^ 
-					  "\", pats_" ^ intrnl_name ^ "))\n\
+          \    \t Tfl.simplify_defn(thy, (" ^ quote fid ^ 
+					  ", pats_" ^ intrnl_name ^ "))\n\
           \  end;\n\
           \val pats_" ^ intrnl_name ^ " = ();\n")
   end;
