@@ -140,6 +140,8 @@ by (REPEAT (ares_tac [OrdI,Transset_succ] 1
 			  Ord_contains_Transset] 1));
 qed "Ord_succ";
 
+bind_thm ("Ord_1", Ord_0 RS Ord_succ);
+
 goal Ordinal.thy "Ord(succ(i)) <-> Ord(i)";
 by (fast_tac (ZF_cs addIs [Ord_succ] addDs [Ord_succD]) 1);
 qed "Ord_succ_iff";
@@ -202,9 +204,16 @@ goalw Ordinal.thy [lt_def] "~ i<0";
 by (fast_tac ZF_cs 1);
 qed "not_lt0";
 
-goal Ordinal.thy "!!a. b<a ==> Ord(b)";
+goal Ordinal.thy "!!i j. j<i ==> Ord(j)";
 by (eresolve_tac [ltE] 1 THEN assume_tac 1);
 qed "lt_Ord";
+
+goal Ordinal.thy "!!i j. j<i ==> Ord(i)";
+by (eresolve_tac [ltE] 1 THEN assume_tac 1);
+qed "lt_Ord2";
+
+(* ""ja le j ==> Ord(j)" *)
+bind_thm ("le_Ord2", lt_Ord2 RS Ord_succD);
 
 (* i<0 ==> R *)
 bind_thm ("lt0E", not_lt0 RS notE);
@@ -297,8 +306,12 @@ by (fast_tac ZF_cs 1);
 qed "Memrel_mono";
 
 goalw Ordinal.thy [Memrel_def] "Memrel(0) = 0";
-by (fast_tac (ZF_cs addSIs [equalityI]) 1);
-qed "Memrel_empty";
+by (fast_tac eq_cs 1);
+qed "Memrel_0";
+
+goalw Ordinal.thy [Memrel_def] "Memrel(1) = 0";
+by (fast_tac eq_cs 1);
+qed "Memrel_1";
 
 (*The membership relation (as a set) is well-founded.
   Proof idea: show A<=B by applying the foundation axiom to A-B *)
@@ -375,6 +388,8 @@ by (rtac (impI RS allI) 1);
 by (trans_ind_tac "j" [] 1);
 by (DEPTH_SOLVE (step_tac eq_cs 1 ORELSE Ord_trans_tac 1));
 qed "Ord_linear_lemma";
+
+(*"[| Ord(i); Ord(x) |] ==> i:x | i=x | x:i"*)
 bind_thm ("Ord_linear", Ord_linear_lemma RS spec RS mp);
 
 (*The trichotomy law for ordinals!*)
@@ -406,6 +421,12 @@ by (res_inst_tac [("i","i"),("j","j")] Ord_linear2 1);
 by (REPEAT (SOMEGOAL assume_tac));
 by (fast_tac (lt_cs addEs [lt_asym]) 1);
 qed "not_lt_imp_le";
+
+(** Some rewrite rules for <, le **)
+
+goalw Ordinal.thy [lt_def] "!!i j. Ord(j) ==> i:j <-> i<j";
+by (fast_tac ZF_cs 1);
+qed "Ord_mem_iff_lt";
 
 goal Ordinal.thy "!!i j. [| Ord(i);  Ord(j) |] ==> ~ i<j <-> j le i";
 by (REPEAT (ares_tac [iffI, le_imp_not_lt, not_lt_imp_le] 1));
@@ -578,6 +599,16 @@ by (rtac (le_imp_subset RS subset_trans RS subset_imp_le) 1);
 by (REPEAT (ares_tac (prems @ [UN_upper, Ord_UN]) 1));
 qed "UN_upper_le";
 
+val [leprem] = goal Ordinal.thy
+    "[| !!x. x:A ==> c(x) le d(x) |] ==> (UN x:A. c(x)) le (UN x:A. d(x))";
+by (resolve_tac [UN_least_le] 1);
+by (resolve_tac [UN_upper_le] 2);
+by (REPEAT (ares_tac [leprem] 2));
+by (resolve_tac [Ord_UN] 1);
+by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
+     ORELSE dtac Ord_succD 1));
+qed "le_implies_UN_le_UN";
+
 goal Ordinal.thy "!!i. Ord(i) ==> (UN y:i. succ(y)) = i";
 by (fast_tac (eq_cs addEs [Ord_trans]) 1);
 qed "Ord_equality";
@@ -625,4 +656,30 @@ goal Ordinal.thy "!!i. [| Limit(i);  i le succ(j) |] ==> i le j";
 by (safe_tac (ZF_cs addSEs [succ_LimitE, leE]));
 qed "Limit_le_succD";
 
+(** Traditional 3-way case analysis on ordinals **)
 
+goal Ordinal.thy "!!i. Ord(i) ==> i=0 | (EX j. Ord(j) & i=succ(j)) | Limit(i)";
+by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_lt]
+                    addSDs [Ord_succD]) 1);
+qed "Ord_cases_disj";
+
+val major::prems = goal Ordinal.thy
+    "[| Ord(i);			\
+\       i=0                          ==> P;	\
+\       !!j. [| Ord(j); i=succ(j) |] ==> P;	\
+\       Limit(i)                     ==> P	\
+\    |] ==> P";
+by (cut_facts_tac [major RS Ord_cases_disj] 1);
+by (REPEAT (eresolve_tac (prems@[asm_rl, disjE, exE, conjE]) 1));
+qed "Ord_cases";
+
+val major::prems = goal Ordinal.thy
+     "[| Ord(i);  		\
+\        P(0);		  	\
+\        !!x. [| Ord(x);  P(x) |] ==> P(succ(x));  	\
+\        !!x. [| Limit(x);  ALL y:x. P(y) |] ==> P(x)  	\
+\     |] ==> P(i)";
+by (resolve_tac [major RS trans_induct] 1);
+by (eresolve_tac [Ord_cases] 1);
+by (ALLGOALS (fast_tac (ZF_cs addIs prems)));
+qed "trans_induct3";
