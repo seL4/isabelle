@@ -7,4 +7,5 @@ Construction of the Reals using Dedekind Cuts
 by Jacques Fleuriot
 *)
 
+no_document time_use_thy "Ring_and_Field";
 time_use_thy "Real";
