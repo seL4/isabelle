@@ -12,8 +12,7 @@ qed "rep_abs_NP";
 
 Addsimps [rep_abs_NP];
 
-val prems = goalw thy [per_NP_def] "eqv (x::NP) y ==> eqv y x";
-by (cut_facts_tac prems 1);
+Goalw [per_NP_def] "eqv (x::NP) y ==> eqv y x";
 by Auto_tac;
 qed "per_sym_NP";
 

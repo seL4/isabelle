@@ -7,13 +7,11 @@
 open PER0;
 
 (* derive the characteristic axioms *)
-val prems = goalw thy [per_def] "x === y ==> y === x";
-by (cut_facts_tac prems 1);
+Goalw [per_def] "x === y ==> y === x";
 by (etac ax_per_sym 1);
 qed "per_sym";
 
-val prems = goalw thy [per_def] "[| x === y; y === z |] ==> x === z";
-by (cut_facts_tac prems 1);
+Goalw [per_def] "[| x === y; y === z |] ==> x === z";
 by (etac ax_per_trans 1);
 by (assume_tac 1);
 qed "per_trans";
@@ -30,26 +28,22 @@ by (etac per_sym 1);
 by (etac per_sym 1);
 qed "per_sym2";
 
-val prems = goal  thy "x===y ==> x===x";
-by (cut_facts_tac prems 1);
+Goal "x===y ==> x===x";
 by (rtac per_trans 1);by (assume_tac 1);
 by (etac per_sym 1);
 qed "sym2refl1";
 
-val prems = goal  thy "x===y ==> y===y";
-by (cut_facts_tac prems 1);
+Goal "x===y ==> y===y";
 by (rtac per_trans 1);by (assume_tac 2);
 by (etac per_sym 1);
 qed "sym2refl2";
 
-val prems = goalw thy [Dom] "x:D ==> x === x";
-by (cut_facts_tac prems 1);
-by (fast_tac set_cs 1);
+Goalw [Dom] "x:D ==> x === x";
+by (Blast_tac 1);
 qed "DomainD";
 
-val prems = goalw thy [Dom] "x === x ==> x:D";
-by (cut_facts_tac prems 1);
-by (fast_tac set_cs 1);
+Goalw [Dom] "x === x ==> x:D";
+by (Blast_tac 1);
 qed "DomainI";
 
 Goal "x:D = x===x";
@@ -63,28 +57,26 @@ by (rtac (per_sym2 RS arg_cong) 1);
 qed "per_not_sym";
 
 (* show that PER work only on D *)
-val prems = goal thy "x===y ==> x:D";
-by (cut_facts_tac prems 1);
+Goal "x===y ==> x:D";
 by (etac (sym2refl1 RS DomainI) 1);
 qed "DomainI_left"; 
 
-val prems = goal thy "x===y ==> y:D";
-by (cut_facts_tac prems 1);
+Goal "x===y ==> y:D";
 by (etac (sym2refl2 RS DomainI) 1);
 qed "DomainI_right"; 
 
-val prems = goalw thy [Dom] "x~:D ==> ~x===y";
-by (cut_facts_tac prems 1);
-by (res_inst_tac [("Q","x===y")] (excluded_middle RS disjE) 1);by (assume_tac 1);
+Goalw [Dom] "x~:D ==> ~x===y";
+by (res_inst_tac [("Q","x===y")] (excluded_middle RS disjE) 1);
+by (assume_tac 1);
 by (dtac sym2refl1 1);
-by (fast_tac set_cs 1);
+by (Blast_tac 1);
 qed "notDomainE1"; 
 
-val prems = goalw thy [Dom] "x~:D ==> ~y===x";
-by (cut_facts_tac prems 1);
-by (res_inst_tac [("Q","y===x")] (excluded_middle RS disjE) 1);by (assume_tac 1);
+Goalw [Dom] "x~:D ==> ~y===x";
+by (res_inst_tac [("Q","y===x")] (excluded_middle RS disjE) 1);
+by (assume_tac 1);
 by (dtac sym2refl2 1);
-by (fast_tac set_cs 1);
+by (Blast_tac 1);
 qed "notDomainE2"; 
 
 (* theorems for equivalence relations *)
@@ -94,16 +86,12 @@ by (rtac er_refl 1);
 qed "er_Domain";
 
 (* witnesses for "=>" ::(per,per)per  *)
-val prems = goalw thy [fun_per_def]"eqv (x::'a::per => 'b::per) y ==> eqv y x";
-by (cut_facts_tac prems 1);
-by (safe_tac HOL_cs);
-by (asm_full_simp_tac (HOL_ss addsimps [per_sym2]) 1);
+Goalw [fun_per_def]"eqv (x::'a::per => 'b::per) y ==> eqv y x";
+by (auto_tac (claset(), simpset() addsimps [per_sym2]));
 qed "per_sym_fun";
 
-val prems = goalw thy [fun_per_def]
-	"[| eqv (f::'a::per=>'b::per) g;eqv g h|] ==> eqv f h";
-by (cut_facts_tac prems 1);
-by (safe_tac HOL_cs);
+Goalw [fun_per_def] "[| eqv (f::'a::per=>'b::per) g;eqv g h|] ==> eqv f h";
+by Safe_tac;
 by (REPEAT (dtac spec 1));
 by (res_inst_tac [("y","g y")] per_trans 1);
 by (rtac mp 1);by (assume_tac 1);
