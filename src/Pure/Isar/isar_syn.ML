@@ -89,8 +89,8 @@ val classesP =
 
 val classrelP =
   OuterSyntax.command "classrel" "state inclusion of type classes (axiomatic!)" K.thy_decl
-    (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-    >> (Toplevel.theory o Theory.add_classrel o single));
+    (P.and_list1 (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname))
+    >> (Toplevel.theory o Theory.add_classrel));
 
 val defaultsortP =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
