@@ -72,7 +72,7 @@ qed_spec_mp "ack_less_mono2";
 
 (*PROPERTY A 5', monotonicity for<=*)
 Goal "j<=k ==> ack(i,j)<=ack(i,k)";
-by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (full_simp_tac (simpset() addsimps [order_le_less]) 1);
 by (blast_tac (claset() addIs [ack_less_mono2]) 1);
 qed "ack_le_mono2";
 
@@ -134,7 +134,7 @@ qed "ack_less_mono1";
 
 (*PROPERTY A 7', monotonicity for<=*)
 Goal "i<=j ==> ack(i,k)<=ack(j,k)";
-by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (full_simp_tac (simpset() addsimps [order_le_less]) 1);
 by (blast_tac (claset() addIs [ack_less_mono1]) 1);
 qed "ack_le_mono1";
 
