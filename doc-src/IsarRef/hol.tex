@@ -232,9 +232,9 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('simplified' ':')? term? rule?  ;
+  'cases' ('(' 'simplified' ')')? term? rule?  ;
 
-  'induct' ('stripped' ':')? (insts * 'and') rule?
+  'induct' ('(' 'stripped' ')')? (insts * 'and') rule?
   ;
 
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref

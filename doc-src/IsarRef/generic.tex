@@ -392,7 +392,7 @@ over results of symbolic evaluation of recursive definitions, for example.
   ('simp' | simpall) ('!' ?) opt? (simpmod * )
   ;
 
-  opt: (noasm | noasmsimp | noasmuse) ':'
+  opt: '(' (noasm | noasmsimp | noasmuse) ')'
   ;
   simpmod: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') | 'other') ':' thmrefs
   ;
@@ -425,11 +425,11 @@ assumptions is only included if the ``$!$'' (bang) argument is given, which
 should be used with some care, though.
 
 Additional Simplifier options may be specified to tune the behavior even
-further: $no_asm$ means assumptions are ignored completely (cf.\ 
-\texttt{simp_tac}), $no_asm_simp$ means assumptions are used in the
+further: $(no_asm)$ means assumptions are ignored completely (cf.\ 
+\texttt{simp_tac}), $(no_asm_simp)$ means assumptions are used in the
 simplification of the conclusion but are not themselves simplified (cf.\ 
-\texttt{asm_simp_tac}), and $no_asm_use$ means assumptions are simplified but
-are not used in the simplification of each other or the conclusion (cf.
+\texttt{asm_simp_tac}), and $(no_asm_use)$ means assumptions are simplified
+but are not used in the simplification of each other or the conclusion (cf.
 \texttt{full_simp_tac}).
 
 \medskip
