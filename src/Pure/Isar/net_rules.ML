@@ -63,8 +63,8 @@ fun insert rule rs = add rule (delete rule rs);    (*ensure that new rule gets p
 
 (* intro/elim rules *)
 
-val intro = init Thm.eq_thm Thm.concl_of;
-val elim = init Thm.eq_thm Thm.major_prem_of;
+val intro = init Drule.eq_thm_prop Thm.concl_of;
+val elim = init Drule.eq_thm_prop Thm.major_prem_of;
 
 
 end;

@@ -24,7 +24,7 @@ struct
   val empty = Symtab.empty;
   val copy = I;
   val prep_ext = I;
-  val merge = Symtab.merge_multi eq_thm;
+  val merge = Symtab.merge_multi Drule.eq_thm_prop;
   fun print _ _ = ();
 end;
 

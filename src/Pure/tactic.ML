@@ -410,7 +410,7 @@ fun build_netpair netpair brls =
 
 (*delete one kbrl from the pair of nets*)
 local
-  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = eq_thm (th, th')
+  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Drule.eq_thm_prop (th, th')
 in
 fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
   if eres then

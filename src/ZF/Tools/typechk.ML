@@ -46,8 +46,8 @@ datatype tcset =
            net: thm Net.net};   (*discrimination net of the same rules*)
 
 
-val mem_thm = gen_mem eq_thm
-and rem_thm = gen_rem eq_thm;
+val mem_thm = gen_mem Drule.eq_thm_prop
+and rem_thm = gen_rem Drule.eq_thm_prop;
 
 fun addTC (cs as TC{rules, net}, th) =
   if mem_thm (th, rules) then
@@ -61,7 +61,7 @@ fun addTC (cs as TC{rules, net}, th) =
 
 fun delTC (cs as TC{rules, net}, th) =
   if mem_thm (th, rules) then
-      TC{net = Net.delete_term ((concl_of th, th), net, eq_thm),
+      TC{net = Net.delete_term ((concl_of th, th), net, Drule.eq_thm_prop),
          rules  = rem_thm (rules,th)}
   else (warning ("No such type-checking rule\n" ^ (string_of_thm th));
         cs);
@@ -110,8 +110,8 @@ fun type_solver_tac tcset hyps = SELECT_GOAL
 
 
 fun merge_tc (TC{rules,net}, TC{rules=rules',net=net'}) =
-    TC {rules = gen_union eq_thm (rules,rules'),
-        net = Net.merge (net, net', eq_thm)};
+    TC {rules = gen_union Drule.eq_thm_prop (rules,rules'),
+        net = Net.merge (net, net', Drule.eq_thm_prop)};
 
 (*print tcsets*)
 fun print_tc (TC{rules,...}) =

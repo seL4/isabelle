@@ -260,7 +260,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
 
-    fun rule_versions r = Seq.cons (r, Seq.filter (not o curry eq_thm r)
+    fun rule_versions r = Seq.cons (r, Seq.filter (not o curry Thm.eq_thm r)
         (Seq.make (fn () => Some (localize r, Seq.empty))))
       |> Seq.map (rpair (RuleCases.get r));
 

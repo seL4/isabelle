@@ -103,7 +103,7 @@ fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
 
 fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
   let
-    fun eq_th (_, (_, th')) = Thm.eq_thm (th, th');
+    fun eq_th (_, (_, th')) = Drule.eq_thm_prop (th, th');
     fun del b netpair = delete_tagged_brl ((b, th), netpair) handle Net.DELETE => netpair;
   in
     if not (exists eq_th rules) then rs
@@ -135,7 +135,7 @@ struct
     let
       val wrappers = (gen_merge_lists' eq_snd ws1 ws2, gen_merge_lists' eq_snd ws1' ws2');
       val rules = gen_merge_lists' (fn ((_, (k1, th1)), (_, (k2, th2))) =>
-          k1 = k2 andalso Thm.eq_thm (th1, th2)) rules1 rules2;
+          k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) rules1 rules2;
       val next = ~ (length rules);
       val netpairs = foldl (fn (nps, (n, (w, ((i, b), th)))) =>
           map_nth_elem i (curry insert_tagged_brl ((w, n), (b, th))) nps)

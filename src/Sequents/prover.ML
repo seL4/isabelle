@@ -32,15 +32,15 @@ fun warn_duplicates [] = []
        dups);
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
-    let val dups = warn_duplicates (gen_inter eq_thm (ths,safes))
-	val ths' = gen_rems eq_thm (ths,dups)
+    let val dups = warn_duplicates (gen_inter Drule.eq_thm_prop (ths,safes))
+	val ths' = gen_rems Drule.eq_thm_prop (ths,dups)
     in
         Pack(sort (make_ord less) (ths'@safes), unsafes)
     end;
 
 fun (Pack(safes,unsafes)) add_unsafes ths = 
-    let val dups = warn_duplicates (gen_inter eq_thm (ths,unsafes))
-	val ths' = gen_rems eq_thm (ths,dups)
+    let val dups = warn_duplicates (gen_inter Drule.eq_thm_prop (ths,unsafes))
+	val ths' = gen_rems Drule.eq_thm_prop (ths,dups)
     in
 	Pack(safes, sort (make_ord less) (ths'@unsafes))
     end;

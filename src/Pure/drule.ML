@@ -55,8 +55,9 @@ sig
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
   val read_instantiate  : (string*string)list -> thm -> thm
   val cterm_instantiate : (cterm*cterm)list -> thm -> thm
-  val weak_eq_thm       : thm * thm -> bool
   val eq_thm_sg         : thm * thm -> bool
+  val eq_thm_prop	: thm * thm -> bool
+  val weak_eq_thm       : thm * thm -> bool
   val size_of_thm       : thm -> int
   val reflexive_thm     : thm
   val symmetric_thm     : thm
@@ -490,20 +491,21 @@ fun tha COMP thb =
         [th] => th
       | _ =>   raise THM("COMP", 1, [tha,thb]);
 
+
 (** theorem equality **)
 
-(*Do the two theorems have the same signature?*)
-fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
+val eq_thm_sg = Sign.eq_sg o pairself Thm.sign_of_thm;
+val eq_thm_prop = op aconv o pairself Thm.prop_of;
 
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o prop_of;
 
 (*maintain lists of theorems --- preserving canonical order*)
-fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
+fun del_rules rs rules = Library.gen_rems eq_thm_prop (rules, rs);
 fun add_rules rs rules = rs @ del_rules rs rules;
 val del_rule = del_rules o single;
 val add_rule = add_rules o single;
-fun merge_rules (rules1, rules2) = gen_merge_lists' Thm.eq_thm rules1 rules2;
+fun merge_rules (rules1, rules2) = gen_merge_lists' eq_thm_prop rules1 rules2;
 
 
 (** Mark Staples's weaker version of eq_thm: ignores variable renaming and
@@ -522,9 +524,7 @@ fun forall_intr_vars th =
       val vars = distinct (term_vars' prop);
   in forall_intr_list (map (cterm_of sign) vars) th end;
 
-fun weak_eq_thm (tha,thb) =
-    eq_thm(forall_intr_vars (freezeT tha), forall_intr_vars (freezeT thb));
-
+val weak_eq_thm = Thm.eq_thm o pairself (forall_intr_vars o freezeT);
 
 
 (*** Meta-Rewriting Rules ***)

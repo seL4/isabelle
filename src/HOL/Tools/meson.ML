@@ -266,7 +266,7 @@ fun make_clauses ths =
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
 fun make_horns ths =
     name_thms "Horn#"
-      (gen_distinct eq_thm (foldr (add_contras clause_rules) (ths,[])));
+      (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) (ths,[])));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)

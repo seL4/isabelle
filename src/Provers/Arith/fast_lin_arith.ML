@@ -107,7 +107,8 @@ struct
              {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
               lessD = lessD2, simpset = simpset2}) =
     {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
-     mult_mono_thms = gen_merge_lists' (eq_thm o pairself fst) mult_mono_thms1 mult_mono_thms2,
+     mult_mono_thms = gen_merge_lists' (Drule.eq_thm_prop o pairself fst)
+       mult_mono_thms1 mult_mono_thms2,
      inj_thms = Drule.merge_rules (inj_thms1, inj_thms2),
      lessD = Drule.merge_rules (lessD1, lessD2),
      simpset = Simplifier.merge_ss (simpset1, simpset2)};

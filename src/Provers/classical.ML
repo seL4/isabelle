@@ -310,8 +310,8 @@ fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl (brls, netpr)
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
-val mem_thm = gen_mem eq_thm
-and rem_thm = gen_rem eq_thm;
+val mem_thm = gen_mem Drule.eq_thm_prop
+and rem_thm = gen_rem Drule.eq_thm_prop;
 
 (*Warn if the rule is already present ELSEWHERE in the claset.  The addition
   is still allowed.*)
@@ -601,10 +601,10 @@ fun cs addSE2    (name, thm) =
   treatment of priority might get muddled up.*)
 fun merge_cs (cs as CS{safeIs, safeEs, hazIs, hazEs, ...},
      CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2, swrappers, uwrappers, ...}) =
-  let val safeIs' = gen_rems eq_thm (safeIs2,safeIs)
-      val safeEs' = gen_rems eq_thm (safeEs2,safeEs)
-      val  hazIs' = gen_rems eq_thm ( hazIs2, hazIs)
-      val  hazEs' = gen_rems eq_thm ( hazEs2, hazEs)
+  let val safeIs' = gen_rems Drule.eq_thm_prop (safeIs2,safeIs)
+      val safeEs' = gen_rems Drule.eq_thm_prop (safeEs2,safeEs)
+      val hazIs' = gen_rems Drule.eq_thm_prop (hazIs2, hazIs)
+      val hazEs' = gen_rems Drule.eq_thm_prop (hazEs2, hazEs)
       val cs1   = cs addSIs safeIs'
                      addSEs safeEs'
                      addIs  hazIs'
