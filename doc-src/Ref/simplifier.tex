@@ -1256,10 +1256,10 @@ prove particular theorems depending on the current redex.
 \section{*Setting up the Simplifier}\label{sec:setting-up-simp}
 \index{simplification!setting up}
 
-Setting up the simplifier for new logics is complicated.  This section
-describes how the simplifier is installed for intuitionistic
-first-order logic; the code is largely taken from {\tt
-  FOL/simpdata.ML} of the Isabelle sources.
+Setting up the simplifier for new logics is complicated in the general case.
+This section describes how the simplifier is installed for intuitionistic
+first-order logic; the code is largely taken from {\tt FOL/simpdata.ML} of the
+Isabelle sources.
 
 The simplifier and the case splitting tactic, which reside on separate files,
 are not part of Pure Isabelle.  They must be loaded explicitly by the
@@ -1407,20 +1407,10 @@ will be composed together and supplied below to \texttt{setmksimps}.
 
 \subsection{Making the initial simpset}
 
-It is time to assemble these items.  We define the infix operator
-\ttindex{addcongs} to insert congruence rules; given a list of
-theorems, it converts their conclusions into meta-equalities and
-passes them to \ttindex{addeqcongs}.
-\begin{ttbox}
-infix 4 addcongs;
-fun ss addcongs congs =
-    ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
-\end{ttbox}
-
-The list \texttt{IFOL_simps} contains the default rewrite rules for
-intuitionistic first-order logic.  The first of these is the reflexive law
-expressed as the equivalence $(a=a)\bimp\texttt{True}$; the rewrite rule $a=a$ is
-clearly useless.
+It is time to assemble these items.  The list \texttt{IFOL_simps} contains the
+default rewrite rules for intuitionistic first-order logic.  The first of
+these is the reflexive law expressed as the equivalence
+$(a=a)\bimp\texttt{True}$; the rewrite rule $a=a$ is clearly useless.
 \begin{ttbox}
 val IFOL_simps =
    [refl RS P_iff_T] \at conj_simps \at disj_simps \at not_simps \at 
@@ -1431,6 +1421,11 @@ subgoal that is simplified to one of these will be removed.
 \begin{ttbox}
 val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
+\end{ttbox}
+We also define the function \ttindex{mk_meta_cong} to convert the conclusion
+of congruence rules into meta-equalities.
+\begin{ttbox}
+fun mk_meta_cong rl = standard (mk_meta_eq (mk_meta_prems rl));
 \end{ttbox}
 %
 The basic simpset for intuitionistic FOL is \ttindexbold{FOL_basic_ss}.  It
@@ -1453,12 +1448,13 @@ fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls {\at} prems),
 fun safe_solver prems = FIRST'[match_tac (triv_rls {\at} prems),
                                eq_assume_tac, ematch_tac [FalseE]];
 
-val FOL_basic_ss = 
+val FOL_basic_ss =
       empty_ss setsubgoaler asm_simp_tac
                addsimprocs [defALL_regroup, defEX_regroup]
                setSSolver   safe_solver
                setSolver  unsafe_solver
-               setmksimps (map mk_eq o atomize o gen_all);
+               setmksimps (map mk_eq o atomize o gen_all)
+               setmkcong mk_meta_cong;
 
 val IFOL_ss = 
       FOL_basic_ss addsimps (IFOL_simps {\at} 
