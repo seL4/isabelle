@@ -213,7 +213,20 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
 	   handle TERM (msg,_) => (writeln msg;  no_tac)
 		| THM  (msg,_,_) => (writeln msg;  no_tac) );
 
-(*Resolve version*)
+(*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
+  terms that are substituted contain (term or type) unknowns from the
+  goal, because it is unable to instantiate goal unknowns at the same time.
+
+  The type checker freezes all flexible type vars that were introduced during
+  type inference and still remain in the term at the end.  This avoids the
+  introduction of flexible type vars in goals and other places where they
+  could cause complications.  If you really want a flexible type var, you
+  have to put it in yourself as a constraint.
+
+  This policy breaks down when a list of substitutions is type checked: later
+  pairs may force type instantiations in earlier pairs, which is impossible,
+  because the type vars in the earlier pairs are already frozen.
+*)
 fun res_inst_tac sinsts rule i =
     compose_inst_tac sinsts (false, rule, nprems_of rule) i;
 
