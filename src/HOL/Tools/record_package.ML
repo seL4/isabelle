@@ -83,7 +83,7 @@ val (op ==>) = Logic.mk_implies;
 
 (* attributes *)
 
-val case_names_fields = RuleCases.case_names ["fields"];
+fun case_names_fields x = RuleCases.case_names ["fields"] x;
 fun induct_type_global name = [case_names_fields, InductAttrib.induct_type_global name];
 fun cases_type_global name = [case_names_fields, InductAttrib.cases_type_global name];
 
