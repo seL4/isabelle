@@ -7,24 +7,8 @@ Common factor cancellation
 *)
 
 val real_diff_minus_eq = thm"real_diff_minus_eq";
-val real_0_divide = thm"real_0_divide";
-val real_0_less_inverse_iff = thm"real_0_less_inverse_iff";
-val real_inverse_less_0_iff = thm"real_inverse_less_0_iff";
-val real_0_le_inverse_iff = thm"real_0_le_inverse_iff";
-val real_inverse_le_0_iff = thm"real_inverse_le_0_iff";
 val real_inverse_eq_divide = thm"real_inverse_eq_divide";
-val real_0_less_divide_iff = thm"real_0_less_divide_iff";
-val real_divide_less_0_iff = thm"real_divide_less_0_iff";
 val real_0_le_divide_iff = thm"real_0_le_divide_iff";
-val real_divide_le_0_iff = thm"real_divide_le_0_iff";
-val real_inverse_zero_iff = thm"real_inverse_zero_iff";
-val real_divide_eq_0_iff = thm"real_divide_eq_0_iff";
-val real_divide_self_eq = thm"real_divide_self_eq";
-val real_minus_less_minus = thm"real_minus_less_minus";
-val real_mult_less_mono1_neg = thm"real_mult_less_mono1_neg";
-val real_mult_less_mono2_neg = thm"real_mult_less_mono2_neg";
-val real_mult_le_mono1_neg = thm"real_mult_le_mono1_neg";
-val real_mult_le_mono2_neg = thm"real_mult_le_mono2_neg";
 val real_mult_less_cancel2 = thm"real_mult_less_cancel2";
 val real_mult_le_cancel2 = thm"real_mult_le_cancel2";
 val real_mult_less_cancel1 = thm"real_mult_less_cancel1";

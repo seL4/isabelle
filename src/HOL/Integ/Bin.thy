@@ -236,24 +236,30 @@ declare right_distrib [of "number_of v", standard, simp]
 declare left_diff_distrib [of _ _ "number_of v", standard, simp]
 declare right_diff_distrib [of "number_of v", standard, simp]
 
+text{*These are actually for fields, like real: but where else to put them?*}
+declare zero_less_divide_iff [of "number_of w", standard, simp]
+declare divide_less_0_iff [of "number_of w", standard, simp]
+declare zero_le_divide_iff [of "number_of w", standard, simp]
+declare divide_le_0_iff [of "number_of w", standard, simp]
+
 text{*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
-declare zless_zminus [of "number_of v", standard, simp]
-declare zle_zminus [of "number_of v", standard, simp]
-declare equation_zminus [of "number_of v", standard, simp]
+declare less_minus_iff [of "number_of v", standard, simp]
+declare le_minus_iff [of "number_of v", standard, simp]
+declare equation_minus_iff [of "number_of v", standard, simp]
 
-declare zminus_zless [of _ "number_of v", standard, simp]
-declare zminus_zle [of _ "number_of v", standard, simp]
-declare zminus_equation [of _ "number_of v", standard, simp]
+declare minus_less_iff [of _ "number_of v", standard, simp]
+declare minus_le_iff [of _ "number_of v", standard, simp]
+declare minus_equation_iff [of _ "number_of v", standard, simp]
 
 text{*These simplify inequalities where one side is the constant 1.*}
-declare zless_zminus [of 1, simplified, simp]
-declare zle_zminus [of 1, simplified, simp]
+declare less_minus_iff [of 1, simplified, simp]
+declare le_minus_iff [of 1, simplified, simp]
 declare equation_zminus [of 1, simplified, simp]
 
-declare zminus_zless [of _ 1, simplified, simp]
-declare zminus_zle [of _ 1, simplified, simp]
-declare zminus_equation [of _ 1, simplified, simp]
+declare minus_less_iff [of _ 1, simplified, simp]
+declare minus_le_iff [of _ 1, simplified, simp]
+declare minus_equation_iff [of _ 1, simplified, simp]
 
 
 (*Moving negation out of products*)

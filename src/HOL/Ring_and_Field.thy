@@ -187,6 +187,9 @@ proof
   }
 qed
 
+lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
+by (simp add: divide_inverse)
+
 lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
 
@@ -534,6 +537,8 @@ apply (simp add: mult_commute [of a b])
 apply (blast dest: zero_less_mult_pos) 
 done
 
+text{*A field has no "zero divisors", so this theorem should hold without the
+      assumption of an ordering.  See @{text field_mult_eq_0_iff} below.*}
 lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
 apply (case_tac "a < 0")
 apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
@@ -685,6 +690,17 @@ by (simp add: abs_if linorder_neq_iff)
 
 subsection {* Fields *}
 
+lemma divide_inverse_zero: "a/b = a * inverse(b::'a::{field,division_by_zero})"
+apply (case_tac "b = 0")
+apply (simp_all add: divide_inverse)
+done
+
+lemma divide_zero_left [simp]: "0/a = (0::'a::{field,division_by_zero})"
+by (simp add: divide_inverse_zero)
+
+lemma inverse_eq_divide: "inverse (a::'a::{field,division_by_zero}) = 1/a"
+by (simp add: divide_inverse_zero)
+
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
 lemma field_mult_eq_0_iff: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
@@ -734,6 +750,9 @@ lemma nonzero_imp_inverse_nonzero: "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::
   finally have "1 = (0::'a::field)" .
   thus False by (simp add: eq_commute)
   qed
+
+
+subsection{*Basic Properties of @{term inverse}*}
 
 lemma inverse_zero_imp_zero: "inverse a = 0 ==> a = (0::'a::field)"
 apply (rule ccontr) 
@@ -855,10 +874,37 @@ apply (simp add: mult_commute [of "inverse a"])
 apply (simp add: mult_assoc [symmetric] add_commute)
 done
 
+lemma nonzero_mult_divide_cancel_left:
+  assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" 
+    shows "(c*a)/(c*b) = a/(b::'a::field)"
+proof -
+  have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
+    by (simp add: field_mult_eq_0_iff divide_inverse 
+                  nonzero_inverse_mult_distrib)
+  also have "... =  a * inverse b * (inverse c * c)"
+    by (simp only: mult_ac)
+  also have "... =  a * inverse b"
+    by simp
+    finally show ?thesis 
+    by (simp add: divide_inverse)
+qed
+
+lemma mult_divide_cancel_left:
+     "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
+apply (case_tac "b = 0")
+apply (simp_all add: nonzero_mult_divide_cancel_left)
+done
+
+(*For ExtractCommonTerm*)
+lemma mult_divide_cancel_eq_if:
+     "(c*a) / (c*b) = 
+      (if c=0 then 0 else a / (b::'a::{field,division_by_zero}))"
+  by (simp add: mult_divide_cancel_left)
+
 
 subsection {* Ordered Fields *}
 
-lemma inverse_gt_0: 
+lemma positive_imp_inverse_positive: 
       assumes a_gt_0: "0 < a"  shows "0 < inverse (a::'a::ordered_field)"
   proof -
   have "0 < a * inverse a" 
@@ -867,9 +913,9 @@ lemma inverse_gt_0:
     by (simp add: a_gt_0 [THEN order_less_not_sym] zero_less_mult_iff)
   qed
 
-lemma inverse_less_0:
+lemma negative_imp_inverse_negative:
      "a < 0 ==> inverse a < (0::'a::ordered_field)"
-  by (insert inverse_gt_0 [of "-a"], 
+  by (insert positive_imp_inverse_positive [of "-a"], 
       simp add: nonzero_inverse_minus_eq order_less_imp_not_eq) 
 
 lemma inverse_le_imp_le:
@@ -889,6 +935,51 @@ lemma inverse_le_imp_le:
   thus "b \<le> a"
     by (simp add: mult_assoc apos bpos order_less_imp_not_eq2)
   qed
+
+lemma inverse_positive_imp_positive:
+      assumes inv_gt_0: "0 < inverse a"
+          and [simp]:   "a \<noteq> 0"
+        shows "0 < (a::'a::ordered_field)"
+  proof -
+  have "0 < inverse (inverse a)"
+    by (rule positive_imp_inverse_positive)
+  thus "0 < a"
+    by (simp add: nonzero_inverse_inverse_eq)
+  qed
+
+lemma inverse_positive_iff_positive [simp]:
+      "(0 < inverse a) = (0 < (a::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "a = 0", simp)
+apply (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
+done
+
+lemma inverse_negative_imp_negative:
+      assumes inv_less_0: "inverse a < 0"
+          and [simp]:   "a \<noteq> 0"
+        shows "a < (0::'a::ordered_field)"
+  proof -
+  have "inverse (inverse a) < 0"
+    by (rule negative_imp_inverse_negative)
+  thus "a < 0"
+    by (simp add: nonzero_inverse_inverse_eq)
+  qed
+
+lemma inverse_negative_iff_negative [simp]:
+      "(inverse a < 0) = (a < (0::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "a = 0", simp)
+apply (blast intro: inverse_negative_imp_negative negative_imp_inverse_negative)
+done
+
+lemma inverse_nonnegative_iff_nonnegative [simp]:
+      "(0 \<le> inverse a) = (0 \<le> (a::'a::{ordered_field,division_by_zero}))"
+by (simp add: linorder_not_less [symmetric])
+
+lemma inverse_nonpositive_iff_nonpositive [simp]:
+      "(inverse a \<le> 0) = (a \<le> (0::'a::{ordered_field,division_by_zero}))"
+by (simp add: linorder_not_less [symmetric])
+
+
+subsection{*Anti-Monotonicity of @{term inverse}*}
 
 lemma less_imp_inverse_less:
       assumes less: "a < b"
@@ -971,5 +1062,31 @@ lemma inverse_le_iff_le_neg [simp]:
      "[|a < 0; b < 0|] 
       ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le_neg dest: inverse_le_imp_le_neg) 
+
+
+subsection{*Division and Signs*}
+
+lemma zero_less_divide_iff:
+     "((0::'a::{ordered_field,division_by_zero}) < a/b) = (0 < a & 0 < b | a < 0 & b < 0)"
+by (simp add: divide_inverse_zero zero_less_mult_iff)
+
+lemma divide_less_0_iff:
+     "(a/b < (0::'a::{ordered_field,division_by_zero})) = 
+      (0 < a & b < 0 | a < 0 & 0 < b)"
+by (simp add: divide_inverse_zero mult_less_0_iff)
+
+lemma zero_le_divide_iff:
+     "((0::'a::{ordered_field,division_by_zero}) \<le> a/b) =
+      (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
+by (simp add: divide_inverse_zero zero_le_mult_iff)
+
+lemma divide_le_0_iff:
+     "(a/b \<le> (0::'a::{ordered_field,division_by_zero})) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
+by (simp add: divide_inverse_zero mult_le_0_iff)
+
+lemma divide_eq_0_iff [simp]:
+     "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
+by (simp add: divide_inverse_zero field_mult_eq_0_iff)
+
 
 end

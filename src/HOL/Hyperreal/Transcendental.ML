@@ -3035,7 +3035,8 @@ Goal "[| 0 < u; x < u/2; y < u/2; 0 <= x; 0 <= y |] ==> sqrt (x ^ 2 + y ^ 2) < u
 by (res_inst_tac [("y","u/sqrt 2")] order_le_less_trans 1);
 by (etac lemma_real_divide_sqrt_less 2);
 by (res_inst_tac [("n","1")] realpow_increasing 1);
-by (auto_tac (claset(),simpset() addsimps [real_0_le_divide_iff,realpow_divide,
+by (auto_tac (claset(),
+    simpset() addsimps [real_0_le_divide_iff,realpow_divide,
     real_sqrt_gt_zero_pow2,two_eq_Suc_Suc RS sym] delsimps [realpow_Suc]));
 by (res_inst_tac [("t","u ^ 2")] (real_sum_of_halves RS subst) 1);
 by (rtac real_add_le_mono 1);

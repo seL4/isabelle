@@ -539,7 +539,7 @@ by (dres_inst_tac [("x","e/2")] spec 1 THEN Auto_tac);
 by (dtac spec 1 THEN Auto_tac);
 by (REPEAT(dtac spec 1) THEN Auto_tac);
 by (dres_inst_tac [("e","ea/(b - a)")] lemma_straddle 1);
-by (auto_tac (claset(),simpset() addsimps [real_0_less_divide_iff]));
+by (auto_tac (claset(),simpset() addsimps [thm"Ring_and_Field.zero_less_divide_iff"]));
 by (rtac exI 1);
 by (auto_tac (claset(),simpset() addsimps [tpart_def,rsum_def]));
 by (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = \

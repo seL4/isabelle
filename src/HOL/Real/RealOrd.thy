@@ -565,10 +565,10 @@ by (simp add: neg_nat real_of_nat_zero)
 subsection{*Inverse and Division*}
 
 lemma real_inverse_gt_0: "0 < x ==> 0 < inverse (x::real)"
-  by (rule Ring_and_Field.inverse_gt_0)
+  by (rule Ring_and_Field.positive_imp_inverse_positive)
 
 lemma real_inverse_less_0: "x < 0 ==> inverse (x::real) < 0"
-  by (rule Ring_and_Field.inverse_less_0)
+  by (rule Ring_and_Field.negative_imp_inverse_negative)
 
 lemma real_mult_less_cancel1: "[| (0::real) < z; x * z < y * z |] ==> x < y"
 by (force simp add: Ring_and_Field.mult_less_cancel_right 
