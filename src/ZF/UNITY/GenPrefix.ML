@@ -305,9 +305,6 @@ by (ALLGOALS(Clarify_tac));
 by (ALLGOALS(Asm_full_simp_tac));
 by (etac natE 1);
 by (ALLGOALS(Asm_full_simp_tac));
-by (dres_inst_tac [("x", "ysa")] bspec 1);
-by (dres_inst_tac [("x", "x")] bspec 2);
-by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD], simpset()));
 qed_spec_mp "gen_prefix_imp_nth";
 
 Goal "xs:list(A) ==> \
