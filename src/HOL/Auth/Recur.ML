@@ -39,8 +39,7 @@ by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS
           (respond.One RS respond.Cons RSN (4,recur.RA3)) RS
           recur.RA4) 2);
 by basic_possibility_tac;
-by (DEPTH_SOLVE (eresolve_tac [asm_rl, less_not_refl2, 
-			       less_not_refl2 RS not_sym] 1));
+by (DEPTH_SOLVE (eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1));
 result();
 
 
@@ -60,8 +59,7 @@ by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS recur.RA2 RS
 by basic_possibility_tac;
 by (DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1 
 		 ORELSE
-		 eresolve_tac [asm_rl, less_not_refl2, 
-			       less_not_refl2 RS not_sym] 1));
+		 eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1));
 result();
 ****************)
 

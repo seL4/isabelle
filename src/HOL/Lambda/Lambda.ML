@@ -57,8 +57,7 @@ by (asm_full_simp_tac(addsplit(simpset())) 1);
 qed "subst_gt";
 
 Goal "j<i ==> (Var j)[u/i] = Var(j)";
-by (asm_full_simp_tac (addsplit(simpset()) addsimps
-                          [less_not_refl2 RS not_sym,less_SucI]) 1);
+by (asm_full_simp_tac (addsplit(simpset()) addsimps [less_not_refl3]) 1);
 qed "subst_lt";
 
 Addsimps [subst_eq,subst_gt,subst_lt];

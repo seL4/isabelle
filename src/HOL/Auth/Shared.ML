@@ -139,8 +139,7 @@ by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
-by (asm_simp_tac (simpset() addsimps [less_not_refl2 RS not_sym, 
-				     le_add2, le_add1, 
+by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add2, le_add1, 
 				     le_eq_less_Suc RS sym]) 1);
 qed "Nonce_supply2";
 
@@ -153,8 +152,7 @@ by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
 by (res_inst_tac [("x","Suc (Suc (N+Na+Nb))")] exI 1);
-by (asm_simp_tac (simpset() addsimps [less_not_refl2 RS not_sym, 
-				     le_add2, le_add1, 
+by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add2, le_add1, 
 				     le_eq_less_Suc RS sym]) 1);
 qed "Nonce_supply3";
 
