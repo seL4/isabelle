@@ -67,13 +67,13 @@ lemma aux_induct:
     (!!F a. F \<subseteq> A ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F))
   ==> P F"
 proof -
-  case antecedent
+  case rule_context
   assume major: "finite F"
     and subs: "F \<subseteq> A"
   show ?thesis
     apply (rule subs [THEN rev_mp])
     apply (rule major [THEN finite_induct])
-     apply (blast intro: antecedent)+
+     apply (blast intro: rule_context)+
     done
 qed
 

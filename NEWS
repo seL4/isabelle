@@ -5,6 +5,11 @@ Isabelle NEWS -- history user-relevant changes
 New in Isabelle2001 (?? 2001)
 -----------------------------
 
+*** Isar ***
+
+* renamed "antecedent" case to "rule_context";
+
+
 *** HOL ***
 
 * HOL: added "The" definite description operator;

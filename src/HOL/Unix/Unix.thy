@@ -618,7 +618,7 @@ theorem transitions_type_safe:
   "root =xs\<Rightarrow> root' \<Longrightarrow> \<exists>att dir. root = Env att dir
     \<Longrightarrow> \<exists>att dir. root' = Env att dir"
 proof -
-  case antecedent
+  case rule_context
   with transition_type_safe show ?thesis
   proof (rule transitions_invariant)
     show "\<forall>x \<in> set xs. True" by blast
@@ -957,7 +957,7 @@ qed
 lemma init_invariant: "init users =bogus\<Rightarrow> root \<Longrightarrow> invariant root bogus_path"
 proof -
   note eval = "setup" access_def init_def
-  case antecedent thus ?thesis
+  case rule_context thus ?thesis
     apply (unfold bogus_def bogus_path_def)
     apply (drule transitions_consD, rule transition.intros,
       (force simp add: eval)+, (simp add: eval)?)+
@@ -1126,7 +1126,7 @@ theorem main:
   \<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
       can_exec root (xs @ [Rmdir user1 [user1, name1]]))"
 proof -
-  case antecedent
+  case rule_context
   with cannot_rmdir init_invariant preserve_invariant
   show ?thesis by (rule general_procedure)
 qed

@@ -76,7 +76,7 @@ lemma apps_betasE [elim!]:
   ==> R"
 proof -
   assume major: "r $$ rs -> s"
-  case antecedent
+  case rule_context
   show ?thesis
     apply (cut_tac major [THEN apps_betasE_aux, THEN spec, THEN spec])
     apply (assumption | rule refl | erule prems exE conjE impE disjE)+

@@ -79,14 +79,14 @@ theorem while_rule_lemma[rule_format]:
       wf {(t, s). P s \<and> b s \<and> t = c s} |] ==>
     P s --> Q (while b c s)"
 proof -
-  case antecedent
+  case rule_context
   assume wf: "wf {(t, s). P s \<and> b s \<and> t = c s}"
   show ?thesis
     apply (induct s rule: wf [THEN wf_induct])
     apply simp
     apply clarify
     apply (subst while_unfold)
-    apply (simp add: antecedent)
+    apply (simp add: rule_context)
     done
 qed
 

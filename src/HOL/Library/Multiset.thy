@@ -331,8 +331,8 @@ lemma rep_multiset_induct_aux:
   "P (\<lambda>a. 0) ==> (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1')))
     ==> \<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
 proof -
-  case antecedent
-  note prems = this [unfolded multiset_def]
+  case rule_context
+  note premises = this [unfolded multiset_def]
   show ?thesis
     apply (unfold multiset_def)
     apply (induct_tac n)
@@ -340,7 +340,7 @@ proof -
      apply clarify
      apply (subgoal_tac "f = (\<lambda>a.0)")
       apply simp
-      apply (rule prems)
+      apply (rule premises)
      apply (rule ext)
      apply force
     apply clarify
@@ -358,7 +358,7 @@ proof -
      prefer 2
      apply (rule ext)
      apply (simp (no_asm_simp))
-     apply (erule ssubst, rule prems)
+     apply (erule ssubst, rule premises)
      apply blast
     apply (erule allE, erule impE, erule_tac [2] mp)
      apply blast

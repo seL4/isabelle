@@ -108,7 +108,7 @@ lemma lem [rule_format (no_asm)]:
     !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
   |] ==> \<forall>t. size t = n --> P t"
 proof -
-  case antecedent
+  case rule_context
   show ?thesis
    apply (induct_tac n rule: nat_less_induct)
    apply (rule allI)
@@ -150,7 +150,7 @@ theorem Apps_dB_induct:
     !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
   |] ==> P t"
 proof -
-  case antecedent
+  case rule_context
   show ?thesis
     apply (rule_tac t = t in lem)
       prefer 3

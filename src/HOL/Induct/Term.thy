@@ -48,11 +48,11 @@ lemma term_induct2:
     (!!f ts. list_all P ts ==> P (App f ts))
   ==> P t"
 proof -
-  case antecedent
+  case rule_context
   have "P t \<and> list_all P ts"
     apply (induct t and ts rule: term.induct)
-       apply (rule antecedent)
-      apply (rule antecedent)
+       apply (rule rule_context)
+      apply (rule rule_context)
       apply assumption
      apply simp_all
     done

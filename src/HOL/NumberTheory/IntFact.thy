@@ -58,14 +58,14 @@ lemma d22set_induct:
       ==> P (d22set a) a)
     ==> P (d22set u) u"
 proof -
-  case antecedent
+  case rule_context
   show ?thesis
     apply (rule d22set.induct)
     apply safe
      apply (case_tac [2] "#1 < a")
-      apply (rule_tac [2] antecedent)
+      apply (rule_tac [2] rule_context)
        apply (simp_all (no_asm_simp))
-     apply (simp_all (no_asm_simp) add: d22set.simps antecedent)
+     apply (simp_all (no_asm_simp) add: d22set.simps rule_context)
     done
 qed
 

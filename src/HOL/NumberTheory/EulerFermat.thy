@@ -71,14 +71,14 @@ lemma BnorRset_induct:
       ==> P (BnorRset(a,m)) a m)
     ==> P (BnorRset(u,v)) u v"
 proof -
-  case antecedent
+  case rule_context
   show ?thesis
     apply (rule BnorRset.induct)
     apply safe
      apply (case_tac [2] "#0 < a")
-      apply (rule_tac [2] antecedent)
+      apply (rule_tac [2] rule_context)
        apply simp_all
-     apply (simp_all add: BnorRset.simps antecedent)
+     apply (simp_all add: BnorRset.simps rule_context)
   done
 qed
 

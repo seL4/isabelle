@@ -203,7 +203,7 @@ theorem quot_function:
     (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y') ==>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
 proof -
-  case antecedent from this TrueI
+  case rule_context from this TrueI
   show ?thesis by (rule quot_cond_function)
 qed
 

@@ -165,7 +165,7 @@ proof -
     done
   } note this [dest]
   
-  case antecedent
+  case rule_context
   thus ?thesis by blast
 qed
 

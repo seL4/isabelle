@@ -184,14 +184,14 @@ lemma wset_induct:
       ==> P (wset (a, p)) a p)
     ==> P (wset (u, v)) u v"
 proof -
-  case antecedent
+  case rule_context
   show ?thesis
     apply (rule wset.induct)
     apply safe
      apply (case_tac [2] "#1 < a")
-      apply (rule_tac [2] antecedent)
+      apply (rule_tac [2] rule_context)
         apply simp_all
-      apply (simp_all add: wset.simps antecedent)
+      apply (simp_all add: wset.simps rule_context)
     done
 qed
 

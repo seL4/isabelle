@@ -79,7 +79,7 @@ proof -
     "!!r f z. [| z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
                  OK x +_f OK y <=_r z|] ==> OK x <=_r z \<and> OK y <=_r z"
     by (rule plus_le_conv [THEN iffD1])
-  case antecedent
+  case rule_context
   thus ?thesis
   apply (rule_tac iffI)
    apply clarify

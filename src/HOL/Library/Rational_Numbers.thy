@@ -360,7 +360,7 @@ theorem rat_function:
       g (fract a b) (fract c d) = g (fract a' b') (fract c' d')) ==>
     f (Fract a b) (Fract c d) = g (fract a b) (fract c d)"
 proof -
-  case antecedent from this TrueI
+  case rule_context from this TrueI
   show ?thesis by (rule rat_cond_function)
 qed
 

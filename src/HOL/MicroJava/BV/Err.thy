@@ -257,7 +257,7 @@ proof -
     [| semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A |] 
     ==> x <=_r z \<and> y <=_r z"
     by (rule plus_le_conv [THEN iffD1])
-  case antecedent
+  case rule_context
   thus ?thesis
   apply (rule_tac iffI)
    apply clarify
