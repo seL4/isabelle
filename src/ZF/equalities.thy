@@ -70,10 +70,10 @@ lemma bex_UN: "(\<exists>z \<in> (\<Union>x\<in>A. B(x)). P(z)) <-> (\<exists>x\
 
 subsection{*Converse of a Relation*}
 
-lemma converse_iff [iff]: "<a,b>: converse(r) <-> <b,a>:r"
+lemma converse_iff [simp]: "<a,b>: converse(r) <-> <b,a>:r"
 by (unfold converse_def, blast)
 
-lemma converseI: "<a,b>:r ==> <b,a>:converse(r)"
+lemma converseI [intro!]: "<a,b>:r ==> <b,a>:converse(r)"
 by (unfold converse_def, blast)
 
 lemma converseD: "<a,b> : converse(r) ==> <b,a> : r"
