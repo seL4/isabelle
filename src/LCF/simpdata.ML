@@ -1,7 +1,7 @@
 (*  Title: 	LCF/simpdata
     ID:         $Id$
     Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
-    Copyright   1991  University of Cambridge
+    Copyright   1993  University of Cambridge
 
 Simplification data for LCF
 *)
@@ -10,7 +10,7 @@ Simplification data for LCF
 fun mk_rew_rules r =
 let fun basify thm =
 	  (case concl_of thm of
-             _$(_$t$_) => (case fastype_of([],t) of
+             _$(_$t$_) => (case fastype_of t of
 	                     Type("fun",_) => basify(thm RS ap_thm)
 	                   | _ => thm)
            | _ => thm)
