@@ -6,7 +6,6 @@ Type classes and sorts. Type signatures. Type unification and inference.
 
 TODO:
   move type unification and inference to type_unify.ML (TypeUnify) (?)
-  rename args -> tycons, coreg -> arities (?)
 *)
 
 signature TYPE =
@@ -23,9 +22,9 @@ sig
     {classes: class list,
      subclass: (class * class list) list,
      default: sort,
-     args: (string * int) list,
+     tycons: (string * int) list,
      abbrs: (string * (string list * typ)) list,
-     coreg: (string * (class * sort list) list) list}
+     arities: (string * (class * sort list) list) list}
   val defaultS: type_sig -> sort
   val tsig0: type_sig
   val logical_types: type_sig -> string list
@@ -34,7 +33,7 @@ sig
   val ext_tsig_defsort: type_sig -> sort -> type_sig
   val ext_tsig_types: type_sig -> (string * int) list -> type_sig
   val ext_tsig_abbrs: type_sig -> (string * string list * typ) list -> type_sig
-  val ext_tsig_arities: type_sig -> (string * sort list * sort) list -> type_sig
+  val ext_tsig_arities: type_sig -> (string * sort list * sort)list -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
   val subsort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
@@ -134,14 +133,14 @@ fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
   default:
     the default sort attached to all unconstrained type vars;
 
-  args:
+  tycons:
     an association list of all declared types with the number of their
     arguments;
 
   abbrs:
     an association list of type abbreviations;
 
-  coreg:
+  arities:
     a two-fold association list of all type arities; (t, al) means that type
     constructor t has the arities in al; an element (c, ss) of al represents
     the arity (ss)c;
@@ -152,9 +151,9 @@ datatype type_sig =
     classes: class list,
     subclass: (class * class list) list,
     default: sort,
-    args: (string * int) list,
+    tycons: (string * int) list,
     abbrs: (string * (string list * typ)) list,
-    coreg: (string * (class * domain) list) list};
+    arities: (string * (class * domain) list) list};
 
 fun rep_tsig (TySg comps) = comps;
 
@@ -203,12 +202,12 @@ fun leq a (C, D)  =  C = D orelse less a (C, D);
 
 fun logical_types tsig =
   let
-    val TySg {subclass, coreg, args, ...} = tsig;
+    val TySg {subclass, arities, tycons, ...} = tsig;
 
     fun log_class c = leq subclass (c, logicC);
-    fun log_type t = exists (log_class o #1) (assocs coreg t);
+    fun log_type t = exists (log_class o #1) (assocs arities t);
   in
-    filter log_type (map #1 args)
+    filter log_type (map #1 tycons)
   end;
 
 
@@ -303,12 +302,12 @@ fun inst_typ tye =
 (* 'least_sort' returns for a given type its maximum sort:
    - type variables, free types: the sort brought with
    - type constructors: recursive determination of the maximum sort of the
-                    arguments if the type is declared in 'coreg' of the
+                    arguments if the type is declared in 'arities' of the
                     given type signature  *)
 
-fun least_sort (tsig as TySg{subclass, coreg, ...}) =
+fun least_sort (tsig as TySg{subclass, arities, ...}) =
   let fun ls(T as Type(a, Ts)) =
-                 (case assoc (coreg, a) of
+                 (case assoc (arities, a) of
                           Some(ars) => cod_above(subclass, map ls Ts, ars)
                         | None => raise TYPE(undcl_type a, [T], []))
         | ls(TFree(a, S)) = S
@@ -316,7 +315,7 @@ fun least_sort (tsig as TySg{subclass, coreg, ...}) =
   in ls end;
 
 
-fun check_has_sort(tsig as TySg{subclass, coreg, ...}, T, S) =
+fun check_has_sort(tsig as TySg{subclass, arities, ...}, T, S) =
   if sortorder subclass ((least_sort tsig T), S) then ()
   else raise TYPE("Type not of sort " ^ (str_of_sort S), [T], [])
 
@@ -380,9 +379,9 @@ fun typ_instance (tsig, T, U) =
 
 (** build type signatures **)
 
-fun make_tsig (classes, subclass, default, args, abbrs, coreg) =
+fun make_tsig (classes, subclass, default, tycons, abbrs, arities) =
   TySg {classes = classes, subclass = subclass, default = default,
-    args = args, abbrs = abbrs, coreg = coreg};
+    tycons = tycons, abbrs = abbrs, arities = arities};
 
 val tsig0 = make_tsig ([], [], [], [], [], []);
 
@@ -406,7 +405,7 @@ fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
 
 fun typ_errors tsig (typ, errors) =
   let
-    val TySg {classes, args, abbrs, ...} = tsig;
+    val TySg {classes, tycons, abbrs, ...} = tsig;
 
     fun class_err (errs, c) =
       if c mem classes then errs
@@ -421,7 +420,7 @@ fun typ_errors tsig (typ, errors) =
               if n = length Us then errs'
               else ("Wrong number of arguments: " ^ quote c) ins errs';
           in
-            (case assoc (args, c) of
+            (case assoc (tycons, c) of
               Some n => nargs n
             | None =>
                 (case assoc (abbrs, c) of
@@ -475,67 +474,54 @@ fun merge_subclass (subclass1, subclass2) =
 
 (* 'is_unique_decl' checks if there exists just one declaration t:(Ss)C *)
 
-fun is_unique_decl coreg (t, (s, w)) = case assoc2 (coreg, (t, s)) of
+fun is_unique_decl ars (t,(C,w)) = case assoc (ars, C) of
       Some(w1) => if w = w1 then () else
         error("There are two declarations\n" ^
-              str_of_arity(t, w, [s]) ^ " and\n" ^
-              str_of_arity(t, w1, [s]) ^ "\n" ^
+              str_of_arity(t, w, [C]) ^ " and\n" ^
+              str_of_arity(t, w1, [C]) ^ "\n" ^
               "with the same result class.")
     | None => ();
 
-(* 'restr2' checks if there are two declarations t:(Ss1)C1 and t:(Ss2)C2
+(* 'coreg' checks if there are two declarations t:(Ss1)C1 and t:(Ss2)C2
    such that C1 >= C2 then Ss1 >= Ss2 (elementwise) *)
 
-fun subs (classes, subclass) C =
-  let fun sub (rl, l) = if leq subclass (l, C) then l::rl else rl
-  in foldl sub ([], classes) end;
+fun coreg_err(t, (C1,w1), (C2,w2)) =
+    error("Declarations " ^ str_of_arity(t, w1, [C1]) ^ " and "
+                          ^ str_of_arity(t, w2, [C2]) ^ " are in conflict");
 
-fun coreg_err(t, (w1, C), (w2, D)) =
-    error("Declarations " ^ str_of_arity(t, w1, [C]) ^ " and "
-                          ^ str_of_arity(t, w2, [D]) ^ " are in conflict");
+fun coreg subclass (t, Cw1) =
+  let fun check1(Cw1 as (C1,w1), Cw2 as (C2,w2)) =
+        if leq subclass (C1,C2)
+        then if lew subclass (w1,w2) then () else coreg_err(t, Cw1, Cw2)
+        else ()
+      fun check(Cw2) = (check1(Cw1,Cw2); check1(Cw2,Cw1))
+  in seq check end;
 
-fun restr2 classes (subclass, coreg) (t, (s, w)) =
-  let fun restr ([], test) = ()
-        | restr (s1::Ss, test) =
-            (case assoc2 (coreg, (t, s1)) of
-              Some dom =>
-                if lew subclass (test (w, dom))
-                then restr (Ss, test)
-                else coreg_err (t, (w, s), (dom, s1))
-            | None => restr (Ss, test))
-      fun forward (t, (s, w)) =
-        let val s_sups = case assoc (subclass, s) of
-                   Some(s_sups) => s_sups | None => err_undcl_class(s);
-        in restr (s_sups, I) end
-      fun backward (t, (s, w)) =
-        let val s_subs = subs (classes, subclass) s
-        in restr (s_subs, fn (x, y) => (y, x)) end
-  in (backward (t, (s, w)); forward (t, (s, w))) end;
-
+fun add_arity subclass ars (tCw as (_,Cw)) =
+      (is_unique_decl ars tCw; coreg subclass tCw ars; Cw ins ars);
 
 fun varying_decls t =
   error ("Type constructor " ^ quote t ^ " has varying number of arguments");
 
 
-(* 'merge_coreg' builds the union of two 'coreg' lists;
+(* 'merge_arities' builds the union of two 'arities' lists;
    it only checks the two restriction conditions and inserts afterwards
    all elements of the second list into the first one *)
 
-fun merge_coreg classes subclass1 =
-  let fun test_ar classes (t, ars1) (coreg1, (s, w)) =
-        (is_unique_decl coreg1 (t, (s, w));
-         restr2 classes (subclass1, coreg1) (t, (s, w));
-         overwrite (coreg1, (t, (s, w) ins ars1)));
+fun merge_arities subclass =
+  let fun test_ar t (ars1, sw) = add_arity subclass ars1 (t,sw);
 
-      fun merge_c (coreg1, (c as (t, ars2))) = case assoc (coreg1, t) of
-          Some(ars1) => foldl (test_ar classes (t, ars1)) (coreg1, ars2)
-        | None => c::coreg1
+      fun merge_c (arities1, (c as (t, ars2))) = case assoc (arities1, t) of
+          Some(ars1) =>
+            let val ars = foldl (test_ar t) (ars1, ars2)
+            in overwrite (arities1, (t,ars)) end
+        | None => c::arities1
   in foldl merge_c end;
 
-fun merge_args (args, (t, n)) =
-  (case assoc (args, t) of
-    Some m => if m = n then args else varying_decls t
-  | None => (t, n) :: args);
+fun add_tycons (tycons, tn as (t,n)) =
+  (case assoc (tycons, t) of
+    Some m => if m = n then tycons else varying_decls t
+  | None => tn :: tycons);
 
 fun merge_abbrs (abbrs1, abbrs2) =
   let val abbrs = abbrs1 union abbrs2 in
@@ -548,19 +534,17 @@ fun merge_abbrs (abbrs1, abbrs2) =
 (* 'merge_tsigs' takes the above declared functions to merge two type
   signatures *)
 
-fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, args=args1,
-           coreg=coreg1, abbrs=abbrs1},
-          TySg{classes=classes2, default=default2, subclass=subclass2, args=args2,
-           coreg=coreg2, abbrs=abbrs2}) =
+fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1,
+                     tycons=tycons1, arities=arities1, abbrs=abbrs1},
+                TySg{classes=classes2, default=default2, subclass=subclass2,
+                     tycons=tycons2, arities=arities2, abbrs=abbrs2}) =
   let val classes' = classes1 union classes2;
       val subclass' = merge_subclass (subclass1, subclass2);
-      val args' = foldl merge_args (args1, args2)
-      val coreg' = merge_coreg classes' subclass' (coreg1, coreg2);
+      val tycons' = foldl add_tycons (tycons1, tycons2)
+      val arities' = merge_arities subclass' (arities1, arities2);
       val default' = min_sort subclass' (default1 @ default2);
       val abbrs' = merge_abbrs(abbrs1, abbrs2);
-  in TySg{classes=classes' , default=default', subclass=subclass', args=args',
-          coreg=coreg' , abbrs = abbrs' }
-  end;
+  in make_tsig(classes', subclass', default', tycons', abbrs', arities') end;
 
 
 
@@ -610,10 +594,10 @@ fun extend_classes (classes, subclass, new_classes) =
 
 fun ext_tsig_classes tsig new_classes =
   let
-    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
-    val (classes', subclass') = extend_classes (classes, subclass, new_classes);
+    val TySg {classes, subclass, default, tycons, abbrs, arities} = tsig;
+    val (classes',subclass') = extend_classes (classes,subclass,new_classes);
   in
-    make_tsig (classes', subclass', default, args, abbrs, coreg)
+    make_tsig (classes', subclass', default, tycons, abbrs, arities)
   end;
 
 
@@ -621,36 +605,36 @@ fun ext_tsig_classes tsig new_classes =
 
 fun ext_tsig_subclass tsig pairs =
   let
-    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
+    val TySg {classes, subclass, default, tycons, abbrs, arities} = tsig;
 
     (* FIXME clean! *)
     val subclass' =
       merge_subclass (subclass, map (fn (c1, c2) => (c1, [c2])) pairs);
   in
-    make_tsig (classes, subclass', default, args, abbrs, coreg)
+    make_tsig (classes, subclass', default, tycons, abbrs, arities)
   end;
 
 
 (* ext_tsig_defsort *)
 
-fun ext_tsig_defsort (TySg {classes, subclass, args, abbrs, coreg, ...}) default =
-  make_tsig (classes, subclass, default, args, abbrs, coreg);
+fun ext_tsig_defsort(TySg{classes,subclass,tycons,abbrs,arities,...}) default =
+  make_tsig (classes, subclass, default, tycons, abbrs, arities);
 
 
 
 (** add types **)
 
-fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
+fun ext_tsig_types (TySg {classes, subclass, default, tycons, abbrs, arities}) ts =
   let
     fun check_type (c, n) =
       if n < 0 then err_neg_args c
-      else if is_some (assoc (args, c)) then err_dup_tycon c
+      else if is_some (assoc (tycons, c)) then err_dup_tycon c
       else if is_some (assoc (abbrs, c)) then err_ty_confl c
       else ();
   in
     seq check_type ts;
-    make_tsig (classes, subclass, default, ts @ args, abbrs,
-      map (rpair [] o #1) ts @ coreg)
+    make_tsig (classes, subclass, default, ts @ tycons, abbrs,
+      map (rpair [] o #1) ts @ arities)
   end;
 
 
@@ -659,7 +643,7 @@ fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
 
 fun abbr_errors tsig (a, (lhs_vs, rhs)) =
   let
-    val TySg {args, abbrs, ...} = tsig;
+    val TySg {tycons, abbrs, ...} = tsig;
     val rhs_vs = map (#1 o #1) (typ_tvars rhs);
 
     val dup_lhs_vars =
@@ -673,7 +657,7 @@ fun abbr_errors tsig (a, (lhs_vs, rhs)) =
       | vs => ["Extra variables on rhs: " ^ commas_quote vs]);
 
     val tycon_confl =
-      if is_none (assoc (args, a)) then []
+      if is_none (assoc (tycons, a)) then []
       else [ty_confl a];
 
     val dup_abbr =
@@ -698,9 +682,10 @@ fun prep_abbr tsig (a, vs, raw_rhs) =
     | msgs => err msgs)
   end;
 
-fun add_abbr (tsig as TySg {classes, subclass, default, args, coreg, abbrs}, abbr) =
+fun add_abbr (tsig as TySg{classes,subclass,default,tycons,arities,abbrs},
+              abbr) =
   make_tsig
-    (classes, subclass, default, args, prep_abbr tsig abbr :: abbrs, coreg);
+    (classes,subclass,default,tycons, prep_abbr tsig abbr :: abbrs, arities);
 
 fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 
@@ -709,40 +694,37 @@ fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 (** add arities **)
 
 (* 'coregular' checks
-   - the two restriction conditions 'is_unique_decl' and 'restr2'
+   - the two restrictions 'is_unique_decl' and 'coreg'
    - if the classes in the new type declarations are known in the
      given type signature
    - if one type constructor has always the same number of arguments;
    if one type declaration has passed all checks it is inserted into
-   the 'coreg' association list of the given type signatrure  *)
+   the 'arities' association list of the given type signatrure  *)
 
-fun coregular (classes, subclass, args) =
+fun coregular (classes, subclass, tycons) =
   let fun ex C = if C mem classes then () else err_undcl_class(C);
 
-      fun addar(w, C) (coreg, t) = case assoc(args, t) of
+      fun addar(arities, (t, (w, C))) = case assoc(tycons, t) of
             Some(n) => if n <> length w then varying_decls(t) else
-                     (is_unique_decl coreg (t, (C, w));
-                      (seq o seq) ex w;
-                      restr2 classes (subclass, coreg) (t, (C, w));
-                      let val ars = the (assoc(coreg, t))
-                      in overwrite(coreg, (t, (C, w) ins ars)) end)
+                     ((seq o seq) ex w; ex C;
+                      let val ars = the (assoc(arities, t))
+                          val ars' = add_arity subclass ars (t,(C,w))
+                      in overwrite(arities, (t,ars')) end)
           | None => err_undcl_type(t);
 
-      fun addts(coreg, (ts, ar)) = foldl (addar ar) (coreg, ts)
-
-  in addts end;
+  in addar end;
 
 
-(* 'close' extends the 'coreg' association list after all new type
+(* 'close' extends the 'arities' association list after all new type
    declarations have been inserted successfully:
    for every declaration t:(Ss)C , for all classses D with C <= D:
       if there is no declaration t:(Ss')C' with C < C' and C' <= D
-      then insert the declaration t:(Ss)D into 'coreg'
+      then insert the declaration t:(Ss)D into 'arities'
    this means, if there exists a declaration t:(Ss)C and there is
    no declaration t:(Ss')D with C <=D then the declaration holds
    for all range classes more general than C *)
 
-fun close subclass coreg =
+fun close subclass arities =
   let fun check sl (l, (s, dom)) = case assoc (subclass, s) of
           Some sups =>
             let fun close_sup (l, sup) =
@@ -753,22 +735,21 @@ fun close subclass coreg =
             in foldl close_sup (l, sups) end
         | None => l;
       fun ext (s, l) = (s, foldl (check (map #1 l)) (l, l));
-  in map ext coreg end;
+  in map ext arities end;
 
 
 (* ext_tsig_arities *)
 
 fun ext_tsig_arities tsig sarities =
   let
-    val TySg {classes, subclass, default, args, coreg, abbrs} = tsig;
-    val arities =
-      flat (map (fn (t, ss, cs) => map (fn c => ([t], (ss, c))) cs) sarities);
-    val coreg' =
-      foldl (coregular (classes, subclass, args))
-        (coreg, min_domain subclass arities)
+    val TySg {classes, subclass, default, tycons, arities, abbrs} = tsig;
+    val arities1 =
+      flat (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
+    val arities2 = foldl (coregular (classes, subclass, tycons))
+                         (arities, min_domain subclass arities1)
       |> close subclass;
   in
-    make_tsig (classes, subclass, default, args, abbrs, coreg')
+    make_tsig (classes, subclass, default, tycons, abbrs, arities2)
   end;
 
 
@@ -837,7 +818,7 @@ fun devar (T as TVar(v, _), tye) = (case  assoc(tye, v)  of
 (* 'dom' returns for a type constructor t the list of those domains
    which deliver a given range class C *)
 
-fun dom coreg t C = case assoc2 (coreg, (t, C)) of
+fun dom arities t C = case assoc2 (arities, (t, C)) of
     Some(Ss) => Ss
   | None => raise TUNIFY;
 
@@ -846,14 +827,14 @@ fun dom coreg t C = case assoc2 (coreg, (t, C)) of
    (i.e. a set of range classes ); the union is carried out elementwise
    for the seperate sorts in the domains *)
 
-fun Dom (subclass, coreg) (t, S) =
-  let val domlist = map (dom coreg t) S;
+fun Dom (subclass, arities) (t, S) =
+  let val domlist = map (dom arities t) S;
   in if null domlist then []
      else foldl (elementwise_union subclass) (hd domlist, tl domlist)
   end;
 
 
-fun W ((T, S), tsig as TySg{subclass, coreg, ...}, tye) =
+fun W ((T, S), tsig as TySg{subclass, arities, ...}, tye) =
   let fun Wd ((T, S), tye) = W ((devar (T, tye), S), tsig, tye)
       fun Wk(T as TVar(v, S')) =
               if sortorder subclass (S', S) then tye
@@ -862,14 +843,14 @@ fun W ((T, S), tsig as TySg{subclass, coreg, ...}, tye) =
                                  else raise TUNIFY
         | Wk(T as Type(f, Ts)) =
            if null S then tye
-           else foldr Wd (Ts~~(Dom (subclass, coreg) (f, S)) , tye)
+           else foldr Wd (Ts~~(Dom (subclass, arities) (f, S)) , tye)
   in Wk(T) end;
 
 
 (* Order-sorted Unification of Types (U)  *)
 
 (* Precondition: both types are well-formed w.r.t. type constructor arities *)
-fun unify (tsig as TySg{subclass, coreg, ...}) =
+fun unify (tsig as TySg{subclass, arities, ...}) =
   let fun unif ((T, U), tye) =
         case (devar(T, tye), devar(U, tye)) of
           (T as TVar(v, S1), U as TVar(w, S2)) =>
@@ -879,9 +860,9 @@ fun unify (tsig as TySg{subclass, coreg, ...}) =
              else let val nu = gen_tyvar (union_sort subclass (S1, S2))
                   in (v, nu)::(w, nu)::tye end
         | (T as TVar(v, S), U) =>
-             if occ v tye U then raise TUNIFY else W ((U, S), tsig, (v, U)::tye)
+             if occ v tye U then raise TUNIFY else W ((U,S), tsig, (v, U)::tye)
         | (U, T as TVar (v, S)) =>
-             if occ v tye U then raise TUNIFY else W ((U, S), tsig, (v, U)::tye)
+             if occ v tye U then raise TUNIFY else W ((U,S), tsig, (v, U)::tye)
         | (Type(a, Ts), Type(b, Us)) =>
              if a<>b then raise TUNIFY else foldr unif (Ts~~Us, tye)
         | (T, U) => if T=U then tye else raise TUNIFY

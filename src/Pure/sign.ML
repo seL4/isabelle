@@ -138,7 +138,7 @@ fun print_sg sg =
     fun pretty_default cls = Pretty.block
       [Pretty.str "default:", Pretty.brk 1, pretty_sort cls];
 
-    fun pretty_arg (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
+    fun pretty_ty (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
 
     fun pretty_abbr syn (ty, (vs, rhs)) = Pretty.block
       [prt_typ syn (Type (ty, map (fn v => TVar ((v, 0), [])) vs)),
@@ -151,24 +151,26 @@ fun print_sg sg =
             Pretty.list "(" ")" (map pretty_sort srts),
             Pretty.brk 1, Pretty.str cl];
 
-    fun pretty_coreg (ty, ars) = map (pretty_arity ty) ars;
+    fun pretty_arities (ty, ars) = map (pretty_arity ty) ars;
 
     fun pretty_const syn (c, ty) = Pretty.block
       [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ syn ty];
 
 
     val Sg {tsig, const_tab, syn, stamps} = sg;
-    val {classes, subclass, default, args, abbrs, coreg} = rep_tsig tsig;
+    val {classes, subclass, default, tycons, abbrs, arities} = rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ("classes:" :: classes));
-    Pretty.writeln (Pretty.big_list "subclass:" (map pretty_subclass subclass));
+    Pretty.writeln (Pretty.big_list "subclass:"
+                      (map pretty_subclass subclass));
     Pretty.writeln (pretty_default default);
-    Pretty.writeln (Pretty.big_list "types:" (map pretty_arg args));
+    Pretty.writeln (Pretty.big_list "types:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
-    Pretty.writeln (Pretty.big_list "coreg:" (flat (map pretty_coreg coreg)));
+    Pretty.writeln (Pretty.big_list "arities:"
+                      (flat (map pretty_arities arities)));
     Pretty.writeln (Pretty.big_list "consts:"
-      (map (pretty_const syn) (Symtab.dest const_tab)))
+                      (map (pretty_const syn) (Symtab.dest const_tab)))
   end;
 
 
