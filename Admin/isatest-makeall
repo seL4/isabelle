@@ -10,6 +10,8 @@
 ## global settings
 LOGPREFIX=~/log
 
+MASTERLOG=$LOGPREFIX/isatest.log
+
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -64,15 +66,24 @@ for SETTINGS in $@; do
 
     if [ $? -eq 0 ]
     then
-        echo ------------------- test successfull --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
-        mv $DISTPREFIX/Isabelle/etc/settings-$SHORT $DISTPREFIX/Isabelle/etc/settings
+        echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
+        mv $DISTPREFIX/Isabelle/etc/settings.save-$SHORT $DISTPREFIX/Isabelle/etc/settings
         gzip -f $TESTLOG
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
+	FAIL="$FAIL$SHORT "
         # more action here
-        exit 1
     fi
 
 done
+
+ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
+
+if [ "$FAIL" != "" ]; then
+	echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
+	exit 1
+else
+        echo "$(date) $HOSTNAME $PRG: all tests successful, elapsed time $ELAPSED." >> $MASTERLOG
+fi
 
 # end
