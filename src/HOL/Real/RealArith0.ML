@@ -257,7 +257,8 @@ val real_cancel_numeral_factors_relations =
 
 val real_cancel_numeral_factors_divide = prep_simproc
 	("realdiv_cancel_numeral_factor", 
-	 prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)"], 
+	 prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)", 
+                     "((number_of v)::real) / (number_of w)"], 
 	 DivCancelNumeralFactor.proc);
 
 val real_cancel_numeral_factors = 

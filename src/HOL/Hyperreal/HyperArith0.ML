@@ -269,7 +269,8 @@ val hypreal_cancel_numeral_factors_relations =
 
 val hypreal_cancel_numeral_factors_divide = prep_simproc
 	("hyprealdiv_cancel_numeral_factor", 
-	 prep_pats ["((l::hypreal) * m) / n", "(l::hypreal) / (m * n)"], 
+	 prep_pats ["((l::hypreal) * m) / n", "(l::hypreal) / (m * n)", 
+                     "((number_of v)::hypreal) / (number_of w)"], 
 	 DivCancelNumeralFactor.proc);
 
 val hypreal_cancel_numeral_factors = 
