@@ -116,7 +116,7 @@ struct
     ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
 
-  val print = print_all_rules Display.pretty_thm_sg;
+  fun print x = print_all_rules Display.pretty_thm_sg x;
 
   fun dest ((casesT, casesS), (inductT, inductS)) =
     {type_cases = NetRules.rules casesT,
@@ -138,7 +138,7 @@ struct
   type T = GlobalInductArgs.T;
 
   fun init thy = GlobalInduct.get thy;
-  val print = print_all_rules ProofContext.pretty_thm;
+  fun print x = print_all_rules ProofContext.pretty_thm x;
 end;
 
 structure LocalInduct = ProofDataFun(LocalInductArgs);
