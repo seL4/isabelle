@@ -5,7 +5,7 @@
 Extensible records with structural subtyping in HOL.
 
 TODO:
-  - field types: typedef;
+  - field types: datatype;
   - operations and theorems: split, split_all/ex, ...;
   - field constructor: more specific type for snd component (x_more etc. classes);
 *)
