@@ -77,8 +77,10 @@ translations
   "{x. P}"      == "Collect (%x. P)"
   "UN x y. B"   == "UN x. UN y. B"
   "UN x. B"     == "UNION UNIV (%x. B)"
+  "UN x. B"     == "UN x:UNIV. B"
   "INT x y. B"  == "INT x. INT y. B"
   "INT x. B"    == "INTER UNIV (%x. B)"
+  "INT x. B"    == "INT x:UNIV. B"
   "UN x:A. B"   == "UNION A (%x. B)"
   "INT x:A. B"  == "INTER A (%x. B)"
   "ALL x:A. P"  == "Ball A (%x. P)"
@@ -157,7 +159,8 @@ let
     let val (x,t) = atomic_abs_tr' abs
     in Syntax.const syn $ x $ A $ t end
 in
-[("Ball", btr' "_Ball"),("Bex", btr' "_Bex")]
+[("Ball", btr' "_Ball"),("Bex", btr' "_Bex"),
+ ("UNION", btr' "@UNION"),("INTER", btr' "@INTER")]
 end
 *}
 
