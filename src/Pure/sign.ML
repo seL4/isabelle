@@ -34,6 +34,7 @@ sig
   val deref: sg_ref -> sg
   val self_ref: sg -> sg_ref
   val subsig: sg * sg -> bool
+  val joinable: sg * sg -> bool
   val eq_sg: sg * sg -> bool
   val same_sg: sg * sg -> bool
   val is_draft: sg -> bool
@@ -253,6 +254,8 @@ in
     eq_sg (sg1, sg2) orelse fast_sub (s1, s2);
 end;
 
+
+fun joinable (sg1, sg2) = subsig (sg1, sg2) orelse subsig (sg2, sg1);
 
 (*test if same theory names are contained in signatures' stamps,
   i.e. if signatures belong to same theory but not necessarily to the

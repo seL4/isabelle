@@ -426,14 +426,14 @@ fun no_attributes x = (x, []);
 fun apply_attributes (x_th, atts) = Library.apply atts x_th;
 fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
-(*equality of theorems uses equality of signatures and the
-  a-convertible test for terms*)
 fun eq_thm (th1, th2) =
   let
-    val {sign = sg1, shyps = shyps1, hyps = hyps1, prop = prop1, ...} = rep_thm th1;
-    val {sign = sg2, shyps = shyps2, hyps = hyps2, prop = prop2, ...} = rep_thm th2;
+    val {sign = sg1, shyps = shyps1, hyps = hyps1, prop = prop1, maxidx = _, der = _} =
+      rep_thm th1;
+    val {sign = sg2, shyps = shyps2, hyps = hyps2, prop = prop2, maxidx = _, der = _} =
+      rep_thm th2;
   in
-    Sign.eq_sg (sg1, sg2) andalso
+    Sign.joinable (sg1, sg2) andalso
     eq_set_sort (shyps1, shyps2) andalso
     aconvs (hyps1, hyps2) andalso
     prop1 aconv prop2
