@@ -44,7 +44,7 @@ fun pull (Seq f) = f ();
 
 
 (*the empty sequence*)
-val empty = make (fn () => None);
+val empty = Seq (fn () => None);
 
 (*prefix an element to the sequence -- use cons (x, xq) only if
   evaluation of xq need not be delayed, otherwise use
