@@ -14,17 +14,17 @@ open Terms;
 goalw Terms.thy [unmark_def] 
     "unmark(Var(n)) = Var(n)";
 by (Asm_simp_tac 1);
-val unmark_Var = result();
+qed "unmark_Var";
 
 goalw Terms.thy [unmark_def] 
     "unmark(Fun(t)) = Fun(unmark(t))";
 by (Asm_simp_tac 1);
-val unmark_Fun = result();
+qed "unmark_Fun";
 
 goalw Terms.thy [unmark_def] 
     "unmark(App(b,n,m)) = App(0,unmark(n),unmark(m))";
 by (Asm_simp_tac 1);
-val unmark_App = result();
+qed "unmark_App";
 
 
 (* ------------------------------------------------------------------------- *)
@@ -45,13 +45,13 @@ goalw Terms.thy [unmark_def]
     "!!u.u:redexes ==> unmark(u):lambda";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS Asm_simp_tac);
-val unmark_type = result();
+qed "unmark_type";
 
 goal Terms.thy  
     "!!u.u:lambda ==> unmark(u) = u";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS Asm_simp_tac);
-val lambda_unmark = result();
+qed "lambda_unmark";
 
 
 (* ------------------------------------------------------------------------- *)
@@ -62,14 +62,14 @@ goal Terms.thy
     "!!u.[|v:lambda|]==> ALL k:nat.lift_rec(v,k):lambda";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset))));
-val liftL_typea = result();
+qed "liftL_typea";
 val liftL_type =liftL_typea RS bspec ;
 
 goal Terms.thy  
     "!!n.[|v:lambda|]==>  ALL n:nat.ALL u:lambda.subst_rec(u,v,n):lambda";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS(asm_full_simp_tac ((addsplit (!simpset)) addsimps [liftL_type])));
-val substL_typea = result();
+qed "substL_typea";
 val substL_type = substL_typea RS bspec RS bspec ;
 
 
