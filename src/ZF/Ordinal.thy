@@ -97,8 +97,17 @@ lemma Transset_Union_family:
 by (unfold Transset_def, blast)
 
 lemma Transset_Inter_family: 
-    "[| j:A;  !!i. i:A ==> Transset(i) |] ==> Transset(Inter(A))"
-by (unfold Transset_def, blast)
+    "[| !!i. i:A ==> Transset(i) |] ==> Transset(Inter(A))"
+by (unfold Inter_def Transset_def, blast)
+
+lemma Transset_UN:
+     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (UN x:A. B(x))"
+by (rule Transset_Union_family, auto) 
+
+lemma Transset_INT:
+     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (INT x:A. B(x))"
+by (rule Transset_Inter_family, auto) 
+
 
 (*** Natural Deduction rules for Ord ***)
 
@@ -156,18 +165,6 @@ lemma Ord_Int [TC]: "[| Ord(i); Ord(j) |] ==> Ord(i Int j)"
 apply (unfold Ord_def)
 apply (blast intro!: Transset_Int)
 done
-
-
-lemma Ord_Inter:
-    "[| j:A;  !!i. i:A ==> Ord(i) |] ==> Ord(Inter(A))"
-apply (rule Transset_Inter_family [THEN OrdI], assumption)
-apply (blast intro: Ord_is_Transset) 
-apply (blast intro: Ord_contains_Transset) 
-done
-
-lemma Ord_INT:
-    "[| j:A;  !!x. x:A ==> Ord(B(x)) |] ==> Ord(INT x:A. B(x))"
-by (rule RepFunI [THEN Ord_Inter], assumption, blast) 
 
 (*There is no set of all ordinals, for then it would contain itself*)
 lemma ON_class: "~ (ALL i. i:X <-> Ord(i))"
@@ -532,8 +529,6 @@ lemma Ord_Union_succ_eq: "Ord(i) ==> \<Union>(succ(i)) = i"
 by (blast intro: Ord_trans)
 
 
-(*FIXME: the Intersection duals are missing!*)
-
 (*** Results about limits ***)
 
 lemma Ord_Union [intro,simp,TC]: "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))"
@@ -544,6 +539,19 @@ done
 lemma Ord_UN [intro,simp,TC]:
      "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(UN x:A. B(x))"
 by (rule Ord_Union, blast)
+
+lemma Ord_Inter [intro,simp,TC]:
+    "[| !!i. i:A ==> Ord(i) |] ==> Ord(Inter(A))" 
+apply (rule Transset_Inter_family [THEN OrdI])
+apply (blast intro: Ord_is_Transset) 
+apply (simp add: Inter_def) 
+apply (blast intro: Ord_contains_Transset) 
+done
+
+lemma Ord_INT [intro,simp,TC]:
+    "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(INT x:A. B(x))"
+by (rule Ord_Inter, blast) 
+
 
 (* No < version; consider (UN i:nat.i)=nat *)
 lemma UN_least_le:

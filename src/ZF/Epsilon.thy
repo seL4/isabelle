@@ -66,7 +66,9 @@ lemmas arg_into_eclose_sing = arg_in_eclose_sing [THEN ecloseD, standard]
    [| a: eclose(A);  !!x. [| x: eclose(A); ALL y:x. P(y) |] ==> P(x) 
    |] ==> P(a) 
 *)
-lemmas eclose_induct = Transset_induct [OF _ Transset_eclose]
+lemmas eclose_induct =
+     Transset_induct [OF _ Transset_eclose, induct set: eclose]
+
 
 (*Epsilon induction*)
 lemma eps_induct:
@@ -104,6 +106,9 @@ apply (rule eclose_least [THEN subsetD, THEN CollectD2, of "eclose(b)"])
  apply (blast intro: ecloseD)
 apply (blast intro: arg_subset_eclose [THEN subsetD])
 done
+
+(*fixed up for induct method*)
+lemmas eclose_induct_down = eclose_induct_down [consumes 1]
 
 lemma Transset_eclose_eq_arg: "Transset(X) ==> eclose(X) = X"
 apply (erule equalityI [OF eclose_least arg_subset_eclose])
@@ -326,6 +331,13 @@ lemma transrec2_Limit:
 apply (rule transrec2_def [THEN def_transrec, THEN trans])
 apply (auto simp add: OUnion_def); 
 done
+
+lemma def_transrec2:
+     "(!!x. f(x)==transrec2(x,a,b))
+      ==> f(0) = a & 
+          f(succ(i)) = b(i, f(i)) & 
+          (Limit(K) --> f(K) = (UN j<K. f(j)))"
+by (simp add: transrec2_Limit)
 
 
 (** recursor -- better than nat_rec; the succ case has no type requirement! **)

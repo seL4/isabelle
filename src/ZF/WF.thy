@@ -103,6 +103,10 @@ apply (erule_tac x = "{z:domain (r) Un {a}. ~P (z) }" in allE)
 apply blast 
 done
 
+(*fixed up for induct method*)
+lemmas wf_induct = wf_induct [induct set: wf]
+  and wf_induct_rule = wf_induct [rule_format, induct set: wf]
+
 (*The form of this rule is designed to match wfI*)
 lemma wf_induct2:
     "[| wf(r);  a:A;  field(r)<=A;
@@ -123,6 +127,12 @@ apply (unfold wf_on_def)
 apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
+
+(*fixed up for induct method*)
+lemmas wf_on_induct = wf_on_induct [consumes 2, induct set: wf_on]
+   and wf_on_induct_rule = 
+	 wf_on_induct [rule_format, consumes 2, induct set: wf_on]
+
 
 (*If r allows well-founded induction then wf(r)*)
 lemma wfI:

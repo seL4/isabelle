@@ -67,16 +67,21 @@ apply (case_tac "a:b")
 apply simp
 done
 
+(*fixed up for induct method*)
+lemmas Fin_induct = Fin_induct [case_names 0 cons, induct set: Fin]
+
+
 (** Simplification for Fin **)
 declare Fin.intros [simp]
 
+lemma Fin_0: "Fin(0) = {0}"
+by (blast intro: Fin.emptyI dest: FinD)
+
 (*The union of two finite sets is finite.*)
-lemma Fin_UnI: "[| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)"
+lemma Fin_UnI [simp]: "[| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)"
 apply (erule Fin_induct)
 apply (simp_all add: Un_cons)
 done
-
-declare Fin_UnI [simp]
 
 
 (*The union of a set of finite sets is finite.*)

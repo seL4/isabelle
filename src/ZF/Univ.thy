@@ -53,6 +53,9 @@ apply (erule Un_mono)
 apply (erule UN_mono, blast) 
 done
 
+lemma VfromI: "[| a: Vfrom(A,j);  j<i |] ==> a : Vfrom(A,i)"
+by (blast dest: Vfrom_mono [OF subset_refl le_imp_subset [OF leI]]) 
+
 
 subsubsection{* A fundamental equality: Vfrom does not require ordinals! *}
 
@@ -178,20 +181,15 @@ apply (rule Limit_has_0 [THEN ltD, THEN Vfrom_Union, THEN subst], assumption)
 apply (simp add: Limit_Union_eq) 
 done
 
-lemma Limit_VfromI: "[| a: Vfrom(A,j);  Limit(i);  j<i |] ==> a : Vfrom(A,i)"
-apply (rule Limit_Vfrom_eq [THEN equalityD2, THEN subsetD], assumption)
-apply (blast intro: ltD) 
-done
-
 lemma Limit_VfromE:
     "[| a: Vfrom(A,i);  ~R ==> Limit(i);
         !!x. [| x<i;  a: Vfrom(A,x) |] ==> R
      |] ==> R"
 apply (rule classical)
 apply (rule Limit_Vfrom_eq [THEN equalityD1, THEN subsetD, THEN UN_E])
-prefer 2 apply assumption
-apply blast 
-apply (blast intro: ltI  Limit_is_Ord)
+  prefer 2 apply assumption
+ apply blast 
+apply (blast intro: ltI Limit_is_Ord)
 done
 
 lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom, standard]
@@ -199,7 +197,7 @@ lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom, standard]
 lemma singleton_in_VLimit:
     "[| a: Vfrom(A,i);  Limit(i) |] ==> {a} : Vfrom(A,i)"
 apply (erule Limit_VfromE, assumption)
-apply (erule singleton_in_Vfrom [THEN Limit_VfromI], assumption)
+apply (erule singleton_in_Vfrom [THEN VfromI])
 apply (blast intro: Limit_has_succ) 
 done
 
@@ -213,7 +211,7 @@ lemma doubleton_in_VLimit:
     "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i) |] ==> {a,b} : Vfrom(A,i)"
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
-apply (blast intro:  Limit_VfromI [OF doubleton_in_Vfrom]
+apply (blast intro:  VfromI [OF doubleton_in_Vfrom]
                      Vfrom_UnI1 Vfrom_UnI2 Limit_has_succ Un_least_lt)
 done
 
@@ -223,8 +221,8 @@ txt{*Infer that a, b occur at ordinals x,xa < i.*}
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
 txt{*Infer that succ(succ(x Un xa)) < i *}
-apply (blast intro:  Limit_VfromI [OF Pair_in_Vfrom]
-                     Vfrom_UnI1 Vfrom_UnI2 Limit_has_succ Un_least_lt)
+apply (blast intro: VfromI [OF Pair_in_Vfrom]
+                    Vfrom_UnI1 Vfrom_UnI2 Limit_has_succ Un_least_lt)
 done
 
 lemma product_VLimit: "Limit(i) ==> Vfrom(A,i) * Vfrom(A,i) <= Vfrom(A,i)"
@@ -303,7 +301,7 @@ done
 lemma Union_in_VLimit:
      "[| X: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Union(X) : Vfrom(A,i)"
 apply (rule Limit_VfromE, assumption+)
-apply (blast intro: Limit_has_succ Limit_VfromI Union_in_Vfrom)
+apply (blast intro: Limit_has_succ VfromI Union_in_Vfrom)
 done
 
 
@@ -324,9 +322,8 @@ apply (erule Limit_VfromE, assumption, atomize)
 apply (drule_tac x=a in spec) 
 apply (drule_tac x=b in spec) 
 apply (drule_tac x="x Un xa Un 2" in spec) 
-txt{*FIXME: can do better using simprule about Un and <*}
-apply (simp add: Vfrom_UnI2 [THEN Vfrom_UnI1] Vfrom_UnI1 [THEN Vfrom_UnI1]) 
-apply (blast intro: Limit_has_0 Limit_has_succ Un_least_lt Limit_VfromI)
+apply (simp add: Un_least_lt_iff lt_Ord Vfrom_UnI1 Vfrom_UnI2) 
+apply (blast intro: Limit_has_0 Limit_has_succ VfromI)
 done
 
 subsubsection{* products *}
@@ -401,7 +398,7 @@ done
 
 lemma Pow_in_VLimit:
      "[| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)"
-by (blast elim: Limit_VfromE intro: Limit_has_succ Pow_in_Vfrom Limit_VfromI)
+by (blast elim: Limit_VfromE intro: Limit_has_succ Pow_in_Vfrom VfromI)
 
 
 subsection{* The set Vset(i) *}
@@ -684,7 +681,7 @@ apply (unfold univ_def)
 apply (rule Limit_nat [THEN Fin_VLimit])
 done
 
-subsubsection{* Closure under finite powers (functions from a fixed natural number) *}
+subsubsection{* Closure under finite powers: functions from a natural number *}
 
 lemma nat_fun_VLimit:
      "[| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)"
@@ -793,8 +790,6 @@ val Vfrom_0 = thm "Vfrom_0";
 val Vfrom_succ = thm "Vfrom_succ";
 val Vfrom_Union = thm "Vfrom_Union";
 val Limit_Vfrom_eq = thm "Limit_Vfrom_eq";
-val Limit_VfromI = thm "Limit_VfromI";
-val Limit_VfromE = thm "Limit_VfromE";
 val zero_in_VLimit = thm "zero_in_VLimit";
 val singleton_in_VLimit = thm "singleton_in_VLimit";
 val Vfrom_UnI1 = thm "Vfrom_UnI1";
@@ -814,7 +809,6 @@ val sum_subset_VLimit = thm "sum_subset_VLimit";
 val Transset_Vfrom = thm "Transset_Vfrom";
 val Transset_Vfrom_succ = thm "Transset_Vfrom_succ";
 val Transset_Pair_subset = thm "Transset_Pair_subset";
-val Transset_Pair_subset_VLimit = thm "Transset_Pair_subset_VLimit";
 val Union_in_Vfrom = thm "Union_in_Vfrom";
 val Union_in_VLimit = thm "Union_in_VLimit";
 val in_VLimit = thm "in_VLimit";

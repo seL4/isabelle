@@ -83,13 +83,14 @@ lemmas bool_into_nat = bool_subset_nat [THEN subsetD, standard]
 (*Mathematical induction*)
 lemma nat_induct:
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
-apply (erule def_induct [OF nat_def nat_bnd_mono], blast)
-done
+by (erule def_induct [OF nat_def nat_bnd_mono], blast)
+
+(*fixed up for induct method*)
+lemmas nat_induct = nat_induct [case_names 0 succ, induct set: nat]
 
 lemma natE:
     "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P"
-apply (erule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE], auto) 
-done
+by (erule nat_unfold [THEN equalityD1, THEN subsetD, THEN UnE], auto) 
 
 lemma nat_into_Ord [simp]: "n: nat ==> Ord(n)"
 by (erule nat_induct, auto)
@@ -145,7 +146,12 @@ by (blast dest!: lt_nat_in_nat)
 (** Variations on mathematical induction **)
 
 (*complete induction*)
-lemmas complete_induct = Ord_induct [OF _ Ord_nat]
+
+lemmas complete_induct = Ord_induct [OF _ Ord_nat, case_names less, consumes 1]
+
+lemmas complete_induct_rule =  
+	complete_induct [rule_format, case_names less, consumes 1]
+
 
 lemma nat_induct_from_lemma [rule_format]: 
     "[| n: nat;  m: nat;   
@@ -177,6 +183,9 @@ apply (rule ballI)
 apply (rename_tac i j)
 apply (erule_tac n=j in nat_induct, auto)  
 done
+
+(*fixed up for induct method*)
+lemmas diff_induct = diff_induct [case_names 0 0_succ succ_succ, consumes 2]
 
 (** Induction principle analogous to trancl_induct **)
 
@@ -267,6 +276,7 @@ done
 (*needed to simplify unions over nat*)
 lemma nat_nonempty [simp]: "nat ~= 0"
 by blast
+
 
 ML
 {*

@@ -794,6 +794,10 @@ lemma Collect_Int_Collect_eq:
      "Collect(A,P) Int Collect(A,Q) = Collect(A, %x. P(x) & Q(x))"
 by blast
 
+lemma Collect_Union_eq [simp]:
+     "Collect(\<Union>x\<in>A. B(x), P) = (\<Union>x\<in>A. Collect(B(x), P))"
+by blast
+
 ML
 {*
 val ZF_cs = claset() delrules [equalityI];
