@@ -9,6 +9,7 @@ signature BASIC_RECORD_PACKAGE =
 sig
   val record_split_tac: int -> tactic
   val record_split_wrapper: string * wrapper
+  val record_split_name: string
 end;
 
 signature RECORD_PACKAGE =
@@ -46,6 +47,20 @@ val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 
 
+(* attributes etc. *)        (* FIXME move to Provers *)
+
+fun add_iffs_global (thy, th) =
+  let
+    val ss = Simplifier.simpset_ref_of thy;
+    val cs = Classical.claset_ref_of thy;
+    val (cs', ss') = (! cs, ! ss) addIffs [Attribute.thm_of th];
+  in ss := ss'; cs := cs'; (thy, th) end;
+
+fun add_wrapper wrapper thy =
+  let val r = claset_ref_of thy
+  in r := ! r addSWrapper wrapper; thy end;
+
+
 (* definitions and equations *)
 
 infix 0 :== ===;
@@ -70,6 +85,10 @@ fun prove_simp thy tacs simps =
         handle ERROR => error ("The error(s) above occurred while trying to prove "
           ^ quote (Sign.string_of_term sign goal)));
   in prove end;
+
+fun simp simps =
+  let val ss = Simplifier.addsimps (HOL_basic_ss, map Attribute.thm_of simps)
+  in apfst (Simplifier.full_simplify ss) end;
 
 
 
@@ -319,8 +338,8 @@ structure RecordsArgs =
 struct
   val name = "HOL/records";
   type T =
-    record_info Symtab.table *				(*records*)
-      (thm Symtab.table * Simplifier.simpset);		(*field split rules*)
+    record_info Symtab.table *                          (*records*)
+      (thm Symtab.table * Simplifier.simpset);          (*field split rules*)
 
   val empty = (Symtab.empty, (Symtab.empty, HOL_basic_ss));
   val prep_ext = I;
@@ -411,7 +430,8 @@ fun record_split_tac i st =
     else Seq.empty
   end handle Library.LIST _ => Seq.empty;
 
-val record_split_wrapper = ("record_split_tac", fn tac => record_split_tac ORELSE' tac);
+val record_split_name = "record_split_tac";
+val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE' tac);
 
 
 
@@ -419,10 +439,10 @@ val record_split_wrapper = ("record_split_tac", fn tac => record_split_tac ORELS
 
 (* field_type_defs *)
 
-fun field_type_def ((thy, simps), (name, tname, vs, T, U)) =
+fun field_type_def ((thy, simps, injects), (name, tname, vs, T, U)) =
   let
     val full = Sign.full_name (sign_of thy);
-    val (thy', {simps = simps', ...}) =
+    val (thy', {simps = simps', inject, ...}) =
       thy
       |> setmp DatatypePackage.quiet_mode true
         (DatatypePackage.add_datatype_i true [tname]
@@ -431,9 +451,9 @@ fun field_type_def ((thy, simps), (name, tname, vs, T, U)) =
       thy'
       |> setmp AxClass.quiet_mode true
         (AxClass.add_inst_arity_i (full tname, [HOLogic.termS, moreS], moreS) [] [] None);
-  in (thy'', simps' @ simps) end;
+  in (thy'', simps' @ simps, flat inject @ injects) end;
 
-fun field_type_defs args thy = foldl field_type_def ((thy, []), args);
+fun field_type_defs args thy = foldl field_type_def ((thy, [], []), args);
 
 
 (* field_definitions *)
@@ -489,7 +509,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* 1st stage: types_thy *)
 
-    val (types_thy, simps) =
+    val (types_thy, simps, raw_injects) =
       thy
       |> field_type_defs fieldT_specs;
 
@@ -508,6 +528,9 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
     val field_defs = get_defs defs_thy field_specs;
     val dest_defs = get_defs defs_thy dest_specs;
 
+    val injects = map (simp (map (apfst Thm.symmetric) field_defs))
+      (map Attribute.tthm_of raw_injects);
+
 
     (* 3rd stage: thms_thy *)
 
@@ -517,7 +540,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
     val surj_pairs = map (prove [DatatypePackage.induct_tac "p" 1]
       (map (apfst Thm.symmetric) field_defs @ dest_convs)) surj_props;
 
-    fun mk_split th = SplitPairedAll.rule (standard (th RS eq_reflection));
+    fun mk_split th = SplitPairedAll.rule (th RS eq_reflection);
     val splits = map (fn (th, _) => Attribute.tthm_of (mk_split th)) surj_pairs;
 
     val thms_thy =
@@ -529,7 +552,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
           ("surj_pairs", surj_pairs),
           ("splits", splits)];
 
-  in (thms_thy, dest_convs, splits) end;
+  in (thms_thy, dest_convs, injects, splits) end;
 
 
 (* record_definition *)
@@ -655,7 +678,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* 1st stage: fields_thy *)
 
-    val (fields_thy, field_simps, splits) =
+    val (fields_thy, field_simps, field_injects, splits) =
       thy
       |> Theory.add_path bname
       |> field_definitions fields names zeta moreT more vars named_vars;
@@ -700,7 +723,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
           ("make_defs", make_defs),
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
-      |> PureThy.add_tthmss [(("simps", simps), [Simplifier.simp_add_global])];
+      |> PureThy.add_tthmss
+        [(("simps", simps), [Simplifier.simp_add_global]),
+         (("injects", field_injects), [add_iffs_global])];
 
 
     (* 4th stage: final_thy *)
@@ -828,10 +853,6 @@ val add_record_i = gen_add_record cert_typ (K I);
 
 
 (** setup theory **)
-
-fun add_wrapper wrapper thy =
-  let val r = claset_ref_of thy
-  in r := ! r addSWrapper wrapper; thy end;
 
 val setup =
  [RecordsData.init,
