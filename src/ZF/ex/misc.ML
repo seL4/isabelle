@@ -157,6 +157,22 @@ by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")]
     lam_bijective 1);
 (*Auto_tac no longer proves it*)
 by (REPEAT (fast_tac (claset() addss (simpset())) 1));
-qed "Pow_bij";
+qed "Pow_sum_bij";
+
+(*As a special case, we have  bij(Pow(A*B), A -> Pow B)  *)
+goal Perm.thy
+    "(lam r:Pow(Sigma(A,B)). lam x:A. r``{x}) \
+\    : bij(Pow(Sigma(A,B)), PROD x:A. Pow(B(x)))";
+by (res_inst_tac [("d", "%f. UN x:A. UN y:f`x. {<x,y>}")] lam_bijective 1);
+by (blast_tac (claset() addDs [apply_type]) 2);
+by (blast_tac (claset() addIs [lam_type]) 1);
+by (ALLGOALS Asm_simp_tac);
+by (Fast_tac 1);
+by (rtac fun_extension 1);
+by (assume_tac 2);
+by (rtac (singletonI RS lam_type) 1);
+by (Asm_simp_tac 1);
+by (Blast_tac 1);
+qed "Pow_Sigma_bij";
 
 writeln"Reached end of file.";
