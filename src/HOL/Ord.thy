@@ -12,7 +12,8 @@ axclass
   ord < term
 
 consts
-  "<", "<="     :: ['a::ord, 'a] => bool              (infixl 50)
+  "op <"        :: ['a::ord, 'a] => bool             ("(_/ < _)"  [50,51] 50)
+  "op <="       :: ['a::ord, 'a] => bool             ("(_/ <= _)" [50,51] 50)
   mono          :: ['a::ord => 'b::ord] => bool       (*monotonicity*)
   min, max      :: ['a::ord, 'a] => 'a
 

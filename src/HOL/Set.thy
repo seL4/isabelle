@@ -32,14 +32,16 @@ consts
   inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)
   inj_onto      :: ['a => 'b, 'a set] => bool
   "``"          :: ['a => 'b, 'a set] => ('b set)   (infixr 90)
-  ":"           :: ['a, 'a set] => bool             (infixl 50) (*membership*)
+     (*membership*)
+  "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50,51] 50)
 
 
 syntax
 
   UNIV         :: 'a set
 
-  "~:"          :: ['a, 'a set] => bool             (infixl 50)
+     (*infix synatx for non-membership*)
+  "op ~:"        :: ['a, 'a set] => bool             ("(_/ ~: _)" [50,51] 50)
 
   "@Finset"     :: args => 'a set                   ("{(_)}")
 
