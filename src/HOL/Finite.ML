@@ -797,14 +797,14 @@ by (etac rev_mp 1 THEN stac card_Diff_singleton 1);
 by (auto_tac (claset() addIs [finite_subset], simpset()));
 qed "choose_deconstruct";
 
-Goal "[| finite(A); finite(B);  f : A funcset B;  inj_on f A |] \
+Goal "[| finite(A); finite(B);  f``A <= B;  inj_on f A |] \
 \     ==> card A <= card B";
 by (auto_tac (claset() addIs [card_mono], 
-	      simpset() addsimps [card_image RS sym, Pi_def]));
+	      simpset() addsimps [card_image RS sym]));
 qed "card_inj_on_le";
 
 Goal "[| finite A; finite B; \
-\        f: A funcset B; inj_on f A; g: B funcset A; inj_on g B |] \
+\        f``A <= B; inj_on f A; g``B <= A; inj_on g B |] \
 \     ==> card(A) = card(B)";
 by (auto_tac (claset() addIs [le_anti_sym,card_inj_on_le], simpset()));
 qed "card_bij_eq";
@@ -812,17 +812,12 @@ qed "card_bij_eq";
 Goal "[| finite M; x ~: M |]  \
 \     ==> card{s. EX t. t <= M & card(t) = k & s = insert x t} = \
 \         card {s. s <= M & card(s) = k}";
-by (res_inst_tac
-    [("f", "lam s: {s. EX t. t <= M & card t = k & s = insert x t}. s - {x}"),
-     ("g","lam s: {s. s <= M & card s = k}. insert x s")] card_bij_eq 1);
+by (res_inst_tac [("f", "%s. s - {x}"), ("g","insert x")] card_bij_eq 1);
 by (res_inst_tac [("B","Pow(insert x M)")] finite_subset 1);
 by (res_inst_tac [("B","Pow(M)")] finite_subset 3);
-by (TRYALL (Fast_tac));
-by (rtac funcsetI 3);
-by (rtac funcsetI 1);
+by(REPEAT(Fast_tac 1));
 (* arity *)
-by (auto_tac (claset() addSEs [equalityE], 
-	      simpset() addsimps [inj_on_def, restrict_def]));
+by (auto_tac (claset() addSEs [equalityE], simpset() addsimps [inj_on_def]));
 by (stac Diff_insert0 1);
 by Auto_tac;
 qed "constr_bij";
