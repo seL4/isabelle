@@ -162,6 +162,13 @@ Goalw [surj_def] "surj f ==> EX x. y = f x";
 by (Blast_tac 1);
 qed "surjD";
 
+val [p1, p2] = Goal "surj f ==> (!!x. y = f x ==> C) ==> C";
+by (cut_facts_tac [p1 RS surjD] 1);
+by (etac exE 1);
+by (rtac p2 1);
+by (atac 1);
+qed "surjE";
+
 Goalw [o_def, surj_def] "[| surj f;  surj g |] ==> surj (g o f)";
 by (Clarify_tac 1); 
 by (dres_inst_tac [("x","y")] spec 1); 
