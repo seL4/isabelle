@@ -282,9 +282,18 @@ The {\LaTeX} versions of the theories require some macros defined in
 \texttt{isabelle.sty} as distributed with Isabelle.  Doing
 \verb,\usepackage{isabelle}, somewhere in \texttt{root.tex} should work fine;
 the underlying Isabelle \texttt{latex} utility already includes an appropriate
-{\TeX} inputs path.  For proper setup of PDF documents (with hyperlinks,
-bookmarks, and thumbnail images), we recommend to include \verb,pdfsetup.sty,
-as well.\footnote{It is safe to do so even without using PDF~\LaTeX.}
+{\TeX} inputs path.
+
+If the text contains any references to Isabelle symbols (such as
+\verb,\<forall>,) then \texttt{isabellesym.sty} should be included as well.
+This package contains a standard set of {\LaTeX} macro definitions
+\verb,\isasym,$foo$ corresponding to \verb,\<,$foo$\verb,>,.  The user may
+refer to further symbols as well, simply by providing {\LaTeX} macros of the
+same sort.
+
+For proper setup of PDF documents (with hyperlinks, bookmarks, and thumbnail
+images), we recommend to include \verb,pdfsetup.sty, as well.  It is safe to
+do so even without using PDF~\LaTeX.
 
 \medskip As a final step, \texttt{isatool document} is run on the resulting
 \texttt{document} directory.  Thus the actual output document is built and
