@@ -1145,7 +1145,7 @@ fun unique_strings ([]: string list) = []
 
 exception RANDOM;
 
-fun rmod x y = x - y * real (Real.floor (x / y));
+fun rmod x y = x - y * Real.realFloor (x / y);
 
 local
   val a = 16807.0;
