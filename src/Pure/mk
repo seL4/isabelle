@@ -86,7 +86,7 @@ if [ -z "$RAW" ]; then
   $ISABELLE \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
-    -q -w RAW_ML_SYSTEM Pure > $LOG
+    -q -w RAW_ML_SYSTEM Pure > $LOG 2>&1
 else
   ITEM="RAW"
   echo -n "Building $ITEM ... "
@@ -95,7 +95,7 @@ else
   $ISABELLE \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\";" \
-    -q -w RAW_ML_SYSTEM RAW > $LOG
+    -q -w RAW_ML_SYSTEM RAW > $LOG 2>&1
 fi
 
 RC=$?
