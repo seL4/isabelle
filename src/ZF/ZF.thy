@@ -132,6 +132,25 @@ translations
   "%<x,y>.b"    == "split(%x y.b)"
 
 
+syntax (symbols)
+  "op *"      :: [i, i] => i               (infixr "\\<times>" 80)
+  "op Int"    :: [i, i] => i    	   (infixl "\\<inter>" 70)
+  "op Un"     :: [i, i] => i    	   (infixl "\\<union>" 65)
+  "op ->"     :: [i, i] => i               (infixr "\\<rightarrow>" 60)
+  "op <="     :: [i, i] => o    	   (infixl "\\<subseteq>" 50)
+  "op :"      :: [i, i] => o    	   (infixl "\\<in>" 50)
+  "op ~:"     :: [i, i] => o               (infixl "\\<notin>" 50)
+  "@Collect"  :: [pttrn, i, o] => i        ("(1{_\\<in> _ ./ _})")
+  "@Replace"  :: [pttrn, pttrn, i, o] => i ("(1{_ ./ _\\<in> _, _})")
+  "@RepFun"   :: [i, pttrn, i] => i        ("(1{_ ./ _\\<in> _})" [51,0,51])
+  "@INTER"    :: [pttrn, i, i] => i        ("(3\\<Inter> _\\<in>_./ _)" 10)
+  "@UNION"    :: [pttrn, i, i] => i        ("(3\\<Union> _\\<in>_./ _)" 10)
+  "@PROD"     :: [pttrn, i, i] => i        ("(3\\<Pi> _\\<in>_./ _)" 10)
+  "@SUM"      :: [pttrn, i, i] => i        ("(3\\<Sigma> _\\<in>_./ _)" 10)
+  "@Ball"     :: [pttrn, i, o] => o        ("(3\\<forall> _\\<in>_./ _)" 10)
+  "@Bex"      :: [pttrn, i, o] => o        ("(3\\<exists> _\\<in>_./ _)" 10)
+
+
 defs
 
   (* Bounded Quantifiers *)

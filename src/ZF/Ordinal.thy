@@ -19,6 +19,9 @@ syntax
 translations
   "x le y"      == "x < succ(y)"
 
+syntax (symbols)
+  "op le"       :: [i,i] => o  (infixl "\\<le>" 50) (*less than or equals*)
+
 defs
   Memrel_def    "Memrel(A)   == {z: A*A . EX x y. z=<x,y> & x:y }"
   Transset_def  "Transset(i) == ALL x:i. x<=i"

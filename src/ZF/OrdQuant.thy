@@ -16,16 +16,20 @@ consts
   OUnion      :: [i, i => i] => i
   
 syntax
-  
   "@oall"     :: [idt, i, o] => o        ("(3ALL _<_./ _)" 10)
   "@oex"      :: [idt, i, o] => o        ("(3EX _<_./ _)" 10)
   "@OUNION"   :: [idt, i, i] => i        ("(3UN _<_./ _)" 10)
 
 translations
-  
   "ALL x<a. P"  == "oall(a, %x. P)"
   "EX x<a. P"   == "oex(a, %x. P)"
   "UN x<a. B"   == "OUnion(a, %x. B)"
+
+syntax (symbols)
+  "@oall"     :: [idt, i, o] => o        ("(3\\<forall> _<_./ _)" 10)
+  "@oex"      :: [idt, i, o] => o        ("(3\\<exists> _<_./ _)" 10)
+  "@OUNION"   :: [idt, i, i] => i        ("(3\\<Union> _<_./ _)" 10)
+
 
 defs
   
