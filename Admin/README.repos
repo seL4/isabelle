@@ -1,0 +1,54 @@
+How to install a repository version of Isabelle.
+
+The following assumes that you have successfully checked out Isabelle
+from CVS into a directory $ISABELLE (by default 'isabelle')
+
+The directory structure of the repository is different from the
+distribution. The root directory $ISABELLE is the src
+subdirectory in the distribution. The 'normal' distribution
+directories are found in $ISABELLE/Distribution.
+
+To work directly on a working copy of the repository, do the following:
+
+Change directory to "$ISABELLE/Distribution/bin" and execute:
+   ./isatool install -p ~/bin
+
+This will install Isabelle executables in ~/bin.  Then issue in
+directory "$ISABELLE/Distribution"
+   ln -s .. src
+
+This tells the Isabelle binaries where to find the theories.
+
+In $ISABELLE/Distribution/ install PolyML and ProofGeneral. If you
+have already installed them elsewhere, it is sufficient to create a
+symbolic link in contrib to the main PolyML and ProofGeneral
+directories. The links should be called 'polyml' and 'ProofGeneral'.
+
+Before you can build logic images it is necessary to initialise
+generation of browser info.  Change to the directory
+"$ISABELLE/Distribution/lib/browser" and issue
+   make
+
+Java JDK 1.1 or greater needs to be installed for this to work.
+
+Now you can build images by going to corresponding folders and issuing:
+   isatool make
+
+(for instance, in "$ISABELLE/HOL" in order to make HOL).  This
+will create the directory "~/isabelle" (if not already present).
+
+After setting up the local copy of Isabelle, changes in the repository
+can be imported by:
+   cvs update -d -P
+
+(-d causes cvs to create directories that have appeared in the
+repository since the last update, -P causes directories that have been
+removed from the repository to be pruned).
+
+Internal environment variables
+
+  $ISABELLE_HOME is the directory "isabelle/Distribution" from above.
+  $ISABELLE_HOME_USER is the directory "~/isabelle".
+
+
+$Id $
