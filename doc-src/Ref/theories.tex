@@ -117,9 +117,8 @@ definitions; here is an explanation of the constituent parts:
   given by the $string$.  Rule names must be distinct within any single
   theory file.
 
-\item[$defs$]
-  is a series of definitions.  Just like $rules$, except that every $string$
-  must be a definition.
+\item[$defs$] is a series of definitions.  They are just like $rules$, except
+  that every $string$ must be a definition (see below for details).
 
 \item[$constdefs$] combines the declaration of constants and their
   definition. The first $string$ is the type, the second the definition.
@@ -134,6 +133,29 @@ definitions; here is an explanation of the constituent parts:
 %
 Chapters~\ref{Defining-Logics} and \ref{chap:syntax} explain mixfix
 declarations, translation rules and the {\tt ML} section in more detail.
+
+
+\subsection{Definitions}\indexbold{definitions}
+
+{\bf Definitions} are intended to express abbreviations. The simplest form of
+a definition is $f \equiv t$, where $f$ is a constant. Isabelle also allows a
+derived form where the arguments of~$f$ appear on the left, abbreviating a
+string of $\lambda$-abstractions.
+
+Isabelle makes the following checks on definitions:
+\begin{itemize}
+\item Arguments (on the left-hand side) must be distinct variables
+\item All variables on the right-hand side must also appear on the left-hand
+  side. 
+\item All type variables on the right-hand side must also appear on the
+  left-hand side; this prohibits definitions such as {\tt zero == length []}.
+\item The definition must not be recursive.  Most object-logics provide
+  definitional principles that can be used to express recursion safely.
+\end{itemize}
+These checks are intended to catch the sort of errors that might be made
+accidentally.  Misspellings, for instance, might result in additional
+variables appearing on the right-hand side.  More elaborate checks could be
+made, but the cost might be overly strict rules on declaration order, etc.
 
 
 \subsection{*Classes and arities}
