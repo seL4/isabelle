@@ -1,0 +1,97 @@
+%
+% $Id$
+%
+
+%% document setup
+
+\documentclass[12pt,a4paper]{article}
+\usepackage{ifthen,latexsym}
+%\usepackage[latin1]{inputenc}
+%\usepackage[german]{babel}\AtBeginDocument{\mdqon}
+\usepackage{isabelle,isabellesym}
+\sloppy \parindent 0pt \parskip 1ex
+
+\makeatletter
+\@ifundefined{pdfoutput}{\newcommand{\href}[2]{#2}}{}
+\makeatother
+
+%borrowed from a4wide/12pt :-(
+\oddsidemargin 0 in
+\evensidemargin 0 in
+\marginparwidth 0.75 in
+\textwidth 6.375 true in
+\addtolength{\topmargin}{-2cm}
+\addtolength{\textheight}{2cm}
+
+\thispagestyle{empty}
+
+\newlength{\TUMBr}\settowidth{\TUMBr}{{\bf Technische Universität München}}
+\newcommand{\header}[2]{{\bf
+    \parbox{0.5\textwidth}{
+      \parbox{\TUMBr}{\begin{center}
+      Technische Universität München \\
+      Institut für Informatik \\
+      Prof.~Tobias Nipkow, Ph.\,D.\\
+      Gerwin Klein\end{center}}}
+    \parbox{0.5\textwidth}{
+      \begin{flushright}
+        SS 2002 \\ #1 \\ #2 \\
+      \end{flushright}}
+  \bigskip
+  \begin{center}
+    \Large
+    Praktikum Spezifikation und Verifikation
+  \end{center}
+  \bigskip}}
+
+\newcommand{\note}[1]{\textbf{$\rhd$~#1}}
+
+
+\newcommand{\Chref}[1]{Chapter~\ref{#1}}
+\newcommand{\chref}[1]{chapter~\ref{#1}}
+\newcommand{\Secref}[1]{Section~\ref{#1}}
+\newcommand{\secref}[1]{§\ref{#1}}
+
+
+%% misc macros
+
+\newcommand{\text}[1]{\mbox{#1}}
+
+\newcommand{\idt}[1]{{\mathord{\mathit{#1}}}}
+\newcommand{\var}[1]{{?\!\idt{#1}}}
+\newcommand{\name}[1]{\textsl{#1}}
+
+\DeclareMathSymbol{\dshsym}{\mathalpha}{letters}{"2D}
+\newcommand{\dsh}{\dshsym}
+
+\newcommand{\pow}[2]{#1\mathbin{\!\symbol{94}\!}#2}
+
+%\newcommand{\ap}{\mathpalette{\mathbin{\mkern-1mu}}{\mathbin{\mkern-2mu}}{\mathbin{}}{\mathbin{}}}
+\newcommand{\ap}{\mathpalette{\mathbin{}}{\mathbin{}}{\mathbin{}}{\mathbin{}}}
+\newcommand{\dt}{{\mathpunct.\;}}
+\newcommand{\lam}[1]{\mathop{\lambda} #1\dt}
+
+\newcommand{\impl}{\to}
+
+
+%% tune Isabelle output
+
+\newcommand{\isasorry}{$\;\langle\idt{proof}\rangle$}
+\newcommand{\isaoops}{$\vdots$}
+
+\renewcommand{\isacommand}[1]
+{\ifthenelse{\equal{sorry}{#1}}{\isasorry}
+  {\ifthenelse{\equal{oops}{#1}}{\isaoops}{\isakeyword{#1}}}}
+
+\renewcommand{\isabellestyle}{\footnotesize\tt\slshape}
+\renewcommand{\isa}[1]{\emph{\small\tt\slshape #1}}
+%\renewcommand\isabellemarkupsubsubsection{\subsubsection*}
+\renewcommand\isamarkupsubsubsection{\subsubsection*}
+
+\renewcommand{\isamarkupheader}[1]{\subsection*{#1}}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End: 

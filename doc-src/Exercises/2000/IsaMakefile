@@ -1,0 +1,34 @@
+#
+# $Id$
+#
+# IsaMakefile for PSV2000
+#
+
+SESSIONS = a1
+
+## targets
+
+default: clean sessions 
+sessions: $(SESSIONS)
+
+
+## global settings
+
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+INFO = $(ISABELLE_BROWSER_INFO)
+USEDIR = $(ISATOOL) usedir -v true -i false -d false -D generated
+RSYNC = rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync
+
+
+clean:
+	rm -f $(LOG)/HOL-a?.gz $(LOG)/HOL-l?.gz
+
+## a1
+
+a1: a1/generated/session.tex
+
+a1/generated/session.tex: a1/ROOT.ML \
+  a1/*.thy 
+	@$(USEDIR) HOL a1
+
