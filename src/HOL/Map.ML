@@ -22,8 +22,8 @@ qed_goal "map_upd_triv" thy "!!X. t k = Some x ==> t(k|->x) = t"
 
 Goalw [image_def] "finite (range f) ==> finite (range (f(a|->b)))";
 by (full_simp_tac (simpset() addsimps [full_SetCompr_eq]) 1);
-br finite_subset 1;
-ba  2;
+by (rtac finite_subset 1);
+by (assume_tac 2);
 by Auto_tac;
 qed "finite_range_updI";
 
@@ -71,8 +71,8 @@ qed "map_of_filter_in";
 Goal "finite (range (map_of l))";
 by (induct_tac "l" 1);
 by  (ALLGOALS (simp_tac (simpset() addsimps [image_constant])));
-br finite_subset 1;
-ba  2;
+by (rtac finite_subset 1);
+by (assume_tac 2);
 by Auto_tac;
 qed "finite_range_map_of";
 
@@ -121,7 +121,7 @@ qed "override_None";
 AddIffs [override_None];
 
 Goalw [override_def] "f ++ g(x|->y) = (f ++ g)(x|->y)";
-br ext 1;
+by (rtac ext 1);
 by (auto_tac (claset_of Map.thy, simpset_of Map.thy));
 qed "override_upd";
 Addsimps[override_upd];
