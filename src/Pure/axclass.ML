@@ -349,11 +349,11 @@ fun prove mk_prop str_of sign prop thms usr_tac =
     handle ERROR => error ("The error(s) above occurred while trying to prove " ^
      quote (str_of sign prop))) |> Drule.standard;
 
-val prove_subclass =
-  prove mk_classrel (fn sg => fn c1_c2 => Sign.str_of_classrel sg c1_c2);
+val prove_subclass = prove mk_classrel (fn sg => fn (c1, c2) =>
+  Pretty.string_of_classrel (Sign.pp sg) [c1, c2]);
 
-val prove_arity =
-  prove mk_arity (fn sg => fn (t, Ss, c) => Sign.str_of_arity sg (t, Ss, [c]));
+val prove_arity = prove mk_arity (fn sg => fn (t, Ss, c) =>
+  Pretty.string_of_arity (Sign.pp sg) (t, Ss, [c]));
 
 
 
@@ -363,14 +363,14 @@ val prove_arity =
 
 fun read_class sg c = Sign.certify_class sg (Sign.intern_class sg c);
 
-fun test_classrel sg cc = (Type.add_classrel [cc] (Sign.tsig_of sg); cc);
+fun test_classrel sg cc = (Type.add_classrel (Sign.pp sg) [cc] (Sign.tsig_of sg); cc);
 fun cert_classrel sg = test_classrel sg o Library.pairself (Sign.certify_class sg);
 fun read_classrel sg = test_classrel sg o Library.pairself (read_class sg);
 
-fun test_arity sg ar = (Type.add_arities [ar] (Sign.tsig_of sg); ar);
+fun test_arity sg ar = (Type.add_arities (Sign.pp sg) [ar] (Sign.tsig_of sg); ar);
 
 fun prep_arity prep_tycon prep_sort prep_x sg (t, Ss, x) =
-  test_arity sg (prep_tycon sg t, map (prep_sort sg) Ss, prep_x sg x);  
+  test_arity sg (prep_tycon sg t, map (prep_sort sg) Ss, prep_x sg x);
 
 val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
@@ -381,10 +381,10 @@ val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
 fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
   let
     val sign = Theory.sign_of thy;
-    val c1_c2 = prep_classrel sign raw_c1_c2;
+    val (c1, c2) = prep_classrel sign raw_c1_c2;
   in
-    message ("Proving class inclusion " ^ quote (Sign.str_of_classrel sign c1_c2) ^ " ...");
-    thy |> add_classrel_thms [prove_subclass sign c1_c2 (witnesses thy names thms) usr_tac]
+    message ("Proving class inclusion " ^ quote (Sign.string_of_classrel sign [c1, c2]) ^ " ...");
+    thy |> add_classrel_thms [prove_subclass sign (c1, c2) (witnesses thy names thms) usr_tac]
   end;
 
 fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
@@ -394,7 +394,7 @@ fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
     val wthms = witnesses thy names thms;
     fun prove c =
      (message ("Proving type arity " ^
-        quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
+        quote (Sign.string_of_arity sign (t, Ss, [c])) ^ " ...");
         prove_arity sign (t, Ss, c) wthms usr_tac);
   in add_arity_thms (map prove cs) thy end;
 

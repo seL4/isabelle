@@ -297,7 +297,7 @@ fun has_internal tags = exists (equal internalK o fst) tags;
 (*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
   let
-    val str_of_sort = Sign.str_of_sort (Thm.sign_of_thm thm);
+    val str_of_sort = Pretty.str_of o Sign.pretty_sort (Thm.sign_of_thm thm);
     val thm' = Thm.strip_shyps thm;
     val xshyps = Thm.extra_shyps thm';
   in
