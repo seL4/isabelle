@@ -101,7 +101,6 @@ text {|
   @{term "comp"}.  We first establish some lemmas.
 |};
 
-ML "reset HOL_quantifiers";
 
 lemma exec_append:
   "ALL stack. exec (xs @ ys) stack env = exec ys (exec xs stack env) env" (is "??P xs");

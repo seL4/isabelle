@@ -9,7 +9,7 @@ chapter of "Isabelle's Object-Logics" (Larry Paulson).
 theory Cantor = Main:;
 
 
-section "Example: Cantor's Theorem"
+section "Example: Cantor's Theorem";
 
 text {|
   Cantor's Theorem states that every set has more subsets than it has
@@ -23,14 +23,14 @@ text {|
 
   The Isabelle/Isar proofs below use HOL's set theory, with the type
   @{type "'a set"} and the operator @{term range}.
-|}
+|};
 
 
 text {|
   We first consider a rather verbose version of the proof, with the
   reasoning expressed quite naively.  We only make use of the pure
   core of the Isar proof language.
-|}
+|};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -63,7 +63,7 @@ text {|
   The following version essentially does the same reasoning, only that
   it is expressed more neatly, with some derived Isar language
   elements involved.
-|}
+|};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -98,7 +98,7 @@ text {|
   then apply best-first search.  Depth-first search would diverge, but
   best-first search successfully navigates through the large search
   space.
-|}
+|};
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
   by (best elim: equalityCE);
@@ -109,7 +109,7 @@ text {|
   to transform internal system-level representations of Isabelle
   proofs back into Isar documents.  Writing Isabelle/Isar proof
   documents actually \emph{is} a creative process.
-|}
+|};
 
 
 end;
