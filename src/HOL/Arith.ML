@@ -132,13 +132,6 @@ by (simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
 qed "add_gr_0";
 AddIffs [add_gr_0];
 
-(* FIXME: really needed?? *)
-Goal "((m+n)-1 = 0) = (m=0 & n-1 = 0 | m-1 = 0 & n=0)";
-by (exhaust_tac "m" 1);
-by (ALLGOALS (fast_tac (claset() addss (simpset()))));
-qed "pred_add_is_0";
-(*Addsimps [pred_add_is_0];*)
-
 (* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
 Goal "0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
@@ -1013,13 +1006,15 @@ solver all the time rather than add the additional check. *)
 simpset_ref () := (simpset() addSolver
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac));
 
-(* Elimination of `-' on nat due to John Harrison *)
-Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
+(*Elimination of `-' on nat due to John Harrison.  An alternative is to
+  replace b=a+d by a<b; not clear that it makes much difference. *)
+Goal "P(a - b::nat) = (ALL d. (b = a + d --> P 0) & (a = b + d --> P d))";
 by (case_tac "a <= b" 1);
 by Auto_tac;
 by (eres_inst_tac [("x","b-a")] allE 1);
 by (asm_simp_tac (simpset() addsimps [diff_is_0_eq RS iffD2]) 1);
 qed "nat_diff_split";
+
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved;
@@ -1120,38 +1115,24 @@ qed "diff_less";
 
 (*** Reducting subtraction to addition ***)
 
-(*Intended for use with linear arithmetic, but useful in its own right*)
-Goal "P (x-y) = (ALL z. (x<y --> P 0) & (x = y+z --> P z))";
-by (case_tac "x<y" 1);
-by (auto_tac (claset(),  simpset() addsimps [diff_is_0_eq RS iffD2]));
-qed "split_diff";
-
-val remove_diff_ss = 
-    simpset()
-      delsimps ex_simps@all_simps
-      addsimps [le_diff_conv2, le_diff_conv, le_imp_diff_is_add, 
-		diff_diff_right] 
-      addcongs [conj_cong]
-      addsplits [split_diff];
-
 Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
-by (simp_tac remove_diff_ss 1);
+by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed_spec_mp "Suc_diff_add_le";
 
 Goal "i<n ==> n - Suc i < n - i";
-by (asm_simp_tac remove_diff_ss 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_Suc_less_diff";
 
 Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by (simp_tac remove_diff_ss 1);
+by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "if_Suc_diff_le";
 
 Goal "Suc(m)-n <= Suc(m-n)";
-by (simp_tac remove_diff_ss 1);
+by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_Suc_le_Suc_diff";
 
 Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
-by (asm_simp_tac remove_diff_ss 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_right_cancel";
 
 
@@ -1159,18 +1140,17 @@ qed "diff_right_cancel";
 
 (* Monotonicity of subtraction in first argument *)
 Goal "m <= (n::nat) ==> (m-l) <= (n-l)";
-by (asm_simp_tac remove_diff_ss 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_le_mono";
 
 Goal "m <= (n::nat) ==> (l-n) <= (l-m)";
-by (asm_simp_tac remove_diff_ss 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_le_mono2";
 
-(*This proof requires natdiff_cancel_sums*)
 Goal "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)";
-by (asm_simp_tac remove_diff_ss 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_less_mono2";
 
 Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
-by (asm_full_simp_tac remove_diff_ss 1);
+by (asm_full_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diffs0_imp_equal";
