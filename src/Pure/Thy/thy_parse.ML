@@ -486,7 +486,10 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         ^ postxt ^ "\n\
         \\n\
         \end;\n\
-        \end;\n"
+        \end;\n\
+        \\n\
+        \open " ^ thy_name ^ ";\n\
+        \\n"
     | None =>
         "val thy = " ^ old_thys ^ " false;\n\
         \\n\
@@ -497,7 +500,11 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
         \\n\
-        \end;\n");
+        \end;\n\
+        \\n\
+        \open " ^ thy_name ^ ";\n\
+        \\n");
+
 
 fun theory_defn sectab tname =
   header -- optional (extension sectab >> Some) None -- eof
