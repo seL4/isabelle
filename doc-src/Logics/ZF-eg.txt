@@ -5,7 +5,7 @@ print_depth 0;
 
 (*** Powerset example ***)
 
-val [prem] = goal ZF_Rule.thy "A<=B  ==>  Pow(A) <= Pow(B)";
+val [prem] = goal ZF.thy "A<=B  ==>  Pow(A) <= Pow(B)";
 by (resolve_tac [subsetI] 1);
 by (resolve_tac [PowI] 1);
 by (dresolve_tac [PowD] 1);
@@ -13,7 +13,7 @@ by (eresolve_tac [subset_trans] 1);
 by (resolve_tac [prem] 1);
 val Pow_mono = result();
 
-goal ZF_Rule.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
 by (resolve_tac [equalityI] 1);
 by (resolve_tac [Int_greatest] 1);
 by (resolve_tac [Int_lower1 RS Pow_mono] 1);
@@ -27,7 +27,7 @@ by (REPEAT (assume_tac 1));
 choplev 0;
 by (fast_tac (ZF_cs addIs [equalityI]) 1);
 
-val [prem] = goal ZF_Rule.thy "C<=D ==> Union(C) <= Union(D)";
+val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
 by (resolve_tac [subsetI] 1);
 by (eresolve_tac [UnionE] 1);
 by (resolve_tac [UnionI] 1);
@@ -40,7 +40,7 @@ by (resolve_tac [Union_upper] 1);
 by (eresolve_tac [prem RS subsetD] 1);
 
 
-val prems = goal ZF_Rule.thy
+val prems = goal ZF.thy
     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 \    (f Un g)`a = f`a";
 by (resolve_tac [apply_equality] 1);
@@ -56,13 +56,13 @@ by (resolve_tac prems 1);
 
 
 
-goal ZF_Rule.thy "f``(UN x:A. B(x)) = (UN x:A. f``B(x))";
+goal ZF.thy "f``(UN x:A. B(x)) = (UN x:A. f``B(x))";
 by (resolve_tac [equalityI] 1);
 by (resolve_tac [subsetI] 1);
 fe imageE;
 
 
-goal ZF_Rule.thy "(UN x:C. A(x) Int B) = (UN x:C. A(x))  Int  B";
+goal ZF.thy "(UN x:C. A(x) Int B) = (UN x:C. A(x))  Int  B";
 by (resolve_tac [equalityI] 1);
 by (resolve_tac [Int_greatest] 1);
 fr UN_mono;
@@ -71,7 +71,7 @@ fr UN_least;
 ????
 
 
-> goal ZF_Rule.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+> goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
 Level 0
 Pow(A Int B) = Pow(A) Int Pow(B)
  1. Pow(A Int B) = Pow(A) Int Pow(B)
@@ -132,7 +132,7 @@ No subgoals!
 
 
 
-> val [prem] = goal ZF_Rule.thy "C<=D ==> Union(C) <= Union(D)";
+> val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
 Level 0
 Union(C) <= Union(D)
  1. Union(C) <= Union(D)
@@ -165,7 +165,7 @@ No subgoals!
 
 
 
-> val prems = goal ZF_Rule.thy
+> val prems = goal ZF.thy
 #     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 # \    (f Un g)`a = f`a";
 Level 0

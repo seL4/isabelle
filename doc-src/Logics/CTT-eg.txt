@@ -6,7 +6,7 @@ print_depth 0;
 
 (*** Type inference, from CTT/ex/typechk.ML ***)
 
-goal CTT_Rule.thy "lam n. rec(n, 0, %x y.x) : ?A";
+goal CTT.thy "lam n. rec(n, 0, %x y.x) : ?A";
 by (resolve_tac [ProdI] 1);
 by (eresolve_tac [NE] 2);
 by (resolve_tac [NI0] 2);
@@ -17,7 +17,7 @@ by (resolve_tac [NF] 1);
 
 (*** Logical reasoning, from CTT/ex/elim.ML ***)
 
-val prems = goal CTT_Rule.thy
+val prems = goal CTT.thy
     "[| A type;  \
 \       !!x. x:A ==> B(x) type;       \
 \       !!x. x:A ==> C(x) type;       \
@@ -35,7 +35,7 @@ by (pc_tac prems 1);
 
 (*** Currying, from CTT/ex/elim.ML ***)
 
-val prems = goal CTT_Rule.thy
+val prems = goal CTT.thy
     "[| A type; !!x. x:A ==> B(x) type; \
 \               !!z. z: (SUM x:A. B(x)) ==> C(z) type |] \
 \    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z)) \
@@ -47,7 +47,7 @@ by (intr_tac prems);
 
 (*** Axiom of Choice ***)
 
-val prems = goal CTT_Rule.thy   
+val prems = goal CTT.thy   
     "[| A type;  !!x. x:A ==> B(x) type;  \
 \       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  \
 \    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \
@@ -65,7 +65,7 @@ by (typechk_tac prems);
 
 
 
-> goal CTT_Rule.thy "lam n. rec(n, 0, %x y.x) : ?A";
+> goal CTT.thy "lam n. rec(n, 0, %x y.x) : ?A";
 Level 0
 lam n. rec(n,0,%x y. x) : ?A
  1. lam n. rec(n,0,%x y. x) : ?A
@@ -97,7 +97,7 @@ No subgoals!
 
 
 
-> val prems = goal CTT_Rule.thy
+> val prems = goal CTT.thy
 #     "[| A type;  \
 # \       !!x. x:A ==> B(x) type;       \
 # \       !!x. x:A ==> C(x) type;       \
@@ -174,7 +174,7 @@ No subgoals!
 
 
 
-> val prems = goal CTT_Rule.thy
+> val prems = goal CTT.thy
 #     "[| A type; !!x. x:A ==> B(x) type; \
 # \               !!z. z: (SUM x:A. B(x)) ==> C(z) type |] \
 # \    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z)) \
@@ -204,7 +204,7 @@ No subgoals!
 
 
 
-> val prems = goal CTT_Rule.thy
+> val prems = goal CTT.thy
 #     "[| A type;  !!x. x:A ==> B(x) type;  \
 # \       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  \
 # \    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \
