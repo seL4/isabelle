@@ -1,8 +1,7 @@
 (*  Title:      Parity.thy
+    ID:         $Id$
     Author:     Jeremy Avigad
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-    Last modified 2 March 2004
 *)
 
 header {* Parity: Even and Odd for ints and nats*}
@@ -254,6 +253,31 @@ lemma neg_power_if:
       (if even n then (x ^ n) else -(x ^ n))"
   by (induct n, simp_all split: split_if_asm add: power_Suc) 
 
+
+subsection {* An Equivalence for @{term "0 \<le> a^n"} *}
+
+lemma even_power_le_0_imp_0:
+     "a ^ (2*k) \<le> (0::'a::{ordered_ring,ringpower}) ==> a=0"
+apply (induct k) 
+apply (auto simp add: zero_le_mult_iff mult_le_0_iff power_Suc)  
+done
+
+lemma zero_le_power_iff:
+     "(0 \<le> a^n) = (0 \<le> (a::'a::{ordered_ring,ringpower}) | even n)"
+      (is "?P n")
+proof cases
+  assume even: "even n"
+  from this obtain k where "n = 2*k"
+    by (auto simp add: even_nat_equiv_def2 numeral_2_eq_2)
+  thus ?thesis by (simp add: zero_le_even_power even) 
+next
+  assume odd: "odd n"
+  from this obtain k where "n = Suc(2*k)"
+    by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
+  thus ?thesis
+    by (auto simp add: power_Suc zero_le_mult_iff zero_le_even_power 
+             dest!: even_power_le_0_imp_0) 
+qed 
 
 subsection {* Miscellaneous *}
 
