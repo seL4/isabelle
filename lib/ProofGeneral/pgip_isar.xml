@@ -27,9 +27,9 @@ STATUS: incomplete and experimental.
   <hasprefs prefcategory="Theorem attributes">
    <haspref name="thm-kind" descr="Theorem kind">
     <pgipchoice>
-     <pgipchoiceitem>theorem</pgipchoiceitem>
-     <pgipchoiceitem>lemma</pgipchoiceitem>
-     <pgipchoiceitem>corollary</pgipchoiceitem>
+     <pgipconst name="Theorem">theorem</pgipconst>
+     <pgipconst name="Lemma">lemma</pgipconst>
+     <pgipconst name="Corollary">corollary</pgipconst>
     </pgipchoice>
    </haspref>
    <haspref name="thm-simp" descr="Include in simplifier set">
@@ -134,8 +134,8 @@ STATUS: incomplete and experimental.
       <field name="term"><pgipstring/><prompt>Input a term:</prompt></field>
       <field name="attributes">
 	<pgipchoice>
-	<pgipchoiceitem name="none"></pgipchoiceitem>
-	<pgipchoiceitem name="use in global simplifier context">[simp]</pgipchoiceitem>
+	<pgipconst name="none"></pgipconst>
+	<pgipconst name="use in global simplifier context">[simp]</pgipconst>
 	</pgipchoice>
 	<prompt>Attributes:</prompt></field>
     </inputform>
