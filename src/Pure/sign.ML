@@ -905,10 +905,13 @@ fun ext_defsort_i arg = ext_defS cert_sort arg;
 (* add type constructors *)
 
 fun ext_types _ (syn, tsig, ctab, (path, spaces), data) types =
-  let val decls = decls_of path Syntax.type_name types in
-    (map_syntax (Syntax.extend_type_gram types) syn,
-      Type.add_types decls tsig, ctab,
-      (path, add_names spaces typeK (map fst decls)), data)
+  let
+    val decls = decls_of path Syntax.type_name types;
+    val tsig' = Type.add_types decls tsig;
+    val log_types = Type.logical_types tsig';
+  in
+    (map_syntax (Syntax.extend_log_types log_types o Syntax.extend_type_gram types) syn,
+      tsig', ctab, (path, add_names spaces typeK (map fst decls)), data)
   end;
 
 
@@ -954,11 +957,7 @@ fun ext_ars int prep_sort sg (syn, tsig, ctab, (path, spaces), data) arities =
     fun prep_arity (c, Ss, S) =
       (if int then intrn spaces typeK c else c, map prepS Ss, prepS S);
     val tsig' = Type.add_arities (pp sg) (map prep_arity arities) tsig;
-    val log_types = Type.logical_types tsig';
-  in
-    (map_syntax (Syntax.extend_log_types log_types) syn,
-      tsig', ctab, (path, spaces), data)
-  end;
+  in (syn, tsig', ctab, (path, spaces), data) end;
 
 fun ext_arities arg = ext_ars true rd_sort arg;
 fun ext_arities_i arg = ext_ars false cert_sort arg;
