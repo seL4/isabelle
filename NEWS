@@ -9,10 +9,10 @@ New in this Isabelle release
 * Theory headers: the new header syntax for Isar theories is
 
   theory <name>
-  import <theory1> ... <theoryn>
+  imports <theory1> ... <theoryn>
   begin
 
-  optionally also with a "files" section. The old syntax
+  optionally also with a "files" section. The syntax
 
   theory <name> = <theory1> + ... + <theoryn>:
 
