@@ -35,6 +35,10 @@ goal Nat.thy "1 : nat";
 by (rtac (nat_0I RS nat_succI) 1);
 qed "nat_1I";
 
+goal Nat.thy "2 : nat";
+by (rtac (nat_1I RS nat_succI) 1);
+qed "nat_2I";
+
 goal Nat.thy "bool <= nat";
 by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
 	    ORELSE eresolve_tac [boolE,ssubst] 1));
@@ -74,12 +78,6 @@ qed "nat_into_Ord";
 val nat_0_le = nat_into_Ord RS Ord_0_le;
 
 val nat_le_refl = nat_into_Ord RS le_refl;
-
-goal Nat.thy "!!n. n: nat ==> n=0 | 0:n";
-by (etac nat_induct 1);
-by (fast_tac ZF_cs 1);
-by (fast_tac (ZF_cs addIs [nat_0_le]) 1);
-qed "natE0";
 
 goal Nat.thy "Ord(nat)";
 by (rtac OrdI 1);
