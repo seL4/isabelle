@@ -558,13 +558,13 @@ by (Blast_tac 1);
 qed "Inter_image_eq";
 Addsimps [Inter_image_eq];
 
-Goal "u: A ==> (UN y:A. c) = c";
-by (Blast_tac 1);
+Goal "(UN y:A. c) = (if A={} then {} else c)";
+by Auto_tac;
 qed "UN_constant";
 Addsimps[UN_constant];
 
-Goal "u: A ==> (INT y:A. c) = c";
-by (Blast_tac 1);
+Goal "(INT y:A. c) = (if A={} then UNIV else c)";
+by Auto_tac;
 qed "INT_constant";
 Addsimps[INT_constant];
 
