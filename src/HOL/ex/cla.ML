@@ -18,7 +18,7 @@ result();
 
 (*If and only if*)
 
-goal HOL.thy "(P=Q) = (Q=P::bool)";
+goal HOL.thy "(P=Q) = (Q = (P::bool))";
 by (Blast_tac 1);
 result();
 
