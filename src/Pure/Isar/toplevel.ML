@@ -30,6 +30,7 @@ sig
   val proof_of: state -> Proof.state
   type transition
   exception TERMINATE
+  exception RESTART
   exception BREAK of state
   val empty: transition
   val name: string -> transition -> transition
@@ -133,6 +134,7 @@ val proof_of = node_cases (fn _ => raise UNDEF) I;
 (** toplevel transitions **)
 
 exception TERMINATE;
+exception RESTART;
 exception BREAK of state;
 exception FAIL of exn * string;
 
@@ -248,6 +250,7 @@ fun raised name = "exception " ^ name ^ " raised";
 fun raised_msg name msg = raised name ^ ": " ^ msg;
 
 fun exn_message TERMINATE = "Exit."
+  | exn_message RESTART = "Restart."
   | exn_message (BREAK _) = "Break."
   | exn_message (FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
   | exn_message Interrupt = "Interrupt (exec)."
@@ -317,6 +320,7 @@ fun apply int tr state =
   Some (transform_interrupt_state (transform_error (app int tr)) state, None)
     handle
       TERMINATE => None
+    | RESTART => Some (toplevel, None)
     | FAIL (exn_info as (BREAK break_state, _)) =>
         Some (append_states break_state state, Some exn_info)
     | FAIL exn_info => Some (state, Some exn_info)
