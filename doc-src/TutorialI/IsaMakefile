@@ -36,8 +36,7 @@ styles:
 	@rm -f */document/isabellesym.sty
 	@rm -f */document/pdfsetup.sty
 	@rm -f */document/session.tex
-	@rm -f Rules/document/*.tex
-	@rm -f Sets/document/*.tex
+
 
 
 ## HOL-Ifexpr
