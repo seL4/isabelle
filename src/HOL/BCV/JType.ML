@@ -103,7 +103,7 @@ qed "wf_converse_subcls1_impl_acc_subtype";
 Addsimps [is_type_def];
 
 Goalw [closed_def,plussub_def,lift2_def,err_def,JType.sup_def]
- "[| univalent S; acyclic S |] ==> \
+ "[| single_valued S; acyclic S |] ==> \
 \ closed (err(types S)) (lift2 (JType.sup S))";
 by (simp_tac (simpset() addsplits [err.split,ty.split]) 1);
 by (blast_tac (claset() addSDs [is_lub_some_lub,is_lubD,is_ubD]
@@ -113,7 +113,7 @@ qed "closed_err_types";
 AddIffs [OK_le_conv];
 
 Goalw [semilat_def,split RS eq_reflection,JType.esl_def,Err.sl_def]
- "[| univalent S; acyclic S |] ==> err_semilat (JType.esl S)";
+ "[| single_valued S; acyclic S |] ==> err_semilat (JType.esl S)";
 by (asm_full_simp_tac (simpset() addsimps [acyclic_impl_order_subtype,closed_err_types]) 1);
 
 by (rtac conjI 1);

@@ -84,14 +84,14 @@ qed "com_Unique";
 
 
 (*Expression evaluation is functional, or deterministic*)
-Goalw [univalent_def] "univalent eval";
+Goalw [single_valued_def] "single_valued eval";
 by (EVERY1[rtac allI, rtac allI, rtac impI]);
 by (split_all_tac 1);
 by (etac eval_induct 1);
 by (dtac com_Unique 4);
 by (ALLGOALS Full_simp_tac);
 by (ALLGOALS Blast_tac);
-qed "univalent_eval";
+qed "single_valued_eval";
 
 
 Goal "(e,s) -|-> (v,s') ==> (e = N n) --> (v=n & s'=s)";

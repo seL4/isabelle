@@ -15,7 +15,7 @@ defs
    "sumhr p
        == Abs_hypreal(UN X:Rep_hypnat(fst p). 
               UN Y: Rep_hypnat(fst(snd p)).
-              hyprel ^^{%n::nat. sumr (X n) (Y n) (snd(snd p))})"
+              hyprel```{%n::nat. sumr (X n) (Y n) (snd(snd p))})"
 
 constdefs
    NSsums  :: [nat=>real,real] => bool     (infixr 80)

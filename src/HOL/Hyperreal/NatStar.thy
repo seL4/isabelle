@@ -23,10 +23,10 @@ constdefs
     (* star transform of functions f:Nat --> Real *)
 
     starfunNat :: (nat => real) => hypnat => hypreal        ("*fNat* _" [80] 80)
-    "*fNat* f  == (%x. Abs_hypreal(UN X: Rep_hypnat(x). hyprel^^{%n. f (X n)}))" 
+    "*fNat* f  == (%x. Abs_hypreal(UN X: Rep_hypnat(x). hyprel```{%n. f (X n)}))" 
 
     starfunNat_n :: (nat => (nat => real)) => hypnat => hypreal        ("*fNatn* _" [80] 80)
-    "*fNatn* F  == (%x. Abs_hypreal(UN X: Rep_hypnat(x). hyprel^^{%n. (F n)(X n)}))" 
+    "*fNatn* F  == (%x. Abs_hypreal(UN X: Rep_hypnat(x). hyprel```{%n. (F n)(X n)}))" 
 
     InternalNatFuns :: (hypnat => hypreal) set
     "InternalNatFuns == {X. EX F. X = *fNatn* F}"
@@ -34,10 +34,10 @@ constdefs
     (* star transform of functions f:Nat --> Nat *)
 
     starfunNat2 :: (nat => nat) => hypnat => hypnat        ("*fNat2* _" [80] 80)
-    "*fNat2* f  == (%x. Abs_hypnat(UN X: Rep_hypnat(x). hypnatrel^^{%n. f (X n)}))" 
+    "*fNat2* f  == (%x. Abs_hypnat(UN X: Rep_hypnat(x). hypnatrel```{%n. f (X n)}))" 
 
     starfunNat2_n :: (nat => (nat => nat)) => hypnat => hypnat        ("*fNat2n* _" [80] 80)
-    "*fNat2n* F  == (%x. Abs_hypnat(UN X: Rep_hypnat(x). hypnatrel^^{%n. (F n)(X n)}))" 
+    "*fNat2n* F  == (%x. Abs_hypnat(UN X: Rep_hypnat(x). hypnatrel```{%n. (F n)(X n)}))" 
 
     InternalNatFuns2 :: (hypnat => hypnat) set
     "InternalNatFuns2 == {X. EX F. X = *fNat2n* F}"

@@ -31,14 +31,14 @@ consts
 defs
 
   real_zero_def  
-  "0 == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p),
+  "0 == Abs_real(realrel```{(preal_of_prat(prat_of_pnat 1p),
                                 preal_of_prat(prat_of_pnat 1p))})"
   real_one_def   
-  "1r == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p) + 
+  "1r == Abs_real(realrel```{(preal_of_prat(prat_of_pnat 1p) + 
             preal_of_prat(prat_of_pnat 1p),preal_of_prat(prat_of_pnat 1p))})"
 
   real_minus_def
-  "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel^^{(y,x)})"
+  "- R ==  Abs_real(UN (x,y):Rep_real(R). realrel```{(y,x)})"
 
   real_diff_def
   "R - (S::real) == R + - S"
@@ -53,7 +53,7 @@ constdefs
 
   real_of_preal :: preal => real            
   "real_of_preal m     ==
-           Abs_real(realrel^^{(m+preal_of_prat(prat_of_pnat 1p),
+           Abs_real(realrel```{(m+preal_of_prat(prat_of_pnat 1p),
                                preal_of_prat(prat_of_pnat 1p))})"
 
   real_of_posnat :: nat => real             
@@ -66,11 +66,11 @@ defs
 
   real_add_def  
   "P+Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                   (%(x1,y1). (%(x2,y2). realrel^^{(x1+x2, y1+y2)}) p2) p1)"
+                   (%(x1,y1). (%(x2,y2). realrel```{(x1+x2, y1+y2)}) p2) p1)"
   
   real_mult_def  
   "P*Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                   (%(x1,y1). (%(x2,y2). realrel^^{(x1*x2+y1*y2,x1*y2+x2*y1)})
+                   (%(x1,y1). (%(x2,y2). realrel```{(x1*x2+y1*y2,x1*y2+x2*y1)})
 		   p2) p1)"
 
   real_less_def

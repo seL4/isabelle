@@ -12,7 +12,7 @@ constdefs
     "equiv A r == refl A r & sym(r) & trans(r)"
 
   quotient :: "['a set, ('a*'a) set] => 'a set set"  (infixl "'/'/" 90) 
-    "A//r == UN x:A. {r^^{x}}"      (*set of equiv classes*)
+    "A//r == UN x:A. {r```{x}}"      (*set of equiv classes*)
 
   congruent  :: "[('a*'a) set, 'a=>'b] => bool"
     "congruent r b  == ALL y z. (y,z):r --> b(y)=b(z)"

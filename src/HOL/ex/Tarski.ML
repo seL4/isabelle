@@ -400,7 +400,7 @@ Goal "monotone f A r";
 by (simp_tac (simpset() addsimps PO_simp) 1);
 qed "CLF_E2";
 
-Goal "f : CLF ^^ {cl} ==> f : CLF ^^ {dual cl}";
+Goal "f : CLF ``` {cl} ==> f : CLF ``` {dual cl}";
 by (afs [CLF_def, CL_dualCL, monotone_dual] 1); 
 by (afs [dualA_iff] 1);
 qed "CLF_dual";

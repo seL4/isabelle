@@ -314,7 +314,7 @@ qed "Stable_transient_Always_LeadsTo";
 (** Meta or object quantifier ????? **)
 Goal "[| wf r;     \
 \        ALL m. F : (A Int f-``{m}) LeadsTo                     \
-\                           ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
+\                           ((A Int f-``(r^-1 ``` {m})) Un B) |] \
 \     ==> F : A LeadsTo B";
 by (full_simp_tac (simpset() addsimps [LeadsTo_eq_leadsTo]) 1);
 by (etac leadsTo_wf_induct 1);
@@ -324,7 +324,7 @@ qed "LeadsTo_wf_induct";
 
 Goal "[| wf r;     \
 \        ALL m:I. F : (A Int f-``{m}) LeadsTo                   \
-\                             ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
+\                             ((A Int f-``(r^-1 ``` {m})) Un B) |] \
 \     ==> F : A LeadsTo ((A - (f-``I)) Un B)";
 by (etac LeadsTo_wf_induct 1);
 by Safe_tac;

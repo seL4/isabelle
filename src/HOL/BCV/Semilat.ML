@@ -136,21 +136,21 @@ AddIffs [is_lub_bigger2];
 
 
 Goalw [is_lub_def,is_ub_def]
- "[| univalent r; is_lub (r^*) x y u; (x',x) : r |] ==> \
+ "[| single_valued r; is_lub (r^*) x y u; (x',x) : r |] ==> \
 \    EX v. is_lub (r^*) x' y v";
 by (case_tac "(y,x) : r^*" 1);
  by (case_tac "(y,x') : r^*" 1);
   by (Blast_tac 1);
  by (blast_tac (claset() addIs [r_into_rtrancl] addEs [converse_rtranclE]
-                        addDs [univalentD]) 1);
+                        addDs [single_valuedD]) 1);
 by (rtac exI 1);
 by (rtac conjI 1);
- by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]addDs [univalentD]) 1);
+ by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]addDs [single_valuedD]) 1);
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl,rtrancl_into_rtrancl2]
-                       addEs [converse_rtranclE] addDs [univalentD]) 1);
+                       addEs [converse_rtranclE] addDs [single_valuedD]) 1);
 qed "extend_lub";
 
-Goal "[| univalent r; (x,u) : r^* |] ==> (!y. (y,u) : r^* --> \
+Goal "[| single_valued r; (x,u) : r^* |] ==> (!y. (y,u) : r^* --> \
 \     (EX z. is_lub (r^*) x y z))";
 by (etac converse_rtrancl_induct 1);
  by (Clarify_tac 1);
@@ -158,7 +158,7 @@ by (etac converse_rtrancl_induct 1);
   by (Blast_tac 1);
  by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 by (blast_tac (claset() addIs [extend_lub]) 1);
-qed_spec_mp "univalent_has_lubs";
+qed_spec_mp "single_valued_has_lubs";
 
 Goalw [some_lub_def,is_lub_def]
  "[| acyclic r; is_lub (r^*) x y u |] ==> some_lub (r^*) x y = u";
@@ -169,9 +169,9 @@ by (blast_tac (claset() addIs [antisymD]
 qed "some_lub_conv";
 
 Goal
- "[| univalent r; acyclic r; (x,u):r^*; (y,u):r^* |] ==> \
+ "[| single_valued r; acyclic r; (x,u):r^*; (y,u):r^* |] ==> \
 \ is_lub (r^*) x y (some_lub (r^*) x y)";
 by (fast_tac
-    (claset() addDs [univalent_has_lubs]
+    (claset() addDs [single_valued_has_lubs]
      addss (simpset() addsimps [some_lub_conv])) 1);
 qed "is_lub_some_lub";

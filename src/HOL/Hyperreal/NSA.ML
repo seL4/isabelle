@@ -2059,7 +2059,7 @@ qed "FreeUltrafilterNat_omega";
        Omega is a member of HInfinite
  -----------------------------------------------*)
 
-Goal "hyprel^^{%n::nat. real_of_nat (Suc n)} : hypreal";
+Goal "hyprel```{%n::nat. real_of_nat (Suc n)} : hypreal";
 by Auto_tac;
 qed "hypreal_omega";
 
@@ -2192,7 +2192,7 @@ qed "FreeUltrafilterNat_inverse_real_of_posnat";
     |X(n) - x| < 1/n ==> [<X n>] - hypreal_of_real x|: Infinitesimal 
  -----------------------------------------------------*)
 Goal "ALL n. abs(X n + -x) < inverse(real_of_nat(Suc n)) \ 
-\    ==> Abs_hypreal(hyprel^^{X}) + -hypreal_of_real x : Infinitesimal";
+\    ==> Abs_hypreal(hyprel```{X}) + -hypreal_of_real x : Infinitesimal";
 by (auto_tac (claset() addSIs [bexI] 
            addDs [rename_numerals FreeUltrafilterNat_inverse_real_of_posnat,
                   FreeUltrafilterNat_all,FreeUltrafilterNat_Int] 
@@ -2203,21 +2203,21 @@ by (auto_tac (claset() addSIs [bexI]
 qed "real_seq_to_hypreal_Infinitesimal";
 
 Goal "ALL n. abs(X n + -x) < inverse(real_of_nat(Suc n)) \ 
-\     ==> Abs_hypreal(hyprel^^{X}) @= hypreal_of_real x";
+\     ==> Abs_hypreal(hyprel```{X}) @= hypreal_of_real x";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (etac real_seq_to_hypreal_Infinitesimal 1);
 qed "real_seq_to_hypreal_inf_close";
 
 Goal "ALL n. abs(x + -X n) < inverse(real_of_nat(Suc n)) \ 
-\              ==> Abs_hypreal(hyprel^^{X}) @= hypreal_of_real x";
+\              ==> Abs_hypreal(hyprel```{X}) @= hypreal_of_real x";
 by (asm_full_simp_tac (simpset() addsimps [abs_minus_add_cancel,
         real_seq_to_hypreal_inf_close]) 1);
 qed "real_seq_to_hypreal_inf_close2";
 
 Goal "ALL n. abs(X n + -Y n) < inverse(real_of_nat(Suc n)) \ 
-\     ==> Abs_hypreal(hyprel^^{X}) + \
-\         -Abs_hypreal(hyprel^^{Y}) : Infinitesimal";
+\     ==> Abs_hypreal(hyprel```{X}) + \
+\         -Abs_hypreal(hyprel```{Y}) : Infinitesimal";
 by (auto_tac (claset() addSIs [bexI] 
                   addDs [rename_numerals 
                          FreeUltrafilterNat_inverse_real_of_posnat,

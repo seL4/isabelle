@@ -18,20 +18,20 @@ constdefs
 
   (* Neighbors of a vertex i *)
   neighbors :: "[vertex, (vertex*vertex)set]=>vertex set"
- "neighbors i r == ((r Un r^-1)^^{i}) - {i}"
+ "neighbors i r == ((r Un r^-1)```{i}) - {i}"
 
   R :: "[vertex, (vertex*vertex)set]=>vertex set"
-  "R i r == r^^{i}"
+  "R i r == r```{i}"
 
   A :: "[vertex, (vertex*vertex)set]=>vertex set"
-  "A i r == (r^-1)^^{i}"
+  "A i r == (r^-1)```{i}"
 
   (* reachable and above vertices: the original notation was R* and A* *)  
   reach :: "[vertex, (vertex*vertex)set]=> vertex set"
-  "reach i r == (r^+)^^{i}"
+  "reach i r == (r^+)```{i}"
 
   above :: "[vertex, (vertex*vertex)set]=> vertex set"
-  "above i r == ((r^-1)^+)^^{i}"  
+  "above i r == ((r^-1)^+)```{i}"  
 
   reverse :: "[vertex, (vertex*vertex) set]=>(vertex*vertex)set"
   "reverse i r == (r - {(x,y). x=i | y=i} Int r) Un ({(x,y). x=i|y=i} Int r)^-1"

@@ -25,11 +25,11 @@ constdefs
                         ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
     
     starfun :: (real => real) => hypreal => hypreal        ("*f* _" [80] 80)
-    "*f* f  == (%x. Abs_hypreal(UN X: Rep_hypreal(x). hyprel^^{%n. f (X n)}))" 
+    "*f* f  == (%x. Abs_hypreal(UN X: Rep_hypreal(x). hyprel```{%n. f(X n)}))" 
 
     (* internal functions *)
     starfun_n :: (nat => (real => real)) => hypreal => hypreal        ("*fn* _" [80] 80)
-    "*fn* F  == (%x. Abs_hypreal(UN X: Rep_hypreal(x). hyprel^^{%n. (F n)(X n)}))" 
+    "*fn* F  == (%x. Abs_hypreal(UN X: Rep_hypreal(x). hyprel```{%n. (F n)(X n)}))" 
 
     InternalFuns :: (hypreal => hypreal) set
     "InternalFuns == {X. EX F. X = *fn* F}"

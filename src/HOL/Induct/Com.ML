@@ -30,15 +30,15 @@ Unify.trace_bound := 30;
 Unify.search_bound := 60;
 
 (*Command execution is functional (deterministic) provided evaluation is*)
-Goal "univalent ev ==> univalent(exec ev)";
-by (simp_tac (simpset() addsimps [univalent_def]) 1);
+Goal "single_valued ev ==> single_valued(exec ev)";
+by (simp_tac (simpset() addsimps [single_valued_def]) 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (etac exec.induct 1);
 by (Blast_tac 3);
 by (Blast_tac 1);
-by (rewrite_goals_tac [univalent_def]);
+by (rewrite_goals_tac [single_valued_def]);
 by (REPEAT (blast_tac (claset() addEs [exec_WHILE_case]) 1));
-qed "univalent_exec";
+qed "single_valued_exec";
 
 Addsimps [fun_upd_same, fun_upd_other];

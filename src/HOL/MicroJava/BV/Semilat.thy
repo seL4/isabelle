@@ -193,23 +193,23 @@ done
 
 
 lemma extend_lub:
-  "[| univalent r; is_lub (r^* ) x y u; (x',x) : r |] 
+  "[| single_valued r; is_lub (r^* ) x y u; (x',x) : r |] 
   ==> EX v. is_lub (r^* ) x' y v"
 apply (unfold is_lub_def is_ub_def)
 apply (case_tac "(y,x) : r^*")
  apply (case_tac "(y,x') : r^*")
   apply blast
  apply (blast intro: r_into_rtrancl elim: converse_rtranclE
-               dest: univalentD)
+               dest: single_valuedD)
 apply (rule exI)
 apply (rule conjI)
- apply (blast intro: rtrancl_into_rtrancl2 dest: univalentD)
+ apply (blast intro: rtrancl_into_rtrancl2 dest: single_valuedD)
 apply (blast intro: rtrancl_into_rtrancl rtrancl_into_rtrancl2 
-             elim: converse_rtranclE dest: univalentD)
+             elim: converse_rtranclE dest: single_valuedD)
 done 
 
-lemma univalent_has_lubs [rule_format]:
-  "[| univalent r; (x,u) : r^* |] ==> (!y. (y,u) : r^* --> 
+lemma single_valued_has_lubs [rule_format]:
+  "[| single_valued r; (x,u) : r^* |] ==> (!y. (y,u) : r^* --> 
   (EX z. is_lub (r^* ) x y z))"
 apply (erule converse_rtrancl_induct)
  apply clarify
@@ -228,8 +228,8 @@ apply (blast intro: antisymD dest!: acyclic_impl_antisym_rtrancl)
 done 
 
 lemma is_lub_some_lub:
-  "[| univalent r; acyclic r; (x,u):r^*; (y,u):r^* |] 
+  "[| single_valued r; acyclic r; (x,u):r^*; (y,u):r^* |] 
   ==> is_lub (r^* ) x y (some_lub (r^* ) x y)";
-  by (fastsimp dest: univalent_has_lubs simp add: some_lub_conv)
+  by (fastsimp dest: single_valued_has_lubs simp add: some_lub_conv)
 
 end

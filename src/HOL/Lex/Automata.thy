@@ -14,7 +14,7 @@ constdefs
 
  nae2da :: ('a,'s)nae => ('a,'s set)da
 "nae2da A == ({start A},
-              %a Q. Union(next A (Some a) `` ((eps A)^* ^^ Q)),
-              %Q. ? p: (eps A)^* ^^ Q. fin A p)"
+              %a Q. Union(next A (Some a) `` ((eps A)^* ``` Q)),
+              %Q. ? p: (eps A)^* ``` Q. fin A p)"
 
 end

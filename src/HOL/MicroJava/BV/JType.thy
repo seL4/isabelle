@@ -151,7 +151,7 @@ apply (blast intro: rtrancl_into_trancl2)
 done 
 
 lemma closed_err_types:
-  "[| wf_prog wf_mb G; univalent (subcls1 G); acyclic (subcls1 G) |] 
+  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
   ==> closed (err (types G)) (lift2 (sup G))"
   apply (unfold closed_def plussub_def lift2_def sup_def)
   apply (auto split: err.split)
@@ -163,17 +163,17 @@ lemma closed_err_types:
 
 
 lemma err_semilat_JType_esl_lemma:
-  "[| wf_prog wf_mb G; univalent (subcls1 G); acyclic (subcls1 G) |] 
+  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
   ==> err_semilat (esl G)"
 proof -
   assume wf_prog:   "wf_prog wf_mb G"
-  assume univalent: "univalent (subcls1 G)" 
+  assume single_valued: "single_valued (subcls1 G)" 
   assume acyclic:   "acyclic (subcls1 G)"
   
   hence "order (subtype G)"
     by (rule order_widen)
   moreover
-  from wf_prog univalent acyclic
+  from wf_prog single_valued acyclic
   have "closed (err (types G)) (lift2 (sup G))"
     by (rule closed_err_types)
   moreover
@@ -185,10 +185,10 @@ proof -
       "G \<turnstile> c1 \<preceq>C Object"
       "G \<turnstile> c2 \<preceq>C Object"
       by (blast intro: subcls_C_Object)
-    with wf_prog univalent
+    with wf_prog single_valued
     obtain u where
       "is_lub ((subcls1 G)^* ) c1 c2 u"
-      by (blast dest: univalent_has_lubs)
+      by (blast dest: single_valued_has_lubs)
     with acyclic
     have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
       by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
@@ -214,10 +214,10 @@ proof -
       "G \<turnstile> c1 \<preceq>C Object"
       "G \<turnstile> c2 \<preceq>C Object"
       by (blast intro: subcls_C_Object)
-    with wf_prog univalent
+    with wf_prog single_valued
     obtain u where
       "is_lub ((subcls1 G)^* ) c2 c1 u"
-      by (blast dest: univalent_has_lubs)
+      by (blast dest: single_valued_has_lubs)
     with acyclic
     have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c2 c1"
       by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
@@ -242,10 +242,10 @@ proof -
       "G \<turnstile> c1 \<preceq>C Object"
       "G \<turnstile> c2 \<preceq>C Object"
       by (blast intro: subcls_C_Object)
-    with wf_prog univalent
+    with wf_prog single_valued
     obtain u where
       lub: "is_lub ((subcls1 G)^* ) c1 c2 u"
-      by (blast dest: univalent_has_lubs)   
+      by (blast dest: single_valued_has_lubs)   
     with acyclic
     have "some_lub ((subcls1 G)^* ) c1 c2 = u"
       by (rule some_lub_conv)
@@ -281,14 +281,14 @@ proof -
     by (unfold esl_def semilat_def sl_def) auto
 qed
 
-lemma univalent_subcls1:
-  "wf_prog wf_mb G ==> univalent (subcls1 G)"
-  by (unfold wf_prog_def unique_def univalent_def subcls1_def) auto
+lemma single_valued_subcls1:
+  "wf_prog wf_mb G ==> single_valued (subcls1 G)"
+  by (unfold wf_prog_def unique_def single_valued_def subcls1_def) auto
 
 ML_setup {* bind_thm ("acyclic_subcls1", acyclic_subcls1) *}
 
 theorem err_semilat_JType_esl:
   "wf_prog wf_mb G ==> err_semilat (esl G)"
-  by (frule acyclic_subcls1, frule univalent_subcls1, rule err_semilat_JType_esl_lemma)
+  by (frule acyclic_subcls1, frule single_valued_subcls1, rule err_semilat_JType_esl_lemma)
 
 end

@@ -19,12 +19,12 @@ instance
 
 defs
   zminus_def
-    "- Z == Abs_Integ(UN (x,y):Rep_Integ(Z). intrel^^{(y,x)})"
+    "- Z == Abs_Integ(UN (x,y):Rep_Integ(Z). intrel```{(y,x)})"
 
 constdefs
 
   int :: nat => int
-  "int m == Abs_Integ(intrel ^^ {(m,0)})"
+  "int m == Abs_Integ(intrel ``` {(m,0)})"
 
   neg   :: int => bool
   "neg(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
@@ -40,7 +40,7 @@ defs (*of overloaded constants*)
   zadd_def
    "z + w == 
        Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
-		 intrel^^{(x1+x2, y1+y2)})"
+		 intrel```{(x1+x2, y1+y2)})"
 
   zdiff_def "z - (w::int) == z + (-w)"
 
@@ -51,6 +51,6 @@ defs (*of overloaded constants*)
   zmult_def
    "z * w == 
        Abs_Integ(UN (x1,y1):Rep_Integ(z). UN (x2,y2):Rep_Integ(w).   
-		 intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
+		 intrel```{(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
 
 end

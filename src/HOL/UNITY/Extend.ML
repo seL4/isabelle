@@ -58,7 +58,7 @@ Goal "Domain (Restrict A r) = A Int Domain r";
 by (Blast_tac 1);
 qed "Domain_Restrict";
 
-Goal "(Restrict A r) ^^ B = r ^^ (A Int B)";
+Goal "(Restrict A r) ``` B = r ``` (A Int B)";
 by (Blast_tac 1);
 qed "Image_Restrict";
 
@@ -308,7 +308,7 @@ by (rtac extend_act_inverse 1);
 qed "inj_extend_act";
 
 Goalw [extend_set_def, extend_act_def]
-     "extend_act h act ^^ (extend_set h A) = extend_set h (act ^^ A)";
+     "extend_act h act ``` (extend_set h A) = extend_set h (act ``` A)";
 by (Force_tac 1);
 qed "extend_act_Image";
 Addsimps [extend_act_Image];

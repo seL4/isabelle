@@ -220,7 +220,7 @@ by (EVERY1[Step_tac, rtac ccontr, Asm_full_simp_tac]);
 by (fold_tac [real_le_def]);
 by (dtac lemma_skolemize_LIM2 1);
 by (Step_tac 1);
-by (dres_inst_tac [("x","Abs_hypreal(hyprel^^{X})")] spec 1);
+by (dres_inst_tac [("x","Abs_hypreal(hyprel```{X})")] spec 1);
 by (asm_full_simp_tac
     (simpset() addsimps [starfun, hypreal_minus, 
                          hypreal_of_real_def,hypreal_add]) 1);
@@ -726,8 +726,8 @@ by (EVERY1[Step_tac, rtac ccontr, Asm_full_simp_tac]);
 by (fold_tac [real_le_def]);
 by (dtac lemma_skolemize_LIM2u 1);
 by (Step_tac 1);
-by (dres_inst_tac [("x","Abs_hypreal(hyprel^^{X})")] spec 1);
-by (dres_inst_tac [("x","Abs_hypreal(hyprel^^{Y})")] spec 1);
+by (dres_inst_tac [("x","Abs_hypreal(hyprel```{X})")] spec 1);
+by (dres_inst_tac [("x","Abs_hypreal(hyprel```{Y})")] spec 1);
 by (asm_full_simp_tac
     (simpset() addsimps [starfun, hypreal_minus,hypreal_add]) 1);
 by Auto_tac;

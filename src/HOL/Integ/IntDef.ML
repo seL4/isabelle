@@ -23,7 +23,7 @@ bind_thm ("equiv_intrel_iff",
 	  [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
 Goalw [Integ_def,intrel_def,quotient_def]
-     "intrel^^{(x,y)}:Integ";
+     "intrel```{(x,y)}:Integ";
 by (Fast_tac 1);
 qed "intrel_in_integ";
 
@@ -58,18 +58,18 @@ qed "inj_int";
 (**** zminus: unary negation on Integ ****)
 
 Goalw [congruent_def, intrel_def]
-     "congruent intrel (%(x,y). intrel^^{(y,x)})";
+     "congruent intrel (%(x,y). intrel```{(y,x)})";
 by (auto_tac (claset(), simpset() addsimps add_ac));
 qed "zminus_congruent";
 
 Goalw [zminus_def]
-      "- Abs_Integ(intrel^^{(x,y)}) = Abs_Integ(intrel ^^ {(y,x)})";
+      "- Abs_Integ(intrel```{(x,y)}) = Abs_Integ(intrel ``` {(y,x)})";
 by (simp_tac (simpset() addsimps 
 	      [equiv_intrel RS UN_equiv_class, zminus_congruent]) 1);
 qed "zminus";
 
 (*Every integer can be written in the form Abs_Integ(...) *)
-val [prem] = Goal "(!!x y. z = Abs_Integ(intrel^^{(x,y)}) ==> P) ==> P";
+val [prem] = Goal "(!!x y. z = Abs_Integ(intrel```{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [Integ_def] Rep_Integ RS quotientE) 1);
 by (dres_inst_tac [("f","Abs_Integ")] arg_cong 1);
@@ -114,8 +114,8 @@ Addsimps [neg_zminus_int, not_neg_int];
 (**** zadd: addition on Integ ****)
 
 Goalw [zadd_def]
-  "Abs_Integ(intrel^^{(x1,y1)}) + Abs_Integ(intrel^^{(x2,y2)}) = \
-\  Abs_Integ(intrel^^{(x1+x2, y1+y2)})";
+  "Abs_Integ(intrel```{(x1,y1)}) + Abs_Integ(intrel```{(x2,y2)}) = \
+\  Abs_Integ(intrel```{(x1+x2, y1+y2)})";
 by (asm_simp_tac (simpset() addsimps [UN_UN_split_split_eq]) 1);
 by (stac (equiv_intrel RS UN_equiv_class2) 1);
 by (auto_tac (claset(), simpset() addsimps [congruent2_def]));
@@ -232,7 +232,7 @@ qed "zadd_assoc_swap";
 (*Congruence property for multiplication*)
 Goal "congruent2 intrel \
 \       (%p1 p2. (%(x1,y1). (%(x2,y2).   \
-\                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
+\                   intrel```{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (pair_tac "w" 2);
 by (ALLGOALS Clarify_tac);
@@ -249,8 +249,8 @@ by (arith_tac 1);
 qed "zmult_congruent2";
 
 Goalw [zmult_def]
-   "Abs_Integ((intrel^^{(x1,y1)})) * Abs_Integ((intrel^^{(x2,y2)})) =   \
-\   Abs_Integ(intrel ^^ {(x1*x2 + y1*y2, x1*y2 + y1*x2)})";
+   "Abs_Integ((intrel```{(x1,y1)})) * Abs_Integ((intrel```{(x2,y2)})) =   \
+\   Abs_Integ(intrel ``` {(x1*x2 + y1*y2, x1*y2 + y1*x2)})";
 by (asm_simp_tac
     (simpset() addsimps [UN_UN_split_split_eq, zmult_congruent2,
 			 equiv_intrel RS UN_equiv_class2]) 1);

@@ -21,7 +21,7 @@ qed "NA_DA_equiv";
 (*** Direct equivalence of NAe and DA ***)
 
 Goalw [nae2da_def]
- "!Q. (eps A)^* ^^ (DA.delta (nae2da A) w Q) = steps A w ^^ Q";
+ "!Q. (eps A)^* ``` (DA.delta (nae2da A) w Q) = steps A w ``` Q";
 by (induct_tac "w" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [step_def]) 1);
@@ -29,7 +29,7 @@ by (Blast_tac 1);
 qed_spec_mp "espclosure_DA_delta_is_steps";
 
 Goalw [nae2da_def]
- "fin (nae2da A) Q = (? q : (eps A)^* ^^ Q. fin A q)";
+ "fin (nae2da A) Q = (? q : (eps A)^* ``` Q. fin A q)";
 by (Simp_tac 1);
 val lemma = result();
 

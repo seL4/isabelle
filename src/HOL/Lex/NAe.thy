@@ -25,7 +25,7 @@ constdefs
 (* not really used:
 consts delta :: "('a,'s)nae => 'a list => 's => 's set"
 primrec
-"delta A [] s = (eps A)^* ^^ {s}"
-"delta A (a#w) s = lift(delta A w) (lift(next A (Some a)) ((eps A)^* ^^ {s}))"
+"delta A [] s = (eps A)^* ``` {s}"
+"delta A (a#w) s = lift(delta A w) (lift(next A (Some a)) ((eps A)^* ``` {s}))"
 *)
 end

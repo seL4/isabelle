@@ -229,7 +229,7 @@ qed "exec_mono";
 
 
 Goalw [JVM.sl_def,stk_esl_def,reg_sl_def]
- "[| univalent S; acyclic S |] ==> semilat(JVM.sl S maxs maxr)";
+ "[| single_valued S; acyclic S |] ==> semilat(JVM.sl S maxs maxr)";
 by (REPEAT(ares_tac [semilat_opt,err_semilat_Product_esl,err_semilat_upto_esl,
           err_semilat_eslI,semilat_Listn_sl,err_semilat_JType_esl] 1));
 qed "semilat_JVM_slI";
@@ -241,7 +241,7 @@ by (simp_tac (simpset() addsimps [states_def,JVM.le_def,JVM.sup_def,
 qed "sl_triple_conv";
 
 Goalw [kiljvm_def,sl_triple_conv]
- "[| univalent S; wf(S^-1); wfis S md maxr bs; wf_mdict S md; \
+ "[| single_valued S; wf(S^-1); wfis S md maxr bs; wf_mdict S md; \
 \    bounded (succs bs) (size bs) |] ==> \
 \ is_bcv (JVM.le S maxs maxr) (Some Err) (wti S maxs rT bs) \
 \        (size bs) (states S maxs maxr) (kiljvm S maxs maxr rT bs)";

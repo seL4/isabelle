@@ -7,7 +7,7 @@
 
 
 Goalw [congruent_def]
-  "congruent intrel (%p. (%(i,j). realrel ^^ \
+  "congruent intrel (%p. (%(i,j). realrel ``` \
 \  {(preal_of_prat (prat_of_pnat (pnat_of_nat i)), \
 \    preal_of_prat (prat_of_pnat (pnat_of_nat j)))}) p)";
 by (auto_tac (claset(),
@@ -16,8 +16,8 @@ by (auto_tac (claset(),
 qed "real_of_int_congruent";
 
 Goalw [real_of_int_def]
-   "real_of_int (Abs_Integ (intrel ^^ {(i, j)})) = \
-\     Abs_real(realrel ^^ \
+   "real_of_int (Abs_Integ (intrel ``` {(i, j)})) = \
+\     Abs_real(realrel ``` \
 \       {(preal_of_prat (prat_of_pnat (pnat_of_nat i)), \
 \         preal_of_prat (prat_of_pnat (pnat_of_nat j)))})";
 by (res_inst_tac [("f","Abs_real")] arg_cong 1);

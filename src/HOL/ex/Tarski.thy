@@ -94,7 +94,7 @@ syntax
   "@SL"  :: "['a set, 'a potype] => bool" ("_ <<= _" [51,50]50)
 
 translations
-  "S <<= cl" == "S : sublattice ^^ {cl}"
+  "S <<= cl" == "S : sublattice ``` {cl}"
 
 constdefs
   dual :: "'a potype => 'a potype"
@@ -121,7 +121,7 @@ fixes
   f :: "'a => 'a"
   P :: "'a set"
 assumes 
-  f_cl "f : CLF ^^{cl}"
+  f_cl "f : CLF```{cl}"
 defines
   P_def "P == fix f A"
 

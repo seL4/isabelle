@@ -19,8 +19,8 @@ qed "hrabs_number_of";
 Addsimps [hrabs_number_of];
 
 Goalw [hrabs_def]
-     "abs (Abs_hypreal (hyprel ^^ {X})) = \
-\     Abs_hypreal(hyprel ^^ {%n. abs (X n)})";
+     "abs (Abs_hypreal (hyprel ``` {X})) = \
+\     Abs_hypreal(hyprel ``` {%n. abs (X n)})";
 by (auto_tac (claset(),
               simpset_of HyperDef.thy 
                   addsimps [hypreal_zero_def, hypreal_le,hypreal_minus]));
@@ -232,7 +232,7 @@ Addsimps [hypreal_of_nat_less_iff RS sym];
 (*------------------------------------------------------------*)
 
 Goalw [hypreal_of_nat_def, hypreal_of_real_def, real_of_nat_def] 
-     "hypreal_of_nat  m = Abs_hypreal(hyprel^^{%n. real_of_nat m})";
+     "hypreal_of_nat  m = Abs_hypreal(hyprel```{%n. real_of_nat m})";
 by Auto_tac;
 qed "hypreal_of_nat_iff";
 

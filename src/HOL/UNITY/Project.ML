@@ -384,7 +384,7 @@ Goalw [transient_def]
      "[| G : transient (C Int extend_set h A);  G : stable C |]  \
 \     ==> project h C G : transient (project_set h C Int A)";
 by (auto_tac (claset(), simpset() addsimps [Domain_project_act]));
-by (subgoal_tac "act ^^ (C Int extend_set h A) <= - extend_set h A" 1);
+by (subgoal_tac "act ``` (C Int extend_set h A) <= - extend_set h A" 1);
 by (asm_full_simp_tac 
     (simpset() addsimps [stable_def, constrains_def]) 2);
 by (Blast_tac 2);
@@ -502,8 +502,8 @@ qed "Join_project_LeadsTo";
 
 
 Goalw [project_set_def, extend_set_def, project_act_def]
-     "act ^^ (C Int extend_set h A) <= B \
-\     ==> project_act h (Restrict C act) ^^ (project_set h C Int A) \
+     "act ``` (C Int extend_set h A) <= B \
+\     ==> project_act h (Restrict C act) ``` (project_set h C Int A) \
 \         <= project_set h B";
 by (Blast_tac 1);
 qed "act_subset_imp_project_act_subset";
@@ -512,9 +512,9 @@ qed "act_subset_imp_project_act_subset";
   property upwards.  The hard part would be to 
   show that G's action has a big enough domain.*)
 Goal "[| act: Acts G;       \
-\        (project_act h (Restrict C act))^^ \
+\        (project_act h (Restrict C act))``` \
 \             (project_set h C Int A - B) <= -(project_set h C Int A - B) |] \
-\     ==> act^^(C Int extend_set h A - extend_set h B) \
+\     ==> act```(C Int extend_set h A - extend_set h B) \
 \           <= -(C Int extend_set h A - extend_set h B)"; 
 by (auto_tac (claset(), 
      simpset() addsimps [project_set_def, extend_set_def, project_act_def]));  
@@ -535,8 +535,8 @@ by (auto_tac (claset(),
 				  extend_set_Diff_distrib RS sym]));
 by (dtac act_subset_imp_project_act_subset 1);
 by (subgoal_tac
-    "project_act h (Restrict C act) ^^ (project_set h C Int (A - B)) = {}" 1);
-by (REPEAT (thin_tac "?r^^?A <= ?B" 1));
+    "project_act h (Restrict C act) ``` (project_set h C Int (A - B)) = {}" 1);
+by (REPEAT (thin_tac "?r```?A <= ?B" 1));
 by (rewrite_goals_tac [project_set_def, extend_set_def, project_act_def]);
 by (Blast_tac 2);
 by (rtac ccontr 1);
