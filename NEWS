@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -299,6 +300,13 @@ addSafter;
 
 * Provers/clasimp: ``iff'' declarations now handle conditional rules
 as well;
+
+* system: tested support for MacOS X; should be able to get Isabelle +
+Proof General to work in a plain Terminal after installing Poly/ML
+(e.g. from the Isabelle distribution area) and GNU bash alone
+(e.g. from http://www.apple.com); full X11, XEmacs and X-Symbol
+support requires further installations, e.g. from
+http://fink.sourceforge.net/);
 
 * system: support Poly/ML 4.1.1 (able to manage larger heaps);
 
