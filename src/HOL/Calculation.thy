@@ -154,7 +154,6 @@ text {*
 *}
 
 lemmas basic_trans_rules [trans] =
-  forw_subst
   order_less_subst2
   order_less_subst1
   order_le_less_subst2
@@ -167,6 +166,7 @@ lemmas basic_trans_rules [trans] =
   ord_eq_le_subst
   ord_less_eq_subst
   ord_eq_less_subst
+  forw_subst
   back_subst
   dvd_trans
   rev_mp
@@ -185,7 +185,7 @@ lemmas basic_trans_rules [trans] =
   ord_eq_le_trans
   ord_less_eq_trans
   ord_eq_less_trans
-  trans
   transitive
+  trans
 
 end

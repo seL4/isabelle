@@ -88,8 +88,8 @@ lemmas trans_rules [trans] =
   back_subst
   rev_mp
   mp
-  trans
   transitive
+  trans
 
 lemmas [elim?] = sym
 
