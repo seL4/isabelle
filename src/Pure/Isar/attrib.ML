@@ -203,7 +203,7 @@ fun read_instantiate context_of insts x thm =
         (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
   in Thm.instantiate (cenvT, cenv) thm end;
 
-fun insts x = Scan.lift (Args.enum "and" (Args.var --| Args.$$$ "=" -- Args.name)) x;
+fun insts x = Args.and_list (Scan.lift (Args.var --| Args.$$$ "=" -- Args.name)) x;
 
 fun gen_where context_of = syntax (insts >> (Drule.rule_attribute o read_instantiate context_of));
 
