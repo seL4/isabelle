@@ -5,8 +5,7 @@
 Derived theory operations.
 
 TODO:
-  - add_constdefs (atomic!);
-  - load theory;
+  - pure_thy.ML: add_constdefs (atomic!);
   - 'methods' section (proof macros, ML method defs) (!?);
   - next_block: ProofHistory open / close (!?);
 *)
