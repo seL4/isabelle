@@ -754,10 +754,10 @@ fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces), data) r
       (path, add_names spaces constK (map fst decls)), data)
   end;
 
-val ext_consts_i = ext_cnsts no_read false ("", true);
-val ext_consts = ext_cnsts read_const false ("", true);
-val ext_syntax_i = ext_cnsts no_read true ("", true);
-val ext_syntax = ext_cnsts read_const true ("", true);
+fun ext_consts_i sg = ext_cnsts no_read false ("", true) sg;
+fun ext_consts sg = ext_cnsts read_const false ("", true) sg;
+fun ext_syntax_i sg = ext_cnsts no_read true ("", true) sg;
+fun ext_syntax sg = ext_cnsts read_const true ("", true) sg;
 fun ext_modesyntax_i sg (prmode, consts) = ext_cnsts no_read true prmode sg consts;
 fun ext_modesyntax sg (prmode, consts) = ext_cnsts read_const true prmode sg consts;
 
