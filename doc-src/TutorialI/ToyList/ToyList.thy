@@ -97,7 +97,7 @@ A remark about syntax.  The textual definition of a theory follows a fixed
 syntax with keywords like \isacommand{datatype} and \isacommand{end}.
 % (see Fig.~\ref{fig:keywords} in Appendix~\ref{sec:Appendix} for a full list).
 Embedded in this syntax are the types and formulae of HOL, whose syntax is
-extensible (see \S\ref{sec:syntax-anno}), e.g.\ by new user-defined infix operators.
+extensible (see \S\ref{sec:concrete-syntax}), e.g.\ by new user-defined infix operators.
 To distinguish the two levels, everything
 HOL-specific (terms and types) should be enclosed in
 \texttt{"}\dots\texttt{"}. 

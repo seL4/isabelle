@@ -11,7 +11,7 @@ type over which the tree branches. If @{typ"'i"} is instantiated to
 @{typ"nat"}, we have an infinitely branching tree because each node
 has as many subtrees as there are natural numbers. How can we possibly
 write down such a tree? Using functional notation! For example, the term
-@{term[display]"Br 0 (%i. Br i (%n. Tip))"}
+@{term[display]"Br (0::nat) (\<lambda>i. Br i (\<lambda>n. Tip))"}
 of type @{typ"(nat,nat)bigtree"} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely @{term"Tip"}s as further subtrees.

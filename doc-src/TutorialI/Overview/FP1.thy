@@ -23,15 +23,15 @@ consts sum :: "nat \<Rightarrow> nat"
 primrec "sum 0 = 0"
         "sum (Suc n) = Suc n + sum n"
 
-lemma "sum n + sum n = n*(Suc n)";
-apply(induct_tac n);
-apply(auto);
+lemma "sum n + sum n = n*(Suc n)"
+apply(induct_tac n)
+apply(auto)
 done
 
 lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
 by(auto)
 
-lemma "min i (max j k) = max (min k i) (min i (j::nat))";
+lemma "min i (max j k) = max (min k i) (min i (j::nat))"
 by(arith)
 
 lemma "n*n = n \<Longrightarrow> n=0 \<or> n=1"
@@ -91,19 +91,19 @@ oops
 
 subsubsection{*Assumptions*}
 
-lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs";
-apply simp;
+lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs"
+apply simp
 done
 
-lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []";
-apply(simp (no_asm));
+lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
+apply(simp (no_asm))
 done
 
 
 subsubsection{*Rewriting with Definitions*}
 
-lemma "xor A (\<not>A)";
-apply(simp only:xor_def);
+lemma "xor A (\<not>A)"
+apply(simp only: xor_def)
 by simp
 
 
@@ -119,11 +119,11 @@ by(simp)
 
 subsubsection{*Automatic Case Splits*}
 
-lemma "\<forall>xs. if xs = [] then A else B";
+lemma "\<forall>xs. if xs = [] then A else B"
 apply simp
 oops
 
-lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y";
+lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y"
 apply simp
 apply(simp split: list.split)
 oops
@@ -134,7 +134,7 @@ subsubsection{*Arithmetic*}
 lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
 by simp
 
-lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n";
+lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n"
 apply simp
 by(arith)
 
@@ -152,43 +152,43 @@ subsection{*Case Study: Compiling Expressions*}
 
 subsubsection{*Expressions*}
 
-types 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
+types 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v"
 
 datatype ('a,'v)expr = Cex 'v
                      | Vex 'a
-                     | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
+                     | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr"
 
-consts value :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v";
+consts value :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v"
 primrec
 "value (Cex v) env = v"
 "value (Vex a) env = env a"
-"value (Bex f e1 e2) env = f (value e1 env) (value e2 env)";
+"value (Bex f e1 e2) env = f (value e1 env) (value e2 env)"
 
 
 subsubsection{*The Stack Machine*}
 
 datatype ('a,'v) instr = Const 'v
                        | Load 'a
-                       | Apply "'v binop";
+                       | Apply "'v binop"
 
-consts exec :: "('a,'v)instr list \<Rightarrow> ('a\<Rightarrow>'v) \<Rightarrow> 'v list \<Rightarrow> 'v list";
+consts exec :: "('a,'v)instr list \<Rightarrow> ('a\<Rightarrow>'v) \<Rightarrow> 'v list \<Rightarrow> 'v list"
 primrec
 "exec [] s vs = vs"
 "exec (i#is) s vs = (case i of
     Const v  \<Rightarrow> exec is s (v#vs)
   | Load a   \<Rightarrow> exec is s ((s a)#vs)
-  | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
+  | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))"
 
 
 subsubsection{*The Compiler*}
 
-consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list";
+consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list"
 primrec
 "comp (Cex v)       = [Const v]"
 "comp (Vex a)       = [Load a]"
-"comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]";
+"comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]"
 
-theorem "exec (comp e) s [] = [value e s]";
+theorem "exec (comp e) s [] = [value e s]"
 oops
 
 
@@ -204,11 +204,11 @@ datatype 'a aexp = IF   "'a bexp" "'a aexp" "'a aexp"
                  | Num nat
 and      'a bexp = Less "'a aexp" "'a aexp"
                  | And  "'a bexp" "'a bexp"
-                 | Neg  "'a bexp";
+                 | Neg  "'a bexp"
 
 
 consts  evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"
-        evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool";
+        evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool"
 
 primrec
   "evala (IF b a1 a2) env =
@@ -237,8 +237,8 @@ primrec
 
 lemma substitution_lemma:
  "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
-  evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)";
-apply(induct_tac a and b);
+  evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)"
+apply(induct_tac a and b)
 by simp_all
 
 
@@ -251,7 +251,7 @@ term "C[C[C[]],C[]]"
 
 consts
 mirror :: "tree \<Rightarrow> tree"
-mirrors:: "tree list \<Rightarrow> tree list";
+mirrors:: "tree list \<Rightarrow> tree list"
 
 primrec
   "mirror(C ts) = C(mirrors ts)"

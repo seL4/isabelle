@@ -38,7 +38,7 @@ primrec
 "s \<Turnstile> Neg f   = (\<not>(s \<Turnstile> f))"
 "s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
 "s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
-"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)";
+"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)"
 
 text{*\noindent
 The first three equations should be self-explanatory. The temporal formula
@@ -51,7 +51,7 @@ Now we come to the model checker itself. It maps a formula into the set of
 states where the formula is true.  It too is defined by recursion over the syntax:
 *}
 
-consts mc :: "formula \<Rightarrow> state set";
+consts mc :: "formula \<Rightarrow> state set"
 primrec
 "mc(Atom a)  = {s. a \<in> L s}"
 "mc(Neg f)   = -mc f"
@@ -92,8 +92,8 @@ The equality is proved in the canonical fashion by proving that each set
 includes the other; the inclusion is shown pointwise:
 *}
 
-apply(rule equalityI);
- apply(rule subsetI);
+apply(rule equalityI)
+ apply(rule subsetI)
  apply(simp)(*<*)apply(rename_tac s)(*>*)
 
 txt{*\noindent
@@ -118,7 +118,7 @@ It is proved by @{text blast}, using the transitivity of
 \isa{M\isactrlsup {\isacharasterisk}}.
 *}
 
- apply(blast intro: rtrancl_trans);
+ apply(blast intro: rtrancl_trans)
 
 txt{*
 We now return to the second set inclusion subgoal, which is again proved
@@ -172,10 +172,10 @@ The main theorem is proved in the familiar manner: induction followed by
 @{text auto} augmented with the lemma as a simplification rule.
 *}
 
-theorem "mc f = {s. s \<Turnstile> f}";
-apply(induct_tac f);
-apply(auto simp add:EF_lemma);
-done;
+theorem "mc f = {s. s \<Turnstile> f}"
+apply(induct_tac f)
+apply(auto simp add:EF_lemma)
+done
 
 text{*
 \begin{exercise}
@@ -193,19 +193,19 @@ Show that the semantics for @{term EF} satisfies the following recursion equatio
 \index{PDL|)}
 *}
 (*<*)
-theorem main: "mc f = {s. s \<Turnstile> f}";
-apply(induct_tac f);
-apply(auto simp add:EF_lemma);
-done;
+theorem main: "mc f = {s. s \<Turnstile> f}"
+apply(induct_tac f)
+apply(auto simp add: EF_lemma)
+done
 
-lemma aux: "s \<Turnstile> f = (s : mc f)";
-apply(simp add:main);
-done;
+lemma aux: "s \<Turnstile> f = (s : mc f)"
+apply(simp add: main)
+done
 
-lemma "(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> Neg(AX(Neg(EF f))))";
-apply(simp only:aux);
-apply(simp);
-apply(subst lfp_unfold[OF mono_ef], fast);
+lemma "(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> Neg(AX(Neg(EF f))))"
+apply(simp only: aux)
+apply(simp)
+apply(subst lfp_unfold[OF mono_ef], fast)
 done
 
 end

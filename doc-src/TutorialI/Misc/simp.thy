@@ -97,8 +97,8 @@ By default, assumptions are part of the simplification process: they are used
 as simplification rules and are simplified themselves. For example:
 *}
 
-lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs";
-apply simp;
+lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs"
+apply simp
 done
 
 text{*\noindent
@@ -109,7 +109,7 @@ conclusion to @{term"ys = ys"} and hence to @{term"True"}.
 In some cases, using the assumptions can lead to nontermination:
 *}
 
-lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []";
+lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
 
 txt{*\noindent
 An unmodified application of @{text"simp"} loops.  The culprit is the
@@ -119,7 +119,7 @@ nontermination but not this one.)  The problem can be circumvented by
 telling the simplifier to ignore the assumptions:
 *}
 
-apply(simp (no_asm));
+apply(simp (no_asm))
 done
 
 text{*\noindent
@@ -165,26 +165,26 @@ only the proofs of the abstract properties will be affected.
 For example, given *}
 
 constdefs xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
-         "xor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)";
+         "xor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)"
 
 text{*\noindent
 we may want to prove
 *}
 
-lemma "xor A (\<not>A)";
+lemma "xor A (\<not>A)"
 
 txt{*\noindent
 Typically, we begin by unfolding some definitions:
 \indexbold{definitions!unfolding}
 *}
 
-apply(simp only:xor_def);
+apply(simp only: xor_def)
 
 txt{*\noindent
 In this particular case, the resulting goal
 @{subgoals[display,indent=0]}
 can be proved by simplification. Thus we could have proved the lemma outright by
-*}(*<*)oops;lemma "xor A (\<not>A)";(*>*)
+*}(*<*)oops lemma "xor A (\<not>A)"(*>*)
 apply(simp add: xor_def)
 (*<*)done(*>*)
 text{*\noindent
@@ -213,8 +213,8 @@ Proving a goal containing \isa{let}-expressions almost invariably requires the
 the predefined constant @{term"Let"}, expanding @{text"let"}-constructs
 means rewriting with \tdx{Let_def}: *}
 
-lemma "(let xs = [] in xs@ys@xs) = ys";
-apply(simp add: Let_def);
+lemma "(let xs = [] in xs@ys@xs) = ys"
+apply(simp add: Let_def)
 done
 
 text{*
@@ -232,8 +232,8 @@ So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example
 *}
 
-lemma hd_Cons_tl[simp]: "xs \<noteq> []  \<Longrightarrow>  hd xs # tl xs = xs";
-apply(case_tac xs, simp, simp);
+lemma hd_Cons_tl[simp]: "xs \<noteq> []  \<Longrightarrow>  hd xs # tl xs = xs"
+apply(case_tac xs, simp, simp)
 done
 
 text{*\noindent
@@ -244,9 +244,9 @@ is present as well,
 the lemma below is proved by plain simplification:
 *}
 
-lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
+lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs"
 (*<*)
-by(simp);
+by(simp)
 (*>*)
 text{*\noindent
 The conditional equation @{thm[source]hd_Cons_tl} above
@@ -265,7 +265,7 @@ are usually proved by case
 distinction on the boolean condition.  Here is an example:
 *}
 
-lemma "\<forall>xs. if xs = [] then rev xs = [] else rev xs \<noteq> []";
+lemma "\<forall>xs. if xs = [] then rev xs = [] else rev xs \<noteq> []"
 
 txt{*\noindent
 The goal can be split by a special method, \methdx{split}:
@@ -284,8 +284,8 @@ on the initial goal above.
 This splitting idea generalizes from @{text"if"} to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}
 *}(*<*)by simp(*>*)
-lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
-apply(split list.split);
+lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs"
+apply(split list.split)
  
 txt{*
 @{subgoals[display,indent=0]}
@@ -297,10 +297,10 @@ Instead, the simplifier has a modifier
 for adding splitting rules explicitly.  The
 lemma above can be proved in one step by
 *}
-(*<*)oops;
-lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
+(*<*)oops
+lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs"
 (*>*)
-apply(simp split: list.split);
+apply(simp split: list.split)
 (*<*)done(*>*)
 text{*\noindent
 whereas \isacommand{apply}@{text"(simp)"} alone will not succeed.
@@ -317,11 +317,11 @@ The @{text"split"} attribute can be removed with the @{text"del"} modifier,
 either locally
 *}
 (*<*)
-lemma "dummy=dummy";
+lemma "dummy=dummy"
 (*>*)
-apply(simp split del: split_if);
+apply(simp split del: split_if)
 (*<*)
-oops;
+oops
 (*>*)
 text{*\noindent
 or globally:
@@ -373,9 +373,9 @@ to get a better idea of what is going
 on:
 *}
 
-ML "set trace_simp";
-lemma "rev [a] = []";
-apply(simp);
+ML "set trace_simp"
+lemma "rev [a] = []"
+apply(simp)
 (*<*)oops(*>*)
 
 text{*\noindent
@@ -411,7 +411,7 @@ simplifier are often nested, for instance when solving conditions of rewrite
 rules.  Thus it is advisable to reset it:
 *}
 
-ML "reset trace_simp";
+ML "reset trace_simp"
 
 (*<*)
 end

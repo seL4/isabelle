@@ -161,7 +161,7 @@ with the rewrite rule @{thm[source]split_paired_all}:
 
 (*<*)by simp(*>*)
 lemma "\<And>p q. swap(swap p) = q \<longrightarrow> p = q"
-apply(simp only:split_paired_all)
+apply(simp only: split_paired_all)
 
 txt{*\noindent
 @{subgoals[display,indent=0]}
