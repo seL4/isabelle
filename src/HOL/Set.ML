@@ -210,13 +210,13 @@ by (resolve_tac prems 1);
 by (REPEAT (resolve_tac (prems RL [equalityD1,equalityD2]) 1));
 qed "equalityE";
 
-AddEs [equalityE];
-
 val major::prems = Goal
     "[| A = B;  [| c:A; c:B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P";
 by (rtac (major RS equalityE) 1);
 by (REPEAT (contr_tac 1 ORELSE eresolve_tac ([asm_rl,subsetCE]@prems) 1));
 qed "equalityCE";
+
+AddEs [equalityCE];
 
 (*Lemma for creating induction formulae -- for "pattern matching" on p
   To make the induction hypotheses usable, apply "spec" or "bspec" to
