@@ -157,7 +157,7 @@ $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
 HOL-Real-Types: HOL-Real $(LOG)/HOL-Real-Types.gz
 
 $(LOG)/HOL-Real-Types.gz: $(OUT)/HOL-Real Types/ROOT.ML \
-  Types/Numbers.thy Types/Pairs.thy Types/Records.thy Types/Typedef.thy \
+  Types/Numbers.thy Types/Pairs.thy Types/Records.thy Types/Typedefs.thy \
   Types/Overloading0.thy Types/Overloading1.thy Types/Overloading2.thy \
   Types/Overloading.thy Types/Axioms.thy
 	$(REALUSEDIR) Types
