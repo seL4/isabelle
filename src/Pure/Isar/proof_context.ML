@@ -170,7 +170,9 @@ fun strings_of_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fix
     val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
 
     (*fixes*)
-    fun prt_fix (x, x') = Pretty.str (x ^ " = " ^ x');
+    fun prt_fixes xs = Pretty.block (Pretty.str "Fixed variables:" :: Pretty.brk 1 ::
+      Pretty.commas (map (fn (x, x') => Pretty.str (x ^ " = " ^ x')) xs));
+
 
     (* defaults *)
 
@@ -188,7 +190,7 @@ fun strings_of_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fix
   in
     verb_string pretty_thy @
     (if null fixes andalso not (! verbose) then []
-     else [Pretty.string_of (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)))]) @
+      else [Pretty.string_of (prt_fixes (rev fixes))]) @
     strings_of_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" prems @
     verb strings_of_binds ctxt @
     verb strings_of_thms ctxt @
@@ -353,7 +355,10 @@ fun cert_prop_sg sg tm =
 fun get_skolem (Context {asms = (_, (fixes, _)), ...}) x = assoc (fixes, x);
 
 fun check_skolem ctxt check x =
-  if check andalso can Syntax.dest_skolem x then
+  if not check then x
+  else if not (Syntax.is_identifier x) then
+    raise CONTEXT ("Bad variable name: " ^ quote x, ctxt)
+  else if can Syntax.dest_skolem x then
     raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
   else x;
 
