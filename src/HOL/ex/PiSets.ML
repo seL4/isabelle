@@ -85,15 +85,3 @@ by (asm_full_simp_tac (simpset() addsimps [surj_PiBij]) 1);
 by (assume_tac 1);
 qed "PiBij_bij2";
 
-Goal "Pi {} B = {f. !x. f x = (@ y. True)}";
-by (asm_full_simp_tac (simpset() addsimps [Pi_def]) 1);
-qed "empty_Pi";
-
-Goal "(% x. (@ y. True)) : Pi {} B";
-by (simp_tac (simpset() addsimps [empty_Pi]) 1);
-qed "empty_Pi_func";
-
-val [major] = Goalw [Pi_def] "(!!x. x: A ==> B x <= C x) ==> Pi A B <= Pi A C";
-by (auto_tac (claset(),
-	      simpset() addsimps [impOfSubs major]));
-qed "Pi_mono";

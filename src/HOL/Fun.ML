@@ -375,4 +375,11 @@ by (res_inst_tac [("x","%y. if  (y = a) then z else g y")] exI 1);
 by (auto_tac (claset(), simpset() addsimps [split_if_mem1, split_if_eq1]));
 qed "Applyall_beta";
 
+Goal "Pi {} B = { (%x. @ y. True) }";
+by (auto_tac (claset() addIs [ext], simpset() addsimps [Pi_def]));
+qed "Pi_empty";
 
+val [major] = Goalw [Pi_def] "(!!x. x: A ==> B x <= C x) ==> Pi A B <= Pi A C";
+by (auto_tac (claset(),
+	      simpset() addsimps [impOfSubs major]));
+qed "Pi_mono";
