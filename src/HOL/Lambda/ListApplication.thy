@@ -9,7 +9,10 @@ header {* Application of a term to a list of terms *}
 theory ListApplication = Lambda:
 
 syntax
-  "_list_application" :: "dB => dB list => dB"   (infixl "$$" 150)
+  "_list_application" :: "dB => dB list => dB"    (infixl "$$" 150)
+syntax (symbols)
+  "_list_application" :: "dB => dB => dB"    (infixl "\<^sub>\<degree>\<^sub>\<degree>" 150)
+
 translations
   "t $$ ts" == "foldl (op $) t ts"
 

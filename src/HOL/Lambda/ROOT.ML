@@ -4,6 +4,8 @@
     Copyright   1998 TUM
 *)
 
+Syntax.ambiguity_level := 100;
+
 time_use_thy "Eta";
 time_use_thy "Accessible_Part";
 time_use_thy "Type";

@@ -16,6 +16,9 @@ datatype dB =
   | App dB dB (infixl "$" 200)
   | Abs dB
 
+syntax (symbols)
+  App :: "dB => dB => dB"    (infixl "\<^sub>\<degree>" 200)
+
 consts
   subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
   lift :: "[dB, nat] => dB"
