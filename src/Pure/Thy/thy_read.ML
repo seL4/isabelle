@@ -154,11 +154,9 @@ fun get_filenames path name =
 
 (*Remove theory from all child lists in loaded_thys *)
 fun unlink_thy tname =
-  let fun remove ({path, children, parents, thy_time, ml_time,
-                           theory, thms, methods, data}) =
+  let fun remove ({path, children, parents, thy_time, ml_time, theory}) =
         {path = path, children = children \ tname, parents = parents,
-                 thy_time = thy_time, ml_time = ml_time, theory = theory, 
-                 thms = thms, methods = methods, data = data}
+                 thy_time = thy_time, ml_time = ml_time, theory = theory}
   in loaded_thys := Symtab.map remove (!loaded_thys) end;
 
 
@@ -171,12 +169,9 @@ fun remove_thy tname =
 (*Change thy_time and ml_time for an existent item *)
 fun set_info tname thy_time ml_time =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
-          Some ({path, children, parents, theory, thms,
-                         methods, data, ...}) =>
+          Some ({path, children, parents, theory, thy_time = _, ml_time = _}) =>
             {path = path, children = children, parents = parents,
-                     thy_time = thy_time, ml_time = ml_time,
-                     theory = theory, thms = thms,
-                     methods = methods, data = data}
+                     thy_time = thy_time, ml_time = ml_time, theory = theory}
         | None => error ("set_info: theory " ^ tname ^ " not found");
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
 
@@ -217,15 +212,13 @@ fun use_thy1 tmp_loadpath_valid name =
 
     (*Set absolute path for loaded theory *)
     fun set_path () =
-      let val {children, parents, thy_time, ml_time, theory, thms,
-                       methods, data, ...} =
+      let val {path = _, children, parents, thy_time, ml_time, theory} =
             the (Symtab.lookup (!loaded_thys, tname));
       in loaded_thys := Symtab.update ((tname,
                           {path = abs_path,
                                    children = children, parents = parents,
                                    thy_time = thy_time, ml_time = ml_time,
-                                   theory = theory, thms = thms,
-                                   methods = methods, data = data}),
+                                   theory = theory}),
                           !loaded_thys)
       end;
 
@@ -242,36 +235,11 @@ fun use_thy1 tmp_loadpath_valid name =
          seq mark_outdated present
       end;
 
-    (*Invoke every get method stored in the methods table and store result in
-      data table*)
-    fun save_data thy_only =
-      let val {path, children, parents, thy_time, ml_time,
-                       theory, thms, methods, data} = the (get_thyinfo tname);
-
-          fun get_data [] data = data
-            | get_data ((id, ThyMethods {get, ...}) :: ms) data =
-                get_data ms (Symtab.update ((id, get ()), data));
-
-          val new_data = get_data (Symtab.dest methods) Symtab.null;
-
-          val data' = (if thy_only then new_data else fst data, new_data)
-                      (* 2nd component must be up to date *)
-      in loaded_thys := Symtab.update
-           ((tname, {path = path,
-                             children = children, parents = parents,
-                             thy_time = thy_time, ml_time = ml_time,
-                             theory = theory, thms = thms,
-                             methods = methods, data = data'}),
-            !loaded_thys)
-      end;
-
     (*Make sure that loaded_thys contains an entry for tname*)
     fun init_thyinfo () =
     let val tinfo = {path = "", children = [], parents = [],
                              thy_time = None, ml_time = None,
-                             theory = None, thms = Symtab.null,
-                             methods = Symtab.null,
-                             data = (Symtab.null, Symtab.null)};
+                             theory = None};
     in if is_some (get_thyinfo tname) then ()
        else loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
     end;
@@ -284,7 +252,6 @@ fun use_thy1 tmp_loadpath_valid name =
           init_thyinfo ();
           read_thy tname thy_file;
           SymbolInput.use (out_name tname);
-          save_data true;
 
           if not (!delete_tmpfiles) then ()
           else OS.FileSys.remove (out_name tname);
@@ -298,7 +265,6 @@ fun use_thy1 tmp_loadpath_valid name =
        if ml_file = "" then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
              SymbolInput.use ml_file);
-       save_data false;
 
        (*Store theory again because it could have been redefined*)
        use_strings
@@ -417,17 +383,14 @@ fun mk_base bases child =
         let val tinfo =
               case Symtab.lookup (!loaded_thys, base) of
                   Some ({path, children, parents, thy_time, ml_time,
-                           theory, thms, methods, data}) =>
+                           theory}) =>
                     {path = path,
                              children = child ins children, parents = parents,
                              thy_time = thy_time, ml_time = ml_time,
-                             theory = theory, thms = thms,
-                             methods = methods, data = data}
+                             theory = theory}
                 | None => {path = "", children = [child], parents = [],
                                    thy_time = None, ml_time = None,
-                                   theory = None, thms = Symtab.null,
-                                   methods = Symtab.null,
-                                   data = (Symtab.null, Symtab.null)};
+                                   theory = None};
         in loaded_thys := Symtab.update ((base, tinfo), !loaded_thys) end;
 
       (*Load a base theory if not already done
@@ -466,75 +429,16 @@ fun mk_base bases child =
          if null mergelist then ProtoPure.thy
          else Theory.prep_ext_merge (map theory_of mergelist));
 
-      val datas =
-        let fun get_data t =
-              let val {data, ...} = the (get_thyinfo t)
-              in snd data end;
-        in map (Symtab.dest o get_data) mergelist end;
-
-      val methods =
-        let fun get_methods t =
-              let val {methods, ...} = the (get_thyinfo t)
-              in methods end;
-
-            val ms = map get_methods mergelist;
-        in if null ms then Symtab.null
-           else foldl (Symtab.merge (fn (x,y) => true)) (hd ms, tl ms)
-        end;
-
-      (*merge two sorted association lists*)
-      fun merge_two ([], d2) = d2
-        | merge_two (d1, []) = d1
-        | merge_two (l1 as ((p1 as (id1 : string, d1)) :: d1s),
-                     l2 as ((p2 as (id2, d2)) :: d2s)) =
-            if id1 < id2 then
-              p1 :: merge_two (d1s, l2)
-            else
-              p2 :: merge_two (l1, d2s);
-
-      (*Merge multiple occurence of data; also call put for each merged list*)
-      fun merge_multi [] None = []
-        | merge_multi [] (Some (id, ds)) =
-            let val ThyMethods {merge, put, ...} =
-                  the (Symtab.lookup (methods, id));
-             in put (merge ds); [id] end
-        | merge_multi ((id, d) :: ds) None = merge_multi ds (Some (id, [d]))
-        | merge_multi ((id, d) :: ds) (Some (id2, d2s)) =
-            if id = id2 then
-              merge_multi ds (Some (id2, d :: d2s))
-            else
-              let val ThyMethods {merge, put, ...} =
-                    the (Symtab.lookup (methods, id2));
-              in put (merge d2s);
-                 id2 :: merge_multi ds (Some (id, [d]))
-              end;
-
-      val merged =
-        if null datas then []
-        else merge_multi (foldl merge_two (hd datas, tl datas)) None;
-
-      val dummy =
-        let val unmerged = map fst (Symtab.dest methods) \\ merged;
-
-            fun put_empty id =
-              let val ThyMethods {merge, put, ...} =
-                    the (Symtab.lookup (methods, id));
-              in put (merge []) end;
-        in seq put_empty unmerged end;
-
       val dummy =
         let val tinfo = case Symtab.lookup (!loaded_thys, child) of
-              Some ({path, children, thy_time, ml_time, theory, thms,
-                             data, ...}) =>
-                 {path = path,
-                          children = children, parents = mergelist,
-                          thy_time = thy_time, ml_time = ml_time,
-                          theory = theory, thms = thms,
-                          methods = methods, data = data}
-             | None => error ("set_parents: theory " ^ child ^ " not found");
+              Some ({path, children, parents = _, thy_time, ml_time, theory}) =>
+                 {path = path, children = children, parents = mergelist,
+                   thy_time = thy_time, ml_time = ml_time, theory = theory}
+             | None => sys_error ("set_parents: theory " ^ child ^ " not found");
         in loaded_thys := Symtab.update ((child, tinfo), !loaded_thys) end;
 
- in cur_thyname := child;
+ in
+    cur_thyname := child;
     base_thy
  end;
 
