@@ -29,6 +29,7 @@ sig
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   val is_ml_identifier: string -> bool
+  val ml_reserved: string list
   val print_thms_containing: theory -> term list -> unit
 end;
 
