@@ -129,6 +129,12 @@ section "~";
 qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
  (fn prems=> [rtac impI 1, eresolve_tac prems 1]);
 
+qed_goal "False_not_True" HOL.thy "False ~= True"
+  (K [rtac notI 1, etac False_neq_True 1]);
+
+qed_goal "True_not_False" HOL.thy "True ~= False"
+  (K [rtac notI 1, dtac sym 1, etac False_neq_True 1]);
+
 qed_goalw "notE" HOL.thy [not_def] "[| ~P;  P |] ==> R"
  (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
 
