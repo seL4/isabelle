@@ -73,7 +73,8 @@ First we prove monotonicity of the function inside \isa{lfp}%
 \end{isamarkuptext}%
 \isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast{\isacharparenright}%
+\isacommand{apply}\ blast\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 in order to make sure it really has a least fixpoint.
@@ -163,14 +164,16 @@ and disposing of the resulting trivial subgoal automatically:%
 The proof of the induction step is identical to the one for the base case:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 The main theorem is proved in the familiar manner: induction followed by
 \isa{auto} augmented with the lemma as a simplification rule.%
 \end{isamarkuptext}%
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto\ simp\ add{\isacharcolon}EF{\isacharunderscore}lemma{\isacharparenright}\end{isabellebody}%
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}EF{\isacharunderscore}lemma{\isacharparenright}\isanewline
+\isacommand{done}\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

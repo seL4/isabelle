@@ -77,7 +77,8 @@ First we prove monotonicity of the function inside @{term lfp}
 
 lemma mono_ef: "mono(\<lambda>T. A \<union> M^-1 ^^ T)"
 apply(rule monoI)
-by(blast)
+apply blast
+done
 
 text{*\noindent
 in order to make sure it really has a least fixpoint.
@@ -174,7 +175,8 @@ The proof of the induction step is identical to the one for the base case:
 *}
 
 apply(rule ssubst[OF lfp_Tarski[OF mono_ef]])
-by(blast)
+apply(blast)
+done
 
 text{*
 The main theorem is proved in the familiar manner: induction followed by
@@ -183,5 +185,6 @@ The main theorem is proved in the familiar manner: induction followed by
 
 theorem "mc f = {s. s \<Turnstile> f}";
 apply(induct_tac f);
-by(auto simp add:EF_lemma);
+apply(auto simp add:EF_lemma);
+done;
 (*<*)end(*>*)
