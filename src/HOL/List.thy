@@ -47,9 +47,6 @@ translations
 
 syntax (symbols)
   "op #"      :: ['a, 'a list] => 'a list                 (infixr "\\<bullet>" 65)
-  "op @"      :: ['a list, 'a list] => 'a list            (infixr "\\<circ>" 65)
-  "op mem"    :: ['a, 'a list] => bool                    (infixl "\\<in>" 55)
-  "@Alls"     :: [idt, 'a list, bool] => bool             ("(2\\<forall> _\\<in>_./ _)" 10)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
 
 
