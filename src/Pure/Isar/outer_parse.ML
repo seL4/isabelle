@@ -45,6 +45,7 @@ sig
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
+  val path: token list -> Path.T * token list
   val uname: token list -> string option * token list
   val sort: token list -> string * token list
   val arity: token list -> (string list * string) * token list
@@ -175,6 +176,7 @@ fun and_list scan = enum "and" scan;
 val name = group "name declaration" (short_ident || sym_ident || string || number);
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
+val path = group "file name/path specification" name >> Path.unpack;
 
 val uname = underscore >> K None || name >> Some;
 
