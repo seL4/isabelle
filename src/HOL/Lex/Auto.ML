@@ -4,8 +4,6 @@
     Copyright   1995 TUM
 *)
 
-open Auto;
-
 goalw Auto.thy [nexts_def] "nexts A st [] = st";
 by (Simp_tac 1);
 qed"nexts_Nil";

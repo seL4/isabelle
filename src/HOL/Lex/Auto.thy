@@ -31,7 +31,7 @@ constdefs
   "nexts(A) == foldl(next(A))"
 
   accepts :: ('a,'b) auto => 'a list => bool
-  "accepts A xs == fin A (nexts A (start A) xs)"
+  "accepts A == (%xs. fin A (nexts A (start A) xs))"
 
   acc_prefix :: ('a, 'b)auto => 'b => 'a list => bool
   "acc_prefix A st xs == ? us. us <= xs & us~=[] & fin A (nexts A st us)"
