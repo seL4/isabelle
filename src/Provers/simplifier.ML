@@ -247,8 +247,8 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac})
     (Thm.del_simprocs (mss, map rep_simproc simprocs),
       subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac);
 
-fun onlysimps (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}, rews) =
-  make_ss (Thm.clear_mss mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac)
+fun onlysimps (Simpset {mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac}, rews) =
+  make_ss (Thm.clear_mss mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac)
     addsimps rews;
 
 
