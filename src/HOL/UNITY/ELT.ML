@@ -19,14 +19,6 @@ by (res_inst_tac [("x", "v `` ?u")] image_eqI 2);
 by Auto_tac;
 qed "givenBy_eq_all";
 
-Goal "givenBy v = {A. EX P. A = {s. P(v s)}}";
-by (simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by Safe_tac;
-by (res_inst_tac [("x", "%n. EX s. v s = n & s : ?A")] exI 1);
-by (Blast_tac 1);
-by Auto_tac;
-qed "givenBy_eq_Collect";
-
 val prems =
 Goal "(!!x y. [| x:A;  v x = v y |] ==> y: A) ==> A: givenBy v";
 by (stac givenBy_eq_all 1);
@@ -56,7 +48,7 @@ qed "Collect_mem_givenBy";
 Goal "givenBy v = {A. EX P. A = {s. P(v s)}}";
 by (blast_tac (claset() addIs [Collect_mem_givenBy,
 			       givenBy_imp_eq_Collect]) 1);
-qed "givenBy_eq_eq_Collect";
+qed "givenBy_eq_Collect";
 
 (*preserving v preserves properties given by v*)
 Goal "[| F : preserves v;  D : givenBy v |] ==> F : stable D";
