@@ -24,6 +24,9 @@ better in printed text;
 * Isar/HOL: 'inductive' now longer features separate (collective)
 attributes for 'intros';
 
+* moved induct/cases attributes to Pure, added 'print_induct_rules'
+command;
+
 
 *** HOL ***
 
