@@ -4,9 +4,9 @@
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
 
 Although Isabelle is generic, many users will be working in some
-extension of classical first-order logic.  Isabelle's set theory~{\tt
-  ZF} is built upon theory~\texttt{FOL}, while {\HOL}
-conceptually contains first-order logic as a fragment.
+extension of classical first-order logic.  
+Isabelle's set theory~{\tt ZF} is built upon theory~\texttt{FOL}, 
+while {\HOL} conceptually contains first-order logic as a fragment.
 Theorem-proving in predicate logic is undecidable, but many
 researchers have developed strategies to assist in this task.
 
@@ -530,8 +530,8 @@ subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
   form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
   applied.
 \item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
-also does simplification with the given simpset. Still note that if the simpset 
-includes a splitter for the premises, the subgoal may be split.
+also does simplification with the given simpset. note that if the simpset 
+includes a splitter for the premises, the subgoal may still be split.
 \end{ttdescription}
 
 
@@ -675,7 +675,7 @@ deletes rules from the current claset.
 \label{sec:access-current-claset}
 
 the functions to access the current claset are analogous to the functions 
-for the current simpset, so please see \label{sec:access-current-simpset}
+for the current simpset, so please see \ref{sec:access-current-simpset}
 for a description.
 \begin{ttbox}
 claset        : unit   -> claset
@@ -685,7 +685,6 @@ claset_ref_of : theory -> claset ref
 print_claset  : theory -> unit
 CLASET        :(claset     ->       tactic) ->       tactic
 CLASET'       :(claset     -> 'a -> tactic) -> 'a -> tactic
-
 CLASIMPSET    :(clasimpset ->       tactic) ->       tactic
 CLASIMPSET'   :(clasimpset -> 'a -> tactic) -> 'a -> tactic
 \end{ttbox}
