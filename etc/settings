@@ -61,7 +61,7 @@ ISABELLE_HOME_USER=~/isabelle
 ISABELLE_TOOLS=$ISABELLE_HOME/lib/Tools
 
 # Location for temporary files (should be on a local file system).
-ISABELLE_TMP_PREFIX=/tmp/isabelle-$LOGNAME
+ISABELLE_TMP_PREFIX=/tmp/isabelle-$USER
 
 
 # Heap file locations. ML system identifier appended automatically!
