@@ -11,6 +11,8 @@ Based upon the article
 Written up as
     Jacob Frost, A Case Study of Co-induction in Isabelle/HOL
     Report 308, Computer Lab, University of Cambridge (1993).
+
+NEEDS TO USE INDUCTIVE DEFS PACKAGE
 *)
 
 open MT;
@@ -23,15 +25,6 @@ by (hyp_subst_tac 1);
 by (rtac singletonI 1);
 by (assume_tac 1);
 qed "notsingletonI";
-
-val prems = goalw MT.thy [Un_def]
-  "[| c : A Un B; c : A & ~c : B ==> P; c : B ==> P |] ==> P";
-by (cut_facts_tac prems 1);bd CollectD 1;be disjE 1;
-by (cut_facts_tac [excluded_middle] 1);be disjE 1;
-by (resolve_tac prems 1);br conjI 1;ba 1;ba 1;
-by (eresolve_tac prems 1);
-by (eresolve_tac prems 1);
-qed "UnSE";
 
 (* ############################################################ *)
 (* Inference systems                                            *)
@@ -46,35 +39,21 @@ val infsys_mono_tac =
     );
 
 val prems = goal MT.thy "P a b ==> P (fst (a,b)) (snd (a,b))";
-by (rtac (fst_conv RS ssubst) 1);
-by (rtac (snd_conv RS ssubst) 1);
-by (resolve_tac prems 1);
+by (simp_tac (prod_ss addsimps prems) 1);
 qed "infsys_p1";
 
-val prems = goal MT.thy "P (fst (a,b)) (snd (a,b)) ==> P a b";
-by (cut_facts_tac prems 1);
-by (dtac (fst_conv RS subst) 1);
-by (dtac (snd_conv RS subst) 1);
-by (assume_tac 1);
+val prems = goal MT.thy "!!a b. P (fst (a,b)) (snd (a,b)) ==> P a b";
+by (asm_full_simp_tac prod_ss 1);
 qed "infsys_p2";
 
 val prems = goal MT.thy 
-  "P a b c ==> P (fst(fst ((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c))";
-by (rtac (fst_conv RS ssubst) 1);
-by (rtac (fst_conv RS ssubst) 1);
-by (rtac (snd_conv RS ssubst) 1);
-by (rtac (snd_conv RS ssubst) 1);
-by (resolve_tac prems 1);
+ "!!a. P a b c ==> P (fst(fst((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c))";
+by (asm_full_simp_tac prod_ss 1);
 qed "infsys_pp1";
 
 val prems = goal MT.thy 
-  "P (fst(fst ((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c)) ==> P a b c";
-by (cut_facts_tac prems 1);
-by (dtac (fst_conv RS subst) 1);
-by (dtac (fst_conv RS subst) 1);
-by (dtac (snd_conv RS subst) 1);
-by (dtac (snd_conv RS subst) 1);
-by (assume_tac 1);
+ "!!a. P (fst(fst((a,b),c))) (snd(fst((a,b),c))) (snd((a,b),c)) ==> P a b c";
+by (asm_full_simp_tac prod_ss 1);
 qed "infsys_pp2";
 
 (* ############################################################ *)
@@ -86,22 +65,27 @@ qed "infsys_pp2";
 val prems = goal MT.thy "[| mono(f); x:f(lfp(f)) |] ==> x:lfp(f)";
 by (rtac subsetD 1);
 by (rtac lfp_lemma2 1);
-by (resolve_tac prems 1);brs prems 1;
+by (resolve_tac prems 1);
+by (resolve_tac prems 1);
 qed "lfp_intro2";
 
 val prems = goal MT.thy
   " [| x:lfp(f); mono(f); !!y. y:f(lfp(f)) ==> P(y) |] ==> \
 \   P(x)";
 by (cut_facts_tac prems 1);
-by (resolve_tac prems 1);br subsetD 1;
-by (rtac lfp_lemma3 1);ba 1;ba 1;
+by (resolve_tac prems 1);
+by (rtac subsetD 1);
+by (rtac lfp_lemma3 1);
+by (assume_tac 1);
+by (assume_tac 1);
 qed "lfp_elim2";
 
 val prems = goal MT.thy
   " [| x:lfp(f); mono(f); !!y. y:f(lfp(f) Int {x.P(x)}) ==> P(y) |] ==> \
 \   P(x)";
 by (cut_facts_tac prems 1);
-by (etac induct 1);ba 1;
+by (etac induct 1);
+by (assume_tac 1);
 by (eresolve_tac prems 1);
 qed "lfp_ind2";
 
@@ -112,7 +96,8 @@ qed "lfp_ind2";
 val [cih,monoh] = goal MT.thy "[| x:f({x} Un gfp(f)); mono(f) |] ==> x:gfp(f)";
 by (rtac (cih RSN (2,gfp_upperbound RS subsetD)) 1);
 by (rtac (monoh RS monoD) 1);
-by (rtac (UnE RS subsetI) 1);ba 1;
+by (rtac (UnE RS subsetI) 1);
+by (assume_tac 1);
 by (fast_tac (set_cs addSIs [cih]) 1);
 by (rtac (monoh RS monoD RS subsetD) 1);
 by (rtac Un_upper2 1);
@@ -121,7 +106,11 @@ qed "gfp_coind2";
 
 val [gfph,monoh,caseh] = goal MT.thy 
   "[| x:gfp(f); mono(f); !! y. y:f(gfp(f)) ==> P(y) |] ==> P(x)";
-by (rtac caseh 1);br subsetD 1;br gfp_lemma2 1;br monoh 1;br gfph 1;
+by (rtac caseh 1);
+by (rtac subsetD 1);
+by (rtac gfp_lemma2 1);
+by (rtac monoh 1);
+by (rtac gfph 1);
 qed "gfp_elim2";
 
 (* ############################################################ *)
@@ -176,8 +165,7 @@ goalw MT.thy [eval_def, eval_rel_def] "ve |- e_const(c) ---> v_const(c)";
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "eval_const";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -186,8 +174,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "eval_var";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -196,8 +183,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "eval_fn";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -207,8 +193,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "eval_fix";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def]
@@ -218,8 +203,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI2 1;br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "eval_app1";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -232,8 +216,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI2 1;br disjI2 1;br disjI2 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac (set_cs addSIs [disjI2]) 1);
 qed "eval_app2";
 
 (* Strong elimination, induction on evaluations *)
@@ -306,8 +289,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (rtac CollectI 1);br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "elab_const";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -316,8 +298,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "elab_var";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -326,8 +307,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "elab_fn";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def]
@@ -337,8 +317,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI2 1;br disjI1 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac set_cs 1);
 qed "elab_fix";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -348,8 +327,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (rtac CollectI 1);br disjI2 1;br disjI2 1;br disjI2 1;br disjI2 1;
-by (fast_tac HOL_cs 1);
+by (fast_tac (set_cs addSIs [disjI2]) 1);
 qed "elab_app";
 
 (* Strong elimination, induction on elaborations *)
@@ -549,7 +527,8 @@ val prems = goalw MT.thy [hasty_rel_def] "c isof t ==> (v_const(c),t) : hasty_re
 by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac MT.hasty_fun_def);
-by (rtac CollectI 1);br disjI1 1;
+by (rtac CollectI 1);
+by (rtac disjI1 1);
 by (fast_tac HOL_cs 1);
 by (rtac mono_hasty_fun 1);
 qed "hasty_rel_const_coind";
@@ -567,7 +546,8 @@ val prems = goalw MT.thy [hasty_rel_def]
 by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac hasty_fun_def);
-by (rtac CollectI 1);br disjI2 1;
+by (rtac CollectI 1);
+by (rtac disjI2 1);
 by (fast_tac HOL_cs 1);
 by (rtac mono_hasty_fun 1);
 qed "hasty_rel_clos_coind";
@@ -658,27 +638,16 @@ qed "hasty_elim_clos";
 (* The pointwise extension of hasty to environments             *)
 (* ############################################################ *)
 
-val prems = goal MT.thy
-  "[| ve hastyenv te; v hasty t |] ==> \
-\  ve + {ev |-> v} hastyenv te + {ev |=> t}";
-by (cut_facts_tac prems 1);
-by (SELECT_GOAL (rewtac hasty_env_def) 1);
+goal MT.thy
+  "!!ve. [| ve hastyenv te; v hasty t |] ==> \
+\        ve + {ev |-> v} hastyenv te + {ev |=> t}";
+by (rewtac hasty_env_def);
+by (asm_full_simp_tac (HOL_ss addsimps [ve_dom_owr, te_dom_owr]) 1);
 by (safe_tac HOL_cs);
-by (rtac (ve_dom_owr RS ssubst) 1);
-by (rtac (te_dom_owr RS ssubst) 1);
-by (etac subst 1);br refl 1;
-
-by (dtac (ve_dom_owr RS subst) 1);back();back();back();
-by (etac UnSE 1);be conjE 1;
-by (dtac notsingletonI 1);bd not_sym 1;
-by (rtac (ve_app_owr2 RS ssubst) 1);ba 1;
-by (rtac (te_app_owr2 RS ssubst) 1);ba 1;
-by (fast_tac HOL_cs 1);
-by (dtac singletonD 1);by (hyp_subst_tac 1);
-
-by (rtac (ve_app_owr1 RS ssubst) 1);
-by (rtac (te_app_owr1 RS ssubst) 1);
-by (assume_tac 1);
+by (excluded_middle_tac "ev=x" 1);
+by (asm_full_simp_tac (HOL_ss addsimps [ve_app_owr2, te_app_owr2]) 1);
+by (fast_tac set_cs 1);
+by (asm_simp_tac (HOL_ss addsimps [ve_app_owr1, te_app_owr1]) 1);
 qed "hasty_env1";
 
 (* ############################################################ *)
@@ -717,29 +686,20 @@ val prems = goalw MT.thy [hasty_env_def,hasty_def]
 by (cut_facts_tac prems 1);
 by (dtac elab_fix_elim 1);
 by (safe_tac HOL_cs);
-by ((forward_tac [ssubst] 1) THEN (assume_tac 2) THEN 
-    (rtac hasty_rel_clos_coind 1));
+(*Do a single unfolding of cl*)
+by ((forward_tac [ssubst] 1) THEN (assume_tac 2));
+by (rtac hasty_rel_clos_coind 1);
 by (etac elab_fn 1);
+by (asm_simp_tac (HOL_ss addsimps [ve_dom_owr, te_dom_owr]) 1);
 
-by (rtac (ve_dom_owr RS ssubst) 1);
-by (rtac (te_dom_owr RS ssubst) 1);
-by ((etac subst 1) THEN (rtac refl 1));
-
-by (rtac (ve_dom_owr RS ssubst) 1);
+by (asm_simp_tac (HOL_ss addsimps [ve_dom_owr]) 1);
 by (safe_tac HOL_cs);
-by (dtac (Un_commute RS subst) 1);
-by (etac UnSE 1);
-
-by (safe_tac HOL_cs);
-by (dtac notsingletonI 1);bd not_sym 1;
-by (rtac (ve_app_owr2 RS ssubst) 1);ba 1;
-by (rtac (te_app_owr2 RS ssubst) 1);ba 1;
+by (excluded_middle_tac "ev2=ev1a" 1);
+by (asm_full_simp_tac (HOL_ss addsimps [ve_app_owr2, te_app_owr2]) 1);
 by (fast_tac set_cs 1);
 
-by (etac singletonE 1);
+by (asm_simp_tac (HOL_ss addsimps [ve_app_owr1, te_app_owr1]) 1);
 by (hyp_subst_tac 1);
-by (rtac (ve_app_owr1 RS ssubst) 1);
-by (rtac (te_app_owr1 RS ssubst) 1);
 by (etac subst 1);
 by (fast_tac set_cs 1);
 qed "consistency_fix";
@@ -775,8 +735,14 @@ val prems = goal MT.thy
 by (cut_facts_tac prems 1);
 by (dtac elab_app_elim 1);
 by (safe_tac HOL_cs);
-by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));ba 1;be impE 1;ba 1;
-by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));ba 1;be impE 1;ba 1;
+by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));
+by (assume_tac 1);
+by (etac impE 1);
+by (assume_tac 1);
+by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));
+by (assume_tac 1);
+by (etac impE 1);
+by (assume_tac 1);
 by (dtac hasty_elim_clos 1);
 by (safe_tac HOL_cs);
 by (dtac elab_fn_elim 1);
@@ -786,20 +752,17 @@ by (safe_tac prop_cs);
 by ((dtac hasty_env1 1) THEN (assume_tac 1) THEN (fast_tac HOL_cs 1));
 qed "consistency_app2";
 
-val prems = goal MT.thy 
-  "ve |- e ---> v ==> (! t te. ve hastyenv te --> te |- e ===> t --> v hasty t)";
+val [major] = goal MT.thy 
+  "ve |- e ---> v ==> \
+\  (! t te. ve hastyenv te --> te |- e ===> t --> v hasty t)";
 
 (* Proof by induction on the structure of evaluations *)
 
-by (resolve_tac (prems RL [eval_ind]) 1);
+by (rtac (major RS eval_ind) 1);
 by (safe_tac HOL_cs);
-
-by (rtac consistency_const 1);ba 1;ba 1;
-by (rtac consistency_var 1);ba 1;ba 1;ba 1;
-by (rtac consistency_fn 1);ba 1;ba 1;
-by (rtac consistency_fix 1);ba 1;ba 1;ba 1;
-by (rtac consistency_app1 1);ba 1;ba 1;ba 1;ba 1;
-by (rtac consistency_app2 1);ba 5;ba 4;ba 3;ba 2;ba 1;
+by (DEPTH_SOLVE 
+    (ares_tac [consistency_const, consistency_var, consistency_fn,
+	       consistency_fix, consistency_app1, consistency_app2] 1));
 qed "consistency";
 
 (* ############################################################ *)
@@ -810,9 +773,13 @@ val prems = goalw MT.thy [isof_env_def,hasty_env_def]
   "ve isofenv te ==> ve hastyenv te";
 by (cut_facts_tac prems 1);
 by (safe_tac HOL_cs);
-by (etac allE 1);be impE 1;ba 1;be exE 1;be conjE 1;
+by (etac allE 1);
+by (etac impE 1);
+by (assume_tac 1);
+by (etac exE 1);
+by (etac conjE 1);
 by (dtac hasty_const 1);
-by ((rtac ssubst 1) THEN (assume_tac 1) THEN (assume_tac 1));
+by (asm_simp_tac HOL_ss 1);
 qed "basic_consistency_lem";
 
 val prems = goal MT.thy
