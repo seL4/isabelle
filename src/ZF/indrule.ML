@@ -77,7 +77,7 @@ val quant_induct =
 (*Make distinct predicates for each inductive set*)
 
 (*Sigmas and Cartesian products may nest ONLY to the right!*)
-fun mk_pred_typ (t $ A $ B) = 
+fun mk_pred_typ (t $ A $ Abs(_,_,B)) = 
         if t = Pr.sigma  then  iT --> mk_pred_typ B
                          else  iT --> oT
   | mk_pred_typ _           =  iT --> oT
