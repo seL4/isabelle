@@ -122,7 +122,8 @@ logics (again);
 cancelling out common nat summands from =, <, <= (in)equalities, or
 differences; simplification procedures nat_cancel_factor for
 cancelling common factor from =, <, <= (in)equalities over natural
-sums;  nat_cancel contains both kinds of procedures;
+sums; nat_cancel contains both kinds of procedures, it is installed by
+default in Arith.thy -- this COULD MAKE EXISTING PROOFS FAIL;
 
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)'  (or t=x)
