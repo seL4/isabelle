@@ -35,7 +35,6 @@ val hypreal_arith_setup =
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the hypreals are dense!*)
     simpset = simpset}),
   arith_inj_const ("HyperDef.hypreal_of_real", HOLogic.realT --> hyprealT),
-  arith_discrete ("HyperDef.hypreal",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_hypreal_arith_simproc]];
 
 end;

@@ -126,7 +126,6 @@ val real_arith_setup =
     simpset = simpset addsimps simps}),
   arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT),
   arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT),
-  arith_discrete ("RealDef.real",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_real_arith_simproc]];
 
 (* some thms for injection nat => real:
