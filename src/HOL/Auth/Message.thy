@@ -4,7 +4,7 @@
     Copyright   1996  University of Cambridge
 
 Datatypes of agents and messages;
-Inductive relations "parts", "analyze" and "synthesize"
+Inductive relations "parts", "analz" and "synth"
 *)
 
 Message = Arith +
@@ -77,38 +77,29 @@ inductive "parts H"
     Body    "Crypt X K : parts H ==> X : parts H"
 
 
-(** Inductive definition of "analyze" -- what can be broken down from a set of
+(** Inductive definition of "analz" -- what can be broken down from a set of
     messages, including keys.  A form of downward closure.  Pairs can
     be taken apart; messages decrypted with known keys.  **)
 
-consts  analyze   :: msg set => msg set
-inductive "analyze H"
+consts  analz   :: msg set => msg set
+inductive "analz H"
   intrs 
-    Inj     "X: H ==> X: analyze H"
-
-    Fst     "{|X,Y|} : analyze H ==> X : analyze H"
-
-    Snd     "{|X,Y|} : analyze H ==> Y : analyze H"
-
-    Decrypt "[| Crypt X K : analyze H; Key(invKey K): analyze H
-             |] ==> X : analyze H"
+    Inj     "X: H ==> X: analz H"
+    Fst     "{|X,Y|} : analz H ==> X : analz H"
+    Snd     "{|X,Y|} : analz H ==> Y : analz H"
+    Decrypt "[| Crypt X K : analz H; Key(invKey K): analz H |] ==> X : analz H"
 
 
-(** Inductive definition of "synthesize" -- what can be built up from a set of
+(** Inductive definition of "synth" -- what can be built up from a set of
     messages.  A form of upward closure.  Pairs can be built, messages
     encrypted with known keys.  Agent names may be quoted.  **)
 
-consts  synthesize   :: msg set => msg set
-inductive "synthesize H"
+consts  synth   :: msg set => msg set
+inductive "synth H"
   intrs 
-    Inj     "X: H ==> X: synthesize H"
-
-    Agent   "Agent agt : synthesize H"
-
-    MPair   "[| X: synthesize H;  Y: synthesize H
-             |] ==> {|X,Y|} : synthesize H"
-
-    Crypt   "[| X: synthesize H; Key(K): synthesize H
-             |] ==> Crypt X K : synthesize H"
+    Inj     "X: H ==> X: synth H"
+    Agent   "Agent agt : synth H"
+    MPair   "[| X: synth H;  Y: synth H |] ==> {|X,Y|} : synth H"
+    Crypt   "[| X: synth H; Key(K): synth H |] ==> Crypt X K : synth H"
 
 end

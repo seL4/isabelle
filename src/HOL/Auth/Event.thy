@@ -60,7 +60,7 @@ primrec sees list
 
 constdefs
   knownBy :: [event list, msg] => agent set
-  "knownBy evs X == {A. X: analyze (sees A evs)}"
+  "knownBy evs X == {A. X: analz (sees A evs)}"
 
 
 (*Agents generate "random" nonces.  Different traces always yield
@@ -95,7 +95,7 @@ inductive traces
     (*The enemy MAY say anything he CAN say.  We do not expect him to
       invent new nonces here, but he can also use NS1.*)
     Fake "[| evs: traces;  B ~= Enemy;  
-             X: synthesize(analyze(sees Enemy evs))
+             X: synth(analz(sees Enemy evs))
           |] ==> (Says Enemy B X) # evs : traces"
 
     NS1  "[| evs: traces;  A ~= Server
@@ -118,15 +118,15 @@ inductive traces
                               (serverKey A))) 
                    # evs';
              A = Friend i;
-             (Says A Server {|Agent A, Agent B, Nonce NA|}) : setOfList evs'
+             (Says A Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs'
           |] ==> (Says A B X) # evs : traces"
 
 (*Initial version of NS2 had 
 
         {|Agent A, Agent B, Key (newK evs), Nonce NA|}
 
-  for the encrypted part; the version above is LESS transparent, hence
-  maybe HARDER to prove.  Also it is precisely as in the BAN paper.
+  for the encrypted part; the version above is LESS explicit, hence
+  HARDER to prove.  Also it is precisely as in the BAN paper.
 *)
 
 end
