@@ -2,21 +2,25 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
+*)
 
-Well-typedness of Java programs
+header "Well-typedness Constraints"
 
+theory WellType = Term + WellForm:
+
+text {*
 the formulation of well-typedness of method calls given below (as well as
 the Java Specification 1.0) is a little too restrictive: Is does not allow
 methods of class Object to be called upon references of interface type.
 
-simplifications:
-* the type rules include all static checks on expressions and statements, e.g.
-  definedness of names (of parameters, locals, fields, methods)
-
-*)
-
-theory WellType = Term + WellForm:
-
+\begin{description}
+\item[simplifications:]\ \\
+\begin{itemize}
+\item the type rules include all static checks on expressions and statements, 
+  e.g.\ definedness of names (of parameters, locals, fields, methods)
+\end{itemize}
+\end{description}
+*}
 types	lenv (* local variables, including method parameters and This *)
 	= "vname \<leadsto> ty"
         'c env

@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen
-
-Class declarations and programs
 *)
+
+header "Class Declarations and whole Programs"
 
 theory Decl = Type:
 

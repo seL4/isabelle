@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-State for evaluation of Java expressions and statements
 *)
+
+header "Program State"
 
 theory State = TypeRel + Value:
 

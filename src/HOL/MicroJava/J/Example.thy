@@ -2,14 +2,22 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen
+*)
 
-The following example Bali program includes:
+header "Example MicroJava Program"
+
+theory Example = Eval:
+
+text {* 
+The following example MicroJava program includes:
  class declarations with inheritance, hiding of fields, and overriding of
   methods (with refined result type), 
  instance creation, local assignment, sequential composition,
  method call with dynamic binding, literal values,
- expression statement, local access, type cast, field assignment (in part), skip
+ expression statement, local access, type cast, field assignment (in part), 
+ skip.
 
+\begin{verbatim}
 class Base {
   boolean vee;
   Base foo(Base x) {return x;}
@@ -26,9 +34,8 @@ class Example {
     e.foo(null);
   }
 }
-*)
-
-theory Example = Eval:
+\end{verbatim}
+*}
 
 datatype cnam_ = Base_ | Ext_
 datatype vnam_ = vee_ | x_ | e_

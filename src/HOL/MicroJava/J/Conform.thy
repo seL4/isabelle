@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-Conformity relations for type safety of Java
 *)
+
+header "Conformity Relations for Type Soundness Proof"
 
 theory Conform = State + WellType:
 

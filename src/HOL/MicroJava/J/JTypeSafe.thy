@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-Type Safety Proof for MicroJava
 *)
+
+header "Type Safety Proof"
 
 theory JTypeSafe = Eval + Conform:
 
@@ -280,7 +280,7 @@ apply(  simp (no_asm_simp))
 apply(  fast intro: hext_trans)
 apply( simp)
 apply( drule eval_no_xcpt)
-apply( erule FAss_type_sound, simp (no_asm) (*###rule refl*), assumption+)
+apply( erule FAss_type_sound, rule HOL.refl, assumption+)
 
 apply( tactic prune_params_tac)
 (* Level 52 *)

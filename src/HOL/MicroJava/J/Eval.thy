@@ -2,10 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-Operational evaluation (big-step) semantics of the 
-execution of Java expressions and statements
 *)
+
+header "Operational Evaluation (big-step) Semantics"
 
 theory Eval = State + WellType:
 

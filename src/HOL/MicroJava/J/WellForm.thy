@@ -2,20 +2,28 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-Well-formedness of Java programs
-for static checks on expressions and statements, see WellType.thy
-
-improvements over Java Specification 1.0 (cf. 8.4.6.3, 8.4.6.4, 9.4.1):
-* a method implementing or overwriting another method may have a result type 
-  that widens to the result type of the other method (instead of identical type)
-
-simplifications:
-* for uniformity, Object is assumed to be declared like any other class
 *)
+
+header "Well-formedness of Java programs"
 
 theory WellForm = TypeRel:
 
+text {*
+for static checks on expressions and statements, see WellType.
+
+\begin{description}
+\item[improvements over Java Specification 1.0 (cf. 8.4.6.3, 8.4.6.4, 9.4.1):]\ \\
+\begin{itemize}
+\item a method implementing or overwriting another method may have a result type
+that widens to the result type of the other method (instead of identical type)
+\end{itemize}
+
+\item[simplifications:]\ \\
+\begin{itemize}
+\item for uniformity, Object is assumed to be declared like any other class
+\end{itemize}
+\end{description}
+*}
 types 'c wf_mb = "'c prog => cname => 'c mdecl => bool"
 
 constdefs

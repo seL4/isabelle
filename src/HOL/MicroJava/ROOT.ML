@@ -1,4 +1,3 @@
-
 goals_limit := 1;
 
 add_path "J";

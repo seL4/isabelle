@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-The relations between Java types
 *)
+
+header "Relations between Java Types"
 
 theory TypeRel = Decl:
 

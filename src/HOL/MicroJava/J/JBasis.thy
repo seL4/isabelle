@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 TU Muenchen
-
-Some auxiliary definitions.
 *)
+
+header "Some Auxiliary Definitions"
 
 theory JBasis = Main: 
 
@@ -14,8 +14,8 @@ section "unique"
  
 constdefs
 
-  unique  :: "('a \\<times> 'b) list => bool"
- "unique  == nodups \\<circ> map fst"
+  unique  :: "('a \<times> 'b) list => bool"
+ "unique  == nodups \<circ> map fst"
 
 
 lemma fst_in_set_lemma [rule_format (no_asm)]: 
@@ -55,7 +55,7 @@ apply  auto
 done
 
 lemma Ball_set_table_: 
-  "(\\<forall>(x,y)\\<in>set l. P x y) --> (\\<forall>x. \\<forall>y. map_of l x = Some y --> P x y)"
+  "(\<forall>(x,y)\<in>set l. P x y) --> (\<forall>x. \<forall>y. map_of l x = Some y --> P x y)"
 apply(induct_tac "l")
 apply(simp_all (no_asm))
 apply safe

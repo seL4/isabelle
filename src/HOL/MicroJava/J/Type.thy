@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
-
-Java types
 *)
+
+header "Java types"
 
 theory Type = JBasis:
 
