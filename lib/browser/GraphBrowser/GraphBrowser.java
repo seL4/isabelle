@@ -129,7 +129,7 @@ public class GraphBrowser extends Applet {
 
 	public void initBrowser(InputStream is) {
 		try {
-			TreeNode tn=new TreeNode("Sessions","",-1,true);
+			TreeNode tn=new TreeNode("Root","",-1,true);
 			gv=new GraphView(new Graph(is,tn),this);
 			tb=new TreeBrowser(tn,gv);
 			gv.setTreeBrowser(tb);
