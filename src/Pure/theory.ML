@@ -18,13 +18,9 @@ sig
       parents: theory list}
   val sign_of           : theory -> Sign.sg
   val syn_of            : theory -> Syntax.syntax
-  val stamps_of_thy     : theory -> string ref list
   val parents_of        : theory -> theory list
   val subthy            : theory * theory -> bool
   val eq_thy            : theory * theory -> bool
-  val proto_pure_thy    : theory
-  val pure_thy          : theory
-  val cpure_thy         : theory
   val cert_axm          : Sign.sg -> string * term -> string * term
   val read_axm          : Sign.sg -> string * string -> string * term
   val inferT_axm        : Sign.sg -> string * term -> string * term
@@ -34,6 +30,9 @@ end
 signature THEORY =
 sig
   include BASIC_THEORY
+  val proto_pure        : theory
+  val pure              : theory
+  val cpure             : theory
   val thmK		: string
   val oracleK		: string
   (*theory extendsion primitives*)
@@ -79,6 +78,7 @@ sig
     (string -> exn -> unit) -> theory -> theory
   val get_data		: theory -> string -> exn
   val put_data		: string * exn -> theory -> theory
+  val prep_ext		: theory -> theory
   val prep_ext_merge    : theory list -> theory
 end;
 
@@ -104,9 +104,6 @@ exception THEORY of string * theory list;
 val sign_of = #sign o rep_theory;
 val syn_of = #syn o Sign.rep_sg o sign_of;
 
-(*stamps associated with a theory*)
-val stamps_of_thy = #stamps o Sign.rep_sg o sign_of;
-
 (*return the immediate ancestors*)
 val parents_of = #parents o rep_theory;
 
@@ -121,9 +118,9 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 fun make_thy sign axms oras parents =
   Theory {sign = sign, new_axioms = axms, oracles = oras, parents = parents};
 
-val proto_pure_thy = make_thy Sign.proto_pure Symtab.null Symtab.null [];
-val pure_thy = make_thy Sign.pure Symtab.null Symtab.null [proto_pure_thy];
-val cpure_thy = make_thy Sign.cpure Symtab.null Symtab.null [proto_pure_thy];
+val proto_pure = make_thy Sign.proto_pure Symtab.null Symtab.null [];
+val pure = make_thy Sign.pure Symtab.null Symtab.null [proto_pure];
+val cpure = make_thy Sign.cpure Symtab.null Symtab.null [proto_pure];
 
 
 
@@ -189,7 +186,7 @@ val add_trrules_i    = ext_sg Sign.add_trrules_i;
 val add_path         = ext_sg Sign.add_path;
 val add_space        = ext_sg Sign.add_space;
 val add_name         = ext_sg Sign.add_name;
-
+val prep_ext         = ext_sg (K Sign.prep_ext) ();
 
 
 (** add axioms **)
@@ -393,6 +390,7 @@ fun prep_ext_merge thys =
   let
     fun is_union thy = forall (fn t => subthy (t, thy)) thys;
     val is_draft = Sign.is_draft o sign_of;
+    val begin_ext = Sign.add_path "/" o Sign.prep_ext;
 
     fun add_sign (sg, Theory {sign, ...}) =
       Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
@@ -405,10 +403,10 @@ fun prep_ext_merge thys =
     else
       (case find_first is_union thys of
         Some (Theory {sign, oracles, new_axioms = _, parents = _}) =>
-          make_thy (Sign.make_draft sign) Symtab.null oracles thys
+          make_thy (begin_ext sign) Symtab.null oracles thys
       | None =>
           make_thy
-            (Sign.make_draft (foldl add_sign (Sign.proto_pure, thys)))
+            (begin_ext (foldl add_sign (Sign.proto_pure, thys)))
             Symtab.null
             (Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
               handle Symtab.DUPS names => err_dup_oras names)

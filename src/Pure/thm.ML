@@ -87,7 +87,6 @@ signature THM =
                                   shyps: sort list, hyps: cterm list, 
                                   prop: cterm}
   val sign_of_thm       : thm -> Sign.sg
-  val stamps_of_thm     : thm -> string ref list
   val transfer		: theory -> thm -> thm
   val tpairs_of         : thm -> (term * term) list
   val prems_of          : thm -> term list
@@ -411,7 +410,6 @@ exception THM of string * int * thm list;
 
 
 fun sign_of_thm (Thm {sign_ref, ...}) = Sign.deref sign_ref;
-val stamps_of_thm = #stamps o Sign.rep_sg o sign_of_thm;
 
 (*merge signatures of two theorems; raise exception if incompatible*)
 fun merge_thm_sgs
@@ -752,7 +750,7 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) : thm =
 (* Definition of the relation =?= *)
 val flexpair_def = fix_shyps [] []
   (Thm{sign_ref= Sign.self_ref Sign.proto_pure, 
-       der = Join(Axiom(pure_thy, "flexpair_def"), []),
+       der = Join(Axiom(Theory.proto_pure, "flexpair_def"), []),
        shyps = [], 
        hyps = [], 
        maxidx = 0,

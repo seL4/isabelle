@@ -48,8 +48,8 @@ use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
 
-structure Pure  = struct val thy = Theory.pure_thy end;
-structure CPure = struct val thy = Theory.cpure_thy end;
+structure Pure  = struct val thy = Theory.pure end;
+structure CPure = struct val thy = Theory.cpure end;
 
 (*Theory parser and loader*)
 cd "Thy";

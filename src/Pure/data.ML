@@ -75,7 +75,7 @@ fun merge (Data tab1, Data tab2) =
   in Data (Symtab.make data) end;
 
 
-fun prep_ext data = merge (data, empty);		(* FIXME !? *)
+fun prep_ext data = merge (data, empty);
 
 fun init (Data tab) kind e ext mrg prt =
   Data (Symtab.update_new ((kind, (e, (ext, mrg, prt))), tab))
