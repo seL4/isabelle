@@ -55,7 +55,6 @@ use_thy "RelPow";
 use_thy "Finite";
 use_thy "Sexp";
 use_thy "WF_Rel";
-use_thy "List";
 use_thy "Map";
 
 (*TFL: recursive function definitions*)
