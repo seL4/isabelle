@@ -6,7 +6,7 @@ Miscellaneous examples for Higher-Order Logic.
 
 time_use_thy "Recdefs";
 time_use_thy "Primrec";
-(* FIXME time_use_thy "Locales"; *)
+time_use_thy "Locales";
 time_use_thy "Records";
 time_use_thy "MonoidGroup";
 time_use_thy "StringEx";
