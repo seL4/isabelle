@@ -19,6 +19,7 @@ use "method.ML";
 use "local_defs.ML";
 use "calculation.ML";
 use "skip_proof.ML";
+use "obtain.ML";
 
 (*outer syntax*)
 use "comment.ML";
@@ -52,6 +53,7 @@ struct
   structure LocalDefs = LocalDefs;
   structure Calculation = Calculation;
   structure SkipProof = SkipProof;
+  structure Obtain = Obtain;
   structure Comment = Comment;
   structure OuterLex = OuterLex;
   structure OuterParse = OuterParse;
