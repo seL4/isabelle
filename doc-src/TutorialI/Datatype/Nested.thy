@@ -46,12 +46,15 @@ substs:: "('a\\<Rightarrow>('a,'b)term) \\<Rightarrow> ('a,'b)term list \\<Right
 
 primrec
   "subst s (Var x) = s x"
+  subst_App:
   "subst s (App f ts) = App f (substs s ts)"
 
   "substs s [] = []"
   "substs s (t # ts) = subst s t # substs s ts";
 
 text{*\noindent
+You should ignore the label \isa{subst\_App} for the moment.
+
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
 the fact that the identity substitution does not change a term needs to be
@@ -80,6 +83,69 @@ Correct this statement (you will find that it does not type-check),
 strengthen it, and prove it. (Note: \ttindexbold{o} is function composition;
 its definition is found in theorem \isa{o_def}).
 \end{exercise}
+\begin{exercise}\label{ex:trev-trev}
+  Define a function \isa{trev} of type @{typ"('a,'b)term => ('a,'b)term"} that
+  recursively reverses the order of arguments of all function symbols in a
+  term. Prove that \isa{trev(trev t) = t}.
+\end{exercise}
+
+The experienced functional programmer may feel that our above definition of
+\isa{subst} is unnecessarily complicated in that \isa{substs} is completely
+unnecessary. The @{term"App"}-case can be defined directly as
+\begin{quote}
+@{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
+\end{quote}
+where @{term"map"} is the standard list function such that
+\isa{map f [x1,...,xn] = [f x1,...,f xn]}. This is true, but Isabelle insists
+on the above fixed format. Fortunately, we can easily \emph{prove} that the
+suggested equation holds:
+*}
+
+lemma [simp]: "subst s (App f ts) = App f (map (subst s) ts)"
+by(induct_tac ts, auto)
+
+text{*
+What is more, we can now disable the old defining equation as a
+simplification rule:
+*}
+
+lemmas [simp del] = subst_App
+
+text{*
+The advantage is that now we have replaced @{term"substs"} by @{term"map"},
+we can profit from the large number of pre-proved lemmas about @{term"map"}.
+We illustrate this with an example, reversing terms:
+*}
+
+consts trev  :: "('a,'b)term => ('a,'b)term"
+       trevs :: "('a,'b)term list => ('a,'b)term list"
+primrec   "trev (Var x) = Var x"
+trev_App: "trev (App f ts) = App f (trevs ts)"
+
+          "trevs [] = []"
+          "trevs (t#ts) = trevs ts @ [trev t]"
+
+text{*\noindent
+Following the above methodology, we re-express \isa{trev\_App}:
+*}
+
+lemma [simp]: "trev (App f ts) = App f (rev(map trev ts))"
+by(induct_tac ts, auto)
+lemmas [simp del] = trev_App
+
+text{*\noindent
+Now it becomes quite easy to prove @{term"trev(trev t) = t"}, except that we
+still have to come up with the second half of the conjunction:
+*}
+
+lemma "trev(trev t) = (t::('a,'b)term) &
+        map trev (map trev ts) = (ts::('a,'b)term list)";
+by(induct_tac t and ts, auto simp add:rev_map);
+
+text{*\noindent
+Getting rid of this second conjunct requires deriving a new induction schema
+for \isa{term}, which is beyond what we have learned so far. Please stay
+tuned, we will solve this final problem in \S\ref{sec:der-ind-schemas}.
 
 Of course, you may also combine mutual and nested recursion. For example,
 constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of

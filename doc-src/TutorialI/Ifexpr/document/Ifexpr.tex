@@ -13,7 +13,7 @@ that purpose:%
 \noindent
 The two constants are represented by \isa{Const\ True} and
 \isa{Const\ False}. Variables are represented by terms of the form
-\isa{Var\ n}, where \isa{n} is a natural number (type \isa{nat}).
+\isa{Var\ \mbox{n}}, where \isa{\mbox{n}} is a natural number (type \isa{nat}).
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
 \isa{And\ (Var\ 0)\ (Neg\ (Var\ 1))}.
 
@@ -83,8 +83,8 @@ not show them below.
 More interesting is the transformation of If-expressions into a normal form
 where the first argument of \isa{IF} cannot be another \isa{IF} but
 must be a constant or variable. Such a normal form can be computed by
-repeatedly replacing a subterm of the form \isa{IF\ (IF\ b\ x\ y)\ z\ u} by
-\isa{IF\ b\ (IF\ x\ z\ u)\ (IF\ y\ z\ u)}, which has the same value. The following
+repeatedly replacing a subterm of the form \isa{IF\ (IF\ \mbox{b}\ \mbox{x}\ \mbox{y})\ \mbox{z}\ \mbox{u}} by
+\isa{IF\ \mbox{b}\ (IF\ \mbox{x}\ \mbox{z}\ \mbox{u})\ (IF\ \mbox{y}\ \mbox{z}\ \mbox{u})}, which has the same value. The following
 primitive recursive functions perform this task:%
 \end{isamarkuptext}%
 \isacommand{consts}\ normif\ ::\ {"}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{"}\isanewline

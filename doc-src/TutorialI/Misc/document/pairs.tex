@@ -15,8 +15,8 @@ example \isa{\isasymlambda(x,y,z).x+y+z} and
 In addition to explicit $\lambda$-abstractions, tuple patterns can be used in
 most variable binding constructs. Typical examples are
 \begin{quote}
-\isa{let\ (x,\ y)\ =\ f\ z\ in\ (y,\ x)}\\
-\isa{case\ xs\ of\ []\ {\isasymRightarrow}\ 0\ |\ (x,\ y)\ \#\ zs\ {\isasymRightarrow}\ x\ +\ y}
+\isa{let\ (\mbox{x},\ \mbox{y})\ =\ \mbox{f}\ \mbox{z}\ in\ (\mbox{y},\ \mbox{x})}\\
+\isa{case\ \mbox{xs}\ of\ []\ {\isasymRightarrow}\ 0\ |\ (\mbox{x},\ \mbox{y})\ \#\ \mbox{zs}\ {\isasymRightarrow}\ \mbox{x}\ +\ \mbox{y}}
 \end{quote}
 Further important examples are quantifiers and sets (see~\S\ref{quant-pats}).%
 \end{isamarkuptext}%

@@ -22,11 +22,11 @@ example, the term \isa{Cons True (Cons False Nil)} is a value of type
 datatype declaration is annotated with an alternative syntax: instead of
 \isa{Nil} and \isa{Cons x xs} we can write
 \isa{[]}\index{$HOL2list@\texttt{[]}|bold} and
-\isa{x\ \#\ xs}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
+\isa{\mbox{x}\ \#\ \mbox{xs}}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
 alternative syntax is the standard syntax. Thus the list \isa{Cons True
 (Cons False Nil)} becomes \isa{True\ \#\ False\ \#\ []}. The annotation
 \isacommand{infixr}\indexbold{*infixr} means that \isa{\#} associates to
-the right, i.e.\ the term \isa{x\ \#\ y\ \#\ z} is read as \isa{x
+the right, i.e.\ the term \isa{\mbox{x}\ \#\ \mbox{y}\ \#\ \mbox{z}} is read as \isa{x
 \# (y \# z)} and not as \isa{(x \# y) \# z}.
 
 \begin{warn}
@@ -47,7 +47,7 @@ In contrast to ML, Isabelle insists on explicit declarations of all functions
 restriction, the order of items in a theory file is unconstrained.) Function
 \isa{app} is annotated with concrete syntax too. Instead of the prefix
 syntax \isa{app xs ys} the infix
-\isa{xs\ @\ ys}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
+\isa{\mbox{xs}\ @\ \mbox{ys}}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
@@ -183,7 +183,7 @@ this subgoal. Their deeper significance is explained in \S\ref{sec:PCproofs}.
 The {\it assumptions} are the local assumptions for this subgoal and {\it
   conclusion} is the actual proposition to be proved. Typical proof steps
 that add new assumptions are induction or case distinction. In our example
-the only assumption is the induction hypothesis \isa{rev\ (rev\ list)\ =\ list}, where \isa{list} is a variable name chosen by Isabelle. If there
+the only assumption is the induction hypothesis \isa{rev\ (rev\ \mbox{list})\ =\ \mbox{list}}, where \isa{list} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.

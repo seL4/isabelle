@@ -11,7 +11,7 @@ write down such a tree? Using functional notation! For example, the term
 \begin{quote}
 
 \begin{isabelle}%
-Branch\ 0\ ({\isasymlambda}i.\ Branch\ i\ ({\isasymlambda}n.\ Tip))
+Branch\ 0\ ({\isasymlambda}\mbox{i}.\ Branch\ \mbox{i}\ ({\isasymlambda}\mbox{n}.\ Tip))
 \end{isabelle}%
 
 \end{quote}
@@ -29,15 +29,15 @@ Function \isa{map_bt} applies a function to all labels in a \isa{bigtree}:%
 \noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of \isa{map_bt} involve only subtrees obtained from
 \isa{F}, i.e.\ the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might have written \isa{map\_bt\ f\ {\isasymcirc}\ F}
-instead of \isa{{\isasymlambda}i.\ map\_bt\ f\ (F\ i)}, but the former is not accepted by
+seasoned functional programmer might have written \isa{map\_bt\ \mbox{f}\ {\isasymcirc}\ \mbox{F}}
+instead of \isa{{\isasymlambda}\mbox{i}.\ map\_bt\ \mbox{f}\ (\mbox{F}\ \mbox{i})}, but the former is not accepted by
 Isabelle because the termination proof is not as obvious since
 \isa{map_bt} is only partially applied.
 
 The following lemma has a canonical proof%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {"}map\_bt\ (g\ o\ f)\ T\ =\ map\_bt\ g\ (map\_bt\ f\ T){"}\isanewline
-\isacommand{apply}(induct\_tac\ {"}T{"},\ auto)\isacommand{.}%
+\isacommand{by}(induct\_tac\ {"}T{"},\ auto)%
 \begin{isamarkuptext}%
 \noindent
 but it is worth taking a look at the proof state after the induction step

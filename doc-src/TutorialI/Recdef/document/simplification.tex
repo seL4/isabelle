@@ -18,7 +18,7 @@ each recursive call. The resulting termination condition
 \begin{quote}
 
 \begin{isabelle}%
-n\ {\isasymnoteq}\ 0\ {\isasymLongrightarrow}\ m\ mod\ n\ <\ n
+\mbox{n}\ {\isasymnoteq}\ 0\ {\isasymLongrightarrow}\ \mbox{m}\ mod\ \mbox{n}\ <\ \mbox{n}
 \end{isabelle}%
 
 \end{quote}
@@ -33,7 +33,7 @@ example, simplification reduces
 \begin{quote}
 
 \begin{isabelle}%
-gcd\ (m,\ n)\ =\ k
+gcd\ (\mbox{m},\ \mbox{n})\ =\ \mbox{k}
 \end{isabelle}%
 
 \end{quote}
@@ -41,7 +41,7 @@ in one step to
 \begin{quote}
 
 \begin{isabelle}%
-(if\ n\ =\ 0\ then\ m\ else\ gcd\ (n,\ m\ mod\ n))\ =\ k
+(if\ \mbox{n}\ =\ 0\ then\ \mbox{m}\ else\ gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n}))\ =\ \mbox{k}
 \end{isabelle}%
 
 \end{quote}
@@ -49,11 +49,11 @@ where the condition cannot be reduced further, and splitting leads to
 \begin{quote}
 
 \begin{isabelle}%
-(n\ =\ 0\ {\isasymlongrightarrow}\ m\ =\ k)\ {\isasymand}\ (n\ {\isasymnoteq}\ 0\ {\isasymlongrightarrow}\ gcd\ (n,\ m\ mod\ n)\ =\ k)
+(\mbox{n}\ =\ 0\ {\isasymlongrightarrow}\ \mbox{m}\ =\ \mbox{k})\ {\isasymand}\ (\mbox{n}\ {\isasymnoteq}\ 0\ {\isasymlongrightarrow}\ gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n})\ =\ \mbox{k})
 \end{isabelle}%
 
 \end{quote}
-Since the recursive call \isa{gcd\ (n,\ m\ mod\ n)} is no longer protected by
+Since the recursive call \isa{gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n})} is no longer protected by
 an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.

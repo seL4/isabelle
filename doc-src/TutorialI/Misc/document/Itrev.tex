@@ -47,7 +47,7 @@ just not true---the correct generalization is%
 \begin{isamarkuptxt}%
 \noindent
 If \isa{ys} is replaced by \isa{[]}, the right-hand side simplifies to
-\isa{rev\ xs}, just as required.
+\isa{rev\ \mbox{xs}}, just as required.
 
 In this particular instance it was easy to guess the right generalization,
 but in more complex situations a good deal of creativity is needed. This is
@@ -64,7 +64,7 @@ not there:
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
-\isa{a\ \#\ ys} instead of \isa{ys}. Hence we prove the theorem
+\isa{\mbox{a}\ \#\ \mbox{ys}} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {"}{\isasymforall}ys.\ itrev\ xs\ ys\ =\ rev\ xs\ @\ ys{"}%
@@ -79,7 +79,14 @@ variables {\em(except the induction variable itself!)}.}
 This prevents trivial failures like the above and does not change the
 provability of the goal. Because it is not always required, and may even
 complicate matters in some cases, this heuristic is often not
-applied blindly.%
+applied blindly.
+
+In general, if you have tried the above heuristics and still find your
+induction does not go through, and no obvious lemma suggests itself, you may
+need to generalize your proposition even further. This requires insight into
+the problem at hand and is beyond simple rules of thumb. In a nutshell: you
+will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
+to learn about some advanced techniques for inductive proofs.%
 \end{isamarkuptxt}%
 \end{isabelle}%
 %%% Local Variables:

@@ -13,7 +13,7 @@ Note that we need to quote \isa{term} on the left to avoid confusion with
 the command \isacommand{term}.
 Parameter \isa{'a} is the type of variables and \isa{'b} the type of
 function symbols.
-A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ [Var\ x,\ App\ g\ [Var\ y]]}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
+A mathematical term like $f(x,g(y))$ becomes \isa{App\ \mbox{f}\ [Var\ \mbox{x},\ App\ \mbox{g}\ [Var\ \mbox{y}]]}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
 suitable values, e.g.\ numbers or strings.
 
 What complicates the definition of \isa{term} is the nested occurrence of
@@ -41,12 +41,15 @@ substs::\ {"}('a{\isasymRightarrow}('a,'b)term)\ {\isasymRightarrow}\ ('a,'b)ter
 \isanewline
 \isacommand{primrec}\isanewline
 \ \ {"}subst\ s\ (Var\ x)\ =\ s\ x{"}\isanewline
+\ \ subst\_App:\isanewline
 \ \ {"}subst\ s\ (App\ f\ ts)\ =\ App\ f\ (substs\ s\ ts){"}\isanewline
 \isanewline
 \ \ {"}substs\ s\ []\ =\ []{"}\isanewline
 \ \ {"}substs\ s\ (t\ \#\ ts)\ =\ subst\ s\ t\ \#\ substs\ s\ ts{"}%
 \begin{isamarkuptext}%
 \noindent
+You should ignore the label \isa{subst\_App} for the moment.
+
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
 the fact that the identity substitution does not change a term needs to be
@@ -58,7 +61,7 @@ strengthened and proved as follows:%
 \begin{isamarkuptext}%
 \noindent
 Note that \isa{Var} is the identity substitution because by definition it
-leaves variables unchanged: \isa{subst\ Var\ (Var\ x)\ =\ Var\ x}. Note also
+leaves variables unchanged: \isa{subst\ Var\ (Var\ \mbox{x})\ =\ Var\ \mbox{x}}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
 parameters \isa{('a,'b)}. As a result, induction would fail
@@ -74,6 +77,66 @@ Correct this statement (you will find that it does not type-check),
 strengthen it, and prove it. (Note: \ttindexbold{o} is function composition;
 its definition is found in theorem \isa{o_def}).
 \end{exercise}
+\begin{exercise}\label{ex:trev-trev}
+  Define a function \isa{trev} of type \isa{(\mbox{'a},\ \mbox{'b})\ term\ {\isasymRightarrow}\ (\mbox{'a},\ \mbox{'b})\ term} that
+  recursively reverses the order of arguments of all function symbols in a
+  term. Prove that \isa{trev(trev t) = t}.
+\end{exercise}
+
+The experienced functional programmer may feel that our above definition of
+\isa{subst} is unnecessarily complicated in that \isa{substs} is completely
+unnecessary. The \isa{App}-case can be defined directly as
+\begin{quote}
+
+\begin{isabelle}%
+subst\ \mbox{s}\ (App\ \mbox{f}\ \mbox{ts})\ =\ App\ \mbox{f}\ (map\ (subst\ \mbox{s})\ \mbox{ts})
+\end{isabelle}%
+
+\end{quote}
+where \isa{map} is the standard list function such that
+\isa{map f [x1,...,xn] = [f x1,...,f xn]}. This is true, but Isabelle insists
+on the above fixed format. Fortunately, we can easily \emph{prove} that the
+suggested equation holds:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ [simp]:\ {"}subst\ s\ (App\ f\ ts)\ =\ App\ f\ (map\ (subst\ s)\ ts){"}\isanewline
+\isacommand{by}(induct\_tac\ ts,\ auto)%
+\begin{isamarkuptext}%
+What is more, we can now disable the old defining equation as a
+simplification rule:%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ [simp\ del]\ =\ subst\_App%
+\begin{isamarkuptext}%
+The advantage is that now we have replaced \isa{substs} by \isa{map},
+we can profit from the large number of pre-proved lemmas about \isa{map}.
+We illustrate this with an example, reversing terms:%
+\end{isamarkuptext}%
+\isacommand{consts}\ trev\ \ ::\ {"}('a,'b)term\ =>\ ('a,'b)term{"}\isanewline
+\ \ \ \ \ \ \ trevs\ ::\ {"}('a,'b)term\ list\ =>\ ('a,'b)term\ list{"}\isanewline
+\isacommand{primrec}\ \ \ {"}trev\ (Var\ x)\ =\ Var\ x{"}\isanewline
+trev\_App:\ {"}trev\ (App\ f\ ts)\ =\ App\ f\ (trevs\ ts){"}\isanewline
+\isanewline
+\ \ \ \ \ \ \ \ \ \ {"}trevs\ []\ =\ []{"}\isanewline
+\ \ \ \ \ \ \ \ \ \ {"}trevs\ (t\#ts)\ =\ trevs\ ts\ @\ [trev\ t]{"}%
+\begin{isamarkuptext}%
+\noindent
+Following the above methodology, we re-express \isa{trev\_App}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ [simp]:\ {"}trev\ (App\ f\ ts)\ =\ App\ f\ (rev(map\ trev\ ts)){"}\isanewline
+\isacommand{by}(induct\_tac\ ts,\ auto)\isanewline
+\isacommand{lemmas}\ [simp\ del]\ =\ trev\_App%
+\begin{isamarkuptext}%
+\noindent
+Now it becomes quite easy to prove \isa{trev\ (trev\ \mbox{t})\ =\ \mbox{t}}, except that we
+still have to come up with the second half of the conjunction:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {"}trev(trev\ t)\ =\ (t::('a,'b)term)\ \&\isanewline
+\ \ \ \ \ \ \ \ map\ trev\ (map\ trev\ ts)\ =\ (ts::('a,'b)term\ list){"}\isanewline
+\isacommand{by}(induct\_tac\ t\ \isakeyword{and}\ ts,\ auto\ simp\ add:rev\_map)%
+\begin{isamarkuptext}%
+\noindent
+Getting rid of this second conjunct requires deriving a new induction schema
+for \isa{term}, which is beyond what we have learned so far. Please stay
+tuned, we will solve this final problem in \S\ref{sec:der-ind-schemas}.
 
 Of course, you may also combine mutual and nested recursion. For example,
 constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of

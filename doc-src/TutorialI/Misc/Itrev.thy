@@ -84,6 +84,13 @@ This prevents trivial failures like the above and does not change the
 provability of the goal. Because it is not always required, and may even
 complicate matters in some cases, this heuristic is often not
 applied blindly.
+
+In general, if you have tried the above heuristics and still find your
+induction does not go through, and no obvious lemma suggests itself, you may
+need to generalize your proposition even further. This requires insight into
+the problem at hand and is beyond simple rules of thumb. In a nutshell: you
+will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
+to learn about some advanced techniques for inductive proofs.
 *};
 
 (*<*)

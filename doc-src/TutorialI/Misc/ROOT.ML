@@ -16,4 +16,5 @@ use_thy "cond_rewr";
 use_thy "case_splits";
 use_thy "trace_simp";
 use_thy "Itrev";
+use_thy "AdvancedInd";
 use_thy "asm_simp";

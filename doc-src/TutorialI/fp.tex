@@ -185,6 +185,16 @@ Laws about datatypes, such as \isa{[] \isasymnoteq~x\#xs} and
 during proofs by simplification.  The same is true for the equations in
 primitive recursive function definitions.
 
+Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
+the natural numbers (see~\S\ref{sec:nat} below). For lists, \isa{size} is
+just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
+  1}.  In general, \isa{size} returns \isa{0} for all constructors that do
+not have an argument of type $t$, and for all other constructors \isa{1 +}
+the sum of the sizes of all arguments of type $t$. Note that because
+\isa{size} is defined on every datatype, it is overloaded; on lists
+\isa{size} is also called \isa{length}, which is not overloaded.
+
+
 \subsection{Primitive recursion}
 
 Functions on datatypes are usually defined by recursion. In fact, most of the
@@ -267,7 +277,8 @@ to it explicitly in the future.
 
 \begin{warn}
   Induction is only allowed on free (or \isasymAnd-bound) variables that
-  should not occur among the assumptions of the subgoal.  Case distinction
+  should not occur among the assumptions of the subgoal; see
+  \S\ref{sec:ind-var-in-prems} for details. Case distinction
   (\isa{case_tac}) works for arbitrary terms, which need to be
   quoted if they are non-atomic.
 \end{warn}
@@ -301,6 +312,7 @@ to provide the clue.  The necessity of universal quantification
 
 
 \subsection{Natural numbers}
+\label{sec:nat}
 \index{arithmetic|(}
 
 \input{Misc/document/fakenat.tex}
@@ -694,8 +706,9 @@ This section presents advanced forms of \isacommand{datatype}s.
 \input{Datatype/document/ABexpr.tex}
 
 \subsection{Nested recursion}
+\label{sec:nested-datatype}
 
-\input{Datatype/document/Nested.tex}
+{\makeatother\input{Datatype/document/Nested.tex}}
 
 
 \subsection{The limits of nested recursion}
@@ -828,13 +841,25 @@ supplied) sense.
 
 \input{Recdef/document/simplification.tex}
 
-
 \subsection{Induction}
 \index{induction!recursion|(}
 \index{recursion induction|(}
 
 \input{Recdef/document/Induction.tex}
+\label{sec:recdef-induction}
 
 \index{induction!recursion|)}
 \index{recursion induction|)}
+
+%\subsection{Advanced forms of recursion}
+
+%\input{Recdef/document/Nested0.tex}
+%\input{Recdef/document/Nested1.tex}
+
 \index{*recdef|)}
+
+\section{Advanced induction techniques}
+\label{sec:advanced-ind}
+\input{Misc/document/AdvancedInd.tex}
+
+\input{Datatype/document/Nested2.tex}
