@@ -22,6 +22,8 @@ sig
   val pretty_context: context -> Pretty.T list
   val print_proof_data: theory -> unit
   val init: theory -> context
+  val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
+  val fixed_names: context -> string list
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
   val cert_skolem: context -> string -> string
@@ -38,18 +40,23 @@ sig
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
   val warn_extra_tfrees: context -> context -> context
-  val add_binds: (indexname * string option) list -> context -> context
-  val add_binds_i: (indexname * term option) list -> context -> context
+  val generalizeT: context -> context -> typ -> typ
+  val generalize: context -> context -> term -> term
+  val find_free: term -> string -> term option 
+  val export_wrt: context -> context option
+    -> (thm -> thm) * ((int -> tactic) * (int -> tactic)) list
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
-  val match_bind: (string list * string) list -> context -> context
-  val match_bind_i: (term list * term) list -> context -> context
+  val match_bind: bool -> (string list * string) list -> context -> context
+  val match_bind_i: bool -> (term list * term) list -> context -> context
   val read_propp: context * (string * (string list * string list))
     -> context * (term * (term list * term list))
   val cert_propp: context * (term * (term list * term list))
     -> context * (term * (term list * term list))
-  val bind_propp: context * (string * (string list * string list)) -> context * term
-  val bind_propp_i: context * (term * (term list * term list)) -> context * term
+  val bind_propp: context * (string * (string list * string list))
+    -> context * (term * (context -> context))
+  val bind_propp_i: context * (term * (term list * term list))
+    -> context * (term * (context -> context))
   val get_thm: context -> string -> thm
   val get_thms: context -> string -> thm list
   val get_thmss: context -> string list -> thm list
@@ -59,9 +66,6 @@ sig
   val reset_thms: string -> context -> context
   val have_thmss: thm list -> string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
-  val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
-  val fixed_names: context -> string list
-  val most_general_varify_tfrees: thm -> thm
   val assume: ((int -> tactic) * (int -> tactic))
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
@@ -107,7 +111,7 @@ datatype context =
     defs:
       typ Vartab.table *                                                (*type constraints*)
       sort Vartab.table *                                               (*default sorts*)
-      string list};                                                     (*used type var names*)
+      (string list * term list Symtab.table)};                          (*used type variables*)
 
 exception CONTEXT of string * context;
 
@@ -204,7 +208,7 @@ fun pretty_prems ctxt =
   | prems => [Pretty.big_list "prems:" (map pretty_thm prems)]);
 
 fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
-    defs = (types, sorts, used), ...}) =
+    defs = (types, sorts, (used, _)), ...}) =
   let
     val sign = sign_of ctxt;
 
@@ -337,8 +341,15 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty, [],
-      (Vartab.empty, Vartab.empty, []))
+      (Vartab.empty, Vartab.empty, ([], Symtab.empty)))
   end;
+
+
+(* get assumptions *)
+
+fun assumptions (Context {asms = ((asms, _), _), ...}) = asms;
+fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
+fun used_table (Context {defs = (_, _, (_, tab)), ...}) = tab;
 
 
 
@@ -349,8 +360,10 @@ fun def_sort (Context {defs = (_, sorts, _), ...}) xi = Vartab.lookup (sorts, xi
 fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
   (case Vartab.lookup (types, xi) of
     None =>
-      if is_pat then None
-      else (case Vartab.lookup (binds, xi) of Some (Some (_, T)) => Some T | _ => None)
+      if is_pat then None else
+        (case Vartab.lookup (binds, xi) of
+          Some (Some (_, T)) => Some (TypeInfer.polymorphicT T)
+        | _ => None)
   | some => some);
 
 
@@ -405,8 +418,7 @@ fun cert_skolem ctxt x =
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
 fun read_def_termTs freeze sg (types, sorts, used) sTs =
-  let val (cts, env) = Thm.read_def_cterms (sg, types, sorts) used freeze sTs
-  in (map Thm.term_of cts, env) end;
+  Sign.read_def_terms (sg, types, sorts) used freeze sTs;
 
 fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs [sT]);
 
@@ -431,6 +443,10 @@ fun cert_prop_sg sg tm =
 (*beta normal form for terms (not eta normal form), chase variables in
   bindings environment (code taken from Pure/envir.ML)*)
 
+fun unifyT ctxt (T, U) =
+  let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
+  in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) maxidx Vartab.empty (T, U)) end;
+
 fun norm_term (ctxt as Context {binds, ...}) =
   let
     (*raised when norm has no effect on a term, to do sharing instead of copying*)
@@ -439,8 +455,11 @@ fun norm_term (ctxt as Context {binds, ...}) =
     fun norm (t as Var (xi, T)) =
           (case Vartab.lookup (binds, xi) of
             Some (Some (u, U)) =>
-              if T = U then (norm u handle SAME => u)
-              else raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u])
+              let
+                val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
+                  raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u]);
+                val u' = Term.subst_TVars_Vartab env u;
+              in norm u' handle SAME => u' end
           | _ => raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
@@ -476,7 +495,7 @@ end;
 
 (* read terms *)
 
-fun gen_read read app is_pat (ctxt as Context {defs = (_, _, used), ...}) s =
+fun gen_read read app is_pat (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
   (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
@@ -496,10 +515,10 @@ val read_prop = gen_read (read_prop_sg true) I false;
 
 (* certify terms *)
 
-fun gen_cert cert is_pat ctxt t =
-  (cert (sign_of ctxt) t handle TERM (msg, _) => raise CONTEXT (msg, ctxt))
+fun gen_cert cert is_pat ctxt t = t
   |> intern_skolem ctxt false
-  |> (if is_pat then I else norm_term ctxt);
+  |> (if is_pat then I else norm_term ctxt)
+  |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
 val cert_term = gen_cert cert_term_sg false;
 val cert_prop = gen_cert cert_prop_sg false;
@@ -520,9 +539,8 @@ val ins_sorts = foldl_types (foldl_atyps
     | (sorts, TVar v) => Vartab.update (v, sorts)
     | (sorts, _) => sorts));
 
-val ins_used = foldl_types (foldl_atyps
-  (fn (used, TFree (x, _)) => x ins used
-    | (used, TVar ((x, _), _)) => x ins used
+val ins_used = foldl_term_types (fn t => foldl_atyps
+  (fn ((used, tab), TFree (x, _)) => (x ins used, Symtab.update_multi ((x, t), tab))
     | (used, _) => used));
 
 fun ins_skolem def_ty = foldr
@@ -547,17 +565,112 @@ fun declare_term t ctxt = declare (ctxt, t);
 fun declare_terms ts ctxt = foldl declare (ctxt, ts);
 
 
+
+(** Hindley-Milner polymorphism **)
+
+
 (* warn_extra_tfrees *)
 
-fun warn_extra used1 used2 =
-  if used1 = used2 then ()
+local
+
+fun used_free (a, ts) =
+  (case mapfilter (fn Free (x, _) => Some x | _ => None) ts of
+    [] => None
+  | xs => Some (a, xs));
+
+fun warn_extra (names1: string list, tab1) (names2, tab2) =
+  if names1 = names2 then ()
   else
-    (case Library.gen_rems (op =) (used2, used1) of
-      [] => ()
-    | extras => warning ("DANGER!! Just introduced free type variable(s): " ^ commas (rev extras)));
+    let
+      val extra =
+        Library.gen_rems Library.eq_fst (Symtab.dest tab2, Symtab.dest tab1)
+        |> mapfilter used_free;
+      val tfrees = map #1 extra;
+      val frees = Library.sort_strings (Library.distinct (flat (map #2 extra)));
+    in
+      if null extra then ()
+      else warning ("Danger! Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
+          space_implode " or " frees)
+    end;
+
+in
 
 fun warn_extra_tfrees (ctxt1 as Context {defs = (_, _, used1), ...})
     (ctxt2 as Context {defs = (_, _, used2), ...}) = (warn_extra used1 used2; ctxt2);
+
+end;
+
+
+(* generalize type variables *)
+
+fun gen_tfrees inner opt_outer =
+  let
+    val inner_used = used_table inner;
+    val inner_fixes = fixed_names inner;
+    val (outer_used, outer_fixes) =
+      (case opt_outer of
+        None => (Symtab.empty, [])
+      | Some ctxt => (used_table ctxt, fixed_names ctxt));
+
+    val extra_fixes = inner_fixes \\ outer_fixes;
+    fun still_fixed (Free (x, _)) = not (x mem_string extra_fixes)
+      | still_fixed _ = false;
+
+    fun add (gen, (a, xs)) =
+      if is_some (Symtab.lookup (outer_used, a)) orelse exists still_fixed xs
+      then gen else a :: gen;
+  in Symtab.foldl add ([], inner_used) end;
+
+fun generalizeT inner outer =
+  let
+    val tfrees = gen_tfrees inner (Some outer);
+    fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
+  in Term.map_type_tfree gen end;
+
+val generalize = Term.map_term_types oo generalizeT;
+
+
+(* export theorems *)
+
+fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
+  | get_free _ (opt, _) = opt;
+
+fun find_free t x = foldl_aterms (get_free x) (None, t);
+
+
+local
+
+fun export tfrees fixes casms thm =
+  let
+    val rule =
+      thm
+      |> Drule.forall_elim_vars 0
+      |> Drule.implies_intr_list casms;
+    val {sign, prop, ...} = Thm.rep_thm rule;
+    val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
+  in
+    rule
+    |> Drule.forall_intr_list frees
+    |> Drule.forall_elim_vars 0
+    |> Drule.tvars_intr_list tfrees
+  end;
+
+fun diff_context inner None = (gen_tfrees inner None, fixed_names inner, assumptions inner)
+  | diff_context inner (Some outer) =
+      (gen_tfrees inner (Some outer),
+        fixed_names inner \\ fixed_names outer,
+        Library.drop (length (assumptions outer), assumptions inner));
+
+in
+
+fun export_wrt inner opt_outer =
+  let
+    val (tfrees, fixes, asms) = diff_context inner opt_outer;
+    val casms = map (Drule.mk_cgoal o #1) asms;
+    val tacs = map #2 asms;
+  in (export tfrees fixes casms, tacs) end;
+
+end;
 
 
 
@@ -570,28 +683,30 @@ fun del_bind (ctxt, xi) =
   |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
       (thy, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs));
 
-fun upd_bind (ctxt, (xi, t)) =
-  let val T = fastype_of t in
+fun upd_bind (ctxt, ((x, i), t)) =
+  let
+    val T = Term.fastype_of t;
+    val t' =
+      if null (Term.term_tvars t \\ Term.typ_tvars T) then t
+      else Var ((x ^ "_has_extra_type_vars_on_rhs_", i), T);
+  in
     ctxt
-    |> declare_term t
+    |> declare_term t'
     |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-        (thy, data, asms, Vartab.update ((xi, Some (t, T)), binds), thms, cases, defs))
+        (thy, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs))
   end;
 
 fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
   | del_upd_bind (ctxt, (xi, Some t)) = upd_bind (ctxt, (xi, t));
 
 fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
-fun update_binds_env env =      (*Note: Envir.norm_term ensures proper type instantiation*)
-  update_binds (map (apsnd (Envir.norm_term env)) (Envir.alist_of env));
-
 fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
 
 
 (* simult_matches *)
 
-fun simult_matches [] ctxt = ctxt
-  | simult_matches pairs ctxt =
+fun simult_matches ctxt [] = []
+  | simult_matches ctxt pairs =
       let
         val maxidx = foldl (fn (i, (t1, t2)) =>
           Int.max (i, Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2))) (~1, pairs);
@@ -600,7 +715,10 @@ fun simult_matches [] ctxt = ctxt
           (case Seq.pull envs of
             None => raise CONTEXT ("Pattern match failed!", ctxt)      (* FIXME improve msg (!?) *)
           | Some (env, _) => env);
-      in ctxt |> update_binds_env env end;
+        val binds =
+          (*Note: Envir.norm_term ensures proper type instantiation*)
+          map (apsnd (Envir.norm_term env)) (Envir.alist_of env);
+      in binds end;
 
 
 (* add_binds(_i) *)
@@ -610,13 +728,13 @@ local
 fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
   ctxt |> delete_update_binds [(xi, apsome (prep ctxt) raw_t)];
 
-fun gen_binds prep binds ctxt =
-  warn_extra_tfrees ctxt (foldl (gen_bind prep) (ctxt, binds));
+fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
 in
 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
+
 val auto_bind_goal = add_binds_i o AutoBind.goal;
 val auto_bind_facts = add_binds_i oo AutoBind.facts;
 
@@ -627,16 +745,26 @@ end;
 
 local
 
-fun gen_bind (prep, prep_pats) (ctxt, (raw_pats, raw_t)) =
+fun prep_bind (prep, prep_pats) (ctxt, (raw_pats, raw_t)) =
   let
     val t = prep ctxt raw_t;
     val ctxt' = declare_term t ctxt;
     val pats = prep_pats (fastype_of t) ctxt' raw_pats;
-    val ctxt'' = ctxt' |> simult_matches (map (rpair t) pats);
-  in ctxt'' end;
+    val binds = simult_matches ctxt' (map (rpair t) pats);
+  in (ctxt', binds) end;
 
-fun gen_binds prepp binds ctxt =
-  warn_extra_tfrees ctxt (foldl (gen_bind prepp) (ctxt, binds));
+fun gen_binds prepp gen raw_binds ctxt =
+  let
+    val (ctxt', binds) = apsnd flat (foldl_map (prep_bind prepp) (ctxt, raw_binds));
+    val binds' =
+      if gen then map (apsnd (generalize ctxt' ctxt)) binds
+      else binds;
+    val binds'' = map (apsnd Some) binds';
+  in
+    warn_extra_tfrees ctxt
+     (if gen then ctxt (*sic!*) |> declare_terms (map #2 binds') |> add_binds_i binds''
+      else ctxt' |> add_binds_i binds'')
+  end;
 
 in
 
@@ -664,8 +792,15 @@ val cert_propp = prep_propp cert_prop cert_prop_pats;
 fun gen_bind_propp prepp (ctxt, propp) =
   let
     val (ctxt', (prop, (pats1, pats2))) = prepp (ctxt, propp);
-    val pairs = map (rpair prop) pats1 @ map (rpair (Logic.strip_imp_concl prop)) pats2;
-  in (ctxt' |> simult_matches pairs, prop) end;
+    val pairs =
+      map (rpair prop) pats1 @
+      map (rpair (Logic.strip_imp_concl prop)) pats2;   (* FIXME handle params!? *)
+    val binds = simult_matches ctxt' pairs;
+
+    (*note: context evaluated now, binds added later (lazy)*)
+    val gen = generalize ctxt' ctxt;
+    fun gen_binds ct = ct |> add_binds_i (map (apsnd (Some o gen)) binds);
+  in (ctxt' |> add_binds_i (map (apsnd Some) binds), (prop, gen_binds)) end;
 
 val bind_propp = gen_bind_propp read_propp;
 val bind_propp_i = gen_bind_propp cert_propp;
@@ -724,21 +859,7 @@ fun have_thmss more_ths name more_attrs ths_attrs ctxt =
 
 (** assumptions **)
 
-(* get assumptions *)
-
-fun assumptions (Context {asms = ((asms, _), _), ...}) = asms;
-fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
-
-
 (* assume *)
-
-fun most_general_varify_tfrees thm =
-  let
-    val {hyps, prop, ...} = Thm.rep_thm thm;
-    val frees = foldr Term.add_term_frees (prop :: hyps, []);
-    val leave_tfrees = foldr Term.add_term_tfree_names (frees, []);
-  in thm |> Thm.varifyT' leave_tfrees end;
-
 
 local
 
@@ -748,8 +869,7 @@ fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
     val cprops_tac = map (rpair tac) cprops;
-    val asms =
-      map (most_general_varify_tfrees o Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
+    val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =
@@ -770,8 +890,8 @@ fun gen_assms prepp tac args ctxt =
 
 in
 
-val assume = gen_assms bind_propp;
-val assume_i = gen_assms bind_propp_i;
+val assume = gen_assms (apsnd #1 o bind_propp);
+val assume_i = gen_assms (apsnd #1 o bind_propp_i);
 
 end;
 
