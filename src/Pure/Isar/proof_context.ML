@@ -375,19 +375,20 @@ fun add_syntax decls =
 fun syn_of (Context {syntax = (syn, structs, _), ...}) =
   syn |> Syntax.extend_trfuns (Syntax.struct_trfuns structs);
 
-
 end;
 
 
 
 (** pretty printing **)
 
-fun pretty_term ctxt = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) o context_tr' ctxt;
-val pretty_typ = Sign.pretty_typ o sign_of;
-val pretty_sort = Sign.pretty_sort o sign_of;
+fun pretty_term ctxt t = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) (context_tr' ctxt t);
+fun pretty_typ ctxt T = Sign.pretty_typ (sign_of ctxt) T;
+fun pretty_sort ctxt S = Sign.pretty_sort (sign_of ctxt) S;
+fun pretty_classrel ctxt cs = Sign.pretty_classrel (sign_of ctxt) cs;
+fun pretty_arity ctxt ar = Sign.pretty_arity (sign_of ctxt) ar;
 
-fun pp ctxt = Pretty.pp (pretty_term ctxt) (pretty_typ ctxt) (pretty_sort ctxt)
-  (Sign.pretty_classrel (sign_of ctxt)) (Sign.pretty_arity (sign_of ctxt));
+fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
+  pretty_classrel ctxt, pretty_arity ctxt);
 
 val string_of_term = Pretty.string_of oo pretty_term;
 

@@ -599,7 +599,7 @@ fun pretty_term' syn (sg as Sg ({stamps, ...}, {spaces, ...})) t =
     (exists (equal CPureN o !) stamps)
     (if ! NameSpace.long_names then t else extrn_term spaces t);
 
-fun pretty_term sg = pretty_term' (syn_of sg) sg;
+fun pretty_term sg t = pretty_term' (syn_of sg) sg t;
 
 fun pretty_typ sg T =
   Syntax.pretty_typ (syn_of sg) (extern_typ sg T);
@@ -631,8 +631,8 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
-fun pp sg = Pretty.pp (pretty_term sg) (pretty_typ sg) (pretty_sort sg)
-  (pretty_classrel sg) (pretty_arity sg);
+fun pp sg = Pretty.pp (pretty_term sg, pretty_typ sg, pretty_sort sg,
+  pretty_classrel sg, pretty_arity sg);
 
 
 
