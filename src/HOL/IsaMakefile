@@ -63,6 +63,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
+  $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/make_elim.ML \
@@ -79,7 +80,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Integ/IntDiv.ML Integ/IntDiv.thy Integ/IntPower.ML Integ/IntPower.thy \
   Integ/NatBin.ML Integ/NatBin.thy Integ/NatSimprocs.ML \
   Integ/NatSimprocs.thy Integ/int_arith1.ML Integ/int_arith2.ML \
-  Integ/nat_simprocs.ML Inverse_Image.ML Inverse_Image.thy Lfp.ML \
+  Integ/int_factor_simprocs.ML Integ/nat_simprocs.ML \
+  Inverse_Image.ML Inverse_Image.thy Lfp.ML \
   Lfp.thy List.ML List.thy Main.ML Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy NatDef.ML NatDef.thy Numeral.thy \
   Option.ML Option.thy Ord.ML Ord.thy Power.ML Power.thy PreList.thy \
