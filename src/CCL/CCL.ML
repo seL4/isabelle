@@ -10,7 +10,7 @@ open CCL;
 
 val ccl_data_defs = [apply_def,fix_def];
 
-val CCL_ss = set_ss addsimps [po_refl RS P_iff_T];
+val CCL_ss = set_ss addsimps [po_refl];
 
 (*** Congruence Rules ***)
 
@@ -155,17 +155,17 @@ by (ALLGOALS (fast_tac set_cs));
 qed "POgen_mono";
 
 goalw CCL.thy [POgen_def,SIM_def]
-  "<t,t'> : POgen(R) <-> t= bot | (t=true & t'=true)  | (t=false & t'=false) | \
-\                    (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
-\                    (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : R))";
+ "<t,t'> : POgen(R) <-> t= bot | (t=true & t'=true)  | (t=false & t'=false) | \
+\          (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
+\          (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : R))";
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "POgenXH";
 
 goal CCL.thy
   "t [= t' <-> t=bot | (t=true & t'=true) | (t=false & t'=false) | \
-\                    (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
-\                    (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))";
-by (simp_tac (ccl_ss addsimps [PO_iff]) 1);
+\                (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
+\                (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))";
+by (simp_tac (ccl_ss addsimps [PO_iff] delsimps ex_simps) 1);
 br (rewrite_rule [POgen_def,SIM_def] 
                  (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1;
 by (rtac (iff_refl RS XHlemma2) 1);
@@ -186,7 +186,6 @@ bind_thm("bot_poleast", result() RS mp);
 goal CCL.thy "<a,b> [= <a',b'> <->  a [= a' & b [= b'";
 by (rtac (poXH RS iff_trans) 1);
 by (simp_tac ccl_ss 1);
-by (fast_tac ccl_cs 1);
 qed "po_pair";
 
 goal CCL.thy "lam x. f(x) [= lam x. f'(x) <-> (ALL x. f(x) [= f'(x))";
