@@ -103,9 +103,9 @@ sig
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val presume_i: ((string * Proof.context attribute list * (term * (term list * term list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val local_def: (string * Args.src list * ((string * string option) * (string * string list)))
+  val local_def: (string * Args.src list * (string * (string * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val local_def_i: (string * Args.src list * ((string * typ option) * (term * term list)))
+  val local_def_i: (string * Args.src list * (string * (term * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val show: (string * Args.src list * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
