@@ -78,7 +78,7 @@ qed "pmap_empI";
 
 goalw Map.thy [map_owr_def,PMap_def,TMap_def] 
   "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [if_iff])));
 by (Fast_tac 1);
 by (Fast_tac 1);
