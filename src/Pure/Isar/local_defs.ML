@@ -20,13 +20,14 @@ struct
 val refl_tac = Tactic.rtac (standard (Drule.reflexive_thm RS Drule.triv_goal));
 
 
-fun gen_def fix prep_term match_binds name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
+fun gen_def fix prep_term match_binds raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
   let
     fun err msg = raise Proof.STATE ("Bad local def: " ^ msg, state);
 
-    val state' = fix [(x, raw_T)] state;
+    val state' = fix [([x], raw_T)] state;
     val ctxt' = Proof.context_of state';
 
+    val name = if raw_name = "" then Thm.def_name x else raw_name;
     val rhs = prep_term ctxt' raw_rhs;
     val T = Term.fastype_of rhs;
     val lhs = ProofContext.cert_term ctxt' (Free (x, T));
