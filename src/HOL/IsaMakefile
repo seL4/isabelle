@@ -98,14 +98,16 @@ $(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
 
 HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
 
-$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy	\
-  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
-  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
-  Real/HahnBanach/HahnBanach_h0_lemmas.thy				\
-  Real/HahnBanach/HahnBanach_lemmas.thy					\
-  Real/HahnBanach/LinearSpace.thy Real/HahnBanach/Linearform.thy	\
-  Real/HahnBanach/NormedSpace.thy Real/HahnBanach/ROOT.ML		\
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/Zorn_Lemma.thy
+$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
+  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
+  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
+  Real/HahnBanach/HahnBanach_h0_lemmas.thy	\
+  Real/HahnBanach/HahnBanach_lemmas.thy		\
+  Real/HahnBanach/LinearSpace.thy Real/HahnBanach/Linearform.thy \
+  Real/HahnBanach/NormedSpace.thy Real/HahnBanach/ROOT.ML \
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/Zorn_Lemma.thy \
+  Real/HahnBanach/document/notation.tex		\
+  Real/HahnBanach/document/root.tex
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real HahnBanach
 
 
@@ -372,7 +374,8 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
   Isar_examples/KnasterTarski.thy Isar_examples/MultisetOrder.thy \
   Isar_examples/MutilatedCheckerboard.thy Isar_examples/Peirce.thy \
   Isar_examples/Summation.thy Isar_examples/ROOT.ML \
-  Isar_examples/W_correct.thy
+  Isar_examples/W_correct.thy Isar_examples/document/root.tex \
+  Isar_examples/document/style.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 
