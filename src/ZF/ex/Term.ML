@@ -72,7 +72,7 @@ by (etac list.induct 1);
 by (Simp_tac 1);
 by (rtac impI 1);
 by (subgoal_tac "rank(a)<i & rank(l) < i" 1);
-by (asm_simp_tac (simpset() addsimps [VsetI]) 1);
+by (asm_simp_tac (simpset() addsimps [rank_of_Ord]) 1);
 by (full_simp_tac (simpset() addsimps list.con_defs) 1);
 by (blast_tac (claset() addDs (rank_rls RL [lt_trans])) 1);
 qed "map_lemma";
@@ -82,7 +82,7 @@ Goal "ts: list(A) ==> \
 \     term_rec(Apply(a,ts), d) = d(a, ts, map (%z. term_rec(z,d), ts))";
 by (rtac (term_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac term.con_defs);
-by (asm_simp_tac (simpset() addsimps [Ord_rank, rank_pair2, map_lemma]) 1);;
+by (asm_simp_tac (simpset() addsimps [rank_pair2, map_lemma]) 1);;
 qed "term_rec";
 
 (*Slightly odd typing condition on r in the second premise!*)
