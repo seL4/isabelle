@@ -22,8 +22,8 @@ signature AST1 =
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val pprint_ast: ast -> pprint_args -> unit
-  val trace_norm_ast: bool ref
-  val stat_norm_ast: bool ref
+  val trace_ast: bool ref
+  val stat_ast: bool ref
   end;
 
 signature AST =
@@ -161,8 +161,8 @@ fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
 
 (* tracing options *)
 
-val trace_norm_ast = ref false;
-val stat_norm_ast = ref false;
+val trace_ast = ref false;
+val stat_ast = ref false;
 
 
 (* match *)
@@ -275,7 +275,7 @@ fun normalize trace stat get_rules pre_ast =
 (* normalize_ast *)
 
 fun normalize_ast get_rules ast =
-  normalize (! trace_norm_ast) (! stat_norm_ast) get_rules ast;
+  normalize (! trace_ast) (! stat_ast) get_rules ast;
 
 end;
 
