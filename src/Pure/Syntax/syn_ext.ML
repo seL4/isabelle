@@ -112,6 +112,21 @@ datatype xsymb =
   Space of string |
   Bg of int | Brk of int | En;
 
+fun is_delim (Delim _) = true
+  | is_delim _ = false;
+
+fun is_terminal (Delim _) = true
+  | is_terminal (Argument (s, _)) = Lexicon.is_terminal s
+  | is_terminal _ = false;
+
+fun is_argument (Argument _) = true
+  | is_argument _ = false;
+
+fun is_index (Argument ("index", _)) = true
+  | is_index _ = false;
+
+val index = Argument ("index", 1000);
+
 
 (*XProd (lhs, syms, c, p):
     lhs: name of nonterminal on the lhs of the production
@@ -151,6 +166,10 @@ fun delims_of xprods =
 
 datatype mfix = Mfix of string * typ * string * int list * int;
 
+fun err_in_mfix msg (Mfix (sy, _, const, _, _)) =
+  error ((if msg = "" then "" else msg ^ "\n") ^
+    "in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+
 
 (* typ_to_nonterm *)
 
@@ -164,10 +183,10 @@ val typ_to_nonterm = typ_to_nt any;
 val typ_to_nonterm1 = typ_to_nt logic;
 
 
-(* read_mixfix, mfix_args *)
+(* read_mixfix *)
 
 local
-  fun is_meta c = c mem ["(", ")", "/", "_"];
+  fun is_meta c = c mem ["(", ")", "/", "_", "\\<index>"];
 
   val scan_delim_char =
     $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
@@ -175,6 +194,7 @@ local
 
   val scan_sym =
     $$ "_" >> K (Argument ("", 0)) ||
+    $$ "\\<index>" >> K index ||
     $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o #1 o Term.read_int) ||
     $$ ")" >> K En ||
     $$ "/" -- $$ "/" >> K (Brk ~1) ||
@@ -188,25 +208,23 @@ local
 
   val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
   val read_symbs = mapfilter I o the o Scan.read Symbol.stopper scan_symbs;
-in
-  val read_mixfix = read_symbs o Symbol.explode;
-end;
 
-fun mfix_args sy =
-  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, read_mixfix sy);
+  fun unique_index xsymbs =
+    if length (filter is_index xsymbs) <= 1 then xsymbs
+    else error "Duplicate index arguments (\\<index>)";
+in
+  val read_mixfix = unique_index o read_symbs o Symbol.explode;
+  val mfix_args = length o filter is_argument o read_mixfix;
+end;
 
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
   let
-    fun err msg =
-      (if msg = "" then () else error_msg msg;
-        error ("in mixfix annotation " ^ quote sy ^ " for " ^ quote const));
-
     fun check_pri p =
       if p >= 0 andalso p <= max_pri then ()
-      else err ("Precedence out of range: " ^ string_of_int p);
+      else err_in_mfix ("Precedence out of range: " ^ string_of_int p) mfix;
 
     fun blocks_ok [] 0 = true
       | blocks_ok [] _ = false
@@ -217,42 +235,51 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
 
     fun check_blocks syms =
       if blocks_ok syms 0 then ()
-      else err "Unbalanced block parentheses";
+      else err_in_mfix "Unbalanced block parentheses" mfix;
 
 
     val cons_fst = apfst o cons;
 
     fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
-      | add_args [] _ _ = err "Too many precedences"
+      | add_args [] _ _ = err_in_mfix "Too many precedences" mfix
+      | add_args ((arg as Argument ("index", _)) :: syms) ty ps =
+          cons_fst arg (add_args syms ty ps)
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) [] =
           cons_fst (Argument (typ_to_nonterm ty, 0)) (add_args syms tys [])
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
           cons_fst (Argument (typ_to_nonterm ty, p)) (add_args syms tys ps)
       | add_args (Argument _ :: _) _ _ =
-          err "More arguments than in corresponding type"
+          err_in_mfix "More arguments than in corresponding type" mfix
       | add_args (sym :: syms) ty ps = cons_fst sym (add_args syms ty ps);
-
-
-    fun is_arg (Argument _) = true
-      | is_arg _ = false;
-
-    fun is_term (Delim _) = true
-      | is_term (Argument (s, _)) = Lexicon.is_terminal s
-      | is_term _ = false;
 
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
       | rem_pri sym = sym;
-
-    fun is_delim (Delim _) = true
-      | is_delim _ = false;
 
     fun logify_types copy_prod (a as (Argument (s, p))) =
           if s mem logtypes then Argument (logic, p) else a
       | logify_types _ a = a;
 
 
-    val raw_symbs = read_mixfix sy handle ERROR => err "";
-    val (symbs, lhs) = add_args raw_symbs typ pris;
+    val raw_symbs = read_mixfix sy handle ERROR => err_in_mfix "" mfix;
+    val args = filter (fn Argument _ => true | _ => false) raw_symbs;
+    val (const', typ', parse_rules) =
+      if not (exists is_index args) then (const, typ, [])
+      else
+        let
+          val c = if const <> "" then "_indexed_" ^ const
+            else err_in_mfix "Missing constant name for indexed syntax" mfix;
+          val T = Term.range_type typ handle Match =>
+            err_in_mfix "Missing structure argument for indexed syntax" mfix;
+
+          val xs = map Ast.Variable (Term.invent_names [] "x" (length args - 1));
+          val i = Ast.Variable "i";
+          val n = Library.find_index is_index args;
+          val lhs = Ast.mk_appl (Ast.Constant c) (take (n, xs) @ [i] @ drop (n, xs));
+          val rhs = Ast.mk_appl (Ast.Constant const) (Ast.Appl [Ast.Constant "_struct", i] :: xs);
+        in (c, T, [(lhs, rhs)]) end;
+
+    val (symbs, lhs) = add_args raw_symbs typ' pris;
+
     val copy_prod =
       lhs mem ["prop", "logic"]
         andalso const <> ""
@@ -264,19 +291,19 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
         else if lhs = "prop" then sprop else lhs)
       else lhs;
     val symbs' = map (logify_types copy_prod) symbs;
-    val xprod = XProd (lhs', symbs', const, pri);
-  in
-    seq check_pri pris;
-    check_pri pri;
-    check_blocks symbs';
+    val xprod = XProd (lhs', symbs', const', pri);
 
-    if Lexicon.is_terminal lhs' then err ("Illegal lhs: " ^ lhs')
-    else if const <> "" then xprod
-    else if length (filter is_arg symbs') <> 1 then
-      err "Copy production must have exactly one argument"
-    else if exists is_term symbs' then xprod
-    else XProd (lhs', map rem_pri symbs', "", chain_pri)
-  end;
+    val _ = (seq check_pri pris; check_pri pri; check_blocks symbs');
+    val xprod' =
+      if Lexicon.is_terminal lhs' then err_in_mfix ("Illegal lhs: " ^ lhs') mfix
+      else if const <> "" then xprod
+      else if length (filter is_argument symbs') <> 1 then
+        err_in_mfix "Copy production must have exactly one argument" mfix
+      else if exists is_terminal symbs' then xprod
+      else XProd (lhs', map rem_pri symbs', "", chain_pri);
+
+  in (xprod', parse_rules) end;
+
 
 
 (** datatype syn_ext **)
@@ -298,15 +325,15 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns rules =
+fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
-    val (parse_rules, print_rules) = rules;
     val logtypes' = logtypes \ "prop";
 
-    val mfix_consts = distinct (map (fn (Mfix (_, _, c, _, _)) => c) mfixes);
-    val xprods = map (mfix_to_xprod convert logtypes') mfixes;
+    val (xprods, parse_rules') = map (mfix_to_xprod convert logtypes') mfixes
+      |> split_list |> apsnd (rev o flat);
+    val mfix_consts = distinct (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in
     SynExt {
       logtypes = logtypes',
@@ -314,10 +341,10 @@ fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns rules =
       consts = consts union_string mfix_consts,
       prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
-      parse_rules = parse_rules,
+      parse_rules = parse_rules' @ parse_rules,
       parse_translation = parse_translation,
       print_translation = print_translation,
-      print_rules = print_rules,
+      print_rules = map swap parse_rules' @ print_rules,
       print_ast_translation = print_ast_translation,
       token_translation = tokentrfuns}
   end;
