@@ -7,6 +7,6 @@ theory Library =
   Nested_Environment +
   Accessible_Part +
   Multiset +
-  While_Combinator + While_Combinator_Example:
+  While_Combinator:
 end
 (*>*)
