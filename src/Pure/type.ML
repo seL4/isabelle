@@ -38,6 +38,7 @@ sig
   val subsort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
   val rem_sorts: typ -> typ
+  val nonempty_sort: type_sig -> (string * sort) list -> sort -> bool
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val freeze: term -> term
@@ -397,6 +398,16 @@ fun norm_sort (TySg {subclass, ...}) S =
 fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
   | rem_sorts (TFree (x, _)) = TFree (x, [])
   | rem_sorts (TVar (xi, _)) = TVar (xi, []);
+
+
+(* nonempty_sort *)
+
+(* FIXME improve: proper sorts; non-base, non-ground types (vars from hyps) *)
+fun nonempty_sort _ _ [] = true
+  | nonempty_sort (tsig as TySg {arities, ...}) hyps S =
+      exists (exists (fn (c, ss) => [c] = S andalso null ss) o snd) arities
+        orelse exists (fn (_, S') => subsort tsig (S', S)) hyps;
+
 
 
 (* typ_errors *)
