@@ -8,12 +8,14 @@ Manage local contexts of rules.
 
 signature RULE_CASES =
 sig
-  type T (* = (string * typ) list * term list *)
+  val consumes: int -> 'a attribute
+  val consumes_default: int -> 'a attribute
   val name: string list -> thm -> thm
   val case_names: string list -> 'a attribute
-  val get: thm -> string list
-  val add: thm -> thm * string list
-  val none: thm -> thm * string list
+  val get: thm -> string list * int
+  val add: thm -> thm * (string list * int)
+  val save: thm -> thm -> thm
+  type T (* = (string * typ) list * term list *)
   val make: bool -> thm -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
@@ -22,28 +24,53 @@ end;
 structure RuleCases: RULE_CASES =
 struct
 
+(* number of consumed facts *)
 
-(* local contexts *)
+val consumesN = "consumes";
 
-type T = (string * typ) list * term list;
-val casesN = "cases";
+fun lookup_consumes thm = Library.assoc (Thm.tags_of_thm thm, consumesN);
+
+fun get_consumes thm =
+  let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [thm]) in
+    (case lookup_consumes thm of
+      None => 0
+    | Some [s] => (case Syntax.read_nat s of Some n => n | _ => err ())
+    | _ => err ())
+  end;
+
+fun put_consumes n = Drule.tag_rule (consumesN, [Library.string_of_int n]);
+val save_consumes = put_consumes o get_consumes;
+
+fun consumes n x = Drule.rule_attribute (K (put_consumes n)) x;
+fun consumes_default n x = if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 (* case names *)
+
+val casesN = "cases";
 
 fun name names thm =
   thm
   |> Drule.untag_rule casesN
   |> Drule.tag_rule (casesN, names);
 
+fun get_case_names thm = Library.assocs (Thm.tags_of_thm thm) casesN;
+val save_case_names = name o get_case_names;
+
 fun case_names ss = Drule.rule_attribute (K (name ss));
 
-fun get thm = Library.assocs (Thm.tags_of_thm thm) casesN;
+
+(* access hints *)
+
+fun get thm = (get_case_names thm, get_consumes thm);
 fun add thm = (thm, get thm);
-fun none thm = (thm, []);
+
+fun save thm = save_case_names thm o save_consumes thm;
 
 
 (* prepare cases *)
+
+type T = (string * typ) list * term list;
 
 fun prep_case open_parms thm name i =
   let
@@ -64,7 +91,7 @@ fun make open_parms thm names =
 
 fun rename_params xss thm =
   #1 (foldl (fn ((th, i), xs) => (Thm.rename_params_rule (xs, i) th, i + 1)) ((thm, 1), xss))
-  |> name (get thm);
+  |> save thm;
 
 fun params xss = Drule.rule_attribute (K (rename_params xss));
 
