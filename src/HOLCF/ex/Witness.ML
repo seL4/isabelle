@@ -111,19 +111,3 @@ by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
 by (lift.induct_tac "x" 1);
 auto();
 qed "refl_per_one";
-
-(* weq *)
-val prems = goal thy 
-	"[|x~=UU; y~=UU|]==>(x=y-->(x bullet y)=TT)&(x~=y-->(x bullet y)=FF)";
-by(subgoal_tac"x~=UU&y~=UU-->(x=y-->(x bullet y)=TT)&(x~=y-->(x bullet y)=FF)"1);
-by (cut_facts_tac prems 1);
-by (fast_tac HOL_cs 1);
-by (lift.induct_tac "x" 1);
-by (lift.induct_tac "y" 2);
-by (lift.induct_tac "y" 1);
-auto();
-br refl_per_one 1;
-auto();
-by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
-result();
-
