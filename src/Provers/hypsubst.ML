@@ -3,9 +3,11 @@
     Authors:    Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 
-Tactic to substitute using (at least) the assumption x=t in the rest of the
-subgoal, and to delete (at least) that assumption.
-Original version due to Martin Coen.
+Basic equational reasoning: (hyp_)subst method and symmetric attribute.
+
+Tactic to substitute using (at least) the assumption x=t in the rest
+of the subgoal, and to delete (at least) that assumption.  Original
+version due to Martin Coen.
 
 This version uses the simplifier, and requires it to be already present.
 
@@ -252,14 +254,28 @@ fun stac th =
   in CHANGED_GOAL (rtac (th' RS ssubst)) end;
 
 
-(* proof method setup *)
+(* proof methods *)
 
 val subst_meth = Method.goal_args' Attrib.local_thm stac;
 val hyp_subst_meth = Method.goal_args (Scan.succeed ()) (K hyp_subst_tac);
 
+
+(* attributes *)
+
+fun symmetric_rule thm =
+  thm RS Drule.symmetric_thm handle THM _ =>
+  thm RS Data.sym handle THM _ => error "Failed to apply symmetry of == or =";
+
+fun gen_symmetric x = Drule.rule_attribute (K symmetric_rule);
+
+
+(* theory setup *)
+
 val hypsubst_setup =
  [Method.add_methods
-  [("hyp_subst", hyp_subst_meth, "substitution using an assumption (improper)"),
-   ("subst", subst_meth, "substitution")]];
+  [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
+   ("subst", subst_meth, "substitution")],
+  Attrib.add_attributes
+  [("symmetric", (gen_symmetric, gen_symmetric), "apply symmetry of == or =")]];
 
 end;
