@@ -21,11 +21,11 @@ signature LOGIC =
   val dest_type		: term -> typ
   val flatten_params	: int -> term -> term
   val incr_indexes	: typ list * int -> term -> term
+  val is_equals         : term -> bool
   val lift_fns		: term * int -> (term -> term) * (term -> term)
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
-  val is_equals         : term -> bool
   val loops		: Sign.sg -> term list -> term -> term
                           -> string option * bool
   val mk_equals		: term * term -> term
