@@ -42,6 +42,13 @@ sig
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
+  type time_info
+  val time_init: unit -> time_info ref
+  val time_reset: time_info ref -> unit
+  val time_check: time_info ref -> {timer: Timer.cpu_timer,
+    sys: Time.time, usr: Time.time, gc: Time.time, count: int}
+  val time_finish: string -> time_info ref -> unit
+  val time: time_info ref -> ('a -> 'b) -> 'a -> 'b
 end;
 
 signature OUTPUT =
@@ -205,6 +212,58 @@ fun timeit x = cond_timeit true x;
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg s f x = (warning s; timeap f x);
+
+
+(* accumulated timing *)
+
+local
+
+fun add_interval time time1 time2 =
+  Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
+
+fun secs prfx time = prfx ^ Time.toString time;
+
+in
+
+datatype time_info = TI of
+  {timer: Timer.cpu_timer,
+   sys: Time.time,
+   usr: Time.time,
+   gc: Time.time,
+   count: int};
+
+fun time_init () = ref (TI {timer = Timer.startCPUTimer (),
+    sys = Time.zeroTime, usr = Time.zeroTime, gc = Time.zeroTime, count = 0});
+
+fun time_reset r = r := ! (time_init ());
+
+fun time_check (ref (TI r)) = r;
+
+fun time_finish name ti =
+  let val {timer, sys, usr, gc, count} = time_check ti in
+    warning ("Total of " ^ quote name ^ ": " ^
+      secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
+      " secs in " ^ string_of_int count ^ " calls");
+    ti := TI {timer = timer, sys = Time.zeroTime, usr = Time.zeroTime,
+      gc = Time.zeroTime, count = 0}
+  end;
+
+fun time ti f x =
+  let
+    val {timer, sys, usr, gc, count} = time_check ti;
+    val (sys1, usr1, gc1) = checkTimer timer;
+    val result = capture f x;
+    val (sys2, usr2, gc2) = checkTimer timer;
+  in
+    ti := TI {timer = timer,
+      sys = add_interval sys sys1 sys2,
+      usr = add_interval usr usr1 usr2,
+      gc = add_interval gc gc1 gc2,
+      count = count + 1};
+    release result
+  end;
+
+end;
 
 end;
 
