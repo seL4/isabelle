@@ -73,6 +73,8 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 
 *** HOL ***
 
+* recdef (TFL) now requires theory Recdef;
+
 * There are now decision procedures for linear arithmetic over nat and
 int:
 
