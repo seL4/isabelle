@@ -23,6 +23,21 @@ Goalw [merge_spec_def,merge_eqOut_def]
 by (force_tac (claset() addDs [guaranteesD], simpset()) 1);
 qed "Merge_Always_Out_eq_iOut";
 
+(*******ALLOCBASE.ML***)
+Goal "[| finite A; finite B; A Int B = {} |] \
+\     ==> bag_of (sublist l (A Un B)) = \
+\         bag_of (sublist l A) + bag_of (sublist l B)"; 
+by (asm_simp_tac (simpset() addsimps [bag_of_sublist_Un_Int RS sym]) 1);
+qed "bag_of_sublist_Un_disjoint";
+
+Goal "[| finite I;  ALL i:I. finite (A i);     \
+\        ALL i:I. ALL j:I. A i Int A j = {} |] \
+\     ==> bag_of (sublist l (UNION I A)) =  \
+\         setsum (%i. bag_of (sublist l (A i))) I";  
+by (asm_simp_tac (simpset() addcongs [setsum_cong]
+			    addsimps [bag_of_sublist, setsum_UN_disjoint]) 1);
+qed_spec_mp "bag_of_sublist_UN_disjoint";
+
 
 Goal "M : merge_spec \
 \ ==> M : (INT i: lessThan Nclients. Increasing (sub i o merge.In)) \
@@ -31,8 +46,48 @@ Goal "M : merge_spec \
 \                (%s. setsum (%i. (bag_of o sub i o merge.In) s) \
 \                            (lessThan Nclients))";
 by (rtac guaranteesI 1);
+by (res_inst_tac 
+    [("f", "%s. setsum (%i. bag_of (sublist (merge.Out s) 
+                                    {k. k < size(merge.iOut s) & 
+                                        nth(merge.iOut s)k = i}))
+                       (lessThan Nclients)")] 
+    Always_Follows 1);
+by (rtac UNIV_AlwaysI 1); 
+by (Clarify_tac 1); 
+by (stac (bag_of_sublist_UN_disjoint RS sym) 1); 
+by (force_tac (claset(), simpset() addsimps []) 1); 
+by (blast_tac (claset() addIs [bounded_nat_set_is_finite]) 1); 
+by (Clarify_tac 1); 
+
+by (simp_tac (simpset() addsimps [o_def]) 1); 
+by (asm_full_simp_tac (simpset() delsimps [sublist_upt_eq_take]
+                                 addsimps [bag_of_sublist]) 1); 
+by (rtac Follows_trans 1); 
+by (rtac Follows_setsum 2);
+by (asm_full_simp_tac (simpset() addsimps []) 3);
+by (Clarify_tac 2); 
+by (asm_full_simp_tac (simpset() addsimps [o_assoc RS sym]) 2); 
+by (rtac (impOfSubs (mono_bag_of RS mono_Follows_o)) 2);
+
+(*Now need to invoke the merge_follows guarantee*)
+ 
+by (asm_full_simp_tac (simpset() addsimps [merge_spec_def,merge_follows_def]) 2); 
+
+
 by (res_inst_tac [("f", "%s. bag_of (sublist (merge.Out s) {..length(merge.iOut s)(})")] 
                   Always_Follows 1);
+
+
+
+
+
+
+
+
+by (rtac guaranteesI 1);
+by (res_inst_tac 
+    [("f", "%s. bag_of (sublist (merge.Out s) {..length(merge.iOut s)(})")] 
+    Always_Follows 1);
 by (etac (Merge_Always_Out_eq_iOut RS Always_Compl_Un_eq RS iffD1) 1);
 by (force_tac (claset() addIs [UNIV_AlwaysI], simpset() addsimps [o_apply]) 3);
 by (Asm_full_simp_tac 1); 
