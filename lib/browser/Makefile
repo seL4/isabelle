@@ -5,3 +5,6 @@
 all:
 	javac GraphBrowser/GraphBrowser.java
 
+clean:
+	rm */*.class
+
