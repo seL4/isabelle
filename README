@@ -45,13 +45,14 @@ Here are brief instructions.  For more detail, read further.
 
 			SUITABLE ML COMPILERS
 
-You use two different Standard ML compilers: Poly/ML version 2.03 or later
+You can use two different Standard ML compilers: Poly/ML version 2.03 or later
 (from Abstract Hardware Ltd) and Standard ML of New Jersey (Version 0.93 or
 later).  Poly/ML is a commercial product and costs money, but it is stable and
 efficient; moreover its database system is convenient for interactive work.
-SML of New Jersey requires lots of store and disc space, but it is free and
-its code sometimes runs faster.  Both compilers are perfectly satisfactory for
-running Isabelle.
+SML/NJ needs lots of store and disc space, but it is free.  Recent versions of
+SML/NJ are significantly faster than 0.93, but beware of many
+incompatibilities among them; you might be forced to edit the file
+Pure/NJ1xx.ML.
 
 To obtain Poly/ML, contact Abstract Hardware Ltd, The Howell Building, Brunel
 University, Uxbridge UB8 3PH, England, email lambda@ahl.co.uk.
