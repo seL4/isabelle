@@ -11,11 +11,11 @@ subsection "The compiler"
 consts compile :: "com \<Rightarrow> instr list"
 primrec
 "compile \<SKIP> = []"
-"compile (x:==a) = [ASIN x a]"
+"compile (x:==a) = [SET x a]"
 "compile (c1;c2) = compile c1 @ compile c2"
 "compile (\<IF> b \<THEN> c1 \<ELSE> c2) =
  [JMPF b (length(compile c1) + 1)] @ compile c1 @
- [JMPF (%x. False) (length(compile c2))] @ compile c2"
+ [JMPF (\<lambda>x. False) (length(compile c2))] @ compile c2"
 "compile (\<WHILE> b \<DO> c) = [JMPF b (length(compile c) + 1)] @ compile c @
  [JMPB (length(compile c)+1)]"
 
@@ -68,12 +68,12 @@ by(simp add: rtrancl_is_UN_rel_pow)
 constdefs
  forws :: "instr \<Rightarrow> nat set"
 "forws instr == case instr of
- ASIN x a \<Rightarrow> {0} |
+ SET x a \<Rightarrow> {0} |
  JMPF b n \<Rightarrow> {0,n} |
  JMPB n \<Rightarrow> {}"
  backws :: "instr \<Rightarrow> nat set"
 "backws instr == case instr of
- ASIN x a \<Rightarrow> {} |
+ SET x a \<Rightarrow> {} |
  JMPF b n \<Rightarrow> {} |
  JMPB n \<Rightarrow> {n}"
 
@@ -263,7 +263,7 @@ next
       proof cases
 	assume b: "b s"
 	then obtain m where m: "n = Suc m"
-          and 1: "\<langle>?C @ [?j2],[?j1],s\<rangle> -m\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
+          and "\<langle>?C @ [?j2],[?j1],s\<rangle> -m\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
 	  using H by fastsimp
 	then obtain r n1 n2 where n1: "\<langle>?C,[],s\<rangle> -n1\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
           and n2: "\<langle>[?j2],rev ?C @ [?j1],r\<rangle> -n2\<rightarrow> \<langle>[],rev ?W,t\<rangle>"

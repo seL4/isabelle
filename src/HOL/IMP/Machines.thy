@@ -27,14 +27,13 @@ by(simp add:rel_pow_plus rel_compI)
 subsection "Instructions"
 
 text {* There are only three instructions: *}
-datatype instr = ASIN loc aexp | JMPF bexp nat | JMPB nat
+datatype instr = SET loc aexp | JMPF bexp nat | JMPB nat
 
 types instrs = "instr list"
 
 subsection "M0 with PC"
 
-consts  exec01 :: "instr list \<Rightarrow> ((nat\<times>state) \<times> (nat\<times>state))set"
-
+consts  exec01 :: "instr list \<Rightarrow> ((nat\<times>state) \<times> (nat\<times>state))set" 
 syntax
   "_exec01" :: "[instrs, nat,state, nat,state] \<Rightarrow> bool"
                ("(_/ |- (1<_,/_>)/ -1-> (1<_,/_>))" [50,0,0,0,0] 50)
@@ -58,7 +57,7 @@ translations
 
 inductive "exec01 P"
 intros
-ASIN: "\<lbrakk> n<size P; P!n = ASIN x a \<rbrakk> \<Longrightarrow> P \<turnstile> \<langle>n,s\<rangle> -1\<rightarrow> \<langle>Suc n,s[x\<mapsto> a s]\<rangle>"
+SET: "\<lbrakk> n<size P; P!n = SET x a \<rbrakk> \<Longrightarrow> P \<turnstile> \<langle>n,s\<rangle> -1\<rightarrow> \<langle>Suc n,s[x\<mapsto> a s]\<rangle>"
 JMPFT: "\<lbrakk> n<size P; P!n = JMPF b i;  b s \<rbrakk> \<Longrightarrow> P \<turnstile> \<langle>n,s\<rangle> -1\<rightarrow> \<langle>Suc n,s\<rangle>"
 JMPFF: "\<lbrakk> n<size P; P!n = JMPF b i; \<not>b s; m=n+i+1; m \<le> size P \<rbrakk>
         \<Longrightarrow> P \<turnstile> \<langle>n,s\<rangle> -1\<rightarrow> \<langle>m,s\<rangle>"
@@ -98,7 +97,7 @@ translations
 
 inductive "stepa1"
 intros
-  "\<langle>ASIN x a#p,q,s\<rangle> -1\<rightarrow> \<langle>p,ASIN x a#q,s[x\<mapsto> a s]\<rangle>"
+  "\<langle>SET x a#p,q,s\<rangle> -1\<rightarrow> \<langle>p,SET x a#q,s[x\<mapsto> a s]\<rangle>"
   "b s \<Longrightarrow> \<langle>JMPF b i#p,q,s\<rangle> -1\<rightarrow> \<langle>p,JMPF b i#q,s\<rangle>"
   "\<lbrakk> \<not> b s; i \<le> size p \<rbrakk>
    \<Longrightarrow> \<langle>JMPF b i # p, q, s\<rangle> -1\<rightarrow> \<langle>drop i p, rev(take i p) @ JMPF b i # q, s\<rangle>"
@@ -109,7 +108,7 @@ inductive_cases execE: "((i#is,p,s),next) : stepa1"
 
 lemma exec_simp[simp]:
  "(\<langle>i#p,q,s\<rangle> -1\<rightarrow> \<langle>p',q',t\<rangle>) = (case i of
- ASIN x a \<Rightarrow> t = s[x\<mapsto> a s] \<and> p' = p \<and> q' = i#q |
+ SET x a \<Rightarrow> t = s[x\<mapsto> a s] \<and> p' = p \<and> q' = i#q |
  JMPF b n \<Rightarrow> t=s \<and> (if b s then p' = p \<and> q' = i#q
             else n \<le> size p \<and> p' = drop n p \<and> q' = rev(take n p) @ i # q) |
  JMPB n \<Rightarrow> n \<le> size q \<and> t=s \<and> p' = rev(take n q) @ i # p \<and> q' = drop n q)"
@@ -150,7 +149,7 @@ lemma direction1:
  "\<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle> \<Longrightarrow>
   rev p' @ q' = rev p @ q \<and> rev p @ q \<turnstile> \<langle>size p,s\<rangle> -1\<rightarrow> \<langle>size p',t\<rangle>"
 apply(erule stepa1.induct)
-   apply(simp add:exec01.ASIN)
+   apply(simp add:exec01.SET)
   apply(fastsimp intro:exec01.JMPFT)
  apply simp
  apply(rule exec01.JMPFF)
