@@ -6,7 +6,7 @@
 Examples of recdef definitions.  Most, but not all, are handled automatically.
 *)
 
-Recdef = WF_Rel + List +
+Recdefs = Recdef + List +
 
 consts fact :: "nat => nat"
 recdef fact "less_than"

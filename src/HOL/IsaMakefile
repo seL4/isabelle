@@ -42,11 +42,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   Arith.ML Arith.thy Divides.ML Divides.thy Finite.ML Finite.thy Fun.ML \
   Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.thy Integ/Bin.ML \
   Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/Integ.ML \
-  Integ/Integ.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML Map.thy Nat.ML \
+  Integ/Integ.thy Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy \
-  Power.ML Power.thy Prod.ML Prod.thy ROOT.ML Record.thy RelPow.ML \
+  Power.ML Power.thy Prod.ML Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML \
   RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
-  Sum.ML Sum.thy Tools/inductive_package.ML Tools/record_package.ML \
+  String.ML String.thy Sum.ML Sum.thy Tools/inductive_package.ML Tools/record_package.ML \
   Tools/typedef_package.ML Trancl.ML Trancl.thy Univ.ML Univ.thy \
   Update.ML Update.thy Vimage.ML Vimage.thy WF.ML WF.thy WF_Rel.ML \
   WF_Rel.thy arith_data.ML cladata.ML datatype.ML equalities.ML \
@@ -281,7 +281,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
   ex/InSort.ML ex/InSort.thy ex/MT.ML ex/MT.thy ex/NatSum.ML \
   ex/NatSum.thy ex/Primes.ML ex/Primes.thy ex/Primrec.ML ex/Primrec.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML \
-  ex/Recdef.ML ex/Recdef.thy ex/String.ML ex/String.thy ex/cla.ML \
+  ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML \
   ex/meson.ML ex/mesontest.ML ex/set.ML \
   ex/Group.ML ex/Group.thy  ex/IntRing.ML ex/IntRing.thy \
   ex/IntRingDefs.ML ex/IntRingDefs.thy \

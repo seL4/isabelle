@@ -1,13 +1,11 @@
-(*  Title:      HOL/ex/Recdef.ML
+(*  Title:      HOL/ex/Recdefs.ML
     ID:         $Id$
     Author:     Konrad Lawrence C Paulson
     Copyright   1997  University of Cambridge
 
-A few proofs to demonstrate the functions defined in Recdef.thy
+A few proofs to demonstrate the functions defined in Recdefs.thy
 Lemma statements from Konrad Slind's Web site
 *)
-
-open Recdef;
 
 Addsimps qsort.rules;
 

@@ -52,7 +52,7 @@ use_thy "Inductive";
 use_thy "RelPow";
 use_thy "Finite";
 use_thy "Sexp";
-use_thy "WF_Rel";
+use_thy "Recdef";
 use_thy "Map";
 use_thy "Update";
 
@@ -64,6 +64,9 @@ cd "..";
 cd "$ISABELLE_HOME/src/TFL";
 use "sys.sml";
 cd "$ISABELLE_HOME/src/HOL";
+
+(*the all-in-one theory*)
+use_thy "Main";
 
 print_depth 8;
 

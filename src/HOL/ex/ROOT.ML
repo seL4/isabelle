@@ -12,7 +12,7 @@ writeln "Root file for HOL examples";
 set proof_timing;
 
 (**Some examples of recursive function definitions: the TFL package**)
-time_use_thy "Recdef";
+time_use_thy "Recdefs";
 time_use_thy "Primes";
 time_use_thy "Fib";
 time_use_thy "Primrec";
@@ -22,7 +22,6 @@ time_use     "cla.ML";
 time_use     "meson.ML";
 time_use     "mesontest.ML";
 (** time_use "mesontest2.ML";  ULTRA SLOW **)
-time_use_thy "String";
 time_use_thy "BT";
 time_use_thy "InSort";
 time_use_thy "Qsort";
