@@ -121,11 +121,11 @@ fun prep_thm_axm thy thm =
   let
     fun err msg = raise THM ("prep_thm_axm: " ^ msg, 0, [thm]);
 
-    val {sign, hyps, prop, ...} = rep_thm thm;
+    val {sign, shyps, hyps, prop, ...} = rep_thm thm;
   in
     if not (Sign.subsig (sign, sign_of thy)) then
       err "theorem not of same theory"
-    else if not (null hyps) then
+    else if not (null shyps) orelse not (null hyps) then
       err "theorem may not contain hypotheses"
     else prop
   end;
@@ -238,22 +238,27 @@ fun class_axms thy =
     val classes = Sign.classes (sign_of thy);
     val intros = map (fn c => c ^ "I") classes;
   in
-    get_axioms thy intros @
-    map (class_triv thy) classes
+    map (class_triv thy) classes @
+    get_axioms thy intros
   end;
 
 
 (* axclass_tac *)
 
 (*(1) repeatedly resolve goals of form "OFCLASS(ty, c_class)",
-      try "cI" axioms first and use class_triv as last resort
+      try class_trivs first, then "cI" axioms
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
 
 fun axclass_tac thy thms =
-  TRY (REPEAT_FIRST (resolve_tac (class_axms thy))) THEN
-  TRY (rewrite_goals_tac (filter is_def thms)) THEN
-  TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms)));
+  let
+    val defs = filter is_def thms;
+    val non_defs = filter_out is_def thms;
+  in
+    TRY (REPEAT_FIRST (resolve_tac (class_axms thy))) THEN
+    TRY (rewrite_goals_tac defs) THEN
+    TRY (REPEAT_FIRST (fn i => assume_tac i ORELSE resolve_tac non_defs i))
+  end;
 
 
 (* provers *)
@@ -287,8 +292,6 @@ val goal_arity = mk_goal mk_arity;
 
 
 (** add proved subclass relations and arities **)
-
-
 
 fun add_inst_subclass (c1, c2) axms thms usr_tac thy =
   add_classrel_thms
