@@ -4,8 +4,8 @@
     Copyright   1998 TUM
 *)
 
-Addsimps [in_set_butlast_appendI1,in_set_butlast_appendI2];
-AddIs    [in_set_butlast_appendI1,in_set_butlast_appendI2];
+Addsimps [in_set_butlast_appendI];
+AddIs    [in_set_butlast_appendI];
 Addsimps [image_eqI];
 
 (* Lists *)
