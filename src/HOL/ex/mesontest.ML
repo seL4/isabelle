@@ -213,15 +213,11 @@ goal HOL.thy "((! x.P(x)) | Q)  =  (! x. P(x) | Q)";
 by (safe_meson_tac 1);
 result(); 
 
-writeln"Testing the complete tactic";
-
-(*Not provable by pc_tac: needs multiple instantiation of !.
-  Could be proved trivially by a PROLOG interpreter*)
 goal HOL.thy "(! x. P(x)-->P(f(x)))  &  P(d)-->P(f(f(f(d))))";
 by (safe_meson_tac 1);
 result();
 
-(*Not provable by pc_tac: needs double instantiation of EXISTS*)
+(*Needs double instantiation of EXISTS*)
 goal HOL.thy "? x. P(x) --> P(a) & P(b)";
 by (safe_meson_tac 1);
 result();
@@ -437,7 +433,16 @@ goal HOL.thy
 by (safe_meson_tac 1); 		(*11 secs*)
 result();
 
-(* Example suggested by Johannes Schumann and credited to Pelletier *)
+(*The Los problem?  Circulated by John Harrison*)
+goal HOL.thy "(! x y z. P x y & P y z --> P x z) &	\
+\      (! x y z. Q x y & Q y z --> Q x z) &	\
+\      (! x y. P x y --> P y x) &	\
+\      (! (x::'a) y. P x y | Q x y)	\
+\      --> (! x y. P x y) | (! x y. Q x y)";
+by (safe_meson_tac 1);
+result();
+
+(*A similar example, suggested by Johannes Schumann and credited to Pelletier*)
 goal HOL.thy "(!x y z. P x y --> P y z --> P x z) --> \
 \	(!x y z. Q x y --> Q y z --> Q x z) --> \
 \	(!x y.Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
