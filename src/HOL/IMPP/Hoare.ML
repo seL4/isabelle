@@ -405,3 +405,23 @@ by (etac conseq2 1);
 by (etac spec 1);
 qed "weak_Local";
 
+(*
+Goal "!Q. G |-{%Z s. ~(? s'. <c,s> -c-> s')}. c .{Q}";
+by (induct_tac "c" 1);
+auto();
+br conseq1 1;
+br hoare_derivs.Skip 1;
+force 1;
+br conseq1 1;
+br hoare_derivs.Ass 1;
+force 1;
+by (defer_tac 1);
+###
+br hoare_derivs.Comp 1;
+bd spec 2;
+bd spec 2;
+ba 2;
+be conseq1 2;
+by (Clarsimp_tac 2);
+force 1;
+*)
