@@ -511,7 +511,7 @@ apply(simp_all add:mul_collector_defs Queue_def)
 apply force
 apply force
 apply force
-apply (force simp add: less_Suc_eq_le length_filter)
+apply (force simp add: less_Suc_eq_le)
 apply force
 apply (force dest:subset_antisym)
 apply force

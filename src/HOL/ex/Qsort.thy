@@ -15,7 +15,7 @@ recdef qsort "measure (size o snd)"
 "qsort(le, [])   = []"
 "qsort(le, x#xs) = qsort(le, [y:xs . ~ le x y]) @ [x] @
                    qsort(le, [y:xs . le x y])"
-(hints recdef_simp: length_filter[THEN le_less_trans])
+(hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma qsort_permutes[simp]:
  "multiset (qsort(le,xs)) x = multiset xs x"
@@ -43,7 +43,7 @@ consts quickSort :: "('a::linorder) list => 'a list"
 recdef quickSort "measure size"
 "quickSort []   = []"
 "quickSort (x#l) = quickSort [y:l. ~ x<=y] @ [x] @ quickSort [y:l. x<=y]"
-(hints recdef_simp: length_filter[THEN le_less_trans])
+(hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma quickSort_permutes[simp]:
  "multiset (quickSort xs) z = multiset xs z"
