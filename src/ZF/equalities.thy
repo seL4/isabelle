@@ -12,40 +12,8 @@ theory equalities = pair:
 text{*These cover union, intersection, converse, domain, range, etc.  Philippe
 de Groote proved many of the inclusions.*}
 
-(*FIXME: move to ZF.thy or even to FOL.thy??*)
-lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
-by blast
-
-(*FIXME: move to ZF.thy or even to FOL.thy??*)
-lemma not_disj_iff_imp: "~P | Q <-> (P-->Q)"
-by blast
-
-(** Monotonicity of implications -- some could go to FOL **)
-
 lemma in_mono: "A<=B ==> x:A --> x:B"
 by blast
-
-lemma conj_mono: "[| P1-->Q1; P2-->Q2 |] ==> (P1&P2) --> (Q1&Q2)"
-by fast (*or (IntPr.fast_tac 1)*)
-
-lemma disj_mono: "[| P1-->Q1; P2-->Q2 |] ==> (P1|P2) --> (Q1|Q2)"
-by fast (*or (IntPr.fast_tac 1)*)
-
-lemma imp_mono: "[| Q1-->P1; P2-->Q2 |] ==> (P1-->P2)-->(Q1-->Q2)"
-by fast (*or (IntPr.fast_tac 1)*)
-
-lemma imp_refl: "P-->P"
-by (rule impI, assumption)
-
-(*The quantifier monotonicity rules are also intuitionistically valid*)
-lemma ex_mono:
-    "[| !!x. P(x) --> Q(x) |] ==> (EX x. P(x)) --> (EX x. Q(x))"
-by blast
-
-lemma all_mono:
-    "[| !!x. P(x) --> Q(x) |] ==> (ALL x. P(x)) --> (ALL x. Q(x))"
-by blast
-
 
 lemma the_eq_0 [simp]: "(THE x. False) = 0"
 by (blast intro: the_0)
@@ -402,6 +370,9 @@ lemma Union_disjoint: "Union(C) Int A = 0 <-> (\<forall>B\<in>C. B Int A = 0)"
 by (blast elim!: equalityE)
 
 lemma Union_empty_iff: "Union(A) = 0 <-> (\<forall>B\<in>A. B=0)"
+by blast
+
+lemma Int_Union2: "Union(B) Int A = (UN C:B. C Int A)"
 by blast
 
 (** Big Intersection is the greatest lower bound of a nonempty set **)
@@ -978,6 +949,18 @@ lemma Collect_Union_eq [simp]:
      "Collect(\<Union>x\<in>A. B(x), P) = (\<Union>x\<in>A. Collect(B(x), P))"
 by blast
 
+lemma Collect_Int_left: "{x:A. P(x)} Int B = {x : A Int B. P(x)}"
+by blast
+
+lemma Collect_Int_right: "A Int {x:B. P(x)} = {x : A Int B. P(x)}"
+by blast
+
+lemma Collect_disj_eq: "{x:A. P(x) | Q(x)} = Collect(A, P) Un Collect(A, Q)"
+by blast
+
+lemma Collect_conj_eq: "{x:A. P(x) & Q(x)} = Collect(A, P) Int Collect(A, Q)"
+by blast
+
 lemmas subset_SIs = subset_refl cons_subsetI subset_consI 
                     Union_least UN_least Un_least 
                     Inter_greatest Int_greatest RepFun_subset
@@ -1139,6 +1122,7 @@ val Union_Un_distrib = thm "Union_Un_distrib";
 val Union_Int_subset = thm "Union_Int_subset";
 val Union_disjoint = thm "Union_disjoint";
 val Union_empty_iff = thm "Union_empty_iff";
+val Int_Union2 = thm "Int_Union2";
 val Inter_0 = thm "Inter_0";
 val Inter_Un_subset = thm "Inter_Un_subset";
 val Inter_Un_distrib = thm "Inter_Un_distrib";
@@ -1246,6 +1230,8 @@ val Collect_cons = thm "Collect_cons";
 val Int_Collect_self_eq = thm "Int_Collect_self_eq";
 val Collect_Collect_eq = thm "Collect_Collect_eq";
 val Collect_Int_Collect_eq = thm "Collect_Int_Collect_eq";
+val Collect_disj_eq = thm "Collect_disj_eq";
+val Collect_conj_eq = thm "Collect_conj_eq";
 
 val Int_ac = thms "Int_ac";
 val Un_ac = thms "Un_ac";

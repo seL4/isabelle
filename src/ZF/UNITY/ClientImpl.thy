@@ -9,20 +9,13 @@ Distributed Resource Management System:  Client Implementation
 
 theory ClientImpl = AllocBase + Guar:
 
-(*????MOVE UP*)
+(*move to Constrains.thy when the latter is converted to Isar format*)
 method_setup constrains = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
             gen_constrains_tac (Classical.get_local_claset ctxt,
                                Simplifier.get_local_simpset ctxt) 1)) *}
     "for proving safety properties"
-
-(*For using "disjunction" (union over an index set) to eliminate a variable.
-  ????move way up*)
-lemma UN_conj_eq: "\<forall>s\<in>state. f(s) \<in> A
-      ==> (\<Union>k\<in>A. {s\<in>state. P(s) & f(s) = k}) = {s\<in>state. P(s)}"
-by blast
-
 
 consts
   ask :: i (* input history:  tokens requested *)

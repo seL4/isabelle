@@ -8,6 +8,16 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
+(** Ad-hoc set-theory rules **)
+
+Goal "Union(B) Int A = (UN b:B. b Int A)";
+by Auto_tac;
+qed "Int_Union_Union";
+
+Goal "A Int Union(B) = (UN b:B. A Int b)";
+by Auto_tac;
+qed "Int_Union_Union2";
+
 (*** transient ***)
 
 Goalw [transient_def] "transient(A)<=program";

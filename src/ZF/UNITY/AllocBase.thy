@@ -187,8 +187,11 @@ done
 
 lemma mem_Int_imp_lt_length:
      "[|xs \<in> list(A); k \<in> C \<inter> length(xs)|] ==> k < length(xs)"
-apply (simp add: ltI)
-done
+by (simp add: ltI)
+
+lemma Int_succ_right:
+     "A Int succ(k) = (if k : A then cons(k, A Int k) else A Int k)"
+by auto
 
 
 lemma bag_of_sublist_lemma:
@@ -348,18 +351,6 @@ apply (unfold lepoll_def)
 apply (rule_tac x = " (\<lambda>x\<in>nat. nat_var_inj (x))" in exI)
 apply (rule var_infinite_lemma)
 done
-
-(*Surely a simpler proof uses lepoll_Finite and the following lemma:*)
-
-    (*????Cardinal*)
-    lemma nat_not_Finite: "~Finite(nat)"
-    apply (unfold Finite_def, clarify) 
-    apply (drule eqpoll_imp_lepoll [THEN lepoll_cardinal_le], simp) 
-    apply (insert Card_nat) 
-    apply (simp add: Card_def)
-    apply (drule le_imp_subset)
-    apply (blast elim: mem_irrefl)
-    done
 
 lemma var_not_Finite: "~Finite(var)"
 apply (insert nat_not_Finite) 
