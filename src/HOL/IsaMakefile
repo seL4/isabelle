@@ -220,10 +220,9 @@ $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.ML Subst/AList.thy \
 HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
-  Induct/Com.ML Induct/Com.thy Induct/Comb.ML Induct/Comb.thy \
-  Induct/Exp.ML Induct/Exp.thy Induct/LFilter.ML Induct/LFilter.thy \
-  Induct/LList.ML Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
-  Induct/PropLog.ML Induct/PropLog.thy Induct/ROOT.ML \
+  Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
+  Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
+  Induct/PropLog.thy Induct/ROOT.ML \
   Induct/Sexp.ML Induct/Sexp.thy Induct/Sigma_Algebra.thy \
   Induct/SList.ML Induct/SList.thy Induct/ABexp.thy Induct/Term.thy \
   Induct/Tree.thy Induct/document/root.tex
