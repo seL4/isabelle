@@ -53,6 +53,9 @@ Addsimps ([if_not_P, not_less_eq] @ beta.intrs);
 (* don't add r_into_rtrancl! *)
 val lambda_cs = trancl_cs addSIs beta.intrs;
 
+val db_case_distinction =
+  rule_by_tactic(EVERY[etac thin_rl 2,etac thin_rl 2,etac thin_rl 3])db.induct;
+
 (*** Congruence rules for ->> ***)
 
 goal Lambda.thy "!!s. s ->> s' ==> Fun s ->> Fun s'";

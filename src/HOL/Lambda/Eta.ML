@@ -22,7 +22,7 @@ val beta_cases = map (beta.mk_cases db.simps)
 val eta_cs = lambda_cs addIs eta.intrs
                        addSEs (beta_cases@eta_cases);
 
-(*** Arithmetic lemmas ***)
+section "Arithmetic lemmas";
 
 goal HOL.thy "!!P. P ==> P=True";
 by(fast_tac HOL_cs 1);
@@ -52,7 +52,7 @@ by(fast_tac (HOL_cs addDs [less_not_sym]) 1);
 qed_spec_mp "less_interval1";
 
 
-(*** decr and free ***)
+section "decr and free";
 
 goal Eta.thy "!i k. free (lift t k) i = \
 \                   (i < k & free t i | k < i & free t (pred i))";
@@ -117,7 +117,7 @@ goalw Eta.thy [decr_def] "!!s. s -e> t ==> decr s i -e> decr t i";
 by (etac eta_subst 1);
 qed "eta_decr";
 
-(*** Confluence of eta ***)
+section "Confluence of -e>";
 
 goalw Eta.thy [square_def,id_def]  "square eta eta (eta^=) (eta^=)";
 by (rtac (impI RS allI RS allI) 1);
@@ -129,7 +129,7 @@ goal Eta.thy "confluent(eta)";
 by(rtac (lemma RS square_reflcl_confluent) 1);
 qed "eta_confluent";
 
-(*** Congruence rules for -e>> ***)
+section "Congruence rules for -e>>";
 
 goal Eta.thy "!!s. s -e>> s' ==> Fun s -e>> Fun s'";
 by (etac rtrancl_induct 1);
@@ -151,7 +151,7 @@ by (fast_tac (eta_cs addSIs [rtrancl_eta_AppL,rtrancl_eta_AppR]
                      addIs [rtrancl_trans]) 1);
 qed "rtrancl_eta_App";
 
-(*** Commutation of beta and eta ***)
+section "Commutation of -> and -e>";
 
 goal Eta.thy "!!s t. s -> t ==> (!i. free t i --> free s i)";
 by (etac beta.induct 1);
@@ -220,3 +220,62 @@ goal Eta.thy "confluent(beta Un eta)";
 by(REPEAT(ares_tac [square_rtrancl_reflcl_commute,confluent_Un,
                     beta_confluent,eta_confluent,square_beta_eta] 1));
 qed "confluent_beta_eta";
+
+
+section "Implicit definition of -e>: Fun(lift s 0 @ Var 0) -e> s";
+
+goal Eta.thy "!i. (~free s i) = (? t. s = lift t i)";
+by(db.induct_tac "s" 1);
+  by(simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+  by(SELECT_GOAL(safe_tac HOL_cs)1);
+   by(res_inst_tac [("m","nat"),("n","i")] nat_less_cases 1);
+     by(res_inst_tac [("x","Var nat")] exI 1);
+     by(Asm_simp_tac 1);
+    by(fast_tac HOL_cs 1);
+   by(res_inst_tac [("x","Var(pred nat)")] exI 1);
+   by(Asm_simp_tac 1);
+  br notE 1;
+   ba 2;
+  be thin_rl 1;
+  by(res_inst_tac [("db","t")] db_case_distinction 1);
+    by(simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+    by(fast_tac (HOL_cs addDs [less_not_refl2]) 1);
+   by(Simp_tac 1);
+  by(Simp_tac 1);
+ by(asm_simp_tac (!simpset addsimps [de_Morgan_disj]) 1);
+ be thin_rl 1;
+ be thin_rl 1;
+ br allI 1;
+ br iffI 1;
+  by(REPEAT(eresolve_tac [conjE,exE] 1));
+  by(rename_tac "u1 u2" 1);
+  by(res_inst_tac [("x","u1@u2")] exI 1);
+  by(Asm_simp_tac 1);
+ be exE 1;
+ be rev_mp 1;
+ by(res_inst_tac [("db","t")] db_case_distinction 1);
+   by(simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+  by(Simp_tac 1);
+  by(fast_tac HOL_cs 1);
+ by(Simp_tac 1);
+by(Asm_simp_tac 1);
+be thin_rl 1;
+br allI 1;
+br iffI 1;
+ be exE 1;
+ by(res_inst_tac [("x","Fun t")] exI 1);
+ by(Asm_simp_tac 1);
+be exE 1;
+be rev_mp 1;
+by(res_inst_tac [("db","t")] db_case_distinction 1);
+  by(simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+ by(Simp_tac 1);
+by(Simp_tac 1);
+by(fast_tac HOL_cs 1);
+qed_spec_mp "not_free_iff_lifted";
+
+goalw Eta.thy [decr_def]
+ "(!s. (~free s 0) --> R(Fun(s @ Var 0))(decr s 0)) = \
+\ (!s. R(Fun(lift s 0 @ Var 0))(s))";
+by(fast_tac (HOL_cs addss (!simpset addsimps [lemma,not_free_iff_lifted])) 1);
+qed "explicit_is_implicit";
