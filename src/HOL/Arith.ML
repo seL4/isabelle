@@ -880,6 +880,8 @@ struct
 
 val lessD = [Suc_leI];
 
+val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
+
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
   | poly(Const("op +",_) $ s $ t, pi) = poly(s,poly(t,pi))
@@ -887,6 +889,14 @@ fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
       if t = Const("0",HOLogic.natT) then (p,i)
       else (case assoc(p,t) of None => ((t,1)::p,i)
             | Some m => (overwrite(p,(t,m+1)), i))
+fun poly(t, pi as (p,i)) =
+  if HOLogic.is_zero t then pi else
+  (case try HOLogic.dest_Suc t of
+    Some u => poly(u, (p,i+1))
+  | None => (case try dest_plus t of
+               Some(r,s) => poly(r,poly(s,pi))
+             | None => (case assoc(p,t) of None => ((t,1)::p,i)
+                        | Some m => (overwrite(p,(t,m+1)), i))))
 
 fun nnb T = T = ([HOLogic.natT,HOLogic.natT] ---> HOLogic.boolT);
 
@@ -912,7 +922,7 @@ fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp1(T,(rel,lhs,rhs))
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
-val add_rules = [Zero_not_Suc,Suc_not_Zero,le_0_eq];
+val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq];
 
 val cancel_sums_ss = HOL_basic_ss addsimps add_rules
                                   addsimprocs nat_cancel_sums_add;
