@@ -1530,7 +1530,7 @@ qed "e_less_succ";
 val prems = goal Limit.thy  (* e_less_succ_emb *)
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>   \
 \    e_less(DD,ee,m,succ(m)) = ee`m";
-by (asm_simp_tac(simpset() addsimps(e_less_succ::prems)) 1);
+by (asm_simp_tac(simpset() addsimps e_less_succ::prems) 1);
 by (stac comp_id 1);
 brr(emb_cont::cont_fun::refl::prems) 1;
 qed "e_less_succ_emb";
@@ -1822,15 +1822,15 @@ qed "eps_e_gr";
 val prems = goal Limit.thy  (* eps_succ_ee *)
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>  \
 \    eps(DD,ee,m,succ(m)) = ee`m";
-by (asm_simp_tac(simpset() addsimps(eps_e_less::le_succ_iff::e_less_succ_emb::
-   prems)) 1);
+by (asm_simp_tac(simpset() addsimps eps_e_less::le_succ_iff::e_less_succ_emb::
+   prems) 1);
 qed "eps_succ_ee";
 
 Goal  (* eps_succ_Rp *)
     "[|emb_chain(DD,ee); m:nat|] ==>  \
 \    eps(DD,ee,succ(m),m) = Rp(DD`m,DD`succ(m),ee`m)";
-by (asm_simp_tac(simpset() addsimps(eps_e_gr::le_succ_iff::e_gr_succ_emb::
-   prems)) 1);
+by (asm_simp_tac(simpset() addsimps eps_e_gr::le_succ_iff::e_gr_succ_emb::
+   prems) 1);
 qed "eps_succ_Rp";
 
 Goal  (* eps_cont *)

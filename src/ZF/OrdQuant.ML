@@ -88,7 +88,7 @@ qed_goal "OUN_cong" thy
     "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
  (fn prems=>
       [ rtac equality_iffI 1,
-        simp_tac (simpset() addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);
+        simp_tac (simpset() addcongs [oex_cong] addsimps OUN_iff::prems) 1 ]);
 
 AddSIs [oallI];
 AddIs  [oexI, OUN_I];

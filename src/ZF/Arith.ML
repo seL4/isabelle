@@ -123,7 +123,7 @@ val prems = goal Arith.thy
 by (rtac (prems MRS diff_induct) 1);
 by (etac leE 3);
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps (prems @ [le_iff, nat_into_Ord]))));
+    (asm_simp_tac (simpset() addsimps prems @ [le_iff, nat_into_Ord])));
 qed "diff_le_self";
 
 (*** Simplification over add, mult, diff ***)

@@ -708,7 +708,7 @@ qed "InfCard_csucc";
 
 Goal "n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
 by (etac nat_induct 1);
-by (simp_tac (simpset() addsimps (eqpoll_0_iff::Fin.intrs)) 1);
+by (simp_tac (simpset() addsimps eqpoll_0_iff::Fin.intrs) 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX u. u:A" 1);
 by (etac exE 1);

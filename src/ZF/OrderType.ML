@@ -793,7 +793,7 @@ qed "omult_assoc";
 val prems = 
 Goal "[| Ord(i);  !!x. x:A ==> Ord(j(x)) |] ==> \
 \     i ** (UN x:A. j(x)) = (UN x:A. i**j(x))";
-by (asm_simp_tac (simpset() addsimps (prems@[Ord_UN, omult_unfold])) 1);
+by (asm_simp_tac (simpset() addsimps prems @ [Ord_UN, omult_unfold]) 1);
 by (Blast_tac 1);
 qed "omult_UN";
 

@@ -39,7 +39,7 @@ val prems = Goal
 \       !!y. y:B ==> c(d(y)) = y        \
 \    |] ==> (lam x:A. c(x)) : surj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_surjective 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps ([lam_type]@prems)) ));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [lam_type]@prems) ));
 qed "lam_surjective";
 
 (*Cantor's theorem revisited*)
@@ -79,7 +79,7 @@ val prems = Goal
 \       !!x. x:A ==> d(c(x)) = x        \
 \    |] ==> (lam x:A. c(x)) : inj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_injective 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps ([lam_type]@prems)) ));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [lam_type]@prems)));
 qed "lam_injective";
 
 (** Bijections **)

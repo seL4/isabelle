@@ -160,7 +160,7 @@ by (rtac ballI 1);
 by (etac llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps ([QInl_def,QInr_def]@llist.con_defs))));
+    (asm_simp_tac (simpset() addsimps [QInl_def,QInr_def] @ llist.con_defs)));
 (*LCons case*)
 by (deepen_tac (claset() addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "flip_llist_quniv_lemma";

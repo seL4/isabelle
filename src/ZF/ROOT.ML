@@ -38,9 +38,15 @@ use_thy "func";
 use     "typechk.ML";
 use_thy "InfDatatype";
 use_thy "List";
-use_thy "EquivClass";
 
-(*printing functions are inherited from FOL*)
+(*Integers & binary integer arithmetic*)
+cd "Integ";
+use_thy "Bin";
+cd "..";
+
+(*the all-in-one theory*)
+use_thy "Main";
+
 print_depth 8;
 
 Goal "True";  (*leave subgoal package empty*)

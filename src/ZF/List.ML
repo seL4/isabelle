@@ -61,7 +61,7 @@ val major::prems = Goal
 \       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))  \
 \    |] ==> list_case(c,h,l) : C(l)";
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps (list.case_eqns @ prems))));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps list.case_eqns @ prems)));
 qed "list_case_type";
 
 
@@ -135,7 +135,7 @@ qed "list_rec_Nil";
 
 Goal "list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))";
 by (rtac (list_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (rank_ss addsimps (rank_Cons2::list.case_eqns)) 1);
+by (simp_tac (rank_ss addsimps rank_Cons2::list.case_eqns) 1);
 qed "list_rec_Cons";
 
 Addsimps [list_rec_Nil, list_rec_Cons];
