@@ -282,7 +282,7 @@ val show_hyps = ProofContext.show_hyps;
 val pretty_thm = ProofContext.pretty_thm;
 
 fun pretty_thms [th] = pretty_thm th
-  | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
+  | pretty_thms ths = Pretty.blk (0, Pretty.fbreaks (map pretty_thm ths));
 
 
 val verbose = ProofContext.verbose;
