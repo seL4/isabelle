@@ -46,7 +46,7 @@ val show_tags = ref false;	(*false: suppress tags*)
 
 local
 
-fun pretty_tag (name, args) = Pretty.strs (name :: args);
+fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun is_oracle (Thm.Oracle _) = true
@@ -183,7 +183,8 @@ fun print_sign sg =
 
     fun pretty_witness None = Pretty.str "universal non-emptiness witness: --"
       | pretty_witness (Some (T, S)) = Pretty.block
-          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ T, Pretty.brk 1, prt_sort S];
+          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ T,
+            Pretty.brk 1, prt_sort S];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
@@ -206,13 +207,15 @@ fun print_sign sg =
     Pretty.writeln (Pretty.strs ["name prefix:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_name_space spaces'));
     Pretty.writeln (pretty_classes classes);
-    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)));
+    Pretty.writeln (Pretty.big_list "class relation:"
+      (map pretty_classrel (Symtab.dest classrel)));
     Pretty.writeln (pretty_default default);
     Pretty.writeln (pretty_log_types log_types);
     Pretty.writeln (pretty_witness univ_witness);
     Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)));
-    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))));
+    Pretty.writeln (Pretty.big_list "type arities:"
+      (flat (map pretty_arities (Symtab.dest arities))));
     Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
   end;
 
