@@ -18,11 +18,11 @@ inductive otway
          (*Initial trace is empty*)
     Nil  "[]: otway"
 
-         (*The enemy MAY say anything he CAN say.  We do not expect him to
+         (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  B ~= Enemy;  X: synth (analz (sees Enemy evs)) |]
-          ==> Says Enemy B X  # evs : otway"
+    Fake "[| evs: otway;  B ~= Spy;  X: synth (analz (sees Spy evs)) |]
+          ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
     OR1  "[| evs: otway;  A ~= B;  B ~= Server |]
@@ -68,12 +68,12 @@ inductive otway
 
          (*This message models possible leaks of session keys.  Alice's Nonce
            identifies the protocol run.*)
-    Reveal "[| evs: otway;  A ~= Enemy;
+    Reveal "[| evs: otway;  A ~= Spy;
                Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
                  : set_of_list evs;
                Says A  B {|Nonce NA, Agent A, Agent B, 
                            Crypt {|Nonce NA, Agent A, Agent B|} (shrK A)|}
                  : set_of_list evs |]
-            ==> Says A Enemy {|Nonce NA, Key K|} # evs : otway"
+            ==> Says A Spy {|Nonce NA, Key K|} # evs : otway"
 
 end

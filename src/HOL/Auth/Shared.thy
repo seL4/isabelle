@@ -12,22 +12,19 @@ Shared = Message + List +
 
 consts
   shrK    :: agent => key  (*symmetric keys*)
-  leaked  :: nat set       (*Friendly agents whose keys have leaked to Enemy*)
-
-constdefs     (*Enemy and compromised agents*)
-  bad     :: agent set     "bad == insert Enemy (Friend``leaked)"
 
 rules
   isSym_shrK "isSymKey (shrK A)"
 
 consts  (*Initial states of agents -- parameter of the construction*)
-  initState :: agent => msg set
+  initState :: [agent set, agent] => msg set
 
 primrec initState agent
         (*Server knows all keys; other agents know only their own*)
-  initState_Server  "initState Server     = Key `` range shrK"
-  initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"
-  initState_Enemy   "initState Enemy      = Key``shrK``bad"
+  initState_Server  "initState lost Server     = Key `` range shrK"
+  initState_Friend  "initState lost (Friend i) = {Key (shrK (Friend i))}"
+  initState_Spy   "initState lost Spy      = Key``shrK``lost"
+
 
 datatype  (*Messages, and components of agent stores*)
   event = Says agent agent msg
@@ -38,16 +35,16 @@ consts
 primrec sees1 event
            (*First agent recalls all that it says, but NOT everything
              that is sent to it; it must note such things if/when received*)
-  sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Enemy} then {X} else {})"
+  sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Spy} then {X} else {})"
           (*part of A's internal state*)
 
 consts  
-  sees :: [agent, event list] => msg set
+  sees :: [agent set, agent, event list] => msg set
 
 primrec sees list
         (*Initial knowledge includes all public keys and own private key*)
-  sees_Nil  "sees A []       = initState A"
-  sees_Cons "sees A (ev#evs) = sees1 A ev Un sees A evs"
+  sees_Nil  "sees lost A []       = initState lost A"
+  sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
 (*Agents generate "random" nonces.  Different traces always yield
@@ -57,13 +54,12 @@ consts
   newK :: "event list => key"
 
 rules
-  inj_shrK "inj shrK"
+  inj_shrK      "inj shrK"
 
-  inj_newN   "inj newN"
-  fresh_newN "Nonce (newN evs) ~: parts (initState B)" 
+  inj_newN      "inj newN"
 
-  inj_newK   "inj newK"
-  fresh_newK "Key (newK evs) ~: parts (initState B)" 
-  isSym_newK "isSymKey (newK evs)"
+  inj_newK      "inj newK"
+  newK_neq_shrK "newK evs ~= shrK A" 
+  isSym_newK    "isSymKey (newK evs)"
 
 end

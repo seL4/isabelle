@@ -36,15 +36,15 @@ constdefs
     inductive definition instead of a datatype.*) 
 
 datatype  (*We allow any number of friendly agents*)
-  agent = Server | Friend nat | Enemy
+  agent = Server | Friend nat | Spy
 
 consts  
-  isEnemy :: agent => bool
+  isSpy :: agent => bool
 
-primrec isEnemy agent
-  isEnemy_Server  "isEnemy Server  = False"
-  isEnemy_Friend  "isEnemy (Friend i) = False"
-  isEnemy_Enemy   "isEnemy Enemy = True"
+primrec isSpy agent
+  isSpy_Server  "isSpy Server  = False"
+  isSpy_Friend  "isSpy (Friend i) = False"
+  isSpy_Spy   "isSpy Spy = True"
 
 datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
   msg = Agent agent

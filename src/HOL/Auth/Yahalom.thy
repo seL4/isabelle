@@ -12,34 +12,35 @@ From page 257 of
 
 Yahalom = Shared + 
 
-consts  yahalom   :: "event list set"
-inductive yahalom
+consts  yahalom   :: "agent set => event list set"
+inductive "yahalom lost"
   intrs 
          (*Initial trace is empty*)
-    Nil  "[]: yahalom"
+    Nil  "[]: yahalom lost"
 
-         (*The enemy MAY say anything he CAN say.  We do not expect him to
+         (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: yahalom;  B ~= Enemy;  X: synth (analz (sees Enemy evs)) |]
-          ==> Says Enemy B X  # evs : yahalom"
+    Fake "[| evs: yahalom lost;  B ~= Spy;  
+             X: synth (analz (sees lost Spy evs)) |]
+          ==> Says Spy B X  # evs : yahalom lost"
 
          (*Alice initiates a protocol run*)
-    YM1  "[| evs: yahalom;  A ~= B |]
-          ==> Says A B {|Agent A, Nonce (newN evs)|} # evs : yahalom"
+    YM1  "[| evs: yahalom lost;  A ~= B |]
+          ==> Says A B {|Agent A, Nonce (newN evs)|} # evs : yahalom lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    YM2  "[| evs: yahalom;  B ~= Server;
+    YM2  "[| evs: yahalom lost;  B ~= Server;
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says B Server 
                   {|Agent B, 
                     Crypt {|Agent A, Nonce NA, Nonce (newN evs)|} (shrK B)|}
-                 # evs : yahalom"
+                 # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
             new session key to Alice, with a packet for forwarding to Bob.*)
-    YM3  "[| evs: yahalom;  A ~= Server;
+    YM3  "[| evs: yahalom lost;  A ~= Server;
              Says B' Server 
                   {|Agent B, Crypt {|Agent A, Nonce NA, Nonce NB|} (shrK B)|}
                : set_of_list evs |]
@@ -47,15 +48,15 @@ inductive yahalom
                   {|Crypt {|Agent B, Key (newK evs), 
                             Nonce NA, Nonce NB|} (shrK A),
                     Crypt {|Agent A, Key (newK evs)|} (shrK B)|}
-                 # evs : yahalom"
+                 # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs: yahalom;  A ~= B;  
+    YM4  "[| evs: yahalom lost;  A ~= B;  
              Says S A {|Crypt {|Agent B, Key K, Nonce NA, Nonce NB|} (shrK A),
                         X|}
                : set_of_list evs;
              Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
-          ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom"
+          ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom lost"
 
 end

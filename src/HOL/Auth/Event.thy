@@ -28,7 +28,7 @@ primrec initState agent
         (*Server knows all keys; other agents know only their own*)
   initState_Server  "initState Server     = Key `` range shrK"
   initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"
-  initState_Enemy   "initState Enemy  = {Key (shrK Enemy)}"
+  initState_Spy   "initState Spy  = {Key (shrK Spy)}"
 
 (**
 For asymmetric keys: server knows all public and private keys,
@@ -45,7 +45,7 @@ consts
 primrec sees1 event
            (*First agent recalls all that it says, but NOT everything
              that is sent to it; it must note such things if/when received*)
-  sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Enemy} then {X} else {})"
+  sees1_Says  "sees1 A (Says A' B X)  = (if A:{A',Spy} then {X} else {})"
           (*part of A's internal state*)
   sees1_Notes "sees1 A (Notes A' X)   = (if A=A' then {X} else {})"
 
@@ -89,11 +89,11 @@ inductive traces
          (*Initial trace is empty*)
     Nil  "[]: traces"
 
-         (*The enemy MAY say anything he CAN say.  We do not expect him to
+         (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: traces;  B ~= Enemy;  X: synth (analz (sees Enemy evs))
-          |] ==> (Says Enemy B X) # evs : traces"
+    Fake "[| evs: traces;  B ~= Spy;  X: synth (analz (sees Spy evs))
+          |] ==> (Says Spy B X) # evs : traces"
 
          (*Alice initiates a protocol run*)
     NS1  "[| evs: traces;  A ~= Server
@@ -112,7 +112,7 @@ inductive traces
                    (shrK A))) # evs : traces"
 
           (*We can't assume S=Server.  Agent A "remembers" her nonce.
-            May assume WLOG that she is NOT the Enemy: the Fake rule
+            May assume WLOG that she is NOT the Spy: the Fake rule
             covers this case.  Can inductively show A ~= Server*)
     NS3  "[| evs: traces;  A ~= B;
              (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))) 
