@@ -35,7 +35,7 @@ sig
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
-  val print_thms: xstring * Args.src list -> Toplevel.transition -> Toplevel.transition
+  val print_thms: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_prop: string -> Toplevel.transition -> Toplevel.transition
   val print_term: string -> Toplevel.transition -> Toplevel.transition
   val print_type: string -> Toplevel.transition -> Toplevel.transition
@@ -125,25 +125,12 @@ val print_binds = Toplevel.keep (ProofContext.print_binds o Proof.context_of o T
 val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o Toplevel.proof_of);
 
 
-(* print theorems *)
+(* print theorems / types / terms / props *)
 
-fun global_attribs thy ths srcs =
-  #2 (Thm.applys_attributes ((Theory.copy thy, ths), map (Attrib.global_attribute thy) srcs));
+fun print_thms args = Toplevel.keep (fn state =>
+  let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state
+  in Display.print_thms (IsarThy.get_thmss args st) end);
 
-fun local_attribs st ths srcs =
-  #2 (Thm.applys_attributes ((Proof.context_of st, ths),
-    map (Attrib.local_attribute (Proof.theory_of st)) srcs));
-
-fun print_thms (name, srcs) = Toplevel.keep (fn state =>
-  let
-    val ths = map (Thm.transfer (Toplevel.theory_of state))
-      (Toplevel.node_case PureThy.get_thms (ProofContext.get_thms o Proof.context_of)
-        state name);
-    val ths' = Toplevel.node_case global_attribs local_attribs state ths srcs;
-  in Display.print_thms ths' end);
-
-
-(* print types, terms and props *)
 
 fun read_typ thy = Sign.read_typ (Theory.sign_of thy, K None);
 

@@ -123,6 +123,7 @@ sig
   val immediate_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val default_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val skip_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val get_thmss: (string * Args.src list) list -> Proof.state -> thm list
   val also: ((string * Args.src list) list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val also_i: (thm list * Comment.interest) option * Comment.text
@@ -224,20 +225,20 @@ fun local_have_thmss x =
   gen_have_thmss (ProofContext.get_thms o Proof.context_of)
     (Attrib.local_attribute o Proof.theory_of) x;
 
-fun have_thmss_i f ((name, more_atts), th_atts) =
+fun gen_have_thmss_i f ((name, more_atts), th_atts) =
   f name more_atts (map (apfst single) th_atts);
 
 fun have_lemss name atts = PureThy.have_thmss name (atts @ [Drule.tag_lemma]);
 
 
 fun apply_theorems th_srcs = global_have_thmss PureThy.have_thmss ((None, []), th_srcs);
-fun apply_theorems_i th_srcs = have_thmss_i PureThy.have_thmss ((None, []), th_srcs);
+fun apply_theorems_i th_srcs = gen_have_thmss_i PureThy.have_thmss ((None, []), th_srcs);
 val have_theorems = #1 oo (global_have_thmss (PureThy.have_thmss o Some) o Comment.ignore);
-val have_theorems_i = #1 oo (have_thmss_i (PureThy.have_thmss o Some) o Comment.ignore);
+val have_theorems_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss o Some) o Comment.ignore);
 val have_lemmas = #1 oo (global_have_thmss (have_lemss o Some) o Comment.ignore);
-val have_lemmas_i = #1 oo (have_thmss_i (have_lemss o Some) o Comment.ignore);
+val have_lemmas_i = #1 oo (gen_have_thmss_i (have_lemss o Some) o Comment.ignore);
 val have_facts = ProofHistory.apply o local_have_thmss (Proof.have_thmss []) o Comment.ignore;
-val have_facts_i = ProofHistory.apply o have_thmss_i (Proof.have_thmss []) o Comment.ignore;
+val have_facts_i = ProofHistory.apply o gen_have_thmss_i (Proof.have_thmss []) o Comment.ignore;
 
 
 (* forward chaining *)
@@ -248,9 +249,9 @@ fun add_thmss name atts ths_atts state =
   Proof.have_thmss (Proof.the_facts state) name atts ths_atts state;
 
 val from_facts = gen_from_facts (local_have_thmss (Proof.have_thmss [])) o Comment.ignore;
-val from_facts_i = gen_from_facts (have_thmss_i (Proof.have_thmss [])) o Comment.ignore;
+val from_facts_i = gen_from_facts (gen_have_thmss_i (Proof.have_thmss [])) o Comment.ignore;
 val with_facts = gen_from_facts (local_have_thmss add_thmss) o Comment.ignore;
-val with_facts_i = gen_from_facts (have_thmss_i add_thmss) o Comment.ignore;
+val with_facts_i = gen_from_facts (gen_have_thmss_i add_thmss) o Comment.ignore;
 
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
 fun export_chain comment_ignore = ProofHistory.applys Proof.export_chain;
@@ -383,13 +384,13 @@ fun cond_print_calc int thm =
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
 
-fun get_thmss srcs = Proof.the_facts o local_have_thmss (Proof.have_thmss []) (("", []), srcs); 
-fun get_thmss_i thms _ = thms;
-
 fun gen_calc get f (args, _) prt state =
   f (apsome (fn (srcs, _) => get srcs state) args) prt state;
 
 in
+
+fun get_thmss srcs = Proof.the_facts o local_have_thmss (Proof.have_thmss []) (("", []), srcs); 
+fun get_thmss_i thms _ = thms;
 
 fun also x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.also x);
 fun also_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.also x);

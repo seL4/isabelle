@@ -463,7 +463,7 @@ val print_lthmsP =
     (Scan.succeed IsarCmd.print_lthms);
 
 val print_thmsP =
-  OuterSyntax.improper_command "thm" "print theorems" K.diag (P.xthm >> IsarCmd.print_thms);
+  OuterSyntax.improper_command "thm" "print theorems" K.diag (P.xthms1 >> IsarCmd.print_thms);
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
