@@ -8,6 +8,8 @@ Executes all examples for First-Order Logic.
 
 writeln"Root file for FOLP examples";
 
+FOLP_build_completed;	(*Cause examples to fail if FOLP did*)
+
 proof_timing := true;
 
 time_use     "ex/intro.ML";
