@@ -134,7 +134,7 @@ qed "eq_Abs_hypnat";
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
     "congruent2 hypnatrel (%X Y. hypnatrel^^{%n. X n + Y n})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_add_congruent2";
 
@@ -188,7 +188,7 @@ Addsimps [hypnat_add_zero_left,hypnat_add_zero_right];
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
     "congruent2 hypnatrel (%X Y. hypnatrel^^{%n. X n - Y n})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_minus_congruent2";
  
@@ -279,7 +279,7 @@ Addsimps [hypnat_diff_add_0];
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
     "congruent2 hypnatrel (%X Y. hypnatrel^^{%n. X n * Y n})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_mult_congruent2";
 
