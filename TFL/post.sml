@@ -27,8 +27,11 @@ signature TFL =
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val define_i : theory -> term -> term -> theory * (thm * Prim.pattern list)
-   val define   : theory -> string -> string list -> theory * Prim.pattern list
+   val define_i : theory -> string -> term -> term 
+                  -> theory * (thm * Prim.pattern list)
+
+   val define   : theory -> string -> string -> string list 
+                  -> theory * Prim.pattern list
 
    val simplify_defn : theory * (string * Prim.pattern list)
                         -> {rules:thm list, induct:thm, tcs:term list}
@@ -74,9 +77,9 @@ fun termination_goals rules =
   *--------------------------------------------------------------------------*)
  fun WF_TAC thms = REPEAT(FIRST1(map rtac thms))
  val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, wf_less_than, 
-                    wf_pred_list, wf_trancl];
+                    wf_trancl];
 
- val terminator = simp_tac(!simpset addsimps [less_Suc_eq, pred_list_def]) 1
+ val terminator = simp_tac(!simpset addsimps [less_Suc_eq]) 1
                   THEN TRY(best_tac
                            (!claset addSDs [not0_implies_Suc]
                                     addss (!simpset)) 1);
@@ -105,20 +108,19 @@ val concl = #2 o Prim.Rules.dest_thm;
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation. 
  *---------------------------------------------------------------------------*)
-fun define_i thy R eqs = 
-  let val dummy = require_thy thy "WF_Rel" "recursive function definitions";
-      
+fun define_i thy fid R eqs = 
+  let val dummy = require_thy thy "WF_Rel" "recursive function definitions"
       val {functional,pats} = Prim.mk_functional thy eqs
-      val (thm,thry) = Prim.wfrec_definition0 thy  R functional
+      val (thm,thry) = Prim.wfrec_definition0 thy fid R functional
   in (thry,(thm,pats))
   end;
 
 (*lcp's version: takes strings; doesn't return "thm" 
         (whose signature is a draft and therefore useless) *)
-fun define thy R eqs = 
+fun define thy fid R eqs = 
   let fun read thy = readtm (sign_of thy) (TVar(("DUMMY",0),[])) 
       val (thy',(_,pats)) =
-             define_i thy (read thy R) 
+             define_i thy fid (read thy R) 
                       (fold_bal (app Ind_Syntax.conj) (map (read thy) eqs))
   in  (thy',pats)  end
   handle Utils.ERR {mesg,...} => error mesg;
