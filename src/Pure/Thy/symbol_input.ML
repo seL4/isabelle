@@ -26,21 +26,14 @@ val use =
     fn raw_name =>
       let
         val name = fix_name raw_name;
-
-        val infile = TextIO.openIn name;
-        val txt = TextIO.inputAll infile;
-        val _ = TextIO.closeIn infile;
-
+        val txt = read_file name;
         val txt_out = implode (SymbolFont.write_charnames' (explode txt));
       in
         if txt = txt_out then use name
         else
           let
             val tmp_name = "/tmp/" ^ base_name name;  (* FIXME unique prefix (!?) *)
-            val outfile = TextIO.openOut tmp_name;
-            val _ = TextIO.output (outfile, txt_out);
-            val _ = TextIO.closeOut outfile;
-
+            val _ = write_file tmp_name txt_out;
             val rm = OS.FileSys.remove;
           in
             use tmp_name handle exn => (rm tmp_name; raise exn);

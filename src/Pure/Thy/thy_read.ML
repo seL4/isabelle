@@ -28,7 +28,7 @@ end;
 structure ThyRead: THY_READ =
 struct
 
-open ThmDB ThyInfo BrowserInfo;
+open ThmDatabase ThyInfo BrowserInfo;
 
 
 datatype basetype = Thy  of string
@@ -52,17 +52,14 @@ val delete_tmpfiles = ref true;
 fun out_name tname = "." ^ tname ^ ".thy.ML";
 
 
-(*Read a file specified by thy_file containing theory thy *)
+(*Read a file specified by thy_file containing theory tname*)
 fun read_thy tname thy_file =
   let
-    val instream  = TextIO.openIn thy_file;
-    val intext = TextIO.inputAll instream;
-    val _ = TextIO.closeIn instream;
+    val intext = read_file thy_file;
     val outext = ThySyn.parse tname intext;
-    val outstream = TextIO.openOut (out_name tname);
-    val _ = TextIO.output (outstream, outext);
-    val _ = TextIO.closeOut outstream;
-  in () end;
+  in
+    write_file (out_name tname) outext
+  end;
 
 
 (*Check if a theory was completly loaded *)
