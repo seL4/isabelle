@@ -274,7 +274,7 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
          REPEAT (FIRSTGOAL (eresolve_tac rules1)),
          REPEAT (FIRSTGOAL (eresolve_tac rules2)),
          EVERY (map (fn prem =>
-           DEPTH_SOLVE_1 (ares_tac (prem::[conjI]) 1)) (tl prems))]))
+           DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))]))
       (mk_elims cs cTs params intr_ts)
 
   in elims end;
@@ -358,7 +358,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
                      ORELSE' hyp_subst_tac)),
          rewrite_goals_tac (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
          EVERY (map (fn prem =>
-           DEPTH_SOLVE_1 (ares_tac (prem::[conjI, refl]) 1)) prems)]);
+           DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
 
     val lemma = prove_goalw_cterm rec_sets_defs (cterm_of sign
       (Logic.mk_implies (ind_concl, mutual_ind_concl))) (fn prems =>
@@ -386,6 +386,9 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val fp_name = if coind then Sign.intern_const (sign_of Gfp.thy) "gfp"
       else Sign.intern_const (sign_of Lfp.thy) "lfp";
 
+    val used = foldr add_term_names (intr_ts, []);
+    val [sname, xname] = variantlist (["S", "x"], used);
+
     (* transform an introduction rule into a conjunction  *)
     (*   [| t : ... S_i ... ; ... |] ==> u : S_j          *)
     (* is transformed into                                *)
@@ -394,22 +397,22 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     fun transform_rule r =
       let
         val frees = map dest_Free ((add_term_frees (r, [])) \\ params);
-        val idx = length frees;
-        val subst = subst_free (cs ~~ (map (mk_vimage cs sumT (Bound (idx + 1))) cs));
+        val subst = subst_free
+          (cs ~~ (map (mk_vimage cs sumT (Free (sname, setT))) cs));
         val Const ("op :", _) $ t $ u =
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
       in foldr (fn ((x, T), P) => HOLogic.mk_exists (x, T, P))
         (frees, foldr1 (app HOLogic.conj)
-          (((HOLogic.eq_const sumT) $ Bound idx $ (mk_inj cs sumT u t))::
+          (((HOLogic.eq_const sumT) $ Free (xname, sumT) $ (mk_inj cs sumT u t))::
             (map (subst o HOLogic.dest_Trueprop)
               (Logic.strip_imp_prems r))))
       end
 
     (* make a disjunction of all introduction rules *)
 
-    val fp_fun = Abs ("S", setT, (HOLogic.Collect_const sumT) $
-      Abs ("x", sumT, foldr1 (app HOLogic.disj) (map transform_rule intr_ts)));
+    val fp_fun = absfree (sname, setT, (HOLogic.Collect_const sumT) $
+      absfree (xname, sumT, foldr1 (app HOLogic.disj) (map transform_rule intr_ts)));
 
     (* add definiton of recursive sets to theory *)
 
