@@ -26,8 +26,8 @@ structure Int_CC_Data : COMBINE_COEFF_DATA =
 struct
   val ss		= HOL_ss
   val eq_reflection	= eq_reflection
-  val thy	= Bin.thy
-  val T		= Type ("IntDef.int", [])
+  val thy		= Bin.thy
+  val T			= HOLogic.intT
 
   val trans		= trans
   val add_ac		= zadd_ac
