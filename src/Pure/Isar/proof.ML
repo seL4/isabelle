@@ -27,7 +27,7 @@ sig
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
-  val print_state: state -> unit
+  val print_state: int -> state -> unit
   val level: state -> int
   type method
   val method: (thm list -> tactic) -> method
@@ -120,10 +120,7 @@ type goal =
 (* type mode *)
 
 datatype mode = Forward | ForwardChain | Backward;
-
-val mode_name =
-  enclose "`" "'" o
-    (fn Forward => "state" | ForwardChain => "chain" | Backward => "prove");
+val mode_name = (fn Forward => "state" | ForwardChain => "chain" | Backward => "prove");
 
 
 (* datatype state *)
@@ -295,7 +292,7 @@ fun print_facts _ None = ()
   | print_facts s (Some ths) =
       Pretty.writeln (Pretty.big_list (s ^ " facts:") (map pretty_thm ths));
 
-fun print_state (state as State (Node {context, facts, mode, goal = _}, nodes)) =
+fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
 
@@ -310,9 +307,8 @@ fun print_state (state as State (Node {context, facts, mode, goal = _}, nodes)) 
 
     val ctxt_strings = ProofContext.strings_of_context context;
   in
-    if ! verbose then writeln ("Nesting level: " ^ string_of_int (length nodes div 2)) else ();
-    writeln "";
-    writeln (mode_name mode ^ " mode");
+    writeln ("Proof(" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
+      ", depth " ^ string_of_int (length nodes div 2));
     writeln "";
     if ! verbose orelse mode = Forward then
       (if null ctxt_strings then () else (seq writeln ctxt_strings; writeln "");
