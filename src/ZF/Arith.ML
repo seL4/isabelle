@@ -532,6 +532,10 @@ by (nat_ind_tac "x" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_lt_mono])));
 qed "mult_lt_mono2";
 
+goal thy "!!k. [| i<j; 0<k; i:nat; j:nat; k:nat |] ==> i#*k < j#*k";
+by (asm_simp_tac (simpset() addsimps [mult_lt_mono2, mult_commute]) 1);
+qed "mult_lt_mono1";
+
 goal Arith.thy "!!k. [| m: nat; n: nat |] ==> 0 < m#*n <-> 0<m & 0<n";
 by (best_tac (claset() addEs [natE] addss (simpset())) 1);
 qed "zero_lt_mult_iff";
