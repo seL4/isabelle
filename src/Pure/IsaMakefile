@@ -51,10 +51,16 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
 	@./mk
 
 
-## RAW
+## special targets
+
+Pure-copied:
+	@./mk -C
 
 RAW:
 	@./mk -r
+
+RAW-copied:
+	@./mk -Cr
 
 
 ## clean
