@@ -13,6 +13,7 @@ local
     ProofContext.setup @
     Locale.setup @
     Attrib.setup @
+    RuleContext.setup @
     InductAttrib.setup @
     Method.setup @
     Calculation.setup @

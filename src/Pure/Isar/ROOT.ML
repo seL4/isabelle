@@ -17,6 +17,7 @@ use "proof_data.ML";
 use "proof_history.ML";
 use "args.ML";
 use "attrib.ML";
+use "rule_context.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 use "method.ML";
@@ -59,6 +60,7 @@ struct
   structure ProofHistory = ProofHistory;
   structure Args = Args;
   structure Attrib = Attrib;
+  structure RuleContext = RuleContext;
   structure Method = Method;
   structure Calculation = Calculation;
   structure Obtain = Obtain;
