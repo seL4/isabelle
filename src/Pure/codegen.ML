@@ -586,12 +586,12 @@ fun test_term thy sz i t =
           Pretty.brk 1, Pretty.str ("(fn " ^ szname ^ " =>"), Pretty.brk 1,
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
             Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
-              Pretty.block [Pretty.str ("val " ^ s ^ " ="), Pretty.brk 1,
+              Pretty.block [Pretty.str ("val " ^ mk_id s ^ " ="), Pretty.brk 1,
               mk_gen sg false [] "" T, Pretty.brk 1,
               Pretty.str (szname ^ ";")]) frees)),
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
-              mk_app false (Pretty.str "testf") (map (Pretty.str o fst) frees),
+              mk_app false (Pretty.str "testf") (map (Pretty.str o mk_id o fst) frees),
               Pretty.brk 1, Pretty.str "then Library.None",
               Pretty.brk 1, Pretty.str "else ",
               Pretty.block [Pretty.str "Library.Some ", Pretty.block (Pretty.str "[" ::
@@ -599,7 +599,7 @@ fun test_term thy sz i t =
                   (map (fn (s, T) => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote s ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of sg false T)
-                       [Pretty.str s], Pretty.str ")"]]) frees)) @
+                       [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"])) ^
       "\n\nend;\n";
