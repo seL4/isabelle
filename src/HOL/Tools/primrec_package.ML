@@ -221,7 +221,7 @@ fun add_primrec_i alt_name eqn_names eqns thy =
       (if eq_set (names1, names2) then Theory.add_defs_i defs'
        else primrec_err ("functions " ^ commas names2 ^
          "\nare not mutually recursive"));
-    val rewrites = (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
+    val rewrites = (map meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
     val _ = writeln ("Proving equations for primrec function(s)\n" ^
       commas names1 ^ " ...");
     val char_thms = map (fn t => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)

@@ -56,7 +56,7 @@ fun dest_sum tm =
 val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
 fun prove_conv expand_tac norm_tac sg (t, u) =
-  mk_meta_eq (prove_goalw_cterm [] (cterm_of sg (mk_eqv (t, u)))
+  meta_eq (prove_goalw_cterm [] (cterm_of sg (mk_eqv (t, u)))
     (K [expand_tac, norm_tac]))
   handle ERROR => error ("The error(s) above occurred while trying to prove " ^
     (string_of_cterm (cterm_of sg (mk_eqv (t, u)))));

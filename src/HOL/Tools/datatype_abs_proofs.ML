@@ -329,7 +329,7 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
           (take (length newTs, reccomb_names)));
 
     val case_thms = map (map (fn t => prove_goalw_cterm (case_defs @
-      (map mk_meta_eq primrec_thms)) (cterm_of (sign_of thy2) t)
+      (map meta_eq primrec_thms)) (cterm_of (sign_of thy2) t)
         (fn _ => [rtac refl 1])))
           (DatatypeProp.make_cases new_type_names descr sorts thy2);
 
@@ -399,7 +399,7 @@ fun prove_distinctness_thms new_type_names descr sorts dist_rewrites case_thms t
             val cert = cterm_of (sign_of thy2);
             val distinct_lemma' = cterm_instantiate
               [(cert distinct_f, cert f)] distinct_lemma;
-            val rewrites = ord_defs @ (map mk_meta_eq case_thms)
+            val rewrites = ord_defs @ (map meta_eq case_thms)
           in
             (map (fn t => prove_goalw_cterm rewrites (cert t)
               (fn _ => [rtac refl 1])) (rev ts')) @ [standard distinct_lemma']
@@ -490,7 +490,7 @@ fun prove_size_thms new_type_names descr sorts reccomb_names primrec_thms thy =
             (size_names ~~ recTs ~~ def_names ~~ reccomb_names));
 
     val size_def_thms = map (get_axiom thy') def_names;
-    val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
+    val rewrites = size_def_thms @ map meta_eq primrec_thms;
 
     val size_thms = map (fn t => prove_goalw_cterm rewrites
       (cterm_of (sign_of thy') t) (fn _ => [rtac refl 1]))

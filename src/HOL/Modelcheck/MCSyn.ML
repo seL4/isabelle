@@ -26,7 +26,7 @@ qed "pair_eta_expand";
 
 local
   val lhss = [read_cterm (sign_of thy) ("f::'a*'b=>'c", TVar (("'a", 0), []))];
-  val rew = mk_meta_eq pair_eta_expand;
+  val rew = meta_eq pair_eta_expand;
 
   fun proc _ _ (Abs _) = Some rew
     | proc _ _ _ = None;

@@ -153,7 +153,7 @@ qed_goal "cond_split_eta" Prod.thy
 local
   val split_eta_pat = Thm.read_cterm (sign_of thy) 
 		("split (%x. split (%y. f x y))", HOLogic.termTVar);
-  val split_eta_meta_eq = standard (mk_meta_eq cond_split_eta);
+  val split_eta_meta_eq = standard (meta_eq cond_split_eta);
   fun  Pair_pat 0      (Bound 0) = true
   |    Pair_pat k      (Const ("Pair",  _) $ Bound m $ t) = 
 			m = k andalso Pair_pat (k-1) t
@@ -176,7 +176,7 @@ local
 			 val ct   = cterm_of (sign_of thy) (HOLogic.mk_Trueprop
 				   (HOLogic.mk_eq (atom_fun s,fvar)));
 			 val ss   = HOL_basic_ss addsimps [cond_split_eta];
-         in Some (mk_meta_eq (prove_goalw_cterm [] ct (K [simp_tac ss 1]))) end)
+         in Some (meta_eq (prove_goalw_cterm [] ct (K [simp_tac ss 1]))) end)
 	| None => None)
   |   proc _ _ _ = None;
 
@@ -435,7 +435,7 @@ AddSEs [fst_imageE, snd_imageE, prod_fun_imageE];
   Cannot use this rule directly -- it loops!*)
 local
   val unit_pat = Thm.cterm_of (sign_of thy) (Free ("x", HOLogic.unitT));
-  val unit_meta_eq = standard (mk_meta_eq unit_eq);
+  val unit_meta_eq = standard (meta_eq unit_eq);
   fun proc _ _ t =
     if HOLogic.is_unit t then None
     else Some unit_meta_eq;

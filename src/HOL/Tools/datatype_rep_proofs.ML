@@ -317,7 +317,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
         (* prove characteristic equations *)
 
-        val rewrites = def_thms @ (map mk_meta_eq rec_rewrites);
+        val rewrites = def_thms @ (map meta_eq rec_rewrites);
         val char_thms' = map (fn eqn => prove_goalw_cterm rewrites
           (cterm_of (sign_of thy') eqn) (fn _ => [rtac refl 1])) eqns;
 
@@ -381,7 +381,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
         val (ind_concl1, ind_concl2) = ListPair.unzip (map mk_ind_concl ds);
 
-        val rewrites = map mk_meta_eq iso_char_thms;
+        val rewrites = map meta_eq iso_char_thms;
         val inj_thms' = map (fn r => r RS injD) inj_thms;
 
         val inj_thm = prove_goalw_cterm [] (cterm_of (sign_of thy5)
@@ -430,7 +430,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
     fun prove_constr_rep_thm eqn =
       let
         val inj_thms = map (fn (r, _) => r RS inj_onD) newT_iso_inj_thms;
-        val rewrites = constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
+        val rewrites = constr_defs @ (map (meta_eq o #2) newT_iso_axms)
       in prove_goalw_cterm [] (cterm_of (sign_of thy5) eqn) (fn _ =>
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
@@ -524,7 +524,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
            [REPEAT (eresolve_tac Abs_inverse_thms 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1)]))
-              (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
+              (prems ~~ (constr_defs @ (map meta_eq iso_char_thms))))]);
 
     val thy7 = PureThy.add_tthms [(("induct", Attribute.tthm_of dt_induct), [])] thy6;
 
