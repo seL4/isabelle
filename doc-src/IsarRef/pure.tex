@@ -776,10 +776,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   ;
   'OF' thmrefs
   ;
-  'of' (inst * ) ('concl' ':' (inst * ))?
-  ;
-
-  inst: underscore | term
+  'of' insts ('concl' ':' insts)?
   ;
 \end{rail}
 
@@ -936,7 +933,7 @@ preparation, for example).
 
 \indexisarcmd{apply}\indexisarcmd{apply-end}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
-\indexisarmeth{tactic}
+\indexisarmeth{tactic}\indexisarmeth{insert}
 \indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
 \indexisarmeth{dres-inst-tac}\indexisarmeth{forw-inst-tac}
 \indexisarmeth{subgoal-tac}
@@ -947,6 +944,7 @@ preparation, for example).
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
   tactic^* & : & \isarmeth \\
+  insert^* & : & \isarmeth \\
   res_inst_tac^* & : & \isarmeth \\
   eres_inst_tac^* & : & \isarmeth \\
   dres_inst_tac^* & : & \isarmeth \\
@@ -982,6 +980,8 @@ preparation, for example).
   'prefer' nat comment?
   ;
   'tactic' text
+  ;
+  'insert' thmrefs
   ;
   ( resinsttac | eresinsttac | dresinsttac | forwinsttac ) goalspec? ((name '=' term) + 'and')
   ;
@@ -1028,6 +1028,8 @@ val thms  : string -> thm list
   indicates any current facts for forward-chaining, and
   \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
   theorems) from the context.
+\item [$insert~\vec a$] inserts theorems as facts into the proof state; the
+  current facts indicated for forward chaining are ignored!
 \item [$res_inst_tac$ etc.] do resolution of rules with explicit
   instantiation.  This works the same way as the corresponding ML tactics, see
   \cite[\S3]{isabelle-ref}.
