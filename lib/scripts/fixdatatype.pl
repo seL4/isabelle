@@ -23,8 +23,8 @@ sub fixdatatype {
     ## replace specific induct_tac by generic induct_tac
     s/[\w\.]+\.induct_tac/induct_tac/sg;
 
-    ## replace res_inst_tac ... natE by exhaust_tac
-    s/\bres_inst_tac\b\s*\[\s*\(\s*"[^"]+"\s*,\s*("[^"]+")\s*\)\s*\]\s*natE\b/exhaust_tac $1/sg;
+    ## replace res_inst_tac ... natE by case_tac
+    s/\bres_inst_tac\b\s*\[\s*\(\s*"[^"]+"\s*,\s*("[^"]+")\s*\)\s*\]\s*natE\b/case_tac $1/sg;
 
     $result = $_;
 
