@@ -818,6 +818,9 @@ lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
   apply (insert linorder_linear, blast)
   done
 
+lemma linorder_le_less_linear: "!!x::'a::linorder. x\<le>y | y<x"
+  by (simp add: order_le_less linorder_less_linear)
+
 lemma linorder_le_cases [case_names le ge]:
     "((x::'a::linorder) \<le> y ==> P) ==> (y \<le> x ==> P) ==> P"
   by (insert linorder_linear, blast)
