@@ -156,28 +156,24 @@ qed "constrains_weaken";
 (** Union **)
 
 Goalw [constrains_def]
-    "[| F : A co A'; F : B co B' |]   \
-\    ==> F : (A Un B) co (A' Un B')";
+    "[| F : A co A'; F : B co B' |] ==> F : (A Un B) co (A' Un B')";
 by (Blast_tac 1);
 qed "constrains_Un";
 
 Goalw [constrains_def]
-    "ALL i:I. F : (A i) co (A' i) \
-\    ==> F : (UN i:I. A i) co (UN i:I. A' i)";
+    "ALL i:I. F : (A i) co (A' i) ==> F : (UN i:I. A i) co (UN i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_UN";
 
 (** Intersection **)
 
 Goalw [constrains_def]
-    "[| F : A co A'; F : B co B' |]   \
-\    ==> F : (A Int B) co (A' Int B')";
+    "[| F : A co A'; F : B co B' |] ==> F : (A Int B) co (A' Int B')";
 by (Blast_tac 1);
 qed "constrains_Int";
 
 Goalw [constrains_def]
-    "ALL i:I. F : (A i) co (A' i) \
-\    ==> F : (INT i:I. A i) co (INT i:I. A' i)";
+    "ALL i:I. F : (A i) co (A' i) ==> F : (INT i:I. A i) co (INT i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_INT";
 
@@ -193,8 +189,7 @@ by (Blast_tac 1);
 qed "constrains_trans";
 
 Goalw [constrains_def]
-   "[| F : A co (A' Un B); F : B co B' |] \
-\   ==> F : A co (A' Un B')";
+   "[| F : A co (A' Un B); F : B co B' |] ==> F : A co (A' Un B')";
 by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "constrains_cancel";
@@ -235,14 +230,12 @@ by (blast_tac (claset() addIs [ball_constrains_INT]) 1);
 qed "ball_stable_INT";
 
 Goalw [stable_def, constrains_def]
-    "[| F : stable C; F : A co (C Un A') |]   \
-\    ==> F : (C Un A) co (C Un A')";
+    "[| F : stable C; F : A co (C Un A') |] ==> F : (C Un A) co (C Un A')";
 by (Blast_tac 1);
 qed "stable_constrains_Un";
 
 Goalw [stable_def, constrains_def]
-    "[| F : stable C; F :  (C Int A) co  A' |]   \
-\    ==> F : (C Int A) co (C Int A')";
+  "[| F : stable C; F :  (C Int A) co  A' |] ==> F : (C Int A) co (C Int A')";
 by (Blast_tac 1);
 qed "stable_constrains_Int";
 
