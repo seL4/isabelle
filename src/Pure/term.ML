@@ -16,6 +16,7 @@ sig
   type indexname
   type class
   type sort
+  type arity
   datatype typ =
     Type  of string * typ list |
     TFree of string * sort |
@@ -128,9 +129,6 @@ sig
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
   val maxidx_of_terms: term list -> int
-  val read_radixint: int * string list -> int * string list
-  val read_int: string list -> int * string list
-  val oct_char: string -> string
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
   val variant_abs: string * typ * term -> string * term
@@ -205,6 +203,7 @@ type indexname = string*int;
 (* Types are classified by sorts. *)
 type class = string;
 type sort  = class list;
+type arity = string * sort list * sort;
 
 (* The sorts attached to TFrees and TVars specify the sort of that variable *)
 datatype typ = Type  of string * typ list
@@ -718,22 +717,6 @@ fun no_dummyT typ =
       | check (Type (_, Ts)) = seq check Ts
       | check _ = ();
   in check typ; typ end;
-
-(*read a numeral of the given radix, normally 10*)
-fun read_radixint (radix: int, cs) : int * string list =
-  let val zero = ord"0"
-      val limit = zero+radix
-      fun scan (num,[]) = (num,[])
-        | scan (num, c::cs) =
-              if  zero <= ord c  andalso  ord c < limit
-              then scan(radix*num + ord c - zero, cs)
-              else (num, c::cs)
-  in  scan(0,cs)  end;
-
-fun read_int cs = read_radixint (10, cs);
-
-fun octal s = #1 (read_radixint (8, explode s));
-val oct_char = chr o octal;
 
 
 (*** Printing ***)
