@@ -138,4 +138,4 @@ $perl_revtab = "  " . join(",\n  ", @perl_revtab) . "\n";
 &patch_file("Pure/Syntax/symbol_font.ML", $ml_tab);
 &patch_file("Distribution/lib/scripts/symbolinput.pl", $perl_tab);
 &patch_file("Distribution/lib/scripts/feeder.pl", $perl_tab);
-&patch_file("Distribution/lib/scripts/symboloutput.pl", $perl_revtab);
+#&patch_file("Distribution/lib/scripts/symboloutput.pl", $perl_revtab);
