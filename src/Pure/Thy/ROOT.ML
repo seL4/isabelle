@@ -22,7 +22,6 @@ structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
 (* hide functors; saves space in PolyML *)
 functor ThyScanFun() = struct end;
 functor ThyParseFun() = struct end;
-functor ThySynFun() = struct end;
 
 fun init_thy_reader () =
   use_string
