@@ -29,10 +29,10 @@ coinductive
  
 consts
   hastyenv :: "[i,i] => o"
-rules
+defs
   hastyenv_def 
-    " hastyenv(ve,te) == \
-\     ve_dom(ve) = te_dom(te) & \
+    " hastyenv(ve,te) == 			\
+\     ve_dom(ve) = te_dom(te) & 		\
 \     (ALL x:ve_dom(ve). <ve_app(ve,x),te_app(te,x)>:HasTyRel)"
 
 end

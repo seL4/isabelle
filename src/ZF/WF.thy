@@ -16,7 +16,7 @@ consts
   is_recfun    :: "[i, i, [i,i]=>i, i] =>o"
   the_recfun   :: "[i, i, [i,i]=>i] =>i"
 
-rules
+defs
   (*r is a well-founded relation*)
   wf_def	 "wf(r) == ALL Z. Z=0 | (EX x:Z. ALL y. <y,x>:r --> ~ y:Z)"
 
