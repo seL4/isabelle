@@ -26,7 +26,7 @@ use_thy "HOL";
 use_thy "Ord";
 use_thy "subset";
 use     "hologic.ML";
-use     "subtype.ML";
+use     "typedef.ML";
 use_thy "Prod";
 use_thy "Sum";
 use_thy "Gfp";
