@@ -62,7 +62,8 @@ fi
 
 
 ###
-### Compilation options
+### Compilation options for isatool usedir
+### (as on command line)
 ###
 
 ISABELLE_USEDIR_OPTIONS=""
@@ -72,16 +73,28 @@ ISABELLE_USEDIR_OPTIONS=""
 ### Document preparation
 ###
 
+# latex command for isatool latex/document
 ISABELLE_LATEX="latex"
+
+# pdflatex command for isatool latex/document
 ISABELLE_PDFLATEX="pdflatex"
+
+# bibtex command for isatool latex/document
 ISABELLE_BIBTEX="bibtex"
+
+# dvips command for isatool latex/document
 ISABELLE_DVIPS="dvips -D 600"
+
+# epstopdf command for isatool latex/document
 ISABELLE_EPSTOPDF="epstopdf"
 
-# Paranoia setting ...
+# Paranoia setting for strange latex installations ...
 #unset TEXMF
 
-# The thumbpdf tool is probably not generally available ...
+# If ISABELLE_THUMBPDF is set, isatool tries to
+# generate thumbnails for proof documents
+#
+# probably not generally available ...
 #type -path thumbpdf >/dev/null && ISABELLE_THUMBPDF="thumbpdf"
 
 
@@ -116,11 +129,16 @@ fi
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
   { echo >&2 "### Isabelle site settings already present!  Maybe copied etc/settings in full?"; }
 
-# Users may want to override this.
+
+###
+### default logic, users may want to override this.
+###
 ISABELLE_LOGIC=HOL
 
 
-## Docs
+###
+### Docs
+###
 
 #Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
@@ -137,15 +155,17 @@ DVI_VIEWER=xdvi
 ### Interfaces
 ###
 
-# The null interface: pass-through to raw isabelle process.
+# ISABELLE_INTERFACE is the program which is run by the Isabelle command
+
+# Fallback: the null interface (pass-through to raw isabelle process).
 ISABELLE_INTERFACE=none
 
-# Emacs running Isamode.
+# Emacs running (obsolete) Isamode.
 #ISABELLE_INTERFACE=emacs
 ISAMODE_HOME="$ISABELLE_HOME/contrib/Isamode"
 ISAMODE_OPTIONS=""
 
-# Proof General
+# Proof General path, look in a variety of places
 ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
@@ -154,13 +174,16 @@ ISABELLE_INTERFACE=$(choosefrom \
   "/opt/ProofGeneral/isar/interface" \
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
+
+# Options to pass to Isabelle command when PG is selected as interface
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
 
+# try xemacs first, else emacs
 type -path xemacs >/dev/null || PROOFGENERAL_OPTIONS="-p emacs $PROOFGENERAL_OPTIONS"
 
 
-# X-Symbol mode for Proof General
+# X-Symbol installation location (for Proof General, obsolete for PG >= 3.5)
 XSYMBOL_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/x-symbol" \
   "$ISABELLE_HOME/../x-symbol" \
@@ -168,7 +191,9 @@ XSYMBOL_HOME=$(choosefrom \
   "/usr/local/x-symbol" \
   "/opt/x-symbol" \
   "")
-# Required for remote fonts only ...
+
+# Executed before xemacs with ProofGeneral is called.
+# Required for remote fonts only.
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 
