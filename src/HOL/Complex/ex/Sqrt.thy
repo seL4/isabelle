@@ -84,7 +84,7 @@ proof
   proof -
     from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
     then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
-      by (auto simp add: power_two real_power_two)
+      by (auto simp add: power2_eq_square)
     also have "(sqrt (real p))\<twosuperior> = real p" by simp
     also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
     finally show ?thesis ..
@@ -94,8 +94,8 @@ proof
     from eq have "p dvd m\<twosuperior>" ..
     with p_prime show "p dvd m" by (rule prime_dvd_power_two)
     then obtain k where "m = p * k" ..
-    with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power_two mult_ac)
-    with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power_two)
+    with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
+    with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
     then have "p dvd n\<twosuperior>" ..
     with p_prime show "p dvd n" by (rule prime_dvd_power_two)
   qed
@@ -127,15 +127,15 @@ proof
     and gcd: "gcd (m, n) = 1" ..
   from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
   then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
-    by (auto simp add: power_two real_power_two)
+    by (auto simp add: power2_eq_square)
   also have "(sqrt (real p))\<twosuperior> = real p" by simp
   also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   then have "p dvd m\<twosuperior>" ..
   with p_prime have dvd_m: "p dvd m" by (rule prime_dvd_power_two)
   then obtain k where "m = p * k" ..
-  with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power_two mult_ac)
-  with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power_two)
+  with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
+  with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
   then have "p dvd n\<twosuperior>" ..
   with p_prime have "p dvd n" by (rule prime_dvd_power_two)
   with dvd_m have "p dvd gcd (m, n)" by (rule gcd_greatest)

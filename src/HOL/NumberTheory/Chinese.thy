@@ -75,7 +75,7 @@ text {* \medskip @{term funprod} and @{term funsum} *}
 lemma funprod_pos: "(\<forall>i. i \<le> n --> 0 < mf i) ==> 0 < funprod mf 0 n"
   apply (induct n)
    apply auto
-  apply (simp add: int_0_less_mult_iff)
+  apply (simp add: zero_less_mult_iff)
   done
 
 lemma funprod_zgcd [rule_format (no_asm)]:

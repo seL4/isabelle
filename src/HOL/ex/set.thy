@@ -156,8 +156,9 @@ lemma "\<exists>A. a \<notin> A"
 
 lemma "(\<forall>u v. u < (0::int) \<longrightarrow> u \<noteq> abs v)
     \<longrightarrow> (\<exists>A::int set. (\<forall>y. abs y \<notin> A) \<and> -2 \<in> A)"
-  -- {* Example 8. *}
-  by force  -- {* not @{text blast}, which can't simplify @{text "-2 < 0"} *}
+  -- {* Example 8 now needs a small hint. *}
+  by (simp add: abs_if, force)
+    -- {* not @{text blast}, which can't simplify @{text "-2 < 0"} *}
 
 text {* Example 9 omitted (requires the reals). *}
 

@@ -200,7 +200,7 @@ lemma prime_dvd_square: "p \<in> prime ==> p dvd m^Suc (Suc 0) ==> p dvd m"
   by (auto dest: prime_dvd_mult)
 
 lemma prime_dvd_power_two: "p \<in> prime ==> p dvd m\<twosuperior> ==> p dvd m"
-  by (rule prime_dvd_square) (simp_all add: power_two)
+  by (rule prime_dvd_square) (simp_all add: power2_eq_square)
 
 
 text {* \medskip Addition laws *}

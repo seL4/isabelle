@@ -1,7 +1,7 @@
-(*  Title:      HOL/Library/Rational_Numbers.thy
-    ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+(*  Title: HOL/Library/Rational_Numbers.thy
+    ID:    $Id$
+    Author: Markus Wenzel, TU Muenchen
+    License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*
@@ -85,7 +85,7 @@ proof
       next
         assume a': "a' \<noteq> 0"
         from eq1 eq2 have "(a * b') * (a' * b'') = (a' * b) * (a'' * b')" by simp
-        hence "(a * b'') * (a' * b') = (a'' * b) * (a' * b')" by (simp only: zmult_ac)
+        hence "(a * b'') * (a' * b') = (a'' * b) * (a' * b')" by (simp only: mult_ac)
         with a' b' show ?thesis by simp
       qed
       thus "fract a b \<sim> fract a'' b''" ..
@@ -152,11 +152,11 @@ proof -
       (is "?lhs = ?rhs")
     proof -
       have "?lhs = (a * b') * (d * d') + (c * d') * (b * b')"
-        by (simp add: int_distrib zmult_ac)
+        by (simp add: int_distrib mult_ac)
       also have "... = (a' * b) * (d * d') + (c' * d) * (b * b')"
         by (simp only: eq1 eq2)
       also have "... = ?rhs"
-        by (simp add: int_distrib zmult_ac)
+        by (simp add: int_distrib mult_ac)
       finally show "?lhs = ?rhs" .
     qed
     from neq show "b * d \<noteq> 0" by simp
@@ -188,7 +188,7 @@ proof -
   have "\<lfloor>fract (a * c) (b * d)\<rfloor> = \<lfloor>fract (a' * c') (b' * d')\<rfloor>"
   proof
     from eq1 eq2 have "(a * b') * (c * d') = (a' * b) * (c' * d)" by simp
-    thus "(a * c) * (b' * d') = (a' * c') * (b * d)" by (simp add: zmult_ac)
+    thus "(a * c) * (b' * d') = (a' * c') * (b * d)" by (simp add: mult_ac)
     from neq show "b * d \<noteq> 0" by simp
     from neq show "b' * d' \<noteq> 0" by simp
   qed
@@ -206,7 +206,7 @@ proof -
   with neq obtain "a \<noteq> 0" and "a' \<noteq> 0" by (simp add: is_zero_fraction_iff)
   assume "\<lfloor>fract a b\<rfloor> = \<lfloor>fract a' b'\<rfloor>"
   hence "a * b' = a' * b" ..
-  hence "b * a' = b' * a" by (simp only: zmult_ac)
+  hence "b * a' = b' * a" by (simp only: mult_ac)
   hence "\<lfloor>fract b a\<rfloor> = \<lfloor>fract b' a'\<rfloor>" ..
   with neq show ?thesis by (simp add: inverse_fraction_def)
 qed
@@ -225,12 +225,12 @@ proof -
     fix a b c d x :: int assume x: "x \<noteq> 0"
     have "?le a b c d = ?le (a * x) (b * x) c d"
     proof -
-      from x have "0 < x * x" by (auto simp add: int_less_le)
+      from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
       hence "?le a b c d =
           ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
-        by (simp add: zmult_zle_cancel2)
+        by (simp add: mult_le_cancel_right)
       also have "... = ?le (a * x) (b * x) c d"
-        by (simp add: zmult_ac)
+        by (simp add: mult_ac)
       finally show ?thesis .
     qed
   } note le_factor = this
@@ -241,11 +241,11 @@ proof -
   hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
     by (rule le_factor)
   also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
-    by (simp add: zmult_ac)
+    by (simp add: mult_ac)
   also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
     by (simp only: eq1 eq2)
   also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
-    by (simp add: zmult_ac)
+    by (simp add: mult_ac)
   also from D have "... = ?le a' b' c' d'"
     by (rule le_factor [symmetric])
   finally have "?le a b c d = ?le a' b' c' d'" .
@@ -470,14 +470,15 @@ theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
 
 theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (simp add: abs_rat_def minus_rat zero_rat less_rat eq_rat)
-    (auto simp add: zmult_less_0_iff int_0_less_mult_iff int_le_less split: zabs_split)
+     (auto simp add: mult_less_0_iff zero_less_mult_iff int_le_less 
+                split: abs_split)
 
 
 subsubsection {* The ordered field of rational numbers *}
 
 lemma rat_add_assoc: "(q + r) + s = q + (r + (s::rat))"
   by (induct q, induct r, induct s) 
-     (simp add: add_rat zadd_ac zmult_ac int_distrib)
+     (simp add: add_rat add_ac mult_ac int_distrib)
 
 lemma rat_add_0: "0 + q = (q::rat)"
   by (induct q) (simp add: zero_rat add_rat)
@@ -492,7 +493,7 @@ proof
   show "(q + r) + s = q + (r + s)"
     by (rule rat_add_assoc)
   show "q + r = r + q"
-    by (induct q, induct r) (simp add: add_rat zadd_ac zmult_ac)
+    by (induct q, induct r) (simp add: add_rat add_ac mult_ac)
   show "0 + q = q"
     by (induct q) (simp add: zero_rat add_rat)
   show "(-q) + q = 0"
@@ -500,9 +501,9 @@ proof
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
   show "(q * r) * s = q * (r * s)"
-    by (induct q, induct r, induct s) (simp add: mult_rat zmult_ac)
+    by (induct q, induct r, induct s) (simp add: mult_rat mult_ac)
   show "q * r = r * q"
-    by (induct q, induct r) (simp add: mult_rat zmult_ac)
+    by (induct q, induct r) (simp add: mult_rat mult_ac)
   show "1 * q = q"
     by (induct q) (simp add: one_rat mult_rat)
   show "(q + r) * s = q * s + r * s"
@@ -533,25 +534,25 @@ proof
       show "Fract a b \<le> Fract e f"
       proof -
         from neq obtain bb: "0 < b * b" and dd: "0 < d * d" and ff: "0 < f * f"
-          by (auto simp add: int_less_le)
+          by (auto simp add: zero_less_mult_iff linorder_neq_iff)
         have "(a * d) * (b * d) * (f * f) \<le> (c * b) * (b * d) * (f * f)"
         proof -
           from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
             by (simp add: le_rat)
-          with ff show ?thesis by (simp add: zmult_zle_cancel2)
+          with ff show ?thesis by (simp add: mult_le_cancel_right)
         qed
         also have "... = (c * f) * (d * f) * (b * b)"
-          by (simp only: zmult_ac)
+          by (simp only: mult_ac)
         also have "... \<le> (e * d) * (d * f) * (b * b)"
         proof -
           from neq 2 have "(c * f) * (d * f) \<le> (e * d) * (d * f)"
             by (simp add: le_rat)
-          with bb show ?thesis by (simp add: zmult_zle_cancel2)
+          with bb show ?thesis by (simp add: mult_le_cancel_right)
         qed
         finally have "(a * f) * (b * f) * (d * d) \<le> e * b * (b * f) * (d * d)"
-          by (simp only: zmult_ac)
+          by (simp only: mult_ac)
         with dd have "(a * f) * (b * f) \<le> (e * b) * (b * f)"
-          by (simp add: zmult_zle_cancel2)
+          by (simp add: mult_le_cancel_right)
         with neq show ?thesis by (simp add: le_rat)
       qed
     qed
@@ -570,7 +571,7 @@ proof
         proof -
           from neq 2 have "(c * b) * (d * b) \<le> (a * d) * (d * b)"
             by (simp add: le_rat)
-          thus ?thesis by (simp only: zmult_ac)
+          thus ?thesis by (simp only: mult_ac)
         qed
         finally have "(a * d) * (b * d) = (c * b) * (b * d)" .
         moreover from neq have "b * d \<noteq> 0" by simp
@@ -584,7 +585,7 @@ proof
     show "(q < r) = (q \<le> r \<and> q \<noteq> r)"
       by (simp only: less_rat_def)
     show "q \<le> r \<or> r \<le> q"
-      by (induct q, induct r) (simp add: le_rat zmult_ac, arith)
+      by (induct q, induct r) (simp add: le_rat mult_ac, arith)
   }
 qed
 
@@ -601,12 +602,12 @@ proof
     show "Fract e f + Fract a b \<le> Fract e f + Fract c d"
     proof -
       let ?F = "f * f" from neq have F: "0 < ?F"
-        by (auto simp add: int_less_le)
+        by (auto simp add: zero_less_mult_iff)
       from neq le have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
         by (simp add: le_rat)
       with F have "(a * d) * (b * d) * ?F * ?F \<le> (c * b) * (b * d) * ?F * ?F"
-        by (simp add: zmult_zle_cancel2)
-      with neq show ?thesis by (simp add: add_rat le_rat zmult_ac int_distrib)
+        by (simp add: mult_le_cancel_right)
+      with neq show ?thesis by (simp add: add_rat le_rat mult_ac int_distrib)
     qed
   qed
   show "q < r ==> 0 < s ==> s * q < s * r"
@@ -621,13 +622,13 @@ proof
       from neq gt have "0 < ?E"
         by (auto simp add: zero_rat less_rat le_rat int_less_le eq_rat)
       moreover from neq have "0 < ?F"
-        by (auto simp add: int_less_le)
+        by (auto simp add: zero_less_mult_iff)
       moreover from neq le have "(a * d) * (b * d) < (c * b) * (b * d)"
         by (simp add: less_rat)
       ultimately have "(a * d) * (b * d) * ?E * ?F < (c * b) * (b * d) * ?E * ?F"
-        by (simp add: zmult_zless_cancel2)
+        by (simp add: mult_less_cancel_right)
       with neq show ?thesis
-        by (simp add: less_rat mult_rat zmult_ac)
+        by (simp add: less_rat mult_rat mult_ac)
     qed
   qed
   show "\<bar>q\<bar> = (if q < 0 then -q else q)"

@@ -229,6 +229,8 @@ lemma abs_int_eq [simp]: "abs (int m) = int m"
 by (simp add: zabs_def)
 
 text{*This version is proved for all ordered rings, not just integers!
+      It is proved here because attribute @{text arith_split} is not available
+      in theory @{text Ring_and_Field}.
       But is it really better than just rewriting with @{text abs_if}?*}
 lemma abs_split [arith_split]:
      "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
@@ -371,6 +373,7 @@ val not_int_zless_negative = thm "not_int_zless_negative";
 val negative_eq_positive = thm "negative_eq_positive";
 val zle_iff_zadd = thm "zle_iff_zadd";
 val abs_int_eq = thm "abs_int_eq";
+val abs_split = thm"abs_split";
 val nat_int = thm "nat_int";
 val nat_zminus_int = thm "nat_zminus_int";
 val nat_zero = thm "nat_zero";

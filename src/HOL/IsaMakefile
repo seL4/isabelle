@@ -87,8 +87,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.thy \
   Integ/cooper_dec.ML Integ/cooper_proof.ML \
   Integ/Equiv.thy Integ/Int.thy Integ/IntArith.thy Integ/IntDef.thy \
-  Integ/IntDiv.thy Integ/IntPower.thy \
-  Integ/NatBin.thy Integ/NatSimprocs.thy Integ/int_arith1.ML \
+  Integ/IntDiv.thy Integ/NatBin.thy Integ/NatSimprocs.thy Integ/int_arith1.ML \
   Integ/int_factor_simprocs.ML Integ/nat_simprocs.ML \
   Integ/Presburger.thy Integ/presburger.ML Integ/qelim.ML \
   Lfp.ML Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy Nat.ML \
@@ -144,7 +143,6 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Real/PRat.ML Real/PRat.thy \
   Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy \
-  Real/RealArith0.thy Real/real_arith0.ML \
   Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
   Real/RealBin.thy Real/RealDef.thy \
   Real/RealInt.thy Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
@@ -152,8 +150,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/Fact.ML Hyperreal/Fact.thy\
   Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HRealAbs.ML\
   Hyperreal/HRealAbs.thy Hyperreal/HSeries.ML Hyperreal/HSeries.thy\
-  Hyperreal/HyperArith0.thy Hyperreal/HyperArith.thy\
-  Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
+  Hyperreal/HyperArith.thy Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.ML Hyperreal/HyperNat.thy\
   Hyperreal/HyperOrd.thy Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\
   Hyperreal/Lim.ML Hyperreal/Lim.thy  Hyperreal/Log.ML Hyperreal/Log.thy\
@@ -164,7 +161,6 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/SEQ.ML Hyperreal/SEQ.thy Hyperreal/Series.ML Hyperreal/Series.thy\
   Hyperreal/Star.ML Hyperreal/Star.thy Hyperreal/Transcendental.ML\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
-  Hyperreal/hypreal_arith0.ML\
   Complex/Complex_Main.thy\
   Complex/CLim.ML Complex/CLim.thy\
   Complex/CSeries.ML Complex/CSeries.thy\

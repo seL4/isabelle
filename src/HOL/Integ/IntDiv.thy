@@ -357,12 +357,12 @@ subsection{*Division of a Number by Itself*}
 
 lemma self_quotient_aux1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 \<le> q"
 apply (subgoal_tac "0 < a*q")
- apply (simp add: int_0_less_mult_iff, arith)
+ apply (simp add: zero_less_mult_iff, arith)
 done
 
 lemma self_quotient_aux2: "[| (0::int) < a; a = r + a*q; 0 \<le> r |] ==> q \<le> 1"
 apply (subgoal_tac "0 \<le> a* (1-q) ")
- apply (simp add: int_0_le_mult_iff)
+ apply (simp add: zero_le_mult_iff)
 apply (simp add: zdiff_zmult_distrib2)
 done
 
@@ -516,7 +516,7 @@ subsection{*Monotonicity in the Second Argument (Divisor)*}
 lemma q_pos_lemma:
      "[| 0 \<le> b'*q' + r'; r' < b';  0 < b' |] ==> 0 \<le> (q'::int)"
 apply (subgoal_tac "0 < b'* (q' + 1) ")
- apply (simp add: int_0_less_mult_iff)
+ apply (simp add: zero_less_mult_iff)
 apply (simp add: zadd_zmult_distrib2)
 done
 
@@ -549,7 +549,7 @@ done
 lemma q_neg_lemma:
      "[| b'*q' + r' < 0;  0 \<le> r';  0 < b' |] ==> q' \<le> (0::int)"
 apply (subgoal_tac "b'*q' < 0")
- apply (simp add: zmult_less_0_iff, arith)
+ apply (simp add: mult_less_0_iff, arith)
 done
 
 lemma zdiv_mono2_neg_lemma:
@@ -711,13 +711,13 @@ done
 lemma zmult2_lemma_aux2: "[| (0::int) < c;   b < r;  r \<le> 0 |] ==> b * (q mod c) + r \<le> 0"
 apply (subgoal_tac "b * (q mod c) \<le> 0")
  apply arith
-apply (simp add: zmult_le_0_iff)
+apply (simp add: mult_le_0_iff)
 done
 
 lemma zmult2_lemma_aux3: "[| (0::int) < c;  0 \<le> r;  r < b |] ==> 0 \<le> b * (q mod c) + r"
 apply (subgoal_tac "0 \<le> b * (q mod c) ")
 apply arith
-apply (simp add: int_0_le_mult_iff)
+apply (simp add: zero_le_mult_iff)
 done
 
 lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 \<le> r; r < b |] ==> b * (q mod c) + r < b * c"
@@ -733,7 +733,7 @@ done
 lemma zmult2_lemma: "[| quorem ((a,b), (q,r));  b ~= 0;  0 < c |]  
       ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))"
 by (auto simp add: mult_ac quorem_def linorder_neq_iff
-                   int_0_less_mult_iff zadd_zmult_distrib2 [symmetric] 
+                   zero_less_mult_iff zadd_zmult_distrib2 [symmetric] 
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4)
 
 lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"
@@ -1033,7 +1033,7 @@ lemma zdvd_zminus2_iff: "(-m dvd n) = (m dvd (n::int))"
 lemma zdvd_anti_sym:
     "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
   apply (unfold dvd_def, auto)
-  apply (simp add: zmult_assoc zmult_eq_self_iff int_0_less_mult_iff zmult_eq_1_iff)
+  apply (simp add: zmult_assoc zmult_eq_self_iff zero_less_mult_iff zmult_eq_1_iff)
   done
 
 lemma zdvd_zadd: "k dvd m ==> k dvd n ==> k dvd (m + n :: int)"
@@ -1112,15 +1112,15 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
   apply (subgoal_tac "0 < n")
    prefer 2
    apply (blast intro: zless_trans)
-  apply (simp add: int_0_less_mult_iff)
+  apply (simp add: zero_less_mult_iff)
   apply (subgoal_tac "n * k < n * 1")
    apply (drule zmult_zless_cancel1 [THEN iffD1], auto)
   done
 
 lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
   apply (auto simp add: dvd_def nat_abs_mult_distrib)
-  apply (auto simp add: nat_eq_iff zabs_eq_iff)
-   apply (rule_tac [2] x = "-(int k)" in exI)
+  apply (auto simp add: nat_eq_iff abs_if split add: split_if_asm)
+   apply (rule_tac x = "-(int k)" in exI)
   apply (auto simp add: zmult_int [symmetric])
   done
 
@@ -1131,7 +1131,7 @@ lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
     apply (rule_tac x = "nat (-k)" in exI)
     apply (cut_tac [3] k = m in int_less_0_conv)
     apply (cut_tac k = m in int_less_0_conv)
-    apply (auto simp add: int_0_le_mult_iff zmult_less_0_iff
+    apply (auto simp add: zero_le_mult_iff mult_less_0_iff
       nat_mult_distrib [symmetric] nat_eq_iff2)
   done
 
@@ -1139,7 +1139,7 @@ lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)
   apply (auto simp add: dvd_def zmult_int [symmetric])
   apply (rule_tac x = "nat k" in exI)
   apply (cut_tac k = m in int_less_0_conv)
-  apply (auto simp add: int_0_le_mult_iff zmult_less_0_iff
+  apply (auto simp add: zero_le_mult_iff mult_less_0_iff
     nat_mult_distrib [symmetric] nat_eq_iff2)
   done
 
@@ -1160,6 +1160,49 @@ lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
   apply (rule_tac z=z in int_cases) 
   apply (auto simp add: dvd_imp_le) 
   done
+
+
+subsection{*Integer Powers*} 
+
+instance int :: power ..
+
+primrec
+  "p ^ 0 = 1"
+  "p ^ (Suc n) = (p::int) * (p ^ n)"
+
+
+instance int :: ringpower
+proof
+  fix z :: int
+  fix n :: nat
+  show "z^0 = 1" by simp
+  show "z^(Suc n) = z * (z^n)" by simp
+qed
+
+
+lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
+apply (induct_tac "y", auto)
+apply (rule zmod_zmult1_eq [THEN trans])
+apply (simp (no_asm_simp))
+apply (rule zmod_zmult_distrib [symmetric])
+done
+
+lemma zpower_zadd_distrib: "x^(y+z) = ((x^y)*(x^z)::int)"
+  by (rule Power.power_add)
+
+lemma zpower_zpower: "(x^y)^z = (x^(y*z)::int)"
+  by (rule Power.power_mult [symmetric])
+
+lemma zero_less_zpower_abs_iff [simp]:
+     "(0 < (abs x)^n) = (x \<noteq> (0::int) | n=0)"
+apply (induct_tac "n")
+apply (auto simp add: zero_less_mult_iff)
+done
+
+lemma zero_le_zpower_abs [simp]: "(0::int) <= (abs x)^n"
+apply (induct_tac "n")
+apply (auto simp add: zero_le_mult_iff)
+done
 
 
 ML
@@ -1264,6 +1307,12 @@ val pos_imp_zdiv_nonneg_iff = thm "pos_imp_zdiv_nonneg_iff";
 val neg_imp_zdiv_nonneg_iff = thm "neg_imp_zdiv_nonneg_iff";
 val pos_imp_zdiv_neg_iff = thm "pos_imp_zdiv_neg_iff";
 val neg_imp_zdiv_neg_iff = thm "neg_imp_zdiv_neg_iff";
+
+val zpower_zmod = thm "zpower_zmod";
+val zpower_zadd_distrib = thm "zpower_zadd_distrib";
+val zpower_zpower = thm "zpower_zpower";
+val zero_less_zpower_abs_iff = thm "zero_less_zpower_abs_iff";
+val zero_le_zpower_abs = thm "zero_le_zpower_abs";
 *}
 
 end

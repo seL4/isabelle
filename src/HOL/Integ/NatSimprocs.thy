@@ -152,7 +152,8 @@ declare divide_less_0_iff [of "number_of w", standard, simp]
 declare zero_le_divide_iff [of "number_of w", standard, simp]
 declare divide_le_0_iff [of "number_of w", standard, simp]
 
-(*Replaces "inverse #nn" by 1/#nn *)
+(*Replaces "inverse #nn" by 1/#nn.  It looks strange, but then other simprocs
+simplify the quotient.*)
 declare inverse_eq_divide [of "number_of w", standard, simp]
 
 text{*These laws simplify inequalities, moving unary minus from a term

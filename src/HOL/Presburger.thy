@@ -883,7 +883,7 @@ proof
 next
   assume ?Q
   hence "0 < k*(c*n + t - m)" by(simp add: int_distrib mult_ac)
-  with gr0 have "0 < (c*n + t - m)" by(simp add:int_0_less_mult_iff)
+  with gr0 have "0 < (c*n + t - m)" by(simp add: zero_less_mult_iff)
   thus ?P by(simp)
 qed
 

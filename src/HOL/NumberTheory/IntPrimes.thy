@@ -126,7 +126,7 @@ lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
   by (simp del: zmult_zminus_right
       add: zmult_zminus_right [symmetric] nat_mult_distrib zgcd_def zabs_def
-          zmult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
+          mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
 
 lemma zgcd_zmult_distrib2_abs: "zgcd (k * m, k * n) = abs k * zgcd (m, n)"
   by (simp add: zabs_def zgcd_zmult_distrib2)
@@ -144,7 +144,7 @@ lemma zrelprime_zdvd_zmult_aux:
      "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
   apply (subgoal_tac "m = zgcd (m * n, m * k)")
    apply (erule ssubst, rule zgcd_greatest_iff [THEN iffD2])
-   apply (simp_all add: zgcd_zmult_distrib2 [symmetric] int_0_le_mult_iff)
+   apply (simp_all add: zgcd_zmult_distrib2 [symmetric] zero_le_mult_iff)
   done
 
 lemma zrelprime_zdvd_zmult: "zgcd (n, k) = 1 ==> k dvd m * n ==> k dvd m"
@@ -363,7 +363,7 @@ lemma zcong_zless_0:
     "0 \<le> a ==> a < m ==> [a = 0] (mod m) ==> a = 0"
   apply (unfold zcong_def dvd_def, auto)
   apply (subgoal_tac "0 < m")
-   apply (simp add: int_0_le_mult_iff)
+   apply (simp add: zero_le_mult_iff)
    apply (subgoal_tac "m * k < m * 1")
     apply (drule zmult_zless_cancel1 [THEN iffD1])
     apply (auto simp add: linorder_neq_iff)

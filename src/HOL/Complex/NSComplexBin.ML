@@ -328,8 +328,7 @@ val hcomplex_mult_minus_simps =
 val simplify_meta_eq = 
     Int_Numeral_Simprocs.simplify_meta_eq
          [add_zero_left, add_zero_right,
- 	  mult_left_zero, mult_right_zero, mult_1, 
-          mult_1_right];
+ 	  mult_zero_left, mult_zero_right, mult_1, mult_1_right];
 
 val prep_simproc = Complex_Numeral_Simprocs.prep_simproc;
 

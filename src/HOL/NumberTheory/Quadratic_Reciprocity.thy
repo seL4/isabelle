@@ -130,7 +130,7 @@ proof -;
         then have "0 \<le> x";
           by (auto simp add: A_def)
         with a_nonzero have "0 \<le> x * a";
-          by (auto simp add: int_0_le_mult_iff)
+          by (auto simp add: zero_le_mult_iff)
         with p_g_2 show "0 \<le> x * a div p"; 
           by (auto simp add: pos_imp_zdiv_nonneg_iff)
       qed;

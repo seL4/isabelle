@@ -197,14 +197,11 @@ text {*Induction rules for the Integers
 
 text {*REALS
 
-@{thm[display] realpow_abs[no_vars]}
-\rulename{realpow_abs}
-
 @{thm[display] dense[no_vars]}
 \rulename{dense}
 
-@{thm[display] realpow_abs[no_vars]}
-\rulename{realpow_abs}
+@{thm[display] power_abs[no_vars]}
+\rulename{power_abs}
 
 @{thm[display] times_divide_eq_right[no_vars]}
 \rulename{times_divide_eq_right}

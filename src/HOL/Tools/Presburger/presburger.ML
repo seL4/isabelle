@@ -184,7 +184,7 @@ fun presburger_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
       addcongs [conj_le_cong, imp_le_cong]
     (* simp rules for elimination of abs *)
 
-    val simpset3 = HOL_basic_ss addsplits [zabs_split]
+    val simpset3 = HOL_basic_ss addsplits [abs_split]
 	      
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
 

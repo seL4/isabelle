@@ -180,7 +180,7 @@ by (auto simp add: A_greater_zero)
 
 lemma (in GAUSS) B_greater_zero: "x \<in> B ==> 0 < x";
   apply (insert a_nonzero)
-by (auto simp add: B_def zmult_pos A_greater_zero)
+by (auto simp add: B_def mult_pos A_greater_zero)
 
 lemma (in GAUSS) C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)";
   apply (auto simp add: C_def)

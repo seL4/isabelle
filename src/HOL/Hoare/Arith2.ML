@@ -64,7 +64,7 @@ qed "gcd_diff_r";
 (*** pow ***)
 
 Goal "m mod 2 = 0 ==> ((n::nat)*n)^(m div 2) = n^m";
-by (asm_simp_tac (simpset() addsimps [power_two RS sym, power_mult RS sym,
-				      mult_div_cancel]) 1);
+by (asm_simp_tac (simpset() addsimps [power2_eq_square RS sym, 
+                   power_mult RS sym, mult_div_cancel]) 1);
 qed "sq_pow_div2";
 Addsimps [sq_pow_div2];

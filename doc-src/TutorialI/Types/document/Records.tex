@@ -379,9 +379,9 @@ Each record declaration introduces a number of derived operations to
   be the same as \isa{point{\isachardot}make}.
 
   \begin{isabelle}%
-point{\isachardot}make\ Xcoord\ Ycoord\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isasymrparr}\isanewline
+point{\isachardot}make\ Xcoord\ Ycoord\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isasymrparr}\isasep\isanewline%
 point{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
 point{\isachardot}truncate\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}%
 \end{isabelle}
 
@@ -389,10 +389,10 @@ point{\isachardot}truncate\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isachareq
 
   \begin{isabelle}%
 cpoint{\isachardot}make\ Xcoord\ Ycoord\ col\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ col\ {\isacharequal}\ col{\isasymrparr}\isanewline
-cpoint{\isachardot}fields\ col\ {\isasymequiv}\ {\isasymlparr}col\ {\isacharequal}\ col{\isasymrparr}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
+cpoint{\isachardot}fields\ col\ {\isasymequiv}\ {\isasymlparr}col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
 cpoint{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
 cpoint{\isachardot}truncate\ r\ {\isasymequiv}\isanewline
 {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isasymrparr}%
 \end{isabelle}

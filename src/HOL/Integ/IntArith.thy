@@ -8,6 +8,7 @@ header {* Integer arithmetic *}
 theory IntArith = Bin
 files ("int_arith1.ML"):
 
+
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
@@ -23,6 +24,7 @@ lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
 
 use "int_arith1.ML"
 setup int_arith_setup
+
 
 subsection{*More inequality reasoning*}
 
@@ -41,7 +43,8 @@ by arith
 lemma zadd_left_cancel0 [simp]: "(z = z + w) = (w = (0::int))"
 by arith
 
-subsection{*Results about @{term nat}*}
+
+subsection{*The Functions @{term nat} and @{term int}*}
 
 lemma nonneg_eq_int: "[| 0 \<le> z;  !!m. z = int m ==> P |] ==> P"
 by (blast dest: nat_0_le sym)
@@ -62,7 +65,8 @@ lemma int_eq_iff: "(int m = z) = (m = nat z & 0 \<le> z)"
 by (auto simp add: nat_eq_iff2)
 
 
-(*Users don't want to see (int 0), int(Suc 0) or w + - z*)
+text{*Simplify the terms @{term "int 0"}, @{term "int(Suc 0)"} and
+  @{term "w + - z"}*}
 declare Zero_int_def [symmetric, simp]
 declare One_int_def [symmetric, simp]
 
@@ -87,27 +91,10 @@ done
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 by (auto simp add: linorder_not_less [symmetric] zless_nat_conj)
 
-subsection{*@{term abs}: Absolute Value, as an Integer*}
-
-(* Simpler: use zabs_def as rewrite rule
-   but arith_tac is not parameterized by such simp rules
-*)
-
-lemma zabs_split [arith_split]:
-     "P(abs(i::int)) = ((0 \<le> i --> P i) & (i < 0 --> P(-i)))"
-by (simp add: zabs_def)
-
-lemma zero_le_zabs [iff]: "0 \<le> abs (z::int)"
-by (simp add: zabs_def)
-
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
 declare int_eq_iff [of _ "number_of v", standard, simp]
-
-lemma zabs_eq_iff:
-    "(abs (z::int) = w) = (z = w \<and> 0 \<le> z \<or> z = -w \<and> z < 0)"
-  by (auto simp add: zabs_def)
 
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
   by simp
@@ -202,21 +189,6 @@ apply(rule int_le_induct[of _ "k - 1"])
 apply (rule step, simp+)
 done
 
-subsection{*Simple Equations*}
-
-lemma int_diff_minus_eq [simp]: "x - - y = x + (y::int)"
-by simp
-
-lemma abs_abs [simp]: "abs(abs(x::int)) = abs(x)"
-by arith
-
-lemma abs_minus [simp]: "abs(-(x::int)) = abs(x)"
-by arith
-
-lemma triangle_ineq: "abs(x+y) \<le> abs(x) + abs(y::int)"
-by arith
-
-
 subsection{*Intermediate value theorems*}
 
 lemma int_val_lemma:
@@ -249,39 +221,6 @@ apply (rule_tac x = "i+m" in exI, arith)
 done
 
 
-subsection{*Some convenient biconditionals for products of signs*}
-
-lemma zmult_pos: "[| (0::int) < i; 0 < j |] ==> 0 < i*j"
-  by (rule Ring_and_Field.mult_pos)
-
-lemma zmult_neg: "[| i < (0::int); j < 0 |] ==> 0 < i*j"
-  by (rule Ring_and_Field.mult_neg)
-
-lemma zmult_pos_neg: "[| (0::int) < i; j < 0 |] ==> i*j < 0"
-  by (rule Ring_and_Field.mult_pos_neg)
-
-lemma int_0_less_mult_iff: "((0::int) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)"
-  by (rule Ring_and_Field.zero_less_mult_iff)
-
-lemma int_0_le_mult_iff: "((0::int) \<le> x*y) = (0 \<le> x & 0 \<le> y | x \<le> 0 & y \<le> 0)"
-  by (rule Ring_and_Field.zero_le_mult_iff)
-
-lemma zmult_less_0_iff: "(x*y < (0::int)) = (0 < x & y < 0 | x < 0 & 0 < y)"
-  by (rule Ring_and_Field.mult_less_0_iff)
-
-lemma zmult_le_0_iff: "(x*y \<le> (0::int)) = (0 \<le> x & y \<le> 0 | x \<le> 0 & 0 \<le> y)"
-  by (rule Ring_and_Field.mult_le_0_iff)
-
-lemma abs_eq_0 [iff]: "(abs x = 0) = (x = (0::int))"
-  by (rule Ring_and_Field.abs_eq_0)
-
-lemma zero_less_abs_iff [iff]: "(0 < abs x) = (x ~= (0::int))"
-  by (rule Ring_and_Field.zero_less_abs_iff)
-
-lemma square_nonzero [simp]: "0 \<le> x * (x::int)"
-  by (rule Ring_and_Field.zero_le_square)
-
-
 subsection{*Products and 1, by T. M. Rasmussen*}
 
 lemma zmult_eq_self_iff: "(m = m*(n::int)) = (n = 1 | m = 0)"
@@ -307,7 +246,7 @@ apply (subgoal_tac "1<m*n", simp)
 apply (rule zless_1_zmult, arith)
 apply (subgoal_tac "0<n", arith)
 apply (subgoal_tac "0<m*n")
-apply (drule int_0_less_mult_iff [THEN iffD1], auto)
+apply (drule zero_less_mult_iff [THEN iffD1], auto)
 done
 
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
@@ -341,8 +280,8 @@ done
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (case_tac "0 \<le> z'")
 apply (rule inj_int [THEN injD])
-apply (simp add: zmult_int [symmetric] int_0_le_mult_iff)
-apply (simp add: zmult_le_0_iff)
+apply (simp add: zmult_int [symmetric] zero_le_mult_iff)
+apply (simp add: mult_le_0_iff)
 done
 
 lemma nat_mult_distrib_neg: "z \<le> (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"
@@ -353,8 +292,9 @@ done
 lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
 apply (case_tac "z=0 | w=0")
 apply (auto simp add: zabs_def nat_mult_distrib [symmetric] 
-                      nat_mult_distrib_neg [symmetric] zmult_less_0_iff)
+                      nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
+
 
 ML
 {*
@@ -370,25 +310,8 @@ val nat_1 = thm "nat_1";
 val nat_2 = thm "nat_2";
 val nat_less_eq_zless = thm "nat_less_eq_zless";
 val nat_le_eq_zle = thm "nat_le_eq_zle";
-val zabs_split = thm "zabs_split";
-val zero_le_zabs = thm "zero_le_zabs";
 
-val int_diff_minus_eq = thm "int_diff_minus_eq";
-val abs_abs = thm "abs_abs";
-val abs_minus = thm "abs_minus";
-val triangle_ineq = thm "triangle_ineq";
 val nat_intermed_int_val = thm "nat_intermed_int_val";
-val zmult_pos = thm "zmult_pos";
-val zmult_neg = thm "zmult_neg";
-val zmult_pos_neg = thm "zmult_pos_neg";
-val int_0_less_mult_iff = thm "int_0_less_mult_iff";
-val int_0_le_mult_iff = thm "int_0_le_mult_iff";
-val zmult_less_0_iff = thm "zmult_less_0_iff";
-val zmult_le_0_iff = thm "zmult_le_0_iff";
-val abs_mult = thm "abs_mult";
-val abs_eq_0 = thm "abs_eq_0";
-val zero_less_abs_iff = thm "zero_less_abs_iff";
-val square_nonzero = thm "square_nonzero";
 val zmult_eq_self_iff = thm "zmult_eq_self_iff";
 val zless_1_zmult = thm "zless_1_zmult";
 val pos_zmult_eq_1_iff = thm "pos_zmult_eq_1_iff";

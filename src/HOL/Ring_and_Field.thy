@@ -7,12 +7,10 @@
 
 header {*
   \title{Ring and field structures}
-  \author{Gertrud Bauer and Markus Wenzel}
+  \author{Gertrud Bauer, L. C. Paulson and Markus Wenzel}
 *}
 
 theory Ring_and_Field = Inductive:
-
-text{*Lemmas and extension to semirings by L. C. Paulson*}
 
 subsection {* Abstract algebraic structures *}
 
@@ -167,14 +165,14 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma mult_left_zero [simp]: "0 * a = (0::'a::semiring)"
+lemma mult_zero_left [simp]: "0 * a = (0::'a::semiring)"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
   thus ?thesis by (simp only: add_left_cancel)
 qed
 
-lemma mult_right_zero [simp]: "a * 0 = (0::'a::semiring)"
+lemma mult_zero_right [simp]: "a * 0 = (0::'a::semiring)"
   by (simp add: mult_commute)
 
 
@@ -1333,6 +1331,39 @@ apply (case_tac "c=0", simp)
 apply (simp add: divide_inverse_zero field_mult_cancel_left) 
 done
 
+subsection {* Division and the Number One *}
+
+text{*Simplify expressions equated with 1*}
+lemma divide_eq_1_iff [simp]:
+     "(a/b = 1) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
+apply (case_tac "b=0", simp) 
+apply (simp add: right_inverse_eq) 
+done
+
+
+lemma one_eq_divide_iff [simp]:
+     "(1 = a/b) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
+by (simp add: eq_commute [of 1])  
+
+lemma zero_eq_1_divide_iff [simp]:
+     "((0::'a::{ordered_field,division_by_zero}) = 1/a) = (a = 0)"
+apply (case_tac "a=0", simp) 
+apply (auto simp add: nonzero_eq_divide_eq) 
+done
+
+lemma one_divide_eq_0_iff [simp]:
+     "(1/a = (0::'a::{ordered_field,division_by_zero})) = (a = 0)"
+apply (case_tac "a=0", simp) 
+apply (insert zero_neq_one [THEN not_sym]) 
+apply (auto simp add: nonzero_divide_eq_eq) 
+done
+
+text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
+declare zero_less_divide_iff [of "1", simp]
+declare divide_less_0_iff [of "1", simp]
+declare zero_le_divide_iff [of "1", simp]
+declare divide_le_0_iff [of "1", simp]
+
 
 subsection {* Ordering Rules for Division *}
 
@@ -1412,7 +1443,6 @@ apply (auto elim: order_less_asym
             simp add: abs_if mult_less_0_iff linorder_neq_iff
                   minus_mult_left [symmetric] minus_mult_right [symmetric])  
 done
-
 
 lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_ring)"
 by (simp add: abs_if) 
@@ -1571,8 +1601,8 @@ val minus_equation_iff = thm"minus_equation_iff";
 val mult_1 = thm"mult_1";
 val mult_1_right = thm"mult_1_right";
 val mult_left_commute = thm"mult_left_commute";
-val mult_left_zero = thm"mult_left_zero";
-val mult_right_zero = thm"mult_right_zero";
+val mult_zero_left = thm"mult_zero_left";
+val mult_zero_right = thm"mult_zero_right";
 val left_distrib = thm "left_distrib";
 val right_distrib = thm"right_distrib";
 val combine_common_factor = thm"combine_common_factor";

@@ -823,26 +823,28 @@ Goal "[| Abs_hypreal(hyprel `` {%n. Re(X n)}) @= \
 by (dtac (approx_minus_iff RS iffD1) 1);
 by (dtac (approx_minus_iff RS iffD1) 1);
 by (rtac (capprox_minus_iff RS iffD2) 1);
-by (auto_tac (claset(),simpset() addsimps [mem_cinfmal_iff RS sym,
-    mem_infmal_iff RS sym,hypreal_minus,hypreal_add,hcomplex_minus,
-    hcomplex_add,CInfinitesimal_hcmod_iff,hcmod,Infinitesimal_FreeUltrafilterNat_iff]));
+by (auto_tac (claset(),
+     simpset() addsimps [mem_cinfmal_iff RS sym,
+	    mem_infmal_iff RS sym,hypreal_minus,hypreal_add,hcomplex_minus,
+	    hcomplex_add,CInfinitesimal_hcmod_iff,hcmod,
+	    Infinitesimal_FreeUltrafilterNat_iff]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by Auto_tac;
 by (dres_inst_tac [("x","u/2")] spec 1);
 by (dres_inst_tac [("x","u/2")] spec 1);
-by (Step_tac 1);
+by Safe_tac;
 by (TRYALL(Force_tac));
 by (ultra_tac (claset(),HOL_ss) 1);
-by (dtac sym 1 THEN dtac sym 1);
+by (dtac sym 1 THEN dtac sym 1); 
 by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
-by (auto_tac (claset(),HOL_ss addsimps [complex_minus,complex_add,
+by (auto_tac (claset(),
+    HOL_ss addsimps [complex_minus,complex_add,
     complex_mod, snd_conv, fst_conv,numeral_2_eq_2]));
-by (rtac (realpow_two_abs RS subst) 1);
-by (res_inst_tac [("x1","xa + - xb")] (realpow_two_abs RS subst) 1);
-by (simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym]) 1);
-by (rtac lemma_sqrt_hcomplex_capprox 1);
+by (subgoal_tac "sqrt (abs(xa + - xb) ^ 2 + abs(y + - ya) ^ 2) < u" 1);
+by (rtac lemma_sqrt_hcomplex_capprox 2);
 by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [power2_eq_square]) 1); 
 qed "hcomplex_capproxI";
 
 Goal "(Abs_hcomplex(hcomplexrel ``{%n. X n}) @c= Abs_hcomplex(hcomplexrel``{%n. Y n})) =\
@@ -902,11 +904,10 @@ by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (subgoal_tac "0 < u" 1 THEN arith_tac 2);
 by (subgoal_tac "0 < v" 1 THEN arith_tac 2);
-by (rtac (realpow_two_abs RS subst) 1);
-by (res_inst_tac [("x1","Y x")] (realpow_two_abs RS subst) 1);
-by (simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym]) 1);
-by (rtac lemma_sqrt_hcomplex_capprox 1);
+by (subgoal_tac "sqrt (abs(Y x) ^ 2 + abs(Z x) ^ 2) < 2*u + 2*v" 1);
+by (rtac lemma_sqrt_hcomplex_capprox 2);
 by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [power2_eq_square]) 1); 
 qed "HFinite_Re_Im_CFinite";
 
 Goal "(Abs_hcomplex(hcomplexrel ``{%n. X n}) : CFinite) = \

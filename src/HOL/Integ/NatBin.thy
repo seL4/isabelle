@@ -6,7 +6,7 @@
 
 header {* Binary arithmetic for the natural numbers *}
 
-theory NatBin = IntPower:
+theory NatBin = IntDiv:
 
 text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
@@ -19,7 +19,7 @@ defs (overloaded)
      "(number_of::bin => nat) v == nat ((number_of :: bin => int) v)"
 
 
-(** nat (coercion from int to nat) **)
+subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}
 
 declare nat_0 [simp] nat_1 [simp]
 
@@ -75,7 +75,7 @@ apply (simp add: nat_less_iff [symmetric] quorem_def numeral_0_eq_0 zadd_int zmu
 done
 
 
-(** int (coercion from nat to int) **)
+subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma int_nat_number_of:
@@ -284,6 +284,89 @@ declare le_nat_number_of_eq_not_less [simp]
 lemmas numerals = numeral_0_eq_0 numeral_1_eq_1 numeral_2_eq_2
 
 
+subsection{*General Theorems About Powers Involving Binary Numerals*}
+
+text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
+We cannot prove general results about the numeral @{term "-1"}, so we have to
+use @{term "- 1"} instead.*}
+
+lemma power2_eq_square: "(a::'a::{semiring,ringpower})\<twosuperior> = a * a"
+  by (simp add: numeral_2_eq_2 Power.power_Suc)
+
+lemma [simp]: "(0::'a::{semiring,ringpower})\<twosuperior> = 0"
+  by (simp add: power2_eq_square)
+
+lemma [simp]: "(1::'a::{semiring,ringpower})\<twosuperior> = 1"
+  by (simp add: power2_eq_square)
+
+text{*Squares of literal numerals will be evaluated.*}
+declare power2_eq_square [of "number_of w", standard, simp]
+
+lemma zero_le_power2 [simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+  by (simp add: power2_eq_square zero_le_square)
+
+lemma zero_less_power2 [simp]:
+     "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_ring,ringpower}))"
+  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
+
+lemma zero_eq_power2 [simp]:
+     "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_ring,ringpower}))"
+  by (force simp add: power2_eq_square mult_eq_0_iff)
+
+lemma abs_power2 [simp]:
+     "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+  by (simp add: power2_eq_square abs_mult abs_mult_self)
+
+lemma power2_abs [simp]:
+     "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+  by (simp add: power2_eq_square abs_mult_self)
+
+lemma power2_minus [simp]:
+     "(- a)\<twosuperior> = (a\<twosuperior>::'a::{ring,ringpower})"
+  by (simp add: power2_eq_square)
+
+lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{ring,ringpower})"
+apply (induct_tac "n")
+apply (auto simp add: power_Suc power_add)
+done
+
+lemma power_minus_even [simp]:
+     "(-a) ^ (2*n) = (a::'a::{ring,ringpower}) ^ (2*n)"
+by (simp add: power_minus1_even power_minus [of a]) 
+
+lemma zero_le_even_power:
+     "0 \<le> (a::'a::{ordered_ring,ringpower}) ^ (2*n)"
+proof (induct "n")
+  case 0
+    show ?case by (simp add: zero_le_one)
+next
+  case (Suc n)
+    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
+      by (simp add: mult_ac power_add power2_eq_square)
+    thus ?case
+      by (simp add: prems zero_le_square zero_le_mult_iff)
+qed
+
+lemma odd_power_less_zero:
+     "(a::'a::{ordered_ring,ringpower}) < 0 ==> a ^ Suc(2*n) < 0"
+proof (induct "n")
+  case 0
+    show ?case by (simp add: Power.power_Suc)
+next
+  case (Suc n)
+    have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)" 
+      by (simp add: mult_ac power_add power2_eq_square Power.power_Suc)
+    thus ?case
+      by (simp add: prems mult_less_0_iff mult_neg)
+qed
+
+lemma odd_0_le_power_imp_0_le:
+     "0 \<le> a  ^ Suc(2*n) ==> 0 \<le> (a::'a::{ordered_ring,ringpower})"
+apply (insert odd_power_less_zero [of a n]) 
+apply (force simp add: linorder_not_less [symmetric]) 
+done
+
+
 (** Nat **)
 
 lemma Suc_pred': "0 < n ==> n = Suc(n - 1)"
@@ -319,11 +402,6 @@ lemma diff_less': "[| 0<n; 0<m |] ==> m - n < (m::nat)"
 by (simp add: diff_less numerals)
 
 declare diff_less' [of "number_of v", standard, simp]
-
-(** Power **)
-
-lemma power_two: "(p::nat) ^ 2 = p*p"
-by (simp add: numerals)
 
 
 (*** Comparisons involving (0::nat) ***)
@@ -477,9 +555,6 @@ declare power_nat_number_of [of _ "number_of w", standard, simp]
 lemma zpower_even: "(z::int) ^ (2*a) = (z^a)^2"
 by (simp add: zpower_zpower mult_commute)
 
-lemma zpower_two: "(p::int) ^ 2 = p*p"
-by (simp add: numerals)
-
 lemma zpower_odd: "(z::int) ^ (2*a + 1) = z * (z^a)^2"
 by (simp add: zpower_even zpower_zadd_distrib)
 
@@ -490,7 +565,7 @@ apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
 apply (simp only: number_of_add) 
 apply (rule_tac x = "number_of w" in spec, clarify)
 apply (case_tac " (0::int) <= x")
-apply (auto simp add: nat_mult_distrib zpower_even zpower_two)
+apply (auto simp add: nat_mult_distrib zpower_even power2_eq_square)
 done
 
 lemma zpower_number_of_odd:
@@ -501,7 +576,7 @@ lemma zpower_number_of_odd:
 apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
 apply (simp only: number_of_add int_numeral_1_eq_1 not_neg_eq_ge_0 neg_eq_less_0) 
 apply (rule_tac x = "number_of w" in spec, clarify)
-apply (auto simp add: nat_add_distrib nat_mult_distrib zpower_even zpower_two neg_nat)
+apply (auto simp add: nat_add_distrib nat_mult_distrib zpower_even power2_eq_square neg_nat)
 done
 
 declare zpower_number_of_even [of "number_of v", standard, simp]
@@ -568,52 +643,6 @@ lemmas nat_number =
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
 
-
-subsection {*More ML Bindings*}
-
-ML
-{*
-val eq_nat_nat_iff = thm"eq_nat_nat_iff";
-val eq_nat_number_of = thm"eq_nat_number_of";
-val less_nat_number_of = thm"less_nat_number_of";
-val le_nat_number_of_eq_not_less = thm"le_nat_number_of_eq_not_less";
-val Suc_pred' = thm"Suc_pred'";
-val expand_Suc = thm"expand_Suc";
-val Suc_eq_add_numeral_1 = thm"Suc_eq_add_numeral_1";
-val add_eq_if = thm"add_eq_if";
-val mult_eq_if = thm"mult_eq_if";
-val power_eq_if = thm"power_eq_if";
-val diff_less' = thm"diff_less'";
-val power_two = thm"power_two";
-val eq_number_of_0 = thm"eq_number_of_0";
-val eq_0_number_of = thm"eq_0_number_of";
-val less_0_number_of = thm"less_0_number_of";
-val neg_imp_number_of_eq_0 = thm"neg_imp_number_of_eq_0";
-val eq_number_of_Suc = thm"eq_number_of_Suc";
-val Suc_eq_number_of = thm"Suc_eq_number_of";
-val less_number_of_Suc = thm"less_number_of_Suc";
-val less_Suc_number_of = thm"less_Suc_number_of";
-val le_number_of_Suc = thm"le_number_of_Suc";
-val le_Suc_number_of = thm"le_Suc_number_of";
-val eq_number_of_BIT_BIT = thm"eq_number_of_BIT_BIT";
-val eq_number_of_BIT_Pls = thm"eq_number_of_BIT_Pls";
-val eq_number_of_BIT_Min = thm"eq_number_of_BIT_Min";
-val eq_number_of_Pls_Min = thm"eq_number_of_Pls_Min";
-val nat_power_eq = thm"nat_power_eq";
-val power_nat_number_of = thm"power_nat_number_of";
-val zpower_even = thm"zpower_even";
-val zpower_two = thm"zpower_two";
-val zpower_odd = thm"zpower_odd";
-val zpower_number_of_even = thm"zpower_number_of_even";
-val zpower_number_of_odd = thm"zpower_number_of_odd";
-val nat_number_of_Pls = thm"nat_number_of_Pls";
-val nat_number_of_Min = thm"nat_number_of_Min";
-val nat_number_of_BIT_True = thm"nat_number_of_BIT_True";
-val nat_number_of_BIT_False = thm"nat_number_of_BIT_False";
-val Let_Suc = thm"Let_Suc";
-
-val nat_number = thms"nat_number";
-*}
 
 subsection {*Lemmas for the Combination and Cancellation Simprocs*}
 
@@ -697,8 +726,61 @@ lemma nat_mult_div_cancel_disj:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
 
+
 ML
 {*
+val eq_nat_nat_iff = thm"eq_nat_nat_iff";
+val eq_nat_number_of = thm"eq_nat_number_of";
+val less_nat_number_of = thm"less_nat_number_of";
+val le_nat_number_of_eq_not_less = thm"le_nat_number_of_eq_not_less";
+val power2_eq_square = thm "power2_eq_square";
+val zero_le_power2 = thm "zero_le_power2";
+val zero_less_power2 = thm "zero_less_power2";
+val zero_eq_power2 = thm "zero_eq_power2";
+val abs_power2 = thm "abs_power2";
+val power2_abs = thm "power2_abs";
+val power2_minus = thm "power2_minus";
+val power_minus1_even = thm "power_minus1_even";
+val power_minus_even = thm "power_minus_even";
+val zero_le_even_power = thm "zero_le_even_power";
+val odd_power_less_zero = thm "odd_power_less_zero";
+val odd_0_le_power_imp_0_le = thm "odd_0_le_power_imp_0_le";
+
+val Suc_pred' = thm"Suc_pred'";
+val expand_Suc = thm"expand_Suc";
+val Suc_eq_add_numeral_1 = thm"Suc_eq_add_numeral_1";
+val add_eq_if = thm"add_eq_if";
+val mult_eq_if = thm"mult_eq_if";
+val power_eq_if = thm"power_eq_if";
+val diff_less' = thm"diff_less'";
+val eq_number_of_0 = thm"eq_number_of_0";
+val eq_0_number_of = thm"eq_0_number_of";
+val less_0_number_of = thm"less_0_number_of";
+val neg_imp_number_of_eq_0 = thm"neg_imp_number_of_eq_0";
+val eq_number_of_Suc = thm"eq_number_of_Suc";
+val Suc_eq_number_of = thm"Suc_eq_number_of";
+val less_number_of_Suc = thm"less_number_of_Suc";
+val less_Suc_number_of = thm"less_Suc_number_of";
+val le_number_of_Suc = thm"le_number_of_Suc";
+val le_Suc_number_of = thm"le_Suc_number_of";
+val eq_number_of_BIT_BIT = thm"eq_number_of_BIT_BIT";
+val eq_number_of_BIT_Pls = thm"eq_number_of_BIT_Pls";
+val eq_number_of_BIT_Min = thm"eq_number_of_BIT_Min";
+val eq_number_of_Pls_Min = thm"eq_number_of_Pls_Min";
+val nat_power_eq = thm"nat_power_eq";
+val power_nat_number_of = thm"power_nat_number_of";
+val zpower_even = thm"zpower_even";
+val zpower_odd = thm"zpower_odd";
+val zpower_number_of_even = thm"zpower_number_of_even";
+val zpower_number_of_odd = thm"zpower_number_of_odd";
+val nat_number_of_Pls = thm"nat_number_of_Pls";
+val nat_number_of_Min = thm"nat_number_of_Min";
+val nat_number_of_BIT_True = thm"nat_number_of_BIT_True";
+val nat_number_of_BIT_False = thm"nat_number_of_BIT_False";
+val Let_Suc = thm"Let_Suc";
+
+val nat_number = thms"nat_number";
+
 val nat_number_of_add_left = thm"nat_number_of_add_left";
 val left_add_mult_distrib = thm"left_add_mult_distrib";
 val nat_diff_add_eq1 = thm"nat_diff_add_eq1";
@@ -717,6 +799,10 @@ val nat_mult_le_cancel_disj = thm"nat_mult_le_cancel_disj";
 val nat_mult_less_cancel_disj = thm"nat_mult_less_cancel_disj";
 val nat_mult_eq_cancel_disj = thm"nat_mult_eq_cancel_disj";
 val nat_mult_div_cancel_disj = thm"nat_mult_div_cancel_disj";
+
+val power_minus1_even = thm"power_minus1_even";
+val power_minus_even = thm"power_minus_even";
+val zero_le_even_power = thm"zero_le_even_power";
 *}
 
 

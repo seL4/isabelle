@@ -763,13 +763,13 @@ text {*
 *}
 
 lemma "x \<noteq> (0::int) \<Longrightarrow> 0 < x * x"
-  by (auto(*<*)simp add: int_less_le(*>*))
+  by (auto(*<*)simp add: zero_less_mult_iff(*>*))
 
 text {*
   \noindent Here the real source of the proof has been as follows:
 
 \begin{verbatim}
-  by (auto(*<*)simp add: int_less_le(*>*))
+  by (auto(*<*)simp add: zero_less_mult_iff(*>*))
 \end{verbatim}
 %(*
 

@@ -153,6 +153,12 @@ done
 lemma field_power_not_zero: "a \<noteq> (0::'a::{field,ringpower}) ==> a^n \<noteq> 0"
 by force
 
+lemma nonzero_power_inverse:
+  "a \<noteq> 0 ==> inverse ((a::'a::{field,ringpower}) ^ n) = (inverse a) ^ n"
+apply (induct_tac "n")
+apply (auto simp add: power_Suc nonzero_inverse_mult_distrib mult_commute)
+done
+
 text{*Perhaps these should be simprules.*}
 lemma power_inverse:
   "inverse ((a::'a::{field,division_by_zero,ringpower}) ^ n) = (inverse a) ^ n"
@@ -160,9 +166,36 @@ apply (induct_tac "n")
 apply (auto simp add: power_Suc inverse_mult_distrib)
 done
 
+lemma nonzero_power_divide: 
+    "b \<noteq> 0 ==> (a/b) ^ n = ((a::'a::{field,ringpower}) ^ n) / (b ^ n)"
+by (simp add: divide_inverse power_mult_distrib nonzero_power_inverse)
+
+lemma power_divide: 
+    "(a/b) ^ n = ((a::'a::{field,division_by_zero,ringpower}) ^ n/ b ^ n)"
+apply (case_tac "b=0", simp add: power_0_left)
+apply (rule nonzero_power_divide) 
+apply assumption 
+done
+
 lemma power_abs: "abs(a ^ n) = abs(a::'a::{ordered_field,ringpower}) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc abs_mult)
+done
+
+lemma zero_less_power_abs_iff [simp]:
+     "(0 < (abs a)^n) = (a \<noteq> (0::'a::{ordered_ring,ringpower}) | n=0)" 
+proof (induct "n")
+  case 0
+    show ?case by (simp add: zero_less_one)
+next
+  case (Suc n)
+    show ?case by (force simp add: prems power_Suc zero_less_mult_iff)
+qed
+
+lemma zero_le_power_abs [simp]:
+     "(0::'a::{ordered_ring,ringpower}) \<le> (abs a)^n"
+apply (induct_tac "n")
+apply (auto simp add: zero_le_one zero_le_power)
 done
 
 lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{ring,ringpower}) ^ n"
@@ -413,7 +446,11 @@ val power_eq_0_iff = thm"power_eq_0_iff";
 val field_power_eq_0_iff = thm"field_power_eq_0_iff";
 val field_power_not_zero = thm"field_power_not_zero";
 val power_inverse = thm"power_inverse";
+val nonzero_power_divide = thm"nonzero_power_divide";
+val power_divide = thm"power_divide";
 val power_abs = thm"power_abs";
+val zero_less_power_abs_iff = thm"zero_less_power_abs_iff";
+val zero_le_power_abs = thm "zero_le_power_abs";
 val power_minus = thm"power_minus";
 val power_Suc_less = thm"power_Suc_less";
 val power_strict_decreasing = thm"power_strict_decreasing";
