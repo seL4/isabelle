@@ -13,6 +13,7 @@ header {*Extensions to Standard Theories*}
 
 theory Extensions = Event:
 
+declare  insert_Diff_single [simp del]
 
 subsection{*Extensions to Theory @{text Set}*}
 
