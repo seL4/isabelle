@@ -62,6 +62,9 @@ sig
   val from_facts: (string * Args.src list) list * Comment.text -> ProofHistory.T -> ProofHistory.T
   val from_facts_i: (thm * Proof.context attribute list) list * Comment.text
     -> ProofHistory.T -> ProofHistory.T
+  val with_facts: (string * Args.src list) list * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val with_facts_i: (thm * Proof.context attribute list) list * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: (string * string option) list * Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix_i: (string * typ) list * Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -117,8 +120,14 @@ sig
   val terminal_proof: Method.text * Comment.interest -> Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
-  val also: Comment.text -> Toplevel.transition -> Toplevel.transition
-  val finally: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val also: ((string * Args.src list) list * Comment.interest) option * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
+  val also_i: (thm list * Comment.interest) option * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
+  val finally: ((string * Args.src list) list * Comment.interest) option * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
+  val finally_i: (thm list * Comment.interest) option * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> theory option -> theory option
   val use_mltext_theory: string -> theory -> theory
   val use_setup: string -> theory -> theory
@@ -223,16 +232,22 @@ val have_theorems = #1 oo (global_have_thmss (PureThy.have_thmss o Some) o Comme
 val have_theorems_i = #1 oo (have_thmss_i (PureThy.have_thmss o Some) o Comment.ignore);
 val have_lemmas = #1 oo (global_have_thmss (have_lemss o Some) o Comment.ignore);
 val have_lemmas_i = #1 oo (have_thmss_i (have_lemss o Some) o Comment.ignore);
-val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o Comment.ignore;
-val have_facts_i = ProofHistory.apply o have_thmss_i Proof.have_thmss o Comment.ignore;
+val have_facts = ProofHistory.apply o local_have_thmss (Proof.have_thmss []) o Comment.ignore;
+val have_facts_i = ProofHistory.apply o have_thmss_i (Proof.have_thmss []) o Comment.ignore;
 
 
 (* forward chaining *)
 
-fun gen_from_facts f = ProofHistory.apply o (Proof.chain oo curry (f Proof.have_thmss) ("", []));
+fun gen_from_facts f = ProofHistory.apply o (Proof.chain oo curry f ("", []));
 
-val from_facts = gen_from_facts local_have_thmss o Comment.ignore;
-val from_facts_i = gen_from_facts have_thmss_i o Comment.ignore;
+fun add_thmss name atts ths_atts state =
+  Proof.have_thmss (Proof.the_facts state) name atts ths_atts state;
+
+val from_facts = gen_from_facts (local_have_thmss (Proof.have_thmss [])) o Comment.ignore;
+val from_facts_i = gen_from_facts (have_thmss_i (Proof.have_thmss [])) o Comment.ignore;
+val with_facts = gen_from_facts (local_have_thmss add_thmss) o Comment.ignore;
+val with_facts_i = gen_from_facts (have_thmss_i add_thmss) o Comment.ignore;
+
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
 
 
@@ -352,14 +367,28 @@ val default_proof = local_default_proof o global_default_proof;
 
 (* calculational proof commands *)
 
+local
+
 fun cond_print_calc int thm =
   if int then Pretty.writeln (Pretty.big_list "calculation:" [Display.pretty_thm thm])
   else ();
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
 
-fun also _ = proof''' (ProofHistory.applys o Calculation.also);
-fun finally _ = proof''' (ProofHistory.applys o Calculation.finally);
+fun get_thmss srcs = Proof.the_facts o local_have_thmss (Proof.have_thmss []) (("", []), srcs); 
+fun get_thmss_i thms _ = thms;
+
+fun gen_calc get f (args, _) prt state =
+  f (apsome (fn (srcs, _) => get srcs state) args) prt state;
+
+in
+
+fun also x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.also x);
+fun also_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.also x);
+fun finally x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.finally x);
+fun finally_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.finally x);
+
+end;
 
 
 (* use ML text *)
