@@ -74,6 +74,11 @@ by (simp add: group_def semigroup_def)
 locale abelian_group = group +
   assumes sum_commute: "[|x \<in> carrier G; y \<in> carrier G|] ==> x \<oplus> y = y \<oplus> x"
 
+lemma abelian_group_iff:
+     "abelian_group G = 
+      (group G & (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. sum G x y = sum G y x))"
+by (force simp add: abelian_group_axioms_def abelian_group_def group_def) 
+
 
 subsection{*Basic Group Theory Theorems*}
 
@@ -90,23 +95,14 @@ apply (blast dest: funcset_mem)
 done
 
 lemma (in group) left_cancellation:
-     "[| x \<oplus> y  =  x \<oplus> z;
-         x  \<in> carrier G ; y \<in> carrier G; z \<in> carrier G |]  
-      ==> y = z"
-apply (drule arg_cong [of concl: "%z. (\<ominus>x) \<oplus> z"])
-apply (simp add: sum_assoc [symmetric])
-done
-
-(*Isar version??
-lemma (in group) left_cancellation:
   assumes eq: "x \<oplus> y  =  x \<oplus> z"
-  shows   "[| x \<in> carrier G ; y \<in> carrier G; z \<in> carrier G |]  
-      ==> y = z"
+      and inG: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G" 
+  shows "y = z"
 proof -
-  have "(\<ominus>x) \<oplus> (x \<oplus> y) = (\<ominus>x) \<oplus> (x \<oplus> z)" by (simp only: eq)
-  assume ?this 
-  have "((\<ominus>x) \<oplus> x) \<oplus> y = ((\<ominus>x) \<oplus> x) \<oplus> z" by (simp only: sum_assoc) 
-*)
+  have "((\<ominus>x) \<oplus> x) \<oplus> y = ((\<ominus>x) \<oplus> x) \<oplus> z" 
+        by (simp only: eq inG minus_closed sum_assoc) 
+  then show ?thesis by (simp only: inG left_minus left_zero) 
+qed
 
 lemma (in group) left_cancellation_iff [simp]:
      "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |]  
