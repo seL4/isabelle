@@ -18,8 +18,8 @@ sig
   val qed_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
-  val is_ml_identifier: string -> bool
   val ml_reserved: string list
+  val is_ml_identifier: string -> bool
 end;
 
 structure ThmDatabase: THM_DATABASE =
@@ -51,7 +51,7 @@ val ml_reserved =
   "struct", "structure", "where"];
 
 fun is_ml_identifier name =
-  Syntax.is_identifier name andalso not (name mem ml_reserved);
+  not (name mem_string ml_reserved) andalso Syntax.is_ascii_identifier name;
 
 fun warn_ml name =
   if is_ml_identifier name then false
