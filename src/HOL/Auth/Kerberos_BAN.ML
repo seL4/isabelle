@@ -42,7 +42,7 @@ result();
 (**** Inductive proofs about kerberos_ban ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : kerberos_ban ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : kerberos_ban ==> ALL X. Says A A X ~: set evs";
 by (etac kerberos_ban.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

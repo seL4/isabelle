@@ -29,7 +29,7 @@ result();
 (**** Inductive proofs about ns_public ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : ns_public ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : ns_public ==> ALL X. Says A A X ~: set evs";
 by (etac ns_public.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

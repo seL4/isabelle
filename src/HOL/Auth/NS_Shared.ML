@@ -36,7 +36,7 @@ by possibility_tac;
 (**** Inductive proofs about ns_shared ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : ns_shared ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : ns_shared ==> ALL X. Says A A X ~: set evs";
 by (etac ns_shared.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

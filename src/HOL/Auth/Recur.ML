@@ -71,7 +71,7 @@ result();
 (**** Inductive proofs about recur ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : recur ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : recur ==> ALL X. Says A A X ~: set evs";
 by (etac recur.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

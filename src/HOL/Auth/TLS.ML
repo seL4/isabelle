@@ -119,7 +119,7 @@ result();
 (**** Inductive proofs about tls ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : tls ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : tls ==> ALL X. Says A A X ~: set evs";
 by (etac tls.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

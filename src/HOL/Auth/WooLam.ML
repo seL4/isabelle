@@ -29,7 +29,7 @@ result();
 (**** Inductive proofs about woolam ****)
 
 (*Nobody sends themselves messages*)
-Goal "evs : woolam ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : woolam ==> ALL X. Says A A X ~: set evs";
 by (etac woolam.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";

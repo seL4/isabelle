@@ -862,8 +862,7 @@ val pushes = pushKeys@pushCrypts;
   concerns  Crypt K X ~: Key``shrK``bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i = 
-    fast_tac (claset() addss (simpset())) i THEN
-    ALLGOALS Asm_simp_tac;
+    Force_tac i THEN ALLGOALS Asm_simp_tac;
 
 fun Fake_parts_insert_tac i = 
     blast_tac (claset() addIs [parts_insertI]
