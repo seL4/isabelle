@@ -366,7 +366,7 @@ qed "subset_insert_iff";
 Goal "(A Un B = {}) = (A = {} & B = {})";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Un_empty";
-Addsimps[Un_empty];
+AddIffs[Un_empty];
 
 Goal "(A Un B <= C) = (A <= C & B <= C)";
 by (Blast_tac 1);
@@ -461,8 +461,8 @@ Goal "Union(A Int B) <= Union(A) Int Union(B)";
 by (Blast_tac 1);
 qed "Union_Int_subset";
 
-Goal "(Union M = {}) = (! A : M. A = {})"; 
-by (blast_tac (claset() addEs [equalityCE]) 1);
+Goal "(Union A = {}) = (ALL x:A. x={})";
+by Auto_tac; 
 qed "Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
@@ -595,6 +595,11 @@ qed "UN_eq";
 Goal "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "INT_eq";
+
+Goal "(UNION A B = {}) = (ALL x:A. B x = {})";
+by Auto_tac; 
+qed "UN_empty";
+AddIffs [UN_empty];
 
 
 (*Distributive laws...*)
