@@ -81,6 +81,6 @@ val use = ThyInfo.use;
 val cd = File.cd o Path.unpack;
 
 print_depth 8;
-(*ml_prompts "ML> " "ML# ";*)
+ml_prompts "ML> " "ML# ";
 
 Session.finish ();
