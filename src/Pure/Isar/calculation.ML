@@ -70,22 +70,23 @@ struct
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
-val get_local_rules = #1 o LocalCalculation.get_st;
+val get_local_rules = #1 o LocalCalculation.get o Proof.context_of;
 val print_local_rules = LocalCalculation.print;
 
 
 (* access calculation *)
 
 fun get_calculation state =
-  (case #2 (LocalCalculation.get_st state) of
+  (case #2 (LocalCalculation.get (Proof.context_of state)) of
     None => None
   | Some (thms, lev) => if lev = Proof.level state then Some thms else None);
 
 fun put_calculation thms state =
-  LocalCalculation.put_st (get_local_rules state, Some (thms, Proof.level state)) state;
+  Proof.map_context
+    (LocalCalculation.put (get_local_rules state, Some (thms, Proof.level state))) state;
 
 fun reset_calculation state =
-  LocalCalculation.put_st (get_local_rules state, None) state;
+  Proof.map_context (LocalCalculation.put (get_local_rules state, None)) state;
 
 
 
