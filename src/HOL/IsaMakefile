@@ -56,7 +56,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy Numeral.thy Option.ML \
   Option.thy Ord.ML Ord.thy Power.ML Power.thy PreList.thy Prod.ML \
   Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML RelPow.thy \
-  Relation.ML Relation.thy Set.ML Set.thy String.thy SVC_Oracle.ML \
+  Relation.ML Relation.thy Set.ML Set.thy SetInterval.ML SetInterval.thy \
+  String.thy SVC_Oracle.ML \
   SVC_Oracle.thy Sum.ML Sum.thy Tools/datatype_aux.ML \
   Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
   Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
@@ -251,7 +252,6 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/ELT.ML UNITY/ELT.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
   UNITY/GenPrefix.thy UNITY/GenPrefix.ML \
-  UNITY/LessThan.ML UNITY/LessThan.thy \
   UNITY/Lift_prog.ML UNITY/Lift_prog.thy UNITY/ListOrder.thy\
   UNITY/Mutex.ML UNITY/Mutex.thy\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
