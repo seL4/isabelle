@@ -103,6 +103,7 @@ sig
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq)
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit) -> state -> state Seq.seq
+  val name_refN: string
   val global_qed: (state -> state Seq.seq) -> state
     -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
   val begin_block: state -> state
@@ -691,10 +692,16 @@ fun local_qed finalize print state =
 
 (* global_qed *)
 
+val name_refN = "name_ref";
+
 fun finish_global state =
   let
     val (_, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;   (*ignores after_qed!*)
-    val result = Drule.standard (prep_result state t raw_thm);
+    val full_name = if name = "" then "" else Sign.full_name (sign_of state) name;
+    val result =
+      prep_result state t raw_thm
+      |> Drule.standard
+      |> Drule.tag_rule (name_refN, [full_name]);
 
     val atts =
       (case kind of
