@@ -130,6 +130,7 @@ sig
   val conj_elim_list: thm -> thm list
   val conj_elim_precise: int -> thm -> thm list
   val conj_intr_thm: thm
+  val abs_def: thm -> thm
 end;
 
 structure Drule: DRULE =
@@ -588,6 +589,16 @@ val swap_prems_eq =
   end;
 
 val refl_implies = reflexive implies;
+
+fun abs_def thm =
+  let
+    val (_, cvs) = strip_comb (fst (dest_equals (cprop_of thm)));
+    val thm' = foldr (fn (ct, thm) => Thm.abstract_rule
+      (case term_of ct of Var ((a, _), _) => a | Free (a, _) => a | _ => "x")
+        ct thm) (cvs, thm)
+  in transitive
+    (symmetric (eta_conversion (fst (dest_equals (cprop_of thm'))))) thm'
+  end;
 
 
 (*** Some useful meta-theorems ***)
