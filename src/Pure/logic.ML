@@ -49,6 +49,9 @@ sig
   val assum_pairs       : term -> (term*term)list
   val varify            : term -> term
   val unvarify          : term -> term
+  val get_goal          : term -> int -> term
+  val prems_of_goal     : term -> int -> term list
+  val concl_of_goal     : term -> int -> term
 end;
 
 structure Logic : LOGIC =
@@ -332,5 +335,26 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
   | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)
   | unvarify (f$t) = unvarify f $ unvarify t
   | unvarify t = t;
+
+
+(*Get subgoal i*)
+fun get_goal st i = List.nth (strip_imp_prems st, i-1)
+  handle Subscript => error "get_goal: Goal number out of range";
+
+(*reverses parameters for substitution*)
+fun goal_params st i =
+  let val gi = get_goal st i
+      val rfrees = rev (map Free (rename_wrt_term gi (strip_params gi)))
+  in (gi, rfrees) end;
+
+fun concl_of_goal st i =
+  let val (gi, rfrees) = goal_params st i
+      val B = strip_assums_concl gi
+  in subst_bounds (rfrees, B) end;
+
+fun prems_of_goal st i =
+  let val (gi, rfrees) = goal_params st i
+      val As = strip_assums_hyp gi
+  in map (fn A => subst_bounds (rfrees, A)) As end;
 
 end;

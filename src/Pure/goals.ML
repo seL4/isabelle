@@ -108,7 +108,6 @@ sig
   val print_locales: theory -> unit
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
-  val find_intros_goal : theory -> thm -> int -> (string * thm) list
   val add_locale: bstring -> (bstring option) -> (string * string * mixfix) list ->
     (string * string) list -> (string * string) list -> theory -> theory
   val add_locale_i: bstring -> (bstring option) -> (string * typ * mixfix) list ->
@@ -901,10 +900,7 @@ fun result () = !curr_mkresult (true, topthm());
 fun uresult () = !curr_mkresult (false, topthm());
 
 (*Get subgoal i from goal stack*)
-fun get_goal st i = List.nth (prems_of st, i-1)
-                handle Subscript => error"getgoal: Goal number out of range";
-
-fun getgoal i = get_goal (topthm()) i;
+fun getgoal i = Logic.get_goal (prop_of (topthm())) i;
 
 (*Return subgoal i's hypotheses as meta-level assumptions.
   For debugging uses of METAHYPS*)
@@ -1156,35 +1152,17 @@ fun thms_containing raw_consts =
     PureThy.thms_containing_consts thy consts
   end;
 
-(*assume that parameters have unique names; reverse them for substitution*)
-fun goal_params st i =
-  let val gi = get_goal st i
-      val rfrees = rev(map Free (Logic.strip_params gi))
-  in (gi,rfrees) end;
-
-fun concl_of_goal st i =
-  let val (gi,rfrees) = goal_params st i
-      val B = Logic.strip_assums_concl gi
-  in subst_bounds(rfrees,B) end;
-
-fun prems_of_goal st i =
-  let val (gi,rfrees) = goal_params st i
-      val As = Logic.strip_assums_hyp gi
-  in map (fn A => subst_bounds(rfrees,A)) As end;
-
-fun find_intros_goal thy st i = PureThy.find_intros thy (concl_of_goal st i);
-
-fun findI i = find_intros_goal (theory_of_goal()) (topthm()) i;
+fun findI i = PureThy.find_intros_goal (theory_of_goal()) (topthm()) i;
 
 fun findEs i =
   let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
-      val prems = prems_of_goal (topthm()) i
+      val prems = Logic.prems_of_goal (prop_of (topthm())) i
       val thy = theory_of_goal();
       val thmss = map (PureThy.find_elims thy) prems
   in foldl (gen_union eq_nth) ([],thmss) end;
 
 fun findE i j =
-  let val prems = prems_of_goal (topthm()) i
+  let val prems = Logic.prems_of_goal (prop_of (topthm())) i
       val thy = theory_of_goal();
   in PureThy.find_elims thy (nth_elem(j-1, prems)) end;
 
