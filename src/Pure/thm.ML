@@ -1137,7 +1137,8 @@ fun string_of_hd(Const(a,_)) = a
 
 (* FIXME: should really take types into account as well.
  * Otherwise non-linear *)
-fun termord(t,u) =
+fun termord(Abs(_,_,t),Abs(_,_,u)) = termord(t,u)
+  | termord(t,u) =
       (case intord(size_of_term t,size_of_term u) of
          EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
                   in case stringord(string_of_hd f, string_of_hd g) of
