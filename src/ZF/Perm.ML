@@ -194,6 +194,11 @@ by (rtac (domain_comp RS equalityI) 1);
 by (fast_tac comp_cs 1);
 val domain_comp_eq = result();
 
+goal Perm.thy "(r O s)``A = r``(s``A)";
+by (fast_tac (comp_cs addIs [equalityI]) 1);
+val image_comp = result();
+
+
 (** Other results **)
 
 goal Perm.thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
