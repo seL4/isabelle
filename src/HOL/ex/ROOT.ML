@@ -20,8 +20,7 @@ time_use_thy "Tuple";
 
 time_use_thy "NatSum";
 time_use_thy "Intuitionistic";
-time_use     "cla.ML";
-time_use     "mesontest.ML";
+time_use_thy "Classical";
 time_use_thy "mesontest2";
 time_use_thy "PresburgerEx";
 time_use_thy "BT";

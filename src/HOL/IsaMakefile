@@ -592,7 +592,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy ex/Puzzle.thy \
   ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
   ex/Ring.ML ex/Ring.thy ex/StringEx.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy \
-  ex/Tarski.thy ex/Tuple.thy ex/cla.ML ex/mesontest.ML \
+  ex/Tarski.thy ex/Tuple.thy ex/Classical.thy \
   ex/mesontest2.ML ex/mesontest2.thy ex/set.thy ex/svc_funcs.ML \
   ex/svc_test.ML ex/svc_test.thy ex/document/root.bib ex/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL ex

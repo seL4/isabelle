@@ -3,7 +3,181 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 
-MORE and MUCH HARDER test data for the MESON proof procedure
+Test data for the MESON proof procedure
+   (Excludes the equality problems 51, 52, 56, 58)
+
+NOTE: most of the old file "mesontest.ML" has been converted to Isar and moved
+to Classical.thy
+
+Use the "mesonlog" shell script to process logs.
+
+show_hyps := false;
+
+proofs := 0;
+by (rtac ccontr 1);
+val [prem] = gethyps 1;
+val nnf = make_nnf prem;
+val xsko = skolemize nnf;
+by (cut_facts_tac [xsko] 1 THEN REPEAT (etac exE 1));
+val [_,sko] = gethyps 1;
+val clauses = make_clauses [sko];       
+val horns = make_horns clauses;
+val goes = gocls clauses;
+
+Goal "False";
+by (resolve_tac goes 1);
+proofs := 2;
+
+by (prolog_step_tac horns 1);
+by (iter_deepen_prolog_tac horns);
+by (depth_prolog_tac horns);
+by (best_prolog_tac size_of_subgoals horns);
+*)
+
+writeln"File HOL/ex/meson-test.";
+
+context Main.thy;
+
+(*Deep unifications can be required, esp. during transformation to clauses*)
+val orig_trace_bound = !Unify.trace_bound
+and orig_search_bound = !Unify.search_bound;
+Unify.trace_bound := 20;
+Unify.search_bound := 40;
+
+(**** Interactive examples ****)
+
+(*Generate nice names for Skolem functions*)
+Logic.auto_rename := true; Logic.set_rename_prefix "a";
+
+
+writeln"Problem 25";
+Goal "(\\<exists>x. P x) &  \
+\     (\\<forall>x. L x --> ~ (M x & R x)) &  \
+\     (\\<forall>x. P x --> (M x & L x)) &   \
+\     ((\\<forall>x. P x --> Q x) | (\\<exists>x. P x & R x))  \
+\   --> (\\<exists>x. Q x & P x)";
+by (rtac ccontr 1);
+val [prem25] = gethyps 1;
+val nnf25 = make_nnf prem25;
+val xsko25 = skolemize nnf25;
+by (cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1));
+val [_,sko25] = gethyps 1;
+val clauses25 = make_clauses [sko25];   (*7 clauses*)
+val horns25 = make_horns clauses25;     (*16 Horn clauses*)
+val go25::_ = gocls clauses25;
+
+Goal "False";
+by (rtac go25 1);
+by (depth_prolog_tac horns25);
+
+
+writeln"Problem 26";
+Goal "((\\<exists>x. p x) = (\\<exists>x. q x)) &     \
+\     (\\<forall>x. \\<forall>y. p x & q y --> (r x = s y)) \
+\ --> ((\\<forall>x. p x --> r x) = (\\<forall>x. q x --> s x))";
+by (rtac ccontr 1);
+val [prem26] = gethyps 1;
+val nnf26 = make_nnf prem26;
+val xsko26 = skolemize nnf26;
+by (cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1));
+val [_,sko26] = gethyps 1;
+val clauses26 = make_clauses [sko26];                   (*9 clauses*)
+val horns26 = make_horns clauses26;                     (*24 Horn clauses*)
+val go26::_ = gocls clauses26;
+
+Goal "False";
+by (rtac go26 1);
+by (depth_prolog_tac horns26);  (*1.4 secs*)
+(*Proof is of length 107!!*)
+
+
+writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";  (*16 Horn clauses*)
+Goal "(\\<forall>x. \\<forall>y. q x y = (\\<forall>z. p z x = (p z y::bool)))  \
+\     --> (\\<forall>x. (\\<forall>y. q x y = (q y x::bool)))";
+by (rtac ccontr 1);
+val [prem43] = gethyps 1;
+val nnf43 = make_nnf prem43;
+val xsko43 = skolemize nnf43;
+by (cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1));
+val [_,sko43] = gethyps 1;
+val clauses43 = make_clauses [sko43];   (*6*)
+val horns43 = make_horns clauses43;     (*16*)
+val go43::_ = gocls clauses43;
+
+Goal "False";
+by (rtac go43 1);
+by (best_prolog_tac size_of_subgoals horns43);   (*1.6 secs*)
+
+(* 
+#1  (q x xa ==> ~ q x xa) ==> q xa x
+#2  (q xa x ==> ~ q xa x) ==> q x xa
+#3  (~ q x xa ==> q x xa) ==> ~ q xa x
+#4  (~ q xa x ==> q xa x) ==> ~ q x xa
+#5  [| ~ q ?U ?V ==> q ?U ?V; ~ p ?W ?U ==> p ?W ?U |] ==> p ?W ?V
+#6  [| ~ p ?W ?U ==> p ?W ?U; p ?W ?V ==> ~ p ?W ?V |] ==> ~ q ?U ?V
+#7  [| p ?W ?V ==> ~ p ?W ?V; ~ q ?U ?V ==> q ?U ?V |] ==> ~ p ?W ?U
+#8  [| ~ q ?U ?V ==> q ?U ?V; ~ p ?W ?V ==> p ?W ?V |] ==> p ?W ?U
+#9  [| ~ p ?W ?V ==> p ?W ?V; p ?W ?U ==> ~ p ?W ?U |] ==> ~ q ?U ?V
+#10 [| p ?W ?U ==> ~ p ?W ?U; ~ q ?U ?V ==> q ?U ?V |] ==> ~ p ?W ?V
+#11 [| p (xb ?U ?V) ?U ==> ~ p (xb ?U ?V) ?U;
+       p (xb ?U ?V) ?V ==> ~ p (xb ?U ?V) ?V |] ==> q ?U ?V
+#12 [| p (xb ?U ?V) ?V ==> ~ p (xb ?U ?V) ?V; q ?U ?V ==> ~ q ?U ?V |] ==>
+    p (xb ?U ?V) ?U
+#13 [| q ?U ?V ==> ~ q ?U ?V; p (xb ?U ?V) ?U ==> ~ p (xb ?U ?V) ?U |] ==>
+    p (xb ?U ?V) ?V
+#14 [| ~ p (xb ?U ?V) ?U ==> p (xb ?U ?V) ?U;
+       ~ p (xb ?U ?V) ?V ==> p (xb ?U ?V) ?V |] ==> q ?U ?V
+#15 [| ~ p (xb ?U ?V) ?V ==> p (xb ?U ?V) ?V; q ?U ?V ==> ~ q ?U ?V |] ==>
+    ~ p (xb ?U ?V) ?U
+#16 [| q ?U ?V ==> ~ q ?U ?V; ~ p (xb ?U ?V) ?U ==> p (xb ?U ?V) ?U |] ==>
+    ~ p (xb ?U ?V) ?V
+
+And here is the proof! (Unkn is the start state after use of goal clause)
+[Unkn, Res ([Thm "#14"], false, 1), Res ([Thm "#5"], false, 1),
+   Res ([Thm "#1"], false, 1), Asm 1, Res ([Thm "#13"], false, 1), Asm 2,
+   Asm 1, Res ([Thm "#13"], false, 1), Asm 1, Res ([Thm "#10"], false, 1),
+   Res ([Thm "#16"], false, 1), Asm 2, Asm 1, Res ([Thm "#1"], false, 1),
+   Asm 1, Res ([Thm "#14"], false, 1), Res ([Thm "#5"], false, 1),
+   Res ([Thm "#2"], false, 1), Asm 1, Res ([Thm "#13"], false, 1), Asm 2,
+   Asm 1, Res ([Thm "#8"], false, 1), Res ([Thm "#2"], false, 1), Asm 1,
+   Res ([Thm "#12"], false, 1), Asm 2, Asm 1] : lderiv list
+*)
+
+
+(*Restore variable name preservation*)
+Logic.auto_rename := false; 
+
+
+(** Charles Morgan's problems **)
+
+val axa = "\\<forall>x y.   T(i x(i y x))";
+val axb = "\\<forall>x y z. T(i(i x(i y z))(i(i x y)(i x z)))";
+val axc = "\\<forall>x y.   T(i(i(n x)(n y))(i y x))";
+val axd = "\\<forall>x y.   T(i x y) & T x --> T y";
+
+fun axjoin ([],   q) = q
+  | axjoin (p::ps, q) = "(" ^ p ^ ") --> (" ^ axjoin(ps,q) ^ ")";
+
+Goal (axjoin([axa,axb,axd], "\\<forall>x. T(i x x)"));
+by (meson_tac 1);  
+result();
+
+writeln"Problem 66";  
+Goal (axjoin([axa,axb,axc,axd], "\\<forall>x. T(i x(n(n x)))"));
+by (meson_tac 1);  
+result();
+(*SLOW: 37s on a 1.8MHz machine
+     208346 inferences so far.  Searching to depth 23 *)
+
+writeln"Problem 67";  
+Goal (axjoin([axa,axb,axc,axd], "\\<forall>x. T(i(n(n x)) x)"));
+by (meson_tac 1);  
+result();
+(*10s on a 1.8MHz machine
+  51061 inferences so far.  Searching to depth 21 *)
+
+
+(*MORE and MUCH HARDER test data for the MESON proof procedure
 
 Courtesy John Harrison 
 
@@ -181,7 +355,7 @@ val BOO003_1 = prove_hard
   meson_tac 1);
 
 (*51194 inferences so far.  Searching to depth 13. 204.6 secs
-  Strange\\<forall> The previous problem also has 51194 inferences at depth 13.  They
+  Strange! The previous problem also has 51194 inferences at depth 13.  They
    must be very similar!*)
 val BOO004_1 = prove_hard
  ("(\\<forall>X. equal(X::'a,X)) &  \
@@ -2948,7 +3122,7 @@ val SET009_1 = prove_hard
 \  (~subset(bDa::'a,bDd)) --> False",
   meson_tac 1);
 
-(*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins\\<forall> BIG*)
+(*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins! BIG*)
 val SET025_4 = prove_hard
  ("(\\<forall>X. equal(X::'a,X)) &  \
 \  (\\<forall>Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
