@@ -143,7 +143,7 @@ which cannot be solved by reflexivity.
 
 (* replace parameters of product type by individual component parameters *)
 val safe_full_simp_tac = generic_simp_tac true (true, false, false);
-local
+local (* filtering with exists_paired_all is an essential optimization *)
   fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
         can HOLogic.dest_prodT T orelse exists_paired_all t
     | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
@@ -354,10 +354,18 @@ qed "mem_splitE";
 AddSIs [splitI, splitI2, splitI2', mem_splitI, mem_splitI2];
 AddSEs [splitE, splitE', mem_splitE];
 
-(* Optimization: prevents applications of splitE for already splitted arguments
-leading to quite time-consuming computations (in particular for nested tuples)*)
-val split_conv_tac = let val ss = HOL_basic_ss addsimps [split_conv] in 
-  CHANGED o safe_full_simp_tac ss end;
+local (* filtering with exists_p_split is an essential optimization *)
+  fun exists_p_split (Const ("split",_) $ _ $ (Const ("Pair",_)$_$_)) = true
+    | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
+    | exists_p_split (Abs (_, _, t)) = exists_p_split t
+    | exists_p_split _ = false;
+  val ss = HOL_basic_ss addsimps [split_conv]
+in 
+val split_conv_tac = SUBGOAL (fn (t, i) =>
+    if exists_p_split t then safe_full_simp_tac ss i else no_tac);
+end;
+(* This prevents applications of splitE for already splitted arguments leading 
+   to quite time-consuming computations (in particular for nested tuples) *)
 claset_ref() := claset() addSbefore ("split_conv_tac", split_conv_tac);
 
 Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P";
