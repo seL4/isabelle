@@ -49,4 +49,4 @@ echo -n "Finished at "; date
 ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 echo "$ELAPSED total elapsed time"
 
-[ "$FAIL" == "" ] || fail "Logics ${FAIL}FAILED!"
+[ "$FAIL" = "" ] || fail "Logics ${FAIL}FAILED!"
