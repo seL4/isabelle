@@ -192,6 +192,8 @@ prove "not_ex"  "(~ (? x.P(x))) = (! x.~P(x))";
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
 prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 
+prove "ex_imp" "((? x. P x) --> Q) = (!x. P x --> Q)";
+
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
 
