@@ -49,10 +49,10 @@ rules
   pred_list_def "pred_list == {(x,y). ? h. y = h#x}"
 
 primrec hd list
-  "hd([]) = (@x.False)"
+  "hd([]) = arbitrary"
   "hd(x#xs) = x"
 primrec tl list
-  "tl([]) = (@x.False)"
+  "tl([]) = arbitrary"
   "tl(x#xs) = xs"
 primrec ttl list
   (* a "total" version of tl: *)

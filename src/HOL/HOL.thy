@@ -176,6 +176,9 @@ defs
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
+constdefs arbitrary :: 'a
+         "arbitrary == @x.False"
+
 end
 
 

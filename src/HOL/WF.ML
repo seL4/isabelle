@@ -102,7 +102,7 @@ qed "cut_apply";
 (*** is_recfun ***)
 
 goalw WF.thy [is_recfun_def,cut_def]
-    "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = (@z.True)";
+    "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = arbitrary";
 by (etac ssubst 1);
 by (asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";

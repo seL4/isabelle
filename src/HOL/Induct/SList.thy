@@ -100,8 +100,8 @@ defs
   Abs_map_def "Abs_map g M == List_rec M Nil (%N L r. g(N)#r)"
 
   null_def      "null(xs)            == list_rec xs True (%x xs r.False)"
-  hd_def        "hd(xs)              == list_rec xs (@x.True) (%x xs r.x)"
-  tl_def        "tl(xs)              == list_rec xs (@xs.True) (%x xs r.xs)"
+  hd_def        "hd(xs)              == list_rec xs arbitrary (%x xs r.x)"
+  tl_def        "tl(xs)              == list_rec xs arbitrary (%x xs r.xs)"
   (* a total version of tl: *)
   ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r.xs)"
 
