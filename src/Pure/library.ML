@@ -73,6 +73,11 @@ fun is_none (Some _) = false
 fun apsome f (Some x) = Some (f x)
   | apsome _ None = None;
 
+fun merge_opts _ (None, None) = None
+  | merge_opts _ (some as Some _, None) = some
+  | merge_opts _ (None, some as Some _) = some
+  | merge_opts merge (Some x, Some y) = Some (merge (x, y));
+
 
 
 (** pairs **)
