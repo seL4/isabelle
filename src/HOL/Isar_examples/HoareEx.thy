@@ -284,4 +284,55 @@ theorem
       .{\<acute>S = (SUM j<n. j)}."
   by hoare auto
 
+subsection{*Time*}
+
+text{*
+A simple embedding of time in Hoare logic: function @{text timeit}
+inserts an extra variable to keep track of the elapsed time.
+*}
+
+record tstate = time :: nat
+
+types 'a time = "\<lparr>time::nat, \<dots>::'a\<rparr>"
+
+consts timeit :: "'a time com \<Rightarrow> 'a time com"
+primrec
+"timeit(Basic f) = (Basic f; Basic(%s. s\<lparr>time := Suc(time s)\<rparr>))"
+"timeit(c1;c2) = (timeit c1; timeit c2)"
+"timeit(Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
+"timeit(While b iv c) = While b iv (timeit c)"
+
+
+record tvars = tstate +
+  I :: nat
+  J :: nat
+
+lemma lem: "(0::nat) < n \<Longrightarrow> n+n \<le> Suc(n*n)"
+by(induct n, simp_all)
+
+lemma "|- .{i = \<acute>I & \<acute>time = 0}.
+ timeit(
+ WHILE \<acute>I \<noteq> 0
+ INV .{2*\<acute>time + \<acute>I*\<acute>I + 5*\<acute>I = i*i + 5*i}.
+ DO
+   \<acute>J := \<acute>I;
+   WHILE \<acute>J \<noteq> 0
+   INV .{0 < \<acute>I & 2*\<acute>time + \<acute>I*\<acute>I + 3*\<acute>I + 2*\<acute>J - 2 = i*i + 5*i}.
+   DO \<acute>J := \<acute>J - 1 OD;
+   \<acute>I := \<acute>I - 1
+ OD
+ ) .{2*\<acute>time = i*i + 5*i}."
+apply simp
+apply hoare
+    apply simp
+   apply clarsimp
+  apply clarsimp
+  apply arith
+ prefer 2
+ apply clarsimp
+apply (clarsimp simp:nat_distrib)
+apply(frule lem)
+apply arith
+done
+
 end
