@@ -3,11 +3,78 @@
 
 \section{Quick start}
 
-FIXME examples, ProofGeneral setup
+Isar is already part of Isabelle (as of version Isabelle99, or later).  The
+\texttt{isabelle} binary provides option \texttt{-I} to run the Isar
+interaction loop at startup, rather than the plain ML top-level.  Thus the
+quickest way to do anything with Isabelle/Isar is as follows:
+\begin{ttbox}
+isabelle -I HOL\medskip
+\out{> Welcome to Isabelle/HOL (Isabelle99)}\medskip
+theory Foo = Main:
+constdefs foo :: nat  "foo == 1"
+lemma "0 < foo" by (simp add: foo_def)
+end
+\end{ttbox}
 
-\section{Examples}
+Plain TTY-based interaction like this used to be quite feasible with
+traditional tactic based theorem proving, but developing Isar documents
+demands some better user-interface support.
+\emph{ProofGeneral}\index{ProofGeneral} of LFCS Edinburgh \cite{proofgeneral}
+offers a generic Emacs-based environment for interactive theorem provers that
+does all the cut-and-paste and forward-backward walk through the document in a
+very neat way.  Note that in Isabelle/Isar, the current position within a
+partial proof document is more informative than the actual proof state.  Thus
+the ProofGeneral/isar interface provides the canonical working environment for
+Isabelle/Isar, both for getting acquainted (e.g.\ by replaying existing Isar
+documents) and serious production work.
+
+\medskip
+
+The easiest way to use ProofGeneral/isar is to make it the default Isabelle
+user interface.  Just say something like this in your Isabelle settings file
+(cf.\ \cite{isabelle-sys}):
+\begin{ttbox}
+ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
+PROOFGENERAL_OPTIONS=""
+\end{ttbox}
+You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
+actual installation directory of ProofGeneral.  Now the capital
+\texttt{Isabelle} binary refers to the ProofGeneral/isar interface.  It's
+usage is as follows:
+\begin{ttbox}
+Usage: interface [OPTIONS] [FILES ...]
+
+Options are:
+  -l NAME      logic image name (default $ISABELLE_LOGIC=HOL)
+  -p NAME      Emacs program name (default xemacs)
+  -u BOOL      use .emacs file (default false)
+  -w BOOL      use window system (default true)
+
+Starts ProofGeneral for Isabelle/Isar with proof documents FILES
+(default Scratch.thy).
+\end{ttbox}
+The defaults for these options may be changed via the
+\texttt{PROOFGENERAL_OPTIONS} setting.  For example, GNU Emacs with loading of
+the startup file enabled may be configured as follows:\footnote{The interface
+  disables \texttt{.emacs} by default to ensure successful startup despite any
+  strange commands that tend to occur there.}
+\begin{ttbox}
+PROOFGENERAL_OPTIONS="-p emacs -u true"
+\end{ttbox}
+
+With the proper Isabelle interface setup, Isar documents may now be edited by
+visiting appropriate theory files, e.g.\ 
+\begin{ttbox}
+Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
+\end{ttbox}
+Users of XEmacs may note the toolbar for navigating forward and backward
+through the text.  Consult the ProofGeneral documentation for further basic
+commands, such as \texttt{c-c return} or \texttt{c-c u}.
+
 
 \section{How to write Isar proofs anyway?}
+
+FIXME
 
 
 %%% Local Variables: 

@@ -23,11 +23,11 @@
   actual HOL type constructor.
 \item [$\isarkeyword{typedef}~(\vec\alpha)t = A$] sets up a goal stating
   non-emptiness of the set $A$.  After finishing the proof, the theory will be
-  augmented by a Gordon/HOL-style type definitions.  See \cite{isabelle-HOL}
+  augmented by a Gordon/HOL-style type definition.  See \cite{isabelle-HOL}
   for more information.  Note that user-level work usually does not directly
   refer to the HOL $\isarkeyword{typedef}$ primitive, but uses more advanced
-  packages such as $\isarkeyword{record}$ (\S\ref{sec:record}) or
-  $\isarkeyword{datatype}$ (\S\ref{sec:datatype}).
+  packages such as $\isarkeyword{record}$ (see \S\ref{sec:record}) or
+  $\isarkeyword{datatype}$ (see \S\ref{sec:datatype}).
 \end{descr}
 
 
@@ -52,7 +52,7 @@
   defines extensible record type $(\vec\alpha)t$, derived from the optional
   parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
   See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
-  simply-typed records.
+  simply-typed extensible records.
 \end{descr}
 
 
@@ -68,12 +68,12 @@
 \railterm{repdatatype}
 
 \begin{rail}
-  'datatype' (parname? typespec infix? \\ '=' (cons + '|') + 'and')
+  'datatype' (parname? typespec infix? \\ '=' (constructor + '|') + 'and')
   ;
   repdatatype (name * ) \\ 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
   ;
 
-  cons: name (type * ) mixfix? comment?
+  constructor: name (type * ) mixfix? comment?
   ;
 \end{rail}
 
@@ -136,7 +136,7 @@
 
 \section{Proof by induction}
 
-%FIXME induct proof method
+FIXME induct proof method
 
 
 %%% Local Variables: 

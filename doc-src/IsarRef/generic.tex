@@ -53,13 +53,19 @@ FIXME
 \begin{rail}
   ('tag' | 'untag') (nameref+)
   ;
+\end{rail}
+
+\begin{rail}
   ('COMP' | 'RS') nat? thmref
   ;
   'OF' thmrefs
   ;
-  'where' (term '=' term * 'and')
+\end{rail}
+
+\begin{rail}
+  'where' (name '=' term * 'and')
   ;
-  'of' (inst * ) ('concl:' (inst * ))?
+  'of' (inst * ) ('concl' ':' (inst * ))?
   ;
 
   inst: underscore | term
