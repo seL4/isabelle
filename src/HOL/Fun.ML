@@ -19,48 +19,6 @@ by (REPEAT (resolve_tac (prems@[refl]) 1));
 qed "apply_inverse";
 
 
-(*** Image of a set under a function ***)
-
-(*Frequently b does not have the syntactic form of f(x).*)
-val prems = goalw Fun.thy [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
-by (REPEAT (resolve_tac (prems @ [CollectI,bexI,prem]) 1));
-qed "image_eqI";
-
-bind_thm ("imageI", refl RS image_eqI);
-
-(*The eta-expansion gives variable-name preservation.*)
-val major::prems = goalw Fun.thy [image_def]
-    "[| b : (%x.f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
-by (rtac (major RS CollectD RS bexE) 1);
-by (REPEAT (ares_tac prems 1));
-qed "imageE";
-
-AddIs  [image_eqI];
-AddSEs [imageE]; 
-
-goalw Fun.thy [o_def] "(f o g)``r = f``(g``r)";
-by (Fast_tac 1);
-qed "image_compose";
-
-goal Fun.thy "f``(A Un B) = f``A Un f``B";
-by (Fast_tac 1);
-qed "image_Un";
-
-(*** Range of a function -- just a translation for image! ***)
-
-goal Fun.thy "!!b. b=f(x) ==> b : range(f)";
-by (EVERY1 [etac image_eqI, rtac UNIV_I]);
-bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
-
-bind_thm ("rangeI", UNIV_I RS imageI);
-
-val [major,minor] = goal Fun.thy 
-    "[| b : range(%x.f(x));  !!x. b=f(x) ==> P |] ==> P"; 
-by (rtac (major RS imageE) 1);
-by (etac minor 1);
-qed "rangeE";
-
-
 (*** inj(f): f is a one-to-one function ***)
 
 val prems = goalw Fun.thy [inj_def]
@@ -95,14 +53,14 @@ by (rtac refl 1);
 qed "inj_select";
 
 (*A one-to-one function has an inverse (given using select).*)
-val [major] = goalw Fun.thy [Inv_def] "inj(f) ==> Inv f (f x) = x";
+val [major] = goalw Fun.thy [inv_def] "inj(f) ==> inv f (f x) = x";
 by (EVERY1 [rtac (major RS inj_select)]);
-qed "Inv_f_f";
+qed "inv_f_f";
 
 (* Useful??? *)
 val [oneone,minor] = goal Fun.thy
-    "[| inj(f); !!y. y: range(f) ==> P(Inv f y) |] ==> P(x)";
-by (res_inst_tac [("t", "x")] (oneone RS (Inv_f_f RS subst)) 1);
+    "[| inj(f); !!y. y: range(f) ==> P(inv f y) |] ==> P(x)";
+by (res_inst_tac [("t", "x")] (oneone RS (inv_f_f RS subst)) 1);
 by (rtac (rangeI RS minor) 1);
 qed "inj_transfer";
 
@@ -152,27 +110,22 @@ val [prem] = goal Fun.thy "inj(f) ==> inj_onto f A";
 by (fast_tac (!claset addIs [prem RS injD, inj_ontoI]) 1);
 qed "inj_imp";
 
-val [prem] = goalw Fun.thy [Inv_def] "y : range(f) ==> f(Inv f y) = y";
+val [prem] = goalw Fun.thy [inv_def] "y : range(f) ==> f(inv f y) = y";
 by (EVERY1 [rtac (prem RS rangeE), rtac selectI, etac sym]);
-qed "f_Inv_f";
+qed "f_inv_f";
 
 val prems = goal Fun.thy
-    "[| Inv f x=Inv f y; x: range(f);  y: range(f) |] ==> x=y";
+    "[| inv f x=inv f y; x: range(f);  y: range(f) |] ==> x=y";
 by (rtac (arg_cong RS box_equals) 1);
-by (REPEAT (resolve_tac (prems @ [f_Inv_f]) 1));
-qed "Inv_injective";
+by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
+qed "inv_injective";
 
 val prems = goal Fun.thy
-    "[| inj(f);  A<=range(f) |] ==> inj_onto (Inv f) A";
+    "[| inj(f);  A<=range(f) |] ==> inj_onto (inv f) A";
 by (cut_facts_tac prems 1);
 by (fast_tac (!claset addIs [inj_ontoI] 
-                      addEs [Inv_injective,injD]) 1);
-qed "inj_onto_Inv";
+                      addEs [inv_injective,injD]) 1);
+qed "inj_onto_inv";
 
-
-AddIs  [rangeI]; 
-AddSEs [rangeE]; 
 
 val set_cs = !claset delrules [equalityI];
-
-

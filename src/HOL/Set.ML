@@ -602,6 +602,51 @@ AddSIs [InterI];
 AddEs  [InterD, InterE];
 
 
+(*** Image of a set under a function ***)
+
+(*Frequently b does not have the syntactic form of f(x).*)
+val prems = goalw thy [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
+by (REPEAT (resolve_tac (prems @ [CollectI,bexI,prem]) 1));
+qed "image_eqI";
+
+bind_thm ("imageI", refl RS image_eqI);
+
+(*The eta-expansion gives variable-name preservation.*)
+val major::prems = goalw thy [image_def]
+    "[| b : (%x.f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
+by (rtac (major RS CollectD RS bexE) 1);
+by (REPEAT (ares_tac prems 1));
+qed "imageE";
+
+AddIs  [image_eqI];
+AddSEs [imageE]; 
+
+goalw thy [o_def] "(f o g)``r = f``(g``r)";
+by (Fast_tac 1);
+qed "image_compose";
+
+goal thy "f``(A Un B) = f``A Un f``B";
+by (Fast_tac 1);
+qed "image_Un";
+
+
+(*** Range of a function -- just a translation for image! ***)
+
+goal thy "!!b. b=f(x) ==> b : range(f)";
+by (EVERY1 [etac image_eqI, rtac UNIV_I]);
+bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
+
+bind_thm ("rangeI", UNIV_I RS imageI);
+
+val [major,minor] = goal thy 
+    "[| b : range(%x.f(x));  !!x. b=f(x) ==> P |] ==> P"; 
+by (rtac (major RS imageE) 1);
+by (etac minor 1);
+qed "rangeE";
+
+AddIs  [rangeI]; 
+AddSEs [rangeE]; 
+
 
 (*** Set reasoning tools ***)
 

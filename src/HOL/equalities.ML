@@ -412,7 +412,7 @@ goal Set.thy "A Int Union(B) = (UN C:B. A Int C)";
 by (Blast_tac 1);
 qed "Int_Union";
 
-(* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
+(* Devlin, Setdamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
 goal Set.thy "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
 by (Blast_tac 1);

@@ -32,8 +32,6 @@ consts
   Pow           :: 'a set => 'a set set                 (*powerset*)
   range         :: ('a => 'b) => 'b set                 (*of function*)
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
-  inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)
-  inj_onto      :: ['a => 'b, 'a set] => bool
   "``"          :: ['a => 'b, 'a set] => ('b set)   (infixr 90)
   (*membership*)
   "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
@@ -149,9 +147,6 @@ defs
   empty_def     "{}             == {x. False}"
   insert_def    "insert a B     == {x.x=a} Un B"
   image_def     "f``A           == {y. ? x:A. y=f(x)}"
-  inj_def       "inj f          == ! x y. f(x)=f(y) --> x=y"
-  inj_onto_def  "inj_onto f A   == ! x:A. ! y:A. f(x)=f(y) --> x=y"
-  surj_def      "surj f         == ! y. ? x. y=f(x)"
 
 end
 
