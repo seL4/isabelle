@@ -11,7 +11,7 @@ LOGICS="HOL ZF"
 DISTBASE=~/tmp/isadist
 ROOT=/usr/share
 BIN=/usr/bin
-RPMRELEASE=0
+RPMRELEASE=1
 
 
 ## diagnostics
@@ -74,6 +74,12 @@ cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
 ./build -bi $LOGICS
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
 rm -f heaps/${COMPILER}/Pure heaps/${COMPILER}/FOL heaps/${COMPILER}/TLA
+
+# fake build
+#mkdir -p heaps/${COMPILER}
+#touch heaps/${COMPILER}/HOL
+#touch heaps/${COMPILER}/HOL-Real
+#touch heaps/${COMPILER}/ZF
 
 
 # rpm spec
@@ -241,16 +247,15 @@ done
 
 chown -R root:root "$TMP" || chgrp -R isabelle "$TMP"
 
-echo "topdir: $TMP" >"$TMP/rpmrc"
-rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
+rpm -bb "$TMP/SPECS/isabelle.spec"
 
 mkdir -p "$DISTBASE/rpm"
-cd "$TMP/RPMS/i386"
-cp "isabelle-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
-cp "isabelle-HOL-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
-cp "isabelle-HOL-Real-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
-cp "isabelle-ZF-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
-cp "isabelle-pdfdocs-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
+cd /usr/src/packages/RPMS/i386
+mv "isabelle-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
+mv "isabelle-HOL-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
+mv "isabelle-HOL-Real-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
+mv "isabelle-ZF-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
+mv "isabelle-pdfdocs-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
 
 # clean up
 cd /
