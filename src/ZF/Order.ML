@@ -233,8 +233,7 @@ qed "ord_iso_is_bij";
 
 (*Needed?  But ord_iso_converse is!*)
 Goalw [ord_iso_def] 
-    "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> \
-\         <f`x, f`y> : s";
+    "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> <f`x, f`y> : s";
 by (Blast_tac 1);
 qed "ord_iso_apply";
 
@@ -246,8 +245,8 @@ val bij_inverse_ss =
           addsimps [right_inverse_bij];
 
 Goalw [ord_iso_def] 
-    "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |] ==> \
-\         <converse(f) ` x, converse(f) ` y> : r";
+    "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |] \
+\    ==> <converse(f) ` x, converse(f) ` y> : r";
 by (etac CollectE 1);
 by (etac (bspec RS bspec RS iffD2) 1);
 by (REPEAT (eresolve_tac [asm_rl, 
@@ -287,7 +286,7 @@ qed "ord_iso_trans";
 
 Goalw [ord_iso_def, mono_map_def]
     "[| f: mono_map(A,r,B,s);  g: mono_map(B,s,A,r);     \
-\              f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)";
+\       f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)";
 by Safe_tac;
 by (REPEAT_FIRST (ares_tac [fg_imp_bijective]));
 by (Blast_tac 1);
@@ -296,9 +295,9 @@ by (blast_tac (claset() addIs [apply_funtype]) 2);
 by (asm_full_simp_tac (simpset() addsimps [comp_eq_id_iff RS iffD1]) 1);
 qed "mono_ord_isoI";
 
-Goal "[| well_ord(A,r);  well_ord(B,s);                             \
-\            f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r)      \
-\         |] ==> f: ord_iso(A,r,B,s)";
+Goal "[| well_ord(A,r);  well_ord(B,s);                           \
+\        f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r) |] \
+\     ==> f: ord_iso(A,r,B,s)";
 by (REPEAT (ares_tac [mono_ord_isoI] 1));
 by (forward_tac [mono_map_is_fun RS fun_is_rel] 1);
 by (etac (converse_converse RS subst) 1 THEN rtac left_comp_inverse 1);
@@ -385,8 +384,7 @@ qed "well_ord_iso_pred_eq";
 
 (*Does not assume r is a wellordering!*)
 Goalw [ord_iso_def, pred_def]
- "[| f : ord_iso(A,r,B,s);   a:A |] ==>    \
-\      f `` pred(A,a,r) = pred(B, f`a, s)";
+     "[|f : ord_iso(A,r,B,s);  a:A|] ==> f `` pred(A,a,r) = pred(B, f`a, s)";
 by (etac CollectE 1);
 by (asm_simp_tac 
     (simpset() addsimps [[bij_is_fun, Collect_subset] MRS image_fun]) 1);
@@ -434,8 +432,8 @@ val  bij_apply_cs = claset() addSIs [bij_converse_bij]
 
 (*See Halmos, page 72*)
 Goal "[| well_ord(A,r);  \
-\            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |] \
-\         ==> ~ <g`y, f`y> : s";
+\        f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |] \
+\     ==> ~ <g`y, f`y> : s";
 by (ftac well_ord_iso_subset_lemma 1);
 by (res_inst_tac [("f","converse(f)"), ("g","g")] ord_iso_trans 1);
 by (REPEAT_FIRST (ares_tac [subset_refl, ord_iso_sym]));
@@ -447,7 +445,7 @@ qed "well_ord_iso_unique_lemma";
 
 (*Kunen's Lemma 6.2: Order-isomorphisms between well-orderings are unique*)
 Goal "[| well_ord(A,r);  \
-\            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g";
+\        f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g";
 by (rtac fun_extension 1);
 by (REPEAT (etac (ord_iso_is_bij RS bij_is_fun) 1));
 by (subgoals_tac ["f`x : B", "g`x : B", "linear(B,s)"] 1);
@@ -594,28 +592,23 @@ qed "well_ord_trichotomy";
 
 (*** Properties of converse(r), by Krzysztof Grabczewski ***)
 
-Goalw [irrefl_def] 
-            "irrefl(A,r) ==> irrefl(A,converse(r))";
+Goalw [irrefl_def] "irrefl(A,r) ==> irrefl(A,converse(r))";
 by (Blast_tac 1);
 qed "irrefl_converse";
 
-Goalw [trans_on_def] 
-    "trans[A](r) ==> trans[A](converse(r))";
+Goalw [trans_on_def] "trans[A](r) ==> trans[A](converse(r))";
 by (Blast_tac 1);
 qed "trans_on_converse";
 
-Goalw [part_ord_def] 
-    "part_ord(A,r) ==> part_ord(A,converse(r))";
+Goalw [part_ord_def] "part_ord(A,r) ==> part_ord(A,converse(r))";
 by (blast_tac (claset() addSIs [irrefl_converse, trans_on_converse]) 1);
 qed "part_ord_converse";
 
-Goalw [linear_def] 
-    "linear(A,r) ==> linear(A,converse(r))";
+Goalw [linear_def] "linear(A,r) ==> linear(A,converse(r))";
 by (Blast_tac 1);
 qed "linear_converse";
 
-Goalw [tot_ord_def] 
-    "tot_ord(A,r) ==> tot_ord(A,converse(r))";
+Goalw [tot_ord_def] "tot_ord(A,r) ==> tot_ord(A,converse(r))";
 by (blast_tac (claset() addSIs [part_ord_converse, linear_converse]) 1);
 qed "tot_ord_converse";
 
