@@ -4,9 +4,12 @@
     Copyright   1998  University of Cambridge
 
 The Follows relation of Charpentier and Sivilotte
+
+The safety conditions ensures that "givenBy f" is implementable in the
+  progress part: g cannot do anything silly.
 *)
 
-Follows = Union +
+Follows = ELT +
 
 constdefs
 

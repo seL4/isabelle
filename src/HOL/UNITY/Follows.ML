@@ -22,6 +22,7 @@ by (etac LeadsTo_weaken 1);
 by (ALLGOALS (blast_tac (claset() addIs [monoD, order_trans])));
 qed "mono_LeadsTo_o";
 
+(*NOT PROVABLE USING leadsETo because givenBy f <= givenBy (h o f) fails*)
 Goalw [Follows_def] "mono h ==> f Fols g <= (h o f) Fols (h o g)";
 by (Clarify_tac 1);
 by (asm_full_simp_tac
@@ -30,16 +31,33 @@ by (asm_full_simp_tac
 			 impOfSubs mono_LeadsTo_o RS INT_D]) 1);
 qed "mono_Follows_o";
 
+(*NOT PROVABLE USING leadsETo since it needs the previous thm*)
 Goal "mono h ==> f Fols g <= (%x. h (f x)) Fols (%x. h (g x))";
 by (dtac mono_Follows_o 1);
 by (force_tac (claset(), simpset() addsimps [o_def]) 1);
 qed "mono_Follows_apply";
 
+(*NOT PROVABLE USING leadsETo since givenBy g doesn't imply givenBy f*)
 Goalw [Follows_def]
      "[| F : f Fols g;  F: g Fols h |] ==> F : f Fols h";
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [order_trans, LeadsTo_Trans]) 1);
 qed "Follows_trans";
+
+(*
+try:
+by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
+auto();
+by (blast_tac (claset() addIs [order_trans, LeadsETo_Trans]) 1);
+br LeadsETo_Trans 1;
+by (Blast_tac 2);
+bd spec 1;
+be LeadsETo_weaken 1;
+auto();
+by (thin_tac "All ?P" 1);
+by (full_simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by Safe_tac;
+**)
 
 
 (** Destructiom rules **)
@@ -92,13 +110,10 @@ by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (Blast_tac 1);
 qed "Always_Un";
 
-
-
 Goalw [Increasing_def]
      "F : Increasing f ==> F : Stable {s. x <= f s}";
 by (Blast_tac 1);
 qed "IncreasingD";
-
 
 (*Lemma to re-use the argument that one variable increases (progress)
   while the other variable doesn't decrease (safety)*)
