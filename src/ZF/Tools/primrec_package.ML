@@ -41,11 +41,11 @@ fun process_eqn thy (eq, rec_fn_opt) =
   let
     val (lhs, rhs) =
         if null (term_vars eq) then
-            dest_eqn eq handle _ => raise RecError "not a proper equation"
+            dest_eqn eq handle TERM _ => raise RecError "not a proper equation"
         else raise RecError "illegal schematic variable(s)";
 
     val (recfun, args) = strip_comb lhs;
-    val (fname, ftype) = dest_Const recfun handle _ =>
+    val (fname, ftype) = dest_Const recfun handle TERM _ =>
       raise RecError "function is not declared as constant in theory";
 
     val (ls_frees, rest)  = take_prefix is_Free args;
@@ -55,15 +55,15 @@ fun process_eqn thy (eq, rec_fn_opt) =
       if null middle then raise RecError "constructor missing"
       else strip_comb (hd middle);
     val (cname, _) = dest_Const constr
-      handle _ => raise RecError "ill-formed constructor";
+      handle TERM _ => raise RecError "ill-formed constructor";
     val con_info = the (Symtab.lookup (ConstructorsData.get thy, cname))
-      handle _ =>
+      handle Library.OPTION =>
       raise RecError "cannot determine datatype associated with function"
 
     val (ls, cargs, rs) = (map dest_Free ls_frees,
                            map dest_Free cargs_frees,
                            map dest_Free rs_frees)
-      handle _ => raise RecError "illegal argument in pattern";
+      handle TERM _ => raise RecError "illegal argument in pattern";
     val lfrees = ls @ rs @ cargs;
 
     (*Constructor, frees to left of pattern, pattern variables,

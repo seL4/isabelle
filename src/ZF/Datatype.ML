@@ -71,10 +71,12 @@ struct
        val (lhs,rhs) = FOLogic.dest_eq old
        val (lhead, largs) = strip_comb lhs
        and (rhead, rargs) = strip_comb rhs
-       val lname = #1 (dest_Const lhead)
-       and rname = #1 (dest_Const rhead)
+       val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
+       val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
        val lcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, lname))
-       and rcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, rname))
+         handle Library.OPTION => raise Match;
+       val rcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, rname))
+         handle Library.OPTION => raise Match;
        val new = 
            if #big_rec_name lcon_info = #big_rec_name rcon_info 
                andalso not (null (#free_iffs lcon_info)) then
@@ -87,10 +89,11 @@ struct
        val goal = Logic.mk_equals (old, new)
        val thm = Tactic.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
            simp_tac (datatype_ss addsimps #free_iffs lcon_info) 1)
-         handle ERROR =>
-         error ("data_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal)
+         handle ERROR_MESSAGE msg =>
+         (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);
+          raise Match)
    in Some thm end
-   handle _ => None;
+   handle Match => None;
 
 
  val conv = 
