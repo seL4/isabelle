@@ -143,4 +143,7 @@ apply (unfold raise_if_def)
 apply (simp (no_asm))
 done
 
+lemma c_hupd_fst [simp]: "fst (c_hupd h (x, s)) = x"
+by (simp add: c_hupd_def split_beta)
+
 end
