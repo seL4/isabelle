@@ -115,33 +115,22 @@ qed "not_mem_Rep_preal_Ex";
 
 (** preal_of_prat: the injection from prat to preal **)
 (** A few lemmas **)
-Goal "{} < {xa::prat. xa < y}";
-by (cut_facts_tac [qless_Ex] 1);
-by (auto_tac (claset() addEs [equalityCE],
-              simpset() addsimps [psubset_def]));
-qed "lemma_prat_less_set_Ex";
 
 Goal "{xa::prat. xa < y} : preal";
 by (cut_facts_tac [qless_Ex] 1);
-by Safe_tac;
-by (rtac lemma_prat_less_set_Ex 1);
-by (auto_tac (claset() addIs [prat_less_trans],
-    simpset() addsimps [psubset_def]));
-by (eres_inst_tac [("c","y")] equalityCE 1);
-by (auto_tac (claset() addDs [prat_less_irrefl],simpset()));
-by (dres_inst_tac [("q1.0","ya")] prat_dense 1);
-by (Fast_tac 1);
+by (auto_tac (claset() addIs[prat_less_trans]
+                       addSEs [equalityCE, prat_less_irrefl], 
+	      simpset()));
+by (blast_tac (claset() addDs [prat_dense]) 1);
 qed "lemma_prat_less_set_mem_preal";
 
 Goal "!!(x::prat). {xa. xa < x} = {x. x < y} ==> x = y";
 by (cut_inst_tac [("q1.0","x"),("q2.0","y")] prat_linear 1);
 by Auto_tac;
+by (dtac prat_dense 2 THEN etac exE 2);
 by (dtac prat_dense 1 THEN etac exE 1);
-by (eres_inst_tac [("c","xa")] equalityCE 1);
-by (auto_tac (claset() addDs [prat_less_not_sym],simpset()));
-by (dtac prat_dense 1 THEN etac exE 1);
-by (eres_inst_tac [("c","xa")] equalityCE 1);
-by (auto_tac (claset() addDs [prat_less_not_sym],simpset()));
+by (auto_tac (claset() addDs [prat_less_not_sym] addSEs [equalityCE],
+              simpset()));
 qed "lemma_prat_set_eq";
 
 Goal "inj(preal_of_prat)";
