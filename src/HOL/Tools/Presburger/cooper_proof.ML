@@ -17,7 +17,8 @@ sig
   val qe_exI : thm
   val list_to_set : typ -> term list -> term
   val qe_get_terms : thm -> term * term
-  val cooper_prv : Sign.sg -> term -> term -> thm
+  val cooper_prv  : Sign.sg -> term -> term -> thm
+  val cooper_prv2 : Sign.sg -> term -> term -> thm
   val proof_of_evalc : Sign.sg -> term -> thm
   val proof_of_cnnf : Sign.sg -> term -> (term -> thm) -> thm
   val proof_of_linform : Sign.sg -> string list -> term -> thm
@@ -792,8 +793,8 @@ fun rho_for_evalc sg at = case at of
            ((if (f ((dest_numeral s),(dest_numeral t))) 
              then prove_elementar sg "ss" (HOLogic.mk_eq(at,HOLogic.true_const)) 
              else prove_elementar sg "ss" (HOLogic.mk_eq(at, HOLogic.false_const)))  
-		   handle _ => instantiate' [Some cboolT] [Some (cterm_of sg at)] refl
-        | _ => instantiate' [Some cboolT] [Some (cterm_of sg at)] refl )) 
+		   handle _ => instantiate' [Some cboolT] [Some (cterm_of sg at)] refl)
+        | _ => instantiate' [Some cboolT] [Some (cterm_of sg at)] refl )
      |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
        case assoc (operations,p) of 
          Some f => 
@@ -919,6 +920,64 @@ fun cooper_prv sg (x as Free(xn,xT)) efm = let
  in  ([e_ac_thm,[(prove_elementar sg "ss" (HOLogic.mk_eq (rseacth,lsuth))),u_c_thm] MRS trans] MRS trans)
    end
 |cooper_prv _ _ _ =  error "Parameters format";
+
+(* ********************************** *)
+(* cooper_prv2 is just copy and paste *)
+(* And only generates proof with      *)
+(* bset and minusinfity               *)
+(* ********************************** *)
+
+
+
+fun cooper_prv2 sg (x as Free(xn,xT)) efm = let 
+   (* lfm_thm : efm = linearized form of efm*)
+   val lfm_thm = proof_of_linform sg [xn] efm
+   (*efm2 is the linearized form of efm *) 
+   val efm2 = snd(qe_get_terms lfm_thm)
+   (* l is the lcm of all coefficients of x *)
+   val l = formlcm x efm2
+   (*ac_thm: efm = efm2 with adjusted coefficients of x *)
+   val ac_thm = [lfm_thm , (proof_of_adjustcoeffeq sg x l efm2)] MRS trans
+   (* fm is efm2 with adjusted coefficients of x *)
+   val fm = snd (qe_get_terms ac_thm)
+  (* cfm is l dvd x & fm' where fm' is fm where l*x is replaced by x*)
+   val  cfm = unitycoeff x fm
+   (*afm is fm where c*x is replaced by 1*x or -1*x *)
+   val afm = adjustcoeff x l fm
+   (* P = %x.afm*)
+   val P = absfree(xn,xT,afm)
+   (* This simpset allows the elimination of the sets in bex {1..d} *)
+   val ss = presburger_ss addsimps
+     [simp_from_to] delsimps [P_eqtrue, P_eqfalse, bex_triv, insert_iff]
+   (* uth : EX x.P(l*x) = EX x. l dvd x & P x*)
+   val uth = instantiate' [] [Some (cterm_of sg P) , Some (cterm_of sg (mk_numeral l))] (unity_coeff_ex)
+   (* e_ac_thm : Ex x. efm = EX x. fm*)
+   val e_ac_thm = (forall_intr (cterm_of sg x) ac_thm) COMP (qe_exI)
+   (* A and B set of the formula*)
+   val B = bset x cfm
+   val A = []
+   (* the divlcm (delta) of the formula*)
+   val dlcm = mk_numeral (divlcm x cfm)
+   (* Which set is smaller to generate the (hoepfully) shorter proof*)
+   val cms = "mi" 
+   (* synthesize the proof of cooper's theorem*)
+    (* cp_thm: EX x. cfm = Q*)
+   val cp_thm = cooper_thm sg cms x cfm dlcm A B
+   (* Exxpand the right hand side to get rid of EX j : {1..d} to get a huge disjunction*)
+   (* exp_cp_thm: EX x.cfm = Q' , where Q' is a simplified version of Q*)
+   val exp_cp_thm = refl RS (simplify ss (cp_thm RSN (2,trans)))
+   (* lsuth = EX.P(l*x) ; rsuth = EX x. l dvd x & P x*)
+   val (lsuth,rsuth) = qe_get_terms (uth)
+   (* lseacth = EX x. efm; rseacth = EX x. fm*)
+   val (lseacth,rseacth) = qe_get_terms(e_ac_thm)
+   (* lscth = EX x. cfm; rscth = Q' *)
+   val (lscth,rscth) = qe_get_terms (exp_cp_thm)
+   (* u_c_thm: EX x. P(l*x) = Q'*)
+   val  u_c_thm = [([uth,prove_elementar sg "ss" (HOLogic.mk_eq (rsuth,lscth))] MRS trans),exp_cp_thm] MRS trans
+   (* result: EX x. efm = Q'*)
+ in  ([e_ac_thm,[(prove_elementar sg "ss" (HOLogic.mk_eq (rseacth,lsuth))),u_c_thm] MRS trans] MRS trans)
+   end
+|cooper_prv2 _ _ _ =  error "Parameters format";
 
 
 (* **************************************** *)
