@@ -137,26 +137,12 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 
-## Fonts -- how to install the Isabelle X11 fonts (can be tricky!).
-
-# (1) Get fonts from local (client side) directory:
-ISABELLE_INSTALLFONTS="xset fp+ \"$ISABELLE_HOME/lib/fonts\"; xset fp rehash"
-
-# (2) Get from font server at Munich or Cambridge:
-#ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
-#ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
-
-
 ###
 ### Interfaces
 ###
 
-# The null interface: pass-through to 'isabelle'.
+# The null interface: pass-through to raw isabelle process.
 ISABELLE_INTERFACE=none
-
-# Simple xterm based interface.
-#ISABELLE_INTERFACE=xterm
-ISABELLE_XTERM_OPTIONS=""
 
 # Emacs running Isamode.
 #ISABELLE_INTERFACE=emacs
@@ -174,6 +160,9 @@ ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
+
+type -path xemacs >/dev/null || PROOFGENERAL_OPTIONS="-p emacs $PROOFGENERAL_OPTIONS"
+
 
 # X-Symbol mode for Proof General
 XSYMBOL_HOME=$(choosefrom \
