@@ -11,13 +11,24 @@ performs automatic type-inference of declared constants; additional
 support for local structure declarations (cf. locales and HOL
 records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
 to observe strictly sequential dependencies of definitions within a
-single 'constdefs' section -- some existing specifications may have to
-be reordered; moreover, the declared name needs to be an identifier.
-In the worst case may have to fall back on plain 'consts' + 'defs'.
+single 'constdefs' section; moreover, the declared name needs to be an
+identifier.  If all fails, consider to fall back on 'consts' and
+'defs' separately.
 
 * Pure: 'advanced' translation functions (parse_translation etc.) may
 depend on the signature of the theory context being presently used for
 parsing/printing, see also isar-ref manual.
+
+* Pure: improved indexed syntax and implicit structures.  First of
+call, indexed syntax provides a notational device for subscripted
+application, using the new syntax \<^bsub>term\<^esub> for arbitrary
+expressions.  Secondly, in a local context with structure
+declarations, number indexes \<^sub>n or the empty index (default
+number 1) refer to a certain fixed variable implicitly.  Typical
+applications of these concepts involve record types and locales.
+
+* Pure: tuned internal renaming of symbolic identifiers -- attach
+primes instead of base 26 numbers.
 
 
 *** HOLCF ***
