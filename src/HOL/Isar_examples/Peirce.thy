@@ -2,15 +2,13 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Peirce's law: some examples of classical proof.
+Peirce's law: examples of classical proof.
 *)
 
 theory Peirce = Main:;
 
-lemmas it[elim!] = mp notE;	(* FIXME elim!! *)
 
-
-lemma Peirce's_law: "((A --> B) --> A) --> A";
+theorem "((A --> B) --> A) --> A";
 proof;
   assume ABA: "(A --> B) --> A";
   show A;
@@ -28,7 +26,7 @@ proof;
 qed;
 
 
-lemma Peirce's_law: "((A --> B) --> A) --> A";
+theorem "((A --> B) --> A) --> A";
 proof;
   assume ABA: "(A --> B) --> A";
   show A;
