@@ -3,8 +3,8 @@ theory fakenat = Main:;
 (*>*)
 
 text{*\noindent
-The type \isaindexbold{nat}\index{*0|bold}\index{*Suc|bold} of natural
-numbers is predefined and behaves like
+The type \tydx{nat} of natural
+numbers is predefined to have the constructors \cdx{0} and~\cdx{Suc}.  It  behaves as if it were declared like this:
 *}
 
 datatype nat = 0 | Suc nat

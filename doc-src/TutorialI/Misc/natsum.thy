@@ -36,7 +36,7 @@ and @{term 2} are available as abbreviations for the corresponding
 see~\S\ref{sec:numerals}.
 
 \begin{warn}
-  The constant \ttindexbold{0} and the operations
+  The constant \cdx{0} and the operations
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \isaindexbold{min},
   \isaindexbold{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
@@ -70,7 +70,7 @@ text{*\noindent
 is proved automatically. The main restriction is that only addition is taken
 into account; other arithmetic operations and quantified formulae are ignored.
 
-For more complex goals, there is the special method \isaindexbold{arith}
+For more complex goals, there is the special method \methdx{arith}
 (which attacks the first subgoal). It proves arithmetic goals involving the
 usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
 @{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
