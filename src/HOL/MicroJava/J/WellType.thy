@@ -96,7 +96,8 @@ done
 
 types
 	java_mb = "vname list \<times> (vname \<times> ty) list \<times> stmt \<times> expr"
-	(* method body with parameter names, local variables, block, result expression *)
+(* method body with parameter names, local variables, block, result expression.
+   local variables might include This, which is hidden anyway *)
 
 consts
   ty_expr :: "java_mb env => (expr      \<times> ty     ) set"
@@ -145,18 +146,19 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intros
             E\<turnstile>e2::T;
             if bop = Eq then T' = PrimT Boolean
                         else T' = T \<and> T = PrimT Integer|] ==>
-         E\<turnstile>BinOp bop e1 e2::T'"
+            E\<turnstile>BinOp bop e1 e2::T'"
 
   (* cf. 15.25, 15.25.1 *)
-  LAss: "[| E\<turnstile>LAcc v::T;
-	          E\<turnstile>e::T';
+  LAss: "[| v ~= This;
+            E\<turnstile>LAcc v::T;
+	    E\<turnstile>e::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>v::=e::T'"
 
   (* cf. 15.10.1 *)
   FAcc: "[| E\<turnstile>a::Class C; 
             field (prg E,C) fn = Some (fd,fT) |] ==>
-         E\<turnstile>{fd}a..fn::fT"
+            E\<turnstile>{fd}a..fn::fT"
 
   (* cf. 15.25, 15.25.1 *)
   FAss: "[| E\<turnstile>{fd}a..fn::T;
@@ -210,13 +212,16 @@ constdefs
 	length pTs = length pns \<and>
 	nodups pns \<and>
 	unique lvars \<and>
+        This \<notin> set pns \<and> This \<notin> set (map fst lvars) \<and> 
 	(\<forall>pn\<in>set pns. map_of lvars pn = None) \<and>
 	(\<forall>(vn,T)\<in>set lvars. is_type G T) &
 	(let E = (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C)) in
 	 E\<turnstile>blk\<surd> \<and> (\<exists>T. E\<turnstile>res::T \<and> G\<turnstile>T\<preceq>rT))"
 
+syntax 
  wf_java_prog :: "java_mb prog => bool"
-"wf_java_prog G == wf_prog wf_java_mdecl G"
+translations
+  "wf_java_prog" == "wf_prog wf_java_mdecl"
 
 
 lemma wt_is_type: "wf_prog wf_mb G \<Longrightarrow> ((G,L)\<turnstile>e::T \<longrightarrow> is_type G T) \<and>  
