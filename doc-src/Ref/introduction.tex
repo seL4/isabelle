@@ -9,29 +9,26 @@ When you are looking for a way of performing some task, scan the Table of
 Contents for a relevant heading.  Functions are organized by their purpose,
 by their operands (subgoals, tactics, theorems), and by their usefulness.
 In each section, basic functions appear first, then advanced functions, and
-finally esoteric functions.
-
-The Index provides an alphabetical listing.  Page numbers of definitions
-are printed in {\bf bold}, passing references in Roman type.  Use the Index
-when you are looking for the definition of a particular Isabelle function.
+finally esoteric functions.  Use the Index when you are looking for the
+definition of a particular Isabelle function.
 
 A few examples are presented.  Many examples files are distributed with
 Isabelle, however; please experiment interactively.
 
 
 \section{Basic interaction with Isabelle}
-\index{sessions!saving|bold}\index{saving your work|bold}
+\index{saving your work|bold}
 Isabelle provides no means of storing theorems or proofs on files.
 Theorems are simply part of the \ML{} state and are named by \ML{}
 identifiers.  To save your work between sessions, you must save a copy of
 the \ML{} image.  The procedure for doing so is compiler-dependent:
-\begin{itemize}\index{Poly/\ML}
-\item At the end of a session, Poly/\ML{} saves the state, provided you have
-created a database for your own use.  You can create a database by copying
-an existing one, or by calling the Poly/\ML{} function {\tt make_database};
-the latter course uses much less disc space.  Note that a Poly/\ML{}
-database {\bf does not} save the contents of references, such as the
-current state of a backward proof.
+\begin{itemize}\index{Poly/{\ML} compiler}
+\item At the end of a session, Poly/\ML{} saves the state, provided you
+  have created a database for your own use.  You can create a database by
+  copying an existing one, or by calling the Poly/\ML{} function {\tt
+    make_database}; the latter course uses much less disc space.  A
+  Poly/\ML{} database {\em does not\/} save the contents of references,
+  such as the current state of a backward proof.
 
 \item With New Jersey \ML{} you must save the state explicitly before
 ending the session.  While a Poly/\ML{} database can be small, a New Jersey
@@ -48,31 +45,28 @@ formal description of your work.
 
 Since Isabelle's user interface is the \ML{} top level, some kind of window
 support is essential.  One window displays the Isabelle session, while the
-other displays a file --- your proof record --- being edited.  Some people
-use a screen editor such as Emacs, which supports windows and can manage
-interactive sessions.  Others prefer to use a workstation running the X Window
-System.
+other displays a file --- your proof record --- being edited.  The Emacs
+editor supports windows and can manage interactive sessions.
 
 
 \section{Ending a session}
-\index{sessions!ending|bold}
 \begin{ttbox} 
 quit     : unit -> unit
 commit   : unit -> unit \hfill{\bf Poly/ML only}
 exportML : string -> bool \hfill{\bf New Jersey ML only}
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{quit}();]  
 aborts the Isabelle session, without saving the state.
 
-\item[\ttindexbold{commit}();]  saves the current state in your
-Poly/\ML{} database without finishing the session.  Values of reference
-variables are lost, so never do this during an interactive
-proof!\index{Poly/\ML} 
+\item[\ttindexbold{commit}();] 
+  saves the current state in your Poly/\ML{} database without ending the
+  session.  The contents of references are lost, so never do this during an
+  interactive proof!\index{Poly/{\ML} compiler}
 
-\item[\ttindexbold{exportML} \tt"{\it file}";]  saves an
+\item[\ttindexbold{exportML} "{\it file}";]  saves an
 image of your session to the given {\it file}.
-\end{description}
+\end{ttdescription}
 
 \begin{warn}
 Typing control-D also finishes the session, but its effect is
@@ -81,51 +75,30 @@ private database.  New Jersey \ML{} will discard the state!
 \end{warn}
 
 
-\section{Reading files of proofs and theories}
-\index{files!reading|bold}
+\section{Reading ML files}
+\index{files!reading}
 \begin{ttbox} 
 cd              : string -> unit
 use             : string -> unit
-use_thy         : string -> unit
 time_use        : string -> unit
-time_use_thy    : string -> unit
-update          : unit -> unit
-loadpath        : string list ref
 \end{ttbox}
-\begin{description}
-\item[\ttindexbold{cd} \tt"{\it dir}";]  changes to {\it dir\/} the default
-directory for reading files.
+Section~\ref{LoadingTheories} describes commands for loading theory files.
+\begin{ttdescription}
+\item[\ttindexbold{cd} "{\it dir}";]
+  changes the current directory to {\it dir}.  This is the default directory
+  for reading files and for writing temporary files.
 
-\item[\ttindexbold{use} \tt"$file$";]  
+\item[\ttindexbold{use} "$file$";]  
 reads the given {\it file} as input to the \ML{} session.  Reading a file
 of Isabelle commands is the usual way of replaying a proof.
 
-\item[\ttindexbold{use_thy} \tt"$tname$";] 
-  reads a theory definition from file {\it tname}{\tt.thy} and also reads
-  {\ML} commands from the file {\it tname}{\tt.ML}, if it exists.  If
-  theory {\it tname} depends on theories that have not been read already,
-  then it loads these beforehand.  See Chapter~\ref{theories} for
-  details.
-
-\item[\ttindexbold{time_use} \tt"$file$";]  
+\item[\ttindexbold{time_use} "$file$";]  
 performs {\tt use~"$file$"} and prints the total execution time.
-
-\item[\ttindexbold{time_use_thy} \tt"$tname$";]  
-performs {\tt use_thy "$tname$"} and prints the total execution time.
-
-\item[\ttindexbold{update} \tt();]  
-reads all theories that have changed since the last time they have been read.
-See Chapter~\ref{theories} for details.
-
-\item[\ttindexbold{loadpath}] 
-  contains a list of paths that is used by {\tt use_thy} and {\tt update}
-  to find {\it tname}{\tt.ML} and {\it tname}{\tt.thy}.  See
-  Chapter~\ref{theories} for details.
-\end{description}
+\end{ttdescription}
 
 
 \section{Printing of terms and theorems}
-\index{printing!flags|bold}
+\index{printing control|(}
 Isabelle's pretty printer is controlled by a number of parameters.
 
 \subsection{Printing limits}
@@ -136,56 +109,48 @@ print_depth      : int -> unit
 \end{ttbox}
 These set limits for terminal output.
 
-\begin{description}
-\item[\ttindexbold{Pretty.setdepth} \(d\);]  tells
-Isabelle's pretty printer to limit the printing depth to~$d$.  This affects
-Isabelle's display of theorems and terms.  The default value is~0, which
-permits printing to an arbitrary depth.  Useful values for $d$ are~10 and~20.
+\begin{ttdescription}
+\item[\ttindexbold{Pretty.setdepth} \(d\);]  
+  tells Isabelle's pretty printer to limit the printing depth to~$d$.  This
+  affects Isabelle's display of theorems and terms.  The default value
+  is~0, which permits printing to an arbitrary depth.  Useful values for
+  $d$ are~10 and~20.
 
-\item[\ttindexbold{Pretty.setmargin} \(m\);]  tells
-Isabelle's pretty printer to assume a right margin (page width) of~$m$.
-The initial margin is~80.
+\item[\ttindexbold{Pretty.setmargin} \(m\);]  
+  tells Isabelle's pretty printer to assume a right margin (page width)
+  of~$m$.  The initial margin is~80.
 
-\item[\ttindexbold{print_depth} \(n\);]  limits
-the printing depth of complex \ML{} values, such as theorems and terms.
-This command affects the \ML{} top level and its effect is
-compiler-dependent.  Typically $n$ should be less than~10.
-\end{description}
+\item[\ttindexbold{print_depth} \(n\);]  
+  limits the printing depth of complex \ML{} values, such as theorems and
+  terms.  This command affects the \ML{} top level and its effect is
+  compiler-dependent.  Typically $n$ should be less than~10.
+\end{ttdescription}
 
 
-\subsection{Printing of meta-level hypotheses}
-\index{hypotheses!meta-level!printing of|bold}
+\subsection{Printing of hypotheses, types and sorts}
+\index{meta-assumptions!printing of}
+\index{types!printing of}\index{sorts!printing of}
 \begin{ttbox} 
-show_hyps: bool ref \hfill{\bf initially true}
+show_hyps  : bool ref \hfill{\bf initially true}
+show_types : bool ref \hfill{\bf initially false}
+show_sorts : bool ref \hfill{\bf initially false}
 \end{ttbox}
-A theorem's hypotheses are normally displayed, since such dependence is
-important.  If this information becomes too verbose, however, it can be
-switched off;  each hypothesis is then displayed as a dot.
-\begin{description}
-\item[\ttindexbold{show_hyps} \tt:= true;]   
-makes Isabelle show meta-level hypotheses when printing a theorem; setting
-it to {\tt false} suppresses them.
-\end{description}
+These flags allow you to control how much information is displayed for
+terms and theorems.  The hypotheses are normally shown; types and sorts are
+not.  Displaying types and sorts may explain why a polymorphic inference
+rule fails to resolve with some goal.
 
+\begin{ttdescription}
+\item[\ttindexbold{show_hyps} := false;]   
+makes Isabelle show each meta-level hypotheses as a dot.
 
-\subsection{Printing of types and sorts}
-\begin{ttbox} 
-show_types: bool ref \hfill{\bf initially false}
-show_sorts: bool ref \hfill{\bf initially false}
-\end{ttbox}
-These control Isabelle's display of types and sorts.  Normally terms are
-printed without type and sorts because they are verbose.  Occasionally you
-may require this information, say to discover why a polymorphic inference rule
-fails to resolve with some goal.
-
-\begin{description}
-\item[\ttindexbold{show_types} \tt:= true;]\index{types}
+\item[\ttindexbold{show_types} := true;]
 makes Isabelle show types when printing a term or theorem.
 
-\item[\ttindexbold{show_sorts} \tt:= true;]\index{sorts}
+\item[\ttindexbold{show_sorts} := true;]
 makes Isabelle show the sorts of type variables.  It has no effect unless
 {\tt show_types} is~{\tt true}. 
-\end{description}
+\end{ttdescription}
 
 
 \subsection{$\eta$-contraction before printing}
@@ -200,31 +165,33 @@ example, if $F$ has type $(\tau\To\tau)\To\tau$ then its expanded form is
 $\lambda h.F(\lambda x.h(x))$.  By default, the user sees this expanded
 form.
 
-\begin{description}
-\item[\ttindexbold{eta_contract} \tt:= true;]
+\begin{ttdescription}
+\item[\ttindexbold{eta_contract} := true;]
 makes Isabelle perform $\eta$-contractions before printing, so that
 $\lambda h.F(\lambda x.h(x))$ appears simply as~$F$.  The
 distinction between a term and its $\eta$-expanded form occasionally
 matters.
-\end{description}
+\end{ttdescription}
+\index{printing control|)}
 
 
 \section{Displaying exceptions as error messages}
-\index{printing!exceptions|bold}\index{exceptions|bold}
+\index{exceptions!printing of}
 \begin{ttbox} 
 print_exn: exn -> 'a
 \end{ttbox}
 Certain Isabelle primitives, such as the forward proof functions {\tt RS}
 and {\tt RSN}, are called both interactively and from programs.  They
 indicate errors not by printing messages, but by raising exceptions.  For
-interactive use, \ML's reporting of an uncaught exception is most
-uninformative.
+interactive use, \ML's reporting of an uncaught exception is 
+uninformative.  The Poly/ML function {\tt exception_trace} can generate a
+backtrace.\index{Poly/{\ML} compiler}
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{print_exn} $e$] 
 displays the exception~$e$ in a readable manner, and then re-raises~$e$.
-Typical usage is~\hbox{\tt \ldots{} handle e => print_exn e;}, where
-\ldots{} is an expression that may raise an exception.
+Typical usage is~\hbox{\tt $EXP$ handle e => print_exn e;}, where
+$EXP$ is an expression that may raise an exception.
 
 {\tt print_exn} can display the following common exceptions, which concern
 types, terms, theorems and theories, respectively.  Each carries a message
@@ -235,43 +202,43 @@ exception TERM   of string * term list
 exception THM    of string * int * thm list
 exception THEORY of string * theory list
 \end{ttbox}
-{\tt print_exn} calls \ttindex{prin} to print terms.  This obtains pretty
-printing information from the proof state last stored in the subgoal
-module, and will fail if no interactive proof has begun in the current
-session.
-\end{description}
-
+\end{ttdescription}
+\begin{warn}
+  {\tt print_exn} prints terms by calling \ttindex{prin}, which obtains
+  pretty printing information from the proof state last stored in the
+  subgoal module.  The appearance of the output thus depends upon the
+  theory used in the last interactive proof.
+\end{warn}
 
 \section{Shell scripts}
-\index{shell scripts|bold}
-The following files are distributed with Isabelle, and work under
-Unix$^{\rm TM}$.  They can be executed as commands to the Unix shell.  Some
-of them depend upon shell environment variables.
-\begin{description}
-\item[\ttindexbold{make-all} $switches$] 
+\index{shell scripts|bold} The following files are distributed with
+Isabelle, and work under Unix$^{\rm TM}$.  They can be executed as commands
+to the Unix shell.  Some of them depend upon shell environment variables.
+\begin{ttdescription}
+\item[make-all $switches$] \index{*make-all shell script}
   compiles the Isabelle system, when executed on the source directory.
   Environment variables specify which \ML{} compiler to use.  These
   variables, and the {\it switches}, are documented on the file itself.
 
-\item[\ttindexbold{teeinput} $program$] 
-executes the {\it program}, while piping the standard input to a log file
-designated by the \verb|$LISTEN| environment variable.  Normally the
-program is Isabelle, and the log file receives a copy of all the Isabelle
-commands.
+\item[teeinput $program$] \index{*teeinput shell script}
+  executes the {\it program}, while piping the standard input to a log file
+  designated by the \verb|$LISTEN| environment variable.  Normally the
+  program is Isabelle, and the log file receives a copy of all the Isabelle
+  commands.
 
-\item[\ttindexbold{xlisten} $program$] 
+\item[xlisten $program$] \index{*xlisten shell script}
   is a trivial `user interface' for the X Window System.  It creates two
   windows using {\tt xterm}.  One executes an interactive session via
   \hbox{\tt teeinput $program$}, while the other displays the log file.  To
   make a proof record, simply paste lines from the log file into an editor
   window.
 
-\item[\ttindexbold{expandshort} $files$] 
+\item[expandshort $files$]  \index{*expandshort shell script}
   reads the {\it files\/} and replaces all occurrences of the shorthand
   commands {\tt br}, {\tt be}, {\tt brs}, {\tt bes}, etc., with the
   corresponding full commands.  Shorthand commands should appear one
   per line.  The old versions of the files
   are renamed to have the suffix~\verb'~~'.
-\end{description}
+\end{ttdescription}
 
 \index{sessions|)}
