@@ -11,6 +11,7 @@ sig
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
+  val prems_of: context -> thm list
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
