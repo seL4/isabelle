@@ -890,31 +890,32 @@ fun trace_term a sg t = if !trace_simp then prtm a sg t else ();
 
 fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
-fun check_conv(thm as Thm{sign,hyps,prop,...}, prop0) =
+fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
   in case prop of
        Const("==",_) $ lhs $ rhs =>
          if (lhs = lhs0) orelse
             (lhs aconv (Envir.norm_term (Envir.empty 0) lhs0))
-         then (trace_thm "SUCCEEDED" thm; Some((sign,hyps),rhs))
+         then (trace_thm "SUCCEEDED" thm; Some(hyps,rhs))
          else err()
      | _ => err()
   end;
 
 (*Conversion to apply the meta simpset to a term*)
-fun rewritec prover (mss as Mss{net,...}) (sghyt as (sgt,hypst),t) =
+fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
   let val t = Pattern.eta_contract t
       fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs} =
-	let val sign' = Sign.merge(sgt,sign)
-            val tsig = #tsig(Sign.rep_sg sign')
-            val insts = Pattern.match tsig (lhs,t)
+	let val unit = if Sign.subsig(sign,signt) then ()
+                  else (writeln"Warning: rewrite rule from different theory";
+                        raise Pattern.MATCH)
+            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,t)
             val prop' = subst_vars insts prop;
             val hyps' = hyps union hypst;
-            val thm' = Thm{sign=sign', hyps=hyps', prop=prop', maxidx=maxidx}
+            val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
         in if nprems_of thm' = 0
            then let val (_,rhs) = Logic.dest_equals prop'
-                in trace_thm "Rewriting:" thm'; Some((sign',hyps'),rhs) end
+                in trace_thm "Rewriting:" thm'; Some(hyps',rhs) end
            else (trace_thm "Trying to rewrite:" thm';
                  case prover mss thm' of
                    None       => (trace_thm "FAILED" thm'; None)
@@ -927,19 +928,20 @@ fun rewritec prover (mss as Mss{net,...}) (sghyt as (sgt,hypst),t) =
             in case opt of None => rewl rrules | some => some end;
 
   in case t of
-       Abs(_,_,body) $ u => Some(sghyt,subst_bounds([u], body))
+       Abs(_,_,body) $ u => Some(hypst,subst_bounds([u], body))
      | _                 => rewl (Net.match_term net t)
   end;
 
 (*Conversion to apply a congruence rule to a term*)
-fun congc prover {thm=cong,lhs=lhs} (sghyt as (sgt,hypst),t) =
+fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,t) =
   let val Thm{sign,hyps,maxidx,prop,...} = cong
-      val sign' = Sign.merge(sgt,sign)
-      val tsig = #tsig(Sign.rep_sg sign')
+      val unit = if Sign.subsig(sign,signt) then ()
+                 else error("Congruence rule from different theory")
+      val tsig = #tsig(Sign.rep_sg signt)
       val insts = Pattern.match tsig (lhs,t) handle Pattern.MATCH =>
                   error("Congruence rule did not match")
       val prop' = subst_vars insts prop;
-      val thm' = Thm{sign=sign', hyps=hyps union hypst,
+      val thm' = Thm{sign=signt, hyps=hyps union hypst,
                      prop=prop', maxidx=maxidx}
       val unit = trace_thm "Applying congruence rule" thm';
       fun err() = error("Failed congruence proof!")
@@ -951,50 +953,50 @@ fun congc prover {thm=cong,lhs=lhs} (sghyt as (sgt,hypst),t) =
   end;
 
 
-fun bottomc prover =
+fun bottomc (prover,sign) =
   let fun botc mss trec = let val trec1 = subc mss trec
-                          in case rewritec prover mss trec1 of
+                          in case rewritec (prover,sign) mss trec1 of
                                None => trec1
                              | Some(trec2) => botc mss trec2
                           end
 
       and subc (mss as Mss{net,congs,primes,prems,mk_rews})
-               (trec as (sghy,t)) =
+               (trec as (hyps,t)) =
         (case t of
             Abs(a,T,t) =>
               let val v = Free(".subc." ^ primes,T)
                   val mss' = Mss{net=net, congs=congs, primes=primes^"'",
                                  prems=prems,mk_rews=mk_rews}
-                  val (sghy',t') = botc mss' (sghy,subst_bounds([v],t))
-              in  (sghy', Abs(a, T, abstract_over(v,t')))  end
+                  val (hyps',t') = botc mss' (hyps,subst_bounds([v],t))
+              in  (hyps', Abs(a, T, abstract_over(v,t')))  end
           | t$u => (case t of
-              Const("==>",_)$s  => impc(sghy,s,u,mss)
-            | Abs(_,_,body)     => subc mss (sghy,subst_bounds([u], body))
+              Const("==>",_)$s  => impc(hyps,s,u,mss)
+            | Abs(_,_,body)     => subc mss (hyps,subst_bounds([u], body))
             | _                 =>
-                let fun appc() = let val (sghy1,t1) = botc mss (sghy,t)
-                                     val (sghy2,u1) = botc mss (sghy1,u)
-                                 in (sghy2,t1$u1) end
+                let fun appc() = let val (hyps1,t1) = botc mss (hyps,t)
+                                     val (hyps2,u1) = botc mss (hyps1,u)
+                                 in (hyps2,t1$u1) end
                     val (h,ts) = strip_comb t
                 in case h of
                      Const(a,_) =>
                        (case assoc(congs,a) of
                           None => appc()
-                        | Some(cong) => congc (prover mss) cong trec)
+                        | Some(cong) => congc (prover mss,sign) cong trec)
                    | _ => appc()
                 end)
           | _ => trec)
 
-      and impc(sghy,s,u,mss as Mss{mk_rews,...}) =
-        let val (sghy1 as (sg1,hyps1),s') = botc mss (sghy,s)
+      and impc(hyps,s,u,mss as Mss{mk_rews,...}) =
+        let val (hyps1,s') = botc mss (hyps,s)
             val (rthms,mss) =
               if maxidx_of_term s' <> ~1 then ([],mss)
-              else let val thm = Thm{sign=sg1,hyps=[s'],prop=s',maxidx= ~1}
+              else let val thm = Thm{sign=sign,hyps=[s'],prop=s',maxidx= ~1}
                    in (mk_rews thm, add_prems(mss,[thm])) end
             val unit = seq (trace_thm "Adding rewrite rule:") rthms
             val mss' = add_simps(mss,rthms)
-            val ((sg2,hyps2),u') = botc mss' (sghy1,u)
+            val (hyps2,u') = botc mss' (hyps1,u)
             val hyps2' = if s' mem hyps1 then hyps2 else hyps2\s'
-        in ((sg2,hyps2'), Logic.mk_implies(s',u')) end
+        in (hyps2', Logic.mk_implies(s',u')) end
 
   in botc end;
 
@@ -1008,9 +1010,9 @@ fun bottomc prover =
 (*** FIXME: check that #primes(mss) does not "occur" in ct alread ***)
 fun rewrite_cterm mss prover ct =
   let val {sign, t, T, maxidx} = Sign.rep_cterm ct;
-      val ((sign',hyps),u) = bottomc prover mss ((sign,[]),t);
+      val (hyps,u) = bottomc (prover,sign) mss ([],t);
       val prop = Logic.mk_equals(t,u)
-  in  Thm{sign= sign', hyps= hyps, maxidx= maxidx_of_term prop, prop= prop}
+  in  Thm{sign= sign, hyps= hyps, maxidx= maxidx_of_term prop, prop= prop}
   end
 
 end;
