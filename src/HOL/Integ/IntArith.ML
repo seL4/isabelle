@@ -415,7 +415,8 @@ in
 LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
 LA_Data_Ref.lessD := !LA_Data_Ref.lessD @ [add1_zle_eq RS iffD2];
 LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
-                      addsimprocs simprocs;
+                      addsimprocs simprocs
+                      addcongs [if_weak_cong];
 LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("IntDef.int",true)]
 end;
 
@@ -545,6 +546,10 @@ qed "nonneg_eq_int";
 Goal "#0 <= w ==> (nat w = m) = (w = int m)";
 by Auto_tac;
 qed "nat_eq_iff";
+
+Goal "#0 <= w ==> (m = nat w) = (w = int m)";
+by Auto_tac;
+qed "nat_eq_iff2";
 
 Goal "#0 <= w ==> (nat w < m) = (w < int m)";
 by (rtac iffI 1);
