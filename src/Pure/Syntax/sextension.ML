@@ -50,13 +50,20 @@ end;
 signature SEXTENSION1 =
 sig
   include SEXTENSION0
-  val empty_sext: sext
-  val simple_sext: mixfix list -> sext
-  val constants: sext -> (string list * string) list
-  val pure_sext: sext
-  val syntax_types: string list
-  val syntax_consts: (string list * string) list
-  val constrainAbsC: string
+  local open Parser.SynExt.Ast in
+    val empty_sext: sext
+    val simple_sext: mixfix list -> sext
+    val constants: sext -> (string list * string) list
+    val pure_sext: sext
+    val syntax_types: string list
+    val syntax_consts: (string list * string) list
+    val constrainAbsC: string
+    val pure_trfuns:
+      (string * (ast list -> ast)) list *
+      (string * (term list -> term)) list *
+      (string * (term list -> term)) list *
+      (string * (ast list -> ast)) list
+  end
 end;
 
 signature SEXTENSION =
@@ -65,22 +72,23 @@ sig
   local open Parser Parser.SynExt Parser.SynExt.Ast in
     val xrules_of: sext -> xrule list
     val abs_tr': term -> term
+    val prop_tr': bool -> term -> term
     val appl_ast_tr': ast * ast list -> ast
     val syn_ext_of_sext: string list -> string list -> string list -> (string -> typ) -> sext -> syn_ext
     val pt_to_ast: (string -> (ast list -> ast) option) -> parsetree -> ast
     val ast_to_term: (string -> (term list -> term) option) -> ast -> term
-    val apropC: string
   end
 end;
 
-functor SExtensionFun(Parser: PARSER): SEXTENSION =
+functor SExtensionFun(structure TypeExt: TYPE_EXT and Parser: PARSER
+  sharing TypeExt.SynExt = Parser.SynExt): SEXTENSION =
 struct
 
 structure Parser = Parser;
-open Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
+open TypeExt Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
 
 
-(** datatype sext **)
+(** datatype sext **)   (* FIXME remove *)
 
 datatype mixfix =
   Mixfix of string * string * string * int list * int |
@@ -91,6 +99,8 @@ datatype mixfix =
   TInfixl of string * string * int |
   TInfixr of string * string * int;
 
+
+(* FIXME -> syntax.ML, BASIC_SYNTAX, SYNTAX *)
 datatype xrule =
   op |-> of (string * string) * (string * string) |
   op <-| of (string * string) * (string * string) |
@@ -146,6 +156,11 @@ fun xrules_of (Sext _) = []
 
 
 
+(*** translation functions ***) (* FIXME -> trans.ML *)
+
+fun const c = Const (c, dummyT);
+
+
 (** parse (ast) translations **)
 
 (* application *)
@@ -166,7 +181,7 @@ fun lambda_ast_tr (*"_lambda"*) [idts, body] =
 fun abs_tr (*"_abs"*) [Free (x, T), body] = absfree (x, T, body)
   | abs_tr (*"_abs"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
       if c = constrainC then
-        Const ("_constrainAbs", dummyT) $ absfree (x, T, body) $ tT
+        const "_constrainAbs" $ absfree (x, T, body) $ tT
       else raise_term "abs_tr" ts
   | abs_tr (*"_abs"*) ts = raise_term "abs_tr" ts;
 
@@ -181,13 +196,11 @@ fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, incr_boundvars 1 t)
 
 fun mk_binder_tr (sy, name) =
   let
-    val const = Const (name, dummyT);
-
-    fun tr (Free (x, T), t) = const $ absfree (x, T, t)
+    fun tr (Free (x, T), t) = const name $ absfree (x, T, t)
       | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
       | tr (t1 as Const (c, _) $ Free (x, T) $ tT, t) =
           if c = constrainC then
-            const $ (Const ("_constrainAbs", dummyT) $ absfree (x, T, t) $ tT)
+            const name $ (const "_constrainAbs" $ absfree (x, T, t) $ tT)
           else raise_term "binder_tr" [t1, t]
       | tr (t1, t2) = raise_term "binder_tr" [t1, t2];
 
@@ -198,11 +211,14 @@ fun mk_binder_tr (sy, name) =
   end;
 
 
-(* atomic props *)
+(* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] =
-      Const (constrainC, dummyT) $ t $ Free ("prop", dummyT)
+fun aprop_tr (*"_aprop"*) [t] = const constrainC $ t $ const "prop"
   | aprop_tr (*"_aprop"*) ts = raise_term "aprop_tr" ts;
+
+fun insort_tr (*"_insort"*) [ty, srt] =
+      srt $ (const constrainC $ const "TYPE" $ (const "itself" $ ty))
+  | insort_tr (*"_insort"*) ts = raise_term "insort_tr" ts;
 
 
 (* meta implication *)
@@ -281,7 +297,7 @@ fun eta_contr tm =
 
 
 fun abs_tr' tm =
-  foldr (fn (x, t) => Const ("_abs", dummyT) $ x $ t)
+  foldr (fn (x, t) => const "_abs" $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 
@@ -297,17 +313,17 @@ fun mk_binder_tr' (name, sy) =
   let
     fun mk_idts [] = raise Match    (*abort translation*)
       | mk_idts [idt] = idt
-      | mk_idts (idt :: idts) = Const ("_idts", dummyT) $ idt $ mk_idts idts;
+      | mk_idts (idt :: idts) = const "_idts" $ idt $ mk_idts idts;
 
     fun tr' t =
       let
         val (xs, bd) = strip_abss (strip_qnt_vars name) (strip_qnt_body name) t;
       in
-        Const (sy, dummyT) $ mk_idts xs $ bd
+        const sy $ mk_idts xs $ bd
       end;
 
     fun binder_tr' (*name*) (t :: ts) =
-          list_comb (tr' (Const (name, dummyT) $ t), ts)
+          list_comb (tr' (const name $ t), ts)
       | binder_tr' (*name*) [] = raise Match;
   in
     (name, binder_tr')
@@ -321,6 +337,35 @@ fun idts_ast_tr' (*"_idts"*) [Appl [Constant c, x, ty], xs] =
         Appl [Constant "_idts", Appl [Constant "_idtyp", x, ty], xs]
       else raise Match
   | idts_ast_tr' (*"_idts"*) _ = raise Match;
+
+
+(* meta propositions *)
+
+fun prop_tr' show_sorts tm =
+  let
+    fun aprop t = const "_aprop" $ t;
+
+    fun is_prop tys t =
+      fastype_of1 (tys, t) = propT handle TERM _ => false;
+
+    fun tr' _ (t as Const _) = t
+      | tr' _ (t as Free (x, ty)) =
+          if ty = propT then aprop (Free (x, dummyT)) else t
+      | tr' _ (t as Var (xi, ty)) =
+          if ty = propT then aprop (Var (xi, dummyT)) else t
+      | tr' tys (t as Bound _) =
+          if is_prop tys t then aprop t else t
+      | tr' tys (Abs (x, ty, t)) = Abs (x, ty, tr' (ty :: tys) t)
+      | tr' tys (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [ty])))) =
+          if is_prop tys t then
+            const "_insort" $ term_of_typ show_sorts ty $ tr' tys t1
+          else tr' tys t1 $ tr' tys t2
+      | tr' tys (t as t1 $ t2) =
+          (if is_Const (head_of t) orelse not (is_prop tys t)
+            then I else aprop) (tr' tys t1 $ tr' tys t2);
+  in
+    tr' [] tm
+  end;
 
 
 (* meta implication *)
@@ -337,8 +382,8 @@ fun impl_ast_tr' (*"==>"*) asts =
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = variant_abs (x, dummyT, B);
-        in list_comb (Const (q, dummyT) $ Free (x', T) $ A $ B', ts) end
-      else list_comb (Const (r, dummyT) $ A $ B, ts)
+        in list_comb (const q $ Free (x', T) $ A $ B', ts) end
+      else list_comb (const r $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
@@ -368,7 +413,8 @@ fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
 
 
 
-(** syn_ext_of_sext **)
+
+(** syn_ext_of_sext **)   (* FIXME remove *)
 
 fun strip_esc str =
   let
@@ -431,7 +477,7 @@ fun syn_ext_of_sext all_roots new_roots xconsts read_typ sext =
 
 
 
-(** constants **)
+(** constants **)     (* FIXME remove *)
 
 fun constants sext =
   let
@@ -471,7 +517,7 @@ fun ast_to_term trf ast =
   let
     fun trans a args =
       (case trf a of
-        None => list_comb (Const (a, dummyT), args)
+        None => list_comb (const a, args)
       | Some f => f args handle exn
           => (writeln ("Error in parse translation for " ^ quote a); raise exn));
 
@@ -488,7 +534,21 @@ fun ast_to_term trf ast =
 
 
 
-(** the Pure syntax **)
+(** pure_trfuns **)
+
+val pure_trfuns =
+ ([(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
+    ("_bigimpl", bigimpl_ast_tr)],
+  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_insort", insort_tr), ("_K", k_tr),
+    ("_explode", explode_tr)],
+  [],
+  [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr'),
+    ("_implode", implode_ast_tr')]);
+
+val constrainAbsC = "_constrainAbs";
+
+
+(** the Pure syntax **)   (* FIXME remove *)
 
 val pure_sext =
   NewSext {
@@ -525,9 +585,6 @@ val syntax_types = terminals @ ["syntax", logic, "type", "types", "sort",
   "classes", args, "idt", "idts", "aprop", "asms"];
 
 val syntax_consts = [(["_K", "_explode", "_implode"], "syntax")];
-
-val constrainAbsC = "_constrainAbs";
-val apropC = "_aprop";
 
 
 end;
