@@ -78,12 +78,15 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
-  val setup: theory -> theory
+  val setup: (theory -> theory) list
   val get_local_simpset: local_theory -> simpset
   val put_local_simpset: simpset -> local_theory -> local_theory
   val simp_add: tag
   val simp_del: tag
-  val simp_ignore: tag
+  val simp_add_global: theory attribute
+  val simp_del_global: theory attribute
+  val simp_add_local: local_theory attribute
+  val simp_del_local: local_theory attribute
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -322,35 +325,41 @@ fun put_local_simpset ss (thy, data) =
 
 (* tags *)
 
-val simpA = "simp";
-val simp_tag = (simpA, []);
-val simp_add = (simpA, ["add"]);
-val simp_del = (simpA, ["del"]);
-val simp_ignore = (simpA, ["ignore"]);
+val simpN = "simp";
+val simp_addN = "add";
+val simp_delN = "del";
+
+val simp_tag = (simpN, []);
+val simp_add = (simpN, [simp_addN]);
+val simp_del = (simpN, [simp_delN]);
 
 
-(* attribute *)
+(* attributes *)
 
-fun simp_attr change args (x, tth) =
-  (case args of
-    [] => change (op addsimps) (x, tth)
-  | ["add"] => change (op addsimps) (x, tth)
-  | ["del"] => change (op delsimps) (x, tth)
-  | ["ignore"] => (x, tth)
-  | _ => Attribute.fail simpA ("bad argument(s) " ^ commas_quote args));
+local
+  fun simp_attr change args (x, tth) =
+    if null args orelse args = [simp_addN] then change (op addsimps) (x, tth)
+    else if args = [simp_delN] then change (op delsimps) (x, tth)
+    else Attribute.fail simpN ("bad argument(s) " ^ commas_quote args);
 
-fun change_global_ss f (thy, tth) =
-  let val r = simpset_ref_of thy in
-    r := f (! r, [Attribute.thm_of tth]);
-    (thy, tth)
-  end;
+  fun change_global_ss f (thy, tth) =
+    let val r = simpset_ref_of thy
+    in r := f (! r, [Attribute.thm_of tth]); (thy, tth) end;
 
-fun change_local_ss f (lthy, tth) =
-  let val ss = f (get_local_simpset lthy, [Attribute.thm_of tth])
-  in (put_local_simpset ss lthy, tth) end;
+  fun change_local_ss f (lthy, tth) =
+    let val ss = f (get_local_simpset lthy, [Attribute.thm_of tth])
+    in (put_local_simpset ss lthy, tth) end;
 
-val setup_attrs =
-  Attribute.add_attrs [(simpA, (simp_attr change_global_ss, simp_attr change_local_ss))];
+  val simp_attr_global = simp_attr change_global_ss;
+  val simp_attr_local = simp_attr change_local_ss;
+in
+  val setup_attrs = Attribute.add_attrs [(simpN, (simp_attr_global, simp_attr_local))];
+
+  val simp_add_global = simp_attr_global [simp_addN];
+  val simp_del_global = simp_attr_global [simp_delN];
+  val simp_add_local = simp_attr_local [simp_addN];
+  val simp_del_local = simp_attr_local [simp_delN];
+end;
 
 
 
@@ -417,7 +426,7 @@ val asm_full_simplify = simp (true, true, false);
 
 (** theory setup **)
 
-val setup = Theory.setup [setup_thy_data, setup_attrs];
+val setup = [setup_thy_data, setup_attrs];
 
 
 end;
