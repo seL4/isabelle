@@ -74,6 +74,9 @@ are distributed over a sum of terms;
 
 * the simplifier trace now shows the names of the applied rewrite rules
 
+* induct over a !!-quantified statement (say !!x1..xn):
+  each "case" automatically performs "fix x1 .. xn" with exactly those names.
+
 * GroupTheory: converted to Isar theories, using locales with implicit structures;
 
 * Real/HahnBanach: updated and adapted to locales;
