@@ -140,6 +140,10 @@ qed
 lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_ring,number_ring})"
 by (simp add: abs_if)
 
+lemma abs_power_minus_one [simp]:
+     "abs(-1 ^ n) = (1::'a::{ordered_ring,number_ring,ringpower})"
+by (simp add: power_abs)
+
 lemma of_int_number_of_eq:
      "of_int (number_of v) = (number_of v :: 'a :: number_ring)"
 apply (induct v)

@@ -156,8 +156,11 @@ lemma even_nat_difference:
   apply (case_tac "x < y", auto simp add: zdiff_int [THEN sym])
   done
 
-lemma even_nat_suc: "even (Suc x) = odd x"
+lemma even_nat_Suc: "even (Suc x) = odd x"
   by (simp add: even_nat_def)
+
+text{*Compatibility, in case Avigad uses this*}
+lemmas even_nat_suc = even_nat_Suc
 
 lemma even_nat_power: "even ((x::nat)^y) = (even x & 0 < y)"
   by (simp add: even_nat_def zpow_int)
@@ -166,7 +169,7 @@ lemma even_nat_zero: "even (0::nat)"
   by (simp add: even_nat_def)
 
 lemmas even_odd_nat_simps [simp] = even_nat_def[of "number_of v",standard] 
-  even_nat_zero even_nat_suc even_nat_product even_nat_sum even_nat_power
+  even_nat_zero even_nat_Suc even_nat_product even_nat_sum even_nat_power
 
 
 subsection {* Equivalent definitions *}
@@ -238,10 +241,12 @@ lemma neg_one_even_odd_power:
   apply (simp, simp add: power_Suc)
   done
 
-lemma neg_one_even_power: "even x ==> (-1::'a::{number_ring,ringpower})^x = 1"
+lemma neg_one_even_power [simp]:
+     "even x ==> (-1::'a::{number_ring,ringpower})^x = 1"
   by (rule neg_one_even_odd_power [THEN conjunct1, THEN mp], assumption)
 
-lemma neg_one_odd_power: "odd x ==> (-1::'a::{number_ring,ringpower})^x = -1"
+lemma neg_one_odd_power [simp]:
+     "odd x ==> (-1::'a::{number_ring,ringpower})^x = -1"
   by (rule neg_one_even_odd_power [THEN conjunct2, THEN mp], assumption)
 
 

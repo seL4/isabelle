@@ -87,9 +87,26 @@ subsection{*Various Other Lemmas*}
 
 subsubsection{*Evens and Odds, for Mutilated Chess Board*}
 
-(*Case analysis on b<2*)
+text{*Lemmas for specialist use, NOT as default simprules*}
+lemma nat_mult_2: "2 * z = (z+z::nat)"
+proof -
+  have "2*z = (1 + 1)*z" by simp
+  also have "... = z+z" by (simp add: left_distrib)
+  finally show ?thesis .
+qed
+
+lemma nat_mult_2_right: "z * 2 = (z+z::nat)"
+by (subst mult_commute, rule nat_mult_2)
+
+text{*Case analysis on @{term "n<2"}*}
 lemma less_2_cases: "(n::nat) < 2 ==> n = 0 | n = Suc 0"
 by arith
+
+lemma div2_Suc_Suc [simp]: "Suc(Suc m) div 2 = Suc (m div 2)"
+by arith
+
+lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
+by (simp add: nat_mult_2 [symmetric])
 
 lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
 apply (subgoal_tac "m mod 2 < 2")
@@ -205,6 +222,9 @@ by simp
 lemma minus1_divide [simp]:
      "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
 by (simp add: divide_inverse inverse_minus_eq)
+
+
+
 
 ML
 {*
