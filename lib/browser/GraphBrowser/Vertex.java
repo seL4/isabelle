@@ -66,13 +66,14 @@ abstract class Vertex {
 
 	public void setID(String s) {}
 
-	public Dimension getLabelSize(Graphics g) {
-		FontMetrics fm = g == null ? 
-		    new DefaultFontMetrics(12) : g.getFontMetrics(g.getFont());
+	public Box getLabelSize(Graphics g) {
+		AbstractFontMetrics fm = g == null ? 
+      (AbstractFontMetrics) new DefaultFontMetrics(12) : 
+      (AbstractFontMetrics) new AWTFontMetrics(g.getFontMetrics(g.getFont()));
 		
-		return new Dimension(
-		        Math.max(fm.stringWidth("[. . . .]"),fm.stringWidth(getLabel())),
-			fm.getAscent()+fm.getDescent());
+		return new Box(Math.max(fm.stringWidth("[. . . .]"),
+                            fm.stringWidth(getLabel())),
+                   fm.getAscent()+fm.getDescent());
 	}
 		
 	public String getPath() { return "";}

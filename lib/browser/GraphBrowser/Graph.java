@@ -195,7 +195,7 @@ public class Graph {
 		h=w=Integer.MIN_VALUE;
 
 		while (e1.hasMoreElements()) {
-			Dimension dim=((Vertex)(e1.nextElement())).getLabelSize(g);
+		  Box dim=((Vertex)(e1.nextElement())).getLabelSize(g);
 			h=Math.max(h,dim.height);
 			w=Math.max(w,dim.width);
 		}
