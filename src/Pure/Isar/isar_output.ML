@@ -165,12 +165,13 @@ fun eval_antiquote lex state (str, pos) =
 
 val interest_level = ref 0;
 
-fun present_tokens lex toks state =
-  toks
-  |> mapfilter (fn (tk, i) => if i > ! interest_level then None else Some tk)
-  |> map (apsnd (eval_antiquote lex state))
-  |> Latex.output_tokens
-  |> Buffer.add;
+fun present_tokens lex (flag, toks) state =
+  Buffer.add (case flag of None => "" | Some b => Latex.flag_markup b) o
+   (toks
+    |> mapfilter (fn (tk, i) => if i > ! interest_level then None else Some tk)
+    |> map (apsnd (eval_antiquote lex state))
+    |> Latex.output_tokens
+    |> Buffer.add);
 
 
 (* parse_thy *)
@@ -191,7 +192,7 @@ val ignore =
     (opt_newline -- check_level i) >> pair (i - 1));
 
 val ignore_cmd = Scan.state -- ignore
-  >> (fn (i, (x, pos)) => (false, ((Latex.Basic x, ("", pos)), i)));
+  >> (fn (i, (x, pos)) => (false, (None, ((Latex.Basic x, ("", pos)), i))));
 
 
 val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
@@ -206,8 +207,8 @@ val improper_end =
 
 
 val stopper =
-  ((false, ((Latex.Basic (#1 T.stopper), ("", Position.none)), 0)),
-    fn (_, ((Latex.Basic x, _), _)) => (#2 T.stopper x) | _ => false);
+  ((false, (None, ((Latex.Basic (#1 T.stopper), ("", Position.none)), 0))),
+    fn (_, (_, ((Latex.Basic x, _), _))) => (#2 T.stopper x) | _ => false);
 
 in
 
@@ -216,19 +217,20 @@ fun parse_thy markup lex trs src =
     val text = P.position P.text;
     val token = Scan.depend (fn i =>
      (improper |-- markup Markup -- P.!!!! (improper |-- text --| improper_end)
-        >> (fn (x, y) => (true, ((Latex.Markup (T.val_of x), y), i))) ||
+        >> (fn (x, y) => (true, (Some true, ((Latex.Markup (T.val_of x), y), i)))) ||
       improper |-- markup MarkupEnv -- P.!!!! (improper |-- text --| improper_end)
-        >> (fn (x, y) => (true, ((Latex.MarkupEnv (T.val_of x), y), i))) ||
+        >> (fn (x, y) => (true, (Some true, ((Latex.MarkupEnv (T.val_of x), y), i)))) ||
       (P.$$$ "--" |-- P.!!!! (improper |-- text))
-        >> (fn y => (false, ((Latex.Markup "cmt", y), i))) ||
+        >> (fn y => (false, (None, ((Latex.Markup "cmt", y), i)))) ||
       (improper -- markup Verbatim) |-- P.!!!! (improper |-- text --| improper_end)
-        >> (fn y => (true, ((Latex.Verbatim, y), i))) ||
+        >> (fn y => (true, (None, ((Latex.Verbatim, y), i)))) ||
       P.position (Scan.one T.not_eof)
-        >> (fn (x, pos) => (T.is_kind T.Command x, ((Latex.Basic x, ("", pos)), i))))
+        >> (fn (x, pos) => (T.is_kind T.Command x, (Some false, ((Latex.Basic x, ("", pos)), i)))))
       >> pair i);
 
     val body = Scan.any (not o fst andf not o #2 stopper);
-    val section = body -- Scan.one fst -- body >> (fn ((x, y), z) => map snd (x @ (y :: z)));
+    val section = body -- Scan.one fst -- body
+      >> (fn ((b1, c), b2) => (#1 (#2 c), map (snd o snd) (b1 @ (c :: b2))));
 
     val cmds =
       src
@@ -239,7 +241,7 @@ fun parse_thy markup lex trs src =
   in
     if length cmds = length trs then
       (trs ~~ map (present_tokens lex) cmds, Buffer.empty)
-    else error "Messed up outer syntax for presentation"
+    else error "Messed-up outer syntax for presentation"
   end;
 
 end;
