@@ -341,6 +341,18 @@ by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
 qed "bex_empty";
 Addsimps [ball_empty, bex_empty];
 
+goalw Set.thy [Ball_def] "(!x:A.False) = (A = {})";
+by(Fast_tac 1);
+qed "ball_False";
+Addsimps [ball_False];
+
+(* The dual is probably not helpful:
+goal Set.thy "(? x:A.True) = (A ~= {})";
+by(Fast_tac 1);
+qed "bex_True";
+Addsimps [bex_True];
+*)
+
 
 section "Augmenting a set -- insert";
 

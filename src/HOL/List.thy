@@ -13,18 +13,19 @@ datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 consts
 
   "@"         :: ['a list, 'a list] => 'a list            (infixr 65)
-  drop        :: [nat, 'a list] => 'a list
   filter      :: ['a => bool, 'a list] => 'a list
-  flat        :: 'a list list => 'a list
+  concat      :: 'a list list => 'a list
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
   hd          :: 'a list => 'a
   length      :: 'a list => nat
-  set_of_list :: ('a list => 'a set)
+  set_of_list :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
   mem         :: ['a, 'a list] => bool                    (infixl 55)
   nth         :: [nat, 'a list] => 'a
-  take        :: [nat, 'a list] => 'a list
+  take, drop  :: [nat, 'a list] => 'a list
+  takeWhile,
+  dropWhile   :: ('a => bool) => 'a list => 'a list
   tl,ttl      :: 'a list => 'a list
   rev         :: 'a list => 'a list
 
@@ -81,9 +82,9 @@ primrec foldl list
 primrec length list
   "length([]) = 0"
   "length(x#xs) = Suc(length(xs))"
-primrec flat list
-  "flat([]) = []"
-  "flat(x#xs) = x @ flat(xs)"
+primrec concat list
+  "concat([]) = []"
+  "concat(x#xs) = x @ concat(xs)"
 primrec drop list
   drop_Nil  "drop n [] = []"
   drop_Cons "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
@@ -92,4 +93,10 @@ primrec take list
   take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
 defs
   nth_def  "nth(n) == nat_rec hd (%m r xs. r(tl(xs))) n"
+primrec takeWhile list
+  "takeWhile P [] = []"
+  "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
+primrec dropWhile list
+  "dropWhile P [] = []"
+  "dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)"
 end
