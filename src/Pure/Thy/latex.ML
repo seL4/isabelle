@@ -92,10 +92,6 @@ datatype token =
 
 val invisible_token = T.keyword_with (equal ";") orf T.is_kind T.Comment;
 
-fun strip_blanks s =
-  implode (#1 (Library.take_suffix Symbol.is_blank
-    (#2 (Library.take_prefix Symbol.is_blank (explode s)))));
-
 fun output_tok (Basic tok, _) =
       let val s = T.val_of tok in
         if invisible_token tok then ""
@@ -107,10 +103,11 @@ fun output_tok (Basic tok, _) =
         else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
         else output_syms s
       end
-  | output_tok (Markup cmd, txt) = "%\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "%\n}\n"
+  | output_tok (Markup cmd, txt) =
+      "%\n\\isamarkup" ^ cmd ^ "{" ^ Symbol.strip_blanks txt ^ "%\n}\n"
   | output_tok (MarkupEnv cmd, txt) = "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-      strip_blanks txt ^ "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
-  | output_tok (Verbatim, txt) = "%\n" ^ strip_blanks txt ^ "\n";
+      Symbol.strip_blanks txt ^ "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
+  | output_tok (Verbatim, txt) = "%\n" ^ Symbol.strip_blanks txt ^ "\n";
 
 
 val output_tokens = implode o map output_tok;
