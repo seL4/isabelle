@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# GNU Emacs Isamode interface.
+# Emacs Isamode interface wrapper.
 
 
 ## diagnostics
@@ -17,7 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -g GEOM      main window geometry (default 80x20)"
   echo
-  echo "  Starts GNU Emacs and Isamode."
+  echo "  Starts Emacs and Isamode."
   echo
   exit 1
 }
@@ -57,45 +57,15 @@ shift $(($OPTIND - 1))
 
 ## main
 
-# prepare startup file
+CMDS="-l $ISAMODE_HOME/elisp/isa-site.el"
 
-STARTUP=/tmp/isa-start$$.el
-
-{
-  echo "(load \"$ISAMODE_HOME/elisp/isa-site.el\")"
-  echo
-
-  echo "(setq isa-logic-paths"
-  echo -n "'("
-  for DIR in $(echo $ISABELLE_PATH | tr : " ")
-  do
-    [ -d $DIR ] && echo "\"$DIR\""
-  done
-  echo "\"$ISAMODE_HOME/ruletables\"))"
-  echo
-
-  DOC=$(echo $ISABELLE_DOCS | cut -f1 -d:)       #first doc dir only
-  echo "(setq isa-manual-path \"$DOC\")"
-  echo
-
-  for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
+for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
     "$ISABELLE_HOME_USER/etc/isa-settings.el"
-  do
-    [ -f "$FILE" ] && echo "(load \"$FILE\")"
-  done
-  echo
+do
+  [ -f "$FILE" ] && CMDS="$CMDS -l $FILE"
+done
 
-  echo "(isabelle)"
-} >$STARTUP
+CMDS="$CMDS -f isabelle"
 
 
-# run it!
-
-$ISATOOL installfonts
-
-emacs -name "Isabelle" \
-  -fn isabelle14 -geometry $MAINGEOM \
-  --no-init-file \
-  --load $STARTUP
-
-rm $STARTUP
+$ISAMODE_EMACS -T "Isabelle" -geometry $MAINGEOM $CMDS
