@@ -108,6 +108,11 @@ val quant_induct =
                            ORELSE' hyp_subst_tac)),
         ind_tac (rev prems) (length prems) ]);
 
+val _ = if !Ind_Syntax.trace then 
+            (writeln "quant_induct = "; print_thm quant_induct)
+        else ();
+
+
 (*** Prove the simultaneous induction rule ***)
 
 (*Make distinct predicates for each inductive set*)
@@ -155,6 +160,14 @@ val induct_concl =
 and mutual_induct_concl =
  FOLogic.mk_Trueprop(fold_bal (app FOLogic.conj) qconcls);
 
+val _ = if !Ind_Syntax.trace then 
+            (writeln ("induct_concl = " ^
+		      Sign.string_of_term sign induct_concl);
+             writeln ("mutual_induct_concl = " ^
+		      Sign.string_of_term sign mutual_induct_concl))
+        else ();
+
+
 val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
                         resolve_tac [allI, impI, conjI, Part_eqI],
                         dresolve_tac [spec, mp, Pr.fsplitD]];
@@ -174,6 +187,11 @@ val lemma = (*makes the link between the two induction rules*)
   else (writeln "  [ No mutual induction rule needed ]";
         TrueI);
 
+val _ = if !Ind_Syntax.trace then 
+            (writeln "lemma = "; print_thm lemma)
+        else ();
+
+
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
 (*Simplification largely reduces the mutual induction rule to the 
@@ -189,7 +207,8 @@ val all_defs = Inductive.con_defs @ part_rec_defs;
   where t==Part(tf,Inl) and f==Part(tf,Inr) to  list({v: tf. P_t(v)}).
   Instead the following rules extract the relevant conjunct.
 *)
-val cmonos = [subset_refl RS Collect_mono] RL Inductive.monos RLN (2,[rev_subsetD]);
+val cmonos = [subset_refl RS Collect_mono] RL Inductive.monos
+              RLN (2,[rev_subsetD]);
 
 (*Minimizes backtracking by delivering the correct premise to each goal*)
 fun mutual_ind_tac [] 0 = all_tac

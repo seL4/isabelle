@@ -108,6 +108,11 @@ val quant_induct =
         ind_tac (rev prems) (length prems)])
     handle e => print_sign_exn sign e;
 
+val _ = if !Ind_Syntax.trace then 
+            (writeln "quant_induct = "; print_thm quant_induct)
+        else ();
+
+
 (*** Prove the simultaneous induction rule ***)
 
 (*Make distinct predicates for each inductive set.
@@ -150,6 +155,14 @@ val induct_concl =
 and mutual_induct_concl = 
     Ind_Syntax.mk_Trueprop (fold_bal (app Ind_Syntax.conj) qconcls);
 
+val _ = if !Ind_Syntax.trace then 
+            (writeln ("induct_concl = " ^
+		      Sign.string_of_term sign induct_concl);
+             writeln ("mutual_induct_concl = " ^
+		      Sign.string_of_term sign mutual_induct_concl))
+        else ();
+
+
 val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
                         resolve_tac [allI, impI, conjI, Part_eqI, refl],
                         dresolve_tac [spec, mp, splitD]];
@@ -169,6 +182,11 @@ val lemma = (*makes the link between the two induction rules*)
       handle e => print_sign_exn sign e)
   else (writeln "  [ No mutual induction rule needed ]";
         TrueI);
+
+val _ = if !Ind_Syntax.trace then 
+            (writeln "lemma = "; print_thm lemma)
+        else ();
+
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
