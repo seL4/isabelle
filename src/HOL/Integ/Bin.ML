@@ -435,29 +435,26 @@ Addsimps bin_arith_extra_simps;
 Addsimps bin_rel_simps;
 
 
-(** Constant folding inside parentheses **)
+(** Simplification of arithmetic when nested to the right **)
 
-Goal "number_of v + (number_of w + c) = number_of(bin_add v w) + (c::int)";
-by (stac (zadd_assoc RS sym) 1);
-by (stac number_of_add 1);
-by Auto_tac;
-qed "nested_number_of_add";
+Goal "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::int)";
+by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+qed "add_number_of_left";
+
+Goal "number_of v * (number_of w * z) = (number_of(bin_mult v w) * z::int)";
+by (simp_tac (simpset() addsimps [zmult_assoc RS sym]) 1);
+qed "mult_number_of_left";
 
 Goalw [zdiff_def]
     "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::int)";
-by (rtac nested_number_of_add 1);
-qed "nested_diff1_number_of_add";
+by (rtac add_number_of_left 1);
+qed "add_number_of_diff1";
 
 Goal "number_of v + (c - number_of w) = \
 \    number_of (bin_add v (bin_minus w)) + (c::int)";
 by (stac (diff_number_of_eq RS sym) 1);
 by Auto_tac;
-qed "nested_diff2_number_of_add";
+qed "add_number_of_diff2";
 
-Goal "number_of v * (number_of w * c) = number_of(bin_mult v w) * (c::int)";
-by (stac (zmult_assoc RS sym) 1);
-by (stac number_of_mult 1);
-by Auto_tac;
-qed "nested_number_of_mult";
-Addsimps [nested_number_of_add, nested_diff1_number_of_add,
-	  nested_diff2_number_of_add, nested_number_of_mult]; 
+Addsimps [add_number_of_left, mult_number_of_left,
+	  add_number_of_diff1, add_number_of_diff2]; 
