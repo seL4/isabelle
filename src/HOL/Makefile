@@ -87,7 +87,8 @@ IOA_FILES = IOA/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:    $(BIN)/HOL  $(IOA_FILES)
-	echo 'exit_use"IOA/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"IOA/ROOT_NTP.ML";quit();' | $(LOGIC)
+	echo 'exit_use"IOA/ROOT_ABP.ML";quit();' | $(LOGIC)
 
 ##Properties of substitutions
 SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
