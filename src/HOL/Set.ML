@@ -415,6 +415,10 @@ AddSIs [singletonI];
     
 AddSDs [singleton_inject];
 
+goal Set.thy "{x.x=a} = {a}";
+by(Blast_tac 1);
+qed "singleton_conv";
+Addsimps [singleton_conv];
 
 section "The universal set -- UNIV";
 
