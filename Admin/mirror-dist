@@ -20,4 +20,4 @@ case  ${HOST} in
     ;;
 esac
 
-exec $(dirname $0)/mirror-isabelle-dist -d $DEST
+exec $(dirname $0)/rsync-isabelle -d $DEST
