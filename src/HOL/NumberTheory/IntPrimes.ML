@@ -569,7 +569,7 @@ by (subgoal_tac "[b = y] (mod m)" 2);
 by (case_tac "b=#0" 2);
 by (case_tac "y=#0" 3);
 by (auto_tac (claset() addIs [zcong_trans,zcong_zless_0,
-                              zcong_zless_imp_eq,zle_neq_implies_zless],
+                              zcong_zless_imp_eq,order_less_le],
               simpset() addsimps [zcong_sym]));
 by (rewrite_goals_tac [zcong_def,dvd_def]);
 by (res_inst_tac [("x","a mod m")] exI 1);
@@ -725,6 +725,8 @@ by (res_inst_tac [("b","s*m + t*n")] zmod_zdiv_equality 1);
 by (simp_tac (simpset() addsimps [zmult_commute]) 1);
 val lemma = result();
 
+bind_thm ("order_le_neq_implies_less", [order_less_le, conjI] MRS iffD2);
+
 Goal "#0<r --> xzgcda(m,n,r',r,s',s,t',t) = (rn,sn,tn) \
 \          --> r' = s'*m + t'*n -->  r = s*m + t*n --> rn = sn*m + tn*n";
 by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
@@ -737,7 +739,7 @@ by (case_tac "r' mod r = #0" 1);
 by (asm_full_simp_tac (simpset() addsimps [xzgcda_eq]) 1);
 by (SELECT_GOAL Safe_tac 1);
 by (subgoal_tac "#0 < r' mod r" 1);
-by (rtac zle_neq_implies_zless 2);
+by (rtac order_le_neq_implies_less 2);
 by (rtac pos_mod_sign 2);
 by (cut_inst_tac [("m","m"),("n","n"),("r'","r'"),("r","r"),
                   ("s'","s'"),("s","s"),("t'","t'"),("t","t")] 

@@ -99,7 +99,7 @@ by (rtac iffD1 1);
 by (res_inst_tac [("k","kf n")] zcong_cancel2 1);
 by (res_inst_tac [("b","bf n")] zcong_trans 3);
 by (stac zcong_sym 4);
-by (rtac zless_imp_zle 1);
+by (rtac order_less_imp_le 1);
 by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 

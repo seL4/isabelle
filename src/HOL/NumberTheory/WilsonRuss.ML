@@ -84,11 +84,11 @@ Goal "[| p:zprime; #1<a; a<p-#1 |] ==> #1<(inv p a)";
 by (case_tac "#0<=(inv p a)" 1);
 by (subgoal_tac "(inv p a) ~= #1" 1);
 by (subgoal_tac "(inv p a) ~= #0" 1);
-by (rtac zle_neq_implies_zless 1);
+by (stac order_less_le 1);
 by (stac (zle_add1_eq_le RS sym) 1);
-by (rtac zle_neq_implies_zless 1);
-by (rtac inv_not_0 4);
-by (rtac inv_not_1 7);
+by (stac order_less_le 1);
+by (rtac inv_not_0 2);
+by (rtac inv_not_1 5);
 by Auto_tac;
 by (rewrite_goals_tac [inv_def,zprime_def]);
 by (asm_full_simp_tac (simpset() addsimps [pos_mod_sign]) 1);
@@ -96,8 +96,8 @@ qed "inv_g_1";
 
 Goal "[| p:zprime; #1<a; a<p-#1 |] ==> (inv p a)<p-#1";
 by (case_tac "(inv p a)<p" 1);
-by (rtac zle_neq_implies_zless 1);
-by (rtac inv_not_p_minus_1 2);
+by (stac order_less_le 1);
+by (asm_full_simp_tac (simpset() addsimps [inv_not_p_minus_1]) 1); 
 by Auto_tac;
 by (rewrite_goals_tac [inv_def,zprime_def]);
 by (asm_full_simp_tac (simpset() addsimps [pos_mod_bound]) 1);
@@ -275,12 +275,6 @@ qed "d22set_eq_wset";
 
 (**********  Wilson  *************)
 
-Goal "[| z-#1<=w; z-#1~=w |] ==> z<=(w::int)";
-by (stac (zle_add1_eq_le RS sym) 1);
-by (rtac zle_neq_implies_zless 1);
-by Auto_tac;
-val lemma = result();
-
 Goalw [zprime_def,dvd_def] "[| p : zprime; p ~= #2; p ~= #3 |] ==> #5<=p";
 by (case_tac "p=#4" 1);
 by Auto_tac;
@@ -291,10 +285,7 @@ by (res_inst_tac [("x","#2")] exI 1);
 by Safe_tac;
 by (res_inst_tac [("x","#2")] exI 1);
 by Auto_tac;
-by (rtac lemma 1);
-by (rtac lemma 1);
-by (rtac lemma 1);
-by Auto_tac;
+by (arith_tac 1);
 qed "prime_g_5";
 
 Goal "p:zprime ==> [zfact(p-#1) = #-1] (mod p)";

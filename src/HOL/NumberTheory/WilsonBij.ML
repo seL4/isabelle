@@ -77,11 +77,11 @@ qed "inv_not_p_minus_1";
 Goal "[| p:zprime; #1<a; a<p-#1 |] ==> #1<(inv p a)";
 by (subgoal_tac "(inv p a) ~= #1" 1);
 by (subgoal_tac "(inv p a) ~= #0" 1);
-by (rtac zle_neq_implies_zless 1);
+by (stac order_less_le 1);
 by (stac (zle_add1_eq_le RS sym) 1);
-by (rtac zle_neq_implies_zless 1);
-by (rtac inv_not_0 4);
-by (rtac inv_not_1 7);
+by (stac order_less_le 1);
+by (rtac inv_not_0 2);
+by (rtac inv_not_1 5);
 by Auto_tac;
 by (rtac inv_ge 1);
 by Auto_tac;
@@ -89,11 +89,8 @@ qed "inv_g_1";
 
 (* ditto *)
 Goal "[| p:zprime; #1<a; a<p-#1 |] ==> (inv p a)<p-#1";
-by (rtac zle_neq_implies_zless 1);
-by (rtac inv_not_p_minus_1 2);
-by Auto_tac;
-by (rtac inv_less 1);
-by Auto_tac;
+by (stac order_less_le 1);
+by (asm_full_simp_tac (simpset() addsimps [inv_not_p_minus_1, inv_less]) 1); 
 qed "inv_less_p_minus_1";
 
 (*************  Bijection  *******************)

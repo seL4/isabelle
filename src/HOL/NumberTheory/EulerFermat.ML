@@ -57,7 +57,7 @@ Goal "zgcd(b,m) = #1 --> #0<b --> b<=a --> b:BnorRset(a,m)";
 by (induct_thm_tac BnorRset.induct "a m" 1);
 by Auto_tac;
 by (case_tac "a=b" 1);
-by (asm_full_simp_tac (simpset() addsimps [zle_neq_implies_zless]) 2);
+by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 2);
 by (Asm_simp_tac 1);
 by (ALLGOALS (stac BnorRset_eq));
 by (rewtac Let_def);
@@ -96,14 +96,14 @@ Goalw [norRRset_def]
 by (cut_inst_tac [("a","a"),("m","m")] zcong_zless_unique 1);
 by Auto_tac;
 by (res_inst_tac [("m","m")] zcong_zless_imp_eq 2);
-by (auto_tac (claset() addIs [Bnor_mem_zle,Bnor_mem_zg,zcong_trans,
-                              zless_imp_zle,lemma],
+by (auto_tac (claset() addIs [Bnor_mem_zle, Bnor_mem_zg, zcong_trans,
+                              order_less_imp_le, lemma],
               simpset() addsimps [zcong_sym]));
 by (res_inst_tac [("x","b")] exI 1);
 by Safe_tac;
 by (rtac Bnor_mem_if 1);
 by (case_tac "b=#0" 2);
-by (auto_tac (claset() addIs [zle_neq_implies_zless], simpset()));
+by (auto_tac (claset() addIs [order_less_le RS iffD2], simpset()));
 by (SELECT_GOAL (rewtac zcong_def) 2);
 by (subgoal_tac "zgcd(a,m) = m" 2);
 by (stac (zdvd_iff_zgcd RS sym) 3);
@@ -263,7 +263,7 @@ by Auto_tac;
 by (rewtac zcongm_def);
 by (rtac RRset2norRR_correct1 3);
 by (rtac RRset2norRR_inj 6);
-by (auto_tac (claset() addIs [zle_neq_implies_zless], 
+by (auto_tac (claset() addIs [order_less_le RS iffD2], 
               simpset() addsimps [noX_is_RRset]));
 by (rewrite_goals_tac [noXRRset_def,norRRset_def]);
 by (rtac finite_imageI 1);
