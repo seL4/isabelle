@@ -80,7 +80,9 @@ RL  : thm list * thm list -> thm list          \hfill{\bf infix}
 MRL : thm list list * thm list -> thm list     \hfill{\bf infix}
 \end{ttbox}
 Joining rules together is a simple way of deriving new rules.  These
-functions are especially useful with destruction rules.
+functions are especially useful with destruction rules.  To store
+the result in the theorem database, use \ttindex{bind_thm}
+(\S\ref{ExtractingAndStoringTheProvedTheorem}). 
 \begin{ttdescription}
 \item[\tt$thm@1$ RSN $(i,thm@2)$] \indexbold{*RSN} 
   resolves the conclusion of $thm@1$ with the $i$th premise of~$thm@2$.
