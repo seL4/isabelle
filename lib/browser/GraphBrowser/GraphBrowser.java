@@ -100,8 +100,6 @@ public class GraphBrowser extends Applet {
 						} else if (c == '<') {
 							html = true;
 							ctrl = text2[i+1];
-							if ((ctrl == 'P') || (ctrl == 'B'))
-								text3[j++] = '\n';		
 						} else if (c == '>')
 							html = false;
 						else if (!html)
