@@ -56,7 +56,7 @@ qed_spec_mp "vc_mono";
 
 goal VC.thy
   "!!P c Q. |- {P}c{Q} ==> \
-\          (? ac. astrip ac = c & (!s. P s --> wp ac Q s) & (!s. vc ac Q s))";
+\          (? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> wp ac Q s))";
 by (etac hoare.induct 1);
      by(res_inst_tac [("x","Askip")] exI 1);
      by(Simp_tac 1);
