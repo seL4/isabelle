@@ -12,9 +12,9 @@
 RPCMemoryParams = HOL +
 
 types
-  bit = "bool"   (* signal wires for the procedure interface *)
-                 (* Defined as bool for simplicity. All I should really need is *)
-                 (* the existence of two distinct values. *)
+  bit = "bool"   (* Signal wires for the procedure interface.
+                    Defined as bool for simplicity. All I should really need is
+                    the existence of two distinct values. *)
   Locs           (* "syntactic" value type *)
   Vals           (* "syntactic" value type *)
   PrIds          (* process id's *)

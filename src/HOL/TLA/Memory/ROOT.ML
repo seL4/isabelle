@@ -1,2 +1,2 @@
 
-use_thy "Memory";
+use_thy "MemoryImplementation";

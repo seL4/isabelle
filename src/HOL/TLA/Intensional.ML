@@ -1,204 +1,136 @@
 (* 
     File:	 Intensional.ML
     Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+    Copyright:   1998 University of Munich
 
 Lemmas and tactics for "intensional" logics.
 *)
 
-val intensional_rews = [unl_con,unl_lift,unl_lift2,unl_lift3,unl_Rall,unl_Rex];
+val intensional_rews = [unl_con,unl_lift,unl_lift2,unl_lift3,unl_Rall,unl_Rex,unl_Rex1];
 
-(** Lift usual HOL simplifications to "intensional" level. 
-    Convert s .= t into rewrites s == t, so we can use the standard 
-    simplifier.
-**)
+qed_goalw "inteq_reflection" Intensional.thy  [Valid_def,unl_lift2]
+  "|- x=y  ==>  (x==y)"
+  (fn [prem] => [rtac eq_reflection 1, rtac ext 1, rtac (prem RS spec) 1 ]);
+
+qed_goalw "intI" Intensional.thy [Valid_def] "(!!w. w |= A) ==> |- A"
+  (fn [prem] => [REPEAT (resolve_tac [allI,prem] 1)]);
+
+qed_goalw "intD" Intensional.thy [Valid_def] "|- A ==> w |= A"
+  (fn [prem] => [rtac (prem RS spec) 1]);
+
+
+(** Lift usual HOL simplifications to "intensional" level. **)
 local
 
 fun prover s = (prove_goal Intensional.thy s 
-                 (fn _ => [rewrite_goals_tac (int_valid::intensional_rews), 
-                           blast_tac HOL_cs 1])) RS inteq_reflection;
+                 (fn _ => [rewrite_goals_tac (Valid_def::intensional_rews), 
+                           blast_tac HOL_cs 1])) RS inteq_reflection
 
 in
 
 val int_simps = map prover
- [ "(x.=x) .= #True",
-   "(.~#True) .= #False", "(.~#False) .= #True", "(.~ .~ P) .= P",
-   "((.~P) .= P) .= #False", "(P .= (.~P)) .= #False", 
-   "(P .~= Q) .= (P .= (.~Q))",
-   "(#True.=P) .= P", "(P.=#True) .= P",
-   "(#True .-> P) .= P", "(#False .-> P) .= #True", 
-   "(P .-> #True) .= #True", "(P .-> P) .= #True",
-   "(P .-> #False) .= (.~P)", "(P .-> .~P) .= (.~P)",
-   "(P .& #True) .= P", "(#True .& P) .= P", 
-   "(P .& #False) .= #False", "(#False .& P) .= #False", 
-   "(P .& P) .= P", "(P .& .~P) .= #False", "(.~P .& P) .= #False",
-   "(P .| #True) .= #True", "(#True .| P) .= #True", 
-   "(P .| #False) .= P", "(#False .| P) .= P", 
-   "(P .| P) .= P", "(P .| .~P) .= #True", "(.~P .| P) .= #True",
-   "(RALL x. P) .= P", "(REX x. P) .= P",
-   "(.~Q .-> .~P) .= (P .-> Q)",
-   "(P.|Q .-> R) .= ((P.->R).&(Q.->R))" ];
-
+ [ "|- (x=x) = #True",
+   "|- (~#True) = #False", "|- (~#False) = #True", "|- (~~ P) = P",
+   "|- ((~P) = P) = #False", "|- (P = (~P)) = #False", 
+   "|- (P ~= Q) = (P = (~Q))",
+   "|- (#True=P) = P", "|- (P=#True) = P",
+   "|- (#True --> P) = P", "|- (#False --> P) = #True", 
+   "|- (P --> #True) = #True", "|- (P --> P) = #True",
+   "|- (P --> #False) = (~P)", "|- (P --> ~P) = (~P)",
+   "|- (P & #True) = P", "|- (#True & P) = P", 
+   "|- (P & #False) = #False", "|- (#False & P) = #False", 
+   "|- (P & P) = P", "|- (P & ~P) = #False", "|- (~P & P) = #False",
+   "|- (P | #True) = #True", "|- (#True | P) = #True", 
+   "|- (P | #False) = P", "|- (#False | P) = P", 
+   "|- (P | P) = P", "|- (P | ~P) = #True", "|- (~P | P) = #True",
+   "|- (! x. P) = P", "|- (? x. P) = P", 
+   "|- (~Q --> ~P) = (P --> Q)",
+   "|- (P|Q --> R) = ((P-->R)&(Q-->R))" ];
 end;
 
-Addsimps (intensional_rews @ int_simps);
+qed_goal "TrueW" Intensional.thy "|- #True"
+  (fn _ => [simp_tac (simpset() addsimps [Valid_def,unl_con]) 1]);
 
-(* Derive introduction and destruction rules from definition of 
-   intensional validity.
-*)
-qed_goal "intI" Intensional.thy "(!!w. w |= A) ==> A"
-  (fn prems => [rewtac int_valid,
-                resolve_tac prems 1
-               ]);
+Addsimps (TrueW::intensional_rews);
+Addsimps int_simps;
+AddSIs [intI];
+AddDs  [intD];
 
-qed_goalw "intD" Intensional.thy [int_valid] "A ==> w |= A"
-  (fn [prem] => [ rtac (forall_elim_var 0 prem) 1 ]);
 
 (* ======== Functions to "unlift" intensional implications into HOL rules ====== *)
 
 (* Basic unlifting introduces a parameter "w" and applies basic rewrites, e.g.
-   F .= G    gets   (w |= F) = (w |= G)
-   F .-> G   gets   (w |= F) --> (w |= G)
-*)
-fun int_unlift th = rewrite_rule intensional_rews (th RS intD);
-
-(* F .-> G   becomes   w |= F  ==>  w |= G *)
-fun int_mp th = zero_var_indexes ((int_unlift th) RS mp);
-
-(* F .-> G   becomes   [| w |= F; w |= G ==> R |] ==> R 
-   so that it can be used as an elimination rule
-*)
-fun int_impE th = zero_var_indexes ((int_unlift th) RS impE);
-
-(* F .& G .-> H  becomes  [| w |= F; w |= G |] ==> w |= H *)
-fun int_conjmp th = zero_var_indexes (conjI RS (int_mp th));
-
-(* F .& G .-> H  becomes  [| w |= F; w |= G; (w |= H ==> R) |] ==> R *)
-fun int_conjimpE th = zero_var_indexes (conjI RS (int_impE th));
-
-(* Turn  F .= G  into meta-level rewrite rule  F == G *)
-fun int_rewrite th = (rewrite_rule intensional_rews (th RS inteq_reflection));
-
-(* Make the simplifier accept "intensional" goals by first unlifting them.
-   This is the standard way of proving "intensional" theorems; apply
-   int_rewrite (or action_rewrite, temp_rewrite) to convert "x .= y" into "x == y"
-   if you want to rewrite without unlifting.
-*)
-fun maybe_unlift th =
-    (case concl_of th of
-	 Const("Intensional.TrueInt",_) $ p => int_unlift th
-       | _ => th);
-
-simpset_ref() := simpset() setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
-
-
-(* ==================== Rewrites for abstractions ==================== *)
-
-(* The following are occasionally useful. Don't add them to the default
-   simpset, or it will loop! Alternatively, we could replace the "unl_XXX"
-   rules by definitions of lifting via lambda abstraction, but then proof
-   states would have lots of lambdas, and would be hard to read.
+   |- F = G    becomes   F w = G w
+   |- F --> G  becomes   F w --> G w
 *)
 
-qed_goal "con_abs" Intensional.thy "(%w. c) == #c"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+fun int_unlift th =
+  rewrite_rule intensional_rews ((th RS intD) handle _ => th);
 
-qed_goal "lift_abs" Intensional.thy "(%w. f(x w)) == (f[x])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+(* Turn  |- F = G  into meta-level rewrite rule  F == G *)
+fun int_rewrite th = 
+    zero_var_indexes (rewrite_rule intensional_rews (th RS inteq_reflection));
 
-qed_goal "lift2_abs" Intensional.thy "(%w. f(x w) (y w)) == (f[x,y])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+(* flattening turns "-->" into "==>" and eliminates conjunctions in the
+   antecedent. For example,
 
-qed_goal "lift2_abs_con1" Intensional.thy "(%w. f x (y w)) == (f[#x,y])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+         P & Q --> (R | S --> T)    becomes   [| P; Q; R | S |] ==> T
 
-qed_goal "lift2_abs_con2" Intensional.thy "(%w. f(x w) y) == (f[x,#y])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+   Flattening can be useful with "intensional" lemmas (after unlifting).
+   Naive resolution with mp and conjI may run away because of higher-order
+   unification, therefore the code is a little awkward.
+*)
+fun flatten t =
+  let 
+    (* analogous to RS, but using matching instead of resolution *)
+    fun matchres tha i thb =
+      case Seq.chop (2, biresolution true [(false,tha)] i thb) of
+	  ([th],_) => th
+	| ([],_)   => raise THM("matchres: no match", i, [tha,thb])
+	|      _   => raise THM("matchres: multiple unifiers", i, [tha,thb])
 
-qed_goal "lift3_abs" Intensional.thy "(%w. f(x w) (y w) (z w)) == (f[x,y,z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+    (* match tha with some premise of thb *)
+    fun matchsome tha thb =
+      let fun hmatch 0 = raise THM("matchsome: no match", 0, [tha,thb])
+	    | hmatch n = (matchres tha n thb) handle _ => hmatch (n-1)
+      in hmatch (nprems_of thb) end
 
-qed_goal "lift3_abs_con1" Intensional.thy "(%w. f x (y w) (z w)) == (f[#x,y,z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+    fun hflatten t =
+        case (concl_of t) of
+          Const _ $ (Const ("op -->", _) $ _ $ _) => hflatten (t RS mp)
+        | _ => (hflatten (matchsome conjI t)) handle _ => zero_var_indexes t
+  in
+    hflatten t
+end;
 
-qed_goal "lift3_abs_con2" Intensional.thy "(%w. f (x w) y (z w)) == (f[x,#y,z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+fun int_use th =
+    case (concl_of th) of
+      Const _ $ (Const ("Intensional.Valid", _) $ _) =>
+              ((flatten (int_unlift th)) handle _ => th)
+    | _ => th;
 
-qed_goal "lift3_abs_con3" Intensional.thy "(%w. f (x w) (y w) z) == (f[x,y,#z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+(***
+(* Make the simplifier accept "intensional" goals by either turning them into
+   a meta-equality or by unlifting them.
+*)
 
-qed_goal "lift3_abs_con12" Intensional.thy "(%w. f x y (z w)) == (f[#x,#y,z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
-
-qed_goal "lift3_abs_con13" Intensional.thy "(%w. f x (y w) z) == (f[#x,y,#z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
-
-qed_goal "lift3_abs_con23" Intensional.thy "(%w. f (x w) y z) == (f[x,#y,#z])"
-  (fn _ => [rtac inteq_reflection 1,
-            rtac intI 1,
-            rewrite_goals_tac intensional_rews,
-            rtac refl 1
-           ]);
+let 
+  val ss = simpset_ref()
+  fun try_rewrite th = (int_rewrite th) handle _ => (int_use th) handle _ => th
+in 
+  ss := !ss setmksimps ((mksimps mksimps_pairs) o try_rewrite)
+end;
+***)
 
 (* ========================================================================= *)
 
-qed_goal "Not_rall" Intensional.thy
-   "(.~ (RALL x. F(x))) .= (REX x. .~ F(x))"
-   (fn _ => [rtac intI 1,
-	     rewrite_goals_tac intensional_rews,
-	     fast_tac HOL_cs 1
-	    ]);
+qed_goal "Not_Rall" Intensional.thy
+   "|- (~(! x. F x)) = (? x. ~F x)"
+   (fn _ => [simp_tac (simpset() addsimps [Valid_def]) 1]);
 
-qed_goal "Not_rex" Intensional.thy
-   "(.~ (REX x. F(x))) .= (RALL x. .~ F(x))"
-   (fn _ => [rtac intI 1,
-	     rewrite_goals_tac intensional_rews,
-	     fast_tac HOL_cs 1
-	    ]);
+qed_goal "Not_Rex" Intensional.thy
+   "|- (~ (? x. F x)) = (! x. ~ F x)"
+   (fn _ => [simp_tac (simpset() addsimps [Valid_def]) 1]);
 
 (* IntLemmas.ML contains a collection of further lemmas about "intensional" logic.
    These are not loaded by default because they are not required for the

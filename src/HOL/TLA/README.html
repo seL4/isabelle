@@ -1,46 +1,59 @@
-<HTML><HEAD><TITLE>HOL/TLA/README</TITLE></HEAD><BODY bgcolor="white">
+<HTML><HEAD><TITLE>HOL/TLA</TITLE></HEAD><BODY>
 
-<H3>TLA: A formalization of TLA in HOL</H3>
+<H2>TLA: Lamport's Temporal Logic of Actions</H2>
 
-Author:     Stephan Merz<BR>
-Copyright   1997 Universit&auml;t M&uuml;nchen<P>
+<A HREF="http://www.research.digital.com/SRC/personal/Leslie_Lamport/tla/tla.html">TLA</A>
+is a linear-time temporal logic introduced by Leslie Lamport in
+<EM>The Temporal Logic of Actions</EM> (ACM TOPLAS 16(3), 1994,
+872-923). Unlike other temporal logics, both systems and properties
+are represented as logical formulas, and logical connectives such as
+implication, conjunction, and existential quantification represent
+structural relations such as refinement, parallel composition, and
+hiding. TLA has been applied to numerous case studies.
 
-The distribution contains a representation of Lamport's
-<A HREF="http://www.research.digital.com/SRC/personal/Leslie_Lamport/tla/tla.html">
-Temporal Logic of Actions</A>
-in Isabelle/HOL.
-
-<p>
-
-The encoding is mainly oriented towards practical verification
-examples. It does not contain a formalization of TLA's semantics,
-although it could be an interesting exercise to add such a formalization
-to the existing representation. Instead, it is based on a 
-<A HREF="http://www4.informatik.tu-muenchen.de/~merz/papers/ptla.ps">complete axiomatization</A>
-of the "raw" (stuttering-sensitive) variant of propositional TLA. 
-There is also a
-<A HREF="http://www4.informatik.tu-muenchen.de/~merz/papers/IsaTLADesign.ps">design note</A> 
-that explains the basic setup and use of the prover.
-
-<p>
-
-The distribution includes the following examples:
+<P>This directory formalizes TLA in Isabelle/HOL, as follows:
 <UL>
-  <li> a verification of Lamport's <em>increment</em> example
-  (subdirectory inc),<P>
-
-  <li> a proof that two buffers in a row implement a single buffer
-  (subdirectory buffer), and<P>
-
-   <li> the verification of Broy and Lamport's RPC-Memory example. For details see:<BR>
-
-        Mart&iacute;n Abadi, Leslie Lamport, and Stephan Merz: 
-        <A HREF="http://www4.informatik.tu-muenchen.de/~merz/papers/RPCMemory.html">
-        A TLA Solution to the RPC-Memory Specification Problem</A>.
-        In: <i>Formal System Specification</i>, LNCS 1169, 1996, 21-69.
+<LI>Theory <A HREF="Intensional.html">Intensional</A> prepares the
+  ground by introducing basic syntax for "lifted", possibl-world based 
+  logics.
+<LI>Theories <A HREF="Stfun.html">Stfun</A> and
+  <A HREF="Action.html">Action</A> represent the state and transition
+  level formulas of TLA, evaluated over single states and pairs of
+  states.
+<LI>Theory <A HREF="Init.html">Init</A> introduces temporal logic
+  and defines conversion functions from nontemporal to temporal
+  formulas.
+<LI>Theory <A HREF="TLA.html">TLA</A> axiomatizes proper temporal
+  logic.
 </UL>
 
-If you use Isabelle/TLA and have any comments, suggestions or contributions,
-please contact <A HREF="mailto:merz@informatik.uni-muenchen.de">Stephan Merz</A>.
+Please consult the
+<A HREF="http://www4.in.tum.de/~merz/papers/IsaTLADesign.ps">design notes</A>
+for further information regarding the setup and use of this encoding
+of TLA.
 
+<P>
+The theories are accompanied by a small number of examples:
+<UL>
+<LI><A HREF="Inc/index.html">Inc</A>: Lamport's <EM>increment</EM>
+  example, a standard TLA benchmark, illustrates an elementary TLA
+  proof.
+<LI><A HREF="Buffer/index.html">Buffer</A>: a proof that two buffers
+  in a row implement a single buffer, uses a simple refinement
+  mapping.
+<LI><A HREF="Memory/index.html">Memory</A>: a verification of (the
+  untimed part of) Broy and Lamport's <em>RPC-Memory</em> case study,
+  more fully explained in LNCS 1169 (the 
+  <A HREF="http://www4.in.tum.de/~merz/papers/RPCMemory.html">TLA
+  solution</A> is available separately).
+</UL>
+
+<HR>
+
+<ADDRESS>
+<A HREF="merz@informatik.uni-muenchen.de">Stephan Merz</A>
+</ADDRESS>
+<!-- hhmts start -->
+Last modified: Mon Jan 25 14:06:43 MET 1999
+<!-- hhmts end -->
 </BODY></HTML>

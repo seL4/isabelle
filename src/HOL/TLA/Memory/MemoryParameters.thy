@@ -11,21 +11,24 @@
 
 MemoryParameters = Datatype + RPCMemoryParams +
 
-(* the memory operations. nb: data types must be defined in theories
-   that do not include Intensional -- otherwise the induction rule
-   can't be type-checked unambiguously.
-*)
+(* the memory operations *)
+(***
 datatype  Rd = read
 datatype  Wr = write
+***)
 
+datatype memOp = read Locs | write Locs Vals
+
+(***
 types
   (* legal arguments for the memory *)
   memArgType = "(Rd * Locs) + (Wr * Locs * Vals)"
+***)
 
 consts
   (* memory locations and contents *)
-  MemLoc         :: "Locs => bool"
-  MemVal         :: "Vals => bool"
+  MemLoc         :: Locs set
+  MemVal         :: Vals set
 
   (* some particular values *)
   OK             :: "Vals"
@@ -38,13 +41,11 @@ consts
 
 rules
   (* basic assumptions about the above constants and predicates *)
-  BadArgNoMemVal    "~MemVal(BadArg)"
-  MemFailNoMemVal   "~MemVal(MemFailure)"
-  InitValMemVal     "MemVal(InitVal)"
-  NotAResultNotVal  "~MemVal(NotAResult)"
+  BadArgNoMemVal    "BadArg ~: MemVal"
+  MemFailNoMemVal   "MemFailure ~: MemVal"
+  InitValMemVal     "InitVal : MemVal"
+  NotAResultNotVal  "NotAResult ~: MemVal"
   NotAResultNotOK   "NotAResult ~= OK"
   NotAResultNotBA   "NotAResult ~= BadArg"
   NotAResultNotMF   "NotAResult ~= MemFailure"
 end
-
-

@@ -29,9 +29,6 @@ consts
   arg           :: "('a,'r) chan => 'a"
   res           :: "('a,'r) chan => 'r"
 
-  (* slice through array-valued state function *)
-  "@"           :: "('a => 'b) stfun => 'a => 'b stfun"   (infixl 20)
-
   (* state functions *)
   caller	:: "('a,'r) channel => (PrIds => (bit * 'a)) stfun"
   rtrner        :: "('a,'r) channel => (PrIds => (bit * 'r)) stfun"
@@ -40,8 +37,8 @@ consts
   Calling   :: "('a,'r) channel => PrIds => stpred"
 
   (* actions *)
-  Call      :: "('a,'r) channel => PrIds => 'a trfct => action"
-  Return    :: "('a,'r) channel => PrIds => 'r trfct => action"
+  ACall      :: "('a,'r) channel => PrIds => 'a stfun => action"
+  AReturn    :: "('a,'r) channel => PrIds => 'r stfun => action"
 
   (* temporal formulas *)
   PLegalCaller      :: "('a,'r) channel => PrIds => temporal"
@@ -49,27 +46,42 @@ consts
   PLegalReturner    :: "('a,'r) channel => PrIds => temporal"
   LegalReturner     :: "('a,'r) channel => temporal"
 
+  (* slice through array-valued state function *)
+  slice        :: "('a => 'b) stfun => 'a => 'b stfun"
+
+syntax
+  "_slice"     :: [lift, 'a] => lift       ("(_!_)" [70,70] 70)
+
+  "_Call"     :: ['a, 'b, lift] => lift    ("(Call _ _ _)" [90,90,90] 90)
+  "_Return"   :: ['a, 'b, lift] => lift    ("(Return _ _ _)" [90,90,90] 90)
+
+translations
+  "_slice"  ==  "slice"
+
+  "_Call"   ==  "ACall"
+  "_Return" ==  "AReturn"
+
 rules
-  slice_def     "(x@i) s == x s i"
+  slice_def     "(PRED (x!i)) s == x s i"
 
-  caller_def	"caller ch s p   == (cbit (ch s p), arg (ch s p))"
-  rtrner_def	"rtrner ch s p   == (rbit (ch s p), res (ch s p))"
+  caller_def	"caller ch   == %s p. (cbit (ch s p), arg (ch s p))"
+  rtrner_def	"rtrner ch   == %s p. (rbit (ch s p), res (ch s p))"
 
-  Calling_def	"$(Calling ch p)  .= (cbit[$(ch@p)] .~= rbit[$(ch@p)])"
-  Call_def      "Call ch p v   == .~ $(Calling ch p)
-                                  .& (cbit[$(ch@p)])` .~= rbit[$(ch@p)]
-                                  .& (arg[$(ch@p)])` .= v"
-  Return_def    "Return ch p v == $(Calling ch p)
-                                  .& (rbit[$(ch@p)])` .= cbit[$(ch@p)]
-                                  .& (res[$(ch@p)])` .= v"
-
-  PLegalCaller_def      "PLegalCaller ch p ==
-                             Init(.~ $(Calling ch p))
-                             .& [][ REX a. Call ch p (#a) ]_((caller ch)@p)"
-  LegalCaller_def       "LegalCaller ch == RALL p. PLegalCaller ch p"
-  PLegalReturner_def    "PLegalReturner ch p ==
-                                [][ REX v. Return ch p (#v) ]_((rtrner ch)@p)"
-  LegalReturner_def     "LegalReturner ch == RALL p. PLegalReturner ch p"
+  Calling_def	"Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
+  Call_def      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
+                                     & (cbit<ch!p>` ~= $rbit<ch!p>)
+                                     & (arg<ch!p>` = $v)"
+  Return_def    "(ACT Return ch p v) == ACT  $Calling ch p
+                                     & (rbit<ch!p>` = $cbit<ch!p>)
+                                     & (res<ch!p>` = $v)"
+  PLegalCaller_def      "PLegalCaller ch p == TEMP
+                             Init(~ Calling ch p)
+                             & [][ ? a. Call ch p a ]_((caller ch)!p)"
+  LegalCaller_def       "LegalCaller ch == TEMP (! p. PLegalCaller ch p)"
+  PLegalReturner_def    "PLegalReturner ch p == TEMP
+                                [][ ? v. Return ch p v ]_((rtrner ch)!p)"
+  LegalReturner_def     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
 
 end
+
 

@@ -1,15 +1,15 @@
 (* 
     File:	 TLA/Stfun.thy
     Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+    Copyright:   1998 University of Munich
 
     Theory Name: Stfun
     Logic Image: HOL
 
-States and state functions for TLA
+States and state functions for TLA as an "intensional" logic.
 *)
 
-Stfun  =  Prod +
+Stfun  =  Intensional +
 
 types
     state
@@ -17,40 +17,49 @@ types
     stpred   = "bool stfun"
 
 arities
-    state :: term
+  state :: term
+
+instance
+  state :: world
 
 consts
-  (* For simplicity, we do not syntactically distinguish between state variables
-     and state functions, and treat "state" as an anonymous type. But we need a 
-     "meta-predicate" to identify "base" state variables that represent the state
-     components of a system, in particular to define the enabledness of actions.
+  (* Formalizing type "state" would require formulas to be tagged with
+     their underlying state space and would result in a system that is
+     much harder to use. (Unlike Hoare logic or Unity, TLA has quantification
+     over state variables, and therefore one usually works with different
+     state spaces within a single specification.) Instead, "state" is just
+     an anonymous type whose only purpose is to provide "Skolem" constants.
+     Moreover, we do not define a type of state variables separate from that
+     of arbitrary state functions, again in order to simplify the definition
+     of flexible quantification later on. Nevertheless, we need to distinguish
+     state variables, mainly to define the enabledness of actions. The user
+     identifies (tuples of) "base" state variables in a specification via the
+     "meta predicate" stvars.
+     NOTE: There should not be duplicates in the tuple!
   *)
-  base_var  :: "'a stfun => bool"
-
-  (* lift tupling to state functions *)
-  pairSF    :: "['a stfun, 'b stfun] => ('a * 'b) stfun"
+  stvars    :: "'a stfun => bool"
 
 syntax
-  "@tupleSF"     :: "args => ('a * 'b) stfun"  ("(1<_>)")
+  "PRED"    :: lift => 'a                          ("PRED _")
+  "_stvars" :: lift => bool                        ("basevars _")
 
 translations
-  "<x,y,z>"   == "<x, <y,z> >"
-  "<x,y>"     == "pairSF x y"
-  "<x>"       => "x"
+  "PRED P"   =>  "(P::state => _)"
+  "_stvars"  ==  "stvars"
 
 rules
-  (* tupling *)
-  pairSF_def  "<v,w>(s) = (v(s),w(s))"
-
-  (* "base" variables may be assigned arbitrary values by states.
-     NB: It's really stronger than that because "u" doesn't depend 
-         on either c or v. In particular, if "==>" were replaced
-         with "==", base_pair would (still) not be derivable.
+  (* Base variables may be assigned arbitrary (type-correct) values. 
+     Note that vs may be a tuple of variables. The rule would be unsound 
+     if vs contained duplicates.
   *)
-  base_var    "base_var v ==> EX u. v u = c"
+  basevars  "basevars vs ==> EX u. vs u = c"
+  base_pair "basevars (x,y) ==> basevars x & basevars y"
+  (* Since the unit type has just one value, any state function can be
+     regarded as "base". The following axiom can sometimes be useful
+     because it gives a trivial solution for "basevars" premises.
+  *)
+  unit_base "basevars (v::unit stfun)"
 
-  (* a tuple of variables is "base" if each variable is "base" *)
-  base_pair   "base_var <v,w> = (base_var v & base_var w)"
 end
 
 ML

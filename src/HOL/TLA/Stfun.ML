@@ -1,25 +1,21 @@
 (* 
     File:	 Stfun.ML
     Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+    Copyright:   1998 University of Munich
 
 Lemmas and tactics for states and state functions.
 *)
 
-(* A stronger version of existential elimination (goal needn't be boolean) *)
-qed_goalw "exE_prop" HOL.thy [Ex_def]
-  "[| ? x::'a. P(x); !!x. P(x) ==> PROP R |] ==> PROP R"
-  (fn prems => [REPEAT(resolve_tac prems 1)]);
+(*  [| basevars v; !!x. v x = c ==> Q |] ==> Q  *)
+bind_thm("baseE", (standard (basevars RS exE)));
 
-(* Might as well use that version in automated proofs *)
-AddSEs [exE_prop];
+(* -------------------------------------------------------------------------------
+   The following shows that there should not be duplicates in a "stvars" tuple:
 
-(*  [| base_var v; !!x. v x = c ==> PROP R |] ==> PROP R  *)
-bind_thm("baseE", (standard (base_var RS exE_prop)));
+Goal "!!v. basevars (v::bool stfun, v) ==> False";
+by (etac baseE 1);
+by (subgoal_tac "(LIFT (v,v)) x = (True, False)" 1); 
+by (atac 2);
+by (Asm_full_simp_tac 1);
 
-qed_goal "PairVarE" Stfun.thy
-  "[| <v,w> u = (x,y); [| v u = x; w u = y |] ==> PROP R |] ==> PROP R"
-  (fn prems => [cut_facts_tac prems 1, resolve_tac prems 1,
-		ALLGOALS (asm_full_simp_tac (simpset() addsimps [pairSF_def]))
-               ]);
-
+------------------------------------------------------------------------------- *)

@@ -17,56 +17,53 @@ types
   mClkRcvChType = "rpcSndChType"
   mClkStType    = "(PrIds => mClkState) stfun"
 
-consts
+constdefs
   (* state predicates *)
   MClkInit      :: "mClkRcvChType => mClkStType => PrIds => stpred"
+     "MClkInit rcv cst p == PRED (cst!p = #clkA  &  ~Calling rcv p)"
 
   (* actions *)
   MClkFwd       :: "mClkSndChType => mClkRcvChType => mClkStType => PrIds => action"
+     "MClkFwd send rcv cst p == ACT
+                           $Calling send p
+                         & $(cst!p) = #clkA
+                         & Call rcv p MClkRelayArg<arg<send!p>>
+                         & (cst!p)$ = #clkB
+                         & unchanged (rtrner send!p)"
+
   MClkRetry     :: "mClkSndChType => mClkRcvChType => mClkStType => PrIds => action"
+     "MClkRetry send rcv cst p == ACT
+                           $(cst!p) = #clkB
+                         & res<$(rcv!p)> = #RPCFailure
+                         & Call rcv p MClkRelayArg<arg<send!p>>
+                         & unchanged (cst!p, rtrner send!p)"
+
   MClkReply     :: "mClkSndChType => mClkRcvChType => mClkStType => PrIds => action"
+     "MClkReply send rcv cst p == ACT
+                           ~$Calling rcv p
+                         & $(cst!p) = #clkB
+                         & Return send p MClkReplyVal<res<rcv!p>>
+                         & (cst!p)$ = #clkA
+                         & unchanged (caller rcv!p)"
+
   MClkNext      :: "mClkSndChType => mClkRcvChType => mClkStType => PrIds => action"
+      "MClkNext send rcv cst p == ACT
+                        (  MClkFwd send rcv cst p
+                         | MClkRetry send rcv cst p
+                         | MClkReply send rcv cst p)"
+
 
   (* temporal *)
   MClkIPSpec    :: "mClkSndChType => mClkRcvChType => mClkStType => PrIds => temporal"
+      "MClkIPSpec send rcv cst p == TEMP
+                           Init MClkInit rcv cst p
+                         & [][ MClkNext send rcv cst p ]_(cst!p, rtrner send!p, caller rcv!p)
+                         & WF(MClkFwd send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)
+                         & SF(MClkReply send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)"
+
   MClkISpec     :: "mClkSndChType => mClkRcvChType => mClkStType => temporal"
+      "MClkISpec send rcv cst == TEMP (!p. MClkIPSpec send rcv cst p)"
 
-rules
-  MClkInit_def     "$(MClkInit rcv cst p) .=
-                        ($(cst@p) .= #clkA  .&  .~ $(Calling rcv p))"
-
-  MClkFwd_def      "MClkFwd send rcv cst p ==
-                        $(Calling send p)
-                        .& $(cst@p) .= #clkA
-                        .& Call rcv p (MClkRelayArg[ arg[$(send@p)] ])
-                        .& (cst@p)$ .= #clkB
-                        .& unchanged (rtrner send @ p)"
-
-  MClkRetry_def    "MClkRetry send rcv cst p ==
-                        $(cst@p) .= #clkB
-                        .& res[$(rcv@p)] .= #RPCFailure
-                        .& Call rcv p (MClkRelayArg[ arg[$(send@p)] ])
-                        .& unchanged <cst@p, rtrner send @ p>"
-
-  MClkReply_def    "MClkReply send rcv cst p ==
-                        .~ $(Calling rcv p)
-                        .& $(cst@p) .= #clkB
-                        .& Return send p (MClkReplyVal[ res[$(rcv@p)] ])
-                        .& (cst@p)$ .= #clkA
-                        .& unchanged (caller rcv @ p)"
-
-  MClkNext_def     "MClkNext send rcv cst p ==
-                        MClkFwd send rcv cst p
-                        .| MClkRetry send rcv cst p
-                        .| MClkReply send rcv cst p"
-
-  MClkIPSpec_def   "MClkIPSpec send rcv cst p ==
-                        Init($(MClkInit rcv cst p))
-                        .& [][ MClkNext send rcv cst p ]_<cst@p, rtrner send @ p, caller rcv @ p>
-                        .& WF(MClkFwd send rcv cst p)_<cst@p, rtrner send @ p, caller rcv @ p>
-                        .& SF(MClkReply send rcv cst p)_<cst@p, rtrner send @ p, caller rcv @ p>"
-
-  MClkISpec_def    "MClkISpec send rcv cst == RALL p. MClkIPSpec send rcv cst p"
 end
 
 
