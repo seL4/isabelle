@@ -62,6 +62,15 @@ lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
 
 subsection {* Configuration of the code generator *}
 
+ML {*
+infix 7 `*;
+infix 6 `+;
+
+val op `* = op * : int * int -> int;
+val op `+ = op + : int * int -> int;
+val `~ = ~ : int -> int;
+*}
+
 types_code
   "int" ("int")
 
@@ -73,9 +82,9 @@ lemma [code]: "nat x = (if x <= 0 then 0 else Suc (nat (x - 1)))"
 consts_code
   "0" :: "int"                  ("0")
   "1" :: "int"                  ("1")
-  "uminus" :: "int => int"      ("~")
-  "op +" :: "int => int => int" ("(_ +/ _)")
-  "op *" :: "int => int => int" ("(_ */ _)")
+  "uminus" :: "int => int"      ("`~")
+  "op +" :: "int => int => int" ("(_ `+/ _)")
+  "op *" :: "int => int => int" ("(_ `*/ _)")
   "neg"                         ("(_ < 0)")
 
 end
