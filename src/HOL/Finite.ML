@@ -248,6 +248,29 @@ by (rtac finite_subset 1);
 by Auto_tac;
 qed "bounded_nat_set_is_finite";
 
+(** Finiteness of transitive closure (thanks to Sidi Ehmety) **)
+
+(*A finite relation has a finite field ( = domain U range) *)
+Goal "finite r ==> finite (Field r)";
+by (etac finite_induct 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [Field_def, Domain_insert, Range_insert]));
+qed "finite_Field";
+
+Goal "r^+ <= Field r <*> Field r";
+by (Clarify_tac 1);
+by (etac trancl_induct 1);
+by (auto_tac (claset(), simpset() addsimps [Field_def]));  
+qed "trancl_subset_Field2";
+
+Goal "finite (r^+) = finite r";
+by Auto_tac;
+by (rtac (trancl_subset_Field2 RS finite_subset) 2);
+by (rtac finite_SigmaI 2);
+by (blast_tac (claset() addIs [r_into_trancl, finite_subset]) 1);
+by (auto_tac (claset(), simpset() addsimps [finite_Field]));  
+qed "finite_trancl";
+
 
 section "Finite cardinality -- 'card'";
 
