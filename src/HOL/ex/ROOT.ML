@@ -23,6 +23,7 @@ time_use     "meson.ML";
 time_use     "mesontest.ML";
 time_use     "mesontest2.ML";
 time_use_thy "BT";
+time_use_thy "AVL";
 time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "Puzzle";
