@@ -36,7 +36,7 @@ struct
 
 (** data kind theorems **)
 
-val theorems = "theorems";
+val theoremsK = "theorems";
 
 exception Theorems of
  {space: NameSpace.T,
@@ -69,7 +69,7 @@ fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
 
 in
 
-val theorems_methods = (mk_empty (), mk_empty, mk_empty, print);
+val theorems_data = (theoremsK, (mk_empty (), mk_empty, mk_empty, print));
 
 end;
 
@@ -77,7 +77,7 @@ end;
 (* get data record *)
 
 fun get_theorems_sg sg =
-  (case Sign.get_data sg theorems of
+  (case Sign.get_data sg theoremsK of
     Theorems r => r
   | _ => sys_error "get_theorems_sg");
 
@@ -244,7 +244,7 @@ val add_store_defs_i = add_store Theory.add_defs_i;
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.init_data theorems theorems_methods
+  |> Theory.init_data [theorems_data]
   |> Theory.add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
