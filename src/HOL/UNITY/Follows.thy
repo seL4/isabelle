@@ -4,9 +4,11 @@
     Copyright   1998  University of Cambridge
 
 The "Follows" relation of Charpentier and Sivilotte
+
+add_path "../Induct";
 *)
 
-Follows = SubstAx + ListOrder +
+Follows = SubstAx + ListOrder + MultisetOrder +
 
 constdefs
 
