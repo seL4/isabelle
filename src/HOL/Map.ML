@@ -221,7 +221,12 @@ qed "domI";
 Goalw [dom_def] "a : dom m ==> ? b. m a = Some b";
 by Auto_tac;
 qed "domD";
-AddSDs [domD];
+
+Goalw [dom_def] "(a : dom m) = (m a ~= None)";
+by Auto_tac;
+qed "domIff";
+AddIffs [domIff];
+Delsimps [domIff];
 
 Goalw [dom_def] "dom empty = {}";
 by (Simp_tac 1);

@@ -2247,7 +2247,7 @@ lemma assigns_if_good_approx:
 proof -
   -- {* To properly perform induction on the evaluation relation we have to
         generalize the lemma to terms not only expressions. *}
-  {fix t val
+  { fix t val
    assume eval': "prg Env\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (val,s1)"  
    assume bool': "Env\<turnstile> t\<Colon>Inl (PrimT Boolean)"
    assume expr:  "\<exists> expr. t=In1l expr"
@@ -3634,7 +3634,7 @@ proof -
         hence "normal s2"
           by (cases s2) simp
         with nrmAss_A' nrm_A_A' s2_s3 show ?thesis
-          by auto
+          by blast
       qed
     qed
     moreover
