@@ -79,6 +79,22 @@ primrec
 		      | Notes A X  => parts {X} Un (used evs))"
 
 
+lemma Notes_imp_used [rule_format]: "Notes A X : set evs --> X : used evs"
+apply (induct_tac evs);
+apply (auto split: event.split) 
+done
+
+lemma Says_imp_used [rule_format]: "Says A B X : set evs --> X : used evs"
+apply (induct_tac evs);
+apply (auto split: event.split) 
+done
+
+lemma MPair_used [rule_format]:
+     "MPair X Y : used evs --> X : used evs & Y : used evs"
+apply (induct_tac evs);
+apply (auto split: event.split) 
+done
+
 use "Event_lemmas.ML"
 
 method_setup analz_mono_contra = {*
