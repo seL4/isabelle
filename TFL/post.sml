@@ -53,11 +53,11 @@ fun termination_goals rules =
  * puts them into a goalstack.
  *--------------------------------------------------------------------------*)
 fun tgoalw thy defs rules = 
-   let val L = termination_goals rules
-       open USyntax
-       val g = cterm_of (sign_of thy) (HOLogic.mk_Trueprop(list_mk_conj L))
-   in goalw_cterm defs g
-   end;
+  case termination_goals rules of
+      [] => error "tgoalw: no termination conditions to prove"
+    | L  => goalw_cterm defs 
+              (cterm_of (sign_of thy) 
+	                (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
 
 fun tgoal thy = tgoalw thy [];
 
