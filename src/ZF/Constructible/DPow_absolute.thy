@@ -243,14 +243,9 @@ subsubsection{*The Instance of Separation*}
 lemma DPow_separation:
     "[| L(A); env \<in> list(A); p \<in> formula |]
      ==> separation(L, \<lambda>x. is_DPow_body(L,A,env,p,x))"
-apply (subgoal_tac "L(env) & L(p)") 
- prefer 2 apply (blast intro: transL) 
-apply (rule separation_CollectI)
-apply (rule_tac A="{A,env,p,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF DPow_body_reflection], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule gen_separation [OF DPow_body_reflection, of "{A,env,p}"], 
+       blast intro: transL)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
 apply (rule_tac env = "[x,A,env,p]" in DPow_body_iff_sats)
 apply (rule sep_rules | simp)+
@@ -282,19 +277,14 @@ lemma DPow_replacement:
                   pair(L,env,p,ep) & 
                   is_Collect(L, A, \<lambda>x. is_DPow_body(L,A,env,p,x), z))"
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (rule_tac A="{A,B,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF DPow_replacement_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (rule DPow_LsetI)
-apply (rename_tac v)
+apply (rule_tac u="{A,B}" in gen_separation [OF DPow_replacement_Reflects], 
+       simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (unfold is_Collect_def) 
+apply (rule DPow_LsetI)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,B]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,B]" in mem_iff_sats)
 apply (rule sep_rules mem_formula_iff_sats mem_list_iff_sats 
             DPow_body_iff_sats | simp)+
 done
@@ -559,18 +549,12 @@ lemma strong_rep:
    "[|L(x); L(g)|] ==> strong_replacement(L, \<lambda>y z. transrec_body(L,g,x,y,z))"
 apply (unfold transrec_body_def)  
 apply (rule strong_replacementI) 
-apply (rule rallI)
 apply (rename_tac B)  
-apply (rule separation_CollectI) 
-apply (rule_tac A="{x,g,B,z}" in subset_LsetE, blast) 
-apply (rule ReflectsE [OF strong_rep_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule_tac u="{x,g,B}" in gen_separation [OF strong_rep_Reflects], simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,x,g,B,z]" in mem_iff_sats) 
+apply (rule_tac env = "[v,u,x,g,B]" in mem_iff_sats) 
 apply (rule sep_rules DPow'_iff_sats | simp)+
 done
 
@@ -599,30 +583,21 @@ apply (intro FOL_reflections function_reflections
 done
 
 
-
 lemma transrec_rep: 
     "[|L(j)|]
     ==> transrec_replacement(L, \<lambda>x f u. 
               \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) & 
                      big_union(L, r, u), j)"
-apply (subgoal_tac "L(Memrel(eclose({j})))")
- prefer 2 apply simp
 apply (rule transrec_replacementI, assumption)
-apply (rule strong_replacementI)
 apply (unfold transrec_body_def)  
-apply (rule rallI)
+apply (rule strong_replacementI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (rule_tac A="{j,B,z,Memrel(eclose({j}))}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF transrec_rep_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
-apply (elim conjE)
+apply (rule_tac u="{j,B,Memrel(eclose({j}))}" 
+         in gen_separation [OF transrec_rep_Reflects], simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac w)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,w,j,B,Memrel(eclose({j}))]" in mem_iff_sats)
+apply (rule_tac env = "[v,x,j,B,Memrel(eclose({j}))]" in mem_iff_sats)
 apply (rule sep_rules is_wfrec_iff_sats Replace_iff_sats DPow'_iff_sats | 
        simp)+
 done

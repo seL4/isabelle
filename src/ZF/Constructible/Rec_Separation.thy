@@ -71,7 +71,7 @@ lemma rtran_closure_mem_iff_sats:
        ==> rtran_closure_mem(**A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
 by (simp add: sats_rtran_closure_mem_fm)
 
-theorem rtran_closure_mem_reflection:
+lemma rtran_closure_mem_reflection:
      "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)),
                \<lambda>i x. rtran_closure_mem(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: rtran_closure_mem_def setclass_simps)
@@ -81,15 +81,10 @@ done
 text{*Separation for @{term "rtrancl(r)"}.*}
 lemma rtrancl_separation:
      "[| L(r); L(A) |] ==> separation (L, rtran_closure_mem(L,A,r))"
-apply (rule separation_CollectI)
-apply (rule_tac A="{r,A,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF rtran_closure_mem_reflection], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule gen_separation [OF rtran_closure_mem_reflection, of "{r,A}"], simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac u)
-apply (rule_tac env = "[u,r,A]" in rtran_closure_mem_iff_sats)
+apply (rule_tac env = "[x,r,A]" in rtran_closure_mem_iff_sats)
 apply (rule sep_rules | simp)+
 done
 
@@ -183,22 +178,16 @@ lemma wellfounded_trancl_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections
           tran_closure_reflection)
 
-
 lemma wellfounded_trancl_separation:
          "[| L(r); L(Z) |] ==>
           separation (L, \<lambda>x.
               \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
                w \<in> Z & pair(L,w,x,wx) & tran_closure(L,r,rp) & wx \<in> rp)"
-apply (rule separation_CollectI)
-apply (rule_tac A="{r,Z,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF wellfounded_trancl_reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule gen_separation [OF wellfounded_trancl_reflects, of "{r,Z}"], simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac u)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[w,u,r,Z]" in mem_iff_sats)
+apply (rule_tac env = "[w,x,r,Z]" in mem_iff_sats)
 apply (rule sep_rules tran_closure_iff_sats | simp)+
 done
 
@@ -251,17 +240,10 @@ lemma wfrank_separation:
      "L(r) ==>
       separation (L, \<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
          ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)))"
-apply (rule separation_CollectI)
-apply (rule_tac A="{r,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF wfrank_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
+apply (rule gen_separation [OF wfrank_Reflects], simp)
 apply (rule DPow_LsetI)
-apply (rename_tac u)
 apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,u,r]" in tran_closure_iff_sats)
-apply (rule sep_rules | simp)+
+apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
 apply (rule sep_rules is_recfun_iff_sats | simp)+
 done
 
@@ -282,7 +264,6 @@ lemma wfrank_replacement_Reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections
              is_recfun_reflection tran_closure_reflection)
 
-
 lemma wfrank_strong_replacement:
      "L(r) ==>
       strong_replacement(L, \<lambda>x z.
@@ -291,19 +272,14 @@ lemma wfrank_strong_replacement:
                         M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
                         is_range(L,f,y)))"
 apply (rule strong_replacementI)
-apply (rule rallI)
-apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (rule_tac A="{B,r,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF wfrank_replacement_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule_tac u="{r,A}" in gen_separation [OF wfrank_replacement_Reflects], 
+       simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac u)
 apply (rule bex_iff_sats ball_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,u,B,r]" in mem_iff_sats)
-apply (rule sep_rules list.intros app_type tran_closure_iff_sats is_recfun_iff_sats | simp)+
+apply (rule_tac env = "[x,z,A,r]" in mem_iff_sats)
+apply (rule sep_rules list.intros app_type tran_closure_iff_sats 
+            is_recfun_iff_sats | simp)+
 done
 
 
@@ -332,16 +308,10 @@ lemma  Ord_wfrank_separation:
              is_range(L,f,rangef) -->
              M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
              ordinal(L,rangef)))"
-apply (rule separation_CollectI)
-apply (rule_tac A="{r,z}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF Ord_wfrank_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
+apply (rule gen_separation [OF Ord_wfrank_Reflects], simp)
 apply (rule DPow_LsetI)
-apply (rename_tac u)
 apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,u,r]" in tran_closure_iff_sats)
+apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
 apply (rule sep_rules is_recfun_iff_sats | simp)+
 done
 
@@ -406,21 +376,14 @@ lemma list_replacement1:
    "L(A) ==> iterates_replacement(L, is_list_functor(L,A), 0)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (insert nonempty)
-apply (subgoal_tac "L(Memrel(succ(n)))")
-apply (rule_tac A="{B,A,n,z,0,Memrel(succ(n))}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF list_replacement1_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
-apply (elim conjE)
+apply (rule_tac u="{B,A,n,0,Memrel(succ(n))}" 
+         in gen_separation [OF list_replacement1_Reflects], 
+       simp add: nonempty)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
@@ -449,20 +412,14 @@ lemma list_replacement2:
                is_wfrec(L, iterates_MH(L,is_list_functor(L,A), 0),
                         msn, n, y)))"
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (insert nonempty)
-apply (rule_tac A="{A,B,z,0,nat}" in subset_LsetE)
-apply (blast intro: L_nat)
-apply (rule ReflectsE [OF list_replacement2_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule_tac u="{A,B,0,nat}" 
+         in gen_separation [OF list_replacement2_Reflects], 
+       simp add: L_nat nonempty)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,B,0,nat]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,B,0,nat]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
@@ -487,20 +444,14 @@ lemma formula_replacement1:
    "iterates_replacement(L, is_formula_functor(L), 0)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (insert nonempty)
-apply (subgoal_tac "L(Memrel(succ(n)))")
-apply (rule_tac A="{B,n,z,0,Memrel(succ(n))}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF formula_replacement1_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (rule_tac u="{B,n,0,Memrel(succ(n))}" 
+         in gen_separation [OF formula_replacement1_Reflects], 
+       simp add: nonempty)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
@@ -528,20 +479,14 @@ lemma formula_replacement2:
                is_wfrec(L, iterates_MH(L,is_formula_functor(L), 0),
                         msn, n, y)))"
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (insert nonempty)
-apply (rule_tac A="{B,z,0,nat}" in subset_LsetE)
-apply (blast intro: L_nat)
-apply (rule ReflectsE [OF formula_replacement2_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule_tac u="{B,0,nat}" 
+         in gen_separation [OF formula_replacement2_Reflects], 
+       simp add: nonempty L_nat)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,B,0,nat]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,B,0,nat]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
@@ -609,23 +554,16 @@ lemma nth_replacement:
    "L(w) ==> iterates_replacement(L, %l t. is_tl(L,l,t), w)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
-apply (rule rallI)
-apply (rule separation_CollectI)
-apply (subgoal_tac "L(Memrel(succ(n)))")
-apply (rule_tac A="{A,n,w,z,Memrel(succ(n))}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF nth_replacement_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
-apply (elim conjE)
+apply (rule_tac u="{A,n,w,Memrel(succ(n))}" 
+         in gen_separation [OF nth_replacement_Reflects], 
+       simp add: nonempty)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,z,w,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,w,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats tl_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
-
 
 
 subsubsection{*Instantiating the locale @{text M_datatypes}*}
@@ -676,20 +614,13 @@ lemma eclose_replacement1:
    "L(A) ==> iterates_replacement(L, big_union(L), A)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (subgoal_tac "L(Memrel(succ(n)))")
-apply (rule_tac A="{B,A,n,z,Memrel(succ(n))}" in subset_LsetE, blast)
-apply (rule ReflectsE [OF eclose_replacement1_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
-apply (elim conjE)
+apply (rule_tac u="{B,A,n,Memrel(succ(n))}" 
+         in gen_separation [OF eclose_replacement1_Reflects], simp)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules iterates_MH_iff_sats is_nat_case_iff_sats
              is_wfrec_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
@@ -718,19 +649,13 @@ lemma eclose_replacement2:
                is_wfrec(L, iterates_MH(L,big_union(L), A),
                         msn, n, y)))"
 apply (rule strong_replacementI)
-apply (rule rallI)
 apply (rename_tac B)
-apply (rule separation_CollectI)
-apply (rule_tac A="{A,B,z,nat}" in subset_LsetE)
-apply (blast intro: L_nat)
-apply (rule ReflectsE [OF eclose_replacement2_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption)
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+apply (rule_tac u="{A,B,nat}" 
+         in gen_separation [OF eclose_replacement2_Reflects], simp add: L_nat)
+apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
-apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,B,nat]" in mem_iff_sats)
+apply (rule_tac env = "[u,x,A,B,nat]" in mem_iff_sats)
 apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
               is_wfrec_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
