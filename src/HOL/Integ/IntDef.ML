@@ -228,6 +228,11 @@ qed "zadd_zminus_inverse2";
 Addsimps [zadd_int0, zadd_int0_right,
 	  zadd_zminus_inverse, zadd_zminus_inverse2];
 
+(*for the instance declaration int :: plus_ac0*)
+Goal "0 + z = (z::int)";
+by (Simp_tac 1);
+qed "zadd_zero";
+
 Goal "z + (- z + w) = (w::int)";
 by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
 qed "zadd_zminus_cancel";
