@@ -28,7 +28,7 @@ inductive "acc r"
 syntax
   termi :: "('a \<times> 'a) set => 'a set"
 translations
-  "termi r" == "acc (r^-1)"
+  "termi r" == "acc (r\<inverse>)"
 
 
 subsection {* Induction rules *}
@@ -53,13 +53,13 @@ theorem acc_downward: "b \<in> acc r ==> (a, b) \<in> r ==> a \<in> acc r"
   apply fast
   done
 
-lemma acc_downwards_aux: "(b, a) \<in> r^* ==> a \<in> acc r --> b \<in> acc r"
+lemma acc_downwards_aux: "(b, a) \<in> r\<^sup>* ==> a \<in> acc r --> b \<in> acc r"
   apply (erule rtrancl_induct)
    apply blast
   apply (blast dest: acc_downward)
   done
 
-theorem acc_downwards: "a \<in> acc r ==> (b, a) \<in> r^* ==> b \<in> acc r"
+theorem acc_downwards: "a \<in> acc r ==> (b, a) \<in> r\<^sup>* ==> b \<in> acc r"
   apply (blast dest: acc_downwards_aux)
   done
 
