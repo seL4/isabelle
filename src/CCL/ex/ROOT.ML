@@ -16,5 +16,5 @@ time_use_thy "List";
 time_use_thy "Stream";
 time_use_thy "Flag";
 
-cd "..";
+OS.FileSys.chDir "..";
 maketest"END: Root file for CCL examples";

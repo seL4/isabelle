@@ -16,5 +16,5 @@ time_use_thy "Loop";
 time_use_thy "Fix2";
 time_use "loeckx.ML";
 
-cd "..";
+OS.FileSys.chDir "..";
 maketest     "END: Root file for HOLCF examples";

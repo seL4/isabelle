@@ -31,5 +31,5 @@ val thy = FOLP.thy  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
 
-cd "..";
+OS.FileSys.chDir "..";
 maketest"END: Root file for FOLP examples";

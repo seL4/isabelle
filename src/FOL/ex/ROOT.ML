@@ -41,5 +41,5 @@ writeln"\n** How to declare an oracle **\n";
 time_use_thy "IffOracle";
 
 
-cd "..";
+OS.FileSys.chDir "..";
 maketest"END: Root file for FOL examples";
