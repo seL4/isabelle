@@ -742,7 +742,7 @@ lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
 lemma set_of_multiset_of[simp]: "set_of(multiset_of x) = set x"
  by (induct_tac x, auto) 
 
-lemma multset_of_append[simp]: 
+lemma multiset_of_append[simp]: 
   "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
   by (rule_tac x=ys in spec, induct_tac xs, auto simp: union_ac) 
 
@@ -778,6 +778,9 @@ lemma set_eq_iff_multiset_of_remdups_eq:
   apply simp
   done
 
+lemma multiset_of_compl_union[simp]:
+ "multiset_of [x\<in>xs. P x] + multiset_of [x\<in>xs. \<not>P x] = multiset_of xs"
+  by (induct xs) (auto simp: union_ac)
 
 subsection {* Pointwise ordering induced by count *}
 
