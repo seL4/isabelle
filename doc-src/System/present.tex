@@ -327,7 +327,7 @@ Usage: latex [OPTIONS] [FILE]
 
   Options are:
     -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf, bbl, png
+                 ps.gz, pdf, bbl, png, sty
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.
@@ -337,6 +337,12 @@ the given output format: \texttt{latex}, \texttt{pdflatex}, \texttt{dvips},
 \texttt{bibtex} (for \texttt{bbl}), and \texttt{thumbpdf} (for \texttt{png}).
 The actual commands are determined from the settings environment
 (\texttt{ISABELLE_LATEX} etc., see \S\ref{sec:settings}).
+
+The \texttt{sty} output format causes the Isabelle style files to be updated
+from the distribution.  This is useful in special situations where the
+document sources are to be processed another time by separate tools (cf.\ 
+option \texttt{-D} of the \texttt{usedir} utility, see
+\S\ref{sec:tool-usedir}).
 
 It is important to note that the {\LaTeX} inputs file space has to be properly
 setup to include the Isabelle styles.  Usually, this may be done by modifying
@@ -484,7 +490,8 @@ dumped at location \texttt{PATH}, which is relative to the session's main
 directory.  For example, \texttt{-D document} would leave a copy of the
 {\LaTeX} sources in the actual document directory.  Thus the Isabelle
 \texttt{document} or \texttt{latex} tools may be run later, facilitating much
-easier debugging of {\LaTeX} errors, for example.
+easier debugging of {\LaTeX} errors, for example.  Note that a copy of the
+Isabelle style files will be placed in \texttt{PATH} as well.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend on
