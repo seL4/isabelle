@@ -59,15 +59,14 @@ lemma real_add_minus_eq: "x - y = (#0::real) ==> x = y"
 lemma abs_minus_one: "abs (- (#1::real)) = #1" 
   by simp
 
-
 lemma real_mult_le_le_mono1a: 
   "[| (#0::real) <= z; x <= y |] ==> z * x  <= z * y"
 proof -
-  assume "(#0::real) <= z" "x <= y"
+  assume z: "(#0::real) <= z" and "x <= y"
   hence "x < y | x = y" by (force simp add: order_le_less)
   thus ?thesis
   proof (elim disjE) 
-   assume "x < y" show ?thesis by (rule real_mult_le_less_mono2) simp
+   assume "x < y" show ?thesis by  (rule real_mult_le_less_mono2) simp
   next 
    assume "x = y" thus ?thesis by simp
   qed
