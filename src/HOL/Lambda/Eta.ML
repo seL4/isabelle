@@ -9,18 +9,12 @@ commutation of beta/eta,
 confluence of beta+eta
 *)
 
-open Eta;
-
 Addsimps eta.intrs;
+AddIs eta.intrs;
 
 val eta_cases = map (eta.mk_cases dB.simps)
     ["Abs s -e> z","s $ t -e> u","Var i -e> t"];
-
-val beta_cases = map (beta.mk_cases dB.simps)
-    ["s $ t -> u","Var i -> t"];
-
-AddIs eta.intrs;
-AddSEs (beta_cases@eta_cases);
+AddSEs eta_cases;
 
 section "eta, subst and free";
 
@@ -177,11 +171,11 @@ by (induct_tac "s" 1);
   by (rtac notE 1);
    by (assume_tac 2);
   by (etac thin_rl 1);
-  by (res_inst_tac [("dB","t")] dB_case_distinction 1);
-    by (Simp_tac 1);
+  by (exhaust_tac "t" 1);
+    by (Asm_simp_tac 1);
     by (blast_tac (HOL_cs addDs [less_not_refl2]) 1);
-   by (Simp_tac 1);
-  by (Simp_tac 1);
+   by (Asm_simp_tac 1);
+  by (Asm_simp_tac 1);
  by (Asm_simp_tac 1);
  by (etac thin_rl 1);
  by (etac thin_rl 1);
@@ -193,11 +187,11 @@ by (induct_tac "s" 1);
   by (Asm_simp_tac 1);
  by (etac exE 1);
  by (etac rev_mp 1);
- by (res_inst_tac [("dB","t")] dB_case_distinction 1);
-   by (Simp_tac 1);
-  by (Simp_tac 1);
+ by (exhaust_tac "t" 1);
+   by (Asm_simp_tac 1);
+  by (Asm_simp_tac 1);
   by (Blast_tac 1);
- by (Simp_tac 1);
+ by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 by (etac thin_rl 1);
 by (rtac allI 1);
@@ -207,10 +201,10 @@ by (rtac iffI 1);
  by (Asm_simp_tac 1);
 by (etac exE 1);
 by (etac rev_mp 1);
-by (res_inst_tac [("dB","t")] dB_case_distinction 1);
-  by (Simp_tac 1);
- by (Simp_tac 1);
-by (Simp_tac 1);
+by (exhaust_tac "t" 1);
+  by (Asm_simp_tac 1);
+ by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "not_free_iff_lifted";
 

@@ -8,16 +8,15 @@ Substitution-lemmas.
 
 (*** Lambda ***)
 
-open Lambda;
+val beta_cases = map (beta.mk_cases dB.simps)
+    ["Var i -> t", "Abs r -> s", "s $ t -> u"];
+AddSEs beta_cases;
 
 Delsimps [subst_Var];
 Addsimps ([if_not_P, not_less_eq] @ beta.intrs);
 
 (* don't add r_into_rtrancl! *)
 AddSIs beta.intrs;
-
-val dB_case_distinction =
-  rule_by_tactic(EVERY[etac thin_rl 2,etac thin_rl 2,etac thin_rl 3])dB.induct;
 
 (*** Congruence rules for ->> ***)
 
@@ -135,3 +134,26 @@ Addsimps [substn_subst_n];
 Goal "substn t s 0 = t[s/0]";
 by (Simp_tac 1);
 qed "substn_subst_0";
+
+(*** Preservation thms ***)
+(* Not used in CR-proof but in SN-proof *)
+
+Goal "r -> s ==> !t i. r[t/i] -> s[t/i]";
+be beta.induct 1;
+by(ALLGOALS (asm_simp_tac (simpset() addsimps [subst_subst RS sym])));
+qed_spec_mp "subst_preserves_beta";
+Addsimps [subst_preserves_beta];
+
+Goal "r -> s ==> !i. lift r i -> lift s i";
+be beta.induct 1;
+by(Auto_tac);
+qed_spec_mp "lift_preserves_beta";
+Addsimps [lift_preserves_beta];
+
+Goal "!r s i. r -> s --> t[r/i] ->> t[s/i]";
+by(induct_tac "t" 1);
+by(asm_simp_tac (addsplit(simpset() addsimps [r_into_rtrancl])) 1);
+by(asm_simp_tac (simpset() addsimps [rtrancl_beta_App]) 1);
+by(asm_simp_tac (simpset() addsimps [rtrancl_beta_Abs]) 1);
+qed_spec_mp "subst_preserves_beta2";
+Addsimps [subst_preserves_beta2];
