@@ -576,7 +576,7 @@ val typed_print_translation =
     "Theory.add_trfunsT typed_print_translation" o Comment.ignore;
 
 val token_translation =
-  Context.use_let "val token_translation: (string * string * (string -> string * int)) list"
+  Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
     "Theory.add_tokentrfuns token_translation" o Comment.ignore;
 
 
