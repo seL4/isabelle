@@ -41,7 +41,7 @@ val typedef_decl =
 val record_decl =
   name --$$ "=" -- optional (name --$$ "+" >> (parens o cat "Some")) "None" --
   repeat1 ((name --$$ "::" -- typ) >> mk_pair)
-  >> (fn ((x, y), zs) => space_implode " " [x, y, mk_list zs]);
+  >> (fn ((x, y), zs) => cat_lines [x, y, mk_big_list zs]);
 
 
 (** (co)inductive **)
