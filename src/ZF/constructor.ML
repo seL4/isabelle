@@ -148,7 +148,7 @@ val const_decs = remove_mixfixes ext
 		    flat (map #3 rec_specs));
 
 val con_thy = extend_theory thy (big_rec_name ^ "_Constructors")
-    ([], [], [], [], const_decs, ext) axpairs;
+    ([], [], [], [], [], const_decs, ext) axpairs;
 
 (*1st element is the case definition; others are the constructors*)
 val con_defs = map (get_axiom con_thy o #1) axpairs;
