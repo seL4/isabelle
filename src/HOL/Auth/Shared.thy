@@ -63,8 +63,8 @@ done
 
 (*Specialized to shared-key model: no @{term invKey}*)
 lemma keysFor_parts_insert:
-     "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |] \
-\     ==> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H";
+     "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |]
+      ==> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H";
 by (force dest: Event.keysFor_parts_insert)  
 
 lemma Crypt_imp_keysFor: "Crypt K X \<in> H ==> K \<in> keysFor H"
