@@ -10,6 +10,13 @@ val mult_2_right = thm"mult_2_right";
 fun ARITH_PROVE str = prove_goal thy str
                       (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
 
+fun CLAIM_SIMP str thms =
+               prove_goal (the_context()) str
+               (fn prems => [cut_facts_tac prems 1,
+                   auto_tac (claset(),simpset() addsimps thms)]);
+
+fun CLAIM str = CLAIM_SIMP str [];
+
 Goalw [psize_def] "a = b ==> psize (%n. if n = 0 then a else b) = 0";
 by Auto_tac;
 qed "partition_zero";
