@@ -11,7 +11,7 @@ Conservative extension of theory Porder0 by constant definitions
 (* ------------------------------------------------------------------------ *)
 
 
-Goalw [is_lub, is_ub] 
+Goalw [is_lub_def, is_ub_def] 
         "[| S <<| x ; S <<| y |] ==> x=y";
 by (blast_tac (claset() addIs [antisym_less]) 1);
 qed "unique_lub";
@@ -20,7 +20,7 @@ qed "unique_lub";
 (* chains are monotone functions                                            *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [chain] "chain F ==> x<y --> F x<<F y";
+Goalw [chain_def] "chain F ==> x<y --> F x<<F y";
 by (induct_tac "y" 1);
 by Auto_tac;  
 by (blast_tac (claset() addIs [trans_less]) 2);
@@ -37,7 +37,7 @@ qed "chain_mono3";
 (* The range of a chain is a totally ordered     <<                         *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [tord] "chain(F) ==> tord(range(F))";
+Goalw [tord_def] "chain(F) ==> tord(range(F))";
 by (Safe_tac);
 by (rtac nat_less_cases 1);
 by (ALLGOALS (fast_tac (claset() addIs [chain_mono])));
@@ -62,7 +62,7 @@ qed "thelubI";
 
 
 Goal "lub{x} = x";
-by (simp_tac (simpset() addsimps [thelubI,is_lub,is_ub]) 1);
+by (simp_tac (simpset() addsimps [thelubI,is_lub_def,is_ub_def]) 1);
 qed "lub_singleton";
 Addsimps [lub_singleton];
 
@@ -70,36 +70,42 @@ Addsimps [lub_singleton];
 (* access to some definition as inference rule                              *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [is_lub] "S <<| x ==> S <| x";
+Goalw [is_lub_def] "S <<| x ==> S <| x";
 by Auto_tac;
 qed "is_lubD1";
 
-Goalw [is_lub] "[| S <<| x; S <| u |] ==> x << u";
+Goalw [is_lub_def] "[| S <<| x; S <| u |] ==> x << u";
 by Auto_tac;
 qed "is_lub_lub";
 
-val prems = Goalw [is_lub]
+val prems = Goalw [is_lub_def]
         "[| S <| x; !!u. S <| u ==> x << u |] ==> S <<| x";
 by (blast_tac (claset() addIs prems) 1);
 qed "is_lubI";
 
-Goalw [chain] "chain F ==> F(i) << F(Suc(i))";
+Goalw [chain_def] "chain F ==> F(i) << F(Suc(i))";
 by Auto_tac;
 qed "chainE";
 
-val prems = Goalw [chain] "(!!i. F i << F(Suc i)) ==> chain F";
+val prems = Goalw [chain_def] "(!!i. F i << F(Suc i)) ==> chain F";
 by (blast_tac (claset() addIs prems) 1);
 qed "chainI";
+
+Goal "chain Y ==> chain (%i. Y (i + j))";
+br chainI 1;
+by (Clarsimp_tac 1);
+be chainE 1;
+qed "chain_shift";
 
 (* ------------------------------------------------------------------------ *)
 (* technical lemmas about (least) upper bounds of chains                    *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [is_ub] "range S <| x  ==> S(i) << x";
+Goalw [is_ub_def] "range S <| x  ==> S(i) << x";
 by (Blast_tac 1);
 qed "ub_rangeD";
 
-val prems = Goalw [is_ub] "(!!i. S i << x) ==> range S <| x";
+val prems = Goalw [is_ub_def] "(!!i. S i << x) ==> range S <| x";
 by (blast_tac (claset() addIs prems) 1);
 qed "ub_rangeI";
 
