@@ -88,6 +88,12 @@ sig
   val vars_of		: thm -> (indexname * typ) list
   val unvarifyT		: thm -> thm
   val unvarify		: thm -> thm
+  val rule_attribute	: ('a -> thm -> thm) -> 'a attribute
+  val tag		: tag -> 'a attribute
+  val untag		: tag -> 'a attribute
+  val tag_lemma		: 'a attribute
+  val tag_assumption	: 'a attribute
+  val tag_internal	: 'a attribute
 end;
 
 structure Drule: DRULE =
@@ -667,6 +673,29 @@ fun unvarify raw_thm =
 
 (*make an initial proof state, "PROP A ==> (PROP A)" *)
 fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
+
+
+
+(** basic attributes **)
+
+(* dependent rules *)
+
+fun rule_attribute f (x, thm) = (x, (f x thm));
+
+
+(* add / delete tags *)
+
+fun map_tags f thm =
+  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
+
+fun tag tg x = rule_attribute (K (map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]))) x;
+fun untag tg x = rule_attribute (K (map_tags (fn tgs => tgs \ tg))) x;
+
+fun simple_tag name x = tag (name, []) x;
+
+fun tag_lemma x = simple_tag "lemma" x;
+fun tag_assumption x = simple_tag "assumption" x;
+fun tag_internal x = simple_tag "internal" x;
 
 
 end;
