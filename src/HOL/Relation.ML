@@ -411,16 +411,21 @@ by Auto_tac;
 qed "univalentD";
 
 
-(** Graphs of partial functions **)
+(** Graphs given by Collect **)
 
-Goal "Domain{(x,y). y = f x & P x} = {x. P x}";
-by (Blast_tac 1);
-qed "Domain_partial_func";
+Goal "Domain{(x,y). P x y} = {x. EX y. P x y}";
+by Auto_tac; 
+qed "Domain_Collect_split";
 
-Goal "Range{(x,y). y = f x & P x} = f``{x. P x}";
-by (Blast_tac 1);
-qed "Range_partial_func";
+Goal "Range{(x,y). P x y} = {y. EX x. P x y}";
+by Auto_tac; 
+qed "Range_Collect_split";
 
+Goal "{(x,y). P x y} ^^ A = {y. EX x:A. P x y}";
+by Auto_tac; 
+qed "Image_Collect_split";
+
+Addsimps [Domain_Collect_split, Range_Collect_split, Image_Collect_split];
 
 (** Composition of function and relation **)
 
