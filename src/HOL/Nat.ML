@@ -43,12 +43,6 @@ by Auto_tac;
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
-Goal "!!n::nat. (0 ~= n) = (0 < n)";
-by (case_tac "n" 1);
-by Auto_tac;
-qed "zero_neq_conv";
-AddIffs [zero_neq_conv];
-
 (*This theorem is useful with blast_tac: (n=0 ==> False) ==> 0<n *)
 bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
 
@@ -235,21 +229,10 @@ by (Auto_tac);
 qed "add_is_0";
 AddIffs [add_is_0];
 
-Goal "!!m::nat. (0 = m+n) = (m=0 & n=0)";
-by (case_tac "m" 1);
-by (Auto_tac);
-qed "zero_is_add";
-AddIffs [zero_is_add];
-
 Goal "!!m::nat. (m+n=1) = (m=1 & n=0 | m=0 & n=1)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "add_is_1";
-
-Goal "!!m::nat. (1=m+n) = (m=1 & n=0 | m=0 & n=1)";
-by (case_tac "m" 1);
-by (Auto_tac);
-qed "one_is_add";
 
 Goal "!!m::nat. (0<m+n) = (0<m | 0<n)";
 by (simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
@@ -445,13 +428,7 @@ by (induct_tac "m" 1);
 by (induct_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "mult_is_0";
-
-Goal "!!m::nat. (0 = m*n) = (0=m | 0=n)";
-by (stac eq_commute 1 THEN stac mult_is_0 1);
-by Auto_tac;
-qed "zero_is_mult";
-
-Addsimps [mult_is_0, zero_is_mult];
+Addsimps [mult_is_0];
 
 
 (*** Difference ***)
@@ -552,12 +529,7 @@ Goal "!!m::nat. (m-n = 0) = (m <= n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_is_0_eq";
-
-Goal "!!m::nat. (0 = m-n) = (m <= n)";
-by (stac (diff_is_0_eq RS sym) 1);
-by (rtac eq_sym_conv 1);
-qed "zero_is_diff_eq";
-Addsimps [diff_is_0_eq, zero_is_diff_eq];
+Addsimps [diff_is_0_eq];
 
 Goal "!!m::nat. (0<n-m) = (m<n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);

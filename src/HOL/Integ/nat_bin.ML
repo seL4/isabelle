@@ -309,8 +309,7 @@ Addsimps (map rename_numerals [min_0L, min_0R, max_0L, max_0R]);
 
 AddIffs (map rename_numerals
 	 [Suc_not_Zero, Zero_not_Suc, zero_less_Suc, not_less0, less_one, 
-	  le0, le_0_eq, 
-	  neq0_conv, zero_neq_conv, not_gr0]);
+	  le0, le_0_eq, neq0_conv, not_gr0]);
 
 (** Arith **)
 
@@ -323,12 +322,12 @@ val basic_renamed_arith_simps =
 (*Non-trivial simplifications*)	 
 val other_renamed_arith_simps =
     map rename_numerals
-	[diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
-	 mult_is_0, zero_is_mult, zero_less_mult_iff, mult_eq_1_iff];
+	[diff_is_0_eq, zero_less_diff,
+	 mult_is_0, zero_less_mult_iff, mult_eq_1_iff];
 
 Addsimps (basic_renamed_arith_simps @ other_renamed_arith_simps);
 
-AddIffs (map rename_numerals [add_is_0, zero_is_add, add_gr_0]);
+AddIffs (map rename_numerals [add_is_0, add_gr_0]);
 
 Goal "Suc n = n + #1";
 by (asm_simp_tac numeral_ss 1);
@@ -359,7 +358,6 @@ Addsimps [inst "n" "number_of ?v" diff_less'];
 
 (*various theorems that aren't in the default simpset*)
 bind_thm ("add_is_one'", rename_numerals add_is_1);
-bind_thm ("one_is_add'", rename_numerals one_is_add);
 bind_thm ("zero_induct'", rename_numerals zero_induct);
 bind_thm ("diff_self_eq_0'", rename_numerals diff_self_eq_0);
 bind_thm ("mult_eq_self_implies_10'", rename_numerals mult_eq_self_implies_10);
