@@ -160,6 +160,7 @@ DATE=$(date)
 HOST=$(hostname)
 echo "Started at $DATE ($HOST)"
 
+unset ISABELLE_SETTINGS_PRESENT
 export THIS_IS_ISABELLE_BUILD=true
 
 for L in $MAKE_LOGICS
