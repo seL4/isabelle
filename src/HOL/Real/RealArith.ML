@@ -28,6 +28,16 @@ by (auto_tac (claset() addDs [rename_numerals real_inverse_less_zero],
 qed "real_inverse_less_0_iff";
 AddIffs [real_inverse_less_0_iff];
 
+Goal "((#0::real) <= inverse x) = (#0 <= x)";
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
+qed "real_0_le_inverse_iff";
+AddIffs [real_0_le_inverse_iff];
+
+Goal "(inverse x <= (#0::real)) = (x <= #0)";
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
+qed "real_inverse_le_0_iff";
+AddIffs [real_inverse_le_0_iff];
+
 Goalw [real_divide_def] "x/(#0::real) = #0";
 by (stac (rename_numerals INVERSE_ZERO) 1); 
 by (Simp_tac 1); 
@@ -59,8 +69,11 @@ Addsimps [real_divide_1];
 (** Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
     but not (yet?) for k*m < n*k. **)
 
-bind_thm ("real_minus_less_minus", real_less_swap_iff RS sym);
 bind_thm ("real_mult_minus_right", real_minus_mult_eq2 RS sym);
+
+Goal "(-y < -x) = ((x::real) < y)";
+by (arith_tac 1);
+qed "real_minus_less_minus";
 
 Goal "[| i<j;  k < (0::real) |] ==> j*k < i*k";
 by (rtac (real_minus_less_minus RS iffD1) 1);

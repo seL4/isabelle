@@ -96,12 +96,6 @@ Goal "~ 0 < y ==> ALL x. y < real_of_preal x";
 by (blast_tac (claset() addSIs [real_less_all_preal,real_leI]) 1);
 qed "real_less_all_real2";
 
-Goal "((x::real) < y) = (-y < -x)";
-by (rtac (real_less_sum_gt_0_iff RS subst) 1);
-by (res_inst_tac [("W1","x")] (real_less_sum_gt_0_iff RS subst) 1);
-by (simp_tac (simpset() addsimps [real_add_commute]) 1);
-qed "real_less_swap_iff";
-
 Goal "[| R + L = S;  (0::real) < L |] ==> R < S";
 by (rtac (real_less_sum_gt_0_iff RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps real_add_ac));
@@ -116,32 +110,6 @@ Goal "(R < S) = (EX T::real. 0 < T & R + T = S)";
 by (blast_tac (claset() addSIs [real_less_add_positive_left_Ex,
 				real_ex_add_positive_left_less]) 1);
 qed "real_less_iff_add";
-
-Goal "((0::real) < x) = (-x < x)";
-by Safe_tac;
-by (rtac ccontr 2 THEN forward_tac 
-    [real_leI RS real_le_imp_less_or_eq] 2);
-by (Step_tac 2);
-by (dtac (real_minus_zero_less_iff RS iffD2) 2);
-by (blast_tac (claset() addIs [real_less_trans]) 2);
-by (auto_tac (claset(),
-	      simpset() addsimps 
- 	        [real_gt_zero_preal_Ex,real_of_preal_minus_less_self]));
-qed "real_gt_zero_iff";
-
-Goal "(x < (0::real)) = (x < -x)";
-by (rtac (real_minus_zero_less_iff RS subst) 1);
-by (stac real_gt_zero_iff 1);
-by (Full_simp_tac 1);
-qed "real_lt_zero_iff";
-
-Goalw [real_le_def] "((0::real) <= x) = (-x <= x)";
-by (auto_tac (claset(), simpset() addsimps [real_lt_zero_iff RS sym]));
-qed "real_ge_zero_iff";
-
-Goalw [real_le_def] "(x <= (0::real)) = (x <= -x)";
-by (auto_tac (claset(), simpset() addsimps [real_gt_zero_iff RS sym]));
-qed "real_le_zero_iff";
 
 Goal "(real_of_preal m1 <= real_of_preal m2) = (m1 <= m2)";
 by (auto_tac (claset() addSIs [preal_leI],
