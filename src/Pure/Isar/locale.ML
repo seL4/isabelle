@@ -42,10 +42,10 @@ sig
   val cert_context_statement: string option -> context attribute element_i list ->
     (term * (term list * term list)) list list -> context ->
     string option * context * context * (term * (term list * term list)) list list
+  val print_locales: theory -> unit
+  val print_locale: theory -> expr -> context attribute element list -> unit
   val add_locale: bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bstring -> expr -> context attribute element_i list -> theory -> theory
-  val print_locales: theory -> unit
-  val print_locale: theory -> expr -> unit
   val have_thmss: string -> xstring ->
     ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
@@ -694,11 +694,13 @@ end;
 
 (** print locale **)
 
-fun print_locale thy raw_expr =
+fun print_locale thy import body =
   let
     val sg = Theory.sign_of thy;
     val thy_ctxt = ProofContext.init thy;
-    val (((ctxt, elemss), _), ((_, (pred_xs, pred_ts)), _)) = read_context raw_expr [] thy_ctxt;
+    val (((_, import_elemss), (ctxt, elemss)), ((_, (pred_xs, pred_ts)), _)) =
+      read_context import body thy_ctxt;
+    val all_elems = flat (map #2 (import_elemss @ elemss));
 
     val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
@@ -733,7 +735,7 @@ fun print_locale thy raw_expr =
         |> curry Term.list_abs_free pred_xs
         |> prt_term;
   in
-    [Pretty.big_list "context elements:" (map (Pretty.chunks o prt_elem) (flat (map #2 elemss))),
+    [Pretty.big_list "context elements:" (map (Pretty.chunks o prt_elem) all_elems),
       Pretty.big_list "predicate text:" [prt_pred]] |> Pretty.chunks |> Pretty.writeln
   end;
 

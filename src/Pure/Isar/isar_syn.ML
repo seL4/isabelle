@@ -286,15 +286,14 @@ val oracleP =
 
 (* locales *)
 
-val locale_decl =
-  (P.name --| P.$$$ "=") --
-    (P.locale_expr -- Scan.optional
-      (P.$$$ "+" |-- P.!!! (Scan.repeat1 (P.locale_element -- P.marg_comment))) [] ||
-    Scan.repeat1 (P.locale_element -- P.marg_comment) >> pair Locale.empty) >> P.triple2;
+val locale_val =
+  (P.locale_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 (P.locale_element -- P.marg_comment))) [] ||
+  Scan.repeat1 (P.locale_element -- P.marg_comment) >> pair Locale.empty);
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (locale_decl >> (Toplevel.theory o IsarThy.add_locale));
+    ((P.name --| P.$$$ "=") -- locale_val >> (Toplevel.theory o IsarThy.add_locale o P.triple2));
 
 
 
@@ -563,7 +562,7 @@ val print_localesP =
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print named locale of this theory" K.diag
-    (P.locale_expr >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
