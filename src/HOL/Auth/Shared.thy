@@ -20,7 +20,7 @@ consts  (*Initial states of agents -- parameter of the construction*)
   initState :: [agent set, agent] => msg set
 
 primrec initState agent
-        (*Server knows all keys; other agents know only their own*)
+        (*Server knows all long-term keys; other agents know only their own*)
   initState_Server  "initState lost Server     = Key `` range shrK"
   initState_Friend  "initState lost (Friend i) = {Key (shrK (Friend i))}"
   initState_Spy     "initState lost Spy        = Key``shrK``lost"
@@ -40,13 +40,12 @@ consts
   sees :: [agent set, agent, event list] => msg set
 
 primrec sees list
-        (*Initial knowledge includes all public keys and own private key*)
   sees_Nil  "sees lost A []       = initState lost A"
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
-(*Agents generate "random" nonces.  Different traces always yield
-  different nonces.  Same applies for keys.*)
+(*Agents generate "random" nonces and keys.  These are uniquely determined by
+  the length of their argument, a trace.*)
 consts
   newN :: "event list => nat"
   newK :: "event list => key"
