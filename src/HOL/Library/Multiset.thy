@@ -46,9 +46,7 @@ constdefs
   set_of :: "'a multiset => 'a set"
   "set_of M == {x. x :# M}"
 
-instance multiset :: (type) plus ..
-instance multiset :: (type) minus ..
-instance multiset :: (type) zero ..
+instance multiset :: (type) "{plus, minus, zero}" ..
 
 defs (overloaded)
   union_def: "M + N == Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"

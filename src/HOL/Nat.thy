@@ -41,9 +41,7 @@ global
 typedef (open Nat)
   nat = Nat by (rule exI, rule Nat.Zero_RepI)
 
-instance nat :: ord ..
-instance nat :: zero ..
-instance nat :: one ..
+instance nat :: "{ord, zero, one}" ..
 
 
 text {* Abstract constants and syntax *}
@@ -462,15 +460,13 @@ lemma nat_le_linear: "(m::nat) \<le> n | n \<le> m"
 
 text {* Type {@typ nat} is a wellfounded linear order *}
 
-instance nat :: order by (intro_classes,
-  (assumption | rule le_refl le_trans le_anti_sym nat_less_le)+)
-instance nat :: linorder by (intro_classes, rule nat_le_linear)
-instance nat :: wellorder by (intro_classes, rule wf_less)
-
+instance nat :: "{order, linorder, wellorder}"
+  by intro_classes
+    (assumption |
+      rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
 
 lemma not_less_less_Suc_eq: "~ n < m ==> (n < Suc m) = (n = m)"
   by (blast elim!: less_SucE)
-
 
 text {*
   Rewrite @{term "n < Suc m"} to @{term "n = m"}
@@ -506,10 +502,7 @@ consts
 
 text {* arithmetic operators @{text "+ -"} and @{text "*"} *}
 
-instance nat :: plus ..
-instance nat :: minus ..
-instance nat :: times ..
-instance nat :: power ..
+instance nat :: "{plus, minus, times, power}" ..
 
 text {* size of a datatype value; overloaded *}
 consts size :: "'a => nat"

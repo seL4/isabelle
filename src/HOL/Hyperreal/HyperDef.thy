@@ -23,14 +23,7 @@ constdefs
 typedef hypreal = "UNIV//hyprel" 
     by (auto simp add: quotient_def) 
 
-instance hypreal :: ord ..
-instance hypreal :: zero ..
-instance hypreal :: one ..
-instance hypreal :: plus ..
-instance hypreal :: times ..
-instance hypreal :: minus ..
-instance hypreal :: inverse ..
-
+instance hypreal :: "{ord, zero, one, plus, times, minus, inverse}" ..
 
 defs (overloaded)
 
@@ -58,10 +51,10 @@ constdefs
   hypreal_of_real  :: "real => hypreal"
   "hypreal_of_real r         == Abs_hypreal(hyprel``{%n::nat. r})"
 
-  omega   :: hypreal   (*an infinite number = [<1,2,3,...>] *)
+  omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
   "omega == Abs_hypreal(hyprel``{%n::nat. real (Suc n)})"
 
-  epsilon :: hypreal   (*an infinitesimal number = [<1,1/2,1/3,...>] *)
+  epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
   "epsilon == Abs_hypreal(hyprel``{%n::nat. inverse (real (Suc n))})"
 
 syntax (xsymbols)
@@ -341,9 +334,9 @@ lemma hypreal_add_zero_left: "(0::hypreal) + z = z"
 by (cases z, simp add: hypreal_zero_def hypreal_add)
 
 instance hypreal :: plus_ac0
-  by (intro_classes,
-      (assumption | 
-       rule hypreal_add_commute hypreal_add_assoc hypreal_add_zero_left)+)
+  by intro_classes
+    (assumption | 
+      rule hypreal_add_commute hypreal_add_assoc hypreal_add_zero_left)+
 
 lemma hypreal_add_zero_right [simp]: "z + (0::hypreal) = z"
 by (simp add: hypreal_add_zero_left hypreal_add_commute)
@@ -502,9 +495,9 @@ lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
 by (simp add: hypreal_less_def)
 
 instance hypreal :: order
-proof qed
- (assumption |
-  rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym hypreal_less_le)+
+  by intro_classes
+    (assumption |
+      rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym hypreal_less_le)+
 
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
@@ -514,7 +507,7 @@ apply (auto simp add: hypreal_le, ultra)
 done
 
 instance hypreal :: linorder 
-  by (intro_classes, rule hypreal_le_linear)
+  by intro_classes (rule hypreal_le_linear)
 
 lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
 by (auto simp add: order_less_irrefl)

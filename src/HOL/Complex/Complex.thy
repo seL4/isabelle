@@ -11,13 +11,7 @@ theory Complex = HLog:
 
 datatype complex = Complex real real
 
-instance complex :: zero ..
-instance complex :: one ..
-instance complex :: plus ..
-instance complex :: times ..
-instance complex :: minus ..
-instance complex :: inverse ..
-instance complex :: power ..
+instance complex :: "{zero, one, plus, times, minus, inverse, power}" ..
 
 consts
   "ii"    :: complex    ("\<i>")

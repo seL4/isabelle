@@ -20,11 +20,8 @@ matrix_right_distrib: "a*(b+c) = a*b+a*c"
 axclass matrix_element < almost_matrix_element
 matrix_add_0[simp]: "0+0 = 0"
 
-instance matrix :: (plus) plus
-by (intro_classes)
-
-instance matrix :: (times) times
-by (intro_classes)
+instance matrix :: (plus) plus ..
+instance matrix :: (times) times ..
 
 defs (overloaded)
 plus_matrix_def: "A + B == combine_matrix (op +) A B"
@@ -127,7 +124,7 @@ axclass g_semiring < g_almost_semiring
 g_add_leftimp_eq: "a+b = a+c \<Longrightarrow> b = c"
 
 instance g_almost_semiring < matrix_element
-by (intro_classes, simp)
+  by intro_classes simp
 
 instance semiring < g_semiring
 apply (intro_classes)
@@ -197,8 +194,7 @@ instance almost_ordered_semiring < pordered_g_semiring
 apply (intro_classes)
 by (simp_all add: add_right_mono mult_right_mono mult_left_mono)
 
-instance matrix :: (pordered_g_semiring) pordered_g_semiring
-by (intro_classes)
+instance matrix :: (pordered_g_semiring) pordered_g_semiring ..
 
 lemma nrows_mult: "nrows ((A::('a::matrix_element) matrix) * B) <= nrows A"
 by (simp add: times_matrix_def mult_nrows)

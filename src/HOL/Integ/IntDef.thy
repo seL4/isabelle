@@ -18,15 +18,9 @@ typedef (Integ)
   int = "UNIV//intrel"
     by (auto simp add: quotient_def)
 
-instance int :: ord ..
-instance int :: zero ..
-instance int :: one ..
-instance int :: plus ..
-instance int :: times ..
-instance int :: minus ..
+instance int :: "{ord, zero, one, plus, times, minus}" ..
 
 constdefs
-
   int :: "nat => int"
   "int m == Abs_Integ(intrel `` {(m,0)})"
 
@@ -279,16 +273,16 @@ lemma zless_le: "((w::int) < z) = (w \<le> z & w \<noteq> z)"
 by (simp add: less_int_def)
 
 instance int :: order
-proof qed
- (assumption |
-  rule zle_refl zle_trans zle_anti_sym zless_le)+
+  by intro_classes
+    (assumption |
+      rule zle_refl zle_trans zle_anti_sym zless_le)+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma zle_linear: "(z::int) \<le> w | w \<le> z"
-by (cases z, cases w, simp add: le linorder_linear)
+by (cases z, cases w) (simp add: le linorder_linear)
 
 instance int :: linorder
-proof qed (rule zle_linear)
+  by intro_classes (rule zle_linear)
 
 
 lemmas zless_linear = linorder_less_linear [where 'a = int]

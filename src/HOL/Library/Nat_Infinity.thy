@@ -21,8 +21,7 @@ text {*
 
 datatype inat = Fin nat | Infty
 
-instance inat :: ord ..
-instance inat :: zero ..
+instance inat :: "{ord, zero}" ..
 
 consts
   iSuc :: "inat => inat"

@@ -4,10 +4,7 @@
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Rational numbers}
-  \author{Markus Wenzel}
-*}
+header {* Rational numbers *}
 
 theory Rational = Quotient + Main
 files ("rat_arith.ML"):
@@ -117,13 +114,7 @@ text {*
  to equivalence of fractions.
 *}
 
-instance fraction :: zero ..
-instance fraction :: one ..
-instance fraction :: plus ..
-instance fraction :: minus ..
-instance fraction :: times ..
-instance fraction :: inverse ..
-instance fraction :: ord ..
+instance fraction :: "{zero, one, plus, minus, times, inverse, ord}" ..
 
 defs (overloaded)
   zero_fraction_def: "0 == fract 0 1"
@@ -354,13 +345,7 @@ qed
 
 subsubsection {* Standard operations on rational numbers *}
 
-instance rat :: zero ..
-instance rat :: one ..
-instance rat :: plus ..
-instance rat :: minus ..
-instance rat :: times ..
-instance rat :: inverse ..
-instance rat :: ord ..
+instance rat :: "{zero, one, plus, minus, times, inverse, ord}" ..
 
 defs (overloaded)
   zero_rat_def: "0 == rat_of 0"
@@ -369,7 +354,7 @@ defs (overloaded)
   minus_rat_def: "-q == rat_of (-(fraction_of q))"
   diff_rat_def: "q - r == q + (-(r::rat))"
   mult_rat_def: "q * r == rat_of (fraction_of q * fraction_of r)"
-  inverse_rat_def: "inverse q == 
+  inverse_rat_def: "inverse q ==
                     if q=0 then 0 else rat_of (inverse (fraction_of q))"
   divide_rat_def: "q / r == q * inverse (r::rat)"
   le_rat_def: "q \<le> r == fraction_of q \<le> fraction_of r"
@@ -377,7 +362,7 @@ defs (overloaded)
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
 
 theorem zero_rat: "0 = Fract 0 1"
-  by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)        
+  by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)
 
 theorem one_rat: "1 = Fract 1 1"
   by (simp add: one_rat_def one_fraction_def rat_of_def Fract_def)
@@ -470,14 +455,14 @@ theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
 
 theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (simp add: abs_rat_def minus_rat zero_rat less_rat eq_rat)
-     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less 
+     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less
                 split: abs_split)
 
 
 subsubsection {* The ordered field of rational numbers *}
 
 lemma rat_add_assoc: "(q + r) + s = q + (r + (s::rat))"
-  by (induct q, induct r, induct s) 
+  by (induct q, induct r, induct s)
      (simp add: add_rat add_ac mult_ac int_distrib)
 
 lemma rat_add_0: "0 + q = (q::rat)"
@@ -507,14 +492,14 @@ proof
   show "1 * q = q"
     by (induct q) (simp add: one_rat mult_rat)
   show "(q + r) * s = q * s + r * s"
-    by (induct q, induct r, induct s) 
+    by (induct q, induct r, induct s)
        (simp add: add_rat mult_rat eq_rat int_distrib)
   show "q \<noteq> 0 ==> inverse q * q = 1"
     by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
   show "q / r = q * inverse r"
-    by (simp add: divide_rat_def) 
+    by (simp add: divide_rat_def)
   show "0 \<noteq> (1::rat)"
-    by (simp add: zero_rat one_rat eq_rat) 
+    by (simp add: zero_rat one_rat eq_rat)
 qed
 
 instance rat :: linorder
@@ -638,7 +623,7 @@ qed
 subsection {* Various Other Results *}
 
 lemma minus_rat_cancel [simp]: "b \<noteq> 0 ==> Fract (-a) (-b) = Fract a b"
-by (simp add: Fract_equality eq_fraction_iff) 
+by (simp add: Fract_equality eq_fraction_iff)
 
 theorem Rat_induct_pos [case_names Fract, induct type: rat]:
   assumes step: "!!a b. 0 < b ==> P (Fract a b)"
@@ -658,44 +643,43 @@ qed
 
 lemma zero_less_Fract_iff:
      "0 < b ==> (0 < Fract a b) = (0 < a)"
-by (simp add: zero_rat less_rat order_less_imp_not_eq2 zero_less_mult_iff) 
+by (simp add: zero_rat less_rat order_less_imp_not_eq2 zero_less_mult_iff)
 
 lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
 apply (insert add_rat [of concl: m n 1 1])
-apply (simp add: one_rat  [symmetric]) 
+apply (simp add: one_rat  [symmetric])
 done
 
 lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
-apply (induct k) 
-apply (simp add: zero_rat) 
-apply (simp add: Fract_add_one) 
+apply (induct k)
+apply (simp add: zero_rat)
+apply (simp add: Fract_add_one)
 done
 
 lemma Fract_of_int_eq: "Fract k 1 = of_int k"
-proof (cases k rule: int_cases) 
+proof (cases k rule: int_cases)
   case (nonneg n)
     thus ?thesis by (simp add: int_eq_of_nat Fract_of_nat_eq)
-next 
+next
   case (neg n)
     hence "Fract k 1 = - (Fract (of_nat (Suc n)) 1)"
-      by (simp only: minus_rat int_eq_of_nat) 
+      by (simp only: minus_rat int_eq_of_nat)
     also have "... =  - (of_nat (Suc n))"
       by (simp only: Fract_of_nat_eq)
-    finally show ?thesis 
-      by (simp add: only: prems int_eq_of_nat of_int_minus of_int_of_nat_eq) 
-qed 
+    finally show ?thesis
+      by (simp add: only: prems int_eq_of_nat of_int_minus of_int_of_nat_eq)
+qed
 
 
-
-subsection{*Numerals and Arithmetic*}
+subsection {* Numerals and Arithmetic *}
 
 instance rat :: number ..
 
-primrec (*the type constraint is essential!*)
+primrec  -- {* the type constraint is essential! *}
   number_of_Pls: "number_of bin.Pls = 0"
   number_of_Min: "number_of bin.Min = - (1::rat)"
   number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-	                               (number_of w) + (number_of w)"
+                                       (number_of w) + (number_of w)"
 
 declare number_of_Pls [simp del]
         number_of_Min [simp del]

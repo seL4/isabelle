@@ -50,12 +50,7 @@ qed
 typedef preal = "{A. cut A}"
   by (blast intro: cut_of_rat [OF zero_less_one])
 
-instance preal :: ord ..
-instance preal :: plus ..
-instance preal :: minus ..
-instance preal :: times ..
-instance preal :: inverse ..
-
+instance preal :: "{ord, plus, minus, times, inverse}" ..
 
 constdefs
   preal_of_rat :: "rat => preal"
@@ -211,9 +206,9 @@ lemma preal_less_le: "((w::preal) < z) = (w \<le> z & w \<noteq> z)"
 by (simp add: preal_le_def preal_less_def Rep_preal_inject psubset_def)
 
 instance preal :: order
-proof qed
- (assumption |
-  rule preal_le_refl preal_le_trans preal_le_anti_sym preal_less_le)+
+  by intro_classes
+    (assumption |
+      rule preal_le_refl preal_le_trans preal_le_anti_sym preal_less_le)+
 
 lemma preal_imp_pos: "[|A \<in> preal; r \<in> A|] ==> 0 < r"
 by (insert preal_imp_psubset_positives, blast)
@@ -226,7 +221,7 @@ apply (blast dest: not_in_Rep_preal_ub intro: preal_imp_pos [OF Rep_preal]
 done
 
 instance preal :: linorder
-  by (intro_classes, rule preal_le_linear)
+  by intro_classes (rule preal_le_linear)
 
 
 

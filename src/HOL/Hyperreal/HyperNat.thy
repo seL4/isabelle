@@ -17,12 +17,7 @@ constdefs
 typedef hypnat = "UNIV//hypnatrel"
     by (auto simp add: quotient_def)
 
-instance hypnat :: ord ..
-instance hypnat :: zero ..
-instance hypnat :: one ..
-instance hypnat :: plus ..
-instance hypnat :: times ..
-instance hypnat :: minus ..
+instance hypnat :: "{ord, zero, one, plus, times, minus}" ..
 
 consts whn :: hypnat
 
@@ -164,9 +159,9 @@ apply (simp add: hypnat_zero_def hypnat_add)
 done
 
 instance hypnat :: plus_ac0
-  by (intro_classes,
-      (assumption |
-       rule hypnat_add_commute hypnat_add_assoc hypnat_add_zero_left)+)
+  by intro_classes
+    (assumption |
+      rule hypnat_add_commute hypnat_add_assoc hypnat_add_zero_left)+
 
 
 subsection{*Subtraction inverse on @{typ hypreal}*}
@@ -332,9 +327,9 @@ lemma hypnat_less_le: "((w::hypnat) < z) = (w \<le> z & w \<noteq> z)"
 by (simp add: hypnat_less_def)
 
 instance hypnat :: order
-proof qed
- (assumption |
-  rule hypnat_le_refl hypnat_le_trans hypnat_le_anti_sym hypnat_less_le)+
+  by intro_classes
+    (assumption |
+      rule hypnat_le_refl hypnat_le_trans hypnat_le_anti_sym hypnat_less_le)+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma hypnat_le_linear: "(z::hypnat) \<le> w | w \<le> z"
@@ -343,7 +338,7 @@ apply (auto simp add: hypnat_le, ultra)
 done
 
 instance hypnat :: linorder
-  by (intro_classes, rule hypnat_le_linear)
+  by intro_classes (rule hypnat_le_linear)
 
 lemma hypnat_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::hypnat)"
 apply (cases x, cases y, cases z)

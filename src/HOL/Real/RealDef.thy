@@ -17,13 +17,7 @@ constdefs
 typedef (Real)  real = "UNIV//realrel"
   by (auto simp add: quotient_def)
 
-instance real :: ord ..
-instance real :: zero ..
-instance real :: one ..
-instance real :: plus ..
-instance real :: times ..
-instance real :: minus ..
-instance real :: inverse ..
+instance real :: "{ord, zero, one, plus, times, minus, inverse}" ..
 
 constdefs
 
@@ -40,6 +34,9 @@ consts
 
    (*overloaded constant for injecting other types into "real"*)
    real :: "'a => real"
+
+syntax (xsymbols)
+  Reals     :: "'a set"                   ("\<real>")
 
 
 defs (overloaded)
@@ -82,9 +79,6 @@ defs (overloaded)
 
   real_abs_def:  "abs (r::real) == (if 0 \<le> r then r else -r)"
 
-
-syntax (xsymbols)
-  Reals     :: "'a set"                   ("\<real>")
 
 
 subsection{*Proving that realrel is an equivalence relation*}

@@ -746,7 +746,7 @@ proof -
 qed
 
 
-instance matrix :: (zero)zero by intro_classes
+instance matrix :: (zero) zero ..
 
 defs(overloaded)
   zero_matrix_def: "(0::('a::zero) matrix) == Abs_matrix(% j i. 0)"
@@ -1183,7 +1183,7 @@ lemma transpose_mult_matrix:
   apply (rule ext)+
   by (simp! add: Rep_mult_matrix max_ac)
 
-instance matrix :: ("{ord,zero}") ord by intro_classes
+instance matrix :: ("{ord, zero}") ord ..
 
 defs (overloaded)
   le_matrix_def: "(A::('a::{ord,zero}) matrix) <= B == ! j i. (Rep_matrix A j i) <= (Rep_matrix B j i)"

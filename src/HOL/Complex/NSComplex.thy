@@ -17,13 +17,7 @@ constdefs
 typedef hcomplex = "{x::nat=>complex. True}//hcomplexrel"
   by (auto simp add: quotient_def)
 
-instance hcomplex :: zero ..
-instance hcomplex :: one ..
-instance hcomplex :: plus ..
-instance hcomplex :: times ..
-instance hcomplex :: minus ..
-instance hcomplex :: inverse ..
-instance hcomplex :: power ..
+instance hcomplex :: "{zero, one, plus, times, minus, inverse, power}" ..
 
 defs (overloaded)
   hcomplex_zero_def:
