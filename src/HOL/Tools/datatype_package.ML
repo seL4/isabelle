@@ -183,7 +183,7 @@ fun induct_tac s i state =
     val {induction, ...} = datatype_info_sg_err sign tn;
     val ind_vnames = map (fn (_ $ Var (ixn, _)) =>
       implode (tl (explode (Syntax.string_of_vname ixn))))
-        (dest_conj (HOLogic.dest_Trueprop (concl_of induction)));
+        (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induction)));
     val insts = (ind_vnames ~~ vars) handle LIST _ =>
       error ("Induction rule for type " ^ tn ^ " has different number of variables")
   in
@@ -204,6 +204,15 @@ fun gen_exhaust_tac get_rule aterm i state =
 val exhaust_tac = gen_exhaust_tac exhaustion_of;
 val cases_tac = gen_exhaust_tac cases_of;
 
+
+(* add_cases_induct *)
+
+fun add_cases_induct infos =
+  let
+    fun add (ths, (name, {induction, exhaustion, ...}: datatype_info)) =
+      (("", induction), [InductMethod.induct_type_global name]) ::
+       (("", exhaustion), [InductMethod.cases_type_global name]) :: ths;
+  in PureThy.add_thms (foldl add ([], infos)) end;
 
 
 (**** simplification procedure for showing distinctness of constructors ****)
@@ -470,6 +479,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_thmss [(("simps", simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      add_cases_induct dt_infos |>
       Theory.parent_path;
 
     val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
@@ -525,6 +535,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_thmss [(("simps", simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      add_cases_induct dt_infos |>
       Theory.parent_path;
 
     val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
@@ -567,7 +578,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
           ((tname, map dest_TFree Ts) handle TERM _ => err t)
       | get_typ t = err t;
 
-    val dtnames = map get_typ (dest_conj (HOLogic.dest_Trueprop (concl_of induction')));
+    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induction')));
     val new_type_names = if_none alt_names (map fst dtnames);
 
     fun get_constr t = (case Logic.strip_assums_concl t of
@@ -622,6 +633,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       PureThy.add_thms [(("induct", induction), [])] |>
       PureThy.add_thmss [(("simps", simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      add_cases_induct dt_infos |>
       Theory.parent_path;
 
     val _ = store_clasimp thy9 ((claset_of thy9, simpset_of thy9)
