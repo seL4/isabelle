@@ -6,7 +6,7 @@
 Derived rules and other operations on theorems.
 *)
 
-infix 0 RS RSN RL RLN MRS MRL COMP;
+infix 0 RS RSN RL RLN MRS MRL OF COMP;
 
 signature BASIC_DRULE =
 sig
@@ -42,6 +42,7 @@ sig
   val RL                : thm list * thm list -> thm list
   val MRS               : thm list * thm -> thm
   val MRL               : thm list list * thm list -> thm list
+  val OF                : thm * thm list -> thm
   val compose           : thm * int * thm -> thm list
   val COMP              : thm * thm -> thm
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
@@ -348,6 +349,9 @@ fun rlss MRL bottom_rls =
   let fun rs_aux i [] = bottom_rls
         | rs_aux i (rls::rlss) = rls RLN (i, rs_aux (i+1) rlss)
   in  rs_aux 1 rlss  end;
+
+(*A version of MRS with more appropriate argument order*)
+fun bottom_rl OF rls = rls MRS bottom_rl;
 
 (*compose Q and [...,Qi,Q(i+1),...]==>R to [...,Q(i+1),...]==>R
   with no lifting or renaming!  Q may contain ==> or meta-quants

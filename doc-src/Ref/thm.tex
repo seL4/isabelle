@@ -76,6 +76,7 @@ converts {\it thm\/} to a string.
 RSN : thm * (int * thm) -> thm                 \hfill\textbf{infix}
 RS  : thm * thm -> thm                         \hfill\textbf{infix}
 MRS : thm list * thm -> thm                    \hfill\textbf{infix}
+OF  : thm * thm list -> thm                    \hfill\textbf{infix}
 RLN : thm list * (int * thm list) -> thm list  \hfill\textbf{infix}
 RL  : thm list * thm list -> thm list          \hfill\textbf{infix}
 MRL : thm list list * thm list -> thm list     \hfill\textbf{infix}
@@ -100,6 +101,10 @@ conclusion of $thm@1$ with the first premise of~$thm@2$.
   premises of $thm$.  Because the theorems are used from right to left, it
   does not matter if the $thm@i$ create new premises.  {\tt MRS} is useful
   for expressing proof trees.
+  
+\item[\tt {$thm$ OF $[thm@1,\ldots,thm@n]$}] \indexbold{*OF} is the same as
+  \texttt{$[thm@1,\ldots,thm@n]$ MRS $thm$}, with slightly more readable
+  argument order, though.
 
 \item[\tt$thms@1$ RLN $(i,thms@2)$] \indexbold{*RLN} 
   joins lists of theorems.  For every $thm@1$ in $thms@1$ and $thm@2$ in

@@ -230,6 +230,9 @@ of isabelle and isatool usedir (currently only observed by Poly/ML);
 
 * provide TAGS file for Isabelle sources;
 
+* ML: infix 'OF' is a version of 'MRS' with more appropriate argument
+order;
+
 * ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
 timing flag supersedes proof_timing and Toplevel.trace;
 
