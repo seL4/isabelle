@@ -239,12 +239,11 @@ sig
   val bump_string: string -> string
   val scanwords: (string -> bool) -> string list -> string list
   datatype 'a mtree = Join of 'a * 'a mtree list
-  type object
-  val type_error: string -> 'a
 end;
 
 structure Library: LIBRARY =
 struct
+
 
 (** functions **)
 
@@ -1250,14 +1249,6 @@ fun scanwords is_let cs =
 
 (* Variable-branching trees: for proof terms etc. *)
 datatype 'a mtree = Join of 'a * 'a mtree list;
-
-
-(* generic objects -- fool the ML type system via exception constructors *)
-
-type object = exn;
-
-fun type_error name =
-  error ("## RUNTIME TYPE ERROR ##\nFailed to access " ^ quote name ^ " data");
 
 
 end;
