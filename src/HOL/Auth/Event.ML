@@ -82,7 +82,9 @@ by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [parts_insert_spies]
 	                setloop split_tac [expand_event_case, expand_if])));
 by (ALLGOALS Blast_tac);
-bind_thm ("usedI", impOfSubs (result()));
+qed "parts_spies_subset_used";
+
+bind_thm ("usedI", impOfSubs parts_spies_subset_used);
 AddIs [usedI];
 
 goal thy "parts (initState B) <= used evs";
