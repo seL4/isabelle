@@ -1,7 +1,7 @@
 (*  Title:      HOL/Matrix/MatrixGeneral.thy
     ID:         $Id$
     Author:     Steven Obua
-    License:    2004 Technische Universit√§t M√ºnchen
+    License:    2004 Technische Universit√\<currency>t M√\<onequarter>nchen
 *)
 
 theory MatrixGeneral = Main:
@@ -329,9 +329,9 @@ lemma combine_ncols: "f 0 0 = 0 \<Longrightarrow> ncols A <= q \<Longrightarrow>
   by (simp add: ncols_le)
 
 constdefs
-  zero_r_neutral :: "('a \<Rightarrow> ('b::zero) \<Rightarrow> 'a) \<Rightarrow> bool"
+  zero_r_neutral :: "('a \<Rightarrow> 'b::zero \<Rightarrow> 'a) \<Rightarrow> bool"
   "zero_r_neutral f == ! a. f a 0 = a"
-  zero_l_neutral :: "('a \<Rightarrow> ('b::zero) \<Rightarrow> 'a) \<Rightarrow> bool"
+  zero_l_neutral :: "('a::zero \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool"
   "zero_l_neutral f == ! a. f 0 a = a"
   zero_closed :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> bool"
   "zero_closed f == (!x. f x 0 = 0) & (!y. f 0 y = 0)"
