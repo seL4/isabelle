@@ -373,7 +373,15 @@ val mod_mult_self_is_zero' = rename_numerals thy mod_mult_self_is_0;
 Goal "(p::nat) ^ #0 = #1";
 by (simp_tac numeral_ss 1);
 qed "power_zero";
-Addsimps [power_zero];
+
+Goal "(p::nat) ^ #1 = p";
+by (simp_tac numeral_ss 1);
+qed "power_one";
+Addsimps [power_zero, power_one];
+
+Goal "(p::nat) ^ #2 = p*p";
+by (simp_tac numeral_ss 1);
+qed "power_two";
 
 val binomial_zero = rename_numerals thy binomial_0;
 val binomial_Suc' = rename_numerals thy binomial_Suc;
@@ -383,6 +391,7 @@ val binomial_n_n' = rename_numerals thy binomial_n_n;
 Addsimps (map (rename_numerals thy) 
 	  [binomial_n_0, binomial_zero, binomial_1]);
 
+Addsimps [rename_numerals thy card_Pow];
 
 (*** Comparisons involving 0 ***)
 
