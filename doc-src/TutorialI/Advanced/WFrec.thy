@@ -59,34 +59,69 @@ termination of your function definition, i.e.\ that the arguments
 decrease with every recursive call, may still require you to provide
 additional lemmas.
 
-It is also possible to use your own well-founded relations with \isacommand{recdef}.
-Here is a simplistic example:
+It is also possible to use your own well-founded relations with
+\isacommand{recdef}.  For example, the greater-than relation can be made
+well-founded by cutting it off at a certain point.  Here is an example
+of a recursive function that calls itself with increasing values up to ten:
 *}
 
 consts f :: "nat \<Rightarrow> nat"
-recdef f "id(less_than)"
-"f 0 = 0"
-"f (Suc n) = f n"
+recdef f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
+"f i = (if #10 \<le> i then 0 else i * f(Suc i))";
 
 text{*\noindent
-Since \isacommand{recdef} is not prepared for @{term id}, the identity
-function, this leads to the complaint that it could not prove
-@{prop"wf (id less_than)"}.
-We should first have proved that @{term id} preserves well-foundedness
+Since \isacommand{recdef} is not prepared for the relation supplied above,
+Isabelle rejects the definition.  We should first have proved that
+our relation was well-founded:
 *}
 
-lemma wf_id: "wf r \<Longrightarrow> wf(id r)"
-by simp;
+lemma wf_greater: "wf {(i,j). j<i \<and> i \<le> (N::nat)}"
+
+txt{*
+The proof is by showing that our relation is a subset of another well-founded
+relation: one given by a measure function. 
+*};
+
+apply (rule wf_subset [of "measure (\<lambda>k::nat. N-k)"], blast);
+
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+
+\noindent
+The inclusion remains to be proved. After unfolding some definitions, 
+we are left with simple arithmetic:
+*};
+
+apply (clarify, simp add: measure_def inv_image_def)
+
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+
+\noindent
+And that is dispatched automatically:
+*};
+
+by arith;
 
 text{*\noindent
-and should have appended the following hint to our definition above:
+
+Armed with this lemma, we can append a crucial hint to our definition:
 \indexbold{*recdef_wf}
 *}
 (*<*)
 consts g :: "nat \<Rightarrow> nat"
-recdef g "id(less_than)"
-"g 0 = 0"
-"g (Suc n) = g n"
+recdef g "{(i,j). j<i \<and> i \<le> (#10::nat)}"
+"g i = (if #10 \<le> i then 0 else i * g(Suc i))"
 (*>*)
-(hints recdef_wf: wf_id)
+(hints recdef_wf: wf_greater);
+
+text{*\noindent
+Alternatively, we could have given @{text "measure (\<lambda>k::nat. #10-k)"} for the
+well-founded relation in our \isacommand{recdef}.  However, the arithmetic
+goal in the lemma above would have arisen instead in the \isacommand{recdef}
+termination proof, where we have less control.  A tailor-made termination
+relation makes even more sense when it can be used in several function
+declarations.
+*}
+
 (*<*)end(*>*)
