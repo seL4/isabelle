@@ -1,0 +1,2 @@
+consts  evala :: ('a => nat) => 'a aexp => nat
+        evalb :: ('a => nat) => 'a bexp => bool

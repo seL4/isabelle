@@ -1,0 +1,4 @@
+datatype expr = Var string | Lam string expr | App expr expr
+              | Data data
+and      data = Bool bool | Num nat
+              | Closure string expr "(string * data)list"

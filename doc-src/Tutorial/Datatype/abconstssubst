@@ -1,0 +1,2 @@
+consts substa :: ('a => 'b aexp) => 'a aexp => 'b aexp
+       substb :: ('a => 'b aexp) => 'a bexp => 'b bexp

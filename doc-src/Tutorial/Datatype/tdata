@@ -1,0 +1,1 @@
+datatype ('a,'b)term = Var 'a | App 'b ((('a,'b)term)list)

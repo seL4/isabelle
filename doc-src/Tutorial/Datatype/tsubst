@@ -1,0 +1,3 @@
+primrec
+  "subst s (Var x) = s x"
+  "subst s (App f ts) = App f (substs s ts)"

@@ -1,0 +1,3 @@
+  "substb s (Less a1 a2) = Less (substa s a1) (substa s a2)"
+  "substb s (And b1 b2) = And (substb s b1) (substb s b2)"
+  "substb s (Neg b) = Neg (substb s b)"

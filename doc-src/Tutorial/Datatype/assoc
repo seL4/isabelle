@@ -1,0 +1,4 @@
+consts   assoc :: "('key * 'val)list => 'key => 'val option"
+primrec "assoc [] x = None"
+        "assoc (p#ps) x =
+           (let (a,b) = p in if a=x then Some b else assoc ps x)"
