@@ -65,7 +65,9 @@ structure BasisLibrary =
 struct
   structure List   = List 
   and       Option = Option
-  and       Int    = Int;
+  and       Bool   = Bool
+  and       Int    = Int
+  and       Real   = Real;
 end;
 
 open Use;
