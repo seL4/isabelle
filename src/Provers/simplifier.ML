@@ -94,6 +94,7 @@ sig
   val change_simpset_of: (simpset * 'a -> simpset) -> 'a -> theory -> theory
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: (theory -> theory) list
+  val easy_setup: thm -> thm list -> (theory -> theory) list
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -513,6 +514,29 @@ val setup_methods = Method.add_methods
 (** theory setup **)
 
 val setup = [GlobalSimpset.init, LocalSimpset.init, setup_attrs, setup_methods];
+
+fun easy_setup reflect trivs =
+  let
+    val trivialities = Drule.reflexive_thm :: trivs;
+
+    fun unsafe_solver_tac prems = FIRST' [resolve_tac (trivialities @ prems), assume_tac];
+    val unsafe_solver = mk_solver "easy unsafe" unsafe_solver_tac;
+
+    (*no premature instantiation of variables during simplification*)
+    fun safe_solver_tac prems = FIRST' [match_tac (trivialities @ prems), eq_assume_tac];
+    val safe_solver = mk_solver "easy safe" safe_solver_tac;
+
+    fun mksimps thm =
+      if Logic.is_equals (Thm.concl_of thm) then [thm]
+      else [thm RS reflect] handle THM _ => [];
+
+    fun init_ss thy =
+      (simpset_ref_of thy :=
+        empty_ss setsubgoaler asm_simp_tac
+        setSSolver safe_solver
+        setSolver unsafe_solver
+        setmksimps mksimps; thy);
+  in setup @ [init_ss] end;
 
 
 end;
