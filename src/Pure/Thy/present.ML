@@ -17,7 +17,10 @@ sig
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> string list) -> unit
-  val token_source: string -> (unit -> (OuterLex.token * string option) list) -> unit
+  type token
+  val basic_token: OuterLex.token -> token
+  val markup_token: string * string -> token
+  val token_source: string -> (unit -> token list) -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val result: string -> string -> thm -> unit
   val results: string -> string -> thm list -> unit
@@ -325,7 +328,7 @@ fun finish () = with_session ()
     val {theories, tex_index, html_index, graph, all_graph} = ! browser_info;
 
     fun finish_node (a, {tex_source, html_source = _, html}) =
-     (apsome (fn p => Buffer.write (Path.append p (tex_path a)) tex_source) doc_prefix;
+     (apsome (fn p => Buffer.write_nonempty (Path.append p (tex_path a)) tex_source) doc_prefix;
       Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html));
   in
     seq finish_node (Symtab.dest theories);
@@ -346,6 +349,11 @@ fun init_theory name = with_session () (fn _ => init_theory_info name empty_theo
 
 fun verbatim_source name mk_text =
   with_session () (fn _ => add_html_source name (HTML.verbatim_source (mk_text ())));
+
+
+type token = Latex.token;
+val basic_token = Latex.Basic;
+val markup_token = Latex.Markup;
 
 fun token_source name mk_toks =
   with_session () (fn _ => add_tex_source name (Latex.token_source (mk_toks ())));
