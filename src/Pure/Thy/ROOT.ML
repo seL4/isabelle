@@ -38,7 +38,7 @@ fun init_thy_reader () =
                                    \and ThmDB = ThmDB);",
     "ReadThy.loaded_thys := !loaded_thys;",
     "ReadThy.gif_path := !gif_path;",
-    "ReadThy.chart00_path := !chart00_path;",
+    "ReadThy.index_path := !index_path;",
     "ReadThy.make_html := !make_html;",
     "ThmDB.thm_db := !thm_db;",
     "open ThmDB ReadThy;"];
