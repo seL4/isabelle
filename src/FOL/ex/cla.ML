@@ -143,8 +143,7 @@ result();
 
 (*Discussed in Avron, Gentzen-Type Systems, Resolution and Tableaux,
   JAR 10 (265-281), 1993.  Proof is trivial!*)
-Goal
-    "~ ((EX x.~P(x)) & ((EX x. P(x)) | (EX x. P(x) & Q(x))) & ~ (EX x. P(x)))";
+Goal "~ ((EX x.~P(x)) & ((EX x. P(x)) | (EX x. P(x) & Q(x))) & ~ (EX x. P(x)))";
 by (Blast_tac 1);
 result();
 
@@ -306,8 +305,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 36";
-Goal
-     "(ALL x. EX y. J(x,y)) & \
+Goal "(ALL x. EX y. J(x,y)) & \
 \     (ALL x. EX y. G(x,y)) & \
 \     (ALL x y. J(x,y) | G(x,y) --> (ALL z. J(y,z) | G(y,z) --> H(x,z)))   \
 \ --> (ALL x. EX y. H(x,y))";
@@ -324,8 +322,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 38";
-Goal
-    "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->        \
+Goal "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->        \
 \            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->         \
 \    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &    \
 \            (~p(a) | ~(EX y. p(y) & r(x,y)) |                          \
@@ -385,8 +382,7 @@ result();
 
 
 writeln"Problem 46";
-Goal
-    "(ALL x. f(x) & (ALL y. f(y) & h(y,x) --> g(y)) --> g(x)) &      \
+Goal "(ALL x. f(x) & (ALL y. f(y) & h(y,x) --> g(y)) --> g(x)) &      \
 \    ((EX x. f(x) & ~g(x)) -->                                    \
 \     (EX x. f(x) & ~g(x) & (ALL y. f(y) & ~g(y) --> j(x,y)))) &    \
 \    (ALL x y. f(x) & f(y) & h(x,y) --> ~j(y,x))                    \
@@ -422,16 +418,14 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 51";
-Goal
-    "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
+Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 52";
 (*Almost the same as 51. *)
-Goal
-    "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
+Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
 by (Blast_tac 1);
 result();
@@ -439,8 +433,7 @@ result();
 writeln"Problem 55";
 
 (*Original, equational version by Len Schubert, via Pelletier *** NOT PROVED
-Goal
-  "(EX x. lives(x) & killed(x,agatha)) & \
+Goal "(EX x. lives(x) & killed(x,agatha)) & \
 \  lives(agatha) & lives(butler) & lives(charles) & \
 \  (ALL x. lives(x) --> x=agatha | x=butler | x=charles) & \
 \  (ALL x y. killed(x,y) --> hates(x,y)) & \
@@ -472,19 +465,18 @@ Goal "lives(agatha) & lives(butler) & lives(charles) & \
 \  (ALL x. hates(agatha,x) --> hates(butler,x)) & \
 \  (ALL x. ~hates(x,agatha) | ~hates(x,butler) | ~hates(x,charles)) --> \
 \   killed(?who,agatha)";
-by (Fast_tac 1);  (*MUCH faster than Blast_tac: 8s against 29s*)
+by (Fast_tac 1);  
+  (*MUCH faster than Blast_tac: 1.5s against ??s, mostly proof reconstruction*)
 result();
 
 
 writeln"Problem 56";
-Goal
-    "(ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))";
+Goal "(ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 57";
-Goal
-    "P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) & \
+Goal "P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) & \
 \    (ALL x y z. P(x,y) & P(y,z) --> P(x,z))    -->   P(f(a,b), f(a,c))";
 by (Blast_tac 1);
 result();
@@ -500,14 +492,12 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 60";
-Goal
-    "ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
+Goal "ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 62 as corrected in JAR 18 (1997), page 135";
-Goal
-    "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->     \
+Goal "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->     \
 \    (ALL x. (~p(a) | p(x) | p(f(f(x)))) &                      \
 \            (~p(a) | ~p(f(x)) | p(f(f(x)))))";
 by (Blast_tac 1);
@@ -523,8 +513,7 @@ result();
 
 (*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
   It does seem obvious!*)
-Goal
-    "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
+Goal "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
 \    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
 \    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
 by (Fast_tac 1);
@@ -532,8 +521,7 @@ result();
 
 (*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
 	author U. Egly*)
-Goal
- "((EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z)))) -->               \
+Goal "((EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z)))) -->               \
 \  (EX w. C(w) & (ALL y. C(y) --> (ALL z. D(w,y,z)))))                  \
 \ &                                                                     \
 \ (ALL w. C(w) & (ALL u. C(u) --> (ALL v. D(w,u,v))) -->                \
@@ -555,8 +543,7 @@ result();
 
 
 (*Halting problem II: credited to M. Bruschi by Li Dafa in JAR 18(1), p.105*)
-Goal
- "((EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z)))) -->       \
+Goal "((EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z)))) -->       \
 \  (EX w. C(w) & (ALL y. C(y) --> (ALL z. D(w,y,z)))))          \
 \ &                                                             \
 \ (ALL w. C(w) & (ALL u. C(u) --> (ALL v. D(w,u,v))) -->        \
