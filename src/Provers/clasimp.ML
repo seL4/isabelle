@@ -6,8 +6,7 @@ Combination of classical reasoner and simplifier (depends on
 simplifier.ML, classical.ML, blast.ML).
 *)
 
-infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
-	addsimps2 delsimps2 addcongs2 delcongs2;
+infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2;
 infix 4 addSss addss;
 
 signature CLASIMP_DATA =
@@ -16,10 +15,6 @@ sig
   structure Classical: CLASSICAL
   structure Blast: BLAST
   sharing type Classical.claset = Blast.claset
-  val addcongs: Simplifier.simpset * thm list -> Simplifier.simpset
-  val delcongs: Simplifier.simpset * thm list -> Simplifier.simpset
-  val addSaltern: Classical.claset * (string * (int -> tactic)) -> Classical.claset
-  val addbefore: Classical.claset * (string * (int -> tactic)) -> Classical.claset
 end
 
 signature CLASIMP =
@@ -77,15 +72,13 @@ fun op addEs2    arg = pair_upd1 Classical.addEs arg;
 fun op addDs2    arg = pair_upd1 Classical.addDs arg;
 fun op addsimps2 arg = pair_upd2 Simplifier.addsimps arg;
 fun op delsimps2 arg = pair_upd2 Simplifier.delsimps arg;
-fun op addcongs2 arg = pair_upd2 Data.addcongs arg;
-fun op delcongs2 arg = pair_upd2 Data.delcongs arg;
 
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
-			CHANGED o Simplifier.safe_asm_full_simp_tac ss);
-fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", 
-			CHANGED o Simplifier.asm_full_simp_tac ss);
+fun cs addSss ss = op Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
+			    CHANGED o Simplifier.safe_asm_full_simp_tac ss));
+fun cs addss  ss = op Classical.addbefore  (cs, ("asm_full_simp_tac", 
+			    CHANGED o Simplifier.asm_full_simp_tac ss));
 
 (* tacticals *)
 
@@ -104,7 +97,8 @@ fun Clarsimp_tac i = clarsimp_tac (Classical.claset(), Simplifier.simpset()) i;
 (* auto_tac *)
 
 fun blast_depth_tac cs m i thm =
-  Blast.depth_tac cs m i thm handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
+    Blast.depth_tac cs m i thm 
+      handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
 (* a variant of depth_tac that avoids interference of the simplifier 
    with dup_step_tac when they are combined by auto_tac *)
@@ -123,9 +117,9 @@ fun nodup_depth_tac cs m i state = CHANGED (SELECT_GOAL
 fun mk_auto_tac (cs, ss) m n =
     let val cs' = cs addss ss
         val maintac = 
-          blast_depth_tac cs m		(*fast but can't use addss*)
+          blast_depth_tac cs m		(* fast but can't use addss *)
           ORELSE'
-          nodup_depth_tac cs' n;	(*slower but more general*)
+          nodup_depth_tac cs' n;	(* slower but more general *)
     in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
 	       TRY (Classical.safe_tac cs),
 	       REPEAT (FIRSTGOAL maintac),
