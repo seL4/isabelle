@@ -16,10 +16,10 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-CTL \
+  HOL-GroupTheory \
       HOL-Real-HahnBanach \
       HOL-Real-Hyperreal \
       HOL-Real-ex \
-  HOL-GroupTheory \
   HOL-Hoare \
   HOL-IMP \
   HOL-IMPP \
