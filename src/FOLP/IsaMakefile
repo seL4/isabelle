@@ -1,0 +1,26 @@
+#
+# $Id$
+#
+# IsaMakefile for FOLP
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+FILES =	ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML \
+	hypsubst.ML classical.ML simp.ML
+
+EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML \
+	   ex/intro.ML ex/Nat.ML ex/Nat.thy ex/Prolog.ML ex/Prolog.thy \
+	   ex/prop.ML ex/quant.ML
+
+$(OUT)/FOLP: $(OUT)/Pure $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure FOLP
+	@chmod -w $@
+
+$(OUT)/Pure:
+	@cd ../Pure; $(ISATOOL) make
+
+test: ex/ROOT.ML $(OUT)/FOLP $(EX_FILES)
+	@$(ISATOOL) testdir $(OUT)/FOLP ex
+
+.PRECIOUS: $(OUT)/Pure $(OUT)/FOLP
