@@ -59,7 +59,7 @@ AddSIs Finites.intrs;
 val major::prems = goal Finite.thy
     "[| finite F;  finite G |] ==> finite(F Un G)";
 by (rtac (major RS finite_induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps (prems @ [Un_insert_left]))));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
 qed "finite_UnI";
 
 (*Every subset of a finite set is finite*)
@@ -332,8 +332,8 @@ goal Finite.thy "!!A B. [| finite A; finite B |]\
 \                       ==> A Int B = {} --> card(A Un B) = card A + card B";
 by (etac finite_induct 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [Un_insert_left, Int_insert_left]
-		            setloop split_tac [expand_if])));
+    (asm_simp_tac (!simpset addsimps [Int_insert_left]
+	                    setloop split_tac [expand_if])));
 qed_spec_mp "card_Un_disjoint";
 
 goal Finite.thy "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";
