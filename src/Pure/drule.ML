@@ -10,20 +10,16 @@ infix 0 RS RSN RL RLN MRS MRL COMP;
 
 signature DRULE =
 sig
-  val asm_rl		: thm
-  val assume_ax		: theory -> string -> thm
-  val COMP		: thm * thm -> thm
-  val compose		: thm * int * thm -> thm list
+  val dest_implies      : cterm -> cterm * cterm
+  val skip_flexpairs	: cterm -> cterm
+  val strip_imp_prems	: cterm -> cterm list
   val cprems_of		: thm -> cterm list
-  val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
-  val cut_rl		: thm
-  val equal_abs_elim	: cterm  -> thm -> thm
-  val equal_abs_elim_list: cterm list -> thm -> thm
-  val equal_intr_rule   : thm
-  val eq_thm		: thm * thm -> bool
-  val same_thm		: thm * thm -> bool
-  val eq_thm_sg		: thm * thm -> bool
-  val flexpair_abs_elim_list: cterm list -> thm -> thm
+  val read_insts	:
+          Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
+                  -> (indexname -> typ option) * (indexname -> sort option)
+                  -> string list -> (string*string)list
+                  -> (indexname*ctyp)list * (cterm*cterm)list
+  val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val forall_intr_list	: cterm list -> thm -> thm
   val forall_intr_frees	: thm -> thm
   val forall_intr_vars	: thm -> thm
@@ -32,40 +28,46 @@ sig
   val forall_elim_vars	: int -> thm -> thm
   val implies_elim_list	: thm -> thm list -> thm
   val implies_intr_list	: cterm list -> thm -> thm
-  val dest_implies      : cterm -> cterm * cterm
-  val MRL		: thm list list * thm list -> thm list
+  val zero_var_indexes	: thm -> thm
+  val standard		: thm -> thm
+  val assume_ax		: theory -> string -> thm
+  val RSN		: thm * (int * thm) -> thm
+  val RS		: thm * thm -> thm
+  val RLN		: thm list * (int * thm list) -> thm list
+  val RL		: thm list * thm list -> thm list
   val MRS		: thm list * thm -> thm
-  val read_instantiate	: (string*string)list -> thm -> thm
+  val MRL		: thm list list * thm list -> thm list
+  val compose		: thm * int * thm -> thm list
+  val COMP		: thm * thm -> thm
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
-  val read_insts	:
-          Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
-                  -> (indexname -> typ option) * (indexname -> sort option)
-                  -> string list -> (string*string)list
-                  -> (indexname*ctyp)list * (cterm*cterm)list
+  val read_instantiate	: (string*string)list -> thm -> thm
+  val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
+  val same_thm		: thm * thm -> bool
+  val weak_eq_thm	: thm * thm -> bool
+  val eq_thm_sg		: thm * thm -> bool
+  val size_of_thm	: thm -> int
   val reflexive_thm	: thm
+  val symmetric_thm	: thm
+  val transitive_thm	: thm
   val refl_implies      : thm
-  val revcut_rl		: thm
-  val rewrite_goal_rule	: bool * bool -> (meta_simpset -> thm -> thm option)
-        -> meta_simpset -> int -> thm -> thm
-  val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_rule_aux	: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_thm	: bool * bool -> (meta_simpset -> thm -> thm option)
 	-> meta_simpset -> thm -> thm
-  val RS		: thm * thm -> thm
-  val RSN		: thm * (int * thm) -> thm
-  val RL		: thm list * thm list -> thm list
-  val RLN		: thm list * (int * thm list) -> thm list
-  val size_of_thm	: thm -> int
-  val skip_flexpairs	: cterm -> cterm
-  val standard		: thm -> thm
-  val strip_imp_prems	: cterm -> cterm list
-  val swap_prems_rl     : thm
-  val symmetric_thm	: thm
+  val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
+  val rewrite_goal_rule	: bool * bool -> (meta_simpset -> thm -> thm option)
+        -> meta_simpset -> int -> thm -> thm
+
+  val equal_abs_elim	: cterm  -> thm -> thm
+  val equal_abs_elim_list: cterm list -> thm -> thm
+  val flexpair_abs_elim_list: cterm list -> thm -> thm
+  val asm_rl		: thm
+  val cut_rl		: thm
+  val revcut_rl		: thm
   val thin_rl		: thm
-  val transitive_thm	: thm
   val triv_forall_equality: thm
-  val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val zero_var_indexes	: thm -> thm
+  val swap_prems_rl     : thm
+  val equal_intr_rule   : thm
+  val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
 
 structure Drule : DRULE =
@@ -574,6 +576,48 @@ val equal_intr_rule =
     store_thm "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
+
+
+
+(** instantiate' rule **)
+
+(* collect vars *)
+
+val add_tvarsT = foldl_atyps (fn (vs, TVar v) => v ins vs | (vs, _) => vs);
+val add_tvars = foldl_types add_tvarsT;
+val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
+
+fun tvars_of thm = rev (add_tvars ([], #prop (Thm.rep_thm thm)));
+fun vars_of thm = rev (add_vars ([], #prop (Thm.rep_thm thm)));
+
+
+(* instantiate by left-to-right occurrence of variables *)
+
+fun instantiate' cTs cts thm =
+  let
+    fun err msg =
+      raise TYPE ("instantiate': " ^ msg,
+        mapfilter (apsome Thm.typ_of) cTs,
+        mapfilter (apsome Thm.term_of) cts);
+
+    fun inst_of (v, ct) =
+      (Thm.cterm_of (#sign (Thm.rep_cterm ct)) (Var v), ct)
+        handle TYPE (msg, _, _) => err msg;
+
+    fun zip_vars _ [] = []
+      | zip_vars (_ :: vs) (None :: opt_ts) = zip_vars vs opt_ts
+      | zip_vars (v :: vs) (Some t :: opt_ts) = (v, t) :: zip_vars vs opt_ts
+      | zip_vars [] _ = err "more instantiations than variables in thm";
+
+    (*instantiate types first!*)
+    val thm' =
+      if forall is_none cTs then thm
+      else Thm.instantiate (zip_vars (map fst (tvars_of thm)) cTs, []) thm;
+    in
+      if forall is_none cts then thm'
+      else Thm.instantiate ([], map inst_of (zip_vars (vars_of thm') cts)) thm'
+    end;
+
 
 end;
 
