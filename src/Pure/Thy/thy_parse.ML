@@ -67,6 +67,8 @@ sig
   val mk_big_list: string list -> string
   val mk_pair: string * string -> string
   val mk_triple: string * string * string -> string
+  val mk_triple1: (string * string) * string -> string
+  val mk_triple2: string * (string * string) -> string
   val strip_quotes: string -> string
 end;
 
