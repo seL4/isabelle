@@ -12,7 +12,7 @@ TODO:
       . elim (via theory_ref);
   - stronger handling of missing files (!?!?);
   - register_theory: do not require final parents (!?) (no?);
-  - observe verbose flag;
+  - hooks for init, update, finish operations (!?);
 *)
 
 signature BASIC_THY_INFO =
@@ -31,7 +31,6 @@ end;
 signature THY_INFO =
 sig
   include BASIC_THY_INFO
-  val verbose: bool ref
   val names: unit -> string list
   val get_theory: string -> theory
   val put_theory: theory -> unit
@@ -61,13 +60,6 @@ fun loader_msg txt names = gen_msg ("Theory loader: " ^ txt) names;
 
 val show_path = space_implode " via " o map quote;
 fun cycle_msg name names = loader_msg ("cyclic dependency of " ^ show_path (name :: names)) [];
-
-
-(* verbose mode *)
-
-val verbose = ref false;
-
-fun if_verbose f x = if ! verbose then f x else ();
 
 
 (* derived graph operations *)          (* FIXME more abstract (!?) *)
@@ -206,7 +198,7 @@ fun run_file path =
           if exists (equal path o #1) files then
             Some (make_deps present outdated master (overwrite (files, (path, Some info))))
           else (warning (loader_msg "undeclared dependency of theory" [name] ^
-            "\nfile: " ^ quote (Path.pack path)); deps)
+            "on file: " ^ quote (Path.pack path)); deps)
       | provide _ _ None = None;
   in
     (case apsome PureThy.get_name (Context.get_context ()) of
