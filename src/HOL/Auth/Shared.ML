@@ -365,11 +365,10 @@ qed "insert_Key_image";
   erase occurrences of forwarded message components (X).*)
 val analz_image_freshK_ss = 
      !simpset delsimps [image_insert, image_Un]
-              addsimps ([analz_insert_eq, Key_not_used, 
-			 impOfSubs (Un_upper2 RS analz_mono),
-                         image_insert RS sym, image_Un RS sym,
+              addsimps ([image_insert RS sym, image_Un RS sym,
+                         analz_insert_eq, impOfSubs (Un_upper2 RS analz_mono),
                          insert_Key_singleton, subset_Compl_range,
-                         insert_Key_image, Un_assoc RS sym]
+                         Key_not_used, insert_Key_image, Un_assoc RS sym]
                         @disj_comms)
               setloop split_tac [expand_if];
 
