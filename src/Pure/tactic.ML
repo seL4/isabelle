@@ -16,12 +16,15 @@ sig
         bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
   val assume_tac: int -> tactic
   val atac: int ->tactic
-  val bimatch_from_nets_tac: (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
+  val bimatch_from_nets_tac: 
+      (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
   val bimatch_tac: (bool*thm)list -> int -> tactic
-  val biresolve_from_nets_tac: (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
+  val biresolve_from_nets_tac: 
+      (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
   val biresolve_tac: (bool*thm)list -> int -> tactic
   val build_net: thm list -> (int*thm) net
-  val build_netpair: (bool*thm)list -> (int*(bool*thm)) net * (int*(bool*thm)) net
+  val build_netpair:    (int*(bool*thm)) net * (int*(bool*thm)) net ->
+      (bool*thm)list -> (int*(bool*thm)) net * (int*(bool*thm)) net
   val compose_inst_tac: (string*string)list -> (bool*thm*int) -> int -> tactic
   val compose_tac: (bool * thm * int) -> int -> tactic 
   val cut_facts_tac: thm list -> int -> tactic
@@ -308,8 +311,8 @@ fun insert_kbrl (kbrl as (k,(eres,th)), (inet,enet)) =
     else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
-fun build_netpair brls = 
-    foldr insert_kbrl (taglist 1 brls, (Net.empty,Net.empty));
+fun build_netpair netpair brls = 
+    foldr insert_kbrl (taglist 1 brls, netpair);
 
 (*biresolution using a pair of nets rather than rules*)
 fun biresolution_from_nets_tac match (inet,enet) =
@@ -326,8 +329,11 @@ val biresolve_from_nets_tac = biresolution_from_nets_tac false;
 val bimatch_from_nets_tac = biresolution_from_nets_tac true;
 
 (*fast versions using nets internally*)
-val net_biresolve_tac = biresolve_from_nets_tac o build_netpair;
-val net_bimatch_tac = bimatch_from_nets_tac o build_netpair;
+val net_biresolve_tac =
+    biresolve_from_nets_tac o build_netpair(Net.empty,Net.empty);
+
+val net_bimatch_tac =
+    bimatch_from_nets_tac o build_netpair(Net.empty,Net.empty);
 
 (*** Simpler version for resolve_tac -- only one net, and no hyps ***)
 
