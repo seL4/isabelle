@@ -82,8 +82,8 @@ fun Thms name = PureThy.get_thms (the_context ()) name;
 
 (* shortcut goal commands *)
 
-fun Goal s = Goals.goal (the_context ()) s;
-fun Goalw thms s = Goals.goalw (the_context ()) thms s;
+fun Goal s = Goals.atomic_goal (the_context ()) s;
+fun Goalw thms s = Goals.atomic_goalw (the_context ()) thms s;
 
 
 end;
