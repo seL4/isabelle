@@ -14,6 +14,12 @@ Arith = CTT +
 consts "#+","-","|-|"   :: "[i,i]=>i"   (infixr 65)
        "#*",div,mod     :: "[i,i]=>i"   (infixr 70)
 
+syntax (symbols)
+  "op #*"      :: [i, i] => i   (infixr "#\\<times>" 70)
+
+syntax (HTML output)
+  "op #*"      :: [i, i] => i   (infixr "#\\<times>" 70)
+
 rules
   add_def     "a#+b == rec(a, b, %u v. succ(v))"  
   diff_def    "a-b == rec(b, a, %u v. rec(v, 0, %x y. x))"  

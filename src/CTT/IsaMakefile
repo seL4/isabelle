@@ -27,7 +27,7 @@ Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
 $(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.ML Arith.thy \
-  Bool.ML Bool.thy CTT.ML CTT.thy ROOT.ML rew.ML
+  Bool.ML Bool.thy CTT.ML CTT.thy Main.thy ROOT.ML rew.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure CTT
 
 
