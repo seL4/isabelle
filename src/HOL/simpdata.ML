@@ -307,11 +307,17 @@ val mksimps_pairs =
    ("All", [spec]), ("True", []), ("False", []),
    ("If", [if_bool_eq RS iffD1])];
 
-val HOL_ss = empty_ss
+val HOL_base_ss = empty_ss
       setmksimps (mksimps mksimps_pairs)
-      setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
-                             ORELSE' etac FalseE)
-      setsubgoaler asm_simp_tac
+      setsubgoaler asm_simp_tac;
+
+val HOL_min_ss = HOL_base_ss setsolver (fn ps => 
+	FIRST'[resolve_tac (TrueI::refl::ps), atac, etac FalseE]);
+
+val HOL_safe_min_ss = HOL_base_ss setsolver (fn ps => 
+	FIRST'[match_tac (TrueI::refl::ps), eq_assume_tac, ematch_tac[FalseE]]);
+
+val HOL_ss = HOL_min_ss
       addsimps ([if_True, if_False, if_cancel,
 		 o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
