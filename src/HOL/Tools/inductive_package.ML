@@ -661,7 +661,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       rec_sets_defs thy';
     val elims = if no_elim then [] else
       prove_elims cs cTs params intr_ts unfold rec_sets_defs thy';
-    val raw_induct = if no_ind then TrueI else
+    val raw_induct = if no_ind then Drule.asm_rl else
       if coind then standard (rule_by_tactic
         (rewrite_tac [mk_meta_eq vimage_Un] THEN
           fold_tac rec_sets_defs) (mono RS (fp_def RS def_Collect_coinduct)))
@@ -679,8 +679,8 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
         [((coind_prefix coind ^ "induct", induct), [])])
       |> Theory.parent_path;
     val intrs' = PureThy.get_thms thy'' "intrs";
-    val elims' = PureThy.get_thms thy'' "elims";
-    val induct' = PureThy.get_thm thy'' (coind_prefix coind ^ "induct");
+    val elims' = if no_elim then elims else PureThy.get_thms thy'' "elims";  (* FIXME improve *)
+    val induct' = if no_ind then induct else PureThy.get_thm thy'' (coind_prefix coind ^ "induct");  (* FIXME improve *)
   in (thy'',
     {defs = fp_def::rec_sets_defs,
      mono = mono,
@@ -719,7 +719,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
 
     val intrs = PureThy.get_thms thy' "intrs";
     val elims = PureThy.get_thms thy' "elims";
-    val raw_induct = if coind then TrueI else PureThy.get_thm thy' "raw_induct";
+    val raw_induct = if coind then Drule.asm_rl else PureThy.get_thm thy' "raw_induct";
     val induct = if coind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
 
@@ -731,8 +731,8 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     val induct' = if coind then raw_induct else PureThy.get_thm thy'' "induct";
   in (thy'',
     {defs = [],
-     mono = TrueI,
-     unfold = TrueI,
+     mono = Drule.asm_rl,
+     unfold = Drule.asm_rl,
      intrs = intrs,
      elims = elims,
      mk_cases = mk_cases elims,
@@ -744,10 +744,16 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
 
 (** introduction of (co)inductive sets **)
 
-fun add_cases_induct names elims induct =
-  PureThy.add_thms
-    (map (fn name => (("", induct), [InductMethod.induct_set_global name])) names @
-     map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name])) (names, elims));
+fun add_cases_induct no_elim no_ind names elims induct =
+  let
+    val cases_specs =
+      if no_elim then []
+      else map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name]))
+        (names, elims);
+    val induct_specs =
+      if no_ind then []
+      else map (fn name => (("", induct), [InductMethod.induct_set_global name])) names;
+  in PureThy.add_thms (cases_specs @ induct_specs) end;
 
 
 fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
@@ -776,7 +782,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
         con_defs thy params paramTs cTs cnames;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct full_cnames (#elims result) (#induct result);
+      |> add_cases_induct no_elim no_ind full_cnames (#elims result) (#induct result);
   in (thy2, result) end;
 
 
