@@ -7,6 +7,7 @@
 %
 \begin{isamarkuptext}%
 \label{sec:CTL}
+\index{CTL|(}%
 The semantics of PDL only needs reflexive transitive closure.
 Let us be adventurous and introduce a more expressive temporal operator.
 We extend the datatype
@@ -24,7 +25,7 @@ in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-This definition allows a very succinct statement of the semantics of \isa{AF}:
+This definition allows a succinct statement of the semantics of \isa{AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation. In reality one has to define a new datatype and a new function.}%
@@ -62,9 +63,9 @@ with the easy one:%
 \ \ {\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-In contrast to the analogous property for \isa{EF}, and just
-for a change, we do not use fixed point induction but a weaker theorem,
-also known in the literature (after David Park) as \emph{Park-induction}:
+In contrast to the analogous proof for \isa{EF}, and just
+for a change, we do not use fixed point induction.  Park-induction,
+named after David Park, is weaker but sufficient for this proof:
 \begin{center}
 \isa{f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
 \end{center}
@@ -95,21 +96,20 @@ In the other case we set \isa{t} to \isa{p\ {\isadigit{1}}} and simplify matters
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ \ \ }{\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ \ \ }{\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}{\isacharprime}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ \ \ {\isasymforall}pa{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
-It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}, i.e.\ \isa{p} without its
-first element. The rest is practically automatic:%
+It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}, that is, 
+\isa{p} without its first element.  The rest is automatic:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
-\isacommand{apply}\ simp\isanewline
-\isacommand{apply}\ blast\isanewline
+\isacommand{apply}\ force\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 The opposite inclusion is proved by contradiction: if some state
 \isa{s} is not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then we can construct an
-infinite \isa{A}-avoiding path starting from \isa{s}. The reason is
+infinite \isa{A}-avoiding path starting from~\isa{s}. The reason is
 that by unfolding \isa{lfp} we find that if \isa{s} is not in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then \isa{s} is not in \isa{A} and there is a
 direct successor of \isa{s} that is again not in \mbox{\isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}}. Iterating this argument yields the promised infinite
@@ -171,13 +171,13 @@ The new subgoal is proved by providing the witness \isa{path\ s\ Q} for \isa{p}:
 \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-After simplification and clarification, the subgoal has the following form
+After simplification and clarification, the subgoal has the following form:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ }{\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymLongrightarrow}\ }Q\ {\isacharparenleft}path\ s\ Q\ i{\isacharparenright}%
 \end{isabelle}
-and invites a proof by induction on \isa{i}:%
+It invites a proof by induction on \isa{i}:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
@@ -203,7 +203,7 @@ two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharc
 \ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-What is worth noting here is that we have used \isa{fast} rather than
+What is worth noting here is that we have used \methdx{fast} rather than
 \isa{blast}.  The reason is that \isa{blast} would fail because it cannot
 cope with \isa{someI{\isadigit{2}}{\isacharunderscore}ex}: unifying its conclusion with the current
 subgoal is non-trivial because of the nested schematic variables. For
@@ -283,8 +283,8 @@ necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isach
 \begin{isamarkuptext}%
 The language defined above is not quite CTL\@. The latter also includes an
 until-operator \isa{EU\ f\ g} with semantics ``there \emph{E}xists a path
-where \isa{f} is true \emph{U}ntil \isa{g} becomes true''. With the help
-of an auxiliary function%
+where \isa{f} is true \emph{U}ntil \isa{g} becomes true''.  We need
+an auxiliary function:%
 \end{isamarkuptext}%
 \isacommand{consts}\ until{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
@@ -292,7 +292,7 @@ of an auxiliary function%
 {\isachardoublequote}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-the semantics of \isa{EU} is straightforward:
+Expressing the semantics of \isa{EU} is now straightforward:
 \begin{isabelle}%
 \ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ until\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ f{\isacharbraceright}\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ g{\isacharbraceright}\ s\ p{\isacharparenright}%
 \end{isabelle}
@@ -327,6 +327,7 @@ in the case of finite sets and a monotone function~\isa{F},
 the value of \mbox{\isa{lfp\ F}} can be computed by iterated application of \isa{F} to~\isa{{\isacharbraceleft}{\isacharbraceright}} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
+\index{CTL|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

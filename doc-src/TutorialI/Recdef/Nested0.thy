@@ -3,6 +3,7 @@ theory Nested0 = Main:
 (*>*)
 
 text{*
+\index{datatypes!nested}%
 In \S\ref{sec:nested-datatype} we defined the datatype of terms
 *}
 

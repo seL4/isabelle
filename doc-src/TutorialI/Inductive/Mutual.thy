@@ -25,7 +25,7 @@ the above case, the induction rule is called @{thm[source]even_odd.induct}
 (simply concatenate the names of the sets involved) and has the conclusion
 @{text[display]"(?x \<in> even \<longrightarrow> ?P ?x) \<and> (?y \<in> odd \<longrightarrow> ?Q ?y)"}
 
-If we want to prove that all even numbers are divisible by 2, we have to
+If we want to prove that all even numbers are divisible by two, we have to
 generalize the statement as follows:
 *}
 

@@ -34,10 +34,8 @@ warnings to that effect.
 
 However, there is nothing to prevent the user from forming terms such as
 @{text"inverse []"} and proving theorems such as @{text"inverse []
-= inverse []"}, although we never defined inverse on lists. We hasten to say
-that there is nothing wrong with such terms and theorems. But it would be
-nice if we could prevent their formation, simply because it is very likely
-that the user did not mean to write what he did. Thus she had better not waste
-her time pursuing it further. This requires the use of type classes.
+= inverse []"} when inverse is not defined on lists.  Proving theorems about
+undefined constants does not endanger soundness, but it is pointless.
+To prevent such terms from even being formed requires the use of type classes.
 *}
 (*<*)end(*>*)

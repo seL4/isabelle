@@ -7,13 +7,14 @@
 %
 \begin{isamarkuptext}%
 \label{sec:CTL-revisited}
-The purpose of this section is twofold: we want to demonstrate
-some of the induction principles and heuristics discussed above and we want to
+\index{CTL|(}%
+The purpose of this section is twofold: to demonstrate
+some of the induction principles and heuristics discussed above and to
 show how inductive definitions can simplify proofs.
 In \S\ref{sec:CTL} we gave a fairly involved proof of the correctness of a
 model checker for CTL\@. In particular the proof of the
 \isa{infinity{\isacharunderscore}lemma} on the way to \isa{AF{\isacharunderscore}lemma{\isadigit{2}}} is not as
-simple as one might intuitively expect, due to the \isa{SOME} operator
+simple as one might expect, due to the \isa{SOME} operator
 involved. Below we give a simpler proof of \isa{AF{\isacharunderscore}lemma{\isadigit{2}}}
 based on an auxiliary inductive definition.
 
@@ -50,7 +51,7 @@ the \isa{rule{\isacharunderscore}format} directive undoes the reformulation afte
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-The base case (\isa{t\ {\isacharequal}\ s}) is trivial (\isa{blast}).
+The base case (\isa{t\ {\isacharequal}\ s}) is trivial and proved by \isa{blast}.
 In the induction step, we have an infinite \isa{A}-avoiding path \isa{f}
 starting from \isa{u}, a successor of \isa{t}. Now we simply instantiate
 the \isa{{\isasymforall}f{\isasymin}Paths\ t} in the induction hypothesis by the path starting with
@@ -61,7 +62,7 @@ and that the instantiated induction hypothesis implies the conclusion.
 Now we come to the key lemma. Assuming that no infinite \isa{A}-avoiding
 path starts from \isa{s}, we want to show \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. For the
 inductive proof this must be generalized to the statement that every point \isa{t}
-``between'' \isa{s} and \isa{A}, i.e.\ all of \isa{Avoid\ s\ A},
+``between'' \isa{s} and \isa{A}, in other words all of \isa{Avoid\ s\ A},
 is contained in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp{\isacharbrackleft}rule{\isacharunderscore}format{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharbrackright}{\isacharcolon}\isanewline
@@ -75,7 +76,7 @@ trivial. If \isa{t} is not in \isa{A} but all successors are in
 again trivial.
 
 The formal counterpart of this proof sketch is a well-founded induction
-w.r.t.\ \isa{M} restricted to (roughly speaking) \isa{Avoid\ s\ A\ {\isacharminus}\ A}:
+on~\isa{M} restricted to \isa{Avoid\ s\ A\ {\isacharminus}\ A}, roughly speaking:
 \begin{isabelle}%
 \ \ \ \ \ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
 \end{isabelle}
@@ -100,19 +101,19 @@ Now the induction hypothesis states that if \isa{t\ {\isasymnotin}\ A}
 then all successors of \isa{t} that are in \isa{Avoid\ s\ A} are in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Unfolding \isa{lfp} in the conclusion of the first
 subgoal once, we have to prove that \isa{t} is in \isa{A} or all successors
-of \isa{t} are in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}: if \isa{t} is not in \isa{A},
+of \isa{t} are in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.  But if \isa{t} is not in \isa{A},
 the second 
 \isa{Avoid}-rule implies that all successors of \isa{t} are in
-\isa{Avoid\ s\ A} (because we also assume \isa{t\ {\isasymin}\ Avoid\ s\ A}), and
-hence, by the induction hypothesis, all successors of \isa{t} are indeed in
+\isa{Avoid\ s\ A}, because we also assume \isa{t\ {\isasymin}\ Avoid\ s\ A}.
+Hence, by the induction hypothesis, all successors of \isa{t} are indeed in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Mechanically:%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}%
 \begin{isamarkuptxt}%
-Having proved the main goal we return to the proof obligation that the above
-relation is indeed well-founded. This is proved by contradiction: if
+Having proved the main goal, we return to the proof obligation that the 
+relation used above is indeed well-founded. This is proved by contradiction: if
 the relation is not well-founded then there exists an infinite \isa{A}-avoiding path all in \isa{Avoid\ s\ A}, by theorem
 \isa{wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain}:
 \begin{isabelle}%
@@ -130,15 +131,17 @@ From lemma \isa{ex{\isacharunderscore}infinite{\isacharunderscore}path} the exis
 \begin{isamarkuptext}%
 The \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}} modifier of the \isa{rule{\isacharunderscore}format} directive in the
 statement of the lemma means
-that the assumption is left unchanged --- otherwise the \isa{{\isasymforall}p} is turned
+that the assumption is left unchanged; otherwise the \isa{{\isasymforall}p} 
+would be turned
 into a \isa{{\isasymAnd}p}, which would complicate matters below. As it is,
 \isa{Avoid{\isacharunderscore}in{\isacharunderscore}lfp} is now
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharsemicolon}\ t\ {\isasymin}\ Avoid\ s\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ t\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}%
 \end{isabelle}
 The main theorem is simply the corollary where \isa{t\ {\isacharequal}\ s},
-in which case the assumption \isa{t\ {\isasymin}\ Avoid\ s\ A} is trivially true
+when the assumption \isa{t\ {\isasymin}\ Avoid\ s\ A} is trivially true
 by the first \isa{Avoid}-rule. Isabelle confirms this:%
+\index{CTL|)}%
 \end{isamarkuptext}%
 \isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ \ {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}auto\ elim{\isacharcolon}Avoid{\isacharunderscore}in{\isacharunderscore}lfp\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isanewline

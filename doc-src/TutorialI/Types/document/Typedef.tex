@@ -9,8 +9,8 @@
 \label{sec:adv-typedef}
 For most applications, a combination of predefined types like \isa{bool} and
 \isa{{\isasymRightarrow}} with recursive datatypes and records is quite sufficient. Very
-occasionally you may feel the need for a more advanced type. If you cannot do
-without that type, and you are certain that it is not definable by any of the
+occasionally you may feel the need for a more advanced type.  If you
+are certain that your type is not definable by any of the
 standard means, then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
@@ -165,35 +165,24 @@ should be phrased in terms of \isa{A}, \isa{B} and \isa{C}, not \isa{Abs{\isacha
 we merely need to prove that \isa{A}, \isa{B} and \isa{C} are distinct
 and that they exhaust the type.
 
-We start with a helpful version of injectivity of \isa{Abs{\isacharunderscore}three} on the
-representing subset:%
-\end{isamarkuptext}%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ {\isachardoublequote}{\isasymlbrakk}\ x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x{\isacharequal}y{\isacharparenright}{\isachardoublequote}%
-\begin{isamarkuptxt}%
-\noindent
-We prove each direction separately. From \isa{Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y}
-we use \isa{arg{\isacharunderscore}cong} to apply \isa{Rep{\isacharunderscore}three} to both sides,
-deriving \begin{isabelle}%
-Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%
-\end{isabelle}
-Thus we get the required \isa{x\ {\isacharequal}\ y} by simplification with \isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse}. 
-The other direction
-is trivial by simplification:%
-\end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}rule\ iffI{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ f\ {\isacharequal}\ Rep{\isacharunderscore}three\ \isakeyword{in}\ arg{\isacharunderscore}cong{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Abs{\isacharunderscore}three{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\isacommand{by}\ simp%
-\begin{isamarkuptext}%
-\noindent
-Analogous lemmas can be proved in the same way for arbitrary type definitions.
-
+In processing our \isacommand{typedef} declaration, 
+Isabelle helpfully proves several lemmas.
+One, \isa{Abs{\isacharunderscore}three{\isacharunderscore}inject},
+expresses that \isa{Abs{\isacharunderscore}three} is injective on the representing subset:
+\begin{center}
+\isa{{\isasymlbrakk}x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\end{center}
+Another, \isa{Rep{\isacharunderscore}three{\isacharunderscore}inject}, expresses that the representation
+function is also injective:
+\begin{center}
+\isa{{\isacharparenleft}Rep{\isacharunderscore}three\ x\ {\isacharequal}\ Rep{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\end{center}
 Distinctness of \isa{A}, \isa{B} and \isa{C} follows immediately
-if we expand their definitions and rewrite with the above simplification rule:%
+if we expand their definitions and rewrite with the injectivity
+of \isa{Abs{\isacharunderscore}three}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}A\ {\isasymnoteq}\ B\ {\isasymand}\ B\ {\isasymnoteq}\ A\ {\isasymand}\ A\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ A\ {\isasymand}\ B\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ B{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}inject\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Of course we rely on the simplifier to solve goals like \isa{{\isadigit{0}}\ {\isasymnoteq}\ {\isadigit{1}}}.
@@ -220,7 +209,8 @@ reduces \isa{n\ {\isasymle}\ {\isadigit{2}}} to the three cases \isa{n\ {\isasym
 \isacommand{apply}\ simp{\isacharunderscore}all\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-Now the case distinction lemma on type \isa{three} is easy to derive if you know how to:%
+Now the case distinction lemma on type \isa{three} is easy to derive if you 
+know how:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequote}%
 \begin{isamarkuptxt}%

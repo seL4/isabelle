@@ -3,10 +3,10 @@
 subsection{*Axioms*}
 
 
-text{*Now we want to attach axioms to our classes. Then we can reason on the
-level of classes and the results will be applicable to all types in a class,
-just as in axiomatic mathematics. These ideas are demonstrated by means of
-our above ordering relations.
+text{*Attaching axioms to our classes lets us reason on the
+level of classes.  The results will be applicable to all types in a class,
+just as in axiomatic mathematics.  These ideas are demonstrated by means of
+our ordering relations.
 *}
 
 subsubsection{*Partial Orders*}
@@ -26,13 +26,13 @@ text{*\noindent
 The first three axioms are the familiar ones, and the final one
 requires that @{text"<<"} and @{text"<<="} are related as expected.
 Note that behind the scenes, Isabelle has restricted the axioms to class
-@{text parord}. For example, this is what @{thm[source]refl} really looks like:
+@{text parord}. For example, the axiom @{thm[source]refl} really is
 @{thm[show_sorts]refl}.
 
 We have not made @{thm[source]less_le} a global definition because it would
 fix once and for all that @{text"<<"} is defined in terms of @{text"<<="} and
 never the other way around. Below you will see why we want to avoid this
-asymmetry. The drawback of the above class is that
+asymmetry. The drawback of our choice is that
 we need to define both @{text"<<="} and @{text"<<"} for each instance.
 
 We can now prove simple theorems in this abstract setting, for example
@@ -42,14 +42,16 @@ that @{text"<<"} is not symmetric:
 lemma [simp]: "(x::'a::parord) << y \<Longrightarrow> (\<not> y << x) = True";
 
 txt{*\noindent
-The conclusion is not simply @{prop"\<not> y << x"} because the preprocessor
-of the simplifier (see \S\ref{sec:simp-preprocessor})
-would turn this into @{prop"y << x = False"}, thus yielding
-a nonterminating rewrite rule. In the above form it is a generally useful
-rule.
+The conclusion is not just @{prop"\<not> y << x"} because the 
+simplifier's preprocessor (see \S\ref{sec:simp-preprocessor})
+would turn it into @{prop"y << x = False"}, yielding
+a nonterminating rewrite rule.  
+(It would be used to try to prove its own precondition \emph{ad
+    infinitum}.)
+In the form above, the rule is useful.
 The type constraint is necessary because otherwise Isabelle would only assume
-@{text"'a::ordrel"} (as required in the type of @{text"<<"}), in
-which case the proposition is not a theorem.  The proof is easy:
+@{text"'a::ordrel"} (as required in the type of @{text"<<"}), 
+when the proposition is not a theorem.  The proof is easy:
 *}
 
 by(simp add:less_le antisym);
@@ -67,8 +69,9 @@ txt{*\noindent
 This time @{text intro_classes} leaves us with the four axioms,
 specialized to type @{typ bool}, as subgoals:
 @{subgoals[display,show_types,indent=0]}
-Fortunately, the proof is easy for blast, once we have unfolded the definitions
-of @{text"<<"} and @{text"<<="} at @{typ bool}:
+Fortunately, the proof is easy for \isa{blast}
+once we have unfolded the definitions
+of @{text"<<"} and @{text"<<="} at type @{typ bool}:
 *}
 
 apply(simp_all (no_asm_use) only: le_bool_def less_bool_def);
@@ -85,16 +88,15 @@ by simp;
 
 text{*\noindent
 The effect is not stunning, but it demonstrates the principle.  It also shows
-that tools like the simplifier can deal with generic rules as well.
-It should be clear that the main advantage of the axiomatic method is that
-theorems can be proved in the abstract and one does not need to repeat the
-proof for each instance.
+that tools like the simplifier can deal with generic rules.
+The main advantage of the axiomatic method is that
+theorems can be proved in the abstract and freely reused for each instance.
 *}
 
 subsubsection{*Linear Orders*}
 
 text{* If any two elements of a partial order are comparable it is a
-\emph{linear} or \emph{total} order: *}
+\textbf{linear} or \textbf{total} order: *}
 
 axclass linord < parord
 linear: "x <<= y \<or> y <<= x"
@@ -112,9 +114,10 @@ apply blast;
 done
 
 text{*
-Linear orders are an example of subclassing by construction, which is the most
-common case. It is also possible to prove additional subclass relationships
-later on, i.e.\ subclassing by proof. This is the topic of the following
+Linear orders are an example of subclassing\index{subclasses}
+by construction, which is the most
+common case.  Subclass relationships can also be proved.  
+This is the topic of the following
 paragraph.
 *}
 
@@ -122,7 +125,7 @@ subsubsection{*Strict Orders*}
 
 text{*
 An alternative axiomatization of partial orders takes @{text"<<"} rather than
-@{text"<<="} as the primary concept. The result is a \emph{strict} order:
+@{text"<<="} as the primary concept. The result is a \textbf{strict} order:
 *}
 
 axclass strord < ordrel
@@ -173,7 +176,7 @@ subsubsection{*Multiple Inheritance and Sorts*}
 
 text{*
 A class may inherit from more than one direct superclass. This is called
-multiple inheritance and is certainly permitted. For example we could define
+\bfindex{multiple inheritance}.  For example, we could define
 the classes of well-founded orderings and well-orderings:
 *}
 
@@ -220,13 +223,12 @@ However, we do not pursue this rarefied concept further.
 This concludes our demonstration of type classes based on orderings.  We
 remind our readers that \isa{Main} contains a theory of
 orderings phrased in terms of the usual @{text"\<le>"} and @{text"<"}.
-It is recommended that, if possible,
-you base your own ordering relations on this theory.
+If possible, base your own ordering relations on this theory.
 *}
 
 subsubsection{*Inconsistencies*}
 
-text{* The reader may be wondering what happens if we, maybe accidentally,
+text{* The reader may be wondering what happens if we
 attach an inconsistent set of axioms to a class. So far we have always
 avoided to add new axioms to HOL for fear of inconsistencies and suddenly it
 seems that we are throwing all caution to the wind. So why is there no

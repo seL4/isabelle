@@ -2,7 +2,7 @@
 
 text{*\noindent
 So far, all recursive definitions were shown to terminate via measure
-functions. Sometimes this can be quite inconvenient or even
+functions. Sometimes this can be inconvenient or
 impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
 can be shown by means of the \rmindex{lexicographic product} @{text"<*lex*>"}:
@@ -23,18 +23,19 @@ component decreases (as in the inner call in the third equation).
 In general, \isacommand{recdef} supports termination proofs based on
 arbitrary well-founded relations as introduced in \S\ref{sec:Well-founded}.
 This is called \textbf{well-founded
-recursion}\indexbold{recursion!well-founded}. Clearly, a function definition
-is total iff the set of all pairs $(r,l)$, where $l$ is the argument on the
+recursion}\indexbold{recursion!well-founded}.  A function definition
+is total if and only if the set of 
+all pairs $(r,l)$, where $l$ is the argument on the
 left-hand side of an equation and $r$ the argument of some recursive call on
 the corresponding right-hand side, induces a well-founded relation.  For a
 systematic account of termination proofs via well-founded relations see, for
 example, Baader and Nipkow~\cite{Baader-Nipkow}.
 
-Each \isacommand{recdef} definition should be accompanied (after the name of
-the function) by a well-founded relation on the argument type of the
-function.  Isabelle/HOL formalizes some of the most important
+Each \isacommand{recdef} definition should be accompanied (after the function's
+name) by a well-founded relation on the function's argument type.  
+Isabelle/HOL formalizes some of the most important
 constructions of well-founded relations (see \S\ref{sec:Well-founded}). For
-example, @{term"measure f"} is always well-founded, and the lexicographic
+example, @{term"measure f"} is always well-founded.   The lexicographic
 product of two well-founded relations is again well-founded, which we relied
 on when defining Ackermann's function above.
 Of course the lexicographic product can also be iterated:
@@ -55,8 +56,8 @@ existing well-founded relation via the inverse image construction @{term
 inv_image}. All these constructions are known to \isacommand{recdef}. Thus you
 will never have to prove well-foundedness of any relation composed
 solely of these building blocks. But of course the proof of
-termination of your function definition, i.e.\ that the arguments
-decrease with every recursive call, may still require you to provide
+termination of your function definition --- that the arguments
+decrease with every recursive call --- may still require you to provide
 additional lemmas.
 
 It is also possible to use your own well-founded relations with
@@ -79,7 +80,7 @@ lemma wf_greater: "wf {(i,j). j<i \<and> i \<le> (N::nat)}"
 
 txt{*\noindent
 The proof is by showing that our relation is a subset of another well-founded
-relation: one given by a measure function. 
+relation: one given by a measure function.\index{*wf_subset (theorem)}
 *};
 
 apply (rule wf_subset [of "measure (\<lambda>k::nat. N-k)"], blast);

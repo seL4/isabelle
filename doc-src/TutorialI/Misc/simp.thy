@@ -281,7 +281,7 @@ The simplifier does not split
 @{text"case"}-expressions, as it does @{text"if"}-expressions, 
 because with recursive datatypes it could lead to nontermination.
 Instead, the simplifier has a modifier
-@{text split}\index{*split (modified)} 
+@{text split}\index{*split (modifier)} 
 for adding splitting rules explicitly.  The
 lemma above can be proved in one step by
 *}

@@ -25,15 +25,15 @@ unproved termination condition
 where @{term set} returns the set of elements of a list
 and @{text"term_list_size :: term list \<Rightarrow> nat"} is an auxiliary
 function automatically defined by Isabelle
-(while processing the declaration of @{text term}).  First we have to understand why the
-recursive call of @{term trev} underneath @{term map} leads to the above
-condition. The reason is that \isacommand{recdef} ``knows'' that @{term map}
+(while processing the declaration of @{text term}).  Why does the
+recursive call of @{term trev} lead to this
+condition?  Because \isacommand{recdef} knows that @{term map}
 will apply @{term trev} only to elements of @{term ts}. Thus the 
 condition expresses that the size of the argument @{prop"t : set ts"} of any
 recursive call of @{term trev} is strictly less than @{term"size(App f ts)"},
 which equals @{term"Suc(term_list_size ts)"}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
-\isacommand{recdef} ``knows'' about @{term map}.
+\isacommand{recdef} knows about @{term map}.
 *};
 
 (*<*)

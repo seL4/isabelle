@@ -37,11 +37,9 @@ instances of its declared type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isa
 warnings to that effect.
 
 However, there is nothing to prevent the user from forming terms such as
-\isa{inverse\ {\isacharbrackleft}{\isacharbrackright}} and proving theorems such as \isa{inverse\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ inverse\ {\isacharbrackleft}{\isacharbrackright}}, although we never defined inverse on lists. We hasten to say
-that there is nothing wrong with such terms and theorems. But it would be
-nice if we could prevent their formation, simply because it is very likely
-that the user did not mean to write what he did. Thus she had better not waste
-her time pursuing it further. This requires the use of type classes.%
+\isa{inverse\ {\isacharbrackleft}{\isacharbrackright}} and proving theorems such as \isa{inverse\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ inverse\ {\isacharbrackleft}{\isacharbrackright}} when inverse is not defined on lists.  Proving theorems about
+undefined constants does not endanger soundness, but it is pointless.
+To prevent such terms from even being formed requires the use of type classes.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

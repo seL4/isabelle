@@ -3,7 +3,7 @@
 subsubsection{*Controlled Overloading with Type Classes*}
 
 text{*
-We now start with the theory of ordering relations, which we want to phrase
+We now start with the theory of ordering relations, which we shall phrase
 in terms of the two binary symbols @{text"<<"} and @{text"<<="}
 to avoid clashes with @{text"<"} and @{text"\<le>"} in theory @{text
 Main}. To restrict the application of @{text"<<"} and @{text"<<="} we
@@ -14,9 +14,9 @@ axclass ordrel < "term"
 
 text{*\noindent
 This introduces a new class @{text ordrel} and makes it a subclass of
-the predefined class @{text term}\footnote{The quotes around @{text term}
-simply avoid the clash with the command \isacommand{term}.} --- @{text term}
-is the class of all HOL types, like ``Object'' in Java.
+the predefined class @{text term}, which
+is the class of all HOL types.\footnote{The quotes around @{text term}
+simply avoid the clash with the command \isacommand{term}.}
 This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:
@@ -30,7 +30,7 @@ Note that only one occurrence of a type variable in a type needs to be
 constrained with a class; the constraint is propagated to the other
 occurrences automatically.
 
-So far there is not a single type of class @{text ordrel}. To breathe life
+So far there are no types of class @{text ordrel}. To breathe life
 into @{text ordrel} we need to declare a type to be an \bfindex{instance} of
 @{text ordrel}:
 *}
@@ -41,7 +41,7 @@ txt{*\noindent
 Command \isacommand{instance} actually starts a proof, namely that
 @{typ bool} satisfies all axioms of @{text ordrel}.
 There are none, but we still need to finish that proof, which we do
-by invoking a fixed predefined method:
+by invoking the \methdx{intro_classes} method:
 *}
 
 by intro_classes
@@ -59,12 +59,13 @@ le_bool_def:  "P <<= Q \<equiv> P \<longrightarrow> Q"
 less_bool_def: "P << Q \<equiv> \<not>P \<and> Q"
 
 text{*\noindent
-Now @{prop"False <<= P"} is provable
+Now @{prop"False <<= P"} is provable:
 *}
 
 lemma "False <<= P"
 by(simp add: le_bool_def)
 
 text{*\noindent
-whereas @{text"[] <<= []"} is not even well-typed. In order to make it well-typed
+At this point, @{text"[] <<= []"} is not even well-typed.
+To make it well-typed,
 we need to make lists a type of class @{text ordrel}:*}(*<*)end(*>*)

@@ -54,19 +54,19 @@ because they determine the complexity of your proofs.}
 
 Let us now return to the question of how \isacommand{recdef} can come up with
 sensible termination conditions in the presence of higher-order functions
-like @{term"map"}. For a start, if nothing were known about @{term"map"},
+like @{term"map"}. For a start, if nothing were known about @{term"map"}, then
 @{term"map trev ts"} might apply @{term"trev"} to arbitrary terms, and thus
 \isacommand{recdef} would try to prove the unprovable @{term"size t < Suc
 (term_list_size ts)"}, without any assumption about @{term"t"}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
 @{thm[source]map_cong}:
 @{thm[display,margin=50]"map_cong"[no_vars]}
-Its second premise expresses (indirectly) that the first argument of
-@{term"map"} is only applied to elements of its second argument. Congruence
-rules for other higher-order functions on lists look very similar. If you get
+Its second premise expresses that in @{term"map f xs"},
+function @{term"f"} is only applied to elements of list @{term"xs"}.  Congruence
+rules for other higher-order functions on lists are similar.  If you get
 into a situation where you need to supply \isacommand{recdef} with new
-congruence rules, you can either append a hint after the end of
-the recursion equations
+congruence rules, you can append a hint after the end of
+the recursion equations:
 *}
 (*<*)
 consts dummy :: "nat => nat"
@@ -76,14 +76,14 @@ recdef dummy "{}"
 (hints recdef_cong: map_cong)
 
 text{*\noindent
-or declare them globally
-by giving them the \attrdx{recdef_cong} attribute as in
+Or you can declare them globally
+by giving them the \attrdx{recdef_cong} attribute:
 *}
 
 declare map_cong[recdef_cong]
 
 text{*
-Note that the @{text cong} and @{text recdef_cong} attributes are
+The @{text cong} and @{text recdef_cong} attributes are
 intentionally kept apart because they control different activities, namely
 simplification and making recursive definitions.
 % The local @{text cong} in

@@ -5,10 +5,9 @@ theory simp = Main:
 section{*Simplification*}
 
 text{*\label{sec:simplification-II}\index{simplification|(}
-This section discusses some additional nifty features not covered so far and
-gives a short introduction to the simplification process itself. The latter
-is helpful to understand why a particular rule does or does not apply in some
-situation.
+This section describes features not covered until now.  It also
+outlines the simplification process itself, which can be helpful
+when the simplifier does not do what you expect of it.
 *}
 
 subsection{*Advanced Features*}
@@ -16,9 +15,10 @@ subsection{*Advanced Features*}
 subsubsection{*Congruence Rules*}
 
 text{*\label{sec:simp-cong}
-It is hardwired into the simplifier that while simplifying the conclusion $Q$
-of $P \Imp Q$ it is legal to make uses of the assumption $P$. This
-kind of contextual information can also be made available for other
+While simplifying the conclusion $Q$
+of $P \Imp Q$, it is legal use the assumption $P$.
+For $\Imp$ this policy is hardwired, but 
+contextual information can also be made available for other
 operators. For example, @{prop"xs = [] --> xs@xs = xs"} simplifies to @{term
 True} because we may use @{prop"xs = []"} when simplifying @{prop"xs@xs =
 xs"}. The generation of contextual information during simplification is
@@ -33,11 +33,11 @@ and assume @{prop"P'"} when simplifying @{prop Q} to @{prop"Q'"}.
 Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
 @{thm[display,eta_contract=false,margin=60]ball_cong[no_vars]}
-The congruence rule for conditional expressions supplies contextual
+One congruence rule for conditional expressions supplies contextual
 information for simplifying the @{text then} and @{text else} cases:
 @{thm[display]if_cong[no_vars]}
-A congruence rule can also \emph{prevent} simplification of some arguments.
-Here is an alternative congruence rule for conditional expressions:
+An alternative congruence rule for conditional expressions
+actually \emph{prevents} simplification of some arguments:
 @{thm[display]if_weak_cong[no_vars]}
 Only the first argument is simplified; the others remain unchanged.
 This makes simplification much faster and is faithful to the evaluation
@@ -67,11 +67,8 @@ is occasionally useful but is not a default rule; you have to declare it explici
 subsubsection{*Permutative Rewrite Rules*}
 
 text{*
-\index{rewrite rule!permutative|bold}
-\index{rewriting!ordered|bold}
-\index{ordered rewriting|bold}
-\index{simplification!ordered|bold}
-An equation is a \bfindex{permutative rewrite rule} if the left-hand
+\index{rewrite rules!permutative|bold}%
+An equation is a \textbf{permutative rewrite rule} if the left-hand
 side and right-hand side are the same up to renaming of variables.  The most
 common permutative rule is commutativity: @{prop"x+y = y+x"}.  Other examples
 include @{prop"(x-y)-z = (x-z)-y"} in arithmetic and @{prop"insert x (insert
@@ -110,45 +107,48 @@ necessary because the built-in arithmetic prover often succeeds without
 such tricks.
 *}
 
-subsection{*How it Works*}
+subsection{*How the Simplifier Works*}
 
 text{*\label{sec:SimpHow}
-Roughly speaking, the simplifier proceeds bottom-up (subterms are simplified
-first) and a conditional equation is only applied if its condition could be
-proved (again by simplification). Below we explain some special features of the rewriting process.
+Roughly speaking, the simplifier proceeds bottom-up: subterms are simplified
+first.  A conditional equation is only applied if its condition can be
+proved, again by simplification.  Below we explain some special features of
+the rewriting process. 
 *}
 
 subsubsection{*Higher-Order Patterns*}
 
 text{*\index{simplification rule|(}
 So far we have pretended the simplifier can deal with arbitrary
-rewrite rules. This is not quite true.  Due to efficiency (and
-potentially also computability) reasons, the simplifier expects the
+rewrite rules. This is not quite true.  For reasons of feasibility,
+the simplifier expects the
 left-hand side of each rule to be a so-called \emph{higher-order
-pattern}~\cite{nipkow-patterns}\indexbold{higher-order
-pattern}\indexbold{pattern, higher-order}. This restricts where
+pattern}~\cite{nipkow-patterns}\indexbold{patterns!higher-order}. 
+This restricts where
 unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
-form (this will always be the case unless you have done something
-strange) where each occurrence of an unknown is of the form
+form.  (This means there are no subterms of the form $(\lambda x. M)(N)$.)  
+Each occurrence of an unknown is of the form
 $\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
 variables. Thus all ordinary rewrite rules, where all unknowns are
-of base type, for example @{thm add_assoc}, are OK: if an unknown is
+of base type, for example @{thm add_assoc}, are acceptable: if an unknown is
 of base type, it cannot have any arguments. Additionally, the rule
-@{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also OK, in
+@{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also acceptable, in
 both directions: all arguments of the unknowns @{text"?P"} and
 @{text"?Q"} are distinct bound variables.
 
-If the left-hand side is not a higher-order pattern, not all is lost
-and the simplifier will still try to apply the rule, but only if it
-matches \emph{directly}, i.e.\ without much $\lambda$-calculus hocus
-pocus. For example, @{text"?f ?x \<in> range ?f = True"} rewrites
+If the left-hand side is not a higher-order pattern, all is not lost.
+The simplifier will still try to apply the rule provided it
+matches directly: without much $\lambda$-calculus hocus
+pocus.  For example, @{text"(?f ?x \<in> range ?f) = True"} rewrites
 @{term"g a \<in> range g"} to @{term True}, but will fail to match
 @{text"g(h b) \<in> range(\<lambda>x. g(h x))"}.  However, you can
-replace the offending subterms (in our case @{text"?f ?x"}, which
-is not a pattern) by adding new variables and conditions: @{text"?y =
-?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is fine
+eliminate the offending subterms --- those that are not patterns ---
+by adding new variables and conditions.
+In our example, we eliminate @{text"?f ?x"} and obtain
+ @{text"?y =
+?f ?x \<Longrightarrow> (?y \<in> range ?f) = True"}, which is fine
 as a conditional rewrite rule since conditions can be arbitrary
-terms. However, this trick is not a panacea because the newly
+terms.  However, this trick is not a panacea because the newly
 introduced conditions may be hard to solve.
   
 There is no restriction on the form of the right-hand

@@ -6,8 +6,8 @@ text{*\label{sec:products}
 Ordered pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
 repertoire of operations: pairing and the two projections @{term fst} and
 @{term snd}. In any non-trivial application of pairs you will find that this
-quickly leads to unreadable formulae involving nests of projections. This
-section is concerned with introducing some syntactic sugar to overcome this
+quickly leads to unreadable nests of projections. This
+section introduces syntactic sugar to overcome this
 problem: pattern matching with tuples.
 *}
 
@@ -33,12 +33,11 @@ over pairs and tuples is merely a convenient shorthand for a more complex
 internal representation.  Thus the internal and external form of a term may
 differ, which can affect proofs. If you want to avoid this complication,
 stick to @{term fst} and @{term snd} and write @{term"%p. fst p + snd p"}
-instead of @{text"\<lambda>(x,y). x+y"} (which denote the same function but are quite
-different terms).
+instead of @{text"\<lambda>(x,y). x+y"}.  These terms are distinct even though they
+denote the same function.
 
 Internally, @{term"%(x,y). t"} becomes @{text"split (\<lambda>x y. t)"}, where
-@{term split}\indexbold{*split (constant)}
-is the uncurrying function of type @{text"('a \<Rightarrow> 'b
+\cdx{split} is the uncurrying function of type @{text"('a \<Rightarrow> 'b
 \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"} defined as
 \begin{center}
 @{thm split_def}
@@ -64,16 +63,17 @@ we are trying to avoid: nests of @{term fst} and @{term snd}. Thus this
 approach is neither elegant nor very practical in large examples, although it
 can be effective in small ones.
 
-If we step back and ponder why the above lemma presented a problem in the
-first place, we quickly realize that what we would like is to replace @{term
-p} with some concrete pair @{term"(a,b)"}, in which case both sides of the
-equation would simplify to @{term a} because of the simplification rules
-@{thm split_conv[no_vars]} and @{thm fst_conv[no_vars]}.  This is the
-key problem one faces when reasoning about pattern matching with pairs: how to
-convert some atomic term into a pair.
+If we consider why this lemma presents a problem, 
+we quickly realize that we need to replace the variable~@{term
+p} by some pair @{term"(a,b)"}.  Then both sides of the
+equation would simplify to @{term a} by the simplification rules
+@{thm split_conv[no_vars]} and @{thm fst_conv[no_vars]}.  
+To reason about tuple patterns requires some way of
+converting a variable of product type into a pair.
 
 In case of a subterm of the form @{term"split f p"} this is easy: the split
-rule @{thm[source]split_split} replaces @{term p} by a pair:
+rule @{thm[source]split_split} replaces @{term p} by a pair:%
+\index{*split (method)}
 *}
 
 lemma "(\<lambda>(x,y).y) p = snd p"
@@ -147,7 +147,7 @@ apply(case_tac p)
 
 txt{*\noindent
 @{subgoals[display,indent=0]}
-Again, @{text case_tac} is applicable because @{text"\<times>"} is a datatype.
+Again, \methdx{case_tac} is applicable because @{text"\<times>"} is a datatype.
 The subgoal is easily proved by @{text simp}.
 
 Splitting by @{text case_tac} also solves the previous examples and may thus
@@ -172,10 +172,13 @@ done
 
 text{*\noindent
 Note that we have intentionally included only @{thm[source]split_paired_all}
-in the first simplification step. This time the reason was not merely
+in the first simplification step, and then we simplify again. 
+This time the reason was not merely
 pedagogical:
-@{thm[source]split_paired_all} may interfere with certain congruence
-rules of the simplifier, i.e.
+@{thm[source]split_paired_all} may interfere with other functions
+of the simplifier.
+The following command could fail (here it does not)
+where two separate \isa{simp} applications succeed.
 *}
 
 (*<*)
@@ -184,18 +187,15 @@ lemma "\<And>p q. swap(swap p) = q \<longrightarrow> p = q"
 apply(simp add:split_paired_all)
 (*<*)done(*>*)
 text{*\noindent
-may fail (here it does not) where the above two stages succeed.
-
-Finally, all @{text"\<forall>"} and @{text"\<exists>"}-quantified variables are split
-automatically by the simplifier:
+Finally, the simplifier automatically splits all @{text"\<forall>"} and
+@{text"\<exists>"}-quantified variables:
 *}
 
 lemma "\<forall>p. \<exists>q. swap p = swap q"
-apply simp;
-done
+by simp;
 
 text{*\noindent
-In case you would like to turn off this automatic splitting, just disable the
+To turn off this automatic splitting, just disable the
 responsible simplification rules:
 \begin{center}
 @{thm split_paired_All[no_vars]}

@@ -3,6 +3,7 @@
 section{*The Reflexive Transitive Closure*}
 
 text{*\label{sec:rtc}
+\index{reflexive transitive closure!defining inductively|(}%
 An inductive definition may accept parameters, so it can express 
 functions that yield sets.
 Relations too can be defined inductively, since they are just sets of pairs.
@@ -21,7 +22,7 @@ rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightar
 
 text{*\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
-@{text"rtc r"} we can read and write @{term"r*"}. The actual definition
+@{text"rtc r"} we can write @{term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately given the
 @{text iff} attribute to increase automation. The
 second rule, @{thm[source]rtc_step}, says that we can always add one more
@@ -65,9 +66,9 @@ lemma rtc_trans: "\<lbrakk> (x,y) \<in> r*; (y,z) \<in> r* \<rbrakk> \<Longright
 apply(erule rtc.induct)
 
 txt{*\noindent
-Unfortunately, even the resulting base case is a problem
+Unfortunately, even the base case is a problem:
 @{subgoals[display,indent=0,goals_limit=1]}
-and maybe not what you had expected. We have to abandon this proof attempt.
+We have to abandon this proof attempt.
 To understand what is going on, let us look again at @{thm[source]rtc.induct}.
 In the above application of @{text erule}, the first premise of
 @{thm[source]rtc.induct} is unified with the first suitable assumption, which
@@ -150,6 +151,7 @@ transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
 @{thm[source]rtc2.induct}. Since inductive proofs are hard enough
 anyway, we should always pick the simplest induction schema available.
 Hence @{term rtc} is the definition of choice.
+\index{reflexive transitive closure!defining inductively|)}
 
 \begin{exercise}\label{ex:converse-rtc-step}
 Show that the converse of @{thm[source]rtc_step} also holds:

@@ -5,8 +5,8 @@ section{*Introducing New Types*}
 text{*\label{sec:adv-typedef}
 For most applications, a combination of predefined types like @{typ bool} and
 @{text"\<Rightarrow>"} with recursive datatypes and records is quite sufficient. Very
-occasionally you may feel the need for a more advanced type. If you cannot do
-without that type, and you are certain that it is not definable by any of the
+occasionally you may feel the need for a more advanced type.  If you
+are certain that your type is not definable by any of the
 standard means, then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
@@ -164,37 +164,25 @@ Abs_three} and @{term Rep_three}. Because of the simplicity of the example,
 we merely need to prove that @{term A}, @{term B} and @{term C} are distinct
 and that they exhaust the type.
 
-We start with a helpful version of injectivity of @{term Abs_three} on the
-representing subset:
-*}
-
-lemma [simp]:
- "\<lbrakk> x \<in> three; y \<in> three \<rbrakk> \<Longrightarrow> (Abs_three x = Abs_three y) = (x=y)";
-
-txt{*\noindent
-We prove each direction separately. From @{prop"Abs_three x = Abs_three y"}
-we use @{thm[source]arg_cong} to apply @{term Rep_three} to both sides,
-deriving @{prop[display]"Rep_three(Abs_three x) = Rep_three(Abs_three y)"}
-Thus we get the required @{prop"x =
-y"} by simplification with @{thm[source]Abs_three_inverse}. 
-The other direction
-is trivial by simplification:
-*}
-
-apply(rule iffI);
- apply(drule_tac f = Rep_three in arg_cong);
- apply(simp add:Abs_three_inverse);
-by simp;
-
-text{*\noindent
-Analogous lemmas can be proved in the same way for arbitrary type definitions.
-
+In processing our \isacommand{typedef} declaration, 
+Isabelle helpfully proves several lemmas.
+One, @{thm[source]Abs_three_inject},
+expresses that @{term Abs_three} is injective on the representing subset:
+\begin{center}
+@{thm Abs_three_inject[no_vars]}
+\end{center}
+Another, @{thm[source]Rep_three_inject}, expresses that the representation
+function is also injective:
+\begin{center}
+@{thm Rep_three_inject[no_vars]}
+\end{center}
 Distinctness of @{term A}, @{term B} and @{term C} follows immediately
-if we expand their definitions and rewrite with the above simplification rule:
+if we expand their definitions and rewrite with the injectivity
+of @{term Abs_three}:
 *}
 
 lemma "A \<noteq> B \<and> B \<noteq> A \<and> A \<noteq> C \<and> C \<noteq> A \<and> B \<noteq> C \<and> C \<noteq> B";
-by(simp add:A_def B_def C_def three_def);
+by(simp add: Abs_three_inject A_def B_def C_def three_def);
 
 text{*\noindent
 Of course we rely on the simplifier to solve goals like @{prop"0 \<noteq> 1"}.
@@ -221,7 +209,8 @@ apply simp_all;
 done
 
 text{*
-Now the case distinction lemma on type @{typ three} is easy to derive if you know how to:
+Now the case distinction lemma on type @{typ three} is easy to derive if you 
+know how:
 *}
 
 lemma three_cases: "\<lbrakk> P A; P B; P C \<rbrakk> \<Longrightarrow> P x";

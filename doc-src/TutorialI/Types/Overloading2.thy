@@ -16,6 +16,12 @@ le_list_def: "xs <<= (ys::'a::ordrel list) \<equiv>
 
 text{*\noindent
 The infix function @{text"!"} yields the nth element of a list.
+
+\begin{warn}
+A type constructor can be instantiated in only one way to
+a given type class.  For example, our two instantiations of \isa{list} must
+reside in separate theories with disjoint scopes.\REMARK{Tobias, please check}
+\end{warn}
 *}
 
 subsubsection{*Predefined Overloading*}
@@ -24,7 +30,7 @@ text{*
 HOL comes with a number of overloaded constants and corresponding classes.
 The most important ones are listed in Table~\ref{tab:overloading} in the appendix. They are
 defined on all numeric types and sometimes on other types as well, for example
-@{text"-"}, @{text"\<le>"} and @{text"<"} on sets.
+$-$ and @{text"\<le>"} on sets.
 
 In addition there is a special input syntax for bounded quantifiers:
 \begin{center}

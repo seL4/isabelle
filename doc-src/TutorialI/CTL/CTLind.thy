@@ -3,13 +3,14 @@
 subsection{*CTL Revisited*}
 
 text{*\label{sec:CTL-revisited}
-The purpose of this section is twofold: we want to demonstrate
-some of the induction principles and heuristics discussed above and we want to
+\index{CTL|(}%
+The purpose of this section is twofold: to demonstrate
+some of the induction principles and heuristics discussed above and to
 show how inductive definitions can simplify proofs.
 In \S\ref{sec:CTL} we gave a fairly involved proof of the correctness of a
 model checker for CTL\@. In particular the proof of the
 @{thm[source]infinity_lemma} on the way to @{thm[source]AF_lemma2} is not as
-simple as one might intuitively expect, due to the @{text SOME} operator
+simple as one might expect, due to the @{text SOME} operator
 involved. Below we give a simpler proof of @{thm[source]AF_lemma2}
 based on an auxiliary inductive definition.
 
@@ -50,7 +51,7 @@ apply(simp_all add:Paths_def split:nat.split);
 done
 
 text{*\noindent
-The base case (@{prop"t = s"}) is trivial (@{text blast}).
+The base case (@{prop"t = s"}) is trivial and proved by @{text blast}.
 In the induction step, we have an infinite @{term A}-avoiding path @{term f}
 starting from @{term u}, a successor of @{term t}. Now we simply instantiate
 the @{text"\<forall>f\<in>Paths t"} in the induction hypothesis by the path starting with
@@ -61,7 +62,7 @@ and that the instantiated induction hypothesis implies the conclusion.
 Now we come to the key lemma. Assuming that no infinite @{term A}-avoiding
 path starts from @{term s}, we want to show @{prop"s \<in> lfp(af A)"}. For the
 inductive proof this must be generalized to the statement that every point @{term t}
-``between'' @{term s} and @{term A}, i.e.\ all of @{term"Avoid s A"},
+``between'' @{term s} and @{term A}, in other words all of @{term"Avoid s A"},
 is contained in @{term"lfp(af A)"}:
 *}
 
@@ -77,7 +78,7 @@ trivial. If @{term t} is not in @{term A} but all successors are in
 again trivial.
 
 The formal counterpart of this proof sketch is a well-founded induction
-w.r.t.\ @{term M} restricted to (roughly speaking) @{term"Avoid s A - A"}:
+on~@{term M} restricted to @{term"Avoid s A - A"}, roughly speaking:
 @{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}"}
 As we shall see presently, the absence of infinite @{term A}-avoiding paths
 starting from @{term s} implies well-foundedness of this relation. For the
@@ -95,11 +96,11 @@ Now the induction hypothesis states that if @{prop"t \<notin> A"}
 then all successors of @{term t} that are in @{term"Avoid s A"} are in
 @{term"lfp (af A)"}. Unfolding @{term lfp} in the conclusion of the first
 subgoal once, we have to prove that @{term t} is in @{term A} or all successors
-of @{term t} are in @{term"lfp (af A)"}: if @{term t} is not in @{term A},
+of @{term t} are in @{term"lfp (af A)"}.  But if @{term t} is not in @{term A},
 the second 
 @{term Avoid}-rule implies that all successors of @{term t} are in
-@{term"Avoid s A"} (because we also assume @{prop"t \<in> Avoid s A"}), and
-hence, by the induction hypothesis, all successors of @{term t} are indeed in
+@{term"Avoid s A"}, because we also assume @{prop"t \<in> Avoid s A"}.
+Hence, by the induction hypothesis, all successors of @{term t} are indeed in
 @{term"lfp(af A)"}. Mechanically:
 *}
 
@@ -108,8 +109,8 @@ hence, by the induction hypothesis, all successors of @{term t} are indeed in
  apply(blast intro:Avoid.intros);
 
 txt{*
-Having proved the main goal we return to the proof obligation that the above
-relation is indeed well-founded. This is proved by contradiction: if
+Having proved the main goal, we return to the proof obligation that the 
+relation used above is indeed well-founded. This is proved by contradiction: if
 the relation is not well-founded then there exists an infinite @{term
 A}-avoiding path all in @{term"Avoid s A"}, by theorem
 @{thm[source]wf_iff_no_infinite_down_chain}:
@@ -128,14 +129,15 @@ done
 text{*
 The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive in the
 statement of the lemma means
-that the assumption is left unchanged --- otherwise the @{text"\<forall>p"} is turned
+that the assumption is left unchanged; otherwise the @{text"\<forall>p"} 
+would be turned
 into a @{text"\<And>p"}, which would complicate matters below. As it is,
 @{thm[source]Avoid_in_lfp} is now
 @{thm[display]Avoid_in_lfp[no_vars]}
 The main theorem is simply the corollary where @{prop"t = s"},
-in which case the assumption @{prop"t \<in> Avoid s A"} is trivially true
-by the first @{term Avoid}-rule. Isabelle confirms this:
-*}
+when the assumption @{prop"t \<in> Avoid s A"} is trivially true
+by the first @{term Avoid}-rule. Isabelle confirms this:%
+\index{CTL|)}*}
 
 theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
 by(auto elim:Avoid_in_lfp intro:Avoid.intros);

@@ -913,7 +913,7 @@ relation  behaves as expected and that it is well-founded:
 ((x,y)\ \isasymin\ less_than)\ =\ (x\ <\ y)
 \rulenamedx{less_than_iff}\isanewline
 wf\ less_than
-\rulename{wf_less_than}
+\rulenamedx{wf_less_than}
 \end{isabelle}
 
 The notion of measure generalizes to the 
@@ -928,7 +928,7 @@ inv_image\ r\ f\ \isasymequiv\ \isacharbraceleft(x,y).\ (f\ x,\ f\ y)\
 \isasymin\ r\isacharbraceright
 \rulenamedx{inv_image_def}\isanewline
 wf\ r\ \isasymLongrightarrow\ wf\ (inv_image\ r\ f)
-\rulename{wf_inv_image}
+\rulenamedx{wf_inv_image}
 \end{isabelle}
 
 A measure function involves the natural numbers.  The relation \isa{measure
@@ -939,7 +939,7 @@ datatype.  Isabelle/HOL defines
 measure\ \isasymequiv\ inv_image\ less_than%
 \rulenamedx{measure_def}\isanewline
 wf\ (measure\ f)
-\rulename{wf_measure}
+\rulenamedx{wf_measure}
 \end{isabelle}
 
 Of the other constructions, the most important is the
@@ -957,7 +957,7 @@ ra\ <*lex*>\ rb\ \isasymequiv \isanewline
 \rulenamedx{lex_prod_def}%
 \par\smallskip
 \isasymlbrakk wf\ ra;\ wf\ rb\isasymrbrakk \ \isasymLongrightarrow \ wf\ (ra\ <*lex*>\ rb)
-\rulename{wf_lex_prod}
+\rulenamedx{wf_lex_prod}
 \end{isabelle}
 
 These constructions can be used in a

@@ -3,6 +3,7 @@
 subsection{*Computation Tree Logic --- CTL*};
 
 text{*\label{sec:CTL}
+\index{CTL|(}%
 The semantics of PDL only needs reflexive transitive closure.
 Let us be adventurous and introduce a more expressive temporal operator.
 We extend the datatype
@@ -27,7 +28,7 @@ constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
          "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
 
 text{*\noindent
-This definition allows a very succinct statement of the semantics of @{term AF}:
+This definition allows a succinct statement of the semantics of @{term AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation. In reality one has to define a new datatype and a new function.}
@@ -108,9 +109,9 @@ theorem AF_lemma1:
   "lfp(af A) \<subseteq> {s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A}";
 
 txt{*\noindent
-In contrast to the analogous property for @{term EF}, and just
-for a change, we do not use fixed point induction but a weaker theorem,
-also known in the literature (after David Park) as \emph{Park-induction}:
+In contrast to the analogous proof for @{term EF}, and just
+for a change, we do not use fixed point induction.  Park-induction,
+named after David Park, is weaker but sufficient for this proof:
 \begin{center}
 @{thm lfp_lowerbound[of _ "S",no_vars]} \hfill (@{thm[source]lfp_lowerbound})
 \end{center}
@@ -137,20 +138,19 @@ apply(clarsimp);
 
 txt{*
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1)"}, i.e.\ @{term p} without its
-first element. The rest is practically automatic:
+It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1)"}, that is, 
+@{term p} without its first element.  The rest is automatic:
 *};
 
 apply(erule_tac x = "\<lambda>i. p(i+1)" in allE);
-apply simp;
-apply blast;
+apply force;
 done;
 
 
 text{*
 The opposite inclusion is proved by contradiction: if some state
 @{term s} is not in @{term"lfp(af A)"}, then we can construct an
-infinite @{term A}-avoiding path starting from @{term s}. The reason is
+infinite @{term A}-avoiding path starting from~@{term s}. The reason is
 that by unfolding @{term lfp} we find that if @{term s} is not in
 @{term"lfp(af A)"}, then @{term s} is not in @{term A} and there is a
 direct successor of @{term s} that is again not in \mbox{@{term"lfp(af
@@ -219,9 +219,9 @@ apply(rule_tac x = "path s Q" in exI);
 apply(clarsimp);
 
 txt{*\noindent
-After simplification and clarification, the subgoal has the following form
+After simplification and clarification, the subgoal has the following form:
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-and invites a proof by induction on @{term i}:
+It invites a proof by induction on @{term i}:
 *};
 
 apply(induct_tac i);
@@ -244,7 +244,7 @@ two subgoals: @{prop"EX a. (s, a) : M & Q a"}, which follows from the assumption
  apply(fast intro:someI2_ex);
 
 txt{*\noindent
-What is worth noting here is that we have used @{text fast} rather than
+What is worth noting here is that we have used \methdx{fast} rather than
 @{text blast}.  The reason is that @{text blast} would fail because it cannot
 cope with @{thm[source]someI2_ex}: unifying its conclusion with the current
 subgoal is non-trivial because of the nested schematic variables. For
@@ -349,8 +349,8 @@ text{*
 
 The language defined above is not quite CTL\@. The latter also includes an
 until-operator @{term"EU f g"} with semantics ``there \emph{E}xists a path
-where @{term f} is true \emph{U}ntil @{term g} becomes true''. With the help
-of an auxiliary function
+where @{term f} is true \emph{U}ntil @{term g} becomes true''.  We need
+an auxiliary function:
 *}
 
 consts until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> state list \<Rightarrow> bool"
@@ -362,7 +362,7 @@ primrec
 "eusem A B \<equiv> {s. \<exists>p. until A B s p}"(*>*)
 
 text{*\noindent
-the semantics of @{term EU} is straightforward:
+Expressing the semantics of @{term EU} is now straightforward:
 @{prop[display]"s \<Turnstile> EU f g = (\<exists>p. until {t. t \<Turnstile> f} {t. t \<Turnstile> g} s p)"}
 Note that @{term EU} is not definable in terms of the other operators!
 
@@ -465,6 +465,7 @@ provides a theorem stating that
 in the case of finite sets and a monotone function~@{term F},
 the value of \mbox{@{term"lfp F"}} can be computed by iterated application of @{term F} to~@{term"{}"} until
 a fixed point is reached. It is actually possible to generate executable functional programs
-from HOL definitions, but that is beyond the scope of the tutorial.
+from HOL definitions, but that is beyond the scope of the tutorial.%
+\index{CTL|)}
 *}
 (*<*)end(*>*)

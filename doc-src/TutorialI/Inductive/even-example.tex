@@ -27,7 +27,7 @@ An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so
 is~$n+2$.  Given this declaration, Isabelle generates a fixed point
 definition for \isa{even} and proves theorems about it,
-thus following the definitional approach (see \S\ref{sec:definitional}).
+thus following the definitional approach (see {\S}\ref{sec:definitional}).
 These theorems
 include the introduction rules specified in the declaration, an elimination
 rule for case analysis and an induction rule.  We can refer to these
@@ -300,9 +300,10 @@ this result.  Yet we could have obtained it by a one-line declaration,
 dispensing with the lemma \isa{even_imp_even_minus_2}. 
 This example also justifies the terminology
 \textbf{rule inversion}: the new rule inverts the introduction rule
-\isa{even.step}.
+\isa{even.step}.  In general, a rule can be inverted when the set of elements
+it introduces is disjoint from those of the other introduction rules.
 
-For one-off applications of rule inversion, use the \isa{ind_cases} method. 
+For one-off applications of rule inversion, use the \methdx{ind_cases} method. 
 Here is an example:
 \begin{isabelle}
 \isacommand{apply}\ (ind_cases\ "Suc(Suc\ n)\ \isasymin \ even")

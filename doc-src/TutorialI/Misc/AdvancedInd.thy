@@ -4,7 +4,7 @@ theory AdvancedInd = Main:;
 
 text{*\noindent
 Now that we have learned about rules and logic, we take another look at the
-finer points of induction. The two questions we answer are: what to do if the
+finer points of induction.  We consider two questions: what to do if the
 proposition to be proved is not directly amenable to induction
 (\S\ref{sec:ind-var-in-prems}), and how to utilize (\S\ref{sec:complete-ind})
 and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
@@ -14,7 +14,7 @@ with an extended example of induction (\S\ref{sec:CTL-revisited}).
 subsection{*Massaging the Proposition*};
 
 text{*\label{sec:ind-var-in-prems}
-Often we have assumed that the theorem we want to prove is already in a form
+Often we have assumed that the theorem to be proved is already in a form
 that is amenable to induction, but sometimes it isn't.
 Here is an example.
 Since @{term"hd"} and @{term"last"} return the first and last element of a
@@ -31,7 +31,7 @@ Induction variable occurs also among premises!
 \end{quote}
 and leads to the base case
 @{subgoals[display,indent=0,goals_limit=1]}
-After simplification, it becomes
+Simplification reduces the base case to this:
 \begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
 \end{isabelle}
@@ -41,7 +41,7 @@ We cannot prove this equality because we do not know what @{term hd} and
 We should not have ignored the warning. Because the induction
 formula is only the conclusion, induction does not affect the occurrence of @{term xs} in the premises.  
 Thus the case that should have been trivial
-becomes unprovable. Fortunately, the solution is easy:\footnote{A very similar
+becomes unprovable. Fortunately, the solution is easy:\footnote{A similar
 heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
 \begin{quote}
 \emph{Pull all occurrences of the induction variable into the conclusion
@@ -49,7 +49,7 @@ using @{text"\<longrightarrow>"}.}
 \end{quote}
 Thus we should state the lemma as an ordinary 
 implication~(@{text"\<longrightarrow>"}), letting
-@{text rule_format} (\S\ref{sec:forward}) convert the
+\attrdx{rule_format} (\S\ref{sec:forward}) convert the
 result to the usual @{text"\<Longrightarrow>"} form:
 *};
 (*<*)oops;(*>*)
@@ -65,7 +65,7 @@ And @{text"auto"} completes the proof.
 
 If there are multiple premises $A@1$, \dots, $A@n$ containing the
 induction variable, you should turn the conclusion $C$ into
-\[ A@1 \longrightarrow \cdots A@n \longrightarrow C \]
+\[ A@1 \longrightarrow \cdots A@n \longrightarrow C. \]
 Additionally, you may also have to universally quantify some other variables,
 which can yield a fairly complex conclusion.  However, @{text rule_format} 
 can remove any number of occurrences of @{text"\<forall>"} and
@@ -82,15 +82,17 @@ by blast;
 *)
 
 text{*
+\index{induction!on a term}%
 A second reason why your proposition may not be amenable to induction is that
-you want to induct on a whole term, rather than an individual variable. In
-general, when inducting on some term $t$ you must rephrase the conclusion $C$
+you want to induct on a complex term, rather than a variable. In
+general, induction on a term~$t$ requires rephrasing the conclusion~$C$
 as
 \begin{equation}\label{eqn:ind-over-term}
-\forall y@1 \dots y@n.~ x = t \longrightarrow C
+\forall y@1 \dots y@n.~ x = t \longrightarrow C.
 \end{equation}
-where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is new, and
-perform induction on $x$ afterwards. An example appears in
+where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is a new variable.
+Now you can perform
+perform induction on~$x$. An example appears in
 \S\ref{sec:complete-ind} below.
 
 The very same problem may occur in connection with rule induction. Remember
@@ -98,7 +100,7 @@ that it requires a premise of the form $(x@1,\dots,x@k) \in R$, where $R$ is
 some inductively defined set and the $x@i$ are variables.  If instead we have
 a premise $t \in R$, where $t$ is not just an $n$-tuple of variables, we
 replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
-\[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C \]
+\[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C. \]
 For an example see \S\ref{sec:CTL-revisited} below.
 
 Of course, all premises that share free variables with $t$ need to be pulled into
@@ -132,11 +134,12 @@ induction schema. In such cases a general-purpose induction schema can
 be helpful. We show how to apply such induction schemas by an example.
 
 Structural induction on @{typ"nat"} is
-usually known as mathematical induction. There is also \emph{complete}
-induction, where you must prove $P(n)$ under the assumption that $P(m)$
-holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]nat_less_induct}:
+usually known as mathematical induction. There is also \textbf{complete}
+\index{induction!complete}%
+induction, where you prove $P(n)$ under the assumption that $P(m)$
+holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 @{thm[display]"nat_less_induct"[no_vars]}
-As an example of its application we prove a property of the following
+As an application, we prove a property of the following
 function:
 *};
 
@@ -169,7 +172,7 @@ the same general induction method as for recursion induction (see
 apply(induct_tac k rule: nat_less_induct);
 
 txt{*\noindent
-which leaves us with the following proof state:
+We get the following proof state:
 @{subgoals[display,indent=0,margin=65]}
 After stripping the @{text"\<forall>i"}, the proof continues with a case
 distinction on @{term"i"}. The case @{prop"i = 0"} is trivial and we focus on
@@ -205,13 +208,12 @@ Using the induction hypothesis once more we obtain @{prop"j <= f j"}
 which, together with (2) yields @{prop"j < f (Suc j)"} (again by
 @{thm[source]le_less_trans}).
 
-This last step shows both the power and the danger of automatic proofs: they
-will usually not tell you how the proof goes, because it can be very hard to
-translate the internal proof into a human-readable format. Therefore
-Chapter~\ref{sec:part2?} introduces a language for writing readable
-proofs.
+This last step shows both the power and the danger of automatic proofs.  They
+will usually not tell you how the proof goes, because it can be hard to
+translate the internal proof into a human-readable format.  Automatic
+proofs are easy to write but hard to read and understand.
 
-We can now derive the desired @{prop"i <= f i"} from @{thm[source]f_incr_lem}:
+The desired result, @{prop"i <= f i"}, follows from @{thm[source]f_incr_lem}:
 *};
 
 lemmas f_incr = f_incr_lem[rule_format, OF refl];
@@ -254,11 +256,12 @@ where @{term f} may be any function into type @{typ nat}.
 subsection{*Derivation of New Induction Schemas*};
 
 text{*\label{sec:derive-ind}
+\index{induction!deriving new schemas}%
 Induction schemas are ordinary theorems and you can derive new ones
-whenever you wish.  This section shows you how to, using the example
+whenever you wish.  This section shows you how, using the example
 of @{thm[source]nat_less_induct}. Assume we only have structural induction
-available for @{typ"nat"} and want to derive complete induction. This
-requires us to generalize the statement first:
+available for @{typ"nat"} and want to derive complete induction.  We
+must generalize the statement as shown:
 *};
 
 lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> \<forall>m<n. P m";
@@ -289,7 +292,7 @@ theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n
 by(insert induct_lem, blast);
 
 text{*
-Finally we should remind the reader that HOL already provides the mother of
+HOL already provides the mother of
 all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
 example theorem @{thm[source]nat_less_induct} is
 a special case of @{thm[source]wf_induct} where @{term r} is @{text"<"} on

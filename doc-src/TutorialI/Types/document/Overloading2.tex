@@ -16,7 +16,13 @@ le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoubl
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The infix function \isa{{\isacharbang}} yields the nth element of a list.%
+The infix function \isa{{\isacharbang}} yields the nth element of a list.
+
+\begin{warn}
+A type constructor can be instantiated in only one way to
+a given type class.  For example, our two instantiations of \isa{list} must
+reside in separate theories with disjoint scopes.\REMARK{Tobias, please check}
+\end{warn}%
 \end{isamarkuptext}%
 %
 \isamarkupsubsubsection{Predefined Overloading%
@@ -26,7 +32,7 @@ The infix function \isa{{\isacharbang}} yields the nth element of a list.%
 HOL comes with a number of overloaded constants and corresponding classes.
 The most important ones are listed in Table~\ref{tab:overloading} in the appendix. They are
 defined on all numeric types and sometimes on other types as well, for example
-\isa{{\isacharminus}}, \isa{{\isasymle}} and \isa{{\isacharless}} on sets.
+$-$ and \isa{{\isasymle}} on sets.
 
 In addition there is a special input syntax for bounded quantifiers:
 \begin{center}

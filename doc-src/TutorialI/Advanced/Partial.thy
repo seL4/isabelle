@@ -1,7 +1,7 @@
 (*<*)theory Partial = While_Combinator:(*>*)
 
-text{*\noindent Throughout the tutorial we have emphasized the fact
-that all functions in HOL are total. Hence we cannot hope to define
+text{*\noindent Throughout this tutorial, we have emphasized
+that all functions in HOL are total.  We cannot hope to define
 truly partial functions, but must make them total.  A straightforward
 method is to lift the result type of the function from $\tau$ to
 $\tau$~@{text option} (see \ref{sec:option}), where @{term None} is
@@ -45,7 +45,9 @@ matching.
 
 subsubsection{*Guarded Recursion*}
 
-text{* Neither \isacommand{primrec} nor \isacommand{recdef} allow to
+text{* 
+\index{recursion!guarded}%
+Neither \isacommand{primrec} nor \isacommand{recdef} allow to
 prefix an equation with a condition in the way ordinary definitions do
 (see @{term minus} above). Instead we have to move the condition over
 to the right-hand side of the equation. Given a partial function $f$
@@ -73,7 +75,7 @@ standard mathematical division function.
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function @{term f} of
 type @{typ"'a \<Rightarrow> 'a"} which
-maps each node to its successor, i.e.\ the graph is really a tree.
+maps each node to its successor; the graph is really a tree.
 The task is to find the end of a chain, modelled by a node pointing to
 itself. Here is a first attempt:
 @{prop[display]"find(f,x) = (if f x = x then x else find(f, f x))"}
@@ -118,21 +120,21 @@ argument stays unchanged and the second one descends along @{term"step1
 f"}. The proof requires unfolding the definition of @{term step1},
 as specified in the \isacommand{hints} above.
 
-Normally you will then derive the following conditional variant of and from
-the recursion equation
+Normally you will then derive the following conditional variant from
+the recursion equation:
 *}
 
 lemma [simp]:
   "wf(step1 f) \<Longrightarrow> find(f,x) = (if f x = x then x else find(f, f x))"
 by simp
 
-text{*\noindent and then disable the original recursion equation:*}
+text{*\noindent Then you should disable the original recursion equation:*}
 
 declare find.simps[simp del]
 
 text{*
-We can reason about such underdefined functions just like about any other
-recursive function. Here is a simple example of recursion induction:
+Reasoning about such underdefined functions is like that for other
+recursive functions.  Here is a simple example of recursion induction:
 *}
 
 lemma "wf(step1 f) \<longrightarrow> f(find(f,x)) = find(f,x)"
@@ -154,8 +156,8 @@ That is, @{term"while b c s"} is equivalent to the imperative program
 \begin{verbatim}
      x := s; while b(x) do x := c(x); return x
 \end{verbatim}
-In general, @{term s} will be a tuple (better still: a record). As an example
-consider the following definition of function @{term find} above:
+In general, @{term s} will be a tuple or record.  As an example
+consider the following definition of function @{term find}:
 *}
 
 constdefs find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -171,7 +173,7 @@ end @{term fst} selects the local @{term x}.
 Although the definition of tail recursive functions via @{term while} avoids
 termination proofs, there is no free lunch. When proving properties of
 functions defined by @{term while}, termination rears its ugly head
-again. Here is @{thm[source]while_rule}, the well known proof rule for total
+again. Here is \tdx{while_rule}, the well known proof rule for total
 correctness of loops expressed with @{term while}:
 @{thm[display,margin=50]while_rule[no_vars]} @{term P} needs to be true of
 the initial state @{term s} and invariant under @{term c} (premises 1
@@ -205,7 +207,7 @@ done
 
 text{* Let us conclude this section on partial functions by a
 discussion of the merits of the @{term while} combinator. We have
-already seen that the advantage (if it is one) of not having to
+already seen that the advantage of not having to
 provide a termination argument when defining a function via @{term
 while} merely puts off the evil hour. On top of that, tail recursive
 functions tend to be more complicated to reason about. So why use

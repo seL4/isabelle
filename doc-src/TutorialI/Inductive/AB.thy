@@ -3,6 +3,7 @@
 section{*Case Study: A Context Free Grammar*}
 
 text{*\label{sec:CFG}
+\index{grammars!defining inductively|(}%
 Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
 $A \to B c$ is short for
@@ -136,8 +137,7 @@ apply(induct w);
 by(force simp add:zabs_def take_Cons split:nat.split if_splits); 
 
 text{*
-Finally we come to the above mentioned lemma about cutting in half a word with two
-more elements of one sort than of the other sort:
+Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:
 *}
 
 lemma part1:
@@ -212,7 +212,7 @@ In this case the result is that we may assume the lemma already
 holds for all words shorter than @{term w}.
 
 The proof continues with a case distinction on @{term w},
-i.e.\ if @{term w} is empty or not.
+on whether @{term w} is empty or not.
 *}
 
 apply(case_tac w);
@@ -285,7 +285,9 @@ by(force simp add:min_less_iff_disj split add: nat_diff_split)
 
 text{*
 We conclude this section with a comparison of our proof with 
-Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the textbook
+Hopcroft\index{Hopcroft, J. E.} and Ullman's\index{Ullman, J. D.}
+\cite[p.\ts81]{HopcroftUllman}.
+For a start, the textbook
 grammar, for no good reason, excludes the empty word, thus complicating
 matters just a little bit: they have 8 instead of our 7 productions.
 
@@ -302,7 +304,9 @@ precisely the part that requires the intermediate value theorem and
 thus is not at all similar to the other cases (which are automatic in
 Isabelle). The authors are at least cavalier about this point and may
 even have overlooked the slight difficulty lurking in the omitted
-cases. This is not atypical for pen-and-paper proofs, once analysed in
-detail.  *}
+cases.  Such errors are found in many pen-and-paper proofs when they
+are scrutinized formally.%
+\index{grammars!defining inductively|)}
+*}
 
 (*<*)end(*>*)

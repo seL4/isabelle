@@ -12,15 +12,15 @@ required for parts of the section on recursion.
 \section{Advanced Forms of Recursion}
 \index{recdef@\isacommand {recdef} (command)|(}
 
-The purpose of this section is to introduce advanced forms of
+This section introduces advanced forms of
 \isacommand{recdef}: how to establish termination by means other than measure
-functions, how to define recursive function over nested recursive datatypes,
+functions, how to define recursive functions over nested recursive datatypes
 and how to deal with partial functions.
 
 If, after reading this section, you feel that the definition of recursive
 functions is overly complicated by the requirement of
-totality, you should ponder the alternative, a logic of partial functions,
-where recursive definitions are always wellformed. For a start, there are many
+totality, you should ponder the alternatives.  In a logic of partial functions,
+recursive definitions are always accepted.  But there are many
 such logics, and no clear winner has emerged. And in all of these logics you
 are (more or less frequently) required to reason about the definedness of
 terms explicitly. Thus one shifts definedness arguments from definition time to
@@ -38,7 +38,7 @@ can then proceed unencumbered by worries about undefinedness.
 \input{Recdef/document/Nested2.tex}
 
 \subsection{Partial Functions}
-\index{partial function}
+\index{functions!partial}
 \input{Advanced/document/Partial.tex}
 
 \index{recdef@\isacommand {recdef} (command)|)}
