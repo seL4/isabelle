@@ -112,6 +112,7 @@ sig
   val rewrite: bool -> thm list -> cterm -> thm
   val rewrite_cterm: bool -> thm list -> cterm -> cterm
   val simplify: bool -> thm list -> thm -> thm
+  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
 end;
 
 structure Tactic: TACTIC =
@@ -605,6 +606,48 @@ fun filter_prems_tac p =
        in case fst(foldl thins ((None,0),Hs)) of
             None => no_tac | Some tac => tac n
        end)
+  end;
+
+
+(** primitive goal interface for internal use -- avoids "standard" operation *)
+
+fun prove thy xs asms prop tac =
+  let
+    val sg = Theory.sign_of thy;
+    val statement = Logic.list_implies (asms, prop);
+    val frees = map Term.dest_Free (Term.term_frees statement);
+    val params = mapfilter (fn x => apsome (pair x) (assoc_string (frees, x))) xs;
+
+    fun err msg = error (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
+      Sign.string_of_term sg (Term.list_all_free (params, statement)));
+
+    fun cert_safe t = Thm.cterm_of sg t
+      handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
+
+    val _ = cert_safe statement;
+    val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => error msg;
+
+    val casms = map cert_safe asms;
+    val prems = map (norm_hhf o Thm.assume) casms;
+    val goal = Drule.mk_triv_goal (cert_safe prop);
+
+    val goal' =
+      (case Seq.pull (tac prems goal) of Some (goal', _) => goal' | _ => err "Tactic failed.");
+    val ngoals = Thm.nprems_of goal';
+    val raw_result = goal' RS Drule.rev_triv_goal;
+    val prop' = #prop (Thm.rep_thm raw_result);
+  in
+    if ngoals <> 0 then
+      err ("Proof failed.\n" ^ Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal'))
+        ^ ("\n" ^ string_of_int ngoals ^ " unsolved goal(s)!"))
+    else if not (Pattern.matches (Sign.tsig_of sg) (prop, prop')) then
+      err ("Proved a different theorem: " ^ Sign.string_of_term sg prop')
+    else
+      raw_result
+      |> Drule.implies_intr_list casms
+      |> Drule.forall_intr_list (map (cert_safe o Free) params)
+      |> norm_hhf
+      |> Thm.varifyT    (* FIXME proper scope for polymorphisms!? *)
   end;
 
 end;
