@@ -29,7 +29,7 @@ sig
   val thms_containing: theory -> string list -> (string * thm) list
   val default_name: string -> string
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
-  val smart_store_thm: (bstring * thm) -> thm
+  val smart_store_thms: (bstring * thm list) -> thm list
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
   val have_thmss: bstring option -> theory attribute list ->
@@ -285,10 +285,15 @@ fun store_thm th_atts thy =
   in (thy', th') end;
 
 
-(* smart_store_thm *)
+(* smart_store_thms *)
 
-fun smart_store_thm (name, thm) =
-  hd (enter_thmx (Thm.sign_of_thm thm) name_single (name, thm));
+fun smart_store_thms (name, []) = error ("Cannot store empty list of theorems: " ^ quote name)
+  | smart_store_thms (name, [thm]) = enter_thmx (Thm.sign_of_thm thm) name_single (name, thm)
+  | smart_store_thms (name, thms) =
+      let
+        val merge_sg = Sign.merge_refs o apsnd (Sign.self_ref o Thm.sign_of_thm);
+        val sg_ref = foldl merge_sg (Sign.self_ref (Thm.sign_of_thm (hd thms)), tl thms);
+      in enter_thmx (Sign.deref sg_ref) name_multi (name, thms) end;
 
 
 (* store axioms as theorems *)
