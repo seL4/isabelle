@@ -108,6 +108,7 @@ qed "image_UNION";
 Goal "(%x. x) `` Y = Y";
 by (Blast_tac 1);
 qed "image_id";
+Addsimps [image_id];
 
 Goal "f``(g``A) = (%x. f (g x)) `` A";
 by (Blast_tac 1);
