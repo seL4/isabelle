@@ -17,39 +17,42 @@ val [TconsI, FnilI, FconsI] = tree_forest.intrs;
 
 (** tree_forest(A) as the union of tree(A) and forest(A) **)
 
-goalw TF.thy (tl tree_forest.defs) "tree(A) <= tree_forest(A)";
+val [_, tree_def, forest_def] = tree_forest.defs;
+
+goalw TF.thy [tree_def] "tree(A) <= tree_forest(A)";
 by (rtac Part_subset 1);
 val tree_subset_TF = result();
 
-goalw TF.thy (tl tree_forest.defs) "forest(A) <= tree_forest(A)";
+goalw TF.thy [forest_def] "forest(A) <= tree_forest(A)";
 by (rtac Part_subset 1);
 val forest_subset_TF = result();
 
-goalw TF.thy (tl tree_forest.defs) "tree(A) Un forest(A) = tree_forest(A)";
-by (rtac (tree_forest.dom_subset RS Part_sum_equality) 1);
+goal TF.thy "tree(A) Un forest(A) = tree_forest(A)";
+by (safe_tac (subset_cs addSIs [equalityI, tree_subset_TF, forest_subset_TF]));
+by (fast_tac (ZF_cs addSIs tree_forest.intrs addEs [tree_forest.elim]) 1);
 val TF_equals_Un = result();
 
 (** NOT useful, but interesting... **)
 
-goalw TF.thy (tl tree_forest.defs) 
+goalw TF.thy [tree_def, forest_def] 
     "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
 let open tree_forest;  
     val rew = rewrite_rule (con_defs @ tl defs) in  
-by (fast_tac (sum_cs addSIs (equalityI :: PartI :: (map rew intrs RL [PartD1]))
-                     addEs [PartE, rew elim]) 1)
+by (fast_tac (sum_cs addSIs (equalityI :: (map rew intrs RL [PartD1]))
+                     addEs [rew elim]) 1)
 end;
 val tree_forest_unfold = result();
 
-val tree_forest_unfold' = rewrite_rule (tl tree_forest.defs) 
+val tree_forest_unfold' = rewrite_rule [tree_def, forest_def] 
                           tree_forest_unfold;
 
-goalw TF.thy (tl tree_forest.defs)
+goalw TF.thy [tree_def, forest_def]
     "tree(A) = {Inl(x). x: A*forest(A)}";
 by (rtac (Part_Inl RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
 val tree_unfold = result();
 
-goalw TF.thy (tl tree_forest.defs)
+goalw TF.thy [tree_def, forest_def]
     "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
 by (rtac (Part_Inr RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
