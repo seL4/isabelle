@@ -9,6 +9,10 @@ New in this Isabelle version
 
 * HOL: the constant for f``x is now "image" rather than "op ``".
 
+* HOL: exhaust_tac on datatypes superceded by new case_tac;
+
+* ML: PureThy.add_thms/add_axioms/add_defs now return theorems;
+
 
 *** Isabelle document preparation ***
 
@@ -24,22 +28,28 @@ of isatool usedir;
 
 *** Isar ***
 
-* names of theorems etc. may be natural numbers as well;
-
-* intro/elim/dest attributes: changed ! / !! flags to ? / ??;
-
 * Pure now provides its own version of intro/elim/dest attributes;
 useful for building new logics, but beware of confusion with the
 Provers/classical ones!
 
-* new 'obtain' language element supports generalized existence proofs;
+* Pure: new 'obtain' language element supports generalized existence
+proofs;
 
-* HOL: removed "case_split" thm binding, should use "cases" proof
+* Pure: much better support for case-analysis type proofs: new 'case'
+language element refers to local contexts symbolically, as produced by
+certain proof methods; internally, case names are attached to theorems
+as "tags";
+
+* HOL: new proof method 'cases' and improved version of 'induct' now
+support named cases; major packages (inductive, datatype, primrec,
+recdef) support case names and properly name parameters;
+
+* HOL: removed 'case_split' thm binding, should use 'cases' proof
 method anyway;
 
-* tuned syntax of "induct" method;
+* names of theorems etc. may be natural numbers as well;
 
-* new "cases" method for propositions, inductive sets and types;
+* intro/elim/dest attributes: changed ! / !! flags to ? / ??;
 
 
 *** HOL ***
@@ -53,13 +63,20 @@ extended records as well; admit "r" as field name;
 * HOL/ex: new theory Factorization proving the Fundamental Theorem of
 Arithmetic, by Thomas M Rasmussen;
 
-* There is a new tactic "cases_tac" for case distinctions; it subsumes the
-old "case_tac" and "exhaust_tac" (which should no longer be used).
+* new version of "case_tac" subsumes both boolean case split and
+"exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
+exists, may define val exhaust_tac = case_tac for quick-and-dirty
+portability;
+
 
 *** General ***
 
 * compression of ML heaps images may now be controlled via -c option
 of isabelle and isatool usedir;
+
+* new ML combinators |>> and |>>> for incremental transformations with
+secondary results (e.g. certain theory extensions):
+
 
 
 
