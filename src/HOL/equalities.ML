@@ -727,6 +727,11 @@ by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
 by (ALLGOALS Blast_tac);
 qed "Pow_insert";
 
+(** for datatypes **)
+Goal "f x ~= f y ==> x ~= y";
+by (Fast_tac 1);
+qed "distinct_lemma";
+
 
 (** Miniscoping: pushing in big Unions and Intersections **)
 local
