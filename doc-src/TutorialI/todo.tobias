@@ -26,6 +26,11 @@ Add map_cong?? (upto 10% slower)
 Recdef: Get rid of function name in header.
 Support mutual recursion (Konrad?)
 
+improve solver in simplifier: treat & and ! ...
+
+better 1 point rules:
+!x. !y. x = f y --> P x y  should reduce to  !y. P (f y) y.
+
 use arith_tac in recdef to solve termination conditions?
 -> new example in Recdef/termination
 
@@ -53,7 +58,7 @@ defs with = and pattern matching??
 Minor fixes in the tutorial
 ===========================
 
-recdef: failed tcs no longer shown!
+recdef: failed tcs no longer shown! (sec:Recursion over nested datatypes)
 say something about how conditions are proved?
 No, better show failed proof attempts.
 
