@@ -518,6 +518,12 @@ goal FOL.thy
 \  ~ (EX X. a(X) & (ALL Y. c(Y) --> (ALL Z. d(X, Y, Z))))";
 
 
+(* Challenge found on info-hol *)
+goal FOL.thy
+    "ALL x. EX v w. ALL y z. P(x) & Q(y) --> (P(v) | R(w)) & (R(z) --> Q(v))";
+by (Deepen_tac 0 1);
+result();
+
 writeln"Reached end of file.";
 
 (*Thu Jul 23 1992: loaded in 467s using iffE [on SPARC2] *)
