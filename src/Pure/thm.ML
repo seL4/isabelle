@@ -1112,7 +1112,8 @@ fun rotate_rule k i state =
       val asms   = Logic.strip_imp_prems rest
       and concl  = Logic.strip_imp_concl rest
       val n      = length asms
-      fun rot m  = if 0=m orelse m=n then Bi
+      val m      = if k<0 then n+k else k
+      val Bi'    = if 0=m orelse m=n then Bi
 		   else if 0<m andalso m<n 
 		   then list_all 
 			   (params, 
@@ -1122,12 +1123,11 @@ fun rotate_rule k i state =
 		   else raise THM("rotate_rule", k, [state])
   in  (*no fix_shyps*)
       Thm{sign_ref = sign_ref, 
-          der = Pt.infer_derivs'
-            (Pt.rotate_proof Bs Bi (if k<0 then n+k else k)) der,
+          der = Pt.infer_derivs' (Pt.rotate_proof Bs Bi m) der,
 	  maxidx = maxidx,
 	  shyps = shyps,
 	  hyps = hyps,
-	  prop = Logic.rule_of(tpairs, Bs@[rot (if k<0 then n+k else k)], C)}
+	  prop = Logic.rule_of (tpairs, Bs @ [Bi'], C)}
   end;
 
 
@@ -1142,7 +1142,8 @@ fun permute_prems j k rl =
       and fixed_prems = List.take(prems, j)
         handle Subscript => raise THM("permute_prems:j", j, [rl])
       val n_j    = length moved_prems
-      fun rot m  = if 0 = m orelse m = n_j then prop
+      val m = if k<0 then n_j + k else k
+      val prop'  = if 0 = m orelse m = n_j then prop
 		   else if 0<m andalso m<n_j 
 		   then Logic.list_implies(fixed_prems @
 					   List.drop(moved_prems, m) @ 
@@ -1151,11 +1152,11 @@ fun permute_prems j k rl =
 		   else raise THM("permute_prems:k", k, [rl])
   in  (*no fix_shyps*)
       Thm{sign_ref = sign_ref, 
-          der = Pt.infer_derivs' (Pt.permute_prems_prf prems j k) der,
+          der = Pt.infer_derivs' (Pt.permute_prems_prf prems j m) der,
 	  maxidx = maxidx,
 	  shyps = shyps,
 	  hyps = hyps,
-	  prop = rot (if k<0 then n_j + k else k)}
+	  prop = prop'}
   end;
 
 
