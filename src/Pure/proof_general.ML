@@ -214,7 +214,7 @@ in
 (*  FIXME: temporarily to support PG 3.4.  *)
  fun issue_pgip_maybe_decorated bg en resp attrs s = 
      if pgip_emacs_compatibility() then
-      (*  in PGIP mode, but using escape characters as well.  *)
+        (*  in PGIP mode, but using escape characters as well.  *)
 	writeln_default (enclose bg en (assemble_pgip resp attrs s))
      else 
 	issue_pgip resp attrs s
@@ -235,7 +235,8 @@ in
 	 (if (!delay_msgs) then
 	      delayed_msgs := (resp,attrs,prefix_lines prfx s)::(!delayed_msgs) (* nb: no decs *)
 	  else 
-	      issue_pgip_maybe_decorated bg en resp attrs (prefix_lines prfx s))
+	      issue_pgip_maybe_decorated bg en resp attrs 
+					 (XML.element "pgmltext" [] [prefix_lines prfx s]))
      else 
 	 decorated_output bg en prfx s;
 
@@ -244,7 +245,7 @@ in
 
  fun end_delayed_msgs () = 
      (delay_msgs := false;
-      map (fn (resp,attrs,s) => XML.element resp attrs [s]) (!delayed_msgs))
+      map (fn (resp,attrs,s) => XML.element resp attrs [XML.element "pgmltext" [] [s]]) (!delayed_msgs))
 end
 
 local
@@ -288,7 +289,7 @@ fun setup_messages () =
 		      (oct_char "364") (oct_char "365") "!!! ")
 
 
-(* accumulate printed output in a single PGIP response *)
+(* accumulate printed output in a single PGIP response (inside <pgmltext>) *)
 
 fun with_displaywrap (elt,attrs) dispfn =
     let 
@@ -296,8 +297,8 @@ fun with_displaywrap (elt,attrs) dispfn =
 	fun wlgrablines s = (lines:= (s :: (!lines)))
     in 
 	(setmp writeln_fn wlgrablines dispfn ();
-	 (* FIXME: cat_lines here inefficient, should use stream output *)
-         issue_pgip elt attrs (cat_lines (!lines)))
+	 (* FIXME: XML.element here inefficient, should use stream output *)
+         issue_pgip elt attrs (XML.element "pgmltext" [] (!lines)))
     end
 
 val emacs_notify = decorated_output (oct_char "360") (oct_char "361") "";
