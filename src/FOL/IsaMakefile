@@ -42,7 +42,7 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	$(SRC)/Provers/make_elim.ML \
 
 FOL-ex: FOL $(LOG)/FOL-ex.gz
 
-$(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy ex/If.ML		\
+$(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy \
   ex/If.thy ex/IffOracle.ML ex/IffOracle.thy ex/List.ML ex/List.thy	\
   ex/Nat.ML ex/Nat.thy ex/Nat2.ML ex/Nat2.thy ex/Natural_Numbers.thy	\
   ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/cla.ML ex/document/root.tex	\
