@@ -75,6 +75,11 @@ validTE_def
 validIOA_def
   "validIOA A P == ! ex : executions A . (ex |== P)"
 
+rules
+
+ex2seq_UUAlt
+  "ex2seq (s,UU) = (s,None,s)>>UU"
+
 
 end
 

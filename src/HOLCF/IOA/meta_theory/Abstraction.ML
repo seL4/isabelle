@@ -365,49 +365,210 @@ qed"weak_IMPLIES";
 (* ---------------------------------------------------------------- *)
 (*             Localizing Temproal Strengthenings - 2               *)
 (* ---------------------------------------------------------------- *)
-(*
+
+
+(* ------------------ Box ----------------------------*)
+
+(* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
+goal thy "(UU = x @@ y) = (((x::'a Seq)= UU) | (x=nil & y=UU))";
+by (Seq_case_simp_tac "x" 1);
+by Auto_tac;
+qed"UU_is_Conc";
+
+goal thy 
+"Finite s1 --> \
+\ (! ex. (s~=nil & s~=UU & ex2seq ex = s1 @@ s) --> (? ex'. s = ex2seq ex'))";
+by (rtac impI 1);
+by (Seq_Finite_induct_tac 1);
+(* main case *)
+by (Blast_tac 1);
+by (clarify_tac set_cs 1);
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+(* UU case *)
+by (clarify_tac set_cs 1);
+by (asm_full_simp_tac (simpset() addsimps [UU_is_Conc])1);
+by (hyp_subst_tac 1);
+by (Asm_full_simp_tac 1);
+(* nil case *)
+by (clarify_tac set_cs 1);
+by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc])1);
+(* cons case *)
+by (pair_tac "aa" 1);
+auto();
+qed_spec_mp"ex2seqConc";
+
+(* important property of ex2seq: can be shiftet, as defined "pointwise" *)
+
+goalw thy [tsuffix_def,suffix_def]
+"!!s. tsuffix s (ex2seq ex) ==> ? ex'. s = (ex2seq ex')";
+auto();
+bd ex2seqConc 1;
+auto();
+qed"ex2seq_tsuffix";
+
+
+goal thy "(Map f`s = nil) = (s=nil)";
+by (Seq_case_simp_tac "s" 1);
+qed"Mapnil";
+
+goal thy "(Map f`s = UU) = (s=UU)";
+by (Seq_case_simp_tac "s" 1);
+qed"MapUU";
+
+
+(* important property of cex_absSeq: As it is a 1to1 correspondence, 
+  properties carry over *)
+
+goalw thy [tsuffix_def,suffix_def,cex_absSeq_def]
+"!! s. tsuffix s t ==> tsuffix (cex_absSeq h s) (cex_absSeq h t)";
+auto();
+by (asm_full_simp_tac (simpset() addsimps [Mapnil])1);
+by (asm_full_simp_tac (simpset() addsimps [MapUU])1);
+by (res_inst_tac [("x","Map (%(s,a,t). (h s,a, h t))`s1")] exI 1);
+by (asm_full_simp_tac (simpset() addsimps [Map2Finite,MapConc])1);
+qed"cex_absSeq_tsuffix";
+
+
+goalw thy [temp_strengthening_def,state_strengthening_def, temp_sat_def,
+satisfies_def,Box_def]
+"!! h. [| temp_strengthening P Q h |]\
+\      ==> temp_strengthening ([] P) ([] Q) h";
+by (clarify_tac set_cs 1);
+by (forward_tac [ex2seq_tsuffix] 1);
+by (clarify_tac set_cs 1);
+by (dres_inst_tac [("h","h")] cex_absSeq_tsuffix 1);
+by (asm_full_simp_tac (simpset() addsimps [ex2seq_abs_cex])1);
+qed"strength_Box";
+
+
+(* ------------------ Init ----------------------------*)
+
 goalw thy [temp_strengthening_def,state_strengthening_def,
-temp_sat_def,satisfies_def,Init_def]
+temp_sat_def,satisfies_def,Init_def,unlift_def]
 "!! h. [| state_strengthening P Q h |]\
 \      ==> temp_strengthening (Init P) (Init Q) h";
 by (safe_tac set_cs);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+qed"strength_Init";
 
 
+(* ------------------ Next ----------------------------*)
 
-goalw thy [temp_strengthening_def,state_strengthening_def]
-"!! h. [| temp_strengthening P Q h |]\
-\      ==> temp_strengthening ([] P) ([] Q) h";
+goal thy 
+"(TL`(ex2seq (cex_abs h ex))=UU) = (TL`(ex2seq ex)=UU)";
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+qed"TL_ex2seq_UU";
 
-goalw thy [temp_strengthening_def,state_strengthening_def]
+goal thy 
+"(TL`(ex2seq (cex_abs h ex))=nil) = (TL`(ex2seq ex)=nil)";
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+qed"TL_ex2seq_nil";
+
+(* FIX: put to Sequence Lemmas *)
+goal thy "Map f`(TL`s) = TL`(Map f`s)";
+by (Seq_induct_tac "s" [] 1);
+qed"MapTL";
+
+(* important property of cex_absSeq: As it is a 1to1 correspondence, 
+  properties carry over *)
+
+goalw thy [cex_absSeq_def]
+"cex_absSeq h (TL`s) = (TL`(cex_absSeq h s))";
+by (simp_tac (simpset() addsimps [MapTL]) 1);
+qed"cex_absSeq_TL";
+
+(* important property of ex2seq: can be shiftet, as defined "pointwise" *)
+
+goal thy "!!ex. [| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL`(ex2seq ex) = ex2seq ex')";
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+auto();
+qed"TLex2seq";
+
+
+goal thy "(TL`(ex2seq ex)~=UU) = ((snd ex)~=UU)";
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+qed"ex2seqUUTL";
+
+goal thy "(TL`(ex2seq ex)~=nil) = ((snd ex)~=nil)";
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+qed"ex2seqnilTL";
+
+
+goalw thy [temp_strengthening_def,state_strengthening_def,
+temp_sat_def, satisfies_def,Next_def]
 "!! h. [| temp_strengthening P Q h |]\
 \      ==> temp_strengthening (Next P) (Next Q) h";
+by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (safe_tac set_cs);
+by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
+by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
+by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
+by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
+(* cons case *)
+by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU,
+        ex2seq_abs_cex,cex_absSeq_TL RS sym, ex2seqUUTL,ex2seqnilTL])1);
+bd TLex2seq 1;
+ba 1;
+auto();
+qed"strength_Next";
 
-*)
+
 
 (* ---------------------------------------------------------------- *)
-(*             Localizing Temproal Weakenings     - 2               *)
+(*             Localizing Temporal Weakenings     - 2               *)
 (* ---------------------------------------------------------------- *)
 
-(*
-goalw thy [temp_weakening_def,state_weakening_def,
-temp_sat_def,satisfies_def,Init_def]
+
+goal thy 
 "!! h. [| state_weakening P Q h |]\
 \      ==> temp_weakening (Init P) (Init Q) h";
+by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
+      state_weakening_def2, temp_sat_def,satisfies_def,Init_def,unlift_def])1);
 by (safe_tac set_cs);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+qed"weak_Init";
 
 
+(*
 
-goalw thy [temp_weakening_def,state_weakening_def]
+(* analog to strengthening thm above, with analog lemmas used  *)
+
+goalw thy [state_weakening_def]
 "!! h. [| temp_weakening P Q h |]\
 \      ==> temp_weakening ([] P) ([] Q) h";
+by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
+         temp_sat_def,satisfies_def,Box_def])1);
 
-goalw thy [temp_weakening_def,state_weakening_def]
+(* analog to strengthening thm above, with analog lemmas used  *)
+
+goalw thy [state_weakening_def]
 "!! h. [| temp_weakening P Q h |]\
 \      ==> temp_weakening (Next P) (Next Q) h";
+by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
+         temp_sat_def,satisfies_def,Next_def])1);
 
 *)
 

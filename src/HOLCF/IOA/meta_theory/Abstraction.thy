@@ -14,7 +14,8 @@ default term
 
 consts
 
-  cex_abs   ::"('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution"
+  cex_abs      ::"('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution"
+  cex_absSeq   ::"('s1 => 's2) => ('a option,'s1)transition Seq => ('a option,'s2)transition Seq"
 
   is_abstraction ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
 
@@ -44,6 +45,10 @@ is_live_abstraction_def
 cex_abs_def
   "cex_abs f ex == (f (fst ex), Map (%(a,t). (a,f t))`(snd ex))"
 
+(* equals cex_abs on Sequneces -- after ex2seq application -- *)
+cex_absSeq_def
+  "cex_absSeq f == % s. Map (%(s,a,t). (f s,a,f t))`s"
+
 weakeningIOA_def
    "weakeningIOA A C h == ! ex. ex : executions C --> cex_abs h ex : executions A"
 
@@ -61,26 +66,16 @@ state_strengthening_def
 
 rules
 
-strength_Init
- "state_strengthening P Q h 
-  ==> temp_strengthening (Init P) (Init Q) h"
+(* thm about ex2seq which is not provable by induction as ex2seq is not continous *)
+ex2seq_abs_cex
+  "ex2seq (cex_abs h ex) = cex_absSeq h (ex2seq ex)" 
 
-strength_Box
-"temp_strengthening P Q h 
- ==> temp_strengthening ([] P) ([] Q) h"
-
-strength_Next
-"temp_strengthening P Q h 
- ==> temp_strengthening (Next P) (Next Q) h"
-
-weak_Init
- "state_weakening P Q h 
-  ==> temp_weakening (Init P) (Init Q) h"
-
+(* analog to the proved thm strength_Box  *)
 weak_Box
 "temp_weakening P Q h 
  ==> temp_weakening ([] P) ([] Q) h"
 
+(* analog to the proved thm strength_Next  *)
 weak_Next
 "temp_weakening P Q h 
  ==> temp_weakening (Next P) (Next Q) h"

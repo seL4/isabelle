@@ -58,7 +58,7 @@ by (simp_tac (simpset() addsimps [ex2seq_def]) 1);
 qed"ex2seq_cons";
 
 Delsimps [ex2seqC_UU,ex2seqC_nil,ex2seqC_cons]; 
-Addsimps [ex2seq_UU,ex2seq_nil, ex2seq_cons];  
+Addsimps [ex2seq_UUAlt,ex2seq_nil, ex2seq_cons];  
 
 
 

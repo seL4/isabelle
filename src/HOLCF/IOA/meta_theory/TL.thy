@@ -54,12 +54,9 @@ unlift_def
 Init_def
   "Init P s ==  (P (unlift (HD`s)))" 
 
-
-(* FIX: Introduce nice symbol infix suntax *)
 suffix_def
   "suffix s2 s == ? s1. (Finite s1  & s = s1 @@ s2)" 
 
-(* FIX: Introduce nice symbol infix suntax *)
 tsuffix_def
   "tsuffix s2 s == s2 ~= nil & s2 ~= UU & suffix s2 s"
 
@@ -67,7 +64,7 @@ Box_def
   "([] P) s == ! s2. tsuffix s2 s --> P s2"
 
 Next_def
-  "(Next P) s == if TL`s=UU then (P s) else P (TL`s)"
+  "(Next P) s == if (TL`s=UU | TL`s=nil) then (P s) else P (TL`s)"
 
 Diamond_def
   "<> P == .~ ([] (.~ P))"

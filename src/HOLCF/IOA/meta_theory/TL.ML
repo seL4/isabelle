@@ -113,6 +113,8 @@ br STL1a 1;
 be STL1b 1;
 qed"STL1";
 
+
+
 (* Note that unlift and HD is not at all used !!! *)
 goal thy "!! P. valid (P .--> Q)  ==> validT ([] (Init P) .--> [] (Init Q))";
 by (asm_full_simp_tac (simpset() addsimps [valid_def,validT_def,satisfies_def,IMPLIES_def,Box_def,Init_def])1);
@@ -177,3 +179,13 @@ by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_def])1);
 auto();
 
 
+
+
+goal thy "!! P. [| validT (P .--> Q); validT P |] ==> validT Q";
+by (asm_full_simp_tac (simpset() addsimps [validT_def,satisfies_def,IMPLIES_def])1);
+qed"ModusPonens";
+
+(* works only if validT is defined without restriction to s~=UU, s~=nil *)
+goal thy "!! P. validT P ==> validT (Next P)";
+by (asm_full_simp_tac (simpset() addsimps [validT_def,satisfies_def,Next_def])1);
+(* qed"NextTauto"; *)

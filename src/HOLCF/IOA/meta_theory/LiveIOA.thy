@@ -39,7 +39,7 @@ WF_def
 
 SF_def
   "SF A acts ==  [] <> <%(s,a,t) . Enabled A acts s> .--> [] <> <xt2 (plift (%a. a : acts))>"
-
+ 
 
 liveexecutions_def
    "liveexecutions AP == {exec. exec : executions (fst AP) & (exec |== (snd AP))}"
