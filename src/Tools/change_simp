@@ -1,7 +1,10 @@
 #! /bin/sh
-#    simp FILE1 ... FILEn
+# $Id$
+#Assists in converting uses of the old simplifier (Isabelle-92 and earlier)
+#Usage:
+#    change_simp FILE1 ... FILEn
 #
-#  leaves previous versions as XXX~~
+#Renames old versions of the files as FILE1~~ ... FILEn~~
 #
 for f in $*
 do
