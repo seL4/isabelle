@@ -371,13 +371,17 @@ val terminal_proofP =
     (P.method -- P.interest -- Scan.option (P.method -- P.interest)
       -- P.marg_comment >> IsarThy.terminal_proof);
 
+val default_proofP =
+  OuterSyntax.command ".." "default proof" K.qed
+    (P.marg_comment >> IsarThy.default_proof);
+
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof" K.qed
     (P.marg_comment >> IsarThy.immediate_proof);
 
-val default_proofP =
-  OuterSyntax.command ".." "default proof" K.qed
-    (P.marg_comment >> IsarThy.default_proof);
+val done_proofP =
+  OuterSyntax.command "done" "done proof" K.qed
+    (P.marg_comment >> IsarThy.done_proof);
 
 val skip_proofP =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
@@ -648,9 +652,9 @@ val parsers = [
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
-  nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
-  proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
+  nextP, qedP, terminal_proofP, default_proofP, immediate_proofP,
+  done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
+  apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
   cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,

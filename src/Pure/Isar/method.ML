@@ -86,21 +86,25 @@ sig
   val refine: text -> Proof.state -> Proof.state Seq.seq
   val refine_end: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
-  val local_qed: text option
+  val local_qed: bool -> text option
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val local_terminal_proof: text * text option
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
-    -> Proof.state -> Proof.state Seq.seq
   val local_default_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val global_qed: text option -> Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
+    -> Proof.state -> Proof.state Seq.seq
+  val local_done_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
+    -> Proof.state -> Proof.state Seq.seq
+  val global_qed: bool -> text option
+    -> Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_terminal_proof: text * text option
     -> Proof.state -> theory * {kind: string, name: string, thm: thm}
-  val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_default_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_done_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val setup: (theory -> theory) list
 end;
 
@@ -202,7 +206,7 @@ val rule_atts =
 val METHOD = Proof.method;
 val METHOD_CASES = Proof.method_cases;
 
-fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Method may not be used with facts");
+fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Cannot handle current facts");
 
 
 (* primitive *)
@@ -536,11 +540,13 @@ val refine_end = gen_refine Proof.refine_end;
 
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
+val done_text = Basic (K (METHOD0 all_tac));
 
-fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt) THEN flexflex_tac)));
+fun close_text asm = Basic (fn ctxt => METHOD (K
+  (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac))));
 
-fun finish_text None = Basic finish
-  | finish_text (Some txt) = Then [txt, Basic finish];
+fun finish_text asm None = close_text asm
+  | finish_text asm (Some txt) = Then [txt, close_text asm];
 
 fun proof opt_text state =
   state
@@ -549,31 +555,34 @@ fun proof opt_text state =
   |> Seq.map (Proof.goal_facts (K []))
   |> Seq.map Proof.enter_forward;
 
-fun local_qed opt_text = Proof.local_qed (refine (finish_text opt_text));
-fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
-val local_immediate_proof = local_terminal_proof (this_text, None);
+fun local_qed asm opt_text = Proof.local_qed (refine (finish_text asm opt_text));
+fun local_terminal_proof (text, opt_text) pr =
+  Seq.THEN (proof (Some text), local_qed true opt_text pr);
 val local_default_proof = local_terminal_proof (default_text, None);
+val local_immediate_proof = local_terminal_proof (this_text, None);
+fun local_done_proof pr = Seq.THEN (proof (Some done_text), local_qed false None pr);
 
 
-fun global_qeds opt_text = Proof.global_qed (refine (finish_text opt_text));
+fun global_qeds asm opt_text = Proof.global_qed (refine (finish_text asm opt_text));
 
-fun global_qed opt_text state =
+fun global_qed asm opt_text state =
   state
-  |> global_qeds opt_text
+  |> global_qeds asm opt_text
   |> Proof.check_result "Failed to finish proof" state
   |> Seq.hd;
 
-fun global_terminal_proof (text, opt_text) state =
+fun global_term_proof asm (text, opt_text) state =
   state
   |> proof (Some text)
   |> Proof.check_result "Terminal proof method failed" state
-  |> (Seq.flat o Seq.map (global_qeds opt_text))
+  |> (Seq.flat o Seq.map (global_qeds asm opt_text))
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (this_text, None);
+val global_terminal_proof = global_term_proof true;
 val global_default_proof = global_terminal_proof (default_text, None);
-
+val global_immediate_proof = global_terminal_proof (this_text, None);
+val global_done_proof = global_term_proof false (done_text, None);
 
 
 (** theory setup **)

@@ -135,8 +135,9 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: ((Method.text * Comment.interest) * (Method.text * Comment.interest) option)
     * Comment.text -> Toplevel.transition -> Toplevel.transition
-  val immediate_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val default_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val immediate_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val done_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val skip_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val forget_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val get_thmss: (string * Args.src list) list -> Proof.state -> thm list
@@ -438,16 +439,17 @@ end;
 (* local endings *)
 
 val local_qed =
-  proof'' o (ProofHistory.applys oo Method.local_qed) o apsome Comment.ignore_interest;
+  proof'' o (ProofHistory.applys oo Method.local_qed true) o apsome Comment.ignore_interest;
 
 fun ignore_interests (x, y) = (Comment.ignore_interest x, apsome Comment.ignore_interest y);
 
 val local_terminal_proof =
   proof'' o (ProofHistory.applys oo Method.local_terminal_proof) o ignore_interests;
 
-val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
 val local_default_proof = proof'' (ProofHistory.applys o Method.local_default_proof);
+val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
 val local_skip_proof = proof'' (ProofHistory.applys o SkipProof.local_skip_proof);
+val local_done_proof = proof'' (ProofHistory.applys o Method.local_done_proof);
 
 
 (* global endings *)
@@ -459,19 +461,21 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
     val (thy, res as {kind, name, thm}) = finish state;
   in print_result res; Context.setmp (Some thy) (Present.result kind name) thm; thy end);
 
-val global_qed = global_result o Method.global_qed o apsome Comment.ignore_interest;
+val global_qed = global_result o Method.global_qed true o apsome Comment.ignore_interest;
 val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;
-val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_default_proof = global_result Method.global_default_proof;
+val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_skip_proof = global_result SkipProof.global_skip_proof;
+val global_done_proof = global_result Method.global_done_proof;
 
 
 (* common endings *)
 
 fun qed (meth, comment) = local_qed meth o global_qed meth;
 fun terminal_proof (meths, comment) = local_terminal_proof meths o global_terminal_proof meths;
-fun immediate_proof comment = local_immediate_proof o global_immediate_proof;
 fun default_proof comment = local_default_proof o global_default_proof;
+fun immediate_proof comment = local_immediate_proof o global_immediate_proof;
+fun done_proof comment = local_done_proof o global_done_proof;
 fun skip_proof comment = local_skip_proof o global_skip_proof;
 
 fun forget_proof comment = Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current);
