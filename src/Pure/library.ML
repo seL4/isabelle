@@ -228,7 +228,6 @@ sig
   val accesses_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> 'a list
 
   (*orders*)
-  datatype order = LESS | EQUAL | GREATER
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val int_ord: int * int -> order
@@ -1073,8 +1072,6 @@ fun accesses_bal (f, g, x) n =
 
 (** orders **)
 
-datatype order = LESS | EQUAL | GREATER;
-
 fun rev_order LESS = GREATER
   | rev_order EQUAL = EQUAL
   | rev_order GREATER = LESS;
@@ -1085,11 +1082,13 @@ fun make_ord rel (x, y) =
   else if rel (y, x) then GREATER
   else EQUAL;
 
+(*Better to use Int.compare*)
 fun int_ord (i, j: int) =
   if i < j then LESS
   else if i = j then EQUAL
   else GREATER;
 
+(*Better to use String.compare*)
 fun string_ord (a, b: string) =
   if a < b then LESS
   else if a = b then EQUAL

@@ -56,7 +56,7 @@ fun merge (h, Empty) = h
   | merge (Empty, h) = h
   | merge (h1 as Heap (_, x1, a1, b1), h2 as Heap (_, x2, a2, b2)) =
       (case ord (x1, x2) of
-        Library.GREATER => heap x2 a2 (merge (h1, b2))
+        GREATER => heap x2 a2 (merge (h1, b2))
       | _ => heap x1 a1 (merge (b1, h2)));
 
 fun insert (x, h) = merge (Heap (1, x, Empty, Empty), h);

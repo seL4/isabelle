@@ -110,7 +110,7 @@ fun condrew sign rules procs =
           Pattern.unify (sign, env, [pairself rew p])) (env', prems')
       in Some (Envir.norm_term env'' (inc (ren tm2)))
       end handle Pattern.MATCH => None | Pattern.Unif => None)
-        (sort (int_ord o pairself fst)
+        (sort (Int.compare o pairself fst)
           (Net.match_term rules (Pattern.eta_contract tm)));
 
   in rew end;

@@ -287,7 +287,7 @@ fun add_varsT (Type (_, Ts), env) = foldr add_varsT (Ts, env)
   | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
   | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
 
-fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
+fun sort_idxs vs = map (apsnd (sort (prod_ord String.compare Int.compare))) vs;
 fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
 
 fun consts_of t = sort_cnsts (add_consts (t, []));

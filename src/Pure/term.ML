@@ -191,6 +191,7 @@ sig
   val typs_ord: typ list * typ list -> order
   val term_ord: term * term -> order
   val terms_ord: term list * term list -> order
+  val hd_ord: term * term -> order
   val termless: term * term -> bool
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
@@ -984,17 +985,17 @@ val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
 (** type and term orders **)
 
 fun indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+  (case Int.compare (i, j) of EQUAL => String.compare (x, y) | ord => ord);
 
-val sort_ord = list_ord string_ord;
+val sort_ord = list_ord String.compare;
 
 
 (* typ_ord *)
 
-fun typ_ord (Type x, Type y) = prod_ord string_ord typs_ord (x, y)
+fun typ_ord (Type x, Type y) = prod_ord String.compare typs_ord (x, y)
   | typ_ord (Type _, _) = GREATER
   | typ_ord (TFree _, Type _) = LESS
-  | typ_ord (TFree x, TFree y) = prod_ord string_ord sort_ord (x, y)
+  | typ_ord (TFree x, TFree y) = prod_ord String.compare sort_ord (x, y)
   | typ_ord (TFree _, TVar _) = GREATER
   | typ_ord (TVar _, Type _) = LESS
   | typ_ord (TVar _, TFree _) = LESS
@@ -1019,14 +1020,14 @@ fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
 fun term_ord (Abs (_, T, t), Abs(_, U, u)) =
       (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
   | term_ord (t, u) =
-      (case int_ord (size_of_term t, size_of_term u) of
+      (case Int.compare (size_of_term t, size_of_term u) of
         EQUAL =>
           let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
             (case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord)
           end
       | ord => ord)
 and hd_ord (f, g) =
-  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
+  prod_ord (prod_ord indexname_ord typ_ord) Int.compare (dest_hd f, dest_hd g)
 and terms_ord (ts, us) = list_ord term_ord (ts, us);
 
 fun termless tu = (term_ord tu = LESS);
