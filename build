@@ -124,8 +124,8 @@ if [ -z "$BATCH" ]; then
   read
 else
   echo
-  echo -n "Isabelle build started at "; date
-  echo "logics:" $LOGICS
+  echo "Isabelle build:" $LOGICS
+  echo
   echo "ML_SYSTEM=$ML_SYSTEM"
   echo "ML_HOME=$ML_HOME"
   echo "ML_OPTIONS=$ML_OPTIONS"
@@ -135,6 +135,10 @@ fi
 
 # build it
 
+echo
+echo -n "Started at "; date
+echo
+
 export THIS_IS_ISABELLE_BUILD=true
 
 for L in $LOGICS
@@ -142,7 +146,6 @@ do
   ( cd $ISABELLE_HOME/src/$L; $ISATOOL make )
 done
 
-if [ -n "$BATCH" ]; then
-  echo
-  echo -n "Isabelle build finished at "; date
-fi
+echo
+echo -n "Finished at "; date
+echo
