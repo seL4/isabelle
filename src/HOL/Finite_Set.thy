@@ -119,16 +119,6 @@ lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply blast
   done
 
-lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
-  -- {* The image of a finite set is finite. *}
-  by (induct set: Finites) simp_all
-
-lemma finite_range_imageI:
-    "finite (range g) ==> finite (range (%x. f (g x)))"
-  apply (drule finite_imageI)
-  apply simp
-  done
-
 lemma finite_empty_induct:
   "finite A ==>
   P A ==> (!!a A. finite A ==> a:A ==> P A ==> P (A - {a})) ==> P {}"
@@ -173,6 +163,18 @@ lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
   done
 
 
+subsubsection {* Image and Inverse Image over Finite Sets *}
+
+lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
+  -- {* The image of a finite set is finite. *}
+  by (induct set: Finites) simp_all
+
+lemma finite_range_imageI:
+    "finite (range g) ==> finite (range (%x. f (g x)))"
+  apply (drule finite_imageI)
+  apply simp
+  done
+
 lemma finite_imageD: "finite (f`A) ==> inj_on f A ==> finite A"
 proof -
   have aux: "!!A. finite (A - {}) = finite A" by simp
@@ -193,6 +195,22 @@ proof -
      apply (simp_all add: inj_on_image_set_diff)
     done
 qed (rule refl)
+
+
+lemma inj_vimage_singleton: "inj f ==> f-`{a} \<subseteq> {THE x. f x = a}"
+  -- {* The inverse image of a singleton under an injective function
+         is included in a singleton. *}
+  apply (auto simp add: inj_on_def) 
+  apply (blast intro: the_equality [symmetric]) 
+  done
+
+lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
+  -- {* The inverse image of a finite set under an injective function
+         is finite. *}
+  apply (induct set: Finites, simp_all) 
+  apply (subst vimage_insert) 
+  apply (simp add: finite_Un finite_subset [OF inj_vimage_singleton]) 
+  done
 
 
 subsubsection {* The finite UNION of finite sets *}
