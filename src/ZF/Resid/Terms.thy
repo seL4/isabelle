@@ -24,9 +24,9 @@ inductive
   type_intrs	"redexes.intrs@bool_typechecks"
 
 defs
-  unmark_def	"unmark(u) == redex_rec(u,%i.Var(i),   \
-\		                          %x m.Fun(m),   \
-\		                          %b x y m p.Apl(m,p))"
+  unmark_def	"unmark(u) == redex_rec(u,%i.Var(i),   
+		                          %x m.Fun(m),   
+		                          %b x y m p.Apl(m,p))"
 end
 
 

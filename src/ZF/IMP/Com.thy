@@ -32,8 +32,8 @@ inductive
     N   "[| n:nat ; sigma:loc->nat |] ==> <N(n),sigma> -a-> n"
     X  	"[| x:loc;  sigma:loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
     Op1 "[| <e,sigma> -a-> n;  f: nat -> nat |] ==> <Op1(f,e),sigma> -a-> f`n"
-    Op2 "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f: (nat*nat) -> nat |] \
-\           ==> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
+    Op2 "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f: (nat*nat) -> nat |] 
+           ==> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
 
   type_intrs "aexp.intrs@[apply_funtype]"
 
@@ -62,16 +62,16 @@ inductive
   intrs (*avoid clash with ML constructors true, false*)
     tru   "[| sigma:loc -> nat |] ==> <true,sigma> -b-> 1"
     fls   "[| sigma:loc -> nat |] ==> <false,sigma> -b-> 0"
-    ROp   "[| <a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f: (nat*nat)->bool |] \
-\	   ==> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
+    ROp   "[| <a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f: (nat*nat)->bool |] 
+	   ==> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
     noti  "[| <b,sigma> -b-> w |] ==> <noti(b),sigma> -b-> not(w)"
-    andi  "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] \
-\          ==> <b0 andi b1,sigma> -b-> (w0 and w1)"
-    ori   "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] \
-\	    ==> <b0 ori b1,sigma> -b-> (w0 or w1)"
+    andi  "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] 
+          ==> <b0 andi b1,sigma> -b-> (w0 and w1)"
+    ori   "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] 
+	    ==> <b0 ori b1,sigma> -b-> (w0 or w1)"
 
-  type_intrs "bexp.intrs @   \
-\	      [apply_funtype, and_type, or_type, bool_1I, bool_0I, not_type]"
+  type_intrs "bexp.intrs @   
+	      [apply_funtype, and_type, or_type, bool_1I, bool_0I, not_type]"
   type_elims "[make_elim(evala.dom_subset RS subsetD)]"
 
 
@@ -104,30 +104,30 @@ inductive
   intrs
     skip    "[| sigma: loc -> nat |] ==> <skip,sigma> -c-> sigma"
 
-    assign  "[| m: nat; x: loc; <a,sigma> -a-> m |] ==> \
-\            <x := a,sigma> -c-> sigma[m/x]"
+    assign  "[| m: nat; x: loc; <a,sigma> -a-> m |] ==> 
+            <x := a,sigma> -c-> sigma[m/x]"
 
-    semi    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> \
-\            <c0 ; c1, sigma> -c-> sigma1"
+    semi    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> 
+            <c0 ; c1, sigma> -c-> sigma1"
 
-    ifc1     "[| b:bexp; c1:com; sigma:loc->nat;   \
-\		 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> \
-\             <ifc b then c0 else c1, sigma> -c-> sigma1"
+    ifc1     "[| b:bexp; c1:com; sigma:loc->nat;   
+		 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> 
+             <ifc b then c0 else c1, sigma> -c-> sigma1"
 
-    ifc0     "[| b:bexp; c0:com; sigma:loc->nat;   \
-\		 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> \
-\             <ifc b then c0 else c1, sigma> -c-> sigma1"
+    ifc0     "[| b:bexp; c0:com; sigma:loc->nat;   
+		 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> 
+             <ifc b then c0 else c1, sigma> -c-> sigma1"
 
-    while0   "[| c: com; <b, sigma> -b-> 0 |] ==> \
-\             <while b do c,sigma> -c-> sigma "
+    while0   "[| c: com; <b, sigma> -b-> 0 |] ==> 
+             <while b do c,sigma> -c-> sigma "
 
-    while1   "[| c : com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; \
-\                <while b do c, sigma2> -c-> sigma1 |] ==> \
-\             <while b do c, sigma> -c-> sigma1 "
+    while1   "[| c : com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; 
+                <while b do c, sigma2> -c-> sigma1 |] ==> 
+             <while b do c, sigma> -c-> sigma1 "
 
   con_defs   "[assign_def]"
   type_intrs "bexp.intrs @ com.intrs @ [if_type,lam_type,apply_type]"
-  type_elims "[make_elim(evala.dom_subset RS subsetD),   \
-\	      make_elim(evalb.dom_subset RS subsetD) ]"
+  type_elims "[make_elim(evala.dom_subset RS subsetD),   
+	      make_elim(evalb.dom_subset RS subsetD) ]"
 
 end

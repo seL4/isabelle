@@ -23,8 +23,8 @@ defs
   (*r is well-founded relation over A*)
   wf_on_def      "wf_on(A,r) == wf(r Int A*A)"
 
-  is_recfun_def  "is_recfun(r,a,H,f) == \
-\   			(f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))))"
+  is_recfun_def  "is_recfun(r,a,H,f) == 
+   			(f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))))"
 
   the_recfun_def "the_recfun(r,a,H) == (THE f.is_recfun(r,a,H,f))"
 

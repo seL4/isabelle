@@ -13,17 +13,17 @@ consts
 
 defs
   (*disjoint sum of two relations; underlies ordinal addition*)
-  radd_def "radd(A,r,B,s) == \
-\                {z: (A+B) * (A+B).  \
-\                    (EX x y. z = <Inl(x), Inr(y)>)   | 	 \
-\                    (EX x' x. z = <Inl(x'), Inl(x)> & <x',x>:r)   | 	 \
-\                    (EX y' y. z = <Inr(y'), Inr(y)> & <y',y>:s)}"
+  radd_def "radd(A,r,B,s) == 
+                {z: (A+B) * (A+B).  
+                    (EX x y. z = <Inl(x), Inr(y)>)   | 	 
+                    (EX x' x. z = <Inl(x'), Inl(x)> & <x',x>:r)   | 	 
+                    (EX y' y. z = <Inr(y'), Inr(y)> & <y',y>:s)}"
 
   (*lexicographic product of two relations; underlies ordinal multiplication*)
-  rmult_def "rmult(A,r,B,s) == \
-\                {z: (A*B) * (A*B).  \
-\                    EX x' y' x y. z = <<x',y'>, <x,y>> &	 \
-\                       (<x',x>: r | (x'=x & <y',y>: s))}"
+  rmult_def "rmult(A,r,B,s) == 
+                {z: (A*B) * (A*B).  
+                    EX x' y' x y. z = <<x',y'>, <x,y>> &	 
+                       (<x',x>: r | (x'=x & <y',y>: s))}"
 
   (*inverse image of a relation*)
   rvimage_def "rvimage(A,f,r) == {z: A*A. EX x y. z = <x,y> & <f`x,f`y>: r}"

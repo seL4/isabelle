@@ -39,8 +39,8 @@ defs
     "Atleast(n,S) == (EX f. f: inj(n,S))"
 
   Ramsey_def
-    "Ramsey(n,i,j) == ALL V E. Symmetric(E) & Atleast(n,V) -->  \
-\         (EX C. Clique(C,V,E) & Atleast(i,C)) |       \
-\         (EX I. Indept(I,V,E) & Atleast(j,I))"
+    "Ramsey(n,i,j) == ALL V E. Symmetric(E) & Atleast(n,V) -->  
+         (EX C. Clique(C,V,E) & Atleast(i,C)) |       
+         (EX I. Indept(I,V,E) & Atleast(j,I))"
 
 end

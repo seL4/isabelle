@@ -47,13 +47,13 @@ consts
 defs
 
   prop_rec_def
-   "prop_rec(p,b,c,h) == \
-\   Vrec(p, %p g.prop_case(b, c, %x y. h(x, y, g`x, g`y), p))"
+   "prop_rec(p,b,c,h) == 
+   Vrec(p, %p g.prop_case(b, c, %x y. h(x, y, g`x, g`y), p))"
 
   (** Semantics of propositional logic **)
   is_true_def
-   "is_true(p,t) == prop_rec(p, 0,  %v. if(v:t, 1, 0), \
-\                               %p q tp tq. if(tp=1,tq,1))         =  1"
+   "is_true(p,t) == prop_rec(p, 0,  %v. if(v:t, 1, 0), 
+                               %p q tp tq. if(tp=1,tq,1))         =  1"
 
   (*Logical consequence: for every valuation, if all elements of H are true
      then so is p*)
@@ -61,7 +61,7 @@ defs
 
   (** A finite set of hypotheses from t and the Vars in p **)
   hyps_def
-   "hyps(p,t) == prop_rec(p, 0,  %v. {if(v:t, #v, #v=>Fls)}, \
-\                            %p q Hp Hq. Hp Un Hq)"
+   "hyps(p,t) == prop_rec(p, 0,  %v. {if(v:t, #v, #v=>Fls)}, 
+                            %p q Hp Hq. Hp Un Hq)"
 
 end

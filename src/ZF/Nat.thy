@@ -20,7 +20,7 @@ defs
 	"nat_case(a,b,k) == THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))"
 
     nat_rec_def
-	"nat_rec(k,a,b) ==   \
-\   	  wfrec(Memrel(nat), k, %n f. nat_case(a, %m. b(m, f`m), n))"
+	"nat_rec(k,a,b) ==   
+   	  wfrec(Memrel(nat), k, %n f. nat_case(a, %m. b(m, f`m), n))"
 
 end

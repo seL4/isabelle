@@ -14,10 +14,10 @@ consts
 
 defs
 
-  first_def                "first(u, X, R)   \
-\			    == u:X & (ALL v:X. v~=u --> <u,v> : R)"
+  first_def                "first(u, X, R)
+ 			    == u:X & (ALL v:X. v~=u --> <u,v> : R)"
 
-  exists_first_def         "exists_first(X,R)   \
-\			    == EX u:X. first(u, X, R)"
+  exists_first_def         "exists_first(X,R)
+ 			    == EX u:X. first(u, X, R)"
 
 end

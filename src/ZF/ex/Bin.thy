@@ -44,8 +44,8 @@ datatype
 defs
 
   bin_rec_def
-      "bin_rec(z,a,b,h) == \
-\      Vrec(z, %z g. bin_case(a, b, %w x. h(w, x, g`w), z))"
+      "bin_rec(z,a,b,h) == 
+      Vrec(z, %z g. bin_case(a, b, %w x. h(w, x, g`w), z))"
 
   integ_of_bin_def
       "integ_of_bin(w) == bin_rec(w, $#0, $~($#1), %w x r. $#x $+ r $+ r)"
@@ -54,39 +54,39 @@ defs
 
   (*norm_Bcons adds a bit, suppressing leading 0s and 1s*)
   norm_Bcons_def
-      "norm_Bcons(w,b) ==   \
-\       bin_case(cond(b,Bcons(w,b),w), cond(b,w,Bcons(w,b)),   \
-\                %w' x'. Bcons(w,b), w)"
+      "norm_Bcons(w,b) ==   
+       bin_case(cond(b,Bcons(w,b),w), cond(b,w,Bcons(w,b)),   
+                %w' x'. Bcons(w,b), w)"
 
   bin_succ_def
-      "bin_succ(w0) ==   \
-\       bin_rec(w0, Bcons(Plus,1), Plus,   \
-\               %w x r. cond(x, Bcons(r,0), norm_Bcons(w,1)))"
+      "bin_succ(w0) ==   
+       bin_rec(w0, Bcons(Plus,1), Plus,   
+               %w x r. cond(x, Bcons(r,0), norm_Bcons(w,1)))"
 
   bin_pred_def
-      "bin_pred(w0) == \
-\       bin_rec(w0, Minus, Bcons(Minus,0),   \
-\               %w x r. cond(x, norm_Bcons(w,0), Bcons(r,1)))"
+      "bin_pred(w0) == 
+       bin_rec(w0, Minus, Bcons(Minus,0),   
+               %w x r. cond(x, norm_Bcons(w,0), Bcons(r,1)))"
 
   bin_minus_def
-      "bin_minus(w0) == \
-\       bin_rec(w0, Plus, Bcons(Plus,1),   \
-\               %w x r. cond(x, bin_pred(Bcons(r,0)), Bcons(r,0)))"
+      "bin_minus(w0) == 
+       bin_rec(w0, Plus, Bcons(Plus,1),   
+               %w x r. cond(x, bin_pred(Bcons(r,0)), Bcons(r,0)))"
 
   bin_add_def
-      "bin_add(v0,w0) ==                        \
-\       bin_rec(v0,                             \
-\         lam w:bin. w,                 \
-\         lam w:bin. bin_pred(w),       \
-\         %v x r. lam w1:bin.           \
-\                  bin_rec(w1, Bcons(v,x), bin_pred(Bcons(v,x)),    \
-\                    %w y s. norm_Bcons(r`cond(x and y, bin_succ(w), w), \
-\                                          x xor y)))    ` w0"
+      "bin_add(v0,w0) ==                        
+       bin_rec(v0,                             
+         lam w:bin. w,                 
+         lam w:bin. bin_pred(w),       
+         %v x r. lam w1:bin.           
+                  bin_rec(w1, Bcons(v,x), bin_pred(Bcons(v,x)),    
+                    %w y s. norm_Bcons(r`cond(x and y, bin_succ(w), w), 
+                                          x xor y)))    ` w0"
 
   bin_mult_def
-      "bin_mult(v0,w) ==                        \
-\       bin_rec(v0, Plus, bin_minus(w),         \
-\         %v x r. cond(x, bin_add(norm_Bcons(r,0),w), norm_Bcons(r,0)))"
+      "bin_mult(v0,w) ==                        
+       bin_rec(v0, Plus, bin_minus(w),         
+         %v x r. cond(x, bin_add(norm_Bcons(r,0),w), norm_Bcons(r,0)))"
 end
 
 

@@ -25,17 +25,17 @@ defs
 
   well_ord_def "well_ord(A,r) == tot_ord(A,r) & wf[A](r)"
 
-  mono_map_def "mono_map(A,r,B,s) == \
-\                   {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
+  mono_map_def "mono_map(A,r,B,s) == 
+                   {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
 
-  ord_iso_def  "ord_iso(A,r,B,s) == \
-\                   {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
+  ord_iso_def  "ord_iso(A,r,B,s) == 
+                   {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
 
   pred_def     "pred(A,x,r) == {y:A. <y,x>:r}"
 
   ord_iso_map_def
-     "ord_iso_map(A,r,B,s) == \
-\       UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s).   \
-\            {<x,y>}"
+     "ord_iso_map(A,r,B,s) == 
+       UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s).   
+            {<x,y>}"
 
 end

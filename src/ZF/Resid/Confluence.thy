@@ -12,10 +12,10 @@ consts
   strip		:: "o"
 
 defs
-  confluence_def "confluence(R) ==   \
-\		  ALL x y. <x,y>:R --> (ALL z.<x,z>:R -->   \
-\		                         (EX u.<y,u>:R & <z,u>:R))"
-  strip_def      "strip == ALL x y. (x ===> y) --> (ALL z.(x =1=> z) -->   \
-\		                         (EX u.(y =1=> u) & (z===>u)))" 
+  confluence_def "confluence(R) ==   
+		  ALL x y. <x,y>:R --> (ALL z.<x,z>:R -->   
+		                         (EX u.<y,u>:R & <z,u>:R))"
+  strip_def      "strip == ALL x y. (x ===> y) --> (ALL z.(x =1=> z) -->   
+		                         (EX u.(y =1=> u) & (z===>u)))" 
 end
 

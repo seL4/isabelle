@@ -25,16 +25,16 @@ defs
   cmult_def    "i |*| j == |i*j|"
 
   csquare_rel_def
-  "csquare_rel(K) ==   \
-\        rvimage(K*K,   \
-\                lam <x,y>:K*K. <x Un y, x, y>, \
-\                rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
+  "csquare_rel(K) ==   
+        rvimage(K*K,   
+                lam <x,y>:K*K. <x Un y, x, y>, 
+                rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
   (*This def is more complex than Kunen's but it more easily proved to
     be a cardinal*)
   jump_cardinal_def
-      "jump_cardinal(K) ==   \
-\         UN X:Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
+      "jump_cardinal(K) ==   
+         UN X:Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
 
   (*needed because jump_cardinal(K) might not be the successor of K*)
   csucc_def "csucc(K) == LEAST L. Card(L) & K<L"

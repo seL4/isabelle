@@ -28,8 +28,8 @@ datatype
 
 defs
   term_rec_def
-   "term_rec(t,d) == \
-\   Vrec(t, %t g. term_case(%x zs. d(x, zs, map(%z.g`z, zs)), t))"
+   "term_rec(t,d) == 
+   Vrec(t, %t g. term_case(%x zs. d(x, zs, map(%z.g`z, zs)), t))"
 
   term_map_def	"term_map(f,t) == term_rec(t, %x zs rs. Apply(f(x), rs))"
 

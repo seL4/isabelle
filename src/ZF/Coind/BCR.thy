@@ -19,9 +19,9 @@ rules
 consts
   isofenv :: "[i,i] => o"
 defs
-  isofenv_def "isofenv(ve,te) ==   		\
-\   ve_dom(ve) = te_dom(te) &   		\
-\   ( ALL x:ve_dom(ve).   			\
-\     EX c:Const. ve_app(ve,x) = v_const(c) & isof(c,te_app(te,x)))"
+  isofenv_def "isofenv(ve,te) ==   		
+   ve_dom(ve) = te_dom(te) &   		
+   ( ALL x:ve_dom(ve).   			
+     EX c:Const. ve_app(ve,x) = v_const(c) & isof(c,te_app(te,x)))"
   
 end

@@ -49,8 +49,8 @@ defs
 rules
   flip_LNil   "flip(LNil) = LNil"
 
-  flip_LCons  "[| x:bool; l: llist(bool) |] ==> \
-\              flip(LCons(x,l)) = LCons(not(x), flip(l))"
+  flip_LCons  "[| x:bool; l: llist(bool) |] ==> 
+              flip(LCons(x,l)) = LCons(not(x), flip(l))"
 
 end
 

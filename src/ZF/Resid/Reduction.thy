@@ -23,10 +23,10 @@ inductive
   intrs
     beta	"[|m:lambda; n:lambda|] ==> Apl(Fun(m),n) -1-> n/m"
     rfun  	"[|m -1-> n|] ==> Fun(m) -1-> Fun(n)"
-    apl_l	"[|m2:lambda; m1 -1-> n1|] ==>   \
-\		 	          Apl(m1,m2) -1-> Apl(n1,m2)"
-    apl_r	"[|m1:lambda; m2 -1-> n2|] ==>   \
-\		 	          Apl(m1,m2) -1-> Apl(m1,n2)"
+    apl_l	"[|m2:lambda; m1 -1-> n1|] ==>   
+		 	          Apl(m1,m2) -1-> Apl(n1,m2)"
+    apl_r	"[|m1:lambda; m2 -1-> n2|] ==>   
+		 	          Apl(m1,m2) -1-> Apl(m1,n2)"
   type_intrs	"red_typechecks"
 
 inductive
@@ -40,12 +40,12 @@ inductive
 inductive
   domains       "Spar_red1" <= "lambda*lambda"
   intrs
-    beta	"[|m =1=> m';   \
-\		 n =1=> n'|] ==> Apl(Fun(m),n) =1=> n'/m'"
+    beta	"[|m =1=> m';   
+		 n =1=> n'|] ==> Apl(Fun(m),n) =1=> n'/m'"
     rvar	"n:nat==> Var(n) =1=> Var(n)"
     rfun	"[|m =1=> m'|]==> Fun(m) =1=> Fun(m')"
-    rapl	"[|m =1=> m';   \
-\		 n =1=> n'|] ==> Apl(m,n) =1=> Apl(m',n')"
+    rapl	"[|m =1=> m';   
+		 n =1=> n'|] ==> Apl(m,n) =1=> Apl(m',n')"
   type_intrs	"red_typechecks"
 
   inductive

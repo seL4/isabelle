@@ -25,8 +25,8 @@ defs
 
   trans_def    "trans(r) == ALL x y z. <x,y>: r --> <y,z>: r --> <x,z>: r"
 
-  trans_on_def "trans[A](r) == ALL x:A. ALL y:A. ALL z:A. 	\
-\                          <x,y>: r --> <y,z>: r --> <x,z>: r"
+  trans_on_def "trans[A](r) == ALL x:A. ALL y:A. ALL z:A. 	
+                          <x,y>: r --> <y,z>: r --> <x,z>: r"
 
   equiv_def    "equiv(A,r) == r <= A*A & refl(A,r) & sym(r) & trans(r)"
 

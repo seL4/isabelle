@@ -26,8 +26,8 @@ consts
   te_rec :: "[i,i,[i,i,i,i]=>i] => i"
 defs
   te_rec_def
-    "te_rec(te,c,h) ==   \
-\    Vrec(te,%te g.TyEnv_case(c,%tem x t.h(tem,x,t,g`tem),te))"
+    "te_rec(te,c,h) ==   
+    Vrec(te,%te g.TyEnv_case(c,%tem x t.h(tem,x,t,g`tem),te))"
   
 consts
   te_dom :: "i => i"

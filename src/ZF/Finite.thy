@@ -23,7 +23,7 @@ inductive
   domains   "FiniteFun(A,B)" <= "Fin(A*B)"
   intrs
     emptyI  "0 : A -||> B"
-    consI   "[| a: A;  b: B;  h: A -||> B;  a ~: domain(h)   \
-\	     |] ==> cons(<a,b>,h) : A -||> B"
+    consI   "[| a: A;  b: B;  h: A -||> B;  a ~: domain(h)   
+	     |] ==> cons(<a,b>,h) : A -||> B"
   type_intrs "Fin.intrs"
 end

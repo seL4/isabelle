@@ -39,12 +39,12 @@ defs
   COMP_def  "COMP(g,fs) == lam l:list(nat). g ` map(%f. f`l, fs)"
 
   (*Note that g is applied first to PREC(f,g)`y and then to y!*)
-  PREC_def  "PREC(f,g) == \
-\            lam l:list(nat). list_case(0, \
-\                      %x xs. rec(x, f`xs, %y r. g ` Cons(r, Cons(y, xs))), l)"
+  PREC_def  "PREC(f,g) == 
+            lam l:list(nat). list_case(0, 
+                      %x xs. rec(x, f`xs, %y r. g ` Cons(r, Cons(y, xs))), l)"
   
-  ACK_def   "ACK(i) == rec(i, SC, \
-\                      %z r. PREC (CONST (r`[1]), COMP(r,[PROJ(0)])))"
+  ACK_def   "ACK(i) == rec(i, SC, 
+                      %z r. PREC (CONST (r`[1]), COMP(r,[PROJ(0)])))"
 
 
 inductive
@@ -57,8 +57,8 @@ inductive
     PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
   monos      "[list_mono]"
   con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
-  type_intrs "nat_typechecks @ list.intrs @   		        \
-\	      [lam_type, list_case_type, drop_type, map_type,   \
-\	      apply_type, rec_type]"
+  type_intrs "nat_typechecks @ list.intrs @   		        
+	      [lam_type, list_case_type, drop_type, map_type,   
+	      apply_type, rec_type]"
 
 end

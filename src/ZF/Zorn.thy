@@ -39,8 +39,8 @@ consts
 inductive
   domains       "TFin(S,next)" <= "Pow(S)"
   intrs
-    nextI	"[| x : TFin(S,next);  next: increasing(S) \
-\                |] ==> next`x : TFin(S,next)"
+    nextI	"[| x : TFin(S,next);  next: increasing(S) 
+                |] ==> next`x : TFin(S,next)"
 
     Pow_UnionI	"Y : Pow(TFin(S,next)) ==> Union(Y) : TFin(S,next)"
 

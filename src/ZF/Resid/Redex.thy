@@ -21,8 +21,8 @@ consts
  
 defs
   redex_rec_def
-   "redex_rec(p,b,c,d) == \
-\   Vrec(p, %p g.redexes_case(b, %x.c(x,g`x),   \
-\                             %n x y.d(n, x, y, g`x, g`y), p))"
+   "redex_rec(p,b,c,d) == 
+   Vrec(p, %p g.redexes_case(b, %x.c(x,g`x),   
+                             %n x y.d(n, x, y, g`x, g`y), p))"
 end
 

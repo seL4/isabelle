@@ -14,10 +14,10 @@ consts
 
 defs
 
-  transrec2_def  "transrec2(alpha, a, b) ==   			\
-\		         transrec(alpha, %i r. if(i=0,   	\
-\		                  a, if(EX j. i=succ(j),   	\
-\		                  b(THE j. i=succ(j), r`(THE j. i=succ(j))),   \
-\		                  UN j<i. r`j)))"
+  transrec2_def  "transrec2(alpha, a, b) ==   			
+		         transrec(alpha, %i r. if(i=0,   	
+		                  a, if(EX j. i=succ(j),   	
+		                  b(THE j. i=succ(j), r`(THE j. i=succ(j))),   
+		                  UN j<i. r`j)))"
 
 end

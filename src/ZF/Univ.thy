@@ -25,8 +25,8 @@ defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"
 
     Vrec_def
-   	"Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      \
-\                             H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
+   	"Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      
+                             H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
 
     univ_def    "univ(A) == Vfrom(A,nat)"
 

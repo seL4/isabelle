@@ -159,8 +159,8 @@ rules
   foundation    "A=0 | (EX x:A. ALL y:x. y~:A)"
 
   (*Schema axiom since predicate P is a higher-order variable*)
-  replacement   "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==> \
-                \        b : PrimReplace(A,P) <-> (EX x:A. P(x,b))"
+  replacement   "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==> 
+                         b : PrimReplace(A,P) <-> (EX x:A. P(x,b))"
 
 defs
 
@@ -214,8 +214,8 @@ defs
   domain_def    "domain(r) == {x. w:r, EX y. w=<x,y>}"
   range_def     "range(r) == domain(converse(r))"
   field_def     "field(r) == domain(r) Un range(r)"
-  function_def	"function(r) == ALL x y. <x,y>:r -->   \
-\		                (ALL y'. <x,y'>:r --> y=y')"
+  function_def	"function(r) == ALL x y. <x,y>:r -->   
+		                (ALL y'. <x,y'>:r --> y=y')"
   image_def     "r `` A  == {y : range(r) . EX x:A. <x,y> : r}"
   vimage_def    "r -`` A == converse(r)``A"
 

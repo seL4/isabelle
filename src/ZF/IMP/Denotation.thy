@@ -31,15 +31,15 @@ rules	(*NOT definitional*)
   B_or_def	"B(b0 ori b1) == (%sigma. B(b0,sigma) or B(b1,sigma))"
 
   C_skip_def	"C(skip) == id(loc->nat)"
-  C_assign_def	"C(x := a) == {io:(loc->nat)*(loc->nat). \
-\			       snd(io) = fst(io)[A(a,fst(io))/x]}"
+  C_assign_def	"C(x := a) == {io:(loc->nat)*(loc->nat). 
+			       snd(io) = fst(io)[A(a,fst(io))/x]}"
 
   C_comp_def	"C(c0 ; c1) == C(c1) O C(c0)"
-  C_if_def	"C(ifc b then c0 else c1) == {io:C(c0). B(b,fst(io))=1} Un \
-\			 	             {io:C(c1). B(b,fst(io))=0}"
+  C_if_def	"C(ifc b then c0 else c1) == {io:C(c0). B(b,fst(io))=1} Un 
+			 	             {io:C(c1). B(b,fst(io))=0}"
 
-  Gamma_def	"Gamma(b,c) == (%phi.{io : (phi O C(c)). B(b,fst(io))=1} Un \
-\			 	     {io : id(loc->nat). B(b,fst(io))=0})"
+  Gamma_def	"Gamma(b,c) == (%phi.{io : (phi O C(c)). B(b,fst(io))=1} Un 
+			 	     {io : id(loc->nat). B(b,fst(io))=0})"
 
   C_while_def	"C(while b do c) == lfp((loc->nat)*(loc->nat), Gamma(b,c))"
 

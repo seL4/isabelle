@@ -73,9 +73,9 @@ consts
 
 defs
 
-  diamond_def "diamond(r) == ALL x y. <x,y>:r --> \
-\                            (ALL y'. <x,y'>:r --> \
-\                                 (EX z. <y,z>:r & <y',z> : r))"
+  diamond_def "diamond(r) == ALL x y. <x,y>:r --> 
+                            (ALL y'. <x,y'>:r --> 
+                                 (EX z. <y,z>:r & <y',z> : r))"
 
   I_def       "I == S#K#K"
 

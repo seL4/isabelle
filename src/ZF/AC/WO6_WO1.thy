@@ -19,19 +19,19 @@ consts
 
 defs
 
-  NN_def  "NN(y) == {m:nat. EX a. EX f. Ord(a) & domain(f)=a  &  \
-\			    (UN b<a. f`b) = y & (ALL b<a. f`b lepoll m)}"
+  NN_def  "NN(y) == {m:nat. EX a. EX f. Ord(a) & domain(f)=a  &  
+			    (UN b<a. f`b) = y & (ALL b<a. f`b lepoll m)}"
 
   uu_def  "uu(f, beta, gamma, delta) == (f`beta * f`gamma) Int f`delta"
 
   (*Definitions for case 1*)
 
-  vv1_def "vv1(f,m,b) ==   						\
-\   	   let g = LEAST g. (EX d. Ord(d) & (domain(uu(f,b,g,d)) ~= 0 &	\
-\	                           domain(uu(f,b,g,d)) lepoll m));   	\
-\	       d = LEAST d. domain(uu(f,b,g,d)) ~= 0 &   		\
-\                           domain(uu(f,b,g,d)) lepoll m		\
-\	   in  if(f`b ~= 0, domain(uu(f,b,g,d)), 0)"
+  vv1_def "vv1(f,m,b) ==   						
+   	   let g = LEAST g. (EX d. Ord(d) & (domain(uu(f,b,g,d)) ~= 0 &	
+	                           domain(uu(f,b,g,d)) lepoll m));   	
+	       d = LEAST d. domain(uu(f,b,g,d)) ~= 0 &   		
+                           domain(uu(f,b,g,d)) lepoll m		
+	   in  if(f`b ~= 0, domain(uu(f,b,g,d)), 0)"
 
   ww1_def "ww1(f,m,b) == f`b - vv1(f,m,b)"
 
@@ -39,8 +39,8 @@ defs
   
   (*Definitions for case 2*)
 
-  vv2_def "vv2(f,b,g,s) ==   \
-\	   if(f`g ~= 0, {uu(f, b, g, LEAST d. uu(f,b,g,d) ~= 0)`s}, 0)"
+  vv2_def "vv2(f,b,g,s) ==   
+	   if(f`g ~= 0, {uu(f, b, g, LEAST d. uu(f,b,g,d) ~= 0)`s}, 0)"
 
   ww2_def "ww2(f,b,g,s) == f`g - vv2(f,b,g,s)"
 

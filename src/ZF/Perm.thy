@@ -18,8 +18,8 @@ consts
 defs
 
     (*composition of relations and functions; NOT Suppes's relative product*)
-    comp_def	"r O s == {xz : domain(s)*range(r) . \
-\                  		EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
+    comp_def	"r O s == {xz : domain(s)*range(r) . 
+                  		EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
 
     (*the identity function for A*)
     id_def	"id(A) == (lam x:A. x)"
