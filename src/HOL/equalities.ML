@@ -151,6 +151,10 @@ by (Blast_tac 1);
 qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
+goal Set.thy "(A Int B = {}) = (A <= Compl B)";
+by (blast_tac (!claset addSEs [equalityE]) 1);
+qed "disjoint_eq_subset_Compl";
+
 goal Set.thy "UNIV Int B = B";
 by (Blast_tac 1);
 qed "Int_UNIV_left";
@@ -228,6 +232,18 @@ qed "Un_insert_left";
 goal Set.thy "A Un (insert a B) = insert a (A Un B)";
 by (Blast_tac 1);
 qed "Un_insert_right";
+
+goal Set.thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
+\                                          else        B Int C)";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Blast_tac 1);
+qed "Int_insert_left";
+
+goal Set.thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
+\                                          else        A Int B)";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Blast_tac 1);
+qed "Int_insert_right";
 
 goal Set.thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
 by (Blast_tac 1);
