@@ -245,7 +245,7 @@ fun restart isar =
   tell_clear_response ();
   welcome ());
 
-fun restart_loader () = (ThyInfo.touch_all_thys (); ThyLoad.reset_path);
+fun restart_loader () = ThyInfo.touch_all_thys ();
 
 in
 
