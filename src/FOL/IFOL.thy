@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Intuitionistic first-order logic
+Intuitionistic first-order logic.
 *)
 
 IFOL = Pure +
@@ -48,6 +48,17 @@ syntax
 
 translations
   "x ~= y"      == "~ (x = y)"
+
+syntax (symbolfont)
+  Not           :: o => o                       ("\\{neg} _" [40] 40)
+  "op &"        :: [o, o] => o                  (infixr "\\{vee}" 35)
+  "op |"        :: [o, o] => o                  (infixr "\\{wedge}" 30)
+  "op -->"      :: [o, o] => o                  (infixr "\\{midarrow}\\{rightarrow}" 25)
+  "op <->"      :: [o, o] => o                  (infixr "\\{leftarrow}\\{rightarrow}" 25)
+  "ALL "        :: [idts, o] => o               ("(3\\{forall}_./ _)" 10)
+  "EX "         :: [idts, o] => o               ("(3\\{exists}_./ _)" 10)
+  "EX! "        :: [idts, o] => o               ("(3\\{exists}!_./ _)" 10)
+  "op ~="       :: ['a, 'a] => o                (infixl "\\{noteq}" 50)
 
 
 rules
