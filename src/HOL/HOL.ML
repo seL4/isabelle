@@ -235,6 +235,12 @@ qed_goalw "ex1I" HOL.thy [Ex1_def]
  (fn prems =>
   [REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)]);
 
+(*Sometimes easier to use: the premises have no shared variables.  Safe!*)
+qed_goal "ex_ex1I" HOL.thy
+    "[| ? x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)"
+ (fn [ex,eq] => [ (rtac (ex RS exE) 1),
+                  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
+
 qed_goalw "ex1E" HOL.thy [Ex1_def]
     "[| ?! x.P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R"
  (fn major::prems =>
