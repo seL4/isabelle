@@ -26,7 +26,7 @@ constdefs
   hconf :: "'c prog \\<Rightarrow> aheap \\<Rightarrow> bool"             ("_\\<turnstile>h _\\<surd>"      [51,51]       50)
  "G\\<turnstile>h h\\<surd>    \\<equiv> \\<forall>a obj. h a = Some obj \\<longrightarrow> G,h\\<turnstile>obj\\<surd>"
 
-  conforms :: "state \\<Rightarrow> javam env \\<Rightarrow> bool"	 ("_\\<Colon>\\<preceq>_"       [51,51]       50)
+  conforms :: "state \\<Rightarrow> java_mb env \\<Rightarrow> bool"	 ("_\\<Colon>\\<preceq>_"       [51,51]       50)
  "s\\<Colon>\\<preceq>E \\<equiv> prg E\\<turnstile>h heap s\\<surd> \\<and> prg E,heap s\\<turnstile>locals s[\\<Colon>\\<preceq>]localT E"
 
 end

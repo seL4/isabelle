@@ -5,8 +5,8 @@
 *)
 
 Goalw [m_head_def]
-"\\<lbrakk> m_head G T sig = Some (md,rT); wf_prog wtm G; G\\<turnstile>Class T''\\<preceq>RefT T\\<rbrakk> \\<Longrightarrow> \
-\\\<exists>md' rT' b'. method (G,T'') sig = Some (md',rT',b') \\<and>  G\\<turnstile>rT'\\<preceq>rT";
+"\\<lbrakk> m_head G T sig = Some (md,rT); wf_prog wf_mb G; G\\<turnstile>Class T''\\<preceq>RefT T\\<rbrakk> \\<Longrightarrow> \
+\\\<exists>md' rT' b'. method (G,T'') sig = Some (md',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
 by( forward_tac [widen_Class_RefT] 1);
 by( etac exE 1);
 by( hyp_subst_tac 1);
@@ -15,18 +15,15 @@ by( rewtac option_map_def);
 by( strip_tac1 1);
 by( split_all_tac 1);
 by( dtac widen_Class_Class 1);
-by( etac disjE 1);
-by(  hyp_subst_tac 1);
-by(  asm_full_simp_tac (simpset() delsimps [split_paired_Ex]) 1);
 by( dtac subcls_widen_methd 1);
 by   Auto_tac;
 qed "widen_methd";
 
 
 Goal
-"\\<lbrakk>m_head G T sig = Some (md,rT); G\\<turnstile>Class T''\\<preceq>RefT T; wf_prog wtm G\\<rbrakk> \\<Longrightarrow> \
+"\\<lbrakk>m_head G T sig = Some (md,rT); G\\<turnstile>Class T''\\<preceq>RefT T; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
 \ \\<exists>T' rT' b. method (G,T'') sig = Some (T',rT',b) \\<and> \
-\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>Class T''\\<preceq>Class T' \\<and> wf_mhead G sig rT' \\<and> wtm G T' (sig,rT',b)";
+\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>Class T''\\<preceq>Class T' \\<and> wf_mhead G sig rT' \\<and> wf_mb G T' (sig,rT',b)";
 by( dtac widen_methd 1);
 by(   atac 1);
 by(  atac 1);
@@ -35,11 +32,11 @@ by( dtac method_wf_mdecl 1);
 by(  atac 1);
 by( rewtac wf_mdecl_def);
 by Auto_tac;
-val Call_lemma = result();
+qed "Call_lemma";
 
 
 val m_head_Object = prove_goalw thy [m_head_def]
-"\\<And>x. wf_prog wtm G \\<Longrightarrow> m_head G (ClassT Object) sig = None" (K [Asm_simp_tac 1]);
+"\\<And>x. wf_prog wf_mb G \\<Longrightarrow> m_head G (ClassT Object) sig = None" (K [Asm_simp_tac 1]);
 
 Addsimps [m_head_Object];
 

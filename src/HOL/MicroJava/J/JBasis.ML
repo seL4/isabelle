@@ -67,6 +67,10 @@ val not_None_tac = EVERY' [dtac (not_None_eq RS iffD1),rotate_tac ~1,etac exE,
 		rotate_tac ~1,asm_full_simp_tac 
 	(simpset() delsimps [split_paired_All,split_paired_Ex])];
 
+Goal "{y. x = Some y} \\<subseteq> {the x}";
+by Auto_tac;
+qed "some_subset_the";
+
 fun ex_ftac thm = EVERY' [forward_tac [thm], REPEAT o (etac exE), rotate_tac ~1,
   asm_full_simp_tac (simpset() delsimps [split_paired_All,split_paired_Ex])];
 
@@ -114,7 +118,7 @@ qed_spec_mp "unique_append";
 
 Goal "unique l --> inj f --> unique (map (%(k,x). (f k, g k x)) l)";
 by (induct_tac "l" 1);
-by  (auto_tac (claset() addDs [fst_in_set_lemma],simpset()));
+by  (auto_tac (claset() addDs [fst_in_set_lemma],simpset()addsimps[inj_eq]));
 qed_spec_mp "unique_map_inj";
 
 Goal "\\<And>l. unique l \\<Longrightarrow> unique (map (split (\\<lambda>k. Pair (k, C))) l)";

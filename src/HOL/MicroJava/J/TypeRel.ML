@@ -14,12 +14,6 @@ val subcls1_def2 = prove_goalw thy [subcls1_def,is_class_def]  "subcls1 G = \
 \ (SIGMA C:{C. is_class G C} . {D. fst (the (class G C)) = Some D})"
  (K [Auto_tac]);
 
-context Option.thy;
-Goal "{y. x = Some y} \\<subseteq> {the x}";
-by Auto_tac;
-val some_subset_the = result();
-context thy;
-
 Goal "finite (subcls1 G)";
 by(stac subcls1_def2 1);
 by( rtac finite_SigmaI 1);
@@ -38,20 +32,10 @@ fun prove_typerel s lemmata = prove_goal thy s (fn prems => [
 	auto_tac (claset() addDs lemmata, simpset())]);
 
 
-(*#### patch for Isabelle98-1*)
-val major::prems = goal Trancl.thy
- "\\<lbrakk> (x,y) \\<in> r^+; \
-\    \\<And>x y. (x,y) \\<in> r \\<Longrightarrow> P x y; \
-\    \\<And>x y z. \\<lbrakk> (x,y) \\<in> r^+; P x y; (y,z) \\<in> r^+; P y z \\<rbrakk> \\<Longrightarrow> P x z \
-\ \\<rbrakk> \\<Longrightarrow> P x y";
-by(blast_tac (claset() addIs ([r_into_trancl,major RS trancl_induct]@prems))1);
-qed "trancl_trans_induct";
-
-Goalw [is_class_def] "G\\<turnstile>C\\<prec>C D \\<Longrightarrow> is_class G C";
+Goalw [is_class_def] "(C,D) \\<in> (subcls1 G)^+ \\<Longrightarrow> is_class G C";
 by(etac trancl_trans_induct 1);
 by (auto_tac (HOL_cs addSDs [subcls1D],simpset()));
 qed "subcls_is_class";
-
 
 (* A particular thm about wf;
    looks like it is an odd instance of something more general
@@ -66,7 +50,7 @@ by (EVERY1[etac allE, etac allE, etac mp, rtac allI, rtac allI]);
 by (Fast_tac 1);
 by(rewrite_goals_tac [wf_def]);
 by(Blast_tac 1);
-val wf_rel_lemma = result();
+qed "wf_rel_lemma";
 
 
 (* Proving the termination conditions *)
@@ -74,7 +58,7 @@ val wf_rel_lemma = result();
 goalw thy [subcls1_rel_def] "wf subcls1_rel";
 by(rtac (wf_rel_lemma RS wf_subset) 1);
 by(Force_tac 1);
-val wf_subcls1_rel = result();
+qed "wf_subcls1_rel";
 
 val method_TC = prove_goalw_cterm [subcls1_rel_def]
  (cterm_of (sign_of thy) (HOLogic.mk_Trueprop (hd (tl (method.tcs)))))
@@ -111,21 +95,19 @@ val widen_Class_RefT = prove_typerel
 val widen_Class_NullT = prove_typerel "G\\<turnstile>Class C\\<preceq>RefT NullT \\<Longrightarrow> R" 
  [prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=Class C \\<longrightarrow> T=RefT NullT \\<longrightarrow> R"];
 
-val widen_Class_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>Class cm \\<Longrightarrow> C=cm |  G\\<turnstile>C\\<prec>C cm"
-[ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> T = Class cm \\<longrightarrow> C=cm |  G\\<turnstile>C\\<prec>C cm"];
+val widen_Class_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>Class cm \\<Longrightarrow> G\\<turnstile>C\\<prec>C cm"
+[ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> T = Class cm \\<longrightarrow> G\\<turnstile>C\\<prec>C cm"];
 
-Goal "\\<lbrakk>G\\<turnstile>S\\<preceq>U; \\<forall>C. is_class G C \\<longrightarrow> G\\<turnstile>Class C\\<preceq>Class Object;\
-\\\<forall>C. G\\<turnstile>Object\\<prec>C C \\<longrightarrow> False \\<rbrakk> \\<Longrightarrow> \\<forall>T. G\\<turnstile>U\\<preceq>T \\<longrightarrow> G\\<turnstile>S\\<preceq>T";
+Goal "G\\<turnstile>S\\<preceq>U \\<Longrightarrow> \\<forall>T. G\\<turnstile>U\\<preceq>T \\<longrightarrow> G\\<turnstile>S\\<preceq>T";
 by( etac widen.induct 1);
 by   Safe_tac;
 by(  ALLGOALS (forward_tac [widen_Class, widen_RefT]));
 by  Safe_tac;
 by(  rtac widen.null 2);
-by( forward_tac [widen_Class_Class] 1);
-by Safe_tac;
-by(  ALLGOALS(EVERY'[etac thin_rl,etac thin_rl,
-	fast_tac (claset() addIs [widen.subcls,trancl_trans])]));
-qed_spec_mp "widen_trans_lemma";
+by(dtac widen_Class_Class 1);
+by(rtac widen.subcls 1);
+by(eatac rtrancl_trans 1 1);
+qed_spec_mp "widen_trans";
 
 
 val prove_cast_lemma = prove_typerel_lemma [] cast.elim;

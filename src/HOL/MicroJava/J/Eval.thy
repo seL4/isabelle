@@ -10,15 +10,15 @@ execution of Java expressions and statements
 Eval = State + 
 
 consts
-  eval  :: "javam prog \\<Rightarrow> (xstate \\<times> expr      \\<times> val      \\<times> xstate) set"
-  evals :: "javam prog \\<Rightarrow> (xstate \\<times> expr list \\<times> val list \\<times> xstate) set"
-  exec  :: "javam prog \\<Rightarrow> (xstate \\<times> stmt                 \\<times> xstate) set"
+  eval  :: "java_mb prog \\<Rightarrow> (xstate \\<times> expr      \\<times> val      \\<times> xstate) set"
+  evals :: "java_mb prog \\<Rightarrow> (xstate \\<times> expr list \\<times> val list \\<times> xstate) set"
+  exec  :: "java_mb prog \\<Rightarrow> (xstate \\<times> stmt                 \\<times> xstate) set"
 
 syntax
-  eval :: "[javam prog,xstate,expr,val,xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<succ>_\\<rightarrow> _"[51,82,82,82,82]81)
-  evals:: "[javam prog,xstate,expr list,
+  eval :: "[java_mb prog,xstate,expr,val,xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<succ>_\\<rightarrow> _"[51,82,82,82,82]81)
+  evals:: "[java_mb prog,xstate,expr list,
 	                      val list,xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_[\\<succ>]_\\<rightarrow> _"[51,82,51,51,82]81)
-  exec :: "[javam prog,xstate,stmt,    xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<rightarrow> _"  [51,82,82,   82]81)
+  exec :: "[java_mb prog,xstate,stmt,    xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<rightarrow> _"  [51,82,82,   82]81)
 
 translations
   "G\\<turnstile>s -e \\<succ> v\\<rightarrow> (x,s')" == "(s, e, v, _args x s') \\<in> eval  G"

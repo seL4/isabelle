@@ -75,7 +75,7 @@ val conf_upd_obj = prove_goalw thy [conf_def]
 	 ALLGOALS Asm_simp_tac]) RS mp;
 
 val conf_widen = prove_goalw thy [conf_def] 
-"\\<And>G. wf_prog wtm G \\<Longrightarrow> G,h\\<turnstile>x\\<Colon>\\<preceq>T \\<longrightarrow> G\\<turnstile>T\\<preceq>T' \\<longrightarrow> G,h\\<turnstile>x\\<Colon>\\<preceq>T'" (K [
+"\\<And>G. wf_prog wf_mb G \\<Longrightarrow> G,h\\<turnstile>x\\<Colon>\\<preceq>T \\<longrightarrow> G\\<turnstile>T\\<preceq>T' \\<longrightarrow> G,h\\<turnstile>x\\<Colon>\\<preceq>T'" (K [
 	rtac val_.induct 1,
 	    ALLGOALS Simp_tac,
 	    ALLGOALS (fast_tac (HOL_cs addIs [widen_trans]))]) RS mp RS mp;
@@ -120,7 +120,7 @@ val non_np_objD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<t
 \ (\\<exists>a C' fs. a' = Addr a \\<and>  h a = Some (C',fs) \\<and>  G\\<turnstile>Class C'\\<preceq>Class C)" 
 	(K[fast_tac (HOL_cs addDs [non_npD]) 1]);
 
-Goal "a' \\<noteq> Null \\<longrightarrow> wf_prog wtm G \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT t \\<longrightarrow>\
+Goal "a' \\<noteq> Null \\<longrightarrow> wf_prog wf_mb G \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT t \\<longrightarrow>\
 \ (\\<forall>C. t = ClassT C \\<longrightarrow> C \\<noteq> Object) \\<longrightarrow> \
 \ (\\<exists>a C fs. a' = Addr a \\<and>  h a = Some (C,fs) \\<and>  G\\<turnstile>Class C\\<preceq>RefT t)";
 by (rtac impI 1);
@@ -134,7 +134,7 @@ by   (atac 1);
 by  (Fast_tac 1);
 qed_spec_mp "non_np_objD'";
 
-Goal "wf_prog wtm G \\<Longrightarrow> \\<forall>Ts Ts'. list_all2 (conf G h) vs Ts \\<longrightarrow> list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') Ts Ts' \\<longrightarrow>  list_all2 (conf G h) vs Ts'";
+Goal "wf_prog wf_mb G \\<Longrightarrow> \\<forall>Ts Ts'. list_all2 (conf G h) vs Ts \\<longrightarrow> list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') Ts Ts' \\<longrightarrow>  list_all2 (conf G h) vs Ts'";
 by( induct_tac "vs" 1);
 by(  ALLGOALS Clarsimp_tac);
 by(  ALLGOALS (forward_tac [list_all2_lengthD RS sym]));

@@ -21,7 +21,7 @@ syntax
 
 translations
   	"G\\<turnstile>C \\<prec>C1 D" == "(C,D) \\<in> subcls1 G"
-	"G\\<turnstile>C \\<prec>C  D" == "(C,D) \\<in> (subcls1 G)^+"
+	"G\\<turnstile>C \\<prec>C  D" == "(C,D) \\<in> (subcls1 G)^*"
 	"G\\<turnstile>S \\<preceq>   T" == "(S,T) \\<in> widen   G"
 	"G\\<turnstile>S \\<Rightarrow>?  T" == "(S,T) \\<in> cast    G"
 

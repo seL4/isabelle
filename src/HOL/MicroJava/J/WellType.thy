@@ -69,20 +69,20 @@ primrec
 	"typeof dt (Addr a) = dt a"
 
 types
-	javam = "vname list \\<times> (vname \\<times> ty) list \\<times> stmt \\<times> expr"
+	java_mb = "vname list \\<times> (vname \\<times> ty) list \\<times> stmt \\<times> expr"
 	(* method body with parameter names, local variables, block, result expression *)
 
 consts
 
-  ty_expr :: "javam env \\<Rightarrow> (expr      \\<times> ty     ) set"
-  ty_exprs:: "javam env \\<Rightarrow> (expr list \\<times> ty list) set"
-  wt_stmt :: "javam env \\<Rightarrow>  stmt                 set"
+  ty_expr :: "java_mb env \\<Rightarrow> (expr      \\<times> ty     ) set"
+  ty_exprs:: "java_mb env \\<Rightarrow> (expr list \\<times> ty list) set"
+  wt_stmt :: "java_mb env \\<Rightarrow>  stmt                 set"
 
 syntax
 
-ty_expr :: "javam env \\<Rightarrow> [expr     , ty     ] \\<Rightarrow> bool" ("_\\<turnstile>_\\<Colon>_"  [51,51,51]50)
-ty_exprs:: "javam env \\<Rightarrow> [expr list, ty list] \\<Rightarrow> bool" ("_\\<turnstile>_[\\<Colon>]_"[51,51,51]50)
-wt_stmt :: "javam env \\<Rightarrow>  stmt                \\<Rightarrow> bool" ("_\\<turnstile>_ \\<surd>" [51,51   ]50)
+ty_expr :: "java_mb env \\<Rightarrow> [expr     , ty     ] \\<Rightarrow> bool" ("_\\<turnstile>_\\<Colon>_"  [51,51,51]50)
+ty_exprs:: "java_mb env \\<Rightarrow> [expr list, ty list] \\<Rightarrow> bool" ("_\\<turnstile>_[\\<Colon>]_"[51,51,51]50)
+wt_stmt :: "java_mb env \\<Rightarrow>  stmt                \\<Rightarrow> bool" ("_\\<turnstile>_ \\<surd>" [51,51   ]50)
 
 translations
 	"E\\<turnstile>e \\<Colon> T" == "(e,T) \\<in> ty_expr  E"
@@ -168,8 +168,8 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 
 constdefs
 
- wt_java_mdecl :: javam prog => cname => javam mdecl => bool
-"wt_java_mdecl G C \\<equiv> \\<lambda>((mn,pTs),rT,(pns,lvars,blk,res)).
+ wf_java_mdecl :: java_mb prog => cname => java_mb mdecl => bool
+"wf_java_mdecl G C \\<equiv> \\<lambda>((mn,pTs),rT,(pns,lvars,blk,res)).
 	length pTs = length pns \\<and>
 	nodups pns \\<and>
 	unique lvars \\<and>
@@ -178,7 +178,7 @@ constdefs
 	(let E = (G,map_of lvars(pns[\\<mapsto>]pTs)(This\\<mapsto>Class C)) in
 	 E\\<turnstile>blk\\<surd> \\<and> (\\<exists>T. E\\<turnstile>res\\<Colon>T \\<and> G\\<turnstile>T\\<preceq>rT))"
 
- wf_java_prog :: javam prog => bool
-"wf_java_prog G \\<equiv> wf_prog wt_java_mdecl G"
+ wf_java_prog :: java_mb prog => bool
+"wf_java_prog G \\<equiv> wf_prog wf_java_mdecl G"
 
 end

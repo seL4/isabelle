@@ -8,7 +8,7 @@ Type safety proof
 
 Addsimps [split_beta];
 
-Goal "\\<lbrakk>h a = None; (h, l)\\<Colon>\\<preceq>(G, lT); wf_prog wtm G; is_class G C\\<rbrakk> \\<Longrightarrow> \
+Goal "\\<lbrakk>h a = None; (h, l)\\<Colon>\\<preceq>(G, lT); wf_prog wf_mb G; is_class G C\\<rbrakk> \\<Longrightarrow> \
 \ (h(a\\<mapsto>(C,(init_vars (fields (G,C))))), l)\\<Colon>\\<preceq>(G, lT)";
 by( etac conforms_upd_obj 1);
 by(  rewtac oconf_def);
@@ -16,7 +16,7 @@ by(  auto_tac (claset() addSDs [is_type_fields, map_of_SomeD], simpset()));
 qed "NewC_conforms";
 
 Goalw [cast_ok_def]
- "\\<lbrakk> wf_prog wtm G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<Rightarrow>? T'; cast_ok G T' h v\\<rbrakk> \
+ "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<Rightarrow>? T'; cast_ok G T' h v\\<rbrakk> \
 \ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T'";
 by( case_tac1 "v = Null" 1);
 by(  Asm_full_simp_tac 1);
@@ -44,7 +44,7 @@ by(  ALLGOALS (rtac conf_AddrI));
 by     Auto_tac;
 qed "Cast_conf";
 
-Goal "\\<lbrakk> wf_prog wtm G; field (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
+Goal "\\<lbrakk> wf_prog wf_mb G; field (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
 \    x' = None \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>Class C; np a' x' = None \\<rbrakk> \\<Longrightarrow> \
 \ G,h\\<turnstile>the (snd (the (h (the_Addr a'))) (fn, fd))\\<Colon>\\<preceq>ft";
 by( dtac np_NoneD 1);
@@ -60,10 +60,10 @@ by(  atac 1);
 by( dtac oconf_objD 1);
 by(  atac 1);
 by Auto_tac;
-val FAcc_type_sound = result();
+qed "FAcc_type_sound";
 
 Goal
- "\\<lbrakk> wf_prog wtm G; a = the_Addr a'; (c, fs) = the (h a); \
+ "\\<lbrakk> wf_prog wf_mb G; a = the_Addr a'; (c, fs) = the (h a); \
 \   (G, lT)\\<turnstile>v\\<Colon>T'; G\\<turnstile>T'\\<preceq>ft; \
 \   (G, lT)\\<turnstile>aa\\<Colon>Class C; \
 \   field (G,C) fn = Some (fd, ft); h''\\<le>|h'; \
@@ -105,9 +105,9 @@ by( case_tac1 "(aaa, b) = (fn, fd)" 1);
 by(  Asm_full_simp_tac 1);
 by(  fast_tac (HOL_cs addIs [conf_widen]) 1);
 by( fast_tac (HOL_cs addDs [conforms_heapD RS hconfD, oconf_objD]) 1);
-val FAss_type_sound = result();
+qed "FAss_type_sound";
 
-Goalw [wf_mhead_def] "\\<lbrakk> wf_prog wtm G; list_all2 (conf G h) pvs pTs; \
+Goalw [wf_mhead_def] "\\<lbrakk> wf_prog wf_mb G; list_all2 (conf G h) pvs pTs; \
  \ list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'; wf_mhead G (mn,pTs') rT; \
 \ length pTs' = length pns; nodups pns; \
 \ Ball (set lvars) (split (\\<lambda>vn. is_type G)) \
@@ -145,7 +145,7 @@ by( Clarsimp_tac 1);
 by( EVERY'[forward_tac [hext_objD], atac] 1);
 by( Clarsimp_tac 1);
 by( EVERY'[dtac Call_lemma, atac, atac] 1);
-by( clarsimp_tac (claset(),simpset() addsimps [wt_java_mdecl_def])1);
+by( clarsimp_tac (claset(),simpset() addsimps [wf_java_mdecl_def])1);
 by( thin_tac "method ?sig ?x = ?y" 1);
 by( EVERY'[dtac spec, etac impE] 1);
 by(  mp_tac 2);
