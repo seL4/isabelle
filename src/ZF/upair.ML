@@ -166,6 +166,9 @@ qed_goal "singletonE" ZF.thy "[| a: {b};  a=b ==> P |] ==> P"
   [ (rtac (major RS consE) 1),
     (REPEAT (eresolve_tac (prems @ [emptyE]) 1)) ]);
 
+qed_goal "singleton_iff" ZF.thy "a : {b} <-> a=b"
+ (fn _ => [ (fast_tac (lemmas_cs addIs [consI1] addSEs [consE]) 1) ]);
+
 
 (*** Rules for Descriptions ***)
 
