@@ -187,7 +187,7 @@ pairing and split;
 * reorganized the main HOL image: HOL/Integ and String loaded by
 default; theory Main includes everything;
 
-* added option_map_eq_Some to the default simpset claset;
+* added option_map_eq_Some and not_Some_eq to the default simpset and claset;
 
 * added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset;
 
