@@ -10,7 +10,7 @@ theory Bij = Group:
 constdefs
   Bij :: "'a set => ('a => 'a) set"
     --{*Only extensional functions, since otherwise we get too many.*}
-  "Bij S == extensional S \<inter> {f. f`S = S & inj_on f S}"
+  "Bij S == extensional S \<inter> {f. bij_betw f S S}"
 
   BijGroup :: "'a set => ('a => 'a) monoid"
   "BijGroup S ==
@@ -25,53 +25,23 @@ lemma Bij_imp_extensional: "f \<in> Bij S ==> f \<in> extensional S"
   by (simp add: Bij_def)
 
 lemma Bij_imp_funcset: "f \<in> Bij S ==> f \<in> S -> S"
-  by (auto simp add: Bij_def Pi_def)
-
-lemma Bij_imp_apply: "f \<in> Bij S ==> f ` S = S"
-  by (simp add: Bij_def)
-
-lemma Bij_imp_inj_on: "f \<in> Bij S ==> inj_on f S"
-  by (simp add: Bij_def)
-
-lemma BijI: "[| f \<in> extensional(S); f`S = S; inj_on f S |] ==> f \<in> Bij S"
-  by (simp add: Bij_def)
+  by (auto simp add: Bij_def bij_betw_imp_funcset)
 
 
 subsection {*Bijections Form a Group *}
 
 lemma restrict_Inv_Bij: "f \<in> Bij S ==> (%x:S. (Inv S f) x) \<in> Bij S"
-apply (simp add: Bij_def)
-apply (intro conjI)
-txt{*Proving @{term "restrict (Inv S f) S ` S = S"}*}
- apply (rule equalityI)
-  apply (force simp add: Inv_mem) --{*first inclusion*}
- apply (rule subsetI)   --{*second inclusion*}
- apply (rule_tac x = "f x" in image_eqI)
-  apply (force intro:  simp add: Inv_f_f, blast)
-txt{*Remaining goal: @{term "inj_on (restrict (Inv S f) S) S"}*}
-apply (rule inj_onI)
-apply (auto elim: Inv_injective)
-done
+  by (simp add: Bij_def bij_betw_Inv)
 
 lemma id_Bij: "(\<lambda>x\<in>S. x) \<in> Bij S "
-apply (rule BijI)
-apply (auto simp add: inj_on_def)
-done
+  by (auto simp add: Bij_def bij_betw_def inj_on_def)
 
 lemma compose_Bij: "[| x \<in> Bij S; y \<in> Bij S|] ==> compose S x y \<in> Bij S"
-apply (rule BijI)
-  apply (simp add: compose_extensional)
- apply (blast del: equalityI
-              intro: surj_compose dest: Bij_imp_apply Bij_imp_inj_on)
-apply (blast intro: inj_on_compose dest: Bij_imp_apply Bij_imp_inj_on)
-done
+  by (auto simp add: Bij_def bij_betw_compose) 
 
 lemma Bij_compose_restrict_eq:
      "f \<in> Bij S ==> compose S (restrict (Inv S f) S) f = (\<lambda>x\<in>S. x)"
-apply (rule compose_Inv_id)
- apply (simp add: Bij_imp_inj_on)
-apply (simp add: Bij_imp_apply)
-done
+  by (simp add: Bij_def compose_Inv_id)
 
 theorem group_BijGroup: "group (BijGroup S)"
 apply (simp add: BijGroup_def)
@@ -87,16 +57,16 @@ done
 
 subsection{*Automorphisms Form a Group*}
 
-lemma Bij_Inv_mem: "[|  f \<in> Bij S;  x : S |] ==> Inv S f x : S"
-by (simp add: Bij_def Inv_mem)
+lemma Bij_Inv_mem: "[|  f \<in> Bij S;  x \<in> S |] ==> Inv S f x \<in> S"
+by (simp add: Bij_def bij_betw_def Inv_mem)
 
 lemma Bij_Inv_lemma:
  assumes eq: "!!x y. [|x \<in> S; y \<in> S|] ==> h(g x y) = g (h x) (h y)"
  shows "[| h \<in> Bij S;  g \<in> S \<rightarrow> S \<rightarrow> S;  x \<in> S;  y \<in> S |]
         ==> Inv S h (g x y) = g (Inv S h x) (Inv S h y)"
-apply (simp add: Bij_def)
-apply (subgoal_tac "EX x':S. EX y':S. x = h x' & y = h y'", clarify)
- apply (simp add: eq [symmetric] Inv_f_f funcset_mem [THEN funcset_mem], blast)
+apply (simp add: Bij_def bij_betw_def)
+apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' & y = h y'", clarify)
+ apply (simp add: eq [symmetric] Inv_f_f funcset_mem [THEN funcset_mem], blast )
 done
 
 constdefs
@@ -130,7 +100,7 @@ lemma subgroup_auto:
 apply (rule group.subgroupI)
     apply (rule group_BijGroup)
    apply (force simp add: auto_def BijGroup_def)
-  apply (blast intro: dest: id_in_auto)
+  apply (blast dest: id_in_auto)
  apply (simp del: restrict_apply
              add: inv_BijGroup auto_def restrict_Inv_Bij restrict_Inv_hom)
 apply (auto simp add: BijGroup_def auto_def Bij_imp_funcset group.hom_compose

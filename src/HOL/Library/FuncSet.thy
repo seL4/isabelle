@@ -100,10 +100,6 @@ lemma compose_eq: "x \<in> A ==> compose A g f x = g(f(x))"
 lemma surj_compose: "[| f ` A = B; g ` B = C |] ==> compose A g f ` A = C"
   by (auto simp add: image_def compose_eq)
 
-lemma inj_on_compose:
-    "[| f ` A = B; inj_on f A; inj_on g B |] ==> inj_on (compose A g f) A"
-  by (auto simp add: inj_on_def compose_eq)
-
 
 subsection{*Bounded Abstraction: @{term restrict}*}
 
@@ -121,7 +117,7 @@ lemma restrict_ext:
     "(!!x. x \<in> A ==> f x = g x) ==> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
   by (simp add: expand_fun_eq Pi_def Pi_def restrict_def)
 
-lemma inj_on_restrict_eq: "inj_on (restrict f A) A = inj_on f A"
+lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
   by (simp add: inj_on_def restrict_def)
 
 lemma Id_compose:
@@ -132,41 +128,8 @@ lemma compose_Id:
     "[|g \<in> A -> B;  g \<in> extensional A|] ==> compose A g (\<lambda>x\<in>A. x) = g"
   by (auto simp add: expand_fun_eq compose_def extensional_def Pi_def)
 
-
-subsection{*Extensionality*}
-
-lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = arbitrary"
-  by (simp add: extensional_def)
-
-lemma restrict_extensional [simp]: "restrict f A \<in> extensional A"
-  by (simp add: restrict_def extensional_def)
-
-lemma compose_extensional [simp]: "compose A f g \<in> extensional A"
-  by (simp add: compose_def)
-
-lemma extensionalityI:
-    "[| f \<in> extensional A; g \<in> extensional A;
-      !!x. x\<in>A ==> f x = g x |] ==> f = g"
-  by (force simp add: expand_fun_eq extensional_def)
-
-lemma Inv_funcset: "f ` A = B ==> (\<lambda>x\<in>B. Inv A f x) : B -> A"
-  by (unfold Inv_def) (fast intro: restrict_in_funcset someI2)
-
-lemma compose_Inv_id:
-    "[| inj_on f A;  f ` A = B |]
-      ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
-  apply (simp add: compose_def)
-  apply (rule restrict_ext, auto)
-  apply (erule subst)
-  apply (simp add: Inv_f_f)
-  done
-
-lemma compose_id_Inv:
-    "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
-  apply (simp add: compose_def)
-  apply (rule restrict_ext)
-  apply (simp add: f_Inv_f)
-  done
+lemma image_restrict_eq [simp]: "(restrict f A) ` A = f ` A"
+  by (auto simp add: restrict_def) 
 
 
 subsection{*Bijections Between Sets*}
@@ -190,11 +153,54 @@ apply (simp add: image_compose [symmetric] o_def)
 apply (simp add: image_def Inv_f_f) 
 done
 
+lemma inj_on_compose:
+    "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
+  by (auto simp add: bij_betw_def inj_on_def compose_eq)
+
 lemma bij_betw_compose:
     "[| bij_betw f A B; bij_betw g B C |] ==> bij_betw (compose A g f) A C"
 apply (simp add: bij_betw_def compose_eq inj_on_compose)
 apply (auto simp add: compose_def image_def)
 done
+
+lemma bij_betw_restrict_eq [simp]:
+     "bij_betw (restrict f A) A B = bij_betw f A B"
+  by (simp add: bij_betw_def)
+
+
+subsection{*Extensionality*}
+
+lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = arbitrary"
+  by (simp add: extensional_def)
+
+lemma restrict_extensional [simp]: "restrict f A \<in> extensional A"
+  by (simp add: restrict_def extensional_def)
+
+lemma compose_extensional [simp]: "compose A f g \<in> extensional A"
+  by (simp add: compose_def)
+
+lemma extensionalityI:
+    "[| f \<in> extensional A; g \<in> extensional A;
+      !!x. x\<in>A ==> f x = g x |] ==> f = g"
+  by (force simp add: expand_fun_eq extensional_def)
+
+lemma Inv_funcset: "f ` A = B ==> (\<lambda>x\<in>B. Inv A f x) : B -> A"
+  by (unfold Inv_def) (fast intro: restrict_in_funcset someI2)
+
+lemma compose_Inv_id:
+    "bij_betw f A B ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
+  apply (simp add: bij_betw_def compose_def)
+  apply (rule restrict_ext, auto)
+  apply (erule subst)
+  apply (simp add: Inv_f_f)
+  done
+
+lemma compose_id_Inv:
+    "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
+  apply (simp add: compose_def)
+  apply (rule restrict_ext)
+  apply (simp add: f_Inv_f)
+  done
 
 
 subsection{*Cardinality*}
