@@ -459,13 +459,6 @@ qed "invertible_imp_bijective";
 
 (** Unions of functions -- cf similar theorems on func.ML **)
 
-goal Perm.thy "converse(r Un s) = converse(r) Un converse(s)";
-by (rtac equalityI 1);
-by (DEPTH_SOLVE_1 
-      (resolve_tac [Un_least,converse_mono, Un_upper1,Un_upper2] 2));
-by (fast_tac ZF_cs 1);
-qed "converse_Un";
-
 goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
 \           (f Un g) : surj(A Un C, B Un D)";
