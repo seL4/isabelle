@@ -11,7 +11,7 @@ Porder0 = Nat +
 
 (* first the global constant for HOLCF type classes *)
 consts
-  "less"        :: "['a,'a] => bool" (infixl "\\<sqsubseteq>\\<sqsubseteq>" 55)
+  "less"        :: "['a,'a] => bool"
 
 axclass po < term
         (* class axioms: *)
