@@ -3,8 +3,9 @@
     Authors: 	Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 
-Tactic to substitute using the assumption x=t in the rest of the subgoal,
-and to delete that assumption.  Original version due to Martin Coen.
+Tactic to substitute using (at least) the assumption x=t in the rest of the 
+subgoal, and to delete (at least) that assumption. 
+Original version due to Martin Coen.
 
 This version uses the simplifier, and requires it to be already present.
 
@@ -31,7 +32,8 @@ signature HYPSUBST_DATA =
   val rev_mp	       : thm		   (* [| P;  P-->Q |] ==> Q *)
   val subst	       : thm		   (* [| a=b;  P(a) |] ==> P(b) *)
   val sym	       : thm		   (* a=b ==> b=a *)
-  end;
+  val thin_refl        : thm               (* [|x=x; PROP W|] ==> PROP W *)
+end;
 
 
 signature HYPSUBST =
@@ -174,8 +176,8 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
       handle THM _ => no_tac | EQ_VAR => no_tac);
 
 (*Substitutes for Free or Bound variables*)
-val hyp_subst_tac = 
-    gen_hyp_subst_tac false ORELSE' vars_gen_hyp_subst_tac false;
+val hyp_subst_tac = FIRST' [ematch_tac [thin_refl],
+        gen_hyp_subst_tac false, vars_gen_hyp_subst_tac false];
 
 (*Substitutes for Bound variables only -- this is always safe*)
 val bound_hyp_subst_tac = 

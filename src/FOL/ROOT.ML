@@ -34,6 +34,8 @@ structure Hypsubst_Data =
   val rev_mp = rev_mp
   val subst = subst
   val sym = sym
+  val thin_refl = prove_goal IFOL.thy 
+		  "!!X. [|x=x; PROP W|] ==> PROP W" (K [atac 1]);
   end;
 
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
