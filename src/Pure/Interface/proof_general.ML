@@ -143,7 +143,7 @@ local
 
 fun tell_pg msg name = writeln ("Proof General, " ^ msg ^ " " ^ quote name);
 
-fun isa_action action name =
+fun trace_action action name =
   let
     val update = (action = ThyInfo.Update);
     fun loaded ((path, _), really) =
@@ -155,12 +155,8 @@ fun isa_action action name =
     else seq (tell_pg "you can unlock the file") files
   end;
 
-fun isar_action action name =
-  if action = ThyInfo.Update then tell_pg "this theory is loaded:" name
-  else tell_pg "you can unlock the theory" name;
-
 in
-  fun setup_thy_loader isar = ThyInfo.add_hook (if isar then isar_action else isa_action);
+  fun setup_thy_loader () = ThyInfo.add_hook trace_action;
 end;
 
 
@@ -190,7 +186,7 @@ fun isa_restart () =
 fun init isar =
  (setup_messages ();
   setup_state isar;
-  setup_thy_loader isar;
+  setup_thy_loader ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
   if isar then Isar.sync_main () else isa_restart ());
