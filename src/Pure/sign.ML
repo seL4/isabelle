@@ -241,7 +241,7 @@ fun read_raw_typ syn tsig sort_of str =
 (*read and certify typ wrt a signature*)
 fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
   Type.cert_typ tsig (read_raw_typ syn tsig sort_of str)
-    handle TYPE (msg, _, _) => (writeln msg; err_in_type str);
+    handle TYPE (msg, _, _) => (error_msg msg; err_in_type str);
 
 
 
@@ -371,7 +371,7 @@ fun infer_types sg def_type def_sort used freeze (ts, T) =
     (case foldl process_term (Errs [], ts ~~ (0 upto (length ts - 1))) of
       One res =>
        (if length ts > ! Syntax.ambiguity_level then
-          writeln "Fortunately, only one parse tree is type correct.\n\
+          warning "Fortunately, only one parse tree is type correct.\n\
             \It helps (speed!) if you disambiguate your grammar or your input."
         else (); res)
     | Errs errs => (warn (); error (cat_lines errs))
@@ -454,7 +454,7 @@ fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab) raw_consts =
     fun prep_const (c, ty, mx) =
      (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
        handle TYPE (msg, _, _)
-         => (writeln msg; err_in_const (Syntax.const_name c mx));
+         => (error_msg msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
     val decls =
