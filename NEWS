@@ -256,6 +256,10 @@ Types nat and int belong to this axclass;
   and the term/formula #m*u+x ~~ #n*u+y simplifies simplifies to #(m-n)+x ~~ y
     or x ~~ #(n-m)+y, where ~~ is one of = < <= or - (simproc cancel_numerals);
 
+* HOL: meson_tac is available (previously in ex/meson.ML).  It is a powerful
+   prover for predicate logic but knows nothing of clasets.  For examples of
+   what it can do, see ex/mesontest.ML and ex/mesontest2.ML;
+
 * HOL: new version of "case_tac" subsumes both boolean case split and
 "exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
 exists, may define val exhaust_tac = case_tac for ad-hoc portability;
