@@ -1,4 +1,4 @@
-(*  Title:      ZF/ex/misc
+(*  Title:      ZF/ex/misc.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -7,34 +7,32 @@ Miscellaneous examples for Zermelo-Fraenkel Set Theory
 Composition of homomorphisms, Pastre's examples, ...
 *)
 
-writeln"ZF/ex/misc";
-
-(*These two are cited in Benzmueller and Kohlhash's system description of LEO,
+(*These two are cited in Benzmueller and Kohlhase's system description of LEO,
   CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*)
 
 Goal "(X = Y Un Z) <-> (Y<=X & Z<=X & (ALL V. Y<=V & Z<=V --> X<=V))";
 by (blast_tac (claset() addSIs [equalityI]) 1);
-result();
+qed "";
 
 (*the dual of the previous one*)
 Goal "(X = Y Int Z) <-> (X<=Y & X<=Z & (ALL V. V<=Y & V<=Z --> V<=X))";
 by (blast_tac (claset() addSIs [equalityI]) 1);
-result();
+qed "";
 
 (*trivial example of term synthesis: apparently hard for some provers!*)
 Goal "a ~= b ==> a:?X & b ~: ?X";
 by (Blast_tac 1);
-result();
+qed "";
 
 (*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!*)
 Goal "ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (Blast_tac 1);
-result();
+qed "";
 
 (*variant of the benchmark above*)
 Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
 by (Blast_tac 1);
-result();
+qed "";
 
 context Perm.thy;
 
@@ -44,7 +42,7 @@ context Perm.thy;
  Ellis Horwood, 53-100 (1979). *)
 Goal "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
 by (Best_tac 1);
-result();
+qed "";
 
 
 (*** Composition of homomorphisms is a homomorphism ***)
@@ -68,7 +66,7 @@ goal Perm.thy
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
 by (asm_simp_tac (simpset() setloop (K Safe_tac)) 1);
-val comp_homs = result();
+qed "";
 
 (*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
 val [hom_def] = goal Perm.thy
@@ -89,7 +87,7 @@ qed "comp_homs";
 Goalw [Pi_def, function_def]
     "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
 by (Best_tac 1);
-result();
+qed "";
 
 
 (**** From D Pastre.  Automatic theorem proving in set theory. 
@@ -191,5 +189,3 @@ by (rtac (singletonI RS lam_type) 1);
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed "Pow_Sigma_bij";
-
-writeln"Reached end of file.";
