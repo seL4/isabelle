@@ -21,8 +21,13 @@ sig
 		   -> term * (indexname*typ)list
   val inst_term_tvars: type_sig * (indexname * typ)list -> term -> term
   val logical_type: type_sig -> string -> bool
-   val logical_types: type_sig -> string list
+  val logical_types: type_sig -> string list
   val merge: type_sig * type_sig -> type_sig
+  val rep_tsig: type_sig ->
+      {classes: class list, default: sort,
+       subclass: (class * class list) list,
+       args: (string * int) list,
+       coreg: (string * (class * sort list) list) list}
   val thaw_vars: typ -> typ
   val tsig0: type_sig
   val type_errors: type_sig * (typ->string) -> typ * string list -> string list
@@ -84,6 +89,7 @@ datatype type_sig =
           represents the arity (ss)c
 *)
 
+fun rep_tsig (TySg comps) = comps;
 
 val tsig0 = TySg{classes = [],
 		 default = [],
