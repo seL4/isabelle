@@ -41,7 +41,7 @@ qed "finite_UnI";
 (*Every subset of a finite set is finite*)
 Goal "finite B ==> ALL A. A<=B --> finite A";
 by (etac finite_induct 1);
- by (simp_tac (simpset() addsimps [subset_empty]) 1);
+ by (Simp_tac 1);
 by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
 by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 2);
 by (ALLGOALS Asm_simp_tac);
@@ -366,7 +366,7 @@ qed "card_insert_le";
 
 Goal "finite B ==> ALL A. A <= B --> card B <= card A --> A = B";
 by (etac finite_induct 1);
- by (simp_tac (simpset() addsimps [subset_empty]) 1);
+ by (Simp_tac 1);
 by (Clarify_tac 1);
 by (subgoal_tac "finite A & A-{x} <= F" 1);
  by (blast_tac (claset() addIs [finite_subset]) 2); 
@@ -780,7 +780,7 @@ by (subgoal_tac
     "ALL C. C <= B --> (ALL x:C. f x = g x) --> setsum f C = setsum g C" 1);
 by (asm_simp_tac (simpset() addsimps prems) 1); 
 by (etac finite_induct 1);
- by (simp_tac (simpset() addsimps [subset_empty]) 1);
+ by (Simp_tac 1);
  by (asm_simp_tac (simpset() addsimps subset_insert_iff::prems) 1); 
 by (Clarify_tac 1); 
 by (subgoal_tac "finite C" 1);
@@ -857,8 +857,7 @@ by (rtac allI 1 THEN rtac impI 1);
 by (etac finite_induct 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addcongs [conj_cong] 
-                             addsimps [subset_empty, card_s_0_eq_empty, 
-				       choose_deconstruct])));
+                             addsimps [card_s_0_eq_empty,choose_deconstruct])));
 by (stac card_Un_disjoint 1);
    by (force_tac (claset(), simpset() addsimps [constr_bij]) 4);
   by (Force_tac 3);

@@ -204,6 +204,8 @@ by (etac ssubst 1);
 by (rtac subset_refl 1);
 qed "equalityD2";
 
+(*Be careful when adding this to the claset as subset_empty is in the simpset:
+  A={} goes to {}<=A and A<={} and then back to A={} !*)
 val prems = Goal
     "[| A = B;  [| A<=B; B<=(A::'a set) |] ==> P |]  ==>  P";
 by (resolve_tac prems 1);
