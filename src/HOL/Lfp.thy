@@ -6,7 +6,7 @@
 The Knaster-Tarski Theorem
 *)
 
-Lfp = mono + Prod +
+Lfp = mono + Product_Type +
 
 constdefs
   lfp :: ['a set=>'a set] => 'a set

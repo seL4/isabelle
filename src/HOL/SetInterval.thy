@@ -6,7 +6,7 @@
 lessThan, greaterThan, atLeast, atMost
 *)
 
-SetInterval = equalities + Arith + 
+SetInterval = equalities + Arithmetic + 
 
 constdefs
  lessThan    :: "('a::ord) => 'a set"	("(1{.._'(})")

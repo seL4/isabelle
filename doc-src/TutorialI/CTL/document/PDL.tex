@@ -113,10 +113,9 @@ simplification leaves us with the following main goal
 \ \ \ \ \ \ \ \ \ s\ {\isasymin}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ {\isacharparenleft}lfp\ {\isacharparenleft}{\dots}{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-which is proved by \isa{blast} with the help of a few lemmas about
-\isa{{\isacharcircum}{\isacharasterisk}}:%
+which is proved by \isa{blast} with the help of transitivity of \isa{{\isacharcircum}{\isacharasterisk}}:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ r{\isacharunderscore}into{\isacharunderscore}rtrancl\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptxt}%
 We now return to the second set containment subgoal, which is again proved
 pointwise:%

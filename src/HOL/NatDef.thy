@@ -8,7 +8,7 @@ Definition of types ind and nat.
 Type nat is defined as a set Nat over type ind.
 *)
 
-NatDef = WF +
+NatDef = Wellfounded_Recursion +
 
 (** type ind **)
 

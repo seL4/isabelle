@@ -8,7 +8,7 @@ Lifting
 
 *)
 
-Up1 = Cfun3 + Sum + Datatype +
+Up1 = Cfun3 + Sum_Type + Datatype +
 
 (* new type for lifting *)
 

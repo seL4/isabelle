@@ -6,7 +6,7 @@
 Packets
 *)
 
-Packet = Arith +
+Packet = Arithmetic +
 
 types
 

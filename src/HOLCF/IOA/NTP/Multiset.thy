@@ -7,7 +7,7 @@ Axiomatic multisets.
 Should be done as a subtype and moved to a global place.
 *)
 
-Multiset = Arith + Lemmas +
+Multiset = Lemmas +
 
 types
 

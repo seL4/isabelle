@@ -5,7 +5,7 @@
 TFL: recursive function definitions.
 *)
 
-theory Recdef = WF_Rel + Datatype
+theory Recdef = Wellfounded_Relations + Datatype
 files
   "../TFL/utils.sml"
   "../TFL/usyntax.sml"

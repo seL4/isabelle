@@ -15,8 +15,6 @@ Implementation
 
 swap in classical.ML has ugly name Pa in it. Rename.
 
-list of ^*/^+ intro rules. Incl transitivity?
-
 Induction rules for int: int_le/ge_induct?
 Needed for ifak example. But is that example worth it?
 

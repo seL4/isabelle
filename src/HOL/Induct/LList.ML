@@ -782,7 +782,7 @@ by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "fun_power_Suc";
 
-val Pair_cong = read_instantiate_sg (sign_of Prod.thy)
+val Pair_cong = read_instantiate_sg (sign_of Product_Type.thy)
  [("f","Pair")] (standard(refl RS cong RS cong));
 
 (*The bisimulation consists of {(lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u)))}

@@ -8,8 +8,8 @@ basis for theory ToyList in the documentation.
 *)
 
 theory PreList =
-  Option + WF_Rel + NatSimprocs + Recdef + Record + RelPow + Calculation + 
-  SVC_Oracle + While:
+  Option + Wellfounded_Relations + NatSimprocs + Recdef + Record +
+  Relation_Power + Calculation + SVC_Oracle + While:
 
 theorems [cases type: bool] = case_split
 

@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-theory Inductive = Gfp + Prod + Sum + NatDef
+theory Inductive = Gfp + Sum_Type + NatDef
 files
   "Tools/induct_method.ML"
   "Tools/inductive_package.ML"

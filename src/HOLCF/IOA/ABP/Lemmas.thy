@@ -6,4 +6,4 @@
 Arithmetic lemmas
 *)
 
-Lemmas = Arith
+Lemmas = Arithmetic

@@ -197,16 +197,20 @@ two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharc
 \ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-What is worth noting here is that we have used \isa{fast} rather than \isa{blast}.
-The reason is that \isa{blast} would fail because it cannot cope with \isa{someI{\isadigit{2}}{\isacharunderscore}ex}:
-unifying its conclusion with the current subgoal is nontrivial because of the nested schematic
-variables. For efficiency reasons \isa{blast} does not even attempt such unifications.
-Although \isa{fast} can in principle cope with complicated unification problems, in practice
-the number of unifiers arising is often prohibitive and the offending rule may need to be applied
-explicitly rather than automatically.
+What is worth noting here is that we have used \isa{fast} rather than
+\isa{blast}.  The reason is that \isa{blast} would fail because it cannot
+cope with \isa{someI{\isadigit{2}}{\isacharunderscore}ex}: unifying its conclusion with the current
+subgoal is nontrivial because of the nested schematic variables. For
+efficiency reasons \isa{blast} does not even attempt such unifications.
+Although \isa{fast} can in principle cope with complicated unification
+problems, in practice the number of unifiers arising is often prohibitive and
+the offending rule may need to be applied explicitly rather than
+automatically. This is what happens in the step case.
 
-The induction step is similar, but more involved, because now we face nested occurrences of
-\isa{SOME}. We merely show the proof commands but do not describe th details:%
+The induction step is similar, but more involved, because now we face nested
+occurrences of \isa{SOME}. As a result, \isa{fast} is no longer able to
+solve the subgoal and we apply \isa{someI{\isadigit{2}}{\isacharunderscore}ex} by hand.  We merely
+show the proof commands but do not describe the details:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline

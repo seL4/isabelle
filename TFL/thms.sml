@@ -17,9 +17,9 @@ end;
 
 structure Thms: Thms_sig =
 struct
-   val WFREC_COROLLARY = get_thm WF.thy "tfl_wfrec";
-   val WF_INDUCTION_THM = get_thm WF.thy "tfl_wf_induct";
-   val CUT_DEF = get_thm WF.thy "cut_def";
+   val WFREC_COROLLARY = get_thm Wellfounded_Recursion.thy "tfl_wfrec";
+   val WF_INDUCTION_THM = get_thm Wellfounded_Recursion.thy "tfl_wf_induct";
+   val CUT_DEF = get_thm Wellfounded_Recursion.thy "cut_def";
 
    val SELECT_AX = prove_goal HOL.thy "!P x. P x --> P (Eps P)"
      (fn _ => [strip_tac 1, rtac someI 1, assume_tac 1]);

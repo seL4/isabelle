@@ -118,11 +118,10 @@ simplification leaves us with the following main goal
 \ \ \ \ \ \ \ \ \ s\ {\isasymin}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ {\isacharparenleft}lfp\ {\isacharparenleft}{\dots}{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-which is proved by @{text blast} with the help of a few lemmas about
-@{text"^*"}:
+which is proved by @{text blast} with the help of transitivity of @{text"^*"}:
 *}
 
- apply(blast intro: r_into_rtrancl rtrancl_trans);
+ apply(blast intro: rtrancl_trans);
 
 txt{*
 We now return to the second set containment subgoal, which is again proved

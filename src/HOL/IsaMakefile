@@ -69,7 +69,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		 \
   $(SRC)/Provers/splitter.ML $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml \
   $(SRC)/TFL/rules.sml $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sml \
   $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sml \
-  Arith.ML Arith.thy Calculation.thy Datatype.thy Divides.ML \
+  Arithmetic.ML Arithmetic.thy Calculation.thy Datatype.thy Divides.ML \
   Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy \
   HOL.ML HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML \
   Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/IntArith.ML \
@@ -80,17 +80,17 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		 \
   Integ/int_arith2.ML Integ/nat_simprocs.ML Lfp.ML Lfp.thy List.ML \
   List.thy Main.ML Main.thy Map.ML Map.thy Nat.ML Nat.thy NatDef.ML \
   NatDef.thy Numeral.thy Option.ML Option.thy Ord.ML Ord.thy Power.ML \
-  Power.thy PreList.thy Prod.ML Prod.thy ROOT.ML Recdef.thy Record.thy \
-  RelPow.ML RelPow.thy Relation.ML Relation.thy Set.ML Set.thy \
+  Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
+  Relation_Power.ML Relation_Power.thy Relation.ML Relation.thy Set.ML Set.thy \
   SetInterval.ML SetInterval.thy String.thy SVC_Oracle.ML \
-  SVC_Oracle.thy Sum.ML Sum.thy Tools/datatype_aux.ML \
+  SVC_Oracle.thy Sum_Type.ML Sum_Type.thy Tools/datatype_aux.ML \
   Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
   Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
   Tools/induct_method.ML Tools/inductive_package.ML Tools/meson.ML \
   Tools/numeral_syntax.ML Tools/primrec_package.ML \
   Tools/recdef_package.ML Tools/record_package.ML Tools/svc_funcs.ML \
-  Tools/typedef_package.ML Trancl.ML Trancl.thy Univ.ML Univ.thy \
-  Vimage.ML Vimage.thy WF.ML WF.thy WF_Rel.ML WF_Rel.thy While.ML \
+  Tools/typedef_package.ML Transitive_Closure.ML Transitive_Closure.thy Datatype_Universe.ML Datatype_Universe.thy \
+  Inverse_Image.ML Inverse_Image.thy Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML Wellfounded_Relations.thy While.ML \
   While.thy arith_data.ML blastdata.ML cladata.ML equalities.ML \
   equalities.thy hologic.ML meson_lemmas.ML mono.ML mono.thy simpdata.ML \
   subset.ML subset.thy thy_syntax.ML

@@ -407,7 +407,7 @@ fun dest_relation tm =
                                   mesg="unexpected term structure"} (* FIXME do not handle _ !!! *)
    else raise USYN_ERR{func="dest_relation",mesg="not a boolean term"};
 
-fun is_WFR (Const("WF.wf",_)$_) = true
+fun is_WFR (Const("Wellfounded_Recursion.wf",_)$_) = true
   | is_WFR _                 = false;
 
 fun ARB ty = mk_select{Bvar=Free("v",ty),

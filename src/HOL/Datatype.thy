@@ -4,7 +4,7 @@
     Copyright   1998  TU Muenchen
 *)
 
-Datatype = Univ +
+Datatype = Datatype_Universe +
 
 rep_datatype bool
   distinct True_not_False, False_not_True

@@ -7,7 +7,7 @@ The bijection between elements of the Pi set and functional graphs
 Also the nice -> operator for function space
 *)
 
-PiSets = Univ + Finite +
+PiSets = Datatype_Universe + Finite +
 
 syntax
   "->" :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60) 

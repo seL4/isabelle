@@ -66,10 +66,9 @@ like \isa{map}. For a start, if nothing were known about \isa{map},
 \end{isabelle}
 Its second premise expresses (indirectly) that the second argument of
 \isa{map} is only applied to elements of its third argument. Congruence
-rules for other higher-order functions on lists would look very similar but
-have not been proved yet because they were never needed. If you get into a
-situation where you need to supply \isacommand{recdef} with new congruence
-rules, you can either append a hint locally
+rules for other higher-order functions on lists look very similar. If you get
+into a situation where you need to supply \isacommand{recdef} with new
+congruence rules, you can either append a hint locally
 to the specific occurrence of \isacommand{recdef}%
 \end{isamarkuptext}%
 {\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%

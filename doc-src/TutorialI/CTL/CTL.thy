@@ -2,7 +2,7 @@
 
 subsection{*Computation tree logic---CTL*};
 
-text{*
+text{*\label{sec:CTL}
 The semantics of PDL only needs transitive reflexive closure.
 Let us now be a bit more adventurous and introduce a new temporal operator
 that goes beyond transitive reflexive closure. We extend the datatype
@@ -266,16 +266,20 @@ two subgoals: @{prop"EX a. (s, a) : M & P a"}, which follows from the assumption
  apply(fast intro:someI2_ex);
 
 txt{*\noindent
-What is worth noting here is that we have used @{text fast} rather than @{text blast}.
-The reason is that @{text blast} would fail because it cannot cope with @{thm[source]someI2_ex}:
-unifying its conclusion with the current subgoal is nontrivial because of the nested schematic
-variables. For efficiency reasons @{text blast} does not even attempt such unifications.
-Although @{text fast} can in principle cope with complicated unification problems, in practice
-the number of unifiers arising is often prohibitive and the offending rule may need to be applied
-explicitly rather than automatically.
+What is worth noting here is that we have used @{text fast} rather than
+@{text blast}.  The reason is that @{text blast} would fail because it cannot
+cope with @{thm[source]someI2_ex}: unifying its conclusion with the current
+subgoal is nontrivial because of the nested schematic variables. For
+efficiency reasons @{text blast} does not even attempt such unifications.
+Although @{text fast} can in principle cope with complicated unification
+problems, in practice the number of unifiers arising is often prohibitive and
+the offending rule may need to be applied explicitly rather than
+automatically. This is what happens in the step case.
 
-The induction step is similar, but more involved, because now we face nested occurrences of
-@{text SOME}. We merely show the proof commands but do not describe th details:
+The induction step is similar, but more involved, because now we face nested
+occurrences of @{text SOME}. As a result, @{text fast} is no longer able to
+solve the subgoal and we apply @{thm[source]someI2_ex} by hand.  We merely
+show the proof commands but do not describe the details:
 *};
 
 apply(simp);
@@ -397,53 +401,4 @@ Fortunately the HOL library proves that in the case of finite sets and a monoton
 a fixpoint is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.
 *}
-
-(*<*)
-(*
-Second proof of opposite direction, directly by wellfounded induction
-on the initial segment of M that avoids A.
-
-Avoid s A = the set of successors of s that can be reached by a finite A-avoiding path
-*)
-
-consts Avoid :: "state \<Rightarrow> state set \<Rightarrow> state set";
-inductive "Avoid s A"
-intros "s \<in> Avoid s A"
-       "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A";
-
-(* For any infinite A-avoiding path (f) in Avoid s A,
-   there is some infinite A-avoiding path (p) in Avoid s A that starts with s.
-*)
-lemma ex_infinite_path[rule_format]:
-"t \<in> Avoid s A  \<Longrightarrow>
- \<forall>f. t = f 0 \<longrightarrow> (\<forall>i. (f i, f (Suc i)) \<in> M \<and> f i \<in> Avoid s A \<and> f i \<notin> A)
-                \<longrightarrow> (\<exists> p\<in>Paths s. \<forall>i. p i \<notin> A)";
-apply(simp add:Paths_def);
-apply(erule Avoid.induct);
- apply(blast);
-apply(rule allI);
-apply(erule_tac x = "\<lambda>i. case i of 0 \<Rightarrow> t | Suc i \<Rightarrow> f i" in allE);
-by(force split:nat.split);
-
-lemma Avoid_in_lfp[rule_format(no_asm)]:
-"\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)";
-apply(subgoal_tac "wf{(y,x). (x,y)\<in>M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}");
- apply(erule_tac a = t in wf_induct);
- apply(clarsimp);
- apply(rule ssubst [OF lfp_unfold[OF mono_af]]);
- apply(unfold af_def);
- apply(blast intro:Avoid.intros);
-apply(erule contrapos2);
-apply(simp add:wf_iff_no_infinite_down_chain);
-apply(erule exE);
-apply(rule ex_infinite_path);
-by(auto);
-
-theorem AF_lemma2:
-"{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
-apply(rule subsetI);
-apply(simp);
-apply(erule Avoid_in_lfp);
-by(rule Avoid.intros);
-
-end(*>*)
+(*<*)end(*>*)

@@ -4,7 +4,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-Relation = Prod +
+Relation = Product_Type +
 
 constdefs
   converse :: "('a*'b) set => ('b*'a) set"               ("(_^-1)" [1000] 999)

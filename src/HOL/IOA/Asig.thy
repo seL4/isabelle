@@ -6,7 +6,7 @@
 Action signatures
 *)
 
-Asig = Prod +
+Asig = Product_Type +
 
 types 
 

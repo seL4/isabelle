@@ -13,19 +13,19 @@ qed "image_rev";
 
 fun case_tac1 s i = EVERY [case_tac s i, rotate_tac ~1 i, rotate_tac ~1 (i+1)];
 
-val select_split = prove_goalw Prod.thy [split_def] 
+val select_split = prove_goalw Product_Type.thy [split_def] 
 	"(SOME (x,y). P x y) = (SOME xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
 	 
 
-val split_beta = prove_goal Prod.thy "(\\<lambda>(x,y). P x y) z = P (fst z) (snd z)"
+val split_beta = prove_goal Product_Type.thy "(\\<lambda>(x,y). P x y) z = P (fst z) (snd z)"
 	(fn _ => [stac surjective_pairing 1, stac split 1, rtac refl 1]);
-val split_beta2 = prove_goal Prod.thy "(\\<lambda>(x,y). P x y) (w,z) = P w z"
+val split_beta2 = prove_goal Product_Type.thy "(\\<lambda>(x,y). P x y) (w,z) = P w z"
 	(fn _ => [Auto_tac]);
-val splitE2 = prove_goal Prod.thy "[|Q (split P z); !!x y. [|z = (x, y); Q (P x y)|] ==> R|] ==> R" (fn prems => [
+val splitE2 = prove_goal Product_Type.thy "[|Q (split P z); !!x y. [|z = (x, y); Q (P x y)|] ==> R|] ==> R" (fn prems => [
 	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
 	rtac (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
-val splitE2' = prove_goal Prod.thy "[|((\\<lambda>(x,y). P x y) z) w; !!x y. [|z = (x, y); (P x y) w|] ==> R|] ==> R" (fn prems => [
+val splitE2' = prove_goal Product_Type.thy "[|((\\<lambda>(x,y). P x y) z) w; !!x y. [|z = (x, y); (P x y) w|] ==> R|] ==> R" (fn prems => [
 	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
 	res_inst_tac [("P1","P")] (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
@@ -131,11 +131,11 @@ by(rtac set_ext 1);
 by(simp_tac (simpset() addsimps image_def::premises()) 1);
 qed "image_cong";
 
-val split_Pair_eq = prove_goal Prod.thy 
+val split_Pair_eq = prove_goal Product_Type.thy 
 "!!X. ((x, y), z) \\<in> split (\\<lambda>x. Pair (x, Y)) `` A ==> y = Y" (K [
 	etac imageE 1,
 	split_all_tac 1,
-	auto_tac(claset_of Prod.thy,simpset_of Prod.thy)]);
+	auto_tac(claset_of Product_Type.thy,simpset_of Product_Type.thy)]);
 
 
 (* More about Maps *)

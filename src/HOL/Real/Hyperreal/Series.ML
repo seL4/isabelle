@@ -94,9 +94,9 @@ by (auto_tac (claset(),simpset() addsimps
     [real_minus_add_distrib]));
 qed "sumr_minus";
 
-context Arith.thy;
+context Arithmetic.thy;
 
-goal Arith.thy "!!n. ~ Suc n <= m + k ==> ~ Suc n <= m";
+Goal "!!n. ~ Suc n <= m + k ==> ~ Suc n <= m";
 by (auto_tac (claset() addSDs [not_leE],simpset()));
 qed "lemma_not_Suc_add";
 
