@@ -915,6 +915,30 @@ Goalw
 by(Simp_tac 1);
 qed "lexico_conv";
 
+Goal "([],ys) ~: lex r";
+by(simp_tac (simpset() addsimps [lex_conv]) 1);
+qed "Nil_notin_lex";
+
+Goal "(xs,[]) ~: lex r";
+by(simp_tac (simpset() addsimps [lex_conv]) 1);
+qed "Nil2_notin_lex";
+
+AddIffs [Nil_notin_lex,Nil2_notin_lex];
+
+Goal "((x#xs,y#ys) : lex r) = \
+\     ((x,y) : r & length xs = length ys | x=y & (xs,ys) : lex r)";
+by(simp_tac (simpset() addsimps [lex_conv]) 1);
+br iffI 1;
+ by(blast_tac (claset() addIs [Cons_eq_appendI]) 2);
+by(REPEAT(eresolve_tac [conjE, exE] 1));
+by(exhaust_tac "xys" 1);
+by(Asm_full_simp_tac 1);
+by(Asm_full_simp_tac 1);
+by(Blast_tac 1);
+qed "Cons_in_lex";
+AddIffs [Cons_in_lex];
+
+
 (***
 Simplification procedure for all list equalities.
 Currently only tries to rearranges @ to see if
