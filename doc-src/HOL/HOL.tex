@@ -1397,14 +1397,14 @@ theorem \tdx{less_induct}:
 \subsection{Numerical types and numerical reasoning}
 
 The integers (type \tdx{int}) are also available in HOL, and the reals (type
-\tdx{real}) are available in the logic image \texttt{HOL-Real}.  They support
+\tdx{real}) are available in the logic image \texttt{HOL-Complex}.  They support
 the expected operations of addition (\texttt{+}), subtraction (\texttt{-}) and
 multiplication (\texttt{*}), and much else.  Type \tdx{int} provides the
 \texttt{div} and \texttt{mod} operators, while type \tdx{real} provides real
 division and other operations.  Both types belong to class \cldx{linorder}, so
 they inherit the relational operators and all the usual properties of linear
 orderings.  For full details, please survey the theories in subdirectories
-\texttt{Integ} and \texttt{Real}.
+\texttt{Integ}, \texttt{Real}, and \texttt{Complex}.
 
 All three numeric types admit numerals of the form \texttt{$sd\ldots d$},
 where $s$ is an optional minus sign and $d\ldots d$ is a string of digits.

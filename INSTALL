@@ -65,7 +65,7 @@ like this:
 
 Special object-logic targets may be specified as follows:
 
-  [ISABELLE_HOME]/build -m HOL-Real HOL
+  [ISABELLE_HOME]/build -m HOL-Complex HOL
 
 
 2) User installation

@@ -24,7 +24,7 @@ theorem Zorn's_Lemma:
   shows "\<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
 proof (rule Zorn_Lemma2)
   txt_raw {* \footnote{See
-  \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}} \isanewline *}
+  \url{http://isabelle.in.tum.de/library/HOL/HOL-Complex/Zorn.html}} \isanewline *}
   show "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
   proof
     fix c assume "c \<in> chain S"
