@@ -27,7 +27,7 @@ sig
   val fixed_names: context -> string list
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
-  val cert_skolem: context -> string -> string
+  val intern_skolem: context -> term -> term
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
@@ -79,6 +79,7 @@ sig
   val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
+  val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
   val setup: (theory -> theory) list
@@ -387,26 +388,23 @@ fun cert_typ ctxt raw_T =
 fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
 fun get_skolem ctxt x = assoc (fixes_of ctxt, x);
 
-fun check_skolem ctxt check x =
-  if check andalso can Syntax.dest_skolem x then
+fun no_internal_skolem ctxt x =
+  if can Syntax.dest_skolem x then
     raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
+  else if can Syntax.dest_internal x then
+    raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
   else x;
 
-fun intern_skolem ctxt check =
+fun intern_skolem ctxt =
   let
     fun intern (t as Free (x, T)) =
-          (case get_skolem ctxt (check_skolem ctxt check x) of
+          (case get_skolem ctxt (no_internal_skolem ctxt x) of
             Some x' => Free (x', T)
           | None => t)
       | intern (t $ u) = intern t $ intern u
       | intern (Abs (x, T, t)) = Abs (x, T, intern t)
       | intern a = a;
   in intern end;
-
-fun cert_skolem ctxt x =
-  (case get_skolem ctxt x of
-    None => raise CONTEXT ("Undeclared variable: " ^ quote x, ctxt)
-  | Some x' => x');
 
 
 (* externalize Skolem constants -- for printing purposes only *)
@@ -518,7 +516,7 @@ fun gen_read read app is_pat (ctxt as Context {defs = (_, _, (used, _)), ...}) s
   (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
-  |> app (intern_skolem ctxt true)
+  |> app (intern_skolem ctxt)
   |> app (if is_pat then I else norm_term ctxt)
   |> app (if is_pat then prepare_dummies else (reject_dummies ctxt));
 
@@ -535,7 +533,6 @@ val read_prop = gen_read (read_prop_sg true) I false;
 (* certify terms *)
 
 fun gen_cert cert is_pat ctxt t = t
-  |> intern_skolem ctxt false
   |> (if is_pat then I else norm_term ctxt)
   |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
@@ -586,7 +583,6 @@ fun declare_terms ts ctxt = foldl declare (ctxt, ts);
 
 
 (** Hindley-Milner polymorphism **)
-
 
 (* warn_extra_tfrees *)
 
@@ -919,9 +915,9 @@ end;
 
 (* variables *)
 
-fun prep_vars prep_typ check (ctxt, (xs, raw_T)) =
+fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
   let
-    val _ = (case filter (not o Syntax.is_identifier) (map (check_skolem ctxt check) xs) of
+    val _ = (case filter (not o Syntax.is_identifier) (map (no_internal_skolem ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = apsome (prep_typ ctxt) raw_T;
@@ -929,8 +925,8 @@ fun prep_vars prep_typ check (ctxt, (xs, raw_T)) =
     val ctxt' = ctxt |> declare_terms (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
-val read_vars = prep_vars read_typ true;
-val cert_vars = prep_vars cert_typ false;
+val read_vars = prep_vars read_typ;
+val cert_vars = prep_vars cert_typ;
 
 
 (* fix *)
@@ -964,6 +960,20 @@ val fix = gen_fix read_vars;
 val fix_i = gen_fix cert_vars;
 
 end;
+
+
+(*Note: improper use may result in variable capture / dynamic scoping!*)
+fun bind_skolem ctxt xs =
+  let
+    val ctxt' = ctxt |> fix_i [(xs, None)];
+    fun bind (t as Free (x, T)) =
+          if x mem_string xs then
+            (case get_skolem ctxt' x of Some x' => Free (x', T) | None => t)
+          else t
+      | bind (t $ u) = bind t $ bind u
+      | bind (Abs (x, T, t)) = Abs (x, T, bind t)
+      | bind a = a;
+  in bind end;
 
 
 
