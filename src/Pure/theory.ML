@@ -17,6 +17,7 @@ sig
       parents: theory list,
       ancestors: theory list}
   val sign_of: theory -> Sign.sg
+  val is_draft: theory -> bool
   val syn_of: theory -> Syntax.syntax
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
@@ -84,7 +85,7 @@ sig
   val pre_pure: theory
 end;
 
-signature THEORY_PRIVATE =
+signature PRIVATE_THEORY =
 sig
   include THEORY
   val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
@@ -95,7 +96,7 @@ sig
 end;
 
 
-structure Theory: THEORY_PRIVATE =
+structure Theory: PRIVATE_THEORY =
 struct
 
 
@@ -116,6 +117,7 @@ fun make_theory sign axms oras parents ancestors =
 fun rep_theory (Theory args) = args;
 
 val sign_of = #sign o rep_theory;
+val is_draft = Sign.is_draft o sign_of;
 val syn_of = #syn o Sign.rep_sg o sign_of;
 val parents_of = #parents o rep_theory;
 val ancestors_of = #ancestors o rep_theory;
@@ -410,7 +412,7 @@ fun merge_sign (sg, thy) =
 fun prep_ext_merge thys =
   if null thys then
     error "Merge: no parent theories"
-  else if exists (Sign.is_draft o sign_of) thys then
+  else if exists is_draft thys then
     error "Attempt to merge draft theories"
   else
     let
