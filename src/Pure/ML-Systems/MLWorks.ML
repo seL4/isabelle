@@ -44,25 +44,24 @@ val explode = (map str) o String.explode;
 val implode = String.concat;
 
 
-(*** Timing functions ***)
+(** Compiler-independent timing functions **)
 
-(*A conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime. *)
-fun cond_timeit flag f =
-  if flag then
-    let open Time  (*...for Time.toString, Time.+ and Time.- *)
-	val CPUtimer = Timer.startCPUTimer();
-        val {gc=gct1,sys=syst1,usr=usrt1} = Timer.checkCPUTimer(CPUtimer);
-        val result = f();
-        val {gc=gct2,sys=syst2,usr=usrt2} = Timer.checkCPUTimer(CPUtimer)
-    in  print("User " ^ toString (usrt2-usrt1) ^
-              "  GC " ^ toString (gct2-gct1) ^
-              "  All "^ toString (syst2-syst1 + usrt2-usrt1 + gct2-gct1) ^
-              " secs\n")
-	  handle Time => ();
-        result
-    end
-  else f();
+(*Note start point for timing*)
+fun startTiming() = 
+  let val CPUtimer = Timer.startCPUTimer();
+      val time = Timer.checkCPUTimer(CPUtimer)
+  in  (CPUtimer,time)  end;
+
+(*Finish timing and return string*)
+fun endTiming (CPUtimer, {gc,sys,usr}) =
+  let open Time  (*...for Time.toString, Time.+ and Time.- *)
+      val {gc=gc2,sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
+  in  "User " ^ toString (usr2-usr) ^
+      "  GC " ^ toString (gc2-gc) ^
+      "  All "^ toString (sys2-sys + usr2-usr + gc2-gc) ^
+      " secs"
+      handle Time => ""
+  end;
 
 
 (*** File handling ***)
@@ -103,16 +102,10 @@ fun execute command =
 
 (* getenv *)
 
-local
-  fun drop_last [] = []
-    | drop_last [x] = []
-    | drop_last (x :: xs) = x :: drop_last xs;
-
-  val drop_last_char = implode o drop_last o explode;
-in
-  fun getenv var = drop_last_char
-    (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
-end;
+fun getenv var =
+  (case OS.Process.getEnv var of
+    NONE => ""
+  | SOME txt => txt);
 
 
 (*Non-printing and 8-bit chars are forbidden in string constants*)

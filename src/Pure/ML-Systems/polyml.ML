@@ -15,22 +15,16 @@ use "basis.ML";
 
 (** ML system related **)
 
-(* timing *)
+(** Compiler-independent timing functions **)
 
-(*a conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime*)
+(*Note start point for timing*)
+fun startTiming() = System.processtime ();
 
-fun cond_timeit flag f =
-  if flag then
-    let
-      val before = System.processtime ();
-      val result = f ();
-      val both = real (System.processtime () - before) / 10.0;
-    in
-      print ("Process time (incl GC): " ^ makestring both ^ " secs\n");
-      result
-    end
-  else f ();
+(*Finish timing and return string*)
+fun endTiming before = 
+  "User + GC: " ^ 
+  makestring (real (System.processtime () - before) / 10.0) ^ 
+  " secs";
 
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)

@@ -802,6 +802,17 @@ fun handle_error f x =
 
 (** timing **)
 
+(*a conditional timing function: applies f to () and, if the flag is true,
+  prints its runtime*)
+fun cond_timeit flag f =
+  if flag then
+    let val start = startTiming()
+        val result = f ()
+    in
+	writeln (endTiming start);  result
+    end
+  else f ();
+
 (*unconditional timing function*)
 fun timeit x = cond_timeit true x;
 
