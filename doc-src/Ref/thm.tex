@@ -707,7 +707,7 @@ keep_derivs  : deriv_kind ref
 Deriv.size   : deriv -> int
 Deriv.drop   : 'a mtree * int -> 'a mtree
 Deriv.linear : deriv -> deriv list
-Deriv.linear : deriv -> Deriv.orule mtree
+Deriv.tree   : deriv -> Deriv.orule mtree
 \end{ttbox}
 
 \begin{ttdescription}
