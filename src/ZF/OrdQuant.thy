@@ -38,7 +38,7 @@ syntax (xsymbols)
   "@OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
-(** simplification of the new quantifiers **)
+subsubsection {*simplification of the new quantifiers*}
 
 
 (*MOST IMPORTANT that this is added to the simpset BEFORE Ord_atomize
@@ -60,7 +60,7 @@ apply (simp add: oex_def le_iff)
 apply (blast intro: lt_Ord2)
 done
 
-(** Union over ordinals **)
+subsubsection {*Union over ordinals*}
 
 lemma Ord_OUN [intro,simp]:
      "[| !!x. x<A ==> Ord(B(x)) |] ==> Ord(\<Union>x<A. B(x))"
@@ -109,7 +109,7 @@ lemma atomize_oall [symmetric, rulify]:
      "(!!x. x<A ==> P(x)) == Trueprop (ALL x<A. P(x))"
 by (simp add: oall_def atomize_all atomize_imp)
 
-(*** universal quantifier for ordinals ***)
+subsubsection {*universal quantifier for ordinals*}
 
 lemma oallI [intro!]:
     "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)"
@@ -138,7 +138,7 @@ lemma oall_cong [cong]:
 by (simp add: oall_def)
 
 
-(*** existential quantifier for ordinals ***)
+subsubsection {*existential quantifier for ordinals*}
 
 lemma oexI [intro]:
     "[| P(x);  x<A |] ==> EX x<A. P(x)"
@@ -163,7 +163,7 @@ apply (simp add: oex_def cong add: conj_cong)
 done
 
 
-(*** Rules for Ordinal-Indexed Unions ***)
+subsubsection {*Rules for Ordinal-Indexed Unions*}
 
 lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
 by (unfold OUnion_def lt_def, blast)
@@ -335,7 +335,7 @@ by blast
 
 subsubsection{*Sets as Classes*}
 
-constdefs setclass :: "[i,i] => o"       ("**_")
+constdefs setclass :: "[i,i] => o"       ("**_" [40] 40)
    "setclass(A,x) == x : A"
 
 declare setclass_def [simp]
