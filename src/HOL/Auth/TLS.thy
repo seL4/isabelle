@@ -45,6 +45,8 @@ constdefs
   certificate      :: "[agent,key] => msg"
     "certificate A KA == Crypt (priK Server) {|Agent A, Key KA|}"
 
+datatype role = ClientRole | ServerRole
+
 consts
   (*Pseudo-random function of Section 5*)
   PRF  :: "nat*nat*nat => nat"
@@ -53,14 +55,14 @@ consts
     to avoid duplicating their properties.  They are distinguished by a
     tag (not a bool, to avoid the peculiarities of if-and-only-if).
     Session keys implicitly include MAC secrets.*)
-  sessionK :: "(nat*nat*nat) * (unit option) => key"
+  sessionK :: "(nat*nat*nat) * role => key"
 
 syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK X" == "sessionK(X,None)"
-  "serverK X" == "sessionK(X,Some())"
+  "clientK X" == "sessionK(X, ClientRole)"
+  "serverK X" == "sessionK(X, ServerRole)"
 
 rules
   (*the pseudo-random function is collision-free*)
@@ -87,7 +89,7 @@ inductive tls
          "[| evsSK: tls;
 	     {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
           ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
-			   Key (sessionK((NA,NB,M),b)) |} # evsSK : tls"
+			   Key (sessionK((NA,NB,M),role)) |} # evsSK : tls"
 
     ClientHello
 	 (*(7.4.1.2)
@@ -113,8 +115,7 @@ inductive tls
 
     Certificate
          (*SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.*)
-         "[| evsC: tls |]
-          ==> Says B A (certificate B (pubK B)) # evsC  :  tls"
+         "evsC: tls ==> Says B A (certificate B (pubK B)) # evsC  :  tls"
 
     ClientKeyExch
          (*CLIENT KEY EXCHANGE (7.4.7).
@@ -151,7 +152,7 @@ inductive tls
         (*The occurrence of Notes A {|Agent B, Nonce PMS|} stops the 
           rule's applying when the Spy has satisfied the "Says A B" by
           repaying messages sent by the true client; in that case, the
-          Spy does not know PMS and could not sent ClientFinished.  One
+          Spy does not know PMS and could not send ClientFinished.  One
           could simply put A~=Spy into the rule, but one should not
           expect the spy to be well-behaved.*)
          "[| evsCF: tls;  
@@ -246,7 +247,7 @@ inductive tls
            rather unlikely.  The assumption A ~= Spy is essential: otherwise
            the Spy could learn session keys merely by replaying messages!*)
          "[| evso: tls;  A ~= Spy;
-	     Says A B (Crypt (sessionK((NA,NB,M),b)) X) : set evso |]
-          ==> Says A Spy (Key (sessionK((NA,NB,M),b))) # evso  :  tls"
+	     Says A B (Crypt (sessionK((NA,NB,M),role)) X) : set evso |]
+          ==> Says A Spy (Key (sessionK((NA,NB,M),role))) # evso  :  tls"
 
 end
