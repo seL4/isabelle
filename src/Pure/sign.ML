@@ -39,7 +39,7 @@ sig
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
     val infer_types: sg -> (indexname -> typ option) ->
-      (indexname -> sort option) -> string list -> bool -> bool
+      (indexname -> sort option) -> string list -> bool
       -> term list * typ -> int * term * (indexname * typ) list
     val add_classes: (class * class list) list -> sg -> sg
     val add_classrel: (class * class) list -> sg -> sg
@@ -252,7 +252,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 (** infer_types **)         (*exception ERROR*)
 
-fun infer_types sg types sorts used freeze print_msg (ts, T) =
+fun infer_types sg types sorts used freeze (ts, T) =
   let
     val Sg {tsig, ...} = sg;
     val show_typ = string_of_typ sg;

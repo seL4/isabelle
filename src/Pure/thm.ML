@@ -199,7 +199,7 @@ fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
       handle TYPE (msg, _, _) => error msg;
     val ts = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
     val (_, t', tye) =
-          Sign.infer_types sign types sorts used freeze true (ts, T');
+          Sign.infer_types sign types sorts used freeze (ts, T');
     val ct = cterm_of sign t'
       handle TERM (msg, _) => error msg;
   in (ct, tye) end;
@@ -372,7 +372,7 @@ fun read_axm sg (name, str) =
     handle ERROR => err_in_axm name;
 
 fun inferT_axm sg (name, pre_tm) =
-  let val t = #2(Sign.infer_types sg (K None) (K None) [] true true
+  let val t = #2(Sign.infer_types sg (K None) (K None) [] true
                                      ([pre_tm], propT))
   in  (name, no_vars t) end
   handle ERROR => err_in_axm name;
