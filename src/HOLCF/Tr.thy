@@ -8,7 +8,10 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 
 Tr = Lift +
 
-types tr = "bool lift"
+syntax
+  tr	:: "type"
+translations
+  "tr" == (type) "bool lift" 
 
 consts
 	TT,FF           :: "tr"
@@ -23,7 +26,6 @@ syntax  "@cifte"        :: "tr=>'c=>'c=>'c" ("(3If _/ (then _/ else _) fi)" 60)
         "@orelse"       :: "tr => tr => tr" ("_ orelse _"  [31,30] 30)
  
 translations 
-	     "tr" ==(type) "bool lift" 
 	     "x andalso y" == "trand`x`y"
              "x orelse y"  == "tror`x`y"
              "If b then e1 else e2 fi" == "Icifte`b`e1`e2"
@@ -40,7 +42,7 @@ defs
 *)
   plift_def   "plift p == (LAM x. flift1(%a.Def(p a))`x)"
 
-(* start 8bit 1 *)
+(* FIXME remove?
 syntax
   "GeqTT"        :: "tr => bool"               ("(\\<lceil>_\\<rceil>)")
   "GeqFF"        :: "tr => bool"               ("(\\<lfloor>_\\<rfloor>)")
@@ -48,7 +50,7 @@ syntax
 translations
   "\\<lceil>x\\<rceil>" == "x = TT"
   "\\<lfloor>x\\<rfloor>" == "x = FF"
-(* end 8bit 1 *)
+*)
 
 end
 
