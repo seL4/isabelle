@@ -10,6 +10,7 @@ header {* Groups *}
 
 theory Group = FuncSet + Lattice:
 
+
 section {* From Magmas to Groups *}
 
 text {*
@@ -194,6 +195,10 @@ text {*
 
 locale group = monoid +
   assumes Units: "carrier G <= Units G"
+
+
+lemma (in group) is_group: "group G"
+  by (rule group.intro [OF prems]) 
 
 theorem groupI:
   includes struct G
@@ -552,7 +557,7 @@ lemma inv_DirProdGroup [simp]:
   apply (simp_all add: prems group_def group.l_inv)
   done
 
-subsection {* Homomorphisms *}
+subsection {* Isomorphisms *}
 
 constdefs (structure G and H)
   hom :: "_ => _ => ('a => 'b) set"
@@ -561,8 +566,7 @@ constdefs (structure G and H)
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
 lemma (in semigroup) hom:
-  includes semigroup G
-  shows "semigroup (| carrier = hom G G, mult = op o |)"
+     "semigroup (| carrier = hom G G, mult = op o |)"
 proof (rule semigroup.intro)
   show "magma (| carrier = hom G G, mult = op o |)"
     by (rule magma.intro) (simp add: Pi_def hom_def)
@@ -580,14 +584,42 @@ lemma hom_closed:
   "[| h \<in> hom G H; x \<in> carrier G |] ==> h x \<in> carrier H"
   by (auto simp add: hom_def funcset_mem)
 
-lemma compose_hom:
-     "[|group G; h \<in> hom G G; h' \<in> hom G G; h' \<in> carrier G -> carrier G|]
-      ==> compose (carrier G) h h' \<in> hom G G"
-apply (simp (no_asm_simp) add: hom_def)
-apply (intro conjI)
- apply (force simp add: funcset_compose hom_def)
-apply (simp add: compose_def group.axioms hom_mult funcset_mem)
+lemma (in group) hom_compose:
+     "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
+apply (auto simp add: hom_def funcset_compose) 
+apply (simp add: compose_def funcset_mem)
 done
+
+
+subsection {* Isomorphisms *}
+
+constdefs (structure G and H)
+  iso :: "_ => _ => ('a => 'b) set"
+  "iso G H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
+
+lemma iso_refl: "(%x. x) \<in> iso G G"
+by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+
+lemma (in group) iso_sym:
+     "h \<in> iso G H \<Longrightarrow> Inv (carrier G) h \<in> iso H G"
+apply (simp add: iso_def bij_betw_Inv) 
+apply (subgoal_tac "Inv (carrier G) h \<in> carrier H \<rightarrow> carrier G") 
+ prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_Inv]) 
+apply (simp add: hom_def bij_betw_def Inv_f_eq funcset_mem f_Inv_f) 
+done
+
+lemma (in group) iso_trans: 
+     "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
+by (auto simp add: iso_def hom_compose bij_betw_compose)
+
+lemma DirProdGroup_commute_iso:
+  shows "(%(x,y). (y,x)) \<in> iso (G \<times>\<^sub>g H) (H \<times>\<^sub>g G)"
+by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+
+lemma DirProdGroup_assoc_iso:
+  shows "(%(x,y,z). (x,(y,z))) \<in> iso (G \<times>\<^sub>g H \<times>\<^sub>g I) (G \<times>\<^sub>g (H \<times>\<^sub>g I))"
+by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+
 
 locale group_hom = group G + group H + var h +
   assumes homh: "h \<in> hom G H"
@@ -692,7 +724,7 @@ lemma (in group) group_comm_groupI:
       x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
   by (fast intro: comm_group.intro comm_semigroup_axioms.intro
-    group.axioms prems)
+                  is_group prems)
 
 lemma comm_groupI:
   includes struct G
@@ -736,14 +768,10 @@ lemma (in group) is_monoid [intro, simp]:
 lemma (in group) subgroup_inv_equality:
   "[| subgroup H G; x \<in> H |] ==> m_inv (G (| carrier := H |)) x = inv x"
 apply (rule_tac inv_equality [THEN sym])
-  apply (rule group.l_inv [OF subgroup_imp_group, simplified])
-   apply assumption+
- apply (rule subsetD [OF subgroup.subset])
-  apply assumption+
-apply (rule subsetD [OF subgroup.subset])
- apply assumption
-apply (rule_tac group.inv_closed [OF subgroup_imp_group, simplified])
-  apply assumption+
+  apply (rule group.l_inv [OF subgroup_imp_group, simplified], assumption+)
+ apply (rule subsetD [OF subgroup.subset], assumption+)
+apply (rule subsetD [OF subgroup.subset], assumption)
+apply (rule_tac group.inv_closed [OF subgroup_imp_group, simplified], assumption+)
 done
 
 theorem (in group) subgroups_Inter:

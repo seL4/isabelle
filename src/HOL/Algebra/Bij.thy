@@ -133,7 +133,8 @@ apply (rule group.subgroupI)
   apply (blast intro: dest: id_in_auto)
  apply (simp del: restrict_apply
              add: inv_BijGroup auto_def restrict_Inv_Bij restrict_Inv_hom)
-apply (simp add: BijGroup_def auto_def Bij_imp_funcset compose_hom compose_Bij)
+apply (auto simp add: BijGroup_def auto_def Bij_imp_funcset group.hom_compose
+                      compose_Bij)
 done
 
 theorem AutoGroup: "group G ==> group (AutoGroup G)"

@@ -502,8 +502,7 @@ done
 lemma (in group) inv_FactGroup:
      "N <| G ==> X \<in> carrier (G Mod N) ==> inv\<^bsub>G Mod N\<^esub> X = set_inv G X"
 apply (rule group.inv_equality [OF factorgroup_is_group]) 
-apply (simp_all add: FactGroup_def setinv_closed 
-    setrcos_inv_mult_group_eq group.intro [OF prems])
+apply (simp_all add: FactGroup_def setinv_closed setrcos_inv_mult_group_eq)
 done
 
 text{*The coset map is a homomorphism from @{term G} to the quotient group
@@ -511,7 +510,6 @@ text{*The coset map is a homomorphism from @{term G} to the quotient group
 lemma (in group) r_coset_hom_Mod:
   assumes N: "N <| G"
   shows "(r_coset G N) \<in> hom G (G Mod N)"
-by (simp add: FactGroup_def rcosets_def Pi_def hom_def
-           rcos_sum group.intro prems) 
+by (simp add: FactGroup_def rcosets_def Pi_def hom_def rcos_sum N) 
 
 end
