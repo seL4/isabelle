@@ -43,7 +43,7 @@ goalw Nat.thy [add_def] "Suc(m)+n = Suc(m+n)";
 by (resolve_tac [rec_Suc] 1);
 val add_Suc = result();
 
-val add_ss = FOL_ss  addsimps  [add_0, add_Suc];
+val add_ss = FOL_ss addsimps [add_0, add_Suc];
 
 goal Nat.thy "(k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);
