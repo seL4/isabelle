@@ -345,7 +345,7 @@ val local_defs =
   \ val typed_print_translation = [];\n\
   \ val print_ast_translation = [];\n\
   \ val token_translation = [];\n\
-  \ val thy_data = []";
+  \ val thy_setup = []";
 
 val trfun_args =
   "(parse_ast_translation, parse_translation, \
@@ -503,11 +503,11 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \\n"
     ^ local_path ^
     "\n\
+    \|> Theory.setup thy_setup\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
     \|> Theory.add_trfunsT typed_print_translation\n\
     \|> Theory.add_tokentrfuns token_translation\n\
-    \|> Theory.init_data thy_data\n\
     \\n"
     ^ extxt ^ "\n\
     \\n\
