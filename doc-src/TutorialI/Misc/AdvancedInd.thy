@@ -111,11 +111,14 @@ has been applied, the statement can be transformed back into something quite
 intuitive. For example, applying wellfounded induction on $x$ (w.r.t.\
 $\prec$) to (\ref{eqn:ind-over-term}) and transforming the result a
 little leads to the goal
-\[ \bigwedge\vec{y}.~\forall \vec{z}.~ t(\vec{z}) \prec t(\vec{y}) \longrightarrow C(\vec{z})
-   \Longrightarrow C(\vec{y}) \]
-where the dependence of $t$ and $C$ on their free variables has been made explicit.
-Unfortunately, this induction schema cannot be expressed as a single theorem because it depends
-on the number of free variables in $t$ --- the notation $\vec{y}$ is merely an informal device.
+\[ \bigwedge\overline{y}.\ 
+   \forall \overline{z}.\ t\,\overline{z} \prec t\,\overline{y}\ \longrightarrow\ C\,\overline{z}
+    \ \Longrightarrow\ C\,\overline{y} \]
+where $\overline{y}$ stands for $y@1 \dots y@n$ and the dependence of $t$ and
+$C$ on the free variables of $t$ has been made explicit.
+Unfortunately, this induction schema cannot be expressed as a
+single theorem because it depends on the number of free variables in $t$ ---
+the notation $\overline{y}$ is merely an informal device.
 *}
 
 subsection{*Beyond Structural and Recursion Induction*};
@@ -133,7 +136,8 @@ usually known as mathematical induction. There is also \emph{complete}
 induction, where you must prove $P(n)$ under the assumption that $P(m)$
 holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]nat_less_induct}:
 @{thm[display]"nat_less_induct"[no_vars]}
-Here is an example of its application.
+As an example of its application we prove a property of the following
+function:
 *};
 
 consts f :: "nat \<Rightarrow> nat";

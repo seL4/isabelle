@@ -104,11 +104,14 @@ has been applied, the statement can be transformed back into something quite
 intuitive. For example, applying wellfounded induction on $x$ (w.r.t.\
 $\prec$) to (\ref{eqn:ind-over-term}) and transforming the result a
 little leads to the goal
-\[ \bigwedge\vec{y}.~\forall \vec{z}.~ t(\vec{z}) \prec t(\vec{y}) \longrightarrow C(\vec{z})
-   \Longrightarrow C(\vec{y}) \]
-where the dependence of $t$ and $C$ on their free variables has been made explicit.
-Unfortunately, this induction schema cannot be expressed as a single theorem because it depends
-on the number of free variables in $t$ --- the notation $\vec{y}$ is merely an informal device.%
+\[ \bigwedge\overline{y}.\ 
+   \forall \overline{z}.\ t\,\overline{z} \prec t\,\overline{y}\ \longrightarrow\ C\,\overline{z}
+    \ \Longrightarrow\ C\,\overline{y} \]
+where $\overline{y}$ stands for $y@1 \dots y@n$ and the dependence of $t$ and
+$C$ on the free variables of $t$ has been made explicit.
+Unfortunately, this induction schema cannot be expressed as a
+single theorem because it depends on the number of free variables in $t$ ---
+the notation $\overline{y}$ is merely an informal device.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Beyond Structural and Recursion Induction%
@@ -130,7 +133,8 @@ holds for all $m<n$. In Isabelle, this is the theorem \isa{nat{\isacharunderscor
 \begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n%
 \end{isabelle}
-Here is an example of its application.%
+As an example of its application we prove a property of the following
+function:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{axioms}\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequote}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
