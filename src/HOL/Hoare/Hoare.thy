@@ -151,6 +151,8 @@ val parse_translation = [("@Spec",spec_tr)];
 
 (*** print translations: semantics -> syntax ***)
 
+(* Note: does not mark tokens *)
+
 (* term_tr':term (name:string,trm:term) ersetzt in trm alle Vorkommen von name $ pvar durch
    entsprechende freie Variablen, welche die pvarID zu pvar darstellen. Beispiel:
         bei name="s" und dem Term "s(0)=s(Suc(0)) & s(0)=X" wird der Term "a=b & a=X" geliefert *)
