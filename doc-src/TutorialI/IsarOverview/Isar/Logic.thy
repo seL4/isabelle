@@ -357,9 +357,9 @@ meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 @{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
 applied implicitly: *}
 lemma assumes P: "\<forall>x. P x" shows "\<forall>x. P(f x)"
-proof    -- "@{thm[source]allI}: @{thm allI}"
+proof                       --"@{thm[source]allI}: @{thm allI}"
   fix a
-  from P show "P(f a)" ..   --"@{thm[source]allE}: @{thm allE}"
+  from P show "P(f a)" ..  --"@{thm[source]allE}: @{thm allE}"
 qed
 text{*\noindent Note that in the proof we have chosen to call the bound
 variable @{term a} instead of @{term x} merely to show that the choice of
@@ -371,10 +371,10 @@ Next we look at @{text"\<exists>"} which is a bit more tricky.
 lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
 proof -
   from Pf show ?thesis
-  proof  -- "@{thm[source]exE}: @{thm exE[no_vars]}"
-    fix a
-    assume "P(f a)"
-    show ?thesis ..  --"@{thm[source]exI}: @{thm exI[no_vars]}"
+  proof              -- "@{thm[source]exE}: @{thm exE}"
+    fix x
+    assume "P(f x)"
+    show ?thesis ..  -- "@{thm[source]exI}: @{thm exI}"
   qed
 qed
 text{*\noindent Explicit $\exists$-elimination as seen above can become
@@ -600,9 +600,24 @@ qed
 
 text{* \noindent Of course we could again have written
 \isakeyword{thus}~@{text ?case} instead of giving the term explicitly
-but we wanted to use @{term i} somewhere.
+but we wanted to use @{term i} somewhere. *}
 
-Let us now tackle a more ambitious lemma: proving complete induction
+subsection{*Induction formulae involving @{text"\<And>"} or @{text"\<Longrightarrow>"}*}
+
+text{* Let us now consider the situation where the goal to be proved contains
+@{text"\<And>"} or @{text"\<Longrightarrow>"}, say @{prop"\<And>x. P x \<Longrightarrow> Q x"} --- motivation and a
+real example follow shortly.  This means that in each case of the induction,
+@{text ?case} would be of the same form @{prop"\<And>x. P' x \<Longrightarrow> Q' x"}.  Thus the
+first proof steps will be the canonical ones, fixing @{text x} and assuming
+@{prop"P' x"}. To avoid this tedium, induction performs these steps
+automatically: for example in case @{text"(Suc n)"}, @{text ?case} is only
+@{prop"Q' x"} whereas the assumptions (named @{term Suc}) contain both the
+usual induction hypothesis \emph{and} @{prop"P' x"}. To fix the name of the
+bound variable @{term x} you may write @{text"(Suc n x)"}, thus abbreviating
+\isakeyword{fix}~@{term x}.
+It should be clear how this example generalizes to more complex formulae.
+
+As a concrete example we will now prove complete induction
 @{prop[display,indent=5]"(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n) \<Longrightarrow> P n"}
 via structural induction. It is well known that one needs to prove
 something more general first: *}
@@ -612,8 +627,8 @@ lemma cind_lemma:
 proof (induct n)
   case 0 thus ?case by simp
 next
-  case (Suc n m)  --{*@{thm[source]Suc}: @{thm Suc}*}
-  show ?case      --{*@{text ?case}: @{term ?case}*}
+  case (Suc n m)    -- {*@{text"?m < n \<Longrightarrow> P ?m"}  and  @{prop"m < Suc n"}*}
+  show ?case       -- {*@{term ?case}*}
   proof cases
     assume eq: "m = n"
     from Suc A have "P n" by blast
@@ -624,29 +639,21 @@ next
     with Suc show "P m" by blast
   qed
 qed
-text{* \noindent Let us first examine the statement of the lemma.
-In contrast to the style advertised in the
-Tutorial~\cite{LNCS2283}, structured Isar proofs do not need to
-introduce @{text"\<forall>"} or @{text"\<longrightarrow>"} into a theorem to strengthen it
-for induction --- we use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This
-simplifies the proof and means we don't have to convert between the
-two kinds of connectives. As usual, at the end of the proof
-@{text"\<And>"} disappears and the bound variable is turned into a
-@{text"?"}-variable. Thus @{thm[source]cind_lemma} becomes
-@{thm[display,indent=5] cind_lemma} Complete induction is an easy
-corollary: instantiation followed by
-simplification, @{thm[source] cind_lemma[of _ n "Suc n", simplified]},
-yields @{thm[display,indent=5] cind_lemma[of _ n "Suc n", simplified]}
+text{* \noindent Given the explanations above and the comments in
+the proof text, the proof should be quite readable.
 
-Now we examine the proof.  So what is this funny case @{text"(Suc n m)"}? It
-looks confusing at first and reveals that the very suggestive @{text"(Suc
-n)"} used above is not the whole truth. The variable names after the case
-name (here: @{term Suc}) are the names of the parameters of that subgoal. So
-far the only parameters where the arguments to the constructor, but now we
-have an additional parameter coming from the @{text"\<And>m"} in the main
-\isakeyword{shows} clause. Thus @{text"(Suc n m)"} does not mean that
-constructor @{term Suc} is applied to two arguments but that the two
-parameters in the @{term Suc} case are to be named @{text n} and @{text m}. *}
+The statemt of the lemma is interesting because it deviates from the style in
+the Tutorial~\cite{LNCS2283}, which suggests to introduce @{text"\<forall>"} or
+@{text"\<longrightarrow>"} into a theorem to strengthen it for induction. In structured Isar
+proofs we can use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This simplifies the
+proof and means we don't have to convert between the two kinds of
+connectives. As usual, at the end of the proof @{text"\<And>"} disappears and the
+bound variable is turned into a @{text"?"}-variable. Thus
+@{thm[source]cind_lemma} becomes @{thm[display,indent=5] cind_lemma} Complete
+induction is an easy corollary: instantiation followed by simplification,
+@{text"cind_lemma[of _ n \"Suc n\", simplified]"}, yields
+@{thm[display,indent=5] cind_lemma[of _ n "Suc n", simplified]}
+*}
 
 subsection{*Rule induction*}
 
