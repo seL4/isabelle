@@ -1900,11 +1900,16 @@ substitutions and unifiers.  It is based on Paulson's previous
 mechanisation in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
 
-Directory {\tt HOL/IMP} contains a mechanised version of a semantic
-equivalence proof taken from Winskel~\cite{winskel93}.  It formalises the
-denotational and operational semantics of a simple while-language, then
-proves the two equivalent.  It contains several datatype and inductive
-definitions, and demonstrates their use.
+Directory {\tt HOL/IMP} contains a formalization of the denotational,
+operational and axiomatic semantics of a simple while-language, including an
+equivalence proof between denotational and operational semantics and a
+soundness and part of a completeness proof of the Hoare rules w.r.t.\ the
+denotational semantics. The whole development is taken from
+Winskel~\cite{winskel93}.  In addition, a verification-condition-generator is
+proved sound and complete w.r.t. the Hoare rules.
+
+Directory {\tt HOL/Hoare} contains a user friendly surface syntax for Hoare
+logic, including a tactic for generating verification-conditions.
 
 Directory {\tt HOL/ex} contains other examples and experimental proofs in
 {\HOL}.  Here is an overview of the more interesting files.
@@ -1924,9 +1929,6 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
 
 \item File {\tt set.ML} proves Cantor's Theorem, which is presented in
   \S\ref{sec:hol-cantor} below, and the Schr\"oder-Bernstein Theorem.
-
-\item Theories {\tt InSort} and {\tt Qsort} prove correctness properties of
-  insertion sort and quick sort.
 
 \item The definition of lazy lists demonstrates methods for handling
   infinite data structures and coinduction in higher-order
