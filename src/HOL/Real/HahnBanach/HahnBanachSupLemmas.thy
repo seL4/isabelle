@@ -162,7 +162,7 @@ proof -
       proof (intro exI conjI)
         have "(x, h x) \<in> graph H'' h''" .
         also have "... \\<subseteq> graph H' h'" .
-        finally have xh:"(x, h x) \<in> graph H' h'" .
+        finally have xh\<in> "(x, h x)\<in> graph H' h'" .
         thus x: "x\<in>H'" ..
         show y: "y\<in>H'" ..
         show "graph H' h' \\<subseteq> graph H h"
@@ -463,7 +463,7 @@ the norm $p$ as well, since all elements in the chain are
 bounded by $p$.
 *}
 
-lemma sup_norm_pres:
+lemma sup_norm_pres\<in> 
   "[| M = norm_pres_extensions E p F f; c\<in> chain M; 
   graph H h = Union c |] ==> \<forall> x\<in>H. h x \\<le> p x"
 proof
@@ -520,7 +520,7 @@ proof -
     show ?L
     proof 
       fix x assume "x\<in>H"
-      show "!! a b :: real. [| - a \\<le> b; b \\<le> a |] ==> abs b \\<le> a"
+      show "!! a b \<in>: real. [| - a \\<le> b; b \\<le> a |] ==> abs b \\<le> a"
         by arith
       show "- p x \\<le> h x"
       proof (rule real_minus_le)
