@@ -9,8 +9,8 @@
 
 LOGICS="HOL ZF"
 DISTBASE=~/tmp/isadist
-ROOT=/usr/local
-BIN=/usr/local/bin
+ROOT=/usr/share
+BIN=/usr/bin
 
 
 ## diagnostics
