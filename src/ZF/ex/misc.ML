@@ -14,6 +14,11 @@ goal ZF.thy "!!S. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (Blast_tac 1);
 result();
 
+(*variant of the benchmark above*)
+goal ZF.thy "!!S. ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
+by (Blast_tac 1);
+result();
+
 context Perm.thy;
 
 (*Example 12 (credited to Peter Andrews) from
