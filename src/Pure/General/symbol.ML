@@ -22,6 +22,7 @@ sig
   val is_ascii: symbol -> bool
   val is_letter: symbol -> bool
   val is_digit: symbol -> bool
+  val is_quasi: symbol -> bool
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
   val is_blank: symbol -> bool
@@ -35,6 +36,7 @@ sig
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
+  val bump_string: string -> string
   val default_indent: string * int -> string
   val add_mode: string -> (string -> string * real) * (string * int -> string) -> unit
   val symbolsN: string
@@ -89,16 +91,18 @@ fun is_letter s =
 fun is_digit s =
   size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9";
 
-fun is_quasi_letter "_" = true
-  | is_quasi_letter "'" = true
-  | is_quasi_letter s = is_letter s;
+fun is_quasi "_" = true
+  | is_quasi "'" = true
+  | is_quasi _ = false;
+
+fun is_quasi_letter s = is_quasi s orelse is_letter s;
 
 val is_blank =
   fn " " => true | "\t" => true | "\n" => true | "\^L" => true
     | "\160" => true | "\\<spacespace>" => true
     | _ => false;
 
-val is_letdig = is_quasi_letter orf is_digit;
+fun is_letdig s = is_quasi_letter s orelse is_digit s;
 
 fun is_symbolic s =
   size s > 2 andalso nth_elem_string (2, s) <> "^";
@@ -178,6 +182,19 @@ fun sym_explode str =
     else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
+
+(* bump_string -- increment suffix of lowercase letters like a base 26 number *)
+
+fun bump_string str =
+  let
+    fun bump [] = ["a"]
+      | bump ("z" :: ss) = "a" :: bump ss
+      | bump (s :: ss) =
+          if size s = 1 andalso ord "a" <= ord s andalso ord s < ord "z"
+          then chr (ord s + 1) :: ss
+          else "a" :: s :: ss;
+    val (cs, qs) = Library.take_suffix is_quasi (sym_explode str);
+  in implode (rev (bump (rev cs)) @ qs) end;
 
 
 (** symbol output **)
