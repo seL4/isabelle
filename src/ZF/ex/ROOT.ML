@@ -15,9 +15,7 @@ time_use     "misc.ML";
 time_use_thy "Primes";          (*GCD theory*)
 time_use_thy "Ramsey";          (*Simple form of Ramsey's theorem*)
 time_use_thy "Limit";           (*Inverse limit construction of domains*)
-
-(*Integers & Binary integer arithmetic*)
-time_use_thy "Bin";
+time_use     "BinEx";		(*Binary integer arithmetic*)
 
 (** Datatypes **)
 time_use_thy "BT";              (*binary trees*)
