@@ -111,16 +111,19 @@ fun trace_goalno_tac tac i st =
   an old proof script, when the proof of an early subgoal fails.
   DOES NOT WORK FOR TYPE VARIABLES.
   Similar to drule/rotate_prems*)
-fun defer_tac i state = 
+fun defer_rule i state =
     let val (state',thaw) = freeze_thaw state
 	val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
 	val hyp::hyps' = List.drop(hyps, i-1)
     in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
         |> implies_intr_list (List.take(hyps, i-1) @ hyps')
         |> thaw
-        |> Seq.single
-    end
-    handle _ => Seq.empty;
+    end;
+
+fun defer_tac i state =
+  (case try (defer_rule i) state of
+    Some state' => Seq.single state'
+  | None => Seq.empty);
 
 
 (*Makes a rule by applying a tactic to an existing rule*)
