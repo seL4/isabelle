@@ -13,8 +13,8 @@ Divides = Arith +
 axclass
   div < term
 
-instance
-  nat :: div
+instance  nat :: div
+instance  nat :: plus_ac0 (add_commute,add_assoc,add_0)
 
 consts
   div  :: ['a::div, 'a]  => 'a          (infixl 70)
