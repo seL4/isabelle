@@ -15,5 +15,6 @@ goalw Lagrange.thy [Lagrange.sq_def] "!!x1::'a::cring. \
 \  sq(x1*y2 + x2*y1 + x3*y4 - x4*y3)  + \
 \  sq(x1*y3 - x2*y4 + x3*y1 + x4*y2)  + \
 \  sq(x1*y4 + x2*y3 - x3*y2 + x4*y1)";
-by(cring_simp 1);
+(*Takes up to three minutes...*)
+by (cring_simp 1);
 qed "Lagrange_lemma";
