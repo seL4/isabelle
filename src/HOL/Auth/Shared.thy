@@ -25,7 +25,7 @@ text{*All keys are symmetric*}
 defs  all_symmetric_def: "all_symmetric == True"
 
 lemma isSym_keys: "K \<in> symKeys"	
-by (simp add: symKeys_def all_symmetric_def invKey_cases) 
+by (simp add: symKeys_def all_symmetric_def invKey_symmetric) 
 
 text{*Server knows all long-term keys; other agents know only their own*}
 primrec

@@ -23,12 +23,9 @@ consts
   invKey        :: "key=>key"  --{*inverse of a symmetric key*}
 
 specification (invKey)
-  invKey_cases: "(\<forall>K. invKey(invKey K) = K) & (all_symmetric --> invKey = id)"
+  invKey [simp]: "invKey (invKey K) = K"
+  invKey_symmetric: "all_symmetric --> invKey = id"
     by (rule exI [of _ id], auto)
-
-
-lemma invKey [simp]: "invKey (invKey K) = K"
-by (simp add: invKey_cases)
 
 
 text{*The inverse of a symmetric key is itself; that of a public key
