@@ -25,8 +25,8 @@ consts
 local
 
 syntax (symbols)
-  "op <="       :: "['a::ord, 'a] => bool"             ("op \\<le>")
-  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \\<le> _)"  [50, 51] 50)
+  "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
+  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
 (*Tell Blast_tac about overloading of < and <= to reduce the risk of
   its applying a rule for the wrong type*)
@@ -87,7 +87,7 @@ translations
                 "LEAST x WRT m. P" == "LeastM m (%x. P)"
 
 lemma LeastMI2: "[| P x; !!y. P y ==> m x <= m y;
- !!x. [| P x; \\<forall>y. P y \\<longrightarrow> m x \\<le> m y |] ==> Q x
+ !!x. [| P x; \<forall>y. P y --> m x \<le> m y |] ==> Q x
 		 |] ==> Q (LeastM m P)";
 apply (unfold LeastM_def)
 apply (rule someI2_ex)
@@ -334,10 +334,10 @@ syntax
   "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3EX _<=_./ _)" [0, 0, 10] 10)
 
 syntax (symbols)
-  "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3\\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"  ("(3\\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"  ("(3\\<forall>_\\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3\\<exists>_\\<le>_./ _)" [0, 0, 10] 10)
+  "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"  ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"  ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
   "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3! _<_./ _)"  [0, 0, 10] 10)
