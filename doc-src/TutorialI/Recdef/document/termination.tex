@@ -43,7 +43,7 @@ a simplification rule:%
 \isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{g{\isachardot}simps} contains precisely

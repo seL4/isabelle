@@ -6,11 +6,17 @@
 %% definitions of standard Isabelle symbols
 %%
 
-\usepackage{latexsym}
+% Required packages for unusual symbols -- see below for details.
+%\usepackage{latexsym}
 %\usepackage{amssymb}
+%\usepackage[english]{babel}
 %\usepackage[latin1]{inputenc}
+%\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{wasysym}
 
-\newcommand{\bigsqcap}{\overline{|\,\,|}}  %an approximation ...
+% Note: \emph is important for proper spacing in fake math mode, it
+% automatically inserts italic corrections around symbols wherever
+% appropriate.
 
 \newcommand{\isasymspacespace}{~~}
 \newcommand{\isasymGamma}{$\Gamma$}
@@ -70,7 +76,7 @@
 \newcommand{\isasymUnion}{\emph{$\bigcup\,$}}
 \newcommand{\isasymsqinter}{\emph{$\sqcap$}}
 \newcommand{\isasymsqunion}{\emph{$\sqcup$}}
-\newcommand{\isasymSqinter}{\emph{$\bigsqcap\,$}}
+\newcommand{\isasymSqinter}{\emph{$\bigsqcap\,$}}  %requires stmaryrd
 \newcommand{\isasymSqunion}{\emph{$\bigsqcup\,$}}
 \newcommand{\isasymbottom}{\emph{$\bot$}}
 \newcommand{\isasymdoteq}{\emph{$\doteq$}}
@@ -87,14 +93,14 @@
 \newcommand{\isasymle}{\emph{$\le$}}
 \newcommand{\isasymColon}{\emph{$\mathrel{::}$}}
 \newcommand{\isasymleftarrow}{\emph{$\leftarrow$}}
-\newcommand{\isasymmidarrow}{\emph{$-$}}%deprecated
+\newcommand{\isasymmidarrow}{\emph{$\relbar$}}
 \newcommand{\isasymrightarrow}{\emph{$\rightarrow$}}
 \newcommand{\isasymLeftarrow}{\emph{$\Leftarrow$}}
-\newcommand{\isasymMidarrow}{\emph{$=$}}%deprecated
+\newcommand{\isasymMidarrow}{\emph{$\Relbar$}}
 \newcommand{\isasymRightarrow}{\emph{$\Rightarrow$}}
 \newcommand{\isasymfrown}{\emph{$\frown$}}
 \newcommand{\isasymmapsto}{\emph{$\mapsto$}}
-\newcommand{\isasymleadsto}{\emph{$\leadsto$}}
+\newcommand{\isasymleadsto}{\emph{$\leadsto$}}  %requires latexsym
 \newcommand{\isasymup}{\emph{$\uparrow$}}
 \newcommand{\isasymdown}{\emph{$\downarrow$}}
 \newcommand{\isasymnotin}{\emph{$\notin$}}
@@ -105,14 +111,13 @@
 \newcommand{\isasymoslash}{\emph{$\oslash$}}
 \newcommand{\isasymsubset}{\emph{$\subset$}}
 \newcommand{\isasyminfinity}{\emph{$\infty$}}
-\newcommand{\isasymbox}{\emph{$\Box$}}
-\newcommand{\isasymdiamond}{\emph{$\Diamond$}}
+\newcommand{\isasymbox}{\emph{$\Box$}}  %requires latexsym
+\newcommand{\isasymdiamond}{\emph{$\Diamond$}}  %requires latexsym
 \newcommand{\isasymcirc}{\emph{$\circ$}}
 \newcommand{\isasymbullet}{\emph{$\bullet$}}
 \newcommand{\isasymparallel}{\emph{$\parallel$}}
 \newcommand{\isasymsurd}{\emph{$\surd$}}
 \newcommand{\isasymcopyright}{\emph{\copyright}}
-
 \newcommand{\isasymplusminus}{\emph{$\pm$}}
 \newcommand{\isasymdiv}{\emph{$\div$}}
 \newcommand{\isasymlongrightarrow}{\emph{$\longrightarrow$}}
@@ -121,42 +126,32 @@
 \newcommand{\isasymLongrightarrow}{\emph{$\Longrightarrow$}}
 \newcommand{\isasymLongleftarrow}{\emph{$\Longleftarrow$}}
 \newcommand{\isasymLongleftrightarrow}{\emph{$\Longleftrightarrow$}}
-%requires OT1 encoding:
-\newcommand{\isasymbrokenbar}{\emph{\textbrokenbar}}
-\newcommand{\isasymhyphen}{-}
-\newcommand{\isasymmacron}{\={}}
-\newcommand{\isasymexclamdown}{\emph{\textexclamdown}}
-\newcommand{\isasymquestiondown}{\emph{\textquestiondown}}
-%requires OT1 encoding:
-\newcommand{\isasymguillemotleft}{\emph{\guillemotleft}}
-%requires OT1 encoding:
-\newcommand{\isasymguillemotright}{\emph{\guillemotright}}
-%should be available (?):
-\newcommand{\isasymdegree}{\emph{\textdegree}}
-\newcommand{\isasymonesuperior}{\emph{$\mathonesuperior$}}
-\newcommand{\isasymonequarter}{\emph{\textonequarter}}
-\newcommand{\isasymtwosuperior}{\emph{$\mathtwosuperior$}}
-\newcommand{\isasymonehalf}{\emph{\textonehalf}}
-\newcommand{\isasymthreesuperior}{\emph{$\maththreesuperior$}}
-\newcommand{\isasymthreequarters}{\emph{\textthreequarters}}
+\newcommand{\isasymbar}{\emph{$\mid$}}
+\newcommand{\isasymhyphen}{\emph{\rm-}}
+\newcommand{\isasymmacron}{\emph{\rm\=\relax}}
+\newcommand{\isasymexclamdown}{\emph{\rm\textexclamdown}}
+\newcommand{\isasymquestiondown}{\emph{\rm\textquestiondown}}
+\newcommand{\isasymguillemotleft}{\emph{\flqq}}  %requires babel
+\newcommand{\isasymguillemotright}{\emph{\frqq}}  %requires babel
+\newcommand{\isasymdegree}{\emph{\rm\textdegree}}  %requires latin1
+\newcommand{\isasymonesuperior}{\emph{$\mathonesuperior$}}  %requires latin1
+\newcommand{\isasymonequarter}{\emph{\rm\textonequarter}}  %requires latin1
+\newcommand{\isasymtwosuperior}{\emph{$\mathtwosuperior$}}  %requires latin1
+\newcommand{\isasymonehalf}{\emph{\rm\textonehalf}}  %requires latin1
+\newcommand{\isasymthreesuperior}{\emph{$\maththreesuperior$}}  %requires latin1
+\newcommand{\isasymthreequarters}{\emph{\rm\textthreequarters}}  %requires latin1
 \newcommand{\isasymparagraph}{\emph{\P}}
-\newcommand{\isasymregistered}{\emph{\textregistered}}
-%should be available (?):
-\newcommand{\isasymordfeminine}{\emph{\textordfeminine}}
-%should be available (?):
-\newcommand{\isasymordmasculine}{\emph{\textordmasculine}}
-\newcommand{\isasymsection}{\S}
+\newcommand{\isasymregistered}{\emph{\rm\textregistered}}
+\newcommand{\isasymordfeminine}{\emph{\rm\textordfeminine}}
+\newcommand{\isasymordmasculine}{\emph{\rm\textordmasculine}}
+\newcommand{\isasymsection}{\emph{\S}}
 \newcommand{\isasympounds}{\emph{$\pounds$}}
-%requires OT1 encoding:
-\newcommand{\isasymyen}{\emph{\textyen}}
-%requires OT1 encoding:
-\newcommand{\isasymcent}{\emph{\textcent}}
-%requires OT1 encoding:
-\newcommand{\isasymcurrency}{\emph{\textcurrency}}
+\newcommand{\isasymyen}{\emph{\yen}}  %requires amssymb
+\newcommand{\isasymcent}{\emph{\cent}}  %requires wasysym
+\newcommand{\isasymcurrency}{\emph{\currency}}  %requires wasysym
 \newcommand{\isasymlbrace}{\emph{$\mathopen{\lbrace\mkern-4.5mu\mid}$}}
 \newcommand{\isasymrbrace}{\emph{$\mathclose{\mid\mkern-4.5mu\rbrace}$}}
 \newcommand{\isasymtop}{\emph{$\top$}}
-
 \newcommand{\isasymcong}{\emph{$\cong$}}
 \newcommand{\isasymclubsuit}{\emph{$\clubsuit$}}
 \newcommand{\isasymdiamondsuit}{\emph{$\diamondsuit$}}
@@ -178,7 +173,7 @@
 \newcommand{\isasymLeftrightarrow}{\emph{$\Leftrightarrow$}}
 \newcommand{\isasymUparrow}{\emph{$\Uparrow$}}
 \newcommand{\isasymDownarrow}{\emph{$\Downarrow$}}
-\newcommand{\isasymlozenge}{\emph{$\lozenge$}}
+\newcommand{\isasymlozenge}{\emph{$\lozenge$}}  %requires amssym
 \newcommand{\isasymlangle}{\emph{$\langle$}}
 \newcommand{\isasymrangle}{\emph{$\rangle$}}
 \newcommand{\isasymSum}{\emph{$\sum\,$}}
@@ -196,7 +191,7 @@
 \newcommand{\isasymnatural}{\emph{$\natural$}}
 \newcommand{\isasymflat}{\emph{$\flat$}}
 \newcommand{\isasymamalg}{\emph{$\amalg$}}
-\newcommand{\isasymmho}{\emph{$\mho$}}
+\newcommand{\isasymmho}{\emph{$\mho$}}  %requires latexsym
 \newcommand{\isasymupdownarrow}{\emph{$\updownarrow$}}
 \newcommand{\isasymlongmapsto}{\emph{$\longmapsto$}}
 \newcommand{\isasymUpdownarrow}{\emph{$\Updownarrow$}}
@@ -214,7 +209,7 @@
 \newcommand{\isasymodot}{\emph{$\odot$}}
 \newcommand{\isasymsupset}{\emph{$\supset$}}
 \newcommand{\isasymsupseteq}{\emph{$\supseteq$}}
-\newcommand{\isasymsqsupset}{\emph{$\sqsupset$}}
+\newcommand{\isasymsqsupset}{\emph{$\sqsupset$}}  %requires latexsym
 \newcommand{\isasymsqsupseteq}{\emph{$\sqsupseteq$}}
 \newcommand{\isasymll}{\emph{$\ll$}}
 \newcommand{\isasymgg}{\emph{$\gg$}}
@@ -225,17 +220,17 @@
 \newcommand{\isasymOr}{\emph{$\bigvee$}}
 \newcommand{\isasymbiguplus}{\emph{$\biguplus$}}
 \newcommand{\isasymddagger}{\emph{$\ddagger$}}
-\newcommand{\isasymJoin}{\emph{$\Join$}}
+\newcommand{\isasymJoin}{\emph{$\Join$}}  %requires latexsym
 \newcommand{\isasymbool}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{B}$}}
 \newcommand{\isasymcomplex}{\emph{$\mathrm{C}\mkern-15mu{\phantom{\mathrm{t}}\vrule}\mkern9mu$}}
 \newcommand{\isasymnat}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{N}$}}
 \newcommand{\isasymrat}{\emph{$\mathrm{Q}\mkern-16mu{\phantom{\mathrm{t}}\vrule}\mkern10mu$}}
 \newcommand{\isasymreal}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{R}$}}
 \newcommand{\isasymint}{\emph{$\mathsf{Z}\mkern-7.5mu\mathsf{Z}$}}
-
-%require amssymb:
-\newcommand{\isasymlesssim}{\emph{$\lesssim$}}
-\newcommand{\isasymgreatersim}{\emph{$\gtrsim$}}
-\newcommand{\isasymlessapprox}{\emph{$\lessapprox$}}
-\newcommand{\isasymgreaterapprox}{\emph{$\gtrapprox$}}
-\newcommand{\isasymtriangleq}{\emph{$\triangleq$}}
+\newcommand{\isasymlesssim}{\emph{$\lesssim$}}  %requires amssymb
+\newcommand{\isasymgreatersim}{\emph{$\gtrsim$}}  %requires amssymb
+\newcommand{\isasymlessapprox}{\emph{$\lessapprox$}}  %requires amssymb
+\newcommand{\isasymgreaterapprox}{\emph{$\gtrapprox$}}  %requires amssymb
+\newcommand{\isasymtriangleq}{\emph{$\triangleq$}}  %requires amssymb
+\newcommand{\isasymlparr}{\emph{$\mathopen{(\mkern-3mu\mid}$}}
+\newcommand{\isasymrparr}{\emph{$\mathclose{\mid\mkern-3mu)}$}}

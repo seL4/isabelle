@@ -47,7 +47,7 @@ a simplification rule:
 consts g :: "nat\<times>nat \<Rightarrow> nat";
 recdef g "measure(\<lambda>(x,y). x-y)"
   "g(x,y) = (if x \<le> y then x else g(x,y+1))"
-(hints simp: termi_lem)
+(hints recdef_simp: termi_lem)
 
 text{*\noindent
 This time everything works fine. Now @{thm[source]g.simps} contains precisely
