@@ -54,7 +54,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
   let
     val sign = sign_of thy;
 
-    (*recT and rec_params should agree for all mutually recursive components*)
+    (*rec_params should agree for all mutually recursive components*)
     val rec_hds = map head_of rec_tms;
 
     val _ = assert_all is_Const rec_hds
@@ -87,8 +87,9 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
 
     val z = mk_variant"z" and X = mk_variant"X" and w = mk_variant"w";
 
-    (*Probably INCORRECT for mutual recursion!*)
-    val domTs = summands(dest_setT (body_type recT));
+    (*Mutual recursion ?? *)
+    val domTs = summands (dest_setT (body_type recT));
+	        (*alternative defn: map (dest_setT o fastype_of) rec_tms *)
     val dom_sumT = fold_bal mk_sum domTs;
     val dom_set   = mk_setT dom_sumT;
 
