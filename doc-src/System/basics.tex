@@ -221,6 +221,7 @@ usage is:
 Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
+    -I           startup Isar interaction mode
     -e MLTEXT    pass MLTEXT to the ML session
     -m MODE      add print mode for output
     -q           non-interactive session
@@ -274,9 +275,14 @@ made active for this session. Typically, this is used by some user
 interface, for example to enable output of mathematical symbols from a
 special screen font.
 
-\medskip Isabelle normally enters an interactice {\ML} top-level loop
-(after processing the \texttt{-e} texts). The \texttt{-q} option
-inhibits this, thus providing a pure batch mode facility.
+\medskip Isabelle normally enters an interactice top-level loop (after
+processing the \texttt{-e} texts). The \texttt{-q} option inhibits this, thus
+providing a pure batch mode facility.
+
+\medskip The \texttt{-I} option makes Isabelle enter Isar interaction mode on
+startup, instead of the primitive {\ML} top-level.  This flag is usually
+enabled by default when running Isabelle via some user interface, but it is
+\emph{not} for the basic \texttt{isabelle} program.
 
 
 \subsection*{Examples}
