@@ -457,11 +457,10 @@ fun obtain_i (xs, asms) = ProofHistory.applys
   (Obtain.obtain_i (map Comment.ignore xs) (map Comment.ignore asms));
 
 
-
 (* use ML text *)
 
-fun use_mltext txt verb opt_thy = Context.setmp opt_thy (use_text verb) txt;
-fun use_mltext_theory txt verb thy = #2 (Context.pass_theory thy (use_text verb) txt);
+fun use_mltext txt verb opt_thy = Context.setmp opt_thy (use_text writeln verb) txt;
+fun use_mltext_theory txt verb thy = #2 (Context.pass_theory thy (use_text writeln verb) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
