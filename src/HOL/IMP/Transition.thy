@@ -45,19 +45,19 @@ text {*
 *}
 syntax
   "@evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -1-> _" [81,81] 100)
+    ("_ -1-> _" [60,60] 60)
   "@evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -_-> _" [81,81] 100)
+    ("_ -_-> _" [60,60,60] 60)
   "@evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -*-> _" [81,81] 100)
+    ("_ -*-> _" [60,60] 60)
 
 syntax (xsymbols)
   "@evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ \<longrightarrow>\<^sub>1 _" [81,81] 100)
+    ("_ \<longrightarrow>\<^sub>1 _" [60,60] 61)
   "@evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -_\<rightarrow>\<^sub>1 _" [81,81] 100)
+    ("_ -_\<rightarrow>\<^sub>1 _" [60,60,60] 60)
   "@evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ \<longrightarrow>\<^sub>1\<^sup>* _" [81,81] 100)
+    ("_ \<longrightarrow>\<^sub>1\<^sup>* _" [60,60] 60)
 
 translations
   "cs \<longrightarrow>\<^sub>1 cs'" == "(cs,cs') \<in> evalc1"
@@ -127,7 +127,8 @@ lemma Cond_1:
   "\<langle>\<IF> b \<THEN> c1 \<ELSE> c2, s\<rangle> \<longrightarrow>\<^sub>1 y = ((b s \<longrightarrow> y = \<langle>c1, s\<rangle>) \<and> (\<not>b s \<longrightarrow> y = \<langle>c2, s\<rangle>))"
   by (rule, cases set: evalc1, auto)
 
-lemma While_1: "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 y = (y = \<langle>\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>, s\<rangle>)"
+lemma While_1: 
+  "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 y = (y = \<langle>\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>, s\<rangle>)"
   by (rule, cases set: evalc1, auto)
 
 lemmas [simp] = SKIP_1 Assign_1 Cond_1 While_1
@@ -136,15 +137,15 @@ lemmas [simp] = SKIP_1 Assign_1 Cond_1 While_1
 subsection "Examples"
 
 lemma 
-  "s x = 0 \<Longrightarrow> \<langle>\<WHILE> \<lambda>s. s x \<noteq> 1 \<DO> x:== \<lambda>s. s x+1, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s[x \<mapsto> 1]\<rangle>"
+  "s x = 0 \<Longrightarrow> \<langle>\<WHILE> \<lambda>s. s x \<noteq> 1 \<DO> (x:== \<lambda>s. s x+1), s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s[x \<mapsto> 1]\<rangle>"
   (is "_ \<Longrightarrow> \<langle>?w, _\<rangle> \<longrightarrow>\<^sub>1\<^sup>* _")
 proof -
-  let ?x  = "x:== \<lambda>s. s x+1"
-  let ?if = "\<IF> \<lambda>s. s x \<noteq> 1 \<THEN> ?x; ?w \<ELSE> \<SKIP>"
+  let ?c  = "x:== \<lambda>s. s x+1"
+  let ?if = "\<IF> \<lambda>s. s x \<noteq> 1 \<THEN> ?c; ?w \<ELSE> \<SKIP>"
   assume [simp]: "s x = 0"
   have "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>1  \<langle>?if, s\<rangle>" ..
-  also have "\<langle>?if, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>?x; ?w, s\<rangle>" by simp 
-  also have "\<langle>?x; ?w, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>?w, s[x \<mapsto> 1]\<rangle>" by (rule Semi1, simp)
+  also have "\<langle>?if, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>?c; ?w, s\<rangle>" by simp 
+  also have "\<langle>?c; ?w, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>?w, s[x \<mapsto> 1]\<rangle>" by (rule Semi1, simp)
   also have "\<langle>?w, s[x \<mapsto> 1]\<rangle> \<longrightarrow>\<^sub>1 \<langle>?if, s[x \<mapsto> 1]\<rangle>" ..
   also have "\<langle>?if, s[x \<mapsto> 1]\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<SKIP>, s[x \<mapsto> 1]\<rangle>" by (simp add: update_def)
   also have "\<langle>\<SKIP>, s[x \<mapsto> 1]\<rangle> \<longrightarrow>\<^sub>1 \<langle>s[x \<mapsto> 1]\<rangle>" ..
@@ -152,7 +153,7 @@ proof -
 qed
 
 lemma 
-  "s x = 2 \<Longrightarrow> \<langle>\<WHILE> \<lambda>s. s x \<noteq> 1 \<DO> x:== \<lambda>s. s x+1, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s'"
+  "s x = 2 \<Longrightarrow> \<langle>\<WHILE> \<lambda>s. s x \<noteq> 1 \<DO> (x:== \<lambda>s. s x+1), s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s'"
   (is "_ \<Longrightarrow> \<langle>?w, _\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s'")
 proof -
   let ?c = "x:== \<lambda>s. s x+1"
@@ -193,7 +194,11 @@ text {*
   If a configuration does not contain a statement, the program
   has terminated and there is no next configuration:
 *}
-lemma stuck [dest]: "(None, s) \<longrightarrow>\<^sub>1 y \<Longrightarrow> False" by (auto elim: evalc1.elims)
+lemma stuck [elim!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1 y \<Longrightarrow> P" 
+  by (auto elim: evalc1.elims)
+
+lemma evalc_None_retrancl [simp, dest!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s' \<Longrightarrow> s' = \<langle>s\<rangle>" 
+  by (erule rtrancl_induct) auto 
 
 (*<*)
 (* fixme: relpow.simps don't work *)
@@ -201,8 +206,7 @@ lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R^0 = Id" by simp
 lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R^(Suc 0) = R" by simp 
 lemmas [simp del] = relpow.simps
 (*>*)
-
-lemma evalc_None_0 [simp]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"
+lemma evalc1_None_0 [simp, dest!]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"
   by (cases n) auto
 
 lemma SKIP_n: "\<langle>\<SKIP>, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> s' = s \<and> n=1" 
@@ -252,10 +256,10 @@ next
         c1': "\<langle>c1',s'\<rangle> -i\<rightarrow>\<^sub>1 \<langle>s0\<rangle>" and
         c2:  "\<langle>c2,s0\<rangle> -j\<rightarrow>\<^sub>1 \<langle>s''\<rangle>" and
         i:   "n = i+j"
-        by blast
+        by fast
           
       from c1 c1'
-      have "\<langle>c1,s\<rangle> -(i+1)\<rightarrow>\<^sub>1 \<langle>s0\<rangle>" by (auto simp del: relpow.simps intro: rel_pow_Suc_I2)
+      have "\<langle>c1,s\<rangle> -(i+1)\<rightarrow>\<^sub>1 \<langle>s0\<rangle>" by (auto intro: rel_pow_Suc_I2)
       with c2 i
       have "?Q (i+1) j s0" by simp
       thus ?thesis by blast
@@ -591,7 +595,7 @@ proof -
     apply (rename_tac c s')
     apply simp
     apply (rule conjI)
-     apply (fast dest: stuck)
+     apply fast 
     apply clarify
     apply (case_tac c)
     apply (auto intro: rtrancl_into_rtrancl2)
@@ -667,16 +671,13 @@ lemma FB_lemma3 [rule_format]:
   apply (auto elim!: evalc1_term_cases equivD2 [OF unfold_while])
   done
 
-lemma rtrancl_stuck: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s' \<Longrightarrow> s' = (None, s)"
-  by (erule rtrancl_induct) (auto dest: stuck)
-
 lemma FB_lemma2 [rule_format]:
   "(c,s) \<longrightarrow>\<^sub>1\<^sup>* (c',s') \<Longrightarrow> c \<noteq> None \<longrightarrow> 
    \<langle>if c' = None then \<SKIP> else the c',s'\<rangle> \<longrightarrow>\<^sub>c t \<longrightarrow> \<langle>the c,s\<rangle> \<longrightarrow>\<^sub>c t" 
   apply (erule converse_rtrancl_induct2)
    apply simp
   apply clarsimp
-  apply (fastsimp elim!: evalc1_term_cases dest: rtrancl_stuck intro: FB_lemma3)
+  apply (fastsimp elim!: evalc1_term_cases intro: FB_lemma3)
   done
 
 lemma evalc1_impl_evalc: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"

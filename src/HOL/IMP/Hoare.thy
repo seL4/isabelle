@@ -101,10 +101,11 @@ apply (subst C_While_If)
 apply (simp (no_asm_simp))
 done
 
-declare wp_SKIP [simp] wp_Ass [simp] wp_Semi [simp] wp_If [simp] wp_While_True [simp] wp_While_False [simp]
+lemmas [simp] = wp_SKIP wp_Ass wp_Semi wp_If wp_While_True wp_While_False
 
 (*Not suitable for rewriting: LOOPS!*)
-lemma wp_While_if: "wp (\<WHILE> b \<DO> c) Q s = (if b s then wp (c;\<WHILE> b \<DO> c) Q s else Q s)"
+lemma wp_While_if: 
+  "wp (\<WHILE> b \<DO> c) Q s = (if b s then wp (c;\<WHILE> b \<DO> c) Q s else Q s)"
 apply (simp (no_asm))
 done
 
@@ -132,7 +133,7 @@ done
 
 declare C_while [simp del]
 
-declare hoare.skip [intro!] hoare.ass [intro!] hoare.semi [intro!] hoare.If [intro!]
+lemmas [intro!] = hoare.skip hoare.ass hoare.semi hoare.If 
 
 lemma wp_is_pre [rule_format (no_asm)]: "!Q. |- {wp c Q} c {Q}"
 apply (induct_tac "c")

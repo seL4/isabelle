@@ -13,7 +13,7 @@ types com_den = "(state\<times>state)set"
 constdefs
   Gamma :: "[bexp,com_den] => (com_den => com_den)"
   "Gamma b cd == (\<lambda>phi. {(s,t). (s,t) \<in> (phi O cd) \<and> b s} \<union> 
-                        {(s,t). s=t \<and> \<not>b s})"
+                       {(s,t). s=t \<and> \<not>b s})"
     
 consts
   C :: "com => com_den"
@@ -23,7 +23,7 @@ primrec
   C_assign: "C (x :== a) = {(s,t). t = s[x\<mapsto>a(s)]}"
   C_comp:   "C (c0;c1)   = C(c1) O C(c0)"
   C_if:     "C (\<IF> b \<THEN> c1 \<ELSE> c2) = {(s,t). (s,t) \<in> C c1 \<and> b s} \<union>
-                                                 {(s,t). (s,t) \<in> C c2 \<and> \<not>b s}"
+                                                {(s,t). (s,t) \<in> C c2 \<and> \<not>b s}"
   C_while:  "C(\<WHILE> b \<DO> c) = lfp (Gamma b (C c))"
 
 
@@ -33,10 +33,10 @@ lemma Gamma_mono: "mono (Gamma b c)"
   by (unfold Gamma_def mono_def) fast
 
 lemma C_While_If: "C(\<WHILE> b \<DO> c) = C(\<IF> b \<THEN> c;\<WHILE> b \<DO> c \<ELSE> \<SKIP>)"
-apply (simp (no_asm))
-apply (subst lfp_unfold [OF Gamma_mono],
-       subst Gamma_def [THEN meta_eq_to_obj_eq, THEN fun_cong],
-       simp)
+apply (simp (no_asm)) 
+apply (subst lfp_unfold [OF Gamma_mono]) back back
+apply (subst Gamma_def [THEN meta_eq_to_obj_eq, THEN fun_cong]) 
+apply simp
 done
 
 (* Operational Semantics implies Denotational Semantics *)

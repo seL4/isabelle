@@ -90,7 +90,8 @@ apply (rule_tac P="awp acom fun2" in conseq)
 apply fast
 done
 
-lemma awp_mono [rule_format (no_asm)]: "!P Q. (!s. P s --> Q s) --> (!s. awp c P s --> awp c Q s)"
+lemma awp_mono [rule_format (no_asm)]: 
+  "!P Q. (!s. P s --> Q s) --> (!s. awp c P s --> awp c Q s)"
 apply (induct_tac "c")
     apply (simp_all (no_asm_simp))
 apply (rule allI, rule allI, rule impI)
@@ -99,7 +100,8 @@ apply (erule allE, erule allE, erule mp, assumption)
 done
 
 
-lemma vc_mono [rule_format (no_asm)]: "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)"
+lemma vc_mono [rule_format (no_asm)]: 
+  "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)"
 apply (induct_tac "c")
     apply (simp_all (no_asm_simp))
 apply safe
