@@ -5,6 +5,8 @@
 
 Generic tableau prover with proof reconstruction
 
+  "can we kill all the alternatives??" -- DELETE
+
   Why does Abs take a string argument?
 
   SKOLEMIZES ReplaceI WRONGLY: allow new vars in prems, or forbid such rules??
@@ -22,8 +24,12 @@ Blast_tac...
   * its proof strategy is more general but can actually be slower
 
 Known problems:
+  "Recursive" rules such as transitivity can exclude other unsafe formulae
+	from expansion.  This happens because newly-created formulae always
+	have priority over existing ones.
+
   With overloading:
-    1.  Overloading can't follow all chains of type dependencies.  Cannot
+        Overloading can't follow all chains of type dependencies.  Cannot
         prove "In1 x ~: Part A In0" because PartE introducees the polymorphic
 	equality In1 x = In0 y, when the corresponding rule uses the (distinct)
 	set equality.  Workaround: supply a type instance of the rule that
@@ -104,7 +110,7 @@ signature BLAST =
   end;
 
 
-functor BlastFun(Data: BLAST_DATA): BLAST = 
+functor BlastFun(Data: BLAST_DATA)(**********: BLAST*******) = 
 struct
 
 type claset = Data.claset;
@@ -766,6 +772,20 @@ fun addLit (Const "*Goal*" $ G, lits) =
 fun log4 n = if n<4 then 0 else 1 + log4(n div 4);
 
 
+(*match(t,u) says whether the term u might be an instance of the pattern t
+  Used to detect "recursive" rules such as transitivity*)
+fun match (Var _) u   = true
+  | match (Const"*Goal*") (Const"Not") = true
+  | match (Const"Not") (Const"*Goal*") = true
+  | match (Const a) (Const b) = (a=b)
+  | match (OConst ai) (OConst bj) = (ai=bj)
+  | match (Free a) (Free b) = (a=b)
+  | match (Bound i) (Bound j) = (i=j)
+  | match (Abs(_,t)) (Abs(_,u)) = match t u
+  | match (f$t) (g$u) = match f g andalso match t u
+  | match t u   = false;
+
+
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
   bound on unsafe expansions.*)
@@ -884,10 +904,13 @@ fun prove (cs, brs, cont) =
 	      val H = norm H
 	      val ntrl = !ntrail
 	      val rules = netMkRules H vars hazList
-	      fun newPrem (vars,dup,lim') prem = 
-		  ([(map (fn P => (P,false)) prem, []), (*may NOT duplicate*)
-		    ([], if dup then Hs @ [(negOfGoal H, md)] else Hs)],  
-		   lits, vars, lim')
+	      (*new premises of haz rules may NOT be duplicated*)
+	      fun newPrem (vars,recur,dup,lim') prem = 
+		  let val Gs' = map (fn P => (P,false)) prem
+		      and Hs' = if dup then Hs @ [(negOfGoal H, md)] else Hs
+                  in  (if recur then [(Gs',Hs')] else [(Gs',[]), ([],Hs')], 
+		       lits, vars, lim')
+		  end
 	      fun newBr x prems = map (newPrem x) prems  @  brs
 	      (*Seek a matching rule.  If unifiable then add new premises
                 to branch.*)
@@ -897,14 +920,17 @@ fun prove (cs, brs, cont) =
 			val ntrl' = !ntrail
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
+			   (*duplicate H if md and the subgoal has new vars*)
                         val dup = md andalso vars' <> vars
-			(*duplicate H only if md and the premise has new vars*)
+			    (*any instances of P in the subgoals?*)
+                        and recur = exists (exists (match P)) prems
 			val lim' = (*Decrement "lim" extra if updates occur*)
 			    if ntrl < !ntrail then lim - (1+log4(length rules))
-			    else lim-1
-			    (*NB: if the formula is duplicated, 
-			      then it seems plausible to leave lim alone.  
-			      But then transitivity laws loop.*)
+			    else lim-1 
+				(*It is tempting to leave "lim" UNCHANGED if
+				  both dup and recur are false.  Proofs are
+				  found at shallower depths, but looping
+				  occurs too often...*)
                         val mayUndo = not (null grls)   (*other rules to try?*)
 				    orelse ntrl < ntrl'  (*variables updated?*)
 				    orelse vars=vars'    (*no new Vars?*)
@@ -918,7 +944,7 @@ fun prove (cs, brs, cont) =
 			prv(tac dup :: tacs, 
 			    brs0::trs, 
 			    (ntrl, length brs0, PRV) :: choices, 
-			    newBr (vars', dup, lim') prems)
+			    newBr (vars', recur, dup, lim') prems)
 			 handle PRV => 
 			     if mayUndo
 			     then (*reset Vars and try another rule*)
@@ -929,6 +955,8 @@ fun prove (cs, brs, cont) =
 		    handle UNIFY => deeper grls
 	  in tracing brs0;
 	     if lim<1 then backtrack choices
+	     else if mem_term (H, map #1 Hs) then
+		 prv (tacs, trs, choices, ([([],Hs)],lits,vars,lim) :: brs)
 	     else deeper rules
 	     handle NEWBRANCHES => 
 		 (*cannot close branch: move H to literals*)
