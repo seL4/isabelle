@@ -87,7 +87,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Lfp.thy List.ML List.thy Main.ML Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy NatDef.ML NatDef.thy Numeral.thy \
   Option.ML Option.thy Ord.ML Ord.thy Power.ML Power.thy PreList.thy \
-  Product_Type.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
+  Product_Type_lemmas.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
   Relation.ML Relation.thy Relation_Power.ML Relation_Power.thy \
   SVC_Oracle.ML SVC_Oracle.thy Set.ML Set.thy SetInterval.ML \
   SetInterval.thy String.thy Sum_Type.ML Sum_Type.thy \
@@ -96,7 +96,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Tools/datatype_rep_proofs.ML Tools/induct_attrib.ML Tools/induct_method.ML \
   Tools/inductive_package.ML Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML \
-  Tools/record_package.ML Tools/svc_funcs.ML Tools/typedef_package.ML \
+  Tools/record_package.ML Tools/split_rule.ML \
+  Tools/svc_funcs.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure_lemmas.ML Wellfounded_Recursion.ML \
   Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
@@ -420,15 +421,11 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
 $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML MicroJava/Digest.thy \
-  MicroJava/J/Conform.ML MicroJava/J/Conform.thy \
-  MicroJava/J/Eval.thy MicroJava/J/Eval.ML MicroJava/J/JBasis.ML \
-  MicroJava/J/JBasis.thy MicroJava/J/JTypeSafe.thy MicroJava/J/JTypeSafe.ML \
-  MicroJava/J/Decl.thy MicroJava/J/Decl.ML MicroJava/J/State.ML \
-  MicroJava/J/State.thy MicroJava/J/Term.thy \
-  MicroJava/J/Type.thy MicroJava/J/TypeRel.ML MicroJava/J/TypeRel.thy \
-  MicroJava/J/WellForm.thy MicroJava/J/WellForm.ML MicroJava/J/Value.thy \
-  MicroJava/J/WellType.ML MicroJava/J/WellType.thy \
-  MicroJava/J/Example.ML MicroJava/J/Example.thy \
+  MicroJava/J/Conform.thy MicroJava/J/Eval.thy MicroJava/J/JBasis.thy \
+  MicroJava/J/JTypeSafe.thy MicroJava/J/Decl.thy MicroJava/J/State.thy \
+  MicroJava/J/Term.thy MicroJava/J/Type.thy MicroJava/J/TypeRel.thy \
+  MicroJava/J/WellForm.thy MicroJava/J/Value.thy \
+  MicroJava/J/WellType.thy MicroJava/J/Example.thy \
   MicroJava/JVM/JVMExec.thy MicroJava/JVM/JVMInstructions.thy\
   MicroJava/JVM/JVMState.thy MicroJava/JVM/JVMExecInstr.thy\
   MicroJava/BV/BVSpec.thy MicroJava/BV/Step.thy\

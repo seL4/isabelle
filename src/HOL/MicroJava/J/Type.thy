@@ -6,13 +6,14 @@
 Java types
 *)
 
-Type = JBasis +
+theory Type = JBasis:
 
-types cname   (* class name *)
-      vnam    (* variable or field name *)
-      mname   (* method name *)
-
-arities cname, vnam, mname :: term
+typedecl cname  (* class name *)
+typedecl vnam   (* variable or field name *)
+typedecl mname  (* method name *)
+arities  cname :: "term"
+         vnam  :: "term"
+         mname :: "term"
 
 datatype vname    (* names for This pointer and local/field variables *)
   = This

@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/J/Term.thy
+(*  Title:      HOL/MicroJava/J/Value.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
@@ -6,21 +6,18 @@
 Java values
 *)
 
-Value = Type +
+theory Value = Type:
 
-types   loc     (* locations, i.e. abstract references on objects *)
-arities loc :: term
+typedecl loc (* locations, i.e. abstract references on objects *)
+arities loc :: "term"
 
-datatype val_   (* name non 'val' because of clash with ML token *)
+datatype val
   = Unit        (* dummy result value of void methods *)
   | Null        (* null reference *)
   | Bool bool   (* Boolean value *)
   | Intg int    (* integer value, name Intg instead of Int because
                    of clash with HOL/Set.thy *)
   | Addr loc    (* addresses, i.e. locations of objects *)
-
-types	val = val_
-translations "val" <= (type) "val_"
 
 consts
   the_Bool :: "val => bool"

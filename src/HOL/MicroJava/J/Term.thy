@@ -6,7 +6,7 @@
 Java expressions and statements
 *)
 
-Term = Value +
+theory Term = Value:
 
 datatype binop = Eq | Add    (* function codes for binary operation *)
 
@@ -21,7 +21,7 @@ datatype expr
   | FAss cname expr vname 
                     expr     (* field ass. *) ("{_}_.._:=_" [10,90,99,90]90)
   | Call cname expr mname 
-    (ty list) (expr list)    (* method call*) ("{_}_.._'( {_}_')"
+    "ty list" "expr list"    (* method call*) ("{_}_.._'( {_}_')"
                                                             [10,90,99,10,10] 90)
 
 datatype stmt
@@ -32,3 +32,4 @@ datatype stmt
   | Loop expr stmt       ("While '(_') _"     [80,79]70)
 
 end
+
