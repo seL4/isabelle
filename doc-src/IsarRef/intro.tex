@@ -44,22 +44,22 @@ interface.  Its usage is as follows:
 \begin{ttbox}
 Usage: interface [OPTIONS] [FILES ...]
 
-Options are:
-  -l NAME      logic image name (default $ISABELLE_LOGIC=HOL)
-  -p NAME      Emacs program name (default xemacs)
-  -u BOOL      use .emacs file (default false)
-  -w BOOL      use window system (default true)
+  Options are:
+    -l NAME      logic image name (default $ISABELLE_LOGIC=HOL)
+    -p NAME      Emacs program name (default xemacs)
+    -u BOOL      use .emacs file (default true)
+    -w BOOL      use window system (default true)
 
-Starts Proof General for Isabelle/Isar with proof documents FILES
-(default Scratch.thy).
+  Starts Proof General for Isabelle/Isar with proof documents FILES
+  (default Scratch.thy).
+
+  PROOFGENERAL_OPTIONS=
 \end{ttbox}
 Apart from the command line, the defaults for these options may be overridden
 via the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For example, plain GNU
-Emacs with loading of the startup file enabled\footnote{The interface disables
-  \texttt{.emacs} by default to ensure successful startup despite any strange
-  commands that tend to occur there.} may be configured as follows:
+Emacs may be configured as follows:
 \begin{ttbox}
-PROOFGENERAL_OPTIONS="-p emacs -u true"
+PROOFGENERAL_OPTIONS="-p emacs"
 \end{ttbox}
 
 With the proper Isabelle interface setup, Isar documents may now be edited by
@@ -70,6 +70,16 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 Users of XEmacs may note the tool bar for navigating forward and backward
 through the text.  Consult the Proof~General documentation \cite{proofgeneral}
 for further basic commands, such as \texttt{c-c return} or \texttt{c-c u}.
+
+\medskip
+
+Occasionally, a user's \texttt{.emacs} contains material that is incompatible
+with the version of (X)Emacs that Proof~General prefers.  Then proper startup
+may be still achieved by using the \texttt{-u false} option.\footnote{Also
+  note that the Emacs lisp files
+  \texttt{\$ISABELLE_HOME/etc/proofgeneral-settings.el} and
+  \texttt{\$ISABELLE_HOME_USER/etc/proofgeneral-settings.el} are automatically
+  loaded by Proof~General if invoked via the interface wrapper script.}
 
 
 \section{How to write Isar proofs anyway?}
