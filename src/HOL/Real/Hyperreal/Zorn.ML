@@ -237,11 +237,7 @@ by (etac conjE 1);
 by (subgoal_tac "({u} Un c): super S c" 1);
 by (Asm_full_simp_tac 1);
 by (rewrite_tac [super_def,psubset_def]);
-by Safe_tac;
-by (fast_tac (claset() addEs [chain_extend]) 1);
-by (subgoal_tac "u ~: c" 1);
-by (blast_tac (claset() addEs [equalityE]) 1);
-by (blast_tac (claset() addDs [chain_Union_upper]) 1);
+by (blast_tac (claset() addIs [chain_extend] addDs [chain_Union_upper]) 1);
 qed "maxchain_Zorn";
 
 Goal "ALL c: chain S. Union(c): S ==> \
@@ -270,12 +266,7 @@ by (EVERY1[rtac ballI, rtac impI, rtac ccontr]);
 by (forw_inst_tac [("z","x")]  chain_extend 1);
 by (assume_tac 1 THEN Blast_tac 1);
 by (rewrite_tac [maxchain_def,super_def,psubset_def]);
-by (Step_tac 1);
-by (eres_inst_tac [("c","{x} Un c")] equalityCE 1);
-by (Step_tac 1);
-by (subgoal_tac "x ~: c" 1);
-by (blast_tac (claset() addEs [equalityE]) 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Zorn_Lemma2";
 
 (** misc. lemmas **)

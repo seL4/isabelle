@@ -92,7 +92,7 @@ by Auto_tac;
 (*this lemma tells us that both "inserts" are non-trivial*)
 by (subgoal_tac "ALL p C. C Int a = {p} --> p ~: t" 1);
 by (Asm_simp_tac 1);
-by (blast_tac (claset() addEs [equalityE]) 1);
+by (Blast_tac 1);
 qed "tiling_domino_0_1";
 
 (*Final argument is surprisingly complex*)
