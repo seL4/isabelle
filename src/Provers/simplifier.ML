@@ -54,7 +54,7 @@ fun (SS{mss,simps,congs,subgoal_tac,finish_tac,...}) setloop loop_tac =
      congs= congs,
      subgoal_tac= subgoal_tac,
      finish_tac=finish_tac,
-     loop_tac=loop_tac};
+     loop_tac= DETERM o loop_tac};
 
 fun (SS{mss,simps,congs,subgoal_tac,loop_tac,...}) setsolver finish_tac =
   SS{mss=mss,
