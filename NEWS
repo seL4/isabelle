@@ -23,6 +23,9 @@ renamed "`"; "univalent" has been renamed "single_valued";
 consequence, it is no longer monotonic wrt. the local goal context
 (which is now passed through the inductive cases);
 
+* Document preparation: renamed standard symbols \<ll> to \<lless> and
+\<gg> to \<ggreater>;
+
 
 *** Document preparation ***
 
