@@ -29,7 +29,7 @@ Note that each WHILE-loop must be annotated with an invariant.
 
 After loading theory Hoare, you can state goals of the form
 <PRE>
-|- VARS x y ... {P} prog {Q}
+VARS x y ... {P} prog {Q}
 </PRE>
 where <kbd>prog</kbd> is a program in the above language, <kbd>P</kbd> is the
 precondition, <kbd>Q</kbd> the postcondition, and <kbd>x y ...</kbd> is the
@@ -37,7 +37,7 @@ list of all <i>program variables</i> in <kbd>prog</kbd>. The latter list must
 be nonempty and it must include all variables that occur on the left-hand
 side of an assignment in <kbd>prog</kbd>. Example:
 <PRE>
-|- VARS x. {x = a} x := x+1 {x = a+1}
+VARS x {x = a} x := x+1 {x = a+1}
 </PRE>
 The (normal) variable <kbd>a</kbd> is merely used to record the initial
 value of <kbd>x</kbd> and is not a program variable. Pre/post conditions
@@ -46,19 +46,18 @@ variables.
 <P>
 
 The implementation hides reasoning in Hoare logic completely and provides a
-tactic <kbd>hoare_tac</kbd> for transforming a goal in Hoare logic into an
+method <kbd>vcg</kbd> for transforming a goal in Hoare logic into an
 equivalent list of verification conditions in HOL:
 <PRE>
-by(hoare_tac tac i);
+apply vcg
 </PRE>
-applies the tactic to subgoal <kbd>i</kbd> and applies the parameter
-<kbd>tac</kbd> (of type <kbd>int -&gt; tactic</kbd>) to all generated
-verification conditions. A typical call is
+If you want to simplify the resulting verification conditions at the same
+time:
 <PRE>
-by(hoare_tac Asm_full_simp_tac 1);
+apply vcg_simp
 </PRE>
 which, given the example goal above, solves it completely. For further
-examples see <a href="Examples.ML">Examples.ML</a>.
+examples see <a href="Examples.html">Examples</a>.
 <P>
 
 IMPORTANT:
