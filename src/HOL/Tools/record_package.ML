@@ -37,21 +37,6 @@ struct
 
 (*** utilities ***)
 
-(* string suffixes *)
-
-fun suffix sfx s = s ^ sfx;
-
-fun unsuffix sfx s =
-  let
-    val cs = explode s;
-    val prfx_len = size s - size sfx;
-  in
-    if prfx_len >= 0 andalso implode (drop (prfx_len, cs)) = sfx then
-      implode (take (prfx_len, cs))
-    else raise LIST "unsuffix"
-  end;
-
-
 (* definitions and equations *)
 
 infix 0 :== === ;
