@@ -344,7 +344,7 @@ datatype overloading = NoOverloading | Useless | Plain;
 fun overloading sg declT defT =
   let val T = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT) in
     if Sign.typ_instance sg (declT, T) then NoOverloading
-    else if Sign.typ_instance sg (Type.rem_sorts declT, Type.rem_sorts T) then Useless
+    else if Sign.typ_instance sg (Type.strip_sorts declT, Type.strip_sorts T) then Useless
     else Plain
   end;
 
