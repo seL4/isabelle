@@ -166,6 +166,6 @@ val pure_syntax =
   ("",          "id => logic",                    Delimfix "_"),
   ("",          "var => logic",                   Delimfix "_"),
   ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
-  ("_constrain", "[logic, type] => logic",        Mixfix ("_::_", [max_pri, 0], 999))]
+  ("_constrain", "[logic, type] => logic",        Mixfix ("_::_", [4, 0], 3))]
 
 end;
