@@ -3,204 +3,383 @@
 \label{chap:simplification}
 \index{simplification|(}
 
-This chapter describes Isabelle's generic simplification package, which
-provides a suite of simplification tactics.  It performs conditional and
-unconditional rewriting and uses contextual information (`local
-assumptions').  It provides a few general hooks, which can provide
-automatic case splits during rewriting, for example.  The simplifier is set
-up for many of Isabelle's logics: \FOL, \ZF, \HOL\ and \HOLCF.
+This chapter describes Isabelle's generic simplification package.  It
+performs conditional and unconditional rewriting and uses contextual
+information (`local assumptions').  It provides several general hooks,
+which can provide automatic case splits during rewriting, for example.
+The simplifier is already set up for many of Isabelle's logics: \FOL,
+\ZF, \HOL, \HOLCF.
 
-The next section is a quick introduction to the simplifier, the later
-sections explain advanced features.
+The first section is a quick introduction to the simplifier that
+should be sufficient to get started.  The later sections explain more
+advanced features.
+
 
 \section{Simplification for dummies}
 \label{sec:simp-for-dummies}
 
-In some logics (\FOL, {\HOL} and \ZF), the simplifier is particularly easy to
-use because it supports the concept of a {\em current
-  simpset}\index{simpset!current}.  This is a default set of simplification
-rules.  All commands are interpreted relative to the current simpset.  For
-example, in the theory of arithmetic the goal
-\begin{ttbox}
-{\out  1. 0 + (x + 0) = x + 0 + 0}
-\end{ttbox}
-can be solved by a single
-\begin{ttbox}
-by (Simp_tac 1);
-\end{ttbox}
-The simplifier uses the current simpset, which in the case of arithmetic
-contains the required theorems $\Var{n}+0 = \Var{n}$ and $0+\Var{n} =
-\Var{n}$.
+Basic use of the simplifier is particularly easy because each theory
+is equipped with an implicit {\em current
+  simpset}\index{simpset!current}.  This provides sensible default
+information in many cases.  A suite of commands refer to the implicit
+simpset of the current theory context.
 
-If assumptions of the subgoal are also needed in the simplification
-process, as in
-\begin{ttbox}
-{\out  1. x = 0 ==> x + x = 0}
-\end{ttbox}
-then there is the more powerful
-\begin{ttbox}
-by (Asm_simp_tac 1);
-\end{ttbox}
-which solves the above goal.
+\begin{warn}
+  Make sure that you are working within the correct theory context.
+  Executing proofs interactively, or loading them from ML files
+  without associated theories may require setting the current theory
+  manually via the \ttindex{context} command.
+\end{warn}
 
-There are four basic simplification tactics:
+\subsection{Simplification tactics} \label{sec:simp-for-dummies-tacs}
+\begin{ttbox}
+Simp_tac          : int -> tactic
+Asm_simp_tac      : int -> tactic
+Full_simp_tac     : int -> tactic
+Asm_full_simp_tac : int -> tactic
+trace_simp        : bool ref \hfill{\bf initially false}
+\end{ttbox}
+
 \begin{ttdescription}
-\item[\ttindexbold{Simp_tac} $i$] simplifies subgoal~$i$ using the current
-  simpset.  It may solve the subgoal completely if it has become trivial,
-  using the solver.
+\item[\ttindexbold{Simp_tac} $i$] simplifies subgoal~$i$ using the
+  current simpset.  It may solve the subgoal completely if it has
+  become trivial, using the simpset's solver tactic.
   
 \item[\ttindexbold{Asm_simp_tac}]\index{assumptions!in simplification}
-  is like \verb$Simp_tac$, but extracts additional rewrite rules from the
-  assumptions.
-
+  is like \verb$Simp_tac$, but extracts additional rewrite rules from
+  the local assumptions.
+  
 \item[\ttindexbold{Full_simp_tac}] is like \verb$Simp_tac$, but also
-  simplifies the assumptions (but without using the assumptions to simplify
-  each other or the actual goal.)
-
-\item[\ttindexbold{Asm_full_simp_tac}]
-  is like \verb$Asm_simp_tac$, but also simplifies the assumptions one by
-  one.  {\em Working from left to right, it uses each assumption in the
-  simplification of those following.}
+  simplifies the assumptions (without using the assumptions to
+  simplify each other or the actual goal).
+  
+\item[\ttindexbold{Asm_full_simp_tac}] is like \verb$Asm_simp_tac$,
+  but also simplifies the assumptions one by one.  Working from
+  \emph{left to right}, it uses each assumption in the simplification
+  of those following.
+  
+\item[set \ttindexbold{trace_simp};] makes the simplifier output
+  internal operations.  This includes rewrite steps, but also
+  bookkeeping like modifications of the simpset.
 \end{ttdescription}
 
-{\tt Asm_full_simp_tac} is the most powerful of this quartet but may also
-loop where some of the others terminate.  For example,
+\medskip
+
+As an example, consider the theory of arithmetic in \HOL.  The (rather
+trivial) goal $0 + (x + 0) = x + 0 + 0$ can be solved by a single call
+of \texttt{Simp_tac} as follows:
 \begin{ttbox}
-{\out  1. ALL x. f(x) = g(f(g(x))) ==> f(0) = f(0)+0}
+context Arith.thy;
+goal Arith.thy "0 + (x + 0) = x + 0 + 0";
+{\out  1. 0 + (x + 0) = x + 0 + 0}
+by (Simp_tac 1);
+{\out Level 1}
+{\out 0 + (x + 0) = x + 0 + 0}
+{\out No subgoals!}
 \end{ttbox}
-is solved by {\tt Simp_tac}, but {\tt Asm_simp_tac} and {\tt Asm_simp_tac}
-loop because the rewrite rule $f(\Var{x}) = f(g(f(\Var{x})))$ extracted from
-the assumption does not terminate.  Isabelle notices certain simple forms of
-nontermination, but not this one.
+
+The simplifier uses the current simpset of \texttt{Arith.thy}, which
+contains suitable theorems like $\Var{n}+0 = \Var{n}$ and $0+\Var{n} =
+\Var{n}$.
+
+\medskip In many cases, assumptions of a subgoal are also needed in
+the simplification process.  For example, \texttt{x = 0 ==> x + x = 0}
+is solved by \texttt{Asm_simp_tac} as follows:
+\begin{ttbox}
+{\out  1. x = 0 ==> x + x = 0}
+by (Asm_simp_tac 1);
+\end{ttbox}
+
+\medskip {\tt Asm_full_simp_tac} is the most powerful of this quartet
+of tactics but may also loop where some of the others terminate.  For
+example,
+\begin{ttbox}
+{\out  1. ALL x. f x = g (f (g x)) ==> f 0 = f 0 + 0}
+\end{ttbox}
+is solved by {\tt Simp_tac}, but {\tt Asm_simp_tac} and {\tt
+  Asm_simp_tac} loop because the rewrite rule $f\,\Var{x} =
+g\,(f\,(g\,\Var{x}))$ extracted from the assumption does not
+terminate.  Isabelle notices certain simple forms of nontermination,
+but not this one.
  
 \begin{warn}
   Since \verb$Asm_full_simp_tac$ works from left to right, it sometimes
 misses opportunities for simplification: given the subgoal
 \begin{ttbox}
-{\out [| P(f(a)); f(a) = t |] ==> ...}
+{\out [| P (f a); f a = t |] ==> \dots}
 \end{ttbox}
 \verb$Asm_full_simp_tac$ will not simplify the first assumption using the
 second but will leave the assumptions unchanged.  See
 \S\ref{sec:reordering-asms} for ways around this problem.
 \end{warn}
 
-Using the simplifier effectively may take a bit of experimentation.
-\index{tracing!of simplification}\index{*trace_simp} The tactics can
-be traced by setting \verb$trace_simp$.
+\medskip
 
-There is not just one global current simpset, but one associated with each
-theory as well.  How are these simpset built up?
-\begin{enumerate}
-\item When loading {\tt T.thy}, the current simpset is initialized with the
-  union of the simpsets associated with all the ancestors of {\tt T}.  In
-  addition, certain constructs in {\tt T} may add new rules to the simpset,
-  e.g.\ \ttindex{datatype} and \ttindex{primrec} in \HOL.  Definitions are not
-  added automatically!
-\item The script in {\tt T.ML} may manipulate the current simpset further by
-  explicitly adding/deleting theorems to/from it (see below).
-\item After {\tt T.ML} has been read, the current simpset is associated with
-  theory {\tt T}.
-\end{enumerate}
-The current simpset is manipulated by
+Using the simplifier effectively may take a bit of experimentation.
+Set the \verb$trace_simp$\index{tracing!of simplification} flag to get
+a better idea of what is going on.  The resulting output can be
+enormous, especially since invocations of the simplifier are often
+nested (e.g.\ when solving conditions of rewrite rules).
+
+
+\subsection{Modifying the current simpset}
 \begin{ttbox}
-Addsimps, Delsimps: thm list -> unit
+Addsimps    : thm list -> unit
+Delsimps    : thm list -> unit
+Addsimprocs : simproc list -> unit
+Delsimprocs : simproc list -> unit
+Addcongs    : thm list -> unit
+Delcongs    : thm list -> unit
 \end{ttbox}
+
+Depending on the theory context, the \texttt{Add} and \texttt{Del}
+functions manipulate basic components of the associated current
+simpset.  Internally, all rewrite rules have to be expressed as
+(conditional) meta-equalities.  This form is derived automatically
+from object-level equations that are supplied by the user.  Another
+source of rewrite rules are \emph{simplification procedures}, that is
+\ML\ functions that produce suitable theorems on demand, depending on
+the current redex.  Congruences are a more advanced feature; see
+\S\ref{sec:simp-congs}.
+
 \begin{ttdescription}
-\item[\ttindexbold{Addsimps} $thms$] adds $thms$ to the current simpset
-\item[\ttindexbold{Delsimps} $thms$] deletes $thms$ from the current simpset
+
+\item[\ttindexbold{Addsimps} $thms$;] adds rewrite rules derived from
+  $thms$ to the current simpset.
+  
+\item[\ttindexbold{Delsimps} $thms$;] deletes rewrite rules derived
+  from $thms$ from the current simpset.
+  
+\item[\ttindexbold{Addsimprocs} $procs$;] adds simplification
+  procedures $procs$ to the current simpset.
+  
+\item[\ttindexbold{Delsimprocs} $procs$;] deletes simplification
+  procedures $procs$ from the current simpset.
+  
+\item[\ttindexbold{Addcongs} $thms$;] adds congruence rules to the
+  current simpset.
+  
+\item[\ttindexbold{Delcongs} $thms$;] deletes congruence rules to the
+  current simpset.
+
 \end{ttdescription}
 
-Generally useful simplification rules $\Var{n}+0 = \Var{n}$ should be added
-to the current simpset right after they have been proved.  Those of a more
-specific nature (e.g.\ the laws of de~Morgan, which alter the structure of a
-formula) should only be added for specific proofs and deleted again
-afterwards.  Conversely, it may also happen that a generally useful rule needs
-to be removed for a certain proof and is added again afterwards.  Well
-designed simpsets need few temporary additions or deletions.
+When a new theory is built, its implicit simpset is initialized by the
+union of the respective simpsets of its parent theories.  In addition,
+certain theory definition constructs (e.g.\ \ttindex{datatype} and
+\ttindex{primrec} in \HOL) implicitly augment the current simpset.
+Ordinary definitions are not added automatically!
+
+It is up the user to manipulate the current simpset further by
+explicitly adding or deleting theorems and simplification procedures.
+
+\medskip
+
+Good simpsets are hard to design.  As a rule of thump, generally
+useful ``simplification rules'' like $\Var{n}+0 = \Var{n}$ should be
+added to the current simpset right after they have been proved.  Those
+of a more specific nature (e.g.\ the laws of de~Morgan, which alter
+the structure of a formula) should only be added for specific proofs
+and deleted again afterwards.  Conversely, it may also happen that a
+generally useful rule needs to be removed for a certain proof and is
+added again afterwards.  The need of frequent temporary additions or
+deletions may indicate a badly designed simpset.
 
 \begin{warn}
-  The union of the ancestor simpsets (as described above) is not always a good
-  simpset for the new theory.  If some ancestors have deleted simplification
-  rules because they are no longer wanted, while others have left those rules
-  in, then the union will contain the unwanted rules.  If the ancestor
-  simpsets differ in other components (the subgoaler, solver, looper or rule
-  preprocessor: see below), then you cannot be sure which version of that
-  component will be inherited.  You may have to set the component explicitly
-  for the new theory's simpset by an assignment of the form
- {\tt simpset := \dots}.
-\end{warn}
-
-\begin{warn}
-  If you execute proofs interactively, or load them from an ML file without
-  associated {\tt .thy} file, you must set the current simpset by calling
-  \ttindex{set_current_thy}~{\tt"}$T${\tt"}, where $T$ is the name of the
-  theory you want to work in.  If you have just loaded $T$, this is not
-  necessary.
+  The union of the parent simpsets (as described above) is not always
+  a good starting point for the new theory.  If some ancestors have
+  deleted simplification rules because they are no longer wanted,
+  while others have left those rules in, then the union will contain
+  the unwanted rules.
 \end{warn}
 
 
 \section{Simplification sets}\index{simplification sets} 
-The simplification tactics are controlled by {\bf simpsets}.  These
-consist of several components, including rewrite rules, congruence
-rules, the subgoaler, the solver and the looper.  The simplifier
-should be set up with sensible defaults so that most simplifier calls
-specify only rewrite rules.  Experienced users can exploit the other
-components to streamline proofs.
 
-Logics like \HOL, which support a current
-simpset\index{simpset!current}, store its value in an ML reference
-variable called {\tt simpset}\index{simpset@{\tt simpset} ML value}.
+The simplifier is controlled by information contained in {\bf
+  simpsets}.  These consist of several components, including rewrite
+rules, simplification procedures, congruence rules, and the subgoaler,
+solver and looper tactics.  The simplifier should be set up with
+sensible defaults so that most simplifier calls specify only rewrite
+rules or simplification procedures.  Experienced users can exploit the
+other components to streamline proofs in more sophisticated manners.
+
+\subsection{Inspecting simpsets}
+\begin{ttbox}
+print_ss : simpset -> unit
+\end{ttbox}
+\begin{ttdescription}
+  
+\item[\ttindexbold{print_ss} $ss$;] displays the printable contents of
+  simpset $ss$.  This includes the rewrite rules and congruences in
+  their internal form expressed as meta-equalities.  The names of the
+  simplification procedures and the patterns they are invoked on are
+  also shown.  The other parts, functions and tactics, are
+  non-printable.
+
+\end{ttdescription}
+
+
+\subsection{Building simpsets}
+\begin{ttbox}
+empty_ss : simpset
+merge_ss : simpset * simpset -> simpset
+\end{ttbox}
+\begin{ttdescription}
+  
+\item[\ttindexbold{empty_ss}] is the empty simpset.  This is not very
+  useful under normal circumstances because it doesn't contain
+  suitable tactics (subgoaler etc.).  When setting up the simplifier
+  for a particular object-logic, one will typically define a more
+  appropriate ``almost empty'' simpset.  For example, in \HOL\ this is
+  called \ttindexbold{HOL_basic_ss}.
+  
+\item[\ttindexbold{merge_ss} ($ss@1$, $ss@2$)] merges simpsets $ss@1$
+  and $ss@2$ by building the union of their respective rewrite rules,
+  simplification procedures and congruences.  The other components
+  (tactics etc.) cannot be merged, though; they are simply inherited
+  from either simpset.
+
+\end{ttdescription}
+
+
+\subsection{Accessing the current simpset}
+
+\begin{ttbox}
+simpset        : unit -> simpset
+simpset_ref    : unit -> simpset ref
+simpset_of     : theory -> simpset
+simpset_ref_of : theory -> simpset ref
+print_simpset  : theory -> unit
+\end{ttbox}
+
+Each theory contains a current simpset\index{simpset!current} stored
+within a private ML reference variable.  This can be retrieved and
+modified as follows.
+
+\begin{ttdescription}
+  
+\item[\ttindexbold{simpset}();] retrieves the simpset value from the
+  current theory context.
+  
+\item[\ttindexbold{simpset_ref}();] retrieves the simpset reference
+  variable from the current theory context.  This can be assigned to
+  by using \texttt{:=} in ML.
+  
+\item[\ttindexbold{simpset_of} $thy$;] retrieves the simpset value
+  from theory $thy$.
+  
+\item[\ttindexbold{simpset_ref_of} $thy$;] retrieves the simpset
+  reference variable from theory $thy$.
+
+\item[\ttindexbold{print_simpset} $thy$;] prints the current simpset
+  of theory $thy$ in the same way as \texttt{print_ss}.
+
+\end{ttdescription}
+
 
 \subsection{Rewrite rules}
-\index{rewrite rules|(}
-Rewrite rules are theorems expressing some form of equality:
+\begin{ttbox}
+addsimps : simpset * thm list -> simpset \hfill{\bf infix 4}
+delsimps : simpset * thm list -> simpset \hfill{\bf infix 4}
+\end{ttbox}
+
+\index{rewrite rules|(} Rewrite rules are theorems expressing some
+form of equality, for example:
 \begin{eqnarray*}
   Suc(\Var{m}) + \Var{n} &=&      \Var{m} + Suc(\Var{n}) \\
   \Var{P}\conj\Var{P}    &\bimp&  \Var{P} \\
   \Var{A} \un \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
 \end{eqnarray*}
 Conditional rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
-0$ are permitted; the conditions can be arbitrary formulas.
+0$ are also permitted; the conditions can be arbitrary formulas.
 
-Internally, all rewrite rules are translated into meta-equalities, theorems
-with conclusion $lhs \equiv rhs$.  Each simpset contains a function for
-extracting equalities from arbitrary theorems.  For example,
-$\neg(\Var{x}\in \{\})$ could be turned into $\Var{x}\in \{\} \equiv
-False$.  This function can be installed using \ttindex{setmksimps} but only
-the definer of a logic should need to do this; see \S\ref{sec:setmksimps}.
-The function processes theorems added by \ttindex{addsimps} as well as
-local assumptions.
+Internally, all rewrite rules are translated into meta-equalities,
+theorems with conclusion $lhs \equiv rhs$.  Each simpset contains a
+function for extracting equalities from arbitrary theorems.  For
+example, $\neg(\Var{x}\in \{\})$ could be turned into $\Var{x}\in \{\}
+\equiv False$.  This function can be installed using
+\ttindex{setmksimps} but only the definer of a logic should need to do
+this; see \S\ref{sec:setmksimps}.  The function processes theorems
+added by \texttt{addsimps} as well as local assumptions.
 
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{addsimps} $thms$] adds rewrite rules derived
+  from $thms$ to the simpset $ss$.
+  
+\item[$ss$ \ttindexbold{delsimps} $thms$] deletes rewrite rules
+  derived from $thms$ from the simpset $ss$.
+
+\end{ttdescription}
 
 \begin{warn}
-The simplifier will accept all standard rewrite rules: those
-where all unknowns are of base type.  Hence ${\Var{i}+(\Var{j}+\Var{k})} =
-{(\Var{i}+\Var{j})+\Var{k}}$ is ok.
-
-It will also deal gracefully with all rules whose left-hand sides are
-so-called {\em higher-order patterns}~\cite{nipkow-patterns}.
-\indexbold{higher-order pattern}\indexbold{pattern, higher-order}
-These are terms in $\beta$-normal form (this will always be the case unless
-you have done something strange) where each occurrence of an unknown is of
-the form $\Var{F}(x@1,\dots,x@n)$, where the $x@i$ are distinct bound
-variables. Hence $(\forall x.\Var{P}(x) \land \Var{Q}(x)) \bimp (\forall
-x.\Var{P}(x)) \land (\forall x.\Var{Q}(x))$ is also ok, in both directions.
-
-In some rare cases the rewriter will even deal with quite general rules: for
-example ${\Var{f}(\Var{x})\in range(\Var{f})} = True$ rewrites $g(a) \in
-range(g)$ to $True$, but will fail to match $g(h(b)) \in range(\lambda
-x.g(h(x)))$.  However, you can replace the offending subterms (in our case
-$\Var{f}(\Var{x})$, which is not a pattern) by adding new variables and
-conditions: $\Var{y} = \Var{f}(\Var{x}) \Imp \Var{y}\in range(\Var{f})
-= True$ is acceptable as a conditional rewrite rule since conditions can
-be arbitrary terms.
-
-There is no restriction on the form of the right-hand sides.
+  The simplifier will accept all standard rewrite rules: those where
+  all unknowns are of base type.  Hence ${\Var{i}+(\Var{j}+\Var{k})} =
+  {(\Var{i}+\Var{j})+\Var{k}}$ is OK.
+  
+  It will also deal gracefully with all rules whose left-hand sides
+  are so-called {\em higher-order patterns}~\cite{nipkow-patterns}.
+  \indexbold{higher-order pattern}\indexbold{pattern, higher-order}
+  These are terms in $\beta$-normal form (this will always be the case
+  unless you have done something strange) where each occurrence of an
+  unknown is of the form $\Var{F}(x@1,\dots,x@n)$, where the $x@i$ are
+  distinct bound variables. Hence $(\forall x.\Var{P}(x) \land
+  \Var{Q}(x)) \bimp (\forall x.\Var{P}(x)) \land (\forall
+  x.\Var{Q}(x))$ is also OK, in both directions.
+  
+  In some rare cases the rewriter will even deal with quite general
+  rules: for example ${\Var{f}(\Var{x})\in range(\Var{f})} = True$
+  rewrites $g(a) \in range(g)$ to $True$, but will fail to match
+  $g(h(b)) \in range(\lambda x.g(h(x)))$.  However, you can replace
+  the offending subterms (in our case $\Var{f}(\Var{x})$, which is not
+  a pattern) by adding new variables and conditions: $\Var{y} =
+  \Var{f}(\Var{x}) \Imp \Var{y}\in range(\Var{f}) = True$ is
+  acceptable as a conditional rewrite rule since conditions can be
+  arbitrary terms.
+  
+  There is basically no restriction on the form of the right-hand
+  sides.  They may not contain extraneous term or type variables,
+  though.
 \end{warn}
-
 \index{rewrite rules|)}
 
-\subsection{*Congruence rules}\index{congruence rules}
+
+\subsection{Simplification procedures}
+\begin{ttbox}
+addsimprocs : simpset * simproc list -> simpset
+delsimprocs : simpset * simproc list -> simpset
+\end{ttbox}
+
+Simplification procedures are {\ML} functions that may produce
+\emph{proven} rewrite rules on demand.  They are associated with
+certain patterns that conceptually represent left-hand sides of
+equations; these are shown by \texttt{print_ss}.  During its
+operation, the simplifier may offer a simplification procedure the
+current redex and ask for a suitable rewrite rule.  Thus rules may be
+specifically fashioned for particular situations, resulting in a more
+powerful mechanism than term rewriting by a fixed set of rules.
+
+
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{addsimprocs} $procs$] adds simplification
+  procedures $procs$ to the current simpset.
+  
+\item[$ss$ \ttindexbold{delsimprocs} $procs$] deletes simplification
+  procedures $procs$ from the current simpset.
+
+\end{ttdescription}
+
+
+\subsection{*Congruence rules}\index{congruence rules}\label{sec:simp-congs}
+\begin{ttbox}
+addcongs   : simpset * thm list -> simpset \hfill{\bf infix 4}
+delcongs   : simpset * thm list -> simpset \hfill{\bf infix 4}
+addeqcongs : simpset * thm list -> simpset \hfill{\bf infix 4}
+deleqcongs : simpset * thm list -> simpset \hfill{\bf infix 4}
+\end{ttbox}
+
 Congruence rules are meta-equalities of the form
 \[ \dots \Imp
    f(\Var{x@1},\ldots,\Var{x@n}) \equiv f(\Var{y@1},\ldots,\Var{y@n}).
@@ -210,13 +389,36 @@ example, some arguments can be simplified under additional assumptions:
 \[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
    \Imp (\Var{P@1} \imp \Var{P@2}) \equiv (\Var{Q@1} \imp \Var{Q@2})
 \]
-Given this rule, the simplifier assumes $Q@1$ and extracts rewrite rules
-from it when simplifying~$P@2$.  Such local assumptions are effective for
-rewriting formulae such as $x=0\imp y+x=y$.  The local assumptions are also
-provided as theorems to the solver; see page~\pageref{sec:simp-solver} below.
+Given this rule, the simplifier assumes $Q@1$ and extracts rewrite
+rules from it when simplifying~$P@2$.  Such local assumptions are
+effective for rewriting formulae such as $x=0\imp y+x=y$.  The local
+assumptions are also provided as theorems to the solver; see
+\S~\ref{sec:simp-solver} below.
 
-Here are some more examples.  The congruence rule for bounded quantifiers
-also supplies contextual information, this time about the bound variable:
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{addcongs} $thms$] adds congruence rules to the
+  simpset $ss$.  These are derived from $thms$ in an appropriate way,
+  depending on the underlying object-logic.
+  
+\item[$ss$ \ttindexbold{delcongs} $thms$] deletes congruence rules
+  derived from $thms$.
+  
+\item[$ss$ \ttindexbold{addeqcongs} $thms$] adds congruence rules in
+  their internal form (conclusions using meta-equality) to simpset
+  $ss$.  This is the basic mechanism that \texttt{addcongs} is built
+  on.  It should be rarely used directly.
+  
+\item[$ss$ \ttindexbold{deleqcongs} $thms$] deletes congruence rules
+  in internal form from simpset $ss$.
+  
+\end{ttdescription}
+
+\medskip
+
+Here are some more examples.  The congruence rule for bounded
+quantifiers also supplies contextual information, this time about the
+bound variable:
 \begin{eqnarray*}
   &&\List{\Var{A}=\Var{B};\; 
           \Forall x. x\in \Var{B} \Imp \Var{P}(x) = \Var{Q}(x)} \Imp{} \\
@@ -238,41 +440,57 @@ Only the first argument is simplified; the others remain unchanged.
 This can make simplification much faster, but may require an extra case split
 to prove the goal.  
 
-Congruence rules are added/deleted using 
-\ttindexbold{addeqcongs}/\ttindex{deleqcongs}.  
-Their conclusion must be a meta-equality, as in the examples above.  It is more
-natural to derive the rules with object-logic equality, for example
-\[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
-   \Imp (\Var{P@1} \imp \Var{P@2}) \bimp (\Var{Q@1} \imp \Var{Q@2}),
-\]
-Each object-logic should define operators called \ttindex{addcongs} and 
-\ttindex{delcongs} that expects object-equalities and translates them into 
-meta-equalities.
 
-\subsection{*The subgoaler}
+\subsection{*The subgoaler}\label{sec:simp-subgoaler}
+\begin{ttbox}
+setsubgoaler : simpset *  (simpset -> int -> tactic) -> simpset \hfill{\bf infix 4}
+prems_of_ss  : simpset -> thm list
+\end{ttbox}
+
 The subgoaler is the tactic used to solve subgoals arising out of
 conditional rewrite rules or congruence rules.  The default should be
-simplification itself.  Occasionally this strategy needs to be changed.  For
-example, if the premise of a conditional rule is an instance of its
-conclusion, as in $Suc(\Var{m}) < \Var{n} \Imp \Var{m} < \Var{n}$, the
-default strategy could loop.
+simplification itself.  Occasionally this strategy needs to be
+changed.  For example, if the premise of a conditional rule is an
+instance of its conclusion, as in $Suc(\Var{m}) < \Var{n} \Imp \Var{m}
+< \Var{n}$, the default strategy could loop.
 
-The subgoaler can be set explicitly with \ttindex{setsubgoaler}.  For
-example, the subgoaler
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{setsubgoaler} $tacf$] sets the subgoaler of
+  $ss$ to $tacf$.  The function $tacf$ will be applied to the current
+  simplifier context expressed as a simpset.
+  
+\item[\ttindexbold{prems_of_ss} $ss$] retrieves the current set of
+  premises from simplifier context $ss$.  This may be non-empty only
+  if the simplifier has been told to utilize local assumptions in the
+  first place, e.g.\ if invoked via \texttt{asm_simp_tac}.
+
+\end{ttdescription}
+
+As an example, consider the following subgoaler:
 \begin{ttbox}
-fun subgoal_tac ss = assume_tac ORELSE'
-                     resolve_tac (prems_of_ss ss) ORELSE' 
-                     asm_simp_tac ss;
+fun subgoaler ss =
+    assume_tac ORELSE'
+    resolve_tac (prems_of_ss ss) ORELSE'
+    asm_simp_tac ss;
 \end{ttbox}
-tries to solve the subgoal by assumption or with one of the premises, calling
-simplification only if that fails; here {\tt prems_of_ss} extracts the
-current premises from a simpset.
+This tactic first tries to solve the subgoal by assumption or by
+resolving with with one of the premises, calling simplification only
+if that fails.
+
 
 \subsection{*The solver}\label{sec:simp-solver}
+\begin{ttbox}
+setSolver  : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
+addSolver  : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
+setSSolver : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
+addSSolver : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
+\end{ttbox}
+
 The solver is a pair of tactics that attempt to solve a subgoal after
-simplification.  Typically it just proves trivial subgoals such as {\tt
-  True} and $t=t$.  It could use sophisticated means such as {\tt
-  blast_tac}, though that could make simplification expensive. 
+simplification.  Typically it just proves trivial subgoals such as
+{\tt True} and $t=t$.  It could use sophisticated means such as {\tt
+  blast_tac}, though that could make simplification expensive.
 
 Rewriting does not instantiate unknowns.  For example, rewriting
 cannot prove $a\in \Var{A}$ since this requires
@@ -281,43 +499,66 @@ and may instantiate unknowns as it pleases.  This is the only way the
 simplifier can handle a conditional rewrite rule whose condition
 contains extra variables.  When a simplification tactic is to be
 combined with other provers, especially with the classical reasoner,
-it is important whether it can be considered safe or not.  Therefore,
-the solver is split into a safe and an unsafe part.  Both parts can be
-set independently, using either \ttindex{setSSolver} with a safe
-tactic as argument, or \ttindex{setSolver} with an unsafe tactic.
-Additional solvers, which are tried after the already set solvers, may
-be added using \ttindex{addSSolver} and \ttindex{addSolver}.
+it is important whether it can be considered safe or not.  For this
+reason the solver is split into a safe and an unsafe part.
 
 The standard simplification strategy solely uses the unsafe solver,
-which is appropriate in most cases.  But for special applications where
+which is appropriate in most cases.  For special applications where
 the simplification process is not allowed to instantiate unknowns
-within the goal, the tactic \ttindexbold{safe_asm_full_simp_tac} is
-provided.  It uses the \emph{safe} solver for the current subgoal, but
-applies ordinary unsafe {\tt asm_full_simp_tac} for recursive internal
-simplifications (for conditional rules or congruences).
+within the goal, simplification starts with the safe solver, but may
+still apply the ordinary unsafe one in nested simplifications for
+conditional rules or congruences.
 
-\index{assumptions!in simplification}
-The tactic is presented with the full goal, including the asssumptions.
-Hence it can use those assumptions (say by calling {\tt assume_tac}) even
-inside {\tt simp_tac}, which otherwise does not use assumptions.  The
-solver is also supplied a list of theorems, namely assumptions that hold in
-the local context.
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{setSSolver} $tacf$] installs $tacf$ as the
+  \emph{safe} solver of $ss$.
+  
+\item[$ss$ \ttindexbold{addSSolver} $tacf$] adds $tacf$ as an
+  additional \emph{safe} solver; it will be tried after the solvers
+  which had already been present in $ss$.
+  
+\item[$ss$ \ttindexbold{setSolver} $tacf$] installs $tacf$ as the
+  unsafe solver of $ss$.
+  
+\item[$ss$ \ttindexbold{addSolver} $tacf$] adds $tacf$ as an
+  additional unsafe solver; it will be tried after the solvers which
+  had already been present in $ss$.
 
-The subgoaler is also used to solve the premises of congruence rules, which
-are usually of the form $s = \Var{x}$, where $s$ needs to be simplified and
-$\Var{x}$ needs to be instantiated with the result.  Hence the subgoaler
-should call the simplifier at some point.  The simplifier will then call the
-solver, which must therefore be prepared to solve goals of the form $t =
-\Var{x}$, usually by reflexivity.  In particular, reflexivity should be
-tried before any of the fancy tactics like {\tt blast_tac}.  
+\end{ttdescription}
+
+\medskip
+
+\index{assumptions!in simplification} The solver tactic is invoked
+with a list of theorems, namely assumptions that hold in the local
+context.  This may be non-empty only if the simplifier has been told
+to utilize local assumptions in the first place, e.g.\ if invoked via
+\texttt{asm_simp_tac}.  The solver is also presented the full goal
+including its assumptions in any case.  Thus it can use these (e.g.\ 
+by calling \texttt{assume_tac}), even if the list of premises is not
+passed.
+
+\medskip
+
+As explained in \S\ref{sec:simp-subgoaler}, the subgoaler is also used
+to solve the premises of congruence rules.  These are usually of the
+form $s = \Var{x}$, where $s$ needs to be simplified and $\Var{x}$
+needs to be instantiated with the result.  Typically, the subgoaler
+will invoke the simplifier at some point, which will eventually call
+the solver.  For this reason, solver tactics must be prepared to solve
+goals of the form $t = \Var{x}$, usually by reflexivity.  In
+particular, reflexivity should be tried before any of the fancy
+tactics like {\tt blast_tac}.
 
 It may even happen that due to simplification the subgoal is no longer
 an equality.  For example $False \bimp \Var{Q}$ could be rewritten to
 $\neg\Var{Q}$.  To cover this case, the solver could try resolving
 with the theorem $\neg False$.
 
+\medskip
+
 \begin{warn}
-  If the simplifier aborts with the message {\tt Failed congruence
+  If the simplifier aborts with the message \texttt{Failed congruence
     proof!}, then the subgoaler or solver has failed to prove a
   premise of a congruence rule.  This should never occur under normal
   circumstances; it indicates that some congruence rule, or possibly
@@ -325,145 +566,138 @@ with the theorem $\neg False$.
 \end{warn}
 
 
-\subsection{*The looper}
-The looper is a tactic that is applied after simplification, in case the
-solver failed to solve the simplified goal.  If the looper succeeds, the
-simplification process is started all over again.  Each of the subgoals
-generated by the looper is attacked in turn, in reverse order.  A
-typical looper is case splitting: the expansion of a conditional.  Another
-possibility is to apply an elimination rule on the assumptions.  More
-adventurous loopers could start an induction.  The looper is set with 
-\ttindex{setloop}.  Additional loopers, which are tried after the already set
-looper, may be added with \ttindex{addloop}.
-
-
-\begin{figure}
-\index{*simpset ML type}
-\index{*empty_ss}
-\index{*rep_ss}
-\index{*prems_of_ss}
-\index{*setloop}
-\index{*addloop}
-\index{*setSSolver}
-\index{*addSSolver}
-\index{*setSolver}
-\index{*addSolver}
-\index{*setsubgoaler}
-\index{*setmksimps}
-\index{*addsimps}
-\index{*delsimps}
-\index{*addeqcongs}
-\index{*deleqcongs}
-\index{*merge_ss}
-\index{*simpset}
-\index{*Addsimps}
-\index{*Delsimps}
-\index{*simp_tac}
-\index{*asm_simp_tac}
-\index{*full_simp_tac}
-\index{*asm_full_simp_tac}
-\index{*safe_asm_full_simp_tac}
-\index{*Simp_tac}
-\index{*Asm_simp_tac}
-\index{*Full_simp_tac}
-\index{*Asm_full_simp_tac}
-
+\subsection{*The looper}\label{sec:simp-looper}
 \begin{ttbox}
-infix 4 setsubgoaler setloop addloop 
-        setSSolver addSSolver setSolver addSolver 
-        setmksimps addsimps delsimps addeqcongs deleqcongs;
-
-signature SIMPLIFIER =
-sig
-  type simpset
-  val empty_ss: simpset
-  val rep_ss: simpset -> {\ttlbrace}simps: thm list, procs: string list, 
-                          congs: thm list,
-                          subgoal_tac:        simpset -> int -> tactic,
-                          loop_tac:                      int -> tactic,
-                                 finish_tac: thm list -> int -> tactic,
-                          unsafe_finish_tac: thm list -> int -> tactic{\ttrbrace}
-  val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
-  val setloop:      simpset *             (int -> tactic) -> simpset
-  val addloop:      simpset *             (int -> tactic) -> simpset
-  val setSSolver:   simpset * (thm list -> int -> tactic) -> simpset
-  val addSSolver:   simpset * (thm list -> int -> tactic) -> simpset
-  val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
-  val addSolver:    simpset * (thm list -> int -> tactic) -> simpset
-  val setmksimps:  simpset * (thm -> thm list) -> simpset
-  val addsimps:    simpset * thm list -> simpset
-  val delsimps:    simpset * thm list -> simpset
-  val addeqcongs:  simpset * thm list -> simpset
-  val deleqcongs:  simpset * thm list -> simpset
-  val merge_ss:    simpset * simpset -> simpset
-  val prems_of_ss: simpset -> thm list
-  val simpset:     simpset ref
-  val Addsimps: thm list -> unit
-  val Delsimps: thm list -> unit
-  val               simp_tac: simpset -> int -> tactic
-  val           asm_simp_tac: simpset -> int -> tactic
-  val          full_simp_tac: simpset -> int -> tactic
-  val      asm_full_simp_tac: simpset -> int -> tactic
-  val safe_asm_full_simp_tac: simpset -> int -> tactic
-  val               Simp_tac:            int -> tactic
-  val           Asm_simp_tac:            int -> tactic
-  val          Full_simp_tac:            int -> tactic
-  val      Asm_full_simp_tac:            int -> tactic
-end;
+setloop   : simpset * (int -> tactic) -> simpset \hfill{\bf infix 4}
+addloop   : simpset * (int -> tactic) -> simpset \hfill{\bf infix 4}
+addsplits : simpset * thm list -> simpset \hfill{\bf infix 4}
 \end{ttbox}
-\caption{The simplifier primitives} \label{SIMPLIFIER}
-\end{figure}
+
+The looper is a tactic that is applied after simplification, in case
+the solver failed to solve the simplified goal.  If the looper
+succeeds, the simplification process is started all over again.  Each
+of the subgoals generated by the looper is attacked in turn, in
+reverse order.
+
+A typical looper is case splitting: the expansion of a conditional.
+Another possibility is to apply an elimination rule on the
+assumptions.  More adventurous loopers could start an induction.
+
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{setloop} $tacf$] installs $tacf$ as the looper
+  of $ss$.
+  
+\item[$ss$ \ttindexbold{addloop} $tacf$] adds $tacf$ as an additional
+  looper; it will be tried after the loopers which had already been
+  present in $ss$.
+  
+\item[$ss$ \ttindexbold{addsplits} $thms$] adds
+  \texttt{(split_tac~$thms$)} as an additional looper.
+
+\end{ttdescription}
 
 
-\section{The simplification tactics}
-\label{simp-tactics}
-\index{simplification!tactics}
-\index{tactics!simplification}
 
-The actual simplification work is performed by the following basic tactics:
-\ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
-\ttindexbold{full_simp_tac} and \ttindexbold{asm_full_simp_tac}.  They work
-exactly like their namesakes in \S\ref{sec:simp-for-dummies}, except that
-they are explicitly supplied with a simpset.  This is because the ones in
-\S\ref{sec:simp-for-dummies} are defined in terms of the ones above, e.g.
+\section{The simplification tactics}\label{simp-tactics}
+\index{simplification!tactics}\index{tactics!simplification}
 \begin{ttbox}
-fun Simp_tac i = simp_tac (!simpset) i;
+simp_tac               : simpset -> int -> tactic
+asm_simp_tac           : simpset -> int -> tactic
+full_simp_tac          : simpset -> int -> tactic
+asm_full_simp_tac      : simpset -> int -> tactic
+safe_asm_full_simp_tac : simpset -> int -> tactic
+SIMPSET                : (simpset -> tactic) -> tactic
+SIMPSET'               : (simpset -> 'a -> tactic) -> 'a -> tactic
 \end{ttbox}
-where \ttindex{!simpset} is the current simpset\index{simpset!current}.
 
-The rewriting strategy of all four tactics is strictly bottom up, except for
-congruence rules, which are applied while descending into a term.  Conditions
-in conditional rewrite rules are solved recursively before the rewrite rule
-is applied.
+These are the basic tactics that are underlying any actual
+simplification work.  The rewriting strategy is always strictly bottom
+up, except for congruence rules, which are applied while descending
+into a term.  Conditions in conditional rewrite rules are solved
+recursively before the rewrite rule is applied.
 
-The infix operation \ttindex{addsimps} adds rewrite rules to a
-simpset, while \ttindex{delsimps} deletes them.  They are used to
-implement \ttindex{Addsimps} and \ttindex{Delsimps}, e.g.
-\begin{ttbox}
-fun Addsimps thms = (simpset := (!simpset addsimps thms));
-\end{ttbox}
-and can also be used directly, even in the presence of a current simpset.  For
-example
+\begin{ttdescription}
+  
+\item[\ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
+  \ttindexbold{full_simp_tac}, \ttindexbold{asm_full_simp_tac}] are
+  the basic simplification tactics that work exactly like their
+  namesakes in \S\ref{sec:simp-for-dummies}, except that they are
+  explicitly supplied with a simpset.
+  
+\item[\ttindexbold{safe_asm_full_simp_tac}] is like
+  \texttt{asm_full_simp_tac}, but uses the safe solver as explained in
+  \S\ref{sec:simp-solver}.  This tactic is mainly intended for
+  building special tools, e.g.\ for combining the simplifier with the
+  classical reasoner.  It is rarely used directly.
+  
+\item[\ttindexbold{SIMPSET} $tacf$, \ttindexbold{SIMPSET'} $tacf'$]
+  are tacticals that make a tactic depend on the implicit current
+  simpset of the theory associated with the proof state they are
+  applied on.
+
+\end{ttdescription}
+
+\medskip
+
+Local modifications of simpsets within a proof are often much cleaner
+by using above tactics in conjunction with explicit simpsets, rather
+than their capitalized counterparts.  For example
 \begin{ttbox}
 Addsimps \(thms\);
 by (Simp_tac \(i\));
 Delsimps \(thms\);
 \end{ttbox}
-can be compressed into
+can be expressed more appropriately as
 \begin{ttbox}
-by (simp_tac (!simpset addsimps \(thms\)) \(i\));
+by (simp_tac (simpset() addsimps \(thms\)) \(i\));
 \end{ttbox}
 
-The simpset associated with a particular theory can be retrieved via the name
-of the theory using the function
-\begin{ttbox}
-simpset_of: string -> simpset
-\end{ttbox}\index{*simpset_of}
+\medskip
 
-To remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
-return its simplification and congruence rules.
+Also note that functions depending implicitly on the current theory
+context (like capital \texttt{Simp_tac} and the other commands of
+\S\ref{sec:simp-for-dummies}) should be considered harmful outside of
+actual proof scripts.  In particular, ML programs like theory
+definition packages or special tactics should refer to simpsets only
+explicitly, via the above tactics used in conjunction with
+\texttt{simpset_of} or the \texttt{SIMPSET} tacticals.
 
-\section{Examples using the simplifier}
+\begin{warn}
+  There is a subtle difference between \texttt{(SIMPSET'~$tacf$)} and
+  \texttt{($tacf$~(simpset()))}.  For example \texttt{(SIMPSET'
+    simp_tac)} would depend on the theory of the proof state it is
+  applied to, while \texttt{(simp_tac (simpset()))} implicitly refers
+  to the current theory context.  Both are usually the same in proof
+  scripts, provided that goals are only stated within the current
+  theory.  Robust programs would not count on that, of course.
+\end{warn}
+
+
+\section{Forward simplification rules}
+\index{simplification!forward rules}
+\begin{ttbox}\index{*simplify}\index{*asm_simplify}\index{*full_simplify}\index{*asm_full_simplify}
+simplify          : simpset -> thm -> thm
+asm_simplify      : simpset -> thm -> thm
+full_simplify     : simpset -> thm -> thm
+asm_full_simplify : simpset -> thm -> thm
+\end{ttbox}
+
+These are forward rules, simplifying theorems in a similar way as the
+corresponding simplification tactics do.  The forward rules affect the whole
+
+ subgoals of a proof state.  The
+looper~/ solver process as described in \S\ref{sec:simp-looper} and
+\S\ref{sec:simp-solver} does not apply here, though.
+
+\begin{warn}
+  Forward simplification should be used rarely in ordinary proof
+  scripts.  It as mainly intended to provide an internal interface to
+  the simplifier for ML coded special utilities.
+\end{warn}
+
+
+\section{Examples of using the simplifier}
 \index{examples!of simplification} Assume we are working within {\tt
   FOL} (cf.\ \texttt{FOL/ex/Nat}) and that
 \begin{ttdescription}
@@ -477,8 +711,8 @@ return its simplification and congruence rules.
   is the induction rule $\List{\Var{P}(0);\; \Forall x. \Var{P}(x)\Imp
     \Var{P}(Suc(x))} \Imp \Var{P}(\Var{n})$.
 \end{ttdescription}
-We augment the implicit simpset of {\FOL} with the basic rewrite rules
-for natural numbers:
+We augment the implicit simpset inherited from \texttt{Nat} with the
+basic rewrite rules for natural numbers:
 \begin{ttbox}
 Addsimps [add_0, add_Suc];
 \end{ttbox}
@@ -548,7 +782,7 @@ by (Simp_tac 1);
 Switching tracing on illustrates how the simplifier solves the remaining
 subgoal: 
 \begin{ttbox}
-trace_simp := true;
+set trace_simp;
 by (Asm_simp_tac 1);
 \ttbreak
 {\out Adding rewrite rule:}
@@ -610,14 +844,9 @@ by (Simp_tac 1);
 {\out  1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
 \end{ttbox}
 The remaining subgoal requires rewriting by the premise, so we add it
-to the current simpset:\footnote{The previous simplifier required
-  congruence rules for function variables like~$f$ in order to
-  simplify their arguments.  It was more general than the current
-  simplifier, but harder to use and slower.  The present simplifier
-  can be given congruence rules to realize non-standard simplification
-  of a function's arguments, but this is seldom necessary.}
+to the current simpset:
 \begin{ttbox}
-by (asm_simp_tac (!simpset addsimps [prem]) 1);
+by (asm_simp_tac (simpset() addsimps [prem]) 1);
 {\out Level 3}
 {\out f(i + j) = i + f(j)}
 {\out No subgoals!}
@@ -627,8 +856,9 @@ by (asm_simp_tac (!simpset addsimps [prem]) 1);
 \label{sec:reordering-asms}
 \index{assumptions!reordering}
 
-As mentioned above, \ttindex{asm_full_simp_tac} may require the assumptions
-to be permuted to be more effective.  Given the subgoal
+As mentioned in \S\ref{sec:simp-for-dummies-tacs},
+\ttindex{asm_full_simp_tac} may require the assumptions to be permuted
+to be more effective.  Given the subgoal
 \begin{ttbox}
 {\out 1. [| P(f(a)); Q; f(a) = t; R |] ==> S}
 \end{ttbox}
@@ -654,12 +884,18 @@ which is more directed and leads to
 {\out 1. [| Q; f(a) = t; R; P(f(a)) |] ==> S}
 \end{ttbox}
 
-Note that reordering assumptions usually leads to brittle proofs and should
-therefore be avoided.  Future versions of \verb$asm_full_simp_tac$ may remove
-the need for such manipulations.
+\begin{warn}
+  Reordering assumptions usually leads to brittle proofs and should be
+  avoided.  Future versions of \verb$asm_full_simp_tac$ may remove the
+  need for such manipulations.
+\end{warn}
+
 
 \section{Permutative rewrite rules}
 \index{rewrite rules!permutative|(}
+\begin{ttbox}
+settermless : simpset * (term * term -> bool) -> simpset \hfill{\bf infix 4}
+\end{ttbox}
 
 A rewrite rule is {\bf permutative} if the left-hand side and right-hand
 side are the same up to renaming of variables.  The most common permutative
@@ -667,24 +903,39 @@ rule is commutativity: $x+y = y+x$.  Other examples include $(x-y)-z =
 (x-z)-y$ in arithmetic and $insert(x,insert(y,A)) = insert(y,insert(x,A))$
 for sets.  Such rules are common enough to merit special attention.
 
-Because ordinary rewriting loops given such rules, the simplifier employs a
-special strategy, called {\bf ordered rewriting}\index{rewriting!ordered}.
-There is a standard lexicographic ordering on terms.  A permutative rewrite
-rule is applied only if it decreases the given term with respect to this
-ordering.  For example, commutativity rewrites~$b+a$ to $a+b$, but then
-stops because $a+b$ is strictly less than $b+a$.  The Boyer-Moore theorem
-prover~\cite{bm88book} also employs ordered rewriting.
+Because ordinary rewriting loops given such rules, the simplifier
+employs a special strategy, called {\bf ordered
+  rewriting}\index{rewriting!ordered}.  There is a standard
+lexicographic ordering on terms.  This should be perfectly OK in most
+cases, but can be changed for special applications.
 
-Permutative rewrite rules are added to simpsets just like other rewrite
-rules; the simplifier recognizes their special status automatically.  They
-are most effective in the case of associative-commutative operators.
-(Associativity by itself is not permutative.)  When dealing with an
-AC-operator~$f$, keep the following points in mind:
+\begin{ttdescription}
+  
+\item[$ss$ \ttindexbold{settermless} $rel$] installs relation $rel$ as
+  term order in simpset $ss$.
+
+\end{ttdescription}
+
+\medskip
+
+A permutative rewrite rule is applied only if it decreases the given
+term with respect to this ordering.  For example, commutativity
+rewrites~$b+a$ to $a+b$, but then stops because $a+b$ is strictly less
+than $b+a$.  The Boyer-Moore theorem prover~\cite{bm88book} also
+employs ordered rewriting.
+
+Permutative rewrite rules are added to simpsets just like other
+rewrite rules; the simplifier recognizes their special status
+automatically.  They are most effective in the case of
+associative-commutative operators.  (Associativity by itself is not
+permutative.)  When dealing with an AC-operator~$f$, keep the
+following points in mind:
 \begin{itemize}\index{associative-commutative operators}
-\item The associative law must always be oriented from left to right, namely
-  $f(f(x,y),z) = f(x,f(y,z))$.  The opposite orientation, if used with
-  commutativity, leads to looping!  Future versions of Isabelle may remove
-  this restriction.
+  
+\item The associative law must always be oriented from left to right,
+  namely $f(f(x,y),z) = f(x,f(y,z))$.  The opposite orientation, if
+  used with commutativity, leads to looping in conjunction with the
+  standard term order.
 
 \item To complete your set of rewrite rules, you must add not just
   associativity~(A) and commutativity~(C) but also a derived rule, {\bf
@@ -699,17 +950,18 @@ examples; other algebraic structures are amenable to ordered rewriting,
 such as boolean rings.
 
 \subsection{Example: sums of natural numbers}
-This example is set in \HOL\ (see \texttt{HOL/ex/NatSum}).  Theory
-\thydx{Arith} contains natural numbers arithmetic.  Its associated
-simpset contains many arithmetic laws including distributivity
-of~$\times$ over~$+$, while {\tt add_ac} is a list consisting of the
-A, C and LC laws for~$+$ on type \texttt{nat}.  Let us prove the
-theorem
+
+This example is again set in \HOL\ (see \texttt{HOL/ex/NatSum}).
+Theory \thydx{Arith} contains natural numbers arithmetic.  Its
+associated simpset contains many arithmetic laws including
+distributivity of~$\times$ over~$+$, while {\tt add_ac} is a list
+consisting of the A, C and LC laws for~$+$ on type \texttt{nat}.  Let
+us prove the theorem
 \[ \sum@{i=1}^n i = n\times(n+1)/2. \]
 %
 A functional~{\tt sum} represents the summation operator under the
 interpretation ${\tt sum} \, f \, (n + 1) = \sum@{i=0}^n f\,i$.  We
-extend {\tt Arith} using a theory file:
+extend {\tt Arith} as follows:
 \begin{ttbox}
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
@@ -800,18 +1052,115 @@ or~$u=t$.)  Then the simplifier can prove the goal outright.
 \index{rewrite rules!permutative|)}
 
 
+\section{*Coding simplification procedures}
+\begin{ttbox}
+mk_simproc: string -> cterm list ->
+              (Sign.sg -> thm list -> term -> thm option) -> simproc
+\end{ttbox}
+
+\begin{ttdescription}
+\item[\ttindexbold{mk_simproc}~$name$~$lhss$~$proc$] makes $proc$ a
+  simplification procedure for left-hand side patterns $lhss$.  The
+  name just serves as a comment.  The function $proc$ may be invoked
+  by the simplifier for redex positions matched by one of $lhss$ as
+  described below.
+\end{ttdescription}
+
+Simplification procedures are applied in a two-stage process as
+follows: The simplifier tries to match the current redex position
+against any one of the $lhs$ patterns of any simplification procedure.
+If this succeeds, it invokes the corresponding {\ML} function, passing
+with the current signature, local assumptions and the (potential)
+redex.  The result may be either \texttt{None} (indicating failure) or
+\texttt{Some~$thm$}.
+
+Any successful result is supposed to be a (possibly conditional)
+rewrite rule $t \equiv u$ that is applicable to the current redex.
+The rule will be applied just as any ordinary rewrite rule.  It is
+expected to be already in \emph{internal form}, though, bypassing the
+automatic preprocessing of object-level equivalences.
+
+\medskip
+
+As an example of how to write your own simplification procedures,
+consider eta-expansion of pair abstraction (see also
+\texttt{HOL/Modelcheck/MCSyn} where this is used to provide external
+model checker syntax).
+  
+The {\HOL} theory of tuples (see \texttt{HOL/Prod}) provides an
+operator \texttt{split} together with some concrete syntax supporting
+$\lambda\,(x,y).b$ abstractions.  Assume that we would like to offer a
+tactic that rewrites any function $\lambda\,p.f\,p$ (where $p$ is of
+some pair type) to $\lambda\,(x,y).f\,(x,y)$.  The corresponding rule
+is:
+\begin{ttbox}
+pair_eta_expand:  (f::'a*'b=>'c) = (\%(x, y). f (x, y))
+\end{ttbox}
+Unfortunately, term rewriting using this rule directly would not
+terminate!  We now use the simplification procedure mechanism in order
+to stop the simplifier from applying this rule over and over again,
+making it rewrite only actual abstractions.  The simplification
+procedure \texttt{pair_eta_expand_proc} is defined as follows:
+\begin{ttbox}
+local
+  val lhss =
+    [read_cterm (sign_of Prod.thy) ("f::'a*'b=>'c", TVar (("'a", 0), []))];
+  val rew = mk_meta_eq pair_eta_expand; \medskip
+  fun proc _ _ (Abs _) = Some rew
+    | proc _ _ _ = None;
+in
+  val pair_eta_expand_proc = Simplifier.mk_simproc "pair_eta_expand" lhss proc;
+end;
+\end{ttbox}
+This is an example of using \texttt{pair_eta_expand_proc}:
+\begin{ttbox}
+{\out 1. P (\%p::'a * 'a. fst p + snd p + z)}
+by (simp_tac (simpset() addsimprocs [pair_eta_expand_proc]) 1);
+{\out 1. P (\%(x::'a,y::'a). x + y + z)}
+\end{ttbox}
+
+\medskip
+
+In the above example the simplification procedure just did fine
+grained control over rule application, beyond higher-order pattern
+matching.  Usually, procedures would do some more work, in particular
+prove particular theorems depending on the current redex.
+
+For example, simplification procedures \ttindexbold{nat_cancel} of
+\texttt{HOL/Arith} cancel common summands and constant factors out of
+several relations of sums over natural numbers.
+
+Consider the following goal, which after cancelling $a$ on both sides
+contains a factor of $2$.  Simplifying with the simpset of
+\texttt{Arith.thy} will do the cancellation automatically:
+\begin{ttbox}
+{\out 1. x + a + x < y + y + 2 + a + a + a + a + a}
+by (Simp_tac 1);
+{\out 1. x < Suc (a + (a + y))}
+\end{ttbox}
+
+\medskip
+
+The {\ML} sources for these simplification procedures consist of a
+generic part (files \texttt{cancel_sums.ML} and
+\texttt{cancel_factor.ML} in \texttt{Provers/Arith}), and a
+\texttt{HOL} specific part in \texttt{HOL/arith_data.ML}.
+
+
 \section{*Setting up the simplifier}\label{sec:setting-up-simp}
 \index{simplification!setting up}
 
 Setting up the simplifier for new logics is complicated.  This section
-describes how the simplifier is installed for intuitionistic first-order
-logic; the code is largely taken from {\tt FOL/simpdata.ML}.
+describes how the simplifier is installed for intuitionistic
+first-order logic; the code is largely taken from {\tt
+  FOL/simpdata.ML} of the Isabelle sources.
 
 The simplifier and the case splitting tactic, which reside on separate
-files, are not part of Pure Isabelle.  They must be loaded explicitly:
+files, are not part of Pure Isabelle.  They must be loaded explicitly
+by the object-logic as follows:
 \begin{ttbox}
-use "../Provers/simplifier.ML";
-use "../Provers/splitter.ML";
+use "$ISABELLE_HOME/src/Provers/simplifier.ML";
+use "$ISABELLE_HOME/src/Provers/splitter.ML";
 \end{ttbox}
 
 Simplification works by reducing various object-equalities to
@@ -824,11 +1173,12 @@ iff_reflection  "(P<->Q) ==> (P==Q)"
 \end{ttbox}
 Of course, you should only assert such rules if they are true for your
 particular logic.  In Constructive Type Theory, equality is a ternary
-relation of the form $a=b\in A$; the type~$A$ determines the meaning of the
-equality essentially as a partial equivalence relation.  The present
-simplifier cannot be used.  Rewriting in {\tt CTT} uses another simplifier,
-which resides in the file {\tt typedsimp.ML} and is not documented.  Even
-this does not work for later variants of Constructive Type Theory that use
+relation of the form $a=b\in A$; the type~$A$ determines the meaning
+of the equality essentially as a partial equivalence relation.  The
+present simplifier cannot be used.  Rewriting in {\tt CTT} uses
+another simplifier, which resides in the file {\tt
+  Provers/typedsimp.ML} and is not documented.  Even this does not
+work for later variants of Constructive Type Theory that use
 intensional equality~\cite{nordstrom90}.
 
 
@@ -842,13 +1192,13 @@ fun int_prove_fun s =
  (writeln s;  
   prove_goal IFOL.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
-                  (Int.fast_tac 1) ]));
+                  (IntPr.fast_tac 1) ]));
 \end{ttbox}
 The following rewrite rules about conjunction are a selection of those
 proved on {\tt FOL/simpdata.ML}.  Later, these will be supplied to the
 standard simpset.
 \begin{ttbox}
-val conj_rews = map int_prove_fun
+val conj_simps = map int_prove_fun
  ["P & True <-> P",      "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
   "P & P <-> P",
@@ -859,7 +1209,7 @@ The file also proves some distributive laws.  As they can cause exponential
 blowup, they will not be included in the standard simpset.  Instead they
 are merely bound to an \ML{} identifier, for user reference.
 \begin{ttbox}
-val distrib_rews  = map int_prove_fun
+val distrib_simps  = map int_prove_fun
  ["P & (Q | R) <-> P&Q | P&R", 
   "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
@@ -868,7 +1218,9 @@ val distrib_rews  = map int_prove_fun
 
 \subsection{Functions for preprocessing the rewrite rules}
 \label{sec:setmksimps}
-%
+\begin{ttbox}\indexbold{*setmksimps}
+setmksimps : simpset * (thm -> thm list) -> simpset \hfill{\bf infix 4}
+\end{ttbox}
 The next step is to define the function for preprocessing rewrite rules.
 This will be installed by calling {\tt setmksimps} below.  Preprocessing
 occurs whenever rewrite rules are added, whether by user command or
@@ -942,25 +1294,34 @@ be composed together and supplied below to {\tt setmksimps}.
 
 
 \subsection{Making the initial simpset}
-It is time to assemble these items.  We open module {\tt Simplifier} to
-gain access to its components.  We define the infix operator
-\ttindexbold{addcongs} to insert congruence rules; given a list of theorems,
-it converts their conclusions into meta-equalities and passes them to
-\ttindex{addeqcongs}.
+
+It is time to assemble these items.  We open module {\tt Simplifier}
+to gain direct access to its components.  We define the infix operator
+\ttindex{addcongs} to insert congruence rules; given a list of
+theorems, it converts their conclusions into meta-equalities and
+passes them to \ttindex{addeqcongs}.
 \begin{ttbox}
 open Simplifier;
 \ttbreak
-infix addcongs;
+infix 4 addcongs;
 fun ss addcongs congs =
     ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
 \end{ttbox}
-The list {\tt IFOL_rews} contains the default rewrite rules for first-order
-logic.  The first of these is the reflexive law expressed as the
-equivalence $(a=a)\bimp{\tt True}$; the rewrite rule $a=a$ is clearly useless.
+Furthermore, we define the infix operator \ttindex{addsplits}
+providing a convenient interface for adding split tactics.
 \begin{ttbox}
-val IFOL_rews =
-   [refl RS P_iff_T] \at conj_rews \at disj_rews \at not_rews \at 
-    imp_rews \at iff_rews \at quant_rews;
+infix 4 addsplits;
+fun ss addsplits splits = ss addloop (split_tac splits);
+\end{ttbox}
+
+The list {\tt IFOL_simps} contains the default rewrite rules for
+first-order logic.  The first of these is the reflexive law expressed
+as the equivalence $(a=a)\bimp{\tt True}$; the rewrite rule $a=a$ is
+clearly useless.
+\begin{ttbox}
+val IFOL_simps =
+   [refl RS P_iff_T] \at conj_simps \at disj_simps \at not_simps \at 
+    imp_simps \at iff_simps \at quant_simps;
 \end{ttbox}
 The list {\tt triv_rls} contains trivial theorems for the solver.  Any
 subgoal that is simplified to one of these will be removed.
@@ -969,28 +1330,35 @@ val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 \end{ttbox}
 %
-The basic simpset for intuitionistic \FOL{} starts with \ttindex{empty_ss}.
-It preprocess rewrites using {\tt gen_all}, {\tt atomize} and {\tt
-  mk_meta_eq}.  It solves simplified subgoals using {\tt triv_rls} and
-assumptions, and by detecting contradictions.  
-It uses \ttindex{asm_simp_tac} to tackle subgoals of
-conditional rewrites.  It takes {\tt IFOL_rews} as rewrite rules.  
-Other simpsets built from {\tt IFOL_ss} will inherit these items.
-In particular, {\tt FOL_ss} extends {\tt IFOL_ss} with classical rewrite
-rules such as $\neg\neg P\bimp P$.
+The basic simpset for intuitionistic \FOL{} is
+\ttindexbold{FOL_basic_ss}.  It preprocess rewrites using {\tt
+  gen_all}, {\tt atomize} and {\tt mk_meta_eq}.  It solves simplified
+subgoals using {\tt triv_rls} and assumptions, and by detecting
+contradictions.  It uses \ttindex{asm_simp_tac} to tackle subgoals of
+conditional rewrites.
+
+Other simpsets built from {\tt FOL_basic_ss} will inherit these items.
+In particular, \ttindexbold{IFOL_ss}, which introduces {\tt
+  IFOL_simps} as rewrite rules.  \ttindexbold{FOL_ss} will later
+extend {\tt IFOL_ss} with classical rewrite rules such as $\neg\neg
+P\bimp P$.
 \index{*setmksimps}\index{*setSSolver}\index{*setSolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}
 \begin{ttbox}
-fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls \at prems),
+fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls {\at} prems),
                                  atac, etac FalseE];
-fun   safe_solver prems = FIRST'[match_tac (triv_rls \at prems),
+
+fun   safe_solver prems = FIRST'[match_tac (triv_rls {\at} prems),
                                  eq_assume_tac, ematch_tac [FalseE]];
-val IFOL_ss = empty_ss setsubgoaler asm_simp_tac
-                       setSSolver   safe_solver
-                       setSolver  unsafe_solver
-                       setmksimps (map mk_meta_eq o atomize o gen_all)
-                       addsimps IFOL_simps
-                       addcongs [imp_cong];
+
+val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
+                            addsimprocs [defALL_regroup,defEX_regroup]
+                            setSSolver   safe_solver
+                            setSolver  unsafe_solver
+                            setmksimps (map mk_meta_eq o atomize o gen_all);
+
+val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps {\at} int_ex_simps {\at} int_all_simps)
+                           addcongs [imp_cong];
 \end{ttbox}
 This simpset takes {\tt imp_cong} as a congruence rule in order to use
 contextual information to simplify the conclusions of implications:
@@ -1027,14 +1395,33 @@ called~$split$) for Cartesian products:
 \langle a,b\rangle \imp \Var{P}(\Var{f}(a,b))) 
 \] 
 Case splits should be allowed only when necessary; they are expensive
-and hard to control.  Here is a typical example of use, where {\tt
-  expand_if} is the first rule above:
+and hard to control.  Here is an example of use, where {\tt expand_if}
+is the first rule above:
 \begin{ttbox}
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (simpset() addloop (split_tac [expand_if])) 1);
+\end{ttbox}
+Users would usually prefer the following shortcut using
+\ttindex{addsplits}:
+\begin{ttbox}
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 \end{ttbox}
 
 
+\subsection{Theory data for implicit simpsets}
+\begin{ttbox}\indexbold{*simpset_thy_data}
+simpset_thy_data: string * (object * (object -> object) *
+    (object * object -> object) * (Sign.sg -> object -> unit))
+\end{ttbox}
+
+Theory data for implicit simpsets has to be set up explicitly.  The
+simplifier already provides an appropriate data kind definition
+record.  This has to be installed into the base theory of any new
+object-logic as \ttindexbold{thy_data} within the \texttt{ML} section.
+
+This is done at the end of \texttt{IFOL.thy} as follows:
+\begin{ttbox}
+ML val thy_data = [Simplifier.simpset_thy_data];
+\end{ttbox}
+
 
 \index{simplification|)}
-
-
