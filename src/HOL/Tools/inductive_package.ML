@@ -72,14 +72,14 @@ val lfp_name = "Lfp.lfp";
 val vimage_name = "Inverse_Image.vimage";
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (Thm.concl_of vimageD);
 
-val inductive_forall_name = "HOL.inductive_forall";
-val inductive_forall_def = thm "inductive_forall_def";
-val inductive_conj_name = "HOL.inductive_conj";
-val inductive_conj_def = thm "inductive_conj_def";
-val inductive_conj = thms "inductive_conj";
-val inductive_atomize = thms "inductive_atomize";
-val inductive_rulify1 = thms "inductive_rulify1";
-val inductive_rulify2 = thms "inductive_rulify2";
+val inductive_forall_name = "HOL.induct_forall";
+val inductive_forall_def = thm "induct_forall_def";
+val inductive_conj_name = "HOL.induct_conj";
+val inductive_conj_def = thm "induct_conj_def";
+val inductive_conj = thms "induct_conj";
+val inductive_atomize = thms "induct_atomize";
+val inductive_rulify1 = thms "induct_rulify1";
+val inductive_rulify2 = thms "induct_rulify2";
 
 
 
