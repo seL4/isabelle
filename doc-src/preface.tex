@@ -2,20 +2,23 @@
 \markboth{Preface}{Preface}   %or Preface ?
 \addcontentsline{toc}{chapter}{Preface} 
 
-\index{Isabelle!object-logics supported}
-
 Most theorem provers support a fixed logic, such as first-order or
 equational logic.  They bring sophisticated proof procedures to bear upon
 the conjectured formula.  The resolution prover Otter~\cite{wos-bledsoe} is
-an impressive example.  ALF~\cite{alf}, Coq~\cite{coq} and
-Nuprl~\cite{constable86} each support a fixed logic too, but one far
-removed from first-order logic.  They are explicitly concerned with
-computation.  A diverse collection of logics --- type theories, process
-calculi, $\lambda$-calculi --- may be found in the Computer Science
-literature.  Such logics require proof support.  Few proof procedures are
-known for them, but the theorem prover can at least automate routine steps.
+an impressive example.
 
-A {\bf generic} theorem prover is one that can support a variety of logics.
+{\sc alf}~\cite{alf}, Coq~\cite{coq} and Nuprl~\cite{constable86} each
+support a fixed logic too.  These are higher-order type theories,
+explicitly concerned with computation and capable of expressing
+developments in constructive mathematics.  They are far removed from
+classical first-order logic.
+
+A diverse collection of logics --- type theories, process calculi,
+$\lambda$-calculi --- may be found in the Computer Science literature.
+Such logics require proof support.  Few proof procedures are known for
+them, but the theorem prover can at least automate routine steps.
+
+A {\bf generic} theorem prover is one that supports a variety of logics.
 Some generic provers are noteworthy for their user interfaces
 \cite{dawson90,mural,sawamura92}.  Most of them work by implementing a
 syntactic framework that can express typical inference rules.  Isabelle's
@@ -35,7 +38,7 @@ not resolve clauses automatically, but under user direction.  You can
 conduct single-step proofs, use Isabelle's built-in proof procedures, or
 develop new proof procedures using tactics and tacticals.
 
-Isabelle's meta-logic is higher-order, based on the typed
+Isabelle's meta-logic is higher-order, based on the simply typed
 $\lambda$-calculus.  So resolution cannot use ordinary unification, but
 higher-order unification~\cite{huet75}.  This complicated procedure gives
 Isabelle strong support for many logical formalisms involving variable
@@ -45,9 +48,8 @@ The diagram below illustrates some of the logics distributed with Isabelle.
 These include first-order logic (intuitionistic and classical), the sequent
 calculus, higher-order logic, Zermelo-Fraenkel set theory~\cite{suppes72},
 a version of Constructive Type Theory~\cite{nordstrom90}, several modal
-logics, and a Logic for Computable Functions.  Several experimental
-logics are also available, such a term assignment calculus for linear
-logic.  
+logics, and a Logic for Computable Functions.  Several experimental logics
+are being developed, such as linear logic.
 
 \centerline{\epsfbox{Isa-logics.eps}}
 
@@ -77,8 +79,8 @@ distinct purposes:
   should use it to locate facts quickly.
 
 \item {\em Isabelle's Object-Logics\/} describes the various logics
-  distributed with Isabelle.  Its final chapter explains how to define new
-  logics.  The other chapters are intended for reference only.
+  distributed with Isabelle.  The chapters are intended for reference only;
+  they overlap somewhat so that each chapter can be read in isolation.
 \end{itemize}
 This book should not be read from start to finish.  Instead you might read
 a couple of chapters from {\em Introduction to Isabelle}, then try some
@@ -88,7 +90,7 @@ on a first reading.
 
 
 
-\section*{Releases of Isabelle}\index{Isabelle!release history}
+\section*{Releases of Isabelle}
 Isabelle was first distributed in 1986.  The 1987 version introduced a
 higher-order meta-logic with an improved treatment of quantifiers.  The
 1988 version added limited polymorphism and support for natural deduction.
@@ -125,13 +127,15 @@ Mahjoub and Karin Nimmermann also contributed.
 
 Nipkow and his students wrote much of the documentation underlying this
 book.  Nipkow wrote the first versions of \S\ref{sec:defining-theories},
-\S\ref{sec:ref-defining-theories}, Chap.\ts\ref{simp-chap},
-Chap.\ts\ref{Defining-Logics} and App.\ts\ref{app:TheorySyntax}\@.  Carsten
+\S\ref{sec:ref-defining-theories}, Chap.\ts\ref{Defining-Logics},
+Chap.\ts\ref{simp-chap} and App.\ts\ref{app:TheorySyntax}\@.  Carsten
 Clasohm contributed to Chap.\ts\ref{theories}.  Markus Wenzel contributed
-to Chap.\ts\ref{Defining-Logics}.
+to Chap.\ts\ref{chap:syntax}.  Nipkow also provided the quotation at
+the front.
 
-David Aspinall, Sara Kalvala, Ina Kraan, Zhenyu Qian, Norbert V{\"o}lker and
-Markus Wenzel suggested changes and corrections to the documentation.
+David Aspinall, Sara Kalvala, Ina Kraan, Chris Owens, Zhenyu Qian, Norbert
+V{\"o}lker and Markus Wenzel suggested changes and corrections to the
+documentation.
 
 Martin Coen, Rajeev Gor\'e, Philippe de Groote and Philippe No\"el helped
 to develop Isabelle's standard object-logics.  David Aspinall performed
@@ -142,6 +146,3 @@ Poly/{\sc ml}.
 The research has been funded by numerous SERC grants dating from the Alvey
 programme (grants GR/E0355.7, GR/G53279, GR/H40570) and by ESPRIT (projects
 3245: Logical Frameworks and 6453: Types).
-
-
-\index{ML}
