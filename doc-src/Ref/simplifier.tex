@@ -1180,16 +1180,18 @@ or~$u=t$.)  Then the simplifier can prove the goal outright.
 
 \section{*Coding simplification procedures}
 \begin{ttbox}
-mk_simproc: string -> cterm list ->
-              (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val Simplifier.simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  val Simplifier.simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{mk_simproc}~$name$~$lhss$~$proc$] makes $proc$ a
-  simplification procedure for left-hand side patterns $lhss$.  The
-  name just serves as a comment.  The function $proc$ may be invoked
-  by the simplifier for redex positions matched by one of $lhss$ as
-  described below.
+\item[\ttindexbold{simproc}~$sign$~$name$~$lhss$~$proc$] makes $proc$ a
+  simplification procedure for left-hand side patterns $lhss$.  The name just
+  serves as a comment.  The function $proc$ may be invoked by the simplifier
+  for redex positions matched by one of $lhss$ as described below (which are
+  be specified as strings to be read as terms).
 \end{ttdescription}
 
 Simplification procedures are applied in a two-stage process as
@@ -1227,16 +1229,9 @@ to stop the simplifier from applying this rule over and over again,
 making it rewrite only actual abstractions.  The simplification
 procedure \texttt{pair_eta_expand_proc} is defined as follows:
 \begin{ttbox}
-local
-  val lhss =
-    [read_cterm (sign_of Prod.thy) 
-                ("f::'a*'b=>'c", TVar (("'z", 0), []))];
-  val rew = mk_meta_eq pair_eta_expand; \medskip
-  fun proc _ _ (Abs _) = Some rew
-    | proc _ _ _ = None;
-in
-  val pair_eta_expand_proc = mk_simproc "pair_eta_expand" lhss proc;
-end;
+val pair_eta_expand_proc =
+  Simplifier.simproc (Theory.sign_of (the_context ())) "pair_eta_expand" ["f::'a*'b=>'c"]
+  (fn _ => fn _ => fn t => case t of Abs _ => Some (mk_meta_eq pair_eta_expand) | _ => None);
 \end{ttbox}
 This is an example of using \texttt{pair_eta_expand_proc}:
 \begin{ttbox}
