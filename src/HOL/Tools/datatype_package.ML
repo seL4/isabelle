@@ -295,7 +295,7 @@ fun add_cases_induct infos =
           (if i + 1 < n then (fn th => th RS conjunct1) else I)
             (Library.funpow i (fn th => th RS conjunct2) thm)
           |> Drule.standard
-          |> RuleCases.name (RuleCases.get thm);
+          |> RuleCases.save thm;
 
     fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
       (("", proj index (length descr) induction), [InductAttrib.induct_type_global name]) ::

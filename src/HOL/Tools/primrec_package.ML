@@ -266,7 +266,7 @@ fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
   in
     induction
     |> RuleCases.rename_params (map params_of (flat (map (map #1 o #3 o #2) descr)))
-    |> RuleCases.name (RuleCases.get induction)
+    |> RuleCases.save induction
   end;
 
 fun add_primrec_i alt_name eqns_atts thy =
