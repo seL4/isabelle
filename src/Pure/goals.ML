@@ -142,7 +142,7 @@ fun prepare_proof rths chorn =
             val th = strip_shyps (implies_intr_list cAs state)
             val {hyps,prop,sign=sign',...} = rep_thm th
             val xshyps = extra_shyps th;
-        in  if not check then standard th
+        in  if not check then th
 	    else if not (Sign.eq_sg(sign,sign')) then !result_error_ref state
 		("Signature of proof state has changed!" ^
 		 sign_error (sign,sign'))
