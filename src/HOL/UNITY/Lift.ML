@@ -254,6 +254,11 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
 by (Blast_tac 1);
 qed "E_thm16a";
 
+(*Must sometimes delete them because they introduce multiplication*)
+val metric_ss = simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+                          addsimps metric_simps;
+
+
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
 Goal "#0<N ==>   \
 \     Lift : (closed Int Req n Int {s. metric n s = N} Int goingdown) LeadsTo \
@@ -262,16 +267,15 @@ by (cut_facts_tac [bounded] 1);
 by (ensures_tac "req_down" 1);
 by Auto_tac;
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
+by (ALLGOALS (asm_simp_tac (metric_ss addsimps zcompare_rls)));
 by (Blast_tac 1);
 qed "E_thm16b";
-
 
 
 (*lem_lift_5_0 proves an intersection involving ~goingup and goingup,
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
 Goal "#0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown";
-by (asm_simp_tac (simpset() addsimps metric_simps) 1);
+by (asm_simp_tac metric_ss 1);
 by (force_tac (claset() delrules [impCE] addEs [impCE], 
 	       simpset() addsimps conj_comms) 1);
 qed "E_thm16c";
@@ -294,7 +298,7 @@ qed "lift_5";
 Goal "[| metric n s = #0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
 by (etac rev_mp 1);
 (*force simplification of "metric..." while in conclusion part*)
-by (asm_simp_tac (simpset() addsimps metric_simps) 1);
+by (asm_simp_tac metric_ss 1);
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
@@ -309,7 +313,7 @@ by Auto_tac;
 qed "E_thm11";
 
 val metric_tac = REPEAT (FIRSTGOAL (eresolve_tac mov_metrics))
-                 THEN auto_tac (claset(), simpset() addsimps metric_simps);
+                 THEN auto_tac (claset(), metric_ss);
 
 (*lem_lift_3_5*)
 Goal
