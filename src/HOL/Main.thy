@@ -100,7 +100,8 @@ text {*
 
 refute_params [minsize=1,
                maxsize=8,
-               maxvars=100,
-               satsolver="dpll"]
+               maxvars=10000,
+               maxtime=60,
+               satsolver="auto"]
 
 end
