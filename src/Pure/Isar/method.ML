@@ -56,7 +56,8 @@ sig
   val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> Args.src -> Proof.context -> Proof.method
-  val add_method: bstring * (Args.src -> Proof.context -> Proof.method) * string -> theory -> theory
+  val add_method: bstring * (Args.src -> Proof.context -> Proof.method) * string
+    -> theory -> theory
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
@@ -107,6 +108,10 @@ sig
   val global_default_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_done_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
+    -> Args.src -> Proof.context -> Proof.method
+  val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
+    -> ('a -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
 end;
 
@@ -340,9 +345,9 @@ fun assumption_tac ctxt [] = assm_tac ctxt
 fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 
 
-(* res_inst_tac emulations *)
+(* res_inst_tac etc. *)
 
-(*Note: insts refer to the implicit (!) goal context; use at your own risk*)
+(*Note: insts refer to the implicit (!!) goal context; use at your own risk*)
 fun gen_res_inst tac (quant, (insts, thm)) =
   METHOD (fn facts => (quant (insert_tac facts THEN' tac insts thm)));
 
@@ -350,6 +355,7 @@ val res_inst = gen_res_inst Tactic.res_inst_tac;
 val eres_inst = gen_res_inst Tactic.eres_inst_tac;
 val dres_inst = gen_res_inst Tactic.dres_inst_tac;
 val forw_inst = gen_res_inst Tactic.forw_inst_tac;
+val cut_inst = gen_res_inst Tactic.cut_inst_tac;
 
 
 (* simple Prolog interpreter *)
@@ -500,21 +506,20 @@ fun thms_args f = thms_ctxt_args (K o f);
 end;
 
 
-(* insts *)
+(* tactic syntax *)
 
 val insts =
-  Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --
-    (Scan.lift (Args.$$$ "in") |-- Attrib.local_thm);
+  Scan.optional
+    (Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --|
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thm;
 
 fun inst_args f = f oo (#2 oo syntax (Args.goal_spec HEADGOAL -- insts));
 
 
-(* subgoal *)
+fun goal_args' args tac = #2 oo syntax (Args.goal_spec HEADGOAL -- args >>
+  (fn (quant, s) => METHOD (fn facts => quant (insert_tac facts THEN' tac s))));
 
-fun subgoal x = (Args.goal_spec HEADGOAL -- Scan.lift Args.name >>
-  (fn (quant, s) => METHOD (fn facts => quant (insert_tac facts THEN' Tactic.subgoal_tac s)))) x;
-
-val subgoal_meth = #2 oo syntax subgoal;
+fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
 
 
@@ -600,27 +605,37 @@ val global_done_proof = global_term_proof false (done_text, None);
 
 (** theory setup **)
 
+(* misc tactic emulations *)
+
+val subgoal_meth = goal_args (Scan.repeat1 Args.name) Tactic.subgoals_tac;
+val thin_meth = goal_args Args.name Tactic.thin_tac;
+val rename_meth = goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac;
+
+
 (* pure_methods *)
 
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing, inserting current facts only"),
-  ("insert", thms_args insert, "insert theorems, ignoring facts (improper!)"),
+  ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
   ("default", thms_ctxt_args some_rule, "apply some rule"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
-  ("erule", thms_ctxt_args some_erule, "apply some rule in elimination manner (improper!)"),
-  ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper!)"),
-  ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper!)"),
+  ("erule", thms_ctxt_args some_erule, "apply some rule in elimination manner (improper)"),
+  ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper)"),
+  ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper)"),
   ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-  ("res_inst_tac", inst_args res_inst, "res_inst_tac emulation (dynamic instantiation!)"),
-  ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (dynamic instantiation!)"),
-  ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (dynamic instantiation!)"),
-  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (dynamic instantiation!)"),
+  ("rule_tac", inst_args res_inst, "apply rule (dynamic instantiation!)"),
+  ("erule_tac", inst_args eres_inst, "apply rule in elimination manner (dynamic instantiation!)"),
+  ("drule_tac", inst_args dres_inst, "apply rule in destruct manner (dynamic instantiation!)"),
+  ("frule_tac", inst_args forw_inst, "apply rule in forward manner (dynamic instantiation!)"),
+  ("cut_tac", inst_args cut_inst, "cut rule (dynamic instantiation!)"),
   ("subgoal_tac", subgoal_meth, "subgoal_tac emulation (dynamic instantiation!)"),
+  ("thin_tac", thin_meth, "thin_tac emulation (dynamic instantiation!)"),
+  ("rename_tac", rename_meth, "rename_tac emulation (dynamic instantiation!)"),
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
