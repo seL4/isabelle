@@ -51,6 +51,15 @@ fun add (p as (thy, thm)) =
       tab)) thy, thm)
   end handle TERM _ => (warn thm; p) | Pattern.Pattern => (warn thm; p);
 
+fun del (p as (thy, thm)) =
+  let
+    val tab = CodegenData.get thy;
+    val (s, _) = const_of (prop_of thm);
+  in (CodegenData.put (Symtab.update ((s,
+    gen_rem eq_thm (if_none (Symtab.lookup (tab, s)) [], thm)),
+      tab)) thy, thm)
+  end handle TERM _ => (warn thm; p);
+
 fun get_equations thy (s, T) =
   (case Symtab.lookup (CodegenData.get thy, s) of
      None => []
@@ -139,6 +148,6 @@ fun recfun_codegen thy gr dep brack t = (case strip_comb t of
 val setup =
   [CodegenData.init,
    add_codegen "recfun" recfun_codegen,
-   add_attribute "" add];
+   add_attribute "" (Args.del |-- Scan.succeed del || Scan.succeed add)];
 
 end;
