@@ -24,7 +24,8 @@ sig
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
   val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
-  val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
+  val begin_theory: Path.T option -> string -> string list ->
+    (Path.T * bool) list -> theory -> theory
   val add_hook: (string -> (string * thm list) list -> unit) -> unit
   val results: string -> (string * thm list) list -> unit
   val theorem: string -> thm -> unit
@@ -432,16 +433,16 @@ fun parent_link remote_path curr_session name =
        (html_path name))), name)
   end;
 
-fun begin_theory name raw_parents orig_files thy =
+fun begin_theory optpath name raw_parents orig_files thy =
     with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = map (apsnd Some) orig_files @
-      (if is_some (ThyLoad.check_file ml_path) then [(ml_path, None)] else []);
+      (if is_some (ThyLoad.check_file optpath ml_path) then [(ml_path, None)] else []);
 
     fun prep_file (raw_path, loadit) =
-      (case ThyLoad.check_file raw_path of
+      (case ThyLoad.check_file optpath raw_path of
         Some (path, _) =>
           let
             val base = Path.base path;
