@@ -119,6 +119,8 @@ sig
   val prefix: ''a list * ''a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val prefixes1: 'a list -> 'a list list
+  val suffixes1: 'a list -> 'a list list
 
   (*integers*)
   val gcd: int * int -> int
@@ -664,6 +666,11 @@ fun take_suffix _ [] = ([], [])
       (case take_suffix pred xs of
         ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
       | (prfx, sffx) => (x :: prfx, sffx));
+
+fun prefixes1 [] = []
+  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
+
+fun suffixes1 xs = map rev (prefixes1 (rev xs));
 
 
 
