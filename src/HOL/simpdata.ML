@@ -97,16 +97,16 @@ local
            | _ => [th])
     in atoms end;
 
+  fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
+
+in
+
   fun mk_meta_eq r = case concl_of r of
           Const("==",_)$_$_ => r
       |   _$(Const("op =",_)$_$_) => r RS eq_reflection
       |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
       |   _ => r RS P_imp_P_eq_True;
   (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
-
-  fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
-
-in
 
 val simp_thms = map prover
  [ "(x=x) = True",
@@ -125,63 +125,17 @@ val simp_thms = map prover
    "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
    "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
 
-val meta_eq_to_obj_eq = prove_goal HOL.thy "x==y ==> x=y"
-  (fn [prem] => [rewtac prem, rtac refl 1]);
-
-val eq_sym_conv = prover "(x=y) = (y=x)";
-
-val conj_assoc = prover "((P&Q)&R) = (P&(Q&R))";
-
-val disj_assoc = prover "((P|Q)|R) = (P|(Q|R))";
-
-val imp_disj   = prover "(P|Q --> R) = ((P-->R)&(Q-->R))";
-
-(*Avoids duplication of subgoals after expand_if, when the true and false 
-  cases boil down to the same thing.*) 
-val cases_simp = prover "((P --> Q) & (~P --> Q)) = Q";
-
-val if_True = prove_goalw HOL.thy [if_def] "(if True then x else y) = x"
- (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
-
-val if_False = prove_goalw HOL.thy [if_def] "(if False then x else y) = y"
- (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
-
-val if_P = prove_goal HOL.thy "P ==> (if P then x else y) = x"
- (fn [prem] => [ stac (prem RS eqTrueI) 1, rtac if_True 1 ]);
-
-val if_not_P = prove_goal HOL.thy "~P ==> (if P then x else y) = y"
- (fn [prem] => [ stac (prem RS not_P_imp_P_iff_F) 1, rtac if_False 1 ]);
-
-val expand_if = prove_goal HOL.thy
-    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
- (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
-         stac if_P 2,
-         stac if_not_P 1,
-         REPEAT(fast_tac HOL_cs 1) ]);
-
-val if_bool_eq = prove_goal HOL.thy
-                   "(if P then Q else R) = ((P-->Q) & (~P-->R))"
-                   (fn _ => [rtac expand_if 1]);
-
 (*Add congruence rules for = (instead of ==) *)
 infix 4 addcongs;
 fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
 
-val mksimps_pairs =
-  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
-   ("All", [spec]), ("True", []), ("False", []),
-   ("If", [if_bool_eq RS iffD1])];
-
 fun mksimps pairs = map mk_meta_eq o atomize pairs o gen_all;
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
         (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
-
-val o_apply = prove_goalw HOL.thy [o_def] "(f o g) x = f (g x)"
- (fn _ => [rtac refl 1]);
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prover 
@@ -201,22 +155,6 @@ val all_simps = map prover
                  "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
                  "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
 
-(*In general it seems wrong to add distributive laws by default: they
-  might cause exponential blow-up.  But imp_disj has been in for a while
-  and cannot be removed without affecting existing proofs.  Moreover, 
-  rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
-  grounds that it allows simplification of R in the two cases.*)
-
-
-local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_tac splits = mktac (map mk_meta_eq splits)
-end;
-
-local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_inside_tac splits = mktac (map mk_meta_eq splits)
-end;
 
 
 (* elimination of existential quantifiers in assumptions *)
@@ -230,49 +168,6 @@ val ex_all_equiv =
         (fn prems => [REPEAT(resolve_tac prems 1)])
   in equal_intr lemma1 lemma2 end;
 
-(* '&' congruence rule: not included by default!
-   May slow rewrite proofs down by as much as 50% *)
-
-val conj_cong = 
-  let val th = prove_goal HOL.thy 
-                "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [fast_tac HOL_cs 1])
-  in  standard (impI RSN (2, th RS mp RS mp))  end;
-
-val rev_conj_cong =
-  let val th = prove_goal HOL.thy 
-                "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [fast_tac HOL_cs 1])
-  in  standard (impI RSN (2, th RS mp RS mp))  end;
-
-(* '|' congruence rule: not included by default! *)
-
-val disj_cong = 
-  let val th = prove_goal HOL.thy 
-                "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
-                (fn _=> [fast_tac HOL_cs 1])
-  in  standard (impI RSN (2, th RS mp RS mp))  end;
-
-(** 'if' congruence rules: neither included by default! *)
-
-(*Simplifies x assuming c and y assuming ~c*)
-val if_cong = prove_goal HOL.thy
-  "[| b=c; c ==> x=u; ~c ==> y=v |] ==>\
-\  (if b then x else y) = (if c then u else v)"
-  (fn rew::prems =>
-   [stac rew 1, stac expand_if 1, stac expand_if 1,
-    fast_tac (HOL_cs addDs prems) 1]);
-
-(*Prevents simplification of x and y: much faster*)
-val if_weak_cong = prove_goal HOL.thy
-  "b=c ==> (if b then x else y) = (if c then x else y)"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
-(*Prevents simplification of t: much faster*)
-val let_weak_cong = prove_goal HOL.thy
-  "a = b ==> (let x=a in t(x)) = (let x=b in t(x))"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
 end;
 
 fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [fast_tac HOL_cs 1]);
@@ -280,10 +175,12 @@ fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [fast_tac HOL_cs 1]);
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
 val conj_comms = [conj_commute, conj_left_commute];
+prove "conj_assoc" "((P&Q)&R) = (P&(Q&R))";
 
 prove "disj_commute" "(P|Q) = (Q|P)";
 prove "disj_left_commute" "(P|(Q|R)) = (Q|(P|R))";
 val disj_comms = [disj_commute, disj_left_commute];
+prove "disj_assoc" "((P|Q)|R) = (P|(Q|R))";
 
 prove "conj_disj_distribL" "(P&(Q|R)) = (P&Q | P&R)";
 prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
@@ -291,12 +188,17 @@ prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
 prove "disj_conj_distribL" "(P|(Q&R)) = ((P|Q) & (P|R))";
 prove "disj_conj_distribR" "((P&Q)|R) = ((P|R) & (Q|R))";
 
-prove "imp_conj_distrib" "(P --> (Q&R)) = ((P-->Q) & (P-->R))";
-prove "imp_conj"         "((P&Q)-->R)   = (P --> (Q --> R))";
+prove "imp_conjR" "(P --> (Q&R)) = ((P-->Q) & (P-->R))";
+prove "imp_conjL" "((P&Q) -->R)  = (P --> (Q --> R))";
+prove "imp_disjL" "((P|Q) --> R) = ((P-->R)&(Q-->R))";
 
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 prove "not_iff" "(P~=Q) = (P = (~Q))";
+
+(*Avoids duplication of subgoals after expand_if, when the true and false 
+  cases boil down to the same thing.*) 
+prove "cases_simp" "((P --> Q) & (~P --> Q)) = Q";
 
 prove "not_all" "(~ (! x.P(x))) = (? x.~P(x))";
 prove "imp_all" "((! x. P x) --> Q) = (? x. P x --> Q)";
@@ -306,16 +208,111 @@ prove "imp_ex" "((? x. P x) --> Q) = (! x. P x --> Q)";
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
 prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 
+(* '&' congruence rule: not included by default!
+   May slow rewrite proofs down by as much as 50% *)
+
+let val th = prove_goal HOL.thy 
+                "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
+                (fn _=> [fast_tac HOL_cs 1])
+in  bind_thm("conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
+
+let val th = prove_goal HOL.thy 
+                "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
+                (fn _=> [fast_tac HOL_cs 1])
+in  bind_thm("rev_conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
+
+(* '|' congruence rule: not included by default! *)
+
+let val th = prove_goal HOL.thy 
+                "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
+                (fn _=> [fast_tac HOL_cs 1])
+in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
+
+prove "eq_sym_conv" "(x=y) = (y=x)";
+
+qed_goalw "o_apply" HOL.thy [o_def] "(f o g) x = f (g x)"
+ (fn _ => [rtac refl 1]);
+
+qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
+  (fn [prem] => [rewtac prem, rtac refl 1]);
+
+qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
+ (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
+
+qed_goalw "if_False" HOL.thy [if_def] "(if False then x else y) = y"
+ (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
+
+qed_goal "if_P" HOL.thy "P ==> (if P then x else y) = x"
+ (fn [prem] => [ stac (prem RS eqTrueI) 1, rtac if_True 1 ]);
+(*
+qed_goal "if_not_P" HOL.thy "~P ==> (if P then x else y) = y"
+ (fn [prem] => [ stac (prem RS not_P_imp_P_iff_F) 1, rtac if_False 1 ]);
+*)
+qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
+ (fn _ => [fast_tac (HOL_cs addIs [select_equality]) 1]);
+
+qed_goal "expand_if" HOL.thy
+    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
+ (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
+         stac if_P 2,
+         stac if_not_P 1,
+         REPEAT(fast_tac HOL_cs 1) ]);
+
+qed_goal "if_bool_eq" HOL.thy
+                   "(if P then Q else R) = ((P-->Q) & (~P-->R))"
+                   (fn _ => [rtac expand_if 1]);
+
+(** 'if' congruence rules: neither included by default! *)
+
+(*Simplifies x assuming c and y assuming ~c*)
+qed_goal "if_cong" HOL.thy
+  "[| b=c; c ==> x=u; ~c ==> y=v |] ==>\
+\  (if b then x else y) = (if c then u else v)"
+  (fn rew::prems =>
+   [stac rew 1, stac expand_if 1, stac expand_if 1,
+    fast_tac (HOL_cs addDs prems) 1]);
+
+(*Prevents simplification of x and y: much faster*)
+qed_goal "if_weak_cong" HOL.thy
+  "b=c ==> (if b then x else y) = (if c then x else y)"
+  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+
+(*Prevents simplification of t: much faster*)
+qed_goal "let_weak_cong" HOL.thy
+  "a = b ==> (let x=a in t(x)) = (let x=b in t(x))"
+  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+
+(*In general it seems wrong to add distributive laws by default: they
+  might cause exponential blow-up.  But imp_disjL has been in for a while
+  and cannot be removed without affecting existing proofs.  Moreover, 
+  rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
+  grounds that it allows simplification of R in the two cases.*)
+
+val mksimps_pairs =
+  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
+   ("All", [spec]), ("True", []), ("False", []),
+   ("If", [if_bool_eq RS iffD1])];
 
 val HOL_ss = empty_ss
       setmksimps (mksimps mksimps_pairs)
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc,
+      addsimps ([if_True, if_False, o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
+
+
+local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_tac splits = mktac (map mk_meta_eq splits)
+end;
+
+local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_inside_tac splits = mktac (map mk_meta_eq splits)
+end;
 
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
@@ -324,8 +321,6 @@ qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
-
-bind_thm ("o_apply", o_apply);
 
 qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
   (fn _ => [rtac ext 1, rtac refl 1]);

@@ -654,7 +654,7 @@ goal thy
 by (etac traces.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [all_conj_distrib, imp_conj_distrib])));
+    (asm_simp_tac (!simpset addsimps [all_conj_distrib, imp_conjR])));
 (*NS2: Case split propagates some context to other subgoal...*)
 by (excluded_middle_tac "K = newK evsa" 2);
 by (Asm_simp_tac 2);

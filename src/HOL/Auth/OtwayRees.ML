@@ -694,7 +694,7 @@ by analz_Fake_tac;
 (*spy_analz_tac just does not work here: it is an entirely different proof!*)
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [all_conj_distrib, ex_disj_distrib,
-                                      imp_conj_distrib, parts_insert_sees,
+                                      imp_conjR, parts_insert_sees,
                                       parts_insert2])));
 by (REPEAT_FIRST (etac exE));
 (*OR3: extraction of K = newK evsa to global context...*) (** LEVEL 6 **)
