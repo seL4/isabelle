@@ -11,7 +11,7 @@ infix 0 ||;
 
 signature BASIC_SCAN =
 sig
-  val !! : ('a -> string) -> ('a -> 'b) -> 'a -> 'b
+  val !! : ('a * string option -> string) -> ('a -> 'b) -> 'a -> 'b
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
   val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
@@ -25,6 +25,7 @@ signature SCAN =
 sig
   include BASIC_SCAN
   val fail: 'a -> 'b
+  val fail_with: ('a -> string) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
   val one: ('a -> bool) -> 'a list -> 'a * 'a list
   val any: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -64,7 +65,7 @@ struct
 (** scanners **)
 
 exception MORE of string option;	(*need more input (use prompt)*)
-exception FAIL;				(*try alternatives*)
+exception FAIL of string option;	(*try alternatives (reason of failure)*)
 exception ABORT of string;		(*dead end*)
 
 
@@ -72,7 +73,7 @@ exception ABORT of string;		(*dead end*)
 
 fun (scan >> f) xs = apfst f (scan xs);
 
-fun (scan1 || scan2) xs = scan1 xs handle FAIL => scan2 xs;
+fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
 fun (scan1 -- scan2) xs =
   let
@@ -88,16 +89,17 @@ fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
 
 (* generic scanners *)
 
-fun fail _ = raise FAIL;
+fun fail _ = raise FAIL None;
+fun fail_with msg_of xs = raise FAIL (Some (msg_of xs));
 fun succeed y xs = (y, xs);
 
 fun one _ [] = raise MORE None
   | one pred (x :: xs) =
-      if pred x then (x, xs) else raise FAIL;
+      if pred x then (x, xs) else raise FAIL None;
 
 fun $$ _ [] = raise MORE None
   | $$ a (x :: xs) =
-      if a = x then (x, xs) else raise FAIL;
+      if a = x then (x, xs) else raise FAIL None;
 
 fun any _ [] = raise MORE None
   | any pred (lst as x :: xs) =
@@ -114,7 +116,7 @@ fun repeat1 scan = scan -- repeat scan >> op ::;
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
-    ((None, _), (None, _)) => raise FAIL
+    ((None, _), (None, _)) => raise FAIL None		(*looses FAIL msg!*)
   | ((Some tok1, xs'), (None, _)) => (tok1, xs')
   | ((None, _), (Some tok2, xs')) => (tok2, xs')
   | ((Some tok1, xs1'), (Some tok2, xs2')) =>
@@ -140,9 +142,9 @@ fun pass st scan xs =
 
 (* exception handling *)
 
-fun !! err scan xs = scan xs handle FAIL => raise ABORT (err xs);
-fun try scan xs = scan xs handle MORE _ => raise FAIL | ABORT _ => raise FAIL;
-fun force scan xs = scan xs handle MORE _ => raise FAIL;
+fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
+fun try scan xs = scan xs handle MORE _ => raise FAIL None | ABORT _ => raise FAIL None;
+fun force scan xs = scan xs handle MORE _ => raise FAIL None;
 fun prompt str scan xs = scan xs handle MORE None => raise MORE (Some str);
 fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
@@ -251,7 +253,7 @@ fun literal lex chrs =
 	  else lit eq (if a = no_literal then res else Some (a, cs)) cs;
   in
     (case lit lex None chrs of
-      None => raise FAIL
+      None => raise FAIL None
     | Some res => res)
   end;
 
