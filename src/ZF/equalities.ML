@@ -9,6 +9,11 @@ Set Theory examples: Union, Intersection, Inclusion, etc.
 
 (** Finite Sets **)
 
+(* cons_def refers to Upair; reversing the equality LOOPS in rewriting!*)
+goal ZF.thy "{a} Un B = cons(a,B)";
+by (fast_tac eq_cs 1);
+val cons_eq = result();
+
 goal ZF.thy "cons(a, cons(b, C)) = cons(b, cons(a, C))";
 by (fast_tac eq_cs 1);
 val cons_commute = result();
@@ -256,6 +261,10 @@ by (fast_tac eq_cs 1);
 val Diff_INT = result();
 
 (** Unions and Intersections with General Sum **)
+
+goal ZF.thy "Sigma(cons(a,B), C) = ({a}*C(a)) Un Sigma(B,C)";
+by (fast_tac eq_cs 1);
+val Sigma_cons = result();
 
 goal ZF.thy "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
 by (fast_tac eq_cs 1);
