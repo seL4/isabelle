@@ -16,8 +16,6 @@ setup arith_setup
 
 (** lists, trees will be sets of nodes **)
 
-global
-
 typedef (Node)
   ('a, 'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
 
@@ -54,8 +52,6 @@ consts
   dsum      :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
                 => (('a, 'b) dtree * ('a, 'b) dtree)set"
 
-
-local
 
 defs
 
