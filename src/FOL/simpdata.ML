@@ -72,7 +72,8 @@ val iff_reflection_T = P_iff_T RS iff_reflection;
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 fun mk_meta_eq th = case concl_of th of
-    _ $ (Const("op =",_)$_$_)   => th RS eq_reflection
+    Const("==",_)$_$_           => th
+  | _ $ (Const("op =",_)$_$_)   => th RS eq_reflection
   | _ $ (Const("op <->",_)$_$_) => th RS iff_reflection
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
