@@ -1125,7 +1125,19 @@ Goalw [list_all2_def]
 by (force_tac (claset(), simpset() addsimps [set_zip]) 1);
 qed "list_all2_conv_all_nth";
 
-(** foldl **)
+Goal "ALL a b c. P1 a b --> P2 b c --> P3 a c ==> \
+\ ALL bs cs. list_all2 P1 as bs --> list_all2 P2 bs cs --> list_all2 P3 as cs";
+by (induct_tac "as" 1);
+by  (Simp_tac 1);
+by (rtac allI 1);
+by (induct_tac "bs" 1);
+by  (Simp_tac 1);
+by (rtac allI 1);
+by (induct_tac "cs" 1);
+by Auto_tac;
+qed_spec_mp "list_all2_trans";
+
+
 section "foldl";
 
 Goal "!a. foldl f a (xs @ ys) = foldl f (foldl f a xs) ys";
