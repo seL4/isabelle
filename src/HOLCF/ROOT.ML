@@ -15,7 +15,6 @@ print_depth 1;
 use_thy "HOLCF";
 
 (* sections axioms, ops *)
-
 use "ax_ops/holcflogic.ML";
 use "ax_ops/thy_axioms.ML";
 use "ax_ops/thy_ops.ML";
