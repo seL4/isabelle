@@ -1,0 +1,282 @@
+%title%
+Isabelle FAQ
+
+%meta%
+<style type="text/css">
+  <!--
+  .question { background-color:#C0C0C0; color:#000001; padding:3px; margin-top:12px; font-weight: bold; }
+  .answer  { background-color:#E0E0E0; padding:3px; margin-top:3px; }
+  -->
+</style>
+
+
+%body%
+    <h2>General Questions</h2>
+    <table class="question" width="100%">
+        <tr>
+          <td>What is Isabelle?</td>
+        </tr>
+    </table>
+
+    <table class="answer" width="100%">
+        <tr><td>Isabelle is a popular generic theorem proving
+        environment developed at Cambridge University (<a
+        href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>)
+        and TU Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias
+        Nipkow</a>). See the <a
+        href="http://isabelle.in.tum.de/">Isabelle homepage</a> for
+        more information.</td></tr>
+    </table>
+    
+
+    <table class="question" width="100%">
+        <tr>
+          <td>Where can I find documentation?</td>
+        </tr>
+    </table>    
+    <table class="answer" width="100%">
+        <tr><td><a href="http://isabelle.in.tum.de/docs.html">This
+        way, please</a>. Also have a look at the <a
+        href="http://isabelle.in.tum.de/library/">theory
+        library</a>.</td></tr>
+    </table>
+
+    <table class="question" width="100%">
+        <tr>
+          <td>Is it available for download?</td>
+        </tr>
+    </table> <table class="answer" width="100%"> <tr><td>Yes, it is
+    available from <a
+    href="http://isabelle.in.tum.de/dist/">several mirror
+    sites</a>. It should run on most recent Unix systems (Solaris,
+    Linux, MacOS X, etc.).</td></tr>
+    </table>
+
+
+    <h2>Syntax</h2>
+    <table class="question" width="100%">
+        <tr>
+          <td>There are lots of arrows in Isabelle. What's the
+          difference between <tt>-></tt>, <tt>=></tt>, <tt>--></tt>,
+          and <tt>==></tt> ?</td>
+        </tr>
+    </table>
+    <table class="answer" width="100%">
+        <tr><td>Isabelle uses the <tt>=></tt> arrow for the function
+        type (contrary to most functional languages which use
+        <tt>-></tt>). So <tt>a => b</tt> is the type of a function
+        that takes an element of <tt>a</tt> as input and gives you an
+        element of <tt>b</tt> as output. The long arrow <tt>--></tt>
+        and <tt>==></tt> are object and meta level
+        implication. Roughly speaking, the meta level implication is
+        used to write down theorems (<tt>P ==> Q</tt> is a theorem
+        with <tt>P</tt> as premise and <tt>Q</tt> as conclusion), and
+        the object level implication is used in usual HOL formulas
+        (e.g. in definitions).</td></tr>
+    </table>
+
+    <table class="question" width="100%"><tr><td>Where do I have to put those double quotes?</td></tr></table> 
+
+    <table class="answer" width="100%"><tr><td>Isabelle distinguishes between <em>inner</em>
+    and <em>outer</em> syntax. The outer syntax comes from the
+    Isabelle framework, the inner syntax is the one in between
+    quotation marks and comes from the object logic (in this case HOL).
+    With time the distinction between the two becomes obvious, but in
+    the beginning the following rules of thumb may work: types should
+    be inside quotation marks, formulas and lemmas should be inside
+    quotation marks, rules and equations (e.g. for definitions) should
+    be inside quotation marks, commands like <tt>lemma</tt>,
+    <tt>consts</tt>, <tt>primrec</tt>, <tt>constdefs</tt>,
+    <tt>apply</tt>, <tt>done</tt> are without quotation marks, as are
+    the names of constants in constant definitions (<tt>consts</tt>
+    and <tt>constdefs</tt>)
+    </td></tr></table>
+
+    <table class="question" width="100%"><tr><td>What is <tt>No such
+    constant: "_case_syntax"</tt> supposed to tell
+    me?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>You get this message if
+    you use a case construct on a datatype and have a typo in the
+    names of the constructor patterns or if the order of the
+    constructors in the case pattern is different from the order in
+    which they where defined (in the datatype definition).
+    </td></tr></table>
+    
+    <table class="question" width="100%"><tr><td>Why doesn't Isabelle understand my
+    equation?</td></tr></table> 
+
+    <table class="answer" width="100%"><tr><td>Isabelle's equality <tt>=</tt> binds
+    relatively strongly, so an equation like <tt>a = b & c</tt> might
+    not be what you intend. Isabelle parses it as <tt>(a = b) &
+    c</tt>.  If you want it the other way around, you must set
+    explicit parentheses as in <tt>a = (b & c)</tt>. This also applies
+    to e.g. <tt>primrec</tt> definitions (see below).</td></tr></table>
+
+    <table class="question" width="100%"><tr><td>What does it mean "not a proper
+    equation"?</td></tr></table>
+      
+    <table class="answer" width="100%"><tr><td>Most commonly this is an instance of the
+    question above. The <tt>primrec</tt> command (and others) expect
+    equations as input, and since equality binds strongly in Isabelle,
+    something like <tt>f x = b & c</tt> is not what you might expect
+    it to be: Isabelle parses it as <tt>(f x = b) & c</tt> (which is
+    indeed not a proper equation). To turn it into an equation you
+    must set explicit parentheses: <tt>f x = (b & c)</tt>.</td></tr></table>
+
+    <table class="question" width="100%"><tr><td>What does it mean
+    "<tt>Not a meta-equality (==)</tt>"?</td></tr></table>
+    
+    <table class="answer" width="100%"><tr><td>This usually occurs if
+    you use <tt>=</tt> for <tt>constdefs</tt>. The <tt>constdefs</tt>
+    and <tt>defs</tt> commands expect not equations, but meta
+    equivalences. Just use the <tt>\&lt;equiv&gt;</tt> or <tt>==</tt>
+    signs instead of <tt>=</tt>.  </td></tr></table>
+
+
+    <h2>Proving</h2>
+
+    <table class="question" width="100%"><tr><td>What does "empty result sequence"
+    mean?</td></tr></table> 
+
+    <table class="answer" width="100%"><tr><td>It means that the applied proof method (or
+    tactic) was unsuccessful. It did not transform the goal in any
+    way, or simply just failed to do anything. You must try another
+    tactic (or give the one you used more hints or lemmas to work
+    with)</td></tr></table>
+
+
+    <table class="question" width="100%"><tr><td>The Simplifier doesn't want to apply my
+    rule, what's wrong?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>
+    Most commonly this is a typing problem. The rule you want to apply
+    may require a more special (or just plain different) type from
+    what you have in the current goal. Use the ProofGeneral menu
+    <tt>Isabelle/Isar -> Settings -> Show Types</tt> and the
+    <tt>thm</tt> command on the rule you want to apply to find out if
+    the types are what you expect them to be (also take a look at the
+    types in your goal). <tt>Show Sorts</tt>, <tt>Show Constants</tt>,
+    and <tt>Trace Simplifier</tt> in the same menu may also be
+    helpful.
+    </td></tr></table>
+
+
+    <table class="question" width="100%"><tr><td>If I do <tt>auto</tt>, it leaves me a goal
+    <tt>False</tt>. Is my theorem wrong?</td></tr></table>
+    
+    <table class="answer" width="100%"><tr><td>Not necessarily. It just means that
+    <tt>auto</tt> transformed the goal into something that is not
+    provable any more. That could be due to <tt>auto</tt> doing
+    something stupid, or e.g. due to some earlier step in the proof
+    that lost important information. It is of course also possible
+    that the goal was never provable in the first place.</td></tr></table>
+
+
+    <table class="question" width="100%"><tr><td>Why does <tt>lemma
+    "1+1=2"</tt> fail?</td></tr></table> 
+
+    <table class="answer" width="100%"><tr><td>Because it is not
+    necessarily true.  Isabelle does not assume that 1 and 2 are
+    natural numbers. Try <tt>"(1::nat)+1=2"</tt>
+    instead.</td></tr></table>
+
+
+    <table class="question" width="100%"><tr><td>How do I show 
+    counter examples?</td></tr></table>
+    
+    <table class="answer" width="100%"><tr><td>
+    There are a number of commands that try to find counter examples
+    automatically. Try <code>quickcheck</code> for small executable
+    examples and <code>arith</code> for Presburger arithmetic. 
+    Otherwise, negate the proposition
+    and instantiate (some) variables with concrete values. You may
+    also need additional assumptions about these values.  For example,
+    <tt>True & False ~= True | False</tt> is a counterexample of <tt>A
+    & B = A | B</tt>, and <tt>A = ~B ==> A & B ~= A | B</tt> is
+    another one. Sometimes Isabelle can help you to find the
+    counter example: just negate the proposition and do <tt>auto</tt>
+    or <tt>simp</tt>.  If lucky, you are left with the assumptions you
+    need for the counter example to work.</td></tr></table>
+
+
+    <h2>Interface</h2>
+
+    <table class="question" width="100%"><tr><td>X-Symbol doesn't seem to work. What can I
+    do?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>The most common reason why X-Symbol doesn't
+    work is: it's not switched on yet. Assuming you are using
+    ProofGeneral and have installed the X-Symbol package, you still
+    need to turn X-Symbol on in ProofGeneral: select the menu items
+    <tt>Proof-General -> Options -> X-Symbol</tt> and (if you want to
+    save the setting for future sessions) select <tt>Options -> Save
+    Options</tt> in XEmacs.</td></tr></table>
+
+    <table class="question" width="100%"><tr><td>How do I input those X-Symbols anyway?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>
+    There are lots of ways to input x-symbols. The one that always
+    works is writing it out in plain text (e.g. for the 'and' symbol
+    type <tt>\&lt;and&gt;</tt>). For common symbols you can try to "paint
+    them in ASCII" and if the xsymbol package recognizes them it will
+    automatically convert them into their graphical
+    representation. Examples: <tt>--></tt> is converted into the long
+    single arrow, <tt>/\</tt> is converted into the 'and' symbol, the
+    sequence <tt>=_</tt> into the equivalence sign, <tt><_</tt> into
+    less-or-equal, <tt>[|</tt> into opening semantic brackets, and so
+    on. For greek characters, the <code>rotate</code> command works well:
+    to input &alpha; type <code>a</code> and then <code>C-.</code>
+    (control and <code>.</code>).  You can also display the
+    grid-of-characters in the x-symbol menu to get an overview of the
+    available graphical representations (not all of them already have
+    a meaning in Isabelle, though).
+    </td></tr></table>
+
+    <h2>System</h2>
+
+    <table class="question" width="100%"><tr><td>I want to generate one of those flashy LaTeX
+      documents. How?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>You will need to work with the
+    <tt>isatool</tt> command for this (in a Unix shell). The easiest
+    way to get to a document is the following: use <tt>isatool
+    mkdir</tt> to set up a new directory. The command will also create
+    a file called <tt>IsaMakefile</tt> in the current directory.  Put
+    your theory file(s) into the new directory and edit the file
+    <tt>ROOT.ML</tt> in there (following the comments) to tell
+    Isabelle which of the theories to load (and in which order). Go
+    back to the parent directory (where the <tt>IsaMakefile</tt> is)
+    and type <tt>isatool make</tt>. Isabelle should then process your
+    theories and tell you where to find the finished document. For
+    more information on generating documents see the Isabelle Tutorial, Chapter 4.
+    </td></tr></table>
+      
+
+    <table class="question" width="100%"><tr><td>I have a large formalization with many
+      theories. Must I process all of them all of the time?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td>No, you can tell Isabelle to build a so-called
+    heap image. This heap image can contain your preloaded
+    theories. To get one, set up a directory with a <tt>ROOT.ML</tt>
+    file (as for generating a document) and use the command
+    <tt>isatool usedir -b HOL MyImage</tt> in that directory to create
+    an image <tt>MyImage</tt> using the parent logic <tt>HOL</tt>.
+    You should then be able to invoke Isabelle with <tt>Isabelle -l
+    MyImage</tt> and have everything that is loaded in ROOT.ML
+    instantly available.</td></tr></table>
+    
+    <table class="question" width="100%"><tr><td>Does Isabelle run on Windows?</td></tr></table>
+
+    <table class="answer" width="100%"><tr><td> After a fashion, yes,
+    but Isabelle is not being developed for Windows. A friendly user
+    (Norbert V&ouml;lker) has managed to get a minimal Isabelle environment
+    to work on it.  See the description on <a
+    href="http://cswww.essex.ac.uk/Research/FSS/projects/isawin/">his
+    website</a>. Be warned, though: emphasis is on <em>minimal</em>,
+    working with Windows is no fun at all. To enjoy Isabelle in its
+    full beauty it is recommended to get a Linux distribution (they
+    are inexpensive, any reasonably recent one should work, dualboot
+    Windows/Linux should pose no problems).
+    </td></tr></table>
+
