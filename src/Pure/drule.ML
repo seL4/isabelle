@@ -51,6 +51,7 @@ sig
   val symmetric_thm	: thm
   val transitive_thm	: thm
   val refl_implies      : thm
+  val symmetric_fun     : thm -> thm
   val rewrite_rule_aux	: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_thm	: bool * bool -> (meta_simpset -> thm -> thm option)
 	-> meta_simpset -> thm -> thm
@@ -420,6 +421,8 @@ val transitive_thm =
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in store_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm))
   end;
+
+fun symmetric_fun thm = thm RS symmetric_thm;
 
 (** Below, a "conversion" has type cterm -> thm **)
 

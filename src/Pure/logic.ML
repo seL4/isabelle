@@ -26,9 +26,6 @@ sig
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
-  val rewrite_rule_extra_vars: term list -> term -> term -> string option
-  val rewrite_rule_ok   : Sign.sg -> term list -> term -> term
-                          -> string option * bool
   val mk_equals		: term * term -> term
   val mk_flexpair	: term * term -> term
   val mk_implies	: term * term -> term
@@ -303,60 +300,5 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
   | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)
   | unvarify (f$t) = unvarify f $ unvarify t
   | unvarify t = t;
-
-
-
-(** Test wellformedness of rewrite rules **)
-
-fun vperm (Var _, Var _) = true
-  | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
-  | vperm (t1 $ t2, u1 $ u2) = vperm (t1, u1) andalso vperm (t2, u2)
-  | vperm (t, u) = (t = u);
-
-fun var_perm (t, u) =
-  vperm (t, u) andalso eq_set_term (term_vars t, term_vars u);
-
-(*simple test for looping rewrite*)
-fun looptest sign prems lhs rhs =
-   is_Var (head_of lhs)
-  orelse
-   (exists (apl (lhs, op occs)) (rhs :: prems))
-  orelse
-   (null prems andalso
-    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
-(*  orelse
-   (case lhs of
-      (f as Free _) $ (Var _) => exists (fn p => f occs p) prems orelse
-                                 (null prems andalso f occs rhs)
-    | _ => false)*);
-(*the condition "null prems" in the last cases is necessary because
-  conditional rewrites with extra variables in the conditions may terminate
-  although the rhs is an instance of the lhs. Example:
-  ?m < ?n ==> f(?n) == f(?m)*)
-(*FIXME: proper test: lhs does not match a subterm of a premise
-                      and does not match a subterm of the rhs if null prems *)
-
-fun rewrite_rule_extra_vars prems elhs erhs =
-  if not ((term_vars erhs) subset
-          (union_term (term_vars elhs, List.concat(map term_vars prems))))
-  then Some("extra Var(s) on rhs") else
-  if not ((term_tvars erhs) subset
-          (term_tvars elhs  union  List.concat(map term_tvars prems)))
-  then Some("extra TVar(s) on rhs")
-  else None;
-
-fun rewrite_rule_ok sign prems lhs rhs =
-  let
-    val elhs = Pattern.eta_contract lhs;
-    val erhs = Pattern.eta_contract rhs;
-    val perm = var_perm (elhs, erhs) andalso not (elhs aconv erhs)
-               andalso not (is_Var elhs)
-  in (case rewrite_rule_extra_vars prems elhs erhs of
-        None => if not perm andalso looptest sign prems elhs erhs
-                then Some("loops")
-                else None
-      | some => some
-      ,perm)
-  end;
 
 end;
