@@ -3,6 +3,8 @@
 #
 # expandshort.pl - expand shorthand goal commands
 #
+# in "be ... i;" -> "by (etac ... i);" the "..." phrase is not allowed to
+#   contain punctuation.  Otherwise, comments can be affected!
 
 sub expandshort {
     my ($file) = @_;
@@ -18,15 +20,15 @@ sub expandshort {
     s/ *\(Safe_tac\)/ Safe_tac/sg;
     s/\bby\(/by (/sg;
     s/\bba\b *(\d+);/by (assume_tac \1);/sg;
-    s/\bbr\b *([^;]*) (\d+);/by (rtac \1 \2);/sg;
-    s/\bbrs\b *([^;]*) (\d+);/by (resolve_tac \1 \2);/sg;
-    s/\bbd\b *([^;]*) (\d+);/by (dtac \1 \2);/sg;
-    s/\bbds\b *([^;]*) (\d+);/by (dresolve_tac \1 \2);/sg;
-    s/\bbe\b *([^;]*) (\d+);/by (etac \1 \2);/sg;
-    s/\bbes\b *([^;]*) (\d+);/by (eresolve_tac \1 \2);/sg;
-    s/\bbw\b *([^;]*);/by (rewtac \1);/sg;
-    s/\bbws\b *([^;]*);/by (rewrite_goals_tac \1);/sg;
-    s/\bauto *\(\)/by (Auto_tac())/sg;
+    s/\bbr\b *([^;.*!]*) (\d+);/by (rtac \1 \2);/sg;
+    s/\bbrs\b *([^;.*!]*) (\d+);/by (resolve_tac \1 \2);/sg;
+    s/\bbd\b *([^;.*!]*) (\d+);/by (dtac \1 \2);/sg;
+    s/\bbds\b *([^;.*!]*) (\d+);/by (dresolve_tac \1 \2);/sg;
+    s/\bbe\b *([^;.*!]*) (\d+);/by (etac \1 \2);/sg;
+    s/\bbes\b *([^;.*!]*) (\d+);/by (eresolve_tac \1 \2);/sg;
+    s/\bbw\b *([^;.*!]*);/by (rewtac \1);/sg;
+    s/\bbws\b *([^;.*!]*);/by (rewrite_goals_tac \1);/sg;
+    s/\bauto *\(\)/by Auto_tac/sg;
     s/dresolve_tac *\[(\w+)\] */dtac \1 /sg;
     s/eresolve_tac *\[(\w+)\] */etac \1 /sg;
     s/resolve_tac *\[(\w+)\] */rtac \1 /sg;
