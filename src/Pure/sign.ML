@@ -245,8 +245,8 @@ fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
     val all_consts = flat (map (fn (cs, s) => map (rpair s) cs)
       (Syntax.constants sext @ consts));
 
-    val const_tab1 =                              (* FIXME bug: vvvv should be syn *)
-      Symtab.extend (K false) (const_tab, map (read_const tsig1 syn1) all_consts)
+    val const_tab1 =
+      Symtab.extend (K false) (const_tab, map (read_const tsig1 syn) all_consts)
         handle Symtab.DUPLICATE c
           => error ("Constant " ^ quote c ^ " declared twice");
 
