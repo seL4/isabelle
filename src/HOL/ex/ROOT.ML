@@ -21,6 +21,7 @@ time_use_thy "Comb";
 time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "LexProd";
+time_use_thy "Lagrange";
 time_use_thy "Puzzle";
 time_use_thy "Mutil";
 time_use_thy "Primes";

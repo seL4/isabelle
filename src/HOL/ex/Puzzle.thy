@@ -1,9 +1,9 @@
-(*  Title:      HOL/ex/puzzle.thy
+(*  Title:      HOL/ex/Puzzle.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1993 TU Muenchen
 
-An question from "Bundeswettbewerb Mathematik"
+A question from "Bundeswettbewerb Mathematik"
 *)
 
 Puzzle = Nat +
