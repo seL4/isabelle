@@ -41,7 +41,7 @@ val con_defs = get_def thy big_case_name ::
 
 (*Get the case term from its definition*)
 val Const("==",_) $ big_case_tm $ _ =
-    hd con_defs |> rep_thm |> #prop |> unvarify;
+    hd con_defs |> rep_thm |> #prop |> Logic.unvarify;
 
 val (_, big_case_args) = strip_comb big_case_tm;
 
@@ -62,8 +62,9 @@ fun case_tacsf con_def _ =
 			Su.case_inr RS trans] 1)];
 
 fun prove_case_equation (arg,con_def) =
-    prove_term (sign_of thy) [] 
-        (mk_case_equation arg, case_tacsf con_def);
+    prove_goalw_cterm [] 
+        (cterm_of (sign_of thy) (mk_case_equation arg))
+	(case_tacsf con_def);
 
 val free_iffs = 
     map standard (con_defs RL [def_swap_iff]) @

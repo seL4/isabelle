@@ -60,11 +60,12 @@ val sign = sign_of thy;
 val _ = writeln "  Proving monotonicity...";
 
 val Const("==",_) $ _ $ (_ $ dom_sum $ fp_abs) =
-    big_rec_def |> rep_thm |> #prop |> unvarify;
+    big_rec_def |> rep_thm |> #prop |> Logic.unvarify;
 
 val bnd_mono = 
-    prove_term sign [] (mk_tprop (Fp.bnd_mono $ dom_sum $ fp_abs), 
-       fn _ =>
+    prove_goalw_cterm [] 
+      (cterm_of sign (mk_tprop (Fp.bnd_mono $ dom_sum $ fp_abs)))
+      (fn _ =>
        [rtac (Collect_subset RS bnd_monoI) 1,
 	REPEAT (ares_tac (basic_monos @ monos) 1)]);
 
@@ -102,8 +103,9 @@ val mk_disj_rls =
 	and g rl = rl RS disjI2
     in  accesses_bal(f, g, asm_rl)  end;
 
-val intrs = map (prove_term sign part_rec_defs) 
-	       (intr_tms ~~ map intro_tacsf (mk_disj_rls(length intr_tms)));
+val intrs = map (uncurry (prove_goalw_cterm part_rec_defs))
+            (map (cterm_of sign) intr_tms ~~ 
+	     map intro_tacsf (mk_disj_rls(length intr_tms)));
 
 (********)
 val _ = writeln "  Proving the elimination rule...";

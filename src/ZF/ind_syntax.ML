@@ -14,27 +14,11 @@ struct
 (*Make a definition lhs==rhs, checking that vars on lhs contain those of rhs*)
 fun mk_defpair (lhs, rhs) = 
   let val Const(name, _) = head_of lhs
-      val dummy = assert (term_vars rhs subset term_vars lhs
-		          andalso
-		          term_frees rhs subset term_frees lhs
-		          andalso
-		          term_tvars rhs subset term_tvars lhs
-		          andalso
-		          term_tfrees rhs subset term_tfrees lhs)
-	          ("Extra variables on RHS in definition of " ^ name)
   in (name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
 
 fun get_def thy s = get_axiom thy (s^"_def");
 
 fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
-
-(*export to Pure/library?  *)
-fun assert_all pred l msg_fn = 
-  let fun asl [] = ()
-	| asl (x::xs) = if pred x then asl xs
-	                else error (msg_fn x)
-  in  asl l  end;
-
 
 (** Abstract syntax definitions for FOL and ZF **)
 
@@ -78,15 +62,6 @@ fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
 val Trueprop = Const("Trueprop",oT-->propT);
 fun mk_tprop P = Trueprop $ P;
 
-(*Prove a goal stated as a term, with exception handling*)
-fun prove_term sign defs (P,tacsf) = 
-    let val ct = cterm_of sign P
-    in  prove_goalw_cterm defs ct tacsf
-	handle e => (writeln ("Exception in proof of\n" ^
-			       string_of_cterm ct); 
-		     raise e)
-    end;
-
 (*Read an assumption in the given theory*)
 fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
 
@@ -126,21 +101,6 @@ fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
 	deny (Logic.occs(rec_hd,t)) "Recursion term on left of member symbol"
   | chk_prem rec_hd t = 
 	deny (Logic.occs(rec_hd,t)) "Recursion term in side formula";
-
-
-(*Inverse of varifyT.  Move to Pure/type.ML?*)
-fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
-  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
-  | unvarifyT T = T;
-
-(*Inverse of varify.  Move to Pure/logic.ML?*)
-fun unvarify (Const(a,T))    = Const(a, unvarifyT T)
-  | unvarify (Var((a,0), T)) = Free(a, unvarifyT T)
-  | unvarify (Var(ixn,T))    = Var(ixn, unvarifyT T)	(*non-zero index!*)
-  | unvarify (Abs (a,T,body)) = Abs (a, unvarifyT T, unvarify body)
-  | unvarify (f$t) = unvarify f $ unvarify t
-  | unvarify t = t;
-
 
 (*Make distinct individual variables a1, a2, a3, ..., an. *)
 fun mk_frees a [] = []

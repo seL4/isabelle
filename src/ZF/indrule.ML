@@ -69,9 +69,10 @@ val pred = Free(pred_name, iT-->oT);
 val ind_prems = map (induct_prem (map (rpair pred) rec_tms)) intr_tms;
 
 val quant_induct = 
-    prove_term sign part_rec_defs 
-      (list_implies (ind_prems, mk_tprop (mk_all_imp(big_rec_tm,pred))),
-       fn prems =>
+    prove_goalw_cterm part_rec_defs 
+      (cterm_of sign (list_implies (ind_prems, 
+				    mk_tprop (mk_all_imp(big_rec_tm,pred)))))
+      (fn prems =>
        [rtac (impI RS allI) 1,
 	etac raw_induct 1,
 	REPEAT (FIRSTGOAL (eresolve_tac [CollectE,exE,conjE,disjE,ssubst])),
@@ -118,9 +119,9 @@ val induct_concl =
 and mutual_induct_concl = mk_tprop(fold_bal (app conj) qconcls);
 
 val lemma = (*makes the link between the two induction rules*)
-    prove_term sign part_rec_defs 
-	  (mk_implies (induct_concl,mutual_induct_concl), 
-	   fn prems =>
+    prove_goalw_cterm part_rec_defs 
+	  (cterm_of sign (mk_implies (induct_concl,mutual_induct_concl)))
+	  (fn prems =>
 	   [cut_facts_tac prems 1,
 	    REPEAT (eresolve_tac [asm_rl,conjE,PartE,mp] 1
 	     ORELSE resolve_tac [allI,impI,conjI,Part_eqI] 1
@@ -145,10 +146,11 @@ fun mutual_ind_tac [] 0 = all_tac
 	i  THEN mutual_ind_tac prems (i-1);
 
 val mutual_induct_fsplit = 
-    prove_term sign []
-	  (list_implies (map (induct_prem (rec_tms~~preds)) intr_tms,
-			 mutual_induct_concl),
-	   fn prems =>
+    prove_goalw_cterm []
+	  (cterm_of sign
+	   (list_implies (map (induct_prem (rec_tms~~preds)) intr_tms,
+			  mutual_induct_concl)))
+	  (fn prems =>
 	   [rtac (quant_induct RS lemma) 1,
 	    mutual_ind_tac (rev prems) (length prems)]);
 
