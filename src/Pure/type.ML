@@ -41,7 +41,7 @@ sig
   val norm_typ: type_sig -> typ -> typ
   val freeze: (indexname -> bool) -> term -> term
   val freeze_vars: typ -> typ
-  val infer_types: type_sig * typ Symtab.table * (indexname -> typ option) *
+  val infer_types: type_sig * (string -> typ option) * (indexname -> typ option) *
     (indexname -> sort option) * typ * term -> term * (indexname * typ) list
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
   val thaw_vars: typ -> typ
@@ -80,9 +80,9 @@ type domain = sort list;
 (* print sorts and arities *)
 
 fun str_of_sort [c] = c
-  | str_of_sort cs = parents "{" "}" (commas cs);
+  | str_of_sort cs = enclose "{" "}" (commas cs);
 
-fun str_of_dom dom = parents "(" ")" (commas (map str_of_sort dom));
+fun str_of_dom dom = enclose "(" ")" (commas (map str_of_sort dom));
 
 fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
   | str_of_arity (t, SS, S) =
@@ -769,7 +769,7 @@ During type inference all TVars in the term have negative index. This keeps
 them apart from normal TVars, which is essential, because at the end the type
 of the term is unified with the expected type, which contains normal TVars.
 
-1. Add initial type information to the term (add_types).
+1. Add initial type information to the term (attach_types).
    This freezes (freeze_vars) TVars in explicitly provided types (eg
    constraints or defaults) by turning them into TFrees.
 2. Carry out type inference, possibly introducing new negative TVars.
@@ -912,11 +912,15 @@ fun type_const (a, T) = Const(a, incr_tvar (new_tvar_inx()) T);
   to get consistent typing.*)
 fun new_id_type a = TVar(("'"^a, new_tvar_inx()), []);
 fun type_of_ixn(types, ixn as (a, _)) =
-        case types ixn of Some T => freeze_vars T | None => TVar(("'"^a, ~1), []);
+  case types ixn of Some T => freeze_vars T | None => TVar(("'"^a, ~1), []);
 
-fun constrain(term, T) = Const(Syntax.constrainC, T-->T) $ term;
-fun constrainAbs(Abs(a, _, body), T) = Abs(a, T, body);
+fun constrain (term, T) = Const (Syntax.constrainC, T --> T) $ term;
 
+fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
+  | constrainAbs _ = sys_error "constrainAbs";
+
+
+(* attach_types *)
 
 (*
   Attach types to a term. Input is a "parse tree" containing dummy types.
@@ -939,27 +943,28 @@ fun constrainAbs(Abs(a, _, body), T) = Abs(a, T, body);
     bound variables of the same name but different types.
 *)
 
-(* FIXME replace const_tab by (const_typ: string -> typ option) (?) *)
-(* FIXME improve handling of sort constraints *)
+(* FIXME consitency of sort_env / sorts (!?) *)
 
-fun add_types (tsig, const_tab, types, sorts) =
+(* FIXME check *)
+
+fun attach_types (tsig, const_type, types, sorts) tm =
   let
-    val S0 = defaultS tsig;
-    fun defS0 ixn = if_none (sorts ixn) S0;
+    val sort_env = Syntax.raw_term_sorts tm;
+    fun def_sort xi = if_none (sorts xi) (defaultS tsig);
 
-    fun prepareT typ =
-      freeze_vars (cert_typ tsig (Syntax.typ_of_term defS0 typ));
+    fun prepareT t =
+      freeze_vars (cert_typ tsig (Syntax.typ_of_term sort_env def_sort t));
 
     fun add (Const (a, _)) =
-          (case Symtab.lookup (const_tab, a) of
+          (case const_type a of
             Some T => type_const (a, T)
           | None => raise_type ("No such constant: " ^ quote a) [] [])
-      | add (Bound i) = Bound i
       | add (Free (a, _)) =
-          (case Symtab.lookup (const_tab, a) of
+          (case const_type a of
             Some T => type_const (a, T)
           | None => Free (a, type_of_ixn (types, (a, ~1))))
       | add (Var (ixn, _)) = Var (ixn, type_of_ixn (types, ixn))
+      | add (Bound i) = Bound i
       | add (Abs (a, _, body)) = Abs (a, new_id_type a, add body)
       | add ((f as Const (a, _) $ t1) $ t2) =
           if a = Syntax.constrainC then
@@ -968,11 +973,10 @@ fun add_types (tsig, const_tab, types, sorts) =
             constrainAbs (add t1, prepareT t2)
           else add f $ add t2
       | add (f $ t) = add f $ add t;
-  in add end;
+  in add tm end;
 
 
 (* Post-Processing *)
-
 
 (*Instantiation of type variables in terms*)
 fun inst_types tye = map_term_types (inst_typ tye);
@@ -1014,20 +1018,23 @@ fun restrict tye =
 
 (*Infer types for term t using tables. Check that t's type and T unify *)
 
-fun infer_term (tsig, const_tab, types, sorts, T, t) =
-  let val u = add_types (tsig, const_tab, types, sorts) t;
-      val (U, tye) = infer tsig ([], u, []);
-      val uu = unconstrain u;
-      val tye' = unify tsig ((T, U), tye) handle TUNIFY => raise TYPE
-        ("Term does not have expected type", [T, U], [inst_types tye uu])
-      val Ttye = restrict tye' (* restriction to TVars in T *)
-      val all = Const("", Type("", map snd Ttye)) $ (inst_types tye' uu)
-        (* all is a dummy term which contains all exported TVars *)
-      val Const(_, Type(_, Ts)) $ u'' =
-            map_term_types thaw_vars (freeze (fn (_, i) => i<0) all)
-        (* turn all internally generated TVars into TFrees
-           and thaw all initially frozen TVars *)
-  in (u'', (map fst Ttye) ~~ Ts) end;
+fun infer_term (tsig, const_type, types, sorts, T, t) =
+  let
+    val u = attach_types (tsig, const_type, types, sorts) t;
+    val (U, tye) = infer tsig ([], u, []);
+    val uu = unconstrain u;
+    val tye' = unify tsig ((T, U), tye) handle TUNIFY => raise TYPE
+      ("Term does not have expected type", [T, U], [inst_types tye uu])
+    val Ttye = restrict tye' (*restriction to TVars in T*)
+    val all = Const("", Type("", map snd Ttye)) $ (inst_types tye' uu)
+      (*all is a dummy term which contains all exported TVars*)
+    val Const(_, Type(_, Ts)) $ u'' =
+      map_term_types thaw_vars (freeze (fn (_, i) => i < 0) all)
+      (*turn all internally generated TVars into TFrees
+        and thaw all initially frozen TVars*)
+  in
+    (u'', (map fst Ttye) ~~ Ts)
+  end;
 
 fun infer_types args = (tyinit(); infer_term args);
 
