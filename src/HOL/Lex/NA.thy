@@ -10,13 +10,10 @@ NA = List + AutoProj +
 
 types ('a,'s)na = "'s * ('a => 's => 's set) * ('s => bool)"
 
-syntax lift :: ('a => 'b set) => 'a set => 'b set
-translations "lift f A" == "Union(f `` A)"
-
 consts delta :: "('a,'s)na => 'a list => 's => 's set"
 primrec delta list
 "delta A []    p = {p}"
-"delta A (a#w) p = lift (delta A w) (next A a p)"
+"delta A (a#w) p = Union(delta A w `` next A a p)"
 
 constdefs
  accepts ::   ('a,'s)na => 'a list => bool

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lex/NAe_of_RegExp.ML
+(*  Title:      HOL/Lex/RegExp2NAe.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TUM
@@ -45,6 +45,13 @@ by (induct_tac "w" 1);
 by(asm_full_simp_tac (simpset()
      addsimps [False_False_in_steps_atom,comp_def,start_atom]) 1);
 qed "start_fin_in_steps_atom";
+
+goal thy
+ "accepts (atom a) w = (w = [a])";
+by(simp_tac(simpset() addsimps
+       [accepts_def,start_fin_in_steps_atom,fin_atom]) 1);
+qed "accepts_atom";
+
 
 (******************************************************)
 (*                      union                         *)
@@ -241,7 +248,7 @@ goalw thy [accepts_def]
  "accepts (union L R) w = (accepts L w | accepts R w)";
 by (simp_tac (simpset() addsimps [steps_union]) 1);
 auto();
-qed "final_union";
+qed "accepts_union";
 
 
 (******************************************************)
@@ -445,6 +452,12 @@ goalw thy [conc_def]
 by (simp_tac (simpset() addsplits [split_list_case]) 1);
 qed_spec_mp "final_conc";
 
+goal thy
+ "accepts (conc L R) w = (? u v. w = u@v & accepts L u & accepts R v)";
+by (simp_tac (simpset() addsimps
+     [accepts_def,True_steps_conc,final_conc,start_conc]) 1);
+by(Blast_tac 1);
+qed "accepts_conc";
 
 (******************************************************)
 (*                       star                         *)
@@ -648,16 +661,11 @@ qed "accepts_star";
 (***** Correctness of r2n *****)
 
 goal thy
- "!w. w:(lang r) = accepts (r2n r) w";
+ "!w. accepts (rexp2nae r) w = (w : lang r)";
 by(induct_tac "r" 1);
     by(simp_tac (simpset() addsimps [accepts_def]) 1);
-   by(simp_tac(simpset() addsimps
-       [accepts_def,start_fin_in_steps_atom,fin_atom]) 1);
-  (* 3. Fall: Union *)
-  by (asm_simp_tac (simpset() addsimps [final_union]) 1);
-  (* 4. Fall: Concat *)
- by (asm_simp_tac (simpset() addsimps
-     [accepts_def,True_steps_conc,final_conc,start_conc,RegSet.conc_def]) 1);
- by(Blast_tac 1);
-by (asm_simp_tac (simpset() addsimps [in_star,accepts_star]) 1);
-qed "Rexp_Automata";
+   by(simp_tac(simpset() addsimps [accepts_atom]) 1);
+  by(asm_simp_tac (simpset() addsimps [accepts_union]) 1);
+ by(asm_simp_tac (simpset() addsimps [accepts_conc,RegSet.conc_def]) 1);
+by(asm_simp_tac (simpset() addsimps [accepts_star,in_star]) 1);
+qed "accepts_rexp2nae";

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lex/NAe_of_RegExp.thy
+(*  Title:      HOL/Lex/RegExp2NAe.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TUM
@@ -7,20 +7,20 @@ Conversion of regular expressions
 into nondeterministic automata with epsilon transitions
 *)
 
-NAe_of_RegExp = NAe + RegExp +
+RegExp2NAe = NAe + RegExp +
 
-types 'a r2nae = ('a,bool list)nae
+types 'a bitsNAe = ('a,bool list)nae
 
 syntax "##" :: 'a => 'a list set => 'a list set (infixr 65)
 translations "x ## S" == "op # x `` S"
 
 constdefs
- atom  :: 'a => 'a r2nae
+ atom  :: 'a => 'a bitsNAe
 "atom a == ([True],
             %b s. if s=[True] & b=Some a then {[False]} else {},
             %s. s=[False])"
 
- union :: 'a r2nae => 'a r2nae => 'a r2nae
+ union :: 'a bitsNAe => 'a bitsNAe => 'a bitsNAe
 "union == %(ql,dl,fl)(qr,dr,fr).
    ([],
     %a s. case s of
@@ -29,7 +29,7 @@ constdefs
                               else False ## dr a s,
     %s. case s of [] => False | left#s => if left then fl s else fr s)"
 
- conc :: 'a r2nae => 'a r2nae => 'a r2nae
+ conc :: 'a bitsNAe => 'a bitsNAe => 'a bitsNAe
 "conc == %(ql,dl,fl)(qr,dr,fr).
    (True#ql,
     %a s. case s of
@@ -39,7 +39,7 @@ constdefs
                               else False ## dr a s,
     %s. case s of [] => False | left#s => ~left & fr s)"
 
- star :: 'a r2nae => 'a r2nae
+ star :: 'a bitsNAe => 'a bitsNAe
 "star == %(q,d,f).
    ([],
     %a s. case s of
@@ -49,12 +49,12 @@ constdefs
                               else {},
     %s. case s of [] => True | left#s => left & f s)"
 
-consts r2n :: 'a rexp => 'a r2nae
-primrec r2n rexp
-"r2n Empty = ([], %a s. {}, %s. False)"
-"r2n(Atom a) = atom a"
-"r2n(Union el er) = union(r2n el)(r2n er)"
-"r2n(Conc el er) = conc(r2n el)(r2n er)"
-"r2n(Star e) = star(r2n e)"
+consts rexp2nae :: 'a rexp => 'a bitsNAe
+primrec rexp2nae rexp
+"rexp2nae Empty      = ([], %a s. {}, %s. False)"
+"rexp2nae(Atom a)    = atom a"
+"rexp2nae(Union r s) = union (rexp2nae r) (rexp2nae s)"
+"rexp2nae(Conc r s)  = conc  (rexp2nae r) (rexp2nae s)"
+"rexp2nae(Star r)    = star  (rexp2nae r)"
 
 end

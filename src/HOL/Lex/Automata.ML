@@ -7,7 +7,7 @@
 (*** Equivalence of NA and DA --- redundant ***)
 
 goalw thy [na2da_def]
- "!Q. DA.delta (na2da A) w Q = lift(NA.delta A w) Q";
+ "!Q. DA.delta (na2da A) w Q = Union(NA.delta A w `` Q)";
 by(induct_tac "w" 1);
  by(ALLGOALS Asm_simp_tac);
  by(ALLGOALS Blast_tac);
@@ -35,7 +35,7 @@ by(Simp_tac 1);
 val lemma = result();
 
 goalw thy [NAe.accepts_def,DA.accepts_def]
-  "NAe.accepts A w = DA.accepts (nae2da A) w";
+  "DA.accepts (nae2da A) w = NAe.accepts A w";
 by(simp_tac (simpset() addsimps [lemma,espclosure_DA_delta_is_steps]) 1);
 by(simp_tac (simpset() addsimps [nae2da_def]) 1);
 by(Blast_tac 1);
