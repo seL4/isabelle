@@ -236,8 +236,8 @@ by (etac ns_shared.induct 1);
 by analz_spies_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (simpset() addsimps ([analz_insert_eq, analz_insert_freshK] @ 
-			  pushes @ split_ifs))));
+     (simpset() addsimps [analz_insert_eq, analz_insert_freshK] @ 
+			 pushes @ split_ifs)));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 

@@ -190,8 +190,8 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps (split_ifs@pushes)
-	        addsimps [analz_insert_eq, analz_insert_freshK])));
+     (simpset() addsimps split_ifs @ pushes @
+                         [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);
 (*YM3*)
@@ -465,8 +465,8 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps (split_ifs@pushes)
-	        addsimps [analz_insert_eq, analz_insert_freshK])));
+     (simpset() addsimps split_ifs @ pushes @
+	                 [analz_insert_eq, analz_insert_freshK])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]
 	                addSEs [MPair_parts]

@@ -176,7 +176,7 @@ qed "real_add";
 Goal "(z::real) + w = w + z";
 by (res_inst_tac [("z","z")] eq_Abs_real 1);
 by (res_inst_tac [("z","w")] eq_Abs_real 1);
-by (asm_simp_tac (simpset() addsimps (preal_add_ac @ [real_add])) 1);
+by (asm_simp_tac (simpset() addsimps preal_add_ac @ [real_add]) 1);
 qed "real_add_commute";
 
 Goal "((z1::real) + z2) + z3 = z1 + (z2 + z3)";
@@ -303,15 +303,16 @@ qed "real_mult";
 Goal "(z::real) * w = w * z";
 by (res_inst_tac [("z","z")] eq_Abs_real 1);
 by (res_inst_tac [("z","w")] eq_Abs_real 1);
-by (asm_simp_tac (simpset() addsimps ([real_mult] @ preal_add_ac @ preal_mult_ac)) 1);
+by (asm_simp_tac
+    (simpset() addsimps [real_mult] @ preal_add_ac @ preal_mult_ac) 1);
 qed "real_mult_commute";
 
 Goal "((z1::real) * z2) * z3 = z1 * (z2 * z3)";
 by (res_inst_tac [("z","z1")] eq_Abs_real 1);
 by (res_inst_tac [("z","z2")] eq_Abs_real 1);
 by (res_inst_tac [("z","z3")] eq_Abs_real 1);
-by (asm_simp_tac (simpset() addsimps ([preal_add_mult_distrib2,real_mult] @ 
-                                     preal_add_ac @ preal_mult_ac)) 1);
+by (asm_simp_tac (simpset() addsimps [preal_add_mult_distrib2,real_mult] @ 
+                                     preal_add_ac @ preal_mult_ac) 1);
 qed "real_mult_assoc";
 
 qed_goal "real_mult_left_commute" thy
@@ -392,8 +393,8 @@ by (res_inst_tac [("z","z1")] eq_Abs_real 1);
 by (res_inst_tac [("z","z2")] eq_Abs_real 1);
 by (res_inst_tac [("z","w")] eq_Abs_real 1);
 by (asm_simp_tac 
-    (simpset() addsimps ([preal_add_mult_distrib2, real_add, real_mult] @ 
-                        preal_add_ac @ preal_mult_ac)) 1);
+    (simpset() addsimps [preal_add_mult_distrib2, real_add, real_mult] @ 
+                        preal_add_ac @ preal_mult_ac) 1);
 qed "real_add_mult_distrib";
 
 val real_mult_commute'= read_instantiate [("z","w")] real_mult_commute;

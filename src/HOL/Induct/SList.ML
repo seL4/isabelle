@@ -229,7 +229,7 @@ val major::A_subset_sexp::prems = goal SList.thy
 val sexp_ListA_I = A_subset_sexp RS list_subset_sexp RS subsetD;
 val sexp_A_I = A_subset_sexp RS subsetD;
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps ([sexp_A_I,sexp_ListA_I]@prems))));
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [sexp_A_I,sexp_ListA_I]@prems)));
 qed "List_rec_type";
 
 (** Generalized map functionals **)

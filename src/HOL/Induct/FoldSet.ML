@@ -138,7 +138,7 @@ Goal "[| finite A; finite B |] \
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (asm_simp_tac
-    (simpset() addsimps (f_ac @ [insert_absorb, Int_insert_left])) 1);
+    (simpset() addsimps f_ac @ [insert_absorb, Int_insert_left]) 1);
 by (rtac impI 1);
 by (stac f_commute 1 THEN rtac refl 1);
 qed "fold_Un_Int";

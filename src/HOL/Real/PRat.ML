@@ -177,15 +177,16 @@ qed "prat_add";
 Goal "(z::prat) + w = w + z";
 by (res_inst_tac [("z","z")] eq_Abs_prat 1);
 by (res_inst_tac [("z","w")] eq_Abs_prat 1);
-by (asm_simp_tac (simpset() addsimps ([prat_add] @ pnat_add_ac @ pnat_mult_ac)) 1);
+by (asm_simp_tac
+    (simpset() addsimps [prat_add] @ pnat_add_ac @ pnat_mult_ac) 1);
 qed "prat_add_commute";
 
 Goal "((z1::prat) + z2) + z3 = z1 + (z2 + z3)";
 by (res_inst_tac [("z","z1")] eq_Abs_prat 1);
 by (res_inst_tac [("z","z2")] eq_Abs_prat 1);
 by (res_inst_tac [("z","z3")] eq_Abs_prat 1);
-by (asm_simp_tac (simpset() addsimps ([pnat_add_mult_distrib2,prat_add] @ 
-                                     pnat_add_ac @ pnat_mult_ac)) 1);
+by (asm_simp_tac (simpset() addsimps [pnat_add_mult_distrib2,prat_add] @ 
+                                     pnat_add_ac @ pnat_mult_ac) 1);
 qed "prat_add_assoc";
 
 qed_goal "prat_add_left_commute" thy
@@ -225,7 +226,7 @@ qed "prat_mult";
 Goal "(z::prat) * w = w * z";
 by (res_inst_tac [("z","z")] eq_Abs_prat 1);
 by (res_inst_tac [("z","w")] eq_Abs_prat 1);
-by (asm_simp_tac (simpset() addsimps (pnat_mult_ac @ [prat_mult])) 1);
+by (asm_simp_tac (simpset() addsimps pnat_mult_ac @ [prat_mult]) 1);
 qed "prat_mult_commute";
 
 Goal "((z1::prat) * z2) * z3 = z1 * (z2 * z3)";
@@ -333,8 +334,8 @@ by (res_inst_tac [("z","z1")] eq_Abs_prat 1);
 by (res_inst_tac [("z","z2")] eq_Abs_prat 1);
 by (res_inst_tac [("z","w")] eq_Abs_prat 1);
 by (asm_simp_tac 
-    (simpset() addsimps ([pnat_add_mult_distrib2, prat_add, prat_mult] @ 
-                        pnat_add_ac @ pnat_mult_ac)) 1);
+    (simpset() addsimps [pnat_add_mult_distrib2, prat_add, prat_mult] @ 
+                        pnat_add_ac @ pnat_mult_ac) 1);
 qed "prat_add_mult_distrib";
 
 val prat_mult_commute'= read_instantiate [("z","w")] prat_mult_commute;

@@ -387,8 +387,7 @@ by (etac recur.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (simpset() addsimps (split_ifs @
-			 [analz_insert_eq, analz_insert_freshK]))));
+     (simpset() addsimps split_ifs @ [analz_insert_eq, analz_insert_freshK])));
 (*RA4*)
 by (spy_analz_tac 5);
 (*RA2*)
