@@ -32,6 +32,6 @@ struct
 end;
 
 AddXIs [equal_intr_rule, disjI1, disjI2, ext];
-AddXEs [ex1_implies_ex];
+AddXEs [ex1_implies_ex, someI_ex];
 
 open HOL;
