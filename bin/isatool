@@ -27,7 +27,7 @@ function usage()
   echo "  Start Isabelle utility program TOOL with ARGS. Pass \"-?\" to TOOL"
   echo "  for more specific help."
   echo
-  echo "  Availabe tools are:"
+  echo "  Available tools are:"
   (
     for DIR in $TOOLDIRS
     do
