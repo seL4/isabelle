@@ -274,7 +274,7 @@ val notE = result();
 
 \medskip
 Again, there is a simpler way of conducting this proof.  The
-\ttindex{goalw} command starts unfolds definitions in the premises, as well
+\ttindex{goalw} command unfolds definitions in the premises as well
 as the conclusion:
 \begin{ttbox}
 val [major,minor] = goalw FOL.thy [not_def]
@@ -564,9 +564,14 @@ hand,
 \begin{ttbox} 
     If :: "[o,o,o] => o"       ("if _ then _ else _" [100,0,0] 99)
 \end{ttbox}
-defines a conditional whose first argument cannot be a conditional because it
-must have a precedence of at least 100.  Precedences only apply to
-mixfix syntax: we may write $If(If(P,Q,R),S,T)$.
+defines concrete syntax for a
+conditional whose first argument cannot have the form $if~P~then~Q~else~R$
+because it must have a precedence of at least~100.  Since expressions put in
+parentheses have maximal precedence, we may of course write 
+\begin{quote}
+\it  if (if P then Q else R) then S else T
+\end{quote}
+Conditional expressions can also be written using the constant {\tt If}.
 
 Binary type constructors, like products and sums, may also be declared as
 infixes.  The type declaration below introduces a type constructor~$*$ with
@@ -1189,11 +1194,6 @@ by prolog_tac;
 {\out rev(a : b : c : d : Nil, d : c : b : a : Nil)}
 {\out No subgoals!}
 \end{ttbox}
-Although Isabelle is much slower than a {\sc Prolog} system, many
-Isabelle tactics exploit logic programming techniques.  For instance, the
-simplification tactics prove subgoals of the form $t=\Var{x}$, rewriting~$t$
-and placing the normalised result in~$\Var{x}$.
-% Local Variables: 
-% mode: latex
-% TeX-master: t
-% End: 
+Although Isabelle is much slower than a {\sc Prolog} system, Isabelle
+tactics can exploit logic programming techniques.  
+
