@@ -14,7 +14,7 @@ types cname   (* class name *)
 
 arities cname, vnam, mname :: term
 
-datatype vname		(* names for This pointer and local/field variables *)
+datatype vname    (* names for This pointer and local/field variables *)
   = This
   | VName vnam
 
@@ -23,8 +23,8 @@ datatype prim_ty  (* primitive type, cf. 4.2 *)
   | Boolean
   | Integer
 
-datatype ref_ty		(* reference type, cf. 4.3 *)
-  = NullT		      (* null type, cf. 4.1 *)
+datatype ref_ty   (* reference type, cf. 4.3 *)
+  = NullT         (* null type, cf. 4.1 *)
   | ClassT cname  (* class type *)
 
 datatype ty       (* any type, cf. 4.1 *)
@@ -33,10 +33,10 @@ datatype ty       (* any type, cf. 4.1 *)
 
 syntax
   NT    :: "          ty"
-	Class	:: "cname  => ty"
+  Class :: "cname  => ty"
 
 translations
-	"NT"      == "RefT NullT"
-	"Class C" == "RefT (ClassT C)"
+  "NT"      == "RefT NullT"
+  "Class C" == "RefT (ClassT C)"
 
 end

@@ -19,10 +19,10 @@ WellForm = TypeRel +
 types 'c wf_mb = 'c prog => cname => 'c mdecl => bool
 
 constdefs
- wf_fdecl	:: "'c prog => fdecl => bool"
+ wf_fdecl :: "'c prog => fdecl => bool"
 "wf_fdecl G == \\<lambda>(fn,ft). is_type G ft"
 
- wf_mhead	:: "'c prog => sig => ty => bool"
+ wf_mhead :: "'c prog => sig => ty => bool"
 "wf_mhead G == \\<lambda>(mn,pTs) rT. (\\<forall>T\\<in>set pTs. is_type G T) \\<and> is_type G rT"
 
  wf_mdecl :: "'c wf_mb => 'c wf_mb"
@@ -31,9 +31,9 @@ constdefs
  wf_cdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool"
 "wf_cdecl wf_mb G ==
    \\<lambda>(C,(sc,fs,ms)).
-	(\\<forall>f\\<in>set fs. wf_fdecl G   f    ) \\<and>  unique fs \\<and>
-	(\\<forall>m\\<in>set ms. wf_mdecl wf_mb G C m) \\<and>  unique ms \\<and>
-	(case sc of None => C = Object
+  (\\<forall>f\\<in>set fs. wf_fdecl G   f    ) \\<and>  unique fs \\<and>
+  (\\<forall>m\\<in>set ms. wf_mdecl wf_mb G C m) \\<and>  unique ms \\<and>
+  (case sc of None => C = Object
          | Some D =>
              is_class G D \\<and>  \\<not>  G\\<turnstile>D\\<preceq>C C \\<and>
              (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
