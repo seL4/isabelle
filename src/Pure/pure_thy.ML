@@ -30,6 +30,7 @@ sig
   val single_thm: string -> thm list -> thm
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list -> (string * thm) list
+  val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
@@ -220,6 +221,15 @@ fun thms_containing thy consts =
 
 
 (** store theorems **)                    (*DESTRUCTIVE*)
+
+(* hiding -- affects current theory node only! *)
+
+fun hide_thms b names thy =
+  let
+    val r as ref {space, thms_tab, const_idx} = get_theorems thy;
+    val space' = NameSpace.hide b (space, names);
+  in r := {space = space', thms_tab = thms_tab, const_idx = const_idx}; thy end;
+
 
 (* naming *)
 
