@@ -15,8 +15,8 @@ subsection {* Hilbert's epsilon *}
 consts
   Eps           :: "('a => bool) => 'a"
 
-syntax (input)
-  "_Eps"        :: "[pttrn, bool] => 'a"    ("(3\<epsilon>_./ _)" [0, 10] 10)
+syntax (epsilon)
+  "_Eps"        :: "[pttrn, bool] => 'a"    ("(3\<some>_./ _)" [0, 10] 10)
 syntax (HOL)
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3@ _./ _)" [0, 10] 10)
 syntax
