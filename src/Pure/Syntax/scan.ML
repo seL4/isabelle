@@ -193,7 +193,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (warning (if_none msg "Syntax error."); warning "Trying to recover ...";
+        (error_msg (if_none msg "Syntax error."); error_msg "Trying to recover ...";
           drain_loop recover (apfst snd (drain_with recover inp)));
 
     val ((ys, (state', xs')), src') =
