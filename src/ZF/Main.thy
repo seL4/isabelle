@@ -16,6 +16,7 @@ lemmas wf_induct = wf_induct [induct set: wf]
   and wf_on_induct_rule = wf_on_induct [rule_format, consumes 2, induct set: wf_on]
 
 (* belongs to theory Ordinal *)
+declare Ord_Least [intro,simp,TC]
 lemmas Ord_induct = Ord_induct [consumes 2]
   and Ord_induct_rule = Ord_induct [rule_format, consumes 2]
   and trans_induct = trans_induct [consumes 1]

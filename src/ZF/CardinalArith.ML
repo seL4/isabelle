@@ -11,6 +11,14 @@ addition and multiplication of natural numbers; on infinite cardinals they
 coincide with union (maximum).  Either way we get most laws for free.
 *)
 
+val InfCard_def = thm "InfCard_def";
+val cmult_def = thm "cmult_def";
+val cadd_def = thm "cadd_def";
+val csquare_rel_def = thm "csquare_rel_def";
+val jump_cardinal_def = thm "jump_cardinal_def";
+val csucc_def = thm "csucc_def";
+
+
 (*** Cardinal addition ***)
 
 (** Cardinal addition is commutative **)

@@ -26,7 +26,7 @@ qed "images_eq";
 
 (* used in \\<in> AC10-AC15.ML AC16WO4.ML WO6WO1.ML *)
 (*I don't know where to put this one.*)
-goal Cardinal.thy
+Goal
      "!!m A B. [| A lepoll succ(m); B \\<subseteq> A; B\\<noteq>0 |] ==> A-B lepoll m";
 by (rtac not_emptyE 1 THEN (assume_tac 1));
 by (ftac singleton_subsetI 1);
@@ -65,7 +65,7 @@ by (eresolve_tac [id_bij RS bij_ordertype_vimage] 1);
 qed "ordertype_Int";
 
 (* used only in AC16_lemmas.ML *)
-goalw CardinalArith.thy [InfCard_def]
+Goalw [InfCard_def]
         "!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
 by (asm_simp_tac (simpset() addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 qed "Inf_Card_is_InfCard";

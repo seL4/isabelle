@@ -36,9 +36,9 @@ syntax (xsymbols)
   "@OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
-declare Ord_Un [intro,simp]
-declare Ord_UN [intro,simp]
-declare Ord_Union [intro,simp]
+declare Ord_Un [intro,simp,TC]
+declare Ord_UN [intro,simp,TC]
+declare Ord_Union [intro,simp,TC]
 
 (** These mostly belong to theory Ordinal **)
 
@@ -47,6 +47,17 @@ lemma Union_upper_le:
 apply (subst Union_eq_UN)  
 apply (rule UN_upper_le)
 apply auto
+done
+
+lemma zero_not_Limit [iff]: "~ Limit(0)"
+by (simp add: Limit_def)
+
+lemma Limit_has_1: "Limit(i) \<Longrightarrow> 1 < i"
+by (blast intro: Limit_has_0 Limit_has_succ)
+
+lemma Limit_Union [rule_format]: "\<lbrakk>I \<noteq> 0;  \<forall>i\<in>I. Limit(i)\<rbrakk> \<Longrightarrow> Limit(\<Union>I)"
+apply (simp add: Limit_def lt_def)
+apply (blast intro!: equalityI)
 done
 
 lemma increasing_LimitI: "\<lbrakk>0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y\<rbrakk> \<Longrightarrow> Limit(l)"

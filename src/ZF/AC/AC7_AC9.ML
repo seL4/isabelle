@@ -161,7 +161,8 @@ Goal "[| 0\\<notin>A;  A\\<noteq>0;  \
 \        B1: C;  B2: C |]  \
 \     ==> B1 eqpoll B2";
 by (blast_tac
-    (claset() addSIs [nat_lepoll_lemma, nat_cons_eqpoll RS eqpoll_trans, 
+    (claset() delrules [eqpoll_refl]
+	      addSIs [nat_lepoll_lemma, nat_cons_eqpoll RS eqpoll_trans, 
                       eqpoll_refl RSN (2, prod_eqpoll_cong)]
               addIs [eqpoll_trans, eqpoll_sym, Sigma_fun_space_eqpoll]) 1);
 val lemma1 = result();

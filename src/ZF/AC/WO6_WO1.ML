@@ -290,6 +290,7 @@ by (resolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RS
         uu_subset1 RSN (4, rel_is_fun)))] 1
         THEN TRYALL assume_tac);
 by (rtac (eqpoll_sym RS eqpoll_imp_lepoll RSN (2, supset_lepoll_imp_eq)) 1);
+by (REPEAT_FIRST assume_tac);
 by (REPEAT (fast_tac (claset() addSIs [domain_uu_subset]) 1));
 qed "uu_Least_is_fun";
 

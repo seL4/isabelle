@@ -364,6 +364,7 @@ Goalw [oadd_def]
     "[| Ord(i);  Ord(j) |] ==> Ord(i++j)";
 by (REPEAT (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel] 1));
 qed "Ord_oadd";
+Addsimps [Ord_oadd]; AddIs [Ord_oadd]; AddTCs [Ord_oadd];
 
 (** Ordinal addition with zero **)
 
@@ -495,9 +496,10 @@ qed "oadd_1";
 
 Goal "[| Ord(i);  Ord(j) |] ==> i++succ(j) = succ(i++j)";
                 (*FOL_ss prevents looping*)
-by (asm_simp_tac (FOL_ss addsimps [Ord_oadd, oadd_1 RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps [oadd_1, oadd_assoc, Ord_1]) 1);
+by (asm_simp_tac (FOL_ss delsimps [oadd_1]
+		 addsimps [Ord_oadd, oadd_1 RS sym, oadd_assoc, Ord_1]) 1);
 qed "oadd_succ";
+Addsimps [oadd_succ];
 
 
 (** Ordinal addition with limit ordinals **)
@@ -549,11 +551,13 @@ by (REPEAT (eresolve_tac [asm_rl, oadd_le_mono1, oadd_lt_mono2, ltE,
 qed "oadd_lt_mono";
 
 Goal "[| i' le i;  j' le j |] ==> i'++j' le i++j";
-by (asm_simp_tac (simpset() addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
+by (asm_simp_tac (simpset() delsimps [oadd_succ]
+		   addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
 qed "oadd_le_mono";
 
 Goal "[| Ord(i); Ord(j); Ord(k) |] ==> i++j le i++k <-> j le k";
-by (asm_simp_tac (simpset() addsimps [oadd_lt_iff2, oadd_succ RS sym, 
+by (asm_simp_tac (simpset() delsimps [oadd_succ]
+			    addsimps [oadd_lt_iff2, oadd_succ RS sym, 
                                   Ord_succ]) 1);
 qed "oadd_le_iff2";
 
@@ -761,9 +765,8 @@ qed "oadd_omult_distrib";
 
 Goal "[| Ord(i);  Ord(j) |] ==> i**succ(j) = (i**j)++i";
                 (*FOL_ss prevents looping*)
-by (asm_simp_tac (FOL_ss addsimps [oadd_1 RS sym]) 1);
-by (asm_simp_tac 
-    (simpset() addsimps [omult_1, oadd_omult_distrib, Ord_1]) 1);
+by (asm_simp_tac (FOL_ss addsimps [oadd_1 RS sym, omult_1, oadd_omult_distrib,
+                                   Ord_1]) 1);
 qed "omult_succ";
 
 (** Associative law **)

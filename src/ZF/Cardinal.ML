@@ -57,6 +57,7 @@ qed "bij_imp_eqpoll";
 
 (*A eqpoll A*)
 bind_thm ("eqpoll_refl", id_bij RS bij_imp_eqpoll);
+Addsimps [eqpoll_refl];
 
 Goalw [eqpoll_def] "X eqpoll Y ==> Y eqpoll X";
 by (blast_tac (claset() addIs [bij_converse_bij]) 1);
@@ -75,6 +76,7 @@ by (etac id_subset_inj 1);
 qed "subset_imp_lepoll";
 
 bind_thm ("lepoll_refl", subset_refl RS subset_imp_lepoll);
+Addsimps [lepoll_refl];
 
 bind_thm ("le_imp_lepoll", le_imp_subset RS subset_imp_lepoll);
 
