@@ -24,6 +24,7 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_closure: theory -> xstring -> thm list option
   val thms_containing: theory -> string list -> (string * thm) list
   val default_name: string -> string
@@ -31,7 +32,7 @@ sig
   val smart_store_thm: (bstring * thm) -> thm
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
-  val have_thmss: bstring -> theory attribute list ->
+  val have_thmss: bstring option -> theory attribute list ->
     (thm list * theory attribute list) list -> theory -> theory * thm list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
@@ -93,6 +94,8 @@ end;
 structure TheoremsData = TheoryDataFun(TheoremsDataArgs);
 val get_theorems_sg = TheoremsData.get_sg;
 val get_theorems = TheoremsData.get;
+
+val cond_extern_thm_sg = NameSpace.cond_extern o #space o ! o get_theorems_sg;
 
 
 (* print theory *)
@@ -261,12 +264,16 @@ val add_thmss = add_thmxs name_multi Thm.applys_attributes;
 
 (* have_thmss *)
 
-fun have_thmss bname more_atts ths_atts thy =
+fun have_thmss opt_bname more_atts ths_atts thy =
   let
     fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
     val (thy', thmss') =
       foldl_map app (thy, map (fn (ths, atts) => (ths, atts @ more_atts)) ths_atts);
-    val thms'' = enter_thmx (Theory.sign_of thy') name_multi (bname, flat thmss');
+    val thms' = flat thmss';
+    val thms'' =
+      (case opt_bname of
+        None => thms'
+      | Some bname => enter_thmx (Theory.sign_of thy') name_multi (bname, thms'));
   in (thy, thms'') end;
 
 
