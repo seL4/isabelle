@@ -142,7 +142,6 @@ fun maintain_calculation false calc state =
       state
       |> put_calculation calc
       |> Proof.simple_have_thms calculationN calc
-      |> Proof.reset_facts
   | maintain_calculation true calc state =
       state
       |> reset_calculation
