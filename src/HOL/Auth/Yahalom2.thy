@@ -19,58 +19,58 @@ consts  yahalom   :: event list set
 inductive "yahalom"
   intrs 
          (*Initial trace is empty*)
-    Nil  "[]: yahalom"
+    Nil  "[] \\<in> yahalom"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: yahalom;  X: synth (analz (knows Spy evs)) |]
-          ==> Says Spy B X  # evs : yahalom"
+    Fake "[| evsf \\<in> yahalom;  X \\<in> synth (analz (knows Spy evsf)) |]
+          ==> Says Spy B X  # evsf \\<in> yahalom"
 
          (*A message that has been sent can be received by the
            intended recipient.*)
-    Reception "[| evsr: yahalom;  Says A B X : set evsr |]
-               ==> Gets B X # evsr : yahalom"
+    Reception "[| evsr \\<in> yahalom;  Says A B X \\<in> set evsr |]
+               ==> Gets B X # evsr \\<in> yahalom"
 
          (*Alice initiates a protocol run*)
-    YM1  "[| evs1: yahalom;  Nonce NA ~: used evs1 |]
-          ==> Says A B {|Agent A, Nonce NA|} # evs1 : yahalom"
+    YM1  "[| evs1 \\<in> yahalom;  Nonce NA \\<notin> used evs1 |]
+          ==> Says A B {|Agent A, Nonce NA|} # evs1 \\<in> yahalom"
 
          (*Bob's response to Alice's message.*)
-    YM2  "[| evs2: yahalom;  Nonce NB ~: used evs2;
-             Gets B {|Agent A, Nonce NA|} : set evs2 |]
+    YM2  "[| evs2 \\<in> yahalom;  Nonce NB \\<notin> used evs2;
+             Gets B {|Agent A, Nonce NA|} \\<in> set evs2 |]
           ==> Says B Server 
                   {|Agent B, Nonce NB, Crypt (shrK B) {|Agent A, Nonce NA|}|}
-                # evs2 : yahalom"
+                # evs2 \\<in> yahalom"
 
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a certificate for forwarding to Bob.
            Both agents are quoted in the 2nd certificate to prevent attacks!*)
-    YM3  "[| evs3: yahalom;  Key KAB ~: used evs3;
+    YM3  "[| evs3 \\<in> yahalom;  Key KAB \\<notin> used evs3;
              Gets Server {|Agent B, Nonce NB,
 			   Crypt (shrK B) {|Agent A, Nonce NA|}|}
-               : set evs3 |]
+               \\<in> set evs3 |]
           ==> Says Server A
                {|Nonce NB, 
                  Crypt (shrK A) {|Agent B, Key KAB, Nonce NA|},
                  Crypt (shrK B) {|Agent A, Agent B, Key KAB, Nonce NB|}|}
-                 # evs3 : yahalom"
+                 # evs3 \\<in> yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs4: yahalom;  
+    YM4  "[| evs4 \\<in> yahalom;  
              Gets A {|Nonce NB, Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-                      X|}  : set evs4;
-             Says A B {|Agent A, Nonce NA|} : set evs4 |]
-          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs4 : yahalom"
+                      X|}  \\<in> set evs4;
+             Says A B {|Agent A, Nonce NA|} \\<in> set evs4 |]
+          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs4 \\<in> yahalom"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct. *)
-    Oops "[| evso: yahalom;  
+    Oops "[| evso \\<in> yahalom;  
              Says Server A {|Nonce NB, 
                              Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-                             X|}  : set evso |]
-          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : yahalom"
+                             X|}  \\<in> set evso |]
+          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso \\<in> yahalom"
 
 end

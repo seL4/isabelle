@@ -133,27 +133,6 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 	Spy_analz_shrK RSN (2, rev_iffD1)];
 
 
-(** Nobody can have used non-existent keys! **)
-
-(*The special case of H={} has the same proof*)
-Goal "[| K \\<in> keysFor (parts (insert RB H));  RB \\<in> responses evs |] \
-\     ==> K \\<in> range shrK | K \\<in> keysFor (parts H)";
-by (etac rev_mp 1);
-by (etac responses.induct 1);
-by Auto_tac;
-qed_spec_mp "Key_in_keysFor_parts";
-
-
-Goal "evs \\<in> recur ==> Key K \\<notin> used evs --> K \\<notin> keysFor (parts (spies evs))";
-by (parts_induct_tac 1);
-(*RA3*)
-by (blast_tac (claset() addSDs [Key_in_keysFor_parts]) 2);
-(*Fake*)
-by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
-qed_spec_mp "new_keys_not_used";
-Addsimps [new_keys_not_used];
-
-
 
 (*** Proofs involving analz ***)
 

@@ -19,7 +19,7 @@ translations
 
 rules
   (*Tgs is secure --- we already know that Kas is secure*)
-  Tgs_not_bad "Tgs ~: bad"
+  Tgs_not_bad "Tgs \\<notin> bad"
   
 (*The current time is just the length of the trace!*)
 syntax
@@ -37,17 +37,17 @@ syntax
 constdefs
  (* AuthKeys are those contained in an AuthTicket *)
     AuthKeys :: event list => key set
-    "AuthKeys evs == {AuthKey. EX A Peer Tk. Says Kas A
+    "AuthKeys evs == {AuthKey. \\<exists>A Peer Tk. Says Kas A
                         (Crypt (shrK A) {|Key AuthKey, Agent Peer, Tk, 
                    (Crypt (shrK Peer) {|Agent A, Agent Peer, Key AuthKey, Tk|})
-                  |}) : set evs}"
+                  |}) \\<in> set evs}"
                       
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
   Issues :: [agent , agent, msg, event list] => bool ("_ Issues _ with _ on _")
    "A Issues B with X on evs == 
-      EX Y. Says A B Y : set evs & X : parts {Y} &
-      X ~: parts (spies (takeWhile (% z. z  ~= Says A B Y) (rev evs)))"
+      \\<exists>Y. Says A B Y \\<in> set evs & X \\<in> parts {Y} &
+      X \\<notin> parts (spies (takeWhile (% z. z  \\<noteq> Says A B Y) (rev evs)))"
 
 
 consts
@@ -88,11 +88,11 @@ translations
 constdefs 
   KeyCryptKey :: [key, key, event list] => bool
   "KeyCryptKey AuthKey ServKey evs ==
-     EX A B tt. 
+     \\<exists>A B tt. 
        Says Tgs A (Crypt AuthKey
                      {|Key ServKey, Agent B, tt,
                        Crypt (shrK B) {|Agent A, Agent B, Key ServKey, tt|} |})
-         : set evs"
+         \\<in> set evs"
 
 consts
 
@@ -100,16 +100,15 @@ kerberos   :: event list set
 inductive "kerberos"
   intrs 
         
-    Nil  "[]: kerberos"
+    Nil  "[] \\<in> kerberos"
 
-    Fake "[| evs: kerberos;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
-          ==> Says Spy B X  # evs : kerberos"
+    Fake "[| evsf \\<in> kerberos;  X \\<in> synth (analz (spies evsf)) |]
+          ==> Says Spy B X  # evsf \\<in> kerberos"
 
 (* FROM the initiator *)
-    K1   "[| evs1: kerberos |]
+    K1   "[| evs1 \\<in> kerberos |]
           ==> Says A Kas {|Agent A, Agent Tgs, Number (CT evs1)|} # evs1 
-          : kerberos"
+          \\<in> kerberos"
 
 (* Adding the timestamp serves to A in K3 to check that
    she doesn't get a reply too late. This kind of timeouts are ordinary. 
@@ -118,12 +117,12 @@ inductive "kerberos"
 (*---------------------------------------------------------------------*)
 
 (*FROM Kas *)
-    K2  "[| evs2: kerberos; Key AuthKey ~: used evs2;
-            Says A' Kas {|Agent A, Agent Tgs, Number Ta|} : set evs2 |]
+    K2  "[| evs2 \\<in> kerberos; Key AuthKey \\<notin> used evs2;
+            Says A' Kas {|Agent A, Agent Tgs, Number Ta|} \\<in> set evs2 |]
           ==> Says Kas A
                 (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number (CT evs2), 
                       (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, 
-                          Number (CT evs2)|})|}) # evs2 : kerberos"
+                          Number (CT evs2)|})|}) # evs2 \\<in> kerberos"
 (* 
   The internal encryption builds the AuthTicket.
   The timestamp doesn't change inside the two encryptions: the external copy
@@ -134,15 +133,15 @@ inductive "kerberos"
 (*---------------------------------------------------------------------*)
 
 (* FROM the initiator *)
-    K3  "[| evs3: kerberos; 
-            Says A Kas {|Agent A, Agent Tgs, Number Ta|} : set evs3;
+    K3  "[| evs3 \\<in> kerberos; 
+            Says A Kas {|Agent A, Agent Tgs, Number Ta|} \\<in> set evs3;
             Says Kas' A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk, 
-              AuthTicket|}) : set evs3; 
+              AuthTicket|}) \\<in> set evs3; 
             RecentResp Tk Ta
          |]
           ==> Says A Tgs {|AuthTicket, 
                            (Crypt AuthKey {|Agent A, Number (CT evs3)|}), 
-                           Agent B|} # evs3 : kerberos"
+                           Agent B|} # evs3 \\<in> kerberos"
 (*The two events amongst the premises allow A to accept only those AuthKeys 
   that are not issued late. *)
 
@@ -153,12 +152,12 @@ inductive "kerberos"
    specification. Adding it strengthens the guarantees assessed by the 
    protocol. Theorems that exploit it have the suffix `_refined'
 *) 
-    K4  "[| evs4: kerberos; Key ServKey ~: used evs4; B ~= Tgs; 
+    K4  "[| evs4 \\<in> kerberos; Key ServKey \\<notin> used evs4; B \\<noteq> Tgs; 
             Says A' Tgs {|
              (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey,
 				 Number Tk|}),
              (Crypt AuthKey {|Agent A, Number Ta1|}), Agent B|}
-	        : set evs4;
+	        \\<in> set evs4;
             ~ ExpirAuth Tk evs4;
             ~ ExpirAutc Ta1 evs4; 
             ServLife + (CT evs4) <= AuthLife + Tk
@@ -167,7 +166,7 @@ inductive "kerberos"
                 (Crypt AuthKey {|Key ServKey, Agent B, Number (CT evs4),  
 			       Crypt (shrK B) {|Agent A, Agent B, Key ServKey,
 		 			        Number (CT evs4)|} |})
-	        # evs4 : kerberos"
+	        # evs4 \\<in> kerberos"
 (* Tgs creates a new session key per each request for a service, without 
    checking if there is still a fresh one for that service.
    The cipher under Tgs' key is the AuthTicket, the cipher under B's key
@@ -179,56 +178,56 @@ inductive "kerberos"
 (*---------------------------------------------------------------------*)
 
 (* FROM the initiator *)
-    K5  "[| evs5: kerberos;  
+    K5  "[| evs5 \\<in> kerberos;  
             Says A Tgs 
                 {|AuthTicket, (Crypt AuthKey {|Agent A, Number Ta1|} ),
 		  Agent B|}
-              : set evs5;
+              \\<in> set evs5;
             Says Tgs' A 
              (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|} ) 
-                : set evs5;
+                \\<in> set evs5;
             RecentResp Tt Ta1 |]
           ==> Says A B {|ServTicket,
 			 Crypt ServKey {|Agent A, Number (CT evs5)|} |}
-               # evs5 : kerberos"
+               # evs5 \\<in> kerberos"
 (* Checks similar to those in K3. *)
 
 (*---------------------------------------------------------------------*)
 
 (* FROM the responder*)
-     K6  "[| evs6: kerberos;
+     K6  "[| evs6 \\<in> kerberos;
             Says A' B {|           
               (Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|} ),
               (Crypt ServKey {|Agent A, Number Ta2|} )|}
-            : set evs6;
+            \\<in> set evs6;
             ~ ExpirServ Tt evs6;
             ~ ExpirAutc Ta2 evs6
          |]
           ==> Says B A (Crypt ServKey (Number Ta2) )
-               # evs6 : kerberos"
+               # evs6 \\<in> kerberos"
 (* Checks similar to those in K4. *)
 
 (*---------------------------------------------------------------------*)
 
 (* Leaking an AuthKey... *)
-    Oops1 "[| evsO1: kerberos;  A ~= Spy;
+    Oops1 "[| evsO1 \\<in> kerberos;  A \\<noteq> Spy;
               Says Kas A
                 (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk, 
-                                  AuthTicket|})  : set evsO1;
+                                  AuthTicket|})  \\<in> set evsO1;
               ExpirAuth Tk evsO1 |]
           ==> Says A Spy {|Agent A, Agent Tgs, Number Tk, Key AuthKey|} 
-               # evsO1 : kerberos"
+               # evsO1 \\<in> kerberos"
 
 (*---------------------------------------------------------------------*)
 
 (*Leaking a ServKey... *)
-    Oops2 "[| evsO2: kerberos;  A ~= Spy;
+    Oops2 "[| evsO2 \\<in> kerberos;  A \\<noteq> Spy;
               Says Tgs A 
                 (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|})
-                   : set evsO2;
+                   \\<in> set evsO2;
               ExpirServ Tt evsO2 |]
           ==> Says A Spy {|Agent A, Agent B, Number Tt, Key ServKey|} 
-               # evsO2 : kerberos"
+               # evsO2 \\<in> kerberos"
 
 (*---------------------------------------------------------------------*)
 

@@ -56,24 +56,11 @@ by (ALLGOALS (asm_simp_tac
 qed "Spy_knows_Spy_bad";
 AddSIs [Spy_knows_Spy_bad];
 
-(*For not_bad_tac*)
+(*For case analysis on whether or not an agent is compromised*)
 Goal "[| Crypt (shrK A) X : analz (knows Spy evs);  A: bad |] \
-\              ==> X : analz (knows Spy evs)";
+\     ==> X : analz (knows Spy evs)";
 by (force_tac (claset() addSDs [analz.Decrypt], simpset()) 1);
 qed "Crypt_Spy_analz_bad";
-
-(*Prove that the agent is uncompromised by the confidentiality of 
-  a component of a message she's said.*)
-fun not_bad_tac s =
-    case_tac ("(" ^ s ^ ") : bad") THEN'
-    SELECT_GOAL 
-      (REPEAT_DETERM (etac exE 1) THEN
-       REPEAT_DETERM (dtac (Says_imp_spies RS analz.Inj) 1) THEN
-       REPEAT_DETERM (etac MPair_analz 1) THEN
-       THEN_BEST_FIRST 
-         (dres_inst_tac [("A", s)] Crypt_Spy_analz_bad 1 THEN assume_tac 1)
-         (has_fewer_prems 1, size_of_thm)
-         (Step_tac 1));
 
 
 (** Fresh keys never clash with long-term shared keys **)
