@@ -130,9 +130,8 @@ by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "deltas_concat";
 Addsimps [deltas_concat];
 
-goal Arith.thy "!!n. [| n < Suc k; n ~= k |] ==> n < k";
-by (etac linorder_neqE 1);
-by (ALLGOALS Simp_tac);
+Goal "[| n < Suc k; n ~= k |] ==> n < k";
+by (arith_tac 1);
 val lemma = result();
 
 Goal
