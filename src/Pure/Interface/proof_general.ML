@@ -270,13 +270,12 @@ fun init isar =
   setup_messages ();
   setup_state ();
   setup_thy_loader ();
-  print_mode := [proof_generalN];
+  print_mode := proof_generalN :: ! print_mode;
   set quick_and_dirty;
   ThmDeps.enable ();
   if isar then ml_prompts "ML> " "ML# "
   else ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
-  welcome ();
-  if isar then Isar.sync_main () else isa_start ());
+  if isar then (welcome (); Isar.sync_main ()) else isa_start ());
 
 
 
