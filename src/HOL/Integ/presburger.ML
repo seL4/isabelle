@@ -63,19 +63,6 @@ fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
 
 fun term_typed_consts t = add_term_typed_consts(t,[]);
 
-(* put a term into eta long beta normal form *)
-fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
-  | eta_long Ts t = (case strip_comb t of
-      (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-    | (u, ts) => 
-      let
-        val Us = binder_types (fastype_of1 (Ts, t));
-        val i = length Us
-      in list_abs (map (pair "x") Us,
-        list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-          (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
-      end);
-
 (* Some Types*)
 val bT = HOLogic.boolT;
 val iT = HOLogic.intT;
@@ -107,6 +94,8 @@ val allowed_consts =
    ("op *", iT --> iT --> iT), 
    ("HOL.abs", iT --> iT),
    ("uminus", iT --> iT),
+   ("HOL.max", iT --> iT --> iT),
+   ("HOL.min", iT --> iT --> iT),
 
    ("op <=", nT --> nT --> bT),
    ("op =", nT --> nT --> bT),
@@ -118,6 +107,8 @@ val allowed_consts =
    ("op -", nT --> nT --> nT),
    ("op *", nT --> nT --> nT), 
    ("Suc", nT --> nT),
+   ("HOL.max", nT --> nT --> nT),
+   ("HOL.min", nT --> nT --> nT),
 
    ("Numeral.bin.Bit", binT --> bT --> binT),
    ("Numeral.bin.Pls", binT),
@@ -177,7 +168,7 @@ fun presburger_tac q i st =
 
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
-      addsplits [split_zdiv, split_zmod, split_div']
+      addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
       addsimps [nat_number_of_def, zdvd_int] @ map (fn r => r RS sym)
@@ -208,7 +199,7 @@ fun presburger_tac q i st =
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
           (trace_msg ("calling procedure with term:\n" ^
              Sign.string_of_term sg t1);
-           ((mproof_of_int_qelim sg (eta_long [] t1) RS iffD2) RS pre_thm,
+           ((mproof_of_int_qelim sg (Pattern.eta_long [] t1) RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
       | _ => (pre_thm, assm_tac i)
   in (rtac (((mp_step nh) o (spec_step np)) th) i THEN tac) st
