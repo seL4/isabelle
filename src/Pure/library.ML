@@ -73,6 +73,7 @@ sig
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
+  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val length: 'a list -> int
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
@@ -96,6 +97,7 @@ sig
   val map2: ('a * 'b -> 'c) -> 'a list * 'b list -> 'c list
   val exists2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val forall2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val seq2: ('a * 'b -> unit) -> 'a list * 'b list -> unit
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val prefix: ''a list * ''a list -> bool
@@ -412,6 +414,13 @@ fun foldr1 f l =
         | itr (x::l) = f(x, itr l)
   in  itr l  end;
 
+fun foldl_map _ (x, []) = (x, [])
+  | foldl_map f (x, y :: ys) =
+      let
+        val (x', y') = f (x, y);
+        val (x'', ys') = foldl_map f (x', ys);
+      in (x'', y' :: ys') end;
+
 
 (* basic list functions *)
 
@@ -540,6 +549,10 @@ fun forall2 _ ([], []) = true
   | forall2 pred (x :: xs, y :: ys) = pred (x, y) andalso forall2 pred (xs, ys)
   | forall2 _ _ = raise LIST "forall2";
 
+fun seq2 _ ([], []) = ()
+  | seq2 f (x :: xs, y :: ys) = (f (x, y); seq2 f (xs, ys))
+  | seq2 _ _ = raise LIST "seq2";
+
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
 fun [] ~~ [] = []
@@ -625,7 +638,8 @@ fun string_of_indexname (a,0) = a
 (** strings **)
 
 (*beginning of text*)
-fun beginning cs = implode (take (10, cs)) ^ " ...";
+fun beginning cs =
+  implode (map (fn c => if ord c < ord " " then " " else c) (take (10, cs))) ^ " ...";
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
