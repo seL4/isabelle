@@ -33,6 +33,14 @@ $(OUT)/HOL:
 
 #### Tests and examples
 
+## IMP
+
+IMP_THYS = IMP/Denotational.thy
+IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
+
+IMP:	$(OUT)/HOLCF $(IMP_FILES)
+	@$(ISATOOL) testdir $(OUT)/HOLCF IMP
+
 ## Miscellaneous examples
 
 EX_THYS = ex/Classlib.thy ex/Witness.thy\
@@ -42,7 +50,12 @@ EX_THYS = ex/Classlib.thy ex/Witness.thy\
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
-test: ex/ROOT.ML $(OUT)/HOLCF $(EX_FILES)
+EX:	ex/ROOT.ML $(EX_FILES)
 	@$(ISATOOL) testdir $(OUT)/HOLCF ex
+
+## Full test
+
+test:	$(OUT)/HOLCF IMP EX
+	echo 'Test examples ran successfully' > test
 
 .PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
