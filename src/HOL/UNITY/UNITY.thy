@@ -8,8 +8,7 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-UNITY = LessThan + ListOrder +
-
+UNITY = Main + 
 
 typedef (Program)
   'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). Id:acts}"

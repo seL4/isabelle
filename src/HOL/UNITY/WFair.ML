@@ -400,14 +400,14 @@ qed "bounded_induct";
 
 (*Alternative proof is via the lemma F : (A Int f-``(lessThan m)) leadsTo B*)
 val prems = 
-Goal "[| !!m. F : (A Int f-``{m}) leadsTo ((A Int f-``(lessThan m)) Un B) |] \
+Goal "[| !!m::nat. F : (A Int f-``{m}) leadsTo ((A Int f-``{..m(}) Un B) |] \
 \     ==> F : A leadsTo B";
 by (rtac (wf_less_than RS leadsTo_wf_induct) 1);
 by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "lessThan_induct";
 
-Goal "[| ALL m:(greaterThan l).    \
+Goal "!!l::nat. [| ALL m:(greaterThan l).    \
 \           F : (A Int f-``{m}) leadsTo ((A Int f-``(lessThan m)) Un B) |] \
 \     ==> F : A leadsTo ((A Int (f-``(atMost l))) Un B)";
 by (simp_tac (HOL_ss addsimps [Diff_eq RS sym, vimage_Compl, 
@@ -416,7 +416,7 @@ by (rtac (wf_less_than RS bounded_induct) 1);
 by (Asm_simp_tac 1);
 qed "lessThan_bounded_induct";
 
-Goal "[| ALL m:(lessThan l).    \
+Goal "!!l::nat. [| ALL m:(lessThan l).    \
 \           F : (A Int f-``{m}) leadsTo ((A Int f-``(greaterThan m)) Un B) |] \
 \     ==> F : A leadsTo ((A Int (f-``(atLeast l))) Un B)";
 by (res_inst_tac [("f","f"),("f1", "%k. l - k")]

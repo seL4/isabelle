@@ -106,7 +106,7 @@ Addsimps [sub_apply];
 Goal "lift_set i {s. P s} = {s. P (drop_map i s)}";
 by (rtac set_ext 1);
 by (asm_simp_tac (simpset() delsimps [image_Collect]
-			    addsimps [lift_set_def, rename_set_eq_Collect]) 1);
+			    addsimps [lift_set_def, bij_image_Collect_eq]) 1);
 qed "lift_set_eq_Collect";
 
 Goalw [lift_set_def] "lift_set i {} = {}";

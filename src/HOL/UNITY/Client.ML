@@ -12,11 +12,6 @@ program_defs_ref := [Client_def];
 Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 
 
-fun invariant_tac i = 
-    rtac invariantI i  THEN
-    constrains_tac (i+1);
-
-
 (*Safety property 1: ask, rel are increasing*)
 Goal "Client: UNIV guarantees[funPair rel ask] \
 \             Increasing ask Int Increasing rel";

@@ -30,11 +30,6 @@ by (auto_tac (claset() addSIs [image_eqI],
 	      simpset() addsimps [bij_is_inj, bij_is_surj RS surj_f_inv_f]));
 qed "mem_rename_set_iff";
 
-Goal "bij h ==> h``{s. P s} = {s. P (inv h s)}";
-by (auto_tac (claset() addSIs [image_eqI],
-	      simpset() addsimps [bij_is_inj, bij_is_surj RS surj_f_inv_f]));
-qed "rename_set_eq_Collect";
-
 Goal "extend_set (%(x,u). h x) A = h``A";
 by (auto_tac (claset() addSIs [image_eqI],
 	      simpset() addsimps [extend_set_def]));

@@ -12,6 +12,10 @@ Extend = Guar +
 
 constdefs
 
+  (*MOVE to Relation.thy?*)
+  Restrict :: "[ 'a set, ('a*'b) set] => ('a*'b) set"
+    "Restrict A r == r Int (A <*> UNIV)"
+
   good_map :: "['a*'b => 'c] => bool"
     "good_map h == surj h & (ALL x y. fst (inv h (h (x,y))) = x)"
      (*Using the locale constant "f", this is  f (h (x,y))) = x*)

@@ -6,6 +6,9 @@
 Specification of Chandy and Charpentier's Allocator
 *)
 
+(*Perhaps equalities.ML shouldn't add this in the first place!*)
+Delsimps [image_Collect];
+
 AddIs [impOfSubs subset_preserves_o];
 Addsimps [funPair_o_distrib];
 Addsimps [Always_INT_distrib];

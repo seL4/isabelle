@@ -6,7 +6,7 @@
 The "Follows" relation of Charpentier and Sivilotte
 *)
 
-Follows = SubstAx +
+Follows = SubstAx + ListOrder +
 
 constdefs
 

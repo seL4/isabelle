@@ -335,7 +335,7 @@ qed "Bounded_induct";
 
 
 val prems = 
-Goal "(!! m. F : (A Int f-``{m}) LeadsTo ((A Int f-``(lessThan m)) Un B)) \
+Goal "(!!m::nat. F : (A Int f-``{m}) LeadsTo ((A Int f-``(lessThan m)) Un B)) \
 \     ==> F : A LeadsTo B";
 by (rtac (wf_less_than RS LeadsTo_wf_induct) 1);
 by (auto_tac (claset() addIs prems, simpset()));
@@ -353,7 +353,7 @@ by (rtac ([reach, prem] MRS Always_LeadsTo_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [nat_eq_iff, nat_less_iff]));
 qed "integ_0_le_induct";
 
-Goal "[| ALL m:(greaterThan l). F : (A Int f-``{m}) LeadsTo   \
+Goal "!!l::nat. [| ALL m:(greaterThan l). F : (A Int f-``{m}) LeadsTo   \
 \                                        ((A Int f-``(lessThan m)) Un B) |] \
 \           ==> F : A LeadsTo ((A Int (f-``(atMost l))) Un B)";
 by (simp_tac (HOL_ss addsimps [Diff_eq RS sym, vimage_Compl, Compl_greaterThan RS sym]) 1);
@@ -361,7 +361,7 @@ by (rtac (wf_less_than RS Bounded_induct) 1);
 by (Asm_simp_tac 1);
 qed "LessThan_bounded_induct";
 
-Goal "[| ALL m:(lessThan l). F : (A Int f-``{m}) LeadsTo   \
+Goal "!!l::nat. [| ALL m:(lessThan l). F : (A Int f-``{m}) LeadsTo   \
 \                              ((A Int f-``(greaterThan m)) Un B) |] \
 \     ==> F : A LeadsTo ((A Int (f-``(atLeast l))) Un B)";
 by (res_inst_tac [("f","f"),("f1", "%k. l - k")]
