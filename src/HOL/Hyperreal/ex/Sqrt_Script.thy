@@ -4,7 +4,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {*  Square roots of primes are irrational (script version) *}
+header {* Square roots of primes are irrational (script version) *}
 
 theory Sqrt_Script = Primes + Hyperreal:
 
@@ -18,7 +18,8 @@ subsection {* Preliminaries *}
 lemma prime_nonzero:  "p \<in> prime \<Longrightarrow> p \<noteq> 0"
   by (force simp add: prime_def)
 
-lemma prime_dvd_other_side: "n * n = p * (k * k) \<Longrightarrow> p \<in> prime \<Longrightarrow> p dvd n"
+lemma prime_dvd_other_side:
+    "n * n = p * (k * k) \<Longrightarrow> p \<in> prime \<Longrightarrow> p dvd n"
   apply (subgoal_tac "p dvd n * n", blast dest: prime_dvd_mult)
   apply (rule_tac j = "k * k" in dvd_mult_left, simp)
   done
@@ -71,6 +72,7 @@ theorem prime_sqrt_irrational:
     real_of_nat_mult [symmetric])
   done
 
-lemmas two_sqrt_irrational = prime_sqrt_irrational [OF two_is_prime]
+lemmas two_sqrt_irrational =
+  prime_sqrt_irrational [OF two_is_prime]
 
 end
