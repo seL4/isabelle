@@ -51,7 +51,7 @@ function check_bool()
 
 function check_number()
 {
-  [ -n "$1" -a -z "$(echo "$1" | tr -d [0-9])" ] || fail "Bad number: \"$1\""
+  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
 }
 
 
