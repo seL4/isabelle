@@ -4,21 +4,25 @@
                 Tobias Nipkow and L C Paulson
     Copyright   1994 TU Muenchen
 
-(* FIXME !? *)
-Reading and writing the theory definition files.
-
-(* FIXME !? *)
-For theory XXX, the  input file is called XXX.thy
-                the output file is called .XXX.thy.ML
-                and it then tries to read XXX.ML
+Functions for reading theory files, and storing and retrieving theories
+and theorems.
 *)
 
+(*Type for theory storage*)
 datatype thy_info = ThyInfo of {path: string,
                                 children: string list,
                                 thy_time: string option,
                                 ml_time: string option,
                                 theory: theory option,
                                 thms: thm Symtab.table};
+      (*meaning of special values:
+        thy_time, ml_time = None     theory file has not been read yet
+                          = Some ""  theory was read but has either been marked
+                                     as outdated or there is no such file for
+                                     this theory (see e.g. 'virtual' theories
+                                     like Pure or theories without a ML file)
+        theory = None  theory has not been read yet
+       *)
 
 signature READTHY =
 sig
