@@ -79,10 +79,10 @@ qed "is_gcd_unique";
 goal thy "k * gcd(m,n) = gcd(k*m, k*n)";
 by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "k=0" 1);
-by (case_tac "n=0" 2);
-by (ALLGOALS 
-    (asm_full_simp_tac (simpset() addsimps
-       [mod_less_divisor, mod_geq, mod_mult_distrib2])));
+ by(Asm_full_simp_tac 1);
+by (case_tac "n=0" 1);
+ by(Asm_full_simp_tac 1);
+by(asm_full_simp_tac (simpset() addsimps [mod_geq, mod_mult_distrib2]) 1);
 qed "gcd_mult_distrib2";
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.
