@@ -267,10 +267,19 @@ preceding the actual theory definition.
   \isarcmd{translations} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
+\railalias{rightleftharpoons}{\isasymrightleftharpoons}
+\railterm{rightleftharpoons}
+
+\railalias{rightharpoonup}{\isasymrightharpoonup}
+\railterm{rightharpoonup}
+
+\railalias{leftharpoondown}{\isasymleftharpoondown}
+\railterm{leftharpoondown}
+
 \begin{rail}
   'syntax' ('(' ( name | 'output' | name 'output' ) ')')? (constdecl +)
   ;
-  'translations' (transpat ('==' | '=>' | '<=') transpat comment? +)
+  'translations' (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat comment? +)
   ;
   transpat: ('(' nameref ')')? string
   ;
@@ -285,10 +294,11 @@ preceding the actual theory definition.
   flag is given, all productions are added both to the input and output
   grammar.
 \item [$\isarkeyword{translations}~rules$] specifies syntactic translation
-  rules (i.e.\ \emph{macros}): parse~/ print rules (\texttt{==}), parse rules
-  (\texttt{=>}), or print rules (\texttt{<=}).  Translation patterns may be
-  prefixed by the syntactic category to be used for parsing; the default is
-  \texttt{logic}.
+  rules (i.e.\ \emph{macros}): parse~/ print rules (\texttt{==} or
+  \isasymrightleftharpoons), parse rules (\texttt{=>} or
+  \isasymrightharpoonup), or print rules (\texttt{<=} or
+  \isasymleftharpoondown).  Translation patterns may be prefixed by the
+  syntactic category to be used for parsing; the default is \texttt{logic}.
 \end{descr}
 
 
