@@ -161,13 +161,12 @@ fun defaultS (TySg {default, ...}) = default;
 (* error messages *)
 
 fun undcl_class c = "Undeclared class " ^ quote c;
-val err_undcl_class = error o undcl_class;
+fun err_undcl_class s = error (undcl_class s);
 
 fun err_dup_classes cs =
   error ("Duplicate declaration of class(es) " ^ commas_quote cs);
 
 fun undcl_type c = "Undeclared type constructor " ^ quote c;
-val err_undcl_type = error o undcl_type;
 
 fun err_neg_args c =
   error ("Negative number of arguments of type constructor " ^ quote c);
@@ -179,7 +178,6 @@ fun dup_tyabbrs ts =
   "Duplicate declaration of type abbreviation(s) " ^ commas_quote ts;
 
 fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
-val err_ty_confl = error o ty_confl;
 
 
 (* 'leq' checks the partial order on classes according to the
@@ -637,7 +635,7 @@ fun ext_tsig_types (TySg {classes, subclass, default, tycons, abbrs, arities}) t
     fun check_type (c, n) =
       if n < 0 then err_neg_args c
       else if is_some (assoc (tycons, c)) then err_dup_tycon c
-      else if is_some (assoc (abbrs, c)) then err_ty_confl c
+      else if is_some (assoc (abbrs, c)) then error (ty_confl c)
       else ();
   in
     seq check_type ts;
@@ -718,7 +716,7 @@ fun coregular (classes, subclass, tycons) =
                       let val ars = the (assoc(arities, t))
                           val ars' = add_arity subclass ars (t,(C,w))
                       in overwrite(arities, (t,ars')) end)
-          | None => err_undcl_type(t);
+          | None => error (undcl_type t);
 
   in addar end;
 
