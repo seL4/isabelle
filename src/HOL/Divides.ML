@@ -241,21 +241,21 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
 
-(* FIXME: this thm is subsumed by the next one. Get rid of it. *)
-goal thy "!!m. m mod 2 ~= 0 ==> m mod 2 = 1";
+goal Divides.thy "(0 < m mod 2) = (m mod 2 = 1)";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
-by (Asm_full_simp_tac 1);
-by (trans_tac 1);
-qed "mod2_neq_0";
-
-goal Divides.thy "(0 < m mod 2) = (m mod 2 = 1)";
-by (rtac iffI 1);
-by(ALLGOALS (asm_full_simp_tac (simpset() addsimps [mod2_neq_0])));
+by (Auto_tac());
 qed "mod2_gr_0";
 Addsimps [mod2_gr_0];
 
 goal thy "(m+m) mod 2 = 0";
+by (induct_tac "m" 1);
+by (simp_tac (simpset() addsimps [mod_less]) 1);
+by (Asm_simp_tac 1);
+qed "mod2_add_self_eq_0";
+Addsimps [mod2_add_self_eq_0];
+
+goal thy "((m+m)+n) mod 2 = n mod 2";
 by (induct_tac "m" 1);
 by (simp_tac (simpset() addsimps [mod_less]) 1);
 by (Asm_simp_tac 1);
