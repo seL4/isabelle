@@ -13,6 +13,7 @@ TODO:
 signature ISAR_THY =
 sig
   val add_text: string -> theory -> theory
+  val add_title: string -> string -> string -> theory -> theory
   val add_chapter: string -> theory -> theory
   val add_section: string -> theory -> theory
   val add_subsection: string -> theory -> theory
@@ -74,6 +75,7 @@ struct
 (* formal comments *)	(* FIXME dummy *)
 
 fun add_text (txt:string) (thy:theory) = thy;
+fun add_title title author date thy = thy;
 val add_chapter = add_text;
 val add_section = add_text;
 val add_subsection = add_text;
