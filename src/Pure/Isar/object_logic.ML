@@ -69,10 +69,24 @@ local
 fun new_judgment name (None, rules) = (Some name, rules)
   | new_judgment _ (Some _, _) = error "Attempt to redeclare object-logic judgment";
 
+fun add_final name thy =
+  let
+    val typ = case Sign.const_type (sign_of thy) name of
+		Some T => T
+	      | None => error "Internal error in ObjectLogic.gen_add_judgment";
+  in
+    Theory.add_finals_i false [Const(name,typ)] thy
+  end;
+
 fun gen_add_judgment add_consts (name, T, syn) thy =
-  thy
-  |> add_consts [(name, T, syn)]
-  |> ObjectLogicData.map (new_judgment (Sign.full_name (Theory.sign_of thy) name));
+  let
+    val fullname = Sign.full_name (Theory.sign_of thy) name;
+  in
+    thy
+    |> add_consts [(name, T, syn)]
+    |> add_final fullname
+    |> ObjectLogicData.map (new_judgment fullname)
+  end;
 
 in
 
