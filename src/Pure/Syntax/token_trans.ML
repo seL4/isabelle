@@ -3,10 +3,19 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Token translations for xterm, emacs and latex output.
+
+TODO:
+  - elim this file, move stuff to individual print/presentation modes (!?);
 *)
+
+signature TOKEN_TRANS0 =
+sig
+  val standard_token_classes: string list
+end;
 
 signature TOKEN_TRANS =
 sig
+  include TOKEN_TRANS0
   val normal: string
   val bold: string
   val underline: string
@@ -31,7 +40,7 @@ sig
   val xterm_color_free: string ref
   val xterm_color_bound: string ref
   val xterm_color_var: string ref
-  val token_translation: (string * string * (string -> string * int)) list
+  val token_translation: (string * string * (string -> string * real)) list
 end;
 
 structure TokenTrans: TOKEN_TRANS =
@@ -42,7 +51,8 @@ struct
 
 fun trans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
-val std_token_classes = ["class", "tfree", "tvar", "free", "bound", "var"];
+val standard_token_classes =
+  ["class", "tfree", "tvar", "free", "bound", "var", "xnum", "xstr"];
 
 
 
@@ -64,7 +74,7 @@ val purple = "\^[[35m";
 val cyan = "\^[[36m";
 val white = "\^[[37m";
 
-fun style (ref s) x = (s ^ x ^ normal, size x);
+fun style (ref s) x = (s ^ x ^ normal, real (size x));
 
 
 (* print modes "xterm" and "xterm_color" *)
@@ -113,7 +123,7 @@ val free_tag = "\^A4";
 val bound_tag = "\^A5";
 val var_tag = "\^A6";
 
-fun tagit p x = (p ^ x ^ end_tag, size x);
+fun tagit p x = (p ^ x ^ end_tag, real (size x));
 
 in
 
@@ -142,7 +152,7 @@ val free_tag = oct_char "354";
 val bound_tag = oct_char "355";
 val var_tag = oct_char "356";
 
-fun tagit p x = (p ^ x ^ end_tag, size x);
+fun tagit p x = (p ^ x ^ end_tag, real (size x));
 
 in
 
@@ -164,14 +174,14 @@ end;
 (* FIXME 'a -> \alpha etc. *)
 
 val latex_trans =
- trans_mode "latex" [] : (string * string * (string -> string * int)) list;
+ trans_mode "latex" [] : (string * string * (string -> string * real)) list;
 
 
 
 (** standard token translations **)
 
 val token_translation =
-  map (fn s => ("", s, fn x => (x, size x))) std_token_classes @
+  map (fn s => ("", s, fn x => (x, real (size x)))) standard_token_classes @
   xterm_trans @
   emacs_trans @
   proof_general_trans @

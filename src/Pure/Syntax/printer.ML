@@ -25,10 +25,10 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: bool -> prtabs
     -> (string -> (Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: bool -> prtabs
     -> (string -> (Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
 end;
 
 structure Printer: PRINTER =
@@ -330,7 +330,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
               else prnt (prnps, tbs);
       in
         (case token_trans a args of     (*try token translation function*)
-          Some (s, len) => [Pretty.strlen s len]	(* FIXME Pretty.sym (!?) *)
+          Some (s, len) => [Pretty.strlen_real s len]
         | None =>			(*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end

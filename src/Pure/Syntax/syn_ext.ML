@@ -42,18 +42,18 @@ sig
       print_translation: (string * (bool -> typ -> term list -> term)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
-      token_translation: (string * string * (string -> string * int)) list}
+      token_translation: (string * string * (string -> string * real)) list}
   val mfix_args: string -> int
   val mk_syn_ext: bool -> string list -> mfix list ->
     string list -> (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
-    -> (string * string * (string -> string * int)) list
+    -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: string list -> mfix list -> string list ->
     (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
-    -> (string * string * (string -> string * int)) list
+    -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_logtypes: string list -> syn_ext
   val syn_ext_const_names: string list -> string list -> syn_ext
@@ -66,7 +66,7 @@ sig
   val syn_ext_trfunsT: string list ->
     (string * (bool -> typ -> term list -> term)) list -> syn_ext
   val syn_ext_tokentrfuns: string list
-    -> (string * string * (string -> string * int)) list -> syn_ext
+    -> (string * string * (string -> string * real)) list -> syn_ext
   val pure_ext: syn_ext
 end;
 
@@ -293,7 +293,7 @@ datatype syn_ext =
     print_translation: (string * (bool -> typ -> term list -> term)) list,
     print_rules: (Ast.ast * Ast.ast) list,
     print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
-    token_translation: (string * string * (string -> string * int)) list}
+    token_translation: (string * string * (string -> string * real)) list}
 
 
 (* syn_ext *)

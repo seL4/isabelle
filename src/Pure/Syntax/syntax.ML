@@ -15,6 +15,7 @@ end;
 
 signature SYNTAX =
 sig
+  include TOKEN_TRANS0
   include AST1
   include LEXICON0
   include SYN_EXT0
@@ -37,7 +38,7 @@ sig
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax
   val extend_trfunsT: syntax -> (string * (bool -> typ -> term list -> term)) list -> syntax
-  val extend_tokentrfuns: syntax -> (string * string * (string -> string * int)) list -> syntax
+  val extend_tokentrfuns: syntax -> (string * string * (string -> string * real)) list -> syntax
   val extend_trrules: syntax -> (string * string) trrule list -> syntax
   val extend_trrules_i: syntax -> ast trrule list -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
@@ -174,7 +175,7 @@ datatype syntax =
     print_trtab: ((bool -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
-    tokentrtab: (string * (string * ((string -> string * int) * stamp)) list) list,
+    tokentrtab: (string * (string * ((string -> string * real) * stamp)) list) list,
     prtabs: Printer.prtabs}
 
 
@@ -499,7 +500,7 @@ fun extend_trrules_i syn rules =
 
 (** export parts of internal Syntax structures **)
 
-open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
+open TokenTrans Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 
 end;
