@@ -210,11 +210,13 @@ lemma gcd_add1 [simp]: "gcd (m + n, n) = gcd (m, n)"
   done
 
 lemma gcd_add2 [simp]: "gcd (m, m + n) = gcd (m, n)"
-  apply (rule gcd_commute [THEN trans])
-  apply (subst add_commute)
-  apply (simp add: gcd_add1)
-  apply (rule gcd_commute)
-  done
+proof -
+  have "gcd (m, m + n) = gcd (m + n, m)" by (rule gcd_commute) 
+  also have "... = gcd (n + m, m)" by (simp add: add_commute)
+  also have "... = gcd (n, m)" by simp
+  also have  "... = gcd (m, n)" by (rule gcd_commute) 
+  finally show ?thesis .
+qed
 
 lemma gcd_add2' [simp]: "gcd (m, n + m) = gcd (m, n)"
   apply (subst add_commute)
@@ -223,7 +225,7 @@ lemma gcd_add2' [simp]: "gcd (m, n + m) = gcd (m, n)"
 
 lemma gcd_add_mult: "gcd (m, k * m + n) = gcd (m, n)"
   apply (induct k)
-   apply (simp_all add: gcd_add2 add_assoc)
+   apply (simp_all add: add_assoc)
   done
 
 
@@ -235,8 +237,8 @@ lemma gcd_mult_cancel: "gcd (k, n) = 1 ==> gcd (k * m, n) = gcd (m, n)"
     apply (rule_tac n = k in relprime_dvd_mult)
      apply (simp add: gcd_assoc)
      apply (simp add: gcd_commute)
-    apply (simp_all add: mult_commute gcd_dvd1 gcd_dvd2)
-  apply (blast intro: gcd_dvd1 dvd_trans)
+    apply (simp_all add: mult_commute)
+  apply (blast intro: dvd_trans)
   done
 
 end
