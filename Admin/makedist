@@ -13,7 +13,6 @@ export CVSROOT=/usr/proj/isabelle-repository/archive
 DISTPREFIX=~/tmp/isadist
 
 umask 022
-newgrp isabelle
 
 
 ## diagnostics
@@ -80,7 +79,7 @@ DATE=$(date "+%d-%b-%Y")
 DISTDATE=$(date "+%B %Y")
 
 if [ "$VERSION" = "--" ]; then
-  DISTNAME="Isabelle_$DATE_test"
+  DISTNAME="Isabelle_${DATE}_test"
   DISTVERSION="$DISTNAME"
   EXPORT="$THIS/cvs-copy $THIS/.. $DISTNAME"
   UNOFFICIAL=""
@@ -217,6 +216,8 @@ mv "${DISTNAME}-old/lib/logo/isabelle.gif" .
 mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
+
+chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
 

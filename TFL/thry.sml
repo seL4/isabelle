@@ -1,8 +1,29 @@
-(*  Title:      TFL/thry
+(*  Title:      TFL/thry.sml
     ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 *)
+
+signature Thry_sig =
+sig
+  val match_term : theory -> term -> term 
+                    -> (term*term)list * (typ*typ)list
+
+  val match_type : theory -> typ -> typ -> (typ*typ)list
+
+  val typecheck : theory -> term -> cterm
+
+  (* Datatype facts of various flavours *)
+  val match_info: theory -> string -> {constructors:term list,
+                                     case_const:term} option
+
+  val induct_info: theory -> string -> {constructors:term list,
+                                      nchotomy:thm} option
+
+  val extract_info: theory -> {case_congs:thm list, case_rewrites:thm list}
+
+end;
+
 
 structure Thry : Thry_sig (* LThry_sig *) = 
 struct
