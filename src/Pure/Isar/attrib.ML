@@ -165,8 +165,8 @@ fun add_del_args add del x =
 
 (* tags *)
 
-fun gen_tag x = syntax (tag >> Drule.tag) x;
-fun gen_untag x = syntax (Scan.lift Args.name >> Drule.untag) x;
+fun gen_tagged x = syntax (tag >> Drule.tag) x;
+fun gen_untagged x = syntax (Scan.lift Args.name >> Drule.untag) x;
 
 
 (* COMP *)
@@ -174,8 +174,8 @@ fun gen_untag x = syntax (Scan.lift Args.name >> Drule.untag) x;
 fun comp (i, B) (x, A) = (x, Drule.compose_single (A, i, B));
 
 fun gen_COMP thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> comp);
-val global_COMP = gen_COMP global_thm;
-val local_COMP = gen_COMP local_thm;
+val COMP_global = gen_COMP global_thm;
+val COMP_local = gen_COMP local_thm;
 
 
 (* RS *)
@@ -183,16 +183,16 @@ val local_COMP = gen_COMP local_thm;
 fun resolve (i, B) (x, A) = (x, A RSN (i, B));
 
 fun gen_RS thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> resolve);
-val global_RS = gen_RS global_thm;
-val local_RS = gen_RS local_thm;
+val RS_global = gen_RS global_thm;
+val RS_local = gen_RS local_thm;
 
 
-(* APP *)
+(* OF *)
 
 fun apply Bs (x, A) = (x, Bs MRS A);
 
-val global_APP = syntax (global_thmss >> apply);
-val local_APP = syntax (local_thmss >> apply);
+val OF_global = syntax (global_thmss >> apply);
+val OF_local = syntax (local_thmss >> apply);
 
 
 (* where: named instantiations *)
@@ -222,11 +222,11 @@ fun insts x = Args.and_list (Scan.lift (Args.var --| Args.$$$ "=" -- Args.name))
 
 fun gen_where context_of = syntax (insts >> (Drule.rule_attribute o read_instantiate context_of));
 
-val global_where = gen_where ProofContext.init;
-val local_where = gen_where I;
+val where_global = gen_where ProofContext.init;
+val where_local = gen_where I;
 
 
-(* with: positional instantiations *)
+(* of: positional instantiations *)
 
 fun read_instantiate' context_of (args, concl_args) x thm =
   let
@@ -244,20 +244,20 @@ val inst_arg = Scan.unless concl Args.name_dummy;
 val inst_args = Scan.repeat inst_arg;
 fun insts' x = Scan.lift (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
 
-fun gen_with context_of = syntax (insts' >> (Drule.rule_attribute o read_instantiate' context_of));
+fun gen_of context_of = syntax (insts' >> (Drule.rule_attribute o read_instantiate' context_of));
 
-val global_with = gen_with ProofContext.init;
-val local_with = gen_with I;
+val of_global = gen_of ProofContext.init;
+val of_local = gen_of I;
 
 
 (* unfold / fold definitions *)
 
 fun gen_rewrite rew defs (x, thm) = (x, rew defs thm);
 
-val global_unfold = syntax (global_thmss >> gen_rewrite Tactic.rewrite_rule);
-val local_unfold = syntax (local_thmss >> gen_rewrite Tactic.rewrite_rule);
-val global_fold = syntax (global_thmss >> gen_rewrite Tactic.fold_rule);
-val local_fold = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
+val unfolded_global = syntax (global_thmss >> gen_rewrite Tactic.rewrite_rule);
+val unfolded_local = syntax (local_thmss >> gen_rewrite Tactic.rewrite_rule);
+val folded_global = syntax (global_thmss >> gen_rewrite Tactic.fold_rule);
+val folded_local = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
 
 
 (* rule cases *)
@@ -269,11 +269,11 @@ fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> Rul
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
-fun elimify x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
+fun elimified x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
-fun global_export x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
-fun local_export x = no_args (Drule.rule_attribute Proof.export_thm) x;
+fun exported_global x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
+fun exported_local x = no_args (Drule.rule_attribute Proof.export_thm) x;
 
 
 
@@ -282,30 +282,28 @@ fun local_export x = no_args (Drule.rule_attribute Proof.export_thm) x;
 (* pure_attributes *)
 
 val pure_attributes =
- [("tag", (gen_tag, gen_tag), "tag theorem"),
-  ("untag", (gen_untag, gen_untag), "untag theorem"),
-  ("COMP", (global_COMP, local_COMP), "compose rules (no lifting)"),
-  ("THEN", (global_RS, local_RS), "resolve with rule"),
-  ("OF", (global_APP, local_APP), "resolve with rule -- apply rule to rules"),
-  ("where", (global_where, local_where), "named instantiation of theorem"),
-  ("of", (global_with, local_with), "positional instantiation of theorem -- apply rule to terms"),
-  ("unfold", (global_unfold, local_unfold), "unfold definitions"),
-  ("fold", (global_fold, local_fold), "fold definitions"),
-  ("standard", (standard, standard), "put theorem into standard form"),
-  ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
-  ("no_vars", (no_vars, no_vars), "freeze schematic vars"),
-  ("case_names", (case_names, case_names), "name rule cases"),
-  ("params", (params, params), "name rule parameters"),
-  ("export", (global_export, local_export), "export theorem from context")];
+ [("tagged", (gen_tagged, gen_tagged), "tagged theorem"),
+  ("untagged", (gen_untagged, gen_untagged), "untagged theorem"),
+  ("COMP", (COMP_global, COMP_local), "direct composition with rules (no lifting)"),
+  ("THEN", (RS_global, RS_local), "resolution with rule"),
+  ("OF", (OF_global, OF_local), "rule applied to facts"),
+  ("where", (where_global, where_local), "named instantiation of theorem"),
+  ("of", (of_global, of_local), "rule applied to terms"),
+  ("unfolded", (unfolded_global, unfolded_local), "unfolded definitions"),
+  ("folded", (folded_global, folded_local), "folded definitions"),
+  ("standard", (standard, standard), "result put into standard form"),
+  ("elimified", (elimified, elimified), "destruct rule turned into elimination rule"),
+  ("no_vars", (no_vars, no_vars), "frozen schematic vars"),
+  ("case_names", (case_names, case_names), "named rule cases"),
+  ("params", (params, params), "named rule parameters"),
+  ("exported", (exported_global, exported_local), "theorem exported from context")];
 
 
 (* setup *)
 
 val setup = [AttributesData.init, add_attributes pure_attributes];
 
-
 end;
-
 
 structure BasicAttrib: BASIC_ATTRIB = Attrib;
 open BasicAttrib;
