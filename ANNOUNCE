@@ -1,8 +1,13 @@
 
-Subject: Announcing Isabelle2001
+Subject: Announcing Isabelle2002
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2001 is now available.
+Isabelle2002 is now available.
+
+This release clarifies long-standing issues at large, providing of
+more comfortable and robust environment.
+
+In this release a lot of important issues of existing concepts 
 
 The most prominent highlights of Isabelle2001 are as follows.  See the
 NEWS file distributed with Isabelle for more details.
