@@ -37,7 +37,7 @@ end;
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: Sign.sg -> thm list -> term -> thm option
+  val proc: Sign.sg -> simpset -> term -> thm option
   end 
 =
 struct

@@ -1143,9 +1143,9 @@ or~$u=t$.)  Then the simplifier can prove the goal outright.
 \section{*Coding simplification procedures}
 \begin{ttbox}
   val Simplifier.simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
   val Simplifier.simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
 \end{ttbox}
 
 \begin{ttdescription}

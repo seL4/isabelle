@@ -11,7 +11,7 @@ cut_lin_arith_tac: thms -> int -> tactic
 
 and a simplification procedure
 
-    lin_arith_prover: Sign.sg -> thm list -> term -> thm option
+    lin_arith_prover: Sign.sg -> simpset -> term -> thm option
 
 Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
@@ -78,7 +78,7 @@ sig
                 -> theory -> theory
   val trace           : bool ref
   val fast_arith_neq_limit: int ref
-  val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
+  val lin_arith_prover: Sign.sg -> simpset -> term -> thm option
   val     lin_arith_tac:     bool -> int -> tactic
   val cut_lin_arith_tac: thm list -> int -> tactic
 end;
@@ -714,8 +714,10 @@ handle THM _ => None;
    2. lin_arith_prover is applied by the simplifier which
       dives into terms and will thus try the non-negated concl anyway.
 *)
-fun lin_arith_prover sg thms concl =
-let val Hs = map (#prop o rep_thm) thms
+fun lin_arith_prover sg ss concl =
+let
+    val thms = prems_of_ss ss;
+    val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove sg ([],[]) false Hs Tconcl of (* concl provable? *)
      Some js => prover sg thms Tconcl js true

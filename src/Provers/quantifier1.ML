@@ -57,10 +57,10 @@ signature QUANTIFIER1 =
 sig
   val prove_one_point_all_tac: tactic
   val prove_one_point_ex_tac: tactic
-  val rearrange_all: Sign.sg -> thm list -> term -> thm option
-  val rearrange_ex:  Sign.sg -> thm list -> term -> thm option
-  val rearrange_ball: tactic -> Sign.sg -> thm list -> term -> thm option
-  val rearrange_bex:  tactic -> Sign.sg -> thm list -> term -> thm option
+  val rearrange_all: Sign.sg -> simpset -> term -> thm option
+  val rearrange_ex:  Sign.sg -> simpset -> term -> thm option
+  val rearrange_ball: tactic -> Sign.sg -> simpset -> term -> thm option
+  val rearrange_bex:  tactic -> Sign.sg -> simpset -> term -> thm option
 end;
 
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =

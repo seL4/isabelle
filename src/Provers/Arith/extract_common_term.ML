@@ -32,7 +32,7 @@ end;
 
 functor ExtractCommonTermFun(Data: EXTRACT_COMMON_TERM_DATA):
   sig
-  val proc: Sign.sg -> thm list -> term -> thm option
+  val proc: Sign.sg -> simpset -> term -> thm option
   end 
 =
 struct
@@ -50,8 +50,10 @@ fun find_common (terms1,terms2) =
   in  seek terms1 end;
 
 (*the simplification procedure*)
-fun proc sg hyps t =
-  let (*first freeze any Vars in the term to prevent flex-flex problems*)
+fun proc sg ss t =
+  let
+      val hyps = prems_of_ss ss;
+      (*first freeze any Vars in the term to prevent flex-flex problems*)
       val (t', xs) = Term.adhoc_freeze_vars t;
       val (t1,t2) = Data.dest_bal t' 
       val terms1 = Data.dest_sum t1

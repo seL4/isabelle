@@ -28,7 +28,7 @@ end;
 
 signature CANCEL_DIV_MOD =
 sig
-  val proc: Sign.sg -> thm list -> term -> thm option
+  val proc: Sign.sg -> simpset -> term -> thm option
 end;
 
 
