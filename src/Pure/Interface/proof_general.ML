@@ -8,14 +8,16 @@ Configuration for Proof General of LFCS Edinburgh.
 signature PROOF_GENERAL =
 sig
   val setup: (theory -> theory) list
+  val update_thy_only: string -> unit
+  val try_update_thy_only: string -> unit
+  val inform_file_processed: string -> unit
+  val inform_file_retracted: string -> unit
   val thms_containing: xstring list -> unit
   val help: unit -> unit
   val show_context: unit -> theory
   val kill_goal: unit -> unit
   val repeat_undo: int -> unit
   val isa_restart: unit -> unit
-  val inform_file_processed: string -> unit
-  val inform_file_retracted: string -> unit
   val init: bool -> unit
   val write_keywords: unit -> unit
 end;
@@ -126,9 +128,26 @@ in
 end;
 
 
-(* get informed about files *)
+(* prepare theory context *)
 
 val thy_name = Path.pack o Path.drop_ext o Path.base o Path.unpack;
+val update_thy_only = ThyInfo.update_thy_only;
+
+fun which_context () =
+  (case Context.get_context () of
+    Some thy => "  Using current (dynamic!) one: " ^
+      (case try PureThy.get_name thy of Some name => quote name | None => "<unnamed>") ^ "."
+  | None => "");
+
+fun try_update_thy_only file =
+  ThyLoad.cond_with_path (Path.dir (Path.unpack file)) (fn () =>
+    let val name = thy_name file in
+      if is_some (ThyLoad.check_file (ThyLoad.thy_path name)) then update_thy_only name
+      else warning ("Unkown theory context of ML file." ^ which_context ())
+    end) ();
+
+
+(* get informed about files *)
 
 (* FIXME improve, e.g. do something like pretend_use_thy *)
 fun inform_file_processed file =
@@ -176,6 +195,14 @@ end;
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
+val context_thy_onlyP =
+  OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
+    (P.name >> IsarThy.init_context update_thy_only);
+
+val try_context_thy_onlyP =
+  OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
+    (P.name >> IsarThy.init_context try_update_thy_only);
+
 val restartP =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
     (P.opt_unit >> K (Toplevel.imperative isar_restart));
@@ -192,8 +219,9 @@ val inform_file_retractedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
     (P.name >> (fn name => Toplevel.imperative (fn () => inform_file_retracted name)));
 
-fun init_outer_syntax () =
-  OuterSyntax.add_parsers [restartP, kill_proofP, inform_file_processedP, inform_file_retractedP];
+fun init_outer_syntax () = OuterSyntax.add_parsers
+ [restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
+  inform_file_processedP, inform_file_retractedP];
 
 end;
 
