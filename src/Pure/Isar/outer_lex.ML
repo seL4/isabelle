@@ -110,7 +110,7 @@ fun is_proper (Token (_, (Space, _))) = false
   | is_proper (Token (_, (Comment, _))) = false
   | is_proper _ = true;
 
-fun is_semicolon (Token (_, (Command, ";"))) = true
+fun is_semicolon (Token (_, (Keyword, ";"))) = true
   | is_semicolon _ = false;
 
 fun is_begin_ignore (Token (_, (Comment, "<"))) = true
