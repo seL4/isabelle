@@ -406,14 +406,9 @@ qed "nat_le_cardinal";
 (*** Towards Cardinal Arithmetic ***)
 (** Congruence laws for successor, cardinal addition and multiplication **)
 
-val case_ss = ZF_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
-			      case_Inl, case_Inr, InlI, InrI];
-
-val bij_inverse_ss =
-    case_ss addsimps [bij_is_fun RS apply_type,
-		      bij_converse_bij RS bij_is_fun RS apply_type,
-		      left_inverse_bij, right_inverse_bij];
-
+val case_ss = 
+    bij_inverse_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
+			     case_Inl, case_Inr, InlI, InrI];
 
 (*Congruence law for  cons  under equipollence*)
 goalw Cardinal.thy [lepoll_def]
@@ -448,7 +443,7 @@ by (res_inst_tac [("c", "case(%x. Inl(f`x), %y. Inr(fa`y))"),
 	 ("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(fa)`y))")] 
     lam_bijective 1);
 by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
+by (ALLGOALS (asm_simp_tac case_ss));
 qed "sum_eqpoll_cong";
 
 (*Congruence law for * under equipollence*)
@@ -460,7 +455,7 @@ by (res_inst_tac [("c", "split(%x y. <f`x, fa`y>)"),
 		  ("d", "split(%x y. <converse(f)`x, converse(fa)`y>)")] 
     lam_bijective 1);
 by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
+by (ALLGOALS (asm_simp_tac case_ss));
 qed "prod_eqpoll_cong";
 
 goalw Cardinal.thy [eqpoll_def]
