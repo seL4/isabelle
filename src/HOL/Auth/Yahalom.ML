@@ -278,8 +278,8 @@ qed "A_trusts_YM3";
 (*B knows, by the first part of A's message, that the Server distributed 
   the key for A and B.  But this part says nothing about nonces.*)
 goal thy 
- "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (sees Spy evs); \
-\           B ~: lost;  evs : yahalom |]                           \
+ "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (sees Spy evs);   \
+\           B ~: lost;  evs : yahalom |]                                \
 \        ==> EX NA NB. Says Server A                                    \
 \                        {|Crypt (shrK A) {|Agent B, Key K,             \
 \                                           Nonce NA, Nonce NB|},       \
@@ -299,10 +299,10 @@ goal thy
  "!!evs. evs : yahalom                                             \
 \        ==> Nonce NB ~: analz (sees Spy evs) -->                  \
 \            Crypt K (Nonce NB) : parts (sees Spy evs) -->         \
-\            (EX A B NA. Says Server A                                  \
-\                        {|Crypt (shrK A) {|Agent B, Key K,             \
-\                                  Nonce NA, Nonce NB|},                \
-\                          Crypt (shrK B) {|Agent A, Key K|}|}          \
+\            (EX A B NA. Says Server A                             \
+\                        {|Crypt (shrK A) {|Agent B, Key K,        \
+\                                  Nonce NA, Nonce NB|},           \
+\                          Crypt (shrK B) {|Agent A, Key K|}|}     \
 \                       : set evs)";
 by (parts_induct_tac 1);
 (*YM3 & Fake*)

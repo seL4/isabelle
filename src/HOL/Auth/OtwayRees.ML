@@ -209,10 +209,8 @@ by (blast_tac (!claset addSEs sees_Spy_partsEs
 val lemma = result();
 
 goal thy 
- "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}      \
-\            : set evs;                                            \ 
-\           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|}    \
-\            : set evs;                                            \
+ "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   : set evs; \ 
+\           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} : set evs; \
 \           evs : otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
 by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
@@ -277,8 +275,8 @@ qed_spec_mp"no_nonce_OR1_OR2";
 (*Crucial property: If the encrypted message appears, and A has used NA
   to start a run, then it originated with the Server!*)
 goal thy 
- "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway |]                 \
-\    ==> Crypt (shrK A) {|NA, Key K|} : parts (sees Spy evs)      \
+ "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway |]                      \
+\    ==> Crypt (shrK A) {|NA, Key K|} : parts (sees Spy evs)           \
 \        --> Says A B {|NA, Agent A, Agent B,                          \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}      \
 \             : set evs -->                                            \
@@ -295,8 +293,8 @@ by (blast_tac (!claset addSIs [parts_insertI] addSEs sees_Spy_partsEs) 1);
 (*OR4*)
 by (REPEAT (Safe_step_tac 2));
 by (REPEAT (blast_tac (!claset addSDs [parts_cut]) 3));
-by (fast_tac (!claset addSIs [Crypt_imp_OR1]
-                      addEs  sees_Spy_partsEs) 2);
+by (blast_tac (!claset addSIs [Crypt_imp_OR1]
+                       addEs  sees_Spy_partsEs) 2);
 (*OR3*)  (** LEVEL 5 **)
 by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
 by (step_tac (!claset delrules [disjCI, impCE]) 1);

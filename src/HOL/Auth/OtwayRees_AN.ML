@@ -21,7 +21,7 @@ HOL_quantifiers := false;
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]                               \
-\        ==> EX K. EX NA. EX evs: otway.                                 \
+\        ==> EX K. EX NA. EX evs: otway.                                      \
 \             Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \             : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -125,7 +125,7 @@ goal thy
 \              {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
 \                Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
 \             : set evs;                                            \
-\           evs : otway |]                                     \
+\           evs : otway |]                                          \
 \        ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
 by (etac otway.induct 1);
@@ -183,9 +183,9 @@ qed "analz_insert_freshK";
 (*** The Key K uniquely identifies the Server's  message. **)
 
 goal thy 
- "!!evs. evs : otway ==>                                   \
-\      EX A' B' NA' NB'. ALL A B NA NB.                    \
-\       Says Server B                                      \
+ "!!evs. evs : otway ==>                                            \
+\      EX A' B' NA' NB'. ALL A B NA NB.                             \
+\       Says Server B                                               \
 \         {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},             \
 \           Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set evs  \
 \       --> A=A' & B=B' & NA=NA' & NB=NB'";
@@ -258,12 +258,12 @@ qed "A_trusts_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : otway |]                         \
-\        ==> Says Server B                                                 \
-\             {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},            \
-\               Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}           \
-\            : set evs -->                                                 \
-\            Says B Spy {|NA, NB, Key K|} ~: set evs -->                   \
+ "!!evs. [| A ~: lost;  B ~: lost;  evs : otway |]                 \
+\        ==> Says Server B                                         \
+\             {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
+\               Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
+\            : set evs -->                                         \
+\            Says B Spy {|NA, NB, Key K|} ~: set evs -->           \
 \            Key K ~: analz (sees Spy evs)";
 by (etac otway.induct 1);
 by analz_sees_tac;
