@@ -75,7 +75,7 @@ use "Tools/primrec_package.ML"
 setup PrimrecPackage.setup
 
 theorems basic_monos [mono] =
-  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono
+  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_def2
   Collect_mono in_mono vimage_mono
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex

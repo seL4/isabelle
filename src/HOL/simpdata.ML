@@ -233,6 +233,8 @@ qed "split_if_asm";
 
 bind_thms ("if_splits", [split_if, split_if_asm]);
 
+bind_thm ("if_def2", read_instantiate [("P","\\<lambda>x. x")] split_if);
+
 Goal "(if c then x else x) = x";
 by (stac split_if 1);
 by (Blast_tac 1);
