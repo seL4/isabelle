@@ -13,70 +13,104 @@ sig
   val add_section: Comment.text -> theory -> theory
   val add_subsection: Comment.text -> theory -> theory
   val add_subsubsection: Comment.text -> theory -> theory
-  val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
-  val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_defs: ((bstring * string) * Args.src list) list -> theory -> theory
-  val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_constdefs: ((bstring * string * mixfix) * string) list -> theory -> theory
-  val add_constdefs_i: ((bstring * typ * mixfix) * term) list -> theory -> theory
+  val add_classes: (bclass * xclass list) list * Comment.text -> theory -> theory
+  val add_classes_i: (bclass * class list) list * Comment.text  -> theory -> theory
+  val add_classrel: (xclass * xclass) * Comment.text -> theory -> theory
+  val add_classrel_i: (class * class) * Comment.text -> theory -> theory
+  val add_defsort: xsort * Comment.text -> theory -> theory
+  val add_defsort_i: sort * Comment.text -> theory -> theory
+  val add_nonterminals: (bstring * Comment.text) list -> theory -> theory
+  val add_tyabbrs: ((bstring * string list * string * mixfix) * Comment.text) list
+    -> theory -> theory
+  val add_tyabbrs_i: ((bstring * string list * typ * mixfix) * Comment.text) list
+    -> theory -> theory
+  val add_arities: ((xstring * xsort list * xsort) * Comment.text) list -> theory -> theory
+  val add_arities_i: ((string * sort list * sort) * Comment.text) list -> theory -> theory
+  val add_typedecl: (bstring * string list * mixfix) * Comment.text -> theory -> theory
+  val add_consts: ((bstring * string * mixfix) * Comment.text) list -> theory -> theory
+  val add_consts_i: ((bstring * typ * mixfix) * Comment.text) list -> theory -> theory
+  val add_modesyntax: string * bool -> ((bstring * string * mixfix) * Comment.text) list
+    -> theory -> theory
+  val add_modesyntax_i: string * bool -> ((bstring * typ * mixfix) * Comment.text) list
+    -> theory -> theory
+  val add_trrules: ((xstring * string) Syntax.trrule * Comment.text) list -> theory -> theory
+  val add_trrules_i: (Syntax.ast Syntax.trrule * Comment.text) list -> theory -> theory
+  val add_axioms: (((bstring * string) * Args.src list) * Comment.text) list -> theory -> theory
+  val add_axioms_i: (((bstring * term) * theory attribute list) * Comment.text) list
+    -> theory -> theory
+  val add_defs: (((bstring * string) * Args.src list) * Comment.text) list -> theory -> theory
+  val add_defs_i: (((bstring * term) * theory attribute list) * Comment.text) list
+    -> theory -> theory
+  val add_constdefs: (((bstring * string * mixfix) * Comment.text) * (string * Comment.text)) list
+    -> theory -> theory
+  val add_constdefs_i: (((bstring * typ * mixfix) * Comment.text) * (term * Comment.text)) list
+    -> theory -> theory
   val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
   val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
-  val have_theorems: (bstring * Args.src list) * (xstring * Args.src list) list
+  val have_theorems: ((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text
     -> theory -> theory
-  val have_theorems_i: (bstring * theory attribute list) * (thm * theory attribute list) list
+  val have_theorems_i: ((bstring * theory attribute list) * (thm * theory attribute list) list)
+    * Comment.text -> theory -> theory
+  val have_lemmas: ((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text
     -> theory -> theory
-  val have_lemmas: (bstring * Args.src list) * (xstring * Args.src list) list
-    -> theory -> theory
-  val have_lemmas_i: (bstring * theory attribute list) * (thm * theory attribute list) list
-    -> theory -> theory
-  val have_facts: (string * Args.src list) * (string * Args.src list) list
+  val have_lemmas_i: ((bstring * theory attribute list) * (thm * theory attribute list) list)
+    * Comment.text -> theory -> theory
+  val have_facts: ((string * Args.src list) * (string * Args.src list) list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val have_facts_i: (string * Proof.context attribute list) *
-    (thm * Proof.context attribute list) list -> ProofHistory.T -> ProofHistory.T
-  val from_facts: (string * Args.src list) list -> ProofHistory.T -> ProofHistory.T
-  val from_facts_i: (thm * Proof.context attribute list) list -> ProofHistory.T -> ProofHistory.T
-  val chain: ProofHistory.T -> ProofHistory.T
-  val fix: (string * string option) list -> ProofHistory.T -> ProofHistory.T
-  val fix_i: (string * typ) list -> ProofHistory.T -> ProofHistory.T
-  val match_bind: (string list * string) list -> ProofHistory.T -> ProofHistory.T
-  val match_bind_i: (term list * term) list -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> Args.src list -> string * string list
+  val have_facts_i: ((string * Proof.context attribute list) *
+    (thm * Proof.context attribute list) list) * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val from_facts: (string * Args.src list) list * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val from_facts_i: (thm * Proof.context attribute list) list * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val fix: (string * string option) list * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val fix_i: (string * typ) list * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val theorem: (bstring * Args.src list * (string * string list)) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val theorem_i: bstring -> theory attribute list -> term * term list
+  val theorem_i: (bstring * theory attribute list * (term * term list)) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val lemma: string -> Args.src list -> string * string list
+  val lemma: (bstring * Args.src list * (string * string list)) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val lemma_i: bstring -> theory attribute list -> term * term list
+  val lemma_i: (bstring * theory attribute list * (term * term list)) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val assume: string -> Args.src list -> (string * string list) list
+  val assume: (string * Args.src list * (string * string list) list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val assume_i: string -> Proof.context attribute list -> (term * term list) list
+  val assume_i: (string * Proof.context attribute list * (term * term list) list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val show: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
-  val show_i: string -> Proof.context attribute list -> term * term list
+  val show: (string * Args.src list * (string * string list)) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val have: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
-  val have_i: string -> Proof.context attribute list -> term * term list
+  val show_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val thus: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
-  val thus_i: string -> Proof.context attribute list -> term * term list
+  val have: (string * Args.src list * (string * string list)) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val hence: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
-  val hence_i: string -> Proof.context attribute list -> term * term list
+  val have_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val thus: (string * Args.src list * (string * string list)) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val thus_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val hence: (string * Args.src list * (string * string list)) * Comment.text
+    -> ProofHistory.T -> ProofHistory.T
+  val hence_i: (string * Proof.context attribute list * (term * term list)) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
   val tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
+  val proof: Comment.interest * (Method.text * Comment.interest) option
+    -> ProofHistory.T -> ProofHistory.T
   val kill_proof: ProofHistory.T -> theory
-  val global_qed_with: bstring option * Args.src list option -> Method.text option
+  val global_qed_with: bstring option * Args.src list option
+    -> (Method.text * Comment.interest) option
     -> Toplevel.transition -> Toplevel.transition
-  val global_qed_with_i: bstring option * theory attribute list option -> Method.text option
+  val global_qed_with_i: bstring option * theory attribute list option
+    -> (Method.text * Comment.interest) option
     -> Toplevel.transition -> Toplevel.transition
-  val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
-  val terminal_proof: Method.text -> Toplevel.transition -> Toplevel.transition
+  val qed: (Method.text * Comment.interest) option -> Toplevel.transition -> Toplevel.transition
+  val terminal_proof: Method.text * Comment.interest -> Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> theory option -> theory option
@@ -88,7 +122,7 @@ sig
   val typed_print_translation: string -> theory -> theory
   val print_ast_translation: string -> theory -> theory
   val token_translation: string -> theory -> theory
-  val add_oracle: bstring * string -> theory -> theory
+  val add_oracle: (bstring * string) * Comment.text -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
   val theory: string * string list * (string * bool) list
@@ -103,9 +137,9 @@ struct
 
 (** derived theory and proof operations **)
 
-(* formal comments *)   (* FIXME dummy *)
+(* formal comments *)
 
-fun add_text _ thy = thy;
+fun add_text comment thy = thy;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
 val add_section = add_text;
@@ -113,26 +147,50 @@ val add_subsection = add_text;
 val add_subsubsection = add_text;
 
 
+(* signature and syntax *)
+
+val add_classes = Theory.add_classes o Comment.ignore;
+val add_classes_i = Theory.add_classes_i o Comment.ignore;
+val add_classrel = Theory.add_classrel o single o Comment.ignore;
+val add_classrel_i = Theory.add_classrel_i o single o Comment.ignore;
+val add_defsort = Theory.add_defsort o Comment.ignore;
+val add_defsort_i = Theory.add_defsort_i o Comment.ignore;
+val add_nonterminals = Theory.add_nonterminals o map Comment.ignore;
+val add_tyabbrs = Theory.add_tyabbrs o map Comment.ignore;
+val add_tyabbrs_i = Theory.add_tyabbrs_i o map Comment.ignore;
+val add_arities = Theory.add_arities o map Comment.ignore;
+val add_arities_i = Theory.add_arities_i o map Comment.ignore;
+val add_typedecl = PureThy.add_typedecls o single o Comment.ignore;
+val add_consts = Theory.add_consts o map Comment.ignore;
+val add_consts_i = Theory.add_consts_i o map Comment.ignore;
+fun add_modesyntax mode = Theory.add_modesyntax mode o map Comment.ignore;
+fun add_modesyntax_i mode = Theory.add_modesyntax_i mode o map Comment.ignore;
+val add_trrules = Theory.add_trrules o map Comment.ignore;
+val add_trrules_i = Theory.add_trrules_i o map Comment.ignore;
+
+
+
 (* axioms and defs *)
 
 fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.global_attribute thy) srcs)) args) thy;
 
-val add_axioms = add_axms PureThy.add_axioms;
-val add_axioms_i = PureThy.add_axioms_i;
-val add_defs = add_axms PureThy.add_defs;
-val add_defs_i = PureThy.add_defs_i;
+val add_axioms = add_axms PureThy.add_axioms o map Comment.ignore;
+val add_axioms_i = PureThy.add_axioms_i o map Comment.ignore;
+val add_defs = add_axms PureThy.add_defs o map Comment.ignore;
+val add_defs_i = PureThy.add_defs_i o map Comment.ignore;
 
 
 (* constdefs *)
 
 fun gen_add_constdefs consts defs args thy =
   thy
-  |> consts (map fst args)
-  |> defs (map (fn ((c, _, mx), s) => ((Thm.def_name (Syntax.const_name c mx), s), [])) args);
+  |> consts (map (Comment.ignore o fst) args)
+  |> defs (map (fn (((c, _, mx), _), (s, _)) =>
+    (((Thm.def_name (Syntax.const_name c mx), s), []), Comment.none)) args);
 
-val add_constdefs = gen_add_constdefs Theory.add_consts add_defs;
-val add_constdefs_i = gen_add_constdefs Theory.add_consts_i add_defs_i;
+fun add_constdefs args = gen_add_constdefs Theory.add_consts add_defs args;
+fun add_constdefs_i args = gen_add_constdefs Theory.add_consts_i add_defs_i args;
 
 
 (* theorems *)
@@ -155,62 +213,60 @@ fun have_lemss name atts = PureThy.have_thmss name (atts @ [Drule.tag_lemma]);
 
 fun apply_theorems th_srcs = global_have_thmss PureThy.have_thmss ((None, []), th_srcs);
 fun apply_theorems_i th_srcs = have_thmss_i PureThy.have_thmss ((None, []), th_srcs);
-val have_theorems = #1 oo global_have_thmss (PureThy.have_thmss o Some);
-val have_theorems_i = #1 oo have_thmss_i (PureThy.have_thmss o Some);
-val have_lemmas = #1 oo global_have_thmss (have_lemss o Some);
-val have_lemmas_i = #1 oo have_thmss_i (have_lemss o Some);
-val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss;
-val have_facts_i = ProofHistory.apply o have_thmss_i Proof.have_thmss;
+val have_theorems = #1 oo (global_have_thmss (PureThy.have_thmss o Some) o Comment.ignore);
+val have_theorems_i = #1 oo (have_thmss_i (PureThy.have_thmss o Some) o Comment.ignore);
+val have_lemmas = #1 oo (global_have_thmss (have_lemss o Some) o Comment.ignore);
+val have_lemmas_i = #1 oo (have_thmss_i (have_lemss o Some) o Comment.ignore);
+val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o Comment.ignore;
+val have_facts_i = ProofHistory.apply o have_thmss_i Proof.have_thmss o Comment.ignore;
 
 
 (* forward chaining *)
 
-val from_facts =
-  ProofHistory.apply o (Proof.chain oo curry (local_have_thmss Proof.have_thmss) ("", []));
+fun gen_from_facts f = ProofHistory.apply o (Proof.chain oo curry (f Proof.have_thmss) ("", []));
 
-val from_facts_i =
-  ProofHistory.apply o (Proof.chain oo curry (have_thmss_i Proof.have_thmss) ("", []));
-
-val chain = ProofHistory.apply Proof.chain;
+val from_facts = gen_from_facts local_have_thmss o Comment.ignore;
+val from_facts_i = gen_from_facts have_thmss_i o Comment.ignore;
+fun chain comment_ignore = ProofHistory.apply Proof.chain;
 
 
 (* context *)
 
-val fix = ProofHistory.apply o Proof.fix;
-val fix_i = ProofHistory.apply o Proof.fix_i;
-val match_bind = ProofHistory.apply o Proof.match_bind;
-val match_bind_i = ProofHistory.apply o Proof.match_bind_i;
+val fix = ProofHistory.apply o Proof.fix o Comment.ignore;
+val fix_i = ProofHistory.apply o Proof.fix_i o Comment.ignore;
+val match_bind = ProofHistory.apply o Proof.match_bind o map Comment.ignore;
+val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
 
 
 (* statements *)
 
-fun global_statement f name src s int thy =
+fun global_statement f (name, src, s) int thy =
   ProofHistory.init (Toplevel.undo_limit int)
     (f name (map (Attrib.global_attribute thy) src) s thy);
 
-fun global_statement_i f name atts t int thy =
+fun global_statement_i f (name, atts, t) int thy =
   ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
 
-fun local_statement do_open f g name src s = ProofHistory.apply_cond_open do_open (fn state =>
+fun local_statement do_open f g (name, src, s) = ProofHistory.apply_cond_open do_open (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
 
-fun local_statement_i do_open f g name atts t =
+fun local_statement_i do_open f g (name, atts, t) =
   ProofHistory.apply_cond_open do_open (f name atts t o g);
 
-val theorem   = global_statement Proof.theorem;
-val theorem_i = global_statement_i Proof.theorem_i;
-val lemma     = global_statement Proof.lemma;
-val lemma_i   = global_statement_i Proof.lemma_i;
-val assume    = local_statement false Proof.assume I;
-val assume_i  = local_statement_i false Proof.assume_i I;
-val show      = local_statement true Proof.show I;
-val show_i    = local_statement_i true Proof.show_i I;
-val have      = local_statement true Proof.have I;
-val have_i    = local_statement_i true Proof.have_i I;
-val thus      = local_statement true Proof.show Proof.chain;
-val thus_i    = local_statement_i true Proof.show_i Proof.chain;
-val hence     = local_statement true Proof.have Proof.chain;
-val hence_i   = local_statement_i true Proof.have_i Proof.chain;
+val theorem   = global_statement Proof.theorem o Comment.ignore;
+val theorem_i = global_statement_i Proof.theorem_i o Comment.ignore;
+val lemma     = global_statement Proof.lemma o Comment.ignore;
+val lemma_i   = global_statement_i Proof.lemma_i o Comment.ignore;
+val assume    = local_statement false Proof.assume I o Comment.ignore;
+val assume_i  = local_statement_i false Proof.assume_i I o Comment.ignore;
+val show      = local_statement true Proof.show I o Comment.ignore;
+val show_i    = local_statement_i true Proof.show_i I o Comment.ignore;
+val have      = local_statement true Proof.have I o Comment.ignore;
+val have_i    = local_statement_i true Proof.have_i I o Comment.ignore;
+val thus      = local_statement true Proof.show Proof.chain o Comment.ignore;
+val thus_i    = local_statement_i true Proof.show_i Proof.chain o Comment.ignore;
+val hence     = local_statement true Proof.have Proof.chain o Comment.ignore;
+val hence_i   = local_statement_i true Proof.have_i Proof.chain o Comment.ignore;
 
 
 (* blocks *)
@@ -224,16 +280,24 @@ val end_block = ProofHistory.apply_close Proof.end_block;
 
 val tac = ProofHistory.applys o Method.tac;
 val then_tac = ProofHistory.applys o Method.then_tac;
-val proof = ProofHistory.applys o Method.proof;
+
+val proof =
+  ProofHistory.applys o Method.proof o apsome Comment.ignore_interest o Comment.ignore_interest';
 
 
 (* local endings *)
 
-val local_qed = Toplevel.proof' o (ProofHistory.applys_close oo Method.local_qed);
+val local_qed =
+  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_qed)
+    o apsome Comment.ignore_interest;
+
 val local_terminal_proof =
-  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_terminal_proof);
+  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_terminal_proof)
+    o Comment.ignore_interest;
+
 val local_immediate_proof =
   Toplevel.proof' (ProofHistory.applys_close o Method.local_immediate_proof);
+
 val local_default_proof =
   Toplevel.proof' (ProofHistory.applys_close o Method.local_default_proof);
 
@@ -252,25 +316,25 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
       [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
   in Pretty.writeln prt_result; thy end);
 
-fun gen_global_qed_with prep_att (alt_name, raw_atts) opt_text state =
+fun gen_global_qed_with prep_att (alt_name, raw_atts) meth state =
   let
     val thy = Proof.theory_of state;
     val alt_atts = apsome (map (prep_att thy)) raw_atts;
-  in Method.global_qed alt_name alt_atts opt_text state end;
+  in Method.global_qed alt_name alt_atts (apsome Comment.ignore_interest meth) state end;
 
 val global_qed_with = global_result oo gen_global_qed_with Attrib.global_attribute;
 val global_qed_with_i = global_result oo gen_global_qed_with (K I);
 val global_qed = global_qed_with (None, None);
 
-val global_terminal_proof = global_result o Method.global_terminal_proof;
+val global_terminal_proof = global_result o Method.global_terminal_proof o Comment.ignore_interest;
 val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_default_proof = global_result Method.global_default_proof;
 
 
 (* common endings *)
 
-fun qed opt_text = local_qed opt_text o global_qed opt_text;
-fun terminal_proof opt_text = local_terminal_proof opt_text o global_terminal_proof opt_text;
+fun qed meth = local_qed meth o global_qed meth;
+fun terminal_proof meth = local_terminal_proof meth o global_terminal_proof meth;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val default_proof = local_default_proof o global_default_proof;
 
@@ -318,7 +382,7 @@ val token_translation =
 
 (* add_oracle *)
 
-fun add_oracle (name, txt) =
+fun add_oracle ((name, txt), comment_ignore) =
   use_let
     "oracle: bstring * (Sign.sg * Object.T -> term)"
     "Theory.add_oracle oracle"
