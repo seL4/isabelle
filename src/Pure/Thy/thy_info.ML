@@ -124,7 +124,7 @@ fun thy_graph f x = f (get_thys ()) x;
 (*theory names in topological order*)
 fun get_names () =
   let val G = get_thys ()
-  in Graph.all_succs G (filter (Library.null o Graph.imm_preds G) (Graph.keys G)) end;
+  in Graph.all_succs G (Graph.minimals G) end;
 
 
 (* access thy *)
