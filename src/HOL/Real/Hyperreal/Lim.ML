@@ -925,6 +925,7 @@ by (auto_tac (claset(),simpset() addsimps [NSDERIV_NSLIM_iff2,
 qed "NSDERIV_iff2";
 
 Addsimps [inf_close_refl];
+
 Goal "(NSDERIV f x :> D) ==> \
 \    (ALL xa. \
 \       xa @= hypreal_of_real x --> \
@@ -1343,11 +1344,13 @@ by (auto_tac (claset(),simpset() addsimps [NSDERIV_NSLIM_iff,
 qed "NSDERIV_Id";
 Addsimps [NSDERIV_Id];
 
+(*derivative of the identity function*)
 Goal "DERIV (%x. x) x :> #1";
 by (simp_tac (simpset() addsimps [NSDERIV_DERIV_iff RS sym]) 1);
 qed "DERIV_Id";
 Addsimps [DERIV_Id];
 
+(*derivative of linear multiplication*)
 Goal "DERIV (op * c) x :> c";
 by (cut_inst_tac [("c","c"),("x","x")] (DERIV_Id RS DERIV_cmult) 1);
 by (Asm_full_simp_tac 1);
@@ -1584,14 +1587,6 @@ REPLACING THE VERSION IN REALORD.ML
 (*NEW VERSION with #2*)
 Goal "x < y ==> x < (x + y) / (#2::real)";
 by Auto_tac;
-(*proof was
-by (dres_inst_tac [("C","x")] real_add_less_mono2 1);
-by (dtac (real_add_self RS subst) 1);
-by (dtac (real_zero_less_two RS real_inverse_gt_zero RS 
-          real_mult_less_mono1) 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [real_mult_assoc, real_inverse_eq_divide]) 1);
-*)
 qed "real_less_half_sum";
 
 
@@ -2000,6 +1995,11 @@ qed "isCont_Lb_Ub";
 (* If f'(x) > 0 then x is locally strictly increasing at the right            *)
 (*----------------------------------------------------------------------------*)
 
+
+(**????????????????????????????????????????????????????????????????
+   MOVE EARLIER *)
+
+
 (** The next several equations can make the simplifier loop! **)
 
 Goal "(x < - y) = (y < - (x::real))";
@@ -2119,3 +2119,194 @@ by (arith_tac 2);
 by (asm_full_simp_tac
     (simpset() addsimps [pos_real_less_divide_eq]) 1); 
 qed "DERIV_left_dec";
+
+
+Goal "[| DERIV f x :> l; \
+\        EX d. #0 < d & (ALL y. abs(x - y) < d --> f(y) <= f(x)) |] \
+\     ==> l = #0";
+by (res_inst_tac [("R1.0","l"),("R2.0","#0")] real_linear_less2 1);
+by (Step_tac 1);
+by (dtac DERIV_left_dec 1);
+by (dtac DERIV_left_inc 3);
+by (Step_tac 1);
+by (dres_inst_tac [("d1.0","d"),("d2.0","da")] real_lbound_gt_zero 1);
+by (dres_inst_tac [("d1.0","d"),("d2.0","da")] real_lbound_gt_zero 3);
+by (Step_tac 1);
+by (dres_inst_tac [("x","x - e")] spec 1);
+by (dres_inst_tac [("x","x + e")] spec 2);
+by (auto_tac (claset(),simpset() addsimps [abs_eqI2,abs_minus_cancel]));
+qed "DERIV_local_max";
+
+(*----------------------------------------------------------------------------*)
+(* Similar theorem for a local minimum                                        *)
+(*----------------------------------------------------------------------------*)
+
+Goal "[| DERIV f x :> l; \
+\        EX d::real. #0 < d & (ALL y. abs(x - y) < d --> f(x) <= f(y)) |] \
+\     ==> l = #0";
+by (dtac (DERIV_minus RS DERIV_local_max) 1); 
+by Auto_tac;  
+qed "DERIV_local_min";
+
+(*----------------------------------------------------------------------------*)
+(* In particular if a function is locally flat                                *)
+(*----------------------------------------------------------------------------*)
+
+Goal "[| DERIV f x :> l; \
+\        EX d. #0 < d & (ALL y. abs(x - y) < d --> f(x) = f(y)) |] \
+\     ==> l = #0";
+by (auto_tac (claset() addSDs [DERIV_local_max],simpset()));
+qed "DERIV_local_const";
+
+(*----------------------------------------------------------------------------*)
+(* Lemma about introducing open ball in open interval                         *)
+(*----------------------------------------------------------------------------*)
+
+Goal "[| a < x;  x < b |] ==> \
+\       EX d::real. #0 < d &  (ALL y. abs(x - y) < d --> a < y & y < b)";
+by (simp_tac (simpset() addsimps [abs_interval_iff]) 1);
+by (cut_inst_tac [("x","x - a"),("y","b - x")] 
+    (CLAIM "x <= y | y <= (x::real)") 1);
+by (Step_tac 1);
+by (res_inst_tac [("x","x - a")] exI 1);
+by (res_inst_tac [("x","b - x")] exI 2);
+by (Auto_tac);
+by (auto_tac (claset(),simpset() addsimps [real_less_diff_eq]));
+qed "lemma_interval_lt";
+
+Goal "[| a < x;  x < b |] ==> \
+\       EX d::real. #0 < d &  (ALL y. abs(x - y) < d --> a <= y & y <= b)";
+by (dtac lemma_interval_lt 1);
+by (Auto_tac);
+by (auto_tac (claset() addSIs [exI] ,simpset()));
+qed "lemma_interval";
+
+(*-----------------------------------------------------------------------
+            Rolle's Theorem
+   If f is defined and continuous on the finite closed interval [a,b]
+   and differentiable a least on the open interval (a,b), and f(a) = f(b),
+   then x0 : (a,b) such that f'(x0) = #0
+ ----------------------------------------------------------------------*)
+
+Goal "[| a < b; f(a) = f(b); \
+\        ALL x. a <= x & x <= b --> isCont f x; \
+\        ALL x. a < x & x < b --> f differentiable x \
+\     |] ==> EX z. a < z & z < b & DERIV f z :> #0";
+by (ftac (real_less_imp_le RS isCont_eq_Ub) 1);
+by (EVERY1[assume_tac,Step_tac]);
+by (ftac (real_less_imp_le RS isCont_eq_Lb) 1);
+by (EVERY1[assume_tac,Step_tac]);
+by (case_tac "a < x & x < b" 1 THEN etac conjE 1);
+by (Asm_full_simp_tac 2);
+by (forw_inst_tac [("a","a"),("x","x")] lemma_interval 1);
+by (EVERY1[assume_tac,etac exE]);
+by (res_inst_tac [("x","x")] exI 1 THEN Asm_full_simp_tac 1);
+by (subgoal_tac "(EX l. DERIV f x :> l) & \
+\        (EX d. #0 < d & (ALL y. abs(x - y) < d --> f(y) <= f(x)))" 1);
+by (Clarify_tac 1 THEN rtac conjI 2);
+by (blast_tac (claset() addIs [differentiableD]) 2);
+by (Blast_tac 2);
+by (ftac DERIV_local_max 1);
+by (EVERY1[Blast_tac,Blast_tac]);
+by (case_tac "a < xa & xa < b" 1 THEN etac conjE 1);
+by (Asm_full_simp_tac 2);
+by (forw_inst_tac [("a","a"),("x","xa")] lemma_interval 1);
+by (EVERY1[assume_tac,etac exE]);
+by (res_inst_tac [("x","xa")] exI 1 THEN Asm_full_simp_tac 1);
+by (subgoal_tac "(EX l. DERIV f xa :> l) & \
+\        (EX d. #0 < d & (ALL y. abs(xa - y) < d --> f(xa) <= f(y)))" 1);
+by (Clarify_tac 1 THEN rtac conjI 2);
+by (blast_tac (claset() addIs [differentiableD]) 2);
+by (Blast_tac 2);
+by (ftac DERIV_local_min 1);
+by (EVERY1[Blast_tac,Blast_tac]);
+by (subgoal_tac "ALL x. a <= x & x <= b --> f(x) = f(b)" 1);
+by (Clarify_tac 2);
+by (rtac real_le_anti_sym 2);
+by (subgoal_tac "f b = f x" 2);
+by (Asm_full_simp_tac 2);
+by (res_inst_tac [("x1","a"),("y1","x")] (real_le_imp_less_or_eq RS disjE) 2);
+by (assume_tac 2);
+by (dres_inst_tac [("z","x"),("w","b")] real_le_anti_sym 2);
+by (subgoal_tac "f b = f xa" 5);
+by (Asm_full_simp_tac 5);
+by (res_inst_tac [("x1","a"),("y1","xa")] (real_le_imp_less_or_eq RS disjE) 5);
+by (assume_tac 5);
+by (dres_inst_tac [("z","xa"),("w","b")] real_le_anti_sym 5);
+by (REPEAT(Asm_full_simp_tac 2));
+by (dtac real_dense 1 THEN etac exE 1);
+by (res_inst_tac [("x","r")] exI 1 THEN Asm_full_simp_tac 1);
+by (etac conjE 1);
+by (forw_inst_tac [("a","a"),("x","r")] lemma_interval 1);
+by (EVERY1[assume_tac, etac exE]);
+by (subgoal_tac "(EX l. DERIV f r :> l) & \
+\        (EX d. #0 < d & (ALL y. abs(r - y) < d --> f(r) = f(y)))" 1);
+by (Clarify_tac 1 THEN rtac conjI 2);
+by (blast_tac (claset() addIs [differentiableD]) 2);
+by (EVERY1[ftac DERIV_local_const, Blast_tac, Blast_tac]);
+by (res_inst_tac [("x","d")] exI 1);
+by (EVERY1[rtac conjI, Blast_tac, rtac allI, rtac impI]);
+by (res_inst_tac [("s","f b")] trans 1);
+by (blast_tac (claset() addSDs [real_less_imp_le]) 1);
+by (rtac sym 1 THEN Blast_tac 1);
+qed "Rolle";
+
+(*----------------------------------------------------------------------------*)
+(* Mean value theorem                                                         *)
+(*----------------------------------------------------------------------------*)
+
+
+(*????????????????*)
+
+Goal "k~=#0 ==> (k*m) / k = (m::real)";
+by (dres_inst_tac [("n","#1")] real_mult_div_cancel1 1); 
+by (Asm_full_simp_tac 1); 
+qed "real_mult_div_self1";
+Addsimps [real_mult_div_self1];
+
+(*move up these rewrites AFTER the rest works*)
+
+Goal "(x-y = (#0::real)) = (x = y)";
+by Auto_tac;  
+qed "real_diff_eq_0_iff";
+AddIffs [real_diff_eq_0_iff];
+
+Goal "((#0::real) = x-y) = (x = y)";
+by Auto_tac;  
+qed "real_0_eq_diff_iff";
+AddIffs [real_0_eq_diff_iff];
+
+Goal "(x-y < (#0::real)) = (x < y)";
+by Auto_tac;  
+qed "real_diff_less_0_iff";
+AddIffs [real_diff_less_0_iff];
+
+Goal "((#0::real) < x-y) = (y < x)";
+by Auto_tac;  
+qed "real_0_less_diff_iff";
+AddIffs [real_0_less_diff_iff];
+
+Goal "(x-y <= (#0::real)) = (x <= y)";
+by Auto_tac;  
+qed "real_diff_le_0_iff";
+AddIffs [real_diff_le_0_iff];
+
+Goal "((#0::real) <= x-y) = (y <= x)";
+by Auto_tac;  
+qed "real_0_le_diff_iff";
+AddIffs [real_0_le_diff_iff];
+
+
+Goal "f a - (f b - f a)/(b - a) * a = \
+\     f b - (f b - f a)/(b - a) * (b::real)";
+by (case_tac "a = b" 1);
+by (asm_full_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO]) 1); 
+by (res_inst_tac [("c1","b - a")] (real_mult_left_cancel RS iffD1) 1);
+by (arith_tac 1);
+by (auto_tac (claset(),
+              simpset() addsimps [real_diff_mult_distrib2, real_diff_eq_eq, 
+                                  eq_commute]));
+by (auto_tac (claset(),
+              simpset() addsimps [real_diff_mult_distrib2, real_mult_commute]));
+qed "lemma_MVT";
+
