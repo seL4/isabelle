@@ -7,6 +7,8 @@ This file builds the theory parser and autoloading system.
 *)
 
 use "path.ML";
+use "file.ML";
+use "use.ML";
 
 use "thy_scan.ML";
 use "thy_parse.ML";
@@ -15,11 +17,9 @@ use "thy_syn.ML";
 use "thy_info.ML";
 use "browser_info.ML";
 use "thm_database.ML";
-
-use "symbol_input.ML";
 use "thy_read.ML";
 
-open ThmDatabase ThyRead ThyInfo BrowserInfo SymbolInput;
+open ThmDatabase ThyRead ThyInfo BrowserInfo;
 
 
 
