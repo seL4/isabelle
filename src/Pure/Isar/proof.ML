@@ -42,6 +42,7 @@ sig
   type method
   val method: (thm list -> tactic) -> method
   val refine: (context -> method) -> state -> state Seq.seq
+  val refine_end: (context -> method) -> state -> state Seq.seq
   val find_free: term -> string -> term option
   val export_thm: context -> thm -> thm
   val match_bind: (string list * string) list -> state -> state
@@ -346,20 +347,29 @@ val method = Method;
 
 (* refine goal *)
 
+local
+
 fun check_sign sg state =
   if Sign.subsig (sg, sign_of state) then state
   else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
 
-fun refine meth_fun state =
+fun gen_refine current_context meth_fun state =
   let
-    val Method meth = meth_fun (context_of state);
-    val (_, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
+    val (goal_ctxt, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
+    val Method meth = meth_fun (if current_context then context_of state else goal_ctxt);
 
     fun refn thm' =
       state
       |> check_sign (Thm.sign_of_thm thm')
       |> map_goal (K ((result, (facts, thm')), f));
   in Seq.map refn (meth facts thm) end;
+
+in
+
+val refine = gen_refine true;
+val refine_end = gen_refine false;
+
+end;
 
 
 (* export *)
