@@ -46,6 +46,14 @@ the current theory context;
 
 *** HOL ***
 
+* reorganized the main HOL image: HOL/Integ and String loaded by
+default; theory Main includes everything;
+
+* HOL/Real: a construction of the reals using Dedekind cuts;
+
+* HOL/record: now includes concrete syntax for record terms (still
+lacks important theorems, like surjective pairing and split);
+
 * Inductive definition package: Mutually recursive definitions such as
 
   inductive EVEN ODD
@@ -60,11 +68,6 @@ the current theory context;
   the recursive sets. Note that the component "mutual_induct" no longer
   exists - the induction rule is always contained in "induct".
 
-* HOL/Real: a construction of the reals using Dedekind cuts
-
-* HOL/record: now includes concrete syntax for record terms (still
-lacks important theorems, like surjective pairing and split);
-
 * simplification procedure unit_eq_proc rewrites (?x::unit) = (); this
 is made part of the default simpset of Prod.thy, which COULD MAKE
 EXISTING PROOFS FAIL (consider 'Delsimprocs [unit_eq_proc];' as last
@@ -74,9 +77,9 @@ resort);
 rewriting and classical reasoning (and whatever other tools) similarly
 to auto_tac, but is aimed to solve the given subgoal totally;
 
-* added option_map_eq_Some to simpset() and claset()
+* added option_map_eq_Some to simpset() and claset();
 
-* New directory HOL/UNITY: Chandy and Misra's UNITY formalism
+* New directory HOL/UNITY: Chandy and Misra's UNITY formalism;
 
 * New theory HOL/Update of function updates:
   f(a:=b) == %x. if x=a then b else f x
