@@ -274,6 +274,8 @@ The theorem lists are largely comments, though they are used in merge_cs and pri
 Nets must be built incrementally, to save space and time.
 *)
 
+val empty_netpair = (Net.empty, Net.empty);
+
 val empty_cs = 
   CS{safeIs	= [],
      safeEs	= [],
@@ -281,10 +283,10 @@ val empty_cs =
      hazEs	= [],
      swrappers  = [],
      uwrappers  = [],
-     safe0_netpair = (Net.empty,Net.empty),
-     safep_netpair = (Net.empty,Net.empty),
-     haz_netpair   = (Net.empty,Net.empty),
-     dup_netpair   = (Net.empty,Net.empty)};
+     safe0_netpair = empty_netpair,
+     safep_netpair = empty_netpair,
+     haz_netpair   = empty_netpair,
+     dup_netpair   = empty_netpair};
 
 fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
   let val pretty_thms = map Display.pretty_thm in
@@ -932,9 +934,9 @@ fun find_rules concl nets =
 fun find_erules [] _ = []
   | find_erules facts nets =
       let
-        fun may_unify net = Net.unify_term net o #prop o Thm.rep_thm;
+        fun may_unify net = Net.unify_term net o Logic.strip_assums_concl o #prop o Thm.rep_thm;
         fun erules_of (_, enet) = order_rules (flat (map (may_unify enet) facts));
-      in flat (map erules_of nets) @ [Data.not_elim, imp_elim] end;
+      in flat (map erules_of nets) end;
 
 
 (* trace rules *)
@@ -950,10 +952,14 @@ fun print_rules rules i =
 
 (* single_tac *)
 
+val imp_elim_netpair = insert (0, 0) ([], [imp_elim]) empty_netpair;
+val not_elim_netpair = insert (0, 0) ([], [Data.not_elim]) empty_netpair;
+
 fun single_tac cs facts =
   let
     val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
-    val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
+    val nets = [imp_elim_netpair, safe0_netpair, safep_netpair,
+      not_elim_netpair, haz_netpair, dup_netpair];
     val erules = find_erules facts nets;
 
     val tac = SUBGOAL (fn (goal, i) =>
@@ -970,7 +976,19 @@ val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_ta
 
 
 
-(** automatic methods **)
+(** more proof methods **)
+
+(* contradiction *)
+
+(* FIXME
+val contradiction = Method.METHOD (fn facts =>
+  Method.FINISHED (ALLGOALS (Method.same_tac facts THEN' (contr_tac ORELSE' assume_tac))));
+*)
+
+val contradiction = Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
+
+
+(* automatic methods *)
 
 val cla_modifiers =
  [Args.$$$ destN -- bang >> K haz_dest_local,
@@ -996,6 +1014,7 @@ val cla_method' = cla_args o cla_meth';
 val setup_methods = Method.add_methods
  [("single", Method.no_args single, "apply standard rule (single step)"),
   ("default", Method.no_args single, "apply standard rule (single step)"),
+  ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("safe_tac", cla_method safe_tac, "safe_tac"),
   ("safe_step", cla_method' safe_step_tac, "step_tac"),
   ("fast", cla_method' fast_tac, "fast_tac"),
