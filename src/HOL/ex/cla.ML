@@ -281,11 +281,10 @@ result();
 writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
 goal HOL.thy "((? x. ! y. p(x) = p(y))  =               \
-\                   ((? x. q(x)) = (! y. p(y))))   =    \
-\                  ((? x. ! y. q(x) = q(y))  =          \
-\                   ((? x. p(x)) = (! y. q(y))))";
+\              ((? x. q(x)) = (! y. p(y))))   =    \
+\             ((? x. ! y. q(x) = q(y))  =          \
+\              ((? x. p(x)) = (! y. q(y))))";
 by (Blast_tac 1);
-(*slower with smaller bounds*)
 result();
 
 writeln"Problem 35";
