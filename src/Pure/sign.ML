@@ -64,7 +64,6 @@ sig
     val pure: sg
     val const_of_class: class -> string
     val class_of_const: string -> class
-    val ambiguity_level: int ref
   end
 end;
 
@@ -245,8 +244,6 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 (** infer_types **)         (*exception ERROR*)
 
-val ambiguity_level = ref 1;
-
 fun infer_types sg types sorts print_msg (ts, T) =
   let
     val Sg {tsig, ...} = sg;
@@ -294,10 +291,17 @@ fun infer_types sg types sorts print_msg (ts, T) =
          end
       | process_terms [] (idx, infrd_t, tye) msg _ = 
           if msg = "" then (the idx, the infrd_t, the tye) 
-          else error msg;
+          else
+            (if length ts <= !Syntax.ambiguity_level then
+                                                      (*no warning shown yet?*)
+               writeln "Warning: Currently parsed input \
+                       \produces more than one parse tree.\n\
+                       \For more information lower Syntax.ambiguity_level."
+             else ();
+             error msg)
 
     val (idx, infrd_t, tye) = process_terms ts (None, None, None) "" 0;
-  in if print_msg andalso length ts > !ambiguity_level then
+  in if print_msg andalso length ts > !Syntax.ambiguity_level then
        writeln "Fortunately, only one parse tree is type correct.\n\
          \It helps (speed!) if you disambiguate your grammar or your input."
      else ();
