@@ -11,13 +11,13 @@
  -------------------------------------------------------------------------- *)
 
 Goalw [hypnat_omega_def] 
-      "(*fNat* (%n::nat. rinv(real_of_posnat n))) whn : Infinitesimal";
+      "(*fNat* (%n::nat. inverse(real_of_posnat n))) whn : Infinitesimal";
 by (auto_tac (claset(),simpset() addsimps 
     [Infinitesimal_FreeUltrafilterNat_iff,starfunNat]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (auto_tac (claset(),simpset() addsimps (map rename_numerals) 
-    [real_of_posnat_gt_zero,real_rinv_gt_zero,abs_eqI2,
-     FreeUltrafilterNat_rinv_real_of_posnat]));
+    [real_of_posnat_gt_zero,real_inverse_gt_zero,abs_eqI2,
+     FreeUltrafilterNat_inverse_real_of_posnat]));
 qed "SEQ_Infinitesimal";
 
 (*--------------------------------------------------------------------------
@@ -275,46 +275,46 @@ by (blast_tac (claset() addIs [NSLIMSEQ_add_minus]) 1);
 qed "NSLIMSEQ_diff";
 
 (*---------------------------------------------------------------
-    Proof is exactly same as that of NSLIM_rinv except 
-    for starfunNat_hrinv2 --- would not be the case if we
+    Proof is exactly same as that of NSLIM_inverse except 
+    for starfunNat_inverse2 --- would not be the case if we
     had generalised net theorems for example. Not our
     real concern though.
  --------------------------------------------------------------*)
 Goalw [NSLIMSEQ_def] 
        "!!X. [| X ----NS> a; a ~= #0 |] \
-\            ==> (%n. rinv(X n)) ----NS> rinv(a)";
+\            ==> (%n. inverse(X n)) ----NS> inverse(a)";
 by (Step_tac 1);
 by (dtac bspec 1 THEN auto_tac (claset(),simpset() 
     addsimps [hypreal_of_real_not_zero_iff RS sym,
-    hypreal_of_real_hrinv RS sym]));
+    hypreal_of_real_inverse RS sym]));
 by (forward_tac [inf_close_hypreal_of_real_not_zero] 1 
     THEN assume_tac 1);
-by (auto_tac (claset() addSEs [(starfunNat_hrinv2 RS subst),
-    inf_close_hrinv,hypreal_of_real_HFinite_diff_Infinitesimal],
+by (auto_tac (claset() addSEs [(starfunNat_inverse2 RS subst),
+    inf_close_inverse,hypreal_of_real_HFinite_diff_Infinitesimal],
     simpset()));
-qed "NSLIMSEQ_rinv";
+qed "NSLIMSEQ_inverse";
 
 (*------ Standard version of theorem -------*)
 Goal
        "!!X. [| X ----> a; a ~= #0 |] \
-\            ==> (%n. rinv(X n)) ----> rinv(a)";
-by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_rinv,
+\            ==> (%n. inverse(X n)) ----> inverse(a)";
+by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_inverse,
     LIMSEQ_NSLIMSEQ_iff]) 1);
-qed "LIMSEQ_rinv";
+qed "LIMSEQ_inverse";
 
 (* trivially proved *)
 Goal
      "!!X. [| X ----NS> a; Y ----NS> b; b ~= #0 |] \
-\          ==> (%n. (X n) * rinv(Y n)) ----NS> a*rinv(b)";
-by (blast_tac (claset() addDs [NSLIMSEQ_rinv,NSLIMSEQ_mult]) 1);
-qed "NSLIMSEQ_mult_rinv";
+\          ==> (%n. (X n) * inverse(Y n)) ----NS> a*inverse(b)";
+by (blast_tac (claset() addDs [NSLIMSEQ_inverse,NSLIMSEQ_mult]) 1);
+qed "NSLIMSEQ_mult_inverse";
 
 (* let's give a standard proof of theorem *)
 Goal 
      "!!X. [| X ----> a; Y ----> b; b ~= #0 |] \
-\          ==> (%n. (X n) * rinv(Y n)) ----> a*rinv(b)";
-by (blast_tac (claset() addDs [LIMSEQ_rinv,LIMSEQ_mult]) 1);
-qed "LIMSEQ_mult_rinv";
+\          ==> (%n. (X n) * inverse(Y n)) ----> a*inverse(b)";
+by (blast_tac (claset() addDs [LIMSEQ_inverse,LIMSEQ_mult]) 1);
+qed "LIMSEQ_mult_inverse";
 
 (*-----------------------------------------------
             Uniqueness of limit
@@ -1205,82 +1205,82 @@ qed "LIMSEQ_imp_rabs";
 (* standard proof seems easier *)
 Goalw [LIMSEQ_def] 
       "ALL y. EX N. ALL n. N <= n --> y < f(n) \
-\      ==> (%n. rinv(f n)) ----> #0";
+\      ==> (%n. inverse(f n)) ----> #0";
 by (Step_tac 1 THEN Asm_full_simp_tac 1);
-by (dres_inst_tac [("x","rinv r")] spec 1 THEN Step_tac 1);
+by (dres_inst_tac [("x","inverse r")] spec 1 THEN Step_tac 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
-by (forward_tac [rename_numerals real_rinv_gt_zero] 1);
+by (forward_tac [rename_numerals real_inverse_gt_zero] 1);
 by (forward_tac [real_less_trans] 1 THEN assume_tac 1);
-by (forw_inst_tac [("x","f n")] (rename_numerals real_rinv_gt_zero) 1);
+by (forw_inst_tac [("x","f n")] (rename_numerals real_inverse_gt_zero) 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
-by (res_inst_tac [("t","r")] (real_rinv_rinv RS subst) 1);
-by (auto_tac (claset() addIs [real_rinv_less_iff RS iffD1], simpset()));
-qed "LIMSEQ_rinv_zero";
+by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
+by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD1], simpset()));
+qed "LIMSEQ_inverse_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \
-\     ==> (%n. rinv(f n)) ----NS> #0";
+\     ==> (%n. inverse(f n)) ----NS> #0";
 by (asm_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-                  LIMSEQ_rinv_zero]) 1);
-qed "NSLIMSEQ_rinv_zero";
+                  LIMSEQ_inverse_zero]) 1);
+qed "NSLIMSEQ_inverse_zero";
 
 (*--------------------------------------------------------------
              Sequence  1/n --> 0 as n --> infinity 
  -------------------------------------------------------------*)
-Goal "(%n. rinv(real_of_posnat n)) ----> #0";
-by (rtac LIMSEQ_rinv_zero 1 THEN Step_tac 1);
+Goal "(%n. inverse(real_of_posnat n)) ----> #0";
+by (rtac LIMSEQ_inverse_zero 1 THEN Step_tac 1);
 by (cut_inst_tac [("x","y")] reals_Archimedean2 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (Step_tac 1 THEN etac (le_imp_less_or_eq RS disjE) 1);
 by (dtac (real_of_posnat_less_iff RS iffD2) 1);
 by (auto_tac (claset() addEs [real_less_trans], simpset()));
-qed "LIMSEQ_rinv_real_of_posnat";
+qed "LIMSEQ_inverse_real_of_posnat";
 
-Goal "(%n. rinv(real_of_posnat n)) ----NS> #0";
+Goal "(%n. inverse(real_of_posnat n)) ----NS> #0";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_rinv_real_of_posnat]) 1);
-qed "NSLIMSEQ_rinv_real_of_posnat";
+    LIMSEQ_inverse_real_of_posnat]) 1);
+qed "NSLIMSEQ_inverse_real_of_posnat";
 
 (*--------------------------------------------
     Sequence  r + 1/n --> r as n --> infinity 
     now easily proved
  --------------------------------------------*)
-Goal "(%n. r + rinv(real_of_posnat n)) ----> r";
-by (cut_facts_tac [[LIMSEQ_const,LIMSEQ_rinv_real_of_posnat]
+Goal "(%n. r + inverse(real_of_posnat n)) ----> r";
+by (cut_facts_tac [[LIMSEQ_const,LIMSEQ_inverse_real_of_posnat]
     MRS LIMSEQ_add] 1);
 by (Auto_tac);
-qed "LIMSEQ_rinv_real_of_posnat_add";
+qed "LIMSEQ_inverse_real_of_posnat_add";
 
-Goal "(%n. r + rinv(real_of_posnat n)) ----NS> r";
+Goal "(%n. r + inverse(real_of_posnat n)) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_rinv_real_of_posnat_add]) 1);
-qed "NSLIMSEQ_rinv_real_of_posnat_add";
+    LIMSEQ_inverse_real_of_posnat_add]) 1);
+qed "NSLIMSEQ_inverse_real_of_posnat_add";
 
 (*--------------
     Also...
  --------------*)
 
-Goal "(%n. r + -rinv(real_of_posnat n)) ----> r";
-by (cut_facts_tac [[LIMSEQ_const,LIMSEQ_rinv_real_of_posnat]
+Goal "(%n. r + -inverse(real_of_posnat n)) ----> r";
+by (cut_facts_tac [[LIMSEQ_const,LIMSEQ_inverse_real_of_posnat]
     MRS LIMSEQ_add_minus] 1);
 by (Auto_tac);
-qed "LIMSEQ_rinv_real_of_posnat_add_minus";
+qed "LIMSEQ_inverse_real_of_posnat_add_minus";
 
-Goal "(%n. r + -rinv(real_of_posnat n)) ----NS> r";
+Goal "(%n. r + -inverse(real_of_posnat n)) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_rinv_real_of_posnat_add_minus]) 1);
-qed "NSLIMSEQ_rinv_real_of_posnat_add_minus";
+    LIMSEQ_inverse_real_of_posnat_add_minus]) 1);
+qed "NSLIMSEQ_inverse_real_of_posnat_add_minus";
 
-Goal "(%n. r*( #1 + -rinv(real_of_posnat n))) ----> r";
+Goal "(%n. r*( #1 + -inverse(real_of_posnat n))) ----> r";
 by (cut_inst_tac [("b","#1")] ([LIMSEQ_const,
-    LIMSEQ_rinv_real_of_posnat_add_minus] MRS LIMSEQ_mult) 1);
+    LIMSEQ_inverse_real_of_posnat_add_minus] MRS LIMSEQ_mult) 1);
 by (Auto_tac);
-qed "LIMSEQ_rinv_real_of_posnat_add_minus_mult";
+qed "LIMSEQ_inverse_real_of_posnat_add_minus_mult";
 
-Goal "(%n. r*( #1 + -rinv(real_of_posnat n))) ----NS> r";
+Goal "(%n. r*( #1 + -inverse(real_of_posnat n))) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_rinv_real_of_posnat_add_minus_mult]) 1);
-qed "NSLIMSEQ_rinv_real_of_posnat_add_minus_mult";
+    LIMSEQ_inverse_real_of_posnat_add_minus_mult]) 1);
+qed "NSLIMSEQ_inverse_real_of_posnat_add_minus_mult";
 
 (*---------------------------------------------------------------
                           Real Powers

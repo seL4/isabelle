@@ -314,11 +314,11 @@ by (auto_tac (claset(),simpset() addsimps [starfunNat,
 qed "starfunNat_minus";
 
 Goal "ALL x. f x ~= 0 ==> \
-\     hrinv ((*fNat* f) x) = (*fNat* (%x. rinv (f x))) x";
+\     inverse ((*fNat* f) x) = (*fNat* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),simpset() addsimps [starfunNat,
-              hypreal_hrinv]));
-qed "starfunNat_hrinv";
+              hypreal_inverse]));
+qed "starfunNat_inverse";
 
 (*--------------------------------------------------------
    extented function has same solution as its standard
@@ -365,13 +365,13 @@ qed "starfunNat_add_inf_close";
  ------------------------------------------------------------------*)
 Goal 
      "!!f. (*fNat* f) x ~= 0 ==> \
-\     hrinv ((*fNat* f) x) = (*fNat* (%x. rinv (f x))) x";
+\     inverse ((*fNat* f) x) = (*fNat* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
     addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfunNat,hypreal_hrinv,
+    simpset() addsimps [starfunNat,hypreal_inverse,
     hypreal_zero_def]));
-qed "starfunNat_hrinv2";
+qed "starfunNat_inverse2";
 
 (*-----------------------------------------------------------------
     Example of transfer of a property from reals to hyperreals
@@ -449,12 +449,12 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_of_hypnat,starfunNat]));
 qed "starfunNat_real_of_nat";
 
 Goal "N : HNatInfinite \
-\     ==> (*fNat* (%x. rinv (real_of_nat x))) N = hrinv(hypreal_of_hypnat N)";
-by (res_inst_tac [("f1","rinv")]  (starfun_stafunNat_o2 RS subst) 1);
+\     ==> (*fNat* (%x. inverse (real_of_nat x))) N = inverse(hypreal_of_hypnat N)";
+by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
 by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
 by (auto_tac (claset(),simpset() addsimps [starfunNat_real_of_nat, 
-    starfun_rinv_hrinv]));
-qed "starfunNat_rinv_real_of_nat_eq";
+    starfun_inverse_inverse]));
+qed "starfunNat_inverse_real_of_nat_eq";
 
 (*----------------------------------------------------------
      Internal functions - some redundancy with *fNat* now

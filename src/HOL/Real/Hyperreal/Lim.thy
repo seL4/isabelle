@@ -30,12 +30,12 @@ constdefs
       
       (* differentiation: D is derivative of function f at x *)
       deriv:: [real=>real,real,real] => bool   ("(DERIV (_)/ (_)/ :> (_))" 60)
-      "DERIV f x :> D == ((%h. (f(x + h) + -f(x))*rinv(h)) -- #0 --> D)"
+      "DERIV f x :> D == ((%h. (f(x + h) + -f(x))*inverse(h)) -- #0 --> D)"
 
       nsderiv :: [real=>real,real,real] => bool   ("(NSDERIV (_)/ (_)/ :> (_))" 60)
       "NSDERIV f x :> D == (ALL h: Infinitesimal - {0}. 
                             ((*f* f)(hypreal_of_real x + h) + 
-                             -hypreal_of_real (f x))*hrinv(h) @= hypreal_of_real D)"
+                             -hypreal_of_real (f x))*inverse(h) @= hypreal_of_real D)"
 
       differentiable :: [real=>real,real] => bool   (infixl 60)
       "f differentiable x == (EX D. DERIV f x :> D)"

@@ -355,11 +355,11 @@ qed "starfun_add_inf_close";
 
 (*----------------------------------------------------
     Examples: hrabs is nonstandard extension of rabs 
-              hrinv is nonstandard extension of rinv
+              inverse is nonstandard extension of inverse
  ---------------------------------------------------*)
 
 (* can be proved easily using theorem "starfun" and *)
-(* properties of ultrafilter as for hrinv below we  *)
+(* properties of ultrafilter as for inverse below we  *)
 (* use the theorem we proved above instead          *)
 
 Goal "*f* abs = abs";
@@ -367,54 +367,54 @@ by (rtac (hrabs_is_starext_rabs RS
     (is_starext_starfun_iff RS iffD1) RS sym) 1);
 qed "starfun_rabs_hrabs";
 
-Goal "!!x. x ~= 0 ==> (*f* rinv) x = hrinv(x)";
+Goal "!!x. x ~= 0 ==> (*f* inverse) x = inverse(x)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_hrinv,hypreal_zero_def]));
+    hypreal_inverse,hypreal_zero_def]));
 by (dtac FreeUltrafilterNat_Compl_mem 1);
 by (auto_tac (claset() addEs [FreeUltrafilterNat_subset],simpset()));
-qed "starfun_rinv_hrinv";
+qed "starfun_inverse_inverse";
 
 (* more specifically *)
-Goal "(*f* rinv) ehr = hrinv (ehr)";
-by (rtac (hypreal_epsilon_not_zero RS starfun_rinv_hrinv) 1);
-qed "starfun_rinv_epsilon";
+Goal "(*f* inverse) ehr = inverse (ehr)";
+by (rtac (hypreal_epsilon_not_zero RS starfun_inverse_inverse) 1);
+qed "starfun_inverse_epsilon";
 
 Goal "ALL x. f x ~= 0 ==> \
-\     hrinv ((*f* f) x) = (*f* (%x. rinv (f x))) x";
+\     inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
-              hypreal_hrinv]));
-qed "starfun_hrinv";
+              hypreal_inverse]));
+qed "starfun_inverse";
 
 Goal "(*f* f) x ~= 0 ==> \
-\     hrinv ((*f* f) x) = (*f* (%x. rinv (f x))) x";
+\     inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
     addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfun,hypreal_hrinv,
+    simpset() addsimps [starfun,hypreal_inverse,
     hypreal_zero_def]));
-qed "starfun_hrinv2";
+qed "starfun_inverse2";
 
 Goal "a ~= hypreal_of_real b ==> \
-\     (*f* (%z. rinv (z + -b))) a = hrinv(a + -hypreal_of_real b)";
+\     (*f* (%z. inverse (z + -b))) a = inverse(a + -hypreal_of_real b)";
 by (res_inst_tac [("z","a")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
     addSDs [FreeUltrafilterNat_Compl_mem],
     simpset() addsimps [starfun,hypreal_of_real_def,hypreal_add,
-    hypreal_minus,hypreal_hrinv,rename_numerals 
+    hypreal_minus,hypreal_inverse,rename_numerals 
     (real_eq_minus_iff2 RS sym)]));
-qed "starfun_hrinv3";
+qed "starfun_inverse3";
 
 Goal 
      "!!f. a + hypreal_of_real b ~= 0 ==> \
-\          (*f* (%z. rinv (z + b))) a = hrinv(a + hypreal_of_real b)";
+\          (*f* (%z. inverse (z + b))) a = inverse(a + hypreal_of_real b)";
 by (res_inst_tac [("z","a")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
     addSDs [FreeUltrafilterNat_Compl_mem],
     simpset() addsimps [starfun,hypreal_of_real_def,hypreal_add,
-    hypreal_hrinv,hypreal_zero_def]));
-qed "starfun_hrinv4";
+    hypreal_inverse,hypreal_zero_def]));
+qed "starfun_inverse4";
 
 (*-------------------------------------------------------------
     General lemma/theorem needed for proofs in elementary
@@ -471,11 +471,11 @@ qed "STAR_starfun_rabs_add_minus";
    move both if possible? 
  -------------------------------------------------------------------*)
 Goal "(x:Infinitesimal) = (EX X:Rep_hypreal(x). \
-\              ALL m. {n. abs(X n) < rinv(real_of_posnat m)}:FreeUltrafilterNat)";
+\              ALL m. {n. abs(X n) < inverse(real_of_posnat m)}:FreeUltrafilterNat)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [bexI,lemma_hyprel_refl],
     simpset() addsimps [Infinitesimal_hypreal_of_posnat_iff,
-    hypreal_of_real_of_posnat,hypreal_of_real_def,hypreal_hrinv,
+    hypreal_of_real_of_posnat,hypreal_of_real_def,hypreal_inverse,
     hypreal_hrabs,hypreal_less])); 
 by (dres_inst_tac [("x","n")] spec 1);
 by (Fuf_tac 1);
@@ -483,7 +483,7 @@ qed  "Infinitesimal_FreeUltrafilterNat_iff2";
 
 Goal "(Abs_hypreal(hyprel^^{X}) @= Abs_hypreal(hyprel^^{Y})) = \
 \     (ALL m. {n. abs (X n + - Y n) < \
-\                 rinv(real_of_posnat m)} : FreeUltrafilterNat)";
+\                 inverse(real_of_posnat m)} : FreeUltrafilterNat)";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_minus,

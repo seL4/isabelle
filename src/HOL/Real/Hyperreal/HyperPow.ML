@@ -16,13 +16,13 @@ by (auto_tac (claset() addIs [hypreal_mult_not_0E],
     simpset() addsimps [hypreal_zero_not_eq_one RS not_sym]));
 qed_spec_mp "hrealpow_not_zero";
 
-Goal "r ~= (0::hypreal) --> hrinv(r ^ n) = (hrinv r) ^ n";
+Goal "r ~= (0::hypreal) --> inverse(r ^ n) = (inverse r) ^ n";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (forw_inst_tac [("n","n")] hrealpow_not_zero 1);
-by (auto_tac (claset() addDs [hrinv_mult_eq],
+by (auto_tac (claset() addDs [inverse_mult_eq],
     simpset()));
-qed_spec_mp "hrealpow_hrinv";
+qed_spec_mp "hrealpow_inverse";
 
 Goal "abs (r::hypreal) ^ n = abs (r ^ n)";
 by (induct_tac "n" 1);
@@ -298,15 +298,15 @@ by (fuf_empty_tac (claset() addIs [realpow_not_zero RS notE],
 qed_spec_mp "hyperpow_not_zero";
 
 Goalw [hypreal_zero_def] 
-      "r ~= (0::hypreal) --> hrinv(r pow n) = (hrinv r) pow n";
+      "r ~= (0::hypreal) --> inverse(r pow n) = (inverse r) pow n";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [hypreal_hrinv,hyperpow]));
+    simpset() addsimps [hypreal_inverse,hyperpow]));
 by (rtac FreeUltrafilterNat_subset 1);
 by (auto_tac (claset() addDs [realpow_not_zero] 
-    addIs [realpow_rinv],simpset()));
-qed "hyperpow_hrinv";
+    addIs [realpow_inverse],simpset()));
+qed "hyperpow_inverse";
 
 Goal "abs r pow n = abs (r pow n)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);

@@ -25,7 +25,7 @@ constdefs
 typedef hypreal = "UNIV//hyprel"   (Equiv.quotient_def)
 
 instance
-   hypreal  :: {ord, zero, plus, times, minus}
+   hypreal  :: {ord, zero, plus, times, minus, inverse}
 
 consts 
 
@@ -36,14 +36,19 @@ consts
 
 defs
 
-  hypreal_zero_def     "0 == Abs_hypreal(hyprel^^{%n::nat. (#0::real)})"
-  hypreal_one_def      "1hr == Abs_hypreal(hyprel^^{%n::nat. (#1::real)})"
+  hypreal_zero_def
+  "0 == Abs_hypreal(hyprel^^{%n::nat. (#0::real)})"
+
+  hypreal_one_def
+  "1hr == Abs_hypreal(hyprel^^{%n::nat. (#1::real)})"
 
   (* an infinite number = [<1,2,3,...>] *)
-  omega_def   "whr == Abs_hypreal(hyprel^^{%n::nat. real_of_posnat n})"
+  omega_def
+  "whr == Abs_hypreal(hyprel^^{%n::nat. real_of_posnat n})"
     
   (* an infinitesimal number = [<1,1/2,1/3,...>] *)
-  epsilon_def "ehr == Abs_hypreal(hyprel^^{%n::nat. rinv(real_of_posnat n)})"
+  epsilon_def
+  "ehr == Abs_hypreal(hyprel^^{%n::nat. inverse (real_of_posnat n)})"
 
   hypreal_minus_def
   "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel^^{%n::nat. - (X n)})"
@@ -51,15 +56,18 @@ defs
   hypreal_diff_def 
   "x - y == x + -(y::hypreal)"
 
+  hypreal_inverse_def
+  "inverse P == Abs_hypreal(UN X: Rep_hypreal(P). 
+                    hyprel^^{%n. if X n = #0 then #0 else inverse (X n)})"
+
+  hypreal_divide_def
+  "P / Q::hypreal == P * inverse Q"
+  
 constdefs
 
   hypreal_of_real  :: real => hypreal                 
   "hypreal_of_real r         == Abs_hypreal(hyprel^^{%n::nat. r})"
   
-  hrinv       :: hypreal => hypreal
-  "hrinv(P)   == Abs_hypreal(UN X: Rep_hypreal(P). 
-                    hyprel^^{%n. if X n = #0 then #0 else rinv(X n)})"
-
   (* n::nat --> (n+1)::hypreal *)
   hypreal_of_posnat :: nat => hypreal                
   "hypreal_of_posnat n  == (hypreal_of_real(real_of_preal
