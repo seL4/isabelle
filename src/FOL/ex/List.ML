@@ -11,7 +11,7 @@ open List;
 val prems = goal List.thy "[| P([]);  !!x l. P(x.l) |] ==> All(P)";
 by (rtac list_ind 1);
 by (REPEAT (resolve_tac (prems@[allI,impI]) 1));
-val list_exh = result();
+qed "list_exh";
 
 val list_rew_thms = [list_distinct1,list_distinct2,app_nil,app_cons,
 		     hd_eq,tl_eq,forall_nil,forall_cons,list_free,

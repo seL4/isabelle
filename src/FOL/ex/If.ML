@@ -12,13 +12,13 @@ open Cla;    (*in case structure Int is open!*)
 val prems = goalw If.thy [if_def]
     "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)";
 by (fast_tac (FOL_cs addIs prems) 1);
-val ifI = result();
+qed "ifI";
 
 val major::prems = goalw If.thy [if_def]
    "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~P; R |] ==> S |] ==> S";
 by (cut_facts_tac [major] 1);
 by (fast_tac (FOL_cs addIs prems) 1);
-val ifE = result();
+qed "ifE";
 
 
 goal If.thy
