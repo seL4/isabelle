@@ -29,20 +29,22 @@ functor FoldSucFun(Data: FOLD_SUC_DATA):
 =
 struct
 
+fun listof None = []
+  | listof (Some x) = [x];
+
 fun proc sg _ t =
   let val sum = Data.dest_Suc t 
       val terms = Data.dest_sum sum
       val (m, lit_m, terms') = Data.find_first_numeral terms
       val assocs =  (*If needed, rewrite the literal m to the front:
 		     i + #m + j + k == #m + i + (j + k) *)
-	  [the (Data.prove_conv [Data.add_norm_tac] sg
-		(sum, Data.mk_sum (lit_m::terms')))]
-	  handle _ => []
+	  listof (Data.prove_conv [Data.add_norm_tac] sg
+		  (sum, Data.mk_sum (lit_m::terms')))
   in
       Data.prove_conv 
         [Data.numeral_simp_tac assocs] sg
 	(t, Data.mk_sum (Data.mk_numeral (m+1) :: terms'))
   end
-  handle _ => None;
+  handle TERM _ => None;
 
 end;
