@@ -8,7 +8,7 @@
 #              Send email if it fails.
 
 ## global settings
-MAILTO="kleing@in.tum.de nipkow@in.tum.de wenzelm@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
 LOGPREFIX=~/log
 
@@ -51,6 +51,31 @@ shift
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
+case $HOSTNAME in
+        atbroy51)
+	MFLAGS="-j 2"
+	# MFLAGS=""
+	;;
+
+        atbroy31)
+        MFLAGS="-j 5"
+        ;;
+	
+	atbroy12)
+	MFLAGS="-j 5"
+	;;
+
+	sunbroy2)
+	MFLAGS="-j 4"
+	;;
+
+   	*)
+	MFLAGS=""
+        ;;
+esac
+
+
+
 LOGS=""
 
 for SETTINGS in $@; do
@@ -69,7 +94,7 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    nice $DISTPREFIX/Isabelle/bin/isatool makeall -j 2 all >> $TESTLOG 2>&1 
+    nice $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1 
 
     if [ $? -eq 0 ]
     then
