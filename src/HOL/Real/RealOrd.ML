@@ -825,64 +825,65 @@ qed "real_sum_squares_cancel2";
 
 Goal "((0::real) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)";
 by (auto_tac (claset(), 
-              simpset() addsimps [order_le_less, real_less_le_iff, 
+              simpset() addsimps [order_le_less, linorder_not_less, 
                                   real_mult_order, real_mult_less_zero1]));
 by (ALLGOALS (rtac ccontr)); 
-by (auto_tac (claset(), simpset() addsimps [order_le_less, real_less_le_iff]));
+by (auto_tac (claset(), simpset() addsimps [order_le_less, linorder_not_less]));
 by (ALLGOALS (etac rev_mp)); 
 by (ALLGOALS (dtac real_mult_less_zero THEN' assume_tac));
 by (auto_tac (claset() addDs [order_less_not_sym], 
               simpset() addsimps [real_mult_commute]));  
-qed "real_zero_less_times_iff";
+qed "real_zero_less_mult_iff";
 
 Goal "((0::real) <= x*y) = (0 <= x & 0 <= y | x <= 0 & y <= 0)";
 by (auto_tac (claset(), 
-              simpset() addsimps [order_le_less, real_less_le_iff,  
-                                  real_zero_less_times_iff]));
-qed "real_zero_le_times_iff";
+              simpset() addsimps [order_le_less, linorder_not_less,  
+                                  real_zero_less_mult_iff]));
+qed "real_zero_le_mult_iff";
 
 Goal "(x*y < (0::real)) = (0 < x & y < 0 | x < 0 & 0 < y)";
 by (auto_tac (claset(), 
-              simpset() addsimps [real_zero_le_times_iff, 
+              simpset() addsimps [real_zero_le_mult_iff, 
                                   linorder_not_le RS sym]));
 by (auto_tac (claset() addDs [order_less_not_sym],  
               simpset() addsimps [linorder_not_le]));
-qed "real_times_less_zero_iff";
+qed "real_mult_less_zero_iff";
 
 Goal "(x*y <= (0::real)) = (0 <= x & y <= 0 | x <= 0 & 0 <= y)";
 by (auto_tac (claset() addDs [order_less_not_sym], 
-              simpset() addsimps [real_zero_less_times_iff, 
+              simpset() addsimps [real_zero_less_mult_iff, 
                                   linorder_not_less RS sym]));
-qed "real_times_le_zero_iff";
+qed "real_mult_le_zero_iff";
 
 
 (*----------------------------------------------------------------------------
      Another embedding of the naturals in the reals (see real_of_posnat)
  ----------------------------------------------------------------------------*)
 Goalw [real_of_nat_def] "real_of_nat 0 = 0";
-by (full_simp_tac (simpset() addsimps [real_of_posnat_one]) 1);
+by (simp_tac (simpset() addsimps [real_of_posnat_one]) 1);
 qed "real_of_nat_zero";
 
 Goalw [real_of_nat_def] "real_of_nat 1 = 1r";
-by (full_simp_tac (simpset() addsimps [real_of_posnat_two,
-    real_add_assoc]) 1);
+by (simp_tac (simpset() addsimps [real_of_posnat_two, real_add_assoc]) 1);
 qed "real_of_nat_one";
+Addsimps [real_of_nat_zero, real_of_nat_one];
 
 Goalw [real_of_nat_def]
-          "real_of_nat n1 + real_of_nat n2 = real_of_nat (n1 + n2)";
+     "real_of_nat (m + n) = real_of_nat m + real_of_nat n";
 by (simp_tac (simpset() addsimps 
-    [real_of_posnat_add,real_add_assoc RS sym]) 1);
+              [real_of_posnat_add,real_add_assoc RS sym]) 1);
 qed "real_of_nat_add";
 
 Goalw [real_of_nat_def] "real_of_nat (Suc n) = real_of_nat n + 1r";
 by (simp_tac (simpset() addsimps [real_of_posnat_Suc] @ real_add_ac) 1);
 qed "real_of_nat_Suc";
+Addsimps [real_of_nat_Suc];
     
-Goalw [real_of_nat_def] "(n < m) = (real_of_nat n < real_of_nat m)";
+Goalw [real_of_nat_def] "(real_of_nat n < real_of_nat m) = (n < m)";
 by Auto_tac;
 qed "real_of_nat_less_iff";
 
-Addsimps [real_of_nat_less_iff RS sym];
+AddIffs [real_of_nat_less_iff];
 
 Goal "inj real_of_nat";
 by (rtac injI 1);
@@ -894,14 +895,12 @@ Goalw [real_of_nat_def] "0 <= real_of_nat n";
 by (res_inst_tac [("C","1r")] real_le_add_right_cancel 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
 qed "real_of_nat_ge_zero";
-Addsimps [real_of_nat_ge_zero];
+AddIffs [real_of_nat_ge_zero];
 
-Goal "real_of_nat n1 * real_of_nat n2 = real_of_nat (n1 * n2)";
-by (induct_tac "n1" 1);
-by (dtac sym 2);
+Goal "real_of_nat (m * n) = real_of_nat m * real_of_nat n";
+by (induct_tac "m" 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_of_nat_zero,
-				  real_of_nat_add RS sym,real_of_nat_Suc,
+	      simpset() addsimps [real_of_nat_add,
 				  real_add_mult_distrib, real_add_commute]));
 qed "real_of_nat_mult";
 
@@ -910,33 +909,36 @@ by (auto_tac (claset() addDs [inj_real_of_nat RS injD],
               simpset()));
 qed "real_of_nat_eq_cancel";
 
-Goal "n2 <= n1 --> real_of_nat (n1 - n2) = real_of_nat n1 + (-real_of_nat n2)";
-by (induct_tac "n1" 1);
+Goal "n <= m --> real_of_nat (m - n) = real_of_nat m + (-real_of_nat n)";
+by (induct_tac "m" 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Suc_diff_le, le_Suc_eq, real_of_nat_Suc, 
 				  real_of_nat_zero] @ real_add_ac));
 qed_spec_mp "real_of_nat_minus";
 
 (* 05/00 *)
-Goal "n2 < n1 ==> real_of_nat (n1 - n2) = \
-\     real_of_nat n1 + -real_of_nat n2";
+Goal "n < m ==> real_of_nat (m - n) = \
+\     real_of_nat m + -real_of_nat n";
 by (auto_tac (claset() addIs [real_of_nat_minus],simpset()));
 qed "real_of_nat_minus2";
 
-Goalw [real_diff_def] "n2 < n1 ==> real_of_nat (n1 - n2) = \
-\     real_of_nat n1 - real_of_nat n2";
+Goalw [real_diff_def]
+     "n < m ==> real_of_nat (m - n) = real_of_nat m - real_of_nat n";
 by (etac real_of_nat_minus2 1);
 qed "real_of_nat_diff";
 
-Goalw [real_diff_def] "n2 <= n1 ==> real_of_nat (n1 - n2) = \
-\     real_of_nat n1 - real_of_nat n2";
+Goalw [real_diff_def]
+     "n <= m ==> real_of_nat (m - n) = real_of_nat m - real_of_nat n";
 by (etac real_of_nat_minus 1);
 qed "real_of_nat_diff2";
 
-Goal "(real_of_nat n ~= 0) = (n ~= 0)";
-by (auto_tac (claset() addIs [inj_real_of_nat RS injD],
-    simpset() addsimps [real_of_nat_zero RS sym] 
-    delsimps [neq0_conv]));
-qed "real_of_nat_not_zero_iff";
-Addsimps [real_of_nat_not_zero_iff];
+Goal "(real_of_nat n = 0) = (n = 0)";
+by (auto_tac (claset() addIs [inj_real_of_nat RS injD], simpset()));
+qed "real_of_nat_zero_iff";
+AddIffs [real_of_nat_zero_iff];
+
+Goal "neg z ==> real_of_nat (nat z) = 0";
+by (asm_simp_tac (simpset() addsimps [neg_nat, real_of_nat_zero]) 1);
+qed "real_of_nat_neg_int";
+Addsimps [real_of_nat_neg_int];
 
