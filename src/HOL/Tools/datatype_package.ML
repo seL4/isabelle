@@ -179,7 +179,7 @@ fun mutual_induct_tac vars i state =
     val ind_vnames = map (fn (_ $ Var (ixn, _)) =>
       implode (tl (explode (Syntax.string_of_vname ixn))))
         (dest_conj (HOLogic.dest_Trueprop (concl_of induction)));
-    val insts = (ind_vnames ~~ vars) handle _ =>
+    val insts = (ind_vnames ~~ vars) handle LIST _ =>
       error ("Induction rule for type " ^ tn ^ " has different number of variables")
   in
     occs_in_prems (res_inst_tac insts induction) vars i state
