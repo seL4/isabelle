@@ -226,16 +226,34 @@ fun delete_tagged_list brls netpr = foldr delete_tagged_brl (brls, netpr);
 
 val delete = delete_tagged_list o joinrules;
 
+(*Warn if the rule is already present ELSEWHERE in the claset.  The addition
+  is still allowed.*)
+fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) = 
+       if gen_mem eq_thm (th, safeIs) then 
+	 warning ("rule already in claset as Safe Intr\n" ^ string_of_thm th)
+  else if gen_mem eq_thm (th, safeEs) then
+         warning ("rule already in claset as Safe Elim\n" ^ string_of_thm th)
+  else if gen_mem eq_thm (th, hazIs) then 
+         warning ("rule already in claset as unsafe Intr\n" ^ string_of_thm th)
+  else if gen_mem eq_thm (th, hazEs) then 
+         warning ("rule already in claset as unsafe Elim\n" ^ string_of_thm th)
+  else ();
+
 (*** Safe rules ***)
 
-fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
-    addSIs  ths  =
+fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	   th)  =
+  if gen_mem eq_thm (th, safeIs) then 
+	 (warning ("ignoring duplicate Safe Intr\n" ^ string_of_thm th);
+	  cs)
+  else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          partition (fn rl => nprems_of rl=0) ths
-      val nI = length safeIs + length ths
+          partition (fn rl => nprems_of rl=0) [th]
+      val nI = length safeIs + 1
       and nE = length safeEs
-  in CS{safeIs	= ths@safeIs,
+  in warn_dup th cs;
+     CS{safeIs	= th::safeIs,
         safe0_netpair = insert (nI,nE) (safe0_rls, []) safe0_netpair,
 	safep_netpair = insert (nI,nE) (safep_rls, []) safep_netpair,
 	safeEs	= safeEs,
@@ -246,15 +264,19 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	dup_netpair = dup_netpair}
   end;
 
-fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
-    addSEs  ths  =
+fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	   th)  =
+  if gen_mem eq_thm (th, safeEs) then 
+	 (warning ("ignoring duplicate Safe Elim\n" ^ string_of_thm th);
+	  cs)
+  else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          partition (fn rl => nprems_of rl=1) ths
+          partition (fn rl => nprems_of rl=1) [th]
       val nI = length safeIs
-      and nE = length safeEs + length ths
-  in 
-     CS{safeEs	= ths@safeEs,
+      and nE = length safeEs + 1
+  in warn_dup th cs;
+     CS{safeEs	= th::safeEs,
         safe0_netpair = insert (nI,nE) ([], safe0_rls) safe0_netpair,
 	safep_netpair = insert (nI,nE) ([], safep_rls) safep_netpair,
 	safeIs	= safeIs,
@@ -265,20 +287,29 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	dup_netpair = dup_netpair}
   end;
 
+fun rev_foldl f (e, l) = foldl f (e, rev l);
+
+val op addSIs = rev_foldl addSI;
+val op addSEs = rev_foldl addSE;
+
 fun cs addSDs ths = cs addSEs (map make_elim ths);
 
 
 (*** Hazardous (unsafe) rules ***)
 
-fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
-    addIs  ths  =
-  let val nI = length hazIs + length ths
+fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	  th)=
+  if gen_mem eq_thm (th, hazIs) then 
+	 (warning ("ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
+	  cs)
+  else
+  let val nI = length hazIs + 1
       and nE = length hazEs
-  in 
-     CS{hazIs	= ths@hazIs,
-	haz_netpair = insert (nI,nE) (ths, []) haz_netpair,
-	dup_netpair = insert (nI,nE) (map dup_intr ths, []) dup_netpair,
+  in warn_dup th cs;
+     CS{hazIs	= th::hazIs,
+	haz_netpair = insert (nI,nE) ([th], []) haz_netpair,
+	dup_netpair = insert (nI,nE) (map dup_intr [th], []) dup_netpair,
 	safeIs 	= safeIs, 
 	safeEs	= safeEs,
 	hazEs	= hazEs,
@@ -287,15 +318,19 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	safep_netpair = safep_netpair}
   end;
 
-fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
-    addEs  ths  =
+fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	  th) =
+  if gen_mem eq_thm (th, hazEs) then 
+	 (warning ("ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
+	  cs)
+  else
   let val nI = length hazIs 
-      and nE = length hazEs + length ths
-  in 
-     CS{hazEs	= ths@hazEs,
-	haz_netpair = insert (nI,nE) ([], ths) haz_netpair,
-	dup_netpair = insert (nI,nE) ([], map dup_elim ths) dup_netpair,
+      and nE = length hazEs + 1
+  in warn_dup th cs;
+     CS{hazEs	= th::hazEs,
+	haz_netpair = insert (nI,nE) ([], [th]) haz_netpair,
+	dup_netpair = insert (nI,nE) ([], map dup_elim [th]) dup_netpair,
 	safeIs	= safeIs, 
 	safeEs	= safeEs,
 	hazIs	= hazIs,
@@ -304,17 +339,20 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	safep_netpair = safep_netpair}
   end;
 
+val op addIs = rev_foldl addI;
+val op addEs = rev_foldl addE;
+
 fun cs addDs ths = cs addEs (map make_elim ths);
 
 
 (*** Deletion of rules 
      Working out what to delete, requires repeating much of the code used
 	to insert.
-     Separate functions delSIs, etc., are not exported; instead delrules
+     Separate functions delSI, etc., are not exported; instead delrules
         searches in all the lists and chooses the relevant delXX function.
 ***)
 
-fun delSIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+fun delSI (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
                safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
             th) =
   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
@@ -329,7 +367,7 @@ fun delSIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	dup_netpair = dup_netpair}
   end;
 
-fun delSEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+fun delSE (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
 	       safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
             th) =
   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
@@ -345,7 +383,7 @@ fun delSEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
   end;
 
 
-fun delIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+fun delI (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th) =
      CS{hazIs	= gen_rem eq_thm (hazIs,th),
@@ -358,7 +396,7 @@ fun delIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	safe0_netpair = safe0_netpair,
 	safep_netpair = safep_netpair};
 
-fun delEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+fun delE (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th) =
      CS{hazEs	= gen_rem eq_thm (hazEs,th),
@@ -372,10 +410,10 @@ fun delEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	safep_netpair = safep_netpair};
 
 fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
-       if gen_mem eq_thm (th, safeIs) then delSIs(cs,th)
-  else if gen_mem eq_thm (th, safeEs) then delSEs(cs,th)
-  else if gen_mem eq_thm (th, hazIs) then delIs(cs,th)
-  else if gen_mem eq_thm (th, hazEs) then delEs(cs,th)
+       if gen_mem eq_thm (th, safeIs) then delSI(cs,th)
+  else if gen_mem eq_thm (th, safeEs) then delSE(cs,th)
+  else if gen_mem eq_thm (th, hazIs) then delI(cs,th)
+  else if gen_mem eq_thm (th, hazEs) then delE(cs,th)
   else (warning ("rule not in claset\n" ^ (string_of_thm th)); 
 	cs);
 
