@@ -26,6 +26,7 @@ sig
   val is_end_ignore: token -> bool
   val is_newline: token -> bool
   val is_indent: token -> bool
+  val unparse: token -> string
   val val_of: token -> string
   val is_sid: string -> bool
   val !!! : string -> (Position.T * 'a -> 'b) -> Position.T * 'a -> 'b
@@ -132,12 +133,19 @@ fun is_indent (Token (_, (Space, s))) =
   | is_indent _ = false;
 
 
-(* name and value of token *)
+(* token content *)
 
 fun name_of (tok as Token (_, (k, x))) =
   if is_semicolon tok then "terminator"
   else if x = "" then str_of_kind k
   else str_of_kind k ^ " " ^ quote x;
+
+fun unparse (Token (_, (kind, x))) =
+  (case kind of
+    String => x |> translate_string (fn "\"" => "\\\"" | "\\" => "\\\\" | c => c) |> quote
+  | Verbatim => x |> enclose "{*" "*}"
+  | Comment => x |> enclose "(*" "*)"
+  | _ => x);
 
 fun val_of (Token (_, (_, x))) = x;
 
