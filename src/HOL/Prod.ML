@@ -1,6 +1,6 @@
-(*  Title: 	HOL/prod
+(*  Title:      HOL/prod
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For prod.thy.  Ordered Pairs, the Cartesian product type, the unit type
@@ -16,7 +16,7 @@ qed "ProdI";
 val [major] = goalw Prod.thy [Pair_Rep_def]
     "Pair_Rep a b = Pair_Rep a' b' ==> a=a' & b=b'";
 by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst), 
-	    rtac conjI, rtac refl, rtac refl]);
+            rtac conjI, rtac refl, rtac refl]);
 qed "Pair_Rep_inject";
 
 goal Prod.thy "inj_onto Abs_Prod Prod";
@@ -45,7 +45,7 @@ qed "snd_conv";
 goalw Prod.thy [Pair_def] "? x y. p = (x,y)";
 by (rtac (rewrite_rule [Prod_def] Rep_Prod RS CollectE) 1);
 by (EVERY1[etac exE, etac exE, rtac exI, rtac exI,
-	   rtac (Rep_Prod_inverse RS sym RS trans),  etac arg_cong]);
+           rtac (Rep_Prod_inverse RS sym RS trans),  etac arg_cong]);
 qed "PairE_lemma";
 
 val [prem] = goal Prod.thy "[| !!x y. p = (x,y) ==> Q |] ==> Q";
@@ -271,5 +271,5 @@ qed "unit_eq";
 val prod_cs = set_cs addSIs [SigmaI, splitI, splitI2, mem_splitI, mem_splitI2] 
                      addIs  [fst_imageI, snd_imageI, prod_fun_imageI]
                      addSEs [SigmaE2, SigmaE, splitE, mem_splitE, 
-			     fst_imageE, snd_imageE, prod_fun_imageE,
-			     Pair_inject];
+                             fst_imageE, snd_imageE, prod_fun_imageE,
+                             Pair_inject];

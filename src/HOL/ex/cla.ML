@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/cla
+(*  Title:      HOL/ex/cla
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Higher-Order Logic: predicate calculus problems
@@ -217,8 +217,8 @@ by (best_tac HOL_cs 1);
 result();
 
 writeln"Problem 26";
-goal HOL.thy "((? x. p(x)) = (? x. q(x))) &	\
-\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y)))	\
+goal HOL.thy "((? x. p(x)) = (? x. q(x))) &     \
+\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y))) \
 \ --> ((! x. p(x)-->r(x)) = (! x. q(x)-->s(x)))";
 by (fast_tac HOL_cs 1);
 result();
@@ -278,9 +278,9 @@ result();
 
 writeln"Problem 34  AMENDED (TWICE!!)  NOT PROVED AUTOMATICALLY";
 (*Andrews's challenge*)
-goal HOL.thy "((? x. ! y. p(x) = p(y))  =		\
-\                   ((? x. q(x)) = (! y. p(y))))   =	\
-\                  ((? x. ! y. q(x) = q(y))  =		\
+goal HOL.thy "((? x. ! y. p(x) = p(y))  =               \
+\                   ((? x. q(x)) = (! y. p(y))))   =    \
+\                  ((? x. ! y. q(x) = q(y))  =          \
 \                   ((? x. p(x)) = (! y. q(y))))";
 by (deepen_tac HOL_cs 3 1);
 (*slower with smaller bounds*)
@@ -294,7 +294,7 @@ result();
 writeln"Problem 36";
 goal HOL.thy "(! x. ? y. J x y) & \
 \       (! x. ? y. G x y) & \
-\       (! x y. J x y | G x y -->	\
+\       (! x y. J x y | G x y -->       \
 \       (! z. J y z | G y z --> H x z))   \
 \   --> (! x. ? y. H x y)";
 by (fast_tac HOL_cs 1);
@@ -311,10 +311,10 @@ result();
 
 writeln"Problem 38";
 goal HOL.thy
-    "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->		\
-\          (? z. ? w. p(z) & r x w & r w z))  =			\
-\    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &	\
-\          (~p(a) | ~(? y. p(y) & r x y) |				\
+    "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->            \
+\          (? z. ? w. p(z) & r x w & r w z))  =                 \
+\    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &  \
+\          (~p(a) | ~(? y. p(y) & r x y) |                              \
 \           (? z. ? w. p(z) & r x w & r w z)))";
 
 writeln"Problem 39";
@@ -329,7 +329,7 @@ by (fast_tac HOL_cs 1);
 result();
 
 writeln"Problem 41";
-goal HOL.thy "(! z. ? y. ! x. f x y = (f x z & ~ f x x))	\
+goal HOL.thy "(! z. ? y. ! x. f x y = (f x z & ~ f x x))        \
 \              --> ~ (? z. ! x. f x z)";
 by (best_tac HOL_cs 1);
 result();
@@ -341,25 +341,25 @@ result();
 
 writeln"Problem 43  NOT PROVED AUTOMATICALLY";
 goal HOL.thy
-    "(! x::'a. ! y::'a. q x y = (! z. p z x = (p z y::bool)))	\
+    "(! x::'a. ! y::'a. q x y = (! z. p z x = (p z y::bool)))   \
 \ --> (! x. (! y. q x y = (q y x::bool)))";
 
 
 writeln"Problem 44";
-goal HOL.thy "(! x. f(x) -->					\
+goal HOL.thy "(! x. f(x) -->                                    \
 \             (? y. g(y) & h x y & (? y. g(y) & ~ h x y)))  &   \
-\             (? x. j(x) & (! y. g(y) --> h x y))		\
+\             (? x. j(x) & (! y. g(y) --> h x y))               \
 \             --> (? x. j(x) & ~f(x))";
 by (fast_tac HOL_cs 1);
 result();
 
 writeln"Problem 45";
 goal HOL.thy
-    "(! x. f(x) & (! y. g(y) & h x y --> j x y)	\
-\                     --> (! y. g(y) & h x y --> k(y))) &	\
-\    ~ (? y. l(y) & k(y)) &					\
-\    (? x. f(x) & (! y. h x y --> l(y))				\
-\               & (! y. g(y) & h x y --> j x y))		\
+    "(! x. f(x) & (! y. g(y) & h x y --> j x y) \
+\                     --> (! y. g(y) & h x y --> k(y))) &       \
+\    ~ (? y. l(y) & k(y)) &                                     \
+\    (? x. f(x) & (! y. h x y --> l(y))                         \
+\               & (! y. g(y) & h x y --> j x y))                \
 \     --> (? x. f(x) & ~ (? y. g(y) & h x y))";
 by (best_tac HOL_cs 1); 
 result();
@@ -376,7 +376,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
 (*Hard because it involves substitution for Vars;
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal HOL.thy "(? x y::'a. ! z. z=x | z=y) & P(a) & P(b) & (~a=b) \
-\		--> (! u::'a.P(u))";
+\               --> (! u::'a.P(u))";
 by (Classical.safe_tac HOL_cs);
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
@@ -454,8 +454,8 @@ result();
 
 writeln"Problem 62 as corrected in AAR newletter #31";
 goal HOL.thy
-    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =	\
-\    (ALL x. (~ p a | p x | p(f(f x))) &			\
+    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =   \
+\    (ALL x. (~ p a | p x | p(f(f x))) &                        \
 \            (~ p a | ~ p(f x) | p(f(f x))))";
 by (fast_tac HOL_cs 1);
 result();

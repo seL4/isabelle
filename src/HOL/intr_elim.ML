@@ -1,39 +1,39 @@
-(*  Title: 	HOL/intr_elim.ML
+(*  Title:      HOL/intr_elim.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Introduction/elimination rule module -- for Inductive/Coinductive Definitions
 *)
 
-signature INDUCTIVE_ARG =	(** Description of a (co)inductive def **)
+signature INDUCTIVE_ARG =       (** Description of a (co)inductive def **)
   sig
   val thy        : theory               (*new theory with inductive defs*)
-  val monos      : thm list		(*monotonicity of each M operator*)
-  val con_defs   : thm list		(*definitions of the constructors*)
+  val monos      : thm list             (*monotonicity of each M operator*)
+  val con_defs   : thm list             (*definitions of the constructors*)
   end;
 
 
-signature INDUCTIVE_I =	(** Terms read from the theory section **)
+signature INDUCTIVE_I = (** Terms read from the theory section **)
   sig
-  val rec_tms    : term list		(*the recursive sets*)
-  val intr_tms   : term list		(*terms for the introduction rules*)
+  val rec_tms    : term list            (*the recursive sets*)
+  val intr_tms   : term list            (*terms for the introduction rules*)
   end;
 
 signature INTR_ELIM =
   sig
   val thy        : theory               (*copy of input theory*)
-  val defs	 : thm list		(*definitions made in thy*)
-  val mono	 : thm			(*monotonicity for the lfp definition*)
-  val intrs      : thm list		(*introduction rules*)
-  val elim       : thm			(*case analysis theorem*)
-  val mk_cases   : thm list -> string -> thm	(*generates case theorems*)
+  val defs       : thm list             (*definitions made in thy*)
+  val mono       : thm                  (*monotonicity for the lfp definition*)
+  val intrs      : thm list             (*introduction rules*)
+  val elim       : thm                  (*case analysis theorem*)
+  val mk_cases   : thm list -> string -> thm    (*generates case theorems*)
   end;
 
-signature INTR_ELIM_AUX =	(** Used to make induction rules **)
+signature INTR_ELIM_AUX =       (** Used to make induction rules **)
   sig
-  val raw_induct : thm			(*raw induction rule from Fp.induct*)
-  val rec_names  : string list		(*names of recursive sets*)
+  val raw_induct : thm                  (*raw induction rule from Fp.induct*)
+  val rec_names  : string list          (*names of recursive sets*)
   end;
 
 (*prove intr/elim rules for a fixedpoint definition*)
@@ -47,7 +47,7 @@ val big_rec_name = space_implode "_" rec_names;
 
 val _ = deny (big_rec_name  mem  map ! (stamps_of_thy Inductive.thy))
              ("Definition " ^ big_rec_name ^ 
-	      " would clash with the theory of the same name!");
+              " would clash with the theory of the same name!");
 
 (*fetch fp definitions from the theory*)
 val big_rec_def::part_rec_defs = 
@@ -69,10 +69,10 @@ val [monoT] = binder_types fpT;
 val mono = 
     prove_goalw_cterm [] 
       (cterm_of sign (Ind_Syntax.mk_Trueprop 
-		      (Const("mono", monoT --> Ind_Syntax.boolT) $ fp_abs)))
+                      (Const("mono", monoT --> Ind_Syntax.boolT) $ fp_abs)))
       (fn _ =>
        [rtac monoI 1,
-	REPEAT (ares_tac (basic_monos @ Inductive.monos) 1)]);
+        REPEAT (ares_tac (basic_monos @ Inductive.monos) 1)]);
 
 val unfold = standard (mono RS (big_rec_def RS Fp.Tarski));
 
@@ -97,12 +97,12 @@ fun intro_tacsf disjIn prems =
 (*combines disjI1 and disjI2 to access the corresponding nested disjunct...*)
 val mk_disj_rls = 
     let fun f rl = rl RS disjI1
-	and g rl = rl RS disjI2
+        and g rl = rl RS disjI2
     in  accesses_bal(f, g, asm_rl)  end;
 
 val intrs = map (uncurry (prove_goalw_cterm part_rec_defs))
             (map (cterm_of sign) Inductive.intr_tms ~~ 
-	     map intro_tacsf (mk_disj_rls(length Inductive.intr_tms)));
+             map intro_tacsf (mk_disj_rls(length Inductive.intr_tms)));
 
 (********)
 val _ = writeln "  Proving the elimination rule...";
@@ -110,8 +110,8 @@ val _ = writeln "  Proving the elimination rule...";
 (*Breaks down logical connectives in the monotonic function*)
 val basic_elim_tac =
     REPEAT (SOMEGOAL (eresolve_tac (Ind_Syntax.elim_rls @ 
-				    Ind_Syntax.sumprod_free_SEs)
-	      ORELSE' bound_hyp_subst_tac))
+                                    Ind_Syntax.sumprod_free_SEs)
+              ORELSE' bound_hyp_subst_tac))
     THEN prune_params_tac;
 
 (*Applies freeness of the given constructors, which *must* be unfolded by
@@ -122,7 +122,7 @@ fun con_elim_tac defs =
  *)
 fun con_elim_tac simps =
   let val elim_tac = REPEAT o (eresolve_tac (Ind_Syntax.elim_rls @ 
-					     Ind_Syntax.sumprod_free_SEs))
+                                             Ind_Syntax.sumprod_free_SEs))
   in ALLGOALS(EVERY'[elim_tac,
                      asm_full_simp_tac (simpset_of "Nat" addsimps simps),
                      elim_tac,
@@ -144,7 +144,7 @@ in
   (*String s should have the form t:Si where Si is an inductive set*)
   fun mk_cases defs s = 
       rule_by_tactic (con_elim_tac defs)
-	(assume_read Inductive.thy s  RS  elim);
+        (assume_read Inductive.thy s  RS  elim);
 
   val raw_induct = standard ([big_rec_def, mono] MRS Fp.induct)
   and rec_names = rec_names

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/nat
+(*  Title:      HOL/nat
     ID:         $Id$
-    Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For nat.thy.  Type nat is defined as a set (Nat) over the type ind.
@@ -47,7 +47,7 @@ qed "nat_induct";
 (*Perform induction on n. *)
 fun nat_ind_tac a i = 
     EVERY [res_inst_tac [("n",a)] nat_induct i,
-	   rename_last_tac a ["1"] (i+1)];
+           rename_last_tac a ["1"] (i+1)];
 
 (*A special form of induction for reasoning about m<n and m-n*)
 val prems = goal Nat.thy
@@ -133,7 +133,7 @@ qed "nat_case_0";
 
 goalw Nat.thy [nat_case_def] "nat_case a f (Suc k) = f(k)";
 by (fast_tac (set_cs addIs [select_equality] 
-	               addEs [make_elim Suc_inject, Suc_neq_Zero]) 1);
+                       addEs [make_elim Suc_inject, Suc_neq_Zero]) 1);
 qed "nat_case_Suc";
 
 (** Introduction rules for 'pred_nat' **)
@@ -153,7 +153,7 @@ goalw Nat.thy [wf_def] "wf(pred_nat)";
 by (strip_tac 1);
 by (nat_ind_tac "x" 1);
 by (fast_tac (HOL_cs addSEs [mp, pred_natE, Pair_inject, 
-			     make_elim Suc_inject]) 2);
+                             make_elim Suc_inject]) 2);
 by (fast_tac (HOL_cs addSEs [mp, pred_natE, Pair_inject, Zero_neq_Suc]) 1);
 qed "wf_pred_nat";
 
@@ -245,7 +245,7 @@ val major::prems = goalw Nat.thy [less_def]
 \    |] ==> P";
 by (rtac (major RS tranclE) 1);
 by (REPEAT_FIRST (bound_hyp_subst_tac ORELSE'
-		  eresolve_tac (prems@[pred_natE, Pair_inject])));
+                  eresolve_tac (prems@[pred_natE, Pair_inject])));
 by (rtac refl 1);
 qed "lessE";
 
@@ -271,7 +271,7 @@ qed "less_SucE";
 
 goal Nat.thy "(m < Suc(n)) = (m < n | m = n)";
 by (fast_tac (HOL_cs addSIs [lessI]
-		     addEs  [less_trans, less_SucE]) 1);
+                     addEs  [less_trans, less_SucE]) 1);
 qed "less_Suc_eq";
 
 val prems = goal Nat.thy "m<n ==> n ~= 0";
@@ -289,8 +289,8 @@ by (nat_ind_tac "n" 1);
 by (rtac impI 1);
 by (etac less_zeroE 1);
 by (fast_tac (HOL_cs addSIs [lessI RS less_SucI]
-	 	     addSDs [Suc_inject]
-		     addEs  [less_trans, lessE]) 1);
+                     addSDs [Suc_inject]
+                     addEs  [less_trans, lessE]) 1);
 qed "Suc_lessD";
 
 val [major,minor] = goal Nat.thy 
@@ -315,8 +315,8 @@ by (nat_ind_tac "n" 1);
 by (rtac impI 1);
 by (etac less_zeroE 1);
 by (fast_tac (HOL_cs addSIs [lessI]
-	 	     addSDs [Suc_inject]
-		     addEs  [less_trans, lessE]) 1);
+                     addSDs [Suc_inject]
+                     addEs  [less_trans, lessE]) 1);
 qed "Suc_mono";
 
 goal Nat.thy "(Suc(m) < Suc(n)) = (m<n)";

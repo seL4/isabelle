@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/meson
+(*  Title:      HOL/ex/meson
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Test data for the MESON proof procedure
@@ -14,7 +14,7 @@ val nnf = make_nnf prem;
 val xsko = skolemize nnf;
 by (cut_facts_tac [xsko] 1 THEN REPEAT (etac exE 1));
 val [_,sko] = gethyps 1;
-val clauses = make_clauses [sko];	
+val clauses = make_clauses [sko];       
 val horns = make_horns clauses;
 val go::_ = neg_clauses clauses;
 
@@ -45,8 +45,8 @@ val nnf25 = make_nnf prem25;
 val xsko25 = skolemize nnf25;
 by (cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1));
 val [_,sko25] = gethyps 1;
-val clauses25 = make_clauses [sko25];	(*7 clauses*)
-val horns25 = make_horns clauses25;	(*16 Horn clauses*)
+val clauses25 = make_clauses [sko25];   (*7 clauses*)
+val horns25 = make_horns clauses25;     (*16 Horn clauses*)
 val go25::_ = neg_clauses clauses25;
 
 goal HOL.thy "False";
@@ -55,8 +55,8 @@ by (depth_prolog_tac horns25);
 
 
 writeln"Problem 26";
-goal HOL.thy "((? x. p(x)) = (? x. q(x))) &	\
-\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y)))	\
+goal HOL.thy "((? x. p(x)) = (? x. q(x))) &     \
+\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y))) \
 \ --> ((! x. p(x)-->r(x)) = (! x. q(x)-->s(x)))";
 by (rtac ccontr 1);
 val [prem26] = gethyps 1;
@@ -64,18 +64,18 @@ val nnf26 = make_nnf prem26;
 val xsko26 = skolemize nnf26;
 by (cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1));
 val [_,sko26] = gethyps 1;
-val clauses26 = make_clauses [sko26];			(*9 clauses*)
-val horns26 = make_horns clauses26;			(*24 Horn clauses*)
+val clauses26 = make_clauses [sko26];                   (*9 clauses*)
+val horns26 = make_horns clauses26;                     (*24 Horn clauses*)
 val go26::_ = neg_clauses clauses26;
 
 goal HOL.thy "False";
 by (rtac (make_goal go26) 1);
-by (depth_prolog_tac horns26);	(*6 secs*)
+by (depth_prolog_tac horns26);  (*6 secs*)
 
 
 
 writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";
-goal HOL.thy "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))	\
+goal HOL.thy "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))  \
 \         --> (! x. (! y. q x y = (q y x::bool)))";
 by (rtac ccontr 1);
 val [prem43] = gethyps 1;
@@ -83,8 +83,8 @@ val nnf43 = make_nnf prem43;
 val xsko43 = skolemize nnf43;
 by (cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1));
 val [_,sko43] = gethyps 1;
-val clauses43 = make_clauses [sko43];	(*6*)
-val horns43 = make_horns clauses43;	(*16*)
+val clauses43 = make_clauses [sko43];   (*6*)
+val horns43 = make_horns clauses43;     (*16*)
 val go43::_ = neg_clauses clauses43;
 
 goal HOL.thy "False";
@@ -276,8 +276,8 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 26";
-goal HOL.thy "((? x. p(x)) = (? x. q(x))) &	\
-\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y)))	\
+goal HOL.thy "((? x. p(x)) = (? x. q(x))) &     \
+\     (! x. ! y. p(x) & q(y) --> (r(x) = s(y))) \
 \ --> ((! x. p(x)-->r(x)) = (! x. q(x)-->s(x)))";
 by (safe_meson_tac 1); 
 result();
@@ -303,7 +303,7 @@ writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
 goal HOL.thy "(? x. F(x)) & (? y. G(y))  \
 \   --> ( ((! x. F(x)-->H(x)) & (! y. G(y)-->J(y)))  =   \
 \         (! x y. F(x) & G(y) --> H(x) & J(y)))";
-by (safe_meson_tac 1);		(*5 secs*)
+by (safe_meson_tac 1);          (*5 secs*)
 result();
 
 writeln"Problem 30";
@@ -332,16 +332,16 @@ result();
 writeln"Problem 33";
 goal HOL.thy "(! x. P(a) & (P(x)-->P(b))-->P(c))  =    \
 \    (! x. (~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c)))";
-by (safe_meson_tac 1);		(*5.6 secs*)
+by (safe_meson_tac 1);          (*5.6 secs*)
 result();
 
 writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
-goal HOL.thy "((? x. ! y. p(x) = p(y))  =		\
-\              ((? x. q(x)) = (! y. p(y))))     =	\
-\             ((? x. ! y. q(x) = q(y))  =		\
+goal HOL.thy "((? x. ! y. p(x) = p(y))  =               \
+\              ((? x. q(x)) = (! y. p(y))))     =       \
+\             ((? x. ! y. q(x) = q(y))  =               \
 \              ((? x. p(x)) = (! y. q(y))))";
-by (safe_meson_tac 1);  	(*90 secs*)
+by (safe_meson_tac 1);          (*90 secs*)
 result();
 
 writeln"Problem 35";
@@ -352,7 +352,7 @@ result();
 writeln"Problem 36";
 goal HOL.thy "(! x. ? y. J x y) & \
 \       (! x. ? y. G x y) & \
-\       (! x y. J x y | G x y -->	\
+\       (! x y. J x y | G x y -->       \
 \       (! z. J y z | G y z --> H x z))   \
 \   --> (! x. ? y. H x y)";
 by (safe_meson_tac 1);
@@ -369,12 +369,12 @@ result();
 
 writeln"Problem 38";
 goal HOL.thy
-    "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->		\
-\          (? z. ? w. p(z) & r x w & r w z))  =			\
-\    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &	\
-\          (~p(a) | ~(? y. p(y) & r x y) |			\
+    "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->            \
+\          (? z. ? w. p(z) & r x w & r w z))  =                 \
+\    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &  \
+\          (~p(a) | ~(? y. p(y) & r x y) |                      \
 \           (? z. ? w. p(z) & r x w & r w z)))";
-by (safe_meson_tac 1);		(*62 secs*)
+by (safe_meson_tac 1);          (*62 secs*)
 result();
 
 writeln"Problem 39";
@@ -389,7 +389,7 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 41";
-goal HOL.thy "(! z. (? y. (! x. f x y = (f x z & ~ f x x))))	\
+goal HOL.thy "(! z. (? y. (! x. f x y = (f x z & ~ f x x))))    \
 \              --> ~ (? z. ! x. f x z)";
 by (safe_meson_tac 1);
 result();
@@ -400,54 +400,54 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";
-goal HOL.thy "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))	\
+goal HOL.thy "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))  \
 \         --> (! x. (! y. q x y = (q y x::bool)))";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 44";
-goal HOL.thy "(! x. f(x) -->					\
-\             (? y. g(y) & h x y & (? y. g(y) & ~ h x y)))  &  	\
-\             (? x. j(x) & (! y. g(y) --> h x y))		\
+goal HOL.thy "(! x. f(x) -->                                    \
+\             (? y. g(y) & h x y & (? y. g(y) & ~ h x y)))  &   \
+\             (? x. j(x) & (! y. g(y) --> h x y))               \
 \             --> (? x. j(x) & ~f(x))";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 45";
-goal HOL.thy "(! x. f(x) & (! y. g(y) & h x y --> j x y)	\
-\                     --> (! y. g(y) & h x y --> k(y))) &	\
-\     ~ (? y. l(y) & k(y)) &					\
-\     (? x. f(x) & (! y. h x y --> l(y))			\
-\                  & (! y. g(y) & h x y --> j x y))		\
+goal HOL.thy "(! x. f(x) & (! y. g(y) & h x y --> j x y)        \
+\                     --> (! y. g(y) & h x y --> k(y))) &       \
+\     ~ (? y. l(y) & k(y)) &                                    \
+\     (? x. f(x) & (! y. h x y --> l(y))                        \
+\                  & (! y. g(y) & h x y --> j x y))             \
 \     --> (? x. f(x) & ~ (? y. g(y) & h x y))";
-by (safe_meson_tac 1);  	(*11 secs*)
+by (safe_meson_tac 1);          (*11 secs*)
 result();
 
 writeln"Problem 46";
 goal HOL.thy
-    "(! x. f(x) & (! y. f(y) & h y x --> g(y)) --> g(x)) &	\
-\    ((? x.f(x) & ~g(x)) -->					\
-\     (? x. f(x) & ~g(x) & (! y. f(y) & ~g(y) --> j x y))) &	\
-\    (! x y. f(x) & f(y) & h x y --> ~j y x)			\
+    "(! x. f(x) & (! y. f(y) & h y x --> g(y)) --> g(x)) &      \
+\    ((? x.f(x) & ~g(x)) -->                                    \
+\     (? x. f(x) & ~g(x) & (! y. f(y) & ~g(y) --> j x y))) &    \
+\    (! x y. f(x) & f(y) & h x y --> ~j y x)                    \
 \     --> (! x. f(x) --> g(x))";
-by (safe_meson_tac 1); 		(*11 secs*)
+by (safe_meson_tac 1);          (*11 secs*)
 result();
 
 (*The Los problem?  Circulated by John Harrison*)
-goal HOL.thy "(! x y z. P x y & P y z --> P x z) &	\
-\      (! x y z. Q x y & Q y z --> Q x z) &	\
-\      (! x y. P x y --> P y x) &	\
-\      (! (x::'a) y. P x y | Q x y)	\
+goal HOL.thy "(! x y z. P x y & P y z --> P x z) &      \
+\      (! x y z. Q x y & Q y z --> Q x z) &     \
+\      (! x y. P x y --> P y x) &       \
+\      (! (x::'a) y. P x y | Q x y)     \
 \      --> (! x y. P x y) | (! x y. Q x y)";
 by (safe_meson_tac 1);
 result();
 
 (*A similar example, suggested by Johannes Schumann and credited to Pelletier*)
 goal HOL.thy "(!x y z. P x y --> P y z --> P x z) --> \
-\	(!x y z. Q x y --> Q y z --> Q x z) --> \
-\	(!x y.Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
-\	(!x y.P x y) | (!x y.Q x y)";
-by (safe_meson_tac 1);		(*32 secs*)
+\       (!x y z. Q x y --> Q y z --> Q x z) --> \
+\       (!x y.Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
+\       (!x y.P x y) | (!x y.Q x y)";
+by (safe_meson_tac 1);          (*32 secs*)
 result();
 
 writeln"Problem 50";  
@@ -498,8 +498,8 @@ result();
 
 writeln"Problem 62 as corrected in AAR newletter #31";
 goal HOL.thy
-    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =	\
-\    (ALL x. (~ p a | p x | p(f(f x))) &			\
+    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =   \
+\    (ALL x. (~ p a | p x | p(f(f x))) &                        \
 \            (~ p a | ~ p(f x) | p(f(f x))))";
 by (safe_meson_tac 1);
 result();

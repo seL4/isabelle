@@ -72,7 +72,7 @@ fun inductive_decl co =
           \\t   val thy\t\t= thy\n\
           \\t   val monos\t\t= " ^ monos ^ "\n\
           \\t   val con_defs\t\t= " ^ con_defs ^ ");\n\n\
-	  \ in\n\
+          \ in\n\
           \  struct\n\
           \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
           \  open Result\n\

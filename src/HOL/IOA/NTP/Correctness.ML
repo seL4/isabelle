@@ -70,13 +70,13 @@ goalw Correctness.thy [Spec.ioa_def, Solve.is_weak_pmap_def]
 by(simp_tac (!simpset addsimps 
     [Correctness.hom_def,
      cancel_restrict,externals_lemma]) 1);
-br conjI 1;
+by (rtac conjI 1);
 by(simp_tac ss' 1);
-br ballI 1;
-bd CollectD 1;
+by (rtac ballI 1);
+by (dtac CollectD 1);
 by(asm_simp_tac (!simpset addsimps sels) 1);
 by(REPEAT(rtac allI 1));
-br imp_conj_lemma 1;   (* from lemmas.ML *)
+by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 
 by(Action.action.induct_tac "a"  1);
 by(asm_simp_tac (ss' setloop (split_tac [expand_if])) 1);
@@ -94,13 +94,13 @@ by(simp_tac ss' 1);
 by(asm_simp_tac ss' 1);
 by(forward_tac [inv4] 1);
 by(forward_tac [inv2] 1);
-be disjE 1;
+by (etac disjE 1);
 by(Asm_simp_tac 1);
 by(asm_full_simp_tac (!simpset addsimps [imp_ex_equiv,neq_Nil_conv,ex_all_equiv]) 1);
 
 by(asm_simp_tac ss' 1);
 by(forward_tac [inv2] 1);
-be disjE 1;
+by (etac disjE 1);
 
 by(forward_tac [inv3] 1);
 by(case_tac "sq(sen(s))=[]" 1);

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Arith.ML
+(*  Title:      HOL/Arith.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Proofs about elementary arithmetic: addition, multiplication, etc.
@@ -227,7 +227,7 @@ by (rename_tac "k" 1);    (*Variable name used in line below*)
 by (case_tac "k<n" 1);
 by (ALLGOALS (asm_simp_tac(!simpset addsimps (add_ac @
                        [mod_less, mod_geq, div_less, div_geq,
-	                add_diff_inverse, diff_less]))));
+                        add_diff_inverse, diff_less]))));
 qed "mod_div_equality";
 
 
@@ -322,20 +322,20 @@ bind_thm ("trans_less_add1", le_add1 RSN (2,less_le_trans));
 bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 
 goal Arith.thy "!!i. i+j < (k::nat) ==> i<k";
-be rev_mp 1;
+by (etac rev_mp 1);
 by(nat_ind_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
 goal Arith.thy "!!k::nat. m <= n ==> m <= n+k";
-by (eresolve_tac [le_trans] 1);
-by (resolve_tac [le_add1] 1);
+by (etac le_trans 1);
+by (rtac le_add1 1);
 qed "le_imp_add_le";
 
 goal Arith.thy "!!k::nat. m < n ==> m < n+k";
-by (eresolve_tac [less_le_trans] 1);
-by (resolve_tac [le_add1] 1);
+by (etac less_le_trans 1);
+by (rtac le_add1 1);
 qed "less_imp_add_less";
 
 goal Arith.thy "m+k<=n --> m<=(n::nat)";
@@ -350,7 +350,7 @@ by (safe_tac (HOL_cs addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
     (!simpset delsimps [add_Suc_right]
                 addsimps ([add_Suc_right RS sym, add_left_cancel] @add_ac)) 1);
-by (eresolve_tac [subst] 1);
+by (etac subst 1);
 by (simp_tac (!simpset addsimps [less_add_Suc1]) 1);
 qed "less_add_eq_less";
 
@@ -375,8 +375,8 @@ qed "add_less_mono";
 
 (*A [clumsy] way of lifting < monotonicity to <= monotonicity *)
 val [lt_mono,le] = goal Arith.thy
-     "[| !!i j::nat. i<j ==> f(i) < f(j);	\
-\        i <= j					\
+     "[| !!i j::nat. i<j ==> f(i) < f(j);       \
+\        i <= j                                 \
 \     |] ==> f(i) <= (f(j)::nat)";
 by (cut_facts_tac [le] 1);
 by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
@@ -386,7 +386,7 @@ qed "less_mono_imp_le_mono";
 (*non-strict, in 1st argument*)
 goal Arith.thy "!!i j k::nat. i<=j ==> i + k <= j + k";
 by (res_inst_tac [("f", "%j.j+k")] less_mono_imp_le_mono 1);
-by (eresolve_tac [add_less_mono1] 1);
+by (etac add_less_mono1 1);
 by (assume_tac 1);
 qed "add_le_mono1";
 
@@ -395,5 +395,5 @@ goal Arith.thy "!!k l::nat. [|i<=j;  k<=l |] ==> i + k <= j + l";
 by (etac (add_le_mono1 RS le_trans) 1);
 by (simp_tac (!simpset addsimps [add_commute]) 1);
 (*j moves to the end because it is free while k, l are bound*)
-by (eresolve_tac [add_le_mono1] 1);
+by (etac add_le_mono1 1);
 qed "add_le_mono";

@@ -71,7 +71,7 @@ val tac_ren = asm_simp_tac ((rename_ss addcongs [conj_cong])
 (* INVARIANT 1 *)
 
 goalw Impl.thy impl_ioas "invariant impl_ioa inv1";
-br invariantI 1;
+by (rtac invariantI 1);
 by(asm_full_simp_tac (!simpset
    addsimps [inv1_def, hdr_sum_def, Sender.srcvd_def,
              Sender.ssent_def, Receiver.rsent_def,Receiver.rrcvd_def]) 1);
@@ -84,7 +84,7 @@ by (rtac conjI 1);
 
 (* First half *)
 by(asm_full_simp_tac (!simpset addsimps [Impl.inv1_def]) 1);
-br Action.action.induct 1;
+by (rtac Action.action.induct 1);
 
 by (EVERY1[tac, tac, tac, tac]);
 by (tac 1);
@@ -101,7 +101,7 @@ by(EVERY1[tac, tac, tac, tac]);
 
 (* Now the other half *)
 by(asm_full_simp_tac (!simpset addsimps [Impl.inv1_def]) 1);
-br Action.action.induct 1;
+by (rtac Action.action.induct 1);
 by(EVERY1[tac, tac]);
 
 (* detour 1 *)
@@ -132,7 +132,7 @@ by (hyp_subst_tac 1);
 by (rtac (pred_suc RS mp RS sym RS iffD2) 1);
 by (dtac less_le_trans 1);
 by (cut_facts_tac [rewrite_rule[Packet.hdr_def]
-		   eq_packet_imp_eq_hdr RS countm_props] 1);;
+                   eq_packet_imp_eq_hdr RS countm_props] 1);;
 by (assume_tac 1);
 by (assume_tac 1);
 

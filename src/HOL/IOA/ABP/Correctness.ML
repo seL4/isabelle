@@ -184,7 +184,7 @@ by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
 (* --------------  start states ----------------- *)
 by (Simp_tac 1);
-br ballI 1;
+by (rtac ballI 1);
 by (Asm_full_simp_tac 1);
 (* ---------------- main-part ------------------- *)
 by (REPEAT (rtac allI 1));
@@ -229,7 +229,7 @@ goal Correctness.thy
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
 (* start states *)
-br ballI 1;
+by (rtac ballI 1);
 by (Simp_tac 1);
 (* main-part *)
 by (REPEAT (rtac allI 1));
@@ -245,7 +245,7 @@ goal Correctness.thy
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
  (* start states *)
-br ballI 1;
+by (rtac ballI 1);
 by (Simp_tac 1);
 (* main-part *)
 by (REPEAT (rtac allI 1));
@@ -260,7 +260,7 @@ goal Correctness.thy
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
 (* start states *)
-br ballI 1;
+by (rtac ballI 1);
 by (Simp_tac 1);
 (* main-part *)
 by (REPEAT (rtac allI 1));

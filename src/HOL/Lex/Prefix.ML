@@ -1,16 +1,16 @@
-(*  Title: 	HOL/Lex/Prefix.thy
+(*  Title:      HOL/Lex/Prefix.thy
     ID:         $Id$
-    Author: 	Richard Mayr & Tobias Nipkow
+    Author:     Richard Mayr & Tobias Nipkow
     Copyright   1995 TUM
 *)
 
 open Prefix;
 
 val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l.Q(l)";
-br allI 1;
+by (rtac allI 1);
 by (list.induct_tac "l" 1);
-br maj 1;
-br min 1;
+by (rtac maj 1);
+by (rtac min 1);
 val list_cases = result();
 
 goalw Prefix.thy [prefix_def] "[] <= xs";

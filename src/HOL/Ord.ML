@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Ord.ML
+(*  Title:      HOL/Ord.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 The type class for ordered types

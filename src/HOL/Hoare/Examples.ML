@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Hoare/Examples.thy
+(*  Title:      HOL/Hoare/Examples.thy
     ID:         $Id$
-    Author: 	Norbert Galm
+    Author:     Norbert Galm
     Copyright   1995 TUM
 
 Various arithmetic examples.
@@ -38,15 +38,15 @@ by (hoare_tac 1);
 
 by (safe_tac HOL_cs);
 
-be less_imp_diff_positive 1;
-be gcd_diff_r 1;
+by (etac less_imp_diff_positive 1);
+by (etac gcd_diff_r 1);
 
 by (cut_facts_tac [less_linear] 1);
 by (cut_facts_tac [less_linear] 2);
-br less_imp_diff_positive 1;
-br gcd_diff_l 2;
+by (rtac less_imp_diff_positive 1);
+by (rtac gcd_diff_l 2);
 
-bd gcd_nnn 3;
+by (dtac gcd_nnn 3);
 
 by (ALLGOALS (fast_tac HOL_cs));
 
@@ -78,7 +78,7 @@ by (safe_tac HOL_cs);
 
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
-br (pow_pow_reduce RS ssubst) 1;
+by (rtac (pow_pow_reduce RS ssubst) 1);
 
 by (subgoal_tac "(b div 2)*2=b" 1);
 by (subgoal_tac "0<2" 2);
@@ -89,10 +89,10 @@ by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [pow_0,pow_Suc,mu
 by (subgoal_tac "b~=0" 1);
 by (res_inst_tac [("n","b")] natE 1);
 by (res_inst_tac [("Q","b mod 2 ~= 0")] not_imp_swap 3);
-ba 4;
+by (assume_tac 4);
 
 by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [pow_0,pow_Suc,mult_assoc])));
-br mod_less 1;
+by (rtac mod_less 1);
 by (Simp_tac 1);
 
 qed "power_by_mult";

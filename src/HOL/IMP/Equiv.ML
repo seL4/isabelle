@@ -1,12 +1,12 @@
-(*  Title: 	HOL/IMP/Equiv.ML
+(*  Title:      HOL/IMP/Equiv.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 *)
 
 goal Equiv.thy "!n. (<a,s> -a-> n) = (n = A a s)";
-by (aexp.induct_tac "a" 1);                		  (* struct. ind. *)
-by (ALLGOALS Simp_tac); 	                          (* rewr. Den.   *)
+by (aexp.induct_tac "a" 1);                               (* struct. ind. *)
+by (ALLGOALS Simp_tac);                                   (* rewr. Den.   *)
 by (TRYALL (fast_tac (set_cs addSIs (evala.intrs@prems)
                              addSEs evala_elim_cases)));
 bind_thm("aexp_iff", result() RS spec);
@@ -23,7 +23,7 @@ val equiv_cs =
 goal Equiv.thy "!!c. <c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
-be (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;
+by (etac (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1);
 by (rewrite_tac (Gamma_def::C_simps));
   (* simplification with HOL_ss again too agressive *)
 (* skip *)
@@ -52,7 +52,7 @@ by (ALLGOALS (TRY o fast_tac equiv_cs));
 (* while *)
 by (strip_tac 1);
 by (etac (Gamma_mono RSN (2,induct)) 1);
-by (rewrite_goals_tac [Gamma_def]);  
+by (rewtac Gamma_def);  
 by (fast_tac equiv_cs 1);
 
 bind_thm("com2", result() RS spec RS spec RS mp);

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Subst/ROOT.ML
+(*  Title:      HOL/Subst/ROOT.ML
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Substitution and Unification in Higher-Order Logic. 

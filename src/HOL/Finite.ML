@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Finite.thy
+(*  Title:      HOL/Finite.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Finite powerset operator
@@ -9,7 +9,7 @@ Finite powerset operator
 open Finite;
 
 goalw Finite.thy Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
-br lfp_mono 1;
+by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "Fin_mono";
 
@@ -23,7 +23,7 @@ val FinD = Fin_subset_Pow RS subsetD RS PowD;
 (*Discharging ~ x:y entails extra work*)
 val major::prems = goal Finite.thy 
     "[| F:Fin(A);  P({}); \
-\	!!F x. [| x:A;  F:Fin(A);  x~:F;  P(F) |] ==> P(insert x F) \
+\       !!F x. [| x:A;  F:Fin(A);  x~:F;  P(F) |] ==> P(insert x F) \
 \    |] ==> P(F)";
 by (rtac (major RS Fin.induct) 1);
 by (excluded_middle_tac "a:b" 2);
@@ -45,8 +45,8 @@ qed "Fin_UnI";
 (*Every subset of a finite set is finite*)
 val [subs,fin] = goal Finite.thy "[| A<=B;  B: Fin(M) |] ==> A: Fin(M)";
 by (EVERY1 [subgoal_tac "ALL C. C<=B --> C: Fin(M)",
-	    rtac mp, etac spec,
-	    rtac subs]);
+            rtac mp, etac spec,
+            rtac subs]);
 by (rtac (fin RS Fin_induct) 1);
 by (simp_tac (!simpset addsimps [subset_Un_eq]) 1);
 by (safe_tac (set_cs addSDs [subset_insert_iff RS iffD1]));
@@ -64,8 +64,8 @@ by (asm_simp_tac
 qed "Fin_imageI";
 
 val major::prems = goal Finite.thy 
-    "[| c: Fin(A);  b: Fin(A);  				\
-\       P(b);       						\
+    "[| c: Fin(A);  b: Fin(A);                                  \
+\       P(b);                                                   \
 \       !!(x::'a) y. [| x:A; y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> c<=b --> P(b-c)";
 by (rtac (major RS Fin_induct) 1);
@@ -75,8 +75,8 @@ by (ALLGOALS (asm_simp_tac
 qed "Fin_empty_induct_lemma";
 
 val prems = goal Finite.thy 
-    "[| b: Fin(A);  						\
-\       P(b);        						\
+    "[| b: Fin(A);                                              \
+\       P(b);                                                   \
 \       !!x y. [| x:A; y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> P({})";
 by (rtac (Diff_cancel RS subst) 1);

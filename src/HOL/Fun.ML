@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Fun
+(*  Title:      HOL/Fun
     ID:         $Id$
-    Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Lemmas about functions.
@@ -166,7 +166,7 @@ val prems = goal Fun.thy
     "[| inj(f);  A<=range(f) |] ==> inj_onto (Inv f) A";
 by (cut_facts_tac prems 1);
 by (fast_tac (HOL_cs addIs [inj_ontoI] 
-		     addEs [Inv_injective,injD,subsetD]) 1);
+                     addEs [Inv_injective,injD,subsetD]) 1);
 qed "inj_onto_Inv";
 
 
@@ -174,12 +174,12 @@ qed "inj_onto_Inv";
 
 val set_cs = HOL_cs 
     addSIs [ballI, PowI, subsetI, InterI, INT_I, INT1_I, CollectI, 
-	    ComplI, IntI, DiffI, UnCI, insertCI] 
+            ComplI, IntI, DiffI, UnCI, insertCI] 
     addIs  [bexI, UnionI, UN_I, UN1_I, imageI, rangeI] 
     addSEs [bexE, make_elim PowD, UnionE, UN_E, UN1_E, DiffE,
-	    CollectE, ComplE, IntE, UnE, insertE, imageE, rangeE, emptyE] 
+            CollectE, ComplE, IntE, UnE, insertE, imageE, rangeE, emptyE] 
     addEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
-	    subsetD, subsetCE];
+            subsetD, subsetCE];
 
 fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac set_cs;
 

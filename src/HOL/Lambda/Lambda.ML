@@ -12,33 +12,33 @@ some compatibility lemmas.
 (*** Nat ***)
 
 goal Nat.thy "!!i. [| i < Suc j; j < k |] ==> i < k";
-br le_less_trans 1;
-ba 2;
+by (rtac le_less_trans 1);
+by (assume_tac 2);
 by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
 by(fast_tac (HOL_cs addEs [less_asym,less_anti_refl]) 1);
 qed "lt_trans1";
 
 goal Nat.thy "!!i. [| i < j; j < Suc(k) |] ==> i < k";
-be less_le_trans 1;
+by (etac less_le_trans 1);
 by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
 by(fast_tac (HOL_cs addEs [less_asym,less_anti_refl]) 1);
 qed "lt_trans2";
 
 val major::prems = goal Nat.thy
   "[| i < Suc j; i < j ==> P; i = j ==> P |] ==> P";
-br (major RS lessE) 1;
+by (rtac (major RS lessE) 1);
 by(ALLGOALS Asm_full_simp_tac);
 by(resolve_tac prems 1 THEN etac sym 1);
 by(fast_tac (HOL_cs addIs prems) 1);
 qed "leqE";
 
 goal Arith.thy "!!i. Suc i < j ==> i < pred j ";
-by (resolve_tac [Suc_less_SucD] 1);
+by (rtac Suc_less_SucD 1);
 by (Asm_simp_tac 1);
 qed "lt_pred";
 
 goal Arith.thy "!!i. [| i < Suc j; k < i |] ==> pred i < j ";
-by (resolve_tac [Suc_less_SucD] 1);
+by (rtac Suc_less_SucD 1);
 by (Asm_simp_tac 1);
 qed "gt_pred";
 
@@ -56,17 +56,17 @@ val lambda_cs = trancl_cs addSIs beta.intrs;
 (*** Congruence rules for ->> ***)
 
 goal Lambda.thy "!!s. s ->> s' ==> Fun s ->> Fun s'";
-be rtrancl_induct 1;
+by (etac rtrancl_induct 1);
 by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_beta_Fun";
 
 goal Lambda.thy "!!s. s ->> s' ==> s @ t ->> s' @ t";
-be rtrancl_induct 1;
+by (etac rtrancl_induct 1);
 by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppL";
 
 goal Lambda.thy "!!s. t ->> t' ==> s @ t ->> s @ t'";
-be rtrancl_induct 1;
+by (etac rtrancl_induct 1);
 by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
@@ -157,7 +157,7 @@ by(strip_tac 1);
 by (excluded_middle_tac "nat < Suc(Suc j)" 1);
 by(Asm_full_simp_tac 1);
 by (forward_tac [lessI RS less_trans] 1);
-by (eresolve_tac [leqE] 1);
+by (etac leqE 1);
 by (asm_simp_tac (!simpset addsimps [lt_pred]) 2);
 by (forward_tac [Suc_mono RS less_trans] 1 THEN assume_tac 1);
 by (forw_inst_tac [("i","i")] (lessI RS less_trans) 1);

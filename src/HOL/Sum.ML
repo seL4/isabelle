@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Sum.ML
+(*  Title:      HOL/Sum.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For Sum.thy.  The disjoint sum of two types
@@ -28,9 +28,9 @@ qed "inj_onto_Abs_Sum";
 
 goalw Sum.thy [Inl_Rep_def, Inr_Rep_def] "Inl_Rep(a) ~= Inr_Rep(b)";
 by (EVERY1 [rtac notI,
-	    etac (fun_cong RS fun_cong RS fun_cong RS iffE), 
-	    rtac (notE RS ccontr),  etac (mp RS conjunct2), 
-	    REPEAT o (ares_tac [refl,conjI]) ]);
+            etac (fun_cong RS fun_cong RS fun_cong RS iffE), 
+            rtac (notE RS ccontr),  etac (mp RS conjunct2), 
+            REPEAT o (ares_tac [refl,conjI]) ]);
 qed "Inl_Rep_not_Inr_Rep";
 
 goalw Sum.thy [Inl_def,Inr_def] "Inl(a) ~= Inr(b)";
@@ -136,14 +136,14 @@ val prems = goalw Sum.thy [Inl_def,Inr_def]
 by (rtac (rewrite_rule [Sum_def] Rep_Sum RS CollectE) 1);
 by (REPEAT (eresolve_tac [disjE,exE] 1
      ORELSE EVERY1 [resolve_tac prems, 
-		    etac subst,
-		    rtac (Rep_Sum_inverse RS sym)]));
+                    etac subst,
+                    rtac (Rep_Sum_inverse RS sym)]));
 qed "sumE";
 
 goal Sum.thy "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
 by (EVERY1 [res_inst_tac [("s","s")] sumE, 
-	    etac ssubst, rtac sum_case_Inl,
-	    etac ssubst, rtac sum_case_Inr]);
+            etac ssubst, rtac sum_case_Inl,
+            etac ssubst, rtac sum_case_Inr]);
 qed "surjective_sum";
 
 goal Sum.thy "R(sum_case f g s) = \

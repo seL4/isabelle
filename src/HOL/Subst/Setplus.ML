@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/setplus.ML
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/setplus.ML
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For setplus.thy.

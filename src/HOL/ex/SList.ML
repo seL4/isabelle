@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/SList.ML
+(*  Title:      HOL/ex/SList.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Definition of type 'a list by a least fixed point
@@ -45,7 +45,7 @@ qed "list_induct2";
 (*Perform induction on xs. *)
 fun list_ind_tac a M = 
     EVERY [res_inst_tac [("l",a)] list_induct2 M,
-	   rename_last_tac a ["1"] (M+1)];
+           rename_last_tac a ["1"] (M+1)];
 
 (*** Isomorphisms ***)
 
@@ -89,9 +89,9 @@ bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
 
 (*For reasoning about abstract list constructors*)
 val list_cs = set_cs addIs [Rep_list] @ list.intrs
-	             addSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject]
-		     addSDs [inj_onto_Abs_list RS inj_ontoD,
-			     inj_Rep_list RS injD, Leaf_inject];
+                     addSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject]
+                     addSDs [inj_onto_Abs_list RS inj_ontoD,
+                             inj_Rep_list RS injD, Leaf_inject];
 
 goalw SList.thy [Cons_def] "(x#xs=y#ys) = (x=y & xs=ys)";
 by (fast_tac list_cs 1);
@@ -167,10 +167,10 @@ val [prem] = goal SList.thy
     "(CONS M1 M2, N) : pred_sexp^+ ==> \
 \    (M1,N) : pred_sexp^+ & (M2,N) : pred_sexp^+";
 by (rtac (prem RS (pred_sexp_subset_Sigma RS trancl_subset_Sigma RS 
-		   subsetD RS SigmaE2)) 1);
+                   subsetD RS SigmaE2)) 1);
 by (etac (sexp_CONS_D RS conjE) 1);
 by (REPEAT (ares_tac [conjI, pred_sexp_CONS_I1, pred_sexp_CONS_I2,
-		      prem RSN (2, trans_trancl RS transD)] 1));
+                      prem RSN (2, trans_trancl RS transD)] 1));
 qed "pred_sexp_CONS_D";
 
 (** Conversion rules for List_rec **)
@@ -211,8 +211,8 @@ Addsimps [List_rec_NIL, List_rec_CONS, list_rec_Nil, list_rec_Cons];
 
 (*Type checking.  Useful?*)
 val major::A_subset_sexp::prems = goal SList.thy
-    "[| M: list(A);    	\
-\       A<=sexp;      	\
+    "[| M: list(A);     \
+\       A<=sexp;        \
 \       c: C(NIL);      \
 \       !!x y r. [| x: A;  y: list(A);  r: C(y) |] ==> h x y r: C(CONS x y) \
 \    |] ==> List_rec M c h : C(M :: 'a item)";
@@ -373,7 +373,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "map_compose2";
 
 goal SList.thy "!!f. (!!x. f(x): sexp) ==> \
-\	Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs";
+\       Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs";
 by (list_ind_tac "xs" 1);
 by(ALLGOALS(asm_simp_tac(!simpset addsimps
        [Rep_map_type,list_sexp RS subsetD])));

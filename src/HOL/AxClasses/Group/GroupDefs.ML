@@ -37,12 +37,12 @@ qed "prod_assoc";
 
 goalw thy [times_prod_def, one_prod_def] "1 * x = (x::'a::monoid*'b::monoid)";
 by (simp_tac (prod_ss addsimps [Monoid.left_unit]) 1);
-br (surjective_pairing RS sym) 1;
+by (rtac (surjective_pairing RS sym) 1);
 qed "prod_left_unit";
 
 goalw thy [times_prod_def, one_prod_def] "x * 1 = (x::'a::monoid*'b::monoid)";
 by (simp_tac (prod_ss addsimps [Monoid.right_unit]) 1);
-br (surjective_pairing RS sym) 1;
+by (rtac (surjective_pairing RS sym) 1);
 qed "prod_right_unit";
 
 goalw thy [times_prod_def, inv_prod_def, one_prod_def] "inv x * x = (1::'a::group*'b::group)";
@@ -58,30 +58,30 @@ qed "prod_commut";
 
 goalw thy [times_fun_def] "(x * y) * z = x * (y * (z::'a => 'b::semigroup))";
 by (stac expand_fun_eq 1);
-br allI 1;
-br assoc 1;
+by (rtac allI 1);
+by (rtac assoc 1);
 qed "fun_assoc";
 
 goalw thy [times_fun_def, one_fun_def] "1 * x = (x::'a => 'b::monoid)";
 by (stac expand_fun_eq 1);
-br allI 1;
-br Monoid.left_unit 1;
+by (rtac allI 1);
+by (rtac Monoid.left_unit 1);
 qed "fun_left_unit";
 
 goalw thy [times_fun_def, one_fun_def] "x * 1 = (x::'a => 'b::monoid)";
 by (stac expand_fun_eq 1);
-br allI 1;
-br Monoid.right_unit 1;
+by (rtac allI 1);
+by (rtac Monoid.right_unit 1);
 qed "fun_right_unit";
 
 goalw thy [times_fun_def, inv_fun_def, one_fun_def] "inv x * x = (1::'a => 'b::group)";
 by (stac expand_fun_eq 1);
-br allI 1;
-br left_inv 1;
+by (rtac allI 1);
+by (rtac left_inv 1);
 qed "fun_left_inv";
 
 goalw thy [times_fun_def] "x * y = y * (x::'a => 'b::agroup)";
 by (stac expand_fun_eq 1);
-br allI 1;
-br commut 1;
+by (rtac allI 1);
+by (rtac commut 1);
 qed "fun_commut";

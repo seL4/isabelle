@@ -1,7 +1,7 @@
-(*  Title: 	Equiv.ML
+(*  Title:      Equiv.ML
     ID:         $Id$
-    Authors: 	Riccardo Mattolini, Dip. Sistemi e Informatica
-        	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Authors:    Riccardo Mattolini, Dip. Sistemi e Informatica
+                Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994 Universita' di Firenze
     Copyright   1993  University of Cambridge
 
@@ -118,7 +118,7 @@ by (rtac singletonI 1);
 qed "quotientI";
 
 val [major,minor] = goalw Equiv.thy [quotient_def]
-    "[| X:(A/r);  !!x. [| X = r^^{x};  x:A |] ==> P |] 	\
+    "[| X:(A/r);  !!x. [| X = r^^{x};  x:A |] ==> P |]  \
 \    ==> P";
 by (resolve_tac [major RS UN_E] 1);
 by (rtac minor 1);
@@ -173,8 +173,8 @@ val localize = RSLIST [equivA,bcong];
 
 (*type checking of  UN x:r``{a}. b(x) *)
 val _::_::prems = goalw Equiv.thy [quotient_def]
-    "[| equiv A r;  congruent r b;  X: A/r;	\
-\	!!x.  x : A ==> b(x) : B |] 	\
+    "[| equiv A r;  congruent r b;  X: A/r;     \
+\       !!x.  x : A ==> b(x) : B |]     \
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
 by (safe_tac rel_cs);
@@ -188,7 +188,7 @@ qed "UN_equiv_class_type";
 val _::_::prems = goalw Equiv.thy [quotient_def]
     "[| equiv A r;   congruent r b;  \
 \       (UN x:X. b(x))=(UN y:Y. b(y));  X: A/r;  Y: A/r;  \
-\       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> (x,y):r |] 	\
+\       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> (x,y):r |]         \
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
 by (safe_tac rel_cs);
@@ -215,7 +215,7 @@ by (safe_tac rel_cs);
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
 by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
-				     congruent2_implies_congruent]) 1);
+                                     congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (fast_tac rel_cs 1);
 qed "congruent2_implies_congruent_UN";
@@ -225,28 +225,28 @@ val prems as equivA::_ = goal Equiv.thy
 \    ==> (UN x1:r^^{a1}. UN x2:r^^{a2}. b x1 x2) = b a1 a2";
 by (cut_facts_tac prems 1);
 by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
-				     congruent2_implies_congruent,
-				     congruent2_implies_congruent_UN]) 1);
+                                     congruent2_implies_congruent,
+                                     congruent2_implies_congruent_UN]) 1);
 qed "UN_equiv_class2";
 
 (*type checking*)
 val prems = goalw Equiv.thy [quotient_def]
     "[| equiv A r;  congruent2 r b;  \
-\       X1: A/r;  X2: A/r;	\
-\	!!x1 x2.  [| x1: A; x2: A |] ==> b x1 x2 : B |]    \
+\       X1: A/r;  X2: A/r;      \
+\       !!x1 x2.  [| x1: A; x2: A |] ==> b x1 x2 : B |]    \
 \    ==> (UN x1:X1. UN x2:X2. b x1 x2) : B";
 by (cut_facts_tac prems 1);
 by (safe_tac rel_cs);
 by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
-			     congruent2_implies_congruent_UN,
-			     congruent2_implies_congruent, quotientI]) 1));
+                             congruent2_implies_congruent_UN,
+                             congruent2_implies_congruent, quotientI]) 1));
 qed "UN_equiv_class_type2";
 
 
 (*Suggested by John Harrison -- the two subproofs may be MUCH simpler
   than the direct proof*)
 val prems = goalw Equiv.thy [congruent2_def,equiv_def,refl_def]
-    "[| equiv A r;	\
+    "[| equiv A r;      \
 \       !! y z w. [| w: A;  (y,z) : r |] ==> b y w = b z w;      \
 \       !! y z w. [| w: A;  (y,z) : r |] ==> b w y = b w z       \
 \    |] ==> congruent2 r b";
@@ -258,9 +258,9 @@ by (REPEAT (ares_tac prems 1
 qed "congruent2I";
 
 val [equivA,commute,congt] = goal Equiv.thy
-    "[| equiv A r;	\
+    "[| equiv A r;      \
 \       !! y z. [| y: A;  z: A |] ==> b y z = b z y;        \
-\       !! y z w. [| w: A;  (y,z): r |] ==> b w y = b w z	\
+\       !! y z w. [| w: A;  (y,z): r |] ==> b w y = b w z       \
 \    |] ==> congruent2 r b";
 by (resolve_tac [equivA RS congruent2I] 1);
 by (rtac (commute RS trans) 1);

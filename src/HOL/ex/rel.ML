@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/rel
+(*  Title:      HOL/ex/rel
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Domain, range of a relation or function -- NOT YET WORKING
@@ -11,9 +11,9 @@ struct
 val thy = extend_theory Univ.thy "Rel"
 ([], [], [], [],
  [ 
-  (["domain"],	"('a * 'b)set => 'a set"),
-  (["range2"],	"('a * 'b)set => 'b set"),
-  (["field"],	"('a * 'a)set => 'a set")
+  (["domain"],  "('a * 'b)set => 'a set"),
+  (["range2"],  "('a * 'b)set => 'b set"),
+  (["field"],   "('a * 'a)set => 'a set")
  ],
  None)
  [

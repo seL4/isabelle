@@ -1,7 +1,7 @@
-(*  Title: 	Integ.ML
+(*  Title:      Integ.ML
     ID:         $Id$
-    Authors: 	Riccardo Mattolini, Dip. Sistemi e Informatica
-        	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Authors:    Riccardo Mattolini, Dip. Sistemi e Informatica
+                Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994 Universita' di Firenze
     Copyright   1993  University of Cambridge
 
@@ -84,7 +84,7 @@ by (etac Abs_Integ_inverse 1);
 qed "inj_onto_Abs_Integ";
 
 Addsimps [equiv_intrel_iff, inj_onto_Abs_Integ RS inj_onto_iff,
-	  intrel_iff, intrel_in_integ, Abs_Integ_inverse];
+          intrel_iff, intrel_in_integ, Abs_Integ_inverse];
 
 goal Integ.thy "inj(Rep_Integ)";
 by (rtac inj_inverseI 1);
@@ -213,8 +213,8 @@ by (res_inst_tac [("m1","x")] (add_commute RS ssubst) 1);
 by (asm_simp_tac (!simpset addsimps [diff_add_inverse,diff_add_0]) 1);
 by (rtac impI 1);
 by (asm_simp_tac (!simpset addsimps
-		  [diff_add_inverse, diff_add_0, diff_Suc_add_0,
-		   diff_Suc_add_inverse]) 1);
+                  [diff_add_inverse, diff_add_0, diff_Suc_add_0,
+                   diff_Suc_add_inverse]) 1);
 qed "zmagnitude_congruent";
 
 (*Resolve th against the corresponding facts for zmagnitude*)
@@ -328,8 +328,8 @@ by (simp_tac (!simpset addsimps add_ac) 1);
 qed "zmult_congruent_lemma";
 
 goal Integ.thy 
-    "congruent2 intrel (%p1 p2.  		\
-\               split (%x1 y1. split (%x2 y2. 	\
+    "congruent2 intrel (%p1 p2.                 \
+\               split (%x1 y1. split (%x2 y2.   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (safe_tac intrel_cs);
@@ -351,7 +351,7 @@ qed "zmult_congruent2";
 val zmult_ize = RSLIST [equiv_intrel, zmult_congruent2];
 
 goalw Integ.thy [zmult_def]
-   "Abs_Integ((intrel^^{(x1,y1)})) * Abs_Integ((intrel^^{(x2,y2)})) = 	\
+   "Abs_Integ((intrel^^{(x1,y1)})) * Abs_Integ((intrel^^{(x2,y2)})) =   \
 \   Abs_Integ(intrel ^^ {(x1*x2 + y1*y2, x1*y2 + y1*x2)})";
 by (simp_tac (!simpset addsimps [zmult_ize UN_equiv_class2]) 1);
 qed "zmult";
@@ -433,7 +433,7 @@ val zadd_simps =
 val zminus_simps = [zminus_zminus, zminus_0, zminus_zadd_distrib];
 
 val zmult_simps = [zmult_0, zmult_1, zmult_0_right, zmult_1_right, 
-		   zmult_zminus, zmult_zminus_right];
+                   zmult_zminus, zmult_zminus_right];
 
 Addsimps (zadd_simps @ zminus_simps @ zmult_simps @ 
           [zmagnitude_znat, zmagnitude_zminus_znat]);
@@ -700,12 +700,12 @@ qed "zle_zless_trans";
 
 goal Integ.thy "!!i. [| i <= j; j <= k |] ==> i <= (k::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
-	    rtac zless_or_eq_imp_zle, fast_tac (HOL_cs addIs [zless_trans])]);
+            rtac zless_or_eq_imp_zle, fast_tac (HOL_cs addIs [zless_trans])]);
 qed "zle_trans";
 
 goal Integ.thy "!!z. [| z <= w; w <= z |] ==> z = (w::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
-	    fast_tac (HOL_cs addEs [zless_anti_refl,zless_asym])]);
+            fast_tac (HOL_cs addEs [zless_anti_refl,zless_asym])]);
 qed "zle_anti_sym";
 
 

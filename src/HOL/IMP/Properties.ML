@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/Properties.ML
+(*  Title:      HOL/IMP/Properties.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow, TUM
+    Author:     Tobias Nipkow, TUM
     Copyright   1994 TUM
 
 IMP is deterministic.
@@ -27,7 +27,7 @@ val evalc_elim_cases = map (evalc.mk_cases com.simps)
 (* evaluation of com is deterministic *)
 goal Com.thy "!!c. <c,s> -c-> t ==> !u. <c,s> -c-> u --> u=t";
 (* start with rule induction *)
-be (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;
+by (etac (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1);
 by(fast_tac (set_cs addSEs evalc_elim_cases) 1);
 by(fast_tac (set_cs addSEs evalc_elim_cases addDs [aexp_detD]) 1);
 by(fast_tac (set_cs addSEs evalc_elim_cases) 1);

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/set.ML
+(*  Title:      HOL/ex/set.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Cantor's Theorem; the Schroeder-Berstein Theorem.  
@@ -62,8 +62,8 @@ qed "not_Compl";
 val [compl,fg,Xa] = goal Lfp.thy
     "[| Compl(f``X) = g``Compl(X);  f(a)=g(b);  a:X |] ==> b:X";
 by (EVERY1 [rtac (not_Compl RS subst), rtac contra_imageI,
-	    rtac (compl RS subst), rtac (fg RS subst), stac not_Compl,
-	    rtac imageI, rtac Xa]);
+            rtac (compl RS subst), rtac (fg RS subst), stac not_Compl,
+            rtac imageI, rtac Xa]);
 qed "disj_lemma";
 
 goal Lfp.thy "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
@@ -122,11 +122,11 @@ by (rtac (decomposition RS exE) 1);
 by (rtac exI 1);
 by (rtac bij_if_then_else 1);
 by (EVERY [rtac refl 4, rtac (injf RS inj_imp) 1,
-	   rtac (injg RS inj_onto_Inv) 1]);
+           rtac (injg RS inj_onto_Inv) 1]);
 by (EVERY1 [etac ssubst, stac double_complement, rtac subsetI,
-	    etac imageE, etac ssubst, rtac rangeI]);
+            etac imageE, etac ssubst, rtac rangeI]);
 by (EVERY1 [etac ssubst, stac double_complement, 
-	    rtac (injg RS inv_image_comp RS sym)]);
+            rtac (injg RS inv_image_comp RS sym)]);
 qed "schroeder_bernstein";
 
 writeln"Reached end of file.";

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/puzzle.ML
+(*  Title:      HOL/ex/puzzle.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1993 TU Muenchen
 
 For puzzle.thy.  A question from "Bundeswettbewerb Mathematik"

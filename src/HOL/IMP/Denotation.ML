@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/Denotation.ML
+(*  Title:      HOL/IMP/Denotation.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 *)
 
@@ -17,5 +17,5 @@ val C_simps = map (fn t => t RS eq_reflection)
 (**** mono (Gamma(b,c)) ****)
 
 qed_goalw "Gamma_mono" Denotation.thy [mono_def,Gamma_def]
-	"mono (Gamma b c)"
+        "mono (Gamma b c)"
      (fn _ => [(best_tac comp_cs 1)]);

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/MT.ML
+(*  Title:      HOL/ex/MT.ML
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Based upon the article
@@ -766,7 +766,7 @@ by (rtac (major RS eval_ind) 1);
 by (safe_tac HOL_cs);
 by (DEPTH_SOLVE 
     (ares_tac [consistency_const, consistency_var, consistency_fn,
-	       consistency_fix, consistency_app1, consistency_app2] 1));
+               consistency_fix, consistency_app1, consistency_app2] 1));
 qed "consistency";
 
 (* ############################################################ *)

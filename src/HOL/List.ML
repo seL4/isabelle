@@ -1,6 +1,6 @@
-(*  Title: 	HOL/List
+(*  Title:      HOL/List
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 List lemmas

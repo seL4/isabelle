@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Subst/subst.ML
+(*  Title:      HOL/Subst/subst.ML
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For subst.thy.  
@@ -124,7 +124,7 @@ qed "Cons_trivial";
 
 val [prem] = goal Subst.thy "q <> r =s= s ==>  t <| q <| r = t <| s";
 by (simp_tac (subst_ss addsimps [prem RS (subst_eq_iff RS iffD1),
-				subst_comp RS sym]) 1);
+                                subst_comp RS sym]) 1);
 qed "comp_subst_subst";
 
 (****  Domain and range of Substitutions ****)

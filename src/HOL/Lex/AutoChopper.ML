@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Lex/AutoChopper.ML
+(*  Title:      HOL/Lex/AutoChopper.ML
     ID:         $Id$
-    Author: 	Richard Mayr & Tobias Nipkow
+    Author:     Richard Mayr & Tobias Nipkow
     Copyright   1995 TUM
 
 Main result: auto_chopper satisfies the is_auto_chopper specification.
@@ -27,7 +27,7 @@ by (list.induct_tac "xs" 1);
 by (simp_tac (!simpset addcongs [conj_cong]) 1);
 by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
 by (strip_tac 1);
-br conjI 1;
+by (rtac conjI 1);
 by (fast_tac HOL_cs 1);
 by(simp_tac (!simpset addsimps [prefix_Cons] addcongs [conj_cong]) 1);
 by (strip_tac 1);
@@ -100,7 +100,7 @@ by (list.induct_tac "xs" 1);
  by (fast_tac HOL_cs 1);
 by (asm_simp_tac (!simpset addcongs [conj_cong] setloop (split_tac [expand_if])) 1);
 by (strip_tac 1);
-br conjI 1;
+by (rtac conjI 1);
  by(res_inst_tac [("p","acc list (start A) [] [] ([],list) A")] PairE 1);
  by(rename_tac "vss lrst" 1);  
  by(Asm_simp_tac 1);
@@ -155,11 +155,11 @@ by (case_tac "yss = []" 1);
  by (Asm_simp_tac 1);
  by (hyp_subst_tac 1);
  by (fast_tac (HOL_cs addSDs [no_acc]) 1);
-be ((neq_Nil_conv RS iffD1) RS exE) 1;
-be exE 1;
+by (etac ((neq_Nil_conv RS iffD1) RS exE) 1);
+by (etac exE 1);
 by (hyp_subst_tac 1);
 by (Simp_tac 1);
-br trans 1;
+by (rtac trans 1);
  be step2_a 1;
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 val step2_d = (result() repeat_RS spec) RS mp;
@@ -204,14 +204,14 @@ by (case_tac "acc_prefix A (next A st a) list" 1);
 by (Asm_simp_tac 1);
 by (strip_tac 1);
 by (res_inst_tac [("x","[a]")] exI 1);
-br conjI 1;
+by (rtac conjI 1);
  by (subgoal_tac "r @ [a] ~= []" 1);
   by (fast_tac HOL_cs 1);
  by (Simp_tac 1);
-br list_cases 1;
+by (rtac list_cases 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [acc_prefix_def] addcongs[conj_cong]) 1);
-be thin_rl 1; (* speed up *)
+by (etac thin_rl 1); (* speed up *)
 by (fast_tac HOL_cs 1);
 val step2_e = (result() repeat_RS spec) RS mp;
 Addsimps[split_paired_All];
@@ -223,18 +223,18 @@ by (REPEAT(ares_tac [no_acc,allI,impI,conjI] 1));
  br mp 1;
   be step2_b 2;
  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
-br conjI 1;
+by (rtac conjI 1);
  br mp 1;
   be step2_c 2;
  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
  by (fast_tac HOL_cs 1);
-br conjI 1;
+by (rtac conjI 1);
  by (asm_simp_tac (!simpset addsimps [step2_a] setloop (split_tac [expand_if])) 1);
-br conjI 1;
+by (rtac conjI 1);
  br mp 1;
   be step2_d 2;
  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
-br mp 1;
+by (rtac mp 1);
  be step2_e 2;
  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (fast_tac HOL_cs 1);

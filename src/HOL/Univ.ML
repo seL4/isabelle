@@ -1,6 +1,6 @@
-(*  Title: 	HOL/univ
+(*  Title:      HOL/univ
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For univ.thy
@@ -95,7 +95,7 @@ qed "Push_neq_K0";
 (*** Isomorphisms ***)
 
 goal Univ.thy "inj(Rep_Node)";
-by (rtac inj_inverseI 1);	(*cannot combine by RS: multiple unifiers*)
+by (rtac inj_inverseI 1);       (*cannot combine by RS: multiple unifiers*)
 by (rtac Rep_Node_inverse 1);
 qed "inj_Rep_Node";
 
@@ -128,7 +128,7 @@ by (rtac notI 1);
 by (etac (equalityD2 RS subsetD RS UnE) 1);
 by (rtac singletonI 1);
 by (REPEAT (eresolve_tac [imageE, Abs_Node_inject RS apfst_convE, 
-			  Pair_inject, sym RS Push_neq_K0] 1
+                          Pair_inject, sym RS Push_neq_K0] 1
      ORELSE resolve_tac [Node_K0_I, Rep_Node RS Node_Push_I] 1));
 qed "Scons_not_Atom";
 bind_thm ("Atom_not_Scons", (Scons_not_Atom RS not_sym));
@@ -183,13 +183,13 @@ qed "Push_Node_inject";
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> M<=M'";
 by (cut_facts_tac [major] 1);
 by (fast_tac (set_cs addSDs [Suc_inject]
-		     addSEs [Push_Node_inject, Zero_neq_Suc]) 1);
+                     addSEs [Push_Node_inject, Zero_neq_Suc]) 1);
 qed "Scons_inject_lemma1";
 
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> N<=N'";
 by (cut_facts_tac [major] 1);
 by (fast_tac (set_cs addSDs [Suc_inject]
-		     addSEs [Push_Node_inject, Suc_neq_Zero]) 1);
+                     addSEs [Push_Node_inject, Suc_neq_Zero]) 1);
 qed "Scons_inject_lemma2";
 
 val [major] = goal Univ.thy "M$N = M'$N' ==> M=M'";
@@ -274,7 +274,7 @@ goalw Univ.thy [ndepth_def,Push_Node_def]
 by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
 by (safe_tac set_cs);
-be ssubst 1;  (*instantiates type variables!*)
+by (etac ssubst 1);  (*instantiates type variables!*)
 by (Simp_tac 1);
 by (rtac Least_equality 1);
 by (rewtac Push_def);
@@ -309,8 +309,8 @@ goalw Univ.thy [Scons_def,ntrunc_def]
 by (safe_tac (set_cs addSIs [equalityI,imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
 by (REPEAT (rtac Suc_less_SucD 1 THEN 
-	    rtac (ndepth_Push_Node RS subst) 1 THEN 
-	    assume_tac 1));
+            rtac (ndepth_Push_Node RS subst) 1 THEN 
+            assume_tac 1));
 qed "ntrunc_Scons";
 
 (** Injection nodes **)
@@ -413,7 +413,7 @@ qed "ntrunc_subsetI";
 val [major] = goalw Univ.thy [ntrunc_def]
     "(!!k. ntrunc k M <= N) ==> M<=N";
 by (fast_tac (set_cs addIs [less_add_Suc1, less_add_Suc2, 
-			    major RS subsetD]) 1);
+                            major RS subsetD]) 1);
 qed "ntrunc_subsetD";
 
 (*A generalized form of the take-lemma*)
@@ -462,12 +462,12 @@ qed "Split";
 
 goalw Univ.thy [Case_def] "Case c d (In0 M) = c(M)";
 by (fast_tac (set_cs addIs [select_equality] 
-		     addEs [make_elim In0_inject, In0_neq_In1]) 1);
+                     addEs [make_elim In0_inject, In0_neq_In1]) 1);
 qed "Case_In0";
 
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
 by (fast_tac (set_cs addIs [select_equality] 
-		     addEs [make_elim In1_inject, In1_neq_In0]) 1);
+                     addEs [make_elim In1_inject, In1_neq_In0]) 1);
 qed "Case_In1";
 
 (**** UN x. B(x) rules ****)
@@ -485,11 +485,11 @@ by (fast_tac (set_cs addIs [equalityI]) 1);
 qed "Scons_UN1_y";
 
 goalw Univ.thy [In0_def] "In0(UN x.f(x)) = (UN x. In0(f(x)))";
-br Scons_UN1_y 1;
+by (rtac Scons_UN1_y 1);
 qed "In0_UN1";
 
 goalw Univ.thy [In1_def] "In1(UN x.f(x)) = (UN x. In1(f(x)))";
-br Scons_UN1_y 1;
+by (rtac Scons_UN1_y 1);
 qed "In1_UN1";
 
 
@@ -606,7 +606,7 @@ qed "fst_image_dprod";
 
 goal Univ.thy "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
 by (fast_tac (prod_cs addIs [equalityI, usum_In0I, usum_In1I, 
-			     dsum_In0I, dsum_In1I]
+                             dsum_In0I, dsum_In1I]
                      addSEs [usumE, dsumE]) 1);
 qed "fst_image_dsum";
 

@@ -102,7 +102,7 @@ goal thy "(x && y = x) = (x [= y)";
     br inf_lb2 1;
   (*<==*)
     br (inf_uniq RS mp) 1;
-    by (rewrite_goals_tac [is_inf_def]);
+    by (rewtac is_inf_def);
     by (REPEAT_FIRST (rtac conjI));
     br le_refl 1;
     ba 1;
@@ -116,7 +116,7 @@ goal thy "(x || y = y) = (x [= y)";
     br sup_ub1 1;
   (*<==*)
     br (sup_uniq RS mp) 1;
-    by (rewrite_goals_tac [is_sup_def]);
+    by (rewtac is_sup_def);
     by (REPEAT_FIRST (rtac conjI));
     ba 1;
     br le_refl 1;

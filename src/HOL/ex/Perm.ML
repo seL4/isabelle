@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Perm.ML
+(*  Title:      HOL/ex/Perm.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Permutations: example of an inductive definition
@@ -74,7 +74,7 @@ qed "perm_append_swap";
 
 goal Perm.thy "a # xs <~~> xs @ [a]";
 by (rtac perm.trans 1);
-br perm_append_swap 2;
+by (rtac perm_append_swap 2);
 by (simp_tac (!simpset addsimps [perm_refl]) 1);
 qed "perm_append_single";
 

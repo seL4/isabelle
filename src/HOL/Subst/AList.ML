@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/AList.ML
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/AList.ML
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For AList.thy.
@@ -30,4 +30,4 @@ qed "alist_induct";
 (*Perform induction on xs. *)
 fun alist_ind_tac a M = 
     EVERY [res_inst_tac [("l",a)] alist_induct M,
-	   rename_last_tac a ["1"] (M+1)];
+           rename_last_tac a ["1"] (M+1)];

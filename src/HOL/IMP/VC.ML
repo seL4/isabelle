@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/VC.ML
+(*  Title:      HOL/IMP/VC.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1996 TUM
 
 Soundness and completeness of vc
@@ -30,7 +30,7 @@ by(acom.induct_tac "c" 1);
  by(fast_tac HOL_cs 1);
 (* while *)
 by(safe_tac HOL_cs);
-brs hoare.intrs 1;
+by (resolve_tac hoare.intrs 1);
   br lemma 1;
  brs hoare.intrs 1;
  brs hoare.intrs 1;
@@ -57,7 +57,7 @@ bind_thm("vc_mono", result() RS spec RS spec RS mp RS spec RS mp);
 goal VC.thy
   "!P c Q. ({{P}}c{{Q}}) --> \
 \          (? ac. astrip ac = c & (!s. P s --> wp ac Q s) & (!s. vc ac Q s))";
-br hoare.mutual_induct 1;
+by (rtac hoare.mutual_induct 1);
      by(res_inst_tac [("x","Askip")] exI 1);
      by(Simp_tac 1);
     by(res_inst_tac [("x","Aass x a")] exI 1);

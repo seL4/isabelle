@@ -1,6 +1,6 @@
-(*  Title: 	HOL/simpdata.ML
+(*  Title:      HOL/simpdata.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
 Instantiation of the generic simplifier
@@ -32,9 +32,9 @@ fun atomize pairs =
   in atoms end;
 
 fun mk_meta_eq r = case concl_of r of
-	Const("==",_)$_$_ => r
-    |	_$(Const("op =",_)$_$_) => r RS eq_reflection
-    |	_$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
+        Const("==",_)$_$_ => r
+    |   _$(Const("op =",_)$_$_) => r RS eq_reflection
+    |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
     |   _ => r RS P_imp_P_eq_True;
 (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
@@ -42,7 +42,7 @@ fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-	(fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
 
 val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
  (fn _ => [rtac refl 1]);
@@ -86,9 +86,9 @@ val if_not_P = prove_goal HOL.thy "~P ==> (if P then x else y) = y"
 val expand_if = prove_goal HOL.thy
     "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
-	 rtac (if_P RS ssubst) 2,
-	 rtac (if_not_P RS ssubst) 1,
-	 REPEAT(fast_tac HOL_cs 1) ]);
+         rtac (if_P RS ssubst) 2,
+         rtac (if_not_P RS ssubst) 1,
+         REPEAT(fast_tac HOL_cs 1) ]);
 
 val if_bool_eq = prove_goal HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
@@ -141,7 +141,7 @@ val ex_all_equiv =
 
 val conj_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-	(fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
 
 (** 'if' congruence rules: neither included by default! *)
 

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/qsort.ML
+(*  Title:      HOL/ex/qsort.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Two verifications of Quicksort

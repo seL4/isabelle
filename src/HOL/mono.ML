@@ -1,6 +1,6 @@
-(*  Title: 	HOL/mono.ML
+(*  Title:      HOL/mono.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Monotonicity of various operations
@@ -119,5 +119,5 @@ qed "Int_Collect_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-		   ex_mono, Collect_mono, Part_mono, in_mono];
+                   ex_mono, Collect_mono, Part_mono, in_mono];
 

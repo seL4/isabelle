@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Lex/Auto.ML
+(*  Title:      HOL/Lex/Auto.ML
     ID:         $Id$
-    Author: 	Richard Mayr & Tobias Nipkow
+    Author:     Richard Mayr & Tobias Nipkow
     Copyright   1995 TUM
 *)
 

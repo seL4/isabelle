@@ -1,6 +1,6 @@
-(*  Title: 	HOL/thy_data.ML
+(*  Title:      HOL/thy_data.ML
     ID:         $Id$
-    Author: 	Carsten Clasohm
+    Author:     Carsten Clasohm
     Copyright   1995 TU Muenchen
 
 Definitions that have to be reread after init_thy_reader has been invoked

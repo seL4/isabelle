@@ -1,9 +1,9 @@
-(*  Title: 	HOL/HOL.ML
+(*  Title:      HOL/HOL.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
-For hol.thy
+For HOL.thy
 Derived rules from Appendix of Mike Gordons HOL Report, Cambridge TR 68 
 *)
 
@@ -20,12 +20,12 @@ bind_thm ("ssubst", (sym RS subst));
 
 qed_goal "trans" HOL.thy "[| r=s; s=t |] ==> r=t"
  (fn prems =>
-	[rtac subst 1, resolve_tac prems 1, resolve_tac prems 1]);
+        [rtac subst 1, resolve_tac prems 1, resolve_tac prems 1]);
 
 (*Useful with eresolve_tac for proving equalties from known equalities.
-	a = b
-	|   |
-	c = d	*)
+        a = b
+        |   |
+        c = d   *)
 qed_goal "box_equals" HOL.thy
     "[| a=b;  a=c;  b=d |] ==> c=d"  
  (fn prems=>
@@ -57,7 +57,7 @@ qed_goal "iffI" HOL.thy
 
 qed_goal "iffD2" HOL.thy "[| P=Q; Q |] ==> P"
  (fn prems =>
-	[rtac ssubst 1, resolve_tac prems 1, resolve_tac prems 1]);
+        [rtac ssubst 1, resolve_tac prems 1, resolve_tac prems 1]);
 
 val iffD1 = sym RS iffD2;
 
@@ -160,8 +160,8 @@ qed_goalw "conjunct2" HOL.thy [and_def] "[| P & Q |] ==> Q"
 
 qed_goal "conjE" HOL.thy "[| P&Q;  [| P; Q |] ==> R |] ==> R"
  (fn prems =>
-	 [cut_facts_tac prems 1, resolve_tac prems 1,
-	  etac conjunct1 1, etac conjunct2 1]);
+         [cut_facts_tac prems 1, resolve_tac prems 1,
+          etac conjunct1 1, etac conjunct2 1]);
 
 (** Disjunction *)
 
@@ -173,8 +173,8 @@ qed_goalw "disjI2" HOL.thy [or_def] "Q ==> P|Q"
 
 qed_goalw "disjE" HOL.thy [or_def] "[| P | Q; P ==> R; Q ==> R |] ==> R"
  (fn [a1,a2,a3] =>
-	[rtac (mp RS mp) 1, rtac spec 1, rtac a1 1,
-	 rtac (a2 RS impI) 1, assume_tac 1, rtac (a3 RS impI) 1, assume_tac 1]);
+        [rtac (mp RS mp) 1, rtac spec 1, rtac a1 1,
+         rtac (a2 RS impI) 1, assume_tac 1, rtac (a3 RS impI) 1, assume_tac 1]);
 
 (** CCONTR -- classical logic **)
 
@@ -211,13 +211,13 @@ qed_goalw "ex1E" HOL.thy [Ex1_def]
 qed_goal "selectI2" HOL.thy
     "[| P(a);  !!x. P(x) ==> Q(x) |] ==> Q(@x.P(x))"
  (fn prems => [ resolve_tac prems 1, 
-	        rtac selectI 1, 
-		resolve_tac prems 1 ]);
+                rtac selectI 1, 
+                resolve_tac prems 1 ]);
 
 qed_goal "select_equality" HOL.thy
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (@x.P(x)) = a"
  (fn prems => [ rtac selectI2 1, 
-		REPEAT (ares_tac prems 1) ]);
+                REPEAT (ares_tac prems 1) ]);
 
 
 (** Classical intro rules for disjunction and existential quantifiers *)
@@ -247,7 +247,7 @@ qed_goal "iffCE" HOL.thy
  (fn major::prems =>
   [ (rtac (major RS iffE) 1),
     (REPEAT (DEPTH_SOLVE_1 
-	(eresolve_tac ([asm_rl,impCE,notE]@prems) 1))) ]);
+        (eresolve_tac ([asm_rl,impCE,notE]@prems) 1))) ]);
 
 qed_goal "exCI" HOL.thy "(! x. ~P(x) ==> P(a)) ==> ? x.P(x)"
  (fn prems=>
@@ -292,10 +292,10 @@ open Hypsubst;
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val sizef	= size_of_thm
-  val mp	= mp
-  val not_elim	= notE
-  val classical	= classical
+  val sizef     = size_of_thm
+  val mp        = mp
+  val not_elim  = notE
+  val classical = classical
   val hyp_subst_tacs=[hyp_subst_tac]
   end;
 

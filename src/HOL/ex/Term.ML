@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Term
+(*  Title:      HOL/ex/Term
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Terms over a given alphabet -- function applications; illustrates list functor
@@ -42,7 +42,7 @@ val [major,minor] = goal Term.thy
 \    |] ==> R(M)";
 by (rtac (major RS term.induct) 1);
 by (REPEAT (eresolve_tac ([minor] @
- 		([Int_lower1,Int_lower2] RL [list_mono RS subsetD])) 1));
+                ([Int_lower1,Int_lower2] RL [list_mono RS subsetD])) 1));
 (*Proof could also use  mono_Int RS subsetD RS IntE *)
 qed "Term_induct";
 
@@ -74,7 +74,7 @@ by (REPEAT (ares_tac [conjI, sexp.SconsI, term_subset_sexp RS
     list_subset_sexp, range_Leaf_subset_sexp] 1
      ORELSE etac rev_subsetD 1));
 by (eres_inst_tac [("A1","term(?u)"), ("f1","Rep_term"), ("g1","Abs_term")]
-    	(Abs_map_inverse RS subst) 1);
+        (Abs_map_inverse RS subst) 1);
 by (rtac (range_Leaf_subset_sexp RS term_subset_sexp) 1);
 by (etac Abs_term_inverse 1);
 by (etac rangeE 1);
@@ -104,7 +104,7 @@ qed "term_induct2";
 (*Perform induction on xs. *)
 fun term_ind2_tac a i = 
     EVERY [res_inst_tac [("t",a)] term_induct2 i,
-	   rename_last_tac a ["1","s"] (i+1)];
+           rename_last_tac a ["1","s"] (i+1)];
 
 
 
@@ -155,7 +155,7 @@ local
 in
 
 val term_rec = prove_goalw Term.thy
-	 [term_rec_def, App_def, Rep_Tlist_def, Abs_Tlist_def]
+         [term_rec_def, App_def, Rep_Tlist_def, Abs_Tlist_def]
     "term_rec (App f ts) d = d f ts (map (%t. term_rec t d) ts)"
  (fn _ => [simp_tac term_rec_ss 1])
 

@@ -211,5 +211,4 @@ goal List.thy "(x ~= hd(xs@ys)) = (x ~= (if xs = [] then hd ys else hd xs))";
 qed "not_hd_append";
 
 
-
 Addsimps ([append_cons,not_hd_append,Suc_pred_lemma] @ set_lemmas);

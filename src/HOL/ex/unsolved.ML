@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/unsolved
+(*  Title:      HOL/ex/unsolved
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Problems that currently defeat the MESON procedure as well as best_tac
@@ -14,22 +14,22 @@ goal HOL.thy "? x x'. ! y. ? z z'. (~P(y,y) | P(x,x) | ~S(z,x)) & \
 
 writeln"Problem 47  Schubert's Steamroller";
 goal HOL.thy
-    "(! x. P1(x) --> P0(x)) & (? x.P1(x)) &	\
-\    (! x. P2(x) --> P0(x)) & (? x.P2(x)) &	\
-\    (! x. P3(x) --> P0(x)) & (? x.P3(x)) &	\
-\    (! x. P4(x) --> P0(x)) & (? x.P4(x)) &	\
-\    (! x. P5(x) --> P0(x)) & (? x.P5(x)) &	\
-\    (! x. Q1(x) --> Q0(x)) & (? x.Q1(x)) &	\
-\    (! x. P0(x) --> ((! y.Q0(y)-->R(x,y)) | 	\
-\		      (! y.P0(y) & S(y,x) & 	\
-\		           (? z.Q0(z)&R(y,z)) --> R(x,y)))) &	\
-\    (! x y. P3(y) & (P5(x)|P4(x)) --> S(x,y)) &	\
-\    (! x y. P3(x) & P2(y) --> S(x,y)) &	\
-\    (! x y. P2(x) & P1(y) --> S(x,y)) &	\
-\    (! x y. P1(x) & (P2(y)|Q1(y)) --> ~R(x,y)) &	\
-\    (! x y. P3(x) & P4(y) --> R(x,y)) &	\
-\    (! x y. P3(x) & P5(y) --> ~R(x,y)) &	\
-\    (! x. (P4(x)|P5(x)) --> (? y.Q0(y) & R(x,y)))	\
+    "(! x. P1(x) --> P0(x)) & (? x.P1(x)) &     \
+\    (! x. P2(x) --> P0(x)) & (? x.P2(x)) &     \
+\    (! x. P3(x) --> P0(x)) & (? x.P3(x)) &     \
+\    (! x. P4(x) --> P0(x)) & (? x.P4(x)) &     \
+\    (! x. P5(x) --> P0(x)) & (? x.P5(x)) &     \
+\    (! x. Q1(x) --> Q0(x)) & (? x.Q1(x)) &     \
+\    (! x. P0(x) --> ((! y.Q0(y)-->R(x,y)) |    \
+\                     (! y.P0(y) & S(y,x) &     \
+\                          (? z.Q0(z)&R(y,z)) --> R(x,y)))) &   \
+\    (! x y. P3(y) & (P5(x)|P4(x)) --> S(x,y)) &        \
+\    (! x y. P3(x) & P2(y) --> S(x,y)) &        \
+\    (! x y. P2(x) & P1(y) --> S(x,y)) &        \
+\    (! x y. P1(x) & (P2(y)|Q1(y)) --> ~R(x,y)) &       \
+\    (! x y. P3(x) & P4(y) --> R(x,y)) &        \
+\    (! x y. P3(x) & P5(y) --> ~R(x,y)) &       \
+\    (! x. (P4(x)|P5(x)) --> (? y.Q0(y) & R(x,y)))      \
 \    --> (? x y. P0(x) & P0(y) & (? z. Q1(z) & R(y,z) & R(x,y)))";
 
 

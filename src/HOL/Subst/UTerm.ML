@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Subst/UTerm.ML
+(*  Title:      HOL/Subst/UTerm.ML
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Simple term structure for unifiation.
@@ -50,7 +50,7 @@ qed "uterm_induct";
 (*Perform induction on xs. *)
 fun uterm_ind_tac a M = 
     EVERY [res_inst_tac [("t",a)] uterm_induct M,
-	   rename_last_tac a ["1"] (M+1)];
+           rename_last_tac a ["1"] (M+1)];
 
 
 (*** Isomorphisms ***)
@@ -139,12 +139,12 @@ bind_thm ("COMB_inject", (COMB_COMB_eq RS iffD1 RS conjE));
 
 (*For reasoning about abstract uterm constructors*)
 val uterm_cs = set_cs addIs uterm.intrs @ [Rep_uterm]
-	              addSEs [CONST_neq_COMB,COMB_neq_VAR,VAR_neq_CONST,
-			      COMB_neq_CONST,VAR_neq_COMB,CONST_neq_VAR,
-			      COMB_inject]
-		      addSDs [VAR_inject,CONST_inject,
-			      inj_onto_Abs_uterm RS inj_ontoD,
-			      inj_Rep_uterm RS injD, Leaf_inject];
+                      addSEs [CONST_neq_COMB,COMB_neq_VAR,VAR_neq_CONST,
+                              COMB_neq_CONST,VAR_neq_COMB,CONST_neq_VAR,
+                              COMB_inject]
+                      addSDs [VAR_inject,CONST_inject,
+                              inj_onto_Abs_uterm RS inj_ontoD,
+                              inj_Rep_uterm RS injD, Leaf_inject];
 
 goalw UTerm.thy [Var_def] "(Var(x)=Var(y)) = (x=y)";
 by (fast_tac uterm_cs 1);
@@ -222,7 +222,7 @@ by (simp_tac (!simpset addsimps [Case_In0,Case_In1]) 1);
 qed "UTerm_rec_CONST";
 
 goalw UTerm.thy [COMB_def]
-    "!!M N. [| M: sexp;  N: sexp |] ==> 	\
+    "!!M N. [| M: sexp;  N: sexp |] ==>         \
 \           UTerm_rec (COMB M N) b c d = \
 \           d M N (UTerm_rec M b c d) (UTerm_rec N b c d)";
 by (rtac (UTerm_rec_unfold RS trans) 1);

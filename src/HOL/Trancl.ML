@@ -1,6 +1,6 @@
-(*  Title: 	HOL/trancl
+(*  Title:      HOL/trancl
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For trancl.thy.  Theorems about the transitive closure of a relation
@@ -56,7 +56,7 @@ qed "rtrancl_full_induct";
 val major::prems = goal Trancl.thy
     "[| (a::'a,b) : r^*;    \
 \       P(a); \
-\	!!y z.[| (a,y) : r^*;  (y,z) : r;  P(y) |] ==> P(z) |]  \
+\       !!y z.[| (a,y) : r^*;  (y,z) : r;  P(y) |] ==> P(z) |]  \
 \     ==> P(b)";
 (*by induction on this formula*)
 by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
@@ -76,8 +76,8 @@ qed "rtrancl_trans";
 
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = goal Trancl.thy
-    "[| (a::'a,b) : r^*;  (a = b) ==> P; 	\
-\	!!y.[| (a,y) : r^*; (y,b) : r |] ==> P 	\
+    "[| (a::'a,b) : r^*;  (a = b) ==> P;        \
+\       !!y.[| (a,y) : r^*; (y,b) : r |] ==> P  \
 \    |] ==> P";
 by (subgoal_tac "(a::'a) = b  | (? y. (a,y) : r^* & (y,b) : r)" 1);
 by (rtac (major RS rtrancl_induct) 2);
@@ -123,7 +123,7 @@ qed "rtrancl_into_trancl2";
 val major::prems = goal Trancl.thy
     "[| (a::'a,b) : r^+;  \
 \       (a,b) : r ==> P; \
-\	!!y.[| (a,y) : r^+;  (y,b) : r |] ==> P  \
+\       !!y.[| (a,y) : r^+;  (y,b) : r |] ==> P  \
 \    |] ==> P";
 by (subgoal_tac "(a::'a,b) : r | (? y. (a,y) : r^+  &  (y,b) : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
@@ -152,20 +152,20 @@ qed "trancl_into_trancl2";
 (** More about r^* **)
 
 goal Trancl.thy "(r^*)^* = r^*";
-br set_ext 1;
+by (rtac set_ext 1);
 by(res_inst_tac [("p","x")] PairE 1);
 by(hyp_subst_tac 1);
-br iffI 1;
-be rtrancl_induct 1;
-br rtrancl_refl 1;
+by (rtac iffI 1);
+by (etac rtrancl_induct 1);
+by (rtac rtrancl_refl 1);
 by(fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
-be r_into_rtrancl 1;
+by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
 goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
-bd rtrancl_mono 1;
-bd rtrancl_mono 1;
+by (dtac rtrancl_mono 1);
+by (dtac rtrancl_mono 1);
 by(Asm_full_simp_tac 1);
 by(fast_tac eq_cs 1);
 qed "rtrancl_subset";
@@ -181,16 +181,16 @@ qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
 goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
-br converseI 1;
-be rtrancl_induct 1;
-br rtrancl_refl 1;
+by (rtac converseI 1);
+by (etac rtrancl_induct 1);
+by (rtac rtrancl_refl 1);
 by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
 goal Trancl.thy "!!r. (x,y) : converse(r^*) ==> (x,y) : (converse r)^*";
-bd converseD 1;
-be rtrancl_induct 1;
-br rtrancl_refl 1;
+by (dtac converseD 1);
+by (etac rtrancl_induct 1);
+by (rtac rtrancl_refl 1);
 by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
@@ -198,7 +198,7 @@ goal Trancl.thy "(converse r)^* = converse(r^*)";
 by(safe_tac (rel_eq_cs addSIs [rtrancl_converseI]));
 by(res_inst_tac [("p","x")] PairE 1);
 by(hyp_subst_tac 1);
-be rtrancl_converseD 1;
+by (etac rtrancl_converseD 1);
 qed "rtrancl_converse";
 
 

@@ -1,6 +1,6 @@
-(*  Title:  	HOL/ex/ROOT
+(*  Title:      HOL/ex/ROOT
     ID:         $Id$
-    Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Executes miscellaneous examples for Higher-Order Logic. 

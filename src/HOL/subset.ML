@@ -1,6 +1,6 @@
-(*  Title: 	HOL/subset
+(*  Title:      HOL/subset
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Derived rules involving subsets
@@ -21,7 +21,7 @@ qed "Union_upper";
 
 val [prem] = goal Set.thy
     "[| !!X. X:A ==> X<=C |] ==> Union(A) <= C";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UnionE, prem RS subsetD] 1));
 qed "Union_least";
 
@@ -34,7 +34,7 @@ qed "UN_upper";
 
 val [prem] = goal Set.thy
     "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UN_E, prem RS subsetD] 1));
 qed "UN_least";
 
@@ -43,7 +43,7 @@ by (REPEAT (ares_tac [UN1_I RS subsetI] 1));
 qed "UN1_upper";
 
 val [prem] = goal Set.thy "[| !!x. B(x)<=C |] ==> (UN x. B(x)) <= C";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UN1_E, prem RS subsetD] 1));
 qed "UN1_least";
 
@@ -51,35 +51,35 @@ qed "UN1_least";
 (*** Big Intersection -- greatest lower bound of a set ***)
 
 val prems = goal Set.thy "B:A ==> Inter(A) <= B";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (resolve_tac prems 1 ORELSE etac InterD 1));
 qed "Inter_lower";
 
 val [prem] = goal Set.thy
     "[| !!X. X:A ==> C<=X |] ==> C <= Inter(A)";
-br (InterI RS subsetI) 1;
+by (rtac (InterI RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "Inter_greatest";
 
 val prems = goal Set.thy "a:A ==> (INT x:A. B(x)) <= B(a)";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (resolve_tac prems 1 ORELSE etac INT_D 1));
 qed "INT_lower";
 
 val [prem] = goal Set.thy
     "[| !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))";
-br (INT_I RS subsetI) 1;
+by (rtac (INT_I RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "INT_greatest";
 
 goal Set.thy "(INT x. B(x)) <= B(a)";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (resolve_tac prems 1 ORELSE etac INT1_D 1));
 qed "INT1_lower";
 
 val [prem] = goal Set.thy
     "[| !!x. C<=B(x) |] ==> C <= (INT x. B(x))";
-br (INT1_I RS subsetI) 1;
+by (rtac (INT1_I RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "INT1_greatest";
 

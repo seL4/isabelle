@@ -27,21 +27,21 @@ qed "square_reflcl";
 goalw Commutation.thy [square_def]
   "!!R. square R S S T ==> square (R^*) S S (T^*)";
 by(strip_tac 1);
-be rtrancl_induct 1;
+by (etac rtrancl_induct 1);
 by(fast_tac trancl_cs 1);
 by(fast_tac (HOL_cs addSEs [rtrancl_into_rtrancl]) 1);
 qed "square_rtrancl";
 
 goalw Commutation.thy [commute_def]
  "!!R. square R S (S^*) (R^=) ==> commute (R^*) (S^*)";
-bd square_reflcl 1;
-br subsetI 1;
-be r_into_rtrancl 1;
-bd square_sym 1;
-bd square_rtrancl 1;
+by (dtac square_reflcl 1);
+by (rtac subsetI 1);
+by (etac r_into_rtrancl 1);
+by (dtac square_sym 1);
+by (dtac square_rtrancl 1);
 by(Asm_full_simp_tac 1);
-bd square_sym 1;
-bd square_rtrancl 1;
+by (dtac square_sym 1);
+by (dtac square_rtrancl 1);
 by(Asm_full_simp_tac 1);
 qed "square_rtrancl_reflcl_commute";
 
@@ -68,7 +68,7 @@ by(REPEAT(ares_tac [commute_Un,commute_sym] 1));
 qed "diamond_Un";
 
 goalw Commutation.thy [diamond_def] "!!R. diamond R ==> confluent (R)";
-be commute_rtrancl 1;
+by (etac commute_rtrancl 1);
 qed "diamond_confluent";
 
 goalw Commutation.thy [diamond_def]
@@ -94,12 +94,12 @@ qed "diamond_to_confluence";
 
 goalw Commutation.thy [square_def,commute_def,diamond_def,Church_Rosser_def]
   "Church_Rosser(R) = confluent(R)";
-br iffI 1;
+by (rtac iffI 1);
  by(fast_tac (HOL_cs addIs
       [Un_upper2 RS rtrancl_mono RS subsetD RS rtrancl_trans,
        rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
 by(safe_tac HOL_cs);
-be rtrancl_induct 1;
+by (etac rtrancl_induct 1);
  by(fast_tac trancl_cs 1);
 by(slow_tac (rel_cs addIs [r_into_rtrancl]
                     addEs [rtrancl_trans,r_into_rtrancl RS rtrancl_trans]) 1);

@@ -1,7 +1,7 @@
-(*  Title: 	Relation.ML
+(*  Title:      Relation.ML
     ID:         $Id$
-    Authors: 	Riccardo Mattolini, Dip. Sistemi e Informatica
-        	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Authors:    Riccardo Mattolini, Dip. Sistemi e Informatica
+                Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994 Universita' di Firenze
     Copyright   1993  University of Cambridge
 *)
@@ -100,7 +100,7 @@ qed_goalw "converseE" Relation.thy [converse_def]
     (assume_tac 1) ]);
 
 val converse_cs = comp_cs addSIs [converseI] 
-			  addSEs [converseD,converseE];
+                          addSEs [converseD,converseE];
 
 (** Domain **)
 
@@ -138,13 +138,13 @@ qed_goalw "Image_iff" Relation.thy [Image_def]
 qed_goal "Image_singleton_iff" Relation.thy
     "(b : r^^{a}) = ((a,b):r)"
  (fn _ => [ rtac (Image_iff RS trans) 1,
-	    fast_tac comp_cs 1 ]);
+            fast_tac comp_cs 1 ]);
 
 qed_goalw "ImageI" Relation.thy [Image_def]
     "!!a b r. [| (a,b): r;  a:A |] ==> b : r^^A"
  (fn _ => [ (REPEAT (ares_tac [CollectI,RangeI,bexI] 1)),
             (resolve_tac [conjI ] 1),
-            (resolve_tac [RangeI] 1),
+            (rtac RangeI 1),
             (REPEAT (fast_tac set_cs 1))]);
 
 qed_goalw "ImageE" Relation.thy [Image_def]

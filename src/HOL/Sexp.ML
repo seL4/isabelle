@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Sexp
+(*  Title:      HOL/Sexp
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 S-expressions, general binary trees for defining recursive data structures
@@ -12,22 +12,22 @@ open Sexp;
 
 val sexp_free_cs = 
     set_cs addSDs [Leaf_inject, Numb_inject, Scons_inject] 
-	   addSEs [Leaf_neq_Scons, Leaf_neq_Numb,
-		   Numb_neq_Scons, Numb_neq_Leaf,
-		   Scons_neq_Leaf, Scons_neq_Numb];
+           addSEs [Leaf_neq_Scons, Leaf_neq_Numb,
+                   Numb_neq_Scons, Numb_neq_Leaf,
+                   Scons_neq_Leaf, Scons_neq_Numb];
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (fast_tac sexp_free_cs));
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (fast_tac sexp_free_cs));
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (fast_tac sexp_free_cs));
 qed "sexp_case_Scons";
 
@@ -88,7 +88,7 @@ and pred_sexp_trans2 = pred_sexp_t2 RSN (2, trans_trancl RS transD);
 
 (*Proves goals of the form (M,N):pred_sexp^+ provided M,N:sexp*)
 Addsimps (sexp.intrs @ [pred_sexp_t1, pred_sexp_t2,
-	                pred_sexp_trans1, pred_sexp_trans2, cut_apply]);
+                        pred_sexp_trans1, pred_sexp_trans2, cut_apply]);
 
 val major::prems = goalw Sexp.thy [pred_sexp_def]
     "[| p : pred_sexp;  \

@@ -1,9 +1,9 @@
-(*  Title: 	HOL/wf.ML
+(*  Title:      HOL/WF.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
-For wf.thy.  Well-founded Recursion
+For WF.thy.  Well-founded Recursion
 *)
 
 open WF;
@@ -33,8 +33,8 @@ qed "wf_induct";
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
 fun wf_ind_tac a prems i = 
     EVERY [res_inst_tac [("a",a)] wf_induct i,
-	   rename_last_tac a ["1"] (i+1),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+1),
+           ares_tac prems i];
 
 val prems = goal WF.thy "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
 by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
@@ -92,14 +92,14 @@ fun indhyp_tac hyps =
     ares_tac (TrueI::hyps) ORELSE' 
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
-		        eresolve_tac [transD, mp, allE]));
+                        eresolve_tac [transD, mp, allE]));
 
 (*** NOTE! some simplifications need a different finish_tac!! ***)
 fun indhyp_tac hyps =
     resolve_tac (TrueI::refl::hyps) ORELSE' 
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
-		        eresolve_tac [transD, mp, allE]));
+                        eresolve_tac [transD, mp, allE]));
 val wf_super_ss = !simpset setsolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def,cut_def]
@@ -167,14 +167,14 @@ goalw WF.thy [wftrec_def]
     "!!r. [| wf(r);  trans(r) |] ==> \
 \    wftrec r a H = H a (cut (%x.wftrec r x H) r a)";
 by (EVERY1 [stac (rewrite_rule [is_recfun_def] unfold_the_recfun),
-	    REPEAT o atac, rtac H_cong1]);
+            REPEAT o atac, rtac H_cong1]);
 by (asm_simp_tac (!simpset addsimps [cut_cut_eq,the_recfun_cut]) 1);
 qed "wftrec";
 
 (*Unused but perhaps interesting*)
 val prems = goal WF.thy
     "[| wf(r);  trans(r);  !!f x. H x (cut f r x) = H x f |] ==> \
-\		wftrec r a H = H a (%x.wftrec r x H)";
+\               wftrec r a H = H a (%x.wftrec r x H)";
 by (rtac (wftrec RS trans) 1);
 by (REPEAT (resolve_tac prems 1));
 qed "wftrec2";

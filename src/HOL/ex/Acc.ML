@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Acc
+(*  Title:      HOL/ex/Acc
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Inductive definition of acc(r)
@@ -15,7 +15,7 @@ open Acc;
 val prems = goal Acc.thy
     "[| !!b. (b,a):r ==> b: acc(r) |] ==> a: acc(r)";
 by (fast_tac (set_cs addIs (prems @ 
-			    map (rewrite_rule [pred_def]) acc.intrs)) 1);
+                            map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
 goal Acc.thy "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
@@ -25,8 +25,8 @@ by (fast_tac set_cs 1);
 qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
-    "[| a : acc(r);						\
-\       !!x. [| x: acc(r);  ALL y. (y,x):r --> P(y) |] ==> P(x)	\
+    "[| a : acc(r);                                             \
+\       !!x. [| x: acc(r);  ALL y. (y,x):r --> P(y) |] ==> P(x) \
 \    |] ==> P(a)";
 by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);
@@ -55,7 +55,7 @@ val [major] = goal Acc.thy "wf(r) ==> r <= Sigma (acc r) (%u. acc(r))";
 by (rtac subsetI 1);
 by (res_inst_tac [("p", "x")] PairE 1);
 by (fast_tac (set_cs addSIs [SigmaI,
-			     major RS acc_wfD_lemma RS spec RS mp]) 1);
+                             major RS acc_wfD_lemma RS spec RS mp]) 1);
 qed "acc_wfD";
 
 goal Acc.thy "wf(r)  =  (r <= Sigma (acc r) (%u. acc(r)))";

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Subst/unifier.ML
+(*  Title:      HOL/Subst/unifier.ML
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For unifier.thy.
@@ -95,13 +95,13 @@ val Var_Idem  = store_thm("Var_Idem", result() RS mp);
 val [prem] = goalw Unifier.thy [Idem_def]
      "Idem(r) ==>  Unifier s (t <| r) (u <| r) --> Unifier (r <> s) (t <| r) (u <| r)";
 by (simp_tac (subst_ss addsimps 
-	      [Unifier_iff,subst_comp,prem RS comp_subst_subst]) 1);
+              [Unifier_iff,subst_comp,prem RS comp_subst_subst]) 1);
 val Unifier_Idem_subst  = store_thm("Unifier_Idem_subst", result() RS mp);
 
 val [prem] = goal Unifier.thy 
      "r <> s =s= s ==>  Unifier s t u --> Unifier s (t <| r) (u <| r)";
 by (simp_tac (subst_ss addsimps 
-	      [Unifier_iff,subst_comp,prem RS comp_subst_subst]) 1);
+              [Unifier_iff,subst_comp,prem RS comp_subst_subst]) 1);
 val Unifier_comp_subst  = store_thm("Unifier_comp_subst", result() RS mp);
 
 (*** The domain of a MGIU is a subset of the variables in the terms ***)
@@ -120,7 +120,7 @@ val prems = goal Unifier.thy
 by (simp_tac (subst_ss addsimps [not_equal_iff]) 1);
 by (REPEAT (resolve_tac [impI,disjI2] 1));
 by(res_inst_tac [("x","x")] exI 1);
-br conjI 1;
+by (rtac conjI 1);
 by (asm_simp_tac (subst_ss addsimps [Var_elim,subst_comp,repl_invariance]) 1);
 by (asm_simp_tac (subst_ss addsimps [Var_subst]) 1);
 val MGIU_sdom_lemma = store_thm("MGIU_sdom_lemma", result() RS mp RS mp RS lemma_lemma RS notE);
@@ -184,7 +184,7 @@ qed "Unify_comm";
 
 goal Unifier.thy "MGIUnifier [] (Const n) (Const n)";
 by (simp_tac (subst_ss addsimps
-	      [MGIU_iff,MGU_iff,Unifier_iff,subst_eq_iff,Idem_Nil]) 1);
+              [MGIU_iff,MGU_iff,Unifier_iff,subst_eq_iff,Idem_Nil]) 1);
 qed "Unify1";
 
 goal Unifier.thy "~m=n --> (ALL l.~Unifier l (Const m) (Const n))";
@@ -198,7 +198,7 @@ qed "Unify3";
 
 val [prem] = goal Unifier.thy "Var(v) <: t ==> (ALL l.~Unifier l (Var v) t)";
 by (simp_tac (subst_ss addsimps
-	      [Unifier_iff,prem RS subst_mono RS occs_irrefl2]) 1);
+              [Unifier_iff,prem RS subst_mono RS occs_irrefl2]) 1);
 qed "Unify4";
 
 goal Unifier.thy "ALL l.~Unifier l (Const m) (Comb t u)";
@@ -221,7 +221,7 @@ val [p1,p2,p3] = goal Unifier.thy
 \     (! q.Unifier q (t <| r) (u <| r) --> s <> q =s= q) |] ==> \
 \     Idem(r <> s)";
 by (cut_facts_tac [p1,
-		   p2 RS (p1 RS Unifier_Idem_subst RS (p3 RS spec RS mp))] 1);
+                   p2 RS (p1 RS Unifier_Idem_subst RS (p3 RS spec RS mp))] 1);
 by (REPEAT_SOME (etac rev_mp));
 by (simp_tac (subst_ss addsimps [raw_Idem_iff,subst_eq_iff,subst_comp]) 1);
 qed "Unify8_lemma1";
@@ -232,7 +232,7 @@ val [p1,p2,p3,p4] = goal Unifier.thy
 \   r <> s <> q =s= q";
 val pp = p1 RS (p3 RS spec RS mp);
 by (cut_facts_tac [pp,
-		   p2 RS (pp RS Unifier_comp_subst) RS (p4 RS spec RS mp)] 1);
+                   p2 RS (pp RS Unifier_comp_subst) RS (p4 RS spec RS mp)] 1);
 by (REPEAT_SOME (etac rev_mp));
 by (simp_tac (subst_ss addsimps [subst_eq_iff,subst_comp]) 1);
 qed "Unify8_lemma2";
@@ -243,9 +243,9 @@ by (simp_tac (subst_ss addsimps [MGIU_iff,subst_comp,comp_assoc]) 1);
 by (safe_tac HOL_cs);
 by (REPEAT (etac rev_mp 2));
 by (simp_tac (subst_ss addsimps 
-	      [Unifier_iff,MGIU_iff,subst_comp,comp_assoc]) 2);
+              [Unifier_iff,MGIU_iff,subst_comp,comp_assoc]) 2);
 by (ALLGOALS (fast_tac (set_cs addEs 
-			[Unifier_Comb,Unify8_lemma1,Unify8_lemma2])));
+                        [Unifier_Comb,Unify8_lemma1,Unify8_lemma2])));
 qed "Unify8";
 
 
@@ -268,7 +268,7 @@ by (subgoal_tac "vars_of(u <| s) Un vars_of(u' <| s) <= \
 by (etac subset_trans 1);
 by (ALLGOALS (simp_tac (subst_ss addsimps [Var_intro,subset_iff])));
 by (ALLGOALS (fast_tac (set_cs addDs 
-			[Var_intro,prem RS MGIU_srange RS subsetD])));
+                        [Var_intro,prem RS MGIU_srange RS subsetD])));
 qed "UWFD2_lemma1";
 
 val [major,minor] = goal Unifier.thy 

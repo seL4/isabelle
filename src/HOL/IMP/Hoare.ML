@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/Hoare.ML
+(*  Title:      HOL/IMP/Hoare.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1995 TUM
 
 Soundness of Hoare rules wrt denotational semantics
@@ -9,16 +9,16 @@ Soundness of Hoare rules wrt denotational semantics
 open Hoare;
 
 goalw Hoare.thy [spec_def] "!P c Q. ({{P}}c{{Q}}) --> spec P c Q";
-br hoare.mutual_induct 1;
+by (rtac hoare.mutual_induct 1);
     by(ALLGOALS Asm_simp_tac);
   by(fast_tac rel_cs 1);
  by(fast_tac HOL_cs 1);
-br allI 1;
-br allI 1;
-br impI 1;
-be induct2 1;
+by (rtac allI 1);
+by (rtac allI 1);
+by (rtac impI 1);
+by (etac induct2 1);
  br Gamma_mono 1;
-by (rewrite_goals_tac [Gamma_def]);  
+by (rewtac Gamma_def);  
 by(eres_inst_tac [("x","a")] allE 1);
 by (safe_tac comp_cs);
   by(ALLGOALS Asm_full_simp_tac);

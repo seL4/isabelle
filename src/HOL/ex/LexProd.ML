@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/lex-prod.ML
+(*  Title:      HOL/ex/lex-prod.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow, TU Munich
+    Author:     Tobias Nipkow, TU Munich
     Copyright   1993  TU Munich
 
 For lex-prod.thy.

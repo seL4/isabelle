@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/meson
+(*  Title:      HOL/ex/meson
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 The MESON resolution proof procedure for HOL
@@ -13,7 +13,7 @@ writeln"File HOL/ex/meson.";
 (*Prove theorems using fast_tac*)
 fun prove_fun s = 
     prove_goal HOL.thy s
-	 (fn prems => [ cut_facts_tac prems 1, fast_tac HOL_cs 1 ]);
+         (fn prems => [ cut_facts_tac prems 1, fast_tac HOL_cs 1 ]);
 
 (**** Negation Normal Form ****)
 
@@ -160,38 +160,38 @@ val prop_of = #prop o rep_thm;
 (*Permits forward proof from rules that discharge assumptions*)
 fun forward_res nf state =
   case Sequence.pull
-	(tapply(ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)), 
-		state))
+        (tapply(ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)), 
+                state))
   of Some(th,_) => th
    | None => raise THM("forward_res", 0, [state]);
 
 
 (*Negation Normal Form*)
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
-	       not_impD, not_iffD, not_allD, not_exD, not_notD];
+               not_impD, not_iffD, not_allD, not_exD, not_notD];
 fun make_nnf th = make_nnf (tryres(th, nnf_rls))
     handle THM _ => 
-	forward_res make_nnf
-      	   (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
+        forward_res make_nnf
+           (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM _ => th;
 
 
 (*Are any of the constants in "bs" present in the term?*)
 fun has_consts bs = 
   let fun has (Const(a,_)) = a mem bs
-	| has (f$u) = has f orelse has u
-	| has (Abs(_,_,t)) = has t
-	| has _ = false
+        | has (f$u) = has f orelse has u
+        | has (Abs(_,_,t)) = has t
+        | has _ = false
   in  has  end;
 
 (*Pull existential quantifiers (Skolemization)*)
 fun skolemize th = 
   if not (has_consts ["Ex"] (prop_of th)) then th
   else skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
-			  disj_exD, disj_exD1, disj_exD2]))
+                          disj_exD, disj_exD1, disj_exD2]))
     handle THM _ => 
-	skolemize (forward_res skolemize
-		(tryres (th, [conj_forward, disj_forward, all_forward])))
+        skolemize (forward_res skolemize
+                (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM _ => forward_res skolemize (th RS ex_forward);
 
 
@@ -235,14 +235,14 @@ fun cnf_aux seen (th,ths) =
   else if not (has_consts ["All","op &"] (prop_of th))  then th::ths
   else (*conjunction?*)
         cnf_aux seen (th RS conjunct1, 
-		      cnf_aux seen (th RS conjunct2, ths))
+                      cnf_aux seen (th RS conjunct2, ths))
   handle THM _ => (*universal quant?*)
-	cnf_aux  seen (freeze_spec th,  ths)
+        cnf_aux  seen (freeze_spec th,  ths)
   handle THM _ => (*disjunction?*)
     let val tac = 
-	(METAHYPS (resop (cnf_nil seen)) 1) THEN
-	(STATE (fn st' => 
-		METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1))
+        (METAHYPS (resop (cnf_nil seen)) 1) THEN
+        (STATE (fn st' => 
+                METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1))
     in  Sequence.list_of_s (tapply(tac, th RS disj_forward))  @  ths
     end
 and cnf_nil seen th = cnf_aux seen (th,[]);
@@ -268,9 +268,9 @@ qed "disj_forward2";
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
 fun forward_res2 nf hyps state =
   case Sequence.pull
-	(tapply(REPEAT 
-	   (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1), 
-	   state))
+        (tapply(REPEAT 
+           (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1), 
+           state))
   of Some(th,_) => th
    | None => raise THM("forward_res2", 0, [state]);
 
@@ -279,7 +279,7 @@ fun forward_res2 nf hyps state =
 fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
     handle THM _ => tryres(forward_res2 nodups_aux rls (th RS disj_forward2),
-			   [disj_FalseD1, disj_FalseD2, asm_rl])
+                           [disj_FalseD1, disj_FalseD2, asm_rl])
     handle THM _ => th;
 
 (*Remove duplicate literals, if there are any*)
@@ -292,7 +292,7 @@ fun nodups th =
 
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
 fun assoc_right th = assoc_right (th RS disj_assoc)
-	handle THM _ => th;
+        handle THM _ => th;
 
 (*Must check for negative literal first!*)
 val clause_rules = [disj_assoc, make_neg_rule, make_pos_rule];
@@ -318,15 +318,15 @@ fun make_clauses ths =
 
 (*Create a Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules)) 
-		          handle THM _ => th;
+                          handle THM _ => th;
 
 (*Generate Horn clauses for all contrapositives of a clause*)
 fun add_contras crules (th,hcs) = 
   let fun rots (0,th) = hcs
-	| rots (k,th) = zero_var_indexes (make_horn crules th) ::
-			rots(k-1, assoc_right (th RS disj_comm))
+        | rots (k,th) = zero_var_indexes (make_horn crules th) ::
+                        rots(k-1, assoc_right (th RS disj_comm))
   in case nliterals(prop_of th) of
-	1 => th::hcs
+        1 => th::hcs
       | n => rots(n, assoc_right th)
   end;
 
@@ -342,7 +342,7 @@ val neg_clauses = filter is_negative;
 (***** MESON PROOF PROCEDURE *****)
 
 fun rhyps (Const("==>",_) $ (Const("Trueprop",_) $ A) $ phi,
-	   As) = rhyps(phi, A::As)
+           As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 
 (** Detecting repeated assumptions in a subgoal **)
@@ -355,7 +355,7 @@ fun has_reps [] = false
   | has_reps [_] = false
   | has_reps [t,u] = (t aconv u)
   | has_reps ts = (foldl ins_term (Net.empty, ts);  false)
-    		  handle INSERT => true; 
+                  handle INSERT => true; 
 
 (*Loop checking: FAIL if trying to prove the same thing twice
   -- repeated literals*)
@@ -394,24 +394,24 @@ fun skolemize_tac prems =
 
 fun MESON sko_tac = SELECT_GOAL
  (EVERY1 [rtac ccontr,
-	  METAHYPS (fn negs =>
-		    EVERY1 [skolemize_tac negs,
-			    METAHYPS (sko_tac o make_clauses)])]);
+          METAHYPS (fn negs =>
+                    EVERY1 [skolemize_tac negs,
+                            METAHYPS (sko_tac o make_clauses)])]);
 
 fun best_meson_tac sizef = 
   MESON (fn cls => 
-	 resolve_tac (gocls cls) 1
-	 THEN_BEST_FIRST 
- 	 (has_fewer_prems 1, sizef,
-	  prolog_step_tac (make_horns cls) 1));
+         resolve_tac (gocls cls) 1
+         THEN_BEST_FIRST 
+         (has_fewer_prems 1, sizef,
+          prolog_step_tac (make_horns cls) 1));
 
 (*First, breaks the goal into independent units*)
 val safe_meson_tac =
      SELECT_GOAL (TRY (safe_tac HOL_cs) THEN 
-		  TRYALL (best_meson_tac size_of_subgoals));
+                  TRYALL (best_meson_tac size_of_subgoals));
 
 val depth_meson_tac =
      MESON (fn cls => EVERY [resolve_tac (gocls cls) 1, 
-			     depth_prolog_tac (make_horns cls)]);
+                             depth_prolog_tac (make_horns cls)]);
 
 writeln"Reached end of file.";

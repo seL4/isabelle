@@ -51,7 +51,7 @@ goalw thy [dom_def,cod_def,UNION_def,Bex_def]
   "!!v. [| v : free_tv(s n); v~=n |] ==> v : cod s";
 by (Simp_tac 1);
 by (safe_tac (empty_cs addSIs [exI,conjI,notI]));
-ba 2;
+by (assume_tac 2);
 by (rotate_tac 1 1);
 by (Asm_full_simp_tac 1);
 qed "cod_app_subst";
@@ -135,7 +135,7 @@ qed "new_tv_subst";
 
 goal thy 
   "new_tv n  = list_all (new_tv n)";
-br ext 1;
+by (rtac ext 1);
 by(list.induct_tac "x" 1);
 by(ALLGOALS Asm_simp_tac);
 qed "new_tv_list";

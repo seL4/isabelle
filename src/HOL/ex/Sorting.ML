@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/sorting.ML
+(*  Title:      HOL/ex/sorting.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Some general lemmas

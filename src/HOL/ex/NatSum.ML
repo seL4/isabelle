@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/natsum.ML
+(*  Title:      HOL/ex/natsum.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Summing natural numbers, squares and cubes. Could be continued...

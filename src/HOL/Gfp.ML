@@ -1,6 +1,6 @@
-(*  Title: 	HOL/gfp
+(*  Title:      HOL/gfp
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For gfp.thy.  The Knaster-Tarski Theorem for greatest fixed points.
@@ -25,12 +25,12 @@ qed "gfp_least";
 
 val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) <= f(gfp(f))";
 by (EVERY1 [rtac gfp_least, rtac subset_trans, atac,
-	    rtac (mono RS monoD), rtac gfp_upperbound, atac]);
+            rtac (mono RS monoD), rtac gfp_upperbound, atac]);
 qed "gfp_lemma2";
 
 val [mono] = goal Gfp.thy "mono(f) ==> f(gfp(f)) <= gfp(f)";
 by (EVERY1 [rtac gfp_upperbound, rtac (mono RS monoD), 
-	    rtac gfp_lemma2, rtac mono]);
+            rtac gfp_lemma2, rtac mono]);
 qed "gfp_lemma3";
 
 val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) = f(gfp(f))";
@@ -64,8 +64,8 @@ qed "coinduct";
 
 val [mono,prem] = goal Gfp.thy
     "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))";
-br (mono RS mono_Un RS subsetD) 1;
-br (mono RS gfp_lemma2 RS subsetD RS UnI2) 1;
+by (rtac (mono RS mono_Un RS subsetD) 1);
+by (rtac (mono RS gfp_lemma2 RS subsetD RS UnI2) 1);
 by (rtac prem 1);
 qed "gfp_fun_UnI2";
 
@@ -140,6 +140,6 @@ val gfp_mono = result();
 
 (*Monotonicity of gfp!*)
 val [prem] = goal Gfp.thy "[| !!Z. f(Z)<=g(Z) |] ==> gfp(f) <= gfp(g)";
-br (gfp_upperbound RS gfp_least) 1;
-be (prem RSN (2,subset_trans)) 1;
+by (rtac (gfp_upperbound RS gfp_least) 1);
+by (etac (prem RSN (2,subset_trans)) 1);
 qed "gfp_mono";

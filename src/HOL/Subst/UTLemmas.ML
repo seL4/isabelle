@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Subst/UTLemmas.ML
+(*  Title:      HOL/Subst/UTLemmas.ML
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For UTLemmas.thy.  

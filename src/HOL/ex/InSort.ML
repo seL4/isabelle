@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/insort.ML
+(*  Title:      HOL/ex/insort.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Correctness proof of insertion sort.

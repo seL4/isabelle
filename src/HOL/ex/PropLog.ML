@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/pl.ML
+(*  Title:      HOL/ex/pl.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow & Lawrence C Paulson
+    Author:     Tobias Nipkow & Lawrence C Paulson
     Copyright   1994  TU Muenchen & University of Cambridge
 
 Soundness and completeness of propositional logic w.r.t. truth-tables.
@@ -107,7 +107,7 @@ by (rtac (expand_if RS iffD2) 1);
 by(PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (!simpset addsimps [thms_I, thms.H])));
 by (fast_tac (set_cs addIs [weaken_left_Un1, weaken_left_Un2, 
-			   weaken_right, imp_false]
+                           weaken_right, imp_false]
                     addSEs [false_imp]) 1);
 qed "hyps_thms_if";
 

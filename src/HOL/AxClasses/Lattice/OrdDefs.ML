@@ -58,7 +58,7 @@ qed "le_fun_antisym";
 (*"'a dual" is even an isotype*)
 goal thy "Rep_dual (Abs_dual y) = y";
   br Abs_dual_inverse 1;
-  by (rewrite_goals_tac [dual_def]);
+  by (rewtac dual_def);
   by (fast_tac set_cs 1);
 qed "Abs_dual_inverse'";
 
