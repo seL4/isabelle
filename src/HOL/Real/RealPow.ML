@@ -305,8 +305,7 @@ Addsimps [realpow_two_minus];
 
 Goalw [real_diff_def] "(x::real)^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)";
 by (simp_tac (simpset() addsimps 
-              [real_add_mult_distrib2, real_add_mult_distrib, 
-               real_minus_mult_eq2 RS sym] @ real_mult_ac) 1);
+            [real_add_mult_distrib2, real_add_mult_distrib] @ real_mult_ac) 1);
 qed "realpow_two_diff";
 
 Goalw [real_diff_def] "((x::real)^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)";

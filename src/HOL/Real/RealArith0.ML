@@ -99,8 +99,7 @@ Addsimps [real_divide_self_eq];
 
 (** Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
     but not (yet?) for k*m < n*k. **)
-
-bind_thm ("real_mult_minus_right", real_minus_mult_eq2 RS sym);
+(* unused?? bind_thm ("real_mult_minus_right", real_minus_mult_eq2 RS sym); *)
 
 Goal "(-y < -x) = ((x::real) < y)";
 by (arith_tac 1);
@@ -109,16 +108,16 @@ Addsimps [real_minus_less_minus];
 
 Goal "[| i<j;  k < (0::real) |] ==> j*k < i*k";
 by (rtac (real_minus_less_minus RS iffD1) 1);
-by (auto_tac (claset(), 
-              simpset() delsimps [real_minus_mult_eq2 RS sym]
+by (auto_tac (claset(),
+              simpset() delsimps [real_mult_minus_eq2]
                         addsimps [real_minus_mult_eq2])); 
 qed "real_mult_less_mono1_neg";
 
 Goal "[| i<j;  k < (0::real) |] ==> k*j < k*i";
 by (rtac (real_minus_less_minus RS iffD1) 1);
 by (auto_tac (claset(), 
-              simpset() delsimps [real_minus_mult_eq1 RS sym]
-                            addsimps [real_minus_mult_eq1]));;
+              simpset() delsimps [real_mult_minus_eq1]
+                        addsimps [real_minus_mult_eq1])); 
 qed "real_mult_less_mono2_neg";
 
 Goal "[| i <= j;  k <= (0::real) |] ==> j*k <= i*k";

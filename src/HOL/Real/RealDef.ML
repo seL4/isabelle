@@ -367,21 +367,23 @@ qed "real_mult_0_right";
 
 Addsimps [real_mult_0_right, real_mult_0];
 
-Goal "-(x * y) = (-x) * (y::real)";
+Goal "(-x) * (y::real) = -(x * y)";
 by (res_inst_tac [("z","x")] eq_Abs_REAL 1);
 by (res_inst_tac [("z","y")] eq_Abs_REAL 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_minus,real_mult] 
                                  @ preal_mult_ac @ preal_add_ac));
-qed "real_minus_mult_eq1";
+qed "real_mult_minus_eq1";
+Addsimps [real_mult_minus_eq1];
 
-Goal "-(x * y) = x * (- y :: real)";
-by (simp_tac (simpset() addsimps [inst "z" "x" real_mult_commute,
-				  real_minus_mult_eq1]) 1);
-qed "real_minus_mult_eq2";
+bind_thm("real_minus_mult_eq1", real_mult_minus_eq1 RS sym);
 
-(*Pull negations out*)
-Addsimps [real_minus_mult_eq1 RS sym, real_minus_mult_eq2 RS sym];
+Goal "x * (- y :: real) = -(x * y)";
+by (simp_tac (simpset() addsimps [inst "z" "x" real_mult_commute]) 1);
+qed "real_mult_minus_eq2";
+Addsimps [real_mult_minus_eq2];
+
+bind_thm("real_minus_mult_eq2", real_mult_minus_eq2 RS sym);
 
 Goal "(- (1::real)) * z = -z";
 by (Simp_tac 1);
@@ -395,15 +397,13 @@ qed "real_mult_minus_1_right";
 Addsimps [real_mult_minus_1_right];
 
 Goal "(-x) * (-y) = x * (y::real)";
-by (full_simp_tac (simpset() addsimps [real_minus_mult_eq2 RS sym,
-				       real_minus_mult_eq1 RS sym]) 1);
+by (Simp_tac 1);
 qed "real_minus_mult_cancel";
 
 Addsimps [real_minus_mult_cancel];
 
 Goal "(-x) * y = x * (- y :: real)";
-by (full_simp_tac (simpset() addsimps [real_minus_mult_eq2 RS sym,
-				       real_minus_mult_eq1 RS sym]) 1);
+by (Simp_tac 1);
 qed "real_minus_mult_commute";
 
 (** Lemmas **)

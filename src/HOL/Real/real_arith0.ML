@@ -20,7 +20,7 @@ val add_rules =
      real_add_minus, real_add_minus_left,
      real_mult_0, real_mult_0_right,
      real_mult_1, real_mult_1_right,
-     real_mult_minus_1, real_mult_minus_1_right];
+     real_mult_minus_eq1, real_mult_minus_eq2];
 
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
                Real_Numeral_Simprocs.cancel_numerals @

@@ -366,17 +366,19 @@ val real_minus_simps = NCons_simps @
 (*To let us treat subtraction as addition*)
 val diff_simps = [real_diff_def, real_minus_add_distrib, real_minus_minus];
 
-(*push the unary minus down: - x * y = x * - y *)
+(*push the unary minus down: - x * y = x * - y
 val real_minus_mult_eq_1_to_2 = 
     [real_minus_mult_eq1 RS sym, real_minus_mult_eq2] MRS trans |> standard;
+same as real_minus_mult_commute
+*)
 
 (*to extract again any uncancelled minuses*)
 val real_minus_from_mult_simps = 
-    [real_minus_minus, real_minus_mult_eq1 RS sym, real_minus_mult_eq2 RS sym];
+    [real_minus_minus, real_mult_minus_eq1, real_mult_minus_eq2];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val real_mult_minus_simps =
-    [real_mult_assoc, real_minus_mult_eq1, real_minus_mult_eq_1_to_2];
+    [real_mult_assoc, real_minus_mult_eq1, real_minus_mult_commute];
 
 (*Apply the given rewrite (if present) just once*)
 fun trans_tac None      = all_tac
