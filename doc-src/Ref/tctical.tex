@@ -169,7 +169,7 @@ FILTER  : (thm -> bool) -> tactic -> tactic
 CHANGED : tactic -> tactic
 \end{ttbox}
 \begin{ttdescription}
-\item[\tt FILTER {\it p} $tac$] 
+\item[\ttindexbold{FILTER} {\it p} $tac$] 
 applies $tac$ to the proof state and returns a sequence consisting of those
 result states that satisfy~$p$.
 
@@ -258,7 +258,7 @@ IF_UNSOLVED : tactic -> tactic
 DETERM      : tactic -> tactic
 \end{ttbox}
 \begin{ttdescription}
-\item[COND {\it p} $tac@1$ $tac@2$] 
+\item[\ttindexbold{COND} {\it p} $tac@1$ $tac@2$] 
 applies $tac@1$ to the proof state if it satisfies~$p$, and applies $tac@2$
 otherwise.  It is a conditional tactical in that only one of $tac@1$ and
 $tac@2$ is applied to a proof state.  However, both $tac@1$ and $tac@2$ are
