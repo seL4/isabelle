@@ -187,8 +187,7 @@ val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %)))[
 end;
 
 local 
-  fun bind_fun t = foldr mk_All ((if length cons = 1 then ["f"] 
-		  else mapn (fn n => K("f"^(string_of_int n))) 1 cons),t);
+  fun bind_fun t = foldr mk_All (when_funs cons,t);
   fun bound_fun i _ = Bound (length cons - i);
   val when_app  = foldl (op `) (%%(dname^"_when"), mapn bound_fun 1 cons);
   val when_appl = pg [ax_when_def] (bind_fun(mk_trp(when_app`%x_name ===
