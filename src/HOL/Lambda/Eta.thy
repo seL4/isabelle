@@ -176,7 +176,7 @@ lemma square_beta_eta: "square beta eta (eta^*) (beta^=)"
     apply (blast intro: r_into_rtrancl rtrancl_eta_AppL)
    apply (blast intro: r_into_rtrancl rtrancl_eta_AppR)
   apply (slowsimp intro: r_into_rtrancl rtrancl_eta_Abs free_beta
-    other: dB.distinct [iff del, simp])    (*23 seconds?*)
+    iff del: dB.distinct simp: dB.distinct)    (*23 seconds?*)
   done
 
 lemma confluent_beta_eta: "confluent (beta \<union> eta)"
