@@ -159,7 +159,7 @@ fun add_arity_thms thms thy =
 (* errors *)
 
 fun err_not_logic c =
-  error ("Axiomatic class " ^ quote c ^ " not subclass of \"logic\"");
+  error ("Axiomatic class " ^ quote c ^ " not subclass of " ^ quote logicC);
 
 fun err_bad_axsort ax c =
   error ("Sort constraint in axiom " ^ quote ax ^ " not supersort of " ^ quote c);
