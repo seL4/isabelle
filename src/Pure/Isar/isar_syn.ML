@@ -310,7 +310,7 @@ val presumeP =
 val defP =
   OuterSyntax.command "def" "local definition" K.prf_asm
     ((P.opt_thm_name ":" -- (P.name -- Scan.option (P.$$$ "::" |-- P.typ) --
-      (P.$$$ "=" |-- P.termp)) >> P.triple1) -- P.marg_comment
+      (P.$$$ "==" |-- P.termp)) >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.local_def)));
 
 val fixP =
