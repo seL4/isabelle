@@ -164,6 +164,15 @@ val global_transfer = gen_transfer I;
 val local_transfer = gen_transfer ProofContext.theory_of;
 
 
+(* COMP *)
+
+fun comp B (x, A) = (x, A COMP B);
+
+fun gen_COMP thm = syntax (thm >> comp);
+val global_COMP = gen_COMP global_thm;
+val local_COMP = gen_COMP local_thm;
+
+
 (* RS *)
 
 fun resolve (i, B) (x, A) = (x, A RSN (i, B));
@@ -250,6 +259,7 @@ fun elimify x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 val pure_attributes =
  [("tag", (gen_tag, gen_tag), "tag theorem"),
   ("untag", (gen_untag, gen_untag), "untag theorem"),
+  ("COMP", (global_COMP, local_COMP), "compose rules (no lifting)"),
   ("RS", (global_RS, local_RS), "resolve with rule"),
   ("APP", (global_APP, local_APP), "resolve rule with"),
   ("where", (global_where, local_where), "named instantiation of theorem"),
