@@ -18,6 +18,9 @@ DEFAULT_OUTPUT = *.dvi *.pdf *.ps
 GARBAGE =
 OUTPUT =
 
+## special targets
+
+.DELETE_ON_ERROR:
 
 ## actions
 
