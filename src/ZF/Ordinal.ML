@@ -45,19 +45,6 @@ by (cut_facts_tac prems 1);
 by (fast_tac (ZF_cs addSDs [prem1 RS Transset_Pair_D]) 1);
 qed "Transset_includes_range";
 
-val [prem1,prem2] = goalw (merge_theories(Ordinal.thy,Sum.thy)) [sum_def]
-    "[| Transset(C); A+B <= C |] ==> A <= C & B <= C";
-by (rtac (prem2 RS (Un_subset_iff RS iffD1) RS conjE) 1);
-by (REPEAT (etac (prem1 RS Transset_includes_range) 1
-     ORELSE resolve_tac [conjI, singletonI] 1));
-val Transset_includes_summands = result();
-
-val [prem] = goalw (merge_theories(Ordinal.thy,Sum.thy)) [sum_def]
-    "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
-by (rtac (Int_Un_distrib RS ssubst) 1);
-by (fast_tac (ZF_cs addSDs [prem RS Transset_Pair_D]) 1);
-val Transset_sum_Int_subset = result();
-
 (** Closure properties **)
 
 goalw Ordinal.thy [Transset_def] "Transset(0)";
@@ -215,6 +202,10 @@ goalw Ordinal.thy [lt_def] "~ i<0";
 by (fast_tac ZF_cs 1);
 qed "not_lt0";
 
+goal Ordinal.thy "!!a. b<a ==> Ord(b)";
+by (eresolve_tac [ltE] 1 THEN assume_tac 1);
+qed "lt_Ord";
+
 (* i<0 ==> R *)
 bind_thm ("lt0E", not_lt0 RS notE);
 
@@ -296,6 +287,18 @@ by (etac conjE 1);
 by (rtac minor 1);
 by (REPEAT (assume_tac 1));
 qed "MemrelE";
+
+goalw Ordinal.thy [Memrel_def] "Memrel(A) <= A*A";
+by (fast_tac ZF_cs 1);
+qed "Memrel_type";
+
+goalw Ordinal.thy [Memrel_def] "!!A B. A<=B ==> Memrel(A) <= Memrel(B)";
+by (fast_tac ZF_cs 1);
+qed "Memrel_mono";
+
+goalw Ordinal.thy [Memrel_def] "Memrel(0) = 0";
+by (fast_tac (ZF_cs addSIs [equalityI]) 1);
+qed "Memrel_empty";
 
 (*The membership relation (as a set) is well-founded.
   Proof idea: show A<=B by applying the foundation axiom to A-B *)
@@ -477,6 +480,7 @@ by (fast_tac (lt_cs addEs [lt_asym]) 3);
 by (ALLGOALS (fast_tac (ZF_cs addEs [ltE] addIs [Ord_succ])));
 qed "succ_leI";
 
+(*Identical to  succ(i) < succ(j) ==> i<j  *)
 goal Ordinal.thy "!!i j. succ(i) le j ==> i<j";
 by (rtac (not_le_iff_lt RS iffD1) 1);
 by (fast_tac (lt_cs addEs [lt_asym]) 3);
@@ -486,6 +490,10 @@ qed "succ_leE";
 goal Ordinal.thy "succ(i) le j <-> i<j";
 by (REPEAT (ares_tac [iffI,succ_leI,succ_leE] 1));
 qed "succ_le_iff";
+
+goal Ordinal.thy "!!i j. succ(i) le succ(j) ==> i le j";
+by (fast_tac (lt_cs addSEs [succ_leE]) 1);
+qed "succ_le_imp_le";
 
 (** Union and Intersection **)
 
