@@ -80,10 +80,12 @@ DISTDATE=$(date "+%B %Y")
 
 if [ "$VERSION" = "-" ]; then
   DISTNAME=Isabelle_$DATE
+  DISTVERSION="$DISTNAME"
   EXPORT="checkout -P"
   UNOFFICIAL=true
 else
   DISTNAME="$VERSION"
+  DISTVERSION="$DISTNAME: $DISTDATE"
   EXPORT="export -r $VERSION"
   UNOFFICIAL=""
 fi
@@ -147,8 +149,8 @@ if [ -n "$UNOFFICIAL" ]; then
   } >UNOFFICIAL
 fi
 
-perl -pi -e "s/Internal working version of Isabelle/$DISTNAME: $DISTDATE/" src/Pure/ROOT.ML
-perl -pi -e "s/an internal working version of Isabelle/$DISTNAME: $DISTDATE/" README.html
+perl -pi -e "s/Internal working version of Isabelle/$DISTVERSION/" src/Pure/ROOT.ML
+perl -pi -e "s/an internal working version of Isabelle/$DISTVERSION/" README.html
 lynx -dump README.html >README
 
 
