@@ -683,10 +683,10 @@ apply blast
 done
 
 lemma analz_conj_parts [simp]: "(X \<in> analz H & X \<in> parts H) = (X \<in> analz H)"
-by (blast intro: analz_subset_parts [THEN [2] rev_subsetD])
+by (blast intro: analz_subset_parts [THEN subsetD])
 
 lemma analz_disj_parts [simp]: "(X \<in> analz H | X \<in> parts H) = (X \<in> parts H)"
-by (blast intro: analz_subset_parts [THEN [2] rev_subsetD])
+by (blast intro: analz_subset_parts [THEN subsetD])
 
 (*Without this equation, other rules for synth and analz would yield
   redundant cases*)
@@ -993,6 +993,8 @@ apply (rule subset_trans)
  apply (erule_tac [2] Fake_parts_insert) 
 apply (simp add: parts_mono) 
 done
+
+lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
     Method.ctxt_args (fn ctxt =>

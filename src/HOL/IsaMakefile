@@ -361,9 +361,9 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Library/NatPair.thy \
   Auth/OtwayRees_Bad.thy Auth/Public.thy Auth/ROOT.ML \
   Auth/Recur.thy Auth/Shared.thy \
   Auth/TLS.thy Auth/WooLam.thy \
-  Auth/Kerberos_BAN.thy \
-  Auth/KerberosIV.ML Auth/KerberosIV.thy \
+  Auth/Kerberos_BAN.thy Auth/KerberosIV.ML Auth/KerberosIV.thy \
   Auth/Yahalom.thy Auth/Yahalom2.thy Auth/Yahalom_Bad.thy \
+  Auth/ZhouGollmann.thy \
   Auth/Guard/Analz.thy Auth/Guard/Extensions.thy Auth/Guard/GuardK.thy \
   Auth/Guard/Guard_Public.thy Auth/Guard/Guard_Shared.thy \
   Auth/Guard/Guard.thy Auth/Guard/List_Msg.thy \

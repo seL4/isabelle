@@ -21,6 +21,8 @@ time_use_thy "Recur";
 time_use_thy "Yahalom";
 time_use_thy "Yahalom2";
 time_use_thy "Yahalom_Bad";
+time_use_thy "ZhouGollmann";
+
 
 (*Public-key protocols*)
 time_use_thy "NS_Public_Bad";
