@@ -22,6 +22,7 @@ end;
 signature CONTEXT =
 sig
   include BASIC_CONTEXT
+  val welcome: unit -> string
   val >> : (theory -> theory) -> unit
 end;
 
@@ -36,6 +37,11 @@ val current_session = ref ([]: string list);
 fun get_session () = ! current_session;
 fun add_session s = current_session := ! current_session @ [s];
 fun reset_session () = current_session := [];
+
+fun welcome () =
+  "Welcome to Isabelle/" ^
+    (case get_session () of [] => "Pure" | ss => space_implode "/" ss) ^
+    " (" ^ version ^ ")";
 
 
 
