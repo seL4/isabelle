@@ -651,7 +651,8 @@ qed "mgu_new";
 
 (* lemmata for substitutions *)
 
-goalw Type.thy [app_subst_list] "length ($ S A) = length A";
+goalw Type.thy [app_subst_list] 
+   "!!A:: ('a::type_struct) list. length ($ S A) = length A";
 by (Simp_tac 1);
 qed "length_app_subst_list";
 Addsimps [length_app_subst_list];
