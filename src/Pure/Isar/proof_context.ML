@@ -44,7 +44,7 @@ sig
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
-  val have_thmss: string -> context attribute list
+  val have_thmss: thm list -> string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
   val assumptions: context -> (cterm * (int -> tactic)) list
   val fixed_names: context -> string list
@@ -617,13 +617,13 @@ fun put_thmss [] ctxt = ctxt
 
 (* have_thmss *)
 
-fun have_thmss name more_attrs ths_attrs ctxt =
+fun have_thmss more_ths name more_attrs ths_attrs ctxt =
   let
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, th), attrs @ more_attrs)
       in (ct', th' :: ths) end
     val (ctxt', rev_thms) = foldl app ((ctxt, []), ths_attrs);
-    val thms = flat (rev rev_thms);
+    val thms = flat (rev rev_thms) @ more_ths;
   in (ctxt' |> put_thms (name, thms), (name, thms)) end;
 
 
@@ -654,7 +654,7 @@ fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
     val (ctxt'', (_, thms)) =
       ctxt'
       |> auto_bind_facts name props
-      |> have_thmss name (attrs @ [Drule.tag_assumption]) ths;
+      |> have_thmss [] name (attrs @ [Drule.tag_assumption]) ths;
 
     val ctxt''' =
       ctxt''
