@@ -21,7 +21,7 @@ lemma wt_jvm_prog_impl_wt_instr_cor:
 apply (unfold correct_state_def Let_def correct_frame_def)
 apply simp
 apply (blast intro: wt_jvm_prog_impl_wt_instr)
-.
+done
 
 lemma Load_correct:
 "\<lbrakk> wf_prog wt G;
@@ -36,7 +36,7 @@ apply (rule conjI)
  apply (rule approx_loc_imp_approx_val_sup)
  apply simp+
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
-.
+done
 
 lemma Store_correct:
 "\<lbrakk> wf_prog wt G;
@@ -50,7 +50,7 @@ apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (rule conjI)
  apply (blast intro: approx_stk_imp_approx_stk_sup)
 apply (blast intro: approx_loc_imp_approx_loc_subst approx_loc_imp_approx_loc_sup)
-.
+done
 
 
 lemma conf_Intg_Integer [iff]:
@@ -65,10 +65,10 @@ lemma Bipush_correct:
   wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk>
-\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>";
+\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 approx_val_def sup_PTS_eq map_eq_Cons)
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
-.
+done
 
 lemma NT_subtype_conv:
   "G \<turnstile> NT \<preceq> T = (T=NT \<or> (\<exists>C. T = Class C))"
@@ -78,7 +78,7 @@ proof -
     apply auto
     apply (case_tac R)
     apply auto
-    .
+    done
   note l = this
 
   show ?thesis 
@@ -92,12 +92,12 @@ lemma Aconst_null_correct:
   wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
-\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>";
+\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (rule conjI)
  apply (force simp add: approx_val_Null NT_subtype_conv)
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
-.
+done
 
 
 lemma Cast_conf2:
@@ -110,7 +110,7 @@ apply (elim exE disjE)
 apply (clarsimp simp add: conf_def obj_ty_def)
 apply (cases v)
 apply (auto intro: null rtrancl_trans)
-.
+done
 
 
 lemma Checkcast_correct:
@@ -123,7 +123,7 @@ lemma Checkcast_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons raise_xcpt_def approx_val_def)
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup Cast_conf2)
-.
+done
 
 
 lemma Getfield_correct:
@@ -133,7 +133,7 @@ lemma Getfield_correct:
   wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
-\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>";
+\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 raise_xcpt_def map_eq_Cons approx_val_def split: option.split)
 apply (frule conf_widen)
 apply assumption+
@@ -144,7 +144,7 @@ apply (rule conjI)
  apply assumption+
  apply (force intro: conf_widen simp add: hconf_def oconf_def lconf_def)
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
-.
+done
 
 lemma Putfield_correct:
 "\<lbrakk> wf_prog wt G;
@@ -153,7 +153,7 @@ lemma Putfield_correct:
   wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
-\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>";
+\<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 raise_xcpt_def split: option.split List.split)
 apply (clarsimp simp add: approx_val_def)
 apply (frule conf_widen)
@@ -162,11 +162,12 @@ apply assumption
 apply assumption
 apply (drule conf_RefTD)
 apply clarsimp
-apply (blast intro: sup_heap_update_value approx_stk_imp_approx_stk_sup_heap approx_stk_imp_approx_stk_sup
-		approx_loc_imp_approx_loc_sup_heap approx_loc_imp_approx_loc_sup
-		hconf_imp_hconf_field_update
-		correct_frames_imp_correct_frames_field_update conf_widen dest: widen_cfs_fields)
-.
+apply (blast intro: sup_heap_update_value approx_stk_imp_approx_stk_sup_heap
+  approx_stk_imp_approx_stk_sup
+  approx_loc_imp_approx_loc_sup_heap approx_loc_imp_approx_loc_sup
+  hconf_imp_hconf_field_update
+  correct_frames_imp_correct_frames_field_update conf_widen dest: widen_cfs_fields)
+done
 
 lemma collapse_paired_All:
   "(\<forall>x y. P(x,y)) = (\<forall>z. P z)"
@@ -190,7 +191,7 @@ apply (force dest!: iffD1 [OF collapse_paired_All]
                    correct_init_obj simp add:  NT_subtype_conv approx_val_def conf_def
 		   fun_upd_apply map_eq_Cons is_class_def raise_xcpt_def init_vars_def defs1 
        split: option.split)
-.
+done
 
 
 (****** Method Invocation ******)
@@ -442,14 +443,14 @@ lemma Return_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: neq_Nil_conv defs1 split: split_if_asm)
 apply (frule wt_jvm_prog_impl_wt_instr)
-apply (tactic "EVERY1[atac, etac Suc_lessD]")
+apply (assumption, erule Suc_lessD)
 apply (unfold wt_jvm_prog_def)
-apply (tactic {* fast_tac (claset()
- addDs [thm "subcls_widen_methd"]
- addEs [rotate_prems 1 widen_trans]
- addIs [conf_widen]
- addss (simpset() addsimps [thm "approx_val_def",thm "append_eq_conv_conj", map_eq_Cons]@thms "defs1")) 1 *})
-.
+apply (fastsimp
+  dest: subcls_widen_methd
+  elim: widen_trans [COMP swap_prems_rl]
+  intro: conf_widen
+  simp: approx_val_def append_eq_conv_conj map_eq_Cons defs1)
+done
 
 lemmas [simp] = map_append
 
@@ -463,7 +464,7 @@ lemma Goto_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
 apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
-.
+done
 
 
 lemma Ifcmpeq_correct:
@@ -476,7 +477,7 @@ lemma Ifcmpeq_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
 apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
-.
+done
 
 lemma Pop_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -488,7 +489,7 @@ lemma Pop_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
 apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
-.
+done
 
 lemma Dup_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -501,7 +502,7 @@ lemma Dup_correct:
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
-.
+done
 
 lemma Dup_x1_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -514,7 +515,7 @@ lemma Dup_x1_correct:
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
-.
+done
 
 lemma Dup_x2_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -527,7 +528,7 @@ lemma Dup_x2_correct:
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
-.
+done
 
 lemma Swap_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -540,7 +541,7 @@ lemma Swap_correct:
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
-.
+done
 
 lemma IAdd_correct:
 "\<lbrakk> wf_prog wt G; 
@@ -552,7 +553,7 @@ lemma IAdd_correct:
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons approx_val_def conf_def)
 apply (blast intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup)
-.
+done
 
 
 (** instr correct **)
@@ -575,7 +576,7 @@ apply (fast intro: Load_correct Store_correct Bipush_correct Aconst_null_correct
        Checkcast_correct Getfield_correct Putfield_correct New_correct 
        Goto_correct Ifcmpeq_correct Pop_correct Dup_correct 
        Dup_x1_correct Dup_x2_correct Swap_correct IAdd_correct)+
-.
+done
 
 
 (** Main **)
@@ -588,19 +589,19 @@ by (auto simp add: correct_state_def Let_def)
 
 lemma BV_correct_1 [rulify]:
 "\<And>state. \<lbrakk> wt_jvm_prog G phi; G,phi \<turnstile>JVM state\<surd>\<rbrakk> 
- \<Longrightarrow> exec (G,state) = Some state' \<longrightarrow> G,phi \<turnstile>JVM state'\<surd>";
-apply (tactic "split_all_tac 1")
+ \<Longrightarrow> exec (G,state) = Some state' \<longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
+apply (simp only: split_tupled_all)
 apply (rename_tac xp hp frs)
 apply (case_tac xp)
  apply (case_tac frs)
   apply simp
- apply (tactic "split_all_tac 1")
- apply (tactic "hyp_subst_tac 1")
+ apply (simp only: split_tupled_all)
+ apply hypsubst
  apply (frule correct_state_impl_Some_method)
  apply (force intro: instr_correct)
 apply (case_tac frs)
-apply simp+
-.
+apply simp_all
+done
 
 
 lemma L0:
@@ -613,7 +614,7 @@ lemma L1:
 apply (drule L0)
 apply assumption
 apply (fast intro: BV_correct_1)
-.
+done
 
 
 theorem BV_correct [rulify]:
@@ -622,7 +623,7 @@ apply (unfold exec_all_def)
 apply (erule rtrancl_induct)
  apply simp
 apply (auto intro: BV_correct_1)
-.
+done
 
 
 theorem BV_correct_initial:
@@ -631,6 +632,6 @@ theorem BV_correct_initial:
 apply (drule BV_correct)
 apply assumption+
 apply (simp add: correct_state_def correct_frame_def split_def split: option.splits)
-.
+done
 
 end

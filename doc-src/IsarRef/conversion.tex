@@ -21,7 +21,9 @@ FIXME
 %  \texttt{} & & \\
   \texttt{stac}~a~1 & & subst~a \\
   \texttt{strip_tac}~1 & & intro~strip & \Text{(HOL)} \\
-  \texttt{split_all_tac} & \ll & clarify & \Text{(HOL)} \\
+  \texttt{split_all_tac} & & simp~(no_asm_simp)~only: split_paired_all & \Text{(HOL)} \\
+                         & \approx & simp~only: split_tupled_all & \Text{(HOL)} \\
+                         & \ll & clarify & \Text{(HOL)} \\
 \end{matharray}
 
 
