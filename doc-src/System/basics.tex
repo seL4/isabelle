@@ -218,6 +218,7 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
     -P           startup Proof General interaction mode
     -c           tell ML system to compress output image
     -e MLTEXT    pass MLTEXT to the ML session
+    -f           pass 'Session.finish();' to the ML session
     -m MODE      add print mode for output
     -q           non-interactive session
     -r           open heap file read-only
@@ -272,8 +273,10 @@ evaluated in the given order. Strange things may happen when errorneous {\ML}
 code is provided. Also make sure that the {\ML} commands are terminated
 properly by semicolon.
 
-\medskip The \texttt{-u} option is a shortcut for \texttt{-e}, passing
-``\texttt{use"ROOT.ML";}'' to the {\ML} session.
+\medskip The \texttt{-u} option is a shortcut for \texttt{-e} passing
+``\texttt{use"ROOT.ML";}'' to the {\ML} session.  The \texttt{-f} option
+passes ``\texttt{Session.finish();}'', which is intended mainly for
+administrative purposes.
 
 \medskip The \texttt{-m} option adds identifiers of print modes to be made
 active for this session. Typically, this is used by some user interface, e.g.\ 

@@ -93,7 +93,7 @@ if [ -z "$RAW" ]; then
   "$ISABELLE" $COPY \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
-    -c -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
+    -f -c -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
   RC="$?"
 else
   ITEM="RAW"
@@ -102,7 +102,7 @@ else
 
   "$ISABELLE" $COPY \
     -e "val ml_system = \"$ML_SYSTEM\";" \
-    -e "use\"$COMPAT\" handle _ => exit 1;;" \
+    -e "use\"$COMPAT\" handle _ => exit 1;" \
     -q -w RAW_ML_SYSTEM RAW > "$LOG" 2>&1
   RC="$?"
 fi
