@@ -196,7 +196,6 @@ defs
      and Powerset Axioms using the following definitions. *)
 
   Collect_def   "Collect(A,P) == {y . x:A, x=y & P(x)}"
-  Inter_def     "Inter(A) == { x:Union(A) . ALL y:A. x:y}"
 
   (*Unordered pairs (Upair) express binary union/intersection and cons;
     set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
@@ -204,6 +203,17 @@ defs
   Upair_def   "Upair(a,b) == {y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)}"
   cons_def    "cons(a,A) == Upair(a,a) Un A"
 
+  (* Difference, general intersection, binary union and small intersection *)
+
+  Diff_def      "A - B    == { x:A . ~(x:B) }"
+  Inter_def     "Inter(A) == { x:Union(A) . ALL y:A. x:y}"
+  Un_def        "A Un  B  == Union(Upair(A,B))"
+  Int_def       "A Int B  == Inter(Upair(A,B))"
+
+  (* Definite descriptions -- via Replace over the set "1" *)
+
+  the_def       "The(P)    == Union({y . x:{0}, P(y)})"
+  if_def        "if(P,a,b) == THE z. P & z=a | ~P & z=b"
 
   (* this "symmetric" definition works better than {{a}, {a,b}} *)
   Pair_def      "<a,b>  == {{a,a}, {a,b}}"
