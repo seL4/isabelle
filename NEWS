@@ -61,6 +61,14 @@ show_types);
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
 
+* cd, use, use etc. now support path variables, e.g. ~ (which
+abbreviates $HOME), or $ISABELLE_HOME;
+
+* changed Pure/Sequence interface (see Pure/seq.ML); COMPATIBILITY:
+use isatool fixseq to adapt your ML programs (this works for fully
+qualified references to the Sequence structure only!);
+
+
 
 *** Classical Reasoner ***
 
