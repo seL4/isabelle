@@ -17,14 +17,15 @@ sig
     Infixr of int |
     Binder of string * int * int
   val max_pri: int
-  val mixfix_args: mixfix -> int
 end;
 
 signature MIXFIX1 =
 sig
   include MIXFIX0
+  val no_syn: 'a * 'b -> 'a * 'b * mixfix
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
+  val mixfix_args: mixfix -> int
   val pure_types: (string * int * mixfix) list
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
@@ -59,6 +60,8 @@ datatype mixfix =
   Infixl of int |
   Infixr of int |
   Binder of string * int * int;
+
+fun no_syn (x, y) = (x, y, NoSyn);
 
 
 (* type / const names *)
