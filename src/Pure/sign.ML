@@ -46,7 +46,6 @@ sig
   val norm_sort: sg -> sort -> sort
   val nonempty_sort: sg -> sort list -> sort -> bool
   val of_sort: sg -> typ * sort -> bool
-  val long_names: bool ref
   val classK: string
   val typeK: string
   val constK: string
@@ -385,10 +384,6 @@ fun extend_sign keep extfun name decls
 
 (** name spaces **)
 
-(*prune names on output by default*)
-val long_names = ref false;
-
-
 (* kinds *)
 
 val classK = "class";
@@ -404,6 +399,7 @@ fun space_of spaces kind =
 (*input and output of qualified names*)
 fun intrn spaces kind = NameSpace.intern (space_of spaces kind);
 fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
+fun cond_extrn spaces kind = NameSpace.cond_extern (space_of spaces kind);
 
 (*add names*)
 fun add_names spaces kind names =
@@ -464,7 +460,7 @@ in
 
   val intern = intrn o spaces_of;
   val extern = extrn o spaces_of;
-  fun cond_extern sg kind = if ! long_names then I else extern sg kind;
+  val cond_extern = cond_extrn o spaces_of;
 
   val intern_class = intrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
@@ -488,15 +484,15 @@ end;
 fun pretty_term (sg as Sg ({stamps, ...}, {syn, spaces, ...})) t =
   Syntax.pretty_term syn
     (exists (equal "CPure" o !) stamps)
-    (if ! long_names then t else extrn_term spaces t);
+    (if ! NameSpace.long_names then t else extrn_term spaces t);
 
 fun pretty_typ (Sg (_, {syn, spaces, ...})) T =
   Syntax.pretty_typ syn
-    (if ! long_names then T else extrn_typ spaces T);
+    (if ! NameSpace.long_names then T else extrn_typ spaces T);
 
 fun pretty_sort (Sg (_, {syn, spaces, ...})) S =
   Syntax.pretty_sort syn
-    (if ! long_names then S else extrn_sort spaces S);
+    (if ! NameSpace.long_names then S else extrn_sort spaces S);
 
 fun pretty_classrel sg (c1, c2) = Pretty.block
   [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
@@ -598,8 +594,8 @@ fun type_check sg tm =
   let
     val prt =
       setmp Syntax.show_brackets true
-        (setmp long_names true (pretty_term sg));
-    val prT = setmp long_names true (pretty_typ sg);
+        (setmp NameSpace.long_names true (pretty_term sg));
+    val prT = setmp NameSpace.long_names true (pretty_typ sg);
 
     fun err_appl why bs t T u U =
       let
@@ -679,8 +675,8 @@ fun infer_types_simult sg def_type def_sort used freeze args =
     val tsig = tsig_of sg;
     val prt =
       setmp Syntax.show_brackets true
-        (setmp long_names true (pretty_term sg));
-    val prT = setmp long_names true (pretty_typ sg);
+        (setmp NameSpace.long_names true (pretty_term sg));
+    val prT = setmp NameSpace.long_names true (pretty_typ sg);
 
     val termss = foldr multiply (map fst args, [[]]);
     val typs =
@@ -1032,6 +1028,3 @@ val pre_pure =
 
 
 end;
-
-
-val long_names = Sign.long_names;

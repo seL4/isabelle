@@ -24,6 +24,8 @@ sig
   val merge: T * T -> T
   val intern: T -> string -> string
   val extern: T -> string -> string
+  val long_names: bool ref
+  val cond_extern: T -> string -> string
   val dest: T -> (string * string list) list
 end;
 
@@ -96,6 +98,11 @@ fun extern space name =
           else try nms;
   in try (map pack (suffixes1 (unpack name))) end;
 
+(*prune names on output by default*)
+val long_names = ref false;
+
+fun cond_extern space = if ! long_names then I else extern space;
+
 
 (* dest *)
 
@@ -105,3 +112,6 @@ fun dest (NameSpace tab) =
 
 
 end;
+
+
+val long_names = NameSpace.long_names;
