@@ -579,7 +579,11 @@ fun gen_add_datatype prep_typ new_type_names dts thy =
     fun prep_dt_spec ((dts', constr_syntax, sorts, i), (tvs, tname, mx, constrs)) =
       let
         fun prep_constr ((constrs, constr_syntax', sorts'), (cname, mx', cargs)) =
-          let val (cargs', sorts'') = foldl (prep_typ sign) (([], sorts'), cargs)
+          let
+            val (cargs', sorts'') = foldl (prep_typ sign) (([], sorts'), cargs);
+            val _ = (case foldr add_typ_tfree_names (cargs', []) \\ tvs of
+                [] => ()
+              | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [((if length dts = 1 then Sign.full_name sign
                else Sign.full_name_path sign (Sign.base_name tname))
                  (Syntax.const_name cname mx'),
