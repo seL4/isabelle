@@ -121,8 +121,12 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
   Failing other cases, A is added as a Safe Intr rule*)
 local
 
-fun addIff dest elim intro simp ((cs, ss), th) =
-  let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
+fun addIff decls1 decls2 simp ((cs, ss), th) =
+  let
+    val n = nprems_of th;
+    val (dest, elim, intro) = if n = 0 then decls1 else decls2;
+    val zero_rotate = zero_var_indexes o rotate_prems n;
+  in
     (dest (intro (cs, [zero_rotate (th RS Data.iffD2)]), [zero_rotate (th RS Data.iffD1)])
       handle THM _ => (elim (cs, [zero_rotate (th RS Data.notE)])
         handle THM _ => intro (cs, [th])),
@@ -144,19 +148,24 @@ fun store_clasimp (cs, ss) =
 in
 
 val op addIffs =
-  foldl (addIff Classical.addSDs Classical.addSEs Classical.addSIs Simplifier.addsimps);
+  foldl (addIff (Classical.addSDs, Classical.addSEs, Classical.addSIs)
+    (Classical.addDs, Classical.addEs, Classical.addIs) Simplifier.addsimps);
 val op delIffs = foldl (delIff Classical.delrules Simplifier.delsimps);
 
 fun AddIffs thms = store_clasimp (clasimpset () addIffs thms);
 fun DelIffs thms = store_clasimp (clasimpset () delIffs thms);
 
 fun addIffs_global (thy, ths) =
-  foldl (addIff ContextRules.addXDs_global ContextRules.addXEs_global
-    ContextRules.addXIs_global #1) ((thy, ()), ths) |> #1;
+  foldl (addIff
+    (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global)
+    (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global) #1)
+  ((thy, ()), ths) |> #1;
 
 fun addIffs_local (ctxt, ths) =
-  foldl (addIff ContextRules.addXDs_local ContextRules.addXEs_local
-    ContextRules.addXIs_local #1) ((ctxt, ()), ths) |> #1;
+  foldl (addIff
+    (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local)
+    (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local) #1)
+  ((ctxt, ()), ths) |> #1;
 
 fun delIffs_global (thy, ths) =
   foldl (delIff ContextRules.delrules_global #1) ((thy, ()), ths) |> #1;
