@@ -33,13 +33,13 @@ text {* Emulate Isabelle proof script: *};
   qed "sum_of_naturals";
 *)
 
-theorem "2 * sum (%i. i) (Suc n) = n * Suc n";
+theorem sum_of_naturals: "2 * sum (%i. i) (Suc n) = n * Suc n";
 proof same;
   apply simp_tac;
   apply (induct n);
   apply simp_tac;
   apply asm_simp_tac;
-qed_with sum_of_naturals;
+qed;
 
 
 text {* Proper Isabelle/Isar proof expressing the same reasoning (which
