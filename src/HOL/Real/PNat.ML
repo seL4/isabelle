@@ -244,7 +244,7 @@ by (etac less_not_sym 1);
 qed "pnat_less_not_sym";
 
 (* [| x < y;  ~P ==> y < x |] ==> P *)
-bind_thm ("pnat_less_asym", pnat_less_not_sym RS swap);
+bind_thm ("pnat_less_asym", pnat_less_not_sym RS contrapos_np);
 
 Goalw [pnat_less_def] "~ y < (y::pnat)";
 by Auto_tac;

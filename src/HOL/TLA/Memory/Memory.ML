@@ -119,7 +119,7 @@ by (case_tac "arg(ch w p)" 1);
  by (action_simp_tac (simpset()addsimps[Read_def,enabled_ex])
                      [ReadInner_enabled,exI] [] 1);
  by (force_tac (mem_css addDs2 [base_pair]) 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (action_simp_tac (simpset() addsimps [Write_def,enabled_ex])
 	            [WriteInner_enabled,exI] [] 1);
 qed "RNext_enabled";

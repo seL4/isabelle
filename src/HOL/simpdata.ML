@@ -307,8 +307,8 @@ structure SplitterData =
   val disjE          = disjE
   val conjE          = conjE
   val exE            = exE
-  val contrapos      = contrapos
-  val contrapos2     = contrapos2
+  val contrapos      = contrapos_nn
+  val contrapos2     = contrapos_pp
   val notnotD        = notnotD
   end;
 

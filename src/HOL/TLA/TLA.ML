@@ -245,7 +245,7 @@ bind_thm("all_box", standard((temp_unlift allT) RS sym));
 
 Goal "|- (<>(F | G)) = (<>F | <>G)";
 by (auto_tac (temp_css addsimps2 [dmd_def,split_box_conj]));
-by (ALLGOALS (EVERY' [etac swap, 
+by (ALLGOALS (EVERY' [etac contrapos_np, 
                       merge_box_tac, 
                       fast_tac (temp_cs addSEs [STL4E])]));
 qed "DmdOr";
@@ -286,7 +286,7 @@ Goalw [dmd_def] "|- []F & <>G --> <>([]F & G)";
 by (Clarsimp_tac 1);
 by (etac dup_boxE 1);
 by (merge_box_tac 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (fast_tac (temp_cs addSEs [STL4E]) 1);
 qed "BoxDmd";
 
@@ -524,7 +524,7 @@ fun auto_inv_tac ss = SELECT_GOAL
 Goalw [dmd_def] "|- []($P --> P` | Q`) --> (stable P) | <>Q";
 by (clarsimp_tac (temp_css addSDs2 [BoxPrime]) 1);
 by (merge_box_tac 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (fast_tac (temp_cs addSEs [Stable]) 1);
 qed "unless";
 
@@ -1020,7 +1020,7 @@ qed "aallI";
 
 Goalw [aall_def] "|- (AALL x. F x) --> F x";
 by (Clarsimp_tac 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (force_tac (temp_css addSIs2 [eexI]) 1);
 qed "aallE";
 

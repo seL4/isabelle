@@ -200,16 +200,18 @@ qed "rev_mp";
 val [major,minor] = Goal "[| ~Q;  P==>Q |] ==> ~P";
 by (rtac (major RS notE RS notI) 1);
 by (etac minor 1) ;
-qed "contrapos";
+qed "contrapos_nn";
 
+Goal "t ~= s ==> s ~= t";
+by (etac contrapos_nn 1); 
+by (etac sym 1); 
+qed "not_sym";
+
+(*still used in HOLCF*)
 val [major,minor] = Goal "[| P==>Q; ~Q |] ==> ~P";
-by (rtac (minor RS contrapos) 1);
+by (rtac (minor RS contrapos_nn) 1);
 by (etac major 1) ;
 qed "rev_contrapos";
-
-(* t ~= s ==> s ~= t *)
-bind_thm("not_sym", sym COMP rev_contrapos);
-
 
 section "Existential quantifier";
 
@@ -307,14 +309,7 @@ by (rtac classical 1);
 by (dtac p2 1);
 by (etac notE 1);
 by (rtac p1 1);
-qed "contrapos2";
-
-val [p1,p2] = Goal "[| P;  Q ==> ~ P |] ==> ~ Q";
-by (rtac notI 1);
-by (dtac p2 1);
-by (etac notE 1);
-by (rtac p1 1);
-qed "swap2";
+qed "contrapos_pp";
 
 
 section "Unique existence";

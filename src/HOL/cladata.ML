@@ -54,7 +54,7 @@ structure Classical = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
 open BasicClassical;
 
-bind_thm ("swap", inst "Pa" "?Q" swap);
+bind_thm ("contrapos_np", inst "Pa" "?Q" swap);
 
 structure Obtain = ObtainFun(val atomic_thesis = HOLogic.atomic_Trueprop and
   that_atts = [Simplifier.simp_add_local, Classical.haz_intro_local]);

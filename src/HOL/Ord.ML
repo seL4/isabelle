@@ -59,7 +59,7 @@ by (asm_full_simp_tac (simpset() addsimps [order_less_le, order_antisym]) 1);
 qed "order_less_not_sym";
 
 (* [| n<m;  ~P ==> m<n |] ==> P *)
-bind_thm ("order_less_asym", order_less_not_sym RS swap);
+bind_thm ("order_less_asym", order_less_not_sym RS contrapos_np);
 
 (* Transitivity *)
 

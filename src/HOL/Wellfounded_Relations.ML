@@ -143,7 +143,7 @@ by (rtac iffI 1);
  by (etac exE 1);
  by (eres_inst_tac [("x","{w. EX i. w=f i}")] allE 1);
  by (Blast_tac 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
 by (subgoal_tac "ALL n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);

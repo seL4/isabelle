@@ -648,7 +648,7 @@ by (atac 1);
 by (action_simp_tac (simpset()) []
 	            (map temp_elim [MClkReplyS6,S6MClkReply_successors]) 1);
 by (auto_tac (MI_css addsimps2 [SF_def]));
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (auto_tac (MI_css addSIs2 [S6MClkReply_enabled] addSEs2 [STL4E, DmdImplE]));
 qed "S6_live";
 

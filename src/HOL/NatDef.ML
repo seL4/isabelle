@@ -156,7 +156,7 @@ by (blast_tac (claset() addIs [wf_pred_nat, wf_trancl RS wf_asym])1);
 qed "less_not_sym";
 
 (* [| n<m; ~P ==> m<n |] ==> P *)
-bind_thm ("less_asym", less_not_sym RS swap);
+bind_thm ("less_asym", less_not_sym RS contrapos_np);
 
 Goalw [less_def] "~ n<(n::nat)";
 by (rtac (wf_pred_nat RS wf_trancl RS wf_not_refl) 1);

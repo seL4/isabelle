@@ -632,7 +632,7 @@ by (assume_tac 1);
 qed "mult_less_not_sym";
 
 (* [| M<N;  ~P ==> N<M |] ==> P *)
-bind_thm ("mult_less_asym", mult_less_not_sym RS swap);
+bind_thm ("mult_less_asym", mult_less_not_sym RS contrapos_np);
 
 Goalw [mult_le_def] "M <= (M :: ('a::order)multiset)";
 by Auto_tac;
