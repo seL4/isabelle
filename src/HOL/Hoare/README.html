@@ -1,0 +1,36 @@
+<HTML><HEAD><TITLE>HOL/Hoare/ReadMe</TITLE></HEAD><BODY>
+
+<H2>Semantic Embedding of Hoare Logic</H2>
+
+This directory contains a sugared shallow semantic embedding of Hoare logic
+for a while language. The implementation closely follows<P>
+
+
+Mike Gordon.
+<cite>Mechanizing Programming Logics in Higher Order Logic.</cite><BR>
+University of Cambridge, Computer Laboratory, TR 145, 1988.<P>
+
+published as<P>
+
+Mike Gordon.
+<cite>Mechanizing Programming Logics in Higher Order Logic.</cite><BR>
+In
+<cite>Current Trends in Hardware Verification and Automated Theorem Proving
+</cite>,<BR>
+edited by G. Birtwistle and P.A. Subrahmanyam, Springer-Verlag, 1989. 
+<P>
+
+At the top level, it provides a tactic <B>hoare_tac</B>, which transforms a
+goal
+<BLOCKQUOTE>
+<KBD>{P} prog {Q}</KBD>
+</BLOCKQUOTE>
+into a set of HOL-level verification conditions.
+<DL>
+<DT>Syntax:
+<DD> the letters a-z are interpreted as program variables,
+     all other identifiers as mathematical variables.<P>
+</DL>
+The pre/post conditions can be arbitrary HOL formulae including program
+variables. The program text should only refer to program variables.
+</BODY></HTML>
