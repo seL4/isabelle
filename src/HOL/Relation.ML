@@ -255,6 +255,10 @@ Goal "Domain (Union S) = (UN A:S. Domain A)";
 by (Blast_tac 1);
 qed "Domain_Union";
 
+Goal "r <= s ==> Domain r <= Domain s";
+by (Blast_tac 1);
+qed "Domain_mono";
+
 
 (** Range **)
 
