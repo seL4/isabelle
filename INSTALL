@@ -70,11 +70,15 @@ package management.
 
 A minimal installation would work like this (executed as root):
 
-  rpm -i --force --prefix /usr/share polyml.i386.rpm
-  rpm -i --force --prefix /usr/share isabelle.rpm
-  rpm -i --force --prefix /usr/share isabelle-HOL.i386.rpm
+  rpm -i --prefix /usr/share polyml.i386.rpm
+  rpm -i --prefix /usr/share isabelle.rpm
+  rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
 
-The install prefix may be changed as indicated.  By default the ML
+Note that installed RPMs may be removed like this:
+
+  rpm -e isabelle-HOL isabelle polyml
+
+The install prefix given above may be changed.  By default the ML
 system (and other contributed packages) are expected in either of the
 following three locations:
 
@@ -83,7 +87,8 @@ following three locations:
   3) /usr/share
   4) /usr/local
 
-This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
+This may be changed further by editing [ISABELLE_HOME]/etc/settings
+manually.
 
 Note that isabelle.rpm and isabelle-pdfdocs.rpm already contain all of
 Isabelle as platform independent sources.  Precompiled object-logics
