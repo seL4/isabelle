@@ -623,6 +623,10 @@ goal thy "f``(A Un B) = f``A Un f``B";
 by (Blast_tac 1);
 qed "image_Un";
 
+goal Set.thy "(z : f``A) = (EX x:A. z = f x)";
+by (Blast_tac 1);
+qed "image_iff";
+
 
 (*** Range of a function -- just a translation for image! ***)
 
