@@ -17,8 +17,8 @@ sig
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> (int * (string * DatatypeAux.dtyp list *
       (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-        (string * mixfix) list -> (string * mixfix) list list -> theory ->
-          theory * thm list list * thm list list * thm list list *
+        (string * mixfix) list -> (string * mixfix) list list -> theory attribute
+          -> theory -> theory * thm list list * thm list list * thm list list *
             DatatypeAux.simproc_dist list * thm
 end;
 
@@ -42,7 +42,7 @@ fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
 (******************************************************************************)
 
 fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
-      new_type_names descr sorts types_syntax constr_syntax thy =
+      new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
     val Datatype_thy = theory "Datatype";
     val node_name = Sign.intern_tycon (Theory.sign_of Datatype_thy) "node";
@@ -231,12 +231,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val def_name = (Sign.base_name cname) ^ "_def";
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
-        val thy' = thy |>
+        val (thy', [def_thm]) = thy |>
           Theory.add_consts_i [(cname', constrT, mx)] |>
           (PureThy.add_defs_i o map Thm.no_attributes) [(def_name, def)];
 
-      in (thy', defs @ [get_thm thy' def_name], eqns @ [eqn], i + 1)
-      end;
+      in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
 
     (* constructor definitions for datatype *)
 
@@ -382,8 +381,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           equals (T --> Univ_elT) $ Const (iso_name, T --> Univ_elT) $
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs))) (rec_names ~~ isos);
-        val thy' = (PureThy.add_defs_i o map Thm.no_attributes) defs thy;
-        val def_thms = map (get_thm thy') (map fst defs);
+        val (thy', def_thms) = (PureThy.add_defs_i o map Thm.no_attributes) defs thy;
 
         (* prove characteristic equations *)
 
@@ -580,8 +578,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       ((DatatypeProp.make_injs descr sorts) ~~ constr_rep_thms);
 
     val thy6 = thy5 |> parent_path flat_names |>
-      store_thmss "inject" new_type_names constr_inject |>
-      store_thmss "distinct" new_type_names distinct_thms;
+      (#1 o store_thmss "inject" new_type_names constr_inject) |>
+      (#1 o store_thmss "distinct" new_type_names distinct_thms);
 
     (*************************** induction theorem ****************************)
 
@@ -638,12 +636,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               rtac allI 1, dtac FunsD 1, etac CollectD 1]))]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
-    val thy7 = thy6 |>
+    val (thy7, [dt_induct']) = thy6 |>
       Theory.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct), [])] |>
+      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
       Theory.parent_path;
 
-  in (thy7, constr_inject, distinct_thms, dist_rewrites, simproc_dists, dt_induct)
+  in (thy7, constr_inject, distinct_thms, dist_rewrites, simproc_dists, dt_induct')
   end;
 
 end;
