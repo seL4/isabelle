@@ -63,9 +63,15 @@ AddEs  [ballE];
 claset_ref() := claset() addWrapper ("bspec", fn tac2 =>
 			 (dtac bspec THEN' atac) APPEND' tac2);
 
+(*Normally the best argument order: P(x) constrains the choice of x:A*)
 Goalw [Bex_def] "[| P(x);  x:A |] ==> ? x:A. P(x)";
 by (Blast_tac 1);
 qed "bexI";
+
+(*The best argument order when there is only one x:A*)
+Goalw [Bex_def] "[| x:A;  P(x) |] ==> ? x:A. P(x)";
+by (Blast_tac 1);
+qed "rev_bexI";
 
 qed_goal "bexCI" Set.thy 
    "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)" (fn prems =>
