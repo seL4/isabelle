@@ -6,6 +6,38 @@ New in this Isabelle release
 
 *** General ***
 
+* Provers/simplifier:
+
+  - Completely reimplemented Asm_full_simp_tac:
+    Assumptions are now subject to complete mutual simplification,
+    not just from left to right. The simplifier now preserves
+    the order of assumptions.
+
+    Potential INCOMPATIBILITY:
+
+    -- Asm_full_simp_tac sometimes diverges where the old version did
+       not, e.g. invoking Asm_full_simp_tac on the goal
+
+        [| P (f x); y = x; f x = f y |] ==> Q
+
+      now gives rise to the infinite reduction sequence
+
+        P (f x) --(f x = f y)--> P (f y) --(y = x)--> P (f x) --(f x = f y)--> ...
+
+      Using Asm_lr_simp_tac (or "simp (asm_lr)" in Isabelle/Isar) instead
+      often solves this kind of problem.
+
+    -- Tactics combining classical reasoner and simplification (such
+       as auto) are also affected by this change, because many of them
+       rely on Asm_full_simp_tac. They may sometimes diverge as well
+       or yield a different numbers of subgoals. Try to use e.g. force,
+       fastsimp, or safe instead of auto in case of problems. Sometimes
+       subsequent calls to the classical reasoner will fail because a
+       preceeding call to the simplifier too eagerly simplified the
+       goal, e.g. deleted redundant premises.
+
+  - The simplifier trace now shows the names of the applied rewrite rules
+
 * Pure: locale specifications now produce predicate definitions
 according to the body of text (covering assumptions modulo local
 definitions); predicate "loc_axioms" covers newly introduced text,
@@ -71,8 +103,6 @@ takes ~= in premises into account (by performing a case split);
 
 * simp reduces "m*(n div m) + n mod m" to n, even if the two summands
 are distributed over a sum of terms;
-
-* the simplifier trace now shows the names of the applied rewrite rules
 
 * induct over a !!-quantified statement (say !!x1..xn):
   each "case" automatically performs "fix x1 .. xn" with exactly those names.
