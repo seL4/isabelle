@@ -391,10 +391,13 @@ proof;
        qed;
       qed;
       show "{<0>} <= H Int lin x0";
-      proof (intro subsetI, elim singletonE, intro IntI, 
-        (simp only:)+);
-        show "<0>:H"; ..;
-        from lin_vs; show "<0> : lin x0"; ..;
+      proof -;
+	have "<0>: H Int lin x0";
+	proof (rule IntI);
+	  show "<0>:H"; ..;
+	  from lin_vs; show "<0> : lin x0"; ..;
+	qed;
+	thus ?thesis; by simp;
       qed;
     qed;
     show "is_subspace (lin x0) E"; ..;
