@@ -320,9 +320,9 @@ val trans_pat =
   optional ("(" $$-- !! (name --$$ ")")) "\"logic\"" -- string >> mk_pair;
 
 val trans_arrow =
-  $$ "=>" >> K "Syntax.|-> " ||
-  $$ "<=" >> K "Syntax.<-| " ||
-  $$ "==" >> K "Syntax.<-> ";
+  $$ "=>" >> K "Syntax.ParseRule " ||
+  $$ "<=" >> K "Syntax.PrintRule " ||
+  $$ "==" >> K "Syntax.ParsePrintRule ";
 
 val trans_line =
   trans_pat -- !! (trans_arrow -- trans_pat)
