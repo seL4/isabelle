@@ -1,23 +1,21 @@
-(*  Title:      HOL/Hoare/Hoare.thy
+(*  Title:      HOL/Hoare/HoareAbort.thy
     ID:         $Id$
     Author:     Leonor Prensa Nieto & Tobias Nipkow
-    Copyright   1998 TUM
+    Copyright   2003 TUM
 
-Sugared semantic embedding of Hoare logic.
-Strictly speaking a shallow embedding (as implemented by Norbert Galm
-following Mike Gordon) would suffice. Maybe the datatype com comes in useful
-later.
+Like Hoare.thy, but with an Abort statement for modelling run time errors.
 *)
 
-theory Hoare  = Main
-files ("hoare.ML"):
+theory HoareAbort  = Main
+files ("hoareAbort.ML"):
 
 types
     'a bexp = "'a set"
     'a assn = "'a set"
 
 datatype
- 'a com = Basic "'a \<Rightarrow> 'a"         
+ 'a com = Basic "'a \<Rightarrow> 'a"
+   | Abort
    | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
    | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
    | While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
@@ -29,23 +27,27 @@ syntax
 translations
             "SKIP" == "Basic id"
 
-types 'a sem = "'a => 'a => bool"
+types 'a sem = "'a option => 'a option => bool"
 
 consts iter :: "nat => 'a bexp => 'a sem => 'a sem"
 primrec
-"iter 0 b S = (%s s'. s ~: b & (s=s'))"
-"iter (Suc n) b S = (%s s'. s : b & (? s''. S s s'' & iter n b S s'' s'))"
+"iter 0 b S = (%s s'. s ~: Some ` b & (s=s'))"
+"iter (Suc n) b S = (%s s'. s : Some ` b & (? s''. S s s'' & iter n b S s'' s'))"
 
 consts Sem :: "'a com => 'a sem"
 primrec
-"Sem(Basic f) s s' = (s' = f s)"
+"Sem(Basic f) s s' = (case s of None \<Rightarrow> s' = None | Some t \<Rightarrow> s' = Some(f t))"
+"Sem Abort s s' = (s' = None)"
 "Sem(c1;c2) s s' = (? s''. Sem c1 s s'' & Sem c2 s'' s')"
-"Sem(IF b THEN c1 ELSE c2 FI) s s' = ((s  : b --> Sem c1 s s') &
-                                      (s ~: b --> Sem c2 s s'))"
-"Sem(While b x c) s s' = (? n. iter n b (Sem c) s s')"
+"Sem(IF b THEN c1 ELSE c2 FI) s s' =
+ (case s of None \<Rightarrow> s' = None
+  | Some t \<Rightarrow> ((t : b --> Sem c1 s s') & (t ~: b --> Sem c2 s s')))"
+"Sem(While b x c) s s' =
+ (if s = None then s' = None
+  else EX n. iter n b (Sem c) s s')"
 
 constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
-  "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
+  "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
 
 
 syntax
@@ -60,7 +62,7 @@ syntax ("" output)
 ML{*
 
 local
-
+fun free a = Free(a,dummyT)
 fun abs((a,T),body) =
   let val a = absfree(a, dummyT, body)
   in if T = Bound 0 then a else Const(Syntax.constrainAbsC,dummyT) $ a $ T end
@@ -70,9 +72,9 @@ fun mk_abstuple [x] body = abs (x, body)
   | mk_abstuple (x::xs) body =
       Syntax.const "split" $ abs (x, mk_abstuple xs body);
 
-fun mk_fbody a e [x as (b,_)] = if a=b then e else Syntax.free b
+fun mk_fbody a e [x as (b,_)] = if a=b then e else free b
   | mk_fbody a e ((b,_)::xs) =
-      Syntax.const "Pair" $ (if a=b then e else Syntax.free b) $ mk_fbody a e xs;
+      Syntax.const "Pair" $ (if a=b then e else free b) $ mk_fbody a e xs;
 
 fun mk_fexp a e xs = mk_abstuple xs (mk_fbody a e xs)
 end
@@ -193,6 +195,8 @@ fun spec_tr' [p, c, q] =
 
 print_translation {* [("Valid", spec_tr')] *}
 
+(*** The proof rules ***)
+
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
 by (auto simp:Valid_def)
 
@@ -205,10 +209,11 @@ by (auto simp:Valid_def)
 lemma CondRule:
  "p \<subseteq> {s. (s \<in> b \<longrightarrow> s \<in> w) \<and> (s \<notin> b \<longrightarrow> s \<in> w')}
   \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
-by (auto simp:Valid_def)
+by (fastsimp simp:Valid_def image_def)
 
-lemma iter_aux: "! s s'. Sem c s s' --> s : I & s : b --> s' : I ==>
-       (\<And>s s'. s : I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : I & s' ~: b)";
+lemma iter_aux: "! s s'. Sem c s s' --> s : Some ` (I \<inter> b) --> s' : Some ` I ==>
+       (\<And>s s'. s : Some ` I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : Some ` (I \<inter> -b))";
+apply(unfold image_def)
 apply(induct n)
  apply clarsimp
 apply(simp (no_asm_use))
@@ -217,15 +222,19 @@ done
 
 lemma WhileRule:
  "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i c) q"
-apply (clarsimp simp:Valid_def)
+apply(simp add:Valid_def)
+apply(simp (no_asm) add:image_def)
+apply clarify
 apply(drule iter_aux)
   prefer 2 apply assumption
  apply blast
 apply blast
 done
 
+lemma AbortRule: "p \<subseteq> {s. False} \<Longrightarrow> Valid p Abort q"
+by(auto simp:Valid_def)
 
-use "hoare.ML"
+use "hoareAbort.ML"
 
 method_setup vcg = {*
   Method.no_args

@@ -45,7 +45,7 @@ done
 lemma Euclid_GCD: "VARS a b
  {0<A & 0<B}
  a := A; b := B;
- WHILE  a~=b
+ WHILE  a \<noteq> b
  INV {0<a & 0<b & gcd A B = gcd a b}
  DO IF a<b THEN b := b-a ELSE a := a-b FI OD
  {a = gcd A B}"

@@ -1,3 +1,12 @@
+(*  Title:      HOL/Hoare/ExamplesAbort.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   1998 TUM
+
+Some small examples for programs that may abort.
+Currently only show the absence of abort.
+*)
+
 theory ExamplesAbort = HoareAbort:
 
 syntax guarded_com :: "'bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("_ \<rightarrow> _" 60)

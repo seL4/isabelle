@@ -8,6 +8,7 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 
 val SkipRule = thm"SkipRule";
 val BasicRule = thm"BasicRule";
+val AbortRule = thm"AbortRule";
 val SeqRule = thm"SeqRule";
 val CondRule = thm"CondRule";
 val WhileRule = thm"WhileRule";
@@ -155,6 +156,7 @@ and HoareRuleTac Mlem tac pre_cond i st = st |>
     ( (WlpTac Mlem tac i THEN HoareRuleTac Mlem tac pre_cond i)
       ORELSE
       (FIRST[rtac SkipRule i,
+             rtac AbortRule i,
              EVERY[rtac BasicRule i,
                    rtac Mlem i,
                    split_simp_tac i],
@@ -164,7 +166,7 @@ and HoareRuleTac Mlem tac pre_cond i st = st |>
              EVERY[rtac WhileRule i,
                    BasicSimpTac tac (i+2),
                    HoareRuleTac Mlem tac true (i+1)] ] 
-       THEN (if pre_cond then (BasicSimpTac tac i) else (rtac subset_refl i)) ));
+       THEN (if pre_cond then (BasicSimpTac tac i) else rtac subset_refl i) ));
 
 
 (** tac:(int -> tactic) is the tactic the user chooses to solve or simplify **)
