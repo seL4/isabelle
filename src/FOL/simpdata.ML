@@ -76,21 +76,31 @@ val P_iff_T = int_prove_fun "P ==> (P <-> True)";
 val iff_reflection_T = P_iff_T RS iff_reflection;
 
 (*Make meta-equalities.  The operator below is Trueprop*)
+
 fun mk_meta_eq th = case concl_of th of
-    Const("==",_)$_$_           => th
-  | _ $ (Const("op =",_)$_$_)   => th RS eq_reflection
+    _ $ (Const("op =",_)$_$_)   => th RS eq_reflection
   | _ $ (Const("op <->",_)$_$_) => th RS iff_reflection
+  | _                           => 
+  error("conclusion must be a =-equality or <->");;
+
+fun mk_eq th = case concl_of th of
+    Const("==",_)$_$_           => th
+  | _ $ (Const("op =",_)$_$_)   => mk_meta_eq th
+  | _ $ (Const("op <->",_)$_$_) => mk_meta_eq th
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
+
+fun mk_meta_cong rl = standard (mk_meta_eq rl); 
+(*FIXME: how about the premises?*)
 
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", [])];
 
-(* FIXME: move to Provers/simplifier.ML
+(* ###FIXME: move to Provers/simplifier.ML
 val mk_atomize:      (string * thm list) list -> thm -> thm list
 *)
-(* FIXME: move to Provers/simplifier.ML*)
+(* ###FIXME: move to Provers/simplifier.ML *)
 fun mk_atomize pairs =
   let fun atoms th =
         (case concl_of th of
@@ -104,7 +114,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_meta_eq o mk_atomize pairs o gen_all);
+fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
 (*** Classical laws ***)
 
@@ -252,7 +262,7 @@ val meta_eq_to_iff = prove_goal IFOL.thy "x==y ==> x<->y"
 structure SplitterData =
   struct
   structure Simplifier = Simplifier
-  val mk_meta_eq     = mk_meta_eq
+  val mk_eq          = mk_eq
   val meta_eq_to_iff = meta_eq_to_iff
   val iffD           = iffD2
   val disjE          = disjE
@@ -280,13 +290,14 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
 open Induction;
 
-(*Add congruence rules for = or <-> (instead of ==) *)
-infix 4 addcongs delcongs;
-fun ss addcongs congs =
-        ss addeqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
-fun ss delcongs congs =
-        ss deleqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
 
+(* Add congruence rules for = or <-> (instead of ==) *)
+
+(* ###FIXME: Move to simplifier, 
+   taking mk_meta_cong as input, eliminating addeqcongs and deleqcongs *)
+infix 4 addcongs delcongs;
+fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
+fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
@@ -342,10 +353,9 @@ simpset_ref() := FOL_ss;
 (*** integration of simplifier with classical reasoner ***)
 
 structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier and Classical = Cla and Blast = Blast
-  val op addcongs = op addcongs and op delcongs = op delcongs
-  and op addSaltern = op addSaltern and op addbefore = op addbefore);
-
+ (structure Simplifier = Simplifier 
+        and Classical  = Cla
+        and Blast      = Blast);
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
