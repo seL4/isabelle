@@ -484,7 +484,6 @@ text{* Although we have shown how to employ powerful automatic methods like
 @{text blast} to achieve bigger proof steps, there may still be the
 tendency to use the default introduction and elimination rules to
 decompose goals and facts. This can lead to very tedious proofs:
-\Tweakskip
 *}
 (*<*)ML"set quick_and_dirty"(*>*)
 lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
