@@ -57,6 +57,7 @@ sig
   val print_commands: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
+  val check_text: string * Position.T -> bool -> Toplevel.state -> unit
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> Toplevel.isar
@@ -258,6 +259,12 @@ fun isar term no_pos =
 
 
 (** read theory **)
+
+(* check_text *)
+
+fun check_text s true state = (IsarOutput.eval_antiquote (#1 (get_lexicons ())) state s; ())
+  | check_text _ false _ = ();
+
 
 (* deps_thy *)
 
