@@ -232,6 +232,19 @@ by (fast_tac (set_cs addIs (prems RL [subsetD])
                      addSEs [SigmaE]) 1);
 qed "Sigma_mono";
 
+qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"
+ (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
+
+qed_goal "Sigma_empty2" Prod.thy "Sigma A (%x.{}) = {}"
+ (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
+
+Addsimps [Sigma_empty1,Sigma_empty2]; 
+
+goal Prod.thy "((a,b): Sigma A B) = (a:A & b:B(a))";
+by (fast_tac (eq_cs addSIs [SigmaI] addSEs [SigmaE, Pair_inject]) 1);
+qed "mem_Sigma_iff";
+Addsimps [mem_Sigma_iff]; 
+
 
 (*** Domain of a relation ***)
 

@@ -120,6 +120,10 @@ goal Set.thy "A Int (B Un C)  =  (A Int B) Un (A Int C)";
 by (fast_tac eq_cs 1);
 qed "Int_Un_distrib";
 
+goal Set.thy "(B Un C) Int A =  (B Int A) Un (C Int A)";
+by (fast_tac eq_cs 1);
+qed "Int_Un_distrib2";
+
 goal Set.thy "(A<=B) = (A Int B = A)";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "subset_Int_eq";

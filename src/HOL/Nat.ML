@@ -123,7 +123,7 @@ by (nat_ind_tac "n" 1);
 by (ALLGOALS(asm_simp_tac (!simpset addsimps [Suc_Suc_eq])));
 qed "n_not_Suc_n";
 
-val Suc_n_not_n = n_not_Suc_n RS not_sym;
+bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
 (*** nat_case -- the selection operator for nat ***)
 
@@ -217,7 +217,7 @@ by (rtac (pred_natI RS r_into_trancl) 1);
 qed "lessI";
 Addsimps [lessI];
 
-(* i(j ==> i(Suc(j) *)
+(* i<j ==> i<Suc(j) *)
 val less_SucI = lessI RSN (2, less_trans);
 
 goal Nat.thy "0 < Suc(n)";
@@ -239,14 +239,14 @@ bind_thm ("less_asym", (less_not_sym RS notE));
 
 goalw Nat.thy [less_def] "~ n<(n::nat)";
 by (rtac notI 1);
-by (etac (wf_pred_nat RS wf_trancl RS wf_anti_refl) 1);
+by (etac (wf_pred_nat RS wf_trancl RS wf_irrefl) 1);
 qed "less_not_refl";
 
 (* n(n ==> R *)
-bind_thm ("less_anti_refl", (less_not_refl RS notE));
+bind_thm ("less_irrefl", (less_not_refl RS notE));
 
 goal Nat.thy "!!m. n<m ==> m ~= (n::nat)";
-by (fast_tac (HOL_cs addEs [less_anti_refl]) 1);
+by (fast_tac (HOL_cs addEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
 
@@ -335,7 +335,7 @@ qed "Suc_less_eq";
 Addsimps [Suc_less_eq];
 
 goal Nat.thy "~(Suc(n) < n)";
-by (fast_tac (HOL_cs addEs [Suc_lessD RS less_anti_refl]) 1);
+by (fast_tac (HOL_cs addEs [Suc_lessD RS less_irrefl]) 1);
 qed "not_Suc_n_less_n";
 Addsimps [not_Suc_n_less_n];
 
@@ -398,15 +398,19 @@ qed_goal "nat_rec_weak_cong" Nat.thy
   "m=n ==> nat_rec m a f = nat_rec n a f"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
-val prems = goalw Nat.thy [le_def] "~(n<m) ==> m<=(n::nat)";
+val prems = goalw Nat.thy [le_def] "~n<m ==> m<=(n::nat)";
 by (resolve_tac prems 1);
 qed "leI";
 
-val prems = goalw Nat.thy [le_def] "m<=n ==> ~(n<(m::nat))";
+val prems = goalw Nat.thy [le_def] "m<=n ==> ~ n < (m::nat)";
 by (resolve_tac prems 1);
 qed "leD";
 
 val leE = make_elim leD;
+
+goal Nat.thy "(~n<m) = (m<=(n::nat))";
+by (fast_tac (HOL_cs addIs [leI] addEs [leE]) 1);
+qed "not_less_iff_le";
 
 goalw Nat.thy [le_def] "!!m. ~ m <= n ==> n<(m::nat)";
 by (fast_tac HOL_cs 1);
@@ -414,7 +418,7 @@ qed "not_leE";
 
 goalw Nat.thy [le_def] "!!m. m < n ==> Suc(m) <= n";
 by (Simp_tac 1);
-by (fast_tac (HOL_cs addEs [less_anti_refl,less_asym]) 1);
+by (fast_tac (HOL_cs addEs [less_irrefl,less_asym]) 1);
 qed "lessD";
 
 goalw Nat.thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
@@ -433,12 +437,12 @@ qed "less_imp_le";
 
 goalw Nat.thy [le_def] "!!m. m <= n ==> m < n | m=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
-by (fast_tac (HOL_cs addEs [less_anti_refl,less_asym]) 1);
+by (fast_tac (HOL_cs addEs [less_irrefl,less_asym]) 1);
 qed "le_imp_less_or_eq";
 
 goalw Nat.thy [le_def] "!!m. m<n | m=n ==> m <=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
-by (fast_tac (HOL_cs addEs [less_anti_refl,less_asym]) 1);
+by (fast_tac (HOL_cs addEs [less_irrefl,less_asym]) 1);
 by (flexflex_tac);
 qed "less_or_eq_imp_le";
 
@@ -467,7 +471,7 @@ qed "le_trans";
 
 val prems = goal Nat.thy "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
 by (EVERY1[dtac le_imp_less_or_eq, dtac le_imp_less_or_eq,
-          fast_tac (HOL_cs addEs [less_anti_refl,less_asym])]);
+          fast_tac (HOL_cs addEs [less_irrefl,less_asym])]);
 qed "le_anti_sym";
 
 goal Nat.thy "(Suc(n) <= Suc(m)) = (n <= m)";

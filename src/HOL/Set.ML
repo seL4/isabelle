@@ -70,10 +70,10 @@ by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1));
 qed "bexE";
 
 (*Trival rewrite rule;   (! x:A.P)=P holds only if A is nonempty!*)
-val prems = goal Set.thy
-    "(! x:A. True) = True";
+goal Set.thy "(! x:A. True) = True";
 by (REPEAT (ares_tac [TrueI,ballI,iffI] 1));
 qed "ball_rew";
+Addsimps [ball_rew];
 
 (** Congruence rules **)
 

@@ -285,6 +285,36 @@ qed "zero_induct";
 
 (*13 July 1992: loaded in 105.7s*)
 
+
+(*** Further facts about mod (mainly for mutilated checkerboard ***)
+
+goal Arith.thy
+    "!!m n. 0<n ==> \
+\           Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
+by (res_inst_tac [("n","m")] less_induct 1);
+by (excluded_middle_tac "Suc(na)<n" 1);
+(* case Suc(na) < n *)
+by (forward_tac [lessI RS less_trans] 2);
+by (asm_simp_tac (!simpset addsimps [mod_less, less_not_refl2 RS not_sym]) 2);
+(* case n <= Suc(na) *)
+by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, mod_geq]) 1);
+by (etac (le_imp_less_or_eq RS disjE) 1);
+by (asm_simp_tac (!simpset addsimps [Suc_diff_n]) 1);
+by (asm_full_simp_tac (!simpset addsimps [not_less_eq RS sym, 
+                                          diff_less, mod_geq]) 1);
+by (asm_simp_tac (!simpset addsimps [mod_less]) 1);
+qed "mod_Suc";
+
+goal Arith.thy "!!m n. 0<n ==> m mod n < n";
+by (res_inst_tac [("n","m")] less_induct 1);
+by (excluded_middle_tac "na<n" 1);
+(*case na<n*)
+by (asm_simp_tac (!simpset addsimps [mod_less]) 2);
+(*case n le na*)
+by (asm_full_simp_tac (!simpset addsimps [mod_geq, diff_less]) 1);
+qed "mod_less_divisor";
+
+
 (**** Additional theorems about "less than" ****)
 
 goal Arith.thy "!!m. m<n --> (? k. n=Suc(m+k))";

@@ -139,12 +139,8 @@ by (Simp_tac 1);
 qed "insert_finite";
 Addsimps[insert_finite];
 
-goal Finite.thy "!!A. finite(A) ==> finite(A-B)";
-by (etac finite_induct 1);
-by (Simp_tac 1);
-by (asm_simp_tac (!simpset addsimps [insert_Diff_if]
-                          setloop split_tac[expand_if]) 1);
-qed "finite_Diff";
+(* finite B ==> finite (B - Ba) *)
+bind_thm ("finite_Diff", Diff_subset RS finite_subset);
 Addsimps [finite_Diff];
 
 (*The image of a finite set is finite*)
@@ -286,6 +282,17 @@ goalw Finite.thy [card_def]
 by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
+
+goal Finite.thy "!!A. [| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
+by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
+by (assume_tac 1);
+by (asm_simp_tac (!simpset addsimps [card_insert_disjoint]) 1);
+qed "card_Suc_Diff";
+
+goal Finite.thy "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
+by (resolve_tac [Suc_less_SucD] 1);
+by (asm_simp_tac (!simpset addsimps [card_Suc_Diff]) 1);
+qed "card_Diff";
 
 val [major] = goal Finite.thy
   "finite A ==> card(insert x A) = Suc(card(A-{x}))";

@@ -46,7 +46,7 @@ qed "wf_asym";
 val prems = goal WF.thy "[| wf(r);  (a,a): r |] ==> P";
 by (rtac wf_asym 1);
 by (REPEAT (resolve_tac prems 1));
-qed "wf_anti_refl";
+qed "wf_irrefl";
 
 (*transitive closure of a wf relation is wf! *)
 val [prem] = goal WF.thy "wf(r) ==> wf(r^+)";
