@@ -27,10 +27,12 @@ use "~~/src/Provers/Arith/fast_lin_arith.ML";
 use "~~/src/Provers/Arith/cancel_sums.ML";
 use "~~/src/Provers/Arith/cancel_factor.ML";
 use "~~/src/Provers/Arith/abel_cancel.ML";
+use "~~/src/Provers/Arith/assoc_fold.ML";
 use "~~/src/Provers/quantifier1.ML";
 
 use_thy "HOL";
 use "hologic.ML";
+use "~~/src/Provers/Arith/combine_coeff.ML";
 use "cladata.ML";
 use "simpdata.ML";
 
@@ -70,6 +72,7 @@ cd "Integ";
 use_thy "IntDef";
 use "simproc.ML";
 use_thy "NatBin";
+use "bin_simprocs.ML";
 cd "..";
 
 (*the all-in-one theory*)
