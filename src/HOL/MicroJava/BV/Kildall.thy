@@ -20,7 +20,7 @@ constdefs
 
 consts
  iter :: "'s binop \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> nat list) \<Rightarrow>
-          's list \<Rightarrow> nat set \<Rightarrow> 's list"
+          's list \<Rightarrow> nat set \<Rightarrow> 's list \<times> nat set"
  propa :: "'s binop => nat list => 's => 's list => nat set => 's list * nat set"
 
 primrec
@@ -31,20 +31,20 @@ primrec
 
 defs iter_def:
 "iter f step succs ss w ==
- fst(while (%(ss,w). w \<noteq> {})
-           (%(ss,w). let p = SOME p. p : w
-                     in propa f (succs p) (step p (ss!p)) ss (w-{p}))
-           (ss,w))"
+ while (%(ss,w). w \<noteq> {})
+       (%(ss,w). let p = SOME p. p : w
+                 in propa f (succs p) (step p (ss!p)) ss (w-{p}))
+       (ss,w)"
 
 constdefs
  unstables ::
- "'s binop => (nat => 's => 's) => (nat => nat list) => 's list => nat set"
-"unstables f step succs ss ==
- {p. p < size ss & (? q:set(succs p). step p (ss!p) +_f ss!q ~= ss!q)}"
+ "'s ord => (nat => 's => 's) => (nat => nat list) => 's list => nat set"
+"unstables r step succs ss ==
+ {p. p < size ss & ~stable r step succs ss p}"
 
- kildall :: "'s binop => (nat => 's => 's) => (nat => nat list)
+ kildall :: "'s ord => 's binop => (nat => 's => 's) => (nat => nat list)
              => 's list => 's list"
-"kildall f step succs ss == iter f step succs ss (unstables f step succs ss)"
+"kildall r f step succs ss == fst(iter f step succs ss (unstables r step succs ss))"
 
 consts merges :: "'s binop => 's => nat list => 's list => 's list"
 primrec
@@ -262,17 +262,15 @@ lemma termination_lemma:
   apply simp
   done
 
-lemma while_properties:
+lemma iter_properties[rule_format]:
   "\<lbrakk> semilat(A,r,f); acc r ; pres_type step n A; mono r step n A;
      bounded succs n; \<forall>p\<in>w0. p < n; ss0 \<in> list n A;
      \<forall>p<n. p \<notin> w0 \<longrightarrow> stable r step succs ss0 p \<rbrakk> \<Longrightarrow>
-   ss' = fst(while (%(ss,w). w \<noteq> {})
-         (%(ss,w). let p = SOME p. p \<in> w
-                   in propa f (succs p) (step p (ss!p)) ss (w-{p})) (ss0,w0))
+   iter f step succs ss0 w0 = (ss',w')
    \<longrightarrow>
    ss' \<in> list n A \<and> stables r step succs ss' \<and> ss0 <=[r] ss' \<and>
    (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow> ss' <=[r] ts)"
-apply (unfold stables_def)
+apply (unfold iter_def stables_def)
 apply (rule_tac P = "%(ss,w).
  ss \<in> list n A \<and> (\<forall>p<n. p \<notin> w \<longrightarrow> stable r step succs ss p) \<and> ss0 <=[r] ss \<and>
  (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow> ss <=[r] ts) \<and>
@@ -331,52 +329,40 @@ apply (simp del: listE_length
          bounded_nat_set_is_finite)
 done
 
-lemma iter_properties:
-  "\<lbrakk> semilat(A,r,f); acc r ; pres_type step n A; mono r step n A;
-     bounded succs n; \<forall>p\<in>w0. p < n; ss0 \<in> list n A;
-     \<forall>p<n. p \<notin> w0 \<longrightarrow> stable r step succs ss0 p \<rbrakk> \<Longrightarrow>
-  iter f step succs ss0 w0 : list n A \<and>
-  stables r step succs (iter f step succs ss0 w0) \<and>
-  ss0 <=[r] iter f step succs ss0 w0 \<and>
-  (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow>
-                 iter f step succs ss0 w0 <=[r] ts)"
-apply(simp add:iter_def del:Let_def)
-by(rule while_properties[THEN mp,OF _ _ _ _ _ _ _ _ refl])
-
 lemma kildall_properties:
   "\<lbrakk> semilat(A,r,f); acc r; pres_type step n A; mono r step n A;
      bounded succs n; ss0 \<in> list n A \<rbrakk> \<Longrightarrow>
-  kildall f step succs ss0 : list n A \<and>
-  stables r step succs (kildall f step succs ss0) \<and>
-  ss0 <=[r] kildall f step succs ss0 \<and>
+  kildall r f step succs ss0 : list n A \<and>
+  stables r step succs (kildall r f step succs ss0) \<and>
+  ss0 <=[r] kildall r f step succs ss0 \<and>
   (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow>
-                 kildall f step succs ss0 <=[r] ts)";
+                 kildall r f step succs ss0 <=[r] ts)";
 apply (unfold kildall_def)
+apply(case_tac "iter f step succs ss0 (unstables r step succs ss0)")
+apply(simp)
 apply (rule iter_properties)
 apply (simp_all add: unstables_def stable_def)
-apply (blast intro!: le_iff_plus_unchanged [THEN iffD2] listE_nth_in
-             dest: boundedD pres_typeD)
 done
 
 lemma is_bcv_kildall:
   "[| semilat(A,r,f); acc r; top r T; 
       pres_type step n A; bounded succs n; 
       mono r step n A |]
-  ==> is_bcv r T step succs n A (kildall f step succs)"
+  ==> is_bcv r T step succs n A (kildall r f step succs)"
 apply(unfold is_bcv_def welltyping_def)
 apply(insert kildall_properties[of A])
 apply(simp add:stables_def)
 apply clarify
-apply(subgoal_tac "kildall f step succs ss : list n A")
+apply(subgoal_tac "kildall r f step succs ss : list n A")
  prefer 2 apply (simp(no_asm_simp))
 apply (rule iffI)
- apply (rule_tac x = "kildall f step succs ss" in bexI)
+ apply (rule_tac x = "kildall r f step succs ss" in bexI)
   apply (rule conjI)
    apply blast
   apply (simp  (no_asm_simp))
  apply assumption
 apply clarify
-apply(subgoal_tac "kildall f step succs ss!p <=_r ts!p")
+apply(subgoal_tac "kildall r f step succs ss!p <=_r ts!p")
  apply simp
 apply (blast intro!: le_listD less_lengthI)
 done
