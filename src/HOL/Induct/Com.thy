@@ -23,7 +23,7 @@ datatype
       | valOf exp exp          ("VALOF _ RESULTIS _"  60)
       | SKIP
       | ":="  loc exp          (infixl  60)
-      | Semi  exp exp          ("_;;_"  [60, 60] 10)
+      | Semi  exp exp          ("_;;_"  [60, 60] 60)
       | Cond  exp exp exp      ("IF _ THEN _ ELSE _"  60)
       | While exp exp          ("WHILE _ DO _"  60)
 
