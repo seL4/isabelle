@@ -6,9 +6,6 @@
 
 open Up1;
 
-(*compatibility*)
-val [sum_case_Inl, sum_case_Inr] = sum.cases;
-
 qed_goal "Abs_Up_inverse2" thy "Rep_Up (Abs_Up y) = y"
  (fn prems =>
         [
