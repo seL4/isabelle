@@ -13,6 +13,8 @@ signature BASIC_OUTER_SYNTAX =
 sig
   val main: unit -> unit
   val loop: unit -> unit
+  val sync_main: unit -> unit
+  val sync_loop: unit -> unit
   val help: unit -> unit
 end;
 
@@ -50,11 +52,13 @@ sig
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
-  val isar: Toplevel.isar
+  val isar: bool -> Toplevel.isar
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
 struct
+
+structure P = OuterParse;
 
 
 (** outer syntax **)
@@ -96,21 +100,28 @@ fun parser int_only name comment kind parse = Parser (name, (comment, kind), int
 
 (* parse command *)
 
-local open OuterParse in
+local
 
 fun command_name cmd =
-  group "command"
-    (position (Scan.one (OuterLex.keyword_pred (is_some o cmd)) >> OuterLex.val_of));
+  P.group "command"
+    (P.position (Scan.one (OuterLex.keyword_pred (is_some o cmd)) >> OuterLex.val_of));
 
 fun command_body cmd (name, _) =
   let val (int_only, parse) = the (cmd name)
-  in !!! (Scan.prompt (name ^ "# ") (parse >> pair int_only)) end;
+  in P.!!! (Scan.prompt (name ^ "# ") (parse >> pair int_only)) end;
 
-fun command cmd =
-  $$$ ";" >> K None ||
-  command_name cmd :-- command_body cmd >> (fn ((name, pos), (int_only, f)) =>
-    Some (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
-      Toplevel.interactive int_only |> f));
+fun terminator false = Scan.succeed ()
+  | terminator true = P.group "terminator" (Scan.option P.sync -- P.$$$ ";" >> K ());
+
+in
+
+fun command term cmd =
+  P.$$$ ";" >> K None ||
+  P.sync >> K None ||
+  (command_name cmd :-- command_body cmd) --| terminator term
+    >> (fn ((name, pos), (int_only, f)) =>
+      Some (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
+        Toplevel.interactive int_only |> f));
 
 end;
 
@@ -177,17 +188,23 @@ val theory_keyword = OuterParse.$$$ theoryN;
 
 (* source *)
 
-fun no_command cmd =
-  Scan.one ((not o OuterLex.keyword_pred ((is_some o cmd) orf equal ";")) andf OuterLex.not_eof);
+local
 
-fun recover cmd =
-  Scan.prompt "recover# " (Scan.one OuterLex.not_eof -- Scan.repeat (no_command cmd));
+val no_terminator =
+  Scan.unless (P.$$$ ";") (Scan.one (OuterLex.not_sync andf OuterLex.not_eof));
 
-fun source do_recover cmd src =
+val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
+
+in
+
+fun source term do_recover cmd src =
   src
-  |> Source.source OuterLex.stopper (Scan.bulk (fn xs => OuterParse.!!! (command (cmd ())) xs))
-    (if do_recover then Some (fn xs => recover (cmd ()) xs) else None)
+  |> Source.source OuterLex.stopper
+    (Scan.bulk (fn xs => OuterParse.!!! (command term (cmd ())) xs))
+    (if do_recover then Some recover else None)
   |> Source.mapfilter I;
+
+end;
 
 
 (* detect header *)
@@ -216,21 +233,23 @@ fun warn_theory_style path is_old =
 val header_lexicon =
   Scan.make_lexicon (map Symbol.explode ["(", ")", "+", ":", "=", "files", theoryN]);
 
-local open OuterParse in
+local
 
-val file_name = ($$$ "(" |-- !!! (name --| $$$ ")")) >> rpair false || name >> rpair true;
+val file_name = (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
 
 val theory_head =
-  (name -- ($$$ "=" |-- enum1 "+" name) --
-    Scan.optional ($$$ "files" |-- !!! (Scan.repeat1 file_name)) [])
+  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
+    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [])
   >> (fn ((A, Bs), files) => (A, Bs, files));
 
-val theory_header = theory_head --| (Scan.ahead eof || $$$ ":");
-val only_header = theory_keyword |-- theory_head --| Scan.ahead eof;
-val new_header = theory_keyword |-- !!! theory_header;
+in
+
+val theory_header = theory_head --| (Scan.ahead P.eof || P.$$$ ":");
+val only_header = theory_keyword |-- theory_head --| Scan.ahead P.eof;
+val new_header = theory_keyword |-- P.!!! theory_header;
 
 val old_header =
-  name -- ($$$ "=" |-- name -- Scan.repeat ($$$ "+" |-- name))
+  P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))
   >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
 
 end;
@@ -279,7 +298,7 @@ fun parse_thy (src, pos) =
     (case only_head of
       None =>
         lex_src
-        |> source false (K (get_parser ()))
+        |> source false false (K (get_parser ()))
         |> Source.exhaust
     | Some spec =>
         [Toplevel.empty |> Toplevel.name theoryN |> IsarThy.theory spec,
@@ -307,11 +326,11 @@ fun load_thy name ml time path =
 
 (* interactive source of state transformers *)
 
-val isar =
+fun isar term =
   Source.tty
   |> Symbol.source true
   |> OuterLex.source true get_lexicon (Position.line_name 1 "stdin")
-  |> source true get_parser;
+  |> source term true get_parser;
 
 
 
@@ -319,13 +338,18 @@ val isar =
 
 (* main loop *)
 
-fun loop () = (Context.reset_context (); Toplevel.loop isar);
+fun gen_loop term = (Context.reset_context (); Toplevel.loop (isar term));
 
-fun main () =
+fun gen_main term =
  (Toplevel.set_state Toplevel.toplevel;
   ml_prompts "ML> " "ML# ";
   writeln (Session.welcome ());
-  loop ());
+  gen_loop term);
+
+fun main () = gen_main false;
+fun loop () = gen_loop false;
+fun sync_main () = gen_main true;
+fun sync_loop () = gen_loop true;
 
 
 (* help *)

@@ -23,6 +23,7 @@ sig
   val number: token list -> string * token list
   val string: token list -> string * token list
   val verbatim: token list -> string * token list
+  val sync: token list -> string * token list
   val eof: token list -> string * token list
   val not_eof: token list -> token * token list
   val nat: token list -> int * token list
@@ -122,6 +123,7 @@ val type_var = kind OuterLex.TypeVar;
 val number = kind OuterLex.Nat;
 val string = kind OuterLex.String;
 val verbatim = kind OuterLex.Verbatim;
+val sync = kind OuterLex.Sync;
 val eof = kind OuterLex.EOF;
 
 fun $$$ x =
