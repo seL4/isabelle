@@ -34,7 +34,6 @@ sig
   type 'att element
   type 'att element_i
   type locale
-  val the_locale: theory -> string -> locale  (* FIXME *)
   val intern: Sign.sg -> xstring -> string
   val cond_extern: Sign.sg -> string -> xstring
   val attribute: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem_expr
@@ -49,7 +48,7 @@ sig
   val setup: (theory -> theory) list
 end;
 
-structure Locale: LOCALE =
+structure Locale(* FIXME : LOCALE *) =
 struct
 
 
@@ -110,6 +109,9 @@ end;
 structure LocalesData = TheoryDataFun(LocalesArgs);
 val print_locales = LocalesData.print;
 
+
+(* access locales *)
+
 fun declare_locale name =
   LocalesData.map (apfst (fn space => (NameSpace.extend (space, [name]))));
 
@@ -121,17 +123,30 @@ fun the_locale thy name =
     Some loc => loc
   | None => error ("Unknown locale " ^ quote name));
 
-
-
-(** internalization **)
-
-(* names *)
-
 val intern = NameSpace.intern o #1 o LocalesData.get_sg;
+
+
+(* diagnostics *)
+
 val cond_extern = NameSpace.cond_extern o #1 o LocalesData.get_sg;
 
+fun err_in_locale ctxt msg ids =
+  let
+    val sg = ProofContext.sign_of ctxt;
+    fun prt_id (name, parms) = Pretty.block (Pretty.breaks
+      (Pretty.str (cond_extern sg name) :: map (Pretty.str o fst) parms));
+    val prt_ids = flat (separate [Pretty.str " +", Pretty.brk 1] (map (single o prt_id) ids));
+  in
+    if null ids then raise ProofContext.CONTEXT (msg, ctxt)
+    else raise ProofContext.CONTEXT (msg ^ "\n" ^ Pretty.string_of (Pretty.block
+      (Pretty.str "The error(s) above occurred in locale:" :: Pretty.brk 1 :: prt_ids)), ctxt)
+  end;
 
-(* read *)
+
+
+(** operations on locale elements **)
+
+(* internalization *)
 
 fun read_elem ctxt =
  fn Fixes fixes =>
@@ -156,23 +171,19 @@ fun read_expr ctxt (Locale xname) = Locale (intern (ProofContext.sign_of ctxt) x
 fun read_element ctxt (Elem e) = Elem (read_elem ctxt e)
   | read_element ctxt (Expr e) = Expr (read_expr ctxt e);
 
-
-(* attribute *)
-
-local fun int_att attrib (x, srcs) = (x, map attrib srcs) in
+local fun read_att attrib (x, srcs) = (x, map attrib srcs) in
 
 fun attribute _ (Elem (Fixes fixes)) = Elem (Fixes fixes)
-  | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (int_att attrib)) asms))
-  | attribute attrib (Elem (Defines defs)) = Elem (Defines (map (apfst (int_att attrib)) defs))
+  | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (read_att attrib)) asms))
+  | attribute attrib (Elem (Defines defs)) = Elem (Defines (map (apfst (read_att attrib)) defs))
   | attribute attrib (Elem (Notes facts)) =
-      Elem (Notes (map (apfst (int_att attrib) o apsnd (map (int_att attrib))) facts))
+      Elem (Notes (map (apfst (read_att attrib) o apsnd (map (read_att attrib))) facts))
   | attribute _ (Expr expr) = Expr expr;
 
 end;
 
 
-
-(** renaming **)
+(* renaming *)
 
 fun rename ren x = if_none (assoc_string (ren, x)) x;
 
@@ -209,52 +220,50 @@ fun rename_elem ren (Fixes fixes) = Fixes (map (fn (x, T, mx) =>
   | rename_elem ren (Notes facts) = Notes (map (apsnd (map (apfst (map (rename_thm ren))))) facts);
 
 
-
-(** evaluation **)
+(* evaluation *)
 
 fun eval_expr ctxt expr =
   let
     val thy = ProofContext.theory_of ctxt;
 
-    fun renaming (Some x :: xs) (y :: ys) = (y, x) :: renaming xs ys
-      | renaming (None :: xs) (y :: ys) = renaming xs ys
+    fun renaming (Some x :: xs) ((y, _) :: ys) = (y, x) :: renaming xs ys
+      | renaming (None :: xs) ((y, _) :: ys) = renaming xs ys
       | renaming [] _ = []
       | renaming xs [] = raise ProofContext.CONTEXT ("Extraneous arguments in renaming: " ^
           commas (map (fn None => "_" | Some x => quote x) xs), ctxt);
 
     fun identify ((ids, parms), Locale name) =
-          let
-            val {import, params, ...} = the_locale thy name;
-            val ps = map #1 (#1 params);
-          in
+          let val {import, params = (ps, _), ...} = the_locale thy name in
             if (name, ps) mem ids then (ids, parms)
-            else identify (((name, ps) :: ids, merge_lists parms ps), import)
+            else
+              let val (ids', parms') = identify ((ids, parms), import)  (*acyclic dependencies!*)
+              in ((name, ps) :: ids', merge_lists parms' ps) end
           end
       | identify ((ids, parms), Rename (e, xs)) =
           let
             val (ids', parms') = identify (([], []), e);
-            val ren = renaming xs parms';
-            val ids'' = map (apsnd (map (rename ren))) ids' \\ ids;
-          in (ids'' @ ids, merge_lists parms (map (rename ren) parms')) end
+            val ren = renaming xs parms'
+              handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg ids';
+            val ids'' = map (apsnd (map (apfst (rename ren)))) ids' \\ ids;(* FIXME merge_lists' *)
+          in (ids'' @ ids, merge_lists parms (map (apfst (rename ren)) parms')) end
       | identify (arg, Merge es) = foldl identify (arg, es);
 
-    val idents = rev (#1 (identify (([], []), expr)));
+    val (idents, parms) = identify (([], []), expr);
+    val idents = rev idents;
     val FIXME = PolyML.print idents;
+    val FIXME = PolyML.print parms;
 
     fun eval (name, ps') =
       let
         val {params = (ps, _), elems, ...} = the_locale thy name;
-        val ren = filter_out (op =) (map #1 ps ~~ ps');
-      in
-        if null ren then ((name, ps), elems)
-        else ((name, map (apfst (rename ren)) ps), map (rename_elem ren) elems)
-      end;
+        val ren = filter_out (op =) (map fst ps ~~ map fst ps');
+      in ((name, ps'), if null ren then elems else map (rename_elem ren) elems) end;
     (* FIXME unify types; specific errors (name) *)
 
-  in map eval idents end;
+  in (map eval idents, parms) end;
 
 fun eval_elements ctxt =
-  flat o map (fn Elem e => [e] | Expr e => flat (map #2 (eval_expr ctxt e)));
+  flat o map (fn Elem e => [(("", []), [e])] | Expr e => #1 (eval_expr ctxt e));
 
 
 
@@ -273,11 +282,16 @@ fun activate_elem (Fixes fixes) = ProofContext.add_syntax fixes o
 
 fun activate_elems es ctxt = foldl (fn (c, e) => activate_elem e c) (ctxt, es);
 
-fun activate_elements_i elements ctxt = activate_elems (eval_elements ctxt elements) ctxt;
+fun activate_locale_elems named_elems context =
+  foldl (fn (ctxt, ((name, ps), es)) =>
+    activate_elems es ctxt handle ProofContext.CONTEXT (msg, ctxt) =>
+      err_in_locale ctxt msg [(name, ps)]) (context, named_elems);
+
+fun activate_elements_i elements ctxt = activate_locale_elems (eval_elements ctxt elements) ctxt;
 fun activate_elements elements ctxt = activate_elements_i (map (read_element ctxt) elements) ctxt;
 
-fun activate_locale_i name = activate_elements_i [Expr (Locale name)];
-fun activate_locale xname = activate_elements [Expr (Locale xname)];
+val activate_locale_i = activate_elements_i o single o Expr o Locale;
+val activate_locale = activate_elements o single o Expr o Locale;
 
 
 
@@ -288,7 +302,10 @@ fun pretty_locale thy xname =
     val sg = Theory.sign_of thy;
     val name = intern sg xname;
     val {import, elems, params = _, text = _, closed = _} = the_locale thy name;
-    val locale_ctxt = ProofContext.init thy |> activate_locale_i name;
+
+    val thy_ctxt = ProofContext.init thy;
+    val locale_elems = #1 (eval_expr thy_ctxt (Locale name));
+    val locale_ctxt = activate_locale_elems locale_elems thy_ctxt;
 
     val prt_typ = Pretty.quote o ProofContext.pretty_typ locale_ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term locale_ctxt;
@@ -329,7 +346,10 @@ fun pretty_locale thy xname =
     val prt_header = Pretty.block (Pretty.str ("locale " ^ cond_extern sg name ^ " =") ::
        (if import = empty then [] else [Pretty.str " ", prt_expr import] @
          (if null elems then [] else [Pretty.str " +"]) @ [Pretty.brk 1]));
-  in Pretty.block (Pretty.fbreaks (prt_header :: map prt_elem elems)) end;
+  in
+    Pretty.chunks [Pretty.block (Pretty.fbreaks (prt_header :: map prt_elem elems)),
+      Pretty.big_list "locale elements:" (map prt_elem (flat (map #2 locale_elems)))]
+  end;
 
 val print_locale = Pretty.writeln oo pretty_locale;
 
@@ -337,7 +357,7 @@ val print_locale = Pretty.writeln oo pretty_locale;
 
 (** define locales **)
 
-(* closeup dangling frees *)
+(* closeup -- quantify dangling frees *)
 
 fun close_frees_wrt ctxt t =
   let val frees = rev (filter_out (ProofContext.is_fixed ctxt o #1) (Drule.add_frees ([], t)))
@@ -367,23 +387,24 @@ fun gen_add_locale prep_expr prep_element bname raw_import raw_elements thy =
     val thy_ctxt = ProofContext.init thy;
 
     val import = prep_expr thy_ctxt raw_import;
-    val (import_ids, import_elemss) = split_list (eval_expr thy_ctxt import);
-    val import_ctxt = activate_elems (flat import_elemss) thy_ctxt;
+    val (import_elems, import_params) = eval_expr thy_ctxt import;
+    val import_ctxt = activate_locale_elems import_elems thy_ctxt;
 
     fun prep (ctxt, raw_element) =
-      let val elems = map (closeup ctxt) (eval_elements ctxt [prep_element ctxt raw_element]);
-      in (activate_elems elems ctxt, elems) end;
+      let val elems = map (apsnd (map (closeup ctxt)))
+        (eval_elements ctxt [prep_element ctxt raw_element])
+      in (activate_locale_elems elems ctxt, flat (map #2 elems)) end;
     val (locale_ctxt, elemss) = foldl_map prep (import_ctxt, raw_elements);
 
     val elems = flat elemss;
-    val local_ps =  (* FIXME proper types *)
+    val local_params =  (* FIXME lookup final types *)
       flat (map (fn Fixes fixes => map (fn (x, T, _) => (x, T)) fixes | _ => []) elems);
-    val all_ps = distinct (flat (map #2 import_ids)) @ local_ps;
+    val all_params = import_params @ local_params;
     val text = ([], []);  (* FIXME *)
   in
     thy
     |> declare_locale name
-    |> put_locale name (make_locale import elems (all_ps, local_ps) text false)
+    |> put_locale name (make_locale import elems (all_params, local_params) text false)
   end;
 
 val add_locale = gen_add_locale read_expr read_element;
