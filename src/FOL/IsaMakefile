@@ -12,7 +12,7 @@ PROVERS = hypsubst.ML classical.ML blast.ML \
 FILES =	ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
 	cladata.ML $(PROVERS:%=../Provers/%)
 
-EX_NAMES = If List Nat Nat2 Prolog declIffOracle IffOracle
+EX_NAMES = If List Nat Nat2 Prolog IffOracle
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML ex/intro.ML \
 	   ex/prop.ML ex/quant.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
