@@ -4,4 +4,5 @@
 # Isabelle user settings sample -- may be copied to ~/isabelle/etc/settings
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
+HOL_PROOF_OBJECTS="-p 1"
 ISABELLE_LOGIC=HOL
