@@ -95,7 +95,7 @@ by (simp add: SReal_def)
 declare SReal_hypreal_of_real [simp]
 
 lemma SReal_number_of: "(number_of w ::hypreal) \<in> Reals"
-apply (unfold hypreal_number_of_def)
+apply (simp only: hypreal_number_of [symmetric])
 apply (rule SReal_hypreal_of_real)
 done
 declare SReal_number_of [simp]
@@ -103,13 +103,13 @@ declare SReal_number_of [simp]
 (** As always with numerals, 0 and 1 are special cases **)
 
 lemma Reals_0: "(0::hypreal) \<in> Reals"
-apply (subst hypreal_numeral_0_eq_0 [symmetric])
+apply (subst numeral_0_eq_0 [symmetric])
 apply (rule SReal_number_of)
 done
 declare Reals_0 [simp]
 
 lemma Reals_1: "(1::hypreal) \<in> Reals"
-apply (subst hypreal_numeral_1_eq_1 [symmetric])
+apply (subst numeral_1_eq_1 [symmetric])
 apply (rule SReal_number_of)
 done
 declare Reals_1 [simp]
@@ -267,13 +267,13 @@ declare HFinite_number_of [simp]
 (** As always with numerals, 0 and 1 are special cases **)
 
 lemma HFinite_0: "0 \<in> HFinite"
-apply (subst hypreal_numeral_0_eq_0 [symmetric])
+apply (subst numeral_0_eq_0 [symmetric])
 apply (rule HFinite_number_of)
 done
 declare HFinite_0 [simp]
 
 lemma HFinite_1: "1 \<in> HFinite"
-apply (subst hypreal_numeral_1_eq_1 [symmetric])
+apply (subst numeral_1_eq_1 [symmetric])
 apply (rule HFinite_number_of)
 done
 declare HFinite_1 [simp]
@@ -859,7 +859,7 @@ declare number_of_not_Infinitesimal [simp]
 
 (*again: 1 is a special case, but not 0 this time*)
 lemma one_not_Infinitesimal: "1 \<notin> Infinitesimal"
-apply (subst hypreal_numeral_1_eq_1 [symmetric])
+apply (subst numeral_1_eq_1 [symmetric])
 apply (rule number_of_not_Infinitesimal)
 apply (simp (no_asm))
 done
@@ -1424,12 +1424,14 @@ lemma Infinitesimal_add_hypreal_of_real_less:
      "[| x < y;  u \<in> Infinitesimal |]
       ==> hypreal_of_real x + u < hypreal_of_real y"
 apply (simp add: Infinitesimal_def)
-apply (drule hypreal_of_real_less_iff [THEN iffD2])
 apply (drule_tac x = "hypreal_of_real y + -hypreal_of_real x" in bspec)
-apply (auto simp add: hypreal_add_commute abs_less_iff SReal_add SReal_minus)
+ apply (simp add: );  
+apply (auto simp add: add_commute abs_less_iff SReal_add SReal_minus)
+apply (simp add: compare_rls) 
 done
 
-lemma Infinitesimal_add_hrabs_hypreal_of_real_less: "[| x \<in> Infinitesimal; abs(hypreal_of_real r) < hypreal_of_real y |]
+lemma Infinitesimal_add_hrabs_hypreal_of_real_less:
+     "[| x \<in> Infinitesimal; abs(hypreal_of_real r) < hypreal_of_real y |]
       ==> abs (hypreal_of_real r + x) < hypreal_of_real y"
 apply (drule_tac x = "hypreal_of_real r" in approx_hrabs_add_Infinitesimal)
 apply (drule approx_sym [THEN bex_Infinitesimal_iff2 [THEN iffD2]])
@@ -1692,7 +1694,7 @@ apply (blast intro!: lemma_st_mult)
 done
 
 lemma st_Infinitesimal: "x \<in> Infinitesimal ==> st x = 0"
-apply (subst hypreal_numeral_0_eq_0 [symmetric])
+apply (subst numeral_0_eq_0 [symmetric])
 apply (rule st_number_of [THEN subst])
 apply (rule approx_st_eq)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] simp add: mem_infmal_iff [symmetric])
@@ -1743,13 +1745,13 @@ apply (auto simp add: hypreal_add_assoc [symmetric])
 done
 
 lemma st_zero_le: "[| 0 <= x;  x \<in> HFinite |] ==> 0 <= st x"
-apply (subst hypreal_numeral_0_eq_0 [symmetric])
+apply (subst numeral_0_eq_0 [symmetric])
 apply (rule st_number_of [THEN subst])
 apply (rule st_le, auto)
 done
 
 lemma st_zero_ge: "[| x <= 0;  x \<in> HFinite |] ==> st x <= 0"
-apply (subst hypreal_numeral_0_eq_0 [symmetric])
+apply (subst numeral_0_eq_0 [symmetric])
 apply (rule st_number_of [THEN subst])
 apply (rule st_le, auto)
 done

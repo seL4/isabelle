@@ -5,18 +5,5 @@
                 This case is reduced to that for the reals.
 *)
 
-ComplexBin = Complex + 
+theory ComplexBin = Complex:
 
-
-instance
-  complex :: number 
-
-instance complex :: plus_ac0(complex_add_commute,complex_add_assoc,complex_add_zero_left)
-
-
-defs
-  complex_number_of_def
-    "number_of v == complex_of_real (number_of v)"
-     (*::bin=>complex               ::bin=>complex*)
-
-end

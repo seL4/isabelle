@@ -371,6 +371,12 @@ fun zero_var_indexes th =
 (*Standard form of object-rule: no hypotheses, Frees, or outer quantifiers;
     all generality expressed by Vars having index 0.*)
 
+fun flexflex_unique th =
+    case Seq.chop (2, flexflex_rule th) of
+      ([th],_) => th
+    | ([],_)   => raise THM("flexflex_unique: impossible constraints", 0, [th])
+    |      _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
+
 fun close_derivation thm =
   if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
   else thm;
@@ -378,7 +384,7 @@ fun close_derivation thm =
 fun standard' th =
   let val {maxidx,...} = rep_thm th in
     th
-    |> implies_intr_hyps
+    |> flexflex_unique |> implies_intr_hyps 
     |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
     |> strip_shyps_warning
     |> zero_var_indexes |> Thm.varifyT |> Thm.compress

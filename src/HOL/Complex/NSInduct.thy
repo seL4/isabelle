@@ -4,7 +4,7 @@
     Description: Nonstandard characterization of induction etc.
 *)
 
-NSInduct =  ComplexArith0 + 
+NSInduct =  Complex + 
 
 constdefs
 

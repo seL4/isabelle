@@ -504,8 +504,7 @@ lemma hypreal_le:
       "(Abs_hypreal(hyprel``{%n. X n}) \<le> Abs_hypreal(hyprel``{%n. Y n})) =  
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
 apply (unfold hypreal_le_def)
-apply (auto intro!: lemma_hyprel_refl)
-apply (ultra)
+apply (auto intro!: lemma_hyprel_refl, ultra)
 done
 
 lemma hypreal_le_refl: "w \<le> (w::hypreal)"
@@ -517,21 +516,18 @@ lemma hypreal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypreal)"
 apply (rule eq_Abs_hypreal [of i])
 apply (rule eq_Abs_hypreal [of j])
 apply (rule eq_Abs_hypreal [of k])
-apply (simp add: hypreal_le) 
-apply ultra
+apply (simp add: hypreal_le, ultra)
 done
 
 lemma hypreal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypreal)"
 apply (rule eq_Abs_hypreal [of z])
 apply (rule eq_Abs_hypreal [of w])
-apply (simp add: hypreal_le) 
-apply ultra
+apply (simp add: hypreal_le, ultra)
 done
 
 (* Axiom 'order_less_le' of class 'order': *)
 lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
-apply (simp add: hypreal_less_def)
-done
+by (simp add: hypreal_less_def)
 
 instance hypreal :: order
 proof qed
@@ -543,8 +539,7 @@ proof qed
 lemma hypreal_le_linear: "(z::hypreal) \<le> w | w \<le> z"
 apply (rule eq_Abs_hypreal [of z])
 apply (rule eq_Abs_hypreal [of w])
-apply (auto simp add: hypreal_le) 
-apply ultra
+apply (auto simp add: hypreal_le, ultra)
 done
 
 instance hypreal :: linorder 
@@ -565,8 +560,7 @@ apply (rule eq_Abs_hypreal [of x])
 apply (rule eq_Abs_hypreal [of y])
 apply (rule eq_Abs_hypreal [of z])
 apply (auto simp add: hypreal_zero_def hypreal_le hypreal_mult 
-                      linorder_not_le [symmetric])
-apply ultra 
+                      linorder_not_le [symmetric], ultra) 
 done
 
 
@@ -590,7 +584,7 @@ lemma hypreal_mult_1_right: "z * (1::hypreal) = z"
   by (rule Ring_and_Field.mult_1_right)
 
 lemma hypreal_mult_minus_1 [simp]: "(- (1::hypreal)) * z = -z"
-by (simp)
+by simp
 
 lemma hypreal_mult_minus_1_right [simp]: "z * (- (1::hypreal)) = -z"
 by (subst hypreal_mult_commute, simp)
@@ -613,12 +607,10 @@ lemma hypreal_not_eq_minus_iff: "(x \<noteq> a) = (x + -a \<noteq> (0::hypreal))
 by (auto dest: hypreal_eq_minus_iff [THEN iffD2])
 
 lemma hypreal_mult_left_cancel: "(c::hypreal) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
-apply auto
-done
+by auto
     
 lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
-apply auto
-done
+by auto
 
 lemma hypreal_mult_not_0: "[| x \<noteq> 0; y \<noteq> 0 |] ==> x * y \<noteq> (0::hypreal)"
 by simp
@@ -725,8 +717,7 @@ subsection{*Misc Others*}
 lemma hypreal_less: 
       "(Abs_hypreal(hyprel``{%n. X n}) < Abs_hypreal(hyprel``{%n. Y n})) =  
        ({n. X n < Y n} \<in> FreeUltrafilterNat)"
-apply (auto simp add: hypreal_le linorder_not_le [symmetric]) 
-apply ultra+
+apply (auto simp add: hypreal_le linorder_not_le [symmetric], ultra+)
 done
 
 lemma hypreal_zero_num: "0 = Abs_hypreal (hyprel `` {%n. 0})"
@@ -773,7 +764,7 @@ text{*A few lemmas first*}
 
 lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
       (\<exists>y. {n::nat. x = real n} = {y})"
-by (force)
+by force
 
 lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
 by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
@@ -794,7 +785,7 @@ text{*Existence of infinitesimal number also not corresponding to any
 lemma lemma_epsilon_empty_singleton_disj:
      "{n::nat. x = inverse(real(Suc n))} = {} |  
       (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
-by (auto)
+by auto
 
 lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)

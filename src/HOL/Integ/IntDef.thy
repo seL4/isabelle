@@ -590,26 +590,6 @@ apply (simp add: linorder_not_le)
 apply (auto dest: order_less_trans simp add: order_less_imp_le)
 done
 
-
-
-subsection{*Monotonicity of Multiplication*}
-
-lemma zmult_zle_mono2: "[| i \<le> j;  (0::int) \<le> k |] ==> k*i \<le> k*j"
-  by (rule Ring_and_Field.mult_left_mono)
-
-lemma zmult_zless_cancel2: "(m*k < n*k) = (((0::int) < k & m<n) | (k<0 & n<m))"
-  by (rule Ring_and_Field.mult_less_cancel_right)
-
-lemma zmult_zless_cancel1:
-     "(k*m < k*n) = (((0::int) < k & m<n) | (k < 0 & n<m))"
-  by (rule Ring_and_Field.mult_less_cancel_left)
-
-lemma zmult_zle_cancel1:
-     "(k*m \<le> k*n) = (((0::int) < k --> m\<le>n) & (k < 0 --> n\<le>m))"
-  by (rule Ring_and_Field.mult_le_cancel_left)
-
-
-
 text{*A case theorem distinguishing non-negative and negative int*}
 
 lemma negD: "x<0 ==> \<exists>n. x = - (int (Suc n))"
@@ -728,6 +708,8 @@ text{*Special cases where either operand is zero*}
 declare of_nat_le_iff [of 0, simplified, simp]
 declare of_nat_le_iff [of _ 0, simplified, simp]
 
+text{*The ordering on the semiring is necessary to exclude the possibility of
+a finite field, which indeed wraps back to zero.*}
 lemma of_nat_eq_iff [simp]:
      "(of_nat m = (of_nat n::'a::ordered_semiring)) = (m = n)"
 by (simp add: order_eq_iff) 
@@ -847,6 +829,7 @@ text{*Special cases where either operand is zero*}
 declare of_int_less_iff [of 0, simplified, simp]
 declare of_int_less_iff [of _ 0, simplified, simp]
 
+text{*The ordering on the ring is necessary. See @{text of_nat_eq_iff} above.*}
 lemma of_int_eq_iff [simp]:
      "(of_int w = (of_int z::'a::ordered_ring)) = (w = z)"
 by (simp add: order_eq_iff) 
@@ -921,6 +904,14 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
   "q \<in> \<int> ==> (!!z. P (of_int z)) ==> P q"
   by (rule Ints_cases) auto
 
+
+(* int (Suc n) = 1 + int n *)
+declare int_Suc [simp]
+
+text{*Simplification of @{term "x-y < 0"}, etc.*}
+declare less_iff_diff_less_0 [symmetric, simp]
+declare eq_iff_diff_eq_0 [symmetric, simp]
+declare le_iff_diff_le_0 [symmetric, simp]
 
 
 (*Legacy ML bindings, but no longer the structure Int.*)
@@ -1048,6 +1039,7 @@ val Nats_0 = thm "Nats_0";
 val Nats_1 = thm "Nats_1";
 val Nats_add = thm "Nats_add";
 val Nats_mult = thm "Nats_mult";
+val int_eq_of_nat = thm"int_eq_of_nat";
 val of_int = thm "of_int";
 val of_int_0 = thm "of_int_0";
 val of_int_1 = thm "of_int_1";

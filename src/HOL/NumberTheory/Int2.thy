@@ -62,7 +62,7 @@ proof -;
     by (auto simp add: zmod_zdiv_equality [THEN sym] zmult_ac)
   also assume  "x < y * z";
   finally show ?thesis;
-    by (auto simp add: prems zmult_zless_cancel2, insert prems, arith)
+    by (auto simp add: prems mult_less_cancel_right, insert prems, arith)
 qed;
 
 lemma div_prop2: "[| 0 < z; (x::int) < (y * z) + z |] ==> x div z \<le> y";

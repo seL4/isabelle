@@ -36,7 +36,7 @@ axclass ring \<subseteq> semiring, minus
   diff_minus: "a - b = a + (-b)"
 
 axclass ordered_semiring \<subseteq> semiring, linorder
-  zero_less_one: "0 < 1" --{*This axiom too is needed for semirings only.*}
+  zero_less_one [simp]: "0 < 1" --{*This too is needed for semirings only.*}
   add_left_mono: "a \<le> b ==> c + a \<le> c + b"
   mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
 
@@ -300,6 +300,9 @@ by simp
 lemma add_le_imp_le_right:
       "a + c \<le> b + c ==> a \<le> (b::'a::ordered_semiring)"
 by simp
+
+lemma add_increasing: "[|0\<le>a; b\<le>c|] ==> b \<le> a + (c::'a::ordered_semiring)"
+by (insert add_mono [of 0 a b c], simp)
 
 
 subsection {* Ordering Rules for Unary Minus *}
@@ -571,8 +574,18 @@ done
 lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear) 
 
-lemma zero_le_one: "(0::'a::ordered_semiring) \<le> 1"
+text{*All three types of comparision involving 0 and 1 are covered.*}
+
+declare zero_neq_one [THEN not_sym, simp]
+
+lemma zero_le_one [simp]: "(0::'a::ordered_semiring) \<le> 1"
   by (rule zero_less_one [THEN order_less_imp_le]) 
+
+lemma not_one_le_zero [simp]: "~ (1::'a::ordered_semiring) \<le> 0"
+by (simp add: linorder_not_le zero_less_one) 
+
+lemma not_one_less_zero [simp]: "~ (1::'a::ordered_semiring) < 0"
+by (simp add: linorder_not_less zero_le_one) 
 
 
 subsection{*More Monotonicity*}
@@ -609,6 +622,11 @@ lemma mult_mono:
       ==> a * c  \<le>  b * (d::'a::ordered_semiring)"
 apply (erule mult_right_mono [THEN order_trans], assumption)
 apply (erule mult_left_mono, assumption)
+done
+
+lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semiring)"
+apply (insert mult_strict_mono [of 1 m 1 n]) 
+apply (simp add:  order_less_trans [OF zero_less_one]); 
 done
 
 
@@ -976,11 +994,19 @@ text{*The effect is to extract signs from divisions*}
 declare minus_divide_left  [symmetric, simp]
 declare minus_divide_right [symmetric, simp]
 
+text{*Also, extract signs from products*}
+declare minus_mult_left [symmetric, simp]
+declare minus_mult_right [symmetric, simp]
+
 lemma minus_divide_divide [simp]:
      "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
 apply (case_tac "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
 done
+
+lemma diff_divide_distrib:
+     "(a-b)/(c::'a::{field,division_by_zero}) = a/c - b/c"
+by (simp add: diff_minus add_divide_distrib) 
 
 
 subsection {* Ordered Fields *}
@@ -1732,6 +1758,8 @@ val mult_le_0_iff = thm"mult_le_0_iff";
 val zero_le_square = thm"zero_le_square";
 val zero_less_one = thm"zero_less_one";
 val zero_le_one = thm"zero_le_one";
+val not_one_less_zero = thm"not_one_less_zero";
+val not_one_le_zero = thm"not_one_le_zero";
 val mult_left_mono_neg = thm"mult_left_mono_neg";
 val mult_right_mono_neg = thm"mult_right_mono_neg";
 val mult_strict_mono = thm"mult_strict_mono";

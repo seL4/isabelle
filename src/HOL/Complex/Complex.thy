@@ -1,6 +1,7 @@
 (*  Title:       Complex.thy
     Author:      Jacques D. Fleuriot
     Copyright:   2001 University of Edinburgh
+    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
 header {* Complex Numbers: Rectangular and Polar Representations *}
@@ -829,6 +830,143 @@ apply (auto simp add: expi_def rcis_def complex_mult_assoc [symmetric] complex_o
 apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
 done
 
+
+subsection{*Numerals and Arithmetic*}
+
+instance complex :: number ..
+
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::complex)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance complex :: number_ring
+proof
+  show "Numeral0 = (0::complex)" by (rule number_of_Pls)
+  show "-1 = - (1::complex)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: complex) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
+
+
+text{*Collapse applications of @{term complex_of_real} to @{term number_of}*}
+lemma complex_number_of [simp]: "complex_of_real (number_of w) = number_of w"
+apply (induct w) 
+apply (simp_all only: number_of complex_of_real_add [symmetric] 
+                      complex_of_real_minus, simp_all) 
+done
+
+text{*This theorem is necessary because theorems such as
+   @{text iszero_number_of_0} only hold for ordered rings. They cannot
+   be generalized to fields in general because they fail for finite fields.
+   They work for type complex because the reals can be embedded in them.*}
+lemma iszero_complex_number_of [simp]:
+     "iszero (number_of w :: complex) = iszero (number_of w :: real)"
+by (simp only: complex_of_real_zero_iff complex_number_of [symmetric] 
+               iszero_def)  
+
+
+(*These allow simplification of expressions involving mixed numbers.
+  Convert???
+Goalw [complex_number_of_def] 
+  "((number_of xa :: complex) + ii * number_of ya =  
+        number_of xb) =  
+   (((number_of xa :: complex) = number_of xb) &  
+    ((number_of ya :: complex) = 0))"
+by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff2,
+    complex_of_real_zero_iff]));
+qed "complex_number_of_eq_cancel_iff2";
+Addsimps [complex_number_of_eq_cancel_iff2];
+
+Goalw [complex_number_of_def] 
+  "((number_of xa :: complex) + number_of ya * ii = \
+\       number_of xb) = \
+\  (((number_of xa :: complex) = number_of xb) & \
+\   ((number_of ya :: complex) = 0))";
+by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff2a,
+    complex_of_real_zero_iff]));
+qed "complex_number_of_eq_cancel_iff2a";
+Addsimps [complex_number_of_eq_cancel_iff2a];
+
+Goalw [complex_number_of_def] 
+  "((number_of xa :: complex) + ii * number_of ya = \
+\    ii * number_of yb) = \
+\  (((number_of xa :: complex) = 0) & \
+\   ((number_of ya :: complex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff3,
+    complex_of_real_zero_iff]));
+qed "complex_number_of_eq_cancel_iff3";
+Addsimps [complex_number_of_eq_cancel_iff3];
+
+Goalw [complex_number_of_def] 
+  "((number_of xa :: complex) + number_of ya * ii= \
+\    ii * number_of yb) = \
+\  (((number_of xa :: complex) = 0) & \
+\   ((number_of ya :: complex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff3a,
+    complex_of_real_zero_iff]));
+qed "complex_number_of_eq_cancel_iff3a";
+Addsimps [complex_number_of_eq_cancel_iff3a];
+*)
+
+lemma complex_number_of_cnj [simp]: "cnj(number_of v :: complex) = number_of v"
+apply (subst complex_number_of [symmetric])
+apply (rule complex_cnj_complex_of_real)
+done
+
+lemma complex_number_of_cmod: 
+      "cmod(number_of v :: complex) = abs (number_of v :: real)"
+by (simp only: complex_number_of [symmetric] complex_mod_complex_of_real)
+
+lemma complex_number_of_Re [simp]: "Re(number_of v :: complex) = number_of v"
+by (simp only: complex_number_of [symmetric] Re_complex_of_real)
+
+lemma complex_number_of_Im [simp]: "Im(number_of v :: complex) = 0"
+by (simp only: complex_number_of [symmetric] Im_complex_of_real)
+
+lemma expi_two_pi_i [simp]: "expi((2::complex) * complex_of_real pi * ii) = 1"
+by (simp add: expi_def complex_Re_mult_eq complex_Im_mult_eq cis_def)
+
+
+(*examples:
+print_depth 22
+set timing;
+set trace_simp;
+fun test s = (Goal s, by (Simp_tac 1)); 
+
+test "23 * ii + 45 * ii= (x::complex)";
+
+test "5 * ii + 12 - 45 * ii= (x::complex)";
+test "5 * ii + 40 - 12 * ii + 9 = (x::complex) + 89 * ii";
+test "5 * ii + 40 - 12 * ii + 9 - 78 = (x::complex) + 89 * ii";
+
+test "l + 10 * ii + 90 + 3*l +  9 + 45 * ii= (x::complex)";
+test "87 + 10 * ii + 90 + 3*7 +  9 + 45 * ii= (x::complex)";
+
+
+fun test s = (Goal s; by (Asm_simp_tac 1)); 
+
+test "x*k = k*(y::complex)";
+test "k = k*(y::complex)"; 
+test "a*(b*c) = (b::complex)";
+test "a*(b*c) = d*(b::complex)*(x*a)";
+
+
+test "(x*k) / (k*(y::complex)) = (uu::complex)";
+test "(k) / (k*(y::complex)) = (uu::complex)"; 
+test "(a*(b*c)) / ((b::complex)) = (uu::complex)";
+test "(a*(b*c)) / (d*(b::complex)*(x*a)) = (uu::complex)";
+
+(*FIXME: what do we do about this?*)
+test "a*(b*c)/(y*z) = d*(b::complex)*(x*a)/z";
+*)
 
 
 ML

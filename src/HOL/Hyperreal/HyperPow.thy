@@ -2,6 +2,7 @@
     Author      : Jacques D. Fleuriot  
     Copyright   : 1998  University of Cambridge
     Description : Powers theory for hyperreals
+    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
 header{*Exponentials on the Hyperreals*}
@@ -123,7 +124,7 @@ declare hypreal_of_real_power [simp]
 
 lemma power_hypreal_of_real_number_of:
      "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)"
-by (simp only: hypreal_number_of_def hypreal_of_real_power)
+by (simp only: hypreal_number_of [symmetric] hypreal_of_real_power)
 
 declare power_hypreal_of_real_number_of [of _ "number_of w", standard, simp]
 

@@ -320,7 +320,7 @@ proof -;
   proof -;
     assume "b \<le> q * a div p";
     then have "p * b \<le> p * ((q * a) div p)";
-      by (insert p_g_2, auto simp add: zmult_zle_cancel1)
+      by (insert p_g_2, auto simp add: mult_le_cancel_left)
     also have "... \<le> q * a";
       by (rule zdiv_leq_prop, insert p_g_2, auto)
     finally have "p * b \<le> q * a" .;
@@ -353,7 +353,7 @@ proof -;
   proof -;
     assume "a \<le> p * b div q";
     then have "q * a \<le> q * ((p * b) div q)";
-      by (insert q_g_2, auto simp add: zmult_zle_cancel1)
+      by (insert q_g_2, auto simp add: mult_le_cancel_left)
     also have "... \<le> p * b";
       by (rule zdiv_leq_prop, insert q_g_2, auto)
     finally have "q * a \<le> p * b" .;
@@ -425,7 +425,7 @@ proof;
         assume "0 < x" and "x \<le> q * j div p";
         with j_fact P_set_def  have "j \<le> (p - 1) div 2"; by auto
         with q_g_2; have "q * j \<le> q * ((p - 1) div 2)";
-          by (auto simp add: zmult_zle_cancel1)
+          by (auto simp add: mult_le_cancel_left)
         with p_g_2 have "q * j div p \<le> q * ((p - 1) div 2) div p";
           by (auto simp add: zdiv_mono1)
         also from prems have "... \<le> (q - 1) div 2";
@@ -437,7 +437,7 @@ proof;
   also have "... = (q * j) div p";
   proof -;
     from j_fact P_set_def have "0 \<le> j" by auto
-    with q_g_2 have "q * 0 \<le> q * j" by (auto simp only: zmult_zle_mono2)
+    with q_g_2 have "q * 0 \<le> q * j" by (auto simp only: mult_left_mono)
     then have "0 \<le> q * j" by auto
     then have "0 div p \<le> (q * j) div p";
       apply (rule_tac a = 0 in zdiv_mono1)
@@ -478,7 +478,7 @@ proof;
         assume "0 < x" and "x \<le> p * j div q";
         with j_fact Q_set_def  have "j \<le> (q - 1) div 2"; by auto
         with p_g_2; have "p * j \<le> p * ((q - 1) div 2)";
-          by (auto simp add: zmult_zle_cancel1)
+          by (auto simp add: mult_le_cancel_left)
         with q_g_2 have "p * j div q \<le> p * ((q - 1) div 2) div q";
           by (auto simp add: zdiv_mono1)
         also from prems have "... \<le> (p - 1) div 2";
@@ -490,7 +490,7 @@ proof;
   also have "... = (p * j) div q";
   proof -;
     from j_fact Q_set_def have "0 \<le> j" by auto
-    with p_g_2 have "p * 0 \<le> p * j" by (auto simp only: zmult_zle_mono2)
+    with p_g_2 have "p * 0 \<le> p * j" by (auto simp only: mult_left_mono)
     then have "0 \<le> p * j" by auto
     then have "0 div q \<le> (p * j) div q";
       apply (rule_tac a = 0 in zdiv_mono1)

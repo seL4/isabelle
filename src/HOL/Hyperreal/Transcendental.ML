@@ -75,8 +75,8 @@ Addsimps [real_root_one];
 
 (*lcp: needed now because 2 is a binary numeral!*)
 Goal "root 2 = root (Suc (Suc 0))";
-by (simp_tac (simpset() delsimps [numeral_0_eq_0, numeral_1_eq_1]
-	                addsimps [numeral_0_eq_0 RS sym]) 1);  
+by (simp_tac (simpset() delsimps [nat_numeral_0_eq_0, nat_numeral_1_eq_1]
+	                addsimps [nat_numeral_0_eq_0 RS sym]) 1);  
 qed "root_2_eq";
 Addsimps [root_2_eq];
 
@@ -2077,7 +2077,7 @@ qed "tan_add";
 Goal "[| cos x ~= 0; cos (2 * x) ~= 0 |] \
 \     ==> tan (2 * x) = (2 * tan x)/(1 - (tan(x) ^ 2))";
 by (auto_tac (claset(),simpset() addsimps [asm_full_simplify 
-    (simpset() addsimps [real_mult_2 RS sym] delsimps [lemma_tan_add1]) 
+    (simpset() addsimps [thm"mult_2" RS sym] delsimps [lemma_tan_add1]) 
     (read_instantiate [("x","x"),("y","x")] tan_add),numeral_2_eq_2]
     delsimps [lemma_tan_add1]));
 qed "tan_double";

@@ -6,7 +6,7 @@
 
 *)
 
-theory RealPow = RealArith:
+theory RealPow = RealDef:
 
 declare abs_mult_self [simp]
 
@@ -60,7 +60,7 @@ by (insert power_increasing [of 0 n "2::real"], simp)
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
 apply (induct_tac "n")
 apply (auto simp add: real_of_nat_Suc)
-apply (subst real_mult_2)
+apply (subst mult_2)
 apply (rule real_add_less_le_mono)
 apply (auto simp add: two_realpow_ge_one)
 done
@@ -137,13 +137,13 @@ subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}
 
 lemma real_of_int_power: "real (x::int) ^ n = real (x ^ n)"
 apply (induct_tac "n")
-apply (simp_all (no_asm_simp) add: nat_mult_distrib)
+apply (simp_all add: nat_mult_distrib)
 done
 declare real_of_int_power [symmetric, simp]
 
 lemma power_real_number_of:
      "(number_of v :: real) ^ n = real ((number_of v :: int) ^ n)"
-by (simp only: real_number_of_def real_of_int_power)
+by (simp only: real_number_of [symmetric] real_of_int_power)
 
 declare power_real_number_of [of _ "number_of w", standard, simp]
 
@@ -254,6 +254,7 @@ apply (simp (no_asm_simp) add: real_mult_assoc [symmetric])
 apply (auto simp add: realpow_num_eq_if)
 done
 
+(*???generalize the type!*)
 lemma zero_le_x_squared [simp]: "(0::real) \<le> x^2"
 by (simp add: power2_eq_square)
 

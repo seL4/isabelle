@@ -138,10 +138,9 @@ HOL-Complex: HOL $(OUT)/HOL-Complex
 
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Library/Zorn.thy\
-  Real/Lubs.thy Real/rat_arith.ML Real/RatArith.thy\
+  Real/Lubs.thy Real/rat_arith.ML\
   Real/Rational.thy Real/PReal.thy Real/RComplete.thy \
-  Real/ROOT.ML Real/Real.thy \
-  Real/RealArith.thy Real/real_arith.ML Real/RealDef.thy \
+  Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy \
   Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy \
   Hyperreal/Fact.ML Hyperreal/Fact.thy\
@@ -161,13 +160,9 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Complex/Complex_Main.thy\
   Complex/CLim.ML Complex/CLim.thy\
   Complex/CSeries.ML Complex/CSeries.thy\
-  Complex/CStar.ML Complex/CStar.thy Complex/Complex.thy\
-  Complex/ComplexArith0.ML Complex/ComplexArith0.thy\
-  Complex/ComplexBin.ML Complex/ComplexBin.thy\
+  Complex/CStar.ML Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy\
   Complex/NSCA.ML Complex/NSCA.thy\
-  Complex/NSComplex.thy\
-  Complex/hcomplex_arith.ML Complex/NSComplexArith.thy\
-  Complex/NSComplexBin.ML Complex/NSComplexBin.thy
+  Complex/NSComplex.thy
 	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Complex
 
 

@@ -11,7 +11,7 @@ struct
 
 (*Maps n to #n for n = 0, 1, 2*)
 val numeral_syms =
-       [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym, numeral_2_eq_2 RS sym];
+       [nat_numeral_0_eq_0 RS sym, nat_numeral_1_eq_1 RS sym, numeral_2_eq_2 RS sym];
 val numeral_sym_ss = HOL_ss addsimps numeral_syms;
 
 fun rename_numerals th =
@@ -65,7 +65,7 @@ fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
 val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
-val bin_simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
+val bin_simps = [nat_numeral_0_eq_0 RS sym, nat_numeral_1_eq_1 RS sym,
                  add_nat_number_of, nat_number_of_add_left,
                  diff_nat_number_of, le_number_of_eq_not_less,
                  less_nat_number_of, mult_nat_number_of,
@@ -126,7 +126,7 @@ val contra_rules = [add_Suc, add_Suc_right, Zero_not_Suc, Suc_not_Zero,
 
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
-        ([numeral_0_eq_0, numeral_1_eq_Suc_0, add_0, add_0_right,
+        ([nat_numeral_0_eq_0, numeral_1_eq_Suc_0, add_0, add_0_right,
           mult_0, mult_0_right, mult_1, mult_1_right] @ contra_rules);
 
 
@@ -153,7 +153,7 @@ fun restricted_dest_Sucs_sum t =
 
 structure CancelNumeralsCommon =
   struct
-  val mk_sum            = mk_sum
+  val mk_sum            = (fn T:typ => mk_sum)
   val dest_sum          = dest_Sucs_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
@@ -236,7 +236,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add               = op + : int*int -> int
-  val mk_sum            = long_mk_sum    (*to work for e.g. 2*x + 3*x *)
+  val mk_sum            = (fn T:typ => long_mk_sum)  (*to work for 2*x + 3*x *)
   val dest_sum          = restricted_dest_Sucs_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
@@ -346,7 +346,7 @@ fun cancel_simplify_meta_eq cancel_th th =
 
 structure CancelFactorCommon =
   struct
-  val mk_sum            = long_mk_prod
+  val mk_sum            = (fn T:typ => long_mk_prod)
   val dest_sum          = dest_prod
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
@@ -514,8 +514,7 @@ val add_rules =
    eq_number_of_0, eq_0_number_of, less_0_number_of,
    nat_number_of, if_True, if_False];
 
-val simprocs = [Nat_Times_Assoc.conv,
-                Nat_Numeral_Simprocs.combine_numerals]@
+val simprocs = [Nat_Numeral_Simprocs.combine_numerals]@
                 Nat_Numeral_Simprocs.cancel_numerals;
 
 in

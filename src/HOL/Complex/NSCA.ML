@@ -5,7 +5,7 @@
 *)
 
 val complex_induct = thm"complex.induct";
-
+val hcomplex_number_of = thm"hcomplex_number_of";
 
 (*--------------------------------------------------------------------------------------*)
 (* Closure laws for members of (embedded) set standard complex SComplex                 *)
@@ -58,8 +58,8 @@ by (simp_tac (simpset() addsimps [hcmod,SReal_def,
 qed "SReal_hcmod_hcomplex_of_complex";
 Addsimps [SReal_hcmod_hcomplex_of_complex];
 
-Goalw [hcomplex_number_of_def]
-    "hcmod (number_of w ::hcomplex) : Reals";
+Goal "hcmod (number_of w ::hcomplex) : Reals";
+by (stac (hcomplex_number_of RS sym) 1); 
 by (rtac SReal_hcmod_hcomplex_of_complex 1);
 qed "SReal_hcmod_number_of";
 Addsimps [SReal_hcmod_number_of];
@@ -73,7 +73,8 @@ by (Blast_tac 1);
 qed "SComplex_hcomplex_of_complex";
 Addsimps [SComplex_hcomplex_of_complex];
 
-Goalw [hcomplex_number_of_def] "(number_of w ::hcomplex) : SComplex";
+Goal "(number_of w ::hcomplex) : SComplex";
+by (stac (hcomplex_number_of RS sym) 1); 
 by (rtac SComplex_hcomplex_of_complex 1);
 qed "SComplex_number_of";
 Addsimps [SComplex_number_of];
@@ -122,7 +123,7 @@ by (ultra_tac (claset(),simpset() addsimps [cmod_def]) 1);
 qed "SComplex_hcmod_SReal";
 
 Goal "0 : SComplex";
-by (auto_tac (claset(),simpset() addsimps [SComplex_def]));
+by (auto_tac ((claset(),simpset() addsimps [SComplex_def]) addIffs [hcomplex_of_complex_zero_iff]));
 qed "SComplex_zero";
 Addsimps [SComplex_zero];
 
@@ -206,7 +207,7 @@ qed "CInfinitesimal_zero";
 AddIffs [CInfinitesimal_zero];
 
 Goal "x/(2::hcomplex) + x/(2::hcomplex) = x";
-by Auto_tac;  
+by Auto_tac;
 qed "hcomplex_sum_of_halves";
 
 Goalw [CInfinitesimal_def,Infinitesimal_def] 
@@ -953,6 +954,8 @@ Goal "(Abs_hcomplex(hcomplexrel ``{%n. X n}) : SComplex) = \
 by (blast_tac (claset() addIs [SComplex_Re_SReal,SComplex_Im_SReal,
     Reals_Re_Im_SComplex]) 1);
 qed "SComplex_SReal_iff";
+
+val hcomplex_zero_num = thm"hcomplex_zero_num";
 
 Goal "(Abs_hcomplex(hcomplexrel ``{%n. X n}) : CInfinitesimal) = \
 \     (Abs_hypreal(hyprel `` {%n. Re(X n)}) : Infinitesimal & \

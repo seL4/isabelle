@@ -26,14 +26,14 @@ declare nat_0 [simp] nat_1 [simp]
 lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
 by (simp add: nat_number_of_def)
 
-lemma numeral_0_eq_0: "Numeral0 = (0::nat)"
+lemma nat_numeral_0_eq_0 [simp]: "Numeral0 = (0::nat)"
 by (simp add: nat_number_of_def)
 
-lemma numeral_1_eq_1: "Numeral1 = (1::nat)"
+lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
 by (simp add: nat_1 nat_number_of_def)
 
 lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
-by (simp add: numeral_1_eq_1)
+by (simp add: nat_numeral_1_eq_1)
 
 lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
 apply (unfold nat_number_of_def)
@@ -52,11 +52,11 @@ apply (case_tac "z' = 0", simp add: DIVISION_BY_ZERO)
 apply (auto elim!: nonneg_eq_int)
 apply (rename_tac m m')
 apply (subgoal_tac "0 <= int m div int m'")
- prefer 2 apply (simp add: numeral_0_eq_0 pos_imp_zdiv_nonneg_iff) 
+ prefer 2 apply (simp add: nat_numeral_0_eq_0 pos_imp_zdiv_nonneg_iff) 
 apply (rule inj_int [THEN injD], simp)
 apply (rule_tac r = "int (m mod m') " in quorem_div)
  prefer 2 apply force
-apply (simp add: nat_less_iff [symmetric] quorem_def numeral_0_eq_0 zadd_int 
+apply (simp add: nat_less_iff [symmetric] quorem_def nat_numeral_0_eq_0 zadd_int 
                  zmult_int)
 done
 
@@ -67,24 +67,23 @@ apply (case_tac "z' = 0", simp add: DIVISION_BY_ZERO)
 apply (auto elim!: nonneg_eq_int)
 apply (rename_tac m m')
 apply (subgoal_tac "0 <= int m mod int m'")
- prefer 2 apply (simp add: nat_less_iff numeral_0_eq_0 pos_mod_sign) 
+ prefer 2 apply (simp add: nat_less_iff nat_numeral_0_eq_0 pos_mod_sign) 
 apply (rule inj_int [THEN injD], simp)
 apply (rule_tac q = "int (m div m') " in quorem_mod)
  prefer 2 apply force
-apply (simp add: nat_less_iff [symmetric] quorem_def numeral_0_eq_0 zadd_int zmult_int)
+apply (simp add: nat_less_iff [symmetric] quorem_def nat_numeral_0_eq_0 zadd_int zmult_int)
 done
 
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 
 (*"neg" is used in rewrite rules for binary comparisons*)
-lemma int_nat_number_of:
+lemma int_nat_number_of [simp]:
      "int (number_of v :: nat) =  
          (if neg (number_of v :: int) then 0  
           else (number_of v :: int))"
 by (simp del: nat_number_of
 	 add: neg_nat nat_number_of_def not_neg_nat add_assoc)
-declare int_nat_number_of [simp]
 
 
 (** Successor **)
@@ -101,19 +100,18 @@ by (simp del: nat_number_of
          add: nat_number_of_def neg_nat
               Suc_nat_eq_nat_zadd1 number_of_succ) 
 
-lemma Suc_nat_number_of:
+lemma Suc_nat_number_of [simp]:
      "Suc (number_of v) =  
         (if neg (number_of v :: int) then 1 else number_of (bin_succ v))"
 apply (cut_tac n = 0 in Suc_nat_number_of_add)
 apply (simp cong del: if_weak_cong)
 done
-declare Suc_nat_number_of [simp]
 
 
 (** Addition **)
 
 (*"neg" is used in rewrite rules for binary comparisons*)
-lemma add_nat_number_of:
+lemma add_nat_number_of [simp]:
      "(number_of v :: nat) + number_of v' =  
          (if neg (number_of v :: int) then number_of v'  
           else if neg (number_of v' :: int) then number_of v  
@@ -121,8 +119,6 @@ lemma add_nat_number_of:
 by (force dest!: neg_nat
           simp del: nat_number_of
           simp add: nat_number_of_def nat_add_distrib [symmetric]) 
-
-declare add_nat_number_of [simp]
 
 
 (** Subtraction **)
@@ -136,31 +132,29 @@ apply (simp add: Let_def nat_diff_distrib [symmetric] neg_eq_less_0 not_neg_eq_g
 apply (simp add: diff_is_0_eq nat_le_eq_zle)
 done
 
-lemma diff_nat_number_of: 
+lemma diff_nat_number_of [simp]: 
      "(number_of v :: nat) - number_of v' =  
         (if neg (number_of v' :: int) then number_of v  
          else let d = number_of (bin_add v (bin_minus v')) in     
               if neg d then 0 else nat d)"
 by (simp del: nat_number_of add: diff_nat_eq_if nat_number_of_def) 
 
-declare diff_nat_number_of [simp]
 
 
 (** Multiplication **)
 
-lemma mult_nat_number_of:
+lemma mult_nat_number_of [simp]:
      "(number_of v :: nat) * number_of v' =  
        (if neg (number_of v :: int) then 0 else number_of (bin_mult v v'))"
 by (force dest!: neg_nat
           simp del: nat_number_of
           simp add: nat_number_of_def nat_mult_distrib [symmetric]) 
 
-declare mult_nat_number_of [simp]
 
 
 (** Quotient **)
 
-lemma div_nat_number_of:
+lemma div_nat_number_of [simp]:
      "(number_of v :: nat)  div  number_of v' =  
           (if neg (number_of v :: int) then 0  
            else nat (number_of v div number_of v'))"
@@ -168,12 +162,14 @@ by (force dest!: neg_nat
           simp del: nat_number_of
           simp add: nat_number_of_def nat_div_distrib [symmetric]) 
 
-declare div_nat_number_of [simp]
+lemma one_div_nat_number_of [simp]:
+     "(Suc 0)  div  number_of v' = (nat (1 div number_of v'))" 
+by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
 
 
 (** Remainder **)
 
-lemma mod_nat_number_of:
+lemma mod_nat_number_of [simp]:
      "(number_of v :: nat)  mod  number_of v' =  
         (if neg (number_of v :: int) then 0  
          else if neg (number_of v' :: int) then number_of v  
@@ -182,15 +178,21 @@ by (force dest!: neg_nat
           simp del: nat_number_of
           simp add: nat_number_of_def nat_mod_distrib [symmetric]) 
 
-declare mod_nat_number_of [simp]
+lemma one_mod_nat_number_of [simp]:
+     "(Suc 0)  mod  number_of v' =  
+        (if neg (number_of v' :: int) then Suc 0
+         else nat (1 mod number_of v'))"
+by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
+
+
 
 ML
 {*
 val nat_number_of_def = thm"nat_number_of_def";
 
 val nat_number_of = thm"nat_number_of";
-val numeral_0_eq_0 = thm"numeral_0_eq_0";
-val numeral_1_eq_1 = thm"numeral_1_eq_1";
+val nat_numeral_0_eq_0 = thm"nat_numeral_0_eq_0";
+val nat_numeral_1_eq_1 = thm"nat_numeral_1_eq_1";
 val numeral_1_eq_Suc_0 = thm"numeral_1_eq_Suc_0";
 val numeral_2_eq_2 = thm"numeral_2_eq_2";
 val nat_div_distrib = thm"nat_div_distrib";
@@ -207,29 +209,6 @@ val div_nat_number_of = thm"div_nat_number_of";
 val mod_nat_number_of = thm"mod_nat_number_of";
 *}
 
-
-ML
-{*
-structure NatAbstractNumeralsData =
-  struct
-  val dest_eq		= HOLogic.dest_eq o HOLogic.dest_Trueprop o concl_of
-  val is_numeral	= Bin_Simprocs.is_numeral
-  val numeral_0_eq_0    = numeral_0_eq_0
-  val numeral_1_eq_1    = numeral_1_eq_Suc_0
-  val prove_conv        = Bin_Simprocs.prove_conv_nohyps_novars
-  fun norm_tac simps	= ALLGOALS (simp_tac (HOL_ss addsimps simps))
-  val simplify_meta_eq  = Bin_Simprocs.simplify_meta_eq 
-  end;
-
-structure NatAbstractNumerals = AbstractNumeralsFun (NatAbstractNumeralsData);
-
-val nat_eval_numerals = 
-  map Bin_Simprocs.prep_simproc
-   [("nat_div_eval_numerals", ["(Suc 0) div m"], NatAbstractNumerals.proc div_nat_number_of),
-    ("nat_mod_eval_numerals", ["(Suc 0) mod m"], NatAbstractNumerals.proc mod_nat_number_of)];
-
-Addsimprocs nat_eval_numerals;
-*}
 
 (*** Comparisons ***)
 
@@ -270,7 +249,7 @@ declare less_nat_number_of [simp]
 
 
 (*Maps #n to n for n = 0, 1, 2*)
-lemmas numerals = numeral_0_eq_0 numeral_1_eq_1 numeral_2_eq_2
+lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
 
 
 subsection{*General Theorems About Powers Involving Binary Numerals*}
@@ -398,7 +377,7 @@ declare diff_less' [of "number_of v", standard, simp]
 lemma eq_number_of_0:
      "(number_of v = (0::nat)) =  
       (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
-apply (simp add: numeral_0_eq_0 [symmetric] iszero_0)
+apply (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
 done
 
 lemma eq_0_number_of:
@@ -409,13 +388,13 @@ done
 
 lemma less_0_number_of:
      "((0::nat) < number_of v) = neg (number_of (bin_minus v) :: int)"
-by (simp add: numeral_0_eq_0 [symmetric])
+by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
 
 (*Simplification already handles n<0, n<=0 and 0<=n.*)
 declare eq_number_of_0 [simp] eq_0_number_of [simp] less_0_number_of [simp]
 
 lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
-by (simp add: numeral_0_eq_0 [symmetric] iszero_0)
+by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
 
 
 
@@ -563,7 +542,7 @@ lemma zpower_number_of_odd:
            then (let w = z ^ (number_of w) in  z*w*w)    
            else 1)"
 apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
-apply (simp only: number_of_add int_numeral_1_eq_1 not_neg_eq_ge_0 neg_eq_less_0) 
+apply (simp only: number_of_add nat_numeral_1_eq_1 not_neg_eq_ge_0 neg_eq_less_0) 
 apply (rule_tac x = "number_of w" in spec, clarify)
 apply (auto simp add: nat_add_distrib nat_mult_distrib zpower_even power2_eq_square neg_nat)
 done

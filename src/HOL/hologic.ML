@@ -174,8 +174,10 @@ fun mk_binrel c (t, u) =
     Const (c, [T, T] ---> boolT) $ t $ u
   end;
 
+(*destruct the application of a binary operator. The dummyT case is a crude
+  way of handling polymorphic operators.*)
 fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
-      if c = c' andalso T = T' then (t, u)
+      if c = c' andalso (T=T' orelse T=dummyT) then (t, u)
       else raise TERM ("dest_bin " ^ c, [tm])
   | dest_bin c _ tm = raise TERM ("dest_bin " ^ c, [tm]);
 

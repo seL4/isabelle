@@ -1368,8 +1368,10 @@ by (simp add: hcomplex_of_complex_def hcomplex_one_def)
 lemma hcomplex_of_complex_zero [simp]: "hcomplex_of_complex 0 = 0"
 by (simp add: hcomplex_of_complex_def hcomplex_zero_def)
 
-lemma hcomplex_of_complex_zero_iff: "(hcomplex_of_complex r = 0) = (r = 0)"
-by (auto intro: FreeUltrafilterNat_P simp add: hcomplex_of_complex_def hcomplex_zero_def)
+lemma hcomplex_of_complex_zero_iff [simp]:
+     "(hcomplex_of_complex r = 0) = (r = 0)"
+by (auto intro: FreeUltrafilterNat_P 
+         simp add: hcomplex_of_complex_def hcomplex_zero_def)
 
 lemma hcomplex_of_complex_inverse [simp]:
      "hcomplex_of_complex (inverse r) = inverse (hcomplex_of_complex r)"
@@ -1397,6 +1399,199 @@ by (simp add: hcomplex_of_complex_def hypreal_of_real_def hIm)
 lemma hcmod_hcomplex_of_complex:
      "hcmod (hcomplex_of_complex x) = hypreal_of_real (cmod x)"
 by (simp add: hypreal_of_real_def hcomplex_of_complex_def hcmod)
+
+
+subsection{*Numerals and Arithmetic*}
+
+instance hcomplex :: number ..
+
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::hcomplex)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance hcomplex :: number_ring
+proof
+  show "Numeral0 = (0::hcomplex)" by (rule number_of_Pls)
+  show "-1 = - (1::hcomplex)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: hcomplex) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
+
+
+text{*Collapse applications of @{term hcomplex_of_complex} to @{term number_of}*}
+lemma hcomplex_number_of [simp]:
+     "hcomplex_of_complex (number_of w) = number_of w"
+apply (induct w) 
+apply (simp_all only: number_of hcomplex_of_complex_add 
+                      hcomplex_of_complex_minus, simp_all) 
+done
+
+lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 
+     "hcomplex_of_hypreal (hypreal_of_real x) =  
+      hcomplex_of_complex(complex_of_real x)"
+by (simp add: hypreal_of_real_def hcomplex_of_hypreal hcomplex_of_complex_def 
+              complex_of_real_def)
+
+lemma hcomplex_hypreal_number_of: 
+  "hcomplex_of_complex (number_of w) = hcomplex_of_hypreal(number_of w)"
+by (simp only: complex_number_of [symmetric] hypreal_number_of [symmetric] 
+               hcomplex_of_hypreal_eq_hcomplex_of_complex)
+
+text{*This theorem is necessary because theorems such as
+   @{text iszero_number_of_0} only hold for ordered rings. They cannot
+   be generalized to fields in general because they fail for finite fields.
+   They work for type complex because the reals can be embedded in them.*}
+lemma iszero_hcomplex_number_of [simp]:
+     "iszero (number_of w :: hcomplex) = iszero (number_of w :: real)"
+apply (simp only: iszero_complex_number_of [symmetric])  
+apply (simp only: hcomplex_of_complex_zero_iff hcomplex_number_of [symmetric] 
+                  iszero_def)  
+done
+
+
+(*
+Goal "z + hcnj z =  
+      hcomplex_of_hypreal (2 * hRe(z))"
+by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
+by (auto_tac (claset(),HOL_ss addsimps [hRe,hcnj,hcomplex_add,
+    hypreal_mult,hcomplex_of_hypreal,complex_add_cnj]));
+qed "hcomplex_add_hcnj";
+
+Goal "z - hcnj z = \
+\     hcomplex_of_hypreal (hypreal_of_real #2 * hIm(z)) * iii";
+by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
+by (auto_tac (claset(),simpset() addsimps [hIm,hcnj,hcomplex_diff,
+    hypreal_of_real_def,hypreal_mult,hcomplex_of_hypreal,
+    complex_diff_cnj,iii_def,hcomplex_mult]));
+qed "hcomplex_diff_hcnj";
+*)
+
+
+lemma hcomplex_hcnj_num_zero_iff: "(hcnj z = 0) = (z = 0)"
+apply (auto simp add: hcomplex_hcnj_zero_iff)
+done
+declare hcomplex_hcnj_num_zero_iff [simp]
+
+lemma hcomplex_zero_num: "0 = Abs_hcomplex (hcomplexrel `` {%n. 0})"
+apply (simp add: hcomplex_zero_def)
+done
+
+lemma hcomplex_one_num: "1 =  Abs_hcomplex (hcomplexrel `` {%n. 1})"
+apply (simp add: hcomplex_one_def)
+done
+
+(*** Real and imaginary stuff ***)
+
+(*Convert???
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + iii * number_of ya =  
+        number_of xb + iii * number_of yb) =  
+   (((number_of xa :: hcomplex) = number_of xb) &  
+    ((number_of ya :: hcomplex) = number_of yb))"
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff,
+     hcomplex_hypreal_number_of]));
+qed "hcomplex_number_of_eq_cancel_iff";
+Addsimps [hcomplex_number_of_eq_cancel_iff];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + number_of ya * iii = \
+\       number_of xb + number_of yb * iii) = \
+\  (((number_of xa :: hcomplex) = number_of xb) & \
+\   ((number_of ya :: hcomplex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iffA,
+    hcomplex_hypreal_number_of]));
+qed "hcomplex_number_of_eq_cancel_iffA";
+Addsimps [hcomplex_number_of_eq_cancel_iffA];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + number_of ya * iii = \
+\       number_of xb + iii * number_of yb) = \
+\  (((number_of xa :: hcomplex) = number_of xb) & \
+\   ((number_of ya :: hcomplex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iffB,
+    hcomplex_hypreal_number_of]));
+qed "hcomplex_number_of_eq_cancel_iffB";
+Addsimps [hcomplex_number_of_eq_cancel_iffB];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + iii * number_of ya = \
+\       number_of xb + number_of yb * iii) = \
+\  (((number_of xa :: hcomplex) = number_of xb) & \
+\   ((number_of ya :: hcomplex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iffC,
+     hcomplex_hypreal_number_of]));
+qed "hcomplex_number_of_eq_cancel_iffC";
+Addsimps [hcomplex_number_of_eq_cancel_iffC];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + iii * number_of ya = \
+\       number_of xb) = \
+\  (((number_of xa :: hcomplex) = number_of xb) & \
+\   ((number_of ya :: hcomplex) = 0))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff2,
+    hcomplex_hypreal_number_of,hcomplex_of_hypreal_zero_iff]));
+qed "hcomplex_number_of_eq_cancel_iff2";
+Addsimps [hcomplex_number_of_eq_cancel_iff2];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + number_of ya * iii = \
+\       number_of xb) = \
+\  (((number_of xa :: hcomplex) = number_of xb) & \
+\   ((number_of ya :: hcomplex) = 0))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff2a,
+    hcomplex_hypreal_number_of,hcomplex_of_hypreal_zero_iff]));
+qed "hcomplex_number_of_eq_cancel_iff2a";
+Addsimps [hcomplex_number_of_eq_cancel_iff2a];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + iii * number_of ya = \
+\    iii * number_of yb) = \
+\  (((number_of xa :: hcomplex) = 0) & \
+\   ((number_of ya :: hcomplex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff3,
+    hcomplex_hypreal_number_of,hcomplex_of_hypreal_zero_iff]));
+qed "hcomplex_number_of_eq_cancel_iff3";
+Addsimps [hcomplex_number_of_eq_cancel_iff3];
+
+Goalw [hcomplex_number_of_def] 
+  "((number_of xa :: hcomplex) + number_of ya * iii= \
+\    iii * number_of yb) = \
+\  (((number_of xa :: hcomplex) = 0) & \
+\   ((number_of ya :: hcomplex) = number_of yb))";
+by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff3a,
+    hcomplex_hypreal_number_of,hcomplex_of_hypreal_zero_iff]));
+qed "hcomplex_number_of_eq_cancel_iff3a";
+Addsimps [hcomplex_number_of_eq_cancel_iff3a];
+*)
+
+lemma hcomplex_number_of_hcnj [simp]:
+     "hcnj (number_of v :: hcomplex) = number_of v"
+by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
+               hcomplex_hcnj_hcomplex_of_hypreal)
+
+lemma hcomplex_number_of_hcmod [simp]: 
+      "hcmod(number_of v :: hcomplex) = abs (number_of v :: hypreal)"
+by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
+               hcmod_hcomplex_of_hypreal)
+
+lemma hcomplex_number_of_hRe [simp]: 
+      "hRe(number_of v :: hcomplex) = number_of v"
+by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
+               hRe_hcomplex_of_hypreal)
+
+lemma hcomplex_number_of_hIm [simp]: 
+      "hIm(number_of v :: hcomplex) = 0"
+by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
+               hIm_hcomplex_of_hypreal)
+
 
 ML
 {*

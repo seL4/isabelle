@@ -183,8 +183,7 @@ qed "sumhr_hypreal_of_hypnat_omega";
 
 Goalw [hypnat_omega_def,hypnat_zero_def,omega_def]  
      "sumhr(0, whn, %i. 1) = omega - 1";
-by (simp_tac (HOL_ss addsimps
-             [hypreal_numeral_1_eq_1, hypreal_one_def]) 1); 
+by (simp_tac (HOL_ss addsimps [numeral_1_eq_1, hypreal_one_def]) 1); 
 by (auto_tac (claset(),
               simpset() addsimps [sumhr, hypreal_diff, real_of_nat_Suc]));
 qed "sumhr_hypreal_omega_minus_one";

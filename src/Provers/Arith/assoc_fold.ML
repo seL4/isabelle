@@ -14,8 +14,6 @@ sig
   val ss                : simpset       (*basic simpset of object-logtic*)
   val eq_reflection     : thm           (*object-equality to meta-equality*)
   val sg_ref            : Sign.sg_ref   (*the operator's signature*)
-  val T                 : typ           (*the operator's numeric type*)
-  val plus              : term          (*the operator being folded*)
   val add_ac            : thm list      (*AC-rewrites for plus*)
 end;
 
@@ -27,17 +25,17 @@ struct
 
  exception Assoc_fail;
 
- fun mk_sum []  = raise Assoc_fail
-   | mk_sum tms = foldr1 (fn (x,y) => Data.plus $ x $ y) tms;
+ fun mk_sum plus []  = raise Assoc_fail
+   | mk_sum plus tms = foldr1 (fn (x,y) => plus $ x $ y) tms;
 
  (*Separate the literals from the other terms being combined*)
- fun sift_terms (t, (lits,others)) =
+ fun sift_terms plus (t, (lits,others)) =
      case t of
           Const("Numeral.number_of", _) $ _ =>
               (t::lits, others)         (*new literal*)
         | (f as Const _) $ x $ y =>
-              if f = Data.plus
-              then sift_terms (x, sift_terms (y, (lits,others)))
+              if f = plus
+              then sift_terms plus (x, sift_terms plus (y, (lits,others)))
               else (lits, t::others)    (*arbitrary summand*)
         | _ => (lits, t::others);
 
@@ -48,21 +46,19 @@ struct
    let fun show t = string_of_cterm (Thm.cterm_of sg t)
        val _ = if !trace then tracing ("assoc_fold simproc: LHS = " ^ show lhs)
                else ()
-       val (lits,others) = sift_terms (lhs, ([],[]))
+       val plus =
+         (case lhs of f $ _ $ _ => f | _ => error "Assoc_fold: bad pattern")
+       val (lits,others) = sift_terms plus (lhs, ([],[]))
        val _ = if length lits < 2
                then raise Assoc_fail (*we can't reduce the number of terms*)
                else ()
-       val rhs = Data.plus $ mk_sum lits $ mk_sum others
+       val rhs = plus $ mk_sum plus lits $ mk_sum plus others
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
        val th = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
                             simp_tac assoc_ss 1)
    in Some th end
    handle Assoc_fail => None;
-
- val conv =
-     Simplifier.simproc_i (Sign.deref Data.sg_ref) "assoc_fold"
-       [Data.plus $ Free ("x", Data.T) $ Free ("y",Data.T)] proc;
 
 end;
 

@@ -398,6 +398,7 @@ qed "BseqI";
 Goal "(EX K. 0 < K & (ALL n. abs(X n) <= K)) = \
 \     (EX N. ALL n. abs(X n) <= real(Suc N))";
 by Auto_tac;
+by (Force_tac 2);
 by (cut_inst_tac [("x","K")] reals_Archimedean2 1);
 by (Clarify_tac 1); 
 by (res_inst_tac [("x","n")] exI 1); 

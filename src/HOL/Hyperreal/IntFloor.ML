@@ -4,6 +4,8 @@
     Description: Floor and ceiling operations over reals
 *)
 
+val real_number_of = thm"real_number_of";
+
 Goal "((number_of n) < real (m::int)) = (number_of n < m)";
 by Auto_tac;
 by (rtac (real_of_int_less_iff RS iffD1) 1);
@@ -187,8 +189,8 @@ by (dtac order_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [floor_eq3],simpset()));
 qed "floor_eq4";
 
-Goalw [real_number_of_def] 
-       "floor(number_of n :: real) = (number_of n :: int)";
+Goal "floor(number_of n :: real) = (number_of n :: int)";
+by (stac (real_number_of RS sym) 1);
 by (rtac floor_eq2 1);
 by (rtac (CLAIM "x < x + (1::real)") 2);
 by (rtac real_le_refl 1);
@@ -279,8 +281,9 @@ by (rtac (CLAIM "x = -(y::int) ==> - x = y") 1);
 by (auto_tac (claset() addIs [floor_eq2],simpset()));
 qed "ceiling_eq3";
 
-Goalw [ceiling_def,real_number_of_def] 
+Goalw [ceiling_def] 
   "ceiling (number_of n :: real) = (number_of n :: int)";
+by (stac (real_number_of RS sym) 1);
 by (rtac (CLAIM "x = - y ==> - (x::int) = y") 1);
 by (rtac (floor_minus_real_of_int RS ssubst) 1);
 by Auto_tac;

@@ -219,7 +219,7 @@ fun prep_simproc (name, pats, proc) =
 
 structure CancelNumeralsCommon =
   struct
-  val mk_sum            = mk_sum
+  val mk_sum            = (fn T:typ => mk_sum)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
@@ -292,7 +292,7 @@ fun prove_conv_nohyps name tacs sg = ArithData.prove_conv name tacs sg [];
 structure CombineNumeralsData =
   struct
   val add               = op + : int*int -> int
-  val mk_sum            = long_mk_sum    (*to work for e.g. #2*x $+ #3*x *)
+  val mk_sum            = (fn T:typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
@@ -328,7 +328,7 @@ val combine_numerals =
 structure CombineNumeralsProdData =
   struct
   val add               = op * : int*int -> int
-  val mk_sum            = mk_prod
+  val mk_sum            = (fn T:typ => mk_prod)
   val dest_sum          = dest_prod
   fun mk_coeff(k,t) = if t=one then mk_numeral k
                       else raise TERM("mk_coeff", [])

@@ -124,8 +124,8 @@ lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
   -- {* addition is an AC-operator *}
 
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
-  by (simp del: zmult_zminus_right
-      add: zmult_zminus_right [symmetric] nat_mult_distrib zgcd_def zabs_def
+  by (simp del: minus_mult_right [symmetric]
+      add: minus_mult_right nat_mult_distrib zgcd_def zabs_def
           mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
 
 lemma zgcd_zmult_distrib2_abs: "zgcd (k * m, k * n) = abs k * zgcd (m, n)"
@@ -365,7 +365,7 @@ lemma zcong_zless_0:
   apply (subgoal_tac "0 < m")
    apply (simp add: zero_le_mult_iff)
    apply (subgoal_tac "m * k < m * 1")
-    apply (drule zmult_zless_cancel1 [THEN iffD1])
+    apply (drule mult_less_cancel_left [THEN iffD1])
     apply (auto simp add: linorder_neq_iff)
   done
 

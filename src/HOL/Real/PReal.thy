@@ -7,7 +7,7 @@
                   provides some of the definitions.
 *)
 
-theory PReal = RatArith:
+theory PReal = Rational:
 
 text{*Could be generalized and moved to @{text Ring_and_Field}*}
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"

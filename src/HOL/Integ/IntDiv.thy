@@ -101,7 +101,7 @@ apply (erule_tac [2] order_le_less_trans)
  prefer 2 apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2)
 apply (subgoal_tac "b * q' < b * (1 + q) ")
  prefer 2 apply (simp add: zdiff_zmult_distrib2 zadd_zmult_distrib2)
-apply (simp add: zmult_zless_cancel1)
+apply (simp add: mult_less_cancel_left)
 done
 
 lemma unique_quotient_lemma_neg:
@@ -526,7 +526,7 @@ lemma zdiv_mono2_lemma:
       ==> q \<le> (q'::int)"
 apply (frule q_pos_lemma, assumption+) 
 apply (subgoal_tac "b*q < b* (q' + 1) ")
- apply (simp add: zmult_zless_cancel1)
+ apply (simp add: mult_less_cancel_left)
 apply (subgoal_tac "b*q = r' - r + b'*q'")
  prefer 2 apply simp
 apply (simp (no_asm_simp) add: zadd_zmult_distrib2)
@@ -558,7 +558,7 @@ lemma zdiv_mono2_neg_lemma:
       ==> q' \<le> (q::int)"
 apply (frule q_neg_lemma, assumption+) 
 apply (subgoal_tac "b*q' < b* (q + 1) ")
- apply (simp add: zmult_zless_cancel1)
+ apply (simp add: mult_less_cancel_left)
 apply (simp add: zadd_zmult_distrib2)
 apply (subgoal_tac "b*q' \<le> b'*q'")
  prefer 2 apply (simp add: mult_right_mono_neg)
@@ -725,7 +725,7 @@ apply (subgoal_tac "r * 1 < b * (c - q mod c) ")
 apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_less_le_trans)
 apply (erule mult_strict_right_mono)
-apply (rule_tac [2] zmult_zle_mono2)
+apply (rule_tac [2] mult_left_mono)
 apply (auto simp add: compare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
 done
@@ -904,11 +904,12 @@ lemma zdiv_number_of_BIT[simp]:
           (if ~b | (0::int) \<le> number_of w                    
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
-apply (simp only: zadd_assoc number_of_BIT)
+apply (simp only: add_assoc number_of_BIT)
 (*create subgoal because the next step can't simplify numerals*)
-apply (subgoal_tac "2 ~= (0::int) ")
-apply (simp del: bin_arith_extra_simps 
-         add: zdiv_zmult_zmult1 pos_zdiv_mult_2 not_0_le_lemma neg_zdiv_mult_2, simp)
+apply (subgoal_tac "2 ~= (0::int) ") 
+apply (simp del: bin_arith_extra_simps arith_special
+         add: zdiv_zmult_zmult1 pos_zdiv_mult_2 not_0_le_lemma neg_zdiv_mult_2)
+apply simp
 done
 
 
@@ -922,7 +923,7 @@ apply (subgoal_tac "1 \<le> a")
 apply (subgoal_tac "1 < a * 2")
  prefer 2 apply arith
 apply (subgoal_tac "2* (1 + b mod a) \<le> 2*a")
- apply (rule_tac [2] zmult_zle_mono2)
+ apply (rule_tac [2] mult_left_mono)
 apply (auto simp add: zadd_commute [of 1] zmult_commute add1_zle_eq 
                       pos_mod_bound)
 apply (subst zmod_zadd1_eq)
@@ -953,8 +954,9 @@ lemma zmod_number_of_BIT [simp]:
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1   
            else 2 * (number_of v mod number_of w))"
 apply (simp only: zadd_assoc number_of_BIT)
-apply (simp del: bin_arith_extra_simps bin_rel_simps 
-         add: zmod_zmult_zmult1 pos_zmod_mult_2 not_0_le_lemma neg_zmod_mult_2, simp)
+apply (simp del: bin_arith_extra_simps bin_rel_simps arith_special
+         add: zmod_zmult_zmult1 pos_zmod_mult_2 not_0_le_lemma neg_zmod_mult_2
+ neg_def) 
 done
 
 
@@ -1114,7 +1116,7 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
    apply (blast intro: order_less_trans)
   apply (simp add: zero_less_mult_iff)
   apply (subgoal_tac "n * k < n * 1")
-   apply (drule zmult_zless_cancel1 [THEN iffD1], auto)
+   apply (drule mult_less_cancel_left [THEN iffD1], auto)
   done
 
 lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"

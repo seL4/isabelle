@@ -4,7 +4,7 @@
     Description : Infinite, infinitesimal complex number etc! 
 *)
 
-NSCA = NSComplexArith + 
+NSCA = NSComplex + 
 
 consts   
 

@@ -9,130 +9,37 @@ header{*Binary arithmetic and Simplification for the Hyperreals*}
 theory HyperArith = HyperDef
 files ("hypreal_arith.ML"):
 
-subsection{*Binary Arithmetic for the Hyperreals*}
+
+subsection{*Numerals and Arithmetic*}
 
 instance hypreal :: number ..
 
-defs (overloaded)
-  hypreal_number_of_def:
-    "number_of v == hypreal_of_real (number_of v)"
-     (*::bin=>hypreal               ::bin=>real*)
-     --{*This case is reduced to that for the reals.*}
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::hypreal)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance hypreal :: number_ring
+proof
+  show "Numeral0 = (0::hypreal)" by (rule number_of_Pls)
+  show "-1 = - (1::hypreal)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: hypreal) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
 
 
-
-subsubsection{*Embedding the Reals into the Hyperreals*}
-
+text{*Collapse applications of @{term hypreal_of_real} to @{term number_of}*}
 lemma hypreal_number_of [simp]: "hypreal_of_real (number_of w) = number_of w"
-by (simp add: hypreal_number_of_def)
-
-lemma hypreal_numeral_0_eq_0: "Numeral0 = (0::hypreal)"
-by (simp add: hypreal_number_of_def)
-
-lemma hypreal_numeral_1_eq_1: "Numeral1 = (1::hypreal)"
-by (simp add: hypreal_number_of_def)
-
-subsubsection{*Addition*}
-
-lemma add_hypreal_number_of [simp]:
-     "(number_of v :: hypreal) + number_of v' = number_of (bin_add v v')"
-by (simp only: hypreal_number_of_def hypreal_of_real_add [symmetric]
-               add_real_number_of)
-
-
-subsubsection{*Subtraction*}
-
-lemma minus_hypreal_number_of [simp]:
-     "- (number_of w :: hypreal) = number_of (bin_minus w)"
-by (simp only: hypreal_number_of_def minus_real_number_of
-               hypreal_of_real_minus [symmetric])
-
-lemma diff_hypreal_number_of [simp]:
-     "(number_of v :: hypreal) - number_of w =
-      number_of (bin_add v (bin_minus w))"
-by (unfold hypreal_number_of_def hypreal_diff_def, simp)
-
-
-subsubsection{*Multiplication*}
-
-lemma mult_hypreal_number_of [simp]:
-     "(number_of v :: hypreal) * number_of v' = number_of (bin_mult v v')"
-by (simp only: hypreal_number_of_def hypreal_of_real_mult [symmetric] mult_real_number_of)
-
-text{*Lemmas for specialist use, NOT as default simprules*}
-lemma hypreal_mult_2: "2 * z = (z+z::hypreal)"
-proof -
-  have eq: "(2::hypreal) = 1 + 1"
-    by (simp add: hypreal_numeral_1_eq_1 [symmetric])
-  thus ?thesis by (simp add: eq left_distrib)
-qed
-
-lemma hypreal_mult_2_right: "z * 2 = (z+z::hypreal)"
-by (subst hypreal_mult_commute, rule hypreal_mult_2)
-
-
-subsubsection{*Comparisons*}
-
-(** Equals (=) **)
-
-lemma eq_hypreal_number_of [simp]:
-     "((number_of v :: hypreal) = number_of v') =
-      iszero (number_of (bin_add v (bin_minus v')) :: int)"
-apply (simp only: hypreal_number_of_def hypreal_of_real_eq_iff eq_real_number_of)
+apply (induct w) 
+apply (simp_all only: number_of hypreal_of_real_add hypreal_of_real_minus, simp_all) 
 done
-
-
-(** Less-than (<) **)
-
-(*"neg" is used in rewrite rules for binary comparisons*)
-lemma less_hypreal_number_of [simp]:
-     "((number_of v :: hypreal) < number_of v') =
-      neg (number_of (bin_add v (bin_minus v')) :: int)"
-by (simp only: hypreal_number_of_def hypreal_of_real_less_iff less_real_number_of)
-
-
-
-text{*New versions of existing theorems involving 0, 1*}
-
-lemma hypreal_minus_1_eq_m1 [simp]: "- 1 = (-1::hypreal)"
-by (simp add: hypreal_numeral_1_eq_1 [symmetric])
-
-lemma hypreal_mult_minus1 [simp]: "-1 * z = -(z::hypreal)"
-proof -
-  have  "-1 * z = (- 1) * z" by (simp add: hypreal_minus_1_eq_m1)
-  also have "... = - (1 * z)" by (simp only: minus_mult_left)
-  also have "... = -z" by simp
-  finally show ?thesis .
-qed
-
-lemma hypreal_mult_minus1_right [simp]: "(z::hypreal) * -1 = -z"
-by (subst hypreal_mult_commute, rule hypreal_mult_minus1)
-
-
-subsection{*Simplification of Arithmetic when Nested to the Right*}
-
-lemma hypreal_add_number_of_left [simp]:
-     "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::hypreal)"
-by (simp add: add_assoc [symmetric])
-
-lemma hypreal_mult_number_of_left [simp]:
-     "number_of v *(number_of w * z) = (number_of(bin_mult v w) * z::hypreal)"
-by (simp add: hypreal_mult_assoc [symmetric])
-
-lemma hypreal_add_number_of_diff1:
-    "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::hypreal)"
-by (simp add: hypreal_diff_def hypreal_add_number_of_left)
-
-lemma hypreal_add_number_of_diff2 [simp]:
-     "number_of v + (c - number_of w) =
-      number_of (bin_add v (bin_minus w)) + (c::hypreal)"
-apply (subst diff_hypreal_number_of [symmetric])
-apply (simp only: hypreal_diff_def add_ac)
-done
-
-
-declare hypreal_numeral_0_eq_0 [simp] hypreal_numeral_1_eq_1 [simp]
-
 
 
 use "hypreal_arith.ML"
@@ -141,15 +48,6 @@ setup hypreal_arith_setup
 
 lemma hypreal_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::hypreal) \<le> x + y"
 by arith
-
-
-subsubsection{*Division By @{term 1} and @{term "-1"}*}
-
-lemma hypreal_divide_minus1 [simp]: "x/-1 = -(x::hypreal)"
-by simp
-
-lemma hypreal_minus1_divide [simp]: "-1/(x::hypreal) = - (1/x)"
-by (simp add: hypreal_divide_def hypreal_minus_inverse)
 
 
 subsection{*The Function @{term hypreal_of_real}*}
@@ -161,7 +59,7 @@ apply (simp (no_asm))
 done
 
 lemma number_of_le_hypreal_of_real_iff [simp]:
-     "(number_of w <= hypreal_of_real z) = (number_of w <= z)"
+     "(number_of w \<le> hypreal_of_real z) = (number_of w \<le> z)"
 apply (subst hypreal_of_real_le_iff [symmetric])
 apply (simp (no_asm))
 done
@@ -179,19 +77,12 @@ apply (simp (no_asm))
 done
 
 lemma hypreal_of_real_le_number_of_iff [simp]:
-     "(hypreal_of_real z <= number_of w) = (z <= number_of w)"
+     "(hypreal_of_real z \<le> number_of w) = (z \<le> number_of w)"
 apply (subst hypreal_of_real_le_iff [symmetric])
 apply (simp (no_asm))
 done
 
 subsection{*Absolute Value Function for the Hyperreals*}
-
-lemma hrabs_number_of [simp]:
-     "abs (number_of v :: hypreal) =
-        (if neg (number_of v :: int) then number_of (bin_minus v)
-         else number_of v)"
-by (simp add: hrabs_def)
-
 
 declare abs_mult [simp]
 
@@ -200,6 +91,7 @@ apply (unfold hrabs_def)
 apply (simp split add: split_if_asm)
 done
 
+text{*used once in NSA*}
 lemma hrabs_less_gt_zero: "abs x < r ==> (0::hypreal) < r"
 by (blast intro!: order_le_less_trans abs_ge_zero)
 
@@ -210,10 +102,6 @@ by (simp add: hrabs_def)
 lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = abs (x + - z) ==> y = z | x = y"
 by (simp add: hrabs_def split add: split_if_asm)
 
-
-(*----------------------------------------------------------
-    Relating hrabs to abs through embedding of IR into IR*
- ----------------------------------------------------------*)
 lemma hypreal_of_real_hrabs:
     "abs (hypreal_of_real r) = hypreal_of_real (abs r)"
 apply (unfold hypreal_of_real_def)
@@ -301,9 +189,7 @@ val hypreal_le_add_order = thm"hypreal_le_add_order";
 
 val hypreal_of_nat_def = thm"hypreal_of_nat_def";
 
-val hrabs_number_of = thm "hrabs_number_of";
 val hrabs_add_less = thm "hrabs_add_less";
-val hrabs_less_gt_zero = thm "hrabs_less_gt_zero";
 val hrabs_disj = thm "hrabs_disj";
 val hrabs_add_lemma_disj = thm "hrabs_add_lemma_disj";
 val hypreal_of_real_hrabs = thm "hypreal_of_real_hrabs";

@@ -10,332 +10,266 @@ header{*Arithmetic on Binary Integers*}
 
 theory Bin = IntDef + Numeral:
 
-text{*The sign @{term Pls} stands for an infinite string of leading Falses.*}
-text{*The sign @{term Min} stands for an infinite string of leading Trues.*}
-
-text{*A number can have multiple representations, namely leading Falses with
-sign @{term Pls} and leading Trues with sign @{term Min}.
-See @{text "ZF/Integ/twos-compl.ML"}, function @{text int_of_binary},
-for the numerical interpretation.
-
-The representation expects that @{term "(m mod 2)"} is 0 or 1,
-even if m is negative;
-For instance, @{term "-5 div 2 = -3"} and @{term "-5 mod 2 = 1"}; thus
-@{term "-5 = (-3)*2 + 1"}.
-*}
-
-consts
-  NCons     :: "[bin,bool]=>bin"
-  bin_succ  :: "bin=>bin"
-  bin_pred  :: "bin=>bin"
-  bin_minus :: "bin=>bin"
-  bin_add   :: "[bin,bin]=>bin"
-  bin_mult  :: "[bin,bin]=>bin"
-
-(*NCons inserts a bit, suppressing leading 0s and 1s*)
-primrec
-  NCons_Pls:  "NCons bin.Pls b = (if b then (bin.Pls BIT b) else bin.Pls)"
-  NCons_Min:  "NCons bin.Min b = (if b then bin.Min else (bin.Min BIT b))"
-  NCons_BIT:  "NCons (w BIT x) b = (w BIT x) BIT b"
-
-instance
-  int :: number ..
-
-primrec (*the type constraint is essential!*)
+axclass number_ring \<subseteq> number, ring
   number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::int)"
+  number_of_Min: "number_of bin.Min = - 1"
   number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
 	                               (number_of w) + (number_of w)"
+subsection{*Converting Numerals to Rings: @{term number_of}*}
 
-primrec
-  bin_succ_Pls: "bin_succ bin.Pls = bin.Pls BIT True"
-  bin_succ_Min: "bin_succ bin.Min = bin.Pls"
-  bin_succ_BIT: "bin_succ(w BIT x) =
-  	            (if x then bin_succ w BIT False
-	                  else NCons w True)"
-
-primrec
-  bin_pred_Pls: "bin_pred bin.Pls = bin.Min"
-  bin_pred_Min: "bin_pred bin.Min = bin.Min BIT False"
-  bin_pred_BIT: "bin_pred(w BIT x) =
-	            (if x then NCons w False
-		          else (bin_pred w) BIT True)"
-
-primrec
-  bin_minus_Pls: "bin_minus bin.Pls = bin.Pls"
-  bin_minus_Min: "bin_minus bin.Min = bin.Pls BIT True"
-  bin_minus_BIT: "bin_minus(w BIT x) =
-	             (if x then bin_pred (NCons (bin_minus w) False)
-		           else bin_minus w BIT False)"
-
-primrec
-  bin_add_Pls: "bin_add bin.Pls w = w"
-  bin_add_Min: "bin_add bin.Min w = bin_pred w"
-  bin_add_BIT:
-    "bin_add (v BIT x) w =
-       (case w of Pls => v BIT x
-                | Min => bin_pred (v BIT x)
-                | (w BIT y) =>
-      	            NCons (bin_add v (if (x & y) then bin_succ w else w))
-	                  (x~=y))"
-
-primrec
-  bin_mult_Pls: "bin_mult bin.Pls w = bin.Pls"
-  bin_mult_Min: "bin_mult bin.Min w = bin_minus w"
-  bin_mult_BIT: "bin_mult (v BIT x) w =
-	            (if x then (bin_add (NCons (bin_mult v w) False) w)
-	                  else (NCons (bin_mult v w) False))"
-
-
-(** extra rules for bin_succ, bin_pred, bin_add, bin_mult **)
-
-lemma NCons_Pls_0: "NCons bin.Pls False = bin.Pls"
-by simp
-
-lemma NCons_Pls_1: "NCons bin.Pls True = bin.Pls BIT True"
-by simp
-
-lemma NCons_Min_0: "NCons bin.Min False = bin.Min BIT False"
-by simp
-
-lemma NCons_Min_1: "NCons bin.Min True = bin.Min"
-by simp
-
-lemma bin_succ_1: "bin_succ(w BIT True) = (bin_succ w) BIT False"
-by simp
-
-lemma bin_succ_0: "bin_succ(w BIT False) =  NCons w True"
-by simp
-
-lemma bin_pred_1: "bin_pred(w BIT True) = NCons w False"
-by simp
-
-lemma bin_pred_0: "bin_pred(w BIT False) = (bin_pred w) BIT True"
-by simp
-
-lemma bin_minus_1: "bin_minus(w BIT True) = bin_pred (NCons (bin_minus w) False)"
-by simp
-
-lemma bin_minus_0: "bin_minus(w BIT False) = (bin_minus w) BIT False"
-by simp
-
-
-(*** bin_add: binary addition ***)
-
-lemma bin_add_BIT_11: "bin_add (v BIT True) (w BIT True) =
-     NCons (bin_add v (bin_succ w)) False"
-apply simp
-done
-
-lemma bin_add_BIT_10: "bin_add (v BIT True) (w BIT False) = NCons (bin_add v w) True"
-by simp
-
-lemma bin_add_BIT_0: "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y"
-by auto
-
-lemma bin_add_Pls_right: "bin_add w bin.Pls = w"
-by (induct_tac "w", auto)
-
-lemma bin_add_Min_right: "bin_add w bin.Min = bin_pred w"
-by (induct_tac "w", auto)
-
-lemma bin_add_BIT_BIT: "bin_add (v BIT x) (w BIT y) =
-     NCons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)"
-apply simp
-done
-
-
-(*** bin_mult: binary multiplication ***)
-
-lemma bin_mult_1: "bin_mult (v BIT True) w = bin_add (NCons (bin_mult v w) False) w"
-by simp
-
-lemma bin_mult_0: "bin_mult (v BIT False) w = NCons (bin_mult v w) False"
-by simp
-
-
-(**** The carry/borrow functions, bin_succ and bin_pred ****)
-
-
-(** number_of **)
+lemmas number_of = number_of_Pls number_of_Min number_of_BIT
 
 lemma number_of_NCons [simp]:
-     "number_of(NCons w b) = (number_of(w BIT b)::int)"
+     "number_of(NCons w b) = (number_of(w BIT b)::'a::number_ring)"
+by (induct_tac "w", simp_all add: number_of)
+
+lemma number_of_succ: "number_of(bin_succ w) = (1 + number_of w ::'a::number_ring)"
 apply (induct_tac "w")
-apply (simp_all)
+apply (simp_all add: number_of add_ac)
 done
 
-lemma number_of_succ: "number_of(bin_succ w) = (1 + number_of w :: int)"
+lemma number_of_pred: "number_of(bin_pred w) = (- 1 + number_of w ::'a::number_ring)"
 apply (induct_tac "w")
-apply (simp_all add: zadd_ac)
+apply (simp_all add: number_of add_assoc [symmetric]) 
+apply (simp add: add_ac)
 done
 
-lemma number_of_pred: "number_of(bin_pred w) = (- 1 + number_of w :: int)"
+lemma number_of_minus: "number_of(bin_minus w) = (- (number_of w)::'a::number_ring)"
 apply (induct_tac "w")
-apply (simp_all add: add_assoc [symmetric]) 
-apply (simp add: zadd_ac)
+apply (simp_all del: bin_pred_Pls bin_pred_Min bin_pred_BIT 
+            add: number_of number_of_succ number_of_pred add_assoc)
 done
 
-lemma number_of_minus: "number_of(bin_minus w) = (- (number_of w)::int)"
-apply (induct_tac "w", simp, simp)
-apply (simp del: bin_pred_Pls bin_pred_Min bin_pred_BIT add: number_of_succ number_of_pred zadd_assoc)
-done
-
-(*This proof is complicated by the mutual recursion*)
-lemma number_of_add [rule_format (no_asm)]: "! w. number_of(bin_add v w) = (number_of v + number_of w::int)"
-apply (induct_tac "v", simp)
-apply (simp add: number_of_pred)
+text{*This proof is complicated by the mutual recursion*}
+lemma number_of_add [rule_format]:
+     "\<forall>w. number_of(bin_add v w) = (number_of v + number_of w::'a::number_ring)"
+apply (induct_tac "v")
+apply (simp add: number_of)
+apply (simp add: number_of number_of_pred)
 apply (rule allI)
 apply (induct_tac "w")
-apply (simp_all add: bin_add_BIT_BIT number_of_succ number_of_pred add_ac)
-apply (simp add: add_left_commute [of "1::int"]) 
+apply (simp_all add: number_of bin_add_BIT_BIT number_of_succ number_of_pred add_ac)
+apply (simp add: add_left_commute [of "1::'a::number_ring"]) 
 done
 
-
-(*Subtraction*)
-lemma diff_number_of_eq:
-     "number_of v - number_of w = (number_of(bin_add v (bin_minus w))::int)"
-apply (unfold zdiff_def)
-apply (simp add: number_of_add number_of_minus)
+lemma number_of_mult:
+     "number_of(bin_mult v w) = (number_of v * number_of w::'a::number_ring)"
+apply (induct_tac "v", simp add: number_of) 
+apply (simp add: number_of number_of_minus) 
+apply (simp add: number_of number_of_add left_distrib add_ac)
 done
 
-lemmas bin_mult_simps = 
-       int_Suc0_eq_1 zmult_zminus number_of_minus number_of_add
-
-lemma number_of_mult: "number_of(bin_mult v w) = (number_of v * number_of w::int)"
-apply (induct_tac "v")
-apply (simp add: bin_mult_simps)
-apply (simp add: bin_mult_simps)
-apply (simp add: bin_mult_simps zadd_zmult_distrib zadd_ac)
-done
-
-
-(*The correctness of shifting.  But it doesn't seem to give a measurable
-  speed-up.*)
-lemma double_number_of_BIT: "(2::int) * number_of w = number_of (w BIT False)"
+text{*The correctness of shifting.  But it doesn't seem to give a measurable
+  speed-up.*}
+lemma double_number_of_BIT:
+     "(1+1) * number_of w = (number_of (w BIT False) ::'a::number_ring)"
 apply (induct_tac "w")
-apply (simp_all add: bin_mult_simps zadd_zmult_distrib zadd_ac)
+apply (simp_all add: number_of number_of_add left_distrib add_ac)
 done
 
 
-(** Converting numerals 0 and 1 to their abstract versions **)
+text{*Converting numerals 0 and 1 to their abstract versions*}
+lemma numeral_0_eq_0 [simp]: "Numeral0 = (0::'a::number_ring)"
+by (simp add: number_of) 
 
-lemma int_numeral_0_eq_0: "Numeral0 = (0::int)"
-by simp
+lemma numeral_1_eq_1 [simp]: "Numeral1 = (1::'a::number_ring)"
+by (simp add: number_of) 
 
-lemma int_numeral_1_eq_1: "Numeral1 = (1::int)"
-by (simp add: int_1 int_Suc0_eq_1)
+text{*Special-case simplification for small constants*}
 
-(*Moving negation out of products: so far for type "int" only*)
-declare zmult_zminus [simp] zmult_zminus_right [simp]
+text{*Unary minus for the abstract constant 1. Cannot be inserted
+  as a simprule until later: it is @{text number_of_Min} re-oriented!*}
+lemma numeral_m1_eq_minus_1: "(-1::'a::number_ring) = - 1"
+by (simp add: number_of)
 
+lemma mult_minus1 [simp]: "-1 * z = -(z::'a::number_ring)"
+by (simp add: numeral_m1_eq_minus_1)
 
-(** Special-case simplification for small constants **)
-
-lemma zmult_minus1 [simp]: "-1 * z = -(z::int)"
-by (simp add: compare_rls int_Suc0_eq_1 zmult_zminus)
-
-lemma zmult_minus1_right [simp]: "z * -1 = -(z::int)"
-by (subst zmult_commute, rule zmult_minus1)
-
+lemma mult_minus1_right [simp]: "z * -1 = -(z::'a::number_ring)"
+by (simp add: numeral_m1_eq_minus_1)
 
 (*Negation of a coefficient*)
-lemma zminus_number_of_zmult [simp]: "- (number_of w) * z = number_of(bin_minus w) * (z::int)"
-by (simp add: number_of_minus zmult_zminus)
+lemma minus_number_of_mult [simp]:
+     "- (number_of w) * z = number_of(bin_minus w) * (z::'a::number_ring)"
+by (simp add: number_of_minus)
 
-(*Integer unary minus for the abstract constant 1. Cannot be inserted
-  as a simprule until later: it is number_of_Min re-oriented!*)
-lemma zminus_1_eq_m1: "- 1 = (-1::int)"
-by simp
-
-lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
-by (cut_tac w = 0 in zless_nat_conj, auto)
+text{*Subtraction*}
+lemma diff_number_of_eq:
+     "number_of v - number_of w =
+      (number_of(bin_add v (bin_minus w))::'a::number_ring)"
+by (simp add: diff_minus number_of_add number_of_minus)
 
 
-(** Simplification rules for comparison of binary numbers (Norbert Voelker) **)
+subsection{*Equality of Binary Numbers*}
 
-(** Equals (=) **)
+text{*First version by Norbert Voelker*}
 
 lemma eq_number_of_eq:
-  "((number_of x::int) = number_of y) =
-   iszero (number_of (bin_add x (bin_minus y)) :: int)"
-apply (unfold iszero_def)
-apply (simp add: compare_rls number_of_add number_of_minus)
-done
+  "((number_of x::'a::number_ring) = number_of y) =
+   iszero (number_of (bin_add x (bin_minus y)) :: 'a)"
+by (simp add: iszero_def compare_rls number_of_add number_of_minus)
 
-lemma iszero_number_of_Pls: "iszero ((number_of bin.Pls)::int)"
-by (unfold iszero_def, simp)
+lemma iszero_number_of_Pls: "iszero ((number_of bin.Pls)::'a::number_ring)"
+by (simp add: iszero_def numeral_0_eq_0)
 
-lemma nonzero_number_of_Min: "~ iszero ((number_of bin.Min)::int)"
-apply (unfold iszero_def)
-apply (simp add: eq_commute)
-done
+lemma nonzero_number_of_Min: "~ iszero ((number_of bin.Min)::'a::number_ring)"
+by (simp add: iszero_def numeral_m1_eq_minus_1 eq_commute)
+
+
+subsection{*Comparisons, for Ordered Rings*}
+
+lemma double_eq_0_iff: "(a + a = 0) = (a = (0::'a::ordered_ring))"
+proof -
+  have "a + a = (1+1)*a" by (simp add: left_distrib)
+  with zero_less_two [where 'a = 'a]
+  show ?thesis by force
+qed
+
+lemma le_imp_0_less: 
+  assumes le: "0 \<le> z" shows "(0::int) < 1 + z"
+proof -
+  have "0 \<le> z" .
+  also have "... < z + 1" by (rule less_add_one) 
+  also have "... = 1 + z" by (simp add: add_ac)
+  finally show "0 < 1 + z" .
+qed
+
+lemma odd_nonzero: "1 + z + z \<noteq> (0::int)";
+proof (cases z rule: int_cases)
+  case (nonneg n)
+  have le: "0 \<le> z+z" by (simp add: prems add_increasing) 
+  thus ?thesis using  le_imp_0_less [OF le]
+    by (auto simp add: add_assoc) 
+next
+  case (neg n)
+  show ?thesis
+  proof
+    assume eq: "1 + z + z = 0"
+    have "0 < 1 + (int n + int n)"
+      by (simp add: le_imp_0_less add_increasing) 
+    also have "... = - (1 + z + z)" by (simp add: prems int_Suc add_ac) 
+    also have "... = 0" by (simp add: eq) 
+    finally have "0<0" ..
+    thus False by blast
+  qed
+qed
+
+
+text{*The premise involving @{term Ints} prevents @{term "a = 1/2"}.*}
+lemma Ints_odd_nonzero: "a \<in> Ints ==> 1 + a + a \<noteq> (0::'a::ordered_ring)"
+proof (unfold Ints_def) 
+  assume "a \<in> range of_int"
+  from this obtain z where a: "a = of_int z" ..
+  show ?thesis
+  proof
+    assume eq: "1 + a + a = 0"
+    hence "of_int (1 + z + z) = (of_int 0 :: 'a)" by (simp add: a)
+    hence "1 + z + z = 0" by (simp only: of_int_eq_iff)
+    with odd_nonzero show False by blast
+  qed
+qed 
+
+lemma Ints_number_of: "(number_of w :: 'a::number_ring) \<in> Ints"
+by (induct_tac "w", simp_all add: number_of)
 
 lemma iszero_number_of_BIT:
-     "iszero (number_of (w BIT x)::int) = (~x & iszero (number_of w::int))"
-apply (unfold iszero_def)
-apply (cases "(number_of w)::int" rule: int_cases) 
-apply (simp_all (no_asm_simp) add: compare_rls zero_reorient
-         zminus_zadd_distrib [symmetric] int_Suc0_eq_1 [symmetric] zadd_int)
-done
+     "iszero (number_of (w BIT x)::'a) = 
+      (~x & iszero (number_of w::'a::{ordered_ring,number_ring}))"
+by (simp add: iszero_def compare_rls zero_reorient double_eq_0_iff 
+              number_of Ints_odd_nonzero [OF Ints_number_of])
 
 lemma iszero_number_of_0:
-     "iszero (number_of (w BIT False)::int) = iszero (number_of w::int)"
+     "iszero (number_of (w BIT False) :: 'a::{ordered_ring,number_ring}) = 
+      iszero (number_of w :: 'a)"
 by (simp only: iszero_number_of_BIT simp_thms)
 
-lemma iszero_number_of_1: "~ iszero (number_of (w BIT True)::int)"
+lemma iszero_number_of_1:
+     "~ iszero (number_of (w BIT True)::'a::{ordered_ring,number_ring})"
 by (simp only: iszero_number_of_BIT simp_thms)
 
 
 
-(** Less-than (<) **)
+subsection{*The Less-Than Relation*}
 
 lemma less_number_of_eq_neg:
-    "((number_of x::int) < number_of y)
-     = neg (number_of (bin_add x (bin_minus y)) ::int )"
-by (simp add: neg_def number_of_add number_of_minus compare_rls) 
-
-
-(*But if Numeral0 is rewritten to 0 then this rule can't be applied:
-  Numeral0 IS (number_of Pls) *)
-lemma not_neg_number_of_Pls: "~ neg (number_of bin.Pls ::int)"
-by (simp add: neg_def)
-
-lemma neg_number_of_Min: "neg (number_of bin.Min ::int)"
-by (simp add: neg_def int_0_less_1)
-
-lemma neg_number_of_BIT:
-     "neg (number_of (w BIT x)::int) = neg (number_of w ::int)"
-apply simp
-apply (cases "(number_of w)::int" rule: int_cases) 
-apply (simp_all (no_asm_simp) add: int_Suc0_eq_1 [symmetric] zadd_int neg_def zdiff_def [symmetric] compare_rls)
+    "((number_of x::'a::{ordered_ring,number_ring}) < number_of y)
+     = neg (number_of (bin_add x (bin_minus y)) :: 'a)"
+apply (subst less_iff_diff_less_0) 
+apply (simp add: neg_def diff_minus number_of_add number_of_minus)
 done
 
+text{*If @{term Numeral0} is rewritten to 0 then this rule can't be applied:
+  @{term Numeral0} IS @{term "number_of Pls"} *}
+lemma not_neg_number_of_Pls:
+     "~ neg (number_of bin.Pls ::'a::{ordered_ring,number_ring})"
+by (simp add: neg_def numeral_0_eq_0)
 
-(** Less-than-or-equals (\<le>) **)
+lemma neg_number_of_Min:
+     "neg (number_of bin.Min ::'a::{ordered_ring,number_ring})"
+by (simp add: neg_def zero_less_one numeral_m1_eq_minus_1)
+
+lemma double_less_0_iff: "(a + a < 0) = (a < (0::'a::ordered_ring))"
+proof -
+  have "(a + a < 0) = ((1+1)*a < 0)" by (simp add: left_distrib)
+  also have "... = (a < 0)"
+    by (simp add: mult_less_0_iff zero_less_two 
+                  order_less_not_sym [OF zero_less_two]) 
+  finally show ?thesis .
+qed
+
+lemma odd_less_0: "(1 + z + z < 0) = (z < (0::int))";
+proof (cases z rule: int_cases)
+  case (nonneg n)
+  thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
+                             le_imp_0_less [THEN order_less_imp_le])  
+next
+  case (neg n)
+  thus ?thesis by (simp del: int_Suc
+			add: int_Suc0_eq_1 [symmetric] zadd_int compare_rls)
+qed
+
+text{*The premise involving @{term Ints} prevents @{term "a = 1/2"}.*}
+lemma Ints_odd_less_0: 
+     "a \<in> Ints ==> (1 + a + a < 0) = (a < (0::'a::ordered_ring))";
+proof (unfold Ints_def) 
+  assume "a \<in> range of_int"
+  from this obtain z where a: "a = of_int z" ..
+  hence "((1::'a) + a + a < 0) = (of_int (1 + z + z) < (of_int 0 :: 'a))"
+    by (simp add: prems)
+  also have "... = (z < 0)" by (simp only: of_int_less_iff odd_less_0)
+  also have "... = (a < 0)" by (simp add: prems)
+  finally show ?thesis .
+qed
+
+lemma neg_number_of_BIT:
+     "neg (number_of (w BIT x)::'a) = 
+      neg (number_of w :: 'a::{ordered_ring,number_ring})"
+by (simp add: number_of neg_def double_less_0_iff
+              Ints_odd_less_0 [OF Ints_number_of])
+
+
+text{*Less-Than or Equals*}
 
 text{*Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals*}
 lemmas le_number_of_eq_not_less =
-       linorder_not_less [of "number_of w" "number_of v", symmetric, standard]
+       linorder_not_less [of "number_of w" "number_of v", symmetric, 
+                          standard]
 
-declare le_number_of_eq_not_less [simp]
+lemma le_number_of_eq:
+    "((number_of x::'a::{ordered_ring,number_ring}) \<le> number_of y)
+     = (~ (neg (number_of (bin_add y (bin_minus x)) :: 'a)))"
+by (simp add: le_number_of_eq_not_less less_number_of_eq_neg)
 
 
-(** Absolute value (abs) **)
+text{*Absolute value (@{term abs})*}
 
-lemma zabs_number_of:
- "abs(number_of x::int) =
-  (if number_of x < (0::int) then -number_of x else number_of x)"
-by (simp add: zabs_def)
+lemma abs_number_of:
+     "abs(number_of x::'a::{ordered_ring,number_ring}) =
+      (if number_of x < (0::'a) then -number_of x else number_of x)"
+by (simp add: abs_if)
 
-(*0 and 1 require special rewrites because they aren't numerals*)
-lemma zabs_0: "abs (0::int) = 0"
-by (simp add: zabs_def)
 
-lemma zabs_1: "abs (1::int) = 1"
-by (simp del: int_0 int_1 add: int_0 [symmetric] int_1 [symmetric] zabs_def)
-
-(*Re-orientation of the equation nnn=x*)
+text{*Re-orientation of the equation nnn=x*}
 lemma number_of_reorient: "(number_of w = x) = (x = number_of w)"
 by auto
 
@@ -360,14 +294,14 @@ lemmas NCons_simps = NCons_Pls_0 NCons_Pls_1 NCons_Min_0 NCons_Min_1 NCons_BIT
 
 lemmas bin_arith_extra_simps = 
        number_of_add [symmetric]
-       number_of_minus [symmetric] zminus_1_eq_m1
+       number_of_minus [symmetric] numeral_m1_eq_minus_1 [symmetric]
        number_of_mult [symmetric]
        bin_succ_1 bin_succ_0
        bin_pred_1 bin_pred_0
        bin_minus_1 bin_minus_0
        bin_add_Pls_right bin_add_Min_right
        bin_add_BIT_0 bin_add_BIT_10 bin_add_BIT_11
-       diff_number_of_eq zabs_number_of zabs_0 zabs_1
+       diff_number_of_eq abs_number_of abs_zero abs_one
        bin_mult_1 bin_mult_0 NCons_simps
 
 (*For making a minimal simpset, one must include these default simprules
@@ -386,47 +320,33 @@ lemmas bin_rel_simps =
        less_number_of_eq_neg
        not_neg_number_of_Pls not_neg_0 not_neg_1 not_iszero_1
        neg_number_of_Min neg_number_of_BIT
-       le_number_of_eq_not_less
+       le_number_of_eq
 
 declare bin_arith_extra_simps [simp]
 declare bin_rel_simps [simp]
 
 
-(** Simplification of arithmetic when nested to the right **)
+subsection{*Simplification of arithmetic when nested to the right*}
 
-lemma add_number_of_left [simp]: "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::int)"
-by (simp add: zadd_assoc [symmetric])
+lemma add_number_of_left [simp]:
+     "number_of v + (number_of w + z) =
+      (number_of(bin_add v w) + z::'a::number_ring)"
+by (simp add: add_assoc [symmetric])
 
-lemma mult_number_of_left [simp]: "number_of v * (number_of w * z) = (number_of(bin_mult v w) * z::int)"
-by (simp add: zmult_assoc [symmetric])
+lemma mult_number_of_left [simp]:
+    "number_of v * (number_of w * z) =
+     (number_of(bin_mult v w) * z::'a::number_ring)"
+by (simp add: mult_assoc [symmetric])
 
 lemma add_number_of_diff1:
-    "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::int)"
-apply (unfold zdiff_def)
-apply (rule add_number_of_left)
-done
+    "number_of v + (number_of w - c) = 
+     number_of(bin_add v w) - (c::'a::number_ring)"
+by (simp add: diff_minus add_number_of_left)
 
 lemma add_number_of_diff2 [simp]: "number_of v + (c - number_of w) =
-     number_of (bin_add v (bin_minus w)) + (c::int)"
+     number_of (bin_add v (bin_minus w)) + (c::'a::number_ring)"
 apply (subst diff_number_of_eq [symmetric])
 apply (simp only: compare_rls)
 done
-
-
-
-(** Inserting these natural simprules earlier would break many proofs! **)
-
-(* int (Suc n) = 1 + int n *)
-declare int_Suc [simp]
-
-(* Numeral0 -> 0 and Numeral1 -> 1 *)
-declare int_numeral_0_eq_0 [simp] int_numeral_1_eq_1 [simp]
-
-
-(*Simplification of  x-y < 0, etc.*)
-declare less_iff_diff_less_0 [symmetric, simp]
-declare eq_iff_diff_eq_0 [symmetric, simp]
-declare le_iff_diff_le_0 [symmetric, simp]
-
 
 end

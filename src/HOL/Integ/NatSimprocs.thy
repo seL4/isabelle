@@ -31,8 +31,10 @@ text{*No longer required as a simprule because of the @{text inverse_fold}
 lemma Suc_diff_number_of:
      "neg (number_of (bin_minus v)::int) ==>  
       Suc m - (number_of v) = m - (number_of (bin_pred v))"
-apply (subst Suc_diff_eq_diff_pred, simp, simp)
-apply (force simp only: diff_nat_number_of less_0_number_of [symmetric] 
+apply (subst Suc_diff_eq_diff_pred)
+apply (simp add: ); 
+apply (simp del: nat_numeral_1_eq_1); 
+apply (auto simp only: diff_nat_number_of less_0_number_of [symmetric] 
                         neg_number_of_bin_pred_iff_0)
 done
 
@@ -54,7 +56,8 @@ lemma nat_case_add_eq_if [simp]:
          if neg pv then nat_case a f n else f (nat pv + n))"
 apply (subst add_eq_if)
 apply (simp split add: nat.split
-            add: numeral_1_eq_Suc_0 [symmetric] Let_def 
+            del: nat_numeral_1_eq_1
+	    add: numeral_1_eq_Suc_0 [symmetric] Let_def 
                  neg_imp_number_of_eq_0 neg_number_of_bin_pred_iff_0)
 done
 
@@ -74,6 +77,7 @@ lemma nat_rec_add_eq_if [simp]:
                    else f (nat pv + n) (nat_rec a f (nat pv + n)))"
 apply (subst add_eq_if)
 apply (simp split add: nat.split
+            del: nat_numeral_1_eq_1
             add: numeral_1_eq_Suc_0 [symmetric] Let_def neg_imp_number_of_eq_0
                  neg_number_of_bin_pred_iff_0)
 done
@@ -105,8 +109,6 @@ by simp
 
 lemma add_2_eq_Suc' [simp]: "n + 2 = Suc (Suc n)"
 by simp
-
-declare numeral_0_eq_0 [simp] numeral_1_eq_1 [simp] 
 
 text{*Can be used to eliminate long strings of Sucs, but not by default*}
 lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
@@ -193,5 +195,21 @@ declare divide_less_eq [of _ "number_of w", standard, simp]
 declare eq_divide_eq [of _ _ "number_of w", standard, simp]
 declare divide_eq_eq [of _ "number_of w", standard, simp]
 
+
+subsubsection{*Division By @{term "-1"}*}
+
+lemma divide_minus1 [simp]:
+     "x/-1 = -(x::'a::{field,division_by_zero,number_ring})" 
+by simp
+
+lemma minus1_divide [simp]:
+     "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
+by (simp add: divide_inverse_zero inverse_minus_eq)
+
+ML
+{*
+val divide_minus1 = thm "divide_minus1";
+val minus1_divide = thm "minus1_divide";
+*}
 
 end

@@ -138,7 +138,7 @@ val final_rules = add_0s @ mult_1s @ [mult_0, mult_0_right];
 
 structure CancelNumeralsCommon =
   struct
-  val mk_sum            = mk_sum
+  val mk_sum            = (fn T:typ => mk_sum)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff

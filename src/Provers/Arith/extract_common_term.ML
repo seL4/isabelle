@@ -17,7 +17,7 @@ This massaged formula is then simplified in a user-specified way.
 signature EXTRACT_COMMON_TERM_DATA =
 sig
   (*abstract syntax*)
-  val mk_sum: term list -> term
+  val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
@@ -59,11 +59,12 @@ fun proc sg hyps t =
       val u = find_common (terms1,terms2)
       val terms1' = Data.find_first u terms1
       and terms2' = Data.find_first u terms2
+      and T = Term.fastype_of u
       val reshape = 
 	    Data.prove_conv [Data.norm_tac] sg hyps xs
 	        (t', 
-		 Data.mk_bal (Data.mk_sum (u::terms1'), 
-		              Data.mk_sum (u::terms2')))
+		 Data.mk_bal (Data.mk_sum T (u::terms1'), 
+		              Data.mk_sum T (u::terms2')))
   in
       apsome Data.simplify_meta_eq reshape
   end

@@ -4,6 +4,9 @@
     Description : Theory of integration (c.f. Harison's HOL development)
 *)
 
+val mult_2 = thm"mult_2";
+val mult_2_right = thm"mult_2_right";
+
 Goalw [psize_def] "a = b ==> psize (%n. if n = 0 then a else b) = 0";
 by Auto_tac;
 qed "partition_zero";
@@ -358,7 +361,7 @@ by (arith_tac 1);
 by (dtac add_strict_mono 1 THEN assume_tac 1);
 by (auto_tac (claset(),
     HOL_ss addsimps [left_distrib RS sym,
-                     real_mult_2_right RS sym, mult_less_cancel_right]));
+                     mult_2_right RS sym, mult_less_cancel_right]));
 by (ALLGOALS(arith_tac));
 qed "Integral_unique";
 
@@ -956,7 +959,7 @@ by (dres_inst_tac  [("a","abs (rsum (D, p) f - k1)* 2"),
     ("c","abs (rsum (D, p) g - k2) * 2")] 
     add_strict_mono 1 THEN assume_tac 1);
 by (auto_tac (claset(),HOL_ss addsimps [rsum_add,left_distrib RS sym,
-    real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
+    mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_add_fun";
 
@@ -1015,7 +1018,7 @@ by (subgoal_tac
 by (arith_tac 1);
 by (dtac add_strict_mono 1 THEN assume_tac 1);
 by (auto_tac (claset(),HOL_ss addsimps [left_distrib RS sym,
-    real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
+    mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_le";
 
@@ -1037,7 +1040,7 @@ by (REPEAT(dtac spec 1) THEN Auto_tac);
 by (thin_tac "0 < e" 1);
 by (dtac add_strict_mono 1 THEN assume_tac 1);
 by (auto_tac (claset(),HOL_ss addsimps [left_distrib RS sym,
-    real_mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
+    mult_2_right RS sym,real_mult_less_iff1,CLAIM "(0::real) < 2"]));
 by (arith_tac 1);
 qed "Integral_imp_Cauchy";
 

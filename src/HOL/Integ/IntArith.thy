@@ -8,8 +8,40 @@ header {* Integer arithmetic *}
 theory IntArith = Bin
 files ("int_arith1.ML"):
 
+text{*Duplicate: can't understand why it's necessary*}
+declare numeral_0_eq_0 [simp]
+
+subsection{*Instantiating Binary Arithmetic for the Integers*}
+
+instance
+  int :: number ..
+
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::int)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance int :: number_ring
+proof
+  show "Numeral0 = (0::int)" by (rule number_of_Pls)
+  show "-1 = - (1::int)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: int) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
+
+
 
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
+
+lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
+by (cut_tac w = 0 in zless_nat_conj, auto)
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
 apply (rule eq_Abs_Integ [of z])
@@ -18,11 +50,115 @@ apply (simp add: linorder_not_le [symmetric] zle int_def zadd One_int_def)
 done
 
 
+
+lemma add_numeral_0: "Numeral0 + a = (a::'a::number_ring)"
+by simp 
+
+lemma add_numeral_0_right: "a + Numeral0 = (a::'a::number_ring)"
+by simp
+
+lemma mult_numeral_1: "Numeral1 * a = (a::'a::number_ring)"
+by simp 
+
+lemma mult_numeral_1_right: "a * Numeral1 = (a::'a::number_ring)"
+by simp
+
+text{*Theorem lists for the cancellation simprocs. The use of binary numerals
+for 0 and 1 reduces the number of special cases.*}
+
+lemmas add_0s = add_numeral_0 add_numeral_0_right
+lemmas mult_1s = mult_numeral_1 mult_numeral_1_right 
+                 mult_minus1 mult_minus1_right
+
+
+subsection{*Special Arithmetic Rules for Abstract 0 and 1*}
+
+text{*Arithmetic computations are defined for binary literals, which leaves 0
+and 1 as special cases. Addition already has rules for 0, but not 1.
+Multiplication and unary minus already have rules for both 0 and 1.*}
+
+
+lemma binop_eq: "[|f x y = g x y; x = x'; y = y'|] ==> f x' y' = g x' y'"
+by simp
+
+
+lemmas add_number_of_eq = number_of_add [symmetric]
+
+text{*Allow 1 on either or both sides*}
+lemma one_add_one_is_two: "1 + 1 = (2::'a::number_ring)"
+by (simp del: numeral_1_eq_1 add: numeral_1_eq_1 [symmetric] add_number_of_eq)
+
+lemmas add_special =
+    one_add_one_is_two
+    binop_eq [of "op +", OF add_number_of_eq numeral_1_eq_1 refl, standard]
+    binop_eq [of "op +", OF add_number_of_eq refl numeral_1_eq_1, standard]
+
+text{*Allow 1 on either or both sides (1-1 already simplifies to 0)*}
+lemmas diff_special =
+    binop_eq [of "op -", OF diff_number_of_eq numeral_1_eq_1 refl, standard]
+    binop_eq [of "op -", OF diff_number_of_eq refl numeral_1_eq_1, standard]
+
+text{*Allow 0 or 1 on either side with a binary numeral on the other*}
+lemmas eq_special =
+    binop_eq [of "op =", OF eq_number_of_eq numeral_0_eq_0 refl, standard]
+    binop_eq [of "op =", OF eq_number_of_eq numeral_1_eq_1 refl, standard]
+    binop_eq [of "op =", OF eq_number_of_eq refl numeral_0_eq_0, standard]
+    binop_eq [of "op =", OF eq_number_of_eq refl numeral_1_eq_1, standard]
+
+text{*Allow 0 or 1 on either side with a binary numeral on the other*}
+lemmas less_special =
+  binop_eq [of "op <", OF less_number_of_eq_neg numeral_0_eq_0 refl, standard]
+  binop_eq [of "op <", OF less_number_of_eq_neg numeral_1_eq_1 refl, standard]
+  binop_eq [of "op <", OF less_number_of_eq_neg refl numeral_0_eq_0, standard]
+  binop_eq [of "op <", OF less_number_of_eq_neg refl numeral_1_eq_1, standard]
+
+text{*Allow 0 or 1 on either side with a binary numeral on the other*}
+lemmas le_special =
+    binop_eq [of "op \<le>", OF le_number_of_eq numeral_0_eq_0 refl, standard]
+    binop_eq [of "op \<le>", OF le_number_of_eq numeral_1_eq_1 refl, standard]
+    binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_0_eq_0, standard]
+    binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_1_eq_1, standard]
+
+lemmas arith_special = 
+       add_special diff_special eq_special less_special le_special
+
+
 use "int_arith1.ML"
 setup int_arith_setup
 
 
-subsection{*More inequality reasoning*}
+subsection{*Lemmas About Small Numerals*}
+
+lemma of_int_m1 [simp]: "of_int -1 = (-1 :: 'a :: number_ring)"
+proof -
+  have "(of_int -1 :: 'a) = of_int (- 1)" by simp
+  also have "... = - of_int 1" by (simp only: of_int_minus)
+  also have "... = -1" by simp
+  finally show ?thesis .
+qed
+
+lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_ring,number_ring})"
+by (simp add: abs_if)
+
+lemma of_int_number_of_eq:
+     "of_int (number_of v) = (number_of v :: 'a :: number_ring)"
+apply (induct v)
+apply (simp_all only: number_of of_int_add, simp_all) 
+done
+
+text{*Lemmas for specialist use, NOT as default simprules*}
+lemma mult_2: "2 * z = (z+z::'a::number_ring)"
+proof -
+  have "2*z = (1 + 1)*z" by simp
+  also have "... = z+z" by (simp add: left_distrib)
+  finally show ?thesis .
+qed
+
+lemma mult_2_right: "z * 2 = (z+z::'a::number_ring)"
+by (subst mult_commute, rule mult_2)
+
+
+subsection{*More Inequality Reasoning*}
 
 lemma zless_add1_eq: "(w < z + (1::int)) = (w<z | w=z)"
 by arith
@@ -34,9 +170,6 @@ lemma zle_diff1_eq [simp]: "(w \<le> z - (1::int)) = (w<(z::int))"
 by arith
 
 lemma zle_add1_eq_le [simp]: "(w < z + 1) = (w\<le>(z::int))"
-by arith
-
-lemma zadd_left_cancel0 [simp]: "(z = z + w) = (w = (0::int))"
 by arith
 
 lemma int_one_le_iff_zero_less: "((1::int) \<le> z) = (0 < z)"
@@ -86,7 +219,6 @@ apply (case_tac "z < 0")
 apply (auto simp add: nat_less_iff)
 done
 
-
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 by (auto simp add: linorder_not_less [symmetric] zless_nat_conj)
 
@@ -113,6 +245,7 @@ next
   qed
   with False show ?thesis by simp
 qed
+
 
 subsubsection "Induction principles for int"
 
@@ -177,7 +310,7 @@ proof -
   from this le show ?thesis by fast
 qed
 
-theorem int_less_induct[consumes 1,case_names base step]:
+theorem int_less_induct [consumes 1,case_names base step]:
   assumes less: "(i::int) < k" and
         base: "P(k - 1)" and
         step: "\<And>i. \<lbrakk>i < k; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
@@ -228,12 +361,7 @@ apply (subgoal_tac "m*1 = m*n")
 apply (drule mult_cancel_left [THEN iffD1], auto)
 done
 
-lemma zless_1_zmult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::int)"
-apply (rule_tac y = "1*n" in order_less_trans)
-apply (rule_tac [2] mult_strict_right_mono)
-apply (simp_all (no_asm_simp))
-done
-
+text{*FIXME: tidy*}
 lemma pos_zmult_eq_1_iff: "0 < (m::int) ==> (m * n = 1) = (m = 1 & n = 1)"
 apply auto
 apply (case_tac "m=1")
@@ -242,7 +370,7 @@ apply (case_tac [4] "m=1")
 apply (case_tac [5] "n=1", auto)
 apply (tactic"distinct_subgoals_tac")
 apply (subgoal_tac "1<m*n", simp)
-apply (rule zless_1_zmult, arith)
+apply (rule less_1_mult, arith)
 apply (subgoal_tac "0<n", arith)
 apply (subgoal_tac "0<m*n")
 apply (drule zero_less_mult_iff [THEN iffD1], auto)
@@ -300,6 +428,7 @@ ML
 val zle_diff1_eq = thm "zle_diff1_eq";
 val zle_add1_eq_le = thm "zle_add1_eq_le";
 val nonneg_eq_int = thm "nonneg_eq_int";
+val abs_minus_one = thm "abs_minus_one";
 val nat_eq_iff = thm "nat_eq_iff";
 val nat_eq_iff2 = thm "nat_eq_iff2";
 val nat_less_iff = thm "nat_less_iff";
@@ -312,7 +441,6 @@ val nat_le_eq_zle = thm "nat_le_eq_zle";
 
 val nat_intermed_int_val = thm "nat_intermed_int_val";
 val zmult_eq_self_iff = thm "zmult_eq_self_iff";
-val zless_1_zmult = thm "zless_1_zmult";
 val pos_zmult_eq_1_iff = thm "pos_zmult_eq_1_iff";
 val zmult_eq_1_iff = thm "zmult_eq_1_iff";
 val nat_add_distrib = thm "nat_add_distrib";

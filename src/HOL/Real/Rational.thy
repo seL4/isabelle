@@ -9,7 +9,8 @@ header {*
   \author{Markus Wenzel}
 *}
 
-theory Rational = Quotient + Ring_and_Field:
+theory Rational = Quotient + Main
+files ("rat_arith.ML"):
 
 subsection {* Fractions *}
 
@@ -692,5 +693,36 @@ next
       by (simp add: only: prems int_eq_of_nat of_int_minus of_int_of_nat_eq) 
 qed 
 
+
+
+subsection{*Numerals and Arithmetic*}
+
+instance rat :: number ..
+
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::rat)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance rat :: number_ring
+proof
+  show "Numeral0 = (0::rat)" by (rule number_of_Pls)
+  show "-1 = - (1::rat)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: rat) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
+
+declare diff_rat_def [symmetric]
+
+use "rat_arith.ML"
+
+setup rat_arith_setup
 
 end

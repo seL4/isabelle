@@ -31,9 +31,9 @@ structure CancelNumeralFactorCommon =
   val dest_coeff        = dest_coeff 1
   val trans_tac         = trans_tac
   val norm_tac =
-     ALLGOALS (simp_tac (HOL_ss addsimps int_minus_from_mult_simps@mult_1s))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@int_mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps zmult_ac))
+     ALLGOALS (simp_tac (HOL_ss addsimps minus_from_mult_simps@mult_1s))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@mult_minus_simps))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
   val simplify_meta_eq  = simplify_meta_eq mult_1s
   end
@@ -132,11 +132,6 @@ local
   open Int_Numeral_Simprocs
 in
 
-
-(*this version ALWAYS includes a trailing one*)
-fun long_mk_prod []        = one
-  | long_mk_prod (t :: ts) = mk_times (t, mk_prod ts);
-
 (*Find first term that matches u*)
 fun find_first past u []         = raise TERM("find_first", [])
   | find_first past u (t::terms) =
@@ -147,7 +142,7 @@ fun find_first past u []         = raise TERM("find_first", [])
 (*Final simplification: cancel + and *  *)
 fun cancel_simplify_meta_eq cancel_th th =
     Int_Numeral_Simprocs.simplify_meta_eq
-        [zmult_1, zmult_1_right]
+        [mult_1, mult_1_right]
         (([th, cancel_th]) MRS trans);
 
 structure CancelFactorCommon =
@@ -158,9 +153,11 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first []
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@zmult_ac))
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
+(*mult_cancel_left requires an ordered ring, such as int. The version in
+  rat_arith.ML works for all fields.*)
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
@@ -169,6 +166,8 @@ structure EqCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq mult_cancel_left
 );
 
+(*int_mult_div_cancel_disj is for integer division (div). The version in
+  rat_arith.ML works for all fields, using real division (/).*)
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv

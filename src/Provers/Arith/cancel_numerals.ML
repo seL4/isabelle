@@ -25,7 +25,7 @@ or
 signature CANCEL_NUMERALS_DATA =
 sig
   (*abstract syntax*)
-  val mk_sum: term list -> term
+  val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
@@ -78,7 +78,8 @@ fun proc sg hyps t =
       val u = find_common (terms1,terms2)
       val (n1, terms1') = Data.find_first_coeff u terms1
       and (n2, terms2') = Data.find_first_coeff u terms2
-      fun newshape (i,terms) = Data.mk_sum (Data.mk_coeff(i,u)::terms)
+      and T = Term.fastype_of u
+      fun newshape (i,terms) = Data.mk_sum T (Data.mk_coeff(i,u)::terms)
       val reshape =  (*Move i*u to the front and put j*u into standard form
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
@@ -94,12 +95,12 @@ fun proc sg hyps t =
 	       [Data.trans_tac reshape, rtac Data.bal_add1 1,
 		Data.numeral_simp_tac] sg hyps xs
 	       (t', Data.mk_bal (newshape(n1-n2,terms1'), 
-				 Data.mk_sum terms2'))
+				 Data.mk_sum T terms2'))
 	else
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add2 1,
 		Data.numeral_simp_tac] sg hyps xs
-	       (t', Data.mk_bal (Data.mk_sum terms1', 
+	       (t', Data.mk_bal (Data.mk_sum T terms1', 
 				 newshape(n2-n1,terms2'))))
   end
   handle TERM _ => None

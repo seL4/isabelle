@@ -8,11 +8,10 @@
 
 header{*Completeness Theorems for Positive Reals and Reals.*}
 
-theory RComplete = Lubs + RealArith:
+theory RComplete = Lubs + RealDef:
 
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
-apply (simp)
-done
+by simp
 
 
 subsection{*Completeness of Reals by Supremum Property of type @{typ preal}*} 
@@ -32,8 +31,7 @@ apply (blast dest: bspec real_gt_zero_preal_Ex [THEN iffD1], auto)
 apply (drule bspec, assumption)
 apply (frule bspec, assumption)
 apply (drule order_less_trans, assumption)
-apply (drule real_gt_zero_preal_Ex [THEN iffD1])
-apply (force) 
+apply (drule real_gt_zero_preal_Ex [THEN iffD1], force) 
 done
 
 (*-------------------------------------------------------------
@@ -55,12 +53,10 @@ apply clarify
 apply (case_tac "0 < ya", auto)
 apply (frule real_sup_lemma2, assumption+)
 apply (drule real_gt_zero_preal_Ex [THEN iffD1])
-apply (drule_tac [3] real_less_all_real2)
-apply (auto)
+apply (drule_tac [3] real_less_all_real2, auto)
 apply (rule preal_complete [THEN iffD1])
 apply (auto intro: order_less_imp_le)
-apply (frule real_gt_preal_preal_Ex)
-apply (force)
+apply (frule real_gt_preal_preal_Ex, force)
 (* second part *)
 apply (rule real_sup_lemma1 [THEN iffD2], assumption)
 apply (auto dest!: real_less_all_real2 real_gt_zero_preal_Ex [THEN iffD1])
@@ -131,8 +127,7 @@ apply safe
 apply (subgoal_tac "\<exists>u. u\<in> {z. \<exists>x \<in>S. z = x + (-X) + 1} Int {x. 0 < x}")
 apply (subgoal_tac "isUb (UNIV::real set) ({z. \<exists>x \<in>S. z = x + (-X) + 1} Int {x. 0 < x}) (Y + (-X) + 1) ")
 apply (cut_tac P = S and xa = X in real_sup_lemma3)
-apply (frule posreals_complete [OF _ _ exI], blast, blast) 
-apply safe
+apply (frule posreals_complete [OF _ _ exI], blast, blast, safe)
 apply (rule_tac x = "t + X + (- 1) " in exI)
 apply (rule isLubI2)
 apply (rule_tac [2] setgeI, safe)

@@ -20,7 +20,7 @@ signature COMBINE_NUMERALS_DATA =
 sig
   (*abstract syntax*)
   val add: int * int -> int          (*addition (or multiplication) *)
-  val mk_sum: term list -> term
+  val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
   val mk_coeff: int * term -> term
   val dest_coeff: term -> int * term
@@ -66,22 +66,23 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
 (*the simplification procedure*)
 fun proc sg _ t =
   let (*first freeze any Vars in the term to prevent flex-flex problems*)
-      val (t', xs) = Term.adhoc_freeze_vars t;
+      val (t', xs) = Term.adhoc_freeze_vars t
       val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
+      val T = Term.fastype_of u
       val reshape =  (*Move i*u to the front and put j*u into standard form
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if m=0 orelse n=0 then   (*trivial, so do nothing*)
 		raise TERM("combine_numerals", []) 
 	    else Data.prove_conv [Data.norm_tac] sg xs
 			(t', 
-			 Data.mk_sum ([Data.mk_coeff(m,u),
-				       Data.mk_coeff(n,u)] @ terms))
+			 Data.mk_sum T ([Data.mk_coeff(m,u),
+				         Data.mk_coeff(n,u)] @ terms))
   in
       apsome Data.simplify_meta_eq
 	 (Data.prove_conv 
 	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
 	     Data.numeral_simp_tac] sg xs
-	    (t', Data.mk_sum (Data.mk_coeff(Data.add(m,n), u) :: terms)))
+	    (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   handle TERM _ => None
        | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)

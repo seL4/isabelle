@@ -5,6 +5,20 @@
                   differentiation for complex functions
 *)
 
+(*FIXME: MOVE these two to Complex.thy*)
+Goal "(x + - a = (0::complex)) = (x=a)";
+by (simp_tac (simpset() addsimps [diff_eq_eq,symmetric complex_diff_def]) 1);
+qed "complex_add_minus_iff";
+Addsimps [complex_add_minus_iff];
+
+Goal "(x+y = (0::complex)) = (y = -x)";
+by Auto_tac;
+by (dtac (sym RS (diff_eq_eq RS iffD2)) 1);
+by Auto_tac;  
+qed "complex_add_eq_0_iff";
+AddIffs [complex_add_eq_0_iff];
+
+
 (*-----------------------------------------------------------------------*)
 (* Limit of complex to complex function                                               *)
 (*-----------------------------------------------------------------------*)
@@ -1175,7 +1189,7 @@ qed "CARAT_NSCDERIV";
 Goal "(ALL z. f z - f x = g z * (z - x)) & isNSContc g x & g x = l \
 \     ==> NSCDERIV f x :> l";
 by (auto_tac (claset(), 
-              simpset() delsimprocs complex_cancel_factor
+              simpset() delsimprocs field_cancel_factor
                         addsimps [NSCDERIV_iff2]));
 by (asm_full_simp_tac (simpset() addsimps [isNSContc_def]) 1);
 qed "CARAT_CDERIVD";

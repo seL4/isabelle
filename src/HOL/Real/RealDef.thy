@@ -2,10 +2,13 @@
     ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
-    Description : The reals
+    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
-theory RealDef = PReal:
+header{*Defining the Reals from the Positive Reals*}
+
+theory RealDef = PReal
+files ("real_arith.ML"):
 
 constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"
@@ -418,7 +421,7 @@ lemma real_le:
   "(Abs_REAL(realrel``{(x1,y1)}) \<le> Abs_REAL(realrel``{(x2,y2)})) =  
    (x1 + y2 \<le> x2 + y1)"
 apply (simp add: real_le_def) 
-apply (auto intro: real_le_lemma);
+apply (auto intro: real_le_lemma)
 done
 
 lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
@@ -464,8 +467,7 @@ lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
 apply (rule eq_Abs_REAL [of z])
 apply (rule eq_Abs_REAL [of w]) 
 apply (auto simp add: real_le real_zero_def preal_add_ac preal_cancels)
-apply (cut_tac x="x+ya" and y="xa+y" in linorder_linear) 
-apply (auto ); 
+apply (cut_tac x="x+ya" and y="xa+y" in linorder_linear, auto) 
 done
 
 
@@ -514,9 +516,8 @@ done
 
 text{*lemma for proving @{term "0<(1::real)"}*}
 lemma real_zero_le_one: "0 \<le> (1::real)"
-apply (simp add: real_zero_def real_one_def real_le 
+by (simp add: real_zero_def real_one_def real_le 
                  preal_self_less_add_left order_less_imp_le)
-done
 
 
 subsection{*The Reals Form an Ordered Field*}
@@ -792,7 +793,7 @@ by (simp add: real_of_nat_def)
 lemma real_of_nat_inject [iff]: "(real (n::nat) = real m) = (n = m)"
 by (simp add: real_of_nat_def)
 
-lemma real_of_nat_zero_iff: "(real (n::nat) = 0) = (n = 0)"
+lemma real_of_nat_zero_iff [iff]: "(real (n::nat) = 0) = (n = 0)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_diff: "n \<le> m ==> real (m - n) = real (m::nat) - real n"
@@ -814,8 +815,7 @@ lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)
 
 
-
-text{*Still needed for binary arith*}
+text{*Still needed for binary arithmetic*}
 lemma real_of_nat_real_of_int: "~neg z ==> real (nat z) = real z"
 proof (simp add: not_neg_eq_ge_0 real_of_nat_def real_of_int_def)
   assume "0 \<le> z"
@@ -826,107 +826,194 @@ proof (simp add: not_neg_eq_ge_0 real_of_nat_def real_of_int_def)
   finally show "of_nat (nat z) = of_int z" .
 qed
 
+
+
+subsection{*Numerals and Arithmetic*}
+
+instance real :: number ..
+
+primrec (*the type constraint is essential!*)
+  number_of_Pls: "number_of bin.Pls = 0"
+  number_of_Min: "number_of bin.Min = - (1::real)"
+  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)"
+
+declare number_of_Pls [simp del]
+        number_of_Min [simp del]
+        number_of_BIT [simp del]
+
+instance real :: number_ring
+proof
+  show "Numeral0 = (0::real)" by (rule number_of_Pls)
+  show "-1 = - (1::real)" by (rule number_of_Min)
+  fix w :: bin and x :: bool
+  show "(number_of (w BIT x) :: real) =
+        (if x then 1 else 0) + number_of w + number_of w"
+    by (rule number_of_BIT)
+qed
+
+
+text{*Collapse applications of @{term real} to @{term number_of}*}
+lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
+by (simp add:  real_of_int_def of_int_number_of_eq)
+
+lemma real_of_nat_number_of [simp]:
+     "real (number_of v :: nat) =  
+        (if neg (number_of v :: int) then 0  
+         else (number_of v :: real))"
+by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
+ 
+
+use "real_arith.ML"
+
+setup real_arith_setup
+
+subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
+
+text{*Needed in this non-standard form by Hyperreal/Transcendental*}
+lemma real_0_le_divide_iff:
+     "((0::real) \<le> x/y) = ((x \<le> 0 | 0 \<le> y) & (0 \<le> x | y \<le> 0))"
+by (simp add: real_divide_def zero_le_mult_iff, auto)
+
+lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
+by arith
+
+lemma real_add_eq_0_iff [iff]: "(x+y = (0::real)) = (y = -x)"
+by auto
+
+lemma real_add_less_0_iff [iff]: "(x+y < (0::real)) = (y < -x)"
+by auto
+
+lemma real_0_less_add_iff [iff]: "((0::real) < x+y) = (-x < y)"
+by auto
+
+lemma real_add_le_0_iff [iff]: "(x+y \<le> (0::real)) = (y \<le> -x)"
+by auto
+
+lemma real_0_le_add_iff [iff]: "((0::real) \<le> x+y) = (-x \<le> y)"
+by auto
+
+
+(** Simprules combining x-y and 0 (needed??) **)
+
+lemma real_0_less_diff_iff [iff]: "((0::real) < x-y) = (y < x)"
+by auto
+
+lemma real_0_le_diff_iff [iff]: "((0::real) \<le> x-y) = (y \<le> x)"
+by auto
+
+(*
+FIXME: we should have this, as for type int, but many proofs would break.
+It replaces x+-y by x-y.
+Addsimps [symmetric real_diff_def]
+*)
+
+
+subsubsection{*Density of the Reals*}
+
+lemma real_lbound_gt_zero:
+     "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
+apply (rule_tac x = " (min d1 d2) /2" in exI)
+apply (simp add: min_def)
+done
+
+
+text{*Similar results are proved in @{text Ring_and_Field}*}
+lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
+  by auto
+
+lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
+  by auto
+
+lemma real_dense: "x < y ==> \<exists>r::real. x < r & r < y"
+  by (rule Ring_and_Field.dense)
+
+
+subsection{*Absolute Value Function for the Reals*}
+
+text{*FIXME: these should go!*}
+lemma abs_eqI1: "(0::real)\<le>x ==> abs x = x"
+by (unfold real_abs_def, simp)
+
+lemma abs_eqI2: "(0::real) < x ==> abs x = x"
+by (unfold real_abs_def, simp)
+
+lemma abs_minus_eqI2: "x < (0::real) ==> abs x = -x"
+by (simp add: real_abs_def linorder_not_less [symmetric])
+
+lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
+by (unfold real_abs_def, simp)
+
+lemma abs_minus_one [simp]: "abs (-1) = (1::real)"
+by (unfold real_abs_def, simp)
+
+lemma abs_interval_iff: "(abs x < r) = (-r < x & x < (r::real))"
+by (force simp add: Ring_and_Field.abs_less_iff)
+
+lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
+by (force simp add: Ring_and_Field.abs_le_iff)
+
+lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
+by (unfold real_abs_def, auto)
+
+lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
+by (auto intro: abs_eqI1 simp add: real_of_nat_ge_zero)
+
+lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
+apply (simp add: linorder_not_less)
+apply (auto intro: abs_ge_self [THEN order_trans])
+done
+ 
+text{*Used only in Hyperreal/Lim.ML*}
+lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
+apply (simp add: real_add_assoc)
+apply (rule_tac a1 = y in add_left_commute [THEN ssubst])
+apply (rule real_add_assoc [THEN subst])
+apply (rule abs_triangle_ineq)
+done
+
+
+
 ML
 {*
-val real_abs_def = thm "real_abs_def";
+val real_0_le_divide_iff = thm"real_0_le_divide_iff";
+val real_add_minus_iff = thm"real_add_minus_iff";
+val real_add_eq_0_iff = thm"real_add_eq_0_iff";
+val real_add_less_0_iff = thm"real_add_less_0_iff";
+val real_0_less_add_iff = thm"real_0_less_add_iff";
+val real_add_le_0_iff = thm"real_add_le_0_iff";
+val real_0_le_add_iff = thm"real_0_le_add_iff";
+val real_0_less_diff_iff = thm"real_0_less_diff_iff";
+val real_0_le_diff_iff = thm"real_0_le_diff_iff";
+val real_lbound_gt_zero = thm"real_lbound_gt_zero";
+val real_less_half_sum = thm"real_less_half_sum";
+val real_gt_half_sum = thm"real_gt_half_sum";
+val real_dense = thm"real_dense";
 
-val real_le_def = thm "real_le_def";
-val real_diff_def = thm "real_diff_def";
-val real_divide_def = thm "real_divide_def";
+val abs_eqI1 = thm"abs_eqI1";
+val abs_eqI2 = thm"abs_eqI2";
+val abs_minus_eqI2 = thm"abs_minus_eqI2";
+val abs_ge_zero = thm"abs_ge_zero";
+val abs_idempotent = thm"abs_idempotent";
+val abs_zero_iff = thm"abs_zero_iff";
+val abs_ge_self = thm"abs_ge_self";
+val abs_ge_minus_self = thm"abs_ge_minus_self";
+val abs_mult = thm"abs_mult";
+val abs_inverse = thm"abs_inverse";
+val abs_triangle_ineq = thm"abs_triangle_ineq";
+val abs_minus_cancel = thm"abs_minus_cancel";
+val abs_minus_add_cancel = thm"abs_minus_add_cancel";
+val abs_minus_one = thm"abs_minus_one";
+val abs_interval_iff = thm"abs_interval_iff";
+val abs_le_interval_iff = thm"abs_le_interval_iff";
+val abs_add_one_gt_zero = thm"abs_add_one_gt_zero";
+val abs_le_zero_iff = thm"abs_le_zero_iff";
+val abs_real_of_nat_cancel = thm"abs_real_of_nat_cancel";
+val abs_add_one_not_less_self = thm"abs_add_one_not_less_self";
+val abs_sum_triangle_ineq = thm"abs_sum_triangle_ineq";
 
-val realrel_iff = thm"realrel_iff";
-val realrel_refl = thm"realrel_refl";
-val equiv_realrel = thm"equiv_realrel";
-val equiv_realrel_iff = thm"equiv_realrel_iff";
-val realrel_in_real = thm"realrel_in_real";
-val inj_on_Abs_REAL = thm"inj_on_Abs_REAL";
-val eq_realrelD = thm"eq_realrelD";
-val inj_Rep_REAL = thm"inj_Rep_REAL";
-val inj_real_of_preal = thm"inj_real_of_preal";
-val eq_Abs_REAL = thm"eq_Abs_REAL";
-val real_minus_congruent = thm"real_minus_congruent";
-val real_minus = thm"real_minus";
-val real_add = thm"real_add";
-val real_add_commute = thm"real_add_commute";
-val real_add_assoc = thm"real_add_assoc";
-val real_add_zero_left = thm"real_add_zero_left";
-val real_add_zero_right = thm"real_add_zero_right";
-
-val real_mult = thm"real_mult";
-val real_mult_commute = thm"real_mult_commute";
-val real_mult_assoc = thm"real_mult_assoc";
-val real_mult_1 = thm"real_mult_1";
-val real_mult_1_right = thm"real_mult_1_right";
-val preal_le_linear = thm"preal_le_linear";
-val real_mult_inverse_left = thm"real_mult_inverse_left";
-val real_not_refl2 = thm"real_not_refl2";
-val real_of_preal_add = thm"real_of_preal_add";
-val real_of_preal_mult = thm"real_of_preal_mult";
-val real_of_preal_trichotomy = thm"real_of_preal_trichotomy";
-val real_of_preal_minus_less_zero = thm"real_of_preal_minus_less_zero";
-val real_of_preal_not_minus_gt_zero = thm"real_of_preal_not_minus_gt_zero";
-val real_of_preal_zero_less = thm"real_of_preal_zero_less";
-val real_le_imp_less_or_eq = thm"real_le_imp_less_or_eq";
-val real_le_refl = thm"real_le_refl";
-val real_le_linear = thm"real_le_linear";
-val real_le_trans = thm"real_le_trans";
-val real_le_anti_sym = thm"real_le_anti_sym";
-val real_less_le = thm"real_less_le";
-val real_less_sum_gt_zero = thm"real_less_sum_gt_zero";
-val real_gt_zero_preal_Ex = thm "real_gt_zero_preal_Ex";
-val real_gt_preal_preal_Ex = thm "real_gt_preal_preal_Ex";
-val real_ge_preal_preal_Ex = thm "real_ge_preal_preal_Ex";
-val real_less_all_preal = thm "real_less_all_preal";
-val real_less_all_real2 = thm "real_less_all_real2";
-val real_of_preal_le_iff = thm "real_of_preal_le_iff";
-val real_mult_order = thm "real_mult_order";
-val real_zero_less_one = thm "real_zero_less_one";
-val real_add_less_le_mono = thm "real_add_less_le_mono";
-val real_add_le_less_mono = thm "real_add_le_less_mono";
-val real_add_order = thm "real_add_order";
-val real_le_add_order = thm "real_le_add_order";
-val real_le_square = thm "real_le_square";
-val real_mult_less_mono2 = thm "real_mult_less_mono2";
-
-val real_mult_less_iff1 = thm "real_mult_less_iff1";
-val real_mult_le_cancel_iff1 = thm "real_mult_le_cancel_iff1";
-val real_mult_le_cancel_iff2 = thm "real_mult_le_cancel_iff2";
-val real_mult_less_mono = thm "real_mult_less_mono";
-val real_mult_less_mono' = thm "real_mult_less_mono'";
-val real_sum_squares_cancel = thm "real_sum_squares_cancel";
-val real_sum_squares_cancel2 = thm "real_sum_squares_cancel2";
-
-val real_mult_left_cancel = thm"real_mult_left_cancel";
-val real_mult_right_cancel = thm"real_mult_right_cancel";
-val real_inverse_unique = thm "real_inverse_unique";
-val real_inverse_gt_one = thm "real_inverse_gt_one";
-
-val real_of_int_zero = thm"real_of_int_zero";
-val real_of_one = thm"real_of_one";
-val real_of_int_add = thm"real_of_int_add";
-val real_of_int_minus = thm"real_of_int_minus";
-val real_of_int_diff = thm"real_of_int_diff";
-val real_of_int_mult = thm"real_of_int_mult";
-val real_of_int_real_of_nat = thm"real_of_int_real_of_nat";
-val real_of_int_inject = thm"real_of_int_inject";
-val real_of_int_less_iff = thm"real_of_int_less_iff";
-val real_of_int_le_iff = thm"real_of_int_le_iff";
-val real_of_nat_zero = thm "real_of_nat_zero";
-val real_of_nat_one = thm "real_of_nat_one";
-val real_of_nat_add = thm "real_of_nat_add";
-val real_of_nat_Suc = thm "real_of_nat_Suc";
-val real_of_nat_less_iff = thm "real_of_nat_less_iff";
-val real_of_nat_le_iff = thm "real_of_nat_le_iff";
-val real_of_nat_ge_zero = thm "real_of_nat_ge_zero";
-val real_of_nat_Suc_gt_zero = thm "real_of_nat_Suc_gt_zero";
-val real_of_nat_mult = thm "real_of_nat_mult";
-val real_of_nat_inject = thm "real_of_nat_inject";
-val real_of_nat_diff = thm "real_of_nat_diff";
-val real_of_nat_zero_iff = thm "real_of_nat_zero_iff";
-val real_of_nat_gt_zero_cancel_iff = thm "real_of_nat_gt_zero_cancel_iff";
-val real_of_nat_le_zero_cancel_iff = thm "real_of_nat_le_zero_cancel_iff";
-val not_real_of_nat_less_zero = thm "not_real_of_nat_less_zero";
-val real_of_nat_ge_zero_cancel_iff = thm "real_of_nat_ge_zero_cancel_iff";
+val abs_mult_less = thm"abs_mult_less";
 *}
+
 
 end

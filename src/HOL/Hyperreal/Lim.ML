@@ -1405,7 +1405,7 @@ qed "CARAT_NSDERIV";
 Goal "(\\<forall>z. f z - f x = g z * (z - x)) & isNSCont g x & g x = l \
 \     ==> NSDERIV f x :> l";
 by (auto_tac (claset(), 
-              simpset() delsimprocs real_cancel_factor
+              simpset() delsimprocs field_cancel_factor
                         addsimps [NSDERIV_iff2]));
 by (auto_tac (claset(),
               simpset() addsimps [hypreal_mult_assoc]));
@@ -1877,9 +1877,25 @@ by (asm_full_simp_tac
               addsplits [split_if_asm]) 1); 
 qed "DERIV_left_inc";
 
-Goalw [deriv_def,LIM_def] 
+val prems = goalw (the_context()) [deriv_def,LIM_def]
     "[| DERIV f x :> l;  l < 0 |] ==> \
 \      \\<exists>d. 0 < d & (\\<forall>h. 0 < h & h < d --> f(x) < f(x - h))";
+by (cut_facts_tac prems 1);  (*needed because arith removes the assumption l<0*)
+by (dres_inst_tac [("x","-l")] spec 1 THEN Auto_tac);
+by (res_inst_tac [("x","s")] exI 1 THEN Auto_tac);
+by (dres_inst_tac [("x","-h")] spec 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [real_abs_def, inverse_eq_divide, 
+                         pos_less_divide_eq,
+                         symmetric real_diff_def]
+               addsplits [split_if_asm]) 1);
+by (subgoal_tac "0 < (f (x - h) - f x)/h" 1);
+by (asm_full_simp_tac (simpset() addsimps [pos_less_divide_eq]) 1); 
+by (cut_facts_tac prems 1);
+by (arith_tac 1);
+qed "DERIV_left_dec";
+
+(*????previous proof, revealing arith problem:
 by (dres_inst_tac [("x","-l")] spec 1 THEN Auto_tac);
 by (res_inst_tac [("x","s")] exI 1 THEN Auto_tac);
 by (subgoal_tac "l*h < 0" 1);
@@ -1896,6 +1912,7 @@ by (arith_tac 2);
 by (asm_full_simp_tac
     (simpset() addsimps [pos_less_divide_eq]) 1); 
 qed "DERIV_left_dec";
+*)
 
 
 Goal "[| DERIV f x :> l; \
