@@ -57,6 +57,8 @@ case $FORCE.$EXEC in
     on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL Cube FOLP)
 esac
 
+set +e			#no longer fail upon errors -- e.g. if a "make" fails
+
 echo
 echo
 echo '*****Pure Isabelle*****'

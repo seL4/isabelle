@@ -1,0 +1,18 @@
+#! /bin/sh
+#    simp FILE1 ... FILEn
+#
+#  leaves previous versions as XXX~~
+#
+for f in $*
+do
+echo $f. \ Backup file is $f~~
+mv $f $f~~; sed -e '
+s/\<ASM_SIMP_TAC\>/asm_simp_tac/g
+s/\<SIMP_TAC\>/simp_tac/g
+s/\<addrews\>/addsimps/g
+s/addsplits \(\[[^]]*\]\)/setloop (split_tac \1)/g
+s/addsplits/setloop  split_tac/g
+s/\<setauto\>/setsolver/g
+' $f~~ > $f
+done
+echo Finished.
