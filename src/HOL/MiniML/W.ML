@@ -143,6 +143,7 @@ by (dtac (free_tv_app_subst_scheme_list RS subsetD) 1);
 by (best_tac (claset() addEs [less_le_trans]) 1);
 by (etac conjE 1);
 by (rtac conjI 1);
+by (SELECT_GOAL(rewtac o_def)1);
 by (rtac new_tv_subst_comp_2 1);
 by (etac (W_var_ge RS new_tv_subst_le) 1);
 by (assume_tac 1);
@@ -290,7 +291,7 @@ by (res_inst_tac [("S1","S3")] (app_subst_TVar RS subst) 1);
 by (rtac (app_subst_Fun RS subst) 1);
 by (res_inst_tac [("t","$S3 (t2 -> (TVar n2))"),("s","$S3 ($S2 t1)")] subst 1);
 by (Asm_full_simp_tac 1);
-by (simp_tac (HOL_ss addsimps [subst_comp_scheme_list RS sym]) 1);
+by (simp_tac (HOL_ss addsimps [subst_comp_scheme_list RS sym,o_def]) 1);
 by ((rtac (has_type_cl_sub RS spec) 1) THEN (rtac (has_type_cl_sub RS spec) 1));
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 by (asm_full_simp_tac (simpset() addsimps [subst_comp_scheme_list RS sym,o_def,has_type_cl_sub,eq_sym_conv]) 1);
@@ -424,7 +425,7 @@ by (Asm_full_simp_tac 1);
 by (safe_tac HOL_cs);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
         conjunct1,new_scheme_list_le,new_tv_subst_scheme_list]) 1);
-(** LEVEL 35 **)
+(** LEVEL 33 **)
 by (subgoal_tac
   "$ (%x. if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
 \        else Ra x)) ($ Sa t) = \
@@ -479,13 +480,13 @@ by (Asm_full_simp_tac 2);
 by (dres_inst_tac [("A1","$ S A")] (subst_comp_scheme_list RSN (2,trans)) 2);
 by (dtac eq_subst_scheme_list_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
-(** LEVEL 75 **)
+(** LEVEL 73 **)
 by (asm_full_simp_tac (simpset() addsimps [free_tv_subst,dom_def]) 2);
 by (asm_simp_tac (simpset() addsplits [split_option_bind]) 1); 
 by (safe_tac HOL_cs );
 by (dtac mgu_Some 1);
 by ( fast_tac (HOL_cs addss simpset()) 1);
-(** LEVEL 80 *)
+(** LEVEL 78 *)
 by ((dtac mgu_mg 1) THEN (atac 1));
 by (etac exE 1);
 by (res_inst_tac [("x","Rb")] exI 1);
@@ -497,6 +498,7 @@ by (simp_tac (simpset() addsimps [subst_comp_scheme_list RS sym]) 1);
 by (res_inst_tac [("A2","($ Sa ($ S A))")]
        ((subst_comp_scheme_list RS sym) RSN (2,trans)) 1);
 by ( asm_full_simp_tac (simpset() addsimps [o_def,eq_sym_conv]) 1);
+by(dres_inst_tac [("s","Some ?X")] sym 1);
 by (rtac eq_free_eq_subst_scheme_list 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);

@@ -73,12 +73,10 @@ by (rtac iffI 1);
  by (Clarify_tac 1);
  by (rtac conjI 1);
   by (Clarify_tac 1);
-  by (Asm_full_simp_tac 1);
  by (Clarify_tac 1);
  by (Asm_full_simp_tac 1);
  by (forward_tac [prem RS chop_concat] 1);
  by (Clarify_tac 1);
- by (assume_tac 1);
 by (stac (prem RS is_maxsplitter_reducing RS chop_rule) 1);
 by (simp_tac (simpset() addsimps [Let_def,rewrite_rule[is_maxsplitter_def]prem]
                         addsplits [split_split]) 1);

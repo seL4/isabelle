@@ -30,7 +30,7 @@ by (res_inst_tac [("s1","sc")] (app_subst_TVar RS subst) 1);
 by (rtac (app_subst_Fun RS subst) 1);
 by (res_inst_tac [("t","$sc(tb -> (TVar nb))"),("s","$sc($sb ta)")] subst 1);
 by (Asm_full_simp_tac 1);
-by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym]) 1);
+by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym,o_def]) 1);
 by ( (rtac has_type_cl_sub 1) THEN (rtac has_type_cl_sub 1));
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 by (asm_full_simp_tac (simpset() addsimps [subst_comp_tel RS sym,o_def,has_type_cl_sub,eq_sym_conv]) 1);
@@ -222,7 +222,7 @@ by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv,app_subst_list]) 1);
 by (res_inst_tac [("x","s'")] exI 1);
 by (Asm_simp_tac 1);
 
-(** LEVEL 10 **)
+(** LEVEL 7 **)
 (* case Abs e *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
@@ -233,7 +233,7 @@ by (eres_inst_tac [("x","Suc n")] allE 1);
 by (fast_tac (HOL_cs addss (simpset() addcongs [conj_cong]
                             addsplits [split_bind])) 1);
 
-(** LEVEL 17 **)
+(** LEVEL 14 **)
 (* case App e1 e2 *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
@@ -251,7 +251,7 @@ by (safe_tac HOL_cs);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
                             conjunct1,new_tv_list_le,new_tv_subst_tel]) 1);
 
-(** LEVEL 35 **)
+(** LEVEL 28 **)
 by (subgoal_tac
   "$ (%x. if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
 \        else ra x)) ($ sa t) = \
@@ -266,7 +266,7 @@ by (strip_tac 2);
 by (subgoal_tac "na ~=ma" 2);
 by (fast_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
                             new_tv_not_free_tv,new_tv_le]) 3);
-(** LEVEL 42 **)
+(** LEVEL 35 **)
 by (case_tac "na:free_tv sa" 2);
 (* na ~: free_tv sa *)
 by (forward_tac [not_free_impl_id] 3);
@@ -278,7 +278,7 @@ by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (Asm_simp_tac 2); 
 by (case_tac "na:dom sa" 2);
 (* na ~: dom sa *)
-(** LEVEL 50 **)
+(** LEVEL 43 **)
 by (asm_full_simp_tac (simpset() addsimps [dom_def]) 3);
 (* na : dom sa *)
 by (rtac eq_free_eq_subst_te 2);
@@ -292,7 +292,7 @@ by (fast_tac (set_cs addDs [new_tv_W,new_tv_not_free_tv] addss
               (simpset() addsimps [cod_def,free_tv_subst])) 3);
 by (fast_tac (set_cs addss (simpset() addsimps [cod_def,free_tv_subst])) 2);
 
-(** LEVEL 60 **)
+(** LEVEL 53 **)
 by (Simp_tac 2);  
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2 );
@@ -302,7 +302,7 @@ by (etac conjE 3);
 by (dtac (sym RS W_var_geD) 3);
 by (fast_tac (HOL_cs addDs [new_tv_list_le,new_tv_subst_tel,new_tv_W,new_tv_not_free_tv]) 3);
 by (case_tac "na: free_tv t - free_tv sa" 2);
-(** LEVEL 69 **)
+(** LEVEL 62 **)
 (* case na ~: free_tv t - free_tv sa *)
 by (Asm_full_simp_tac 3);
 (* case na : free_tv t - free_tv sa *)
@@ -312,7 +312,7 @@ by (dtac eq_subst_tel_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (asm_full_simp_tac (simpset() addsimps [free_tv_subst,dom_def]) 2);
 by (Fast_tac 2);
-(** LEVEL 76 **)
+(** LEVEL 69 **)
 by (asm_simp_tac (simpset() addsplits [split_bind]) 1);
 by (safe_tac HOL_cs);
 by (dtac mgu_Ok 1);
@@ -324,9 +324,10 @@ by (rtac conjI 1);
 by (dres_inst_tac [("x","ma")] fun_cong 2);
 by ( asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 2);
 by (simp_tac (simpset() addsimps [o_def,subst_comp_tel RS sym]) 1);
-(** LEVEL 90 **)
+(** LEVEL 80 **)
 by (rtac ((subst_comp_tel RS sym) RSN (2,trans)) 1);
 by ( asm_full_simp_tac (simpset() addsimps [o_def,eq_sym_conv]) 1);
+by(dres_inst_tac [("s","Ok ?X")] sym 1);
 by (rtac eq_free_eq_subst_tel 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);
