@@ -18,7 +18,9 @@ sig
   val add_realizers : (thm * (string list * string * string)) list
     -> theory -> theory
   val add_expand_thms : thm list -> theory -> theory
-  val extract : thm list -> theory -> theory
+  val add_types : (xstring * ((term -> term option) list *
+    (term -> typ -> term -> typ -> term) option)) list -> theory -> theory
+  val extract : (thm * string list) list -> theory -> theory
   val nullT : typ
   val nullt : term
   val mk_typ : typ -> term
@@ -63,12 +65,13 @@ fun typeof_proc defaultS vs (Const ("typeof", _) $ u) =
         | _ => nullT))
   | typeof_proc _ _ _ = None;
 
-fun rlz_proc (Const ("realizes", Type (_, [Type ("Null", []), _])) $ _ $ t) =
-  (case strip_comb t of (Const _, _) => Some t | _ => None)
+fun rlz_proc (Const ("realizes", Type (_, [Type ("Null", []), _])) $ r $ t) = Some t
+  | rlz_proc (Const ("realizes", Type (_, [T, _])) $ r $ t) =
+      (case strip_comb t of
+         (Var (ixn, U), ts) => Some (list_comb (Var (ixn, T --> U), r :: ts))
+       | (Free (s, U), ts) => Some (list_comb (Free (s, T --> U), r :: ts))
+       | _ => None)
   | rlz_proc _ = None;
-
-fun rlz_proc' (Const ("realizes", _) $ _ $ t) = Some t
-  | rlz_proc' _ = None;
 
 val unpack_ixn = apfst implode o apsnd (fst o read_int o tl) o
   take_prefix (not o equal ":") o explode;
@@ -116,6 +119,11 @@ val chtype = change_type o Some;
 
 fun add_prefix a b = NameSpace.pack (a :: NameSpace.unpack b);
 
+fun corr_name s vs =
+  add_prefix "extr" (space_implode "_" (s :: vs)) ^ "_correctness";
+
+fun extr_name s vs = add_prefix "extr" (space_implode "_" (s :: vs));
+
 fun msg d s = priority (implode (replicate d " ") ^ s);
 
 fun vars_of t = rev (foldl_aterms
@@ -133,20 +141,35 @@ fun forall_intr_prf (t, prf) =
 
 val mkabs = foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
 
+fun strip_abs 0 t = t
+  | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
+  | strip_abs _ _ = error "strip_abs: not an abstraction";
+
 fun prf_subst_TVars tye =
   map_proof_terms (subst_TVars tye) (typ_subst_TVars tye);
-
-fun add_types (Const ("typeof", Type (_, [T, _])), xs) =
-      (case strip_type T of (_, Type (s, _)) => s ins xs | _ => xs)
-  | add_types (t $ u, xs) = add_types (t, add_types (u, xs))
-  | add_types (Abs (_, _, t), xs) = add_types (t, xs)
-  | add_types (_, xs) = xs;
 
 fun relevant_vars types prop = foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem types then a :: vs else vs
       | _ => vs)
     | (_, vs) => vs) (vars_of prop, []);
+
+fun tname_of (Type (s, _)) = s
+  | tname_of _ = "";
+
+fun get_var_type t =
+  let
+    val vs = Term.add_vars ([], t);
+    val fs = Term.add_frees ([], t)
+  in fn 
+      Var (ixn, _) => (case assoc (Term.add_vars ([], t), ixn) of
+          None => error "get_var_type: no such variable in term"
+        | Some T => Var (ixn, T))
+    | Free (s, _) => (case assoc (Term.add_frees ([], t), s) of
+          None => error "get_var_type: no such variable in term"
+        | Some T => Free (s, T))
+    | _ => error "get_var_type: not a variable"
+  end;
 
 
 (**** theory data ****)
@@ -159,7 +182,8 @@ struct
   type T =
     {realizes_eqns : rules,
      typeof_eqns : rules,
-     types : string list,
+     types : (string * ((term -> term option) list *
+       (term -> typ -> term -> typ -> term) option)) list,
      realizers : (string list * (term * proof)) list Symtab.table,
      defs : thm list,
      expand : (string * term) list,
@@ -183,7 +207,7 @@ struct
        realizers = realizers2, defs = defs2, expand = expand2, prep = prep2}) : T * T) =
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
-     types = types1 union types2,
+     types = merge_alists types1 types2,
      realizers = Symtab.merge_multi' (eq_set o pairself #1)
        (realizers1, realizers2),
      defs = gen_merge_lists eq_thm defs1 defs2,
@@ -236,15 +260,12 @@ fun gen_add_typeof_eqns prep_eq eqns thy =
   let
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
-    val eqns' = map (prep_eq thy) eqns;
-    val ts = flat (flat
-      (map (fn (ps, p) => map (fn (x, y) => [x, y]) (p :: ps)) eqns'))
+    val eqns' = map (prep_eq thy) eqns
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, realizers = realizers,
        typeof_eqns = foldr add_rule (eqns', typeof_eqns),
-       types = foldr add_types (ts, types),
-       defs = defs, expand = expand, prep = prep} thy
+       types = types, defs = defs, expand = expand, prep = prep} thy
   end
 
 val add_typeof_eqns_i = gen_add_typeof_eqns (K I);
@@ -266,10 +287,9 @@ fun etype_of sg vs Ts t =
   let
     val {typeof_eqns, ...} = ExtractionData.get_sg sg;
     fun err () = error ("Unable to determine type of extracted program for\n" ^
-      Sign.string_of_term sg t);
-    val abs = foldr (fn (T, u) => Abs ("x", T, u))
+      Sign.string_of_term sg t)
   in case strip_abs_body (freeze_thaw (condrew sg (#net typeof_eqns)
-    [typeof_proc (Sign.defaultS sg) vs]) (abs (Ts,
+    [typeof_proc (Sign.defaultS sg) vs]) (list_abs (map (pair "x") (rev Ts),
       Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
       Const ("Type", _) $ u => (Logic.dest_type u handle TERM _ => err ())
     | _ => err ()
@@ -290,8 +310,10 @@ fun gen_add_realizers prep_rlz rs thy =
 
 fun prep_realizer thy =
   let
-    val {realizes_eqns, typeof_eqns, defs, ...} =
+    val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy;
+    val procs = flat (map (fst o snd) types);
+    val rtypes = map fst types;
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
     val thy' = add_syntax thy;
     val sign = sign_of thy';
@@ -304,14 +326,17 @@ fun prep_realizer thy =
       val prop = Pattern.rewrite_term tsg
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
       val vars = vars_of prop;
+      val vars' = filter_out (fn v =>
+        tname_of (body_type (fastype_of v)) mem rtypes) vars;
       val T = etype_of sign vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
-        (if T = nullT then nullT else map fastype_of vars ---> T);
+        (if T = nullT then nullT else map fastype_of vars' ---> T);
       val t = map_term_types thw (term_of (read_cterm sign (s1, T')));
-      val r = foldr forall_intr (vars, freeze_thaw
-        (condrew sign eqns [typeof_proc (Sign.defaultS sign) vs, rlz_proc])
+      val r' = freeze_thaw (condrew sign eqns
+        (procs @ [typeof_proc (Sign.defaultS sign) vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
-            (if T = nullT then t else list_comb (t, vars)) $ prop));
+            (if T = nullT then t else list_comb (t, vars')) $ prop);
+      val r = foldr forall_intr (map (get_var_type r') vars, r');
       val prf = Reconstruct.reconstruct_proof sign r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
@@ -324,13 +349,14 @@ fun realizes_of thy vs t prop =
   let
     val thy' = add_syntax thy;
     val sign = sign_of thy';
-    val {realizes_eqns, typeof_eqns, defs, ...} =
+    val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
+    val procs = flat (map (fst o snd) types);
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
     val prop' = Pattern.rewrite_term (Sign.tsig_of sign)
       (map (Logic.dest_equals o prop_of) defs) [] prop;
-  in freeze_thaw
-    (condrew sign eqns [typeof_proc (Sign.defaultS sign) vs, rlz_proc])
+  in freeze_thaw (condrew sign eqns
+    (procs @ [typeof_proc (Sign.defaultS sign) vs, rlz_proc]))
       (Const ("realizes", fastype_of t --> propT --> propT) $ t $ prop')
   end;
 
@@ -370,6 +396,18 @@ fun add_expand_thm (thy, thm) =
 
 fun add_expand_thms thms thy = foldl (fst o add_expand_thm) (thy, thms);
 
+(** types with computational content **)
+
+fun add_types tys thy =
+  let val {realizes_eqns, typeof_eqns, types, realizers,
+    defs, expand, prep} = ExtractionData.get thy;
+  in
+    ExtractionData.put
+      {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns,
+       types = map (apfst (Sign.intern_tycon (sign_of thy))) tys @ types,
+       realizers = realizers, defs = defs, expand = expand, prep = prep} thy
+  end;
+
 
 (**** extract program ****)
 
@@ -381,6 +419,8 @@ fun extract thms thy =
     val tsg = Sign.tsig_of sg;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
+    val procs = flat (map (fst o snd) types);
+    val rtypes = map fst types;
     val typroc = typeof_proc (Sign.defaultS sg);
     val prep = if_none prep (K I) sg o ProofRewriteRules.elim_defs sg false defs o
       Reconstruct.expand_proof sg (("", None) :: map (apsnd Some) expand);
@@ -388,7 +428,7 @@ fun extract thms thy =
 
     fun find_inst prop Ts ts vs =
       let
-        val rvs = relevant_vars types prop;
+        val rvs = relevant_vars rtypes prop;
         val vars = vars_of prop;
         val n = Int.min (length vars, length ts);
 
@@ -405,9 +445,12 @@ fun extract thms thy =
     fun find vs = apsome snd o find_first (curry eq_set vs o fst);
     fun find' s = map snd o filter (equal s o fst)
 
-    fun realizes_null vs prop =
-      freeze_thaw (condrew sg rrews [typroc vs, rlz_proc])
-        (Const ("realizes", nullT --> propT --> propT) $ nullt $ prop);
+    fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
+      (condrew sg rrews (procs @ [typroc vs, rlz_proc])) (list_abs
+        (map (pair "x") (rev Ts), t)));
+
+    fun realizes_null vs prop = app_rlz_rews [] vs
+      (Const ("realizes", nullT --> propT --> propT) $ nullt $ prop);
 
     fun corr d defs vs ts Ts hs (PBound i) _ _ = (defs, PBound i)
 
@@ -427,16 +470,32 @@ fun extract thms thy =
               (incr_pboundvars 0 1 prf) (incr_pboundvars 0 1 prf') u;
             val rlz = Const ("realizes", T --> propT --> propT)
           in (defs',
-            if T = nullT then AbsP ("R", Some (rlz $ nullt $ prop),
-              prf_subst_bounds [nullt] corr_prf)
+            if T = nullT then AbsP ("R",
+              Some (app_rlz_rews Ts vs (rlz $ nullt $ prop)),
+                prf_subst_bounds [nullt] corr_prf)
             else Abst (s, Some T, AbsP ("R",
-              Some (rlz $ Bound 0 $ incr_boundvars 1 prop), corr_prf)))
+              Some (app_rlz_rews (T :: Ts) vs
+                (rlz $ Bound 0 $ incr_boundvars 1 prop)), corr_prf)))
           end
 
       | corr d defs vs ts Ts hs (prf % Some t) (prf' % _) t' =
-          let val (defs', corr_prf) = corr d defs vs (t :: ts) Ts hs prf prf'
-            (case t' of Some (u $ _) => Some u | _ => None)
-          in (defs', corr_prf % Some t) end
+          let
+            val (Us, T) = strip_type (fastype_of1 (Ts, t));
+            val (defs', corr_prf) = corr d defs vs (t :: ts) Ts hs prf prf'
+              (if tname_of T mem rtypes then t'
+               else (case t' of Some (u $ _) => Some u | _ => None));
+            val u = if not (tname_of T mem rtypes) then t else
+              let
+                val eT = etype_of sg vs Ts t;
+                val (r, Us') = if eT = nullT then (nullt, Us) else
+                  (Bound (length Us), eT :: Us);
+                val u = list_comb (incr_boundvars (length Us') t,
+                  map Bound (length Us - 1 downto 0));
+                val u' = (case assoc (types, tname_of T) of
+                    Some ((_, Some f)) => f r eT u T
+                  | _ => Const ("realizes", eT --> T --> T) $ r $ u)
+              in app_rlz_rews Ts vs (list_abs (map (pair "x") Us', u')) end
+          in (defs', corr_prf % Some u) end
 
       | corr d defs vs ts Ts hs (prf1 %% prf2) (prf1' %% prf2') t =
           let
@@ -475,13 +534,16 @@ fun extract thms thy =
                     val prf' = prep (Reconstruct.reconstruct_proof sg prop prf);
                     val (defs'', corr_prf) =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' None;
-                    val args = vfs_of prop;
-                    val corr_prf' = foldr forall_intr_prf (args, corr_prf);
+                    val corr_prop = Reconstruct.prop_of corr_prf;
+                    val corr_prf' = foldr forall_intr_prf
+                      (map (get_var_type corr_prop) (vfs_of prop), proof_combt
+                         (PThm ((corr_name name vs, []), corr_prf, corr_prop,
+                             Some (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
                   in
-                    ((name, (vs', ((nullt, nullt), corr_prf'))) :: defs'',
+                    ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
                      prf_subst_TVars tye' corr_prf')
                   end
-              | Some (_, prf') => (defs', prf_subst_TVars tye' prf'))
+              | Some (_, (_, prf')) => (defs', prf_subst_TVars tye' prf'))
             | Some rs => (case find vs' rs of
                 Some (_, prf') => (defs', prf_subst_TVars tye' prf')
               | None => error ("corr: no realizer for instance of theorem " ^
@@ -523,7 +585,10 @@ fun extract thms thy =
 
       | extr d defs vs ts Ts hs (prf % Some t) =
           let val (defs', u) = extr d defs vs (t :: ts) Ts hs prf
-          in (defs', u $ t) end
+          in (defs',
+            if tname_of (body_type (fastype_of1 (Ts, t))) mem rtypes then u
+            else u $ t)
+          end
 
       | extr d defs vs ts Ts hs (prf1 %% prf2) =
           let
@@ -554,33 +619,36 @@ fun extract thms thy =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' (Some t);
 
                     val nt = Envir.beta_norm t;
-                    val args = vfs_of prop;
+                    val args = filter_out (fn v => tname_of (body_type
+                      (fastype_of v)) mem rtypes) (vfs_of prop);
                     val args' = filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs (args', nt);
                     val T = fastype_of t';
-                    val cname = add_prefix "extr" (space_implode "_" (s :: vs'));
+                    val cname = extr_name s vs';
                     val c = Const (cname, T);
                     val u = mkabs (args, list_comb (c, args'));
                     val eqn = Logic.mk_equals (c, t');
                     val rlz =
                       Const ("realizes", fastype_of nt --> propT --> propT);
-                    val lhs = rlz $ nt $ prop;
-                    val rhs = rlz $ list_comb (c, args') $ prop;
-                    val f = Abs ("x", T, rlz $ list_comb (Bound 0, args') $ prop);
+                    val lhs = app_rlz_rews [] vs' (rlz $ nt $ prop);
+                    val rhs = app_rlz_rews [] vs' (rlz $ list_comb (c, args') $ prop);
+                    val f = app_rlz_rews [] vs'
+                      (Abs ("x", T, rlz $ list_comb (Bound 0, args') $ prop));
 
-                    val corr_prf' = foldr forall_intr_prf (args,
-                      ProofRewriteRules.rewrite_terms
-                        (freeze_thaw (condrew sg rrews [typroc vs', rlz_proc]))
-                        (Proofterm.rewrite_proof_notypes ([], [])
-                          (chtype [] equal_elim_axm %> lhs %> rhs %%
-                            (chtype [propT] symmetric_axm %> rhs %> lhs %%
-                              (chtype [propT, T] combination_axm %> f %> f %> c %> t' %%
-                                (chtype [T --> propT] reflexive_axm %> f) %%
-                                PAxm (cname ^ "_def", eqn,
-                                  Some (map TVar (term_tvars eqn))))) %%
-                            corr_prf)))
+                    val corr_prf' =
+                      chtype [] equal_elim_axm %> lhs %> rhs %%
+                       (chtype [propT] symmetric_axm %> rhs %> lhs %%
+                         (chtype [propT, T] combination_axm %> f %> f %> c %> t' %%
+                           (chtype [T --> propT] reflexive_axm %> f) %%
+                           PAxm (cname ^ "_def", eqn,
+                             Some (map TVar (term_tvars eqn))))) %% corr_prf;
+                    val corr_prop = Reconstruct.prop_of corr_prf';
+                    val corr_prf'' = foldr forall_intr_prf
+                      (map (get_var_type corr_prop) (vfs_of prop), proof_combt
+                        (PThm ((corr_name s vs', []), corr_prf', corr_prop,
+                          Some (map TVar (term_tvars corr_prop))), vfs_of corr_prop));
                   in
-                    ((s, (vs', ((t', u), corr_prf'))) :: defs'',
+                    ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',
                      subst_TVars tye' u)
                   end
               | Some ((_, u), _) => (defs, subst_TVars tye' u))
@@ -605,44 +673,42 @@ fun extract thms thy =
 
       | extr d defs vs ts Ts hs _ = error "extr: bad proof";
 
-    fun prep_thm thm =
+    fun prep_thm (thm, vs) =
       let
         val {prop, der = (_, prf), sign, ...} = rep_thm thm;
         val name = Thm.name_of_thm thm;
         val _ = assert (name <> "") "extraction: unnamed theorem";
-        val _ = assert (etype_of sg [] [] prop <> nullT) ("theorem " ^
+        val _ = assert (etype_of sg vs [] prop <> nullT) ("theorem " ^
           quote name ^ " has no computational content")
-      in (name, Reconstruct.reconstruct_proof sign prop prf) end;
+      in (Reconstruct.reconstruct_proof sign prop prf, vs) end;
 
-    val (names, prfs) = ListPair.unzip (map prep_thm thms);
-    val defs = foldl (fn (defs, prf) =>
-      fst (extr 0 defs [] [] [] [] prf)) ([], prfs);
+    val defs = foldl (fn (defs, (prf, vs)) =>
+      fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
     val {path, ...} = Sign.rep_sg sg;
 
-    fun add_def ((s, (vs, ((t, u), _))), thy) = 
-      let
-        val ft = fst (Type.freeze_thaw t);
-        val fu = fst (Type.freeze_thaw u);
-        val name = add_prefix "extr" (space_implode "_" (s :: vs))
-      in case Sign.const_type (sign_of thy) name of
-          None => if t = nullt then thy else thy |>
-            Theory.add_consts_i [(name, fastype_of ft, NoSyn)] |>
-            fst o PureThy.add_defs_i false [((name ^ "_def",
-              Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
-        | Some _ => thy
-      end;
-
-    fun add_thm ((s, (vs, (_, prf))), thy) = fst (PureThy.store_thm
-          ((add_prefix "extr" (space_implode "_" (s :: vs)) ^
-            "_correctness", standard (gen_all (ProofChecker.thm_of_proof thy
-              (fst (Proofterm.freeze_thaw_prf (ProofRewriteRules.rewrite_terms
-                (Pattern.rewrite_term (Sign.tsig_of (sign_of thy)) []
-                  [rlz_proc']) prf)))))), []) thy)
+    fun add_def ((s, (vs, ((t, u), (prf, _)))), thy) =
+      (case Sign.const_type (sign_of thy) (extr_name s vs) of
+         None =>
+           let
+             val corr_prop = Reconstruct.prop_of prf;
+             val ft = fst (Type.freeze_thaw t);
+             val fu = fst (Type.freeze_thaw u);
+             val thy' = if t = nullt then thy else thy |>
+               Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)] |>
+               fst o PureThy.add_defs_i false [((extr_name s vs ^ "_def",
+                 Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])];
+           in
+             fst (PureThy.store_thm ((corr_name s vs,
+               Thm.varifyT (funpow (length (term_vars corr_prop))
+                 (forall_elim_var 0) (forall_intr_frees
+                   (ProofChecker.thm_of_proof thy'
+                     (fst (Proofterm.freeze_thaw_prf prf)))))), []) thy')
+           end
+       | Some _ => thy);
 
   in thy |>
     Theory.absolute_path |>
     curry (foldr add_def) defs |>
-    curry (foldr add_thm) (filter (fn (s, _) => s mem names) defs) |>
     Theory.add_path (NameSpace.pack (if_none path []))
   end;
 
@@ -651,13 +717,13 @@ fun extract thms thy =
 
 structure P = OuterParse and K = OuterSyntax.Keyword;
 
+val parse_vars = Scan.optional (P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") [];
+
 val realizersP =
   OuterSyntax.command "realizers"
   "specify realizers for primitive axioms / theorems, together with correctness proof"
   K.thy_decl
-    (Scan.repeat1 (P.xname --
-       Scan.optional (P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") [] --|
-       P.$$$ ":" -- P.string -- P.string) >>
+    (Scan.repeat1 (P.xname -- parse_vars --| P.$$$ ":" -- P.string -- P.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
        (map (fn (((a, vs), s1), s2) =>
          (PureThy.get_thm thy a, (vs, s1, s2))) xs) thy)));
@@ -674,13 +740,15 @@ val typeofP =
 
 val extractP =
   OuterSyntax.command "extract" "extract terms from proofs" K.thy_decl
-    (Scan.repeat1 P.xname >> (fn xs => Toplevel.theory
-      (fn thy => extract (map (PureThy.get_thm thy) xs) thy)));
+    (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
+      (fn thy => extract (map (apfst (PureThy.get_thm thy)) xs) thy)));
 
 val parsers = [realizersP, realizabilityP, typeofP, extractP];
 
 val setup =
   [ExtractionData.init,
+
+   add_types [("prop", ([], None))],
 
    add_typeof_eqns
      ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
