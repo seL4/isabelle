@@ -9,7 +9,7 @@
 default: HOL
 images: HOL TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Integ \
-  HOL-Auth HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
+  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
   HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex TLA-Inc TLA-Buffer TLA-Memory
 all: images test
@@ -138,6 +138,21 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event.ML Auth/Event.thy \
   Auth/TLS.ML Auth/TLS.thy Auth/WooLam.ML Auth/WooLam.thy \
   Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Auth
+
+
+## HOL-UNITY
+
+HOL-UNITY: HOL $(LOG)/HOL-UNITY.gz
+
+$(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
+  UNITY/Channel.ML UNITY/Channel.thy UNITY/Common.ML UNITY/Common.thy\
+  UNITY/Deadlock.ML UNITY/Deadlock.thy UNITY/FP.ML UNITY/FP.thy\
+  UNITY/LessThan.ML UNITY/LessThan.thy UNITY/Mutex.ML UNITY/Mutex.thy\
+  UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
+  UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/Token.ML UNITY/Token.thy\
+  UNITY/Traces.ML UNITY/Traces.thy UNITY/UNITY.ML UNITY/UNITY.thy\
+  UNITY/Update.ML UNITY/Update.thy UNITY/WFair.ML UNITY/WFair.thy
+	@$(ISATOOL) usedir $(OUT)/HOL UNITY
 
 
 ## HOL-Modelcheck
@@ -316,7 +331,8 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 clean:
 	@rm -f $(OUT)/HOL $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
 	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
-	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Integ.gz $(LOG)/HOL-Auth.gz \
+	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Integ.gz \
+	  $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz \
 	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
 	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
