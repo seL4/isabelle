@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Compatibility file for Poly/ML (versions 2.x and 3.x).
+Compatibility file for Poly/ML (version 4.0).
 *)
 
 (** ML system related **)
