@@ -519,3 +519,12 @@ qed "not_less_Least";
 
 (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
 bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
+
+Goal "(S::nat set) ~= {} ==> ? x:S. ! y:S. x <= y";
+by (cut_facts_tac [wf_pred_nat RS wf_trancl RS (wf_eq_minimal RS iffD1)] 1);
+by (dres_inst_tac [("x","S")] spec 1);
+by (Asm_full_simp_tac 1);
+by (etac impE 1);
+by (Force_tac 1);
+by (force_tac (claset(), simpset() addsimps [less_eq,not_le_iff_less]) 1);
+qed "nonempty_has_least";

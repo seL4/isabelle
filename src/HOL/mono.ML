@@ -105,3 +105,14 @@ qed "Int_Collect_mono";
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
                    ex_mono, Collect_mono, in_mono];
 
+(* Courtesy of Stefan Merz *)
+Goalw [Least_def,mono_def]
+  "[| mono (f::'a::order => 'b::order); ? x:S. ! y:S. x <= y |] \
+\  ==> (LEAST y. y : f``S) = f(LEAST x. x : S)";
+by (etac bexE 1);
+by (rtac selectI2 1);
+by (Force_tac 1);
+by (rtac select_equality 1);
+by (Force_tac 1);
+by (force_tac (claset() addSIs [order_antisym], simpset()) 1);
+qed "Least_mono";
