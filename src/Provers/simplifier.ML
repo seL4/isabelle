@@ -81,6 +81,7 @@ sig
   val          simplify: simpset -> thm -> thm
   val      asm_simplify: simpset -> thm -> thm
   val     full_simplify: simpset -> thm -> thm
+  val   asm_lr_simplify: simpset -> thm -> thm
   val asm_full_simplify: simpset -> thm -> thm
 end;
 
@@ -94,6 +95,7 @@ sig
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
+  val   asm_lr_rewrite: simpset -> cterm -> thm
   val asm_full_rewrite: simpset -> cterm -> thm
   val print_local_simpset: Proof.context -> unit
   val get_local_simpset: Proof.context -> simpset
@@ -454,12 +456,14 @@ val simp_cterm = simp MetaSimplifier.rewrite_cterm;
 val          simplify = simp_thm (false, false, false);
 val      asm_simplify = simp_thm (false, true, false);
 val     full_simplify = simp_thm (true, false, false);
-val asm_full_simplify = simp_thm (true, true, false);
+val   asm_lr_simplify = simp_thm (true, true, false);
+val asm_full_simplify = simp_thm (true, true, true);
 
 val          rewrite = simp_cterm (false, false, false);
 val      asm_rewrite = simp_cterm (false, true, false);
 val     full_rewrite = simp_cterm (true, false, false);
-val asm_full_rewrite = simp_cterm (true, true, false);
+val   asm_lr_rewrite = simp_cterm (true, true, false);
+val asm_full_rewrite = simp_cterm (true, true, true);
 
 
 
