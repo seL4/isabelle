@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theorem database, derived theory operations, and the Pure theories.
+Theorem database, derived theory operations, and the ProtoPure theory.
 *)
 
 signature BASIC_PURE_THY =
@@ -13,6 +13,12 @@ sig
   val get_thms: theory -> xstring -> thm list
   val thms_of: theory -> (string * thm) list
   val global_names: bool ref
+  structure ProtoPure:
+    sig
+      val thy: theory
+      val flexpair_def: thm
+      val Goal_def: thm
+    end
 end;
 
 signature PURE_THY =
@@ -39,11 +45,9 @@ sig
   val local_path: theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  val transaction: (theory -> theory) -> theory -> theory * bool * exn option
+  exception ROLLBACK of theory * exn option
+  val transaction: (theory -> theory) -> theory -> theory
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
-  val proto_pure: theory
-  val pure: theory
-  val cpure: theory
 end;
 
 structure PureThy: PURE_THY =
@@ -334,6 +338,8 @@ fun end_theory thy = Theory.add_name (get_name thy) thy;
 
 (* atomic transactions *)
 
+exception ROLLBACK of theory * exn option;
+
 fun transaction f thy =
   let
     val {name, generation} = get_info thy;
@@ -344,9 +350,8 @@ fun transaction f thy =
       |> put_info {name = name, generation = generation + 1};
     val (thy', opt_exn) = (transform_error f thy, None) handle exn => (thy, Some exn);
   in
-    if Sign.is_stale (Theory.sign_of thy') then
-      (copy_thy, true, opt_exn)
-    else (thy', false, opt_exn)
+    if Sign.is_stale (Theory.sign_of thy') then raise ROLLBACK (copy_thy, opt_exn)
+    else (case opt_exn of Some exn => raise exn | _ => thy')
   end;
 
 
@@ -374,7 +379,7 @@ fun add_typedecls decls thy =
 
 
 
-(*** the Pure theories ***)
+(*** the ProtoPure theory ***)
 
 val proto_pure =
   Theory.pre_pure
@@ -414,15 +419,12 @@ val proto_pure =
     ("Goal_def", "GOAL (PROP A) == PROP A")]
   |> end_theory;
 
-val pure =
-  begin_theory "Pure" [proto_pure]
-  |> Theory.add_syntax Syntax.pure_appl_syntax
-  |> end_theory;
-
-val cpure =
-  begin_theory "CPure" [proto_pure]
-  |> Theory.add_syntax Syntax.pure_applC_syntax
-  |> end_theory;
+structure ProtoPure =
+struct
+  val thy = proto_pure;
+  val flexpair_def = get_axiom thy "flexpair_def";
+  val Goal_def = get_axiom thy "Goal_def";
+end;
 
 
 end;
@@ -430,17 +432,3 @@ end;
 
 structure BasicPureThy: BASIC_PURE_THY = PureThy;
 open BasicPureThy;
-
-
-
-(** Pure theory structures **)
-
-structure ProtoPure =
-struct
-  val thy = PureThy.proto_pure;
-  val flexpair_def = get_axiom thy "flexpair_def";
-  val Goal_def = get_axiom thy "Goal_def";
-end;
-
-structure Pure = struct val thy = PureThy.pure end;
-structure CPure = struct val thy = PureThy.cpure end;
