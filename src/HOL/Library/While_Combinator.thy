@@ -35,13 +35,13 @@ constdefs
 
 ML_setup {*
   goalw_cterm [] (cterm_of (sign_of (the_context ()))
-    (HOLogic.mk_Trueprop (hd while_aux.tcs)));
+    (HOLogic.mk_Trueprop (hd (RecdefPackage.tcs_of (the_context ()) "while_aux"))));
   br wf_same_fstI 1;
   br wf_same_fstI 1;
   by (asm_full_simp_tac (simpset() addsimps [wf_iff_no_infinite_down_chain]) 1);
   by (Blast_tac 1);
   qed "while_aux_tc";
-*} (* FIXME cannot prove recdef tcs in Isar yet! *)
+*} (* FIXME cannot access recdef tcs in Isar yet! *)
 
 lemma while_aux_unfold:
   "while_aux (b, c, s) =
