@@ -51,9 +51,13 @@ sig
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
   val simple_have_thms: string -> thm list -> state -> state
-  val have_thmss: ((string * context attribute list) *
+  val have_thmss: ((bstring * context attribute list) *
+    (xstring * context attribute list) list) list -> state -> state
+  val have_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
-  val with_thmss: ((string * context attribute list) *
+  val with_thmss: ((bstring * context attribute list) *
+    (xstring * context attribute list) list) list -> state -> state
+  val with_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
@@ -504,19 +508,40 @@ val let_bind = gen_bind (ProofContext.match_bind true);
 val let_bind_i = gen_bind (ProofContext.match_bind_i true);
 
 
-(* have_thmss etc. *)
+(* have_thmss *)
 
-fun have_thmss args state =
+local
+
+fun gen_have_thmss f args state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_thmss args)
+  |> map_context_result (f args)
   |> these_factss;
 
-fun simple_have_thms name thms = have_thmss [((name, []), [(thms, [])])];
+in
 
-fun with_thmss args state =
-  let val state' = state |> have_thmss args
+val have_thmss = gen_have_thmss ProofContext.have_thmss;
+val have_thmss_i = gen_have_thmss ProofContext.have_thmss_i;
+
+fun simple_have_thms name thms = have_thmss_i [((name, []), [(thms, [])])];
+
+end;
+
+
+(* with_thmss *)
+
+local
+
+fun gen_with_thmss f args state =
+  let val state' = state |> f args
   in state' |> simple_have_thms "" (the_facts state' @ the_facts state) end;
+
+in
+
+val with_thmss = gen_with_thmss have_thmss;
+val with_thmss_i = gen_with_thmss have_thmss_i;
+
+end;
 
 
 (* fix *)
@@ -736,7 +761,7 @@ fun finish_local (print_result, print_rule) state =
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
     |> (fn st => Seq.map (fn res =>
-      have_thmss ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
+      have_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
     |> (Seq.flat o Seq.map opt_solve)
     |> (Seq.flat o Seq.map after_qed)
   end;
