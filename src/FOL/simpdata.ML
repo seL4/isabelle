@@ -55,14 +55,19 @@ val distrib_rews  = map int_prove_fun
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
 (*Make atomic rewrite rules*)
-fun atomize th = case concl_of th of 
-    _ $ (Const("op &",_) $ _ $ _)   => atomize(th RS conjunct1) @
-				       atomize(th RS conjunct2)
-  | _ $ (Const("op -->",_) $ _ $ _) => atomize(th RS mp)
-  | _ $ (Const("All",_) $ _)        => atomize(th RS spec)
-  | _ $ (Const("True",_))           => []
-  | _ $ (Const("False",_))          => []
-  | _                               => [th];
+fun atomize r =
+  case concl_of r of
+    Const("Trueprop",_) $ p =>
+      (case p of
+	 Const("op -->",_)$_$_ => atomize(r RS mp)
+       | Const("op &",_)$_$_   => atomize(r RS conjunct1) @
+	  		          atomize(r RS conjunct2)
+       | Const("All",_)$_      => atomize(r RS spec)
+       | Const("True",_)       => []	(*True is DELETED*)
+       | Const("False",_)      => []	(*should False do something?*)
+       | _                     => [r])
+  | _ => [r];
+
 
 val P_iff_F = int_prove_fun "~P ==> (P <-> False)";
 val iff_reflection_F = P_iff_F RS iff_reflection;
