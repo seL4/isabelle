@@ -3,6 +3,7 @@
 Examples of Inductive and Coinductive Definitions.
 *)
 
+time_use_thy "Sigma_Algebra";
 time_use_thy "Perm";
 time_use_thy "Comb";
 time_use_thy "Mutil";
