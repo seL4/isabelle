@@ -111,7 +111,7 @@ by (blast_tac (claset() addSEs spies_partsEs) 3);
 by (blast_tac (claset() addss (simpset())) 2);
 (*Fake*)
 by (best_tac
-      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+     (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                addIs  [impOfSubs analz_subset_parts]
                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
                addss  (simpset())) 1);
@@ -196,8 +196,8 @@ by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
 by (blast_tac (claset() addSEs spies_partsEs
-                       delrules [conjI]    (*prevent split-up into 4 subgoals*)
-                       addss (simpset() addsimps [parts_insertI])) 1);
+                        delrules [conjI]    (*prevent splitup into 4 subgoals*)
+                        addss (simpset() addsimps [parts_insertI])) 1);
 val lemma = result();
 
 goal thy 
@@ -227,14 +227,14 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (simpset() addsimps expand_ifs
-	       addsimps [analz_insert_eq, analz_insert_freshK]
-               addsplits [expand_if])));
+	        addsimps [analz_insert_eq, analz_insert_freshK]
+                addsplits [expand_if])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);
 (*YM3*)
 by (blast_tac (claset() delrules [impCE]
-                       addSEs spies_partsEs
-                       addIs [impOfSubs analz_subset_parts]) 2);
+                        addSEs spies_partsEs
+                        addIs [impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
@@ -342,8 +342,8 @@ by (etac yahalom.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*YM3*)
 by (blast_tac (claset() addSDs [B_Said_YM2]
-		       addSEs [MPair_parts]
-		       addDs [Says_imp_spies RS parts.Inj]) 3);
+ 		        addSEs [MPair_parts]
+	 	        addDs [Says_imp_spies RS parts.Inj]) 3);
 (*Fake, YM2*)
 by (ALLGOALS Blast_tac);
 val lemma = result() RSN (2, rev_mp) RS mp |> standard;
@@ -357,7 +357,7 @@ goal thy
 \                    {|Agent B, nb', Crypt (shrK B) {|Agent A, Nonce NA|}|} \
 \                 : set evs";
 by (blast_tac (claset() addSDs [A_trusts_YM3, lemma]
-		       addEs spies_partsEs) 1);
+		        addEs spies_partsEs) 1);
 qed "YM3_auth_B_to_A";
 
 
@@ -384,9 +384,9 @@ by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: apply unicity of session keys*)
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addSEs [MPair_parts]
-                       addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
-		       addDs  [Says_imp_spies RS parts.Inj,
-			       unique_session_keys]) 1);
+			addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
+			addDs  [Says_imp_spies RS parts.Inj,
+				unique_session_keys]) 1);
 val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
 
 (*If B receives YM4 then A has used nonce NB (and therefore is alive).
@@ -405,5 +405,5 @@ by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
 by (ALLGOALS (blast_tac (claset() addSEs [MPair_parts]
-			         addDs [Says_imp_spies RS parts.Inj])));
+			          addDs [Says_imp_spies RS parts.Inj])));
 qed_spec_mp "YM4_imp_A_Said_YM3";
