@@ -618,7 +618,6 @@ fun prove sign xs asms prop tac =
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
     val fixed_tfrees = foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
-
     val params = mapfilter (fn x => apsome (pair x) (assoc_string (frees, x))) xs;
 
     fun err msg = error (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
@@ -628,8 +627,9 @@ fun prove sign xs asms prop tac =
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
     val _ = cert_safe statement;
-    val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => error msg;
+    val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => err msg;
 
+    val cparams = map (cert_safe o Free) params;
     val casms = map cert_safe asms;
     val prems = map (norm_hhf o Thm.assume) casms;
     val goal = Drule.mk_triv_goal (cert_safe prop);
@@ -648,7 +648,7 @@ fun prove sign xs asms prop tac =
     else
       raw_result
       |> Drule.implies_intr_list casms
-      |> Drule.forall_intr_list (map (cert_safe o Free) params)
+      |> Drule.forall_intr_list cparams
       |> norm_hhf
       |> Thm.varifyT' fixed_tfrees
       |> Drule.zero_var_indexes
