@@ -107,6 +107,7 @@ sig
   val seq2: ('a * 'b -> unit) -> 'a list * 'b list -> unit
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
+  val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val prefix: ''a list * ''a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -591,6 +592,8 @@ fun [] ~~ [] = []
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
 fun split_list (l: ('a * 'b) list) = (map #1 l, map #2 l);
+
+fun equal_lists eq (xs, ys) = length xs = length ys andalso forall2 eq (xs, ys);
 
 
 (* prefixes, suffixes *)
