@@ -18,4 +18,4 @@ function fail()
 
 ## main
 
-exec emacs -name "isabelle" -l "$ISAMODE_HOME/elisp/isa-site.el" -l "$HOME/.emacs" -l "$ISAMODE_HOME/elisp/isa-start.el"
+exec emacs -name "isabelle" $ISABELLE_INTERFACE_OPTIONS -l "$ISAMODE_HOME/elisp/isa-site.el" -l "$ISABELLE_HOME_USER/etc/isa-settings.el" -l "$ISAMODE_HOME/elisp/isa-start.el"
