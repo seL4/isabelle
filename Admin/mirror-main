@@ -3,7 +3,9 @@
 # $Id$
 #
 
-case $(hostname) in
+HOST=$(hostname)
+
+case ${HOST} in
   sunbroy30)
     DEST=/home/html/isabelle/html-data
     ;;
@@ -12,7 +14,7 @@ case $(hostname) in
     DEST=/anfs/www/html/Research/HVG/Isabelle
     ;;
   *)
-    echo "Unknown destination directory for $(hostname)!"
+    echo "Unknown destination directory for ${HOST}"
     exit 2
     ;;
 esac
