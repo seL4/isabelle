@@ -70,6 +70,8 @@ sig
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
+  val triv_goal: thm
+  val rev_triv_goal: thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
 
@@ -569,6 +571,18 @@ val equal_intr_rule =
     store_thm "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
+
+
+(* GOAL (PROP A) <==> PROP A *)
+
+local
+  val A = read_prop "PROP A";
+  val G = read_prop "GOAL (PROP A)";
+  val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
+in
+  val triv_goal = store_thm "triv_goal" (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume A));
+  val rev_triv_goal = store_thm "rev_triv_goal" (Thm.equal_elim G_def (Thm.assume G));
+end;
 
 
 
