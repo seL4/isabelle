@@ -1015,6 +1015,14 @@ lemma setsum_nonneg: "[| finite A;
   apply (blast intro: add_mono)
   done
 
+lemma setsum_nonpos: "[| finite A;
+    \<forall>x \<in> A. f x \<le> (0::'a::ordered_semidom) |] ==>
+    setsum f A \<le> 0";
+  apply (induct set: Finites, auto)
+  apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
+  apply (blast intro: add_mono)
+  done
+
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
   assumes fin: "finite A" 
