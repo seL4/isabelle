@@ -263,6 +263,39 @@ use "blastdata.ML"
 setup Blast.setup
 
 
+subsubsection {* Intuitionistic Reasoning *}
+
+lemma impE':
+  (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
+proof -
+  from 3 and 1 have P .
+  with 1 have Q ..
+  with 2 show R .
+qed
+
+lemma allE':
+  (assumes 1: "ALL x. P x" and 2: "P x ==> ALL x. P x ==> Q") Q
+proof -
+  from 1 have "P x" ..
+  from this and 1 show Q by (rule 2)
+qed
+
+lemma notE': (assumes 1: "~ P" and 2: "~ P ==> P") R
+proof -
+  from 2 and 1 have P .
+  with 1 show R by (rule notE)
+qed
+
+lemmas [CPure.elim!] = disjE iffE FalseE conjE exE
+  and [CPure.intro!] = iffI conjI impI TrueI notI allI refl
+  and [CPure.elim 2] = allE notE' impE'
+  and [CPure.intro] = exI disjI2 disjI1
+
+ML_setup {*
+  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
+*}
+
+
 subsubsection {* Simplifier setup *}
 
 lemma meta_eq_to_obj_eq: "x == y ==> x = y"
@@ -301,7 +334,7 @@ lemma simp_thms:
   by blast+
 
 lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
-  by blast
+  by rules
 
 lemma ex_simps:
   "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
@@ -387,11 +420,11 @@ text {*
 
 lemma conj_cong:
     "(P = P') ==> (P' ==> (Q = Q')) ==> ((P & Q) = (P' & Q'))"
-  by blast
+  by rules
 
 lemma rev_conj_cong:
     "(Q = Q') ==> (Q' ==> (P = P')) ==> ((P & Q) = (P' & Q'))"
-  by blast
+  by rules
 
 text {* The @{text "|"} congruence rule: not included by default! *}
 
@@ -400,7 +433,7 @@ lemma disj_cong:
   by blast
 
 lemma eq_sym_conv: "(x = y) = (y = x)"
-  by blast
+  by rules
 
 
 text {* \medskip if-then-else rules *}
@@ -486,14 +519,14 @@ lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
 
 lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
     induct_conj (induct_forall A) (induct_forall B)"
-  by (unfold induct_forall_def induct_conj_def) blast
+  by (unfold induct_forall_def induct_conj_def) rules
 
 lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
     induct_conj (induct_implies C A) (induct_implies C B)"
-  by (unfold induct_implies_def induct_conj_def) blast
+  by (unfold induct_implies_def induct_conj_def) rules
 
 lemma induct_conj_curry: "(induct_conj A B ==> C) == (A ==> B ==> C)"
-  by (simp only: atomize_imp atomize_eq induct_conj_def) (rule equal_intr_rule, blast+)
+  by (simp only: atomize_imp atomize_eq induct_conj_def) (rules intro: equal_intr_rule)
 
 lemma induct_impliesI: "(A ==> B) ==> induct_implies A B"
   by (simp add: induct_implies_def)
@@ -561,10 +594,10 @@ constdefs
   "mono f == ALL A B. A <= B --> f A <= f B"
 
 lemma monoI [intro?]: "(!!A B. A <= B ==> f A <= f B) ==> mono f"
-  by (unfold mono_def) blast
+  by (unfold mono_def) rules
 
 lemma monoD [dest?]: "mono f ==> A <= B ==> f A <= f B"
-  by (unfold mono_def) blast
+  by (unfold mono_def) rules
 
 constdefs
   min :: "['a::ord, 'a] => 'a"
