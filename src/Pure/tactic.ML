@@ -71,7 +71,7 @@ sig
   val net_biresolve_tac : (bool*thm) list -> int -> tactic
   val net_match_tac     : thm list -> int -> tactic
   val net_resolve_tac   : thm list -> int -> tactic
-  val norm_hhf          : thm -> thm
+  val norm_hhf_rule     : thm -> thm
   val norm_hhf_tac      : int -> tactic
   val PRIMITIVE         : (thm -> thm) -> tactic
   val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic
@@ -110,7 +110,6 @@ sig
   val untaglist: (int * 'a) list -> 'a list
   val orderlist: (int * 'a) list -> 'a list
   val rewrite: bool -> thm list -> cterm -> thm
-  val rewrite_cterm: bool -> thm list -> cterm -> cterm
   val simplify: bool -> thm list -> thm -> thm
   val conjunction_tac: tactic
   val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
@@ -242,7 +241,7 @@ let val {maxidx,sign,...} = rep_thm st
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
     val used = add_term_tvarnames
-                  (#prop(rep_thm st) $ #prop(rep_thm rule),[])
+                  (prop_of st $ prop_of rule,[])
     val (Tinsts,insts) = read_insts sign rts (types',sorts) used sinsts
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
@@ -502,7 +501,6 @@ val simple_prover =
   result1 (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
 
 val rewrite = MetaSimplifier.rewrite_aux simple_prover;
-val rewrite_cterm = (#2 o Thm.dest_comb o #prop o Thm.crep_thm) ooo rewrite;
 val simplify = MetaSimplifier.simplify_aux simple_prover;
 val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
@@ -522,14 +520,14 @@ fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
-fun norm_hhf th =
-  (if Logic.is_norm_hhf (#prop (Thm.rep_thm th)) then th else rewrite_rule [Drule.norm_hhf_eq] th)
-  |> Drule.gen_all;
+fun norm_hhf_rule th =
+ (if Drule.is_norm_hhf (prop_of th) then th
+  else rewrite_rule [Drule.norm_hhf_eq] th) |> Drule.gen_all;
 
 val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
-    if Logic.is_norm_hhf (Pattern.beta_eta_contract t) then all_tac
+    if Drule.is_norm_hhf t then all_tac
     else rewrite_goal_tac [Drule.norm_hhf_eq] i);
 
 
@@ -540,7 +538,7 @@ fun term_depth (Abs(a,T,t)) = 1 + term_depth t
   | term_depth (f$t) = 1 + Int.max(term_depth f, term_depth t)
   | term_depth _ = 0;
 
-val lhs_of_thm = #1 o Logic.dest_equals o #prop o rep_thm;
+val lhs_of_thm = #1 o Logic.dest_equals o prop_of;
 
 (*folding should handle critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
   Returns longest lhs first to avoid folding its subexpressions.*)
@@ -645,14 +643,14 @@ fun prove sign xs asms prop tac =
 
     val cparams = map (cert_safe o Free) params;
     val casms = map cert_safe asms;
-    val prems = map (norm_hhf o Thm.assume) casms;
+    val prems = map (norm_hhf_rule o Thm.assume) casms;
     val goal = Drule.mk_triv_goal (cert_safe prop);
 
     val goal' =
       (case Seq.pull (tac prems goal) of Some (goal', _) => goal' | _ => err "Tactic failed.");
     val ngoals = Thm.nprems_of goal';
     val raw_result = goal' RS Drule.rev_triv_goal;
-    val prop' = #prop (Thm.rep_thm raw_result);
+    val prop' = prop_of raw_result;
   in
     if ngoals <> 0 then
       err ("Proof failed.\n" ^ Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal'))
@@ -663,7 +661,7 @@ fun prove sign xs asms prop tac =
       raw_result
       |> Drule.implies_intr_list casms
       |> Drule.forall_intr_list cparams
-      |> norm_hhf
+      |> norm_hhf_rule
       |> (#1 o Thm.varifyT' fixed_tfrees)
       |> Drule.zero_var_indexes
   end;
