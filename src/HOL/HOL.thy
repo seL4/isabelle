@@ -24,7 +24,6 @@ arities
   bool :: "term"
   fun :: ("term", "term") "term"
 
-
 consts
 
   (* Constants *)
@@ -51,6 +50,8 @@ consts
   "|"           :: "[bool, bool] => bool"           (infixr 30)
   -->           :: "[bool, bool] => bool"           (infixr 25)
 
+local
+
 
 (* Overloaded Constants *)
 
@@ -58,21 +59,28 @@ axclass zero  < "term"
 axclass plus  < "term"
 axclass minus < "term"
 axclass times < "term"
-axclass power < "term"
+axclass inverse < "term"
+
+global
 
 consts
-  "0"           :: "('a::zero)"                     ("0")
+  "0"           :: "'a::zero"                       ("0")
   "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
   -             :: "['a::minus, 'a] => 'a"          (infixl 65)
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
-  abs           :: "('a::minus) => 'a"
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
-  (*See Nat.thy for "^"*)
+
+local
+
+consts
+  abs           :: "'a::minus => 'a"
+  inverse       :: "'a::inverse => 'a"
+  divide        :: "['a::inverse, 'a] => 'a"        (infixl "'/" 70)
 
 axclass plus_ac0 < plus, zero
-    commute: "x + y = y + x"
-    assoc:   "(x + y) + z = x + (y + z)"
-    zero:    "0 + x = x"
+  commute: "x + y = y + x"
+  assoc:   "(x + y) + z = x + (y + z)"
+  zero:    "0 + x = x"
 
 
 (** Additional concrete syntax **)
@@ -110,28 +118,28 @@ syntax ("" output)
   "op ~="       :: "['a, 'a] => bool"                    ("(_ ~=/ _)" [51, 51] 50)
 
 syntax (symbols)
-  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
-  "op &"        :: "[bool, bool] => bool"                (infixr "\\<and>" 35)
-  "op |"        :: "[bool, bool] => bool"                (infixr "\\<or>" 30)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<midarrow>\\<rightarrow>" 25)
-  "op ~="       :: "['a, 'a] => bool"                    (infixl "\\<noteq>" 50)
-  "ALL "        :: "[idts, bool] => bool"                ("(3\\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3\\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \\<Rightarrow>/ _)" 10)
+  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
+  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
+  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\<midarrow>\<rightarrow>" 25)
+  "op ~="       :: "['a, 'a] => bool"                    (infixl "\<noteq>" 50)
+  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
 syntax (input)
-  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3\\<epsilon>_./ _)" [0, 10] 10)
+  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3\<epsilon>_./ _)" [0, 10] 10)
 
 syntax (symbols output)
-  "op ~="       :: "['a, 'a] => bool"                    ("(_ \\<noteq>/ _)" [51, 51] 50)
+  "op ~="       :: "['a, 'a] => bool"                    ("(_ \<noteq>/ _)" [51, 51] 50)
 
 syntax (xsymbols)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<longrightarrow>" 25)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
 
 syntax (HTML output)
-  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
+  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
 
 syntax (HOL)
   "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3@ _./ _)" [0, 10] 10)
@@ -142,8 +150,6 @@ syntax (HOL)
 
 
 (** Rules and definitions **)
-
-local
 
 axioms
 
@@ -159,7 +165,7 @@ axioms
     rule, and similar to the ABS rule of HOL.*)
   ext:          "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
 
-  someI:        "P (x::'a) ==> P (@x. P x)"
+  someI:        "P (x::'a) ==> P (SOME x. P x)"
 
   impI:         "(P ==> Q) ==> P-->Q"
   mp:           "[| P-->Q;  P |] ==> Q"
@@ -168,7 +174,7 @@ defs
 
   True_def:     "True      == ((%x::bool. x) = (%x. x))"
   All_def:      "All(P)    == (P = (%x. True))"
-  Ex_def:       "Ex(P)     == P(@x. P(x))"
+  Ex_def:       "Ex(P)     == P (SOME x. P x)"
   False_def:    "False     == (!P. P)"
   not_def:      "~ P       == P-->False"
   and_def:      "P & Q     == !R. (P-->Q-->R) --> R"
@@ -184,11 +190,11 @@ axioms
 defs
   (*misc definitions*)
   Let_def:      "Let s f == f(s)"
-  if_def:       "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
+  if_def:       "If P x y == SOME z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
   (*arbitrary is completely unspecified, but is made to appear as a
     definition syntactically*)
-  arbitrary_def:  "False ==> arbitrary == (@x. False)"
+  arbitrary_def:  "False ==> arbitrary == (SOME x. False)"
 
 
 
@@ -196,7 +202,7 @@ defs
 
 use "HOL_lemmas.ML"
 
-lemma all_eq: "(!!x. P x) == Trueprop (ALL x. P x)"
+lemma atomize_all: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof (rule equal_intr_rule)
   assume "!!x. P x"
   show "ALL x. P x" by (rule allI)
@@ -205,7 +211,7 @@ next
   thus "!!x. P x" by (rule allE)
 qed
 
-lemma imp_eq: "(A ==> B) == Trueprop (A --> B)"
+lemma atomize_imp: "(A ==> B) == Trueprop (A --> B)"
 proof (rule equal_intr_rule)
   assume r: "A ==> B"
   show "A --> B" by (rule impI) (rule r)
@@ -214,7 +220,17 @@ next
   thus B by (rule mp)
 qed
 
-lemmas atomize = all_eq imp_eq
+lemma atomize_eq: "(x == y) == Trueprop (x = y)"
+proof (rule equal_intr_rule)
+  assume "x == y"
+  show "x = y" by (unfold prems) (rule refl)
+next
+  assume "x = y"
+  thus "x == y" by (rule eq_reflection)
+qed
+
+lemmas atomize = atomize_all atomize_imp
+lemmas atomize' = atomize atomize_eq
 
 use "cladata.ML"
 setup hypsubst_setup
