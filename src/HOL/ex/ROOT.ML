@@ -19,6 +19,7 @@ time_use_thy "Multiquote";
 time_use_thy "MonoidGroup";
 time_use_thy "Records";
 
+time_use_thy "Locales";
 time_use_thy "StringEx";
 time_use_thy "BinEx";
 
