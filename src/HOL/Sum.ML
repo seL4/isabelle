@@ -78,11 +78,11 @@ qed "inj_Inr";
 val Inr_inject = inj_Inr RS injD;
 
 goal Sum.thy "(Inl(x)=Inl(y)) = (x=y)";
-by (blast_tac (!claset addSDs [Inl_inject]) 1);
+by (blast_tac (claset() addSDs [Inl_inject]) 1);
 qed "Inl_eq";
 
 goal Sum.thy "(Inr(x)=Inr(y)) = (x=y)";
-by (blast_tac (!claset addSDs [Inr_inject]) 1);
+by (blast_tac (claset() addSDs [Inr_inject]) 1);
 qed "Inr_eq";
 
 AddIffs [Inl_eq, Inr_eq];
@@ -119,11 +119,11 @@ AddSEs [PlusE];
 (** sum_case -- the selection operator for sums **)
 
 goalw Sum.thy [sum_case_def] "sum_case f g (Inl x) = f(x)";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "sum_case_Inl";
 
 goalw Sum.thy [sum_case_def] "sum_case f g (Inr x) = g(x)";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "sum_case_Inr";
 
 Addsimps [sum_case_Inl, sum_case_Inr];

@@ -67,12 +67,12 @@ AddSEs [K1_contractD];
 
 goal Comb.thy "!!x z. x ---> y ==> x#z ---> y#z";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (blast_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce1";
 
 goal Comb.thy "!!x z. x ---> y ==> z#x ---> z#y";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (blast_tac (!claset addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
@@ -90,7 +90,7 @@ by (Blast_tac 1);
 qed "KIII_contract3";
 
 goalw Comb.thy [diamond_def] "~ diamond(contract)";
-by (blast_tac (!claset addIs [KIII_contract1,KIII_contract2,KIII_contract3]) 1);
+by (blast_tac (claset() addIs [KIII_contract1,KIII_contract2,KIII_contract3]) 1);
 qed "not_diamond_contract";
 
 
@@ -169,7 +169,7 @@ by (REPEAT
 qed "reduce_eq_parreduce";
 
 goal Comb.thy "diamond(contract^*)";
-by (simp_tac (!simpset addsimps [reduce_eq_parreduce, diamond_rtrancl, 
+by (simp_tac (simpset() addsimps [reduce_eq_parreduce, diamond_rtrancl, 
                                  diamond_parcontract]) 1);
 qed "diamond_reduce";
 

@@ -36,5 +36,5 @@ end;
 
 
 val MC_ss =
-  !simpset addsimprocs [pair_eta_expand_proc]
+  simpset() addsimprocs [pair_eta_expand_proc]
     addsimps [split_paired_Ex, Let_def];

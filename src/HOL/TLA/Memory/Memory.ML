@@ -19,7 +19,7 @@ val RM_temp_defs = [RPSpec_def, MSpec_def, IRSpec_def];
 val UM_temp_defs = [UPSpec_def, MSpec_def, IUSpec_def];
 
 (* Make sure the simpset accepts non-boolean simplifications *)
-simpset := !simpset setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
+simpset_ref() := simpset() setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
 
 (* -------------------- Proofs -------------------------------------------------- *)
 
@@ -33,7 +33,7 @@ qed_goal "ReliableImplementsUnReliable" Memory.thy
 (* The memory spec implies the memory invariant *)
 qed_goal "MemoryInvariant" Memory.thy 
    "(MSpec ch mm rs l) .-> []($(MemInv mm l))"
-   (fn _ => [ auto_inv_tac (!simpset addsimps RM_temp_defs @ MP_simps @ RM_action_defs) 1 ]);
+   (fn _ => [ auto_inv_tac (simpset() addsimps RM_temp_defs @ MP_simps @ RM_action_defs) 1 ]);
 
 (* The invariant is trivial for non-locations *)
 qed_goal "NonMemLocInvariant" Memory.thy
@@ -69,8 +69,8 @@ qed_goal "MemReturn_enabled" Memory.thy
    "!!p. base_var <rtrner ch @ p, rs@p> ==> \
 \        $(Calling ch p) .& ($(rs@p) .~= #NotAResult) \
 \        .-> $(Enabled (<MemReturn ch rs p>_<rtrner ch @ p, rs@p>))"
-   (fn _ => [action_simp_tac (!simpset) [MemReturn_change RSN (2,enabled_mono)] [] 1,
-             action_simp_tac (!simpset addsimps [MemReturn_def,Return_def,rtrner_def])
+   (fn _ => [action_simp_tac (simpset()) [MemReturn_change RSN (2,enabled_mono)] [] 1,
+             action_simp_tac (simpset() addsimps [MemReturn_def,Return_def,rtrner_def])
                              [] [base_enabled,Pair_inject] 1
 	    ]);
 
@@ -83,7 +83,7 @@ qed_goal "ReadInner_enabled" Memory.thy
 	     case_tac "MemLoc l" 1,
              ALLGOALS
 	        (action_simp_tac 
-                    (!simpset addsimps [ReadInner_def,GoodRead_def,BadRead_def,
+                    (simpset() addsimps [ReadInner_def,GoodRead_def,BadRead_def,
 					RdRequest_def])
                     [] [base_enabled,Pair_inject])
             ]);
@@ -96,7 +96,7 @@ qed_goal "WriteInner_enabled" Memory.thy
 	     case_tac "MemLoc l & MemVal v" 1,
              ALLGOALS
 	        (action_simp_tac 
-                    (!simpset addsimps [WriteInner_def,GoodWrite_def,BadWrite_def,
+                    (simpset() addsimps [WriteInner_def,GoodWrite_def,BadWrite_def,
 					WrRequest_def])
                     [] [base_enabled,Pair_inject])
             ]);
@@ -104,7 +104,7 @@ qed_goal "WriteInner_enabled" Memory.thy
 qed_goal "ReadResult" Memory.thy
    "(Read ch mm rs p) .& (RALL l. $(MemInv mm l)) .-> (rs@p)$ .~= #NotAResult"
    (fn _ => [action_simp_tac 
-               (!simpset addsimps (MP_simps 
+               (simpset() addsimps (MP_simps 
 				   @ [Read_def,ReadInner_def,GoodRead_def,
 				      BadRead_def,MemInv_def]))
 	       [] [] 1,
@@ -112,8 +112,8 @@ qed_goal "ReadResult" Memory.thy
 
 qed_goal "WriteResult" Memory.thy
    "(Write ch mm rs p l) .-> (rs@p)$ .~= #NotAResult"
-   (fn _ => [auto_tac (!claset,
-		       !simpset addsimps (MP_simps @
+   (fn _ => [auto_tac (claset(),
+		       simpset() addsimps (MP_simps @
 				   [Write_def,WriteInner_def,GoodWrite_def,BadWrite_def]))
 	    ]);
 
@@ -146,14 +146,14 @@ qed_goal "RNext_enabled" Memory.thy
    (fn _ => [auto_tac (action_css addsimps2 [enabled_disj]
 		                  addSIs2 [action_mp RWRNext_enabled]),
 	     res_inst_tac [("s","arg(ch s p)")] sumE 1,
-	     action_simp_tac (!simpset addsimps [Read_def,enabled_ex,base_pair])
+	     action_simp_tac (simpset() addsimps [Read_def,enabled_ex,base_pair])
 	                     [action_mp ReadInner_enabled,exI] [] 1,
 	     split_all_tac 1, Rd.induct_tac "xa" 1,
 	     (* introduce a trivial subgoal to solve flex-flex constraint?! *)
 	     subgoal_tac "y = snd(xa,y)" 1,
 	     TRYALL Simp_tac,  (* solves "read" case *)
 	     etac swap 1,
-	     action_simp_tac (!simpset addsimps [Write_def,enabled_ex,base_pair])
+	     action_simp_tac (simpset() addsimps [Write_def,enabled_ex,base_pair])
 	                     [action_mp WriteInner_enabled,exI] [] 1,
 	     split_all_tac 1, Wr.induct_tac "x" 1,
 	     subgoal_tac "(xa = fst(snd(x,xa,y))) & (y = snd(snd(x,xa,y)))" 1,

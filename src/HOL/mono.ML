@@ -25,24 +25,24 @@ qed "Inter_anti_mono";
 val prems = goal Set.thy
     "[| A<=B;  !!x. x:A ==> f(x)<=g(x) |] ==> \
 \    (UN x:A. f(x)) <= (UN x:B. g(x))";
-by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "UN_mono";
 
 val [prem] = goal Set.thy
     "[| !!x. f(x)<=g(x) |] ==> (UN x. f(x)) <= (UN x. g(x))";
-by (blast_tac (!claset addIs [prem RS subsetD]) 1);
+by (blast_tac (claset() addIs [prem RS subsetD]) 1);
 qed "UN1_mono";
 
 val prems = goal Set.thy
     "[| B<=A;  !!x. x:A ==> f(x)<=g(x) |] ==> \
 \    (INT x:A. f(x)) <= (INT x:A. g(x))";
-by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "INT_anti_mono";
 
 (*The inclusion is POSITIVE! *)
 val [prem] = goal Set.thy
     "[| !!x. f(x)<=g(x) |] ==> (INT x. f(x)) <= (INT x. g(x))";
-by (blast_tac (!claset addIs [prem RS subsetD]) 1);
+by (blast_tac (claset() addIs [prem RS subsetD]) 1);
 qed "INT1_mono";
 
 goal Set.thy "!!C D. C<=D ==> insert a C <= insert a D";
@@ -92,24 +92,24 @@ qed "imp_refl";
 
 val [PQimp] = goal HOL.thy
     "[| !!x. P(x) --> Q(x) |] ==> (EX x. P(x)) --> (EX x. Q(x))";
-by (blast_tac (!claset addIs [PQimp RS mp]) 1);
+by (blast_tac (claset() addIs [PQimp RS mp]) 1);
 qed "ex_mono";
 
 val [PQimp] = goal HOL.thy
     "[| !!x. P(x) --> Q(x) |] ==> (ALL x. P(x)) --> (ALL x. Q(x))";
-by (blast_tac (!claset addIs [PQimp RS mp]) 1);
+by (blast_tac (claset() addIs [PQimp RS mp]) 1);
 qed "all_mono";
 
 val [PQimp] = goal Set.thy
     "[| !!x. P(x) --> Q(x) |] ==> Collect(P) <= Collect(Q)";
-by (blast_tac (!claset addIs [PQimp RS mp]) 1);
+by (blast_tac (claset() addIs [PQimp RS mp]) 1);
 qed "Collect_mono";
 
 (*Used in indrule.ML*)
 val [subs,PQimp] = goal Set.thy
     "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) \
 \    |] ==> A Int Collect(P) <= B Int Collect(Q)";
-by (blast_tac (!claset addIs [subs RS subsetD, PQimp RS mp]) 1);
+by (blast_tac (claset() addIs [subs RS subsetD, PQimp RS mp]) 1);
 qed "Int_Collect_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)

@@ -43,14 +43,14 @@ open ActHypsubst;
 **)
 
 val action_cs = (HOL_cs addSIs [actionI,intI] addSEs [exE_prop] addDs [actionD,intD] 
-                        addss !simpset) 
+                        addss simpset()) 
                 addSaltern action_hyp_subst_tac;
-val action_css = (action_cs, !simpset);
+val action_css = (action_cs, simpset());
 
 
 AddSIs [actionI,intI];
 AddDs  [actionD,intD];
-Addss  (!simpset);
+Addss  (simpset());
 
 
 

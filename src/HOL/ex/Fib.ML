@@ -25,9 +25,9 @@ goal thy "fib (Suc (n + k)) = fib(Suc k) * fib(Suc n) + fib k * fib n";
 by (res_inst_tac [("u","n")] fib.induct 1);
 (*Simplify the LHS just enough to apply the induction hypotheses*)
 by (asm_full_simp_tac
-    (!simpset addsimps [read_instantiate[("x", "Suc(?m+?n)")] fib_Suc_Suc]) 3);
+    (simpset() addsimps [read_instantiate[("x", "Suc(?m+?n)")] fib_Suc_Suc]) 3);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps 
+    (asm_simp_tac (simpset() addsimps 
 		   (fib.rules @ add_ac @ mult_ac @
 		    [add_mult_distrib, add_mult_distrib2]))));
 qed "fib_add";
@@ -35,7 +35,7 @@ qed "fib_add";
 
 goal thy "fib (Suc n) ~= 0";
 by (res_inst_tac [("u","n")] fib.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps fib.rules)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps fib.rules)));
 qed "fib_Suc_neq_0";
 Addsimps [fib_Suc_neq_0];
 
@@ -48,16 +48,16 @@ goal thy "fib (Suc (Suc n)) * fib n = \
 by (res_inst_tac [("u","n")] fib.induct 1);
 by (res_inst_tac [("P", "%z. ?ff(x) * z = ?kk(x)")] (fib_Suc_Suc RS ssubst) 3);
 by (stac (read_instantiate [("x", "Suc(Suc ?n)")] fib_Suc_Suc) 3);
-by (asm_simp_tac (!simpset addsimps [add_mult_distrib, add_mult_distrib2]) 3);
+by (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 3);
 by (stac (read_instantiate [("x", "Suc ?n")] fib_Suc_Suc) 3);
 by (ALLGOALS  (*using fib.rules here results in a longer proof!*)
-    (asm_simp_tac (!simpset addsimps [add_mult_distrib, add_mult_distrib2, 
+    (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
 				      mod_less, mod_Suc]
                             addsplits [expand_if])));
-by (safe_tac (!claset addSDs [mod2_neq_0]));
+by (safe_tac (claset() addSDs [mod2_neq_0]));
 by (ALLGOALS
     (asm_full_simp_tac
-     (!simpset addsimps (fib.rules @ add_ac @ mult_ac @
+     (simpset() addsimps (fib.rules @ add_ac @ mult_ac @
 			 [add_mult_distrib, add_mult_distrib2, 
 			  mod_less, mod_Suc]))));
 qed "fib_Cassini";

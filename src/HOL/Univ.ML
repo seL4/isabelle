@@ -74,7 +74,7 @@ qed "Node_K0_I";
 
 goalw Univ.thy [Node_def,Push_def]
     "!!p. p: Node ==> apfst (Push i) p : Node";
-by (blast_tac (!claset addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
+by (blast_tac (claset() addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
 qed "Node_Push_I";
 
 
@@ -98,12 +98,12 @@ bind_thm ("Atom_not_Scons", Scons_not_Atom RS not_sym);
 (** Atomic nodes **)
 
 goalw Univ.thy [Atom_def, inj_def] "inj(Atom)";
-by (blast_tac (!claset addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
+by (blast_tac (claset() addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
 val Atom_inject = inj_Atom RS injD;
 
 goal Univ.thy "(Atom(a)=Atom(b)) = (a=b)";
-by (blast_tac (!claset addSDs [Atom_inject]) 1);
+by (blast_tac (claset() addSDs [Atom_inject]) 1);
 qed "Atom_Atom_eq";
 AddIffs [Atom_Atom_eq];
 
@@ -136,18 +136,18 @@ by (etac Pair_inject 1);
 by (etac (Push_inject1 RS sym) 1);
 by (rtac (inj_Rep_Node RS injD) 1);
 by (etac trans 1);
-by (safe_tac (!claset addSEs [Push_inject,sym]));
+by (safe_tac (claset() addSEs [Push_inject,sym]));
 qed "Push_Node_inject";
 
 
 (** Injectiveness of Scons **)
 
 goalw Univ.thy [Scons_def] "!!M. M$N <= M'$N' ==> M<=M'";
-by (blast_tac (!claset addSDs [Push_Node_inject]) 1);
+by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
 goalw Univ.thy [Scons_def] "!!M. M$N <= M'$N' ==> N<=N'";
-by (blast_tac (!claset addSDs [Push_Node_inject]) 1);
+by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
 val [major] = goal Univ.thy "M$N = M'$N' ==> M=M'";
@@ -167,7 +167,7 @@ by (rtac ((major RS Scons_inject2) RS ((major RS Scons_inject1) RS minor)) 1);
 qed "Scons_inject";
 
 goal Univ.thy "(M$N = M'$N') = (M=M' & N=N')";
-by (blast_tac (!claset addSEs [Scons_inject]) 1);
+by (blast_tac (claset() addSEs [Scons_inject]) 1);
 qed "Scons_Scons_eq";
 
 (*** Distinctness involving Leaf and Numb ***)
@@ -195,7 +195,7 @@ AddIffs [Scons_not_Numb, Numb_not_Scons];
 (** Leaf vs Numb **)
 
 goalw Univ.thy [Leaf_def,Numb_def] "Leaf(a) ~= Numb(k)";
-by (simp_tac (!simpset addsimps [Inl_not_Inr]) 1);
+by (simp_tac (simpset() addsimps [Inl_not_Inr]) 1);
 qed "Leaf_not_Numb";
 bind_thm ("Numb_not_Leaf", Leaf_not_Numb RS not_sym);
 
@@ -226,7 +226,7 @@ goalw Univ.thy [ndepth_def,Push_Node_def]
     "ndepth (Push_Node i n) = Suc(ndepth(n))";
 by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac ssubst 1);  (*instantiates type variables!*)
 by (Simp_tac 1);
 by (rtac Least_equality 1);
@@ -244,7 +244,7 @@ by (Blast_tac 1);
 qed "ntrunc_0";
 
 goalw Univ.thy [Atom_def,ntrunc_def] "ntrunc (Suc k) (Atom a) = Atom(a)";
-by (fast_tac (!claset addss (!simpset addsimps [ndepth_K0])) 1);
+by (fast_tac (claset() addss (simpset() addsimps [ndepth_K0])) 1);
 qed "ntrunc_Atom";
 
 goalw Univ.thy [Leaf_def,o_def] "ntrunc (Suc k) (Leaf a) = Leaf(a)";
@@ -257,7 +257,7 @@ qed "ntrunc_Numb";
 
 goalw Univ.thy [Scons_def,ntrunc_def]
     "ntrunc (Suc k) (M$N) = ntrunc k M $ ntrunc k N";
-by (safe_tac (!claset addSIs [imageI]));
+by (safe_tac (claset() addSIs [imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
 by (REPEAT (rtac Suc_less_SucD 1 THEN 
             rtac (ndepth_Push_Node RS subst) 1 THEN 
@@ -267,25 +267,25 @@ qed "ntrunc_Scons";
 (** Injection nodes **)
 
 goalw Univ.thy [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
-by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
 qed "ntrunc_one_In0";
 
 goalw Univ.thy [In0_def]
     "ntrunc (Suc (Suc k)) (In0 M) = In0 (ntrunc (Suc k) M)";
-by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
 qed "ntrunc_In0";
 
 goalw Univ.thy [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
-by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
 qed "ntrunc_one_In1";
 
 goalw Univ.thy [In1_def]
     "ntrunc (Suc (Suc k)) (In1 M) = In1 (ntrunc (Suc k) M)";
-by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
 qed "ntrunc_In1";
 
 
@@ -355,11 +355,11 @@ by (rtac (major RS Scons_inject2) 1);
 qed "In1_inject";
 
 goal Univ.thy "(In0 M = In0 N) = (M=N)";
-by (blast_tac (!claset addSDs [In0_inject]) 1);
+by (blast_tac (claset() addSDs [In0_inject]) 1);
 qed "In0_eq";
 
 goal Univ.thy "(In1 M = In1 N) = (M=N)";
-by (blast_tac (!claset addSDs [In1_inject]) 1);
+by (blast_tac (claset() addSDs [In1_inject]) 1);
 qed "In1_eq";
 
 AddIffs [In0_eq, In1_eq];
@@ -381,7 +381,7 @@ qed "ntrunc_subsetI";
 
 val [major] = goalw Univ.thy [ntrunc_def]
     "(!!k. ntrunc k M <= N) ==> M<=N";
-by (blast_tac (!claset addIs [less_add_Suc1, less_add_Suc2, 
+by (blast_tac (claset() addIs [less_add_Suc1, less_add_Suc2, 
                             major RS subsetD]) 1);
 qed "ntrunc_subsetD";
 
@@ -426,15 +426,15 @@ qed "In1_mono";
 (*** Split and Case ***)
 
 goalw Univ.thy [Split_def] "Split c (M$N) = c M N";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "Split";
 
 goalw Univ.thy [Case_def] "Case c d (In0 M) = c(M)";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "Case_In0";
 
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "Case_In1";
 
 (**** UN x. B(x) rules ****)
@@ -546,7 +546,7 @@ val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
 (*Dependent version*)
 goal Univ.thy
     "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac Split 1);
 by (Blast_tac 1);
 qed "dprod_subset_Sigma2";

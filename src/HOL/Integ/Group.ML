@@ -70,7 +70,7 @@ by (rtac trans 1);
  by (rtac plus_assoc 2);
 by (rtac trans 1);
  by (rtac plus_cong 2);
-  by (simp_tac (!simpset addsimps [left_inv,left_inv2,right_inv,right_inv2]) 2);
+  by (simp_tac (simpset() addsimps [left_inv,left_inv2,right_inv,right_inv2]) 2);
  by (rtac refl 2);
 by (rtac (zeroL RS sym) 1);
 qed "inv_plus";

@@ -63,7 +63,7 @@ val disj_exD2 = prove_fun "P | (? x. Q(x)) ==> ? x. P | Q(x)";
 val [major] = goal HOL.thy
     "! x. ? y. Q x y ==> ? f. ! x. Q x (f x)";
 by (cut_facts_tac [major] 1);
-by (fast_tac (!claset addEs [selectI]) 1);
+by (fast_tac (claset() addEs [selectI]) 1);
 qed "choice";
 
 
@@ -430,7 +430,7 @@ fun best_meson_tac sizef =
 
 (*First, breaks the goal into independent units*)
 val safe_best_meson_tac =
-     SELECT_GOAL (TRY (safe_tac (!claset)) THEN 
+     SELECT_GOAL (TRY (safe_tac (claset())) THEN 
                   TRYALL (best_meson_tac size_of_subgoals));
 
 (** Depth-first search version **)
@@ -464,7 +464,7 @@ val iter_deepen_meson_tac =
                            (prolog_step_tac' (make_horns cls))));
 
 val safe_meson_tac =
-     SELECT_GOAL (TRY (safe_tac (!claset)) THEN 
+     SELECT_GOAL (TRY (safe_tac (claset())) THEN 
                   TRYALL (iter_deepen_meson_tac));
 
 

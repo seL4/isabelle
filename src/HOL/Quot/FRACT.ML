@@ -14,5 +14,5 @@ qed "inst_NP_per";
 
 goalw thy [half_def] "half = <[abs_NP(n,2*n)]>";
 fr per_class_eqI;
-by (simp_tac (!simpset addsimps [inst_NP_per]) 1);
+by (simp_tac (simpset() addsimps [inst_NP_per]) 1);
 qed "test";

@@ -35,7 +35,7 @@ by (Blast_tac 1);
 qed "insert_is_Un";
 
 goal thy "insert a A ~= {}";
-by (blast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (claset() addEs [equalityCE]) 1);
 qed"insert_not_empty";
 Addsimps[insert_not_empty];
 
@@ -112,7 +112,7 @@ qed "insert_image";
 Addsimps [insert_image];
 
 goal thy "(f``A = {}) = (A = {})";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
@@ -151,7 +151,7 @@ qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
 goal thy "(A Int B = {}) = (A <= Compl B)";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "disjoint_eq_subset_Compl";
 
 goal thy "UNIV Int B = B";
@@ -173,11 +173,11 @@ by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
 goal thy "(A<=B) = (A Int B = A)";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Int_eq";
 
 goal thy "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
-by (blast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
 
@@ -236,13 +236,13 @@ Addsimps[Un_insert_right];
 
 goal thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
 \                                          else        B Int C)";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
 goal thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
 \                                          else        A Int B)";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
@@ -256,7 +256,7 @@ by (Blast_tac 1);
 qed "Un_Int_crazy";
 
 goal thy "(A<=B) = (A Un B = B)";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_eq";
 
 goal thy "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
@@ -264,7 +264,7 @@ by (Blast_tac 1);
 qed "subset_insert_iff";
 
 goal thy "(A Un B = {}) = (A = {} & B = {})";
-by (blast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Un_empty";
 Addsimps[Un_empty];
 
@@ -303,7 +303,7 @@ qed "Compl_INT";
 (*Halmos, Naive Set Theory, page 16.*)
 
 goal thy "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Un_Int_assoc_eq";
 
 
@@ -334,13 +334,13 @@ by (Blast_tac 1);
 qed "Union_Int_subset";
 
 goal thy "(Union M = {}) = (! A : M. A = {})"; 
-by (blast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (claset() addEs [equalityE]) 1);
 qed"Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
 val prems = goal thy
    "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
 section "Inter";
@@ -562,7 +562,7 @@ by (Blast_tac 1);
 qed "Diff_insert2";
 
 goal thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "insert_Diff_if";
 

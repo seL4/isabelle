@@ -14,22 +14,22 @@ open Power;
 
 goal thy "!!i::nat. i ^ (j+k) = (i^j) * (i^k)";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps mult_ac)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps mult_ac)));
 qed "power_add";
 
 goal thy "!!i::nat. i ^ (j*k) = (i^j) ^ k";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [power_add])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [power_add])));
 qed "power_mult";
 
 goal thy "!! i. 0 < i ==> 0 < i^n";
 by (induct_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [zero_less_mult_iff])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [zero_less_mult_iff])));
 qed "zero_less_power";
 
 goalw thy [dvd_def] "!!m::nat. m<=n ==> i^m dvd i^n";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
-by (asm_simp_tac (!simpset addsimps [power_add]) 1);
+by (asm_simp_tac (simpset() addsimps [power_add]) 1);
 by (Blast_tac 1);
 qed "le_imp_power_dvd";
 
@@ -42,9 +42,9 @@ qed "power_less_imp_less";
 
 goal thy "!!n. k^j dvd n --> i<j --> k^i dvd n";
 by (induct_tac "j" 1);
-by (ALLGOALS (simp_tac (!simpset addsimps [less_Suc_eq])));
+by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
 by (stac mult_commute 1);
-by (blast_tac (!claset addSDs [dvd_mult_left]) 1);
+by (blast_tac (claset() addSDs [dvd_mult_left]) 1);
 qed_spec_mp "power_less_dvd";
 
 
@@ -75,7 +75,7 @@ qed_spec_mp "less_imp_binomial_eq_0";
 
 goal thy "(n choose n) = 1";
 by (induct_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_imp_binomial_eq_0])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_imp_binomial_eq_0])));
 qed "binomial_n_n";
 Addsimps [binomial_n_n];
 

@@ -59,5 +59,5 @@ qed_spec_mp "com2";
 (**** Proof of Equivalence ****)
 
 goal Denotation.thy "(s,t) : C(c)  =  (<c,s> -c-> t)";
-by (fast_tac (!claset addEs [com2] addDs [com1]) 1);
+by (fast_tac (claset() addEs [com2] addDs [com1]) 1);
 qed "denotational_is_natural";

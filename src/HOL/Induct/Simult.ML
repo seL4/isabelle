@@ -29,7 +29,7 @@ qed "TF_mono";
 
 goalw Simult.thy [TF_def] "TF(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
-by (blast_tac (!claset addIs  sexp.intrs@[sexp_In0I, sexp_In1I]
+by (blast_tac (claset() addIs  sexp.intrs@[sexp_In0I, sexp_In1I]
                       addSEs [PartE]) 1);
 qed "TF_sexp";
 
@@ -50,7 +50,7 @@ val major::prems = goalw Simult.thy TF_Rep_defs
 \            |] ==> R(FCONS M N)    \
 \    |] ==> R(i)";
 by (rtac ([TF_def, TF_fun_mono, major] MRS def_induct) 1);
-by (blast_tac (!claset addIs (prems@[PartI])
+by (blast_tac (claset() addIs (prems@[PartI])
                        addEs [usumE, uprodE, PartE]) 1);
 qed "TF_induct";
 
@@ -78,7 +78,7 @@ by (rewrite_goals_tac TF_Rep_defs);
           right overloading of equality.  The injectiveness properties for
           type 'a item hold only for set types.*)
 val PartE' = read_instantiate [("'a", "?'c set")] PartE;
-by (ALLGOALS (blast_tac (!claset addSEs [PartE'] addIs prems)));
+by (ALLGOALS (blast_tac (claset() addSEs [PartE'] addIs prems)));
 qed "Tree_Forest_induct";
 
 (*Induction for the abstract types 'a tree, 'a forest*)
@@ -91,11 +91,11 @@ by (res_inst_tac [("P1","%z. P(Abs_Tree(z))"),
                   ("Q1","%z. Q(Abs_Forest(z))")] 
     (Tree_Forest_induct RS conjE) 1);
 (*Instantiates ?A1 to range(Leaf). *)
-by (fast_tac (!claset addSEs [Rep_Tree_inverse RS subst, 
+by (fast_tac (claset() addSEs [Rep_Tree_inverse RS subst, 
 			      Rep_Forest_inverse RS subst] 
                        addSIs [Rep_Tree,Rep_Forest]) 4);
 (*Cannot use simplifier: the rewrites work in the wrong direction!*)
-by (ALLGOALS (fast_tac (!claset addSEs [Abs_Tree_inverse RS subst,
+by (ALLGOALS (fast_tac (claset() addSEs [Abs_Tree_inverse RS subst,
 					Abs_Forest_inverse RS subst] 
                                 addSIs prems)));
 qed "tree_forest_induct";
@@ -247,8 +247,8 @@ goalw Simult.thy [TCONS_def]
     "!!M N. [| M: sexp;  N: sexp |] ==>         \
 \           TF_rec (TCONS M N) b c d = b M N (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
-by (simp_tac (!simpset addsimps [Case_In0, Split]) 1);
-by (asm_simp_tac (!simpset addsimps [In0_def]) 1);
+by (simp_tac (simpset() addsimps [Case_In0, Split]) 1);
+by (asm_simp_tac (simpset() addsimps [In0_def]) 1);
 qed "TF_rec_TCONS";
 
 goalw Simult.thy [FNIL_def] "TF_rec FNIL b c d = c";
@@ -261,7 +261,7 @@ goalw Simult.thy [FCONS_def]
 \        TF_rec (FCONS M N) b c d = d M N (TF_rec M b c d) (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
 by (simp_tac (HOL_ss addsimps [Case_In1, List_case_CONS]) 1);
-by (asm_simp_tac (!simpset addsimps [CONS_def,In1_def]) 1);
+by (asm_simp_tac (simpset() addsimps [CONS_def,In1_def]) 1);
 qed "TF_rec_FCONS";
 
 

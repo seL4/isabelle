@@ -18,7 +18,7 @@ Delrules [equalityI];
 
 goalw Equiv.thy [trans_def,sym_def,inverse_def]
     "!!r. [| sym(r); trans(r) |] ==> r^-1 O r <= r";
-by (blast_tac (!claset addSEs [inverseD]) 1);
+by (blast_tac (claset() addSEs [inverseD]) 1);
 qed "sym_trans_comp_subset";
 
 goalw Equiv.thy [refl_def]
@@ -84,13 +84,13 @@ qed "equiv_type";
 
 goal Equiv.thy
     "!!A r. equiv A r ==> ((x,y): r) = (r^^{x} = r^^{y} & x:A & y:A)";
-by (blast_tac (!claset addSIs [equiv_class_eq]
+by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
 goal Equiv.thy
     "!!A r. [| equiv A r;  x: A;  y: A |] ==> (r^^{x} = r^^{y}) = ((x,y): r)";
-by (blast_tac (!claset addSIs [equiv_class_eq]
+by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "eq_equiv_class_iff";
 
@@ -113,15 +113,15 @@ qed "quotientE";
 
 goalw Equiv.thy [equiv_def,refl_def,quotient_def]
     "!!A r. equiv A r ==> Union(A/r) = A";
-by (blast_tac (!claset addSIs [equalityI]) 1);
+by (blast_tac (claset() addSIs [equalityI]) 1);
 qed "Union_quotient";
 
 goalw Equiv.thy [quotient_def]
     "!!A r. [| equiv A r;  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y = {})";
-by (safe_tac (!claset addSIs [equiv_class_eq]));
+by (safe_tac (claset() addSIs [equiv_class_eq]));
 by (assume_tac 1);
 by (rewrite_goals_tac [equiv_def,trans_def,sym_def]);
-by (blast_tac (!claset addSIs [equalityI]) 1);
+by (blast_tac (claset() addSIs [equalityI]) 1);
 qed "quotient_disj";
 
 
@@ -129,7 +129,7 @@ qed "quotient_disj";
 
 (* theorem needed to prove UN_equiv_class *)
 goal Set.thy "!!A. [| a:A; ! y:A. b(y)=b(a) |] ==> (UN y:A. b(y))=b(a)";
-by (fast_tac (!claset addSEs [equalityE] addSIs [equalityI]) 1);
+by (fast_tac (claset() addSEs [equalityE] addSIs [equalityI]) 1);
 qed "UN_singleton_lemma";
 val UN_singleton = ballI RSN (2,UN_singleton_lemma);
 
@@ -187,7 +187,7 @@ goalw Equiv.thy [congruent_def]
 \    congruent r (%x1. UN x2:r^^{a}. b x1 x2)";
 by (Clarify_tac 1);
 by (rtac (equiv_type RS subsetD RS SigmaE2) 1 THEN REPEAT (assume_tac 1));
-by (asm_simp_tac (!simpset addsimps [UN_equiv_class,
+by (asm_simp_tac (simpset() addsimps [UN_equiv_class,
                                      congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (Blast_tac 1);
@@ -196,7 +196,7 @@ qed "congruent2_implies_congruent_UN";
 goal Equiv.thy
     "!!A r. [| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
 \    ==> (UN x1:r^^{a1}. UN x2:r^^{a2}. b x1 x2) = b a1 a2";
-by (asm_simp_tac (!simpset addsimps [UN_equiv_class,
+by (asm_simp_tac (simpset() addsimps [UN_equiv_class,
                                      congruent2_implies_congruent,
                                      congruent2_implies_congruent_UN]) 1);
 qed "UN_equiv_class2";
@@ -224,7 +224,7 @@ val prems = goalw Equiv.thy [congruent2_def,equiv_def,refl_def]
 \    |] ==> congruent2 r b";
 by (cut_facts_tac prems 1);
 by (Clarify_tac 1);
-by (blast_tac (!claset addIs (trans::prems)) 1);
+by (blast_tac (claset() addIs (trans::prems)) 1);
 qed "congruent2I";
 
 val [equivA,commute,congt] = goal Equiv.thy
@@ -263,8 +263,8 @@ goal thy "!!A. [| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
 by (rtac (Union_quotient RS subst) 1);
 by (assume_tac 1);
 by (rtac dvd_partition 1);
-by (blast_tac (!claset delrules [equalityI] addEs [quotient_disj RS disjE]) 4);
+by (blast_tac (claset() delrules [equalityI] addEs [quotient_disj RS disjE]) 4);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [Union_quotient, equiv_type, 
+    (asm_simp_tac (simpset() addsimps [Union_quotient, equiv_type, 
 				      finite_quotient])));
 qed "equiv_imp_dvd_card";

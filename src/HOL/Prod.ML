@@ -31,16 +31,16 @@ by (REPEAT (ares_tac (prems@[ProdI]) 1));
 qed "Pair_inject";
 
 goal Prod.thy "((a,b) = (a',b')) = (a=a' & b=b')";
-by (blast_tac (!claset addSEs [Pair_inject]) 1);
+by (blast_tac (claset() addSEs [Pair_inject]) 1);
 qed "Pair_eq";
 AddIffs [Pair_eq];
 
 goalw Prod.thy [fst_def] "fst((a,b)) = a";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "fst_conv";
 
 goalw Prod.thy [snd_def] "snd((a,b)) = b";
-by (blast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (claset() addIs [select_equality]) 1);
 qed "snd_conv";
 
 goalw Prod.thy [Pair_def] "? x y. p = (x,y)";
@@ -79,7 +79,7 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 end;
 
 (* Could be nice, but breaks too many proofs:
-claset := !claset addbefore split_all_tac;
+claset_ref() := claset() addbefore split_all_tac;
 *)
 
 (*** lemmas for splitting paired `!!'
@@ -118,13 +118,13 @@ Addsimps [split_paired_all];
 ***)
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
-by (fast_tac (!claset addbefore split_all_tac) 1);
+by (fast_tac (claset() addbefore split_all_tac) 1);
 qed "split_paired_All";
 Addsimps [split_paired_All];
 (* AddIffs is not a good idea because it makes Blast_tac loop *)
 
 goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
-by (fast_tac (!claset addbefore split_all_tac) 1);
+by (fast_tac (claset() addbefore split_all_tac) 1);
 qed "split_paired_Ex";
 (* Addsimps [split_paired_Ex]; breaks a number of IOA proofs *)
 
@@ -168,7 +168,7 @@ by (Blast_tac 1);
 qed "expand_split";
 
 (* could be done after split_tac has been speeded up significantly:
-simpset := (!simpset addsplits [expand_split]);
+simpset_ref() := (simpset() addsplits [expand_split]);
    precompute the constants involved and don't do anything unless
    the current goal contains one of those constants
 *)
@@ -223,13 +223,13 @@ goal Prod.thy
     "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
 by (res_inst_tac [("p","x")] PairE 1);
-by (asm_simp_tac (!simpset addsimps [prod_fun,o_def]) 1);
+by (asm_simp_tac (simpset() addsimps [prod_fun,o_def]) 1);
 qed "prod_fun_compose";
 
 goal Prod.thy "prod_fun (%x. x) (%y. y) = (%z. z)";
 by (rtac ext 1);
 by (res_inst_tac [("p","z")] PairE 1);
-by (asm_simp_tac (!simpset addsimps [prod_fun]) 1);
+by (asm_simp_tac (simpset() addsimps [prod_fun]) 1);
 qed "prod_fun_ident";
 
 val prems = goal Prod.thy "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";
@@ -245,7 +245,7 @@ by (rtac (major RS imageE) 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by (resolve_tac prems 1);
 by (Blast_tac 2);
-by (blast_tac (!claset addIs [prod_fun]) 1);
+by (blast_tac (claset() addIs [prod_fun]) 1);
 qed "prod_fun_imageE";
 
 (*** Disjoint union of a family of sets - Sigma ***)
@@ -290,7 +290,7 @@ AddSEs [SigmaE2, SigmaE];
 val prems = goal Prod.thy
     "[| A<=C;  !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "Sigma_mono";
 
 qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"

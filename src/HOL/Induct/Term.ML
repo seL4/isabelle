@@ -12,7 +12,7 @@ open Term;
 (*** Monotonicity and unfolding of the function ***)
 
 goal Term.thy "term(A) = A <*> list(term(A))";
-by (fast_tac (!claset addSIs term.intrs
+by (fast_tac (claset() addSIs term.intrs
                       addEs [term.elim]) 1);
 qed "term_unfold";
 
@@ -25,7 +25,7 @@ qed "term_mono";
 
 goalw Term.thy term.defs "term(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
-by (fast_tac (!claset addIs [sexp.SconsI, list_sexp RS subsetD]) 1);
+by (fast_tac (claset() addIs [sexp.SconsI, list_sexp RS subsetD]) 1);
 qed "term_sexp";
 
 (* A <= sexp ==> term(A) <= sexp *)
@@ -98,7 +98,7 @@ val prems = goal Term.thy
 by (rtac term_induct 1);  (*types force good instantiation*)
 by (etac rev_mp 1);
 by (rtac list_induct2 1);  (*types force good instantiation*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "term_induct2";
 
 (*Perform induction on xs. *)
@@ -134,7 +134,7 @@ by (rtac (prem RS list.induct) 1);
 by (Simp_tac 1);
 by (strip_tac 1);
 by (etac (pred_sexp_CONS_D RS conjE) 1);
-by (asm_simp_tac (!simpset addsimps [trancl_pred_sexpD1]) 1);
+by (asm_simp_tac (simpset() addsimps [trancl_pred_sexpD1]) 1);
 qed "Abs_map_lemma";
 
 val [prem1,prem2,A_subset_sexp] = goal Term.thy

@@ -29,24 +29,24 @@ goalw Commutation.thy [square_def]
 by (strip_tac 1);
 by (etac rtrancl_induct 1);
 by (Blast_tac 1);
-by (blast_tac (!claset addIs [rtrancl_into_rtrancl]) 1);
+by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "square_rtrancl";
 
 goalw Commutation.thy [commute_def]
  "!!R. square R S (S^*) (R^=) ==> commute (R^*) (S^*)";
-by (fast_tac (!claset addDs [square_reflcl,square_sym RS square_rtrancl]
+by (fast_tac (claset() addDs [square_reflcl,square_sym RS square_rtrancl]
                      addEs [r_into_rtrancl]
-                     addss !simpset) 1);
+                     addss simpset()) 1);
 qed "square_rtrancl_reflcl_commute";
 
 (*** commute ***)
 
 goalw Commutation.thy [commute_def] "!!R. commute R S ==> commute S R";
-by (blast_tac (!claset addIs [square_sym]) 1);
+by (blast_tac (claset() addIs [square_sym]) 1);
 qed "commute_sym";
 
 goalw Commutation.thy [commute_def] "!!R. commute R S ==> commute (R^*) (S^*)";
-by (blast_tac (!claset addIs [square_rtrancl,square_sym]) 1);
+by (blast_tac (claset() addIs [square_rtrancl,square_sym]) 1);
 qed "commute_rtrancl";
 
 goalw Commutation.thy [commute_def,square_def]
@@ -67,7 +67,7 @@ qed "diamond_confluent";
 
 goalw Commutation.thy [diamond_def]
   "!!R. square R R (R^=) (R^=) ==> confluent R";
-by (fast_tac (!claset addIs [square_rtrancl_reflcl_commute, r_into_rtrancl]
+by (fast_tac (claset() addIs [square_rtrancl_reflcl_commute, r_into_rtrancl]
                       addEs [square_subset]) 1);
 qed "square_reflcl_confluent";
 
@@ -75,13 +75,13 @@ goal Commutation.thy
  "!!R. [| confluent R; confluent S; commute (R^*) (S^*) |] \
 \      ==> confluent(R Un S)";
 by (rtac (rtrancl_Un_rtrancl RS subst) 1);
-by (blast_tac (!claset addDs [diamond_Un] addIs [diamond_confluent]) 1);
+by (blast_tac (claset() addDs [diamond_Un] addIs [diamond_confluent]) 1);
 qed "confluent_Un";
 
 goal Commutation.thy
   "!!R.[| diamond(R); T <= R; R <= T^* |] ==> confluent(T)";
-by (fast_tac (!claset addIs [diamond_confluent]
-                    addDs [rtrancl_subset RS sym] addss !simpset) 1);
+by (fast_tac (claset() addIs [diamond_confluent]
+                    addDs [rtrancl_subset RS sym] addss simpset()) 1);
 qed "diamond_to_confluence";
 
 (*** Church_Rosser ***)
@@ -94,6 +94,6 @@ by (safe_tac HOL_cs);
        rtrancl_inverseI, inverseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
-by (Blast.depth_tac (!claset delrules [rtrancl_refl] 
+by (Blast.depth_tac (claset() delrules [rtrancl_refl] 
                        addIs [r_into_rtrancl, rtrancl_trans]) 12 1);
 qed "Church_Rosser_confluent";

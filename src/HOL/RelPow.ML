@@ -35,7 +35,7 @@ val [major,minor] = goal RelPow.thy
   "[| (x,z) : R^(Suc n);  !!y. [| (x,y) : R^n; (y,z) : R |] ==> P |] ==> P";
 by (cut_facts_tac [major] 1);
 by (Asm_full_simp_tac  1);
-by (blast_tac (!claset addIs [minor]) 1);
+by (blast_tac (claset() addIs [minor]) 1);
 qed "rel_pow_Suc_E";
 
 val [p1,p2,p3] = goal RelPow.thy
@@ -44,7 +44,7 @@ val [p1,p2,p3] = goal RelPow.thy
 \    |] ==> P";
 by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac [p1] 1);
-by (asm_full_simp_tac (!simpset addsimps [p2]) 1);
+by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (cut_facts_tac [p1] 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);
@@ -53,16 +53,16 @@ qed "rel_pow_E";
 
 goal RelPow.thy "!x z. (x,z):R^(Suc n) --> (? y. (x,y):R & (y,z):R^n)";
 by (nat_ind_tac "n" 1);
-by (blast_tac (!claset addIs [rel_pow_0_I] addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
-by (blast_tac (!claset addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (claset() addIs [rel_pow_0_I] addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (claset() addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 1);
 qed_spec_mp "rel_pow_Suc_D2";
 
 
 goal RelPow.thy
 "!x y z. (x,y) : R^n & (y,z) : R --> (? w. (x,w) : R & (w,z) : R^n)";
 by (nat_ind_tac "n" 1);
-by (fast_tac (!claset addss (!simpset)) 1);
-by (fast_tac (!claset addss (!simpset)) 1);
+by (fast_tac (claset() addss (simpset())) 1);
+by (fast_tac (claset() addss (simpset())) 1);
 qed_spec_mp "rel_pow_Suc_D2'";
 
 val [p1,p2,p3] = goal RelPow.thy
@@ -71,7 +71,7 @@ val [p1,p2,p3] = goal RelPow.thy
 \    |] ==> P";
 by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac [p1] 1);
-by (asm_full_simp_tac (!simpset addsimps [p2]) 1);
+by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (cut_facts_tac [p1] 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);
@@ -86,13 +86,13 @@ qed "rel_pow_E2";
 goal RelPow.thy "!!p. p:R^* ==> p : (UN n. R^n)";
 by (split_all_tac 1);
 by (etac rtrancl_induct 1);
-by (ALLGOALS (blast_tac (!claset addIs [rel_pow_0_I,rel_pow_Suc_I])));
+by (ALLGOALS (blast_tac (claset() addIs [rel_pow_0_I,rel_pow_Suc_I])));
 qed "rtrancl_imp_UN_rel_pow";
 
 goal RelPow.thy "!y. (x,y):R^n --> (x,y):R^*";
 by (nat_ind_tac "n" 1);
-by (blast_tac (!claset addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
-by (blast_tac (!claset addEs [rel_pow_Suc_E]
+by (blast_tac (claset() addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
+by (blast_tac (claset() addEs [rel_pow_Suc_E]
                        addIs [rtrancl_into_rtrancl]) 1);
 val lemma = result() RS spec RS mp;
 
@@ -102,7 +102,7 @@ by (etac lemma 1);
 qed "rel_pow_imp_rtrancl";
 
 goal RelPow.thy "R^* = (UN n. R^n)";
-by (blast_tac (!claset addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
+by (blast_tac (claset() addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
 qed "rtrancl_is_UN_rel_pow";
 
 

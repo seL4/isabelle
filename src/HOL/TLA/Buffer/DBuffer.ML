@@ -6,7 +6,7 @@
     Double FIFO buffer implements simple FIFO buffer.
 *)
 
-val db_css = (!claset, !simpset addsimps [qc_def]);
+val db_css = (claset(), simpset() addsimps [qc_def]);
 Addsimps [qc_def];
 
 val db_defs = [BInit_def, Enq_def, Deq_def, Next_def, IBuffer_def, Buffer_def,
@@ -23,7 +23,7 @@ qed "DBInit";
 goal DBuffer.thy "[DBNext]_<inp,mid,out,q1,q2> .-> [Next inp qc out]_<inp,qc,out>";
 by (rtac square_simulation 1);
 by (Action_simp_tac 1);
-by (action_simp_tac (!simpset addsimps hd_append::db_defs) [] [] 1);
+by (action_simp_tac (simpset() addsimps hd_append::db_defs) [] [] 1);
 qed "DB_step_simulation";
 
 
@@ -77,9 +77,9 @@ goal DBuffer.thy
   "[][DBNext]_<inp,mid,out,q1,q2> .& WF(DBPass)_<inp,mid,out,q1,q2> \
 \  .-> ($qc .~= .[] .& $q2 .= .[] ~> $q2 .~= .[])";
 by (rtac WF1 1);
-by (action_simp_tac (!simpset addsimps square_def::db_defs) [] [] 1);
-by (action_simp_tac (!simpset addsimps [angle_def,DBPass_def]) [] [] 1);
-by (action_simp_tac (!simpset addsimps [DBPass_enabled]) [] [] 1);
+by (action_simp_tac (simpset() addsimps square_def::db_defs) [] [] 1);
+by (action_simp_tac (simpset() addsimps [angle_def,DBPass_def]) [] [] 1);
+by (action_simp_tac (simpset() addsimps [DBPass_enabled]) [] [] 1);
 qed "DBFair_1a";
 
 (* Condition (1) *)
@@ -96,9 +96,9 @@ goal DBuffer.thy
   "[][DBNext]_<inp,mid,out,q1,q2> .& WF(DBDeq)_<inp,mid,out,q1,q2> \
 \  .-> ($q2 .~= .[] ~> DBDeq)";
 by (rtac WF_leadsto 1);
-by (action_simp_tac (!simpset addsimps [DBDeq_visible,DBDeq_enabled]) [] [] 1);
-by (action_simp_tac (!simpset addsimps [angle_def]) [] [] 1);
-by (action_simp_tac (!simpset addsimps square_def::db_defs) [tempI] [Stable] 1);
+by (action_simp_tac (simpset() addsimps [DBDeq_visible,DBDeq_enabled]) [] [] 1);
+by (action_simp_tac (simpset() addsimps [angle_def]) [] [] 1);
+by (action_simp_tac (simpset() addsimps square_def::db_defs) [tempI] [Stable] 1);
 qed "DBFair_2";
 
 (* High-level fairness *)

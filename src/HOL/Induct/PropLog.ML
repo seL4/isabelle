@@ -18,7 +18,7 @@ qed "thms_mono";
 
 (*Rule is called I for Identity Combinator, not for Introduction*)
 goal PropLog.thy "H |- p->p";
-by (best_tac (!claset addIs [thms.K,thms.S,thms.MP]) 1);
+by (best_tac (claset() addIs [thms.K,thms.S,thms.MP]) 1);
 qed "thms_I";
 
 (** Weakening, left and right **)
@@ -35,14 +35,14 @@ val weaken_left_Un1  =    Un_upper1 RS weaken_left;
 val weaken_left_Un2  =    Un_upper2 RS weaken_left;
 
 goal PropLog.thy "!!H. H |- q ==> H |- p->q";
-by (fast_tac (!claset addIs [thms.K,thms.MP]) 1);
+by (fast_tac (claset() addIs [thms.K,thms.MP]) 1);
 qed "weaken_right";
 
 (*The deduction theorem*)
 goal PropLog.thy "!!H. insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
 by (ALLGOALS 
-    (fast_tac (!claset addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
+    (fast_tac (claset() addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
                              thms.S RS thms.MP RS thms.MP, weaken_right])));
 qed "deduction";
 
@@ -77,7 +77,7 @@ Addsimps [eval_false, eval_var, eval_imp];
 (*Soundness of the rules wrt truth-table semantics*)
 goalw PropLog.thy [sat_def] "!!H. H |- p ==> H |= p";
 by (etac thms.induct 1);
-by (fast_tac (!claset addSDs [eval_imp RS iffD1 RS mp]) 5);
+by (fast_tac (claset() addSDs [eval_imp RS iffD1 RS mp]) 5);
 by (ALLGOALS Asm_simp_tac);
 qed "soundness";
 
@@ -103,8 +103,8 @@ qed "imp_false";
 goal PropLog.thy "hyps p tt |- (if tt[p] then p else p->false)";
 by (rtac (expand_if RS iffD2) 1);
 by (PropLog.pl.induct_tac "p" 1);
-by (ALLGOALS (simp_tac (!simpset addsimps [thms_I, thms.H])));
-by (fast_tac (!claset addIs [weaken_left_Un1, weaken_left_Un2, 
+by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));
+by (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
                            weaken_right, imp_false]
                     addSEs [false_imp]) 1);
 qed "hyps_thms_if";
@@ -125,7 +125,7 @@ AddIs [thms.H, thms.H RS thms.MP];
 goal PropLog.thy "H |- (p->q) -> ((p->false)->q) -> q";
 by (rtac (deduction RS deduction) 1);
 by (rtac (thms.DN RS thms.MP) 1);
-by (ALLGOALS (best_tac (!claset addSIs prems)));
+by (ALLGOALS (best_tac (claset() addSIs prems)));
 qed "thms_excluded_middle";
 
 (*Hard to prove directly because it requires cuts*)
@@ -142,7 +142,7 @@ qed "thms_excluded_middle_rule";
 goal PropLog.thy "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
 by (PropLog.pl.induct_tac "p" 1);
 by (Simp_tac 1);
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "hyps_Diff";
@@ -152,7 +152,7 @@ qed "hyps_Diff";
 goal PropLog.thy "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
 by (PropLog.pl.induct_tac "p" 1);
 by (Simp_tac 1);
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "hyps_insert";
@@ -174,7 +174,7 @@ qed "hyps_finite";
 
 goal PropLog.thy "hyps p t <= (UN v. {#v, #v->false})";
 by (PropLog.pl.induct_tac "p" 1);
-by (ALLGOALS (simp_tac (!simpset addsplits [expand_if])));
+by (ALLGOALS (simp_tac (simpset() addsplits [expand_if])));
 by (Blast_tac 1);
 qed "hyps_subset";
 
@@ -185,7 +185,7 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 val [sat] = goal PropLog.thy
     "{} |= p ==> !t. hyps p t - hyps p t0 |- p";
 by (rtac (hyps_subset RS (hyps_finite RS finite_subset_induct)) 1);
-by (simp_tac (!simpset addsimps [sat RS sat_thms_p]) 1);
+by (simp_tac (simpset() addsimps [sat RS sat_thms_p]) 1);
 by Safe_tac;
 (*Case hyps(p,t)-insert(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
@@ -217,14 +217,14 @@ qed "sat_imp";
 
 goal PropLog.thy "!!H. finite H ==> !p. H |= p --> H |- p";
 by (etac finite_induct 1);
-by (safe_tac ((claset_of "Fun") addSIs [completeness_0]));
+by (safe_tac ((claset_of Fun.thy) addSIs [completeness_0]));
 by (rtac (weaken_left_insert RS thms.MP) 1);
-by (fast_tac ((claset_of "Fun") addSIs [sat_imp]) 1);
+by (fast_tac ((claset_of Fun.thy) addSIs [sat_imp]) 1);
 by (Fast_tac 1);
 qed "completeness_lemma";
 
 val completeness = completeness_lemma RS spec RS mp;
 
 goal PropLog.thy "!!H. finite H ==> (H |- p) = (H |= p)";
-by (fast_tac (!claset addSEs [soundness, completeness]) 1);
+by (fast_tac (claset() addSEs [soundness, completeness]) 1);
 qed "syntax_iff_semantics";

@@ -26,18 +26,18 @@ Addsimps ([Qsort.qsort_Nil,Qsort.qsort_Cons]@conj_comms);
 
 goal Qsort.thy "!x. mset (qsort le xs) x = mset xs x";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_if])));
+by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
 qed "qsort_permutes";
 
 goal Qsort.thy "set(qsort le xs) = set xs";
-by(simp_tac (!simpset addsimps [set_via_mset,qsort_permutes]) 1);
+by(simp_tac (simpset() addsimps [set_via_mset,qsort_permutes]) 1);
 qed "set_qsort";
 Addsimps [set_qsort];
 
 goal List.thy
   "(!x:set[x:xs. P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_if])));
+by (ALLGOALS(asm_simp_tac (simpset() addsplits [expand_if])));
 qed"Ball_set_filter";
 Addsimps [Ball_set_filter];
 

@@ -71,5 +71,5 @@ qed "vc_complete";
 
 goal VC.thy "!Q. vcawp c Q = (vc c Q, awp c Q)";
 by (acom.induct_tac "c" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Let_def])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Let_def])));
 qed "vcawp_vc_awp";

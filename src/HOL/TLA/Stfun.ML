@@ -20,6 +20,6 @@ bind_thm("baseE", (standard (base_var RS exE_prop)));
 qed_goal "PairVarE" Stfun.thy
   "[| <v,w> u = (x,y); [| v u = x; w u = y |] ==> PROP R |] ==> PROP R"
   (fn prems => [cut_facts_tac prems 1, resolve_tac prems 1,
-		ALLGOALS (asm_full_simp_tac (!simpset addsimps [pairSF_def]))
+		ALLGOALS (asm_full_simp_tac (simpset() addsimps [pairSF_def]))
                ]);
 

@@ -10,7 +10,7 @@ Taken from FOL/cla.ML; beware of precedence of = vs <->
 
 writeln"File HOL/ex/cla.";
 
-set_current_thy "HOL";  (*Boosts efficiency by omitting redundant rules*)
+context HOL.thy;  (*Boosts efficiency by omitting redundant rules*)
 
 goal HOL.thy "(P --> Q | R) --> (P-->Q) | (P-->R)";
 by (Blast_tac 1);
@@ -381,7 +381,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal HOL.thy "(? x y::'a. ! z. z=x | z=y) & P(a) & P(b) & (~a=b) \
 \               --> (! u::'a. P(u))";
-by (Classical.safe_tac (!claset));
+by (Classical.safe_tac (claset()));
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);
@@ -442,7 +442,7 @@ result();
 writeln"Problem 58  NOT PROVED AUTOMATICALLY";
 goal HOL.thy "(! x y. f(x)=g(y)) --> (! x y. f(f(x))=f(g(y)))";
 val f_cong = read_instantiate [("f","f")] arg_cong;
-by (fast_tac (!claset addIs [f_cong]) 1);
+by (fast_tac (claset() addIs [f_cong]) 1);
 result();
 
 writeln"Problem 59";

@@ -13,7 +13,7 @@ Addsimps qsort.rules;
 
 goal thy "(x mem qsort (ord,l)) = (x mem l)";
 by (res_inst_tac [("u","ord"),("v","l")] qsort.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsplits [expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 by (Blast_tac 1);
 qed "qsort_mem_stable";
 
@@ -30,7 +30,7 @@ qed "g_terminates";
 
 goal thy "g x = 0";
 by (res_inst_tac [("u","x")] g.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [g_terminates])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [g_terminates])));
 qed "g_zero";
 
 (*** the contrived `mapf' ***)

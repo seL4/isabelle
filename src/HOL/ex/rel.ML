@@ -34,7 +34,7 @@ end;
 (*** domain ***)
 
 val [prem] = goalw Rel.thy [domain_def,Pair_def] "(a,b): r ==> a : domain(r)";
-by (fast_tac (!claset addIs [prem]) 1);
+by (fast_tac (claset() addIs [prem]) 1);
 qed "domainI";
 
 val major::prems = goalw Rel.thy [domain_def]
@@ -48,7 +48,7 @@ qed "domainE";
 (*** range2 ***)
 
 val [prem] = goalw Rel.thy [range2_def,Pair_def] "(a,b): r ==> b : range2(r)";
-by (fast_tac (!claset addIs [prem]) 1);
+by (fast_tac (claset() addIs [prem]) 1);
 qed "range2I";
 
 val major::prems = goalw Rel.thy [range2_def]

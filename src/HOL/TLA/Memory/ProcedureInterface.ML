@@ -28,13 +28,13 @@ qed_goal "CallReturnMutex" ProcedureInterface.thy
 
 qed_goal "Call_enabled" ProcedureInterface.thy
    "!!p. base_var ((caller ch)@p) ==> (.~ $(Calling ch p) .-> $(Enabled (Call ch p (#v))))"
-   (fn _ => [action_simp_tac (!simpset addsimps [caller_def, Call_def]) 
+   (fn _ => [action_simp_tac (simpset() addsimps [caller_def, Call_def]) 
                              [] [base_enabled,Pair_inject] 1
             ]);
 
 qed_goal "Return_enabled" ProcedureInterface.thy
    "!!p. base_var ((rtrner ch)@p) ==> $(Calling ch p) .-> $(Enabled (Return ch p (#v)))"
-   (fn _ => [action_simp_tac (!simpset addsimps [rtrner_def, Return_def]) 
+   (fn _ => [action_simp_tac (simpset() addsimps [rtrner_def, Return_def]) 
                              [] [base_enabled,Pair_inject] 1
             ]);
 
@@ -43,15 +43,15 @@ qed_goal "Return_enabled" ProcedureInterface.thy
 (* Calls and returns change their subchannel *)
 qed_goal "Call_changed" ProcedureInterface.thy
    "Call ch p v .-> <Call ch p v>_((caller ch)@p)"
-   (fn _ => [auto_tac (!claset,
-		       !simpset addsimps [angle_def,Call_def,caller_def,
+   (fn _ => [auto_tac (claset(),
+		       simpset() addsimps [angle_def,Call_def,caller_def,
 					  action_rewrite Calling_def])
 	    ]);
 
 qed_goal "Return_changed" ProcedureInterface.thy
    "Return ch p v .-> <Return ch p v>_((rtrner ch)@p)"
-   (fn _ => [auto_tac (!claset,
-		       !simpset addsimps [angle_def,Return_def,rtrner_def,
+   (fn _ => [auto_tac (claset(),
+		       simpset() addsimps [angle_def,Return_def,rtrner_def,
 					  action_rewrite Calling_def])
 	    ]);
 

@@ -17,7 +17,7 @@ by (REPEAT (ares_tac basic_monos 1));
 qed "Fin_mono";
 
 goalw Finite.thy Fin.defs "Fin(A) <= Pow(A)";
-by (blast_tac (!claset addSIs [lfp_lowerbound]) 1);
+by (blast_tac (claset() addSIs [lfp_lowerbound]) 1);
 qed "Fin_subset_Pow";
 
 (* A : Fin(B) ==> A <= B *)
@@ -41,7 +41,7 @@ val major::prems = goal Finite.thy
 \       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
 \    |] ==> F <= A --> P(F)";
 by (rtac (major RS finite_induct) 1);
-by (ALLGOALS (blast_tac (!claset addIs prems)));
+by (ALLGOALS (blast_tac (claset() addIs prems)));
 val lemma = result();
 
 val prems = goal Finite.thy 
@@ -59,7 +59,7 @@ AddSIs Finites.intrs;
 val major::prems = goal Finite.thy
     "[| finite F;  finite G |] ==> finite(F Un G)";
 by (rtac (major RS finite_induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "finite_UnI";
 
 (*Every subset of a finite set is finite*)
@@ -68,14 +68,14 @@ by (EVERY1 [subgoal_tac "ALL C. C<=B --> finite C",
             rtac mp, etac spec,
             rtac subs]);
 by (rtac (fin RS finite_induct) 1);
-by (simp_tac (!simpset addsimps [subset_Un_eq]) 1);
-by (safe_tac (!claset addSDs [subset_insert_iff RS iffD1]));
+by (simp_tac (simpset() addsimps [subset_Un_eq]) 1);
+by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
 by (eres_inst_tac [("t","C")] (insert_Diff RS subst) 2);
 by (ALLGOALS Asm_simp_tac);
 qed "finite_subset";
 
 goal Finite.thy "finite(F Un G) = (finite F & finite G)";
-by (blast_tac (!claset addIs [finite_UnI] addDs
+by (blast_tac (claset() addIs [finite_UnI] addDs
                 [Un_upper1 RS finite_subset, Un_upper2 RS finite_subset]) 1);
 qed "finite_Un";
 AddIffs[finite_Un];
@@ -102,7 +102,7 @@ val major::prems = goal Finite.thy
 by (rtac (major RS finite_induct) 1);
 by (stac Diff_insert 2);
 by (ALLGOALS (asm_simp_tac
-                (!simpset addsimps (prems@[Diff_subset RS finite_subset]))));
+                (simpset() addsimps (prems@[Diff_subset RS finite_subset]))));
 val lemma = result();
 
 val prems = goal Finite.thy 
@@ -135,14 +135,14 @@ by (etac finite_induct 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
- by (full_simp_tac (!simpset addsimps [inj_onto_def]) 1);
+ by (full_simp_tac (simpset() addsimps [inj_onto_def]) 1);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","xa")] bexI 1);
 by (ALLGOALS 
-    (asm_full_simp_tac (!simpset addsimps [inj_onto_image_set_diff])));
+    (asm_full_simp_tac (simpset() addsimps [inj_onto_image_set_diff])));
 val lemma = result();
 
 goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";
@@ -163,7 +163,7 @@ Addsimps [finite_UnionI];
 
 goalw Finite.thy [Sigma_def]
  "!!A. [| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
-by(blast_tac (!claset addSIs [finite_UnionI]) 1);
+by(blast_tac (claset() addSIs [finite_UnionI]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
 Addsimps [finite_SigmaI];
 
@@ -174,7 +174,7 @@ by (subgoal_tac "finite ((%x.{x})``A)" 1);
 by (rtac finite_subset 2);
 by (assume_tac 3);
 by (ALLGOALS
-    (fast_tac (!claset addSDs [rewrite_rule [inj_onto_def] finite_imageD])));
+    (fast_tac (claset() addSDs [rewrite_rule [inj_onto_def] finite_imageD])));
 val lemma = result();
 
 goal Finite.thy "finite(Pow A) = finite A";
@@ -184,7 +184,7 @@ by (etac lemma 1);
 by (etac finite_induct 1);
 by (ALLGOALS 
     (asm_simp_tac
-     (!simpset addsimps [finite_UnI, finite_imageI, Pow_insert])));
+     (simpset() addsimps [finite_UnI, finite_imageI, Pow_insert])));
 qed "finite_Pow_iff";
 AddIffs [finite_Pow_iff];
 
@@ -193,9 +193,9 @@ by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
  by (Asm_simp_tac 1);
  by (rtac iffI 1);
   by (etac (rewrite_rule [inj_onto_def] finite_imageD) 1);
-  by (simp_tac (!simpset addsplits [expand_split]) 1);
+  by (simp_tac (simpset() addsplits [expand_split]) 1);
  by (etac finite_imageI 1);
-by (simp_tac (!simpset addsimps [inverse_def,image_def]) 1);
+by (simp_tac (simpset() addsimps [inverse_def,image_def]) 1);
 by (Auto_tac());
  by (rtac bexI 1);
  by (assume_tac 2);
@@ -227,7 +227,7 @@ by (etac exE 1);
 by (hyp_subst_tac 1);
 by (res_inst_tac [("x","Suc n")] exI 1);
 by (res_inst_tac [("x","%i. if i<n then f i else x")] exI 1);
-by (asm_simp_tac (!simpset addsimps [Collect_conv_insert, less_Suc_eq]
+by (asm_simp_tac (simpset() addsimps [Collect_conv_insert, less_Suc_eq]
                           addcongs [rev_conj_cong]) 1);
 qed "finite_has_card";
 
@@ -244,41 +244,41 @@ by (case_tac "? a. a:A" 1);
  by (Simp_tac 2);
  by (Blast_tac 2);
 by (etac exE 1);
-by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (rtac exI 1);
 by (rtac (refl RS disjI2 RS conjI) 1);
 by (etac equalityE 1);
 by (asm_full_simp_tac
-     (!simpset addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
-by (safe_tac (!claset));
+     (simpset() addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
+by (safe_tac (claset()));
   by (Asm_full_simp_tac 1);
   by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
-  by (SELECT_GOAL(safe_tac (!claset))1);
+  by (SELECT_GOAL(safe_tac (claset()))1);
    by (subgoal_tac "x ~= f m" 1);
     by (Blast_tac 2);
    by (subgoal_tac "? k. f k = x & k<m" 1);
     by (Blast_tac 2);
-   by (SELECT_GOAL(safe_tac (!claset))1);
+   by (SELECT_GOAL(safe_tac (claset()))1);
    by (res_inst_tac [("x","k")] exI 1);
    by (Asm_simp_tac 1);
-  by (simp_tac (!simpset addsplits [expand_if]) 1);
+  by (simp_tac (simpset() addsplits [expand_if]) 1);
   by (Blast_tac 1);
  by (dtac sym 1);
  by (rotate_tac ~1 1);
  by (Asm_full_simp_tac 1);
  by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
- by (SELECT_GOAL(safe_tac (!claset))1);
+ by (SELECT_GOAL(safe_tac (claset()))1);
   by (subgoal_tac "x ~= f m" 1);
    by (Blast_tac 2);
   by (subgoal_tac "? k. f k = x & k<m" 1);
    by (Blast_tac 2);
-  by (SELECT_GOAL(safe_tac (!claset))1);
+  by (SELECT_GOAL(safe_tac (claset()))1);
   by (res_inst_tac [("x","k")] exI 1);
   by (Asm_simp_tac 1);
- by (simp_tac (!simpset addsplits [expand_if]) 1);
+ by (simp_tac (simpset() addsplits [expand_if]) 1);
  by (Blast_tac 1);
 by (res_inst_tac [("x","%j. if f j = f i then f m else f j")] exI 1);
-by (SELECT_GOAL(safe_tac (!claset))1);
+by (SELECT_GOAL(safe_tac (claset()))1);
  by (subgoal_tac "x ~= f i" 1);
   by (Blast_tac 2);
  by (case_tac "x = f m" 1);
@@ -286,10 +286,10 @@ by (SELECT_GOAL(safe_tac (!claset))1);
   by (Asm_simp_tac 1);
  by (subgoal_tac "? k. f k = x & k<m" 1);
   by (Blast_tac 2);
- by (SELECT_GOAL(safe_tac (!claset))1);
+ by (SELECT_GOAL(safe_tac (claset()))1);
  by (res_inst_tac [("x","k")] exI 1);
  by (Asm_simp_tac 1);
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 val lemma = result();
 
@@ -303,7 +303,7 @@ by (rtac Least_equality 1);
  by (res_inst_tac
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
  by (simp_tac
-    (!simpset addsimps [Collect_conv_insert, less_Suc_eq] 
+    (simpset() addsimps [Collect_conv_insert, less_Suc_eq] 
               addcongs [rev_conj_cong]) 1);
  by (etac subst 1);
  by (rtac refl 1);
@@ -315,7 +315,7 @@ by (etac exE 1);
 by (etac conjE 1);
 by (dres_inst_tac [("P","%x. ? g. A = {g i |i. i < x}")] Least_le 1);
 by (dtac le_less_trans 1 THEN atac 1);
-by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (etac disjE 1);
 by (etac less_asym 1 THEN atac 1);
 by (hyp_subst_tac 1);
@@ -335,18 +335,18 @@ by (Simp_tac 1);
 by (Clarify_tac 1);
 by (case_tac "x:B" 1);
  by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
- by (SELECT_GOAL(safe_tac (!claset))1);
+ by (SELECT_GOAL(safe_tac (claset()))1);
  by (rotate_tac ~1 1);
- by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
 by (rotate_tac ~1 1);
-by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
 qed_spec_mp "card_mono";
 
 goal Finite.thy "!!A B. [| finite A; finite B |]\
 \                       ==> A Int B = {} --> card(A Un B) = card A + card B";
 by (etac finite_induct 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [Int_insert_left]
+    (asm_simp_tac (simpset() addsimps [Int_insert_left]
 	                    addsplits [expand_if])));
 qed_spec_mp "card_Un_disjoint";
 
@@ -359,7 +359,7 @@ by (etac ssubst 4);
 by (Blast_tac 3);
 by (ALLGOALS 
     (asm_simp_tac
-     (!simpset addsimps [add_commute, not_less_iff_le, 
+     (simpset() addsimps [add_commute, not_less_iff_le, 
 			 add_diff_inverse, card_mono, finite_subset])));
 qed "card_Diff_subset";
 
@@ -371,7 +371,7 @@ qed "card_Suc_Diff";
 
 goal Finite.thy "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
 by (rtac Suc_less_SucD 1);
-by (asm_simp_tac (!simpset addsimps [card_Suc_Diff]) 1);
+by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "card_Diff";
 
 
@@ -380,7 +380,7 @@ qed "card_Diff";
 val [major] = goal Finite.thy
   "finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (case_tac "x:A" 1);
-by (asm_simp_tac (!simpset addsimps [insert_absorb]) 1);
+by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
 by (dtac mk_disjoint_insert 1);
 by (etac exE 1);
 by (Asm_simp_tac 1);
@@ -388,7 +388,7 @@ by (rtac card_insert_disjoint 1);
 by (rtac (major RSN (2,finite_subset)) 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
-by (asm_simp_tac (!simpset addsimps [major RS card_insert_disjoint]) 1);
+by (asm_simp_tac (simpset() addsimps [major RS card_insert_disjoint]) 1);
 qed "card_insert";
 Addsimps [card_insert];
 
@@ -406,13 +406,13 @@ qed_spec_mp "card_image";
 
 goal thy "!!A. finite A ==> card (Pow A) = 2 ^ card A";
 by (etac finite_induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Pow_insert])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
 by (stac card_Un_disjoint 1);
-by (EVERY (map (blast_tac (!claset addIs [finite_imageI])) [3,2,1]));
+by (EVERY (map (blast_tac (claset() addIs [finite_imageI])) [3,2,1]));
 by (subgoal_tac "inj_onto (insert x) (Pow F)" 1);
-by (asm_simp_tac (!simpset addsimps [card_image, Pow_insert]) 1);
+by (asm_simp_tac (simpset() addsimps [card_image, Pow_insert]) 1);
 by (rewtac inj_onto_def);
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "card_Pow";
 Addsimps [card_Pow];
 
@@ -430,12 +430,12 @@ by (etac exE 1);
 by (etac conjE 1);
 by (hyp_subst_tac 1);
 by (rotate_tac ~1 1);
-by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
 by (Blast_tac 1);
 (*2*)
 by (rotate_tac ~1 1);
 by (eres_inst_tac [("P","?a<?b")] notE 1);
-by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
 by (case_tac "A=F" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
@@ -452,7 +452,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
 by (stac card_Un_disjoint 1);
 by (ALLGOALS
-    (asm_full_simp_tac (!simpset
+    (asm_full_simp_tac (simpset()
 			 addsimps [dvd_add, disjoint_eq_subset_Compl])));
 by (thin_tac "!c:F. ?PP(c)" 1);
 by (thin_tac "!c:F. ?PP(c) & ?QQ(c)" 1);

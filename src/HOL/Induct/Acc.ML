@@ -14,7 +14,7 @@ open Acc;
 (*The intended introduction rule*)
 val prems = goal Acc.thy
     "[| !!b. (b,a):r ==> b: acc(r) |] ==> a: acc(r)";
-by (fast_tac (!claset addIs (prems @ 
+by (fast_tac (claset() addIs (prems @ 
                             map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
@@ -54,7 +54,7 @@ qed "acc_wfD_lemma";
 val [major] = goal Acc.thy "wf(r) ==> r <= (acc r) Times (acc r)";
 by (rtac subsetI 1);
 by (res_inst_tac [("p", "x")] PairE 1);
-by (fast_tac (!claset addSIs [SigmaI,
+by (fast_tac (claset() addSIs [SigmaI,
                              major RS acc_wfD_lemma RS spec RS mp]) 1);
 qed "acc_wfD";
 

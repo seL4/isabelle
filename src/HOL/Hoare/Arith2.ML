@@ -29,7 +29,7 @@ qed "cd_nnn";
 
 val prems=goalw thy [cd_def] "[| cd x m n; 0<m; 0<n |] ==> x<=m & x<=n";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addIs [dvd_imp_le]) 1);
+by (blast_tac (claset() addIs [dvd_imp_le]) 1);
 qed "cd_le";
 
 val prems=goalw thy [cd_def] "cd x m n = cd x n m";
@@ -38,12 +38,12 @@ qed "cd_swap";
 
 val prems=goalw thy [cd_def] "n<=m ==> cd x m n = cd x (m-n) n";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addIs [dvd_diff] addDs [dvd_diffD]) 1);
+by (blast_tac (claset() addIs [dvd_diff] addDs [dvd_diffD]) 1);
 qed "cd_diff_l";
 
 val prems=goalw thy [cd_def] "m<=n ==> cd x m n = cd x m (n-m)";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addIs [dvd_diff] addDs [dvd_diffD]) 1);
+by (blast_tac (claset() addIs [dvd_diff] addDs [dvd_diffD]) 1);
 qed "cd_diff_r";
 
 
@@ -52,12 +52,12 @@ qed "cd_diff_r";
 goalw thy [gcd_def] "!!n. 0<n ==> n = gcd n n";
 by (forward_tac [cd_nnn] 1);
 by (rtac (select_equality RS sym) 1);
-by (blast_tac (!claset addDs [cd_le]) 1);
-by (blast_tac (!claset addIs [le_anti_sym] addDs [cd_le]) 1);
+by (blast_tac (claset() addDs [cd_le]) 1);
+by (blast_tac (claset() addIs [le_anti_sym] addDs [cd_le]) 1);
 qed "gcd_nnn";
 
 val prems = goalw thy [gcd_def] "gcd m n = gcd n m";
-by (simp_tac (!simpset addsimps [cd_swap]) 1);
+by (simp_tac (simpset() addsimps [cd_swap]) 1);
 qed "gcd_swap";
 
 val prems=goalw thy [gcd_def] "n<=m ==> gcd m n = gcd (m-n) n";
@@ -85,7 +85,7 @@ store_thm("pow_Suc",pow_Suc);
 
 goalw thy [pow_def] "m pow (n+k) = m pow n * m pow k";
 by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [mult_left_commute])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [mult_left_commute])));
 qed "pow_add_reduce";
 
 goalw thy [pow_def] "m pow n pow k = m pow (n*k)";

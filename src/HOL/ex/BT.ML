@@ -12,12 +12,12 @@ open BT;
 
 goal BT.thy "n_leaves(reflect(t)) = n_leaves(t)";
 by (bt.induct_tac "t" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_commute])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_commute])));
 qed "n_leaves_reflect";
 
 goal BT.thy "n_nodes(reflect(t)) = n_nodes(t)";
 by (bt.induct_tac "t" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_commute])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_commute])));
 qed "n_nodes_reflect";
 
 (*The famous relationship between the numbers of leaves and nodes*)

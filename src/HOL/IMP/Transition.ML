@@ -34,11 +34,11 @@ goal Transition.thy
 \              (c;d, s) -*-> (SKIP, u)";
 by (nat_ind_tac "n" 1);
  (* case n = 0 *)
- by (fast_tac (!claset addIs [rtrancl_into_rtrancl2])1);
+ by (fast_tac (claset() addIs [rtrancl_into_rtrancl2])1);
 (* induction step *)
-by (safe_tac (!claset addSDs [rel_pow_Suc_D2]));
+by (safe_tac (claset() addSDs [rel_pow_Suc_D2]));
 by (split_all_tac 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma1";
 
 
@@ -49,18 +49,18 @@ by (etac evalc.induct 1);
 by (rtac rtrancl_refl 1);
 
 (* ASSIGN *)
-by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
+by (fast_tac (claset() addSIs [r_into_rtrancl]) 1);
 
 (* SEMI *)
-by (fast_tac (!claset addDs [rtrancl_imp_UN_rel_pow] addIs [lemma1]) 1);
+by (fast_tac (claset() addDs [rtrancl_imp_UN_rel_pow] addIs [lemma1]) 1);
 
 (* IF *)
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 
 (* WHILE *)
-by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
-by (fast_tac (!claset addDs [rtrancl_imp_UN_rel_pow]
+by (fast_tac (claset() addSIs [r_into_rtrancl]) 1);
+by (fast_tac (claset() addDs [rtrancl_imp_UN_rel_pow]
                         addIs [rtrancl_into_rtrancl2,lemma1]) 1);
 
 qed "evalc_impl_evalc1";
@@ -71,31 +71,31 @@ goal Transition.thy
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
 by (nat_ind_tac "n" 1);
  (* case n = 0 *)
- by (fast_tac (!claset addss !simpset) 1);
+ by (fast_tac (claset() addss simpset()) 1);
 (* induction step *)
-by (fast_tac (!claset addSIs [le_SucI,le_refl]
+by (fast_tac (claset() addSIs [le_SucI,le_refl]
                      addSDs [rel_pow_Suc_D2]
                      addSEs [rel_pow_imp_rtrancl,rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma2";
 
 goal Transition.thy "!s t. (c,s) -*-> (SKIP,t) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
-by (safe_tac (!claset addSDs [rtrancl_imp_UN_rel_pow]));
+by (safe_tac (claset() addSDs [rtrancl_imp_UN_rel_pow]));
 
 (* SKIP *)
-by (fast_tac (!claset addSEs [rel_pow_E2]) 1);
+by (fast_tac (claset() addSEs [rel_pow_E2]) 1);
 
 (* ASSIGN *)
-by (fast_tac (!claset addSDs [hlemma]  addSEs [rel_pow_E2]
-                      addss !simpset) 1);
+by (fast_tac (claset() addSDs [hlemma]  addSEs [rel_pow_E2]
+                      addss simpset()) 1);
 
 (* SEMI *)
-by (fast_tac (!claset addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
+by (fast_tac (claset() addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
 
 (* IF *)
 by (etac rel_pow_E2 1);
 by (Asm_full_simp_tac 1);
-by (fast_tac (!claset addSDs [rel_pow_imp_rtrancl]) 1);
+by (fast_tac (claset() addSDs [rel_pow_imp_rtrancl]) 1);
 
 (* WHILE, induction on the length of the computation *)
 by (rotate_tac 1 1);
@@ -108,10 +108,10 @@ by (etac rel_pow_E2 1);
 by (eresolve_tac evalc1_Es 1);
 
 (* WhileFalse *)
- by (fast_tac (!claset addSDs [hlemma]) 1);
+ by (fast_tac (claset() addSDs [hlemma]) 1);
 
 (* WhileTrue *)
-by (fast_tac(!claset addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
+by (fast_tac(claset() addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
 
 qed_spec_mp "evalc1_impl_evalc";
 
@@ -129,8 +129,8 @@ goal Transition.thy
  "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
 by (etac inverse_rtrancl_induct2 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";
 
 
@@ -141,18 +141,18 @@ by (etac evalc.induct 1);
 by (rtac rtrancl_refl 1);
 
 (* ASSIGN *)
-by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
+by (fast_tac (claset() addSIs [r_into_rtrancl]) 1);
 
 (* SEMI *)
-by (fast_tac (!claset addIs [my_lemma1]) 1);
+by (fast_tac (claset() addIs [my_lemma1]) 1);
 
 (* IF *)
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 
 (* WHILE *)
-by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
+by (fast_tac (claset() addSIs [r_into_rtrancl]) 1);
+by (fast_tac (claset() addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
 
 qed "evalc_impl_evalc1";
 
@@ -201,9 +201,9 @@ val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
 by (rtac (major RS rtrancl_induct2) 1);
 by (Fast_tac 1);
-by (fast_tac (!claset addIs [FB_lemma3] addbefore split_all_tac) 1);
+by (fast_tac (claset() addIs [FB_lemma3] addbefore split_all_tac) 1);
 qed_spec_mp "FB_lemma2";
 
 goal Transition.thy "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
-by (fast_tac (!claset addEs [FB_lemma2]) 1);
+by (fast_tac (claset() addEs [FB_lemma2]) 1);
 qed "evalc1_impl_evalc";

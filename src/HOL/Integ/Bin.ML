@@ -71,7 +71,7 @@ val lemma = prove_goal HOL.thy "(False = (~P)) = P"
 
 qed_goal "bin_add_Bcons_Bcons0" Bin.thy
     "bin_add (Bcons v False) (Bcons w y) = norm_Bcons (bin_add v w) y"
- (fn _ => [(simp_tac (!simpset addsimps [lemma]) 1)]);
+ (fn _ => [(simp_tac (simpset() addsimps [lemma]) 1)]);
 
 qed_goal "bin_add_Bcons_Plus" Bin.thy
     "bin_add (Bcons v x) PlusSign = Bcons v x"
@@ -100,7 +100,7 @@ qed_goal "bin_mult_Bcons0" Bin.thy
 
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
 
-val if_ss = !simpset addsplits [expand_if];
+val if_ss = simpset() addsplits [expand_if];
 
 
 (**** integ_of_bin ****)
@@ -228,7 +228,7 @@ goal Bin.thy
   by (ALLGOALS(asm_simp_tac (HOL_ss addsimps [integ_of_bin_add]))); 
   by (ALLGOALS(int_case_tac "integ_of_bin w")); 
   by (ALLGOALS(asm_simp_tac 
-               (!simpset addsimps[zminus_zadd_distrib RS sym, 
+               (simpset() addsimps[zminus_zadd_distrib RS sym, 
                                 znat_add RS sym]))); 
   by (stac eq_False_conv 1); 
   by (rtac notI 1); 
@@ -258,7 +258,7 @@ goal Bin.thy
   by (ALLGOALS(asm_simp_tac (HOL_ss addsimps [integ_of_bin_add]))); 
   by (ALLGOALS(int_case_tac "integ_of_bin w")); 
   by (ALLGOALS(asm_simp_tac 
-               (!simpset addsimps[zminus_zadd_distrib RS sym, 
+               (simpset() addsimps[zminus_zadd_distrib RS sym, 
                                 znat_add RS sym]))); 
   by (stac (zadd_zminus_inverse RS sym) 1); 
   by (rtac zadd_zless_mono1 1); 

@@ -141,7 +141,7 @@ Addsimps [minus_distribL,minus_distribR];
 (*** The order [minus_plusL3,minus_plusL2] is important because minus_plusL3
      MUST be tried first ***)
 val cring_simp =
-  let val phase1 = !simpset addsimps
+  let val phase1 = simpset() addsimps
                    [plus_minusL,minus_plusR,minus_minusR,plus_minusR]
       val phase2 = HOL_ss addsimps [minus_plusL3,minus_plusL2,
                                     zeroL,zeroR,mult_zeroL,mult_zeroR]

@@ -109,7 +109,7 @@ by (res_inst_tac [("y","g y")] per_trans 1);
 by (rtac mp 1);by (assume_tac 1);
 by (Asm_simp_tac 1);
 by (rtac mp 1);by (assume_tac 1);
-by (asm_simp_tac (!simpset addsimps [sym2refl2]) 1);
+by (asm_simp_tac (simpset() addsimps [sym2refl2]) 1);
 qed "per_trans_fun";
 
 

@@ -53,11 +53,11 @@ val major::prems = goal thy
 \        ==> P (VALOF c RESULTIS e) s n s1                       \
 \  |] ==> P e s n s'";
 by (rtac (major RS eval.induct) 1);
-by (blast_tac (!claset addIs prems) 1);
-by (blast_tac (!claset addIs prems) 1);
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 by (forward_tac [impOfSubs (Int_lower1 RS exec_mono)] 1);
-by (fast_tac (!claset addIs prems addss (!simpset addsimps [split_lemma])) 1);
+by (fast_tac (claset() addIs prems addss (simpset() addsimps [split_lemma])) 1);
 qed "eval_induct";
 
 
@@ -78,7 +78,7 @@ by (rewtac Unique_def);
 by (Blast_tac 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
-by (blast_tac (!claset addEs [exec_WHILE_case]) 1);
+by (blast_tac (claset() addEs [exec_WHILE_case]) 1);
 by (thin_tac "(?c,s2) -[?ev]-> s3" 1);
 by (Clarify_tac 1);
 by (etac exec_WHILE_case 1);
@@ -88,12 +88,12 @@ qed "com_Unique";
 
 (*Expression evaluation is functional, or deterministic*)
 goal thy "Function eval";
-by (simp_tac (!simpset addsimps [Function_def]) 1);
+by (simp_tac (simpset() addsimps [Function_def]) 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (etac eval_induct 1);
 by (dtac com_Unique 4);
-by (ALLGOALS (full_simp_tac (!simpset addsimps [Unique_def])));
+by (ALLGOALS (full_simp_tac (simpset() addsimps [Unique_def])));
 by (ALLGOALS Blast_tac);
 qed "Function_eval";
 
@@ -136,7 +136,7 @@ bind_thm ("while_if2", refl RSN (2, result() RS mp));
 
 goal thy "((IF e THEN c;;(WHILE e DO c) ELSE SKIP, s) -[eval]-> t)  =  \
 \         ((WHILE e DO c, s) -[eval]-> t)";
-by (blast_tac (!claset addIs [while_if1, while_if2]) 1);
+by (blast_tac (claset() addIs [while_if1, while_if2]) 1);
 qed "while_if";
 
 
@@ -164,7 +164,7 @@ bind_thm ("if_semi2", refl RSN (2, result() RS mp));
 
 goal thy "(((IF e THEN c1 ELSE c2);;c, s) -[eval]-> t)  =  \
 \         ((IF e THEN (c1;;c) ELSE (c2;;c), s) -[eval]-> t)";
-by (blast_tac (!claset addIs [if_semi1, if_semi2]) 1);
+by (blast_tac (claset() addIs [if_semi1, if_semi2]) 1);
 qed "if_semi";
 
 
@@ -193,7 +193,7 @@ bind_thm ("valof_valof2", refl RSN (2, result() RS mp));
 
 goal thy "((VALOF c1 RESULTIS (VALOF c2 RESULTIS e), s) -|-> (v,s'))  =  \
 \         ((VALOF c1;;c2 RESULTIS e, s) -|-> (v,s'))";
-by (blast_tac (!claset addIs [valof_valof1, valof_valof2]) 1);
+by (blast_tac (claset() addIs [valof_valof1, valof_valof2]) 1);
 qed "valof_valof";
 
 
@@ -212,7 +212,7 @@ by (Blast_tac 1);
 qed "valof_skip2";
 
 goal thy "((VALOF SKIP RESULTIS e, s) -|-> (v,s'))  =  ((e, s) -|-> (v,s'))";
-by (blast_tac (!claset addIs [valof_skip1, valof_skip2]) 1);
+by (blast_tac (claset() addIs [valof_skip1, valof_skip2]) 1);
 qed "valof_skip";
 
 

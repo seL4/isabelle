@@ -23,7 +23,7 @@ qed "apply_inverse";
 
 val prems = goalw Fun.thy [inj_def]
     "[| !! x y. f(x) = f(y) ==> x=y |] ==> inj(f)";
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "injI";
 
 val [major] = goal Fun.thy "(!!x. g(f(x)) = x) ==> inj(f)";
@@ -69,7 +69,7 @@ qed "inj_transfer";
 
 val prems = goalw Fun.thy [inj_onto_def]
     "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_onto f A";
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "inj_ontoI";
 
 val [major] = goal Fun.thy 
@@ -86,7 +86,7 @@ by (REPEAT (resolve_tac prems 1));
 qed "inj_ontoD";
 
 goal Fun.thy "!!x y.[| inj_onto f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
-by (blast_tac (!claset addSDs [inj_ontoD]) 1);
+by (blast_tac (claset() addSDs [inj_ontoD]) 1);
 qed "inj_onto_iff";
 
 val major::prems = goal Fun.thy
@@ -106,11 +106,11 @@ qed "subset_inj_onto";
 
 goalw Fun.thy [o_def]
     "!!f g. [| inj(f);  inj_onto g (range f) |] ==> inj(g o f)";
-by (fast_tac (!claset addIs [injI] addEs [injD, inj_ontoD]) 1);
+by (fast_tac (claset() addIs [injI] addEs [injD, inj_ontoD]) 1);
 qed "comp_inj";
 
 val [prem] = goal Fun.thy "inj(f) ==> inj_onto f A";
-by (blast_tac (!claset addIs [prem RS injD, inj_ontoI]) 1);
+by (blast_tac (claset() addIs [prem RS injD, inj_ontoI]) 1);
 qed "inj_imp";
 
 val [prem] = goalw Fun.thy [inv_def] "y : range(f) ==> f(inv f y) = y";
@@ -124,7 +124,7 @@ by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
 qed "inv_injective";
 
 goal Fun.thy "!!f. [| inj(f);  A<=range(f) |] ==> inj_onto (inv f) A";
-by (fast_tac (!claset addIs [inj_ontoI] 
+by (fast_tac (claset() addIs [inj_ontoI] 
                       addEs [inv_injective,injD]) 1);
 qed "inj_onto_inv";
 
@@ -147,4 +147,4 @@ by (Blast_tac 1);
 qed "image_set_diff";
 
 
-val set_cs = !claset delrules [equalityI];
+val set_cs = claset() delrules [equalityI];

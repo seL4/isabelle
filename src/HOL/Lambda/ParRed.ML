@@ -36,7 +36,7 @@ goal ParRed.thy "beta <= par_beta";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac beta.induct 1);
-by (ALLGOALS(blast_tac (!claset addSIs [par_beta_refl])));
+by (ALLGOALS(blast_tac (claset() addSIs [par_beta_refl])));
 qed "beta_subset_par_beta";
 
 goal ParRed.thy "par_beta <= beta^*";
@@ -45,7 +45,7 @@ by (split_all_tac 1);
 by (etac par_beta.induct 1);
 by (Blast_tac 1);
 (* rtrancl_refl complicates the proof by increasing the branching factor*)
-by (ALLGOALS (blast_tac (!claset delrules [rtrancl_refl]
+by (ALLGOALS (blast_tac (claset() delrules [rtrancl_refl]
 				 addIs [rtrancl_into_rtrancl])));
 qed "par_beta_subset_beta";
 
@@ -53,20 +53,20 @@ qed "par_beta_subset_beta";
 
 goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
 by (dB.induct_tac "t" 1);
-by (ALLGOALS(fast_tac (!claset addss (!simpset))));
+by (ALLGOALS(fast_tac (claset() addss (simpset()))));
 qed_spec_mp "par_beta_lift";
 Addsimps [par_beta_lift];
 
 goal ParRed.thy
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
 by (dB.induct_tac "t" 1);
-  by (asm_simp_tac (addsplit(!simpset)) 1);
+  by (asm_simp_tac (addsplit(simpset())) 1);
  by (strip_tac 1);
  by (eresolve_tac par_beta_cases 1);
   by (Asm_simp_tac 1);
- by (asm_simp_tac (!simpset addsimps [subst_subst RS sym]) 1);
- by (fast_tac (!claset addSIs [par_beta_lift] addss (!simpset)) 1);
-by (fast_tac (!claset addss (!simpset)) 1);
+ by (asm_simp_tac (simpset() addsimps [subst_subst RS sym]) 1);
+ by (fast_tac (claset() addSIs [par_beta_lift] addss (simpset())) 1);
+by (fast_tac (claset() addss (simpset())) 1);
 qed_spec_mp "par_beta_subst";
 
 (*** Confluence (directly) ***)
@@ -74,7 +74,7 @@ qed_spec_mp "par_beta_subst";
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac par_beta.induct 1);
-by (ALLGOALS(blast_tac (!claset addSIs [par_beta_subst])));
+by (ALLGOALS(blast_tac (claset() addSIs [par_beta_subst])));
 qed "diamond_par_beta";
 
 
@@ -85,14 +85,14 @@ by (dB.induct_tac "s" 1);
   by (Simp_tac 1);
  by (etac rev_mp 1);
  by (dB.induct_tac "dB1" 1);
- by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] 
-                                addss (!simpset))));
+ by (ALLGOALS(fast_tac (claset() addSIs [par_beta_subst] 
+                                addss (simpset()))));
 qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)
 
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
-by (blast_tac (!claset addIs [par_beta_cd]) 1);
+by (blast_tac (claset() addIs [par_beta_cd]) 1);
 qed "diamond_par_beta2";
 
 goal ParRed.thy "confluent(beta)";

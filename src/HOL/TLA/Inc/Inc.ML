@@ -10,7 +10,7 @@ val PsiInv_defs = [PsiInv_def,PsiInv1_def,PsiInv2_def,PsiInv3_def];
 val Psi_defs = [Psi_def,InitPsi_def,N1_def,N2_def,alpha1_def,alpha2_def,
                 beta1_def,beta2_def,gamma1_def,gamma2_def];
 
-val Inc_css = (!claset, !simpset);
+val Inc_css = (claset(), simpset());
 
 (*** Invariant proof for Psi: "manual" proof proves individual lemmas ***)
 
@@ -55,7 +55,7 @@ qed_goal "PsiInv" Inc.thy "Psi .-> []PsiInv"
    More substantial examples require manual guidance anyway.
 
 goal Inc.thy "Psi .-> []PsiInv";
-by (auto_inv_tac (!simpset addsimps PsiInv_defs @ Psi_defs @ pcount.simps) 1);
+by (auto_inv_tac (simpset() addsimps PsiInv_defs @ Psi_defs @ pcount.simps) 1);
 
 *)
 

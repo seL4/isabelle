@@ -61,29 +61,29 @@ Addsimps [wp_SKIP,wp_Ass,wp_Semi,wp_If,wp_While_True,wp_While_False];
 (*Not suitable for rewriting: LOOPS!*)
 goal Hoare.thy "wp (WHILE b DO c) Q s = \
 \                 (if b s then wp (c;WHILE b DO c) Q s else Q s)";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 qed "wp_While_if";
 
 goal thy
   "wp (WHILE b DO c) Q s = \
 \  (s : gfp(%S.{s. if b s then wp c (%s. s:S) s else Q s}))";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (rtac iffI 1);
  by (rtac weak_coinduct 1);
   by (etac CollectI 1);
- by (safe_tac (!claset));
+ by (safe_tac (claset()));
   by (rotate_tac ~1 1);
   by (Asm_full_simp_tac 1);
  by (rotate_tac ~1 1);
  by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [wp_def,Gamma_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [wp_def,Gamma_def]) 1);
 by (strip_tac 1);
 by (rtac mp 1);
  by (assume_tac 2);
 by (etac induct2 1);
-by (fast_tac (!claset addSIs [monoI]) 1);
+by (fast_tac (claset() addSIs [monoI]) 1);
 by (stac gfp_Tarski 1);
- by (fast_tac (!claset addSIs [monoI]) 1);
+ by (fast_tac (claset() addSIs [monoI]) 1);
 by (Fast_tac 1);
 qed "wp_While";
 
@@ -95,7 +95,7 @@ goal Hoare.thy "!Q. |- {wp c Q} c {Q}";
 by (com.induct_tac "c" 1);
 by (ALLGOALS Simp_tac);
 by (REPEAT_FIRST Fast_tac);
-by (deepen_tac (!claset addIs [hoare.conseq]) 0 1);
+by (deepen_tac (claset() addIs [hoare.conseq]) 0 1);
 by Safe_tac;
 by (rtac hoare.conseq 1);
   by (etac thin_rl 1);

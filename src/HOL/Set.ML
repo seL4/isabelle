@@ -83,12 +83,12 @@ AddSEs [bexE];
 
 (*Trival rewrite rule*)
 goal Set.thy "(! x:A. P) = ((? x. x:A) --> P)";
-by (simp_tac (!simpset addsimps [Ball_def]) 1);
+by (simp_tac (simpset() addsimps [Ball_def]) 1);
 qed "ball_triv";
 
 (*Dual form for existentials*)
 goal Set.thy "(? x:A. P) = ((? x. x:A) & P)";
-by (simp_tac (!simpset addsimps [Bex_def]) 1);
+by (simp_tac (simpset() addsimps [Bex_def]) 1);
 qed "bex_triv";
 
 Addsimps [ball_triv, bex_triv];
@@ -228,7 +228,7 @@ qed_goal "empty_subsetI" Set.thy "{} <= A"
 
 qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
  (fn [prem]=>
-  [ (blast_tac (!claset addIs [prem RS FalseE]) 1) ]);
+  [ (blast_tac (claset() addIs [prem RS FalseE]) 1) ]);
 
 qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
@@ -414,7 +414,7 @@ qed_goal "singleton_iff" thy "(b : {a}) = (b=a)"
 (fn _ => [Blast_tac 1]);
 
 goal Set.thy "!!a b. {a}={b} ==> a=b";
-by (blast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (claset() addEs [equalityE]) 1);
 qed "singleton_inject";
 
 (*Redundant? But unlike insertCI, it proves the subgoal immediately!*)
@@ -669,7 +669,7 @@ val expand_ifs = [if_bool_eq, expand_if_eq1, expand_if_eq2,
 		  expand_if_mem1, expand_if_mem2];
 
 
-(*Each of these has ALREADY been added to !simpset above.*)
+(*Each of these has ALREADY been added to simpset() above.*)
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
                  mem_Collect_eq, 
 		 UN_iff, UN1_iff, Union_iff, 
@@ -677,12 +677,12 @@ val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff,
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 qed "mem_if";
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
-simpset := !simpset addcongs [ball_cong,bex_cong]
+simpset_ref() := simpset() addcongs [ball_cong,bex_cong]
                     setmksimps (mksimps mksimps_pairs);
 
 Addsimps[subset_UNIV, empty_subsetI, subset_refl];

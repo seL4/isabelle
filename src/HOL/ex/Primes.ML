@@ -23,7 +23,7 @@ open Primes;
     and induction rule **)
 
 Tfl.tgoalw thy [] gcd.rules;
-by (simp_tac (!simpset addsimps [mod_less_divisor, zero_less_eq]) 1);
+by (simp_tac (simpset() addsimps [mod_less_divisor, zero_less_eq]) 1);
 val tc = result();
 
 val gcd_eq = tc RS hd gcd.rules;
@@ -36,7 +36,7 @@ qed "gcd_0";
 
 goal thy "!!m. 0<n ==> gcd(m,n) = gcd (n, m mod n)";
 by (rtac (gcd_eq RS trans) 1);
-by (asm_simp_tac (!simpset addsplits [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
 qed "gcd_less_0";
 Addsimps [gcd_0, gcd_less_0];
 
@@ -53,8 +53,8 @@ goal thy "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
 by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [mod_less_divisor,zero_less_eq])));
-by (blast_tac (!claset addDs [dvd_mod_imp_dvd]) 1);
+    (asm_simp_tac (simpset() addsimps [mod_less_divisor,zero_less_eq])));
+by (blast_tac (claset() addDs [dvd_mod_imp_dvd]) 1);
 qed "gcd_divides_both";
 
 (*Maximality: for all m,n,f naturals, 
@@ -63,18 +63,18 @@ goal thy "!!k. (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
 by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [dvd_mod, mod_less_divisor,
+    (asm_simp_tac (simpset() addsimps [dvd_mod, mod_less_divisor,
 				      zero_less_eq])));
 qed_spec_mp "gcd_greatest";
 
 (*Function gcd yields the Greatest Common Divisor*)
 goalw thy [is_gcd_def] "is_gcd (gcd(m,n)) m n";
-by (asm_simp_tac (!simpset addsimps [gcd_greatest, gcd_divides_both]) 1);
+by (asm_simp_tac (simpset() addsimps [gcd_greatest, gcd_divides_both]) 1);
 qed "is_gcd";
 
 (*uniqueness of GCDs*)
 goalw thy [is_gcd_def] "is_gcd m a b & is_gcd n a b --> m=n";
-by (blast_tac (!claset addIs [dvd_anti_sym]) 1);
+by (blast_tac (claset() addIs [dvd_anti_sym]) 1);
 qed "is_gcd_unique";
 
 (*Davenport, page 27*)
@@ -83,7 +83,7 @@ by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "k=0" 1);
 by (case_tac "n=0" 2);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [mod_less_divisor, zero_less_eq,
+    (asm_simp_tac (simpset() addsimps [mod_less_divisor, zero_less_eq,
 				      mod_geq, mod_mult_distrib2])));
 qed "gcd_mult_distrib2";
 
@@ -94,8 +94,8 @@ by (Clarify_tac 1);
 by (subgoal_tac "m = gcd(m*p, m*n)" 1);
 by (etac ssubst 1);
 by (rtac gcd_greatest 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [gcd_mult_distrib2 RS sym])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [gcd_mult_distrib2 RS sym])));
 (*Now deduce  gcd(p,n)=1  to finish the proof*)
 by (cut_inst_tac [("m","p"),("n","n")] gcd_divides_both 1);
-by (fast_tac (!claset addSss (!simpset)) 1);
+by (fast_tac (claset() addSss (simpset())) 1);
 qed "prime_dvd_mult";

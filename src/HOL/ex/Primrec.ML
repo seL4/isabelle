@@ -67,20 +67,20 @@ AddIffs [ack_less_ack_Suc2];
 goal thy "j<k --> ack(i,j) < ack(i,k)";
 by (res_inst_tac [("u","i"),("v","k")] ack.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addSEs [less_SucE] addIs [less_trans]) 1);
+by (blast_tac (claset() addSEs [less_SucE] addIs [less_trans]) 1);
 qed_spec_mp "ack_less_mono2";
 
 (*PROPERTY A 5', monotonicity for<=*)
 goal thy "!!i j k. j<=k ==> ack(i,j)<=ack(i,k)";
-by (full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-by (blast_tac (!claset addIs [ack_less_mono2]) 1);
+by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (blast_tac (claset() addIs [ack_less_mono2]) 1);
 qed "ack_le_mono2";
 
 (*PROPERTY A 6*)
 goal thy "ack(i, Suc(j)) <= ack(Suc(i), j)";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addIs [ack_le_mono2, less_ack2 RS Suc_leI, 
+by (blast_tac (claset() addIs [ack_le_mono2, less_ack2 RS Suc_leI, 
 			      le_trans]) 1);
 qed "ack2_le_ack1";
 
@@ -88,7 +88,7 @@ AddIffs [ack2_le_ack1];
 
 (*PROPERTY A 7-, the single-step lemma*)
 goal thy "ack(i,j) < ack(Suc(i),j)";
-by (blast_tac (!claset addIs [ack_less_mono2, less_le_trans]) 1);
+by (blast_tac (claset() addIs [ack_less_mono2, less_le_trans]) 1);
 qed "ack_less_ack_Suc1";
 
 AddIffs [ack_less_ack_Suc1];
@@ -97,7 +97,7 @@ AddIffs [ack_less_ack_Suc1];
 goal thy "i < ack(i,j)";
 by (induct_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addIs [Suc_leI, le_less_trans]) 1);
+by (blast_tac (claset() addIs [Suc_leI, le_less_trans]) 1);
 qed "less_ack1";
 AddIffs [less_ack1];
 
@@ -120,22 +120,22 @@ Addsimps [ack_2];
 goal thy "ack(i,k) < ack(Suc(i+i'),k)";
 by (res_inst_tac [("u","i"),("v","k")] ack.induct 1);
 by (ALLGOALS Asm_full_simp_tac);
-by (blast_tac (!claset addIs [less_trans, ack_less_mono2]) 2);
+by (blast_tac (claset() addIs [less_trans, ack_less_mono2]) 2);
 by (res_inst_tac [("u","i'"),("v","n")] ack.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addIs [less_trans, ack_less_mono2]) 1);
-by (blast_tac (!claset addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);
+by (blast_tac (claset() addIs [less_trans, ack_less_mono2]) 1);
+by (blast_tac (claset() addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);
 val lemma = result();
 
 goal thy "!!i j k. i<j ==> ack(i,k) < ack(j,k)";
 by (etac less_natE 1);
-by (blast_tac (!claset addSIs [lemma]) 1);
+by (blast_tac (claset() addSIs [lemma]) 1);
 qed "ack_less_mono1";
 
 (*PROPERTY A 7', monotonicity for<=*)
 goal thy "!!i j k. i<=j ==> ack(i,k)<=ack(j,k)";
-by (full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-by (blast_tac (!claset addIs [ack_less_mono1]) 1);
+by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (blast_tac (claset() addIs [ack_less_mono1]) 1);
 qed "ack_le_mono1";
 
 (*PROPERTY A 10*)
@@ -144,7 +144,7 @@ by (rtac (ack2_le_ack1 RSN (2,less_le_trans)) 1);
 by (Asm_simp_tac 1);
 by (rtac (le_add1 RS ack_le_mono1 RS le_less_trans) 1);
 by (rtac (ack_less_mono1 RS ack_less_mono2) 1);
-by (simp_tac (!simpset addsimps [le_imp_less_Suc, le_add2]) 1);
+by (simp_tac (simpset() addsimps [le_imp_less_Suc, le_add2]) 1);
 qed "ack_nest_bound";
 
 (*PROPERTY A 11*)
@@ -153,7 +153,7 @@ by (res_inst_tac [("j", "ack(Suc(1), ack(i1 + i2, j))")] less_trans 1);
 by (Asm_simp_tac 1);
 by (rtac (ack_nest_bound RS less_le_trans) 2);
 by (Asm_simp_tac 2);
-by (blast_tac (!claset addSIs [le_add1, le_add2]
+by (blast_tac (claset() addSIs [le_add1, le_add2]
 		       addIs  [le_imp_less_Suc, ack_le_mono1, le_SucI, 
 			       add_le_mono]) 1);
 qed "ack_add_bound";
@@ -174,7 +174,7 @@ qed "ack_add_bound2";
 
 goalw thy [SC_def] "SC l < ack(1, list_add l)";
 by (induct_tac "l" 1);
-by (ALLGOALS (simp_tac (!simpset addsimps [le_add1, le_imp_less_Suc])));
+by (ALLGOALS (simp_tac (simpset() addsimps [le_add1, le_imp_less_Suc])));
 qed "SC_case";
 
 goal thy "CONST k l < ack(k, list_add l)";
@@ -187,9 +187,9 @@ by (induct_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac allI 1);
 by (exhaust_tac "i" 1);
-by (asm_simp_tac (!simpset addsimps [le_add1, le_imp_less_Suc]) 1);
+by (asm_simp_tac (simpset() addsimps [le_add1, le_imp_less_Suc]) 1);
 by (Asm_simp_tac 1);
-by (blast_tac (!claset addIs [less_le_trans] 
+by (blast_tac (claset() addIs [less_le_trans] 
                        addSIs [le_add2]) 1);
 qed_spec_mp "PROJ_case";
 
@@ -200,9 +200,9 @@ goal thy
 \      ==> EX k. ALL l. list_add (map(%f. f l) fs) < ack(k, list_add l)";
 by (etac lists.induct 1);
 by (res_inst_tac [("x","0")] exI 1 THEN Asm_simp_tac 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (Asm_simp_tac 1);
-by (blast_tac (!claset addIs [add_less_mono, ack_add_bound, less_trans]) 1);
+by (blast_tac (claset() addIs [add_less_mono, ack_add_bound, less_trans]) 1);
 qed "COMP_map_lemma";
 
 goalw thy [COMP_def]
@@ -215,7 +215,7 @@ by (rtac exI 1);
 by (rtac allI 1);
 by (REPEAT (dtac spec 1));
 by (etac less_trans 1);
-by (blast_tac (!claset addIs [ack_less_mono2, ack_nest_bound, less_trans]) 1);
+by (blast_tac (claset() addIs [ack_less_mono2, ack_nest_bound, less_trans]) 1);
 qed "COMP_case";
 
 (** PREC case **)
@@ -226,18 +226,18 @@ goalw thy [PREC_def]
 \        |] ==> PREC f g l + list_add l < ack(Suc(kf+kg), list_add l)";
 by (exhaust_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addIs [less_trans]) 1);
+by (blast_tac (claset() addIs [less_trans]) 1);
 by (etac ssubst 1);  (*get rid of the needless assumption*)
 by (induct_tac "a" 1);
 by (ALLGOALS Asm_simp_tac);
 (*base case*)
-by (blast_tac (!claset addIs [le_add1 RS le_imp_less_Suc RS ack_less_mono1, 
+by (blast_tac (claset() addIs [le_add1 RS le_imp_less_Suc RS ack_less_mono1, 
 			      less_trans]) 1);
 (*induction step*)
 by (rtac (Suc_leI RS le_less_trans) 1);
 by (rtac (le_refl RS add_le_mono RS le_less_trans) 1);
 by (etac spec 2);
-by (asm_simp_tac (!simpset addsimps [le_add2]) 1);
+by (asm_simp_tac (simpset() addsimps [le_add2]) 1);
 (*final part of the simplification*)
 by (Asm_simp_tac 1);
 by (rtac (le_add2 RS ack_le_mono1 RS le_less_trans) 1);
@@ -251,13 +251,13 @@ goal thy
 by (rtac exI 1);
 by (rtac allI 1);
 by (rtac ([le_add1, PREC_case_lemma] MRS le_less_trans) 1);
-by (REPEAT (blast_tac (!claset addIs [ack_add_bound2]) 1));
+by (REPEAT (blast_tac (claset() addIs [ack_add_bound2]) 1));
 qed "PREC_case";
 
 goal thy "!!f. f:PRIMREC ==> EX k. ALL l. f l < ack(k, list_add l)";
 by (etac PRIMREC.induct 1);
 by (ALLGOALS 
-    (blast_tac (!claset addIs [SC_case, CONST_case, PROJ_case, COMP_case, 
+    (blast_tac (claset() addIs [SC_case, CONST_case, PROJ_case, COMP_case, 
 			       PREC_case])));
 qed "ack_bounds_PRIMREC";
 

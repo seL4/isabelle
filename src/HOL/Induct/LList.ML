@@ -10,7 +10,7 @@ open LList;
 
 (** Simplification **)
 
-simpset := !simpset addsplits [expand_split, expand_sum_case];
+simpset_ref() := simpset() addsplits [expand_split, expand_sum_case];
 
 (*For adding _eqI rules to a simpset; we must remove Pair_eq because
   it may turn an instance of reflexivity into a conjunction!*)
@@ -27,7 +27,7 @@ qed "llist_mono";
 
 goal LList.thy "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
-by (fast_tac (!claset addSIs (map rew llist.intrs)
+by (fast_tac (claset() addSIs (map rew llist.intrs)
                       addEs [rew llist.elim]) 1)
 end;
 qed "llist_unfold";
@@ -63,16 +63,16 @@ qed "list_Fun_llist_I";
 
 (*A continuity result?*)
 goalw LList.thy [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
-by (simp_tac (!simpset addsimps [In1_UN1, Scons_UN1_y]) 1);
+by (simp_tac (simpset() addsimps [In1_UN1, Scons_UN1_y]) 1);
 qed "CONS_UN1";
 
 (*UNUSED; obsolete?
 goal Prod.thy "split p (%x y. UN z. f x y z) = (UN z. split p (%x y. f x y z))";
-by (simp_tac (!simpset addsplits [expand_split]) 1);
+by (simp_tac (simpset() addsplits [expand_split]) 1);
 qed "split_UN1";
 
 goal Sum.thy "sum_case s f (%y. UN z. g y z) = (UN z. sum_case s f (%y. g y z))";
-by (simp_tac (!simpset addsplits [expand_sum_case]) 1);
+by (simp_tac (simpset() addsplits [expand_sum_case]) 1);
 qed "sum_case2_UN1";
 *)
 
@@ -98,8 +98,8 @@ qed "LList_corec_subset1";
 goalw LList.thy [LList_corec_def]
     "sum_case (%u. NIL) (split(%z w. CONS z (LList_corec w f))) (f a) <= \
 \    LList_corec a f";
-by (simp_tac (!simpset addsimps [CONS_UN1]) 1);
-by (safe_tac (!claset));
+by (simp_tac (simpset() addsimps [CONS_UN1]) 1);
+by (safe_tac (claset()));
 by (ALLGOALS (res_inst_tac [("x","Suc(?k)")] UN1_I THEN' Asm_simp_tac));
 qed "LList_corec_subset2";
 
@@ -124,9 +124,9 @@ qed "def_LList_corec";
 goal LList.thy "LList_corec a f : llist({u. True})";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac LList_corec 1);
-by (simp_tac (!simpset addsimps [list_Fun_NIL_I, list_Fun_CONS_I, CollectI]
+by (simp_tac (simpset() addsimps [list_Fun_NIL_I, list_Fun_CONS_I, CollectI]
                        |> add_eqI) 1);
 qed "LList_corec_type";
 
@@ -136,10 +136,10 @@ goal LList.thy
 \   llist(range Leaf)";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac LList_corec 1);
-by (asm_simp_tac (!simpset addsimps [list_Fun_NIL_I]) 1);
-by (fast_tac (!claset addSIs [list_Fun_CONS_I]) 1);
+by (asm_simp_tac (simpset() addsimps [list_Fun_NIL_I]) 1);
+by (fast_tac (claset() addSIs [list_Fun_CONS_I]) 1);
 qed "LList_corec_type2";
 
 
@@ -148,22 +148,22 @@ qed "LList_corec_type2";
 (*This theorem is actually used, unlike the many similar ones in ZF*)
 goal LList.thy "LListD(r) = diag({Numb(0)}) <++> (r <**> LListD(r))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
-by (fast_tac (!claset addSIs (map rew LListD.intrs)
+by (fast_tac (claset() addSIs (map rew LListD.intrs)
                       addEs [rew LListD.elim]) 1)
 end;
 qed "LListD_unfold";
 
 goal LList.thy "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
-by (safe_tac ((claset_of "Fun") delrules [equalityI]));
+by (safe_tac ((claset_of Fun.thy) delrules [equalityI]));
 by (etac LListD.elim 1);
-by (safe_tac (claset_of "Prod" delrules [equalityI] addSEs [diagE]));
+by (safe_tac (claset_of Prod.thy delrules [equalityI] addSEs [diagE]));
 by (res_inst_tac [("n", "n")] natE 1);
-by (asm_simp_tac (!simpset addsimps [ntrunc_0]) 1);
+by (asm_simp_tac (simpset() addsimps [ntrunc_0]) 1);
 by (rename_tac "n'" 1);
 by (res_inst_tac [("n", "n'")] natE 1);
-by (asm_simp_tac (!simpset addsimps [CONS_def, ntrunc_one_In1]) 1);
-by (asm_simp_tac (!simpset addsimps [CONS_def, ntrunc_In1, ntrunc_Scons, less_Suc_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [CONS_def, ntrunc_one_In1]) 1);
+by (asm_simp_tac (simpset() addsimps [CONS_def, ntrunc_In1, ntrunc_Scons, less_Suc_eq]) 1);
 qed "LListD_implies_ntrunc_equality";
 
 (*The domain of the LListD relation*)
@@ -180,7 +180,7 @@ qed "fst_image_LListD";
 goal LList.thy "LListD(diag(A)) <= diag(llist(A))";
 by (rtac subsetI 1);
 by (res_inst_tac [("p","x")] PairE 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (rtac diag_eqI 1);
 by (rtac (LListD_implies_ntrunc_equality RS spec RS spec RS mp RS 
           ntrunc_equality) 1);
@@ -229,7 +229,7 @@ by (etac diagE 1);
 by (etac ssubst 1);
 by (eresolve_tac [llist.elim] 1);
 by (ALLGOALS
-    (asm_simp_tac (!simpset addsimps [diagI, LListD_Fun_NIL_I,
+    (asm_simp_tac (simpset() addsimps [diagI, LListD_Fun_NIL_I,
                                       LListD_Fun_CONS_I])));
 qed "diag_subset_LListD";
 
@@ -242,7 +242,7 @@ goal LList.thy
     "!!M N. M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
 by (rtac LListD_Fun_LListD_I 1);
-by (asm_simp_tac (!simpset addsimps [LListD_eq_diag, diagI]) 1);
+by (asm_simp_tac (simpset() addsimps [LListD_eq_diag, diagI]) 1);
 qed "LListD_Fun_diag_I";
 
 
@@ -254,8 +254,8 @@ goal LList.thy
 \         |] ==>  M=N";
 by (rtac (LListD_subset_diag RS subsetD RS diagE) 1);
 by (etac LListD_coinduct 1);
-by (asm_simp_tac (!simpset addsimps [LListD_eq_diag]) 1);
-by (safe_tac (!claset));
+by (asm_simp_tac (simpset() addsimps [LListD_eq_diag]) 1);
+by (safe_tac (claset()));
 qed "LList_equalityI";
 
 
@@ -271,10 +271,10 @@ by (rtac ext 1);
 by (res_inst_tac [("A", "{u. True}"),
                   ("r", "range(%u. (h1(u),h2(u)))")] LList_equalityI 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac prem1 1);
 by (stac prem2 1);
-by (simp_tac (!simpset addsimps [LListD_Fun_NIL_I,
+by (simp_tac (simpset() addsimps [LListD_Fun_NIL_I,
                                  CollectI RS LListD_Fun_CONS_I]
                        |> add_eqI) 1);
 qed "LList_corec_unique";
@@ -294,7 +294,7 @@ qed "ntrunc_one_CONS";
 
 goalw LList.thy [CONS_def]
     "ntrunc (Suc(Suc(k))) (CONS M N) = CONS (ntrunc k M) (ntrunc k N)";
-by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_In1]) 1);
+by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_In1]) 1);
 qed "ntrunc_CONS";
 
 val [prem1,prem2] = goal LList.thy
@@ -310,12 +310,12 @@ by (rtac allI 1);
 by (rename_tac "y" 1);
 by (stac prem1 1);
 by (stac prem2 1);
-by (simp_tac (!simpset addsplits [expand_sum_case]) 1);
+by (simp_tac (simpset() addsplits [expand_sum_case]) 1);
 by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
 by (rename_tac "m" 2);
 by (res_inst_tac [("n", "m")] natE 2);
-by (ALLGOALS(asm_simp_tac(!simpset addsimps
+by (ALLGOALS(asm_simp_tac(simpset() addsimps
             [ntrunc_0,ntrunc_one_CONS,ntrunc_CONS, less_Suc_eq])));
 result();
 
@@ -333,7 +333,7 @@ bind_thm ("Lconst", (Lconst_fun_mono RS (Lconst_def RS def_lfp_Tarski)));
   The containing set is simply the singleton {Lconst(M)}. *)
 goal LList.thy "!!M A. M:A ==> Lconst(M): llist(A)";
 by (rtac (singletonI RS llist_coinduct) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
@@ -392,7 +392,7 @@ qed "Rep_llist_LCons";
 (** Injectiveness of CONS and LCons **)
 
 goalw LList.thy [CONS_def] "(CONS M N=CONS M' N') = (M=M' & N=N')";
-by (fast_tac (!claset addSEs [Scons_inject]) 1);
+by (fast_tac (claset() addSEs [Scons_inject]) 1);
 qed "CONS_CONS_eq2";
 
 bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
@@ -460,9 +460,9 @@ qed "Lmap_CONS";
 val [major,minor] = goal LList.thy
     "[| M: llist(A);  !!x. x:A ==> f(x):B |] ==> Lmap f M: llist(B)";
 by (rtac (major RS imageI RS llist_coinduct) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac llist.elim 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Lmap_NIL,Lmap_CONS])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Lmap_NIL,Lmap_CONS])));
 by (REPEAT (ares_tac [list_Fun_NIL_I, list_Fun_CONS_I, 
                       minor, imageI, UnI1] 1));
 qed "Lmap_type";
@@ -478,18 +478,18 @@ qed "Lmap_type2";
 val [prem] = goalw LList.thy [o_def]
     "M: llist(A) ==> Lmap (f o g) M = Lmap f (Lmap g M)";
 by (rtac (prem RS imageI RS LList_equalityI) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac llist.elim 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Lmap_NIL,Lmap_CONS])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Lmap_NIL,Lmap_CONS])));
 by (REPEAT (ares_tac [LListD_Fun_NIL_I, imageI, UnI1,
                       rangeI RS LListD_Fun_CONS_I] 1));
 qed "Lmap_compose";
 
 val [prem] = goal LList.thy "M: llist(A) ==> Lmap (%x. x) M = M";
 by (rtac (prem RS imageI RS LList_equalityI) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac llist.elim 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Lmap_NIL,Lmap_CONS])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Lmap_NIL,Lmap_CONS])));
 by (REPEAT (ares_tac [LListD_Fun_NIL_I, imageI RS UnI1,
                       rangeI RS LListD_Fun_CONS_I] 1));
 qed "Lmap_ident";
@@ -536,12 +536,12 @@ goal LList.thy
 by (res_inst_tac
     [("X", "UN u:llist(A). UN v: llist(A). {Lappend u v}")] llist_coinduct 1);
 by (Fast_tac 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (eres_inst_tac [("a", "u")] llist.elim 1);
 by (eres_inst_tac [("a", "v")] llist.elim 1);
 by (ALLGOALS
     (Asm_simp_tac THEN'
-     fast_tac (!claset addSIs [llist.NIL_I, list_Fun_NIL_I, list_Fun_CONS_I])));
+     fast_tac (claset() addSIs [llist.NIL_I, list_Fun_NIL_I, list_Fun_CONS_I])));
 qed "Lappend_type";
 
 (*strong co-induction: bisimulation and case analysis on one variable*)
@@ -552,9 +552,9 @@ by (etac imageI 1);
 by (rtac subsetI 1);
 by (etac imageE 1);
 by (eres_inst_tac [("a", "u")] llist.elim 1);
-by (asm_simp_tac (!simpset addsimps [Lappend_NIL, list_Fun_llist_I]) 1);
+by (asm_simp_tac (simpset() addsimps [Lappend_NIL, list_Fun_llist_I]) 1);
 by (Asm_simp_tac 1);
-by (fast_tac (!claset addSIs [list_Fun_CONS_I]) 1);
+by (fast_tac (claset() addSIs [list_Fun_CONS_I]) 1);
 qed "Lappend_type";
 
 (**** Lazy lists as the type 'a llist -- strongly typed versions of above ****)
@@ -583,7 +583,7 @@ by (stac Rep_llist_LNil 1);
 by (assume_tac 1);
 by (etac rangeE 1);
 by (rtac (inj_Rep_llist RS injD RS prem2) 1);
-by (asm_simp_tac (!simpset delsimps [CONS_CONS_eq] addsimps [Rep_llist_LCons]) 1);
+by (asm_simp_tac (simpset() delsimps [CONS_CONS_eq] addsimps [Rep_llist_LCons]) 1);
 by (etac (Abs_llist_inverse RS ssubst) 1);
 by (rtac refl 1);
 qed "llistE";
@@ -595,11 +595,11 @@ goalw LList.thy [llist_corec_def,LNil_def,LCons_def]
 \                           (split(%z w. LCons z (llist_corec w f))) (f a)";
 by (stac LList_corec 1);
 by (res_inst_tac [("s","f(a)")] sumE 1);
-by (asm_simp_tac (!simpset addsimps [LList_corec_type2]) 1);
+by (asm_simp_tac (simpset() addsimps [LList_corec_type2]) 1);
 by (res_inst_tac [("p","y")] PairE 1);
-by (asm_simp_tac (!simpset addsimps [LList_corec_type2]) 1);
+by (asm_simp_tac (simpset() addsimps [LList_corec_type2]) 1);
 (*FIXME: correct case splits usd to be found automatically:
-by (ASM_SIMP_TAC(!simpset addsimps [LList_corec_type2]) 1);*)
+by (ASM_SIMP_TAC(simpset() addsimps [LList_corec_type2]) 1);*)
 qed "llist_corec";
 
 (*definitional version of same*)
@@ -618,31 +618,31 @@ goalw LList.thy [LListD_Fun_def]
     "!!r A. r <= (llist A) Times (llist A) ==> \
 \           LListD_Fun (diag A) r <= (llist A) Times (llist A)";
 by (stac llist_unfold 1);
-by (simp_tac (!simpset addsimps [NIL_def, CONS_def]) 1);
+by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Sigma_llist";
 
 goal LList.thy
     "prod_fun Rep_llist Rep_llist `` r <= \
 \    (llist(range Leaf)) Times (llist(range Leaf))";
-by (fast_tac (!claset addIs [Rep_llist]) 1);
+by (fast_tac (claset() addIs [Rep_llist]) 1);
 qed "subset_Sigma_llist";
 
 val [prem] = goal LList.thy
     "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
 \    prod_fun (Rep_llist o Abs_llist) (Rep_llist o Abs_llist) `` r <= r";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (rtac (prem RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (!simpset addsimps [o_def,prod_fun,Abs_llist_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [o_def,prod_fun,Abs_llist_inverse]) 1);
 qed "prod_fun_lemma";
 
 goal LList.thy
     "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
-by (fast_tac (!claset addIs [Rep_llist]) 1);
-by (fast_tac (!claset addSEs [Abs_llist_inverse RS subst]) 1);
+by (fast_tac (claset() addIs [Rep_llist]) 1);
+by (fast_tac (claset() addSEs [Abs_llist_inverse RS subst]) 1);
 qed "prod_fun_range_eq_diag";
 
 (*Surprisingly hard to prove.  Used with lfilter*)
@@ -650,8 +650,8 @@ goalw thy [llistD_Fun_def, prod_fun_def]
     "!!A B. A<=B ==> llistD_Fun A <= llistD_Fun B";
 by (Auto_tac());
 by (rtac image_eqI 1);
-by (fast_tac (!claset addss (!simpset)) 1);
-by (blast_tac (!claset addIs [impOfSubs LListD_Fun_mono]) 1);
+by (fast_tac (claset() addss (simpset())) 1);
+by (blast_tac (claset() addIs [impOfSubs LListD_Fun_mono]) 1);
 qed "llistD_Fun_mono";
 
 (** To show two llists are equal, exhibit a bisimulation! 
@@ -757,7 +757,7 @@ goal LList.thy "lmap f (iterates f x) = iterates f (f x)";
 by (res_inst_tac [("r", "range(%u.(lmap f (iterates f u),iterates f (f u)))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("x1", "f(u)")] (iterates RS ssubst) 1);
 by (res_inst_tac [("x1", "u")] (iterates RS ssubst) 1);
 by (Simp_tac 1);
@@ -797,7 +797,7 @@ by (res_inst_tac [("r",
 \                    nat_rec (iterates f u) (%m y. lmap f y) n))")] 
     llist_equalityI 1);
 by (REPEAT (resolve_tac [UN1_I, range_eqI, Pair_cong, nat_rec_0 RS sym] 1));
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac iterates 1);
 by (stac prem 1);
 by (stac fun_power_lmap 1);
@@ -849,7 +849,7 @@ goal LList.thy "lappend (iterates f x) N = iterates f x";
 by (res_inst_tac [("r", "range(%u.(lappend (iterates f u) N,iterates f u))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (stac iterates 1);
 by (Simp_tac 1);
 qed "lappend_iterates";
@@ -864,7 +864,7 @@ by (res_inst_tac
     llist_equalityI 1);
 by (rtac UN1_I 1);
 by (rtac rangeI 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("l", "l")] llistE 1);
 by (res_inst_tac [("l", "n")] llistE 1);
 by (ALLGOALS Asm_simp_tac);

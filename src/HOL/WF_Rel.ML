@@ -33,10 +33,10 @@ AddIffs [less_than_iff];
  *---------------------------------------------------------------------------*)
 
 goal thy "!!r. wf(r) ==> wf(inv_image r (f::'a=>'b))"; 
-by (full_simp_tac (!simpset addsimps [inv_image_def, wf_eq_minimal]) 1);
+by (full_simp_tac (simpset() addsimps [inv_image_def, wf_eq_minimal]) 1);
 by (Clarify_tac 1);
 by (subgoal_tac "? (w::'b). w : {w. ? (x::'a). x: Q & (f x = w)}" 1);
-by (blast_tac (!claset delrules [allE]) 2);
+by (blast_tac (claset() delrules [allE]) 2);
 by (etac allE 1);
 by (mp_tac 1);
 by (Blast_tac 1);
@@ -90,13 +90,13 @@ AddSIs [trans_lex_prod];
  *---------------------------------------------------------------------------*)
 goalw thy [finite_psubset_def] "wf(finite_psubset)";
 by (rtac (wf_measure RS wf_subset) 1);
-by (simp_tac (!simpset addsimps [measure_def, inv_image_def, less_than_def,
+by (simp_tac (simpset() addsimps [measure_def, inv_image_def, less_than_def,
 				 symmetric less_def])1);
-by (fast_tac (!claset addSIs [psubset_card]) 1);
+by (fast_tac (claset() addSIs [psubset_card]) 1);
 qed "wf_finite_psubset";
 
 goalw thy [finite_psubset_def, trans_def] "trans finite_psubset";
-by (simp_tac (!simpset addsimps [psubset_def]) 1);
+by (simp_tac (simpset() addsimps [psubset_def]) 1);
 by (Blast_tac 1);
 qed "trans_finite_psubset";
 
@@ -113,7 +113,7 @@ by (Asm_full_simp_tac 1);
 qed_spec_mp "finite_acyclic_wf";
 
 goal thy "!!r. finite r ==> wf r = acyclic r";
-by (blast_tac (!claset addIs [finite_acyclic_wf,wf_acyclic]) 1);
+by (blast_tac (claset() addIs [finite_acyclic_wf,wf_acyclic]) 1);
 qed "wf_iff_acyclic_if_finite";
 
 

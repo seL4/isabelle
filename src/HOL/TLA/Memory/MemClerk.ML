@@ -18,14 +18,14 @@ val MC_temp_defs = [MClkIPSpec_def, MClkISpec_def];
 
 qed_goal "MClkidle" MemClerk.thy
    ".~ $(Calling send p) .& ($(cst@p) .= #clkA) .-> .~ MClkNext send rcv cst p"
-   (fn _ => [ auto_tac (!claset,
-                        !simpset addsimps (MC_action_defs @ [Return_def]))
+   (fn _ => [ auto_tac (claset(),
+                        simpset() addsimps (MC_action_defs @ [Return_def]))
             ]);
 
 qed_goal "MClkbusy" MemClerk.thy
    "$(Calling rcv p) .-> .~ MClkNext send rcv cst p"
-   (fn _ => [ auto_tac (!claset,
-                        !simpset addsimps (MC_action_defs @ [Call_def]))
+   (fn _ => [ auto_tac (claset(),
+                        simpset() addsimps (MC_action_defs @ [Call_def]))
             ]);
 
 (* unlifted versions as introduction rules *)
@@ -39,14 +39,14 @@ qed_goal "MClkFwd_enabled" MemClerk.thy
    "!!p. base_var <rtrner send @ p, caller rcv @ p, cst@p> ==> \
 \        $(Calling send p) .& .~ $(Calling rcv p) .& ($(cst@p) .= #clkA)  \
 \        .-> $(Enabled (MClkFwd send rcv cst p))"
-   (fn _ => [action_simp_tac (!simpset addsimps [MClkFwd_def,Call_def,caller_def,rtrner_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [MClkFwd_def,Call_def,caller_def,rtrner_def])
                              [] [base_enabled,Pair_inject] 1]);
 
 qed_goal "MClkFwd_ch_enabled" MemClerk.thy
    "Enabled (MClkFwd send rcv cst p) s  \
 \   ==> Enabled (<MClkFwd send rcv cst p>_<cst@p, rtrner send @ p, caller rcv @ p>) s"
-   (fn [prem] => [auto_tac (!claset addSIs [prem RS enabled_mono],
-			    !simpset addsimps [angle_def,MClkFwd_def])
+   (fn [prem] => [auto_tac (claset() addSIs [prem RS enabled_mono],
+			    simpset() addsimps [angle_def,MClkFwd_def])
 		 ]);
 
 qed_goal "MClkReply_change" MemClerk.thy
@@ -59,13 +59,13 @@ qed_goal "MClkReply_enabled" MemClerk.thy
    "!!p. base_var <rtrner send @ p, caller rcv @ p, cst@p> ==> \
 \        $(Calling send p) .& .~ $(Calling rcv p) .& ($(cst@p) .= #clkB)  \
 \        .-> $(Enabled (<MClkReply send rcv cst p>_<cst@p, rtrner send @ p, caller rcv @ p>))"
-   (fn _ => [action_simp_tac (!simpset) [MClkReply_change RSN (2,enabled_mono)] [] 1,
-	     action_simp_tac (!simpset addsimps [MClkReply_def,Return_def,caller_def,rtrner_def])
+   (fn _ => [action_simp_tac (simpset()) [MClkReply_change RSN (2,enabled_mono)] [] 1,
+	     action_simp_tac (simpset() addsimps [MClkReply_def,Return_def,caller_def,rtrner_def])
                              [] [base_enabled,Pair_inject] 1
 	    ]);
 
 qed_goal "MClkReplyNotRetry" MemClerk.thy
    "MClkReply send rcv cst p .-> .~(MClkRetry send rcv cst p)"
-   (fn _ => [ auto_tac (!claset,
-			!simpset addsimps [MClkReply_def,MClkRetry_def]) 
+   (fn _ => [ auto_tac (claset(),
+			simpset() addsimps [MClkReply_def,MClkRetry_def]) 
 	    ]);

@@ -89,7 +89,7 @@ fun maybe_unlift th =
 	 Const("Intensional.TrueInt",_) $ p => int_unlift th
        | _ => th);
 
-simpset := !simpset setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
+simpset_ref() := simpset() setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
 
 
 (* ==================== Rewrites for abstractions ==================== *)

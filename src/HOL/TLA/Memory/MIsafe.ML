@@ -141,7 +141,7 @@ bind_thm("S2ClerkE", action_conjimpE S2Clerk);
 qed_goal "S2Forward" MemoryImplementation.thy
    "$(S2 rmhist p) .& (MClkFwd memCh crCh cst p) .& unchanged <e p, r p, m p, rmhist@p> \
 \   .-> (S3 rmhist p)$"
-   (fn _ => [action_simp_tac (!simpset addsimps
+   (fn _ => [action_simp_tac (simpset() addsimps
                 [MClkFwd_def,Call_def,e_def,r_def,m_def,caller_def,rtrner_def,
                  S_def,S2_def,S3_def,Calling_def])
                [] [] 1
@@ -189,7 +189,7 @@ bind_thm("S3ClerkUnchE", action_conjimpE S3ClerkUnch);
 qed_goal "S3LegalRcvArg" MemoryImplementation.thy
    "$(S3 rmhist p) .-> IsLegalRcvArg[ arg[$(crCh@p)] ]"
    (fn _ => [action_simp_tac
-	       (!simpset addsimps [IsLegalRcvArg_def,MClkRelayArg_def,S_def,S3_def])
+	       (simpset() addsimps [IsLegalRcvArg_def,MClkRelayArg_def,S_def,S3_def])
 	       [exI] [] 1
 	    ]);
 
@@ -206,7 +206,7 @@ qed_goal "S3Forward" MemoryImplementation.thy
    "(RPCFwd crCh rmCh rst p) .& HNext rmhist p .& $(S3 rmhist p) .& unchanged <e p, c p, m p> \
 \   .-> (S4 rmhist p)$ .& unchanged (rmhist@p)"
    (fn _ => [action_simp_tac 
-               (!simpset addsimps [RPCFwd_def,HNext_def,MemReturn_def,RPCFail_def,MClkReply_def,
+               (simpset() addsimps [RPCFwd_def,HNext_def,MemReturn_def,RPCFail_def,MClkReply_def,
 				   Return_def,Call_def,e_def,c_def,m_def,caller_def,rtrner_def, 
 				   S_def,S3_def,S4_def,Calling_def])
 	       [] [] 1
@@ -217,7 +217,7 @@ qed_goal "S3Fail" MemoryImplementation.thy
    "(RPCFail crCh rmCh rst p) .& $(S3 rmhist p) .& HNext rmhist p .& unchanged <e p, c p, m p> \
 \   .-> (S6 rmhist p)$"
    (fn _ => [action_simp_tac 
-               (!simpset addsimps [HNext_def,RPCFail_def,Return_def,e_def,c_def,m_def,
+               (simpset() addsimps [HNext_def,RPCFail_def,Return_def,e_def,c_def,m_def,
 				   caller_def,rtrner_def,MVOKBARF_def,
 				   S_def,S3_def,S6_def,Calling_def])
                [] [] 1
@@ -268,7 +268,7 @@ qed_goal "S4ReadInner" MemoryImplementation.thy
 \        .& (HNext rmhist p) .& $(MemInv mem l) \
 \   .-> (S4 rmhist p)$ .& unchanged (rmhist@p)"
    (fn _ => [action_simp_tac 
-               (!simpset addsimps [ReadInner_def,GoodRead_def, BadRead_def,HNext_def,
+               (simpset() addsimps [ReadInner_def,GoodRead_def, BadRead_def,HNext_def,
 				   MemReturn_def, RPCFail_def,MClkReply_def,Return_def,
 				   e_def,c_def,r_def,rtrner_def,caller_def,MVNROKBA_def,
 				   S_def,S4_def,RdRequest_def,Calling_def,MemInv_def])
@@ -288,7 +288,7 @@ qed_goal "S4WriteInner" MemoryImplementation.thy
    "(WriteInner rmCh mem ires p l v) .& $(S4 rmhist p) .& unchanged <e p, c p, r p> .& (HNext rmhist p) \
 \   .-> (S4 rmhist p)$ .& unchanged (rmhist@p)"
    (fn _ => [action_simp_tac 
-               (!simpset addsimps [WriteInner_def,GoodWrite_def, BadWrite_def,HNext_def,
+               (simpset() addsimps [WriteInner_def,GoodWrite_def, BadWrite_def,HNext_def,
 				   MemReturn_def,RPCFail_def,MClkReply_def,Return_def,
 				   e_def,c_def,r_def,rtrner_def,caller_def,MVNROKBA_def, 
 				   S_def,S4_def,WrRequest_def,Calling_def])
@@ -355,7 +355,7 @@ qed_goal "S5Reply" MemoryImplementation.thy
    "(RPCReply crCh rmCh rst p) .& $(S5 rmhist p) .& unchanged <e p, c p, m p,rmhist@p> \
 \    .-> (S6 rmhist p)$"
    (fn _ => [action_simp_tac 
-               (!simpset
+               (simpset()
 		addsimps [RPCReply_def,Return_def,e_def,c_def,m_def,
 			  MVOKBA_def,MVOKBARF_def,caller_def,rtrner_def,
 			  S_def,S5_def,S6_def,Calling_def])
@@ -367,7 +367,7 @@ qed_goal "S5Fail" MemoryImplementation.thy
    "(RPCFail crCh rmCh rst p) .& $(S5 rmhist p) .& unchanged <e p, c p, m p,rmhist@p>\
 \     .-> (S6 rmhist p)$"
    (fn _ => [action_simp_tac
-	       (!simpset
+	       (simpset()
 		addsimps [RPCFail_def,Return_def,e_def,c_def,m_def,
 			  MVOKBARF_def,caller_def,rtrner_def,
 			  S_def,S5_def,S6_def,Calling_def])
@@ -409,7 +409,7 @@ qed_goal "S6Retry" MemoryImplementation.thy
    "(MClkRetry memCh crCh cst p) .& (HNext rmhist p) .& $(S6 rmhist p) .& unchanged<e p,r p,m p> \
 \     .-> (S3 rmhist p)$ .& unchanged (rmhist@p)"
    (fn _ => [action_simp_tac
-	        (!simpset addsimps [HNext_def,MClkReply_def,MClkRetry_def,Call_def,
+	        (simpset() addsimps [HNext_def,MClkReply_def,MClkRetry_def,Call_def,
 				    Return_def,e_def,r_def,m_def,caller_def,rtrner_def,
 		                    S_def,S6_def,S3_def,Calling_def])
                 [] [] 1]);
@@ -418,7 +418,7 @@ bind_thm("S6RetryE", action_conjimpE S6Retry);
 qed_goal "S6Reply" MemoryImplementation.thy
    "(MClkReply memCh crCh cst p) .& (HNext rmhist p) .& $(S6 rmhist p) .& unchanged<e p,r p,m p> \
 \     .-> (S1 rmhist p)$"
-   (fn _ => [action_simp_tac (!simpset
+   (fn _ => [action_simp_tac (simpset()
 			      addsimps [HNext_def,MemReturn_def,RPCFail_def,Return_def,
 					MClkReply_def,e_def,r_def,m_def,caller_def,rtrner_def,
 					S_def,S6_def,S1_def,Calling_def])

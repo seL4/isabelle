@@ -32,8 +32,8 @@ bind_thm("RPCbusyI", action_mp RPCbusy);
 (* RPC failure actions are visible. *)
 qed_goal "RPCFail_vis" RPC.thy
    "RPCFail send rcv rst p .-> <RPCNext send rcv rst p>_<rst@p, rtrner send @ p, caller rcv @ p>"
-   (fn _ => [auto_tac (!claset addSEs [Return_changedE],
-		       !simpset addsimps [angle_def,RPCNext_def,RPCFail_def])
+   (fn _ => [auto_tac (claset() addSEs [Return_changedE],
+		       simpset() addsimps [angle_def,RPCNext_def,RPCFail_def])
 	    ]);
 
 qed_goal "RPCFail_Next_enabled" RPC.thy
@@ -46,7 +46,7 @@ qed_goal "RPCFail_Next_enabled" RPC.thy
 qed_goal "RPCFail_enabled" RPC.thy
    "!!p. base_var <rtrner send @ p, caller rcv @ p, rst@p> ==> \
 \        .~ $(Calling rcv p) .& $(Calling send p) .-> $(Enabled (RPCFail send rcv rst p))"
-   (fn _ => [action_simp_tac (!simpset addsimps [RPCFail_def,Return_def,caller_def,rtrner_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [RPCFail_def,Return_def,caller_def,rtrner_def])
                              [] [base_enabled,Pair_inject] 1
 	    ]);
 
@@ -54,6 +54,6 @@ qed_goal "RPCReply_enabled" RPC.thy
    "!!p. base_var <rtrner send @ p, caller rcv @ p, rst@p> ==> \
 \        .~ $(Calling rcv p) .& $(Calling send p) .& $(rst@p) .= #rpcB \
 \        .-> $(Enabled (RPCReply send rcv rst p))"
-   (fn _ => [action_simp_tac (!simpset addsimps [RPCReply_def,Return_def,caller_def,rtrner_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [RPCReply_def,Return_def,caller_def,rtrner_def])
                              [] [base_enabled,Pair_inject] 1]);
 

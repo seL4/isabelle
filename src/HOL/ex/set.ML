@@ -16,7 +16,7 @@ goal Set.thy "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 let val insertCI' = read_instantiate [("'a", "?'a set")] insertCI
 in    (*Type instantiation is required so that blast_tac can apply equalityI
         to the subgoal arising from insertCI*)
-by(blast_tac (!claset addSIs [insertCI']) 1)
+by(blast_tac (claset() addSIs [insertCI']) 1)
 end;
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
@@ -30,12 +30,12 @@ result();
 
 goal Set.thy "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
 (*requires best-first search because it is undirectional*)
-by (best_tac (!claset addSEs [equalityCE]) 1);
+by (best_tac (claset() addSEs [equalityCE]) 1);
 qed "cantor1";
 
 (*This form displays the diagonal term*)
 goal Set.thy "! f:: 'a=>'a set. ! x. f(x) ~= ?S(f)";
-by (best_tac (!claset addSEs [equalityCE]) 1);
+by (best_tac (claset() addSEs [equalityCE]) 1);
 uresult();
 
 (*This form exploits the set constructs*)
@@ -49,14 +49,14 @@ by (swap_res_tac [CollectI] 1);
 by (assume_tac 1);
 
 choplev 0;
-by (best_tac (!claset addSEs [equalityCE]) 1);
+by (best_tac (claset() addSEs [equalityCE]) 1);
 
 (*** The Schroder-Berstein Theorem ***)
 
 goalw Lfp.thy [image_def] "!!f. inj(f) ==> inv(f)``(f``X) = X";
 by (rtac equalityI 1);
-by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
-by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
+by (fast_tac (claset() addEs [inv_f_f RS ssubst]) 1);
+by (fast_tac (claset() addEs [inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
 goal Set.thy "!!f. f(a) ~: (f``X) ==> a~:X";
@@ -77,7 +77,7 @@ qed "disj_lemma";
 
 goalw Lfp.thy [image_def]
     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "range_if_then_else";
 
@@ -86,7 +86,7 @@ by (Blast_tac 1);
 qed "X_Un_Compl";
 
 goalw Lfp.thy [surj_def] "surj(f) = (!a. a : range(f))";
-by (fast_tac (!claset addEs [ssubst]) 1);
+by (fast_tac (claset() addEs [ssubst]) 1);
 qed "surj_iff_full_range";
 
 val [compl] = goal Lfp.thy
@@ -107,9 +107,9 @@ by (rtac (compl RS surj_if_then_else) 2);
 by (rewtac inj_def);
 by (cut_facts_tac [injf,injg] 1);
 by (EVERY1 [rtac allI, rtac allI, stac expand_if, rtac conjI, stac expand_if]);
-by (fast_tac (!claset addEs  [inj_ontoD, sym RS f_eq_gE]) 1);
+by (fast_tac (claset() addEs  [inj_ontoD, sym RS f_eq_gE]) 1);
 by (stac expand_if 1);
-by (fast_tac (!claset addEs  [inj_ontoD, f_eq_gE]) 1);
+by (fast_tac (claset() addEs  [inj_ontoD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
 goal Lfp.thy "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";

@@ -15,7 +15,7 @@ goal thy
 \ WHILE m ~= a DO {s = m*b} s := s+b; m := Suc(m) END\
 \ {s = a*b}";
 by (hoare_tac 1);
-by (ALLGOALS (asm_full_simp_tac (!simpset addsimps add_ac)));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps add_ac)));
 qed "multiply_by_add";
 
 
@@ -36,13 +36,13 @@ goal thy
 
 by (hoare_tac 1);
 (*Now prove the verification conditions*)
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac less_imp_diff_positive 1);
-by (asm_simp_tac (!simpset addsimps [less_imp_le, gcd_diff_r]) 1);
-by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, gcd_diff_l]) 2);
+by (asm_simp_tac (simpset() addsimps [less_imp_le, gcd_diff_r]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 2);
 by (etac gcd_nnn 2);
-by (full_simp_tac (!simpset addsimps [not_less_iff_le, le_eq_less_or_eq]) 1);
-by (blast_tac (!claset addIs [less_imp_diff_positive]) 1);
+by (full_simp_tac (simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 1);
+by (blast_tac (claset() addIs [less_imp_diff_positive]) 1);
 qed "Euclid_GCD";
 
 
@@ -65,9 +65,9 @@ goal thy
 
 by (hoare_tac 1);
 
-by (simp_tac ((simpset_of "Arith") addsimps [pow_0]) 3);
+by (simp_tac ((simpset_of Arith.thy) addsimps [pow_0]) 3);
 
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
@@ -77,14 +77,14 @@ by (subgoal_tac "(b div 2)*2=b" 1);
 by (subgoal_tac "0<2" 2);
 by (dres_inst_tac [("m","b")] mod_div_equality 2);
 
-by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [pow_0,pow_Suc,mult_assoc])));
+by (ALLGOALS (asm_full_simp_tac ((simpset_of Arith.thy) addsimps [pow_0,pow_Suc,mult_assoc])));
 
 by (subgoal_tac "b~=0" 1);
 by (res_inst_tac [("n","b")] natE 1);
 by (res_inst_tac [("Q","b mod 2 ~= 0")] not_imp_swap 3);
 by (assume_tac 4);
 
-by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [pow_0,pow_Suc,mult_assoc])));
+by (ALLGOALS (asm_full_simp_tac ((simpset_of Arith.thy) addsimps [pow_0,pow_Suc,mult_assoc])));
 by (rtac mod_less 1);
 by (Simp_tac 1);
 
@@ -103,11 +103,11 @@ goal thy
 \ {b = fac A}";
 
 by (hoare_tac 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("n","a")] natE 1);
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
+     (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
 by (Fast_tac 1);
 
 qed"factorial";

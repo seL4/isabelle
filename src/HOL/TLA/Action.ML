@@ -56,7 +56,7 @@ fun maybe_unlift th =
                   handle _ => int_unlift th)
        | _ => th);
 
-simpset := !simpset setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
+simpset_ref() := simpset() setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
 
 (* make act_rews be always active -- intensional_rews has been added before *)
 Addsimps act_rews;
@@ -75,7 +75,7 @@ fun action_simp_tac ss intros elims i =
 		      ORELSE' (eresolve_tac (elims @ [conjE,disjE,exE_prop]))))
          i);
 (* default version without additional plug-in rules *)
-fun Action_simp_tac i = (action_simp_tac (!simpset) [] [] i);
+fun Action_simp_tac i = (action_simp_tac (simpset()) [] [] i);
 
 
 (* ==================== Simplification of abstractions ==================== *)

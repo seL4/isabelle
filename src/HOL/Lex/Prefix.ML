@@ -14,7 +14,7 @@ by (rtac min 1);
 val list_cases = result();
 
 goalw Prefix.thy [prefix_def] "[] <= xs";
-by (simp_tac (!simpset addsimps [eq_sym_conv]) 1);
+by (simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "Nil_prefix";
 Addsimps[Nil_prefix];
 

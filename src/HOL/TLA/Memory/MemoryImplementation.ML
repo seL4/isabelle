@@ -67,7 +67,7 @@ val MI_fast_css =
 end;
 
 (* Make sure the simpset accepts non-boolean simplifications *)
-simpset := let val (_,ss) = MI_css in ss end;
+simpset_ref() := let val (_,ss) = MI_css in ss end;
 
 
 (****************************** The history variable ******************************)
@@ -79,9 +79,9 @@ qed_goal "HistoryLemma" MemoryImplementation.thy
 \                    .& [](RALL p. [HNext rmhist p]_<c p, r p, m p, rmhist@p>))"
    (fn _ => [Auto_tac(),
              rtac historyI 1, TRYALL atac,
-             action_simp_tac (!simpset addsimps [HInit_def]) [] [] 1,
+             action_simp_tac (simpset() addsimps [HInit_def]) [] [] 1,
              res_inst_tac [("x","p")] fun_cong 1, atac 1,
-             action_simp_tac (!simpset addsimps [HNext_def]) [busy_squareI] [] 1,
+             action_simp_tac (simpset() addsimps [HNext_def]) [busy_squareI] [] 1,
              res_inst_tac [("x","p")] fun_cong 1, atac 1
             ]);
 
@@ -127,7 +127,7 @@ qed_goal "Step1_2_1" MemoryImplementation.thy
 \   .-> (S2 rmhist p)$ .& (ENext p) .& unchanged <c p, r p, m p>"
    (fn _ => [auto_tac (MI_css addsimps2 [ImpNext_def]
 		              addSEs2 [S1ClerkUnchE,S1RPCUnchE,S1MemUnchE,S1HistE]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [square_def]) [] [S1EnvE])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [square_def]) [] [S1EnvE])
 	    ]);
 
 qed_goal "Step1_2_2" MemoryImplementation.thy
@@ -136,7 +136,7 @@ qed_goal "Step1_2_2" MemoryImplementation.thy
 \   .-> (S3 rmhist p)$ .& (MClkFwd memCh crCh cst p) .& unchanged <e p, r p, m p, rmhist@p>"
    (fn _ => [auto_tac (MI_css addsimps2 [ImpNext_def]
 		              addSEs2 [S2EnvUnchE,S2RPCUnchE,S2MemUnchE,S2HistE]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [square_def]) [] [S2ClerkE,S2ForwardE])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [square_def]) [] [S2ClerkE,S2ForwardE])
 	    ]);
 
 qed_goal "Step1_2_3" MemoryImplementation.thy
@@ -144,9 +144,9 @@ qed_goal "Step1_2_3" MemoryImplementation.thy
 \             .& .~ unchanged <e p, c p, r p, m p, rmhist@p>  .& $(S3 rmhist p) \
 \   .-> ((S4 rmhist p)$ .& RPCFwd crCh rmCh rst p .& unchanged <e p, c p, m p, rmhist@p>) \
 \        .| ((S6 rmhist p)$ .& RPCFail crCh rmCh rst p .& unchanged <e p, c p, m p>)"
-   (fn _ => [action_simp_tac (!simpset addsimps [ImpNext_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [ImpNext_def])
 	                     [] [S3EnvUnchE,S3ClerkUnchE,S3MemUnchE] 1,
-             ALLGOALS (action_simp_tac (!simpset addsimps [square_def])
+             ALLGOALS (action_simp_tac (simpset() addsimps [square_def])
 		                       [] [S3RPCE,S3ForwardE,S3FailE]),
              auto_tac (MI_css addEs2 [S3HistE])
 	    ]);
@@ -158,9 +158,9 @@ qed_goal "Step1_2_4" MemoryImplementation.thy
 \   .-> ((S4 rmhist p)$ .& Read rmCh mem ires p .& unchanged <e p, c p, r p, rmhist@p>) \
 \        .| ((S4 rmhist p)$ .& (REX l. Write rmCh mem ires p l) .& unchanged <e p, c p, r p, rmhist@p>) \
 \        .| ((S5 rmhist p)$ .& MemReturn rmCh ires p .& unchanged <e p, c p, r p>)"
-   (fn _ => [action_simp_tac (!simpset addsimps [ImpNext_def]) 
+   (fn _ => [action_simp_tac (simpset() addsimps [ImpNext_def]) 
                              [] [S4EnvUnchE,S4ClerkUnchE,S4RPCUnchE] 1,
-             ALLGOALS (action_simp_tac (!simpset addsimps [square_def,RNext_def])
+             ALLGOALS (action_simp_tac (simpset() addsimps [square_def,RNext_def])
                                        [] [S4ReadE,S4WriteE,S4ReturnE]),
              auto_tac (MI_css addEs2 [S4HistE])
             ]);
@@ -170,9 +170,9 @@ qed_goal "Step1_2_5" MemoryImplementation.thy
 \             .& .~ unchanged <e p, c p, r p, m p, rmhist@p>  .& $(S5 rmhist p) \
 \   .-> ((S6 rmhist p)$ .& RPCReply crCh rmCh rst p .& unchanged <e p, c p, m p>) \
 \        .| ((S6 rmhist p)$ .& RPCFail crCh rmCh rst p .& unchanged <e p, c p, m p>)"
-   (fn _ => [action_simp_tac (!simpset addsimps [ImpNext_def]) 
+   (fn _ => [action_simp_tac (simpset() addsimps [ImpNext_def]) 
                              [] [S5EnvUnchE,S5ClerkUnchE,S5MemUnchE,S5HistE] 1,
-	     action_simp_tac (!simpset addsimps [square_def]) [] [S5RPCE] 1,
+	     action_simp_tac (simpset() addsimps [square_def]) [] [S5RPCE] 1,
 	     auto_tac (MI_fast_css addSEs2 [S5ReplyE,S5FailE])
 	    ]);
 
@@ -181,9 +181,9 @@ qed_goal "Step1_2_6" MemoryImplementation.thy
 \             .& .~ unchanged <e p, c p, r p, m p, rmhist@p>  .& $(S6 rmhist p) \
 \   .-> ((S1 rmhist p)$ .& (MClkReply memCh crCh cst p) .& unchanged <e p, r p, m p>)\
 \        .| ((S3 rmhist p)$ .& (MClkRetry memCh crCh cst p) .& unchanged <e p,r p,m p,rmhist@p>)"
-   (fn _ => [action_simp_tac (!simpset addsimps [ImpNext_def]) 
+   (fn _ => [action_simp_tac (simpset() addsimps [ImpNext_def]) 
                              [] [S6EnvUnchE,S6RPCUnchE,S6MemUnchE] 1,
-             ALLGOALS (action_simp_tac (!simpset addsimps [square_def]) 
+             ALLGOALS (action_simp_tac (simpset() addsimps [square_def]) 
                                        [] [S6ClerkE,S6RetryE,S6ReplyE]),
              auto_tac (MI_css addEs2 [S6HistE])
             ]);
@@ -199,7 +199,7 @@ val resbar_unl = rewrite_rule [slice_def] (action_unlift resbar_def);
 
 qed_goal "Step1_3" MemoryImplementation.thy 
    "$(S1 rmhist p) .-> $(PInit (resbar rmhist) p)"
-   (fn _ => [action_simp_tac (!simpset addsimps [resbar_unl,PInit_def,S_def,S1_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [resbar_unl,PInit_def,S_def,S1_def])
                              [] [] 1
             ]);
 
@@ -233,7 +233,7 @@ qed_goal "Step1_4_3a" MemoryImplementation.thy
                      adding them as unsafe elims doesn't help, 
                      because auto_tac doesn't find the proof! *)
             REPEAT (eresolve_tac [S3_exclE,S4_exclE] 1),
-            action_simp_tac (!simpset addsimps [S_def, S3_def]) [] [] 1
+            action_simp_tac (simpset() addsimps [S_def, S3_def]) [] [] 1
            ]);
 
 qed_goal "Step1_4_3b" MemoryImplementation.thy
@@ -242,7 +242,7 @@ qed_goal "Step1_4_3b" MemoryImplementation.thy
   (fn _ => [auto_tac (MI_css addsimps2 [RPCFail_def,MemFail_def,e_def,c_def,m_def,
 		                        resbar_unl]),
 	        (* It's faster not to expand S3 at once *)
-            action_simp_tac (!simpset addsimps [S3_def,S_def]) [] [] 1,
+            action_simp_tac (simpset() addsimps [S3_def,S_def]) [] [] 1,
             etac S6_exclE 1,
             auto_tac (MI_fast_css addsimps2 [Return_def])
            ]);
@@ -253,12 +253,12 @@ qed_goal "Step1_4_4a1" MemoryImplementation.thy
 \   .& unchanged <e p, c p, r p, rmhist@p> .& $(MemInv mem l) \
 \   .-> ReadInner memCh mem (resbar rmhist) p l"
   (fn _ => [action_simp_tac 
-               (!simpset addsimps [ReadInner_def,GoodRead_def,BadRead_def,e_def,c_def,m_def]) 
+               (simpset() addsimps [ReadInner_def,GoodRead_def,BadRead_def,e_def,c_def,m_def]) 
                [] [] 1,
             ALLGOALS (REPEAT o (etac S4_exclE)),
             auto_tac (MI_css addsimps2 [resbar_unl]),
 	    ALLGOALS (action_simp_tac 
-                        (!simpset addsimps [RPCRelayArg_def,MClkRelayArg_def,
+                        (simpset() addsimps [RPCRelayArg_def,MClkRelayArg_def,
 		                            S_def,S4_def,RdRequest_def,MemInv_def])
 		      [] [impE,MemValNotAResultE])
            ]);
@@ -274,14 +274,14 @@ qed_goal "Step1_4_4b1" MemoryImplementation.thy
 \                                    .& unchanged <e p, c p, r p, rmhist@p> \
 \   .-> WriteInner memCh mem (resbar rmhist) p l v"
   (fn _ => [action_simp_tac 
-               (!simpset addsimps [WriteInner_def, GoodWrite_def, BadWrite_def,
+               (simpset() addsimps [WriteInner_def, GoodWrite_def, BadWrite_def,
 			           e_def, c_def, m_def])
                [] [] 1,
             ALLGOALS (REPEAT o (etac S4_exclE)),
 	    auto_tac (MI_css addsimps2 [resbar_unl]),
                (* it's faster not to merge the two simplifications *)
 	    ALLGOALS (action_simp_tac
-                        (!simpset addsimps [RPCRelayArg_def,MClkRelayArg_def,
+                        (simpset() addsimps [RPCRelayArg_def,MClkRelayArg_def,
 		                            S_def,S4_def,WrRequest_def])
 		      [] [])
            ]);
@@ -296,7 +296,7 @@ qed_goal "Step1_4_4c" MemoryImplementation.thy
    "MemReturn rmCh ires p .& $(S4 rmhist p) .& (S5 rmhist p)$ .& unchanged <e p, c p, r p> \
 \   .-> unchanged <rtrner memCh @ p, resbar rmhist @ p>"
   (fn _ => [action_simp_tac
-	       (!simpset addsimps [e_def,c_def,r_def,resbar_unl]) [] [] 1,
+	       (simpset() addsimps [e_def,c_def,r_def,resbar_unl]) [] [] 1,
 	    REPEAT (eresolve_tac [S4_exclE,S5_exclE] 1),
 	    auto_tac (MI_fast_css addsimps2 [MemReturn_def,Return_def])
            ]);
@@ -314,10 +314,10 @@ qed_goal "Step1_4_5b" MemoryImplementation.thy
    "RPCFail crCh rmCh rst p .& $(S5 rmhist p) .& (S6 rmhist p)$ .& unchanged <e p, c p, m p>\
 \   .-> MemFail memCh (resbar rmhist) p"
   (fn _ => [action_simp_tac
-	       (!simpset addsimps [e_def, c_def, m_def, RPCFail_def, Return_def,
+	       (simpset() addsimps [e_def, c_def, m_def, RPCFail_def, Return_def,
 				   MemFail_def, resbar_unl])
 	       [] [] 1,
-	    action_simp_tac (!simpset addsimps [S5_def,S_def]) [] [] 1,
+	    action_simp_tac (simpset() addsimps [S5_def,S_def]) [] [] 1,
             etac S6_exclE 1,
 	    auto_tac MI_css
            ]);
@@ -326,16 +326,16 @@ qed_goal "Step1_4_6a" MemoryImplementation.thy
    "MClkReply memCh crCh cst p .& $(S6 rmhist p) .& (S1 rmhist p)$ .& unchanged <e p, r p, m p> \
 \   .-> MemReturn memCh (resbar rmhist) p"
   (fn _ => [action_simp_tac
-	      (!simpset addsimps [e_def, r_def, m_def, MClkReply_def, MemReturn_def,
+	      (simpset() addsimps [e_def, r_def, m_def, MClkReply_def, MemReturn_def,
 				  Return_def, resbar_unl]) 
               [] [] 1,
             ALLGOALS (etac S6_exclE),
 	    ALLGOALS Asm_full_simp_tac,  (* simplify if-then-else *)
 	    ALLGOALS (action_simp_tac
-    	              (!simpset addsimps [MClkReplyVal_def,S6_def,S_def])
+    	              (simpset() addsimps [MClkReplyVal_def,S6_def,S_def])
 		      [] []),
             rtac ifI 1,
-            ALLGOALS (action_simp_tac (!simpset) [] [MVOKBARFnotNRE])
+            ALLGOALS (action_simp_tac (simpset()) [] [MVOKBARFnotNRE])
            ]);
 
 qed_goal "Step1_4_6b" MemoryImplementation.thy
@@ -343,12 +343,12 @@ qed_goal "Step1_4_6b" MemoryImplementation.thy
 \                              .& unchanged <e p, r p, m p, rmhist@p> \
 \   .-> MemFail memCh (resbar rmhist) p"
   (fn _ => [action_simp_tac
-	       (!simpset addsimps [e_def, r_def, m_def, MClkRetry_def, MemFail_def, resbar_unl])
+	       (simpset() addsimps [e_def, r_def, m_def, MClkRetry_def, MemFail_def, resbar_unl])
 	       [] [] 1,
 	    SELECT_GOAL (auto_tac (MI_css addsimps2 [S6_def,S_def])) 1,
             etac S3_exclE 1,
             Asm_full_simp_tac 1,
-	    action_simp_tac (!simpset addsimps [S6_def,S3_def,S_def]) [] [] 1
+	    action_simp_tac (simpset() addsimps [S6_def,S3_def,S_def]) [] [] 1
            ]);
 
 qed_goal "S_lemma" MemoryImplementation.thy
@@ -364,7 +364,7 @@ qed_goal "Step1_4_7H" MemoryImplementation.thy
 \                                    S4 rmhist p, S5 rmhist p, S6 rmhist p>"
    (fn _ => [Action_simp_tac 1,
 	     SELECT_GOAL (auto_tac (MI_fast_css addsimps2 [c_def])) 1,
-             ALLGOALS (simp_tac (!simpset
+             ALLGOALS (simp_tac (simpset()
 				 addsimps [S1_def,S2_def,S3_def,S4_def,S5_def,S6_def])),
 	     auto_tac (MI_css addSIs2 [action_mp S_lemma])
             ]);
@@ -391,7 +391,7 @@ fun split_idle_tac simps i =
 	   case_tac "(unchanged <e p, c p, r p, m p, rmhist@p>) [[s,t]]" i,
 	   rewrite_goals_tac action_rews,
 	   etac Step1_4_7h i,
-	   asm_full_simp_tac (!simpset addsimps simps) i
+	   asm_full_simp_tac (simpset() addsimps simps) i
 	  ];
 
 (* ----------------------------------------------------------------------
@@ -448,7 +448,7 @@ qed_goal "S4safe" MemoryImplementation.thy
    (fn _ => [Action_simp_tac 1,
 	     rtac unchanged_safeI 1,
              auto_tac (MI_css addSEs2 [action_conjimpE Step1_2_4]),
-             ALLGOALS (action_simp_tac (!simpset addsimps [square_def,UNext_def,RNext_def]) [] []),
+             ALLGOALS (action_simp_tac (simpset() addsimps [square_def,UNext_def,RNext_def]) [] []),
 	     auto_tac (MI_fast_css addSEs2 (map action_conjimpE 
                                                 [Step1_4_4a,Step1_4_4b,Step1_4_4c]))
 	    ]);
@@ -606,9 +606,9 @@ qed_goal "Step2_2a" MemoryImplementation.thy
 \   .& $(S4 rmhist p) .& Write rmCh mem ires p l \
 \   .-> (S4 rmhist p)$ .& unchanged <e p, c p, r p, rmhist@p>"
    (fn _ => [split_idle_tac [] 1,
-             action_simp_tac (!simpset addsimps [ImpNext_def])
+             action_simp_tac (simpset() addsimps [ImpNext_def])
                              [] [S4EnvUnchE,S4ClerkUnchE,S4RPCUnchE] 1,
-             TRYALL (action_simp_tac (!simpset addsimps [square_def]) [] [S4WriteE]),
+             TRYALL (action_simp_tac (simpset() addsimps [square_def]) [] [S4WriteE]),
              Auto_tac()
             ]);
 

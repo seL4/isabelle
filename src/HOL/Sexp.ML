@@ -11,15 +11,15 @@ open Sexp;
 (** sexp_case **)
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
-by (blast_tac (!claset addSIs [select_equality]) 1);
+by (blast_tac (claset() addSIs [select_equality]) 1);
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
-by (blast_tac (!claset addSIs [select_equality]) 1);
+by (blast_tac (claset() addSIs [select_equality]) 1);
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
-by (blast_tac (!claset addSIs [select_equality]) 1);
+by (blast_tac (claset() addSIs [select_equality]) 1);
 qed "sexp_case_Scons";
 
 
@@ -90,7 +90,7 @@ qed "pred_sexpE";
 goal Sexp.thy "wf(pred_sexp)";
 by (rtac (pred_sexp_subset_Sigma RS wfI) 1);
 by (etac sexp.induct 1);
-by (ALLGOALS (blast_tac (!claset addSEs [allE, pred_sexpE])));
+by (ALLGOALS (blast_tac (claset() addSEs [allE, pred_sexpE])));
 qed "wf_pred_sexp";
 
 
@@ -118,6 +118,6 @@ qed "sexp_rec_Numb";
 goal Sexp.thy "!!M. [| M: sexp;  N: sexp |] ==> \
 \    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
-by (asm_simp_tac (!simpset addsimps [sexp_case_Scons,pred_sexpI1,pred_sexpI2])
+by (asm_simp_tac (simpset() addsimps [sexp_case_Scons,pred_sexpI1,pred_sexpI2])
     1);
 qed "sexp_rec_Scons";

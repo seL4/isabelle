@@ -27,7 +27,7 @@ qed_goal "S1_successors" MemoryImplementation.thy
 qed_goal "S1_RNextdisabled" MemoryImplementation.thy
    "$(S1 rmhist p) .-> \
 \   .~$(Enabled (<RNext memCh mem (resbar rmhist) p>_<rtrner memCh @ p, resbar rmhist @ p>))"
-   (fn _ => [action_simp_tac (!simpset addsimps [angle_def,S_def,S1_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [angle_def,S_def,S1_def])
 	                     [notI] [enabledE,MemoryidleE] 1,
 	     auto_tac MI_fast_css
 	    ]);
@@ -35,7 +35,7 @@ qed_goal "S1_RNextdisabled" MemoryImplementation.thy
 qed_goal "S1_Returndisabled" MemoryImplementation.thy
    "$(S1 rmhist p) .-> \
 \   .~$(Enabled (<MemReturn memCh (resbar rmhist) p>_<rtrner memCh @ p, resbar rmhist @ p>))"
-   (fn _ => [action_simp_tac (!simpset addsimps [angle_def,MemReturn_def,Return_def,S_def,S1_def])
+   (fn _ => [action_simp_tac (simpset() addsimps [angle_def,MemReturn_def,Return_def,S_def,S1_def])
 	                     [notI] [enabledE] 1
 	    ]);
 
@@ -74,7 +74,7 @@ qed_goal "S2MClkFwd_enabled" MemoryImplementation.thy
    (fn _ => [cut_facts_tac [MI_base] 1,
 	     auto_tac (MI_css addsimps2 [c_def,base_pair]
 		              addSIs2 [MClkFwd_ch_enabled,action_mp MClkFwd_enabled]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [S_def,S2_def]) [] [])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [S_def,S2_def]) [] [])
 	    ]);
 
 qed_goal "S2_live" MemoryImplementation.thy
@@ -106,7 +106,7 @@ qed_goal "S3RPC_enabled" MemoryImplementation.thy
    (fn _ => [cut_facts_tac [MI_base] 1,
 	     auto_tac (MI_css addsimps2 [r_def,base_pair]
 		              addSIs2 [RPCFail_Next_enabled,action_mp RPCFail_enabled]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [S_def,S3_def]) [] [])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [S_def,S3_def]) [] [])
 	    ]);
 
 qed_goal "S3_live" MemoryImplementation.thy
@@ -157,7 +157,7 @@ qed_goal "S4aRNext_enabled" MemoryImplementation.thy
 	     ALLGOALS (cut_facts_tac [MI_base]),
 	     auto_tac (MI_css addsimps2 [base_pair]),
 	        (* it's faster to expand S4 only where necessary *)
-	     action_simp_tac (!simpset addsimps [S_def,S4_def]) [] [] 1
+	     action_simp_tac (simpset() addsimps [S_def,S4_def]) [] [] 1
 	    ]);
 
 qed_goal "S4a_live" MemoryImplementation.thy
@@ -166,7 +166,7 @@ qed_goal "S4a_live" MemoryImplementation.thy
 \  .-> (($(S4 rmhist p) .& ($(ires@p) .= #NotAResult))  \
 \        ~> ($(S4 rmhist p) .& ($(ires@p) .~= #NotAResult)) .| $(S5 rmhist p))"
    (fn _ => [rtac WF1 1,
-	     ALLGOALS (action_simp_tac (!simpset)
+	     ALLGOALS (action_simp_tac (simpset())
 		                       (map ((rewrite_rule [slice_def]) o action_mp) 
                                             [S4a_successors,S4aRNext_successors,S4aRNext_enabled])
 				       [])
@@ -203,7 +203,7 @@ qed_goal "S4bReturn_enabled" MemoryImplementation.thy
    (fn _ => [cut_facts_tac [MI_base] 1,
              auto_tac (MI_css addsimps2 [m_def,base_pair]
 		              addSIs2 [action_mp MemReturn_enabled]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [S_def,S4_def]) [] [])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [S_def,S4_def]) [] [])
 	    ]);
 
 qed_goal "S4b_live" MemoryImplementation.thy
@@ -211,7 +211,7 @@ qed_goal "S4b_live" MemoryImplementation.thy
 \  .& WF(MemReturn rmCh ires p)_(m p) \
 \  .-> (($(S4 rmhist p) .& ($(ires@p) .~= #NotAResult)) ~> $(S5 rmhist p))"
    (fn _ => [rtac WF1 1,
-	     ALLGOALS (action_simp_tac (!simpset)
+	     ALLGOALS (action_simp_tac (simpset())
 		                       (map ((rewrite_rule [slice_def]) o action_mp) 
                                             [S4b_successors,S4bReturn_successors,S4bReturn_enabled])
 				       [allE])
@@ -238,7 +238,7 @@ qed_goal "S5RPC_enabled" MemoryImplementation.thy
    (fn _ => [cut_facts_tac [MI_base] 1,
 	     auto_tac (MI_css addsimps2 [r_def,base_pair]
 		              addSIs2 [RPCFail_Next_enabled,action_mp RPCFail_enabled]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [S_def,S5_def]) [] [])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [S_def,S5_def]) [] [])
 	    ]);
 
 qed_goal "S5_live" MemoryImplementation.thy
@@ -268,7 +268,7 @@ qed_goal "S6MClkReply_successors" MemoryImplementation.thy
 qed_goal "MClkReplyS6" MemoryImplementation.thy
    "$(ImpInv rmhist p) .& <MClkReply memCh crCh cst p>_(c p) .-> $(S6 rmhist p)"
    (fn _ => [action_simp_tac
-	        (!simpset addsimps
+	        (simpset() addsimps
 		    [angle_def,MClkReply_def,Return_def,
 		     ImpInv_def,S_def,S1_def,S2_def,S3_def,S4_def,S5_def])
 		[] [] 1
@@ -279,7 +279,7 @@ qed_goal "S6MClkReply_enabled" MemoryImplementation.thy
    (fn _ => [cut_facts_tac [MI_base] 1,
 	     auto_tac (MI_css addsimps2 [c_def,base_pair]
 		              addSIs2 [action_mp MClkReply_enabled]),
-	     ALLGOALS (action_simp_tac (!simpset addsimps [S_def,S6_def]) [] [])
+	     ALLGOALS (action_simp_tac (simpset() addsimps [S_def,S6_def]) [] [])
 	    ]);
 
 qed_goal "S6_live" MemoryImplementation.thy
@@ -290,7 +290,7 @@ qed_goal "S6_live" MemoryImplementation.thy
 	     subgoal_tac "sigma |= []<>(<MClkReply memCh crCh cst p>_(c p))" 1,
 	     eres_inst_tac [("P","<MClkReply memCh crCh cst p>_(c p)")]
 	                   EnsuresInfinite 1, atac 1,
-	     action_simp_tac (!simpset) []
+	     action_simp_tac (simpset()) []
 	                     (map action_conjimpE [MClkReplyS6,S6MClkReply_successors]) 1,
 	     auto_tac (MI_css addsimps2 [SF_def]),
 	     etac swap 1,
@@ -377,6 +377,6 @@ qed_goal "S1Infinite" MemoryImplementation.thy
 \               (sigma |= []<>($(S6 rmhist p)) .-> []<>($(S1 rmhist p))) |] \
 \            ==> (sigma |= []<>($(S1 rmhist p)))"
    (fn _ => [rtac classical 1,
-	     asm_full_simp_tac (!simpset addsimps [NotBox, temp_rewrite NotDmd]) 1,
+	     asm_full_simp_tac (simpset() addsimps [NotBox, temp_rewrite NotDmd]) 1,
 	     auto_tac (MI_css addSEs2 [mp,leadsto_infinite] addSDs2 [temp_mp DBImplBDAct])
 	    ]);

@@ -40,16 +40,16 @@ open Unify;
  *---------------------------------------------------------------------------*)
 Tfl.tgoalw Unify.thy [] unify.rules;
 (* Wellfoundedness of unifyRel *)
-by (simp_tac (!simpset addsimps [unifyRel_def,
+by (simp_tac (simpset() addsimps [unifyRel_def,
 				 wf_inv_image, wf_lex_prod, wf_finite_psubset,
 				 wf_measure]) 1);
 (* TC *)
 by Safe_tac;
-by (simp_tac (!simpset addsimps [finite_psubset_def, finite_vars_of,
+by (simp_tac (simpset() addsimps [finite_psubset_def, finite_vars_of,
 				 lex_prod_def, measure_def, inv_image_def]) 1);
 by (rtac (monotone_vars_of RS (subset_iff_psubset_eq RS iffD1) RS disjE) 1);
 by (Blast_tac 1);
-by (asm_simp_tac (!simpset addsimps [less_eq, less_add_Suc1]) 1);
+by (asm_simp_tac (simpset() addsimps [less_eq, less_add_Suc1]) 1);
 qed "tc0";
 
 
@@ -72,7 +72,7 @@ qed "trans_unifyRel";
 goalw Unify.thy [unifyRel_def,lex_prod_def, inv_image_def]
      "!!x. ((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) : unifyRel  ==> \
     \      ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) : unifyRel";
-by (asm_full_simp_tac (!simpset addsimps [measure_def, 
+by (asm_full_simp_tac (simpset() addsimps [measure_def, 
                           less_eq, inv_image_def,add_assoc]) 1);
 by (subgoal_tac "(vars_of A Un vars_of B Un vars_of C Un \
                 \  (vars_of D Un vars_of E Un vars_of F)) = \
@@ -97,30 +97,30 @@ by (Simp_tac 1);
 by (case_tac "x: (vars_of N1 Un vars_of N2)" 1);
 (*uterm_less case*)
 by (asm_simp_tac
-    (!simpset addsimps [less_eq, unifyRel_def, lex_prod_def,
+    (simpset() addsimps [less_eq, unifyRel_def, lex_prod_def,
 			measure_def, inv_image_def]) 1);
 by (Blast_tac 1);
 (*finite_psubset case*)
 by (simp_tac
-    (!simpset addsimps [unifyRel_def, lex_prod_def,
+    (simpset() addsimps [unifyRel_def, lex_prod_def,
 			measure_def, inv_image_def]) 1);
-by (simp_tac (!simpset addsimps [finite_psubset_def, finite_vars_of,
+by (simp_tac (simpset() addsimps [finite_psubset_def, finite_vars_of,
 				 psubset_def, set_eq_subset]) 1);
 by (Blast_tac 1);
 (** LEVEL 9 **)
 (*Final case, also finite_psubset*)
 by (simp_tac
-    (!simpset addsimps [finite_vars_of, unifyRel_def, finite_psubset_def,
+    (simpset() addsimps [finite_vars_of, unifyRel_def, finite_psubset_def,
 			lex_prod_def, measure_def, inv_image_def]) 1);
 by (cut_inst_tac [("s","[(x,M)]"), ("v", "x"), ("t","N2")] Var_elim 1);
 by (cut_inst_tac [("s","[(x,M)]"), ("v", "x"), ("t","N1")] Var_elim 3);
-by (ALLGOALS (asm_simp_tac(!simpset addsimps [srange_iff, vars_iff_occseq])));
+by (ALLGOALS (asm_simp_tac(simpset() addsimps [srange_iff, vars_iff_occseq])));
 by (REPEAT_FIRST (resolve_tac [conjI, disjI1, psubsetI]));
 by (ALLGOALS (asm_full_simp_tac 
-	      (!simpset addsimps [srange_iff, set_eq_subset]))); 
+	      (simpset() addsimps [srange_iff, set_eq_subset]))); 
 by (ALLGOALS
-    (fast_tac (!claset addEs [Var_intro RS disjE]
-	               addss (!simpset addsimps [srange_iff]))));
+    (fast_tac (claset() addEs [Var_intro RS disjE]
+	               addss (simpset() addsimps [srange_iff]))));
 qed "var_elimR";
 
 
@@ -153,15 +153,15 @@ by (rtac allI 1);
 (* Apply induction *)
 by (res_inst_tac [("u","M1"),("v","M2")] unifyInduct0 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps (var_elimR::unifyRules0)
+    (asm_simp_tac (simpset() addsimps (var_elimR::unifyRules0)
 			    addsplits [expand_if])));
 (*Const-Const case*)
 by (simp_tac
-    (!simpset addsimps [unifyRel_def, lex_prod_def, measure_def,
+    (simpset() addsimps [unifyRel_def, lex_prod_def, measure_def,
 			inv_image_def, less_eq]) 1);
 (** LEVEL 7 **)
 (*Comb-Comb case*)
-by (asm_simp_tac (!simpset addsplits [split_option_case]) 1);
+by (asm_simp_tac (simpset() addsplits [split_option_case]) 1);
 by (strip_tac 1);
 by (rtac (trans_unifyRel RS transD) 1);
 by (Blast_tac 1);
@@ -183,7 +183,7 @@ goal Unify.thy
 \         | Some theta => (case unify(N1 <| theta, N2 <| theta)        \
 \                            of None => None    \
 \                             | Some sigma => Some (theta <> sigma)))";
-by (asm_simp_tac (!simpset addsimps (unify_TC::unifyRules0)
+by (asm_simp_tac (simpset() addsimps (unify_TC::unifyRules0)
 			   addsplits [split_option_case]) 1);
 qed "unifyCombComb";
 
@@ -194,7 +194,7 @@ Addsimps unifyRules;
 
 bind_thm ("unifyInduct",
 	  rule_by_tactic
-	     (ALLGOALS (full_simp_tac (!simpset addsimps [unify_TC])))
+	     (ALLGOALS (full_simp_tac (simpset() addsimps [unify_TC])))
 	     unifyInduct0);
 
 
@@ -207,33 +207,33 @@ bind_thm ("unifyInduct",
 
 goal Unify.thy "!theta. unify(M,N) = Some theta --> MGUnifier theta M N";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsplits [expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 (*Const-Const case*)
-by (simp_tac (!simpset addsimps [MGUnifier_def,Unifier_def]) 1);
+by (simp_tac (simpset() addsimps [MGUnifier_def,Unifier_def]) 1);
 (*Const-Var case*)
 by (stac mgu_sym 1);
-by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
+by (simp_tac (simpset() addsimps [MGUnifier_Var]) 1);
 (*Var-M case*)
-by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
+by (simp_tac (simpset() addsimps [MGUnifier_Var]) 1);
 (*Comb-Var case*)
 by (stac mgu_sym 1);
-by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
+by (simp_tac (simpset() addsimps [MGUnifier_Var]) 1);
 (** LEVEL 8 **)
 (*Comb-Comb case*)
-by (asm_simp_tac (!simpset addsplits [split_option_case]) 1);
+by (asm_simp_tac (simpset() addsplits [split_option_case]) 1);
 by (strip_tac 1);
 by (rotate_tac ~2 1);
 by (asm_full_simp_tac 
-    (!simpset addsimps [MGUnifier_def, Unifier_def, MoreGeneral_def]) 1);
-by (safe_tac (!claset) THEN rename_tac "theta sigma gamma" 1);
+    (simpset() addsimps [MGUnifier_def, Unifier_def, MoreGeneral_def]) 1);
+by (safe_tac (claset()) THEN rename_tac "theta sigma gamma" 1);
 by (eres_inst_tac [("x","gamma")] allE 1 THEN mp_tac 1);
 by (etac exE 1 THEN rename_tac "delta" 1);
 by (eres_inst_tac [("x","delta")] allE 1);
 by (subgoal_tac "N1 <| theta <| delta = N2 <| theta <| delta" 1);
 (*Proving the subgoal*)
-by (full_simp_tac (!simpset addsimps [subst_eq_iff]) 2
-    THEN blast_tac (!claset addIs [trans,sym] delrules [impCE]) 2);
-by (blast_tac (!claset addIs [subst_trans, subst_cong, 
+by (full_simp_tac (simpset() addsimps [subst_eq_iff]) 2
+    THEN blast_tac (claset() addIs [trans,sym] delrules [impCE]) 2);
+by (blast_tac (claset() addIs [subst_trans, subst_cong, 
 			      comp_assoc RS subst_sym]) 1);
 qed_spec_mp "unify_gives_MGU";
 
@@ -245,16 +245,16 @@ goal Unify.thy "!theta. unify(M,N) = Some theta --> Idem theta";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-       (!simpset addsimps [Var_Idem] 
+       (simpset() addsimps [Var_Idem] 
 	         addsplits [expand_if,split_option_case])));
 (*Comb-Comb case*)
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (REPEAT (dtac spec 1 THEN mp_tac 1));
-by (safe_tac (!claset addSDs [rewrite_rule [MGUnifier_def] unify_gives_MGU]));
+by (safe_tac (claset() addSDs [rewrite_rule [MGUnifier_def] unify_gives_MGU]));
 by (rtac Idem_comp 1);
 by (atac 1);
 by (atac 1);
-by (best_tac (!claset addss (!simpset addsimps 
+by (best_tac (claset() addss (simpset() addsimps 
 			     [MoreGeneral_def, subst_eq_iff, Idem_def])) 1);
 qed_spec_mp "unify_gives_Idem";
 

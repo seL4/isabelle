@@ -20,13 +20,13 @@ Addsimps [bind_Ok,bind_Fail];
 goal thy
   "P(res bind f) = ((res = Fail --> P Fail) & (!s. res = Ok s --> P(f s)))";
 by (maybe.induct_tac "res" 1);
-by (fast_tac (HOL_cs addss !simpset) 1);
+by (fast_tac (HOL_cs addss simpset()) 1);
 by (Asm_simp_tac 1);
 qed "expand_bind";
 
 goal Maybe.thy
   "((m bind f) = Fail) = ((m=Fail) | (? p. m = Ok p & f p = Fail))";
-by (simp_tac (!simpset addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [expand_bind]) 1);
 qed "bind_eq_Fail";
 
 Addsimps [bind_eq_Fail];

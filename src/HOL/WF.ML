@@ -19,7 +19,7 @@ val [prem1,prem2] = goalw WF.thy [wf_def]
 by (Clarify_tac 1);
 by (rtac allE 1);
 by (assume_tac 1);
-by (best_tac (!claset addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
+by (best_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
 qed "wfI";
 
 val major::prems = goalw WF.thy [wf_def]
@@ -27,7 +27,7 @@ val major::prems = goalw WF.thy [wf_def]
 \       !!x.[| ! y. (y,x): r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
 by (rtac (major RS spec RS mp RS spec) 1);
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "wf_induct";
 
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
@@ -38,7 +38,7 @@ fun wf_ind_tac a prems i =
 
 val prems = goal WF.thy "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
 by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 by (wf_ind_tac "a" prems 1);
 by (Blast_tac 1);
 qed "wf_asym";
@@ -81,7 +81,7 @@ by (Blast_tac 1);
 val lemma2 = result();
 
 goal WF.thy "wf r = (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q))";
-by (blast_tac (!claset addSIs [lemma1, lemma2]) 1);
+by (blast_tac (claset() addSIs [lemma1, lemma2]) 1);
 qed "wf_eq_minimal";
 
 (*---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ qed "wf_eq_minimal";
  *---------------------------------------------------------------------------*)
 
 goal thy "!!r. [| wf(r);  p<=r |] ==> wf(p)";
-by (full_simp_tac (!simpset addsimps [wf_eq_minimal]) 1);
+by (full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by (Fast_tac 1);
 qed "wf_subset";
 
@@ -98,7 +98,7 @@ qed "wf_subset";
  *---------------------------------------------------------------------------*)
 
 goal thy "wf({})";
-by (simp_tac (!simpset addsimps [wf_def]) 1);
+by (simp_tac (simpset() addsimps [wf_def]) 1);
 qed "wf_empty";
 AddSIs [wf_empty];
 
@@ -108,10 +108,10 @@ AddSIs [wf_empty];
 
 goal WF.thy "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)";
 by (rtac iffI 1);
- by (blast_tac (!claset addEs [wf_trancl RS wf_irrefl] addIs
+ by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl] addIs
       [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
-by (asm_full_simp_tac (!simpset addsimps [wf_eq_minimal]) 1);
-by (safe_tac (!claset));
+by (asm_full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
+by (safe_tac (claset()));
 by (EVERY1[rtac allE, atac, etac impE, Blast_tac]);
 by (etac bexE 1);
 by (rename_tac "a" 1);
@@ -124,7 +124,7 @@ by (case_tac "y:Q" 1);
 by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")] allE 1);
  by (assume_tac 1);
 by (thin_tac "! Q. (? x. x : Q) --> ?P Q" 1);	(*essential for speed*)
-by (blast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
 
@@ -132,18 +132,18 @@ AddIffs [wf_insert];
 
 goalw WF.thy [acyclic_def]
  "!!r. wf r ==> acyclic r";
-by (blast_tac (!claset addEs [wf_trancl RS wf_irrefl]) 1);
+by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
 goalw WF.thy [acyclic_def]
   "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)";
-by (simp_tac (!simpset addsimps [trancl_insert]) 1);
-by (blast_tac (!claset addEs [make_elim rtrancl_trans]) 1);
+by (simp_tac (simpset() addsimps [trancl_insert]) 1);
+by (blast_tac (claset() addEs [make_elim rtrancl_trans]) 1);
 qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
 goalw WF.thy [acyclic_def] "acyclic(r^-1) = acyclic r";
-by (simp_tac (!simpset addsimps [trancl_inverse]) 1);
+by (simp_tac (simpset() addsimps [trancl_inverse]) 1);
 qed "acyclic_inverse";
 
 (** cut **)
