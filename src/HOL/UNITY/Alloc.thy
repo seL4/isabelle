@@ -52,8 +52,8 @@ constdefs
   (*spec (1)*)
   system_safety :: 'a systemState program set
     "system_safety ==
-     Always {s. sum_below (%i. (tokens o giv o sub i o client) s) Nclients
-        <= NbT + sum_below (%i. (tokens o rel o sub i o client) s) Nclients}"
+     Always {s. setsum(%i.(tokens o giv o sub i o client)s) (lessThan Nclients)
+     <= NbT + setsum(%i.(tokens o rel o sub i o client)s) (lessThan Nclients)}"
 
   (*spec (2)*)
   system_progress :: 'a systemState program set
@@ -109,8 +109,8 @@ constdefs
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees[allocGiv]
-	 Always {s. sum_below (%i. (tokens o sub i o allocGiv) s) Nclients
-	      <= NbT + sum_below (%i. (tokens o sub i o allocRel) s) Nclients}"
+	 Always {s. setsum(%i.(tokens o sub i o allocGiv)s) (lessThan Nclients)
+         <= NbT + setsum(%i.(tokens o sub i o allocRel)s) (lessThan Nclients)}"
 
   (*spec (8)*)
   alloc_progress :: 'a allocState_u program set
@@ -130,6 +130,13 @@ constdefs
 	      INT h. {s. h <= (sub i o allocAsk) s}
 	             LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
+
+  (*NOTE: to follow the original paper, the formula above should have had
+	INT h. {s. h i <= (sub i o allocGiv)s & h i pfixGe (sub i o allocAsk)s}
+	       LeadsTo
+	       {s. tokens h i <= (tokens o sub i o allocRel)s})
+    thus h should have been a function variable.  However, only h i is ever
+    looked at.*)
 
   (*spec: preserves part*)
     alloc_preserves :: 'a allocState_u program set

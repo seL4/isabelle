@@ -420,8 +420,10 @@ val rename_Alloc_Safety =
 
 (*safety (1), step 3*)
 Goal
-  "System : Always {s. sum_below (%i. (tokens o sub i o allocGiv) s) Nclients \
-\           <= NbT + sum_below (%i. (tokens o sub i o allocRel) s) Nclients}";
+  "System : Always {s. setsum (%i. (tokens o sub i o allocGiv) s) \
+\                             (lessThan Nclients)                 \
+\           <= NbT + setsum (%i. (tokens o sub i o allocRel) s)   \
+\                           (lessThan Nclients)}";
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (rtac (rename_Alloc_Safety RS component_guaranteesD) 1);
 by (auto_tac (claset(), 
@@ -452,9 +454,9 @@ Goalw [system_safety_def] "System : system_safety";
 by (rtac (Always_Int_rule [System_sum_bounded, Always_tokens_giv_le_allocGiv, 
 			   Always_tokens_allocRel_le_rel] RS Always_weaken) 1);
 by Auto_tac;
-by (rtac (sum_mono RS order_trans) 1);
+by (rtac (setsum_fun_mono RS order_trans) 1);
 by (dtac order_trans 2);
-by (rtac ([order_refl, sum_mono] MRS add_le_mono) 2);
+by (rtac ([order_refl, setsum_fun_mono] MRS add_le_mono) 2);
 by (assume_tac 3);
 by Auto_tac;
 qed "System_safety";

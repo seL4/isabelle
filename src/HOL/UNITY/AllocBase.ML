@@ -9,13 +9,14 @@ add_path "../Induct";
 time_use_thy "AllocBase";
 *)
 
-Goal "(ALL i. i<n --> f i <= (g i :: nat)) --> sum_below f n <= sum_below g n";
+Goal "!!f :: nat=>nat. \
+\     (ALL i. i<n --> f i <= g i) --> \
+\     setsum f (lessThan n) <= setsum g (lessThan n)";
 by (induct_tac "n" 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [lessThan_Suc]));
 by (dres_inst_tac [("x","n")] spec 1);
-by Auto_tac;
 by (arith_tac 1);
-qed_spec_mp "sum_mono";
+qed_spec_mp "setsum_fun_mono";
 
 Goal "ALL xs. xs <= ys --> tokens xs <= tokens ys";
 by (induct_tac "ys" 1);
