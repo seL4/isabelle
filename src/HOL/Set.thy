@@ -56,7 +56,7 @@ syntax
   "@Finset"     :: "args => 'a set"                       ("{(_)}")
   "@Coll"       :: "pttrn => bool => 'a set"              ("(1{_./ _})")
   "@SetCompr"   :: "'a => idts => bool => 'a set"         ("(1{_ |/_./ _})")
-
+  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ :/ _./ _})")
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" 10)
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" 10)
   "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" 10)
@@ -75,6 +75,7 @@ translations
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
   "{x. P}"      == "Collect (%x. P)"
+  "{x:A. P}"    => "{x. x:A & P}"
   "UN x y. B"   == "UN x. UN y. B"
   "UN x. B"     == "UNION UNIV (%x. B)"
   "UN x. B"     == "UN x:UNIV. B"
@@ -123,6 +124,7 @@ syntax (HTML output)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (xsymbols)
+  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ \<in>/ _./ _})")
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" 10)
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" 10)
   "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" 10)
@@ -282,8 +284,15 @@ let
           let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' [abs]
           in Syntax.const "@SetCompr" $ e $ idts $ Q end;
     in if check (P, 0) then tr' P
-       else let val (x,t) = atomic_abs_tr' abs
-            in Syntax.const "@Coll" $ x $ t end
+       else let val (x as _ $ Free(xN,_), t) = atomic_abs_tr' abs
+                val M = Syntax.const "@Coll" $ x $ t
+            in case t of
+                 Const("op &",_)
+                   $ (Const("op :",_) $ (Const("_bound",_) $ Free(yN,_)) $ A)
+                   $ P =>
+                   if xN=yN then Syntax.const "@Collect" $ x $ A $ P else M
+               | _ => M
+            end
     end;
   in [("Collect", setcompr_tr')] end;
 *}

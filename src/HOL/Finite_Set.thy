@@ -673,6 +673,17 @@ lemma (in ACf) fold_insert[simp]:
     cong add: conj_cong simp add: fold_def [symmetric] fold_equality)
   done
 
+lemma (in ACf) fold_rec:
+assumes fin: "finite A" and a: "a:A"
+shows "fold f g z A = f (g a) (fold f g z (A - {a}))"
+proof-
+  have A: "A = insert a (A - {a})" using a by blast
+  hence "fold f g z A = fold f g z (insert a (A - {a}))" by simp
+  also have "\<dots> = f (g a) (fold f g z (A - {a}))"
+    by(rule fold_insert) (simp add:fin)+
+  finally show ?thesis .
+qed
+
 
 text{* A simplified version for idempotent functions: *}
 
@@ -1064,29 +1075,48 @@ proof -
   finally show ?thesis .
 qed
 
-lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::ab_group_add) A =
-  - setsum f A"
-  by (induct set: Finites, auto)
+lemma setsum_negf:
+ "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
+proof (cases "finite A")
+  case True thus ?thesis by (induct set: Finites, auto)
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
 
-lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
+lemma setsum_subtractf:
+ "setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
   setsum f A - setsum g A"
-  by (simp add: diff_minus setsum_addf setsum_negf)
+proof (cases "finite A")
+  case True thus ?thesis by (simp add: diff_minus setsum_addf setsum_negf)
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
 
-lemma setsum_nonneg: "[| finite A;
-    \<forall>x \<in> A. (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) \<le> f x |] ==>
-    0 \<le> setsum f A";
+lemma setsum_nonneg:
+assumes nn: "\<forall>x\<in>A. (0::'a::{pordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"
+shows "0 \<le> setsum f A"
+proof (cases "finite A")
+  case True thus ?thesis using nn
   apply (induct set: Finites, auto)
   apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
   apply (blast intro: add_mono)
   done
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
 
-lemma setsum_nonpos: "[| finite A;
-    \<forall>x \<in> A. f x \<le> (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) |] ==>
-    setsum f A \<le> 0";
+lemma setsum_nonpos:
+assumes np: "\<forall>x\<in>A. f x \<le> (0::'a::{pordered_ab_semigroup_add,comm_monoid_add})"
+shows "setsum f A \<le> 0"
+proof (cases "finite A")
+  case True thus ?thesis using np
   apply (induct set: Finites, auto)
   apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
   apply (blast intro: add_mono)
   done
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
 
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
@@ -1103,27 +1133,35 @@ next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
-lemma setsum_abs: 
+lemma setsum_abs[iff]: 
   fixes f :: "'a => ('b::lordered_ab_group_abs)"
-  assumes fin: "finite A" 
   shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
-using fin 
-proof (induct) 
-  case empty thus ?case by simp
+proof (cases "finite A")
+  case True
+  thus ?thesis
+  proof (induct)
+    case empty thus ?case by simp
+  next
+    case (insert x A)
+    thus ?case by (auto intro: abs_triangle_ineq order_trans)
+  qed
 next
-  case (insert x A)
-  thus ?case by (auto intro: abs_triangle_ineq order_trans)
+  case False thus ?thesis by (simp add: setsum_def)
 qed
 
-lemma setsum_abs_ge_zero: 
+lemma setsum_abs_ge_zero[iff]: 
   fixes f :: "'a => ('b::lordered_ab_group_abs)"
-  assumes fin: "finite A" 
   shows "0 \<le> setsum (%i. abs(f i)) A"
-using fin 
-proof (induct) 
-  case empty thus ?case by simp
+proof (cases "finite A")
+  case True
+  thus ?thesis
+  proof (induct)
+    case empty thus ?case by simp
+  next
+    case (insert x A) thus ?case by (auto intro: order_trans)
+  qed
 next
-  case (insert x A) thus ?case by (auto intro: order_trans)
+  case False thus ?thesis by (simp add: setsum_def)
 qed
 
 
