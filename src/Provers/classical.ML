@@ -56,23 +56,26 @@ signature CLASSICAL =
   val getwrapper	: claset -> tactic -> tactic
   val THEN_MAYBE	: tactic * tactic -> tactic
 
+  val fast_tac 		: claset -> int -> tactic
+  val slow_tac 		: claset -> int -> tactic
+  val weight_ASTAR	: int ref
+  val astar_tac		: claset -> int -> tactic
+  val slow_astar_tac 	: claset -> int -> tactic
   val best_tac 		: claset -> int -> tactic
-  val contr_tac 	: int -> tactic
+  val slow_best_tac 	: claset -> int -> tactic
   val depth_tac		: claset -> int -> int -> tactic
   val deepen_tac	: claset -> int -> int -> tactic
+
+  val contr_tac 	: int -> tactic
   val dup_elim		: thm -> thm
   val dup_intr		: thm -> thm
   val dup_step_tac	: claset -> int -> tactic
   val eq_mp_tac		: int -> tactic
-  val fast_tac 		: claset -> int -> tactic
   val haz_step_tac 	: claset -> int -> tactic
   val joinrules 	: thm list * thm list -> (bool * thm) list
   val mp_tac		: int -> tactic
   val safe_tac 		: claset -> tactic
   val safe_step_tac 	: claset -> int -> tactic
-  val slow_step_tac 	: claset -> int -> tactic
-  val slow_best_tac 	: claset -> int -> tactic
-  val slow_tac 		: claset -> int -> tactic
   val step_tac 		: claset -> int -> tactic
   val swap		: thm                 (* ~P ==> (~Q ==> P) ==> Q *)
   val swapify 		: thm list -> thm list
@@ -369,6 +372,19 @@ fun slow_tac cs = SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 fun slow_best_tac cs = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
+
+(**ASTAR with weight weight_ASTAR, by Norbert Voelker*) 
+val weight_ASTAR = ref 5; 
+
+fun astar_tac cs = 
+  SELECT_GOAL ( ASTAR (has_fewer_prems 1
+	      , fn level =>(fn thm =>size_of_thm thm + !weight_ASTAR *level)) 
+	      (step_tac cs 1));
+
+fun slow_astar_tac cs = 
+  SELECT_GOAL ( ASTAR (has_fewer_prems 1
+	      , fn level =>(fn thm =>size_of_thm thm + !weight_ASTAR *level)) 
+	      (slow_step_tac cs 1));
 
 (*** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
   of much experimentation!  Changing APPEND to ORELSE below would prove
