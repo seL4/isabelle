@@ -90,7 +90,7 @@ text{*\noindent Note that the term @{text"?thesis"} always stands for the
 
 This is too much proof text. Elimination rules should be selected
 automatically based on their major premise, the formula or rather connective
-to be eliminated. In Isar they are triggered by propositions being fed
+to be eliminated. In Isar they are triggered by facts being fed
 \emph{into} a proof. Syntax:
 \begin{center}
 \isakeyword{from} \emph{fact} \isakeyword{show} \emph{proposition} \emph{proof}
@@ -114,7 +114,7 @@ proof
   qed
 qed
 
-text{* Now we come a second important principle:
+text{* Now we come to a second important principle:
 \begin{quote}\em
 Try to arrange the sequence of propositions in a UNIX-like pipe,
 such that the proof of each proposition builds on the previous proposition.
@@ -266,7 +266,12 @@ $\land$-elimination and the proofs are separated by \isakeyword{next}:
 \item[\isakeyword{next}] deals with multiple subgoals. For example,
 when showing @{term"A \<and> B"} we need to show both @{term A} and @{term
 B}.  Each subgoal is proved separately, in \emph{any} order. The
-individual proofs are separated by \isakeyword{next}.
+individual proofs are separated by \isakeyword{next}.  \footnote{Each
+\isakeyword{show} must prove one of the pending subgoals.  If a
+\isakeyword{show} matches multiple subgoals, e.g.\ if the subgoals
+contain ?-variables, the first one is proved. Thus the order in which
+the subgoals are proved can matter --- see
+\S\ref{sec:CaseDistinction} for an example.}
 
 Strictly speaking \isakeyword{next} is only required if the subgoals
 are proved in different assumption contexts which need to be
@@ -479,7 +484,7 @@ text{* Although we have shown how to employ powerful automatic methods like
 @{text blast} to achieve bigger proof steps, there may still be the
 tendency to use the default introduction and elimination rules to
 decompose goals and facts. This can lead to very tedious proofs:
-%\Tweakskip
+\Tweakskip
 *}
 (*<*)ML"set quick_and_dirty"(*>*)
 lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"

@@ -8,7 +8,7 @@ comes with a datatype of lists with the two constructors @{text Nil}
 and @{text Cons}. @{text Nil} is written @{term"[]"} and @{text"Cons x
 xs"} is written @{term"x # xs"}.  *}
 
-subsection{*Case distinction*}
+subsection{*Case distinction\label{sec:CaseDistinction}*}
 
 text{* We have already met the @{text cases} method for performing
 binary case splits. Here is another example: *}
@@ -47,7 +47,7 @@ abbreviates `\isakeyword{assume}~@{text"True: A"}' and analogously for
 
 The same game can be played with other datatypes, for example lists,
 where @{term tl} is the tail of a list, and @{text length} returns a
-natural number:
+natural number (remember: $0-1=0$):
 %\Tweakskip
 *}
 (*<*)declare length_tl[simp del](*>*)
@@ -286,7 +286,7 @@ the order in which the variables appear on the left-hand side of the
 equation.
 
 The proof is so simple that it can be condensed to
-%\Tweakskip
+\Tweakskip
 *}
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
