@@ -69,27 +69,27 @@ environment is built as follows:
 \begin{enumerate}
 \item The special variable \settdx{ISABELLE_HOME} is determined
   automatically from the location of the binary that has been run.
-  
+
   You should not try to set \texttt{ISABELLE_HOME} manually. Also note
   that the Isabelle executables have to be run from their original
   location in the distribution directory --- copying or linking them
   somewhere else just won't work!
-  
+
 \item The file \texttt{\$ISABELLE_HOME/etc/settings} ist run as a
   shell script with the auto-export option for variables enabled.
-  
+
   This file typically contains a rather long list of shell variable
   assigments, thus providing the site-wide default settings.  The
   Isabelle distribution already contains a global settings file with
   sensible defaults for most variables. When installing the system,
   only a few of these have to be adapted (most likely
   \texttt{ML_SYSTEM} etc.).
-  
+
 \item The file \texttt{\$ISABELLE_HOME_USER/etc/settings} (if it
   exists) is run the same way as the site default settings. The
   variable \texttt{ISABELLE_HOME_USER} has already been set before ---
   usually to \texttt{\~\relax/isabelle}.
-  
+
   Thus individual users may override the site-wide defaults. See also
   file \texttt{etc/user-settings.sample} in the distribution.
   Typically, a user settings file would contain only a few lines, just
@@ -113,7 +113,7 @@ environment references should be kept at a minimum.
 \item \settdx{ISABELLE} and \settdx{ISATOOL} are set automatically to
   the absolute path names of the \texttt{isabelle} and
   \texttt{isatool} executables, respectively.
-  
+
 \item \settdx{ISABELLE_PATH} and \settdx{ISABELLE_OUTPUT} will have
   the {\ML} system identifier (as specified by \texttt{ML_SYSTEM})
   automatically appended to their values.
@@ -137,7 +137,7 @@ are marked with *.
   Isabelle distribution directory. This is automatically determined
   from the Isabelle executable that has been invoked.  Do not try to
   set \texttt{ISABELLE_HOME} yourself from the shell.
-  
+
 \item[\settdx{ISABELLE_HOME_USER}] is the user-specific counterpart of
   \texttt{ISABELLE_HOME}. The default value is
   \texttt{\~\relax/isabelle}, under rare circumstances this may be
@@ -145,29 +145,31 @@ are marked with *.
   \texttt{ISABELLE_HOME_USER} directory mimics \texttt{ISABELLE_HOME}
   to some extend. In particular, site-wide defaults may be overridden
   by a private \texttt{etc/settings}.
-  
+
 \item[\settdx{ISABELLE}*, \settdx{ISATOOL}*] are automatically set to
   the full paths of the \texttt{isabelle} and \texttt{isatool}
   executables, respectively.  Thus other tools and scripts need not
   assume that the Isabelle \texttt{bin} directory is on the current
   search path of the shell.
-
-\item[\settdx{ML_SYSTEM}, \settdx{ML_HOME}, \settdx{ML_OPTIONS}]
-  specify the underlying {\ML} system to be used for Isabelle.  The
-  choice of \texttt{ML_SYSTEM} identifiers is quite fixed, see the
-  global \texttt{etc/settings} file for some examples. The actual
-  compiler binary will be run from directory \texttt{ML_HOME}, with
-  \texttt{ML_OPTIONS} as first arguments on the command line.
   
+\item[\settdx{ML_SYSTEM}, \settdx{ML_HOME}, \settdx{ML_OPTIONS},
+  \settdx{ML_PLATFORM}] specify the underlying {\ML} system to be used for
+  Isabelle.  The choice of \texttt{ML_SYSTEM} identifiers is quite fixed, see
+  the global \texttt{etc/settings} file for some examples. The actual compiler
+  binary will be run from directory \texttt{ML_HOME}, with \texttt{ML_OPTIONS}
+  as first arguments on the command line.  The optional \texttt{ML_PLATFORM}
+  specifies the binary format of ML heap images, which is useful for
+  cross-platform installations.
+
 \item[\settdx{ISABELLE_PATH}*] is a list of directories (separated by
   colons) where Isabelle logic images may reside. Note that the
   \texttt{ML_SYSTEM} identifier is appended to each component
   automatically.
-  
+
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap
   files should be stored by default. The \texttt{ML_SYSTEM} identifier
   is appended here, too.
-  
+
 \item[\settdx{ISABELLE_BROWSER_INFO}] is the directory where theory
   browser information (HTML and graph data) is stored (see also
   \S\ref{sec:info}).  The default value is
@@ -176,7 +178,7 @@ are marked with *.
 \item[\settdx{ISABELLE_LOGIC}] specifies the default logic to load if
   none is given explicitely by the user --- e.g.\ when running
   \texttt{isabelle} directly, or some user interface.
-  
+
 \item[\settdx{ISABELLE_USEDIR_OPTIONS}] is implicitly prefixed to the
   command line of any \texttt{isatool usedir} invocation (see also
   \S\ref{sec:tool-usedir}). This typically contains compilation
@@ -190,7 +192,7 @@ are marked with *.
 
 \item[\settdx{ISABELLE_DOCS}] is a colon separated list of directories
   with documentation files.
-  
+
 \item[\settdx{DVI_VIEWER}] specifies the command to be used for
   displaying \texttt{dvi} files.
 
@@ -198,11 +200,11 @@ are marked with *.
   Isabelle symbol fonts are installed into your currently running X11
   display server. X11 fonts are a non-trivial issue, see
   \S\ref{sec:tool-installfonts} for more information.
-  
+
 \item[\settdx{ISABELLE_TMP_PREFIX}] is the prefix from which any
   \texttt{isabelle} session derives an individual directory for
   temporary files.  The default is somewhere in \texttt{/tmp}.
-  
+
 \item[\settdx{ISABELLE_INTERFACE}] is an identifier that specifies the
   actual user interface that the capital \texttt{Isabelle} should
   invoke.  Currently available are \texttt{none}, \texttt{xterm} and
@@ -362,10 +364,10 @@ setting variable. Currently, the following are recognized:
 \begin{ttdescription}
 \item[none] is just a pass-through to \texttt{isabelle}. Thus
   \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.
-  
+
 \item[xterm] refers to a simple xterm based interface which is part of
   the Isabelle distribution.
-  
+
 \item[emacs] refers to David Aspinall's \emph{Isamode} for emacs.
   Isabelle just provides a wrapper for this, the actual Isamode
   distribution is available elsewhere.
@@ -383,7 +385,7 @@ There are some more options available.  Just pass \texttt{-?} to the
 \texttt{xterm} interface to have its usage printed.
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "system"
-%%% End: 
+%%% End:

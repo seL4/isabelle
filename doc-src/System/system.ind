@@ -58,6 +58,7 @@
   \item {\tt makeall} tool, 12
   \item {\tt ML_HOME} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
+  \item {\tt ML_PLATFORM} setting, 3
   \item {\tt ML_SYSTEM} setting, 3
 
   \indexspace
