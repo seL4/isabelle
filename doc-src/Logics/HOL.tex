@@ -1488,12 +1488,9 @@ section.
 \begin{rail}
 typedecl : typevarlist id '=' (cons + '|')
          ;
-cons     : (id | string) (typ *) ( () | mixfix )
+cons     : name (typ *) ( () | mixfix )
          ;
-typ      : typevarlist id
-           | tid
-         ;
-typevarlist : () | tid | '(' (tid + ',') ')'
+typ      : id | tid | ('(' typevarlist id ')')
          ;
 \end{rail}
 \caption{Syntax of datatype declarations}
