@@ -286,10 +286,10 @@ fun deps_thy name path =
 fun try_ml_file name ml time =
   let
     val path = ThyLoad.ml_path name;
-    val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
+    val tr = Toplevel.imperative (fn () => ThyInfo.may_load_file ml time path);
     val tr_name = if time then "time_use" else "use";
   in
-    if not ml orelse is_none (ThyLoad.check_file path) then ()
+    if is_none (ThyLoad.check_file path) then ()
     else Toplevel.excursion_error [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
