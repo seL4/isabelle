@@ -316,12 +316,18 @@ val proof =
 (* print result *)
 
 fun pretty_result {kind, name, thm} =
-  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm_no_hyps thm];
+  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Proof.pretty_thm thm];
+
+fun pretty_rule thm =
+  Pretty.block [Pretty.str "solving goal by rule:", Pretty.fbrk, Proof.pretty_thm thm];
 
 val print_result = Pretty.writeln o pretty_result;
-fun cond_print_result int res = if int then print_result res else ();
 
-fun proof'' f = Toplevel.proof' (f o cond_print_result);
+fun cond_print_result_rule int =
+  if int then (print_result, Pretty.writeln o pretty_rule)
+  else (K (), K ());
+
+fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
 
 
 (* local endings *)
@@ -371,7 +377,7 @@ val skip_proof = local_skip_proof o global_skip_proof;
 local
 
 fun cond_print_calc int thm =
-  if int then Pretty.writeln (Pretty.big_list "calculation:" [Display.pretty_thm_no_hyps thm])
+  if int then Pretty.writeln (Pretty.big_list "calculation:" [Proof.pretty_thm thm])
   else ();
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
