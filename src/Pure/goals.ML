@@ -227,7 +227,7 @@ fun prepare_proof atomic rths chorn =
 		     (filter (fn x => (not (Locale.in_locale [x] sign))) 
 		      hyps)))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
-			            (term_of chorn, prop)
+			            (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
 		 then final_th
 	    else  !result_error_fn state "proved a different theorem"
         end
