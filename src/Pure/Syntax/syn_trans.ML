@@ -147,7 +147,7 @@ fun strip_abss vars_of body_of tm =
 
 (*do (partial) eta-contraction before printing*)
 
-val eta_contract = ref false;
+val eta_contract = ref true;
 
 fun eta_contr tm =
   let
