@@ -118,7 +118,7 @@ pairEC    "p:P&Q ==> p = <fst(p),snd(p)> : P&Q"
 
 whenBinl  "[| a:P;  !!x. x:P ==> f(x) : Q |] ==> when(inl(a),f,g) = f(a) : Q"
 whenBinr  "[| b:P;  !!x. x:P ==> g(x) : Q |] ==> when(inr(b),f,g) = g(b) : Q"
-plusEC    "a:P|Q ==> when(a,%x. inl(x),%y. inr(y)) = p : P|Q"
+plusEC    "a:P|Q ==> when(a,%x. inl(x),%y. inr(y)) = a : P|Q"
 
 applyB     "[| a:P;  !!x. x:P ==> b(x) : Q |] ==> (lam x. b(x)) ` a = b(a) : Q"
 funEC      "f:P ==> f = lam x. f`x : P"
