@@ -92,6 +92,7 @@ val conf_widen = prove_goalw thy [conf_def]
 	rtac val_.induct 1,
 	    ALLGOALS Simp_tac,
 	    ALLGOALS (fast_tac (HOL_cs addIs [widen_trans]))]) RS mp RS mp;
+bind_thm ("conf_widen", conf_widen);
 
 val conf_hext' = prove_goalw thy [conf_def] 
 	"\\<And>h. h\\<le>|h' \\<Longrightarrow> (\\<forall>v T. G,h\\<turnstile>v\\<Colon>\\<preceq>T \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>T)" (K [
@@ -103,6 +104,7 @@ val conf_hext' = prove_goalw thy [conf_def]
 	  dtac hext_objD 1,
 	   Auto_tac]);
 val conf_hext = conf_hext' RS spec RS spec RS mp;
+bind_thm ("conf_hext", conf_hext);
 
 val new_locD = prove_goalw thy [conf_def] 
 	"\\<lbrakk>h a = None; G,h\\<turnstile>Addr t\\<Colon>\\<preceq>T\\<rbrakk> \\<Longrightarrow> t\\<noteq>a" (fn prems => [

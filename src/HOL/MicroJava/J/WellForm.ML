@@ -246,6 +246,8 @@ val cfs_fields_lemma = prove_goalw thy [field_def]
 val widen_cfs_fields = prove_goal thy "\\<And>X. \\<lbrakk>field (G,C) fn = Some (fd, fT);\
 \  G\\<turnstile>C'\\<preceq>C C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
 fast_tac (HOL_cs addIs [widen_fields_mono, cfs_fields_lemma]) 1]);
+bind_thm ("widen_cfs_fields",widen_cfs_fields);
+
 
 Goal "wf_prog wf_mb G \\<Longrightarrow> method (G,C) sig = Some (md,mh,m)\
 \  \\<longrightarrow> G\\<turnstile>C\\<preceq>C md \\<and> wf_mdecl wf_mb G md (sig,(mh,m))";
