@@ -98,18 +98,20 @@ val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
 
-fun print_axioms thy =
+fun print_thy thy =
   let
-    val {sign, new_axioms, ...} = rep_theory thy;
+    val {sign, new_axioms, oracles, ...} = rep_theory thy;
     val axioms = Symtab.dest new_axioms;
+    val oras = map fst (Symtab.dest oracles);
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
       Pretty.quote (Sign.pretty_term sign t)];
   in
-    Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms))
+    Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms));
+    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
   end;
 
-fun print_theory thy = (Sign.print_sg (sign_of thy); print_axioms thy);
+fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
 
 
 
