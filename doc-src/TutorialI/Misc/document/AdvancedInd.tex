@@ -53,11 +53,11 @@ using \isa{{\isasymlongrightarrow}}.}
 This means we should prove%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ hd{\isacharunderscore}rev{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}%
-\begin{isamarkuptext}%
+\begin{isamarkuptxt}%
 \noindent
 This time, induction leaves us with the following base case
-\begin{isabelle}
-\ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ last\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 which is trivial, and \isa{auto} finishes the whole proof.
 
@@ -66,7 +66,7 @@ done. But if you really need the \isa{{\isasymLongrightarrow}}-version of
 \isa{hd{\isacharunderscore}rev}, for example because you want to apply it as an
 introduction rule, you need to derive it separately, by combining it with
 modus ponens:%
-\end{isamarkuptext}%
+\end{isamarkuptxt}%
 \isacommand{lemmas}\ hd{\isacharunderscore}revI\ {\isacharequal}\ hd{\isacharunderscore}rev{\isacharbrackleft}THEN\ mp{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent

@@ -15,7 +15,7 @@ quite certain that it is not definable by any of the standard means,
 then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
-  unsound, because $\exists x. x=x$ is a theorem.
+  unsound, because $\exists x.\ x=x$ is a theorem.
 \end{warn}%
 \end{isamarkuptext}%
 %
@@ -30,7 +30,8 @@ declaration}:%
 \isacommand{typedecl}\ my{\isacharunderscore}new{\isacharunderscore}type%
 \begin{isamarkuptext}%
 \noindent\indexbold{*typedecl}%
-This does not define the type at all but merely introduces its name, \isa{my{\isacharunderscore}new{\isacharunderscore}type}. Thus we know nothing about this type, except that it is
+This does not define \isa{my{\isacharunderscore}new{\isacharunderscore}type} at all but merely introduces its
+name. Thus we know nothing about this type, except that it is
 non-empty. Such declarations without definitions are
 useful only if that type can be viewed as a parameter of a theory and we do
 not intend to impose any restrictions on it. A typical example is given in
@@ -47,7 +48,7 @@ together with its properties: declare the type and state its properties as
 axioms. Example:%
 \end{isamarkuptext}%
 \isacommand{axioms}\isanewline
-just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymexists}{\isacharbang}\ x{\isacharcolon}{\isacharcolon}my{\isacharunderscore}new{\isacharunderscore}type{\isachardot}\ True{\isachardoublequote}%
+just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isacharcolon}{\isacharcolon}my{\isacharunderscore}new{\isacharunderscore}type{\isachardot}\ {\isasymforall}y{\isachardot}\ x\ {\isacharequal}\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 However, we strongly discourage this approach, except at explorative stages

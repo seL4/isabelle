@@ -58,10 +58,7 @@ apply(case_tac xs);
 
 txt{*\noindent
 results in the proof state
-\begin{isabelle}
-~1.~xs~=~[]~{\isasymLongrightarrow}~(case~xs~of~[]~{\isasymRightarrow}~[]~|~y~\#~ys~{\isasymRightarrow}~xs)~=~xs\isanewline
-~2.~{\isasymAnd}a~list.~xs=a\#list~{\isasymLongrightarrow}~(case~xs~of~[]~{\isasymRightarrow}~[]~|~y\#ys~{\isasymRightarrow}~xs)~=~xs%
-\end{isabelle}
+@{subgoals[display,indent=0,margin=65]}
 which is solved automatically:
 *}
 

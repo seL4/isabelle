@@ -101,7 +101,7 @@ intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\i
 \end{isabelle}
 where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the integers,
 \isa{abs} is the absolute value function, and \isa{{\isacharhash}{\isadigit{1}}} is the
-integer 1 (see \S\ref{sec:int}).
+integer 1 (see \S\ref{sec:numbers}).
 
 First we show that the our specific function, the difference between the
 numbers of \isa{a}'s and \isa{b}'s, does indeed only change by 1 in every
@@ -115,7 +115,7 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \ \ \ \ \ \ \ int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ {\isacharminus}\isanewline
 \ \ \ \ \ \ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ \ P\ x{\isacharbrackright}{\isacharparenright}\ {\isacharminus}\isanewline
-\ \ \ \ \ \ \ int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharless}{\isacharequal}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}%
+\ \ \ \ \ \ \ int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The lemma is a bit hard to read because of the coercion function

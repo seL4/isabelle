@@ -60,8 +60,9 @@ There is no choice as to the induction variable, and we immediately simplify:%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this is not a complete success:
-\begin{isabelle}\makeatother
-~1.~\dots~itrev~list~[]~=~rev~list~{\isasymLongrightarrow}~itrev~list~[a]~=~rev~list~@~[a]%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\ \ \ \ \ \ \ itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\ itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
 \end{isabelle}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed

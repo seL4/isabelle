@@ -67,9 +67,10 @@ by \isaindexbold{case_tac}. A trivial example:%
 \begin{isamarkuptxt}%
 \noindent
 results in the proof state
-\begin{isabelle}
-~1.~xs~=~[]~{\isasymLongrightarrow}~(case~xs~of~[]~{\isasymRightarrow}~[]~|~y~\#~ys~{\isasymRightarrow}~xs)~=~xs\isanewline
-~2.~{\isasymAnd}a~list.~xs=a\#list~{\isasymLongrightarrow}~(case~xs~of~[]~{\isasymRightarrow}~[]~|~y\#ys~{\isasymRightarrow}~xs)~=~xs%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\ \ \ \ \ \ \ xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs%
 \end{isabelle}
 which is solved automatically:%
 \end{isamarkuptxt}%

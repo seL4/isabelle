@@ -29,6 +29,12 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 @{text parord}. For example, this is what @{thm[source]refl} really looks like:
 @{thm[show_types]refl}.
 
+We have not made @{thm[source]less_le} a global definition because it would
+fix once and for all that @{text"<<"} is defined in terms of @{text"<<="}.
+There are however situations where it is the other way around, which such a
+definition would complicate. The slight drawback of the above class is that
+we need to define both @{text"<<="} and @{text"<<"} for each instance.
+
 We can now prove simple theorems in this abstract setting, for example
 that @{text"<<"} is not symmetric:
 *}

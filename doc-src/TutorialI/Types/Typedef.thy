@@ -11,7 +11,7 @@ quite certain that it is not definable by any of the standard means,
 then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
-  unsound, because $\exists x. x=x$ is a theorem.
+  unsound, because $\exists x.\ x=x$ is a theorem.
 \end{warn}
 *}
 
@@ -24,8 +24,8 @@ declaration}: *}
 typedecl my_new_type
 
 text{*\noindent\indexbold{*typedecl}%
-This does not define the type at all but merely introduces its name, @{typ
-my_new_type}. Thus we know nothing about this type, except that it is
+This does not define @{typ my_new_type} at all but merely introduces its
+name. Thus we know nothing about this type, except that it is
 non-empty. Such declarations without definitions are
 useful only if that type can be viewed as a parameter of a theory and we do
 not intend to impose any restrictions on it. A typical example is given in
@@ -43,7 +43,7 @@ axioms. Example:
 *}
 
 axioms
-just_one: "\<exists>! x::my_new_type. True"
+just_one: "\<exists>x::my_new_type. \<forall>y. x = y"
 
 text{*\noindent
 However, we strongly discourage this approach, except at explorative stages

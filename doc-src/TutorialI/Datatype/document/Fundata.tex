@@ -1,18 +1,18 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Fundata}%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Branch\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Br\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Parameter \isa{{\isacharprime}a} is the type of values stored in
-the \isa{Branch}es of the tree, whereas \isa{{\isacharprime}i} is the index
+the \isa{Br}anches of the tree, whereas \isa{{\isacharprime}i} is the index
 type over which the tree branches. If \isa{{\isacharprime}i} is instantiated to
 \isa{bool}, the result is a binary tree; if it is instantiated to
 \isa{nat}, we have an infinitely branching tree because each node
 has as many subtrees as there are natural numbers. How can we possibly
 write down such a tree? Using functional notation! For example, the term
 \begin{isabelle}%
-\ \ \ \ \ Branch\ {\isadigit{0}}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ Branch\ i\ {\isacharparenleft}{\isasymlambda}n{\isachardot}\ Tip{\isacharparenright}{\isacharparenright}%
+\ \ \ \ \ Br\ {\isadigit{0}}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ Br\ i\ {\isacharparenleft}{\isasymlambda}n{\isachardot}\ Tip{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 of type \isa{{\isacharparenleft}nat{\isacharcomma}\ nat{\isacharparenright}\ bigtree} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
@@ -22,8 +22,8 @@ Function \isa{map{\isacharunderscore}bt} applies a function to all labels in a \
 \end{isamarkuptext}%
 \isacommand{consts}\ map{\isacharunderscore}bt\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
-{\isachardoublequote}map{\isacharunderscore}bt\ f\ Tip\ \ \ \ \ \ \ \ \ \ {\isacharequal}\ Tip{\isachardoublequote}\isanewline
-{\isachardoublequote}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}map{\isacharunderscore}bt\ f\ Tip\ \ \ \ \ \ {\isacharequal}\ Tip{\isachardoublequote}\isanewline
+{\isachardoublequote}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Br\ a\ F{\isacharparenright}\ {\isacharequal}\ Br\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of \isa{map{\isacharunderscore}bt} involve only subtrees obtained from
@@ -38,19 +38,16 @@ The following lemma has a canonical proof%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isacommand{done}%
-\begin{isamarkuptext}%
+\begin{isamarkuptxt}%
 \noindent
-%apply(induct_tac T);
-%pr(latex xsymbols symbols)
 but it is worth taking a look at the proof state after the induction step
 to understand what the presence of the function type entails:
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ Tip\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ Tip{\isacharparenright}\isanewline
-\ \isadigit{2}{\isachardot}\ {\isasymAnd}a\ F{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymforall}x{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}F\ x{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ \ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}{\isacharparenright}
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ Tip\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ Tip{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ F{\isachardot}\ {\isasymforall}x{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}F\ x{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}Br\ a\ F{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Br\ a\ F{\isacharparenright}{\isacharparenright}%
 \end{isabelle}%
-\end{isamarkuptext}%
+\end{isamarkuptxt}%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

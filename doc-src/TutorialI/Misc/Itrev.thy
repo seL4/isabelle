@@ -61,9 +61,7 @@ apply(induct_tac xs, simp_all);
 
 txt{*\noindent
 Unfortunately, this is not a complete success:
-\begin{isabelle}\makeatother
-~1.~\dots~itrev~list~[]~=~rev~list~{\isasymLongrightarrow}~itrev~list~[a]~=~rev~list~@~[a]%
-\end{isabelle}
+@{subgoals[display,indent=0,margin=65]}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
 @{term"[]"}. The corresponding heuristic:

@@ -32,6 +32,12 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 \isa{parord}. For example, this is what \isa{refl} really looks like:
 \isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
 
+We have not made \isa{less{\isacharunderscore}le} a global definition because it would
+fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}}.
+There are however situations where it is the other way around, which such a
+definition would complicate. The slight drawback of the above class is that
+we need to define both \isa{{\isacharless}{\isacharless}{\isacharequal}} and \isa{{\isacharless}{\isacharless}} for each instance.
+
 We can now prove simple theorems in this abstract setting, for example
 that \isa{{\isacharless}{\isacharless}} is not symmetric:%
 \end{isamarkuptext}%

@@ -51,23 +51,20 @@ This means we should prove
 (*<*)oops;(*>*)
 lemma hd_rev: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs";
 (*<*)
-by(induct_tac xs, auto);
+apply(induct_tac xs);
 (*>*)
 
-text{*\noindent
+txt{*\noindent
 This time, induction leaves us with the following base case
-\begin{isabelle}
-\ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 which is trivial, and @{text"auto"} finishes the whole proof.
 
-If @{thm[source]hd_rev} is meant to be a simplification rule, you are
+If @{text hd_rev} is meant to be a simplification rule, you are
 done. But if you really need the @{text"\<Longrightarrow>"}-version of
-@{thm[source]hd_rev}, for example because you want to apply it as an
+@{text hd_rev}, for example because you want to apply it as an
 introduction rule, you need to derive it separately, by combining it with
 modus ponens:
-*};
-
+*}(*<*)by(auto);(*>*)
 lemmas hd_revI = hd_rev[THEN mp];
  
 text{*\noindent

@@ -105,7 +105,7 @@ intermediate value theorem @{thm[source]nat0_intermed_int_val}
 @{thm[display]nat0_intermed_int_val[no_vars]}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
 @{term abs} is the absolute value function, and @{term"#1::int"} is the
-integer 1 (see \S\ref{sec:int}).
+integer 1 (see \S\ref{sec:numbers}).
 
 First we show that the our specific function, the difference between the
 numbers of @{term a}'s and @{term b}'s, does indeed only change by 1 in every
@@ -120,7 +120,7 @@ lemma step1: "\<forall>i < size w.
        int(size[x\<in>take (i+1) w. \<not>P x]))
       -
       (int(size[x\<in>take i w.  P x]) -
-       int(size[x\<in>take i w. \<not>P x]))) <= #1";
+       int(size[x\<in>take i w. \<not>P x]))) \<le> #1";
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
