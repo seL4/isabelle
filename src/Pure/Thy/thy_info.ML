@@ -40,9 +40,10 @@ sig
   val put_theory: theory -> unit
   val loaded_files: string -> (Path.T * File.info) list
   val load_file: bool -> Path.T -> unit
+  val use_path: Path.T -> unit
   val use: string -> unit
   val use_thy_only: string -> unit
-  val begin_theory: string -> string list -> theory
+  val begin_theory: string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
   val finalize_all: unit -> unit
   val register_theory: theory -> unit
@@ -248,7 +249,8 @@ fun load_file false path = run_file path
           writeln ("**** Finished file " ^ quote name ^ " ****\n")))
       end;
 
-val use = load_file false o Path.unpack;
+val use_path = load_file false;
+val use = use_path o Path.unpack;
 val time_use = load_file true o Path.unpack;
 
 
@@ -306,14 +308,15 @@ val time_use_thy = gen_use_thy (require_thy true true true false []);
 val use_thy_only = gen_use_thy (require_thy false false true false []);
 
 
-(* begin / end theory *)                (* FIXME tune *)
+(* begin / end theory *)                (* FIXME tune *) (* FIXME files vs. paths (!?!?) *)
 
-fun begin_theory name parents =
+fun begin_theory name parents paths =
   let
     val _ = seq weak_use_thy parents;
     val theory = PureThy.begin_theory name (map get_theory parents);
     val _ = change_thys (update_node name parents (init_deps [] [], Some (theory, Symtab.empty)));
-  in theory end;
+    val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
+  in Context.setmp (Some theory) (seq use_path) use_paths; theory end;
 
 fun end_theory theory =
   let val theory' = PureThy.end_theory theory
