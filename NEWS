@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -240,6 +239,8 @@ renamed "Product_Type.unit";
 
 * HOL/GroupTheory: group theory examples including Sylow's theorem, by
 Florian Kammüller;
+
+* HOL: renamed rtrancl_into_rtrancl2 to converse_rtrancl_into_rtrancl
 
 
 *** HOLCF ***
