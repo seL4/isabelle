@@ -93,7 +93,8 @@ fun ss addcongs congs =
 val IFOL_ss = empty_ss
       setmksimps mk_rew_rules
       setsolver
-        (fn prems => resolve_tac (TrueI::refl::iff_refl::notFalseI::prems))
+        (fn prems => resolve_tac (TrueI::refl::iff_refl::notFalseI::prems)
+                     ORELSE' atac)
       setsubgoaler asm_simp_tac
       addsimps IFOL_rews
       addcongs [imp_cong];
