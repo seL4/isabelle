@@ -115,9 +115,13 @@ Arithmetic, by Thomas M Rasmussen;
 basically a generalized version of de-Bruijn representation; very
 useful in avoiding lifting all operations;
 
-* greatly improved simplification involving numerals of type "nat", e.g.
+* greatly improved simplification involving numerals of type nat & int, e.g.
    (i + #8 + j) = Suc k simplifies to  #7 + (i + j) = k
-   i*j + k + j*#3*i     simplifies to  #4*(i*j) + k;
+   i*j + k + j*#3*i     simplifies to  #4*(i*j) + k
+  two terms #m*u and #n*u are replaced by #(m+n)*u
+    (where #m, #n and u can implicitly be 1; this is simproc combine_numerals)
+  and the term/formula #m*u+x ~~ #n*u+y simplifies simplifies to #(m-n)+x ~~ y
+    or x ~~ #(n-m)+y, where ~~ is one of = < <= or - (simproc cancel_numerals);
 
 * new version of "case_tac" subsumes both boolean case split and
 "exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
