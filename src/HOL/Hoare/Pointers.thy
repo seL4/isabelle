@@ -16,6 +16,30 @@ chains to HOL lists. This is merely axiomatized by Bornat.
 
 theory Pointers = Hoare:
 
+(* field access and update *)
+syntax
+  "@faccess"  :: "'a option => ('a \<Rightarrow> 'v option) => 'v"
+   ("_^:_" [65,1000] 65)
+  "@fassign"  :: "'p option => id => 'v => 's com"
+   ("(2_^._ :=/ _)" [70,1000,65] 61)
+translations
+  "p^:f" == "f(the p)"
+  "p^.f := e" => "f := fun_upd f (the p) e"
+
+
+text{* An example due to Suzuki: *}
+
+lemma "|- VARS v n. 
+  {w = Some w0 & x = Some x0 & y = Some y0 & z = Some z0 &
+   distinct[w0,x0,y0,z0]}
+  w^.v := (1::int); w^.n := x;
+  x^.v := 2; x^.n := y;
+  y^.v := 3; y^.n := z;
+  z^.v := 4; x^.n := z
+  {w^:n^:n^:v = 4}"
+by vcg_simp
+
+
 section"The heap"
 
 subsection"Paths in the heap"
@@ -33,11 +57,17 @@ apply fastsimp
 done
 
 lemma [simp]: "path h (Some a) as z =
- (as = [] \<and> z = Some a \<or>  (\<exists>bs. as = a#bs \<and> path h (h a) bs z))"
+ (as = [] \<and> z = Some a  \<or>  (\<exists>bs. as = a#bs \<and> path h (h a) bs z))"
 apply(case_tac as)
 apply fastsimp
 apply fastsimp
 done
+
+lemma [simp]: "\<And>x. path f x (as@bs) z = (\<exists>y. path f x as y \<and> path f y bs z)"
+by(induct as, simp+)
+
+lemma [simp]: "\<And>x. u \<notin> set as \<Longrightarrow> path (f(u\<mapsto>v)) x as y = path f x as y"
+by(induct as, simp, simp add:eq_sym_conv)
 
 subsection "Lists on the heap"
 
@@ -66,13 +96,13 @@ by(induct as, simp, clarsimp)
 lemma list_app: "\<And>x. list h x (as@bs) = (\<exists>y. path h x as y \<and> list h y bs)"
 by(induct as, simp, clarsimp)
 
-lemma list_hd_not_in_tl: "list h (h a) as \<Longrightarrow> a \<notin> set as"
+lemma list_hd_not_in_tl[simp]: "list h (h a) as \<Longrightarrow> a \<notin> set as"
 apply (clarsimp simp add:in_set_conv_decomp)
 apply(frule list_app[THEN iffD1])
 apply(fastsimp dest:list_app[THEN iffD1] list_unique)
 done
 
-lemma list_distinct: "\<And>x. list h x as \<Longrightarrow> distinct as"
+lemma list_distinct[simp]: "\<And>x. list h x as \<Longrightarrow> distinct as"
 apply(induct as, simp)
 apply(fastsimp dest:list_hd_not_in_tl)
 done
@@ -101,7 +131,7 @@ lemma "|- VARS tl p q r.
   WHILE p ~= None
   INV {\<exists>As' Bs'. list tl p As' \<and> list tl q Bs' \<and> set As' \<inter> set Bs' = {} \<and>
                  rev As' @ Bs' = rev As @ Bs}
-  DO r := p; p := tl(the p); tl := tl(the r := q); q := r OD
+  DO r := p; p := p^:tl; r^.tl := q; q := r OD
   {list tl q (rev As @ Bs)}"
 apply vcg_simp
 
@@ -113,7 +143,6 @@ apply clarsimp
 
 apply clarify
 apply(rename_tac As' b Bs')
-apply(frule list_distinct)
 apply clarsimp
 apply(rename_tac As'')
 apply(rule_tac x = As'' in exI)
@@ -132,9 +161,9 @@ works for acyclic lists. *}
 
 lemma "|- VARS tl p. 
   {list tl p As \<and> X \<in> set As}
-  WHILE p ~= None & p ~= Some X
-  INV {p ~= None & (\<exists>As'. list tl p As' \<and> X \<in> set As')}
-  DO p := tl(the p) OD
+  WHILE p \<noteq> None \<and> p \<noteq> Some X
+  INV {p \<noteq> None \<and> (\<exists>As'. list tl p As' \<and> X \<in> set As')}
+  DO p := p^:tl OD
   {p = Some X}"
 apply vcg_simp
   apply(case_tac p)
@@ -150,9 +179,9 @@ statement to cyclic lists as well: *}
 
 lemma "|- VARS tl p. 
   {path tl p As (Some X)}
-  WHILE p ~= None & p ~= Some X
-  INV {p ~= None & (\<exists>As'. path tl p As' (Some X))}
-  DO p := tl(the p) OD
+  WHILE p \<noteq> None \<and> p \<noteq> Some X
+  INV {p \<noteq> None \<and> (\<exists>As'. path tl p As' (Some X))}
+  DO p := p^:tl OD
   {p = Some X}"
 apply vcg_simp
   apply(case_tac p)
@@ -183,9 +212,9 @@ done
 
 lemma "|- VARS tl p. 
   {Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
-  WHILE p ~= None & p ~= Some X
-  INV {p ~= None & Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
-  DO p := tl(the p) OD
+  WHILE p \<noteq> None \<and> p \<noteq> Some X
+  INV {p \<noteq> None \<and> Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
+  DO p := p^:tl OD
   {p = Some X}"
 apply vcg_simp
   apply(case_tac p)
@@ -201,10 +230,10 @@ done
 text{*Finally, the simplest version, based on a relation on type @{typ 'a}:*}
 
 lemma "|- VARS tl p. 
-  {p ~= None & X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
-  WHILE p ~= None & p ~= Some X
-  INV {p ~= None & X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
-  DO p := tl(the p) OD
+  {p \<noteq> None \<and> X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
+  WHILE p \<noteq> None \<and> p \<noteq> Some X
+  INV {p \<noteq> None \<and> X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
+  DO p := p^:tl OD
   {p = Some X}"
 apply vcg_simp
  apply clarsimp
@@ -212,6 +241,118 @@ apply vcg_simp
   apply simp
  apply clarsimp
 apply clarsimp
+done
+
+subsection{*Merging two lists*}
+
+consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
+
+recdef merge "measure(%(xs,ys,f). size xs + size ys)"
+"merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
+                                else y # merge(x#xs,ys,f))"
+"merge(x#xs,[],f) = x # merge(xs,[],f)"
+"merge([],y#ys,f) = y # merge([],ys,f)"
+"merge([],[],f) = []"
+
+lemma imp_disjCL: "(P|Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (~P \<longrightarrow> Q \<longrightarrow> R))"
+by blast
+
+declare imp_disjL[simp del] imp_disjCL[simp]
+
+lemma "|- VARS hd tl p q r s.
+ {list tl p Ps \<and> list tl q Qs \<and> set Ps \<inter> set Qs = {} \<and>
+  (p \<noteq> None \<or> q \<noteq> None)}
+ IF q = None \<or> p \<noteq> None \<and> p^:hd \<le> q^:hd
+ THEN r := p; p := p^:tl ELSE r := q; q := q^:tl FI;
+ s := r;
+ WHILE p \<noteq> None \<or> q \<noteq> None
+ INV {EX rs ps qs a. path tl r rs s \<and> list tl p ps \<and> list tl q qs \<and>
+      distinct(a # ps @ qs @ rs) \<and> s = Some a \<and>
+      merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
+      rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>
+      (tl a = p \<or> tl a = q)}
+ DO IF q = None \<or> p \<noteq> None \<and> p^:hd \<le> q^:hd
+    THEN s^.tl := p; p := p^:tl ELSE s^.tl := q; q := q^:tl FI;
+    s := s^:tl
+ OD
+ {list tl r (merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y))}"
+apply vcg_simp
+
+apply clarsimp
+apply(rule conjI)
+apply clarsimp
+apply(rule exI, rule conjI, rule disjI1, rule refl)
+apply (fastsimp)
+apply(rule conjI)
+apply clarsimp
+apply(rule exI, rule conjI, rule disjI1, rule refl)
+apply clarsimp
+apply(rule exI)
+apply(rule conjI)
+apply assumption
+apply(rule exI)
+apply(rule conjI)
+apply(rule exI)
+apply(rule conjI)
+apply(rule refl)
+apply assumption
+apply (fastsimp)
+apply(case_tac p)
+apply clarsimp
+apply(rule exI, rule conjI, rule disjI1, rule refl)
+apply (fastsimp)
+apply clarsimp
+apply(rule exI, rule conjI, rule disjI1, rule refl)
+apply(rule exI)
+apply(rule conjI)
+apply(rule exI)
+apply(rule conjI)
+apply(rule refl)
+apply assumption
+apply (fastsimp)
+
+apply clarsimp
+apply(rule conjI)
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply simp
+apply(rule_tac x = "bs" in exI)
+apply (fastsimp simp:eq_sym_conv)
+
+apply(rule conjI)
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply simp
+apply(rule_tac x = "bs" in exI)
+apply(rule conjI)
+apply (simp add:eq_sym_conv)
+apply(rule exI)
+apply(rule conjI)
+apply(rule_tac x = bsa in exI)
+apply(rule conjI)
+apply(rule refl)
+apply (simp add:eq_sym_conv)
+apply (fastsimp simp:eq_sym_conv)
+apply(case_tac p)
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply simp
+apply(rule_tac x = "bs" in exI)
+apply (fastsimp simp:eq_sym_conv)
+
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply simp
+apply(rule exI)
+apply(rule conjI)
+apply(rule_tac x = bs in exI)
+apply(rule conjI)
+apply(rule refl)
+apply (simp add:eq_sym_conv)
+apply(rule_tac x = bsa in exI)
+apply (fastsimp simp:eq_sym_conv)
+
+apply(clarsimp simp add:list_app)
 done
 
 end

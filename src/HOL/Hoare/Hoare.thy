@@ -10,7 +10,7 @@ later.
 *)
 
 theory Hoare  = Main
-files ("Hoare.ML"):
+files ("hoare.ML"):
 
 types
     'a bexp = "'a set"
@@ -193,7 +193,7 @@ fun spec_tr' [p, c, q] =
 
 print_translation {* [("Valid", spec_tr')] *}
 
-use "Hoare.ML"
+use "hoare.ML"
 
 method_setup vcg = {*
   Method.no_args
