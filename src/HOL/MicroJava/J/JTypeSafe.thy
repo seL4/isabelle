@@ -373,27 +373,27 @@ Unify.search_bound := 20;
 Unify.trace_bound  := 20
 *}
 
+
 lemma eval_type_sound: "!!E s s'.  
-  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -e\<succ>v -> (x',s'); (x,s)::\<preceq>E; E\<turnstile>e::T |]  
-  ==> (x',s')::\<preceq>E \<and> (x'=None --> G,heap s'\<turnstile>v::\<preceq>T)"
-apply( simp (no_asm_simp) only: split_tupled_all)
-apply (drule eval_evals_exec_type_sound 
-             [THEN conjunct1, THEN mp, THEN spec, THEN mp])
+  [| wf_java_prog G; G\<turnstile>(x,s) -e\<succ>v -> (x',s'); (x,s)::\<preceq>E; E\<turnstile>e::T; G=prg E |]  
+  ==> (x',s')::\<preceq>E \<and> (x'=None --> G,heap s'\<turnstile>v::\<preceq>T) \<and> heap s \<le>| heap s'"
+apply (simp (no_asm_simp) only: split_tupled_all)
+apply (drule eval_evals_exec_type_sound [THEN conjunct1, THEN mp, THEN spec, THEN mp])
 apply auto
 done
 
+
 lemma evals_type_sound: "!!E s s'.  
-  [| G\<turnstile>(x,s) -es[\<succ>]vs -> (x',s'); G=prg E; wf_java_prog G; (x,s)::\<preceq>E; E\<turnstile>es[::]Ts |]  
-  ==> (x',s')::\<preceq>E \<and> (x'=None --> list_all2 (conf G (heap s')) vs Ts)"
-apply( simp (no_asm_simp) only: split_tupled_all)
-apply (drule eval_evals_exec_type_sound 
-             [THEN conjunct2, THEN conjunct1, THEN mp, THEN spec, THEN mp])
+  [| wf_java_prog G; G\<turnstile>(x,s) -es[\<succ>]vs -> (x',s'); (x,s)::\<preceq>E; E\<turnstile>es[::]Ts; G=prg E |]  
+  ==> (x',s')::\<preceq>E \<and> (x'=None --> (list_all2 (\<lambda>v T. G,heap s'\<turnstile>v::\<preceq>T) vs Ts)) \<and> heap s \<le>| heap s'"
+apply (simp (no_asm_simp) only: split_tupled_all)
+apply (drule eval_evals_exec_type_sound [THEN conjunct2, THEN conjunct1, THEN mp, THEN spec, THEN mp])
 apply auto
 done
 
 lemma exec_type_sound: "!!E s s'.  
-  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -s0-> (x',s'); (x,s)::\<preceq>E; E\<turnstile>s0\<surd> |]  
-  ==> (x',s')::\<preceq>E"
+  \<lbrakk> wf_java_prog G; G\<turnstile>(x,s) -s0-> (x',s'); (x,s)::\<preceq>E; E\<turnstile>s0\<surd>; G=prg E \<rbrakk>
+  \<Longrightarrow> (x',s')::\<preceq>E \<and> heap s \<le>| heap s'"
 apply( simp (no_asm_simp) only: split_tupled_all)
 apply (drule eval_evals_exec_type_sound 
              [THEN conjunct2, THEN conjunct2, THEN mp, THEN spec, THEN mp])
@@ -404,10 +404,10 @@ theorem all_methods_understood:
 "[|G=prg E; wf_java_prog G; G\<turnstile>(x,s) -e\<succ>a'-> Norm s'; a' \<noteq> Null; 
           (x,s)::\<preceq>E; E\<turnstile>e::Class C; method (G,C) sig \<noteq> None|] ==>  
   method (G,fst (the (heap s' (the_Addr a')))) sig \<noteq> None"
-apply( drule (4) eval_type_sound)
+apply (frule eval_type_sound, assumption+)
 apply(clarsimp)
 apply( frule widen_methd)
-apply(   assumption)
+apply assumption
 prefer 2
 apply(  fast)
 apply( drule non_npD)
