@@ -7,5 +7,5 @@
 writeln"Root file for HOL/Lambda";
 
 time_use_thy "Eta";
-add_path "../Induct";
+time_use_thy "../Induct/Acc";
 time_use_thy "InductTermi";
