@@ -1,4 +1,4 @@
-(*  Title: 	term.ML
+(*  Title: 	Pure/term.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
@@ -212,6 +212,12 @@ in iter end
 
 
 (** Connectives of higher order logic **)
+
+val logicC: class = "logic";
+val logicS: sort = [logicC];
+
+fun itselfT ty = Type ("itself", [ty]);
+val a_itselfT = itselfT (TFree ("'a", logicS));
 
 val propT : typ = Type("prop",[]);
 
