@@ -21,17 +21,21 @@ inductive "yahalom"
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: yahalom;  X: synth (analz (spies evs)) |]
+    Fake "[| evs: yahalom;  X: synth (analz (knows Spy evs)) |]
           ==> Says Spy B X  # evs : yahalom"
+
+         (*A message that has been sent can be received by the
+           intended recipient.*)
+    Reception "[| evsr: yahalom;  Says A B X : set evsr |]
+               ==> Gets B X # evsr : yahalom"
 
          (*Alice initiates a protocol run*)
     YM1  "[| evs1: yahalom;  Nonce NA ~: used evs1 |]
           ==> Says A B {|Agent A, Nonce NA|} # evs1 : yahalom"
 
-         (*Bob's response to Alice's message.  Bob doesn't know who 
-	   the sender is, hence the A' in the sender field.*)
+         (*Bob's response to Alice's message.*)
     YM2  "[| evs2: yahalom;  Nonce NB ~: used evs2;
-             Says A' B {|Agent A, Nonce NA|} : set evs2 |]
+             Gets B {|Agent A, Nonce NA|} : set evs2 |]
           ==> Says B Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                 # evs2 : yahalom"
@@ -39,7 +43,7 @@ inductive "yahalom"
          (*The Server receives Bob's message.  He responds by sending a
             new session key to Alice, with a packet for forwarding to Bob.*)
     YM3  "[| evs3: yahalom;  Key KAB ~: used evs3;
-             Says B' Server 
+             Gets Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                : set evs3 |]
           ==> Says Server A
@@ -51,8 +55,8 @@ inductive "yahalom"
            uses the new session key to send Bob his Nonce.  The premise
            A ~= Server is needed to prove Says_Server_not_range.*)
     YM4  "[| evs4: yahalom;  A ~= Server;
-             Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|},
-                        X|}  : set evs4;
+             Gets A {|Crypt(shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|}, X|}
+                : set evs4;
              Says A B {|Agent A, Nonce NA|} : set evs4 |]
           ==> Says A B {|X, Crypt K (Nonce NB)|} # evs4 : yahalom"
 
