@@ -42,6 +42,9 @@ the current theory context;
 
 *** HOL ***
 
+* HOL/record: now includes concrete syntax for record terms (still
+lacks important theorems, like surjective pairing and split);
+
 * new force_tac (and its derivations Force_tac, force): combines
 rewriting and classical reasoning (and whatever other tools) similarly
 to auto_tac, but is aimed to solve the given subgoal totally;
