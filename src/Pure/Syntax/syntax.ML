@@ -158,7 +158,7 @@ fun extend_tables (Tabs tabs) (XGram xgram) =
 
 (* mk_tables *)
 
-val mk_tables = extend_tables empty_tables;
+(* val mk_tables = extend_tables empty_tables; *)
 
 (* FIXME *)
 fun mk_tables (XGram xgram) =
@@ -426,7 +426,7 @@ fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
 val type_syn = mk_syntax (ref (ExtGG (ref EmptyGG, type_ext)));
 
 
-(* extend *)  (* FIXME *)
+(* extend *)  (* FIXME *) (* FIXME check *)
 
 fun old_extend syn read_ty (roots, xconsts, sext) =
   let
@@ -457,10 +457,10 @@ fun new_extend syn read_ty (roots, xconsts, sext) =
   end;
 
 
-fun extend syn read_ty (ex as (_, _, sext)) =
-  (case sext of
-    Sext {mixfix = [], ...} => new_extend
-  | NewSext {mixfix = [], ...} => new_extend
+fun extend syn read_ty (ex as (roots, _, sext)) =
+  (case (roots, sext) of
+    ([], Sext {mixfix = [], ...}) => new_extend
+  | ([], NewSext {mixfix = [], ...}) => new_extend
   | _ => old_extend) syn read_ty ex;
 
 
