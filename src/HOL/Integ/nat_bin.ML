@@ -290,8 +290,8 @@ val numeral_sym_ss =
 fun rename_numerals th = simplify numeral_sym_ss (Thm.transfer (the_context ()) th);
 
 (*Maps #n to n for n = 0, 1, 2*)
-val numeral_ss = 
-    simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1, numeral_2_eq_2];
+bind_thms ("numerals", [numeral_0_eq_0, numeral_1_eq_1, numeral_2_eq_2]);
+val numeral_ss = simpset() addsimps numerals;
 
 (** Nat **)
 
