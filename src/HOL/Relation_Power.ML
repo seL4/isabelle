@@ -1,10 +1,8 @@
-(*  Title:      HOL/RelPow.ML
+(*  Title:      HOL/Relation_Power.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1996  TU Muenchen
 *)
-
-open RelPow;
 
 Goal "!!R:: ('a*'a)set. R^1 = R";
 by (Simp_tac 1);

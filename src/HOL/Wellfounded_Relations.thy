@@ -1,4 +1,4 @@
-(*  Title:      HOL/WF_Rel
+(*  Title:      HOL/Wellfounded_Relations
     ID:         $Id$
     Author:     Konrad Slind
     Copyright   1995 TU Munich
@@ -10,7 +10,7 @@ subset of the lexicographic product, and therefore does not need to be defined
 separately.
 *)
 
-WF_Rel = Finite +
+Wellfounded_Relations = Finite +
 
 (* actually belongs to theory Finite *)
 instance unit :: finite                  (finite_unit)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/WF.ML
+(*  Title:      HOL/Wellfounded_Recursion.ML
     ID:         $Id$
     Author:     Tobias Nipkow, with minor changes by Konrad Slind
     Copyright   1992  University of Cambridge/1995 TU Munich

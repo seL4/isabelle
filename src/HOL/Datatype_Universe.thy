@@ -1,4 +1,4 @@
-(*  Title:      HOL/Univ.thy
+(*  Title:      HOL/Datatype_Universe.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -9,7 +9,7 @@ Defines "Cartesian Product" and "Disjoint Sum" as set operations.
 Could <*> be generalized to a general summation (Sigma)?
 *)
 
-Univ = Arith + Sum +
+Datatype_Universe = Arithmetic + Sum_Type +
 
 
 (** lists, trees will be sets of nodes **)

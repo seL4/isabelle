@@ -1,4 +1,4 @@
-(*  Title:      HOL/Trancl.thy
+(*  Title:      HOL/Transitive_Closure.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -13,7 +13,7 @@ These postfix operators have MAXIMUM PRIORITY, forcing their operands to be
       atomic.
 *)
 
-Trancl = Lfp + Relation + 
+Transitive_Closure = Lfp + Relation + 
 
 constdefs
   rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [1000] 999)

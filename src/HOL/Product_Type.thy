@@ -1,4 +1,4 @@
-(*  Title:      HOL/Prod.thy
+(*  Title:      HOL/Product_Type.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -7,7 +7,7 @@ Ordered Pairs and the Cartesian product type.
 The unit type.
 *)
 
-Prod = Fun + equalities +
+Product_Type = Fun + equalities +
 
 
 (** products **)

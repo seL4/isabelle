@@ -1,4 +1,4 @@
-(*  Title:      HOL/Univ
+(*  Title:      HOL/Datatype_Universe.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge

@@ -1,4 +1,4 @@
-(*  Title:      HOL/wf.ML
+(*  Title:      HOL/Wellfounded_Recursion.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
@@ -6,7 +6,7 @@
 Well-founded Recursion
 *)
 
-WF = Trancl +
+Wellfounded_Recursion = Transitive_Closure +
 
 constdefs
   wf         :: "('a * 'a)set => bool"

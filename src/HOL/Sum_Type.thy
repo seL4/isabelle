@@ -1,4 +1,4 @@
-(*  Title:      HOL/Sum.thy
+(*  Title:      HOL/Sum_Type.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -6,7 +6,7 @@
 The disjoint sum of two types.
 *)
 
-Sum = mono + Prod +
+Sum_Type = mono + Product_Type +
 
 (* type definition *)
 

@@ -1,4 +1,4 @@
-(*  Title: 	HOL/WF_Rel
+(*  Title: 	HOL/Wellfounded_Relations
     ID:         $Id$
     Author: 	Konrad Slind
     Copyright   1996  TU Munich

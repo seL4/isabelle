@@ -1,10 +1,10 @@
-(*  Title:      HOL/Arith.thy
+(*  Title:      HOL/Arithmetic.thy
     ID:         $Id$
 
 Setup arithmetic proof procedures.
 *)
 
-theory Arith = Nat
+theory Arithmetic = Nat
 files "arith_data.ML":
 
 setup arith_setup

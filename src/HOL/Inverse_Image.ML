@@ -1,4 +1,4 @@
-(*  Title:      HOL/Vimage
+(*  Title:      HOL/Inverse_Image.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
