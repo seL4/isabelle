@@ -44,7 +44,7 @@ val has_type_casesE = map(has_type.mk_cases expr.simps)
 Goal "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
 by (induct_tac "e" 1);
 (* case Var(n) *)
-by (fast_tac (HOL_cs addss simpset()) 1);
+by (Clarsimp_tac 1);
 (* case Abs e *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
@@ -87,15 +87,16 @@ Goal "!n a s t m. new_tv n a --> W e a n = Ok (s,t,m) -->    \
 \                 new_tv m s & new_tv m t";
 by (induct_tac "e" 1);
 (* case Var n *)
-by (fast_tac (HOL_cs addDs [list_all_nth] addss (simpset() 
-        addsimps [id_subst_def,new_tv_list,new_tv_subst])) 1);
+  by (Clarsimp_tac 1);
+  by (force_tac (claset() addEs [list_ball_nth],
+		simpset() addsimps [id_subst_def,new_tv_list,new_tv_subst])1);
 (* case Abs e *)
-by (simp_tac (simpset() addsimps [new_tv_subst,new_tv_Suc_list] 
+ by (simp_tac (simpset() addsimps [new_tv_subst,new_tv_Suc_list] 
     addsplits [split_bind]) 1);
-by (strip_tac 1);
-by (eres_inst_tac [("x","Suc n")] allE 1);
-by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
-by (fast_tac (HOL_cs addss (simpset()
+ by (strip_tac 1);
+ by (eres_inst_tac [("x","Suc n")] allE 1);
+ by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
+ by (fast_tac (HOL_cs addss (simpset()
               addsimps [new_tv_subst,new_tv_Suc_list])) 1);
 
 (* case App e1 e2 *)
@@ -153,8 +154,8 @@ Goal "!n a s t m v. W e a n = Ok (s,t,m) -->            \
 \         (v:free_tv s | v:free_tv t) --> v<n --> v:free_tv a";
 by (induct_tac "e" 1);
 (* case Var n *)
-by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list] 
-    addss simpset()) 1);
+by (Clarsimp_tac 1);
+by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list])1);
 
 (* case Abs e *)
 by (asm_full_simp_tac (simpset() addsimps
@@ -167,10 +168,9 @@ by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
-by (fast_tac (HOL_cs addSEs [allE]
-                     addIs [cod_app_subst]
-                     addss (simpset() addsimps [less_Suc_eq])) 1);
-(** LEVEL 12 **)
+by (force_tac (claset() addSEs [allE] addIs [cod_app_subst],
+                     simpset() addsimps [less_Suc_eq]) 1);
+(** LEVEL 13 **)
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1); 
@@ -182,7 +182,7 @@ by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
-(** LEVEL 22 **)
+(** LEVEL 23 **)
 (* second case *)
 by (eres_inst_tac [("x","$ s a")] allE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
@@ -194,7 +194,7 @@ by (asm_full_simp_tac (simpset() addsimps [rotate_Ok,o_def]) 1);
 by (dtac W_var_geD 1);
 by (dtac W_var_geD 1);
 by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
-(** LEVEL 32 **)
+(** LEVEL 33 **)
 by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
     codD,free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
     less_le_trans,less_not_refl2,subsetD]
