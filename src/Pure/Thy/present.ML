@@ -313,7 +313,9 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
 fun write_tex src name path = Buffer.write (Path.append path (tex_path name)) src;
 
 fun isatool_document doc_format path =
-  let val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^ File.quote_sysify_path path in
+  let val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
+    File.quote_sysify_path path ^ " 2>&1"
+  in
     writeln s;
     if system s <> 0 orelse not (File.exists (Path.ext doc_format path)) then
       error "Failed to build document"
