@@ -4,7 +4,7 @@
     Copyright   1994  University of Cambridge
 
 The core of Isabelle's Meta Logic: certified types and terms, meta
-theorems, meta rules (including resolution and simplification).
+theorems, meta rules (including lifting and resolution).
 *)
 
 signature BASIC_THM =
@@ -862,7 +862,7 @@ fun beta_conversion full ct =
      maxidx = maxidx,
      shyps = add_term_sorts (t, []),
      hyps = [],
-     prop = Logic.mk_equals (t, if full then Envir.norm_term (Envir.empty 0) t
+     prop = Logic.mk_equals (t, if full then Envir.beta_norm t
        else case t of
           Abs(_, _, bodt) $ u => subst_bound (u, bodt)
         | _ => raise THM ("beta_conversion: not a redex", 0, []))}
