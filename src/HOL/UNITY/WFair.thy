@@ -19,6 +19,7 @@ constdefs
 
   ensures :: "[('a * 'a)set set, 'a set, 'a set] => bool"
     "ensures Acts A B == constrains Acts (A-B) (A Un B) & transient Acts (A-B)"
+			(*(unless Acts A B) would be equivalent*)
 
 consts leadsTo :: "[('a * 'a)set set, 'a set, 'a set] => bool"
        leadsto :: "[('a * 'a)set set] => ('a set * 'a set) set"
