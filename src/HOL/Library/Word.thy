@@ -2425,7 +2425,7 @@ proof -
 
   from ki ij jl lw
   show ?thesis
-    apply (simplesubst bv_sliceI [where ?j = i and ?i = j and ?w = w and ?w1.0 = "w1 @ w2" and ?w2.0 = w3 and ?w3.0 = "w4 @ w5"])
+    apply (subst bv_sliceI [where ?j = i and ?i = j and ?w = w and ?w1.0 = "w1 @ w2" and ?w2.0 = w3 and ?w3.0 = "w4 @ w5"])
     apply simp_all
     apply (rule w_def)
     apply (simp add: w_defs min_def)

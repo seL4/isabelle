@@ -87,11 +87,9 @@ in order to make sure it really has a least fixed point.%
 \isamarkuptrue%
 \isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ blast\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -101,112 +99,30 @@ a separate lemma:%
 \isamarkuptrue%
 \isacommand{lemma}\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-The equality is proved in the canonical fashion by proving that each set
-includes the other; the inclusion is shown pointwise:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Simplification leaves us with the following first subgoal
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}s{\isachardot}\ s\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A%
-\end{isabelle}
-which is proved by \isa{lfp}-induction:%
-\end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}erule\ lfp{\isacharunderscore}induct{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ mono{\isacharunderscore}ef{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Having disposed of the monotonicity subgoal,
-simplification leaves us with the following goal:
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
-\end{isabelle}
-It is proved by \isa{blast}, using the transitivity of 
-\isa{M\isactrlsup {\isacharasterisk}}.%
-\end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-We now return to the second set inclusion subgoal, which is again proved
-pointwise:%
-\end{isamarkuptxt}%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharcomma}\ clarify{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-After simplification and clarification we are left with
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ t\ {\isasymin}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}%
-\end{isabelle}
-This goal is proved by induction on \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}}. But since the model
-checker works backwards (from \isa{t} to \isa{s}), we cannot use the
-induction theorem \isa{rtrancl{\isacharunderscore}induct}: it works in the
-forward direction. Fortunately the converse induction theorem
-\isa{converse{\isacharunderscore}rtrancl{\isacharunderscore}induct} already exists:
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ b{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ \ \ \ }{\isasymAnd}y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}z{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ y{\isasymrbrakk}\isanewline
-\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ P\ a%
-\end{isabelle}
-It says that if \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}} and we know \isa{P\ b} then we can infer
-\isa{P\ a} provided each step backwards from a predecessor \isa{z} of
-\isa{b} preserves \isa{P}.%
-\end{isamarkuptxt}%
+\isamarkupfalse%
+\isamarkupfalse%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}erule\ converse{\isacharunderscore}rtrancl{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-The base case
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}%
-\end{isabelle}
-is solved by unrolling \isa{lfp} once%
-\end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}%
-\end{isabelle}
-and disposing of the resulting trivial subgoal automatically:%
-\end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-The proof of the induction step is identical to the one for the base case:%
-\end{isamarkuptxt}%
+\isamarkupfalse%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The main theorem is proved in the familiar manner: induction followed by
@@ -215,11 +131,9 @@ The main theorem is proved in the familiar manner: induction followed by
 \isamarkuptrue%
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{exercise}

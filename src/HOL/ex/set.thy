@@ -103,20 +103,17 @@ lemma decomposition: "\<exists>X. X = - (g ` (- (f ` X)))"
 theorem Schroeder_Bernstein:
   "inj (f :: 'a \<Rightarrow> 'b) \<Longrightarrow> inj (g :: 'b \<Rightarrow> 'a)
     \<Longrightarrow> \<exists>h:: 'a \<Rightarrow> 'b. inj h \<and> surj h"
-  apply (rule decomposition [THEN exE])
-  apply (rule exI)
+  apply (rule decomposition [where f=f and g=g, THEN exE])
+  apply (rule_tac x = "(\<lambda>z. if z \<in> x then f z else inv g z)" in exI) 
+    --{*The term above can be synthesized by a sufficiently detailed proof.*}
   apply (rule bij_if_then_else)
      apply (rule_tac [4] refl)
     apply (rule_tac [2] inj_on_inv)
     apply (erule subset_inj_on [OF _ subset_UNIV])
-   txt {* Tricky variable instantiations! *}
-   apply (erule ssubst, simplesubst double_complement)
-   apply (rule subsetI, erule imageE, erule ssubst, rule rangeI)
-  apply (erule ssubst, simplesubst double_complement, erule inv_image_comp [symmetric])
+   apply blast
+  apply (erule ssubst, subst double_complement, erule inv_image_comp [symmetric])
   done
 
-
-subsection {* Set variable instantiation examples *}
 
 text {*
   From W. W. Bledsoe and Guohui Feng, SET-VAR. JAR 11 (3), 1993, pages
