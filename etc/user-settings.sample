@@ -29,7 +29,7 @@
 
 # Xterm with symbol font.
 #ISABELLE_INTERFACE=xterm
-#ISABELLE_INTERFACE_OPTIONS="-geometry 80x52"
+#ISABELLE_INTERFACE_OPTIONS="-geometry 80x60"
 #ISABELLE_SYMBOLS=true
 
 # GNU Emacs running Isamode.
