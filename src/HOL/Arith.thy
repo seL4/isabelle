@@ -28,8 +28,8 @@ primrec "op +" nat
   "Suc m + n = Suc(m + n)"
 
 primrec "op -" nat 
-  "m - 0 = m"
-  "m - Suc n = pred(m - n)"
+  diff_0   "m - 0 = m"
+  diff_Suc "m - Suc n = pred(m - n)"
 
 primrec "op *"  nat 
   "0 * n = 0"
