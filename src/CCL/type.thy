@@ -35,7 +35,9 @@ consts
 
 translations
   "PROD x:A. B" => "Pi(A, %x. B)"
+  "A -> B"      => "Pi(A, _K(B))"
   "SUM x:A. B"  => "Sigma(A, %x. B)"
+  "A * B"       => "Sigma(A, _K(B))"
   "{x: A. B}"   == "Subtype(A, %x. B)"
 
 rules
@@ -62,10 +64,6 @@ end
 
 
 ML
-
-val parse_translation =
-  [("@->", ndependent_tr "Pi"),
-   ("@*", ndependent_tr "Sigma")];
 
 val print_translation =
   [("Pi", dependent_tr' ("@Pi", "@->")),
