@@ -127,7 +127,7 @@ fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
 fun prove_fun s = 
  (writeln s;  
-  prove_goal FOL.thy s
+  prove_goal (the_context ()) s
    (fn prems => [ (cut_facts_tac prems 1), 
                   (Cla.fast_tac FOL_cs 1) ]));
 
@@ -177,7 +177,7 @@ fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
                    (IntPr.fast_tac 1) ]);
 
-fun prove nm thm  = qed_goal nm FOL.thy thm (fn _ => [Blast_tac 1]);
+fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [Blast_tac 1]);
 
 int_prove "conj_commute" "P&Q <-> Q&P";
 int_prove "conj_left_commute" "P&(Q&R) <-> Q&(P&R)";
@@ -242,11 +242,12 @@ struct
 end);
 
 local
+
 val ex_pattern =
-  read_cterm (Theory.sign_of FOL.thy) ("EX x. P(x) & Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x) & Q(x)", FOLogic.oT)
 
 val all_pattern =
-  read_cterm (Theory.sign_of FOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x) & P'(x) --> Q(x)", FOLogic.oT)
 
 in
 val defEX_regroup =
@@ -348,8 +349,7 @@ val cla_simps =
 (*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (cla_simps @ cla_ex_simps @ cla_all_simps);
 
-simpset_ref() := FOL_ss;
-
+val simpsetup = [fn thy => (simpset_ref_of thy := FOL_ss; thy)];
 
 
 (*** integration of simplifier with classical reasoner ***)

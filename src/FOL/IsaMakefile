@@ -30,8 +30,9 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML \
   $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML FOL.ML \
-  FOL.thy IFOL.ML IFOL.thy ROOT.ML cladata.ML fologic.ML intprover.ML \
-  simpdata.ML
+  FOL.thy FOL_lemmas1.ML FOL_lemmas2.ML IFOL.ML IFOL.thy \
+  IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML fologic.ML \
+  hypsubstdata.ML intprover.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
 
 
