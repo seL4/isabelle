@@ -12,7 +12,7 @@ writeln banner;
 
 print_depth 1;
 
-(* Add user sections *)
+(*old-style theory syntax*)
 use "~~/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
 
@@ -55,8 +55,6 @@ use_thy "Datatype";
 
 use "Tools/record_package.ML";
 use_thy "Record";
-
-use_thy "Arith";
 
 use_thy "Recdef";
 (*TFL: recursive function definitions*)
