@@ -190,6 +190,7 @@
     "output"
     "outputs"
     "overloaded"
+    "permissive"
     "post"
     "pre"
     "rename"
