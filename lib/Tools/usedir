@@ -188,7 +188,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -197,7 +197,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
