@@ -68,11 +68,11 @@ Isabelle FAQ
         that takes an element of <tt>a</tt> as input and gives you an
         element of <tt>b</tt> as output. The long arrow <tt>--></tt>
         and <tt>==></tt> are object and meta level
-        implication. Roughly speaking, the meta level implication is
-        used to write down theorems (<tt>P ==> Q</tt> is a theorem
-        with <tt>P</tt> as premise and <tt>Q</tt> as conclusion), and
-        the object level implication is used in usual HOL formulas
-        (e.g. in definitions).</td></tr>
+        implication. Roughly speaking, the meta level implication
+        should only be used when stating theorems where it separates
+        the assumptions from the conclusion. Whenever you need an
+        implication inside a HOL formula, use <code>--></code>.
+        </td></tr>
     </table>
 
     <table class="question" width="100%"><tr><td>Where do I have to put those double quotes?</td></tr></table> 
@@ -92,8 +92,8 @@ Isabelle FAQ
     and <tt>constdefs</tt>)
     </td></tr></table>
 
-    <table class="question" width="100%"><tr><td>What is <tt>No such
-    constant: "_case_syntax"</tt> supposed to tell
+    <table class="question" width="100%"><tr><td>What is <tt>"No such
+    constant: _case_syntax"</tt> supposed to tell
     me?</td></tr></table>
 
     <table class="answer" width="100%"><tr><td>You get this message if
@@ -182,22 +182,29 @@ Isabelle FAQ
     instead.</td></tr></table>
 
 
-    <table class="question" width="100%"><tr><td>How do I show 
-    counter examples?</td></tr></table>
+    <table class="question" width="100%"><tr><td>Can Isabelle find
+    counterexamples?</td></tr></table>
     
     <table class="answer" width="100%"><tr><td>
-    There are a number of commands that try to find counter examples
-    automatically. Try <code>quickcheck</code> for small executable
-    examples and <code>arith</code> for Presburger arithmetic. 
+    <p>
+    For arithmetic goals, <code>arith</code> finds counterexamples.
+    For executable goals, <code>quickcheck</code> tries to find a
+    counterexample.  For goals of a more logical nature (including
+    quantifiers, sets and inductive definitions) <code>refute</code>
+    searches for a countermodel.
+    </p>
+    <p>
     Otherwise, negate the proposition
     and instantiate (some) variables with concrete values. You may
     also need additional assumptions about these values.  For example,
     <tt>True & False ~= True | False</tt> is a counterexample of <tt>A
     & B = A | B</tt>, and <tt>A = ~B ==> A & B ~= A | B</tt> is
     another one. Sometimes Isabelle can help you to find the
-    counter example: just negate the proposition and do <tt>auto</tt>
+    counterexample: just negate the proposition and do <tt>auto</tt>
     or <tt>simp</tt>.  If lucky, you are left with the assumptions you
-    need for the counter example to work.</td></tr></table>
+    need for the counterexample to work.
+    </p>
+    </td></tr></table>
 
 
     <h2>Interface</h2>
