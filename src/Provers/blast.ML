@@ -116,6 +116,7 @@ functor BlastFun(Data: BLAST_DATA) : BLAST =
 struct
 
 type claset = Data.claset;
+val atomize_goal = Method.atomize_goal Data.atomize;
 
 val trace = ref false
 and stats = ref false;   (*for runtime and search statistics*)
@@ -1273,7 +1274,7 @@ fun initialize() =
  "lim" is depth limit.*)
 fun timing_depth_tac start cs lim i st0 = 
  (initialize();
-  let val st = Method.atomize_goal Data.atomize i st0;
+  let val st = atomize_goal i st0;
       val {sign,...} = rep_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
