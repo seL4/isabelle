@@ -297,19 +297,23 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
 
 (* add_cases_induct *)
 
-fun add_cases_induct infos =
+fun add_cases_induct infos induction =
   let
-    fun proj _ 1 thm = thm
-      | proj i n thm =
-          (if i + 1 < n then (fn th => th RS conjunct1) else I)
-            (Library.funpow i (fn th => th RS conjunct2) thm)
-          |> Drule.standard
-          |> RuleCases.save thm;
+    val n = length (HOLogic.dest_concls (Thm.concl_of induction));
+    fun proj i thm =
+      if n = 1 then thm
+      else (if i + 1 < n then (fn th => th RS conjunct1) else I)
+        (Library.funpow i (fn th => th RS conjunct2) thm)
+        |> Drule.zero_var_indexes
+        |> RuleCases.save thm;
 
-    fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
-      (("", proj index (length descr) induction), [InductAttrib.induct_type_global name]) ::
-      (("", exhaustion), [InductAttrib.cases_type_global name]) :: ths;
-  in #1 o PureThy.add_thms (foldl add ([], infos)) end;
+    fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
+      [(("", proj index induction), [InductAttrib.induct_type_global name]),
+       (("", exhaustion), [InductAttrib.cases_type_global name])];
+    fun unnamed_rule i =
+      (("", proj i induction), [InductAttrib.induct_type_global ""]);
+    val rules = flat (map named_rules infos) @ map unnamed_rule (length infos upto n - 1);
+  in #1 o PureThy.add_thms rules end;
 
 
 
@@ -582,7 +586,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs Simplifier.cong_add_global |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
-      add_cases_induct dt_infos |>
+      add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
@@ -638,7 +642,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
-      add_cases_induct dt_infos |>
+      add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
@@ -742,7 +746,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
-      add_cases_induct dt_infos |>
+      add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
