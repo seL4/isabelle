@@ -186,8 +186,9 @@ conclusion, which it therefore leaves unchanged.  (Look at
 \ 1.\ n\ \isasymin \ even\isanewline
 \ 2.\ \isasymAnd na.\ \isasymlbrakk na\ \isasymin \ even;\ n\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ n\ \isasymin \ even%
 \end{isabelle}
-The first one is hopeless.  Rule inductions involving
-non-trivial terms usually fail.  How to deal with such situations
+The first one is hopeless.  Rule induction on
+a non-variable term discards information, and usually fails.
+How to deal with such situations
 in general is described in {\S}\ref{sec:ind-var-in-prems} below.
 In the current case the solution is easy because
 we have the necessary inverse, subtraction:
