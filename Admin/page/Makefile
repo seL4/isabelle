@@ -38,9 +38,6 @@ DOC_CONTENTS_DIST = docu-contents.dist
 # --- begin rules
 
 all: clean main dist install weblint
-	@echo "###"
-	@echo "### Finished.  See main/ and dist/ for the resulting pages."
-	@echo "###"
 
 main:
 	@$(MKCONTENT) -p dist/`cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_MAIN)
