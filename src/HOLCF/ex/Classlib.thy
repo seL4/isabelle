@@ -5,11 +5,8 @@
 
 Introduce various type classes
 
-The type void of HOLCF/One.thy is a witness for all the introduced classes.
-Inspect theory Witness.thy for all the proofs. 
-
-!!! Witness and Claslib have to be adapted to axclasses !!!
-------------------------------------------------------------
+!!! Has to be adapted to axclasses !!!
+--------------------------------------
 
 the trivial instance for ++ -- ** // is circ
 the trivial instance for .= and .<=  is bullet

@@ -12,7 +12,6 @@ writeln"Root file for HOLCF examples";
 proof_timing := true;
 
 time_use_thy "Classlib";
-time_use_thy "Witness";
 time_use_thy "Dnat";
 time_use_thy "Dlist";
 time_use_thy "Stream";
