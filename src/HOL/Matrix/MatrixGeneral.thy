@@ -1392,7 +1392,44 @@ lemma le_right_mult:
   apply (rule le_foldseq)
   by (auto)
 
+lemma spec2: "! j i. P j i \<Longrightarrow> P j i" by blast
+lemma neg_imp: "(\<not> Q \<longrightarrow> \<not> P) \<Longrightarrow> P \<longrightarrow> Q" by blast
+
 lemma singleton_matrix_le[simp]: "(singleton_matrix j i a <= singleton_matrix j i b) = (a <= (b::_::order))"
   by (auto simp add: le_matrix_def)
+
+lemma singleton_le_zero[simp]: "(singleton_matrix j i x <= 0) = (x <= (0::'a::{order,zero}))"
+  apply (auto)
+  apply (simp add: le_matrix_def)
+  apply (drule_tac j=j and i=i in spec2)
+  apply (simp)
+  apply (simp add: le_matrix_def)
+  done
+
+lemma singleton_ge_zero[simp]: "(0 <= singleton_matrix j i x) = ((0::'a::{order,zero}) <= x)"
+  apply (auto)
+  apply (simp add: le_matrix_def)
+  apply (drule_tac j=j and i=i in spec2)
+  apply (simp)
+  apply (simp add: le_matrix_def)
+  done
+
+lemma move_matrix_le_zero[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (move_matrix A j i <= 0) = (A <= (0::('a::{order,zero}) matrix))"
+  apply (auto simp add: le_matrix_def neg_def)
+  apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
+  apply (auto)
+  done
+
+lemma move_matrix_zero_le[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (0 <= move_matrix A j i) = ((0::('a::{order,zero}) matrix) <= A)"
+  apply (auto simp add: le_matrix_def neg_def)
+  apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
+  apply (auto)
+  done
+
+lemma move_matrix_le_move_matrix_iff[simp]: "0 <= j \<Longrightarrow> 0 <= i \<Longrightarrow> (move_matrix A j i <= move_matrix B j i) = (A <= (B::('a::{order,zero}) matrix))"
+  apply (auto simp add: le_matrix_def neg_def)
+  apply (drule_tac j="ja+(nat j)" and i="ia+(nat i)" in spec2)
+  apply (auto)
+  done  
 
 end

@@ -842,6 +842,42 @@ by (simp add: add_assoc[symmetric])
 lemma minus_add_cancel: "-(a::'a::ab_group_add) + (a + b) = b"
 by (simp add: add_assoc[symmetric])
 
+lemma  le_add_right_mono: 
+  assumes 
+  "a <= b + (c::'a::pordered_ab_group_add)"
+  "c <= d"    
+  shows "a <= b + d"
+  apply (rule_tac order_trans[where y = "b+c"])
+  apply (simp_all add: prems)
+  done
+
+lemmas group_eq_simps =
+  mult_ac
+  add_ac
+  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
+  diff_eq_eq eq_diff_eq
+
+lemma estimate_by_abs:
+"a + b <= (c::'a::lordered_ab_group_abs) \<Longrightarrow> a <= c + abs b" 
+proof -
+  assume 1: "a+b <= c"
+  have 2: "a <= c+(-b)"
+    apply (insert 1)
+    apply (drule_tac add_right_mono[where c="-b"])
+    apply (simp add: group_eq_simps)
+    done
+  have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
+  show ?thesis by (rule le_add_right_mono[OF 2 3])
+qed
+
+lemma abs_of_ge_0: "0 <= (y::'a::lordered_ab_group_abs) \<Longrightarrow> abs y = y"
+proof -
+  assume 1:"0 <= y"
+  have 2:"-y <= 0" by (simp add: 1)
+  from 1 2 have 3:"-y <= y" by (simp only:)
+  show ?thesis by (simp add: abs_lattice ge_imp_join_eq[OF 3])
+qed
+
 ML {*
 val add_zero_left = thm"add_0";
 val add_zero_right = thm"add_0_right";

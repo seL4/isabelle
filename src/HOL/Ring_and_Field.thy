@@ -546,14 +546,14 @@ apply (force dest: mult_strict_left_mono_neg mult_strict_left_mono
 done
 
 text{*This list of rewrites decides ring equalities by ordered rewriting.*}
-lemmas ring_eq_simps =
-  mult_ac
+lemmas ring_eq_simps =  
+(*  mult_ac*)
   left_distrib right_distrib left_diff_distrib right_diff_distrib
-  add_ac
+  group_eq_simps
+(*  add_ac
   add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq
+  diff_eq_eq eq_diff_eq *)
     
-
 subsection {* Fields *}
 
 lemma right_inverse [simp]:
@@ -1502,6 +1502,90 @@ done
 
 text{*Moving this up spoils many proofs using @{text mult_le_cancel_right}*}
 declare times_divide_eq_left [simp]
+
+lemma linprog_dual_estimate:
+  assumes
+  "A * x \<le> (b::'a::lordered_ring)"
+  "0 \<le> y"
+  "abs (A - A') \<le> \<delta>A"
+  "b \<le> b'"
+  "abs (c - c') \<le> \<delta>c"
+  "abs x \<le> r"
+  shows
+  "c * x \<le> y * b' + (y * \<delta>A + abs (y * A' - c') + \<delta>c) * r"
+proof -
+  from prems have 1: "y * b <= y * b'" by (simp add: mult_left_mono)
+  from prems have 2: "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
+  have 3: "y * (A * x) = c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x" by (simp add: ring_eq_simps)  
+  from 1 2 3 have 4: "c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x <= y * b'" by simp
+  have 5: "c * x <= y * b' + abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"
+    by (simp only: 4 estimate_by_abs)  
+  have 6: "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <= abs (y * (A - A') + (y * A' - c') + (c'-c)) * abs x"
+    by (simp add: abs_le_mult)
+  have 7: "(abs (y * (A - A') + (y * A' - c') + (c'-c))) * abs x <= (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x"
+    by (simp add: abs_triangle_ineq mult_right_mono)
+  have 8: " (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x <=  (abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x"
+    by (simp add: abs_triangle_ineq mult_right_mono)    
+  have 9: "(abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x"
+    by (simp add: abs_le_mult mult_right_mono)  
+  have 10: "c'-c = -(c-c')" by (simp add: ring_eq_simps)
+  have 11: "abs (c'-c) = abs (c-c')" 
+    by (subst 10, subst abs_minus_cancel, simp)
+  have 12: "(abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + \<delta>c) * abs x"
+    by (simp add: 11 prems mult_right_mono)
+  have 13: "(abs y * abs (A-A') + abs (y*A'-c') + \<delta>c) * abs x <= (abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * abs x"
+    by (simp add: prems mult_right_mono mult_left_mono)  
+  have r: "(abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * abs x <=  (abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * r"
+    apply (rule mult_left_mono)
+    apply (simp add: prems)
+    apply (rule_tac add_mono[of "0::'a" _ "0", simplified])+
+    apply (rule mult_left_mono[of "0" "\<delta>A", simplified])
+    apply (simp_all)
+    apply (rule order_trans[where y="abs (A-A')"], simp_all add: prems)
+    apply (rule order_trans[where y="abs (c-c')"], simp_all add: prems)
+    done    
+  from 6 7 8 9 12 13 r have 14:" abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <=(abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * r"     
+    by (simp)
+  show ?thesis 
+    apply (rule_tac le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])
+    apply (simp_all add: 5 14[simplified abs_of_ge_0[of y, simplified prems]])
+    done
+qed
+
+lemma le_ge_imp_abs_diff_1:
+  assumes
+  "A1 <= (A::'a::lordered_ring)"
+  "A <= A2" 
+  shows "abs (A-A1) <= A2-A1"
+proof -
+  have "0 <= A - A1"    
+  proof -
+    have 1: "A - A1 = A + (- A1)" by simp
+    show ?thesis by (simp only: 1 add_right_mono[of A1 A "-A1", simplified, simplified prems])
+  qed
+  then have "abs (A-A1) = A-A1" by (rule abs_of_ge_0)
+  with prems show "abs (A-A1) <= (A2-A1)" by simp
+qed
+
+lemma linprog_dual_estimate_1:
+  assumes
+  "A * x \<le> (b::'a::lordered_ring)"
+  "0 \<le> y"
+  "A1 <= A"
+  "A <= A2"
+  "c1 <= c"
+  "c <= c2"
+  "abs x \<le> r"
+  shows
+  "c * x \<le> y * b + (y * (A2 - A1) + abs (y * A1 - c1) + (c2 - c1)) * r"
+proof -
+  from prems have delta_A: "abs (A-A1) <= (A2-A1)" by (simp add: le_ge_imp_abs_diff_1)
+  from prems have delta_c: "abs (c-c1) <= (c2-c1)" by (simp add: le_ge_imp_abs_diff_1)
+  show ?thesis
+    apply (rule_tac linprog_dual_estimate)
+    apply (auto intro: delta_A delta_c simp add: prems)
+    done
+qed
 
 ML {*
 val left_distrib = thm "left_distrib";

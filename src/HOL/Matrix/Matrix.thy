@@ -21,7 +21,10 @@ defs (overloaded)
   times_matrix_def: "A * B == mult_matrix (op *) (op +) A B"
 
 lemma is_meet_combine_matrix_meet: "is_meet (combine_matrix meet)"
-by (simp_all add: is_meet_def le_matrix_def meet_left_le meet_right_le meet_imp_le)
+  by (simp_all add: is_meet_def le_matrix_def meet_left_le meet_right_le meet_imp_le)
+
+lemma is_join_combine_matrix_join: "is_join (combine_matrix join)"
+  by (simp_all add: is_join_def le_matrix_def join_left_le join_right_le join_imp_le)
 
 instance matrix :: (lordered_ab_group) lordered_ab_group_meet
 proof 
@@ -284,7 +287,20 @@ lemma scalar_mult_singleton[simp]: "scalar_mult y (singleton_matrix j i x) = sin
   apply (auto)
   done
 
+lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group)) x y = - (Rep_matrix A x y)"
+  by (simp add: minus_matrix_def)
 
+lemma join_matrix: "join (A::('a::lordered_ring) matrix) B = combine_matrix join A B"  
+  apply (insert join_unique[of "(combine_matrix join)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_join_combine_matrix_join])
+  apply (simp)
+  done
 
+lemma meet_matrix: "meet (A::('a::lordered_ring) matrix) B = combine_matrix meet A B"
+  apply (insert meet_unique[of "(combine_matrix meet)::('a matrix \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix)", simplified is_meet_combine_matrix_meet])
+  apply (simp)
+  done
+
+lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ring)) x y = abs (Rep_matrix A x y)"
+  by (simp add: abs_lattice join_matrix)
 
 end
