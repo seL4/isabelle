@@ -193,6 +193,26 @@ defs
 
 use "HOL_lemmas.ML"	setup attrib_setup
 use "cladata.ML"	setup Classical.setup setup clasetup
+
+lemma all_eq: "(!!x. P x) == Trueprop (ALL x. P x)"
+proof (rule equal_intr_rule)
+  assume "!!x. P x"
+  show "ALL x. P x" ..
+next
+  assume "ALL x. P x"
+  thus "!!x. P x" ..
+qed
+
+lemma imp_eq: "(A ==> B) == Trueprop (A --> B)"
+proof (rule equal_intr_rule)
+  assume r: "A ==> B"
+  show "A --> B"
+    by (rule) (rule r)
+next
+  assume "A --> B" and A
+  thus B ..
+qed
+
 use "blastdata.ML"	setup Blast.setup
 use "simpdata.ML"	setup Simplifier.setup
 			setup "Simplifier.method_setup Splitter.split_modifiers"
