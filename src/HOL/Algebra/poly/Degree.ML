@@ -285,7 +285,7 @@ goal UnivPoly.thy
 by (simp_tac (simpset() addsimps [SUM_if_singleton]) 1);
 by (auto_tac
   (claset() addDs [not_leE],
-   simpset() setloop (split_tac [expand_if])));
+   simpset()));
 qed "bound_SUM_if";
 
 Goal
@@ -297,8 +297,7 @@ by (res_inst_tac [("x", "na")] bound_SUM_if 2);
 by (full_simp_tac (simpset() addsimps [deg_above_is_bound, coeff_def]) 2);
 by (rtac SUM_cong 1);
 by (rtac refl 1);
-by (asm_simp_tac 
-  (simpset() setloop (split_tac [expand_if])) 1);
+by (Asm_simp_tac 1);
 qed "up_repr";
 
 Goal

@@ -17,16 +17,14 @@ constdefs
   transient :: "'a set => 'a program set"
     "transient A == {F. EX act: Acts F. A <= Domain act & act^^A <= -A}"
 
+  ensures :: "['a set, 'a set] => 'a program set"       (infixl 60)
+    "A ensures B == (A-B co A Un B) Int transient (A-B)"
+
 
 consts
 
-  ensures :: "['a set, 'a set] => 'a program set"       (infixl 60)
-
   (*LEADS-TO constant for the inductive definition*)
   leads :: "'a program => ('a set * 'a set) set"
-
-  (*visible version of the LEADS-TO relation*)
-  leadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
 
 
 inductive "leads F"
@@ -44,13 +42,11 @@ inductive "leads F"
   monos Pow_mono
 
 
-  
-defs
-  ensures_def "A ensures B == (A-B co A Un B) Int transient (A-B)"
-
-  leadsTo_def "A leadsTo B == {F. (A,B) : leads F}"
-
 constdefs
+
+  (*visible version of the LEADS-TO relation*)
+  leadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
+    "A leadsTo B == {F. (A,B) : leads F}"
   
   (*wlt F B is the largest set that leads to B*)
   wlt :: "['a program, 'a set] => 'a set"

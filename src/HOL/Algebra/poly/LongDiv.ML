@@ -4,29 +4,6 @@
     Author: Clemens Ballarin, started 23 June 1999
 *)
 
-open LongDiv;
-
-(*
-Goalw [lcoeff_def]
-  "!!p::('a::ring up). \
-\    [| deg p = deg q; lcoeff p = - (lcoeff q); deg q ~= 0 |] ==> \
-\       deg (p + q) < deg q";
-by (res_inst_tac [("j", "deg q - 1")] le_less_trans 1);
-by (rtac deg_aboveI 1);
-by (strip_tac 1);
-by (dtac pred_less_imp_le 1);
-by (case_tac "deg q = m" 1);
-by (Clarify_tac 1);
-by (Asm_full_simp_tac 1);
-(* case "deg q ~= m" *)
-by (dtac le_neq_implies_less 1);
-by (assume_tac 1);
-by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
-(* end case *)
-by (asm_full_simp_tac (simpset() addsimps [le_pred_eq]) 1);
-qed "deg_lcoeff_cancel";
-*)
-
 Goal
   "!!p::('a::ring up). \
 \    [| deg p <= deg r; deg q <= deg r; \
@@ -86,20 +63,20 @@ by (asm_full_simp_tac (simpset() addsimps [eucl_size_def]) 1);
 (* case "x ~= <0> *)
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [eucl_size_def]) 1);
-by (simp_tac (simpset() addsplits [expand_if]) 1);
+by (Simp_tac 1);
 by (rtac impI 1);
 by (rtac deg_lcoeff_cancel2 1);
   (* replace by linear arithmetic??? *)
   by (rtac le_trans 1);
   by (rtac deg_smult_ring 1);
-  by (simp_tac (simpset() addsplits [expand_if]) 1);
+  by (Simp_tac 1);
   by (Simp_tac 1);
   by (rtac le_trans 1);
   by (rtac deg_mult_ring 1);
   by (rtac le_trans 1);
   by (rtac add_le_mono1 1);
   by (rtac deg_smult_ring 1);
-  by (asm_simp_tac (simpset() addsimps [leI] addsplits [expand_if]) 1);
+  by (asm_simp_tac (simpset() addsimps [leI]) 1);
 by (SELECT_GOAL Auto_tac 1);
 by (Simp_tac 1);
 by (res_inst_tac [("m", "deg x - deg g"), ("n", "deg x")] SUM_extend 1);
@@ -155,7 +132,7 @@ by (Asm_simp_tac 1);
 by (rtac disjI2 1);
 by (rtac le_less_trans 1);
 by (rtac deg_smult_ring 1);
-by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (Asm_simp_tac 1);
 qed "long_div_unit";
 
 Goal

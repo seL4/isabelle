@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 12 December 1996
 *)
 
-open NatSum;
-
 section "Basic Properties";
 
 Goalw [SUM_def] "SUM 0 f = (f 0::'a::ring)";
@@ -164,12 +162,12 @@ Goal
 \    SUM n (%i. if i = x then f i else <0>) = (if x <= n then f x else <0>)";
 by (nat_ind_tac "n" 1);
 (* Base case *)
-by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 (* Induction step *)
-by (asm_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Asm_simp_tac 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("f", "f")] arg_cong 1);
-by (fast_arith_tac 1);
+by (arith_tac 1);
 qed "SUM_if_singleton";
 
 Goal

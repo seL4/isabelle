@@ -212,13 +212,13 @@ qed "const_mult_is_smult";
 
 Goal "!! a::'a::ring. const (a + b) = const a + const b";
 by (rtac up_eqI 1);
-by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 qed "const_add";
 
 Goal "!! a::'a::ring. const (a * b) = const a * const b";
 by (simp_tac (simpset() addsimps [const_mult_is_smult]) 1);
 by (rtac up_eqI 1);
-by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 qed "const_mult";
 
 Goal "const (<1>::'a::ring) = <1>";
@@ -228,7 +228,7 @@ qed "const_one";
 
 Goal "const (<0>::'a::ring) = <0>";
 by (rtac up_eqI 1);
-by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 qed "const_zero";
 
 Addsimps [const_add, const_mult, const_one, const_zero];
