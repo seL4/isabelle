@@ -41,18 +41,18 @@ time_use     "ex/enum.ML";
 time_use     "ex/rmap.ML";
 (*completeness of propositional logic*)
 time_use     "ex/prop.ML";
-time_use_thy "ex/propthms";
+time_use_thy "ex/proplog";
 (*two Coq examples by Ch. Paulin-Mohring*)
 time_use     "ex/listn.ML";
 time_use     "ex/acc.ML";
 (*Diamond property for combinatory logic*)
 time_use     "ex/comb.ML";
-time_use_thy "ex/contract";
+time_use_thy "ex/contract0";
 time_use     "ex/parcontract.ML";
-time_use_thy "ex/primrec";
+time_use_thy "ex/primrec0";
 
 (** Co-Datatypes **)
-time_use     "ex/llist.ML";
+time_use_thy "ex/LList";
 time_use     "ex/llist_eq.ML";
 time_use_thy "ex/llistfn";
 
