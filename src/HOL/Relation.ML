@@ -233,6 +233,15 @@ qed "DomainE";
 AddIs  [DomainI];
 AddSEs [DomainE];
 
+Goal "Domain {} = {}";
+by (Blast_tac 1); 
+qed "Domain_empty";
+Addsimps [Domain_empty];
+
+Goal "Domain (insert (a, b) r) = insert a (Domain r)";
+by (Blast_tac 1); 
+qed "Domain_insert";
+
 Goal "Domain Id = UNIV";
 by (Blast_tac 1);
 qed "Domain_Id";
@@ -283,6 +292,15 @@ qed "RangeE";
 
 AddIs  [RangeI];
 AddSEs [RangeE];
+
+Goal "Range {} = {}";
+by (Blast_tac 1); 
+qed "Range_empty";
+Addsimps [Range_empty];
+
+Goal "Range (insert (a, b) r) = insert b (Range r)";
+by (Blast_tac 1); 
+qed "Range_insert";
 
 Goal "Range Id = UNIV";
 by (Blast_tac 1);
@@ -349,7 +367,6 @@ AddSEs [ImageE];
 Goal  "[| a:A;  (a,b): r |] ==> b : r^^A";
 by (Blast_tac 1);
 qed "rev_ImageI";
-
 
 Goal "R^^{} = {}";
 by (Blast_tac 1);

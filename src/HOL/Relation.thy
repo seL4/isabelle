@@ -31,6 +31,9 @@ constdefs
   Range  :: "('a*'b) set => 'b set"
     "Range(r) == Domain(r^-1)"
 
+  Field :: "('a*'a)set=>'a set"
+    "Field r == Domain r Un Range r"
+
   refl   :: "['a set, ('a*'a) set] => bool" (*reflexivity over a set*)
     "refl A r == r <= A <*> A & (ALL x: A. (x,x) : r)"
 
