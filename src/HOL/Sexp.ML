@@ -11,30 +11,25 @@ open Sexp;
 (** sexp_case **)
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
-by (rtac select_equality 1);
-by (ALLGOALS Blast_tac);
+by (blast_tac (!claset addSIs [select_equality]) 1);
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
-by (rtac select_equality 1);
-by (ALLGOALS Blast_tac);
+by (blast_tac (!claset addSIs [select_equality]) 1);
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
-by (rtac select_equality 1);
-by (ALLGOALS Blast_tac);
+by (blast_tac (!claset addSIs [select_equality]) 1);
 qed "sexp_case_Scons";
 
 
 (** Introduction rules for sexp constructors **)
 
-val [prem] = goalw Sexp.thy [In0_def] 
-    "M: sexp ==> In0(M) : sexp";
+val [prem] = goalw Sexp.thy [In0_def] "M: sexp ==> In0(M) : sexp";
 by (rtac (prem RS (sexp.NumbI RS sexp.SconsI)) 1);
 qed "sexp_In0I";
 
-val [prem] = goalw Sexp.thy [In1_def] 
-    "M: sexp ==> In1(M) : sexp";
+val [prem] = goalw Sexp.thy [In1_def] "M: sexp ==> In1(M) : sexp";
 by (rtac (prem RS (sexp.NumbI RS sexp.SconsI)) 1);
 qed "sexp_In1I";
 
@@ -84,7 +79,7 @@ Addsimps (sexp.intrs @ [pred_sexp_t1, pred_sexp_t2,
                         pred_sexp_trans1, pred_sexp_trans2, cut_apply]);
 
 val major::prems = goalw Sexp.thy [pred_sexp_def]
-    "[| p : pred_sexp;  \
+    "[| p : pred_sexp;                                       \
 \       !!M N. [| p = (M, M$N);  M: sexp;  N: sexp |] ==> R; \
 \       !!M N. [| p = (N, M$N);  M: sexp;  N: sexp |] ==> R  \
 \    |] ==> R";
@@ -98,21 +93,17 @@ by (etac sexp.induct 1);
 by (ALLGOALS (fast_tac (!claset addSEs [mp, pred_sexpE])));
 qed "wf_pred_sexp";
 
+
 (*** sexp_rec -- by wf recursion on pred_sexp ***)
 
 goal Sexp.thy
    "(%M. sexp_rec M c d e) = wfrec pred_sexp \
                        \ (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2)))";
 by (simp_tac (HOL_ss addsimps [sexp_rec_def]) 1);
-bind_thm("sexp_rec_unfold", wf_pred_sexp RS 
-                            ((result() RS eq_reflection) RS def_wfrec));
+bind_thm("sexp_rec_unfold", 
+	 [result() RS eq_reflection, wf_pred_sexp] MRS def_wfrec);
+
 (** conversion rules **)
-
-(*---------------------------------------------------------------------------
- * Old:
- * val sexp_rec_unfold = wf_pred_sexp RS (sexp_rec_def RS def_wfrec);
- *---------------------------------------------------------------------------*)
-
 
 goal Sexp.thy "sexp_rec (Leaf a) c d h = c(a)";
 by (stac sexp_rec_unfold 1);
