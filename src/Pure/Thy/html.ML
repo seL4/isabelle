@@ -95,19 +95,43 @@ local
      | "\\<times>" => (1.0, "&times;")
      | "\\<emptyset>" => (1.0, "&Oslash;")
      | "\\<div>" => (1.0, "&divide;")
+     | "\\<^bsub>" => (0.0, "<sub>")
+     | "\\<^esub>" => (0.0, "</sub>")
+     | "\\<^bsup>" => (0.0, "<sup>")
+     | "\\<^esup>" => (0.0, "</sup>")
+(* keep \<^sub> etc, so it does not get destroyed by default case *)
+     | "\\<^sup>" => (0.0, "\\<^sup>")
+     | "\\<^sub>" => (0.0, "\\<^sub>")
+     | "\\<^isup>" => (0.0, "\\<^isup>")
+     | "\\<^isub>" => (0.0, "\\<^isub>")
      | s => (real (size s), implode (map escape (explode s)));
 
   fun add_sym (width, (w: real, s)) = (width + w, s);
+
+  fun script (0, "\\<^sub>") = (1,"<sub>")
+    | script (0, "\\<^isub>") = (1,"<sub>")
+    | script (1, x) = (0, x ^ "</sub>")
+    | script (0, "\\<^sup>") = (2,"<sup>")
+    | script (0, "\\<^isup>") = (2,"<sup>")
+    | script (2, x) = (0, x ^ "</sup>")
+    | script (s, x) = (s,x);
+
+  fun scrs (s, []) = (s,[])
+    | scrs (s, x::xs) = let val (s', x') = script (s, x)
+                            val (s'', xs') = scrs (s', xs)
+                        in (s'', x'::xs') end;
+                           
+  fun scripts ss = #2 (scrs (0,ss));
 in
 
 fun output_width str =
   if not (exists_string (equal "<" orf equal ">" orf equal "&") str) then (str, real (size str))
   else
     let val (width, syms) = foldl_map add_sym (0.0, map output_sym (Symbol.explode str))
-    in (implode syms, width) end;
+    in (implode (scripts syms), width) end;
 
 val output = #1 o output_width;
-val output_symbols = map (#2 o output_sym);
+val output_symbols = scripts o (map (#2 o output_sym))
 
 end;
 
