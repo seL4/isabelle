@@ -55,5 +55,5 @@ use "ROOT.ML";
 cd "..";
 
 use "install_pp.ML";
-fun init_database () = (init_thy_reader (); init_pps ());
 
+print_depth 8;
