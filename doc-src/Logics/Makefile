@@ -12,7 +12,7 @@ default: dvi
 include ../Makefile.in
 
 NAME = logics
-FILES = logics.tex preface.tex syntax.tex LK.tex CTT.tex \
+FILES = logics.tex preface.tex syntax.tex LK.tex Sequents.tex CTT.tex \
 	../proof.sty ../iman.sty ../extra.sty ../manual.bib
 
 dvi: $(NAME).dvi

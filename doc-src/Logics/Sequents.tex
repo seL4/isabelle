@@ -1,0 +1,201 @@
+%% $Id$
+\chapter{Defining A Sequent-Based Logic}
+\label{chap:sequents}
+
+\underscoreon %this file contains the @ character
+
+The Isabelle theory \texttt{Sequents.thy} provides facilities for using
+sequent notation in users' object logics. This theory allows users to
+easily interface the surface syntax of sequences with an underlying
+representation suitable for higher-order unification.
+
+\section{Concrete syntax of sequences}
+
+Mathematicians and logicians have used sequences in an informal way
+much before proof systems such as Isabelle were created. It seems
+sensible to allow people using Isabelle to express sequents and
+perform proofs in this same informal way, and without requiring the
+theory developer to spend a lot of time in \ML{} programming.
+
+By using {\tt Sequents.thy}
+appropriately, a logic developer can allow users to refer to sequences
+in several ways:
+%
+\begin{itemize}
+\item A sequence variable is any alphanumeric string with the first
+ character being a \verb%$% sign. 
+So, consider the sequent \verb%$A |- B%, where \verb%$A%
+is intended to match a sequence of zero or more items.
+ 
+\item A sequence with unspecified sub-sequences and unspecified or
+individual items is written as a comma-separated list of regular
+variables (representing items), particular items, and
+sequence variables, as in  
+\begin{ttbox}
+$A, B, C, $D(x) |- E
+\end{ttbox}
+Here both \verb%$A% and \verb%$D(x)%
+are allowed to match any subsequences of items on either side of the
+two items that match $B$ and $C$.  Moreover, the sequence matching
+\verb%$D(x)% may contain occurrences of~$x$.
+
+\item An empty sequence can be represented by a blank space, as in
+\verb? |- true?.
+\end{itemize}
+
+These syntactic constructs need to be assimilated into the object
+theory being developed. The type that we use for these visible objects
+is given the name {\tt seq}.
+A {\tt seq} is created either by the empty space, a {\tt seqobj} or a
+{\tt seqobj} followed by a {\tt seq}, with a comma between them. A
+{\tt seqobj} is either an item or a variable representing a
+sequence. Thus, a theory designer can specify a function that takes
+two sequences and returns a meta-level proposition by giving it the
+Isabelle type \verb|[seq, seq] => prop|.
+
+This is all part of the concrete syntax, but one may wish to
+exploit Isabelle's higher-order abstract syntax by actually having a
+different, more powerful {\em internal} syntax.
+
+
+
+\section{ Basis}
+
+One could opt to represent sequences as first-order objects (such as
+simple lists), but this would not allow us to use many facilities
+Isabelle provides for matching.  By using a slightly more complex
+representation, users of the logic can reap many benefits in
+facilities for proofs and ease of reading logical terms.
+
+A sequence can be represented as a function --- a constructor for
+further sequences --- by defining a binary {\em abstract} function
+\verb|Seq0'| with type \verb|[o,seq']=>seq'|, and translating a
+sequence such as \verb|A, B, C| into
+\begin{ttbox}
+\%s. Seq0'(A, SeqO'(B, SeqO'(C, s)))  
+\end{ttbox}
+This sequence can therefore be seen as a constructor 
+for further sequences. The constructor \verb|Seq0'| is never given a
+value, and therefore it is not possible to evaluate this expression
+into a basic value.
+
+Furthermore, if we want to represent the sequence \verb|A, $B, C|,
+we note that \verb|$B| already represents a sequence, so we can use
+\verb|B| itself to refer to the function, and therefore the sequence
+can be mapped to the internal form:
+\verb|%s. SeqO'(A, B(SeqO'(C, s)))|.
+
+So, while we wish to continue with the standard, well-liked {\em
+external} representation of sequences, we can represent them {\em
+internally} as functions of type \verb|seq'=>seq'|.
+
+
+\section{Object logics}
+
+Recall that object logics are defined by mapping elements of
+particular types to the Isabelle type \verb|prop|, usually with a
+function called {\tt Trueprop}. So, an object
+logic proposition {\tt P} is matched to the Isabelle proposition
+{\tt Trueprop(P)}\@.  The name of the function is often hidden, so the
+user just sees {\tt P}\@. Isabelle is eager to make types match, so it
+inserts {\tt Trueprop} automatically when an object of type {\tt prop}
+is expected. This mechanism can be observed in most of the object
+logics which are direct descendants of {\tt Pure}.
+
+In order to provide the desired syntactic facilities for sequent
+calculi, rather than use just one function that maps object-level
+propositions to meta-level propositions, we use two functions, and
+separate internal from the external representation. 
+
+These functions need to be given a type that is appropriate for the particular
+form of sequents required: single or multiple conclusions.  So
+multiple-conclusion sequents (used in the LK logic) can be
+specified by the following two definitions, which are lifted from the inbuilt
+{\tt Sequents/LK.thy}:
+\begin{ttbox}
+ Trueprop       :: two_seqi
+ "@Trueprop"    :: two_seqe   ("((_)/ |- (_))" [6,6] 5)
+\end{ttbox}
+%
+where the types used are defined in {\tt Sequents.thy} as
+abbreviations:
+\begin{ttbox}
+ two_seqi = [seq'=>seq', seq'=>seq'] => prop
+ two_seqe = [seq, seq] => prop
+\end{ttbox}
+
+The next step is to actually create links into the low-level parsing
+and pretty-printing mechanisms, which map external and internal
+representations. These functions go below the user level and capture
+the underlying structure of Isabelle terms in \ML{}\@.  Fortunately the
+theory developer need not delve in this level; {\tt Sequents.thy}
+provides the necessary facilities. All the theory developer needs to
+add in the \ML{} section is a specification of the two translation
+functions:
+\begin{ttbox}
+ML
+val parse_translation = [("@Trueprop",Sequents.two_seq_tr "Trueprop")];
+val print_translation = [("Trueprop",Sequents.two_seq_tr' "@Trueprop")];
+\end{ttbox}
+
+In summary: in the logic theory being developed, the developer needs
+to specify the types for the internal and external representation of
+the sequences, and use the appropriate parsing and pretty-printing
+functions. 
+
+\section{What's in \texttt{Sequents.thy}}
+
+Theory \texttt{Sequents.thy} makes many declarations that you need to know
+about: 
+\begin{enumerate}
+\item The Isabelle types given below, which can be used for the
+constants that map object-level sequents and meta-level propositions:
+%
+\begin{ttbox}
+ single_seqe = [seq,seqobj] => prop
+ single_seqi = [seq'=>seq',seq'=>seq'] => prop
+ two_seqi    = [seq'=>seq', seq'=>seq'] => prop
+ two_seqe    = [seq, seq] => prop
+ three_seqi  = [seq'=>seq', seq'=>seq', seq'=>seq'] => prop
+ three_seqe  = [seq, seq, seq] => prop
+ four_seqi   = [seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop
+ four_seqe   = [seq, seq, seq, seq] => prop
+\end{ttbox}
+
+The \verb|single_| and \verb|two_| sets of mappings for internal and
+external representations are the ones used for, say single and
+multiple conclusion sequents. The other functions are provided to
+allow rules that manipulate more than two functions, as can be seen in
+the inbuilt object logics.
+
+\item An auxiliary syntactic constant has been
+defined that directly maps a sequence to its internal representation:
+\begin{ttbox}
+"@Side"  :: seq=>(seq'=>seq')     ("<<(_)>>")
+\end{ttbox}
+Whenever a sequence (such as \verb|<< A, $B, $C>>|) is entered using this
+syntax, it is translated into the appropriate internal representation.  This
+form can be used only where a sequence is expected.
+
+\item The \ML{} functions \texttt{single\_tr}, \texttt{two\_seq\_tr},
+  \texttt{three\_seq\_tr}, \texttt{four\_seq\_tr} for parsing, that is, the
+  translation from external to internal form.  Analogously there are
+  \texttt{single\_tr'}, \texttt{two\_seq\_tr'}, \texttt{three\_seq\_tr'},
+  \texttt{four\_seq\_tr'} for pretty-printing, that is, the translation from
+  internal to external form.  These functions can be used in the \ML{} section
+  of a theory file to specify the translations to be used.  As an example of
+  use, note that in {\tt LK.thy} we declare two identifiers:
+\begin{ttbox}
+val parse_translation =
+    [("@Trueprop",Sequents.two_seq_tr "Trueprop")];
+val print_translation =
+    [("Trueprop",Sequents.two_seq_tr' "@Trueprop")];
+\end{ttbox}
+The given parse translation will be applied whenever a \verb|@Trueprop|
+constant is found, translating using \verb|two_seq_tr| and inserting the
+constant \verb|Trueprop|.  The pretty-printing translation is applied
+analogously; a term that contains \verb|Trueprop| is printed as a
+\verb|@Trueprop|.
+\end{enumerate}
+
+
