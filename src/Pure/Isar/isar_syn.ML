@@ -298,10 +298,6 @@ val thenP =
   OuterSyntax.command "then" "forward chaining" K.prf_chain
     (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.chain)));
 
-val thenceP =
-  OuterSyntax.command "thence" "forward chaining, including full export (EXPERIMENTAL!)" K.prf_chain
-    (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.export_chain)));
-
 val fromP =
   OuterSyntax.command "from" "forward chaining from given facts" K.prf_chain
     (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
@@ -468,6 +464,9 @@ val undoP =
 
 (** diagnostic commands (for interactive mode only) **)
 
+val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+
+
 val pretty_setmarginP =
   OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
     K.diag (P.nat >> IsarCmd.pretty_setmargin);
@@ -517,19 +516,20 @@ val print_casesP =
     (Scan.succeed IsarCmd.print_cases);
 
 val print_thmsP =
-  OuterSyntax.improper_command "thm" "print theorems" K.diag (P.xthms1 >> IsarCmd.print_thms);
+  OuterSyntax.improper_command "thm" "print theorems" K.diag
+    (opt_modes -- P.xthms1 >> IsarCmd.print_thms);
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
-    (P.term >> IsarCmd.print_prop);
+    (opt_modes -- P.term >> IsarCmd.print_prop);
 
 val print_termP =
   OuterSyntax.improper_command "term" "read and print term" K.diag
-    (P.term >> IsarCmd.print_term);
+    (opt_modes -- P.term >> IsarCmd.print_term);
 
 val print_typeP =
   OuterSyntax.improper_command "typ" "read and print type" K.diag
-    (P.typ >> IsarCmd.print_type);
+    (opt_modes -- P.typ >> IsarCmd.print_type);
 
 
 
@@ -581,7 +581,7 @@ val kill_thyP =
 
 val prP =
   OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
-    (Scan.option P.nat >> (Toplevel.print oo IsarCmd.pr));
+    (opt_modes -- Scan.option P.nat >> IsarCmd.pr);
 
 val disable_prP =
   OuterSyntax.improper_command "disable_pr" "disable printing of toplevel state" K.diag
@@ -639,11 +639,11 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  defP, fixP, letP, caseP, thenP, thenceP, fromP, withP, noteP,
-  beginP, endP, nextP, qedP, terminal_proofP, immediate_proofP,
-  default_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
-  apply_endP, proofP, alsoP, finallyP, backP, cannot_undoP,
-  clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
+  defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
+  nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
+  skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
+  proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
+  undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
