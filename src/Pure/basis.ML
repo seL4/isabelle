@@ -18,6 +18,23 @@ structure Bool =
     | toString false = "false"
   end;
 
+structure General =
+  struct
+  exception Option
+
+  datatype 'a option = NONE | SOME of 'a
+
+  fun getOpt (SOME v, _) = v
+    | getOpt (NONE,   a) = a
+
+  fun isSome (SOME _) = true 
+    | isSome NONE     = false
+
+  fun valOf (SOME v) = v
+    | valOf NONE     = raise Option
+  end;
+
+
 structure Int =
   struct
   fun toString (i: int) = makestring i;
@@ -53,6 +70,11 @@ structure List =
 
   fun concat []      = []
     | concat (l::ls) = l @ concat ls;
+
+  fun mapPartial f []      = []
+    | mapPartial f (x::xs) = 
+         (case f x of General.NONE   => mapPartial f xs
+                    | General.SOME y => y :: mapPartial f xs);
   end;
 
 
