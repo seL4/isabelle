@@ -46,7 +46,6 @@ sig
   val dest_DtTFree : dtyp -> string
   val dest_DtRec : dtyp -> int
   val dest_TFree : typ -> string
-  val dest_conj : term -> term list
   val get_nonrec_types : (int * (string * dtyp list *
     (string * dtyp list) list)) list -> (string * sort) list -> typ list
   val get_branching_types : (int * (string * dtyp list *
@@ -99,15 +98,13 @@ fun split_conj_thm th =
 val mk_conj = foldr1 (HOLogic.mk_binop "op &");
 val mk_disj = foldr1 (HOLogic.mk_binop "op |");
 
-fun dest_conj (Const ("op &", _) $ t $ t') = t::(dest_conj t')
-  | dest_conj t = [t];
 
 (* instantiate induction rule *)
 
 fun indtac indrule i st =
   let
-    val ts = dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
-    val ts' = dest_conj (HOLogic.dest_Trueprop
+    val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
+    val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (nth_elem (i - 1, prems_of st))));
     val getP = if can HOLogic.dest_imp (hd ts) then
       (apfst Some) o HOLogic.dest_imp else pair None;

@@ -623,7 +623,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               [TRY (rtac conjI 1), resolve_tac Rep_inverse_thms 1,
                etac mp 1, resolve_tac iso_elem_thms 1])]);
 
-    val Ps = map head_of (dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
+    val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;

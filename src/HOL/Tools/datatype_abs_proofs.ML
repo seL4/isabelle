@@ -62,7 +62,7 @@ fun prove_casedist_thms new_type_names descr sorts induct thy =
     val recTs = get_rec_types descr' sorts;
     val newTs = take (length (hd descr), recTs);
 
-    val induct_Ps = map head_of (dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+    val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
     fun prove_casedist_thm ((i, t), T) =
       let
@@ -109,7 +109,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
-    val induct_Ps = map head_of (dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
+    val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
     val big_rec_name' = big_name ^ "_rec_set";
     val rec_set_names = map (Sign.full_name (Theory.sign_of thy0))
