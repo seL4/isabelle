@@ -23,24 +23,23 @@ consts
   ensures :: "['a set, 'a set] => 'a program set"       (infixl 60)
 
   (*LEADS-TO constant for the inductive definition*)
-  leadsto :: "'a program => ('a set * 'a set) set"
+  leads :: "'a program => ('a set * 'a set) set"
 
   (*visible version of the LEADS-TO relation*)
   leadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
 
-  
-inductive "leadsto F"
+
+inductive "leads F"
   intrs 
 
-    Basis  "F : A ensures B ==> (A,B) : leadsto F"
+    Basis  "F : A ensures B ==> (A,B) : leads F"
 
-    Trans  "[| (A,B) : leadsto F;  (B,C) : leadsto F |]
-	   ==> (A,C) : leadsto F"
+    Trans  "[| (A,B) : leads F;  (B,C) : leads F |] ==> (A,C) : leads F"
 
     (*Encoding using powerset of the desired axiom
-       (!!A. A : S ==> (A,B) : leadsto F) ==> (Union S, B) : leadsto F
+       (!!A. A : S ==> (A,B) : leads F) ==> (Union S, B) : leads F
     *)
-    Union  "(UN A:S. {(A,B)}) : Pow (leadsto F) ==> (Union S, B) : leadsto F"
+    Union  "(UN A:S. {(A,B)}) : Pow (leads F) ==> (Union S, B) : leads F"
 
   monos Pow_mono
 
@@ -49,7 +48,7 @@ inductive "leadsto F"
 defs
   ensures_def "A ensures B == (A-B co A Un B) Int transient (A-B)"
 
-  leadsTo_def "A leadsTo B == {F. (A,B) : leadsto F}"
+  leadsTo_def "A leadsTo B == {F. (A,B) : leads F}"
 
 constdefs
   

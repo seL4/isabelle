@@ -75,12 +75,12 @@ qed "stable_transient_ensures";
 (*** leadsTo ***)
 
 Goalw [leadsTo_def] "F : A ensures B ==> F : A leadsTo B";
-by (blast_tac (claset() addIs [leadsto.Basis]) 1);
+by (blast_tac (claset() addIs [leads.Basis]) 1);
 qed "leadsTo_Basis";
 
 Goalw [leadsTo_def]
      "[| F : A leadsTo B;  F : B leadsTo C |] ==> F : A leadsTo C";
-by (blast_tac (claset() addIs [leadsto.Trans]) 1);
+by (blast_tac (claset() addIs [leads.Trans]) 1);
 qed "leadsTo_Trans";
 
 Goal "F : transient A ==> F : A leadsTo (-A)";
@@ -105,14 +105,14 @@ qed "leadsTo_Un_duplicate2";
 (*The Union introduction rule as we should have liked to state it*)
 val prems = Goalw [leadsTo_def]
     "(!!A. A : S ==> F : A leadsTo B) ==> F : (Union S) leadsTo B";
-by (blast_tac (claset() addIs [leadsto.Union] addDs prems) 1);
+by (blast_tac (claset() addIs [leads.Union] addDs prems) 1);
 qed "leadsTo_Union";
 
 val prems = Goalw [leadsTo_def]
     "(!!A. A : S ==> F : (A Int C) leadsTo B) \
 \    ==> F : (Union S Int C) leadsTo B";
 by (simp_tac (HOL_ss addsimps [Int_Union_Union]) 1);
-by (blast_tac (claset() addIs [leadsto.Union] addDs prems) 1);
+by (blast_tac (claset() addIs [leads.Union] addDs prems) 1);
 qed "leadsTo_Union_Int";
 
 val prems = Goal
@@ -142,7 +142,7 @@ val major::prems = Goalw [leadsTo_def]
 \              ==> P A C; \
 \     !!B S. ALL A:S. F : A leadsTo B & P A B ==> P (Union S) B \
 \  |] ==> P za zb";
-by (rtac (major RS CollectD RS leadsto.induct) 1);
+by (rtac (major RS CollectD RS leads.induct) 1);
 by (REPEAT (blast_tac (claset() addIs prems) 1));
 qed "leadsTo_induct";
 
