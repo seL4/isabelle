@@ -611,7 +611,7 @@ val proto_pure =
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
   |> add_syntax Syntax.pure_syntax
-  |> add_modesyntax ("symbolfont", Syntax.pure_symfont_syntax)
+  |> add_modesyntax ("symbols", Syntax.pure_sym_syntax)
   |> add_trfuns Syntax.pure_trfuns
   |> add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
