@@ -61,8 +61,8 @@ fun applC_ast_tr [f, args] = Appl (f :: unfold_ast "_cargs" args)
 fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Appl [Constant constrainC, x, ty]
   | idtyp_ast_tr (*"_idtyp"*) asts = raise_ast "idtyp_ast_tr" asts;
 
-fun lambda_ast_tr (*"_lambda"*) [idts, body] =
-      fold_ast_p "_abs" (unfold_ast "_idts" idts, body)
+fun lambda_ast_tr (*"_lambda"*) [pats, body] =
+      fold_ast_p "_abs" (unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr (*"_lambda"*) asts = raise_ast "lambda_ast_tr" asts;
 
 val constrainAbsC = "_constrainAbs";
@@ -174,7 +174,7 @@ fun abs_tr' tm =
 fun abs_ast_tr' (*"_abs"*) asts =
   (case unfold_ast_p "_abs" (Appl (Constant "_abs" :: asts)) of
     ([], _) => raise_ast "abs_ast_tr'" asts
-  | (xs, body) => Appl [Constant "_lambda", fold_ast "_idts" xs, body]);
+  | (xs, body) => Appl [Constant "_lambda", fold_ast "_pttrns" xs, body]);
 
 
 (* binder *)
@@ -200,13 +200,13 @@ fun mk_binder_tr' (name, sy) =
   end;
 
 
-(* idts *)
+(* idtyp constraints *)
 
-fun idts_ast_tr' (*"_idts"*) [Appl [Constant c, x, ty], xs] =
+fun idtyp_ast_tr' a [Appl [Constant c, x, ty], xs] =
       if c = constrainC then
-        Appl [Constant "_idts", Appl [Constant "_idtyp", x, ty], xs]
+        Appl [Constant a, Appl [Constant "_idtyp", x, ty], xs]
       else raise Match
-  | idts_ast_tr' (*"_idts"*) _ = raise Match;
+  | idtyp_ast_tr' _ _ = raise Match;
 
 
 (* meta propositions *)
@@ -281,7 +281,8 @@ val pure_trfuns =
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
    ("_K", k_tr)],
   [],
-  [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr')]);
+  [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
+   ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
 
 val pure_trfunsT =
   [("_mk_ofclass", mk_ofclass_tr'), ("_mk_ofclassS", mk_ofclassS_tr')];
