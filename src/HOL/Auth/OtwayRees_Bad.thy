@@ -36,7 +36,7 @@ inductive otway
 	   the sender is, hence the A' in the sender field.
            We modify the published protocol by NOT encrypting NB.*)
     OR2  "[| evs: otway;  B ~= Server;  Nonce NB ~: used evs;
-             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
+             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set evs |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, Nonce NB,
                     Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
@@ -51,7 +51,7 @@ inductive otway
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
                     Nonce NB, 
                     Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says Server B 
                   {|Nonce NA, 
                     Crypt (shrK A) {|Nonce NA, Key KAB|},
@@ -62,16 +62,16 @@ inductive otway
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs: otway;  A ~= B;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
-               : set_of_list evs;
+               : set evs;
              Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.*)
     Oops "[| evs: otway;  B ~= Spy;
              Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway"
 
 end

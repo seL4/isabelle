@@ -36,27 +36,27 @@ inductive woolam
 
          (*Bob responds to Alice's message with a challenge.*)
     WL2  "[| evs: woolam;  A ~= B;  
-             Says A' B (Agent A) : set_of_list evs |]
+             Says A' B (Agent A) : set evs |]
           ==> Says B A (Nonce NB) # evs : woolam"
 
          (*Alice responds to Bob's challenge by encrypting NB with her key.
            B is *not* properly determined -- Alice essentially broadcasts
            her reply.*)
     WL3  "[| evs: woolam;  A ~= B;
-             Says A  B (Agent A)  : set_of_list evs;
-             Says B' A (Nonce NB) : set_of_list evs |]
+             Says A  B (Agent A)  : set evs;
+             Says B' A (Nonce NB) : set evs |]
           ==> Says A B (Crypt (shrK A) (Nonce NB)) # evs : woolam"
 
          (*Bob forwards Alice's response to the Server.*)
     WL4  "[| evs: woolam;  B ~= Server;  
-             Says A'  B X         : set_of_list evs;
-             Says A'' B (Agent A) : set_of_list evs |]
+             Says A'  B X         : set evs;
+             Says A'' B (Agent A) : set evs |]
           ==> Says B Server {|Agent A, Agent B, X|} # evs : woolam"
 
          (*Server decrypts Alice's response for Bob.*)
     WL5  "[| evs: woolam;  B ~= Server;
              Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|})
                  # evs : woolam"
 

@@ -25,7 +25,7 @@ val Says_imp_sees_Spy' =
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. A ~= B ==> EX NB. EX evs: ns_public.               \
-\                     Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
+\                     Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_public.Nil RS ns_public.NS1 RS ns_public.NS2 RS ns_public.NS3) 2);
 by possibility_tac;
@@ -35,7 +35,7 @@ result();
 (**** Inductive proofs about ns_public ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set_of_list evs";
+goal thy "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_public.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -139,7 +139,7 @@ qed "unique_NA";
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set_of_list evs; \
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs; \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                        \
 \        ==>  Nonce NA ~: analz (sees lost Spy evs)";
 by (etac rev_mp 1);
@@ -162,10 +162,10 @@ qed "Spy_not_see_NA";
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
 goal thy 
- "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs;\
-\           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set_of_list evs;\
+ "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;\
+\           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs;\
 \           A ~: lost;  B ~: lost;  evs : ns_public |]  \
-\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set_of_list evs";
+\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs";
 by (etac rev_mp 1);
 (*prepare induction over Crypt (pubK A) {|NA,NB|} : parts H*)
 by (etac (Says_imp_sees_Spy' RS parts.Inj RS rev_mp) 1);
@@ -188,7 +188,7 @@ goal thy
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs); \
 \           Nonce NA ~: analz (sees lost Spy evs);                 \
 \           evs : ns_public |]                                     \
-\   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+\   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
@@ -240,8 +240,8 @@ qed "unique_NB";
 
 (*NB remains secret PROVIDED Alice never responds with round 3*)
 goal thy 
- "!!evs.[| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set_of_list evs;\
-\          (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set_of_list evs);  \
+ "!!evs.[| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs;\
+\          (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set evs);  \
 \          A ~: lost;  B ~: lost;  evs : ns_public |]   \
 \       ==> Nonce NB ~: analz (sees lost Spy evs)";
 by (etac rev_mp 1);
@@ -270,10 +270,10 @@ qed "Spy_not_see_NB";
   in message 2, then A has sent message 3--to somebody....*)
 goal thy 
  "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|})          \
-\             : set_of_list evs;                                       \
-\           Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
+\             : set evs;                                       \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;    \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
-\        ==> EX C. Says A C (Crypt (pubK C) (Nonce NB)) : set_of_list evs";
+\        ==> EX C. Says A C (Crypt (pubK C) (Nonce NB)) : set evs";
 by (etac rev_mp 1);
 (*prepare induction over Crypt (pubK B) NB : parts H*)
 by (etac (Says_imp_sees_Spy' RS parts.Inj RS rev_mp) 1);
@@ -295,7 +295,7 @@ qed "B_trusts_NS3";
 (*Can we strengthen the secrecy theorem?  NO*)
 goal thy 
  "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]   \
-\ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set_of_list evs \
+\ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs \
 \     --> Nonce NB ~: analz (sees lost Spy evs)";
 by (analz_induct_tac 1);
 (*NS1*)
@@ -321,14 +321,14 @@ THIS IS THE ATTACK!
 Level 9
 !!evs. [| A ~: lost; B ~: lost; evs : ns_public |]
        ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|})
-           : set_of_list evs -->
+           : set evs -->
            Nonce NB ~: analz (sees lost Spy evs)
  1. !!evs Aa Ba B' NAa NBa evsa.
        [| A ~: lost; B ~: lost; evsa : ns_public; A ~= Ba;
-          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set_of_list evsa;
-          Says A Ba (Crypt (pubK Ba) {|Nonce NA, Agent A|}) : set_of_list evsa;
+          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evsa;
+          Says A Ba (Crypt (pubK Ba) {|Nonce NA, Agent A|}) : set evsa;
           Ba : lost;
-          Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set_of_list evsa;
+          Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evsa;
           Nonce NB ~: analz (sees lost Spy evsa) |]
        ==> False
 *)

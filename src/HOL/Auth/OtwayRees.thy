@@ -37,7 +37,7 @@ inductive "otway lost"
 	   the sender is, hence the A' in the sender field.
            Note that NB is encrypted.*)
     OR2  "[| evs: otway lost;  B ~= Server;  Nonce NB ~: used evs;
-             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
+             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set evs |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, 
                     Crypt (shrK B)
@@ -52,7 +52,7 @@ inductive "otway lost"
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
                     Crypt (shrK B) {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says Server B 
                   {|Nonce NA, 
                     Crypt (shrK A) {|Nonce NA, Key KAB|},
@@ -65,16 +65,16 @@ inductive "otway lost"
              Says B Server {|Nonce NA, Agent A, Agent B, X', 
                              Crypt (shrK B)
                                    {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
-               : set_of_list evs;
+               : set evs;
              Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway lost"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.*)
     Oops "[| evs: otway lost;  B ~= Spy;
              Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway lost"
 
 end

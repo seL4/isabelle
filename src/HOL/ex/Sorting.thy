@@ -21,7 +21,7 @@ primrec sorted1 list
 
 primrec sorted list
   "sorted le [] = True"
-  "sorted le (x#xs) = ((!y:set_of_list xs. le x y) & sorted le xs)"
+  "sorted le (x#xs) = ((!y:set xs. le x y) & sorted le xs)"
 
 primrec mset list
   "mset [] y = 0"

@@ -32,16 +32,15 @@ inductive ns_public
          (*Bob responds to Alice's message with a further nonce*)
     NS2  "[| evs: ns_public;  A ~= B;  Nonce NB ~: used evs;
              Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|})
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})
                 # evs  :  ns_public"
 
          (*Alice proves her existence by sending NB back to Bob.*)
     NS3  "[| evs: ns_public;  A ~= B;
-             Says A  B (Crypt (pubK B) {|Nonce NA, Agent A|})
-               : set_of_list evs;
+             Says A  B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;
              Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})
-               : set_of_list evs |]
+               : set evs |]
           ==> Says A B (Crypt (pubK B) (Nonce NB)) # evs : ns_public"
 
   (**Oops message??**)

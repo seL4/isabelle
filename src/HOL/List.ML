@@ -112,7 +112,7 @@ qed "tl_append";
 (** map **)
 
 goal thy
-  "(!x. x : set_of_list xs --> f x = g x) --> map f xs = map g xs";
+  "(!x. x : set xs --> f x = g x) --> map f xs = map g xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 bind_thm("map_ext", impI RS (allI RS (result() RS mp)));
@@ -170,38 +170,38 @@ by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter";
 Addsimps[mem_filter];
 
-(** set_of_list **)
+(** set **)
 
-goal thy "set_of_list (xs@ys) = (set_of_list xs Un set_of_list ys)";
+goal thy "set (xs@ys) = (set xs Un set ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "set_of_list_append";
 Addsimps[set_of_list_append];
 
-goal thy "(x mem xs) = (x: set_of_list xs)";
+goal thy "(x mem xs) = (x: set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (Blast_tac 1);
 qed "set_of_list_mem_eq";
 
-goal thy "set_of_list l <= set_of_list (x#l)";
+goal thy "set l <= set (x#l)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "set_of_list_subset_Cons";
 
-goal thy "(set_of_list xs = {}) = (xs = [])";
+goal thy "(set xs = {}) = (xs = [])";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "set_of_list_empty";
 Addsimps [set_of_list_empty];
 
-goal thy "set_of_list(rev xs) = set_of_list(xs)";
+goal thy "set(rev xs) = set(xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "set_of_list_rev";
 Addsimps [set_of_list_rev];
 
-goal thy "set_of_list(map f xs) = f``(set_of_list xs)";
+goal thy "set(map f xs) = f``(set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "set_of_list_map";
@@ -483,7 +483,7 @@ Addsimps [nth_drop];
 (** takeWhile & dropWhile **)
 
 goal thy
-  "x:set_of_list xs & ~P(x) --> takeWhile P (xs @ ys) = takeWhile P xs";
+  "x:set xs & ~P(x) --> takeWhile P (xs @ ys) = takeWhile P xs";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
@@ -492,7 +492,7 @@ bind_thm("takeWhile_append1", conjI RS (result() RS mp));
 Addsimps [takeWhile_append1];
 
 goal thy
-  "(!x:set_of_list xs.P(x)) --> takeWhile P (xs @ ys) = xs @ takeWhile P ys";
+  "(!x:set xs.P(x)) --> takeWhile P (xs @ ys) = xs @ takeWhile P ys";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
@@ -500,7 +500,7 @@ bind_thm("takeWhile_append2", ballI RS (result() RS mp));
 Addsimps [takeWhile_append2];
 
 goal thy
-  "x:set_of_list xs & ~P(x) --> dropWhile P (xs @ ys) = (dropWhile P xs)@ys";
+  "x:set xs & ~P(x) --> dropWhile P (xs @ ys) = (dropWhile P xs)@ys";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
@@ -509,14 +509,14 @@ bind_thm("dropWhile_append1", conjI RS (result() RS mp));
 Addsimps [dropWhile_append1];
 
 goal thy
-  "(!x:set_of_list xs.P(x)) --> dropWhile P (xs @ ys) = dropWhile P ys";
+  "(!x:set xs.P(x)) --> dropWhile P (xs @ ys) = dropWhile P ys";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
 bind_thm("dropWhile_append2", ballI RS (result() RS mp));
 Addsimps [dropWhile_append2];
 
-goal thy "x:set_of_list(takeWhile P xs) --> x:set_of_list xs & P x";
+goal thy "x:set(takeWhile P xs) --> x:set xs & P x";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);

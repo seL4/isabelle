@@ -22,7 +22,7 @@ goal thy
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX NB. EX evs: woolam.               \
 \               Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|}) \
-\                 : set_of_list evs";
+\                 : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
           woolam.WL4 RS woolam.WL5) 2);
@@ -35,7 +35,7 @@ result();
 (**** Inductive proofs about woolam ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : woolam ==> ALL A X. Says A A X ~: set_of_list evs";
+goal thy "!!evs. evs : woolam ==> ALL A X. Says A A X ~: set evs";
 by (etac woolam.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -45,7 +45,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-goal thy "!!evs. Says A' B X : set_of_list evs \
+goal thy "!!evs. Says A' B X : set evs \
 \                ==> X : analz (sees lost Spy evs)";
 by (etac (Says_imp_sees_Spy RS analz.Inj) 1);
 qed "WL4_analz_sees_Spy";
@@ -97,7 +97,7 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 goal thy 
  "!!evs. [| A ~: lost;  evs : woolam |]                   \
 \    ==> Crypt (shrK A) (Nonce NB) : parts (sees lost Spy evs)        \
-\        --> (EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs)";
+\        --> (EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs)";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
@@ -109,8 +109,8 @@ qed_spec_mp "NB_Crypt_imp_Alice_msg";
 goal thy 
  "!!evs. [| A ~: lost;  evs : woolam;               \
 \           Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
-\            : set_of_list evs |]                                  \
-\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs";
+\            : set evs |]                                  \
+\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (blast_tac (!claset addSIs [NB_Crypt_imp_Alice_msg]
                       addSEs [MPair_parts]
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
@@ -122,9 +122,9 @@ qed "Server_trusts_WL4";
 (*Server sent WL5 only if it received the right sort of message*)
 goal thy 
  "!!evs. evs : woolam ==>                                              \
-\        Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set_of_list evs   \
+\        Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs   \
 \        --> (EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
-\               : set_of_list evs)";
+\               : set evs)";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
@@ -135,7 +135,7 @@ bind_thm ("Server_sent_WL5", result() RSN (2, rev_mp));
 goal thy 
  "!!evs. [| B ~: lost;  evs : woolam |]                   \
 \    ==> Crypt (shrK B) {|Agent A, NB|} : parts (sees lost Spy evs)        \
-\        --> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set_of_list evs";
+\        --> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
@@ -143,9 +143,9 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
 (*Partial guarantee for B: if it gets a message of correct form then the Server
   sent the same message.*)
 goal thy 
- "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, NB|}) : set_of_list evs; \
+ "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, NB|}) : set evs; \
 \           B ~: lost;  evs : woolam |]                                  \
-\        ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set_of_list evs";
+\        ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
 by (blast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
 qed "B_got_WL5";
@@ -155,9 +155,9 @@ qed "B_got_WL5";
   But A may have sent the nonce to some other agent and it could have reached
   the Server via the Spy.*)
 goal thy 
- "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set_of_list evs; \
+ "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs; \
 \           A ~: lost;  B ~: lost;  evs : woolam  |] \
-\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs";
+\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (blast_tac (!claset addIs  [Server_trusts_WL4]
                       addSDs [B_got_WL5 RS Server_sent_WL5]) 1);
 qed "B_trusts_WL5";
@@ -166,8 +166,8 @@ qed "B_trusts_WL5";
 (*B only issues challenges in response to WL1.  Useful??*)
 goal thy 
  "!!evs. [| B ~= Spy;  evs : woolam |]                   \
-\    ==> Says B A (Nonce NB) : set_of_list evs        \
-\        --> (EX A'. Says A' B (Agent A) : set_of_list evs)";
+\    ==> Says B A (Nonce NB) : set evs        \
+\        --> (EX A'. Says A' B (Agent A) : set evs)";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
@@ -178,8 +178,8 @@ bind_thm ("B_said_WL2", result() RSN (2, rev_mp));
 goal thy 
  "!!evs. [| A ~: lost;  B ~= Spy;  evs : woolam |]                   \
 \    ==> Crypt (shrK A) (Nonce NB) : parts (sees lost Spy evs) &  \
-\        Says B A (Nonce NB) : set_of_list evs        \
-\        --> Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs";
+\        Says B A (Nonce NB) : set evs        \
+\        --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (Step_tac 1);

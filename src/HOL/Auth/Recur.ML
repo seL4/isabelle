@@ -25,7 +25,7 @@ goal thy
 \ ==> EX K NA. EX evs: recur lost.          \
 \     Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
 \                     Agent Server|}      \
-\         : set_of_list evs";
+\         : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS 
           (respond.One RSN (4,recur.RA3))) 2);
@@ -39,7 +39,7 @@ goal thy
 \ ==> EX K. EX NA. EX evs: recur lost.            \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
 \                  Agent Server|}                               \
-\         : set_of_list evs";
+\         : set evs";
 by (cut_facts_tac [Nonce_supply2, Key_supply2] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -59,7 +59,7 @@ goal thy
 \ ==> EX K. EX NA. EX evs: recur lost.                          \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
 \                  Agent Server|}                               \
-\         : set_of_list evs";
+\         : set evs";
 by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -87,7 +87,7 @@ by (REPEAT_FIRST
 qed "recur_mono";
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : recur lost ==> ALL A X. Says A A X ~: set_of_list evs";
+goal thy "!!evs. evs : recur lost ==> ALL A X. Says A A X ~: set evs";
 by (etac recur.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -126,7 +126,7 @@ qed "respond_imp_responses";
 
 val RA2_analz_sees_Spy = Says_imp_sees_Spy RS analz.Inj |> standard;
 
-goal thy "!!evs. Says C' B {|Crypt K X, X', RA|} : set_of_list evs \
+goal thy "!!evs. Says C' B {|Crypt K X, X', RA|} : set evs \
 \                ==> RA : analz (sees lost Spy evs)";
 by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "RA4_analz_sees_Spy";
@@ -382,7 +382,7 @@ bind_thm ("resp_analz_insert",
 goal thy 
  "!!evs. evs : recur lost       \
 \ ==> ALL C X Y P. Says Server C {|X, Agent Server, Agent C, Y, P|} \
-\                  ~: set_of_list evs";
+\                  ~: set evs";
 by (etac recur.induct 1);
 by (etac (respond.induct) 5);
 by (Auto_tac());
@@ -530,7 +530,7 @@ goalw thy [HPair_def]
 \             : parts (sees lost Spy evs);                        \
 \            A ~: lost;  evs : recur lost |]                        \
 \        ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|})  \
-\             : set_of_list evs";
+\             : set evs";
 by (etac rev_mp 1);
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
@@ -547,7 +547,7 @@ qed_spec_mp "Hash_auth_sender";
 goal thy 
  "!!evs. [| Crypt (shrK A) Y : parts (sees lost Spy evs);    \
 \           A ~: lost;  A ~= Spy;  evs : recur lost |]       \
-\        ==> EX C RC. Says Server C RC : set_of_list evs &   \
+\        ==> EX C RC. Says Server C RC : set evs &   \
 \                     Crypt (shrK A) Y : parts {RC}";
 by (etac rev_mp 1);
 by parts_induct_tac;

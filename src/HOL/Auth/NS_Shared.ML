@@ -23,7 +23,7 @@ val Says_imp_sees_Spy' = read_instantiate [("lost","lost")] Says_imp_sees_Spy;
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX N K. EX evs: ns_shared lost.          \
-\               Says A B (Crypt K {|Nonce N, Nonce N|}) : set_of_list evs";
+\               Says A B (Crypt K {|Nonce N, Nonce N|}) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS 
           ns_shared.NS3 RS ns_shared.NS4 RS ns_shared.NS5) 2);
@@ -44,7 +44,7 @@ qed "ns_shared_mono";
 
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : ns_shared lost ==> ALL A X. Says A A X ~: set_of_list evs";
+goal thy "!!evs. evs : ns_shared lost ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_shared.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -52,13 +52,13 @@ Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (*For reasoning about the encrypted portion of message NS3*)
-goal thy "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set_of_list evs \
+goal thy "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set evs \
 \                ==> X : parts (sees lost Spy evs)";
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 qed "NS3_msg_in_parts_sees_Spy";
                               
 goal thy
-    "!!evs. Says Server A (Crypt (shrK A) {|NA, B, K, X|}) : set_of_list evs \
+    "!!evs. Says Server A (Crypt (shrK A) {|NA, B, K, X|}) : set evs \
 \           ==> K : parts (sees lost Spy evs)";
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 qed "Oops_parts_sees_Spy";
@@ -128,7 +128,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K, X and K' when the Server sends this message.*)
 goal thy 
  "!!evs. [| Says Server A (Crypt K' {|N, Agent B, Key K, X|}) \
-\             : set_of_list evs;                              \
+\             : set evs;                              \
 \           evs : ns_shared lost |]                           \
 \        ==> K ~: range shrK &                                \
 \            X = (Crypt (shrK B) {|Key K, Agent A|}) &        \
@@ -148,7 +148,7 @@ goal thy
 \             Says Server A                                            \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
-\             : set_of_list evs";
+\             : set evs";
 by (etac rev_mp 1);
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
@@ -161,7 +161,7 @@ qed "A_trusts_NS2";
   Use Says_Server_message_form if applicable.*)
 goal thy 
  "!!evs. [| Says S A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})      \
-\            : set_of_list evs;  evs : ns_shared lost |]                   \
+\            : set evs;  evs : ns_shared lost |]                   \
 \        ==> (K ~: range shrK & X = (Crypt (shrK B) {|Key K, Agent A|}))   \
 \            | X : analz (sees lost Spy evs)";
 by (case_tac "A : lost" 1);
@@ -242,7 +242,7 @@ goal thy
  "!!evs. evs : ns_shared lost ==>                                        \
 \      EX A' NA' B' X'. ALL A NA B X.                                    \
 \       Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})         \
-\       : set_of_list evs --> A=A' & NA=NA' & B=B' & X=X'";
+\       : set evs --> A=A' & NA=NA' & B=B' & X=X'";
 by (etac ns_shared.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
 by (Step_tac 1);
@@ -260,10 +260,10 @@ val lemma = result();
 goal thy 
  "!!evs. [| Says Server A                                    \
 \             (Crypt (shrK A) {|NA, Agent B, Key K, X|})     \
-\                  : set_of_list evs;                        \ 
+\                  : set evs;                        \ 
 \           Says Server A'                                   \
 \             (Crypt (shrK A') {|NA', Agent B', Key K, X'|}) \
-\                  : set_of_list evs;                        \
+\                  : set evs;                        \
 \           evs : ns_shared lost |] ==> A=A' & NA=NA' & B=B' & X = X'";
 by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
@@ -276,8 +276,8 @@ goal thy
 \        ==> Says Server A                                             \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
-\             : set_of_list evs -->                                    \
-\        (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs) --> \
+\             : set evs -->                                    \
+\        (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs) --> \
 \        Key K ~: analz (sees lost Spy evs)";
 by (etac ns_shared.induct 1);
 by analz_sees_tac;
@@ -308,8 +308,8 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 (*Final version: Server's message in the most abstract form*)
 goal thy 
  "!!evs. [| Says Server A                                               \
-\            (Crypt K' {|NA, Agent B, Key K, X|}) : set_of_list evs;    \
-\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs);  \
+\            (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;    \
+\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs);  \
 \           A ~: lost;  B ~: lost;  evs : ns_shared lost                \
 \        |] ==> Key K ~: analz (sees lost Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
@@ -320,8 +320,8 @@ qed "Spy_not_see_encrypted_key";
 goal thy 
  "!!evs. [| C ~: {A,B,Server};                                          \
 \           Says Server A                                               \
-\            (Crypt K' {|NA, Agent B, Key K, X|}) : set_of_list evs;    \
-\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs);  \
+\            (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;    \
+\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs);  \
 \           A ~: lost;  B ~: lost;  evs : ns_shared lost |]             \
 \        ==> Key K ~: analz (sees lost C evs)";
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
@@ -344,7 +344,7 @@ goal thy
 \         ==> EX NA. Says Server A                                     \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
-\             : set_of_list evs";
+\             : set evs";
 by (etac rev_mp 1);
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
@@ -357,9 +357,9 @@ goal thy
  "!!evs. [| B ~: lost;  evs : ns_shared lost |]            \
 \        ==> Key K ~: analz (sees lost Spy evs) -->             \
 \            Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
-\            : set_of_list evs --> \
+\            : set evs --> \
 \            Crypt K (Nonce NB) : parts (sees lost Spy evs) -->            \
-\            Says B A (Crypt K (Nonce NB)) : set_of_list evs";
+\            Says B A (Crypt K (Nonce NB)) : set evs";
 by (etac ns_shared.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by (dres_inst_tac [("lost","lost")] NS3_msg_in_parts_sees_Spy 5);
@@ -390,10 +390,10 @@ val lemma = result();
 goal thy
  "!!evs. [| Crypt K (Nonce NB) : parts (sees lost Spy evs);           \
 \           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
-\           : set_of_list evs;                                        \
-\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs;  \
+\           : set evs;                                        \
+\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;  \
 \           A ~: lost;  B ~: lost;  evs : ns_shared lost |]           \
-\        ==> Says B A (Crypt K (Nonce NB)) : set_of_list evs";
+\        ==> Says B A (Crypt K (Nonce NB)) : set evs";
 by (blast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
                        addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
 qed "A_trusts_NS4";

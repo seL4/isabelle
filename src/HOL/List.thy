@@ -16,7 +16,7 @@ consts
   concat      :: 'a list list => 'a list
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
   hd          :: 'a list => 'a
-  set_of_list :: 'a list => 'a set
+  set         :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
   mem         :: ['a, 'a list] => bool                    (infixl 55)
@@ -70,9 +70,9 @@ primrec ttl list
 primrec "op mem" list
   "x mem [] = False"
   "x mem (y#ys) = (if y=x then True else x mem ys)"
-primrec set_of_list list
-  "set_of_list [] = {}"
-  "set_of_list (x#xs) = insert x (set_of_list xs)"
+primrec set list
+  "set [] = {}"
+  "set (x#xs) = insert x (set xs)"
 primrec list_all list
   list_all_Nil  "list_all P [] = True"
   list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"

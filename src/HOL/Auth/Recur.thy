@@ -75,14 +75,14 @@ inductive "recur lost"
            NOTE: existing proofs don't need PA and are complicated by its
                 presence!  See parts_Fake_tac.*)
     RA2  "[| evs: recur lost;  B ~= C;  B ~= Server;  Nonce NB ~: used evs;
-             Says A' B PA : set_of_list evs;  
+             Says A' B PA : set evs;  
              PA = {|XA, Agent A, Agent B, Nonce NA, P|} |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs : recur lost"
 
          (*The Server receives Bob's message and prepares a response.*)
     RA3  "[| evs: recur lost;  B ~= Server;
-             Says B' Server PB : set_of_list evs;
+             Says B' Server PB : set evs;
              (PB,RB,K) : respond evs |]
           ==> Says Server B RB # evs : recur lost"
 
@@ -91,11 +91,11 @@ inductive "recur lost"
     RA4  "[| evs: recur lost;  A ~= B;  
              Says B  C {|XH, Agent B, Agent C, Nonce NB, 
                          XA, Agent A, Agent B, Nonce NA, P|} 
-               : set_of_list evs;
+               : set evs;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
                          Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
                          RA|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B A RA # evs : recur lost"
 
 (**No "oops" message can readily be expressed, since each session key is

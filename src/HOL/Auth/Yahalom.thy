@@ -32,7 +32,7 @@ inductive "yahalom lost"
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
     YM2  "[| evs: yahalom lost;  B ~= Server;  Nonce NB ~: used evs;
-             Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
+             Says A' B {|Agent A, Nonce NA|} : set evs |]
           ==> Says B Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                 # evs : yahalom lost"
@@ -42,7 +42,7 @@ inductive "yahalom lost"
     YM3  "[| evs: yahalom lost;  A ~= Server;  Key KAB ~: used evs;
              Says B' Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says Server A
                    {|Crypt (shrK A) {|Agent B, Key KAB, Nonce NA, Nonce NB|},
                      Crypt (shrK B) {|Agent A, Key KAB|}|}
@@ -52,8 +52,8 @@ inductive "yahalom lost"
            uses the new session key to send Bob his Nonce.*)
     YM4  "[| evs: yahalom lost;  A ~= Server;  A ~= B;  
              Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|},
-                        X|}  : set_of_list evs;
-             Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
+                        X|}  : set evs;
+             Says A B {|Agent A, Nonce NA|} : set evs |]
           ==> Says A B {|X, Crypt K (Nonce NB)|} # evs : yahalom lost"
 
          (*This message models possible leaks of session keys.  The Nonces
@@ -62,7 +62,7 @@ inductive "yahalom lost"
     Oops "[| evs: yahalom lost;  A ~= Spy;
              Says Server A {|Crypt (shrK A)
                                    {|Agent B, Key K, Nonce NA, Nonce NB|},
-                             X|}  : set_of_list evs |]
+                             X|}  : set evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
 
 
@@ -71,6 +71,6 @@ constdefs
   "KeyWithNonce K NB evs ==
      EX A B na X. 
        Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, Nonce NB|}, X|} 
-         : set_of_list evs"
+         : set evs"
 
 end

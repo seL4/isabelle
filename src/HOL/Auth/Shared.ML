@@ -138,7 +138,7 @@ by (ALLGOALS
 				            setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
-goal thy "Says A B X : set_of_list evs --> X : sees lost Spy evs";
+goal thy "Says A B X : set evs --> X : sees lost Spy evs";
 by (list.induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";

@@ -29,13 +29,13 @@ by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "qsort_permutes";
 
-goal Qsort.thy "set_of_list(qsort le xs) = set_of_list xs";
+goal Qsort.thy "set(qsort le xs) = set xs";
 by(simp_tac (!simpset addsimps [set_of_list_via_mset,qsort_permutes]) 1);
 qed "set_of_list_qsort";
 Addsimps [set_of_list_qsort];
 
 goal List.thy
-  "(!x:set_of_list[x:xs.P(x)].Q(x)) = (!x:set_of_list xs. P(x)-->Q(x))";
+  "(!x:set[x:xs.P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed"Ball_set_of_list_filter";
@@ -43,7 +43,7 @@ Addsimps [Ball_set_of_list_filter];
 
 goal Qsort.thy
  "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
-\                     (!x:set_of_list xs. !y:set_of_list ys. le x y))";
+\                     (!x:set xs. !y:set ys. le x y))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_append";

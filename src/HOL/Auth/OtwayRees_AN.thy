@@ -39,7 +39,7 @@ inductive "otway lost"
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
     OR2  "[| evs: otway lost;  B ~= Server;
-             Says A' B {|Agent A, Agent B, Nonce NA|} : set_of_list evs |]
+             Says A' B {|Agent A, Agent B, Nonce NA|} : set evs |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                  # evs : otway lost"
 
@@ -47,7 +47,7 @@ inductive "otway lost"
            session key to Bob with a packet for forwarding to Alice.*)
     OR3  "[| evs: otway lost;  B ~= Server;  A ~= B;  Key KAB ~: used evs;
              Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says Server B 
                {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key KAB|},
                  Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key KAB|}|}
@@ -57,9 +57,9 @@ inductive "otway lost"
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs: otway lost;  A ~= B;
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-               : set_of_list evs;
+               : set evs;
              Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B A X # evs : otway lost"
 
          (*This message models possible leaks of session keys.  The nonces
@@ -68,7 +68,7 @@ inductive "otway lost"
              Says Server B 
                       {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}, 
                         Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key K|}|}
-               : set_of_list evs |]
+               : set evs |]
           ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway lost"
 
 end

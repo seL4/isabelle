@@ -18,7 +18,7 @@ by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "insort_permutes";
 
-goal thy "set_of_list(ins f x xs) = insert x (set_of_list xs)";
+goal thy "set(ins f x xs) = insert x (set xs)";
 by (asm_simp_tac (!simpset addsimps [set_of_list_via_mset]
                            setloop (split_tac [expand_if])) 1);
 by (Fast_tac 1);
