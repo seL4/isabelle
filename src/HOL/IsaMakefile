@@ -154,8 +154,8 @@ $(LOG)/HOL-Real-Hyperreal.gz: $(OUT)/HOL-Real \
 HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
 $(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
-  Real/ex/BinEx.thy Real/ex/document/root.tex Real/ex/Sqrt_Irrational.thy\
-      Real/ex/Sqrt_Script.thy
+  Real/ex/BinEx.thy Real/ex/document/root.tex Real/ex/Sqrt.thy \
+  Real/ex/Sqrt_Script.thy
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
 
 
@@ -525,7 +525,7 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy \
   ex/Hilbert_Classical.thy ex/InSort.ML ex/InSort.thy ex/IntRing.ML \
-  ex/IntRing.thy ex/Lagrange.ML ex/Lagrange.thy \
+  ex/IntRing.thy ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy \
   ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
