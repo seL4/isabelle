@@ -22,7 +22,7 @@ struct
    val CUT_DEF = get_thm WF.thy "cut_def";
 
    val SELECT_AX = prove_goal HOL.thy "!P x. P x --> P (Eps P)"
-     (fn _ => [strip_tac 1, rtac selectI 1, assume_tac 1]);
+     (fn _ => [strip_tac 1, rtac someI 1, assume_tac 1]);
 
    fun prove s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
 

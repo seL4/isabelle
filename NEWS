@@ -31,13 +31,23 @@ now "<*lex*>" instead of "**";
 f.simps instead of f.rules;
 
 * HOL: theory Sexp now in HOL/Induct examples (it used to be part of
-main HOL, but was unused); should better use HOL's datatype package
+main HOL, but was unused); it is better to use HOL's datatype package
 anyway;
 
 * HOL: removed obsolete theorem binding expand_if (refer to split_if
 instead);
 
 * HOL: less_induct is renamed nat_less_induct
+
+* HOL: systematic renaming of the @-rules:
+	 selectI	-> someI
+	 selectI2	-> someI2
+	 selectI2EX	-> someI2_ex
+	 select_equality  -> some_equality
+	 select1_equality -> some1_equality
+	 select_eq_Ex	-> some_eq_ex
+	 Eps_eq		-> some_eq_trivial
+	 Eps_sym_eq	-> some_sym_eq_trivial
 
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
 
