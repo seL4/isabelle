@@ -47,9 +47,9 @@ constdefs
   set_of :: "'a multiset => 'a set"
   "set_of M == {x. x :# M}"
 
-instance multiset :: ("term") plus by intro_classes
-instance multiset :: ("term") minus by intro_classes
-instance multiset :: ("term") zero by intro_classes
+instance multiset :: ("term") plus ..
+instance multiset :: ("term") minus ..
+instance multiset :: ("term") zero ..
 
 defs (overloaded)
   union_def: "M + N == Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"
@@ -327,7 +327,7 @@ lemma setsum_decr:
   apply auto
   done
 
-lemma Rep_multiset_induct_aux:
+lemma rep_multiset_induct_aux:
   "P (\<lambda>a. 0) ==> (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1)))
     ==> \<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
 proof -
@@ -373,10 +373,10 @@ proof -
     done
 qed
 
-theorem Rep_multiset_induct:
+theorem rep_multiset_induct:
   "f \<in> multiset ==> P (\<lambda>a. 0) ==>
     (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))) ==> P f"
-  apply (insert Rep_multiset_induct_aux)
+  apply (insert rep_multiset_induct_aux)
   apply blast
   done
 
@@ -388,7 +388,7 @@ proof -
   assume prem2 [unfolded defns]: "!!M x. P M ==> P (M + {#x#})"
   show ?thesis
     apply (rule Rep_multiset_inverse [THEN subst])
-    apply (rule Rep_multiset [THEN Rep_multiset_induct])
+    apply (rule Rep_multiset [THEN rep_multiset_induct])
      apply (rule prem1)
     apply (subgoal_tac "f (b := f b + 1) = (\<lambda>a. f a + (if a = b then 1 else 0))")
      prefer 2
@@ -670,7 +670,7 @@ theorem one_step_implies_mult:
 
 subsubsection {* Partial-order properties *}
 
-instance multiset :: ("term") ord by intro_classes
+instance multiset :: ("term") ord ..
 
 defs (overloaded)
   less_multiset_def: "M' < M == (M', M) \<in> mult {(x', x). x' < x}"
