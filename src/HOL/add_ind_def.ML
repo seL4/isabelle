@@ -144,7 +144,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
     val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
     (*The individual sets must already be declared*)
-    val axpairs = map mk_defpair 
+    val axpairs = map Logic.mk_defpair 
           ((big_rec_tm, lfp_rhs) ::
            (case parts of 
                [_] => []                        (*no mutual recursion*)
@@ -162,7 +162,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
              | x::_ => error ("Illegal occurrence of recursion op: " ^ x ^
                                "\n\t*Consider adding type constraints*"))
 
-  in  thy |> PureThy.add_store_defs_i axpairs  end
+  in  thy |> PureThy.add_defs_i (map Attribute.none axpairs)  end
 
 
 end;
