@@ -2,7 +2,7 @@
 \section{The Set of Even Numbers}
 
 The set of even numbers can be inductively defined as the least set
-containing 0 and closed under the operation ${\cdots}+2$.  Obviously,
+containing 0 and closed under the operation $+2$.  Obviously,
 \emph{even} can also be expressed using the divides relation (\isa{dvd}). 
 We shall prove below that the two formulations coincide.  On the way we
 shall examine the primary means of reasoning about inductively defined
@@ -73,7 +73,7 @@ rules, which are then applied automatically.
 Our ultimate goal is to prove the equivalence between the traditional
 definition of \isa{even} (using the divides relation) and our inductive
 definition.  One direction of this equivalence is immediate by the lemma
-just proved, whose \isa{intro!} attribute ensures it will be used.
+just proved, whose \isa{intro!} attribute ensures it is applied automatically.
 \begin{isabelle}
 \isacommand{lemma}\ dvd_imp_even:\ "\#2\ dvd\ n\ \isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
 \isacommand{by}\ (auto\ simp\ add:\ dvd_def)
@@ -95,7 +95,7 @@ generated an induction rule:
 \end{isabelle}
 A property \isa{P} holds for every even number provided it
 holds for~\isa{0} and is closed under the operation
-\isa{Suc(Suc\(\cdots\))}.  Then \isa{P} is closed under the introduction
+\isa{Suc(Suc \(\cdot\))}.  Then \isa{P} is closed under the introduction
 rules for \isa{even}, which is the least set closed under those rules. 
 This type of inductive argument is called \textbf{rule induction}. 
 
