@@ -127,11 +127,11 @@ type context = ProofContext.context;
 datatype kind =
   Theorem of theory attribute list |    (*top-level theorem*)
   Lemma of theory attribute list |      (*top-level lemma*)
-  Goal of context attribute list |      (*intermediate result, solving subgoal*)
-  Aux of context attribute list ;       (*intermediate result*)
+  Show of context attribute list |      (*intermediate result, solving subgoal*)
+  Have of context attribute list ;       (*intermediate result*)
 
 val kind_name =
-  fn Theorem _ => "theorem" | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
+  fn Theorem _ => "theorem" | Lemma _ => "lemma" | Show _ => "show" | Have _ => "have";
 
 type goal =
  (kind *        (*result kind*)
@@ -615,10 +615,10 @@ fun local_goal prepp kind f name atts args state =
   |> setup_goal open_block prepp kind f name atts args
   |> warn_extra_tfrees state;
 
-val show   = local_goal ProofContext.bind_propp Goal;
-val show_i = local_goal ProofContext.bind_propp_i Goal;
-val have   = local_goal ProofContext.bind_propp Aux;
-val have_i = local_goal ProofContext.bind_propp_i Aux;
+val show   = local_goal ProofContext.bind_propp Show;
+val show_i = local_goal ProofContext.bind_propp_i Show;
+val have   = local_goal ProofContext.bind_propp Have;
+val have_i = local_goal ProofContext.bind_propp_i Have;
 
 
 
@@ -665,8 +665,8 @@ fun finish_local (print_result, print_rule) state =
 
     val (atts, opt_solve) =
       (case kind of
-        Goal atts => (atts, export_goal print_rule result goal_ctxt)
-      | Aux atts => (atts, Seq.single)
+        Show atts => (atts, export_goal print_rule result goal_ctxt)
+      | Have atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
     print_result {kind = kind_name kind, name = name, thm = result};
