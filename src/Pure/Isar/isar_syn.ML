@@ -293,7 +293,8 @@ val locale_val =
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    ((P.name --| P.$$$ "=") -- locale_val >> (Toplevel.theory o IsarThy.add_locale o P.triple2));
+    (P.name -- (P.$$$ "=" |-- P.!!! locale_val || Scan.succeed (Locale.empty, []))
+      >> (Toplevel.theory o IsarThy.add_locale o P.triple2));
 
 
 
