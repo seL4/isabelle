@@ -798,7 +798,8 @@ qed "Finite_imp_cardinal_Diff";
 
 (** Thanks to Krzysztof Grabczewski **)
 
-val nat_implies_well_ord = nat_into_Ord RS well_ord_Memrel;
+val nat_implies_well_ord =
+  (transfer CardinalArith.thy nat_into_Ord) RS well_ord_Memrel;
 
 goal CardinalArith.thy "!!m n. [| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
 by (rtac eqpoll_trans 1);
