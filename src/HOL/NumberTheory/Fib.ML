@@ -111,3 +111,11 @@ by (Asm_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [gcd_non_0]) 1);
 by (asm_full_simp_tac (simpset() addsimps [gcd_commute, gcd_fib_mod]) 1);
 qed "fib_gcd";
+
+Goal "fib (Suc n) * fib n = setsum (%k. fib k * fib k) (atMost n)";
+by (induct_thm_tac fib.induct "n" 1);
+by (auto_tac (claset(), simpset() addsimps [atMost_Suc, fib_Suc_Suc]));  
+by (asm_full_simp_tac
+     (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 1);
+qed "fib_mult_eq_setsum";
+
