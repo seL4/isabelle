@@ -336,7 +336,7 @@ qed "domain_Int_subset";
 
 goal ZF.thy "domain(A) - domain(B) <= domain(A - B)";
 by (fast_tac eq_cs 1);
-qed "domain_diff_subset";
+qed "domain_Diff_subset";
 
 goal ZF.thy "domain(converse(r)) = range(r)";
 by (fast_tac eq_cs 1);
@@ -367,7 +367,7 @@ qed "range_Int_subset";
 
 goal ZF.thy "range(A) - range(B) <= range(A - B)";
 by (fast_tac eq_cs 1);
-qed "range_diff_subset";
+qed "range_Diff_subset";
 
 goal ZF.thy "range(converse(r)) = domain(r)";
 by (fast_tac eq_cs 1);
@@ -395,7 +395,7 @@ qed "field_Int_subset";
 
 goal ZF.thy "field(A) - field(B) <= field(A - B)";
 by (fast_tac eq_cs 1);
-qed "field_diff_subset";
+qed "field_Diff_subset";
 
 
 (** Image **)
@@ -456,7 +456,7 @@ qed "converse_Int";
 
 goal ZF.thy "converse(A) - converse(B) = converse(A - B)";
 by (fast_tac eq_cs 1);
-qed "converse_diff";
+qed "converse_Diff";
 
 (*Does the analogue hold for INT?*)
 goal ZF.thy "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))";
