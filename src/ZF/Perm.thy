@@ -11,26 +11,28 @@ The theory underlying permutation groups
 
 Perm = ZF + "mono" +
 consts
-    O           ::      [i,i]=>i      (infixr 60)
-    id          ::      i=>i
-    inj,surj,bij::      [i,i]=>i
+  O     :: [i,i]=>i      (infixr 60)
 
 defs
+  (*composition of relations and functions; NOT Suppes's relative product*)
+  comp_def    "r O s == {xz : domain(s)*range(r) . 
+                              EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
 
-    (*composition of relations and functions; NOT Suppes's relative product*)
-    comp_def    "r O s == {xz : domain(s)*range(r) . 
-                                EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
+constdefs
+  (*the identity function for A*)
+  id    :: i=>i
+  "id(A) == (lam x:A. x)"
 
-    (*the identity function for A*)
-    id_def      "id(A) == (lam x:A. x)"
+  (*one-to-one functions from A to B*)
+  inj   :: [i,i]=>i
+  "inj(A,B) == { f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x}"
 
-    (*one-to-one functions from A to B*)
-    inj_def      "inj(A,B) == { f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x}"
+  (*onto functions from A to B*)
+  surj  :: [i,i]=>i
+  "surj(A,B) == { f: A->B . ALL y:B. EX x:A. f`x=y}"
 
-    (*onto functions from A to B*)
-    surj_def    "surj(A,B) == { f: A->B . ALL y:B. EX x:A. f`x=y}"
-
-    (*one-to-one and onto functions*)
-    bij_def     "bij(A,B) == inj(A,B) Int surj(A,B)"
+  (*one-to-one and onto functions*)
+  bij   :: [i,i]=>i
+  "bij(A,B) == inj(A,B) Int surj(A,B)"
 
 end

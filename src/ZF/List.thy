@@ -13,15 +13,6 @@ although complicating its derivation.
 List = Datatype + 
 
 consts
-  "@"        :: [i,i]=>i                        (infixr 60)
-  list_rec   :: [i, i, [i,i,i]=>i] => i
-  map        :: [i=>i, i] => i
-  length,rev :: i=>i
-  flat       :: i=>i
-  list_add   :: i=>i
-  hd,tl      :: i=>i
-  drop       :: [i,i]=>i
-
  (* List Enumeration *)
  "[]"        :: i                                       ("[]")
  "@List"     :: is => i                                 ("[(_)]")
@@ -39,19 +30,40 @@ translations
   "[]"          == "Nil"
 
 
+constdefs
+  hd      :: i=>i
+  "hd(l)       == list_case(0, %x xs.x, l)"
+  
+  tl      :: i=>i
+  "tl(l)       == list_case(Nil, %x xs.xs, l)"
+  
+  drop       :: [i,i]=>i
+  "drop(i,l)   == rec(i, l, %j r. tl(r))"
+
+  list_rec   :: [i, i, [i,i,i]=>i] => i
+  "list_rec(l,c,h) == Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))"
+
+  map        :: [i=>i, i] => i
+  "map(f,l)    == list_rec(l,  Nil,  %x xs r. Cons(f(x), r))"
+
+  length :: i=>i
+  "length(l)   == list_rec(l,  0,  %x xs r. succ(r))"
+
+
+consts  (*Cannot use constdefs because @ is not an identifier*)
+  "@"        :: [i,i]=>i                        (infixr 60)
 defs
-
-  hd_def        "hd(l)       == list_case(0, %x xs.x, l)"
-  tl_def        "tl(l)       == list_case(Nil, %x xs.xs, l)"
-  drop_def      "drop(i,l)   == rec(i, l, %j r. tl(r))"
-
-  list_rec_def
-      "list_rec(l,c,h) == Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))"
-
-  map_def       "map(f,l)    == list_rec(l,  Nil,  %x xs r. Cons(f(x), r))"
-  length_def    "length(l)   == list_rec(l,  0,  %x xs r. succ(r))"
   app_def       "xs@ys       == list_rec(xs, ys, %x xs r. Cons(x,r))"
-  rev_def       "rev(l)      == list_rec(l,  Nil,  %x xs r. r @ [x])"
-  flat_def      "flat(ls)    == list_rec(ls, Nil,  %l ls r. l @ r)"
-  list_add_def  "list_add(l) == list_rec(l, 0,  %x xs r. x#+r)"
+
+
+constdefs
+  rev :: i=>i
+  "rev(l)      == list_rec(l,  Nil,  %x xs r. r @ [x])"
+
+  flat       :: i=>i
+  "flat(ls)    == list_rec(ls, Nil,  %l ls r. l @ r)"
+
+  list_add   :: i=>i
+  "list_add(l) == list_rec(l, 0,  %x xs r. x#+r)"
+
 end

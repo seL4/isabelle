@@ -12,7 +12,6 @@ Mutil = CardinalArith +
 consts
   domino  :: i
   tiling  :: i=>i
-  evnodd  :: [i,i]=>i
 
 inductive
   domains "domino" <= "Pow(nat*nat)"
@@ -30,7 +29,8 @@ inductive
   type_intrs "[empty_subsetI, Union_upper, Un_least, PowI]"
   type_elims "[make_elim PowD]"
 
-defs
-  evnodd_def "evnodd(A,b) == {z:A. EX i j. z=<i,j> & (i#+j) mod 2 = b}"
+constdefs
+  evnodd  :: [i,i]=>i
+  "evnodd(A,b) == {z:A. EX i j. z=<i,j> & (i#+j) mod 2 = b}"
 
 end
