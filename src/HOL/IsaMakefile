@@ -284,6 +284,7 @@ $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   GroupTheory/Exponent.thy \
   GroupTheory/Group.thy \
   GroupTheory/Module.thy GroupTheory/Ring.thy \
+  GroupTheory/Summation.thy \
   GroupTheory/Sylow.thy \
   GroupTheory/ROOT.ML \
   GroupTheory/document/root.tex

@@ -13,8 +13,7 @@ record 'a semigroup =
   carrier :: "'a set"    
   sum :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<oplus>\<index>" 65)
 
-locale semigroup =
-  fixes S    (structure)
+locale semigroup = struct S +
   assumes sum_funcset: "sum S \<in> carrier S \<rightarrow> carrier S \<rightarrow> carrier S"
       and sum_assoc:   
             "[|x \<in> carrier S; y \<in> carrier S; z \<in> carrier S|] 

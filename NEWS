@@ -90,6 +90,8 @@ rather than just a warning (in interactive mode);
 
 *** HOL ***
 
+* GroupTheory: new, experimental summation operator for abelian groups.
+
 * New tactic "trans_tac" and method "trans" instantiate
 Provers/linorder.ML for axclasses "order" and "linorder" (predicates
 "<=", "<" and "="). 
