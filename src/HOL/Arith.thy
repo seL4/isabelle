@@ -14,6 +14,8 @@ instance
 consts
   pred      :: nat => nat
   div, mod  :: [nat, nat] => nat  (infixl 70)
+  (* size of a datatype value; overloaded *)
+  size      :: 'a => nat
 
 defs
   pred_def  "pred(m) == case m of 0 => 0 | Suc n => n"

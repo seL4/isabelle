@@ -701,6 +701,8 @@ qed_goal "nat_neqE" thy
 
 
 (* add function nat_add_primrec *) 
-val (_, nat_add_primrec) = Datatype.add_datatype
-([], "nat", [("0", [], Mixfix ("0", [], max_pri)), ("Suc", [dtTyp ([], "nat")], NoSyn)]) HOL.thy;
+val (_, nat_add_primrec, _) = Datatype.add_datatype
+([], "nat", [("0", [], Mixfix ("0", [], max_pri)), ("Suc", [dtTyp ([],
+"nat")], NoSyn)]) (add_thyname "Arith" HOL.thy);
+(* pretend Arith is part of the basic theory to fool package *)
 

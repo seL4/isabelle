@@ -118,9 +118,9 @@ local
 
   (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
-   ("val (thy, " ^ tname ^ "_add_primrec) = Datatype.add_datatype\n"
+   ("val (thy," ^ tname ^ "_add_primrec," ^ tname ^ "_size_eqns) = Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
-    \val thy = thy"
+    \val thy = ("^tname^"_add_primrec "^tname^"_size_eqns thy)"
     ,
     "structure " ^ tname ^ " =\n\
     \struct\n\
@@ -147,7 +147,12 @@ local
     \val dummy = AddIffs " ^ tname ^ ".inject;\n\
     \val dummy = " ^
       (if length cons < dtK then "AddIffs " else "Addsimps ") ^
-      tname ^ ".distinct;");
+      tname ^ ".distinct;\n\
+    \val dummy = Addsimps(map (fn (_,eqn) =>\n\
+    \ prove_goalw thy [get_def thy " ^ quote("size_"^tname) ^
+                     "] eqn (fn _ => [Simp_tac 1]))\n" ^
+    tname^"_size_eqns)\n"
+   );
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");

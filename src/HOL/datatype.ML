@@ -143,8 +143,7 @@ fun trans_recs _ _ [] = error("No primrec equations.")
 in
   fun add_datatype (typevars, tname, cons_list') thy = 
     let
-      val dummy = if length cons_list' < dtK then ()
-                  else require_thy thy "Nat" "datatype definitions";
+      val dummy = require_thy thy "Arith" "datatype definitions";
       
       fun typid(dtRek(_,id)) = id
         | typid(dtVar s) = implode (tl (explode s))
@@ -344,6 +343,19 @@ in
       val rules_rec = rec_rules 1 cons_list
 
 (* -------------------------------------------------------------------- *)
+(* The size function                                                    *) 
+
+      fun size_eqn(_,name,types,vns,_) =
+        let fun sum((T,vn)::args) =
+                  if is_dtRek T then "size(" ^ vn ^ ") + " ^ sum(args)
+                  else sum args
+              | sum [] = "1"
+            val rhs = if exists is_dtRek types then sum(types~~vns) else "0"
+        in ("", "size(" ^ C_exp name vns ^ ") = " ^ rhs) end;
+
+      val size_eqns  = map size_eqn cons_list;
+
+(* -------------------------------------------------------------------- *)
       val consts = 
         map const_type cons_list
         @ (if num_of_cons < dtK then []
@@ -413,7 +425,7 @@ in
            |> add_arities arities
            |> add_consts consts
            |> add_trrules xrules
-           |> add_axioms rules, add_primrec)
+           |> add_axioms rules, add_primrec, size_eqns)
     end
 
 (*Check if the (induction) variable occurs among the premises, which
