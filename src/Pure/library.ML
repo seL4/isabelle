@@ -153,6 +153,7 @@ sig
   val union_int: int list * int list -> int list
   val union_string: string list * string list -> string list
   val gen_union: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
+  val gen_inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
   val inter: ''a list * ''a list -> ''a list
   val inter_int: int list * int list -> int list
   val inter_string: string list * string list -> string list
@@ -791,6 +792,12 @@ fun ([]:int list) inter_int ys = []
 fun ([]:string list) inter_string ys = []
   | (x :: xs) inter_string ys =
       if x mem_string ys then x :: (xs inter_string ys) else xs inter_string ys;
+
+(*generalized intersection*)
+fun gen_inter eq ([], ys) = []
+  | gen_inter eq (x::xs, ys) = 
+      if gen_mem eq (x,ys) then x :: gen_inter eq (xs, ys)
+	                   else      gen_inter eq (xs, ys);
 
 
 (*subset*)
