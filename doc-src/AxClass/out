@@ -1,0 +1,70 @@
+
+- assoc;
+val it =
+  "(?x::?'a::semigroup) <*> (?y::?'a::semigroup) <*> (?z::?'a::semigroup) =
+   ?x <*> (?y <*> ?z)" : thm
+- left_unit;
+val it = "1 <*> (?x::?'a::group) = ?x" : thm
+- left_inv;
+val it = "inv (?x::?'a::group) <*> ?x = 1" : thm
+- commut;
+val it = "(?x::?'a::agroup) <*> (?y::?'a::agroup) = ?y <*> ?x" : thm
+
+
+- right_unit;
+val it = "(?x::?'a::group) <*> 1 = ?x" : thm
+- right_inv;
+val it = "(?x::?'a::group) <*> inv ?x = 1" : thm
+- inv_product;
+val it = "inv ((?x::?'a::group) <*> (?y::?'a::group)) = inv ?y <*> inv ?x"
+  : thm
+- inv_inv;
+val it = "inv (inv (?x::?'a::group)) = ?x" : thm
+- ex1_inv;
+val it = "ALL x::?'a::group. EX! y::?'a::group. y <*> x = 1" : thm
+
+
+- groupI;
+val it =
+  "[| OFCLASS(?'a::term, semigroup_class); !!x::?'a::term. 1 <*> x = x;
+      !!x::?'a::term. inv x <*> x = 1 |] ==> OFCLASS(?'a::term, group_class)"
+  : thm
+
+
+- open AxClass;
+- goal_arity Xor.thy ("bool", [], "agroup");
+Level 0
+OFCLASS(bool, agroup_class)
+ 1. OFCLASS(bool, agroup_class)
+val it = [] : thm list
+- by (axclass_tac Xor.thy []);
+Level 1
+OFCLASS(bool, agroup_class)
+ 1. !!(x::bool) (y::bool) z::bool. x <*> y <*> z = x <*> (y <*> z)
+ 2. !!x::bool. 1 <*> x = x
+ 3. !!x::bool. inv x <*> x = 1
+ 4. !!(x::bool) y::bool. x <*> y = y <*> x
+val it = () : unit
+
+- by (rewrite_goals_tac [Xor.prod_bool_def, Xor.inv_bool_def, Xor.unit_bool_def]);
+Level 2
+OFCLASS(bool, agroup_class)
+ 1. !!(x::bool) (y::bool) z::bool. x ~= y ~= z = (x ~= (y ~= z))
+ 2. !!x::bool. False ~= x = x
+ 3. !!x::bool. x ~= x = False
+ 4. !!(x::bool) y::bool. x ~= y = (y ~= x)
+val it = () : unit
+- by (ALLGOALS (fast_tac HOL_cs));
+Level 3
+OFCLASS(bool, agroup_class)
+No subgoals!
+val it = () : unit
+- qed "bool_in_agroup";
+val bool_in_agroup = "OFCLASS(bool, agroup_class)" : thm
+val it = () : unit
+
+
+- Product.productI;
+val it =
+  "OFCLASS(?'a::logic, term_class) ==> OFCLASS(?'a::logic, product_class)"
+  : thm
