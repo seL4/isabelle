@@ -5,13 +5,24 @@
 Visualize dependencies of theorems.
 *)
 
+signature BASIC_THM_DEPS =
+sig
+  val thm_deps : thm list -> unit
+end;
+
 signature THM_DEPS =
 sig
-  val thm_deps: thm list -> unit
+  include BASIC_THM_DEPS
+
+  val enable : unit -> unit
+  val disable : unit -> unit
 end;
 
 structure ThmDeps : THM_DEPS =
 struct
+
+fun enable () = Thm.keep_derivs := ThmDeriv;
+fun disable () = Thm.keep_derivs := MinDeriv;
 
 fun get_sess thy = if Theory.eq_thy (thy, ProtoPure.thy) then ["Pure"]
   else
@@ -69,4 +80,6 @@ fun thm_deps thms =
 
 end;
 
-open ThmDeps;
+structure BasicThmDeps : BASIC_THM_DEPS = ThmDeps;
+
+open BasicThmDeps;
