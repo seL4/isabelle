@@ -19,19 +19,19 @@ proof -
     txt {* Show that every non-empty chain $c$ of $M$ has an upper bound in $M$: *}
     txt {* $\Union c$ is greater than any element of the chain $c$, so it suffices to show $\Union c \in M$. *}
     proof (unfold M_def, rule norm_pres_extensionI)
-      show "EX (H::'a set) h::'a => real. graph H h = Union c
+      show "\\<exists> H h. graph H h = \\<Union> c
               & is_linearform H h 
               & is_subspace H E 
               & is_subspace F H 
-              & graph F f <= graph H h
-              & (ALL x::'a:H. h x <= p x)"
+              & graph F f \\<subseteq> graph H h
+              & (\\<forall> x \\<in> H. h x \\<le> p x)"
       proof (intro exI conjI)
-        let ?H = "domain (Union c)"
-        let ?h = "funct (Union c)"
+        let ?H = "domain (\\<Union> c)"
+        let ?h = "funct (\\<Union> c)"
 
-        show a: "graph ?H ?h = Union c" 
+        show a: "graph ?H ?h = \\<Union> c" 
         proof (rule graph_domain_funct)
-          fix x y z assume "(x, y) : Union c" "(x, z) : Union c"
+          fix x y z assume "(x, y) \\<in> \\<Union> c" "(x, z) \\<in> \\<Union> c"
           show "z = y" by (rule sup_definite)
         qed
         show "is_linearform ?H ?h" 
@@ -42,10 +42,10 @@ proof -
         show "is_subspace F ?H" 
           by (rule sup_supF [OF _ _ _ a]) (simp!)+
   (* FIXME        by (rule sup_supF, rule a) (simp!)+ *)
-        show "graph F f <= graph ?H ?h" 
+        show "graph F f \\<subseteq> graph ?H ?h" 
           by (rule sup_ext [OF _ _ _ a]) (simp!)+
   (*  FIXME      by (rule sup_ext, rule a) (simp!)+*)
-        show "ALL x::'a:?H. ?h x <= p x" 
+        show "\\<forall>x \\<in> ?H. ?h x \\<le> p x" 
           by (rule sup_norm_pres [OF _ _ a]) (simp!)+
   (* FIXME        by (rule sup_norm_pres, rule a) (simp!)+ *)
       qed
@@ -56,12 +56,12 @@ proof -
   txt {* With Zorn's Lemma we can conclude that there is a maximal element in $M$.\skp *}
   proof (rule Zorn's_Lemma)
     txt {* We show that $M$ is non-empty: *}
-    have "graph F f : norm_pres_extensions E p F f"
+    have "graph F f \\<in> norm_pres_extensions E p F f"
     proof (rule norm_pres_extensionI2)
       have "is_vectorspace F" ..
       thus "is_subspace F F" ..
     qed (blast!)+ 
-    thus "graph F f : M" by (simp!)
+    thus "graph F f \\<in> M" by (simp!)
   qed
   thus ?thesis
   proof
@@ -75,10 +75,10 @@ proof -
         txt {* $g$ is the graph of some linear form $h$ defined on a subspace $H$ of $E$, *}
         txt {* and $h$ is an extension of $f$ that is again bounded by $p$. \skp *}
       proof -
-        have "EX H h. graph H h = g & is_linearform H h 
+        have "\\<exists> H h. graph H h = g & is_linearform H h 
           & is_subspace H E & is_subspace F H
-          & graph F f <= graph H h
-          & (ALL x:H. h x <= p x)" by (simp! add: norm_pres_extension_D)
+          & graph F f \\<subseteq> graph H h
+          & (\\<forall>x \\<in> H. h x \\<le> p x)" by (simp! add: norm_pres_extension_D)
         thus ?thesis by (elim exE conjE) rule
       qed
       have h: "is_vectorspace H" ..
@@ -92,26 +92,52 @@ proof -
           obtain x' where "x' \\<in> E" "x' \\<notin> H" 
           txt {* Pick $x' \in E \setminus H$. \skp *}
           proof -
-            have "EX x':E. x'~:H"
+            have "\\<exists>x' \\<in> E. x' \\<notin> H"
             proof (rule set_less_imp_diff_not_empty)
-              have "H <= E" ..
-              thus "H < E" ..
+              have "H \\<subseteq> E" ..
+              thus "H \\<subset> E" ..
             qed
             thus ?thesis by blast
           qed
-          have x': "x' ~= \<zero>"
+          have x': "x' \\<noteq> \<zero>"
           proof (rule classical)
             presume "x' = \<zero>"
-            with h have "x':H" by simp
+            with h have "x' \\<in> H" by simp
             thus ?thesis by contradiction
           qed blast
           def H' == "H + lin x'"
           -- {* Define $H'$ as the direct sum of $H$ and the linear closure of $x'$. \skp *}
           show ?thesis
             obtain xi where "\\<forall>y \\<in> H. - p (y + x') - h y \\<le> xi 
-                              \\<and> xi \\<le> p (y + x') - h y" sorry
-            -- {* Pick a real number $\xi$ that fulfills certain inequations; this will *}
-            -- {* be used to establish that $h'$ is a norm-preserving extension of $h$. \skp *}
+                              \\<and> xi \\<le> p (y + x') - h y" 
+            txt {* Pick a real number $\xi$ that fulfills certain inequations; this will *}
+            txt {* be used to establish that $h'$ is a norm-preserving extension of $h$. \skp *}
+
+            proof -
+	      from h have "EX xi. ALL y:H. - p (y + x') - h y <= xi 
+                              & xi <= p (y + x') - h y" 
+              proof (rule ex_xi)
+                fix u v assume "u:H" "v:H"
+                from h have "h v - h u = h (v - u)"
+                  by (simp! add: linearform_diff)
+                also have "... <= p (v - u)"
+                  by (simp!)
+                also have "v - u = x' + - x' + v + - u"
+                  by (simp! add: diff_eq1)
+                also have "... = v + x' + - (u + x')"
+                  by (simp!)
+                also have "... = (v + x') - (u + x')"
+                  by (simp! add: diff_eq1)
+                also have "p ... <= p (v + x') + p (u + x')"
+                  by (rule seminorm_diff_subadditive) (simp!)+
+                finally have "h v - h u <= p (v + x') + p (u + x')" .
+
+                thus "- p (u + x') - h u <= p (v + x') - h v" 
+                  by (rule real_diff_ineq_swap)
+              qed
+              thus ?thesis by rule rule
+            qed
+
             def h' == "\\<lambda>x. let (y,a) = \\<epsilon>(y,a). x = y + a \<prod> x' \\<and> y \\<in> H
                            in (h y) + a * xi"
             -- {* Define the extension $h'$ of $h$ to $H'$ using $\xi$. \skp *}
@@ -120,17 +146,17 @@ proof -
               show "g \\<subseteq> graph H' h' \\<and> g \\<noteq> graph H' h'" 
               txt {* Show that $h'$ is an extension of $h$ \dots \skp *}
 proof
-		show "g <= graph H' h'"
+		show "g \\<subseteq> graph H' h'"
 		proof -
-		  have  "graph H h <= graph H' h'"
+		  have  "graph H h \\<subseteq> graph H' h'"
                   proof (rule graph_extI)
-		    fix t assume "t:H" 
-		    have "(SOME (y, a). t = y + a \<prod> x' & y : H)
+		    fix t assume "t \\<in> H" 
+		    have "(SOME (y, a). t = y + a \<prod> x' & y \\<in> H)
                          = (t, #0)" 
 		      by (rule decomp_H0_H [OF _ _ _ _ _ x'])
 		    thus "h t = h' t" by (simp! add: Let_def)
 		  next
-		    show "H <= H'"
+		    show "H \\<subseteq> H'"
 		    proof (rule subspace_subset)
 		      show "is_subspace H H'"
 		      proof (unfold H'_def, rule subspace_vs_sum1)
@@ -141,20 +167,20 @@ proof
 		  qed 
 		  thus ?thesis by (simp!)
 		qed
-                show "g ~= graph H' h'"
+                show "g \\<noteq> graph H' h'"
 		proof -
-		  have "graph H h ~= graph H' h'"
+		  have "graph H h \\<noteq> graph H' h'"
 		  proof
 		    assume e: "graph H h = graph H' h'"
-		    have "x' : H'" 
+		    have "x' \\<in> H'" 
 		    proof (unfold H'_def, rule vs_sumI)
 		      show "x' = \<zero> + x'" by (simp!)
-		      from h show "\<zero> : H" ..
-		      show "x' : lin x'" by (rule x_lin_x)
+		      from h show "\<zero> \\<in> H" ..
+		      show "x' \\<in> lin x'" by (rule x_lin_x)
 		    qed
-		    hence "(x', h' x') : graph H' h'" ..
-		    with e have "(x', h' x') : graph H h" by simp
-		    hence "x' : H" ..
+		    hence "(x', h' x') \\<in> graph H' h'" ..
+		    with e have "(x', h' x') \\<in> graph H h" by simp
+		    hence "x' \\<in> H" ..
 		    thus False by contradiction
 		  qed
 		  thus ?thesis by (simp!)
@@ -163,7 +189,7 @@ proof
 	      show "graph H' h' \\<in> M" 
               txt {* and $h'$ is norm-preserving. \skp *} 
               proof -
-		have "graph H' h' : norm_pres_extensions E p F f"
+		have "graph H' h' \\<in> norm_pres_extensions E p F f"
 		proof (rule norm_pres_extensionI2)
 		  show "is_linearform H' h'"
 		    by (rule h0_lf [OF _ _ _ _ _ _ x']) (simp!)+
@@ -175,29 +201,29 @@ proof
 		  finally (subspace_trans [OF _ h]) 
 		  show f_h': "is_subspace F H'" .
 		
-		  show "graph F f <= graph H' h'"
+		  show "graph F f \\<subseteq> graph H' h'"
 		  proof (rule graph_extI)
-		    fix x assume "x:F"
+		    fix x assume "x \\<in> F"
 		    have "f x = h x" ..
 		    also have " ... = h x + #0 * xi" by simp
 		    also have "... = (let (y,a) = (x, #0) in h y + a * xi)"
 		      by (simp add: Let_def)
 		    also have 
-		      "(x, #0) = (SOME (y, a). x = y + a (*) x' & y : H)"
+		      "(x, #0) = (SOME (y, a). x = y + a (*) x' & y \\<in> H)"
 		      by (rule decomp_H0_H [RS sym, OF _ _ _ _ _ x']) (simp!)+
 		    also have 
-		      "(let (y,a) = (SOME (y,a). x = y + a (*) x' & y : H)
+		      "(let (y,a) = (SOME (y,a). x = y + a (*) x' & y \\<in> H)
                         in h y + a * xi) 
                       = h' x" by (simp!)
 		    finally show "f x = h' x" .
 		  next
-		    from f_h' show "F <= H'" ..
+		    from f_h' show "F \\<subseteq> H'" ..
 		  qed
 		
-		  show "ALL x:H'. h' x <= p x"
+		  show "\\<forall>x \\<in> H'. h' x \\<le> p x"
 		    by (rule h0_norm_pres [OF _ _ _ _ x'])
 		qed
-		thus "graph H' h' : M" by (simp!)
+		thus "graph H' h' \\<in> M" by (simp!)
 	      qed
             qed
           qed
@@ -211,11 +237,11 @@ proof
       proof (intro exI conjI)
         assume eq: "H = E"
 	from eq show "is_linearform E h" by (simp!)
-	show "ALL x:F. h x = f x" 
+	show "\\<forall>x \\<in> F. h x = f x" 
 	proof (intro ballI, rule sym)
-	  fix x assume "x:F" show "f x = h x " ..
+	  fix x assume "x \\<in> F" show "f x = h x " ..
 	qed
-	from eq show "ALL x:E. h x <= p x" by (force!)
+	from eq show "\\<forall>x \\<in> E. h x \\<le> p x" by (force!)
       qed
     qed
   qed
