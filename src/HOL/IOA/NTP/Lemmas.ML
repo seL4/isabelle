@@ -75,7 +75,6 @@ goal Arith.thy "(x ~= 0) = (? y. x = Suc(y))";
   by (nat_ind_tac "x" 1);
   by (Simp_tac 1);
   by (Asm_simp_tac 1);
-  by (Fast_tac 1);
 qed "nonzero_is_succ";
 
 goal Arith.thy "(m::nat) < n --> m + p < n + p";
