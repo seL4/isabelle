@@ -211,6 +211,10 @@ goal Set.thy "(insert a B) Un C = insert a (B Un C)";
 by (Fast_tac 1);
 qed "Un_insert_left";
 
+goal Set.thy "A Un (insert a B) = insert a (A Un B)";
+by (Fast_tac 1);
+qed "Un_insert_right";
+
 goal Set.thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
 by (Fast_tac 1);
 qed "Un_Int_distrib";
