@@ -128,7 +128,7 @@ open Data;
 
  val sum_conv = 
      Simplifier.mk_simproc "cancel_sums"
-       (map (Thm.read_cterm (sign_of Data.thy)) 
+       (map (Thm.read_cterm (Theory.sign_of Data.thy)) 
 	[("x + y", Data.T), ("x - y", Data.T)])
        sum_proc;
 
@@ -187,7 +187,7 @@ open Data;
 
  val rel_conv = 
      Simplifier.mk_simproc "cancel_relations"
-       (map (Thm.cterm_of (sign_of Data.thy) o Data.dest_eqI) eqI_rules)
+       (map (Thm.cterm_of (Theory.sign_of Data.thy) o Data.dest_eqI) eqI_rules)
        rel_proc;
 
 end;

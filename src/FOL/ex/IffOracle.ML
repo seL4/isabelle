@@ -7,7 +7,7 @@ Example of how to use an oracle
 *)
 
 fun iff_oracle n =
-  invoke_oracle IffOracle.thy "iff" (sign_of IffOracle.thy, IffOracleExn n);
+  invoke_oracle IffOracle.thy "iff" (Theory.sign_of IffOracle.thy, IffOracleExn n);
 
 
 iff_oracle 2;

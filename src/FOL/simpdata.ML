@@ -243,10 +243,10 @@ end);
 
 local
 val ex_pattern =
-  read_cterm (sign_of FOL.thy) ("EX x. P(x) & Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of FOL.thy) ("EX x. P(x) & Q(x)", FOLogic.oT)
 
 val all_pattern =
-  read_cterm (sign_of FOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of FOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)", FOLogic.oT)
 
 in
 val defEX_regroup =

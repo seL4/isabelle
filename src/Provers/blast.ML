@@ -1319,10 +1319,10 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
 
 fun tryInThy thy lim s = 
     (initialize();
-     timeap prove (sign_of thy, 
+     timeap prove (Theory.sign_of thy, 
 		   startTiming(), 
 		   Data.claset(), 
-		   [initBranch ([readGoal (sign_of thy) s], lim)], 
+		   [initBranch ([readGoal (Theory.sign_of thy) s], lim)], 
 		   I));
 
 

@@ -807,15 +807,15 @@ val print_claset = Theory.print_data clasetK;
 
 val claset_ref_of_sg = Sign.get_data clasetK (fn ClasetData (ref (CSData r)) => r);
 
-val claset_ref_of = claset_ref_of_sg o sign_of;
+val claset_ref_of = claset_ref_of_sg o Theory.sign_of;
 val claset_of_sg = ! o claset_ref_of_sg;
-val claset_of = claset_of_sg o sign_of;
+val claset_of = claset_of_sg o Theory.sign_of;
 
-fun CLASET tacf state = tacf (claset_of_sg (sign_of_thm state)) state;
-fun CLASET' tacf i state = tacf (claset_of_sg (sign_of_thm state)) i state;
+fun CLASET tacf state = tacf (claset_of_sg (Thm.sign_of_thm state)) state;
+fun CLASET' tacf i state = tacf (claset_of_sg (Thm.sign_of_thm state)) i state;
 
 val claset = claset_of o Context.the_context;
-val claset_ref = claset_ref_of_sg o sign_of o Context.the_context;
+val claset_ref = claset_ref_of_sg o Theory.sign_of o Context.the_context;
 
 
 (* change claset *)
