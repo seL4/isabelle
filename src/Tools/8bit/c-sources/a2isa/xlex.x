@@ -1,4 +1,4 @@
-/*  Title:      Tools/8bit/c-sources/a2isa/xlex.x
+/*  Title:      Tools/8bit/c-sources/a2isa/lex.x
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1996 TU Muenchen
