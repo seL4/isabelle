@@ -190,8 +190,8 @@ use "cladata.ML"	setup Classical.setup setup clasetup
 use "blastdata.ML"	setup Blast.setup
 use "simpdata.ML"	setup Simplifier.setup
 			setup "Simplifier.method_setup Splitter.split_modifiers"
-                        setup Splitter.setup setup iff_attrib_setup
-			setup simpsetup setup Clasimp.setup
+			setup simpsetup setup cong_attrib_setup
+                        setup Splitter.setup setup Clasimp.setup setup iff_attrib_setup
 
 
 end
