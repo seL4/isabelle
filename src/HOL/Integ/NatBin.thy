@@ -20,4 +20,23 @@ defs
 
 use "nat_bin.ML"	setup nat_bin_arith_setup
 
+
+subsection {* Configuration of the code generator *}
+
+types_code
+  "int" ("int")
+
+lemmas [code] = int_0 int_Suc
+
+lemma [code]: "nat x = (if x <= 0 then 0 else Suc (nat (x - 1)))"
+  by (simp add: Suc_nat_eq_nat_zadd1)
+
+consts_code
+  "0" :: "int"                  ("0")
+  "1" :: "int"                  ("1")
+  "uminus" :: "int => int"      ("~")
+  "op +" :: "int => int => int" ("(_ +/ _)")
+  "op *" :: "int => int => int" ("(_ */ _)")
+  "neg"                         ("(_ < 0)")
+
 end
