@@ -261,6 +261,30 @@ val of_global = gen_of ProofContext.init;
 val of_local = gen_of I;
 
 
+(* rename_abs *)
+
+fun rename [] t = ([], t)
+  | rename (x' :: xs) (Abs (x, T, t)) =
+      let val (xs', t') = rename xs t
+      in (xs', Abs (if_none x' x, T, t')) end
+  | rename xs (t $ u) =
+      let
+        val (xs', t') = rename xs t;
+        val (xs'', u') = rename xs' u
+      in (xs'', t' $ u') end
+  | rename xs t = (xs, t);
+
+fun rename_abs_thm xs (ctxt, thm) =
+  let val {sign, prop, ...} = rep_thm thm;
+  in case rename xs prop of
+      ([], prop') => (ctxt, equal_elim (reflexive (cterm_of sign prop')) thm)
+    | _ => error "More names than abstractions in theorem"
+  end;
+
+fun rename_abs src = syntax
+  (Scan.lift (Scan.repeat Args.name_dummy >> rename_abs_thm)) src;
+
+
 (* unfold / fold definitions *)
 
 fun gen_rewrite rew defs (x, thm) = (x, rew defs thm);
@@ -338,6 +362,7 @@ val pure_attributes =
   ("OF", (OF_global, OF_local), "rule applied to facts"),
   ("where", (where_global, where_local), "named instantiation of theorem"),
   ("of", (of_global, of_local), "rule applied to terms"),
+  ("rename_abs", (rename_abs, rename_abs), "rename bound variables in abstractions"),
   ("unfolded", (unfolded_global, unfolded_local), "unfolded definitions"),
   ("folded", (folded_global, folded_local), "folded definitions"),
   ("standard", (standard, standard), "result put into standard form"),
