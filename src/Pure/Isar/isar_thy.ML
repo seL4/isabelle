@@ -255,9 +255,9 @@ fun theory spec = Toplevel.init_theory (begin_theory spec) end_theory;
 
 (* context switch *)
 
-fun switch_theory require name =
+fun switch_theory load name =
   Toplevel.init_theory
-    (fn () => (Context.save require name; ThyInfo.get_theory name)) (K ());
+    (fn () => (Context.save load name; ThyInfo.get_theory name)) (K ());
 
 val context = switch_theory ThyInfo.use_thy;
 val update_context = switch_theory ThyInfo.update_thy;
