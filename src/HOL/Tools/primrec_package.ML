@@ -50,7 +50,9 @@ fun process_eqn sign (eq, rec_fns) =
     val (tname, _) = dest_Type (body_type T) handle _ =>
       raise RecError "cannot determine datatype associated with function"
 
-    val (ls, cargs, rs) = (map dest_Free ls', map dest_Free cargs', map dest_Free rs')
+    val (ls, cargs, rs) = (map dest_Free ls', 
+			   map dest_Free cargs', 
+			   map dest_Free rs')
       handle _ => raise RecError "illegal argument in pattern";
     val lfrees = ls @ rs @ cargs;
 
@@ -66,12 +68,14 @@ fun process_eqn sign (eq, rec_fns) =
           (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
       | Some (_, rpos', eqns) =>
           if is_some (assoc (eqns, cname)) then
-            raise RecError "constructor already occured as pattern"
+            raise RecError "constructor already occurred as pattern"
           else if rpos <> rpos' then
             raise RecError "position of recursive argument inconsistent"
           else
-            overwrite (rec_fns, (fname, (tname, rpos,
-              (cname, (ls, cargs, rs, rhs, eq))::eqns))))
+            overwrite (rec_fns, 
+		       (fname, 
+			(tname, rpos,
+			 (cname, (ls, cargs, rs, rhs, eq))::eqns))))
   end
   handle RecError s => primrec_eq_err sign s eq;
 
@@ -128,11 +132,16 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
             let
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
-              val subs = map (rpair dummyT o fst) (rev (rename_wrt_term rhs rargs));
-              val ((fnames'', fnss''), rhs') = (subst (map (fn ((x, y), z) =>
-                (Free x, (dest_DtRec y, Free z))) (recs ~~ subs)) ((fnames', fnss'), rhs))
+              val subs = map (rpair dummyT o fst) 
+		             (rev (rename_wrt_term rhs rargs));
+              val ((fnames'', fnss''), rhs') = 
+		  (subst (map (fn ((x, y), z) =>
+			       (Free x, (dest_DtRec y, Free z)))
+			  (recs ~~ subs))
+		   ((fnames', fnss'), rhs))
                   handle RecError s => primrec_eq_err sign s eq
-            in (fnames'', fnss'', (list_abs_free (cargs' @ subs @ ls @ rs, rhs'))::fns)
+            in (fnames'', fnss'', 
+		(list_abs_free (cargs' @ subs @ ls @ rs, rhs'))::fns)
             end)
 
   in (case assoc (fnames, i) of
@@ -171,11 +180,12 @@ fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
 
 fun make_def sign fs (fname, ls, rec_name, tname) =
   let
-    val rhs = foldr (fn (T, t) => Abs ("", T, t)) ((map snd ls) @ [dummyT],
-      list_comb (Const (rec_name, dummyT),
-        fs @ map Bound (0 ::(length ls downto 1))));
+    val rhs = foldr (fn (T, t) => Abs ("", T, t)) 
+	            ((map snd ls) @ [dummyT],
+		     list_comb (Const (rec_name, dummyT),
+				fs @ map Bound (0 ::(length ls downto 1))));
     val defpair = (Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def",
-      Logic.mk_equals (Const (fname, dummyT), rhs))
+		   Logic.mk_equals (Const (fname, dummyT), rhs))
   in
     inferT_axm sign defpair
   end;
@@ -198,12 +208,18 @@ fun add_primrec_i alt_name eqns thy =
     val rec_eqns = foldr (process_eqn sg) (map snd eqns, []);
     val tnames = distinct (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
-    val main_fns = map (fn (tname, {index, ...}) =>
-      (index, fst (the (find_first (fn f => #1 (snd f) = tname) rec_eqns)))) dts;
-    val {descr, rec_names, rec_rewrites, ...} = if null dts then
-        primrec_err ("datatypes " ^ commas tnames ^ "\nare not mutually recursive")
-      else snd (hd dts);
-    val (fnames, fnss) = foldr (process_fun sg descr rec_eqns) (main_fns, ([], []));
+    val main_fns = 
+	map (fn (tname, {index, ...}) =>
+	     (index, 
+	      fst (the (find_first (fn f => #1 (snd f) = tname) rec_eqns))))
+	dts;
+    val {descr, rec_names, rec_rewrites, ...} = 
+	if null dts then
+	    primrec_err ("datatypes " ^ commas tnames ^ 
+			 "\nare not mutually recursive")
+	else snd (hd dts);
+    val (fnames, fnss) = foldr (process_fun sg descr rec_eqns)
+	                       (main_fns, ([], []));
     val (fs, defs) = foldr (get_fns fnss) (descr ~~ rec_names, ([], []));
     val defs' = map (make_def sg fs) defs;
     val names1 = map snd fnames;
