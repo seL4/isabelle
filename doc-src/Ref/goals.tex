@@ -287,9 +287,8 @@ thms_containing : xstring list -> (string * thm) list
   premise of subgoal $i$.  Useful in connection with \texttt{eresolve_tac} and
   \texttt{dresolve_tac}.
   
-\item[\ttindexbold{thms_containing} $consts$] returns all theorems
-  that contain all of a given set of constants.  Note that a few basic
-  constants like \verb$==>$ are ignored.
+\item[\ttindexbold{thms_containing} $consts$] returns all theorems that
+  contain \emph{all} of the given constants.
 \end{ttdescription}
 
 

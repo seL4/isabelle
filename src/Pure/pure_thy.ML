@@ -141,13 +141,11 @@ fun thms_of thy =
 
 (* make index *)
 
-val ignore = ["Trueprop", "all", "==>", "=="];
-
 fun add_const_idx ((next, table), thm) =
   let
     val {hyps, prop, ...} = Thm.rep_thm thm;
     val consts =
-      foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignore;
+      foldr add_term_consts (hyps, add_term_consts (prop, []));
 
     fun add (tab, c) =
       Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
@@ -180,7 +178,7 @@ fun containing [] thy = thms_of thy
 (*search globally*)
 fun thms_containing thy consts =
   (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
-    [] => flat (map (containing (consts \\ ignore)) (thy :: Theory.ancestors_of thy))
+    [] => flat (map (containing consts) (thy :: Theory.ancestors_of thy))
   | cs => raise THEORY ("thms_containing: undeclared consts " ^ commas_quote cs, [thy]));
 
 

@@ -119,6 +119,9 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 result is not stored, but proper checks and presentation of the result
 still apply;
 
+* theorem database now also indexes constants "Trueprop", "all",
+"==>", "=="; thus thms_containing, findI etc. may retrieve more rules;
+
 
 *** HOL ***
 
