@@ -1,4 +1,4 @@
-(*  Title:      HOL/BCV/DFA_err.thy
+(*  Title:      HOL/MicroJava/BV/Typing_Framework_err.thy
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 TUM
@@ -7,7 +7,7 @@
 
 header "Static and Dynamic Welltyping"
 
-theory DFA_err = DFA_Framework:
+theory Typing_Framework_err = Typing_Framework:
 
 constdefs
 

@@ -7,7 +7,8 @@
 
 header "Kildall for the JVM"
 
-theory JVM = Kildall + JVMType + Opt + Product + DFA_err + StepMono + BVSpec:
+theory JVM = Kildall + JVMType + Opt + Product + Typing_Framework_err +
+             StepMono + BVSpec:
 
 constdefs
   exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> instr list \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> state"

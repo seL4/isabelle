@@ -8,7 +8,7 @@ Kildall's algorithm
 
 header "Kildall's Algorithm"
 
-theory Kildall = DFA_Framework + While_Combinator:
+theory Kildall = Typing_Framework + While_Combinator:
 
 constdefs
  pres_type :: "(nat => 's => 's) => nat => 's set => bool"
@@ -343,25 +343,42 @@ lemma iter_properties:
 apply(simp add:iter_def del:Let_def)
 by(rule while_properties[THEN mp,OF _ _ _ _ _ _ _ _ refl])
 
-lemma is_dfa_kildall:
-  "[| semilat(A,r,f); acc r; pres_type step n A; 
-     mono r step n A; bounded succs n|] 
-  ==> is_dfa r (kildall f step succs) step succs n A"
-  apply (unfold is_dfa_def kildall_def)
-  apply clarify
-  apply (rule iter_properties)
-  apply (simp_all add: unstables_def stable_def)
-  apply (blast intro!: le_iff_plus_unchanged [THEN iffD2] listE_nth_in
-               dest: boundedD pres_typeD)
-  done
+lemma kildall_properties:
+  "\<lbrakk> semilat(A,r,f); acc r; pres_type step n A; mono r step n A;
+     bounded succs n; ss0 \<in> list n A \<rbrakk> \<Longrightarrow>
+  kildall f step succs ss0 : list n A \<and>
+  stables r step succs (kildall f step succs ss0) \<and>
+  ss0 <=[r] kildall f step succs ss0 \<and>
+  (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow>
+                 kildall f step succs ss0 <=[r] ts)";
+apply (unfold kildall_def)
+apply (rule iter_properties)
+apply (simp_all add: unstables_def stable_def)
+apply (blast intro!: le_iff_plus_unchanged [THEN iffD2] listE_nth_in
+             dest: boundedD pres_typeD)
+done
 
 lemma is_bcv_kildall:
   "[| semilat(A,r,f); acc r; top r T; 
       pres_type step n A; bounded succs n; 
       mono r step n A |]
   ==> is_bcv r T step succs n A (kildall f step succs)"
-  apply (intro is_bcv_dfa is_dfa_kildall semilatDorderI)
-  apply assumption+
-  done
+apply(unfold is_bcv_def welltyping_def)
+apply(insert kildall_properties[of A])
+apply(simp add:stables_def)
+apply clarify
+apply(subgoal_tac "kildall f step succs ss : list n A")
+ prefer 2 apply (simp(no_asm_simp))
+apply (rule iffI)
+ apply (rule_tac x = "kildall f step succs ss" in bexI)
+  apply (rule conjI)
+   apply blast
+  apply (simp  (no_asm_simp))
+ apply assumption
+apply clarify
+apply(subgoal_tac "kildall f step succs ss!p <=_r ts!p")
+ apply simp
+apply (blast intro!: le_listD less_lengthI)
+done
 
 end
