@@ -1479,7 +1479,7 @@ fun trace_thm warn a (thm as Thm{sign_ref, prop, ...}) =
 
 (* basic components *)
 
-type rrule = {thm: thm, lhs: term, perm: bool};
+type rrule = {thm: thm, lhs: term, elhs: term, fo: bool, perm: bool};
 type cong = {thm: thm, lhs: term};
 type simproc =
  {name: string, proc: Sign.sg -> thm list -> term -> thm option, lhs: cterm, id: stamp};
@@ -1570,10 +1570,16 @@ fun merge_mss
 
 (* add_simps *)
 
+fun mk_rrule2{thm,lhs,perm} =
+  let val elhs = Pattern.eta_contract lhs
+      val fo = Pattern.first_order elhs orelse not(Pattern.pattern elhs)
+  in {thm=thm,lhs=lhs,elhs=elhs,fo=fo,perm=perm} end
+
 fun insert_rrule(mss as Mss {rules,...},
-                 rrule as {thm = thm, lhs = lhs, perm = perm}) =
+                 rrule as {thm,lhs,perm}) =
   (trace_thm false "Adding rewrite rule:" thm;
-   let val rules' = Net.insert_term ((lhs, rrule), rules, eq_rrule)
+   let val rrule2 as {elhs,...} = mk_rrule2 rrule
+       val rules' = Net.insert_term ((elhs, rrule2), rules, eq_rrule)
    in upd_rules(mss,rules') end
    handle Net.INSERT =>
      (prthm true "Ignoring duplicate rewrite rule:" thm; mss));
@@ -1660,7 +1666,9 @@ fun orient_rrule mss thm =
                else let val Mss{mk_rews={mk_sym,...},...} = mss
                     in case mk_sym thm of
                          None => []
-                       | Some thm' => rrule_eq_True(thm',rhs,lhs,mss,thm)
+                       | Some thm' =>
+                           let val (_,_,lhs',rhs',_) = decomp_simp thm'
+                           in rrule_eq_True(thm',lhs',rhs',mss,thm) end
                     end
           else rrule_eq_True(thm,lhs,rhs,mss,thm)
   end;
@@ -1688,13 +1696,13 @@ fun add_safe_simp(mss,thm) =
 (* del_simps *)
 
 fun del_rrule(mss as Mss {rules,...},
-              rrule as {thm = thm, lhs = lhs, perm = perm}) =
-  (upd_rules(mss, Net.delete_term ((lhs, rrule), rules, eq_rrule))
+              rrule as {thm, elhs, ...}) =
+  (upd_rules(mss, Net.delete_term ((elhs, rrule), rules, eq_rrule))
    handle Net.DELETE =>
      (prthm true "Rewrite rule not in simpset:" thm; mss));
 
 fun del_simps(mss,thms) =
-  orient_comb_simps del_rrule (mk_rrule mss) (mss,thms);
+  orient_comb_simps del_rrule (map mk_rrule2 o mk_rrule mss) (mss,thms);
 
 
 (* add_congs *)
@@ -1834,6 +1842,10 @@ fun ren_inst(insts,prop,pat,obj) =
         | renAbs(t) = t
   in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;
 
+fun incr_insts i (in1:(indexname*typ)list,in2:(indexname*term)list) =
+  let fun incr ((a,n),x) = ((a,n+i),x)
+  in (map incr in1, map incr in2) end;
+
 fun add_insts_sorts ((iTs, is), Ss) =
   add_typs_sorts (map snd iTs, add_terms_sorts (map snd is, Ss));
 
@@ -1844,7 +1856,7 @@ fun mk_procrule thm =
   let val (_,prems,lhs,rhs,_) = decomp_simp thm
   in if rewrite_rule_extra_vars prems lhs rhs
      then (prthm true "Extra vars on rhs:" thm; [])
-     else [{thm = thm, lhs = lhs, perm = false}]
+     else [mk_rrule2{thm = thm, lhs = lhs, perm = false}]
   end;
 
 
@@ -1867,17 +1879,18 @@ fun rewritec (prover,sign_reft,maxt)
   let
     val signt = Sign.deref sign_reft;
     val tsigt = Sign.tsig_of signt;
-    fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...}, lhs, perm} =
+    fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...},
+            lhs, elhs, fo, perm} =
       let
         val _ = if Sign.subsig (Sign.deref sign_ref, signt) then ()
                 else (trace_thm true "Rewrite rule from different theory:" thm;
                       raise Pattern.MATCH);
         val rprop = if maxt = ~1 then prop
                     else Logic.incr_indexes([],maxt+1) prop;
-        val rlhs = if maxt = ~1 then lhs
-                   else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
-        val insts = Pattern.match tsigt (rlhs,t);
-        val prop' = ren_inst(insts,rprop,rlhs,t);
+        val insts = if fo then Pattern.first_order_match tsigt (elhs,t)
+                          else Pattern.match             tsigt (elhs,t);
+        val insts = if maxt = ~1 then insts else incr_insts (maxt+1) insts
+        val prop' = ren_inst(insts,rprop,lhs,t);
         val hyps' = union_term(hyps,hypst);
         val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
         val unconditional = (Logic.count_prems(prop',0) = 0);
@@ -1906,7 +1919,7 @@ fun rewritec (prover,sign_reft,maxt)
           in case opt of None => rews rrules | some => some end;
 
     fun sort_rrules rrs = let
-      fun is_simple {thm as Thm{prop,...}, lhs, perm} = case prop of 
+      fun is_simple({thm as Thm{prop,...}, ...}:rrule) = case prop of 
                                       Const("==",_) $ _ $ _ => true
                                       | _                   => false 
       fun sort []        (re1,re2) = re1 @ re2
@@ -1928,8 +1941,7 @@ fun rewritec (prover,sign_reft,maxt)
                   | some => some)))
           else proc_rews eta_t ps;
   in case t of
-       Abs (_, _, body) $ u =>
-         Some (subst_bound (u, body), etc)
+       Abs (_, _, body) $ u => Some (subst_bound (u, body), etc)
      | _ => (case rews (sort_rrules (Net.match_term rules t)) of
                None => proc_rews (Pattern.eta_contract t)
                                  (Net.match_term procs t)
@@ -2045,7 +2057,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
 
     and mut_impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
       let
-        fun uncond({thm,lhs,...}:rrule) =
+        fun uncond({thm,lhs,perm}) =
           if nprems_of thm = 0 then Some lhs else None
 
         val (lhss1,mss1) =

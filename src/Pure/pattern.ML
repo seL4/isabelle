@@ -24,9 +24,13 @@ signature PATTERN =
   val eta_contract_atom : term -> term
   val match             : type_sig -> term * term
                           -> (indexname*typ)list * (indexname*term)list
+  val first_order_match : type_sig -> term * term
+                          -> (indexname*typ)list * (indexname*term)list
   val matches           : type_sig -> term * term -> bool
   val matches_subterm   : type_sig -> term * term -> bool
   val unify             : sg * env * (term * term)list -> env
+  val first_order       : term -> bool
+  val pattern           : term -> bool
   exception Unif
   exception MATCH
   exception Pattern
@@ -279,48 +283,6 @@ and eta_contract2 (f$t) = f $ eta_contract_atom t
   | eta_contract2 t     = eta_contract_atom t;
 
 
-(* Pattern matching *)
-exception MATCH;
-
-(*First-order matching;  term_match tsig (pattern, object)
-    returns a (tyvar,typ)list and (var,term)list.
-  The pattern and object may have variables in common.
-  Instantiation does not affect the object, so matching ?a with ?a+1 works.
-  A Const does not match a Free of the same name! *)
-fun fomatch tsig (pat,obj) =
-  let fun typ_match args = (Type.typ_match tsig args)
-			   handle Type.TYPE_MATCH => raise MATCH;
-      fun mtch (tyinsts,insts) = fn
-	(Var(ixn,T), t)  =>
-	  if loose_bvar(t,0) then raise MATCH
-	  else (case assoc_string_int(insts,ixn) of
-		  None => (typ_match (tyinsts, (T, fastype_of t)), 
-			   (ixn,t)::insts)
-		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH)
-      | (Free (a,T), Free (b,U)) =>
-	  if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
-      | (Const (a,T), Const (b,U))  =>
-	  if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
-      | (Bound i, Bound j)  =>
-          if  i=j  then  (tyinsts,insts)  else raise MATCH
-      | (Abs(_,T,t), Abs(_,U,u))  =>
-	  mtch (typ_match (tyinsts,(T,U)),insts) (t,u)
-      | (f$t, g$u) => mtch (mtch (tyinsts,insts) (f,g)) (t, u)
-      | _ => raise MATCH
-  in mtch([],[]) (eta_contract pat, eta_contract obj) end;
-
-
-fun match_bind(itms,binders,ixn,is,t) =
-  let val js = loose_bnos t
-  in if null is
-     then if null js then (ixn,t)::itms else raise MATCH
-     else if js subset_int is
-          then let val t' = if downto0(is,length binders - 1) then t
-                            else mapbnd (idx is) t
-               in (ixn, mkabs(binders,is,t')) :: itms end
-          else raise MATCH
-  end;
-
 (*Tests whether 2 terms are alpha/eta-convertible and have same type.
   Note that Consts and Vars may have more than one type.*)
 fun t aeconv u = aconv_aux (eta_contract_atom t, eta_contract_atom u)
@@ -333,59 +295,106 @@ and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
   | aconv_aux _ =  false;
 
 
+(*** Matching ***)
+
+exception MATCH;
+
+fun typ_match tsig args = (Type.typ_match tsig args)
+                          handle Type.TYPE_MATCH => raise MATCH;
+
+(*First-order matching;
+  fomatch tsig (pattern, object) returns a (tyvar,typ)list and (var,term)list.
+  The pattern and object may have variables in common.
+  Instantiation does not affect the object, so matching ?a with ?a+1 works.
+  Object is eta-contracted on the fly (by eta-expanding the pattern).
+  Precondition: the pattern is already eta-contracted!
+  Note: types are matched on the fly *)
+fun fomatch tsig =
+  let
+    fun mtch (instsp as (tyinsts,insts)) = fn
+        (Var(ixn,T), t)  =>
+	  if loose_bvar(t,0) then raise MATCH
+	  else (case assoc_string_int(insts,ixn) of
+		  None => (typ_match tsig (tyinsts, (T, fastype_of t)), 
+			   (ixn,t)::insts)
+		| Some u => if t aeconv u then instsp else raise MATCH)
+      | (Free (a,T), Free (b,U)) =>
+	  if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+      | (Const (a,T), Const (b,U))  =>
+	  if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+      | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
+      | (Abs(_,T,t), Abs(_,U,u))  =>
+	  mtch (typ_match tsig (tyinsts,(T,U)),insts) (t,u)
+      | (f$t, g$u) => mtch (mtch instsp (f,g)) (t, u)
+      | (t, Abs(_,U,u))  =>  mtch instsp ((incr t)$(Bound 0), u)
+      | _ => raise MATCH
+  in mtch end;
+
+fun first_order_match tsig = fomatch tsig ([],[]);
+ 
+(* Matching of higher-order patterns *)
+
+fun match_bind(itms,binders,ixn,is,t) =
+  let val js = loose_bnos t
+  in if null is
+     then if null js then (ixn,t)::itms else raise MATCH
+     else if js subset_int is
+          then let val t' = if downto0(is,length binders - 1) then t
+                            else mapbnd (idx is) t
+               in (ixn, mkabs(binders,is,t')) :: itms end
+          else raise MATCH
+  end;
+
 fun match tsg (po as (pat,obj)) =
 let
+  (* Pre: pat and obj have same type *)
+  fun mtch binders (env as (iTs,itms),(pat,obj)) =
+    case pat of
+      Abs(ns,Ts,ts) =>
+        (case obj of
+           Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (env,(ts,tt))
+         | _ => let val Tt = typ_subst_TVars iTs Ts
+                in mtch((ns,Tt)::binders)(env,(ts,(incr obj)$Bound(0))) end)
+    | _ => (case obj of
+              Abs(nt,Tt,tt) =>
+                mtch((nt,Tt)::binders)(env,((incr pat)$Bound(0),tt))
+            | _ => cases(binders,env,pat,obj))
 
-fun typ_match args = Type.typ_match tsg args
-                     handle Type.TYPE_MATCH => raise MATCH;
+  and cases(binders,env as (iTs,itms),pat,obj) =
+    let val (ph,pargs) = strip_comb pat
+        fun rigrig1(iTs,oargs) =
+              foldl (mtch binders) ((iTs,itms), pargs~~oargs)
+        fun rigrig2((a,Ta),(b,Tb),oargs) =
+              if a<> b then raise MATCH
+              else rigrig1(typ_match tsg (iTs,(Ta,Tb)), oargs)
+    in case ph of
+         Var(ixn,_) =>
+           let val is = ints_of pargs
+           in case assoc_string_int(itms,ixn) of
+                None => (iTs,match_bind(itms,binders,ixn,is,obj))
+              | Some u => if obj aeconv (red u is []) then env
+                          else raise MATCH
+           end
+       | _ =>
+           let val (oh,oargs) = strip_comb obj
+           in case (ph,oh) of
+                (Const c,Const d) => rigrig2(c,d,oargs)
+              | (Free f,Free g)   => rigrig2(f,g,oargs)
+              | (Bound i,Bound j) => if i<>j then raise MATCH
+                                     else rigrig1(iTs,oargs)
+              | (Abs _, _)        => raise Pattern
+              | (_, Abs _)        => raise Pattern
+              | _                 => raise MATCH
+           end
+    end;
 
-(* Pre: pat and obj have same type *)
-fun mtch binders (env as (iTs,itms),(pat,obj)) =
-      case pat of
-        Abs(ns,Ts,ts) =>
-          (case obj of
-             Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (env,(ts,tt))
-           | _ => let val Tt = typ_subst_TVars iTs Ts
-                  in mtch((ns,Tt)::binders)(env,(ts,(incr obj)$Bound(0))) end)
-      | _ => (case obj of
-                Abs(nt,Tt,tt) =>
-                  mtch((nt,Tt)::binders)(env,((incr pat)$Bound(0),tt))
-              | _ => cases(binders,env,pat,obj))
+  val pT = fastype_of pat
+  and oT = fastype_of obj
+  val iTs = typ_match tsg ([],(pT,oT))
+  val insts2 = (iTs,[])
 
-and cases(binders,env as (iTs,itms),pat,obj) =
-      let val (ph,pargs) = strip_comb pat
-          fun rigrig1(iTs,oargs) =
-                foldl (mtch binders) ((iTs,itms), pargs~~oargs)
-          fun rigrig2((a,Ta),(b,Tb),oargs) =
-                if a<> b then raise MATCH
-                else rigrig1(typ_match(iTs,(Ta,Tb)), oargs)
-      in case ph of
-           Var(ixn,_) =>
-             let val is = ints_of pargs
-             in case assoc_string_int(itms,ixn) of
-                  None => (iTs,match_bind(itms,binders,ixn,is,obj))
-                | Some u => if obj aeconv (red u is []) then env
-                            else raise MATCH
-             end
-         | _ =>
-             let val (oh,oargs) = strip_comb obj
-             in case (ph,oh) of
-                  (Const c,Const d) => rigrig2(c,d,oargs)
-                | (Free f,Free g)   => rigrig2(f,g,oargs)
-                | (Bound i,Bound j) => if i<>j then raise MATCH
-                                       else rigrig1(iTs,oargs)
-                | (Abs _, _)        => raise Pattern
-                | (_, Abs _)        => raise Pattern
-                | _                 => raise MATCH
-             end
-      end;
-
-val pT = fastype_of pat
-and oT = fastype_of obj
-val iTs = typ_match ([],(pT,oT))
-
-in mtch [] ((iTs,[]), po)
-   handle Pattern => fomatch tsg po
+in mtch [] (insts2, po)
+   handle Pattern => fomatch tsg insts2 po
 end;
 
 (*Predicate: does the pattern match the object?*)
@@ -401,5 +410,18 @@ fun matches_subterm tsig (pat,obj) =
             | s$t => msub(bounds,s) orelse msub(bounds,t)
             | _ => false
   in msub([],obj) end;
+
+fun first_order(Abs(_,_,t)) = first_order t
+  | first_order(t $ u) = first_order t andalso first_order u andalso
+                         not(is_Var t)
+  | first_order _ = true;
+
+fun pattern(Abs(_,_,t)) = pattern t
+  | pattern(t) = let val (head,args) = strip_comb t
+                 in if is_Var head
+                    then let val _ = ints_of args in true end
+                         handle Pattern => false
+                    else forall pattern args
+                 end;
 
 end;
