@@ -1,13 +1,8 @@
 (*  Title:      Pure/Syntax/mixfix.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Mixfix declarations, infixes, binders. Part of the Pure syntax.
-
-TODO:
-  note: needs mk_binder_tr/tr'
-  Mixfix.mixfix -> mixfix
-  remove ....Mixfix
 *)
 
 signature MIXFIX0 =
@@ -42,11 +37,11 @@ sig
 end;
 
 functor MixfixFun(structure Lexicon: LEXICON and SynExt: SYN_EXT
-  and SExtension: SEXTENSION): MIXFIX =
+  and SynTrans: SYN_TRANS): MIXFIX =
 struct
 
 structure SynExt = SynExt;
-open Lexicon SynExt SynExt.Ast SExtension;
+open Lexicon SynExt SynExt.Ast SynTrans;
 
 
 (** mixfix declarations **)
