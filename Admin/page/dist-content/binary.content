@@ -26,7 +26,7 @@ The binary distribution of {ISABELLE} for rpm-based Linux/x86 systems:
 Example installation procedure:
 
 <pre>
-rpm -i smlnj-base-110.0.3-0.i386.rpm
+rpm -i smlnj-110.0-3.i386.rpm 
 rpm -i --prefix /usr/share isabelle.rpm             
 rpm -i --prefix /usr/share isabelle-HOL.i386.rpm    
 </pre>
