@@ -290,7 +290,7 @@ proof (unfold mutilated_board_def);
       by (rule tiling_domino_01);
     also; have "?e ?t 1 = ?e ?t'' 1"; by simp;
     also; from t''; have "card ... = card (?e ?t'' 0)";
-      by (rule tiling_domino_01 [RS sym]);
+      by (rule tiling_domino_01 [symmetric]);
     finally; have "... < ..."; .; thus False; ..;
   qed;
 qed;
