@@ -40,29 +40,27 @@ fun thm_of_proof thy prf =
     val sg = sign_of thy;
     val lookup = lookup_thm thy;
 
+    fun thm_of_atom thm Ts =
+      let
+        val tvars = term_tvars (prop_of thm);
+        val (thm', fmap) = Thm.varifyT' [] thm;
+        val ctye = map fst tvars @ map snd fmap ~~ map (Thm.ctyp_of sg) Ts
+      in
+        Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
+      end;
+
     fun thm_of _ _ (PThm ((name, _), _, prop', Some Ts)) =
           let
-            val thm = lookup name;
+            val thm = Thm.implies_intr_hyps (lookup name);
             val {prop, ...} = rep_thm thm;
             val _ = if prop=prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
                 Sign.string_of_term sg prop ^ "\n\n" ^
                 Sign.string_of_term sg prop');
-            val tvars = term_tvars prop;
-            val ctye = map fst tvars ~~ map (Thm.ctyp_of sg) Ts
-          in
-            Thm.instantiate (ctye, []) (forall_intr_vars thm)
-          end
+          in thm_of_atom thm Ts end
 
       | thm_of _ _ (PAxm (name, _, Some Ts)) =
-          let
-            val thm = get_axiom thy name;
-            val {prop, ...} = rep_thm thm;
-            val tvars = term_tvars prop;
-            val ctye = map fst tvars ~~ map (Thm.ctyp_of sg) Ts
-          in
-            Thm.instantiate (ctye, []) (forall_intr_vars thm)
-          end
+          thm_of_atom (get_axiom thy name) Ts
 
       | thm_of _ Hs (PBound i) = nth_elem (i, Hs)
 
