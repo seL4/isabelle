@@ -179,8 +179,6 @@ Goal "int (Suc n) = #1 + int n";
 by (simp_tac (simpset() addsimps [zadd_int]) 1);
 qed "int_Suc";
 
-val int_simps = [int_0, int_Suc];
-
 Goal "- (#0) = #0";
 by (Simp_tac 1);
 qed "zminus_0";
@@ -626,8 +624,53 @@ by (Simp_tac 1);
 qed "nat_less_iff";
 
 
-(*Users don't want to see (int 0) or w + - z*)
-Addsimps [int_0, symmetric zdiff_def];
+(*Users don't want to see (int 0), int(Suc 0) or w + - z*)
+Addsimps [int_0, int_Suc, symmetric zdiff_def];
+
+Goal "nat #0 = 0";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_0";
+
+Goal "nat #1 = 1";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_1";
+
+Goal "nat #2 = 2";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_2";
+
+Goal "nat #3 = Suc 2";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_3";
+
+Goal "nat #4 = Suc (Suc 2)";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_4";
+
+Goal "nat #5 = Suc (Suc (Suc 2))";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_5";
+
+Goal "nat #6 = Suc (Suc (Suc (Suc 2)))";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_6";
+
+Goal "nat #7 = Suc (Suc (Suc (Suc (Suc 2))))";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_7";
+
+Goal "nat #8 = Suc (Suc (Suc (Suc (Suc (Suc 2)))))";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_8";
+
+Goal "nat #9 = Suc (Suc (Suc (Suc (Suc (Suc (Suc 2))))))";
+by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+qed "nat_9";
+
+(*Users also don't want to see (nat 0), (nat 1), ...*)
+Addsimps [nat_0, nat_1, nat_2, nat_3, nat_4, 
+	  nat_5, nat_6, nat_7, nat_8, nat_9];
+
 
 Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
