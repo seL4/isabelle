@@ -696,6 +696,38 @@ by (Blast_tac 1);
 qed "Diff_Int_distrib2";
 
 
+section "Quantification over type \"bool\"";
+
+Goal "(ALL b::bool. P b) = (P True & P False)";
+by Auto_tac;
+by (case_tac "b" 1);
+by Auto_tac;
+qed "all_bool_eq";
+
+Goal "(EX b::bool. P b) = (P True | P False)";
+by Auto_tac;
+by (case_tac "b" 1);
+by Auto_tac;
+qed "ex_bool_eq";
+
+Goal "A Un B = (UN b. if b then A else B)";
+by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [split_if_mem2]) 1);
+qed "Un_eq_UN";
+
+Goal "(UN b::bool. A b) = (A True Un A False)";
+by Auto_tac;
+by (case_tac "b" 1);
+by Auto_tac;
+qed "UN_bool_eq";
+
+Goal "(INT b::bool. A b) = (A True Int A False)";
+by Auto_tac;
+by (case_tac "b" 1);
+by Auto_tac;
+qed "INT_bool_eq";
+
+
 section "Miscellany";
 
 Goal "(A = B) = ((A <= (B::'a set)) & (B<=A))";
