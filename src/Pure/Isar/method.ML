@@ -43,10 +43,6 @@ sig
   val atomize_goal: thm list -> int -> thm -> thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val resolveq_tac: thm Seq.seq -> int -> tactic
-  val resolveq_cases_tac: (thm -> string list -> (string * RuleCases.T) list)
-    -> (thm * (string list * thm list)) Seq.seq
-    -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val erule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
@@ -308,23 +304,13 @@ fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of
 end;
 
 
-(* general rule *)
-
-fun gen_resolveq_tac tac rules i st =
-  Seq.flat (Seq.map (fn rule => tac rule i st) rules);
-
-val resolveq_tac = gen_resolveq_tac Tactic.rtac;
-
-fun resolveq_cases_tac make = gen_resolveq_tac (fn (rule, (cases, facts)) => fn i => fn st =>
-  Seq.map (rpair (make rule cases)) ((insert_tac facts i THEN Tactic.rtac rule i) st));
-
-
 (* simple rule *)
 
 local
 
-fun gen_rule_tac tac rules [] = tac rules
-  | gen_rule_tac tac erules facts = gen_resolveq_tac (tac o single) (multi_resolves facts erules);
+fun gen_rule_tac tac rules [] i st = tac rules i st
+  | gen_rule_tac tac erules facts i st =
+      Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts erules));
 
 fun gen_some_rule_tac tac arg_rules ctxt facts =
   let val rules =
