@@ -213,8 +213,8 @@ tpairs_of     : thm -> (term*term)list
 stamps_of_thy : thm -> string ref list
 theory_of_thm : thm -> theory
 dest_state    : thm*int -> (term*term)list*term list*term*term
-rep_thm       : thm -> \{prop:term, hyps:term list, 
-                        maxidx:int, sign:Sign.sg\}
+rep_thm       : thm -> \{prop: term, hyps: term list, 
+                        maxidx: int, der: deriv, sign: Sign.sg\}
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{concl_of} $thm$] 
@@ -649,5 +649,90 @@ tactics and rules.
 \item[\ttindexbold{flexflex_rule} $thm$]  \index{flex-flex constraints}
 removes all flex-flex pairs from $thm$ using the trivial unifier.
 \end{ttdescription}
-\index{theorems|)}
 \index{meta-rules|)}
+
+
+\section{Proof objects}
+\index{proof objects|(} Isabelle can record the full meta-level proof of each
+theorem.  The proof object contains all logical inferences in detail, while
+omitting bookkeeping steps that have no logical meaning to an outside
+observer.  Rewriting steps are recorded in similar detail as the output of
+simplifier tracing.  The proof object can be inspected by a separate
+proof-checker, or used to generate human-readable proof digests.
+
+Full proof objects are large.  They multiply storage requirements by about
+seven; attempts to build large logics (such as {\sc zf} and {\sc hol}) may
+fail.  Isabelle normally builds minimal proof objects, which include only uses
+of oracles.  You can also request an intermediate level of detail, containing
+uses of oracles, axioms and theorems.  These smaller proof objects indicate a
+theorem's dependencies.
+
+Isabelle provides proof objects for the sake of transparency.  Their aim is to
+increase your confidence in Isabelle.  They let you inspect proofs constructed
+by the classical reasoner or simplifier, and inform you of all uses of
+oracles.  Seldom will proof objects be given whole to an automatic
+proof-checker: none has been written.  It is up to you to examine and
+interpret them sensibly.  For example, when scrutinizing a theorem's
+derivation for dependence upon some oracle or axiom, remember to scrutinize
+all of its lemmas.  Their proofs are included in the main derivation, through
+the {\tt Theorem} constructor.
+
+Proof objects are expressed using a polymorphic type of variable-branching
+trees.  Proof objects (formally known as {\em derivations\/}) are trees
+labelled by rules, where {\tt rule} is a complicated datatype declared in the
+file {\tt Pure/thm.ML}.
+\begin{ttbox} 
+datatype 'a mtree = Join of 'a * 'a mtree list;
+datatype rule     = \(\ldots\);
+type deriv        = rule mtree;
+\end{ttbox}
+%
+Each theorem's derivation is stored as the {\tt der} field of its internal
+record: 
+\begin{ttbox} 
+#der (rep_thm conjI);
+{\out Join (Theorem ({ProtoPure, CPure, HOL},"conjI"),}
+{\out       [Join (MinProof,[])]) : deriv}
+\end{ttbox}
+This proof object identifies a labelled theorem, {\tt conjI}, whose underlying
+proof has not been recorded; all we have is {\tt MinProof}.
+
+Nontrivial proof objects are unreadably large and complex.  Isabelle provides
+several functions to help you inspect them informally.  These functions omit
+the more obscure inferences and attempt to restructure the others into natural
+formats, linear or tree-structured.
+
+\begin{ttbox} 
+keep_derivs  : deriv_kind ref
+Deriv.size   : deriv -> int
+Deriv.drop   : 'a mtree * int -> 'a mtree
+Deriv.linear : deriv -> deriv list
+Deriv.linear : deriv -> Deriv.orule mtree
+\end{ttbox}
+
+\begin{ttdescription}
+\item[\ttindexbold{keep_derivs} := MinDeriv $|$ ThmDeriv $|$ FullDeriv;] 
+specifies one of the three options for keeping derivations.  They can be
+minimal (oracles only), include theorems and axioms, or be full.
+
+\item[\ttindexbold{Deriv.size} $der$] yields the size of a derivation,
+  excluding lemmas.
+
+\item[\ttindexbold{Deriv.drop} ($tree$,$n$)] returns the subtree $n$ levels
+  down, always following the first child.  It is good for stripping off
+  outer level inferences that are used to put a theorem into standard form.
+
+\item[\ttindexbold{Deriv.linear} $der$] converts a derivation into a linear
+  format, replacing the deep nesting by a list of rules.  Intuitively, this
+  reveals the single-step Isabelle proof that is constructed internally by
+  tactics.  
+
+\item[\ttindexbold{Deriv.tree} $der$] converts a derivation into an
+  object-level proof tree.  A resolution by an object-rule is converted to a
+  tree node labelled by that rule.  Complications arise if the object-rule is
+  itself derived in some way.  Nested resolutions are unravelled, but other
+  operations on rules (such as rewriting) are left as-is.  
+\end{ttdescription}
+
+\index{proof objects|)}
+\index{theorems|)}
