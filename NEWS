@@ -1,58 +1,64 @@
+
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
 New in Isabelle??? (FIXME)
 --------------------------
 
-* Changed wrapper mechanism for the classical reasoner now allows for selected
-  deletion of wrappers, by introduction of names for wrapper functionals.
-  This implies that addbefore, addSbefore, addaltern, and addSaltern now take
-  a pair (name, tactic) as argument, and that adding two tactics with the same
-  name overwrites the first one (emitting a warning).
+*** General Changes ***
+
+* Changed wrapper mechanism for the classical reasoner now allows for
+selected deletion of wrappers, by introduction of names for wrapper
+functionals.  This implies that addbefore, addSbefore, addaltern, and
+addSaltern now take a pair (name, tactic) as argument, and that adding
+two tactics with the same name overwrites the first one (emitting a
+warning).
   type wrapper = (int -> tactic) -> (int -> tactic)
   setWrapper, setSWrapper, compWrapper and compSWrapper are replaced by
   addWrapper, addSWrapper: claset * (string * wrapper) -> claset
   delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
-* Inductive definitions now handle disjunctive premises correctly (HOL and ZF)
+* inductive definitions now handle disjunctive premises correctly (HOL
+and ZF);
+
+* new toplevel commands 'thm' and 'thms' for retrieving theorems from
+the current theory context;
 
 
 *** HOL ***
 
-* new force_tac (and its derivations Force_tac, force) 
-  combines rewriting and classical reasoning (and whatever other tools)
-  similarly to auto_tac, but is aimed to solve the given subgoal totally.
+* new force_tac (and its derivations Force_tac, force): combines
+rewriting and classical reasoning (and whatever other tools) similarly
+to auto_tac, but is aimed to solve the given subgoal totally;
 
 * added option_map_eq_Some to simpset() and claset()
 
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
-* split_all_tac is now much faster and fails if there is nothing to split.
-  Existing (fragile) proofs may require adaption because the order and the
-  names of the automatically generated variables have changed.
-  split_all_tac has moved within claset() from usafe wrappers to safe wrappers,
-  which means that !!-bound variables are splitted much more aggressively,
-  and safe_tac and clarify_tac now split such variables.
-  If this splitting is not appropriate, use delSWrapper "split_all_tac".
+* split_all_tac is now much faster and fails if there is nothing to
+split.  Existing (fragile) proofs may require adaption because the
+order and the names of the automatically generated variables have
+changed.  split_all_tac has moved within claset() from usafe wrappers
+to safe wrappers, which means that !!-bound variables are splitted
+much more aggressively, and safe_tac and clarify_tac now split such
+variables.  If this splitting is not appropriate, use delSWrapper
+"split_all_tac".
 
-* added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
+* added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset;
 
-* HOL/Arithmetic
+* HOL/Arithmetic:
   
   - removed 'pred' (predecessor) function
-
   - generalized some theorems about n-1
-
   - Many new laws about "div" and "mod"
-
   - New laws about greatest common divisors (see theory ex/Primes)
 
-* HOL/Relation: renamed the relational operatotr r^-1 "converse" instead of
-  "inverse"
+* HOL/Relation: renamed the relational operatotr r^-1 "converse"
+instead of "inverse";
 
-* recdef can now declare non-recursive functions, with {} supplied as the 
-  well-founded relation
+* recdef can now declare non-recursive functions, with {} supplied as
+the well-founded relation;
 
 * Simplifier:
 
@@ -85,6 +91,7 @@ New in Isabelle??? (FIXME)
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
 * many new identities for unions, intersections, set difference, etc.;
+
 
 
 New in Isabelle98 (January 1998)
