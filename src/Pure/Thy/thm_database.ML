@@ -6,8 +6,6 @@
 
 signature THMDB =
 sig
-  val thm_db: (int * (string * thm)) list Symtab.table ref
-  val thm_num: int ref
   val store_thm_db: string * thm -> thm
   val thms_containing: string list -> (string * thm) list
   val thms_resolving_with: term * Sign.sg -> (string * thm) list
