@@ -248,6 +248,7 @@ See \S\ref{sec:intro-theories} for its most basic commands, such as
 use_thy_only    : string -> unit
 update_thy      : string -> unit
 touch_thy       : string -> unit
+remove_thy      : string -> unit
 delete_tmpfiles : bool ref \hfill{\bf initially true}
 \end{ttbox}
 
@@ -265,6 +266,11 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
 \item[\ttindexbold{touch_thy} "$name$";] marks theory node $name$ of the
   internal graph as outdated.  While the theory remains usable, subsequent
   operations such as \texttt{use_thy} may cause a reload.
+  
+\item[\ttindexbold{remove_thy} "$name$";] deletes theory node $name$,
+  including \emph{all} of its descendants.  Beware!  This is a quick way to
+  dispose a large number of theories at once.  Note that {\ML} bindings to
+  theorems etc.\ of removed theories may still persist.
   
 \item[reset \ttindexbold{delete_tmpfiles};] processing theory files usually
   involves temporary {\ML} files to be created.  By default, these are deleted
