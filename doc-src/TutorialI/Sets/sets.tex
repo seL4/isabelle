@@ -1,4 +1,3 @@
-% ID:         $Id$
 \chapter{Sets, Functions and Relations}
 
 Mathematics relies heavily on set theory: not just unions and intersections
@@ -633,7 +632,6 @@ f\ \isacharminus``\ (-\ A)\ =\ \isacharminus\ f\ \isacharminus``\ A%
 
 
 \section{Relations}
-\label{sec:Relations}
 
 A \textbf{relation} is a set of pairs.  As such, the set operations apply
 to them.  For instance, we may form the union of two relations.  Other
@@ -728,10 +726,10 @@ R\ \isacharcircum\ Suc\ n\ =\ R\ O\ R\isacharcircum n
 \rulename{RelPow.relpow.simps}
 \end{isabelle}
 
-The \textbf{reflexive transitive closure} of a relation is particularly 
-important.  It has the postfix syntax \isa{r\isacharcircum{*}}.  The
-construction is defined   to be the least fixedpoint satisfying the
-following equation: 
+The \textbf{reflexive transitive closure} of the
+relation~\isa{r} is written with the
+postfix syntax \isa{r\isacharcircum{*}}.  It is the least solution of the
+equation
 \begin{isabelle}
 r\isacharcircum{*}\ =\ Id\ \isasymunion\ (r\ O\ r\isacharcircum{*})
 \rulename{rtrancl_unfold}
@@ -874,7 +872,6 @@ A\ \isasymsubseteq\ Id\isanewline
 
 
 \section{Well-founded relations and induction}
-\label{sec:Well-founded}
 
 Induction comes in many forms, including traditional mathematical 
 induction, structural induction on lists and induction on size. 
@@ -883,15 +880,13 @@ Such A relation expresses the notion of a terminating process.
 Intuitively, the relation~$\prec$ is \textbf{well-founded} if it admits no
 infinite  descending chains
 \[ \cdots \prec a@2 \prec a@1 \prec a@0. \]
-If $\prec$ is well-founded then it can be used with the \textbf{well-founded
-induction}\indexbold{induction!well-founded}\index{well-founded
-induction|see{induction, well-founded}} rule:
+If $\prec$ is well-founded then it can be used with the well-founded 
+induction rule: 
 \[ \infer{P(a)}{\infer*{P(x)}{[\forall y.\, y\prec x \imp P(y)]}} \]
 To show $P(a)$ for a particular term~$a$, it suffices to show $P(x)$ for
 arbitrary~$x$ under the assumption that $P(y)$ holds for $y\prec x$. 
 Intuitively, the well-foundedness of $\prec$ ensures that the chains of
-reasoning are finite.  For a fuller account of well-founded relations and
-induction see, for example, \cite{Baader-Nipkow}.
+reasoning are finite.
 
 In Isabelle, the induction rule is expressed like this:
 \begin{isabelle}
@@ -1040,6 +1035,5 @@ greatest fixed point.  Exhibiting a bisimulation to prove the equality of
 two agents in a process algebra is an example of coinduction.
 The coinduction rule can be strengthened in various ways; see 
 theory {\isa{Gfp}} for details.  
-An example using the fixed point operators appears later in this 
-chapter, in the section on computation tree logic
-(\S\ref{sec:ctl-case-study}).
+This chapter ends with a case study concerning model checking for the
+temporal logic CTL\@.
