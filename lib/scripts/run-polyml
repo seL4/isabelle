@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Poly/ML startup script.
+#
+# $Id$
+#
+# Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
+# and from settings
+#
+# MMW 22-Nov-1996, MMW 25-Nov-1996
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1"
+  exit 2
+}
+
+
+
+## locations and settings
+
+ML_QUIT=";PolyML.quit();"
+ML_DBASE=$ML_HOME/ML_dbase
+POLY=$ML_HOME/poly
+DISCGARB=$ML_HOME/discgarb
+
+case "$ML_SYSTEM" in
+  polyml-2.07)
+    ;;
+  polyml-3.1)
+    DISCGARB="$ML_HOME/discgarb -c"
+    export LM_LICENSE_FILE=$ML_HOME/license.dat
+    ;;
+  *)
+    fail "Unknown ML system: \"$ML_SYSTEM\""
+    ;;
+esac
+
+
+
+## prepare databases
+
+if [ -z "$INFILE" ]; then
+  INFILE="$ML_DBASE"
+  MLTEXT="val use = PolyML.use; val exit = PolyML.exit; $MLTEXT"
+fi
+
+function fail_out()
+{
+  fail "Unable to create output heap file: \"$OUTFILE\""
+}
+
+if [ -z "$OUTFILE" ]; then
+  DB="$INFILE"
+  OPTS="-r"  
+elif [ "$INFILE" = "$OUTFILE" ]; then           # FIXME -ef !?
+  DB="$INFILE"
+  OPTS=""
+elif [ -n "$COPYDB" ]; then
+  cp "$INFILE" "$OUTFILE" || fail_out
+  chmod +w "$OUTFILE"
+  DB="$OUTFILE"
+  OPTS=""
+else
+  [ -f "$OUTFILE" ] && { rm "$OUTFILE" || fail_out }
+  echo "PolyML.make_database \"$OUTFILE\"; $ML_QUIT" | $POLY -r "$INFILE"
+  [ -f "$OUTFILE" ] || fail_out
+  DB="$OUTFILE"
+  OPTS=""
+fi
+
+
+
+## run it!
+
+START_POLY="$POLY $OPTS $ML_OPTIONS $OPTIONS $DB"
+
+if [ -n "$TERMINATE" ]; then
+  echo "$MLTEXT" "$ML_QUIT" | $START_POLY
+  RC=$?
+elif [ -z "$MLTEXT" ]; then
+  $START_POLY
+  RC=$?
+else
+  TMP_FILE=/tmp/mltext-$$
+  echo "$MLTEXT" >$TMP_FILE
+  cat $TMP_FILE - | $START_POLY
+  RC=$?
+  rm $TMP_FILE
+fi
+
+[ $RC -a -n "$OUTFILE" ] && $DISCGARB "$OUTFILE"
+
+exit $RC
