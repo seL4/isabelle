@@ -83,10 +83,10 @@ signature BASIC_THM =
 
   (*meta theorems*)
   type thm
-  val rep_thm           : thm -> {sign: Sign.sg, der: deriv, maxidx: int,
+  val rep_thm           : thm -> {sign: Sign.sg, der: bool * deriv, maxidx: int,
                                   shyps: sort list, hyps: term list, 
                                   prop: term}
-  val crep_thm          : thm -> {sign: Sign.sg, der: deriv, maxidx: int,
+  val crep_thm          : thm -> {sign: Sign.sg, der: bool * deriv, maxidx: int,
                                   shyps: sort list, hyps: cterm list, 
                                   prop: cterm}
   exception THM of string * int * thm list
@@ -365,6 +365,7 @@ datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
 
 val keep_derivs = ref MinDeriv;
 
+local
 
 (*Build a minimal derivation.  Keep oracles; suppress atomic inferences;
   retain Theorems or their underlying links; keep anything else*)
@@ -381,7 +382,6 @@ fun squash_derivs [] = []
         | Join (_, [])      => squash_derivs ders
         | _                 => der :: squash_derivs ders);
 
-
 (*Ensure sharing of the most likely derivation, the empty one!*)
 val min_infer = Join (MinProof, []);
 
@@ -390,10 +390,18 @@ fun make_min_infer []    = min_infer
   | make_min_infer [der] = der
   | make_min_infer ders  = Join (MinProof, ders);
 
-fun infer_derivs (rl, [])   = Join (rl, [])
+fun is_oracle (Oracle _) = true
+  | is_oracle _ = false;
+
+in
+
+fun infer_derivs (rl, []: (bool * deriv) list)   = (is_oracle rl, Join (rl, []))
   | infer_derivs (rl, ders) =
-    if !keep_derivs=FullDeriv then Join (rl, ders)
-    else make_min_infer (squash_derivs ders);
+      (is_oracle rl orelse exists #1 ders,
+        if !keep_derivs=FullDeriv then Join (rl, map #2 ders)
+        else make_min_infer (squash_derivs (map #2 ders)));
+
+end;
 
 
 
@@ -401,7 +409,7 @@ fun infer_derivs (rl, [])   = Join (rl, [])
 
 datatype thm = Thm of
  {sign_ref: Sign.sg_ref,       (*mutable reference to signature*)
-  der: deriv,                  (*derivation*)
+  der: bool * deriv,           (*derivation*)
   maxidx: int,                 (*maximum index of any Var or TVar*)
   shyps: sort list,            (*sort hypotheses*)
   hyps: term list,             (*hypotheses*)
@@ -608,12 +616,12 @@ fun axioms_of thy =
 (* name and tags -- make proof objects more readable *)
 
 fun get_name_tags (Thm {der, ...}) =
-  (case der of
+  (case #2 der of
     Join (Theorem x, _) => x
   | Join (Axiom x, _) => x
   | _ => ("", []));
 
-fun put_name_tags x (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
+fun put_name_tags x (Thm {sign_ref, der = (ora, der), maxidx, shyps, hyps, prop}) =
   let
     val der' =
       (case der of
@@ -621,7 +629,7 @@ fun put_name_tags x (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
       | Join (Axiom _, ds) => Join (Axiom x, ds)
       | _ => Join (Theorem x, [der]));
   in
-    Thm {sign_ref = sign_ref, der = der', maxidx = maxidx,
+    Thm {sign_ref = sign_ref, der = (ora, der'), maxidx = maxidx,
       shyps = shyps, hyps = hyps, prop = prop}
   end;
 
@@ -2168,7 +2176,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
 
     and subc skel
              (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless})
-             (trec as (t0:term,etc:sort list*term list * rule mtree list)) =
+             (trec as (t0:term,etc:sort list*term list * (bool * deriv) list)) =
        (case t0 of
            Abs(a,T,t) =>
              let val b = variant bounds a
@@ -2353,7 +2361,7 @@ fun invoke_oracle thy raw_name =
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else fix_shyps [] []
           (Thm {sign_ref = sign_ref', 
-            der = Join (Oracle (name, sign, exn), []),
+            der = (true, Join (Oracle (name, sign, exn), [])),
             maxidx = maxidx,
             shyps = [], 
             hyps = [], 
