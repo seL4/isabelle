@@ -233,15 +233,6 @@ qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
 qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
 
-goal Set.thy "Ball {} P = True";
-by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
-qed "ball_empty";
-
-goal Set.thy "Bex {} P = False";
-by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
-qed "bex_empty";
-Addsimps [ball_empty, bex_empty];
-
 
 section "The Powerset operator -- Pow";
 
