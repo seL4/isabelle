@@ -10,13 +10,14 @@ open Set;
 
 section "Relating predicates and sets";
 
-val [prem] = goal Set.thy "P(a) ==> a : {x.P(x)}";
-by (stac mem_Collect_eq 1);
-by (rtac prem 1);
+AddIffs [mem_Collect_eq];
+
+goal Set.thy "!!a. P(a) ==> a : {x.P(x)}";
+by (Asm_simp_tac 1);
 qed "CollectI";
 
-val prems = goal Set.thy "[| a : {x.P(x)} |] ==> P(a)";
-by (resolve_tac (prems RL [mem_Collect_eq  RS subst]) 1);
+val prems = goal Set.thy "!!a. a : {x.P(x)} ==> P(a)";
+by (Asm_full_simp_tac 1);
 qed "CollectD";
 
 val [prem] = goal Set.thy "[| !!x. (x:A) = (x:B) |] ==> A = B";
@@ -30,6 +31,10 @@ by (rtac (prem RS ext RS arg_cong) 1);
 qed "Collect_cong";
 
 val CollectE = make_elim CollectD;
+
+AddSIs [CollectI];
+AddSEs [CollectE];
+
 
 section "Bounded quantifiers";
 
@@ -52,6 +57,9 @@ qed "ballE";
 (*Takes assumptions ! x:A.P(x) and a:A; creates assumption P(a)*)
 fun ball_tac i = etac ballE i THEN contr_tac (i+1);
 
+AddSIs [ballI];
+AddEs  [ballE];
+
 val prems = goalw Set.thy [Bex_def]
     "[| P(x);  x:A |] ==> ? x:A. P(x)";
 by (REPEAT (ares_tac (prems @ [exI,conjI]) 1));
@@ -68,6 +76,9 @@ val major::prems = goalw Set.thy [Bex_def]
 by (rtac (major RS exE) 1);
 by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1));
 qed "bexE";
+
+AddIs  [bexI];
+AddSEs [bexE];
 
 (*Trival rewrite rule;   (! x:A.P)=P holds only if A is nonempty!*)
 goalw Set.thy [Ball_def] "(! x:A. True) = True";
@@ -134,12 +145,14 @@ qed "subsetCE";
 (*Takes assumptions A<=B; c:A and creates the assumption c:B *)
 fun set_mp_tac i = etac subsetCE i  THEN  mp_tac i;
 
-qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
- (fn _=> [ (REPEAT (ares_tac [subsetI] 1)) ]);
+AddSIs [subsetI];
+AddEs  [subsetD, subsetCE];
 
-val prems = goal Set.thy "[| A<=B;  B<=C |] ==> A<=(C::'a set)";
-by (cut_facts_tac prems 1);
-by (REPEAT (ares_tac [subsetI] 1 ORELSE set_mp_tac 1));
+qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
+ (fn _=> [Fast_tac 1]);
+
+val prems = goal Set.thy "!!B. [| A<=B;  B<=C |] ==> A<=(C::'a set)";
+by (Fast_tac 1);
 qed "subset_trans";
 
 
@@ -189,6 +202,11 @@ qed "setup_induction";
 
 section "Set complement -- Compl";
 
+qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : Compl(A)) = (c~:A)"
+ (fn _ => [ (Fast_tac 1) ]);
+
+Addsimps [Compl_iff];
+
 val prems = goalw Set.thy [Compl_def]
     "[| c:A ==> False |] ==> c : Compl(A)";
 by (REPEAT (ares_tac (prems @ [CollectI,notI]) 1));
@@ -198,32 +216,36 @@ qed "ComplI";
   Negated assumptions behave like formulae on the right side of the notional
   turnstile...*)
 val major::prems = goalw Set.thy [Compl_def]
-    "[| c : Compl(A) |] ==> c~:A";
+    "c : Compl(A) ==> c~:A";
 by (rtac (major RS CollectD) 1);
 qed "ComplD";
 
 val ComplE = make_elim ComplD;
 
-qed_goal "Compl_iff" Set.thy "(c : Compl(A)) = (c~:A)"
- (fn _ => [ (fast_tac (!claset addSIs [ComplI] addSEs [ComplE]) 1) ]);
+AddSIs [ComplI];
+AddSEs [ComplE];
 
 
 section "Binary union -- Un";
 
-val prems = goalw Set.thy [Un_def] "c:A ==> c : A Un B";
-by (REPEAT (resolve_tac (prems @ [CollectI,disjI1]) 1));
+qed_goalw "Un_iff" Set.thy [Un_def] "(c : A Un B) = (c:A | c:B)"
+ (fn _ => [ Fast_tac 1 ]);
+
+Addsimps [Un_iff];
+
+goal Set.thy "!!c. c:A ==> c : A Un B";
+by (Asm_simp_tac 1);
 qed "UnI1";
 
-val prems = goalw Set.thy [Un_def] "c:B ==> c : A Un B";
-by (REPEAT (resolve_tac (prems @ [CollectI,disjI2]) 1));
+goal Set.thy "!!c. c:B ==> c : A Un B";
+by (Asm_simp_tac 1);
 qed "UnI2";
 
 (*Classical introduction rule: no commitment to A vs B*)
 qed_goal "UnCI" Set.thy "(c~:B ==> c:A) ==> c : A Un B"
  (fn prems=>
-  [ (rtac classical 1),
-    (REPEAT (ares_tac (prems@[UnI1,notI]) 1)),
-    (REPEAT (ares_tac (prems@[UnI2,notE]) 1)) ]);
+  [ (Simp_tac 1),
+    (REPEAT (ares_tac (prems@[disjCI]) 1)) ]);
 
 val major::prems = goalw Set.thy [Un_def]
     "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P";
@@ -231,23 +253,27 @@ by (rtac (major RS CollectD RS disjE) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "UnE";
 
-qed_goal "Un_iff" Set.thy "(c : A Un B) = (c:A | c:B)"
- (fn _ => [ (fast_tac (!claset addSIs [UnCI] addSEs [UnE]) 1) ]);
+AddSIs [UnCI];
+AddSEs [UnE];
 
 
 section "Binary intersection -- Int";
 
-val prems = goalw Set.thy [Int_def]
-    "[| c:A;  c:B |] ==> c : A Int B";
-by (REPEAT (resolve_tac (prems @ [CollectI,conjI]) 1));
+qed_goalw "Int_iff" Set.thy [Int_def] "(c : A Int B) = (c:A & c:B)"
+ (fn _ => [ (Fast_tac 1) ]);
+
+Addsimps [Int_iff];
+
+goal Set.thy "!!c. [| c:A;  c:B |] ==> c : A Int B";
+by (Asm_simp_tac 1);
 qed "IntI";
 
-val [major] = goalw Set.thy [Int_def] "c : A Int B ==> c:A";
-by (rtac (major RS CollectD RS conjunct1) 1);
+goal Set.thy "!!c. c : A Int B ==> c:A";
+by (Asm_full_simp_tac 1);
 qed "IntD1";
 
-val [major] = goalw Set.thy [Int_def] "c : A Int B ==> c:B";
-by (rtac (major RS CollectD RS conjunct2) 1);
+goal Set.thy "!!c. c : A Int B ==> c:B";
+by (Asm_full_simp_tac 1);
 qed "IntD2";
 
 val [major,minor] = goal Set.thy
@@ -257,53 +283,54 @@ by (rtac (major RS IntD1) 1);
 by (rtac (major RS IntD2) 1);
 qed "IntE";
 
-qed_goal "Int_iff" Set.thy "(c : A Int B) = (c:A & c:B)"
- (fn _ => [ (fast_tac (!claset addSIs [IntI] addSEs [IntE]) 1) ]);
-
+AddSIs [IntI];
+AddSEs [IntE];
 
 section "Set difference";
 
-qed_goalw "DiffI" Set.thy [set_diff_def]
-    "[| c : A;  c ~: B |] ==> c : A - B"
- (fn prems=> [ (REPEAT (resolve_tac (prems @ [CollectI,conjI]) 1)) ]);
+qed_goalw "Diff_iff" Set.thy [set_diff_def] "(c : A-B) = (c:A & c~:B)"
+ (fn _ => [ (Fast_tac 1) ]);
 
-qed_goalw "DiffD1" Set.thy [set_diff_def]
-    "c : A - B ==> c : A"
- (fn [major]=> [ (rtac (major RS CollectD RS conjunct1) 1) ]);
+Addsimps [Diff_iff];
 
-qed_goalw "DiffD2" Set.thy [set_diff_def]
-    "[| c : A - B;  c : B |] ==> P"
- (fn [major,minor]=>
-     [rtac (minor RS (major RS CollectD RS conjunct2 RS notE)) 1]);
+qed_goal "DiffI" Set.thy "!!c. [| c : A;  c ~: B |] ==> c : A - B"
+ (fn _=> [ Asm_simp_tac 1 ]);
 
-qed_goal "DiffE" Set.thy
-    "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
+qed_goal "DiffD1" Set.thy "!!c. c : A - B ==> c : A"
+ (fn _=> [ (Asm_full_simp_tac 1) ]);
+
+qed_goal "DiffD2" Set.thy "!!c. [| c : A - B;  c : B |] ==> P"
+ (fn _=> [ (Asm_full_simp_tac 1) ]);
+
+qed_goal "DiffE" Set.thy "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
  (fn prems=>
   [ (resolve_tac prems 1),
     (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
 
-qed_goal "Diff_iff" Set.thy "(c : A-B) = (c:A & c~:B)"
- (fn _ => [ (fast_tac (!claset addSIs [DiffI] addSEs [DiffE]) 1) ]);
+AddSIs [DiffI];
+AddSEs [DiffE];
 
 section "The empty set -- {}";
 
-qed_goalw "emptyE" Set.thy [empty_def] "a:{} ==> P"
- (fn [prem] => [rtac (prem RS CollectD RS FalseE) 1]);
+qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
+ (fn _ => [ (Fast_tac 1) ]);
+
+Addsimps [empty_iff];
+
+qed_goal "emptyE" Set.thy "!!a. a:{} ==> P"
+ (fn _ => [Full_simp_tac 1]);
+
+AddSEs [emptyE];
 
 qed_goal "empty_subsetI" Set.thy "{} <= A"
- (fn _ => [ (REPEAT (ares_tac [equalityI,subsetI,emptyE] 1)) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
- (fn prems=>
-  [ (REPEAT (ares_tac (prems@[empty_subsetI,subsetI,equalityI]) 1 
-      ORELSE eresolve_tac (prems RL [FalseE]) 1)) ]);
+ (fn [prem]=>
+  [ (fast_tac (!claset addIs [prem RS FalseE]) 1) ]);
 
-qed_goal "equals0D" Set.thy "[| A={};  a:A |] ==> P"
- (fn [major,minor]=>
-  [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
-
-qed_goal "empty_iff" Set.thy "(c : {}) = False"
- (fn _ => [ (fast_tac (!claset addSEs [emptyE]) 1) ]);
+qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
+ (fn _ => [ (Fast_tac 1) ]);
 
 goal Set.thy "Ball {} P = True";
 by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
@@ -317,11 +344,16 @@ Addsimps [ball_empty, bex_empty];
 
 section "Augmenting a set -- insert";
 
-qed_goalw "insertI1" Set.thy [insert_def] "a : insert a B"
- (fn _ => [rtac (CollectI RS UnI1) 1, rtac refl 1]);
+qed_goalw "insert_iff" Set.thy [insert_def] "a : insert b A = (a=b | a:A)"
+ (fn _ => [Fast_tac 1]);
 
-qed_goalw "insertI2" Set.thy [insert_def] "a : B ==> a : insert b B"
- (fn [prem]=> [ (rtac (prem RS UnI2) 1) ]);
+Addsimps [insert_iff];
+
+qed_goal "insertI1" Set.thy "a : insert a B"
+ (fn _ => [Simp_tac 1]);
+
+qed_goal "insertI2" Set.thy "!!a. a : B ==> a : insert b B"
+ (fn _=> [Asm_simp_tac 1]);
 
 qed_goalw "insertE" Set.thy [insert_def]
     "[| a : insert b A;  a=b ==> P;  a:A ==> P |] ==> P"
@@ -329,36 +361,34 @@ qed_goalw "insertE" Set.thy [insert_def]
   [ (rtac (major RS UnE) 1),
     (REPEAT (eresolve_tac (prems @ [CollectE]) 1)) ]);
 
-qed_goal "insert_iff" Set.thy "a : insert b A = (a=b | a:A)"
- (fn _ => [fast_tac (!claset addIs [insertI1,insertI2] addSEs [insertE]) 1]);
-
 (*Classical introduction rule*)
 qed_goal "insertCI" Set.thy "(a~:B ==> a=b) ==> a: insert b B"
- (fn [prem]=>
-  [ (rtac (disjCI RS (insert_iff RS iffD2)) 1),
-    (etac prem 1) ]);
+ (fn prems=>
+  [ (Simp_tac 1),
+    (REPEAT (ares_tac (prems@[disjCI]) 1)) ]);
+
+AddSIs [insertCI]; 
+AddSEs [insertE];
 
 section "Singletons, using insert";
 
 qed_goal "singletonI" Set.thy "a : {a}"
  (fn _=> [ (rtac insertI1 1) ]);
 
-goalw Set.thy [insert_def] "!!a. b : {a} ==> b=a";
-by (fast_tac (!claset addSEs [emptyE,CollectE,UnE]) 1);
+goal Set.thy "!!a. b : {a} ==> b=a";
+by (Fast_tac 1);
 qed "singletonD";
 
 bind_thm ("singletonE", make_elim singletonD);
 
-qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" (fn _ => [
-        rtac iffI 1,
-        etac singletonD 1,
-        hyp_subst_tac 1,
-        rtac singletonI 1]);
+qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" 
+(fn _ => [Fast_tac 1]);
 
-val [major] = goal Set.thy "{a}={b} ==> a=b";
-by (rtac (major RS equalityD1 RS subsetD RS singletonD) 1);
-by (rtac singletonI 1);
+goal Set.thy "!!a b. {a}={b} ==> a=b";
+by (fast_tac (!claset addEs [equalityE]) 1);
 qed "singleton_inject";
+
+AddSDs [singleton_inject];
 
 
 section "The universal set -- UNIV";
@@ -372,10 +402,15 @@ qed_goal "subset_UNIV" Set.thy "A <= UNIV"
 
 section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
 
+goalw Set.thy [UNION_def] "(b: (UN x:A. B(x))) = (EX x:A. b: B(x))";
+by (Fast_tac 1);
+qed "UN_iff";
+
+Addsimps [UN_iff];
+
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
-val prems = goalw Set.thy [UNION_def]
-    "[| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
-by (REPEAT (resolve_tac (prems @ [bexI,CollectI]) 1));
+goal Set.thy "!!b. [| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
+by (Auto_tac());
 qed "UN_I";
 
 val major::prems = goalw Set.thy [UNION_def]
@@ -383,6 +418,9 @@ val major::prems = goalw Set.thy [UNION_def]
 by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
 qed "UN_E";
+
+AddIs  [UN_I];
+AddSEs [UN_E];
 
 val prems = goal Set.thy
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
@@ -395,15 +433,19 @@ qed "UN_cong";
 
 section "Intersections of families -- INTER x:A. B(x) is Inter(B``A)";
 
+goalw Set.thy [INTER_def] "(b: (INT x:A. B(x))) = (ALL x:A. b: B(x))";
+by (Auto_tac());
+qed "INT_iff";
+
+Addsimps [INT_iff];
+
 val prems = goalw Set.thy [INTER_def]
     "(!!x. x:A ==> b: B(x)) ==> b : (INT x:A. B(x))";
 by (REPEAT (ares_tac ([CollectI,ballI] @ prems) 1));
 qed "INT_I";
 
-val major::prems = goalw Set.thy [INTER_def]
-    "[| b : (INT x:A. B(x));  a:A |] ==> b: B(a)";
-by (rtac (major RS CollectD RS bspec) 1);
-by (resolve_tac prems 1);
+goal Set.thy "!!b. [| b : (INT x:A. B(x));  a:A |] ==> b: B(a)";
+by (Auto_tac());
 qed "INT_D";
 
 (*"Classical" elimination -- by the Excluded Middle on a:A *)
@@ -412,6 +454,9 @@ val major::prems = goalw Set.thy [INTER_def]
 by (rtac (major RS CollectD RS ballE) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "INT_E";
+
+AddSIs [INT_I];
+AddEs  [INT_D, INT_E];
 
 val prems = goal Set.thy
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
@@ -424,10 +469,16 @@ qed "INT_cong";
 
 section "Unions over a type; UNION1(B) = Union(range(B))";
 
+goalw Set.thy [UNION1_def] "(b: (UN x. B(x))) = (EX x. b: B(x))";
+by (Simp_tac 1);
+by (Fast_tac 1);
+qed "UN1_iff";
+
+Addsimps [UN1_iff];
+
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
-val prems = goalw Set.thy [UNION1_def]
-    "b: B(x) ==> b: (UN x. B(x))";
-by (REPEAT (resolve_tac (prems @ [TrueI, CollectI RS UN_I]) 1));
+goal Set.thy "!!b. b: B(x) ==> b: (UN x. B(x))";
+by (Auto_tac());
 qed "UN1_I";
 
 val major::prems = goalw Set.thy [UNION1_def]
@@ -436,25 +487,43 @@ by (rtac (major RS UN_E) 1);
 by (REPEAT (ares_tac prems 1));
 qed "UN1_E";
 
+AddIs  [UN1_I];
+AddSEs [UN1_E];
+
 
 section "Intersections over a type; INTER1(B) = Inter(range(B))";
+
+goalw Set.thy [INTER1_def] "(b: (INT x. B(x))) = (ALL x. b: B(x))";
+by (Simp_tac 1);
+by (Fast_tac 1);
+qed "INT1_iff";
+
+Addsimps [INT1_iff];
 
 val prems = goalw Set.thy [INTER1_def]
     "(!!x. b: B(x)) ==> b : (INT x. B(x))";
 by (REPEAT (ares_tac (INT_I::prems) 1));
 qed "INT1_I";
 
-val [major] = goalw Set.thy [INTER1_def]
-    "b : (INT x. B(x)) ==> b: B(a)";
-by (rtac (TrueI RS (CollectI RS (major RS INT_D))) 1);
+goal Set.thy "!!b. b : (INT x. B(x)) ==> b: B(a)";
+by (Asm_full_simp_tac 1);
 qed "INT1_D";
+
+AddSIs [INT1_I]; 
+AddDs  [INT1_D];
+
 
 section "Union";
 
+goalw Set.thy [Union_def] "(A : Union(C)) = (EX X:C. A:X)";
+by (Fast_tac 1);
+qed "Union_iff";
+
+Addsimps [Union_iff];
+
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
-val prems = goalw Set.thy [Union_def]
-    "[| X:C;  A:X |] ==> A : Union(C)";
-by (REPEAT (resolve_tac (prems @ [UN_I]) 1));
+goal Set.thy "!!X. [| X:C;  A:X |] ==> A : Union(C)";
+by (Auto_tac());
 qed "UnionI";
 
 val major::prems = goalw Set.thy [Union_def]
@@ -463,7 +532,17 @@ by (rtac (major RS UN_E) 1);
 by (REPEAT (ares_tac prems 1));
 qed "UnionE";
 
+AddIs  [UnionI];
+AddSEs [UnionE];
+
+
 section "Inter";
+
+goalw Set.thy [Inter_def] "(A : Inter(C)) = (ALL X:C. A:X)";
+by (Fast_tac 1);
+qed "Inter_iff";
+
+Addsimps [Inter_iff];
 
 val prems = goalw Set.thy [Inter_def]
     "[| !!X. X:C ==> A:X |] ==> A : Inter(C)";
@@ -472,10 +551,8 @@ qed "InterI";
 
 (*A "destruct" rule -- every X in C contains A as an element, but
   A:X can hold when X:C does not!  This rule is analogous to "spec". *)
-val major::prems = goalw Set.thy [Inter_def]
-    "[| A : Inter(C);  X:C |] ==> A:X";
-by (rtac (major RS INT_D) 1);
-by (resolve_tac prems 1);
+goal Set.thy "!!X. [| A : Inter(C);  X:C |] ==> A:X";
+by (Auto_tac());
 qed "InterD";
 
 (*"Classical" elimination rule -- does not require proving X:C *)
@@ -485,7 +562,16 @@ by (rtac (major RS INT_E) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "InterE";
 
+AddSIs [InterI];
+AddEs  [InterD, InterE];
+
+
 section "The Powerset operator -- Pow";
+
+qed_goalw "Pow_iff" Set.thy [Pow_def] "(A : Pow(B)) = (A <= B)"
+ (fn _ => [ (Asm_simp_tac 1) ]);
+
+AddIffs [Pow_iff]; 
 
 qed_goalw "PowI" Set.thy [Pow_def] "!!A B. A <= B ==> A : Pow(B)"
  (fn _ => [ (etac CollectI 1) ]);
@@ -501,8 +587,11 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 (*** Set reasoning tools ***)
 
 
+(*Each of these has ALREADY been added to !simpset above.*)
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
-                 mem_Collect_eq];
+                 mem_Collect_eq, 
+		 UN_iff, UN1_iff, Union_iff, 
+		 INT_iff, INT1_iff, Inter_iff];
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
@@ -511,6 +600,5 @@ qed "mem_if";
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
-simpset := !simpset addsimps mem_simps
-                    addcongs [ball_cong,bex_cong]
+simpset := !simpset addcongs [ball_cong,bex_cong]
                     setmksimps (mksimps mksimps_pairs);
