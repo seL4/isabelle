@@ -5,6 +5,8 @@
     Description : Natural Powers of reals theory
 *)
 
+bind_thm ("realpow_Suc", thm "realpow_Suc");
+
 Goal "(#0::real) ^ (Suc n) = #0";
 by Auto_tac;
 qed "realpow_zero";
@@ -121,8 +123,8 @@ qed "abs_realpow_two";
 Addsimps [abs_realpow_two];
 
 Goal "abs(x::real) ^ 2 = x ^ 2";
-by (simp_tac (simpset() addsimps 
-    [realpow_abs,abs_eqI1] delsimps [thm "realpow_Suc"]) 1);
+by (simp_tac (simpset() addsimps [realpow_abs,abs_eqI1]
+                        delsimps [realpow_Suc]) 1);
 qed "realpow_two_abs";
 Addsimps [realpow_two_abs];
 
@@ -365,15 +367,15 @@ qed "realpow_two_add_minus";
 Goalw [real_diff_def] 
       "(x::real) ^ 2 - y ^ 2 = (x - y) * (x + y)";
 by (simp_tac (simpset() addsimps [realpow_two_add_minus]
-               delsimps [thm "realpow_Suc"]) 1);
+                        delsimps [realpow_Suc]) 1);
 qed "realpow_two_diff";
 
 Goalw [real_diff_def] 
       "((x::real) ^ 2 = y ^ 2) = (x = y | x = -y)";
-by (auto_tac (claset(),simpset() delsimps [thm "realpow_Suc"]));
+by (auto_tac (claset(),simpset() delsimps [realpow_Suc]));
 by (dtac (rename_numerals (real_eq_minus_iff RS iffD1 RS sym)) 1);
 by (auto_tac (claset() addDs [rename_numerals real_add_minus_eq_minus], 
-          simpset() addsimps [realpow_two_add_minus] delsimps [thm "realpow_Suc"]));
+          simpset() addsimps [realpow_two_add_minus] delsimps [realpow_Suc]));
 qed "realpow_two_disj";
 
 (* used in Transc *)

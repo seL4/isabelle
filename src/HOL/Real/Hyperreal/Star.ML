@@ -277,6 +277,7 @@ Goal "(*f* (%x. x)) x = x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "starfun_Id";
+Addsimps [starfun_Id];  
 
 (*----------------------------------------------------------------------
       the *-function is a (nonstandard) extension of the function

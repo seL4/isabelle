@@ -63,10 +63,11 @@ by (auto_tac (claset() addDs [hypreal_minus_zero_less_iff RS iffD2,
     hypreal_less_asym],simpset()));
 qed "hrabs_ge_zero";
 
-Goal "abs(abs x)=abs (x::hypreal)";
+Goal "abs(abs x) = abs (x::hypreal)";
 by (res_inst_tac [("r1","abs x")] (hrabs_iff RS ssubst) 1);
 by (blast_tac (claset() addIs [if_P,hrabs_ge_zero]) 1);
 qed "hrabs_idempotent";
+Addsimps [hrabs_idempotent];
 
 Goalw [hrabs_def] "(x=(0::hypreal)) = (abs x = (0::hypreal))";
 by (Simp_tac 1);

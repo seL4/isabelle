@@ -10,27 +10,24 @@
 fun ARITH_PROVE str = prove_goal thy str 
                       (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
 
+
+
+(***?REALARITH.ML?? also below??*)
 Goal "(x + - a = (#0::real)) = (x=a)";
 by (arith_tac 1);
 qed "real_add_minus_iff";
 Addsimps [real_add_minus_iff];
 
+Goal "(-b = -a) = (b = (a::real))";
+by (arith_tac 1);
+qed "real_minus_eq_cancel";
+Addsimps [real_minus_eq_cancel];
+
+
 (*---------------------------------------------------------------
    Theory of limits, continuity and differentiation of 
    real=>real functions 
  ----------------------------------------------------------------*)
-Goalw [LIM_def] "(f -- a --> L) = (ALL r. #0 < r --> \
-\    (EX s. #0 < s & (ALL x. (x ~= a & (abs(x + -a) < s) \
-\          --> abs(f x + -L) < r))))";
-by Auto_tac;
-qed "LIM_iff";
-
-Goalw [LIM_def] 
-      "[| f -- a --> L; #0 < r |] \
-\           ==> (EX s. #0 < s & (ALL x. (x ~= a \
-\           & (abs(x + -a) < s) --> abs(f x + -L) < r)))";
-by Auto_tac;
-qed "LIMD";
 
 Goalw [LIM_def] "(%x. k) -- x --> k";
 by Auto_tac;
@@ -882,7 +879,6 @@ by (Step_tac 1);
 by (dres_inst_tac [("x","x + -a")] spec 1);
 by (dres_inst_tac [("x","x + a")] spec 2);
 by (auto_tac (claset(), simpset() addsimps real_add_ac));
-by (arith_tac 1);
 qed "DERIV_LIM_iff";
 
 Goalw [deriv_def] "(DERIV f x :> D) = \
@@ -897,7 +893,6 @@ qed "DERIV_iff2";
    First NSDERIV in terms of NSLIM 
  -------------------------------------------*)
 
-Addsimps [starfun_Id];  (*???????Star.ML?????*)
 (*--- first equivalence ---*)
 Goalw [nsderiv_def,NSLIM_def] 
       "(NSDERIV f x :> D) = ((%h. (f(x + h) + - f(x))/h) -- #0 --NS> D)";
@@ -930,29 +925,37 @@ qed "NSDERIV_iff2";
 Addsimps [inf_close_refl];
 
 
-(*FIXME: replace both of these by simprocs for cancellation of common factors*)
-Goal "h ~= (0::hypreal) ==> (x/h)*h = x";
+(*FIXME: replace by simprocs for cancellation of common factors*)
+Goal "h ~= (0::hypreal) ==> x*h/h = x";
 by (asm_simp_tac 
     (simpset() addsimps [hypreal_divide_def, hypreal_mult_inverse_left, 
                          hypreal_mult_assoc]) 1);
 qed "hypreal_divide_mult_self_eq"; 
 Addsimps [hypreal_divide_mult_self_eq];
 
-Goal "h ~= (0::real) ==> (x/h)*h = x";
-by (asm_full_simp_tac 
-    (simpset() addsimps [real_divide_def, real_mult_inv_left, 
-                         real_mult_assoc]) 1);
-qed "real_divide_mult_self_eq"; 
-Addsimps [real_divide_mult_self_eq];
+(*FIXME: replace by simprocs for cancellation of common factors*)
+Goal "h ~= (0::hypreal) ==> (h*x)/h = x";
+by (asm_simp_tac 
+    (simpset() addsimps [inst "z" "h" hypreal_mult_commute]) 1);
+qed "hypreal_times_divide_self_eq"; 
+Addsimps [hypreal_times_divide_self_eq];
+
+(*FIXME: replace by simprocs for cancellation of common factors*)
+Goal "h ~= (0::hypreal) ==> h/h = 1hr";
+by (asm_simp_tac 
+    (simpset() addsimps [hypreal_divide_def, hypreal_mult_inverse_left]) 1);
+qed "hypreal_divide_self_eq"; 
+Addsimps [hypreal_divide_self_eq];
+
 
 Goal "(NSDERIV f x :> D) ==> \
 \    (ALL xa. \
 \       xa @= hypreal_of_real x --> \
 \       (*f* (%z. f z - f x)) xa @= hypreal_of_real D * (xa - hypreal_of_real x))";
-by (auto_tac (claset(),simpset() addsimps [NSDERIV_iff2]));
+by (auto_tac (claset(), simpset() addsimps [NSDERIV_iff2]));
 by (case_tac "xa = hypreal_of_real x" 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_diff_def,
-    hypreal_of_real_zero]));
+by (auto_tac (claset(), 
+              simpset() addsimps [hypreal_diff_def, hypreal_of_real_zero]));
 by (dres_inst_tac [("x","xa")] spec 1);
 by Auto_tac;
 by (dres_inst_tac [("c","xa - hypreal_of_real x"),("b","hypreal_of_real D")]
@@ -962,10 +965,10 @@ by (subgoal_tac "(*f* (%z. z - x)) xa ~= (0::hypreal)" 2);
 by (rotate_tac ~1 2);
 by (auto_tac (claset(),
     simpset() addsimps [starfun_divide RS sym, 
-	    starfun_add RS sym, real_diff_def, 
-	    hypreal_of_real_minus, hypreal_diff_def, 
-	    (inf_close_minus_iff RS iffD1) RS (mem_infmal_iff RS iffD2),  
-	    Infinitesimal_subset_HFinite RS subsetD]));
+			starfun_add RS sym, real_diff_def, 
+			hypreal_of_real_minus, hypreal_diff_def, 
+		(inf_close_minus_iff RS iffD1) RS (mem_infmal_iff RS iffD2),  
+			Infinitesimal_subset_HFinite RS subsetD]));
 qed "NSDERIVD5";
 
 Goal "(NSDERIV f x :> D) ==> \
@@ -1057,52 +1060,6 @@ Addsimps [DERIV_const];
  ----------------------------------------------------*)
 
 
-Goal "hypreal_of_real (z1 / z2) = hypreal_of_real z1 / hypreal_of_real z2";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, real_divide_def, 
-                          hypreal_of_real_mult, hypreal_of_real_inverse]) 1);
-qed "hypreal_of_real_divide";  (**??????HYPERDEF.ML??????*)
-
-
-(**??????HYPERDEF.ML???after inverse_distrib???*)
-Goal "(x::hypreal) * (y/z) = (x*y)/z";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_mult_assoc]) 1); 
-qed "hypreal_times_divide1_eq";
-
-Goal "(y/z) * (x::hypreal) = (y*x)/z";
-by (simp_tac (simpset() addsimps [hypreal_divide_def]@hypreal_mult_ac) 1); 
-qed "hypreal_times_divide2_eq";
-
-Addsimps [hypreal_times_divide1_eq, hypreal_times_divide2_eq];
-
-Goal "(x::hypreal) / (y/z) = (x*z)/y";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_inverse_distrib]@
-                                 hypreal_mult_ac) 1); 
-qed "hypreal_divide_divide1_eq";
-
-Goal "((x::hypreal) / y) / z = x/(y*z)";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_inverse_distrib, 
-                                  hypreal_mult_assoc]) 1); 
-qed "hypreal_divide_divide2_eq";
-
-Addsimps [hypreal_divide_divide1_eq, hypreal_divide_divide2_eq];
-
-(** As with multiplication, pull minus signs OUT of the / operator **)
-
-Goal "(-x) / (y::hypreal) = - (x/y)";
-by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
-qed "hypreal_minus_divide_eq";
-Addsimps [hypreal_minus_divide_eq];
-
-Goal "(x / -(y::hypreal)) = - (x/y)";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_minus_inverse]) 1); 
-qed "hypreal_divide_minus_eq";
-Addsimps [hypreal_divide_minus_eq];
-
-Goal "(x+y)/(z::hypreal) = x/z + y/z";
-by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_add_mult_distrib]) 1); 
-qed "hypreal_add_divide_distrib";
-
-
 Goal "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |] \
 \     ==> NSDERIV (%x. f x + g x) x :> Da + Db";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_NSLIM_iff,
@@ -1133,21 +1090,6 @@ Goal "((a::real)*b) + -(c*d) = (b*(a + -c)) + \
 by (full_simp_tac (simpset() addsimps [real_add_mult_distrib2,
     real_minus_mult_eq2 RS sym,real_mult_commute]) 1);
 val lemma_nsderiv1 = result();
-
-(*FIXME: replace both of these by simprocs for cancellation of common factors*)
-Goal "h ~= (0::hypreal) ==> (x*h)/h = x";
-by (asm_simp_tac 
-    (simpset() addsimps [hypreal_divide_def, hypreal_mult_inverse_left, 
-                         hypreal_mult_assoc]) 1);
-qed "hypreal_divide_mult2_self_eq"; 
-Addsimps [hypreal_divide_mult2_self_eq];
-
-Goal "h ~= (0::real) ==> (x*h)/h = x";
-by (asm_full_simp_tac 
-    (simpset() addsimps [real_divide_def, real_mult_inv_left, 
-                         real_mult_assoc]) 1);
-qed "real_divide_mult2_self_eq"; 
-Addsimps [real_divide_mult2_self_eq];
 
 Goal "[| (x + y) / z = hypreal_of_real D + yb; z ~= 0; \
 \        z : Infinitesimal; yb : Infinitesimal |] \
@@ -1280,13 +1222,6 @@ Goal "NSDERIV f x :> D ==> \
 by (etac (NSdifferentiableI RS incrementI) 1);
 qed "incrementI2";
 
-(*FIXME: replace by simprocs for cancellation of common factors*)
-Goal "h ~= (0::hypreal) ==> h/h = 1hr";
-by (asm_simp_tac 
-    (simpset() addsimps [hypreal_divide_def, hypreal_mult_inverse_left]) 1);
-qed "hypreal_divide_self_eq"; 
-Addsimps [hypreal_divide_self_eq];
-
 (* The Increment theorem -- Keisler p. 65 *)
 Goal "[| NSDERIV f x :> D; h: Infinitesimal; h ~= 0 |] \
 \     ==> EX e: Infinitesimal. increment f x h = hypreal_of_real(D)*h + e*h";
@@ -1327,16 +1262,6 @@ qed "increment_inf_close_zero";
    the so-called Carathedory derivative. Our main problem is
    manipulation of terms.
  --------------------------------------------------------------*)
-
-(*???HYPERDEF.ML???*)
-Goal "(0::hypreal)/x = 0";
-by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
-qed "hypreal_zero_divide";
-
-Goal "x/1hr = x";
-by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
-qed "hypreal_divide_one";
-Addsimps [hypreal_zero_divide, hypreal_divide_one];
 
 (* lemmas *)
 Goalw [nsderiv_def] 
@@ -1489,13 +1414,6 @@ qed "NSDERIV_pow";
  ---------------------------------------------------------------*)
 
 
-(*FIXME: replace by simprocs for cancellation of common factors*)
-Goal "h ~= (0::hypreal) ==> (h*x)/h = x";
-by (asm_simp_tac 
-    (simpset() addsimps [inst "z" "h" hypreal_mult_commute]) 1);
-qed "hypreal_times_divide_self_eq"; 
-Addsimps [hypreal_times_divide_self_eq];
-
 (*Can't get rid of x ~= #0 because it isn't continuous at zero*)
 Goalw [nsderiv_def]
      "x ~= #0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ 2))";
@@ -1530,7 +1448,7 @@ qed "NSDERIV_inverse";
 
 Goal "x ~= #0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ 2))";
 by (asm_simp_tac (simpset() addsimps [NSDERIV_inverse,
-         NSDERIV_DERIV_iff RS sym] delsimps [thm "realpow_Suc"]) 1);
+         NSDERIV_DERIV_iff RS sym] delsimps [realpow_Suc]) 1);
 qed "DERIV_inverse";
 
 (*--------------------------------------------------------------
@@ -1540,7 +1458,7 @@ Goal "[| DERIV f x :> d; f(x) ~= #0 |] \
 \     ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))";
 by (rtac (real_mult_commute RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [real_minus_mult_eq1,
-    realpow_inverse] delsimps [thm "realpow_Suc", 
+    realpow_inverse] delsimps [realpow_Suc, 
     real_minus_mult_eq1 RS sym]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [DERIV_chain,DERIV_inverse]) 1);
@@ -1549,7 +1467,7 @@ qed "DERIV_inverse_fun";
 Goal "[| NSDERIV f x :> d; f(x) ~= #0 |] \
 \     ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_DERIV_iff,
-            DERIV_inverse_fun] delsimps [thm "realpow_Suc"]) 1);
+            DERIV_inverse_fun] delsimps [realpow_Suc]) 1);
 qed "NSDERIV_inverse_fun";
 
 (*--------------------------------------------------------------
@@ -1563,7 +1481,7 @@ by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
     (simpset() addsimps [real_divide_def, real_add_mult_distrib2,
                          realpow_inverse,real_minus_mult_eq1] @ real_mult_ac 
-       delsimps [thm "realpow_Suc", real_minus_mult_eq1 RS sym,
+       delsimps [realpow_Suc, real_minus_mult_eq1 RS sym,
                  real_minus_mult_eq2 RS sym]) 1);
 qed "DERIV_quotient";
 
@@ -1571,7 +1489,7 @@ Goal "[| NSDERIV f x :> d; DERIV g x :> e; g(x) ~= #0 |] \
 \      ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x) \
 \                           + -(e*f(x))) / (g(x) ^ 2)";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_DERIV_iff,
-            DERIV_quotient] delsimps [thm "realpow_Suc"]) 1);
+            DERIV_quotient] delsimps [realpow_Suc]) 1);
 qed "NSDERIV_quotient";
  
 (* ------------------------------------------------------------------------ *)
@@ -1600,15 +1518,14 @@ qed "CARAT_NSDERIV";
 Goal "(ALL z. f z - f x = g z * (z - x)) & isNSCont g x & g x = l \
 \     ==> NSDERIV f x :> l";
 by (auto_tac (claset(), 
-              simpset() addsimps [NSDERIV_iff2, starfun_mult RS sym, 
+              simpset() delsimprocs real_cancel_factor
+                        addsimps [NSDERIV_iff2, starfun_mult RS sym, 
                                   starfun_divide RS sym]));
 by (auto_tac (claset(),
               simpset() addsimps [hypreal_mult_assoc,
                                   starfun_diff RS sym]));
 by (asm_full_simp_tac (simpset() addsimps [hypreal_eq_minus_iff3 RS sym,
                                            hypreal_diff_def]) 1);
-by (dtac (CLAIM_SIMP "x ~= y ==> x - y ~= (0::hypreal)" [hypreal_eq_minus_iff3 RS sym,
-            hypreal_diff_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [isNSCont_def]) 1);
 qed "CARAT_DERIVD";
  
@@ -1624,59 +1541,76 @@ by (auto_tac (claset() addIs [real_le_trans],simpset()));
 qed_spec_mp "lemma_f_mono_add";
 
 
-(* IMPROVE?: long proof! *)
+Goal "[| ALL n. f(n) <= f(Suc n); \
+\        ALL n. g(Suc n) <= g(n); \
+\        ALL n. f(n) <= g(n) |] \
+\     ==> Bseq f";
+by (res_inst_tac [("k","f 0"),("K","g 0")] BseqI2 1 THEN rtac allI 1);
+by (induct_tac "n" 1);
+by (auto_tac (claset() addIs [real_le_trans], simpset()));
+by (res_inst_tac [("j","g(Suc na)")] real_le_trans 1);
+by (induct_tac "na" 2);
+by (auto_tac (claset() addIs [real_le_trans], simpset()));
+qed "f_inc_g_dec_Beq_f";
+
+Goal "[| ALL n. f(n) <= f(Suc n); \
+\        ALL n. g(Suc n) <= g(n); \
+\        ALL n. f(n) <= g(n) |] \
+\     ==> Bseq g";
+by (stac (Bseq_minus_iff RS sym) 1);
+by (res_inst_tac [("g","%x. -(f x)")] f_inc_g_dec_Beq_f 1); 
+by Auto_tac;  
+qed "f_inc_g_dec_Beq_g";
+
+Goal "[| ALL n. f n <= f (Suc n);  convergent f |] ==> f n <= lim f";
+by (rtac real_leI 1);
+by (auto_tac (claset(), 
+      simpset() addsimps [convergent_LIMSEQ_iff, LIMSEQ_iff, monoseq_Suc]));
+by (dtac real_less_sum_gt_zero 1);
+by (dres_inst_tac [("x","f n + - lim f")] spec 1);
+by Safe_tac;
+by (dres_inst_tac [("P","%na. no<=na --> ?Q na"),("x","no + n")] spec 2);
+by Auto_tac;
+by (subgoal_tac "lim f <= f(no + n)" 1);
+by (induct_tac "no" 2);
+by (auto_tac (claset() addIs [real_le_trans],
+              simpset() addsimps [real_diff_def, abs_real_def]));
+by (dres_inst_tac [("i","f(no + n)"),("no1","no")] 
+    (lemma_f_mono_add RSN (2,real_less_le_trans)) 1);
+by (auto_tac (claset(), simpset() addsimps [add_commute]));
+qed "f_inc_imp_le_lim";
+
+Goal "convergent g ==> lim (%x. - g x) = - (lim g)";
+by (rtac (LIMSEQ_minus RS limI) 1); 
+by (asm_full_simp_tac (simpset() addsimps [convergent_LIMSEQ_iff]) 1); 
+qed "lim_uminus";
+
+Goal "[| ALL n. g(Suc n) <= g(n);  convergent g |] ==> lim g <= g n";
+by (subgoal_tac "- (g n) <= - (lim g)" 1);
+by (cut_inst_tac [("f", "%x. - (g x)")] f_inc_imp_le_lim 2);
+by (auto_tac (claset(), 
+              simpset() addsimps [lim_uminus, convergent_minus_iff RS sym]));  
+qed "g_dec_imp_lim_le";
+
 Goal "[| ALL n. f(n) <= f(Suc n); \
 \        ALL n. g(Suc n) <= g(n); \
 \        ALL n. f(n) <= g(n) |] \
 \     ==> EX l m. l <= m &  ((ALL n. f(n) <= l) & f ----> l) & \
 \                           ((ALL n. m <= g(n)) & g ----> m)";
-by (subgoal_tac "Bseq f" 1);
-by (res_inst_tac [("k","f 0"),("K","g 0")] BseqI2 2 THEN rtac allI 2);
-by (induct_tac "n" 2);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
-by (res_inst_tac [("j","g(Suc na)")] real_le_trans 2);
-by (induct_tac "na" 3);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
-by (subgoal_tac "monoseq f" 1);
-by (subgoal_tac "monoseq g" 1);
-by (subgoal_tac "Bseq g" 1);
-by (res_inst_tac [("k","f 0"),("K","g 0")] BseqI2 2 THEN rtac allI 2);
-by (induct_tac "n" 2);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
-by (res_inst_tac [("j","f(Suc na)")] real_le_trans 2);
-by (induct_tac "na" 2);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
+by (subgoal_tac "monoseq f & monoseq g" 1);
+by (force_tac (claset(), simpset() addsimps [LIMSEQ_iff,monoseq_Suc]) 2);
+by (subgoal_tac "Bseq f & Bseq g" 1);
+by (blast_tac (claset() addIs [f_inc_g_dec_Beq_f, f_inc_g_dec_Beq_g]) 2); 
 by (auto_tac (claset() addSDs [Bseq_monoseq_convergent],
-    simpset() addsimps [convergent_LIMSEQ_iff]));
+              simpset() addsimps [convergent_LIMSEQ_iff]));
 by (res_inst_tac [("x","lim f")] exI 1);
 by (res_inst_tac [("x","lim g")] exI 1);
-by (auto_tac (claset() addIs [LIMSEQ_le],simpset()));
-by (rtac real_leI 1 THEN rtac real_leI 2);
-by (auto_tac (claset(),simpset() addsimps [LIMSEQ_iff,monoseq_Suc]));
-by (ALLGOALS (dtac real_less_sum_gt_zero));
-by (dres_inst_tac [("x","f n + - lim f")] spec 1);
-by (rotate_tac 4 2);
-by (dres_inst_tac [("x","lim g + - g n")] spec 2);
-by (Step_tac 1);
-by (ALLGOALS(rotate_tac 5));
-by (ALLGOALS(dres_inst_tac [("x","no + n")] spec));
-by (Auto_tac);
-by (subgoal_tac "0 <= f(no + n) - lim f" 1);
-by (induct_tac "no" 2);
-by (auto_tac (claset() addIs [real_le_trans],
-    simpset() addsimps [real_diff_def]));
-by (asm_full_simp_tac (simpset() addsimps [inst "r" "f ?x + ?y" abs_real_def]) 1); 
-by (dres_inst_tac [("i"," f (no + n)"),("no1","no")] 
-    (lemma_f_mono_add RSN (2,real_less_le_trans)) 1);
-by (subgoal_tac "g(no + n) <= lim g" 3);
-by (induct_tac "no" 4);
-by (auto_tac (claset() addIs [real_le_trans],
-    simpset() addsimps [real_diff_def,abs_minus_add_cancel]));
-by (asm_full_simp_tac (simpset() addsimps [inst "r" "lim g + ?y" abs_real_def]) 2); 
-by (cut_inst_tac [("f", "%x. -(g x)"), ("m","n"), ("no","no")] 
-    lemma_f_mono_add 2);
-by (auto_tac (claset(), simpset() addsimps [add_commute]));
+by (auto_tac (claset() addIs [LIMSEQ_le], simpset()));
+by (auto_tac (claset(), 
+              simpset() addsimps [f_inc_imp_le_lim, g_dec_imp_lim_le, 
+                                  convergent_LIMSEQ_iff]));  
 qed "lemma_nest";
+
 
 Goal "[| ALL n. f(n) <= f(Suc n); \
 \        ALL n. g(Suc n) <= g(n); \
@@ -1687,7 +1621,7 @@ Goal "[| ALL n. f(n) <= f(Suc n); \
 by (dtac lemma_nest 1 THEN Auto_tac);
 by (subgoal_tac "l = m" 1);
 by (dres_inst_tac [("X","f")] LIMSEQ_diff 2);
-by (auto_tac (claset() addIs [LIMSEQ_unique],simpset()));
+by (auto_tac (claset() addIs [LIMSEQ_unique], simpset()));
 qed "lemma_nest_unique";
 
 Goal "EX! fn. (fn 0 = e) & (ALL n. fn (Suc n) = f n (fn n))";
@@ -1700,7 +1634,6 @@ by (Auto_tac);
 qed "nat_Axiom";
 
 
-(*?????????OBSOLETE????????***)
 Goal "((x::real) = y / (#2 * z)) = (#2 * x = y/z)";
 by Auto_tac;  
 by (dres_inst_tac [("f","%u. (#1/#2)*u")] arg_cong 1); 
@@ -2267,24 +2200,6 @@ qed "Rolle";
 (* Mean value theorem                                                         *)
 (*----------------------------------------------------------------------------*)
 
-
-(*????????TO BE OBSOLETE?????????*)
-Goal "k~=#0 ==> (k*m) / k = (m::real)";
-by (dres_inst_tac [("n","#1")] real_mult_div_cancel1 1); 
-by (Asm_full_simp_tac 1); 
-qed "real_mult_div_self1";
-Addsimps [real_mult_div_self1];
-
-
-(**???FIXME: replace by simproc*??*)
-Goal "h ~= (0::real) ==> (h*x)/h = x";
-by (asm_full_simp_tac 
-    (simpset() addsimps [real_divide_mult2_self_eq, 
-                         real_mult_commute]) 1);
-qed "real_divide_mult3_self_eq"; 
-Delsimps [real_divide_mult3_self_eq];
-
-
 Goal "f a - (f b - f a)/(b - a) * a = \
 \     f b - (f b - f a)/(b - a) * (b::real)";
 by (case_tac "a = b" 1);
@@ -2292,8 +2207,258 @@ by (asm_full_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO]) 1);
 by (res_inst_tac [("c1","b - a")] (real_mult_left_cancel RS iffD1) 1);
 by (arith_tac 1);
 by (auto_tac (claset(),
-              simpset() addsimps [real_diff_mult_distrib2, real_diff_eq_eq, 
-                                  inst "a" "a" eq_commute]));
+              simpset() addsimps [real_diff_mult_distrib2]));
 by (auto_tac (claset(),
-           simpset() addsimps [real_diff_mult_distrib2, real_mult_commute]));
+           simpset() addsimps [real_diff_mult_distrib]));
 qed "lemma_MVT";
+
+Goal "[| a < b; \
+\        ALL x. a <= x & x <= b --> isCont f x; \
+\        ALL x. a < x & x < b --> f differentiable x |] \
+\     ==>  EX l z. a < z & z < b & DERIV f z :> l & \
+\                  (f(b) - f(a) = (b - a) * l)";
+by (dres_inst_tac [("f","%x. f(x) - (((f(b) - f(a)) / (b - a)) * x)")]
+    Rolle 1);
+by (rtac lemma_MVT 1);
+by (Step_tac 1);
+by (rtac isCont_diff 1 THEN Blast_tac 1);
+by (rtac (isCont_const RS isCont_mult) 1);
+by (rtac isCont_Id 1); 
+by (dres_inst_tac [("P", "%x. ?Pre x --> f differentiable x"), 
+                   ("x","x")] spec 1);
+by (asm_full_simp_tac (simpset() addsimps [differentiable_def]) 1);
+by (Step_tac 1);
+by (res_inst_tac [("x","xa - ((f(b) - f(a)) / (b - a))")] exI 1);
+by (rtac DERIV_diff 1 THEN assume_tac 1);
+(*derivative of a linear function is the constant...*)
+by (subgoal_tac "(%x. (f b - f a) * x / (b - a)) = \
+\                op * ((f b - f a) / (b - a))" 1);
+by (rtac ext 2 THEN Simp_tac 2);
+by (Asm_full_simp_tac 1); 
+(*final case*)
+by (res_inst_tac [("x","((f(b) - f(a)) / (b - a))")] exI 1);
+by (res_inst_tac [("x","z")] exI 1);
+by (Step_tac 1);
+by (Asm_full_simp_tac 2); 
+by (subgoal_tac "DERIV (%x. ((f(b) - f(a)) / (b - a)) * x) z :> \
+\                           ((f(b) - f(a)) / (b - a))" 1);
+by (rtac DERIV_cmult_Id 2); 
+by (dtac DERIV_add 1 THEN assume_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [real_add_assoc, real_diff_def]) 1);
+qed "MVT";
+
+(*----------------------------------------------------------------------------*)
+(* Theorem that function is constant if its derivative is 0 over an interval. *)
+(*----------------------------------------------------------------------------*)
+
+Goal "[| a < b; \
+\        ALL x. a <= x & x <= b --> isCont f x; \
+\        ALL x. a < x & x < b --> DERIV f x :> #0 |] \
+\       ==> (f b = f a)";
+by (dtac MVT 1 THEN assume_tac 1);
+by (blast_tac (claset() addIs [differentiableI]) 1);
+by (auto_tac (claset() addSDs [DERIV_unique],simpset() 
+    addsimps [real_diff_eq_eq]));
+qed "DERIV_isconst_end";
+
+Goal "[| a < b; \
+\        ALL x. a <= x & x <= b --> isCont f x; \
+\        ALL x. a < x & x < b --> DERIV f x :> #0 |] \
+\       ==> ALL x. a <= x & x <= b --> f x = f a";
+by (Step_tac 1);
+by (dres_inst_tac [("x","a")] real_le_imp_less_or_eq 1);
+by (Step_tac 1);
+by (dres_inst_tac [("b","x")] DERIV_isconst_end 1);
+by (Auto_tac);
+qed "DERIV_isconst1";
+
+Goal "[| a < b; \
+\        ALL x. a <= x & x <= b --> isCont f x; \
+\        ALL x. a < x & x < b --> DERIV f x :> #0; \
+\        a <= x; x <= b |] \
+\       ==> f x = f a";
+by (blast_tac (claset() addDs [DERIV_isconst1]) 1);
+qed "DERIV_isconst2";
+
+Goal "ALL x. DERIV f x :> #0 ==> f(x) = f(y)";
+by (res_inst_tac [("R1.0","x"),("R2.0","y")] real_linear_less2 1);
+by (rtac sym 1);
+by (auto_tac (claset() addIs [DERIV_isCont,DERIV_isconst_end],simpset()));
+qed "DERIV_isconst_all";
+
+Goal "[|a ~= b; ALL x. DERIV f x :> k |] ==> (f(b) - f(a)) = (b - a) * k";
+by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
+by (Auto_tac);
+by (ALLGOALS(dres_inst_tac [("f","f")] MVT));
+by (auto_tac (claset() addDs [DERIV_isCont,DERIV_unique],simpset() addsimps 
+    [differentiable_def]));
+by (auto_tac (claset() addDs [DERIV_unique],
+       simpset() addsimps [real_add_mult_distrib, real_diff_def,
+                           real_minus_mult_eq1 RS sym]));
+qed "DERIV_const_ratio_const";
+
+Goal "[|a ~= b; ALL x. DERIV f x :> k |] ==> (f(b) - f(a))/(b - a) = k";
+by (res_inst_tac [("c1","b - a")] (real_mult_right_cancel RS iffD1) 1);
+by (auto_tac (claset() addSDs [DERIV_const_ratio_const], 
+              simpset() addsimps [real_mult_assoc]));
+qed "DERIV_const_ratio_const2";
+
+Goal "((a + b) /#2 - a) = (b - a)/(#2::real)";
+by Auto_tac;  
+qed "real_average_minus_first";
+Addsimps [real_average_minus_first];
+
+Goal "((b + a)/#2 - a) = (b - a)/(#2::real)";
+by Auto_tac;  
+qed "real_average_minus_second";
+Addsimps [real_average_minus_second];
+
+
+(* Gallileo's "trick": average velocity = av. of end velocities *)
+Goal "[|a ~= (b::real); ALL x. DERIV v x :> k|] \
+\     ==> v((a + b)/#2) = (v a + v b)/#2";
+by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
+by (Auto_tac);
+by (ftac DERIV_const_ratio_const2 1 THEN assume_tac 1);
+by (ftac DERIV_const_ratio_const2 2 THEN assume_tac 2);
+by (dtac real_less_half_sum 1);
+by (dtac real_gt_half_sum 2); 
+by (ftac (real_not_refl2 RS DERIV_const_ratio_const2) 1 THEN assume_tac 1);
+by (dtac ((real_not_refl2 RS not_sym) RS DERIV_const_ratio_const2) 2
+    THEN assume_tac 2);
+by (ALLGOALS (dres_inst_tac [("f","%u. (b-a)*u")] arg_cong)); 
+by (auto_tac (claset(), simpset() addsimps [real_inverse_eq_divide])); 
+by (asm_full_simp_tac (simpset() addsimps [real_add_commute, eq_commute]) 1);  
+qed "DERIV_const_average";
+
+
+(* ------------------------------------------------------------------------ *)
+(* Dull lemma that an continuous injection on an interval must have a strict*)
+(* maximum at an end point, not in the middle.                              *)
+(* ------------------------------------------------------------------------ *)
+
+Goal "[|#0 < d; ALL z. abs(z - x) <= d --> g(f z) = z; \
+\       ALL z. abs(z - x) <= d --> isCont f z |]  \
+\     ==> ~(ALL z. abs(z - x) <= d --> f(z) <= f(x))";
+by (rtac notI 1);
+by (rotate_tac 3 1);
+by (forw_inst_tac [("x","x - d")] spec 1);
+by (forw_inst_tac [("x","x + d")] spec 1);
+by (Step_tac 1);
+by (cut_inst_tac [("x","f(x - d)"),("y","f(x + d)")] 
+    (ARITH_PROVE "x <= y | y <= (x::real)") 4);
+by (etac disjE 4);
+by (REPEAT(arith_tac 1));
+by (cut_inst_tac [("f","f"),("a","x - d"),("b","x"),("y","f(x + d)")]
+    IVT_objl 1);
+by (Step_tac 1);
+by (arith_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+by (dres_inst_tac [("f","g")] arg_cong 1);
+by (rotate_tac 2 1);
+by (forw_inst_tac [("x","xa")] spec 1);
+by (dres_inst_tac [("x","x + d")] spec 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+(* 2nd case: similar *)
+by (cut_inst_tac [("f","f"),("a","x"),("b","x + d"),("y","f(x - d)")]
+    IVT2_objl 1);
+by (Step_tac 1);
+by (arith_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+by (dres_inst_tac [("f","g")] arg_cong 1);
+by (rotate_tac 2 1);
+by (forw_inst_tac [("x","xa")] spec 1);
+by (dres_inst_tac [("x","x - d")] spec 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+qed "lemma_isCont_inj";
+
+(* ------------------------------------------------------------------------ *)
+(* Similar version for lower bound                                          *)
+(* ------------------------------------------------------------------------ *)
+
+Goal "[|#0 < d; ALL z. abs(z - x) <= d --> g(f z) = z; \
+\       ALL z. abs(z - x) <= d --> isCont f z |]  \
+\     ==> ~(ALL z. abs(z - x) <= d --> f(x) <= f(z))";
+by (auto_tac (claset() addSDs [(asm_full_simplify (simpset()) 
+    (read_instantiate [("f","%x. - f x"),("g","%y. g(-y)"),("x","x"),("d","d")]
+     lemma_isCont_inj))],simpset() addsimps [isCont_minus]));
+qed "lemma_isCont_inj2";
+
+(* ------------------------------------------------------------------------ *)
+(* Show there's an interval surrounding f(x) in f[[x - d, x + d]]           *)
+(* Also from John's theory                                                  *)
+(* ------------------------------------------------------------------------ *)
+
+Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
+
+val lemma_le = ARITH_PROVE "#0 <= (d::real) ==> -d <= d";
+
+(* FIXME: awful proof - needs improvement *)
+Goal "[| #0 < d; ALL z. abs(z - x) <= d --> g(f z) = z; \
+\        ALL z. abs(z - x) <= d --> isCont f z |] \
+\      ==> EX e. #0 < e & \
+\                 (ALL y. \
+\                     abs(y - f(x)) <= e --> \
+\                     (EX z. abs(z - x) <= d & (f z = y)))";
+by (ftac real_less_imp_le 1);
+by (dtac (lemma_le RS (asm_full_simplify (simpset()) (read_instantiate 
+    [("f","f"),("a","x - d"),("b","x + d")] isCont_Lb_Ub))) 1);
+by (Step_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+by (subgoal_tac "L <= f x & f x <= M" 1);
+by (dres_inst_tac [("P", "%v. ?P v --> ?Q v & ?R v"), ("x","x")] spec 2);
+by (Asm_full_simp_tac 2);
+by (subgoal_tac "L < f x & f x < M" 1);
+by (Step_tac 1);
+by (dres_inst_tac [("x","L")] (ARITH_PROVE "x < y ==> #0 < y - (x::real)") 1);
+by (dres_inst_tac [("x","f x")] (ARITH_PROVE "x < y ==> #0 < y - (x::real)") 1);
+by (dres_inst_tac [("d1.0","f x - L"),("d2.0","M - f x")] 
+    (rename_numerals real_lbound_gt_zero) 1);
+by (Step_tac 1);
+by (res_inst_tac [("x","e")] exI 1);
+by (Step_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [abs_le_interval_iff]) 1);
+by (dres_inst_tac [("P","%v. ?PP v --> (EX xa. ?Q v xa)"),("x","y")] spec 1);
+by (Step_tac 1 THEN REPEAT(arith_tac 1));
+by (res_inst_tac [("x","xa")] exI 1);
+by (arith_tac 1);
+by (ALLGOALS(etac (ARITH_PROVE "[|x <= y; x ~= y |] ==> x < (y::real)")));
+by (ALLGOALS(rotate_tac 3));
+by (dtac lemma_isCont_inj2 1);
+by (assume_tac 2);
+by (dtac lemma_isCont_inj 3);
+by (assume_tac 4);
+by (TRYALL(assume_tac));
+by (Step_tac 1);
+by (ALLGOALS(dres_inst_tac [("x","z")] spec));
+by (ALLGOALS(arith_tac));
+qed "isCont_inj_range";
+
+
+(* ------------------------------------------------------------------------ *)
+(* Continuity of inverse function                                           *)
+(* ------------------------------------------------------------------------ *)
+
+Goal "[| #0 < d; ALL z. abs(z - x) <= d --> g(f(z)) = z; \
+\        ALL z. abs(z - x) <= d --> isCont f z |] \
+\     ==> isCont g (f x)";
+by (simp_tac (simpset() addsimps [isCont_iff,LIM_def]) 1);
+by (Step_tac 1);
+by (dres_inst_tac [("d1.0","r")] (rename_numerals real_lbound_gt_zero) 1);
+by (assume_tac 1 THEN Step_tac 1);
+by (subgoal_tac "ALL z. abs(z - x) <= e --> (g(f z) = z)" 1);
+by (Force_tac 2);
+by (subgoal_tac "ALL z. abs(z - x) <= e --> isCont f z" 1);
+by (Force_tac 2);
+by (dres_inst_tac [("d","e")] isCont_inj_range 1);
+by (assume_tac 2 THEN assume_tac 1);
+by (Step_tac 1);
+by (res_inst_tac [("x","ea")] exI 1);
+by Auto_tac;
+by (rotate_tac 4 1);
+by (dres_inst_tac [("x","f(x) + xa")] spec 1); 
+by Auto_tac;
+by (dtac sym 1 THEN Auto_tac);
+by (arith_tac 1);
+qed "isCont_inverse";
+

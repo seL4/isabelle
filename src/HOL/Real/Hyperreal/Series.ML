@@ -99,6 +99,7 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_shift_bounds";
 
+(*FIXME: replace*)
 Goal "sumr 0 (n + n) (%i. (- #1) ^ Suc i) = #0";
 by (induct_tac "n" 1);
 by (Auto_tac);

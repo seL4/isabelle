@@ -1,4 +1,4 @@
 
-theory Hyperreal = Series:
+theory Hyperreal = HSeries:
 
 end

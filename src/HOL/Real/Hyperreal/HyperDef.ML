@@ -1147,6 +1147,62 @@ by (auto_tac (claset(),
       simpset() addsimps [hypreal_of_real_one, hypreal_of_real_mult RS sym]));
 qed "hypreal_of_real_inverse";
 
+Goal "hypreal_of_real (z1 / z2) = hypreal_of_real z1 / hypreal_of_real z2";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, real_divide_def, 
+                          hypreal_of_real_mult, hypreal_of_real_inverse]) 1);
+qed "hypreal_of_real_divide"; 
+
+
+(*** Division lemmas ***)
+
+Goal "(0::hypreal)/x = 0";
+by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
+qed "hypreal_zero_divide";
+
+Goal "x/1hr = x";
+by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
+qed "hypreal_divide_one";
+Addsimps [hypreal_zero_divide, hypreal_divide_one];
+
+Goal "(x::hypreal) * (y/z) = (x*y)/z";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_mult_assoc]) 1); 
+qed "hypreal_times_divide1_eq";
+
+Goal "(y/z) * (x::hypreal) = (y*x)/z";
+by (simp_tac (simpset() addsimps [hypreal_divide_def]@hypreal_mult_ac) 1); 
+qed "hypreal_times_divide2_eq";
+
+Addsimps [hypreal_times_divide1_eq, hypreal_times_divide2_eq];
+
+Goal "(x::hypreal) / (y/z) = (x*z)/y";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_inverse_distrib]@
+                                 hypreal_mult_ac) 1); 
+qed "hypreal_divide_divide1_eq";
+
+Goal "((x::hypreal) / y) / z = x/(y*z)";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_inverse_distrib, 
+                                  hypreal_mult_assoc]) 1); 
+qed "hypreal_divide_divide2_eq";
+
+Addsimps [hypreal_divide_divide1_eq, hypreal_divide_divide2_eq];
+
+(** As with multiplication, pull minus signs OUT of the / operator **)
+
+Goal "(-x) / (y::hypreal) = - (x/y)";
+by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1); 
+qed "hypreal_minus_divide_eq";
+Addsimps [hypreal_minus_divide_eq];
+
+Goal "(x / -(y::hypreal)) = - (x/y)";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_minus_inverse]) 1); 
+qed "hypreal_divide_minus_eq";
+Addsimps [hypreal_divide_minus_eq];
+
+Goal "(x+y)/(z::hypreal) = x/z + y/z";
+by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_add_mult_distrib]) 1); 
+qed "hypreal_add_divide_distrib";
+
+
 Goal "x+x=x*(1hr+1hr)";
 by (simp_tac (simpset() addsimps [hypreal_add_mult_distrib2]) 1);
 qed "hypreal_add_self";

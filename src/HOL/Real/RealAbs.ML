@@ -68,6 +68,7 @@ qed "abs_ge_zero";
 Goalw [abs_real_def] "abs(abs x)=abs (x::real)";
 by (Simp_tac 1);
 qed "abs_idempotent";
+Addsimps [abs_idempotent];
 
 Goalw [abs_real_def] "(x=(#0::real)) = (abs x = #0)";
 by (Full_simp_tac 1);

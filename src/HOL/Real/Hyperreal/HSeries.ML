@@ -1,0 +1,323 @@
+(*  Title       : HSeries.ML
+    Author      : Jacques D. Fleuriot
+    Copyright   : 1998  University of Cambridge
+    Description : Finite summation and infinite series
+                  for hyperreals
+*) 
+
+Goalw [sumhr_def]
+     "sumhr(M,N,f) = Abs_hypreal(UN X:Rep_hypnat(M). \
+\                     UN Y: Rep_hypnat(N). \
+\           hyprel ^^{%n::nat. sumr (X n) (Y n) f})";
+by (Auto_tac);
+qed "sumhr_iff";
+
+Goalw [sumhr_def]
+          "sumhr(Abs_hypnat(hypnatrel^^{%n. M n}), \
+\          Abs_hypnat(hypnatrel^^{%n. N n}),f) = \
+\          Abs_hypreal(hyprel ^^ {%n. sumr (M n) (N n) f})";
+by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
+by (Auto_tac THEN Ultra_tac 1);
+qed "sumhr";
+
+(*------------------------------------------------------- 
+  lcp's suggestion: exploit pattern matching 
+  facilities and use as definition instead (to do)
+ -------------------------------------------------------*)
+Goalw [sumhr_def]
+      "sumhr p =  (%(M,N,f). Abs_hypreal(UN X:Rep_hypnat(M). \
+\                     UN Y: Rep_hypnat(N). \
+\           hyprel ^^{%n::nat. sumr (X n) (Y n) f})) p";
+by (res_inst_tac [("p","p")] PairE 1);
+by (res_inst_tac [("p","y")] PairE 1);
+by (Auto_tac);
+qed "sumhr_iff2";
+
+(* Theorem corresponding to base case in def of sumr *)
+Goalw [hypnat_zero_def,hypreal_zero_def]
+      "sumhr (m,0,f) = 0";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr]));
+qed "sumhr_zero";
+Addsimps [sumhr_zero];
+
+(* Theorem corresponding to recursive case in def of sumr *)
+Goalw [hypnat_one_def,hypreal_zero_def]
+     "sumhr(m,n+1hn,f) = (if n + 1hn <= m then 0 \
+\                         else sumhr(m,n,f) + (*fNat* f) n)";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+    hypnat_add,hypnat_le,starfunNat,hypreal_add]));
+by (ALLGOALS(Ultra_tac));
+qed "sumhr_if";
+
+Goalw [hypnat_one_def,hypreal_zero_def]
+     "sumhr (n + 1hn, n, f) = 0";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+              hypnat_add]));
+qed "sumhr_Suc_zero";
+Addsimps [sumhr_Suc_zero];
+
+Goalw [hypreal_zero_def]
+     "sumhr (n,n,f) = 0";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(), simpset() addsimps [sumhr]));
+qed "sumhr_eq_bounds";
+Addsimps [sumhr_eq_bounds];
+
+Goalw [hypnat_one_def] 
+     "sumhr (m,m + 1hn,f) = (*fNat* f) m";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+    hypnat_add,starfunNat]));
+qed "sumhr_Suc";
+Addsimps [sumhr_Suc];
+
+Goalw [hypreal_zero_def]
+      "sumhr(m+k,k,f) = 0";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","k")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+         hypnat_add]));
+qed "sumhr_add_lbound_zero";
+Addsimps [sumhr_add_lbound_zero];
+
+Goal "sumhr (m,n,f) + sumhr(m,n,g) = sumhr(m,n,%i. f i + g i)";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+         hypreal_add,sumr_add]));
+qed "sumhr_add";
+
+Goalw [hypreal_of_real_def]
+      "hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+        hypreal_mult,sumr_mult]));
+qed "sumhr_mult";
+
+Goalw [hypnat_zero_def]
+  "n < p ==> sumhr (0,n,f) + sumhr (n,p,f) = sumhr (0,p,f)";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","p")] eq_Abs_hypnat 1);
+by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset],
+    simpset() addsimps [sumhr,hypreal_add,hypnat_less,
+    sumr_split_add]));
+qed "sumhr_split_add";
+
+Goal 
+     "n < p ==> sumhr (0, p, f) + \
+\                - sumhr (0, n, f) = sumhr (n,p,f)";
+by (dres_inst_tac [("f1","f")] (sumhr_split_add RS sym) 1);
+by (asm_simp_tac (simpset() addsimps hypreal_add_ac) 1);
+qed "sumhr_split_add_minus";
+
+Goal "abs(sumhr(m,n,f)) <= sumhr(m,n,%i. abs(f i))";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+              hypreal_le,hypreal_hrabs,sumr_rabs]));
+qed "sumhr_hrabs";
+
+(* other general version also needed *)
+Goalw [hypnat_of_nat_def]
+     "!!f g. (ALL r. m <= r & r < n --> f r = g r) \
+\                --> sumhr(hypnat_of_nat m,hypnat_of_nat n,f) = sumhr(hypnat_of_nat m,hypnat_of_nat n,g)";
+by (Step_tac 1 THEN dtac sumr_fun_eq 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr]));
+qed "sumhr_fun_hypnat_eq";
+
+Goalw [hypnat_zero_def,hypreal_of_real_def]
+      "sumhr(0,n,%i. r) = hypreal_of_hypnat n*hypreal_of_real r";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (asm_simp_tac (simpset() addsimps [sumhr,
+    hypreal_of_hypnat,hypreal_mult]) 1);
+qed "sumhr_const";
+
+Goalw [hypnat_zero_def,hypreal_of_real_def]
+     "sumhr(0,n,f) + -(hypreal_of_hypnat n*hypreal_of_real r) = \
+\     sumhr(0,n,%i. f i + -r)";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (asm_simp_tac (simpset() addsimps [sumhr,
+    hypreal_of_hypnat,hypreal_mult,hypreal_add,
+    hypreal_minus,sumr_add RS sym]) 1);
+qed "sumhr_add_mult_const";
+
+Goalw [hypreal_zero_def] 
+      "n < m ==> sumhr (m,n,f) = 0";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset() addEs [FreeUltrafilterNat_subset],
+    simpset() addsimps [sumhr,hypnat_less]));
+qed "sumhr_less_bounds_zero";
+Addsimps [sumhr_less_bounds_zero];
+
+Goal "sumhr(m,n,%i. - f i) = - sumhr(m,n,f)";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+    hypreal_minus,sumr_minus]));
+qed "sumhr_minus";
+
+Goalw [hypnat_of_nat_def]
+     "sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) = sumhr(m,n,%i. f(i + k))";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+    hypnat_add,sumr_shift_bounds]));
+qed "sumhr_shift_bounds";
+
+(*------------------------------------------------------------------
+      Theorems about NS sums - infinite sums are obtained
+      by summing to some infinite hypernatural (such as whn)
+ -----------------------------------------------------------------*)
+Goalw [hypnat_omega_def,hypnat_zero_def] 
+      "sumhr(0,whn,%i. #1) = hypreal_of_hypnat whn";
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+         hypreal_of_hypnat]));
+qed "sumhr_hypreal_of_hypnat_omega";
+
+Goalw [hypnat_omega_def,hypnat_zero_def,
+                   hypreal_one_def,omega_def]  
+      "sumhr(0,whn,%i. #1) = whr + -1hr";
+by (auto_tac (claset(),simpset() addsimps [sumhr,
+         real_of_nat_def,hypreal_minus,hypreal_add]));
+qed "sumhr_hypreal_omega_minus_one";
+
+(***??SERIES.ML??replace old versions???*)
+Goal "sumr 0 (#2*n) (%i. (#-1) ^ Suc i) = #0";
+by (induct_tac "n" 1);
+by (Auto_tac);
+qed "sumr_minus_one_realpow_zero";
+Addsimps [sumr_minus_one_realpow_zero];
+
+Goalw [hypnat_zero_def, hypnat_omega_def, hypreal_zero_def]
+     "sumhr(0, whn + whn, %i. (-#1) ^ (i+1)) = 0";
+by (simp_tac (simpset() addsimps [sumhr,hypnat_add] 
+    delsimps [realpow_Suc]) 1);
+qed "sumhr_minus_one_realpow_zero";
+Addsimps [sumhr_minus_one_realpow_zero];
+
+Goalw [hypnat_of_nat_def,hypreal_of_real_def]
+     "(ALL n. m <= Suc n --> f n = r) & m <= na \
+\          ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) = \
+\          (hypreal_of_nat (na - m) * hypreal_of_real r)";
+by (auto_tac (claset() addSDs [sumr_interval_const],
+    simpset() addsimps [sumhr,hypreal_of_nat_real_of_nat,
+              hypreal_of_real_def,hypreal_mult]));
+qed "sumhr_interval_const";
+
+Goalw [hypnat_zero_def]
+     "(*fNat* (%n. sumr 0 n f)) N = sumhr(0,N,f)";
+by (res_inst_tac [("z","N")] eq_Abs_hypnat 1);
+by (asm_full_simp_tac (simpset() addsimps [starfunNat,sumhr]) 1);
+qed "starfunNat_sumr";
+
+Goal "sumhr (0, M, f) @= sumhr (0, N, f) \
+\     ==> abs (sumhr (M, N, f)) @= 0";
+by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
+by (auto_tac (claset(),simpset() addsimps [inf_close_refl]));
+by (dtac (inf_close_sym RS (inf_close_minus_iff RS iffD1)) 1);
+by (auto_tac (claset() addDs [inf_close_hrabs],
+    simpset() addsimps [sumhr_split_add_minus]));
+qed "sumhr_hrabs_inf_close";
+Addsimps [sumhr_hrabs_inf_close];
+
+(*----------------------------------------------------------------
+      infinite sums: Standard and NS theorems
+ ----------------------------------------------------------------*)
+Goalw [sums_def,NSsums_def] "(f sums l) = (f NSsums l)";
+by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff]) 1);
+qed "sums_NSsums_iff";
+
+Goalw [summable_def,NSsummable_def] 
+      "(summable f) = (NSsummable f)";
+by (simp_tac (simpset() addsimps [sums_NSsums_iff]) 1);
+qed "summable_NSsummable_iff";
+
+Goalw [suminf_def,NSsuminf_def] 
+      "(suminf f) = (NSsuminf f)";
+by (simp_tac (simpset() addsimps [sums_NSsums_iff]) 1);
+qed "suminf_NSsuminf_iff";
+
+Goalw [NSsums_def,NSsummable_def] 
+      "f NSsums l ==> NSsummable f";
+by (Blast_tac 1);
+qed "NSsums_NSsummable";
+
+Goalw [NSsummable_def,NSsuminf_def]
+     "NSsummable f ==> f NSsums (NSsuminf f)";
+by (blast_tac (claset() addIs [someI2]) 1);
+qed "NSsummable_NSsums";
+
+Goal "f NSsums s ==> (s = NSsuminf f)";
+by (asm_full_simp_tac 
+    (simpset() addsimps [suminf_NSsuminf_iff RS sym,sums_NSsums_iff,
+                         sums_unique]) 1);
+qed "NSsums_unique";
+
+Goal "ALL m. n <= Suc m --> f(m) = #0 ==> f NSsums (sumr 0 n f)";
+by (asm_simp_tac (simpset() addsimps [sums_NSsums_iff RS sym, series_zero]) 1);
+qed "NSseries_zero";
+
+Goal "NSsummable f = \
+\     (ALL M: HNatInfinite. ALL N: HNatInfinite. abs (sumhr(M,N,f)) @= 0)";
+by (auto_tac (claset(),
+              simpset() addsimps [summable_NSsummable_iff RS sym,
+                 summable_convergent_sumr_iff, convergent_NSconvergent_iff,
+                 NSCauchy_NSconvergent_iff RS sym, NSCauchy_def,
+                 starfunNat_sumr]));
+by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
+by (auto_tac (claset(), simpset() addsimps [inf_close_refl]));
+by (rtac ((inf_close_minus_iff RS iffD2) RS inf_close_sym) 1);
+by (rtac (inf_close_minus_iff RS iffD2) 2);
+by (auto_tac (claset() addDs [inf_close_hrabs_zero_cancel],
+              simpset() addsimps [sumhr_split_add_minus]));
+qed "NSsummable_NSCauchy";
+
+(*-------------------------------------------------------------------
+         Terms of a convergent series tend to zero
+ -------------------------------------------------------------------*)
+Goalw [NSLIMSEQ_def] "NSsummable f ==> f ----NS> #0";
+by (auto_tac (claset(), simpset() addsimps [NSsummable_NSCauchy]));
+by (dtac bspec 1 THEN Auto_tac);
+by (dres_inst_tac [("x","N + 1hn")] bspec 1);
+by (auto_tac (claset() addIs [HNatInfinite_add_one,
+                              inf_close_hrabs_zero_cancel],
+              simpset() addsimps [rename_numerals hypreal_of_real_zero]));
+qed "NSsummable_NSLIMSEQ_zero";
+
+(* Easy to prove stsandard case now *)
+Goal "summable f ==> f ----> #0";
+by (auto_tac (claset(),
+        simpset() addsimps [summable_NSsummable_iff,
+                            LIMSEQ_NSLIMSEQ_iff, NSsummable_NSLIMSEQ_zero]));
+qed "summable_LIMSEQ_zero";
+
+(*-------------------------------------------------------------------
+                  NS Comparison test
+ -------------------------------------------------------------------*)
+
+Goal "[| EX N. ALL n. N <= n --> abs(f n) <= g n; \
+\        NSsummable g \
+\     |] ==> NSsummable f";
+by (auto_tac (claset() addIs [summable_comparison_test],
+              simpset() addsimps [summable_NSsummable_iff RS sym]));
+qed "NSsummable_comparison_test";
+
+Goal "[| EX N. ALL n. N <= n --> abs(f n) <= g n; \
+\        NSsummable g \
+\     |] ==> NSsummable (%k. abs (f k))";
+by (rtac NSsummable_comparison_test 1);
+by (auto_tac (claset(), simpset() addsimps [abs_idempotent]));
+qed "NSsummable_rabs_comparison_test";
+ 
+
+
+
+
+
+
