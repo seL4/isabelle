@@ -28,9 +28,10 @@ signature PRINTER =
     -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: bool -> prtabs
     -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
+  val chartrans_of: prtabs -> (string * string) list
   end;
 
-structure Printer : PRINTER =
+structure Printer: PRINTER =
 struct
 
 open Lexicon Ast SynExt TypeExt SynTrans;
@@ -131,7 +132,7 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-fun prmodes_of l = filter_out (equal "") (map fst l);
+fun prmodes_of prtabs = filter_out (equal "") (map fst prtabs);
 
 (*find tab for mode*)
 fun get_tab prtabs mode =
@@ -151,19 +152,16 @@ fun get_fmts [] _ = []
 fun xprod_to_fmt (XProd (_, _, "", _)) = None
   | xprod_to_fmt (XProd (_, xsymbs, const, pri)) =
       let
-        fun cons_str s (String s' :: syms) = String (s ^ s') :: syms
-          | cons_str s syms = String s :: syms;
-
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
           (if is_terminal s then max_pri else p);
 
         fun xsyms_to_syms (Delim s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons (String s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Space s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons (String s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
@@ -308,6 +306,58 @@ fun pretty_term_ast curried prtabs trf ast =
 
 fun pretty_typ_ast _ prtabs trf ast =
   Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf true false ast 0);
+
+
+
+(** character translations - generated from "symbols" syntax **)
+
+(* match_symbs *)
+
+(*match with symbs pattern, ignoring spaces, breaks, blocks*)
+
+local
+  exception NO_MATCH;
+
+  fun strip ((sym as Arg _) :: syms) = sym :: strip syms
+    | strip (TypArg p :: syms) = Arg p :: strip syms
+    | strip ((sym as String s) :: syms) =
+        if forall is_blank (explode s) then strip syms
+        else sym :: strip syms
+    | strip (Break _ :: syms) = strip syms
+    | strip (Block (_, bsyms) :: syms) = strip bsyms @ strip syms
+    | strip [] = [];
+
+  fun match (Arg p :: syms) (Arg p' :: syms') tr =
+        if p = p' then match syms syms' tr
+        else raise NO_MATCH
+    | match (String s :: syms) (String s' :: syms') tr =
+        if s = s' then match syms syms' tr
+        else if size s = 1 then match syms syms' ((s, s') :: tr)
+        else raise NO_MATCH
+    | match [] [] tr = tr
+    | match _ _ _ = raise NO_MATCH;
+in
+  fun match_symbs (syms, n, p) (syms', n', p') =
+    if n = n' andalso p = p' then
+      match (strip syms) (strip syms') [] handle NO_MATCH => []
+    else []
+end;
+
+
+(* chartrans_of *)
+
+fun chartrans_of prtabs =
+  let
+    val def_tab = get_tab prtabs "";
+    val sym_tab = get_tab prtabs "symbols";
+
+    fun trans_of (c, symb) =
+      flat (map (match_symbs symb) (Symtab.lookup_multi (def_tab, c)));
+  in
+    distinct (flat (map trans_of (Symtab.dest_multi sym_tab)))
+(* FIXME    Symtab.make tr handle Symtab.DUPS cs
+      => error ("Ambiguous printer syntax of symbols: " ^ commas cs)  *)
+  end;
 
 
 end;
