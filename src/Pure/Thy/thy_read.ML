@@ -72,33 +72,35 @@ sig
   val children_of    : string -> string list
   val parents_of_name: string -> string list
 
-  val store_thm: string * thm -> thm
-  val bind_thm: string * thm -> unit
-  val qed: string -> unit
-  val qed_thm: thm ref
-  val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
-  val qed_goalw: string -> theory->thm list->string->(thm list->tactic list)
-                 -> unit
-  val get_thm       : theory -> string -> thm
-  val thms_of       : theory -> (string * thm) list
-  val delete_thms   : string -> unit
+  val store_thm      : string * thm -> thm
+  val bind_thm       : string * thm -> unit
+  val qed            : string -> unit
+  val qed_thm        : thm ref
+  val qed_goal       : string -> theory -> string 
+                       -> (thm list -> tactic list) -> unit
+  val qed_goalw      : string -> theory -> thm list -> string 
+                       -> (thm list -> tactic list) -> unit
+  val get_thm        : theory -> string -> thm
+  val thms_of        : theory -> (string * thm) list
+  val delete_thms    : string -> unit
 
-  val add_thydata   : theory -> string * thy_methods -> unit
-  val get_thydata   : theory -> string -> exn option
+  val add_thydata    : theory -> string * thy_methods -> unit
+  val get_thydata    : theory -> string -> exn option
   val add_thy_reader_file: string -> unit
   val set_thy_reader_file: string -> unit
   val read_thy_reader_files: unit -> unit
+  val set_current_thy: string -> unit
 
-  val print_theory  : theory -> unit
+  val print_theory   : theory -> unit
 
-  val base_path     : string ref
-  val gif_path      : string ref
-  val index_path    : string ref
-  val pure_subchart : string option ref
-  val make_html     : bool ref
-  val init_html     : unit -> unit
-  val finish_html   : unit -> unit
-  val section       : string -> unit
+  val base_path      : string ref
+  val gif_path       : string ref
+  val index_path     : string ref
+  val pure_subchart  : string option ref
+  val make_html      : bool ref
+  val init_html      : unit -> unit
+  val finish_html    : unit -> unit
+  val section        : string -> unit
 end;
 
 
@@ -573,6 +575,21 @@ fun thyfile2html tpath tname =
      close_out sub_out
   end;
 
+(*Invoke every put method stored in a theory's methods table to initialize
+  the state of user defined variables*)
+fun set_current_thy tname =
+  let val (methods, data) = 
+        case get_thyinfo tname of
+            Some (ThyInfo {methods, data, ...}) => 
+              (methods, Symtab.dest (fst data))
+          | None => error ("Theory " ^ tname ^ " not stored by loader");
+
+      fun put_data (id, date) =
+            case Symtab.lookup (methods, id) of
+                Some (ThyMethods {put, ...}) => put date
+              | None => error ("No method defined for theory data \"" ^
+                               id ^ "\"");
+  in seq put_data data end;
 
 (*Read .thy and .ML files that haven't been read yet or have changed since
   they were last read;
@@ -637,16 +654,6 @@ fun use_thy name =
                              methods = methods, data = data'}),
             !loaded_thys)
       end;
-
-    (*Invoke every put method stored in the methods table to initialize
-      the state of user defined variables*)
-    fun init_data methods data =
-      let fun put_data (id, date) =
-            case Symtab.lookup (methods, id) of
-                Some (ThyMethods {put, ...}) => put date
-              | None => error ("No method defined for theory data \"" ^
-                               id ^ "\"");
-      in seq put_data data end;
 
     (*Add theory to file listing all loaded theories (for index.html)
       and to the sub-charts of its parents*)
@@ -716,9 +723,7 @@ fun use_thy name =
   in if thy_uptodate andalso ml_uptodate then ()
      else
       (if thy_file = "" then ()
-       else if thy_uptodate then
-         let val ThyInfo {methods, data, ...} = the (get_thyinfo tname)
-         in init_data methods (Symtab.dest (fst data)) end
+       else if thy_uptodate then set_current_thy tname
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
