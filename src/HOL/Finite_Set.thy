@@ -1932,18 +1932,18 @@ by(simp add:fold1_insert2)
 subsubsection{* Semi-Lattices *}
 
 locale ACIfSL = ACIf +
-  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<preceq>" 50)
-  assumes below_def: "x \<preceq> y = (x\<cdot>y = x)"
+  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+  assumes below_def: "(x \<sqsubseteq> y) = (x\<cdot>y = x)"
 
 locale ACIfSLlin = ACIfSL +
   assumes lin: "x\<cdot>y \<in> {x,y}"
 
-lemma (in ACIfSL) below_refl[simp]: "x \<preceq> x"
+lemma (in ACIfSL) below_refl[simp]: "x \<sqsubseteq> x"
 by(simp add: below_def idem)
 
-lemma (in ACIfSL) below_f_conv[simp]: "x \<preceq> y \<cdot> z = (x \<preceq> y \<and> x \<preceq> z)"
+lemma (in ACIfSL) below_f_conv[simp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
 proof
-  assume "x \<preceq> y \<cdot> z"
+  assume "x \<sqsubseteq> y \<cdot> z"
   hence xyzx: "x \<cdot> (y \<cdot> z) = x"  by(simp add: below_def)
   have "x \<cdot> y = x"
   proof -
@@ -1959,40 +1959,40 @@ proof
     also have "\<dots> = x" by(rule xyzx)
     finally show ?thesis .
   qed
-  ultimately show "x \<preceq> y \<and> x \<preceq> z" by(simp add: below_def)
+  ultimately show "x \<sqsubseteq> y \<and> x \<sqsubseteq> z" by(simp add: below_def)
 next
-  assume a: "x \<preceq> y \<and> x \<preceq> z"
+  assume a: "x \<sqsubseteq> y \<and> x \<sqsubseteq> z"
   hence y: "x \<cdot> y = x" and z: "x \<cdot> z = x" by(simp_all add: below_def)
   have "x \<cdot> (y \<cdot> z) = (x \<cdot> y) \<cdot> z" by(simp add:assoc)
   also have "x \<cdot> y = x" using a by(simp_all add: below_def)
   also have "x \<cdot> z = x" using a by(simp_all add: below_def)
-  finally show "x \<preceq> y \<cdot> z" by(simp_all add: below_def)
+  finally show "x \<sqsubseteq> y \<cdot> z" by(simp_all add: below_def)
 qed
 
 lemma (in ACIfSLlin) above_f_conv:
- "x \<cdot> y \<preceq> z = (x \<preceq> z \<or> y \<preceq> z)"
+ "x \<cdot> y \<sqsubseteq> z = (x \<sqsubseteq> z \<or> y \<sqsubseteq> z)"
 proof
-  assume a: "x \<cdot> y \<preceq> z"
+  assume a: "x \<cdot> y \<sqsubseteq> z"
   have "x \<cdot> y = x \<or> x \<cdot> y = y" using lin[of x y] by simp
-  thus "x \<preceq> z \<or> y \<preceq> z"
+  thus "x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
   proof
-    assume "x \<cdot> y = x" hence "x \<preceq> z" by(rule subst)(rule a) thus ?thesis ..
+    assume "x \<cdot> y = x" hence "x \<sqsubseteq> z" by(rule subst)(rule a) thus ?thesis ..
   next
-    assume "x \<cdot> y = y" hence "y \<preceq> z" by(rule subst)(rule a) thus ?thesis ..
+    assume "x \<cdot> y = y" hence "y \<sqsubseteq> z" by(rule subst)(rule a) thus ?thesis ..
   qed
 next
-  assume "x \<preceq> z \<or> y \<preceq> z"
-  thus "x \<cdot> y \<preceq> z"
+  assume "x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
+  thus "x \<cdot> y \<sqsubseteq> z"
   proof
-    assume a: "x \<preceq> z"
+    assume a: "x \<sqsubseteq> z"
     have "(x \<cdot> y) \<cdot> z = (x \<cdot> z) \<cdot> y" by(simp add:ACI)
     also have "x \<cdot> z = x" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<preceq> z" by(simp add:below_def)
+    finally show "x \<cdot> y \<sqsubseteq> z" by(simp add:below_def)
   next
-    assume a: "y \<preceq> z"
+    assume a: "y \<sqsubseteq> z"
     have "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)" by(simp add:ACI)
     also have "y \<cdot> z = y" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<preceq> z" by(simp add:below_def)
+    finally show "x \<cdot> y \<sqsubseteq> z" by(simp add:below_def)
   qed
 qed
 
@@ -2033,13 +2033,13 @@ qed
 
 lemma (in ACIfSL) below_fold1_iff:
 assumes A: "finite A" "A \<noteq> {}"
-shows "x \<preceq> fold1 f A = (\<forall>a\<in>A. x \<preceq> a)"
+shows "x \<sqsubseteq> fold1 f A = (\<forall>a\<in>A. x \<sqsubseteq> a)"
 using A
 by(induct rule:finite_ne_induct) simp_all
 
 lemma (in ACIfSL) fold1_belowI:
 assumes A: "finite A" "A \<noteq> {}"
-shows "a \<in> A \<Longrightarrow> fold1 f A \<preceq> a"
+shows "a \<in> A \<Longrightarrow> fold1 f A \<sqsubseteq> a"
 using A
 proof (induct rule:finite_ne_induct)
   case singleton thus ?case by simp
@@ -2051,7 +2051,7 @@ next
     assume "a = x" thus ?thesis using insert by(simp add:below_def ACI)
   next
     assume "a \<in> F"
-    hence bel: "fold1 op \<cdot> F \<preceq> a" by(rule insert)
+    hence bel: "fold1 op \<cdot> F \<sqsubseteq> a" by(rule insert)
     have "fold1 op \<cdot> (insert x F) \<cdot> a = x \<cdot> (fold1 op \<cdot> F \<cdot> a)"
       using insert by(simp add:below_def ACI)
     also have "fold1 op \<cdot> F \<cdot> a = fold1 op \<cdot> F"
@@ -2064,9 +2064,159 @@ qed
 
 lemma (in ACIfSLlin) fold1_below_iff:
 assumes A: "finite A" "A \<noteq> {}"
-shows "fold1 f A \<preceq> x = (\<exists>a\<in>A. a \<preceq> x)"
+shows "fold1 f A \<sqsubseteq> x = (\<exists>a\<in>A. a \<sqsubseteq> x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
+
+subsubsection{* Lattices *}
+
+locale Lattice =
+  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+  and inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
+  and sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+  and Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+  and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+  assumes refl: "x \<sqsubseteq> x"
+  and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  and antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+  and inf_le1: "x \<sqinter> y \<sqsubseteq> x" and inf_le2: "x \<sqinter> y \<sqsubseteq> y"
+  and inf_least: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
+  and sup_ge1: "x \<sqsubseteq> x \<squnion> y" and sup_ge2: "y \<sqsubseteq> x \<squnion> y"
+  and sup_greatest: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
+(* FIXME *)
+  and sup_inf_distrib1: "x \<squnion> y \<sqinter> z = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
+  and sup_inf_distrib2: "x \<sqinter> y \<squnion> z = (x \<squnion> z) \<sqinter> (y \<squnion> z)"
+  defines "Inf == fold1 inf"  and "Sup == fold1 sup"
+
+
+lemma (in Lattice) inf_comm: "(x \<sqinter> y) = (y \<sqinter> x)"
+by(blast intro: antisym inf_le1 inf_le2 inf_least)
+
+lemma (in Lattice) sup_comm: "(x \<squnion> y) = (y \<squnion> x)"
+by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest)
+
+lemma (in Lattice) inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
+by(blast intro: antisym inf_le1 inf_le2 inf_least trans)
+
+lemma (in Lattice) sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
+by(blast intro!: antisym sup_ge1 sup_ge2 intro: sup_greatest trans)
+
+lemma (in Lattice) inf_idem: "x \<sqinter> x = x"
+by(blast intro: antisym inf_le1 inf_le2 inf_least refl)
+
+lemma (in Lattice) sup_idem: "x \<squnion> x = x"
+by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl)
+
+text{* Lattices are semilattices *}
+
+lemma (in Lattice) ACf_inf: "ACf inf"
+by(blast intro: ACf.intro inf_comm inf_assoc)
+
+lemma (in Lattice) ACf_sup: "ACf sup"
+by(blast intro: ACf.intro sup_comm sup_assoc)
+
+lemma (in Lattice) ACIf_inf: "ACIf inf"
+apply(rule ACIf.intro)
+apply(rule ACf_inf)
+apply(rule ACIf_axioms.intro)
+apply(rule inf_idem)
+done
+
+lemma (in Lattice) ACIf_sup: "ACIf sup"
+apply(rule ACIf.intro)
+apply(rule ACf_sup)
+apply(rule ACIf_axioms.intro)
+apply(rule sup_idem)
+done
+
+lemma (in Lattice) ACIfSL_inf: "ACIfSL inf (op \<sqsubseteq>)"
+apply(rule ACIfSL.intro)
+apply(rule ACf_inf)
+apply(rule ACIf.axioms[OF ACIf_inf])
+apply(rule ACIfSL_axioms.intro)
+apply(rule iffI)
+ apply(blast intro: antisym inf_le1 inf_le2 inf_least refl)
+apply(erule subst)
+apply(rule inf_le2)
+done
+
+lemma (in Lattice) ACIfSL_sup: "ACIfSL sup (%x y. y \<sqsubseteq> x)"
+apply(rule ACIfSL.intro)
+apply(rule ACf_sup)
+apply(rule ACIf.axioms[OF ACIf_sup])
+apply(rule ACIfSL_axioms.intro)
+apply(rule iffI)
+ apply(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl)
+apply(erule subst)
+apply(rule sup_ge2)
+done
+
+text{* Fold laws in lattices *}
+
+lemma (in Lattice) Inf_le_Sup: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
+apply(unfold Sup_def Inf_def)
+apply(subgoal_tac "EX a. a:A")
+prefer 2 apply blast
+apply(erule exE)
+apply(rule trans)
+apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_inf])
+apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
+done
+
+lemma (in Lattice) sup_Inf1_distrib:
+assumes A: "finite A" "A \<noteq> {}"
+shows "(x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
+using A
+proof (induct rule: finite_ne_induct)
+  case singleton thus ?case by(simp add:Inf_def)
+next
+  case (insert y A)
+  have fin: "finite {x \<squnion> a |a. a \<in> A}"
+    by(fast intro: finite_surj[where f = "%a. x \<squnion> a", OF insert(0)])
+  have "x \<squnion> \<Sqinter> (insert y A) = x \<squnion> (y \<sqinter> \<Sqinter> A)"
+    using insert by(simp add:ACf.fold1_insert_def[OF ACf_inf Inf_def])
+  also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> \<Sqinter> A)" by(rule sup_inf_distrib1)
+  also have "x \<squnion> \<Sqinter> A = \<Sqinter>{x \<squnion> a|a. a \<in> A}" using insert by simp
+  also have "(x \<squnion> y) \<sqinter> \<dots> = \<Sqinter> (insert (x \<squnion> y) {x \<squnion> a |a. a \<in> A})"
+    using insert by(simp add:ACIf.fold1_insert2_def[OF ACIf_inf Inf_def fin])
+  also have "insert (x\<squnion>y) {x\<squnion>a |a. a \<in> A} = {x\<squnion>a |a. a \<in> insert y A}"
+    by blast
+  finally show ?case .
+qed
+
+
+lemma (in Lattice) sup_Inf2_distrib:
+assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
+shows "(\<Sqinter>A \<squnion> \<Sqinter>B) = \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+using A
+proof (induct rule: finite_ne_induct)
+  case singleton thus ?case
+    by(simp add: sup_Inf1_distrib[OF B] fold1_singleton_def[OF Inf_def])
+next
+  case (insert x A)
+  have finB: "finite {x \<squnion> b |b. b \<in> B}"
+    by(fast intro: finite_surj[where f = "%b. x \<squnion> b", OF B(0)])
+  have finAB: "finite {a \<squnion> b |a b. a \<in> A \<and> b \<in> B}"
+  proof -
+    have "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<squnion> b})"
+      by blast
+    thus ?thesis by(simp add: insert(0) B(0))
+  qed
+  have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
+  have "\<Sqinter>(insert x A) \<squnion> \<Sqinter>B = (x \<sqinter> \<Sqinter>A) \<squnion> \<Sqinter>B"
+    using insert by(simp add:ACIf.fold1_insert2_def[OF ACIf_inf Inf_def])
+  also have "\<dots> = (x \<squnion> \<Sqinter>B) \<sqinter> (\<Sqinter>A \<squnion> \<Sqinter>B)" by(rule sup_inf_distrib2)
+  also have "\<dots> = \<Sqinter>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+    using insert by(simp add:sup_Inf1_distrib[OF B])
+  also have "\<dots> = \<Sqinter>({x\<squnion>b |b. b \<in> B} \<union> {a\<squnion>b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Sqinter>?M")
+    using B insert
+    by(simp add:Inf_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
+  also have "?M = {a \<squnion> b |a b. a \<in> insert x A \<and> b \<in> B}"
+    by blast
+  finally show ?case .
+qed
+
 
 
 subsection{*Min and Max*}
@@ -2141,6 +2291,50 @@ apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
+lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
+apply(rule Lattice.intro)
+apply simp
+apply(erule (1) order_trans)
+apply(erule (1) order_antisym)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
+apply(rule_tac x=x and y=y in linorder_le_cases)
+apply(rule_tac x=x and y=z in linorder_le_cases)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=x and y=z in linorder_le_cases)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+
+apply(rule_tac x=x and y=y in linorder_le_cases)
+apply(rule_tac x=x and y=z in linorder_le_cases)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=x and y=z in linorder_le_cases)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+apply(rule_tac x=y and y=z in linorder_le_cases)
+apply(simp add:min_def max_def)
+apply(simp add:min_def max_def)
+done
+
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}
 
@@ -2183,5 +2377,14 @@ by(simp add: Min_def ACIfSLlin.fold1_below_iff[OF ACIfSLlin_min])
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
 by(simp add: Max_def ACIfSLlin.fold1_below_iff[OF ACIfSLlin_max])
+
+lemma Min_le_Max:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> Max A"
+by(simp add: Min_def Max_def Lattice.Inf_le_Sup[OF Lattice_min_max])
+
+lemma max_Min2_distrib:
+  "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow>
+  max (Min A) (Min B) = Min{ max a b |a b. a \<in> A \<and> b \<in> B}"
+by(simp add: Min_def Max_def Lattice.sup_Inf2_distrib[OF Lattice_min_max])
 
 end
