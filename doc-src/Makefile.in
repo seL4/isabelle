@@ -11,7 +11,7 @@ BIBTEX = bibtex
 RAIL = rail
 SEDINDEX = ../sedindex
 
-GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.blg
+GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.blg *.out
 OUTPUT = *.dvi *.pdf *.ps
 
 
@@ -22,7 +22,7 @@ nothing:
 clean:
 	@rm -f $(GARBAGE)
 
-veryclean:
+mrproper:
 	@rm -f $(OUTPUT) $(GARBAGE)
 
 isabelle.eps:
