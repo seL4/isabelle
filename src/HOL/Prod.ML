@@ -33,13 +33,20 @@ by (blast_tac (claset() addSEs [Pair_inject]) 1);
 qed "Pair_eq";
 AddIffs [Pair_eq];
 
-Goalw [fst_def] "fst((a,b)) = a";
+Goalw [fst_def] "fst (a,b) = a";
 by (Blast_tac 1);
 qed "fst_conv";
-Goalw [snd_def] "snd((a,b)) = b";
+Goalw [snd_def] "snd (a,b) = b";
 by (Blast_tac 1);
 qed "snd_conv";
 Addsimps [fst_conv, snd_conv];
+
+Goal "fst (x, y) = a ==> x = a";
+by (Asm_full_simp_tac 1);
+qed "fst_eqD";
+Goal "snd (x, y) = a ==> y = a";
+by (Asm_full_simp_tac 1);
+qed "snd_eqD";
 
 Goalw [Pair_def] "? x y. p = (x,y)";
 by (rtac (rewrite_rule [Prod_def] Rep_Prod RS CollectE) 1);
@@ -146,42 +153,54 @@ qed "cond_split_eta";
 
 (*simplification procedure for cond_split_eta. 
   using split_eta a rewrite rule is not general enough, and using 
-  cond_split_eta directly would render some existing proofs very inefficient*)
+  cond_split_eta directly would render some existing proofs very inefficient.
+  similarly for split_beta. *)
 local
-  val split_eta_pat = Thm.read_cterm (Theory.sign_of thy) 
-		("split (%x. split (%y. f x y))", HOLogic.termTVar);
-  val split_eta_meta_eq = standard (mk_meta_eq cond_split_eta);
-  fun  Pair_pat 0      (Bound 0) = true
-  |    Pair_pat k      (Const ("Pair",  _) $ Bound m $ t) = 
-			m = k andalso Pair_pat (k-1) t
-  |    Pair_pat _ _ = false;
-  fun split_pat k (Abs  (_, _, f $ 
-			(Const ("Pair",_) $ Bound m $ 
-			(Const ("Pair",_) $ Bound n $ t)))) =
-			if m = k andalso n = k-1 andalso Pair_pat (k-2) t
-			then Some f else None
-  |   split_pat k (Const ("split", _) $ Abs (_, _, t)) = split_pat (k+1) t
-  |   split_pat k _ = None;
-  fun proc sg _	(s as
-	(Const ("split", _) $ Abs (_, _, 
-	(Const ("split", _) $ Abs (_, _, t))))) = (case split_pat 2 t of
-	  Some f => (let val fvar = Free ("f", fastype_of f);
-			 fun atom_fun t = if t = f then fvar else atom t
-			 and atom     (Abs (x, T, t)) = Abs (x, T,atom_fun t)
-			   | atom     (t $ u)         = atom_fun t $ atom_fun u
-			   | atom     x               = x;
-			 val ct   = cterm_of sg (HOLogic.mk_Trueprop
-				   (HOLogic.mk_eq (atom_fun s,fvar)));
-			 val ss   = HOL_basic_ss addsimps [cond_split_eta];
-         in Some (mk_meta_eq (prove_goalw_cterm [] ct (K [simp_tac ss 1]))) end)
-	| None => None)
-  |   proc _ _ _ = None;
+  fun  Pair_pat k 0 (Bound m) = (m = k)
+  |    Pair_pat k i (Const ("Pair",  _) $ Bound m $ t) = i > 0 andalso
+			m = k+i andalso Pair_pat k (i-1) t
+  |    Pair_pat _ _ _ = false;
+  fun no_args k i (Abs (_, _, t)) = no_args (k+1) i t
+  |   no_args k i (t $ u) = no_args k i t andalso no_args k i u
+  |   no_args k i (Bound m) = m < k orelse m > k+i
+  |   no_args _ _ _ = true;
+  fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then Some (i,t) else None
+  |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
+  |   split_pat tp i _ = None;
+  fun metaeq sg lhs rhs = mk_meta_eq (prove_goalw_cterm [] 
+	(cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
+	(K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
+  fun simproc name patstr = Simplifier.mk_simproc name 
+		[Thm.read_cterm (sign_of Prod.thy) (patstr, HOLogic.termTVar)];
 
+  val beta_patstr = "split f z";
+  val  eta_patstr = "split f";
+  fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
+  |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
+			(beta_term_pat k i t andalso beta_term_pat k i u)
+  |   beta_term_pat k i t = no_args k i t;
+  fun  eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
+  |    eta_term_pat _ _ _ = false;
+  fun subst arg k i (Abs (x, T, t)) = Abs (x, T, subst arg (k+1) i t)
+  |   subst arg k i (t $ u) = if Pair_pat k i (t $ u) then incr_boundvars k arg
+			      else (subst arg k i t $ subst arg k i u)
+  |   subst arg k i t = t;
+  fun beta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t) $ arg) = 
+	(case split_pat beta_term_pat 1 t of 
+	Some (i,f) => Some (metaeq sg s (subst arg 0 i f))
+	| None => None)
+  |   beta_proc _ _ _ = None;
+  fun eta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t)) = 
+	(case split_pat eta_term_pat 1 t of
+	  Some (_,ft) => Some (metaeq sg s (let val (f $ arg) = ft in f end))
+ 	| None => None)
+  |   eta_proc _ _ _ = None;
 in
-  val split_eta_proc = Simplifier.mk_simproc "split_eta" [split_eta_pat] proc;
+  val split_beta_proc = simproc "split_beta" beta_patstr beta_proc;
+  val split_eta_proc  = simproc "split_eta"   eta_patstr  eta_proc;
 end;
 
-Addsimprocs [split_eta_proc];
+Addsimprocs [split_beta_proc,split_eta_proc];
 
 Goal "(%(x,y). P x y) z = P (fst z) (snd z)";
 by (stac surjective_pairing 1 THEN rtac split 1);
