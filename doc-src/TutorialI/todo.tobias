@@ -1,6 +1,8 @@
 Implementation
 ==============
 
+- (#2 * x) = #2 * - x is not proved by arith
+
 Relation: comp -> composition
 
 Add map_cong?? (upto 10% slower)
@@ -34,6 +36,9 @@ defs with = and pattern matching??
 
 Minor fixes in the tutorial
 ===========================
+
+I guess we should say "HOL" everywhere, with a remark early on about the
+differences between our HOL and the other one.
 
 warning: simp of asms from l to r; may require reordering (rotate_tac)
 

@@ -267,18 +267,21 @@ Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
 grammar, for no good reason, excludes the empty word.  That complicates
 matters just a little bit because we now have 8 instead of our 7 productions.
 
-More importantly, the proof itself is different: rather than separating the
-two directions, they perform one induction on the length of a word. This
-deprives them of the beauty of rule induction and in the easy direction
-(correctness) their reasoning is more detailed than our \isa{auto}. For the
-hard part (completeness), they consider just one of the cases that our \isa{simp{\isacharunderscore}all} disposes of automatically. Then they conclude the proof by saying
-about the remaining cases: ``We do this in a manner similar to our method of
-proof for part (1); this part is left to the reader''. But this is precisely
-the part that requires the intermediate value theorem and thus is not at all
-similar to the other cases (which are automatic in Isabelle). We conclude
-that the authors are at least cavalier about this point and may even have
-overlooked the slight difficulty lurking in the omitted cases. This is not
-atypical for pen-and-paper proofs, once analysed in detail.%
+More importantly, the proof itself is different: rather than
+separating the two directions, they perform one induction on the
+length of a word. This deprives them of the beauty of rule induction,
+and in the easy direction (correctness) their reasoning is more
+detailed than our \isa{auto}. For the hard part (completeness), they
+consider just one of the cases that our \isa{simp{\isacharunderscore}all} disposes of
+automatically. Then they conclude the proof by saying about the
+remaining cases: ``We do this in a manner similar to our method of
+proof for part (1); this part is left to the reader''. But this is
+precisely the part that requires the intermediate value theorem and
+thus is not at all similar to the other cases (which are automatic in
+Isabelle). The authors are at least cavalier about this point and may
+even have overlooked the slight difficulty lurking in the omitted
+cases. This is not atypical for pen-and-paper proofs, once analysed in
+detail.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

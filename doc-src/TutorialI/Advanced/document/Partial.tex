@@ -166,22 +166,21 @@ containing the ``current'' and the ``next'' value of function \isa{f}.
 They are initalized with the global \isa{x} and \isa{f\ x}. At the
 end \isa{fst} selects the local \isa{x}.
 
-This looks like we can define at least tail recursive functions
-without bothering about termination after all. But there is no free
-lunch: when proving properties of functions defined by \isa{while},
-termination rears its ugly head again. Here is
-\isa{while{\isacharunderscore}rule}, the well known proof rule for total
+Although the definition of tail recursive functions via \isa{while} avoids
+termination proofs, there is no free lunch. When proving properties of
+functions defined by \isa{while}, termination rears its ugly head
+again. Here is \isa{while{\isacharunderscore}rule}, the well known proof rule for total
 correctness of loops expressed with \isa{while}:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}c\ s{\isacharparenright}{\isacharsemicolon}\isanewline
 \isaindent{\ \ \ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymnot}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\ s{\isacharsemicolon}\ wf\ r{\isacharsemicolon}\isanewline
 \isaindent{\ \ \ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}c\ s{\isacharcomma}\ s{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ Q\ {\isacharparenleft}while\ b\ c\ s{\isacharparenright}%
-\end{isabelle} \isa{P} needs to be
-true of the initial state \isa{s} and invariant under \isa{c}
-(premises 1 and~2). The post-condition \isa{Q} must become true when
-leaving the loop (premise~3). And each loop iteration must descend
-along a well-founded relation \isa{r} (premises 4 and~5).
+\end{isabelle} \isa{P} needs to be true of
+the initial state \isa{s} and invariant under \isa{c} (premises 1
+and~2). The post-condition \isa{Q} must become true when leaving the loop
+(premise~3). And each loop iteration must descend along a well-founded
+relation \isa{r} (premises 4 and~5).
 
 Let us now prove that \isa{find{\isadigit{2}}} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.

@@ -158,17 +158,16 @@ containing the ``current'' and the ``next'' value of function @{term f}.
 They are initalized with the global @{term x} and @{term"f x"}. At the
 end @{term fst} selects the local @{term x}.
 
-This looks like we can define at least tail recursive functions
-without bothering about termination after all. But there is no free
-lunch: when proving properties of functions defined by @{term while},
-termination rears its ugly head again. Here is
-@{thm[source]while_rule}, the well known proof rule for total
+Although the definition of tail recursive functions via @{term while} avoids
+termination proofs, there is no free lunch. When proving properties of
+functions defined by @{term while}, termination rears its ugly head
+again. Here is @{thm[source]while_rule}, the well known proof rule for total
 correctness of loops expressed with @{term while}:
-@{thm[display,margin=50]while_rule[no_vars]} @{term P} needs to be
-true of the initial state @{term s} and invariant under @{term c}
-(premises 1 and~2). The post-condition @{term Q} must become true when
-leaving the loop (premise~3). And each loop iteration must descend
-along a well-founded relation @{term r} (premises 4 and~5).
+@{thm[display,margin=50]while_rule[no_vars]} @{term P} needs to be true of
+the initial state @{term s} and invariant under @{term c} (premises 1
+and~2). The post-condition @{term Q} must become true when leaving the loop
+(premise~3). And each loop iteration must descend along a well-founded
+relation @{term r} (premises 4 and~5).
 
 Let us now prove that @{term find2} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
