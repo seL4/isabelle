@@ -6,8 +6,7 @@ Misc set-theory lemmas and HOL type definitions.
 *)
 
 theory Typedef = Set
-files "subset.ML" "equalities.ML" "mono.ML"
-  "Tools/induct_attrib.ML" ("Tools/typedef_package.ML"):
+files "subset.ML" "equalities.ML" "mono.ML" ("Tools/typedef_package.ML"):
 
 (* Courtesy of Stephan Merz *)
 lemma Least_mono: 
@@ -128,7 +127,6 @@ proof -
   ultimately show "P x" by (simp only:)
 qed
 
-setup InductAttrib.setup
 use "Tools/typedef_package.ML"
 
 end
