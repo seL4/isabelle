@@ -344,8 +344,7 @@ val local_defs =
   \ val print_translation = [];\n\
   \ val typed_print_translation = [];\n\
   \ val print_ast_translation = [];\n\
-  \ val token_translation = [];\n\
-  \ val thy_setup = []";
+  \ val token_translation = [];";
 
 val trfun_args =
   "(parse_ast_translation, parse_translation, \
@@ -373,7 +372,7 @@ fun mk_constaxiom_decls x =
     val (axms_defs, axms_names) =
       mk_axiom_decls (map (fn ((id, _), def) => (id ^ "_def", def)) x);
   in ((mk_big_list o map mk_triple2 o map (apfst quote o fst)) x ^
-       "\n\n|> PureThy.add_store_defs\n" ^ axms_defs, axms_names)
+       "\n\n|> (PureThy.add_defs o map Attribute.none)\n" ^ axms_defs, axms_names)
   end;
 
 val constaxiom_decls =
@@ -419,7 +418,7 @@ val instance_decl =
 fun empty_decl toks = (empty >> K "") toks;
 
 val global_path =
-  "|> (fn thy => if ! global_names then thy else Theory.add_path \"/\" thy)";
+  "|> (fn thy => if ! global_names then thy else Theory.root_path thy)";
 
 val local_path =
   global_path ^ "\n\
@@ -503,7 +502,6 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \\n"
     ^ local_path ^
     "\n\
-    \|> Theory.setup thy_setup\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
     \|> Theory.add_trfunsT typed_print_translation\n\
@@ -556,12 +554,13 @@ val pure_sections =
  [section "classes" "|> Theory.add_classes" class_decls,
   section "default" "|> Theory.add_defsort" sort,
   section "types" "" type_decls,
+  section "nonterminals" "|> Theory.add_nonterminals" (repeat1 name >> mk_list),
   section "arities" "|> Theory.add_arities" arity_decls,
   section "consts" "|> Theory.add_consts" const_decls,
   section "syntax" "|> Theory.add_modesyntax" syntax_decls,
   section "translations" "|> Theory.add_trrules" trans_decls,
-  axm_section "rules" "|> PureThy.add_store_axioms" axiom_decls,
-  axm_section "defs" "|> PureThy.add_store_defs" axiom_decls,
+  axm_section "rules" "|> (PureThy.add_axioms o map Attribute.none)" axiom_decls,
+  axm_section "defs" "|> (PureThy.add_defs o map Attribute.none)" axiom_decls,
   section "oracle" "|> Theory.add_oracle" oracle_decl,
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
@@ -569,6 +568,7 @@ val pure_sections =
   section "path" "|> Theory.add_path" name,
   section "global" global_path empty_decl,
   section "local" local_path empty_decl,
+  section "setup" "|> Theory.apply" long_id,
   section "MLtext" "" verbatim];
 
 
