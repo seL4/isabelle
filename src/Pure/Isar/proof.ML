@@ -515,9 +515,7 @@ fun gen_assume f exp args state =
   state
   |> assert_forward
   |> map_context_result (f exp args)
-  |> (fn (st, (factss, prems)) =>
-    these_factss (st, factss)
-    |> put_thms ("prems", prems));
+  |> these_factss;
 
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
