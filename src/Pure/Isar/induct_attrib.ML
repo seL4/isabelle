@@ -83,8 +83,8 @@ end;
 
 type rules = (string * thm) NetRules.T;
 
-val init_rules = NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2
-  andalso Thm.eq_thm (th1, th2)) (K 0);
+val init_rules =
+  NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso Thm.eq_thm (th1, th2));
 
 fun lookup_rule (rs: rules) name = Library.assoc (NetRules.rules rs, name);
 
