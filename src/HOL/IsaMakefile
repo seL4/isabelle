@@ -312,7 +312,7 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
 
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
-$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL \
+$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/J/Conform.ML MicroJava/J/Conform.thy MicroJava/J/Decl.thy \
   MicroJava/J/Eval.thy MicroJava/J/Eval.ML MicroJava/J/JBasis.ML \
   MicroJava/J/JBasis.thy MicroJava/J/JTypeSafe.thy MicroJava/J/JTypeSafe.ML \
