@@ -2,90 +2,170 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-Theory of events for security protocols
-
-Datatype of events; function "sees"; freshness
 *)
 
 AddIffs [Spy_in_bad, Server_not_bad];
 
-(**** Function "spies" ****)
+Addsimps [knows_Cons, used_Cons];
 
-(** Simplifying   parts (insert X (spies evs))
-      = parts {X} Un parts (spies evs) -- since general case loops*)
+(**** Function "knows" ****)
 
-bind_thm ("parts_insert_spies",
+(** Simplifying   parts (insert X (knows Spy evs))
+      = parts {X} Un parts (knows Spy evs) -- since general case loops*)
+
+bind_thm ("parts_insert_knows_Spy",
 	  parts_insert |> 
-	  read_instantiate_sg (sign_of thy) [("H", "spies evs")]);
+	  read_instantiate_sg (sign_of thy) [("H", "knows Spy evs")]);
 
 
-Goal "P(event_case sf nf ev) = \
+Goal "P(event_case sf nf gf ev) = \
 \      ((ALL A B X. ev = Says A B X --> P(sf A B X)) & \
-\       (ALL A X. ev = Notes A X --> P(nf A X)))";
+\       (ALL A X. ev = Notes A X --> P(nf A X)) & \
+\       (ALL A X. ev = Gets A X --> P(gf A X)))";
 by (induct_tac "ev" 1);
 by Auto_tac;
 qed "expand_event_case";
 
-Goal "spies (Says A B X # evs) = insert X (spies evs)";
+Goal "knows Spy (Says A B X # evs) = insert X (knows Spy evs)";
 by (Simp_tac 1);
-qed "spies_Says";
+qed "knows_Spy_Says";
 
 (*The point of letting the Spy see "bad" agents' notes is to prevent
   redundant case-splits on whether A=Spy and whether A:bad*)
-Goal "spies (Notes A X # evs) = \
-\         (if A:bad then insert X (spies evs) else spies evs)";
+Goal "knows Spy (Notes A X # evs) = \
+\         (if A:bad then insert X (knows Spy evs) else knows Spy evs)";
 by (Simp_tac 1);
-qed "spies_Notes";
+qed "knows_Spy_Notes";
 
-Goal "spies evs <= spies (Says A B X # evs)";
+Goal "knows Spy (Gets A X # evs) = knows Spy evs";
+by (Simp_tac 1);
+qed "knows_Spy_Gets";
+
+Goal "knows Spy evs <= knows Spy (Says A B X # evs)";
 by (simp_tac (simpset() addsimps [subset_insertI]) 1);
-qed "spies_subset_spies_Says";
+qed "knows_Spy_subset_knows_Spy_Says";
 
-Goal "spies evs <= spies (Notes A X # evs)";
+Goal "knows Spy evs <= knows Spy (Notes A X # evs)";
 by (Simp_tac 1);
 by (Fast_tac 1);
-qed "spies_subset_spies_Notes";
+qed "knows_Spy_subset_knows_Spy_Notes";
 
-(*Spy sees all traffic*)
-Goal "Says A B X : set evs --> X : spies evs";
+Goal "knows Spy evs <= knows Spy (Gets A X # evs)";
+by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+qed "knows_Spy_subset_knows_Spy_Gets";
+
+(*Spy sees what is sent on the traffic*)
+Goal "Says A B X : set evs --> X : knows Spy evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
-qed_spec_mp "Says_imp_spies";
+qed_spec_mp "Says_imp_knows_Spy";
 
-(*Spy sees Notes of bad agents*)
-Goal "Notes A X : set evs --> A: bad --> X : spies evs";
+Goal "Notes A X : set evs --> A: bad --> X : knows Spy evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
-qed_spec_mp "Notes_imp_spies";
+qed_spec_mp "Notes_imp_knows_Spy";
+
 
 (*Use with addSEs to derive contradictions from old Says events containing
   items known to be fresh*)
-val spies_partsEs = make_elim (Says_imp_spies RS parts.Inj) :: partsEs;
+val knows_Spy_partsEs = make_elim (Says_imp_knows_Spy RS parts.Inj) :: partsEs;
 
-Addsimps [spies_Says, spies_Notes];
+Addsimps [knows_Spy_Says, knows_Spy_Notes, knows_Spy_Gets];
+
+
+(*Begin lemmas about agents' knowledge*)
+
+Goal "knows A (Says A B X # evs) = insert X (knows A evs)";
+by (Simp_tac 1);
+qed "knows_Says";
+
+Goal "knows A (Notes A X # evs) = insert X (knows A evs)";
+by (Simp_tac 1);
+qed "knows_Notes";
+
+Goal "A ~= Spy --> knows A (Gets A X # evs) = insert X (knows A evs)";
+by (Simp_tac 1);
+qed "knows_Gets";
+
+
+Goal "knows A evs <= knows A (Says A B X # evs)";
+by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+qed "knows_subset_knows_Says";
+
+Goal "knows A evs <= knows A (Notes A X # evs)";
+by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+qed "knows_subset_knows_Notes";
+
+Goal "knows A evs <= knows A (Gets A X # evs)";
+by (simp_tac (simpset() addsimps [subset_insertI]) 1);
+qed "knows_subset_knows_Gets";
+
+(*Agents know what they say*)
+Goal "Says A B X : set evs --> X : knows A evs";
+by (induct_tac "evs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
+by (Blast_tac 1);
+qed_spec_mp "Says_imp_knows";
+
+(*Agents know what they note*)
+Goal "Notes A X : set evs --> X : knows A evs";
+by (induct_tac "evs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
+by (Blast_tac 1);
+qed_spec_mp "Notes_imp_knows";
+
+(*Agents know what they receive*)
+Goal "A ~= Spy --> Gets A X : set evs --> X : knows A evs";
+by (induct_tac "evs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
+qed_spec_mp "Gets_imp_knows_agents";
+
+
+(*What agents DIFFERENT FROM Spy know 
+  was either said, or noted, or got, or known initially*)
+Goal "[| X : knows A evs; A ~= Spy |] ==> EX B. \
+\ Says A B X : set evs | Gets A X : set evs | Notes A X : set evs | X : initState A";
+by (etac rev_mp 1);
+by (induct_tac "evs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
+by (Blast_tac 1);
+qed_spec_mp "knows_imp_Says_Gets_Notes_initState";
+
+(*What the Spy knows -- for the time being --
+  was either said or noted, or known initially*)
+Goal "[| X : knows Spy evs |] ==> EX A B. \
+\ Says A B X : set evs | Notes A X : set evs | X : initState Spy";
+by (etac rev_mp 1);
+by (induct_tac "evs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
+by (Blast_tac 1);
+qed_spec_mp "knows_Spy_imp_Says_Notes_initState";
+
+(*END lemmas about agents' knowledge*)
+
+
 
 (**** NOTE REMOVAL--laws above are cleaner, as they don't involve "case" ****)
-Delsimps [spies_Cons];   
+Delsimps [knows_Cons];   
 
 
 (*** Fresh nonces ***)
 
-Goal "parts (spies evs) <= used evs";
+Goal "parts (knows Spy evs) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (simpset() addsimps [parts_insert_spies]
+	      (simpset() addsimps [parts_insert_knows_Spy]
 	                addsplits [expand_event_case])));
 by (ALLGOALS Blast_tac);
-qed "parts_spies_subset_used";
+qed "parts_knows_Spy_subset_used";
 
-bind_thm ("usedI", impOfSubs parts_spies_subset_used);
+bind_thm ("usedI", impOfSubs parts_knows_Spy_subset_used);
 AddIs [usedI];
 
 Goal "parts (initState B) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (simpset() addsimps [parts_insert_spies]
+	      (simpset() addsimps [parts_insert_knows_Spy]
 	                addsplits [expand_event_case])));
 by (ALLGOALS Blast_tac);
 bind_thm ("initState_into_used", impOfSubs (result()));
@@ -100,6 +180,11 @@ by (Simp_tac 1);
 qed "used_Notes";
 Addsimps [used_Notes];
 
+Goal "used (Gets A X # evs) = used evs";
+by (Simp_tac 1);
+qed "used_Gets";
+Addsimps [used_Gets];
+
 Goal "used [] <= used evs";
 by (Simp_tac 1);
 by (blast_tac (claset() addIs [initState_into_used]) 1);
@@ -109,29 +194,34 @@ qed "used_nil_subset";
 Delsimps [used_Nil, used_Cons];   
 
 
-(*currently unused*)
-Goal "used evs <= used (evs@evs')";
-by (induct_tac "evs" 1);
-by (simp_tac (simpset() addsimps [used_nil_subset]) 1);
-by (induct_tac "a" 1);
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS Blast_tac);
-qed "used_subset_append";
-
-
-(*For proving theorems of the form X ~: analz (spies evs) --> P
+(*For proving theorems of the form X ~: analz (knows Spy evs) --> P
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
   it will omit complicated reasoning about analz.*)
 val analz_mono_contra_tac = 
   let val analz_impI = read_instantiate_sg (sign_of thy)
-                [("P", "?Y ~: analz (spies ?evs)")] impI;
+                [("P", "?Y ~: analz (knows Spy ?evs)")] impI;
   in
     rtac analz_impI THEN' 
     REPEAT1 o 
       (dresolve_tac 
-       [spies_subset_spies_Says  RS analz_mono RS contra_subsetD,
-	spies_subset_spies_Notes RS analz_mono RS contra_subsetD])
+       [knows_Spy_subset_knows_Spy_Says RS analz_mono RS contra_subsetD,
+        knows_Spy_subset_knows_Spy_Notes RS analz_mono RS contra_subsetD,
+	knows_Spy_subset_knows_Spy_Gets RS analz_mono RS contra_subsetD])
     THEN'
     mp_tac
   end;
+
+fun Reception_tac i =
+    blast_tac (claset() addDs [Says_imp_knows_Spy RS parts.Inj, 
+                               impOfSubs (parts_insert RS equalityD1), 
+			       parts_trans,
+                               Says_imp_knows_Spy RS analz.Inj,
+                               impOfSubs analz_mono, analz_cut] 
+                        addIs [less_SucI]) i;
+
+
+(*Compatibility for the old "spies" function*)
+val spies_partsEs = knows_Spy_partsEs;
+val Says_imp_spies = Says_imp_knows_Spy;
+val parts_insert_spies = parts_insert_knows_Spy;

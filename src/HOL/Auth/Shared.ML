@@ -28,11 +28,11 @@ Addsimps [keysFor_parts_initState];
 (*Specialized to shared-key model: no need for addss in protocol proofs*)
 Goal "[| K: keysFor (parts (insert X H));  X : synth (analz H) |] \
 \              ==> K : keysFor (parts H) | Key K : parts H";
-by (fast_tac
+by (force_tac
       (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 			impOfSubs (analz_subset_parts RS keysFor_mono)]
-		addIs  [impOfSubs analz_subset_parts]
-                addss  (simpset())) 1);
+		addIs  [impOfSubs analz_subset_parts],
+       simpset()) 1);
 qed "keysFor_parts_insert";
 
 Goal "Crypt K X : H ==> K : keysFor H";
@@ -41,22 +41,21 @@ by (Asm_full_simp_tac 1);
 qed "Crypt_imp_keysFor";
 
 
-(*** Function "spies" ***)
+(*** Function "knows" ***)
 
 (*Spy sees shared keys of agents!*)
-Goal "A: bad ==> Key (shrK A) : spies evs";
+Goal "A: bad ==> Key (shrK A) : knows Spy evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (simpset() addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, knows_Cons]
 	                addsplits [expand_event_case])));
-qed "Spy_spies_bad";
-
-AddSIs [Spy_spies_bad];
+qed "Spy_knows_Spy_bad";
+AddSIs [Spy_knows_Spy_bad];
 
 (*For not_bad_tac*)
-Goal "[| Crypt (shrK A) X : analz (spies evs);  A: bad |] \
-\              ==> X : analz (spies evs)";
-by (fast_tac (claset() addSDs [analz.Decrypt] addss (simpset())) 1);
+Goal "[| Crypt (shrK A) X : analz (knows Spy evs);  A: bad |] \
+\              ==> X : analz (knows Spy evs)";
+by (force_tac (claset() addSDs [analz.Decrypt], simpset()) 1);
 qed "Crypt_Spy_analz_bad";
 
 (*Prove that the agent is uncompromised by the confidentiality of 
@@ -202,7 +201,8 @@ qed "Key_supply";
     such as  Nonce ?N ~: used evs that match Nonce_supply*)
 fun possibility_tac st = st |>
    (REPEAT 
-    (ALLGOALS (simp_tac (simpset() delsimps [used_Says] setSolver safe_solver))
+    (ALLGOALS (simp_tac (simpset() delsimps [used_Says, used_Notes, used_Gets] 
+                         setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply, Key_supply])));

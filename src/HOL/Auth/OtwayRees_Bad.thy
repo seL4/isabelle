@@ -22,8 +22,13 @@ inductive otway
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  X: synth (analz (spies evs)) |]
+    Fake "[| evs: otway;  X: synth (analz (knows Spy evs)) |]
           ==> Says Spy B X  # evs : otway"
+
+         (*A message that has been sent can be received by the
+           intended recipient.*)
+    Reception "[| evsr: otway;  Says A B X : set evsr |]
+               ==> Gets B X # evsr : otway"
 
          (*Alice initiates a protocol run*)
     OR1  "[| evs1: otway;  Nonce NA ~: used evs1 |]
@@ -35,7 +40,7 @@ inductive otway
 	   the sender is, hence the A' in the sender field.
            We modify the published protocol by NOT encrypting NB.*)
     OR2  "[| evs2: otway;  Nonce NB ~: used evs2;
-             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
+             Gets B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, Nonce NB,
                     Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
@@ -45,7 +50,7 @@ inductive otway
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.*)
     OR3  "[| evs3: otway;  Key KAB ~: used evs3;
-             Says B' Server 
+             Gets Server 
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
                     Nonce NB, 
@@ -60,11 +65,11 @@ inductive otway
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.
            Need B ~= Server because we allow messages to self.*)
-    OR4  "[| evs4: otway;  A ~= B;  B ~= Server;
+    OR4  "[| evs4: otway;  B ~= Server;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB,
                              Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
                : set evs4;
-             Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Gets B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set evs4 |]
           ==> Says B A {|Nonce NA, X|} # evs4 : otway"
 

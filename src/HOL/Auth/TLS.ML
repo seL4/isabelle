@@ -480,7 +480,7 @@ by (analz_induct_tac 1);   (*4 seconds*)
 (*ClientAccepts and ServerAccepts: because PMS was already visible*)
 by (REPEAT (blast_tac (claset() addDs [Spy_not_see_PMS, 
 				       Says_imp_spies RS analz.Inj,
-				       Notes_imp_spies RS analz.Inj]) 6));
+				       Notes_imp_knows_Spy RS analz.Inj]) 6));
 (*ClientHello*)
 by (Blast_tac 3);
 (*SpyKeys: by secrecy of the PMS, Spy cannot make the MS*)

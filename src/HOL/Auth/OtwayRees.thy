@@ -1,18 +1,13 @@
-(*  Title:      HOL/Auth/OtwayRees
-    ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1996  University of Cambridge
-
-Inductive relation "otway" for the Otway-Rees protocol.
+(*  
+Inductive relation "otway" for the Otway-Rees protocol
+extended by Gets primitive.
 
 Version that encrypts Nonce NB
 
-From page 244 of
-  Burrows, Abadi and Needham.  A Logic of Authentication.
-  Proc. Royal Soc. 426 (1989)
 *)
 
 OtwayRees = Shared + 
+
 
 consts  otway   :: event list set
 inductive "otway"
@@ -25,8 +20,13 @@ inductive "otway"
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  X: synth (analz (spies evs)) |]
-          ==> Says Spy B X  # evs : otway"
+    Fake "[| evsa: otway;  X: synth (analz (knows Spy evsa)) |]
+          ==> Says Spy B X  # evsa : otway"
+
+         (*A message that has been sent can be received by the
+           intended recipient.*)
+    Reception "[| evsr: otway;  Says A B X : set evsr |]
+               ==> Gets B X # evsr : otway"
 
          (*Alice initiates a protocol run*)
     OR1  "[| evs1: otway;  Nonce NA ~: used evs1 |]
@@ -38,7 +38,7 @@ inductive "otway"
 	   the sender is, hence the A' in the sender field.
            Note that NB is encrypted.*)
     OR2  "[| evs2: otway;  Nonce NB ~: used evs2;
-             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
+             Gets B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, 
                     Crypt (shrK B)
@@ -49,7 +49,7 @@ inductive "otway"
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.*)
     OR3  "[| evs3: otway;  Key KAB ~: used evs3;
-             Says B' Server 
+             Gets Server 
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
                     Crypt (shrK B) {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
@@ -68,7 +68,7 @@ inductive "otway"
                              Crypt (shrK B)
                                    {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
                : set evs4;
-             Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Gets B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set evs4 |]
           ==> Says B A {|Nonce NA, X|} # evs4 : otway"
 

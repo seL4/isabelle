@@ -72,7 +72,7 @@ AddIffs [priK_in_initState];
 Goal "Key (pubK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (simpset() addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, knows_Cons]
 	                addsplits [expand_event_case])));
 qed_spec_mp "spies_pubK";
 
@@ -80,7 +80,7 @@ qed_spec_mp "spies_pubK";
 Goal "A: bad ==> Key (priK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (simpset() addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, knows_Cons]
 	                addsplits [expand_event_case])));
 qed "Spy_spies_bad";
 
