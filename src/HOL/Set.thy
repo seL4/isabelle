@@ -89,7 +89,6 @@ translations
   "? x:A. P"    == "Bex A (%x. P)"
   "ALL x:A. P"  => "Ball A (%x. P)"
   "EX x:A. P"   => "Bex A (%x. P)"
-  "disjoint A B" == "A <= Compl B"
 
 syntax ("" output)
   "_setle"      :: ['a set, 'a set] => bool           ("op <=")
@@ -126,6 +125,7 @@ syntax (symbols output)
 translations
   "op \\<subseteq>" => "op <= :: [_ set, _ set] => bool"
   "op \\<subset>" => "op <  :: [_ set, _ set] => bool"
+  "disjoint A B" == "_setle A (Compl B)"
 
 
 
