@@ -20,4 +20,4 @@ case  ${HOST} in
     ;;
 esac
 
-rsync -va --delete rsync://www4.in.tum.de:8730/isabelle-dist/. $DEST/.
+mirror-isabelle-dist -d $DEST
