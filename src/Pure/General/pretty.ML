@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/pretty.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:	Markus Wenzel, TU Munich
+    Author:     Markus Wenzel, TU Munich
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic pretty printing module.
@@ -56,51 +56,53 @@ signature PRETTY =
 structure Pretty : PRETTY =
 struct
 
-(*printing items: compound phrases, strings, and breaks*)
+
+(** printing items: compound phrases, strings, and breaks **)
+
 datatype T =
   Block of T list * int * int |         (*body, indentation, length*)
   String of string * int |              (*text, length*)
   Break of bool * int;                  (*mandatory flag, width if not taken*);
 
-(*Add the lengths of the expressions until the next Break; if no Break then
-  include "after", to account for text following this block. *)
-fun breakdist (Block(_,_,len)::es, after) = len + breakdist(es, after)
-  | breakdist (String (s, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (Break _ :: es, after) = 0
-  | breakdist ([], after) = after;
-
-fun repstring a 0 = ""
-  | repstring a 1 = a
-  | repstring a k =
-      if k mod 2 = 0 then repstring(a^a) (k div 2)
-      else repstring(a^a) (k div 2) ^ a;
-
-val spaces = repstring " ";
 
 
-(*** Type for lines of text: string, # of lines, position on line ***)
+(** output text **)
 
-type text = {tx: Buffer.T, nl: int, pos: int};
+val output_spaces = Symbol.output o Symbol.spaces;
+val add_indent = Buffer.add o output_spaces;
+fun set_indent wd = Buffer.empty |> add_indent wd;
 
-val emptytext = {tx = Buffer.empty, nl = 0, pos = 0};
+val empty =
+ {tx = Buffer.empty,
+  ind = Buffer.empty,
+  pos = 0,
+  nl = 0};
 
-fun blanks wd {tx, nl, pos} =
-    {tx  = Buffer.add (Symbol.output (spaces wd)) tx,
-     nl  = nl,
-     pos = pos+wd};
+fun newline {tx, ind, pos, nl} =
+ {tx = Buffer.add (Symbol.output "\n") tx,
+  ind = Buffer.empty,
+  pos = 0,
+  nl = nl + 1};
 
-fun newline {tx, nl, pos} =
-    {tx  = Buffer.add (Symbol.output "\n") tx,
-     nl  = nl + 1,
-     pos = 0};
+fun string (s, len) {tx, ind, pos: int, nl} =
+ {tx = Buffer.add s tx,
+  ind = Buffer.add s ind,
+  pos = pos + len,
+  nl = nl};
 
-fun string s len {tx, nl, pos:int} =
-    {tx  = Buffer.add s tx,
-     nl  = nl,
-     pos = pos + len};
+fun blanks wd = string (output_spaces wd, wd);
+
+fun indentation (buf, len) {tx, ind, pos, nl} =
+  let val s = Buffer.content buf in
+   {tx = Buffer.add (Symbol.indent (s, len)) tx,
+    ind = Buffer.add s ind,
+    pos = pos + len,
+    nl = nl}
+  end;
 
 
-(*** Formatting ***)
+
+(** formatting **)
 
 (* margin *)
 
@@ -113,32 +115,50 @@ val margin_info = ref (make_margin_info 76);
 fun setmargin m = margin_info := make_margin_info m;
 fun setmp_margin m f = setmp margin_info (make_margin_info m) f;
 
-(*Search for the next break (at this or higher levels) and force it to occur*)
+
+(* format *)
+
+(*Add the lengths of the expressions until the next Break; if no Break then
+  include "after", to account for text following this block.*)
+fun breakdist (Block (_, _, len) :: es, after) = len + breakdist (es, after)
+  | breakdist (String (s, len) :: es, after) = len + breakdist (es, after)
+  | breakdist (Break _ :: es, after) = 0
+  | breakdist ([], after) = after;
+
+(*Search for the next break (at this or higher levels) and force it to occur.*)
 fun forcenext [] = []
-  | forcenext (Break(_,wd) :: es) = Break(true,0) :: es
+  | forcenext (Break (_, wd) :: es) = Break (true, 0) :: es
   | forcenext (e :: es) = e :: forcenext es;
 
 (*es is list of expressions to print;
   blockin is the indentation of the current block;
-  after is the width of the following context until next break. *)
+  after is the width of the following context until next break.*)
 fun format ([], _, _) text = text
-  | format (e::es, blockin, after) (text as {pos,nl,...}) =
-    (case e of
-       Block(bes,indent,wd) =>
-         let val blockin' = (pos + indent) mod #emergencypos (! margin_info)
-             val btext = format(bes, blockin', breakdist(es,after)) text
-             (*If this block was broken then force the next break.*)
-             val es2 = if nl < #nl(btext) then forcenext es else es
-         in  format (es2,blockin,after) btext  end
-     | String (s, len) => format (es,blockin,after) (string s len text)
-     | Break(force,wd) => (*no break if text to next break fits on this line
-                            or if breaking would add only breakgain to space *)
-           format (es,blockin,after)
-               (if not force andalso
-                   pos+wd <= Int.max(#margin (! margin_info) - breakdist(es,after),
-                                     blockin + #breakgain (! margin_info))
-                then blanks wd text  (*just insert wd blanks*)
-                else blanks blockin (newline text)));
+  | format (e :: es, block as (blockind, blockin), after) (text as {ind, pos, nl, ...}) =
+      (case e of
+        Block (bes, indent, wd) =>
+          let
+            val {emergencypos, ...} = ! margin_info;
+            val pos' = pos + indent;
+            val pos'' = pos' mod emergencypos;
+            val block' =
+              if pos' < emergencypos then (ind |> add_indent indent, pos')
+              else (set_indent pos'', pos'');
+            val btext = format (bes, block', breakdist (es, after)) text;
+            (*if this block was broken then force the next break*)
+            val es2 = if nl < #nl btext then forcenext es else es;
+          in format (es2, block, after) btext end
+      | String str => format (es, block, after) (string str text)
+      | Break (force, wd) =>
+          let val {margin, breakgain, ...} = ! margin_info in
+            (*no break if text to next break fits on this line
+              or if breaking would add only breakgain to space*)
+            format (es, block, after)
+              (if not force andalso
+                  pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
+                then text |> blanks wd  (*just insert wd blanks*)
+                else text |> newline |> indentation block)
+          end);
 
 
 (*** Exported functions to create formatting expressions ***)
@@ -184,7 +204,7 @@ fun big_list name prts = block (fbreaks (str name :: prts));
 fun chunks prts = blk (0, fbreaks prts);
 
 fun indent 0 prt = prt
-  | indent n prt = blk (0, [str (spaces n), prt]);
+  | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
 
 
 (*** Pretty printing with depth limitation ***)
@@ -199,11 +219,9 @@ fun pruning dp (Block(bes,indent,wd)) =
               else str "..."
   | pruning dp e = e;
 
-fun prune dp e = if dp>0 then pruning dp e else e;
+fun prune dp e = if dp > 0 then pruning dp e else e;
 
-
-fun string_of e = Buffer.content (#tx (format ([prune (! depth) e], 0, 0) emptytext));
-
+fun string_of e = Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty));
 val writeln = writeln o string_of;
 
 
@@ -212,8 +230,8 @@ fun str_of prt =
   let
     fun s_of (Block (prts, _, _)) = implode (map s_of prts)
       | s_of (String (s, _)) = s
-      | s_of (Break (false, wd)) = Symbol.output (spaces wd)
-      | s_of (Break (true, _)) = Symbol.output " ";
+      | s_of (Break (false, wd)) = output_spaces wd
+      | s_of (Break (true, _)) = output_spaces 1;
   in s_of (prune (! depth) prt) end;
 
 (*part of the interface to the ML toplevel pretty printers*)
