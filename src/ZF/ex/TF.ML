@@ -7,6 +7,7 @@ Trees & forests, a mutually recursive type definition.
 *)
 
 Addsimps tree_forest.intrs;
+AddTCs   tree_forest.intrs;
 
 (** tree_forest(A) as the union of tree(A) and forest(A) **)
 

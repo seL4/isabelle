@@ -253,8 +253,8 @@ qed "ord_iso_converse";
 
 (*Rewriting with bijections and converse (function inverse)*)
 val bij_inverse_ss = 
-    simpset() setSolver (type_auto_tac [ord_iso_is_bij, bij_is_fun, apply_type, 
-                                       bij_converse_bij, comp_fun, comp_bij])
+    simpset() setSolver 
+      type_solver_tac (tcset() addTCs [ord_iso_is_bij, bij_is_fun, comp_fun, comp_bij])
           addsimps [right_inverse_bij, left_inverse_bij];
 
 (** Symmetry and Transitivity Rules **)
@@ -266,23 +266,22 @@ by (Asm_simp_tac 1);
 qed "ord_iso_refl";
 
 (*Symmetry of similarity*)
-Goalw [ord_iso_def] 
-    "f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
-by (fast_tac (claset() addss bij_inverse_ss) 1);
+Goalw [ord_iso_def] "f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
+by (force_tac (claset(), bij_inverse_ss) 1);
 qed "ord_iso_sym";
 
 (*Transitivity of similarity*)
 Goalw [mono_map_def] 
     "[| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |] ==> \
 \         (f O g): mono_map(A,r,C,t)";
-by (fast_tac (claset() addss bij_inverse_ss) 1);
+by (force_tac (claset(), bij_inverse_ss) 1);
 qed "mono_map_trans";
 
 (*Transitivity of similarity: the order-isomorphism relation*)
 Goalw [ord_iso_def] 
     "[| g: ord_iso(A,r,B,s);  f: ord_iso(B,s,C,t) |] ==> \
 \         (f O g): ord_iso(A,r,C,t)";
-by (fast_tac (claset() addss bij_inverse_ss) 1);
+by (force_tac (claset(), bij_inverse_ss) 1);
 qed "ord_iso_trans";
 
 (** Two monotone maps can make an order-isomorphism **)
@@ -373,16 +372,16 @@ qed "well_ord_iso_predE";
 
 (*Simple consequence of Lemma 6.1*)
 Goal "[| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);  \
-\         a:A;  c:A |] ==> a=c";
+\        a:A;  c:A |] ==> a=c";
 by (forward_tac [well_ord_is_trans_on] 1);
 by (forward_tac [well_ord_is_linear] 1);
 by (linear_case_tac 1);
 by (dtac ord_iso_sym 1);
-by (REPEAT   (*because there are two symmetric cases*)
-    (EVERY [eresolve_tac [pred_subset RSN (2, well_ord_subset) RS
-                          well_ord_iso_predE] 1,
-            blast_tac (claset() addSIs [predI]) 2,
-            asm_simp_tac (simpset() addsimps [trans_pred_pred_eq]) 1]));
+(*two symmetric cases*)
+by (auto_tac (claset() addSEs [pred_subset RSN (2, well_ord_subset) RS
+			       well_ord_iso_predE]
+	               addSIs [predI], 
+	      simpset() addsimps [trans_pred_pred_eq]));
 qed "well_ord_iso_pred_eq";
 
 (*Does not assume r is a wellordering!*)

@@ -10,8 +10,6 @@ But a definition by transfinite recursion would be much simpler!
 *)
 
 
-open OrderType;
-
 (**** Proofs needing the combination of Ordinal.thy and Order.thy ****)
 
 val [prem] = goal OrderType.thy "j le i ==> well_ord(j, Memrel(i))";
@@ -499,8 +497,8 @@ by (Blast_tac 1);
 qed "oadd_1";
 
 Goal "[| Ord(i);  Ord(j) |] ==> i++succ(j) = succ(i++j)";
-                (*ZF_ss prevents looping*)
-by (asm_simp_tac (ZF_ss addsimps [Ord_oadd, oadd_1 RS sym]) 1);
+                (*FOL_ss prevents looping*)
+by (asm_simp_tac (FOL_ss addsimps [Ord_oadd, oadd_1 RS sym]) 1);
 by (asm_simp_tac (simpset() addsimps [oadd_1, oadd_assoc, Ord_1]) 1);
 qed "oadd_succ";
 
@@ -766,8 +764,8 @@ by (REPEAT (ares_tac [well_ord_rmult, well_ord_radd, well_ord_Memrel,
 qed "oadd_omult_distrib";
 
 Goal "[| Ord(i);  Ord(j) |] ==> i**succ(j) = (i**j)++i";
-                (*ZF_ss prevents looping*)
-by (asm_simp_tac (ZF_ss addsimps [oadd_1 RS sym]) 1);
+                (*FOL_ss prevents looping*)
+by (asm_simp_tac (FOL_ss addsimps [oadd_1 RS sym]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [omult_1, oadd_omult_distrib, Ord_1]) 1);
 qed "omult_succ";

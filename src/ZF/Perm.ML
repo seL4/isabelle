@@ -9,8 +9,6 @@ The theory underlying permutation groups
   -- Lemmas for the Schroeder-Bernstein Theorem
 *)
 
-open Perm;
-
 (** Surjective function space **)
 
 Goalw [surj_def] "f: surj(A,B) ==> f: A->B";
@@ -93,7 +91,7 @@ by (etac IntD2 1);
 qed "bij_is_surj";
 
 (* f: bij(A,B) ==> f: A->B *)
-bind_thm ("bij_is_fun", (bij_is_inj RS inj_is_fun));
+bind_thm ("bij_is_fun", bij_is_inj RS inj_is_fun);
 
 val prems = goalw Perm.thy [bij_def]
     "[| !!x. x:A ==> c(x): B;           \
@@ -225,6 +223,8 @@ by (fast_tac (claset() addEs [surj_range RS subst, inj_converse_inj,
 qed "bij_converse_bij";
 (*Adding this as an SI seems to cause looping*)
 
+AddTCs [bij_converse_bij];
+
 
 (** Composition of two relations **)
 
@@ -342,17 +342,19 @@ val [prem] = Goal
 by (rtac fun_extension 1);
 by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
-by (typechk_tac (prem::ZF_typechecks));
+by (typecheck_tac (tcset() addTCs [prem]));
 by (asm_simp_tac (simpset() 
-             setSolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
+                   setSolver 
+                   type_solver_tac (tcset() addTCs [prem, lam_funtype])) 1);
 qed "comp_lam";
 
 Goal "[| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
 by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
 by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
-by (asm_simp_tac (simpset()  addsimps [left_inverse] 
-                        setSolver type_auto_tac [inj_is_fun, apply_type]) 1);
+by (asm_simp_tac (simpset() addsimps [left_inverse] 
+		  setSolver
+		  type_solver_tac (tcset() addTCs [inj_is_fun])) 1);
 qed "comp_inj";
 
 Goalw [surj_def]

@@ -35,6 +35,7 @@ by (induct_tac "m" 1);
 by Auto_tac;
 qed "add_type";
 Addsimps [add_type];
+AddTCs [add_type];
 
 (** Multiplication **)
 
@@ -43,6 +44,7 @@ by (induct_tac "m" 1);
 by Auto_tac;
 qed "mult_type";
 Addsimps [mult_type];
+AddTCs [mult_type];
 
 
 (** Difference **)
@@ -53,6 +55,7 @@ by Auto_tac;
 by (fast_tac (claset() addIs [nat_case_type]) 1);
 qed "diff_type";
 Addsimps [diff_type];
+AddTCs [diff_type];
 
 Goal "n:nat ==> 0 #- n = 0";
 by (induct_tac "n" 1);
@@ -288,6 +291,7 @@ val div_ss = simpset() addsimps [nat_into_Ord, div_termination RS ltD,
 Goalw [mod_def] "[| 0<n;  m:nat;  n:nat |] ==> m mod n : nat";
 by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
 qed "mod_type";
+AddTCs [mod_type];
 
 Goal "[| 0<n;  m<n |] ==> m mod n = m";
 by (rtac (mod_def RS def_transrec RS trans) 1);
@@ -309,6 +313,7 @@ Goalw [div_def]
     "[| 0<n;  m:nat;  n:nat |] ==> m div n : nat";
 by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
 qed "div_type";
+AddTCs [div_type];
 
 Goal "[| 0<n;  m<n |] ==> m div n = 0";
 by (rtac (div_def RS def_transrec RS trans) 1);

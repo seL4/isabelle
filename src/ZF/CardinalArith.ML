@@ -11,8 +11,6 @@ addition and multiplication of natural numbers; on infinite cardinals they
 coincide with union (maximum).  Either way we get most laws for free.
 *)
 
-open CardinalArith;
-
 (*** Cardinal addition ***)
 
 (** Cardinal addition is commutative **)
@@ -65,7 +63,7 @@ Addsimps [cadd_0];
 
 Goalw [lepoll_def, inj_def] "A lepoll A+B";
 by (res_inst_tac [("x", "lam x:A. Inl(x)")] exI 1);
-by (asm_simp_tac (simpset() addsimps [lam_type]) 1);
+by (Asm_simp_tac 1);
 qed "sum_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
@@ -86,7 +84,7 @@ by (res_inst_tac [("x", "lam z:A+B. case(%w. Inl(f`w), %y. Inr(fa`y), z)")]
 by (res_inst_tac 
       [("d", "case(%w. Inl(converse(f)`w), %y. Inr(converse(fa)`y))")] 
       lam_injective 1);
-by (typechk_tac ([inj_is_fun, case_type, InlI, InrI] @ ZF_typechecks));
+by (typecheck_tac (tcset() addTCs [inj_is_fun]));
 by (etac sumE 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [left_inverse])));
 qed "sum_lepoll_mono";
@@ -216,7 +214,7 @@ Addsimps [cmult_1];
 
 Goalw [lepoll_def, inj_def] "A lepoll A*A";
 by (res_inst_tac [("x", "lam x:A. <x,x>")] exI 1);
-by (simp_tac (simpset() addsimps [lam_type]) 1);
+by (Simp_tac 1);
 qed "prod_square_lepoll";
 
 (*Could probably weaken the premise to well_ord(K,r), or remove using AC*)
@@ -233,7 +231,7 @@ qed "cmult_square_le";
 
 Goalw [lepoll_def, inj_def] "b: B ==> A lepoll A*B";
 by (res_inst_tac [("x", "lam x:A. <x,b>")] exI 1);
-by (asm_simp_tac (simpset() addsimps [lam_type]) 1);
+by (Asm_simp_tac 1);
 qed "prod_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
@@ -252,7 +250,7 @@ by (REPEAT (etac exE 1));
 by (res_inst_tac [("x", "lam <w,y>:A*B. <f`w, fa`y>")] exI 1);
 by (res_inst_tac [("d", "%<w,y>.<converse(f)`w, converse(fa)`y>")] 
                   lam_injective 1);
-by (typechk_tac (inj_is_fun::ZF_typechecks));
+by (typecheck_tac (tcset() addTCs [inj_is_fun]));
 by (etac SigmaE 1);
 by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "prod_lepoll_mono";
@@ -295,7 +293,7 @@ qed "nat_cmult_eq_mult";
 
 Goal "Card(n) ==> 2 |*| n = n |+| n";
 by (asm_simp_tac 
-    (simpset() addsimps [Ord_0, Ord_succ, cmult_succ_lemma, Card_is_Ord,
+    (simpset() addsimps [cmult_succ_lemma, Card_is_Ord,
 			 read_instantiate [("j","0")] cadd_commute]) 1);
 qed "cmult_2";
 
@@ -552,7 +550,7 @@ qed "InfCard_le_cmult_eq";
 (*Corollary 10.13 (1), for cardinal multiplication*)
 Goal "[| InfCard(K);  InfCard(L) |] ==> K |*| L = K Un L";
 by (res_inst_tac [("i","K"),("j","L")] Ord_linear_le 1);
-by (typechk_tac [InfCard_is_Card, Card_is_Ord]);
+by (typecheck_tac (tcset() addTCs [InfCard_is_Card, Card_is_Ord]));
 by (resolve_tac [cmult_commute RS ssubst] 1);
 by (resolve_tac [Un_commute RS ssubst] 1);
 by (ALLGOALS
@@ -561,13 +559,12 @@ by (ALLGOALS
 			  subset_Un_iff2 RS iffD1, le_imp_subset])));
 qed "InfCard_cmult_eq";
 
-(*This proof appear to be the simplest!*)
 Goal "InfCard(K) ==> K |+| K = K";
 by (asm_simp_tac
     (simpset() addsimps [cmult_2 RS sym, InfCard_is_Card, cmult_commute]) 1);
-by (rtac InfCard_le_cmult_eq 1);
-by (typechk_tac [Ord_0, le_refl, leI]);
-by (typechk_tac [InfCard_is_Limit, Limit_has_0, Limit_has_succ]);
+by (asm_simp_tac 
+    (simpset() addsimps [InfCard_le_cmult_eq, InfCard_is_Limit, 
+			 Limit_has_0, Limit_has_succ]) 1);
 qed "InfCard_cdouble_eq";
 
 (*Corollary 10.13 (1), for cardinal addition*)
@@ -582,7 +579,7 @@ qed "InfCard_le_cadd_eq";
 
 Goal "[| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L";
 by (res_inst_tac [("i","K"),("j","L")] Ord_linear_le 1);
-by (typechk_tac [InfCard_is_Card, Card_is_Ord]);
+by (typecheck_tac (tcset() addTCs [InfCard_is_Card, Card_is_Ord]));
 by (resolve_tac [cadd_commute RS ssubst] 1);
 by (resolve_tac [Un_commute RS ssubst] 1);
 by (ALLGOALS

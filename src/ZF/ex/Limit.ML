@@ -9,8 +9,6 @@ The inverse limit construction.
    
 val nat_linear_le = [nat_into_Ord,nat_into_Ord] MRS Ord_linear_le;
 
-open Limit; 
-
 (*----------------------------------------------------------------------*)
 (* Useful goal commands.                                                *)
 (*----------------------------------------------------------------------*)
@@ -797,6 +795,8 @@ by (asm_simp_tac (simpset() addsimps[id_thm]) 1);
 by (asm_simp_tac(simpset() addsimps[id_thm, cpo_lub RS islub_in, chain_in, chain_fun RS eta]) 1);
 qed "id_cont";
 
+AddTCs [id_cont];
+
 val comp_cont_apply = cont_fun RSN(2,cont_fun RS comp_fun_apply);
 
 Goal  (* comp_pres_cont *)
@@ -813,6 +813,8 @@ by (stac cont_lub 6);
 by (asm_full_simp_tac(simpset() addsimps [comp_cont_apply,chain_in]) 8);
 by (auto_tac (claset() addIs [cpo_lub RS islub_in, cont_chain], simpset()));
 qed "comp_pres_cont";
+
+AddTCs [comp_pres_cont];
 
 Goal  (* comp_mono *)
     "[| f:cont(D',E); g:cont(D,D'); f':cont(D',E); g':cont(D,D');   \
@@ -1017,9 +1019,11 @@ val emb_cont = prove_goalw Limit.thy [emb_def]
 
 (* The following three theorems have cpo asms due to THE (uniqueness). *)
 
-val Rp_cont = embRp RS projpair_p_cont;
-val embRp_eq = embRp RS projpair_eq;
-val embRp_rel = embRp RS projpair_rel;
+bind_thm ("Rp_cont", embRp RS projpair_p_cont);
+bind_thm ("embRp_eq", embRp RS projpair_eq);
+bind_thm ("embRp_rel", embRp RS projpair_rel);
+
+AddTCs [Rp_cont];
 
 val id_apply = prove_goalw Perm.thy [id_def]
     "!!z. x:A ==> id(A)`x = x"
@@ -1355,6 +1359,8 @@ qed "emb_chainI";
 val emb_chain_cpo = prove_goalw Limit.thy [emb_chain_def] 
     "!!x. [|emb_chain(DD,ee); n:nat|] ==> cpo(DD`n)"
   (fn prems => [Fast_tac 1]);
+
+AddTCs [emb_chain_cpo];
 
 val emb_chain_emb = prove_goalw Limit.thy [emb_chain_def] 
     "!!x. [|emb_chain(DD,ee); n:nat|] ==> emb(DD`n,DD`succ(n),ee`n)"
@@ -1952,7 +1958,7 @@ by (assume_tac 1);
    but since x le y is x<succ(y) simplification does too much with this thm. *)
 by (stac eps_split_right_le 1);
 by (assume_tac 2);
-by (asm_simp_tac(ZF_ss addsimps [add1]) 1);
+by (asm_simp_tac(FOL_ss addsimps [add1]) 1);
 brr[add_le_self,nat_0I,nat_succI] 1;
 by (asm_simp_tac(simpset() addsimps[eps_succ_Rp]) 1);
 by (stac comp_fun_apply 1);
@@ -2377,7 +2383,8 @@ by (simp_tac (simpset() addsimps[comp_assoc]) 1);
 by (asm_simp_tac (simpset() addsimps[lemma]) 1);
 by (rtac dominate_islub 1);
 by (rtac cpo_lub 2);
-brr[commute_chain, commute_emb, islub_const, cont_cf, id_cont, cpo_cf, chain_fun,chain_const] 2;
+brr[commute_chain, commute_emb, islub_const, cont_cf, id_cont,
+    cpo_cf, chain_fun,chain_const] 2;
 by (rtac dominateI 1);
 by (assume_tac 1); 
 by (Asm_simp_tac 1);
@@ -2412,10 +2419,9 @@ Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \
 \     (lam na:nat. (f(na) O Rp(DD ` na, E, r(na))) O r(n))";
 by (rtac fun_extension 1);
 by (fast_tac (claset() addIs [lam_type]) 1);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (simpset() setSolver (type_auto_tac [lam_type, comp_pres_cont, Rp_cont, 
-			        emb_cont, commute_emb, emb_chain_cpo]))));
+by (asm_simp_tac 
+     (simpset() setSolver type_solver_tac (tcset() addTCs [emb_cont, commute_emb])) 2);
+by (Asm_simp_tac 1);
 val lemma = result();
 
 Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \

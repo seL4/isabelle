@@ -8,8 +8,6 @@ From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
 pages 2-5
 *)
 
-open WO6_WO1;
-
 goal OrderType.thy 
       "!!i j k. [| k < i++j;  Ord(i);  Ord(j) |] ==>  \
 \                  k < i  |  (~ k<i & k = i ++ (k--i) & (k--i)<j)";
@@ -143,7 +141,7 @@ by (rtac Diff_lepoll 1);
 by (Blast_tac 1);
 by (rtac vv1_subset 1);
 by (dtac (ospec RS mp) 1);
-by (REPEAT (eresolve_tac [asm_rl, oexE] 1));
+by (REPEAT (eresolve_tac [asm_rl, oexE, conjE] 1));
 by (asm_simp_tac (simpset()
         addsimps [vv1_def, Let_def, lt_Ord, 
                   nested_Least_instance RS conjunct1]) 1);

@@ -20,13 +20,14 @@ AddSEs [quotientE];
 val eqa::eqb::prems = goal Arith.thy 
     "[| x1 #+ y2 = x2 #+ y1; x2 #+ y3 = x3 #+ y2;  \
 \       x1: nat; x2: nat; x3: nat |]    ==>    x1 #+ y3 = x3 #+ y1";
+by (cut_facts_tac prems 1);
 by (res_inst_tac [("k","x2")] add_left_cancel 1);
-by (resolve_tac prems 2);
-by (rtac (add_left_commute RS trans) 1 THEN typechk_tac prems);
+by (rtac (add_left_commute RS trans) 1);
+by Auto_tac;
 by (stac eqb 1);
-by (rtac (add_left_commute RS trans) 1 THEN typechk_tac prems);
-by (stac eqa 1);
-by (rtac (add_left_commute) 1 THEN typechk_tac prems);
+by (rtac (add_left_commute RS trans) 1);
+by (stac eqa 3);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_left_commute])));
 qed "int_trans_lemma";
 
 (** Natural deduction for intrel **)
@@ -79,15 +80,15 @@ val eq_intrelD = equiv_intrel RSN (2,eq_equiv_class);
 
 Goalw [int_def,quotient_def,int_of_def]
     "m : nat ==> $#m : int";
-by (fast_tac (claset() addSIs [nat_0I]) 1);
+by Auto_tac;
 qed "int_of_type";
 
 Addsimps [int_of_type];
+AddTCs   [int_of_type];
 
 Goalw [int_of_def] "[| $#m = $#n;  m: nat |] ==> m=n";
 by (dtac (sym RS eq_intrelD) 1);
-by (typechk_tac [nat_0I, SigmaI]);
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 qed "int_of_inject";
 
 AddSDs [int_of_inject];
@@ -108,9 +109,9 @@ qed "zminus_congruent";
 val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
 
 Goalw [int_def,zminus_def] "z : int ==> $~z : int";
-by (typechk_tac [split_type, SigmaI, zminus_ize UN_equiv_class_type,
-                 quotientI]);
+by (typecheck_tac (tcset() addTCs [zminus_ize UN_equiv_class_type]));
 qed "zminus_type";
+AddTCs [zminus_type];
 
 Goalw [int_def,zminus_def] "[| $~z = $~w;  z: int;  w: int |] ==> z=w";
 by (etac (zminus_ize UN_equiv_class_inject) 1);
@@ -160,7 +161,7 @@ Addsimps [znegative_zminus_int_of];
 
 Goalw [znegative_def, int_of_def] "[| n: nat; ~ znegative($~ $# n) |] ==> n=0";
 by (asm_full_simp_tac (simpset() addsimps [zminus, image_singleton_iff]) 1);
-be natE 1;
+by (etac natE 1);
 by (dres_inst_tac [("x","0")] spec 2);
 by Auto_tac;
 qed "not_znegative_imp_zero";
@@ -178,9 +179,10 @@ qed "zmagnitude_zminus_int_of";
 Addsimps [zmagnitude_int_of, zmagnitude_zminus_int_of];
 
 Goalw [zmagnitude_def] "zmagnitude(z) : nat";
-br theI2 1;
+by (rtac theI2 1);
 by Auto_tac;
 qed "zmagnitude_type";
+AddTCs [zmagnitude_type];
 
 Goalw [int_def, znegative_def, int_of_def]
      "[| z: int; ~ znegative(z) |] ==> EX n:nat. z = $# n"; 
@@ -188,14 +190,14 @@ by (auto_tac(claset() , simpset() addsimps [image_singleton_iff]));
 by (rename_tac "i j" 1);
 by (dres_inst_tac [("x", "i")] spec 1);
 by (dres_inst_tac [("x", "j")] spec 1);
-br bexI 1;
-br (add_diff_inverse2 RS sym) 1;
+by (rtac bexI 1);
+by (rtac (add_diff_inverse2 RS sym) 1);
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [nat_into_Ord, not_lt_iff_le]) 1);
 qed "not_zneg_int_of";
 
 Goal "[| z: int; ~ znegative(z) |] ==> $# (zmagnitude(z)) = z"; 
-bd not_zneg_int_of 1;
+by (dtac not_zneg_int_of 1);
 by Auto_tac;
 qed "not_zneg_mag"; 
 
@@ -214,7 +216,7 @@ by (blast_tac (claset() addSDs [add_left_cancel]) 1);
 qed "zneg_int_of";
 
 Goal "[| z: int; znegative(z) |] ==> $# (zmagnitude(z)) = $~ z"; 
-bd zneg_int_of 1;
+by (dtac zneg_int_of 1);
 by Auto_tac;
 qed "zneg_mag"; 
 
@@ -236,7 +238,7 @@ by (asm_simp_tac (simpset() addsimps [add_assoc, Let_def]) 1);
   add_ac does not help rewriting with the assumptions.*)
 by (res_inst_tac [("m1","x1a")] (add_left_commute RS ssubst) 1);
 by (res_inst_tac [("m1","x2a")] (add_left_commute RS ssubst) 3);
-by (typechk_tac [add_type]);
+by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [add_assoc RS sym]) 1);
 qed "zadd_congruent2";
 
@@ -248,6 +250,7 @@ by (rtac (zadd_ize UN_equiv_class_type2) 1);
 by (simp_tac (simpset() addsimps [Let_def]) 3);
 by (REPEAT (ares_tac [split_type, add_type, quotientI, SigmaI] 1));
 qed "zadd_type";
+AddTCs [zadd_type];
 
 Goalw [zadd_def]
   "[| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>       \
@@ -282,7 +285,8 @@ qed "zadd_assoc";
 
 (*For AC rewriting*)
 Goal "[| z1:int;  z2:int;  z3: int |] ==> z1$+(z2$+z3) = z2$+(z1$+z3)";
-by (asm_simp_tac (simpset() addsimps [zadd_assoc RS sym, zadd_commute]) 1);
+by (asm_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [zadd_commute]) 1);
 qed "zadd_left_commute";
 
 (*Integer addition is an AC operator*)
@@ -343,6 +347,7 @@ by (REPEAT (ares_tac [zmult_ize UN_equiv_class_type2,
                       split_type, add_type, mult_type, 
                       quotientI, SigmaI] 1));
 qed "zmult_type";
+AddTCs [zmult_type];
 
 Goalw [zmult_def]
      "[| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>    \
@@ -389,7 +394,8 @@ qed "zmult_assoc";
 
 (*For AC rewriting*)
 Goal "[| z1:int;  z2:int;  z3: int |] ==> z1$*(z2$*z3) = z2$*(z1$*z3)";
-by (asm_simp_tac (simpset() addsimps [zmult_assoc RS sym, zmult_commute]) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_assoc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_commute]) 1);
 qed "zmult_left_commute";
 
 (*Integer multiplication is an AC operator*)

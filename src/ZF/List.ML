@@ -166,9 +166,7 @@ val list_typechecks =
     [list_rec_type, map_type, map_type2, app_type, length_type, 
      rev_type, flat_type, list_add_type];
 
-Addsimps list_typechecks;
-
-simpset_ref() := simpset() setSolver (type_auto_tac list_typechecks);
+AddTCs list_typechecks;
 
 
 (*** theorems about map ***)

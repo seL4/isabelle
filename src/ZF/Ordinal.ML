@@ -6,8 +6,6 @@
 Ordinals in Zermelo-Fraenkel Set Theory 
 *)
 
-open Ordinal;
-
 (*** Rules for Transset ***)
 
 (** Two neat characterisations of Transset **)
@@ -149,6 +147,7 @@ qed "Ord_succ_iff";
 
 Addsimps [Ord_0, Ord_succ_iff];
 AddSIs   [Ord_0, Ord_succ];
+AddTCs   [Ord_0, Ord_succ];
 
 Goalw [Ord_def] "[| Ord(i); Ord(j) |] ==> Ord(i Un j)";
 by (blast_tac (claset() addSIs [Transset_Un]) 1);
@@ -157,6 +156,7 @@ qed "Ord_Un";
 Goalw [Ord_def] "[| Ord(i); Ord(j) |] ==> Ord(i Int j)";
 by (blast_tac (claset() addSIs [Transset_Int]) 1);
 qed "Ord_Int";
+AddTCs   [Ord_Un, Ord_Int];
 
 val nonempty::prems = Goal
     "[| j:A;  !!i. i:A ==> Ord(i) |] ==> Ord(Inter(A))";

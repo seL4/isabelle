@@ -142,8 +142,7 @@ Goal "[| ALL b:a. F(b) lepoll n & F(b) <= T; well_ord(T, R);  \
 by (rtac impE 1 THEN (assume_tac 3));
 by (res_inst_tac [("f","lam b:a. F(b)")] (UN_fun_lepoll) 2 
         THEN (TRYALL assume_tac));
-by (Simp_tac 2);
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 qed "UN_lepoll";
 
 Goal "Ord(a) ==> (UN b:a. F(b)) = (UN b:a. F(b) - (UN c:b. F(c)))";

@@ -6,8 +6,6 @@
 Natural numbers in Zermelo-Fraenkel Set Theory 
 *)
 
-open Nat;
-
 Goal "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, RepFun_mono, Un_mono] 2)); 
@@ -40,10 +38,10 @@ qed "nat_2I";
 
 Addsimps [nat_0I, nat_1I, nat_2I];
 AddSIs   [nat_0I, nat_1I, nat_2I, nat_succI];
+AddTCs   [nat_0I, nat_1I, nat_2I, nat_succI];
 
 Goal "bool <= nat";
-by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
-            ORELSE eresolve_tac [boolE,ssubst] 1));
+by (blast_tac (claset() addSEs [boolE]) 1);
 qed "bool_subset_nat";
 
 val bool_into_nat = bool_subset_nat RS subsetD;

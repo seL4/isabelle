@@ -141,6 +141,8 @@ qed_goal "consI1" thy "a : cons(a,B)"
  (fn _ => [ Simp_tac 1 ]);
 
 Addsimps [consI1];
+AddTCs   [consI1];   (*risky as a typechecking rule, but solves otherwise
+		       unconstrained goals of the form  x : ?A*)
 
 qed_goal "consI2" thy "!!B. a : B ==> a : cons(b,B)"
  (fn _ => [ Asm_simp_tac 1 ]);
@@ -288,7 +290,7 @@ qed_goal "if_type" thy
     "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A"
  (fn prems=> [ (simp_tac 
                 (simpset() addsimps prems addsplits [split_if]) 1) ]);
-
+AddTCs [if_type];
 
 (*** Foundation lemmas ***)
 

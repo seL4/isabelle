@@ -63,6 +63,7 @@ Addsimps [Sigma_iff];
 qed_goal "SigmaI" thy
     "!!a b. [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)"
  (fn _ => [ Asm_simp_tac 1 ]);
+AddTCs [SigmaI];
 
 bind_thm ("SigmaD1", Sigma_iff RS iffD1 RS conjunct1);
 bind_thm ("SigmaD2", Sigma_iff RS iffD1 RS conjunct2);
@@ -147,6 +148,7 @@ qed_goal "split_type" thy
  (fn major::prems=>
   [ (rtac (major RS SigmaE) 1),
     (asm_simp_tac (simpset() addsimps prems) 1) ]);
+AddTCs [split_type];
 
 Goalw [split_def]
   "u: A*B ==>   \

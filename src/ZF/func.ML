@@ -104,6 +104,7 @@ Goal "[| f: Pi(A,B);  a:A |] ==> f`a : B(a)";
 by (rtac (fun_is_rel RS subsetD RS SigmaE2) 1);
 by (REPEAT (ares_tac [apply_Pair] 1));
 qed "apply_type";
+AddTCs [apply_type];
 
 (*This version is acceptable to the simplifier*)
 Goal "[| f: A->B;  a:A |] ==> f`a : B"; 
@@ -165,6 +166,7 @@ val prems = Goalw [lam_def, Pi_def, function_def]
     "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)";  
 by (blast_tac (claset() addIs prems) 1);
 qed "lam_type";
+AddTCs [lam_type];
 
 Goal "(lam x:A. b(x)) : A -> {b(x). x:A}";
 by (REPEAT (ares_tac [refl,lam_type,RepFunI] 1));

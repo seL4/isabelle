@@ -94,6 +94,7 @@ qed "eq_equiv_class_iff";
 Goalw [quotient_def] "x:A ==> r``{x}: A/r";
 by (etac RepFunI 1);
 qed "quotientI";
+AddTCs [quotientI];
 
 val major::prems = Goalw [quotient_def]
     "[| X: A/r;  !!x. [| X = r``{x};  x:A |] ==> P |]   \

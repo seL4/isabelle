@@ -6,4 +6,10 @@
 Dummy theory, but holds the standard ZF simpset.
 *)
 
-upair = ZF
+upair = ZF +
+
+setup
+  TypeCheck.setup
+
+end
+

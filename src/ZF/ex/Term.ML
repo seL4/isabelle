@@ -171,14 +171,11 @@ qed "postorder_type";
 
 (** Term simplification **)
 
-val term_typechecks =
-    [term.Apply_I, term_map_type, term_map_type2, term_size_type, 
-     reflect_type, preorder_type, postorder_type];
+AddTCs [term.Apply_I, term_map_type, term_map_type2, term_size_type, 
+	reflect_type, preorder_type, postorder_type];
 
 (*map_type2 and term_map_type2 instantiate variables*)
-simpset_ref() := simpset()
-      addsimps [term_rec, term_map, term_size, reflect, preorder, postorder]
-      setSolver type_auto_tac (list_typechecks@term_typechecks);
+Addsimps [term_rec, term_map, term_size, reflect, preorder, postorder];
 
 
 (** theorems about term_map **)

@@ -8,8 +8,6 @@ Cardinal arithmetic WITH the Axiom of Choice
 These results help justify infinite-branching datatypes
 *)
 
-open Cardinal_AC;
-
 (*** Strengthened versions of existing theorems about cardinals ***)
 
 Goal "|A| eqpoll A";
@@ -118,18 +116,20 @@ by (rtac exI 1);
 by (subgoal_tac
     "ALL z: (UN i:K. X(i)). z: X(LEAST i. z:X(i)) & (LEAST i. z:X(i)) : K" 1);
 by (fast_tac (claset() addSIs [Least_le RS lt_trans1 RS ltD, ltI]
-                      addSEs [LeastI, Ord_in_Ord]) 2);
+                       addSEs [LeastI, Ord_in_Ord]) 2);
 by (res_inst_tac [("c", "%z. <LEAST i. z:X(i), f ` (LEAST i. z:X(i)) ` z>"),
                   ("d", "%<i,j>. converse(f`i) ` j")] 
         lam_injective 1);
 (*Instantiate the lemma proved above*)
 by (ALLGOALS ball_tac);
 by (blast_tac (claset() addIs [inj_is_fun RS apply_type]
-                       addDs [apply_type]) 1);
+                        addDs [apply_type]) 1);
 by (dtac apply_type 1);
 by (etac conjunct2 1);
 by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "cardinal_UN_le";
+
+
 
 (*The same again, using csucc*)
 Goal "[| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \

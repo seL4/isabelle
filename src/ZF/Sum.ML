@@ -6,8 +6,6 @@
 Disjoint sums in Zermelo-Fraenkel Set Theory 
 *)
 
-open Sum;
-
 (*** Rules for the Part primitive ***)
 
 Goalw [Part_def]
@@ -102,6 +100,7 @@ AddSEs [sumE, Inl_neq_Inr, Inr_neq_Inl];
 AddSDs [Inl_inject, Inr_inject];
 
 Addsimps [InlI, InrI, Inl_iff, Inr_iff, Inl_Inr_iff, Inr_Inl_iff, sum_empty];
+AddTCs   [InlI, InrI];
 
 Goal "Inl(a): A+B ==> a: A";
 by (Blast_tac 1);
@@ -150,6 +149,7 @@ by (rtac (major RS sumE) 1);
 by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_type";
+AddTCs [case_type];
 
 Goal "u: A+B ==>   \
 \       R(case(c,d,u)) <-> \

@@ -20,7 +20,7 @@ use     "$ISABELLE_HOME/src/Pure/section_utils";
 use     "thy_syntax";
 
 use_thy "Let";
-use_thy "func";
+use_thy "ZF";
 use     "Tools/typechk";
 use_thy "mono";
 use     "ind_syntax";

@@ -24,7 +24,7 @@ consts  bin :: i
 datatype
   "bin" = Pls
         | Min
-        | Cons ("w: bin", "b: bool")
+        | BIT ("w: bin", "b: bool")	(infixl 90)
 
 syntax
   "_Int"           :: xnum => i        ("_")
@@ -40,60 +40,59 @@ consts
   bin_mult  :: [i,i]=>i
 
 primrec
-  "integ_of (Pls)       = $# 0"
-  "integ_of (Min)       = $~($#1)"
-  "integ_of (Cons(w,b)) = $#b $+ integ_of(w) $+ integ_of(w)"
+  integ_of_Pls  "integ_of (Pls)     = $# 0"
+  integ_of_Min  "integ_of (Min)     = $~($#1)"
+  integ_of_BIT  "integ_of (w BIT b) = $#b $+ integ_of(w) $+ integ_of(w)"
 
     (** recall that cond(1,b,c)=b and cond(0,b,c)=0 **)
 
 primrec (*NCons adds a bit, suppressing leading 0s and 1s*)
-  "NCons (Pls,b)       = cond(b,Cons(Pls,b),Pls)"
-  "NCons (Min,b)       = cond(b,Min,Cons(Min,b))"
-  "NCons (Cons(w,c),b) = Cons(Cons(w,c),b)"
+  NCons_Pls "NCons (Pls,b)     = cond(b,Pls BIT b,Pls)"
+  NCons_Min "NCons (Min,b)     = cond(b,Min,Min BIT b)"
+  NCons_BIT "NCons (w BIT c,b) = w BIT c BIT b"
 
-primrec (*successor.  If a Cons, can change a 0 to a 1 without recursion.*)
-  bin_succ_Pls
-    "bin_succ (Pls)       = Cons(Pls,1)"
-  bin_succ_Min
-    "bin_succ (Min)       = Pls"
-      "bin_succ (Cons(w,b)) = cond(b, Cons(bin_succ(w), 0),
-				    NCons(w,1))"
+primrec (*successor.  If a BIT, can change a 0 to a 1 without recursion.*)
+  bin_succ_Pls  "bin_succ (Pls)     = Pls BIT 1"
+  bin_succ_Min  "bin_succ (Min)     = Pls"
+  bin_succ_BIT  "bin_succ (w BIT b) = cond(b, bin_succ(w) BIT 0, NCons(w,1))"
 
 primrec (*predecessor*)
-  bin_pred_Pls
-    "bin_pred (Pls)       = Min"
-  bin_pred_Min
-    "bin_pred (Min)       = Cons(Min,0)"
-    "bin_pred (Cons(w,b)) = cond(b, NCons(w,0),
-				    Cons(bin_pred(w), 1))"
+  bin_pred_Pls  "bin_pred (Pls)     = Min"
+  bin_pred_Min  "bin_pred (Min)     = Min BIT 0"
+  bin_pred_BIT  "bin_pred (w BIT b) = cond(b, NCons(w,0), bin_pred(w) BIT 1)"
 
 primrec (*unary negation*)
   bin_minus_Pls
     "bin_minus (Pls)       = Pls"
   bin_minus_Min
-    "bin_minus (Min)       = Cons(Pls,1)"
-    "bin_minus (Cons(w,b)) = cond(b, bin_pred(NCons(bin_minus(w),0)),
-				     Cons(bin_minus(w),0))"
+    "bin_minus (Min)       = Pls BIT 1"
+  bin_minus_BIT
+    "bin_minus (w BIT b) = cond(b, bin_pred(NCons(bin_minus(w),0)),
+				bin_minus(w) BIT 0)"
 
 (*Mutual recursion is not always sound, but it is for primitive recursion.*)
 primrec (*sum*)
-  "bin_add (Pls,w)       = w"
-  "bin_add (Min,w)       = bin_pred(w)"
-  "bin_add (Cons(v,x),w) = adding(v,x,w)"
+  bin_add_Pls
+    "bin_add (Pls,w)     = w"
+  bin_add_Min
+    "bin_add (Min,w)     = bin_pred(w)"
+  bin_add_BIT
+    "bin_add (v BIT x,w) = adding(v,x,w)"
 
 primrec (*auxilliary function for sum*)
-  "adding (v,x,Pls)       = Cons(v,x)"
-  "adding (v,x,Min)       = bin_pred(Cons(v,x))"
-  "adding (v,x,Cons(w,y)) = NCons(bin_add (v, cond(x and y, bin_succ(w), w)), 
-				  x xor y)"
+  "adding (v,x,Pls)     = v BIT x"
+  "adding (v,x,Min)     = bin_pred(v BIT x)"
+  "adding (v,x,w BIT y) = NCons(bin_add (v, cond(x and y, bin_succ(w), w)), 
+				x xor y)"
 
 primrec
   bin_mult_Pls
-    "bin_mult (Pls,w)       = Pls"
+    "bin_mult (Pls,w)     = Pls"
   bin_mult_Min
-    "bin_mult (Min,w)       = bin_minus(w)"
-    "bin_mult (Cons(v,b),w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
-				      NCons(bin_mult(v,w),0))"
+    "bin_mult (Min,w)     = bin_minus(w)"
+  bin_mult_BIT
+    "bin_mult (v BIT b,w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
+				 NCons(bin_mult(v,w),0))"
 
 end
 
@@ -138,7 +137,7 @@ local
 
       fun term_of [] = const "Pls"
         | term_of [~1] = const "Min"
-        | term_of (b :: bs) = const "Cons" $ term_of bs $ mk_bit b;
+        | term_of (b :: bs) = const "op BIT" $ term_of bs $ mk_bit b;
     in
       term_of (bin_of (sign * (#1 (read_int digs))))
     end;
@@ -147,7 +146,7 @@ local
     let
       fun bin_of (Const ("Pls", _)) = []
         | bin_of (Const ("Min", _)) = [~1]
-        | bin_of (Const ("Cons", _) $ bs $ b) = dest_bit b :: bin_of bs
+        | bin_of (Const ("op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
         | bin_of _ = raise Match;
 
       fun integ_of [] = 0

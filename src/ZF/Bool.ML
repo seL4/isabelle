@@ -6,8 +6,6 @@
 Booleans in Zermelo-Fraenkel Set Theory 
 *)
 
-open Bool;
-
 val bool_defs = [bool_def,cond_def];
 
 Goalw [succ_def] "{0} = 1";
@@ -25,6 +23,7 @@ by (rtac consI1 1);
 qed "bool_0I";
 
 Addsimps [bool_1I, bool_0I];
+AddTCs   [bool_1I, bool_0I];
 
 Goalw bool_defs "1~=0";
 by (rtac succ_not_0 1);
@@ -59,12 +58,12 @@ fun bool_tac i = fast_tac (claset() addSEs [boolE] addss (simpset())) i;
 Goal "[| b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
 by (bool_tac 1);
 qed "cond_type";
+AddTCs [cond_type];
 
 (*For Simp_tac and Blast_tac*)
 Goal "[| b: bool;  c: A;  d: A |] ==> cond(b,c,d): A";
 by (bool_tac 1);
 qed "cond_simple_type";
-Addsimps [cond_simple_type];
 
 val [rew] = Goal "[| !!b. j(b)==cond(b,c,d) |] ==> j(1) = c";
 by (rewtac rew);
@@ -85,25 +84,25 @@ val [xor_1,xor_0] = conds xor_def;
 
 Addsimps [not_1,not_0,and_1,and_0,or_1,or_0,xor_1,xor_0];
 
-qed_goalw "not_type" Bool.thy [not_def]
-    "a:bool ==> not(a) : bool"
- (fn prems=> [ (typechk_tac (prems@[bool_1I, bool_0I, cond_type])) ]);
+Goalw [not_def] "a:bool ==> not(a) : bool";
+by (Asm_simp_tac 1);
+qed "not_type";
 
-qed_goalw "and_type" Bool.thy [and_def]
-    "[| a:bool;  b:bool |] ==> a and b : bool"
- (fn prems=> [ (typechk_tac (prems@[bool_1I, bool_0I, cond_type])) ]);
+Goalw [and_def] "[| a:bool;  b:bool |] ==> a and b : bool";
+by (Asm_simp_tac 1);
+qed "and_type";
 
-qed_goalw "or_type" Bool.thy [or_def]
-    "[| a:bool;  b:bool |] ==> a or b : bool"
- (fn prems=> [ (typechk_tac (prems@[bool_1I, bool_0I, cond_type])) ]);
+Goalw [or_def] "[| a:bool;  b:bool |] ==> a or b : bool";
+by (Asm_simp_tac 1);
+qed "or_type";
 
-Addsimps [not_type, and_type, or_type];
+AddTCs [not_type, and_type, or_type];
 
-qed_goalw "xor_type" Bool.thy [xor_def]
-    "[| a:bool;  b:bool |] ==> a xor b : bool"
- (fn prems=> [ (typechk_tac(prems@[bool_1I, bool_0I, cond_type, not_type])) ]);
+Goalw [xor_def] "[| a:bool;  b:bool |] ==> a xor b : bool";
+by (Asm_simp_tac 1);
+qed "xor_type";
 
-Addsimps [xor_type];
+AddTCs [xor_type];
 
 val bool_typechecks = [bool_1I, bool_0I, cond_type, not_type, and_type, 
                        or_type, xor_type];

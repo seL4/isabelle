@@ -1,4 +1,4 @@
-(*  Title:      ZF/ex/listn
+(*  Title:      ZF/ex/ListN
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -19,7 +19,7 @@ Goal "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (blast_tac (claset() addIs [list_into_listn]) 2);
 by (etac listn.induct 1);
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "listn_iff";
 
 Goal "listn(A)``{n} = {l:list(A). length(l)=n}";
