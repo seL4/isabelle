@@ -137,14 +137,15 @@ lemmas dvdI2 [simp] = dvd_refl [THEN dvd_mult2, standard]
 
 lemma dvd_mod_imp_dvd_raw:
      "[| a \<in> nat; b \<in> nat; k dvd b; k dvd (a mod b) |] ==> k dvd a"
-apply (tactic "div_undefined_case_tac \"b=0\" 1")
+apply (case_tac "b=0")
+ apply (simp add: DIVISION_BY_ZERO_MOD)
 apply (blast intro: mod_div_equality [THEN subst]
              elim: dvdE 
              intro!: dvd_add dvd_mult mult_type mod_type div_type)
 done
 
 lemma dvd_mod_imp_dvd: "[| k dvd (a mod b); k dvd b; a \<in> nat |] ==> k dvd a"
-apply (cut_tac b = "natify (b) " in dvd_mod_imp_dvd_raw)
+apply (cut_tac b = "natify (b)" in dvd_mod_imp_dvd_raw)
 apply auto
 apply (simp add: divides_def)
 done
@@ -176,7 +177,7 @@ by (blast intro: gcd_induct_lemma)
 lemma gcd_type [simp,TC]: "gcd(m, n) \<in> nat"
 apply (subgoal_tac "gcd (natify (m) , natify (n)) \<in> nat")
 apply simp
-apply (rule_tac m = "natify (m) " and n = "natify (n) " in gcd_induct)
+apply (rule_tac m = "natify (m)" and n = "natify (n)" in gcd_induct)
 apply auto
 apply (simp add: gcd_non_0)
 done
@@ -192,12 +193,12 @@ apply (blast intro: dvd_mod_imp_dvd_raw nat_into_Ord [THEN Ord_0_lt])
 done
 
 lemma gcd_dvd1 [simp]: "m \<in> nat ==> gcd(m,n) dvd m"
-apply (cut_tac m = "natify (m) " and n = "natify (n) " in gcd_dvd_both)
+apply (cut_tac m = "natify (m)" and n = "natify (n)" in gcd_dvd_both)
 apply auto
 done
 
 lemma gcd_dvd2 [simp]: "n \<in> nat ==> gcd(m,n) dvd n"
-apply (cut_tac m = "natify (m) " and n = "natify (n) " in gcd_dvd_both)
+apply (cut_tac m = "natify (m)" and n = "natify (n)" in gcd_dvd_both)
 apply auto
 done
 
@@ -205,7 +206,8 @@ done
 
 lemma dvd_mod: "[| f dvd a; f dvd b |] ==> f dvd (a mod b)"
 apply (unfold divides_def)
-apply (tactic "div_undefined_case_tac \"b=0\" 1")
+apply (case_tac "b=0")
+ apply (simp add: DIVISION_BY_ZERO_MOD)
 apply auto
 apply (blast intro: mod_mult_distrib2 [symmetric])
 done
@@ -254,7 +256,7 @@ apply auto
 done
 
 lemma gcd_commute: "gcd(m,n) = gcd(n,m)"
-apply (cut_tac m = "natify (m) " and n = "natify (n) " in gcd_commute_raw)
+apply (cut_tac m = "natify (m)" and n = "natify (n)" in gcd_commute_raw)
 apply auto
 done
 
@@ -267,7 +269,7 @@ apply (blast intro: gcd_dvd1 gcd_dvd2 gcd_type intro: dvd_trans)
 done
 
 lemma gcd_assoc: "gcd (gcd (k, m), n) = gcd (k, gcd (m, n))"
-apply (cut_tac k = "natify (k) " and m = "natify (m) " and n = "natify (n) " 
+apply (cut_tac k = "natify (k)" and m = "natify (m)" and n = "natify (n) " 
        in gcd_assoc_raw)
 apply auto
 done
@@ -293,7 +295,7 @@ apply (simp add: mod_geq gcd_non_0 mod_mult_distrib2 Ord_0_lt_iff)
 done
 
 lemma gcd_mult_distrib2: "k #* gcd (m, n) = gcd (k #* m, k #* n)"
-apply (cut_tac k = "natify (k) " and m = "natify (m) " and n = "natify (n) " 
+apply (cut_tac k = "natify (k)" and m = "natify (m)" and n = "natify (n) " 
        in gcd_mult_distrib2_raw)
 apply auto
 done
@@ -324,7 +326,7 @@ lemma prime_imp_relprime:
      "[| p \<in> prime;  ~ (p dvd n);  n \<in> nat |] ==> gcd (p, n) = 1"
 apply (unfold prime_def)
 apply clarify
-apply (drule_tac x = "gcd (p,n) " in bspec)
+apply (drule_tac x = "gcd (p,n)" in bspec)
 apply auto
 apply (cut_tac m = "p" and n = "n" in gcd_dvd2)
 apply auto
@@ -371,7 +373,7 @@ apply (auto simp add: gcd_add2 add_assoc)
 done
 
 lemma gcd_add_mult: "gcd (m, k #* m #+ n) = gcd (m, n)"
-apply (cut_tac k = "natify (k) " in gcd_add_mult_raw)
+apply (cut_tac k = "natify (k)" in gcd_add_mult_raw)
 apply auto
 done
 
@@ -390,7 +392,7 @@ apply (blast intro: dvdI1 gcd_dvd1 dvd_trans)
 done
 
 lemma gcd_mult_cancel: "gcd (k,n) = 1 ==> gcd (k #* m, n) = gcd (m, n)"
-apply (cut_tac m = "natify (m) " and n = "natify (n) " in gcd_mult_cancel_raw)
+apply (cut_tac m = "natify (m)" and n = "natify (n)" in gcd_mult_cancel_raw)
 apply auto
 done
 

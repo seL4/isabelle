@@ -11,7 +11,7 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 1966.
 *)
 
-QPair = Sum +
+QPair = Sum + mono +
 
 consts
   QPair     :: "[i, i] => i"                      ("<(_;/ _)>")

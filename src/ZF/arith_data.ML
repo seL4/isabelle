@@ -218,6 +218,10 @@ val nat_cancel =
 
 end;
 
+(*Install the simprocs!*)
+Addsimprocs ArithData.nat_cancel;
+
+
 (*examples:
 print_depth 22;
 set timing;

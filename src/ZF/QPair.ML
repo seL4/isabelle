@@ -328,3 +328,30 @@ qed "Part_QInr2";
 Goal "C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
 by (Blast_tac 1);
 qed "Part_qsum_equality";
+
+
+(*** Monotonicity ***)
+
+Goalw [QPair_def] "[| a<=c;  b<=d |] ==> <a;b> <= <c;d>";
+by (REPEAT (ares_tac [sum_mono] 1));
+qed "QPair_mono";
+
+Goal "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
+\                          QSigma(A,B) <= QSigma(C,D)";
+by (Blast_tac 1);
+qed "QSigma_mono_lemma";
+bind_thm ("QSigma_mono", ballI RSN (2,QSigma_mono_lemma));
+
+Goalw [QInl_def] "a<=b ==> QInl(a) <= QInl(b)";
+by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
+qed "QInl_mono";
+
+Goalw [QInr_def] "a<=b ==> QInr(a) <= QInr(b)";
+by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
+qed "QInr_mono";
+
+Goal "[| A<=C;  B<=D |] ==> A <+> B <= C <+> D";
+by (Blast_tac 1);
+qed "qsum_mono";
+
+

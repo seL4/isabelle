@@ -6,7 +6,7 @@
 (Co)Inductive Definitions for Zermelo-Fraenkel Set Theory.
 *)
 
-theory Inductive = Fixedpt + mono
+theory Inductive = Fixedpt + mono + QPair
   files
     "ind_syntax.ML"
     "Tools/cartprod.ML"
