@@ -18,6 +18,7 @@ signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
   val ml_path: string -> Path.T
+  val thy_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
   val may_load_file: bool -> Path.T -> (Path.T * File.info)
   eqtype master
