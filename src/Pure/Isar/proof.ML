@@ -710,11 +710,9 @@ fun local_qed finalize print state =
 fun finish_global state =
   let
     val (_, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;   (*ignores after_qed!*)
-    val full_name = if name = "" then "" else Sign.full_name (sign_of state) name;
     val result =
       prep_result state t raw_thm
-      |> Drule.standard |> Tactic.norm_hhf
-      |> curry Thm.name_thm full_name;
+      |> Drule.standard |> Tactic.norm_hhf;
 
     val atts =
       (case kind of Theorem (s, atts) => atts @ [Drule.kind s]
