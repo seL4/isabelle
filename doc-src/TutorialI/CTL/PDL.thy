@@ -65,7 +65,7 @@ Only the equation for @{term EF} deserves some comments. Remember that the
 postfix @{text"^-1"} and the infix @{text"^^"} are predefined and denote the
 converse of a relation and the application of a relation to a set. Thus
 @{term "M^-1 ^^ T"} is the set of all predecessors of @{term T} and the least
-fixpoint (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M^-1 ^^ T"} is the least set
+fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M^-1 ^^ T"} is the least set
 @{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
 find it hard to see that @{term"mc(EF f)"} contains exactly those states from
 which there is a path to a state where @{term f} is true, do not worry---that
@@ -80,7 +80,7 @@ apply blast
 done
 
 text{*\noindent
-in order to make sure it really has a least fixpoint.
+in order to make sure it really has a least fixed point.
 
 Now we can relate model checking and semantics. For the @{text EF} case we need
 a separate lemma:

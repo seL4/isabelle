@@ -2,9 +2,10 @@
 \begin{isabellebody}%
 \def\isabellecontext{AB}%
 %
-\isamarkupsection{A context free grammar}
+\isamarkupsection{Case study: A context free grammar}
 %
 \begin{isamarkuptext}%
+\label{sec:CFG}
 Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
 $A \to B c$ is short for
@@ -42,7 +43,8 @@ the three nonterminals are declare as sets of such words:%
 \begin{isamarkuptext}%
 \noindent
 The above productions are recast as a \emph{simultaneous} inductive
-definition of \isa{S}, \isa{A} and \isa{B}:%
+definition\index{inductive definition!simultaneous}
+of \isa{S}, \isa{A} and \isa{B}:%
 \end{isamarkuptext}%
 \isacommand{inductive}\ S\ A\ B\isanewline
 \isakeyword{intros}\isanewline

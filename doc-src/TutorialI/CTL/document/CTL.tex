@@ -44,7 +44,7 @@ Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the leas
 \begin{isamarkuptext}%
 \noindent
 Because \isa{af} is monotone in its second argument (and also its first, but
-that is irrelevant) \isa{af\ A} has a least fixpoint:%
+that is irrelevant) \isa{af\ A} has a least fixed point:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ mono{\isacharunderscore}def\ af{\isacharunderscore}def{\isacharparenright}\isanewline
@@ -60,7 +60,7 @@ with the easy one:%
 \begin{isamarkuptxt}%
 \noindent
 In contrast to the analogous property for \isa{EF}, and just
-for a change, we do not use fixpoint induction but a weaker theorem,
+for a change, we do not use fixed point induction but a weaker theorem,
 \isa{lfp{\isacharunderscore}lowerbound}:
 \begin{isabelle}%
 \ \ \ \ \ f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S%
@@ -310,7 +310,7 @@ It is clear that if all sets are finite, they can be represented as lists and th
 set operations are easily implemented. Only \isa{lfp} requires a little thought.
 Fortunately the HOL library proves that in the case of finite sets and a monotone \isa{F},
 \isa{lfp\ F} can be computed by iterated application of \isa{F} to \isa{{\isacharbraceleft}{\isacharbraceright}} until
-a fixpoint is reached. It is actually possible to generate executable functional programs
+a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \end{isamarkuptext}%
 \end{isabellebody}%

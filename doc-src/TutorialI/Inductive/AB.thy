@@ -1,8 +1,8 @@
 (*<*)theory AB = Main:(*>*)
 
-section{*A context free grammar*}
+section{*Case study: A context free grammar*}
 
-text{*
+text{*\label{sec:CFG}
 Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
 $A \to B c$ is short for
@@ -43,7 +43,8 @@ consts S :: "alfa list set"
 
 text{*\noindent
 The above productions are recast as a \emph{simultaneous} inductive
-definition of @{term S}, @{term A} and @{term B}:
+definition\index{inductive definition!simultaneous}
+of @{term S}, @{term A} and @{term B}:
 *}
 
 inductive S A B

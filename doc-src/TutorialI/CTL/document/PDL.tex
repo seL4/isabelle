@@ -64,7 +64,7 @@ Only the equation for \isa{EF} deserves some comments. Remember that the
 postfix \isa{{\isacharcircum}{\isacharminus}{\isadigit{1}}} and the infix \isa{{\isacharcircum}{\isacharcircum}} are predefined and denote the
 converse of a relation and the application of a relation to a set. Thus
 \isa{M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T} is the set of all predecessors of \isa{T} and the least
-fixpoint (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T} is the least set
+fixed point (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T} is the least set
 \isa{T} containing \isa{mc\ f} and all predecessors of \isa{T}. If you
 find it hard to see that \isa{mc\ {\isacharparenleft}EF\ f{\isacharparenright}} contains exactly those states from
 which there is a path to a state where \isa{f} is true, do not worry---that
@@ -78,7 +78,7 @@ First we prove monotonicity of the function inside \isa{lfp}%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-in order to make sure it really has a least fixpoint.
+in order to make sure it really has a least fixed point.
 
 Now we can relate model checking and semantics. For the \isa{EF} case we need
 a separate lemma:%

@@ -41,7 +41,8 @@ We cannot prove this equality because we do not know what \isa{hd} and
 The point is that we have violated the above warning. Because the induction
 formula is only the conclusion, the occurrence of \isa{xs} in the premises is
 not modified by induction. Thus the case that should have been trivial
-becomes unprovable. Fortunately, the solution is easy:
+becomes unprovable. Fortunately, the solution is easy:\footnote{A very similar
+heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
 \begin{quote}
 \emph{Pull all occurrences of the induction variable into the conclusion
 using \isa{{\isasymlongrightarrow}}.}
@@ -268,18 +269,18 @@ desired goal:%
 \isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptext}%
 Finally we should mention that HOL already provides the mother of all
-inductions, \textbf{wellfounded
-induction}\indexbold{induction!wellfounded}\index{wellfounded
-induction|see{induction, wellfounded}} (\isa{wf{\isacharunderscore}induct}):
+inductions, \textbf{well-founded
+induction}\indexbold{induction!well-founded}\index{well-founded
+induction|see{induction, well-founded}} (\isa{wf{\isacharunderscore}induct}):
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a%
 \end{isabelle}
-where \isa{wf\ r} means that the relation \isa{r} is wellfounded
-(see \S\ref{sec:wellfounded}).
+where \isa{wf\ r} means that the relation \isa{r} is well-founded
+(see \S\ref{sec:well-founded}).
 For example, theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} can be viewed (and
 derived) as a special case of \isa{wf{\isacharunderscore}induct} where 
 \isa{r} is \isa{{\isacharless}} on \isa{nat}. The details can be found in the HOL library.
-For a mathematical account of wellfounded induction see, for example, \cite{Baader-Nipkow}.%
+For a mathematical account of well-founded induction see, for example, \cite{Baader-Nipkow}.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

@@ -34,13 +34,14 @@ which, after simplification, becomes
 \begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
 \end{isabelle}
-We cannot prove this equality because we do not know what @{term"hd"} and
-@{term"last"} return when applied to @{term"[]"}.
+We cannot prove this equality because we do not know what @{term hd} and
+@{term last} return when applied to @{term"[]"}.
 
 The point is that we have violated the above warning. Because the induction
-formula is only the conclusion, the occurrence of @{term"xs"} in the premises is
+formula is only the conclusion, the occurrence of @{term xs} in the premises is
 not modified by induction. Thus the case that should have been trivial
-becomes unprovable. Fortunately, the solution is easy:
+becomes unprovable. Fortunately, the solution is easy:\footnote{A very similar
+heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
 \begin{quote}
 \emph{Pull all occurrences of the induction variable into the conclusion
 using @{text"\<longrightarrow>"}.}

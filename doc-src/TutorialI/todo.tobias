@@ -21,8 +21,6 @@ Needed for ifak example. But is that example worth it?
 Add map_cong?? (upto 10% slower)
 But we should install UN_cong and INT_cong too.
 
-recdef: funny behaviour with map (see email to Konrad.Slind, Recdef/Nested1)
-
 defs with = and pattern matching
 
 use arith_tac in recdef to solve termination conditions?
@@ -90,8 +88,8 @@ An overview of the automatic methods: simp, auto, fast, blast, force,
 clarify, clarsimp (intro, elim?)
 
 Advanced Ind expects rule_format incl (no_asm) (which it currently explains!)
-Where explained?
-Inductive also needs rule_format!
+Where explained? Should go into a separate section as Inductive needs it as
+well.
 
 Where is "simplified" explained? Needed by Inductive/AB.thy
 
@@ -189,44 +187,6 @@ More predefined functions for datatypes: map?
 
 
 ==============================================================
-Nested inductive datatypes: better recursion and induction
-
-Show how to derive simpler primrec functions using eg map. Text:
-
-Returning to the definition of \texttt{subst}, we have to admit that it does
-not really need the auxiliary \texttt{substs} function. The \texttt{App}-case
-can directly be expressed as
-\begin{ttbox}
-\input{Datatype/appmap}\end{ttbox}
-Although Isabelle insists on the more verbose version, we can easily {\em
-  prove} that the \texttt{map}-equation holds: simply by induction on
-\texttt{ts} followed by \texttt{Auto_tac}.
-lemma "subst s (App f ts) = App f (map (subst s) ts)";
-by(induct_tac ts, auto);
-
-Now explain how to remove old eqns from simpset by naming them.
-But: the new eqn only helps if the induction schema is also modified
-accordingly:
-
-val prems =
-Goal "[| !!v. P(Var v); !!f ts. (!!t. t : set ts ==> P t) ==> P(App f ts) |] \
-\     ==> P t & (!t: set ts. P t)";
-by(induct_tac "t ts" 1);
-brs prems 1;
-brs prems 1;
-by(Blast_tac 1);
-by(Simp_tac 1);
-by(Asm_simp_tac 1);
-
-Now the following exercise has an easy proof:
-
-\begin{exercise}
-  Define a function \texttt{rev_term} of type \texttt{term -> term} that
-  recursively reverses the order of arguments of all function symbols in a
-  term. Prove that \texttt{rev_term(rev_term t) = t}.
-\end{exercise}
-
-==============================================================
 Recdef:
 
 nested recursion
@@ -236,10 +196,6 @@ more example proofs:
  quicksort
  Trie?
 a case study?
-
-A separate subsection on recdef beyond measure, eg <*lex*> and psubset.
-Example: some finite fixpoint computation? MC, Grammar?
-How to modify wf-prover?
 
 ----------
 

@@ -67,7 +67,7 @@ primrec
 
 text{*\noindent
 Because @{term af} is monotone in its second argument (and also its first, but
-that is irrelevant) @{term"af A"} has a least fixpoint:
+that is irrelevant) @{term"af A"} has a least fixed point:
 *};
 
 lemma mono_af: "mono(af A)";
@@ -108,7 +108,7 @@ theorem AF_lemma1:
 
 txt{*\noindent
 In contrast to the analogous property for @{term EF}, and just
-for a change, we do not use fixpoint induction but a weaker theorem,
+for a change, we do not use fixed point induction but a weaker theorem,
 @{thm[source]lfp_lowerbound}:
 @{thm[display]lfp_lowerbound[of _ "S",no_vars]}
 The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
@@ -403,7 +403,7 @@ It is clear that if all sets are finite, they can be represented as lists and th
 set operations are easily implemented. Only @{term lfp} requires a little thought.
 Fortunately the HOL library proves that in the case of finite sets and a monotone @{term F},
 @{term"lfp F"} can be computed by iterated application of @{term F} to @{term"{}"} until
-a fixpoint is reached. It is actually possible to generate executable functional programs
+a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.
 *}
 (*<*)end(*>*)
