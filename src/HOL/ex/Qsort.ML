@@ -20,7 +20,7 @@ by (simp_tac (simpset() addsimps [set_via_multiset]) 1);
 qed "set_qsort";
 Addsimps [set_qsort];
 
-Goal "total(le) & transf(le) --> sorted le (qsort(le,xs))";
+Goal "total(le) --> transf(le) --> sorted le (qsort(le,xs))";
 by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (rewrite_goals_tac [Sorting.total_def, Sorting.transf_def]);
