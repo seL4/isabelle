@@ -103,6 +103,7 @@ sig
   val get_delta_simpset: ProofContext.context -> Thm.thm list
   val put_delta_simpset: Thm.thm list -> ProofContext.context -> ProofContext.context
 
+  val find_rewrites: string -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -224,6 +225,21 @@ fun SIMPSET' tacf i state = tacf (simpset_of_sg (Thm.sign_of_thm state)) i state
 
 val simpset = simpset_of o Context.the_context;
 val simpset_ref = simpset_ref_of_sg o Theory.sign_of o Context.the_context;
+
+
+(* find rewrites *)
+
+fun find_rewrites s = Toplevel.keep (fn state =>
+  let
+    val pstate = Toplevel.enter_forward_proof state
+    val ctxt = Proof.context_of pstate;
+    val prt_fact = ProofContext.pretty_fact ctxt
+    val thy = ProofContext.theory_of ctxt
+    val t = ProofContext.read_term ctxt s;
+    val (_, {mk_rews = {mk,...}, ...})  = rep_ss (simpset_of thy)
+    val lhs = fst o Logic.dest_equals o Logic.strip_imp_concl
+    val rews = map (apsnd single) (PureThy.find_matching_thms (mk,lhs) thy t)
+  in map prt_fact (rev rews) |> Pretty.chunks |> Pretty.writeln end);
 
 
 (* change global simpset *)
@@ -545,7 +561,11 @@ val print_simpsetP =
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o (Toplevel.keep
       (Toplevel.node_case print_simpset (print_local_simpset o Proof.context_of)))));
 
-val _ = OuterSyntax.add_parsers [print_simpsetP];
+val find_rewritesP =
+  OuterSyntax.improper_command "find_rewrites" "find and print rewrites" OuterSyntax.Keyword.diag
+    (OuterParse.term >> (Toplevel.no_timing oo find_rewrites));
+
+val _ = OuterSyntax.add_parsers [print_simpsetP,find_rewritesP];
 
 end;
 
