@@ -261,7 +261,7 @@ by (resolve_tac [Hausdorff RS exE] 1);
 by (asm_full_simp_tac (simpset() addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
 by (res_inst_tac [("x", "Union(c)")] bexI 1);
-by (Blast_tac 2);
+by (Fast_tac 2);  (*Blast_tac: PROOF FAILED*)
 by Safe_tac;
 by (rename_tac "z" 1);
 by (rtac classical 1);

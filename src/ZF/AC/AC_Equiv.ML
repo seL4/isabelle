@@ -118,10 +118,6 @@ by (fast_tac (claset() addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 qed "inj_strengthen_type";
 
-Goal "A*B=0 <-> A=0 | B=0";
-by (fast_tac (claset() addSIs [equals0I] addEs [equals0E]) 1);
-qed "Sigma_empty_iff";
-
 Goalw [Finite_def] "n:nat ==> Finite(n)";
 by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
 qed "nat_into_Finite";

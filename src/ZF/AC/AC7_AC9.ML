@@ -18,10 +18,8 @@ by (Fast_tac 1);
 qed "mem_not_eq_not_mem";
 
 Goal "[| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
-by (fast_tac (claset() addSDs [Sigma_empty_iff RS iffD1]
-                addDs [fun_space_emptyD, mem_not_eq_not_mem]
-                addEs [equals0E]
-                addSIs [equals0I,UnionI]) 1);
+by (blast_tac (claset() addSDs [Sigma_empty_iff RS iffD1]
+                addDs [fun_space_emptyD, mem_not_eq_not_mem]) 1);
 qed "Sigma_fun_space_not0";
 
 Goal "(ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";
@@ -30,24 +28,18 @@ by (resolve_tac [bspec RS (bspec RSN (2, eqpoll_sym RSN (2, eqpoll_trans)))] 1
         THEN REPEAT (assume_tac 1));
 qed "all_eqpoll_imp_pair_eqpoll";
 
-Goal "[| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A   \
-\       |] ==> P(b)=R(b)";
-by (dtac bspec 1 THEN (assume_tac 1));
-by (Asm_full_simp_tac 1);
+Goal "[| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A |]  \
+\     ==> P(b)=R(b)";
+by Auto_tac;
 qed "if_eqE1";
 
 Goal "ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a))  \
 \       ==> ALL a:A. a~=b --> Q(a)=S(a)";
-by (rtac ballI 1);
-by (rtac impI 1);
-by (dtac bspec 1 THEN (assume_tac 1));
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 qed "if_eqE2";
 
 Goal "[| (lam x:A. f(x))=(lam x:A. g(x)); a:A |] ==> f(a)=g(a)";
-by (fast_tac (claset() addDs [subsetD]
-                addSIs [lamI]
-                addEs [equalityE, lamE]) 1);
+by (fast_tac (claset() addSIs [lamI] addEs [equalityE, lamE]) 1);
 qed "lam_eqE";
 
 Goalw [inj_def]
@@ -84,7 +76,7 @@ qed "Sigma_fun_space_eqpoll";
 (* ********************************************************************** *)
 
 Goalw AC_defs "AC6 ==> AC7";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "AC6_AC7";
 
 (* ********************************************************************** *)
@@ -97,13 +89,11 @@ Goal "y: (PROD B:A. Y*B) ==> (lam B:A. snd(y`B)): (PROD B:A. B)";
 by (fast_tac (claset() addSIs [lam_type, snd_type, apply_type]) 1);
 val lemma1_1 = result();
 
-Goal "y: (PROD B:{Y*C. C:A}. B)  \
-\               ==> (lam B:A. y`(Y*B)): (PROD B:A. Y*B)";
+Goal "y: (PROD B:{Y*C. C:A}. B) ==> (lam B:A. y`(Y*B)): (PROD B:A. Y*B)";
 by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 val lemma1_2 = result();
 
-Goal "(PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0  \
-\               ==> (PROD B:A. B) ~= 0";
+Goal "(PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0 ==> (PROD B:A. B) ~= 0";
 by (fast_tac (claset() addSIs [equals0I,lemma1_1, lemma1_2]
                 addSEs [equals0E]) 1);
 val lemma1 = result();

@@ -378,12 +378,12 @@ qed "ex_subset_eqpoll";
 
 
 Goal "[| A <= B Un C; A Int C = 0 |] ==> A <= B";
-by (fast_tac (claset() addEs [equals0E]) 1);
+by (Blast_tac 1);
 qed "subset_Un_disjoint";
 
 
 Goal "[| X:Pow(A - Union(B) -C); T:B; F<=T |] ==> F Int X = 0";
-by (fast_tac (claset() addSIs [equals0I]) 1);
+by (Blast_tac 1);
 qed "Int_empty";
 
 (* ********************************************************************** *)

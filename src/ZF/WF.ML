@@ -38,13 +38,11 @@ by (blast_tac (claset() addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
 Goalw [wf_on_def, wf_def] "[| wf[A](r);  B<=A |] ==> wf[B](r)";
-by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
-by (Blast_tac 1);
+by (Fast_tac 1);
 qed "wf_on_subset_A";
 
 Goalw [wf_on_def, wf_def] "[| wf[A](r);  s<=r |] ==> wf[A](s)";
-by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
-by (Blast_tac 1);
+by (Fast_tac 1);
 qed "wf_on_subset_r";
 
 (** Introduction rules for wf_on **)

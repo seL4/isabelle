@@ -25,13 +25,13 @@ Goal "[| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
 by (rtac subsetI 1);
 by (eres_inst_tac [("x","{{b:B(a). x:X(a,b)}. a:A}")] allE 1);
 by (etac impE 1);
-by (fast_tac (claset() addEs [sym RS equals0E]) 1);
+by (Fast_tac 1);
 by (etac exE 1);
 by (rtac UN_I 1);
 by (fast_tac (claset() addSEs [PROD_subsets]) 1);
 by (Simp_tac 1);
-by (fast_tac (claset() addSEs [not_emptyE] addDs [RepFunI RSN (2, apply_type)]
-	      ) 1);
+by (fast_tac (claset() addSEs [not_emptyE] 
+                       addDs [RepFunI RSN (2, apply_type)]) 1);
 qed "lemma_AC18";
 
 val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";

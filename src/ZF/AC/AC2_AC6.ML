@@ -21,7 +21,7 @@ val lemma1 = result();
 
 Goalw [pairwise_disjoint_def]
         "[| pairwise_disjoint(A); B:A; C:A; D:B; D:C |] ==> f`B = f`C";
-by (fast_tac (claset() addSEs [equals0E]) 1);
+by (Fast_tac 1);
 val lemma2 = result();
 
 Goalw AC_defs "AC1 ==> AC2"; 
@@ -39,8 +39,7 @@ qed "AC1_AC2";
 (* ********************************************************************** *)
 
 Goal "0~:A ==> 0 ~: {B*{B}. B:A}";
-by (fast_tac (claset() addSDs [sym RS (Sigma_empty_iff RS iffD1)]
-        addSEs [equals0E]) 1);
+by (fast_tac (claset() addSDs [sym RS (Sigma_empty_iff RS iffD1)]) 1);
 val lemma1 = result();
 
 Goal "[| X*{X} Int C = {y}; X:A |]  \
@@ -72,7 +71,7 @@ qed "AC2_AC1";
 (* ********************************************************************** *)
 
 Goal "0 ~: {R``{x}. x:domain(R)}";
-by (fast_tac (claset() addEs [sym RS equals0E]) 1);
+by (Blast_tac 1);
 val lemma = result();
 
 Goalw AC_defs "AC1 ==> AC4";
@@ -194,6 +193,6 @@ qed "AC5_AC4";
 (* ********************************************************************** *)
 
 Goalw AC_defs "AC1 <-> AC6";
-by (blast_tac (claset() addEs [equals0E]) 1);
+by (Blast_tac 1);
 qed "AC1_iff_AC6";
 

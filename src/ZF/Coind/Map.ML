@@ -8,28 +8,25 @@ open Map;
 
 (** Some sample proofs of inclusions for the final coalgebra "U" (by lcp) **)
 
-
-Goalw [TMap_def]
-     "{0,1} <= {1} Un TMap(I, {0,1})";
+Goalw [TMap_def] "{0,1} <= {1} Un TMap(I, {0,1})";
 by (Blast_tac 1);
 result();
 
-Goalw [TMap_def]
-     "{0} Un TMap(I,1) <= {1} Un TMap(I, {0} Un TMap(I,1))";
+Goalw [TMap_def] "{0} Un TMap(I,1) <= {1} Un TMap(I, {0} Un TMap(I,1))";
 by (Blast_tac 1);
 result();
 
-Goalw [TMap_def]
-     "{0,1} Un TMap(I,2) <= {1} Un TMap(I, {0,1} Un TMap(I,2))";
+Goalw [TMap_def] "{0,1} Un TMap(I,2) <= {1} Un TMap(I, {0,1} Un TMap(I,2))";
 by (Blast_tac 1);
 result();
 
+(*TOO SLOW
 Goalw [TMap_def]
      "{0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2) <= \
 \     {1} Un TMap(I, {0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2))";
-(*twice as fast as Blast_tac alone*)
-by (Safe_tac THEN ALLGOALS Blast_tac);
+by (Blast_tac 1);
 result();
+*)
 
 
 (* ############################################################ *)
@@ -48,9 +45,6 @@ Goal "a ~: A ==> Sigma(A,B)``{a}=0";
 by (Fast_tac 1);
 qed "image_Sigma1";
 
-Goal "0``A = 0";
-by (Fast_tac 1);
-qed "image_02";
 
 (* ############################################################ *)
 (* Inclusion in Quine Universes                                 *)
@@ -95,8 +89,7 @@ qed "map_mono";
 (** map_emp **)
 
 Goalw [map_emp_def,PMap_def,TMap_def] "map_emp:PMap(A,B)";
-by Safe_tac;
-by (rtac image_02 1);
+by Auto_tac;
 qed "pmap_empI";
 
 (** map_owr **)

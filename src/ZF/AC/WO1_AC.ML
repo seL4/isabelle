@@ -44,12 +44,11 @@ Goalw [WO1_def] "[| WO1; ALL B:A. EX C:D(B). P(C,B) |]  \
 by (eres_inst_tac [("x","Union({{C:D(B). P(C,B)}. B:A})")] allE 1);
 by (etac exE 1);
 by (dtac ex_choice_fun 1);
-by (fast_tac (claset() addEs [sym RS equals0E]) 1);
+by (Fast_tac 1);
 by (etac exE 1);
 by (res_inst_tac [("x","lam x:A. f`{C:D(x). P(C,x)}")] exI 1);
 by (Asm_full_simp_tac 1);
-by (fast_tac (claset() addSDs [RepFunI RSN (2, apply_type)]
-                addSEs [CollectD2]) 1);
+by (blast_tac (claset() addSDs [RepFunI RSN (2, apply_type)]) 1);
 val lemma1 = result();
 
 Goalw [WO1_def] "[| ~Finite(B); WO1 |] ==> |B| + |B| eqpoll  B";

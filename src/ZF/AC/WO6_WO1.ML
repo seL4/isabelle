@@ -375,7 +375,7 @@ qed "lemma_iv";
 (* ********************************************************************** *)
 
 Goalw [WO6_def, NN_def] "!!y. WO6 ==> NN(y) ~= 0";
-by (fast_tac (ZF_cs addEs [equals0E]) 1);
+by (fast_tac ZF_cs 1);  (*SLOW if current claset is used*)
 qed "WO6_imp_NN_not_empty";
 
 (* ********************************************************************** *)

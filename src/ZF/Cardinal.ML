@@ -635,7 +635,7 @@ by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]
                         setloop etac UnE') 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_converse_fun RS apply_funtype, right_inverse]) 1);
-by (blast_tac (claset() addEs [equals0E]) 1);
+by (Blast_tac 1);
 qed "inj_disjoint_eqpoll";
 
 
@@ -684,7 +684,7 @@ qed "Un_lepoll_sum";
 Goalw [eqpoll_def] "A Int B = 0 ==> A Un B eqpoll A + B";
 by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
 by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
-by (auto_tac (claset() addEs [equals0E], simpset()));
+by Auto_tac;
 qed "disj_Un_eqpoll_sum";
 
 

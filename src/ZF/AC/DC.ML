@@ -574,7 +574,7 @@ qed "lam_type_RepFun";
 Goal "[| ALL Y:Pow(X). Y lesspoll a --> (EX x:X. <Y, x> : R);  \
 \        b:a; Z:Pow(X); Z lesspoll a |]  \
 \     ==> {x:X. <Z,x> : R} ~= 0";
-by (blast_tac (claset() addEs [equals0E]) 1);
+by (Blast_tac 1);
 val lemmaX = result();
 
 Goal "[| Card(K); well_ord(X,Q);  \
