@@ -46,22 +46,22 @@ struct
 fun remove (_, _, []) = (*impossible, since #m*u was found by find_repeated*)
       raise TERM("combine_numerals: remove", [])  
   | remove (m, u, t::terms) =
-      let val (n,v) = Data.dest_coeff t 
-      in  if m=n andalso u aconv v then terms
-          else t :: remove (m, u, terms)
-      end;
+      case try Data.dest_coeff t of
+	  Some(n,v) => if m=n andalso u aconv v then terms
+		       else t :: remove (m, u, terms)
+	| None      =>  t :: remove (m, u, terms);
 
 (*a left-to-right scan of terms, seeking another term of the form #n*u, where
   #m*u is already in terms for some m*)
 fun find_repeated (tab, _, []) = raise TERM("find_repeated", []) 
   | find_repeated (tab, past, t::terms) =
-      let val (n,u) = Data.dest_coeff t 
-      in  
-	  case Termtab.lookup (tab, u) of
-	      Some m => (u, m, n, rev (remove (m,u,past)) @ terms)
-	    | None => find_repeated (Termtab.update ((u,n), tab), 
-				     t::past,  terms)
-      end;
+      case try Data.dest_coeff t of
+	  Some(n,u) => 
+	      (case Termtab.lookup (tab, u) of
+		  Some m => (u, m, n, rev (remove (m,u,past)) @ terms)
+		| None => find_repeated (Termtab.update ((u,n), tab), 
+					 t::past,  terms))
+	| None => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
 fun proc sg _ t =
