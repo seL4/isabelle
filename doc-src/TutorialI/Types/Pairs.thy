@@ -21,7 +21,7 @@ and they can be nested. Here are
 some typical examples:
 \begin{quote}
 @{term"let (x,y) = f z in (y,x)"}\\
-@{term"case xs of [] => 0 | (x,y)#zs => x+y"}\\
+@{term"case xs of [] => (0::nat) | (x,y)#zs => x+y"}\\
 @{text"\<forall>(x,y)\<in>A. x=y"}\\
 @{text"{(x,y,z). x=z}"}\\
 @{term"\<Union>(x,y)\<in>A. {x+y}"}

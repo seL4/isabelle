@@ -1,0 +1,676 @@
+\begin{theindex}
+
+  \item \ttall, \bold{209}
+  \item \texttt{?}, \bold{209}
+  \item \isasymuniqex, \bold{209}
+  \item \ttuniquex, \bold{209}
+  \item {\texttt {\&}}, \bold{209}
+  \item \verb$~$, \bold{209}
+  \item \verb$~=$, \bold{209}
+  \item \ttor, \bold{209}
+  \item \texttt{[]}, \bold{9}
+  \item \texttt{\#}, \bold{9}
+  \item \texttt{\at}, \bold{10}, \hyperpage{209}
+  \item \isasymnotin, \bold{209}
+  \item \verb$~:$, \bold{209}
+  \item \isasymInter, \bold{209}
+  \item \isasymUnion, \bold{209}
+  \item \isasyminverse, \bold{209}
+  \item \verb$^-1$, \bold{209}
+  \item \isactrlsup{\isacharasterisk}, \bold{209}
+  \item \verb$^$\texttt{*}, \bold{209}
+  \item \isasymAnd, \bold{12}, \bold{209}
+  \item \ttAnd, \bold{209}
+  \item \emph {$\Rightarrow $}, \bold{5}
+  \item \ttlbr, \bold{209}
+  \item \ttrbr, \bold{209}
+  \item \texttt {\%}, \bold{209}
+  \item \texttt {;}, \bold{7}
+  \item \isa {()} (constant), \hyperpage{24}
+  \item \isa {+} (tactical), \hyperpage{99}
+  \item \isa {<*lex*>}, \see{lexicographic product}{1}
+  \item \isa {?} (tactical), \hyperpage{99}
+  \item \texttt{|} (tactical), \hyperpage{99}
+
+  \indexspace
+
+  \item \isa {0} (constant), \hyperpage{22, 23}, \hyperpage{150}
+  \item \isa {1} (constant), \hyperpage{23}, \hyperpage{150, 151}
+
+  \indexspace
+
+  \item abandoning a proof, \bold{13}
+  \item abandoning a theory, \bold{16}
+  \item \isa {abs} (constant), \hyperpage{153}
+  \item \texttt {abs}, \bold{209}
+  \item absolute value, \hyperpage{153}
+  \item \isa {add} (modifier), \hyperpage{29}
+  \item \isa {add_ac} (theorems), \hyperpage{152}
+  \item \isa {add_assoc} (theorem), \bold{152}
+  \item \isa {add_commute} (theorem), \bold{152}
+  \item \isa {add_mult_distrib} (theorem), \bold{151}
+  \item \texttt {ALL}, \bold{209}
+  \item \isa {All} (constant), \hyperpage{109}
+  \item \isa {allE} (theorem), \bold{81}
+  \item \isa {allI} (theorem), \bold{80}
+  \item antiquotation, \bold{61}
+  \item append function, 10--14
+  \item \isacommand {apply} (command), \hyperpage{15}
+  \item \isa {arg_cong} (theorem), \bold{96}
+  \item \isa {arith} (method), \hyperpage{23}, \hyperpage{149}
+  \item arithmetic operations
+    \subitem for \protect\isa{nat}, \hyperpage{23}
+  \item \textsc {ascii} symbols, \bold{209}
+  \item Aspinall, David, \hyperpage{viii}
+  \item associative-commutative function, \hyperpage{176}
+  \item \isa {assumption} (method), \hyperpage{69}
+  \item assumptions
+    \subitem of subgoal, \hyperpage{12}
+    \subitem renaming, 82--83
+    \subitem reusing, 83
+  \item \isa {auto} (method), \hyperpage{38}, \hyperpage{92}
+  \item \isa {axclass}, 164--170
+  \item axiom of choice, \hyperpage{86}
+  \item axiomatic type classes, 164--170
+
+  \indexspace
+
+  \item \isacommand {back} (command), \hyperpage{78}
+  \item \isa {Ball} (constant), \hyperpage{109}
+  \item \isa {ballI} (theorem), \bold{108}
+  \item \isa {best} (method), \hyperpage{92}
+  \item \isa {Bex} (constant), \hyperpage{109}
+  \item \isa {bexE} (theorem), \bold{108}
+  \item \isa {bexI} (theorem), \bold{108}
+  \item \isa {bij_def} (theorem), \bold{110}
+  \item bijections, \hyperpage{110}
+  \item binary trees, \hyperpage{18}
+  \item binomial coefficients, \hyperpage{109}
+  \item bisimulations, \hyperpage{116}
+  \item \isa {blast} (method), 89--90, \hyperpage{92}
+  \item \isa {bool} (type), \hyperpage{4, 5}
+  \item boolean expressions example, 20--22
+  \item \isa {bspec} (theorem), \bold{108}
+  \item \isacommand{by} (command), 73
+
+  \indexspace
+
+  \item \isa {card} (constant), \hyperpage{109}
+  \item \isa {card_Pow} (theorem), \bold{109}
+  \item \isa {card_Un_Int} (theorem), \bold{109}
+  \item cardinality, \hyperpage{109}
+  \item \isa {case} (symbol), \hyperpage{32, 33}
+  \item \isa {case} expressions, \hyperpage{5, 6}, \hyperpage{18}
+  \item case distinctions, \hyperpage{19}
+  \item case splits, \bold{31}
+  \item \isa {case_tac} (method), \hyperpage{19}, \hyperpage{101}, 
+		\hyperpage{157}
+  \item \isa {cases} (method), \hyperpage{162}
+  \item \isacommand {chapter} (command), \hyperpage{59}
+  \item \isa {clarify} (method), \hyperpage{91, 92}
+  \item \isa {clarsimp} (method), \hyperpage{91, 92}
+  \item \isa {classical} (theorem), \bold{73}
+  \item coinduction, \bold{116}
+  \item \isa {Collect} (constant), \hyperpage{109}
+  \item compiling expressions example, 36--38
+  \item \isa {Compl_iff} (theorem), \bold{106}
+  \item complement
+    \subitem of a set, \hyperpage{105}
+  \item composition
+    \subitem of functions, \bold{110}
+    \subitem of relations, \bold{112}
+  \item conclusion
+    \subitem of subgoal, \hyperpage{12}
+  \item conditional expressions, \see{\isa{if} expressions}{1}
+  \item conditional simplification rules, \hyperpage{31}
+  \item \isa {cong} (attribute), \hyperpage{176}
+  \item congruence rules, \bold{175}
+  \item \isa {conjE} (theorem), \bold{71}
+  \item \isa {conjI} (theorem), \bold{68}
+  \item \isa {Cons} (constant), \hyperpage{9}
+  \item \isacommand {constdefs} (command), \hyperpage{25}
+  \item \isacommand {consts} (command), \hyperpage{10}
+  \item contrapositives, 73
+  \item converse
+    \subitem of a relation, \bold{112}
+  \item \isa {converse_iff} (theorem), \bold{112}
+  \item CTL, 121--126, 191--193
+
+  \indexspace
+
+  \item \isacommand {datatype} (command), \hyperpage{9}, 38--43
+  \item datatypes, 17--22
+    \subitem and nested recursion, \hyperpage{40}, \hyperpage{44}
+    \subitem mutually recursive, \hyperpage{38}
+    \subitem nested, \hyperpage{180}
+  \item \isacommand {defer} (command), \hyperpage{16}, \hyperpage{100}
+  \item Definitional Approach, \hyperpage{26}
+  \item definitions, \bold{25}
+    \subitem unfolding, \bold{30}
+  \item \isacommand {defs} (command), \hyperpage{25}
+  \item \isa {del} (modifier), \hyperpage{29}
+  \item description operators, 85--87
+  \item descriptions
+    \subitem definite, \hyperpage{85}
+    \subitem indefinite, \hyperpage{86}
+  \item \isa {dest} (attribute), \hyperpage{102}
+  \item destruction rules, 71
+  \item \isa {diff_mult_distrib} (theorem), \bold{151}
+  \item difference
+    \subitem of sets, \bold{106}
+  \item \isa {disjCI} (theorem), \bold{74}
+  \item \isa {disjE} (theorem), \bold{70}
+  \item \isa {div} (symbol), \hyperpage{23}
+  \item divides relation, \hyperpage{84}, \hyperpage{95}, 101--104, 
+		\hyperpage{152}
+  \item division
+    \subitem by negative numbers, \hyperpage{153}
+    \subitem by zero, \hyperpage{152}
+    \subitem for type \protect\isa{nat}, \hyperpage{151}
+  \item documents, \bold{57}
+  \item domain
+    \subitem of a relation, \hyperpage{112}
+  \item \isa {Domain_iff} (theorem), \bold{112}
+  \item \isacommand {done} (command), \hyperpage{13}
+  \item \isa {drule_tac} (method), \hyperpage{76}, \hyperpage{96}
+  \item \isa {dvd_add} (theorem), \bold{152}
+  \item \isa {dvd_anti_sym} (theorem), \bold{152}
+  \item \isa {dvd_def} (theorem), \bold{152}
+
+  \indexspace
+
+  \item \isa {elim!} (attribute), \hyperpage{131}
+  \item elimination rules, 69--70
+  \item \isacommand {end} (command), \hyperpage{14}
+  \item \isa {Eps} (constant), \hyperpage{109}
+  \item equality, \hyperpage{5}
+    \subitem of functions, \bold{109}
+    \subitem of records, \hyperpage{161}
+    \subitem of sets, \bold{106}
+  \item \isa {equalityE} (theorem), \bold{106}
+  \item \isa {equalityI} (theorem), \bold{106}
+  \item \isa {erule} (method), \hyperpage{70}
+  \item \isa {erule_tac} (method), \hyperpage{76}
+  \item Euclid's algorithm, 101--104
+  \item even numbers
+    \subitem defining inductively, 127--131
+  \item \texttt {EX}, \bold{209}
+  \item \isa {Ex} (constant), \hyperpage{109}
+  \item \isa {exE} (theorem), \bold{82}
+  \item \isa {exI} (theorem), \bold{82}
+  \item \isa {ext} (theorem), \bold{109}
+  \item \isa {extend} (constant), \hyperpage{163}
+  \item extensionality
+    \subitem for functions, \bold{109, 110}
+    \subitem for records, \hyperpage{162}
+    \subitem for sets, \bold{106}
+  \item \ttEXU, \bold{209}
+
+  \indexspace
+
+  \item \isa {False} (constant), \hyperpage{5}
+  \item \isa {fast} (method), \hyperpage{92}, \hyperpage{124}
+  \item Fibonacci function, \hyperpage{47}
+  \item \isa {fields} (constant), \hyperpage{163}
+  \item \isa {finite} (symbol), \hyperpage{109}
+  \item \isa {Finites} (constant), \hyperpage{109}
+  \item fixed points, 116
+  \item flags, \hyperpage{5, 6}, \hyperpage{33}
+    \subitem setting and resetting, \hyperpage{5}
+  \item \isa {force} (method), \hyperpage{91, 92}
+  \item formal comments, \bold{60}
+  \item formal proof documents, \bold{57}
+  \item formulae, 5--6
+  \item forward proof, 92--98
+  \item \isa {frule} (method), 83
+  \item \isa {frule_tac} (method), \hyperpage{76}
+  \item \isa {fst} (constant), \hyperpage{24}
+  \item function types, \hyperpage{5}
+  \item functions, 109--111
+    \subitem partial, \hyperpage{182}
+    \subitem total, \hyperpage{11}, 47--52
+    \subitem underdefined, \hyperpage{183}
+
+  \indexspace
+
+  \item \isa {gcd} (constant), 93--94, 101--104
+  \item generalizing for induction, \hyperpage{129}
+  \item generalizing induction formulae, \hyperpage{35}
+  \item Girard, Jean-Yves, \fnote{71}
+  \item Gordon, Mike, \hyperpage{3}
+  \item grammars
+    \subitem defining inductively, 140--145
+  \item ground terms example, 135--140
+
+  \indexspace
+
+  \item \isa {hd} (constant), \hyperpage{17}, \hyperpage{37}
+  \item \isacommand {header} (command), \hyperpage{59}
+  \item Hilbert's $\varepsilon$-operator, \hyperpage{86}
+  \item HOLCF, \hyperpage{43}
+  \item Hopcroft, J. E., \hyperpage{145}
+  \item \isa {hypreal} (type), \hyperpage{155}
+
+  \indexspace
+
+  \item \isa {Id_def} (theorem), \bold{112}
+  \item \isa {id_def} (theorem), \bold{110}
+  \item identifiers, \bold{6}
+    \subitem qualified, \bold{4}
+  \item identity function, \bold{110}
+  \item identity relation, \bold{112}
+  \item \isa {if} expressions, \hyperpage{5, 6}
+    \subitem simplification of, \hyperpage{33}
+    \subitem splitting of, \hyperpage{31}, \hyperpage{49}
+  \item if-and-only-if, \hyperpage{6}
+  \item \isa {iff} (attribute), \hyperpage{90}, \hyperpage{102}, 
+		\hyperpage{130}
+  \item \isa {iffD1} (theorem), \bold{94}
+  \item \isa {iffD2} (theorem), \bold{94}
+  \item ignored material, \bold{64}
+  \item image
+    \subitem under a function, \bold{111}
+    \subitem under a relation, \bold{112}
+  \item \isa {image_def} (theorem), \bold{111}
+  \item \isa {Image_iff} (theorem), \bold{112}
+  \item \isa {impI} (theorem), \bold{72}
+  \item implication, 72--73
+  \item \isa {ind_cases} (method), \hyperpage{131}
+  \item \isa {induct_tac} (method), \hyperpage{12}, \hyperpage{19}, 
+		\hyperpage{52}, \hyperpage{190}
+  \item induction, 186--193
+    \subitem complete, \hyperpage{188}
+    \subitem deriving new schemas, \hyperpage{190}
+    \subitem on a term, \hyperpage{187}
+    \subitem recursion, 51--52
+    \subitem structural, \hyperpage{19}
+    \subitem well-founded, 115
+  \item induction heuristics, 34--36
+  \item \isacommand {inductive} (command), \hyperpage{127}
+  \item inductive definition
+    \subitem simultaneous, \hyperpage{141}
+  \item inductive definitions, 127--145
+  \item \isacommand {inductive\_cases} (command), \hyperpage{131}, 
+		\hyperpage{139}
+  \item infinitely branching trees, \hyperpage{43}
+  \item infix annotations, \hyperpage{53}
+  \item \isacommand{infixr} (annotation), \hyperpage{10}
+  \item \isa {inj_on_def} (theorem), \bold{110}
+  \item injections, \hyperpage{110}
+  \item \isa {insert} (constant), \hyperpage{107}
+  \item \isa {insert} (method), \hyperpage{97}, 97, \hyperpage{98}
+  \item instance, \bold{166}
+  \item \texttt {INT}, \bold{209}
+  \item \texttt {Int}, \bold{209}
+  \item \isa {int} (type), 153--154
+  \item \isa {INT_iff} (theorem), \bold{108}
+  \item \isa {IntD1} (theorem), \bold{105}
+  \item \isa {IntD2} (theorem), \bold{105}
+  \item integers, 153--154
+  \item \isa {INTER} (constant), \hyperpage{109}
+  \item \texttt {Inter}, \bold{209}
+  \item \isa {Inter_iff} (theorem), \bold{108}
+  \item intersection, \hyperpage{105}
+    \subitem indexed, \hyperpage{108}
+  \item \isa {IntI} (theorem), \bold{105}
+  \item \isa {intro} (method), \hyperpage{74}
+  \item \isa {intro!} (attribute), \hyperpage{128}
+  \item \isa {intro_classes} (method), \hyperpage{166}
+  \item introduction rules, 68--69
+  \item \isa {inv} (constant), \hyperpage{86}
+  \item \isa {inv_image_def} (theorem), \bold{115}
+  \item inverse
+    \subitem of a function, \bold{110}
+    \subitem of a relation, \bold{112}
+  \item inverse image
+    \subitem of a function, \hyperpage{111}
+    \subitem of a relation, \hyperpage{114}
+  \item \isa {itrev} (constant), \hyperpage{34}
+
+  \indexspace
+
+  \item \isacommand {kill} (command), \hyperpage{16}
+
+  \indexspace
+
+  \item $\lambda$ expressions, \hyperpage{5}
+  \item LCF, \hyperpage{43}
+  \item \isa {LEAST} (symbol), \hyperpage{23}, \hyperpage{85}
+  \item least number operator, \see{\protect\isa{LEAST}}{85}
+  \item Leibniz, Gottfried Wilhelm, \hyperpage{53}
+  \item \isacommand {lemma} (command), \hyperpage{13}
+  \item \isacommand {lemmas} (command), \hyperpage{93}, \hyperpage{102}
+  \item \isa {length} (symbol), \hyperpage{18}
+  \item \isa {length_induct}, \bold{190}
+  \item \isa {less_than} (constant), \hyperpage{114}
+  \item \isa {less_than_iff} (theorem), \bold{114}
+  \item \isa {let} expressions, \hyperpage{5, 6}, \hyperpage{31}
+  \item \isa {Let_def} (theorem), \hyperpage{31}
+  \item \isa {lex_prod_def} (theorem), \bold{115}
+  \item lexicographic product, \bold{115}, \hyperpage{178}
+  \item {\texttt{lfp}}
+    \subitem applications of, \see{CTL}{116}
+  \item Library, \hyperpage{4}
+  \item linear arithmetic, 22--24, \hyperpage{149}
+  \item \isa {List} (theory), \hyperpage{17}
+  \item \isa {list} (type), \hyperpage{5}, \hyperpage{9}, 
+		\hyperpage{17}
+  \item \isa {list.split} (theorem), \hyperpage{32}
+  \item \isa {lists_mono} (theorem), \bold{137}
+  \item Lowe, Gavin, 196--197
+
+  \indexspace
+
+  \item \isa {Main} (theory), \hyperpage{4}
+  \item major premise, \bold{75}
+  \item \isa {make} (constant), \hyperpage{163}
+  \item marginal comments, \bold{60}
+  \item markup commands, \bold{59}
+  \item \isa {max} (constant), \hyperpage{23, 24}
+  \item measure functions, \hyperpage{47}, \hyperpage{114}
+  \item \isa {measure_def} (theorem), \bold{115}
+  \item meta-logic, \bold{80}
+  \item methods, \bold{16}
+  \item \isa {min} (constant), \hyperpage{23, 24}
+  \item mixfix annotations, \bold{53}
+  \item \isa {mod} (symbol), \hyperpage{23}
+  \item \isa {mod_div_equality} (theorem), \bold{151}
+  \item \isa {mod_mult_distrib} (theorem), \bold{151}
+  \item model checking example, 116--126
+  \item \emph{modus ponens}, \hyperpage{67}, \hyperpage{72}
+  \item \isa {mono_def} (theorem), \bold{116}
+  \item monotone functions, \bold{116}, \hyperpage{139}
+    \subitem and inductive definitions, 137--138
+  \item \isa {more} (constant), \hyperpage{158}, \hyperpage{160}
+  \item \isa {mp} (theorem), \bold{72}
+  \item \isa {mult_ac} (theorems), \hyperpage{152}
+  \item multiple inheritance, \bold{169}
+  \item multiset ordering, \bold{115}
+
+  \indexspace
+
+  \item \isa {nat} (type), \hyperpage{4}, \hyperpage{22}, 151--153
+  \item \isa {nat_less_induct} (theorem), \hyperpage{188}
+  \item natural deduction, 67--68
+  \item natural numbers, \hyperpage{22}, 151--153
+  \item Needham-Schroeder protocol, 195--197
+  \item negation, 73--75
+  \item \isa {Nil} (constant), \hyperpage{9}
+  \item \isa {no_asm} (modifier), \hyperpage{29}
+  \item \isa {no_asm_simp} (modifier), \hyperpage{30}
+  \item \isa {no_asm_use} (modifier), \hyperpage{30}
+  \item \isa {no_vars} (attribute), \hyperpage{62}
+  \item non-standard reals, \hyperpage{155}
+  \item \isa {None} (constant), \bold{24}
+  \item \isa {notE} (theorem), \bold{73}
+  \item \isa {notI} (theorem), \bold{73}
+  \item numbers, 149--155
+  \item numeric literals, 150
+    \subitem for type \protect\isa{nat}, \hyperpage{151}
+    \subitem for type \protect\isa{real}, \hyperpage{155}
+
+  \indexspace
+
+  \item \isa {O} (symbol), \hyperpage{112}
+  \item \texttt {o}, \bold{209}
+  \item \isa {o_def} (theorem), \bold{110}
+  \item \isa {OF} (attribute), 95--96, \hyperpage{96}
+  \item \isa {of} (attribute), \hyperpage{93}, \hyperpage{96}
+  \item \isa {only} (modifier), \hyperpage{29}
+  \item \isacommand {oops} (command), \hyperpage{13}
+  \item \isa {option} (type), \bold{24}
+  \item ordered rewriting, \bold{176}
+  \item overloading, \hyperpage{23}, 165--167
+    \subitem and arithmetic, \hyperpage{150}
+
+  \indexspace
+
+  \item pairs and tuples, \hyperpage{24}, 155--158
+  \item parent theories, \bold{4}
+  \item pattern matching
+    \subitem and \isacommand{recdef}, \hyperpage{47}
+  \item patterns
+    \subitem higher-order, \bold{177}
+  \item PDL, 118--120
+  \item \isacommand {pr} (command), \hyperpage{16}, \hyperpage{100}
+  \item \isacommand {prefer} (command), \hyperpage{16}, \hyperpage{100}
+  \item prefix annotation, \hyperpage{56}
+  \item primitive recursion, \see{recursion, primitive}{1}
+  \item \isacommand {primrec} (command), \hyperpage{10}, \hyperpage{18}, 
+		\hyperpage{41}, 38--43
+  \item print mode, \bold{55}
+  \item \isacommand {print\_syntax} (command), \hyperpage{54}
+  \item product type, \see{pairs and tuples}{1}
+  \item Proof General, \bold{7}
+  \item proof state, \hyperpage{12}
+  \item proofs
+    \subitem abandoning, \bold{13}
+    \subitem examples of failing, 87--89
+  \item protocols
+    \subitem security, 195--205
+
+  \indexspace
+
+  \item quantifiers, \hyperpage{6}
+    \subitem and inductive definitions, 135--137
+    \subitem existential, 82
+    \subitem for sets, 108
+    \subitem instantiating, \hyperpage{84}
+    \subitem universal, 79--82
+
+  \indexspace
+
+  \item \isa {r_into_rtrancl} (theorem), \bold{112}
+  \item \isa {r_into_trancl} (theorem), \bold{113}
+  \item range
+    \subitem of a function, \hyperpage{111}
+    \subitem of a relation, \hyperpage{112}
+  \item \isa {range} (symbol), \hyperpage{111}
+  \item \isa {Range_iff} (theorem), \bold{112}
+  \item \isa {Real} (theory), \hyperpage{155}
+  \item \isa {real} (type), 154--155
+  \item real numbers, 154--155
+  \item \isacommand {recdef} (command), 47--52, \hyperpage{114}, 
+		178--186
+    \subitem and numeric literals, \hyperpage{150}
+  \item \isa {recdef_cong} (attribute), \hyperpage{182}
+  \item \isa {recdef_simp} (attribute), \hyperpage{49}
+  \item \isa {recdef_wf} (attribute), \hyperpage{180}
+  \item \isacommand {record} (command), \hyperpage{159}
+  \item records, 158--164
+    \subitem extensible, 160--161
+  \item recursion
+    \subitem guarded, \hyperpage{183}
+    \subitem primitive, \hyperpage{18}
+    \subitem well-founded, \bold{179}
+  \item recursion induction, 51--52
+  \item \isacommand {redo} (command), \hyperpage{16}
+  \item reflexive and transitive closure, 112--114
+  \item reflexive transitive closure
+    \subitem defining inductively, 132--135
+  \item \isa {rel_comp_def} (theorem), \bold{112}
+  \item relations, 111--114
+    \subitem well-founded, 114--115
+  \item \isa {rename_tac} (method), 82--83
+  \item \isa {rev} (constant), \hyperpage{10}, 10--14, \hyperpage{34}
+  \item rewrite rules, \bold{27}
+    \subitem permutative, \bold{176}
+  \item rewriting, \bold{27}
+  \item \isa {rotate_tac} (method), \hyperpage{30}
+  \item \isa {rtrancl_refl} (theorem), \bold{112}
+  \item \isa {rtrancl_trans} (theorem), \bold{112}
+  \item rule induction, 128--130
+  \item rule inversion, 130--131, 139--140
+  \item \isa {rule_format} (attribute), \hyperpage{187}
+  \item \isa {rule_tac} (method), \hyperpage{76}
+    \subitem and renaming, \hyperpage{83}
+
+  \indexspace
+
+  \item \isa {safe} (method), \hyperpage{91, 92}
+  \item safe rules, \bold{90}
+  \item \isacommand {sect} (command), \hyperpage{59}
+  \item \isacommand {section} (command), \hyperpage{59}
+  \item selector
+    \subitem record, \hyperpage{159}
+  \item session, \bold{58}
+  \item \isa {set} (type), \hyperpage{5}, \hyperpage{105}
+  \item set comprehensions, 107--108
+  \item \isa {set_ext} (theorem), \bold{106}
+  \item sets, 105--109
+    \subitem finite, \hyperpage{109}
+    \subitem notation for finite, \bold{107}
+  \item settings, \see{flags}{1}
+  \item \isa {show_brackets} (flag), \hyperpage{6}
+  \item \isa {show_types} (flag), \hyperpage{5}, \hyperpage{16}
+  \item \isa {simp} (attribute), \hyperpage{11}, \hyperpage{28}
+  \item \isa {simp} (method), \bold{28}
+  \item \isa {simp} del (attribute), \hyperpage{28}
+  \item \isa {simp_all} (method), \hyperpage{29}, \hyperpage{38}
+  \item simplification, 27--33, 175--178
+    \subitem of \isa{let}-expressions, \hyperpage{31}
+    \subitem with definitions, \hyperpage{30}
+    \subitem with/of assumptions, \hyperpage{29}
+  \item simplification rule, 177--178
+  \item simplification rules, \hyperpage{28}
+    \subitem adding and deleting, \hyperpage{29}
+  \item \isa {simplified} (attribute), \hyperpage{93}, \hyperpage{96}
+  \item \isa {size} (constant), \hyperpage{17}
+  \item \isa {snd} (constant), \hyperpage{24}
+  \item \isa {SOME} (symbol), \hyperpage{86}
+  \item \texttt {SOME}, \bold{209}
+  \item \isa {Some} (constant), \bold{24}
+  \item \isa {some_equality} (theorem), \bold{86}
+  \item \isa {someI} (theorem), \bold{86}
+  \item \isa {someI2} (theorem), \bold{86}
+  \item \isa {someI_ex} (theorem), \bold{87}
+  \item sorts, \hyperpage{170}
+  \item \isa {spec} (theorem), \bold{80}
+  \item \isa {split} (attribute), \hyperpage{32}
+  \item \isa {split} (constant), \hyperpage{156}
+  \item \isa {split} (method), \hyperpage{31}, \hyperpage{156}
+  \item \isa {split} (modifier), \hyperpage{32}
+  \item split rule, \bold{32}
+  \item \isa {split_if} (theorem), \hyperpage{32}
+  \item \isa {split_if_asm} (theorem), \hyperpage{32}
+  \item \isa {ssubst} (theorem), \bold{77}
+  \item structural induction, \see{induction, structural}{1}
+  \item subclasses, \hyperpage{164}, \hyperpage{169}
+  \item subgoal numbering, \hyperpage{46}
+  \item \isa {subgoal_tac} (method), \hyperpage{98}
+  \item subgoals, \hyperpage{12}
+  \item \isacommand {subsect} (command), \hyperpage{59}
+  \item \isacommand {subsection} (command), \hyperpage{59}
+  \item subset relation, \bold{106}
+  \item \isa {subsetD} (theorem), \bold{106}
+  \item \isa {subsetI} (theorem), \bold{106}
+  \item \isa {subst} (method), \hyperpage{77}
+  \item substitution, 77--79
+  \item \isacommand {subsubsect} (command), \hyperpage{59}
+  \item \isacommand {subsubsection} (command), \hyperpage{59}
+  \item \isa {Suc} (constant), \hyperpage{22}
+  \item \isa {surj_def} (theorem), \bold{110}
+  \item surjections, \hyperpage{110}
+  \item \isa {sym} (theorem), \bold{94}
+  \item symbols, \bold{54}
+  \item syntax, \hyperpage{6}, \hyperpage{11}
+  \item \isacommand {syntax} (command), \hyperpage{55}
+  \item syntax (command), \hyperpage{56}
+  \item syntax translations, \bold{56}
+
+  \indexspace
+
+  \item tacticals, 99
+  \item tactics, \hyperpage{12}
+  \item \isacommand {term} (command), \hyperpage{16}
+  \item term rewriting, \bold{27}
+  \item termination, \see{functions, total}{1}
+  \item terms, 5
+  \item text, \bold{61}
+  \item text blocks, \bold{60}
+  \item \isa {THE} (symbol), \hyperpage{85}
+  \item \isa {the_equality} (theorem), \bold{85}
+  \item \isa {THEN} (attribute), \bold{94}, \hyperpage{96}, 
+		\hyperpage{102}
+  \item \isacommand {theorem} (command), \bold{11}, \hyperpage{13}
+  \item theories, 4
+    \subitem abandoning, \bold{16}
+  \item \isacommand {theory} (command), \hyperpage{16}
+  \item theory files, \hyperpage{4}
+  \item \isacommand {thm} (command), \hyperpage{16}
+  \item \isa {tl} (constant), \hyperpage{17}
+  \item \isa {ToyList} example, 9--14
+  \item \isa {trace_simp} (flag), \hyperpage{33}
+  \item tracing the simplifier, \bold{33}
+  \item \isa {trancl_trans} (theorem), \bold{113}
+  \item transition systems, \hyperpage{117}
+  \item \isacommand {translations} (command), \hyperpage{56}
+  \item tries, 44--46
+  \item \isa {True} (constant), \hyperpage{5}
+  \item \isa {truncate} (constant), \hyperpage{163}
+  \item tuples, \see{pairs and tuples}{1}
+  \item txt, \bold{61}
+  \item \isacommand {typ} (command), \hyperpage{16}
+  \item type constraints, \bold{6}
+  \item type constructors, \hyperpage{5}
+  \item type inference, \bold{5}
+  \item type synonyms, \hyperpage{25}
+  \item type variables, \hyperpage{5}
+  \item \isacommand {typedecl} (command), \hyperpage{117}, 
+		\hyperpage{171}
+  \item \isacommand {typedef} (command), 171--174
+  \item types, 4--5
+    \subitem declaring, 171
+    \subitem defining, 171--174
+  \item \isacommand {types} (command), \hyperpage{25}
+
+  \indexspace
+
+  \item Ullman, J. D., \hyperpage{145}
+  \item \texttt {UN}, \bold{209}
+  \item \texttt {Un}, \bold{209}
+  \item \isa {UN_E} (theorem), \bold{108}
+  \item \isa {UN_I} (theorem), \bold{108}
+  \item \isa {UN_iff} (theorem), \bold{108}
+  \item \isa {Un_subset_iff} (theorem), \bold{106}
+  \item \isacommand {undo} (command), \hyperpage{16}
+  \item \isa {unfold} (method), \bold{31}
+  \item unification, 76--79
+  \item \isa {UNION} (constant), \hyperpage{109}
+  \item \texttt {Union}, \bold{209}
+  \item union
+    \subitem indexed, \hyperpage{108}
+  \item \isa {Union_iff} (theorem), \bold{108}
+  \item \isa {unit} (type), \hyperpage{24}
+  \item unknowns, \hyperpage{7}, \bold{68}
+  \item unsafe rules, \bold{90}
+  \item update
+    \subitem record, \hyperpage{159}
+  \item updating a function, \bold{109}
+
+  \indexspace
+
+  \item variables, 7
+    \subitem schematic, \hyperpage{7}
+    \subitem type, \hyperpage{5}
+  \item \isa {vimage_def} (theorem), \bold{111}
+
+  \indexspace
+
+  \item Wenzel, Markus, \hyperpage{vii}
+  \item \isa {wf_induct} (theorem), \bold{115}
+  \item \isa {wf_inv_image} (theorem), \bold{115}
+  \item \isa {wf_less_than} (theorem), \bold{114}
+  \item \isa {wf_lex_prod} (theorem), \bold{115}
+  \item \isa {wf_measure} (theorem), \bold{115}
+  \item \isa {wf_subset} (theorem), \hyperpage{180}
+  \item \isa {while} (constant), \hyperpage{185}
+  \item \isa {While_Combinator} (theory), \hyperpage{185}
+  \item \isa {while_rule} (theorem), \hyperpage{185}
+
+  \indexspace
+
+  \item \isa {zadd_ac} (theorems), \hyperpage{153}
+  \item \isa {zmult_ac} (theorems), \hyperpage{153}
+
+\end{theindex}

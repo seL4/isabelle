@@ -114,7 +114,7 @@ on properties of multiplication.
 
   Even for linear arithmetic formulae, \isa{arith} is incomplete. If divisibility plays a
   role, it may fail to prove a valid formula, for example
-  @{prop"m+m \<noteq> n+n+1"}. Fortunately, such examples are rare.
+  @{text"m+m \<noteq> n+n+(1::nat)"}. Fortunately, such examples are rare.
 \end{warn}
 *}
 

@@ -165,7 +165,7 @@ txt{*\noindent
 We get the following proof state:
 @{subgoals[display,indent=0,margin=65]}
 After stripping the @{text"\<forall>i"}, the proof continues with a case
-distinction on @{term"i"}. The case @{prop"i = 0"} is trivial and we focus on
+distinction on @{term"i"}. The case @{prop"i = (0::nat)"} is trivial and we focus on
 the other case:
 *}
 

@@ -123,14 +123,14 @@ apply(clarsimp simp add: af_def Paths_def);
 
 txt{*
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-Now we eliminate the disjunction. The case @{prop"p 0 \<in> A"} is trivial:
+Now we eliminate the disjunction. The case @{prop"p(0::nat) \<in> A"} is trivial:
 *};
 
 apply(erule disjE);
  apply(blast);
 
 txt{*\noindent
-In the other case we set @{term t} to @{term"p 1"} and simplify matters:
+In the other case we set @{term t} to @{term"p(1::nat)"} and simplify matters:
 *};
 
 apply(erule_tac x = "p 1" in allE);
@@ -138,7 +138,7 @@ apply(clarsimp);
 
 txt{*
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1)"}, that is, 
+It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1::nat)"}, that is, 
 @{term p} without its first element.  The rest is automatic:
 *};
 
@@ -183,7 +183,7 @@ primrec
 "path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)";
 
 text{*\noindent
-Element @{term"n+1"} on this path is some arbitrary successor
+Element @{term"n+1::nat"} on this path is some arbitrary successor
 @{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that @{text"SOME t. R t"}
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
 course, such a @{term t} need not exist, but that is of no

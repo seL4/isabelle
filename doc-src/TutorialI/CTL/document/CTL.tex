@@ -125,7 +125,7 @@ a decision that clarification takes for us:%
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ \ \ }{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
-Now we eliminate the disjunction. The case \isa{p\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymin}\ A} is trivial:%
+Now we eliminate the disjunction. The case \isa{p\ {\isadigit{0}}\ {\isasymin}\ A} is trivial:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule\ disjE{\isacharparenright}\isanewline
@@ -134,7 +134,7 @@ Now we eliminate the disjunction. The case \isa{p\ {\isacharparenleft}{\isadigit
 %
 \begin{isamarkuptxt}%
 \noindent
-In the other case we set \isa{t} to \isa{p\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}b{\isacharparenright}} and simplify matters:%
+In the other case we set \isa{t} to \isa{p\ {\isadigit{1}}} and simplify matters:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ {\isadigit{1}}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
@@ -148,7 +148,7 @@ In the other case we set \isa{t} to \isa{p\ {\isacharparenleft}{\isadigit{1}}{\i
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ \ \ {\isasymforall}pa{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
-It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}}, that is, 
+It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}, that is, 
 \isa{p} without its first element.  The rest is automatic:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -200,7 +200,7 @@ path is parameterized by a predicate \isa{Q} that should hold along the path:%
 %
 \begin{isamarkuptext}%
 \noindent
-Element \isa{n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}} on this path is some arbitrary successor
+Element \isa{n\ {\isacharplus}\ {\isadigit{1}}} on this path is some arbitrary successor
 \isa{t} of element \isa{n} such that \isa{Q\ t} holds.  Remember that \isa{SOME\ t{\isachardot}\ R\ t}
 is some arbitrary but fixed \isa{t} such that \isa{R\ t} holds (see \S\ref{sec:SOME}). Of
 course, such a \isa{t} need not exist, but that is of no

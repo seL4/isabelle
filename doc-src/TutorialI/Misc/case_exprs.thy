@@ -7,11 +7,11 @@ subsection{*Case Expressions*}
 text{*\label{sec:case-expressions}\index{*case expressions}%
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
-@{term[display]"case xs of [] => 1 | y#ys => y"}
-evaluates to @{term"1"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if 
+@{term[display]"case xs of [] => [] | y#ys => y"}
+evaluates to @{term"[]"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if 
 @{term"xs"} is @{term"y#ys"}. (Since the result in both branches must be of
-the same type, it follows that @{term"y"} is of type @{typ"nat"} and hence
-that @{term"xs"} is of type @{typ"nat list"}.)
+the same type, it follows that @{term y} is of type @{typ"'a list"} and hence
+that @{term xs} is of type @{typ"'a list list"}.)
 
 In general, if $e$ is a term of the datatype $t$ defined in
 \S\ref{sec:general-datatype} above, the corresponding
@@ -32,9 +32,9 @@ error messages.
 \noindent
 Nested patterns can be simulated by nested @{text"case"}-expressions: instead
 of
-@{text[display]"case xs of [] => 1 | [x] => x | x # (y # zs) => y"}
+@{text[display]"case xs of [] => [] | [x] => x | x # (y # zs) => y"}
 write
-@{term[display,eta_contract=false,margin=50]"case xs of [] => 1 | x#ys => (case ys of [] => x | y#zs => y)"}
+@{term[display,eta_contract=false,margin=50]"case xs of [] => [] | x#ys => (case ys of [] => x | y#zs => y)"}
 
 Note that @{text"case"}-expressions may need to be enclosed in parentheses to
 indicate their scope

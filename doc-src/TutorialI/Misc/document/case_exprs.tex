@@ -12,12 +12,12 @@
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 \begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
 \end{isabelle}
-evaluates to \isa{{\isadigit{1}}{\isasymColon}{\isacharprime}a} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
+evaluates to \isa{{\isacharbrackleft}{\isacharbrackright}} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
 \isa{xs} is \isa{y\ {\isacharhash}\ ys}. (Since the result in both branches must be of
-the same type, it follows that \isa{y} is of type \isa{nat} and hence
-that \isa{xs} is of type \isa{nat\ list}.)
+the same type, it follows that \isa{y} is of type \isa{{\isacharprime}a\ list} and hence
+that \isa{xs} is of type \isa{{\isacharprime}a\ list\ list}.)
 
 In general, if $e$ is a term of the datatype $t$ defined in
 \S\ref{sec:general-datatype} above, the corresponding
@@ -39,11 +39,11 @@ error messages.
 Nested patterns can be simulated by nested \isa{case}-expressions: instead
 of
 \begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ {\isadigit{1}}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y%
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y%
 \end{isabelle}
 write
 \begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a\isanewline
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
 \isaindent{\ \ \ \ \ }{\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
 \end{isabelle}
 
