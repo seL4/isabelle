@@ -163,7 +163,7 @@ fun pretty_full_theory thy =
     fun prt_cls c = Sign.pretty_sort sg [c];
     fun prt_sort S = Sign.pretty_sort sg S;
     fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
-    fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
+    fun prt_typ_no_tvars ty = Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)));
     fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
 
     fun pretty_classes cs = Pretty.block
@@ -184,17 +184,17 @@ fun pretty_full_theory thy =
 
     fun pretty_witness None = Pretty.str "universal non-emptiness witness: --"
       | pretty_witness (Some (T, S)) = Pretty.block
-          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ T,
+          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ_no_tvars T,
             Pretty.brk 1, prt_sort S];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
-      [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
-        Pretty.str " =", Pretty.brk 1, prt_typ rhs];
+      [prt_typ_no_tvars (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
+        Pretty.str " =", Pretty.brk 1, prt_typ_no_tvars rhs];
 
     fun pretty_arities (t, ars) = map (prt_arity t) ars;
 
     fun pretty_const (c, ty) = Pretty.block
-      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
+      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
