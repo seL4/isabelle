@@ -67,17 +67,19 @@ fun flatten_consts ((names, typ, mfix) :: cs) =
       in (map mk_const names) @ (flatten_consts cs) end
   | flatten_consts [] = [];
 
+(*Parse type string of constructor*)
+fun read_typ (names, st, mfix) = (names, rdty st, mfix);
+
 (*Constructors with types and arguments*)
 fun mk_con_ty_list cons_pairs = 
-  let fun mk_con_ty (id, st, syn) =
-	  let val T = rdty st;
-	      val args = mk_frees "xa" (binder_types T);
-              val name = const_name id syn;
+  let fun mk_con_ty (id, T, syn) =
+        let val args = mk_frees "xa" (binder_types T);
+            val name = const_name id syn;
                             (* because of mixfix annotations the internal name 
                                can be different from 'id' *)
-	  in (name, T, args) end;
+	in (name, T, args) end;
 
-      fun pairtypes c = flatten_consts [c];
+      fun pairtypes c = flatten_consts [read_typ c];
   in map mk_con_ty (flat (map pairtypes cons_pairs))  end;
 
 val con_ty_lists = map (mk_con_ty_list o #3) rec_specs;
@@ -150,12 +152,12 @@ val axpairs =
     big_case_def :: flat (map mk_con_defs ((1 upto npart) ~~ con_ty_lists));
 
 val const_decs = flatten_consts
-		   (([big_case_name], flatten_typ sign big_case_typ, NoSyn) ::
-		    (big_rec_name ins rec_names, rec_styp, NoSyn) ::
-		    flat (map #3 rec_specs));
+		   (([big_case_name], big_case_typ, NoSyn) ::
+		    (big_rec_name ins rec_names, rdty rec_styp, NoSyn) ::
+		    map read_typ (flat (map #3 rec_specs)));
 
 val con_thy = thy
-              |> add_consts const_decs
+              |> add_consts_i const_decs
               |> add_axioms_i axpairs
               |> add_thyname (big_rec_name ^ "_Constructors");
 

@@ -7,12 +7,6 @@ Abstract Syntax functions for Inductive Definitions
 *)
 
 
-(*SHOULD BE ABLE TO DELETE THESE!*)
-fun flatten_typ sign T = 
-    let val {syn,...} = Sign.rep_sg sign 
-    in  Pretty.str_of (Syntax.pretty_typ syn T)
-    end;
-
 (*Make a definition, lhs==rhs, checking that vars on lhs contain *)
 fun mk_defpair sign (lhs, rhs) = 
   let val Const(name, _) = head_of lhs
