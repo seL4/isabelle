@@ -1,6 +1,7 @@
 (*  Title:      HOL/Tools/induct_method.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Proof by cases and induction on types and sets.
 *)
