@@ -39,13 +39,14 @@ sig
   val insert_facts: Proof.method
   val unfold: thm list -> Proof.method
   val fold: thm list -> Proof.method
+  val rewrite_goal_tac: thm list -> int -> tactic
   val atomize_tac: thm list -> int -> tactic
   val atomize_goal: thm list -> int -> thm -> thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val resolveq_tac: thm Seq.seq -> int -> tactic
-  val resolveq_cases_tac: bool -> (thm * string list) Seq.seq
-    -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
+  val resolveq_cases_tac: (thm -> string list -> (string * RuleCases.T) list)
+    -> (thm * string list) Seq.seq -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val erule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
@@ -277,15 +278,19 @@ fun fold thms = SIMPLE_METHOD (CHANGED (fold_goals_tac thms));
 
 (* atomize meta-connectives *)
 
-fun atomize_tac rews i thm =
-  if Logic.has_meta_prems (#prop (Thm.rep_thm thm)) i then
-    Tactic.asm_rewrite_goal_tac (true, false, false) (K no_tac) (Thm.mss_of rews) i thm
-  else all_tac thm;
+fun rewrite_goal_tac rews =
+  Tactic.asm_rewrite_goal_tac (true, false, false) (K no_tac) (Thm.mss_of rews);
 
-fun atomize_goal rews i thm =
-  (case Seq.pull (atomize_tac rews i thm) of
-    None => thm
-  | Some (thm', _) => thm');
+fun atomize_tac rews =
+  let val rew_tac = rewrite_goal_tac rews in
+    fn i => fn thm =>
+      if Logic.has_meta_prems (#prop (Thm.rep_thm thm)) i then rew_tac i thm
+      else all_tac thm
+  end;
+
+fun atomize_goal rews =
+  let val tac = atomize_tac rews
+  in fn i => fn thm => (case Seq.pull (tac i thm) of None => thm | Some (thm', _) => thm') end;
 
 
 (* multi_resolve *)
@@ -313,8 +318,8 @@ fun gen_resolveq_tac tac rules i st =
 
 val resolveq_tac = gen_resolveq_tac Tactic.rtac;
 
-fun resolveq_cases_tac open_parms = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
-  Seq.map (rpair (RuleCases.make (not open_parms) rule cases)) (Tactic.rtac rule i st));
+fun resolveq_cases_tac make = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
+  Seq.map (rpair (make rule cases)) (Tactic.rtac rule i st));
 
 
 (* simple rule *)
@@ -359,7 +364,10 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 fun asm_tac ths =
   foldr (op APPEND') (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths, K no_tac);
 
-fun assm_tac ctxt = assume_tac APPEND' asm_tac (ProofContext.prems_of ctxt);
+fun assm_tac ctxt =
+  assume_tac APPEND'
+  asm_tac (ProofContext.prems_of ctxt) APPEND'
+  Tactic.rtac Drule.reflexive_thm;
 
 fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ [fact] = asm_tac [fact]
