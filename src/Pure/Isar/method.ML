@@ -301,9 +301,9 @@ fun assumption_tac ctxt [] = assm_tac ctxt
 fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
 
 
-(* res_inst tactic emulation *)
+(* res_inst_tac emulations *)
 
-(*Note: insts refer to the hidden (!) goal context; use with care*)
+(*Note: insts refer to the implicit (!) goal context; use at your own risk*)
 fun gen_res_inst tac ((i, insts), thm) =
   METHOD (fn facts => (insert_tac facts THEN' tac insts thm) i);
 
@@ -311,6 +311,14 @@ val res_inst = gen_res_inst Tactic.res_inst_tac;
 val eres_inst = gen_res_inst Tactic.eres_inst_tac;
 val dres_inst = gen_res_inst Tactic.dres_inst_tac;
 val forw_inst = gen_res_inst Tactic.forw_inst_tac;
+
+
+(* simple Prolog interpreter *)
+
+fun prolog_tac rules facts =
+  DEPTH_SOLVE_1 (HEADGOAL (Tactic.assume_tac APPEND' Tactic.resolve_tac (facts @ rules)));
+
+val prolog = METHOD o prolog_tac;
 
 
 
@@ -547,7 +555,8 @@ val pure_methods =
   ("res_inst_tac", inst_args res_inst, "res_inst_tac emulation (beware!)"),
   ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (beware!)"),
   ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (beware!)"),
-  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (beware!)")];
+  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (beware!)"),
+  ("prolog", thms_args prolog, "simple prolog interpreter")];
 
 
 (* setup *)
