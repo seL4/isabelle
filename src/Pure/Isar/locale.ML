@@ -1,6 +1,8 @@
 (*  Title:      Pure/locale.ML
     ID:         $Id$
     Author:     Florian Kammueller, University of Cambridge
+    Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Locales. The theory section 'locale' declarings constants, assumptions and
 definitions that have local scope.  Typical form is
@@ -20,11 +22,6 @@ TODO:
 signature BASIC_LOCALE =
 sig
   val print_locales: theory -> unit
-  val pretty_goals_marker: string -> int -> thm -> Pretty.T list
-  val pretty_goals: int -> thm -> Pretty.T list
-  val pretty_sub_goals: bool -> int -> thm -> Pretty.T list
-  val print_goals_marker: string -> int -> thm -> unit
-  val print_goals: int -> thm -> unit
   val thm: xstring -> thm
   val thms: xstring -> thm list
   val Open_locale: xstring -> unit
@@ -551,112 +548,6 @@ fun pretty_term sign =
 
 
 
-(** print_goals **)
-
-(*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
-
-local
-
-  (* utils *)
-
-  fun ins_entry (x, y) [] = [(x, [y])]
-    | ins_entry (x, y) ((pair as (x', ys')) :: pairs) =
-        if x = x' then (x', y ins ys') :: pairs
-        else pair :: ins_entry (x, y) pairs;
-
-  fun add_consts (Const (c, T), env) = ins_entry (T, (c, T)) env
-    | add_consts (t $ u, env) = add_consts (u, add_consts (t, env))
-    | add_consts (Abs (_, _, t), env) = add_consts (t, env)
-    | add_consts (_, env) = env;
-
-  fun add_vars (Free (x, T), env) = ins_entry (T, (x, ~1)) env
-    | add_vars (Var (xi, T), env) = ins_entry (T, xi) env
-    | add_vars (Abs (_, _, t), env) = add_vars (t, env)
-    | add_vars (t $ u, env) = add_vars (u, add_vars (t, env))
-    | add_vars (_, env) = env;
-
-  fun add_varsT (Type (_, Ts), env) = foldr add_varsT (Ts, env)
-    | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
-    | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
-
-  fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
-  fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
-
-
-  (* prepare atoms *)
-
-  fun consts_of t = sort_cnsts (add_consts (t, []));
-  fun vars_of t = sort_idxs (add_vars (t, []));
-  fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
-
-  fun pretty_goals_marker_aux begin_goal print_msg print_goal maxgoals state =
-    let
-      val {sign, ...} = rep_thm state;
-
-      val prt_term = pretty_term sign;
-      val prt_typ = Sign.pretty_typ sign;
-      val prt_sort = Sign.pretty_sort sign;
-
-      fun prt_atoms prt prtT (X, xs) = Pretty.block
-        [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
-          Pretty.brk 1, prtT X];
-
-      fun prt_var (x, ~1) = prt_term (Syntax.free x)
-        | prt_var xi = prt_term (Syntax.var xi);
-
-      fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
-        | prt_varT xi = prt_typ (TVar (xi, []));
-
-      val prt_consts = prt_atoms (prt_term o Const) prt_typ;
-      val prt_vars = prt_atoms prt_var prt_typ;
-      val prt_varsT = prt_atoms prt_varT prt_sort;
-
-
-      fun pretty_list _ _ [] = []
-        | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
-
-      fun pretty_subgoal (n, A) = 
-        Pretty.blk (0, [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]);
-      fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
-
-      val pretty_ffpairs = pretty_list "flex-flex pairs:" (prt_term o Logic.mk_flexpair);
-
-      val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
-      val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
-      val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
-
-
-      val {prop, ...} = rep_thm state;
-      val (tpairs, As, B) = Logic.strip_horn prop;
-      val ngoals = length As;
-
-      fun pretty_gs (types, sorts) =
-        (if print_goal then [prt_term B] else []) @
-         (if ngoals = 0 then [Pretty.str "No subgoals!"]
-          else if ngoals > maxgoals then
-            pretty_subgoals (take (maxgoals, As)) @
-            (if print_msg then
-                [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
-             else [])
-          else pretty_subgoals As) @
-        pretty_ffpairs tpairs @
-        (if ! show_consts then pretty_consts prop else []) @
-        (if types then pretty_vars prop else []) @
-        (if sorts then pretty_varsT prop else []);
-    in
-      setmp show_no_free_types true
-        (setmp show_types (! show_types orelse ! show_sorts)
-          (setmp show_sorts false pretty_gs))
-     (! show_types orelse ! show_sorts, ! show_sorts)
-  end;
-
-in
-  fun pretty_goals_marker bg = pretty_goals_marker_aux bg true true;
-  val print_goals_marker = (Pretty.writeln o Pretty.chunks) ooo pretty_goals_marker;
-  val pretty_sub_goals = pretty_goals_marker_aux "" false;
-  val pretty_goals = pretty_goals_marker "";
-  val print_goals = print_goals_marker "";
-end;
 
 
 
