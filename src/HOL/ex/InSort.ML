@@ -6,8 +6,6 @@
 Correctness proof of insertion sort.
 *)
 
-Addsimps [Ball_insert];
-
 goal thy "!y. mset(ins f x xs) y = mset (x#xs) y";
 by (list.induct_tac "xs" 1);
 by (Asm_simp_tac 1);

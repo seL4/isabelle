@@ -6,8 +6,7 @@
 Two verifications of Quicksort
 *)
 
-
-Addsimps [Ball_insert,Ball_Un];
+Addsimps [ball_Un];
 
 (* Towards a proof of qsort_ind
 
