@@ -9,21 +9,24 @@ Generic tableau prover with proof reconstruction
   Needs explicit instantiation of assumptions?
 
 
-Limitations compared with fast_tac:
+Blast_tac is often more powerful than fast_tac, but has some limitations.
+Blast_tac...
   * ignores addss, addbefore, addafter; this restriction is intrinsic
-  * seems to loop given transitivity and similar rules
   * ignores elimination rules that don't have the correct format
 	(conclusion must be a formula variable)
   * ignores types, which can make HOL proofs fail
+  * rules must not require higher-order unification, e.g. apply_type in ZF
+    + message "Function Var's argument not a bound variable" relates to this
+  * its proof strategy is more general but can actually be slower
 
 Known problems:
-  With hyp_subst_tac:
+  With substition for equalities (hyp_subst_tac):
     1.  Sometimes hyp_subst_tac will fail due to occurrence of the parameter
         as the argument of a function variable
-    2.  When a literal is affected, it is moved back to the active formulae.
-        But there's no way of putting it in the right place.
-    3.  Affected haz formulae should also be moved, but they are not.
-
+    2.  When substitution affects a haz formula or literal, it is moved
+        back to the list of safe formulae.
+        But there's no way of putting it in the right place.  A "moved" or
+        "no DETERM" flag would prevent proofs failing here.
 *)
 
 
@@ -58,15 +61,39 @@ signature BLAST_DATA =
 
 signature BLAST =
   sig
-  type claset
+  type claset 
+  datatype term = 
+      Const of string
+    | OConst of string * int
+    | Skolem of string * term option ref list
+    | Free  of string
+    | Var   of term option ref
+    | Bound of int
+    | Abs   of string*term
+    | op $  of term*term;
+  type branch
   val depth_tac 	: claset -> int -> int -> tactic
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
   val declConsts 	: string list * thm list -> unit
+  (*debugging tools*)
+  val trace	        : bool ref
+  val fullTrace	        : branch list list ref
+  val fromTerm	        : Type.type_sig -> Term.term -> term
+  val fromSubgoal       : Type.type_sig -> Term.term -> term
+  val toTerm	        : int -> term -> Term.term
+  val readGoal          : Sign.sg -> string -> term
+  val tryInThy		: theory -> int -> string ->
+		branch list list * (int*int*exn) list * (int -> tactic) list
+  val trygl		: claset -> int -> int ->
+		branch list list * (int*int*exn) list * (int -> tactic) list
+  val Trygl		: int -> int ->
+		branch list list * (int*int*exn) list * (int -> tactic) list
+  val normBr		: branch -> branch
   end;
 
 
-functor BlastFun(Data: BLAST_DATA) = 
+functor BlastFun(Data: BLAST_DATA): BLAST = 
 struct
 
 type claset = Data.claset;
@@ -433,11 +460,15 @@ fun fromRule vars rl =
       val trl = rl |> rep_thm |> #prop |> fromTerm tsig |> convertRule vars
       fun tac dup i = 
 	  TRACE rl
-	  (DETERM (etac (if dup then rev_dup_elim rl else rl) i))
+	  (etac (if dup then rev_dup_elim rl else rl) i)
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
 	  
   in General.SOME (trl, tac) end
-  handle Bind => General.NONE  (*reject: conclusion is not just a variable*);
+  handle Bind => (*reject: conclusion is not just a variable*)
+   (if !trace then (writeln"Warning: ignoring ill-formed elimination rule";
+		    print_thm rl)
+    else ();
+    General.NONE);
 
 
 (*** Conversion of Introduction Rules (needed for efficiency in 
@@ -465,28 +496,28 @@ fun fromIntrRule vars rl =
 val dummyVar = Term.Var (("Doom",666), dummyT);
 
 (*Convert from prototerms to ordinary terms with dummy types
-  Ignore abstractions; identify all Vars*)
-fun dummyTerm 0 _             = dummyVar
-  | dummyTerm d (Const a)     = Term.Const (a,dummyT)
-  | dummyTerm d (OConst(a,_)) = Term.Const (a,dummyT)
-  | dummyTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
-  | dummyTerm d (Free a)      = Term.Free  (a,dummyT)
-  | dummyTerm d (Bound i)     = Term.Bound i
-  | dummyTerm d (Var _)       = dummyVar
-  | dummyTerm d (Abs(a,_))    = dummyVar
-  | dummyTerm d (f $ u)       = Term.$ (dummyTerm d f, dummyTerm (d-1) u);
+  Ignore abstractions; identify all Vars; STOP at given depth*)
+fun toTerm 0 _             = dummyVar
+  | toTerm d (Const a)     = Term.Const (a,dummyT)
+  | toTerm d (OConst(a,_)) = Term.Const (a,dummyT)
+  | toTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
+  | toTerm d (Free a)      = Term.Free  (a,dummyT)
+  | toTerm d (Bound i)     = Term.Bound i
+  | toTerm d (Var _)       = dummyVar
+  | toTerm d (Abs(a,_))    = dummyVar
+  | toTerm d (f $ u)       = Term.$ (toTerm d f, toTerm (d-1) u);
 
 
 fun netMkRules P vars (nps: netpair list) =
   case P of
       (Const "*Goal*" $ G) =>
-	let val pG = mk_tprop (dummyTerm 2 G)
+	let val pG = mk_tprop (toTerm 2 G)
 	    val intrs = List.concat 
 		             (map (fn (inet,_) => Net.unify_term inet pG) 
 			      nps)
 	in  map (fromIntrRule vars o #2) (orderlist intrs)  end
     | _ =>
-	let val pP = mk_tprop (dummyTerm 3 P)
+	let val pP = mk_tprop (toTerm 3 P)
 	    val elims = List.concat 
 		             (map (fn (_,enet) => Net.unify_term enet pP) 
 			      nps)
@@ -549,14 +580,23 @@ fun orientGoal (t,u) =
      | _             => raise DEST_EQ;
 
 
+
+
 (*Substitute through the branch if an equality goal (else raise DEST_EQ).
   Moves affected literals back into the branch, but it is not clear where
   they should go: this could make proofs fail.  ??? *)
 fun equalSubst (G, pairs, lits, vars, lim) = 
   let val subst = subst_atomic (orientGoal(dest_eq G))
       fun subst2(G,md) = (subst G, md)
-      val pairs' = map (fn(Gs,Hs) => (map subst2 Gs, map subst2 Hs)) pairs
-      (*substitute throughout literals and note those affected*)
+      (*substitute throughout Haz list; move affected ones to Safe part*)
+      fun subHazs ([], Gs, nHs)         = (Gs,nHs)
+	| subHazs ((H,md)::Hs, Gs, nHs) =
+	    let val nH = subst H
+	    in  if nH aconv H then subHazs (Hs, Gs, (H,md)::nHs)
+		              else subHazs (Hs, (nH,md)::Gs, nHs)
+            end
+      val pairs' = map (fn(Gs,Hs) => subHazs(rev Hs, map subst2 Gs, [])) pairs
+      (*substitute throughout literals; move affected ones to Safe part*)
       fun subLits ([], [], nlits) =          (pairs', nlits, vars, lim)
 	| subLits ([], Gs, nlits) = ((Gs,[])::pairs', nlits, vars, lim)
 	| subLits (lit::lits, Gs, nlits) =
@@ -578,6 +618,21 @@ type branch = ((term*bool) list *	(*safe formulae on this level*)
 	      int;                      (*resource limit*)
 
 val fullTrace = ref[] : branch list list ref;
+
+(*Normalize a branch--for tracing*)
+local
+    fun norm2 (G,md) = (norm G, md);
+
+    fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
+
+in
+fun normBr (br, lits, vars, lim) =
+     (map normLev br, map norm lits, vars, lim);
+
+fun tracing brs = if !trace then fullTrace := map normBr brs :: !fullTrace 
+		else ()
+end;
+
 
 exception PROVE;
 
@@ -685,6 +740,11 @@ fun addLit (Const "*Goal*" $ G, lits) =
   | addLit (G,lits) = ins_term(G, lits)
 
 
+(*For calculating the "penalty" to assess on a branching factor of n*)
+fun log2 1 = 0
+  | log2 n = 1 + log2(n div 2);
+
+
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
   bound on unsafe expansions.*)
@@ -700,6 +760,7 @@ fun prove (cs, brs, cont) =
 	      val nbrs = length brs0
               val nxtVars = nextVars brs
 	      val G = norm G
+	      val rules = netMkRules G vars safeList
 	      (*Make a new branch, decrementing "lim" if instantiations occur*)
 	      fun newBr (vars',lim') prems =
 		  map (fn prem => 
@@ -719,22 +780,25 @@ fun prove (cs, brs, cont) =
 		    let val dummy = unify(add_term_vars(P,[]), P, G)
 			    (*P comes from the rule; G comes from the branch.*)
                         val ntrl' = !ntrail
-			val lim' = if ntrl < !ntrail then lim-3 else lim
+			val lim' = if ntrl < !ntrail 
+				   then lim - (1+log2(length rules))
+				   else lim   (*discourage branching updates*)
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
 			val choices' = (ntrl, nbrs, PRV) :: choices
+                        val tacs' = (DETERM o (tac false)) :: tacs 
+		                        (*no duplication*)
                     in
 			if null prems then (*closed the branch: prune!*)
-			  prv(tac false :: tacs,	(*no duplication*)
-			      brs0::trs, 
+			  prv(tacs',  brs0::trs, 
 			      prune (nbrs, nxtVars, choices'),
 			      brs)
-			  handle PRV => 
-			      (*reset Vars and try another rule*)
+			  handle PRV => (*reset Vars and try another rule*)
 			      (clearTo ntrl;  deeper grls)
-		        else 
-			  prv(tac false :: tacs,	(*no duplication*)
-			      brs0::trs, choices',
+		        else (*can we kill all the alternatives??*)
+			if lim'<0 then raise NEWBRANCHES
+			else
+			  prv(tacs',  brs0::trs, choices',
 			      newBr (vars',lim') prems)
 			  handle PRV => 
 			      if ntrl < ntrl' then
@@ -764,7 +828,7 @@ fun prove (cs, brs, cont) =
 		    closeF (map fst br)
 		      handle CLOSEF => closeF (map fst haz)
 			handle CLOSEF => closeFl pairs
-	  in if !trace then fullTrace := brs0 :: !fullTrace else ();
+	  in tracing brs0;
 	     if lim<0 then backtrack choices
 	     else
 	     prv (Data.vars_gen_hyp_subst_tac false :: tacs, 
@@ -773,7 +837,7 @@ fun prove (cs, brs, cont) =
 	     handle DEST_EQ => closeF lits
 	      handle CLOSEF => closeFl ((br,haz)::pairs)
 	        handle CLOSEF => 
-		 deeper (netMkRules G vars safeList)
+		 deeper rules
 		  handle NEWBRANCHES => 
 		   (case netMkRules G vars hazList of
 		       [] => (*no plausible rules: move G to literals*)
@@ -787,26 +851,22 @@ fun prove (cs, brs, cont) =
 				((br, haz@[(negOfGoal G, md)])::pairs,
 				 lits, vars, lim)  ::  brs))
 	  end
-       | prv (tacs, trs, choices, (([],haz)::(Gs,haz')::pairs, 
-				   lits, vars, lim) :: brs) =
+       | prv (tacs, trs, choices, 
+	      (([],haz)::(Gs,haz')::pairs, lits, vars, lim) :: brs) =
 	     (*no more "safe" formulae: transfer haz down a level*)
-	   prv (tacs, trs, choices, ((Gs,haz@haz')::pairs, lits, vars, lim) 
-		:: brs)
+	   prv (tacs, trs, choices, 
+		((Gs,haz@haz')::pairs, lits, vars, lim) :: brs)
        | prv (tacs, trs, choices, 
 	      brs0 as ([([], (H,md)::Hs)], lits, vars, lim) :: brs) =
    	     (*no safe steps possible at any level: apply a haz rule*)
 	  let exception PRV (*backtrack to precisely this recursion!*)
 	      val H = norm H
 	      val ntrl = !ntrail
-	      fun newPrem (vars,dup) prem = 
+	      val rules = netMkRules H vars hazList
+	      fun newPrem (vars,dup,lim') prem = 
 		  ([(map (fn P => (P,false)) prem, []), (*may NOT duplicate*)
 		    ([], if dup then Hs @ [(negOfGoal H, md)] else Hs)],  
-		   lits,  
-		   vars,  
-		   (*Decrement "lim" if instantiations occur or the
-		     formula is duplicated*)
-		   if ntrl < !ntrail then lim-3 
-		   else if dup then lim-1 else lim)
+		   lits, vars, lim')
 	      fun newBr x prems = map (newPrem x) prems  @  brs
 	      (*Seek a matching rule.  If unifiable then add new premises
                 to branch.*)
@@ -818,24 +878,37 @@ fun prove (cs, brs, cont) =
                         val vars' = foldr add_terms_vars (prems, vars)
                         val dup = md andalso vars' <> vars
 			(*duplicate H only if md and the premise has new vars*)
-                    in
-		      prv(tac dup :: tacs, 
-			  brs0::trs, 
-			  (ntrl, length brs0, PRV) :: choices, 
-			  newBr (vars', dup) prems)
-		     handle PRV => 
-			 if ntrl < ntrl'       (*variables updated?*)
-                            orelse vars=vars'  (*pseudo-unsafe: no new Vars?*)
-			 then (*reset Vars and try another rule*)
-			      (clearTo ntrl;  deeper grls)
-			 else (*backtrack to previous level*)
-			      backtrack choices
+			val lim' = (*Decrement "lim" extra if updates occur*)
+			    if ntrl < !ntrail then lim - (1+log2(length rules))
+			    else lim-1
+			    (*NB: if the formula is duplicated, 
+			      then it seems plausible to leave lim alone.  
+			      But then transitivity laws loop.*)
+                        val mayUndo = not (null grls)   (*other rules to try?*)
+				    orelse ntrl < ntrl'  (*variables updated?*)
+				    orelse vars=vars'    (*no new Vars?*)
+                        val tac' = if mayUndo then tac dup
+                                   else DETERM o (tac dup) 
+		    in
+		      (*can we kill all the alternatives??*)
+		      if lim'<0 andalso not (null prems)
+		      then raise NEWBRANCHES
+		      else 
+			prv(tac dup :: tacs, 
+			    brs0::trs, 
+			    (ntrl, length brs0, PRV) :: choices, 
+			    newBr (vars', dup, lim') prems)
+			 handle PRV => 
+			     if mayUndo
+			     then (*reset Vars and try another rule*)
+				  (clearTo ntrl;  deeper grls)
+			     else (*backtrack to previous level*)
+				  backtrack choices
 		    end
 		    handle UNIFY => deeper grls
-	  in if !trace then fullTrace := brs0 :: !fullTrace else ();
+	  in tracing brs0;
 	     if lim<1 then backtrack choices
-	     else
-	     deeper (netMkRules H vars hazList)
+	     else deeper rules
 	     handle NEWBRANCHES => 
 		 (*cannot close branch: move H to literals*)
 		 prv (tacs,  brs0::trs,  choices,
@@ -933,6 +1006,37 @@ fun depth_tac cs lim i st =
 fun blast_tac cs = (DEEPEN (1,20) (depth_tac cs) 0);
 
 fun Blast_tac i = blast_tac (!Data.claset) i;
+
+
+(*** For debugging: these apply the prover to a subgoal and return 
+     the resulting tactics, trace, etc.                            ***)
+
+(*Translate subgoal i from a proof state*)
+fun trygl cs lim i = 
+    (fullTrace:=[];  trail := [];  ntrail := 0;
+     let val st = topthm()
+         val {tsig,...} = Sign.rep_sg (#sign (rep_thm st))
+	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
+         val hyps  = strip_imp_prems skoprem
+         and concl = strip_imp_concl skoprem
+     in timeap prove
+	 (cs, [initBranch (mkGoal concl :: hyps, lim)], I)
+     end
+     handle Subscript => error("There is no subgoal " ^ Int.toString i));
+
+fun Trygl lim i = trygl (!Data.claset) lim i;
+
+(*Read a string to make an initial, singleton branch*)
+fun readGoal sign s = read_cterm sign (s,propT) |>
+                      term_of |> fromTerm (#tsig(Sign.rep_sg sign)) |> 
+		      rand |> mkGoal;
+
+fun tryInThy thy lim s = 
+    (fullTrace:=[];  trail := [];  ntrail := 0;
+     timeap prove (!Data.claset, 
+		   [initBranch ([readGoal (sign_of thy) s], lim)], 
+		   I));
+
 
 end;
 
