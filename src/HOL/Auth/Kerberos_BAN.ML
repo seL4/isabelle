@@ -33,7 +33,7 @@ AddIffs [SesKeyLife_LB, AutLife_LB];
 
 
 (*A "possibility property": there are traces that reach the end.*)
-goal thy 
+Goal 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]       \
 \        ==> EX Timestamp K. EX evs: kerberos_ban.    \
 \               Says B A (Crypt K (Number Timestamp)) \
@@ -52,7 +52,7 @@ result();
 (**** Inductive proofs about kerberos_ban ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : kerberos_ban ==> ALL A X. Says A A X ~: set evs";
+Goal "!!evs. evs : kerberos_ban ==> ALL A X. Says A A X ~: set evs";
 by (etac kerberos_ban.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -61,12 +61,12 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 
 (*Forwarding Lemma for reasoning about the encrypted portion of message Kb3*)
-goal thy "!!evs. Says S A (Crypt KA {|Timestamp, B, K, X|}) : set evs \
+Goal "!!evs. Says S A (Crypt KA {|Timestamp, B, K, X|}) : set evs \
 \                ==> X : parts (spies evs)";
 by (Blast_tac 1);
 qed "Kb3_msg_in_parts_spies";
                               
-goal thy
+Goal
     "!!evs. Says Server A (Crypt (shrK A) {|Timestamp, B, K, X|}) : set evs \
 \           ==> K : parts (spies evs)";
 by (Blast_tac 1);
@@ -81,7 +81,7 @@ fun parts_induct_tac i =
 
 
 (*Spy never sees another agent's shared key! (unless it's bad at start)*)
-goal thy 
+Goal 
 "!!evs. evs : kerberos_ban ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
@@ -89,13 +89,13 @@ qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 
-goal thy 
+Goal 
 "!!evs. evs : kerberos_ban ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by Auto_tac;
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
+Goal  "!!A. [| Key (shrK A) : parts (spies evs);       \
 \                  evs : kerberos_ban |] ==> A:bad";
 by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
@@ -105,7 +105,7 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 
 (*Nobody can have used non-existent keys!*)
-goal thy "!!evs. evs : kerberos_ban ==>      \
+Goal "!!evs. evs : kerberos_ban ==>      \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
@@ -124,7 +124,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (** Lemmas concerning the form of items passed in messages **)
 
 (*Describes the form of K, X and K' when the Server sends this message.*)
-goal thy 
+Goal 
  "!!evs. [| Says Server A (Crypt K' {|Number Ts, Agent B, Key K, X|})  \
 \           : set evs; evs : kerberos_ban |]                           \
 \        ==> K ~: range shrK &                                         \
@@ -141,7 +141,7 @@ qed "Says_Server_message_form";
 
   This shows implicitly the FRESHNESS OF THE SESSION KEY to A
 *)
-goal thy
+Goal
  "!!evs. [| Crypt (shrK A) {|Number Ts, Agent B, Key K, X|} \
 \             : parts (spies evs);                          \
 \           A ~: bad;  evs : kerberos_ban |]                \
@@ -155,7 +155,7 @@ qed "A_trusts_K_by_Kb2";
 
 (*If the TICKET appears then it originated with the Server*)
 (*FRESHNESS OF THE SESSION KEY to B*)
-goal thy
+Goal
  "!!evs. [| Crypt (shrK B) {|Number Ts, Agent A, Key K|} : parts (spies evs); \
 \           B ~: bad;  evs : kerberos_ban |]                        \
 \         ==> Says Server A                                         \
@@ -171,7 +171,7 @@ qed "B_trusts_K_by_Kb3";
 (*EITHER describes the form of X when the following message is sent, 
   OR     reduces it to the Fake case.
   Use Says_Server_message_form if applicable.*)
-goal thy 
+Goal 
  "!!evs. [| Says S A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|})     \
 \              : set evs;                                                  \
 \           evs : kerberos_ban |]                                          \
@@ -206,7 +206,7 @@ val analz_spies_tac =
 
 (** Session keys are not used to encrypt other session keys **)
 
-goal thy  
+Goal  
  "!!evs. evs : kerberos_ban ==>                          \
 \  ALL K KK. KK <= Compl (range shrK) -->                \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
@@ -222,7 +222,7 @@ by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 
-goal thy
+Goal
  "!!evs. [| evs : kerberos_ban;  KAB ~: range shrK |] ==>     \
 \        Key K : analz (insert (Key KAB) (spies evs)) =       \
 \        (K = KAB | Key K : analz (spies evs))";
@@ -232,7 +232,7 @@ qed "analz_insert_freshK";
 
 (** The session key K uniquely identifies the message **)
 
-goal thy 
+Goal 
  "!!evs. evs : kerberos_ban ==>                                         \
 \      EX A' Ts' B' X'. ALL A Ts B X.                                   \
 \       Says Server A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) \
@@ -248,7 +248,7 @@ by (blast_tac (claset() delrules [conjI]) 1);
 val lemma = result();
 
 (*In messages of this form, the session key uniquely identifies the rest*)
-goal thy 
+Goal 
  "!!evs. [| Says Server A                                    \
 \             (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) : set evs; \ 
 \           Says Server A'                                   \
@@ -262,7 +262,7 @@ qed "unique_session_keys";
     if the spy could see it!
 **)
 
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  B ~: bad;  evs : kerberos_ban |]           \
 \    ==> Says Server A                                            \
 \            (Crypt (shrK A) {|Number Ts, Agent B, Key K,         \
@@ -294,7 +294,7 @@ val lemma = result() RS mp RS mp RSN(1,rev_notE);
                      Spy does not see the keys sent in msg Kb2 
                      as long as they have NOT EXPIRED
 **)
-goal thy 
+Goal 
  "!!evs. [| Says Server A                                           \
 \            (Crypt K' {|Number T, Agent B, Key K, X|}) : set evs;  \
 \           ~ Expired T evs;                                        \
@@ -312,7 +312,7 @@ qed "Confidentiality_S";
 
 (** CONFIDENTIALITY for ALICE: **)
 (** Also A_trusts_K_by_Kb2 RS Confidentiality_S **)
-goal thy 
+Goal 
 "!!evs. [| Crypt (shrK A) {|Number T, Agent B, Key K, X|} : parts (spies evs);\
 \           ~ Expired T evs;          \
 \           A ~: bad;  B ~: bad;  evs : kerberos_ban                \
@@ -323,7 +323,7 @@ qed "Confidentiality_A";
 
 (** CONFIDENTIALITY for BOB: **)
 (** Also B_trusts_K_by_Kb3 RS Confidentiality_S **)
-goal thy
+Goal
 "!!evs. [| Crypt (shrK B) {|Number Tk, Agent A, Key K|} \
 \            : parts (spies evs);              \
 \          ~ Expired Tk evs;          \
@@ -334,7 +334,7 @@ by (blast_tac (claset() addSDs [B_trusts_K_by_Kb3,
 qed "Confidentiality_B";
 
 
-goal thy
+Goal
  "!!evs. [| B ~: bad;  evs : kerberos_ban |]                        \
 \        ==> Key K ~: analz (spies evs) -->                    \
 \            Says Server A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) \
@@ -367,7 +367,7 @@ val lemma_B = result();
 
 
 (*AUTHENTICATION OF B TO A*)
-goal thy
+Goal
  "!!evs. [| Crypt K (Number Ta) : parts (spies evs);           \
 \           Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}    \
 \           : parts (spies evs);                               \
@@ -380,7 +380,7 @@ by (blast_tac (claset() addSDs [A_trusts_K_by_Kb2]
 qed "Authentication_B";
 
 
-goal thy
+Goal
  "!!evs. [| A ~: bad; B ~: bad; evs : kerberos_ban |]      ==>         \ 
 \           Key K ~: analz (spies evs) -->         \
 \           Says Server A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|})  \
@@ -404,7 +404,7 @@ val lemma_A = result();
 
 
 (*AUTHENTICATION OF A TO B*)
-goal thy
+Goal
  "!!evs. [| Crypt K {|Agent A, Number Ta|} : parts (spies evs);  \
 \           Crypt (shrK B) {|Number Ts, Agent A, Key K|}         \
 \           : parts (spies evs);                                 \

@@ -22,7 +22,7 @@ bind_thm ("parts_insert_spies",
 	  read_instantiate_sg (sign_of thy) [("H", "spies evs")]);
 
 
-goal thy
+Goal
     "P(event_case sf nf ev) = \
 \      ((ALL A B X. ev = Says A B X --> P(sf A B X)) & \
 \       (ALL A X. ev = Notes A X --> P(nf A X)))";
@@ -30,34 +30,34 @@ by (induct_tac "ev" 1);
 by Auto_tac;
 qed "expand_event_case";
 
-goal thy "spies (Says A B X # evs) = insert X (spies evs)";
+Goal "spies (Says A B X # evs) = insert X (spies evs)";
 by (Simp_tac 1);
 qed "spies_Says";
 
 (*The point of letting the Spy see "bad" agents' notes is to prevent
   redundant case-splits on whether A=Spy and whether A:bad*)
-goal thy "spies (Notes A X # evs) = \
+Goal "spies (Notes A X # evs) = \
 \         (if A:bad then insert X (spies evs) else spies evs)";
 by (Simp_tac 1);
 qed "spies_Notes";
 
-goal thy "spies evs <= spies (Says A B X # evs)";
+Goal "spies evs <= spies (Says A B X # evs)";
 by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "spies_subset_spies_Says";
 
-goal thy "spies evs <= spies (Notes A X # evs)";
+Goal "spies evs <= spies (Notes A X # evs)";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "spies_subset_spies_Notes";
 
 (*Spy sees all traffic*)
-goal thy "Says A B X : set evs --> X : spies evs";
+Goal "Says A B X : set evs --> X : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
 qed_spec_mp "Says_imp_spies";
 
 (*Spy sees Notes of bad agents*)
-goal thy "Notes A X : set evs --> A: bad --> X : spies evs";
+Goal "Notes A X : set evs --> A: bad --> X : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_event_case])));
 qed_spec_mp "Notes_imp_spies";
@@ -74,7 +74,7 @@ Delsimps [spies_Cons];
 
 (*** Fresh nonces ***)
 
-goal thy "parts (spies evs) <= used evs";
+Goal "parts (spies evs) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [parts_insert_spies]
@@ -85,7 +85,7 @@ qed "parts_spies_subset_used";
 bind_thm ("usedI", impOfSubs parts_spies_subset_used);
 AddIs [usedI];
 
-goal thy "parts (initState B) <= used evs";
+Goal "parts (initState B) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [parts_insert_spies]
@@ -93,17 +93,17 @@ by (ALLGOALS (asm_simp_tac
 by (ALLGOALS Blast_tac);
 bind_thm ("initState_into_used", impOfSubs (result()));
 
-goal thy "used (Says A B X # evs) = parts{X} Un used evs";
+Goal "used (Says A B X # evs) = parts{X} Un used evs";
 by (Simp_tac 1);
 qed "used_Says";
 Addsimps [used_Says];
 
-goal thy "used (Notes A X # evs) = parts{X} Un used evs";
+Goal "used (Notes A X # evs) = parts{X} Un used evs";
 by (Simp_tac 1);
 qed "used_Notes";
 Addsimps [used_Notes];
 
-goal thy "used [] <= used evs";
+Goal "used [] <= used evs";
 by (Simp_tac 1);
 by (blast_tac (claset() addIs [initState_into_used]) 1);
 qed "used_nil_subset";
@@ -113,7 +113,7 @@ Delsimps [used_Nil, used_Cons];
 
 
 (*currently unused*)
-goal thy "used evs <= used (evs@evs')";
+Goal "used evs <= used (evs@evs')";
 by (induct_tac "evs" 1);
 by (simp_tac (simpset() addsimps [used_nil_subset]) 1);
 by (induct_tac "a" 1);

@@ -23,7 +23,7 @@ AddDs [impOfSubs Fake_parts_insert];
 AddIffs [Spy_in_bad];
 
 (*A "possibility property": there are traces that reach the end*)
-goal thy 
+Goal 
  "!!A B. A ~= B ==> EX NB. EX evs: ns_public.               \
 \                     Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -35,7 +35,7 @@ result();
 (**** Inductive proofs about ns_public ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set evs";
+Goal "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_public.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -58,14 +58,14 @@ fun parts_induct_tac i =
     sends messages containing X! **)
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
-goal thy 
+Goal 
  "!!A. evs: ns_public ==> (Key (priK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Blast_tac 1);
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];
 
-goal thy 
+Goal 
  "!!A. evs: ns_public ==> (Key (priK A) : analz (spies evs)) = (A : bad)";
 by Auto_tac;
 qed "Spy_analz_priK";
@@ -79,7 +79,7 @@ AddSDs [Spy_see_priK RSN (2, rev_iffD1),
 
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
   is secret.  (Honest users generate fresh nonces.)*)
-goal thy 
+Goal 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs); \
 \           Nonce NA ~: analz (spies evs);   evs : ns_public |]       \
 \ ==> Crypt (pubK C) {|NA', Nonce NA|} ~: parts (spies evs)";
@@ -94,7 +94,7 @@ val nonce_NS1_NS2_E = no_nonce_NS1_NS2 RSN (2, rev_notE);
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
-goal thy 
+Goal 
  "!!evs. [| Nonce NA ~: analz (spies evs);  evs : ns_public |]      \
 \ ==> EX A' B'. ALL A B.                                            \
 \      Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs) --> \
@@ -109,7 +109,7 @@ by (Clarify_tac 1);
 by (Blast_tac 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!evs. [| Crypt(pubK B)  {|Nonce NA, Agent A|}  : parts(spies evs); \
 \           Crypt(pubK B') {|Nonce NA, Agent A'|} : parts(spies evs); \
 \           Nonce NA ~: analz (spies evs);                            \
@@ -126,7 +126,7 @@ fun analz_induct_tac i =
 
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
-goal thy 
+Goal 
  "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;   \
 \           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==>  Nonce NA ~: analz (spies evs)";
@@ -145,7 +145,7 @@ qed "Spy_not_see_NA";
 
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
-goal thy 
+Goal 
  "!!evs. [| Says A  B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;  \
 \           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs;  \
 \           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
@@ -166,7 +166,7 @@ qed "A_trusts_NS2";
 
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
-goal thy 
+Goal 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs); \
 \           Nonce NA ~: analz (spies evs);                            \
 \           evs : ns_public |]                                        \
@@ -183,7 +183,7 @@ qed "B_trusts_NS1";
 
 (*Unicity for NS2: nonce NB identifies nonce NA and agent A
   [proof closely follows that for unique_NA] *)
-goal thy 
+Goal 
  "!!evs. [| Nonce NB ~: analz (spies evs);  evs : ns_public |]            \
 \ ==> EX A' NA'. ALL A NA.                                                \
 \      Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies evs)          \
@@ -197,7 +197,7 @@ by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
 by (Blast_tac 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!evs. [| Crypt(pubK A) {|Nonce NA, Nonce NB|}  : parts(spies evs); \
 \           Crypt(pubK A'){|Nonce NA', Nonce NB|} : parts(spies evs); \
 \           Nonce NB ~: analz (spies evs);                            \
@@ -208,7 +208,7 @@ qed "unique_NB";
 
 
 (*NB remains secret PROVIDED Alice never responds with round 3*)
-goal thy 
+Goal 
  "!!evs.[| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs;  \
 \          ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set evs;      \
 \          A ~: bad;  B ~: bad;  evs : ns_public |]                     \
@@ -232,7 +232,7 @@ qed "Spy_not_see_NB";
 
 (*Authentication for B: if he receives message 3 and has used NB
   in message 2, then A has sent message 3--to somebody....*)
-goal thy 
+Goal 
  "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs; \
 \           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;              \
 \           A ~: bad;  B ~: bad;  evs : ns_public |]                   \
@@ -254,7 +254,7 @@ qed "B_trusts_NS3";
 
 
 (*Can we strengthen the secrecy theorem?  NO*)
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  B ~: bad;  evs : ns_public |]           \
 \ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs \
 \     --> Nonce NB ~: analz (spies evs)";

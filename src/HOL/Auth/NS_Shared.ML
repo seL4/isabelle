@@ -21,7 +21,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-goal thy 
+Goal 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]       \
 \        ==> EX N K. EX evs: ns_shared.               \
 \               Says A B (Crypt K {|Nonce N, Nonce N|}) : set evs";
@@ -31,7 +31,7 @@ by (rtac (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS
 by possibility_tac;
 result();
 
-goal thy 
+Goal 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]       \
 \        ==> EX evs: ns_shared.          \
 \               Says A B (Crypt ?K {|Nonce ?N, Nonce ?N|}) : set evs";
@@ -43,7 +43,7 @@ by possibility_tac;
 (**** Inductive proofs about ns_shared ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : ns_shared ==> ALL A X. Says A A X ~: set evs";
+Goal "!!evs. evs : ns_shared ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_shared.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -51,12 +51,12 @@ Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (*For reasoning about the encrypted portion of message NS3*)
-goal thy "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set evs \
+Goal "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set evs \
 \                ==> X : parts (spies evs)";
 by (Blast_tac 1);
 qed "NS3_msg_in_parts_spies";
                               
-goal thy
+Goal
     "!!evs. Says Server A (Crypt (shrK A) {|NA, B, K, X|}) : set evs \
 \           ==> K : parts (spies evs)";
 by (Blast_tac 1);
@@ -75,14 +75,14 @@ fun parts_induct_tac i =
     sends messages containing X! **)
 
 (*Spy never sees another agent's shared key! (unless it's bad at start)*)
-goal thy 
+Goal 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
-goal thy 
+Goal 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by Auto_tac;
 qed "Spy_analz_shrK";
@@ -93,7 +93,7 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 
 
 (*Nobody can have used non-existent keys!*)
-goal thy "!!evs. evs : ns_shared ==>      \
+Goal "!!evs. evs : ns_shared ==>      \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
@@ -112,7 +112,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (** Lemmas concerning the form of items passed in messages **)
 
 (*Describes the form of K, X and K' when the Server sends this message.*)
-goal thy 
+Goal 
  "!!evs. [| Says Server A (Crypt K' {|N, Agent B, Key K, X|}) : set evs; \
 \           evs : ns_shared |]                           \
 \        ==> K ~: range shrK &                           \
@@ -125,7 +125,7 @@ qed "Says_Server_message_form";
 
 
 (*If the encrypted message appears then it originated with the Server*)
-goal thy
+Goal
  "!!evs. [| Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
 \           A ~: bad;  evs : ns_shared |]                                 \
 \         ==> Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})    \
@@ -136,7 +136,7 @@ by (Blast_tac 1);
 qed "A_trusts_NS2";
 
 
-goal thy
+Goal
  "!!evs. [| Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
 \           A ~: bad;  evs : ns_shared |]                                 \
 \         ==> K ~: range shrK &  X = (Crypt (shrK B) {|Key K, Agent A|})";
@@ -147,7 +147,7 @@ qed "cert_A_form";
 (*EITHER describes the form of X when the following message is sent, 
   OR     reduces it to the Fake case.
   Use Says_Server_message_form if applicable.*)
-goal thy 
+Goal 
  "!!evs. [| Says S A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})      \
 \              : set evs;                                                  \
 \           evs : ns_shared |]                                             \
@@ -180,7 +180,7 @@ val analz_spies_tac =
 (*NOT useful in this form, but it says that session keys are not used
   to encrypt messages containing other keys, in the actual protocol.
   We require that agents should behave like this subsequently also.*)
-goal thy 
+Goal 
  "!!evs. [| evs : ns_shared;  Kab ~: range shrK |] ==>  \
 \           (Crypt KAB X) : parts (spies evs) &         \
 \           Key K : parts {X} --> Key K : parts (spies evs)";
@@ -196,7 +196,7 @@ result();
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
-goal thy  
+Goal  
  "!!evs. evs : ns_shared ==>                             \
 \  ALL K KK. KK <= Compl (range shrK) -->                \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
@@ -212,7 +212,7 @@ by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 
-goal thy
+Goal
  "!!evs. [| evs : ns_shared;  KAB ~: range shrK |] ==>  \
 \        Key K : analz (insert (Key KAB) (spies evs)) = \
 \        (K = KAB | Key K : analz (spies evs))";
@@ -222,7 +222,7 @@ qed "analz_insert_freshK";
 
 (** The session key K uniquely identifies the message **)
 
-goal thy 
+Goal 
  "!!evs. evs : ns_shared ==>                                               \
 \      EX A' NA' B' X'. ALL A NA B X.                                      \
 \       Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|}) : set evs \
@@ -240,7 +240,7 @@ by (Blast_tac 1);
 val lemma = result();
 
 (*In messages of this form, the session key uniquely identifies the rest*)
-goal thy 
+Goal 
  "!!evs. [| Says Server A                                               \
 \             (Crypt (shrK A) {|NA, Agent B, Key K, X|}) : set evs;     \ 
 \           Says Server A'                                              \
@@ -252,7 +252,7 @@ qed "unique_session_keys";
 
 (** Crucial secrecy property: Spy does not see the keys sent in msg NS2 **)
 
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  B ~: bad;  evs : ns_shared |]                   \
 \        ==> Says Server A                                             \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
@@ -285,7 +285,7 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 
 (*Final version: Server's message in the most abstract form*)
-goal thy 
+Goal 
  "!!evs. [| Says Server A                                        \
 \              (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;   \
 \           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;      \
@@ -302,7 +302,7 @@ A_trusts_NS2 RS Spy_not_see_encrypted_key;
 
 
 (*If the encrypted message appears then it originated with the Server*)
-goal thy
+Goal
  "!!evs. [| Crypt (shrK B) {|Key K, Agent A|} : parts (spies evs);     \
 \           B ~: bad;  evs : ns_shared |]                              \
 \         ==> EX NA. Says Server A                                     \
@@ -315,7 +315,7 @@ by (ALLGOALS Blast_tac);
 qed "B_trusts_NS3";
 
 
-goal thy
+Goal
  "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);                   \
 \           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
 \              : set evs;                                             \
@@ -342,7 +342,7 @@ qed "A_trusts_NS4_lemma";
 
 
 (*This version no longer assumes that K is secure*)
-goal thy
+Goal
  "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);                   \
 \           Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
 \           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;           \
@@ -356,7 +356,7 @@ qed "A_trusts_NS4";
 (*If the session key has been used in NS4 then somebody has forwarded
   component X in some instance of NS4.  Perhaps an interesting property, 
   but not needed (after all) for the proofs below.*)
-goal thy
+Goal
  "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);     \
 \           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
 \             : set evs;                                              \
@@ -383,7 +383,7 @@ by (blast_tac (claset() addDs [unique_session_keys]) 1);
 qed "NS4_implies_NS3";
 
 
-goal thy
+Goal
  "!!evs. [| B ~: bad;  evs : ns_shared |]                              \
 \        ==> Key K ~: analz (spies evs) -->                            \
 \            Says Server A                                             \
@@ -411,7 +411,7 @@ qed_spec_mp "B_trusts_NS5_lemma";
 
 
 (*Very strong Oops condition reveals protocol's weakness*)
-goal thy
+Goal
  "!!evs. [| Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs);      \
 \           Says B A (Crypt K (Nonce NB))  : set evs;                \
 \           Crypt (shrK B) {|Key K, Agent A|} : parts (spies evs);   \

@@ -23,7 +23,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-goal thy 
+Goal 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX K. EX NA. EX evs: otway.          \
 \               Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|} \
@@ -37,7 +37,7 @@ result();
 (**** Inductive proofs about otway ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : otway ==> ALL A X. Says A A X ~: set evs";
+Goal "!!evs. evs : otway ==> ALL A X. Says A A X ~: set evs";
 by (etac otway.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -47,19 +47,19 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set evs \
+Goal "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set evs \
 \                ==> X : analz (spies evs)";
 by (dtac (Says_imp_spies RS analz.Inj) 1);
 by (Blast_tac 1);
 qed "OR2_analz_spies";
 
-goal thy "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set evs \
+Goal "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set evs \
 \                ==> X : analz (spies evs)";
 by (dtac (Says_imp_spies RS analz.Inj) 1);
 by (Blast_tac 1);
 qed "OR4_analz_spies";
 
-goal thy "!!evs. Says Server B {|NA, X, Crypt K' {|NB,K|}|} : set evs \
+Goal "!!evs. Says Server B {|NA, X, Crypt K' {|NB,K|}|} : set evs \
 \                ==> K : parts (spies evs)";
 by (Blast_tac 1);
 qed "Oops_parts_spies";
@@ -82,14 +82,14 @@ fun parts_induct_tac i =
     sends messages containing X! **)
 
 (*Spy never sees a good agent's shared key!*)
-goal thy 
+Goal 
  "!!evs. evs : otway ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
-goal thy 
+Goal 
  "!!evs. evs : otway ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
@@ -100,7 +100,7 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 
 
 (*Nobody can have used non-existent keys!*)
-goal thy "!!evs. evs : otway ==>          \
+Goal "!!evs. evs : otway ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
@@ -121,7 +121,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 
 (*Describes the form of K and NA when the Server sends this message.  Also
   for Oops case.*)
-goal thy 
+Goal 
  "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, Key K|}|} : set evs; \
 \           evs : otway |]                                           \
 \     ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
@@ -153,7 +153,7 @@ val analz_spies_tac =
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
-goal thy  
+Goal  
  "!!evs. evs : otway ==>                                    \
 \  ALL K KK. KK <= Compl (range shrK) -->                   \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
@@ -168,7 +168,7 @@ by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 
-goal thy
+Goal
  "!!evs. [| evs : otway;  KAB ~: range shrK |] ==>          \
 \        Key K : analz (insert (Key KAB) (spies evs)) =  \
 \        (K = KAB | Key K : analz (spies evs))";
@@ -178,7 +178,7 @@ qed "analz_insert_freshK";
 
 (*** The Key K uniquely identifies the Server's  message. **)
 
-goal thy 
+Goal 
  "!!evs. evs : otway ==>                                                  \
 \   EX B' NA' NB' X'. ALL B NA NB X.                                      \
 \     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs -->     \
@@ -195,7 +195,7 @@ by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 by (blast_tac (claset() addSEs spies_partsEs) 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   : set evs; \ 
 \           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} : set evs; \
 \           evs : otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
@@ -207,7 +207,7 @@ qed "unique_session_keys";
 (**** Authenticity properties relating to NA ****)
 
 (*Only OR1 can have caused such a part of a message to appear.*)
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  evs : otway |]                             \
 \        ==> Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (spies evs) --> \
 \            Says A B {|NA, Agent A, Agent B,                      \
@@ -220,7 +220,7 @@ qed_spec_mp "Crypt_imp_OR1";
 
 (** The Nonce NA uniquely identifies A's message. **)
 
-goal thy 
+Goal 
  "!!evs. [| evs : otway; A ~: bad |]               \
 \ ==> EX B'. ALL B.                                 \
 \        Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (spies evs) \
@@ -233,7 +233,7 @@ by (expand_case_tac "NA = ?y" 1);
 by (Blast_tac 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!evs.[| Crypt (shrK A) {|NA, Agent A, Agent B|}: parts (spies evs); \
 \          Crypt (shrK A) {|NA, Agent A, Agent C|}: parts (spies evs); \
 \          evs : otway;  A ~: bad |]                                   \
@@ -245,7 +245,7 @@ qed "unique_NA";
 (*It is impossible to re-use a nonce in both OR1 and OR2.  This holds because
   OR2 encrypts Nonce NB.  It prevents the attack that can occur in the
   over-simplified version of this protocol: see OtwayRees_Bad.*)
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  evs : otway |]                      \
 \        ==> Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (spies evs) --> \
 \            Crypt (shrK A) {|NA', NA, Agent A', Agent A|}  \
@@ -258,7 +258,7 @@ val nonce_OR1_OR2_E = no_nonce_OR1_OR2 RSN (2, rev_notE);
 
 (*Crucial property: If the encrypted message appears, and A has used NA
   to start a run, then it originated with the Server!*)
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  evs : otway |]                                  \
 \    ==> Crypt (shrK A) {|NA, Key K|} : parts (spies evs)              \
 \        --> Says A B {|NA, Agent A, Agent B,                          \
@@ -290,7 +290,7 @@ qed_spec_mp "NA_Crypt_imp_Server_msg";
   then the key really did come from the Server!  CANNOT prove this of the
   bad form of this protocol, even though we can prove
   Spy_not_see_encrypted_key*)
-goal thy 
+Goal 
  "!!evs. [| Says A  B {|NA, Agent A, Agent B,                       \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|} : set evs; \
 \           Says B' A {|NA, Crypt (shrK A) {|NA, Key K|}|} : set evs; \
@@ -308,7 +308,7 @@ qed "A_trusts_OR4";
     Does not in itself guarantee security: an attack could violate 
     the premises, e.g. by having A=Spy **)
 
-goal thy 
+Goal 
  "!!evs. [| A ~: bad;  B ~: bad;  evs : otway |]                      \
 \        ==> Says Server B                                            \
 \              {|NA, Crypt (shrK A) {|NA, Key K|},                    \
@@ -331,7 +331,7 @@ by (Blast_tac 2);
 by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
-goal thy 
+Goal 
  "!!evs. [| Says Server B                                           \
 \            {|NA, Crypt (shrK A) {|NA, Key K|},                    \
 \                  Crypt (shrK B) {|NB, Key K|}|} : set evs;        \
@@ -345,7 +345,7 @@ qed "Spy_not_see_encrypted_key";
 
 (*A's guarantee.  The Oops premise quantifies over NB because A cannot know
   what it is.*)
-goal thy 
+Goal 
  "!!evs. [| Says A  B {|NA, Agent A, Agent B,                       \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|} : set evs; \
 \           Says B' A {|NA, Crypt (shrK A) {|NA, Key K|}|} : set evs; \
@@ -360,7 +360,7 @@ qed "A_gets_good_key";
 
 (*Only OR2 can have caused such a part of a message to appear.  We do not
   know anything about X: it does NOT have to have the right form.*)
-goal thy 
+Goal 
  "!!evs. [| B ~: bad;  evs : otway |]                         \
 \        ==> Crypt (shrK B) {|NA, NB, Agent A, Agent B|}       \
 \             : parts (spies evs) -->                       \
@@ -375,7 +375,7 @@ bind_thm ("Crypt_imp_OR2", result() RSN (2,rev_mp) RS exE);
 
 (** The Nonce NB uniquely identifies B's  message. **)
 
-goal thy 
+Goal 
  "!!evs. [| evs : otway; B ~: bad |]  \
 \ ==> EX NA' A'. ALL NA A.            \
 \      Crypt (shrK B) {|NA, NB, Agent A, Agent B|} : parts(spies evs) \
@@ -388,7 +388,7 @@ by (expand_case_tac "NB = ?y" 1);
 by (Blast_tac 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!evs.[| Crypt (shrK B) {|NA, NB, Agent A, Agent B|} : parts(spies evs); \
 \          Crypt (shrK B) {|NC, NB, Agent C, Agent B|} : parts(spies evs); \
 \          evs : otway;  B ~: bad |]             \
@@ -399,7 +399,7 @@ qed "unique_NB";
 
 (*If the encrypted message appears, and B has used Nonce NB,
   then it originated with the Server!*)
-goal thy 
+Goal 
  "!!evs. [| B ~: bad;  evs : otway |]                                    \
 \    ==> Crypt (shrK B) {|NB, Key K|} : parts (spies evs)                \
 \        --> (ALL X'. Says B Server                                      \
@@ -430,7 +430,7 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
 
 (*Guarantee for B: if it gets a message with matching NB then the Server
   has sent the correct message.*)
-goal thy 
+Goal 
  "!!evs. [| Says B Server {|NA, Agent A, Agent B, X',              \
 \                           Crypt (shrK B) {|NA, NB, Agent A, Agent B|} |} \
 \            : set evs;                                            \
@@ -446,7 +446,7 @@ qed "B_trusts_OR3";
 
 
 (*The obvious combination of B_trusts_OR3 with Spy_not_see_encrypted_key*)
-goal thy 
+Goal 
  "!!evs. [| Says B Server {|NA, Agent A, Agent B, X',              \
 \                           Crypt (shrK B) {|NA, NB, Agent A, Agent B|} |} \
 \             : set evs;                                           \
@@ -458,7 +458,7 @@ by (blast_tac (claset() addSDs [B_trusts_OR3, Spy_not_see_encrypted_key]) 1);
 qed "B_gets_good_key";
 
 
-goal thy 
+Goal 
  "!!evs. [| B ~: bad;  evs : otway |]                            \
 \        ==> Says Server B                                       \
 \              {|NA, Crypt (shrK A) {|NA, Key K|},               \
@@ -476,7 +476,7 @@ bind_thm ("OR3_imp_OR2", result() RSN (2,rev_mp) RS exE);
 (*After getting and checking OR4, agent A can trust that B has been active.
   We could probably prove that X has the expected form, but that is not
   strictly necessary for authentication.*)
-goal thy 
+Goal 
  "!!evs. [| Says B' A {|NA, Crypt (shrK A) {|NA, Key K|}|} : set evs;        \
 \           Says A  B {|NA, Agent A, Agent B,                                \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|} : set evs; \

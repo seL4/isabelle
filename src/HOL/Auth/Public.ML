@@ -15,7 +15,7 @@ open Public;
 
 AddIffs [inj_pubK RS inj_eq];
 
-goal thy "!!A B. (priK A = priK B) = (A=B)";
+Goal "!!A B. (priK A = priK B) = (A=B)";
 by Safe_tac;
 by (dres_inst_tac [("f","invKey")] arg_cong 1);
 by (Full_simp_tac 1);
@@ -24,11 +24,11 @@ qed "priK_inj_eq";
 AddIffs [priK_inj_eq];
 AddIffs [priK_neq_pubK, priK_neq_pubK RS not_sym];
 
-goalw thy [isSymKey_def] "~ isSymKey (pubK A)";
+Goalw [isSymKey_def] "~ isSymKey (pubK A)";
 by (Simp_tac 1);
 qed "not_isSymKey_pubK";
 
-goalw thy [isSymKey_def] "~ isSymKey (priK A)";
+Goalw [isSymKey_def] "~ isSymKey (priK A)";
 by (Simp_tac 1);
 qed "not_isSymKey_priK";
 
@@ -37,16 +37,16 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 
 (** "Image" equations that hold for injective functions **)
 
-goal thy "(invKey x : invKey``A) = (x:A)";
+Goal "(invKey x : invKey``A) = (x:A)";
 by Auto_tac;
 qed "invKey_image_eq";
 
 (*holds because invKey is injective*)
-goal thy "(pubK x : pubK``A) = (x:A)";
+Goal "(pubK x : pubK``A) = (x:A)";
 by Auto_tac;
 qed "pubK_image_eq";
 
-goal thy "(priK x ~: pubK``A)";
+Goal "(priK x ~: pubK``A)";
 by Auto_tac;
 qed "priK_pubK_image_eq";
 Addsimps [invKey_image_eq, pubK_image_eq, priK_pubK_image_eq];
@@ -55,7 +55,7 @@ Addsimps [invKey_image_eq, pubK_image_eq, priK_pubK_image_eq];
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
-goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
+Goalw [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (induct_tac "C" 1);
 by (auto_tac (claset() addIs [range_eqI], simpset()));
 qed "keysFor_parts_initState";
@@ -65,14 +65,14 @@ Addsimps [keysFor_parts_initState];
 (*** Function "spies" ***)
 
 (*Agents see their own private keys!*)
-goal thy "Key (priK A) : initState A";
+Goal "Key (priK A) : initState A";
 by (induct_tac "A" 1);
 by Auto_tac;
 qed "priK_in_initState";
 AddIffs [priK_in_initState];
 
 (*All public keys are visible*)
-goal thy "Key (pubK A) : spies evs";
+Goal "Key (pubK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [imageI, spies_Cons]
@@ -80,7 +80,7 @@ by (ALLGOALS (asm_simp_tac
 qed_spec_mp "spies_pubK";
 
 (*Spy sees private keys of bad agents!*)
-goal thy "!!A. A: bad ==> Key (priK A) : spies evs";
+Goal "!!A. A: bad ==> Key (priK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [imageI, spies_Cons]
@@ -92,7 +92,7 @@ AddSIs  [Spy_spies_bad];
 
 
 (*For not_bad_tac*)
-goal thy "!!A. [| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
+Goal "!!A. [| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
 \              ==> X : analz (spies evs)";
 by (blast_tac (claset() addSDs [analz.Decrypt]) 1);
 qed "Crypt_Spy_analz_bad";
@@ -112,13 +112,13 @@ fun not_bad_tac s =
 
 (*** Fresh nonces ***)
 
-goal thy "Nonce N ~: parts (initState B)";
+Goal "Nonce N ~: parts (initState B)";
 by (induct_tac "B" 1);
 by Auto_tac;
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
-goal thy "Nonce N ~: used []";
+Goal "Nonce N ~: used []";
 by (simp_tac (simpset() addsimps [used_Nil]) 1);
 qed "Nonce_notin_used_empty";
 Addsimps [Nonce_notin_used_empty];
@@ -127,7 +127,7 @@ Addsimps [Nonce_notin_used_empty];
 (*** Supply fresh nonces for possibility theorems. ***)
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
-goal thy "EX N. ALL n. N<=n --> Nonce n ~: used evs";
+Goal "EX N. ALL n. N<=n --> Nonce n ~: used evs";
 by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
@@ -138,12 +138,12 @@ by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (claset() addSEs [add_leE])));
 val lemma = result();
 
-goal thy "EX N. Nonce N ~: used evs";
+Goal "EX N. Nonce N ~: used evs";
 by (rtac (lemma RS exE) 1);
 by (Blast_tac 1);
 qed "Nonce_supply1";
 
-goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
+Goal "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
 by (rtac (lemma RS exE) 1);
 by (rtac selectI 1);
 by (Fast_tac 1);
@@ -160,11 +160,11 @@ fun possibility_tac st = st |>
 
 (*** Specialized rewriting for the analz_image_... theorems ***)
 
-goal thy "insert (Key K) H = Key `` {K} Un H";
+Goal "insert (Key K) H = Key `` {K} Un H";
 by (Blast_tac 1);
 qed "insert_Key_singleton";
 
-goal thy "insert (Key K) (Key``KK Un C) = Key `` (insert K KK) Un C";
+Goal "insert (Key K) (Key``KK Un C) = Key `` (insert K KK) Un C";
 by (Blast_tac 1);
 qed "insert_Key_image";
 

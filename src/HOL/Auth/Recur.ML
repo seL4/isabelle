@@ -20,7 +20,7 @@ Pretty.setdepth 30;
 
 
 (*Simplest case: Alice goes directly to the server*)
-goal thy
+Goal
  "!!A. A ~= Server                                                      \
 \ ==> EX K NA. EX evs: recur.                                           \
 \     Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
@@ -33,7 +33,7 @@ result();
 
 
 (*Case two: Alice, Bob and the server*)
-goal thy
+Goal
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]                 \
 \ ==> EX K. EX NA. EX evs: recur.                               \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
@@ -52,7 +52,7 @@ result();
 
 (*Case three: Alice, Bob, Charlie and the server
   TOO SLOW to run every time!
-goal thy
+Goal
  "!!A B. [| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur.                                      \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},        \
@@ -75,7 +75,7 @@ result();
 (**** Inductive proofs about recur ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : recur ==> ALL A X. Says A A X ~: set evs";
+Goal "!!evs. evs : recur ==> ALL A X. Says A A X ~: set evs";
 by (etac recur.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -84,17 +84,17 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 
 
-goal thy "!!evs. (PA,RB,KAB) : respond evs ==> Key KAB : parts{RB}";
+Goal "!!evs. (PA,RB,KAB) : respond evs ==> Key KAB : parts{RB}";
 by (etac respond.induct 1);
 by (ALLGOALS Simp_tac);
 qed "respond_Key_in_parts";
 
-goal thy "!!evs. (PA,RB,KAB) : respond evs ==> Key KAB ~: used evs";
+Goal "!!evs. (PA,RB,KAB) : respond evs ==> Key KAB ~: used evs";
 by (etac respond.induct 1);
 by (REPEAT (assume_tac 1));
 qed "respond_imp_not_used";
 
-goal thy
+Goal
  "!!evs. [| Key K : parts {RB};  (PB,RB,K') : respond evs |] \
 \        ==> Key K ~: used evs";
 by (etac rev_mp 1);
@@ -104,7 +104,7 @@ by (auto_tac(claset() addDs [Key_not_used, respond_imp_not_used],
 qed_spec_mp "Key_in_parts_respond";
 
 (*Simple inductive reasoning about responses*)
-goal thy "!!evs. (PA,RB,KAB) : respond evs ==> RB : responses evs";
+Goal "!!evs. (PA,RB,KAB) : respond evs ==> RB : responses evs";
 by (etac respond.induct 1);
 by (REPEAT (ares_tac (respond_imp_not_used::responses.intrs) 1));
 qed "respond_imp_responses";
@@ -114,7 +114,7 @@ qed "respond_imp_responses";
 
 val RA2_analz_spies = Says_imp_spies RS analz.Inj |> standard;
 
-goal thy "!!evs. Says C' B {|Crypt K X, X', RA|} : set evs \
+Goal "!!evs. Says C' B {|Crypt K X, X', RA|} : set evs \
 \                ==> RA : analz (spies evs)";
 by (blast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]) 1);
 qed "RA4_analz_spies";
@@ -144,7 +144,7 @@ fun parts_induct_tac i =
 
 (** Spy never sees another agent's shared key! (unless it's bad at start) **)
 
-goal thy 
+Goal 
  "!!evs. evs : recur ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
@@ -155,7 +155,7 @@ by (blast_tac (claset() addDs [Key_in_parts_respond]) 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
-goal thy 
+Goal 
  "!!evs. evs : recur ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
@@ -168,7 +168,7 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 (** Nobody can have used non-existent keys! **)
 
 (*The special case of H={} has the same proof*)
-goal thy
+Goal
  "!!evs. [| K : keysFor (parts (insert RB H));  (PB,RB,K') : respond evs |] \
 \        ==> K : range shrK | K : keysFor (parts H)";
 by (etac rev_mp 1);
@@ -177,7 +177,7 @@ by Auto_tac;
 qed_spec_mp "Key_in_keysFor_parts";
 
 
-goal thy "!!evs. evs : recur ==>          \
+Goal "!!evs. evs : recur ==>          \
 \                Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*RA3*)
@@ -209,7 +209,7 @@ val analz_spies_tac =
 (*Version for "responses" relation.  Handles case RA3 in the theorem below.  
   Note that it holds for *any* set H (not just "spies evs")
   satisfying the inductive hypothesis.*)
-goal thy  
+Goal  
  "!!evs. [| RB : responses evs;                             \
 \           ALL K KK. KK <= Compl (range shrK) -->          \
 \                     (Key K : analz (Key``KK Un H)) =      \
@@ -222,7 +222,7 @@ by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 qed "resp_analz_image_freshK_lemma";
 
 (*Version for the protocol.  Proof is almost trivial, thanks to the lemma.*)
-goal thy  
+Goal  
  "!!evs. evs : recur ==>                                 \
 \  ALL K KK. KK <= Compl (range shrK) -->                \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
@@ -250,7 +250,7 @@ bind_thm ("resp_analz_image_freshK",
           raw_analz_image_freshK RSN
             (2, resp_analz_image_freshK_lemma) RS spec RS spec RS mp);
 
-goal thy
+Goal
  "!!evs. [| evs : recur;  KAB ~: range shrK |] ==>           \
 \        Key K : analz (insert (Key KAB) (spies evs)) =      \
 \        (K = KAB | Key K : analz (spies evs))";
@@ -259,7 +259,7 @@ qed "analz_insert_freshK";
 
 
 (*Everything that's hashed is already in past traffic. *)
-goal thy "!!evs. [| Hash {|Key(shrK A), X|} : parts (spies evs);  \
+Goal "!!evs. [| Hash {|Key(shrK A), X|} : parts (spies evs);  \
 \                   evs : recur;  A ~: bad |]                     \
 \                ==> X : parts (spies evs)";
 by (etac rev_mp 1);
@@ -278,7 +278,7 @@ qed "Hash_imp_body";
   Unicity is not used in other proofs but is desirable in its own right.
 **)
 
-goal thy 
+Goal 
  "!!evs. [| evs : recur; A ~: bad |]                   \
 \ ==> EX B' P'. ALL B P.                                     \
 \        Hash {|Key(shrK A), Agent A, B, NA, P|} : parts (spies evs) \
@@ -295,7 +295,7 @@ by (REPEAT (blast_tac (claset() addSDs [Hash_imp_body]
                                addSEs spies_partsEs) 1));
 val lemma = result();
 
-goalw thy [HPair_def]
+Goalw [HPair_def]
  "!!A.[| Hash[Key(shrK A)] {|Agent A, B,NA,P|}   : parts (spies evs); \
 \        Hash[Key(shrK A)] {|Agent A, B',NA,P'|} : parts (spies evs); \
 \        evs : recur;  A ~: bad |]                                    \
@@ -309,7 +309,7 @@ qed "unique_NA";
       (relations "respond" and "responses") 
 ***)
 
-goal thy
+Goal
  "!!evs. [| RB : responses evs;  evs : recur |] \
 \ ==> (Key (shrK B) : analz (insert RB (spies evs))) = (B:bad)";
 by (etac responses.induct 1);
@@ -321,7 +321,7 @@ qed "shrK_in_analz_respond";
 Addsimps [shrK_in_analz_respond];
 
 
-goal thy  
+Goal  
  "!!evs. [| RB : responses evs;                             \
 \           ALL K KK. KK <= Compl (range shrK) -->          \
 \                     (Key K : analz (Key``KK Un H)) =      \
@@ -344,7 +344,7 @@ bind_thm ("resp_analz_insert",
 
 (*The Server does not send such messages.  This theorem lets us avoid
   assuming B~=Server in RA4.*)
-goal thy 
+Goal 
  "!!evs. evs : recur \
 \        ==> ALL C X Y. Says Server C {|X, Agent Server, Y|} ~: set evs";
 by (etac recur.induct 1);
@@ -355,7 +355,7 @@ AddSEs [Says_Server_not RSN (2,rev_notE)];
 
 
 (*The last key returned by respond indeed appears in a certificate*)
-goal thy 
+Goal 
  "!!K. (Hash[Key(shrK A)] {|Agent A, B, NA, P|}, RA, K) : respond evs \
 \      ==> Crypt (shrK A) {|Key K, B, NA|} : parts {RA}";
 by (etac respond.elim 1);
@@ -363,7 +363,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "respond_certificate";
 
 
-goal thy 
+Goal 
  "!!K'. (PB,RB,KXY) : respond evs                          \
 \  ==> EX A' B'. ALL A B N.                                \
 \        Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB} \
@@ -385,7 +385,7 @@ by (dtac respond_certificate 1);
 by (Fast_tac 1);
 val lemma = result();
 
-goal thy 
+Goal 
  "!!RB. [| Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB};      \
 \          Crypt (shrK A') {|Key K, Agent B', N'|} : parts {RB};   \
 \          (PB,RB,KXY) : respond evs |]                            \
@@ -398,7 +398,7 @@ qed "unique_session_keys";
     Does not in itself guarantee security: an attack could violate 
     the premises, e.g. by having A=Spy **)
 
-goal thy 
+Goal 
  "!!evs. [| (PB,RB,KAB) : respond evs;  evs : recur |]              \
 \        ==> ALL A A' N. A ~: bad & A' ~: bad -->                   \
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
@@ -429,7 +429,7 @@ by (blast_tac
 qed_spec_mp "respond_Spy_not_see_session_key";
 
 
-goal thy
+Goal
  "!!evs. [| Crypt (shrK A) {|Key K, Agent A', N|} : parts (spies evs); \
 \           A ~: bad;  A' ~: bad;  evs : recur |]                      \
 \        ==> Key K ~: analz (spies evs)";
@@ -463,7 +463,7 @@ qed "Spy_not_see_session_key";
 (**** Authenticity properties for Agents ****)
 
 (*The response never contains Hashes*)
-goal thy
+Goal
  "!!evs. [| Hash {|Key (shrK B), M|} : parts (insert RB H); \
 \           (PB,RB,K) : respond evs |]                      \
 \        ==> Hash {|Key (shrK B), M|} : parts H";
@@ -476,7 +476,7 @@ qed "Hash_in_parts_respond";
   This result is of no use to B, who cannot verify the Hash.  Moreover,
   it can say nothing about how recent A's message is.  It might later be
   used to prove B's presence to A at the run's conclusion.*)
-goalw thy [HPair_def]
+Goalw [HPair_def]
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|} : parts(spies evs); \
 \           A ~: bad;  evs : recur |]                      \
 \     ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|}) : set evs";
@@ -493,7 +493,7 @@ qed_spec_mp "Hash_auth_sender";
 
 
 (*Certificates can only originate with the Server.*)
-goal thy 
+Goal 
  "!!evs. [| Crypt (shrK A) Y : parts (spies evs);    \
 \           A ~: bad;  evs : recur |]                \
 \        ==> EX C RC. Says Server C RC : set evs  &  \
