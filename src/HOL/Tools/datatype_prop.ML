@@ -113,9 +113,8 @@ fun make_ind descr sorts =
         fun mk_prem ((DtRec k, s), T) = HOLogic.mk_Trueprop
               (make_pred k T $ Free (s, T))
           | mk_prem ((DtType ("fun", [_, DtRec k]), s), T' as Type ("fun", [T, U])) =
-              (Const (InductivePackage.inductive_forall_name,
-                  [T --> HOLogic.boolT] ---> HOLogic.boolT) $
-                Abs ("x", T, make_pred k U $ (Free (s, T') $ Bound 0))) |> HOLogic.mk_Trueprop;
+              all T $ Abs ("x", T, HOLogic.mk_Trueprop
+                (make_pred k U $ (Free (s, T') $ Bound 0)));
 
         val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;

@@ -639,20 +639,19 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
-    val dt_induct = prove_goalw_cterm [InductivePackage.inductive_forall_def] (cert
+    val dt_induct = prove_goalw_cterm [] (cert
       (DatatypeProp.make_ind descr sorts)) (fn prems =>
         [rtac indrule_lemma' 1, indtac rep_induct 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac (Funs_IntE::Abs_inverse_thms) 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE (EVERY [rewtac o_def,
-              rtac allI 1, dtac FunsD 1, etac CollectD 1]))]))
+              dtac FunsD 1, etac CollectD 1]))]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
     val (thy7, [dt_induct']) = thy6 |>
       Theory.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct),
-        [Drule.rule_attribute (K InductivePackage.rulify), case_names_induct])] |>>
+      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
       Theory.parent_path;
 
   in (thy7, constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct')
