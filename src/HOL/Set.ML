@@ -785,7 +785,7 @@ local
 
 fun gen_rulify_prems x =
   Attrib.no_args (Drule.rule_attribute (fn _ => (standard o
-    rule_by_tactic (REPEAT (ALLGOALS (resolve_tac [allI, ballI, impI])))))) x;
+    rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, ballI, impI])))))) x;
 
 in
 
