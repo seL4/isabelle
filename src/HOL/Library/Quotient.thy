@@ -185,7 +185,7 @@ proof -
   assume cong: "PROP ?cong"
   assume "PROP ?eq" and "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>"
   hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
-  also have "\<dots> = g a b"
+  also have "... = g a b"
   proof (rule cong)
     show "\<lfloor>pick \<lfloor>a\<rfloor>\<rfloor> = \<lfloor>a\<rfloor>" ..
     moreover
