@@ -19,6 +19,8 @@ Simplification procedures for turning
         "!x. x=t --> P(x)" is covered by the congreunce rule for -->;
         "!x. t=x --> P(x)" must be taken care of by an ordinary rewrite rule.
 
+     And similarly for the bounded quantifiers.
+
 Gries etc call this the "1 point rules"
 *)
 
@@ -46,8 +48,12 @@ end;
 
 signature QUANTIFIER1 =
 sig
+  val prove_one_point_all_tac: tactic
+  val prove_one_point_ex_tac: tactic
   val rearrange_all: Sign.sg -> thm list -> term -> thm option
   val rearrange_ex:  Sign.sg -> thm list -> term -> thm option
+  val rearrange_ball: tactic -> Sign.sg -> thm list -> term -> thm option
+  val rearrange_bex:  tactic -> Sign.sg -> thm list -> term -> thm option
 end;
 
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -86,7 +92,17 @@ fun prove_conv tac sg tu =
                   string_of_cterm meta_eq)
   end;
 
-val prove_all_tac = EVERY1[rtac iffI,
+(* Proves (? x. ... & x = t & ...) = (? x. x = t & ... & ...)
+   Better: instantiate exI
+*)
+val prove_one_point_ex_tac = rtac iffI 1 THEN
+    ALLGOALS(EVERY'[etac exE, REPEAT_DETERM o (etac conjE), rtac exI,
+                    DEPTH_SOLVE_1 o (ares_tac [conjI] APPEND' etac sym)]);
+
+(* Proves (! x. (... & x = t & ...) --> P x) =
+          (! x. x = t --> (... & ...) --> P x)
+*)
+val prove_one_point_all_tac = EVERY1[rtac iffI,
                        rtac allI, etac allE, rtac impI, rtac impI, etac mp,
                           REPEAT o (etac conjE),
                           REPEAT o (ares_tac [conjI] ORELSE' etac sym),
@@ -99,19 +115,29 @@ fun rearrange_all sg _ (F as all $ Abs(x,T,(* --> *)_ $ P $ Q)) =
         None => None
       | Some(eq,P') =>
           let val R = imp $ eq $ (imp $ P' $ Q)
-          in Some(prove_conv prove_all_tac sg (F,all$Abs(x,T,R))) end)
+          in Some(prove_conv prove_one_point_all_tac sg (F,all$Abs(x,T,R))) end)
   | rearrange_all _ _ _ = None;
 
-(* Better: instantiate exI *)
-val prove_ex_tac = rtac iffI 1 THEN
-    ALLGOALS(EVERY'[etac exE, REPEAT_DETERM o (etac conjE), rtac exI,
-                    DEPTH_SOLVE_1 o (ares_tac [conjI] APPEND' etac sym)]);
+fun rearrange_ball tac sg _ (F as Ball $ A $ Abs(x,T,(* --> *)_ $ P $ Q)) =
+     (case extract P of
+        None => None
+      | Some(eq,P') =>
+          let val R = imp $ eq $ (imp $ P' $ Q)
+          in Some(prove_conv tac sg (F,Ball $ A $ Abs(x,T,R))) end)
+  | rearrange_ball _ _ _ _ = None;
 
 fun rearrange_ex sg _ (F as ex $ Abs(x,T,P)) =
      (case extract P of
         None => None
       | Some(eq,Q) =>
-          Some(prove_conv prove_ex_tac sg (F,ex $ Abs(x,T,conj$eq$Q))))
+          Some(prove_conv prove_one_point_ex_tac sg (F,ex $ Abs(x,T,conj$eq$Q))))
   | rearrange_ex _ _ _ = None;
+
+fun rearrange_bex tac sg _ (F as Bex $ A $ Abs(x,T,P)) =
+     (case extract P of
+        None => None
+      | Some(eq,Q) =>
+          Some(prove_conv tac sg (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
+  | rearrange_bex _ _ _ _ = None;
 
 end;
