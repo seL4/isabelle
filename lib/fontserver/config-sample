@@ -9,12 +9,14 @@
 #
 #   xfs -config /foo/bar/fontserver/config
 #
-# Then test it as follows:
 #
-#   fsinfo -server localhost:7200
-#   fslsfonts -server localhost:7200
+# Then test it by any of the these commands (replace foo by your
+# host name):
 #
-
+#   fsinfo -server foo:7200
+#   fslsfonts -server foo:7200
+#   xset fp+ tcp/foo:7200
+#
 
 # the standard port is 7100, this might be already in use
 #port = 7100
