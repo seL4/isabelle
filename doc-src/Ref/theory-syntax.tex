@@ -18,7 +18,7 @@ theoryDef : id '=' (name + '+') ('+' extension | ());
 
 name: id | string;
 
-extension : classes default types arities consts trans rules 'end' ml
+extension : classes default types arities consts trans rules \\ 'end' ml
           ;
 
 classes : ()
