@@ -789,7 +789,7 @@ fun add_new_id (bs, c) : string list =  variant bs c  ::  bs;
 
 (*Accumulates the names in the term, suppressing duplicates.
   Includes Frees and Consts.  For choosing unambiguous bound var names.*)
-fun add_term_names (Const(a,_), bs) = a ins_string bs
+fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (Free(a,_), bs) = a ins_string bs
   | add_term_names (f$u, bs) = add_term_names (f, add_term_names(u, bs))
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
