@@ -114,7 +114,8 @@ $(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.th
 
 HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
 
-$(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/AB.thy Inductive/ROOT.ML
+$(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
+  Inductive/Star.thy Inductive/AB.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Inductive
 	@rm -f tutorial.dvi
 

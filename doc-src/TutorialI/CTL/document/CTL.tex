@@ -59,20 +59,23 @@ with the easy one:%
 \ \ {\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-The proof is again pointwise. Fixpoint induction on the premise \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}} followed
-by simplification and clarification%
+In contrast to the analogous property for \isa{EF}, and just
+for a change, we do not use fixpoint induction but a weaker theorem,
+\isa{lfp{\isacharunderscore}lowerbound}:
+\begin{isabelle}%
+\ \ \ \ \ f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S%
+\end{isabelle}
+The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
+starting with simplification and clarification:%
 \end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ lfp{\isacharunderscore}induct{\isacharbrackleft}OF\ {\isacharunderscore}\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent
-leads to the following somewhat involved proof state
 \begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ \isadigit{0}\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ \isadigit{0}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ t\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ {\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
@@ -89,8 +92,8 @@ In the other case we set \isa{t} to \isa{p\ {\isadigit{1}}} and simplify matters
 \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\ p\ \isadigit{1}\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ \isadigit{1}\ {\isacharequal}\ pa\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
 \end{isabelle}

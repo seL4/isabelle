@@ -1,4 +1,6 @@
-theory AB = Main:;
+(*<*)theory AB = Main:(*>*)
+
+section{*A context free grammar*}
 
 datatype alfa = a | b;
 
@@ -118,4 +120,4 @@ apply(rule S_A_B.intros);
  apply(force simp add:min_less_iff_disj);
 by(force simp add:min_less_iff_disj split add: nat_diff_split);
 
-end;
+(*<*)end(*>*)

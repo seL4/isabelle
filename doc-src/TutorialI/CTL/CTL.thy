@@ -107,22 +107,23 @@ theorem AF_lemma1:
   "lfp(af A) \<subseteq> {s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A}";
 
 txt{*\noindent
-The proof is again pointwise. Fixpoint induction on the premise @{prop"s \<in> lfp(af A)"} followed
-by simplification and clarification
+In contrast to the analogous property for @{term EF}, and just
+for a change, we do not use fixpoint induction but a weaker theorem,
+@{thm[source]lfp_lowerbound}:
+@{thm[display]lfp_lowerbound[of _ "S",no_vars]}
+The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
+starting with simplification and clarification:
 *};
-
+apply(rule lfp_lowerbound);
 apply(rule subsetI);
-apply(erule lfp_induct[OF _ mono_af]);
 apply(clarsimp simp add: af_def Paths_def);
 (*ML"Pretty.setmargin 70";
 pr(latex xsymbols symbols);*)
-txt{*\noindent
-leads to the following somewhat involved proof state
+txt{*
 \begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ \isadigit{0}\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ \isadigit{0}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ t\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ {\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
@@ -144,8 +145,8 @@ pr(latex xsymbols symbols);*)
 
 txt{*
 \begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\ p\ \isadigit{1}\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ \isadigit{1}\ {\isacharequal}\ pa\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
 \end{isabelle}
@@ -157,6 +158,7 @@ apply(erule_tac x = "\<lambda>i. p(i+1)" in allE);
 apply simp;
 apply blast;
 done;
+
 
 text{*
 The opposite containment is proved by contradiction: if some state

@@ -1,8 +1,8 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{AB}%
-\isacommand{theory}\ AB\ {\isacharequal}\ Main{\isacharcolon}\isanewline
-\isanewline
+%
+\isamarkupsection{A context free grammar}
 \isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b\isanewline
 \isanewline
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isachartilde}{\isacharequal}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isacharampersand}\ {\isacharparenleft}x\ {\isachartilde}{\isacharequal}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
@@ -120,8 +120,6 @@
 \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
-\isanewline
-\isacommand{end}\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
