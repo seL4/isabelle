@@ -147,15 +147,15 @@ constdefs
 
   MPair :: "[msg,msg] \<Rightarrow> msg"
    "MPair X Y ==
-       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> \<Union>\<^bsub>V \<in> Rep_Msg Y\<^esub> msgrel``{MPAIR U V})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. \<Union>V \<in> Rep_Msg Y. msgrel``{MPAIR U V})"
 
   Crypt :: "[nat,msg] \<Rightarrow> msg"
    "Crypt K X ==
-       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{CRYPT K U})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{CRYPT K U})"
 
   Decrypt :: "[nat,msg] \<Rightarrow> msg"
    "Decrypt K X ==
-       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{DECRYPT K U})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
 
 
 text{*Reduces equality of equivalence classes to the @{term msgrel} relation:
@@ -228,7 +228,7 @@ subsection{*The Abstract Function to Return the Set of Nonces*}
 
 constdefs
   nonces :: "msg \<Rightarrow> nat set"
-   "nonces X == \<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> freenonces U"
+   "nonces X == \<Union>U \<in> Rep_Msg X. freenonces U"
 
 lemma nonces_congruent: "congruent msgrel freenonces"
 by (simp add: congruent_def msgrel_imp_eq_freenonces) 
@@ -263,7 +263,7 @@ subsection{*The Abstract Function to Return the Left Part*}
 
 constdefs
   left :: "msg \<Rightarrow> msg"
-   "left X == Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{freeleft U})"
+   "left X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
 lemma left_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeleft U})"
 by (simp add: congruent_def msgrel_imp_eqv_freeleft) 
@@ -297,7 +297,7 @@ subsection{*The Abstract Function to Return the Right Part*}
 
 constdefs
   right :: "msg \<Rightarrow> msg"
-   "right X == Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{freeright U})"
+   "right X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
 lemma right_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeright U})"
 by (simp add: congruent_def msgrel_imp_eqv_freeright) 

@@ -153,13 +153,13 @@ next
   proof (intro normalI [OF sg], simp add: l_coset_def r_coset_def, clarify)
     fix x
     assume x: "x \<in> carrier G"
-    show "(\<Union>\<^bsub>h\<in>N\<^esub> {h \<otimes> x}) = (\<Union>\<^bsub>h\<in>N\<^esub> {x \<otimes> h})"
+    show "(\<Union>h\<in>N. {h \<otimes> x}) = (\<Union>h\<in>N. {x \<otimes> h})"
     proof
-      show "(\<Union>\<^bsub>h\<in>N\<^esub> {h \<otimes> x}) \<subseteq> (\<Union>\<^bsub>h\<in>N\<^esub> {x \<otimes> h})"
+      show "(\<Union>h\<in>N. {h \<otimes> x}) \<subseteq> (\<Union>h\<in>N. {x \<otimes> h})"
       proof clarify
         fix n
         assume n: "n \<in> N" 
-        show "n \<otimes> x \<in> (\<Union>\<^bsub>h\<in>N\<^esub> {x \<otimes> h})"
+        show "n \<otimes> x \<in> (\<Union>h\<in>N. {x \<otimes> h})"
         proof 
           from closed [of "inv x"]
           show "inv x \<otimes> n \<otimes> x \<in> N" by (simp add: x n)
@@ -168,11 +168,11 @@ next
         qed
       qed
     next
-      show "(\<Union>\<^bsub>h\<in>N\<^esub> {x \<otimes> h}) \<subseteq> (\<Union>\<^bsub>h\<in>N\<^esub> {h \<otimes> x})"
+      show "(\<Union>h\<in>N. {x \<otimes> h}) \<subseteq> (\<Union>h\<in>N. {h \<otimes> x})"
       proof clarify
         fix n
         assume n: "n \<in> N" 
-        show "x \<otimes> n \<in> (\<Union>\<^bsub>h\<in>N\<^esub> {h \<otimes> x})"
+        show "x \<otimes> n \<in> (\<Union>h\<in>N. {h \<otimes> x})"
         proof 
           show "x \<otimes> n \<otimes> inv x \<in> N" by (simp add: x n closed)
           show "x \<otimes> n \<in> {x \<otimes> n \<otimes> inv x \<otimes> x}"
@@ -261,7 +261,7 @@ lemma (in normal) rcos_inv:
 proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe)
   fix h
   assume "h \<in> H"
-  show "inv x \<otimes> inv h \<in> (\<Union>\<^bsub>j\<in>H\<^esub> {j \<otimes> inv x})"
+  show "inv x \<otimes> inv h \<in> (\<Union>j\<in>H. {j \<otimes> inv x})"
   proof
     show "inv x \<otimes> inv h \<otimes> x \<in> H"
       by (simp add: inv_op_closed1 prems)
@@ -271,7 +271,7 @@ proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe)
 next
   fix h
   assume "h \<in> H"
-  show "h \<otimes> inv x \<in> (\<Union>\<^bsub>j\<in>H\<^esub> {inv x \<otimes> inv j})"
+  show "h \<otimes> inv x \<in> (\<Union>j\<in>H. {inv x \<otimes> inv j})"
   proof
     show "x \<otimes> inv h \<otimes> inv x \<in> H"
       by (simp add: inv_op_closed2 prems)
@@ -651,7 +651,7 @@ proof
     assume y: "y \<in> carrier H"
     with h obtain g where g: "g \<in> carrier G" "h g = y"
       by (blast elim: equalityE); 
-    hence "(\<Union>\<^bsub>x\<in>kernel G H h #> g\<^esub> {h x}) = {y}" 
+    hence "(\<Union>x\<in>kernel G H h #> g. {h x}) = {y}" 
       by (auto simp add: y kernel_def r_coset_def) 
     with g show "y \<in> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)" 
       by (auto intro!: bexI simp add: FactGroup_def RCOSETS_def image_eq_UN)
