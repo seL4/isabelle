@@ -722,10 +722,10 @@ text {*
 subsection {* Suppressing Output \label{sec:doc-prep-suppress} *}
 
 text {*
-  By default, Isabelle's document system generates a {\LaTeX} source
-  file for each theory that gets loaded while running the session.
-  The generated \texttt{session.tex} will include all of these in
-  order of appearance, which in turn gets included by the standard
+  By default, Isabelle's document system generates a {\LaTeX} file for
+  each theory that gets loaded while running the session.  The
+  generated \texttt{session.tex} will include all of these in order of
+  appearance, which in turn gets included by the standard
   \texttt{root.tex}.  Certainly one may change the order or suppress
   unwanted theories by ignoring \texttt{session.tex} and load
   individual files directly in \texttt{root.tex}.  On the other hand,
@@ -806,8 +806,8 @@ text {*
   sanity checks here.  Arguments of markup commands and formal
   comments must not be hidden, otherwise presentation fails.  Open and
   close parentheses need to be inserted carefully; it is fairly easy
-  to hide the wrong parts, especially after rearranging the sources.
-
+  to hide the wrong parts, especially after rearranging the theory
+  text.
 *}
 
 (*<*)
