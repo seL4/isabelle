@@ -649,16 +649,10 @@ by (induct_tac "xs" 1);
 by Auto_tac;
 qed_spec_mp "in_set_butlastD";
 
-Goal "x:set(butlast xs) ==> x:set(butlast(xs@ys))";
-by (asm_simp_tac (simpset() addsimps [butlast_append]) 1);
-by (blast_tac (claset() addDs [in_set_butlastD]) 1);
-qed "in_set_butlast_appendI1";
-
-Goal "x:set(butlast ys) ==> x:set(butlast(xs@ys))";
-by (asm_simp_tac (simpset() addsimps [butlast_append]) 1);
-by (Clarify_tac 1);
-by (Full_simp_tac 1);
-qed "in_set_butlast_appendI2";
+Goal "x:set(butlast xs) | x:set(butlast ys) ==> x:set(butlast(xs@ys))";
+by (auto_tac (claset() addDs [in_set_butlastD],
+	      simpset() addsimps [butlast_append]));
+qed "in_set_butlast_appendI";
 
 (** take  & drop **)
 section "take & drop";
