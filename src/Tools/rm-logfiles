@@ -1,6 +1,6 @@
 #! /bin/sh
 # $Id$
 #Remove useless files from subdirectories
-rm log */make*.log */make*.log.gz
-rm */test
-rm */.*.thy.ML */*/.*.thy.ML
+
+find . \( -name log -o -name make\*.log\* -o -name test -o -name .\*.thy.ML \) -print \
+  | xargs rm
