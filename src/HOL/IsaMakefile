@@ -301,7 +301,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
 $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event_lemmas.ML Auth/Event.thy \
-  Auth/Message.ML Auth/Message.thy Auth/NS_Public.thy \
+  Auth/Message_lemmas.ML Auth/Message.thy Auth/NS_Public.thy \
   Auth/NS_Public_Bad.thy \
   Auth/NS_Shared.thy Auth/OtwayRees.ML Auth/OtwayRees.thy \
   Auth/OtwayRees_AN.ML Auth/OtwayRees_AN.thy Auth/OtwayRees_Bad.ML \
