@@ -375,7 +375,7 @@ fun mk_constaxiom_decls x =
     val (axms_defs, axms_names) =
       mk_axiom_decls (map (fn ((id, _), def) => (id ^ "_def", def)) x);
   in ((mk_big_list o map mk_triple2 o map (apfst quote o fst)) x ^
-       "\n\n|> (PureThy.add_defs o map Thm.no_attributes)\n" ^ axms_defs, axms_names)
+       "\n\n|> (#1 oo (PureThy.add_defs o map Thm.no_attributes))\n" ^ axms_defs, axms_names)
   end;
 
 val constaxiom_decls =
@@ -554,8 +554,8 @@ val pure_sections =
   section "consts" "|> Theory.add_consts" const_decls,
   section "syntax" "|> Theory.add_modesyntax" syntax_decls,
   section "translations" "|> Theory.add_trrules" trans_decls,
-  axm_section "rules" "|> (PureThy.add_axioms o map Thm.no_attributes)" axiom_decls,
-  axm_section "defs" "|> (PureThy.add_defs o map Thm.no_attributes)" axiom_decls,
+  axm_section "rules" "|> (#1 oo (PureThy.add_axioms o map Thm.no_attributes))" axiom_decls,
+  axm_section "defs" "|> (#1 oo (PureThy.add_defs o map Thm.no_attributes))" axiom_decls,
   section "oracle" "|> Theory.add_oracle" oracle_decl,
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> (#1 ooo AxClass.add_axclass)" axclass_decl,
