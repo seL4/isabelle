@@ -1,7 +1,7 @@
 (*  Title: 	Provers/blast
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1997  University of Cambridge
 
 Generic tableau prover with proof reconstruction
 
@@ -97,11 +97,11 @@ signature BLAST =
   val toTerm	        : int -> term -> Term.term
   val readGoal          : Sign.sg -> string -> term
   val tryInThy		: theory -> int -> string ->
-		branch list list * (int*int*exn) list * (int -> tactic) list
+		  (int->tactic) list * branch list list * (int*int*exn) list
   val trygl		: claset -> int -> int ->
-		branch list list * (int*int*exn) list * (int -> tactic) list
-  val Trygl		: int -> int ->
-		branch list list * (int*int*exn) list * (int -> tactic) list
+		  (int->tactic) list * branch list list * (int*int*exn) list
+  val Trygl		: int -> int -> 
+                  (int->tactic) list * branch list list * (int*int*exn) list
   val normBr		: branch -> branch
   end;
 
@@ -365,7 +365,7 @@ val ntrail = ref 0;
 
 (*Restore the trail to some previous state: for backtracking*)
 fun clearTo n =
-    while !ntrail>n do
+    while !ntrail<>n do
 	(hd(!trail) := None;
 	 trail := tl (!trail);
 	 ntrail := !ntrail - 1);
@@ -398,7 +398,7 @@ fun unify(allowClash,vars,t,u) =
 		    (*NB: can yield unifiers having dangling Bound vars!*)
 	      | (f$t',  g$u') => (unifyAux(f,g); unifyAux(t',u'))
 	      | (nt,  nu)    => if nt aconv nu then () else raise UNIFY
-    in  unifyAux(t,u) handle UNIFY => (clearTo n; raise UNIFY)
+    in  (unifyAux(t,u); true) handle UNIFY => (clearTo n; false)
     end;
 
 
@@ -477,6 +477,8 @@ fun rot_subgoals_tac [] i st      = Sequence.single st
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
+local open General in  (*make available the Basis type "option"*)
+
 (*Tableau rule from elimination rule.  Flag "dup" requests duplication of the
   affected formula.*)
 fun fromRule vars rl = 
@@ -492,6 +494,7 @@ fun fromRule vars rl =
 		    print_thm rl)
     else ();
     NONE);
+end;
 
 
 (*** Conversion of Introduction Rules (needed for efficiency in 
@@ -627,7 +630,8 @@ fun equalSubst (G, pairs, lits, vars, lim) =
 	    in  if nlit aconv lit then subLits (lits, Gs, nlit::nlits)
 		                  else subLits (lits, (nlit,true)::Gs, nlits)
             end
-  in  subLits (rev lits, [], [])  
+  in  if !trace then writeln "substitution in branch" else ();
+      subLits (rev lits, [], [])  
   end;
 
 
@@ -643,32 +647,34 @@ type branch = ((term*bool) list *	(*safe formulae on this level*)
 val fullTrace = ref[] : branch list list ref;
 
 (*Normalize a branch--for tracing*)
-local
-    fun norm2 (G,md) = (norm G, md);
+fun norm2 (G,md) = (norm G, md);
 
-    fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
+fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
 
-in
 fun normBr (br, lits, vars, lim) =
      (map normLev br, map norm lits, vars, lim);
 
 
+val dummyVar2 = Term.Var(("var",0), dummyT);
+
 (*Convert from prototerms to ordinary terms with dummy types for tracing*)
-fun showTerm 0 _             = dummyVar
-  | showTerm d (Const a)     = Term.Const (a,dummyT)
+fun showTerm d (Const a)     = Term.Const (a,dummyT)
   | showTerm d (OConst(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Free a)      = Term.Free  (a,dummyT)
   | showTerm d (Bound i)     = Term.Bound i
-  | showTerm d (Var _)       = dummyVar
-  | showTerm d (Abs(a,t))    = Term.Abs(a, dummyT, showTerm (d-1) t)
-  | showTerm d (f $ u)       = Term.$ (showTerm d f, showTerm (d-1) u);
+  | showTerm d (Var _)       = dummyVar2
+  | showTerm d (Abs(a,t))    = if d=0 then dummyVar
+			       else Term.Abs(a, dummyT, showTerm (d-1) t)
+  | showTerm d (f $ u)       = if d=0 then dummyVar
+			       else Term.$ (showTerm d f, showTerm (d-1) u);
 
 
+(*Print tracing information at each iteration of prover*)
 fun tracing sign brs = 
-  let fun pr t = prs (Sign.string_of_term sign (showTerm 5 t))
+  let fun pr t = prs (Sign.string_of_term sign (showTerm 8 t))
       fun printPairs (((G,_)::_,_)::_) = pr G
-	| printPairs (([],(H,_)::_)::_) = (prs"Haz: "; pr H)
+	| printPairs (([],(H,_)::_)::_) = (pr H;  prs"\t (Unsafe)")
 	| printPairs _                 = ()
       fun printBrs (brs0 as (pairs, lits, _, lim) :: brs) =
 	    (fullTrace := brs0 :: !fullTrace;
@@ -679,7 +685,15 @@ fun tracing sign brs =
   in if !trace then printBrs (map normBr brs) else ()
   end;
 
-end;
+fun traceNew prems =
+    if !trace then 
+	case length prems of
+	    0 => writeln"branch closed by rule"
+	  | 1 => writeln"branch extended (1 new subgoal)"
+	  | n => writeln("branch split: "^ Int.toString n ^
+			 " new subgoals")
+    else ();
+
 
 
 exception PROVE;
@@ -690,11 +704,15 @@ val eContr_tac  = TRACE Data.notE (eq_contr_tac ORELSE' Data.contr_tac);
 val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
-fun tryClose (Const"*Goal*" $ G,  L) = (unify(true,[],G,L); eAssume_tac)
-  | tryClose (G,  Const"*Goal*" $ L) = (unify(true,[],G,L); eAssume_tac)
-  | tryClose (Const"Not" $ G,  L)    = (unify(true,[],G,L); eContr_tac)
-  | tryClose (G,  Const"Not" $ L)    = (unify(true,[],G,L); eContr_tac)
-  | tryClose _                       = raise UNIFY;
+fun tryClose (Const"*Goal*" $ G,  L) = 
+	if unify(true,[],G,L) then Some eAssume_tac else None
+  | tryClose (G,  Const"*Goal*" $ L) = 
+	if unify(true,[],G,L) then Some eAssume_tac else None
+  | tryClose (Const"Not" $ G,  L)    = 
+	if unify(true,[],G,L) then Some eContr_tac else None
+  | tryClose (G,  Const"Not" $ L)    = 
+	if unify(true,[],G,L) then Some eContr_tac else None
+  | tryClose _                       = None;
 
 
 (*Were there Skolem terms in the premise?  Must NOT chase Vars*)
@@ -746,12 +764,12 @@ fun prune (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
 		let val ll = length last
 		    and lc = length choices
 		in if !trace andalso ll<lc then
-		    (writeln("PRUNING " ^ Int.toString(lc-ll) ^ " LEVELS"); 
+		    (writeln("Pruning " ^ Int.toString(lc-ll) ^ " levels"); 
 		     last)
 		   else last
 		end
 	  fun pruneAux (last, _, _, []) = last
-	    | pruneAux (last, ntrl, trl, ch' as (ntrl',nbrs',exn) :: choices) =
+	    | pruneAux (last, ntrl, trl, (ntrl',nbrs',exn) :: choices) =
 		if nbrs' < nbrs 
 		then last  (*don't backtrack beyond first solution of goal*)
 		else if nbrs' > nbrs then pruneAux (last, ntrl, trl, choices)
@@ -763,10 +781,14 @@ fun prune (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
   in  traceIt (pruneAux (choices, !ntrail, !trail, choices))  end;
 
 fun nextVars ((br, lits, vars, lim) :: _) = map Var vars
-  | nextVars []                                 = [];
+  | nextVars []                           = [];
 
-fun backtrack ((_, _, exn)::_) = raise exn
-  | backtrack _                = raise PROVE;
+fun backtrack (choices as (ntrl, nbrs, exn)::_) = 
+      (if !trace then (writeln ("Backtracking; now there are " ^ 
+				Int.toString nbrs ^ " branches"))
+                 else (); 
+       raise exn)
+  | backtrack _ = raise PROVE;
 
 (*Add the literal G, handling *Goal* and detecting duplicates.*)
 fun addLit (Const "*Goal*" $ G, lits) = 
@@ -790,7 +812,7 @@ fun addLit (Const "*Goal*" $ G, lits) =
 
 (*For calculating the "penalty" to assess on a branching factor of n
   log2 seems a little too severe*)
-fun log4 n = if n<4 then 0 else 1 + log4(n div 4);
+fun log n = if n<4 then 0 else 1 + log(n div 4);
 
 
 (*match(t,u) says whether the term u might be an instance of the pattern t
@@ -814,7 +836,7 @@ fun prove (sign, cs, brs, cont) =
  let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
-     fun prv (tacs, trs, choices, []) = (cont (trs,choices,tacs))
+     fun prv (tacs, trs, choices, []) = cont (tacs, trs, choices)
        | prv (tacs, trs, choices, 
 	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
 	  let exception PRV (*backtrack to precisely this recursion!*)
@@ -839,59 +861,62 @@ fun prove (sign, cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    let val dummy = unify(false, add_term_vars(P,[]), P, G)
-			    (*P comes from the rule; G comes from the branch.*)
-                        val ntrl' = !ntrail
-			val lim' = if ntrl < !ntrail 
-				   then lim - (1+log4(length rules))
-				   else lim   (*discourage branching updates*)
-                        val vars  = vars_in_vars vars
-                        val vars' = foldr add_terms_vars (prems, vars)
-			val choices' = (ntrl, nbrs, PRV) :: choices
-                        val tacs' = (DETERM o (tac false)) :: tacs 
-		                        (*no duplication*)
-                    in
-			if null prems then (*closed the branch: prune!*)
-			  prv(tacs',  brs0::trs, 
-			      prune (nbrs, nxtVars, choices'),
-			      brs)
-			  handle PRV => (*reset Vars and try another rule*)
-			      (clearTo ntrl;  deeper grls)
-		        else
-			if lim'<0 (*it's faster to kill ALL the alternatives*)
-			then raise NEWBRANCHES
-			else
-			  prv(tacs',  brs0::trs, choices',
-			      newBr (vars',lim') prems)
-			  handle PRV => 
-			      if ntrl < ntrl' (*Vars have been updated*)
-                                 then
-				   (*Backtrack at this level.
-				     Reset Vars and try another rule*)
-				   (clearTo ntrl;  deeper grls)
-			      else (*backtrack to previous level*)
-				   backtrack choices
-		    end
-		    handle UNIFY => deeper grls
+		    if unify(false, add_term_vars(P,[]), P, G) 
+		    then  (*P comes from the rule; G comes from the branch.*)
+		     let val ntrl' = !ntrail
+			 val lim' = if ntrl < !ntrail 
+				    then lim - (1+log(length rules))
+				    else lim   (*discourage branching updates*)
+			 val vars  = vars_in_vars vars
+			 val vars' = foldr add_terms_vars (prems, vars)
+			 val choices' = (ntrl, nbrs, PRV) :: choices
+			 val tacs' = (DETERM o (tac false)) :: tacs 
+					 (*no duplication*)
+		     in
+			 traceNew prems;
+			 (if null prems then (*closed the branch: prune!*)
+			    prv(tacs',  brs0::trs, 
+				prune (nbrs, nxtVars, choices'),
+				brs)
+			  else
+			  if lim'<0 (*faster to kill ALL the alternatives*)
+			  then raise NEWBRANCHES
+			  else
+			    prv(tacs',  brs0::trs, choices',
+				newBr (vars',lim') prems))
+                         handle PRV => 
+			   if ntrl < ntrl' (*Vars have been updated*)
+			      then
+				(*Backtrack at this level.
+				  Reset Vars and try another rule*)
+				(clearTo ntrl;  deeper grls)
+			   else (*backtrack to previous level*)
+				backtrack choices
+		     end
+		    else deeper grls
 	      (*Try to close branch by unifying with head goal*)
 	      fun closeF [] = raise CLOSEF
 		| closeF (L::Ls) = 
-		    let val tacs' = tryClose(G,L)::tacs
-			val choices' = prune (nbrs, nxtVars, 
-					      (ntrl, nbrs, PRV) :: choices)
-		    in  prv (tacs', brs0::trs, choices', brs)
-			handle PRV => 
-			    (*reset Vars and try another literal
-			      [this handler is pruned if possible!]*)
-			 (clearTo ntrl;  closeF Ls)
-                    end
-		    handle UNIFY => closeF Ls
+		    case tryClose(G,L) of
+			None     => closeF Ls
+		      | Some tac => 
+			    let val choices' = 
+				    (if !trace then writeln"branch closed"
+				               else ();
+				     prune (nbrs, nxtVars, 
+					    (ntrl, nbrs, PRV) :: choices))
+			    in  prv (tac::tacs, brs0::trs, choices', brs)  
+				handle PRV => 
+				    (*reset Vars and try another literal
+				      [this handler is pruned if possible!]*)
+				 (clearTo ntrl;  closeF Ls)
+			    end
 	      fun closeFl [] = raise CLOSEF
 		| closeFl ((br, haz)::pairs) =
 		    closeF (map fst br)
 		      handle CLOSEF => closeF (map fst haz)
 			handle CLOSEF => closeFl pairs
-	  in tracing sign brs0;
+	  in tracing sign brs0; 
 	     if lim<0 then backtrack choices
 	     else
 	     prv (Data.vars_gen_hyp_subst_tac false :: tacs, 
@@ -938,44 +963,46 @@ fun prove (sign, cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    let val dummy = unify(false, add_term_vars(P,[]), P, H)
-			val ntrl' = !ntrail
-                        val vars  = vars_in_vars vars
-                        val vars' = foldr add_terms_vars (prems, vars)
-			   (*duplicate H if md and the subgoal has new vars*)
-                        val dup = md andalso vars' <> vars
-			    (*any instances of P in the subgoals?*)
-                        and recur = exists (exists (match P)) prems
-			val lim' = (*Decrement "lim" extra if updates occur*)
-			    if ntrl < !ntrail then lim - (1+log4(length rules))
-			    else lim-1 
-				(*It is tempting to leave "lim" UNCHANGED if
-				  both dup and recur are false.  Proofs are
-				  found at shallower depths, but looping
-				  occurs too often...*)
-                        val mayUndo = not (null grls)   (*other rules to try?*)
-				    orelse ntrl < ntrl'  (*variables updated?*)
-				    orelse vars=vars'    (*no new Vars?*)
-                        val tac' = if mayUndo then tac dup
-                                   else DETERM o (tac dup) 
-		    in
-		      if lim'<0 andalso not (null prems)
-		      then (*it's faster to kill ALL the alternatives*)
-			  raise NEWBRANCHES
-		      else 
-			prv(tac dup :: tacs, 
-			    brs0::trs, 
-			    (ntrl, length brs0, PRV) :: choices, 
-			    newBr (vars', recur, dup, lim') prems)
-			 handle PRV => 
-			     if mayUndo
-			     then (*reset Vars and try another rule*)
-				  (clearTo ntrl;  deeper grls)
-			     else (*backtrack to previous level*)
-				  backtrack choices
-		    end
-		    handle UNIFY => deeper grls
-	  in tracing sign brs0;
+		    if unify(false, add_term_vars(P,[]), P, H)
+		    then
+		     let val ntrl' = !ntrail
+			 val vars  = vars_in_vars vars
+			 val vars' = foldr add_terms_vars (prems, vars)
+			    (*duplicate H if md and the subgoal has new vars*)
+			 val dup = md andalso vars' <> vars
+			     (*any instances of P in the subgoals?*)
+			 and recur = exists (exists (match P)) prems
+			 val lim' = (*Decrement "lim" extra if updates occur*)
+			     if ntrl < !ntrail then lim - (1+log(length rules))
+			     else lim-1 
+				 (*It is tempting to leave "lim" UNCHANGED if
+				   both dup and recur are false.  Proofs are
+				   found at shallower depths, but looping
+				   occurs too often...*)
+			 val mayUndo = not(null grls)   (*other rules to try?*)
+				     orelse ntrl < ntrl' (*variables updated?*)
+				     orelse vars=vars'   (*no new Vars?*)
+			 val tac' = if mayUndo then tac dup
+				    else DETERM o (tac dup) 
+		     in
+		       if lim'<0 andalso not (null prems)
+		       then (*it's faster to kill ALL the alternatives*)
+			   raise NEWBRANCHES
+		       else 
+			 traceNew prems;
+			 prv(tac dup :: tacs, 
+			     brs0::trs, 
+			     (ntrl, length brs0, PRV) :: choices, 
+			     newBr (vars', recur, dup, lim') prems)
+			  handle PRV => 
+			      if mayUndo
+			      then (*reset Vars and try another rule*)
+				   (clearTo ntrl;  deeper grls)
+			      else (*backtrack to previous level*)
+				   backtrack choices
+		     end
+		    else deeper grls
+	  in tracing sign brs0; 
 	     if lim<1 then backtrack choices
 	     else deeper rules
 	     handle NEWBRANCHES => 
@@ -1062,7 +1089,7 @@ fun depth_tac cs lim i st =
 	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
-         fun cont (_,choices,tacs) = 
+         fun cont (tacs,_,choices) = 
 	     (case Sequence.pull(EVERY' (rev tacs) i st) of
 		  None => (writeln ("PROOF FAILED for depth " ^
 				    Int.toString lim);
