@@ -92,8 +92,30 @@ fun cases_type_global name = [case_names_fields, InductAttrib.cases_type_global 
 
 fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps simps));
 
-fun try_param_tac x s rule i st =
-  res_inst_tac [(x, (case Tactic.innermost_params i st of [] => s | (p, _) :: _ => p))] rule i st;
+(* do case analysis / induction on last parameter of ith subgoal (or s) *)
+
+fun try_param_tac s rule i st =
+  let
+    val cert = cterm_of (#sign (rep_thm st));
+    val g = nth_elem (i - 1, prems_of st);
+    val params = Logic.strip_params g;
+    val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
+    val rule' = Thm.lift_rule (st, i) rule;
+    val (P, ys) = strip_comb (HOLogic.dest_Trueprop
+      (Logic.strip_assums_concl (prop_of rule')));
+    val (x, ca) = (case rev (drop (length params, ys)) of
+        [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
+          (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
+      | [x] => (head_of x, false));
+    val rule'' = cterm_instantiate (map (pairself cert) (case (rev params) of
+        [] => (case assoc (map dest_Free (term_frees (prop_of st)), s) of
+          None => sys_error "try_param_tac: no such variable"
+        | Some T => [(P, if ca then concl else lambda (Free (s, T)) concl),
+            (x, Free (s, T))])
+      | (_, T) :: _ => [(P, list_abs (params, if ca then concl
+          else incr_boundvars 1 (Abs (s, T, concl)))),
+        (x, list_abs (params, Bound 0))])) rule'
+  in compose_tac (false, rule'', nprems_of rule) i st end;
 
 
 
@@ -859,13 +881,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun induct_scheme n =
       let val (assm, concl) = induct_scheme_prop n in
         prove_standard [] [assm] concl (fn prems =>
-          EVERY (map (fn rule => try_param_tac "p" rN rule 1) (prune n all_field_inducts))
+          EVERY (map (fn rule => try_param_tac rN rule 1) (prune n all_field_inducts))
           THEN resolve_tac prems 1)
       end;
 
     fun cases_scheme n =
       prove_standard [] [] (cases_scheme_prop n) (fn _ =>
-        EVERY (map (fn rule => try_param_tac "p" rN rule 1) (prune n all_field_cases))
+        EVERY (map (fn rule => try_param_tac rN rule 1) (prune n all_field_cases))
         THEN simp_all_tac HOL_basic_ss []);
 
     val induct_scheme0 = induct_scheme 0;
@@ -898,7 +920,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let val (assm, concl) = induct_prop n in
         prove_standard [] [assm] concl (fn prems =>
           res_inst_tac [(rN, rN)] scheme 1
-          THEN try_param_tac "x" "more" unit_induct 1
+          THEN try_param_tac "more" unit_induct 1
           THEN resolve_tac prems 1)
       end;
 
