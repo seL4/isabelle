@@ -526,8 +526,8 @@ let
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
-		val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
-		val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (File.sysify_path inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (File.sysify_path outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = (File.rm inpath handle _ => ())
 		val _          = (File.rm outpath handle _ => ())
@@ -551,8 +551,8 @@ let
 		val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
-		val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
-		val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (File.sysify_path inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (File.sysify_path outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = (File.rm inpath handle _ => ())
 		val _          = (File.rm outpath handle _ => ())
@@ -576,8 +576,8 @@ let
 		val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
-		val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
-		val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (File.sysify_path inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (File.sysify_path outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
 		val _          = (File.rm inpath handle _ => ())
 		val _          = (File.rm outpath handle _ => ())
