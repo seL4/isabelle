@@ -15,6 +15,7 @@ end;
 signature PRESENT =
 sig
   include BASIC_PRESENT
+  val get_info: theory -> {name: string, session: string list, is_local: bool}
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
   val init: bool -> bool -> string -> bool -> string list -> string -> Path.T option
@@ -32,8 +33,8 @@ sig
   val chapter: string -> unit
   val subsection: string -> unit
   val subsubsection: string -> unit
+  val drafts: string -> Path.T list -> Path.T
   val setup: (theory -> theory) list
-  val get_info: theory -> {name: string, session: string list, is_local: bool}
 end;
 
 structure Present: PRESENT =
@@ -67,6 +68,7 @@ fun mk_rel_path [] ys = Path.make ys
       Path.appends (replicate (length ps) Path.parent @ [Path.make qs]);
 
 fun show_path path = Path.pack (Path.append (File.pwd ()) path);
+
 
 
 (** additional theory data **)
@@ -236,7 +238,7 @@ fun with_context f = f (PureThy.get_name (Context.the_context ()));
 
 
 
-(** HTML output **)
+(** document preparation **)
 
 (* maintain index *)
 
@@ -269,7 +271,7 @@ fun copy_files path1 path2 =
   system ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));  (*FIXME: quote!?*)
 
 fun copy_all path1 path2 =
- (File.mkdir path2;  
+ (File.mkdir path2;
   system ("cp -r " ^ File.quote_sysify_path path1 ^ "/. " ^
     File.quote_sysify_path path2));
 
@@ -314,7 +316,12 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
 
 (* finish session -- output all generated text *)
 
-fun write_tex src name path = Buffer.write (Path.append path (tex_path name)) src;
+fun write_tex src name path =
+  Buffer.write (Path.append path (tex_path name)) src;
+
+fun write_tex_index tex_index path =
+  write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
+
 
 fun isatool_document doc_format path =
   let val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
@@ -364,7 +371,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       (case opt_graphs of None => () | Some (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
-      write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
+      write_tex_index tex_index path;
       seq (finish_tex path) thys);
   in
     conditional info (fn () =>
@@ -407,7 +414,8 @@ fun verbatim_source name mk_text =
   with_session () (fn _ => add_html_source name (HTML.verbatim_source (mk_text ())));
 
 fun old_symbol_source name mk_text =
-  with_session () (fn _ => add_tex_source name (Latex.old_symbol_source name (mk_text ())));
+  with_session () (fn _ => add_tex_source name
+    (Latex.symbol_source (K true, K true) name (mk_text ())));
 
 fun theory_output name s =
   with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
@@ -480,6 +488,43 @@ fun chapter s = with_session () (fn _ => with_context add_html (HTML.chapter s))
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 fun subsection s = with_session () (fn _ => with_context add_html (HTML.subsection s));
 fun subsubsection s = with_session () (fn _ => with_context add_html (HTML.subsubsection s));
+
+
+
+(** draft document output **)
+
+fun drafts doc_format src_paths =
+  let
+    val doc_path = File.tmp_path (Path.basic "document");
+    val _ = File.mkdir doc_path;
+    val root_path = Path.append doc_path (Path.basic "root.tex");
+    val _ = File.copy (Path.unpack "~~/lib/texinputs/draft.tex") root_path;
+    val _ = File.system_command
+      ("\"$ISATOOL\" latex -o sty " ^ File.quote_sysify_path root_path);
+    val _ = File.system_command
+      ("\"$ISATOOL\" latex -o syms " ^ File.quote_sysify_path root_path);
+
+    fun known name =
+      let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
+      in fn s => s mem_string ss end;
+    val known_syms = known "syms.lst";
+    val known_ctrls = known "ctrls.lst";
+
+    fun write_draft (tex_index, path) =
+      let
+        val base = Path.base path;
+        val name = Path.pack (#1 (Path.split_ext base));
+      in
+        Symbol.explode (File.read path)
+        |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
+        |> File.write (Path.append doc_path (tex_path name));
+        Buffer.add (Latex.theory_entry name) tex_index
+      end;
+
+    val tex_index = foldl write_draft (Buffer.empty, src_paths);
+    val _ = write_tex_index tex_index doc_path;
+    val _ = isatool_document doc_format doc_path;
+  in Path.ext doc_format doc_path end;
 
 
 
