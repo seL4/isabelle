@@ -9,6 +9,7 @@ Provers/classical.ML for a more specialized version.
 
 signature RULE_CONTEXT =
 sig
+  type netpair
   type T
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
@@ -32,6 +33,8 @@ sig
   val elim_query_local: int option -> Proof.context attribute
   val dest_query_local: int option -> Proof.context attribute
   val rule_del_local: Proof.context attribute
+  val netpairs: Proof.context -> netpair list
+  val orderlist: ((int * int) * 'a) list -> 'a list
   val setup: (theory -> theory) list
 end;
 
@@ -64,13 +67,13 @@ val rule_indexes = distinct (map #1 rule_kinds);
 
 (* netpairs *)
 
-type net = ((int * int) * (bool * thm)) Net.net;
-val empty_netpairs = replicate (length rule_indexes) (Net.empty: net, Net.empty: net);
+type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net;
+val empty_netpairs: netpair list = replicate (length rule_indexes) (Net.empty, Net.empty);
 
 datatype T = Rules of
  {next: int,
   rules: (int * ((int * bool) * thm)) list,
-  netpairs: (net * net) list,
+  netpairs: netpair list,
   wrappers: ((bool * ((int -> tactic) -> int -> tactic)) * stamp) list};
 
 fun make_rules next rules netpairs wrappers =
@@ -207,11 +210,19 @@ val rule_atts =
 
 
 
+(** retrieving rules **)
+
+fun netpairs ctxt = let val Rules {netpairs, ...} = LocalRules.get ctxt in netpairs end;
+
+fun orderlist brls =
+  map snd (sort (prod_ord int_ord int_ord o pairself fst) brls);
+
+
+
 (** theory setup **)
 
 val setup =
- [GlobalRules.init, LocalRules.init
-  (*FIXME Attrib.add_attributes rule_atts*)];
+ [GlobalRules.init, LocalRules.init, Attrib.add_attributes rule_atts];
 
 
 end;
