@@ -379,7 +379,6 @@
   \item meta-quantifiers, 42, 44
   \item meta-rewriting, 7, 12, 13, \bold{20}, 
 		\seealso{tactics, theorems}{131}
-    \subitem in terms, 47
     \subitem in theorems, 38
   \item meta-rules, \see{meta-rules}{1}, 41--47
   \item {\tt METAHYPS}, 15, \bold{33}
@@ -418,7 +417,7 @@
 
   \item parameters
     \subitem removing unused, 22
-    \subitem renaming, 12, 21, 47
+    \subitem renaming, 12, 21, 46
   \item {\tt parents_of}, \bold{56}
   \item parse trees, 79
   \item {\tt parse_ast_translation}, 91
@@ -531,7 +530,6 @@
   \item {\tt rev_mp} theorem, \bold{97}
   \item rewrite rules, 101--102
     \subitem permutative, 110--113
-  \item {\tt rewrite_cterm}, \bold{47}
   \item {\tt rewrite_goals_rule}, \bold{38}
   \item {\tt rewrite_goals_tac}, \bold{20}, 38
   \item {\tt rewrite_rule}, \bold{38}
