@@ -36,6 +36,8 @@ apply(substitute [2] thm)
 it would be nice if @term could deal with ?-vars.
 then a number of (unchecked!) @texts could be converted to @terms.
 
+it would be nice if one could get id to the enclosing quotes in the [source] option.
+
 
 Minor fixes in the tutorial
 ===========================
@@ -49,20 +51,6 @@ Explain typographic conventions?
 an example of induction: !y. A --> B --> C ??
 
 Advanced Ind expects rulify, mp and spec. How much really?
-
-recdef: subsection Beyond Measure on lex, finite_psubset, ...
-incl Ackermann, which is now at the end of Recdef/termination.thy.
--> Advanced.
-Sentence at the end:
-If you feel that the definition of recursive functions is overly and maybe
-unnecessarily complicated by the requirement of totality you should ponder
-the alternative, a logic of partial functions, where recursive definitions
-are always wellformed. For a start, there are many
-such logics, and no clear winner has emerged. And in all of these logics you
-are (more or less frequently) required to reason about the definedness of
-terms explicitly. Thus one shifts definedness arguments from definition to
-proof time. In HOL you may have to work hard to define a function, but proofs
-can then proceed unencumbered by worries about undefinedness.
 
 Appendix: Lexical: long ids.
 
