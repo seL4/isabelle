@@ -120,6 +120,8 @@ sig
   val vars_of_terms: term list -> (indexname * typ) list
   val tvars_of: thm -> (indexname * sort) list
   val vars_of: thm -> (indexname * typ) list
+  val rename_bvars: (string * string) list -> thm -> thm
+  val rename_bvars': string option list -> thm -> thm
   val unvarifyT: thm -> thm
   val unvarify: thm -> thm
   val tvars_intr_list: string list -> thm -> thm * (string * indexname) list
@@ -847,6 +849,44 @@ fun instantiate' cTs cts thm =
       if forall is_none cts then thm'
       else Thm.instantiate ([], map inst_of (zip_vars (vars_of thm') cts)) thm'
     end;
+
+
+
+(** renaming of bound variables **)
+
+(* replace bound variables x_i in thm by y_i *)
+(* where vs = [(x_1, y_1), ..., (x_n, y_n)]  *)
+
+fun rename_bvars [] thm = thm
+  | rename_bvars vs thm =
+    let
+      val {sign, prop, ...} = rep_thm thm;
+      fun ren (Abs (x, T, t)) = Abs (if_none (assoc (vs, x)) x, T, ren t)
+        | ren (t $ u) = ren t $ ren u
+        | ren t = t;
+    in equal_elim (reflexive (cterm_of sign (ren prop))) thm end;
+
+
+(* renaming in left-to-right order *)
+
+fun rename_bvars' xs thm =
+  let
+    val {sign, prop, ...} = rep_thm thm;
+    fun rename [] t = ([], t)
+      | rename (x' :: xs) (Abs (x, T, t)) =
+          let val (xs', t') = rename xs t
+          in (xs', Abs (if_none x' x, T, t')) end
+      | rename xs (t $ u) =
+          let
+            val (xs', t') = rename xs t;
+            val (xs'', u') = rename xs' u
+          in (xs'', t' $ u') end
+      | rename xs t = (xs, t);
+  in case rename xs prop of
+      ([], prop') => equal_elim (reflexive (cterm_of sign prop')) thm
+    | _ => error "More names than abstractions in theorem"
+  end;
+
 
 
 (* unvarify(T) *)
