@@ -14,6 +14,7 @@ set proof_timing;
 time_use_thy "Recdefs";
 time_use_thy "Primes";
 time_use_thy "Fib";
+with_path "../Induct" use_thy "Factorization";
 time_use_thy "Primrec";
 
 time_use_thy "NatSum";
