@@ -173,7 +173,7 @@ fun gen_untagged x = syntax (Scan.lift Args.name >> Drule.untag) x;
 
 fun comp (i, B) (x, A) = (x, Drule.compose_single (A, i, B));
 
-fun gen_COMP thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> comp);
+fun gen_COMP thm = syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm >> comp);
 val COMP_global = gen_COMP global_thm;
 val COMP_local = gen_COMP local_thm;
 
@@ -182,7 +182,7 @@ val COMP_local = gen_COMP local_thm;
 
 fun resolve (i, B) (x, A) = (x, A RSN (i, B));
 
-fun gen_RS thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> resolve);
+fun gen_RS thm = syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm >> resolve);
 val RS_global = gen_RS global_thm;
 val RS_local = gen_RS local_thm;
 
