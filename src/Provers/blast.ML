@@ -1,4 +1,4 @@
-(*  Title: 	Provers/blast
+(*  Title: 	Provers/blast.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
@@ -60,7 +60,7 @@ signature BLAST_DATA =
   val contr_tac 	: int -> tactic
   val dup_intr		: thm -> thm
   val vars_gen_hyp_subst_tac : bool -> int -> tactic
-  val claset		: claset ref
+  val claset		: unit -> claset
   val rep_claset	: 
       claset -> {safeIs: thm list, safeEs: thm list, 
 		 hazIs: thm list, hazEs: thm list,
@@ -1165,7 +1165,7 @@ fun depth_tac cs lim i st =
 
 fun blast_tac cs = (DEEPEN (1,20) (depth_tac cs) 0);
 
-fun Blast_tac i = blast_tac (!Data.claset) i;
+fun Blast_tac i = blast_tac (Data.claset()) i;
 
 
 (*** For debugging: these apply the prover to a subgoal and return 
@@ -1184,7 +1184,7 @@ fun trygl cs lim i =
      end
      handle Subscript => error("There is no subgoal " ^ Int.toString i));
 
-fun Trygl lim i = trygl (!Data.claset) lim i;
+fun Trygl lim i = trygl (Data.claset()) lim i;
 
 (*Read a string to make an initial, singleton branch*)
 fun readGoal sign s = read_cterm sign (s,propT) |>
@@ -1193,7 +1193,7 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
 fun tryInThy thy lim s = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
      timeap prove (sign_of thy, 
-		   !Data.claset, 
+		   Data.claset(), 
 		   [initBranch ([readGoal (sign_of thy) s], lim)], 
 		   I));
 
