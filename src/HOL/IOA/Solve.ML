@@ -15,7 +15,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 \          is_weak_pmap f C A |] ==> traces(C) <= traces(A)";
 
   by (simp_tac(simpset() addsimps [has_trace_def])1);
-  by Safe_tac;
+  by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
   by (rename_tac "f ex1 ex2" 1);
 
   (* choose same trace, therefore same NF *)
@@ -74,12 +74,12 @@ by (res_inst_tac [("x",
 \    %i. fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delSWrapper "split_all_tac") 1);
+ by (fast_tac (claset() delWrapper"split_all_tac" delSWrapper"split_all_tac")1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [expand_if,split_option_case]) 1);
+                addsplits [split_option_case]) 1);
 qed"comp1_reachable";
 
 
@@ -94,12 +94,12 @@ by (res_inst_tac [("x",
 \    %i. snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delSWrapper "split_all_tac") 1);
+ by (fast_tac (claset() delWrapper"split_all_tac" delSWrapper"split_all_tac")1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [expand_if,split_option_case]) 1);
+                addsplits [split_option_case]) 1);
 qed"comp2_reachable";
 
 Delsplits [expand_if];

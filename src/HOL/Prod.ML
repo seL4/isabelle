@@ -80,7 +80,8 @@ val split_all_tac = REPEAT1 o SUBGOAL (fn (prem,i) =>
 
 end;
 
-claset_ref() := claset() addSaltern ("split_all_tac", split_all_tac);
+(* claset_ref() := claset() addbefore  ("split_all_tac", TRY o split_all_tac);*)
+   claset_ref() := claset() addSaltern ("split_all_tac",       split_all_tac);
 
 (*** lemmas for splitting paired `!!'
 Does not work with simplifier because it also affects premises in
@@ -173,7 +174,7 @@ by (Blast_tac 1);
 qed "expand_split";
 
 (* could be done after split_tac has been speeded up significantly:
-simpset_ref() := (simpset() addsplits [expand_split]);
+simpset_ref() := simpset() addsplits [expand_split];
    precompute the constants involved and don't do anything unless
    the current goal contains one of those constants
 *)
