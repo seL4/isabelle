@@ -484,7 +484,7 @@ by (rtac conjI 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (!simpset addsimps [(bound_typ_inst_composed_subst RS sym),new_tv_nth_nat_A,o_def,nth_subst] 
                            delsimps [bound_typ_inst_composed_subst]) 1);
-
+(** LEVEL 12 **)
 (* case Abs e *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
@@ -492,8 +492,10 @@ by (eres_inst_tac [("x","%x.if x=n then t1 else (S' x)")] allE 1);
 by (eres_inst_tac [("x","(FVar n)#A")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
-by (best_tac (HOL_cs addSDs [mk_scheme_injective] unsafe_addss (!simpset addcongs [conj_cong] 
-    setloop (split_tac [expand_option_bind]))) 1);
+by (best_tac (HOL_cs addSDs [mk_scheme_injective] 
+                  unsafe_addss (!simpset addcongs [conj_cong] 
+				setloop (split_tac [expand_option_bind]))) 1);
+(** LEVEL 19 **)
 
 (* case App e1 e2 *)
 by (strip_tac 1);
@@ -503,16 +505,14 @@ by (eres_inst_tac [("x","A")] allE 1);
 by (eres_inst_tac [("x","t2 -> t'")] allE 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (safe_tac HOL_cs);
+(** LEVEL 26 **)
 by (eres_inst_tac [("x","R")] allE 1);
 by (eres_inst_tac [("x","$ S A")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","m")] allE 1);
-by (dtac asm_rl 1);
-by (dtac asm_rl 1);
-by (dtac asm_rl 1);
+by (rotate_tac ~3 1);
 by (Asm_full_simp_tac 1);
 by (safe_tac HOL_cs);
-by (fast_tac HOL_cs 1);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
         conjunct1,new_scheme_list_le,new_tv_subst_scheme_list]) 1);
 
@@ -528,7 +528,7 @@ by (asm_simp_tac (!simpset addsimps [subst_comp_te]) 2);
 by (rtac eq_free_eq_subst_te 2);  
 by (strip_tac 2);
 by (subgoal_tac "na ~=ma" 2);
-by (fast_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
+by (best_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
     new_tv_not_free_tv,new_tv_le]) 3);
 by (case_tac "na:free_tv Sa" 2);
 (* n1 ~: free_tv S1 *)

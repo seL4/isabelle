@@ -1100,7 +1100,6 @@ local
  (fn prems =>
         [
         safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
-        atac 2,
         asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
         res_inst_tac [("x","i")] exI 1,
         strip_tac 1,
