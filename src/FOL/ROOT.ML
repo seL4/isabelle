@@ -28,13 +28,7 @@ structure Hypsubst_Data =
   struct
   (*Take apart an equality judgement; otherwise raise Match!*)
   fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u);
-
   val imp_intr = impI
-
-  (*etac rev_cut_eq moves an equality to be the last premise. *)
-  val rev_cut_eq = prove_goal IFOL.thy "[| a=b;  a=b ==> R |] ==> R"
-   (fn prems => [ REPEAT(resolve_tac prems 1) ]);
-
   val rev_mp = rev_mp
   val subst = subst
   val sym = sym
@@ -48,10 +42,10 @@ use "intprover.ML";
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val sizef = size_of_thm
-  val mp = mp
-  val not_elim = notE
-  val swap = swap
+  val sizef	= size_of_thm
+  val mp	= mp
+  val not_elim	= notE
+  val classical	= classical
   val hyp_subst_tacs=[hyp_subst_tac]
   end;
 
@@ -68,8 +62,9 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val FOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I] 
                      addSEs [exE,ex1E] addEs [allE];
 
-val FOL_dup_cs = prop_cs addSIs [allI] addIs [exCI,ex1I] 
-                         addSEs [exE,ex1E] addEs [all_dupE];
+val ex1_functional = prove_goal FOL.thy
+    "!!a b c. [| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
+ (fn _ => [ (deepen_tac FOL_cs 1 1) ]);
 
 use "simpdata.ML";
 
