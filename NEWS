@@ -300,6 +300,8 @@ typeless version of the formalism;
 including theory Multiset for multiset orderings; converted to
 new-style theory format;
 
+* Many new theorems about lists, ordinals, etc.;
+
 
 *** General ***
 
