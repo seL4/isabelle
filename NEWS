@@ -2,8 +2,17 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+*** Overview of INCOMPATIBILITIES (see below for more details) ***
+
+* HOL: the constant for f``x is now "image" rather than "op ``".
+
+
 New in this Isabelle version
 ----------------------------
+
+*** HOL ***
+
+* Algebra: new theory of rings and univariate polynomials, by Clemens Ballarin
 
 
 New in Isabelle99 (October 1999)
