@@ -48,11 +48,7 @@ val zless_zadd1_contra' = zless_not_sym RS zless_zadd1_contra;
 
 
 val metric_simps =
-    [metric_def, vimage_def, order_less_imp_not_less, order_less_imp_triv, 
-     order_less_imp_not_eq, order_less_imp_not_eq2,
-     not_zless_zless1_eq, zless_not_sym RS not_zless_zless1_eq,
-     zless_zadd1_contra, zless_zadd1_contra',
-     zless_not_refl2, zless_not_refl3];
+    [metric_def, vimage_def];
 
 
 Addsimps [Lprg_def RS def_prg_Init];
@@ -323,8 +319,6 @@ Goal "[| metric n s = #0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
 by (etac rev_mp 1);
 (*force simplification of "metric..." while in conclusion part*)
 by (asm_simp_tac (simpset() addsimps metric_simps) 1);
-by (auto_tac (claset() addIs [zleI, zle_anti_sym], 
-	      simpset() addsimps zcompare_rls@[zadd_int, integ_of_Min]));
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
