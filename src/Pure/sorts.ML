@@ -65,11 +65,8 @@ type arities = (string * (class * sort list) list) list;
 
 (* print sorts and arities *)
 
-fun str_of_classrel (c1, c2) = c1 ^ " < " ^ c2;
-
-fun str_of_sort [c] = c
-  | str_of_sort cs = enclose "{" "}" (commas cs);
-
+val str_of_sort = Syntax.simple_str_of_sort;
+fun str_of_classrel (c1, c2) = str_of_sort [c1] ^ " < " ^ str_of_sort [c2];
 fun str_of_dom Ss = enclose "(" ")" (commas (map str_of_sort Ss));
 
 fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
@@ -141,7 +138,7 @@ fun inter_sort classrel = foldr (inter_class classrel);
 
 fun mg_dom arities a c =
   (case assoc2 (arities, (a, c)) of
-    None => raise_type ("No way to get " ^ a ^ "::" ^ c ^ ".") [] []
+    None => raise TYPE ("No way to get " ^ a ^ "::" ^ c ^ ".", [], [])
   | Some Ss => Ss);
 
 fun mg_domain _ _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
