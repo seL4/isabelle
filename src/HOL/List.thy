@@ -11,7 +11,6 @@ List = Divides +
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
 consts
-  pred_list  :: "('a list * 'a list) set"
   "@"         :: ['a list, 'a list] => 'a list            (infixr 65)
   filter      :: ['a => bool, 'a list] => 'a list
   concat      :: 'a list list => 'a list
@@ -53,9 +52,6 @@ consts
     Nil  "[]: lists A"
     Cons "[| a: A;  l: lists A |] ==> a#l : lists A"
 
-
-rules
-  pred_list_def "pred_list == {(x,y). ? h. y = h#x}"
 
 primrec hd list
   "hd([]) = arbitrary"
