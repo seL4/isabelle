@@ -109,17 +109,15 @@ sig
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
-  val init_data: string * exn * (exn -> exn) * (exn * exn -> exn) *
-    (string -> exn -> unit) -> sg -> sg
+  val init_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
+    -> sg -> sg
   val get_data: sg -> string -> exn
   val put_data: string * exn -> sg -> sg
   val print_data: sg -> string -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val prep_ext: sg -> sg
   val merge: sg * sg -> sg
-  val proto_pure: sg
-  val pure: sg
-  val cpure: sg
+  val pre_pure: sg
   val const_of_class: class -> string
   val class_of_const: string -> class
 end;
@@ -160,9 +158,7 @@ fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
 val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
 
-
 val tsig_of = #tsig o rep_sg;
-val self_ref = #self o rep_sg;
 val get_data = Data.get o #data o rep_sg;
 val print_data = Data.print o #data o rep_sg;
 
@@ -174,16 +170,18 @@ val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 
-(* signature id *)
-
-fun deref (SgRef (Some (ref sg))) = sg
-  | deref (SgRef None) = sys_error "Sign.deref";
+(* id and self *)
 
 fun check_stale (sg as Sg ({id, ...},
         {self = SgRef (Some (ref (Sg ({id = id', ...}, _)))), ...})) =
       if id = id' then sg
       else raise TERM ("Stale signature: " ^ str_of_sg sg, [])
   | check_stale _ = sys_error "Sign.check_stale";
+
+fun self_ref (sg as Sg (_, {self, ...})) = (check_stale sg; self);
+
+fun deref (SgRef (Some (ref sg))) = sg
+  | deref (SgRef None) = sys_error "Sign.deref";
 
 fun name_of (sg as Sg ({id = ref name, ...}, _)) =
   if name = "" orelse name = "#" then
@@ -285,8 +283,8 @@ fun space_of spaces kind =
   if_none (assoc (spaces, kind)) NameSpace.empty;
 
 (*input and output of qualified names*)
-fun intrn spaces kind = NameSpace.lookup (space_of spaces kind);
-fun extrn spaces kind = NameSpace.prune (space_of spaces kind);
+fun intrn spaces kind = NameSpace.intern (space_of spaces kind);
+fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
 
 (*add names*)
 fun add_names spaces kind names =
@@ -831,7 +829,7 @@ fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
 
 (* signature data *)
 
-fun ext_init_data (syn, tsig, ctab, names, data) (kind, e, ext, mrg, prt) =
+fun ext_init_data (syn, tsig, ctab, names, data) (kind, (e, ext, mrg, prt)) =
   (syn, tsig, ctab, names, Data.init data kind e ext mrg prt);
 
 fun ext_put_data (syn, tsig, ctab, names, data) (kind, e) =
@@ -938,46 +936,14 @@ fun merge sg1_sg2 =
 
 
 
-(** the Pure signature **)
+(** partial Pure signature **)
 
 val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
   Symtab.null, Syntax.pure_syn, [], [], Data.empty, []);
 
-val proto_pure =
+val pre_pure =
   create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), Data.empty)
-  |> add_types
-   (("fun", 2, NoSyn) ::
-    ("prop", 0, NoSyn) ::
-    ("itself", 1, NoSyn) ::
-    Syntax.pure_types)
-  |> add_classes_i [(logicC, [])]
-  |> add_defsort_i logicS
-  |> add_arities_i
-   [("fun", [logicS, logicS], logicS),
-    ("prop", [], logicS),
-    ("itself", [logicS], logicS)]
-  |> add_syntax Syntax.pure_syntax
-  |> add_modesyntax (("symbols", true), Syntax.pure_sym_syntax)
-  |> add_trfuns Syntax.pure_trfuns
-  |> add_trfunsT Syntax.pure_trfunsT
-  |> add_syntax
-   [("==>", "[prop, prop] => prop", Delimfix "op ==>")]
-  |> add_consts
-   [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
-    ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
-    ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("TYPE", "'a itself", NoSyn)]
-  |> add_name "ProtoPure";
-
-val pure = proto_pure
-  |> add_syntax Syntax.pure_appl_syntax
-  |> add_name "Pure";
-
-val cpure = proto_pure
-  |> add_syntax Syntax.pure_applC_syntax
-  |> add_name "CPure";
+    (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], []), Data.empty);
 
 
 end;
