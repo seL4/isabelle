@@ -7,7 +7,7 @@
 
 ## global settings
 
-FAKE_BUILD=""
+FAKE_BUILD="true"
 DISTBASE=~/tmp/isadist
 TMP="/tmp/isabelle-makebin$$"
 
@@ -59,7 +59,7 @@ ISABELLE_HOME="$TMP/$ISABELLE_NAME"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
 
 cd "$TMP"
-tar -xzf "$ARCHIVE_FULL"
+"$TAR" xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
 ISABELLE_HOME_USER=$(./bin/isatool getenv -b ISABELLE_HOME_USER)
@@ -92,7 +92,7 @@ for IMG in HOL HOL-Real ZF
 do
   "$TAR" cf "${IMG}_$PLATFORM.tar" "$ISABELLE_NAME/heaps/$COMPILER/$IMG"
   gzip "${IMG}_$PLATFORM.tar"
-  cp -f "${IMG}_$PLATFORM.tar.gz" "$DISTBASE"
+  cp -f "${IMG}_$PLATFORM.tar.gz" "$ARCHIVE_DIR"
 done
 
 

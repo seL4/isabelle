@@ -201,6 +201,8 @@ echo "###"
 
 cd "$DISTBASE"
 
+echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
+
 rm -f Isabelle
 ln -s "$DISTNAME" Isabelle
 
