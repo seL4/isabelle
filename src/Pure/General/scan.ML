@@ -31,7 +31,7 @@ sig
   (*one element literal*)
   val $$ : ''a -> ''a list -> ''a * ''a list
   (*literal list*)
-  val list: ''a list -> ''a list -> ''a list * ''a list
+  val this: ''a list -> ''a list -> ''a list * ''a list
 end;
 
 signature SCAN =
@@ -151,7 +151,7 @@ fun $$ _ [] = raise MORE None
   | $$ a (x :: xs) =
       if a = x then (x, xs) else raise FAIL None;
 
-fun list ys xs =
+fun this ys xs =
   let
     fun drop_prefix [] xs = xs
       | drop_prefix (_ :: _) [] = raise MORE None
@@ -225,7 +225,7 @@ fun try scan xs = scan xs handle MORE _ => raise FAIL None | ABORT _ => raise FA
 fun force scan xs = scan xs handle MORE _ => raise FAIL None;
 fun prompt str scan xs = scan xs handle MORE None => raise MORE (Some str);
 fun catch scan xs = scan xs handle ABORT msg => raise FAIL (Some msg);
-fun error scan xs = scan xs handle ABORT msg => Library.error msg;
+fun error scan xs = scan xs handle ABORT msg => Output.error msg;
 
 
 (* finite scans *)
