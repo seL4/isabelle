@@ -61,7 +61,7 @@ fun swap (x,y) = (y,x);
  *---------------------------------------------------------------------------*)
 
 fun mk_const sign pr = cterm_of sign (Const pr);
-val mk_hol_const = mk_const (sign_of HOL.thy);
+val mk_hol_const = mk_const (Theory.sign_of HOL.thy);
 
 fun mk_exists (r as (Bvar,Body)) = 
   let val ty = #T(rep_cterm Bvar)
@@ -181,7 +181,7 @@ val strip_disj   = rev o (op::) o strip dest_disj
 (*---------------------------------------------------------------------------
  * Going into and out of prop
  *---------------------------------------------------------------------------*)
-local val prop = cterm_of (sign_of HOL.thy) (read"Trueprop")
+local val prop = cterm_of (Theory.sign_of HOL.thy) (read"Trueprop")
 in fun mk_prop ctm =
      case (#t(rep_cterm ctm))
        of (Const("Trueprop",_)$_) => ctm

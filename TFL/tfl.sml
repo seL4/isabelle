@@ -336,7 +336,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(Name, Ty, _)) =
 	                  (wfrec $ map_term_types poly_tvars R) 
 	              $ functional
      val (def_term, _) = 
-	 Sign.infer_types (sign_of thy) (K None) (K None) [] false
+	 Sign.infer_types (Theory.sign_of thy) (K None) (K None) [] false
 	       ([Const("==",dummyT) $ Const(Name,Ty) $ wfrec_R_M], 
 		propT)
   in  PureThy.add_defs_i [Thm.no_attributes (def_name, def_term)] thy  end

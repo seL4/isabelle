@@ -56,7 +56,7 @@ fun tgoalw thy defs rules =
   case termination_goals rules of
       [] => error "tgoalw: no termination conditions to prove"
     | L  => goalw_cterm defs 
-              (cterm_of (sign_of thy) 
+              (Thm.cterm_of (Theory.sign_of thy) 
 	                (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
 
 fun tgoal thy = tgoalw thy [];
@@ -92,7 +92,7 @@ fun define_i thy fid R eqs =
 (*lcp's version: takes strings; doesn't return "thm" 
         (whose signature is a draft and therefore useless) *)
 fun define thy fid R eqs = 
-  let fun read thy = readtm (sign_of thy) (TVar(("DUMMY",0),[])) 
+  let fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
   in  define_i thy fid (read thy R) (map (read thy) eqs)  end
   handle Utils.ERR {mesg,...} => error mesg;
 
@@ -194,7 +194,7 @@ val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
 val defaultTflCongs = eq_reflect_list [Thms.LET_CONG, if_cong];
 
 fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
-   let val dummy = deny (id mem (Sign.stamp_names_of (sign_of thy)))
+   let val dummy = deny (id mem (Sign.stamp_names_of (Theory.sign_of thy)))
                         ("Recursive definition " ^ id ^ 
                          " would clash with the theory of the same name!")
        val def =  freezeT(get_def thy id)   RS   meta_eq_to_obj_eq

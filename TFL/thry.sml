@@ -19,13 +19,13 @@ local fun tybind (x,y) = (TVar (x,["term"]) , y)
       fun tmbind (x,y) = (Var  (x,type_of y), y)
 in
  fun match_term thry pat ob = 
-    let val tsig = #tsig(Sign.rep_sg(sign_of thry))
+    let val tsig = #tsig(Sign.rep_sg(Theory.sign_of thry))
         val (ty_theta,tm_theta) = Pattern.match tsig (pat,ob)
     in (map tmbind tm_theta, map tybind ty_theta)
     end
 
  fun match_type thry pat ob = 
-    map tybind(Type.typ_match (#tsig(Sign.rep_sg(sign_of thry))) ([],(pat,ob)))
+    map tybind(Type.typ_match (#tsig(Sign.rep_sg(Theory.sign_of thry))) ([],(pat,ob)))
 end;
 
 
@@ -33,7 +33,7 @@ end;
  * Typing 
  *---------------------------------------------------------------------------*)
 
-fun typecheck thry = cterm_of (sign_of thry);
+fun typecheck thry = Thm.cterm_of (Theory.sign_of thry);
 
 
 (*---------------------------------------------------------------------------
