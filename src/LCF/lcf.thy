@@ -12,12 +12,15 @@ classes cpo < term
 
 default cpo
 
-types tr,void 0
-      "*" 2 (infixl 6)
-      "+" 2 (infixl 5)
+types
+ tr
+ void
+ ('a,'b) "*"		(infixl 6)
+ ('a,'b) "+"		(infixl 5)
 
-arities fun, "*", "+" :: (cpo,cpo)cpo
-        tr,void :: cpo
+arities
+ fun, "*", "+" :: (cpo,cpo)cpo
+ tr,void       :: cpo
 
 consts
  UU	:: "'a"

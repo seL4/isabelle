@@ -8,9 +8,13 @@ Constructive Type Theory
 
 CTT = Pure +
 
-types i,t,o 0
+types
+  i
+  t
+  o
 
-arities i,t,o :: logic
+arities
+   i,t,o :: logic
 
 consts
   (*Types*)

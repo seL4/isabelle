@@ -17,7 +17,7 @@ classes prog < term
 
 default prog
 
-types i 0
+types i
 
 arities 
       i          :: prog

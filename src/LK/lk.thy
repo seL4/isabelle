@@ -7,11 +7,17 @@ Classical First-Order Sequent Calculus
 *)
 
 LK = Pure +
+
 classes term < logic
+
 default term
-types o 0
-      sequence,seqobj,seqcont,sequ,sobj 0
-arities o :: logic
+
+types
+ o sequence seqobj seqcont sequ sobj
+
+arities
+ o :: logic
+
 consts
  True,False	:: "o"
  "="		:: "['a,'a] => o"	(infixl 50)

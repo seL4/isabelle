@@ -4,9 +4,12 @@ classes term < logic
 
 default term
 
-types p,o 0
+types
+  p
+  o
 
-arities p,o :: logic
+arities
+  p,o :: logic
 
 consts	
       (*** Judgements ***)
