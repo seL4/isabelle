@@ -71,9 +71,10 @@ fun >> f = set_context (Some (f (the_context ())));
 (* use ML text *)
 
 val ml_output = (writeln, error_msg: string -> unit);
+fun use_output verb txt = use_text ml_output verb (Symbol.plain_output txt);
 
-fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text ml_output verb txt) ();
-fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text ml_output verb) txt);
+fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_output verb txt) ();
+fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_output verb) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
