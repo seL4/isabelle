@@ -345,13 +345,13 @@ qed "diff_less'";
 Addsimps [inst "n" "number_of ?v" diff_less'];
 
 (*various theorems that aren't in the default simpset*)
-val add_is_one' = rename_numerals thy add_is_1;
-val one_is_add' = rename_numerals thy one_is_add;
-val zero_induct' = rename_numerals thy zero_induct;
-val diff_self_eq_0' = rename_numerals thy diff_self_eq_0;
-val mult_eq_self_implies_10' = rename_numerals thy mult_eq_self_implies_10;
-val le_pred_eq' = rename_numerals thy le_pred_eq;
-val less_pred_eq' = rename_numerals thy less_pred_eq;
+bind_thm ("add_is_one'", rename_numerals thy add_is_1);
+bind_thm ("one_is_add'", rename_numerals thy one_is_add);
+bind_thm ("zero_induct'", rename_numerals thy zero_induct);
+bind_thm ("diff_self_eq_0'", rename_numerals thy diff_self_eq_0);
+bind_thm ("mult_eq_self_implies_10'", rename_numerals thy mult_eq_self_implies_10);
+bind_thm ("le_pred_eq'", rename_numerals thy le_pred_eq);
+bind_thm ("less_pred_eq'", rename_numerals thy less_pred_eq);
 
 (** Divides **)
 
@@ -361,10 +361,10 @@ AddIffs (map (rename_numerals thy)
 	  [dvd_1_left, dvd_0_right]);
 
 (*useful?*)
-val mod_self' = rename_numerals thy mod_self;
-val div_self' = rename_numerals thy div_self;
-val div_less' = rename_numerals thy div_less;
-val mod_mult_self_is_zero' = rename_numerals thy mod_mult_self_is_0;
+bind_thm ("mod_self'", rename_numerals thy mod_self);
+bind_thm ("div_self'", rename_numerals thy div_self);
+bind_thm ("div_less'", rename_numerals thy div_less);
+bind_thm ("mod_mult_self_is_zero'", rename_numerals thy mod_mult_self_is_0);
 
 (** Power **)
 
@@ -386,9 +386,9 @@ by (asm_simp_tac numeral_ss 1);
 qed "zero_less_power'";
 Addsimps [zero_less_power'];
 
-val binomial_zero = rename_numerals thy binomial_0;
-val binomial_Suc' = rename_numerals thy binomial_Suc;
-val binomial_n_n' = rename_numerals thy binomial_n_n;
+bind_thm ("binomial_zero", rename_numerals thy binomial_0);
+bind_thm ("binomial_Suc'", rename_numerals thy binomial_Suc);
+bind_thm ("binomial_n_n'", rename_numerals thy binomial_n_n);
 
 (*binomial_0_Suc doesn't work well on numerals*)
 Addsimps (map (rename_numerals thy) 

@@ -9,8 +9,8 @@ The division operators div, mod and the divides relation "dvd"
 
 (** Less-then properties **)
 
-val wf_less_trans = [eq_reflection, wf_pred_nat RS wf_trancl] MRS 
-                    def_wfrec RS trans;
+bind_thm ("wf_less_trans", [eq_reflection, wf_pred_nat RS wf_trancl] MRS 
+                    def_wfrec RS trans);
 
 Goal "(%m. m mod n) = wfrec (trancl pred_nat) \
 \                           (%f j. if j<n | n=0 then j else f (j-n))";

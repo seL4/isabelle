@@ -210,10 +210,10 @@ by (auto_tac (claset() addSIs [hyprel_refl]
 	      simpset() addsimps [FreeUltrafilterNat_Nat_set]));
 qed "equiv_hyprel";
 
-val equiv_hyprel_iff =
+bind_thm ("equiv_hyprel_iff",
     [TrueI, TrueI] MRS 
     ([CollectI, CollectI] MRS 
-    (equiv_hyprel RS eq_equiv_class_iff));
+    (equiv_hyprel RS eq_equiv_class_iff)));
 
 Goalw  [hypreal_def,hyprel_def,quotient_def] "hyprel^^{x}:hypreal";
 by (Blast_tac 1);
@@ -228,7 +228,7 @@ Addsimps [equiv_hyprel_iff,inj_on_Abs_hypreal RS inj_on_iff,
           hyprel_iff, hyprel_in_hypreal, Abs_hypreal_inverse];
 
 Addsimps [equiv_hyprel RS eq_equiv_class_iff];
-val eq_hyprelD = equiv_hyprel RSN (2,eq_equiv_class);
+bind_thm ("eq_hyprelD", equiv_hyprel RSN (2,eq_equiv_class));
 
 Goal "inj(Rep_hypreal)";
 by (rtac inj_inverseI 1);
@@ -400,8 +400,8 @@ by (rtac (hypreal_add_commute RS arg_cong) 1);
 qed "hypreal_add_left_commute";
 
 (* hypreal addition is an AC operator *)
-val hypreal_add_ac = [hypreal_add_assoc,hypreal_add_commute,
-                      hypreal_add_left_commute];
+bind_thms ("hypreal_add_ac", [hypreal_add_assoc,hypreal_add_commute,
+                      hypreal_add_left_commute]);
 
 Goalw [hypreal_zero_def] "(0::hypreal) + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
@@ -560,8 +560,8 @@ qed_goal "hypreal_mult_left_commute" thy
            rtac (hypreal_mult_commute RS arg_cong) 1]);
 
 (* hypreal multiplication is an AC operator *)
-val hypreal_mult_ac = [hypreal_mult_assoc, hypreal_mult_commute, 
-                       hypreal_mult_left_commute];
+bind_thms ("hypreal_mult_ac", [hypreal_mult_assoc, hypreal_mult_commute, 
+                       hypreal_mult_left_commute]);
 
 Goalw [hypreal_one_def] "1hr * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
@@ -634,7 +634,7 @@ Goal "(w::hypreal) * (z1 + z2) = (w * z1) + (w * z2)";
 by (simp_tac (simpset() addsimps [hypreal_mult_commute',hypreal_add_mult_distrib]) 1);
 qed "hypreal_add_mult_distrib2";
 
-val hypreal_mult_simps = [hypreal_mult_1, hypreal_mult_1_right];
+bind_thms ("hypreal_mult_simps", [hypreal_mult_1, hypreal_mult_1_right]);
 Addsimps hypreal_mult_simps;
 
 (*** one and zero are distinct ***)
@@ -1002,7 +1002,7 @@ Goalw [hypreal_le_def]
 by (assume_tac 1);
 qed "hypreal_leD";
 
-val hypreal_leE = make_elim hypreal_leD;
+bind_thm ("hypreal_leE", make_elim hypreal_leD);
 
 Goal "(~(w < z)) = (z <= (w::hypreal))";
 by (fast_tac (claset() addSIs [hypreal_leI,hypreal_leD]) 1);

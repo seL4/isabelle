@@ -349,7 +349,7 @@ val mult_1s = map (rename_numerals thy)
 		   real_mult_minus_1, real_mult_minus_1_right];
 
 (*To perform binary arithmetic*)
-val bin_simps = 
+val bin_simps =
     [add_real_number_of, real_add_number_of_left, minus_real_number_of, 
      diff_real_number_of] @ 
     bin_arith_simps @ bin_rel_simps;

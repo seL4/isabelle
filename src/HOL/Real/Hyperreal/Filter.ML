@@ -549,6 +549,6 @@ by (Step_tac 1);
 by (Blast_tac 1);
 qed "FreeUltrafilter_ex";
 
-val FreeUltrafilter_Ex  = export FreeUltrafilter_ex;
+bind_thm ("FreeUltrafilter_Ex", export FreeUltrafilter_ex);
 
 Close_locale "UFT";

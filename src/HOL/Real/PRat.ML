@@ -59,7 +59,7 @@ by (fast_tac (claset() addSIs [ratrel_refl]
                        addSEs [sym, prat_trans_lemma]) 1);
 qed "equiv_ratrel";
 
-val equiv_ratrel_iff = [equiv_ratrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff;
+bind_thm ("equiv_ratrel_iff", [equiv_ratrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
 Goalw  [prat_def,ratrel_def,quotient_def] "ratrel^^{(x,y)}:prat";
 by (Blast_tac 1);
@@ -74,7 +74,7 @@ Addsimps [equiv_ratrel_iff,inj_on_Abs_prat RS inj_on_iff,
           ratrel_iff, ratrel_in_prat, Abs_prat_inverse];
 
 Addsimps [equiv_ratrel RS eq_equiv_class_iff];
-val eq_ratrelD = equiv_ratrel RSN (2,eq_equiv_class);
+bind_thm ("eq_ratrelD", equiv_ratrel RSN (2,eq_equiv_class));
 
 Goal "inj(Rep_prat)";
 by (rtac inj_inverseI 1);
@@ -182,7 +182,7 @@ by (rtac (prat_add_commute RS arg_cong) 1);
 qed "prat_add_left_commute";
 
 (* Positive Rational addition is an AC operator *)
-val prat_add_ac = [prat_add_assoc, prat_add_commute, prat_add_left_commute];
+bind_thms ("prat_add_ac", [prat_add_assoc, prat_add_commute, prat_add_left_commute]);
 
 
 (*** Congruence property for multiplication ***)
@@ -228,8 +228,8 @@ by (rtac (prat_mult_commute RS arg_cong) 1);
 qed "prat_mult_left_commute";
 
 (*Positive Rational multiplication is an AC operator*)
-val prat_mult_ac = [prat_mult_assoc,
-                    prat_mult_commute,prat_mult_left_commute];
+bind_thms ("prat_mult_ac", [prat_mult_assoc,
+                    prat_mult_commute,prat_mult_left_commute]);
 
 Goalw [prat_of_pnat_def] 
       "(prat_of_pnat (Abs_pnat 1)) * z = z";
@@ -572,7 +572,7 @@ Goalw [prat_le_def] "z<=w ==> ~(w<(z::prat))";
 by (assume_tac 1);
 qed "prat_leD";
 
-val prat_leE = make_elim prat_leD;
+bind_thm ("prat_leE", make_elim prat_leD);
 
 Goal "(~(w < z)) = (z <= (w::prat))";
 by (fast_tac (claset() addSIs [prat_leI,prat_leD]) 1);

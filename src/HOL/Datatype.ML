@@ -8,6 +8,8 @@
 
 (*compatibility*)
 val [sum_case_Inl, sum_case_Inr] = sum.cases;
+bind_thm ("sum_case_Inl", sum_case_Inl);
+bind_thm ("sum_case_Inr", sum_case_Inr);
 
 Goal "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
 by (EVERY1 [res_inst_tac [("s","s")] sumE, 

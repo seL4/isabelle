@@ -43,8 +43,7 @@ bind_thm ("Inr_not_Inl", Inl_not_Inr RS not_sym);
 AddIffs [Inl_not_Inr, Inr_not_Inl];
 
 bind_thm ("Inl_neq_Inr", Inl_not_Inr RS notE);
-
-val Inr_neq_Inl = sym RS Inl_neq_Inr;
+bind_thm ("Inr_neq_Inl", sym RS Inl_neq_Inr);
 
 
 (** Injectiveness of Inl and Inr **)
@@ -65,7 +64,7 @@ by (etac (inj_on_Abs_Sum RS inj_onD RS Inl_Rep_inject) 1);
 by (rtac Inl_RepI 1);
 by (rtac Inl_RepI 1);
 qed "inj_Inl";
-val Inl_inject = inj_Inl RS injD;
+bind_thm ("Inl_inject", inj_Inl RS injD);
 
 Goalw [Inr_def] "inj(Inr)";
 by (rtac injI 1);
@@ -73,7 +72,7 @@ by (etac (inj_on_Abs_Sum RS inj_onD RS Inr_Rep_inject) 1);
 by (rtac Inr_RepI 1);
 by (rtac Inr_RepI 1);
 qed "inj_Inr";
-val Inr_inject = inj_Inr RS injD;
+bind_thm ("Inr_inject", inj_Inr RS injD);
 
 Goal "(Inl(x)=Inl(y)) = (x=y)";
 by (blast_tac (claset() addSDs [Inl_inject]) 1);
@@ -138,7 +137,7 @@ Goalw [Part_def] "[| a : A;  a=h(b) |] ==> a : Part A h";
 by (Blast_tac 1);
 qed "Part_eqI";
 
-val PartI = refl RSN (2,Part_eqI);
+bind_thm ("PartI", refl RSN (2,Part_eqI));
 
 val major::prems = Goalw [Part_def]
     "[| a : Part A h;  !!z. [| a : A;  a=h(z) |] ==> P  \

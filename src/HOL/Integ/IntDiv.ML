@@ -108,7 +108,7 @@ by (rtac (posDivAlg_raw_eqn RS trans) 1);
 by (Asm_simp_tac 1);
 qed "posDivAlg_eqn";
 
-val posDivAlg_induct = lemma RS posDivAlg.induct;
+bind_thm ("posDivAlg_induct", lemma RS posDivAlg.induct);
 
 
 (*Correctness of posDivAlg: it computes quotients correctly*)
@@ -146,7 +146,7 @@ by (rtac (negDivAlg_raw_eqn RS trans) 1);
 by (Asm_simp_tac 1);
 qed "negDivAlg_eqn";
 
-val negDivAlg_induct = lemma RS negDivAlg.induct;
+bind_thm ("negDivAlg_induct", lemma RS negDivAlg.induct);
 
 
 (*Correctness of negDivAlg: it computes quotients correctly

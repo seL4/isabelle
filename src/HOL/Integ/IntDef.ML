@@ -61,7 +61,7 @@ by (fast_tac (claset() addSIs [intrel_refl]
                        addSEs [sym, integ_trans_lemma]) 1);
 qed "equiv_intrel";
 
-val equiv_intrel_iff = [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff;
+bind_thm ("equiv_intrel_iff", [equiv_intrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
 Goalw  [Integ_def,intrel_def,quotient_def] "intrel^^{(x,y)}:Integ";
 by (Fast_tac 1);
@@ -586,11 +586,11 @@ qed "eq_zdiff_eq";
 (*This list of rewrites simplifies (in)equalities by bringing subtractions
   to the top and then moving negative terms to the other side.  
   Use with zadd_ac*)
-val zcompare_rls = 
+bind_thms ("zcompare_rls",
     [symmetric zdiff_def,
      zadd_zdiff_eq, zdiff_zadd_eq, zdiff_zdiff_eq, zdiff_zdiff_eq2, 
      zdiff_zless_eq, zless_zdiff_eq, zdiff_zle_eq, zle_zdiff_eq, 
-     zdiff_eq_eq, eq_zdiff_eq];
+     zdiff_eq_eq, eq_zdiff_eq]);
 
 
 (** Cancellation laws **)

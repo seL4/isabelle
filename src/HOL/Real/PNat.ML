@@ -10,7 +10,7 @@ Goal "mono(%X. {1} Un (Suc``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "pnat_fun_mono";
 
-val pnat_unfold = pnat_fun_mono RS (pnat_def RS def_lfp_Tarski);
+bind_thm ("pnat_unfold", pnat_fun_mono RS (pnat_def RS def_lfp_Tarski));
 
 Goal "1 : pnat";
 by (stac pnat_unfold 1);
@@ -144,7 +144,7 @@ bind_thm ("one_not_pSuc", pSuc_not_one RS not_sym);
 AddIffs [pSuc_not_one,one_not_pSuc];
 
 bind_thm ("pSuc_neq_one", (pSuc_not_one RS notE));
-val one_neq_pSuc = sym RS pSuc_neq_one;
+bind_thm ("one_neq_pSuc", pSuc_neq_one RS pSuc_neq_one);
 
 (** Injectiveness of pSuc **)
 
@@ -156,7 +156,7 @@ by (dtac (inj_Suc RS injD) 1);
 by (etac (inj_Rep_pnat RS injD) 1);
 qed "inj_pSuc"; 
 
-val pSuc_inject = inj_pSuc RS injD;
+bind_thm ("pSuc_inject", inj_pSuc RS injD);
 
 Goal "(pSuc(m)=pSuc(n)) = (m=n)";
 by (EVERY1 [rtac iffI, etac pSuc_inject, etac arg_cong]); 
@@ -209,7 +209,7 @@ by (simp_tac (simpset() addsimps [sum_Rep_pnat RS
 qed "pnat_add_left_commute";
 
 (*Addition is an AC-operator*)
-val pnat_add_ac = [pnat_add_assoc, pnat_add_commute, pnat_add_left_commute];
+bind_thms ("pnat_add_ac", [pnat_add_assoc, pnat_add_commute, pnat_add_left_commute]);
 
 Goalw [pnat_add_def] "((x::pnat) + y = x + z) = (y = z)";
 by (auto_tac (claset() addDs [inj_on_Abs_pnat RS inj_onD,
@@ -306,7 +306,7 @@ Goalw [pnat_le_def] "(x::pnat) <= y ==> ~ y < x";
 by (assume_tac 1);
 qed "pnat_leD";
 
-val pnat_leE = make_elim pnat_leD;
+bind_thm ("pnat_leE", make_elim pnat_leD);
 
 Goal "(~ (x::pnat) < y) = (y <= x)";
 by (blast_tac (claset() addIs [pnat_leI] addEs [pnat_leE]) 1);
@@ -594,7 +594,7 @@ by (full_simp_tac (simpset() addsimps [pnat_mult_1,
 qed "pnat_mult_1_left";
 
 (*Multiplication is an AC-operator*)
-val pnat_mult_ac = [pnat_mult_assoc, pnat_mult_commute, pnat_mult_left_commute];
+bind_thms ("pnat_mult_ac", [pnat_mult_assoc, pnat_mult_commute, pnat_mult_left_commute]);
 
 Goal "!!i j k::pnat. i<=j ==> i * k <= j * k";
 by (asm_full_simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,

@@ -151,7 +151,7 @@ val prems = Goalw [inj_on_def]
     "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_on f A";
 by (blast_tac (claset() addIs prems) 1);
 qed "inj_onI";
-val injI = inj_onI;                  (*for compatibility*)
+bind_thm ("injI", inj_onI);                  (*for compatibility*)
 
 val [major] = Goal 
     "(!!x. x:A ==> g(f(x)) = x) ==> inj_on f A";
@@ -159,7 +159,7 @@ by (rtac inj_onI 1);
 by (etac (apply_inverse RS trans) 1);
 by (REPEAT (eresolve_tac [asm_rl,major] 1));
 qed "inj_on_inverseI";
-val inj_inverseI = inj_on_inverseI;   (*for compatibility*)
+bind_thm ("inj_inverseI", inj_on_inverseI);   (*for compatibility*)
 
 Goal "(inj f) = (inv f o f = id)";
 by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
@@ -483,7 +483,7 @@ qed "apply_arb";
 Goalw [Pi_def] "[| f: Pi A B; g: Pi A B; ! x: A. f x = g x |] ==> f = g";
 by (rtac ext 1);
 by Auto_tac;
-val Pi_extensionality = ballI RSN (3, result());
+bind_thm ("Pi_extensionality", ballI RSN (3, result()));
 
 
 (*** compose ***)

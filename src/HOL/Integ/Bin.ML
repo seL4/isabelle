@@ -128,7 +128,7 @@ by (asm_simp_tac (simpset()
 qed "number_of_minus";
 
  
-val bin_add_simps = [bin_add_BIT_BIT, number_of_succ, number_of_pred];
+bind_thms ("bin_add_simps", [bin_add_BIT_BIT, number_of_succ, number_of_pred]);
 
 (*This proof is complicated by the mutual recursion*)
 Goal "! w. number_of(bin_add v w) = (number_of v + number_of w::int)";
@@ -147,7 +147,7 @@ Goalw [zdiff_def]
 by (simp_tac (simpset() addsimps [number_of_add, number_of_minus]) 1);
 qed "diff_number_of_eq";
 
-val bin_mult_simps = [zmult_zminus, number_of_minus, number_of_add];
+bind_thms ("bin_mult_simps", [zmult_zminus, number_of_minus, number_of_add]);
 
 Goal "number_of(bin_mult v w) = (number_of v * number_of w::int)";
 by (induct_tac "v" 1);
@@ -407,10 +407,9 @@ Delsimps [number_of_Pls, number_of_Min, number_of_BIT];
 (*Simplification of arithmetic operations on integer constants.
   Note that bin_pred_Pls, etc. were added to the simpset by primrec.*)
 
-val NCons_simps = [NCons_Pls_0, NCons_Pls_1, NCons_Min_0, NCons_Min_1, 
-		   NCons_BIT];
+bind_thms ("NCons_simps", [NCons_Pls_0, NCons_Pls_1, NCons_Min_0, NCons_Min_1, NCons_BIT]);
 
-val bin_arith_extra_simps =
+bind_thms ("bin_arith_extra_simps",
     [number_of_add RS sym,
      number_of_minus RS sym,
      number_of_mult RS sym,
@@ -420,24 +419,24 @@ val bin_arith_extra_simps =
      bin_add_Pls_right, bin_add_Min_right,
      bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
      diff_number_of_eq, 
-     bin_mult_1, bin_mult_0] @ NCons_simps;
+     bin_mult_1, bin_mult_0] @ NCons_simps);
 
 (*For making a minimal simpset, one must include these default simprules
   of thy.  Also include simp_thms, or at least (~False)=True*)
-val bin_arith_simps =
+bind_thms ("bin_arith_simps",
     [bin_pred_Pls, bin_pred_Min,
      bin_succ_Pls, bin_succ_Min,
      bin_add_Pls, bin_add_Min,
      bin_minus_Pls, bin_minus_Min,
-     bin_mult_Pls, bin_mult_Min] @ bin_arith_extra_simps;
+     bin_mult_Pls, bin_mult_Min] @ bin_arith_extra_simps);
 
 (*Simplification of relational operations*)
-val bin_rel_simps =
+bind_thms ("bin_rel_simps",
     [eq_number_of_eq, iszero_number_of_Pls, nonzero_number_of_Min,
      iszero_number_of_0, iszero_number_of_1,
      less_number_of_eq_neg,
      not_neg_number_of_Pls, neg_number_of_Min, neg_number_of_BIT,
-     le_number_of_eq_not_less];
+     le_number_of_eq_not_less]);
 
 Addsimps bin_arith_extra_simps;
 Addsimps bin_rel_simps;

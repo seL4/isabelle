@@ -8,7 +8,7 @@ Goal "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "Nat_fun_mono";
 
-val Nat_unfold = Nat_fun_mono RS (Nat_def RS def_lfp_Tarski);
+bind_thm ("Nat_unfold", Nat_fun_mono RS (Nat_def RS def_lfp_Tarski));
 
 (* Zero is a natural number -- this also justifies the type definition*)
 Goal "Zero_Rep: Nat";
@@ -85,7 +85,7 @@ bind_thm ("Zero_not_Suc", Suc_not_Zero RS not_sym);
 AddIffs [Suc_not_Zero,Zero_not_Suc];
 
 bind_thm ("Suc_neq_Zero", (Suc_not_Zero RS notE));
-val Zero_neq_Suc = sym RS Suc_neq_Zero;
+bind_thm ("Zero_neq_Suc", sym RS Suc_neq_Zero);
 
 (** Injectiveness of Suc **)
 
@@ -97,7 +97,7 @@ by (dtac (inj_Suc_Rep RS injD) 1);
 by (etac (inj_Rep_Nat RS injD) 1);
 qed "inj_Suc";
 
-val Suc_inject = inj_Suc RS injD;
+bind_thm ("Suc_inject", inj_Suc RS injD);
 
 Goal "(Suc(m)=Suc(n)) = (m=n)";
 by (EVERY1 [rtac iffI, etac Suc_inject, etac arg_cong]); 
@@ -339,7 +339,7 @@ Goalw [le_def] "m<=n ==> ~ n < (m::nat)";
 by (assume_tac 1);
 qed "leD";
 
-val leE = make_elim leD;
+bind_thm ("leE", make_elim leD);
 
 Goal "(~n<m) = (m<=(n::nat))";
 by (blast_tac (claset() addIs [leI] addEs [leE]) 1);
@@ -384,7 +384,7 @@ by (blast_tac (claset() addEs [less_asym]) 1);
 qed "less_imp_le";
 
 (*For instance, (Suc m < Suc n)  =   (Suc m <= n)  =  (m<n) *)
-val le_simps = [less_imp_le, less_Suc_eq_le, Suc_le_eq];
+bind_thms ("le_simps", [less_imp_le, less_Suc_eq_le, Suc_le_eq]);
 
 
 (** Equivalence of m<=n and  m<n | m=n **)
@@ -461,7 +461,7 @@ qed "not_less_less_Suc_eq";
 
 (*Rewrite (n < Suc m) to (n=m) if  ~ n<m or m<=n hold.
   Not suitable as default simprules because they often lead to looping*)
-val not_less_simps = [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq];
+bind_thms ("not_less_simps", [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq]);
 
 (** LEAST -- the least number operator **)
 

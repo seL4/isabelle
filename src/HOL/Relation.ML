@@ -45,7 +45,7 @@ Goalw [diag_def] "[| a=b;  a:A |] ==> (a,b) : diag(A)";
 by (Blast_tac 1);
 qed "diag_eqI";
 
-val diagI = refl RS diag_eqI |> standard;
+bind_thm ("diagI", refl RS diag_eqI |> standard);
 
 (*The general elimination rule*)
 val major::prems = Goalw [diag_def]

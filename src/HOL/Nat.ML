@@ -7,6 +7,8 @@
 (** conversion rules for nat_rec **)
 
 val [nat_rec_0, nat_rec_Suc] = nat.recs;
+bind_thm ("nat_rec_0", nat_rec_0);
+bind_thm ("nat_rec_Suc", nat_rec_Suc);
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
 val prems = Goal
@@ -20,6 +22,8 @@ by (simp_tac (simpset() addsimps prems) 1);
 qed "def_nat_rec_Suc";
 
 val [nat_case_0, nat_case_Suc] = nat.cases;
+bind_thm ("nat_case_0", nat_case_0);
+bind_thm ("nat_case_Suc", nat_case_Suc);
 
 Goal "n ~= 0 ==> EX m. n = Suc m";
 by (case_tac "n" 1);

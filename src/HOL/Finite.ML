@@ -245,8 +245,8 @@ qed "bounded_nat_set_is_finite";
 
 section "Finite cardinality -- 'card'";
 
-val cardR_emptyE = cardR.mk_cases "({},n) : cardR";
-val cardR_insertE = cardR.mk_cases "(insert a A,n) : cardR";
+bind_thm ("cardR_emptyE", cardR.mk_cases "({},n) : cardR");
+bind_thm ("cardR_insertE", cardR.mk_cases "(insert a A,n) : cardR");
 
 AddSEs [cardR_emptyE];
 AddSIs cardR.intrs;
@@ -491,7 +491,7 @@ qed_spec_mp "dvd_partition";
 
 (*** foldSet ***)
 
-val empty_foldSetE = foldSet.mk_cases "({}, x) : foldSet f e";
+bind_thm ("empty_foldSetE", foldSet.mk_cases "({}, x) : foldSet f e");
 
 AddSEs [empty_foldSetE];
 AddIs foldSet.intrs;

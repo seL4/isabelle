@@ -68,6 +68,8 @@ val wf_converse_trancl = prove_goal thy
 "!!X. wf (r^-1) ==> wf ((r^+)^-1)" (K [
 	stac (trancl_converse RS sym) 1,
 	etac wf_trancl 1]);
+bind_thm ("wf_converse_trancl", wf_converse_trancl);
+
 
 (*----------------------------------------------------------------------------
  * Minimal-element characterization of well-foundedness

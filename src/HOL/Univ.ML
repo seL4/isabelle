@@ -61,7 +61,7 @@ by (rtac inj_on_inverseI 1);
 by (etac Abs_Node_inverse 1);
 qed "inj_on_Abs_Node";
 
-val Abs_Node_inject = inj_on_Abs_Node RS inj_onD;
+bind_thm ("Abs_Node_inject", inj_on_Abs_Node RS inj_onD);
 
 
 (*** Introduction rules for Node ***)
@@ -98,7 +98,7 @@ bind_thm ("Atom_not_Scons", Scons_not_Atom RS not_sym);
 Goalw [Atom_def] "inj(Atom)";
 by (blast_tac (claset() addSIs [injI, Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
-val Atom_inject = inj_Atom RS injD;
+bind_thm ("Atom_inject", inj_Atom RS injD);
 
 Goal "(Atom(a)=Atom(b)) = (a=b)";
 by (blast_tac (claset() addSDs [Atom_inject]) 1);
@@ -118,7 +118,7 @@ by (rtac injI 1);
 by (etac (Atom_inject RS Inr_inject) 1);
 qed "inj_Numb";
 
-val Numb_inject = inj_Numb RS injD;
+bind_thm ("Numb_inject", inj_Numb RS injD);
 AddSDs [Numb_inject];
 
 (** Injectiveness of Push_Node **)
@@ -586,7 +586,7 @@ Goal "(dprod (A <*> B) (C <*> D)) <= (uprod A C) <*> (uprod B D)";
 by (Blast_tac 1);
 qed "dprod_Sigma";
 
-val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
+bind_thm ("dprod_subset_Sigma", [dprod_mono, dprod_Sigma] MRS subset_trans |> standard);
 
 (*Dependent version*)
 Goal "(dprod (Sigma A B) (Sigma C D)) <= Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))";
@@ -599,7 +599,7 @@ Goal "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)";
 by (Blast_tac 1);
 qed "dsum_Sigma";
 
-val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
+bind_thm ("dsum_subset_Sigma", [dsum_mono, dsum_Sigma] MRS subset_trans |> standard);
 
 
 (*** Domain ***)

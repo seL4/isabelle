@@ -31,7 +31,7 @@ val [prem] = Goal "[| !!x. P(x)=Q(x) |] ==> {x. P(x)} = {x. Q(x)}";
 by (rtac (prem RS ext RS arg_cong) 1);
 qed "Collect_cong";
 
-val CollectE = make_elim CollectD;
+bind_thm ("CollectE", make_elim CollectD);
 
 AddSIs [CollectI];
 AddSEs [CollectE];
@@ -191,7 +191,7 @@ Goal "[| A <= B;  B <= A |] ==> A = (B::'a set)";
 by (rtac set_ext 1);
 by (blast_tac (claset() addIs [subsetD]) 1);
 qed "subset_antisym";
-val equalityI = subset_antisym;
+bind_thm ("equalityI", subset_antisym);
 
 AddSIs [equalityI];
 
@@ -325,8 +325,8 @@ by (etac CollectD 1);
 qed "PowD";
 
 
-val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
-val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
+bind_thm ("Pow_bottom", empty_subsetI RS PowI);        (* {}: Pow(B) *)
+bind_thm ("Pow_top", subset_refl RS PowI);             (* A : Pow(A) *)
 
 
 section "Set complement";
@@ -348,7 +348,7 @@ Goalw [Compl_def] "c : -A ==> c~:A";
 by (etac CollectD 1);
 qed "ComplD";
 
-val ComplE = make_elim ComplD;
+bind_thm ("ComplE", make_elim ComplD);
 
 AddSIs [ComplI];
 AddSEs [ComplE];
@@ -720,13 +720,13 @@ bind_thm ("split_if_mem1",
 bind_thm ("split_if_mem2", 
     read_instantiate_sg (Theory.sign_of Set.thy) [("P", "%x. ?a : x")] split_if);
 
-val split_ifs = [if_bool_eq_conj, split_if_eq1, split_if_eq2,
-		  split_if_mem1, split_if_mem2];
+bind_thms ("split_ifs", [if_bool_eq_conj, split_if_eq1, split_if_eq2,
+		  split_if_mem1, split_if_mem2]);
 
 
 (*Each of these has ALREADY been added to simpset() above.*)
-val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
-                 mem_Collect_eq, UN_iff, Union_iff, INT_iff, Inter_iff];
+bind_thms ("mem_simps", [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
+                 mem_Collect_eq, UN_iff, Union_iff, INT_iff, Inter_iff]);
 
 (*Would like to add these, but the existing code only searches for the 
   outer-level constant, which in this case is just "op :"; we instead need

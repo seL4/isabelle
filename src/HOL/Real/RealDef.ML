@@ -56,10 +56,10 @@ by (fast_tac (claset() addSIs [realrel_refl]
                       addSEs [sym,preal_trans_lemma]) 1);
 qed "equiv_realrel";
 
-val equiv_realrel_iff =
+bind_thm ("equiv_realrel_iff",
     [TrueI, TrueI] MRS 
     ([CollectI, CollectI] MRS 
-    (equiv_realrel RS eq_equiv_class_iff));
+    (equiv_realrel RS eq_equiv_class_iff)));
 
 Goalw  [real_def,realrel_def,quotient_def] "realrel^^{(x,y)}:real";
 by (Blast_tac 1);
@@ -74,7 +74,7 @@ Addsimps [equiv_realrel_iff,inj_on_Abs_real RS inj_on_iff,
           realrel_iff, realrel_in_real, Abs_real_inverse];
 
 Addsimps [equiv_realrel RS eq_equiv_class_iff];
-val eq_realrelD = equiv_realrel RSN (2,eq_equiv_class);
+bind_thm ("eq_realrelD", equiv_realrel RSN (2,eq_equiv_class));
 
 Goal "inj(Rep_real)";
 by (rtac inj_inverseI 1);
@@ -1081,11 +1081,11 @@ qed "real_eq_diff_eq";
 (*This list of rewrites simplifies (in)equalities by bringing subtractions
   to the top and then moving negative terms to the other side.  
   Use with real_add_ac*)
-val real_compare_rls = 
+bind_thms ("real_compare_rls",
   [symmetric real_diff_def,
    real_add_diff_eq, real_diff_add_eq, real_diff_diff_eq, real_diff_diff_eq2, 
    real_diff_less_eq, real_less_diff_eq, real_diff_le_eq, real_le_diff_eq, 
-   real_diff_eq_eq, real_eq_diff_eq];
+   real_diff_eq_eq, real_eq_diff_eq]);
 
 
 (** For the cancellation simproc.

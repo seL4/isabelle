@@ -281,7 +281,7 @@ qed_goal "preal_add_left_commute" thy
            rtac (preal_add_commute RS arg_cong) 1]);
 
 (* Positive Reals addition is an AC operator *)
-val preal_add_ac = [preal_add_assoc, preal_add_commute, preal_add_left_commute];
+bind_thms ("preal_add_ac", [preal_add_assoc, preal_add_commute, preal_add_left_commute]);
 
   (*** Properties of multiplication ***)
 
@@ -367,9 +367,9 @@ qed_goal "preal_mult_left_commute" thy
            rtac (preal_mult_commute RS arg_cong) 1]);
 
 (* Positive Reals multiplication is an AC operator *)
-val preal_mult_ac = [preal_mult_assoc, 
+bind_thms ("preal_mult_ac", [preal_mult_assoc, 
                      preal_mult_commute, 
-                     preal_mult_left_commute];
+                     preal_mult_left_commute]);
 
 (* Positive Real 1 is the multiplicative identity element *) 
 (* long *)
@@ -746,7 +746,7 @@ Goalw [preal_le_def,psubset_def,preal_less_def]
 by (auto_tac  (claset() addDs [equalityI],simpset()));
 qed "preal_leD";
 
-val preal_leE = make_elim preal_leD;
+bind_thm ("preal_leE", make_elim preal_leD);
 
 Goalw [preal_le_def,psubset_def,preal_less_def]
                    "~ z <= w ==> w<(z::preal)";

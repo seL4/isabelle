@@ -14,10 +14,10 @@ by (Blast_tac 1);
 qed "Union_lemma0";
 
 (*-- similar to subset_cs in ZF/subset.thy --*)
-val thissubset_SIs =
+bind_thms ("thissubset_SIs",
     [subset_refl,Union_least, UN_least, Un_least, 
      Inter_greatest, Int_greatest,
-     Un_upper1, Un_upper2, Int_lower1, Int_lower2];
+     Un_upper1, Un_upper2, Int_lower1, Int_lower2]);
 
 
 (*A claset for subset reasoning*)
@@ -38,6 +38,9 @@ qed "Abrial_axiom1";
 
 val [TFin_succI, Pow_TFin_UnionI] = TFin.intrs;
 val TFin_UnionI = PowI RS Pow_TFin_UnionI;
+bind_thm ("TFin_succI", TFin_succI);
+bind_thm ("Pow_TFin_UnionI", Pow_TFin_UnionI);
+bind_thm ("TFin_UnionI", TFin_UnionI);
 
 val major::prems = Goal  
           "[| n : TFin S; \
