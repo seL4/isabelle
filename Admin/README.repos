@@ -19,10 +19,13 @@ directory "$ISABELLE/Distribution"
 
 This tells the Isabelle binaries where to find the theories.
 
-In $ISABELLE/Distribution/ install PolyML and ProofGeneral. If you
-have already installed them elsewhere, it is sufficient to create a
-symbolic link in contrib to the main PolyML and ProofGeneral
-directories. The links should be called 'polyml' and 'ProofGeneral'.
+In $ISABELLE/Distribution/contrib install PolyML and
+ProofGeneral. Download the corresponding packages from
+http://isabelle.in.tum.de/dist/ and unpack them in
+$ISABELLE/Distribution/contrib.  If you have already installed them
+elsewhere, it is sufficient to create a symbolic link in contrib to
+the main PolyML and ProofGeneral directories. The links should be
+called 'polyml' and 'ProofGeneral'.
 
 Before you can build logic images it is necessary to initialise
 generation of browser info.  Change to the directory
