@@ -112,7 +112,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; add_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; Context.add_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
     -q -w $LOGIC $NAME > $LOG 2>&1
 else
   ITEM=$(basename $LOGIC)-"$SESSION"
@@ -120,7 +120,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; add_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; Context.add_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
     -r -q $LOGIC > $LOG 2>&1
 fi
 
