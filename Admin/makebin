@@ -64,6 +64,9 @@ cd "$TMP"
 "$TAR" xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
+#activate default for precompiled distribution ...
+perl -pi -e 's/#ISABELLE_USEDIR_OPTIONS/ISABELLE_USEDIR_OPTIONS/' etc/settings
+
 ISABELLE_HOME_USER=$(./bin/isatool getenv -b ISABELLE_HOME_USER)
 [ -f "$ISABELLE_HOME_USER/etc/settings" ] && \
   echo "### WARNING!  Personal Isabelle settings present. " >&2
@@ -77,8 +80,6 @@ if [ -n "$FAKE_BUILD" ]; then
   touch "heaps/$COMPILER/HOL-Real"
   touch "heaps/$COMPILER/ZF"
 else
-  #FIXME for Poly/ML 3.x only ...
-  #./build -b -m Pure-copied Pure
   ./build -b -m HOL-Real HOL
   ./build -b ZF
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
