@@ -79,11 +79,11 @@ val hoare_lemma8 = prove_goal HOLCF.thy
         (strip_tac 1),
         (res_inst_tac [("p","b1`(iterate m g x)")] trE 1),
         (atac 2),
-        (rtac (le_less_trans RS less_anti_refl) 1),
+        (rtac (le_less_trans RS less_irrefl) 1),
         (atac 2),
         (rtac theleast2 1),
         (etac hoare_lemma6 1),
-        (rtac (le_less_trans RS less_anti_refl) 1),
+        (rtac (le_less_trans RS less_irrefl) 1),
         (atac 2),
         (rtac theleast2 1),
         (etac hoare_lemma7 1)

@@ -236,7 +236,7 @@ Addsimps [new_tv_subst_comp_1,new_tv_subst_comp_2];
 (* new type variables do not occur freely in a type structure *)
 goalw thy [new_tv_def] 
       "!!n. new_tv n ts ==> n~:(free_tv ts)";
-by (fast_tac (HOL_cs addEs [less_anti_refl]) 1);
+by (fast_tac (HOL_cs addEs [less_irrefl]) 1);
 qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
 

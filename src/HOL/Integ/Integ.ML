@@ -618,10 +618,10 @@ by (REPEAT (assume_tac 1));
 qed "zless_not_refl";
 
 (* z<z ==> R *)
-bind_thm ("zless_anti_refl", (zless_not_refl RS notE));
+bind_thm ("zless_irrefl", (zless_not_refl RS notE));
 
 goal Integ.thy "!!w. z<w ==> w ~= (z::int)";
-by(fast_tac (HOL_cs addEs [zless_anti_refl]) 1);
+by(fast_tac (HOL_cs addEs [zless_irrefl]) 1);
 qed "zless_not_refl2";
 
 
@@ -677,12 +677,12 @@ qed "zless_imp_zle";
 
 goalw Integ.thy [zle_def] "!!z. z <= w ==> z < w | z=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
-by (fast_tac (HOL_cs addEs [zless_anti_refl,zless_asym]) 1);
+by (fast_tac (HOL_cs addEs [zless_irrefl,zless_asym]) 1);
 qed "zle_imp_zless_or_eq";
 
 goalw Integ.thy [zle_def] "!!z. z<w | z=w ==> z <=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
-by (fast_tac (HOL_cs addEs [zless_anti_refl,zless_asym]) 1);
+by (fast_tac (HOL_cs addEs [zless_irrefl,zless_asym]) 1);
 qed "zless_or_eq_imp_zle";
 
 goal Integ.thy "(x <= (y::int)) = (x < y | x=y)";
@@ -705,7 +705,7 @@ qed "zle_trans";
 
 goal Integ.thy "!!z. [| z <= w; w <= z |] ==> z = (w::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
-            fast_tac (HOL_cs addEs [zless_anti_refl,zless_asym])]);
+            fast_tac (HOL_cs addEs [zless_irrefl,zless_asym])]);
 qed "zle_anti_sym";
 
 

@@ -15,13 +15,13 @@ goal Nat.thy "!!i. [| i < Suc j; j < k |] ==> i < k";
 by (rtac le_less_trans 1);
 by (assume_tac 2);
 by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
-by(fast_tac (HOL_cs addEs [less_asym,less_anti_refl]) 1);
+by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans1";
 
 goal Nat.thy "!!i. [| i < j; j < Suc(k) |] ==> i < k";
 by (etac less_le_trans 1);
 by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
-by(fast_tac (HOL_cs addEs [less_asym,less_anti_refl]) 1);
+by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans2";
 
 val major::prems = goal Nat.thy
