@@ -385,7 +385,7 @@ val put_data = ext_sg Sign.put_data;
 (** merge theories **)		(*exception ERROR*)
 
 fun merge_sign (sg, thy) =
-  Sign.merge (sg, sign_of thy) handle TERM (msg, _) => error msg;
+  Sign.nontriv_merge (sg, sign_of thy) handle TERM (msg, _) => error msg;
 
 (*merge list of theories from left to right, preparing extend*)
 fun prep_ext_merge thys =

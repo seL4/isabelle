@@ -124,8 +124,9 @@ sig
   val put_data: string * object -> sg -> sg
   val print_data: sg -> string -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
-  val prep_ext: sg -> sg
   val merge: sg * sg -> sg
+  val prep_ext: sg -> sg
+  val nontriv_merge: sg * sg -> sg
   val pre_pure: sg
   val const_of_class: class -> string
   val class_of_const: string -> class
@@ -889,7 +890,7 @@ fun merge_stamps stamps1 stamps2 =
   end;
 
 
-(* merge of sg_refs -- trivial only *)
+(* implicit merge -- trivial only *)
 
 fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
         sgr2 as SgRef (Some (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
@@ -900,6 +901,8 @@ fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
       else (merge_stamps s1 s2; (*check for different versions*)
         raise TERM ("Attempt to do non-trivial merge of signatures", []))
   | merge_refs _ = sys_error "Sign.merge_refs";
+
+val merge = deref o merge_refs o pairself self_ref;
 
 
 (* proper merge *)
@@ -942,7 +945,7 @@ fun merge_aux (sg1, sg2) =
       self_ref := sign; sign
     end;
 
-fun merge sg1_sg2 =
+fun nontriv_merge sg1_sg2 =
   (case handle_error merge_aux sg1_sg2 of
     OK sg => sg
   | Error msg => raise TERM (msg, []));
