@@ -8,7 +8,7 @@ Derived rules and other operations on theorems.
 
 infix 0 RS RSN RL RLN MRS MRL COMP;
 
-signature DRULE =
+signature BASIC_DRULE =
 sig
   val dest_implies      : cterm -> cterm * cterm
   val skip_flexpairs	: cterm -> cterm
@@ -73,15 +73,24 @@ sig
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
+  val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
+end;
+
+signature DRULE =
+sig
+  include BASIC_DRULE
   val triv_goal		: thm
   val rev_triv_goal	: thm
   val mk_triv_goal      : cterm -> thm
-  val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
+  val tvars_of_terms	: term list -> (indexname * sort) list
+  val vars_of_terms	: term list -> (indexname * typ) list
+  val tvars_of		: thm -> (indexname * sort) list
+  val vars_of		: thm -> (indexname * typ) list
   val unvarifyT		: thm -> thm
   val unvarify		: thm -> thm
 end;
 
-structure Drule : DRULE =
+structure Drule: DRULE =
 struct
 
 
@@ -601,8 +610,11 @@ val add_tvarsT = foldl_atyps (fn (vs, TVar v) => v ins vs | (vs, _) => vs);
 val add_tvars = foldl_types add_tvarsT;
 val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
 
-fun tvars_of thm = rev (add_tvars ([], #prop (Thm.rep_thm thm)));
-fun vars_of thm = rev (add_vars ([], #prop (Thm.rep_thm thm)));
+fun tvars_of_terms ts = rev (foldl add_tvars ([], ts));
+fun vars_of_terms ts = rev (foldl add_vars ([], ts));
+
+fun tvars_of thm = tvars_of_terms [#prop (Thm.rep_thm thm)];
+fun vars_of thm = vars_of_terms [#prop (Thm.rep_thm thm)];
 
 
 (* instantiate by left-to-right occurrence of variables *)
@@ -659,4 +671,6 @@ fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
 
 end;
 
-open Drule;
+
+structure BasicDrule: BASIC_DRULE = Drule;
+open BasicDrule;
