@@ -27,13 +27,12 @@ sig
 	type model
 	type arguments
 
-	exception CANNOT_INTERPRET of Term.term
 	exception MAXVARS_EXCEEDED
 
 	val add_interpreter : string -> (theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option) -> theory -> theory
 	val add_printer     : string -> (theory -> model -> Term.term -> interpretation -> (int -> bool) -> Term.term option) -> theory -> theory
 
-	val interpret : theory -> model -> arguments -> Term.term -> (interpretation * model * arguments)  (* exception CANNOT_INTERPRET *)
+	val interpret : theory -> model -> arguments -> Term.term -> (interpretation * model * arguments)
 
 	val print       : theory -> model -> Term.term -> interpretation -> (int -> bool) -> Term.term
 	val print_model : theory -> model -> (int -> bool) -> string
@@ -66,8 +65,6 @@ struct
 	(* code).  Otherwise (e.g. to indicate invalid input data) we use    *)
 	(* 'error'.                                                          *)
 	exception REFUTE of string * string;  (* ("in function", "cause") *)
-
-	exception CANNOT_INTERPRET of Term.term;
 
 	(* should be raised by an interpreter when more variables would be *)
 	(* required than allowed by 'maxvars'                              *)
@@ -207,18 +204,16 @@ struct
 
 
 (* ------------------------------------------------------------------------- *)
-(* interpret: tries to interpret the term 't' using a suitable interpreter;  *)
-(*            returns the interpretation and a (possibly extended) model     *)
-(*            that keeps track of the interpretation of subterms             *)
-(* Note: exception 'CANNOT_INTERPRET t' is raised if the term cannot be      *)
-(*       interpreted by any interpreter                                      *)
+(* interpret: interprets the term 't' using a suitable interpreter; returns  *)
+(*            the interpretation and a (possibly extended) model that keeps  *)
+(*            track of the interpretation of subterms                        *)
 (* ------------------------------------------------------------------------- *)
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) *)
 
 	fun interpret thy model args t =
 		(case get_first (fn (_, f) => f thy model args t) (#interpreters (RefuteData.get thy)) of
-		  None   => raise (CANNOT_INTERPRET t)
+		  None   => raise REFUTE ("interpret", "unable to interpret term " ^ quote (Sign.string_of_term (sign_of thy) t))
 		| Some x => x);
 
 (* ------------------------------------------------------------------------- *)
@@ -878,7 +873,7 @@ struct
 				   else commas (map (Sign.string_of_typ (sign_of thy)) types)))
 			(* (Term.typ * int) list -> unit *)
 			fun find_model_loop universe =
-			(let
+			let
 				val init_model             = (universe, [])
 				val init_args              = {maxvars = maxvars, next_idx = 1, bounds = [], wellformed = True}
 				val _                      = immediate_output ("Translating term (sizes: " ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
@@ -908,8 +903,6 @@ struct
 					error ("SAT solver " ^ quote satsolver ^ " is not configured.")
 			end handle MAXVARS_EXCEEDED =>
 				writeln ("\nSearch terminated, number of Boolean variables (" ^ string_of_int maxvars ^ " allowed) exceeded.")
-			| CANNOT_INTERPRET t' =>
-				error ("Unable to interpret term " ^ Sign.string_of_term (sign_of thy) t'))
 			in
 				find_model_loop (first_universe types sizes minsize)
 			end
@@ -1181,9 +1174,7 @@ struct
 					(* we create 'size_of_type (interpret (... T1))' different copies *)
 					(* of the interpretation for 'T2', which are then combined into a *)
 					(* single new interpretation                                      *)
-					val (i1, _, _) =
-						(interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
-						handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+					val (i1, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
 					(* make fresh copies, with different variable indices *)
 					(* 'idx': next variable index                         *)
 					(* 'n'  : number of copies                            *)
@@ -1192,9 +1183,7 @@ struct
 						(idx, [], True)
 					  | make_copies idx n =
 						let
-							val (copy, _, new_args) =
-								(interpret thy (typs, []) {maxvars = maxvars, next_idx = idx, bounds = [], wellformed = True} (Free ("dummy", T2))
-								handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+							val (copy, _, new_args) = interpret thy (typs, []) {maxvars = maxvars, next_idx = idx, bounds = [], wellformed = True} (Free ("dummy", T2))
 							val (idx', copies, wf') = make_copies (#next_idx new_args) (n-1)
 						in
 							(idx', copy :: copies, SAnd (#wellformed new_args, wf'))
@@ -1228,9 +1217,7 @@ struct
 			| Abs (x, T, body) =>
 				let
 					(* create all constants of type 'T' *)
-					val (i, _, _) =
-						(interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-						handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+					val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 					val constants = make_constants i
 					(* interpret the 'body' separately for each constant *)
 					val ((model', args'), bodies) = foldl_map
@@ -1388,9 +1375,9 @@ struct
 				Some (make_equality (i1, i2), m2, a2)
 			end
 		| Const ("op =", _) $ t1 =>
-			(Some (interpret thy model args (eta_expand t 1)) handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+			Some (interpret thy model args (eta_expand t 1))
 		| Const ("op =", _) =>
-			(Some (interpret thy model args (eta_expand t 2)) handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+			Some (interpret thy model args (eta_expand t 2))
 		| Const ("op &", _) =>
 			Some (Node [Node [TT, FF], Node [FF, FF]], model, args)
 		| Const ("op |", _) =>
@@ -1413,35 +1400,35 @@ struct
 		| None =>
 			(case t of
 			  Free (x, Type ("set", [T])) =>
-				(let
+				let
 					val (intr, _, args') = interpret thy (typs, []) args (Free (x, T --> HOLogic.boolT))
 				in
 					Some (intr, (typs, (t, intr)::terms), args')
-				end handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				end
 			| Var ((x,i), Type ("set", [T])) =>
-				(let
+				let
 					val (intr, _, args') = interpret thy (typs, []) args (Var ((x,i), T --> HOLogic.boolT))
 				in
 					Some (intr, (typs, (t, intr)::terms), args')
-				end handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				end
 			| Const (s, Type ("set", [T])) =>
-				(let
+				let
 					val (intr, _, args') = interpret thy (typs, []) args (Const (s, T --> HOLogic.boolT))
 				in
 					Some (intr, (typs, (t, intr)::terms), args')
-				end handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				end
 			(* 'Collect' == identity *)
 			| Const ("Collect", _) $ t1 =>
 				Some (interpret thy model args t1)
 			| Const ("Collect", _) =>
-				(Some (interpret thy model args (eta_expand t 1)) handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				Some (interpret thy model args (eta_expand t 1))
 			(* 'op :' == application *)
 			| Const ("op :", _) $ t1 $ t2 =>
 				Some (interpret thy model args (t2 $ t1))
 			| Const ("op :", _) $ t1 =>
-				(Some (interpret thy model args (eta_expand t 1)) handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				Some (interpret thy model args (eta_expand t 1))
 			| Const ("op :", _) =>
-				(Some (interpret thy model args (eta_expand t 2)) handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				Some (interpret thy model args (eta_expand t 2))
 			| _ => None)
 	end;
 
@@ -1474,9 +1461,7 @@ struct
 				product (map (fn d =>
 					let
 						val T         = typ_of_dtyp descr typ_assoc d
-						val (i, _, _) =
-							(interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-							handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+						val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 					in
 						size_of_type i
 					end) ds)) constrs)
@@ -1591,9 +1576,7 @@ struct
 												let
 													(* compute the "new" size of the type 'd' *)
 													val T         = typ_of_dtyp descr typ_assoc d
-													val (i, _, _) =
-														(interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-														handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+													val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 												in
 													(* all entries of the whole subtree are 'False' *)
 													Node (replicate (size_of_type i) (make_partial ds))
@@ -1607,15 +1590,11 @@ struct
 											  | make_constr (offset, d::ds) =
 												let
 													(* compute the "new" and "old" size of the type 'd' *)
-													val T         = typ_of_dtyp descr typ_assoc d
-													val (i, _, _) =
-														(interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-														handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
-													val (i', _, _) =
-														(interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-														handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
-													val size  = size_of_type i
-													val size' = size_of_type i'
+													val T          = typ_of_dtyp descr typ_assoc d
+													val (i, _, _)  = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+													val (i', _, _) = interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+													val size       = size_of_type i
+													val size'      = size_of_type i'
 													val _ = if size<size' then
 															raise REFUTE ("IDT_interpreter", "internal error: new size < old size")
 														else
@@ -1652,13 +1631,9 @@ struct
 		case t of
 		  Const ("Finite_Set.card", Type ("fun", [Type ("set", [T]), Type ("nat", [])])) =>
 			let
-				val (i_nat, _, _) =
-					(interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
-						handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				val (i_nat, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat
-				val (i_set, _, _) =
-					(interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
-						handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+				val (i_set, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
 				val constants     = make_constants i_set
 				(* interpretation -> int *)
 				fun number_of_elements (Node xs) =
@@ -1721,7 +1696,7 @@ struct
 		  Some T =>
 			(case T of
 			  Type ("fun", [T1, T2]) =>
-				(let
+				let
 					(* create all constants of type 'T1' *)
 					val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
 					val constants = make_constants i
@@ -1743,7 +1718,7 @@ struct
 					val HOLogic_insert    = Const ("insert", HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
 				in
 					Some (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc) (pairs, HOLogic_empty_set))
-				end handle CANNOT_INTERPRET _ => None)
+				end
 			| Type ("prop", [])      =>
 				(case index_from_interpretation intr of
 				  0 => Some (HOLogic.mk_Trueprop HOLogic.true_const)
@@ -1768,7 +1743,7 @@ struct
 	in
 		case typeof t of
 		  Some (Type ("set", [T])) =>
-			(let
+			let
 				(* create all constants of type 'T' *)
 				val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 				val constants = make_constants i
@@ -1796,7 +1771,7 @@ struct
 				val HOLogic_insert    = Const ("insert", T --> HOLogic_setT --> HOLogic_setT)
 			in
 				Some (foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc) (HOLogic_empty_set, elements))
-			end handle CANNOT_INTERPRET _ => None)
+			end
 		| _ =>
 			None
 	end;
@@ -1860,9 +1835,7 @@ struct
 							product (map (fn d =>
 								let
 									val T         = typ_of_dtyp descr typ_assoc d
-									val (i, _, _) =
-										(interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-										handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+									val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 					in
 						size_of_type i
 					end) ds)) xs)
@@ -1875,9 +1848,7 @@ struct
 					  | make_args n (d::ds) =
 						let
 							val dT        = typ_of_dtyp descr typ_assoc d
-							val (i, _, _) =
-								(interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", dT))
-								handle CANNOT_INTERPRET _ => raise CANNOT_INTERPRET t)
+							val (i, _, _) = interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", dT))
 							val size      = size_of_type i
 							val consts    = make_constants i  (* we only need the (n mod size)-th element of *)
 								(* this list, so there might be a more efficient implementation that does not *)
