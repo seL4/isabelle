@@ -71,8 +71,7 @@ inductive "ns_shared"
          (*This message models possible leaks of session keys.
            The two Nonces identify the protocol run: the rule insists upon
            the true senders in order to make them accurate.*)
-    Oops "[| evso: ns_shared;  A ~= Spy;
-             Says B A (Crypt K (Nonce NB)) : set evso;
+    Oops "[| evso: ns_shared;  Says B A (Crypt K (Nonce NB)) : set evso;
              Says Server A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})
                : set evso |]
           ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : ns_shared"

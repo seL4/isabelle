@@ -9,6 +9,11 @@ Inductive relation "recur" for the Recursive Authentication protocol.
 Pretty.setdepth 30;
 
 
+AddEs spies_partsEs;
+AddDs [impOfSubs analz_subset_parts];
+AddDs [impOfSubs Fake_parts_insert];
+
+
 (** Possibility properties: traces that reach the end 
         ONE theorem would be more elegant and faster!
         By induction on a list of agents (no repetitions)
@@ -104,8 +109,7 @@ qed "respond_imp_responses";
 
 val RA2_analz_spies = Says_imp_spies RS analz.Inj |> standard;
 
-Goal "Says C' B {|Crypt K X, X', RA|} : set evs \
-\             ==> RA : analz (spies evs)";
+Goal "Says C' B {|Crypt K X, X', RA|} : set evs ==> RA : analz (spies evs)";
 by (blast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]) 1);
 qed "RA4_analz_spies";
 
@@ -121,11 +125,11 @@ bind_thm ("RA4_parts_spies",
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
 fun parts_induct_tac i = 
-    etac recur.induct i				THEN
-    forward_tac [RA2_parts_spies] (i+3)	THEN
-    forward_tac [respond_imp_responses] (i+4)	THEN
-    forward_tac [RA4_parts_spies] (i+5)	THEN
-    prove_simple_subgoals_tac i;
+  EVERY [etac recur.induct i,
+	 forward_tac [RA4_parts_spies] (i+5),
+	 forward_tac [respond_imp_responses] (i+4),
+	 forward_tac [RA2_parts_spies] (i+3),
+	 prove_simple_subgoals_tac i];
 
 
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
@@ -136,16 +140,15 @@ fun parts_induct_tac i =
 
 Goal "evs : recur ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [parts_insert2, parts_insert_spies])));
+by Auto_tac;
 (*RA3*)
-by (blast_tac (claset() addDs [Key_in_parts_respond]) 1);
+by (auto_tac (claset() addDs [Key_in_parts_respond],
+	      simpset() addsimps [parts_insert_spies]));
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 Goal "evs : recur ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
+by Auto_tac;
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
@@ -156,16 +159,15 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 (** Nobody can have used non-existent keys! **)
 
 (*The special case of H={} has the same proof*)
-Goal "[| K : keysFor (parts (insert RB H));  (PB,RB,K') : respond evs |] \
+Goal "[| K : keysFor (parts (insert RB H));  RB : responses evs |] \
 \     ==> K : range shrK | K : keysFor (parts H)";
 by (etac rev_mp 1);
-by (etac (respond_imp_responses RS responses.induct) 1);
+by (etac responses.induct 1);
 by Auto_tac;
 qed_spec_mp "Key_in_keysFor_parts";
 
 
-Goal "evs : recur ==>          \
-\             Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
+Goal "evs : recur ==> Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*RA3*)
 by (blast_tac (claset() addSDs [Key_in_keysFor_parts]) 2);
@@ -244,8 +246,7 @@ qed "analz_insert_freshK";
 
 (*Everything that's hashed is already in past traffic. *)
 Goal "[| Hash {|Key(shrK A), X|} : parts (spies evs);  \
-\                evs : recur;  A ~: bad |]                     \
-\             ==> X : parts (spies evs)";
+\        evs : recur;  A ~: bad |] ==> X : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 (*RA3 requires a further induction*)
@@ -267,15 +268,14 @@ Goal "[| evs : recur; A ~: bad |]                   \
 \     Hash {|Key(shrK A), Agent A, B, NA, P|} : parts (spies evs) \
 \       -->  B=B' & P=P'";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 by (etac responses.induct 3);
 by (ALLGOALS (simp_tac (simpset() addsimps [all_conj_distrib]))); 
 by (clarify_tac (claset() addSEs partsEs) 1);
 (*RA1,2: creation of new Nonce.  Move assertion into global context*)
 by (ALLGOALS (expand_case_tac "NA = ?y"));
 by (REPEAT_FIRST (ares_tac [exI]));
-by (REPEAT (blast_tac (claset() addSDs [Hash_imp_body]
-                               addSEs spies_partsEs) 1));
+by (REPEAT (blast_tac (claset() addSDs [Hash_imp_body]) 1));
 val lemma = result();
 
 Goalw [HPair_def]
@@ -342,10 +342,10 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "respond_certificate";
 
 
-Goal "!!K'. (PB,RB,KXY) : respond evs                          \
-\  ==> EX A' B'. ALL A B N.                                \
-\     Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB} \
-\       -->   (A'=A & B'=B) | (A'=B & B'=A)";
+Goal "(PB,RB,KXY) : respond evs                          \
+\     ==> EX A' B'. ALL A B N.                                \
+\         Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB} \
+\         -->   (A'=A & B'=B) | (A'=B & B'=A)";
 by (etac respond.induct 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [all_conj_distrib]))); 
 (*Base case*)
@@ -354,19 +354,18 @@ by Safe_tac;
 by (expand_case_tac "K = KBC" 1);
 by (dtac respond_Key_in_parts 1);
 by (blast_tac (claset() addSIs [exI]
-                        addSEs partsEs
                         addDs [Key_in_parts_respond]) 1);
 by (expand_case_tac "K = KAB" 1);
 by (REPEAT (ares_tac [exI] 2));
 by (ex_strip_tac 1);
 by (dtac respond_certificate 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 Goal "[| Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB};      \
-\       Crypt (shrK A') {|Key K, Agent B', N'|} : parts {RB};   \
-\       (PB,RB,KXY) : respond evs |]                            \
-\ ==>   (A'=A & B'=B) | (A'=B & B'=A)";
+\        Crypt (shrK A') {|Key K, Agent B', N'|} : parts {RB};   \
+\        (PB,RB,KXY) : respond evs |]                            \
+\     ==> (A'=A & B'=B) | (A'=B & B'=A)";
 by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
@@ -390,11 +389,11 @@ by (ALLGOALS (*6 seconds*)
           [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
 by (ALLGOALS (simp_tac (simpset() addsimps [ex_disj_distrib])));
 (** LEVEL 5 **)
-by (blast_tac (claset() addIs [impOfSubs analz_subset_parts]) 1);
+by (Blast_tac 1);
 by (REPEAT_FIRST (resolve_tac [allI, conjI, impI]));
 by (ALLGOALS Clarify_tac);
 by (blast_tac (claset() addSDs  [resp_analz_insert]
-		       addIs  [impOfSubs analz_subset_parts]) 2);
+ 		        addIs  [impOfSubs analz_subset_parts]) 2);
 by (blast_tac (claset() addSDs [respond_certificate]) 1);
 by (Asm_full_simp_tac 1);
 (*by unicity, either B=Aa or B=A', a contradiction if B: bad*)
@@ -456,7 +455,7 @@ Goalw [HPair_def]
 \  ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|}) : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 (*RA3*)
 by (blast_tac (claset() addSDs [Hash_in_parts_respond]) 1);
 qed_spec_mp "Hash_auth_sender";
@@ -473,7 +472,7 @@ Goal "[| Crypt (shrK A) Y : parts (spies evs);    \
 \                  Crypt (shrK A) Y : parts {RC}";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 (*RA4*)
 by (Blast_tac 4);
 (*RA3*)

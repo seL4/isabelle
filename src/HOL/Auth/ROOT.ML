@@ -11,6 +11,7 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 writeln"Root file for HOL/Auth";
 set proof_timing;
 goals_limit := 1;
+HOL_quantifiers := false;
 
 (*Shared-key protocols*)
 time_use_thy "NS_Shared";

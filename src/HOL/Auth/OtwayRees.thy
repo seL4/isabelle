@@ -72,7 +72,7 @@ inductive "otway"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.*)
-    Oops "[| evso: otway;  B ~= Spy;
+    Oops "[| evso: otway;  
              Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set evso |]
           ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"

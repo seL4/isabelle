@@ -92,7 +92,17 @@ inductive "recur"
                          RA|} : set evs4 |]
           ==> Says B A RA # evs4 : recur"
 
-(**No "oops" message can easily be expressed.  Each session key is
-   associated--in two separate messages--with two nonces.
-***)
 end
+
+   (*No "oops" message can easily be expressed.  Each session key is
+     associated--in two separate messages--with two nonces.  This is 
+     one try, but it isn't that useful.  Re domino attack, note that
+     Recur.ML proves that each session key is secure provided the two
+     peers are, even if there are compromised agents elsewhere in
+     the chain.  Oops cases proved using parts_cut, Key_in_keysFor_parts,
+     etc.
+
+    Oops  "[| evso: recur;  Says Server B RB : set evso;
+	      RB : responses evs';  Key K : parts {RB} |]
+           ==> Notes Spy {|Key K, RB|} # evso : recur"
+  *)

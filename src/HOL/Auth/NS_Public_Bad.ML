@@ -11,8 +11,6 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

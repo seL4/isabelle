@@ -16,9 +16,6 @@ From page 251 of
 Tidied by lcp.
 *)
 
-proof_timing:=true;
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

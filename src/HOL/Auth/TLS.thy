@@ -88,7 +88,7 @@ inductive tls
 
     SpyKeys (*The spy may apply PRF & sessionK to available nonces*)
          "[| evsSK: tls;
-	     Says Spy B {|Nonce NA, Nonce NB, Nonce M|} : set evsSK |]
+	     {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
           ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
 			   Key (sessionK((NA,NB,M),b)) |} # evsSK : tls"
 

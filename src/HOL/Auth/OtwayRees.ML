@@ -92,8 +92,7 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 
 
 (*Nobody can have used non-existent keys!*)
-Goal "evs : otway ==>          \
-\  Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
+Goal "evs : otway ==> Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
 by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
@@ -114,7 +113,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K and NA when the Server sends this message.  Also
   for Oops case.*)
 Goal "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, Key K|}|} : set evs; \
-\    evs : otway |]                                           \
+\        evs : otway |]                                           \
 \     ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
 by (etac otway.induct 1);
@@ -144,23 +143,22 @@ val analz_spies_tac =
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
-Goal "evs : otway ==>                                    \
-\  ALL K KK. KK <= Compl (range shrK) -->                   \
-\     (Key K : analz (Key``KK Un (spies evs))) =  \
-\     (K : KK | Key K : analz (spies evs))";
+Goal "evs : otway ==> ALL K KK. KK <= Compl (range shrK) -->       \
+\                      (Key K : analz (Key``KK Un (spies evs))) =  \
+\                      (K : KK | Key K : analz (spies evs))";
 by (etac otway.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
 by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 
-Goal "[| evs : otway;  KAB ~: range shrK |] ==>          \
-\ Key K : analz (insert (Key KAB) (spies evs)) =  \
-\ (K = KAB | Key K : analz (spies evs))";
+Goal "[| evs : otway;  KAB ~: range shrK |]               \
+\     ==> Key K : analz (insert (Key KAB) (spies evs)) =  \
+\         (K = KAB | Key K : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
@@ -168,8 +166,8 @@ qed "analz_insert_freshK";
 (*** The Key K uniquely identifies the Server's  message. **)
 
 Goal "evs : otway ==>                                                  \
-\   EX B' NA' NB' X'. ALL B NA NB X.                                      \
-\     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs -->     \
+\     EX B' NA' NB' X'. ALL B NA NB X.                                   \
+\     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs -->    \
 \     B=B' & NA=NA' & NB=NB' & X=X'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));

@@ -64,7 +64,7 @@ inductive "yahalom"
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct. *)
-    Oops "[| evso: yahalom;  A ~= Spy;
+    Oops "[| evso: yahalom;  
              Says Server A {|Nonce NB, 
                              Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                              X|}  : set evso |]
