@@ -5,6 +5,11 @@
 # build - compile the Isabelle system and object-logics
 
 
+## global settings
+
+ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
+
+
 ## settings
 
 PRG=$(basename $0)
@@ -72,6 +77,9 @@ shift $(($OPTIND - 1))
 
 LOGICS="$@"
 
+[ -n "$ALL" ] && LOGICS="$LOGICS $ALL_LOGICS"
+[ -z "$LOGICS" ] && LOGICS="$ISABELLE_LOGIC"
+
 
 ## main
 
@@ -104,32 +112,27 @@ if [ -z "$BATCH" ]; then
   echo
 fi
 
-[ -z "$LOGICS" ] && LOGICS=$ISABELLE_LOGIC
 
-if [ -n "$ALL" ]; then
-  LOGICS=""
-  for DIR in $ISABELLE_HOME/src/*
-  do
-    if [ -f $DIR/IsaMakefile ]; then
-      L=$(basename $DIR)
-      LOGICS="$LOGICS $L"
-    fi
-  done
-else
-  for L in $LOGICS
-  do
-    DIR=$ISABELLE_HOME/src/$L
-    [ ! -f $DIR/IsaMakefile ] && fail "No such logic: $L"
-  done
-fi
+MAKE_LOGICS=""
+
+for L in $LOGICS
+do
+  DIR=$ISABELLE_HOME/src/$L
+  if [ -f $DIR/IsaMakefile ]; then
+    MAKE_LOGICS="$MAKE_LOGICS $L"
+  else
+    echo "No such logic: $L"
+  fi
+done
+
 
 if [ -z "$BATCH" ]; then
-  echo " " $LOGICS
+  echo " " $MAKE_LOGICS
   echo
   read
 else
   echo
-  echo "Isabelle build:" $LOGICS
+  echo "Isabelle build:" $MAKE_LOGICS
   echo
   echo "ML_SYSTEM=$ML_SYSTEM"
   echo "ML_HOME=$ML_HOME"
@@ -140,17 +143,17 @@ fi
 
 # build it
 
-echo
+SECONDS=0
 echo -n "Started at "; date
-echo
 
 export THIS_IS_ISABELLE_BUILD=true
 
-for L in $LOGICS
+for L in $MAKE_LOGICS
 do
   ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $TEST )
 done
 
-echo
 echo -n "Finished at "; date
-echo
+
+ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+echo "$ELAPSED total elapsed time"
