@@ -354,7 +354,24 @@ val [major] = goalw Univ.thy [In1_def] "In1(M) = In1(N) ==>  M=N";
 by (rtac (major RS Scons_inject2) 1);
 qed "In1_inject";
 
-AddSDs [In0_inject, In1_inject];
+goal Univ.thy "(In0 M = In0 N) = (M=N)";
+by (blast_tac (!claset addSDs [In0_inject]) 1);
+qed "In0_eq";
+
+goal Univ.thy "(In1 M = In1 N) = (M=N)";
+by (blast_tac (!claset addSDs [In1_inject]) 1);
+qed "In1_eq";
+
+AddIffs [In0_eq, In1_eq];
+
+goalw Univ.thy [inj_def] "inj In0";
+by (Blast_tac 1);
+qed "inj_In0";
+
+goalw Univ.thy [inj_def] "inj In1";
+by (Blast_tac 1);
+qed "inj_In1";
+
 
 (*** proving equality of sets and functions using ntrunc ***)
 
