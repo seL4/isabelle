@@ -76,6 +76,7 @@ sig
   val empty_lexicon: lexicon
   val extend_lexicon: lexicon -> string list list -> lexicon
   val merge_lexicons: lexicon -> lexicon -> lexicon
+  val is_literal: lexicon -> string list -> bool
   val literal: lexicon -> string list -> string list * string list
 end;
 
@@ -306,9 +307,10 @@ fun extend_lexicon lexicon [] = lexicon
         fun ext (lex, chrs) =
           let
             fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-                  if c < d then Branch (d, a, add lt chs, eq, gt)
-                  else if c > d then Branch (d, a, lt, eq, add gt chs)
-                  else Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
+                  (case String.compare (c, d) of
+                    LESS => Branch (d, a, add lt chs, eq, gt)
+                  | EQUAL => Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
+                  | GREATER => Branch (d, a, lt, eq, add gt chs))
               | add Empty [c] =
                   Branch (c, chrs, Empty, Empty, Empty)
               | add Empty (c :: cs) =
@@ -330,6 +332,17 @@ fun merge_lexicons lex1 lex2 =
   end;
 
 
+(* is_literal *)
+
+fun is_literal Empty _ = false
+  | is_literal _ [] = false
+  | is_literal (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
+      (case String.compare (c, d) of
+        LESS => is_literal lt chs
+      | EQUAL => a <> no_literal andalso null cs orelse is_literal eq cs
+      | GREATER => is_literal gt chs);
+
+
 (* scan literal *)
 
 fun literal lex chrs =
@@ -337,9 +350,10 @@ fun literal lex chrs =
     fun lit Empty res _ = res
       | lit (Branch _) _ [] = raise MORE None
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
-          if c < d then lit lt res chs
-          else if c > d then lit gt res chs
-          else lit eq (if a = no_literal then res else Some (a, cs)) cs;
+          (case String.compare (c, d) of
+            LESS => lit lt res chs
+          | EQUAL => lit eq (if a = no_literal then res else Some (a, cs)) cs
+          | GREATER => lit gt res chs);
   in
     (case lit lex None chrs of
       None => raise FAIL None
