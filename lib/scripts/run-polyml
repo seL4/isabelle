@@ -4,7 +4,7 @@
 #
 # Poly/ML startup script.
 #
-# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE,
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
 # and from settings
 
 

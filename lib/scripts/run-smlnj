@@ -4,7 +4,7 @@
 #
 # SML/NJ startup script (for 1.09.27 or later).
 #
-# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE,
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
 # and from settings
 
 

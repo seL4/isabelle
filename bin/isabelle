@@ -155,12 +155,28 @@ case "$OUTPUT" in
 esac
 
 
+## prepare tmp directory
+
+[ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
+
+ISABELLE_TMP="$ISABELLE_TMP_PREFIX$$"
+mkdir -p "$ISABELLE_TMP"
+
+
 ## run it!
 
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
-export INFILE OUTFILE MLTEXT TERMINATE NOWRITE
-[ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ] && exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
-exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
+export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP
+
+if [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ]; then
+  $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
+else
+  $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
+fi
+
+
+#Do not even think of 'rm -r'!!
+rmdir $ISABELLE_TMP
