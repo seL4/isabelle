@@ -205,16 +205,47 @@ lemma (in coset) l_coset_subset_G:
      "[| H <= carrier G; x \<in> carrier G |] ==> x <# H <= carrier G"
 by (auto simp add: l_coset_eq subsetD)
 
+lemma (in coset) l_coset_swap:
+     "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> x \<in> y <# H"
+proof (simp add: l_coset_eq)
+  assume "\<exists>h\<in>H. x \<otimes> h = y" 
+    and x: "x \<in> carrier G" 
+    and sb: "subgroup H G"
+  then obtain h' where h': "h' \<in> H & x \<otimes> h' = y" by blast
+  show "\<exists>h\<in>H. y \<otimes> h = x"
+  proof
+    show "y \<otimes> inv h' = x" using h' x sb
+      by (auto simp add: m_assoc subgroup.subset [THEN subsetD])
+    show "inv h' \<in> H" using h' sb
+      by (auto simp add: subgroup.subset [THEN subsetD] subgroup.m_inv_closed)
+  qed
+qed
+
+lemma (in coset) l_coset_carrier:
+     "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> y \<in> carrier G"
+by (auto simp add: l_coset_eq m_assoc 
+                   subgroup.subset [THEN subsetD] subgroup.m_closed)
+
+lemma (in coset) l_repr_imp_subset:
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G" 
+  shows "y <# H \<subseteq> x <# H"
+proof -
+  from y
+  obtain h' where "h' \<in> H" "x \<otimes> h' = y" by (auto simp add: l_coset_eq)
+  thus ?thesis using x sb
+    by (auto simp add: l_coset_eq m_assoc 
+                       subgroup.subset [THEN subsetD] subgroup.m_closed)
+qed
+
 lemma (in coset) l_repr_independence:
-     "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> x <# H = y <# H"
-apply (auto simp add: l_coset_eq m_assoc 
-                      subgroup.subset [THEN subsetD] subgroup.m_closed)
-apply (rule_tac x = "mult G (m_inv G h) ha" in bexI)
-  --{*FIXME: locales don't currently work with @{text rule_tac},
-      want @{term "(inv h) \<otimes> ha"}*}
-apply (auto simp add: m_assoc [symmetric] subgroup.subset [THEN subsetD] 
-                      subgroup.m_inv_closed subgroup.m_closed)
-done
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G" 
+  shows "x <# H = y <# H"
+proof 
+  show "x <# H \<subseteq> y <# H"
+    by (rule l_repr_imp_subset, 
+        (blast intro: l_coset_swap l_coset_carrier y x sb)+)
+  show "y <# H \<subseteq> x <# H" by (rule l_repr_imp_subset [OF y x sb]) 
+qed
 
 lemma (in coset) setmult_subset_G:
      "[| H <= carrier G; K <= carrier G |] ==> H <#> K <= carrier G"
