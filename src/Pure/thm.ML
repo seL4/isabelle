@@ -418,14 +418,9 @@ fun cprop_of (Thm {sign, maxidx, prop, ...}) =
 (*accumulate sorts suppressing duplicates; these are coded low levelly
   to improve efficiency a bit*)
 
-fun mem_sort (_:sort) [] = false
-  | mem_sort S (S' :: Ss) = S = S' orelse mem_sort S Ss;
-
-fun ins_sort S Ss = if mem_sort S Ss then Ss else S :: Ss;
-
 fun add_typ_sorts (Type (_, Ts), Ss) = add_typs_sorts (Ts, Ss)
-  | add_typ_sorts (TFree (_, S), Ss) = ins_sort S Ss
-  | add_typ_sorts (TVar (_, S), Ss) = ins_sort S Ss
+  | add_typ_sorts (TFree (_, S), Ss) = ins_sort(S,Ss)
+  | add_typ_sorts (TVar (_, S), Ss) = ins_sort(S,Ss)
 and add_typs_sorts ([], Ss) = Ss
   | add_typs_sorts (T :: Ts, Ss) = add_typs_sorts (Ts, add_typ_sorts (T, Ss));
 
@@ -433,11 +428,11 @@ fun add_term_sorts (Const (_, T), Ss) = add_typ_sorts (T, Ss)
   | add_term_sorts (Free (_, T), Ss) = add_typ_sorts (T, Ss)
   | add_term_sorts (Var (_, T), Ss) = add_typ_sorts (T, Ss)
   | add_term_sorts (Bound _, Ss) = Ss
-  | add_term_sorts (Abs (_, T, t), Ss) = add_term_sorts (t, add_typ_sorts (T, Ss))
+  | add_term_sorts (Abs (_,T,t), Ss) = add_term_sorts (t, add_typ_sorts (T,Ss))
   | add_term_sorts (t $ u, Ss) = add_term_sorts (t, add_term_sorts (u, Ss));
 
 fun add_terms_sorts ([], Ss) = Ss
-  | add_terms_sorts (t :: ts, Ss) = add_terms_sorts (ts, add_term_sorts (t, Ss));
+  | add_terms_sorts (t::ts, Ss) = add_terms_sorts (ts, add_term_sorts (t,Ss));
 
 fun env_codT (Envir.Envir {iTs, ...}) = map snd iTs;
 
@@ -450,7 +445,7 @@ fun add_thm_sorts (Thm {hyps, prop, ...}, Ss) =
 
 fun add_thms_shyps ([], Ss) = Ss
   | add_thms_shyps (Thm {shyps, ...} :: ths, Ss) =
-      add_thms_shyps (ths, shyps union Ss);
+      add_thms_shyps (ths, union_sort(shyps,Ss));
 
 
 (*get 'dangling' sort constraints of a thm*)
@@ -484,7 +479,7 @@ fun strip_shyps thm =
     val Thm {sign, der, maxidx, shyps, hyps, prop} = thm;
     val sorts = add_thm_sorts (thm, []);
     val maybe_empty = not o Sign.nonempty_sort sign sorts;
-    val shyps' = filter (fn S => S mem sorts orelse maybe_empty S) shyps;
+    val shyps' = filter (fn S => mem_sort(S,sorts) orelse maybe_empty S) shyps;
   in
     Thm {sign = sign, der = der, maxidx = maxidx,
 	 shyps =
@@ -650,7 +645,7 @@ fun implies_elim thAB thA : thm =
 			    der = infer_derivs (Implies_elim, [der,derA]),
 			    maxidx = Int.max(maxA,maxidx),
 			    shyps = [],
-			    hyps = hypsA union hyps,  (*dups suppressed*)
+			    hyps = union_term(hypsA,hyps),  (*dups suppressed*)
 			    prop = B})
                 else err("major premise")
           | _ => err("major premise")
@@ -766,7 +761,7 @@ fun transitive th1 th2 =
 		     der = infer_derivs (Transitive, [der1, der2]),
                      maxidx = Int.max(max1,max2), 
 		     shyps = [],
-		     hyps = hyps1 union hyps2,
+		     hyps = union_term(hyps1,hyps2),
 		     prop = eq$t1$t2})
                  in if max1 >= 0 andalso max2 >= 0
                     then nodup_Vars thm "transitive" 
@@ -870,8 +865,8 @@ fun combination th1 th2 =
 			Thm{sign = merge_thm_sgs(th1,th2), 
 			    der = infer_derivs (Combination, [der1, der2]),
 			    maxidx = Int.max(max1,max2), 
-			    shyps = shyps1 union shyps2,
-			    hyps = hyps1 union hyps2,
+			    shyps = union_sort(shyps1,shyps2),
+			    hyps = union_term(hyps1,hyps2),
 			    prop = Logic.mk_equals(f$t, g$u)}
           in if max1 >= 0 andalso max2 >= 0
              then nodup_Vars thm "combination" 
@@ -900,8 +895,8 @@ fun equal_intr th1 th2 =
 	      Thm{sign = merge_thm_sgs(th1,th2),
 		  der = infer_derivs (Equal_intr, [der1, der2]),
 		  maxidx = Int.max(max1,max2),
-		  shyps = shyps1 union shyps2,
-		  hyps = hyps1 union hyps2,
+		  shyps = union_sort(shyps1,shyps2),
+		  hyps = union_term(hyps1,hyps2),
 		  prop = Logic.mk_equals(A,B)}
 	  else err"not equal"
      | _ =>  err"premises"
@@ -925,7 +920,7 @@ fun equal_elim th1 th2 =
 		   der = infer_derivs (Equal_elim, [der1, der2]),
 		   maxidx = Int.max(max1,max2),
 		   shyps = [],
-		   hyps = hyps1 union hyps2,
+		   hyps = union_term(hyps1,hyps2),
 		   prop = B})
      | _ =>  err"major premise"
   end;
@@ -1107,7 +1102,7 @@ fun lift_rule (state, i) orule =
       Thm{sign = merge_thm_sgs(state,orule),
 	  der = infer_derivs (Lift_rule(ct_Bi, i), [der]),
 	  maxidx = maxidx+smax+1,
-          shyps=sshyps union shyps, 
+          shyps=union_sort(sshyps,shyps), 
 	  hyps=hyps, 
           prop = Logic.rule_of (map (pairself lift_abs) tpairs,
 				map lift_all As,    
@@ -1305,8 +1300,8 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
 					       1 + length Bs, nsubgoal, env),
 				     [rder,sder]),
 		 maxidx = maxidx,
-		 shyps = add_env_sorts (env, rshyps union sshyps),
-		 hyps = rhyps union shyps,
+		 shyps = add_env_sorts (env, union_sort(rshyps,sshyps)),
+		 hyps = union_term(rhyps,shyps),
 		 prop = Logic.rule_of normp}
         in  cons(th, thq)  end  handle COMPOSE => thq
      val (rtpairs,rhorn) = Logic.strip_flexpairs(rprop);
@@ -1445,8 +1440,8 @@ fun mk_rrule raw_thm =
       val (elhs,erhs) = Logic.dest_equals econcl
       val perm = var_perm(elhs,erhs) andalso not(elhs aconv erhs)
                                      andalso not(is_Var(elhs))
-  in if not(term_vars(erhs) subset
-            (term_vars(elhs) union flat(map term_vars prems)))
+  in if not((term_vars erhs) subset
+            (union_term (term_vars elhs, flat(map term_vars prems))))
      then (prtm_warning "extra Var(s) on rhs" sign prop; None) else
      if not perm andalso loops sign prems (elhs,erhs)
      then (prtm_warning "ignoring looping rewrite rule" sign prop; None)
@@ -1606,8 +1601,8 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
                        else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,etat)
             val prop' = ren_inst(insts,rprop,rlhs,t);
-            val hyps' = hyps union hypst;
-            val shyps' = add_insts_sorts (insts, shyps union shypst);
+            val hyps' = union_term(hyps,hypst);
+            val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
             val maxidx' = maxidx_of_term prop'
             val ct' = Cterm{sign = signt,	(*used for deriv only*)
 			    t = prop',
@@ -1666,7 +1661,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
       (* Pattern.match can raise Pattern.MATCH;
          is handled when congc is called *)
       val prop' = ren_inst(insts,rprop,rlhs,t);
-      val shyps' = add_insts_sorts (insts, shyps union shypst)
+      val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst))
       val maxidx' = maxidx_of_term prop'
       val ct' = Cterm{sign = signt,	(*used for deriv only*)
 		      t = prop',
@@ -1675,7 +1670,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
       val thm' = Thm{sign = signt, 
 		     der = infer_derivs (CongC ct', [der]),
 		     shyps = shyps',
-		     hyps = hyps union hypst,
+		     hyps = union_term(hyps,hypst),
                      prop = prop',
 		     maxidx = maxidx'};
       val unit = trace_thm "Applying congruence rule" thm';
@@ -1769,7 +1764,8 @@ fun bottomc ((simprem,useprem),prover,sign) =
 		  in add_simps(add_prems(mss,[thm]), mk_rews thm) end
 	   val (shyps2,hyps2,maxidx2,u1,ders2) = 
 	       try_botc mss1 (shyps1,hyps1,maxidx,u,ders1)
-	   val hyps3 = if s1 mem hyps1 then hyps2 else hyps2\s1
+	   val hyps3 = if gen_mem (op aconv) (s1, hyps1) 
+		       then hyps2 else hyps2\s1
        in (shyps2, hyps3, Int.max(maxidx1,maxidx2), 
 	   Logic.mk_implies(s1,u1), ders2) 
        end
