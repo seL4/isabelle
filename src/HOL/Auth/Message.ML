@@ -372,7 +372,8 @@ by (rtac subsetI 1);
 by (etac analz.induct 1);
 by (Auto_tac());
 by (etac analz.induct 1);
-by (ALLGOALS (deepen_tac (!claset addIs [analz.Fst, analz.Snd, analz.Decrypt]) 0));
+by (ALLGOALS
+    (deepen_tac (!claset addIs [analz.Fst, analz.Snd, analz.Decrypt]) 0));
 qed "analz_insert_MPair";
 
 (*Can pull out enCrypted message if the Key is not known*)
@@ -412,12 +413,12 @@ qed "analz_insert_Decrypt";
 (*Case analysis: either the message is secure, or it is not!
   Effective, but can cause subgoals to blow up!
   Use with expand_if;  apparently split_tac does not cope with patterns
-  such as "analz (insert (Crypt X' K) H)" *)
-goal thy "analz (insert (Crypt X' K) H) = \
+  such as "analz (insert (Crypt X K) H)" *)
+goal thy "analz (insert (Crypt X K) H) = \
 \         (if (Key (invKey K)  : analz H) then    \
-\               insert (Crypt X' K) (analz (insert X' H)) \
-\          else insert (Crypt X' K) (analz H))";
-by (excluded_middle_tac "Key (invKey K)  : analz H " 1);
+\               insert (Crypt X K) (analz (insert X H)) \
+\          else insert (Crypt X K) (analz H))";
+by (case_tac "Key (invKey K)  : analz H " 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt, 
                                                analz_insert_Decrypt])));
 qed "analz_Crypt_if";

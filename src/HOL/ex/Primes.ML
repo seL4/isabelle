@@ -92,9 +92,9 @@ qed "gcd_ind";
 goal thy "ALL m. (egcd m n dvd m) & (egcd m n dvd n)";
 by (res_inst_tac [("n","n")] less_induct 1);
 by (rtac allI 1);
-by (excluded_middle_tac "n=0" 1);
+by (case_tac "n=0" 1);
 (* case n = 0 *)
-by (Asm_simp_tac 2);
+by (Asm_simp_tac 1);
 (* case n > 0 *)
 by (asm_full_simp_tac (!simpset addsimps [zero_less_eq RS sym]) 1);
 by (eres_inst_tac [("x","m mod n")] allE 1);
@@ -126,9 +126,9 @@ qed "dvd_mod";
 goal thy "!!k. ALL m. (f dvd m) & (f dvd k) --> f dvd egcd m k";
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac allI 1);
-by (excluded_middle_tac "n=0" 1);
+by (case_tac "n=0" 1);
 (* case n = 0 *)
-by (Asm_simp_tac 2);
+by (Asm_simp_tac 1);
 (* case n > 0 *)
 by (Step_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [zero_less_eq RS sym]) 1);
