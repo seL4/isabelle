@@ -115,6 +115,9 @@ qed "subsetD";
 qed_goal "rev_subsetD" Set.thy "[| c:A;  A <= B |] ==> c:B"
  (fn prems=>  [ (REPEAT (resolve_tac (prems@[subsetD]) 1)) ]);
 
+(*Converts A<=B to x:A ==> x:B*)
+fun impOfSubs th = th RSN (2, rev_subsetD);
+
 qed_goal "contra_subsetD" Set.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
  (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
 
