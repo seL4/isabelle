@@ -12,14 +12,14 @@ theory NS_Public = Public:
 consts  ns_public  :: "event list set"
 
 inductive ns_public
-  intros 
+  intros
          (*Initial trace is empty*)
    Nil:  "[] \<in> ns_public"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-   Fake: "\<lbrakk>evs \<in> ns_public;  X \<in> synth (analz (spies evs))\<rbrakk>
+   Fake: "\<lbrakk>evs \<in> ns_public;  X \<in> synth (analz (knows Spy evs))\<rbrakk>
           \<Longrightarrow> Says Spy B X  # evs \<in> ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
@@ -48,23 +48,23 @@ declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 (*A "possibility property": there are traces that reach the end*)
 lemma "\<exists>NB. \<exists>evs \<in> ns_public. Says A B (Crypt (pubK B) (Nonce NB)) \<in> set evs"
 apply (intro exI bexI)
-apply (rule_tac [2] ns_public.Nil [THEN ns_public.NS1, THEN ns_public.NS2, 
+apply (rule_tac [2] ns_public.Nil [THEN ns_public.NS1, THEN ns_public.NS2,
                                    THEN ns_public.NS3])
 by possibility
 
 
 (**** Inductive proofs about ns_public ****)
 
-(** Theorems of the form X \<notin> parts (spies evs) imply that NOBODY
+(** Theorems of the form X \<notin> parts (knows Spy evs) imply that NOBODY
     sends messages containing X! **)
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
-lemma Spy_see_priK [simp]: 
-      "evs \<in> ns_public \<Longrightarrow> (Key (priK A) \<in> parts (spies evs)) = (A \<in> bad)"
+lemma Spy_see_priK [simp]:
+      "evs \<in> ns_public \<Longrightarrow> (Key (priK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 by (erule ns_public.induct, auto)
 
-lemma Spy_analz_priK [simp]: 
-      "evs \<in> ns_public \<Longrightarrow> (Key (priK A) \<in> analz (spies evs)) = (A \<in> bad)"
+lemma Spy_analz_priK [simp]:
+      "evs \<in> ns_public \<Longrightarrow> (Key (priK A) \<in> analz (knows Spy evs)) = (A \<in> bad)"
 by auto
 
 
@@ -73,22 +73,23 @@ by auto
 
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
   is secret.  (Honest users generate fresh nonces.)*)
-lemma no_nonce_NS1_NS2 [rule_format]: 
-      "evs \<in> ns_public 
-       \<Longrightarrow> Crypt (pubK C) \<lbrace>NA', Nonce NA, Agent D\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-           Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>  
-           Nonce NA \<in> analz (spies evs)"
+lemma no_nonce_NS1_NS2:
+      "\<lbrakk>Crypt (pubK C) \<lbrace>NA', Nonce NA, Agent D\<rbrace> \<in> parts (knows Spy evs);
+        Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (knows Spy evs);
+        evs \<in> ns_public\<rbrakk>
+       \<Longrightarrow> Nonce NA \<in> analz (knows Spy evs)"
+apply (erule rev_mp, erule rev_mp)
 apply (erule ns_public.induct, simp_all)
 apply (blast intro: analz_insertI)+
 done
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
-lemma unique_NA: 
-     "\<lbrakk>Crypt(pubK B)  \<lbrace>Nonce NA, Agent A \<rbrace> \<in> parts(spies evs);  
-       Crypt(pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts(spies evs);  
-       Nonce NA \<notin> analz (spies evs); evs \<in> ns_public\<rbrakk>
+lemma unique_NA:
+     "\<lbrakk>Crypt(pubK B)  \<lbrace>Nonce NA, Agent A \<rbrace> \<in> parts(knows Spy evs);
+       Crypt(pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts(knows Spy evs);
+       Nonce NA \<notin> analz (knows Spy evs); evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> A=A' \<and> B=B'"
-apply (erule rev_mp, erule rev_mp, erule rev_mp)   
+apply (erule rev_mp, erule rev_mp, erule rev_mp)
 apply (erule ns_public.induct, simp_all)
 (*Fake, NS1*)
 apply (blast intro: analz_insertI)+
@@ -98,11 +99,11 @@ done
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure
   The major premise "Says A B ..." makes it a dest-rule, so we use
   (erule rev_mp) rather than rule_format. *)
-theorem Spy_not_see_NA: 
+theorem Spy_not_see_NA:
       "\<lbrakk>Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;
-        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                     
-       \<Longrightarrow> Nonce NA \<notin> analz (spies evs)"
-apply (erule rev_mp)   
+        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
+       \<Longrightarrow> Nonce NA \<notin> analz (knows Spy evs)"
+apply (erule rev_mp)
 apply (erule ns_public.induct, simp_all)
 apply spy_analz
 apply (blast dest: unique_NA intro: no_nonce_NS1_NS2)+
@@ -111,9 +112,9 @@ done
 
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
-lemma A_trusts_NS2_lemma [rule_format]: 
-   "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                     
-    \<Longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs) \<longrightarrow>
+lemma A_trusts_NS2_lemma [rule_format]:
+   "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
+    \<Longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
 	Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
 	Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
@@ -121,19 +122,19 @@ apply (erule ns_public.induct, simp_all)
 apply (blast dest: Spy_not_see_NA)+
 done
 
-theorem A_trusts_NS2: 
-     "\<lbrakk>Says A  B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;   
+theorem A_trusts_NS2:
+     "\<lbrakk>Says A  B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs;
        Says B' A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs;
-       A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                     
+       A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
 by (blast intro: A_trusts_NS2_lemma)
 
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
 lemma B_trusts_NS1 [rule_format]:
-     "evs \<in> ns_public                                         
-      \<Longrightarrow> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs) \<longrightarrow>
-	  Nonce NA \<notin> analz (spies evs) \<longrightarrow>
+     "evs \<in> ns_public
+      \<Longrightarrow> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
+	  Nonce NA \<notin> analz (knows Spy evs) \<longrightarrow>
 	  Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
 (*Fake*)
@@ -144,27 +145,33 @@ done
 
 (*** Authenticity properties obtained from NS2 ***)
 
-(*Unicity for NS2: nonce NB identifies nonce NA and agents A, B 
+(*Unicity for NS2: nonce NB identifies nonce NA and agents A, B
   [unicity of B makes Lowe's fix work]
   [proof closely follows that for unique_NA] *)
 
-lemma unique_NB [dest]: 
-     "\<lbrakk>Crypt(pubK A)  \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts(spies evs);
-       Crypt(pubK A') \<lbrace>Nonce NA', Nonce NB, Agent B'\<rbrace> \<in> parts(spies evs);
-       Nonce NB \<notin> analz (spies evs); evs \<in> ns_public\<rbrakk>
+lemma unique_NB [dest]:
+     "\<lbrakk>Crypt(pubK A)  \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts(knows Spy evs);
+       Crypt(pubK A') \<lbrace>Nonce NA', Nonce NB, Agent B'\<rbrace> \<in> parts(knows Spy evs);
+       Nonce NB \<notin> analz (knows Spy evs); evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> A=A' \<and> NA=NA' \<and> B=B'"
-apply (erule rev_mp, erule rev_mp, erule rev_mp)   
+apply (erule rev_mp, erule rev_mp, erule rev_mp)
 apply (erule ns_public.induct, simp_all)
 (*Fake, NS2*)
 apply (blast intro: analz_insertI)+
 done
 
 
+
+text{*
+@{thm[display] analz_Crypt_if[no_vars]}
+\rulename{analz_Crypt_if}
+*}
+
 (*Secrecy: Spy does not see the nonce sent in msg NS2 if A and B are secure*)
 theorem Spy_not_see_NB [dest]:
      "\<lbrakk>Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs;
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
-      \<Longrightarrow> Nonce NB \<notin> analz (spies evs)"
+      \<Longrightarrow> Nonce NB \<notin> analz (knows Spy evs)"
 apply (erule rev_mp)
 apply (erule ns_public.induct, simp_all)
 apply spy_analz
@@ -176,15 +183,15 @@ done
   in message 2, then A has sent message 3.*)
 lemma B_trusts_NS3_lemma [rule_format]:
      "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk> \<Longrightarrow>
-      Crypt (pubK B) (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
+      Crypt (pubK B) (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
       Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs \<longrightarrow>
       Says A B (Crypt (pubK B) (Nonce NB)) \<in> set evs"
 by (erule ns_public.induct, auto)
 
 theorem B_trusts_NS3:
      "\<lbrakk>Says B A  (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs;
-       Says A' B (Crypt (pubK B) (Nonce NB)) \<in> set evs;             
-       A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                    
+       Says A' B (Crypt (pubK B) (Nonce NB)) \<in> set evs;
+       A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> Says A B (Crypt (pubK B) (Nonce NB)) \<in> set evs"
 by (blast intro: B_trusts_NS3_lemma)
 
@@ -195,7 +202,7 @@ by (blast intro: B_trusts_NS3_lemma)
   NA, then A initiated the run using NA.*)
 theorem B_trusts_protocol:
      "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk> \<Longrightarrow>
-      Crypt (pubK B) (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
+      Crypt (pubK B) (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
       Says B A  (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs \<longrightarrow>
       Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
 by (erule ns_public.induct, auto)
