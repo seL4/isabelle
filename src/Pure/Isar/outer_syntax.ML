@@ -46,6 +46,7 @@ sig
   val dest_keywords: unit -> string list
   val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
+  val print_help: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
@@ -190,6 +191,13 @@ fun print_outer_syntax () =
     Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
       (map pretty_cmd int_cmds))
   end;
+
+val print_help =
+  Toplevel.imperative print_outer_syntax o
+  Toplevel.keep (fn state =>
+    (print_outer_syntax ();
+      Method.help_methods (Toplevel.theory_of state);
+      Attrib.help_attributes (Toplevel.theory_of state)));
 
 
 

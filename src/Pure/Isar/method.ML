@@ -14,6 +14,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  val help_methods: theory -> unit
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val FINISHED: tactic -> tactic
   val METHOD: (thm list -> tactic) -> Proof.method
@@ -174,19 +175,23 @@ struct
       meths = Symtab.merge eq_snd (meths1, meths2) handle Symtab.DUPS dups =>
         error ("Attempt to merge different versions of methods " ^ commas_quote dups)};
 
-  fun print _ {space, meths} =
+  fun print_meths verbose {space, meths} =
     let
       fun prt_meth (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      Pretty.writeln (Display.pretty_name_space ("method name space", space));
+      if not verbose then ()
+      else Pretty.writeln (Display.pretty_name_space ("method name space", space));
       Pretty.writeln (Pretty.big_list "methods:"
         (map prt_meth (NameSpace.cond_extern_table space meths)))
     end;
+
+  fun print _ = print_meths true;
 end;
 
 structure MethodsData = TheoryDataFun(MethodsDataArgs);
 val print_methods = MethodsData.print;
+val help_methods = MethodsDataArgs.print_meths false o MethodsData.get;
 
 
 (* get methods *)
