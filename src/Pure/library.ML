@@ -129,6 +129,8 @@ sig
   val commas_quote: string list -> string
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
+  val std_output: string -> unit
+  val prefix_lines: string -> string -> string
   val split_lines: string -> string list
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
@@ -1040,26 +1042,21 @@ fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
+fun std_output s =
+  (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 
-local
-  fun out s =
-    (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
-
-  fun prefix_lines prfx txt =
-    txt |> split_lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
-in
+fun prefix_lines prfx txt =
+  txt |> split_lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
 
 (*hooks for output channels: normal, warning, error*)
-val prs_fn = ref (fn s => out s);
-val warning_fn = ref (fn s => out (prefix_lines "### " s));
-val error_fn = ref (fn s => out (prefix_lines "*** " s));
-
-end;
+val prs_fn = ref (fn s => std_output s);
+val warning_fn = ref (fn s => std_output (prefix_lines "### " s));
+val error_fn = ref (fn s => std_output (prefix_lines "*** " s));
 
 fun prs s = !prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
-fun warning s = !warning_fn s;
+fun warning s = ! warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
