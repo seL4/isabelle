@@ -4,10 +4,9 @@
     Copyright   1988  University of Cambridge
 *)
 
-(*Environments
-  Should take account that typ is part of variable name,
-    otherwise two variables with same name and different types
-    will cause errors!
+(*Environments.  They don't take account that typ is part of variable name.
+                 Therefore we check elsewhere that  two variables with same
+		 names and different types cannot occur.
 *)
 
 
@@ -15,14 +14,12 @@ signature ENVIR =
 sig
   type 'a xolist
   exception ENVIR of string * indexname;
-  datatype env = Envir of {asol: term xolist,
-                           iTs: (indexname * typ) list,
-                           maxidx: int}
+  datatype env = Envir of {asol: term xolist, iTs: typ xolist, maxidx: int}
   val alist_of		: env -> (indexname * term) list
   val alist_of_olist	: 'a xolist -> (indexname * 'a) list
   val empty		: int->env
   val is_empty		: env -> bool
-  val minidx		: env -> int option
+  val above		: int * env -> bool
   val genvar		: string -> env * typ -> env * term
   val genvars		: string -> env * typ list -> env * term list
   val lookup		: env * indexname -> term option
@@ -37,45 +34,45 @@ structure Envir : ENVIR =
 struct
 
 (*association lists with keys in ascending order, no repeated keys*)
-datatype 'a xolist = Olist of (indexname * 'a) list;
+type 'a xolist = (indexname * 'a) list;
 
 
 exception ENVIR of string * indexname;
 
 (*look up key in ordered list*)
-fun xsearch (Olist[], key) = None
-  | xsearch (Olist ((keyi,xi)::pairs), key) =
-      if xless(keyi,key) then xsearch (Olist pairs, key)
+fun xsearch ([], key) = None
+  | xsearch (((keyi,xi)::pairs), key) =
+      if xless(keyi,key) then xsearch (pairs, key)
       else if key=keyi then Some xi
       else None;
 
 (*insert pair in ordered list, reject if key already present*)
-fun xinsert_new (newpr as (key, x), Olist al) =
+fun xinsert_new (newpr as (key, x), al) =
   let fun insert [] = [newpr]
         | insert ((pair as (keyi,xi)) :: pairs) =
             if xless(keyi,key) then pair :: insert pairs
             else if key=keyi then
                 raise ENVIR("xinsert_new: already present",key)
             else newpr::pair::pairs
-  in  Olist (insert al)  end;
+  in  (insert al)  end;
 
 (*insert pair in ordered list, overwrite if key already present*)
-fun xinsert (newpr as (key, x), Olist al) =
+fun xinsert (newpr as (key, x), al) =
   let fun insert [] = [newpr]
         | insert ((pair as (keyi,xi)) :: pairs) =
             if xless(keyi,key) then pair :: insert pairs
             else if key=keyi then newpr::pairs
             else newpr::pair::pairs
-  in  Olist (insert al)  end;
+  in  (insert al)  end;
 
 (*apply function to the contents part of each pair*)
-fun xmap f (Olist pairs) =
+fun xmap f (pairs) =
   let fun xmp [] = []
         | xmp ((key,x)::pairs) = (key, f x) :: xmp pairs
-  in Olist (xmp pairs)  end;
+  in (xmp pairs)  end;
 
 (*allows redefinition of a key by "join"ing the contents parts*)
-fun xmerge_olists join (Olist pairsa, Olist pairsb) =
+fun xmerge_olists join (pairsa, pairsb) =
   let fun xmrg ([],pairsb) = pairsb
         | xmrg (pairsa,[]) = pairsa
         | xmrg ((keya,x)::pairsa, (keyb,y)::pairsb) =
@@ -84,13 +81,13 @@ fun xmerge_olists join (Olist pairsa, Olist pairsb) =
             else if xless(keyb,keya) then
                 (keyb,y) :: xmrg ((keya,x)::pairsa, pairsb)
             else (*equal*)  (keya, join(x,y)) :: xmrg (pairsa, pairsb)
-  in  Olist (xmrg (pairsa,pairsb))  end;
+  in  (xmrg (pairsa,pairsb))  end;
 
-val null_olist = Olist[];
+val null_olist = [];
 
-fun alist_of_olist (Olist pairs) = pairs;
+fun alist_of_olist (pairs) = pairs;
 
-fun olist_of_alist pairs = foldr xinsert (pairs, Olist[]);
+fun olist_of_alist pairs = foldr xinsert (pairs, []);
 
 
 
@@ -100,7 +97,7 @@ fun olist_of_alist pairs = foldr xinsert (pairs, Olist[]);
 datatype env = Envir of
     {maxidx: int,               (*maximum index of vars*)
      asol: term xolist,         (*table of assignments to Vars*)
-     iTs: (indexname*typ)list}  (*table of assignments to TVars*)
+     iTs:  typ  xolist}         (*table of assignments to TVars*)
 
 
 (*Generate a list of distinct variables.
@@ -126,16 +123,16 @@ fun update ((xname, t), Envir{maxidx, asol, iTs}) =
 (*The empty environment.  New variables will start with the given index.*)
 fun empty m = Envir{maxidx=m, asol=null_olist, iTs=[]};
 
-(*is_empty*)
-fun is_empty (Envir {asol = Olist [], iTs = [], ...}) = true
+(*Test for empty environment*)
+fun is_empty (Envir {asol = [], iTs = [], ...}) = true
   | is_empty _ = false;
 
-(*minidx*)
-fun minidx (Envir {asol = Olist asns, iTs, ...}) =
-  (case (asns, iTs) of
-    ([], []) => None
-  | (((_, i), _) :: _, _) => Some (min (i :: map (snd o fst) iTs))
-  | _ => Some (min (map (snd o fst) iTs)));
+(*Determine if the least index updated exceeds lim*)
+fun above (lim, Envir {asol, iTs, ...}) = 
+    let fun upd [] = true
+	  | upd (i::is) = i>lim andalso upd is
+    in  upd (map (#2 o #1) asol @ (map (#2 o #1) iTs))
+    end;
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
 fun vupdate((a,t), env) = case t of
