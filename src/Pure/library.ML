@@ -415,6 +415,15 @@ val commas_quote = commas o map quote;
 (*concatenate messages, one per line, into a string*)
 val cat_lines = space_implode "\n";
 
+(*space_explode "." "h.e..l.lo"; gives ["h", "e", "l", "lo"]*)
+fun space_explode sep s =
+  let fun divide [] "" = []
+        | divide [] part = [part]
+        | divide (c::s) part =
+            if c = sep then
+              (if part = "" then divide s "" else part :: divide s "")
+            else divide s (part ^ c)
+  in divide (explode s) "" end;
 
 
 (** lists as sets **)
@@ -698,23 +707,39 @@ fun exit_use fname = use fname handle _ => exit 1;
 
 (** filenames **)
 
-(*convert UNIX filename of the form "path/file" to "path/" and "file";
+(*Convert UNIX filename of the form "path/file" to "path/" and "file";
   if filename contains no slash, then it returns "" and "file"*)
 val split_filename =
   (pairself implode) o take_suffix (not_equal "/") o explode;
 
 val base_name = #2 o split_filename;
 
-(*merge splitted filename (path and file);
+(*Merge splitted filename (path and file);
   if path does not end with one a slash is appended*)
 fun tack_on "" name = name
   | tack_on path name =
       if last_elem (explode path) = "/" then path ^ name
       else path ^ "/" ^ name;
 
-(*remove the extension of a filename, i.e. the part after the last '.'*)
+(*Remove the extension of a filename, i.e. the part after the last '.'*)
 val remove_ext = implode o #1 o take_suffix (not_equal ".") o explode;
 
+(*Make relative path to reach an absolute location from a different one*)
+fun relative_path cur_path dest_path =
+  let (*Remove common beginning of both paths and make relative path*)
+      fun mk_relative [] [] = []
+        | mk_relative [] ds = ds
+        | mk_relative cs [] = map (fn _ => "..") cs
+        | mk_relative (c::cs) (d::ds) =
+            if c = d then mk_relative cs ds
+            else ".." :: map (fn _ => "..") cs @ (d::ds);
+  in if cur_path = "" orelse hd (explode cur_path) <> "/" orelse
+        dest_path = "" orelse hd (explode dest_path) <> "/" then
+       error "Relative or empty path passed to relative_path"
+     else ();
+     space_implode "/" (mk_relative (space_explode "/" cur_path)
+                                    (space_explode "/" dest_path))
+  end;
 
 
 (** misc functions **)
