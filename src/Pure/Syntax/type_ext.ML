@@ -196,7 +196,7 @@ val type_ext = mk_syn_ext false ["dummy"]
    Mfix ("_",           longidT --> typeT,             "", [], max_pri),
    Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
-   Mfix ("'_::_",       sortT --> typeT,               "_dummy_ofsort", [0], max_pri),
+   Mfix ("'_()::_",     sortT --> typeT,               "_dummy_ofsort", [0], max_pri),
    Mfix ("_",           idT --> sortT,                 "", [], max_pri),
    Mfix ("_",           longidT --> sortT,             "", [], max_pri),
    Mfix ("{}",          sortT,                         "_topsort", [], max_pri),
