@@ -32,13 +32,13 @@ sig
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val reset: transition -> transition
-  val init: (state -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
+  val init: (bool -> state -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
   val exit: transition -> transition
   val kill: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val history: (node History.T -> node History.T) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
-  val init_theory: (unit -> theory) -> (theory -> unit) -> (theory -> unit)
+  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit)
     -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val theory_to_proof: (bool -> theory -> ProofHistory.T) -> transition -> transition
@@ -205,7 +205,7 @@ end;
 
 datatype trans =
   Reset |                                       (*empty toplevel*)
-  Init of (state -> node) * ((node -> unit) * (node -> unit)) |
+  Init of (bool -> state -> node) * ((node -> unit) * (node -> unit)) |
     (*push node; provide exit/kill operation*)
   Exit |                                        (*pop node*)
   Kill |                                        (*abort node*)
@@ -220,7 +220,7 @@ local
 
 fun apply_tr _ Reset _ = toplevel
   | apply_tr int (Init (f, term)) (state as State nodes) =
-      State ((History.init (undo_limit int) (f state), term) :: nodes)
+      State ((History.init (undo_limit int) (f int state), term) :: nodes)
   | apply_tr _ Exit (State []) = raise UNDEF
   | apply_tr _ Exit (State ((node, (exit, _)):: nodes)) =
       (exit (History.current node); State nodes)
@@ -310,7 +310,7 @@ val app_current = add_trans o AppCurrent;
 fun imperative f = keep (fn _ => f ());
 
 fun init_theory f exit kill =
-  init (fn _ => Theory (f ()))
+  init (fn int => fn _ => Theory (f int))
     (fn Theory thy => exit thy | _ => raise UNDEF)
     (fn Theory thy => kill thy | _ => raise UNDEF);
 
