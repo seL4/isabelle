@@ -11,13 +11,13 @@ use "thy_parse.ML";
 use "thy_syn.ML";
 use "thm_database.ML";
 use "../../Provers/simplifier.ML";
-
+use "symbol_input.ML";
 use "thy_read.ML";
 
 structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
 structure ThmDB = ThmDBFun();
 structure ReadThy = ReadthyFun(structure ThySyn = ThySyn and ThmDB = ThmDB);
-open ThmDB ReadThy;
+open ThmDB ReadThy SymbolInput;
 
 
 fun init_thy_reader () =
