@@ -19,13 +19,16 @@ The approach was developed independently by Roy Dyckhoff and L C Paulson.
 signature INT_PROVER = 
   sig
   val best_tac: int -> tactic
+  val best_dup_tac: int -> tactic
   val fast_tac: int -> tactic
   val inst_step_tac: int -> tactic
   val safe_step_tac: int -> tactic
   val safe_brls: (bool * thm) list
   val safe_tac: tactic
   val step_tac: int -> tactic
+  val step_dup_tac: int -> tactic
   val haz_brls: (bool * thm) list
+  val haz_dup_brls: (bool * thm) list
   end;
 
 
@@ -50,6 +53,11 @@ val haz_brls =
       (true,allE), (true,not_impE), (true,imp_impE), (true,iff_impE),
       (true,all_impE), (true,ex_impE), (true,impE) ];
 
+val haz_dup_brls =
+    [ (false,disjI1), (false,disjI2), (false,exI), 
+      (true,all_dupE), (true,not_impE), (true,imp_impE), (true,iff_impE),
+      (true,all_impE), (true,ex_impE), (true,impE) ];
+
 (*0 subgoals vs 1 or more: the p in safep is for positive*)
 val (safe0_brls, safep_brls) =
     partition (apl(0,op=) o subgoals_of_brl) safe_brls;
@@ -72,12 +80,20 @@ val inst_step_tac =
 (*One safe or unsafe step. *)
 fun step_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_brls i];
 
+fun step_dup_tac i = FIRST [safe_tac, inst_step_tac i, 
+			    biresolve_tac haz_dup_brls i];
+
 (*Dumb but fast*)
 val fast_tac = SELECT_GOAL (DEPTH_SOLVE (step_tac 1));
 
 (*Slower but smarter than fast_tac*)
 val best_tac = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac 1));
+
+(*Uses all_dupE: allows multiple use of universal assumptions.  VERY slow.*)
+val best_dup_tac = 
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_dup_tac 1));
+
 
 end;
 
