@@ -2,7 +2,10 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Gordon/HOL style type definitions.
+Gordon/HOL-style type definitions.
+
+TODO:
+  - typedefP: elim witness;
 *)
 
 signature TYPEDEF_PACKAGE =
@@ -62,14 +65,12 @@ fun prove_nonempty cset thms usr_tac =
       if_none usr_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     prove_goalw_cterm [] goal (K [tac])
-  end
-  handle ERROR =>
-    error ("Failed to prove nonemptiness of " ^ quote (string_of_cterm cset));
+  end handle ERROR => error ("Failed to prove nonemptiness of " ^ quote (string_of_cterm cset));
 
 
 (* gen_add_typedef *)
 
-fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac thy =
+fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set thm_names thms usr_tac thy =
   let
     val _ = Theory.requires thy "Set" "typedefs";
     val sign = sign_of thy;
@@ -131,7 +132,7 @@ fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac 
     else error (cat_lines errs);
 
     message ("Proving nonemptiness of " ^ quote name ^ " ...");
-    prove_nonempty cset (map (get_axiom thy) axms @ thms) usr_tac;
+    prove_nonempty cset (PureThy.get_thmss thy thm_names @ thms) usr_tac;
 
     thy
     |> PureThy.add_typedecls [(t, vs, mx)]
@@ -147,9 +148,7 @@ fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac 
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
       (Abs_name ^ "_inverse", abs_type_inv)]
-  end
-  handle ERROR =>
-    error ("The error(s) above occurred in typedef " ^ quote name);
+  end handle ERROR => error ("The error(s) above occurred in typedef " ^ quote name);
 
 
 (* external interfaces *)
@@ -164,5 +163,30 @@ val add_typedef = gen_add_typedef read_term false;
 val add_typedef_i = gen_add_typedef cert_term false;
 val add_typedef_i_no_def = gen_add_typedef cert_term true;
 
+
+(* outer syntax *)
+
+open OuterParse;
+
+
+val typedeclP =
+  OuterSyntax.parser false "typedecl" "HOL type declaration"
+    ((type_args -- name -- opt_mixfix) >> (fn ((vs, t), mx) =>
+      Toplevel.theory (add_typedecls [(t, vs, mx)])));
+
+val opt_witness =
+  Scan.optional ($$$ "(" |-- !!! (list1 xname --| $$$ ")")) [];
+
+val typedef_decl =
+  Scan.option ($$$ "(" |-- name --| $$$ ")") --
+    (type_args -- name) -- opt_infix -- ($$$ "=" |-- term -- opt_witness);
+
+val typedefP =
+  OuterSyntax.parser false "typedef" "HOL type definition"
+    (typedef_decl >> (fn (((opt_name, (vs, t)), mx), (A, witn)) =>
+      Toplevel.theory (add_typedef (if_none opt_name t) (t, vs, mx) A witn [] None)));
+
+
+val _ = OuterSyntax.add_parsers [typedeclP, typedefP];
 
 end;
