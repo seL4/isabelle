@@ -104,7 +104,7 @@ goal Nat.thy "!!i. Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
-by (fast_tac (!claset addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
+by (blast_tac (!claset addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
 by (REPEAT (ares_tac [Limit_has_0 RS ltD,
                       Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
@@ -186,11 +186,11 @@ qed "succ_lt_induct";
 (** nat_case **)
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,0) = a";
-by (fast_tac (!claset addIs [the_equality]) 1);
+by (blast_tac (!claset addIs [the_equality]) 1);
 qed "nat_case_0";
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
-by (fast_tac (!claset addIs [the_equality]) 1);
+by (blast_tac (!claset addIs [the_equality]) 1);
 qed "nat_case_succ";
 
 Addsimps [nat_case_0, nat_case_succ];

@@ -74,7 +74,7 @@ val major::prems = goal Zorn.thy
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
 by (etac Union_lemma0 2);               (*or just Blast_tac*)
-by (fast_tac (subset_cs addIs [increasing_trans]) 1);
+by (blast_tac (subset_cs addIs [increasing_trans]) 1);
 qed "TFin_linear_lemma1";
 
 (*Lemma 2 of section 3.2.  Interesting in its own right!
@@ -88,7 +88,7 @@ by (rtac (impI RS ballI) 1);
 by (res_inst_tac [("n1","n"), ("m1","x")] 
     (TFin_linear_lemma1 RS disjE) 1  THEN  REPEAT (assume_tac 1));
 by (dres_inst_tac [("x","n")] bspec 1 THEN assume_tac 1);
-by (fast_tac (subset_cs addIs [increasing_trans]) 1);
+by (blast_tac (subset_cs addIs [increasing_trans]) 1);
 by (REPEAT (ares_tac [disjI1,equalityI] 1));
 (*second induction step*)
 by (rtac (impI RS ballI) 1);
@@ -100,7 +100,7 @@ by (ball_tac 1);
 by (set_mp_tac 1);
 by (res_inst_tac [("n1","n"), ("m1","x")] 
     (TFin_linear_lemma1 RS disjE) 1  THEN  REPEAT (assume_tac 1));
-by (fast_tac subset_cs 1);
+by (blast_tac subset_cs 1);
 by (rtac (ninc RS increasingD2 RS subset_trans RS disjI1) 1);
 by (REPEAT (ares_tac [TFin_is_subset] 1));
 qed "TFin_linear_lemma2";
@@ -119,7 +119,7 @@ goal Zorn.thy
 \           |] ==> n<=m | m<=n";
 by (rtac (TFin_linear_lemma2 RSN (3,TFin_linear_lemma1) RS disjE) 1);
 by (REPEAT (assume_tac 1) THEN etac disjI2 1);
-by (fast_tac (subset_cs addIs [increasingD2 RS subset_trans, 
+by (blast_tac (subset_cs addIs [increasingD2 RS subset_trans, 
                                TFin_is_subset]) 1);
 qed "TFin_subset_linear";
 
@@ -132,7 +132,7 @@ by (rtac (major RS TFin_induct) 1);
 by (dtac TFin_subsetD 1);
 by (REPEAT (assume_tac 1));
 by (fast_tac (!claset addEs [ssubst]) 1);
-by (fast_tac (subset_cs addIs [TFin_is_subset]) 1);
+by (blast_tac (subset_cs addIs [TFin_is_subset]) 1);
 qed "equal_next_upper";
 
 (*Property 3.3 of section 3.3*)
@@ -146,7 +146,7 @@ by (REPEAT (assume_tac 1));
 by (etac ssubst 1);
 by (rtac (increasingD2 RS equalityI) 1 THEN assume_tac 1);
 by (ALLGOALS
-    (fast_tac (subset_cs addIs [TFin_UnionI, TFin_nextI, TFin_is_subset])));
+    (blast_tac (subset_cs addIs [TFin_UnionI, TFin_nextI, TFin_is_subset])));
 qed "equal_next_Union";
 
 
@@ -201,8 +201,8 @@ by (rtac CollectI 1);
 by (rtac lam_type 1);
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (fast_tac (!claset addSIs [super_subset_chain RS subsetD,
-                            chain_subset_Pow RS subsetD,
-                            choice_super]) 1);
+			      chain_subset_Pow RS subsetD,
+			      choice_super]) 1);
 (*Now, verify that it increases*)
 by (asm_simp_tac (!simpset addsimps [Pow_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
@@ -340,7 +340,7 @@ goal AC.thy
     "!!S. [| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S        \
 \         |] ==> ch ` (S-X) : S-X";
 by (etac apply_type 1);
-by (fast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
@@ -363,7 +363,7 @@ by (asm_simp_tac (!simpset addsimps [Pow_iff, subset_consI, subset_refl]
 (*Type checking is surprisingly hard!*)
 by (asm_simp_tac (!simpset addsimps [Pow_iff, cons_subset_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
-by (fast_tac (!claset addSIs [choice_Diff RS DiffD1]) 1);
+by (blast_tac (!claset addSIs [choice_Diff RS DiffD1]) 1);
 qed "Zermelo_next_exists";
 
 
@@ -377,12 +377,12 @@ goal Zorn.thy
 by (res_inst_tac [("d", "%y. ch`(S-y)")] lam_injective 1);
 by (rtac DiffI 1);
 by (resolve_tac [Collect_subset RS TFin_UnionI] 1);
-by (fast_tac (!claset addSIs [Collect_subset RS TFin_UnionI]
+by (blast_tac (!claset addSIs [Collect_subset RS TFin_UnionI]
                       addEs [equalityE]) 1);
 by (subgoal_tac "x ~: Union({y: TFin(S,next). x~: y})" 1);
-by (fast_tac (!claset addEs [equalityE]) 2);
+by (blast_tac (!claset addEs [equalityE]) 2);
 by (subgoal_tac "Union({y: TFin(S,next). x~: y}) ~= S" 1);
-by (fast_tac (!claset addEs [equalityE]) 2);
+by (blast_tac (!claset addEs [equalityE]) 2);
 (*For proving x : next`Union(...);
   Abrial & Laffitte's justification appears to be faulty.*)
 by (subgoal_tac "~ next ` Union({y: TFin(S,next). x~: y}) <= \
@@ -394,7 +394,7 @@ by (asm_simp_tac
                      choice_Diff RS DiffD2]
            setloop split_tac [expand_if]) 2);
 by (subgoal_tac "x : next ` Union({y: TFin(S,next). x~: y})" 1);
-by (fast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
+by (blast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
 (*End of the lemmas!*)
 by (asm_full_simp_tac 
     (!simpset addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
