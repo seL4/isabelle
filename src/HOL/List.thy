@@ -1125,7 +1125,7 @@ lemma list_all2_all_nthI [intro?]:
   "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
   by (simp add: list_all2_conv_all_nth)
 
-lemma list_all2_nthD [intro?]:
+lemma list_all2_nthD:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
   by (simp add: list_all2_conv_all_nth)
 
