@@ -130,7 +130,7 @@ AddSDs [S2_parcontractD];
 goalw Comb.thy [diamond_def] "diamond parcontract";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS Blast_tac);
 qed "diamond_parcontract";
 

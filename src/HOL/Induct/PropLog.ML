@@ -186,7 +186,7 @@ val [sat] = goal PropLog.thy
     "{} |= p ==> !t. hyps p t - hyps p t0 |- p";
 by (rtac (hyps_subset RS (hyps_finite RS finite_subset_induct)) 1);
 by (simp_tac (!simpset addsimps [sat RS sat_thms_p]) 1);
-by (Step_tac 1);
+by Safe_tac;
 (*Case hyps(p,t)-insert(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
 by (rtac (insert_Diff_same RS weaken_left) 1);

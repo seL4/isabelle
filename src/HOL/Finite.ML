@@ -378,7 +378,7 @@ Addsimps [card_insert];
 goal Finite.thy "!!A. finite(A) ==> inj_onto f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (Step_tac 1);
+by Safe_tac;
 by (rewtac inj_onto_def);
 by (Blast_tac 1);
 by (stac card_insert_disjoint 1);

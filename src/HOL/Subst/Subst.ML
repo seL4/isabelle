@@ -181,7 +181,7 @@ goal Subst.thy  "v : vars_of(t <| s) --> v : srange(s) | v : vars_of(t)";
 by (induct_tac "t" 1);
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [sdom_iff,srange_iff])));
 by (Blast_tac 2);
-by (REPEAT (step_tac (!claset addIs [vars_var_iff RS iffD1 RS sym]) 1));
+by (safe_tac (!claset addSIs [exI, vars_var_iff RS iffD1 RS sym]));
 by (Auto_tac());
 qed_spec_mp "Var_intro";
 

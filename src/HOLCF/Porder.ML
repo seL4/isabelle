@@ -68,7 +68,7 @@ qed_goalw "chain_is_tord" thy [is_tord]
 "!!F. is_chain(F) ==> is_tord(range(F))"
  (fn _ =>
         [
-        (Step_tac 1),
+        Safe_tac,
         (rtac nat_less_cases 1),
         (ALLGOALS (fast_tac (!claset addIs [refl_less, chain_mono RS mp])))]);
 

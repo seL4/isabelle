@@ -44,7 +44,7 @@ by (simp_tac (!simpset addsimps [unifyRel_def,
 				 wf_inv_image, wf_lex_prod, wf_finite_psubset,
 				 wf_measure]) 1);
 (* TC *)
-by (Step_tac 1);
+by Safe_tac;
 by (simp_tac (!simpset addsimps [finite_psubset_def, finite_vars_of,
 				 lex_prod_def, measure_def, inv_image_def]) 1);
 by (rtac (monotone_vars_of RS (subset_iff_psubset_eq RS iffD1) RS disjE) 1);

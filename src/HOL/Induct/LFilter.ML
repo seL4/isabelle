@@ -187,7 +187,7 @@ qed "lfilter_K_True";
 goal thy "lfilter p (lfilter p l) = lfilter p l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS (simp_tac (!simpset setloop split_tac[expand_if])));
-by (Step_tac 1);
+by Safe_tac;
 (*Cases: p x is true or false*)
 by (Blast_tac 1);
 by (rtac (lfilter_cases RS disjE) 1);
@@ -327,7 +327,7 @@ val lmap_LCons_findRel = refl RSN (2, refl RSN (2, lmap_LCons_findRel_lemma));
 goal thy "lfilter p (lmap f l) = lmap f (lfilter (p o f) l)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS (simp_tac (!simpset setloop split_tac[expand_if])));
-by (Step_tac 1);
+by Safe_tac;
 by (Blast_tac 1);
 by (case_tac "lmap f l : Domain (findRel p)" 1);
 by (subgoal_tac "l ~: Domain (findRel(%x. p (f x)))" 2);

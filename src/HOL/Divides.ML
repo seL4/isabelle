@@ -229,7 +229,7 @@ qed "mod2_cases";
 goal thy "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
@@ -390,7 +390,7 @@ by (Simp_tac 1);
 qed "dvd_imp_le";
 
 goalw thy [dvd_def] "!!k. 0<k ==> (k dvd n) = (n mod k = 0)";
-by (Step_tac 1);
+by Safe_tac;
 by (stac mult_commute 1);
 by (Asm_simp_tac 1);
 by (eres_inst_tac [("t","n")] (mod_div_equality RS subst) 1);

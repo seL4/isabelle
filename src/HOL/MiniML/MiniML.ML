@@ -125,7 +125,7 @@ val aux_plus = result();
 Addsimps [aux_plus];
 
 goal thy "!!t::typ. new_tv n t ==> {x. ? y. x = n + y} Int free_tv t = {}";
-by (step_tac (!claset) 1);
+by Safe_tac;
 by (cut_facts_tac [aux_plus] 1);
 by (dtac new_tv_le 1);
 by (assume_tac 1);
@@ -135,7 +135,7 @@ by (Fast_tac 1);
 val new_tv_Int_free_tv_empty_type = result ();
 
 goal thy "!!sch::type_scheme. new_tv n sch ==> {x. ? y. x = n + y} Int free_tv sch = {}";
-by (step_tac (!claset) 1);
+by Safe_tac;
 by (cut_facts_tac [aux_plus] 1);
 by (dtac new_tv_le 1);
 by (assume_tac 1);

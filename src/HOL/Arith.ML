@@ -403,7 +403,7 @@ qed "diff_add_inverse2";
 Addsimps [diff_add_inverse2];
 
 goal Arith.thy "!!i j k::nat. i<=j ==> (j-i=k) = (j=k+i)";
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "le_imp_diff_is_add";
 
@@ -546,7 +546,7 @@ Addsimps [mult_less_cancel1, mult_less_cancel2];
 
 goal Arith.thy "!!k. 0<k ==> (m*k = n*k) = (m=n)";
 by (cut_facts_tac [less_linear] 1);
-by (Step_tac 1);
+by Safe_tac;
 by (assume_tac 2);
 by (ALLGOALS (dtac mult_less_mono1 THEN' assume_tac));
 by (ALLGOALS Asm_full_simp_tac);
