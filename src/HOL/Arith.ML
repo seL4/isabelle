@@ -633,6 +633,11 @@ br iffI 1;
 be add_less_imp_less_diff 1;
 qed "less_diff_conv";
 
+Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
+by (asm_full_simp_tac (simpset() addsimps [le_eq_less_Suc, less_diff_conv,
+					   Suc_diff_le RS sym]) 1);
+qed "le_diff_conv";
+
 Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
 qed "Suc_diff_Suc";
