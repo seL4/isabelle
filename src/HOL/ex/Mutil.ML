@@ -69,21 +69,13 @@ qed "domino_singleton";
 (** The union of two disjoint tilings is a tiling **)
 
 goal thy "!!t. t: tiling A ==> \
-\              ALL u: tiling A. t Int u = {} --> t Un u : tiling A";
+\              u: tiling A --> t Int u = {} --> t Un u : tiling A";
 by (etac tiling.induct 1);
 by (simp_tac (!simpset addsimps tiling.intrs) 1);
-by (asm_full_simp_tac (!simpset addsimps [Int_Un_distrib, Un_assoc]) 1);
-by (safe_tac set_cs);
-by (resolve_tac tiling.intrs 1);
-by (assume_tac 1);
-by (eresolve_tac ([bspec] RL [mp]) 1);
-by (REPEAT (fast_tac (eq_cs addEs [equalityE]) 1));
-val lemma = result();
-
-goal thy "!!t u. [| t: tiling A;  u: tiling A;  t Int u = {} |] ==> \
-\                t Un u : tiling A";
-by (fast_tac (set_cs addIs [lemma RS bspec RS mp]) 1);
-qed "tiling_UnI";
+by (fast_tac (set_cs addIs tiling.intrs
+	             addss (HOL_ss addsimps [Un_assoc,
+					     subset_empty_iff RS sym])) 1);
+bind_thm ("tiling_UnI", result() RS mp RS mp);
 
 goal thy "!!t. t:tiling domino ==> finite t";
 by (eresolve_tac [tiling.induct] 1);
