@@ -181,8 +181,11 @@ fun prepare_proof atomic rths chorn =
 		(string_of_int ngoals ^ " unsolved goals!")
             else if (not (null hyps) andalso (not (Locale.in_locale hyps sign)))
 		 then !result_error_fn state
-                ("Additional hypotheses:\n" ^ 
-                 cat_lines (map (Sign.string_of_term sign) hyps))
+                  ("Additional hypotheses:\n" ^ 
+		   cat_lines 
+		    (map (Sign.string_of_term sign) 
+		     (filter (fn x => (not (Locale.in_locale [x] sign))) 
+		      hyps)))
 	    else if not (null xshyps) then !result_error_fn state
                 ("Extra sort hypotheses: " ^
                  commas (map (Sign.str_of_sort sign) xshyps))
