@@ -114,6 +114,8 @@ lib/logo/isabelle-{small,tiny}.xpm;
 * isatool install - install binaries with absolute references to
 ISABELLE_HOME/bin;
 
+* isatool logo -- create instances of the Isabelle logo (as EPS);
+
 * print mode 'emacs' reserved for Isamode;
 
 
