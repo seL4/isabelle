@@ -2,27 +2,26 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1988  University of Cambridge
-*)
 
-(*Environments.  They don't take account that typ is part of variable name.
-                 Therefore we check elsewhere that  two variables with same
-		 names and different types cannot occur.
+Environments.  They don't take account that typ is part of variable
+name.  Therefore we check elsewhere that two variables with same names
+and different types cannot occur.
 *)
-
 
 signature ENVIR =
 sig
   datatype env = Envir of {asol: term Vartab.table, iTs: typ Vartab.table, maxidx: int}
-  val alist_of		: env -> (indexname * term) list
-  val empty		: int->env
-  val is_empty		: env -> bool
-  val above		: int * env -> bool
-  val genvar		: string -> env * typ -> env * term
-  val genvars		: string -> env * typ list -> env * term list
-  val lookup		: env * indexname -> term option
-  val norm_term		: env -> term -> term
-  val update		: (indexname * term) * env -> env
-  val vupdate		: (indexname * term) * env -> env
+  val genvars: string -> env * typ list -> env * term list
+  val genvar: string -> env * typ -> env * term
+  val lookup: env * indexname -> term option
+  val update: (indexname * term) * env -> env
+  val empty: int -> env
+  val is_empty: env -> bool
+  val above: int * env -> bool
+  val vupdate: (indexname * term) * env -> env
+  val alist_of: env -> (indexname * term) list
+  val norm_term: env -> term -> term
+  val beta_norm: term -> term
 end;
 
 structure Envir : ENVIR =
@@ -96,51 +95,51 @@ exception SAME;
 
 fun norm_term1 (asol,t) : term =
   let fun norm (Var (w,T)) =
-	    (case Vartab.lookup (asol, w) of
-		Some u => (norm u handle SAME => u)
-	      | None   => raise SAME)
-	| norm (Abs(a,T,body)) =  Abs(a, T, norm body)
-	| norm (Abs(_,_,body) $ t) = normh(subst_bound (t, body))
-	| norm (f $ t) =
-	    ((case norm f of
-	       Abs(_,_,body) => normh(subst_bound (t, body))
-	     | nf => nf $ (norm t handle SAME => t))
-	    handle SAME => f $ norm t)
-	| norm _ =  raise SAME
+            (case Vartab.lookup (asol, w) of
+                Some u => (norm u handle SAME => u)
+              | None   => raise SAME)
+        | norm (Abs(a,T,body)) =  Abs(a, T, norm body)
+        | norm (Abs(_,_,body) $ t) = normh(subst_bound (t, body))
+        | norm (f $ t) =
+            ((case norm f of
+               Abs(_,_,body) => normh(subst_bound (t, body))
+             | nf => nf $ (norm t handle SAME => t))
+            handle SAME => f $ norm t)
+        | norm _ =  raise SAME
       and normh t = norm t handle SAME => t
   in normh t end
 
 and norm_term2(asol,iTs,t) : term =
   let fun normT(Type(a,Ts)) = Type(a, normTs Ts)
-	| normT(TFree _) = raise SAME
-	| normT(TVar(v,_)) = (case Vartab.lookup (iTs, v) of
-		Some(U) => normTh U
-	      | None => raise SAME)
+        | normT(TFree _) = raise SAME
+        | normT(TVar(v,_)) = (case Vartab.lookup (iTs, v) of
+                Some(U) => normTh U
+              | None => raise SAME)
       and normTh T = ((normT T) handle SAME => T)
       and normTs([]) = raise SAME
-	| normTs(T::Ts) = ((normT T :: (normTs Ts handle SAME => Ts))
-			   handle SAME => T :: normTs Ts)
+        | normTs(T::Ts) = ((normT T :: (normTs Ts handle SAME => Ts))
+                           handle SAME => T :: normTs Ts)
       and norm(Const(a,T)) = Const(a, normT T)
-	| norm(Free(a,T)) = Free(a, normT T)
-	| norm(Var (w,T)) =
-	    (case Vartab.lookup (asol, w) of
-		Some u => normh u
-	      | None   => Var(w,normT T))
-	| norm(Abs(a,T,body)) =
-	      (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
-	| norm(Abs(_,_,body) $ t) = normh(subst_bound (t, body))
-	| norm(f $ t) =
-	    ((case norm f of
-	       Abs(_,_,body) => normh(subst_bound (t, body))
-	     | nf => nf $ normh t)
-	    handle SAME => f $ norm t)
-	| norm _ =  raise SAME
+        | norm(Free(a,T)) = Free(a, normT T)
+        | norm(Var (w,T)) =
+            (case Vartab.lookup (asol, w) of
+                Some u => normh u
+              | None   => Var(w,normT T))
+        | norm(Abs(a,T,body)) =
+              (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
+        | norm(Abs(_,_,body) $ t) = normh(subst_bound (t, body))
+        | norm(f $ t) =
+            ((case norm f of
+               Abs(_,_,body) => normh(subst_bound (t, body))
+             | nf => nf $ normh t)
+            handle SAME => f $ norm t)
+        | norm _ =  raise SAME
       and normh t = (norm t) handle SAME => t
   in normh t end;
 
-(*curried version might be slower in recursive calls*)
 fun norm_term (env as Envir{asol,iTs,...}) t : term =
-        if Vartab.is_empty iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
+  if Vartab.is_empty iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
+
+val beta_norm = norm_term (empty 0);
 
 end;
-
