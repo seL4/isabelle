@@ -60,7 +60,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 fun prove_casedist_thms new_type_names descr sorts induct thy =
   let
-    val _ = message "Proving case distinction theorems...";
+    val _ = message "Proving case distinction theorems ...";
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -99,7 +99,7 @@ fun prove_casedist_thms new_type_names descr sorts induct thy =
 fun prove_primrec_thms flat_names new_type_names descr sorts
     (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites induct thy =
   let
-    val _ = message "Constructing primrec combinators...";
+    val _ = message "Constructing primrec combinators ...";
 
     val big_name = space_implode "_" new_type_names;
     val thy0 = add_path flat_names big_name thy;
@@ -174,7 +174,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     (* prove uniqueness and termination of primrec combinators *)
 
-    val _ = message "Proving termination and uniqueness of primrec functions...";
+    val _ = message "Proving termination and uniqueness of primrec functions ...";
 
     fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
       let
@@ -263,7 +263,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     (* prove characteristic equations for primrec combinators *)
 
-    val _ = message "Proving characteristic theorems for primrec combinators..."
+    val _ = message "Proving characteristic theorems for primrec combinators ..."
 
     val rec_thms = map (fn t => prove_goalw_cterm reccomb_defs
       (cterm_of (Theory.sign_of thy2) t) (fn _ =>
@@ -284,7 +284,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
 fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
   let
-    val _ = message "Proving characteristic theorems for case combinators...";
+    val _ = message "Proving characteristic theorems for case combinators ...";
 
     val thy1 = add_path flat_names (space_implode "_" new_type_names) thy;
 
@@ -430,7 +430,7 @@ fun prove_distinctness_thms flat_names new_type_names descr sorts dist_rewrites 
 fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
     casedist_thms case_thms thy =
   let
-    val _ = message "Proving equations for case splitting...";
+    val _ = message "Proving equations for case splitting ...";
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -466,7 +466,7 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
 
 fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
   let
-    val _ = message "Proving equations for size function...";
+    val _ = message "Proving equations for size function ...";
 
     val big_name = space_implode "_" new_type_names;
     val thy1 = add_path flat_names big_name thy;
@@ -527,7 +527,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
 fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
   let
-    val _ = message "Proving additional theorems for TFL...";
+    val _ = message "Proving additional theorems for TFL ...";
 
     fun prove_nchotomy (t, exhaustion) =
       let

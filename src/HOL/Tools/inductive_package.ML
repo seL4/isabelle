@@ -238,7 +238,7 @@ fun mk_indrule cs cTs params intr_ts =
 
 fun prove_mono setT fp_fun monos thy =
   let
-    val _ = message "  Proving monotonicity...";
+    val _ = message "  Proving monotonicity ...";
 
     val mono = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
@@ -252,7 +252,7 @@ fun prove_mono setT fp_fun monos thy =
 
 fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
   let
-    val _ = message "  Proving the introduction rules...";
+    val _ = message "  Proving the introduction rules ...";
 
     val unfold = standard (mono RS (fp_def RS
       (if coind then def_gfp_Tarski else def_lfp_Tarski)));
@@ -284,7 +284,7 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
 
 fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
   let
-    val _ = message "  Proving the elimination rules...";
+    val _ = message "  Proving the elimination rules ...";
 
     val rules1 = [CollectE, disjE, make_elim vimageD];
     val rules2 = [exE, conjE, Inl_neq_Inr, Inr_neq_Inl] @
@@ -335,7 +335,7 @@ fun mk_cases elims s =
 fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     fp_def rec_sets_defs thy =
   let
-    val _ = message "  Proving the induction rule...";
+    val _ = message "  Proving the induction rule ...";
 
     val sign = Theory.sign_of thy;
 

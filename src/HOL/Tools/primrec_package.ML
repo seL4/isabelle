@@ -8,6 +8,7 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
+  val quiet_mode: bool ref
   val add_primrec: string -> ((bstring * string) * Args.src list) list
     -> theory -> theory * thm list
   val add_primrec_i: string -> ((bstring * term) * theory attribute list) list
@@ -23,7 +24,13 @@ exception RecError of string;
 
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 fun primrec_eq_err sign s eq =
-  primrec_err (s ^ "\nin equation\n" ^ Sign.string_of_term sign eq);
+  primrec_err (s ^ "\nin equation\n" ^ quote (Sign.string_of_term sign eq));
+
+
+(* messages *)
+
+val quiet_mode = ref false;
+fun message s = if ! quiet_mode then () else writeln s;
 
 
 (* preprocessing of equations *)
@@ -101,7 +108,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
                 val rest = drop (rpos, ts);
                 val (x, rs) = (hd rest, tl rest)
                   handle _ => raise RecError ("not enough arguments\
-                   \ in recursive application\nof function " ^ fname' ^ " on rhs")
+                   \ in recursive application\nof function " ^ quote fname' ^ " on rhs")
               in 
                 (case assoc (subs, x) of
                     None =>
@@ -126,8 +133,8 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
 
     fun trans eqns ((cname, cargs), (fnames', fnss', fns)) =
       (case assoc (eqns, cname) of
-          None => (warning ("no equation for constructor " ^ cname ^
-            "\nin definition of function " ^ fname);
+          None => (warning ("no equation for constructor " ^ quote cname ^
+            "\nin definition of function " ^ quote fname);
               (fnames', fnss', (Const ("arbitrary", dummyT))::fns))
         | Some (ls, cargs', rs, rhs, eq) =>
             let
@@ -148,7 +155,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
   in (case assoc (fnames, i) of
       None =>
         if exists (equal fname o snd) fnames then
-          raise RecError ("inconsistent functions for datatype " ^ tname)
+          raise RecError ("inconsistent functions for datatype " ^ quote tname)
         else
           let
             val (_, _, eqns) = the (assoc (rec_eqns, fname));
@@ -159,7 +166,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
           end
     | Some fname' =>
         if fname = fname' then (fnames, fnss)
-        else raise RecError ("inconsistent functions for datatype " ^ tname))
+        else raise RecError ("inconsistent functions for datatype " ^ quote tname))
   end;
 
 
@@ -172,7 +179,7 @@ fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
          val dummy_fns = map (fn (_, cargs) => Const ("arbitrary",
            replicate ((length cargs) + (length (filter is_rec_type cargs)))
              dummyT ---> HOLogic.unitT)) constrs;
-         val _ = warning ("no function definition for datatype " ^ tname)
+         val _ = warning ("No function definition for datatype " ^ quote tname)
        in
          (dummy_fns @ fs, defs)
        end
@@ -197,7 +204,7 @@ fun make_def sign fs (fname, ls, rec_name, tname) =
 fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
       (case Symtab.lookup (dt_info, tname) of
-          None => primrec_err (tname ^ " is not a datatype")
+          None => primrec_err (quote tname ^ " is not a datatype")
         | Some dt =>
             if tnames' subset (map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
@@ -234,8 +241,7 @@ fun add_primrec_i alt_name eqns_atts thy =
        else primrec_err ("functions " ^ commas_quote names2 ^
          "\nare not mutually recursive"));
     val rewrites = (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
-    val _ = writeln ("Proving equations for primrec function(s)\n" ^
-      commas_quote names1 ^ " ...");
+    val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
     val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
     val simps = char_thms;

@@ -529,7 +529,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val sorts = add_term_tfrees (concl_of induction', []);
     val dt_info = get_datatypes thy1;
 
-    val _ = writeln ("Proofs for datatype(s) " ^ commas new_type_names);
+    val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val (thy2, casedist_thms) = thy1 |>
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction;

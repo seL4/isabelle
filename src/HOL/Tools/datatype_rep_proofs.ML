@@ -105,7 +105,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (************** generate introduction rules for representing set **********)
 
-    val _ = message "Constructing representing sets...";
+    val _ = message "Constructing representing sets ...";
 
     (* make introduction rule for a single constructor *)
 
@@ -215,7 +215,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)
 
-    val _ = message "Proving isomorphism properties...";
+    val _ = message "Proving isomorphism properties ...";
 
     (* get axioms from theory *)
 
@@ -439,7 +439,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (******************* freeness theorems for constructors *******************)
 
-    val _ = message "Proving freeness of constructors...";
+    val _ = message "Proving freeness of constructors ...";
 
     (* prove theorem  Rep_i (Constr_j ...) = Inj_j ...  *)
     
@@ -491,7 +491,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (*************************** induction theorem ****************************)
 
-    val _ = message "Proving induction rule for datatypes...";
+    val _ = message "Proving induction rule for datatypes ...";
 
     val Rep_inverse_thms = (map (fn (_, iso, _) => iso RS subst) newT_iso_axms) @
       (map (fn r => r RS inv_f_f RS subst) (drop (length newTs, iso_inj_thms)));
