@@ -89,6 +89,7 @@ sig
   val certify_typ_no_norm: sg -> typ -> typ
   val certify_tycon: sg -> string -> string
   val certify_tyabbr: sg -> string -> string
+  val certify_tyname: sg -> string -> string
   val certify_const: sg -> string -> string
   val certify_term: sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
@@ -614,6 +615,10 @@ fun certify_tycon sg c =
 fun certify_tyabbr sg c =
   if is_some (Symtab.lookup (#abbrs (Type.rep_tsig (tsig_of sg)), c)) then c
   else raise TYPE ("Unknown type abbreviation " ^ quote c, [], []);
+
+fun certify_tyname sg c =
+  certify_tycon sg c handle TYPE _ => certify_tyabbr sg c handle TYPE _ =>
+    raise TYPE ("Unknown type name " ^ quote c, [], []);
 
 fun certify_const sg c =
   if is_some (const_type sg c) then c else raise TYPE ("Undeclared constant " ^ quote c, [], []);
