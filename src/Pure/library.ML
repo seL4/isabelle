@@ -75,6 +75,7 @@ sig
   val cons: 'a -> 'a list -> 'a list
   val single: 'a -> 'a list
   val append: 'a list -> 'a list -> 'a list
+  val apply: ('a -> 'a) list -> 'a -> 'a
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
@@ -225,6 +226,7 @@ sig
   val handle_error: ('a -> 'b) -> 'a -> 'b error
   exception ERROR_MESSAGE of string
   val transform_error: ('a -> 'b) -> 'a -> 'b
+  val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
 
   (*timing*)
   val cond_timeit: bool -> (unit -> 'a) -> 'a
@@ -396,6 +398,9 @@ fun cons x xs = x :: xs;
 fun single x = [x];
 
 fun append xs ys = xs @ ys;
+
+fun apply [] x = x
+  | apply (f :: fs) x = apply fs (f x);
 
 
 (* fold *)
@@ -1111,6 +1116,12 @@ fun transform_error f x =
   | Error msg => raise ERROR_MESSAGE msg);
 
 
+(* transform any exception, including ERROR *)
+
+fun transform_failure exn f x =
+  transform_error f x handle e => raise exn e;
+
+
 
 (** timing **)
 
@@ -1121,7 +1132,7 @@ fun cond_timeit flag f =
     let val start = startTiming()
         val result = f ()
     in
-	writeln (endTiming start);  result
+        writeln (endTiming start);  result
     end
   else f ();
 
@@ -1184,7 +1195,7 @@ fun transitive_closure [] = []
   | transitive_closure ((x, ys)::ps) =
       let val qs = transitive_closure ps
           val zs = foldl (fn (zs, y) => assocs qs y union_string zs) (ys, ys)
-          fun step(u, us) = (u, if x mem_string us then zs union_string us 
+          fun step(u, us) = (u, if x mem_string us then zs union_string us
                                 else us)
       in (x, zs) :: map step qs end;
 
@@ -1195,15 +1206,15 @@ fun transitive_closure [] = []
 local
 (*Maps 0-63 to A-Z, a-z, 0-9 or _ or ' for generating random identifiers*)
 fun char i =      if i<26 then chr (ord "A" + i)
-	     else if i<52 then chr (ord "a" + i - 26)
-	     else if i<62 then chr (ord"0" + i - 52)
-	     else if i=62 then "_"
-	     else  (*i=63*)    "'";
+             else if i<52 then chr (ord "a" + i - 26)
+             else if i<62 then chr (ord"0" + i - 52)
+             else if i=62 then "_"
+             else  (*i=63*)    "'";
 
 val charVec = Vector.tabulate (64, char);
 
-fun newid n = 
-  let 
+fun newid n =
+  let
   in  implode (map (fn i => Vector.sub(charVec,i)) (radixpand (64,n)))  end;
 
 val seedr = ref 0;
@@ -1219,7 +1230,7 @@ end;
 local
 (*Identifies those character codes legal in identifiers.
   chould use Basis Library character functions if Poly/ML provided characters*)
-fun idCode k = (ord "a" <= k andalso k < ord "z") orelse 
+fun idCode k = (ord "a" <= k andalso k < ord "z") orelse
                (ord "A" <= k andalso k < ord "Z") orelse
                (ord "0" <= k andalso k < ord "9");
 
@@ -1233,9 +1244,9 @@ in
   "_" and "'" are not changed.
   For making variants of identifiers.*)
 
-fun bump_int_list(c::cs) = 
-	if c="9" then "0" :: bump_int_list cs 
-	else
+fun bump_int_list(c::cs) =
+        if c="9" then "0" :: bump_int_list cs
+        else
         if "0" <= c andalso c < "9" then chr(ord(c)+1) :: cs
         else "1" :: c :: cs
   | bump_int_list([]) = error("bump_int_list: not an identifier");
@@ -1245,13 +1256,13 @@ fun bump_list([], d) = [d]
   | bump_list("z"::cs, _) = "a" :: bump_list(cs, "a")
   | bump_list("Z"::cs, _) = "A" :: bump_list(cs, "A")
   | bump_list("9"::cs, _) = "0" :: bump_int_list cs
-  | bump_list(c::cs, _) = 
+  | bump_list(c::cs, _) =
         let val k = ord(c)
-        in if Vector.sub(idCodeVec,k) then chr(k+1) :: cs 
-	   else
-           if c="'" orelse c="_" then c :: bump_list(cs, "") 
-	   else error("bump_list: not legal in identifier: " ^
-		      implode(rev(c::cs)))
+        in if Vector.sub(idCodeVec,k) then chr(k+1) :: cs
+           else
+           if c="'" orelse c="_" then c :: bump_list(cs, "")
+           else error("bump_list: not legal in identifier: " ^
+                      implode(rev(c::cs)))
         end;
 
 end;
