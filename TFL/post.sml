@@ -19,17 +19,17 @@ signature TFL =
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val define_i : theory -> xstring -> term -> term list
+   val define_i : theory -> string -> term -> term list
                   -> theory * Prim.pattern list
 
-   val define   : theory -> xstring -> string -> string list 
+   val define   : theory -> string -> string -> string list
                   -> theory * Prim.pattern list
 
-   val function_i : theory -> xstring 
+   val defer_i : theory -> string
                   -> thm list (* congruence rules *)
                   -> term list -> theory * thm
 
-   val function : theory -> xstring 
+   val defer : theory -> string
                   -> thm list 
                   -> string list -> theory * thm
 
@@ -241,10 +241,9 @@ struct
    #1(strip_comb(#lhs(dest_eq(#2 (strip_forall(#2(strip_imp tm)))))))
  end;
 
- fun function_i thy fid congs eqs = 
-  let val dum = Theory.requires thy "WF_Rel" "recursive function definitions"
-      val {rules,R,theory,full_pats_TCs,SV,...} = 
-	      Prim.lazyR_def thy fid congs eqs
+ fun defer_i thy fid congs eqs = 
+  let val {rules,R,theory,full_pats_TCs,SV,...} = 
+	      Prim.lazyR_def thy (Sign.base_name fid) congs eqs
       val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
       val dummy = (message "Definition made."; message "Proving induction theorem ...");
       val induction = Prim.mk_induction theory 
@@ -256,10 +255,9 @@ struct
       standard (induction RS (rules RS conjI)))
   end
 
- fun function thy fid congs seqs = 
-   let val _ =  message ("Deferred recursive function " ^ fid)
-       fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
-   in  function_i thy fid congs (map (read thy) seqs)  end
+ fun defer thy fid congs seqs = 
+   let fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[]))
+   in  defer_i thy fid congs (map (read thy) seqs)  end
    handle Utils.ERR {mesg,...} => error mesg;
 
  end;
