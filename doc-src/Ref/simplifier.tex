@@ -55,10 +55,11 @@ trace_simp        : bool ref \hfill{\bf initially false}
   simplify each other or the actual goal).
   
 \item[\ttindexbold{Asm_full_simp_tac}] is like \verb$Asm_simp_tac$,
-  but also simplifies the assumptions one by one.  Strictly working
-  from \emph{left to right}, it uses each assumption in the
-  simplification of those following.
-  
+  but also simplifies the assumptions. In particular, assumptions can
+  simplify each other.
+\footnote{\texttt{Asm_full_simp_tac} used to process the assumptions from
+  left to right. For backwards compatibilty reasons only there is now
+  \texttt{Asm_lr_simp_tac} that behaves like the old \texttt{Asm_full_simp_tac}.}
 \item[set \ttindexbold{trace_simp};] makes the simplifier output
   internal operations.  This includes rewrite steps, but also
   bookkeeping like modifications of the simpset.
@@ -101,17 +102,20 @@ is solved by \texttt{Simp_tac}, but \texttt{Asm_simp_tac} and {\tt
   Asm_simp_tac} loop because the rewrite rule $f\,\Var{x} =
 g\,(f\,(g\,\Var{x}))$ extracted from the assumption does not
 terminate.  Isabelle notices certain simple forms of nontermination,
-but not this one.
+but not this one. Because assumptions may simplify each other, there can be
+very subtle cases of nontermination.
  
 \begin{warn}
-  Since \verb$Asm_full_simp_tac$ works from left to right, it sometimes
-misses opportunities for simplification: given the subgoal
+  \verb$Asm_full_simp_tac$ may miss opportunities to simplify an assumption
+  $A@i$ using an assumption $A@j$ in case $A@j$ is to the right of $A@i$.
+  For example, given the subgoal
 \begin{ttbox}
-{\out [| P (f a); f a = t |] ==> \dots}
+{\out [| \dots f a \dots; P a; ALL x. P x --> f x = g x |] ==> \dots}
 \end{ttbox}
-\verb$Asm_full_simp_tac$ will not simplify the first assumption using the
-second but will leave the assumptions unchanged.  See
-\S\ref{sec:reordering-asms} for ways around this problem.
+\verb$Asm_full_simp_tac$ will not simplify the \texttt{f a} on the left.
+This problem can be overcome by reordering assumptions (see
+\S\ref{sec:reordering-asms}). Future versions of \verb$Asm_full_simp_tac$
+will not suffer from this deficiency.
 \end{warn}
 
 \medskip
@@ -208,11 +212,11 @@ other components to streamline proofs in more sophisticated manners.
 \subsection{Inspecting simpsets}
 \begin{ttbox}
 print_ss : simpset -> unit
-rep_ss   : simpset -> {mss        : meta_simpset, 
+rep_ss   : simpset -> \{mss        : meta_simpset, 
                        subgoal_tac: simpset  -> int -> tactic,
                        loop_tac   :             int -> tactic,
                        finish_tac : thm list -> int -> tactic,
-                unsafe_finish_tac : thm list -> int -> tactic}
+                unsafe_finish_tac : thm list -> int -> tactic\}
 \end{ttbox}
 \begin{ttdescription}
   
@@ -888,7 +892,7 @@ As mentioned in \S\ref{sec:simp-for-dummies-tacs},
 \ttindex{asm_full_simp_tac} may require the assumptions to be permuted
 to be more effective.  Given the subgoal
 \begin{ttbox}
-{\out 1. [| P(f(a)); Q; f(a) = t; R |] ==> S}
+{\out 1. [| ALL x. P x --> f x = g x; Q(f a); P a; R |] ==> S}
 \end{ttbox}
 we can rotate the assumptions two positions to the right
 \begin{ttbox}
@@ -896,26 +900,27 @@ by (rotate_tac ~2 1);
 \end{ttbox}
 to obtain
 \begin{ttbox}
-{\out 1. [| f(a) = t; R; P(f(a)); Q |] ==> S}
+{\out 1. [| P a; R; ALL x. P x --> f x = g x; Q(f a) |] ==> S}
 \end{ttbox}
-which enables \verb$asm_full_simp_tac$ to simplify \verb$P(f(a))$ to
-\verb$P(t)$.
+which enables \verb$asm_full_simp_tac$ to simplify \verb$Q(f a)$ to
+\verb$Q(g a)$ because now all required assumptions are to the left of
+\verb$Q(f a)$.
 
 Since rotation alone cannot produce arbitrary permutations, you can also pick
 out a particular assumption which needs to be rewritten and move it the the
 right end of the assumptions.  In the above case rotation can be replaced by
 \begin{ttbox}
-by (dres_inst_tac [("psi","P(f(a))")] asm_rl 1);
+by (dres_inst_tac [("psi","Q(f a)")] asm_rl 1);
 \end{ttbox}
 which is more directed and leads to
 \begin{ttbox}
-{\out 1. [| Q; f(a) = t; R; P(f(a)) |] ==> S}
+{\out 1. [| ALL x. P x --> f x = g x; P a; R; Q(f a) |] ==> S}
 \end{ttbox}
 
 \begin{warn}
   Reordering assumptions usually leads to brittle proofs and should be
-  avoided.  Future versions of \verb$asm_full_simp_tac$ may remove the
-  need for such manipulations.
+  avoided.  Future versions of \verb$asm_full_simp_tac$ will completely
+  remove the need for such manipulations.
 \end{warn}
 
 
