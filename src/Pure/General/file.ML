@@ -9,6 +9,7 @@ signature FILE =
 sig
   val sys_pack_fn: (Path.T -> string) ref
   val sys_unpack_fn: (string -> Path.T) ref
+  val sysify_path: Path.T -> string
   val rm: Path.T -> unit
   val cd: Path.T -> unit
   val pwd: unit -> Path.T
@@ -36,16 +37,16 @@ struct
 val sys_pack_fn = ref Path.pack;
 val sys_unpack_fn = ref Path.unpack;
 
-fun sysify path = ! sys_pack_fn (Path.expand path);
-fun unsysify s = ! sys_unpack_fn s;
+fun sysify_path path = ! sys_pack_fn (Path.expand path);
+fun unsysify_path s = ! sys_unpack_fn s;
 
-val rm = OS.FileSys.remove o sysify;
+val rm = OS.FileSys.remove o sysify_path;
 
 
 (* current path *)
 
-val cd = Library.cd o sysify;
-val pwd = unsysify o Library.pwd;
+val cd = Library.cd o sysify_path;
+val pwd = unsysify_path o Library.pwd;
 
 fun full_path path =
   if Path.is_absolute path then path
@@ -67,9 +68,9 @@ fun fail_safe f g x =
 
 fun output txt stream = TextIO.output (stream, txt);
 
-fun read path = fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (sysify path));
-fun write path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openOut (sysify path));
-fun append path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openAppend (sysify path));
+fun read path = fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (sysify_path path));
+fun write path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openOut (sysify_path path));
+fun append path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openAppend (sysify_path path));
 
 fun copy inpath outpath = write outpath (read inpath);
 
@@ -79,7 +80,7 @@ fun copy inpath outpath = write outpath (read inpath);
 datatype info = Info of string;
 
 fun info path =
-  let val name = sysify path in
+  let val name = sysify_path path in
     (case file_info name of
       "" => None
     | s => Some (Info s))
@@ -90,7 +91,7 @@ val exists = is_some o info;
 
 (* mkdir *)
 
-fun mkdir path = (execute ("mkdir -p " ^ enclose "'" "'" (sysify path)); ());
+fun mkdir path = (execute ("mkdir -p " ^ enclose "'" "'" (sysify_path path)); ());
 
 
 (* source *)
@@ -102,7 +103,7 @@ fun source raw_path =
 
 (* symbol_use *)
 
-val plain_use = use o sysify;
+val plain_use = use o sysify_path;
 
 (* version of 'use' with input filtering *)
 
