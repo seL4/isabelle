@@ -33,7 +33,7 @@ by (rtac indhyp 1);
 by (resolve_tac acc.intrs 1);
 by (rewtac pred_def);
 by (fast_tac set_cs 2);
-be (Int_lower1 RS Pow_mono RS subsetD) 1;
+by (etac (Int_lower1 RS Pow_mono RS subsetD) 1);
 qed "acc_induct";
 
 
@@ -46,8 +46,8 @@ qed "acc_wfI";
 
 val [major] = goal Acc.thy "wf(r) ==> ALL x. (x,y): r | (y,x):r --> y: acc(r)";
 by (rtac (major RS wf_induct) 1);
-br (impI RS allI) 1;
-br accI 1;
+by (rtac (impI RS allI) 1);
+by (rtac accI 1);
 by (fast_tac set_cs 1);
 qed "acc_wfD_lemma";
 

@@ -40,9 +40,9 @@ qed "llist_unfold";
 
 goalw LList.thy [list_Fun_def]
     "!!M. [| M : X;  X <= list_Fun A (X Un llist(A)) |] ==>  M : llist(A)";
-be llist.coinduct 1;
-be (subsetD RS CollectD) 1;
-ba 1;
+by (etac llist.coinduct 1);
+by (etac (subsetD RS CollectD) 1);
+by (assume_tac 1);
 qed "llist_coinduct";
 
 goalw LList.thy [list_Fun_def, NIL_def] "NIL: list_Fun A X";
@@ -197,9 +197,9 @@ qed "LListD_subset_diag";
 
 goalw LList.thy [LListD_Fun_def]
     "!!M. [| M : X;  X <= LListD_Fun r (X Un LListD(r)) |] ==>  M : LListD(r)";
-be LListD.coinduct 1;
-be (subsetD RS CollectD) 1;
-ba 1;
+by (etac LListD.coinduct 1);
+by (etac (subsetD RS CollectD) 1);
+by (assume_tac 1);
 qed "LListD_coinduct";
 
 goalw LList.thy [LListD_Fun_def,NIL_def] "(NIL,NIL) : LListD_Fun r s";
@@ -223,8 +223,8 @@ goal LList.thy "diag(llist(A)) <= LListD(diag(A))";
 by (rtac subsetI 1);
 by (etac LListD_coinduct 1);
 by (rtac subsetI 1);
-by (eresolve_tac [diagE] 1);
-by (eresolve_tac [ssubst] 1);
+by (etac diagE 1);
+by (etac ssubst 1);
 by (eresolve_tac [llist.elim] 1);
 by (ALLGOALS
     (asm_simp_tac (llist_ss addsimps [diagI, LListD_Fun_NIL_I,
@@ -239,7 +239,7 @@ qed "LListD_eq_diag";
 goal LList.thy 
     "!!M N. M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
-br LListD_Fun_LListD_I 1;
+by (rtac LListD_Fun_LListD_I 1);
 by (asm_simp_tac (HOL_ss addsimps [LListD_eq_diag, diagI]) 1);
 qed "LListD_Fun_diag_I";
 
@@ -425,14 +425,14 @@ val [Mlist,gMlist,NILcase,CONScase] = goal LList.thy
 \                                   diag(llist(A)))		\
 \ |] ==> f(M) = g(M)";
 by (rtac LList_equalityI 1);
-br (Mlist RS imageI) 1;
+by (rtac (Mlist RS imageI) 1);
 by (rtac subsetI 1);
 by (etac imageE 1);
 by (etac ssubst 1);
 by (etac llist.elim 1);
 by (etac ssubst 1);
 by (stac NILcase 1);
-br (gMlist RS LListD_Fun_diag_I) 1;
+by (rtac (gMlist RS LListD_Fun_diag_I) 1);
 by (etac ssubst 1);
 by (REPEAT (ares_tac [CONScase] 1));
 qed "LList_fun_equalityI";
@@ -543,9 +543,9 @@ qed "Lappend_type";
 goal LList.thy
     "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac [("X", "(%u.Lappend u N)``llist(A)")] llist_coinduct 1);
-be imageI 1;
-br subsetI 1;
-be imageE 1;
+by (etac imageI 1);
+by (rtac subsetI 1);
+by (etac imageE 1);
 by (eres_inst_tac [("a", "u")] llist.elim 1);
 by (asm_simp_tac (Lappend_ss addsimps [Lappend_NIL, list_Fun_llist_I]) 1);
 by (asm_simp_tac Lappend_ss 1);
@@ -639,7 +639,7 @@ qed "prod_fun_lemma";
 goal LList.thy
     "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
 \    diag(llist(range(Leaf)))";
-br equalityI 1;
+by (rtac equalityI 1);
 by (fast_tac (univ_cs addIs [Rep_llist]) 1);
 by (fast_tac (univ_cs addSEs [Abs_llist_inverse RS subst]) 1);
 qed "prod_fun_range_eq_diag";
@@ -677,11 +677,11 @@ qed "llistD_Fun_LCons_I";
 (*Utilise the "strong" part, i.e. gfp(f)*)
 goalw LList.thy [llistD_Fun_def]
      "!!l. (l,l) : llistD_Fun(r Un range(%x.(x,x)))";
-br (Rep_llist_inverse RS subst) 1;
-br prod_fun_imageI 1;
+by (rtac (Rep_llist_inverse RS subst) 1);
+by (rtac prod_fun_imageI 1);
 by (rtac (image_Un RS ssubst) 1);
 by (stac prod_fun_range_eq_diag 1);
-br (Rep_llist RS LListD_Fun_diag_I) 1;
+by (rtac (Rep_llist RS LListD_Fun_diag_I) 1);
 qed "llistD_Fun_range_I";
 
 (*A special case of list_equality for functions over lazy lists*)
@@ -754,8 +754,8 @@ by (simp_tac (llistD_ss addsimps [lmap_LCons]) 1);
 qed "lmap_iterates";
 
 goal LList.thy "iterates f x = LCons x (lmap f (iterates f x))";
-br (lmap_iterates RS ssubst) 1;
-br iterates 1;
+by (rtac (lmap_iterates RS ssubst) 1);
+by (rtac iterates 1);
 qed "iterates_lmap";
 
 (*** A rather complex proof about iterates -- cf Andy Pitts ***)
@@ -781,7 +781,7 @@ val Pair_cong = read_instantiate_sg (sign_of Prod.thy)
   for all u and all n::nat.*)
 val [prem] = goal LList.thy
     "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
-br ext 1;
+by (rtac ext 1);
 by (res_inst_tac [("r", 
    "UN u. range(%n. (nat_rec n (h u) (%m y.lmap f y), \
 \                    nat_rec n (iterates f u) (%m y.lmap f y)))")] 
@@ -792,12 +792,12 @@ by (stac iterates 1);
 by (stac prem 1);
 by (stac fun_power_lmap 1);
 by (stac fun_power_lmap 1);
-br llistD_Fun_LCons_I 1;
+by (rtac llistD_Fun_LCons_I 1);
 by (rtac (lmap_iterates RS subst) 1);
 by (stac fun_power_Suc 1);
 by (stac fun_power_Suc 1);
-br (UN1_I RS UnI1) 1;
-br rangeI 1;
+by (rtac (UN1_I RS UnI1) 1);
+by (rtac rangeI 1);
 qed "iterates_equality";
 
 
