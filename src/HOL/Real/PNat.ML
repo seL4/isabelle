@@ -708,3 +708,9 @@ by (auto_tac (claset(),simpset()
 qed "pnat_of_nat_less_iff";
 Addsimps [pnat_of_nat_less_iff RS sym];
 
+goalw PNat.thy [pnat_mult_def,pnat_of_nat_def] 
+      "pnat_of_nat n1 * pnat_of_nat n2 = \
+\      pnat_of_nat (n1 * n2 + n1 + n2)";
+by (auto_tac (claset(),simpset() addsimps [mult_Rep_pnat_mult,
+    pnat_add_def,Abs_pnat_inverse,gt_0_mem_pnat]));
+qed "pnat_of_nat_mult";

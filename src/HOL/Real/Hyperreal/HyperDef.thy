@@ -5,7 +5,7 @@
     Description : Construction of hyperreals using ultrafilters
 *) 
 
-HyperDef = Filter + Real +
+HyperDef = Filter + RealBin +
 
 consts 
  

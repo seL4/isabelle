@@ -748,8 +748,8 @@ qed "real_of_preal_minus_less_self";
 
 Goalw [real_zero_def] "- real_of_preal m < 0r";
 by (auto_tac (claset(),
-    simpset() addsimps [real_of_preal_def,
-    real_less_def,real_minus]));
+	      simpset() addsimps [real_of_preal_def,
+				  real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
 by (REPEAT(Blast_tac 2));
@@ -776,7 +776,7 @@ qed "real_of_preal_zero_less";
 Goal "~ real_of_preal m < 0r";
 by (cut_facts_tac [real_of_preal_zero_less] 1);
 by (blast_tac (claset() addDs [real_less_trans] 
-               addEs [real_less_irrefl]) 1);
+                        addEs [real_less_irrefl]) 1);
 qed "real_of_preal_not_less_zero";
 
 Goal "0r < - (- real_of_preal m)";
@@ -789,7 +789,7 @@ Goalw [real_zero_def]
       "0r < real_of_preal m + real_of_preal m1";
 by (auto_tac (claset(),
 	      simpset() addsimps [real_of_preal_def,
-              real_less_def,real_add]));
+				  real_less_def,real_add]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
 by (REPEAT(Blast_tac 2));

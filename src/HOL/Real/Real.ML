@@ -280,7 +280,7 @@ by (full_simp_tac (simpset() addsimps [real_of_preal_def,real_one_def,
 qed "real_of_posnat_two";
 
 Goalw [real_of_posnat_def]
-          "real_of_posnat n1 + real_of_posnat n2 = real_of_posnat (n1 + n2) + 1r";
+    "real_of_posnat n1 + real_of_posnat n2 = real_of_posnat (n1 + n2) + 1r";
 by (full_simp_tac (simpset() addsimps [real_of_posnat_one RS sym,
     real_of_posnat_def,real_of_preal_add RS sym,preal_of_prat_add RS sym,
     prat_of_pnat_add RS sym,pnat_of_nat_add]) 1);
@@ -292,13 +292,9 @@ by (rtac (real_of_posnat_add RS subst) 1);
 by (full_simp_tac (simpset() addsimps [real_of_posnat_two,real_add_assoc]) 1);
 qed "real_of_posnat_add_one";
 
-Goal "Suc n = n + 1";
-by Auto_tac;
-qed "lemmaS";
-
 Goal "real_of_posnat (Suc n) = real_of_posnat n + 1r";
-by (stac lemmaS 1);
-by (rtac real_of_posnat_add_one 1);
+by (stac (real_of_posnat_add_one RS sym) 1);
+by (Simp_tac 1);
 qed "real_of_posnat_Suc";
 
 Goal "inj(real_of_posnat)";
@@ -369,7 +365,7 @@ by (rtac (real_of_posnat_less_zero RS real_rinv_gt_zero) 1);
 qed "real_of_posnat_rinv_gt_zero";
 Addsimps [real_of_posnat_rinv_gt_zero];
 
-Goal "x+x=x*(1r+1r)";
+Goal "x+x = x*(1r+1r)";
 by (simp_tac (simpset() addsimps 
               [real_add_mult_distrib2]) 1);
 qed "real_add_self";
@@ -452,8 +448,7 @@ by (dres_inst_tac [("x","x")] real_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [real_mult_le_less_mono2], simpset()));
 qed "real_mult_le_le_mono1";
 
-Goal "[| 0r < r1; r1 <r2; 0r < x; x < y|] \
-\                  ==> r1 * x < r2 * y";
+Goal "[| 0r < r1; r1 <r2; 0r < x; x < y|] ==> r1 * x < r2 * y";
 by (dres_inst_tac [("x","x")] real_mult_less_mono2 1);
 by (dres_inst_tac [("R1.0","0r")] real_less_trans 2);
 by (dres_inst_tac [("x","r1")] real_mult_less_mono1 3);
@@ -461,22 +456,19 @@ by Auto_tac;
 by (blast_tac (claset() addIs [real_less_trans]) 1);
 qed "real_mult_less_mono";
 
-Goal "[| 0r < r1; r1 <r2; 0r < y|] \
-\                           ==> 0r < r2 * y";
+Goal "[| 0r < r1; r1 <r2; 0r < y|] ==> 0r < r2 * y";
 by (dres_inst_tac [("R1.0","0r")] real_less_trans 1);
 by (assume_tac 1);
 by (blast_tac (claset() addIs [real_mult_order]) 1);
 qed "real_mult_order_trans";
 
-Goal "[| 0r < r1; r1 <r2; 0r <= x; x < y|] \
-\                  ==> r1 * x < r2 * y";
+Goal "[| 0r < r1; r1 <r2; 0r <= x; x < y|] ==> r1 * x < r2 * y";
 by (auto_tac (claset() addSDs [real_le_imp_less_or_eq] 
 	               addIs [real_mult_less_mono,real_mult_order_trans],
               simpset()));
 qed "real_mult_less_mono3";
 
-Goal "[| 0r <= r1; r1 <r2; 0r <= x; x < y|] \
-\                  ==> r1 * x < r2 * y";
+Goal "[| 0r <= r1; r1 <r2; 0r <= x; x < y|] ==> r1 * x < r2 * y";
 by (auto_tac (claset() addSDs [real_le_imp_less_or_eq] 
 	               addIs [real_mult_less_mono,real_mult_order_trans,
 			      real_mult_order],
@@ -486,8 +478,7 @@ by (assume_tac 1);
 by (blast_tac (claset() addIs [real_mult_order]) 1);
 qed "real_mult_less_mono4";
 
-Goal "[| 0r < r1; r1 <= r2; 0r <= x; x <= y |] \
-\                  ==> r1 * x <= r2 * y";
+Goal "[| 0r < r1; r1 <= r2; 0r <= x; x <= y |] ==> r1 * x <= r2 * y";
 by (rtac real_less_or_eq_imp_le 1);
 by (REPEAT(dtac real_le_imp_less_or_eq 1));
 by (auto_tac (claset() addIs [real_mult_less_mono,
@@ -495,8 +486,7 @@ by (auto_tac (claset() addIs [real_mult_less_mono,
 	      simpset()));
 qed "real_mult_le_mono";
 
-Goal "[| 0r < r1; r1 < r2; 0r <= x; x <= y |] \
-\                  ==> r1 * x <= r2 * y";
+Goal "[| 0r < r1; r1 < r2; 0r <= x; x <= y |] ==> r1 * x <= r2 * y";
 by (rtac real_less_or_eq_imp_le 1);
 by (REPEAT(dtac real_le_imp_less_or_eq 1));
 by (auto_tac (claset() addIs [real_mult_less_mono, real_mult_order_trans,
@@ -504,16 +494,14 @@ by (auto_tac (claset() addIs [real_mult_less_mono, real_mult_order_trans,
 	      simpset()));
 qed "real_mult_le_mono2";
 
-Goal "[| 0r <= r1; r1 < r2; 0r <= x; x <= y |] \
-\                  ==> r1 * x <= r2 * y";
+Goal "[| 0r <= r1; r1 < r2; 0r <= x; x <= y |] ==> r1 * x <= r2 * y";
 by (dtac real_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [real_mult_le_mono2],simpset()));
 by (dtac real_le_trans 1 THEN assume_tac 1);
 by (auto_tac (claset() addIs [real_less_le_mult_order], simpset()));
 qed "real_mult_le_mono3";
 
-Goal "[| 0r <= r1; r1 <= r2; 0r <= x; x <= y |] \
-\                  ==> r1 * x <= r2 * y";
+Goal "[| 0r <= r1; r1 <= r2; 0r <= x; x <= y |] ==> r1 * x <= r2 * y";
 by (dres_inst_tac [("x","r1")] real_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [real_mult_le_mono3, real_mult_le_le_mono1],
 	      simpset()));

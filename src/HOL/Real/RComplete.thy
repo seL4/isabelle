@@ -6,5 +6,5 @@
                   reals and reals 
 *) 
 
-RComplete = Lubs + Real
+RComplete = Lubs + RealBin
 

@@ -17,7 +17,7 @@ by (auto_tac (claset() addIs [real_mult_not_zeroE],
     simpset() addsimps [real_zero_not_eq_one RS not_sym]));
 qed_spec_mp "realpow_not_zero";
 
-Goal "!!r. r ^ n = 0r ==> r = 0r";
+Goal "r ^ n = 0r ==> r = 0r";
 by (blast_tac (claset() addIs [ccontr] 
     addDs [realpow_not_zero]) 1);
 qed "realpow_zero_zero";
@@ -128,7 +128,7 @@ by (simp_tac (simpset() addsimps
 qed "realpow_two_rabs";
 Addsimps [realpow_two_rabs];
 
-Goal "!!r. 1r < r ==> 1r < r ^ 2";
+Goal "1r < r ==> 1r < r ^ 2";
 by (auto_tac (claset(),simpset() addsimps [realpow_two]));
 by (cut_facts_tac [real_zero_less_one] 1);
 by (forw_inst_tac [("R1.0","0r")] real_less_trans 1);
@@ -137,7 +137,7 @@ by (dres_inst_tac [("z","r"),("x","1r")] real_mult_less_mono1 1);
 by (auto_tac (claset() addIs [real_less_trans],simpset()));
 qed "realpow_two_gt_one";
 
-Goal "!!r. 1r <= r ==> 1r <= r ^ 2";
+Goal "1r <= r ==> 1r <= r ^ 2";
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (etac (realpow_two_gt_one RS real_less_imp_le) 1);
 by (asm_simp_tac (simpset()) 1);
@@ -154,7 +154,7 @@ by (auto_tac (claset() addSIs [real_less_imp_le],
     simpset() addsimps [real_zero_less_one]));
 qed_spec_mp "realpow_ge_one";
 
-Goal "!!r. 1r < r ==> 1r < r ^ (Suc n)";
+Goal "1r < r ==> 1r < r ^ (Suc n)";
 by (forw_inst_tac [("n","n")] realpow_ge_one 1);
 by (dtac real_le_imp_less_or_eq 1 THEN Step_tac 1);
 by (dtac sym 2);
@@ -164,13 +164,13 @@ by (auto_tac (claset() addDs [real_less_trans],
      simpset()));
 qed "realpow_Suc_gt_one";
 
-Goal "!!r. 1r <= r ==> 1r <= r ^ n";
+Goal "1r <= r ==> 1r <= r ^ n";
 by (dtac real_le_imp_less_or_eq 1); 
 by (auto_tac (claset() addDs [realpow_ge_one],
     simpset()));
 qed "realpow_ge_one2";
 
-Goal "!!r. 0r < r ==> 0r < r ^ Suc n";
+Goal "0r < r ==> 0r < r ^ Suc n";
 by (forw_inst_tac [("n","n")] realpow_ge_zero 1);
 by (forw_inst_tac [("n1","n")]
     ((real_not_refl2 RS not_sym) RS realpow_not_zero RS not_sym) 1);
@@ -178,7 +178,7 @@ by (auto_tac (claset() addSDs [real_le_imp_less_or_eq]
      addIs [real_mult_order],simpset()));
 qed "realpow_Suc_gt_zero";
 
-Goal "!!r. 0r <= r ==> 0r <= r ^ Suc n";
+Goal "0r <= r ==> 0r <= r ^ Suc n";
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (etac (realpow_ge_zero) 1);
 by (asm_simp_tac (simpset()) 1);
@@ -194,12 +194,11 @@ qed "two_realpow_ge_one";
 
 Goal "real_of_nat n < (1r + 1r) ^ n";
 by (induct_tac "n" 1);
-by (rtac (lemmaS RS ssubst) 2);
-by (rtac (real_of_nat_add RS subst) 2);
-by (auto_tac (claset(),simpset() addsimps [real_of_nat_zero,
-    real_zero_less_one,real_add_mult_distrib,real_of_nat_one]));
-by (blast_tac (claset() addSIs [real_add_less_le_mono,
-    two_realpow_ge_one]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [real_of_nat_Suc, real_of_nat_zero,
+				  real_zero_less_one,real_add_mult_distrib,
+				  real_of_nat_one]));
+by (blast_tac (claset() addSIs [real_add_less_le_mono, two_realpow_ge_one]) 1);
 qed "two_realpow_gt";
 Addsimps [two_realpow_gt,two_realpow_ge_one];
 
@@ -249,7 +248,7 @@ by (blast_tac (claset() addSIs [real_less_imp_le,
     realpow_Suc_less]) 1);
 qed_spec_mp "realpow_Suc_le2";
 
-Goal "!!r. [| 0r <= r; r < 1r |] ==> r ^ Suc n <= r ^ n";
+Goal "[| 0r <= r; r < 1r |] ==> r ^ Suc n <= r ^ n";
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (rtac realpow_Suc_le2 1);
 by (Auto_tac);
@@ -266,20 +265,19 @@ by (auto_tac (claset(),simpset() addsimps
     [less_Suc_eq]));
 qed_spec_mp "realpow_less_le";
 
-Goal "!!r. [| 0r <= r; r < 1r; n <= N |] \
-\          ==> r ^ N <= r ^ n";
+Goal "[| 0r <= r; r < 1r; n <= N |] ==> r ^ N <= r ^ n";
 by (dres_inst_tac [("n","N")] le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [realpow_less_le],
     simpset()));
 qed "realpow_le_le";
 
-Goal "!!r. [| 0r < r; r < 1r |] ==> r ^ Suc n <= r";
+Goal "[| 0r < r; r < 1r |] ==> r ^ Suc n <= r";
 by (dres_inst_tac [("n","1"),("N","Suc n")] 
     (real_less_imp_le RS realpow_le_le) 1);
 by (Auto_tac);
 qed "realpow_Suc_le_self";
 
-Goal "!!r. [| 0r < r; r < 1r |] ==> r ^ Suc n < 1r";
+Goal "[| 0r < r; r < 1r |] ==> r ^ Suc n < 1r";
 by (blast_tac (claset() addIs [realpow_Suc_le_self,
                real_le_less_trans]) 1);
 qed "realpow_Suc_less_one";
@@ -327,35 +325,35 @@ by (auto_tac (claset() addIs [real_le_trans],
     simpset() addsimps [less_Suc_eq]));
 qed_spec_mp "realpow_gt_ge2";
 
-Goal "!!r. [| 1r < r; n <= N |] ==> r ^ n <= r ^ N";
+Goal "[| 1r < r; n <= N |] ==> r ^ n <= r ^ N";
 by (dres_inst_tac [("n","N")] le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [realpow_gt_ge],simpset()));
 qed "realpow_ge_ge";
 
-Goal "!!r. [| 1r <= r; n <= N |] ==> r ^ n <= r ^ N";
+Goal "[| 1r <= r; n <= N |] ==> r ^ n <= r ^ N";
 by (dres_inst_tac [("n","N")] le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [realpow_gt_ge2],simpset()));
 qed "realpow_ge_ge2";
 
-Goal "!!r. 1r < r ==> r <= r ^ Suc n";
+Goal "1r < r ==> r <= r ^ Suc n";
 by (dres_inst_tac [("n","1"),("N","Suc n")] 
     realpow_ge_ge 1);
 by (Auto_tac);
 qed_spec_mp "realpow_Suc_ge_self";
 
-Goal "!!r. 1r <= r ==> r <= r ^ Suc n";
+Goal "1r <= r ==> r <= r ^ Suc n";
 by (dres_inst_tac [("n","1"),("N","Suc n")] 
     realpow_ge_ge2 1);
 by (Auto_tac);
 qed_spec_mp "realpow_Suc_ge_self2";
 
-Goal "!!r. [| 1r < r; 0 < n |] ==> r <= r ^ n";
+Goal "[| 1r < r; 0 < n |] ==> r <= r ^ n";
 by (dtac (less_not_refl2 RS  not0_implies_Suc) 1);
 by (auto_tac (claset() addSIs 
     [realpow_Suc_ge_self],simpset()));
 qed "realpow_ge_self";
 
-Goal "!!r. [| 1r <= r; 0 < n |] ==> r <= r ^ n";
+Goal "[| 1r <= r; 0 < n |] ==> r <= r ^ n";
 by (dtac (less_not_refl2 RS  not0_implies_Suc) 1);
 by (auto_tac (claset() addSIs [realpow_Suc_ge_self2],simpset()));
 qed "realpow_ge_self2";
@@ -367,7 +365,7 @@ by (auto_tac (claset(),simpset()
 qed_spec_mp "realpow_minus_mult";
 Addsimps [realpow_minus_mult];
 
-Goal "!!r. r ~= 0r ==> r * rinv(r) ^ 2 = rinv r";
+Goal "r ~= 0r ==> r * rinv(r) ^ 2 = rinv r";
 by (asm_simp_tac (simpset() addsimps [realpow_two,
                   real_mult_assoc RS sym]) 1);
 qed "realpow_two_mult_rinv";
