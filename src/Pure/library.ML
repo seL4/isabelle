@@ -271,6 +271,9 @@ sig
   datatype 'a error = Error of string | OK of 'a
   val get_error: 'a error -> string option
   val get_ok: 'a error -> 'a option
+  datatype 'a result = Result of 'a | Exn of exn
+  val get_result: 'a result -> 'a option
+  val get_exn: 'a result -> exn option
   val handle_error: ('a -> 'b) -> 'a -> 'b error
   exception ERROR_MESSAGE of string
   val transform_error: ('a -> 'b) -> 'a -> 'b
@@ -1237,6 +1240,12 @@ fun get_ok (OK x) = Some x
 datatype 'a result =
   Result of 'a |
   Exn of exn;
+
+fun get_result (Result x) = Some x
+  | get_result _ = None;
+
+fun get_exn (Exn exn) = Some exn
+  | get_exn _ = None;
 
 fun handle_error f x =
   let
