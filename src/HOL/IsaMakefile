@@ -180,7 +180,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/Library.thy Library/List_Prefix.thy Library/Multiset.thy \
-  Library/Quotient.thy Library/Ring_and_Field.thy \
+  Library/Permutation.thy Library/Quotient.thy Library/Ring_and_Field.thy \
   Library/Ring_and_Field_Example.thy Library/README.html \
   Library/Nested_Environment.thy Library/Rational_Numbers.thy Library/ROOT.ML \
   Library/While_Combinator.thy
@@ -205,8 +205,8 @@ HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
   Induct/Com.ML Induct/Com.thy Induct/Comb.ML Induct/Comb.thy \
   Induct/Exp.ML Induct/Exp.thy Induct/LFilter.ML Induct/LFilter.thy \
-  Induct/LList.ML Induct/LList.thy Induct/Mutil.thy Induct/Perm.ML \
-  Induct/Perm.thy Induct/PropLog.ML Induct/PropLog.thy Induct/ROOT.ML \
+  Induct/LList.ML Induct/LList.thy Induct/Mutil.thy \
+  Induct/PropLog.ML Induct/PropLog.thy Induct/ROOT.ML \
   Induct/Sexp.ML Induct/Sexp.thy Induct/Sigma_Algebra.thy \
   Induct/SList.ML Induct/SList.thy Induct/ABexp.thy Induct/Term.thy \
   Induct/Tree.thy Induct/document/root.tex
@@ -239,15 +239,11 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
 HOL-NumberTheory: HOL $(LOG)/HOL-NumberTheory.gz
 
 $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
-  NumberTheory/Fib.ML NumberTheory/Fib.thy NumberTheory/Primes.thy \
-  NumberTheory/Factorization.ML NumberTheory/Factorization.thy \
-  NumberTheory/BijectionRel.ML NumberTheory/BijectionRel.thy \
-  NumberTheory/Chinese.ML NumberTheory/Chinese.thy \
-  NumberTheory/EulerFermat.ML NumberTheory/EulerFermat.thy \
-  NumberTheory/IntFact.ML NumberTheory/IntFact.thy \
-  NumberTheory/IntPrimes.ML NumberTheory/IntPrimes.thy \
-  NumberTheory/WilsonBij.ML NumberTheory/WilsonBij.thy \
-  NumberTheory/WilsonRuss.ML NumberTheory/WilsonRuss.thy \
+  Library/Permutation.thy NumberTheory/Fib.thy NumberTheory/Primes.thy \
+  NumberTheory/Factorization.thy NumberTheory/BijectionRel.thy \
+  NumberTheory/Chinese.thy NumberTheory/EulerFermat.thy \
+  NumberTheory/IntFact.thy NumberTheory/IntPrimes.thy \
+  NumberTheory/WilsonBij.thy NumberTheory/WilsonRuss.thy \
   NumberTheory/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL NumberTheory
 
