@@ -370,15 +370,15 @@ fun make_case_trrules new_type_names descr =
         val k = length cargs;
         val xs = map (fn i => Variable ("x" ^ string_of_int i)) (i upto i + k - 1);
         val t = Variable ("t" ^ string_of_int j);
-        val ast = Ast.mk_appl (Constant "@case1")
-          [Ast.mk_appl (Constant (Sign.base_name cname)) xs, t];
+        val ast = Syntax.mk_appl (Constant "@case1")
+          [Syntax.mk_appl (Constant (Sign.base_name cname)) xs, t];
         val ast' = foldr (fn (x, y) =>
-          Ast.mk_appl (Constant "_abs") [x, y]) (xs, t)
+          Syntax.mk_appl (Constant "_abs") [x, y]) (xs, t)
       in
         (case constrs of
             [] => (ast, [ast'])
           | cs => let val (ast'', asts) = mk_asts (i + k) (j + 1) cs
-              in (Ast.mk_appl (Constant "@case2") [ast, ast''],
+              in (Syntax.mk_appl (Constant "@case2") [ast, ast''],
                   ast'::asts)
               end)
       end;
@@ -386,8 +386,8 @@ fun make_case_trrules new_type_names descr =
     fun mk_trrule ((_, (_, _, constrs)), tname) =
       let val (ast, asts) = mk_asts 1 1 constrs
       in Syntax.ParsePrintRule
-        (Ast.mk_appl (Constant "@case") [Variable "t", ast],
-         Ast.mk_appl (Constant (tname ^ "_case"))
+        (Syntax.mk_appl (Constant "@case") [Variable "t", ast],
+         Syntax.mk_appl (Constant (tname ^ "_case"))
            (asts @ [Variable "t"]))
       end
 
