@@ -73,8 +73,6 @@ signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
-  val dest_ss: simpset ->
-    {simps: thm list, congs: thm list, procs: (string * cterm list) list}
   val clear_ss: simpset -> simpset
   exception SIMPROC_FAIL of string * exn
   val simproc_i: Sign.sg -> string -> term list
@@ -184,8 +182,8 @@ datatype solver =
 
 fun mk_solver name solver = Solver {name = name, solver = solver, id = stamp ()};
 
+fun solver_name (Solver {name, ...}) = name;
 fun solver ths (Solver {solver = tacf, ...}) = tacf ths;
-
 fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 val merge_solvers = gen_merge_lists eq_solver;
 
@@ -266,26 +264,30 @@ fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
 (* print simpsets *)
 
-fun dest_ss (Simpset ({rules, ...}, {congs = (congs, _), procs, ...})) =
-  {simps = map (fn (_, {thm, ...}) => thm) (Net.dest rules),
-   congs = map (fn (_, {thm, ...}) => thm) congs,
-   procs =
-     map (fn (_, Proc {name, lhs, id, ...}) => ((name, lhs), id)) (Net.dest procs)
-     |> partition_eq eq_snd
-     |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
-     |> Library.sort_wrt #1};
-
 fun print_ss ss =
   let
-    val {simps, procs, congs} = dest_ss ss;
-
     val pretty_thms = map Display.pretty_thm;
+
+    fun pretty_cong (name, th) =
+      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, Display.pretty_thm th];
     fun pretty_proc (name, lhss) =
       Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
+
+    val Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...}) = ss;
+    val smps = map (#thm o #2) (Net.dest rules);
+    val cngs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs);
+    val prcs = Net.dest procs |>
+      map (fn (_, Proc {name, lhs, id, ...}) => ((name, lhs), id))
+      |> partition_eq eq_snd
+      |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
+      |> Library.sort_wrt #1;
   in
-    [Pretty.big_list "simplification rules:" (pretty_thms simps),
-      Pretty.big_list "simplification procedures:" (map pretty_proc procs),
-      Pretty.big_list "congruences:" (pretty_thms congs)]
+    [Pretty.big_list "simplification rules:" (pretty_thms smps),
+      Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
+      Pretty.big_list "congruences:" (map pretty_cong cngs),
+      Pretty.strs ("loopers:" :: map #1 loop_tacs),
+      Pretty.strs ("unsafe solvers:" :: map solver_name (#1 solvers)),
+      Pretty.strs ("safe solvers:" :: map solver_name (#2 solvers))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -664,9 +666,10 @@ fun ss addloop (name, tac) = ss |>
 
 fun ss delloop name = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    let val (del, rest) = partition (fn (n, _) => n = name) loop_tacs in
-      if null del then warning ("No such looper in simpset: " ^ quote name) else ();
-      (congs, procs, mk_rews, termless, subgoal_tac, rest, solvers)
+    let val loop_tacs' = filter_out (equal name o #1) loop_tacs in
+      if length loop_tacs <> length loop_tacs' then ()
+      else warning ("No such looper in simpset: " ^ quote name);
+      (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs', solvers)
     end);
 
 fun ss setSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
