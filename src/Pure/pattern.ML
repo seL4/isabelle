@@ -451,6 +451,6 @@ fun rewrite_term tsig rules tm =
           end
       | rew2 _ = None
 
-  in if_none (timeap_msg "FIXME: rewrite_term" rew1 tm) tm end;
+  in if_none (rew1 tm) tm end;
 
 end;
