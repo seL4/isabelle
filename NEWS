@@ -100,8 +100,9 @@ hints on converting existing sources:
   - remove all special provisions on numerals in proofs;
 
 * HOL/record:
+  - removed old "make" and "make_scheme" operations -- INCOMPATIBILITY;
+  - removed "more" class (simply use "term") -- INCOMPATIBILITY;
   - provides cases/induct rules for use with corresponding Isar methods;
-  - old "make" and "make_scheme" operation removed -- INCOMPATIBILITY;
   - new derived operations "make" (for adding fields of current
     record), "extend" to promote fixed record to record scheme, and
     "truncate" for the reverse; cf. theorems "derived_defs", which are
@@ -137,7 +138,7 @@ necessary to attach explicit type constraints;
 expressions;
 
 * HOL/GroupTheory: group theory examples including Sylow's theorem, by
-Florian Kamm¸ller;
+Florian KammÅ¸ller;
 
 * HOL: got rid of some global declarations (potential INCOMPATIBILITY
 for ML tools): const "()" renamed "Product_Type.Unity", type "unit"
