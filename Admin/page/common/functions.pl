@@ -60,21 +60,23 @@
 
       if ("$_[1].html" eq substr($outputfile,rindex($outputfile,"/")+1)) {
         $retval = <<EOF;
-        <table width="100%" border="0" cellspacing="0" cellpadding="5">
+        <table width="188" border="0" cellspacing="0" cellpadding="5">
         <tr> 
-          <td align=center bgcolor="$navcolor">
+          <td width="8" bgcolor="$navcolor">&nbsp;</td>
+          <td width="160" align="center" bgcolor="$navcolor">
             <b><font face="Arial,Helvetica"><A HREF="$_[1].html" target="_top">$_[0]</A></font></b>
           </td>
+          <td width="8" bgcolor="$navcolor">&nbsp;</td>
         </tr>
         </table>
 EOF
       }
       else {
         $retval = <<EOF;
-        <table width="100%" border="0" cellspacing="0" cellpadding="5">
+        <table width="188" border="0" cellspacing="0" cellpadding="5">
         <tr> 
           <td width="8">&nbsp;</td>
-          <td width="150" align=center bgcolor="$navcolor">
+          <td width="160" align=center bgcolor="$navcolor">
             <b><font face="Arial,Helvetica"><A HREF="$_[1].html" target="_top">$_[0]</A></font></b>
           </td>
           <td width="8">&nbsp;</td>
