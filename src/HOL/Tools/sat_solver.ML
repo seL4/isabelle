@@ -484,8 +484,8 @@ end;
 
 (* ------------------------------------------------------------------------- *)
 (* Internal SAT solver, available as 'SatSolver.invoke_solver "auto"': uses  *)
-(* all installed solvers (other than "auto" itself) until one returns either *)
-(* SATISFIABLE or UNSATISFIABLE                                              *)
+(* the first installed solver (other than "auto" itself) that does not raise *)
+(* 'NOT_CONFIGURED'.  (However, the solver may return 'UNKNOWN'.)            *)
 (* ------------------------------------------------------------------------- *)
 
 let
@@ -497,18 +497,14 @@ let
 			if name="auto" then
 				(* do not call solver "auto" from within "auto" *)
 				loop solvers
-			else
-			(
+			else (
 				(if name="dpll" orelse name="enumerate" then
 					warning ("Using SAT solver " ^ quote name ^ "; for better performance, consider using an external solver.")
 				else
 					());
 				(* apply 'solver' to 'fm' *)
-				(case solver fm of
-				  SatSolver.SATISFIABLE a => SatSolver.SATISFIABLE a
-				| SatSolver.UNSATISFIABLE => SatSolver.UNSATISFIABLE
-				| SatSolver.UNKNOWN       => loop solvers)
-				handle SatSolver.NOT_CONFIGURED => loop solvers
+				solver fm
+					handle SatSolver.NOT_CONFIGURED => loop solvers
 			)
 	in
 		loop (rev (!SatSolver.solvers))
