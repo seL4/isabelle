@@ -141,13 +141,7 @@ fun extend_tokentrtab tabs tokentrs =
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
 fun dest_ruletab tab = flat (map snd (Symtab.dest tab));
-
-
-(* lookup_ruletab *)
-
-fun lookup_ruletab tab =
-  if Symtab.is_empty tab then None
-  else Some (fn a => Symtab.lookup_multi (tab, a));
+fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 
 
 (* empty, extend, merge ruletabs *)

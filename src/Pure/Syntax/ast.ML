@@ -35,8 +35,8 @@ signature AST =
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val normalize: bool -> bool -> (string -> (ast * ast) list) option -> ast -> ast
-  val normalize_ast: (string -> (ast * ast) list) option -> ast -> ast
+  val normalize: bool -> bool -> (string -> (ast * ast) list) -> ast -> ast
+  val normalize_ast: (string -> (ast * ast) list) -> ast -> ast
   end;
 
 structure Ast : AST =
@@ -99,18 +99,17 @@ fun pretty_rule (lhs, rhs) =
 
 (* head_of_ast, head_of_rule *)
 
-fun head_of_ast (Constant a) = Some a
-  | head_of_ast (Appl (Constant a :: _)) = Some a
-  | head_of_ast _ = None;
+fun head_of_ast (Constant a) = a
+  | head_of_ast (Appl (Constant a :: _)) = a
+  | head_of_ast _ = "";
 
-fun head_of_rule (lhs, _) = the (head_of_ast lhs);
+fun head_of_rule (lhs, _) = head_of_ast lhs;
 
 
 
 (** check translation rules **)
 
 (*a wellformed rule (lhs, rhs): (ast * ast) obeys the following conditions:
-   - the head of lhs is a constant,
    - the lhs has unique vars,
    - vars of rhs is subset of vars of lhs*)
 
@@ -126,8 +125,7 @@ fun rule_error (rule as (lhs, rhs)) =
     val lvars = vars_of lhs;
     val rvars = vars_of rhs;
   in
-    if is_none (head_of_ast lhs) then Some "lhs has no constant head"
-    else if not (unique lvars) then Some "duplicate vars in lhs"
+    if not (unique lvars) then Some "duplicate vars in lhs"
     else if not (rvars subset lvars) then Some "rhs contains extra variables"
     else None
   end;
@@ -218,13 +216,13 @@ fun normalize trace stat get_rules pre_ast =
           | None => (inc failed_matches; try_rules ast pats))
       | try_rules _ [] = None;
 
-    fun try ast a = (inc lookups; try_rules ast (the get_rules a));
+    fun try ast a = (inc lookups; try_rules ast (get_rules a));
 
     fun rewrite (ast as Constant a) = try ast a
       | rewrite (ast as Variable a) = try ast a
       | rewrite (ast as Appl (Constant a :: _)) = try ast a
       | rewrite (ast as Appl (Variable a :: _)) = try ast a
-      | rewrite _ = None;
+      | rewrite ast = try ast "";
 
     fun rewrote old_ast new_ast =
       if trace then
@@ -259,7 +257,7 @@ fun normalize trace stat get_rules pre_ast =
 
     val _ = if trace then writeln ("pre: " ^ str_of_ast pre_ast) else ();
 
-    val post_ast = if is_some get_rules then normal pre_ast else pre_ast;
+    val post_ast = normal pre_ast;
   in
     if trace orelse stat then
       writeln ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
