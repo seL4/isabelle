@@ -3,7 +3,7 @@
     Author: 	Konrad Slind
     Copyright   1996  TU Munich
 
-Derived wellfounded relations: inverse image, relational product, measure, ...
+Derived WF relations: inverse image, lexicographic product, measure, ...
 *)
 
 open WF_Rel;
@@ -79,20 +79,6 @@ by (Blast_tac 1);
 qed "wf_lex_prod";
 AddSIs [wf_lex_prod];
 
-(*----------------------------------------------------------------------------
- * Wellfoundedness of relational product
- *---------------------------------------------------------------------------*)
-val [wfa,wfb] = goalw thy [wf_def,rprod_def]
- "[| wf(ra); wf(rb) |] ==> wf(rprod ra rb)";
-by (EVERY1 [rtac allI,rtac impI, rtac split_all_pair]);
-by (rtac (wfa RS spec RS mp) 1);
-by (EVERY1 [rtac allI,rtac impI]);
-by (rtac (wfb RS spec RS mp) 1);
-by (Blast_tac 1);
-qed "wf_rel_prod";
-AddSIs [wf_rel_prod];
-
-
 (*---------------------------------------------------------------------------
  * Wellfoundedness of subsets
  *---------------------------------------------------------------------------*)
@@ -121,13 +107,6 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 qed "trans_lex_prod";
 AddSIs [trans_lex_prod];
-
-goalw thy [trans_def, rprod_def]
-    "!!R1 R2. [| trans R1; trans R2 |] ==> trans (rprod R1 R2)";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "trans_rprod";
-AddSIs [trans_rprod];
 
 
 (*---------------------------------------------------------------------------

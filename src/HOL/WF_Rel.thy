@@ -3,7 +3,11 @@
     Author:     Konrad Slind
     Copyright   1995 TU Munich
 
-Derived wellfounded relations: inverse image, relational product, measure, ...
+Derived WF relations: inverse image, lexicographic product, measure, ...
+
+The simple relational product, in which (x',y')<(x,y) iff x'<x and y'<y, is a
+subset of the lexicographic product, and therefore does not need to be defined
+separately.
 *)
 
 WF_Rel = Finite +
@@ -12,7 +16,6 @@ consts
   inv_image :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"
   measure   :: "('a => nat) => ('a * 'a)set"
   "**"      :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set" (infixl 70)
-  rprod     :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set"
   finite_psubset  :: "('a set * 'a set) set"
 
 
@@ -26,10 +29,6 @@ defs
   lex_prod_def  "ra**rb == {p. ? a a' b b'. 
                                 p = ((a,b),(a',b')) & 
                                ((a,a') : ra | a=a' & (b,b') : rb)}"
-
-  rprod_def     "rprod ra rb == {p. ? a a' b b'. 
-                                p = ((a,b),(a',b')) & 
-                               ((a,a') : ra & (b,b') : rb)}"
 
   (* finite proper subset*)
   finite_psubset_def "finite_psubset == {(A,B). A < B & finite B}"
