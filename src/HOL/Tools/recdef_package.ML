@@ -73,7 +73,7 @@ fun put_recdef name info thy =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
-fun gen_add_recdef tfl_fn prep_att prep_ss app_thms raw_name R eq_srcs raw_ss raw_congs thy =
+fun gen_add_recdef tfl_fn prep_att app_thms raw_name R eq_srcs opt_ss raw_congs thy =
   let
     val name = Sign.intern_const (Theory.sign_of thy) raw_name;
     val bname = Sign.base_name name;
@@ -83,7 +83,7 @@ fun gen_add_recdef tfl_fn prep_att prep_ss app_thms raw_name R eq_srcs raw_ss ra
 
     val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
-    val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
+    val ss = if_none opt_ss (Simplifier.simpset_of thy);
     val (thy, congs) = thy |> app_thms raw_congs;
 
     val (thy, {rules = rules_idx, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
@@ -103,10 +103,9 @@ fun gen_add_recdef tfl_fn prep_att prep_ss app_thms raw_name R eq_srcs raw_ss ra
       |> Theory.parent_path;
   in (thy, result) end;
 
-val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute I IsarThy.apply_theorems;
-val add_recdef_x = gen_add_recdef Tfl.define Attrib.global_attribute
-  (Simplifier.simpset_of o ThyInfo.get_theory) IsarThy.apply_theorems;
-val add_recdef_i = gen_add_recdef Tfl.define_i (K I) I IsarThy.apply_theorems_i;
+val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute IsarThy.apply_theorems;
+val add_recdef_x = gen_add_recdef Tfl.define Attrib.global_attribute IsarThy.apply_theorems;
+val add_recdef_i = gen_add_recdef Tfl.define_i (K I) IsarThy.apply_theorems_i;
 
 
 
@@ -147,9 +146,8 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val recdef_decl =
   P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment) --
-  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) [] --
-  Scan.option (P.$$$ "(" |-- P.$$$ "simpset" |-- P.!!! (P.name --| P.$$$ ")"))
-  >> (fn ((((f, R), eqs), congs), ss) => #1 o add_recdef_x f R (map P.triple_swap eqs) ss congs);
+  Scan.optional (P.$$$ "congs" |-- P.!!! P.xthms1) []
+  >> (fn (((f, R), eqs), congs) => #1 o add_recdef_x f R (map P.triple_swap eqs) None congs);
 
 val recdefP =
   OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
