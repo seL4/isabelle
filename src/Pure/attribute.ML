@@ -18,8 +18,12 @@ sig
   include BASIC_ATTRIBUTE
   val thm_of: tthm -> thm
   val tthm_of: thm -> tthm
+  val none: 'a -> 'a * 'b attribute list
+  val no_attrs: 'a * 'b -> ('a * ('b * tag list)) * 'c attribute list
+  val no_attrss: 'a * 'b list -> ('a * ('b * tag list) list) * 'c attribute list
   val fail: string -> string -> 'a
   val apply: ('a * tthm) * 'a attribute list -> ('a * tthm)
+  val applys: ('a * tthm list) * 'a attribute list -> ('a * tthm list)
   val pretty_tthm: tthm -> Pretty.T
   val tag: tag -> 'a attribute
   val untag: tag -> 'a attribute
@@ -47,6 +51,10 @@ type 'a attribute = 'a * tthm -> 'a * tthm;
 fun thm_of (thm, _) = thm;
 fun tthm_of thm = (thm, []);
 
+fun none x = (x, []);
+fun no_attrs (x, y) = ((x, (y, [])), []);
+fun no_attrss (x, ys) = ((x, map (rpair []) ys), []);
+
 
 (* apply attributes *)
 
@@ -57,8 +65,15 @@ fun fail name msg = raise FAIL (name, msg);
 fun warn_failed (name, msg) =
   warning ("Failed invocation of " ^ quote name ^ " attribute: " ^ msg);
 
-fun apply (x, []) = x
-  | apply (x, f :: fs) = apply (f x handle FAIL info => (warn_failed info; x), fs);
+fun apply (x_th, []) = x_th
+  | apply (x_th, f :: fs) = apply (f x_th handle FAIL info => (warn_failed info; x_th), fs);
+
+fun applys ((x, []), _) = (x, [])
+  | applys ((x, th :: ths), atts) =
+      let
+        val (x', th') = apply ((x, th), atts);
+        val (x'', ths') = applys ((x', ths), atts);
+      in (x'', th' :: ths') end;
 
 
 (* display tagged theorems *)
@@ -134,7 +149,7 @@ val get_attributes = get_attributes_sg o Theory.sign_of;
 
 (* get global / local attributes *)
 
-fun attrs which thy (raw_name, args) =
+fun gen_attr which thy (raw_name, args) =
   let
     val {space, attrs} = get_attributes thy;
     val name = NameSpace.intern space raw_name;
@@ -144,8 +159,8 @@ fun attrs which thy (raw_name, args) =
     | Some p => which p args)
   end;
 
-val global_attr = attrs fst;
-val local_attr = attrs snd;
+val global_attr = gen_attr fst;
+val local_attr = gen_attr snd;
 
 
 (* add_attrs *)
