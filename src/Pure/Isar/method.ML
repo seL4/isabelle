@@ -14,6 +14,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  val multi_resolve: thm list -> thm -> thm Seq.seq
   val FINISHED: tactic -> tactic
   val LIFT: tactic -> thm -> (thm * (indexname * term) list * (string * thm list) list) Seq.seq
   val METHOD: (thm list -> tactic) -> Proof.method
