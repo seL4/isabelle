@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/ex/hoare.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Theory for an example by C.A.R. Hoare 
+Theory for an example by C.A.R. Hoare
 
 p x = if b1 x 
          then p (g x)

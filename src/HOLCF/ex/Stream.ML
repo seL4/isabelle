@@ -1,11 +1,9 @@
 (*  Title: 	HOLCF/ex//Stream.ML
     ID:         $Id$
-    Author: 	Franz Regensburger, David von Oheimb
-    Copyright   1993, 1995 Technische Universitaet Muenchen
-    Author: 	David von Oheimb (major extensions)
+    Author: 	Franz Regensburger and David von Oheimb, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-general Stream domain
+General Stream domain.
 *)
 
 fun stream_case_tac s i = res_inst_tac [("x",s)] stream.casedist i

@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/ex/Fix2.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1995 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Goal "fix = gix";

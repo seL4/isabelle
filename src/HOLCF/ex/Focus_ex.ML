@@ -1,4 +1,3 @@
-open Focus_ex;
 
 (* first some logical trading *)
 

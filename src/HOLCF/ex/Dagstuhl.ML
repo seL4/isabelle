@@ -1,7 +1,5 @@
 (* $Id$ *)
 
-open Dagstuhl;
-
 val YS_def2  = fix_prover2 Dagstuhl.thy  YS_def  "YS = y && YS";
 val YYS_def2 = fix_prover2 Dagstuhl.thy YYS_def "YYS = y && y && YYS";
 

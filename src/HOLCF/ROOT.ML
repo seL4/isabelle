@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/ROOT.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-ROOT file for the conservative extension of HOL by the LCF logic.
-Should be executed in subdirectory HOLCF.
+Conservative (semantic) extension of HOL by the LCF logic.
 *)
 
 val banner = "HOLCF";

@@ -1,7 +1,5 @@
 (*  Title:      HOLCF/ex/ROOT.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   1994 TU Muenchen
 
 Misc HOLCF examples.
 *)
