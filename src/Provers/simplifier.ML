@@ -475,6 +475,7 @@ val onlyN = "only";
 val no_asmN = "no_asm";
 val no_asm_useN = "no_asm_use";
 val no_asm_simpN = "no_asm_simp";
+val asm_lrN = "asm_lr";
 
 val simp_attr =
  (Attrib.add_del_args simp_add_global simp_del_global,
@@ -525,6 +526,7 @@ val simp_options =
  (Args.parens (Args.$$$ no_asmN) >> K simp_tac ||
   Args.parens (Args.$$$ no_asm_simpN) >> K asm_simp_tac ||
   Args.parens (Args.$$$ no_asm_useN) >> K full_simp_tac ||
+  Args.parens (Args.$$$ asm_lrN) >> K asm_lr_simp_tac ||
   Scan.succeed asm_full_simp_tac);
 
 val cong_modifiers =
