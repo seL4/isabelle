@@ -21,7 +21,7 @@ sig
   val name_of: token -> string
   val is_proper: token -> bool
   val val_of: token -> string
-  val is_symid: string -> bool
+  val is_sid: string -> bool
   val scan: Scan.lexicon ->
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
   val source: bool -> (unit -> Scan.lexicon) -> Position.T -> (Symbol.symbol, 'a) Source.source ->
@@ -121,9 +121,10 @@ val scan_blank =
 val sym_chars = explode "!#$%&*+-/:<=>?@^_`|~";
 fun is_sym_char s = s mem sym_chars;
 
-fun is_symid s = s <> "" andalso forall is_sym_char (Symbol.explode s);
-
 val scan_symid = Scan.any1 is_sym_char >> implode;
+
+fun is_symid s = s <> "" andalso forall is_sym_char (Symbol.explode s);
+val is_sid = is_symid orf Syntax.is_identifier;
 
 
 (* scan strings *)
