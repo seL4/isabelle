@@ -22,6 +22,10 @@ by (unfold Pi_def function_def, blast)
 lemma fun_is_function: "f: Pi(A,B) ==> function(f)"
 by (simp only: Pi_iff)
 
+lemma functionI: 
+     "[| !!x y y'. [| <x,y>:r; <x,y'>:r |] ==> y=y' |] ==> function(r)"
+by (simp add: function_def, blast) 
+
 (*Functions are relations*)
 lemma fun_is_rel: "f: Pi(A,B) ==> f <= Sigma(A,B)"
 by (unfold Pi_def, blast)
@@ -134,6 +138,12 @@ by (simp add: lam_def Pi_def function_def, blast)
 
 lemma lam_funtype: "(lam x:A. b(x)) : A -> {b(x). x:A}"
 by (blast intro: lam_type);
+
+lemma function_lam: "function (lam x:A. b(x))"
+by (simp add: function_def lam_def) 
+
+lemma relation_lam: "relation (lam x:A. b(x))"  
+by (simp add: relation_def lam_def) 
 
 lemma beta [simp]: "a : A ==> (lam x:A. b(x)) ` a = b(a)"
 by (blast intro: apply_equality lam_funtype lamI)
@@ -255,6 +265,12 @@ lemma restrict_empty [simp]: "restrict(f,0) = 0"
 apply (unfold restrict_def)
 apply (simp (no_asm))
 done
+
+lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
+by (simp add: restrict_def) 
+
+lemma image_is_UN: "[|function(g); x <= domain(g)|] ==> g``x = (UN k:x. {g`k})"
+by (blast intro: function_apply_equality [THEN sym] function_apply_Pair) 
 
 lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A Int C"
 apply (unfold restrict_def lam_def)

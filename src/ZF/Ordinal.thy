@@ -147,7 +147,7 @@ lemmas Ord_1 = Ord_0 [THEN Ord_succ]
 lemma Ord_succ_iff [iff]: "Ord(succ(i)) <-> Ord(i)"
 by (blast intro: Ord_succ dest!: Ord_succD)
 
-lemma Ord_Un [TC]: "[| Ord(i); Ord(j) |] ==> Ord(i Un j)"
+lemma Ord_Un [intro,simp,TC]: "[| Ord(i); Ord(j) |] ==> Ord(i Un j)"
 apply (unfold Ord_def)
 apply (blast intro!: Transset_Un)
 done
@@ -456,6 +456,9 @@ apply (rule subset_imp_le [THEN lt_trans1])
 apply (blast intro: elim: ltE) +
 done
 
+lemma lt_imp_0_lt: "j<i ==> 0<i"
+by (blast intro: lt_trans1 Ord_0_le [OF lt_Ord]) 
+
 lemma succ_lt_iff: "succ(i) < j \<longleftrightarrow> i<j & succ(i) \<noteq> j"
 apply auto 
 apply (blast intro: lt_trans le_refl dest: lt_Ord) 
@@ -518,17 +521,28 @@ lemma le_Un_iff:
      "[| Ord(i); Ord(j) |] ==> k \<le> i \<union> j <-> k \<le> i | k \<le> j";
 by (simp add: succ_Un_distrib lt_Un_iff [symmetric]) 
 
+lemma Un_upper1_lt: "[|k < i; Ord(j)|] ==> k < i Un j"
+by (simp add: lt_Un_iff lt_Ord2) 
+
+lemma Un_upper2_lt: "[|k < j; Ord(i)|] ==> k < i Un j"
+by (simp add: lt_Un_iff lt_Ord2) 
+
+(*See also Transset_iff_Union_succ*)
+lemma Ord_Union_succ_eq: "Ord(i) ==> \<Union>(succ(i)) = i"
+by (blast intro: Ord_trans)
+
 
 (*FIXME: the Intersection duals are missing!*)
 
 (*** Results about limits ***)
 
-lemma Ord_Union: "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))"
+lemma Ord_Union [intro,simp,TC]: "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))"
 apply (rule Ord_is_Transset [THEN Transset_Union_family, THEN OrdI])
 apply (blast intro: Ord_contains_Transset)+
 done
 
-lemma Ord_UN: "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(UN x:A. B(x))"
+lemma Ord_UN [intro,simp,TC]:
+     "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(UN x:A. B(x))"
 by (rule Ord_Union, blast)
 
 (* No < version; consider (UN i:nat.i)=nat *)
@@ -545,11 +559,24 @@ apply (rule UN_least_le [THEN lt_trans2])
 apply (blast intro: succ_leI)+
 done
 
+lemma UN_upper_lt:
+     "[| a\<in>A;  i < b(a);  Ord(\<Union>x\<in>A. b(x)) |] ==> i < (\<Union>x\<in>A. b(x))"
+by (unfold lt_def, blast) 
+
 lemma UN_upper_le:
      "[| a: A;  i le b(a);  Ord(UN x:A. b(x)) |] ==> i le (UN x:A. b(x))"
 apply (frule ltD)
 apply (rule le_imp_subset [THEN subset_trans, THEN subset_imp_le])
 apply (blast intro: lt_Ord UN_upper)+
+done
+
+lemma lt_Union_iff: "\<forall>i\<in>A. Ord(i) ==> (j < \<Union>(A)) <-> (\<exists>i\<in>A. j<i)"
+by (auto simp: lt_def Ord_Union)
+
+lemma Union_upper_le:
+     "[| j: J;  i\<le>j;  Ord(\<Union>(J)) |] ==> i \<le> \<Union>J"
+apply (subst Union_eq_UN)  
+apply (rule UN_upper_le, auto)
 done
 
 lemma le_implies_UN_le_UN:
@@ -587,6 +614,18 @@ done
 lemma Limit_has_succ: "[| Limit(i);  j<i |] ==> succ(j) < i"
 by (unfold Limit_def, blast)
 
+lemma zero_not_Limit [iff]: "~ Limit(0)"
+by (simp add: Limit_def)
+
+lemma Limit_has_1: "Limit(i) ==> 1 < i"
+by (blast intro: Limit_has_0 Limit_has_succ)
+
+lemma increasing_LimitI: "[| 0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y |] ==> Limit(l)"
+apply (simp add: Limit_def lt_Ord2, clarify)
+apply (drule_tac i=y in ltD) 
+apply (blast intro: lt_trans1 [OF _ ltI] lt_Ord2)
+done
+
 lemma non_succ_LimitI: 
     "[| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)"
 apply (unfold Limit_def)
@@ -607,6 +646,7 @@ by blast
 
 lemma Limit_le_succD: "[| Limit(i);  i le succ(j) |] ==> i le j"
 by (blast elim!: leE)
+
 
 (** Traditional 3-way case analysis on ordinals **)
 
@@ -629,6 +669,33 @@ lemma trans_induct3:
       |] ==> P(i)"
 apply (erule trans_induct)
 apply (erule Ord_cases, blast+)
+done
+
+text{*A set of ordinals is either empty, contains its own union, or its
+union is a limit ordinal.*}
+lemma Ord_set_cases:
+   "\<forall>i\<in>I. Ord(i) ==> I=0 \<or> \<Union>(I) \<in> I \<or> (\<Union>(I) \<notin> I \<and> Limit(\<Union>(I)))"
+apply (clarify elim!: not_emptyE) 
+apply (cases "\<Union>(I)" rule: Ord_cases) 
+   apply (blast intro: Ord_Union)
+  apply (blast intro: subst_elem)
+ apply auto 
+apply (clarify elim!: equalityE succ_subsetE)
+apply (simp add: Union_subset_iff)
+apply (subgoal_tac "B = succ(j)", blast)
+apply (rule le_anti_sym) 
+ apply (simp add: le_subset_iff) 
+apply (simp add: ltI)
+done
+
+text{*If the union of a set of ordinals is a successor, then it is
+an element of that set.*}
+lemma Ord_Union_eq_succD: "[|\<forall>x\<in>X. Ord(x);  \<Union>X = succ(j)|] ==> succ(j) \<in> X"
+by (drule Ord_set_cases, auto)
+
+lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |] ==> Limit(\<Union>I)"
+apply (simp add: Limit_def lt_def)
+apply (blast intro!: equalityI)
 done
 
 (*special induction rules for the "induct" method*)

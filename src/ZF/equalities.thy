@@ -198,6 +198,8 @@ by blast
 lemma equal_singleton [rule_format]: "[| a: C;  ALL y:C. y=b |] ==> C = {b}"
 by blast
 
+lemma [simp]: "cons(a,cons(a,B)) = cons(a,B)"
+by blast
 
 (** Binary Intersection **)
 
