@@ -77,7 +77,7 @@ struct
 
 (** misc definitions **)
 
-val dddot_indexname = (Lexicon.binding "dddot", 0);
+val dddot_indexname = ("dddot", 0);
 val constrainC = "_constrain";
 
 

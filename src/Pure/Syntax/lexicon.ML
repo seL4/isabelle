@@ -24,8 +24,6 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
-  val binding: string -> string
-  val dest_binding: string -> string
   val skolem: string -> string
   val dest_skolem: string -> string
   val read_nat: string -> int option
@@ -327,9 +325,6 @@ fun read_var str =
 
 
 (* variable kinds *)
-
-val binding = suffix "_BIND_";
-val dest_binding = unsuffix "_BIND_";
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
