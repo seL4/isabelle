@@ -10,15 +10,14 @@ open FOL;
 
 signature FOL_LEMMAS = 
   sig
-  val disjCI : thm
-  val excluded_middle : thm
-  val excluded_middle_tac : string -> int -> tactic
-  val exCI : thm
-  val ex_classical : thm
-  val iffCE : thm
-  val impCE : thm
-  val notnotD : thm
-  val swap : thm
+  val disjCI 		: thm
+  val excluded_middle 	: thm
+  val excluded_middle_tac: string -> int -> tactic
+  val exCI 		: thm
+  val ex_classical 	: thm
+  val iffCE 		: thm
+  val impCE 		: thm
+  val notnotD 		: thm
   end;
 
 
@@ -84,14 +83,6 @@ val iffCE = prove_goalw FOL.thy [iff_def]
     (REPEAT (DEPTH_SOLVE_1 
 	(etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);
 
-
-(*Should be used as swap since ~P becomes redundant*)
-val swap = prove_goal FOL.thy 
-   "~P ==> (~Q ==> P) ==> Q"
- (fn major::prems=>
-  [ (resolve_tac [classical] 1),
-    (rtac (major RS notE) 1),
-    (REPEAT (ares_tac prems 1)) ]);
 
 end;
 
