@@ -11,26 +11,38 @@ sig
   type T
   val empty: T
   val merge: T * T -> T
-  val print: T -> unit
-  val init: T -> string -> exn -> (exn * exn -> exn) -> (string -> exn -> Pretty.T) -> T
+  val prep_ext: T -> T
+  val kinds: T -> string list
+  val init: T -> string -> exn -> (exn -> exn) -> (exn * exn -> exn)
+    -> (string -> exn -> unit) -> T
   val get: T -> string -> exn
   val put: T -> string -> exn -> T
+  val print: T -> string -> unit
 end;
 
 
 structure Data: DATA =
 struct
 
+
 (* datatype T *)
 
-datatype T = Data of (*value, merge method, pp method*)
-  (exn * ((exn * exn -> exn) * (string -> exn -> Pretty.T))) Symtab.table;
+datatype T = Data of
+  (exn *				(*value*)
+   ((exn -> exn) *			(*prepare extend method*)
+    (exn * exn -> exn) *		(*merge and prepare extend method*)
+    (string -> exn -> unit)))		(*print method*)
+  Symtab.table;
+
+val empty = Data Symtab.null;
+
+fun kinds (Data tab) = map fst (Symtab.dest tab);
 
 
 (* errors *)
 
-fun err_msg_merge kind =
-  error_msg ("Error while trying to merge " ^ quote kind ^ " data");
+fun err_mergext kind =
+  error ("Error while extend / merge of " ^ quote kind ^ " data");
 
 fun err_dup_init kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data");
@@ -39,10 +51,7 @@ fun err_uninit kind =
   error ("Tried to access uninitialized " ^ quote kind ^ " data");
 
 
-(* operations *)
-
-val empty = Data Symtab.null;
-
+(* prepare data *)
 
 fun merge (Data tab1, Data tab2) =
   let
@@ -56,36 +65,37 @@ fun merge (Data tab1, Data tab2) =
        None => []
      | Some x => [(kind, x)]);
 
-    fun merge_entries [x] = x
-      | merge_entries [(kind, (e1, mths as (mrg, _))), (_, (e2, _))] =
-          (kind, (mrg (e1, e2) handle exn => (err_msg_merge kind; raise exn), mths))
+    fun merge_entries [(kind, (e, mths as (ext, _, _)))] =
+          (kind, (ext e handle exn => err_mergext kind, mths))
+      | merge_entries [(kind, (e1, mths as (_, mrg, _))), (_, (e2, _))] =
+          (kind, (mrg (e1, e2) handle exn => (err_mergext kind; raise exn), mths))
       | merge_entries _ = sys_error "merge_entries";
 
     val data = map (fn k => merge_entries (entry data1 k @ entry data2 k)) kinds;
   in Data (Symtab.make data) end;
 
 
-fun print (Data tab) =
-  let fun prnt (kind, (e, (_, prt))) = Pretty.writeln (prt kind e) in
-    seq prnt (Symtab.dest tab)
-  end;
+fun prep_ext data = merge (data, empty);		(* FIXME !? *)
 
-
-fun init (Data tab) kind e mrg prt =
-  Data (Symtab.update_new ((kind, (e, (mrg, prt))), tab))
+fun init (Data tab) kind e ext mrg prt =
+  Data (Symtab.update_new ((kind, (e, (ext, mrg, prt))), tab))
     handle Symtab.DUPLICATE _ => err_dup_init kind;
 
 
-fun get (Data tab) kind =
+(* access data *)
+
+fun lookup tab kind =
   (case Symtab.lookup (tab, kind) of
-    Some (e, _) => e
+    Some x => x
   | None => err_uninit kind);
 
+fun get (Data tab) kind = fst (lookup tab kind);
 
 fun put (Data tab) kind e =
-  (case Symtab.lookup (tab, kind) of
-    Some (_, meths) => Data (Symtab.update ((kind, (e, meths)), tab))
-  | None => err_uninit kind);
+  Data (Symtab.update ((kind, (e, snd (lookup tab kind))), tab));
+
+fun print (Data tab) kind =
+  let val (e, (_, _, prt)) = lookup tab kind in prt kind e end;
 
 
 end;
