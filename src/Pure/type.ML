@@ -53,6 +53,7 @@ sig
   val unify: type_sig -> (typ * typ) * (indexname * typ) list
     -> (indexname * typ) list
   val raw_unify: typ * typ -> bool
+  val unvarifyT		: typ -> typ  
   val varifyT: typ -> typ
   val varify: term * string list -> term
   exception TUNIFY
@@ -1059,6 +1060,11 @@ fun infer_types args = (tyinit(); infer_term args);
 fun varifyT (Type (a, Ts)) = Type (a, map varifyT Ts)
   | varifyT (TFree (a, S)) = TVar ((a, 0), S)
   | varifyT T = T;
+
+(*Inverse of varifyT*)
+fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
+  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
+  | unvarifyT T = T;
 
 (* Turn TFrees except those in fixed into new TVars *)
 fun varify (t, fixed) =

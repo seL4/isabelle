@@ -44,7 +44,6 @@ signature LOGIC =
   val strip_params	: term -> (string * typ) list
   val strip_prems	: int * term list * term -> term list * term
   val thaw_vars		: term -> term
-  val unvarifyT		: typ -> typ  
   val unvarify		: term -> term  
   val varify		: term -> term  
   end;
@@ -320,16 +319,11 @@ fun varify (Const(a,T)) = Const(a, Type.varifyT T)
   | varify (f$t) = varify f $ varify t
   | varify t = t;
 
-(*Inverse of varifyT.  Move to Pure/type.ML?*)
-fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
-  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
-  | unvarifyT T = T;
-
 (*Inverse of varify.  Converts axioms back to their original form.*)
-fun unvarify (Const(a,T))    = Const(a, unvarifyT T)
-  | unvarify (Var((a,0), T)) = Free(a, unvarifyT T)
-  | unvarify (Var(ixn,T))    = Var(ixn, unvarifyT T)	(*non-zero index!*)
-  | unvarify (Abs (a,T,body)) = Abs (a, unvarifyT T, unvarify body)
+fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
+  | unvarify (Var((a,0), T)) = Free(a, Type.unvarifyT T)
+  | unvarify (Var(ixn,T))    = Var(ixn, Type.unvarifyT T)  (*non-0 index!*)
+  | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)
   | unvarify (f$t) = unvarify f $ unvarify t
   | unvarify t = t;
 
