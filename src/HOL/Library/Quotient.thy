@@ -176,28 +176,23 @@ text {*
 *}
 
 theorem quot_cond_function:
-  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
-    (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> P x y ==> P x' y'
-      ==> g x y = g x' y') ==>
-    (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> P x y = P x' y') ==>
-    P a b ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
-  (is "PROP ?eq ==> PROP ?cong_g ==> PROP ?cong_P ==> _ ==> _")
+  "(!!X Y. P X Y ==> f X Y == g (pick X) (pick Y)) ==>
+    (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor>
+      ==> P \<lfloor>x\<rfloor> \<lfloor>y\<rfloor> ==> P \<lfloor>x'\<rfloor> \<lfloor>y'\<rfloor> ==> g x y = g x' y') ==>
+    P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
+  (is "PROP ?eq ==> PROP ?cong ==> _ ==> _")
 proof -
-  assume cong_g: "PROP ?cong_g"
-    and cong_P: "PROP ?cong_P" and P: "P a b"
-  assume "PROP ?eq"
-  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)"
-    by (simp only:)
+  assume cong: "PROP ?cong"
+  assume "PROP ?eq" and "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>"
+  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
   also have "\<dots> = g a b"
-  proof (rule cong_g)
+  proof (rule cong)
     show "\<lfloor>pick \<lfloor>a\<rfloor>\<rfloor> = \<lfloor>a\<rfloor>" ..
     moreover
     show "\<lfloor>pick \<lfloor>b\<rfloor>\<rfloor> = \<lfloor>b\<rfloor>" ..
-    ultimately
-    have "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) = P a b"
-      by (rule cong_P)
-    also show \<dots> .
-    finally show "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" .
+    moreover
+    show "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>" .
+    ultimately show "P \<lfloor>pick \<lfloor>a\<rfloor>\<rfloor> \<lfloor>pick \<lfloor>b\<rfloor>\<rfloor>" by (simp only:)
   qed
   finally show ?thesis .
 qed
@@ -207,7 +202,7 @@ theorem quot_function:
     (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y') ==>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
 proof -
-  case antecedent from this refl TrueI
+  case antecedent from this TrueI
   show ?thesis by (rule quot_cond_function)
 qed
 
