@@ -1,8 +1,27 @@
 (*  Title:      HOLCF/domain/extender.ML
     ID:         $Id$
     Author:     David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory extender for domain section, including new-style theory syntax.
+
+###TODO: 
+
+this definition
+domain empty = silly empty
+yields
+Exception-
+   TERM
+      ("typ_of_term: bad encoding of type",
+         [Abs ("uu", "_", Const ("None", "_"))]) raised
+but this works fine:
+domain Empty = silly Empty
+
+strange syntax errors are produced for:
+domain xx = xx ("x yy")
+domain 'a foo = foo (sel::"'a") 
+and bar = bar ("'a dummy")
+
 *)
 
 signature DOMAIN_EXTENDER =
@@ -19,8 +38,8 @@ open Domain_Library;
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
 
-  fun check_and_sort_domain (dtnvs: (string * typ list) list, cons'' :
-     ((string * mixfix * (bool*string*typ) list) list) list) sg =
+  fun check_and_sort_domain (dtnvs: (string * typ list) list, 
+     cons'' : ((string * mixfix * (bool*string*typ) list) list) list) sg =
   let
     val defaultS = Sign.defaultS sg;
     val test_dupl_typs = (case duplicates (map fst dtnvs) of 
@@ -47,25 +66,29 @@ open Domain_Library;
 	|   rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
 	|   rm_sorts (TVar(s,_))  = TVar(s,[])
 	and remove_sorts l = map rm_sorts l;
-	fun analyse(TFree(v,s)) = (case assoc_string(tvars,v) of 
+	fun analyse indirect (TFree(v,s))  = (case assoc_string(tvars,v) of 
 		    None => error ("Free type variable " ^ quote v ^ " on rhs.")
 	          | Some sort => if eq_set_string (s,defaultS) orelse
 				    eq_set_string (s,sort    )
 				 then TFree(distinct_name v,sort)
 				 else error ("Inconsistent sort constraint" ^
 				             " for type variable " ^ quote v))
-	(** BUG OR FEATURE?: mutual recursion may use different arguments **)
-        |   analyse(Type(s,typl)) = (case assoc_string((*dtnvs*)
-						       [(dname,typevars)],s) of 
-		None          => Type(s,map analyse typl)
-	      | Some typevars => if remove_sorts typevars = remove_sorts typl 
-				then Type(s,map analyse typl)
-				else error ("Recursion of type " ^ quote s ^ 
+        |   analyse indirect (t as Type(s,typl)) = (case assoc_string(dtnvs,s)of
+		None          => Type(s,map (analyse true) typl)
+	      | Some typevars => if indirect 
+                           then error ("Indirect recursion of type " ^ 
+				        quote (string_of_typ sg t))
+                           else if dname <> s orelse (** BUG OR FEATURE?: 
+                                mutual recursion may use different arguments **)
+				   remove_sorts typevars = remove_sorts typl 
+				then Type(s,map (analyse true) typl)
+				else error ("Direct recursion of type " ^ 
+					     quote (string_of_typ sg t) ^ 
 					    " with different arguments"))
-        |   analyse(TVar _) = Imposs "extender:analyse";
+        |   analyse indirect (TVar _) = Imposs "extender:analyse";
 	fun check_pcpo t = (pcpo_type sg t orelse error(
       "Constructor argument type is not of sort pcpo: "^string_of_typ sg t); t);
-	val analyse_con = upd_third (map (upd_third (check_pcpo o analyse)));
+	val analyse_con = upd_third (map (upd_third (check_pcpo o analyse false)));
       in ((dname,distinct_typevars), map analyse_con cons') end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
   end; (* let *)
