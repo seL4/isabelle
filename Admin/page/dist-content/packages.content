@@ -30,15 +30,17 @@ href="http://www.xemacs.org">XEmacs-21</a>.
 <h2>Packages</h2>
 
 We provide a complete set of packages for Isabelle, Proof General, and
-PolyML.  The Proof General package contains a development snapshot
-that works well with <!-- _GP_ distname -->. We will update it to the
-newest stable version as soon as it is released.
-
+PolyML.  
+<p>
 While XEmacs-21 is not included here, most operating system
 distributions already provide a suitable package, although not
 installed by default.  Some of the packages below are platform
 dependent; we include binaries for Linux/x86, Solaris/Sparc, and
-Darwin/PPC (MacOS X).
+Darwin/PPC (MacOS X). 
+<p>
+Short <a href="#install">installation instructions</a> are near the
+bottom of this page. For more information, see the file INSTALL in
+<!-- _GP_ distname -->.tar.gz.
 
 <p>
 
@@ -53,7 +55,7 @@ Darwin/PPC (MacOS X).
 <!-- _GP_ download(1, "Theory library in PDF and HTML", distname . "_library.tar.gz", "../..") -->
 
 <!-- _GP_ downloadhead("Proof General") -->
-<!-- _GP_ download(1, "Proof General", "contrib/ProofGeneral.tar.gz", "../..") -->
+<!-- _GP_ download(1, "Proof General", "contrib/ProofGeneral-3.5.tar.gz", "../..") -->
 
 <!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
 <!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
@@ -68,9 +70,15 @@ Darwin/PPC (MacOS X).
 <!-- _GP_ download(3, "HOL-Complex", "HOL-Complex_x86-linux.tar.gz", "../..") -->
 <!-- _GP_ download(0, "", "HOL-Complex_sparc-solaris.tar.gz", "../..") -->
 <!-- _GP_ download(0, "", "HOL-Complex_ppc-darwin.tar.gz", "../..") -->
+<!-- _GP_ download(3, "HOL4", "HOL4_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL4_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL4_ppc-darwin.tar.gz", "../..") -->
 <!-- _GP_ download(3, "ZF", "ZF_x86-linux.tar.gz", "../..") -->
 <!-- _GP_ download(0, "", "ZF_sparc-solaris.tar.gz", "../..") -->
 <!-- _GP_ download(0, "", "ZF_ppc-darwin.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("HOL4 proof terms") -->
+<!-- _GP_ download(1, "HOL4 proof terms", "contrib/HOL4-proofs.tar.gz", "../..") -->
 
 </table>
 </center>
@@ -79,7 +87,7 @@ Darwin/PPC (MacOS X).
 
 <h2>Installation</h2>
 
-In fact, there is no installation required.  Users may just unpack all
+<a name="install">In</a> fact, there is no installation required.  Users may just unpack all
 required packages within the same directory.  The default settings of
 Isabelle should be reasonable for most circumstances.
 
