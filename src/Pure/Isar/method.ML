@@ -17,22 +17,6 @@ signature METHOD =
 sig
   include BASIC_METHOD
   val trace: Proof.context -> thm list -> unit
-  val print_global_rules: theory -> unit
-  val print_local_rules: Proof.context -> unit
-  val dest_global: theory attribute
-  val elim_global: theory attribute
-  val intro_global: theory attribute
-  val dest_bang_global: theory attribute
-  val elim_bang_global: theory attribute
-  val intro_bang_global: theory attribute
-  val rule_del_global: theory attribute
-  val dest_local: Proof.context attribute
-  val elim_local: Proof.context attribute
-  val intro_local: Proof.context attribute
-  val dest_bang_local: Proof.context attribute
-  val elim_bang_local: Proof.context attribute
-  val intro_bang_local: Proof.context attribute
-  val rule_del_local: Proof.context attribute
   val RAW_METHOD: (thm list -> tactic) -> Proof.method
   val RAW_METHOD_CASES:
     (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
@@ -133,7 +117,9 @@ structure Method: METHOD =
 struct
 
 
-(** tracing *)
+(** proof methods **)
+
+(* tracing *)
 
 val trace_rules = ref false;
 
@@ -142,127 +128,6 @@ fun trace ctxt rules =
     Pretty.big_list "rules:" (map (ProofContext.pretty_thm ctxt) rules)
     |> Pretty.string_of |> tracing);
 
-
-
-(** global and local rule data **)
-
-val intro_bangK = 0;
-val elim_bangK = 1;
-val introK = 2;
-val elimK = 3;
-
-local
-
-fun kind_name 0 = "safe introduction rules (intro!)"
-  | kind_name 1 = "safe elimination rules (elim!)"
-  | kind_name 2 = "introduction rules (intro)"
-  | kind_name 3 = "elimination rules (elim)"
-  | kind_name _ = "unknown";
-
-fun prt_rules prt x (k, rs) =
-  Pretty.writeln (Pretty.big_list (kind_name k ^ ":") (map (prt x) (NetRules.rules rs)));
-
-in
-  fun print_rules prt x rules = seq (prt_rules prt x) (0 upto length rules - 1 ~~ rules);
-end;
-
-
-(* theory data kind 'Isar/rules' *)
-
-structure GlobalRulesArgs =
-struct
-  val name = "Isar/rules";
-  type T = thm NetRules.T list;
-
-  val empty = [NetRules.intro, NetRules.elim, NetRules.intro, NetRules.elim];
-  val copy = I;
-  val prep_ext = I;
-  fun merge x = map2 NetRules.merge x;
-  val print = print_rules Display.pretty_thm_sg;
-end;
-
-structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
-val print_global_rules = GlobalRules.print;
-
-
-(* proof data kind 'Isar/rules' *)
-
-structure LocalRulesArgs =
-struct
-  val name = GlobalRulesArgs.name;
-  type T = GlobalRulesArgs.T;
-  val init = GlobalRules.get;
-  val print = print_rules ProofContext.pretty_thm;
-end;
-
-structure LocalRules = ProofDataFun(LocalRulesArgs);
-val print_local_rules = LocalRules.print;
-
-
-
-(** attributes **)
-
-(* add rules *)
-
-local
-
-fun add_rule k view th = Library.map_nth_elem k (NetRules.insert (view th));
-
-val add_intro      = add_rule introK I;
-val add_elim       = add_rule elimK I;
-val add_dest       = add_rule elimK Tactic.make_elim;
-val add_intro_bang = add_rule intro_bangK I;
-val add_elim_bang  = add_rule elim_bangK I;
-val add_dest_bang  = add_rule elim_bangK Tactic.make_elim;
-
-fun del_rule th = map (NetRules.delete th o NetRules.delete (Tactic.make_elim th));
-
-fun mk_att f g (x, th) = (f (g th) x, th);
-
-in
-
-val dest_global = mk_att GlobalRules.map add_dest;
-val elim_global = mk_att GlobalRules.map add_elim;
-val intro_global = mk_att GlobalRules.map add_intro;
-val dest_bang_global = mk_att GlobalRules.map add_dest_bang;
-val elim_bang_global = mk_att GlobalRules.map add_elim_bang;
-val intro_bang_global = mk_att GlobalRules.map add_intro_bang;
-val rule_del_global = mk_att GlobalRules.map del_rule;
-
-val dest_local = mk_att LocalRules.map add_dest;
-val elim_local = mk_att LocalRules.map add_elim;
-val intro_local = mk_att LocalRules.map add_intro;
-val dest_bang_local = mk_att LocalRules.map add_dest_bang;
-val elim_bang_local = mk_att LocalRules.map add_elim_bang;
-val intro_bang_local = mk_att LocalRules.map add_intro_bang;
-val rule_del_local = mk_att LocalRules.map del_rule;
-
-fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
-
-end;
-
-
-(* concrete syntax *)
-
-val rule_atts =
- [("dest",
-   (Attrib.bang_args dest_bang_global dest_global,
-    Attrib.bang_args dest_bang_local dest_local),
-    "declaration of destruction rule"),
-  ("elim",
-   (Attrib.bang_args elim_bang_global elim_global,
-    Attrib.bang_args elim_bang_local elim_local),
-    "declaration of elimination rule"),
-  ("intro",
-   (Attrib.bang_args intro_bang_global intro_global,
-    Attrib.bang_args intro_bang_local intro_local),
-    "declaration of introduction rule"),
-  ("rule", (del_args rule_del_global, del_args rule_del_local),
-    "remove declaration of elim/intro rule")];
-
-
-
-(** proof methods **)
 
 (* make methods *)
 
@@ -304,13 +169,10 @@ fun insert_tac [] i = all_tac
 val insert_facts = METHOD (ALLGOALS o insert_tac);
 fun insert thms = METHOD (fn _ => ALLGOALS (insert_tac thms));
 
-end;
-
-
-(* simple methods *)
-
 fun SIMPLE_METHOD tac = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN tac);
 fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN' tac));
+
+end;
 
 
 (* unfold / fold definitions *)
@@ -337,30 +199,31 @@ fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of
 end;
 
 
-(* basic rules *)
+(* single rules *)
 
 local
 
+fun may_unify t nets = RuleContext.orderlist (flat (map (fn net => Net.unify_term net t) nets));
+
+fun find_erules [] = K []
+  | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
+
+fun find_rules goal = may_unify (Logic.strip_assums_concl goal);
+
+
 fun gen_rule_tac tac rules [] i st = tac rules i st
-  | gen_rule_tac tac erules facts i st =
-      Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts erules));
+  | gen_rule_tac tac rules facts i st =
+      Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts rules));
 
 fun gen_arule_tac tac j rules facts =
   EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
 
-fun find_erules [] _ = []
-  | find_erules (fact :: _) rs =
-      NetRules.retrieve rs (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
-
-fun find_rules goal rs = NetRules.retrieve rs (Logic.strip_assums_concl goal);
-
 fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
-    fun get k = nth_elem (k, LocalRules.get ctxt);
+    val netpairs = RuleContext.netpairs ctxt;
     val rules =
       if not (null arg_rules) then arg_rules
-      else find_erules facts (get elim_bangK) @ find_erules facts (get elimK) @
-        find_rules goal (get intro_bangK) @ find_rules goal (get introK);
+      else map #2 (find_erules facts (map #2 netpairs) @ find_rules goal (map #1 netpairs));
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
@@ -674,6 +537,7 @@ val global_immediate_proof = global_terminal_proof (this_text, None);
 val global_done_proof = global_term_proof false (done_text, None);
 
 
+
 (** theory setup **)
 
 (* misc tactic emulations *)
@@ -717,9 +581,8 @@ val pure_methods =
 (* setup *)
 
 val setup =
- [GlobalRules.init, LocalRules.init, Attrib.add_attributes rule_atts,
-  MethodsData.init, add_methods pure_methods,
-  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_global])])];
+ [MethodsData.init, add_methods pure_methods,
+  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [RuleContext.intro_query_global None])])];
 
 
 end;
