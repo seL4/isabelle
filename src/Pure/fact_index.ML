@@ -38,18 +38,21 @@ fun index_thm pred (idx, th) =
 
 (* build index *)
 
-datatype T = Index of {next: int,
+datatype T = Index of {next: int, facts: (string * thm list) list,
   consts: (int * (string * thm list)) list Symtab.table,
   frees: (int * (string * thm list)) list Symtab.table};
 
 val empty =
-  Index {next = 0, consts = Symtab.empty, frees = Symtab.empty};
+  Index {next = 0, facts = [], consts = Symtab.empty, frees = Symtab.empty};
 
-fun add pred (Index {next, consts, frees}, (name, ths)) =
+fun add pred (Index {next, facts, consts, frees}, (name, ths)) =
   let
     fun upd (tab, a) = Symtab.update_multi ((a, (next, (name, ths))), tab);
     val (cs, xs) = foldl (index_thm pred) (([], []), ths);
-  in Index {next = next + 1, consts = foldl upd (consts, cs), frees = foldl upd (frees, xs)} end;
+  in
+    Index {next = next + 1, facts = (name, ths) :: facts,
+      consts = foldl upd (consts, cs), frees = foldl upd (frees, xs)}
+  end;
 
 
 (* find facts *)
@@ -64,13 +67,9 @@ fun intersect ([], _) = []
 fun intersects [xs] = xs
   | intersects xss = if exists null xss then [] else foldl intersect (hd xss, tl xss);
 
-fun find (cs, xs) (Index {consts, frees, ...}) =
-  let
-    val raw =
-      map (curry Symtab.lookup_multi consts) cs @
-      map (curry Symtab.lookup_multi frees) xs;
-    val res =
-      if null raw then map #2 (Symtab.dest consts @ Symtab.dest frees) else raw;
-  in map #2 (intersects res) end;
+fun find ([], []) (Index {facts, ...}) = facts
+  | find (cs, xs) (Index {consts, frees, ...}) =
+      (map (curry Symtab.lookup_multi consts) cs @
+        map (curry Symtab.lookup_multi frees) xs) |> intersects |> map #2;
 
 end;
