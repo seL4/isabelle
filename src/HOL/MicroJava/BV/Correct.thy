@@ -13,8 +13,7 @@ constdefs
 "approx_val G h v any \\<equiv> case any of None \\<Rightarrow> True | Some T \\<Rightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T"
 
  approx_loc :: "[jvm_prog,aheap,val list,locvars_type] \\<Rightarrow> bool"
-"approx_loc G hp loc LT \\<equiv> 
-   length loc=length LT \\<and> (\\<forall>(val,any)\\<in>set (zip loc LT). approx_val G hp val any)" 
+"approx_loc G hp loc LT \\<equiv> list_all2 (approx_val G hp) loc LT" 
 
  approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] \\<Rightarrow> bool"
 "approx_stk G hp stk ST \\<equiv> approx_loc G hp stk (map Some ST)"

@@ -26,16 +26,14 @@ qed "sup_PTS_eq";
 
 
 
-Goal
-"CFS \\<turnstile> [] <=l XT = (XT=[])";
-by (case_tac "XT=[]" 1);
-by (asm_simp_tac (simpset() addsimps [sup_loc_def]) 1);
-by (fast_tac (claset() addss (simpset() addsimps [sup_loc_def,neq_Nil_conv])) 1);
+Goalw [sup_loc_def] "CFS \\<turnstile> [] <=l XT = (XT=[])";
+by(Simp_tac 1);
 qed "sup_loc_Nil";
+AddIffs [sup_loc_Nil];
 
-Goal
+
+Goalw [sup_loc_def]
 "CFS \\<turnstile> (Y#YT) <=l XT = (\\<exists>X XT'. XT=X#XT' \\<and> CFS \\<turnstile> Y <=o X \\<and> CFS \\<turnstile> YT <=l XT')";
-by (case_tac "XT=[]" 1);
-by (asm_simp_tac (simpset() addsimps [sup_loc_def]) 1);
-by (fast_tac (claset() addss (simpset() addsimps [sup_loc_def,neq_Nil_conv])) 1);
+by(simp_tac (simpset() addsimps [list_all2_Cons1]) 1);
 qed "sup_loc_Cons";
+AddIffs [sup_loc_Cons];

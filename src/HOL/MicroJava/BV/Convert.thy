@@ -24,8 +24,7 @@ constdefs
 		   | Some t' \\<Rightarrow> G \\<turnstile> t' \\<preceq> t" 
 
  sup_loc :: "['code prog,locvars_type,locvars_type] \\<Rightarrow> bool"	  ("_ \\<turnstile> _ <=l _"  [71,71] 70)
- "G \\<turnstile> LT <=l LT' \\<equiv> (length LT=length LT') \\<and> (\\<forall>(t,t')\\<in>set (zip LT LT'). G \\<turnstile> t <=o t')"
-
+ "G \\<turnstile> LT <=l LT' \\<equiv> list_all2 (%t t'. G \\<turnstile> t <=o t') LT LT'"
 
  sup_state :: "['code prog,state_type,state_type] \\<Rightarrow> bool"	  ("_ \\<turnstile> _ <=s _"  [71,71] 70)
  "G \\<turnstile> s <=s s' \\<equiv> G \\<turnstile> map Some (fst s) <=l map Some (fst s') \\<and> G \\<turnstile> snd s <=l snd s'"

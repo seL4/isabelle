@@ -68,24 +68,25 @@ by(blast_tac (claset() addIs [conf_widen]) 1);
 qed_spec_mp "approx_val_imp_approx_val_sup";
 
 
-Goal 
+Goalw [approx_loc_def,list_all2_def]
 "\\<lbrakk> wf_prog wt G; approx_loc G hp loc LT; idx < length LT ; val = loc ! idx ; G \\<turnstile> LT ! idx <=o at\\<rbrakk> \
 \\\<Longrightarrow> approx_val G hp val at";
 by (fast_tac (claset() addIs [approx_val_imp_approx_val_sup] addss (simpset() addsimps 
-	[split_def,approx_loc_def,all_set_conv_all_nth])) 1);
+	[split_def,all_set_conv_all_nth])) 1);
 qed "approx_loc_imp_approx_val_sup";
 
 
 (** approx_loc **)
 
-Goal 
+Goalw [approx_loc_def]
 "approx_loc G hp (s#xs) (l#ls) = \
-\   ((length xs = length ls) \\<and> (approx_val G hp s l) \\<and> (approx_loc G hp xs ls))";
-by (fast_tac (claset() addss (simpset() addsimps [approx_loc_def])) 1);
+\   (approx_val G hp s l \\<and> approx_loc G hp xs ls)";
+by (Simp_tac 1);
 qed "approx_loc_Cons";
+AddIffs [approx_loc_Cons];
 
 
-Goalw [approx_stk_def,approx_loc_def]
+Goalw [approx_stk_def,approx_loc_def,list_all2_def]
 "\\<lbrakk> wf_prog wt G \\<rbrakk> \
 \\\<Longrightarrow> (\\<forall>tt'\\<in>set (zip tys_n ts). tt' \\<in> widen G) \\<longrightarrow> \
 \     length tys_n = length ts \\<longrightarrow> approx_stk G hp s tys_n \\<longrightarrow> approx_loc G hp s (map Some ts)";
@@ -94,7 +95,7 @@ by (force_tac (claset() addIs [approx_val_imp_approx_val_assConvertible], simpse
 qed_spec_mp "assConv_approx_stk_imp_approx_loc";
 
 
-Goalw [approx_loc_def]
+Goalw [approx_loc_def,list_all2_def]
 "\\<forall> lvars. approx_loc G hp lvars lt \\<longrightarrow>  hp \\<le>| hp' \\<longrightarrow> approx_loc G hp' lvars lt";
 by (exhaust_tac "lt" 1);
  by (Asm_simp_tac 1);
@@ -103,14 +104,14 @@ by (force_tac (claset() addIs [approx_val_imp_approx_val_sup_heap],
 qed_spec_mp "approx_loc_imp_approx_loc_sup_heap";
 
 
-Goalw [sup_loc_def,approx_loc_def]
+Goalw [sup_loc_def,approx_loc_def,list_all2_def]
 "wf_prog wt G \\<Longrightarrow> approx_loc G hp lvars lt \\<longrightarrow> G \\<turnstile> lt <=l lt' \\<longrightarrow> approx_loc G hp lvars lt'";
 by (auto_tac (claset() , simpset() addsimps [all_set_conv_all_nth,split_def]));
 by (auto_tac (claset() addEs [approx_val_imp_approx_val_sup] , simpset()));
 qed_spec_mp "approx_loc_imp_approx_loc_sup";
 
 
-Goalw  [approx_loc_def]
+Goalw [approx_loc_def,list_all2_def]
 "\\<forall>loc idx x X. (approx_loc G hp loc LT) \\<longrightarrow> (approx_val G hp x X) \
 \ \\<longrightarrow> (approx_loc G hp (loc[idx:=x]) (LT[idx:=X]))";
 by (fast_tac (claset() addDs [set_update_subset RS subsetD]
@@ -118,26 +119,17 @@ by (fast_tac (claset() addDs [set_update_subset RS subsetD]
 qed_spec_mp "approx_loc_imp_approx_loc_subst";
 
 
-Goal 
+Goalw [approx_loc_def,list_all2_def]
 "\\<forall>L1 l2 L2. length l1=length L1 \
 \ \\<longrightarrow> approx_loc G hp (l1@l2) (L1@L2) = (approx_loc G hp l1 L1 \\<and> approx_loc G hp l2 L2)";
-by (induct_tac "l1" 1);
- by (fast_tac (claset() addDs [] addss (simpset() addsimps [approx_loc_def])) 1);
-br allI 1;
-by (exhaust_tac "L1" 1);
- by (asm_full_simp_tac (simpset() addsimps []) 1);
-by (asm_full_simp_tac (simpset() addsimps []) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [approx_loc_Cons]) 1);
-by (case_tac "length l2 = length L2" 1);
- by (asm_full_simp_tac (simpset() addsimps []) 1);
-by (asm_full_simp_tac (simpset() addsimps [approx_loc_def]) 1);
+by(simp_tac (simpset() addcongs [conj_cong] addsimps [zip_append]) 1);
+by(Blast_tac 1);
 qed_spec_mp "approx_loc_append";
 
 
 (** approx_stk **)
 
-Goalw [approx_stk_def,approx_loc_def]
+Goalw [approx_stk_def,approx_loc_def,list_all2_def]
 "approx_stk G hp (rev s) (rev t) = approx_stk G hp s t";
 by (fast_tac (claset() addss (simpset() addsimps [zip_rev,rev_map RS sym])) 1);
 qed_spec_mp "approx_stk_rev_lem";
@@ -160,39 +152,29 @@ qed_spec_mp "approx_stk_imp_approx_stk_sup";
 
 Goalw [approx_stk_def,approx_loc_def]
 "approx_stk G hp [] []";
-by (asm_full_simp_tac (simpset() addsimps []) 1);
+by (Simp_tac 1);
 qed "approx_stk_Nil";
+AddIffs [approx_stk_Nil];
+
+Goalw [approx_stk_def,approx_loc_def]
+"approx_stk G hp (x # stk) (S#ST) = (approx_val G hp x (Some S) \\<and> approx_stk G hp stk ST)";
+by (Simp_tac 1);
+qed "approx_stk_Cons";
+AddIffs [approx_stk_Cons];
+
+Goalw [approx_stk_def,approx_loc_def]
+"approx_stk G hp stk (S#ST') = \
+\ (\\<exists>s stk'. stk = s#stk' \\<and> approx_val G hp s (Some S) \\<and> approx_stk G hp stk' ST')";
+by (asm_full_simp_tac (simpset() addsimps [list_all2_Cons2]) 1);
+qed "approx_stk_Cons_lemma";
+AddIffs [approx_stk_Cons_lemma];
 
 
 Goalw [approx_stk_def,approx_loc_def]
-"approx_stk G hp (x # stk) (S#ST) = (approx_stk G hp stk ST \\<and> approx_val G hp x (Some S))";
-by (fast_tac (claset() addss (simpset())) 1);
-qed "approx_stk_Cons";
-
-Goal 
-"\\<lbrakk> approx_stk G hp stk (S#ST') \\<rbrakk> \
-\ \\<Longrightarrow> \\<exists>s stk'. stk = s#stk' \\<and> approx_stk G hp stk' ST' \\<and> approx_val G hp s (Some S)";
-by (exhaust_tac "stk" 1);
- by (fast_tac (claset() addss (simpset() addsimps [approx_stk_def,approx_loc_def])) 1);
-by (fast_tac (claset() addss (simpset() addsimps [approx_stk_Cons])) 1);
-qed "approx_stk_Cons_lemma";
-
-Goal 
-"\\<forall>ST' stk. approx_stk G hp stk (S@ST')   \
-\ \\<longrightarrow> (\\<exists>s stk'. stk = s@stk' \\<and> length s = length S \\<and> length stk' = length ST' \\<and> \
+"approx_stk G hp stk (S@ST')  \
+\ \\<Longrightarrow> (\\<exists>s stk'. stk = s@stk' \\<and> length s = length S \\<and> length stk' = length ST' \\<and> \
 \             approx_stk G hp s S \\<and> approx_stk G hp stk' ST')";
-by (induct_tac "S" 1);
- by (fast_tac (claset() addDs [] addss (simpset() addsimps [approx_stk_def,approx_loc_def])) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps []) 1);
-bd approx_stk_Cons_lemma 1;
-by (Clarify_tac 1);
-by (eres_inst_tac [("x","ST'")] allE 1);
-by (eres_inst_tac [("x","stk'")] allE 1);
-by (Clarify_tac 1);
-by (res_inst_tac [("x","s#sa")] exI 1);
-by (res_inst_tac [("x","stk'a")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps [approx_stk_Cons]) 1);
+by(asm_full_simp_tac (simpset() addsimps [list_all2_append2]) 1);
 qed_spec_mp "approx_stk_append_lemma";
 
 

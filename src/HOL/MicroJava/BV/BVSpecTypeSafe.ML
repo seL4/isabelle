@@ -32,9 +32,8 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_val_sup,
 	approx_loc_imp_approx_loc_sup] 
-	addss (simpset() addsimps [approx_stk_Cons,sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Load_correct";
-
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
@@ -44,9 +43,8 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma]
-	addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_subst RSN(2, approx_loc_imp_approx_loc_sup)]
-	addss (simpset() addsimps [sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_subst RSN(2, approx_loc_imp_approx_loc_sup)]
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Store_correct";
 
 Goalw [conf_def] "G,h \\<turnstile> Intg i \\<Colon>\\<preceq> PrimT Integer";
@@ -63,7 +61,7 @@ Goal
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (fast_tac (claset()addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
-	addss (simpset() addsimps [approx_val_def,sup_PTS_eq,sup_loc_Cons,map_eq_Cons,approx_stk_Cons]@defs1)) 1);
+	addss (simpset() addsimps [approx_val_def,sup_PTS_eq,map_eq_Cons]@defs1)) 1);
 qed "Bipush_correct";
 
 Goal "G \\<turnstile> T' \\<preceq> T \\<Longrightarrow> T' = NT \\<longrightarrow> (T=NT | (\\<exists>C. T = Class C))";
@@ -87,7 +85,7 @@ Goal
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
-	addss (simpset() addsimps [approx_val_Null,NT_subtype_conv,sup_loc_Cons,map_eq_Cons,approx_stk_Cons]@defs1)) 1);
+	addss (simpset() addsimps [approx_val_Null,NT_subtype_conv,map_eq_Cons]@defs1)) 1);
 qed "Aconst_null_correct";
 
 
@@ -133,11 +131,10 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (asm_full_simp_tac (simpset() addsimps [sup_loc_Cons,map_eq_Cons,approx_stk_Cons,
+by (asm_full_simp_tac (simpset() addsimps [map_eq_Cons,
 		raise_xcpt_def]@defs1 addsplits [option.split]) 1);
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma] 
-	addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup,Cast_conf2] 
-	addss (simpset() addsimps [sup_loc_Cons,map_eq_Cons,approx_stk_Cons,approx_val_def])) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup,Cast_conf2] 
+	addss (simpset() addsimps [map_eq_Cons,approx_val_def])) 1);
 qed "Checkcast_correct";
 
 
@@ -169,9 +166,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [sup_state_def,sup_loc_Cons,map_eq_Cons]) 1);
-by (Clarify_tac 1);
-bd approx_stk_Cons_lemma 1;
+by (asm_full_simp_tac (simpset() addsimps [sup_state_def,map_eq_Cons]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
 
@@ -182,19 +177,13 @@ bd conf_RefTD 1;
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps []) 1);
 
-(* approx_stk *)
 br conjI 1;
-by  (asm_full_simp_tac (simpset() addsimps [approx_stk_Cons]) 1);
-br  conjI 1;
-by   (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup]) 1);
-by  (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
-bd  widen_cfs_fields 1;
+ bd widen_cfs_fields 1;
    ba 1;
   ba 1;
-by  (fast_tac (claset() addIs [conf_widen] addss (simpset() addsimps [hconf_def,oconf_def,lconf_def])) 1);
+ by(fast_tac (claset() addIs [conf_widen] addss (simpset() addsimps [hconf_def,oconf_def,lconf_def])) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]) 1);
 
-(* approx_loc *)
-by (fast_tac (claset() addIs [approx_loc_imp_approx_loc_sup]) 1);
 qed "Getfield_correct";
 
 
@@ -208,11 +197,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [sup_state_def,sup_loc_Cons,map_eq_Cons]) 1);
-by (Clarify_tac 1);
-bd approx_stk_Cons_lemma 1;
-by (Clarify_tac 1);
-bd approx_stk_Cons_lemma 1;
+by (asm_full_simp_tac (simpset() addsimps [sup_state_def,map_eq_Cons]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
 
@@ -262,8 +247,8 @@ by (fast_tac (claset() addSDs [collapse_paired_All RS iffD1]addIs [sup_heap_newr
 		approx_loc_imp_approx_loc_sup_heap RSN(2,approx_loc_imp_approx_loc_sup),
 		hconf_imp_hconf_newref,correct_frames_imp_correct_frames_newref,
 		rewrite_rule [split_def] correct_init_obj]
-	addss (simpset() addsimps [NT_subtype_conv,approx_stk_Cons,approx_val_def,conf_def,
-		fun_upd_apply,sup_loc_Cons,map_eq_Cons,is_class_def,raise_xcpt_def,init_vars_def]@defs1 
+	addss (simpset() addsimps [NT_subtype_conv,approx_val_def,conf_def,
+		fun_upd_apply,map_eq_Cons,is_class_def,raise_xcpt_def,init_vars_def]@defs1 
 	addsplits [option.split])) 1);
 qed "New_correct";
 
@@ -301,9 +286,6 @@ by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps []@defs1) 1);
 bd approx_stk_append_lemma 1;   
 by (Clarify_tac 1);
-bd approx_stk_Cons_lemma 1;
-by (asm_full_simp_tac (simpset() addsimps []) 1);
-by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
 bd conf_RefTD 1;
 by (Clarify_tac 1);
@@ -332,17 +314,12 @@ by (forward_tac [wt_jvm_prog_impl_wt_start] 1);
 by (asm_full_simp_tac (simpset() addsimps [wt_start_def,sup_state_def]) 1);
 by (Clarify_tac 1);
 
-(** approx_stk **)
-br conjI 1;
- by (asm_full_simp_tac (simpset() addsimps [sup_loc_Nil,approx_stk_Nil]) 1);
-
-
 (** approx_loc **)
 br conjI 1;
  br approx_loc_imp_approx_loc_sup 1;
    ba 1;
   by (Fast_tac 2);
- by (asm_full_simp_tac (simpset() addsimps [split_def,approx_loc_Cons,approx_val_def,approx_loc_append]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [split_def,approx_val_def,approx_loc_append]) 1);
  br conjI 1;
   br conf_widen 1;
     ba 1;
@@ -350,8 +327,8 @@ br conjI 1;
   by (asm_full_simp_tac (simpset() addsimps [conf_def]) 1);
  br conjI 1;
   by (fast_tac (claset() addIs [approx_stk_rev RS iffD2 RSN(4,assConv_approx_stk_imp_approx_loc)] 
-	addss (simpset() addsimps [split_def,approx_loc_Cons,approx_val_def])) 1);
- by (asm_simp_tac (simpset() addsimps [split_def,approx_loc_def,zip_replicate,approx_val_None,set_replicate_conv_if]) 1);
+	addss (simpset() addsimps [split_def,approx_val_def])) 1);
+ by (asm_simp_tac (simpset() addsimps [list_all2_def,split_def,approx_loc_def,approx_val_None,set_replicate_conv_if]) 1);
 
 br conjI 1;
  by (asm_simp_tac (simpset() addsimps [min_def]) 1);
@@ -361,7 +338,7 @@ br conjI 1;
  by(Blast_tac 1);
 by (fast_tac (claset()
        addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
-       addss (simpset()addsimps [map_eq_Cons,sup_loc_Cons])) 1);
+       addss (simpset()addsimps [map_eq_Cons])) 1);
 qed "Invoke_correct";
 
 Goal
@@ -380,16 +357,6 @@ qed "MI_correct";
 
 (****** MR ******)
 
-Goal
- "\\<forall>zs. (xs@ys = zs) = (xs = take (length xs) zs \\<and> ys = drop (length xs) zs)";
-by(induct_tac "xs" 1);
-by(Simp_tac 1);
-by(Asm_full_simp_tac 1);
-by(Clarify_tac 1);
-by(exhaust_tac "zs" 1);
-by(Auto_tac);
-qed_spec_mp "append_eq_conv_conj";
-
 Delsimps [map_append];
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
@@ -401,18 +368,17 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps (neq_Nil_conv::defs1) addsplits [split_if_asm]) 1);
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [sup_loc_Cons,map_eq_Cons]@defs1) 1);
+by (asm_full_simp_tac (simpset() addsimps [map_eq_Cons]@defs1) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps defs1) 1);
 by (forward_tac [wt_jvm_prog_impl_wt_instr] 1);
   by(EVERY1[atac, etac Suc_lessD]);
 by(rewtac wt_jvm_prog_def);
 by (fast_tac (claset()
- addDs [approx_stk_Cons_lemma,subcls_widen_methd]
+ addDs [subcls_widen_methd]
  addEs [rotate_prems 1 widen_trans]
- addIs [conf_widen] 
-	addss (simpset()
- addsimps [approx_val_def,append_eq_conv_conj,sup_loc_Cons,map_eq_Cons,approx_stk_Cons]@defs1)) 1);
+ addIs [conf_widen]
+ addss (simpset() addsimps [approx_val_def,append_eq_conv_conj,map_eq_Cons]@defs1)) 1);
 qed "Return_correct";
 Addsimps [map_append];
 
@@ -452,8 +418,7 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma] 
-	addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup] addss (simpset() addsimps defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup] addss (simpset() addsimps defs1)) 1);
 qed "Ifiacmpeq_correct";
 
 
@@ -483,8 +448,7 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma] 
-	addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup] addss (simpset() addsimps defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup] addss (simpset() addsimps defs1)) 1);
 qed "Pop_correct";
 
 
@@ -496,9 +460,8 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma]
-	addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
-	addss (simpset() addsimps [approx_stk_Cons,sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Dup_correct";
 
 
@@ -510,9 +473,8 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma]
-	addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
-	addss (simpset() addsimps [approx_stk_Cons,sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Dup_x1_correct";
 
 Goal 
@@ -523,9 +485,8 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma]
-	addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
-	addss (simpset() addsimps [approx_stk_Cons,sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Dup_x2_correct";
 
 Goal 
@@ -536,9 +497,8 @@ Goal
 \  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
-by (fast_tac (claset() addDs [approx_stk_Cons_lemma] 
-	addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
-	addss (simpset() addsimps [approx_stk_Cons,sup_loc_Cons,map_eq_Cons]@defs1)) 1);
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup] 
+	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Swap_correct";
 
 Goal
