@@ -42,6 +42,19 @@ structure Int =
   end;
 
 
+structure Real =
+  struct
+  fun toString (x: real) = makestring x;
+  fun max (x, y) = if x < y then y else x : real;
+  fun min (x, y) = if x < y then x else y : real;
+  val real = real;
+  val floor = floor;
+  fun ceil x = ~1 - floor (~ (x + 1.0));
+  fun round x = floor (x + 0.5);  (*does not do round-to-nearest*)
+  fun trunc x = if x < 0.0 then ceil x else floor x;
+  end;
+
+
 structure List =
   struct
   exception Empty
