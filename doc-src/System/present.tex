@@ -433,13 +433,15 @@ say \verb,\includegraphics{session_graph}, in the \texttt{document/root.tex}
 file.  (Omitting the file-name extension enables {\LaTeX} to select to correct
 version, either for the DVI or PDF output path.)
 
-\medskip The \texttt{-D} option causes the generated document sources to be
-dumped at location \texttt{PATH}, which is relative to the session's main
-directory.  For example, \texttt{-D document} would leave a copy of the
-{\LaTeX} sources in the actual document directory.  Thus the Isabelle
-\texttt{document} or \texttt{latex} tools may be run later, facilitating much
-easier debugging of {\LaTeX} errors, for example.  A copy of the Isabelle
-style files will be placed in \texttt{PATH} as well.
+\medskip The \texttt{-D} option causes the generated document sources
+(including the user's template of \texttt{document/root.tex} etc.) to be
+dumped at location \texttt{PATH}; this path is relative to the session's main
+directory.  For example, \texttt{isatool usedir -D generated HOL Foo} will
+produces a complete set of document sources at \texttt{Foo/generated}.
+Subsequent invocation of \texttt{isatool document Foo/generated} (see also
+\S\ref{sec:tool-document}) will process the final result independently of an
+Isabelle job.  This decoupled mode of operation facilitates debugging of
+serious {\LaTeX} errors, for example.
 
 \medskip The \texttt{-p} option determines the level of detail for internal
 proof objects, see also the \emph{Isabelle Reference
