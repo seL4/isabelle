@@ -20,6 +20,7 @@ sig
       Tip of token
     val parse: gram -> string -> token list -> parsetree list
   end
+  val branching_level: int ref;
 end;
 
 functor ParserFun(structure Symtab: SYMTAB and Lexicon: LEXICON
@@ -425,6 +426,8 @@ fun movedot_lambda _ [] = []
       else movedot_lambda (B, j, tss, Nonterm (A, k) :: sa, id, i) ts;
 
 
+val warned = ref false;  (*flag for warning message*)
+val branching_level = ref 100;  (*trigger value for warnings*)
 
 fun PROCESSS Estate i c states =
 let
@@ -435,7 +438,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
       (case S of
         (_, _, _, Nonterm (rhss_ref, minPrec) :: _, _, _) =>
           let                                       (*predictor operation*)
-            val (used_new, States_new) =
+            val (used_new, new_states) =
               (case assoc (used, rhss_ref) of
                 Some (usedPrec, l) =>       (*nonterminal has been processed*)
                   if usedPrec <= minPrec then
@@ -455,15 +458,21 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                                       (getRHS minPrec rhss);
                   in ((rhss_ref, (minPrec, [])) :: used, States') end)
           in
-            processS used_new (States_new @ States) (S :: Si, Sii)
+            processS used_new (new_states @ States) (S :: Si, Sii)
           end
       | (_, _, _, Term a :: _, _, _) =>               (*scanner operation*)
           processS used States
             (S :: Si,
               if matching_tokens (a, c) then movedot_term S c :: Sii else Sii)
-
       | (A, prec, ts, [], id, j) =>                   (*completer operation*)
           let
+            fun check_branching len =
+              if not (!warned) andalso len > (!branching_level) then
+                (writeln "Warning: Currently parsed expression could be \
+                         \extremely ambiguous.";
+                 warned := true)
+              else ();
+
             val tt = if id = "" then ts else [Node (id, ts)]
           in
             if j = i then                             (*lambda production?*)
@@ -474,6 +483,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                   None =>
                     let
                       val Slist = getS A prec Si;
+                      val _ = check_branching (length Slist);
                       val States' = map (movedot_nonterm tt) Slist;
                     in
                       processS used' (States' @ States) (S :: Si, Sii)
@@ -484,20 +494,20 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                     else
                       let
                         val Slist = getS' A prec n Si;
+                        val _ = check_branching (length Slist);
                         val States' = map (movedot_nonterm tt) Slist;
                       in
-                        processS used' (States' @ States) (S :: Si, Sii)
+                       processS used' (States' @ States) (S :: Si, Sii)
                       end)
               end 
             else
-              processS used
-                (map (movedot_nonterm tt) (getStates Estate i j A prec) @ States)
-                (S :: Si, Sii)
+              let val Slist = getStates Estate i j A prec;
+                  val _ = check_branching (length Slist);
+              in processS used (map (movedot_nonterm tt) Slist @ States)
+                   (S :: Si, Sii)
+              end
           end)
-in
-  processS [] states ([], [])
-end;
-
+in processS [] states ([], []) end;
 
 
 fun syntax_error toks allowed =
@@ -592,7 +602,7 @@ fun earley grammar startsymbol indata =
   in
     Array.update (Estate, 0, S0);
     let
-      val l = produce Estate 0 indata EndToken(*dummy*);
+      val l = (warned := false; produce Estate 0 indata EndToken(*dummy*));
 
       val p_trees = get_trees l;
     in p_trees end
