@@ -63,8 +63,10 @@ sig
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val get_local_clasimpset: Proof.context -> clasimpset
   val iff_add_global: theory attribute
+  val iff_add_global': theory attribute
   val iff_del_global: theory attribute
   val iff_add_local: Proof.context attribute
+  val iff_add_local': Proof.context attribute
   val iff_del_local: Proof.context attribute
   val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
@@ -118,40 +120,44 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
   Failing other cases, A is added as a Safe Intr rule*)
 local
 
-fun addIff ((cla, simp), th) =
-  (case dest_Trueprop (#prop (rep_thm th)) of
+fun addIff dest elim intro simp ((cs, ss), th) =
+  (case dest_Trueprop (#prop (Thm.rep_thm th)) of
     con $ _ $ _ =>
       if con = Data.iff_const then
-        Classical.addSDs (Classical.addSIs (cla, [zero_var_indexes (th RS Data.iffD2)]),
+        dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
           [zero_var_indexes (th RS Data.iffD1)])
-      else Classical.addSIs (cla, [th])
+      else intro (cs, [th])
   | con $ A =>
-      if con = Data.not_const then Classical.addSEs (cla, [zero_var_indexes (th RS Data.notE)])
-      else Classical.addSIs (cla, [th])
-  | _ => Classical.addSIs (cla, [th]), Simplifier.addsimps (simp, [th]))
+      if con = Data.not_const then elim (cs, [zero_var_indexes (th RS Data.notE)])
+      else intro (cs, [th])
+  | _ => intro (cs, [th]), simp (ss, [th]))
   handle TERM _ => error ("iff add: theorem must be unconditional\n" ^ Display.string_of_thm th);
 
-fun delIff ((cla, simp), th) =
-  (case dest_Trueprop (#prop (rep_thm th)) of
+fun delIff ((cs, ss), th) =
+  (case dest_Trueprop (#prop (Thm.rep_thm th)) of
     con $ _ $ _ =>
       if con = Data.iff_const then
-        Classical.delrules (cla, [zero_var_indexes (th RS Data.iffD2),
+        Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
           Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
-      else Classical.delrules (cla, [th])
+      else Classical.delrules (cs, [th])
   | con $ A =>
-      if con = Data.not_const then Classical.delrules (cla, [zero_var_indexes (th RS Data.notE)])
-      else Classical.delrules (cla, [th])
-  | _ => Classical.delrules (cla, [th]), Simplifier.delsimps (simp, [th]))
+      if con = Data.not_const then Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
+      else Classical.delrules (cs, [th])
+  | _ => Classical.delrules (cs, [th]), Simplifier.delsimps (ss, [th]))
   handle TERM _ =>
-    (warning ("iff del: ignoring conditional theorem\n" ^ string_of_thm th); (cla, simp));
+    (warning ("iff del: ignoring conditional theorem\n" ^ string_of_thm th); (cs, ss));
 
-fun store_clasimp (cla, simp) =
-  (Classical.claset_ref () := cla; Simplifier.simpset_ref () := simp);
+fun store_clasimp (cs, ss) =
+  (Classical.claset_ref () := cs; Simplifier.simpset_ref () := ss);
 
 in
 
-val op addIffs = foldl addIff;
+val op addIffs =
+  foldl (addIff Classical.addSDs Classical.addSEs Classical.addSIs Simplifier.addsimps);
+val addIffs' =
+  foldl (addIff Classical.addXDs Classical.addXEs Classical.addXIs (fn (ss, _) => ss));
 val op delIffs = foldl delIff;
+
 fun AddIffs thms = store_clasimp ((Classical.claset (), Simplifier.simpset ()) addIffs thms);
 fun DelIffs thms = store_clasimp ((Classical.claset (), Simplifier.simpset ()) delIffs thms);
 
@@ -260,13 +266,20 @@ fun get_local_clasimpset ctxt =
 (* attributes *)
 
 val iff_add_global = change_global_css (op addIffs);
+val iff_add_global' = change_global_css (op addIffs');
 val iff_del_global = change_global_css (op delIffs);
 val iff_add_local = change_local_css (op addIffs);
+val iff_add_local' = change_local_css (op addIffs');
 val iff_del_local = change_local_css (op delIffs);
 
+fun iff_att add add' del = Attrib.syntax (Scan.lift
+ (Args.del >> K del ||
+  Scan.option Args.add -- Args.query >> K add' ||
+  Scan.option Args.add >> K add));
+
 val iff_attr =
- (Attrib.add_del_args iff_add_global iff_del_global,
-  Attrib.add_del_args iff_add_local iff_del_local);
+ (iff_att iff_add_global iff_add_global' iff_del_global,
+  iff_att iff_add_local iff_add_local' iff_del_local);
 
 
 (* method modifiers *)
@@ -274,9 +287,9 @@ val iff_attr =
 val iffN = "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Args.colon >> K ((I, iff_add_local): Method.modifier),
-  Args.$$$ iffN -- Args.$$$ Args.addN -- Args.colon >> K (I, iff_add_local),
-  Args.$$$ iffN -- Args.$$$ Args.delN -- Args.colon >> K (I, iff_del_local)];
+ [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K ((I, iff_add_local): Method.modifier),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, iff_add_local'),
+  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, iff_del_local)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @
