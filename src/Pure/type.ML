@@ -18,11 +18,11 @@ sig
   type type_sig
   val rep_tsig: type_sig ->
     {classes: class list,
-     classrel: (class * class list) list,
+     classrel: Sorts.classrel,
      default: sort,
-     tycons: (string * int) list,
-     abbrs: (string * (string list * typ)) list,
-     arities: (string * (class * sort list) list) list}
+     tycons: int Symtab.table,
+     abbrs: (string list * typ) Symtab.table,
+     arities: Sorts.arities}
   val defaultS: type_sig -> sort
   val logical_types: type_sig -> string list
 
@@ -44,6 +44,7 @@ sig
   val typ_errors: type_sig -> typ * string list -> string list
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
+  val norm_term: type_sig -> term -> term
 
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
 
@@ -166,11 +167,11 @@ fun freeze_thaw t =
 datatype type_sig =
   TySg of {
     classes: class list,
-    classrel: (class * class list) list,
+    classrel: Sorts.classrel,
     default: sort,
-    tycons: (string * int) list,
-    abbrs: (string * (string list * typ)) list,
-    arities: (string * (class * sort list) list) list};
+    tycons: int Symtab.table,
+    abbrs: (string list * typ) Symtab.table,
+    arities: Sorts.arities};
 
 fun rep_tsig (TySg comps) = comps;
 
@@ -179,10 +180,8 @@ fun defaultS (TySg {default, ...}) = default;
 fun logical_types (TySg {classrel, arities, tycons, ...}) =
   let
     fun log_class c = Sorts.class_le classrel (c, logicC);
-    fun log_type t = exists (log_class o #1) (assocs arities t);
-  in
-    filter log_type (map #1 tycons)
-  end;
+    fun log_type t = exists (log_class o #1) (Symtab.lookup_multi (arities, t));
+  in filter log_type (Symtab.keys tycons) end;
 
 
 (* sorts *)
@@ -228,7 +227,7 @@ fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
    statements in the association list 'a' (i.e. 'classrel')
 *)
 
-fun less a (C, D) = case assoc (a, C) of
+fun less a (C, D) = case Symtab.lookup (a, C) of
      Some ss => D mem_string ss
    | None => err_undcl_class C;
 
@@ -266,7 +265,7 @@ fun inst_term_tvars (_,[]) t = t
   | inst_term_tvars arg    t = map_term_types (inst_typ_tvars arg) t;
 
 
-(* norm_typ *)
+(* norm_typ, norm_term *)
 
 (*expand abbreviations and normalize sorts*)
 fun norm_typ (tsig as TySg {abbrs, ...}) ty =
@@ -274,16 +273,18 @@ fun norm_typ (tsig as TySg {abbrs, ...}) ty =
     val idx = maxidx_of_typ ty + 1;
 
     fun norm (Type (a, Ts)) =
-          (case assoc (abbrs, a) of
+          (case Symtab.lookup (abbrs, a) of
             Some (vs, U) => norm (inst_typ (map (rpair idx) vs ~~ Ts) (incr_tvar idx U))
           | None => Type (a, map norm Ts))
       | norm (TFree (x, S)) = TFree (x, norm_sort tsig S)
       | norm (TVar (xi, S)) = TVar (xi, norm_sort tsig S);
-  in
-    norm ty
-  end;
 
+    val ty' = norm ty;
+  in if ty = ty' then ty else ty' end;  (*dumb tuning to avoid copying*)
 
+fun norm_term tsig t =
+  let val t' = map_term_types (norm_typ tsig) t
+  in if t = t' then t else t' end;  (*dumb tuning to avoid copying*)
 
 
 
@@ -293,7 +294,7 @@ fun make_tsig (classes, classrel, default, tycons, abbrs, arities) =
   TySg {classes = classes, classrel = classrel, default = default,
     tycons = tycons, abbrs = abbrs, arities = arities};
 
-val tsig0 = make_tsig ([], [], [], [], [], []);
+val tsig0 = make_tsig ([], Symtab.empty, [], Symtab.empty, Symtab.empty, Symtab.empty);
 
 
 
@@ -304,7 +305,7 @@ val tsig0 = make_tsig ([], [], [], [], [], []);
 
 fun typ_errors tsig (typ, errors) =
   let
-    val TySg {classes, tycons, abbrs, ...} = tsig;
+    val {classes, tycons, abbrs, ...} = rep_tsig tsig;
 
     fun class_err (errs, c) =
       if c mem_string classes then errs
@@ -312,28 +313,26 @@ fun typ_errors tsig (typ, errors) =
 
     val sort_err = foldl class_err;
 
-    fun typ_errs (Type (c, Us), errs) =
+    fun typ_errs (errs, Type (c, Us)) =
           let
-            val errs' = foldr typ_errs (Us, errs);
+            val errs' = foldl typ_errs (errs, Us);
             fun nargs n =
               if n = length Us then errs'
               else ("Wrong number of arguments: " ^ quote c) ins_string errs';
           in
-            (case assoc (tycons, c) of
+            (case Symtab.lookup (tycons, c) of
               Some n => nargs n
             | None =>
-                (case assoc (abbrs, c) of
+                (case Symtab.lookup (abbrs, c) of
                   Some (vs, _) => nargs (length vs)
                 | None => undcl_type c ins_string errs))
           end
-    | typ_errs (TFree (_, S), errs) = sort_err (errs, S)
-    | typ_errs (TVar ((x, i), S), errs) =
+    | typ_errs (errs, TFree (_, S)) = sort_err (errs, S)
+    | typ_errs (errs, TVar ((x, i), S)) =
         if i < 0 then
           ("Negative index for TVar " ^ quote x) ins_string sort_err (errs, S)
         else sort_err (errs, S);
-  in
-    typ_errs (typ, errors)
-  end;
+  in typ_errs (errors, typ) end;
 
 
 (* cert_typ *)
@@ -362,11 +361,12 @@ fun assoc_union (as1, []) = as1
 (* merge classrel *)
 
 fun merge_classrel (classrel1, classrel2) =
-  let val classrel = transitive_closure (assoc_union (classrel1, classrel2))
+  let
+    val classrel = transitive_closure (assoc_union (Symtab.dest classrel1, Symtab.dest classrel2))
   in
     if exists (op mem_string) classrel then
       error ("Cyclic class structure!")   (* FIXME improve msg, raise TERM *)
-    else classrel
+    else Symtab.make classrel
   end;
 
 
@@ -410,7 +410,7 @@ fun varying_decls t =
    it only checks the two restriction conditions and inserts afterwards
    all elements of the second list into the first one *)
 
-fun merge_arities classrel =
+fun merge_arities_aux classrel =
   let fun test_ar t (ars1, sw) = add_arity classrel ars1 (t,sw);
 
       fun merge_c (arities1, (c as (t, ars2))) = case assoc (arities1, t) of
@@ -420,17 +420,16 @@ fun merge_arities classrel =
         | None => c::arities1
   in foldl merge_c end;
 
-fun add_tycons (tycons, tn as (t,n)) =
-  (case assoc (tycons, t) of
-    Some m => if m = n then tycons else varying_decls t
-  | None => tn :: tycons);
+fun merge_arities classrel (a1, a2) =
+  Symtab.make (merge_arities_aux classrel (Symtab.dest a1, Symtab.dest a2));
 
-fun merge_abbrs (abbrs1, abbrs2) =
-  let val abbrs = abbrs1 union abbrs2 in
-    (case gen_duplicates eq_fst abbrs of
-      [] => abbrs
-    | dups => raise TERM (dup_tyabbrs (map fst dups), []))
-  end;
+fun add_tycons (tycons, tn as (t,n)) =
+  (case Symtab.lookup (tycons, t) of
+    Some m => if m = n then tycons else varying_decls t
+  | None => Symtab.update (tn, tycons));
+
+fun merge_abbrs abbrs =
+  Symtab.merge (op =) abbrs handle Symtab.DUPS dups => raise TERM (dup_tyabbrs dups, []);
 
 
 (* 'merge_tsigs' takes the above declared functions to merge two type
@@ -442,7 +441,7 @@ fun merge_tsigs(TySg{classes=classes1, default=default1, classrel=classrel1,
                      tycons=tycons2, arities=arities2, abbrs=abbrs2}) =
   let val classes' = classes1 union_string classes2;
       val classrel' = merge_classrel (classrel1, classrel2);
-      val tycons' = foldl add_tycons (tycons1, tycons2)
+      val tycons' = foldl add_tycons (tycons1, Symtab.dest tycons2)
       val arities' = merge_arities classrel' (arities1, arities2);
       val default' = Sorts.norm_sort classrel' (default1 @ default2);
       val abbrs' = merge_abbrs(abbrs1, abbrs2);
@@ -471,16 +470,15 @@ fun add_classrel classes (classrel, (s, ges)) =
   let
     fun upd (classrel, s') =
       if s' mem_string classes then
-        let val ges' = the (assoc (classrel, s))
-        in case assoc (classrel, s') of
+        let val ges' = the (Symtab.lookup (classrel, s))
+        in case Symtab.lookup (classrel, s') of
              Some sups => if s mem_string sups
                            then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
-                           else overwrite
-                                  (classrel, (s, sups union_string ges'))
+                           else Symtab.update ((s, sups union_string ges'), classrel)
            | None => classrel
         end
       else err_undcl_class s'
-  in foldl upd (classrel @ [(s, ges)], ges) end;
+  in foldl upd (Symtab.update ((s, ges), classrel), ges) end;
 
 
 (* 'extend_classes' inserts all new classes into the corresponding
@@ -512,7 +510,7 @@ fun ext_tsig_classrel tsig pairs =
 
     (* FIXME clean! *)
     val classrel' =
-      merge_classrel (classrel, map (fn (c1, c2) => (c1, [c2])) pairs);
+      merge_classrel (classrel, Symtab.make (map (fn (c1, c2) => (c1, [c2])) pairs));
   in
     make_tsig (classes, classrel', default, tycons, abbrs, arities)
   end;
@@ -531,13 +529,13 @@ fun ext_tsig_types (TySg {classes, classrel, default, tycons, abbrs, arities}) t
   let
     fun check_type (c, n) =
       if n < 0 then err_neg_args c
-      else if is_some (assoc (tycons, c)) then err_dup_tycon c
-      else if is_some (assoc (abbrs, c)) then error (ty_confl c)
+      else if is_some (Symtab.lookup (tycons, c)) then err_dup_tycon c
+      else if is_some (Symtab.lookup (abbrs, c)) then error (ty_confl c)
       else ();
   in
     seq check_type ts;
-    make_tsig (classes, classrel, default, ts @ tycons, abbrs,
-      map (rpair [] o #1) ts @ arities)
+    make_tsig (classes, classrel, default, Symtab.extend (tycons, ts), abbrs,
+      Symtab.extend (arities, map (rpair [] o #1) ts))
   end;
 
 
@@ -560,11 +558,11 @@ fun abbr_errors tsig (a, (lhs_vs, rhs)) =
       | vs => ["Extra variables on rhs: " ^ commas_quote vs]);
 
     val tycon_confl =
-      if is_none (assoc (tycons, a)) then []
+      if is_none (Symtab.lookup (tycons, a)) then []
       else [ty_confl a];
 
     val dup_abbr =
-      if is_none (assoc (abbrs, a)) then []
+      if is_none (Symtab.lookup (abbrs, a)) then []
       else ["Duplicate declaration of abbreviation"];
   in
     dup_lhs_vars @ extra_rhs_vars @ tycon_confl @ dup_abbr @
@@ -585,10 +583,8 @@ fun prep_abbr tsig (a, vs, raw_rhs) =
     | msgs => err msgs)
   end;
 
-fun add_abbr (tsig as TySg{classes,classrel,default,tycons,arities,abbrs},
-              abbr) =
-  make_tsig
-    (classes,classrel,default,tycons, prep_abbr tsig abbr :: abbrs, arities);
+fun add_abbr (tsig as TySg{classes,classrel,default,tycons,arities,abbrs}, abbr) =
+  make_tsig (classes,classrel,default,tycons, Symtab.update (prep_abbr tsig abbr, abbrs), arities);
 
 fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 
@@ -607,12 +603,12 @@ fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 fun coregular (classes, classrel, tycons) =
   let fun ex C = if C mem_string classes then () else err_undcl_class(C);
 
-      fun addar(arities, (t, (w, C))) = case assoc(tycons, t) of
+      fun addar(arities, (t, (w, C))) = case Symtab.lookup (tycons, t) of
             Some(n) => if n <> length w then varying_decls(t) else
                      ((seq o seq) ex w; ex C;
-                      let val ars = the (assoc(arities, t))
+                      let val ars = the (Symtab.lookup (arities, t))
                           val ars' = add_arity classrel ars (t,(C,w))
-                      in overwrite(arities, (t,ars')) end)
+                      in Symtab.update ((t,ars'), arities) end)
           | None => error (undcl_type t);
 
   in addar end;
@@ -628,7 +624,7 @@ fun coregular (classes, classrel, tycons) =
    for all range classes more general than C *)
 
 fun close classrel arities =
-  let fun check sl (l, (s, dom)) = case assoc (classrel, s) of
+  let fun check sl (l, (s, dom)) = case Symtab.lookup (classrel, s) of
           Some sups =>
             let fun close_sup (l, sup) =
                   if exists (fn s'' => less classrel (s, s'') andalso
@@ -655,7 +651,7 @@ fun ext_tsig_arities tsig sarities =
           (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
     val arities2 = foldl (coregular (classes, classrel, tycons))
                          (arities, norm_domain classrel arities1)
-      |> close classrel;
+      |> Symtab.dest |> close classrel |> Symtab.make;
   in
     make_tsig (classes, classrel, default, tycons, abbrs, arities2)
   end;
