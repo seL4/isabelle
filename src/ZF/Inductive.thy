@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-Inductive = "indrule"
+Inductive = Fixedpt + Sum + QPair + "indrule"
