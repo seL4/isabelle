@@ -15,7 +15,8 @@ print_depth 1;
 use_thy "CTT";
 use "~~/src/Provers/typedsimp.ML";
 use "rew.ML";
-use_thy "Arith";
-use_thy "Bool";
+use_thy "Main";
 
 print_depth 8;
+
+Goal "tt : T";  (*leave subgoal package empty*)
