@@ -37,10 +37,10 @@ consts
   letrec2    ::       "[[i,i,i=>i=>i]=>i,(i=>i=>i)=>i]=>i"
   letrec3    ::       "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"  
 
-  "@let"     ::       "[id,i,i]=>i"             ("(3let _ be _/ in _)" [] 60)
-  "@letrec"  ::       "[id,id,i,i]=>i"          ("(3letrec _ _ be _/ in _)"  [] 60)
-  "@letrec2" ::       "[id,id,id,i,i]=>i"       ("(3letrec _ _ _ be _/ in _)"  [] 60)
-  "@letrec3" ::       "[id,id,id,id,i,i]=>i"    ("(3letrec _ _ _ _ be _/ in _)"  [] 60)
+  "@let"     ::       "[idt,i,i]=>i"             ("(3let _ be _/ in _)" [] 60)
+  "@letrec"  ::       "[idt,idt,i,i]=>i"          ("(3letrec _ _ be _/ in _)"  [] 60)
+  "@letrec2" ::       "[idt,idt,idt,i,i]=>i"       ("(3letrec _ _ _ be _/ in _)"  [] 60)
+  "@letrec3" ::       "[idt,idt,idt,idt,i,i]=>i"    ("(3letrec _ _ _ _ be _/ in _)"  [] 60)
 
   napply    :: "[i=>i,i,i]=>i"      ("(_ ^ _ ` _)")
 
