@@ -9,6 +9,7 @@ signature PROOF_GENERAL =
 sig
   val write_keywords: unit -> unit
   val setup: (theory -> theory) list
+  val thms_containing: xstring list -> unit
   val help: unit -> unit
   val show_context: unit -> theory
   val kill_goal: unit -> unit
@@ -158,6 +159,12 @@ end;
 
 
 (* some top-level commands for ProofGeneral/isa *)
+
+fun print_thm (a, th) =
+  Pretty.writeln (Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
+    Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))]);
+
+val thms_containing = seq print_thm o ThmDatabase.thms_containing;
 
 val help = writeln o Session.welcome;
 val show_context = Context.the_context;
