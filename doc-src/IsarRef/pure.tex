@@ -230,7 +230,7 @@ preceding the actual theory definition.
 \begin{rail}
   'consts' (constdecl +)
   ;
-  'defs' (axmdecl prop comment? +)
+  'defs' ('(overloaded)')? (axmdecl prop comment? +)
   ;
   'constdefs' (constdecl prop comment? +)
   ;
@@ -243,9 +243,16 @@ preceding the actual theory definition.
 \item [$\CONSTS~c::\sigma$] declares constant $c$ to have any instance of type
   scheme $\sigma$.  The optional mixfix annotations may attach concrete syntax
   to the constants declared.
+
 \item [$\DEFS~name: eqn$] introduces $eqn$ as a definitional axiom for some
   existing constant.  See \cite[\S6]{isabelle-ref} for more details on the
   form of equations admitted as constant definitions.
+  
+  The $overloaded$ option declares definitions to be potentially overloaded.
+  Unless this option is given, a warning message would be issued for any
+  definitional equation with a more special type than that of the
+  corresponding constant declaration.
+
 \item [$\isarkeyword{constdefs}~c::\sigma~eqn$] combines declarations and
   definitions of constants, using the canonical name $c_def$ for the
   definitional axiom.
