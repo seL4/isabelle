@@ -19,13 +19,13 @@ Goal "a : {x. P(x)} ==> P(a)";
 by (Asm_full_simp_tac 1);
 qed "CollectD";
 
-val [prem] = Goal "[| !!x. (x:A) = (x:B) |] ==> A = B";
+val [prem] = Goal "(!!x. (x:A) = (x:B)) ==> A = B";
 by (rtac (prem RS ext RS arg_cong RS box_equals) 1);
 by (rtac Collect_mem_eq 1);
 by (rtac Collect_mem_eq 1);
 qed "set_ext";
 
-val [prem] = Goal "[| !!x. P(x)=Q(x) |] ==> {x. P(x)} = {x. Q(x)}";
+val [prem] = Goal "(!!x. P(x)=Q(x)) ==> {x. P(x)} = {x. Q(x)}";
 by (rtac (prem RS ext RS arg_cong) 1);
 qed "Collect_cong";
 
@@ -557,6 +557,7 @@ val prems = Goalw [UNION_def]
 \    (UN x:A. C(x)) = (UN x:B. D(x))";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "UN_cong";
+Addcongs [UN_cong];
 
 
 section "Intersections of families -- INTER x:A. B(x) is Inter(B``A)";
@@ -591,6 +592,7 @@ val prems = Goalw [INTER_def]
 \    (INT x:A. C(x)) = (INT x:B. D(x))";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "INT_cong";
+Addcongs [INT_cong];
 
 
 section "Union";

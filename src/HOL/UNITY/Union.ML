@@ -8,8 +8,6 @@ Unions of programs
 From Misra's Chapter 5: Asynchronous Compositions of Programs
 *)
 
-Addcongs [UN_cong, INT_cong];
-
 
 (** SKIP **)
 
