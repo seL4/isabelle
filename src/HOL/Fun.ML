@@ -380,6 +380,7 @@ by (rtac ext 1);
 by Auto_tac;
 val Pi_extensionality = ballI RSN (3, result());
 
+
 (*** compose ***)
 
 Goalw [Pi_def, compose_def, restrict_def]
@@ -406,7 +407,6 @@ by (auto_tac (claset(),
 	      simpset() addsimps [image_def, compose_eq]));
 qed "surj_compose";
 
-
 Goal "[| f : A funcset B; g: B funcset C; f `` A = B; inj_on f A; inj_on g B |]\
 \     ==> inj_on (compose A g f) A";
 by (auto_tac (claset(),
@@ -415,7 +415,8 @@ qed "inj_on_compose";
 
 
 (*** restrict / lam ***)
-Goal "[| f `` A <= B |] ==> (lam x: A. f x) : A funcset B";
+
+Goal "f``A <= B ==> (lam x: A. f x) : A funcset B";
 by (auto_tac (claset(),
 	      simpset() addsimps [restrict_def, Pi_def]));
 qed "restrict_in_funcset";
@@ -424,7 +425,6 @@ val prems = Goalw [restrict_def, Pi_def]
      "(!!x. x: A ==> f x: B x) ==> (lam x: A. f x) : Pi A B";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "restrictI";
-
 
 Goal "x: A ==> (lam y: A. f y) x = f x";
 by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
@@ -438,13 +438,16 @@ Goal "x ~: A ==> (lam y: A. f y) x =  (@ y. True)";
 by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
 qed "restrict_apply2";
 
-
 val prems = Goal
     "(!!x. x: A ==> f x = g x) ==> (lam x: A. f x) = (lam x: A. g x)";
 by (rtac ext 1);
 by (auto_tac (claset(),
 	      simpset() addsimps prems@[restrict_def, Pi_def]));
 qed "restrict_ext";
+
+Goalw [inj_on_def, restrict_def] "inj_on (restrict f A) A = inj_on f A";
+by Auto_tac;
+qed "inj_on_restrict_eq";
 
 
 (*** Inverse ***)
