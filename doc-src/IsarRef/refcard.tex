@@ -77,14 +77,14 @@
 \section{Proof methods}
 
 \begin{tabular}{ll}
-  \multicolumn{2}{l}{\textbf{Single rules (forward-chaining facts)}} \\[0.5ex]
+  \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
   $assumption$ & apply assumption \\
   $rule~a@1~\dots~a@n$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
   $induct~x$ & apply induction rule \\
   $contradiction$ & apply $\neg{}$ elimination rule \\[2ex]
 
-  \multicolumn{2}{l}{\textbf{Multiple rules (inserting facts)}} \\[0.5ex]
+  \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
   $-$ & \text{no rules} \\
   $intro~a@1~\dots~a@n$ & \text{introduction rules} \\
   $elim~a@1~\dots~a@n$ & \text{elimination rules} \\[2ex]
@@ -101,11 +101,11 @@
 
 \begin{tabular}{ll}
   \multicolumn{2}{l}{\textbf{Modify rules}} \\[0.5ex]
-  $RS~b$ & resolve fact with rule \\
   $OF~a@1~\dots~a@n$ & apply rule to facts (skip ``$_$'') \\
   $of~t@1~\dots~t@n$ & apply rule to terms (skip ``$_$'') \\
+  $RS~b$ & resolve fact with rule \\
   $standard$ & put into standard result form \\
-  $rulify$ & put into standard object-rule form \\
+  $rulify$ & put into object-rule form \\
   $elimify$ & put destruction rule into elimination form \\[1ex]
 
   \multicolumn{2}{l}{\textbf{Modify context}} \\[0.5ex]
