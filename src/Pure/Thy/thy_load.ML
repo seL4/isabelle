@@ -10,6 +10,7 @@ sig
   val show_path: unit -> string list
   val add_path: string -> unit
   val del_path: string -> unit
+  val with_path: string -> ('a -> 'b) -> 'a -> 'b
   val reset_path: unit -> unit
 end;
 
@@ -47,8 +48,9 @@ fun show_path () = map Path.pack (! load_path);
 fun add_path s = change_path (cons (Path.unpack s));
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
+fun with_path s f x = Library.setmp load_path (Path.unpack s :: ! load_path) f x;
 
-fun tmp_add_path path f x =
+fun cond_with_path path f x =
   if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
 
@@ -97,7 +99,7 @@ fun check_thy_aux name =
       commas_quote (show_path ()))
   | Some thy_info => (thy_info, check_file (ml_path name)));
 
-fun check_thy dir name = Master (tmp_add_path dir check_thy_aux name);
+fun check_thy dir name = Master (cond_with_path dir check_thy_aux name);
 
 
 (* process theory files *)
@@ -109,7 +111,7 @@ val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
 fun process_thy dir f name =
   let val master as Master ((path, _), _) = check_thy dir name
-  in (master, tmp_add_path dir f path) end;
+  in (master, cond_with_path dir f path) end;
 
 fun deps_thy dir name = process_thy dir (! deps_thy_fn name) name;
 fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name);
