@@ -15,7 +15,7 @@ text {*
 syntax
   "_list_beta" :: "dB => dB => bool"   (infixl "=>" 50)
 translations
-  "rs => ss" == "(rs,ss) : step1 beta"
+  "rs => ss" == "(rs, ss) : step1 beta"
 
 lemma head_Var_reduction_aux:
   "v -> v' ==> \<forall>rs. v = Var n $$ rs --> (\<exists>ss. rs => ss \<and> v' = Var n $$ ss)"

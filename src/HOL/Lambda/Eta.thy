@@ -26,9 +26,9 @@ syntax
   "_eta_rtrancl" :: "[dB, dB] => bool"   (infixl "-e>>" 50)
   "_eta_reflcl" :: "[dB, dB] => bool"   (infixl "-e>=" 50)
 translations
-  "s -e> t" == "(s,t) \<in> eta"
-  "s -e>> t" == "(s,t) \<in> eta^*"
-  "s -e>= t" == "(s,t) \<in> eta^="
+  "s -e> t" == "(s, t) \<in> eta"
+  "s -e>> t" == "(s, t) \<in> eta^*"
+  "s -e>= t" == "(s, t) \<in> eta^="
 
 inductive eta
   intros [simp, intro]

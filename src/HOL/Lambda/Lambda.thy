@@ -60,8 +60,8 @@ syntax
   "_beta" :: "[dB, dB] => bool"  (infixl "->" 50)
   "_beta_rtrancl" :: "[dB, dB] => bool"  (infixl "->>" 50)
 translations
-  "s -> t" == "(s,t) \<in> beta"
-  "s ->> t" == "(s,t) \<in> beta^*"
+  "s -> t" == "(s, t) \<in> beta"
+  "s ->> t" == "(s, t) \<in> beta^*"
 
 inductive beta
   intros [simp, intro!]
