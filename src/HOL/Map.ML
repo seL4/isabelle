@@ -108,7 +108,7 @@ by (Simp_tac 1);
 qed "ran_empty";
 Addsimps [ran_empty];
 
-Goalw [ran_def] "!!X. m a = None ==> ran(m[a|->b]) = insert b (ran m)";
+Goalw [ran_def] "m a = None ==> ran(m[a|->b]) = insert b (ran m)";
 by Auto_tac;
 by (subgoal_tac "~(aa = a)" 1);
 by Auto_tac;

@@ -82,7 +82,7 @@ qed "mapQU";
 (* Monotonicity                                                 *)
 (* ############################################################ *)
 
-Goalw [PMap_def,TMap_def] "!!A. B<=C ==> PMap(A,B)<=PMap(A,C)";
+Goalw [PMap_def,TMap_def] "B<=C ==> PMap(A,B)<=PMap(A,C)";
 by (Fast_tac 1);
 qed "map_mono";
 

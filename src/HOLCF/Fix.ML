@@ -884,7 +884,7 @@ qed_goal "adm_imp"  thy
         (Simp_tac 1)
         ]);
 
-Goal "!! P. [| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |] \
+Goal "[| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |] \
 \           ==> adm (%x. P x = Q x)";
 by (subgoal_tac "(%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
 by (Asm_simp_tac 1);

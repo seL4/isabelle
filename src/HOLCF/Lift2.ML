@@ -44,7 +44,7 @@ qed_goal "least_lift" thy "? x::'a lift.!y. x<<y"
 
 (* Tailoring notUU_I of Pcpo.ML to Undef *)
 
-Goal "!!x. [| x<<y; ~x=Undef |] ==> ~y=Undef";
+Goal "[| x<<y; ~x=Undef |] ==> ~y=Undef";
 by (etac contrapos 1);
 by (hyp_subst_tac 1);
 by (rtac antisym_less 1);

@@ -22,7 +22,7 @@ by (induct_tac "k" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [power_add])));
 qed "power_mult";
 
-Goal "!! i. 0 < i ==> 0 < i^n";
+Goal "0 < i ==> 0 < i^n";
 by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [zero_less_mult_iff])));
 qed "zero_less_power";
@@ -33,14 +33,14 @@ by (asm_simp_tac (simpset() addsimps [power_add]) 1);
 by (Blast_tac 1);
 qed "le_imp_power_dvd";
 
-Goal "!! i r. [| 0 < i; i^m < i^n |] ==> m<n";
+Goal "[| 0 < i; i^m < i^n |] ==> m<n";
 by (rtac ccontr 1);
 by (dtac (leI RS le_imp_power_dvd RS dvd_imp_le RS leD) 1);
 by (etac zero_less_power 1);
 by (contr_tac 1);
 qed "power_less_imp_less";
 
-Goal "!!n. k^j dvd n --> i<j --> k^i dvd n";
+Goal "k^j dvd n --> i<j --> k^i dvd n";
 by (induct_tac "j" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
 by (stac mult_commute 1);

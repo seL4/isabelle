@@ -97,7 +97,7 @@ by (rtac (major RS bspec RS bspec RS mp) 1);
 by (REPEAT (resolve_tac prems 1));
 qed "inj_onD";
 
-Goal "!!x y.[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
+Goal "[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
 by (blast_tac (claset() addSDs [inj_onD]) 1);
 qed "inj_on_iff";
 
@@ -135,7 +135,7 @@ by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
 qed "inv_injective";
 
-Goal "!!f. [| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
+Goal "[| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
 by (fast_tac (claset() addIs [inj_onI] 
                       addEs [inv_injective,injD]) 1);
 qed "inj_on_inv";
@@ -150,11 +150,11 @@ Goalw [inj_on_def]
 by (Blast_tac 1);
 qed "inj_on_image_set_diff";
 
-Goalw [inj_def] "!!f. inj f ==> f``(A Int B) = f``A Int f``B";
+Goalw [inj_def] "inj f ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int";
 
-Goalw [inj_def] "!!f. inj f ==> f``(A-B) = f``A - f``B";
+Goalw [inj_def] "inj f ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "image_set_diff";
 

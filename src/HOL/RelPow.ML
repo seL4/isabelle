@@ -15,7 +15,7 @@ Goal "(x,x) : R^0";
 by (Simp_tac 1);
 qed "rel_pow_0_I";
 
-Goal "!!R. [| (x,y) : R^n; (y,z):R |] ==> (x,z):R^(Suc n)";
+Goal "[| (x,y) : R^n; (y,z):R |] ==> (x,z):R^(Suc n)";
 by (Simp_tac  1);
 by (Blast_tac 1);
 qed "rel_pow_Suc_I";

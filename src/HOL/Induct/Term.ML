@@ -17,7 +17,7 @@ by (fast_tac (claset() addSIs term.intrs
 qed "term_unfold";
 
 (*This justifies using term in other recursive type definitions*)
-Goalw term.defs "!!A B. A<=B ==> term(A) <= term(B)";
+Goalw term.defs "A<=B ==> term(A) <= term(B)";
 by (REPEAT (ares_tac ([lfp_mono, list_mono] @ basic_monos) 1));
 qed "term_mono";
 

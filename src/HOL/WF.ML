@@ -93,7 +93,7 @@ qed "wf_eq_minimal";
  * Wellfoundedness of subsets
  *---------------------------------------------------------------------------*)
 
-Goal "!!r. [| wf(r);  p<=r |] ==> wf(p)";
+Goal "[| wf(r);  p<=r |] ==> wf(p)";
 by (full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by (Fast_tac 1);
 qed "wf_subset";
@@ -164,7 +164,7 @@ Goalw [cut_def]
 by (simp_tac (HOL_ss addsimps [expand_fun_eq]) 1);
 qed "cuts_eq";
 
-Goalw [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
+Goalw [cut_def] "(x,a):r ==> (cut f r a)(x) = f(x)";
 by (asm_simp_tac HOL_ss 1);
 qed "cut_apply";
 

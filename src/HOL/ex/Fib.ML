@@ -45,7 +45,7 @@ qed "fib_Suc_neq_0";
 (* Also add  0 < fib (Suc n) *)
 Addsimps [fib_Suc_neq_0, [neq0_conv, fib_Suc_neq_0] MRS iffD1];
 
-Goal "!!n. 0<n ==> 0 < fib n";
+Goal "0<n ==> 0 < fib n";
 by (rtac (not0_implies_Suc RS exE) 1);
 by Auto_tac;
 qed "fib_gr_0";
@@ -93,12 +93,12 @@ by (asm_simp_tac (simpset() addsimps [gcd_non_0 RS sym]) 1);
 by (asm_simp_tac (simpset() addsimps [gcd_fib_Suc_eq_1, gcd_mult_cancel]) 1);
 qed "gcd_fib_add";
 
-Goal "!!m. m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
+Goal "m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
 by (rtac (gcd_fib_add RS sym RS trans) 1);
 by (Asm_simp_tac 1);
 qed "gcd_fib_diff";
 
-Goal "!!m. 0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
+Goal "0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
 by (res_inst_tac [("n","n")] less_induct 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);

@@ -13,7 +13,7 @@ bind_thm ("UN1_I", UNIV_I RS UN_I);
 Addsplits [split_split, split_sum_case];
 
 (*This justifies using llist in other recursive type definitions*)
-Goalw llist.defs "!!A B. A<=B ==> llist(A) <= llist(B)";
+Goalw llist.defs "A<=B ==> llist(A) <= llist(B)";
 by (rtac gfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "llist_mono";
@@ -190,7 +190,7 @@ qed "LListD_subset_diag";
     THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
  **)
 
-Goalw [LListD_Fun_def] "!!A B. A<=B ==> LListD_Fun r A <= LListD_Fun r B";
+Goalw [LListD_Fun_def] "A<=B ==> LListD_Fun r A <= LListD_Fun r B";
 by (REPEAT (ares_tac basic_monos 1));
 qed "LListD_Fun_mono";
 
@@ -335,7 +335,7 @@ bind_thm ("Lconst", (Lconst_fun_mono RS (Lconst_def RS def_lfp_Tarski)));
 
 (*A typical use of co-induction to show membership in the gfp.
   The containing set is simply the singleton {Lconst(M)}. *)
-Goal "!!M A. M:A ==> Lconst(M): llist(A)";
+Goal "M:A ==> Lconst(M): llist(A)";
 by (rtac (singletonI RS llist_coinduct) 1);
 by Safe_tac;
 by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
@@ -522,12 +522,12 @@ Addsimps [llist.NIL_I, Lappend_NIL_NIL, Lappend_NIL_CONS,
           Lappend_CONS, LListD_Fun_CONS_I, range_eqI, image_eqI];
 
 
-Goal "!!M. M: llist(A) ==> Lappend NIL M = M";
+Goal "M: llist(A) ==> Lappend NIL M = M";
 by (etac LList_fun_equalityI 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Lappend_NIL";
 
-Goal "!!M. M: llist(A) ==> Lappend M NIL = M";
+Goal "M: llist(A) ==> Lappend M NIL = M";
 by (etac LList_fun_equalityI 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Lappend_NIL2";

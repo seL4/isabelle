@@ -102,12 +102,12 @@ bind_thm ("zero_not_mem_pnatE", zero_not_mem_pnat RS notE);
 
 Addsimps [zero_not_mem_pnat];
 
-Goal "!!x. x : pnat ==> 0 < x";
+Goal "x : pnat ==> 0 < x";
 by (dtac (pnat_unfold RS subst) 1);
 by Auto_tac;
 qed "mem_pnat_gt_zero";
 
-Goal "!!x. 0 < x ==> x: pnat";
+Goal "0 < x ==> x: pnat";
 by (stac pnat_unfold 1);
 by (dtac (gr_implies_not0 RS not0_implies_Suc) 1); 
 by (etac exE 1 THEN Asm_simp_tac 1);
@@ -177,7 +177,7 @@ qed "n_not_pSuc_n";
 
 bind_thm ("pSuc_n_not_n", n_not_pSuc_n RS not_sym);
 
-Goal "!!n. n ~= 1p ==> EX m. n = pSuc m";
+Goal "n ~= 1p ==> EX m. n = pSuc m";
 by (rtac pnatE 1);
 by (REPEAT (Blast_tac 1));
 qed "not1p_implies_pSuc";
@@ -245,14 +245,14 @@ Goalw [pnat_less_def]
 by ((etac less_trans 1) THEN assume_tac 1);
 qed "pnat_less_trans";
 
-Goalw [pnat_less_def] "!!x. x < (y::pnat) ==> ~ y < x";
+Goalw [pnat_less_def] "x < (y::pnat) ==> ~ y < x";
 by (etac less_not_sym 1);
 qed "pnat_less_not_sym";
 
 (* [| x < y; y < x |] ==> P *)
 bind_thm ("pnat_less_asym",pnat_less_not_sym RS notE);
 
-Goalw [pnat_less_def] "!!x. ~ y < (y::pnat)";
+Goalw [pnat_less_def] "~ y < (y::pnat)";
 by Auto_tac;
 qed "pnat_less_not_refl";
 
@@ -304,11 +304,11 @@ qed "lemma_less_ex_sum_Rep_pnat";
 
    (*** pnat_le ***)
 
-Goalw [pnat_le_def] "!!x. ~ (x::pnat) < y ==> y <= x";
+Goalw [pnat_le_def] "~ (x::pnat) < y ==> y <= x";
 by (assume_tac 1);
 qed "pnat_leI";
 
-Goalw [pnat_le_def] "!!x. (x::pnat) <= y ==> ~ y < x";
+Goalw [pnat_le_def] "(x::pnat) <= y ==> ~ y < x";
 by (assume_tac 1);
 qed "pnat_leD";
 
@@ -318,22 +318,22 @@ Goal "(~ (x::pnat) < y) = (y <= x)";
 by (blast_tac (claset() addIs [pnat_leI] addEs [pnat_leE]) 1);
 qed "pnat_not_less_iff_le";
 
-Goalw [pnat_le_def] "!!x. ~(x::pnat) <= y ==> y < x";
+Goalw [pnat_le_def] "~(x::pnat) <= y ==> y < x";
 by (Blast_tac 1);
 qed "pnat_not_leE";
 
-Goalw [pnat_le_def] "!!x. (x::pnat) < y ==> x <= y";
+Goalw [pnat_le_def] "(x::pnat) < y ==> x <= y";
 by (blast_tac (claset() addEs [pnat_less_asym]) 1);
 qed "pnat_less_imp_le";
 
 (** Equivalence of m<=n and  m<n | m=n **)
 
-Goalw [pnat_le_def] "!!m. m <= n ==> m < n | m=(n::pnat)";
+Goalw [pnat_le_def] "m <= n ==> m < n | m=(n::pnat)";
 by (cut_facts_tac [pnat_less_linear] 1);
 by (blast_tac (claset() addEs [pnat_less_irrefl,pnat_less_asym]) 1);
 qed "pnat_le_imp_less_or_eq";
 
-Goalw [pnat_le_def] "!!m. m<n | m=n ==> m <=(n::pnat)";
+Goalw [pnat_le_def] "m<n | m=n ==> m <=(n::pnat)";
 by (cut_facts_tac [pnat_less_linear] 1);
 by (blast_tac (claset() addSEs [pnat_less_irrefl] addEs [pnat_less_asym]) 1);
 qed "pnat_less_or_eq_imp_le";
@@ -351,19 +351,19 @@ by (dtac pnat_le_imp_less_or_eq 1);
 by (blast_tac (claset() addIs [pnat_less_trans]) 1);
 qed "pnat_le_less_trans";
 
-Goal "!!i. [| i < j; j <= k |] ==> i < (k::pnat)";
+Goal "[| i < j; j <= k |] ==> i < (k::pnat)";
 by (dtac pnat_le_imp_less_or_eq 1);
 by (blast_tac (claset() addIs [pnat_less_trans]) 1);
 qed "pnat_less_le_trans";
 
-Goal "!!i. [| i <= j; j <= k |] ==> i <= (k::pnat)";
+Goal "[| i <= j; j <= k |] ==> i <= (k::pnat)";
 by (EVERY1[dtac pnat_le_imp_less_or_eq, 
            dtac pnat_le_imp_less_or_eq,
            rtac pnat_less_or_eq_imp_le, 
            blast_tac (claset() addIs [pnat_less_trans])]);
 qed "pnat_le_trans";
 
-Goal "!!m. [| m <= n; n <= m |] ==> m = (n::pnat)";
+Goal "[| m <= n; n <= m |] ==> m = (n::pnat)";
 by (EVERY1[dtac pnat_le_imp_less_or_eq, 
            dtac pnat_le_imp_less_or_eq,
            blast_tac (claset() addIs [pnat_less_asym])]);
@@ -440,7 +440,7 @@ bind_thm ("pnat_trans_less_add1", pnat_le_add1 RSN (2,pnat_less_le_trans));
 (*"i < j ==> i < m + j"*)
 bind_thm ("pnat_trans_less_add2", pnat_le_add2 RSN (2,pnat_less_le_trans));
 
-Goalw [pnat_less_def] "!!i. i+j < (k::pnat) ==> i<k";
+Goalw [pnat_less_def] "i+j < (k::pnat) ==> i<k";
 by (auto_tac (claset() addEs [add_lessD1],
     simpset() addsimps [sum_Rep_pnat_sum RS sym]));
 qed "pnat_add_lessD1";

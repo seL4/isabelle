@@ -32,7 +32,7 @@ by (Fast_tac 1);
 qed "sorted_ins";
 Addsimps [sorted_ins];
 
-Goal "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
+Goal "[| total(f); transf(f) |] ==>  sorted f (insort f xs)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_insort";

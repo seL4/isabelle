@@ -10,10 +10,10 @@ open Asig;
 
 val asig_projections = [asig_inputs_def, asig_outputs_def, asig_internals_def];
 
-Goal "!!a.[| a~:internals(S) ;a~:externals(S)|] ==> a~:actions(S)";
+Goal "[| a~:internals(S) ;a~:externals(S)|] ==> a~:actions(S)";
 by (asm_full_simp_tac (simpset() addsimps [externals_def,actions_def]) 1);
 qed"int_and_ext_is_act";
 
-Goal "!!a.[|a:externals(S)|] ==> a:actions(S)";
+Goal "[|a:externals(S)|] ==> a:actions(S)";
 by (asm_full_simp_tac (simpset() addsimps [externals_def,actions_def]) 1);
 qed"ext_is_act";

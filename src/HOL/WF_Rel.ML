@@ -32,7 +32,7 @@ AddIffs [less_than_iff];
  * The inverse image into a wellfounded relation is wellfounded.
  *---------------------------------------------------------------------------*)
 
-Goal "!!r. wf(r) ==> wf(inv_image r (f::'a=>'b))"; 
+Goal "wf(r) ==> wf(inv_image r (f::'a=>'b))"; 
 by (full_simp_tac (simpset() addsimps [inv_image_def, wf_eq_minimal]) 1);
 by (Clarify_tac 1);
 by (subgoal_tac "? (w::'b). w : {w. ? (x::'a). x: Q & (f x = w)}" 1);
@@ -110,7 +110,7 @@ qed "trans_finite_psubset";
  * Cannot go into WF because it needs Finite
  *---------------------------------------------------------------------------*)
 
-Goal "!!r. finite r ==> acyclic r --> wf r";
+Goal "finite r ==> acyclic r --> wf r";
 by (etac finite_induct 1);
  by (Blast_tac 1);
 by (split_all_tac 1);
@@ -122,7 +122,7 @@ qed_goal "finite_acyclic_wf_converse" thy
 	etac (finite_converse RS iffD2 RS finite_acyclic_wf) 1,
 	etac (acyclic_converse RS iffD2) 1]);
 
-Goal "!!r. finite r ==> wf r = acyclic r";
+Goal "finite r ==> wf r = acyclic r";
 by (blast_tac (claset() addIs [finite_acyclic_wf,wf_acyclic]) 1);
 qed "wf_iff_acyclic_if_finite";
 

@@ -46,7 +46,7 @@ Goalw [mk_trace_def,filter_oseq_def]
   by (Fast_tac 1);
 qed "mk_trace_thm";
 
-Goalw [reachable_def] "!!A. s:starts_of(A) ==> reachable A s";
+Goalw [reachable_def] "s:starts_of(A) ==> reachable A s";
   by (res_inst_tac [("x","(%i. None,%i. s)")] bexI 1);
   by (Simp_tac 1);
   by (asm_simp_tac (simpset() addsimps exec_rws) 1);

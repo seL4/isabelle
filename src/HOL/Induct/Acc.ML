@@ -18,7 +18,7 @@ by (fast_tac (claset() addIs (prems @
                             map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
-Goal "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
+Goal "[| b: acc(r);  (a,b): r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (rewtac pred_def);
 by (Fast_tac 1);

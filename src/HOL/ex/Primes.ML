@@ -46,7 +46,7 @@ by (Simp_tac 1);
 qed "gcd_0";
 Addsimps [gcd_0];
 
-Goal "!!m. 0<n ==> gcd(m,n) = gcd (n, m mod n)";
+Goal "0<n ==> gcd(m,n) = gcd (n, m mod n)";
 by (rtac (gcd_eq RS trans) 1);
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
@@ -71,7 +71,7 @@ bind_thm ("gcd_dvd2", gcd_dvd_both RS conjunct2);
 
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
-Goal "!!k. (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
+Goal "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
 by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
 by (ALLGOALS
     (asm_full_simp_tac (simpset() addsimps[gcd_non_0, dvd_mod,
@@ -84,7 +84,7 @@ by (asm_simp_tac (simpset() addsimps [gcd_greatest, gcd_dvd_both]) 1);
 qed "is_gcd";
 
 (*uniqueness of GCDs*)
-Goalw [is_gcd_def] "!!m n. [| is_gcd m a b; is_gcd n a b |] ==> m=n";
+Goalw [is_gcd_def] "[| is_gcd m a b; is_gcd n a b |] ==> m=n";
 by (blast_tac (claset() addIs [dvd_anti_sym]) 1);
 qed "is_gcd_unique";
 
@@ -150,20 +150,20 @@ by (Asm_full_simp_tac 1);
 qed "gcd_mult";
 Addsimps [gcd_mult];
 
-Goal "!!k. [| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
+Goal "[| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
 by (subgoal_tac "m = gcd(m*k, m*n)" 1);
 by (etac ssubst 1 THEN rtac gcd_greatest 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [gcd_mult_distrib2 RS sym])));
 qed "relprime_dvd_mult";
 
-Goalw [prime_def] "!!p. [| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1";
+Goalw [prime_def] "[| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1";
 by (cut_inst_tac [("m","p"),("n","n")] gcd_dvd_both 1);
-by (fast_tac (claset() addss (simpset())) 1);
+by Auto_tac;
 qed "prime_imp_relprime";
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.
   If p divides a product of primes then it is one of those primes.*)
-Goal "!!p. [| p: prime; p dvd (m*n) |] ==> p dvd m | p dvd n";
+Goal "[| p: prime; p dvd (m*n) |] ==> p dvd m | p dvd n";
 by (blast_tac (claset() addIs [relprime_dvd_mult, prime_imp_relprime]) 1);
 qed "prime_dvd_mult";
 
@@ -192,7 +192,7 @@ by (blast_tac (claset() addIs [gcd_greatest, dvd_trans,
                                gcd_dvd1, gcd_dvd2]) 1);
 qed "gcd_dvd_gcd_mult";
 
-Goal "!!n. gcd(k,n) = 1 ==> gcd(k*m, n) = gcd(m,n)";
+Goal "gcd(k,n) = 1 ==> gcd(k*m, n) = gcd(m,n)";
 by (rtac dvd_anti_sym 1);
 by (rtac gcd_dvd_gcd_mult 2);
 by (rtac ([relprime_dvd_mult, gcd_dvd2] MRS gcd_greatest) 1);

@@ -51,7 +51,7 @@ Addsimps[insert_not_empty];
 bind_thm("empty_not_insert",insert_not_empty RS not_sym);
 Addsimps[empty_not_insert];
 
-Goal "!!a. a:A ==> insert a A = A";
+Goal "a:A ==> insert a A = A";
 by (Blast_tac 1);
 qed "insert_absorb";
 (* Addsimps [insert_absorb] causes recursive (ie quadtratic) calls
@@ -72,12 +72,12 @@ by (Blast_tac 1);
 qed "insert_subset";
 Addsimps[insert_subset];
 
-Goal "!!a. insert a A ~= insert a B ==> A ~= B";
+Goal "insert a A ~= insert a B ==> A ~= B";
 by (Blast_tac 1);
 qed "insert_lim";
 
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
-Goal "!!a. a:A ==> ? B. A = insert a B & a ~: B";
+Goal "a:A ==> ? B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Blast_tac 1);
 qed "mk_disjoint_insert";
@@ -114,7 +114,7 @@ Goal "f``(g``A) = (%x. f (g x)) `` A";
 by (Blast_tac 1);
 qed "image_image";
 
-Goal "!!x. x:A ==> insert (f x) (f``A) = f``A";
+Goal "x:A ==> insert (f x) (f``A) = f``A";
 by (Blast_tac 1);
 qed "insert_image";
 Addsimps [insert_image];
@@ -164,11 +164,11 @@ qed "Int_assoc";
 (*Intersection is an AC-operator*)
 val Int_ac = [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute];
 
-Goal "!!A B. B<=A ==> A Int B = B";
+Goal "B<=A ==> A Int B = B";
 by (Blast_tac 1);
 qed "Int_absorb1";
 
-Goal "!!A B. A<=B ==> A Int B = A";
+Goal "A<=B ==> A Int B = A";
 by (Blast_tac 1);
 qed "Int_absorb2";
 
@@ -243,11 +243,11 @@ qed "Un_assoc";
 (*Union is an AC-operator*)
 val Un_ac = [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute];
 
-Goal "!!A B. A<=B ==> A Un B = B";
+Goal "A<=B ==> A Un B = B";
 by (Blast_tac 1);
 qed "Un_absorb1";
 
-Goal "!!A B. B<=A ==> A Un B = A";
+Goal "B<=A ==> A Un B = A";
 by (Blast_tac 1);
 qed "Un_absorb2";
 
@@ -446,7 +446,7 @@ by (Blast_tac 1);
 qed "UN_singleton";
 Addsimps [UN_singleton];
 
-Goal "!!k. k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
+Goal "k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
 by (Blast_tac 1);
 qed "UN_absorb";
 
@@ -455,7 +455,7 @@ by (Blast_tac 1);
 qed "INT_empty";
 Addsimps[INT_empty];
 
-Goal "!!k. k:I ==> A k Int (INT i:I. A i) = (INT i:I. A i)";
+Goal "k:I ==> A k Int (INT i:I. A i) = (INT i:I. A i)";
 by (Blast_tac 1);
 qed "INT_absorb";
 
@@ -490,12 +490,12 @@ Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
 
-Goal "!!A. A~={} ==> (UN y:A. c) = c";
+Goal "A~={} ==> (UN y:A. c) = c";
 by (Blast_tac 1);
 qed "UN_constant";
 Addsimps[UN_constant];
 
-Goal "!!A. A~={} ==> (INT y:A. c) = c";
+Goal "A~={} ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 Addsimps[INT_constant];
@@ -601,7 +601,7 @@ by (Blast_tac 1);
 qed "Diff_cancel";
 Addsimps[Diff_cancel];
 
-Goal "!!A B. A Int B = {} ==> A-B = A";
+Goal "A Int B = {} ==> A-B = A";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Diff_triv";
 
@@ -620,7 +620,7 @@ by (Blast_tac 1);
 qed "Diff_UNIV";
 Addsimps[Diff_UNIV];
 
-Goal "!!x. x~:A ==> A - insert x B = A-B";
+Goal "x~:A ==> A - insert x B = A-B";
 by (Blast_tac 1);
 qed "Diff_insert0";
 Addsimps [Diff_insert0];
@@ -640,12 +640,12 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 qed "insert_Diff_if";
 
-Goal "!!x. x:B ==> insert x A - B = A-B";
+Goal "x:B ==> insert x A - B = A-B";
 by (Blast_tac 1);
 qed "insert_Diff1";
 Addsimps [insert_Diff1];
 
-Goal "!!a. a:A ==> insert a (A-{a}) = A";
+Goal "a:A ==> insert a (A-{a}) = A";
 by (Blast_tac 1);
 qed "insert_Diff";
 
@@ -654,11 +654,11 @@ by (Blast_tac 1);
 qed "Diff_disjoint";
 Addsimps[Diff_disjoint];
 
-Goal "!!A. A<=B ==> A Un (B-A) = B";
+Goal "A<=B ==> A Un (B-A) = B";
 by (Blast_tac 1);
 qed "Diff_partition";
 
-Goal "!!A. [| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
+Goal "[| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
 by (Blast_tac 1);
 qed "double_diff";
 

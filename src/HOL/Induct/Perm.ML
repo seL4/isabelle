@@ -22,23 +22,23 @@ qed "perm_refl";
 (** Some examples of rule induction on permutations **)
 
 (*The form of the premise lets the induction bind xs and ys.*)
-Goal "!!xs. xs <~~> ys ==> xs=[] --> ys=[]";
+Goal "xs <~~> ys ==> xs=[] --> ys=[]";
 by (etac perm.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "perm_Nil_lemma";
 
 (*A more general version is actually easier to understand!*)
-Goal "!!xs. xs <~~> ys ==> length(xs) = length(ys)";
+Goal "xs <~~> ys ==> length(xs) = length(ys)";
 by (etac perm.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "perm_length";
 
-Goal "!!xs. xs <~~> ys ==> ys <~~> xs";
+Goal "xs <~~> ys ==> ys <~~> xs";
 by (etac perm.induct 1);
 by (REPEAT (ares_tac perm.intrs 1));
 qed "perm_sym";
 
-Goal "!!xs. [| xs <~~> ys |] ==> x mem xs --> x mem ys";
+Goal "[| xs <~~> ys |] ==> x mem xs --> x mem ys";
 by (etac perm.induct 1);
 by (Fast_tac 4);
 by (ALLGOALS Asm_simp_tac);
@@ -84,13 +84,13 @@ by (rtac (perm_append_single RS perm_sym RS perm.trans) 1);
 by (etac perm.Cons 1);
 qed "perm_rev";
 
-Goal "!!xs. xs <~~> ys ==> l@xs <~~> l@ys";
+Goal "xs <~~> ys ==> l@xs <~~> l@ys";
 by (list.induct_tac "l" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [perm.Cons]) 1);
 qed "perm_append1";
 
-Goal "!!xs. xs <~~> ys ==> xs@l <~~> ys@l";
+Goal "xs <~~> ys ==> xs@l <~~> ys@l";
 by (rtac (perm_append_swap RS perm.trans) 1);
 by (etac (perm_append1 RS perm.trans) 1);
 by (rtac perm_append_swap 1);

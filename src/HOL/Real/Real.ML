@@ -239,7 +239,7 @@ by (asm_full_simp_tac (simpset() addsimps [real_add_commute,
     real_add_zero_right,real_add_zero_left]) 1);
 qed "real_minus_left_ex1";
 
-Goal "!!y. x + y = 0r ==> x = %~y";
+Goal "x + y = 0r ==> x = %~y";
 by (cut_inst_tac [("z","y")] real_add_minus_left 1);
 by (res_inst_tac [("x1","y")] (real_minus_left_ex1 RS ex1E) 1);
 by (Blast_tac 1);
@@ -451,19 +451,19 @@ by (auto_tac (claset() addIs [real_mult_commute RS subst],
               simpset() addsimps [real_mult_inv_left]));
 qed "real_mult_inv_right";
 
-Goal "!!a. (c::real) ~= 0r ==> (c*a=c*b) = (a=b)";
+Goal "(c::real) ~= 0r ==> (c*a=c*b) = (a=b)";
 by Auto_tac;
 by (dres_inst_tac [("f","%x. x*rinv c")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
 qed "real_mult_left_cancel";
     
-Goal "!!a. (c::real) ~= 0r ==> (a*c=b*c) = (a=b)";
+Goal "(c::real) ~= 0r ==> (a*c=b*c) = (a=b)";
 by (Step_tac 1);
 by (dres_inst_tac [("f","%x. x*rinv c")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_inv_right] @ real_mult_ac)  1);
 qed "real_mult_right_cancel";
 
-Goalw [rinv_def] "!!x. x ~= 0r ==> rinv(x) ~= 0r";
+Goalw [rinv_def] "x ~= 0r ==> rinv(x) ~= 0r";
 by (forward_tac [real_mult_inv_left_ex] 1);
 by (etac exE 1);
 by (rtac selectI2 1);
@@ -473,7 +473,7 @@ qed "rinv_not_zero";
 
 Addsimps [real_mult_inv_left,real_mult_inv_right];
 
-Goal "!!x. x ~= 0r ==> rinv(rinv x) = x";
+Goal "x ~= 0r ==> rinv(rinv x) = x";
 by (res_inst_tac [("c1","rinv x")] (real_mult_right_cancel RS iffD1) 1);
 by (etac rinv_not_zero 1);
 by (auto_tac (claset() addDs [rinv_not_zero],simpset()));
@@ -488,7 +488,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_zero_not_eq_one RS not_sym]));
 qed "real_rinv_1";
 
-Goal "!!x. x ~= 0r ==> rinv(%~x) = %~rinv(x)";
+Goal "x ~= 0r ==> rinv(%~x) = %~rinv(x)";
 by (res_inst_tac [("c1","%~x")] (real_mult_right_cancel RS iffD1) 1);
 by Auto_tac;
 qed "real_minus_rinv";
@@ -637,19 +637,19 @@ by (auto_tac (claset(),simpset() addsimps [preal_add_commute]));
 qed "real_preal_trichotomy";
 
 Goal "!!x. [| !!m. x = %#m ==> P; \
-\            x = 0r ==> P; \
-\            !!m. x = %~(%#m) ==> P |] ==> P";
+\             x = 0r ==> P; \
+\             !!m. x = %~(%#m) ==> P |] ==> P";
 by (cut_inst_tac [("x","x")] real_preal_trichotomy 1);
 by Auto_tac;
 qed "real_preal_trichotomyE";
 
-Goalw [real_preal_def] "!!m1 m2. %#m1 < %#m2 ==> m1 < m2";
+Goalw [real_preal_def] "%#m1 < %#m2 ==> m1 < m2";
 by (auto_tac (claset(),simpset() addsimps [real_less_def] @ preal_add_ac));
 by (auto_tac (claset(),simpset() addsimps [preal_add_assoc RS sym]));
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
 qed "real_preal_lessD";
 
-Goal "!!m1 m2. m1 < m2 ==> %#m1 < %#m2";
+Goal "m1 < m2 ==> %#m1 < %#m2";
 by (dtac preal_less_add_left_Ex 1);
 by (auto_tac (claset(),simpset() addsimps [real_preal_add,
     real_preal_def,real_less_def]));
@@ -743,7 +743,7 @@ by (fast_tac (claset() addDs [real_less_trans]
                addEs [real_less_irrefl]) 1);
 qed "real_preal_not_minus_gt_all";
 
-Goal "!!m1 m2. %~ %#m1 < %~ %#m2 ==> %#m2 < %#m1";
+Goal "%~ %#m1 < %~ %#m2 ==> %#m2 < %#m1";
 by (auto_tac (claset(),simpset() addsimps 
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
@@ -754,7 +754,7 @@ by (asm_full_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1);
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
 qed "real_preal_minus_less_rev1";
 
-Goal "!!m1 m2. %#m1 < %#m2 ==> %~ %#m2 < %~ %#m1";
+Goal "%#m1 < %#m2 ==> %~ %#m2 < %~ %#m1";
 by (auto_tac (claset(),simpset() addsimps 
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
@@ -790,25 +790,25 @@ qed "real_linear_less2";
 
 (*** Properties of <= ***)
 
-Goalw [real_le_def] "!!w. ~(w < z) ==> z <= (w::real)";
+Goalw [real_le_def] "~(w < z) ==> z <= (w::real)";
 by (assume_tac 1);
 qed "real_leI";
 
-Goalw [real_le_def] "!!w. z<=w ==> ~(w<(z::real))";
+Goalw [real_le_def] "z<=w ==> ~(w<(z::real))";
 by (assume_tac 1);
 qed "real_leD";
 
 val real_leE = make_elim real_leD;
 
-Goal "!!w. (~(w < z)) = (z <= (w::real))";
+Goal "(~(w < z)) = (z <= (w::real))";
 by (fast_tac (claset() addSIs [real_leI,real_leD]) 1);
 qed "real_less_le_iff";
 
-Goalw [real_le_def] "!!z. ~ z <= w ==> w<(z::real)";
+Goalw [real_le_def] "~ z <= w ==> w<(z::real)";
 by (Fast_tac 1);
 qed "not_real_leE";
 
-Goalw [real_le_def] "!!z. z < w ==> z <= (w::real)";
+Goalw [real_le_def] "z < w ==> z <= (w::real)";
 by (fast_tac (claset() addEs [real_less_asym]) 1);
 qed "real_less_imp_le";
 
@@ -817,7 +817,7 @@ by (cut_facts_tac [real_linear] 1);
 by (fast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
 qed "real_le_imp_less_or_eq";
 
-Goalw [real_le_def] "!!z. z<w | z=w ==> z <=(w::real)";
+Goalw [real_le_def] "z<w | z=w ==> z <=(w::real)";
 by (cut_facts_tac [real_linear] 1);
 by (fast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
 qed "real_less_or_eq_imp_le";
@@ -840,17 +840,17 @@ by (dtac real_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [real_less_trans]) 1);
 qed "real_less_le_trans";
 
-Goal "!!i. [| i <= j; j <= k |] ==> i <= (k::real)";
+Goal "[| i <= j; j <= k |] ==> i <= (k::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
             rtac real_less_or_eq_imp_le, fast_tac (claset() addIs [real_less_trans])]);
 qed "real_le_trans";
 
-Goal "!!z. [| z <= w; w <= z |] ==> z = (w::real)";
+Goal "[| z <= w; w <= z |] ==> z = (w::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
             fast_tac (claset() addEs [real_less_irrefl,real_less_asym])]);
 qed "real_le_anti_sym";
 
-Goal "!!x. [| ~ y < x; y ~= x |] ==> x < (y::real)";
+Goal "[| ~ y < x; y ~= x |] ==> x < (y::real)";
 by (rtac not_real_leE 1);
 by (fast_tac (claset() addDs [real_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_real_less";
@@ -879,23 +879,23 @@ by (blast_tac (claset() addSEs [real_less_irrefl,
      real_preal_not_minus_gt_zero RS notE]) 1);
 qed "real_gt_zero_preal_Ex";
 
-Goal "!!x. %#z < x ==> ? y. x = %#y";
+Goal "%#z < x ==> ? y. x = %#y";
 by (blast_tac (claset() addSDs [real_preal_zero_less RS real_less_trans]
                addIs [real_gt_zero_preal_Ex RS iffD1]) 1);
 qed "real_gt_preal_preal_Ex";
 
-Goal "!!x. %#z <= x ==> ? y. x = %#y";
+Goal "%#z <= x ==> ? y. x = %#y";
 by (blast_tac (claset() addDs [real_le_imp_less_or_eq,
               real_gt_preal_preal_Ex]) 1);
 qed "real_ge_preal_preal_Ex";
 
-Goal "!!y. y <= 0r ==> !x. y < %#x";
+Goal "y <= 0r ==> !x. y < %#x";
 by (auto_tac (claset() addEs [real_le_imp_less_or_eq RS disjE]
               addIs [real_preal_zero_less RSN(2,real_less_trans)],
               simpset() addsimps [real_preal_zero_less]));
 qed "real_less_all_preal";
 
-Goal "!!y. ~ 0r < y ==> !x. y < %#x";
+Goal "~ 0r < y ==> !x. y < %#x";
 by (blast_tac (claset() addSIs [real_less_all_preal,real_leI]) 1);
 qed "real_less_all_real2";
 
@@ -937,19 +937,19 @@ qed "real_less_add_positive_left_Ex";
 
 (* lemmas *)
 (** change naff name(s)! **)
-Goal "!!S. (W < S) ==> (0r < S + %~W)";
+Goal "(W < S) ==> (0r < S + %~W)";
 by (dtac real_less_add_positive_left_Ex 1);
 by (auto_tac (claset(),simpset() addsimps [real_add_minus,
     real_add_zero_right] @ real_add_ac));
 qed "real_less_sum_gt_zero";
 
 Goal "!!S. T = S + W ==> S = T + %~W";
-by (asm_simp_tac (simpset() addsimps [real_add_minus,
-    real_add_zero_right] @ real_add_ac) 1);
+by (asm_simp_tac (simpset() addsimps [real_add_minus, real_add_zero_right] 
+		                     @ real_add_ac) 1);
 qed "real_lemma_change_eq_subj";
 
 (* FIXME: long! *)
-Goal "!!W. (0r < S + %~W) ==> (W < S)";
+Goal "(0r < S + %~W) ==> (W < S)";
 by (rtac ccontr 1);
 by (dtac (real_leI RS real_le_imp_less_or_eq) 1);
 by (auto_tac (claset(),
@@ -976,7 +976,7 @@ by (res_inst_tac [("W1","x")] (real_less_sum_gt_0_iff RS subst) 1);
 by (simp_tac (simpset() addsimps [real_add_commute]) 1);
 qed "real_less_swap_iff";
 
-Goal "!!T. [| R + L = S; 0r < L |] ==> R < S";
+Goal "[| R + L = S; 0r < L |] ==> R < S";
 by (rtac (real_less_sum_gt_0_iff RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [
     real_add_minus,real_add_zero_right] @ real_add_ac));
@@ -1075,11 +1075,11 @@ qed "real_zero_less_one";
 (*** Completeness of reals ***)
 (** use supremum property of preal and theorems about real_preal **)
               (*** a few lemmas ***)
-Goal "!!P y. ! x:P. 0r < x ==> ((? x:P. y < x) = (? X. %#X : P & y < %#X))";
+Goal "! x:P. 0r < x ==> ((? x:P. y < x) = (? X. %#X : P & y < %#X))";
 by (blast_tac (claset() addSDs [bspec,real_gt_zero_preal_Ex RS iffD1]) 1);
 qed "real_sup_lemma1";
 
-Goal "!!P. [| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
+Goal "[| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
 \         ==> (? X. X: {w. %#w : P}) & (? Y. !X: {w. %#w : P}. X < Y)";
 by (rtac conjI 1);
 by (blast_tac (claset() addDs [bspec,real_gt_zero_preal_Ex RS iffD1]) 1);
@@ -1101,7 +1101,7 @@ qed "real_sup_lemma2";
 (* Supremum property for the set of positive reals *)
 (* FIXME: long proof - can be improved - need only have one case split *)
 (* will do for now *)
-Goal "!!P. [| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
+Goal "[| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
 \         ==> (? S. !y. (? x: P. y < x) = (y < S))";
 by (res_inst_tac [("x","%#psup({w. %#w : P})")] exI 1);
 by Auto_tac;
@@ -1156,7 +1156,7 @@ by (asm_full_simp_tac (simpset() addsimps [real_add_assoc RS sym,
     real_add_minus_left,real_add_zero_left]) 1);
 qed "real_less_add_left_cancel";
 
-Goal "!!x. [| 0r < x; 0r < y |] ==> 0r < x + y";
+Goal "[| 0r < x; 0r < y |] ==> 0r < x + y";
 by (REPEAT(dtac (real_gt_zero_preal_Ex RS iffD1) 1));
 by (rtac (real_gt_zero_preal_Ex RS iffD2) 1);
 by (Step_tac 1);
@@ -1267,7 +1267,7 @@ by (rtac (real_gt_zero_preal_Ex RS iffD2) 1);
 by (Blast_tac 1);
 qed "real_nat_less_zero";
 
-Goal "!!n. 1r <= %%#n";
+Goal "1r <= %%#n";
 by (simp_tac (simpset() addsimps [real_nat_one RS sym]) 1);
 by (nat_ind_tac "n" 1);
 by (auto_tac (claset(),simpset () 
@@ -1284,7 +1284,7 @@ by (rtac ((real_nat_less_zero RS
     real_not_refl2 RS not_sym) RS rinv_not_zero) 1);
 qed "real_nat_rinv_not_zero";
 
-Goal "!!x. rinv(%%#x) = rinv(%%#y) ==> x = y";
+Goal "rinv(%%#x) = rinv(%%#y) ==> x = y";
 by (rtac (inj_real_nat RS injD) 1);
 by (res_inst_tac [("n2","x")] 
     (real_nat_rinv_not_zero RS real_mult_left_cancel RS iffD1) 1);
@@ -1294,7 +1294,7 @@ by (asm_full_simp_tac (simpset() addsimps [(real_nat_less_zero RS
     real_not_refl2 RS not_sym)]) 1);
 qed "real_nat_rinv_inj";
 
-Goal "!!x. 0r < x ==> 0r < rinv x";
+Goal "0r < x ==> 0r < rinv x";
 by (EVERY1[rtac ccontr, dtac real_leI]);
 by (forward_tac [real_minus_zero_less_iff2 RS iffD2] 1);
 by (forward_tac [real_not_refl2 RS not_sym] 1);
@@ -1305,7 +1305,7 @@ by (auto_tac (claset() addIs [real_zero_less_one RS real_less_asym],
     simpset() addsimps [real_minus_mult_eq1 RS sym]));
 qed "real_rinv_gt_zero";
 
-Goal "!!x. x < 0r ==> rinv x < 0r";
+Goal "x < 0r ==> rinv x < 0r";
 by (forward_tac [real_not_refl2] 1);
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (rtac (real_minus_zero_less_iff RS iffD1) 1);
@@ -1370,12 +1370,12 @@ by (etac real_mult_less_cancel1 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_commute]) 1);
 qed "real_mult_less_cancel2";
 
-Goal "!!z. 0r < z ==> (x*z < y*z) = (x < y)";
+Goal "0r < z ==> (x*z < y*z) = (x < y)";
 by (blast_tac (claset() addIs [real_mult_less_mono1,
     real_mult_less_cancel1]) 1);
 qed "real_mult_less_iff1";
 
-Goal "!!z. 0r < z ==> (z*x < z*y) = (x < y)";
+Goal "0r < z ==> (z*x < z*y) = (x < y)";
 by (blast_tac (claset() addIs [real_mult_less_mono2,
     real_mult_less_cancel2]) 1);
 qed "real_mult_less_iff2";
@@ -1432,7 +1432,7 @@ qed "real_nat_less_iff";
 
 Addsimps [real_nat_less_iff];
 
-Goal "!!u. 0r < u  ==> (u < rinv (%%#n)) = (%%#n < rinv(u))";
+Goal "0r < u  ==> (u < rinv (%%#n)) = (%%#n < rinv(u))";
 by (Step_tac 1);
 by (res_inst_tac [("n2","n")] (real_nat_less_zero RS 
     real_rinv_gt_zero RS real_mult_less_cancel1) 1);
@@ -1447,7 +1447,7 @@ by (auto_tac (claset(),simpset() addsimps [real_nat_less_zero,
     real_not_refl2 RS not_sym,real_mult_assoc RS sym]));
 qed "real_nat_less_rinv_iff";
 
-Goal "!!x. 0r < u ==> (u = rinv(%%#n)) = (%%#n = rinv u)";
+Goal "0r < u ==> (u = rinv(%%#n)) = (%%#n = rinv u)";
 by (auto_tac (claset(),simpset() addsimps [real_rinv_rinv,
     real_nat_less_zero,real_not_refl2 RS not_sym]));
 qed "real_nat_rinv_eq_iff";

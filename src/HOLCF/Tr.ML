@@ -120,7 +120,7 @@ by (res_inst_tac [("p","t")] trE 1);
 by Auto_tac;
 qed"andalso_or";
 
-Goal "!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
+Goal "[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
 by (rtac iffI 1);
 by (res_inst_tac [("p","t")] trE 1);
 by Auto_tac;
@@ -176,12 +176,12 @@ qed"adm_trick_2";
 val adm_tricks = [adm_trick_1,adm_trick_2];
 
 
-Goal "!!f. cont(f) ==> adm (%x. (f x)~=TT)";
+Goal "cont(f) ==> adm (%x. (f x)~=TT)";
 by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
 by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
 qed"adm_nTT";
 
-Goal "!!f. cont(f) ==> adm (%x. (f x)~=FF)";
+Goal "cont(f) ==> adm (%x. (f x)~=FF)";
 by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
 by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
 qed"adm_nFF";

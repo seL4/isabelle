@@ -36,9 +36,7 @@ qed"cont_flift1_not_arg";
 
 Goal "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==> \
 \   cont (%y. lift_case UU (f y) (g y))";
-by (rtac cont2cont_app 1);
-back();
-by (safe_tac set_cs);
+by (res_inst_tac [("tt","g")] cont2cont_app 1);
 by (rtac cont_flift1_not_arg 1);
 by Auto_tac;
 by (rtac cont_flift1_arg 1);
@@ -100,7 +98,7 @@ qed"flift2_UU";
 
 Addsimps [flift1_Def,flift2_Def,flift1_UU,flift2_UU];
 
-Goal "!!x. x~=UU ==> (flift2 f)`x~=UU";
+Goal "x~=UU ==> (flift2 f)`x~=UU";
 by (def_tac 1);
 qed"flift2_nUU";
 

@@ -37,7 +37,7 @@ val [prem] = goalw thy [rabs_def,real_le_def] "x<0r ==> rabs x = %~x";
 by (simp_tac (simpset() addsimps [prem,if_not_P]) 1);
 qed "rabs_minus_eqI2";
 
-Goal "!!x. x<=0r ==> rabs x = %~x";
+Goal "x<=0r ==> rabs x = %~x";
 by (dtac real_le_imp_less_or_eq 1);
 by (fast_tac (HOL_cs addIs [rabs_minus_zero,rabs_minus_eqI2]) 1);
 qed "rabs_minus_eqI1";
@@ -86,7 +86,7 @@ by (auto_tac (claset() addDs [real_less_asym,sym],
     simpset() addsimps [real_minus_mult_eq2 RS sym] @real_mult_ac));
 qed "rabs_mult";
 
-Goalw [rabs_def] "!!x. x~= 0r ==> rabs(rinv(x)) = rinv(rabs(x))";
+Goalw [rabs_def] "x~= 0r ==> rabs(rinv(x)) = rinv(rabs(x))";
 by (auto_tac (claset(),simpset() addsimps [real_minus_rinv] 
     setloop (split_tac [expand_if])));
 by (ALLGOALS(dtac not_real_leE));
@@ -142,7 +142,7 @@ by (rtac rabs_triangle_ineq 1);
 by (REPEAT (ares_tac [real_add_less_mono] 1));
 qed "rabs_add_less";
 
-Goal "!!x y. [| rabs x < r; rabs y < s |] ==> rabs(x+ %~y) < r+s";
+Goal "[| rabs x < r; rabs y < s |] ==> rabs(x+ %~y) < r+s";
 by (rotate_tac 1 1);
 by (dtac (rabs_minus_cancel RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [rabs_add_less]) 1);
@@ -175,13 +175,13 @@ by (blast_tac (HOL_cs addIs [rabs_ge_zero, real_mult_order,
 			     real_le_less_trans]) 1);
 qed "rabs_mult_less";
 
-Goal "!!x. [| rabs x < r; rabs y < s |] \
+Goal "[| rabs x < r; rabs y < s |] \
 \          ==> rabs(x)*rabs(y)<r*s";
 by (auto_tac (claset() addIs [rabs_mult_less],
               simpset() addsimps [rabs_mult RS sym]));
 qed "rabs_mult_less2";
 
-Goal "!! x y r. 1r < rabs x ==> rabs y <= rabs(x*y)";
+Goal "1r < rabs x ==> rabs y <= rabs(x*y)";
 by (cut_inst_tac [("x1","y")] (rabs_ge_zero RS real_le_imp_less_or_eq) 1);
 by (EVERY1[etac disjE,rtac real_less_imp_le]);
 by (dres_inst_tac [("W","1r")]  real_less_sum_gt_zero 1);
@@ -194,11 +194,11 @@ by (dtac sym 1);
 by (asm_full_simp_tac (simpset() addsimps [real_le_refl,rabs_mult]) 1);
 qed "rabs_mult_le";
 
-Goal "!!x. [| 1r < rabs x; r < rabs y|] ==> r < rabs(x*y)";
+Goal "[| 1r < rabs x; r < rabs y|] ==> r < rabs(x*y)";
 by (fast_tac (HOL_cs addIs [rabs_mult_le, real_less_le_trans]) 1);
 qed "rabs_mult_gt";
 
-Goal "!!r. rabs(x)<r ==> 0r<r";
+Goal "rabs(x)<r ==> 0r<r";
 by (blast_tac (claset() addSIs [real_le_less_trans,rabs_ge_zero]) 1);
 qed "rabs_less_gt_zero";
 
@@ -217,7 +217,7 @@ by (fast_tac (claset() addIs [rabs_eqI2,rabs_minus_eqI2,
                             rabs_zero,rabs_minus_zero]) 1);
 qed "rabs_disj";
 
-Goal "!!x. rabs x = y ==> x = y | %~x = y";
+Goal "rabs x = y ==> x = y | %~x = y";
 by (dtac sym 1);
 by (hyp_subst_tac 1);
 by (res_inst_tac [("x1","x")] (rabs_disj RS disjE) 1);

@@ -22,7 +22,7 @@ by (simp_tac (simpset() addsplits [split_lift_case]) 1);
 qed "dlift_is_Def";
 Addsimps [dlift_is_Def];
 
-Goal "!!c. <c,s> -c-> t ==> D c`(Discr s) = (Def t)";
+Goal "<c,s> -c-> t ==> D c`(Discr s) = (Def t)";
 by (etac evalc.induct 1);
       by (ALLGOALS Asm_simp_tac);
  by (ALLGOALS (stac fix_eq THEN' Asm_full_simp_tac));

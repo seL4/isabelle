@@ -116,7 +116,7 @@ fun set_mp_tac i = etac subsetCE i  THEN  mp_tac i;
 qed_goal "subset_refl" Set.thy "A <= A"
  (fn _=> [ (REPEAT (ares_tac [subsetI] 1)) ]);
 
-Goal "!!A B C. [| A<=B;  B<=C |] ==> A<=C";
+Goal "[| A<=B;  B<=C |] ==> A<=C";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, subsetD] 1));
 qed "subset_trans";

@@ -49,7 +49,7 @@ Goalw [equiv_def,trans_def,sym_def]
 by (Blast_tac 1);
 qed "equiv_class_subset";
 
-Goal "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} = r^^{b}";
+Goal "[| equiv A r;  (a,b): r |] ==> r^^{a} = r^^{b}";
 by (REPEAT (ares_tac [equalityI, equiv_class_subset] 1));
 by (rewrite_goals_tac [equiv_def,sym_def]);
 by (Blast_tac 1);
@@ -98,7 +98,7 @@ qed "eq_equiv_class_iff";
 
 (** Introduction/elimination rules -- needed? **)
 
-Goalw [quotient_def] "!!A. x:A ==> r^^{x}: A/r";
+Goalw [quotient_def] "x:A ==> r^^{x}: A/r";
 by (Blast_tac 1);
 qed "quotientI";
 
@@ -139,7 +139,7 @@ val UN_singleton = ballI RSN (2,UN_singleton_lemma);
 **)
 
 (*Conversion rule*)
-Goal "!!A r. [| equiv A r;  congruent r b;  a: A |] \
+Goal "[| equiv A r;  congruent r b;  a: A |] \
 \                      ==> (UN x:r^^{a}. b(x)) = b(a)";
 by (rtac (equiv_class_self RS UN_singleton) 1 THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [equiv_def,congruent_def,sym_def]);
@@ -244,7 +244,7 @@ qed "congruent2_commuteI";
 (*** Cardinality results suggested by Florian Kammueller ***)
 
 (*Recall that  equiv A r  implies  r <= A Times A   (equiv_type) *)
-Goal "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";
+Goal "[| finite A; r <= A Times A |] ==> finite (A/r)";
 by (rtac finite_subset 1);
 by (etac (finite_Pow_iff RS iffD2) 2);
 by (rewtac quotient_def);
@@ -258,7 +258,7 @@ by (assume_tac 2);
 by (Blast_tac 1);
 qed "finite_equiv_class";
 
-Goal "!!A. [| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
+Goal "[| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
 \              ==> k dvd card(A)";
 by (rtac (Union_quotient RS subst) 1);
 by (assume_tac 1);

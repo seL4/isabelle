@@ -65,7 +65,7 @@ by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_of_par,asig_comp_d
  by (Fast_tac 1);
 val externals_of_par_extra = result(); 
 
-Goal "!!s.[| reachable (C1||C2) s |] ==> reachable C1 (fst s)";
+Goal "[| reachable (C1||C2) s |] ==> reachable C1 (fst s)";
 by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
 by (etac bexE 1);
 by (res_inst_tac [("x",
@@ -85,7 +85,7 @@ qed"comp1_reachable";
 
 (* Exact copy of proof of comp1_reachable for the second 
    component of a parallel composition.     *)
-Goal "!!s.[| reachable (C1||C2) s|] ==> reachable C2 (snd s)";
+Goal "[| reachable (C1||C2) s|] ==> reachable C2 (snd s)";
 by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
 by (etac bexE 1);
 by (res_inst_tac [("x",
@@ -105,7 +105,7 @@ qed"comp2_reachable";
 Delsplits [split_if];
 
 (* Composition of possibility-mappings *)
-Goalw [is_weak_pmap_def] "!!f g.[| is_weak_pmap f C1 A1 & \
+Goalw [is_weak_pmap_def] "[| is_weak_pmap f C1 A1 & \
 \               externals(asig_of(A1))=externals(asig_of(C1)) &\
 \               is_weak_pmap g C2 A2 &  \
 \               externals(asig_of(A2))=externals(asig_of(C2)) & \
@@ -149,7 +149,7 @@ by (REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
 qed"fxg_is_weak_pmap_of_product_IOA";
 
 
-Goal "!!s.[| reachable (rename C g) s |] ==> reachable C s";
+Goal "[| reachable (rename C g) s |] ==> reachable C s";
 by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
 by (etac bexE 1);
 by (res_inst_tac [("x",
@@ -166,7 +166,7 @@ by (best_tac (claset() addSDs [spec] addDs [sym] addss (simpset())) 1);
 qed"reachable_rename_ioa";
 
 
-Goal "!!f.[| is_weak_pmap f C A |]\
+Goal "[| is_weak_pmap f C A |]\
 \                      ==> (is_weak_pmap f (rename C g) (rename A g))";
 by (asm_full_simp_tac (simpset() addsimps [is_weak_pmap_def]) 1);
 by (rtac conjI 1);

@@ -11,7 +11,7 @@ Prove: If H|=p then G|=p where G:Fin(H)
 open PropLog;
 
 (** Monotonicity **)
-Goalw thms.defs "!!G H. G<=H ==> thms(G) <= thms(H)";
+Goalw thms.defs "G<=H ==> thms(G) <= thms(H)";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "thms_mono";
@@ -34,12 +34,12 @@ val weaken_left_insert = subset_insertI RS weaken_left;
 val weaken_left_Un1  =    Un_upper1 RS weaken_left;
 val weaken_left_Un2  =    Un_upper2 RS weaken_left;
 
-Goal "!!H. H |- q ==> H |- p->q";
+Goal "H |- q ==> H |- p->q";
 by (fast_tac (claset() addIs [thms.K,thms.MP]) 1);
 qed "weaken_right";
 
 (*The deduction theorem*)
-Goal "!!H. insert p H |- q  ==>  H |- p->q";
+Goal "insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
 by (ALLGOALS 
     (fast_tac (claset() addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
@@ -75,7 +75,7 @@ qed "eval_imp";
 Addsimps [eval_false, eval_var, eval_imp];
 
 (*Soundness of the rules wrt truth-table semantics*)
-Goalw [sat_def] "!!H. H |- p ==> H |= p";
+Goalw [sat_def] "H |- p ==> H |= p";
 by (etac thms.induct 1);
 by (fast_tac (claset() addSDs [eval_imp RS iffD1 RS mp]) 5);
 by (ALLGOALS Asm_simp_tac);
@@ -83,7 +83,7 @@ qed "soundness";
 
 (*** Towards the completeness proof ***)
 
-Goal "!!H. H |- p->false ==> H |- p->q";
+Goal "H |- p->false ==> H |- p->q";
 by (rtac deduction 1);
 by (etac (weaken_left_insert RS thms_notE) 1);
 by (rtac thms.H 1);
@@ -206,12 +206,12 @@ by (rtac (sat RS (completeness_0_lemma RS spec)) 1);
 qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
-Goalw [sat_def] "!!p H. insert p H |= q ==> H |= p->q";
+Goalw [sat_def] "insert p H |= q ==> H |= p->q";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "sat_imp";
 
-Goal "!!H. finite H ==> !p. H |= p --> H |- p";
+Goal "finite H ==> !p. H |= p --> H |- p";
 by (etac finite_induct 1);
 by (safe_tac ((claset_of Fun.thy) addSIs [completeness_0]));
 by (rtac (weaken_left_insert RS thms.MP) 1);
@@ -221,6 +221,6 @@ qed "completeness_lemma";
 
 val completeness = completeness_lemma RS spec RS mp;
 
-Goal "!!H. finite H ==> (H |- p) = (H |= p)";
+Goal "finite H ==> (H |- p) = (H |= p)";
 by (fast_tac (claset() addSEs [soundness, completeness]) 1);
 qed "syntax_iff_semantics";

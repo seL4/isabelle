@@ -133,7 +133,7 @@ val [prem] = goalw Perm.thy [id_def] "A<=B ==> id(A) <= id(B)";
 by (rtac (prem RS lam_mono) 1);
 qed "id_mono";
 
-Goalw [inj_def,id_def] "!!A B. A<=B ==> id(A): inj(A,B)";
+Goalw [inj_def,id_def] "A<=B ==> id(A): inj(A,B)";
 by (REPEAT (ares_tac [CollectI,lam_type] 1));
 by (etac subsetD 1 THEN assume_tac 1);
 by (Simp_tac 1);

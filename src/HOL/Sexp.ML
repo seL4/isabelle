@@ -124,7 +124,7 @@ by (stac sexp_rec_unfold 1);
 by (rtac sexp_case_Numb 1);
 qed "sexp_rec_Numb";
 
-Goal "!!M. [| M: sexp;  N: sexp |] ==> \
+Goal "[| M: sexp;  N: sexp |] ==> \
 \    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [pred_sexpI1, pred_sexpI2]) 1);

@@ -24,7 +24,7 @@ qed "real_order_restrict";
            Completeness theorem for the positive reals(again)
  ----------------------------------------------------------------*)
 
-Goal "!!S. [| ALL x: S. 0r < x; \
+Goal "[| ALL x: S. 0r < x; \
 \                 EX x. x: S; \
 \                 EX u. isUb (UNIV::real set) S u \
 \              |] ==> EX t. isLub (UNIV::real set) S t";
@@ -85,7 +85,7 @@ by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
 by (auto_tac (claset(),simpset() addsimps [real_add_commute]));
 qed "lemma_le_swap2";
 
-Goal "!!x. [| 0r < x + %~X + 1r; x < xa |] ==> 0r < xa + %~X + 1r";
+Goal "[| 0r < x + %~X + 1r; x < xa |] ==> 0r < xa + %~X + 1r";
 by (dtac real_add_less_mono 1);
 by (assume_tac 1);
 by (dres_inst_tac [("C","%~x"),("A","0r + x")] real_add_less_mono2 1);
@@ -104,13 +104,13 @@ by (asm_full_simp_tac (simpset() addsimps [real_add_assoc RS sym,
         real_add_minus_left,real_add_zero_left]) 1);
 qed "lemma_real_complete2";
 
-Goal "!!x. [| x + %~X + 1r <= S; xa < x |] ==> xa <= S + X + %~1r"; (**)
+Goal "[| x + %~X + 1r <= S; xa < x |] ==> xa <= S + X + %~1r"; (**)
 by (rtac (lemma_le_swap2 RS iffD2) 1);
 by (etac lemma_real_complete2 1);
 by (assume_tac 1);
 qed "lemma_real_complete2a";
 
-Goal "!!x. [| x + %~X + 1r <= S; xa <= x |] ==> xa <= S + X + %~1r";
+Goal "[| x + %~X + 1r <= S; xa <= x |] ==> xa <= S + X + %~1r";
 by (rotate_tac 1 1);
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (blast_tac (claset() addIs [lemma_real_complete2a]) 1);
@@ -173,7 +173,7 @@ by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
       real_add_minus,real_add_minus_left,real_add_zero_right]));
 qed "lemma_arch";
 
-Goal "!!x. 0r < x ==> EX n. rinv(%%#n) < x";
+Goal "0r < x ==> EX n. rinv(%%#n) < x";
 by (stac real_nat_rinv_Ex_iff 1);
 by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
 by (fold_tac [real_le_def]);

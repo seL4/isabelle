@@ -91,11 +91,11 @@ AddIffs [Inl_eq, Inr_eq];
 
 (** Introduction rules for the injections **)
 
-Goalw [sum_def] "!!a A B. a : A ==> Inl(a) : A Plus B";
+Goalw [sum_def] "a : A ==> Inl(a) : A Plus B";
 by (Blast_tac 1);
 qed "InlI";
 
-Goalw [sum_def] "!!b A B. b : B ==> Inr(b) : A Plus B";
+Goalw [sum_def] "b : B ==> Inr(b) : A Plus B";
 by (Blast_tac 1);
 qed "InrI";
 
@@ -189,13 +189,13 @@ Goalw [Part_def] "Part A h <= A";
 by (rtac Int_lower1 1);
 qed "Part_subset";
 
-Goal "!!A B. A<=B ==> Part A h <= Part B h";
+Goal "A<=B ==> Part A h <= Part B h";
 by (Blast_tac 1);
 qed "Part_mono";
 
 val basic_monos = basic_monos @ [Part_mono];
 
-Goalw [Part_def] "!!a. a : Part A h ==> a : A";
+Goalw [Part_def] "a : Part A h ==> a : A";
 by (etac IntD1 1);
 qed "PartD1";
 

@@ -42,8 +42,8 @@ qed "order_le_less";
 
 (** min **)
 
-Goalw [min_def] "!!least. (!!x. least <= x) ==> min least x = least";
-by (Asm_simp_tac 1);
+val prems = Goalw [min_def] "(!!x. least <= x) ==> min least x = least";
+by (simp_tac (simpset() addsimps prems) 1);
 qed "min_leastL";
 
 val prems = goalw thy [min_def]

@@ -23,7 +23,7 @@ qed "TF_fun_mono";
 
 val TF_unfold = TF_fun_mono RS (TF_def RS def_lfp_Tarski);
 
-Goalw [TF_def] "!!A B. A<=B ==> TF(A) <= TF(B)";
+Goalw [TF_def] "A<=B ==> TF(A) <= TF(B)";
 by (REPEAT (ares_tac [lfp_mono, subset_refl, usum_mono, uprod_mono] 1));
 qed "TF_mono";
 

@@ -568,7 +568,7 @@ by (Clarify_tac 1);
 by (simp_tac (simpset() addsimps [zadd, zminus]) 1);
 qed "zless_zadd_Suc";
 
-Goal "!!z1 z2 z3. [| z1<z2; z2<z3 |] ==> z1 < (z3::int)";
+Goal "[| z1<z2; z2<z3 |] ==> z1 < (z3::int)";
 by (safe_tac (claset() addSDs [zless_eq_zadd_Suc]));
 by (simp_tac 
     (simpset() addsimps [zadd_assoc, zless_zadd_Suc, znat_add RS sym]) 1);
@@ -598,7 +598,7 @@ qed "zless_not_refl";
 (* z<z ==> R *)
 bind_thm ("zless_irrefl", (zless_not_refl RS notE));
 
-Goal "!!w. z<w ==> w ~= (z::int)";
+Goal "z<w ==> w ~= (z::int)";
 by (fast_tac (claset() addEs [zless_irrefl]) 1);
 qed "zless_not_refl2";
 
@@ -629,30 +629,30 @@ Goalw [zle_def, le_def] "($#m <= $#n) = (m<=n)";
 by (simp_tac (simpset() addsimps [zless_eq_less]) 1);
 qed "zle_eq_le";
 
-Goalw [zle_def] "!!w. ~(w<z) ==> z<=(w::int)";
+Goalw [zle_def] "~(w<z) ==> z<=(w::int)";
 by (assume_tac 1);
 qed "zleI";
 
-Goalw [zle_def] "!!w. z<=w ==> ~(w<(z::int))";
+Goalw [zle_def] "z<=w ==> ~(w<(z::int))";
 by (assume_tac 1);
 qed "zleD";
 
 val zleE = make_elim zleD;
 
-Goalw [zle_def] "!!z. ~ z <= w ==> w<(z::int)";
+Goalw [zle_def] "~ z <= w ==> w<(z::int)";
 by (Fast_tac 1);
 qed "not_zleE";
 
-Goalw [zle_def] "!!z. z < w ==> z <= (w::int)";
+Goalw [zle_def] "z < w ==> z <= (w::int)";
 by (fast_tac (claset() addEs [zless_asym]) 1);
 qed "zless_imp_zle";
 
-Goalw [zle_def] "!!z. z <= w ==> z < w | z=(w::int)";
+Goalw [zle_def] "z <= w ==> z < w | z=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
 by (fast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
 qed "zle_imp_zless_or_eq";
 
-Goalw [zle_def] "!!z. z<w | z=w ==> z <=(w::int)";
+Goalw [zle_def] "z<w | z=w ==> z <=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
 by (fast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
 qed "zless_or_eq_imp_zle";
@@ -670,12 +670,12 @@ by (dtac zle_imp_zless_or_eq 1);
 by (fast_tac (claset() addIs [zless_trans]) 1);
 qed "zle_zless_trans";
 
-Goal "!!i. [| i <= j; j <= k |] ==> i <= (k::int)";
+Goal "[| i <= j; j <= k |] ==> i <= (k::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
             rtac zless_or_eq_imp_zle, fast_tac (claset() addIs [zless_trans])]);
 qed "zle_trans";
 
-Goal "!!z. [| z <= w; w <= z |] ==> z = (w::int)";
+Goal "[| z <= w; w <= z |] ==> z = (w::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
             fast_tac (claset() addEs [zless_irrefl,zless_asym])]);
 qed "zle_anti_sym";
@@ -736,7 +736,7 @@ qed "eq_False_conv";
 Addsimps [zless_eq_less, zle_eq_le,
 	  znegative_zminus_znat, not_znegative_znat]; 
 
-Goal "!! x. (x::int) = y ==> x <= y"; 
+Goal "(x::int) = y ==> x <= y"; 
   by (etac subst 1); by (rtac zle_refl 1); 
 qed "zequalD1"; 
 
@@ -822,16 +822,16 @@ qed "negative_eq_positive";
 Addsimps [zminus_zless_zminus, zminus_zle_zminus, 
 	  negative_eq_positive, not_znat_zless_negative]; 
 
-Goalw [zdiff_def,zless_def] "!! x. znegative x = (x < $# 0)";
+Goalw [zdiff_def,zless_def] "znegative x = (x < $# 0)";
   by Auto_tac; 
 qed "znegative_less_0"; 
 
-Goalw [zdiff_def,zless_def] "!! x. (~znegative x) = ($# 0 <= x)";
+Goalw [zdiff_def,zless_def] "(~znegative x) = ($# 0 <= x)";
   by (stac znegative_less_0 1); 
   by (safe_tac (HOL_cs addSDs[zleD,not_zleE,zleI]) ); 
 qed "not_znegative_ge_0"; 
 
-Goal "!! x. znegative x ==> ? n. x = $~ $# Suc n"; 
+Goal "znegative x ==> ? n. x = $~ $# Suc n"; 
   by (dtac (znegative_less_0 RS iffD1 RS zless_eq_zadd_Suc) 1); 
   by (etac exE 1); 
   by (rtac exI 1);
@@ -839,7 +839,7 @@ Goal "!! x. znegative x ==> ? n. x = $~ $# Suc n";
   by (auto_tac(claset(), simpset() addsimps [zadd_assoc])); 
 qed "znegativeD"; 
 
-Goal "!! x. ~znegative x ==> ? n. x = $# n"; 
+Goal "~znegative x ==> ? n. x = $# n"; 
   by (dtac (not_znegative_ge_0 RS iffD1) 1); 
   by (dtac zle_imp_zless_or_eq 1); 
   by (etac disjE 1); 

@@ -55,22 +55,22 @@ AddSIs [contract.K, contract.S];
 AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
 
-Goalw [I_def] "!!z. I -1-> z ==> P";
+Goalw [I_def] "I -1-> z ==> P";
 by (Blast_tac 1);
 qed "I_contract_E";
 AddSEs [I_contract_E];
 
-Goal "!!x z. K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
+Goal "K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
 by (Blast_tac 1);
 qed "K1_contractD";
 AddSEs [K1_contractD];
 
-Goal "!!x z. x ---> y ==> x#z ---> y#z";
+Goal "x ---> y ==> x#z ---> y#z";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce1";
 
-Goal "!!x z. x ---> y ==> z#x ---> z#y";
+Goal "x ---> y ==> z#x ---> z#y";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce2";
@@ -108,12 +108,12 @@ AddSEs [K_parcontractE, S_parcontractE,Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
 
-Goal "!!x z. K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
+Goal "K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
 by (Blast_tac 1);
 qed "K1_parcontractD";
 AddSDs [K1_parcontractD];
 
-Goal "!!x z. S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
+Goal "S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
 by (Blast_tac 1);
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];

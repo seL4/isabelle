@@ -302,7 +302,7 @@ by (asm_full_simp_tac (simpset() addsimps [prat_mult_commute,
     prat_mult_1,prat_mult_1_right]) 1);
 qed "prat_qinv_left_ex1";
 
-Goal "!!y. x * y = $# Abs_pnat 1 ==> x = qinv y";
+Goal "x * y = $# Abs_pnat 1 ==> x = qinv y";
 by (cut_inst_tac [("q","y")] prat_mult_qinv 1);
 by (res_inst_tac [("x1","y")] (prat_qinv_left_ex1 RS ex1E) 1);
 by (Blast_tac 1);
@@ -580,32 +580,32 @@ by (rtac (prat_add_commute RS subst) 1);
 by (simp_tac (simpset() addsimps [prat_self_less_add_right]) 1);
 qed "prat_self_less_add_left";
 
-Goalw [prat_less_def] "!!y. $#1p < y ==> (x::prat) < x * y";
+Goalw [prat_less_def] "$#1p < y ==> (x::prat) < x * y";
 by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
     prat_add_mult_distrib2]));
 qed "prat_self_less_mult_right";
 
 (*** Properties of <= ***)
 
-Goalw [prat_le_def] "!!w. ~(w < z) ==> z <= (w::prat)";
+Goalw [prat_le_def] "~(w < z) ==> z <= (w::prat)";
 by (assume_tac 1);
 qed "prat_leI";
 
-Goalw [prat_le_def] "!!w. z<=w ==> ~(w<(z::prat))";
+Goalw [prat_le_def] "z<=w ==> ~(w<(z::prat))";
 by (assume_tac 1);
 qed "prat_leD";
 
 val prat_leE = make_elim prat_leD;
 
-Goal "!!w. (~(w < z)) = (z <= (w::prat))";
+Goal "(~(w < z)) = (z <= (w::prat))";
 by (fast_tac (claset() addSIs [prat_leI,prat_leD]) 1);
 qed "prat_less_le_iff";
 
-Goalw [prat_le_def] "!!z. ~ z <= w ==> w<(z::prat)";
+Goalw [prat_le_def] "~ z <= w ==> w<(z::prat)";
 by (Fast_tac 1);
 qed "not_prat_leE";
 
-Goalw [prat_le_def] "!!z. z < w ==> z <= (w::prat)";
+Goalw [prat_le_def] "z < w ==> z <= (w::prat)";
 by (fast_tac (claset() addEs [prat_less_asym]) 1);
 qed "prat_less_imp_le";
 
@@ -614,7 +614,7 @@ by (cut_facts_tac [prat_linear] 1);
 by (fast_tac (claset() addEs [prat_less_irrefl,prat_less_asym]) 1);
 qed "prat_le_imp_less_or_eq";
 
-Goalw [prat_le_def] "!!z. z<w | z=w ==> z <=(w::prat)";
+Goalw [prat_le_def] "z<w | z=w ==> z <=(w::prat)";
 by (cut_facts_tac [prat_linear] 1);
 by (fast_tac (claset() addEs [prat_less_irrefl,prat_less_asym]) 1);
 qed "prat_less_or_eq_imp_le";
@@ -637,17 +637,17 @@ by (dtac prat_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [prat_less_trans]) 1);
 qed "prat_less_le_trans";
 
-Goal "!!i. [| i <= j; j <= k |] ==> i <= (k::prat)";
+Goal "[| i <= j; j <= k |] ==> i <= (k::prat)";
 by (EVERY1 [dtac prat_le_imp_less_or_eq, dtac prat_le_imp_less_or_eq,
             rtac prat_less_or_eq_imp_le, fast_tac (claset() addIs [prat_less_trans])]);
 qed "prat_le_trans";
 
-Goal "!!z. [| z <= w; w <= z |] ==> z = (w::prat)";
+Goal "[| z <= w; w <= z |] ==> z = (w::prat)";
 by (EVERY1 [dtac prat_le_imp_less_or_eq, dtac prat_le_imp_less_or_eq,
             fast_tac (claset() addEs [prat_less_irrefl,prat_less_asym])]);
 qed "prat_le_anti_sym";
 
-Goal "!!x. [| ~ y < x; y ~= x |] ==> x < (y::prat)";
+Goal "[| ~ y < x; y ~= x |] ==> x < (y::prat)";
 by (rtac not_prat_leE 1);
 by (fast_tac (claset() addDs [prat_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_prat_less";

@@ -17,10 +17,10 @@ Local changes for TLA (Stephan Merz):
 
 Test data:
 
-Goal "!!x.[| Q(x,y,z); y=x; a=x; z=y; P(y) |] ==> P(z)";
-Goal "!!x.[| Q(x,y,z); z=f(x); x=z |] ==> P(z)";
-Goal "!!y. [| ?x=y; P(?x) |] ==> y = a";
-Goal "!!z. [| ?x=y; P(?x) |] ==> y = a";
+Goal "[| Q(x,y,z); y=x; a=x; z=y; P(y) |] ==> P(z)";
+Goal "[| Q(x,y,z); z=f(x); x=z |] ==> P(z)";
+Goal "[| ?x=y; P(?x) |] ==> y = a";
+Goal "[| ?x=y; P(?x) |] ==> y = a";
 
 by (hyp_subst_tac 1);
 by (bound_hyp_subst_tac 1);

@@ -10,7 +10,7 @@ Addsimps tiling.intrs;
 
 (** The union of two disjoint tilings is a tiling **)
 
-Goal "!!t. t: tiling A ==> \
+Goal "t: tiling A ==> \
 \              u: tiling A --> t <= Compl u --> t Un u : tiling A";
 by (etac tiling.induct 1);
 by (Simp_tac 1);
@@ -101,7 +101,7 @@ Addsimps [finite_evnodd, evnodd_Un, evnodd_Diff, evnodd_empty, evnodd_insert];
 
 (*** Dominoes ***)
 
-Goal "!!d. [| d:domino; b<2 |] ==> EX i j. evnodd d b = {(i,j)}";
+Goal "[| d:domino; b<2 |] ==> EX i j. evnodd d b = {(i,j)}";
 by (eresolve_tac [domino.elim] 1);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
@@ -111,20 +111,20 @@ by (REPEAT (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1
            THEN Blast_tac 1));
 qed "domino_singleton";
 
-Goal "!!d. d:domino ==> finite d";
+Goal "d:domino ==> finite d";
 by (blast_tac (claset() addSEs [domino.elim]) 1);
 qed "domino_finite";
 
 
 (*** Tilings of dominoes ***)
 
-Goal "!!t. t:tiling domino ==> finite t";
+Goal "t:tiling domino ==> finite t";
 by (eresolve_tac [tiling.induct] 1);
 by (rtac Finites.emptyI 1);
 by (blast_tac (claset() addSIs [finite_UnI] addIs [domino_finite]) 1);
 qed "tiling_domino_finite";
 
-Goal "!!t. t: tiling domino ==> card(evnodd t 0) = card(evnodd t 1)";
+Goal "t: tiling domino ==> card(evnodd t 0) = card(evnodd t 1)";
 by (eresolve_tac [tiling.induct] 1);
 by (simp_tac (simpset() addsimps [evnodd_def]) 1);
 by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
@@ -132,7 +132,7 @@ by (Simp_tac 2 THEN assume_tac 1);
 by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
 by (Clarify_tac 1);
-by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd ta b" 1);
+by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd t b" 1);
 by (asm_simp_tac (simpset() addsimps [tiling_domino_finite]) 1);
 by (blast_tac (claset() addSDs [evnodd_subset RS subsetD] 
                         addEs  [equalityE]) 1);
@@ -140,7 +140,7 @@ qed "tiling_domino_0_1";
 
 (*Final argument is surprisingly complex.  Note the use of small simpsets
   to avoid moving Sucs, etc.*)
-Goal "!!m n. [| t = below(Suc m + Suc m) Times below(Suc n + Suc n);   \
+Goal "[| t = below(Suc m + Suc m) Times below(Suc n + Suc n);   \
 \                   t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}              \
 \                |] ==> t' ~: tiling domino";
 by (rtac notI 1);

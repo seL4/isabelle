@@ -103,7 +103,7 @@ qed "Ord_contains_Transset";
 
 (*** Lemmas for ordinals ***)
 
-Goalw [Ord_def,Transset_def] "!!i j.[| Ord(i);  j:i |] ==> Ord(j)";
+Goalw [Ord_def,Transset_def] "[| Ord(i);  j:i |] ==> Ord(j)";
 by (Blast_tac 1);
 qed "Ord_in_Ord";
 
@@ -117,7 +117,7 @@ by (REPEAT (ares_tac [OrdI] 1
      ORELSE eresolve_tac [Ord_contains_Transset, subsetD] 1));
 qed "Ord_subset_Ord";
 
-Goalw [Ord_def,Transset_def] "!!i j. [| j:i;  Ord(i) |] ==> j<=i";
+Goalw [Ord_def,Transset_def] "[| j:i;  Ord(i) |] ==> j<=i";
 by (Blast_tac 1);
 qed "OrdmemD";
 

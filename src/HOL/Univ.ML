@@ -142,11 +142,11 @@ qed "Push_Node_inject";
 
 (** Injectiveness of Scons **)
 
-Goalw [Scons_def] "!!M. M$N <= M'$N' ==> M<=M'";
+Goalw [Scons_def] "M$N <= M'$N' ==> M<=M'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
-Goalw [Scons_def] "!!M. M$N <= M'$N' ==> N<=N'";
+Goalw [Scons_def] "M$N <= M'$N' ==> N<=N'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
@@ -297,7 +297,7 @@ Addsimps [ntrunc_one_In0, ntrunc_In0, ntrunc_one_In1, ntrunc_In1];
 
 (*** Cartesian Product ***)
 
-Goalw [uprod_def] "!!M N. [| M:A;  N:B |] ==> (M$N) : A<*>B";
+Goalw [uprod_def] "[| M:A;  N:B |] ==> (M$N) : A<*>B";
 by (REPEAT (ares_tac [singletonI,UN_I] 1));
 qed "uprodI";
 
@@ -322,11 +322,11 @@ qed "uprodE2";
 
 (*** Disjoint Sum ***)
 
-Goalw [usum_def] "!!M. M:A ==> In0(M) : A<+>B";
+Goalw [usum_def] "M:A ==> In0(M) : A<+>B";
 by (Blast_tac 1);
 qed "usum_In0I";
 
-Goalw [usum_def] "!!N. N:B ==> In1(N) : A<+>B";
+Goalw [usum_def] "N:B ==> In1(N) : A<+>B";
 by (Blast_tac 1);
 qed "usum_In1I";
 
@@ -408,23 +408,23 @@ qed "ntrunc_o_equality";
 
 (*** Monotonicity ***)
 
-Goalw [uprod_def] "!!A B. [| A<=A';  B<=B' |] ==> A<*>B <= A'<*>B'";
+Goalw [uprod_def] "[| A<=A';  B<=B' |] ==> A<*>B <= A'<*>B'";
 by (Blast_tac 1);
 qed "uprod_mono";
 
-Goalw [usum_def] "!!A B. [| A<=A';  B<=B' |] ==> A<+>B <= A'<+>B'";
+Goalw [usum_def] "[| A<=A';  B<=B' |] ==> A<+>B <= A'<+>B'";
 by (Blast_tac 1);
 qed "usum_mono";
 
-Goalw [Scons_def] "!!M N. [| M<=M';  N<=N' |] ==> M$N <= M'$N'";
+Goalw [Scons_def] "[| M<=M';  N<=N' |] ==> M$N <= M'$N'";
 by (Blast_tac 1);
 qed "Scons_mono";
 
-Goalw [In0_def] "!!M N. M<=N ==> In0(M) <= In0(N)";
+Goalw [In0_def] "M<=N ==> In0(M) <= In0(N)";
 by (REPEAT (ares_tac [subset_refl,Scons_mono] 1));
 qed "In0_mono";
 
-Goalw [In1_def] "!!M N. M<=N ==> In1(M) <= In1(N)";
+Goalw [In1_def] "M<=N ==> In1(M) <= In1(N)";
 by (REPEAT (ares_tac [subset_refl,Scons_mono] 1));
 qed "In1_mono";
 
@@ -471,7 +471,7 @@ qed "In1_UN1";
 
 (*** Equality : the diagonal relation ***)
 
-Goalw [diag_def] "!!a A. [| a=b;  a:A |] ==> (a,b) : diag(A)";
+Goalw [diag_def] "[| a=b;  a:A |] ==> (a,b) : diag(A)";
 by (Blast_tac 1);
 qed "diag_eqI";
 
@@ -506,11 +506,11 @@ qed "dprodE";
 
 (*** Equality for Disjoint Sum ***)
 
-Goalw [dsum_def]  "!!r. (M,M'):r ==> (In0(M), In0(M')) : r<++>s";
+Goalw [dsum_def]  "(M,M'):r ==> (In0(M), In0(M')) : r<++>s";
 by (Blast_tac 1);
 qed "dsum_In0I";
 
-Goalw [dsum_def]  "!!r. (N,N'):s ==> (In1(N), In1(N')) : r<++>s";
+Goalw [dsum_def]  "(N,N'):s ==> (In1(N), In1(N')) : r<++>s";
 by (Blast_tac 1);
 qed "dsum_In1I";
 
@@ -531,11 +531,11 @@ AddSEs [diagE, uprodE, dprodE, usumE, dsumE];
 
 (*** Monotonicity ***)
 
-Goal "!!r s. [| r<=r';  s<=s' |] ==> r<**>s <= r'<**>s'";
+Goal "[| r<=r';  s<=s' |] ==> r<**>s <= r'<**>s'";
 by (Blast_tac 1);
 qed "dprod_mono";
 
-Goal "!!r s. [| r<=r';  s<=s' |] ==> r<++>s <= r'<++>s'";
+Goal "[| r<=r';  s<=s' |] ==> r<++>s <= r'<++>s'";
 by (Blast_tac 1);
 qed "dsum_mono";
 

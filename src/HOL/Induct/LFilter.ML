@@ -18,19 +18,19 @@ val findRel_LConsE =
 AddSEs [findRel_LConsE];
 
 
-Goal "!!p. (l,l'): findRel p ==> (l,l''): findRel p --> l'' = l'";
+Goal "(l,l'): findRel p ==> (l,l''): findRel p --> l'' = l'";
 by (etac findRel.induct 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "findRel_functional";
 
-Goal "!!p. (l,l'): findRel p ==> EX x l''. l' = LCons x l'' & p x";
+Goal "(l,l'): findRel p ==> EX x l''. l' = LCons x l'' & p x";
 by (etac findRel.induct 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "findRel_imp_LCons";
 
-Goal "!!p. (LNil,l): findRel p ==> R";
+Goal "(LNil,l): findRel p ==> R";
 by (blast_tac (claset() addEs [findRel.elim]) 1);
 qed "findRel_LNil";
 
@@ -39,7 +39,7 @@ AddSEs [findRel_LNil];
 
 (*** Properties of Domain (findRel p) ***)
 
-Goal "!!p. LCons x l : Domain(findRel p) = (p x | l : Domain(findRel p))";
+Goal "LCons x l : Domain(findRel p) = (p x | l : Domain(findRel p))";
 by (case_tac "p x" 1);
 by (ALLGOALS (blast_tac (claset() addIs findRel.intrs)));
 qed "LCons_Domain_findRel";
@@ -73,22 +73,22 @@ by (Blast_tac 1);
 qed "find_LNil";
 Addsimps [find_LNil];
 
-Goalw [find_def] "!!p. (l,l') : findRel p ==> find p l = l'";
+Goalw [find_def] "(l,l') : findRel p ==> find p l = l'";
 by (blast_tac (claset() addDs [findRel_functional]) 1);
 qed "findRel_imp_find";
 Addsimps [findRel_imp_find];
 
-Goal "!!p. p x ==> find p (LCons x l) = LCons x l";
+Goal "p x ==> find p (LCons x l) = LCons x l";
 by (blast_tac (claset() addIs (findRel_imp_find::findRel.intrs)) 1);
 qed "find_LCons_found";
 Addsimps [find_LCons_found];
 
-Goalw [find_def] "!!p. l ~: Domain(findRel p) ==> find p l = LNil";
+Goalw [find_def] "l ~: Domain(findRel p) ==> find p l = LNil";
 by (Blast_tac 1);
 qed "diverge_find_LNil";
 Addsimps [diverge_find_LNil];
 
-Goal "!!p. ~ (p x) ==> find p (LCons x l) = find p l";
+Goal "~ (p x) ==> find p (LCons x l) = find p l";
 by (case_tac "LCons x l : Domain(findRel p)" 1);
 by (Asm_full_simp_tac 2);
 by (Clarify_tac 1);
@@ -111,7 +111,7 @@ by (Simp_tac 1);
 qed "lfilter_LNil";
 Addsimps [lfilter_LNil];
 
-Goal "!!p. l ~: Domain(findRel p) ==> lfilter p l = LNil";
+Goal "l ~: Domain(findRel p) ==> lfilter p l = LNil";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (Asm_simp_tac 1);
 qed "diverge_lfilter_LNil";
@@ -119,7 +119,7 @@ qed "diverge_lfilter_LNil";
 Addsimps [diverge_lfilter_LNil];
 
 
-Goal "!!p. p x ==> lfilter p (LCons x l) = LCons x (lfilter p l)";
+Goal "p x ==> lfilter p (LCons x l) = LCons x (lfilter p l)";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (Asm_simp_tac 1);
 qed "lfilter_LCons_found";
@@ -127,7 +127,7 @@ qed "lfilter_LCons_found";
   subsumes both*)
 
 
-Goal "!!p. (l, LCons x l') : findRel p \
+Goal "(l, LCons x l') : findRel p \
 \              ==> lfilter p l = LCons x (lfilter p l')";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (Asm_simp_tac 1);
@@ -136,7 +136,7 @@ qed "findRel_imp_lfilter";
 Addsimps [findRel_imp_lfilter];
 
 
-Goal "!!p. ~ (p x) ==> lfilter p (LCons x l) = lfilter p l";
+Goal "~ (p x) ==> lfilter p (LCons x l) = lfilter p l";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (case_tac "LCons x l : Domain(findRel p)" 1);
 by (Asm_full_simp_tac 2);
@@ -155,7 +155,7 @@ AddSIs [llistD_Fun_LNil_I, llistD_Fun_LCons_I];
 Addsimps [lfilter_LCons];
 
 
-Goal "!!p. lfilter p l = LNil ==> l ~: Domain(findRel p)";
+Goal "lfilter p l = LNil ==> l ~: Domain(findRel p)";
 by (rtac notI 1);
 by (etac Domain_findRelE 1);
 by (etac rev_mp 1);
@@ -163,7 +163,7 @@ by (Asm_simp_tac 1);
 qed "lfilter_eq_LNil";
 
 
-Goal "!!p. lfilter p l = LCons x l' -->     \
+Goal "lfilter p l = LCons x l' -->     \
 \              (EX l''. l' = lfilter p l'' & (l, LCons x l'') : findRel p)";
 by (stac (lfilter_def RS def_llist_corec) 1);
 by (case_tac "l : Domain(findRel p)" 1);
@@ -205,7 +205,7 @@ qed "lfilter_idem";
      lfilter p (lfilter q l) = lfilter (%x. p x & q x) l
  ***)
 
-Goal "!!p. (l,l') : findRel q \
+Goal "(l,l') : findRel q \
 \           ==> l' = LCons x l'' --> p x --> (l,l') : findRel (%x. p x & q x)";
 by (etac findRel.induct 1);
 by (blast_tac (claset() addIs findRel.intrs) 1);
@@ -214,7 +214,7 @@ qed_spec_mp "findRel_conj_lemma";
 
 val findRel_conj = refl RSN (2, findRel_conj_lemma);
 
-Goal "!!p. (l,l'') : findRel (%x. p x & q x) \
+Goal "(l,l'') : findRel (%x. p x & q x) \
 \              ==> (l, LCons x l') : findRel q --> ~ p x     \
 \                  --> l' : Domain (findRel (%x. p x & q x))";
 by (etac findRel.induct 1);
@@ -222,7 +222,7 @@ by Auto_tac;
 qed_spec_mp "findRel_not_conj_Domain";
 
 
-Goal "!!p. (l,lxx) : findRel q ==> \
+Goal "(l,lxx) : findRel q ==> \
 \            lxx = LCons x lx --> (lx,lz) : findRel(%x. p x & q x) --> ~ p x \
 \            --> (l,lz) : findRel (%x. p x & q x)";
 by (etac findRel.induct 1);
@@ -230,7 +230,7 @@ by (ALLGOALS (blast_tac (claset() addIs findRel.intrs)));
 qed_spec_mp "findRel_conj2";
 
 
-Goal "!!p. (lx,ly) : findRel p \
+Goal "(lx,ly) : findRel p \
 \              ==> ALL l. lx = lfilter q l \
 \                  --> l : Domain (findRel(%x. p x & q x))";
 by (etac findRel.induct 1);
@@ -245,7 +245,7 @@ by (blast_tac (claset() addIs [findRel_conj2]) 1);
 qed_spec_mp "findRel_lfilter_Domain_conj";
 
 
-Goal "!!p. (l,l'') : findRel(%x. p x & q x) \
+Goal "(l,l'') : findRel(%x. p x & q x) \
 \              ==> l'' = LCons y l' --> \
 \                  (lfilter q l, LCons y (lfilter q l')) : findRel p";
 by (etac findRel.induct 1);
@@ -299,13 +299,13 @@ qed "lfilter_conj";
      lfilter p (lmap f l) = lmap f (lfilter (%x. p(f x)) l)
  ***)
 
-Goal "!!p. (l,l') : findRel(%x. p (f x)) ==> lmap f l : Domain(findRel p)";
+Goal "(l,l') : findRel(%x. p (f x)) ==> lmap f l : Domain(findRel p)";
 by (etac findRel.induct 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "findRel_lmap_Domain";
 
 
-Goal "!!p. lmap f l = LCons x l' -->     \
+Goal "lmap f l = LCons x l' -->     \
 \              (EX y l''. x = f y & l' = lmap f l'' & l = LCons y l'')";
 by (stac (lmap_def RS def_llist_corec) 1);
 by (res_inst_tac [("l", "l")] llistE 1);
@@ -313,7 +313,7 @@ by Auto_tac;
 qed_spec_mp "lmap_eq_LCons";
 
 
-Goal "!!p. (lx,ly) : findRel p ==>  \
+Goal "(lx,ly) : findRel p ==>  \
 \    ALL l. lmap f l = lx --> ly = LCons x l' --> \
 \    (EX y l''. x = f y & l' = lmap f l'' &       \
 \    (l, LCons y l'') : findRel(%x. p(f x)))";

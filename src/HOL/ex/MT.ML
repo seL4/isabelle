@@ -574,7 +574,7 @@ qed "hasty_rel_elim";
 
 (* Introduction rules for hasty *)
 
-Goalw [hasty_def] "!!c. c isof t ==> v_const(c) hasty t";
+Goalw [hasty_def] "c isof t ==> v_const(c) hasty t";
 by (etac hasty_rel_const_coind 1);
 qed "hasty_const";
 
@@ -592,7 +592,7 @@ by (rtac hasty_rel_elim 1);
 by (ALLGOALS (blast_tac (v_ext_cs HOL_cs)));
 qed "hasty_elim_const_lem";
 
-Goal "!!c. v_const(c) hasty t ==> c isof t";
+Goal "v_const(c) hasty t ==> c isof t";
 by (dtac hasty_elim_const_lem 1);
 by (Blast_tac 1);
 qed "hasty_elim_const";

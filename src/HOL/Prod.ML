@@ -189,7 +189,7 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "splitI2";
 
-Goal "!!a b c. c a b ==> split c (a,b)";
+Goal "c a b ==> split c (a,b)";
 by (Asm_simp_tac 1);
 qed "splitI";
 
@@ -204,11 +204,11 @@ val splitE2 = prove_goal Prod.thy
 	rtac (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
 
-Goal "!!R a b. split R (a,b) ==> R a b";
+Goal "split R (a,b) ==> R a b";
 by (etac (split RS iffD1) 1);
 qed "splitD";
 
-Goal "!!a b c. z: c a b ==> z: split c (a,b)";
+Goal "z: c a b ==> z: split c (a,b)";
 by (Asm_simp_tac 1);
 qed "mem_splitI";
 
@@ -241,7 +241,7 @@ the following  would be slightly more general,
 but cannot be used as rewrite rule:
 ### Cannot add premise as rewrite rule because it contains (type) unknowns:
 ### ?y = .x
-Goal "!!P. [| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)";
+Goal "[| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)";
 by (rtac select_equality 1);
 by ( Simp_tac 1);
 by (split_all_tac 1);

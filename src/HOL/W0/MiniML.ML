@@ -11,7 +11,7 @@ Addsimps [Un_upper1,Un_upper2];
 
 
 (* has_type is closed w.r.t. substitution *)
-Goal "!!a e t. a |- e :: t ==> $s a |- e :: $s t";
+Goal "a |- e :: t ==> $s a |- e :: $s t";
 by (etac has_type.induct 1);
 (* case VarI *)
 by (asm_full_simp_tac (simpset() addsimps [app_subst_list]) 1);

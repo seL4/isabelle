@@ -28,7 +28,7 @@ AddSIs   [rtrancl_refl];
 
 
 (*Closure under composition with r*)
-Goal "!!r. [| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
+Goal "[| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
 by (Blast_tac 1);
 qed "rtrancl_into_rtrancl";
@@ -40,7 +40,7 @@ by (etac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 qed "r_into_rtrancl";
 
 (*monotonicity of rtrancl*)
-Goalw [rtrancl_def] "!!r s. r <= s ==> r^* <= s^*";
+Goalw [rtrancl_def] "r <= s ==> r^* <= s^*";
 by (REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
 qed "rtrancl_mono";
 
@@ -120,19 +120,19 @@ by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "rtrancl_idemp_self_comp";
 Addsimps [rtrancl_idemp_self_comp];
 
-Goal "!!r s. r <= s^* ==> r^* <= s^*";
+Goal "r <= s^* ==> r^* <= s^*";
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
 qed "rtrancl_subset_rtrancl";
 
-Goal "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
+Goal "[| R <= S; S <= R^* |] ==> S^* = R^*";
 by (dtac rtrancl_mono 1);
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed "rtrancl_subset";
 
-Goal "!!R. (R^* Un S^*)^* = (R Un S)^*";
+Goal "(R^* Un S^*)^* = (R Un S)^*";
 by (blast_tac (claset() addSIs [rtrancl_subset]
                        addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
@@ -143,14 +143,14 @@ by (blast_tac (claset() addSIs [rtrancl_subset]
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
-Goal "!!r. (x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
+Goal "(x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
-Goal "!!r. (x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
+Goal "(x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
 by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
@@ -204,7 +204,7 @@ qed "r_comp_rtrancl_eq";
 
 (**** The relation trancl ****)
 
-Goalw [trancl_def] "!!p.[| p:r^+; r <= s |] ==> p:s^+";
+Goalw [trancl_def] "[| p:r^+; r <= s |] ==> p:s^+";
 by (blast_tac (claset() addIs [rtrancl_mono RS subsetD]) 1);
 qed "trancl_mono";
 

@@ -68,7 +68,7 @@ Goal "(R O S) O T = R O (S O T)";
 by (Blast_tac 1);
 qed "O_assoc";
 
-Goal "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
+Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
 
@@ -91,17 +91,17 @@ qed "transD";
 
 (** Natural deduction for r^-1 **)
 
-Goalw [converse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
+Goalw [converse_def] "((a,b): r^-1) = ((b,a):r)";
 by (Simp_tac 1);
 qed "converse_iff";
 
 AddIffs [converse_iff];
 
-Goalw [converse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
+Goalw [converse_def] "(a,b):r ==> (b,a): r^-1";
 by (Simp_tac 1);
 qed "converseI";
 
-Goalw [converse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
+Goalw [converse_def] "(a,b) : r^-1 ==> (b,a) : r";
 by (Blast_tac 1);
 qed "converseD";
 

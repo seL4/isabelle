@@ -257,7 +257,7 @@ qed "Least_cong";
 
 (*Need AC to get X lepoll Y ==> |X| le |Y|;  see well_ord_lepoll_imp_Card_le
   Converse also requires AC, but see well_ord_cardinal_eqE*)
-Goalw [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
+Goalw [eqpoll_def,cardinal_def] "X eqpoll Y ==> |X| = |Y|";
 by (rtac Least_cong 1);
 by (blast_tac (claset() addIs [comp_bij, bij_converse_bij]) 1);
 qed "cardinal_cong";

@@ -71,7 +71,7 @@ by (blast_tac (claset() addSEs [less_SucE] addIs [less_trans]) 1);
 qed_spec_mp "ack_less_mono2";
 
 (*PROPERTY A 5', monotonicity for<=*)
-Goal "!!i j k. j<=k ==> ack(i,j)<=ack(i,k)";
+Goal "j<=k ==> ack(i,j)<=ack(i,k)";
 by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 by (blast_tac (claset() addIs [ack_less_mono2]) 1);
 qed "ack_le_mono2";
@@ -127,13 +127,13 @@ by (blast_tac (claset() addIs [less_trans, ack_less_mono2]) 1);
 by (blast_tac (claset() addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);
 val lemma = result();
 
-Goal "!!i j k. i<j ==> ack(i,k) < ack(j,k)";
+Goal "i<j ==> ack(i,k) < ack(j,k)";
 by (dtac less_eq_Suc_add 1);
 by (blast_tac (claset() addSIs [lemma]) 1);
 qed "ack_less_mono1";
 
 (*PROPERTY A 7', monotonicity for<=*)
-Goal "!!i j k. i<=j ==> ack(i,k)<=ack(j,k)";
+Goal "i<=j ==> ack(i,k)<=ack(j,k)";
 by (full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 by (blast_tac (claset() addIs [ack_less_mono1]) 1);
 qed "ack_le_mono1";
@@ -160,7 +160,7 @@ qed "ack_add_bound";
 
 (*PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   used k+4.  Quantified version must be nested EX k'. ALL i,j... *)
-Goal "!!i j k. i < ack(k,j) ==> i+j < ack(Suc(Suc(Suc(Suc(k)))), j)";
+Goal "i < ack(k,j) ==> i+j < ack(Suc(Suc(Suc(Suc(k)))), j)";
 by (res_inst_tac [("j", "ack(k,j) + ack(0,j)")] less_trans 1);
 by (rtac (ack_add_bound RS less_le_trans) 2);
 by (Asm_simp_tac 2);
@@ -254,7 +254,7 @@ by (rtac ([le_add1, PREC_case_lemma] MRS le_less_trans) 1);
 by (REPEAT (blast_tac (claset() addIs [ack_add_bound2]) 1));
 qed "PREC_case";
 
-Goal "!!f. f:PRIMREC ==> EX k. ALL l. f l < ack(k, list_add l)";
+Goal "f:PRIMREC ==> EX k. ALL l. f l < ack(k, list_add l)";
 by (etac PRIMREC.induct 1);
 by (ALLGOALS 
     (blast_tac (claset() addIs [SC_case, CONST_case, PROJ_case, COMP_case, 

@@ -18,7 +18,7 @@ end;
 qed "list_unfold";
 
 (*This justifies using list in other recursive type definitions*)
-Goalw list.defs "!!A B. A<=B ==> list(A) <= list(B)";
+Goalw list.defs "A<=B ==> list(A) <= list(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "list_mono";
@@ -113,7 +113,7 @@ Addsimps list.intrs;
 
 AddIffs [Cons_not_Nil, Nil_not_Cons, Cons_Cons_eq];
 
-Goal "!!N. N: list(A) ==> !M. N ~= CONS M N";
+Goal "N: list(A) ==> !M. N ~= CONS M N";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "not_CONS_self";
@@ -191,7 +191,7 @@ by (rtac (List_rec_unfold RS trans) 1);
 by (Simp_tac 1);
 qed "List_rec_NIL";
 
-Goal "!!M. [| M: sexp;  N: sexp |] ==> \
+Goal "[| M: sexp;  N: sexp |] ==> \
 \    List_rec (CONS M N) c h = h M N (List_rec N c h)";
 by (rtac (List_rec_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [pred_sexp_CONS_I2]) 1);
@@ -246,9 +246,9 @@ Goalw [Rep_map_def]
 by (rtac list_rec_Cons 1);
 qed "Rep_map_Cons";
 
-Goalw [Rep_map_def] "!!f. (!!x. f(x): A) ==> Rep_map f xs: list(A)";
+val prems = Goalw [Rep_map_def] "(!!x. f(x): A) ==> Rep_map f xs: list(A)";
 by (rtac list_induct2 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "Rep_map_type";
 
 Goalw [Abs_map_def] "Abs_map g NIL = Nil";
@@ -366,11 +366,12 @@ by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_compose2";
 
-Goal "!!f. (!!x. f(x): sexp) ==> \
+val prems = 
+Goal "(!!x. f(x): sexp) ==> \
 \       Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac(simpset() addsimps
-			   [Rep_map_type, list_sexp RS subsetD])));
+			   (prems@[Rep_map_type, list_sexp RS subsetD]))));
 qed "Abs_Rep_map";
 
 Addsimps [append_Nil4, map_ident2];

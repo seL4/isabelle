@@ -13,7 +13,7 @@ section "Relating predicates and sets";
 Addsimps [Collect_mem_eq];
 AddIffs  [mem_Collect_eq];
 
-Goal "!!a. P(a) ==> a : {x. P(x)}";
+Goal "P(a) ==> a : {x. P(x)}";
 by (Asm_simp_tac 1);
 qed "CollectI";
 
@@ -325,11 +325,11 @@ qed_goalw "Un_iff" Set.thy [Un_def] "(c : A Un B) = (c:A | c:B)"
 
 Addsimps [Un_iff];
 
-Goal "!!c. c:A ==> c : A Un B";
+Goal "c:A ==> c : A Un B";
 by (Asm_simp_tac 1);
 qed "UnI1";
 
-Goal "!!c. c:B ==> c : A Un B";
+Goal "c:B ==> c : A Un B";
 by (Asm_simp_tac 1);
 qed "UnI2";
 
@@ -356,15 +356,15 @@ qed_goalw "Int_iff" Set.thy [Int_def] "(c : A Int B) = (c:A & c:B)"
 
 Addsimps [Int_iff];
 
-Goal "!!c. [| c:A;  c:B |] ==> c : A Int B";
+Goal "[| c:A;  c:B |] ==> c : A Int B";
 by (Asm_simp_tac 1);
 qed "IntI";
 
-Goal "!!c. c : A Int B ==> c:A";
+Goal "c : A Int B ==> c:A";
 by (Asm_full_simp_tac 1);
 qed "IntD1";
 
-Goal "!!c. c : A Int B ==> c:B";
+Goal "c : A Int B ==> c:B";
 by (Asm_full_simp_tac 1);
 qed "IntD2";
 
@@ -436,7 +436,7 @@ section "Singletons, using insert";
 qed_goal "singletonI" Set.thy "a : {a}"
  (fn _=> [ (rtac insertI1 1) ]);
 
-Goal "!!a. b : {a} ==> b=a";
+Goal "b : {a} ==> b=a";
 by (Blast_tac 1);
 qed "singletonD";
 
@@ -445,7 +445,7 @@ bind_thm ("singletonE", make_elim singletonD);
 qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" 
 (fn _ => [Blast_tac 1]);
 
-Goal "!!a b. {a}={b} ==> a=b";
+Goal "{a}={b} ==> a=b";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "singleton_inject";
 
@@ -469,7 +469,7 @@ qed "UN_iff";
 Addsimps [UN_iff];
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
-Goal "!!b. [| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
+Goal "[| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
 by Auto_tac;
 qed "UN_I";
 
@@ -504,7 +504,7 @@ val prems = goalw Set.thy [INTER_def]
 by (REPEAT (ares_tac ([CollectI,ballI] @ prems) 1));
 qed "INT_I";
 
-Goal "!!b. [| b : (INT x:A. B(x));  a:A |] ==> b: B(a)";
+Goal "[| b : (INT x:A. B(x));  a:A |] ==> b: B(a)";
 by Auto_tac;
 qed "INT_D";
 
@@ -536,7 +536,7 @@ qed "Union_iff";
 Addsimps [Union_iff];
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
-Goal "!!X. [| X:C;  A:X |] ==> A : Union(C)";
+Goal "[| X:C;  A:X |] ==> A : Union(C)";
 by Auto_tac;
 qed "UnionI";
 
@@ -565,7 +565,7 @@ qed "InterI";
 
 (*A "destruct" rule -- every X in C contains A as an element, but
   A:X can hold when X:C does not!  This rule is analogous to "spec". *)
-Goal "!!X. [| A : Inter(C);  X:C |] ==> A:X";
+Goal "[| A : Inter(C);  X:C |] ==> A:X";
 by Auto_tac;
 qed "InterD";
 
@@ -626,7 +626,7 @@ qed "image_subsetI";
 
 (*** Range of a function -- just a translation for image! ***)
 
-Goal "!!b. b=f(x) ==> b : range(f)";
+Goal "b=f(x) ==> b : range(f)";
 by (EVERY1 [etac image_eqI, rtac UNIV_I]);
 bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
 

@@ -102,6 +102,6 @@ qed "vimage_eq_UN";
 
 (** monotonicity **)
 
-Goal "!!f. A<=B ==> f-``A <= f-``B";
+Goal "A<=B ==> f-``A <= f-``B";
 by (Blast_tac 1);
 qed "vimage_mono";
