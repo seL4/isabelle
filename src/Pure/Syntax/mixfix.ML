@@ -202,7 +202,7 @@ fun syn_ext_consts logtypes const_decls =
 val pure_nonterms =
   (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
     SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", SynExt.any, SynExt.sprop, "struct", "structs"]);
+    "asms", SynExt.any, SynExt.sprop, "num_const", "index", "struct"]);
 
 val pure_syntax =
  [("_lambda",      "[pttrns, 'a] => logic",         Mixfix ("(3%_./ _)", [0, 3], 3)),
@@ -233,10 +233,10 @@ val pure_syntax =
   ("",             "longid => logic",               Delimfix "_"),
   ("",             "var => logic",                  Delimfix "_"),
   ("_DDDOT",       "logic",                         Delimfix "..."),
-  ("_struct_app",  "structs => logic => logic",     Mixfix ("__", [0, 1000], 999)),
-  ("",             "struct => structs",             Delimfix "_"),
-  ("_structs",     "struct => structs => structs",  Delimfix "__"),
-  ("_struct",      "struct",                        Delimfix "\\<struct>")];
+  ("_constify",    "num => num_const",              Delimfix "_"),
+  ("_index",       "num_const => index",            Delimfix "\\<^sub>_"),
+  ("_noindex",     "index",                         Delimfix ""),
+  ("_struct",      "index => logic",                Delimfix "\\<struct>_")];
 
 val pure_appl_syntax =
  [("_appl", "[('b => 'a), args] => logic", Mixfix ("(1_/(1'(_')))", [SynExt.max_pri, 0], SynExt.max_pri)),

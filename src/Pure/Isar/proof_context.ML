@@ -274,11 +274,59 @@ fun init thy =
 
 
 
-
 (** local syntax **)
 
 val fixedN = "\\<^fixed>";
 val structN = "\\<^struct>";
+
+fun the_struct structs i =
+  if 1 <= i andalso i <= length structs then Library.nth_elem (i - 1, structs)
+  else raise ERROR_MESSAGE ("Illegal reference to implicit structure #" ^ string_of_int i);
+
+
+(* print (ast) translations *)
+
+fun index_tr' 1 = Syntax.const "_noindex"
+  | index_tr' i = Syntax.const "_index" $ Syntax.const (Library.string_of_int i);
+
+fun context_tr' ctxt =
+  let
+    val (_, structs, mixfixed) = syntax_of ctxt;
+
+    fun tr' (t $ u) = tr' t $ tr' u
+      | tr' (Abs (x, T, t)) = Abs (x, T, tr' t)
+      | tr' (t as Free (x, T)) =
+          let val i = Library.find_index (equal x) structs + 1 in
+            if 1 <= i andalso i <= 9 then Syntax.const "_struct" $ index_tr' i
+            else if x mem_string mixfixed then Const (fixedN ^ x, T)
+            else t
+          end
+      | tr' a = a;
+  in tr' end;
+
+fun index_ast_tr' structs s =
+  (case Syntax.read_nat s of
+    Some i => Syntax.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
+  | None => raise Match);
+
+fun struct_ast_tr' structs [Syntax.Constant "_noindex"] =
+      index_ast_tr' structs "1"
+  | struct_ast_tr' structs [Syntax.Appl [Syntax.Constant "_index", Syntax.Constant s]] =
+      index_ast_tr' structs s
+  | struct_ast_tr' _ _ = raise Match;
+
+
+(* parse translations *)
+
+fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
+
+fun index_tr (Const ("_noindex", _)) = 1
+  | index_tr (t as (Const ("_index", _) $ Const (s, _))) =
+      (case Syntax.read_nat s of Some n => n | None => raise TERM ("index_tr", [t]))
+  | index_tr t = raise TERM ("index_tr", [t]);
+
+fun struct_tr structs (idx :: ts) = Syntax.free (the_struct structs (index_tr idx))
+  | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
 (* add_syntax and syn_of *)
@@ -296,19 +344,6 @@ fun prep_mixfix (_, _, None) = None
 fun prep_mixfix' (_, _, None) = None
   | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
   | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.Delimfix x));
-
-fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
-
-fun index_tr (Const ("_structs", _) $ Const ("_struct", _) $ idx) = index_tr idx + 1
-  | index_tr (Const ("_struct", _)) = 0
-  | index_tr t = raise TERM ("index_tr", [t]);
-
-fun struct_app_tr structs [idx, f] =
-      let val i = index_tr idx in
-        if i < length structs then f $ Syntax.free (Library.nth_elem (i, structs))
-        else error ("Illegal reference to structure #" ^ string_of_int (i + 1))
-      end
-  | struct_app_tr _ ts = raise TERM ("struct_app_tr", ts);
 
 fun prep_struct (x, _, None) = Some x
   | prep_struct _ = None;
@@ -329,29 +364,10 @@ fun add_syntax decls =
     in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
 
 fun syn_of (Context {syntax = (syn, structs, _), ...}) =
-  syn |> Syntax.extend_trfuns ([], [("_struct_app", struct_app_tr structs)], [], []);
-
+  syn |> Syntax.extend_trfuns
+    ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
 
 end;
-
-
-(* context_tr' *)
-
-fun context_tr' (Context {syntax = (_, structs, mixfixed), ...}) =
-  let
-    fun structs_tr' 0 t = t
-      | structs_tr' i t = Syntax.const "_structs" $ Syntax.const "_struct" $ structs_tr' (i - 1) t;
-
-    fun tr' (f $ (t as Free (x, T))) =
-          let val i = Library.find_index (equal x) structs in
-            if i < 0 then tr' f $ tr' t
-            else Syntax.const "_struct_app" $ structs_tr' i (Syntax.const "_struct") $ f
-          end
-      | tr' (t as Free (x, T)) = if x mem_string mixfixed then Const (fixedN ^ x, T) else t
-      | tr' (t $ u) = tr' t $ tr' u
-      | tr' (Abs (x, T, t)) = Abs (x, T, tr' t)
-      | tr' a = a;
-  in tr' end;
 
 
 
