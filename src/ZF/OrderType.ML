@@ -231,8 +231,8 @@ goal OrderType.thy
 \         |] ==> R";
 by (forward_tac [lt_eq_pred] 1);
 be ltE 1;
-by (rtac (well_ord_Memrel RS not_well_ord_iso_pred RS notE) 1 THEN
-    assume_tac 1 THEN assume_tac 1);
+by (rtac (well_ord_Memrel RS well_ord_iso_predE) 1 THEN
+    assume_tac 3 THEN assume_tac 1);
 be subst 1;
 by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
 (*Combining the two simplifications causes looping*)
