@@ -224,7 +224,7 @@ fun mk_case ty_info ty_match usednames range_ty =
      case (ty_info ty_name)
      of None => mk_case_fail("Not a known datatype: "^ty_name)
       | Some{case_const,constructors} =>
-        let open Basis_Library (*restore original List*)
+        let open BasisLibrary (*restore original List*)
 	    val case_const_name = #1(dest_Const case_const)
             val nrows = List.concat (map (expand constructors pty) rows)
             val subproblems = divide(constructors, pty, range_ty, nrows)
