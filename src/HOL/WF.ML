@@ -176,11 +176,7 @@ by (case_tac "? i:I. ? a:A. ? b:A. (b,a) : r i" 1);
   by (Blast_tac 1);
  by (blast_tac (claset() addEs [equalityE]) 1);
 by (Asm_full_simp_tac 1);
-by (case_tac "? i. i:I" 1);
- by (Clarify_tac 1);
- by (EVERY1[dtac bspec, atac, eres_inst_tac[("x","A")]allE]);
- by (Blast_tac 1);
-by (Blast_tac 1);
+by (Fast_tac 1);  (*faster than Blast_tac*)
 qed "wf_UN";
 
 Goalw [Union_def]
