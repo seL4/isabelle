@@ -7,7 +7,7 @@
 # DESCRIPTION: Isabelle make utility
 
 
-PRG=$(basename "$0")
+PRG="$(basename "$0")"
 
 function usage()
 {

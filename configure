@@ -8,7 +8,7 @@
 
 ## patch scripts
 
-cd `dirname "$0"`
+cd "`dirname "$0"`"
 
 if bash -c :
 then

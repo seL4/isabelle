@@ -7,7 +7,7 @@
 # DESCRIPTION: install symbol fonts on the current X11 server
 
 
-PRG=$(basename "$0")
+PRG="$(basename "$0")"
 
 function usage()
 {

@@ -7,7 +7,7 @@
 # DESCRIPTION: view Isabelle documentation
 
 
-PRG=$(basename "$0")
+PRG="$(basename "$0")"
 
 function usage()
 {

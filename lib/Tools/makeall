@@ -13,7 +13,7 @@ ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
 
 ## diagnostics
 
-PRG=$(basename "$0")
+PRG="$(basename "$0")"
 
 function usage()
 {
@@ -30,11 +30,7 @@ function usage()
 
 [ "$1" = "-?" ] && usage
 
-
-SECONDS=0
-DATE=$(date)
-HOST=$(hostname)
-echo "Started at $DATE ($HOST)"
+echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
 for L in $ALL_LOGICS
 do
