@@ -89,12 +89,6 @@ by Auto_tac;
 qed "length_0_conv";
 AddIffs [length_0_conv];
 
-Goal "(0 = length xs) = (xs = [])";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "zero_length_conv";
-AddIffs [zero_length_conv];
-
 Goal "(0 < length xs) = (xs ~= [])";
 by (induct_tac "xs" 1);
 by Auto_tac;
@@ -1100,7 +1094,8 @@ by (simp_tac (simpset() addsimps [zip_append1]) 1);
 by (rtac iffI 1);
  by (res_inst_tac [("x","take (length xs) zs")] exI 1);
  by (res_inst_tac [("x","drop (length xs) zs")] exI 1);
- by (asm_full_simp_tac (simpset() addsimps [min_def,eq_sym_conv]) 1);
+ by (force_tac (claset(),
+		simpset() addsplits [nat_diff_split] addsimps [min_def]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
 qed "list_all2_append1";
@@ -1113,7 +1108,8 @@ by (simp_tac (simpset() addsimps [zip_append2]) 1);
 by (rtac iffI 1);
  by (res_inst_tac [("x","take (length ys) xs")] exI 1);
  by (res_inst_tac [("x","drop (length ys) xs")] exI 1);
- by (asm_full_simp_tac (simpset() addsimps [min_def,eq_sym_conv]) 1);
+ by (force_tac (claset(),
+		simpset() addsplits [nat_diff_split] addsimps [min_def]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
 qed "list_all2_append2";
@@ -1409,8 +1405,7 @@ by (Blast_tac 1);
 qed "wf_lexico";
 AddSIs [wf_lexico];
 
-Goalw
- [lexico_def,diag_def,lex_prod_def,measure_def,inv_image_def]
+Goalw [lexico_def,diag_def,lex_prod_def,measure_def,inv_image_def]
 "lexico r = {(xs,ys). length xs < length ys | \
 \                     length xs = length ys & (xs,ys) : lex r}";
 by (Simp_tac 1);
@@ -1431,7 +1426,7 @@ Goal "((x#xs,y#ys) : lex r) = \
 by (simp_tac (simpset() addsimps [lex_conv]) 1);
 by (rtac iffI 1);
  by (blast_tac (claset() addIs [Cons_eq_appendI]) 2);
-by (REPEAT(eresolve_tac [conjE, exE] 1));
+by (Clarify_tac 1);
 by (case_tac "xys" 1);
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
@@ -1492,8 +1487,7 @@ Addsimps [sublist_upt_eq_take];
 (*** Versions of some theorems above using binary numerals ***)
 
 AddIffs (map rename_numerals
-	  [length_0_conv, zero_length_conv, length_greater_0_conv,
-	   sum_eq_0_conv]);
+	  [length_0_conv, length_greater_0_conv, sum_eq_0_conv]);
 
 Goal "take n (x#xs) = (if n = #0 then [] else x # take (n-#1) xs)";
 by (case_tac "n" 1);
