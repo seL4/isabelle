@@ -560,19 +560,19 @@ val print_casesP =
 
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
-    (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
+    (opt_modes -- P.xthms1 -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
-    (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_prop));
+    (opt_modes -- P.term -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_prop));
 
 val print_termP =
   OuterSyntax.improper_command "term" "read and print term" K.diag
-    (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_term));
+    (opt_modes -- P.term -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_term));
 
 val print_typeP =
   OuterSyntax.improper_command "typ" "read and print type" K.diag
-    (opt_modes -- P.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
+    (opt_modes -- P.typ -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.print_type));
 
 
 

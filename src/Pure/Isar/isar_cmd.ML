@@ -55,11 +55,14 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (string * Args.src list) list
+  val print_thms: (string list * (string * Args.src list) list) * Comment.text
     -> Toplevel.transition -> Toplevel.transition
-  val print_prop: string list * string -> Toplevel.transition -> Toplevel.transition
-  val print_term: string list * string -> Toplevel.transition -> Toplevel.transition
-  val print_type: string list * string -> Toplevel.transition -> Toplevel.transition
+  val print_prop: (string list * string) * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
+  val print_term: (string list * string) * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
+  val print_type: (string list * string) * Comment.text
+    -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -245,10 +248,10 @@ fun string_of_type state ms s =
 fun print_item string_of (x, y) = Toplevel.keep (fn state =>
   writeln (string_of (Toplevel.enter_forward_proof state) x y));
 
-val print_thms = print_item string_of_thms;
-val print_prop = print_item string_of_prop;
-val print_term = print_item string_of_term;
-val print_type = print_item string_of_type;
+val print_thms = print_item string_of_thms o Comment.ignore;
+val print_prop = print_item string_of_prop o Comment.ignore;
+val print_term = print_item string_of_term o Comment.ignore;
+val print_type = print_item string_of_type o Comment.ignore;
 
 
 end;
