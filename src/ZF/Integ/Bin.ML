@@ -68,7 +68,7 @@ qed "bin_minus_type";
 AddTCs [bin_minus_type];
 
 (*This proof is complicated by the mutual recursion*)
-Goal "v: bin ==> ALL w: bin. bin_add(v,w) : bin";
+Goalw [bin_add_def] "v: bin ==> ALL w: bin. bin_add(v,w) : bin";
 by (induct_tac "v" 1);
 by (rtac ballI 3);
 by (rename_tac "w'" 3);
@@ -130,23 +130,23 @@ qed "integ_of_minus";
 
 (*** bin_add: binary addition ***)
 
-Goal "w: bin ==> bin_add(Pls,w) = w";
+Goalw [bin_add_def] "w: bin ==> bin_add(Pls,w) = w";
 by (Asm_simp_tac 1);
 qed "bin_add_Pls";
 
-Goal "w: bin ==> bin_add(Min,w) = bin_pred(w)";
+Goalw [bin_add_def] "w: bin ==> bin_add(Min,w) = bin_pred(w)";
 by (Asm_simp_tac 1);
 qed "bin_add_Min";
 
-Goal "bin_add(v BIT x,Pls) = v BIT x";
+Goalw [bin_add_def] "bin_add(v BIT x,Pls) = v BIT x";
 by (Simp_tac 1);
 qed "bin_add_BIT_Pls";
 
-Goal "bin_add(v BIT x,Min) = bin_pred(v BIT x)";
+Goalw [bin_add_def] "bin_add(v BIT x,Min) = bin_pred(v BIT x)";
 by (Simp_tac 1);
 qed "bin_add_BIT_Min";
 
-Goal "[| w: bin;  y: bool |]              \
+Goalw [bin_add_def] "[| w: bin;  y: bool |]              \
 \     ==> bin_add(v BIT x, w BIT y) = \
 \         NCons(bin_add(v, cond(x and y, bin_succ(w), w)), x xor y)";
 by (Asm_simp_tac 1);
@@ -167,7 +167,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac setloop (etac boolE))));
 qed_spec_mp "integ_of_add";
 
 
-(*** bin_add: binary multiplication ***)
+(*** bin_mult: binary multiplication ***)
 
 Goal "[| v: bin;  w: bin |]   \
 \     ==> integ_of(bin_mult(v,w)) = integ_of(v) $* integ_of(w)";
@@ -240,7 +240,7 @@ qed "bin_mult_BIT0";
 
 (*Delete the original rewrites, with their clumsy conditional expressions*)
 Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT, 
-          NCons_Pls, NCons_Min, bin_add_BIT, bin_mult_BIT];
+          NCons_Pls, NCons_Min, bin_adder_BIT, bin_mult_BIT];
 
 (*Hide the binary representation of integer constants*)
 Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];

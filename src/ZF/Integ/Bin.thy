@@ -36,7 +36,7 @@ consts
   bin_pred  :: i=>i
   bin_minus :: i=>i
   bin_add   :: [i,i]=>i
-  adding    :: [i,i,i]=>i
+  bin_adder :: i=>i
   bin_mult  :: [i,i]=>i
 
 primrec
@@ -70,20 +70,30 @@ primrec (*unary negation*)
     "bin_minus (w BIT b) = cond(b, bin_pred(NCons(bin_minus(w),0)),
 				bin_minus(w) BIT 0)"
 
-(*Mutual recursion is not always sound, but it is for primitive recursion.*)
 primrec (*sum*)
-  bin_add_Pls
-    "bin_add (Pls,w)     = w"
-  bin_add_Min
-    "bin_add (Min,w)     = bin_pred(w)"
-  bin_add_BIT
-    "bin_add (v BIT x,w) = adding(v,x,w)"
+  bin_adder_Pls
+    "bin_adder (Pls)     = (lam w:bin. w)"
+  bin_adder_Min
+    "bin_adder (Min)     = (lam w:bin. bin_pred(w))"
+  bin_adder_BIT
+    "bin_adder (v BIT x) = 
+       (lam w:bin. 
+         bin_case (v BIT x, bin_pred(v BIT x), 
+                   %w y. NCons(bin_adder (v) ` cond(x and y, bin_succ(w), w),  
+                               x xor y),
+                   w))"
 
-primrec (*auxilliary function for sum*)
+(*The bin_case above replaces the following mutually recursive function:
+primrec
   "adding (v,x,Pls)     = v BIT x"
   "adding (v,x,Min)     = bin_pred(v BIT x)"
-  "adding (v,x,w BIT y) = NCons(bin_add (v, cond(x and y, bin_succ(w), w)), 
+  "adding (v,x,w BIT y) = NCons(bin_adder (v, cond(x and y, bin_succ(w), w)), 
 				x xor y)"
+*)
+
+defs
+  bin_add_def "bin_add(v,w) == bin_adder(v)`w"
+
 
 primrec
   bin_mult_Pls

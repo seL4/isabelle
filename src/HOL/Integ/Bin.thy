@@ -31,7 +31,6 @@ consts
   bin_pred         :: bin=>bin
   bin_minus        :: bin=>bin
   bin_add,bin_mult :: [bin,bin]=>bin
-  adding           :: [bin,bool,bin]=>bin
 
 (*NCons inserts a bit, suppressing leading 0s and 1s*)
 primrec
@@ -72,14 +71,13 @@ primrec
 primrec
   bin_add_Pls  "bin_add Pls w = w"
   bin_add_Min  "bin_add Min w = bin_pred w"
-  bin_add_BIT  "bin_add (v BIT x) w = adding v x w"
-
-primrec
-  "adding v x Pls = v BIT x"
-  "adding v x Min = bin_pred (v BIT x)"
-  "adding v x (w BIT y) =
- 	     NCons (bin_add v (if (x & y) then bin_succ w else w))
-	           (x~=y)" 
+  bin_add_BIT
+    "bin_add (v BIT x) w = 
+       (case w of Pls => v BIT x
+                | Min => bin_pred (v BIT x)
+                | (w BIT y) =>
+      	            NCons (bin_add v (if (x & y) then bin_succ w else w))
+	                  (x~=y))"
 
 primrec
   bin_mult_Pls  "bin_mult Pls w = Pls"
