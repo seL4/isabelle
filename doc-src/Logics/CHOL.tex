@@ -1,7 +1,7 @@
 %% $Id$
 \chapter{Higher-Order Logic}
 \index{higher-order logic|(}
-\index{HOL system@{\sc chol} system}
+\index{HOL system@{\sc hol} system}
 
 The theory~\thydx{HOL} implements higher-order logic.  It is based on
 Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is based on
@@ -89,7 +89,7 @@ This chapter assumes familiarity with~{\FOL{}}.
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
-\caption{Syntax of {\tt HOL}} \label{chol-constants}
+\caption{Syntax of {\tt HOL}} \label{hol-constants}
 \end{figure}
 
 
@@ -121,7 +121,7 @@ This chapter assumes familiarity with~{\FOL{}}.
          & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
-\caption{Full grammar for \HOL} \label{chol-grammar}
+\caption{Full grammar for \HOL} \label{hol-grammar}
 \end{figure} 
 
 
@@ -140,8 +140,8 @@ overloading of the operators {\tt+}, {\tt-} and {\tt*}.  In particular,
 \index{*"- symbol}
 \index{*"* symbol}
 
-Figure~\ref{chol-constants} lists the constants (including infixes and
-binders), while Fig.\ts\ref{chol-grammar} presents the grammar of
+Figure~\ref{hol-constants} lists the constants (including infixes and
+binders), while Fig.\ts\ref{hol-grammar} presents the grammar of
 higher-order logic.  Note that $a$\verb|~=|$b$ is translated to
 $\neg(a=b)$.
 
@@ -154,7 +154,7 @@ $\neg(a=b)$.
   parentheses.
 \end{warn}
 
-\subsection{Types}\label{HOL-types}
+\subsection{Types}\label{hol-types}
 The type of formulae, \tydx{bool}, belongs to class \cldx{term}; thus,
 formulae are terms.  The built-in type~\tydx{fun}, which constructs function
 types, is overloaded with arity {\tt(term,term)term}.  Thus, $\sigma\To\tau$
@@ -214,7 +214,7 @@ All these binders have priority 10.
 
 \subsection{The \sdx{let} and \sdx{case} constructions}
 Local abbreviations can be introduced by a {\tt let} construct whose
-syntax appears in Fig.\ts\ref{chol-grammar}.  Internally it is translated into
+syntax appears in Fig.\ts\ref{hol-grammar}.  Internally it is translated into
 the constant~\cdx{Let}.  It can be expanded by rewriting with its
 definition, \tdx{Let_def}.
 
@@ -226,7 +226,7 @@ syntax and has no logical meaning.  By declaring translations, you can
 cause instances of the {\tt case} construct to denote applications of
 particular case operators.  The patterns supplied for $c@1$,~\ldots,~$c@n$
 distinguish among the different case operators.  For an example, see the
-case construct for lists on page~\pageref{chol-list} below.
+case construct for lists on page~\pageref{hol-list} below.
 
 \begin{figure}
 \begin{ttbox}\makeatother
@@ -239,7 +239,7 @@ case construct for lists on page~\pageref{chol-list} below.
 \tdx{selectI}        P(x::'a) ==> P(@x.P x)
 \tdx{True_or_False}  (P=True) | (P=False)
 \end{ttbox}
-\caption{The {\tt HOL} rules} \label{chol-rules}
+\caption{The {\tt HOL} rules} \label{hol-rules}
 \end{figure}
 
 
@@ -259,12 +259,12 @@ case construct for lists on page~\pageref{chol-list} below.
 \tdx{if_def}     If P x y == (\%P x y.@z::'a.(P=True --> z=x) & (P=False --> z=y))
 \tdx{Let_def}    Let s f  == f s
 \end{ttbox}
-\caption{The {\tt HOL} definitions} \label{chol-defs}
+\caption{The {\tt HOL} definitions} \label{hol-defs}
 \end{figure}
 
 
 \section{Rules of inference}
-Figure~\ref{chol-rules} shows the inference rules of~\HOL{}, with
+Figure~\ref{hol-rules} shows the inference rules of~\HOL{}, with
 their~{\ML} names.  Some of the rules deserve additional comments:
 \begin{ttdescription}
 \item[\tdx{ext}] expresses extensionality of functions.
@@ -280,7 +280,7 @@ their~{\ML} names.  Some of the rules deserve additional comments:
 
 \HOL{} follows standard practice in higher-order logic: only a few
 connectives are taken as primitive, with the remainder defined obscurely
-(Fig.\ts\ref{chol-defs}).  Gordon's {\sc hol} system expresses the
+(Fig.\ts\ref{hol-defs}).  Gordon's {\sc hol} system expresses the
 corresponding definitions \cite[page~270]{mgordon-hol} using
 object-equality~({\tt=}), which is possible because equality in
 higher-order logic may equate formulae and even functions over formulae.
@@ -349,7 +349,7 @@ with confusing results.
 \subcaption{Logical equivalence}
 
 \end{ttbox}
-\caption{Derived rules for \HOL} \label{chol-lemmas1}
+\caption{Derived rules for \HOL} \label{hol-lemmas1}
 \end{figure}
 
 
@@ -382,19 +382,19 @@ with confusing results.
 \tdx{swap}            ~P ==> (~Q ==> P) ==> Q
 \subcaption{Classical logic}
 
-\tdx{if_True}         if True then x else y = x
-\tdx{if_False}        if False then x else y = y
-\tdx{if_P}            P ==> if P then x else y = x
-\tdx{if_not_P}        ~ P ==> if P then x else y = y
+\tdx{if_True}         (if True then x else y) = x
+\tdx{if_False}        (if False then x else y) = y
+\tdx{if_P}            P ==> (if P then x else y) = x
+\tdx{if_not_P}        ~ P ==> (if P then x else y) = y
 \tdx{expand_if}       P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
 \subcaption{Conditionals}
 \end{ttbox}
-\caption{More derived rules} \label{chol-lemmas2}
+\caption{More derived rules} \label{hol-lemmas2}
 \end{figure}
 
 
-Some derived rules are shown in Figures~\ref{chol-lemmas1}
-and~\ref{chol-lemmas2}, with their {\ML} names.  These include natural rules
+Some derived rules are shown in Figures~\ref{hol-lemmas1}
+and~\ref{hol-lemmas2}, with their {\ML} names.  These include natural rules
 for the logical connectives, as well as sequent-style elimination rules for
 conjunctions, implications, and universal quantifiers.  
 
@@ -469,7 +469,7 @@ simplifying both sides of an equation.
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
-\caption{Syntax of the theory {\tt Set}} \label{chol-set-syntax}
+\caption{Syntax of the theory {\tt Set}} \label{hol-set-syntax}
 \end{figure} 
 
 
@@ -519,7 +519,7 @@ simplifying both sides of an equation.
   \end{array}
 \]
 \subcaption{Full Grammar}
-\caption{Syntax of the theory {\tt Set} (continued)} \label{chol-set-syntax2}
+\caption{Syntax of the theory {\tt Set} (continued)} \label{hol-set-syntax2}
 \end{figure} 
 
 
@@ -549,13 +549,13 @@ denoting the universal set for the given type.
 essentially the same as $\alpha\To bool$.  The new type is defined for
 clarity and to avoid complications involving function types in unification.
 Since Isabelle does not support type definitions (as mentioned in
-\S\ref{HOL-types}), the isomorphisms between the two types are declared
+\S\ref{hol-types}), the isomorphisms between the two types are declared
 explicitly.  Here they are natural: {\tt Collect} maps $\alpha\To bool$ to
 $\alpha\,set$, while \hbox{\tt op :} maps in the other direction (ignoring
 argument order).
 
-Figure~\ref{chol-set-syntax} lists the constants, infixes, and syntax
-translations.  Figure~\ref{chol-set-syntax2} presents the grammar of the new
+Figure~\ref{hol-set-syntax} lists the constants, infixes, and syntax
+translations.  Figure~\ref{hol-set-syntax2} presents the grammar of the new
 constructs.  Infix operators include union and intersection ($A\union B$
 and $A\inter B$), the subset and membership relations, and the image
 operator~{\tt``}\@.  Note that $a$\verb|~:|$b$ is translated to
@@ -632,7 +632,7 @@ respectively.
 \tdx{surj_def}          surj f      == ! y. ? x. y=f x
 \tdx{inj_onto_def}      inj_onto f A == !x:A. !y:A. f x=f y --> x=y
 \end{ttbox}
-\caption{Rules of the theory {\tt Set}} \label{chol-set-rules}
+\caption{Rules of the theory {\tt Set}} \label{hol-set-rules}
 \end{figure}
 
 
@@ -668,7 +668,7 @@ respectively.
                 |]  ==>  P
 \subcaption{The subset and equality relations}
 \end{ttbox}
-\caption{Derived rules for set theory} \label{chol-set1}
+\caption{Derived rules for set theory} \label{hol-set1}
 \end{figure}
 
 
@@ -710,12 +710,12 @@ respectively.
 \tdx{PowI}     A<=B ==> A: Pow B
 \tdx{PowD}     A: Pow B ==> A<=B
 \end{ttbox}
-\caption{Further derived rules for set theory} \label{chol-set2}
+\caption{Further derived rules for set theory} \label{hol-set2}
 \end{figure}
 
 
 \subsection{Axioms and rules of set theory}
-Figure~\ref{chol-set-rules} presents the rules of theory \thydx{Set}.  The
+Figure~\ref{hol-set-rules} presents the rules of theory \thydx{Set}.  The
 axioms \tdx{mem_Collect_eq} and \tdx{Collect_mem_eq} assert
 that the functions {\tt Collect} and \hbox{\tt op :} are isomorphisms.  Of
 course, \hbox{\tt op :} also serves as the membership relation.
@@ -761,7 +761,7 @@ representations; we should not expect $f$ to be injective outside of~$A$.
 \tdx{inj_onto_contraD}
     [| inj_onto f A;  x~=y;  x:A;  y:A |] ==> ~ f x=f y
 \end{ttbox}
-\caption{Derived rules involving functions} \label{chol-fun}
+\caption{Derived rules involving functions} \label{hol-fun}
 \end{figure}
 
 
@@ -781,7 +781,7 @@ representations; we should not expect $f$ to be injective outside of~$A$.
 \tdx{Int_lower2}      A Int B <= B
 \tdx{Int_greatest}    [| C<=A;  C<=B |] ==> C <= A Int B
 \end{ttbox}
-\caption{Derived rules involving subsets} \label{chol-subset}
+\caption{Derived rules involving subsets} \label{hol-subset}
 \end{figure}
 
 
@@ -811,11 +811,11 @@ representations; we should not expect $f$ to be injective outside of~$A$.
 \tdx{Un_Inter}          A Un (Inter B) = (INT C:B. A Un C)
 \tdx{Int_Inter_image}   (INT x:C.(A x) Int (B x)) = Inter(A``C) Int Inter(B``C)
 \end{ttbox}
-\caption{Set equalities} \label{chol-equalities}
+\caption{Set equalities} \label{hol-equalities}
 \end{figure}
 
 
-Figures~\ref{chol-set1} and~\ref{chol-set2} present derived rules.  Most are
+Figures~\ref{hol-set1} and~\ref{hol-set2} present derived rules.  Most are
 obvious and resemble rules of Isabelle's {\ZF} set theory.  Certain rules,
 such as \tdx{subsetCE}, \tdx{bexCI} and \tdx{UnCI},
 are designed for classical reasoning; the rules \tdx{subsetD},
@@ -825,7 +825,7 @@ strictly necessary but yield more natural proofs.  Similarly,
 after the fashion of \tdx{iffCE}.  See the file {\tt HOL/Set.ML} for
 proofs pertaining to set theory.
 
-Figure~\ref{chol-fun} presents derived inference rules involving functions.
+Figure~\ref{hol-fun} presents derived inference rules involving functions.
 They also include rules for \cdx{Inv}, which is defined in theory~{\tt
   HOL}; note that ${\tt Inv}~f$ applies the Axiom of Choice to yield an
 inverse of~$f$.  They also include natural deduction rules for the image
@@ -834,12 +834,12 @@ Reasoning about function composition (the operator~\sdx{o}) and the
 predicate~\cdx{surj} is done simply by expanding the definitions.  See
 the file {\tt HOL/fun.ML} for a complete listing of the derived rules.
 
-Figure~\ref{chol-subset} presents lattice properties of the subset relation.
+Figure~\ref{hol-subset} presents lattice properties of the subset relation.
 Unions form least upper bounds; non-empty intersections form greatest lower
 bounds.  Reasoning directly about subsets often yields clearer proofs than
 reasoning about the membership relation.  See the file {\tt HOL/subset.ML}.
 
-Figure~\ref{chol-equalities} presents many common set equalities.  They
+Figure~\ref{hol-equalities} presents many common set equalities.  They
 include commutative, associative and distributive laws involving unions,
 intersections and complements.  The proofs are mostly trivial, using the
 classical reasoner; see file {\tt HOL/equalities.ML}.
@@ -877,7 +877,7 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
 \tdx{SigmaE}       [| c: Sigma A B;  
                 !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
 \end{ttbox}
-\caption{Type $\alpha\times\beta$}\label{chol-prod}
+\caption{Type $\alpha\times\beta$}\label{hol-prod}
 \end{figure} 
 
 
@@ -905,7 +905,7 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
 
 \tdx{surjective_sum} sum_case (\%x::'a. f(Inl x)) (\%y::'b. f(Inr y)) s = f s
 \end{ttbox}
-\caption{Type $\alpha+\beta$}\label{chol-sum}
+\caption{Type $\alpha+\beta$}\label{hol-sum}
 \end{figure}
 
 
@@ -928,7 +928,7 @@ It instantiates the classical reasoner, as described below.
 \end{itemize}
 \HOL\ derives classical introduction rules for $\disj$ and~$\exists$, as
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
-rule; recall Fig.\ts\ref{chol-lemmas2} above.
+rule; recall Fig.\ts\ref{hol-lemmas2} above.
 
 The classical reasoner is set up as the structure
 {\tt Classical}.  This structure is open, so {\ML} identifiers such
@@ -972,7 +972,7 @@ present section describes product, sum, natural number and list types.
 Theory \thydx{Prod} defines the product type $\alpha\times\beta$, with
 the ordered pair syntax {\tt($a$,$b$)}.  Theory \thydx{Sum} defines the
 sum type $\alpha+\beta$.  These use fairly standard constructions; see
-Figs.\ts\ref{chol-prod} and~\ref{chol-sum}.  Because Isabelle does not
+Figs.\ts\ref{hol-prod} and~\ref{hol-sum}.  Because Isabelle does not
 support abstract type definitions, the isomorphisms between these types and
 their representations are made explicitly.
 
@@ -1021,7 +1021,7 @@ proved using \tdx{select_equality}.
                         m (\%j f. if j<n then 0 else Suc(f j-n))
 \subcaption{Definitions}
 \end{ttbox}
-\caption{Defining {\tt nat}, the type of natural numbers} \label{chol-nat1}
+\caption{Defining {\tt nat}, the type of natural numbers} \label{hol-nat1}
 \end{figure}
 
 
@@ -1060,7 +1060,7 @@ proved using \tdx{select_equality}.
 \tdx{less_linear}    m<n | m=n | n<m
 \subcaption{The less-than relation}
 \end{ttbox}
-\caption{Derived rules for {\tt nat}} \label{chol-nat2}
+\caption{Derived rules for {\tt nat}} \label{hol-nat2}
 \end{figure}
 
 
@@ -1095,8 +1095,8 @@ Many of their properties are proved: commutative, associative and
 distributive laws, identity and cancellation laws, etc.  The most
 interesting result is perhaps the theorem $a \bmod b + (a/b)\times b = a$.
 Division and remainder are defined by repeated subtraction, which requires
-well-founded rather than primitive recursion.  See Figs.\ts\ref{chol-nat1}
-and~\ref{chol-nat2}.
+well-founded rather than primitive recursion.  See Figs.\ts\ref{hol-nat1}
+and~\ref{hol-nat2}.
 
 The predecessor relation, \cdx{pred_nat}, is shown to be well-founded.
 Recursion along this relation resembles primitive recursion, but is
@@ -1154,7 +1154,7 @@ variable~$n$ in subgoal~$i$.
 \tdx{Cons_Cons_eq}   ((x # xs) = (y # ys)) = (x=y & xs=ys)
 \subcaption{Induction and freeness}
 \end{ttbox}
-\caption{The theory \thydx{List}} \label{chol-list}
+\caption{The theory \thydx{List}} \label{hol-list}
 \end{figure}
 
 \begin{figure}
@@ -1181,15 +1181,15 @@ variable~$n$ in subgoal~$i$.
 \tdx{append_Cons}     (x#xs) \at ys = x # xs \at ys
 
 \tdx{mem_Nil}         x mem [] = False
-\tdx{mem_Cons}        x mem (y#ys) = if y=x then True else x mem ys
+\tdx{mem_Cons}        x mem (y#ys) = (if y=x then True else x mem ys)
 
 \tdx{filter_Nil}      filter P [] = []
-\tdx{filter_Cons}     filter P (x#xs) = if P x then x#filter P xs else filter P xs
+\tdx{filter_Cons}     filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
 
 \tdx{list_all_Nil}    list_all P [] = True
 \tdx{list_all_Cons}   list_all P (x#xs) = (P x & list_all P xs)
 \end{ttbox}
-\caption{Rewrite rules for lists} \label{chol-list-simps}
+\caption{Rewrite rules for lists} \label{hol-list-simps}
 \end{figure}
 
 
@@ -1197,7 +1197,7 @@ variable~$n$ in subgoal~$i$.
 \index{*list type}
 
 \HOL's definition of lists is an example of an experimental method for
-handling recursive data types.  Figure~\ref{chol-list} presents the theory
+handling recursive data types.  Figure~\ref{hol-list} presents the theory
 \thydx{List}: the basic list operations with their types and properties.
 
 The \sdx{case} construct is defined by the following translation:
@@ -1215,7 +1215,7 @@ for lists.  It is derived from well-founded recursion, a general principle
 that can express arbitrary total recursive functions.
 
 The simpset \ttindex{list_ss} contains, along with additional useful lemmas,
-the basic rewrite rules that appear in Fig.\ts\ref{chol-list-simps}.
+the basic rewrite rules that appear in Fig.\ts\ref{hol-list-simps}.
 
 The tactic {\tt\ttindex{list_ind_tac} "$xs$" $i$} performs induction over the
 variable~$xs$ in subgoal~$i$.
@@ -1763,7 +1763,7 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
   procedure.  These are mostly taken from Pelletier \cite{pelletier86}.
 
 \item File {\tt set.ML} proves Cantor's Theorem, which is presented in
-  \S\ref{sec:chol-cantor} below, and the Schr\"oder-Bernstein Theorem.
+  \S\ref{sec:hol-cantor} below, and the Schr\"oder-Bernstein Theorem.
 
 \item Theories {\tt InSort} and {\tt Qsort} prove correctness properties of
   insertion sort and quick sort.
@@ -1798,7 +1798,7 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
 
 
 \goodbreak
-\section{Example: Cantor's Theorem}\label{sec:chol-cantor}
+\section{Example: Cantor's Theorem}\label{sec:hol-cantor}
 Cantor's Theorem states that every set has more subsets than it has
 elements.  It has become a favourite example in higher-order logic since
 it is so easily expressed:

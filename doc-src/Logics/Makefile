@@ -6,7 +6,7 @@
 #########################################################################
 
 
-FILES =  logics.tex intro.tex FOL.tex ZF.tex HOL.tex LK.tex CTT.tex\
+FILES =  logics.tex intro.tex FOL.tex ZF.tex CHOL.tex LK.tex CTT.tex\
 	 ../iman.sty ../extra.sty
 
 logics.dvi.gz:   $(FILES) 
