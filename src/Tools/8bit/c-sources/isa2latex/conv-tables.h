@@ -129,7 +129,7 @@ char *translationTableHi[END_HI_TABLE - START_HI_TABLE + 1][2] = {
    {"\\Theta"     ,"\\mbox{$\\Theta$}"},
    {"LAM "        ,"\\mbox{$\\Lambda$}"},
    {"\\Pi"        ,"\\mbox{$\\Pi$}"},
-   {"\\Sigma"     ,"\\mbox{$\\Sigma$}"},
+   {"SIGMA"       ,"\\mbox{$\\Sigma$}"},
    {"\\Phi"       ,"\\mbox{$\\Phi$}"},
    {"\\Psi"       ,"\\mbox{$\\Psi$}"},
    {"\\Omega"     ,"\\mbox{$\\Omega$}"},

@@ -27,7 +27,7 @@
 #   Must be delimited by "
 #
 
-CONV_SOURCE_DIR "../c-sources/isa2latex"
+CONV_SOURCE_DIR "/usr/wiss/oheimb/isabelle/src/Tools/8bit/c-sources/isa2latex"
 
 # End of  general setup
 ############################################################ 
@@ -241,7 +241,7 @@ BEGIN_HI_TABLE
 >  "\\Theta"		"\Theta"	"\mbox{$\Theta$}"
 >  "LAM\ "		"LAM "		"\mbox{$\Lambda$}" 
 >  "\\Pi"		"\Pi"		"\mbox{$\Pi$}" 
->  "\\Sigma"		"\Sigma"	"\mbox{$\Sigma$}" 
+>  "\\Sigma"		"SIGMA"		"\mbox{$\Sigma$}" 
 >  "\\Phi"		"\Phi"		"\mbox{$\Phi$}" 
 >  "\\Psi"		"\Psi"		"\mbox{$\Psi$}" 
 >  "\\Omega"		"\Omega"	"\mbox{$\Omega$}" 
