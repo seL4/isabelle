@@ -86,12 +86,9 @@ struct
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
 
       val thmss = NameSpace.cond_extern_table space thms_tab;
-    in
-      [Display.pretty_name_space ("theorem name space", space),
-        Pretty.big_list "theorems:" (map prt_thms thmss)]
-    end;
+    in Pretty.big_list "theorems:" (map prt_thms thmss) end;
 
-  fun print sg data = Pretty.writeln (Pretty.chunks (pretty sg data));
+  fun print sg data = Pretty.writeln (pretty sg data);
 end;
 
 structure TheoremsData = TheoryDataFun(TheoremsDataArgs);
@@ -106,7 +103,8 @@ val cond_extern_thm_sg = NameSpace.cond_extern o #space o ! o get_theorems_sg;
 val print_theorems = TheoremsData.print;
 
 fun print_theory thy =
-  Display.pretty_full_theory thy @ TheoremsDataArgs.pretty (Theory.sign_of thy) (get_theorems thy)
+  Display.pretty_full_theory thy @
+  [TheoremsDataArgs.pretty (Theory.sign_of thy) (get_theorems thy)]
   |> Pretty.chunks |> Pretty.writeln;
 
 
