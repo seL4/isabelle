@@ -176,7 +176,9 @@ fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
   writeln"Safe elimination rules";  prths safeEs;
   ());
 
-(** Adding new (un)safe introduction or elimination rules **)
+(** Adding new (un)safe introduction or elimination rules 
+    In case of overlap, new rules are tried BEFORE old ones
+**)
 
 fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addSIs ths =
   make_cs {safeIs=ths@safeIs, 
