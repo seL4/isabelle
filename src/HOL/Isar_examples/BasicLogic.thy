@@ -27,7 +27,7 @@ proof;
 qed;
 
 lemma K': "A --> B --> A";
-proof intro+;
+proof intro;
   assume A;
   show A; .;
 qed;
