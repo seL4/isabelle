@@ -41,6 +41,7 @@ time_use_thy "Points";
 time_use_thy "PiSets";
 time_use_thy "LocaleGroup";
 
-(*expressions with quote / antiquote syntax*)
+(*advanced concrete syntax*)
+time_use_thy "Tuple";
 time_use_thy "Antiquote";
 time_use_thy "Multiquote";
