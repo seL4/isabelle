@@ -59,7 +59,7 @@ done
 
 text{*
 Things begin to get interesting with the definition of an update function
-that adds a new (string,value) pair to a trie, overwriting the old value
+that adds a new (string, value) pair to a trie, overwriting the old value
 associated with that string:
 *};
 

@@ -106,7 +106,7 @@ with the easy one:
 *};
 
 theorem AF_lemma1:
-  "lfp(af A) \<subseteq> {s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A}";
+  "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}";
 
 txt{*\noindent
 In contrast to the analogous proof for @{term EF}, and just
@@ -304,7 +304,7 @@ text{*
 At last we can prove the opposite direction of @{thm[source]AF_lemma1}:
 *};
 
-theorem AF_lemma2: "{s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
+theorem AF_lemma2: "{s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A} \<subseteq> lfp(af A)";
 
 txt{*\noindent
 The proof is again pointwise and then by contraposition:

@@ -59,7 +59,7 @@ induction, perhaps over some other inductive set.
 \begin{isabelle}
 \isacommand{lemma}\ two_times_even[intro!]:\ "\#2*k\ \isasymin \ even"
 \isanewline
-\isacommand{apply}\ (induct\ "k")\isanewline
+\isacommand{apply}\ (induct_tac\ k)\isanewline
 \ \isacommand{apply}\ auto\isanewline
 \isacommand{done}
 \end{isabelle}

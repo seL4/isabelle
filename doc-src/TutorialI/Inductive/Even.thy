@@ -21,7 +21,7 @@ specified as \isa{intro!}
 
 Our first lemma states that numbers of the form $2\times k$ are even. *}
 lemma two_times_even[intro!]: "2*k \<in> even"
-apply (induct "k")
+apply (induct_tac k)
 txt{*
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
