@@ -77,23 +77,28 @@ sub process_tac {
   s/Safe_tac/safe/g;
   s/Clarify_tac 1/clarify/g;
 
-  s/blast_tac \(claset\(\) (.*?)\) 1/blast $1/g;
-  s/^blast_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "blast $1"}/e;
-  s/fast_tac \(claset\(\) (.*?)\) 1/fast $1/g;
-  s/^fast_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "fast $1"}/e;
-  s/slow_tac \(claset\(\) (.*?)\) 1/slow $1/g;
-  s/^slow_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "slow $1"}/e;
-  s/best_tac \(claset\(\) (.*?)\) 1/best $1/g;
-  s/^best_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "best $1"}/e;
-  s/safe_tac \(claset\(\) (.*?)\)/safe $1/g;
-  s/clarify_tac \(claset\(\) (.*?)\) 1/clarify $1/g;
+  s/ALLGOALS \(blast_tac \(claset \(\) (.*?)\) \)$/(blast $1)+/g;
+  s/blast_tac \(claset \(\) (.*?)\) 1/blast $1/g;
+  s/^blast_tac \(claset \(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "blast $1"}/e;
+  s/ALLGOALS \(fast_tac \(claset \(\) (.*?)\) \)$/(fast $1)+/g;
+  s/fast_tac \(claset \(\) (.*?)\) 1/fast $1/g;
+  s/^fast_tac \(claset \(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "fast $1"}/e;
+  s/slow_tac \(claset \(\) (.*?)\) 1/slow $1/g;
+  s/^slow_tac \(claset \(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "slow $1"}/e;
+  s/ALLGOALS \(best_tac \(claset \(\) (.*?)\) \)$/(best $1)+/g;
+  s/best_tac \(claset \(\) (.*?)\) 1/best $1/g;
+  s/^best_tac \(claset \(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "best $1"}/e;
+  s/safe_tac \(claset \(\) (.*?)\)/safe $1/g;
+  s/clarify_tac \(claset \(\) (.*?)\) 1/clarify $1/g;
 
   s/Auto_tac/auto/g;
+  s/ALLGOALS Force_tac/force+/g;
   s/Force_tac 1/force/g;
   s/^Force_tac (\d+)/{$prefer="prefer $1 "; "force"}/e;
   s/Clarsimp_tac 1/clarsimp/g;
 
   s/auto_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\)/auto $1 $2/g;
+  s/ALLGOALS \(force_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\) \)$/(force $1 $2)+/g;
   s/force_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\) 1/force $1 $2/g;
   s/^force_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\) (\d+)/{$prefer="prefer $3 "; "force $1 $2"}/e;
   s/clarsimp_tac \(claset \(*\) (.*?), *simpset \(\) (.*?)\) 1/clarsimp $1 $2/g;
@@ -268,7 +273,9 @@ while (<>) { # main loop
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/process_tac($1,$2).$3/se;
   s/^b\s+y(\s*)(.*?)(\s*)$/process_tac($1,"(".$2.")").$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
-                             # remove outermost parentheses if around atoms
+                            # remove outermost parentheses if around atoms
+  s/^(apply +)\(\((.*?)\)([+*]?)\)\s*$/$1($2)$3/;
+                            # remove outermost parentheses if around parentheses
   s/^Addsimps\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"simp")/seg;
   s/^Delsimps\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"simp del")/seg;
   s/^Addsplits\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"split")/seg;
