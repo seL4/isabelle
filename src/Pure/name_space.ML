@@ -4,9 +4,12 @@
 
 Hierarchically structured name spaces.
 
-More general than ML-like nested structures, but slightly more ad-hoc.
-Does not support absolute addressing.  Unknown short (FIXME?) names
-are implicitely considered to be declared outermost.
+More general than ML-like nested structures, but also slightly more
+ad-hoc.  Does not support absolute addressing.  Unknown names are
+implicitely considered to be declared outermost.
+
+TODO:
+  - absolute paths?
 *)
 
 signature NAME_SPACE =
@@ -14,11 +17,12 @@ sig
   val separator: string		(*single char!*)
   val unpack: string -> string list
   val pack: string list -> string
+  val base: string -> string
   val qualified: string -> bool
   type T
   val dest: T -> string list
   val empty: T
-  val extend: string list -> string list * T -> T
+  val extend: string list * T -> T
   val merge: T * T -> T
   val lookup: T -> string -> string
   val prune: T -> string -> string
@@ -44,6 +48,8 @@ fun unpack_aux name =
 
 val unpack = unpack_aux o explode;
 val pack = space_implode separator;
+
+val base = last_elem o unpack;
 
 fun qualified name =
   let val chs = explode name in
@@ -89,8 +95,8 @@ fun dest space = rev (map pack (entries_of space));
 
 val empty = make [];
 
-fun extend path (entries, space) =
-  make (map (fn e => path @ unpack e) (rev entries) @ entries_of space);
+fun extend (entries, space) =
+  make (map unpack (rev entries) @ entries_of space);
 
 fun merge (space1, space2) =
   make (merge_lists (entries_of space1) (entries_of space2));
@@ -98,17 +104,18 @@ fun merge (space1, space2) =
 
 (* lookup / prune names *)
 
-(* FIXME improve handling of undeclared qualified names (?) *)
 fun lookup space name =
   if_none (Symtab.lookup (tab_of space, name)) name;
 
 fun prune space name =
-  let
-    fun try [] = name
-      | try (nm :: nms) =
-          if lookup space nm = name then nm
-          else try nms;
-  in try (map pack (suffixes1 (unpack name))) end;
+  if not (qualified name) then name
+  else
+    let
+      fun try [] = name
+        | try (nm :: nms) =
+            if lookup space nm = name then nm
+            else try nms;
+    in try (map pack (suffixes1 (unpack name))) end;
 
 
 end;
