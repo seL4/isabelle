@@ -191,6 +191,10 @@ store_thms : string * thm list -> thm list
 
 \end{ttdescription}
 
+The name argument of \texttt{qed}, \texttt{bind_thm} etc.\ may be empty
+(\texttt{""}) as well; in that case the result is \emph{not} stored, but
+proper checks and presentation of the result still apply.
+
 
 \subsection{Extracting axioms and stored theorems}
 \index{theories!axioms of}\index{axioms!extracting}
