@@ -549,6 +549,34 @@ cterm_of (sign_of thy) \(t\)
 \end{ttdescription}
 
 
+\section{Internal proofs}
+
+\begin{ttbox}
+Tactic.prove: Sign.sg -> string list -> term list -> term ->
+  (thm list -> tactic) -> thm
+Tactic.prove_standard: Sign.sg -> string list -> term list -> term ->
+  (thm list -> tactic) -> thm
+\end{ttbox}
+
+These functions provide a clean internal interface for programmed proofs.  The
+special overhead of top-level statements (cf.\ \verb,prove_goalw_cterm,) is
+omitted.  Statements may be established within a local contexts of fixed
+variables and assumptions, which are the only hypotheses to be discharged in
+the result.
+
+\begin{ttdescription}
+\item[\ttindexbold{Tactic.prove}~$sg~xs~As~C~tacf$] establishes the result
+  $\Forall xs. As \Imp C$ via the given tactic (which is a function taking the
+  assumptions as local premises).
+  
+\item[\ttindexbold{Tactic.prove_standard}] is simular to \verb,Tactic.prove,,
+  but performs the \verb,standard, operation on the result, essentially
+  turning it into a top-level statement.  Never do this for local proofs
+  within other proof tools!
+
+\end{ttdescription}
+
+
 \section{Managing multiple proofs}
 \index{proofs!managing multiple}
 You may save the current state of the subgoal module and resume work on it
