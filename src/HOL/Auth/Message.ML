@@ -654,6 +654,16 @@ by (Full_simp_tac 1);
 by (Deepen_tac 0 1);
 qed "Fake_parts_insert";
 
+goal thy
+     "!!H. [| Crypt Y K : parts (insert X H);  X: synth (analz G);  \
+\             Key K ~: analz G |]                                   \
+\          ==> Crypt Y K : parts G Un parts H";
+by (dtac (impOfSubs Fake_parts_insert) 1);
+ba 1;
+by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]
+                      addss (!simpset)) 1);
+qed "Crypt_Fake_parts_insert";
+
 goal thy "!!H. [| X: synth (analz G); G <= H |] ==> \
 \              analz (insert X H) <= synth (analz H) Un analz H";
 by (rtac subsetI 1);
