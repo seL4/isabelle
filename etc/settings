@@ -39,11 +39,10 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 
 
 ###
-### Compilation options
+### Misc options
 ###
 
-# HTML generation (should be 'true' or 'false').
-ISABELLE_HTML=false
+ISABELLE_USEDIR_OPTIONS=""
 
 
 ###
