@@ -72,8 +72,6 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 
 *** HOL ***
 
-* recdef (TFL) now requires theory Recdef;
-
 * There are now decision procedures for linear arithmetic over nat and
 int:
 
@@ -106,6 +104,8 @@ changed syntax and (many) tactics;
 
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
+
+* HOL/recdef (TFL) now requires theory Recdef;
 
 
 *** ZF ***
