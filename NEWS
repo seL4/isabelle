@@ -7,27 +7,27 @@ New in Isabelle???? (DATE ????)
 
 *** General Changes ***
 
+* hierachically structured name spaces (for consts, types, thms,
+...), use 'begin' or 'path' section in theory files; new lexical class
+'longid' (e.g. Foo.bar.x) renders many old input syntactically
+incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
+("%x. x");
+
+* defs may now be conditional; improved rewrite_goals_tac to handle
+conditional equations;
+
 * print_goals: optional output of const types (set show_consts);
 
 * improved output of warnings (###) / errors (***);
 
 * removed old README and Makefiles;
 
-* defs may now be conditional; improved rewrite_goals_tac to handle
-conditional equations;
-
-* replaced print_goals_ref hook by print_current_goals_fn and
-result_error_fn;
+* replaced print_goals_ref hook by print_current_goals_fn and result_error_fn;
 
 * removed obsolete init_pps and init_database;
 
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
-
-* no longer handles consts "" -- use syntax instead;
-
-* pretty printer: changed order of mixfix annotation preference
-(again!);
 
 
 *** Classical Reasoner ***
@@ -52,11 +52,9 @@ logics (again);
 
 *** Syntax ***
 
-* Pure: hierachically structured name spaces (for consts, types, thms,
-...), use 'begin' or 'path' section in theory files; new lexical class
-'longid' (e.g. Foo.bar.x) renders many old input syntactically
-incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
-("%x. x");
+* no longer handles consts with name "" -- use syntax instead;
+
+* pretty printer: changed order of mixfix annotation preference (again!);
 
 * Pure: fixed idt/idts vs. pttrn/pttrns syntactic categories;
 
@@ -70,6 +68,10 @@ incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
 
 * HOL/Lists: the function "set_of_list" has been renamed "set" (and
 its theorems too);
+
+* HOL/Auth: new protocol proofs including some for the Internet protocol TLS
+
+* HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of Actions
 
 
 *** HOLCF ***
