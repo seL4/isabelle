@@ -603,13 +603,6 @@ syntax (xsymbols)
   "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
   "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
-(*Tell blast about overloading of < and <= to reduce the risk of
-  its applying a rule for the wrong type*)
-ML {*
-Blast.overloaded ("op <" , domain_type);
-Blast.overloaded ("op <=", domain_type);
-*}
-
 
 subsubsection {* Monotonicity *}
 

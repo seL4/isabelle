@@ -5,9 +5,6 @@
     Description : The reals
 *)
 
-(*Ensures that Blast_tac can cope with real*)
-Blast.overloaded ("RealDef.real", domain_type); 
-
 (*** Proving that realrel is an equivalence relation ***)
 
 Goal "[| (x1::preal) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] \

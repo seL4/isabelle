@@ -28,7 +28,14 @@ setup clasetup
 
 use "blastdata.ML"
 setup Blast.setup
-use "FOL_lemmas2.ML"
+
+
+lemma ex1_functional: "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
+by blast
+
+ML {*
+val ex1_functional = thm "ex1_functional";
+*}
 
 use "simpdata.ML"
 setup simpsetup

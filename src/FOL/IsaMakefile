@@ -32,7 +32,7 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	$(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML $(SRC)/Provers/induct_method.ML \
   $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML $(SRC)/Provers/quantifier1.ML\
-  FOL.ML FOL.thy FOL_lemmas1.ML FOL_lemmas2.ML IFOL.ML IFOL.thy \
+  FOL.ML FOL.thy FOL_lemmas1.ML IFOL.ML IFOL.thy \
   IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML document/root.tex \
   fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOL

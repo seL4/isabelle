@@ -45,9 +45,6 @@ qed "invariant_includes_reachable";
 
 (*** Co ***)
 
-(*Needed because its operands are sets*)
-overload_1st_set "Constrains.Constrains";
-
 (*F : B co B' ==> F : (reachable F Int B) co (reachable F Int B')*)
 bind_thm ("constrains_reachable_Int",
 	  subset_refl RS

@@ -33,6 +33,10 @@ be given (the default is 40);
 "foo" are split into "foo.hyps" (from the rule) and "foo.prems" (from
 the goal statement); "foo" still refers to all facts collectively;
 
+* Provers: the function blast.overloaded has been removed: all constants
+are regarded as potentially overloaded, which improves robustness in exchange
+for slight decrease in efficiency;
+
 * Isar: preview of problems to finish 'show' now produce an error
 rather than just a warning (in interactive mode);
 

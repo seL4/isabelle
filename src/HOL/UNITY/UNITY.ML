@@ -131,12 +131,6 @@ fun simp_of_set def = def RS def_set_simp;
 
 (*** co ***)
 
-(*These operators are not overloaded, but their operands are sets, and 
-  ultimately there's a risk of reaching equality, which IS overloaded*)
-overload_1st_set "UNITY.constrains";
-overload_1st_set "UNITY.stable";
-overload_1st_set "UNITY.unless";
-
 val prems = Goalw [constrains_def]
     "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A') \
 \    ==> F : A co A'";

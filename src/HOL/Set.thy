@@ -343,22 +343,6 @@ text {*
   "'a set"}.
 *}
 
-ML {*
-  fun overload_1st_set s = Blast.overloaded (s, HOLogic.dest_setT o domain_type);
-*}
-
-ML "
-  (* While (:) is not, its type must be kept
-    for overloading of = to work. *)
-  Blast.overloaded (\"op :\", domain_type);
-
-  overload_1st_set \"Ball\";            (*need UNION, INTER also?*)
-  overload_1st_set \"Bex\";
-
-  (*Image: retain the type of the set being expressed*)
-  Blast.overloaded (\"image\", domain_type);
-"
-
 lemma subsetD [elim]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   -- {* Rule in Modus Ponens style. *}
   by (unfold subset_def) blast

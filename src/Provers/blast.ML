@@ -27,12 +27,6 @@ Known problems:
 	such as transitivity are treated specially to prevent this.  Sometimes
 	the formulae get into the wrong order (see WRONG below).
 
-  With overloading:
-        Calls to Blast.overloaded (see HOL/Set.ML for examples) are needed
-	to tell Blast_tac when to retain some type information.  Make sure
-	you know the constant's internal name, which might be "op <=" or 
-	"Relation.op ^^".
-
   With substition for equalities (hyp_subst_tac):
         When substitution affects a haz formula or literal, it is moved
         back to the list of safe formulae.
@@ -88,8 +82,6 @@ signature BLAST =
   val depth_tac 	: claset -> int -> int -> tactic
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
-  val overloaded 	: string * (Term.typ -> Term.typ) -> unit
-  val get_overloads	: unit -> (string * (Term.typ -> Term.typ)) list
   val setup		: (theory -> theory) list
   (*debugging tools*)
   val stats	        : bool ref
@@ -186,26 +178,21 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a,
 			   end
 		 | Some v => v)
 
-local
-val overloads = ref ([]: (string * (Term.typ -> Term.typ)) list)
-in
+(*Monomorphic constants used in blast, plus binary propositional connectives.*)
+val standard_consts = 
+    ["Not", "op &", "op |", "op -->", "op <->", 
+     "*Goal*", "*False*", "==>", "all", "Trueprop"];
 
-fun overloaded arg = (overloads := arg :: (!overloads));
+val standard_const_table = Symtab.make (map (rpair()) standard_consts)
 
-fun get_overloads() = !overloads;
-
-(*Convert a possibly overloaded Term.Const to a Blast.Const or Blast.TConst,
-  converting its type to a Blast.term in the latter case.*)
-fun fromConst alist (a,T) =
-  case assoc_string (!overloads, a) of
-      None   => Const a		(*not overloaded*)
-    | Some f => 
-	let val T' = f T
-		     handle Match => error
-                ("Blast_tac: unexpected type for overloaded constant " ^ a)
-        in  TConst(a, fromType alist T')  end;
-
-end;
+(*Convert a Term.Const to a Blast.Const or Blast.TConst,
+  converting its type to a Blast.term in the latter case.
+  Const is used for a small number of built-in operators that are
+  known to be monomorphic, which promotes efficiency. *)
+fun fromConst alist (a,T) = 
+    case Symtab.lookup(standard_const_table, a) of
+	None => TConst(a, fromType alist T)
+      | Some() => Const(a)
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)

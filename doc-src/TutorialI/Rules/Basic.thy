@@ -40,7 +40,7 @@ text {*
 by eliminates uses of assumption and done
 *}
 
-lemma imp_uncurry: "P \<longrightarrow> Q \<longrightarrow> R \<Longrightarrow> P \<and> Q \<longrightarrow> R"
+lemma imp_uncurry': "P \<longrightarrow> Q \<longrightarrow> R \<Longrightarrow> P \<and> Q \<longrightarrow> R"
 apply (rule impI)
 apply (erule conjE)
 apply (drule mp)
@@ -353,7 +353,7 @@ lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST
 apply (simp add: Least_def LeastM_def)
 by (blast intro: some_equality order_antisym);
 
-theorem axiom_of_choice: "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
+theorem axiom_of_choice': "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
 by (blast intro: someI);
 

@@ -69,8 +69,9 @@ Goal "bij h ==> bij (extend_act (%(x,u::'c). h x))";
 by (rtac bijI 1);
 by (rtac (export inj_extend_act) 1);
 by (auto_tac (claset(), simpset() addsimps [bij_extend_act_eq_project_act]));  
-by (blast_tac (claset() addIs [bij_imp_bij_inv, surjI, 
-                               export extend_act_inverse]) 1); 
+by (rtac surjI 1); 
+by (rtac (export extend_act_inverse) 1); 
+by (blast_tac (claset() addIs [bij_imp_bij_inv, good_map_bij]) 1); 
 qed "bij_extend_act";
 
 Goal "bij h ==> bij (project_act (%(x,u::'c). h x))";

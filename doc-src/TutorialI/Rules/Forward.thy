@@ -71,20 +71,21 @@ text {*
 \rulename{sym}
 *};
 
-lemmas gcd_mult = gcd_mult_1 [THEN sym];
+lemmas gcd_mult0 = gcd_mult_1 [THEN sym];
+      (*not quite right: we need ?k but this gives k*)
 
-lemmas gcd_mult = gcd_mult_distrib2 [of k 1, simplified, THEN sym];
+lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym];
       (*better in one step!*)
 
 text {*
-more legible
+more legible, and variables properly generalized
 *};
 
 lemma gcd_mult [simp]: "gcd(k, k*n) = k"
 by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
 
 
-lemmas gcd_self = gcd_mult [of k 1, simplified];
+lemmas gcd_self0 = gcd_mult [of k 1, simplified];
 
 
 text {*
@@ -99,7 +100,7 @@ Rules handy with THEN
 
 
 text {*
-again: more legible
+again: more legible, and variables properly generalized
 *};
 
 lemma gcd_self [simp]: "gcd(k,k) = k"

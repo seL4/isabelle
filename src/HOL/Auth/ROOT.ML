@@ -7,6 +7,7 @@ Root file for protocol proofs.
 *)
 
 goals_limit := 1;
+set timing;
 
 (*Shared-key protocols*)
 time_use_thy "NS_Shared";

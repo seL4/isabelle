@@ -28,7 +28,6 @@ structure Blast_Data =
   end;
 
 structure Blast = BlastFun(Blast_Data);
-Blast.overloaded ("op =", domain_type);	(*overloading of equality as iff*)
 
 val Blast_tac = Blast.Blast_tac
 and blast_tac = Blast.blast_tac;

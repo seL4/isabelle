@@ -300,8 +300,6 @@ lemma Range_Union: "Range (Union S) = (UN A:S. Range A)"
 
 subsection {* Image of a set under a relation *}
 
-ML {* overload_1st_set "Relation.Image" *}
-
 lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
   by (simp add: Image_def)
 

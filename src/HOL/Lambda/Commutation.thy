@@ -225,7 +225,8 @@ proof induct
       with xy obtain u where u: "(y, u) \<in> R\<^sup>*" "(y', u) \<in> R\<^sup>*"
 	by (blast dest:lc)
       from yb u y'c show ?thesis
-	by(blast intro:rtrancl_trans
+	by(blast del: rtrancl_refl
+		 intro:rtrancl_trans
                  dest:IH[OF xy[symmetric]] IH[OF xy'[symmetric]])
     qed
   qed

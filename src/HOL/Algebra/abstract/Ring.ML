@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 9 December 1996
 *)
 
-Blast.overloaded ("Divides.op dvd", domain_type);
-
 val a_assoc = thm "plus_ac0.assoc";
 val l_zero = thm "plus_ac0.zero";
 val a_comm = thm "plus_ac0.commute";

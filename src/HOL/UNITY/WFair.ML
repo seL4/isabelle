@@ -9,10 +9,6 @@ From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
 
-overload_1st_set "WFair.transient";
-overload_1st_set "WFair.ensures";
-overload_1st_set "WFair.op leadsTo";
-
 (*** transient ***)
 
 Goalw [stable_def, constrains_def, transient_def]

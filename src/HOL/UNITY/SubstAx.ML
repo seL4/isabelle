@@ -6,9 +6,6 @@
 LeadsTo relation, restricted to the set of reachable states.
 *)
 
-overload_1st_set "SubstAx.op LeadsTo";
-
-
 (*Resembles the previous definition of LeadsTo*)
 Goalw [LeadsTo_def]
      "A LeadsTo B = {F. F : (reachable F Int A) leadsTo (reachable F Int B)}";

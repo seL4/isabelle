@@ -750,7 +750,9 @@ by (auto_tac (claset() addSIs [rev_image_eqI], simpset()));
 qed "ok_extend_imp_ok_project";
 
 Goal "(extend h F ok extend h G) = (F ok G)";
-by (auto_tac (claset(), simpset() addsimps [ok_def]));  
+by (asm_full_simp_tac (simpset() addsimps [ok_def]) 1);
+by Safe_tac;
+by (REPEAT (Force_tac 1));
 qed "ok_extend_iff";
 
 Goalw [OK_def] "OK I (%i. extend h (F i)) = (OK I F)";
