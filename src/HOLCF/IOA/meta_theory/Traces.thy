@@ -19,8 +19,9 @@ types
 consts
 
    (* Executions *)
-  is_ex_fr      ::"('a,'s)ioa => ('a,'s)pairs -> ('s => tr)"
-  is_execution_fragment,
+
+  is_exec_fragC      ::"('a,'s)ioa => ('a,'s)pairs -> 's => tr"
+  is_exec_frag,
   has_execution ::"[('a,'s)ioa, ('a,'s)execution] => bool"
   executions    :: "('a,'s)ioa => ('a,'s)execution set"
 
@@ -50,20 +51,23 @@ defs
 (*  ------------------- Executions ------------------------------ *)
 
 
-is_execution_fragment_def
-  "is_execution_fragment A ex == ((is_ex_fr A`(snd ex)) (fst ex) ~= FF)"
+is_exec_frag_def
+  "is_exec_frag A ex ==  ((is_exec_fragC A`(snd ex)) (fst ex) ~= FF)"
 
-is_ex_fr_def
-  "is_ex_fr A ==(fix`(LAM h ex. (%s. case ex of 
+
+is_exec_fragC_def
+  "is_exec_fragC A ==(fix`(LAM h ex. (%s. case ex of 
       nil => TT
     | x##xs => (flift1 
             (%p.Def ((s,p):trans_of A) andalso (h`xs) (snd p)) 
              `x)
    )))" 
-  
+
+
+
 executions_def
   "executions ioa == {e. ((fst e) : starts_of(ioa)) &               
-                         is_execution_fragment ioa e}"
+                         is_exec_frag ioa e}"
 
 
 (*  ------------------- Schedules ------------------------------ *)

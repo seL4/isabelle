@@ -209,7 +209,7 @@ qed_spec_mp"Cut_prefixcl_Finite";
 
 
 
-goal thy "!!ex .is_execution_fragment A (s,ex) ==> is_execution_fragment A (s,Cut P ex)";
+goal thy "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)";
 by (case_tac "Finite ex" 1);
 by (cut_inst_tac [("s","ex"),("P","P")] Cut_prefixcl_Finite 1);
 ba 1;

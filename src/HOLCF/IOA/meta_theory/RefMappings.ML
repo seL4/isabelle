@@ -8,6 +8,10 @@ Refinement Mappings in HOLCF/IOA
 
 
 
+(* ---------------------------------------------------------------------------- *)
+                           section "laststate";
+(* ---------------------------------------------------------------------------- *)
+
 goal thy "laststate (s,UU) = s";
 by (simp_tac (!simpset addsimps [laststate_def]) 1); 
 qed"laststate_UU";
@@ -28,6 +32,11 @@ qed"laststate_cons";
 
 Addsimps [laststate_UU,laststate_nil,laststate_cons];
 
+goal thy "!!ex. Finite ex ==> (! s. ? u. laststate (s,ex)=u)";
+by (Seq_Finite_induct_tac 1);
+qed"exists_laststate";
+
+
 (* ---------------------------------------------------------------------------- *)
 
 section "transitions and moves";
@@ -35,14 +44,14 @@ section "transitions and moves";
 
 goal thy"!!f. s -a--A-> t ==> ? ex. move A ex s a t";
 
-by (res_inst_tac [("x","(s,(a,t)>>nil)")] exI 1);
+by (res_inst_tac [("x","(a,t)>>nil")] exI 1);
 by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
 qed"transition_is_ex";
-
+ 
 
 goal thy"!!f. (~a:ext A) & s=t ==> ? ex. move A ex s a t";
 
-by (res_inst_tac [("x","(s,nil)")] exI 1);
+by (res_inst_tac [("x","nil")] exI 1);
 by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
 qed"nothing_is_ex";
 
@@ -50,7 +59,7 @@ qed"nothing_is_ex";
 goal thy"!!f. (s -a--A-> s') & (s' -a'--A-> s'') & (~a':ext A) \
 \        ==> ? ex. move A ex s a s''";
 
-by (res_inst_tac [("x","(s,(a,s')>>(a',s'')>>nil)")] exI 1);
+by (res_inst_tac [("x","(a,s')>>(a',s'')>>nil")] exI 1);
 by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
 qed"ei_transitions_are_ex";
 
@@ -60,7 +69,7 @@ goal thy
 \     (~a2:ext A) & (~a3:ext A) ==> \
 \     ? ex. move A ex s1 a1 s4";
   
-by (res_inst_tac [("x","(s1,(a1,s2)>>(a2,s3)>>(a3,s4)>>nil)")] exI 1);
+by (res_inst_tac [("x","(a1,s2)>>(a2,s3)>>(a3,s4)>>nil")] exI 1);
 by (asm_full_simp_tac (!simpset addsimps [move_def]) 1);
 qed"eii_transitions_are_ex";
 

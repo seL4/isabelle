@@ -22,6 +22,14 @@ goal thy "!!a.[|a:internals S|] ==> a:actions S";
 by (asm_full_simp_tac (!simpset addsimps [asig_internals_def,actions_def]) 1);
 qed"int_is_act";
 
+goal thy "!!a.[|a:inputs S|] ==> a:actions S";
+by (asm_full_simp_tac (!simpset addsimps [asig_inputs_def,actions_def]) 1);
+qed"inp_is_act";
+
+goal thy "!!a.[|a:outputs S|] ==> a:actions S";
+by (asm_full_simp_tac (!simpset addsimps [asig_outputs_def,actions_def]) 1);
+qed"out_is_act";
+
 goal thy "(x: actions S & x : externals S) = (x: externals S)";
 by (fast_tac (!claset addSIs [ext_is_act]) 1 );
 qed"ext_and_act";

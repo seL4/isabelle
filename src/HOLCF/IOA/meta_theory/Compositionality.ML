@@ -14,7 +14,7 @@ qed"compatibility_consequence3";
 
 
 goal thy 
-"!! A B. [| compat_ioas A B; Forall (%a. a: ext A | a: ext B) tr |] ==> \
+"!! A B. [| compatible A B; Forall (%a. a: ext A | a: ext B) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
 br ForallPFilterQR 1;
 ba 2;
@@ -32,7 +32,7 @@ auto();
 qed"compatibility_consequence4";
 
 goal thy 
-"!! A B. [| compat_ioas A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
+"!! A B. [| compatible A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
 br ForallPFilterQR 1;
 ba 2;
@@ -52,7 +52,7 @@ goal thy "!! A1 A2 B1 B2. \
 \         [| IOA A1; IOA A2; IOA B1; IOA B2;\
 \            is_asig (asig_of A1); is_asig (asig_of A2); \
 \            is_asig (asig_of B1); is_asig (asig_of B2); \
-\            compat_ioas A1 B1; compat_ioas A2 B2; \
+\            compatible A1 B1; compatible A2 B2; \
 \            A1 =<| A2; \
 \            B1 =<| B2 |] \
 \        ==> (A1 || B1) =<| (A2 || B2)";

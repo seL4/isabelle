@@ -12,7 +12,7 @@ default term
 
 consts
   laststate    ::"('a,'s)execution => 's"
-  move         ::"[('a,'s)ioa,('a,'s)execution,'s,'a,'s] => bool"
+  move         ::"[('a,'s)ioa,('a,'s)pairs,'s,'a,'s] => bool"
   is_ref_map   ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
   is_weak_ref_map ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
  
@@ -23,13 +23,11 @@ laststate_def
                       Undef  => fst ex
                     | Def at => snd at"
 
-(* FIX: see paper, move should be defined on pairs, not on execs, then fst ex=s can
-   be omitted *)
 move_def
   "move ioa ex s a t ==    
-    (is_execution_fragment ioa ex &  Finite (snd ex) & 
-     fst ex=s & laststate ex=t  &     
-     mk_trace ioa`(snd ex) = (if a:ext(ioa) then a>>nil else nil))"
+    (is_exec_frag ioa (s,ex) &  Finite ex & 
+     laststate (s,ex)=t  &     
+     mk_trace ioa`ex = (if a:ext(ioa) then a>>nil else nil))"
 
 is_ref_map_def
   "is_ref_map f C A ==                          

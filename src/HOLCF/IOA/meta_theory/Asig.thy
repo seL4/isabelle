@@ -13,7 +13,7 @@ types
 'a signature = "('a set * 'a set * 'a set)"
 
 consts
-  actions,inputs,outputs,internals,externals
+  actions,inputs,outputs,internals,externals,locals
                 ::"'action signature => 'action set"
   is_asig       ::"'action signature => bool"
   mk_ext_asig   ::"'action signature => 'action signature"
@@ -30,6 +30,9 @@ actions_def
 
 externals_def
    "externals(asig) == (inputs(asig) Un outputs(asig))"
+
+locals_def
+   "locals asig == ((internals asig) Un (outputs asig))"
 
 is_asig_def
   "is_asig(triple) ==            

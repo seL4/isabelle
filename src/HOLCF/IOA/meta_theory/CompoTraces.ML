@@ -146,7 +146,7 @@ be (p2 RS subst) 1;
 qed"subst_lemma2";
 
 
-goal thy "!!A B. compat_ioas A B ==> \
+goal thy "!!A B. compatible A B ==> \
 \   ! schA schB. Forall (%x. x:act (A||B)) tr \
 \   --> Forall (%x. x:act (A||B)) (mksch A B`tr`schA`schB)";
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1); 
@@ -175,7 +175,7 @@ qed"ForallAorB_mksch1";
 
 bind_thm ("ForallAorB_mksch",ForallAorB_mksch1 RS spec RS spec RS mp);
 
-goal thy "!!A B. compat_ioas B A  ==> \
+goal thy "!!A B. compatible B A  ==> \
 \   ! schA schB.  (Forall (%x. x:act B & x~:act A) tr \
 \   --> Forall (%x. x:act B & x~:act A) (mksch A B`tr`schA`schB))";
 
@@ -189,7 +189,7 @@ qed"ForallBnA_mksch";
 bind_thm ("ForallBnAmksch",ForallBnA_mksch RS spec RS spec RS mp);
 
 
-goal thy "!!A B. compat_ioas A B ==> \
+goal thy "!!A B. compatible A B ==> \
 \   ! schA schB.  (Forall (%x. x:act A & x~:act B) tr \
 \   --> Forall (%x. x:act A & x~:act B) (mksch A B`tr`schA`schB))";
 
@@ -282,7 +282,7 @@ Addsimps [FiniteConc];
 (* otherwise subst_lemma2 does not fit exactly, just to avoid a subst_lemma3 *)
 Delsimps [FilterConc]; 
 
-goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compat_ioas A B|] ==>  \
+goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! y.Forall (%x.x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
 \    Filter (%a. a:ext B)`y = Filter (%a. a:act B)`(bs @@ z) \
 \    --> (? y1 y2.  (mksch A B`(bs @@ z)`x`y) = (y1 @@ (mksch A B`z`x`y2)) & \
@@ -337,7 +337,7 @@ bind_thm("reduceA_mksch",conjI RSN (6,conjI RSN (5,reduceA_mksch1 RS spec RS mp)
 Delsimps [FilterConc]; 
 
 
-goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compat_ioas A B|] ==>  \
+goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! x.Forall (%x.x:act A) x & Forall (%x. x:act A & x~:act B) as &\
 \    Filter (%a. a:ext A)`x = Filter (%a. a:act A)`(as @@ z) \
 \    --> (? x1 x2.  (mksch A B`(as @@ z)`x`y) = (x1 @@ (mksch A B`z`x2`y)) & \
@@ -479,7 +479,7 @@ finiteR_mksch
   ------------------------------------------------------------------------------------- *)
 
 goal thy 
-"!! A B. [| compat_ioas A B; compat_ioas B A;\
+"!! A B. [| compatible A B; compatible B A;\
 \           is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ ! schA schB. Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
 \ Forall (%x.x:ext (A||B)) tr & \
@@ -555,7 +555,7 @@ With uncomplete take lemma rule should be reused afterwards !!!!!!!!!!!!!!!!!
                              take lemma
   --------------------------------------------------------------------------- *)
 
-goal thy "!! A B. [| compat_ioas A B; compat_ioas B A; \
+goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x.x:ext (A||B)) tr & \
 \ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
@@ -689,7 +689,7 @@ by (Asm_full_simp_tac 1);
 
 
 
-goal thy "!! A B. [| compat_ioas A B; compat_ioas B A; \
+goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x.x:ext (A||B)) tr & \
 \ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
@@ -931,7 +931,7 @@ qed"FilterAmksch_is_schA";
 
 
 
-goal thy "!! A B. [| compat_ioas A B; compat_ioas B A; \
+goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x.x:ext (A||B)) tr & \
 \ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
@@ -1170,7 +1170,7 @@ qed"FilterBmksch_is_schB";
 (* ------------------------------------------------------------------ *)
  
 goal thy 
-"!! A B. [| IOA A; IOA B; compat_ioas A B; compat_ioas B A; \
+"!! A B. [| IOA A; IOA B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
 \       ==>  tr: traces(A||B) = \
 \            (Filter (%a.a:act A)`tr : traces A &\

@@ -473,6 +473,13 @@ br refl 1;
 be FiniteMap1 1;
 qed"Map2Finite";
 
+
+goal thy "!! s. Finite s ==> Finite (Filter P`s)";
+by (Seq_Finite_induct_tac 1);
+by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+qed"FiniteFilter";
+
+
 (* ----------------------------------------------------------------------------------- *)
 
 

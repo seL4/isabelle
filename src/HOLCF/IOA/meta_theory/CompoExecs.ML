@@ -159,11 +159,11 @@ Addsimps compoex_simps;
 (*  Lemma_1_1a : is_ex_fr propagates from A||B to Projections A and B    *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. is_execution_fragment (A||B) (s,xs) \
-\      -->  is_execution_fragment A (fst s, Filter_ex2 A`(ProjA2`xs)) &\
-\           is_execution_fragment B (snd s, Filter_ex2 B`(ProjB2`xs))";
+goal thy "!s. is_exec_frag (A||B) (s,xs) \
+\      -->  is_exec_frag A (fst s, Filter_ex2 A`(ProjA2`xs)) &\
+\           is_exec_frag B (snd s, Filter_ex2 B`(ProjB2`xs))";
 
-by (pair_induct_tac "xs" [is_execution_fragment_def] 1);
+by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* main case *)
 ren "ss a t" 1;
 by (safe_tac set_cs);
@@ -176,11 +176,11 @@ qed"lemma_1_1a";
 (*  Lemma_1_1b : is_ex_fr (A||B) implies stuttering on Projections       *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. is_execution_fragment (A||B) (s,xs) \
+goal thy "!s. is_exec_frag (A||B) (s,xs) \
 \      --> stutter A (fst s,ProjA2`xs)  &\
 \          stutter B (snd s,ProjB2`xs)"; 
 
-by (pair_induct_tac "xs" [stutter_def,is_execution_fragment_def] 1);
+by (pair_induct_tac "xs" [stutter_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2
@@ -192,10 +192,10 @@ qed"lemma_1_1b";
 (*  Lemma_1_1c : Executions of A||B have only  A- or B-actions           *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. (is_execution_fragment (A||B) (s,xs) \
+goal thy "!s. (is_exec_frag (A||B) (s,xs) \
 \  --> Forall (%x.fst x:act (A||B)) xs)";
 
-by (pair_induct_tac "xs" [Forall_def,sforall_def,is_execution_fragment_def] 1);
+by (pair_induct_tac "xs" [Forall_def,sforall_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2 @ 
@@ -208,15 +208,15 @@ qed"lemma_1_1c";
 (* ----------------------------------------------------------------------- *)
 
 goal thy 
-"!s. is_execution_fragment A (fst s,Filter_ex2 A`(ProjA2`xs)) &\
-\    is_execution_fragment B (snd s,Filter_ex2 B`(ProjB2`xs)) &\
+"!s. is_exec_frag A (fst s,Filter_ex2 A`(ProjA2`xs)) &\
+\    is_exec_frag B (snd s,Filter_ex2 B`(ProjB2`xs)) &\
 \    stutter A (fst s,(ProjA2`xs)) & \
 \    stutter B (snd s,(ProjB2`xs)) & \
 \    Forall (%x.fst x:act (A||B)) xs \
-\    --> is_execution_fragment (A||B) (s,xs)";
+\    --> is_exec_frag (A||B) (s,xs)";
 
 by (pair_induct_tac "xs" [Forall_def,sforall_def,
-         is_execution_fragment_def, stutter_def] 1);
+         is_exec_frag_def, stutter_def] 1);
 (* main case *)
 by (rtac allI 1); 
 ren "ss a t s" 1;

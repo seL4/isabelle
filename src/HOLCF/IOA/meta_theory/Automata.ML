@@ -88,20 +88,20 @@ qed"outputs_of_par";
 
 section "actions and compatibility"; 
 
-goal thy"compat_ioas A B = compat_ioas B A";
-by (asm_full_simp_tac (!simpset addsimps [compat_ioas_def,compat_asigs_def,Int_commute]) 1);
+goal thy"compatible A B = compatible B A";
+by (asm_full_simp_tac (!simpset addsimps [compatible_def,Int_commute]) 1);
 auto();
 qed"compat_commute";
 
-goalw thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
- "!! a. [| compat_ioas A1 A2; a:ext A1|] ==> a~:int A2";
+goalw thy [externals_def,actions_def,compatible_def]
+ "!! a. [| compatible A1 A2; a:ext A1|] ==> a~:int A2";
 by (Asm_full_simp_tac 1);
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"ext1_is_not_int2";
 
-(* just commuting the previous one: better commute compat_ioas *)
-goalw thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
- "!! a. [| compat_ioas A2 A1 ; a:ext A1|] ==> a~:int A2";
+(* just commuting the previous one: better commute compatible *)
+goalw thy [externals_def,actions_def,compatible_def]
+ "!! a. [| compatible A2 A1 ; a:ext A1|] ==> a~:int A2";
 by (Asm_full_simp_tac 1);
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"ext2_is_not_int1";
@@ -109,17 +109,25 @@ qed"ext2_is_not_int1";
 bind_thm("ext1_ext2_is_not_act2",ext1_is_not_int2 RS int_and_ext_is_act);
 bind_thm("ext1_ext2_is_not_act1",ext2_is_not_int1 RS int_and_ext_is_act);
 
-goalw thy  [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
- "!! x. [| compat_ioas A B; x:int A |] ==> x~:ext B";
+goalw thy  [externals_def,actions_def,compatible_def]
+ "!! x. [| compatible A B; x:int A |] ==> x~:ext B";
 by (Asm_full_simp_tac 1);
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"intA_is_not_extB";
 
-goalw thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def,is_asig_def,asig_of_def]
-"!! a. [| compat_ioas A B; a:int A |] ==> a ~: act B";
+goalw thy [externals_def,actions_def,compatible_def,is_asig_def,asig_of_def]
+"!! a. [| compatible A B; a:int A |] ==> a ~: act B";
 by (Asm_full_simp_tac 1);
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"intA_is_not_actB";
+
+goalw thy [asig_outputs_def,asig_internals_def,actions_def,asig_inputs_def,
+    compatible_def,is_asig_def,asig_of_def]
+"!! a. [| compatible A B; a:out A ;a:act B|] ==> a : inp B";
+by (Asm_full_simp_tac 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+qed"outAactB_is_inpB";
+
 
 
 (* ---------------------------------------------------------------------------------- *)

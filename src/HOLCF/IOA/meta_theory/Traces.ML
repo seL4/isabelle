@@ -8,7 +8,7 @@ Theorems about Executions and Traces of I/O automata in HOLCF.
 
 Delsimps (ex_simps @ all_simps);
 
-val exec_rws = [executions_def,is_execution_fragment_def];
+val exec_rws = [executions_def,is_exec_frag_def];
 
 
 
@@ -60,67 +60,67 @@ qed"mk_trace_cons";
 Addsimps [mk_trace_UU,mk_trace_nil,mk_trace_cons];
 
 (* ---------------------------------------------------------------- *)
-(*                             is_ex_fr                             *)
+(*                             is_exec_fragC                             *)
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "is_ex_fr A = (LAM ex. (%s. case ex of \
+goal thy "is_exec_fragC A = (LAM ex. (%s. case ex of \
 \      nil => TT \
 \    | x##xs => (flift1 \ 
-\            (%p.Def ((s,p):trans_of A) andalso (is_ex_fr A`xs) (snd p)) \
+\            (%p.Def ((s,p):trans_of A) andalso (is_exec_fragC A`xs) (snd p)) \
 \             `x) \
 \   ))";
 by (rtac trans 1);
 br fix_eq2 1;
-br is_ex_fr_def 1;
+br is_exec_fragC_def 1;
 br beta_cfun 1;
 by (simp_tac (!simpset addsimps [flift1_def]) 1);
-qed"is_ex_fr_unfold";
+qed"is_exec_fragC_unfold";
 
-goal thy "(is_ex_fr A`UU) s=UU";
-by (stac is_ex_fr_unfold 1);
+goal thy "(is_exec_fragC A`UU) s=UU";
+by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
-qed"is_ex_fr_UU";
+qed"is_exec_fragC_UU";
 
-goal thy "(is_ex_fr A`nil) s = TT";
-by (stac is_ex_fr_unfold 1);
+goal thy "(is_exec_fragC A`nil) s = TT";
+by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
-qed"is_ex_fr_nil";
+qed"is_exec_fragC_nil";
 
-goal thy "(is_ex_fr A`(pr>>xs)) s = \
+goal thy "(is_exec_fragC A`(pr>>xs)) s = \
 \                        (Def ((s,pr):trans_of A) \
-\                andalso (is_ex_fr A`xs)(snd pr))";
+\                andalso (is_exec_fragC A`xs)(snd pr))";
 br trans 1;
-by (stac is_ex_fr_unfold 1);
+by (stac is_exec_fragC_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def]) 1);
 by (Simp_tac 1);
-qed"is_ex_fr_cons";
+qed"is_exec_fragC_cons";
 
 
-Addsimps [is_ex_fr_UU,is_ex_fr_nil,is_ex_fr_cons];
+Addsimps [is_exec_fragC_UU,is_exec_fragC_nil,is_exec_fragC_cons];
 
 
 (* ---------------------------------------------------------------- *)
-(*                        is_execution_fragment                     *)
+(*                        is_exec_frag                              *)
 (* ---------------------------------------------------------------- *)
 
-goal thy "is_execution_fragment A (s, UU)";
-by (simp_tac (!simpset addsimps [is_execution_fragment_def]) 1);
-qed"is_execution_fragment_UU";
+goal thy "is_exec_frag A (s, UU)";
+by (simp_tac (!simpset addsimps [is_exec_frag_def]) 1);
+qed"is_exec_frag_UU";
 
-goal thy "is_execution_fragment A (s, nil)";
-by (simp_tac (!simpset addsimps [is_execution_fragment_def]) 1);
-qed"is_execution_fragment_nil";
+goal thy "is_exec_frag A (s, nil)";
+by (simp_tac (!simpset addsimps [is_exec_frag_def]) 1);
+qed"is_exec_frag_nil";
 
-goal thy "is_execution_fragment A (s, (a,t)>>ex) = \
+goal thy "is_exec_frag A (s, (a,t)>>ex) = \
 \                               (((s,a,t):trans_of A) & \
-\                               is_execution_fragment A (t, ex))";
-by (simp_tac (!simpset addsimps [is_execution_fragment_def]) 1);
-qed"is_execution_fragment_cons";
+\                               is_exec_frag A (t, ex))";
+by (simp_tac (!simpset addsimps [is_exec_frag_def]) 1);
+qed"is_exec_frag_cons";
 
 
-(* Delsimps [is_ex_fr_UU,is_ex_fr_nil,is_ex_fr_cons]; *)
-Addsimps [is_execution_fragment_UU,is_execution_fragment_nil, is_execution_fragment_cons];  
+(* Delsimps [is_exec_fragC_UU,is_exec_fragC_nil,is_exec_fragC_cons]; *)
+Addsimps [is_exec_frag_UU,is_exec_frag_nil, is_exec_frag_cons];  
 
 
 (* -------------------------------------------------------------------------------- *)
@@ -163,9 +163,9 @@ section "signatures and executions, schedules";
 
 goal thy 
   "!! A. IOA A ==> \
-\ ! s. is_execution_fragment A (s,xs) --> Forall (%a.a:act A) (filter_act`xs)";
+\ ! s. is_exec_frag A (s,xs) --> Forall (%a.a:act A) (filter_act`xs)";
 
-by (pair_induct_tac "xs" [is_execution_fragment_def,Forall_def,sforall_def] 1);
+by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
 ren "ss a t" 1;
 by (safe_tac set_cs);
@@ -195,8 +195,8 @@ qed"scheds_in_sig";
 section "executions are prefix closed";
 
 (* only admissible in y, not if done in x !! *)
-goal thy "!x s. is_execution_fragment A (s,x) & y<<x  --> is_execution_fragment A (s,y)";
-by (pair_induct_tac "y" [is_execution_fragment_def] 1);
+goal thy "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)";
+by (pair_induct_tac "y" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "xa" 1);
 by (pair_tac "a" 1);
@@ -208,8 +208,8 @@ bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS
 
 (* second prefix notion for Finite x *)
 
-goal thy "! y s.is_execution_fragment A (s,x@@y) --> is_execution_fragment A (s,x)";
-by (pair_induct_tac "x" [is_execution_fragment_def] 1);
+goal thy "! y s.is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)";
+by (pair_induct_tac "x" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "s" 1);
 by (pair_tac "a" 1);

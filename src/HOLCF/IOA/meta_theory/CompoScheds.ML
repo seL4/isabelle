@@ -186,10 +186,10 @@ qed"lemma_2_1b";
    an ex is in A or B, but after projecting it onto the action schedule. Of course, this
    is the same proposition, but we cannot change this one, when then rather lemma_1_1c  *)
 
-goal thy "!s. is_execution_fragment (A||B) (s,xs) \
+goal thy "!s. is_exec_frag (A||B) (s,xs) \
 \  --> Forall (%x.x:act (A||B)) (filter_act`xs)";
 
-by (pair_induct_tac "xs" [is_execution_fragment_def,Forall_def,sforall_def] 1);
+by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
 by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (!simpset addsimps trans_of_defs2 @ 
