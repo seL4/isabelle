@@ -180,8 +180,11 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
 HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 
 $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
-  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy Lambda/Lambda.ML \
-  Lambda/Lambda.thy Lambda/ParRed.ML Lambda/ParRed.thy Lambda/ROOT.ML
+  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy Lambda/InductTermi.ML \
+  Lambda/InductTermi.thy Lambda/Lambda.ML Lambda/Lambda.thy \
+  Lambda/ListApplication.ML Lambda/ListApplication.thy Lambda/ListBeta.ML \
+  Lambda/ListBeta.thy Lambda/ListOrder.ML Lambda/ListOrder.thy \
+  Lambda/ParRed.ML Lambda/ParRed.thy Lambda/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lambda
 
 

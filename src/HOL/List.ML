@@ -222,6 +222,22 @@ by (asm_simp_tac (simpset() addsimps [tl_append]
 qed "tl_append2";
 Addsimps [tl_append2];
 
+(* trivial rules for solving @-equations automatically *)
+
+Goal "xs = ys ==> xs = [] @ ys";
+by(Asm_simp_tac 1);
+qed "eq_Nil_appendI";
+
+Goal "[| x#xs1 = ys; xs = xs1 @ zs |] ==> x#xs = ys@zs";
+bd sym 1;
+by(Asm_simp_tac 1);
+qed "Cons_eq_appendI";
+
+Goal "[| xs@xs1 = zs; ys = xs1 @ us |] ==> xs@ys = zs@us";
+bd sym 1;
+by(Asm_simp_tac 1);
+qed "append_eq_appendI";
+
 
 (** map **)
 
@@ -316,6 +332,8 @@ by (resolve_tac prems 1);
 by (eresolve_tac prems 1);
 qed "rev_induct";
 
+fun rev_induct_tac xs = res_inst_tac [("xs",xs)] rev_induct;
+
 Goal  "(xs = [] --> P) -->  (!ys y. xs = ys@[y] --> P) --> P";
 by (res_inst_tac [("xs","xs")] rev_induct 1);
 by (Auto_tac);
@@ -382,6 +400,28 @@ by (Auto_tac);
 qed "in_set_filter";
 Addsimps [in_set_filter];
 
+Goal "(x : set xs) = (? ys zs. xs = ys@x#zs)";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by(Asm_simp_tac 1);
+br iffI 1;
+by(blast_tac (claset() addIs [eq_Nil_appendI,Cons_eq_appendI]) 1);
+by(REPEAT(etac exE 1));
+by(exhaust_tac "ys" 1);
+by(Auto_tac);
+qed "in_set_conv_decomp";
+
+(* eliminate `lists' in favour of `set' *)
+
+Goal "(xs : lists A) = (!x : set xs. x : A)";
+by(induct_tac "xs" 1);
+by(Auto_tac);
+qed "in_lists_conv_set";
+
+bind_thm("in_listsD",in_lists_conv_set RS iffD1);
+AddSDs [in_listsD];
+bind_thm("in_listsI",in_lists_conv_set RS iffD2);
+AddSIs [in_listsI];
 
 (** list_all **)
 
@@ -746,6 +786,38 @@ qed_spec_mp"set_take_whileD";
 qed_goal "zip_Nil_Nil"   thy "zip []     []     = []" (K [Simp_tac 1]);
 qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys" 
 						      (K [Simp_tac 1]);
+
+
+(** foldl **)
+section "foldl";
+
+Goal "!a. foldl f a (xs @ ys) = foldl f (foldl f a xs) ys";
+by(induct_tac "xs" 1);
+by(Auto_tac);
+qed_spec_mp "foldl_append";
+Addsimps [foldl_append];
+
+(* Note: `n <= foldl op+ n ns' looks simpler, but is more difficult to use
+   because it requires an additional transitivity step
+*)
+Goal "!n::nat. m <= n --> m <= foldl op+ n ns";
+by(induct_tac "ns" 1);
+ by(Simp_tac 1);
+by(Asm_full_simp_tac 1);
+by(blast_tac (claset() addIs [trans_le_add1]) 1);
+qed_spec_mp "start_le_sum";
+
+Goal "n : set ns ==> n <= foldl op+ 0 ns";
+by(auto_tac (claset() addIs [start_le_sum],
+             simpset() addsimps [in_set_conv_decomp]));
+qed "elem_le_sum";
+
+Goal "!m. (foldl op+ m ns = 0) = (m=0 & (!n : set ns. n=0))";
+by(induct_tac "ns" 1);
+by(Auto_tac);
+qed_spec_mp "sum_eq_0_conv";
+AddIffs [sum_eq_0_conv];
+
 
 (** nodups & remdups **)
 section "nodups & remdups";
