@@ -29,6 +29,7 @@ sig
   val forall_elim_list  : cterm list -> thm -> thm
   val forall_elim_var   : int -> thm -> thm
   val forall_elim_vars  : int -> thm -> thm
+  val forall_elim_vars_safe  : thm -> thm
   val freeze_thaw       : thm -> thm * (thm -> thm)
   val implies_elim_list : thm -> thm list -> thm
   val implies_intr_list : cterm list -> thm -> thm
@@ -99,6 +100,7 @@ sig
   val has_internal	: tag list -> bool
   val compose_single    : thm * int * thm -> thm
   val merge_rules	: thm list * thm list -> thm list
+  val norm_hhf_eq	: thm
   val triv_goal         : thm
   val rev_triv_goal     : thm
   val freeze_all        : thm -> thm
@@ -282,6 +284,11 @@ fun forall_intr_frees th =
 
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
+
+fun forall_elim_vars_safe th =
+  forall_elim_vars_safe (forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th)
+    handle THM _ => th;
+
 
 (*Specialization over a list of cterms*)
 fun forall_elim_list cts th = foldr (uncurry forall_elim) (rev cts, th);
@@ -492,9 +499,9 @@ fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
 
 (*Rewrite a theorem*)
-fun rewrite_rule_aux _ []   th = th
-  | rewrite_rule_aux prover thms th =
-      fconv_rule (rew_conv (true,false,false) prover (Thm.mss_of thms)) th;
+fun rewrite_rule_aux _ [] = (fn th => th)
+  | rewrite_rule_aux prover thms =
+      fconv_rule (rew_conv (true,false,false) prover (Thm.mss_of thms));
 
 fun rewrite_thm mode prover mss = fconv_rule (rew_conv mode prover mss);
 fun rewrite_cterm mode prover mss = Thm.rewrite_cterm mode mss prover;
@@ -577,6 +584,43 @@ val equal_intr_rule =
   in
     store_standard_thm "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
+  end;
+
+
+(*(PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x))
+  Rewrite rule for HHF normalization.
+
+  Note: the syntax of ProtoPure is insufficient to handle this
+  statement; storing it would be asking for trouble, e.g. when someone
+  tries to print the theory later.
+*)
+
+val norm_hhf_eq =
+  let
+    val cert = Thm.cterm_of proto_sign;
+    val aT = TFree ("'a", Term.logicS);
+    val all = Term.all aT;
+    val x = Free ("x", aT);
+    val phi = Free ("phi", propT);
+    val psi = Free ("psi", aT --> propT);
+
+    val cx = cert x;
+    val cphi = cert phi;
+    val lhs = cert (Logic.mk_implies (phi, all $ Abs ("x", aT, psi $ Bound 0)));
+    val rhs = cert (all $ Abs ("x", aT, Logic.mk_implies (phi, psi $ Bound 0)));
+  in
+    Thm.equal_intr
+      (Thm.implies_elim (Thm.assume lhs) (Thm.assume cphi)
+        |> Thm.forall_elim cx
+        |> Thm.implies_intr cphi
+        |> Thm.forall_intr cx
+        |> Thm.implies_intr lhs)
+      (Thm.implies_elim
+          (Thm.assume rhs |> Thm.forall_elim cx) (Thm.assume cphi)
+        |> Thm.forall_intr cx
+        |> Thm.implies_intr cphi
+        |> Thm.implies_intr rhs)
+    |> standard |> curry Thm.name_thm "ProtoPure.norm_hhf_eq"
   end;
 
 
