@@ -429,7 +429,7 @@ fun mkthm sg asms just =
 
       fun add2 thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
-        in get_first (fn th => Some(conj RS th) handle _ => None) add_mono_thms
+        in get_first (fn th => Some(conj RS th) handle THM _ => None) add_mono_thms
         end;
 
       fun try_add [] _ = None
@@ -453,7 +453,7 @@ fun mkthm sg asms just =
 
       fun multn2(n,thm) =
         let val Some(mth,cv) =
-              get_first (fn (th,cv) => Some(thm RS th,cv) handle _ => None) mult_mono_thms
+              get_first (fn (th,cv) => Some(thm RS th,cv) handle THM _ => None) mult_mono_thms
             val ct = cterm_of sg (LA_Data.number_of(n,#T(rep_cterm cv)))
         in instantiate ([],[(cv,ct)]) mth end
 
@@ -695,7 +695,7 @@ fun fwdproof sg (Tip asms) (j::js) = (mkthm sg asms j, js)
         val thm1' = implies_intr ct1 thm1
         val thm2' = implies_intr ct2 thm2
     in (thm2' COMP (thm1' COMP thm), js2) end;
-(* needs handle _ => None ? *)
+(* needs handle THM _ => None ? *)
 
 fun prover sg thms Tconcl js pos =
 let val nTconcl = LA_Logic.neg_prop Tconcl
