@@ -1,7 +1,7 @@
 (*  Title:      HOL/Lambda/Eta.thy
     ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   1995 TU Muenchen
+    Author:     Tobias Nipkow and Stefan Berghofer
+    Copyright   1995, 2005 TU Muenchen
 *)
 
 header {* Eta-reduction *}
@@ -87,6 +87,9 @@ lemma eta_subst [rule_format, simp]:
   apply (erule eta.induct)
   apply (simp_all add: subst_subst [symmetric])
   done
+
+theorem lift_subst_dummy: "\<And>i dummy. \<not> free s i \<Longrightarrow> lift (s[dummy/i]) i = s"
+  by (induct s) simp_all
 
 
 subsection "Confluence of eta"
@@ -245,5 +248,265 @@ theorem explicit_is_implicit:
     (\<forall>s. R (Abs (lift s 0 \<degree> Var 0)) s)"
   apply (auto simp add: not_free_iff_lifted)
   done
+
+
+subsection {* Parallel eta-reduction *}
+
+consts
+  par_eta :: "(dB \<times> dB) set"
+
+syntax 
+  "_par_eta" :: "[dB, dB] => bool"   (infixl "=e>" 50)
+translations
+  "s =e> t" == "(s, t) \<in> par_eta"
+
+syntax (xsymbols)
+  "_par_eta" :: "[dB, dB] => bool"   (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
+
+inductive par_eta
+intros
+  var [simp, intro]: "Var x \<Rightarrow>\<^sub>\<eta> Var x"
+  eta [simp, intro]: "\<not> free s 0 \<Longrightarrow> s \<Rightarrow>\<^sub>\<eta> s'\<Longrightarrow> Abs (s \<degree> Var 0) \<Rightarrow>\<^sub>\<eta> s'[dummy/0]"
+  app [simp, intro]: "s \<Rightarrow>\<^sub>\<eta> s' \<Longrightarrow> t \<Rightarrow>\<^sub>\<eta> t' \<Longrightarrow> s \<degree> t \<Rightarrow>\<^sub>\<eta> s' \<degree> t'"
+  abs [simp, intro]: "s \<Rightarrow>\<^sub>\<eta> t \<Longrightarrow> Abs s \<Rightarrow>\<^sub>\<eta> Abs t"
+
+lemma free_par_eta [simp]: assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
+  shows "\<And>i. free t i = free s i" using eta
+  by induct (simp_all cong: conj_cong)
+
+lemma par_eta_refl [simp]: "t \<Rightarrow>\<^sub>\<eta> t"
+  by (induct t) simp_all
+
+lemma par_eta_lift [simp]:
+  assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
+  shows "\<And>i. lift s i \<Rightarrow>\<^sub>\<eta> lift t i" using eta
+  by induct simp_all
+
+lemma par_eta_subst [simp]:
+  assumes eta: "s \<Rightarrow>\<^sub>\<eta> t"
+  shows "\<And>u u' i. u \<Rightarrow>\<^sub>\<eta> u' \<Longrightarrow> s[u/i] \<Rightarrow>\<^sub>\<eta> t[u'/i]" using eta
+  by induct (simp_all add: subst_subst [symmetric] subst_Var)
+
+theorem eta_subset_par_eta: "eta \<subseteq> par_eta"
+  apply (rule subsetI)
+  apply clarify
+  apply (erule eta.induct)
+  apply (blast intro!: par_eta_refl)+
+  done
+
+theorem par_eta_subset_eta: "par_eta \<subseteq> eta\<^sup>*"
+  apply (rule subsetI)
+  apply clarify
+  apply (erule par_eta.induct)
+  apply blast
+  apply (rule rtrancl_into_rtrancl)
+  apply (rule rtrancl_eta_Abs)
+  apply (rule rtrancl_eta_AppL)
+  apply assumption
+  apply (rule eta.eta)
+  apply simp
+  apply (rule rtrancl_eta_App)
+  apply assumption+
+  apply (rule rtrancl_eta_Abs)
+  apply assumption
+  done
+
+
+subsection {* n-ary eta-expansion *}
+
+consts eta_expand :: "nat \<Rightarrow> dB \<Rightarrow> dB"
+primrec
+  eta_expand_0: "eta_expand 0 t = t"
+  eta_expand_Suc: "eta_expand (Suc n) t = Abs (lift (eta_expand n t) 0 \<degree> Var 0)"
+
+lemma eta_expand_Suc':
+  "\<And>t. eta_expand (Suc n) t = eta_expand n (Abs (lift t 0 \<degree> Var 0))"
+  by (induct n) simp_all
+
+theorem lift_eta_expand: "lift (eta_expand k t) i = eta_expand k (lift t i)"
+  by (induct k) (simp_all add: lift_lift)
+
+theorem eta_expand_beta:
+  assumes u: "u => u'"
+  shows "\<And>t t'. t => t' \<Longrightarrow> eta_expand k (Abs t) \<degree> u => t'[u'/0]"
+proof (induct k)
+  case 0 with u show ?case by simp
+next
+  case (Suc k)
+  hence "Abs (lift t (Suc 0)) \<degree> Var 0 => lift t' (Suc 0)[Var 0/0]"
+    by (blast intro: par_beta_lift)
+  with Suc show ?case by (simp del: eta_expand_Suc add: eta_expand_Suc')
+qed
+
+theorem eta_expand_red:
+  assumes t: "t => t'"
+  shows "eta_expand k t => eta_expand k t'"
+  by (induct k) (simp_all add: t)
+
+theorem eta_expand_eta: "\<And>t t'. t \<Rightarrow>\<^sub>\<eta> t' \<Longrightarrow> eta_expand k t \<Rightarrow>\<^sub>\<eta> t'"
+proof (induct k)
+  case 0
+  show ?case by simp
+next
+  case (Suc k)
+  have "Abs (lift (eta_expand k t) 0 \<degree> Var 0) \<Rightarrow>\<^sub>\<eta> lift t' 0[arbitrary/0]"
+    by (fastsimp intro: par_eta_lift Suc)
+  thus ?case by simp
+qed
+
+
+subsection {* Elimination rules for parallel eta reduction *}
+
+theorem par_eta_elim_app: assumes eta: "t \<Rightarrow>\<^sub>\<eta> u"
+  shows "\<And>u1' u2'. u = u1' \<degree> u2' \<Longrightarrow>
+    \<exists>u1 u2 k. t = eta_expand k (u1 \<degree> u2) \<and> u1 \<Rightarrow>\<^sub>\<eta> u1' \<and> u2 \<Rightarrow>\<^sub>\<eta> u2'" using eta
+proof induct
+  case (app s s' t t')
+  have "s \<degree> t = eta_expand 0 (s \<degree> t)" by simp
+  with app show ?case by blast
+next
+  case (eta dummy s s')
+  then obtain u1'' u2'' where s': "s' = u1'' \<degree> u2''"
+    by (cases s') (auto simp add: subst_Var free_par_eta [symmetric] split: split_if_asm)
+  then have "\<exists>u1 u2 k. s = eta_expand k (u1 \<degree> u2) \<and> u1 \<Rightarrow>\<^sub>\<eta> u1'' \<and> u2 \<Rightarrow>\<^sub>\<eta> u2''" by (rule eta)
+  then obtain u1 u2 k where s: "s = eta_expand k (u1 \<degree> u2)"
+    and u1: "u1 \<Rightarrow>\<^sub>\<eta> u1''" and u2: "u2 \<Rightarrow>\<^sub>\<eta> u2''" by rules
+  from u1 u2 eta s' have "\<not> free u1 0" and "\<not> free u2 0"
+    by (simp_all del: free_par_eta add: free_par_eta [symmetric])
+  with s have "Abs (s \<degree> Var 0) = eta_expand (Suc k) (u1[dummy/0] \<degree> u2[dummy/0])"
+    by (simp del: lift_subst add: lift_subst_dummy lift_eta_expand)
+  moreover from u1 par_eta_refl have "u1[dummy/0] \<Rightarrow>\<^sub>\<eta> u1''[dummy/0]"
+    by (rule par_eta_subst)
+  moreover from u2 par_eta_refl have "u2[dummy/0] \<Rightarrow>\<^sub>\<eta> u2''[dummy/0]"
+    by (rule par_eta_subst)
+  ultimately show ?case using eta s'
+    by (simp only: subst.simps dB.simps) blast
+next
+  case var thus ?case by simp
+next
+  case abs thus ?case by simp
+qed
+
+theorem par_eta_elim_abs: assumes eta: "t \<Rightarrow>\<^sub>\<eta> t'"
+  shows "\<And>u'. t' = Abs u' \<Longrightarrow>
+    \<exists>u k. t = eta_expand k (Abs u) \<and> u \<Rightarrow>\<^sub>\<eta> u'" using eta
+proof induct
+  case (abs s t)
+  have "Abs s = eta_expand 0 (Abs s)" by simp
+  with abs show ?case by blast
+next
+  case (eta dummy s s')
+  then obtain u'' where s': "s' = Abs u''"
+    by (cases s') (auto simp add: subst_Var free_par_eta [symmetric] split: split_if_asm)
+  then have "\<exists>u k. s = eta_expand k (Abs u) \<and> u \<Rightarrow>\<^sub>\<eta> u''" by (rule eta)
+  then obtain u k where s: "s = eta_expand k (Abs u)" and u: "u \<Rightarrow>\<^sub>\<eta> u''" by rules
+  from eta u s' have "\<not> free u (Suc 0)"
+    by (simp del: free_par_eta add: free_par_eta [symmetric])
+  with s have "Abs (s \<degree> Var 0) = eta_expand (Suc k) (Abs (u[lift dummy 0/Suc 0]))"
+    by (simp del: lift_subst add: lift_eta_expand lift_subst_dummy)
+  moreover from u par_eta_refl have "u[lift dummy 0/Suc 0] \<Rightarrow>\<^sub>\<eta> u''[lift dummy 0/Suc 0]"
+    by (rule par_eta_subst)
+  ultimately show ?case using eta s' by fastsimp
+next
+  case var thus ?case by simp
+next
+  case app thus ?case by simp
+qed
+
+
+subsection {* Eta-postponement theorem *}
+
+text {*
+Based on a proof by Masako Takahashi \cite{Takahashi-IandC}.
+*}
+
+theorem par_eta_beta: "\<And>s u. s \<Rightarrow>\<^sub>\<eta> t \<Longrightarrow> t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' \<Rightarrow>\<^sub>\<eta> u"
+proof (induct t rule: measure_induct [of size, rule_format])
+  case (1 t)
+  from 1(3)
+  show ?case
+  proof cases
+    case (var n)
+    with 1 show ?thesis
+      by (auto intro: par_beta_refl)
+  next
+    case (abs r' r'')
+    with 1 have "s \<Rightarrow>\<^sub>\<eta> Abs r'" by simp
+    then obtain r k where s: "s = eta_expand k (Abs r)" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
+      by (blast dest: par_eta_elim_abs)
+    from abs have "size r' < size t" by simp
+    with abs(2) rr obtain t' where rt: "r => t'" and t': "t' \<Rightarrow>\<^sub>\<eta> r''"
+      by (blast dest: 1)
+    with s abs show ?thesis
+      by (auto intro: eta_expand_red eta_expand_eta)
+  next
+    case (app q' q'' r' r'')
+    with 1 have "s \<Rightarrow>\<^sub>\<eta> q' \<degree> r'" by simp
+    then obtain q r k where s: "s = eta_expand k (q \<degree> r)"
+      and qq: "q \<Rightarrow>\<^sub>\<eta> q'" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
+      by (blast dest: par_eta_elim_app [OF _ refl])
+    from app have "size q' < size t" and "size r' < size t" by simp_all
+    with app(2,3) qq rr obtain t' t'' where "q => t'" and
+      "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
+      by (blast dest: 1)
+    with s app show ?thesis
+      by (fastsimp intro: eta_expand_red eta_expand_eta)
+  next
+    case (beta q' q'' r' r'')
+    with 1 have "s \<Rightarrow>\<^sub>\<eta> Abs q' \<degree> r'" by simp
+    then obtain q r k k' where s: "s = eta_expand k (eta_expand k' (Abs q) \<degree> r)"
+      and qq: "q \<Rightarrow>\<^sub>\<eta> q'" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
+      by (blast dest: par_eta_elim_app par_eta_elim_abs)
+    from beta have "size q' < size t" and "size r' < size t" by simp_all
+    with beta(2,3) qq rr obtain t' t'' where "q => t'" and
+      "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
+      by (blast dest: 1)
+    with s beta show ?thesis
+      by (auto intro: eta_expand_red eta_expand_beta eta_expand_eta par_eta_subst)
+  qed
+qed
+
+theorem eta_postponement': assumes eta: "s -e>> t"
+  shows "\<And>u. t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' -e>> u"
+  using eta [simplified rtrancl_subset
+    [OF eta_subset_par_eta par_eta_subset_eta, symmetric]]
+proof induct
+  case 1
+  thus ?case by blast
+next
+  case (2 s' s'' s''')
+  from 2 obtain t' where s': "s' => t'" and t': "t' \<Rightarrow>\<^sub>\<eta> s'''"
+    by (auto dest: par_eta_beta)
+  from s' obtain t'' where s: "s => t''" and t'': "t'' -e>> t'"
+    by (blast dest: 2)
+  from par_eta_subset_eta t' have "t' -e>> s'''" ..
+  with t'' have "t'' -e>> s'''" by (rule rtrancl_trans)
+  with s show ?case by rules
+qed
+
+theorem eta_postponement:
+  assumes st: "(s, t) \<in> (beta \<union> eta)\<^sup>*"
+  shows "(s, t) \<in> eta\<^sup>* O beta\<^sup>*" using st
+proof induct
+  case 1
+  show ?case by blast
+next
+  case (2 s' s'')
+  from 2(3) obtain t' where s: "s \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and t': "t' -e>> s'" by blast
+  from 2(2) show ?case
+  proof
+    assume "s' -> s''"
+    with beta_subset_par_beta have "s' => s''" ..
+    with t' obtain t'' where st: "t' => t''" and tu: "t'' -e>> s''"
+      by (auto dest: eta_postponement')
+    from par_beta_subset_beta st have "t' \<rightarrow>\<^sub>\<beta>\<^sup>* t''" ..
+    with s have "s \<rightarrow>\<^sub>\<beta>\<^sup>* t''" by (rule rtrancl_trans)
+    thus ?thesis using tu ..
+  next
+    assume "s' -e> s''"
+    with t' have "t' -e>> s''" ..
+    with s show ?thesis ..
+  qed
+qed
 
 end
