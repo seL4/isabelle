@@ -192,10 +192,13 @@ local
     $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
     Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
+  fun read_int ["0", "0"] = ~1
+    | read_int cs = #1 (Library.read_int cs);
+
   val scan_sym =
     $$ "_" >> K (Argument ("", 0)) ||
     $$ "\\<index>" >> K index ||
-    $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o #1 o Term.read_int) ||
+    $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o read_int) ||
     $$ ")" >> K En ||
     $$ "/" -- $$ "/" >> K (Brk ~1) ||
     $$ "/" |-- Scan.any Symbol.is_blank >> (Brk o length) ||

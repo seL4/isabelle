@@ -118,7 +118,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
     val vname = take_suffix Symbol.is_digit (Symbol.explode name)
-      |> apfst implode |> apsnd (#1 o Term.read_int);
+      |> apfst implode |> apsnd (#1 o Library.read_int);
     val goal_pat = mk_nonempty (Var (vname, setT));
 
     (*lhs*)
