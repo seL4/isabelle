@@ -22,9 +22,9 @@ COMP = $(ISABELLECOMP)
 SET_FILES = ROOT.ML set.thy set.ML subset.ML equalities.ML mono.ML \
 	    gfp.thy gfp.ML lfp.thy lfp.ML
 
-CCL_FILES = ccl.thy ccl.ML terms.thy terms.ML types.thy types.ML \
+CCL_FILES = ccl.thy ccl.ML term.thy term.ML type.thy type.ML \
             coinduction.ML hered.thy hered.ML trancl.thy trancl.ML\
-            wf.thy wf.ML genrec.ML typecheck.ML eval.ML fix.thy fix.ML
+            wfd.thy wfd.ML genrec.ML typecheck.ML eval.ML fix.thy fix.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES) 

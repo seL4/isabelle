@@ -11,6 +11,8 @@ val banner = "Classical Computational Logic (in FOL)";
 (* Higher-Order Set Theory Extension to FOL *)
 (*      used as basis for CCL               *)
 
+(*set_load_path [".", "../FOL"]; wait for new Readthy*)
+
 use_thy "set";
 use     "subset.ML";
 use     "equalities.ML";
@@ -22,13 +24,13 @@ use_thy "gfp";
 (*                       with evaluation to weak head-normal form *)
 
 use_thy "ccl";
-use_thy "terms";
-use_thy "types";
+use_thy "term";
+use_thy "type";
 use     "coinduction.ML";
 use_thy "hered";
 
 use_thy "trancl";
-use_thy "wf";
+use_thy "wfd";
 use     "genrec.ML";
 use     "typecheck.ML";
 use     "eval.ML";
