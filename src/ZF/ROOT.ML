@@ -67,7 +67,7 @@ use     "datatype.ML";
 
 use     "fin.ML";
 use     "list.ML";
-use_thy "list-fn";
+use_thy "listfn";
 
 (*printing functions are inherited from FOL*)
 print_depth 8;
