@@ -50,6 +50,11 @@ fun take_suffix _ [] = ([], [])
 
 fun apr (f,y) x = f(x,y);
 
+fun seq (proc: 'a -> unit) : 'a list -> unit =
+  let fun seqf [] = ()
+        | seqf (x :: xs) = (proc x; seqf xs)
+  in seqf end;
+
 in
 
 (*Get a string containing the time of last modification, attributes, owner
@@ -83,15 +88,18 @@ fun pwd () =
      implode path
   end;
 
-end;
-
 
 (*** ML command execution ***)
 
-fun use_string commands =
-  let val firstLine = ref true;
-      fun getLine () =
-        if !firstLine
-        then (firstLine := false; commands ^ ";\n")
-        else raise Io "execML: buffer exhausted"
-  in PolyML.compiler (getLine, fn s => output (std_out, s)) () end;
+val use_string =
+  let fun exec command =
+    let val firstLine = ref true;
+
+        fun getLine () =
+          if !firstLine
+          then (firstLine := false; command)
+          else raise Io "use_string: buffer exhausted"
+    in PolyML.compiler (getLine, fn s => output (std_out, s)) () end
+  in seq exec end;
+
+end;

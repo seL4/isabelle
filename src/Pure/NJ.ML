@@ -98,5 +98,6 @@ fun pwd () = System.Directory.getWD ();
 
 (*** ML command execution ***)
 
-fun use_string commands = System.Compile.use_stream (open_string commands);
+fun use_string commands = 
+  System.Compile.use_stream (open_string (implode commands));
 
