@@ -127,7 +127,7 @@ goal InfDatatype.thy
 \         W -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (safe_tac (ZF_cs addSDs [fun_Vcsucc_lemma, subset_Vcsucc]));
 by (resolve_tac [Vfrom RS ssubst] 1);
-by (eresolve_tac [PiE] 1);
+by (dresolve_tac [fun_is_rel] 1);
 (*This level includes the function, and is below csucc(K)*)
 by (res_inst_tac [("a1", "succ(succ(j Un ja))")] (UN_I RS UnI2) 1);
 by (eresolve_tac [subset_trans RS PowI] 2);
