@@ -1,7 +1,7 @@
 (*  Title:      Pure/meta_simplifier.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Stefan Berghofer
-    Copyright   1994  University of Cambridge
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Meta-level Simplification.
 *)
@@ -54,6 +54,7 @@ sig
   val rewrite_goal_rule : bool* bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> int -> thm -> thm
+  val rewrite_term: Sign.sg -> thm list -> term -> term
 end;
 
 structure MetaSimplifier : META_SIMPLIFIER =
@@ -283,6 +284,12 @@ fun decomp_simp thm =
       val perm = var_perm (term_of elhs, erhs) andalso not (term_of elhs aconv erhs)
                  andalso not (is_Var (term_of elhs))
   in (sign, prems, term_of lhs, elhs, term_of rhs, perm) end;
+
+fun decomp_simp' thm =
+  let val (_, _, _, elhs, rhs, _) = decomp_simp thm in
+    if Thm.nprems_of thm > 0 then raise SIMPLIFIER ("Bad conditional rewrite rule", thm)
+    else (term_of elhs, rhs)
+  end;
 
 fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) thm =
   case mk_eq_True thm of
@@ -977,6 +984,10 @@ fun rewrite_goal_rule mode prover mss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then fconv_rule (goals_conv (fn j => j=i) (rewrite_cterm mode prover mss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
+
+
+(*simple term rewriting -- without proofs*)
+fun rewrite_term sg rules = Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules);
 
 end;
 
