@@ -89,11 +89,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Integ/int_factor_simprocs.ML Integ/nat_simprocs.ML \
   Lfp.ML Lfp.thy List.ML List.thy Main.ML Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy NatDef.ML NatDef.thy Numeral.thy \
-  Option.ML Option.thy Power.ML Power.thy PreList.thy \
-  Product_Type.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
-  Relation.ML Relation.thy Relation_Power.ML Relation_Power.thy \
-  Set.ML Set.thy SetInterval.ML SetInterval.thy Sum_Type.ML Sum_Type.thy \
-  Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
+  Power.ML Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML \
+  Recdef.thy Record.thy Relation.ML Relation.thy Relation_Power.ML \
+  Relation_Power.thy Set.ML Set.thy SetInterval.ML SetInterval.thy \
+  Sum_Type.ML Sum_Type.thy Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
   Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
