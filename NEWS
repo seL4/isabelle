@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -223,6 +222,8 @@ in typings (of consts etc.); internally the class is called
 (beware of argument permutation!);
 
 * HOL: linorder_less_split superseded by linorder_cases;
+
+* HOL/List: "nodups" renamed to "distinct"
 
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
 to peripheral theory "Hilbert_Choice";
