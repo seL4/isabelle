@@ -1784,15 +1784,16 @@ stroke of \texttt{Auto_tac} or \texttt{Force_tac}.
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
-Inductive datatypes, similar to those of \ML, frequently appear in 
+Inductive datatypes, similar to those of \ML, frequently appear in
 applications of Isabelle/HOL.  In principle, such types could be defined by
 hand via \texttt{typedef} (see \S\ref{sec:typedef}), but this would be far too
-tedious.  The \ttindex{datatype} definition package of \HOL\ automates such
-chores.  It generates an appropriate \texttt{typedef} based on a least
-fixed-point construction, and proves freeness theorems and induction rules, as
-well as theorems for recursion and case combinators.  The user just has to
-give a simple specification of new inductive types using a notation similar to
-{\ML} or Haskell.
+tedious.  The \ttindex{datatype} definition package of Isabelle/HOL (cf.\ 
+\cite{Berghofer-Wenzel:1999:TPHOL}) automates such chores.  It generates an
+appropriate \texttt{typedef} based on a least fixed-point construction, and
+proves freeness theorems and induction rules, as well as theorems for
+recursion and case combinators.  The user just has to give a simple
+specification of new inductive types using a notation similar to {\ML} or
+Haskell.
 
 The current datatype package can handle both mutual and indirect recursion.
 It also offers to represent existing types as datatypes giving the advantage
