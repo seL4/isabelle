@@ -5,30 +5,34 @@
 
 General products of programs (Pi operation), for replicating components.
 Also merging of state sets.
+
+The idea of Rsh is to represent sharing in the Right part.
+If x and y are states then (Rsh x y) updates y to agree with variables shared
+with x.  Therefore Rsh x (Rsh x y) = Rsh x y.  The pair (x,y)
+is a valid state of the composite program if and only if y = Rsh x y.
+
+Needs Rcopy; try to do by swapping (symmetry argument)
+  instead of repeating all Lcopy proofs.
 *)
 
 PPROD = Union + Comp +
 
 constdefs
-  (*Cartesian product of two relations*)
-  RTimes :: "[('a*'b) set, ('c*'d) set] => (('a*'c) * ('b*'d)) set"
-	("_ RTimes _" [81, 80] 80)
 
-    "R RTimes S == {((x,y),(x',y')). (x,x'):R & (y,y'):S}"
+  sharing :: "[['a,'b]=>'b, 'a set] => ('a*'b) set"
+    "sharing Rsh A == SIGMA x: A. range (Rsh x)"
 
-(*FIXME: syntax (symbols) to use <times> ??
-  RTimes :: "[('a*'a) set, ('b*'b) set] => (('a*'b) * ('a*'b)) set"
-    ("_ \\<times> _" [81, 80] 80)
-*)
+  Lcopy_act :: "[['a,'b]=>'b, ('a*'a) set] => (('a*'b) * ('a*'b)) set"
+    "Lcopy_act Rsh act == {((x,y),(x',y')). (x,x'): act & Rsh x y = y &
+			                    Rsh x' y = y'}"
 
-constdefs
   fst_act :: "(('a*'b) * ('a*'b)) set => ('a*'a) set"
     "fst_act act == (%((x,y),(x',y')). (x,x')) `` act"
 
-  Lcopy :: "'a program => ('a*'b) program"
-    "Lcopy F == mk_program (UNIV,
-			    Init F Times UNIV,
-			    (%act. act RTimes (diag UNIV)) `` Acts F)"
+  Lcopy :: "[['a,'b]=>'b, 'a program] => ('a*'b) program"
+    "Lcopy Rsh F == mk_program (sharing Rsh (States F),
+			        sharing Rsh (Init F),
+			        Lcopy_act Rsh `` Acts F)"
 
   lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
     "lift_act i act == {(f,f'). EX s'. f' = f(i:=s') & (f i, s') : act}"
@@ -36,9 +40,14 @@ constdefs
   drop_act :: "['a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
     "drop_act i act == (%(f,f'). (f i, f' i)) `` act"
 
+  lift_set :: "['a, 'b set] => ('a => 'b) set"
+    "lift_set i A == {f. f i : A}"
+
   lift_prog :: "['a, 'b program] => ('a => 'b) program"
     "lift_prog i F ==
-       mk_program (UNIV, {f. f i : Init F}, lift_act i `` Acts F)"
+       mk_program (lift_set i (States F),
+		   lift_set i (Init F),
+		   lift_act i `` Acts F)"
 
   (*products of programs*)
   PPROD  :: ['a set, 'a => 'b program] => ('a => 'b) program
@@ -49,5 +58,13 @@ syntax
 
 translations
   "PPI x:A. B"   == "PPROD A (%x. B)"
+
+
+locale Share =
+  fixes 
+    Rsh	:: ['a,'b]=>'b
+  assumes
+    (*the last update (from the other side) takes precedence*)
+    overwrite "Rsh x (Rsh x' y) = Rsh x y"
 
 end

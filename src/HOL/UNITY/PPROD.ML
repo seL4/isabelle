@@ -4,191 +4,230 @@
     Copyright   1998  University of Cambridge
 *)
 
-(*** General lemmas ***)
 
-Goal "x:C ==> (A Times C <= B Times C) = (A <= B)";
+val rinst = read_instantiate_sg (sign_of thy);
+
+    (*** General lemmas ***)
+
+Goalw [sharing_def] "((x,y): sharing Rsh A) = (x: A & y : range (Rsh x))";
+by Auto_tac;
+qed "sharing_iff";
+AddIffs [sharing_iff]; 
+
+Goalw [sharing_def] "(sharing Rsh A <= sharing Rsh B) = (A <= B)";
+by Auto_tac;
+qed "sharing_subset_iff";
+AddIffs [sharing_subset_iff]; 
+
+Goalw [sharing_def] "sharing Rsh (A Un B) = sharing Rsh A Un sharing Rsh B";
+by Auto_tac;
+qed "sharing_Un_distrib";
+
+Goalw [sharing_def] "sharing Rsh (A Int B) = sharing Rsh A Int sharing Rsh B";
+by Auto_tac;
+qed "sharing_Int_distrib";
+
+Goalw [sharing_def] "sharing Rsh (A - B) = sharing Rsh A - sharing Rsh B";
+by Auto_tac;
+qed "sharing_Diff_distrib";
+
+Goalw [sharing_def] "sharing Rsh (Union A) = (UN X:A. sharing Rsh X)";
 by (Blast_tac 1);
-qed "Times_subset_cancel2";
+qed "sharing_Union";
 
-Goal "x:C ==> (A Times C = B Times C) = (A = B)";
-by (blast_tac (claset() addEs [equalityE]) 1);
-qed "Times_eq_cancel2";
+Goal "(sharing Rsh A <= - sharing Rsh B) = (A <= - B)";
+by (force_tac (claset(),simpset() addsimps [sharing_def, Image_iff]) 1);
+qed "Lcopy_subset_Compl_eq";
 
-Goal "Union(B) Times A = (UN C:B. C Times A)";
-by (Blast_tac 1);
-qed "Times_Union2";
+Goal "(((a,b), (a',b')) : Lcopy_act Rsh act) = \
+\     ((a,a'):act & Rsh a b = b & Rsh a' b = b')";
+by (simp_tac (simpset() addsimps [Lcopy_act_def]) 1);
+qed "mem_Lcopy_act_iff";
+AddIffs [mem_Lcopy_act_iff]; 
 
-    Goal "Domain (Union S) = (UN A:S. Domain A)";
-    by (Blast_tac 1);
-    qed "Domain_Union";
-
-(** RTimes: the product of two relations **)
-
-Goal "(((a,b), (a',b')) : A RTimes B) = ((a,a'):A & (b,b'):B)";
-by (simp_tac (simpset() addsimps [RTimes_def]) 1);
-qed "mem_RTimes_iff";
-AddIffs [mem_RTimes_iff]; 
-
-Goalw [RTimes_def] "[| A<=C;  B<=D |] ==> A RTimes B <= C RTimes D";
+(*NEEDED????????????????*)
+Goal "[| (a,a'):act; Rsh a b = b |] ==> (((a,b), (a', Rsh a' b)) : Lcopy_act Rsh act)";
 by Auto_tac;
-qed "RTimes_mono";
+qed "mem_Lcopy_actI";
 
-Goal "{} RTimes B = {}";
-by Auto_tac;
-qed "RTimes_empty1"; 
 
-Goal "A RTimes {} = {}";
-by Auto_tac;
-qed "RTimes_empty2"; 
+Goal "act : Acts F \
+\     ==> Lcopy_act Rsh act <= \
+\         sharing Rsh (States F) Times sharing Rsh (States F)";
+by (auto_tac (claset() addIs [range_eqI, sym]
+                       addDs [impOfSubs Acts_subset_Pow_States], 
+              simpset()));
+qed "Lcopy_act_subset_Times";
 
-Goal "Id RTimes Id = Id";
-by Auto_tac;
-qed "RTimes_Id"; 
 
-Addsimps [RTimes_empty1, RTimes_empty2, RTimes_Id]; 
 
-Goal "Domain (r RTimes s) = Domain r Times Domain s";
-by (auto_tac (claset(), simpset() addsimps [Domain_iff]));
-qed "Domain_RTimes"; 
+Open_locale "Share";
 
-Goal "Range (r RTimes s) = Range r Times Range s";
-by (auto_tac (claset(), simpset() addsimps [Range_iff]));
-qed "Range_RTimes"; 
+val overwrite = thm "overwrite";
+Addsimps [overwrite];
 
-Goal "(r RTimes s) ^^ (A Times B) = r^^A Times s^^B";
+Goal "Lcopy_act Rsh act ^^ sharing Rsh A = sharing Rsh (act ^^ A)";
+by (force_tac (claset(),simpset() addsimps [sharing_def, Image_iff]) 1);
+qed "Lcopy_act_Image";
+Addsimps [Lcopy_act_Image];
+
+
+
+Goal "(Lcopy_act Rsh act ^^ sharing Rsh A <= sharing Rsh B) = (act ^^ A <= B)";
+by (force_tac (claset(),simpset() addsimps [sharing_def, Image_iff]) 1);
+qed "Lcopy_act_Image_subset_eq";
+
+Goal "Domain (Lcopy_act Rsh act) = sharing Rsh (Domain act)";
+by (auto_tac (claset() addIs [sym], simpset() addsimps [Domain_iff]));
+qed "Domain_Lcopy_act"; 
+
+(*?? needed??
+Goal "(Lcopy_act Rsh act) ^^ (SIGMA x:A. B Int range(Rsh x)) = (SIGMA x: act^^A. Rsh x `` B)";
 by (auto_tac (claset(), simpset() addsimps [Image_iff]));
-qed "Image_RTimes"; 
+qed "Image_Lcopy_act"; 
+**)
+
+Goal "Lcopy_act Rsh (diag A) = diag (sharing Rsh A)";
+by (auto_tac (claset() addIs [sym], simpset()));
+qed "Lcopy_diag";
+
+Addsimps [Lcopy_diag];
 
 
 (**** Lcopy ****)
 
 (*** Basic properties ***)
 
-Goal "Init (Lcopy F) = Init F Times UNIV";
-by (simp_tac (simpset() addsimps [Lcopy_def]) 1);
+Goalw [Lcopy_def] "States (Lcopy Rsh F) = sharing Rsh (States F)";
+by Auto_tac;
+qed "States_Lcopy";
+
+Goalw [Lcopy_def] "Init (Lcopy Rsh F) = sharing Rsh (Init F)";
+by (auto_tac (claset() addIs [impOfSubs Init_subset_States], simpset()));
 qed "Init_Lcopy";
 
-Goal "diag (States F Times UNIV) : (%act. act RTimes diag UNIV) `` Acts F";
+Goal "diag (sharing Rsh (States F)) : Lcopy_act Rsh `` Acts F";
 by (rtac image_eqI 1);
 by (rtac diag_in_Acts 2);
 by Auto_tac;
 val lemma = result();
 
-Goal "Acts (Lcopy F) = (%act. act RTimes Id) `` Acts F";
-by (auto_tac (claset() addSIs [lemma], 
-	      simpset() addsimps [Lcopy_def]));
+Goal "Acts (Lcopy Rsh F) = (Lcopy_act Rsh `` Acts F)";
+by (auto_tac (claset() addSIs [lemma] 
+                       addDs [impOfSubs Acts_subset_Pow_States], 
+	      simpset() addsimps [Lcopy_def, Lcopy_act_subset_Times, 
+				  image_subset_iff]));
 qed "Acts_Lcopy";
 
-Addsimps [Init_Lcopy];
+Addsimps [States_Lcopy, Init_Lcopy, Acts_Lcopy];
 
-Goalw [Lcopy_def, SKIP_def] "Lcopy SKIP = SKIP";
+Goalw [SKIP_def] "Lcopy Rsh (SKIP A) = SKIP(sharing Rsh A)";
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "Lcopy_SKIP";
 
-Addsimps [Lcopy_SKIP];
-
 
 (*** Safety: constrains, stable ***)
 
-(** In most cases, C = UNIV.  The generalization isn't of obvious value. **)
-
-Goal "x: C ==> \
-\     (Lcopy F : constrains (A Times C) (B Times C)) = (F : constrains A B)";
-by (auto_tac (claset(), simpset() addsimps [constrains_def, Lcopy_def]));
-by (Blast_tac 1);
+Goal "(Lcopy Rsh F : constrains (sharing Rsh A) (sharing Rsh B)) = \
+\     (F : constrains A B)";
+by (simp_tac (simpset() addsimps [constrains_def, 
+				  Lcopy_act_Image_subset_eq]) 1);
 qed "Lcopy_constrains";
 
-Goal "Lcopy F : constrains A B ==> F : constrains (Domain A) (Domain B)";
-by (auto_tac (claset(), simpset() addsimps [constrains_def, Lcopy_def]));
-by (Blast_tac 1);
+Goal "[| Lcopy Rsh F : constrains A B;  A <= States (Lcopy Rsh F) |]  \
+\     ==> F : constrains (Domain A) (Domain B)";
+by (force_tac (claset() addIs [rev_bexI], 
+	       simpset() addsimps [constrains_def, sharing_def, Image_iff]) 1);
 qed "Lcopy_constrains_Domain";
 
-Goal "x: C ==> (Lcopy F : stable (A Times C)) = (F : stable A)";
+Goal "(Lcopy Rsh F : stable (sharing Rsh A)) = (F : stable A)";
 by (asm_simp_tac (simpset() addsimps [stable_def, Lcopy_constrains]) 1);
 qed "Lcopy_stable";
 
-Goal "(Lcopy F : invariant (A Times UNIV)) = (F : invariant A)";
-by (asm_simp_tac (simpset() addsimps [Times_subset_cancel2,
-				      invariant_def, Lcopy_stable]) 1);
+Goal "(Lcopy Rsh F : invariant (sharing Rsh A)) = (F : invariant A)";
+by (asm_simp_tac (simpset() addsimps [invariant_def, Lcopy_stable]) 1);
 qed "Lcopy_invariant";
 
 (** Substitution Axiom versions: Constrains, Stable **)
 
-Goal "p : reachable (Lcopy F) ==> fst p : reachable F";
+Goal "p : reachable (Lcopy Rsh F) \
+\     ==> (%(a,b). a : reachable F & b : range (Rsh a)) p";
 by (etac reachable.induct 1);
 by (auto_tac
     (claset() addIs reachable.intrs,
      simpset() addsimps [Acts_Lcopy]));
 qed "reachable_Lcopy_fst";
 
-Goal "(a,b) : reachable (Lcopy F) ==> a : reachable F";
+Goal "(a,b) : reachable (Lcopy Rsh F) \
+\     ==> a : reachable F & b : range (Rsh a)";
 by (force_tac (claset() addSDs [reachable_Lcopy_fst], simpset()) 1);
 qed "reachable_LcopyD";
 
-Goal "reachable (Lcopy F) = reachable F Times UNIV";
+Goal "reachable (Lcopy Rsh F) = sharing Rsh (reachable F)";
 by (rtac equalityI 1);
 by (force_tac (claset() addSDs [reachable_LcopyD], simpset()) 1);
 by (Clarify_tac 1);
 by (etac reachable.induct 1);
 by (ALLGOALS (force_tac (claset() addIs reachable.intrs, 
-			 simpset() addsimps [Acts_Lcopy])));
+			 simpset())));
 qed "reachable_Lcopy_eq";
 
-Goal "(Lcopy F : Constrains (A Times UNIV) (B Times UNIV)) =  \
+Goal "(Lcopy Rsh F : Constrains (sharing Rsh A) (sharing Rsh B)) =  \
 \     (F : Constrains A B)";
 by (simp_tac
     (simpset() addsimps [Constrains_def, reachable_Lcopy_eq, 
-			 Lcopy_constrains, Sigma_Int_distrib1 RS sym]) 1);
+			 Lcopy_constrains, sharing_Int_distrib RS sym]) 1);
 qed "Lcopy_Constrains";
 
-Goal "(Lcopy F : Stable (A Times UNIV)) = (F : Stable A)";
+Goal "(Lcopy Rsh F : Stable (sharing Rsh A)) = (F : Stable A)";
 by (simp_tac (simpset() addsimps [Stable_def, Lcopy_Constrains]) 1);
 qed "Lcopy_Stable";
 
 
 (*** Progress: transient, ensures ***)
 
-Goal "(Lcopy F : transient (A Times UNIV)) = (F : transient A)";
+Goal "(Lcopy Rsh F : transient (sharing Rsh A)) = (F : transient A)";
 by (auto_tac (claset(),
-	      simpset() addsimps [transient_def, Times_subset_cancel2, 
-				  Domain_RTimes, Image_RTimes, Lcopy_def]));
+	      simpset() addsimps [transient_def, Lcopy_subset_Compl_eq,
+				  Domain_Lcopy_act]));
 qed "Lcopy_transient";
 
-Goal "(Lcopy F : ensures (A Times UNIV) (B Times UNIV)) = \
+Goal "(Lcopy Rsh F : ensures (sharing Rsh A) (sharing Rsh B)) = \
 \     (F : ensures A B)";
 by (simp_tac
     (simpset() addsimps [ensures_def, Lcopy_constrains, Lcopy_transient, 
-			 Sigma_Un_distrib1 RS sym, 
-			 Sigma_Diff_distrib1 RS sym]) 1);
+			 sharing_Un_distrib RS sym, 
+			 sharing_Diff_distrib RS sym]) 1);
 qed "Lcopy_ensures";
 
-Goal "F : leadsTo A B ==> Lcopy F : leadsTo (A Times UNIV) (B Times UNIV)";
+Goal "F : leadsTo A B \
+\     ==> Lcopy Rsh F : leadsTo (sharing Rsh A) (sharing Rsh B)";
 by (etac leadsTo_induct 1);
-by (asm_simp_tac (simpset() addsimps [leadsTo_UN, Times_Union2]) 3);
+by (asm_simp_tac (simpset() addsimps [leadsTo_UN, sharing_Union]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
 by (asm_simp_tac (simpset() addsimps [leadsTo_Basis, Lcopy_ensures]) 1);
 qed "leadsTo_imp_Lcopy_leadsTo";
 
 (**
-    Goal "Lcopy F : ensures A B ==> F : ensures (Domain A) (Domain B)";
+    Goal "Lcopy Rsh F : ensures A B ==> F : ensures (Domain A) (Domain B)";
     by (full_simp_tac
 	(simpset() addsimps [ensures_def, Lcopy_constrains, Lcopy_transient, 
 			     Domain_Un_eq RS sym,
-			     Sigma_Un_distrib1 RS sym, 
-			     Sigma_Diff_distrib1 RS sym]) 1);
+			     sharing_Un_distrib RS sym, 
+			     sharing_Diff_distrib RS sym]) 1);
     by (safe_tac (claset() addSDs [Lcopy_constrains_Domain]));
     by (etac constrains_weaken_L 1);
     by (Blast_tac 1);
     (*NOT able to prove this:
-    Lcopy F : ensures A B ==> F : ensures (Domain A) (Domain B)
-     1. [| Lcopy F : transient (A - B);
+    Lcopy Rsh F : ensures A B ==> F : ensures (Domain A) (Domain B)
+     1. [| Lcopy Rsh F : transient (A - B);
 	   F : constrains (Domain (A - B)) (Domain (A Un B)) |]
 	==> F : transient (Domain A - Domain B)
     **)
 
 
-    Goal "Lcopy F : leadsTo AU BU ==> F : leadsTo (Domain AU) (Domain BU)";
+    Goal "Lcopy Rsh F : leadsTo AU BU ==> F : leadsTo (Domain AU) (Domain BU)";
     by (etac leadsTo_induct 1);
     by (full_simp_tac (simpset() addsimps [Domain_Union]) 3);
     by (blast_tac (claset() addIs [leadsTo_UN]) 3);
@@ -198,7 +237,7 @@ qed "leadsTo_imp_Lcopy_leadsTo";
 
 
     (*This also seems impossible to prove??*)
-    Goal "(Lcopy F : leadsTo (A Times UNIV) (B Times UNIV)) = \
+    Goal "(Lcopy Rsh F : leadsTo (sharing Rsh A) (sharing Rsh B)) = \
     \     (F : leadsTo A B)";
 **)
 
@@ -207,21 +246,46 @@ qed "leadsTo_imp_Lcopy_leadsTo";
 
 (*** Basic properties ***)
 
-Goalw [lift_act_def] "lift_act i Id = Id";
+Goalw [lift_set_def] "(f : lift_set i A) = (f i : A)";
 by Auto_tac;
-qed "lift_act_Id";
-Addsimps [lift_act_Id];
+qed "lift_set_iff";
+AddIffs [lift_set_iff];
 
-Goalw [lift_prog_def] "Init (lift_prog i F) = {f. f i : Init F}";
+Goalw [lift_act_def] "lift_act i (diag A) = (diag (lift_set i A))";
 by Auto_tac;
+qed "lift_act_diag";
+Addsimps [lift_act_diag];
+
+Goalw [lift_prog_def] "States (lift_prog i F) = (lift_set i (States F))";
+by Auto_tac;
+qed "States_lift_prog";
+Addsimps [States_lift_prog];
+
+Goalw [lift_prog_def] "Init (lift_prog i F) = (lift_set i (Init F))";
+by (auto_tac (claset() addIs [impOfSubs Init_subset_States], simpset()));
 qed "Init_lift_prog";
 Addsimps [Init_lift_prog];
 
+Goalw [lift_act_def]
+     "act : Acts F \
+\     ==> lift_act i act <= lift_set i (States F) Times lift_set i (States F)";
+by (force_tac (claset()  addIs [range_eqI, sym]
+                    addDs [impOfSubs Acts_subset_Pow_States], 
+              simpset()) 1);
+qed "lift_act_subset_Times";
+
 Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
-by (auto_tac (claset() addIs [diag_in_Acts RSN (2,image_eqI)], simpset()));
+by (auto_tac (claset() addIs [diag_in_Acts RSN (2,image_eqI)], 
+	      simpset() addsimps [lift_act_subset_Times, 
+				  image_subset_iff]));
 qed "Acts_lift_prog";
 
-Goalw [PPROD_def] "Init (PPROD I F) = {f. ALL i:I. f i : Init (F i)}";
+Goalw [PPROD_def] "States (PPROD I F) = (INT i:I. lift_set i (States (F i)))";
+by Auto_tac;
+qed "States_PPROD";
+Addsimps [States_PPROD];
+
+Goalw [PPROD_def] "Init (PPROD I F) = (INT i:I. lift_set i (Init (F i)))";
 by Auto_tac;
 qed "Init_PPROD";
 Addsimps [Init_PPROD];
@@ -232,15 +296,24 @@ by (Blast_tac 1);
 qed "lift_act_eq";
 AddIffs [lift_act_eq];
 
-Goal "Acts (PPROD I F) = insert Id (UN i:I. lift_act i `` Acts (F i))";
+Goalw [eqStates_def] "eqStates I (%i. lift_prog i F)";
+
+Goalw [eqStates_def] "eqStates I (%i. lift_prog i (F i))";
+
+Goal "[| eqStates I (%i. lift_prog i (F i));  i: I |] \
+\     ==> Acts (PPROD I F) = (UN i:I. lift_act i `` Acts (F i))";
 by (auto_tac (claset(),
 	      simpset() addsimps [PPROD_def, Acts_lift_prog, Acts_JN]));
 qed "Acts_PPROD";
 
-Goal "(PPI i: I. SKIP) = SKIP";
+Goal "PPROD {} F = SKIP UNIV";
+by (simp_tac (simpset() addsimps [PPROD_def]) 1);
+qed "Acts_PPROD";
+
+Goal "i : I ==> (PPI i: I. SKIP A) = SKIP (INT i:I. lift_set i A)";
 by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [PPROD_def, Acts_lift_prog, 
-				  SKIP_def, Acts_JN]));
+	      simpset() addsimps [eqStates_def, Acts_lift_prog, 
+				  SKIP_def, Acts_PPROD]));
 qed "PPROD_SKIP";
 
 Goal "PPROD {} F = SKIP";
@@ -264,7 +337,7 @@ qed "component_PPROD";
 
 (** 1st formulation of lifting **)
 
-Goal "(lift_prog i F : constrains {f. f i : A} {f. f i : B})  =  \
+Goal "(lift_prog i F : constrains (lift_set i A) (lift_set i B))  =  \
 \     (F : constrains A B)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [constrains_def, Acts_lift_prog]));
@@ -272,27 +345,27 @@ by (Blast_tac 2);
 by (Force_tac 1);
 qed "lift_prog_constrains_eq";
 
-Goal "(lift_prog i F : stable {f. f i : A}) = (F : stable A)";
+Goal "(lift_prog i F : stable (lift_set i A)) = (F : stable A)";
 by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains_eq]) 1);
 qed "lift_prog_stable_eq";
 
 (*This one looks strange!  Proof probably is by case analysis on i=j.*)
 Goal "F i : constrains A B  \
-\     ==> lift_prog j (F j) : constrains {f. f i : A} {f. f i : B}";
+\     ==> lift_prog j (F j) : constrains (lift_set i A) (lift_set i B)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [constrains_def, Acts_lift_prog]));
 by (REPEAT (Blast_tac 1));
 qed "constrains_imp_lift_prog_constrains";
 
 Goal "i : I ==>  \
-\     (PPROD I F : constrains {f. f i : A} {f. f i : B})  =  \
+\     (PPROD I F : constrains (lift_set i A) (lift_set i B))  =  \
 \     (F i : constrains A B)";
 by (asm_simp_tac (simpset() addsimps [PPROD_def, constrains_JN]) 1);
 by (blast_tac (claset() addIs [lift_prog_constrains_eq RS iffD1, 
 			       constrains_imp_lift_prog_constrains]) 1);
 qed "PPROD_constrains";
 
-Goal "i : I ==> (PPROD I F : stable {f. f i : A}) = (F i : stable A)";
+Goal "i : I ==> (PPROD I F : stable (lift_set i A)) = (F i : stable A)";
 by (asm_simp_tac (simpset() addsimps [stable_def, PPROD_constrains]) 1);
 qed "PPROD_stable";
 
@@ -319,24 +392,24 @@ qed "PPROD_constrains_projection";
 
 (** invariant **)
 
-Goal "F : invariant A ==> lift_prog i F : invariant {f. f i : A}";
+Goal "F : invariant A ==> lift_prog i F : invariant (lift_set i A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
 qed "invariant_imp_lift_prog_invariant";
 
-Goal "[| lift_prog i F : invariant {f. f i : A} |] ==> F : invariant A";
+Goal "[| lift_prog i F : invariant (lift_set i A) |] ==> F : invariant A";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
 qed "lift_prog_invariant_imp_invariant";
 
 (*NOT clear that the previous lemmas help in proving this one.*)
-Goal "[| F i : invariant A;  i : I |] ==> PPROD I F : invariant {f. f i : A}";
+Goal "[| F i : invariant A;  i : I |] ==> PPROD I F : invariant (lift_set i A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, PPROD_stable]));
 qed "invariant_imp_PPROD_invariant";
 
 (*The f0 premise ensures that the product is well-defined.*)
-Goal "[| PPROD I F : invariant {f. f i : A};  i : I;  \
+Goal "[| PPROD I F : invariant (lift_set i A);  i : I;  \
 \        f0: Init (PPROD I F) |] ==> F i : invariant A";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, PPROD_stable]));
@@ -345,7 +418,7 @@ by Auto_tac;
 qed "PPROD_invariant_imp_invariant";
 
 Goal "[| i : I;  f0: Init (PPROD I F) |] \
-\     ==> (PPROD I F : invariant {f. f i : A}) = (F i : invariant A)";
+\     ==> (PPROD I F : invariant (lift_set i A)) = (F i : invariant A)";
 by (blast_tac (claset() addIs [invariant_imp_PPROD_invariant, 
 			       PPROD_invariant_imp_invariant]) 1);
 qed "PPROD_invariant";
@@ -353,7 +426,7 @@ qed "PPROD_invariant";
 (*The f0 premise isn't needed if F is a constant program because then
   we get an initial state by replicating that of F*)
 Goal "i : I \
-\     ==> ((PPI x:I. F) : invariant {f. f i : A}) = (F : invariant A)";
+\     ==> ((PPI x:I. F) : invariant (lift_set i A)) = (F : invariant A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, PPROD_stable]));
 qed "PFUN_invariant";
@@ -424,7 +497,7 @@ qed "reachable_PPROD_eq";
 (** Constrains **)
 
 Goal "[| F i : Constrains A B;  i: I;  finite I |]  \
-\     ==> PPROD I F : Constrains {f. f i : A} {f. f i : B}";
+\     ==> PPROD I F : Constrains (lift_set i A) (lift_set i B)";
 by (auto_tac
     (claset(),
      simpset() addsimps [Constrains_def, Collect_conj_eq RS sym,
@@ -443,7 +516,7 @@ qed "Applyall_Int_depend";
 
 (*Again, we need the f0 premise because otherwise Constrains holds trivially
   for PPROD I F.*)
-Goal "[| PPROD I F : Constrains {f. f i : A} {f. f i : B};  \
+Goal "[| PPROD I F : Constrains (lift_set i A) (lift_set i B);  \
 \        i: I;  finite I;  f0: Init (PPROD I F) |]  \
 \     ==> F i : Constrains A B";
 by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
@@ -458,14 +531,14 @@ qed "PPROD_Constrains_imp_Constrains";
 
 
 Goal "[| i: I;  finite I;  f0: Init (PPROD I F) |]  \
-\     ==> (PPROD I F : Constrains {f. f i : A} {f. f i : B}) =  \
+\     ==> (PPROD I F : Constrains (lift_set i A) (lift_set i B)) =  \
 \         (F i : Constrains A B)";
 by (blast_tac (claset() addIs [Constrains_imp_PPROD_Constrains, 
 			       PPROD_Constrains_imp_Constrains]) 1);
 qed "PPROD_Constrains";
 
 Goal "[| i: I;  finite I;  f0: Init (PPROD I F) |]  \
-\     ==> (PPROD I F : Stable {f. f i : A}) = (F i : Stable A)";
+\     ==> (PPROD I F : Stable (lift_set i A)) = (F i : Stable A)";
 by (asm_simp_tac (simpset() delsimps [Init_PPROD]
 			    addsimps [Stable_def, PPROD_Constrains]) 1);
 qed "PPROD_Stable";
@@ -477,7 +550,7 @@ Goal "i: I ==> Applyall {f. (ALL i:I. f i : R) & f i : A} i = R Int A";
 by (force_tac (claset(), simpset() addsimps [Applyall_def]) 1);
 qed "Applyall_Int";
 
-Goal "[| (PPI x:I. F) : Constrains {f. f i : A} {f. f i : B};  \
+Goal "[| (PPI x:I. F) : Constrains (lift_set i A) (lift_set i B);  \
 \        i: I;  finite I |]  \
 \     ==> F : Constrains A B";
 by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
@@ -489,14 +562,14 @@ by (asm_full_simp_tac
 qed "PFUN_Constrains_imp_Constrains";
 
 Goal "[| i: I;  finite I |]  \
-\     ==> ((PPI x:I. F) : Constrains {f. f i : A} {f. f i : B}) =  \
+\     ==> ((PPI x:I. F) : Constrains (lift_set i A) (lift_set i B)) =  \
 \         (F : Constrains A B)";
 by (blast_tac (claset() addIs [Constrains_imp_PPROD_Constrains, 
 			       PFUN_Constrains_imp_Constrains]) 1);
 qed "PFUN_Constrains";
 
 Goal "[| i: I;  finite I |]  \
-\     ==> ((PPI x:I. F) : Stable {f. f i : A}) = (F : Stable A)";
+\     ==> ((PPI x:I. F) : Stable (lift_set i A)) = (F : Stable A)";
 by (asm_simp_tac (simpset() addsimps [Stable_def, PFUN_Constrains]) 1);
 qed "PFUN_Stable";
 
@@ -505,13 +578,13 @@ qed "PFUN_Stable";
 (*** guarantees properties ***)
 
 (*We only need act2=Id but the condition used is very weak*)
-Goal "(x,y): act2 ==> fst_act (act1 RTimes act2) = act1";
-by (auto_tac (claset(), simpset() addsimps [fst_act_def, RTimes_def]));
-qed "fst_act_RTimes";
-Addsimps [fst_act_RTimes];
+Goal "(x,y): act2 ==> fst_act (act1 Lcopy_act act2) = act1";
+by (auto_tac (claset(), simpset() addsimps [fst_act_def, Lcopy_act_def]));
+qed "fst_act_Lcopy_act";
+Addsimps [fst_act_Lcopy_act];
 
 
-Goal "(Lcopy F) Join G = Lcopy H ==> EX J. H = F Join J";
+Goal "(Lcopy Rsh F) Join G = Lcopy H ==> EX J. H = F Join J";
 by (etac program_equalityE 1);
 by (auto_tac (claset(), simpset() addsimps [Acts_Join]));
 by (res_inst_tac 
@@ -529,7 +602,7 @@ qed "Lcopy_Join_eq_Lcopy_D";
 
 
 Goal "F : X guarantees Y \
-\     ==> Lcopy F : (Lcopy `` X) guarantees (Lcopy `` Y)";
+\     ==> Lcopy Rsh F : (Lcopy `` X) guarantees (Lcopy `` Y)";
 by (rtac guaranteesI 1);
 by Auto_tac;
 by (blast_tac (claset() addDs [Lcopy_Join_eq_Lcopy_D, guaranteesD]) 1);
