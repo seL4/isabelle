@@ -25,7 +25,9 @@ n))\ \isasymin \ even"
 An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so
 is~$n+2$.  Given this declaration, Isabelle generates a fixed point
-definition for \isa{even} and proves theorems about it.  These theorems
+definition for \isa{even} and proves theorems about it,
+thus following the definitional approach (see \S\ref{sec:definitional}).
+These theorems
 include the introduction rules specified in the declaration, an elimination
 rule for case analysis and an induction rule.  We can refer to these
 theorems by automatically-generated names.  Here are two examples:
