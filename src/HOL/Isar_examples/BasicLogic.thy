@@ -77,7 +77,7 @@ proof;
 qed;
 
 
-(* propositional proof (from 'Introduction to Isabelle') *)
+text {* propositional proof (from 'Introduction to Isabelle') *};
 
 lemma "P | P --> P";
 proof;
@@ -97,7 +97,7 @@ proof;
 qed;
 
 
-(* quantifier proof (from 'Introduction to Isabelle') *)
+text {* quantifier proof (from 'Introduction to Isabelle') *};
 
 lemma "(EX x. P(f(x))) --> (EX x. P(x))";
 proof;

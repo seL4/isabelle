@@ -1,12 +1,11 @@
 (*  Title:      HOL/Isar_examples/Peirce.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-
-Peirce's law: examples of classical proof.
 *)
 
 theory Peirce = Main:;
 
+text {* Peirce's law: examples of classical proof. *};
 
 theorem "((A --> B) --> A) --> A";
 proof;

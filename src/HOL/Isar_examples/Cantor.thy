@@ -9,7 +9,7 @@ chapter of "Isabelle's Object-Logics" (Larry Paulson).
 theory Cantor = Main:;
 
 
-section "Example: Cantor's Theorem";
+section {* Example: Cantor's Theorem *};
 
 text {*
   Cantor's Theorem states that every set has more subsets than it has

@@ -5,9 +5,9 @@
 
 theory NatSum = Main:;
 
-section "Summing natural numbers";
+section {* Summing natural numbers *};
 
-text "A summation operator: sum f (n+1) is the sum of all f(i), i=0...n.";
+text {* A summation operator: sum f (n+1) is the sum of all f(i), i=0...n. *};
 
 consts
   sum	:: "[nat => nat, nat] => nat";
@@ -20,9 +20,9 @@ primrec
 (*theorems [simp] = add_assoc add_commute add_left_commute add_mult_distrib add_mult_distrib2;*)
 
 
-subsection "The sum of the first n positive integers equals n(n+1)/2";
+subsection {* The sum of the first n positive integers equals n(n+1)/2 *};
 
-text "Emulate Isabelle proof script:";
+text {* Emulate Isabelle proof script: *};
 
 (*
   Goal "2*sum (%i. i) (Suc n) = n*Suc(n)";
@@ -42,8 +42,8 @@ proof same;
 qed_with sum_of_naturals;
 
 
-text "Proper Isabelle/Isar proof expressing the same reasoning (which
-  is apparently not the most natural one):";
+text {* Proper Isabelle/Isar proof expressing the same reasoning (which
+  is apparently not the most natural one): *};
 
 theorem sum_of_naturals: "2 * sum (%i. i) (Suc n) = n * Suc n";
 proof simp;
@@ -55,9 +55,9 @@ proof simp;
 qed;
 
 
-subsection "The sum of the first n odd numbers equals n squared";
+subsection {* The sum of the first n odd numbers equals n squared *};
 
-text "First version: `proof-by-induction'";
+text {* First version: `proof-by-induction' *};
 
 theorem sum_of_odds: "sum (%i. Suc (i + i)) n = n * n" (is "??P n");
 proof (induct n);
@@ -65,8 +65,8 @@ proof (induct n);
   fix m; assume hyp: "??P m"; show "??P (Suc m)"; by (simp, rule hyp);
 qed;
 
-text "The second version tells more about what is going on during the
-induction.";
+text {* The second version tells more about what is going on during the
+induction. *};
 
 theorem sum_of_odds': "sum (%i. Suc (i + i)) n = n * n" (is "??P n");
 proof (induct n);
