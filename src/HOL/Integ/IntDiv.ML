@@ -223,21 +223,21 @@ qed "divAlg_correct";
 
 Goal "a div (#0::int) = #0";
 by (simp_tac (simpset() addsimps [div_def, divAlg_def, posDivAlg_raw_eqn]) 1);
-qed "DIVISION_BY_ZERO_DIV";  (*NOT for adding to default simpset*)
+qed "DIVISION_BY_ZERO_ZDIV";  (*NOT for adding to default simpset*)
 
 Goal "a mod (#0::int) = a";
 by (simp_tac (simpset() addsimps [mod_def, divAlg_def, posDivAlg_raw_eqn]) 1);
-qed "DIVISION_BY_ZERO_MOD";  (*NOT for adding to default simpset*)
+qed "DIVISION_BY_ZERO_ZMOD";  (*NOT for adding to default simpset*)
 
-fun undefined_case_tac s i =
+fun zdiv_undefined_case_tac s i =
   case_tac s i THEN 
-  asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO_DIV, 
-				    DIVISION_BY_ZERO_MOD]) i;
+  asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO_ZDIV, 
+				    DIVISION_BY_ZERO_ZMOD]) i;
 
 (** Basic laws about division and remainder **)
 
 Goal "(a::int) = b * (a div b) + (a mod b)";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (cut_inst_tac [("a","a"),("b","b")] divAlg_correct 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [quorem_def, div_def, mod_def]));
@@ -316,7 +316,7 @@ qed "mod_pos_neg_trivial";
 
 (*Simpler laws such as -a div b = -(a div b) FAIL*)
 Goal "(-a) div (-b) = a div (b::int)";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (stac ((simplify(simpset()) (quorem_div_mod RS quorem_neg)) 
 	  RS quorem_div) 1);
 by Auto_tac;
@@ -325,7 +325,7 @@ Addsimps [zdiv_zminus_zminus];
 
 (*Simpler laws such as -a mod b = -(a mod b) FAIL*)
 Goal "(-a) mod (-b) = - (a mod (b::int))";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (stac ((simplify(simpset()) (quorem_div_mod RS quorem_neg)) 
 	  RS quorem_mod) 1);
 by Auto_tac;
@@ -372,7 +372,7 @@ Addsimps [zdiv_self];
 
 (*Here we have 0 mod 0 = 0, also assumed by Knuth (who puts m mod 0 = 0) *)
 Goal "a mod a = (#0::int)";
-by (undefined_case_tac "a = #0" 1);
+by (zdiv_undefined_case_tac "a = #0" 1);
 by (asm_simp_tac (simpset() addsimps [quorem_div_mod RS self_remainder]) 1);
 qed "zmod_self";
 Addsimps [zmod_self];
@@ -384,11 +384,23 @@ Goal "(#0::int) div b = #0";
 by (simp_tac (simpset() addsimps [div_def, divAlg_def]) 1);
 qed "div_zero";
 
+Goal "(#0::int) < b ==> #-1 div b = #-1";
+by (asm_simp_tac (simpset() addsimps [div_def, divAlg_def]) 1);
+qed "div_eq_minus1";
+
 Goal "(#0::int) mod b = #0";
 by (simp_tac (simpset() addsimps [mod_def, divAlg_def]) 1);
 qed "mod_zero";
 
 Addsimps [div_zero, mod_zero];
+
+Goal "(#0::int) < b ==> #-1 div b = #-1";
+by (asm_simp_tac (simpset() addsimps [div_def, divAlg_def]) 1);
+qed "div_minus1";
+
+Goal "(#0::int) < b ==> #-1 mod b = b-#1";
+by (asm_simp_tac (simpset() addsimps [mod_def, divAlg_def]) 1);
+qed "mod_minus1";
 
 (** a positive, b positive **)
 
@@ -572,12 +584,12 @@ by Auto_tac;
 val lemma = result();
 
 Goal "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)";
-by (undefined_case_tac "c = #0" 1);
+by (zdiv_undefined_case_tac "c = #0" 1);
 by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_div]) 1);
 qed "zdiv_zmult1_eq";
 
 Goal "(a*b) mod c = a*(b mod c) mod (c::int)";
-by (undefined_case_tac "c = #0" 1);
+by (zdiv_undefined_case_tac "c = #0" 1);
 by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_mod]) 1);
 qed "zmod_zmult1_eq";
 
@@ -620,20 +632,20 @@ val lemma = result();
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 Goal "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)";
-by (undefined_case_tac "c = #0" 1);
+by (zdiv_undefined_case_tac "c = #0" 1);
 by (blast_tac (claset() addIs [[quorem_div_mod,quorem_div_mod]
 			       MRS lemma RS quorem_div]) 1);
 qed "zdiv_zadd1_eq";
 
 Goal "(a+b) mod (c::int) = (a mod c + b mod c) mod c";
-by (undefined_case_tac "c = #0" 1);
+by (zdiv_undefined_case_tac "c = #0" 1);
 by (blast_tac (claset() addIs [[quorem_div_mod,quorem_div_mod]
 			       MRS lemma RS quorem_mod]) 1);
 qed "zmod_zadd1_eq";
 
 
 Goal "(a mod b) div b = (#0::int)";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (auto_tac (claset(), 
        simpset() addsimps [linorder_neq_iff, 
 			   pos_mod_sign, pos_mod_bound, div_pos_pos_trivial, 
@@ -642,7 +654,7 @@ qed "mod_div_trivial";
 Addsimps [mod_div_trivial];
 
 Goal "(a mod b) mod b = a mod (b::int)";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (auto_tac (claset(), 
        simpset() addsimps [linorder_neq_iff, 
 			   pos_mod_sign, pos_mod_bound, mod_pos_pos_trivial, 
@@ -661,12 +673,12 @@ qed "zdiv_zadd_self2";
 Addsimps [zdiv_zadd_self1, zdiv_zadd_self2];
 
 Goal "(a+b) mod a = b mod (a::int)";
-by (undefined_case_tac "a = #0" 1);
+by (zdiv_undefined_case_tac "a = #0" 1);
 by (asm_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1);
 qed "zmod_zadd_self1";
 
 Goal "(b+a) mod a = b mod (a::int)";
-by (undefined_case_tac "a = #0" 1);
+by (zdiv_undefined_case_tac "a = #0" 1);
 by (asm_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1);
 qed "zmod_zadd_self2";
 Addsimps [zmod_zadd_self1, zmod_zadd_self2];
@@ -733,7 +745,7 @@ by Auto_tac;
 val lemma = result();
 
 Goal "(#0::int) < c ==> a div (b*c) = (a div b) div c";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (force_tac (claset(),
 	       simpset() addsimps [quorem_div_mod RS lemma RS quorem_div, 
 				   zmult_eq_0_iff]) 1);
@@ -741,7 +753,7 @@ qed "zdiv_zmult2_eq";
 
 Goal "[| (#0::int) < c |] \
 \     ==> a mod (b*c) = b*(a div b mod c) + a mod b";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (force_tac (claset(),
 	       simpset() addsimps [quorem_div_mod RS lemma RS quorem_mod, 
 				   zmult_eq_0_iff]) 1);
@@ -762,7 +774,7 @@ by Auto_tac;
 val lemma2 = result();
 
 Goal "c ~= (#0::int) ==> (c*a) div (c*b) = a div b";
-by (undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
 by (auto_tac
     (claset(), 
      simpset() delsimps zmult_ac
@@ -792,8 +804,8 @@ by (auto_tac (claset(),
 val lemma2 = result();
 
 Goal "(c*a) mod (c*b) = (c::int) * (a mod b)";
-by (undefined_case_tac "b = #0" 1);
-by (undefined_case_tac "c = #0" 1);
+by (zdiv_undefined_case_tac "b = #0" 1);
+by (zdiv_undefined_case_tac "c = #0" 1);
 by (auto_tac
     (claset(), 
      simpset() delsimps zmult_ac
@@ -809,16 +821,16 @@ qed "zmod_zmult_zmult2";
 
 (*** Speeding up the division algorithm with shifting ***)
 
-(** NB Could do the same thing for "mod" **)
+(** computing "div" by shifting **)
 
 Goal "(#0::int) <= a ==> (#1 + #2*b) div (#2*a) = b div a";
-by (undefined_case_tac "a = #0" 1);
+by (zdiv_undefined_case_tac "a = #0" 1);
 by (subgoal_tac "#1 <= a" 1);
 by (arith_tac 2);
 by (subgoal_tac "#1 < a * #2" 1);
 by (dres_inst_tac [("i","#1"), ("k", "#2")] zmult_zle_mono1 2);
 by (subgoal_tac "#2*(#1 + b mod a) <= #2*a" 1);
-br zmult_zle_mono2 2;
+by (rtac zmult_zle_mono2 2);
 by (auto_tac (claset(),
 	      simpset() addsimps [add1_zle_eq,pos_mod_bound]));
 by (stac zdiv_zadd1_eq 1);
@@ -835,7 +847,7 @@ qed "pos_zdiv_times_2";
 
 Goal "a <= (#0::int) ==> (#1 + #2*b) div (#2*a) = (b+#1) div a";
 by (subgoal_tac "(#1 + #2*(-b-#1)) div (#2 * -a) = (-b-#1) div (-a)" 1);
-br pos_zdiv_times_2 2;
+by (rtac pos_zdiv_times_2 2);
 by Auto_tac;
 by (subgoal_tac "(#-1 + - (b * #2)) = - (#1 + (b*#2))" 1);
 by (Simp_tac 2);
@@ -848,7 +860,7 @@ qed "neg_zdiv_times_2";
 (*Not clear why this must be proved separately; probably number_of causes
   simplification problems*)
 Goal "~ #0 <= x ==> x <= (#0::int)";
-auto();
+by Auto_tac;
 val lemma = result();
 
 Goal "number_of (v BIT b) div number_of (w BIT False) = \
@@ -857,14 +869,107 @@ Goal "number_of (v BIT b) div number_of (w BIT False) = \
 \          else (number_of v + (#1::int)) div (number_of w))";
 by (simp_tac (simpset_of Int.thy
 			 addsimps [zadd_assoc, number_of_BIT]) 1);
-by (asm_simp_tac (simpset_of Int.thy
-		  addsimps [int_0, int_Suc, zadd_0_right,zmult_0_right, 
-			    zmult_2 RS sym, zdiv_zmult_zmult1,
-			    pos_zdiv_times_2,
-			    lemma, neg_zdiv_times_2]) 1);
+by (asm_simp_tac (simpset()
+		  delsimps zmult_ac@bin_arith_extra_simps@bin_rel_simps
+		  addsimps [zmult_2 RS sym, zdiv_zmult_zmult1,
+			    pos_zdiv_times_2, lemma, neg_zdiv_times_2]) 1);
 qed "zdiv_number_of_BIT";
-
 
 Addsimps [zdiv_number_of_BIT];
 
 
+(** computing "mod" by shifting **)
+
+Goal "(#0::int) <= a ==> (#1 + #2*b) mod (#2*a) = #1 + #2 * (b mod a)";
+by (zdiv_undefined_case_tac "a = #0" 1);
+by (subgoal_tac "#1 <= a" 1);
+by (arith_tac 2);
+by (subgoal_tac "#1 < a * #2" 1);
+by (dres_inst_tac [("i","#1"), ("k", "#2")] zmult_zle_mono1 2);
+by (subgoal_tac "#2*(#1 + b mod a) <= #2*a" 1);
+by (rtac zmult_zle_mono2 2);
+by (auto_tac (claset(),
+	      simpset() addsimps [add1_zle_eq,pos_mod_bound]));
+by (stac zmod_zadd1_eq 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [zmod_zmult_zmult2, zmod_zmult_zmult2, 
+				  mod_pos_pos_trivial]));
+by (rtac mod_pos_pos_trivial 1);
+by (asm_simp_tac (simpset() addsimps [zmult_2_right, mod_pos_pos_trivial, 
+	   pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [mod_pos_pos_trivial]));
+qed "pos_zmod_times_2";
+
+
+Goal "a <= (#0::int) ==> (#1 + #2*b) mod (#2*a) = #2 * ((b+#1) mod a) - #1";
+by (subgoal_tac 
+    "(#1 + #2*(-b-#1)) mod (#2*-a) = #1 + #2*((-b-#1) mod (-a))" 1);
+by (rtac pos_zmod_times_2 2);
+by Auto_tac;
+by (subgoal_tac "(#-1 + - (b * #2)) = - (#1 + (b*#2))" 1);
+by (Simp_tac 2);
+by (asm_full_simp_tac (HOL_ss
+		       addsimps [zmod_zminus_zminus, zdiff_def,
+				 zminus_zadd_distrib RS sym]) 1);
+bd (zminus_equation RS iffD1 RS sym) 1;
+by Auto_tac;
+qed "neg_zmod_times_2";
+
+Goal "number_of (v BIT b) mod number_of (w BIT False) = \
+\         (if b then \
+\               if (#0::int) <= number_of w \
+\               then #2 * (number_of v mod number_of w) + #1    \
+\               else #2 * ((number_of v + (#1::int)) mod number_of w) - #1  \
+\          else #2 * (number_of v mod number_of w))";
+by (simp_tac (simpset_of Int.thy
+			 addsimps [zadd_assoc, number_of_BIT]) 1);
+by (asm_simp_tac (simpset()
+		  delsimps zmult_ac@bin_arith_extra_simps@bin_rel_simps
+		  addsimps [zmult_2 RS sym, zmod_zmult_zmult1,
+			    pos_zmod_times_2, lemma, neg_zmod_times_2]) 1);
+qed "zmod_number_of_BIT";
+
+Addsimps [zmod_number_of_BIT];
+
+
+(** Quotients of signs **)
+
+Goal "[| a < (#0::int);  #0 < b |] ==> a div b < #0";
+by (subgoal_tac "a div b <= #-1" 1);
+by (Force_tac 1);
+by (rtac order_trans 1);
+by (res_inst_tac [("a'","#-1")]  zdiv_mono1 1);
+by (auto_tac (claset(), simpset() addsimps [div_minus1]));
+qed "div_neg_pos";
+
+Goal "[| (#0::int) <= a;  b < #0 |] ==> a div b <= #0";
+by (dtac zdiv_mono1_neg 1);
+by Auto_tac;
+qed "div_nonneg_neg";
+
+Goal "(#0::int) < b ==> (#0 <= a div b) = (#0 <= a)";
+by Auto_tac;
+by (dtac zdiv_mono1 2);
+by (auto_tac (claset(), simpset() addsimps [linorder_neq_iff]));
+by (full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+by (blast_tac (claset() addIs [div_neg_pos]) 1);
+qed "pos_imp_zdiv_nonneg_iff";
+
+Goal "b < (#0::int) ==> (#0 <= a div b) = (a <= (#0::int))";
+by (stac (zdiv_zminus_zminus RS sym) 1);
+by (stac pos_imp_zdiv_nonneg_iff 1);
+by Auto_tac;
+qed "neg_imp_zdiv_nonneg_iff";
+
+(*But not (a div b <= 0 iff a<=0); consider a=1, b=2 when a div b = 0.*)
+Goal "(#0::int) < b ==> (a div b < #0) = (a < #0)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_le RS sym,
+				      pos_imp_zdiv_nonneg_iff]) 1);
+qed "pos_imp_zdiv_neg_iff";
+
+(*Again the law fails for <=: consider a = -1, b = -2 when a div b = 0*)
+Goal "b < (#0::int) ==> (a div b < #0) = (#0 < a)";
+by (asm_simp_tac (simpset() addsimps [linorder_not_le RS sym,
+				      neg_imp_zdiv_nonneg_iff]) 1);
+qed "neg_imp_zdiv_neg_iff";
