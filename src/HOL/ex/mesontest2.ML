@@ -1,5 +1,8 @@
 (* Courtesy John Harrison 
   $Id$
+
+  Use the "mesonlog" shell script to process logs.
+
    Changed numeric constants e.g. 0, 1, 2... to num0, num1, num2...
 *)
 

@@ -6,6 +6,8 @@
 Test data for the MESON proof procedure
    (Excludes the equality problems 51, 52, 56, 58)
 
+Use the "mesonlog" shell script to process logs.
+
 show_hyps := false;
 
 keep_derivs := MinDeriv;
