@@ -332,6 +332,9 @@ tokens into AST constants;
 translation functions; potential INCOMPATIBILITY: need to reverse
 multiple declarations for same syntax element constant;
 
+* Pure/show_hyps reset by default (in accordance to existing Isar
+practice);
+
 * Provers/classical: renamed addaltern to addafter, addSaltern to
 addSafter;
 
