@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -28,14 +29,17 @@ given (the default is 40);
 "foo" are split into "foo.hyps" (from the rule) and "foo.prems" (from
 the goal statement); "foo" still refers to all facts collectively;
 
+* Isar: preview of problems to finish 'show' now produce an error
+rather than just a warning (in interactive mode);
+
 
 *** HOL ***
 
 * 'typedef' command has new option "open" to suppress the set
 definition;
 
-* Functions Min and Max on finite sets have been introduced.
-  (theory Finite_Set)
+* functions Min and Max on finite sets have been introduced (theory
+Finite_Set);
 
 * attribute [symmetric] now works for relations as well; it turns
 (x,y) : R^-1 into (y,x) : R, and vice versa;
