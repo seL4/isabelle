@@ -2,8 +2,24 @@
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle???? (DATE ????)
--------------------------------
+New in Isabelle98 (January 1998)
+--------------------------------
+
+*** Overview of INCOMPATIBILITIES (see below for more details) ***
+
+* changed lexical syntax of terms / types: dots made part of long
+identifiers, e.g. "%x.x" no longer possible, should be "%x. x";
+
+* simpset (and claset) reference variable replaced by functions
+simpset / simpset_ref;
+
+* no longer supports theory aliases (via merge) and non-trivial
+implicit merge of thms' signatures;
+
+* most internal names of constants changed due to qualified names;
+
+* changed Pure/Sequence interface (see Pure/seq.ML);
+
 
 *** General Changes ***
 

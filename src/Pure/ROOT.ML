@@ -8,7 +8,7 @@ Loads Pure Isabelle into an empty ML database (see also IsaMakefile).
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle98: Jan 1998";
+val version = "Isabelle98: January 1998";
 
 print_depth 1;
 
