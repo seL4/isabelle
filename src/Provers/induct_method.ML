@@ -48,8 +48,7 @@ fun prep_inst align cert tune (tm, ts) =
           let
             val cx = cert x;
             val {T = xT, sign, ...} = Thm.rep_cterm cx;
-            val orig_ct = cert t;
-            val ct = tune orig_ct;
+            val ct = cert (tune t);
           in
             if Sign.typ_instance sign (#T (Thm.rep_cterm ct), xT) then Some (cx, ct)
             else raise ERROR_MESSAGE (Pretty.string_of (Pretty.block
@@ -81,7 +80,7 @@ local
 fun resolveq_cases_tac make ruleq i st =
   ruleq |> Seq.map (fn (rule, (cases, facts)) =>
     (Method.insert_tac facts THEN' Tactic.rtac rule) i st
-    |> Seq.map (rpair (make rule cases)))
+    |> Seq.map (rpair (make (Thm.sign_of_thm rule, Thm.prop_of rule) cases)))
   |> Seq.flat;
 
 fun find_casesT ctxt ((Some t :: _) :: _) = InductAttrib.find_casesT ctxt (fastype_of t)
@@ -138,19 +137,25 @@ local
 
 (* atomize and rulify *)
 
-fun atomize_cterm ct =
-  Thm.cterm_fun (ObjectLogic.drop_judgment (#sign (Thm.rep_cterm ct)))
-    (Tactic.rewrite_cterm true Data.atomize ct);
+fun atomize_term sg =
+  ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize;
+
+fun rulified_term thm =
+  let val sg = Thm.sign_of_thm thm in
+    Thm.prop_of thm
+    |> MetaSimplifier.rewrite_term sg Data.rulify1
+    |> MetaSimplifier.rewrite_term sg Data.rulify2
+    |> pair sg
+  end;
 
 val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
-val rulify = Tactic.simplify true Data.rulify2 o Tactic.simplify true Data.rulify1;
 
 val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify1 THEN'
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
-val localize = Tactic.norm_hhf o Tactic.simplify false Data.localize;
+val localize = Tactic.norm_hhf_rule o Tactic.simplify false Data.localize;
 
 
 (* imp_intr --- limited to atomic prems *)
@@ -226,7 +231,9 @@ fun resolveq_cases_tac' make ruleq i st =
   ruleq |> Seq.map (fn (rule, (cases, k, more_facts)) => st
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
-          st' |> Tactic.rtac rule' i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
+          st' |> Tactic.rtac rule' i
+          |> Seq.map (rpair (make (rulified_term rule') cases)))
+      |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
 
@@ -263,7 +270,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
       if null insts then r
       else (align_right "Rule has fewer conclusions than arguments given"
           (Data.dest_concls (Thm.concl_of r)) insts
-        |> (flat o map (prep_inst align_right cert atomize_cterm))
+        |> (flat o map (prep_inst align_right cert (atomize_term sg)))
         |> Drule.cterm_instantiate) r);
 
     val ruleq =
