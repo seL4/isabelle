@@ -517,7 +517,7 @@ goal Nat.thy "(Suc(n) <= Suc(m)) = (n <= m)";
 by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "Suc_le_mono";
 
-Addsimps [le_refl,Suc_le_mono];
+AddIffs [le_refl,Suc_le_mono];
 
 
 (** LEAST -- the least number operator **)
