@@ -94,7 +94,9 @@
 \newcommand{\isamarkupsubsect}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsect}[1]{\subsubsection{#1}}
 
-\newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\par\medskip}{\par\medskip}
+\newcommand{\isabeginpar}{\par\medskip}
+\newcommand{\isaendpar}{\par\medskip}
+\newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\isabeginpar}{\isaendpar}
 \newenvironment{isamarkuptext}{\isastyletext\begin{isapar}}{\end{isapar}}
 \newenvironment{isamarkuptxt}{\isastyletxt\begin{isapar}}{\end{isapar}}
 \newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
