@@ -15,6 +15,10 @@ latter view is presented only on export into the global theory
 context; potential INCOMPATIBILITY, use "(open)" option to fall back
 on the old view without predicates;
 
+* Pure: predefined locales "var" and "struct" are useful for sharing
+parameters (as in CASL, for example); just specify something like
+``var x + var y + struct M'' as import;
+
 * improved induct method: assumptions introduced by case "foo" are
 split into "foo.hyps" (from the rule) and "foo.prems" (from the goal
 statement); "foo" still refers to all facts collectively;
