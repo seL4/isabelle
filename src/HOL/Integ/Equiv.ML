@@ -125,20 +125,19 @@ qed "quotient_disj";
 (**** Defining unary operations upon equivalence classes ****)
 
 (* theorem needed to prove UN_equiv_class *)
-goal Set.thy "!!A. [| a:A; ! y:A. b(y)=b(a) |] ==> (UN y:A. b(y))=b(a)";
+goal Set.thy "!!A. [| a:A; ! y:A. b(y)=c |] ==> (UN y:A. b(y))=c";
 by (fast_tac (claset() addSEs [equalityE] addSIs [equalityI]) 1);
-qed "UN_singleton_lemma";
-val UN_singleton = ballI RSN (2,UN_singleton_lemma);
+qed "UN_constant_eq";
 
 
-(** These proofs really require the local premises
+(** Could introduce a LOCALE with the assumptions
      equiv A r;  congruent r b
 **)
 
 (*Conversion rule*)
 Goal "[| equiv A r;  congruent r b;  a: A |] \
-\                      ==> (UN x:r^^{a}. b(x)) = b(a)";
-by (rtac (equiv_class_self RS UN_singleton) 1 THEN REPEAT (assume_tac 1));
+\     ==> (UN x:r^^{a}. b(x)) = b(a)";
+by (rtac (equiv_class_self RS UN_constant_eq) 1 THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [equiv_def,congruent_def,sym_def]);
 by (Blast_tac 1);
 qed "UN_equiv_class";
