@@ -10,7 +10,7 @@ lemma "lfp(\<lambda>T. A \<union> M\<inverse> `` T) = {s. \<exists>t. (s,t) \<in
 proof
   show "lfp ?F \<subseteq> ?toA"
   by (blast intro!: lfp_lowerbound intro: rtrancl_trans)
-
+next
   show "?toA \<subseteq> lfp ?F"
   proof
     fix s assume "s \<in> ?toA"
@@ -20,6 +20,7 @@ proof
     proof (rule converse_rtrancl_induct)
       from tA have "t \<in> ?F (lfp ?F)" by blast
       with mono_ef show "t \<in> lfp ?F" ..
+    next
       fix s s' assume "(s,s') \<in> M" and "(s',t) \<in> M\<^sup>*"
                   and "s' \<in> lfp ?F"
       then have "s \<in> ?F (lfp ?F)" by blast

@@ -15,6 +15,10 @@ text{*
 \end{tabular}
 \end{center}
 *}
+(*<*)term "A \<union> B" term "A \<inter> B" term "A - B"
+term "a \<in> A" term "b \<notin> A"
+term "{a,b}" term "{x. P x}"
+term "\<Union> M"  term "\<Union>a \<in> A. F a"(*>*)
 
 subsection{*Some Functions*}
 
@@ -26,41 +30,63 @@ text{*
 @{thm vimage_def[no_vars]}
 \end{tabular}
 *}
-(*<*)
-thm id_def
-thm o_def[no_vars]
-thm image_def[no_vars]
-thm vimage_def[no_vars]
-(*>*)
+(*<*)thm id_def o_def[no_vars] image_def[no_vars] vimage_def[no_vars](*>*)
 
 subsection{*Some Relations*}
 
+text{*
+\begin{tabular}{l}
+@{thm Id_def}\\
+@{thm converse_def[no_vars]}\\
+@{thm Image_def[no_vars]}\\
+@{thm rtrancl_refl[no_vars]}\\
+@{thm rtrancl_into_rtrancl[no_vars]}\\
+@{thm trancl_def[no_vars]}
+\end{tabular}
+*}
+(*<*)
 thm Id_def
-thm converse_def
-thm Image_def
-thm relpow.simps
-thm rtrancl_idemp
-thm trancl_converse
+thm converse_def[no_vars]
+thm Image_def[no_vars]
+thm relpow.simps[no_vars]
+thm rtrancl.intros[no_vars]
+thm trancl_def[no_vars]
+(*>*)
 
 subsection{*Wellfoundedness*}
 
-thm wf_def
-thm wf_iff_no_infinite_down_chain
-
+text{*
+\begin{tabular}{l}
+@{thm wf_def[no_vars]}\\
+@{thm wf_iff_no_infinite_down_chain[no_vars]}
+\end{tabular}
+*}
+(*<*)
+thm wf_def[no_vars]
+thm wf_iff_no_infinite_down_chain[no_vars]
+(*>*)
 
 subsection{*Fixed Point Operators*}
 
+text{*
+\begin{tabular}{l}
+@{thm lfp_def[no_vars]}\\
+@{thm lfp_unfold[no_vars]}\\
+@{thm lfp_induct[no_vars]}
+\end{tabular}
+*}
+(*<*)
 thm lfp_def gfp_def
 thm lfp_unfold
 thm lfp_induct
-
+(*>*)
 
 subsection{*Case Study: Verified Model Checking*}
 
 
 typedecl state
 
-consts M :: "(state \<times> state)set";
+consts M :: "(state \<times> state)set"
 
 typedecl atom
 
@@ -79,9 +105,9 @@ primrec
 "s \<Turnstile> Neg f   = (\<not>(s \<Turnstile> f))"
 "s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
 "s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
-"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)";
+"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)"
 
-consts mc :: "formula \<Rightarrow> state set";
+consts mc :: "formula \<Rightarrow> state set"
 primrec
 "mc(Atom a)  = {s. a \<in> L s}"
 "mc(Neg f)   = -mc f"
@@ -99,9 +125,9 @@ lemma EF_lemma:
 apply(rule equalityI)
  thm lfp_lowerbound
  apply(rule lfp_lowerbound)
- apply(blast intro: rtrancl_trans);
+ apply(blast intro: rtrancl_trans)
 apply(rule subsetI)
-apply(simp, clarify)
+apply clarsimp
 apply(erule converse_rtrancl_induct)
 thm lfp_unfold[OF mono_ef]
  apply(subst lfp_unfold[OF mono_ef])
@@ -110,10 +136,10 @@ apply(subst lfp_unfold[OF mono_ef])
 apply(blast)
 done
 
-theorem "mc f = {s. s \<Turnstile> f}";
-apply(induct_tac f);
-apply(auto simp add: EF_lemma);
-done;
+theorem "mc f = {s. s \<Turnstile> f}"
+apply(induct_tac f)
+apply(auto simp add: EF_lemma)
+done
 
 text{*
 \begin{exercise}

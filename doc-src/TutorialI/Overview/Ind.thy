@@ -1,4 +1,4 @@
-theory Ind = Main:
+(*<*)theory Ind = Main:(*>*)
 
 section{*Inductive Definitions*}
 
@@ -21,7 +21,10 @@ done
 
 subsubsection{*Rule Induction*}
 
-thm even.induct
+text{* Rule induction for set @{term even}, @{thm[source]even.induct}:
+@{thm[display] even.induct[no_vars]}
+*}
+(*<*)thm even.induct[no_vars](*>*)
 
 lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
 apply (erule even.induct)
@@ -31,7 +34,8 @@ done
 subsubsection{*Rule Inversion*}
 
 inductive_cases Suc_Suc_case [elim!]: "Suc(Suc n) \<in> even"
-thm Suc_Suc_case
+text{* @{thm[display] Suc_Suc_case[no_vars]} *}
+(*<*)thm Suc_Suc_case(*>*)
 
 lemma "Suc(Suc n) \<in> even \<Longrightarrow> n \<in> even"
 by blast
@@ -84,8 +88,7 @@ Show that the converse of @{thm[source]rtc_step} also holds:
 
 subsection{*The accessible part of a relation*}
 
-consts
-  acc :: "('a \<times> 'a) set \<Rightarrow> 'a set"
+consts  acc :: "('a \<times> 'a) set \<Rightarrow> 'a set"
 inductive "acc r"
 intros
   "(\<forall>y. (y,x) \<in> r \<longrightarrow> y \<in> acc r) \<Longrightarrow> x \<in> acc r"
@@ -99,11 +102,10 @@ thm acc.induct
 apply(erule acc.induct)
 by blast
 
-consts
-  accs :: "('a \<times> 'a) set \<Rightarrow> 'a set"
+consts  accs :: "('a \<times> 'a) set \<Rightarrow> 'a set"
 inductive "accs r"
 intros
  "r``{x} \<in> Pow(accs r) \<Longrightarrow> x \<in> accs r"
 monos Pow_mono
 
-end
+(*<*)end(*>*)
