@@ -46,20 +46,21 @@ Isabelle documentation.
   of the type classes involved.  After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the resulting
   theorem.
-
+  
 \item [$intro_classes$] repeatedly expands all class introduction rules of
   this theory.  Note that this method usually needs not be named explicitly,
-  as it is already included in the default proof step (of $\PROOFNAME$,
-  $\BYNAME$, etc.).  In particular, instantiation of trivial (syntactic)
-  classes may be performed by a single ``$\DDOT$'' proof step.
+  as it is already included in the default proof step (of $\PROOFNAME$ etc.).
+  In particular, instantiation of trivial (syntactic) classes may be performed
+  by a single ``$\DDOT$'' proof step.
 
 \end{descr}
 
 
 \subsection{Locales and local contexts}\label{sec:locale}
 
-Locales are named local contexts, consisting of a declaration elements that
-are modeled after the Isar proof context (cf.\ \S\ref{sec:proof-context}).
+Locales are named local contexts, consisting of a list of declaration elements
+that are modeled after the Isar proof context commands (cf.\ 
+\S\ref{sec:proof-context}).
 
 \subsubsection{Localized commands}
 
