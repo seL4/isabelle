@@ -44,6 +44,9 @@ New in this Isabelle release
   yet). If false the first entry wins (as during parsing). Default
   value is true.
 
+* Pure: tuned internal renaming of symbolic identifiers -- attach
+  primes instead of base 26 numbers.
+
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
 * Pure/Syntax: pretty pinter now supports unbreakable blocks,
@@ -53,8 +56,39 @@ New in this Isabelle release
   etc.) may depend on the signature of the theory context being
   presently used for parsing/printing, see also isar-ref manual.
 
-* Pure: tuned internal renaming of symbolic identifiers -- attach
-  primes instead of base 26 numbers.
+* Pure/Simplifier: simplification procedures may now take the current
+  simpset into account (cf. Simplifier.simproc(_i) / mk_simproc
+  interface), which is very useful for calling the Simplifier
+  recursively.  Minor INCOMPATIBILITY: the 'prems' argument of
+  simprocs is gone -- use prems_of_ss on the simpset instead.
+  Moreover, the low-level mk_simproc no longer applies Logic.varify
+  internally, to allow for use in a context of fixed variables.
+
+* Provers: Simplifier and Classical Reasoner now support proof context
+  dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
+  components are stored in the theory and patched into the
+  simpset/claset when used in an Isar proof context.  Context
+  dependent components are maintained by the following theory
+  operations:
+
+    Simplifier.add_context_simprocs
+    Simplifier.del_context_simprocs
+    Simplifier.set_context_subgoaler
+    Simplifier.reset_context_subgoaler
+    Simplifier.add_context_looper
+    Simplifier.del_context_looper
+    Simplifier.add_context_unsafe_solver
+    Simplifier.add_context_safe_solver
+
+    Classical.add_context_safe_wrapper
+    Classical.del_context_safe_wrapper
+    Classical.add_context_unsafe_wrapper
+    Classical.del_context_unsafe_wrapper
+
+  IMPORTANT NOTE: proof tools (methods etc.) need to use
+  local_simpset_of and local_claset_of to instead of the primitive
+  Simplifier.get_local_simpset and Classical.get_local_claset,
+  respectively, in order to see the context dependent fields!
 
 * Document preparation: antiquotations now provide the option
   'locale=NAME' to specify an alternative context used for evaluating
@@ -68,14 +102,6 @@ New in this Isabelle release
   verbatim.  We use isatool display and isatool print as front ends;
   these are subject to the DVI_VIEWER and PRINT_COMMAND settings,
   respectively.
-
-* ML: simplification procedures may now take the current simpset into
-  account (cf. Simplifier.simproc(_i) / mk_simproc interface), which
-  is very useful for calling the Simplifier recursively.  Minor
-  INCOMPATIBILITY: the 'prems' argument of simprocs is gone -- use
-  prems_of_ss on the simpset instead.  Moreover, the low-level
-  mk_simproc no longer applies Logic.varify internally, to allow for
-  use in a context of fixed variables.
 
 * ML: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary
