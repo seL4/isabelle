@@ -54,7 +54,7 @@ sig
   val rewrite_goal_rule : bool* bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> int -> thm -> thm
-  val rewrite_term: Sign.sg -> thm list -> term -> term
+  val rewrite_term: Sign.sg -> thm list -> (term -> term option) list -> term -> term
 end;
 
 structure MetaSimplifier : META_SIMPLIFIER =
@@ -987,7 +987,8 @@ fun rewrite_goal_rule mode prover mss i thm =
 
 
 (*simple term rewriting -- without proofs*)
-fun rewrite_term sg rules = Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules);
+fun rewrite_term sg rules procs =
+  Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules) procs;
 
 end;
 
