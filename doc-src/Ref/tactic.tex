@@ -105,20 +105,24 @@ is like {\tt match_tac}, but performs destruct-resolution.
 \end{ttdescription}
 
 
-\subsection{Resolution with instantiation} \label{res_inst_tac}
+\subsection{Explicit instantiation} \label{res_inst_tac}
 \index{tactics!instantiation}\index{instantiation}
 \begin{ttbox} 
-res_inst_tac  : (string*string)list -> thm -> int -> tactic
-eres_inst_tac : (string*string)list -> thm -> int -> tactic
-dres_inst_tac : (string*string)list -> thm -> int -> tactic
-forw_inst_tac : (string*string)list -> thm -> int -> tactic
+res_inst_tac    : (string*string)list -> thm -> int -> tactic
+eres_inst_tac   : (string*string)list -> thm -> int -> tactic
+dres_inst_tac   : (string*string)list -> thm -> int -> tactic
+forw_inst_tac   : (string*string)list -> thm -> int -> tactic
+instantiate_tac : (string*string)list -> tactic
 \end{ttbox}
-These tactics are designed for applying rules such as substitution and
-induction, which cause difficulties for higher-order unification.  The
-tactics accept explicit instantiations for unknowns in the rule ---
-typically, in the rule's conclusion.  Each instantiation is a pair
-{\tt($v$,$e$)}, where $v$ is an unknown \emph{without} its leading
-question mark!
+The first four of these tactics are designed for applying rules by resolution
+such as substitution and induction, which cause difficulties for higher-order 
+unification.  The tactics accept explicit instantiations for unknowns 
+in the rule ---typically, in the rule's conclusion. The last one, 
+{\tt instantiate_tac}, may be used to instantiate unknowns in the proof state,
+independently of rule application. 
+
+Each instantiation is a pair {\tt($v$,$e$)}, 
+where $v$ is an unknown \emph{without} its leading question mark!
 \begin{itemize}
 \item If $v$ is the type unknown {\tt'a}, then
 the rule must contain a type unknown \verb$?'a$ of some
@@ -138,7 +142,7 @@ necessary --- if \verb$?t$ has type \verb$?'a$, then the instantiation list
 \texttt{[("t","True")]}.  Type unknowns in the proof state may cause
 failure because the tactics cannot instantiate them.
 
-The instantiation tactics act on a given subgoal.  Terms in the
+The first four instantiation tactics act on a given subgoal.  Terms in the
 instantiations are type-checked in the context of that subgoal --- in
 particular, they may refer to that subgoal's parameters.  Any unknowns in
 the terms receive subscripts and are lifted over the parameters; thus, you
@@ -161,6 +165,10 @@ is like {\tt res_inst_tac}, but performs destruct-resolution.
 is like {\tt dres_inst_tac} except that the selected assumption is not
 deleted.  It applies the instantiated rule to an assumption, adding the
 result as a new assumption.
+
+\item[\ttindexbold{instantiate_tac} {\it insts}] 
+instantiates unknowns in the proof state. This affects the main goal as 
+well as all subgoals.
 \end{ttdescription}
 
 

@@ -96,6 +96,7 @@ signature TACTIC =
   val term_lift_inst_rule	:
       thm * int * (indexname*typ)list * ((indexname*typ)*term)list  * thm
       -> thm
+  val instantiate_tac   : (string * string) list -> tactic
   val thin_tac		: string -> int -> tactic
   val trace_goalno_tac	: (int -> tactic) -> int -> tactic
   end;
@@ -304,6 +305,9 @@ fun forw_inst_tac sinsts rule = cut_inst_tac sinsts rule THEN' assume_tac;
 
 (*dresolve tactic applies a RULE to replace an assumption*)
 fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
+
+(*instantiate variables in the whole state*)
+val instantiate_tac = PRIMITIVE o read_instantiate;
 
 (*Deletion of an assumption*)
 fun thin_tac s = eres_inst_tac [("V",s)] thin_rl;
