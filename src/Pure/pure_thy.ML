@@ -83,7 +83,6 @@ struct
 
   val empty = mk_empty ();
   fun copy (ref x) = ref x;
-  val finish = I;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
@@ -390,7 +389,6 @@ struct
 
   val empty = {name = "", version = 0};
   val copy = I;
-  val finish = I;
   val prep_ext  = I;
   fun merge _ = empty;
   fun print _ _ = ();
@@ -424,7 +422,6 @@ fun begin_theory name thys =
 
 fun end_theory thy =
   thy
-  |> Theory.finish
   |> Theory.add_name (get_name thy);
 
 fun checkpoint thy =

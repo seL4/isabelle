@@ -97,7 +97,6 @@ struct
 
   val empty = (Symtab.empty, []);
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge ((tab1, monos1), (tab2, monos2)) =
     (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));

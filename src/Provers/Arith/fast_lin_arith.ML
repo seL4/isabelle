@@ -100,7 +100,6 @@ struct
   val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
                lessD = [], simpset = Simplifier.empty_ss};
   val copy = I;
-  val finish = I;
   val prep_ext = I;
 
   fun merge ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,

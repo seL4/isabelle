@@ -176,7 +176,6 @@ struct
 
   val empty = [NetRules.intro, NetRules.elim, NetRules.intro, NetRules.elim];
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge x = map2 NetRules.merge x;
   val print = print_rules Display.pretty_thm_sg;
@@ -461,7 +460,6 @@ struct
 
   val empty = {space = NameSpace.empty, meths = Symtab.empty};
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge ({space = space1, meths = meths1}, {space = space2, meths = meths2}) =
     {space = NameSpace.merge (space1, space2),

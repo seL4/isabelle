@@ -56,7 +56,6 @@ struct
 
   val empty = {space = NameSpace.empty, attrs = Symtab.empty};
   val copy = I;
-  val finish = I;
   val prep_ext = I;
 
   fun merge ({space = space1, attrs = attrs1}, {space = space2, attrs = attrs2}) =

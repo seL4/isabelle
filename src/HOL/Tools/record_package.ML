@@ -375,7 +375,6 @@ struct
       {fields = Symtab.empty, simpset = HOL_basic_ss};
 
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge
    ({records = recs1,

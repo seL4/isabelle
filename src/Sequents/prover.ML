@@ -174,7 +174,6 @@ structure ProverArgs =
   type T = pack ref;
   val empty = ref empty_pack
   fun copy (ref pack) = ref pack;
-  val finish = I;
   val prep_ext = copy;
   fun merge (ref pack1, ref pack2) = ref (merge_pack (pack1, pack2));
   fun print _ (ref pack) = print_pack pack;

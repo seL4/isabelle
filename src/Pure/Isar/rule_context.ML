@@ -115,7 +115,6 @@ struct
 
   val empty = empty_rules;
   val copy = I;
-  val finish = I;
   val prep_ext = I;
 
   fun merge (Rules {rules = rules1, wrappers = wrappers1, ...},

@@ -1048,7 +1048,6 @@ struct
 
   val empty = ([], []);
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge ((rules1, procs1), (rules2, procs2)) =
     (merge_lists rules1 rules2, merge_alists procs1 procs2);

@@ -82,7 +82,6 @@ struct
 
   val empty = {codegens = [], consts = [], types = []};
   val copy = I;
-  val finish = I;
   val prep_ext = I;
 
   fun merge ({codegens = codegens1, consts = consts1, types = types1},

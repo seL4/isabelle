@@ -47,7 +47,6 @@ struct
 
   val empty = Symtab.empty;
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   val merge: T * T -> T = Symtab.merge (K true);
 

@@ -312,7 +312,6 @@ struct
 
   val empty = ref empty_ss;
   fun copy (ref ss) = (ref ss): T;            (*create new reference!*)
-  val finish = I;
   val prep_ext = copy;
   fun merge (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
   fun print _ (ref ss) = print_ss ss;

@@ -110,7 +110,6 @@ struct
     ((init_rules (first_var o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (last_var o #2), init_rules (Thm.major_prem_of o #2)));
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge (((casesT1, casesS1), (inductT1, inductS1)),
       ((casesT2, casesS2), (inductT2, inductS2))) =
