@@ -220,5 +220,5 @@ ML
 (* 'Dependent' type operators *)
 
 val print_translation =
-  [("Pi", dependent_tr' ("@PROD", "->")),
-   ("Sigma", dependent_tr' ("@SUM", "*"))];
+  [("Pi", dependent_tr' ("@PROD", "op ->")),
+   ("Sigma", dependent_tr' ("@SUM", "op *"))];
