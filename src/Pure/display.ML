@@ -13,6 +13,8 @@ sig
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm	: thm -> Pretty.T
   val pretty_thms	: thm list -> Pretty.T
+  val pretty_thm_sg     : Sign.sg -> thm -> Pretty.T
+  val pretty_thms_sg    : Sign.sg -> thm list -> Pretty.T
   val string_of_thm	: thm -> string
   val pprint_thm	: thm -> pprint_args -> unit
   val print_thm		: thm -> unit
@@ -84,6 +86,9 @@ val pprint_thm = Pretty.pprint o pretty_thm;
 
 fun pretty_thms [th] = pretty_thm th
   | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
+
+val pretty_thm_sg = pretty_thm oo Thm.transfer_sg;
+val pretty_thms_sg = pretty_thms oo (map o Thm.transfer_sg);
 
 
 (* top-level commands for printing theorems *)
