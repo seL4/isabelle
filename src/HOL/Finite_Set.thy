@@ -1004,8 +1004,8 @@ lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
   by (auto simp add: setprod_def LC_def LC.fold_insert
       mult_left_commute)
 
-lemma setprod_reindex [rule_format]: "finite B ==>
-                  inj_on f B --> setprod h (f ` B) = setprod (h \<circ> f) B"
+lemma setprod_reindex [rule_format]:
+     "finite B ==> inj_on f B --> setprod h (f ` B) = setprod (h \<circ> f) B"
 apply (rule finite_induct, assumption, force)
 apply (rule impI, auto)
 apply (simp add: inj_on_def)
@@ -1013,7 +1013,7 @@ apply (subgoal_tac "f x \<notin> f ` F")
 apply (subgoal_tac "finite (f ` F)")
 apply (auto simp add: setprod_insert)
 apply (simp add: inj_on_def)
-  done
+done
 
 lemma setprod_reindex_id: "finite B ==> inj_on f B ==>
     setprod f B = setprod id (f ` B)"
@@ -1325,8 +1325,11 @@ lemma choose_deconstruct: "finite M ==> x \<notin> M
   done
 
 lemma card_inj_on_le:
-    "[|inj_on f A; f ` A \<subseteq> B; finite A; finite B |] ==> card A <= card B"
-  by (auto intro: card_mono simp add: card_image [symmetric])
+    "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
+apply (subgoal_tac "finite A") 
+ apply (force intro: card_mono simp add: card_image [symmetric])
+apply (blast intro: Finite_Set.finite_imageD dest: finite_subset) 
+done
 
 lemma card_bij_eq:
     "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
