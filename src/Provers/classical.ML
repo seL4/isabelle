@@ -712,13 +712,13 @@ fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
     in if null del then (warning ("No such unsafe wrapper in claset: " ^ name);
                          uwrappers) else rest end);
 
-(*compose a safe tactic sequentially before/alternatively after safe_step_tac*)
+(* compose a safe tactic alternatively before/after safe_step_tac *)
 fun cs addSbefore  (name,    tac1) =
     cs addSWrapper (name, fn tac2 => tac1 ORELSE' tac2);
 fun cs addSaltern  (name,    tac2) =
     cs addSWrapper (name, fn tac1 => tac1 ORELSE' tac2);
 
-(*compose a tactic sequentially before/alternatively after the step tactic*)
+(*compose a tactic alternatively before/after the step tactic *)
 fun cs addbefore   (name,    tac1) =
     cs addWrapper  (name, fn tac2 => tac1 APPEND' tac2);
 fun cs addaltern   (name,    tac2) =
