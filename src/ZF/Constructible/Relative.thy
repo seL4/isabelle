@@ -819,8 +819,9 @@ lemma (in M_triv_axioms) ordinal_abs [simp]:
 by (simp add: ordinal_def Ord_def)
 
 lemma (in M_triv_axioms) limit_ordinal_abs [simp]: 
-     "M(a) ==> limit_ordinal(M,a) <-> Limit(a)"
-apply (simp add: limit_ordinal_def Ord_0_lt_iff Limit_def) 
+     "M(a) ==> limit_ordinal(M,a) <-> Limit(a)" 
+apply (unfold Limit_def limit_ordinal_def) 
+apply (simp add: Ord_0_lt_iff) 
 apply (simp add: lt_def, blast) 
 done
 

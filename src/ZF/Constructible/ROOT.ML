@@ -3,9 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
-Inner Models and Absoluteness
-
-Build using	isatool usedir  -d pdf ZF Constructible
+Inner Models, Absoluteness and Consistency Proofs
 *)
 
 use_thy "DPow_absolute";
+use_thy "AC_in_L";
