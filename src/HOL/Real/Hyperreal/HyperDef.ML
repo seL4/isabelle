@@ -357,7 +357,7 @@ Addsimps [hypreal_hrinv_hrinv];
 Goalw [hypreal_one_def] "hrinv(1hr) = 1hr";
 by (full_simp_tac (simpset() addsimps [hypreal_hrinv,
        real_zero_not_eq_one RS not_sym] 
-                   setloop (split_tac [expand_if])) 1);
+                   addsplits [split_if]) 1);
 qed "hypreal_hrinv_1";
 Addsimps [hypreal_hrinv_1];
 
@@ -648,7 +648,7 @@ Goalw [hypreal_one_def,hypreal_zero_def]
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv,
-    hypreal_mult] setloop (split_tac [expand_if])) 1);
+    hypreal_mult] addsplits [split_if]) 1);
 by (dtac FreeUltrafilterNat_Compl_mem 1);
 by (blast_tac (claset() addSIs [real_mult_inv_right,
     FreeUltrafilterNat_subset]) 1);
@@ -712,7 +712,7 @@ Goalw [hypreal_zero_def] "x ~= 0 ==> hrinv(x) ~= 0";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv,
-    hypreal_mult] setloop (split_tac [expand_if])) 1);
+    hypreal_mult] addsplits [split_if]) 1);
 by (dtac FreeUltrafilterNat_Compl_mem 1 THEN Clarify_tac 1);
 by (ultra_tac (claset() addIs [ccontr]
                         addDs [rename_numerals thy rinv_not_zero],
@@ -1802,7 +1802,7 @@ qed "hypreal_omega_not_zero";
 Goal "ehr = hrinv(whr)";
 by (asm_full_simp_tac (simpset() addsimps 
     [hypreal_hrinv,omega_def,epsilon_def]
-    setloop (split_tac [expand_if])) 1);
+    addsplits [split_if]) 1);
 qed "hypreal_epsilon_hrinv_omega";
 
 (*----------------------------------------------------------------
