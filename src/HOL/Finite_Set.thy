@@ -1828,7 +1828,7 @@ by (blast intro: foldSet1_determ_aux [rule_format])
 lemma (in ACf) foldSet1_equality: "(A, y) : foldSet1 f ==> fold1 f A = y"
   by (unfold fold1_def) (blast intro: foldSet1_determ)
 
-lemma fold1_singleton: "fold1 f {a} = a"
+lemma fold1_singleton[simp]: "fold1 f {a} = a"
   by (unfold fold1_def) blast
 
 lemma (in ACf) foldSet1_insert_aux: "x \<notin> A ==> A \<noteq> {} \<Longrightarrow> 
