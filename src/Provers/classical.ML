@@ -84,6 +84,8 @@ signature CLASSICAL =
   val mp_tac		: int -> tactic
   val safe_tac 		: claset -> tactic
   val safe_step_tac 	: claset -> int -> tactic
+  val clarify_tac 	: claset -> int -> tactic
+  val clarify_step_tac 	: claset -> int -> tactic
   val step_tac 		: claset -> int -> tactic
   val slow_step_tac	: claset -> int -> tactic
   val swap		: thm                 (* ~P ==> (~Q ==> P) ==> Q *)
@@ -102,6 +104,8 @@ signature CLASSICAL =
   val AddSIs		: thm list -> unit
   val Delrules		: thm list -> unit
   val Safe_step_tac	: int -> tactic
+  val Clarify_tac 	: int -> tactic
+  val Clarify_step_tac 	: int -> tactic
   val Step_tac 		: int -> tactic
   val Fast_tac 		: int -> tactic
   val Best_tac 		: int -> tactic
@@ -531,6 +535,38 @@ fun safe_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) =
 fun safe_tac cs = REPEAT_DETERM_FIRST 
 	(fn i => COND (has_fewer_prems i) no_tac (safe_step_tac cs i));
 
+
+(*** Clarify_tac: do safe steps without causing branching ***)
+
+fun nsubgoalsP n (k,brl) = (subgoals_of_brl brl = n);
+
+(*version of bimatch_from_nets_tac that only applies rules that
+  create precisely n subgoals.*)
+fun n_bimatch_from_nets_tac n = 
+    biresolution_from_nets_tac (orderlist o filter (nsubgoalsP n)) true;
+
+fun eq_contr_tac i = ematch_tac [not_elim] i  THEN  eq_assume_tac i;
+val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;
+
+(*Two-way branching is allowed only if one of the branches immediately closes*)
+fun bimatch2_tac netpair i =
+    n_bimatch_from_nets_tac 2 netpair i THEN
+    (eq_assume_contr_tac i ORELSE eq_assume_contr_tac (i+1));
+
+(*Attack subgoals using safe inferences -- matching, not resolution*)
+fun clarify_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) = 
+  getSWrapper cs (FIRST' [
+	eq_assume_contr_tac,
+	bimatch_from_nets_tac safe0_netpair,
+	FIRST' hyp_subst_tacs,
+	n_bimatch_from_nets_tac 1 safep_netpair,
+        bimatch2_tac safep_netpair]);
+
+fun clarify_tac cs = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac cs 1));
+
+
+(*** Unsafe steps instantiate variables or lose information ***)
+
 (*But these unsafe steps at least solve a subgoal!*)
 fun inst0_step_tac (CS{safe0_netpair,safep_netpair,...}) =
   assume_tac 			  APPEND' 
@@ -643,6 +679,10 @@ fun Delrules ts = (claset := !claset delrules ts);
 (*Cannot have Safe_tac, as it takes no arguments; must delay dereferencing!*)
 
 fun Safe_step_tac i = safe_step_tac (!claset) i; 
+
+fun Clarify_step_tac i = clarify_step_tac (!claset) i;
+
+fun Clarify_tac i = clarify_tac (!claset) i;
 
 fun Step_tac i = step_tac (!claset) i; 
 
