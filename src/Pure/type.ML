@@ -32,7 +32,6 @@ sig
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
   val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
-  val norm_typ: tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val cert_typ_syntax: tsig -> typ -> typ
   val cert_typ_raw: tsig -> typ -> typ
@@ -47,8 +46,8 @@ sig
   val freeze_thaw : term -> term * (term -> term)
 
   (*matching and unification*)
-  val inst_term_tvars: tsig -> (indexname * typ) list -> term -> term
-  val inst_typ_tvars: tsig -> (indexname * typ) list -> typ -> typ
+  val inst_typ_tvars: Pretty.pp -> tsig -> (indexname * typ) list -> typ -> typ
+  val inst_term_tvars: Pretty.pp -> tsig -> (indexname * typ) list -> term -> term
   exception TYPE_MATCH
   val typ_match: tsig -> typ Vartab.table * (typ * typ) -> typ Vartab.table
   val typ_instance: tsig -> typ * typ -> bool
@@ -57,14 +56,14 @@ sig
   val raw_unify: typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_classes: (class * class list) list -> tsig -> tsig
-  val add_classrel: (class * class) list -> tsig -> tsig
+  val add_classes: Pretty.pp -> (class * class list) list -> tsig -> tsig
+  val add_classrel: Pretty.pp -> (class * class) list -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
   val add_types: (string * int) list -> tsig -> tsig
   val add_abbrs: (string * string list * typ) list -> tsig -> tsig
   val add_nonterminals: string list -> tsig -> tsig
-  val add_arities: (string * sort list * sort) list -> tsig -> tsig
-  val merge_tsigs: tsig * tsig -> tsig
+  val add_arities: Pretty.pp -> arity list -> tsig -> tsig
+  val merge_tsigs: Pretty.pp -> tsig * tsig -> tsig
 end;
 
 structure Type: TYPE =
@@ -147,6 +146,9 @@ fun witness_sorts (tsig as TSig {classes, arities, log_types, ...}) =
 (* certified types *)
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
+fun undecl_type c = "Undeclared type constructor: " ^ quote c;
+
+local
 
 fun inst_typ tye =
   let
@@ -156,7 +158,6 @@ fun inst_typ tye =
       | None => TVar var);
   in map_type_tvar inst end;
 
-(*expand type abbreviations and normalize sorts*)
 fun norm_typ (tsig as TSig {types, ...}) ty =
   let
     val idx = Term.maxidx_of_typ ty + 1;
@@ -172,7 +173,6 @@ fun norm_typ (tsig as TSig {types, ...}) ty =
     val ty' = norm ty;
   in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
 
-(*check validity of (not necessarily normal) type*)   (*exception TYPE*)
 fun certify_typ normalize syntax tsig ty =
   let
     val TSig {types, ...} = tsig;
@@ -186,7 +186,7 @@ fun certify_typ normalize syntax tsig ty =
               Some (LogicalType n, _) => nargs n
             | Some (Abbreviation (vs, _), _) => nargs (length vs)
             | Some (Nonterminal, _) => nargs 0
-            | None => err ("Undeclared type constructor: " ^ quote c));
+            | None => err (undecl_type c));
             seq check_typ Ts
           end
     | check_typ (TFree (_, S)) = check_sort S
@@ -206,10 +206,13 @@ fun certify_typ normalize syntax tsig ty =
     val _ = if not syntax then no_syntax ty' else ();
   in ty' end;
 
+in
+
 val cert_typ         = certify_typ true false;
 val cert_typ_syntax  = certify_typ true true;
 val cert_typ_raw     = certify_typ false true;
 
+end;
 
 
 (** special treatment of type vars **)
@@ -226,7 +229,7 @@ fun strip_sorts (Type (a, Ts)) = Type (a, map strip_sorts Ts)
 fun no_tvars T =
   (case typ_tvars T of [] => T
   | vs => raise TYPE ("Illegal schematic type variable(s): " ^
-      commas (map (Term.string_of_vname o #1) vs), [T], []));
+      commas_quote (map (Term.string_of_vname o #1) vs), [T], []));
 
 
 (* varify, unvarify *)
@@ -263,7 +266,7 @@ fun freeze_one alist (ix,sort) =
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thaw_one alist (a,sort) = TVar (the (assoc (alist,a)), sort)
-      handle OPTION => TFree(a,sort);
+  handle OPTION => TFree(a, sort);
 
 in
 
@@ -295,20 +298,20 @@ end;
 
 (* instantiation *)
 
-fun type_of_sort tsig (T, S) =
+fun type_of_sort pp tsig (T, S) =
   if of_sort tsig (T, S) then T
-  else raise TYPE ("Type not of sort " ^ Sorts.str_of_sort S, [T], []);
+  else raise TYPE ("Type not of sort " ^ Pretty.string_of_sort pp S, [T], []);
 
-fun inst_typ_tvars tsig tye =
+fun inst_typ_tvars pp tsig tye =
   let
     fun inst (var as (v, S)) =
       (case assoc_string_int (tye, v) of
-        Some U => type_of_sort tsig (U, S)
+        Some U => type_of_sort pp tsig (U, S)
       | None => TVar var);
   in map_type_tvar inst end;
 
-fun inst_term_tvars _ [] t = t
-  | inst_term_tvars tsig tye t = map_term_types (inst_typ_tvars tsig tye) t;
+fun inst_term_tvars _ _ [] t = t
+  | inst_term_tvars pp tsig tye t = map_term_types (inst_typ_tvars pp tsig tye) t;
 
 
 (* matching *)
@@ -319,7 +322,7 @@ fun typ_match tsig =
   let
     fun match (subs, (TVar (v, S), T)) =
           (case Vartab.lookup (subs, v) of
-            None => (Vartab.update_new ((v, type_of_sort tsig (T, S)), subs)
+            None => (Vartab.update_new ((v, type_of_sort Pretty.pp_undef tsig (T, S)), subs)
               handle TYPE _ => raise TYPE_MATCH)
           | Some U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
@@ -417,14 +420,17 @@ fun raw_unify (ty1, ty2) =
 local
 
 fun err_decl t decl = error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t);
-fun err_undecl t = error ("Undeclared type constructor: " ^ quote t);
 
-fun err_conflict t (c1, c2) (c, Ss) (c', Ss') =
-  error ("Conflict of type arities for classes " ^ quote c1 ^ " < " ^ quote c2 ^ ":\n  " ^
-    Sorts.str_of_arity (t, Ss, [c]) ^ " and\n  " ^
-    Sorts.str_of_arity (t, Ss', [c']));
+fun for_classes _ None = ""
+  | for_classes pp (Some (c1, c2)) =
+      " for classes " ^ Pretty.string_of_classrel pp [c1, c2];
 
-fun coregular C t (c, Ss) ars =
+fun err_conflict pp t cc (c, Ss) (c', Ss') =
+  error ("Conflict of type arities" ^ for_classes pp cc ^ ":\n  " ^
+    Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
+    Pretty.string_of_arity pp (t, Ss', [c']));
+
+fun coregular pp C t (c, Ss) ars =
   let
     fun conflict (c', Ss') =
       if Sorts.class_le C (c, c') andalso not (Sorts.sorts_le C (Ss, Ss')) then
@@ -434,33 +440,33 @@ fun coregular C t (c, Ss) ars =
       else None;
   in
     (case Library.get_first conflict ars of
-      Some ((c1, c2), (c', Ss')) => err_conflict t (c1, c2) (c, Ss) (c', Ss')
+      Some ((c1, c2), (c', Ss')) => err_conflict pp t (Some (c1, c2)) (c, Ss) (c', Ss')
     | None => (c, Ss) :: ars)
   end;
 
-fun insert C t ((c, Ss), ars) =
+fun insert pp C t ((c, Ss), ars) =
   (case assoc_string (ars, c) of
-    None => coregular C t (c, Ss) ars
+    None => coregular pp C t (c, Ss) ars
   | Some Ss' =>
       if Sorts.sorts_le C (Ss, Ss') then ars
       else if Sorts.sorts_le C (Ss', Ss)
-      then coregular C t (c, Ss) (ars \ (c, Ss'))
-      else coregular C t (c, Ss) ars);
+      then coregular pp C t (c, Ss) (ars \ (c, Ss'))
+      else err_conflict pp t None (c, Ss) (c, Ss'));
 
 fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 
-fun insert_arities classes (arities, (t, ars)) =
+fun insert_arities pp classes (arities, (t, ars)) =
   let val ars' =
     Symtab.lookup_multi (arities, t)
-    |> curry (foldr (insert classes t)) (flat (map (complete classes) ars))
+    |> curry (foldr (insert pp classes t)) (flat (map (complete classes) ars))
   in Symtab.update ((t, ars'), arities) end;
 
-fun insert_table classes = Symtab.foldl (fn (arities, (t, ars)) =>
-  insert_arities classes (arities, (t, map (apsnd (map (Sorts.norm_sort classes))) ars)));
+fun insert_table pp classes = Symtab.foldl (fn (arities, (t, ars)) =>
+  insert_arities pp classes (arities, (t, map (apsnd (map (Sorts.norm_sort classes))) ars)));
 
 in
 
-fun add_arities decls tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
+fun add_arities pp decls tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
   let
     fun prep (t, Ss, S) =
       (case Symtab.lookup (types, t) of
@@ -470,17 +476,17 @@ fun add_arities decls tsig = tsig |> change_tsig (fn (classes, default, types, a
               handle TYPE (msg, _, _) => error msg
           else error (bad_nargs t)
       | Some (decl, _) => err_decl t decl
-      | None => err_undecl t);
+      | None => error (undecl_type t));
 
     val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
-    val arities' = foldl (insert_arities classes) (arities, ars);
+    val arities' = foldl (insert_arities pp classes) (arities, ars);
   in (classes, default, types, arities') end);
 
-fun rebuild_arities classes arities =
-  insert_table classes (Symtab.empty, arities);
+fun rebuild_arities pp classes arities =
+  insert_table pp classes (Symtab.empty, arities);
 
-fun merge_arities classes (arities1, arities2) =
-  insert_table classes (insert_table classes (Symtab.empty, arities1), arities2);
+fun merge_arities pp classes (arities1, arities2) =
+  insert_table pp classes (insert_table pp classes (Symtab.empty, arities1), arities2);
 
 end;
 
@@ -492,37 +498,37 @@ local
 fun err_dup_classes cs =
   error ("Duplicate declaration of class(es): " ^ commas_quote cs);
 
-fun err_cyclic_classes css =
+fun err_cyclic_classes pp css =
   error (cat_lines (map (fn cs =>
-    "Cycle in class relation: " ^ space_implode " < " (map quote cs)) css));
+    "Cycle in class relation: " ^ Pretty.string_of_classrel pp cs) css));
 
-fun add_class (c, cs) tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
+fun add_class pp (c, cs) tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
   let
     val cs' = map (cert_class tsig) cs
       handle TYPE (msg, _, _) => error msg;
     val classes' = classes |> Graph.new_node (c, stamp ())
       handle Graph.DUP d => err_dup_classes [d];
     val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c) cs')
-      handle Graph.CYCLES css => err_cyclic_classes css;
+      handle Graph.CYCLES css => err_cyclic_classes pp css;
   in (classes'', default, types, arities) end);
 
 in
 
-val add_classes = fold add_class;
+val add_classes = fold o add_class;
 
-fun add_classrel ps tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
+fun add_classrel pp ps tsig = tsig |> change_tsig (fn (classes, default, types, arities) =>
   let
     val ps' = map (pairself (cert_class tsig)) ps
       handle TYPE (msg, _, _) => error msg;
     val classes' = classes |> fold Graph.add_edge_trans_acyclic ps'
-      handle Graph.CYCLES css => err_cyclic_classes css;
+      handle Graph.CYCLES css => err_cyclic_classes pp css;
     val default' = default |> Sorts.norm_sort classes';
-    val arities' = arities |> rebuild_arities classes';
+    val arities' = arities |> rebuild_arities pp classes';
   in (classes', default', types, arities') end);
 
-fun merge_classes CC = Graph.merge_trans_acyclic (op =) CC
+fun merge_classes pp CC = Graph.merge_trans_acyclic (op =) CC
   handle Graph.DUPS cs => err_dup_classes cs
-    | Graph.CYCLES css => err_cyclic_classes css;
+    | Graph.CYCLES css => err_cyclic_classes pp css;
 
 end;
 
@@ -545,8 +551,9 @@ fun err_in_decls c decl decl' =
     val s = str_of_decl decl;
     val s' = str_of_decl decl';
   in
-    if s = s' then error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
-    else error ("Conflicting declarations of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
+    if s = s' then
+      error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
+    else error ("Conflict of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
   end;
 
 fun new_decl (c, decl) types =
@@ -592,17 +599,17 @@ end;
 
 (* merge type signatures *)
 
-fun merge_tsigs (tsig1, tsig2) =
+fun merge_tsigs pp (tsig1, tsig2) =
   let
     val (TSig {classes = classes1, default = default1, types = types1, arities = arities1,
       log_types = _, witness = _}) = tsig1;
     val (TSig {classes = classes2, default = default2, types = types2, arities = arities2,
       log_types = _, witness = _}) = tsig2;
 
-    val classes' = merge_classes (classes1, classes2);
+    val classes' = merge_classes pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
     val types' = merge_types (types1, types2);
-    val arities' = merge_arities classes' (arities1, arities2);
+    val arities' = merge_arities pp classes' (arities1, arities2);
   in build_tsig (classes', default', types', arities') end;
 
 end;
