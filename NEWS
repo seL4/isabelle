@@ -97,6 +97,14 @@ hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
+* HOL/record:
+  - provides cases/induct rules for use with corresponding Isar methods;
+  - "record" operation truncates to particular fixed record (acts like
+    a type cast);
+  - make_defs no longer part of default simps;
+  - internal definitions directly based on a light-weight abstract
+    theory of product types over typedef rather than datatype;
+
 * HOL: concrete setsum syntax "\<Sum>i:A. b" == "setsum (%i. b) A"
 (beware of argument permutation!);
 
