@@ -149,6 +149,8 @@ syntax (symbols)
   "@SUM"      :: [pttrn, i, i] => i        ("(3\\<Sigma> _\\<in>_./ _)" 10)
   "@Ball"     :: [pttrn, i, o] => o        ("(3\\<forall> _\\<in>_./ _)" 10)
   "@Bex"      :: [pttrn, i, o] => o        ("(3\\<exists> _\\<in>_./ _)" 10)
+  "@Tuple"    :: [i, is] => i              ("\\<langle>(_,/ _)\\<rangle>")
+  "@pttrn"    :: pttrns => pttrn           ("\\<langle>_\\<rangle>")
 
 
 defs
