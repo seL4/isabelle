@@ -66,7 +66,7 @@ Goalw [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
 by (Blast_tac 1);
 qed "singleton_fun";
 
-Addsimps [empty_fun, singleton_fun];
+Addsimps [Pi_empty1, singleton_fun];
 
 (*** Function Application ***)
 
