@@ -8,7 +8,7 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-WFair = Traces + Vimage +
+WFair = UNITY +
 
 constdefs
 

@@ -9,7 +9,7 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 *)
 
 
-Token = WFair +
+Token = WFair + 
 
 (*process states*)
 datatype pstate = Hungry | Eating | Thinking

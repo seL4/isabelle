@@ -14,7 +14,7 @@ HOL_quantifiers := false;
 
 (*** constrains ***)
 
-val prems = goalw thy [constrains_def]
+val prems = Goalw [constrains_def]
     "(!!act s s'. [| act: acts;  (s,s') : act;  s: A |] ==> s': A') \
 \    ==> constrains acts A A'";
 by (blast_tac (claset() addIs prems) 1);
@@ -50,18 +50,11 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "constrains_weaken";
 
-(*Set difference: UNUSED*)
-Goalw [constrains_def]
-  "[| constrains acts (A-B) C; constrains acts B C |] \
-\       ==> constrains acts A C";
-by (Blast_tac 1);
-qed "constrains_Diff";
-
 (** Union **)
 
 Goalw [constrains_def]
     "[| constrains acts A A'; constrains acts B B' |]   \
-\           ==> constrains acts (A Un B) (A' Un B')";
+\    ==> constrains acts (A Un B) (A' Un B')";
 by (Blast_tac 1);
 qed "constrains_Un";
 
@@ -73,7 +66,7 @@ qed "ball_constrains_UN";
 
 Goalw [constrains_def]
     "[| ALL i. constrains acts (A i) (A' i) |] \
-\           ==> constrains acts (UN i. A i) (UN i. A' i)";
+\    ==> constrains acts (UN i. A i) (UN i. A' i)";
 by (Blast_tac 1);
 qed "all_constrains_UN";
 
@@ -81,7 +74,7 @@ qed "all_constrains_UN";
 
 Goalw [constrains_def]
     "[| constrains acts A A'; constrains acts B B' |]   \
-\           ==> constrains acts (A Int B) (A' Int B')";
+\    ==> constrains acts (A Int B) (A' Int B')";
 by (Blast_tac 1);
 qed "constrains_Int";
 
@@ -93,21 +86,20 @@ qed "ball_constrains_INT";
 
 Goalw [constrains_def]
     "[| ALL i. constrains acts (A i) (A' i) |] \
-\           ==> constrains acts (INT i. A i) (INT i. A' i)";
+\    ==> constrains acts (INT i. A i) (INT i. A' i)";
 by (Blast_tac 1);
 qed "all_constrains_INT";
 
-Goalw [stable_def, constrains_def]
-    "[| stable acts C; constrains acts A (C Un A') |]   \
-\           ==> constrains acts (C Un A) (C Un A')";
+Goalw [constrains_def]
+    "[| constrains acts A A'; id: acts |] ==> A<=A'";
 by (Blast_tac 1);
-qed "stable_constrains_Un";
+qed "constrains_imp_subset";
 
-Goalw [stable_def, constrains_def]
-    "[| stable acts C; constrains acts (C Int A) A' |]   \
-\           ==> constrains acts (C Int A) (C Int A')";
+Goalw [constrains_def]
+    "[| id: acts; constrains acts A B; constrains acts B C |]   \
+\    ==> constrains acts A C";
 by (Blast_tac 1);
-qed "stable_constrains_Int";
+qed "constrains_trans";
 
 
 (*** stable ***)
@@ -124,27 +116,27 @@ qed "stableD";
 
 Goalw [stable_def]
     "[| stable acts A; stable acts A' |]   \
-\           ==> stable acts (A Un A')";
+\    ==> stable acts (A Un A')";
 by (blast_tac (claset() addIs [constrains_Un]) 1);
 qed "stable_Un";
 
 Goalw [stable_def]
     "[| stable acts A; stable acts A' |]   \
-\           ==> stable acts (A Int A')";
+\    ==> stable acts (A Int A')";
 by (blast_tac (claset() addIs [constrains_Int]) 1);
 qed "stable_Int";
 
-Goalw [constrains_def]
-    "[| constrains acts A A'; id: acts |] ==> A<=A'";
+Goalw [stable_def, constrains_def]
+    "[| stable acts C; constrains acts A (C Un A') |]   \
+\    ==> constrains acts (C Un A) (C Un A')";
 by (Blast_tac 1);
-qed "constrains_imp_subset";
+qed "stable_constrains_Un";
 
-
-Goalw [constrains_def]
-    "[| id: acts; constrains acts A B; constrains acts B C |]   \
-\           ==> constrains acts A C";
+Goalw [stable_def, constrains_def]
+    "[| stable acts C; constrains acts (C Int A) A' |]   \
+\    ==> constrains acts (C Int A) (C Int A')";
 by (Blast_tac 1);
-qed "constrains_trans";
+qed "stable_constrains_Int";
 
 
 (*The Elimination Theorem.  The "free" m has become universally quantified!
@@ -152,7 +144,7 @@ qed "constrains_trans";
   in forward proof.*)
 Goalw [constrains_def]
     "[| ALL m. constrains acts {s. s x = m} (B m) |] \
-\           ==> constrains acts {s. P(s x)} (UN m. {s. P(m)} Int B m)";
+\    ==> constrains acts {s. P(s x)} (UN m. {s. P(m)} Int B m)";
 by (Blast_tac 1);
 qed "elimination";
 
@@ -160,14 +152,14 @@ qed "elimination";
   state is identified with its one variable.*)
 Goalw [constrains_def]
     "[| ALL m. constrains acts {m} (B m) |] \
-\           ==> constrains acts {s. P s} (UN m. {s. P(m)} Int B m)";
+\    ==> constrains acts {s. P s} (UN m. {s. P(m)} Int B m)";
 by (Blast_tac 1);
 qed "elimination_sing";
 
 
 Goalw [constrains_def]
    "[| constrains acts A (A' Un B); constrains acts B B'; id: acts |] \
-\           ==> constrains acts A (A' Un B')";
+\   ==> constrains acts A (A' Un B')";
 by (Blast_tac 1);
 qed "constrains_cancel";
 

@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-My treatment of the Substitution Axiom -- not as an axiom!
+LeadsTo relation: restricted to the set of reachable states.
 *)
 
-SubstAx = WFair +
+SubstAx = WFair + Traces + 
 
 constdefs
 

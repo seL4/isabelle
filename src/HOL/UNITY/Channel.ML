@@ -28,7 +28,7 @@ qed_spec_mp "minSet_nonempty";
 
 Goal "leadsTo acts (minSet -`` {Some x}) (minSet -`` (Some``greaterThan x))";
 by (rtac leadsTo_weaken 1);
-by (rtac ([UC2, UC1] MRS PSP) 1);
+by (rtac ([UC2, UC1] MRS psp) 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 by Safe_tac;

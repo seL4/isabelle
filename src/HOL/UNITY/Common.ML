@@ -71,8 +71,7 @@ result();
 
 Addsimps [atMost_Int_atLeast];
 
-Goal
-    "[| ALL m. constrains acts {m} (maxfg m); \
+Goal "[| ALL m. constrains acts {m} (maxfg m); \
 \               ALL m: lessThan n. leadsTo acts {m} (greaterThan m); \
 \               n: common;  id: acts |]  \
 \            ==> leadsTo acts (atMost n) common";
@@ -80,13 +79,12 @@ by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac [("f","%x. x"), ("l", "n")] greaterThan_bounded_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac subset_refl 2);
-by (blast_tac (claset() addDs [PSP_stable2] 
+by (blast_tac (claset() addDs [psp_stable2] 
                         addIs [common_stable, leadsTo_weaken_R]) 1);
 val lemma = result();
 
 (*The "ALL m: Compl common" form echoes CMT6.*)
-Goal
-    "[| ALL m. constrains acts {m} (maxfg m); \
+Goal "[| ALL m. constrains acts {m} (maxfg m); \
 \               ALL m: Compl common. leadsTo acts {m} (greaterThan m); \
 \               n: common;  id: acts |]  \
 \            ==> leadsTo acts (atMost (LEAST n. n: common)) common";

@@ -35,11 +35,18 @@ by (etac reachable.induct 1);
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "invariant_includes_reachable";
 
-(*If "A" includes the initial states and is stable then "A" is invariant.
-  Result is trivial from the definition, but it is handy.*)
+
+(** Natural deduction rules for "invariant prg A" **)
+
 Goal "[| (Init prg)<=A;  stable (Acts prg) A |] ==> invariant prg A";
 by (asm_simp_tac (simpset() addsimps [invariant_def]) 1);
 qed "invariantI";
+
+Goal "invariant prg A ==> (Init prg)<=A & stable (Acts prg) A";
+by (asm_full_simp_tac (simpset() addsimps [invariant_def]) 1);
+qed "invariantD";
+
+bind_thm ("invariantE", invariantD RS conjE);
 
 
 (** Conjoining invariants **)

@@ -272,23 +272,18 @@ by (asm_full_simp_tac
     (simpset() addsimps [ensures_def, 
 			 Diff_Int_distrib2 RS sym, Int_Un_distrib2 RS sym]) 1);
 by (blast_tac (claset() addIs [transient_strengthen, constrains_Int]) 1);
-qed "PSP_stable";
+qed "psp_stable";
 
 Goal "[| leadsTo acts A A'; stable acts B |] \
 \   ==> leadsTo acts (B Int A) (B Int A')";
-by (asm_simp_tac (simpset() addsimps (PSP_stable::Int_ac)) 1);
-qed "PSP_stable2";
+by (asm_simp_tac (simpset() addsimps (psp_stable::Int_ac)) 1);
+qed "psp_stable2";
 
-
-Goalw [ensures_def]
+Goalw [ensures_def, constrains_def]
    "[| ensures acts A A'; constrains acts B B' |] \
 \   ==> ensures acts (A Int B) ((A' Int B) Un (B' - B))";
-by Safe_tac;
-by (blast_tac (claset() addIs [constrainsI] addDs [constrainsD]) 1);
-by (etac transient_strengthen 1);
-by (Blast_tac 1);
-qed "PSP_ensures";
-
+by (blast_tac (claset() addIs [transient_strengthen]) 1);
+qed "psp_ensures";
 
 Goal "[| leadsTo acts A A'; constrains acts B B'; id: acts |] \
 \           ==> leadsTo acts (A Int B) ((A' Int B) Un (B' - B))";
@@ -301,26 +296,26 @@ by (etac leadsTo_cancel_Diff1 2);
 by (assume_tac 3);
 by (asm_full_simp_tac (simpset() addsimps [Int_Diff, Diff_triv]) 2);
 (*Basis case*)
-by (blast_tac (claset() addIs [leadsTo_Basis, PSP_ensures]) 1);
-qed "PSP";
+by (blast_tac (claset() addIs [leadsTo_Basis, psp_ensures]) 1);
+qed "psp";
 
 Goal "[| leadsTo acts A A'; constrains acts B B'; id: acts |] \
 \   ==> leadsTo acts (B Int A) ((B Int A') Un (B' - B))";
-by (asm_simp_tac (simpset() addsimps (PSP::Int_ac)) 1);
-qed "PSP2";
+by (asm_simp_tac (simpset() addsimps (psp::Int_ac)) 1);
+qed "psp2";
 
 
 Goalw [unless_def]
    "[| leadsTo acts A A'; unless acts B B'; id: acts |] \
 \   ==> leadsTo acts (A Int B) ((A' Int B) Un B')";
-by (dtac PSP 1);
+by (dtac psp 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Un_Diff_Diff, Int_Diff_Un]) 2);
 by (asm_full_simp_tac (simpset() addsimps [Diff_Int_distrib]) 2);
 by (etac leadsTo_Diff 2);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 2);
 by Auto_tac;
-qed "PSP_unless";
+qed "psp_unless";
 
 
 (*** Proving the induction rules ***)
@@ -482,9 +477,9 @@ by (EVERY [etac (constrains_Un RS constrains_weaken) 2,
 	   fast_tac (claset() addEs [wlt_increasing RSN (2,rev_subsetD)]) 3,
 	   Blast_tac 2]);
 by (subgoal_tac "leadsTo acts (A Int wlt acts B') (A' Int wlt acts B')" 1);
-by (blast_tac (claset() addIs [PSP_stable]) 2);
+by (blast_tac (claset() addIs [psp_stable]) 2);
 by (subgoal_tac "leadsTo acts (A' Int wlt acts B') (A' Int B')" 1);
-by (blast_tac (claset() addIs [wlt_leadsTo, PSP_stable2]) 2);
+by (blast_tac (claset() addIs [wlt_leadsTo, psp_stable2]) 2);
 by (subgoal_tac "leadsTo acts (A Int B) (A Int wlt acts B')" 1);
 by (blast_tac (claset() addIs [leadsTo_subset RS subsetD, 
 			       subset_imp_leadsTo]) 2);
@@ -518,10 +513,10 @@ by (asm_full_simp_tac
     (simpset() addsimps [wlt_increasing, Un_assoc, Un_absorb2]) 2);
 by (subgoal_tac "leadsTo acts (A Int W - C) (A' Int W Un C)" 1);
 by (simp_tac (simpset() addsimps [Int_Diff]) 2);
-by (blast_tac (claset() addIs [wlt_leadsTo, PSP RS leadsTo_weaken_R]) 2);
+by (blast_tac (claset() addIs [wlt_leadsTo, psp RS leadsTo_weaken_R]) 2);
 by (subgoal_tac "leadsTo acts (A' Int W Un C) (A' Int B' Un C)" 1);
 by (blast_tac (claset() addIs [wlt_leadsTo, leadsTo_Un_Un, 
-                               PSP2 RS leadsTo_weaken_R, 
+                               psp2 RS leadsTo_weaken_R, 
 			       subset_refl RS subset_imp_leadsTo, 
 			       leadsTo_Un_duplicate2]) 2);
 by (dtac leadsTo_Diff 1);
