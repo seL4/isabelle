@@ -535,10 +535,10 @@ normalized terms using Isabelle's pretty printer.
 *}
 
 ML {*
-fun nat_of_int 0 = id0
+fun nat_of_int 0 = id_0
   | nat_of_int n = Suc (nat_of_int (n-1));
 
-fun int_of_nat id0 = 0
+fun int_of_nat id_0 = 0
   | int_of_nat (Suc n) = 1 + int_of_nat n;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
@@ -576,7 +576,7 @@ fun typing_of_term Ts e (Bound i) =
       let val dBT = dBtype_of_typ T
       in rtypingT_Abs (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (shift e id0 dBT) t)
+        typing_of_term (T :: Ts) (shift e id_0 dBT) t)
       end
   | typing_of_term _ _ _ = error "typing_of_term: bad term";
 
