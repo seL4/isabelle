@@ -15,7 +15,7 @@ val ioa_projections = [asig_of_def, starts_of_def, trans_of_def];
 val exec_rws = [executions_def,is_execution_fragment_def];
 
 Goal
-"asig_of((x,y,z)) = x & starts_of((x,y,z)) = y & trans_of((x,y,z)) = z";
+"asig_of(x,y,z) = x & starts_of(x,y,z) = y & trans_of(x,y,z) = z";
   by (simp_tac (simpset() addsimps ioa_projections) 1);
   qed "ioa_triple_proj";
 

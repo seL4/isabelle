@@ -524,7 +524,7 @@ val prems = goalw MT.thy [hasty_rel_def]
 \           !ev1. ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
 \        |] ==> P((v_clos(<|ev,e,ve|>),t)); \
 \      (v,t) : hasty_rel \
-\   |] ==> P((v,t))";
+\   |] ==> P(v,t)";
 by (cut_facts_tac prems 1);
 by (etac gfp_elim2 1);
 by (rtac mono_hasty_fun 1);

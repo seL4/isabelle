@@ -320,14 +320,14 @@ by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
 
-Goal "Lconst(M) = LList_corec M (%x. Some((x,x)))";
+Goal "Lconst(M) = LList_corec M (%x. Some(x,x))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac Lconst 1);
 qed "Lconst_eq_LList_corec";
 
 (*Thus we could have used gfp in the definition of Lconst*)
-Goal "gfp(%N. CONS M N) = LList_corec M (%x. Some((x,x)))";
+Goal "gfp(%N. CONS M N) = LList_corec M (%x. Some(x,x))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);

@@ -206,7 +206,7 @@ Addsimps [apfst_conv];
 AddIffs  [Scons_not_Atom, Atom_not_Scons, Scons_Scons_eq];
 
 
-Goalw [ndepth_def] "ndepth (Abs_Node((%k. Inr 0, x))) = 0";
+Goalw [ndepth_def] "ndepth (Abs_Node(%k. Inr 0, x)) = 0";
 by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split]);
 by (rtac Least_equality 1);
 by (rtac refl 1);
