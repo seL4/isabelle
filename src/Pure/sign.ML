@@ -5,7 +5,7 @@
 The abstract type "sg" of signatures.
 
 TODO:
-  a clean modular sequential Sign.extend (using sg_ext list);
+  pure sign: elim Syntax.constrainC
 *)
 
 signature SIGN =
@@ -14,19 +14,21 @@ sig
   structure Syntax: SYNTAX
   structure Type: TYPE
   sharing Symtab = Type.Symtab
-  local open Type in
+  local open Type Syntax Syntax.Mixfix in
     type sg
     val rep_sg: sg ->
       {tsig: type_sig,
        const_tab: typ Symtab.table,
-       syn: Syntax.syntax,
+       syn: syntax,
        stamps: string ref list}
     val subsig: sg * sg -> bool
     val eq_sg: sg * sg -> bool
+    val is_draft: sg -> bool
+    val const_type: sg -> string -> typ option
     val print_sg: sg -> unit
     val pprint_sg: sg -> pprint_args -> unit
-    val pretty_term: sg -> term -> Syntax.Pretty.T
-    val pretty_typ: sg -> typ -> Syntax.Pretty.T
+    val pretty_term: sg -> term -> Pretty.T
+    val pretty_typ: sg -> typ -> Pretty.T
     val string_of_term: sg -> term -> string
     val string_of_typ: sg -> typ -> string
     val pprint_term: sg -> term -> pprint_args -> unit
@@ -34,14 +36,34 @@ sig
     val certify_typ: sg -> typ -> typ
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
+    val add_classes: (class list * class * class list) list -> sg -> sg
+    val add_defsort: sort -> sg -> sg
+    val add_types: (string * int * mixfix) list -> sg -> sg
+    val add_tyabbrs: (string * string list * string * mixfix) list -> sg -> sg
+    val add_tyabbrs_i: (string * string list * typ * mixfix) list -> sg -> sg
+    val add_arities: (string * sort list * sort) list -> sg -> sg
+    val add_consts: (string * string * mixfix) list -> sg -> sg
+    val add_consts_i: (string * typ * mixfix) list -> sg -> sg
+    val add_syntax: (string * string * mixfix) list -> sg -> sg
+    val add_syntax_i: (string * typ * mixfix) list -> sg -> sg
+    val add_trfuns:
+      (string * (ast list -> ast)) list *
+      (string * (term list -> term)) list *
+      (string * (term list -> term)) list *
+      (string * (ast list -> ast)) list -> sg -> sg
+    val add_trrules: xrule list -> sg -> sg
+    val add_name: string -> sg -> sg
+    val make_draft: sg -> sg
     val extend: sg -> string ->
       (class * class list) list * class list *
       (string list * int) list *
       (string * string list * string) list *
       (string list * (sort list * class)) list *
-      (string list * string) list * Syntax.sext option -> sg
+      (string list * string) list * sext option -> sg
     val merge: sg * sg -> sg
     val pure: sg
+    val const_of_class: class -> string
+    val class_of_const: string -> class
   end
 end;
 
@@ -50,9 +72,11 @@ struct
 
 structure Symtab = Type.Symtab;
 structure Syntax = Syntax;
+structure BasicSyntax: BASIC_SYNTAX = Syntax;
 structure Pretty = Syntax.Pretty;
 structure Type = Type;
-open Type;
+open BasicSyntax Type;
+open Syntax.Mixfix;   (* FIXME *)
 
 
 (** datatype sg **)
@@ -70,13 +94,22 @@ datatype sg =
 fun rep_sg (Sg args) = args;
 
 
+fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
+  | is_draft _ = false;
+
 fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
 
 fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = eq_set (s1, s2);
 
 
+fun const_type (Sg {const_tab, ...}) c =
+  Symtab.lookup (const_tab, c);
+
+
 
 (** print signature **)
+
+val stamp_names = rev o map !;
 
 fun print_sg sg =
   let
@@ -113,7 +146,7 @@ fun print_sg sg =
     val Sg {tsig, const_tab, syn, stamps} = sg;
     val {classes, subclass, default, args, abbrs, coreg} = rep_tsig tsig;
   in
-    Pretty.writeln (Pretty.strs ("stamps:" :: map ! stamps));
+    Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ("classes:" :: classes));
     Pretty.writeln (Pretty.big_list "subclass:" (map pretty_subclass subclass));
     Pretty.writeln (pretty_default default);
@@ -121,12 +154,12 @@ fun print_sg sg =
     Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
     Pretty.writeln (Pretty.big_list "coreg:" (flat (map pretty_coreg coreg)));
     Pretty.writeln (Pretty.big_list "consts:"
-      (map (pretty_const syn) (Symtab.alist_of const_tab)))
+      (map (pretty_const syn) (Symtab.dest const_tab)))
   end;
 
 
 fun pprint_sg (Sg {stamps, ...}) =
-  Pretty.pprint (Pretty.str_list "{" "}" (map ! stamps));
+  Pretty.pprint (Pretty.str_list "{" "}" (stamp_names stamps));
 
 
 
@@ -143,22 +176,19 @@ fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
 
 
-(** certify types and terms **)
-
-(*errors are indicated by exception TYPE*)
+(** certify types and terms **)   (*exception TYPE*)
 
 fun certify_typ (Sg {tsig, ...}) ty = cert_typ tsig ty;
 
 
-(* FIXME -> term.ML (?) *)
-fun mapfilter_atoms f (Abs (_, _, t)) = mapfilter_atoms f t
-  | mapfilter_atoms f (t $ u) = mapfilter_atoms f t @ mapfilter_atoms f u
-  | mapfilter_atoms f a = (case f a of Some y => [y] | None => []);
+fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
+  | mapfilt_atoms f (t $ u) = mapfilt_atoms f t @ mapfilt_atoms f u
+  | mapfilt_atoms f a = (case f a of Some y => [y] | None => []);
 
-fun certify_term (sg as Sg {tsig, const_tab, ...}) tm =
+fun certify_term (sg as Sg {tsig, ...}) tm =
   let
     fun valid_const a T =
-      (case Symtab.lookup (const_tab, a) of
+      (case const_type sg a of
         Some U => typ_instance (tsig, T, U)
       | _ => false);
 
@@ -170,23 +200,21 @@ fun certify_term (sg as Sg {tsig, const_tab, ...}) tm =
           if i < 0 then Some ("Negative index for Var " ^ quote x) else None
       | atom_err _ = None;
 
-
     val norm_tm =
       (case it_term_types (typ_errors tsig) (tm, []) of
         [] => map_term_types (norm_typ tsig) tm
       | errs => raise_type (cat_lines errs) [] [tm]);
   in
-    (case mapfilter_atoms atom_err norm_tm of
+    (case mapfilt_atoms atom_err norm_tm of
       [] => (norm_tm, type_of norm_tm, maxidx_of_term norm_tm)
     | errs => raise_type (cat_lines errs) [] [norm_tm])
   end;
 
 
 
-(** read types **)
+(** read types **)    (*exception ERROR*)
 
-(*read and certify typ wrt a signature; errors are indicated by
-  exception ERROR (with messages already printed)*)
+(* FIXME rd_typ vs. read_raw_typ (?) *)
 
 fun rd_typ tsig syn sort_of s =
   let
@@ -203,9 +231,230 @@ fun read_typ (Sg {tsig, syn, ...}, sort_of) s = rd_typ tsig syn sort_of s;
 
 
 
-(** extend signature **)
+(** extend signature **)    (*exception ERROR*)
 
-(*errors are indicated by exception ERROR (with messages already printed)*)
+(* FIXME -> type.ML *)
+
+(* FIXME replace? *)
+fun varify_typ (Type (t, tys)) = Type (t, map varify_typ tys)
+  | varify_typ (TFree (a, s)) = TVar ((a, 0), s)
+  | varify_typ (ty as TVar _) =
+      raise_type "Illegal schematic type variable" [ty] [];
+
+
+(* fake newstyle interfaces *) (* FIXME -> type.ML *)
+
+fun ext_tsig_classes tsig classes =
+  if exists (fn ([], _, _) => false | _ => true) classes then
+    sys_error "FIXME ext_tsig_classes"
+  else
+    extend_tsig tsig (map (fn (_, c, cs) => (c, cs)) classes, [], [], []);
+
+fun ext_tsig_defsort tsig defsort =
+  extend_tsig tsig ([], defsort, [], []);
+
+fun ext_tsig_types tsig types =
+  extend_tsig tsig ([], [], map (fn (t, n) => ([t], n)) types, []);
+
+(* FIXME varify_typ, rem_sorts; norm_typ (?) *)
+fun ext_tsig_abbrs tsig abbrs = Type.ext_tsig_abbrs tsig
+  (map (fn (t, vs, rhs) => (t, (map (rpair 0) vs, varifyT rhs))) abbrs);
+
+fun ext_tsig_arities tsig arities = extend_tsig tsig
+  ([], [], [], flat (map (fn (t, ss, cs) => map (fn c => ([t], (ss, c))) cs) arities));
+
+
+
+(** read types **)  (*exception ERROR*)
+
+fun err_in_type s =
+  error ("The error(s) above occurred in type " ^ quote s);
+
+fun read_raw_typ syn tsig sort_of str =
+  Syntax.read_typ syn (fn x => if_none (sort_of x) (defaultS tsig)) str
+    handle ERROR => err_in_type str;
+
+(*read and certify typ wrt a signature*)
+fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
+  cert_typ tsig (read_raw_typ syn tsig sort_of str)
+    handle TYPE (msg, _, _) => (writeln msg; err_in_type str);
+
+
+
+(** extension functions **)  (*exception ERROR*)
+
+fun decls_of name_of mfixs =
+  map (fn (x, y, mx) => (name_of x mx, y)) mfixs;
+
+
+(* add default sort *)
+
+fun ext_defsort (syn, tsig, ctab) defsort =
+  (syn, ext_tsig_defsort tsig defsort, ctab);
+
+
+(* add type constructors *)
+
+fun ext_types (syn, tsig, ctab) types =
+  (Syntax.extend_type_gram syn types,
+    ext_tsig_types tsig (decls_of type_name types),
+    ctab);
+
+
+(* add type abbreviations *)
+
+fun read_abbr syn tsig (t, vs, rhs_src) =
+  (t, vs, read_raw_typ syn tsig (K None) rhs_src)
+    handle ERROR => error ("in type abbreviation " ^ t);
+
+fun ext_abbrs rd_abbr (syn, tsig, ctab) abbrs =
+  let
+    fun mfix_of (t, vs, _, mx) = (t, length vs, mx);
+    val syn1 = Syntax.extend_type_gram syn (map mfix_of abbrs);
+
+    fun decl_of (t, vs, rhs, mx) =
+      rd_abbr syn1 tsig (type_name t mx, vs, rhs);
+  in
+    (syn1, ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
+  end;
+
+val ext_tyabbrs_i = ext_abbrs (K (K I));
+val ext_tyabbrs = ext_abbrs read_abbr;
+
+
+(* add type arities *)
+
+fun ext_arities (syn, tsig, ctab) arities =
+  let
+    val tsig1 = ext_tsig_arities tsig arities;
+    val log_types = logical_types tsig1;
+  in
+    (Syntax.extend_log_types syn log_types, tsig1, ctab)
+  end;
+
+
+(* add term constants and syntax *)
+
+fun err_in_const c =
+  error ("in declaration of constant " ^ quote c);
+
+fun err_dup_consts cs =
+  error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
+
+
+fun read_const syn tsig (c, ty_src, mx) =
+  (c, read_raw_typ syn tsig (K None) ty_src, mx)
+    handle ERROR => err_in_const (const_name c mx);
+
+fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
+  let
+    fun prep_const (c, ty, mx) = (c, cert_typ tsig (varify_typ ty), mx)
+      handle TYPE (msg, _, _) => (writeln msg; err_in_const (const_name c mx));
+
+    val consts = map (prep_const o rd_const syn tsig) raw_consts;
+    val decls =
+      if syn_only then []
+      else filter_out (equal "" o fst) (decls_of const_name consts);
+  in
+    (Syntax.extend_const_gram syn consts, tsig,
+      Symtab.extend_new (ctab, decls)
+        handle Symtab.DUPS cs => err_dup_consts cs)
+  end;
+
+val ext_consts_i = ext_cnsts (K (K I)) false;
+val ext_consts = ext_cnsts read_const false;
+val ext_syntax_i = ext_cnsts (K (K I)) true;
+val ext_syntax = ext_cnsts read_const true;
+
+
+(* add type classes *)
+
+fun const_of_class c = c ^ "_class";
+
+fun class_of_const c_class =
+  let
+    val c = implode (take (size c_class - 6, explode c_class));
+  in
+    if const_of_class c = c_class then c
+    else raise_term ("class_of_const: bad name " ^ quote c_class) []
+  end;
+
+
+fun ext_classes (syn, tsig, ctab) classes =
+  let
+    val names = map (fn (_, c, _) => c) classes;
+    val consts =
+      map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
+  in
+    ext_consts_i
+      (Syntax.extend_consts syn names, ext_tsig_classes tsig classes, ctab)
+      consts
+  end;
+
+
+(* add syntactic translations *)
+
+fun ext_trfuns (syn, tsig, ctab) trfuns =
+  (Syntax.extend_trfuns syn trfuns, tsig, ctab);
+
+fun ext_trrules (syn, tsig, ctab) xrules =
+  (Syntax.extend_trrules syn xrules, tsig, ctab);
+
+
+(* build signature *)
+
+(* FIXME debug *)
+fun assert_stamps_ok stamps =
+  let val names = map ! stamps;
+  in
+    if not (null (duplicates stamps)) then
+      error "DEBUG dup stamps"
+    else if not (null (duplicates names)) then
+      error "DEBUG dup stamp names"
+    else if not (null names) andalso exists (equal "#") (tl names) then
+      error "DEBUG misplaced draft stamp name"
+    else stamps
+  end;
+
+fun ext_stamps stamps name =
+  let
+    val stmps = (case stamps of ref "#" :: ss => ss | ss => ss);
+  in
+    if exists (equal name o !) stmps then
+      error ("Theory already contains a " ^ quote name ^ " component")
+    else assert_stamps_ok (ref name :: stmps)
+  end;
+
+
+fun make_sign (syn, tsig, ctab) stamps name =
+  Sg {tsig = tsig, const_tab = ctab, syn = syn,
+    stamps = ext_stamps stamps name};
+
+fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, stamps}) =
+  make_sign (extfun (syn, tsig, const_tab) decls) stamps name;
+
+
+(* the external interfaces *)
+
+val add_classes   = extend_sign ext_classes "#";
+val add_defsort   = extend_sign ext_defsort "#";
+val add_types     = extend_sign ext_types "#";
+val add_tyabbrs   = extend_sign ext_tyabbrs "#";
+val add_tyabbrs_i = extend_sign ext_tyabbrs_i "#";
+val add_arities   = extend_sign ext_arities "#";
+val add_consts    = extend_sign ext_consts "#";
+val add_consts_i  = extend_sign ext_consts_i "#";
+val add_syntax    = extend_sign ext_syntax "#";
+val add_syntax_i  = extend_sign ext_syntax_i "#";
+val add_trfuns    = extend_sign ext_trfuns "#";
+val add_trrules   = extend_sign ext_trrules "#";
+
+fun add_name name sg = extend_sign K name () sg;
+val make_draft = add_name "#";
+
+
+
+(** extend signature (old) **)      (* FIXME remove *)
 
 fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
   let
@@ -237,7 +486,7 @@ fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
     val sext = if_none opt_sext Syntax.empty_sext;
 
     val tsig' = extend_tsig tsig (classes, default, types, arities);
-    val tsig1 = ext_tsig_abbrs tsig' (map (read_abbr syn) abbrs);
+    val tsig1 = Type.ext_tsig_abbrs tsig' (map (read_abbr syn) abbrs);
 
     val syn1 = Syntax.extend syn (rd_typ tsig1 syn (K None))
       (logical_types tsig1, xconsts, sext);
@@ -246,33 +495,23 @@ fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
       (Syntax.constants sext @ consts));
 
     val const_tab1 =
-      Symtab.extend (K false) (const_tab, map (read_const tsig1 syn) all_consts)
-        handle Symtab.DUPLICATE c
-          => error ("Constant " ^ quote c ^ " declared twice");
+      Symtab.extend_new (const_tab, map (read_const tsig1 syn) all_consts)
+        handle Symtab.DUPS cs => err_dup_consts cs;
 
-    val stamps1 =
-      if exists (equal name o !) stamps then
-        error ("Theory already contains a " ^ quote name ^ " component")
-      else stamps @ [ref name];
+    val stamps1 = ext_stamps stamps name;
   in
     Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1, stamps = stamps1}
   end;
 
 
 
-(** merge signatures **)
-
-(*errors are indicated by exception TERM*)
-
-fun check_stamps stamps =
-  (case duplicates (map ! stamps) of
-    [] => stamps
-  | dups => raise_term ("Attempt to merge different versions of theories " ^
-      commas (map quote dups)) []);
+(** merge signatures **)    (*exception TERM*)
 
 fun merge (sg1, sg2) =
   if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
+  else if is_draft sg1 orelse is_draft sg2 then
+    raise_term "Illegal merge of draft signatures" []
   else
     (*neither is union already; must form union*)
     let
@@ -281,16 +520,21 @@ fun merge (sg1, sg2) =
       val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
         stamps = stamps2} = sg2;
 
+
       val tsig = merge_tsigs (tsig1, tsig2);
 
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
-        handle Symtab.DUPLICATE c =>
-          raise_term ("Incompatible types for constant " ^ quote c) [];
+        handle Symtab.DUPS cs =>
+          raise_term ("Incompatible types for constant(s) " ^ commas_quote cs) [];
 
-      val syn = Syntax.merge (logical_types tsig) syn1 syn2;
+      val syn = Syntax.merge_syntaxes syn1 syn2;
 
-      val stamps = check_stamps (merge_lists stamps1 stamps2);
+      val stamps = merge_rev_lists stamps1 stamps2;
+      val dups = duplicates (stamp_names stamps);
     in
+      if null dups then assert_stamps_ok stamps    (* FIXME debug *)
+      else raise_term ("Attempt to merge different versions of theories " ^
+        commas_quote dups) [];
       Sg {tsig = tsig, const_tab = const_tab, syn = syn, stamps = stamps}
     end;
 
@@ -298,20 +542,29 @@ fun merge (sg1, sg2) =
 
 (** the Pure signature **)
 
-val sg0 = Sg {tsig = tsig0, const_tab = Symtab.null,
-  syn = Syntax.type_syn, stamps = []};
-
-val pure = extend sg0 "Pure"
-  ([("logic", [])],
-   ["logic"],
-   [(["fun"], 2),
-    (["prop"], 0),
-    (Syntax.syntax_types, 0)],
-   [],
-   [(["fun"],  ([["logic"], ["logic"]], "logic")),
-    (["prop"], ([], "logic"))],
-   ([Syntax.constrainC], "'a::{} => 'a") :: Syntax.syntax_consts,
-   Some Syntax.pure_sext);
+val pure =
+  make_sign (Syntax.type_syn, tsig0, Symtab.null) [] "#"
+  also add_types
+   (("fun", 2, NoSyn) ::
+    ("prop", 0, NoSyn) ::
+    ("itself", 1, NoSyn) ::
+    Syntax.Mixfix.pure_types)
+  also add_classes [([], logicC, [])]
+  also add_defsort logicS
+  also add_arities
+   [("fun", [logicS, logicS], logicS),
+    ("prop", [], logicS),
+    ("itself", [logicS], logicS)]
+  also add_syntax Syntax.Mixfix.pure_syntax
+  also add_trfuns Syntax.pure_trfuns
+  also add_consts
+   [("==", "['a::{}, 'a] => prop", Mixfix ("(_ ==/ _)", [3, 2], 2)),
+    ("=?=", "['a::{}, 'a] => prop", Mixfix ("(_ =?=/ _)", [3, 2], 2)),
+    ("==>", "[prop, prop] => prop", Mixfix ("(_ ==>/ _)", [2, 1], 1)),
+    ("all", "('a => prop) => prop", Binder ("!!", 0)),
+    ("TYPE", "'a itself", NoSyn),
+    (Syntax.constrainC, "'a::{} => 'a", NoSyn)]
+  also add_name "Pure";
 
 
 end;
