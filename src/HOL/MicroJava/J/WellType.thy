@@ -171,7 +171,7 @@ constdefs
 	nodups pns \\<and>
 	unique lvars \\<and>
 	(\\<forall>pn\\<in>set pns. map_of lvars pn = None) \\<and>
-	(\\<forall>(vn,T)\\<in>set lvars. is_type G T) &
+	(\\<forall>(vn,T)\\<in>set lvars. is_type G T) &
 	(let E = (G,map_of lvars(pns[\\<mapsto>]pTs)(This\\<mapsto>Class C)) in
 	 E\\<turnstile>blk\\<surd> \\<and> (\\<exists>T. E\\<turnstile>res\\<Colon>T \\<and> G\\<turnstile>T\\<preceq>rT))"
 
