@@ -259,9 +259,9 @@ by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 by (ALLGOALS Clarify_tac);
-(*NS3: because NB determines A*)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, 
-			      Spy_not_see_NB, unique_NB]) 3);
+(*NS3: because NB determines A (this use of unique_NB is more robust) *)
+by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, Spy_not_see_NB]
+			addIs [unique_NB RS conjunct1]) 3);
 (*NS1: by freshness*)
 by (blast_tac (claset() addSEs spies_partsEs) 2);
 (*Fake*)
