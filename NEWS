@@ -9,30 +9,30 @@ New in this Isabelle version
 
 * HOL: the constant for f``x is now "image" rather than "op ``".
 
-* HOL: exhaust_tac on datatypes superceded by new case_tac;
+* HOL: exhaust_tac on datatypes superceded by new generic case_tac;
 
-* ML: PureThy.add_thms/add_axioms/add_defs now return theorems;
+* ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
 
 
 *** Document preparation ***
 
 * isatool mkdir provides easy setup of Isabelle session directories,
-including proper documents;
+including proper document sources;
 
 * generated LaTeX sources are now deleted after successful run
 (isatool document -c); may retain a copy somewhere else via -D option
 of isatool usedir;
 
-* old-style theories now produce (crude) LaTeX sources as well;
+* old-style theories now produce (crude) LaTeX output as well;
 
 
 *** Isar ***
 
 * Pure now provides its own version of intro/elim/dest attributes;
 useful for building new logics, but beware of confusion with the
-Provers/classical ones!
+Provers/classical ones;
 
-* Pure: new 'obtain' language element supports generalized existence
+* Pure: new 'obtain' language element supports generalized elimination
 proofs;
 
 * Pure: scalable support for case-analysis type proofs: new 'case'
@@ -53,19 +53,19 @@ method anyway;
 
 * names of theorems etc. may be natural numbers as well;
 
-* intro/elim/dest attributes: changed ! / !! flags to ? / ??;
+* Provers: intro/elim/dest attributes: changed ! / !! flags to ? / ??;
 
 * 'pr' command: optional goals_limit argument;
 
 * diagnostic commands 'pr', 'thm', 'prop', 'term', 'typ' admit
-additional print modes to be specified; e.g. pr(latex) will print
-proof according to the Isabelle LaTeX style;
+additional print modes to be specified; e.g. "pr(latex)" will print
+proof state according to the Isabelle LaTeX style;
 
 
 *** HOL ***
 
-* Algebra: new theory of rings and univariate polynomials, by Clemens
-Ballarin;
+* HOL/Algebra: new theory of rings and univariate polynomials, by
+Clemens Ballarin;
 
 * HOL/record: fixed select-update simplification procedure to handle
 extended records as well; admit "r" as field name;
@@ -75,18 +75,16 @@ Arithmetic, by Thomas M Rasmussen;
 
 * new version of "case_tac" subsumes both boolean case split and
 "exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
-exists, may define val exhaust_tac = case_tac for quick-and-dirty
-portability;
+exists, may define val exhaust_tac = case_tac for ad-hoc portability;
 
 
 *** General ***
 
 * compression of ML heaps images may now be controlled via -c option
-of isabelle and isatool usedir;
+of isabelle and isatool usedir (currently only observed by Poly/ML);
 
-* new ML combinators |>> and |>>> for incremental transformations with
-secondary results (e.g. certain theory extensions):
-
+* ML: new combinators |>> and |>>> for incremental transformations
+with secondary results (e.g. certain theory extensions):
 
 
 
