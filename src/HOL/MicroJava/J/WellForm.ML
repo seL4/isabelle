@@ -152,11 +152,6 @@ val is_type_rTI = prove_goalw thy [wf_mhead_def]
 	"\\<And>sig. wf_mhead G sig rT \\<Longrightarrow> is_type G rT"
 	(K [split_all_tac 1, Auto_tac]);
 
-Goal "\\<lbrakk>wf_prog wf_mb G; is_class G C\\<rbrakk> \\<Longrightarrow> G\\<turnstile>Class C\\<preceq> Class Object";
-by(rtac widen.subcls 1);	
-by(eatac subcls_C_Object 1 1);
-qed "widen_Class_Object";
-
 Goal "\\<lbrakk>(C',C)\\<in>(subcls1 G)^+; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
 \ x \\<in> set (fields (G,C)) \\<longrightarrow> x \\<in> set (fields (G,C'))";
 by(etac trancl_trans_induct 1);
@@ -166,7 +161,7 @@ by(  Auto_tac);
 qed_spec_mp "fields_mono";
 
 Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
-\ \\<forall>((fn,fd),fT)\\<in>set (fields (G,C)). G\\<turnstile>Class C\\<preceq> Class fd";
+\ \\<forall>((fn,fd),fT)\\<in>set (fields (G,C)). G\\<turnstile>C\\<preceq>C fd";
 by( etac subcls1_induct 1);
 by(   atac 1);
 by(  Asm_simp_tac 1);
@@ -181,15 +176,14 @@ by( Simp_tac 1);
 by( etac UnE 1);
 by(  dtac split_Pair_eq 1);
 by(  SELECT_GOAL (Auto_tac) 1);
-by( rtac widen_trans 1);
-by(  etac (r_into_rtrancl RS widen.subcls) 1);
+by( etac (r_into_rtrancl RS rtrancl_trans) 1);
 by( etac BallE 1);
 by(  contr_tac 1);
 by( Asm_full_simp_tac 1);
 qed "widen_fields_defpl'";
 
 Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G; ((fn,fd),fT) \\<in> set (fields (G,C))\\<rbrakk> \\<Longrightarrow> \
-\ G\\<turnstile>Class C\\<preceq> Class fd";
+\ G\\<turnstile>C\\<preceq>C fd";
 by( datac widen_fields_defpl' 1 1);
 (*###################*)
 by( dtac bspec 1);
@@ -217,7 +211,7 @@ by(  Step_tac 1);
 by (EVERY1[dtac widen_fields_defpl, atac, atac]);
 by( Asm_full_simp_tac 1);
 by( dtac split_Pair_eq 1);
-by( fast_tac (HOL_cs addSDs [widen_Class_Class]) 1);
+by( Asm_full_simp_tac 1);
 qed "unique_fields";
 
 (*####TO Trancl.ML*)
@@ -227,9 +221,8 @@ by(force_tac (claset(), simpset() addsimps [reflcl_trancl RS sym]
 qed "rtranclD";
 
 Goal
-"\\<lbrakk>wf_prog wf_mb G; G\\<turnstile>Class C'\\<preceq> Class C; map_of(fields (G,C )) f = Some ft\\<rbrakk> \\<Longrightarrow> \
+"\\<lbrakk>wf_prog wf_mb G; G\\<turnstile>C'\\<preceq>C C; map_of(fields (G,C )) f = Some ft\\<rbrakk> \\<Longrightarrow> \
 \                          map_of (fields (G,C')) f = Some ft";
-by( dtac widen_Class_Class 1);
 by( dtac rtranclD 1);
 by( Auto_tac);
 by( rtac table_mono 1);
@@ -246,11 +239,11 @@ val cfs_fields_lemma = prove_goalw thy [field_def]
 (K [rtac table_map_Some 1, Asm_full_simp_tac 1]);
 
 val widen_cfs_fields = prove_goal thy "\\<And>X. \\<lbrakk>field (G,C) fn = Some (fd, fT);\
-\  G\\<turnstile>Class C'\\<preceq> Class C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
+\  G\\<turnstile>C'\\<preceq>C C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
 fast_tac (HOL_cs addIs [widen_fields_mono, cfs_fields_lemma]) 1]);
 
 Goal "wf_prog wf_mb G \\<Longrightarrow> method (G,C) sig = Some (md,mh,m)\
-\  \\<longrightarrow> G\\<turnstile>Class C\\<preceq> Class md \\<and> wf_mdecl wf_mb G md (sig,(mh,m))";
+\  \\<longrightarrow> G\\<turnstile>C\\<preceq>C md \\<and> wf_mdecl wf_mb G md (sig,(mh,m))";
 by( case_tac "is_class G C" 1);
 by(  forw_inst_tac [("C","C")] method_rec 2);
 by(    asm_full_simp_tac (simpset() addsimps [is_class_def] 
@@ -266,9 +259,8 @@ by( dtac override_SomeD 1);
 by( etac disjE 1);
 by(  thin_tac "?P \\<longrightarrow> ?Q" 1);
 by(  Clarify_tac 2);
-by(  rtac widen_trans 2);
+by(  rtac rtrancl_trans 2);
 by(   atac 3);
-by(  rtac widen.subcls 2);
 by(  rtac r_into_rtrancl 2);
 by(  fast_tac (HOL_cs addIs [subcls1I]) 2);
 by( forward_tac [table_mapf_SomeD] 1);
@@ -313,11 +305,10 @@ qed_spec_mp "subcls_widen_methd";
 
 
 Goal
- "\\<lbrakk> G\\<turnstile>Class C\\<preceq> Class D; wf_prog wf_mb G; \
+ "\\<lbrakk> G\\<turnstile> C\\<preceq>C D; wf_prog wf_mb G; \
 \    method (G,D) sig = Some (md, rT, b) \\<rbrakk> \
 \ \\<Longrightarrow> \\<exists>mD' rT' b'. method (G,C) sig= Some(mD',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
-by(auto_tac (claset() addSDs [widen_Class_Class]
-                      addDs [subcls_widen_methd,method_wf_mdecl],
+by(auto_tac (claset() addDs [subcls_widen_methd,method_wf_mdecl],
              simpset() addsimps [wf_mdecl_def,wf_mhead_def,split_def]));
 qed "subtype_widen_methd";
 

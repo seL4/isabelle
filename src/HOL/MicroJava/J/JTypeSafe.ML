@@ -204,7 +204,7 @@ by( rewtac wf_java_prog_def);
 
 (* Level 7 *)
 
-(* 14 NewC *)
+(* 13 NewC *)
 by( dtac new_AddrD 1);
 by( etac disjE 1);
 by(  Asm_simp_tac 2);
@@ -213,20 +213,19 @@ by( Asm_simp_tac 1);
 by( rtac conjI 1);
 by(  fast_tac (HOL_cs addSEs [NewC_conforms]) 1);
 by( rtac conf_obj_AddrI 1);
-by(  rtac widen.refl 2);
-by(  Asm_simp_tac 2);
+by(  rtac rtrancl_refl 2);
 by( Simp_tac 1);
 
 (* for Cast *)
 by( defer_tac 1);
 
-(* 13 Lit *)
+(* 12 Lit *)
 by( etac conf_litval 1);
 
-(* 12 LAcc *)
+(* 11 LAcc *)
 by( fast_tac (claset() addEs [conforms_localD RS lconfD]) 1);
 
-(* 11 Nil *)
+(* 10 Nil *)
 by( Simp_tac 5);
 
 (* for FAss *)
@@ -285,8 +284,7 @@ by prune_params_tac;
 (* Level 45 *)
 
 (* 1 Call *)
-by( case_tac1 "x = None" 1);
-by(  dtac (not_None_eq RS iffD1) 2);
+by( exhaust_tac "x" 1);
 by(  Clarsimp_tac 2);
 by(  dtac exec_xcpt 2);
 by(  Asm_full_simp_tac 2);

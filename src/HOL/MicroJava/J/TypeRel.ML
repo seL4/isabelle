@@ -74,9 +74,12 @@ Addsimps [widen.refl];
 
 val prove_widen_lemma = prove_typerel_lemma [] widen.elim;
 
-val widen_PrimT_RefT = prove_typerel "G\\<turnstile>PrimT x\\<preceq>RefT tname \\<Longrightarrow> R"
- [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = PrimT x \\<longrightarrow> T = RefT tname \\<longrightarrow> R"];
-
+Goal "(G\\<turnstile>PrimT pT\\<preceq>RefT rT) = False";
+br iffI 1;
+be widen.elim 1;
+by(Auto_tac);
+qed "widen_PrimT_RefT";
+AddIffs [widen_PrimT_RefT];
 
 val widen_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>T \\<Longrightarrow> \\<exists>t. T=RefT t" 
 	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=RefT R \\<longrightarrow> (\\<exists>t. T=RefT t)"];
@@ -87,16 +90,20 @@ val widen_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>RefT R \\<Longrightarr
 val widen_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>T \\<Longrightarrow> \\<exists>D. T=Class D"
  [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> (\\<exists>D. T=Class D)"];
 
-val widen_Class_RefT = prove_typerel 
-	"G\\<turnstile>Class C\\<preceq>RefT t \\<Longrightarrow> (\\<exists>tname. t=ClassT tname)" 
- [prove_widen_lemma 
- "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=Class C \\<longrightarrow> T=RefT t \\<longrightarrow> (\\<exists>tname. t=ClassT tname)"];
+Goal "(G\\<turnstile>Class C\\<preceq>RefT NullT) = False"; 
+br iffI 1;
+be widen.elim 1;
+by(Auto_tac);
+qed "widen_Class_NullT";
+AddIffs [widen_Class_NullT];
 
-val widen_Class_NullT = prove_typerel "G\\<turnstile>Class C\\<preceq>RefT NullT \\<Longrightarrow> R" 
- [prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=Class C \\<longrightarrow> T=RefT NullT \\<longrightarrow> R"];
-
-val widen_Class_Class = prove_typerel "G\\<turnstile>Class C\\<preceq> Class cm \\<Longrightarrow> G\\<turnstile>C\\<preceq>C cm"
-[ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> T = Class cm \\<longrightarrow> G\\<turnstile>C\\<preceq>C cm"];
+Goal "(G\\<turnstile>Class C\\<preceq> Class D) = (G\\<turnstile>C\\<preceq>C D)";
+br iffI 1;
+be widen.elim 1;
+by(Auto_tac);
+bes widen.intrs 1;
+qed "widen_Class_Class";
+AddIffs [widen_Class_Class];
 
 Goal "G\\<turnstile>S\\<preceq>U \\<Longrightarrow> \\<forall>T. G\\<turnstile>U\\<preceq>T \\<longrightarrow> G\\<turnstile>S\\<preceq>T";
 by( etac widen.induct 1);
@@ -104,8 +111,6 @@ by   Safe_tac;
 by(  ALLGOALS (forward_tac [widen_Class, widen_RefT]));
 by  Safe_tac;
 by(  rtac widen.null 2);
-by(dtac widen_Class_Class 1);
-by(rtac widen.subcls 1);
 by(eatac rtrancl_trans 1 1);
 qed_spec_mp "widen_trans";
 

@@ -55,7 +55,7 @@ val conf_AddrI = prove_goalw thy [conf_def]
 (K [Asm_full_simp_tac 1]);
 
 val conf_obj_AddrI = prove_goalw thy [conf_def]
- "\\<And>G. \\<lbrakk>h a = Some (C,fs); G\\<turnstile>Class C\\<preceq> Class D\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>Addr a\\<Colon>\\<preceq> Class D" 
+ "\\<And>G. \\<lbrakk>h a = Some (C,fs); G\\<turnstile>C\\<preceq>C D\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>Addr a\\<Colon>\\<preceq> Class D" 
 (K [Asm_full_simp_tac 1]);
 
 Goalw [conf_def] "is_type G T \\<longrightarrow> G,h\\<turnstile>default_val T\\<Colon>\\<preceq>T";
@@ -98,17 +98,17 @@ val new_locD = prove_goalw thy [conf_def]
 	safe_tac HOL_cs,
 	Asm_full_simp_tac 1]);
 
-val conf_RefTD = prove_goalw thy [conf_def] "G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT T \\<longrightarrow> a' = Null |  \
-\ (\\<exists>a obj T'. a' = Addr a \\<and>  h a = Some obj \\<and>  obj_ty obj = T' \\<and>  G\\<turnstile>T'\\<preceq>RefT T)" (K [
-	induct_tac "a'" 1,
-	    Auto_tac,
-	    REPEAT (etac widen_PrimT_RefT 1)]) RS mp;
+Goalw [conf_def]
+ "G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT T \\<longrightarrow> a' = Null |  \
+\ (\\<exists>a obj T'. a' = Addr a \\<and>  h a = Some obj \\<and>  obj_ty obj = T' \\<and>  G\\<turnstile>T'\\<preceq>RefT T)";
+by(induct_tac "a'" 1);
+by(Auto_tac);
+qed_spec_mp "conf_RefTD";
 
 val conf_NullTD = prove_goal thy "\\<And>G. G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT NullT \\<Longrightarrow> a' = Null" (K [
 	dtac conf_RefTD 1,
 	Step_tac 1,
-	 Auto_tac,
-	 etac widen_Class_NullT 1]);
+	 Auto_tac]);
 
 val non_npD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT t\\<rbrakk> \\<Longrightarrow> \
 \ \\<exists>a C fs. a' = Addr a \\<and>  h a = Some (C,fs) \\<and>  G\\<turnstile>Class C\\<preceq>RefT t" (K [
@@ -117,21 +117,22 @@ val non_npD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turns
 	 Auto_tac]);
 
 val non_np_objD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turnstile>a'\\<Colon>\\<preceq> Class C; C \\<noteq> Object\\<rbrakk> \\<Longrightarrow> \
-\ (\\<exists>a C' fs. a' = Addr a \\<and>  h a = Some (C',fs) \\<and>  G\\<turnstile>Class C'\\<preceq> Class C)" 
-	(K[fast_tac (HOL_cs addDs [non_npD]) 1]);
+\ (\\<exists>a C' fs. a' = Addr a \\<and>  h a = Some (C',fs) \\<and>  G\\<turnstile>C'\\<preceq>C C)" 
+	(K[fast_tac (claset() addDs [non_npD]) 1]);
 
 Goal "a' \\<noteq> Null \\<longrightarrow> wf_prog wf_mb G \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT t \\<longrightarrow>\
 \ (\\<forall>C. t = ClassT C \\<longrightarrow> C \\<noteq> Object) \\<longrightarrow> \
 \ (\\<exists>a C fs. a' = Addr a \\<and>  h a = Some (C,fs) \\<and>  G\\<turnstile>Class C\\<preceq>RefT t)";
-by (rtac impI 1);
-by (rtac impI 1);
-by (res_inst_tac [("y","t")] ref_ty.exhaust 1);
-by    (safe_tac HOL_cs);
-by   (dtac conf_NullTD 1);
-by   (contr_tac 1);
-by  (etac non_np_objD 1);
-by   (atac 1);
-by  (Fast_tac 1);
+by(rtac impI 1);
+by(rtac impI 1);
+by(res_inst_tac [("y","t")] ref_ty.exhaust 1);
+ by(Safe_tac);
+ by(dtac conf_NullTD 1);
+ by(contr_tac 1);
+by(dtac non_np_objD 1);
+  by(atac 1);
+ by(Fast_tac 1);
+by(Fast_tac 1);
 qed_spec_mp "non_np_objD'";
 
 Goal "wf_prog wf_mb G \\<Longrightarrow> \\<forall>Ts Ts'. list_all2 (conf G h) vs Ts \\<longrightarrow> list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') Ts Ts' \\<longrightarrow>  list_all2 (conf G h) vs Ts'";
