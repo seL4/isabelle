@@ -208,6 +208,11 @@ by (asm_full_simp_tac (simpset() addsimps []) 1);
 by (asm_full_simp_tac (HOL_ss addsimps real_mult_ac) 1); 
 qed "real_mult_div_cancel1";
 
+(*For ExtractCommonTerm*)
+Goal "(k*m) / (k*n) = (if k = (#0::real) then #0 else m/n)";
+by (simp_tac (simpset() addsimps [real_mult_div_cancel1]) 1); 
+qed "real_mult_div_cancel_disj";
+
 
 local
   open Real_Numeral_Simprocs
@@ -323,6 +328,77 @@ test "#-2 * x <= #-1 * (y::real)";
 test "-x < #-23 * (y::real)";
 test "-x <= #-23 * (y::real)";
 *)
+
+
+(** Declarations for ExtractCommonTerm **)
+
+local
+  open Real_Numeral_Simprocs
+in
+
+structure CancelFactorCommon =
+  struct
+  val mk_sum    	= long_mk_prod
+  val dest_sum		= dest_prod
+  val mk_coeff		= mk_coeff
+  val dest_coeff	= dest_coeff
+  val find_first	= find_first []
+  val trans_tac         = trans_tac
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@real_mult_ac))
+  end;
+
+structure EqCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = prove_conv "real_eq_cancel_factor"
+  val mk_bal   = HOLogic.mk_eq
+  val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
+  val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_eq_cancel1
+);
+
+
+structure DivideCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = prove_conv "real_divide_cancel_factor"
+  val mk_bal   = HOLogic.mk_binop "HOL.divide"
+  val dest_bal = HOLogic.dest_bin "HOL.divide" HOLogic.realT
+  val simplify_meta_eq  = cancel_simplify_meta_eq real_mult_div_cancel_disj
+);
+
+val real_cancel_factor = 
+  map prep_simproc
+   [("real_eq_cancel_factor",
+     prep_pats ["(l::real) * m = n", "(l::real) = m * n"], 
+     EqCancelFactor.proc),
+    ("real_divide_cancel_factor", 
+     prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)"], 
+     DivideCancelFactor.proc)];
+
+end;
+
+Addsimprocs real_cancel_factor;
+
+
+(*examples:
+print_depth 22;
+set timing;
+set trace_simp;
+fun test s = (Goal s; by (Asm_simp_tac 1)); 
+
+test "x*k = k*(y::real)";
+test "k = k*(y::real)"; 
+test "a*(b*c) = (b::real)";
+test "a*(b*c) = d*(b::real)*(x*a)";
+
+
+test "(x*k) / (k*(y::real)) = (uu::real)";
+test "(k) / (k*(y::real)) = (uu::real)"; 
+test "(a*(b*c)) / ((b::real)) = (uu::real)";
+test "(a*(b*c)) / (d*(b::real)*(x*a)) = (uu::real)";
+
+(*FIXME: what do we do about this?*)
+test "a*(b*c)/(y*z) = d*(b::real)*(x*a)/z";
+*)
+
 
 (*** Simplification of inequalities involving literal divisors ***)
 

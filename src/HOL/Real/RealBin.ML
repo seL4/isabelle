@@ -485,6 +485,26 @@ val combine_numerals =
 		  prep_pats ["(i::real) + j", "(i::real) - j"],
 		  CombineNumerals.proc);
 
+
+(** Declarations for ExtractCommonTerm **)
+
+(*this version ALWAYS includes a trailing one*)
+fun long_mk_prod []        = one
+  | long_mk_prod (t :: ts) = mk_times (t, mk_prod ts);
+
+(*Find first term that matches u*)
+fun find_first past u []         = raise TERM("find_first", []) 
+  | find_first past u (t::terms) =
+	if u aconv t then (rev past @ terms)
+        else find_first (t::past) u terms
+	handle TERM _ => find_first (t::past) u terms;
+
+(*Final simplification: cancel + and *  *)
+fun cancel_simplify_meta_eq cancel_th th = 
+    Int_Numeral_Simprocs.simplify_meta_eq 
+        [real_mult_1, real_mult_1_right] 
+        (([th, cancel_th]) MRS trans);
+
 end;
 
 
