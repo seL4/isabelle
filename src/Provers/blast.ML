@@ -300,15 +300,14 @@ fun subst_bound (arg, t) : term =
   in  subst (t,0)  end;
 
 
-(*Normalize, INCLUDING bodies of abstractions--this might be slow?*)
+(*Normalize...but not the bodies of ABSTRACTIONS*)
 fun norm t = case t of
     Skolem (a,args)      => Skolem(a, vars_in_vars args)
   | (Var (ref None))     => t
   | (Var (ref (Some u))) => norm u
   | (f $ u) => (case norm f of
-		    Abs(_,body) => norm (subst_bound (u, body))
-		  | nf => nf $ norm u)
-  | Abs (a,body) => Abs (a, norm body)
+                    Abs(_,body) => norm (subst_bound (u, body))
+                  | nf => nf $ norm u)
   | _ => t;
 
 
@@ -490,8 +489,7 @@ fun fromRule vars rl =
 end;
 
 
-(*** Conversion of Introduction Rules (needed for efficiency in 
-               proof reconstruction) ***)
+(*** Conversion of Introduction Rules ***)
 
 fun convertIntrPrem t = mkGoal (strip_imp_concl t) :: strip_imp_prems t;
 
@@ -573,7 +571,8 @@ fun showTerm d (Const a)     = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Free a)      = Term.Free  (a,dummyT)
   | showTerm d (Bound i)     = Term.Bound i
-  | showTerm d (Var _)       = dummyVar2
+  | showTerm d (Var(ref(Some u))) = showTerm d u
+  | showTerm d (Var(ref None))    = dummyVar2
   | showTerm d (Abs(a,t))    = if d=0 then dummyVar
 			       else Term.Abs(a, dummyT, showTerm (d-1) t)
   | showTerm d (f $ u)       = if d=0 then dummyVar
@@ -1008,6 +1007,8 @@ fun prove (sign, cs, brs, cont) =
 		       else 
 			 traceNew prems;  traceVars ntrl;
 			 prv(tac dup :: tacs, 
+			       (*FIXME: if recur then the tactic should not
+				 call rotate_tac: new formulae should be last*)
 			     brs0::trs, 
 			     (ntrl, length brs0, PRV) :: choices, 
 			     newBr (vars', recur, dup, lim') prems)
