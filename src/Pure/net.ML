@@ -195,16 +195,14 @@ fun matching unif t (net,nets) =
      case net of
 	 Leaf _ => nets
        | Net{var,...} =>
-	     let val etat = Pattern.eta_contract_atom t
-	     in case (head_of etat) of
+	     case head_of t of
 		 Var _ => if unif then net_skip (net,nets)
 			  else var::nets	   (*only matches Var in net*)
   (*If "unif" then a var instantiation in the abstraction could allow
     an eta-reduction, so regard the abstraction as a wildcard.*)
 	       | Abs _ => if unif then net_skip (net,nets)
 			  else var::nets	   (*only a Var can match*)
-	       | _ => rands etat (net, var::nets)  (*var could match also*)
-	     end
+	       | _ => rands t (net, var::nets)  (*var could match also*)
   end;
 
 fun extract_leaves l = List.concat (map (fn Leaf(xs) => xs) l);

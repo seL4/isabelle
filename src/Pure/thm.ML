@@ -1987,6 +1987,7 @@ fun rewritec (prover,sign_reft,maxt)
              (mss as Mss{rules, procs, termless, prems, congs, ...}) 
              (t:term,etc as (shypst,hypst,ders)) =
   let
+    val eta_t = Pattern.eta_contract t;
     val signt = Sign.deref sign_reft;
     val tsigt = Sign.tsig_of signt;
     fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...},
@@ -1997,10 +1998,10 @@ fun rewritec (prover,sign_reft,maxt)
                       raise Pattern.MATCH);
         val rprop = if maxt = ~1 then prop
                     else Logic.incr_indexes([],maxt+1) prop;
-        val insts = if fo then Pattern.first_order_match tsigt (elhs,t)
-                          else Pattern.match             tsigt (elhs,t);
+        val insts = if fo then Pattern.first_order_match tsigt (elhs,eta_t)
+                          else Pattern.match             tsigt (elhs,eta_t);
         val insts = if maxt = ~1 then insts else incr_insts (maxt+1) insts
-        val prop' = ren_inst(insts,rprop,lhs,t);
+        val prop' = ren_inst(insts,rprop,lhs,eta_t);
         val hyps' = union_term(hyps,hypst);
         val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
         val unconditional = (Logic.count_prems(prop',0) = 0);
@@ -2049,23 +2050,22 @@ fun rewritec (prover,sign_reft,maxt)
                                      else sort rrs (re1,rr::re2)
     in sort rrs ([],[]) end
 
-    fun proc_rews _ ([]:simproc list) = None
-      | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
+    fun proc_rews ([]:simproc list) = None
+      | proc_rews ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
           if Pattern.matches tsigt (plhs, t) then
             (trace_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
              case proc signt prems eta_t of
-               None => (trace false "FAILED"; proc_rews eta_t ps)
+               None => (trace false "FAILED"; proc_rews ps)
              | Some raw_thm =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
-                    None => (trace false "IGNORED"; proc_rews eta_t ps)
+                    None => (trace false "IGNORED"; proc_rews ps)
                   | some => some)))
-          else proc_rews eta_t ps;
-  in case t of
+          else proc_rews ps;
+  in case eta_t of
        Abs (_, _, body) $ u => Some ((subst_bound (u, body), etc),skel0)
-     | _ => (case rews (sort_rrules (Net.match_term rules t)) of
-               None => proc_rews (Pattern.eta_contract t)
-                                 (Net.match_term procs t)
+     | _ => (case rews (sort_rrules (Net.match_term rules eta_t)) of
+               None => proc_rews (Net.match_term procs eta_t)
              | some => some)
   end;
 

@@ -271,7 +271,9 @@ fun eta_contract t = case eta t of None => t | Some(t') => t';
 
 end; *)
 
-(*Eta-contract a term from outside: just enough to reduce it to an atom*)
+(*Eta-contract a term from outside: just enough to reduce it to an atom
+DOESN'T QUITE WORK!
+*)
 fun eta_contract_atom (t0 as Abs(a, T, body)) = 
       (case  eta_contract2 body  of
         body' as (f $ Bound 0) => 
