@@ -13,7 +13,7 @@ consts  eval    :: "((exp*state) * (nat*state)) set"
        "-|->"   :: "[exp*state,nat*state] => bool"         (infixl 50)
 translations
     "esig -|-> (n,s)" <= "(esig,n,s) : eval"
-    "esig -|-> ns"    == "(esig,ns) : eval"
+    "esig -|-> ns"    == "(esig,ns ) : eval"
   
 inductive eval
   intrs 

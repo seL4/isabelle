@@ -57,7 +57,7 @@ by (blast_tac (claset() addIs prems) 1);
 by (blast_tac (claset() addIs prems) 1);
 by (blast_tac (claset() addIs prems) 1);
 by (forward_tac [impOfSubs (Int_lower1 RS exec_mono)] 1);
-by (fast_tac (claset() addIs prems addss (simpset() addsimps [split_lemma])) 1);
+by (auto_tac (claset() addIs prems,simpset() addsimps [split_lemma]));
 qed "eval_induct";
 
 
@@ -87,10 +87,9 @@ qed "com_Unique";
 
 
 (*Expression evaluation is functional, or deterministic*)
-goal thy "Function eval";
-by (simp_tac (simpset() addsimps [Function_def]) 1);
-by (REPEAT (rtac allI 1));
-by (rtac impI 1);
+goalw thy [Function_def] "Function eval";
+by (strip_tac 1);
+by (split_all_tac 1);
 by (etac eval_induct 1);
 by (dtac com_Unique 4);
 by (ALLGOALS (full_simp_tac (simpset() addsimps [Unique_def])));
