@@ -22,6 +22,10 @@ called `inj_on';
 
 * HOL: unary - is now overloaded (new type constraints may be required);
 
+* HOL and ZF: unary minus for integers is now #- instead of #~.  In ZF, 
+  expressions such as n#-1 must be changed to n#- 1, since #-1 is now taken
+  as an integer constant.
+
 * Pure: ML function 'theory_of' replaced by 'theory';
 
 
