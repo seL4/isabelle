@@ -68,7 +68,7 @@ defs
   le_def        "m<=(n::nat) == ~(n<m)"
 
   nat_rec_def   "nat_rec n c d ==
-		 wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
+                 wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
   (*least number operator*)
   Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
 
