@@ -246,7 +246,7 @@ text {*
   Here the degenerate mixfix annotations on the rightmost column
   happen to consist of a single Isabelle symbol each:
   \verb,\,\verb,<euro>,, \verb,\,\verb,<pounds>,,
-  \verb,\,\verb,<yen>,, and \verb,\,$,.
+  \verb,\,\verb,<yen>,, and \verb,$,.
 
   Recall that a constructor like @{text Euro} actually is a function
   @{typ "nat \<Rightarrow> currency"}.  An expression like @{text "Euro 10"} will
