@@ -188,17 +188,18 @@ goal LK.thy "|- (ALL z. EX w. ALL x. EX y. \
 \       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
 \       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> (ALL x. EX y. R(x,y))";
-by (pc_tac LK_pack 1);  (*slow*)
-by flexflex_tac;
+by (pc_tac LK_pack 1);
 result();
 
-writeln"Problem 38. NOT PROVED";
+writeln"Problem 38";
 goal LK.thy
  "|- (ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->	\
 \            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->		\
 \    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &	\
 \            (~p(a) | ~(EX y. p(y) & r(x,y)) |				\
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
+by (pc_tac LK_pack 1);
+result();
 
 writeln"Problem 39";
 goal LK.thy "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
