@@ -203,5 +203,5 @@ qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
 
-qed_goalw "o_assoc" HOL.thy [o_def] "(f o g) o h = (f o g o h)"
+qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = (f o g o h)"
   (fn _=>[rtac ext 1, rtac refl 1]);
