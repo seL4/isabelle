@@ -67,18 +67,18 @@ constdefs
   (*spec (3) PROBABLY REQUIRES A LOCALTO PRECONDITION*)
   client_increasing :: clientState program set
     "client_increasing ==
-         UNIV guar Increasing ask Int Increasing rel"
+         UNIV guarantees Increasing ask Int Increasing rel"
 
   (*spec (4)*)
   client_bounded :: clientState program set
     "client_bounded ==
-         UNIV guar Always {s. ALL elt : set (ask s). elt <= NbT}"
+         UNIV guarantees Always {s. ALL elt : set (ask s). elt <= NbT}"
 
   (*spec (5)*)
   client_progress :: clientState program set
     "client_progress ==
 	 Increasing giv
-	 guar
+	 guarantees
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
 		 LeadsTo
 		 {s. tokens h <= (tokens o rel) s})"
@@ -92,14 +92,14 @@ constdefs
   alloc_increasing :: allocState program set
     "alloc_increasing ==
 	 UNIV
-         guar
+         guarantees
 	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk))"
 
   (*spec (7)*)
   alloc_safety :: allocState program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
-         guar
+         guarantees
 	 Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients
 	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
 
@@ -116,7 +116,7 @@ constdefs
          (INT i : lessThan Nclients. 
 	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		  LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})
-         guar
+         guarantees
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s} LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
@@ -130,21 +130,21 @@ constdefs
   network_ask :: systemState program set
     "network_ask == INT i : lessThan Nclients.
                     Increasing (ask o sub i o client)
-                    guar
+                    guarantees
                     ((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: systemState program set
     "network_giv == INT i : lessThan Nclients.
                     Increasing (sub i o allocGiv)
-                    guar
+                    guarantees
                     ((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: systemState program set
     "network_rel == INT i : lessThan Nclients.
                     Increasing (rel o sub i o client)
-                    guar
+                    guarantees
                     ((sub i o allocRel) Fols (rel o sub i o client))"
 
   network_spec :: systemState program set

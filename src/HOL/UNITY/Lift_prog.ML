@@ -346,13 +346,13 @@ by Auto_tac;
 by (etac reachable_lift_prog_Join_D 1);
 qed "reachable_lift_prog_Join_subset";
 
-Goal "F Join drop_prog i G : Stable A    \
-\     ==> lift_prog i F Join G : Stable (lift_set i A)";
-by (full_simp_tac (simpset() addsimps [Stable_def, Constrains_def]) 1);
+Goalw [Constrains_def]
+     "F Join drop_prog i G : A Co B    \
+\     ==> lift_prog i F Join G : (lift_set i A) Co (lift_set i B)";
 by (subgoal_tac 
     "lift_prog i F Join G : lift_set i (reachable (F Join drop_prog i G)) Int \
 \                           lift_set i A \
-\    co lift_set i A" 1);
+\    co lift_set i B" 1);
 by (asm_full_simp_tac 
     (simpset() addsimps [lift_set_Int RS sym,
 			 lift_prog_constrains,
@@ -360,6 +360,12 @@ by (asm_full_simp_tac
 			 drop_prog_lift_prog_Join]) 2);
 by (blast_tac (claset() addIs [constrains_weaken, 
 			       reachable_lift_prog_Join_D]) 1);
+qed "lift_prog_Join_Constrains";
+
+Goal "F Join drop_prog i G : Stable A    \
+\     ==> lift_prog i F Join G : Stable (lift_set i A)";
+by (asm_full_simp_tac (simpset() addsimps [Stable_def, 
+					   lift_prog_Join_Constrains]) 1);
 qed "lift_prog_Join_Stable";
 
 
@@ -369,8 +375,8 @@ qed "lift_prog_Join_Stable";
 
 (*Strong precondition and postcondition; doesn't seem very useful.
   Probably can be strengthened to an equivalance.*)
-Goal "F : X guar Y \
-\     ==> lift_prog i F : (lift_prog i `` X) guar (lift_prog i `` Y)";
+Goal "F : X guarantees Y \
+\     ==> lift_prog i F : (lift_prog i `` X) guarantees (lift_prog i `` Y)";
 by (rtac guaranteesI 1);
 by Auto_tac;
 by (blast_tac (claset() addDs [lift_prog_Join_eq_lift_prog_D, guaranteesD]) 1);
@@ -378,10 +384,10 @@ qed "lift_prog_guarantees";
 
 (*Weak precondition and postcondition; this is the good one!*)
 val [xguary,drop_prog,lift_prog] =
-Goal "[| F : X guar Y;  \
+Goal "[| F : X guarantees Y;  \
 \        !!H. H : XX ==> drop_prog i H : X;  \
 \        !!G. F Join drop_prog i G : Y ==> lift_prog i F Join G : YY |] \
-\     ==> lift_prog i F : XX guar YY";
+\     ==> lift_prog i F : XX guarantees YY";
 by (rtac (xguary RS guaranteesD RS lift_prog RS guaranteesI) 1);
 by (dtac drop_prog 1);
 by (full_simp_tac (simpset() addsimps [drop_prog_lift_prog_Join]) 1);
@@ -421,8 +427,8 @@ qed "image_lift_prog_Increasing";
 (*** guarantees corollaries ***)
 
 Goalw [increasing_def]
-     "F : UNIV guar increasing f \
-\     ==> lift_prog i F : UNIV guar increasing (f o sub i)";
+     "F : UNIV guarantees increasing f \
+\     ==> lift_prog i F : UNIV guarantees increasing (f o sub i)";
 by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
@@ -432,8 +438,8 @@ by (asm_full_simp_tac
 qed "lift_prog_guar_increasing";
 
 Goalw [Increasing_def]
-     "F : UNIV guar Increasing f \
-\     ==> lift_prog i F : UNIV guar Increasing (f o sub i)";
+     "F : UNIV guarantees Increasing f \
+\     ==> lift_prog i F : UNIV guarantees Increasing (f o sub i)";
 by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
@@ -441,9 +447,9 @@ by (asm_simp_tac (simpset() addsimps [lift_prog_Join_Stable]) 1);
 qed "lift_prog_guar_Increasing";
 
 Goalw [localTo_def, increasing_def]
-     "F : (f localTo F) guar increasing f  \
+     "F : (f localTo F) guarantees increasing f  \
 \     ==> lift_prog i F : (f o sub i) localTo (lift_prog i F)  \
-\                         guar increasing (f o sub i)";
+\                         guarantees increasing (f o sub i)";
 by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 2); 
@@ -458,9 +464,9 @@ by (asm_simp_tac
 qed "lift_prog_localTo_guar_increasing";
 
 Goalw [localTo_def, Increasing_def]
-     "F : (f localTo F) guar Increasing f  \
+     "F : (f localTo F) guarantees Increasing f  \
 \     ==> lift_prog i F : (f o sub i) localTo (lift_prog i F)  \
-\                         guar Increasing (f o sub i)";
+\                         guarantees Increasing (f o sub i)";
 by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 2); 
