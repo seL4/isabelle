@@ -165,4 +165,17 @@ lemma compose_id_Inv:
   apply (simp add: f_Inv_f)
   done
 
+
+subsection{*Cardinality*}
+
+lemma card_inj: "[|f \<in> A\<rightarrow>B; inj_on f A; finite B|] ==> card(A) \<le> card(B)"
+apply (rule card_inj_on_le)
+apply (auto simp add: Pi_def)
+done
+
+lemma card_bij:
+     "[|f \<in> A\<rightarrow>B; inj_on f A;
+        g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
+by (blast intro: card_inj order_antisym)
+
 end
