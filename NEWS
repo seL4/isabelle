@@ -174,11 +174,15 @@ Gray and Kramer);
 
 * UNITY: added the Meier-Sanders theory of progress sets;
 
+* MicroJava: bytecode verifier and lightweight bytecode verifier
+as abstract algorithms, instantiated to the JVM;
+
 * Bali: Java source language formalization. Type system, operational
 semantics, axiomatic semantics. Supported language features:
 classes, interfaces, objects,virtual methods, static methods,
 static/instance fields, arrays, access modifiers, definite
 assignment, exceptions.
+
 
 *** ZF ***
 
