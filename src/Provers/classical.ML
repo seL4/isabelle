@@ -16,10 +16,10 @@ the conclusion.
 
 signature CLASSICAL_DATA =
   sig
-  val mp: thm    		(* [| P-->Q;  P |] ==> Q *)
-  val not_elim: thm		(* [| ~P;  P |] ==> R *)
-  val swap: thm			(* ~P ==> (~Q ==> P) ==> Q *)
-  val sizef : thm -> int	(* size function for BEST_FIRST *)
+  val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
+  val not_elim	: thm		(* [| ~P;  P |] ==> R *)
+  val classical	: thm		(* (~P ==> P) ==> P *)
+  val sizef 	: thm -> int	(* size function for BEST_FIRST *)
   val hyp_subst_tacs: (int -> tactic) list
   end;
 
@@ -30,31 +30,38 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs;
 signature CLASSICAL =
   sig
   type claset
-  val empty_cs: claset
-  val addDs : claset * thm list -> claset
-  val addEs : claset * thm list -> claset
-  val addIs : claset * thm list -> claset
-  val addSDs: claset * thm list -> claset
-  val addSEs: claset * thm list -> claset
-  val addSIs: claset * thm list -> claset
-  val print_cs: claset -> unit
-  val rep_claset: claset -> 
-      {safeIs: thm list, safeEs: thm list, hazIs: thm list, hazEs: thm list}
-  val best_tac : claset -> int -> tactic
-  val contr_tac : int -> tactic
-  val eq_mp_tac: int -> tactic
-  val fast_tac : claset -> int -> tactic
-  val joinrules : thm list * thm list -> (bool * thm) list
-  val mp_tac: int -> tactic
-  val safe_tac : claset -> tactic
-  val safe_step_tac : claset -> int -> tactic
-  val slow_step_tac : claset -> int -> tactic
-  val slow_best_tac : claset -> int -> tactic
-  val slow_tac : claset -> int -> tactic
-  val step_tac : claset -> int -> tactic
-  val swapify : thm list -> thm list
-  val swap_res_tac : thm list -> int -> tactic
-  val inst_step_tac : claset -> int -> tactic
+  val empty_cs		: claset
+  val addDs 		: claset * thm list -> claset
+  val addEs 		: claset * thm list -> claset
+  val addIs 		: claset * thm list -> claset
+  val addSDs		: claset * thm list -> claset
+  val addSEs		: claset * thm list -> claset
+  val addSIs		: claset * thm list -> claset
+  val print_cs		: claset -> unit
+  val rep_claset	: claset -> {safeIs: thm list, safeEs: thm list, 
+				     hazIs: thm list, hazEs: thm list}
+  val best_tac 		: claset -> int -> tactic
+  val contr_tac 	: int -> tactic
+  val depth_tac		: claset -> int -> int -> tactic
+  val deepen_tac	: claset -> int -> int -> tactic
+  val dup_elim		: thm -> thm
+  val dup_intr		: thm -> thm
+  val dup_step_tac	: claset -> int -> tactic
+  val eq_mp_tac		: int -> tactic
+  val fast_tac 		: claset -> int -> tactic
+  val haz_step_tac 	: claset -> int -> tactic
+  val joinrules 	: thm list * thm list -> (bool * thm) list
+  val mp_tac		: int -> tactic
+  val safe_tac 		: claset -> tactic
+  val safe_step_tac 	: claset -> int -> tactic
+  val slow_step_tac 	: claset -> int -> tactic
+  val slow_best_tac 	: claset -> int -> tactic
+  val slow_tac 		: claset -> int -> tactic
+  val step_tac 		: claset -> int -> tactic
+  val swap		: thm                 (* ~P ==> (~Q ==> P) ==> Q *)
+  val swapify 		: thm list -> thm list
+  val swap_res_tac 	: thm list -> int -> tactic
+  val inst_step_tac 	: claset -> int -> tactic
   end;
 
 
@@ -70,11 +77,14 @@ val imp_elim = make_elim mp;
 (*Solve goal that assumes both P and ~P. *)
 val contr_tac = eresolve_tac [not_elim]  THEN'  assume_tac;
 
-(*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac i = eresolve_tac ([not_elim,imp_elim]) i  THEN  assume_tac i;
+(*Finds P-->Q and P in the assumptions, replaces implication by Q.
+  Could do the same thing for P<->Q and P... *)
+fun mp_tac i = eresolve_tac [not_elim, imp_elim] i  THEN  assume_tac i;
 
 (*Like mp_tac but instantiates no variables*)
-fun eq_mp_tac i = ematch_tac ([not_elim,imp_elim]) i  THEN  eq_assume_tac i;
+fun eq_mp_tac i = ematch_tac [not_elim, imp_elim] i  THEN  eq_assume_tac i;
+
+val swap = rule_by_tactic (etac thin_rl 1) (not_elim RS classical);
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [swap]);
@@ -88,6 +98,11 @@ fun swap_res_tac rls =
         biresolve_tac (foldr addrl (rls,[]))
     end;
 
+(*Duplication of hazardous rules, for complete provers*)
+fun dup_intr th = standard (th RS classical);
+
+fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |> 
+                  rule_by_tactic (TRYALL (etac revcut_rl));
 
 (*** Classical rule sets ***)
 
@@ -100,7 +115,8 @@ datatype claset =
 	 hazEs		: thm list,
 	 safe0_netpair	: netpair,
 	 safep_netpair	: netpair,
-	 haz_netpair  	: netpair};
+	 haz_netpair  	: netpair,
+	 dup_netpair	: netpair};
 
 fun rep_claset (CS{safeIs,safeEs,hazIs,hazEs,...}) = 
     {safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
@@ -112,6 +128,8 @@ fun joinrules (intrs,elims) =
     (map (pair true) (elims @ swapify intrs)  @
      map (pair false) intrs);
 
+val build = build_netpair(Net.empty,Net.empty);
+
 (*Make a claset from the four kinds of rules*)
 fun make_cs {safeIs,safeEs,hazIs,hazEs} =
   let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
@@ -121,9 +139,11 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
         safeEs = safeEs,
 	hazIs = hazIs,
 	hazEs = hazEs,
-	safe0_netpair = build_netpair safe0_brls,
-	safep_netpair = build_netpair safep_brls,
-	haz_netpair = build_netpair (joinrules(hazIs, hazEs))}
+	safe0_netpair = build safe0_brls,
+	safep_netpair = build safep_brls,
+	haz_netpair = build (joinrules(hazIs, hazEs)),
+	dup_netpair = build (joinrules(map dup_intr hazIs, 
+				       map dup_elim hazEs))}
   end;
 
 (*** Manipulation of clasets ***)
@@ -173,17 +193,17 @@ fun inst_step_tac (CS{safe0_netpair,safep_netpair,...}) =
   biresolve_from_nets_tac safe0_netpair APPEND' 
   biresolve_from_nets_tac safep_netpair;
 
+fun haz_step_tac (cs as (CS{haz_netpair,...})) = 
+  biresolve_from_nets_tac haz_netpair;
+
 (*Single step for the prover.  FAILS unless it makes progress. *)
-fun step_tac (cs as (CS{haz_netpair,...})) i = 
-  FIRST [safe_tac cs,
-         inst_step_tac cs i,
-         biresolve_from_nets_tac haz_netpair i];
+fun step_tac cs i = 
+  FIRST [safe_tac cs, inst_step_tac cs i, haz_step_tac cs i];
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
-fun slow_step_tac (cs as (CS{haz_netpair,...})) i = 
-    safe_tac cs ORELSE 
-    (inst_step_tac cs i APPEND biresolve_from_nets_tac haz_netpair i);
+fun slow_step_tac cs i = 
+    safe_tac cs ORELSE (inst_step_tac cs i APPEND haz_step_tac cs i);
 
 (*** The following tactics all fail unless they solve one goal ***)
 
@@ -198,6 +218,42 @@ fun slow_tac cs = SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 
 fun slow_best_tac cs = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
+
+
+(*** Complete(?) tactic, loosely based upon LeanTaP ***)
+
+(*Not deterministic.  A different approach would always expand the first
+  unsafe connective.  That's harder in Isabelle because etac can pick up
+  any assumption.  One way is to express *all* unsafe connectives in terms 
+  of universal quantification.*)
+fun dup_step_tac (cs as (CS{dup_netpair,...})) = 
+  biresolve_from_nets_tac dup_netpair;
+
+(*Searching to depth m of duplicative steps
+  Uses DEPTH_SOLVE (tac 1) instead of (ALLGOALS tac) since the latter
+  solves the subgoals in reverse order!*)
+fun depth_tac cs m = 
+  SUBGOAL 
+    (fn (prem,i) =>
+      let val deti =
+	  (*No Vars in the goal?  No need to backtrack between goals.*)
+	  case term_vars prem of
+	      []	=> DETERM 
+	    | _::_	=> I
+      in  SELECT_GOAL (TRY (safe_tac cs) THEN 
+		       DEPTH_SOLVE (deti (depth_aux_tac cs m 1))) i
+      end)
+and depth_aux_tac cs m =
+  SELECT_GOAL 
+    (inst_step_tac cs 1 THEN DEPTH_SOLVE (depth_tac cs m 1) 
+     APPEND
+     COND (K(m=0)) no_tac
+       (dup_step_tac cs 1 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1)));
+
+fun deepen_tac cs m i = STATE(fn state => 
+   if has_fewer_prems i state then no_tac
+   else (writeln ("Depth = " ^ string_of_int m);
+	 depth_tac cs m i  ORELSE  deepen_tac cs (m+1) i));
 
 end; 
 end;
