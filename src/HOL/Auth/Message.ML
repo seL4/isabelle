@@ -888,6 +888,14 @@ fun Fake_insert_simp_tac i =
   but this application is no longer necessary if analz_insert_eq is used.
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
+
+val atomic_spy_analz_tac = SELECT_GOAL
+    (Fake_insert_simp_tac 1
+     THEN
+     IF_UNSOLVED (Blast.depth_tac
+		  (claset() addIs [analz_insertI,
+				   impOfSubs analz_subset_parts]) 4 1));
+
 fun spy_analz_tac i =
   DETERM
    (SELECT_GOAL
@@ -898,13 +906,8 @@ fun spy_analz_tac i =
        (*...allowing further simplifications*)
        Simp_tac 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
-       DEPTH_SOLVE 
-         (Fake_insert_simp_tac 1
-          THEN
-          IF_UNSOLVED (Blast.depth_tac
-		       (claset() addIs [analz_insertI,
-					impOfSubs analz_subset_parts]) 4 1))
-       ]) i);
+       DEPTH_SOLVE (atomic_spy_analz_tac 1)]) i);
+
 
 (** Useful in many uniqueness proofs **)
 fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
