@@ -937,7 +937,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
         in
           def_thy |> have_thmss_qualified "" bname
             [((introN, [ContextRules.intro_query_global None]), [([intro], [])]),
-             ((axiomsN, []), [(map Drule.standard axioms, [])])]
+             ((axiomsN, [ContextRules.elim_query_global None]), [(map Drule.standard axioms, [])])]
           |> #1 |> rpair ([cstatement], axioms)
         end;
   in (thy'', (elemss', view)) end;
