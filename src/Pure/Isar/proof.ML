@@ -271,9 +271,7 @@ fun new_block state =
   |> open_block
   |> put_goal None;
 
-fun close_block (state as State (_, node :: nodes)) =
-      State (node, nodes)
-(* FIXME      |> map_context (ProofContext.transfer_used_names (context_of state)) *)
+fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
 
 
