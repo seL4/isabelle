@@ -616,9 +616,11 @@ val proto_pure =
   |> add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
-    ("==>", "[prop, prop] => prop", InfixrName ("==>", 1)),
+    ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
+  |> add_syntax
+   [("==>", "[prop, prop] => prop", Delimfix "op ==>")]
   |> add_name "ProtoPure";
 
 val pure = proto_pure
