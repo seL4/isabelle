@@ -936,6 +936,14 @@ and simplification.
   including \ttindex{conj_cong} in a simpset, \verb$addcongs [conj_cong]$.
 \end{warn}
 
+\begin{warn}\index{simplification!of \texttt{if}}\label{if-simp}%
+  By default only the condition of an \ttindex{if} is simplified but not the
+  \texttt{then} and \texttt{else} parts. Of course the latter are simplified
+  once the condition simplifies to \texttt{True} or \texttt{False}. To ensure
+  full simplification of all parts of a conditional you must remove
+  \ttindex{if_weak_cong} from the simpset, \verb$delcongs [if_weak_cong]$.
+\end{warn}
+
 If the simplifier cannot use a certain rewrite rule --- either because
 of nontermination or because its left-hand side is too flexible ---
 then you might try \texttt{stac}:
@@ -2134,6 +2142,16 @@ P(t@j_\mathtt{case}~f@1~\dots~f@{k@j}~e) &\!\!\!=&
 where $t@j$\texttt{_case} is the internal name of the \texttt{case}-construct.
 This theorem can be added to a simpset via \ttindex{addsplits}
 (see~{\S}\ref{subsec:HOL:case:splitting}).
+
+\begin{warn}\index{simplification!of \texttt{case}}%
+  By default only the selector expression ($e$ above) in a
+  \texttt{case}-construct is simplified, in analogy with \texttt{if} (see
+  page~\pageref{if-simp}). Only if that reduces to a constructor is one of
+  the arms of the \texttt{case}-construct exposed and simplified. To ensure
+  full simplification of all parts of a \texttt{case}-construct for datatype
+  $t$, remove $t$\texttt{.}\ttindexbold{case_weak_cong} from the simpset, for
+  example by \texttt{delcongs [thm "$t$.weak_case_cong"]}.
+\end{warn}
 
 \subsubsection{The function \cdx{size}}\label{sec:HOL:size}
 
