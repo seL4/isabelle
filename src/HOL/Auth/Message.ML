@@ -524,7 +524,7 @@ qed "analz_cong";
 
 
 goal thy "!!H. analz H = analz H' ==> analz(insert X H) = analz(insert X H')";
-by (asm_simp_tac (!simpset addsimps [insert_def] 
+by (asm_simp_tac (!simpset addsimps [insert_def] delsimps [singleton_conv]
                            setloop (rtac analz_cong)) 1);
 qed "analz_insert_cong";
 
