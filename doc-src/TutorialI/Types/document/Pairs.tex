@@ -44,7 +44,8 @@ instead of \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharpare
 different terms).
 
 Internally, \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ t} becomes \isa{split\ {\isacharparenleft}{\isasymlambda}x\ y{\isachardot}\ t{\isacharparenright}}, where
-\isa{split} is the uncurrying function of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c} defined as
+\isa{split}\indexbold{*split (constant)}
+is the uncurrying function of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c} defined as
 \begin{center}
 \isa{split\ {\isasymequiv}\ {\isasymlambda}c\ p{\isachardot}\ c\ {\isacharparenleft}fst\ p{\isacharparenright}\ {\isacharparenleft}snd\ p{\isacharparenright}}
 \hfill(\isa{split{\isacharunderscore}def})
@@ -80,7 +81,7 @@ In case of a subterm of the form \isa{split\ f\ p} this is easy: the split
 rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}y{\isacharparenright}\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}split{\isacharunderscore}split{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}split{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
@@ -184,10 +185,10 @@ automatically by the simplifier:%
 In case you would like to turn off this automatic splitting, just disable the
 responsible simplification rules:
 \begin{center}
-\isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}a\ b{\isachardot}\ {\isacharquery}P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+\isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}a\ b{\isachardot}\ P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
 \hfill
 (\isa{split{\isacharunderscore}paired{\isacharunderscore}All})\\
-\isa{{\isacharparenleft}{\isasymexists}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}a\ b{\isachardot}\ {\isacharquery}P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+\isa{{\isacharparenleft}{\isasymexists}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}a\ b{\isachardot}\ P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
 \hfill
 (\isa{split{\isacharunderscore}paired{\isacharunderscore}Ex})
 \end{center}%

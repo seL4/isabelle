@@ -182,7 +182,7 @@ primrec
 text{*\noindent
 Element @{term"n+1"} on this path is some arbitrary successor
 @{term t} of element @{term n} such that @{term"P t"} holds.  Remember that @{text"SOME t. R t"}
-is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec-SOME}). Of
+is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
 course, such a @{term t} may in general not exist, but that is of no
 concern to us since we will only use @{term path} in such cases where a
 suitable @{term t} does exist.

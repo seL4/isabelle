@@ -206,7 +206,7 @@ equations
 such that $C$ is a constructor of the datatype $t$ and all recursive calls of
 $f$ in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$. Thus
 Isabelle immediately sees that $f$ terminates because one (fixed!) argument
-becomes smaller with every recursive call. There must be exactly one equation
+becomes smaller with every recursive call. There must be at most one equation
 for each constructor.  Their order is immaterial.
 A more general method for defining total recursive functions is introduced in
 {\S}\ref{sec:recdef}.
@@ -472,7 +472,7 @@ supplied) sense. In this section we ristrict ourselves to measure functions;
 more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 
 \subsection{Defining recursive functions}
-
+\label{sec:recdef-examples}
 \input{Recdef/document/examples.tex}
 
 \subsection{Proving termination}

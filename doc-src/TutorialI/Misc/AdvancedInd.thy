@@ -290,8 +290,5 @@ all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
 example theorem @{thm[source]nat_less_induct} can be viewed (and derived) as
 a special case of @{thm[source]wf_induct} where @{term r} is @{text"<"} on
 @{typ nat}. The details can be found in the HOL library.
-*};
-
-(*<*)
-end
-(*>*)
+*}
+(*<*)end(*>*)

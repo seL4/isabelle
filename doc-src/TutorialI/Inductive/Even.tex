@@ -179,8 +179,10 @@ conclusion, which it therefore leaves unchanged.  (Look at
 \ 2.\ \isasymAnd na.\ \isasymlbrakk na\ \isasymin \ even;\ n\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ n\ \isasymin \ even%
 \end{isabelle}
 The first one is hopeless.  In general, rule inductions involving
-non-trivial terms will probably go wrong.  The solution is easy provided
-we have the necessary inverses, here subtraction:
+non-trivial terms will probably go wrong. How to deal with such situations
+in general is described in {\S}\ref{sec:ind-var-in-prems} below.
+In the current case the solution is easy because
+we have the necessary inverse, subtraction:
 \begin{isabelle}
 \isacommand{lemma}\ even_imp_even_minus_2:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ n-\#2\ \isasymin \ even"\isanewline
 \isacommand{apply}\ (erule\ even.induct)\isanewline

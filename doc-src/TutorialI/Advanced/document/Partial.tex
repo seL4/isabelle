@@ -1,0 +1,225 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Partial}%
+%
+\begin{isamarkuptext}%
+\noindent
+Throughout the tutorial we have emphasized the fact that all functions
+in HOL are total. Hence we cannot hope to define truly partial
+functions. The best we can do are functions that are
+\emph{underdefined}\index{underdefined function}:
+for certain arguments we only know that a result
+exists, but we don't know what it is. When defining functions that are
+normally considered partial, underdefinedness turns out to be a very
+reasonable alternative.
+
+We have already seen an instance of underdefinedness by means of
+non-exhaustive pattern matching: the definition of \isa{last} in
+\S\ref{sec:recdef-examples}. The same is allowed for \isacommand{primrec}%
+\end{isamarkuptext}%
+\isacommand{consts}\ hd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\isacommand{primrec}\ {\isachardoublequote}hd\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+although it generates a warning.
+
+Even ordinary definitions allow underdefinedness, this time by means of
+preconditions:%
+\end{isamarkuptext}%
+\isacommand{constdefs}\ minus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+{\isachardoublequote}n\ {\isasymle}\ m\ {\isasymLongrightarrow}\ minus\ m\ n\ {\isasymequiv}\ m\ {\isacharminus}\ n{\isachardoublequote}%
+\begin{isamarkuptext}%
+The rest of this section is devoted to the question of how to define
+partial recursive functions by other means that non-exhaustive pattern
+matching.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsubsection{Guarded recursion%
+}
+%
+\begin{isamarkuptext}%
+Neither \isacommand{primrec} nor \isacommand{recdef} allow to
+prefix an equation with a condition in the way ordinary definitions do
+(see \isa{minus} above). Instead we have to move the condition over
+to the right-hand side of the equation. Given a partial function $f$
+that should satisfy the recursion equation $f(x) = t$ over its domain
+$dom(f)$, we turn this into the \isacommand{recdef}
+\begin{isabelle}%
+\ \ \ \ \ f\ x\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymin}\ dom\ f\ then\ t\ else\ arbitrary{\isacharparenright}%
+\end{isabelle}
+where \isa{arbitrary} is a predeclared constant of type \isa{{\isacharprime}a}
+which has no definition. Thus we know nothing about its value,
+which is ideal for specifying underdefined functions on top of it.
+
+As a simple example we define division on \isa{nat}:%
+\end{isamarkuptext}%
+\isacommand{consts}\ divi\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ arbitrary\ else\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent Of course we could also have defined
+\isa{divi\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}} to be some specific number, for example 0. The
+latter option is chosen for the predefined \isa{div} function, which
+simplifies proofs at the expense of moving further away from the
+standard mathematical divison function.
+
+As a more substantial example we consider the problem of searching a graph.
+For simplicity our graph is given by a function (\isa{f}) of
+type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} which
+maps each node to its successor, and the task is to find the end of a chain,
+i.e.\ a node pointing to itself. Here is a first attempt:
+\begin{isabelle}%
+\ \ \ \ \ find\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find\ {\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}%
+\end{isabelle}
+This may be viewed as a fixed point finder or as one half of the well known
+\emph{Union-Find} algorithm.
+The snag is that it may not terminate if \isa{f} has nontrivial cycles.
+Phrased differently, the relation%
+\end{isamarkuptext}%
+\isacommand{constdefs}\ step{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}step{\isadigit{1}}\ f\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ y\ {\isacharequal}\ f\ x\ {\isasymand}\ y\ {\isasymnoteq}\ x{\isacharbraceright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+must be well-founded. Thus we make the following definition:%
+\end{isamarkuptext}%
+\isacommand{consts}\ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymtimes}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\isacommand{recdef}\ find\ {\isachardoublequote}same{\isacharunderscore}fst\ {\isacharparenleft}{\isasymlambda}f{\isachardot}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharparenright}\ step{\isadigit{1}}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ arbitrary{\isacharparenright}{\isachardoublequote}\isanewline
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}same{\isacharunderscore}fst{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+The recursion equation itself should be clear enough: it is our aborted
+first attempt augmented with a check that there are no non-trivial loops.
+
+What complicates the termination proof is that the argument of
+\isa{find} is a pair. To express the required well-founded relation
+we employ the predefined combinator \isa{same{\isacharunderscore}fst} of type
+\begin{isabelle}%
+\ \ \ \ \ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isasymtimes}{\isacharprime}b{\isacharparenright}set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}\ {\isasymtimes}\ {\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}{\isacharparenright}set%
+\end{isabelle}
+defined as
+\begin{isabelle}%
+\ \ \ \ \ same{\isacharunderscore}fst\ P\ R\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}{\isacharparenleft}x{\isacharprime}{\isacharcomma}\ y{\isacharprime}{\isacharparenright}{\isacharcomma}\ x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ x\ {\isasymand}\ P\ x\ {\isasymand}\ {\isacharparenleft}y{\isacharprime}{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ R\ x{\isacharbraceright}%
+\end{isabelle}
+This combinator is designed for recursive functions on pairs where the first
+component of the argument is passed unchanged to all recursive
+calls. Given a constraint on the first component and a relation on the second
+component, \isa{same{\isacharunderscore}fst} builds the required relation on pairs.
+The theorem \begin{isabelle}%
+\ \ \ \ \ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ wf\ {\isacharparenleft}R\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ wf\ {\isacharparenleft}same{\isacharunderscore}fst\ P\ R{\isacharparenright}%
+\end{isabelle}
+is known to the well-foundedness prover of \isacommand{recdef}.
+Thus well-foundedness of the given relation is immediate.
+Furthermore, each recursive call descends along the given relation:
+the first argument stays unchanged and the second one descends along
+\isa{step{\isadigit{1}}\ f}. The proof merely requires unfolding of some definitions.
+
+Normally you will then derive the following conditional variant of and from
+the recursion equation%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}\ simp%
+\begin{isamarkuptext}%
+\noindent and then disable the original recursion equation:%
+\end{isamarkuptext}%
+\isacommand{declare}\ find{\isachardot}simps{\isacharbrackleft}simp\ del{\isacharbrackright}%
+\begin{isamarkuptext}%
+We can reason about such underdefined functions just like about any other
+recursive function. Here is a simple example of recursion induction:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymlongrightarrow}\ f{\isacharparenleft}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}find{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}%
+\isamarkupsubsubsection{The {\tt\slshape while} combinator%
+}
+%
+\begin{isamarkuptext}%
+If the recursive function happens to be tail recursive, its
+definition becomes a triviality if based on the predefined \isaindexbold{while}
+combinator.  The latter lives in the library theory
+\isa{While_Combinator}, which is not part of \isa{Main} but needs to
+be included explicitly among the ancestor theories.
+
+Constant \isa{while} is of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a}
+and satisfies the recursion equation \begin{isabelle}%
+\ \ \ \ \ while\ b\ c\ s\ {\isacharequal}\ {\isacharparenleft}if\ b\ s\ then\ while\ b\ c\ {\isacharparenleft}c\ s{\isacharparenright}\ else\ s{\isacharparenright}%
+\end{isabelle}
+That is, \isa{while\ b\ c\ s} is equivalent to the imperative program
+\begin{verbatim}
+     x := s; while b(x) do x := c(x); return x
+\end{verbatim}
+In general, \isa{s} will be a tuple (better still: a record). As an example
+consider the tail recursive variant of function \isa{find} above:%
+\end{isamarkuptext}%
+\isacommand{constdefs}\ find{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}find{\isadigit{2}}\ f\ x\ {\isasymequiv}\isanewline
+\ \ \ fst{\isacharparenleft}while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+The loop operates on two ``local variables'' \isa{x} and \isa{x{\isacharprime}}
+containing the ``current'' and the ``next'' value of function \isa{f}.
+They are initalized with the global \isa{x} and \isa{f\ x}. At the
+end \isa{fst} selects the local \isa{x}.
+
+This looks like we can define at least tail recursive functions
+without bothering about termination after all. But there is no free
+lunch: when proving properties of functions defined by \isa{while},
+termination rears its ugly head again. Here is
+\isa{while{\isacharunderscore}rule}, the well known proof rule for total
+correctness of loops expressed with \isa{while}:
+\begin{isabelle}%
+\ \ \ \ \ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}c\ s{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ {\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymnot}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\ s{\isacharsemicolon}\ wf\ r{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ {\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}c\ s{\isacharcomma}\ s{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ Q\ {\isacharparenleft}while\ b\ c\ s{\isacharparenright}%
+\end{isabelle} \isa{P} needs to be
+true of the initial state \isa{s} and invariant under \isa{c}
+(premises 1 and 2).The post-condition \isa{Q} must become true when
+leaving the loop (premise 3). And each loop iteration must descend
+along a well-founded relation \isa{r} (premises 4 and 5).
+
+Let us now prove that \isa{find{\isadigit{2}}} does indeed find a fixed point. Instead
+of induction we apply the above while rule, suitably instantiated.
+Only the final premise of \isa{while{\isacharunderscore}rule} is left unproved
+by \isa{auto} but falls to \isa{simp}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharsemicolon}\ x{\isacharprime}\ {\isacharequal}\ f\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}y\ y{\isacharprime}{\isachardot}\isanewline
+\ \ \ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharprime}{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ y{\isacharprime}\ {\isacharequal}\ y\ {\isasymand}\ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequote}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequote}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline
+\isacommand{apply}\ auto\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+The theorem itself is a simple consequence of this lemma:%
+\end{isamarkuptext}%
+\isacommand{theorem}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ f{\isacharparenleft}find{\isadigit{2}}\ f\ x{\isacharparenright}\ {\isacharequal}\ find{\isadigit{2}}\ f\ x{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ lem{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+Let us conclude this section on partial functions by a
+discussion of the merits of the \isa{while} combinator. We have
+already seen that the advantage (if it is one) of not having to
+provide a termintion argument when defining a function via \isa{while} merely puts off the evil hour. On top of that, tail recursive
+functions tend to be more complicated to reason about. So why use
+\isa{while} at all? The only reason is executability: the recursion
+equation for \isa{while} is a directly executable functional
+program. This is in stark contrast to guarded recursion as introduced
+above which requires an explicit test \isa{x\ {\isasymin}\ dom\ f} in the
+function body.  Unless \isa{dom} is trivial, this leads to a
+definition which is either not at all executable or prohibitively
+expensive. Thus, if you are aiming for an efficiently executable definition
+of a partial function, you are likely to need \isa{while}.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

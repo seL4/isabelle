@@ -13,9 +13,10 @@ required for parts of the section on recursion.
 \section{Advanced forms of recursion}
 \index{*recdef|(}
 
-The purpose of this section is to introduce advanced forms of \isacommand{recdef}. It
-covers two topics: how to define recursive function over nested recursive datatypes
-and how to establish termination by means other than measure functions.
+The purpose of this section is to introduce advanced forms of
+\isacommand{recdef}: how to define recursive function over nested recursive
+datatypes, how to establish termination by means other than measure functions,
+and how to deal with partial functions.
 
 If, after reading this section, you feel that the definition of recursive
 functions is overly and maybe unnecessarily complicated by the requirement of
@@ -32,11 +33,16 @@ can then proceed unencumbered by worries about undefinedness.
 \input{Recdef/document/Nested0.tex}
 \input{Recdef/document/Nested1.tex}
 \input{Recdef/document/Nested2.tex}
-\index{*recdef|)}
 
 \subsection{Beyond measure}
 \label{sec:beyond-measure}
 \input{Advanced/document/WFrec.tex}
+
+\subsection{Partial functions}
+\index{partial function}
+\input{Advanced/document/Partial.tex}
+
+\index{*recdef|)}
 
 \section{Advanced induction techniques}
 \label{sec:advanced-ind}

@@ -27,7 +27,8 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \isaindexbold{div}, \isaindexbold{mod}, \isaindexbold{min} and
 \isaindexbold{max} are predefined, as are the relations
 \indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. There is even a least number operation
+\ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = 0"} if
+@{prop"m<n"}. There is even a least number operation
 \isaindexbold{LEAST}. For example, @{prop"(LEAST n. 1 < n) = 2"}, although
 Isabelle does not prove this completely automatically. Note that @{term 1}
 and @{term 2} are available as abbreviations for the corresponding
@@ -69,7 +70,9 @@ For more complex goals, there is the special method \isaindexbold{arith}
 (which attacks the first subgoal). It proves arithmetic goals involving the
 usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
 @{text"\<longrightarrow>"}), the relations @{text"\<le>"} and @{text"<"}, and the operations
-@{text"+"}, @{text"-"}, @{term min} and @{term max}. For example,
+@{text"+"}, @{text"-"}, @{term min} and @{term max}. Technically, this is
+known as the class of (quantifier free) \bfindex{linear arithmetic} formulae.
+For example,
 *}
 
 lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))";
@@ -92,8 +95,8 @@ on properties of multiplication.
   of \ttindexboldpos{-}{$HOL2arithfun}, \isaindexbold{min} and
   \isaindexbold{max} because they are first eliminated by case distinctions.
 
-  \isa{arith} is incomplete even for the restricted class of formulae
-  described above (known as ``linear arithmetic''). If divisibility plays a
+  \isa{arith} is incomplete even for the restricted class of
+  linear arithmetic formulae. If divisibility plays a
   role, it may fail to prove a valid formula, for example
   @{prop"m+m \<noteq> n+n+1"}. Fortunately, such examples are rare in practice.
 \end{warn}

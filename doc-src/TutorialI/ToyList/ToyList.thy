@@ -69,7 +69,8 @@ The equations for @{term"app"} and @{term"rev"} hardly need comments:
 \isacommand{primrec}\index{*primrec} indicates that the recursion is of a
 particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
-recursion always terminates, i.e.\ the function is \bfindex{total}.
+recursion always terminates, i.e.\ the function is \textbf{total}.
+\index{total function}
 
 The termination requirement is absolutely essential in HOL, a logic of total
 functions. If we were to drop it, inconsistencies would quickly arise: the

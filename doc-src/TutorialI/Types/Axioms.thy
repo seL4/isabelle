@@ -114,7 +114,7 @@ text{*
 Linear orders are an example of subclassing by construction, which is the most
 common case. It is also possible to prove additional subclass relationships
 later on, i.e.\ subclassing by proof. This is the topic of the following
-section.
+paragraph.
 *}
 
 subsubsection{*Strict orders*}

@@ -39,7 +39,8 @@ instead of @{text"\<lambda>(x,y). x+y"} (which denote the same function but are 
 different terms).
 
 Internally, @{term"%(x,y). t"} becomes @{text"split (\<lambda>x y. t)"}, where
-@{term split} is the uncurrying function of type @{text"('a \<Rightarrow> 'b
+@{term split}\indexbold{*split (constant)}
+is the uncurrying function of type @{text"('a \<Rightarrow> 'b
 \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"} defined as
 \begin{center}
 @{thm split_def}
@@ -78,7 +79,7 @@ rule @{thm[source]split_split} replaces @{term p} by a pair:
 *}
 
 lemma "(\<lambda>(x,y).y) p = snd p"
-apply(simp only: split:split_split);
+apply(split split_split);
 
 txt{*
 @{subgoals[display,indent=0]}
@@ -191,10 +192,10 @@ text{*\noindent
 In case you would like to turn off this automatic splitting, just disable the
 responsible simplification rules:
 \begin{center}
-@{thm split_paired_All}
+@{thm split_paired_All[no_vars]}
 \hfill
 (@{thm[source]split_paired_All})\\
-@{thm split_paired_Ex}
+@{thm split_paired_Ex[no_vars]}
 \hfill
 (@{thm[source]split_paired_Ex})
 \end{center}

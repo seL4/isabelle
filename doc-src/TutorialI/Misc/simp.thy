@@ -227,7 +227,7 @@ assumption of the subgoal.
 
 subsubsection{*Automatic case splits*}
 
-text{*\indexbold{case splits}\index{*split|(}
+text{*\indexbold{case splits}\index{*split (method, attr.)|(}
 Goals containing @{text"if"}-expressions are usually proved by case
 distinction on the condition of the @{text"if"}. For example the goal
 *}
@@ -235,40 +235,39 @@ distinction on the condition of the @{text"if"}. For example the goal
 lemma "\<forall>xs. if xs = [] then rev xs = [] else rev xs \<noteq> []";
 
 txt{*\noindent
-can be split by a degenerate form of simplification
+can be split by a special method @{text split}:
 *}
 
-apply(simp only: split: split_if);
+apply(split split_if)
 
 txt{*\noindent
 @{subgoals[display,indent=0]}
-where no simplification rules are included (@{text"only:"} is followed by the
-empty list of theorems) but the rule \isaindexbold{split_if} for
-splitting @{text"if"}s is added (via the modifier @{text"split:"}). Because
+where \isaindexbold{split_if} is a theorem that expresses splitting of
+@{text"if"}s. Because
 case-splitting on @{text"if"}s is almost always the right proof strategy, the
 simplifier performs it automatically. Try \isacommand{apply}@{text"(simp)"}
 on the initial goal above.
 
 This splitting idea generalizes from @{text"if"} to \isaindex{case}:
-*}(*<*)oops;(*>*)
-
+*}(*<*)by simp(*>*)
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
-apply(simp only: split: list.split);
+apply(split list.split);
 
 txt{*
 @{subgoals[display,indent=0]}
 In contrast to @{text"if"}-expressions, the simplifier does not split
 @{text"case"}-expressions by default because this can lead to nontermination
-in case of recursive datatypes. Again, if the @{text"only:"} modifier is
-dropped, the above goal is solved,
+in case of recursive datatypes. Therefore the simplifier has a modifier
+@{text split} for adding further splitting rules explicitly. This means the
+above lemma can be proved in one step by
 *}
 (*<*)oops;
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
 (*>*)
 apply(simp split: list.split);
 (*<*)done(*>*)
-text{*\noindent%
-which \isacommand{apply}@{text"(simp)"} alone will not do.
+text{*\noindent
+whereas \isacommand{apply}@{text"(simp)"} alone will not succeed.
 
 In general, every datatype $t$ comes with a theorem
 $t$@{text".split"} which can be declared to be a \bfindex{split rule} either
@@ -294,14 +293,19 @@ or globally:
 declare list.split [split del]
 
 text{*
+In polished proofs the @{text split} method is rarely used on its own
+but always as part of the simplifier. However, if a goal contains
+multiple splittable constructs, the @{text split} method can be
+helpful in selectively exploring the effects of splitting.
+
 The above split rules intentionally only affect the conclusion of a
 subgoal.  If you want to split an @{text"if"} or @{text"case"}-expression in
 the assumptions, you have to apply @{thm[source]split_if_asm} or
 $t$@{text".split_asm"}:
 *}
 
-lemma "if xs = [] then ys ~= [] else ys = [] ==> xs @ ys ~= []"
-apply(simp only: split: split_if_asm);
+lemma "if xs = [] then ys \<noteq> [] else ys = [] \<Longrightarrow> xs @ ys \<noteq> []"
+apply(split split_if_asm)
 
 txt{*\noindent
 In contrast to splitting the conclusion, this actually creates two
@@ -318,14 +322,11 @@ $t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
   same is true for \isaindex{case}-expressions: only the selector is
   simplified at first, until either the expression reduces to one of the
   cases or it is split.
-\end{warn}
-
-\index{*split|)}
+\end{warn}\index{*split (method, attr.)|)}
 *}
 (*<*)
 by(simp_all)
 (*>*)
-
 
 subsubsection{*Arithmetic*}
 

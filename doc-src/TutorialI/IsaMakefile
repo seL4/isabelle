@@ -23,6 +23,9 @@ HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
 styles:
+	@rm -f isabelle.sty
+	@rm -f isabellesym.sty
+	@rm -f pdfsetup.sty
 	@$(ISATOOL) latex -o sty >/dev/null
 	@rm -f pdfsetup.sty
 	@rm -f */document/isabelle.sty
@@ -98,7 +101,8 @@ $(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/ROOT.ML Recdef/examples.thy Recdef/termi
 
 HOL-Advanced: HOL $(LOG)/HOL-Advanced.gz
 
-$(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/WFrec.thy
+$(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/WFrec.thy \
+	Advanced/Partial.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Advanced
 	@rm -f tutorial.dvi
 

@@ -42,7 +42,7 @@ done
 text{*\noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
 we include with our second attempt the hint to use @{thm[source]termi_lem} as
-a simplification rule:
+a simplification rule:\indexbold{*recdef_simp}
 *}
 
 consts g :: "nat\<times>nat \<Rightarrow> nat";

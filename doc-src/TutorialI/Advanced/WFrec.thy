@@ -5,7 +5,7 @@ So far, all recursive definitions where shown to terminate via measure
 functions. Sometimes this can be quite inconvenient or even
 impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
-can be shown by means of the lexicographic product @{text"<*lex*>"}:
+can be shown by means of the \rmindex{lexicographic product} @{text"<*lex*>"}:
 *}
 
 consts ack :: "nat\<times>nat \<Rightarrow> nat";
@@ -80,6 +80,7 @@ by simp;
 
 text{*\noindent
 and should have appended the following hint to our above definition:
+\indexbold{*recdef_wf}
 *}
 (*<*)
 consts g :: "nat \<Rightarrow> nat"
@@ -87,5 +88,5 @@ recdef g "id(less_than)"
 "g 0 = 0"
 "g (Suc n) = g n"
 (*>*)
-(hints recdef_wf add: wf_id)
+(hints recdef_wf: wf_id)
 (*<*)end(*>*)

@@ -3,8 +3,6 @@ Implementation
 
 Relation: comp -> composition
 
-replace "simp only split" by "split_tac".
-
 Add map_cong?? (upto 10% slower)
 
 Recdef: Get rid of function name in header.
@@ -14,7 +12,7 @@ use arith_tac in recdef to solve termination conditions?
 -> new example in Recdef/termination
 
 a tactic for replacing a specific occurrence:
-apply(substitute [2] thm)
+apply(subst [2] thm)
 
 it would be nice if @term could deal with ?-vars.
 then a number of (unchecked!) @texts could be converted to @terms.
@@ -37,15 +35,15 @@ defs with = and pattern matching??
 Minor fixes in the tutorial
 ===========================
 
+adjust type of ^ in tab:overloading
+
 explanation of term "contrapositive"/contraposition in Rules?
 Index the notion and maybe the rules contrapos_xy
 
-Even: forward ref from problem with "Suc(Suc n) : even" to general solution in
-AdvancedInd section.
+If Advanced and Types chapter ar swapped:
+Make forward ref from ... = True in Axioms to preprocessor section.
 
 get rid of use_thy in tutorial?
-
-Explain typographic conventions?
 
 Orderings on numbers (with hint that it is overloaded):
 bounded quantifers ALL x<y, <=.
@@ -78,6 +76,7 @@ Minor additions to the tutorial, unclear where
 ==============================================
 
 Tacticals: , ? +
+Note: + is used in typedef section!
 
 Mention that simp etc (big step tactics) insist on change?
 
@@ -86,9 +85,6 @@ does more.)
 
 A list of further useful commands (rules? tricks?)
 prefer, defer, print_simpset (-> print_simps?)
-
-An overview of the automatic methods: simp, auto, fast, blast, force,
-clarify, clarsimp (intro, elim?)
 
 Advanced Ind expects rule_format incl (no_asm) (which it currently explains!)
 Where explained? Should go into a separate section as Inductive needs it as
@@ -124,6 +120,15 @@ OTree:
 Ind. sets: define ABC inductively and prove
 ABC = {rep A n @ rep B n @ rep C n. True}
 
+Partial rekursive functions / Nontermination:
+
+Exercise: ?! f. !i. f i = if i=0 then 1 else i*f(i-1)
+(What about sum? Is there one, a unique one?)
+
+Exercise
+Better(?) sum i = fst(while (%(s,i). i=0) (%(s,i). (s+i,i-1)) (0,i))
+Prove 0 <= i ==> sum i = i*(i+1) via while-rule
+
 Possible examples/case studies
 ==============================
 
@@ -144,6 +149,12 @@ Tautology checker. Based on Ifexpr or prop.logic?
 Include forward reference in relevant section.
 
 Sorting with comp-parameter and with type class (<)
+
+Recdef:more example proofs:
+ if-normalization with measure function,
+ nested if-normalization,
+ quicksort
+ Trie?
 
 New book by Bird?
 
@@ -166,60 +177,7 @@ Extensionality: applications in
 
 A look at the library?
 Map.
-If WF is discussed, make a link to it from AdvancedInd.
 
 Prototyping?
 
-==============================================================
-Recdef:
-
-nested recursion
-more example proofs:
- if-normalization with measure function,
- nested if-normalization,
- quicksort
- Trie?
-a case study?
-
-----------
-
-Partial rekursive functions / Nontermination
-
-What appears to be the problem:
-axiom f n = f n + 1
-lemma False
-apply(cut_facts_tac axiom, simp).
-
-1. Guarded recursion
-
-Scheme:
-f x = if $x \in dom(f)$ then ... else arbitrary
-
-Example: sum/fact: int -> int (for no good reason because we have nat)
-
-Exercise: ?! f. !i. f i = if i=0 then 1 else i*f(i-1)
-(What about sum? Is there one, a unique one?)
-
-[Alternative: include argument that is counted down
- f x n = if n=0 then None else ...
-Refer to Boyer and Moore]
-
-More complex: same_fst
-
-chase(f,x) = if wf{(f x,x) . f x ~= x}
-             then if f x = x then x else chase(f,f x)
-             else arb
-
-Prove wf ==> f(chase(f,x)) = chase(f,x)
-
-2. While / Tail recursion
-
-chase f x = fst(while (%(x,fx). x=fx) (%(x,fx). (fx,f fx)) (x,f x))
-
-==> unfold eqn for chase? Prove fixpoint property?
-
-Better(?) sum i = fst(while (%(s,i). i=0) (%(s,i). (s+i,i-1)) (0,i))
-Prove 0 <= i ==> sum i = i*(i+1) via while-rule
-
-Mention prototyping?
 ==============================================================

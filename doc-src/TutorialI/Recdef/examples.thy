@@ -35,6 +35,8 @@ recdef sep "measure (\<lambda>(a,xs). length xs)"
 text{*\noindent
 This time the measure is the length of the list, which decreases with the
 recursive call; the first component of the argument tuple is irrelevant.
+The details of tupled $\lambda$-abstractions @{text"\<lambda>(x\<^sub>1,\<dots>,x\<^sub>n)"} are
+explained in \S\ref{sec:products}, but for now your intuition is all you need.
 
 Pattern matching need not be exhaustive:
 *}

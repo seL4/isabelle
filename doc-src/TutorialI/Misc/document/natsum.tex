@@ -29,7 +29,8 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \isaindexbold{div}, \isaindexbold{mod}, \isaindexbold{min} and
 \isaindexbold{max} are predefined, as are the relations
 \indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. There is even a least number operation
+\ttindexboldpos{<}{$HOL2arithrel}. As usual, \isa{m\ {\isacharminus}\ n\ {\isacharequal}\ {\isadigit{0}}} if
+\isa{m\ {\isacharless}\ n}. There is even a least number operation
 \isaindexbold{LEAST}. For example, \isa{{\isacharparenleft}LEAST\ n{\isachardot}\ {\isadigit{1}}\ {\isacharless}\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}}, although
 Isabelle does not prove this completely automatically. Note that \isa{{\isadigit{1}}}
 and \isa{{\isadigit{2}}} are available as abbreviations for the corresponding
@@ -69,7 +70,9 @@ For more complex goals, there is the special method \isaindexbold{arith}
 (which attacks the first subgoal). It proves arithmetic goals involving the
 usual logical connectives (\isa{{\isasymnot}}, \isa{{\isasymand}}, \isa{{\isasymor}},
 \isa{{\isasymlongrightarrow}}), the relations \isa{{\isasymle}} and \isa{{\isacharless}}, and the operations
-\isa{{\isacharplus}}, \isa{{\isacharminus}}, \isa{min} and \isa{max}. For example,%
+\isa{{\isacharplus}}, \isa{{\isacharminus}}, \isa{min} and \isa{max}. Technically, this is
+known as the class of (quantifier free) \bfindex{linear arithmetic} formulae.
+For example,%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}min\ i\ {\isacharparenleft}max\ j\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ max\ {\isacharparenleft}min\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}\ i{\isacharparenright}\ {\isacharparenleft}min\ i\ {\isacharparenleft}j{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}arith{\isacharparenright}%
@@ -88,8 +91,8 @@ on properties of multiplication.
   of \ttindexboldpos{-}{$HOL2arithfun}, \isaindexbold{min} and
   \isaindexbold{max} because they are first eliminated by case distinctions.
 
-  \isa{arith} is incomplete even for the restricted class of formulae
-  described above (known as ``linear arithmetic''). If divisibility plays a
+  \isa{arith} is incomplete even for the restricted class of
+  linear arithmetic formulae. If divisibility plays a
   role, it may fail to prove a valid formula, for example
   \isa{m\ {\isacharplus}\ m\ {\isasymnoteq}\ n\ {\isacharplus}\ n\ {\isacharplus}\ {\isadigit{1}}}. Fortunately, such examples are rare in practice.
 \end{warn}%

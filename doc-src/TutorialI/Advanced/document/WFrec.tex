@@ -8,7 +8,7 @@ So far, all recursive definitions where shown to terminate via measure
 functions. Sometimes this can be quite inconvenient or even
 impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
-can be shown by means of the lexicographic product \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
+can be shown by means of the \rmindex{lexicographic product} \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
@@ -76,9 +76,10 @@ We should first have proved that \isa{id} preserves well-foundedness%
 \isacommand{by}\ simp%
 \begin{isamarkuptext}%
 \noindent
-and should have appended the following hint to our above definition:%
+and should have appended the following hint to our above definition:
+\indexbold{*recdef_wf}%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf\ add{\isacharcolon}\ wf{\isacharunderscore}id{\isacharparenright}\end{isabellebody}%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}id{\isacharparenright}\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -37,11 +37,11 @@ Constant & Type & Syntax \\
 @{text"*"} & @{text "('a::times) \<Rightarrow> 'a \<Rightarrow> 'a"} & (infixl 70) \\
 @{text"^"} & @{text "('a::power) \<Rightarrow> nat \<Rightarrow> 'a"} & (infixr 80) \\
 @{text"-"} & @{text "('a::minus) \<Rightarrow> 'a"} \\
-@{term abs} &  @{text "('a::minus) \<Rightarrow> 'a"} \\
+@{term abs} &  @{text "('a::minus) \<Rightarrow> 'a"} & $\mid~\mid$\\
 @{text"\<le>"} & @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> bool"} & (infixl 50) \\
 @{text"<"} & @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> bool"} & (infixl 50) \\
 @{term min} &  @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> 'a"} \\
-@{term max} &  @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> 'a"} \\
+@{term max} &  @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> 'a"}
 \end{tabular}
 \caption{Overloaded constants in HOL}
 \label{tab:overloading}
