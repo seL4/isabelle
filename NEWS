@@ -103,6 +103,25 @@ rather than just a warning (in interactive mode);
 
 *** HOL ***
 
+* arith(_tac)
+
+ - Produces a counter example if it cannot prove a goal.
+   Note that the counter example may be spurious if the goal is not a formula
+   of quantifier-free linear arithmetic.
+   In ProofGeneral the counter example appears in the trace buffer.
+
+ - Knows about div k and mod k where k is a numeral of type nat or int.
+
+ - Calls full Presburger arithmetic (by Amine Chaieb) if quantifier-free
+   linear arithmetic fails. This takes account of quantifiers and divisibility.
+   Presburger arithmetic can also be called explicitly via presburger(_tac). 
+
+* simp's arithmetic capabilities have been enhanced a bit: it now
+takes ~= in premises into account (by performing a case split);
+
+* simp reduces "m*(n div m) + n mod m" to n, even if the two summands
+are distributed over a sum of terms;
+
 * New tactic "trans_tac" and method "trans" instantiate
 Provers/linorder.ML for axclasses "order" and "linorder" (predicates
 "<=", "<" and "="). 
@@ -119,31 +138,12 @@ Finite_Set);
 * attribute [symmetric] now works for relations as well; it turns
 (x,y) : R^-1 into (y,x) : R, and vice versa;
 
-* arith(_tac) now produces a counter example if it cannot prove a theorem.
-  In ProofGeneral the counter example appears in the trace buffer.
-
-* arith(_tac) does now know about div k and mod k where k is a numeral
-of type nat or int. It can solve simple goals like
-
-  "0 < n ==> n div 2 < (n::nat)"
-
-but fails if divisibility plays a role like in
-
-  "n div 2 + (n+1) div 2 = (n::nat)"
-
-* New method / tactic presburger(_tac) for full Presburger arithmetic
-  (by Amine Chaieb). Integrated with arith(_tac), i.e. presburger(_tac)
-  is called automatically by arith(_tac), if the decision procedure for
-  simple arithmetic fails to solve the goal.
-
-* simp's arithmetic capabilities have been enhanced a bit: it now
-takes ~= in premises into account (by performing a case split);
-
-* simp reduces "m*(n div m) + n mod m" to n, even if the two summands
-are distributed over a sum of terms;
-
 * induct over a !!-quantified statement (say !!x1..xn):
   each "case" automatically performs "fix x1 .. xn" with exactly those names.
+
+* Map: `empty' is no longer a constant but a syntactic abbreviation for
+%x. None. Warning: empty_def now refers to the previously hidden definition
+of the empty set.
 
 * Real/HahnBanach: updated and adapted to locales;
 
