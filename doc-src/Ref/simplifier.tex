@@ -937,7 +937,8 @@ val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 The basic simpset for intuitionistic \FOL{} starts with \ttindex{empty_ss}.
 It preprocess rewrites using {\tt gen_all}, {\tt atomize} and {\tt
   mk_meta_eq}.  It solves simplified subgoals using {\tt triv_rls} and
-assumptions.  It uses \ttindex{asm_simp_tac} to tackle subgoals of
+assumptions, and by detecting contradictions.  
+It uses \ttindex{asm_simp_tac} to tackle subgoals of
 conditional rewrites.  It takes {\tt IFOL_rews} as rewrite rules.  
 Other simpsets built from {\tt IFOL_ss} will inherit these items.
 In particular, {\tt FOL_ss} extends {\tt IFOL_ss} with classical rewrite
@@ -948,8 +949,9 @@ rules such as $\neg\neg P\bimp P$.
 val IFOL_ss = 
   empty_ss 
   setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls \at prems) ORELSE' 
-                          assume_tac)
+  setsolver  (fn prems => resolve_tac (triv_rls \at prems)
+                          ORELSE' assume_tac
+                          ORELSE' etac FalseE)
   setsubgoaler asm_simp_tac
   addsimps IFOL_rews
   addcongs [imp_cong];
