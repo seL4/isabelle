@@ -3,6 +3,10 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The global Isabelle/Isar outer syntax.
+
+TODO:
+  - cleanup;
+  - avoid string constants;
 *)
 
 signature BASIC_OUTER_SYNTAX =
@@ -23,6 +27,7 @@ sig
   val commands: unit -> string list
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
+  val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: Toplevel.isar
@@ -118,6 +123,12 @@ fun get_parser () = apsome snd o curry Symtab.lookup (! global_parsers);
 
 (** read theory **)
 
+(* theory keyword *)
+
+val theoryN = "theory";
+val theory_keyword = OuterParse.$$$ theoryN;
+
+
 (* source *)
 
 fun no_command cmd =
@@ -142,10 +153,10 @@ fun scan_header get_lexicon scan (src, pos) =
   |> Source.source OuterLex.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
-val check_header_lexicon = Scan.make_lexicon [Symbol.explode "theory"];
+val check_header_lexicon = Scan.make_lexicon [Symbol.explode theoryN];
 
 fun is_old_theory src =
-  is_none (scan_header (K check_header_lexicon) (Scan.option (OuterParse.$$$ "theory")) src);
+  is_none (scan_header (K check_header_lexicon) (Scan.option theory_keyword) src);
 
 fun warn_theory_style path is_old =
   let
@@ -156,18 +167,25 @@ fun warn_theory_style path is_old =
 
 (* deps_thy --- inspect theory header *)
 
-val new_header_lexicon =
-  Scan.make_lexicon (map Symbol.explode ["+", ":", "=", "files", "theory"]);
+val header_lexicon =
+  Scan.make_lexicon (map Symbol.explode ["(", ")", "+", ":", "=", "files", theoryN]);
 
 local open OuterParse in
 
-val new_header =
-  $$$ "theory" |-- !!! (name -- ($$$ "=" |-- enum1 "+" name) --
-    Scan.optional ($$$ "files" |-- !!! (Scan.repeat1 name)) [] --| (Scan.ahead eof || $$$ ":"));
+val file_name = ($$$ "(" |-- !!! (name --| $$$ ")")) >> rpair false || name >> rpair true;
+
+val theory_head =
+  (name -- ($$$ "=" |-- enum1 "+" name) --
+    Scan.optional ($$$ "files" |-- !!! (Scan.repeat1 file_name)) [])
+  >> (fn ((A, Bs), files) => (A, Bs, files));
+
+val theory_header = theory_head --| (Scan.ahead eof || $$$ ":");
+val only_header = theory_keyword |-- theory_head --| Scan.ahead eof;
+val new_header = theory_keyword |-- !!! theory_header;
 
 val old_header =
   name -- ($$$ "=" |-- name -- Scan.repeat ($$$ "+" |-- name))
-  >> (fn (A, (B, Bs)) => ((A, B :: Bs), []: string list));
+  >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
 
 end;
 
@@ -175,53 +193,69 @@ fun deps_thy name ml path =
   let
     val src = Source.of_file path;
     val is_old = warn_theory_style path (is_old_theory src);
-    val ((name', parents), files) =
+    val (name', parents, files) =
       (*Note: old style headers dynamically depend on the current lexicon :-( *)
       if is_old then scan_header ThySyn.get_lexicon (Scan.error old_header) src
-      else scan_header (K new_header_lexicon) (Scan.error new_header) src;
+      else scan_header (K header_lexicon) (Scan.error new_header) src;
 
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if not ml orelse is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^ " does not match theory name " ^ quote name)
-    else (parents, map Path.unpack files @ ml_file)
+    else (parents, map (Path.unpack o #1) files @ ml_file)
   end;
 
 
 (* load_thy --- read text (including header) *)
 
-fun try_ml_file name ml =
+fun try_ml_file name ml time =
   let
     val path = ThyLoad.ml_path name;
-    val tr = Toplevel.imperative (fn () => ThyInfo.load_file path);
+    val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
+    val tr_name = if time then "time_use" else "use";
   in
     if not ml orelse is_none (ThyLoad.check_file path) then ()
-    else Toplevel.excursion [Toplevel.empty |> Toplevel.name "use" |> tr]
+    else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
 fun parse_thy (src, pos) =
-  src
-  |> Symbol.source false
-  |> OuterLex.source false (K (get_lexicon ())) pos
-  |> source false (K (get_parser ()))
-  |> Source.exhaust;
-
-fun read_thy name ml path =
   let
-    val (src, pos) = Source.of_file path;
-    val _ =
-      if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
-      else (Toplevel.excursion (parse_thy (src, pos))
-        handle exn => error (Toplevel.exn_message exn));
-  in Context.context (ThyInfo.get_theory name); try_ml_file name ml end;
+    val lex_src =
+      src
+      |> Symbol.source false
+      |> OuterLex.source false (K (get_lexicon ())) pos;
+    val only_head =
+      lex_src
+      |> Source.source OuterLex.stopper (Scan.single (Scan.option only_header)) None
+      |> (fst o the o Source.get_single);
+  in
+    (case only_head of
+      None =>
+        lex_src
+        |> source false (K (get_parser ()))
+        |> Source.exhaust
+    | Some spec =>
+        [Toplevel.empty |> Toplevel.name theoryN |> IsarThy.theory spec,
+          Toplevel.empty |> Toplevel.name "end" |> Toplevel.exit])
+  end;
+
+fun run_thy name path =
+  let val (src, pos) = Source.of_file path in
+    if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
+    else (Toplevel.excursion (parse_thy (src, pos))
+      handle exn => error (Toplevel.exn_message exn))
+  end;
 
 fun load_thy name ml time path =
-  if not time then read_thy name ml path
-  else timeit (fn () =>
-   (writeln ("\n**** Starting Theory " ^ quote name ^ " ****");
-    setmp Goals.proof_timing true (read_thy name ml) path;
-    writeln ("**** Finished Theory " ^ quote name ^ " ****\n")));
+ (if time then
+    timeit (fn () =>
+     (writeln ("\n**** Starting theory " ^ quote name ^ " ****");
+      setmp Goals.proof_timing true (run_thy name) path;
+      writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
+  else run_thy name path;
+  Context.context (ThyInfo.get_theory name);
+  try_ml_file name ml time);
 
 
 (* interactive source of state transformers *)
