@@ -10,7 +10,6 @@ Compatibility file for Standard ML of New Jersey 110 or later.
   [110, x] => if x >= 35 then use "ML-Systems/smlnj-compiler.ML" else ()
 | _ => ());
 
-
 (** ML system related **)
 
 (* restore old-style character / string functions *)
@@ -43,22 +42,11 @@ fun print_depth n =
 
 (* compiler-independent timing functions *)
 
-(*Note start point for timing*)
-fun startTiming() =
-  let val CPUtimer = Timer.startCPUTimer();
-      val time = Timer.checkCPUTimer(CPUtimer)
-  in  (CPUtimer,time)  end;
-
-(*Finish timing and return string*)
-fun endTiming (CPUtimer, {gc,sys,usr}) =
-  let open Time  (*...for Time.toString, Time.+ and Time.- *)
-      val {gc=gc2,sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
-  in  "User " ^ toString (usr2-usr) ^
-      "  GC " ^ toString (gc2-gc) ^
-      "  All "^ toString (sys2-sys + usr2-usr + gc2-gc) ^
-      " secs"
-      handle Time => ""
-  end;
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 45
+	      then use "ML-Systems/cpu-timer-basis.ML"
+	      else use "ML-Systems/cpu-timer-gc.ML"
+| _ => ());
 
 
 (* prompts *)
@@ -67,20 +55,19 @@ fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
 
 
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 45
+	      then use "ML-Systems/smlnj-basis-compat.ML"
+	      else ()
+| _ => ());
+
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
-fun make_pp path pprint =
-  let
-    open Compiler.PrettyPrint;
-
-    fun pp pps obj =
-      pprint obj
-        (add_string pps, begin_block pps INCONSISTENT,
-          fn wd => add_break pps (wd, 0), fn () => add_newline pps,
-          fn () => end_block pps);
-  in
-    (path, pp)
-  end;
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 45
+	      then use "ML-Systems/smlnj-pp-new.ML"
+	      else use "ML-Systems/smlnj-pp-old.ML"
+| _ => ());
 
 fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
