@@ -171,7 +171,7 @@ val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 (* data *)
 
-fun access_data f sg = f (#data (rep_sg sg))
+fun access_data f sg k = f (#data (rep_sg sg)) k
   handle ERROR => error ("of theory " ^ str_of_sg sg);
 
 val get_data = access_data Data.get;
