@@ -1354,18 +1354,24 @@ fun get_thydata tname id =
   in Symtab.lookup (d2, id) end;
 
 
-(*CD to a directory and load its ROOT.ML file;
+(*Temporarily enter a directory and load its ROOT.ML file;
   also do some work for HTML generation*)
-fun use_dir dirname =
-  (cd dirname;
-   if !make_html then init_html() else ();
-   use "ROOT.ML";
-   finish_html());
+local
 
-fun exit_use_dir dirname =
-  (cd dirname;
-   if !make_html then init_html() else ();
-   exit_use "ROOT.ML";
-   finish_html());
+  fun gen_use_dir use_cmd dirname =
+    let val old_dir = pwd ();
+    in cd dirname;
+       if !make_html then init_html() else ();
+       use_cmd "ROOT.ML";
+       finish_html();
+       cd old_dir
+    end;
+
+in
+
+  val use_dir = gen_use_dir use;
+  val exit_use_dir = gen_use_dir exit_use;
+
+end
 
 end;
