@@ -650,7 +650,7 @@ directly, without reference to its definition.  The simple identity
 \[ if(P,Q,R) \bimp (P\imp Q)\conj (\neg P\imp R) \]
 suggests that the
 $if$-introduction rule should be
-\[ \infer[({if}\,I)]{if(P,Q,R)}{\infer*{Q}{P}  &  \infer*{R}{\neg P}} \]
+\[ \infer[({if}\,I)]{if(P,Q,R)}{\infer*{Q}{[P]}  &  \infer*{R}{[\neg P]}} \]
 The $if$-elimination rule reflects the definition of $if(P,Q,R)$ and the
 elimination rules for~$\disj$ and~$\conj$.
 \[ \infer[({if}\,E)]{S}{if(P,Q,R) & \infer*{S}{[P,Q]}
