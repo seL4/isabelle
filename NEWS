@@ -33,7 +33,7 @@ the current print_mode);
 names in bold, underline etc. or colors (which requires a color
 version of xterm);
 
-* now supports alternative (named) syntax tables (parser and pretty
+* supports alternative (named) syntax tables (parser and pretty
 printer); internal interface is provided by add_modesyntax(_i);
 
 * infixes may now be declared with names independent of their syntax;
@@ -54,18 +54,19 @@ some limitations.  Blast_tac...
     [message "Function Var's argument not a bound variable" relates to this]
   + its proof strategy is more general but can actually be slower
 
-* substitution with equality assumptions no longer permutes other assumptions.
+* substitution with equality assumptions no longer permutes other
+assumptions;
 
 * minor changes in semantics of addafter (now called addaltern); renamed
 setwrapper to setWrapper and compwrapper to compWrapper; added safe wrapper
-(and access functions for it)
+(and access functions for it);
 
 * improved combination of classical reasoner and simplifier: new
 addss, auto_tac, functions for handling clasimpsets, ...  Now, the
 simplification is safe (therefore moved to safe_step_tac) and thus
 more complete, as multiple instantiation of unknowns (with slow_tac).
 COULD MAKE EXISTING PROOFS FAIL; in case of problems with
-old proofs, use unsafe_addss and unsafe_auto_tac
+old proofs, use unsafe_addss and unsafe_auto_tac;
 
 
 *** Simplifier ***
@@ -76,28 +77,29 @@ redex);
 
 * ordering on terms as parameter (used for ordered rewriting);
 
-* new functions delcongs, deleqcongs, and Delcongs. richer rep_ss.
+* new functions delcongs, deleqcongs, and Delcongs. richer rep_ss;
 
 * the solver is now split into a safe and an unsafe part.
 This should be invisible for the normal user, except that the
 functions setsolver and addsolver have been renamed to setSolver and
-addSolver.  added safe_asm_full_simp_tac.
+addSolver; added safe_asm_full_simp_tac;
 
 
 *** HOL ***
 
 * a generic induction tactic `induct_tac' which works for all datatypes and
-also for type `nat'.
+also for type `nat';
 
 * patterns in case expressions allow tuple patterns as arguments to
-constructors, for example `case x of [] => ... | (x,y,z)#ps => ...'
+constructors, for example `case x of [] => ... | (x,y,z)#ps => ...';
 
 * primrec now also works with type nat;
 
 * the constant for negation has been renamed from "not" to "Not" to
-harmonize with FOL, ZF, LK, etc.
+harmonize with FOL, ZF, LK, etc.;
 
-* HOL/ex/LFilter theory of a corecursive "filter" functional for infinite lists
+* HOL/ex/LFilter theory of a corecursive "filter" functional for
+infinite lists;
 
 * HOL/ex/Ring.thy declares cring_simp, which solves equational
 problems in commutative rings, using axiomatic type classes for + and *;
@@ -105,6 +107,8 @@ problems in commutative rings, using axiomatic type classes for + and *;
 * more examples in HOL/MiniML and HOL/Auth;
 
 * more default rewrite rules for quantifiers, union/intersection;
+
+* HOLCF/IOA replaces old HOL/IOA;
 
 * HOLCF changes: derived all rules and arities 
   + axiomatic type classes instead of classes 
@@ -114,7 +118,7 @@ problems in commutative rings, using axiomatic type classes for + and *;
   + eliminated the types void, one, tr
   + use unit lift and bool lift (with translations) instead of one and tr
   + eliminated blift from Lift3.thy (use Def instead of blift)
-  all eliminated rules are derived as theorems --> no visible changes 
+  all eliminated rules are derived as theorems --> no visible changes ;
 
 
 *** ZF ***
