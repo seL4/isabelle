@@ -13,47 +13,50 @@ syntax (xsymbols)
   converse :: "('a * 'b) set => ('b * 'a) set"    ("(_\\<inverse>)" [1000] 999)
 
 constdefs
-  comp  :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set"  (infixr "O" 60)
+  comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 60)
     "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
 
-  Image :: "[('a*'b) set,'a set] => 'b set"                (infixl "``" 90)
+  Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)
     "r `` s == {y. ? x:s. (x,y):r}"
 
-  Id    :: "('a * 'a)set"                            (*the identity relation*)
+  Id    :: "('a * 'a) set"                            (*the identity relation*)
     "Id == {p. ? x. p = (x,x)}"
 
-  diag  :: "'a set => ('a * 'a)set"          (*diagonal: identity over a set*)
+  diag  :: "'a set => ('a * 'a) set"          (*diagonal: identity over a set*)
     "diag(A) == UN x:A. {(x,x)}"
   
-  Domain :: "('a*'b) set => 'a set"
+  Domain :: "('a * 'b) set => 'a set"
     "Domain(r) == {x. ? y. (x,y):r}"
 
-  Range  :: "('a*'b) set => 'b set"
+  Range  :: "('a * 'b) set => 'b set"
     "Range(r) == Domain(r^-1)"
 
-  Field :: "('a*'a)set=>'a set"
+  Field :: "('a * 'a) set => 'a set"
     "Field r == Domain r Un Range r"
 
-  refl   :: "['a set, ('a*'a) set] => bool" (*reflexivity over a set*)
+  refl   :: "['a set, ('a * 'a) set] => bool" (*reflexivity over a set*)
     "refl A r == r <= A <*> A & (ALL x: A. (x,x) : r)"
 
-  sym    :: "('a*'a) set=>bool"             (*symmetry predicate*)
+  sym    :: "('a * 'a) set => bool"             (*symmetry predicate*)
     "sym(r) == ALL x y. (x,y): r --> (y,x): r"
 
-  antisym:: "('a * 'a)set => bool"          (*antisymmetry predicate*)
+  antisym:: "('a * 'a) set => bool"          (*antisymmetry predicate*)
     "antisym(r) == ALL x y. (x,y):r --> (y,x):r --> x=y"
 
-  trans  :: "('a * 'a)set => bool"          (*transitivity predicate*)
+  trans  :: "('a * 'a) set => bool"          (*transitivity predicate*)
     "trans(r) == (!x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
-  single_valued :: "('a * 'b)set => bool"
+  single_valued :: "('a * 'b) set => bool"
     "single_valued r == !x y. (x,y):r --> (!z. (x,z):r --> y=z)"
 
   fun_rel_comp :: "['a => 'b, ('b * 'c) set] => ('a => 'c) set"
     "fun_rel_comp f R == {g. !x. (f x, g x) : R}"
 
+  inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set"
+    "inv_image r f == {(x,y). (f(x), f(y)) : r}"
+
 syntax
-  reflexive :: "('a * 'a)set => bool"       (*reflexivity over a type*)
+  reflexive :: "('a * 'a) set => bool"       (*reflexivity over a type*)
 translations
   "reflexive" == "refl UNIV"
 

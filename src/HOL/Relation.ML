@@ -468,3 +468,13 @@ by (rtac (some1_equality RS sym) 1);
 by (atac 1);
 by (atac 1);
 qed "fun_rel_comp_unique";
+
+
+section "inverse image";
+
+Goalw [trans_def,inv_image_def]
+    "!!r. trans r ==> trans (inv_image r f)";
+by (Simp_tac 1);
+by (Blast_tac 1);
+qed "trans_inv_image";
+

@@ -21,9 +21,6 @@ constdefs
  less_than :: "(nat*nat)set"
 "less_than == trancl pred_nat"
 
- inv_image :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"
-"inv_image r f == {(x,y). (f(x), f(y)) : r}"
-
  measure   :: "('a => nat) => ('a * 'a)set"
 "measure == inv_image less_than"
 
