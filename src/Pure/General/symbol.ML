@@ -37,6 +37,7 @@ sig
   val scanner: string -> (symbol list -> 'a * symbol list) -> symbol list -> 'a
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
+  val escape: string -> string
   val explode: string -> symbol list
   val bump_string: string -> string
   val default_indent: string * int -> string
@@ -60,11 +61,17 @@ struct
     (a) ASCII symbols: a
     (b) printable symbols: \<ident>
     (c) control symbols: \<^ident>
-    (d) raw control symbols: \<^raw...>, where "..." may be any printable
+    (d) raw control symbols: \<^raw:...>, where "..." may be any printable
         character excluding ">"
 
   output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools;
+
+  Symbols (b),(c) and (d) may optionally start with "\\" instead of just "\" 
+  for compatibility with ML-strings of old style theory and ML-files and 
+  isa-ProofGeneral. The default output of these symbols will also start with "\\".
+  This is used by the Isar ML-command to convert Isabelle-strings to ML-strings, 
+  before evaluation.
 *)
 
 type symbol = string;
@@ -209,10 +216,11 @@ fun scanner msg scan chs =
 
 val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
 val scan_rawctrlid = 
-    $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ (Scan.any is_ctrl_letter >> implode);
+    $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ $$ ":" ^^ (Scan.any is_ctrl_letter >> implode);
+
 
 val scan =
-  $$ "\\" ^^ $$ "<" ^^
+  ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
     !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
        ((($$ "^" ^^ (scan_rawctrlid || scan_id)) || scan_id) ^^ $$ ">") ||
   Scan.one not_eof;
@@ -258,13 +266,11 @@ fun bump_string str =
 
 fun string_size s = (s, real (size s));
 
-val escape = Scan.repeat
-  ((($$ "\\" >> K "\\\\") ^^ Scan.optional ($$ "\\" >> K "\\\\") "" ^^ $$ "<" ^^
-      Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
-   Scan.one not_eof) >> implode;
+fun sym_escape s = if size s = 1 then s else "\\" ^ s;
 
-
-val default_output = string_size
+fun default_output s =
+  if not (exists_string (equal "\\") s) then string_size s
+  else string_size (implode (map sym_escape (sym_explode s)));
 
 fun default_indent (_: string, k) = spaces k;
 
@@ -292,16 +298,14 @@ fun get_mode () =
 
 fun output_width x = #1 (get_mode ()) x;
 val output = #1 o output_width;
-fun plain_output s =   
-  if not (exists_string (equal "\\") s) then s
-  else fst (Scan.finite stopper escape (explode s));
-
+val plain_output = #1 o default_output;
+  
 fun indent x = #2 (get_mode ()) x;
 
 
 (*final declarations of this structure!*)
 val length = sym_length;
 val explode = sym_explode;
-
+val escape = sym_escape;
 
 end;

@@ -32,12 +32,9 @@ New in this Isabelle release
   PG and LaTeX, text between \<^bsup> and \<^esup> in superscript. The
   new control characters are not identifier parts.
 
-* Pure: Control-symbols of the form \<^raw...> will literally print the
+* Pure: Control-symbols of the form \<^raw:...> will literally print the
   content of ... to the latex file instead of \isacntrl... . The ... 
   accepts all printable characters excluding the end bracket >.
-
-* Pure: Symbols may only start with one backslash: \<...>. \\<...> is no 
-  longer accepted by the scanner.
 
 * Pure: Using new Isar command "finalconsts" (or the ML functions
   Theory.add_finals or Theory.add_finals_i) it is now possible to
