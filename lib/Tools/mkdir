@@ -147,12 +147,16 @@ else
       echo "$LOGIC:"
       echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
       echo
-      echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT  ## $SOURCES"
+      echo "${NAME}.deps:  ## $SOURCES"
+      echo
+      echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT ${NAME}.deps"
       echo -e "\t@$USEDIR \$(OUT)/$LOGIC $NAME"
     else
       echo "$NAME: $TARGET"
       echo
-      echo "$TARGET:  ## $ROOT_ML $DOCUMENT_ROOT $SOURCES"
+      echo "${NAME}.deps:   ## $ROOT_ML $DOCUMENT_ROOT $SOURCES"
+      echo
+      echo "$TARGET: ${NAME}.deps"
       echo -e "\t@$USEDIR $LOGIC $NAME"
     fi
     echo
@@ -161,7 +165,6 @@ else
     echo
     echo "clean:"
     echo -e "\t@rm -f $TARGET"
-    echo
   } | {
     if [ -z "$ISAMAKEFILE" -o "$ISAMAKEFILE" = - ]; then
       cat
