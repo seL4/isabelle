@@ -9,7 +9,7 @@
 default: HOL
 images: HOL HOL-Real TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
-  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML \
+  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-BCV \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
   HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
@@ -268,6 +268,17 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
   MiniML/ROOT.ML MiniML/Type.ML MiniML/Type.thy MiniML/W.ML MiniML/W.thy
 	@$(ISATOOL) usedir $(OUT)/HOL MiniML
 
+## HOL-BCV
+
+HOL-BCV:HOL $(LOG)/HOL-BCV.gz
+
+$(LOG)/HOL-BCV.gz: $(OUT)/HOL BCV/DFAandWTI.ML \
+  BCV/DFAandWTI.thy BCV/DFAimpl.ML BCV/DFAimpl.thy \
+  BCV/Fixpoint.ML BCV/Fixpoint.thy BCV/Machine.ML BCV/Machine.thy \
+  BCV/Orders.ML BCV/Orders.thy BCV/Orders0.ML BCV/Orders0.thy \
+  BCV/Plus.ML BCV/Plus.thy BCV/ROOT.ML BCV/SemiLattice.ML BCV/SemiLattice.thy \
+  BCV/Types0.ML BCV/Types0.thy BCV/Types.ML BCV/Types.thy
+	@$(ISATOOL) usedir $(OUT)/HOL BCV
 
 ## HOL-IOA
 
@@ -416,7 +427,7 @@ clean:
 	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
 	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-	  $(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz \
+	  $(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz $(LOG)/HOL-BCV.gz $(LOG)/HOL-IOA.gz \
 	  $(LOG)/HOL-AxClasses-Group.gz		\
 	  $(LOG)/HOL-AxClasses-Lattice.gz	\
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
