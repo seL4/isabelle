@@ -25,11 +25,17 @@ within a theory, while \texttt{x + y} is not.
 
 \medskip
 
-Another notable point is proper input termination.  Proof~General demands any
-command to be terminated by ``\texttt{;}''
-(semicolon)\index{semicolon}\index{*;}.  As far as plain Isabelle/Isar is
-concerned, commands may be directly run together, though.  In the presentation
-of Isabelle/Isar documents, semicolons are omitted in order to gain
+Isabelle/Isar input may contain any number of input termination characters
+``\texttt{;}'' (semicolon) to separate commands explicitly.  This may be
+particularly useful in interactive shell sessions to make clear where the
+current command is intended to end.  Otherwise, the interactive loop will
+continue until end-of-command in clearly indicated from the input syntax,
+e.g.\ encounter of the next command keyword.
+
+Advanced interfaces such as Proof~General \cite{proofgeneral} do not require
+explicit semicolons, the amount of input text is determined automatically by
+inspecting the Emacs text buffer.  Also note that in the presentation of
+Isabelle/Isar documents, semicolons are omitted in any case to gain
 readability.
 
 
@@ -327,9 +333,9 @@ antiquotations of logical entities, such as theorems, terms and types, which
 are to be presented in the final output produced by the Isabelle document
 preparation system (see also \S\ref{sec:document-prep}).
 
-Thus embedding something like
-\texttt{{\at}{\ttlbrace}term[show_types]~"f(x)~=~a~+~x"{\ttrbrace}} within
-some text block would cause
+Thus embedding of
+\texttt{{\at}{\ttlbrace}term[show_types]~"f(x)~=~a~+~x"{\ttrbrace}} within a
+text block would cause
 \isa{(f{\isasymColon}'a~{\isasymRightarrow}~'a)~(x{\isasymColon}'a)~=~(a{\isasymColon}'a)~+~x}
 to appear in the final {\LaTeX} document.
 
