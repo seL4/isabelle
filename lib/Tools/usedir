@@ -18,6 +18,7 @@ function usage()
   echo "    -D PATH      dump generated document sources into PATH"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
+  echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
@@ -40,6 +41,7 @@ function usage()
 DUMP=""
 RPATH=""
 BUILD=""
+COMPRESS=""
 DOCUMENT=false
 INFO=false
 RESET=false
@@ -59,6 +61,9 @@ function getoptions()
         ;;
       b)
         BUILD=true
+        ;;
+      c)
+        COMPRESS="$OPTARG"
         ;;
       d)
         DOCUMENT="$OPTARG"
@@ -139,9 +144,12 @@ if [ -n "$BUILD" ]; then
   echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
+  OPT_C=""
+  [ "$COMPRESS" = true ] && OPT_C="-c"
+
   $ISABELLE \
     -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
-    -q -w $LOGIC $NAME > $LOG 2>&1
+    $OPT_C -q -w $LOGIC $NAME > $LOG 2>&1
   RC=$?
 else
   ITEM=$(basename $LOGIC)-"$SESSION"

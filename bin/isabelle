@@ -23,6 +23,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -I           startup Isar interaction mode"
+  echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
@@ -49,17 +50,21 @@ function fail()
 
 # options
 
+COMPRESS=""
 MLTEXT=""
 MODES=""
 TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "Ie:m:qruw" OPT
+while getopts "Ice:m:qruw" OPT
 do
   case "$OPT" in
     I)
       MLTEXT="$MLTEXT Isar.main();"
+      ;;
+    c)
+      COMPRESS=true
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
@@ -177,7 +182,7 @@ ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
-export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP
+export INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
 if [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ]; then
   $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
