@@ -338,14 +338,16 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/J/WellForm.thy MicroJava/J/WellForm.ML MicroJava/J/Value.thy \
   MicroJava/J/WellType.ML MicroJava/J/WellType.thy \
   MicroJava/J/Example.ML MicroJava/J/Example.thy \
-  MicroJava/JVM/Control.thy MicroJava/JVM/JVMExec.thy \
-  MicroJava/JVM/JVMState.thy MicroJava/JVM/LoadAndStore.thy \
-  MicroJava/JVM/Method.thy MicroJava/JVM/Object.thy MicroJava/JVM/Opstack.thy \
+  MicroJava/JVM/JVMExec.thy MicroJava/JVM/JVMInstructions.thy\
+  MicroJava/JVM/JVMState.thy MicroJava/JVM/JVMExecInstr.thy\
   MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
   MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpec.ML \
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
   MicroJava/BV/Convert.thy MicroJava/BV/Convert.ML \
-  MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML MicroJava/document/root.tex
+  MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML \
+  MicroJava/BV/LBVSpec.thy MicroJava/BV/LBVCorrect.thy \
+  MicroJava/BV/LBVComplete.thy \
+  MicroJava/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
 
 
