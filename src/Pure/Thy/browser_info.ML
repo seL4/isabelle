@@ -13,7 +13,7 @@ end;
 signature BROWSER_INFO =
 sig
   include BASIC_BROWSER_INFO
-  val init: bool -> string list -> string -> Url.T option -> unit
+  val init: bool -> string list -> string -> Url.T option * bool -> unit
   val finish: unit -> unit
   val theory_source: string -> (string, 'a) Source.source -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
@@ -232,7 +232,7 @@ fun could_copy inpath outpath =
   else false;
 
 fun init false _ _ _ = (browser_info := empty_browser_info; session_info := None)
-  | init true path name remote_path =
+  | init true path name (remote_path, first_time) =
       let
         val parent_name = name_of_session (take (length path - 1, path));
         val session_name = name_of_session path;
@@ -256,7 +256,13 @@ fun init false _ _ _ = (browser_info := empty_browser_info; session_info := None
           end;
         val opt_readme =
           (case prep_readme "README.html" of None => prep_readme "README" | some => some);
-        val index_text = HTML.begin_index (Url.file (Path.append Path.parent index_path), parent_name)
+
+        val parent_index_path = Path.append Path.parent index_path;
+        val index_up_lnk = if first_time then
+            Url.append (the remote_path) (Url.file (Path.append sess_prefix parent_index_path))
+          else Url.file parent_index_path;
+
+        val index_text = HTML.begin_index (index_up_lnk, parent_name)
           (Url.file index_path, session_name) (apsome Url.file opt_readme) graph_lnk;
       in
         File.mkdir (Path.append html_prefix session_path);
