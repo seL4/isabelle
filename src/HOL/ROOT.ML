@@ -56,12 +56,14 @@ use_thy "Datatype";
 use "Tools/record_package.ML";
 use_thy "Record";
 
-use_thy "Recdef";
 (*TFL: recursive function definitions*)
-cd "~~/src/TFL";
+use_thy "WF_Rel";
+cd "../TFL";
 use "sys.sml";
-cd "~~/src/HOL";
+cd "../HOL";
 use "Tools/recdef_package.ML";
+use "Tools/induct_method.ML";
+use_thy "Recdef";
 
 cd "Integ";
 use_thy "IntDef";
