@@ -38,7 +38,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
   $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
   $(SRC)/Pure/section_utils.ML $(SRC)/TFL/dcterm.sml \
-  $(SRC)/TFL/post.sml $(SRC)/TFL/rules.new.sml $(SRC)/TFL/rules.sig \
+  $(SRC)/TFL/post.sml $(SRC)/TFL/rules.sml $(SRC)/TFL/rules.sig \
   $(SRC)/TFL/sys.sml $(SRC)/TFL/tfl.sig $(SRC)/TFL/tfl.sml \
   $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sig \
   $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig $(SRC)/TFL/usyntax.sml \
@@ -156,6 +156,8 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event.ML Auth/Event.thy \
   Auth/OtwayRees_Bad.thy Auth/Public.ML Auth/Public.thy Auth/ROOT.ML \
   Auth/Recur.ML Auth/Recur.thy Auth/Shared.ML Auth/Shared.thy \
   Auth/TLS.ML Auth/TLS.thy Auth/WooLam.ML Auth/WooLam.thy \
+  Auth/Kerberos_BAN.ML Auth/Kerberos_BAN.thy \
+  Auth/KerberosIV.ML Auth/KerberosIV.thy \
   Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy \
   Auth/Yahalom_Bad.ML Auth/Yahalom_Bad.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Auth
