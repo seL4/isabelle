@@ -4,29 +4,22 @@
     Copyright   1998 TUM
 *)
 
-goal thy "!q ys. nexts A q (xs@ys) = nexts A (nexts A q xs) ys";
-by(induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "nexts_append";
-Addsimps [nexts_append];
-
-goal thy "nexts A q (xs@[y]) = next A (nexts A q xs) y";
+goal thy "delta A (xs@[y]) q = next A y (delta A xs q)";
 by(Simp_tac 1);
-qed "nexts_snoc";
-Addsimps [nexts_append];
+qed "delta_snoc";
 
 goal thy
- "!q ps res. auto_split A (nexts A q ps) ps xs res = \
-\            maxsplit (%ys. fin A (nexts A q ys)) ps xs res";
+ "!q ps res. auto_split A (delta A ps q) ps xs res = \
+\            maxsplit (%ys. fin A (delta A ys q)) ps xs res";
 by(induct_tac "xs" 1);
 by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [nexts_snoc RS sym]
-                           delsimps [nexts_append]) 1);
+by(asm_simp_tac (simpset() addsimps [delta_snoc RS sym]
+                           delsimps [delta_append]) 1);
 qed_spec_mp "auto_split_lemma";
 
 goalw thy [accepts_def]
  "auto_split A (start A) [] xs res = maxsplit (accepts A) [] xs res";
-by(stac ((read_instantiate [("st","start A")] nexts_Nil) RS sym) 1);
+by(stac ((read_instantiate [("s","start A")] delta_Nil) RS sym) 1);
 by(stac auto_split_lemma 1);
 by(Simp_tac 1);
 qed_spec_mp "auto_split_is_maxsplit";

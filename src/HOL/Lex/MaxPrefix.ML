@@ -4,13 +4,13 @@
     Copyright   1998 TUM
 *)
 
-Delsplits [expand_if];
+Delsplits [split_if];
 goalw thy [is_maxpref_def] "!(ps::'a list) res. \
 \ (maxsplit P ps qs res = (xs,ys)) = \
 \ (if (? us. us <= qs & P(ps@us)) then xs@ys=ps@qs & is_maxpref P xs (ps@qs) \
 \  else (xs,ys)=res)";
 by(induct_tac "qs" 1);
- by(simp_tac (simpset() addsplits [expand_if]) 1);
+ by(simp_tac (simpset() addsplits [split_if]) 1);
  by(Blast_tac 1);
 by(Asm_simp_tac 1);
 be thin_rl 1;
@@ -47,7 +47,7 @@ by(subgoal_tac "~P(ps)" 1);
 by(Asm_simp_tac 1);
 by(fast_tac (claset() addss simpset()) 1);
 qed_spec_mp "maxsplit_lemma";
-Addsplits [expand_if];
+Addsplits [split_if];
 
 goalw thy [is_maxpref_def]
  "!!P. ~(? us. us<=xs & P us) ==> is_maxpref P ps xs = (ps = [])";

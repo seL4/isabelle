@@ -17,10 +17,10 @@ Verification:
 No proofs yet.
 *)
 
-AutoChopper1 = Auto + Chopper + WF_Rel +
+AutoChopper1 = DA + Chopper + WF_Rel +
 
 consts
-  acc :: "(('a,'b)auto * 'a list * 'b * 'a list list * 'a list * 'a list)
+  acc :: "(('a,'s)da * 'a list * 's * 'a list list * 'a list * 'a list)
           => 'a list list * 'a list"
 recdef acc "inv_image (less_than ** less_than)
               (%(A,ys,s,xss,zs,xs). (length xs + length ys + length zs,
@@ -29,7 +29,7 @@ simpset "simpset() addsimps (less_add_Suc2::add_ac)"
 "acc(A,[],s,xss,zs,[]) = (xss, zs)"
 "acc(A,[],s,xss,zs,x#xs) = acc(A,zs,start A, xss @ [x#xs],[],[])"
 "acc(A,y#ys,s,xss,zs,xs) =
-  (let s' = next A s y;
+  (let s' = next A y s;
       zs' = (if fin A s' then [] else zs@[y]);
       xs' = (if fin A s' then xs@zs@[y] else xs)
    in acc(A,ys,s',xss,zs',xs'))"

@@ -23,7 +23,7 @@ goalw thy [chop_def] "!!splitf. reducing splitf ==> \
 \                      else let (xss,zs) = chop splitf post \
 \                             in (pre#xss,zs))";
 by(asm_simp_tac (simpset() addsimps [chopr_rule] addcongs [if_weak_cong]) 1);
-by(simp_tac (simpset() addsimps [Let_def] addsplits [expand_split]) 1);
+by(simp_tac (simpset() addsimps [Let_def] addsplits [split_split]) 1);
 qed "chop_rule";
 
 goalw thy [is_maxsplitter_def,reducing_def]
@@ -34,11 +34,11 @@ qed "is_maxsplitter_reducing";
 goal thy "!!P. is_maxsplitter P splitf ==> \
 \ !yss zs. chop splitf xs = (yss,zs) --> xs = concat yss @ zs";
 by(res_inst_tac [("xs","xs")] length_induct 1);
-by(asm_simp_tac (simpset() delsplits [expand_if]
+by(asm_simp_tac (simpset() delsplits [split_if]
                            addsimps [chop_rule,is_maxsplitter_reducing]
                            addcongs [if_weak_cong]) 1);
 by(asm_full_simp_tac (simpset() addsimps [Let_def,is_maxsplitter_def]
-                                addsplits [expand_split]) 1);
+                                addsplits [split_split]) 1);
 qed_spec_mp "chop_concat";
 
 goal thy "!!P. is_maxsplitter P splitf ==> \
@@ -47,9 +47,9 @@ by(res_inst_tac [("xs","xs")] length_induct 1);
 by(asm_simp_tac (simpset() addsimps [chop_rule,is_maxsplitter_reducing]
                            addcongs [if_weak_cong]) 1);
 by(asm_full_simp_tac (simpset() addsimps [Let_def,is_maxsplitter_def]
-                                addsplits [expand_split]) 1);
+                                addsplits [split_split]) 1);
 by(simp_tac (simpset() addsimps [Let_def,maxsplit_eq]
-                       addsplits [expand_split]) 1);
+                       addsplits [split_split]) 1);
 be thin_rl 1;
 by(strip_tac 1);
 br ballI 1;
@@ -69,7 +69,7 @@ br iffI 1;
  be rev_mp 1;
  by(stac (prem RS is_maxsplitter_reducing RS chop_rule) 1);
  by(simp_tac (simpset() addsimps [Let_def,rewrite_rule[is_maxsplitter_def]prem]
-                        addsplits [expand_split]) 1);
+                        addsplits [split_split]) 1);
  by(Clarify_tac 1);
  br conjI 1;
   by(Clarify_tac 1);
@@ -81,7 +81,7 @@ br iffI 1;
  ba 1;
 by(stac (prem RS is_maxsplitter_reducing RS chop_rule) 1);
  by(simp_tac (simpset() addsimps [Let_def,rewrite_rule[is_maxsplitter_def]prem]
-                        addsplits [expand_split]) 1);
+                        addsplits [split_split]) 1);
 by(Clarify_tac 1);
 br conjI 1;
  by(Clarify_tac 1);
