@@ -52,7 +52,7 @@ qed "bt_rec_Lf";
 
 Goal "bt_rec(Br(a,l,r), c, h) = h(a, l, r, bt_rec(l,c,h), bt_rec(r,c,h))";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (rank_ss addsimps (bt.case_eqns @ [rank_Br1, rank_Br2])) 1);
+by (simp_tac (rank_ss addsimps bt.case_eqns @ [rank_Br1, rank_Br2]) 1);
 qed "bt_rec_Br";
 
 Addsimps [bt_rec_Lf, bt_rec_Br];
