@@ -193,7 +193,7 @@ by (auto simp add: l_coset_eq subsetD)
 
 lemma (in coset) l_repr_independence:
      "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> x <# H = y <# H"
-apply (auto simp add: l_coset_eq sum_assoc left_cancellation_iff 
+apply (auto simp add: l_coset_eq sum_assoc 
                       subgroup_imp_subset [THEN subsetD] subgroup_sum_closed)
 apply (rule_tac x = "sum G (gminus G h) ha" in bexI)
   --{*FIXME: locales don't currently work with @{text rule_tac},
@@ -229,7 +229,7 @@ proof -
     assume "h \<in> H"
       hence "((\<ominus>x) \<oplus> (\<ominus>h) \<oplus> x) \<oplus> \<ominus>x = \<ominus>(h \<oplus> x)"
 	by (simp add: xinG sum_assoc minus_sum H_subset [THEN subsetD])
-      thus "\<exists>ha\<in>H. ha \<oplus> \<ominus>x = \<ominus>(h \<oplus> x)" 
+      thus "\<exists>j\<in>H. j \<oplus> \<ominus>x = \<ominus>(h \<oplus> x)" 
        using prems
 	by (blast intro: normal_minus_op_closed1 normal_imp_subgroup 
 			 subgroup_minus_closed)
@@ -337,30 +337,35 @@ apply (auto simp add: setrcos_eq)
 apply (simp (no_asm_simp) add: r_coset_subset_G [THEN finite_subset])
 done
 
-lemma (in coset) card_cosets_equal:
-     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |] 
-      ==> card c = card H"
-apply (auto simp add: setrcos_eq)
-(*FIXME: I can't say
-apply (rule_tac f = "%y. y \<oplus> (\<ominus>a)" and g = "%y. y \<oplus> a" in card_bij_eq)
-*)
-apply (rule_tac f = "%y. sum G y (gminus G a)" 
-            and g = "%y. sum G y a" in card_bij_eq)
-     apply (simp add: r_coset_subset_G [THEN finite_subset])
-    apply (blast intro: finite_subset)
-   txt{*inclusion in @{term H}*}
-   apply (force simp add: sum_assoc subsetD r_coset_eq)
-  defer 1
-   txt{*inclusion in @{term "H #> a"}*}
-  apply (blast intro: rcosI)
- apply (force simp add: inj_on_def right_cancellation_iff subsetD)
+text{*The next two lemmas support the proof of @{text card_cosets_equal},
+since we can't use @{text rule_tac} with explicit terms for @{term f} and
+@{term g}.*}
+lemma (in coset) inj_on_f:
+    "[|H \<subseteq> carrier G;  a \<in> carrier G|] ==> inj_on (\<lambda>y. y \<oplus> \<ominus>a) (H #> a)"
 apply (rule inj_onI)
 apply (subgoal_tac "x \<in> carrier G & y \<in> carrier G")
  prefer 2 apply (blast intro: r_coset_subset_G [THEN subsetD])
 apply (rotate_tac -1)
-apply (simp add: right_cancellation_iff subsetD)
+apply (simp add: subsetD)
 done
 
+lemma (in coset) inj_on_g:
+    "[|H \<subseteq> carrier G;  a \<in> carrier G|] ==> inj_on (\<lambda>y. y \<oplus> a) H"
+by (force simp add: inj_on_def subsetD)
+
+lemma (in coset) card_cosets_equal:
+     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |] 
+      ==> card c = card H"
+apply (auto simp add: setrcos_eq)
+apply (rule card_bij_eq)
+     apply (rule inj_on_f, assumption+) 
+    apply (force simp add: sum_assoc subsetD r_coset_eq)
+   apply (rule inj_on_g, assumption+) 
+  apply (force simp add: sum_assoc subsetD r_coset_eq)
+ txt{*The sets @{term "H #> a"} and @{term "H"} are finite.*}
+ apply (simp add: r_coset_subset_G [THEN finite_subset])
+apply (blast intro: finite_subset)
+done
 
 subsection{*Two distinct right cosets are disjoint*}
 

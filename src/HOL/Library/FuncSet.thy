@@ -39,6 +39,7 @@ constdefs
   compose :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
   "compose A g f == \<lambda>x\<in>A. g (f x)"
 
+print_translation {* [("Pi", dependent_tr' ("@Pi", "funcset"))] *}
 
 
 subsection{*Basic Properties of @{term Pi}*}
@@ -104,7 +105,6 @@ subsection{*Bounded Abstraction: @{term restrict}*}
 
 lemma restrict_in_funcset: "(!!x. x \<in> A ==> f x \<in> B) ==> (\<lambda>x\<in>A. f x) \<in> A -> B"
 by (simp add: Pi_def restrict_def)
-
 
 lemma restrictI: "(!!x. x \<in> A ==> f x \<in> B x) ==> (\<lambda>x\<in>A. f x) \<in> Pi A B"
 by (simp add: Pi_def restrict_def)

@@ -989,24 +989,28 @@ lemma choose_deconstruct: "finite M ==> x \<notin> M
   done
 
 lemma card_inj_on_le:
-    "finite A ==> finite B ==> f ` A \<subseteq> B ==> inj_on f A ==> card A <= card B"
+    "[|inj_on f A; f ` A \<subseteq> B; finite A; finite B |] ==> card A <= card B"
   by (auto intro: card_mono simp add: card_image [symmetric])
 
-lemma card_bij_eq: "finite A ==> finite B ==>
-  f ` A \<subseteq> B ==> inj_on f A ==> g ` B \<subseteq> A ==> inj_on g B ==> card A = card B"
+lemma card_bij_eq: 
+    "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A; 
+       finite A; finite B |] ==> card A = card B"
   by (auto intro: le_anti_sym card_inj_on_le)
 
-lemma constr_bij: "finite A ==> x \<notin> A ==>
-  card {B. EX C. C <= A & card(C) = k & B = insert x C} =
+text{*There are as many subsets of @{term A} having cardinality @{term k}
+ as there are sets obtained from the former by inserting a fixed element
+ @{term x} into each.*}
+lemma constr_bij:
+   "[|finite A; x \<notin> A|] ==>
+    card {B. EX C. C <= A & card(C) = k & B = insert x C} =
     card {B. B <= A & card(B) = k}"
   apply (rule_tac f = "%s. s - {x}" and g = "insert x" in card_bij_eq)
-       apply (rule_tac B = "Pow (insert x A) " in finite_subset)
-        apply (rule_tac [3] B = "Pow (A) " in finite_subset)
-         apply fast+
-     txt {* arity *}
-     apply (auto elim!: equalityE simp add: inj_on_def)
-  apply (subst Diff_insert0)
-  apply auto
+       apply (auto elim!: equalityE simp add: inj_on_def)
+    apply (subst Diff_insert0, auto)
+   txt {* finiteness of the two sets *}
+   apply (rule_tac [2] B = "Pow (A)" in finite_subset)
+   apply (rule_tac B = "Pow (insert x A)" in finite_subset)
+   apply fast+
   done
 
 text {*

@@ -24,24 +24,22 @@ locale sylow = coset +
 		  	     (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
 
 lemma (in sylow) RelM_refl: "refl calM RelM"
-apply (unfold refl_def RelM_def, auto)
-apply (simp add: calM_def)
-apply (rule bexI [of _ \<zero>])
-apply (auto simp add: zero_closed)
+apply (auto simp add: refl_def RelM_def calM_def) 
+apply (blast intro!: coset_sum_zero [symmetric]) 
 done
 
 lemma (in sylow) RelM_sym: "sym RelM"
-apply (unfold sym_def RelM_def, auto)
-apply (rule_tac x = "gminus G g" in bexI)
-apply (erule_tac [2] minus_closed)
-apply (simp add: coset_sum_assoc calM_def)
-done
+proof (unfold sym_def RelM_def, clarify)
+  fix y g
+  assume   "y \<in> calM"
+    and g: "g \<in> carrier G"
+  hence "y = y #> g #> (\<ominus>g)" by (simp add: coset_sum_assoc calM_def)
+  thus "\<exists>g'\<in>carrier G. y = y #> g #> g'"
+   by (blast intro: g minus_closed)
+qed
 
 lemma (in sylow) RelM_trans: "trans RelM"
-apply (unfold trans_def RelM_def, auto)
-apply (rule_tac x = "sum G ga g" in bexI)
-apply (simp_all add: coset_sum_assoc calM_def)
-done
+by (auto simp add: trans_def RelM_def calM_def coset_sum_assoc) 
 
 lemma (in sylow) RelM_equiv: "equiv calM RelM"
 apply (unfold equiv_def)
@@ -113,8 +111,7 @@ done
 
 lemma (in sylow) zero_less_o_G: "0 < order(G)"
 apply (unfold order_def)
-apply (cut_tac zero_closed)
-apply (blast intro: zero_less_card_empty)
+apply (blast intro: zero_closed zero_less_card_empty)
 done
 
 lemma (in sylow) zero_less_m: "0 < m"
