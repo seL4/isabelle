@@ -11,10 +11,10 @@ Follows = Union +
 constdefs
 
   Follows :: "['a => 'b::{order}, 'a => 'b::{order}] => 'a program set"
-                 (infixl 65)
-   "f Follows g == Increasing g Int Increasing f Int
-                   Always {s. f s <= g s} Int
-                   (INT k. {s. k <= g s} LeadsTo {s. k <= f s})"
+                 (infixl "Fols" 65)
+   "f Fols g == Increasing g Int Increasing f Int
+                Always {s. f s <= g s} Int
+                (INT k. {s. k <= g s} LeadsTo {s. k <= f s})"
 
 
 end

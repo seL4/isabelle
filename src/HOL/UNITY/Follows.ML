@@ -23,7 +23,7 @@ by (etac LeadsTo_weaken 1);
 by (ALLGOALS (blast_tac (claset() addIs [monoD, order_trans])));
 qed "mono_LeadsTo_o";
 
-Goalw [Follows_def] "mono h ==> f Follows g <= (h o f) Follows (h o g)";
+Goalw [Follows_def] "mono h ==> f Fols g <= (h o f) Fols (h o g)";
 by (Clarify_tac 1);
 by (asm_full_simp_tac
     (simpset() addsimps [impOfSubs mono_Increasing_o,
@@ -32,7 +32,7 @@ by (asm_full_simp_tac
 qed "mono_Follows_o";
 
 Goalw [Follows_def]
-     "[| F : f Follows g;  F: g Follows h |] ==> F : f Follows h";
+     "[| F : f Fols g;  F: g Fols h |] ==> F : f Fols h";
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [order_trans, LeadsTo_Trans]) 1);
 qed "Follows_trans";
@@ -92,8 +92,8 @@ by (Blast_tac 1);
 qed "Follows_Un_lemma";
 
 Goalw [Follows_def]
-    "[| F : f' Follows f;  F: g' Follows g |] \
-\    ==> F : (%s. (f' s) Un (g' s)) Follows (%s. (f s) Un (g s))";
+    "[| F : f' Fols f;  F: g' Fols g |] \
+\    ==> F : (%s. (f' s) Un (g' s)) Fols (%s. (f s) Un (g s))";
 by (asm_full_simp_tac (simpset() addsimps [Increasing_Un, Always_Un]) 1);
 by Auto_tac;
 by (rtac LeadsTo_Trans 1);
