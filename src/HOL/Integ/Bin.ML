@@ -270,6 +270,13 @@ Goal "(m*n = (#0::int)) = (m = #0 | n = #0)";
 by (stac (int_0 RS sym) 1 THEN rtac zmult_eq_int0_iff 1);
 qed "zmult_eq_0_iff";
 
+Goal "((#0::int) = m*n) = (#0 = m | #0 = n)";
+by (stac eq_commute 1 THEN stac zmult_eq_0_iff 1);
+by Auto_tac;
+qed "zmult_0_eq_iff";
+
+Addsimps [zmult_eq_0_iff, zmult_0_eq_iff];
+
 Goal "(w < z + (#1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
 qed "zless_add1_eq";
