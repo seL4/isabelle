@@ -80,9 +80,14 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 
-# How to install the isabelle X11 fonts (can be tricky!).
+## Fonts -- how to install the Isabelle X11 fonts (can be tricky!).
+
+# (1) Get fonts from local (client side) directory:
 ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
+
+# (2) Get from font server (at Cambridge or Munich):
 #ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
+#ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 
 ###
