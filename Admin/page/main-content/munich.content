@@ -32,6 +32,7 @@ development in our group (alphabetical order):
 <li> <a href="http://www4.in.tum.de/~oheimb/">David von Oheimb</a>
 <li> <a href="http://www4.in.tum.de/~prensani/">Leonor Prensa Nieto</a>
 <li> <a href="http://www4.in.tum.de/~pusch/">Cornelia Pusch</a>
+<li> <a href="http://www4.in.tum.de/~streckem/">Martin Strecker</a>
 <li> <a href="http://www4.in.tum.de/~wenzelm/">Markus Wenzel</a>
 
 </ul>
@@ -41,6 +42,8 @@ development in our group (alphabetical order):
 
 <ul>
 
+<li> <a href="mailto:buttenbe@in.tum.de">Christian Buttenberg</a> </li>
+<li> <a href="http://home.informatik.tu-muenchen.de/~kirsch/">Alexandra Kirsch</a> </li>
 <li> <a href="http://www.informatik.tu-muenchen.de/~nanz/">Sebastian Nanz</a> </li>
 <li> <a href="http://www.informatik.tu-muenchen.de/~pfeifrot/">Johannes Pfeifroth</a> </li>
 
@@ -65,6 +68,9 @@ distributed, reactive systems using I/O Automata
 <li> <b>Isabelle/HOOL</b> Object-oriented verification of
 object-oriented programs
 
+<li> <b><a href="VerifiCard/">Isabelle/VerifiCard</a></b>
+Tool-assisted Specification and Verification of JavaCard® Programs
+
 </ul>
 
 <p>
@@ -72,5 +78,3 @@ object-oriented programs
 <b>Important local information:</b> Students are welcome to
 participate, see <a href="stud/index.html">Isabelle Projekte für
 Studenten</a> (in German) for more information.
-
-
