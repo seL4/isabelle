@@ -1,7 +1,7 @@
-		     ISABELLE-92 DISTRIBUTION DIRECTORY
+		     ISABELLE-93 DISTRIBUTION DIRECTORY
 
 ------------------------------------------------------------------------------
-ISABELLE-92 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
+ISABELLE-93 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
 DOCUMENTATION.
 ------------------------------------------------------------------------------
 
@@ -13,8 +13,8 @@ Makefiles in the respective directories; read them for more information.
 				THE MAKEFILES
 
 The Makefiles can use two different Standard ML compilers: Poly/ML version
-1.88MSX or later (from Abstract Hardware Ltd) and Standard ML of New Jersey
-(Version 75 or later).  Poly/ML is a commercial product and costs money,
+2.03 or later (from Abstract Hardware Ltd) and Standard ML of New Jersey
+(Version 0.93 or later).  Poly/ML is a commercial product and costs money,
 but it is reliable and its database system is convenient for interactive
 work.  SML of New Jersey requires lots of memory and disc space, but it is
 free and its code sometimes runs faster.  Both compilers are perfectly
@@ -33,7 +33,12 @@ required for New Jersey ML).
 ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "sml".  If
 ISABELLECOMP begins with the letters "poly" then the Makefiles assume that
 it is Poly/ML; if it begins with the letters "sml" then they assume
-Standard ML of New Jersey.
+Standard ML of New Jersey.  
+
+If a Poly/ML session fails with the message "Run out of store" then you
+have used up the entire heap.  If your tactic is not in a loop, allocating
+more heap at startup should correct the problem.  For instance, "poly -h
+15000" allocates sufficient heap space to rebuild all Isabelle examples.
 
 
 			 STRUCTURE OF THIS DIRECTORY
@@ -41,16 +46,14 @@ Standard ML of New Jersey.
 The directory Pure containes pure Isabelle, which has no object-logic.
 
 Other important files include...
-    COPYRIGHT   	Copyright notice and Disclaimer of Warranty
-    make-rulenames	shell script used during Make
-    make-all		shell script for building entire system
-    expandshort		shell script to expand "shortcuts" in files
-    prove_goal.el       Emacs command to change proof format
-    xlisten		shell script for running Isabelle under X
-    teeinput		shell script to run Isabelle, logging inputs to a file
-    theory-template.ML	template file for defining new theories
-    Pure		directory of source files for Pure Isabelle
-    Provers		directory of generic theorem provers
+  COPYRIGHT   		Copyright notice and Disclaimer of Warranty
+  make-all		shell script for building entire system
+  expandshort		shell script to expand "shortcuts" in files
+  prove_goal.el       	Emacs command to change proof format
+  xlisten		shell script for running Isabelle under X
+  teeinput		shell script to run Isabelle, logging inputs to a file
+  Pure			directory of source files for Pure Isabelle
+  Provers		directory of generic theorem provers
 
 xlisten sets up a window running Isabelle, with a separate small "listener"
 window, which keeps a log of all input lines.  This log is a useful record
@@ -58,14 +61,16 @@ of a session.  If you are not running X windows, teeinput can still be used at
 least to record (if not to display) the log.
 
 The following subdirectories contain object-logics:
-    FOL 	Natural deduction logic (intuitionistic and classical)
-    ZF		Zermelo-Fraenkel Set theory
-    CTT		Constructive Type Theory
-    HOL		Classical Higher-Order Logic
-    LK		Classical sequent calculus
-    Modal	The modal logics T, S4, S43
-    LCF         Logic for Computable Functions (domain theory)
-    Cube	Barendregt's Lambda Cube
+  FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
+  FOLP 	  First-Order Logic with Proof terms
+  ZF	  Zermelo-Fraenkel set theory
+  CTT	  Constructive Type Theory
+  HOL	  Classical Higher-Order Logic
+  LK	  Classical first-order sequent calculus
+  Modal	  The modal logics T, S4, S43
+  LCF     Logic for Computable Functions (domain theory)
+  CCL	  Martin Coen's Classical Computational Logic
+  Cube	  Barendregt's Lambda Cube
 
 Object-logics include examples files in subdirectory ex or file ex.ML.
 These files can be loaded in batch mode.  The commands can also be
@@ -110,4 +115,4 @@ Postfach 20 24 20
 D-8000 Muenchen 2
 Germany
 
-Last updated 25 August 1992
+Last updated 28 October 1993
