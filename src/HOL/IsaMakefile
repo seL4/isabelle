@@ -359,7 +359,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
   Algebra/poly/Polynomial.thy \
   Algebra/poly/UnivPoly2.ML Algebra/poly/UnivPoly2.thy \
   Algebra/ringsimp.ML
-	@cd Algebra; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Algebra
+	@cd Algebra; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Algebra
 
 ## HOL-Auth
 
