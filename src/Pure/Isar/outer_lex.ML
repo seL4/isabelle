@@ -142,7 +142,7 @@ fun name_of (tok as Token (_, (k, x))) =
 
 fun unparse (Token (_, (kind, x))) =
   (case kind of
-    String => x |> translate_string (fn "\"" => "\\\"" | "\\" => "\\\\" | c => c) |> quote
+    String => x |> quote
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
   | _ => x);
