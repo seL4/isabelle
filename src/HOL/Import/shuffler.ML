@@ -58,8 +58,8 @@ fun print_sign_exn_unit sign e =
 (*Prints an exception, then fails*)
 fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise e)
 
-val string_of_thm = Library.setmp print_mode [] (Output.output o string_of_thm);
-val string_of_cterm = Library.setmp print_mode [] (Output.output o string_of_cterm);
+val string_of_thm = Library.setmp print_mode [] string_of_thm;
+val string_of_cterm = Library.setmp print_mode [] string_of_cterm;
 
 fun mk_meta_eq th =
     (case concl_of th of
