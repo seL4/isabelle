@@ -278,15 +278,11 @@ val Delsimprocs = change_simpset (op delsimprocs);
 
 (** simplification tactics **)
 
-fun NEWSUBGOALS tac tacf st0 =
-  st0 |> (tac THEN (fn st1 => tacf (nprems_of st1 - nprems_of st0) st1));
-
 fun solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac) mss =
   let
     val ss =
       make_ss (mss, subgoal_tac, loop_tac, unsafe_finish_tac, unsafe_finish_tac);
-    val solve1_tac =
-      NEWSUBGOALS (subgoal_tac ss 1) (fn n => if n < 0 then all_tac else no_tac);
+    val solve1_tac = (subgoal_tac ss THEN_ALL_NEW (K no_tac)) 1
   in DEPTH_SOLVE solve1_tac end;
 
 
@@ -294,13 +290,13 @@ fun solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac) mss =
 fun basic_gen_simp_tac mode =
   fn (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) =>
     let
-      fun simp_loop_tac i thm =
-        (asm_rewrite_goal_tac mode
-          (solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac)) mss i
-        THEN (finish_tac (prems_of_mss mss) i ORELSE looper i)) thm
-      and allsimp i n = EVERY (map (fn j => simp_loop_tac (i + j)) (n downto 0))
-      and looper i = TRY (NEWSUBGOALS (loop_tac i) (allsimp i));
-  in simp_loop_tac end;
+      fun simp_loop_tac i =
+        asm_rewrite_goal_tac mode
+          (solve_all_tac (subgoal_tac,loop_tac,finish_tac,unsafe_finish_tac))
+          mss i
+        THEN (finish_tac (prems_of_mss mss) i ORELSE
+              TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i))
+    in simp_loop_tac end;
 
 fun gen_simp_tac mode (ss as Simpset {unsafe_finish_tac, ...}) =
   basic_gen_simp_tac mode (ss setSSolver unsafe_finish_tac);
