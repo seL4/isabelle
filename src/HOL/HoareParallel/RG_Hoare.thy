@@ -901,8 +901,6 @@ apply(case_tac "(map (lift Q) xs @ tl ys)\<noteq>[]")
   apply(case_tac ys,simp+)
  apply clarify
  apply(case_tac ys,simp+)
- apply(drule last_length2,simp)
-apply simp
 done
 
 subsubsection{* Soundness of the While rule *}
@@ -948,18 +946,6 @@ apply(case_tac i, simp add:nth_append Cons_lift_append snd_lift del:map.simps)
  apply(case_tac "last xs")
  apply(simp add:lift_def)
 apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
-done
-
-lemma last_append2:"ys\<noteq>[] \<Longrightarrow> last (xs@ys)=(last ys)"
-apply(frule last_length2)
-apply simp
-apply(subgoal_tac "xs@ys\<noteq>[]")
-apply(drule last_length2)
-back
-apply simp
-apply(drule_tac xs=xs in last_append)
-apply simp
-apply simp
 done
 
 lemma While_sound_aux [rule_format]: 
