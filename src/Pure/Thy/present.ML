@@ -252,8 +252,8 @@ fun could_copy inpath outpath =
 
 fun copy_files path1 path2 =
   (File.mkdir path2;
-   File.system_command
-     ("cp " ^ File.quote_sysify_path path1 ^ " " ^ File.quote_sysify_path path2));
+   File.system_command  (*FIXME: quote paths!?*)
+     ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
 
 
 fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := None)
