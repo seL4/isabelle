@@ -12,41 +12,41 @@ theory Listn = Err:
 
 constdefs
 
- list :: "nat => 'a set => 'a list set"
+ list :: "nat \<Rightarrow> 'a set \<Rightarrow> 'a list set"
 "list n A == {xs. length xs = n & set xs <= A}"
 
- le :: "'a ord => ('a list)ord"
+ le :: "'a ord \<Rightarrow> ('a list)ord"
 "le r == list_all2 (%x y. x <=_r y)"
 
-syntax "@lesublist" :: "'a list => 'a ord => 'a list => bool"
+syntax "@lesublist" :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
        ("(_ /<=[_] _)" [50, 0, 51] 50)
-syntax "@lesssublist" :: "'a list => 'a ord => 'a list => bool"
+syntax "@lesssublist" :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
        ("(_ /<[_] _)" [50, 0, 51] 50)
 translations
  "x <=[r] y" == "x <=_(Listn.le r) y"
  "x <[r] y"  == "x <_(Listn.le r) y"
 
 constdefs
- map2 :: "('a => 'b => 'c) => 'a list => 'b list => 'c list"
+ map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 "map2 f == (%xs ys. map (split f) (zip xs ys))"
 
-syntax "@plussublist" :: "'a list => ('a => 'b => 'c) => 'b list => 'c list"
+syntax "@plussublist" :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b list \<Rightarrow> 'c list"
        ("(_ /+[_] _)" [65, 0, 66] 65)
 translations  "x +[f] y" == "x +_(map2 f) y"
 
-consts coalesce :: "'a err list => 'a list err"
+consts coalesce :: "'a err list \<Rightarrow> 'a list err"
 primrec
 "coalesce [] = OK[]"
 "coalesce (ex#exs) = Err.sup (op #) ex (coalesce exs)"
 
 constdefs
- sl :: "nat => 'a sl => 'a list sl"
+ sl :: "nat \<Rightarrow> 'a sl \<Rightarrow> 'a list sl"
 "sl n == %(A,r,f). (list n A, le r, map2 f)"
 
- sup :: "('a => 'b => 'c err) => 'a list => 'b list => 'c list err"
+ sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list err"
 "sup f == %xs ys. if size xs = size ys then coalesce(xs +[f] ys) else Err"
 
- upto_esl :: "nat => 'a esl => 'a list esl"
+ upto_esl :: "nat \<Rightarrow> 'a esl \<Rightarrow> 'a list esl"
 "upto_esl m == %(A,r,f). (Union{list n A |n. n <= m}, le r, sup f)"
 
 lemmas [simp] = set_update_subsetI
@@ -75,7 +75,7 @@ apply simp
 done
 
 lemma Cons_less_Conss [simp]:
-  "order r ==> 
+  "order r \<Longrightarrow> 
   x#xs <_(Listn.le r) y#ys = 
   (x <_r y & xs <=[r] ys  |  x = y & xs <_(Listn.le r) ys)"
 apply (unfold lesssub_def)
@@ -83,7 +83,7 @@ apply blast
 done  
 
 lemma list_update_le_cong:
-  "[| i<size xs; xs <=[r] ys; x <=_r y |] ==> xs[i:=x] <=[r] ys[i:=y]";
+  "\<lbrakk> i<size xs; xs <=[r] ys; x <=_r y \<rbrakk> \<Longrightarrow> xs[i:=x] <=[r] ys[i:=y]";
 apply (unfold unfold_lesub_list)
 apply (unfold Listn.le_def)
 apply (simp add: list_all2_conv_all_nth nth_list_update)
@@ -91,19 +91,19 @@ done
 
 
 lemma le_listD:
-  "[| xs <=[r] ys; p < size xs |] ==> xs!p <=_r ys!p"
+  "\<lbrakk> xs <=[r] ys; p < size xs \<rbrakk> \<Longrightarrow> xs!p <=_r ys!p"
 apply (unfold Listn.le_def lesub_def)
 apply (simp add: list_all2_conv_all_nth)
 done
 
 lemma le_list_refl:
-  "!x. x <=_r x ==> xs <=[r] xs"
+  "!x. x <=_r x \<Longrightarrow> xs <=[r] xs"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
 lemma le_list_trans:
-  "[| order r; xs <=[r] ys; ys <=[r] zs |] ==> xs <=[r] zs"
+  "\<lbrakk> order r; xs <=[r] ys; ys <=[r] zs \<rbrakk> \<Longrightarrow> xs <=[r] zs"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 apply clarify
@@ -112,7 +112,7 @@ apply (blast intro: order_trans)
 done
 
 lemma le_list_antisym:
-  "[| order r; xs <=[r] ys; ys <=[r] xs |] ==> xs = ys"
+  "\<lbrakk> order r; xs <=[r] ys; ys <=[r] xs \<rbrakk> \<Longrightarrow> xs = ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 apply (rule nth_equalityI)
@@ -123,7 +123,7 @@ apply (blast intro: order_antisym)
 done
 
 lemma order_listI [simp, intro!]:
-  "order r ==> order(Listn.le r)"
+  "order r \<Longrightarrow> order(Listn.le r)"
 apply (subst order_def)
 apply (blast intro: le_list_refl le_list_trans le_list_antisym
              dest: order_refl)
@@ -131,35 +131,35 @@ done
 
 
 lemma lesub_list_impl_same_size [simp]:
-  "xs <=[r] ys ==> size ys = size xs"  
+  "xs <=[r] ys \<Longrightarrow> size ys = size xs"  
 apply (unfold Listn.le_def lesub_def)
 apply (simp add: list_all2_conv_all_nth)
 done 
 
 lemma lesssub_list_impl_same_size:
-  "xs <_(Listn.le r) ys ==> size ys = size xs"
+  "xs <_(Listn.le r) ys \<Longrightarrow> size ys = size xs"
 apply (unfold lesssub_def)
 apply auto
 done  
 
 lemma listI:
-  "[| length xs = n; set xs <= A |] ==> xs : list n A"
+  "\<lbrakk> length xs = n; set xs <= A \<rbrakk> \<Longrightarrow> xs : list n A"
 apply (unfold list_def)
 apply blast
 done
 
 lemma listE_length [simp]:
-   "xs : list n A ==> length xs = n"
+   "xs : list n A \<Longrightarrow> length xs = n"
 apply (unfold list_def)
 apply blast
 done 
 
 lemma less_lengthI:
-  "[| xs : list n A; p < n |] ==> p < length xs"
+  "\<lbrakk> xs : list n A; p < n \<rbrakk> \<Longrightarrow> p < length xs"
   by simp
 
 lemma listE_set [simp]:
-  "xs : list n A ==> set xs <= A"
+  "xs : list n A \<Longrightarrow> set xs <= A"
 apply (unfold list_def)
 apply blast
 done 
@@ -183,7 +183,7 @@ apply (simp add: in_list_Suc_iff)
 done 
 
 lemma list_not_empty:
-  "? a. a:A ==> ? xs. xs : list n A";
+  "? a. a:A \<Longrightarrow> ? xs. xs : list n A";
 apply (induct "n")
  apply simp
 apply (simp add: in_list_Suc_iff)
@@ -192,18 +192,18 @@ done
 
 
 lemma nth_in [rule_format, simp]:
-  "!i n. length xs = n --> set xs <= A --> i < n --> (xs!i) : A"
+  "!i n. length xs = n \<longrightarrow> set xs <= A \<longrightarrow> i < n \<longrightarrow> (xs!i) : A"
 apply (induct "xs")
  apply simp
 apply (simp add: nth_Cons split: nat.split)
 done
 
 lemma listE_nth_in:
-  "[| xs : list n A; i < n |] ==> (xs!i) : A"
+  "\<lbrakk> xs : list n A; i < n \<rbrakk> \<Longrightarrow> (xs!i) : A"
   by auto
 
 lemma listt_update_in_list [simp, intro!]:
-  "[| xs : list n A; x:A |] ==> xs[i := x] : list n A"
+  "\<lbrakk> xs : list n A; x:A \<rbrakk> \<Longrightarrow> xs[i := x] : list n A"
 apply (unfold list_def)
 apply simp
 done 
@@ -215,7 +215,7 @@ apply simp
 done 
 
 lemma plus_list_Cons [simp]:
-  "(x#xs) +[f] ys = (case ys of [] => [] | y#ys => (x +_f y)#(xs +[f] ys))"
+  "(x#xs) +[f] ys = (case ys of [] \<Rightarrow> [] | y#ys \<Rightarrow> (x +_f y)#(xs +[f] ys))"
   by (simp add: plussub_def map2_def split: list.split)
 
 lemma length_plus_list [rule_format, simp]:
@@ -227,7 +227,7 @@ apply (simp (no_asm_simp) split: list.split)
 done
 
 lemma nth_plus_list [rule_format, simp]:
-  "!xs ys i. length xs = n --> length ys = n --> i<n --> 
+  "!xs ys i. length xs = n \<longrightarrow> length ys = n \<longrightarrow> i<n \<longrightarrow> 
   (xs +[f] ys)!i = (xs!i) +_f (ys!i)"
 apply (induct n)
  apply simp
@@ -239,30 +239,30 @@ done
 
 
 lemma plus_list_ub1 [rule_format]:
-  "[| semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys |] 
-  ==> xs <=[r] xs +[f] ys"
+  "\<lbrakk> semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys \<rbrakk> 
+  \<Longrightarrow> xs <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
 lemma plus_list_ub2:
-  "[| semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys |]
-  ==> ys <=[r] xs +[f] ys"
+  "\<lbrakk> semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys \<rbrakk>
+  \<Longrightarrow> ys <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done 
 
 lemma plus_list_lub [rule_format]:
-  "semilat(A,r,f) ==> !xs ys zs. set xs <= A --> set ys <= A --> set zs <= A 
-  --> size xs = n & size ys = n --> 
-  xs <=[r] zs & ys <=[r] zs --> xs +[f] ys <=[r] zs"
+  "semilat(A,r,f) \<Longrightarrow> !xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
+  \<longrightarrow> size xs = n & size ys = n \<longrightarrow> 
+  xs <=[r] zs & ys <=[r] zs \<longrightarrow> xs +[f] ys <=[r] zs"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done 
 
 lemma list_update_incr [rule_format]:
-  "[| semilat(A,r,f); x:A |] ==> set xs <= A --> 
-  (!i. i<size xs --> xs <=[r] xs[i := x +_f xs!i])"
+  "\<lbrakk> semilat(A,r,f); x:A \<rbrakk> \<Longrightarrow> set xs <= A \<longrightarrow> 
+  (!i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 apply (induct xs)
@@ -273,7 +273,7 @@ apply (simp add: nth_Cons split: nat.split)
 done 
 
 lemma acc_le_listI [intro!]:
-  "[| order r; acc r |] ==> acc(Listn.le r)"
+  "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
 apply (unfold acc_def)
 apply (subgoal_tac
  "wf(UN n. {(ys,xs). size xs = n & size ys = n & xs <_(Listn.le r) ys})")
@@ -323,7 +323,7 @@ apply blast
 done 
 
 lemma closed_listI:
-  "closed S f ==> closed (list n S) (map2 f)"
+  "closed S f \<Longrightarrow> closed (list n S) (map2 f)"
 apply (unfold closed_def)
 apply (induct n)
  apply simp
@@ -335,7 +335,7 @@ done
 
 
 lemma semilat_Listn_sl:
-  "!!L. semilat L ==> semilat (Listn.sl n L)"
+  "\<And>L. semilat L \<Longrightarrow> semilat (Listn.sl n L)"
 apply (unfold Listn.sl_def)
 apply (simp (no_asm_simp) only: split_tupled_all)
 apply (simp (no_asm) only: semilat_Def split_conv)
@@ -349,7 +349,7 @@ done
 
 
 lemma coalesce_in_err_list [rule_format]:
-  "!xes. xes : list n (err A) --> coalesce xes : err(list n A)"
+  "!xes. xes : list n (err A) \<longrightarrow> coalesce xes : err(list n A)"
 apply (induct n)
  apply simp
 apply clarify
@@ -359,13 +359,13 @@ apply (simp (no_asm) add: plussub_def Err.sup_def lift2_def split: err.split)
 apply force
 done 
 
-lemma lem: "!!x xs. x +_(op #) xs = x#xs"
+lemma lem: "\<And>x xs. x +_(op #) xs = x#xs"
   by (simp add: plussub_def)
 
 lemma coalesce_eq_OK1_D [rule_format]:
-  "semilat(err A, Err.le r, lift2 f) ==> 
-  !xs. xs : list n A --> (!ys. ys : list n A --> 
-  (!zs. coalesce (xs +[f] ys) = OK zs --> xs <=[r] zs))"
+  "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
+  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
+  (!zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> xs <=[r] zs))"
 apply (induct n)
   apply simp
 apply clarify
@@ -376,9 +376,9 @@ apply (force simp add: semilat_le_err_OK1)
 done
 
 lemma coalesce_eq_OK2_D [rule_format]:
-  "semilat(err A, Err.le r, lift2 f) ==> 
-  !xs. xs : list n A --> (!ys. ys : list n A --> 
-  (!zs. coalesce (xs +[f] ys) = OK zs --> ys <=[r] zs))"
+  "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
+  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
+  (!zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> ys <=[r] zs))"
 apply (induct n)
  apply simp
 apply clarify
@@ -389,8 +389,8 @@ apply (force simp add: semilat_le_err_OK2)
 done 
 
 lemma lift2_le_ub:
-  "[| semilat(err A, Err.le r, lift2 f); x:A; y:A; x +_f y = OK z; 
-      u:A; x <=_r u; y <=_r u |] ==> z <=_r u"
+  "\<lbrakk> semilat(err A, Err.le r, lift2 f); x:A; y:A; x +_f y = OK z; 
+      u:A; x <=_r u; y <=_r u \<rbrakk> \<Longrightarrow> z <=_r u"
 apply (unfold semilat_Def plussub_def err_def)
 apply (simp add: lift2_def)
 apply clarify
@@ -401,10 +401,10 @@ apply force
 done 
 
 lemma coalesce_eq_OK_ub_D [rule_format]:
-  "semilat(err A, Err.le r, lift2 f) ==> 
-  !xs. xs : list n A --> (!ys. ys : list n A --> 
+  "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
+  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
   (!zs us. coalesce (xs +[f] ys) = OK zs & xs <=[r] us & ys <=[r] us 
-           & us : list n A --> zs <=[r] us))"
+           & us : list n A \<longrightarrow> zs <=[r] us))"
 apply (induct n)
  apply simp
 apply clarify
@@ -418,15 +418,15 @@ apply blast
 done 
 
 lemma lift2_eq_ErrD:
-  "[| x +_f y = Err; semilat(err A, Err.le r, lift2 f); x:A; y:A |] 
-  ==> ~(? u:A. x <=_r u & y <=_r u)"
+  "\<lbrakk> x +_f y = Err; semilat(err A, Err.le r, lift2 f); x:A; y:A \<rbrakk> 
+  \<Longrightarrow> ~(? u:A. x <=_r u & y <=_r u)"
   by (simp add: OK_plus_OK_eq_Err_conv [THEN iffD1])
 
 
 lemma coalesce_eq_Err_D [rule_format]:
-  "[| semilat(err A, Err.le r, lift2 f) |] 
-  ==> !xs. xs:list n A --> (!ys. ys:list n A --> 
-      coalesce (xs +[f] ys) = Err --> 
+  "\<lbrakk> semilat(err A, Err.le r, lift2 f) \<rbrakk> 
+  \<Longrightarrow> !xs. xs:list n A \<longrightarrow> (!ys. ys:list n A \<longrightarrow> 
+      coalesce (xs +[f] ys) = Err \<longrightarrow> 
       ~(? zs:list n A. xs <=[r] zs & ys <=[r] zs))"
 apply (induct n)
  apply simp
@@ -445,8 +445,8 @@ apply (simp add: err_def)
 done 
 
 lemma closed_map2_list [rule_format]:
-  "closed (err A) (lift2 f) ==> 
-  !xs. xs : list n A --> (!ys. ys : list n A --> 
+  "closed (err A) (lift2 f) \<Longrightarrow> 
+  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
   map2 f xs ys : list n (err A))"
 apply (unfold map2_def)
 apply (induct n)
@@ -458,14 +458,14 @@ apply (simp add: plussub_def closed_err_lift2_conv)
 done 
 
 lemma closed_lift2_sup:
-  "closed (err A) (lift2 f) ==> 
+  "closed (err A) (lift2 f) \<Longrightarrow> 
   closed (err (list n A)) (lift2 (sup f))"
   by (fastsimp  simp add: closed_def plussub_def sup_def lift2_def
                           coalesce_in_err_list closed_map2_list
                 split: err.split)
 
 lemma err_semilat_sup:
-  "err_semilat (A,r,f) ==> 
+  "err_semilat (A,r,f) \<Longrightarrow> 
   err_semilat (list n A, Listn.le r, sup f)"
 apply (unfold Err.sl_def)
 apply (simp only: split_conv)
@@ -480,7 +480,7 @@ apply (blast intro: coalesce_eq_OK_ub_D dest: coalesce_eq_Err_D)
 done 
 
 lemma err_semilat_upto_esl:
-  "!!L. err_semilat L ==> err_semilat(upto_esl m L)"
+  "\<And>L. err_semilat L \<Longrightarrow> err_semilat(upto_esl m L)"
 apply (unfold Listn.upto_esl_def)
 apply (simp (no_asm_simp) only: split_tupled_all)
 apply simp

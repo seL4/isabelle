@@ -14,43 +14,43 @@ header {* \isaheader{Completeness of the LBV} *}
 theory LBVComplete = BVSpec + LBVSpec + EffectMono:
 
 constdefs
-  contains_targets :: "[instr list, certificate, method_type, p_count] => bool"
+  contains_targets :: "[instr list, certificate, method_type, p_count] \<Rightarrow> bool"
   "contains_targets ins cert phi pc == 
      \<forall>pc' \<in> set (succs (ins!pc) pc). 
-      pc' \<noteq> pc+1 \<and> pc' < length ins --> cert!pc' = phi!pc'"
+      pc' \<noteq> pc+1 \<and> pc' < length ins \<longrightarrow> cert!pc' = phi!pc'"
 
-  fits :: "[instr list, certificate, method_type] => bool"
-  "fits ins cert phi == \<forall>pc. pc < length ins --> 
+  fits :: "[instr list, certificate, method_type] \<Rightarrow> bool"
+  "fits ins cert phi == \<forall>pc. pc < length ins \<longrightarrow> 
                        contains_targets ins cert phi pc \<and>
                        (cert!pc = None \<or> cert!pc = phi!pc)"
 
-  is_target :: "[instr list, p_count] => bool" 
+  is_target :: "[instr list, p_count] \<Rightarrow> bool" 
   "is_target ins pc == 
      \<exists>pc'. pc \<noteq> pc'+1 \<and> pc' < length ins \<and> pc \<in> set (succs (ins!pc') pc')"
 
 
 constdefs 
-  make_cert :: "[instr list, method_type] => certificate"
+  make_cert :: "[instr list, method_type] \<Rightarrow> certificate"
   "make_cert ins phi == 
      map (\<lambda>pc. if is_target ins pc then phi!pc else None) [0..length ins(]"
 
-  make_Cert :: "[jvm_prog, prog_type] => prog_certificate"
+  make_Cert :: "[jvm_prog, prog_type] \<Rightarrow> prog_certificate"
   "make_Cert G Phi ==  \<lambda> C sig. let (C,rT,(maxs,maxl,b)) = the (method (G,C) sig)
                                 in make_cert b (Phi C sig)"
   
 lemmas [simp del] = split_paired_Ex
 
 lemma make_cert_target:
-  "[| pc < length ins; is_target ins pc |] ==> make_cert ins phi ! pc = phi!pc"
+  "\<lbrakk> pc < length ins; is_target ins pc \<rbrakk> \<Longrightarrow> make_cert ins phi ! pc = phi!pc"
   by (simp add: make_cert_def)
 
 lemma make_cert_approx:
-  "[| pc < length ins; make_cert ins phi ! pc \<noteq> phi ! pc |] ==> 
+  "\<lbrakk> pc < length ins; make_cert ins phi ! pc \<noteq> phi ! pc \<rbrakk> \<Longrightarrow> 
    make_cert ins phi ! pc = None"
   by (auto simp add: make_cert_def)
 
 lemma make_cert_contains_targets:
-  "pc < length ins ==> contains_targets ins (make_cert ins phi) phi pc"
+  "pc < length ins \<Longrightarrow> contains_targets ins (make_cert ins phi) phi pc"
 proof (unfold contains_targets_def, intro strip, elim conjE) 
   fix pc'
   assume "pc < length ins" 
@@ -71,19 +71,19 @@ theorem fits_make_cert:
   by (auto dest: make_cert_approx simp add: fits_def make_cert_contains_targets)
 
 lemma fitsD: 
-  "[| fits ins cert phi; pc' \<in> set (succs (ins!pc) pc); 
-      pc' \<noteq> Suc pc; pc < length ins; pc' < length ins |]
-  ==> cert!pc' = phi!pc'"
+  "\<lbrakk> fits ins cert phi; pc' \<in> set (succs (ins!pc) pc); 
+      pc' \<noteq> Suc pc; pc < length ins; pc' < length ins \<rbrakk>
+  \<Longrightarrow> cert!pc' = phi!pc'"
   by (clarsimp simp add: fits_def contains_targets_def)
 
 lemma fitsD2:
-   "[| fits ins cert phi; pc < length ins; cert!pc = Some s |]
-  ==> cert!pc = phi!pc"
+   "\<lbrakk> fits ins cert phi; pc < length ins; cert!pc = Some s \<rbrakk>
+  \<Longrightarrow> cert!pc = phi!pc"
   by (auto simp add: fits_def)
                            
 lemma wtl_inst_mono:
-  "[| wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
-      pc < length ins;  G \<turnstile> s2 <=' s1; i = ins!pc |] ==>
+  "\<lbrakk> wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
+      pc < length ins;  G \<turnstile> s2 <=' s1; i = ins!pc \<rbrakk> \<Longrightarrow>
   \<exists> s2'. wtl_inst (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
 proof -
   assume pc:   "pc < length ins" "i = ins!pc"
@@ -144,8 +144,8 @@ qed
 
 
 lemma wtl_cert_mono:
-  "[| wtl_cert i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
-      pc < length ins; G \<turnstile> s2 <=' s1; i = ins!pc |] ==>
+  "\<lbrakk> wtl_cert i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
+      pc < length ins; G \<turnstile> s2 <=' s1; i = ins!pc \<rbrakk> \<Longrightarrow>
   \<exists> s2'. wtl_cert (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
 proof -
   assume wtl:  "wtl_cert i G rT s1 cert mxs mpc pc = OK s1'" and
@@ -181,8 +181,8 @@ qed
 
  
 lemma wt_instr_imp_wtl_inst:
-  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
-      pc < length ins; length ins = max_pc |] ==> 
+  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
+      pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
   wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
  proof -
   assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
@@ -193,14 +193,14 @@ lemma wt_instr_imp_wtl_inst:
   have app: "app (ins!pc) G mxs rT (phi!pc)" by (simp add: wt_instr_def)
 
   from wt pc
-  have pc': "!!pc'. pc' \<in> set (succs (ins!pc) pc) ==> pc' < length ins"
+  have pc': "\<And>pc'. pc' \<in> set (succs (ins!pc) pc) \<Longrightarrow> pc' < length ins"
     by (simp add: wt_instr_def)
 
   let ?s' = "eff (ins!pc) G (phi!pc)"
 
   from wt fits pc
-  have cert: "!!pc'. [|pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1|] 
-    ==> G \<turnstile> ?s' <=' cert!pc'"
+  have cert: "\<And>pc'. \<lbrakk>pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1\<rbrakk> 
+    \<Longrightarrow> G \<turnstile> ?s' <=' cert!pc'"
     by (auto dest: fitsD simp add: wt_instr_def)     
 
   from app pc cert pc'
@@ -209,9 +209,9 @@ lemma wt_instr_imp_wtl_inst:
 qed
 
 lemma wt_less_wtl:
-  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; 
+  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; 
       wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
-      fits ins cert phi; Suc pc < length ins; length ins = max_pc |] ==> 
+      fits ins cert phi; Suc pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
   G \<turnstile> s <=' phi ! Suc pc"
 proof -
   assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
@@ -222,7 +222,7 @@ proof -
   { assume suc: "Suc pc \<in> set (succs (ins ! pc) pc)"
     with wtl have "s = eff (ins!pc) G (phi!pc)"
       by (simp add: wtl_inst_OK)
-    also from suc wt have "G \<turnstile> ... <=' phi!Suc pc"
+    also from suc wt have "G \<turnstile> \<dots> <=' phi!Suc pc"
       by (simp add: wt_instr_def)
     finally have ?thesis .
   }
@@ -244,8 +244,8 @@ qed
   
 
 lemma wt_instr_imp_wtl_cert:
-  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
-      pc < length ins; length ins = max_pc |] ==> 
+  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
+      pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
   wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
 proof -
   assume "wt_instr (ins!pc) G rT phi mxs max_pc pc" and 
@@ -256,7 +256,7 @@ proof -
   hence wtl: "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
     by (rule wt_instr_imp_wtl_inst)
 
-  hence "cert!pc = None ==> ?thesis"
+  hence "cert!pc = None \<Longrightarrow> ?thesis"
     by (simp add: wtl_cert_def)
 
   moreover
@@ -276,9 +276,9 @@ qed
   
 
 lemma wt_less_wtl_cert:
-  "[| wt_instr (ins!pc) G rT phi mxs max_pc pc; 
+  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; 
       wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
-      fits ins cert phi; Suc pc < length ins; length ins = max_pc |] ==> 
+      fits ins cert phi; Suc pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
   G \<turnstile> s <=' phi ! Suc pc"
 proof -
   assume wtl: "wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
@@ -319,14 +319,14 @@ text {*
 *}
 
 theorem wt_imp_wtl_inst_list:
-"\<forall> pc. (\<forall>pc'. pc' < length all_ins --> 
-        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc') -->
-       fits all_ins cert phi --> 
-       (\<exists>l. pc = length l \<and> all_ins = l@ins) -->  
-       pc < length all_ins -->      
-       (\<forall> s. (G \<turnstile> s <=' (phi!pc)) --> 
+"\<forall> pc. (\<forall>pc'. pc' < length all_ins \<longrightarrow> 
+        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc') \<longrightarrow>
+       fits all_ins cert phi \<longrightarrow> 
+       (\<exists>l. pc = length l \<and> all_ins = l@ins) \<longrightarrow>  
+       pc < length all_ins \<longrightarrow>      
+       (\<forall> s. (G \<turnstile> s <=' (phi!pc)) \<longrightarrow> 
              wtl_inst_list ins G rT cert mxs (length all_ins) pc s \<noteq> Err)" 
-(is "\<forall>pc. ?wt --> ?fits --> ?l pc ins --> ?len pc --> ?wtl pc ins"  
+(is "\<forall>pc. ?wt \<longrightarrow> ?fits \<longrightarrow> ?l pc ins \<longrightarrow> ?len pc \<longrightarrow> ?wtl pc ins"  
  is "\<forall>pc. ?C pc ins" is "?P ins") 
 proof (induct "?P" "ins")
   case Nil
@@ -338,7 +338,7 @@ next
   show "?P (i#ins')" 
   proof (intro allI impI, elim exE conjE)
     fix pc s l
-    assume wt  : "\<forall>pc'. pc' < length all_ins --> 
+    assume wt  : "\<forall>pc'. pc' < length all_ins \<longrightarrow> 
                         wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc'"
     assume fits: "fits all_ins cert phi"
     assume l   : "pc < length all_ins"
@@ -357,7 +357,7 @@ next
     from Cons
     have "?C (Suc pc) ins'" by blast
     with wt fits pc
-    have IH: "?len (Suc pc) --> ?wtl (Suc pc) ins'" by auto
+    have IH: "?len (Suc pc) \<longrightarrow> ?wtl (Suc pc) ins'" by auto
 
     show "wtl_inst_list (i#ins') G rT cert mxs (length all_ins) pc s \<noteq> Err" 
     proof (cases "?len (Suc pc)")
@@ -398,15 +398,15 @@ qed
   
 
 lemma fits_imp_wtl_method_complete:
-  "[| wt_method G C pTs rT mxs mxl ins phi; fits ins cert phi |] 
-  ==> wtl_method G C pTs rT mxs mxl ins cert"
+  "\<lbrakk> wt_method G C pTs rT mxs mxl ins phi; fits ins cert phi \<rbrakk> 
+  \<Longrightarrow> wtl_method G C pTs rT mxs mxl ins cert"
 by (simp add: wt_method_def wtl_method_def)
    (rule wt_imp_wtl_inst_list [rule_format, elim_format], auto simp add: wt_start_def) 
 
 
 lemma wtl_method_complete:
   "wt_method G C pTs rT mxs mxl ins phi 
-  ==> wtl_method G C pTs rT mxs mxl ins (make_cert ins phi)"
+  \<Longrightarrow> wtl_method G C pTs rT mxs mxl ins (make_cert ins phi)"
 proof -
   assume "wt_method G C pTs rT mxs mxl ins phi" 
   moreover
@@ -419,7 +419,7 @@ qed
 
 
 theorem wtl_complete:
-  "wt_jvm_prog G Phi ==> wtl_jvm_prog G (make_Cert G Phi)"
+  "wt_jvm_prog G Phi \<Longrightarrow> wtl_jvm_prog G (make_Cert G Phi)"
 proof -
   assume wt: "wt_jvm_prog G Phi"
    

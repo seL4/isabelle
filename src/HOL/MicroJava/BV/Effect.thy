@@ -13,7 +13,7 @@ types
 
 text {* Program counter of successor instructions: *}
 consts
-  succs :: "instr => p_count => p_count list"
+  succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list"
 primrec 
   "succs (Load idx) pc         = [pc+1]"
   "succs (Store idx) pc        = [pc+1]"
@@ -36,7 +36,7 @@ primrec
 
 text "Effect of instruction on the state type:"
 consts 
-eff' :: "instr \<times> jvm_prog \<times> state_type => state_type"
+eff' :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type"
 
 recdef eff' "{}"
 "eff' (Load idx,  G, (ST, LT))          = (ok_val (LT ! idx) # ST, LT)"
@@ -84,7 +84,7 @@ lemma match_some_entry:
   by (induct et) auto
 
 consts
-  xcpt_names :: "instr \<times> jvm_prog \<times> p_count \<times> exception_table => cname list" 
+  xcpt_names :: "instr \<times> jvm_prog \<times> p_count \<times> exception_table \<Rightarrow> cname list" 
 recdef xcpt_names "{}"
   "xcpt_names (Getfield F C, G, pc, et) = match G (Xcpt NullPointer) pc et" 
   "xcpt_names (Putfield F C, G, pc, et) = match G (Xcpt NullPointer) pc et" 
@@ -104,7 +104,7 @@ constdefs
   norm_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> state_type option \<Rightarrow> state_type option"
   "norm_eff i G == option_map (\<lambda>s. eff' (i,G,s))"
 
-  eff :: "instr => jvm_prog => p_count => exception_table => state_type option => succ_type"
+  eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> succ_type"
   "eff i G pc et s == (map (\<lambda>pc'. (pc',norm_eff i G s)) (succs i pc)) @ (xcpt_eff i G pc s et)"
 
 constdefs
@@ -127,7 +127,7 @@ lemma "list_all2 P a b \<Longrightarrow> \<forall>(x,y) \<in> set (zip a b). P x
 
 text "Conditions under which eff is applicable:"
 consts
-app' :: "instr \<times> jvm_prog \<times> p_count \<times> nat \<times> ty \<times> state_type => bool"
+app' :: "instr \<times> jvm_prog \<times> p_count \<times> nat \<times> ty \<times> state_type \<Rightarrow> bool"
 
 recdef app' "{}"
 "app' (Load idx, G, pc, maxs, rT, s) = 
@@ -180,17 +180,17 @@ constdefs
   xcpt_app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> bool"
   "xcpt_app i G pc et \<equiv> \<forall>C\<in>set(xcpt_names (i,G,pc,et)). is_class G C"
 
-  app :: "instr => jvm_prog => nat => ty => nat => exception_table => state_type option => bool"
-  "app i G maxs rT pc et s == case s of None => True | Some t => app' (i,G,pc,maxs,rT,t) \<and> xcpt_app i G pc et"
+  app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> bool"
+  "app i G maxs rT pc et s == case s of None \<Rightarrow> True | Some t \<Rightarrow> app' (i,G,pc,maxs,rT,t) \<and> xcpt_app i G pc et"
 
 
-lemma 1: "2 < length a ==> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
+lemma 1: "2 < length a \<Longrightarrow> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
 proof (cases a)
   fix x xs assume "a = x#xs" "2 < length a"
   thus ?thesis by - (cases xs, simp, cases "tl xs", auto)
 qed auto
 
-lemma 2: "\<not>(2 < length a) ==> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
+lemma 2: "\<not>(2 < length a) \<Longrightarrow> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
 proof -;
   assume "\<not>(2 < length a)"
   hence "length a < (Suc (Suc (Suc 0)))" by simp
@@ -203,7 +203,7 @@ proof -;
     hence "\<exists> l. x = [l]"  by - (cases x, auto)
   } note 0 = this
 
-  have "length a = Suc (Suc 0) ==> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
+  have "length a = Suc (Suc 0) \<Longrightarrow> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
   with * show ?thesis by (auto dest: 0)
 qed
 
@@ -337,7 +337,7 @@ lemma appInvoke[simp]:
 proof (cases (open) s)
   note list_all2_def [simp]
   case Pair
-  have "?app (a,b) ==> ?P (a,b)"
+  have "?app (a,b) \<Longrightarrow> ?P (a,b)"
   proof -
     assume app: "?app (a,b)"
     hence "a = (rev (rev (take (length fpTs) a))) @ (drop (length fpTs) a) \<and> 

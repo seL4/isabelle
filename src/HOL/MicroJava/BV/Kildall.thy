@@ -11,24 +11,24 @@ header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
 theory Kildall = Typing_Framework + While_Combinator + Product:
 
 
-syntax "@lesubstep_type" :: "(nat \<times> 's) list => 's ord => (nat \<times> 's) list => bool"
+syntax "@lesubstep_type" :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
        ("(_ /<=|_| _)" [50, 0, 51] 50)
 translations
  "x <=|r| y" == "x <=[(Product.le (op =) r)] y"
  
 
 constdefs
- pres_type :: "'s step_type => nat => 's set => bool"
+ pres_type :: "'s step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
 "pres_type step n A == \<forall>s\<in>A. \<forall>p<n. \<forall>(q,s')\<in>set (step p s). s' \<in> A"
 
- mono :: "'s ord => 's step_type => nat => 's set => bool"
+ mono :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
 "mono r step n A ==
- \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t --> step p s <=|r| step p t"
+ \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> step p s <=|r| step p t"
 
 consts
  iter :: "'s binop \<Rightarrow> 's step_type \<Rightarrow>
           's list \<Rightarrow> nat set \<Rightarrow> 's list \<times> nat set"
- propa :: "'s binop => (nat \<times> 's) list => 's list => nat set => 's list * nat set"
+ propa :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set"
 
 primrec
 "propa f []      ss w = (ss,w)"
@@ -45,13 +45,13 @@ defs iter_def:
        (ss,w)"
 
 constdefs
- unstables :: "'s ord => 's step_type => 's list => nat set"
+ unstables :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat set"
 "unstables r step ss == {p. p < size ss \<and> \<not>stable r step ss p}"
 
- kildall :: "'s ord => 's binop => 's step_type => 's list => 's list"
+ kildall :: "'s ord \<Rightarrow> 's binop \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> 's list"
 "kildall r f step ss == fst(iter f step ss (unstables r step ss))"
 
-consts merges :: "'s binop => (nat \<times> 's) list => 's list => 's list"
+consts merges :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> 's list"
 primrec
 "merges f []      ss = ss"
 "merges f (p'#ps) ss = (let (p,s) = p' in merges f ps (ss[p := s +_f ss!p]))"
@@ -61,16 +61,16 @@ lemmas [simp] = Let_def le_iff_plus_unchanged [symmetric]
 
 
 consts
- "@plusplussub" :: "'a list => ('a => 'a => 'a) => 'a => 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
+ "@plusplussub" :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
 primrec
   "[] ++_f y = y"
   "(x#xs) ++_f y = xs ++_f (x +_f y)"
 
 lemma nth_merges:
-  "!!ss. [| semilat (A, r, f); p < length ss; ss \<in> list n A; 
-            \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A |] ==>
+  "\<And>ss. \<lbrakk> semilat (A, r, f); p < length ss; ss \<in> list n A; 
+            \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A \<rbrakk> \<Longrightarrow>
   (merges f ps ss)!p = map snd [(p',t') \<in> ps. p'=p] ++_f ss!p"
-  (is "!!ss. _ \<Longrightarrow> _ \<Longrightarrow> _ \<Longrightarrow> ?steptype ps \<Longrightarrow> ?P ss ps")
+  (is "\<And>ss. _ \<Longrightarrow> _ \<Longrightarrow> _ \<Longrightarrow> ?steptype ps \<Longrightarrow> ?P ss ps")
 proof (induct ps)
   show "\<And>ss. ?P ss []" by simp
 
@@ -98,15 +98,15 @@ qed
 
 
 lemma pres_typeD:
-  "[| pres_type step n A; s\<in>A; p<n; (q,s')\<in>set (step p s) |] ==> s' \<in> A"
+  "\<lbrakk> pres_type step n A; s\<in>A; p<n; (q,s')\<in>set (step p s) \<rbrakk> \<Longrightarrow> s' \<in> A"
   by (unfold pres_type_def, blast)
 
 lemma boundedD: 
-  "[| bounded step n; p < n; (q,t) : set (step p xs) |] ==> q < n" 
+  "\<lbrakk> bounded step n; p < n; (q,t) : set (step p xs) \<rbrakk> \<Longrightarrow> q < n" 
   by (unfold bounded_def, blast)
 
 lemma monoD:
-  "[| mono r step n A; p < n; s\<in>A; s <=_r t |] ==> step p s <=|r| step p t"
+  "\<lbrakk> mono r step n A; p < n; s\<in>A; s <=_r t \<rbrakk> \<Longrightarrow> step p s <=|r| step p t"
   by (unfold mono_def, blast)
 
 (** merges **)
@@ -117,9 +117,9 @@ lemma length_merges [rule_format, simp]:
 
 
 lemma merges_preserves_type_lemma: 
-  "[| semilat(A,r,f) |] ==>
-     \<forall>xs. xs \<in> list n A --> (\<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A)
-          --> merges f ps xs \<in> list n A" 
+  "semilat(A,r,f) \<Longrightarrow>
+     \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A)
+          \<longrightarrow> merges f ps xs \<in> list n A" 
   apply (frule semilatDclosedI) 
   apply (unfold closed_def) 
   apply (induct_tac ps)
@@ -128,13 +128,13 @@ lemma merges_preserves_type_lemma:
   done
 
 lemma merges_preserves_type [simp]:
-  "[| semilat(A,r,f); xs \<in> list n A; \<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A |]
-  ==> merges f ps xs \<in> list n A"
+  "\<lbrakk> semilat(A,r,f); xs \<in> list n A; \<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A \<rbrakk>
+  \<Longrightarrow> merges f ps xs \<in> list n A"
   by (simp add: merges_preserves_type_lemma)
   
 lemma merges_incr_lemma:
-  "[| semilat(A,r,f) |] ==> 
-     \<forall>xs. xs \<in> list n A --> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A) --> xs <=[r] merges f ps xs"
+  "semilat(A,r,f) \<Longrightarrow> 
+     \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A) \<longrightarrow> xs <=[r] merges f ps xs"
   apply (induct_tac ps)
    apply simp
   apply simp
@@ -149,14 +149,14 @@ lemma merges_incr_lemma:
   done
 
 lemma merges_incr:
-  "[| semilat(A,r,f); xs \<in> list n A; \<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A |] 
-  ==> xs <=[r] merges f ps xs"
+  "\<lbrakk> semilat(A,r,f); xs \<in> list n A; \<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A \<rbrakk> 
+  \<Longrightarrow> xs <=[r] merges f ps xs"
   by (simp add: merges_incr_lemma)
 
 
 lemma merges_same_conv [rule_format]:
-  "[| semilat(A,r,f) |] ==> 
-     (\<forall>xs. xs \<in> list n A --> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x\<in>A) --> 
+  "semilat(A,r,f) \<Longrightarrow> 
+     (\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x\<in>A) \<longrightarrow> 
      (merges f ps xs = xs) = (\<forall>(p,x)\<in>set ps. x <=_r xs!p))"
   apply (induct_tac ps)
    apply simp
@@ -191,25 +191,25 @@ lemma merges_same_conv [rule_format]:
 
 
 lemma list_update_le_listI [rule_format]:
-  "set xs <= A --> set ys <= A --> xs <=[r] ys --> p < size xs -->  
-   x <=_r ys!p --> semilat(A,r,f) --> x\<in>A --> 
+  "set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> xs <=[r] ys \<longrightarrow> p < size xs \<longrightarrow>  
+   x <=_r ys!p \<longrightarrow> semilat(A,r,f) \<longrightarrow> x\<in>A \<longrightarrow> 
    xs[p := x +_f xs!p] <=[r] ys"
   apply (unfold Listn.le_def lesub_def semilat_def)
   apply (simp add: list_all2_conv_all_nth nth_list_update)
   done
 
 lemma merges_pres_le_ub:
-  "[| semilat(A,r,f); set ts <= A; set ss <= A; 
+  "\<lbrakk> semilat(A,r,f); set ts <= A; set ss <= A; 
      \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts; 
-     ss <=[r] ts |] 
-  ==> merges f ps ss <=[r] ts"
+     ss <=[r] ts \<rbrakk> 
+  \<Longrightarrow> merges f ps ss <=[r] ts"
 proof -
   { fix A r f t ts ps
     have
-    "!!qs. [| semilat(A,r,f); set ts <= A; 
-              \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts |] ==> 
-    set qs <= set ps  --> 
-    (\<forall>ss. set ss <= A --> ss <=[r] ts --> merges f qs ss <=[r] ts)"
+    "\<And>qs. \<lbrakk> semilat(A,r,f); set ts <= A; 
+              \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts \<rbrakk> \<Longrightarrow> 
+    set qs <= set ps  \<longrightarrow> 
+    (\<forall>ss. set ss <= A \<longrightarrow> ss <=[r] ts \<longrightarrow> merges f qs ss <=[r] ts)"
     apply (induct_tac qs)
      apply simp
     apply (simp (no_asm_simp))
@@ -233,7 +233,7 @@ qed
 
 
 lemma decomp_propa:
-  "!!ss w. (\<forall>(q,t)\<in>set qs. q < size ss) \<Longrightarrow> 
+  "\<And>ss w. (\<forall>(q,t)\<in>set qs. q < size ss) \<Longrightarrow> 
    propa f qs ss w = 
    (merges f qs ss, {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un w)"
   apply (induct qs)
@@ -263,7 +263,7 @@ proof (induct x)
   thus "(x#xs) ++_f y \<in> A" by simp
 qed
 
-lemma ub2: "!!y. \<lbrakk>semilat (A, r, f); set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r x ++_f y"
+lemma ub2: "\<And>y. \<lbrakk>semilat (A, r, f); set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r x ++_f y"
 proof (induct x)
   show "\<And>y. semilat(A, r, f) \<Longrightarrow> y <=_r [] ++_f y" by simp 
   
@@ -287,7 +287,8 @@ proof (induct x)
 qed
 
 
-lemma ub1: "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
+lemma ub1: 
+  "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
 proof (induct ls)
   show "\<And>y. x \<in> set [] \<Longrightarrow> x <=_r [] ++_f y" by simp
   
@@ -298,7 +299,8 @@ proof (induct ls)
   then obtain s: "s \<in> A" and ls: "set ls \<subseteq> A" by simp
   assume y: "y \<in> A" 
 
-  assume "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
+  assume 
+    "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
   hence IH: "\<And>y. x \<in> set ls \<Longrightarrow> y \<in> A \<Longrightarrow> x <=_r ls ++_f y" .
 
   assume "x \<in> set (s#ls)"
@@ -356,12 +358,12 @@ done
 
 
 lemma stable_pres_lemma:
-  "[| semilat (A,r,f); pres_type step n A; bounded step n; 
+  "\<lbrakk> semilat (A,r,f); pres_type step n A; bounded step n; 
      ss \<in> list n A; p \<in> w; \<forall>q\<in>w. q < n; 
      \<forall>q. q < n \<longrightarrow> q \<notin> w \<longrightarrow> stable r step ss q; q < n; 
      \<forall>s'. (q,s') \<in> set (step p (ss ! p)) \<longrightarrow> s' +_f ss ! q = ss ! q; 
-     q \<notin> w \<or> q = p |] 
-  ==> stable r step (merges f (step p (ss!p)) ss) q"
+     q \<notin> w \<or> q = p \<rbrakk> 
+  \<Longrightarrow> stable r step (merges f (step p (ss!p)) ss) q"
   apply (unfold stable_def)
   apply (subgoal_tac "\<forall>s'. (q,s') \<in> set (step p (ss!p)) \<longrightarrow> s' : A")
    prefer 2
@@ -434,7 +436,7 @@ lemma stable_pres_lemma:
  
   
 lemma lesub_step_type:
-  "!!b x y. a <=|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
+  "\<And>b x y. a <=|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
 apply (induct a)
  apply simp
 apply simp
@@ -451,10 +453,10 @@ done
 
 
 lemma merges_bounded_lemma:
-  "[| semilat (A,r,f); mono r step n A; bounded step n; 
+  "\<lbrakk> semilat (A,r,f); mono r step n A; bounded step n; 
      \<forall>(p',s') \<in> set (step p (ss!p)). s' \<in> A; ss \<in> list n A; ts \<in> list n A; p < n; 
-     ss <=[r] ts; ! p. p < n --> stable r step ts p |] 
-  ==> merges f (step p (ss!p)) ss <=[r] ts"
+     ss <=[r] ts; ! p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
+  \<Longrightarrow> merges f (step p (ss!p)) ss <=[r] ts"
   apply (unfold stable_def)
   apply (rule merges_pres_le_ub)
       apply assumption
@@ -481,7 +483,7 @@ lemma merges_bounded_lemma:
   done
 
 lemma termination_lemma:  
-  "[| semilat(A,r,f); ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w |] ==> 
+  "\<lbrakk> semilat(A,r,f); ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w \<rbrakk> \<Longrightarrow> 
       ss <[r] merges f qs ss \<or> 
   merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w"
   apply (unfold lesssub_def)
@@ -617,10 +619,10 @@ apply (simp_all add: unstables_def stable_def)
 done
 
 lemma is_bcv_kildall:
-  "[| semilat(A,r,f); acc r; top r T; 
+  "\<lbrakk> semilat(A,r,f); acc r; top r T; 
       pres_type step n A; bounded step n; 
-      mono r step n A |]
-  ==> is_bcv r T step n A (kildall r f step)"
+      mono r step n A \<rbrakk>
+  \<Longrightarrow> is_bcv r T step n A (kildall r f step)"
 apply(unfold is_bcv_def wt_step_def)
 apply(insert kildall_properties[of A])
 apply(simp add:stables_def)

@@ -15,58 +15,58 @@ types
   state_type   = "opstack_type \<times> locvars_type"
   state        = "state_type option err"    -- "for Kildall"
   method_type  = "state_type option list"   -- "for BVSpec"
-  class_type   = "sig => method_type"
-  prog_type    = "cname => class_type"
+  class_type   = "sig \<Rightarrow> method_type"
+  prog_type    = "cname \<Rightarrow> class_type"
 
 
 constdefs
-  stk_esl :: "'c prog => nat => ty list esl"
+  stk_esl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty list esl"
   "stk_esl S maxs == upto_esl maxs (JType.esl S)"
 
-  reg_sl :: "'c prog => nat => ty err list sl"
+  reg_sl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty err list sl"
   "reg_sl S maxr == Listn.sl maxr (Err.sl (JType.esl S))"
 
-  sl :: "'c prog => nat => nat => state sl"
+  sl :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state sl"
   "sl S maxs maxr ==
   Err.sl(Opt.esl(Product.esl (stk_esl S maxs) (Err.esl(reg_sl S maxr))))"
 
 constdefs
-  states :: "'c prog => nat => nat => state set"
+  states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state set"
   "states S maxs maxr == fst(sl S maxs maxr)"
 
-  le :: "'c prog => nat => nat => state ord"
+  le :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state ord"
   "le S maxs maxr == fst(snd(sl S maxs maxr))"
 
-  sup :: "'c prog => nat => nat => state binop"
+  sup :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state binop"
   "sup S maxs maxr == snd(snd(sl S maxs maxr))"
 
 
 constdefs
-  sup_ty_opt :: "['code prog,ty err,ty err] => bool" 
+  sup_ty_opt :: "['code prog,ty err,ty err] \<Rightarrow> bool" 
                  ("_ |- _ <=o _" [71,71] 70)
   "sup_ty_opt G == Err.le (subtype G)"
 
-  sup_loc :: "['code prog,locvars_type,locvars_type] => bool" 
+  sup_loc :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
               ("_ |- _ <=l _"  [71,71] 70)
   "sup_loc G == Listn.le (sup_ty_opt G)"
 
-  sup_state :: "['code prog,state_type,state_type] => bool"   
+  sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"   
                ("_ |- _ <=s _"  [71,71] 70)
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
-  sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
+  sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
                    ("_ |- _ <=' _"  [71,71] 70)
   "sup_state_opt G == Opt.le (sup_state G)"
 
 
 syntax (xsymbols)
-  sup_ty_opt    :: "['code prog,ty err,ty err] => bool" 
+  sup_ty_opt    :: "['code prog,ty err,ty err] \<Rightarrow> bool" 
                    ("_ \<turnstile> _ <=o _" [71,71] 70)
-  sup_loc       :: "['code prog,locvars_type,locvars_type] => bool" 
+  sup_loc       :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
                    ("_ \<turnstile> _ <=l _" [71,71] 70)
-  sup_state     :: "['code prog,state_type,state_type] => bool" 
+  sup_state     :: "['code prog,state_type,state_type] \<Rightarrow> bool" 
                    ("_ \<turnstile> _ <=s _" [71,71] 70)
-  sup_state_opt :: "['code prog,state_type option,state_type option] => bool"
+  sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool"
                    ("_ \<turnstile> _ <=' _" [71,71] 70)
                    
 
@@ -98,7 +98,7 @@ lemma JVM_le_Err_conv:
              sup_ty_opt_def JVM_le_unfold) simp
 
 lemma zip_map [rule_format]:
-  "\<forall>a. length a = length b --> 
+  "\<forall>a. length a = length b \<longrightarrow> 
   zip (map f a) (map g b) = map (\<lambda>(x,y). (f x, g y)) (zip a b)"
   apply (induct b) 
    apply simp
@@ -188,11 +188,11 @@ theorem OKanyConvOK [simp]:
   by (simp add: sup_ty_opt_def Err.le_def lesub_def subtype_def)
 
 theorem sup_ty_opt_OK:
-  "G \<turnstile> a <=o (OK b) ==> \<exists> x. a = OK x"
+  "G \<turnstile> a <=o (OK b) \<Longrightarrow> \<exists> x. a = OK x"
   by (clarsimp simp add: sup_ty_opt_def Err.le_def split: err.splits)
 
 lemma widen_PrimT_conv1 [simp]:
-  "[| G \<turnstile> S \<preceq> T; S = PrimT x|] ==> T = PrimT x"
+  "\<lbrakk> G \<turnstile> S \<preceq> T; S = PrimT x\<rbrakk> \<Longrightarrow> T = PrimT x"
   by (auto elim: widen.elims)
 
 theorem sup_PTS_eq:
@@ -214,20 +214,20 @@ theorem sup_loc_Cons2:
 
 
 theorem sup_loc_length:
-  "G \<turnstile> a <=l b ==> length a = length b"
+  "G \<turnstile> a <=l b \<Longrightarrow> length a = length b"
 proof -
   assume G: "G \<turnstile> a <=l b"
-  have "\<forall>b. (G \<turnstile> a <=l b) --> length a = length b"
+  have "\<forall>b. (G \<turnstile> a <=l b) \<longrightarrow> length a = length b"
     by (induct a, auto)
   with G
   show ?thesis by blast
 qed
 
 theorem sup_loc_nth:
-  "[| G \<turnstile> a <=l b; n < length a |] ==> G \<turnstile> (a!n) <=o (b!n)"
+  "\<lbrakk> G \<turnstile> a <=l b; n < length a \<rbrakk> \<Longrightarrow> G \<turnstile> (a!n) <=o (b!n)"
 proof -
   assume a: "G \<turnstile> a <=l b" "n < length a"
-  have "\<forall> n b. (G \<turnstile> a <=l b) --> n < length a --> (G \<turnstile> (a!n) <=o (b!n))"
+  have "\<forall> n b. (G \<turnstile> a <=l b) \<longrightarrow> n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (b!n))"
     (is "?P a")
   proof (induct a)
     show "?P []" by simp
@@ -248,8 +248,8 @@ proof -
 qed
 
 theorem all_nth_sup_loc:
-  "\<forall>b. length a = length b --> (\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (b!n))) 
-  --> (G \<turnstile> a <=l b)" (is "?P a")
+  "\<forall>b. length a = length b \<longrightarrow> (\<forall> n. n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (b!n))) 
+  \<longrightarrow> (G \<turnstile> a <=l b)" (is "?P a")
 proof (induct a)
   show "?P []" by simp
 
@@ -258,14 +258,14 @@ proof (induct a)
   show "?P (l#ls)"
   proof (intro strip)
     fix b
-    assume f: "\<forall>n. n < length (l # ls) --> (G \<turnstile> ((l # ls) ! n) <=o (b ! n))"
+    assume f: "\<forall>n. n < length (l # ls) \<longrightarrow> (G \<turnstile> ((l # ls) ! n) <=o (b ! n))"
     assume l: "length (l#ls) = length b"
     
     then obtain b' bs where b: "b = b'#bs"
       by - (cases b, simp, simp add: neq_Nil_conv, rule that)
 
     with f
-    have "\<forall>n. n < length ls --> (G \<turnstile> (ls!n) <=o (bs!n))"
+    have "\<forall>n. n < length ls \<longrightarrow> (G \<turnstile> (ls!n) <=o (bs!n))"
       by auto
 
     with f b l IH
@@ -276,12 +276,12 @@ qed
 
 
 theorem sup_loc_append:
-  "length a = length b ==> 
+  "length a = length b \<Longrightarrow> 
    (G \<turnstile> (a@x) <=l (b@y)) = ((G \<turnstile> a <=l b) \<and> (G \<turnstile> x <=l y))"
 proof -
   assume l: "length a = length b"
 
-  have "\<forall>b. length a = length b --> (G \<turnstile> (a@x) <=l (b@y)) = ((G \<turnstile> a <=l b) \<and> 
+  have "\<forall>b. length a = length b \<longrightarrow> (G \<turnstile> (a@x) <=l (b@y)) = ((G \<turnstile> a <=l b) \<and> 
             (G \<turnstile> x <=l y))" (is "?P a") 
   proof (induct a)
     show "?P []" by simp
@@ -347,7 +347,7 @@ qed
 
 
 theorem sup_loc_update [rule_format]:
-  "\<forall> n y. (G \<turnstile> a <=o b) --> n < length y --> (G \<turnstile> x <=l y) --> 
+  "\<forall> n y. (G \<turnstile> a <=o b) \<longrightarrow> n < length y \<longrightarrow> (G \<turnstile> x <=l y) \<longrightarrow> 
           (G \<turnstile> x[n := a] <=l y[n := b])" (is "?P x")
 proof (induct x)
   show "?P []" by simp
@@ -365,17 +365,17 @@ qed
 
 
 theorem sup_state_length [simp]:
-  "G \<turnstile> s2 <=s s1 ==> 
+  "G \<turnstile> s2 <=s s1 \<Longrightarrow> 
    length (fst s2) = length (fst s1) \<and> length (snd s2) = length (snd s1)"
   by (auto dest: sup_loc_length simp add: sup_state_def stk_convert lesub_def Product.le_def);
 
 theorem sup_state_append_snd:
-  "length a = length b ==> 
+  "length a = length b \<Longrightarrow> 
   (G \<turnstile> (i,a@x) <=s (j,b@y)) = ((G \<turnstile> (i,a) <=s (j,b)) \<and> (G \<turnstile> (i,x) <=s (j,y)))"
   by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def sup_loc_append)
 
 theorem sup_state_append_fst:
-  "length a = length b ==> 
+  "length a = length b \<Longrightarrow> 
   (G \<turnstile> (a@x,i) <=s (b@y,j)) = ((G \<turnstile> (a,i) <=s (b,j)) \<and> (G \<turnstile> (x,i) <=s (y,j)))"
   by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def sup_loc_append)
 
@@ -390,13 +390,13 @@ theorem sup_state_Cons2:
   by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def map_eq_Cons sup_loc_Cons2)
 
 theorem sup_state_ignore_fst:  
-  "G \<turnstile> (a, x) <=s (b, y) ==> G \<turnstile> (c, x) <=s (c, y)"
+  "G \<turnstile> (a, x) <=s (b, y) \<Longrightarrow> G \<turnstile> (c, x) <=s (c, y)"
   by (simp add: sup_state_def lesub_def Product.le_def)
 
 theorem sup_state_rev_fst:
   "(G \<turnstile> (rev a, x) <=s (rev b, y)) = (G \<turnstile> (a, x) <=s (b, y))"
 proof -
-  have m: "!!f x. map f (rev x) = rev (map f x)" by (simp add: rev_map)
+  have m: "\<And>f x. map f (rev x) = rev (map f x)" by (simp add: rev_map)
   show ?thesis by (simp add: m sup_state_def stk_convert lesub_def Product.le_def)
 qed
   
@@ -423,17 +423,17 @@ lemma sup_state_opt_Some_any:
 
 
 theorem sup_ty_opt_trans [trans]:
-  "[|G \<turnstile> a <=o b; G \<turnstile> b <=o c|] ==> G \<turnstile> a <=o c"
+  "\<lbrakk>G \<turnstile> a <=o b; G \<turnstile> b <=o c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=o c"
   by (auto intro: widen_trans 
            simp add: sup_ty_opt_def Err.le_def lesub_def subtype_def 
            split: err.splits)
 
 theorem sup_loc_trans [trans]:
-  "[|G \<turnstile> a <=l b; G \<turnstile> b <=l c|] ==> G \<turnstile> a <=l c"
+  "\<lbrakk>G \<turnstile> a <=l b; G \<turnstile> b <=l c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=l c"
 proof -
   assume G: "G \<turnstile> a <=l b" "G \<turnstile> b <=l c"
  
-  hence "\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (c!n))"
+  hence "\<forall> n. n < length a \<longrightarrow> (G \<turnstile> (a!n) <=o (c!n))"
   proof (intro strip)
     fix n 
     assume n: "n < length a"
@@ -442,7 +442,7 @@ proof -
       by - (rule sup_loc_nth)
     also 
     from n G
-    have "G \<turnstile> ... <=o (c!n)"
+    have "G \<turnstile> \<dots> <=o (c!n)"
       by - (rule sup_loc_nth, auto dest: sup_loc_length)
     finally
     show "G \<turnstile> (a!n) <=o (c!n)" .
@@ -455,11 +455,11 @@ qed
   
 
 theorem sup_state_trans [trans]:
-  "[|G \<turnstile> a <=s b; G \<turnstile> b <=s c|] ==> G \<turnstile> a <=s c"
+  "\<lbrakk>G \<turnstile> a <=s b; G \<turnstile> b <=s c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=s c"
   by (auto intro: sup_loc_trans simp add: sup_state_def stk_convert Product.le_def lesub_def)
 
 theorem sup_state_opt_trans [trans]:
-  "[|G \<turnstile> a <=' b; G \<turnstile> b <=' c|] ==> G \<turnstile> a <=' c"
+  "\<lbrakk>G \<turnstile> a <=' b; G \<turnstile> b <=' c\<rbrakk> \<Longrightarrow> G \<turnstile> a <=' c"
   by (auto intro: sup_state_trans 
            simp add: sup_state_opt_def Opt.le_def lesub_def 
            split: option.splits)

@@ -12,23 +12,23 @@ header {* \isaheader{BV Type Safety Invariant} *}
 theory Correct = BVSpec + JVMExec:
 
 constdefs
-  approx_val :: "[jvm_prog,aheap,val,ty err] => bool"
-  "approx_val G h v any == case any of Err => True | OK T => G,h\<turnstile>v::\<preceq>T"
+  approx_val :: "[jvm_prog,aheap,val,ty err] \<Rightarrow> bool"
+  "approx_val G h v any == case any of Err \<Rightarrow> True | OK T \<Rightarrow> G,h\<turnstile>v::\<preceq>T"
 
-  approx_loc :: "[jvm_prog,aheap,val list,locvars_type] => bool"
+  approx_loc :: "[jvm_prog,aheap,val list,locvars_type] \<Rightarrow> bool"
   "approx_loc G hp loc LT == list_all2 (approx_val G hp) loc LT"
 
-  approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] => bool"
+  approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] \<Rightarrow> bool"
   "approx_stk G hp stk ST == approx_loc G hp stk (map OK ST)"
 
-  correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] => frame => bool"
+  correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] \<Rightarrow> frame \<Rightarrow> bool"
   "correct_frame G hp == \<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
                          approx_stk G hp stk ST  \<and> approx_loc G hp loc LT \<and> 
                          pc < length ins \<and> length loc=length(snd sig)+maxl+1"
 
 
 consts
- correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] => bool"
+ correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \<Rightarrow> bool"
 primrec
 "correct_frames G hp phi rT0 sig0 [] = True"
 
@@ -50,13 +50,13 @@ primrec
 
 
 constdefs
- correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
+ correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
                   ("_,_ |-JVM _ [ok]"  [51,51] 50)
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
-     None => (case frs of
-             [] => True
-             | (f#fs) => G\<turnstile>h hp\<surd> \<and> preallocated hp \<and> 
+     None \<Rightarrow> (case frs of
+             [] \<Rightarrow> True
+             | (f#fs) \<Rightarrow> G\<turnstile>h hp\<surd> \<and> preallocated hp \<and> 
       (let (stk,loc,C,sig,pc) = f
              in
                          \<exists>rT maxs maxl ins et s.
@@ -65,11 +65,11 @@ constdefs
                          phi C sig ! pc = Some s \<and>
        correct_frame G hp s maxl ins f \<and> 
              correct_frames G hp phi rT sig fs))
-   | Some x => frs = []" 
+   | Some x \<Rightarrow> frs = []" 
 
 
 syntax (xsymbols)
- correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
+ correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
                   ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
 
 
@@ -99,8 +99,8 @@ lemma approx_val_sup_heap:
   by (cases T) (blast intro: conf_hext)+
 
 lemma approx_val_heap_update:
-  "[| hp a = Some obj'; G,hp\<turnstile> v::\<preceq>T; obj_ty obj = obj_ty obj'|] 
-  ==> G,hp(a\<mapsto>obj)\<turnstile> v::\<preceq>T"
+  "\<lbrakk> hp a = Some obj'; G,hp\<turnstile> v::\<preceq>T; obj_ty obj = obj_ty obj'\<rbrakk> 
+  \<Longrightarrow> G,hp(a\<mapsto>obj)\<turnstile> v::\<preceq>T"
   by (cases v, auto simp add: obj_ty_def conf_def)
 
 lemma approx_val_widen:
@@ -228,8 +228,8 @@ done
 section {* oconf *}
 
 lemma oconf_field_update:
-  "[|map_of (fields (G, oT)) FD = Some T; G,hp\<turnstile>v::\<preceq>T; G,hp\<turnstile>(oT,fs)\<surd> |]
-  ==> G,hp\<turnstile>(oT, fs(FD\<mapsto>v))\<surd>"
+  "\<lbrakk>map_of (fields (G, oT)) FD = Some T; G,hp\<turnstile>v::\<preceq>T; G,hp\<turnstile>(oT,fs)\<surd> \<rbrakk>
+  \<Longrightarrow> G,hp\<turnstile>(oT, fs(FD\<mapsto>v))\<surd>"
   by (simp add: oconf_def lconf_def)
 
 lemma oconf_newref:
@@ -290,11 +290,11 @@ lemmas [simp del] = fun_upd_apply
 
 lemma correct_frames_field_update [rule_format]:
   "\<forall>rT C sig. 
-  correct_frames G hp phi rT sig frs --> 
-  hp a = Some (C,fs) --> 
-  map_of (fields (G, C)) fl = Some fd --> 
+  correct_frames G hp phi rT sig frs \<longrightarrow> 
+  hp a = Some (C,fs) \<longrightarrow> 
+  map_of (fields (G, C)) fl = Some fd \<longrightarrow> 
   G,hp\<turnstile>v::\<preceq>fd 
-  --> correct_frames G (hp(a \<mapsto> (C, fs(fl\<mapsto>v)))) phi rT sig frs";
+  \<longrightarrow> correct_frames G (hp(a \<mapsto> (C, fs(fl\<mapsto>v)))) phi rT sig frs";
 apply (induct frs)
  apply simp
 apply clarify

@@ -276,8 +276,7 @@ lemma wt_append [simp]:
   apply simp
   done
 
-text {* Some shorthands to make the welltyping of method @{term
-makelist_name} easier to read *} 
+text {* Some abbreviations for readability *} 
 syntax
   list :: ty 
   test :: ty

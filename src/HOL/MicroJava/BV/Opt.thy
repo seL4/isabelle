@@ -11,49 +11,49 @@ header {* \isaheader{More about Options} *}
 theory Opt = Err:
 
 constdefs
- le :: "'a ord => 'a option ord"
-"le r o1 o2 == case o2 of None => o1=None |
-                              Some y => (case o1 of None => True
-                                                  | Some x => x <=_r y)"
+ le :: "'a ord \<Rightarrow> 'a option ord"
+"le r o1 o2 == case o2 of None \<Rightarrow> o1=None |
+                              Some y \<Rightarrow> (case o1 of None \<Rightarrow> True
+                                                  | Some x \<Rightarrow> x <=_r y)"
 
- opt :: "'a set => 'a option set"
+ opt :: "'a set \<Rightarrow> 'a option set"
 "opt A == insert None {x . ? y:A. x = Some y}"
 
- sup :: "'a ebinop => 'a option ebinop"
+ sup :: "'a ebinop \<Rightarrow> 'a option ebinop"
 "sup f o1 o2 ==  
- case o1 of None => OK o2 | Some x => (case o2 of None => OK o1
-     | Some y => (case f x y of Err => Err | OK z => OK (Some z)))"
+ case o1 of None \<Rightarrow> OK o2 | Some x \<Rightarrow> (case o2 of None \<Rightarrow> OK o1
+     | Some y \<Rightarrow> (case f x y of Err \<Rightarrow> Err | OK z \<Rightarrow> OK (Some z)))"
 
- esl :: "'a esl => 'a option esl"
+ esl :: "'a esl \<Rightarrow> 'a option esl"
 "esl == %(A,r,f). (opt A, le r, sup f)"
 
 lemma unfold_le_opt:
   "o1 <=_(le r) o2 = 
-  (case o2 of None => o1=None | 
-              Some y => (case o1 of None => True | Some x => x <=_r y))"
+  (case o2 of None \<Rightarrow> o1=None | 
+              Some y \<Rightarrow> (case o1 of None \<Rightarrow> True | Some x \<Rightarrow> x <=_r y))"
 apply (unfold lesub_def le_def)
 apply (rule refl)
 done
 
 lemma le_opt_refl:
-  "order r ==> o1 <=_(le r) o1"
+  "order r \<Longrightarrow> o1 <=_(le r) o1"
 by (simp add: unfold_le_opt split: option.split)
 
 lemma le_opt_trans [rule_format]:
-  "order r ==> 
-   o1 <=_(le r) o2 --> o2 <=_(le r) o3 --> o1 <=_(le r) o3"
+  "order r \<Longrightarrow> 
+   o1 <=_(le r) o2 \<longrightarrow> o2 <=_(le r) o3 \<longrightarrow> o1 <=_(le r) o3"
 apply (simp add: unfold_le_opt split: option.split)
 apply (blast intro: order_trans)
 done
 
 lemma le_opt_antisym [rule_format]:
-  "order r ==> o1 <=_(le r) o2 --> o2 <=_(le r) o1 --> o1=o2"
+  "order r \<Longrightarrow> o1 <=_(le r) o2 \<longrightarrow> o2 <=_(le r) o1 \<longrightarrow> o1=o2"
 apply (simp add: unfold_le_opt split: option.split)
 apply (blast intro: order_antisym)
 done
 
 lemma order_le_opt [intro!,simp]:
-  "order r ==> order(le r)"
+  "order r \<Longrightarrow> order(le r)"
 apply (subst order_def)
 apply (blast intro: le_opt_refl le_opt_trans le_opt_antisym)
 done 
@@ -102,7 +102,7 @@ done
 
 
 lemma semilat_opt:
-  "!!L. err_semilat L ==> err_semilat (Opt.esl L)"
+  "\<And>L. err_semilat L \<Longrightarrow> err_semilat (Opt.esl L)"
 proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
   
   fix A r f
@@ -141,11 +141,11 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
       assume ab: "x = OK a" "y = OK b"
       
       with x 
-      have a: "!!c. a = Some c ==> c : A"
+      have a: "\<And>c. a = Some c \<Longrightarrow> c : A"
         by (clarsimp simp add: opt_def)
 
       from ab y
-      have b: "!!d. b = Some d ==> d : A"
+      have b: "\<And>d. b = Some d \<Longrightarrow> d : A"
         by (clarsimp simp add: opt_def)
       
       { fix c d assume "a = Some c" "b = Some d"
@@ -225,10 +225,10 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
         obtain "OK d:err A" "OK e:err A" "OK g:err A"
           by simp
         with lub
-        have "[| (OK d) <=_(Err.le r) (OK g); (OK e) <=_(Err.le r) (OK g) |]
-          ==> (OK d) +_(lift2 f) (OK e) <=_(Err.le r) (OK g)"
+        have "\<lbrakk> (OK d) <=_(Err.le r) (OK g); (OK e) <=_(Err.le r) (OK g) \<rbrakk>
+          \<Longrightarrow> (OK d) +_(lift2 f) (OK e) <=_(Err.le r) (OK g)"
           by blast
-        hence "[| d <=_r g; e <=_r g |] ==> \<exists>y. d +_f e = OK y \<and> y <=_r g"
+        hence "\<lbrakk> d <=_r g; e <=_r g \<rbrakk> \<Longrightarrow> \<exists>y. d +_f e = OK y \<and> y <=_r g"
           by simp
 
         with ok some xyz xz yz
@@ -263,14 +263,14 @@ apply simp+
 done 
 
 lemma Top_le_conv:
-  "[| order r; top r T |] ==> (T <=_r x) = (x = T)"
+  "\<lbrakk> order r; top r T \<rbrakk> \<Longrightarrow> (T <=_r x) = (x = T)"
 apply (unfold top_def)
 apply (blast intro: order_antisym)
 done 
 
 
 lemma acc_le_optI [intro!]:
-  "acc r ==> acc(le r)"
+  "acc r \<Longrightarrow> acc(le r)"
 apply (unfold acc_def lesub_def le_def lesssub_def)
 apply (simp add: wf_eq_minimal split: option.split)
 apply clarify
@@ -283,8 +283,8 @@ apply blast
 done 
 
 lemma option_map_in_optionI:
-  "[| ox : opt S; !x:S. ox = Some x --> f x : S |] 
-  ==> option_map f ox : opt S";
+  "\<lbrakk> ox : opt S; !x:S. ox = Some x \<longrightarrow> f x : S \<rbrakk> 
+  \<Longrightarrow> option_map f ox : opt S";
 apply (unfold option_map_def)
 apply (simp split: option.split)
 apply blast

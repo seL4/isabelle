@@ -22,8 +22,8 @@ text {*
 
 types
   certificate       = "state_type option list" 
-  class_certificate = "sig => certificate"
-  prog_certificate  = "cname => class_certificate"
+  class_certificate = "sig \<Rightarrow> certificate"
+  prog_certificate  = "cname \<Rightarrow> class_certificate"
 
 consts
   merge :: "[jvm_prog, p_count, nat, nat, p_count, certificate, (nat \<times> (state_type option)) list, state] \<Rightarrow> state"
@@ -38,24 +38,24 @@ primrec
 
 constdefs 
   wtl_inst :: "[instr,jvm_prog,ty,state_type option,certificate,nat,nat,p_count,exception_table,p_count] 
-               => state_type option err" 
+               \<Rightarrow> state_type option err" 
   "wtl_inst i G rT s cert maxs maxr max_pc et pc == 
      if app i G maxs rT pc et s then 
        merge G pc maxs maxr max_pc cert (eff i G pc et s) (OK (cert!(pc+1)))
      else Err"
 
   wtl_cert :: "[instr,jvm_prog,ty,state_type option,certificate,nat,nat,p_count,exception_table,p_count] 
-               => state_type option err"  
+               \<Rightarrow> state_type option err"  
   "wtl_cert i G rT s cert maxs maxr max_pc et pc ==
      case cert!pc of
-        None    => wtl_inst i G rT s cert maxs maxr max_pc et pc
-      | Some s' => if G \<turnstile> s <=' (Some s') then 
+        None    \<Rightarrow> wtl_inst i G rT s cert maxs maxr max_pc et pc
+      | Some s' \<Rightarrow> if G \<turnstile> s <=' (Some s') then 
                     wtl_inst i G rT (Some s') cert maxs maxr max_pc et pc 
                   else Err"
 
 consts 
   wtl_inst_list :: "[instr list,jvm_prog,ty,certificate,nat,nat,p_count,exception_table,p_count,
-                     state_type option] => state_type option err"
+                     state_type option] \<Rightarrow> state_type option err"
 primrec
   "wtl_inst_list []     G rT cert maxs maxr max_pc et pc s = OK s"
   "wtl_inst_list (i#is) G rT cert maxs maxr max_pc et pc s = 
@@ -64,7 +64,7 @@ primrec
               
 
 constdefs
- wtl_method :: "[jvm_prog,cname,ty list,ty,nat,nat,exception_table,instr list,certificate] => bool"  
+ wtl_method :: "[jvm_prog,cname,ty list,ty,nat,nat,exception_table,instr list,certificate] \<Rightarrow> bool"  
  "wtl_method G C pTs rT mxs mxl et ins cert ==  
 	let max_pc = length ins  
   in 
@@ -72,7 +72,7 @@ constdefs
   wtl_inst_list ins G rT cert mxs mxl max_pc et 0 
                 (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err))) \<noteq> Err"
 
- wtl_jvm_prog :: "[jvm_prog,prog_certificate] => bool" 
+ wtl_jvm_prog :: "[jvm_prog,prog_certificate] \<Rightarrow> bool" 
  "wtl_jvm_prog G cert ==  
   wf_prog (\<lambda>G C (sig,rT,maxs,maxl,b,et). wtl_method G C (snd sig) rT maxs maxl et b (cert C sig)) G"
 
@@ -84,12 +84,12 @@ lemma if_eq_cases:
   by simp
 
 lemma merge_def:
-  "!!x. merge G pc mxs mxr max_pc cert ss x = 
+  "\<And>x. merge G pc mxs mxr max_pc cert ss x = 
   (if \<forall>(pc',s') \<in> set ss. pc' < max_pc \<and> (pc' \<noteq> pc+1 \<longrightarrow> G \<turnstile> s' <=' cert!pc') then
     map (OK \<circ> snd) [(p',t') \<in> ss. p'=pc+1] ++_(sup G mxs mxr) x
-  else Err)" (is "!!x. ?merge ss x = ?if ss x" is "!!x. ?P ss x")
+  else Err)" (is "\<And>x. ?merge ss x = ?if ss x" is "\<And>x. ?P ss x")
 proof (induct ss)
-  show "!!x. ?P [] x" by simp
+  show "\<And>x. ?P [] x" by simp
 next
   have OK_snd: "(\<lambda>u. OK (snd u)) = OK \<circ> snd" by (rule ext) auto
   fix x ss and s::"nat \<times> (state_type option)"
@@ -173,7 +173,7 @@ next
 qed
 
 lemma wtl_take:
-  "wtl_inst_list is G rT cert mxs mxr mpc et pc s = OK s'' ==>
+  "wtl_inst_list is G rT cert mxs mxr mpc et pc s = OK s'' \<Longrightarrow>
    \<exists>s'. wtl_inst_list (take pc' is) G rT cert mxs mxr mpc et pc s = OK s'"
 proof -
   assume "wtl_inst_list is G rT cert mxs mxr mpc et pc s = OK s''"
@@ -183,7 +183,7 @@ proof -
 qed
 
 lemma take_Suc:
-  "\<forall>n. n < length l --> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
+  "\<forall>n. n < length l \<longrightarrow> take (Suc n) l = (take n l)@[l!n]" (is "?P l")
 proof (induct l)
   show "?P []" by simp
 next
@@ -197,9 +197,9 @@ next
 qed
 
 lemma wtl_Suc:
- "[| wtl_inst_list (take pc is) G rT cert maxs maxr (length is) et 0 s = OK s'; 
+ "\<lbrakk> wtl_inst_list (take pc is) G rT cert maxs maxr (length is) et 0 s = OK s'; 
      wtl_cert (is!pc) G rT s' cert maxs maxr (length is) et pc = OK s'';
-     Suc pc < length is |] ==>
+     Suc pc < length is \<rbrakk> \<Longrightarrow>
   wtl_inst_list (take (Suc pc) is) G rT cert maxs maxr (length is) et 0 s = OK s''" 
 proof -
   assume "wtl_inst_list (take pc is) G rT cert maxs maxr (length is) et 0 s = OK s'"
@@ -210,8 +210,8 @@ proof -
 qed
 
 lemma wtl_all:
-  "[| wtl_inst_list is G rT cert maxs maxr (length is) et 0 s \<noteq> Err;
-      pc < length is |] ==> 
+  "\<lbrakk> wtl_inst_list is G rT cert maxs maxr (length is) et 0 s \<noteq> Err;
+      pc < length is \<rbrakk> \<Longrightarrow> 
    \<exists>s' s''. wtl_inst_list (take pc is) G rT cert maxs maxr (length is) et 0 s = OK s' \<and> 
             wtl_cert (is!pc) G rT s' cert maxs maxr (length is) et pc = OK s''"
 proof -

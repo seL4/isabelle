@@ -14,8 +14,8 @@ constdefs
   "exec G maxs rT et bs == 
   err_step (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
 
-  kiljvm :: "jvm_prog => nat => nat => ty => exception_table => 
-             instr list => state list => state list"
+  kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
+             instr list \<Rightarrow> state list \<Rightarrow> state list"
   "kiljvm G maxs maxr rT et bs ==
   kildall (JVMType.le G maxs maxr) (JVMType.sup G maxs maxr) (exec G maxs rT et bs)"
 
@@ -28,7 +28,7 @@ constdefs
         result = kiljvm G mxs (1+size pTs+mxl) rT et ins start
     in \<forall>n < size ins. result!n \<noteq> Err)"
 
-  wt_jvm_prog_kildall :: "jvm_prog => bool"
+  wt_jvm_prog_kildall :: "jvm_prog \<Rightarrow> bool"
   "wt_jvm_prog_kildall G ==
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_kil G C (snd sig) rT maxs maxl et b) G"
 
@@ -77,7 +77,7 @@ qed
 
 
 theorem exec_pres_type:
-  "wf_prog wf_mb S ==> 
+  "wf_prog wf_mb S \<Longrightarrow> 
   pres_type (exec S maxs rT et bs) (size bs) (states S maxs maxr)"
   apply (unfold exec_def JVM_states_unfold)
   apply (rule pres_type_lift)
@@ -243,7 +243,7 @@ lemma order_sup_state_opt:
   by (unfold sup_state_opt_unfold) (blast dest: acyclic_subcls1 order_widen)
 
 theorem exec_mono:
-  "wf_prog wf_mb G ==>
+  "wf_prog wf_mb G \<Longrightarrow>
   mono (JVMType.le G maxs maxr) (exec G maxs rT et bs) (size bs) (states G maxs maxr)"  
   apply (unfold exec_def JVM_le_unfold JVM_states_unfold)  
   apply (rule mono_lift)
@@ -257,7 +257,7 @@ theorem exec_mono:
   done
 
 theorem semilat_JVM_slI:
-  "wf_prog wf_mb G ==> semilat (JVMType.sl G maxs maxr)"
+  "wf_prog wf_mb G \<Longrightarrow> semilat (JVMType.sl G maxs maxr)"
   apply (unfold JVMType.sl_def stk_esl_def reg_sl_def)
   apply (rule semilat_opt)
   apply (rule err_semilat_Product_esl)
@@ -275,7 +275,7 @@ lemma sl_triple_conv:
 
 
 theorem is_bcv_kiljvm:
-  "[| wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) |] ==> 
+  "\<lbrakk> wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) \<rbrakk> \<Longrightarrow> 
       is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT et bs)
              (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT et bs)"
   apply (unfold kiljvm_def sl_triple_conv)
@@ -293,9 +293,9 @@ theorem is_bcv_kiljvm:
 
 
 theorem wt_kil_correct:
-  "[| wt_kil G C pTs rT maxs mxl et bs; wf_prog wf_mb G; 
-      is_class G C; \<forall>x \<in> set pTs. is_type G x |]
-  ==> \<exists>phi. wt_method G C pTs rT maxs mxl bs et phi"
+  "\<lbrakk> wt_kil G C pTs rT maxs mxl et bs; wf_prog wf_mb G; 
+      is_class G C; \<forall>x \<in> set pTs. is_type G x \<rbrakk>
+  \<Longrightarrow> \<exists>phi. wt_method G C pTs rT maxs mxl bs et phi"
 proof -
   let ?start = "OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))
                 #(replicate (size bs - 1) (OK None))"
@@ -386,10 +386,10 @@ qed
 
 
 theorem wt_kil_complete:
-  "[| wt_method G C pTs rT maxs mxl bs et phi; wf_prog wf_mb G; 
+  "\<lbrakk> wt_method G C pTs rT maxs mxl bs et phi; wf_prog wf_mb G; 
       length phi = length bs; is_class G C; \<forall>x \<in> set pTs. is_type G x;
-      map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl)) |]
-  ==> wt_kil G C pTs rT maxs mxl et bs"
+      map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl)) \<rbrakk>
+  \<Longrightarrow> wt_kil G C pTs rT maxs mxl et bs"
 proof -
   assume wf: "wf_prog wf_mb G"  
   assume isclass: "is_class G C"
@@ -490,12 +490,12 @@ proof -
         have "JVMType.le G maxs ?maxr (OK None) (?phi!n)"
           by (auto simp add: JVM_le_Err_conv Err.le_def lesub_def 
             split: err.splits)        
-        hence "[| n = Suc n'; n < length ?start |] 
-          ==> JVMType.le G maxs ?maxr (?start!n) (?phi!n)"
+        hence "\<lbrakk> n = Suc n'; n < length ?start \<rbrakk> 
+          \<Longrightarrow> JVMType.le G maxs ?maxr (?start!n) (?phi!n)"
           by simp
       }
       ultimately
-      have "n < length ?start ==> (?start!n) <=_(JVMType.le G maxs ?maxr) (?phi!n)"
+      have "n < length ?start \<Longrightarrow> (?start!n) <=_(JVMType.le G maxs ?maxr) (?phi!n)"
         by (unfold lesub_def) (cases n, blast+)
     } 
     ultimately show ?thesis by (rule le_listI)
@@ -540,9 +540,9 @@ text {*
   programs without problems:
 *}
 lemma is_type_pTs:
-  "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
-      t \<in> set (snd sig) |]
-  ==> is_type G t"
+  "\<lbrakk> wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
+      t \<in> set (snd sig) \<rbrakk>
+  \<Longrightarrow> is_type G t"
 proof -
   assume "wf_prog wf_mb G" 
          "(C,S,fs,mdecls) \<in> set G"
@@ -559,7 +559,7 @@ qed
 
 
 theorem jvm_kildall_correct:
-  "wt_jvm_prog_kildall G ==> \<exists>Phi. wt_jvm_prog G Phi"
+  "wt_jvm_prog_kildall G \<Longrightarrow> \<exists>Phi. wt_jvm_prog G Phi"
 proof -  
   assume wtk: "wt_jvm_prog_kildall G"
 

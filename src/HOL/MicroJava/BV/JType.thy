@@ -17,31 +17,31 @@ lemma superI:
   by (unfold super_def) (auto dest: subcls1D)
 
 constdefs
-  is_ref :: "ty => bool"
-  "is_ref T == case T of PrimT t => False | RefT r => True"
+  is_ref :: "ty \<Rightarrow> bool"
+  "is_ref T == case T of PrimT t \<Rightarrow> False | RefT r \<Rightarrow> True"
 
-  sup :: "'c prog => ty => ty => ty err"
+  sup :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty err"
   "sup G T1 T2 ==
-  case T1 of PrimT P1 => (case T2 of PrimT P2 => 
-                         (if P1 = P2 then OK (PrimT P1) else Err) | RefT R => Err)
-           | RefT R1 => (case T2 of PrimT P => Err | RefT R2 => 
-  (case R1 of NullT => (case R2 of NullT => OK NT | ClassT C => OK (Class C))
-            | ClassT C => (case R2 of NullT => OK (Class C) 
-                           | ClassT D => OK (Class (exec_lub (subcls1 G) (super G) C D)))))"
+  case T1 of PrimT P1 \<Rightarrow> (case T2 of PrimT P2 \<Rightarrow> 
+                         (if P1 = P2 then OK (PrimT P1) else Err) | RefT R \<Rightarrow> Err)
+           | RefT R1 \<Rightarrow> (case T2 of PrimT P \<Rightarrow> Err | RefT R2 \<Rightarrow> 
+  (case R1 of NullT \<Rightarrow> (case R2 of NullT \<Rightarrow> OK NT | ClassT C \<Rightarrow> OK (Class C))
+            | ClassT C \<Rightarrow> (case R2 of NullT \<Rightarrow> OK (Class C) 
+                           | ClassT D \<Rightarrow> OK (Class (exec_lub (subcls1 G) (super G) C D)))))"
 
-  subtype :: "'c prog => ty => ty => bool"
+  subtype :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
   "subtype G T1 T2 == G \<turnstile> T1 \<preceq> T2"
 
-  is_ty :: "'c prog => ty => bool"
-  "is_ty G T == case T of PrimT P => True | RefT R =>
-               (case R of NullT => True | ClassT C => (C,Object):(subcls1 G)^*)"
+  is_ty :: "'c prog \<Rightarrow> ty \<Rightarrow> bool"
+  "is_ty G T == case T of PrimT P \<Rightarrow> True | RefT R \<Rightarrow>
+               (case R of NullT \<Rightarrow> True | ClassT C \<Rightarrow> (C,Object):(subcls1 G)^*)"
 
 
 translations
   "types G" == "Collect (is_type G)"
 
 constdefs
-  esl :: "'c prog => ty esl"
+  esl :: "'c prog \<Rightarrow> ty esl"
   "esl G == (types G, subtype G, sup G)"
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
@@ -51,12 +51,12 @@ lemma PrimT_PrimT2: "(G \<turnstile> PrimT p \<preceq> xb) = (xb = PrimT p)"
   by (auto elim: widen.elims)
 
 lemma is_tyI:
-  "[| is_type G T; wf_prog wf_mb G |] ==> is_ty G T"
+  "\<lbrakk> is_type G T; wf_prog wf_mb G \<rbrakk> \<Longrightarrow> is_ty G T"
   by (auto simp add: is_ty_def intro: subcls_C_Object 
            split: ty.splits ref_ty.splits)
 
 lemma is_type_conv: 
-  "wf_prog wf_mb G ==> is_type G T = is_ty G T"
+  "wf_prog wf_mb G \<Longrightarrow> is_type G T = is_ty G T"
 proof
   assume "is_type G T" "wf_prog wf_mb G" 
   thus "is_ty G T"
@@ -86,7 +86,7 @@ next
 qed
 
 lemma order_widen:
-  "acyclic (subcls1 G) ==> order (subtype G)"
+  "acyclic (subcls1 G) \<Longrightarrow> order (subtype G)"
   apply (unfold order_def lesub_def subtype_def)
   apply (auto intro: widen_trans)
   apply (case_tac x)
@@ -106,7 +106,7 @@ lemma order_widen:
   done
 
 lemma wf_converse_subcls1_impl_acc_subtype:
-  "wf ((subcls1 G)^-1) ==> acc (subtype G)"
+  "wf ((subcls1 G)^-1) \<Longrightarrow> acc (subtype G)"
 apply (unfold acc_def lesssub_def)
 apply (drule_tac p = "(subcls1 G)^-1 - Id" in wf_subset)
  apply blast
@@ -159,8 +159,8 @@ apply (blast intro: rtrancl_into_trancl2)
 done 
 
 lemma closed_err_types:
-  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
-  ==> closed (err (types G)) (lift2 (sup G))"
+  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
+  \<Longrightarrow> closed (err (types G)) (lift2 (sup G))"
   apply (unfold closed_def plussub_def lift2_def sup_def)
   apply (auto split: err.split)
   apply (drule is_tyI, assumption)
@@ -171,9 +171,9 @@ lemma closed_err_types:
 
 
 lemma sup_subtype_greater:
-  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
-      is_type G t1; is_type G t2; sup G t1 t2 = OK s |] 
-  ==> subtype G t1 s \<and> subtype G t2 s"
+  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+      is_type G t1; is_type G t2; sup G t1 t2 = OK s \<rbrakk> 
+  \<Longrightarrow> subtype G t1 s \<and> subtype G t2 s"
 proof -
   assume wf_prog:       "wf_prog wf_mb G"
   assume single_valued: "single_valued (subcls1 G)" 
@@ -210,10 +210,10 @@ proof -
 qed
 
 lemma sup_subtype_smallest:
-  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
       is_type G a; is_type G b; is_type G c; 
-      subtype G a c; subtype G b c; sup G a b = OK d |]
-  ==> subtype G d c"
+      subtype G a c; subtype G b c; sup G a b = OK d \<rbrakk>
+  \<Longrightarrow> subtype G d c"
 proof -
   assume wf_prog:       "wf_prog wf_mb G"
   assume single_valued: "single_valued (subcls1 G)" 
@@ -244,7 +244,7 @@ proof -
   } note this [intro]
 
   have [dest!]:
-    "!!C T. G \<turnstile> Class C \<preceq> T ==> \<exists>D. T=Class D \<and> G \<turnstile> C \<preceq>C D"
+    "\<And>C T. G \<turnstile> Class C \<preceq> T \<Longrightarrow> \<exists>D. T=Class D \<and> G \<turnstile> C \<preceq>C D"
     by (frule widen_Class, auto)
 
   assume "is_type G a" "is_type G b" "is_type G c"
@@ -255,13 +255,13 @@ proof -
 qed
 
 lemma sup_exists:
-  "[| subtype G a c; subtype G b c; sup G a b = Err |] ==> False"
+  "\<lbrakk> subtype G a c; subtype G b c; sup G a b = Err \<rbrakk> \<Longrightarrow> False"
   by (auto simp add: PrimT_PrimT PrimT_PrimT2 sup_def subtype_def
            split: ty.splits ref_ty.splits)
 
 lemma err_semilat_JType_esl_lemma:
-  "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) |] 
-  ==> err_semilat (esl G)"
+  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
+  \<Longrightarrow> err_semilat (esl G)"
 proof -
   assume wf_prog:   "wf_prog wf_mb G"
   assume single_valued: "single_valued (subcls1 G)" 
@@ -297,12 +297,12 @@ proof -
 qed
 
 lemma single_valued_subcls1:
-  "wf_prog wf_mb G ==> single_valued (subcls1 G)"
+  "wf_prog wf_mb G \<Longrightarrow> single_valued (subcls1 G)"
   by (auto simp add: wf_prog_def unique_def single_valued_def
     intro: subcls1I elim!: subcls1.elims)
 
 theorem err_semilat_JType_esl:
-  "wf_prog wf_mb G ==> err_semilat (esl G)"
+  "wf_prog wf_mb G \<Longrightarrow> err_semilat (esl G)"
   by (frule acyclic_subcls1, frule single_valued_subcls1, rule err_semilat_JType_esl_lemma)
 
 end

@@ -34,6 +34,6 @@ constdefs
 
 syntax (xsymbols)
   exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
-              ("_ \<turnstile> _ -jvm-> _" [61,61,61]60)
+              ("_ \<turnstile> _ -jvm\<rightarrow> _" [61,61,61]60)
 
 end

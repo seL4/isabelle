@@ -11,10 +11,10 @@ theory Typing_Framework_err = Typing_Framework:
 
 constdefs
 
-dynamic_wt :: "'s ord => 's err step_type => 's err list => bool"
+dynamic_wt :: "'s ord \<Rightarrow> 's err step_type \<Rightarrow> 's err list \<Rightarrow> bool"
 "dynamic_wt r step ts == wt_step (Err.le r) Err step ts"
 
-static_wt :: "'s ord => (nat => 's => bool) => 's step_type => 's list => bool"
+static_wt :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool"
 "static_wt r app step ts == 
   \<forall>p < size ts. app p (ts!p) \<and> (\<forall>(q,t) \<in> set (step p (ts!p)). t <=_r ts!q)"
 
@@ -28,14 +28,14 @@ err_step :: "(nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_typ
 "err_step app step p t == case t of Err \<Rightarrow> map_err (step p arbitrary) | OK t' \<Rightarrow> 
   if app p t' then map_snd OK (step p t') else map_err (step p t')"
 
-non_empty :: "'s step_type => bool"
+non_empty :: "'s step_type \<Rightarrow> bool"
 "non_empty step == \<forall>p t. step p t \<noteq> []"
 
 
 lemmas err_step_defs = err_step_def map_snd_def map_err_def
 
 lemma non_emptyD:
-  "non_empty step ==> \<exists>q t'. (q,t') \<in> set(step p t)"
+  "non_empty step \<Longrightarrow> \<exists>q t'. (q,t') \<in> set(step p t)"
 proof (unfold non_empty_def)
   assume "\<forall>p t. step p t \<noteq> []"
   hence "step p t \<noteq> []" by blast
@@ -47,9 +47,9 @@ qed
 
 
 lemma dynamic_imp_static:
-  "[| bounded step (size ts); non_empty step;
-      dynamic_wt r (err_step app step) ts |] 
-  ==> static_wt r app step (map ok_val ts)"
+  "\<lbrakk> bounded step (size ts); non_empty step;
+      dynamic_wt r (err_step app step) ts \<rbrakk> 
+  \<Longrightarrow> static_wt r app step (map ok_val ts)"
 proof (unfold static_wt_def, intro strip, rule conjI)
 
   assume b:  "bounded step (size ts)"
@@ -112,8 +112,8 @@ qed
 
 
 lemma static_imp_dynamic:
-  "[| static_wt r app step ts; bounded step (size ts) |] 
-  ==> dynamic_wt r (err_step app step) (map OK ts)"
+  "\<lbrakk> static_wt r app step ts; bounded step (size ts) \<rbrakk> 
+  \<Longrightarrow> dynamic_wt r (err_step app step) (map OK ts)"
 proof (unfold dynamic_wt_def wt_step_def, intro strip, rule conjI)
   assume bounded: "bounded step (size ts)"
   assume static:  "static_wt r app step ts"

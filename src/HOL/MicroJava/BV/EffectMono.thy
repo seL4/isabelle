@@ -14,7 +14,7 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 
 lemma sup_loc_some [rule_format]:
-"\<forall>y n. (G \<turnstile> b <=l y) --> n < length y --> y!n = OK t --> 
+"\<forall>y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = OK t \<longrightarrow> 
   (\<exists>t. b!n = OK t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct (open) ?P b)
   show "?P []" by simp
@@ -41,9 +41,9 @@ qed
    
 
 lemma all_widen_is_sup_loc:
-"\<forall>b. length a = length b --> 
+"\<forall>b. length a = length b \<longrightarrow> 
      (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map OK a) <=l (map OK b))" 
- (is "\<forall>b. length a = length b --> ?Q a b" is "?P a")
+ (is "\<forall>b. length a = length b \<longrightarrow> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
 
@@ -60,7 +60,7 @@ qed
  
 
 lemma append_length_n [rule_format]: 
-"\<forall>n. n \<le> length x --> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
+"\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
 proof (induct (open) ?P x)
   show "?P []" by simp
 
@@ -86,7 +86,7 @@ proof (induct (open) ?P x)
 qed
 
 lemma rev_append_cons:
-"n < length x ==> \<exists>a b c. x = (rev a) @ b # c \<and> length a = n"
+"n < length x \<Longrightarrow> \<exists>a b c. x = (rev a) @ b # c \<and> length a = n"
 proof -
   assume n: "n < length x"
   hence "n \<le> length x" by simp
@@ -109,7 +109,7 @@ qed
 lemmas [iff] = not_Err_eq
 
 lemma app_mono: 
-"[|G \<turnstile> s <=' s'; app i G m rT pc et s'|] ==> app i G m rT pc et s"
+"\<lbrakk>G \<turnstile> s <=' s'; app i G m rT pc et s'\<rbrakk> \<Longrightarrow> app i G m rT pc et s"
 proof -
 
   { fix s1 s2
@@ -281,7 +281,7 @@ qed
 lemmas [simp del] = split_paired_Ex
 
 lemma eff'_mono:
-"[| app i G m rT pc et (Some s2); G \<turnstile> s1 <=s s2 |] ==>
+"\<lbrakk> app i G m rT pc et (Some s2); G \<turnstile> s1 <=s s2 \<rbrakk> \<Longrightarrow>
   G \<turnstile> eff' (i,G,s1) <=s eff' (i,G,s2)"
 proof (cases s1, cases s2)
   fix a1 b1 a2 b2
