@@ -11,6 +11,8 @@ sig
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
+  val quote_antiquote_tr: string -> string -> string -> string * (term list -> term)
+  val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val variant_abs': string * typ * term -> string * term
@@ -124,6 +126,23 @@ fun type_tr (*"_TYPE"*) [ty] =
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
 
+(* quote / antiquote *)
+
+fun quote_antiquote_tr quoteN antiquoteN name =
+  let
+    fun antiquote_tr i ((a as Const (c, _)) $ t) =
+          if c = antiquoteN then t $ Bound i
+          else a $ antiquote_tr i t
+      | antiquote_tr i (t $ u) = antiquote_tr i t $ antiquote_tr i u
+      | antiquote_tr i (Abs (x, T, t)) = Abs (x, T, antiquote_tr (i + 1) t)
+      | antiquote_tr _ a = a;
+
+    fun quote_tr [t] = const name $ Abs ("uu", dummyT, antiquote_tr 0 (incr_boundvars 1 t))
+      | quote_tr ts = raise TERM ("quote_tr", ts);
+  in (quoteN, quote_tr) end;
+
+
+
 (** print (ast) translations **)
 
 (* application *)
@@ -166,7 +185,7 @@ fun eta_contr tm =
             t' as f $ u =>
               (case eta_abs u of
                 Bound 0 =>
-                  if 0 mem loose_bnos f orelse is_aprop f then Abs (a, T, t')
+                  if Term.loose_bvar1 (f, 0) orelse is_aprop f then Abs (a, T, t')
                   else  incr_boundvars ~1 f
               | _ => Abs (a, T, t'))
           | t' => Abs (a, T, t'))
@@ -275,11 +294,30 @@ fun variant_abs' (x, T, B) =
   end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
-      if 0 mem (loose_bnos B) then
+      if Term.loose_bvar1 (B, 0) then
         let val (x', B') = variant_abs' (x, dummyT, B);
         in list_comb (const q $ mark_boundT (x', T) $ A $ B', ts) end
       else list_comb (const r $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
+
+
+(* quote / antiquote *)
+
+fun no_loose_bvar i t =
+  if Term.loose_bvar1 (t, i) then raise Match else t;
+
+fun quote_antiquote_tr' quoteN antiquoteN name =
+  let
+    fun antiquote_tr' i (t $ u) =
+          if u = Bound i then const antiquoteN $ no_loose_bvar i t
+          else antiquote_tr' i t $ antiquote_tr' i u
+      | antiquote_tr' i (Abs (x, T, t)) = Abs (x, T, antiquote_tr' (i + 1) t)
+      | antiquote_tr' i a = no_loose_bvar i a;
+
+    fun quote_tr' (Abs (x, T, t) :: ts) =
+          Term.list_comb (const quoteN $ incr_boundvars ~1 (antiquote_tr' 0 t), ts)
+      | quote_tr' _ = raise Match;
+  in (name, quote_tr') end;
 
 
 
