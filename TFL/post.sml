@@ -17,10 +17,10 @@ signature TFL =
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val define_i : theory -> string -> term -> term list
+   val define_i : theory -> xstring -> term -> term list
                   -> theory * Prim.pattern list
 
-   val define   : theory -> string -> string -> string list 
+   val define   : theory -> xstring -> string -> string list 
                   -> theory * Prim.pattern list
 
    val simplify_defn : simpset * thm list 
