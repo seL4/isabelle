@@ -30,14 +30,19 @@ sig
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
-  val update_new: (key * 'a) * 'a table -> 'a table                 (*exception DUP*)
-  val make: (key * 'a) list -> 'a table                             (*exception DUPS*)
-  val extend: 'a table * (key * 'a) list -> 'a table                (*exception DUPS*)
-  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table   (*exception DUPS*)
+  val update_new: (key * 'a) * 'a table -> 'a table                    (*exception DUP*)
+  val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
+  val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUPS*)
+  val join: ('a * 'a -> 'a option) -> 'a table * 'a table -> 'a table  (*exception DUPS*)
+  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
   val lookup_multi: 'a list table * key -> 'a list
   val update_multi: (key * 'a) * 'a list table -> 'a list table
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
+  val merge_multi: ('a * 'a -> bool) ->
+    'a list table * 'a list table -> 'a list table    (*exception DUPS*)
+  val merge_multi': ('a * 'a -> bool) ->
+    'a list table * 'a list table -> 'a list table    (*exception DUPS*)
 end;
 
 functor TableFun(Key: KEY): TABLE =
@@ -160,42 +165,57 @@ fun update_new (pair as (key, _), tab) =
   else raise DUP key;
 
 
-(* make, extend, merge tables *)
+(* extend and make *)
 
-fun add eq ((tab, dups), (key, x)) =
-  (case lookup (tab, key) of
-    None => (update ((key, x), tab), dups)
-  | Some x' =>
-      if eq (x, x') then (tab, dups)
-      else (tab, dups @ [key]));
+fun extend (table, pairs) =
+  let
+    fun add ((tab, dups), (key, x)) =
+      (case lookup (tab, key) of
+        None => (update ((key, x), tab), dups)
+      | _ => (tab, key :: dups));
+  in
+    (case foldl add ((table, []), pairs) of
+      (table', []) => table'
+    | (_, dups) => raise DUPS (rev dups))
+  end;
 
-fun enter eq (tab, pairs) =
-  (case foldl (add eq) ((tab, []), pairs) of
-    (tab', []) => tab'
-  | (_, dups) => raise DUPS dups);
-
-fun extend tab_pairs = enter (K false) tab_pairs;
 fun make pairs = extend (empty, pairs);
-fun merge eq (tab1, tab2) = enter eq (tab1, dest tab2);
+
+
+(* join and merge *)
+
+fun join f (table1, table2) =
+  let
+    fun add ((tab, dups), (key, x)) =
+      (case lookup (tab, key) of
+        None => (update ((key, x), tab), dups)
+      | Some y =>
+          (case f (y, x) of
+            Some z => (update ((key, z), tab), dups)
+          | None => (tab, key :: dups)));
+  in
+    (case foldl_table add ((table1, []), table2) of
+      (table', []) => table'
+    | (_, dups) => raise DUPS (rev dups))
+  end;
+
+fun merge eq tabs = join (fn (y, x) => if eq (y, x) then Some y else None) tabs;
 
 
 (* tables with multiple entries per key (preserving order) *)
 
 fun lookup_multi tab_key = if_none (lookup tab_key) [];
-
-fun update_multi ((key, x), tab) =
-  update ((key, x :: lookup_multi (tab, key)), tab);
+fun update_multi ((key, x), tab) = update ((key, x :: lookup_multi (tab, key)), tab);
 
 fun make_multi pairs = foldr update_multi (pairs, empty);
-
-fun dest_multi tab =
-  flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
+fun dest_multi tab = flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
+fun merge_multi eq tabs = join (fn (xs, xs') => Some (gen_merge_lists eq xs xs')) tabs;
+fun merge_multi' eq tabs = join (fn (xs, xs') => Some (gen_merge_lists' eq xs xs')) tabs;
 
 
 (*final declarations of this structure!*)
 val map = map_table;
 val foldl = foldl_table;
-
 
 end;
 
