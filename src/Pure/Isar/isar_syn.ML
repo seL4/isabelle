@@ -296,7 +296,7 @@ val localeP =
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
 val long_statement =
-  Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement) || statement >> pair [];
+  statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
 
 fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
