@@ -965,6 +965,34 @@ lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
   apply (drule_tac a = a in mk_disjoint_insert, auto)
   done
 
+(* By Jeremy Siek: *)
+
+lemma setsum_diff: 
+  assumes finB: "finite B"
+  shows "B \<subseteq> A \<Longrightarrow> (setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
+using finB
+proof (induct)
+  show "setsum f (A - {}) = (setsum f A) - (setsum f {})" by simp
+next
+  fix F x assume finF: "finite F" and xnotinF: "x \<notin> F"
+    and xFinA: "insert x F \<subseteq> A"
+    and IH: "F \<subseteq> A \<Longrightarrow> setsum f (A - F) = setsum f A - setsum f F"
+  from xnotinF xFinA have xinAF: "x \<in> (A - F)" by simp
+  from xinAF have A: "setsum f ((A - F) - {x}) = setsum f (A - F) - f x"
+    by (simp add: setsum_diff1)
+  from xFinA have "F \<subseteq> A" by simp
+  with IH have "setsum f (A - F) = setsum f A - setsum f F" by simp
+  with A have B: "setsum f ((A - F) - {x}) = setsum f A - setsum f F - f x"
+    by simp
+  from xnotinF have "A - insert x F = (A - F) - {x}" by auto
+  with B have C: "setsum f (A - insert x F) = setsum f A - setsum f F - f x"
+    by simp
+  from finF xnotinF have "setsum f (insert x F) = setsum f F + f x" by simp
+  with C have "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)"
+    by simp
+  thus "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)" by simp
+qed
+
 lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::comm_ring_1) A =
   - setsum f A"
   by (induct set: Finites, auto)
