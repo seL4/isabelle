@@ -193,7 +193,7 @@ val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
 val defaultTflCongs = eq_reflect_list [Thms.LET_CONG, if_cong];
 
 fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
-   let val dummy = deny (id  mem  map ! (stamps_of_thy thy))
+   let val dummy = deny (id mem (Sign.stamp_names_of (sign_of thy)))
                         ("Recursive definition " ^ id ^ 
                          " would clash with the theory of the same name!")
        val def =  freezeT(get_def thy id)   RS   meta_eq_to_obj_eq

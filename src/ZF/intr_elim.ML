@@ -50,7 +50,7 @@ let
 val rec_names = map (#1 o dest_Const o head_of) Inductive.rec_tms;
 val big_rec_base_name = space_implode "_" (map Sign.base_name rec_names);
 
-val _ = deny (big_rec_base_name  mem  map ! (stamps_of_thy Inductive.thy))
+val _ = deny (big_rec_base_name mem (Sign.stamp_names_of (sign_of Inductive.thy)))
              ("Definition " ^ big_rec_base_name ^ 
               " would clash with the theory of the same name!");
 
