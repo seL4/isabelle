@@ -130,7 +130,7 @@ qed "Nonce_supply";
 
 (*Tactic for possibility theorems*)
 fun possibility_tac st = st |>
-    REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
+    REPEAT (*omit used_Says so that Nonces start from different traces!*)
     (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
@@ -150,7 +150,8 @@ qed "insert_Key_image";
 (*Reverse the normal simplification of "image" to build up (not break down)
   the set of keys.  Based on analz_image_freshK_ss, but simpler.*)
 val analz_image_keys_ss = 
-     !simpset delsimps [image_insert, image_Un]
+     !simpset addcongs [if_weak_cong]
+	      delsimps [image_insert, image_Un]
               addsimps [image_insert RS sym, image_Un RS sym,
 			rangeI, 
 			insert_Key_singleton, 

@@ -197,8 +197,10 @@ qed "Key_supply";
 
 (*** Tactics for possibility theorems ***)
 
+(*Omitting used_Says makes the tactic much faster: it leaves expressions
+    such as  Nonce ?N ~: used evs that match Nonce_supply*)
 fun possibility_tac st = st |>
-   (REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
+   (REPEAT 
     (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
@@ -231,7 +233,8 @@ qed "insert_Key_image";
   the set of keys.  Use analz_insert_eq with (Un_upper2 RS analz_mono) to
   erase occurrences of forwarded message components (X).*)
 val analz_image_freshK_ss = 
-     !simpset delsimps [image_insert, image_Un]
+     !simpset addcongs [if_weak_cong]
+	      delsimps [image_insert, image_Un]
               addsimps ([image_insert RS sym, image_Un RS sym,
                          analz_insert_eq, impOfSubs (Un_upper2 RS analz_mono),
                          insert_Key_singleton, subset_Compl_range,
