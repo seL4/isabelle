@@ -81,6 +81,14 @@ val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
 val iff_allI = allI RS
     prove_goal (the_context()) "!x. P x = Q x ==> (!x. P x) = (!x. Q x)"
                (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
+val iff_exI = allI RS
+    prove_goal (the_context()) "!x. P x = Q x ==> (? x. P x) = (? x. Q x)"
+               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
+
+val all_comm = prove_goal (the_context()) "(!x y. P x y) = (!y x. P x y)"
+               (fn _ => [Blast_tac 1])
+val ex_comm = prove_goal (the_context()) "(? x y. P x y) = (? y x. P x y)"
+               (fn _ => [Blast_tac 1])
 in
 
 (*** make simplification procedures for quantifier elimination ***)
@@ -99,6 +107,7 @@ structure Quantifier1 = Quantifier1Fun
   (*rules*)
   val iff_reflection = eq_reflection
   val iffI = iffI
+  val iff_trans = trans
   val conjI= conjI
   val conjE= conjE
   val impI = impI
@@ -107,15 +116,18 @@ structure Quantifier1 = Quantifier1Fun
   val exI  = exI
   val exE  = exE
   val iff_allI = iff_allI
+  val iff_exI = iff_exI
+  val all_comm = all_comm
+  val ex_comm = ex_comm
 end);
 
 end;
 
 local
 val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-    ("EX x. P(x) & Q(x)",HOLogic.boolT)
+    ("EX x. P(x)",HOLogic.boolT)
 val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-    ("ALL x. P(x) --> Q(x)",HOLogic.boolT)
+    ("ALL x. P(x)",HOLogic.boolT)
 in
 val defEX_regroup = mk_simproc "defined EX" [ex_pattern]
       Quantifier1.rearrange_ex

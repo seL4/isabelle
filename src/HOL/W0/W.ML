@@ -157,40 +157,40 @@ by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list])1);
 by (asm_full_simp_tac (simpset() addsimps
     [free_tv_subst] addsplits [split_bind]) 1);
 by (strip_tac 1);
-by (rename_tac "s t na sa ta m v" 1);
+by (rename_tac "s t n1 v" 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (eres_inst_tac [("x","TVar n # a")] allE 1);
 by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
-by (eres_inst_tac [("x","na")] allE 1);
+by (eres_inst_tac [("x","n1")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
 by (force_tac (claset() addSEs [allE] addIs [cod_app_subst], simpset()) 1);
 (** LEVEL 13 **)
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
-by (strip_tac 1); 
-by (rename_tac "s t na sa ta nb sb sc tb m v" 1);
+by (strip_tac 1);
+by (rename_tac "s t n1 s1 t1 n2 s3 v" 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
-by (eres_inst_tac [("x","na")] allE 1);
-by (eres_inst_tac [("x","na")] allE 1);
+by (eres_inst_tac [("x","n1")] allE 1);
+by (eres_inst_tac [("x","n1")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
 (** LEVEL 23 **)
 (* second case *)
 by (eres_inst_tac [("x","$ s a")] allE 1);
-by (eres_inst_tac [("x","sa")] allE 1);
-by (eres_inst_tac [("x","ta")] allE 1);
-by (eres_inst_tac [("x","nb")] allE 1);
+by (eres_inst_tac [("x","s1")] allE 1);
+by (eres_inst_tac [("x","t1")] allE 1);
+by (eres_inst_tac [("x","n2")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
 by (safe_tac (empty_cs addSIs [conjI,impI] addSEs [conjE]) ); 
-by (asm_full_simp_tac (simpset() addsimps [rotate_Ok,o_def]) 1);
-by (dtac W_var_geD 1);
-by (dtac W_var_geD 1);
-by ( (ftac less_le_trans 1) THEN (assume_tac 1) );
+ by (asm_full_simp_tac (simpset() addsimps [rotate_Ok,o_def]) 1);
+ by (dtac W_var_geD 1);
+ by (dtac W_var_geD 1);
+ by ( (ftac less_le_trans 1) THEN (assume_tac 1) );
 (** LEVEL 33 **)
-by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
+ by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
     codD,free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
     subsetD]
   addEs [UnE] 

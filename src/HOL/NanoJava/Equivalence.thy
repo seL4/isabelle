@@ -106,43 +106,40 @@ by(simp add: cnvalids_def nvalids_def nvalid_def2)
 lemma hoare_sound_main:"\<And>t. (A |\<turnstile> C \<longrightarrow> A |\<Turnstile> C) \<and> (A |\<turnstile>\<^sub>e t \<longrightarrow> A |\<Turnstile>\<^sub>e t)"
 apply (tactic "split_all_tac 1", rename_tac P e Q)
 apply (rule hoare_ehoare.induct)
+(*18*)
 apply (tactic {* ALLGOALS (REPEAT o dresolve_tac [thm "all_conjunct2", thm "all3_conjunct2"]) *})
 apply (tactic {* ALLGOALS (REPEAT o thin_tac "?x :  hoare") *})
 apply (tactic {* ALLGOALS (REPEAT o thin_tac "?x : ehoare") *})
 apply (simp_all only: cnvalid1_eq cenvalid_def2)
-apply fast
-apply fast
-apply fast
-apply (clarify,tactic "smp_tac 1 1",erule(2) Loop_sound_lemma,(rule HOL.refl)+)
-apply fast
-apply fast
-apply fast
-apply fast
-apply fast
-apply fast
-apply (clarsimp del: Meth_elim_cases) (* Call *)
-apply (tactic "smp_tac 1 1", tactic "smp_tac 3 1", tactic "smp_tac 0 1")
-apply (tactic "smp_tac 2 1", tactic "smp_tac 3 1", tactic "smp_tac 0 1")
-apply (tactic "smp_tac 4 1", tactic "smp_tac 2 1", fast)
-apply (force del: Impl_elim_cases) (* Meth *)
-defer
-prefer 4 apply blast (*  Conseq *)
-prefer 4 apply blast (* eConseq *)
-apply (simp_all (no_asm_use) only: cnvalids_def nvalids_def)
-apply blast
-apply blast
-apply blast
-(* Impl *)
+                 apply fast
+                apply fast
+               apply fast
+              apply (clarify,tactic "smp_tac 1 1",erule(2) Loop_sound_lemma,(rule HOL.refl)+)
+             apply fast
+            apply fast
+           apply fast
+          apply fast
+         apply fast
+        apply fast
+       apply (clarsimp del: Meth_elim_cases) (* Call *)
+      apply (force del: Impl_elim_cases)
+     defer
+     prefer 4 apply blast (*  Conseq *)
+    prefer 4 apply blast (* eConseq *)
+   apply (simp_all (no_asm_use) only: cnvalids_def nvalids_def)
+   apply blast
+  apply blast
+ apply blast
 apply (rule allI)
 apply (rule_tac x=Z in spec)
 apply (induct_tac "n")
-apply  (clarify intro!: Impl_nvalid_0)
+ apply  (clarify intro!: Impl_nvalid_0)
 apply (clarify  intro!: Impl_nvalid_Suc)
 apply (drule nvalids_SucD)
 apply (simp only: all_simps)
 apply (erule (1) impE)
 apply (drule (2) Impl_sound_lemma)
-apply  blast
+ apply  blast
 apply assumption
 done
 

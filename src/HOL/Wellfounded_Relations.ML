@@ -179,7 +179,6 @@ by (strip_tac 1);
 by (rename_tac "a b" 1);
 by (case_tac "wf(R a)" 1);
  by (eres_inst_tac [("a","b")] wf_induct 1);
- by (EVERY1[etac allE, etac allE, etac mp, rtac allI, rtac allI]);
  by (Blast_tac 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "wf_same_fst";
