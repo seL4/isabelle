@@ -877,6 +877,8 @@ val UN_simps = map prover
      "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
      "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
      "(UN x:C. A - B x)    = (A - (INT x:C. B x))",
+     "(UN x: Union A. B x) = (UN y:A. UN x:y. B x)",
+     "(UN z: UNION A B. C z) = (UN  x:A. UN z: B(x). C z)",
      "(UN x:f``A. B x)     = (UN a:A. B(f a))"];
 
 val INT_simps = map prover
@@ -887,6 +889,8 @@ val INT_simps = map prover
      "(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
      "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
      "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))",
+     "(INT x: Union A. B x) = (INT y:A. INT x:y. B x)",
+     "(INT z: UNION A B. C z) = (INT x:A. INT z: B(x). C z)",
      "(INT x:f``A. B x)    = (INT a:A. B(f a))"];
 
 
