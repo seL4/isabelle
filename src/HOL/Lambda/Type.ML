@@ -354,16 +354,8 @@ by (eres_inst_tac [("x", "Ts =>> T")] allE 1);
 by (eres_inst_tac [("x", "a[u/i]")] allE 1);
 by (eres_inst_tac [("x", "0")] allE 1);
 by (etac impE 1);
-by (Simp_tac 1);
 by (rtac typing.APP 1);
-by (subgoal_tac "(%j. if j = 0 then Ta else e (j - 1)) =  \
- \  (%j. if j < 0 then e j else if j = 0 then Ta else e (j - 1))" 1);
-byev [etac ssubst 1, rtac lift_type' 1];
-by (assume_tac 1);
-by (rtac ext 1);
-by (case_tac "j" 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by (etac lift_type' 1);
 by (rtac typing.VAR 1);
 by (Simp_tac 1);
 by (fast_tac (claset() addSIs [subst_lemma]) 1);
