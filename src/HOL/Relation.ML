@@ -341,6 +341,11 @@ qed "ImageE";
 AddIs  [ImageI];
 AddSEs [ImageE];
 
+(*This version's more effective when we already have the required "a"*)
+Goal  "[| a:A;  (a,b): r |] ==> b : r^^A";
+by (Blast_tac 1);
+qed "rev_ImageI";
+
 
 Goal "R^^{} = {}";
 by (Blast_tac 1);
