@@ -21,13 +21,18 @@ X-Symbol;
 *** Isar ***
 
 * improved proof by cases and induction:
-  - divinate induct rule instantiation (excessive ?P bindings no longer required);
-  - proper enumeration of all possibilities of set/type rules (as a consequence
-    facts may be also passed through *type* rules without further ado);
-  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
-  - moved induct/cases attributes to Pure;
-  - generic setup instantiated for FOL and HOL;
+  - 'case' command admits impromptu naming of parameters (such as
+    "case (Suc n)");
+  - 'induct' method divinates rule instantiation from the inductive
+    claim; no longer requires excessive ?P bindings for proper
+    instantiation of cases;
+  - 'induct' method properly enumerates all possibilities of set/type
+    rules; as a consequence facts may be also passed through *type*
+    rules without further ado;
   - removed obsolete "(simplified)" and "(stripped)" options of methods;
+  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
+  - moved induct/cases attributes to Pure, methods to Provers;
+  - generic method setup instantiated for FOL and HOL;
 
 * Pure: renamed "antecedent" case to "rule_context";
 
@@ -43,7 +48,7 @@ X-Symbol;
 * HOL: 'inductive' now longer features separate (collective)
 attributes for 'intros';
 
-* HOL: canonical 'cases'/'induct' rules for n-tuples (n=3..7)
+* HOL: canonical cases/induct rules for n-tuples (n = 3..7);
 
 
 *** HOL ***
