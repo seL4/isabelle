@@ -71,6 +71,10 @@ by (simp_tac (simpset() addsimps [component_eq_subset, Acts_Join]) 1);
 by (Blast_tac 1);
 qed "Join_component_iff";
 
+Goal "[| F component G; G : A co B |] ==> F : A co B";
+by (auto_tac (claset(), 
+	      simpset() addsimps [constrains_def, component_eq_subset]));
+qed "component_constrains";
 
 (*** existential properties ***)
 
