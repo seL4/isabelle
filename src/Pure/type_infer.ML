@@ -330,9 +330,9 @@ fun infer prt prT classrel arities =
           "Type error in application: " ^ why,
           "",
           str_of (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t',
-            Pretty.str " :: ", prT T']),
+            Pretty.str " ::", Pretty.brk 1, prT T']),
           str_of (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
-            Pretty.str " :: ", prT U']), ""];
+            Pretty.str " ::", Pretty.brk 1, prT U']), ""];
       in raise TYPE (text, [T', U'], [t', u']) end;
 
     fun err_constraint msg bs t T U =
@@ -343,7 +343,7 @@ fun infer prt prT classrel arities =
           "Cannot meet type constraint:",
           "",
           str_of (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
-            Pretty.str " :: ", prT T']),
+            Pretty.str " ::", Pretty.brk 1, prT T']),
           str_of (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
       in raise TYPE (text, [T', U'], [t']) end;
 
