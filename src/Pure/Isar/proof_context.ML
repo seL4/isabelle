@@ -39,7 +39,6 @@ sig
   val bind_propp_i: context * (term * (term list * term list)) -> context * term
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
-  val thms_closure: context -> xstring -> thm list option
   val get_thm: context -> string -> thm
   val get_thms: context -> string -> thm list
   val get_thmss: context -> string list -> thm list
@@ -58,7 +57,6 @@ sig
     -> context -> context * ((string * thm list) list * thm list)
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ) list -> context -> context
-  val transfer_used_names: context -> context -> context
   val setup: (theory -> theory) list
 end;
 
@@ -137,7 +135,8 @@ fun strings_of_binds (Context {thy, binds, ...}) =
     fun pretty_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
-    else [Pretty.string_of (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds)))]
+    else [Pretty.string_of (Pretty.big_list "Term bindings:"
+      (map pretty_bind (Vartab.dest binds)))]
   end;
 
 val print_binds = seq writeln o strings_of_binds;
@@ -585,18 +584,6 @@ val auto_bind_facts = add_binds_i oo AutoBind.facts;
 
 (** theorems **)
 
-(* thms_closure *)
-
-fun thms_closure (Context {thy, thms, ...}) =
-  let
-    val global_closure = PureThy.thms_closure thy;
-    fun get name =
-      (case global_closure name of
-        None => Symtab.lookup (thms, name)
-      | some => some);
-  in get end;
-
-
 (* get_thm(s) *)
 
 fun get_thm (ctxt as Context {thy, thms, ...}) name =
@@ -687,30 +674,21 @@ end;
 
 (* fix *)
 
-fun read_skolemT (Context {defs = (_, _, _, used), ...}) None = Type.param used ("'z", logicS)
-  | read_skolemT ctxt (Some s) = read_typ ctxt s;
-
 fun gen_fix prep check (ctxt, (x, raw_T)) =
-  ctxt
-  |> declare_term (Free (check_skolem ctxt check x, prep ctxt raw_T))
-  |> map_context (fn (thy, data, (assumes, (fixes, names)), binds, thms, defs) =>
+  (check_skolem ctxt check x;
+    ctxt
+    |> (case prep ctxt raw_T of None => I | Some T => declare_term (Free (x, T)))
+    |> map_context (fn (thy, data, (assumes, (fixes, names)), binds, thms, defs) =>
       let val x' = variant names x in
         (thy, data, (assumes, ((x, Syntax.skolem x') :: fixes, x' :: names)), binds, thms, defs)
-      end);
+      end));
 
 fun gen_fixs prep check vars ctxt =
   foldl (gen_fix prep check) (ctxt, flat (map (fn (xs, T) => map (rpair T) xs) vars));
 
+val fix = gen_fixs (apsome o read_typ) true;
+val fix_i = gen_fixs (Some oo cert_typ) false;
 
-val fix = gen_fixs read_skolemT true;
-val fix_i = gen_fixs cert_typ false;
-
-
-(* used names *)
-
-fun transfer_used_names (Context {asms = (_, (_, names)), defs = (_, _, _, used), ...}) =
-  map_context (fn (thy, data, (asms, (fixes, _)), binds, thms, (types, sorts, maxidx, _)) =>
-    (thy, data, (asms, (fixes, names)), binds, thms, (types, sorts, maxidx, used)));
 
 
 (** theory setup **)
