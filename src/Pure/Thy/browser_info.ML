@@ -53,13 +53,21 @@ fun normalize_path p =
 
 (*create directory
   FIXME: move to library?*)
-fun mkdir path = (execute ("mkdir -p " ^ path) ; ());
+fun mkdir path = (execute ("mkdir -p " ^ path); ());
 
 
 (*Path of Isabelle's main (source) directory
   FIXME: this value should be provided by isatool!*)
 val base_path = ref (
   "/" ^ space_implode "/" (rev (tl (tl (rev (space_explode "/" (OS.FileSys.getDir ())))))));
+
+
+(* copy contents of file *)  (* FIXME: move to library?*)
+
+fun copy_file infile outfile =
+  if not (file_exists infile) then ()
+  else write_file outfile (read_file infile);
+
 
 
 (******************** HTML generation functions *************************)
@@ -436,17 +444,6 @@ fun init_html () =
            TextIO.closeOut cpure_out;
            pure_subchart := Some (html_path cwd)
         end;
-
-      (*Copy files
-        FIXME: move to library?*)
-      fun copy_file infile outfile = if not (file_exists infile) then () else
-        let val is = TextIO.openIn infile;
-            val inp = TextIO.inputAll is;
-            val _ = TextIO.closeIn is;
-            val os = TextIO.openOut outfile;
-            val _ = TextIO.output (os, inp);
-            val _ = TextIO.closeOut os
-        in () end
 
   in make_html := true;
      (*Make sure that base_path contains the physical path and no
