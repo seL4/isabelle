@@ -241,17 +241,17 @@ fun meth4 x =
  (position (xname >> rpair []) >> (Method.Source o Args.src) ||
   $$$ "(" |-- meth0 --| $$$ ")") x
 and meth3 x =
- (position (xname -- args1 false) >> (Method.Source o Args.src) ||
-  meth4) x
-and meth2 x =
  (meth4 --| $$$ "?" >> Method.Try ||
   meth4 --| $$$ "*" >> Method.Repeat ||
   meth4 --| $$$ "+" >> Method.Repeat1 ||
+  meth4) x
+and meth2 x =
+ (position (xname -- args1 false) >> (Method.Source o Args.src) ||
   meth3) x
 and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Method.Then ms)) x
 and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Method.Orelse ms)) x;
 
-val method = meth2;
+val method = meth3;
 
 
 end;
