@@ -16,6 +16,7 @@ use "attrib.ML";
 use "method.ML";
 
 (*derived proof elements*)
+use "local_defs.ML";
 use "calculation.ML";
 use "skip_proof.ML";
 
