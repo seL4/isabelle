@@ -347,6 +347,12 @@ goalw CardinalArith.thy [InfCard_def] "!!K. InfCard(K) ==> Card(K)";
 by (etac conjunct1 1);
 val InfCard_is_Card = result();
 
+goalw CardinalArith.thy [InfCard_def]
+    "!!K L. [| InfCard(K);  Card(L) |] ==> InfCard(K Un L)";
+by (asm_simp_tac (ZF_ss addsimps [Card_Un, Un_upper1_le RSN (2,le_trans), 
+				  Card_is_Ord]) 1);
+val InfCard_Un = result();
+
 (*Kunen's Lemma 10.11*)
 goalw CardinalArith.thy [InfCard_def] "!!K. InfCard(K) ==> Limit(K)";
 by (etac conjE 1);
