@@ -1285,7 +1285,7 @@ recommend the {\tt find}-functions (see the {\em Reference Manual\/}).
         & & mapping functional\\
   \cdx{filter}  & $(\alpha \To bool) \To (\alpha\,list \To \alpha\,list)$
         & & filter functional\\
-  \cdx{set_of_list}& $\alpha\,list \To \alpha\,set$ & & elements\\
+  \cdx{set}& $\alpha\,list \To \alpha\,set$ & & elements\\
   \sdx{mem}  & $[\alpha,\alpha\,list]\To bool$    &  Left 55   & membership\\
   \cdx{foldl}   & $(\beta\To\alpha\To\beta) \To \beta \To \alpha\,list \To \beta$ &
   & iteration \\
@@ -1333,8 +1333,8 @@ map f (x#xs) = f x # map f xs
 filter P [] = []
 filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
 
-set_of_list [] = \ttlbrace\ttrbrace
-set_of_list (x#xs) = insert x (set_of_list xs)
+set [] = \ttlbrace\ttrbrace
+set (x#xs) = insert x (set xs)
 
 x mem [] = False
 x mem (y#ys) = (if y=x then True else x mem ys)
