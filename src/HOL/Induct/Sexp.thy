@@ -1,9 +1,10 @@
-(*  Title:      HOL/Sexp
+(*  Title:      HOL/Induct/Sexp.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-S-expressions, general binary trees for defining recursive data structures
+S-expressions, general binary trees for defining recursive data
+structures by hand.
 *)
 
 Sexp = Univ + Inductive +

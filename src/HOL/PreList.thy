@@ -8,8 +8,7 @@ basis for theory ToyList in the documentation.
 *)
 
 theory PreList =
-  Option + WF_Rel + NatBin + Recdef + Record + RelPow + Sexp + Calculation
-  + SVC_Oracle
+  Option + WF_Rel + NatBin + Recdef + Record + RelPow + Calculation + SVC_Oracle
 files "Integ/NatSimprocs.ML":
 
 end
