@@ -23,7 +23,7 @@ information is available from the local pages
 href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/cambridge.html"><strong>Isabelle
 at Cambridge</strong></a>
 
-<li><a href="http://isabelle.in.tum.de/munich.html"><strong>Isabelle
+<li><a href="http://www4.in.tum.de/proj/theoremprov/group.html"><strong>Isabelle
 at Munich</strong></a>
 
 </ul>
@@ -31,6 +31,15 @@ at Munich</strong></a>
 See there for information on projects done with Isabelle, mailing list
 archives, research papers, the Isabelle bibliography, and Isabelle
 workshops and courses.
+
+<p>
+
+<h2>Out now</h2>
+
+The 
+<a href="dist/<!-- _GP_ distname -->/doc/tutorial.pdf">Tutorial on Isabelle/HOL</a> --
+published by Springer Verlag as <a
+href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>.
 
 <p>
 
