@@ -28,6 +28,7 @@ signature PRETTY =
   type T
   val str: string -> T
   val strlen: string -> int -> T
+  val strlen_real: string -> real -> T
   val sym: string -> T
   val spc: int -> T
   val brk: int -> T
@@ -50,6 +51,7 @@ signature PRETTY =
   val pprint: T -> pprint_args -> unit
   val setdepth: int -> unit
   val setmargin: int -> unit
+  val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   end;
 
 structure Pretty : PRETTY =
@@ -100,18 +102,14 @@ fun string s len {tx,nl,pos:int} =
 
 (* margin *)
 
-(*example values*)
-val margin      = ref 80        (*right margin, or page width*)
-and breakgain   = ref 4         (*minimum added space required of a break*)
-and emergencypos = ref 40;      (*position too far to right*)
+fun make_margin_info m =
+ {margin = m,                   (*right margin, or page width*)
+  breakgain = m div 20,         (*minimum added space required of a break*)
+  emergencypos = m div 2};      (*position too far to right*)
 
-fun setmargin m =
-    (margin     := m;
-     breakgain  := !margin div 20;
-     emergencypos := !margin div 2);
-
-val () = setmargin 76;
-
+val margin_info = ref (make_margin_info 76);
+fun setmargin m = margin_info := make_margin_info m;
+fun setmp_margin m f = setmp margin_info (make_margin_info m) f;
 
 (*Search for the next break (at this or higher levels) and force it to occur*)
 fun forcenext [] = []
@@ -125,7 +123,7 @@ fun format ([], _, _) text = text
   | format (e::es, blockin, after) (text as {pos,nl,...}) =
     (case e of
        Block(bes,indent,wd) =>
-         let val blockin' = (pos + indent) mod !emergencypos
+         let val blockin' = (pos + indent) mod #emergencypos (! margin_info)
              val btext = format(bes, blockin', breakdist(es,after)) text
              (*If this block was broken then force the next break.*)
              val es2 = if nl < #nl(btext) then forcenext es else es
@@ -135,8 +133,8 @@ fun format ([], _, _) text = text
                             or if breaking would add only breakgain to space *)
            format (es,blockin,after)
                (if not force andalso
-                   pos+wd <= Int.max(!margin - breakdist(es,after),
-                                     blockin + !breakgain)
+                   pos+wd <= Int.max(#margin (! margin_info) - breakdist(es,after),
+                                     blockin + #breakgain (! margin_info))
                 then blanks wd text  (*just insert wd blanks*)
                 else blanks blockin (newline text)));
 
@@ -149,6 +147,7 @@ fun length (Block (_, _, len)) = len
 
 fun str s = String (s, size s);
 fun strlen s len = String (s, len);
+fun strlen_real s len = strlen s (Real.round len);
 val sym = String o apsnd Real.round o Symbol.output_width;
 
 fun spc n = str (repstring " " n);
@@ -216,7 +215,7 @@ fun pruning dp (Block(bes,indent,wd)) =
 fun prune dp e = if dp>0 then pruning dp e else e;
 
 
-fun string_of e = #tx (format ([prune (!depth) e], 0, 0) emptytext);
+fun string_of e = #tx (format ([prune (! depth) e], 0, 0) emptytext);
 
 val writeln = writeln o string_of;
 
@@ -228,9 +227,7 @@ fun str_of prt =
       | s_of (String (s, _)) = s
       | s_of (Break (false, wd)) = repstring " " wd
       | s_of (Break (true, _)) = " ";
-  in
-    s_of (prune (! depth) prt)
-  end;
+  in s_of (prune (! depth) prt) end;
 
 (*Part of the interface to the Poly/ML and New Jersey ML pretty printers*)
 fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
