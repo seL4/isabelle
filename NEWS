@@ -89,6 +89,11 @@ rewrite rules declarations of 'atomize' attribute; example
 application: 'induct' method with proper rule statements in improper
 proof *scripts*;
 
+* Pure: emulation of instantiation tactics (rule_tac, cut_tac, etc.)
+now consider the syntactic context of assumptions, giving a better
+chance to get type-inference of the arguments right (this is
+especially important for locales);
+
 * Provers: 'simplified' attribute may refer to explicit rules instead
 of full simplifier context; 'iff' attribute handles conditional rules;
 
@@ -213,6 +218,10 @@ output of nested => (types); the default behavior is "type_brackets";
 
 * syntax: builtin parse translation for "_constify" turns valued
 tokens into AST constants;
+
+* system: refrain from any attempt at filtering input streams; no
+longer support ``8bit'' encoding of old isabelle font, instead proper
+iso-latin characters may now be used;
 
 * system: support Poly/ML 4.1.1 (now able to manage large heaps);
 
