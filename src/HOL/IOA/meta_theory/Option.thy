@@ -7,5 +7,5 @@ Datatype 'a option
 *)
 
 Option = Arith +
-datatype 'a option = None | Some('a)
+datatype 'a option = None | Some ('a)
 end

@@ -24,16 +24,17 @@ consts
   trans_of   ::"('action,'state)ioa => ('action,'state)transition set"
   IOA	     ::"('action,'state)ioa => bool"
 
-  (* Executions, schedules, and behaviours *)
+  (* Executions, schedules, and traces *)
 
   is_execution_fragment,
   has_execution ::"[('action,'state)ioa, ('action,'state)execution] => bool"
   executions    :: "('action,'state)ioa => ('action,'state)execution set"
-  mk_behaviour  :: "[('action,'state)ioa, 'action oseq] => 'action oseq"
+  mk_trace  :: "[('action,'state)ioa, 'action oseq] => 'action oseq"
   reachable     :: "[('action,'state)ioa, 'state] => bool"
   invariant     :: "[('action,'state)ioa, 'state=>bool] => bool"
-  has_behaviour :: "[('action,'state)ioa, 'action oseq] => bool"
-  behaviours    :: "('action,'state)ioa => 'action oseq set"
+  has_trace :: "[('action,'state)ioa, 'action oseq] => bool"
+  traces    :: "('action,'state)ioa => 'action oseq set"
+  NF            :: "'a oseq => 'a oseq"
 
   (* Composition of action signatures and automata *)
   compatible_asigs ::"('a => 'action signature) => bool"
@@ -44,7 +45,7 @@ consts
   (* binary composition of action signatures and automata *)
   compat_asigs ::"['action signature, 'action signature] => bool"
   asig_comp    ::"['action signature, 'action signature] => 'action signature"
-  compat_ioas  ::"[('action,'state)ioa, ('action,'state)ioa] => bool"
+  compat_ioas  ::"[('action,'s)ioa, ('action,'t)ioa] => bool"
   "||"         ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr 10)
 
   (* Filtering and hiding *)
@@ -56,6 +57,8 @@ consts
   (* Notions of correctness *)
   ioa_implements :: "[('action,'state1)ioa, ('action,'state2)ioa] => bool"
 
+  (* Instantiation of abstract IOA by concrete actions *)
+  rename:: "('a, 'b)ioa => ('c => 'a option) => ('c,'b)ioa"
 
 defs
 
@@ -90,20 +93,7 @@ executions_def
   "executions(ioa) == {e. snd e 0:starts_of(ioa) &                      \
 \                        is_execution_fragment ioa e}"
 
-
-(* Is a state reachable. Using an inductive definition, this could be defined
- * by the following 2 rules
- *
- *      x:starts_of(ioa)
- *      ----------------
- *      reachable(ioa,x)  
- *
- *      reachable(ioa,s) & ? (s,a,s'):trans_of(ioa)
- *      -------------------------------------------
- *               reachable(ioa,s')
- *
- * A direkt definition follows.
- *******************************)
+  
 reachable_def
   "reachable ioa s == (? ex:executions(ioa). ? n. (snd ex n) = s)"
 
@@ -119,21 +109,30 @@ filter_oseq_def
 \          | Some(x) => if p x then Some x else None)"
 
 
-mk_behaviour_def
-  "mk_behaviour(ioa) == filter_oseq(%a.a:externals(asig_of(ioa)))"
+mk_trace_def
+  "mk_trace(ioa) == filter_oseq(%a.a:externals(asig_of(ioa)))"
 
 
-(* Does an ioa have an execution with the given behaviour *)
-has_behaviour_def
-  "has_behaviour ioa b ==                                               \
-\     (? ex:executions(ioa). b = mk_behaviour ioa (fst ex))"
+(* Does an ioa have an execution with the given trace *)
+has_trace_def
+  "has_trace ioa b ==                                               \
+\     (? ex:executions(ioa). b = mk_trace ioa (fst ex))"
 
+normal_form_def
+  "NF(tr) == @nf. ? f. mono(f) & (!i. nf(i)=tr(f(i))) &   \
+\                    (!j. j ~: range(f) --> nf(j)= None) &   \
+\                    (!i. nf(i)=None --> (nf (Suc i)) = None)   "
+  
+(* All the traces of an ioa *)
 
-(* All the behaviours of an ioa *)
-behaviours_def
-  "behaviours(ioa) == {b. has_behaviour ioa b}"
+  traces_def
+  "traces(ioa) == {trace. ? tr. trace=NF(tr) & has_trace ioa tr}"
 
-
+(*
+  traces_def
+  "traces(ioa) == {tr. has_trace ioa tr}"
+*)
+  
 compat_asigs_def
   "compat_asigs a1 a2 ==                                                \
  \ (((outputs(a1) Int outputs(a2)) = {}) &                              \
@@ -179,8 +178,19 @@ restrict_def
 
 
 ioa_implements_def
-  "ioa_implements ioa1 ioa2 ==        \
-\     (externals(asig_of(ioa1)) = externals(asig_of(ioa2)) & \
-\      behaviours(ioa1) <= behaviours(ioa2))"
+  "ioa_implements ioa1 ioa2 ==   \
+\  ((inputs(asig_of(ioa1)) = inputs(asig_of(ioa2))) &   \
+\     (outputs(asig_of(ioa1)) = outputs(asig_of(ioa2))) &   \
+\      traces(ioa1) <= traces(ioa2))"
+ 
+rename_def 
+"rename ioa ren ==  \
+\  (({b. ? x. Some(x)= ren(b) & x : inputs(asig_of(ioa))},         \
+\    {b. ? x. Some(x)= ren(b) & x : outputs(asig_of(ioa))},        \
+\    {b. ? x. Some(x)= ren(b) & x : internals(asig_of(ioa))}),     \
+\              starts_of(ioa)   ,                                            \
+\   {tr. let s = fst(tr); a = fst(snd(tr));  t = snd(snd(tr))    \
+\        in                                                      \
+\        ? x. Some(x) = ren(a) & (s,x,t):trans_of(ioa)})"
 
 end 

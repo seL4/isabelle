@@ -33,16 +33,16 @@ goal IOA.thy "filter_oseq p (filter_oseq p s) = filter_oseq p s";
   by (simp_tac (SS setloop (split_tac [expand_if])) 1);
 qed "filter_oseq_idemp";
 
-goalw IOA.thy [mk_behaviour_def,filter_oseq_def]
-"(mk_behaviour A s n = None) =                                        \
+goalw IOA.thy [mk_trace_def,filter_oseq_def]
+"(mk_trace A s n = None) =                                        \
 \  (s(n)=None | (? a. s(n)=Some(a) & a ~: externals(asig_of(A))))     \
 \  &                                                                  \
-\  (mk_behaviour A s n = Some(a)) =                                   \
+\  (mk_trace A s n = Some(a)) =                                   \
 \   (s(n)=Some(a) & a : externals(asig_of(A)))";
   by (Option.option.induct_tac "s(n)" 1);
   by (ALLGOALS (simp_tac (SS setloop (split_tac [expand_if]))));
   by (fast_tac HOL_cs 1);
-qed "mk_behaviour_thm";
+qed "mk_trace_thm";
 
 goalw IOA.thy [reachable_def] "!!A. s:starts_of(A) ==> reachable A s";
   by (res_inst_tac [("x","(%i.None,%i.s)")] bexI 1);
@@ -149,3 +149,27 @@ qed "cancel_restrict";
 goal IOA.thy "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)";
   by(simp_tac (SS addsimps (par_def::ioa_projections)) 1);
 qed "asig_of_par";
+
+
+goal IOA.thy "externals(asig_of(A1||A2)) =    \
+\  (externals(asig_of(A1)) Un externals(asig_of(A2)))";
+by (asm_full_simp_tac (SS addsimps [externals_def,asig_of_par,asig_comp_def,asig_inputs_def,asig_outputs_def,Un_def,set_diff_def]) 1);
+by (rtac set_ext 1); 
+by (fast_tac set_cs 1);
+qed"externals_of_par"; 
+
+goalw IOA.thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
+ "!! a. [| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
+by (asm_full_simp_tac SS 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+qed"ext1_is_not_int2";
+
+goalw IOA.thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
+ "!! a. [| compat_ioas A2 A1 ; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
+by (asm_full_simp_tac SS 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+qed"ext2_is_not_int1";
+
+val ext1_ext2_is_not_act2 = ext1_is_not_int2 RS int_and_ext_is_act;
+val ext1_ext2_is_not_act1 = ext2_is_not_int1 RS int_and_ext_is_act;
+

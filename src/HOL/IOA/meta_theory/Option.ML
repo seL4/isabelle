@@ -14,3 +14,11 @@ val [prem] = goal Option.thy "P(opt) ==> P(None) | (? x. P(Some(x)))";
  by (Option.option.induct_tac "opt" 1);
  by (ALLGOALS(fast_tac HOL_cs));
 val optE = store_thm("optE", standard(result() RS disjE));
+
+goal Option.thy "x=None | (? y.x=Some(y))"; 
+by (Option.option.induct_tac "x" 1);
+by (asm_full_simp_tac list_ss 1);
+by (rtac disjI2 1);
+by (rtac exI 1);
+by (asm_full_simp_tac list_ss 1);
+qed"opt_cases";
