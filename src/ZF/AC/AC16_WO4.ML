@@ -55,7 +55,7 @@ qed "well_ord_Un";
 
 goal thy "EX y R. well_ord(y,R) & x Int y = 0 & ~y lepoll z & ~Finite(y)";
 by (res_inst_tac [("x","{{a,x}. a:nat Un  Hartog(z)}")] exI 1);
-by (resolve_tac [Ord_nat RS well_ord_Memrel RS (Ord_Hartog RS
+by (resolve_tac [transfer thy Ord_nat RS well_ord_Memrel RS (Ord_Hartog RS
                 well_ord_Memrel RSN (2, well_ord_Un)) RS exE] 1);
 by (fast_tac (!claset addSIs [Ord_Hartog, well_ord_Memrel, well_ord_paired,
         equals0I, HartogI RSN (2, lepoll_trans1),
