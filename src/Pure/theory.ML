@@ -316,7 +316,7 @@ fun clash_consts (c1, ty1) (c2, ty2) =
 (* clash_defns *)
 
 fun clash_defn c_ty (name, tm) =
-  let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals tm))) in
+  let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals (Logic.strip_imp_concl tm)))) in
     if clash_consts c_ty (c, ty') then Some (name, ty') else None
   end handle TERM _ => None;
 
