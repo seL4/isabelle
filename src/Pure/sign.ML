@@ -8,10 +8,11 @@ The abstract type "sg" of signatures.
 signature SIGN =
   sig
   type sg
-  val rep_sg: sg -> {tsig: Type.type_sig,
-		     const_tab: typ Symtab.table,
-		     syn: Syntax.syntax,
-		     stamps: string ref list}
+  val rep_sg: sg ->
+   {tsig: Type.type_sig,
+    const_tab: typ Symtab.table,
+    syn: Syntax.syntax,
+    stamps: string ref list}
   val subsig: sg * sg -> bool
   val eq_sg: sg * sg -> bool
   val same_sg: sg * sg -> bool
@@ -50,6 +51,8 @@ signature SIGN =
   val add_consts_i: (string * typ * mixfix) list -> sg -> sg
   val add_syntax: (string * string * mixfix) list -> sg -> sg
   val add_syntax_i: (string * typ * mixfix) list -> sg -> sg
+  val add_modesyntax: string * (string * string * mixfix) list -> sg -> sg
+  val add_modesyntax_i: string * (string * typ * mixfix) list -> sg -> sg
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -449,7 +452,7 @@ fun read_const syn tsig (c, ty_src, mx) =
   (c, read_raw_typ syn tsig (K None) ty_src, mx)
     handle ERROR => err_in_const (Syntax.const_name c mx);
 
-fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
+fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab) raw_consts =
   let
     fun prep_const (c, ty, mx) = 
      (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
@@ -461,15 +464,17 @@ fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
       if syn_only then []
       else filter_out (equal "" o fst) (decls_of Syntax.const_name consts);
   in
-    (Syntax.extend_const_gram syn consts, tsig,
+    (Syntax.extend_const_gram syn prmode consts, tsig,
       Symtab.extend_new (ctab, decls)
         handle Symtab.DUPS cs => err_dup_consts cs)
   end;
 
-val ext_consts_i = ext_cnsts (K (K I)) false;
-val ext_consts = ext_cnsts read_const false;
-val ext_syntax_i = ext_cnsts (K (K I)) true;
-val ext_syntax = ext_cnsts read_const true;
+val ext_consts_i = ext_cnsts (K (K I)) false "";
+val ext_consts = ext_cnsts read_const false "";
+val ext_syntax_i = ext_cnsts (K (K I)) true "";
+val ext_syntax = ext_cnsts read_const true "";
+fun ext_modesyntax_i sg (prmode, consts) = ext_cnsts (K (K I)) true prmode sg consts;
+fun ext_modesyntax sg (prmode, consts) = ext_cnsts read_const true prmode sg consts;
 
 
 (* add type classes *)
@@ -530,20 +535,22 @@ fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, stamps}) =
 
 (* the external interfaces *)
 
-val add_classes   = extend_sign ext_classes "#";
-val add_classrel  = extend_sign ext_classrel "#";
-val add_defsort   = extend_sign ext_defsort "#";
-val add_types     = extend_sign ext_types "#";
-val add_tyabbrs   = extend_sign ext_tyabbrs "#";
-val add_tyabbrs_i = extend_sign ext_tyabbrs_i "#";
-val add_arities   = extend_sign ext_arities "#";
-val add_consts    = extend_sign ext_consts "#";
-val add_consts_i  = extend_sign ext_consts_i "#";
-val add_syntax    = extend_sign ext_syntax "#";
-val add_syntax_i  = extend_sign ext_syntax_i "#";
-val add_trfuns    = extend_sign (ext_syn Syntax.extend_trfuns) "#";
-val add_trrules   = extend_sign (ext_syn Syntax.extend_trrules) "#";
-val add_trrules_i = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
+val add_classes      = extend_sign ext_classes "#";
+val add_classrel     = extend_sign ext_classrel "#";
+val add_defsort      = extend_sign ext_defsort "#";
+val add_types        = extend_sign ext_types "#";
+val add_tyabbrs      = extend_sign ext_tyabbrs "#";
+val add_tyabbrs_i    = extend_sign ext_tyabbrs_i "#";
+val add_arities      = extend_sign ext_arities "#";
+val add_consts       = extend_sign ext_consts "#";
+val add_consts_i     = extend_sign ext_consts_i "#";
+val add_syntax       = extend_sign ext_syntax "#";
+val add_syntax_i     = extend_sign ext_syntax_i "#";
+val add_modesyntax   = extend_sign ext_modesyntax "#";
+val add_modesyntax_i = extend_sign ext_modesyntax_i "#";
+val add_trfuns       = extend_sign (ext_syn Syntax.extend_trfuns) "#";
+val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
+val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
 
 fun add_name name sg = extend_sign K name () sg;
 val make_draft = add_name "#";
@@ -604,11 +611,12 @@ val proto_pure =
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
   |> add_syntax Syntax.pure_syntax
+  |> add_modesyntax ("symbolfont", Syntax.pure_symfont_syntax)
   |> add_trfuns Syntax.pure_trfuns
   |> add_consts
-   [("==", "['a::{}, 'a] => prop", Mixfix ("(_ ==/ _)", [3, 2], 2)),
-    ("=?=", "['a::{}, 'a] => prop", Mixfix ("(_ =?=/ _)", [3, 2], 2)),
-    ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+   [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
+    ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
+    ("==>", "[prop, prop] => prop", InfixrName ("==>", 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
   |> add_name "ProtoPure";
