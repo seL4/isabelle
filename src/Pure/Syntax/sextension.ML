@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Syntax extensions (external interface): mixfix declarations, syntax rules,
-infixes, binders and the Pure syntax.
+Syntax extensions (external interface): mixfix declarations, infixes,
+binders, translation rules / functions and the Pure syntax.
 
 TODO:
   move ast_to_term (?)
