@@ -161,7 +161,7 @@ fun print_sg sg =
   let
     fun prt_typ syn ty = Pretty.quote (Syntax.pretty_typ syn ty);
 
-    fun pretty_subclass (cl, cls) = Pretty.block
+    fun pretty_classrel (cl, cls) = Pretty.block
       (Pretty.str (cl ^ " <") :: Pretty.brk 1 ::
         Pretty.commas (map Pretty.str cls));
 
@@ -188,13 +188,13 @@ fun print_sg sg =
 
 
     val Sg {tsig, const_tab, syn, stamps} = sg;
-    val {classes, subclass, default, tycons, abbrs, arities} =
+    val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ("classes:" :: classes));
-    Pretty.writeln (Pretty.big_list "subclass:"
-                      (map pretty_subclass subclass));
+    Pretty.writeln (Pretty.big_list "classrel:"
+                      (map pretty_classrel classrel));
     Pretty.writeln (pretty_default default);
     Pretty.writeln (Pretty.big_list "types:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
@@ -316,17 +316,20 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
   end;
 
 
-(*Package error messages from type checking*)
+(*package error messages from type checking*)
 fun exn_type_msg sg (msg, Ts, ts) =
-    let val show_typ = string_of_typ sg
-	val show_term = string_of_term sg
-	fun term_err [] = ""
-	  | term_err [t] = "\nInvolving this term:\n" ^ show_term t
-	  | term_err ts =
-	    "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
-    in  "\nType checking error: " ^ msg ^ "\n" ^
-	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
-    end; 
+  let
+    val show_typ = string_of_typ sg;
+    val show_term = set_ap Syntax.show_brackets true (string_of_term sg);
+
+    fun term_err [] = ""
+      | term_err [t] = "\n\nInvolving this term:\n" ^ show_term t
+      | term_err ts =
+          "\n\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
+  in
+    "\nType checking error: " ^ msg ^ "\n" ^
+      cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
+  end;
 
 
 
@@ -506,10 +509,10 @@ fun ext_classes (syn, tsig, ctab) classes =
   end;
 
 
-(* add to subclass relation *)
+(* add to classrel *)
 
 fun ext_classrel (syn, tsig, ctab) pairs =
-  (syn, Type.ext_tsig_subclass tsig pairs, ctab);
+  (syn, Type.ext_tsig_classrel tsig pairs, ctab);
 
 
 (* add to syntax *)
