@@ -99,6 +99,10 @@ Goal "F Join G = G Join F";
 by (simp_tac (simpset() addsimps [Join_def, Un_commute, Int_commute]) 1);
 qed "Join_commute";
 
+Goal "A Join (B Join C) = B Join (A Join C)";
+by (simp_tac (simpset() addsimps Un_ac@Int_ac@[Join_def]) 1);
+qed "Join_left_commute";
+
 Goal "(F Join G) Join H = F Join (G Join H)";
 by (simp_tac (simpset() addsimps Un_ac@[Join_def, Int_assoc]) 1);
 qed "Join_assoc";
@@ -122,6 +126,13 @@ qed "Join_absorb";
 
 Addsimps [Join_absorb];
 
+Goalw [Join_def] "A Join (A Join B) = A Join B";
+by (rtac program_equalityI 1);
+by Auto_tac;
+qed "Join_left_absorb";
+
+(*Join is an AC-operator*)
+val Join_ac = [Join_assoc, Join_left_absorb, Join_commute, Join_left_commute];
 
 
 (*** JN laws ***)
