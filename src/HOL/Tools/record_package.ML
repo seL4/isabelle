@@ -7,6 +7,7 @@ Extensible records with structural subtyping in HOL.
 
 signature BASIC_RECORD_PACKAGE =
 sig
+  val record_simproc: simproc
   val record_split_tac: int -> tactic
   val record_split_name: string
   val record_split_wrapper: string * wrapper
@@ -35,6 +36,7 @@ sig
   val setup: (theory -> theory) list
 end;
 
+
 structure RecordPackage: RECORD_PACKAGE =
 struct
 
@@ -45,13 +47,6 @@ struct
 
 val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
-
-
-(* wrappers *)
-
-fun add_wrapper wrapper thy =
-  let val r = Classical.claset_ref_of thy
-  in r := ! r addSWrapper wrapper; thy end;
 
 
 (* definitions and equations *)
@@ -66,14 +61,13 @@ fun get_defs thy specs = map (PureThy.get_thm thy o fst) specs;
 
 (* proof by simplification *)
 
-fun prove_simp thy tacs simps =
+fun prove_simp sign ss tacs simps =
   let
-    val sign = Theory.sign_of thy;
-    val ss = Simplifier.addsimps (HOL_basic_ss, simps);
+    val ss' = Simplifier.addsimps (ss, simps);
 
     fun prove goal =
       Goals.prove_goalw_cterm [] (Thm.cterm_of sign goal)
-        (K (tacs @ [ALLGOALS (Simplifier.simp_tac ss)]))
+        (K (tacs @ [ALLGOALS (Simplifier.simp_tac ss')]))
       handle ERROR => error ("The error(s) above occurred while trying to prove "
         ^ quote (Sign.string_of_term sign goal));
   in prove end;
@@ -330,21 +324,47 @@ type parent_info =
 
 (* data kind 'HOL/records' *)
 
+type record_data =
+ {records: record_info Symtab.table,
+  sel_upd:
+   {selectors: unit Symtab.table,
+    updates: string Symtab.table,
+    simpset: Simplifier.simpset},
+  field_splits:
+   {fields: unit Symtab.table,
+    simpset: Simplifier.simpset}};
+
+fun make_record_data records sel_upd field_splits =
+ {records = records, sel_upd = sel_upd, field_splits = field_splits}: record_data;
+
 structure RecordsArgs =
 struct
   val name = "HOL/records";
-  type T =
-    record_info Symtab.table *                          (*records*)
-      (thm Symtab.table * Simplifier.simpset);          (*field split rules*)
+  type T = record_data;
 
-  val empty = (Symtab.empty, (Symtab.empty, HOL_basic_ss));
+  val empty =
+    make_record_data Symtab.empty
+      {selectors = Symtab.empty, updates = Symtab.empty, simpset = HOL_basic_ss}
+      {fields = Symtab.empty, simpset = HOL_basic_ss};
+
   val copy = I;
   val prep_ext = I;
-  fun merge ((recs1, (sps1, ss1)), (recs2, (sps2, ss2))) =
-    (Symtab.merge (K true) (recs1, recs2),
-      (Symtab.merge (K true) (sps1, sps2), Simplifier.merge_ss (ss1, ss2)));
+  fun merge
+   ({records = recs1,
+     sel_upd = {selectors = sels1, updates = upds1, simpset = ss1},
+     field_splits = {fields = flds1, simpset = fld_ss1}},
+    {records = recs2,
+     sel_upd = {selectors = sels2, updates = upds2, simpset = ss2},
+     field_splits = {fields = flds2, simpset = fld_ss2}}) =
+    make_record_data
+      (Symtab.merge (K true) (recs1, recs2))
+      {selectors = Symtab.merge (K true) (sels1, sels2),
+        updates = Symtab.merge (K true) (upds1, upds2),
+        simpset = Simplifier.merge_ss (ss1, ss2)}
+      {fields = Symtab.merge (K true) (flds1, flds2),
+        simpset = Simplifier.merge_ss (fld_ss1, fld_ss2)};
 
-  fun print sg (recs, _) =
+  fun print sg ({records = recs, ...}: record_data) =
     let
       val prt_typ = Sign.pretty_typ sg;
       val ext_const = Sign.cond_extern sg Sign.constK;
@@ -366,19 +386,50 @@ structure RecordsData = TheoryDataFun(RecordsArgs);
 val print_records = RecordsData.print;
 
 
-(* get and put data *)
+(* access 'records' *)
 
-fun get_record thy name = Symtab.lookup (#1 (RecordsData.get thy), name);
+fun get_record thy name = Symtab.lookup (#records (RecordsData.get thy), name);
 
 fun put_record name info thy =
-  let val (tab, sp) = RecordsData.get thy
-  in RecordsData.put (Symtab.update ((name, info), tab), sp) thy end;
+  let
+    val {records, sel_upd, field_splits} = RecordsData.get thy;
+    val data = make_record_data (Symtab.update ((name, info), records)) sel_upd field_splits;
+  in RecordsData.put data thy end;
+
+
+(* access 'sel_upd' *)
+
+fun get_sel_upd sg = #sel_upd (RecordsData.get_sg sg);
+
+fun get_selectors sg name = Symtab.lookup (#selectors (get_sel_upd sg), name);
+fun get_updates sg name = Symtab.lookup (#updates (get_sel_upd sg), name);
+fun get_simpset sg = #simpset (get_sel_upd sg);
+
+
+fun put_sel_upd names simps thy =
+  let
+    val sels = map (rpair ()) names;
+    val upds = map (suffix updateN) names ~~ names;
+
+    val {records, sel_upd = {selectors, updates, simpset}, field_splits} = RecordsData.get thy;
+    val data = make_record_data records
+      {selectors = Symtab.extend (selectors, sels),
+        updates = Symtab.extend (updates, upds),
+        simpset = Simplifier.addsimps (simpset, simps)}
+      field_splits;
+  in RecordsData.put data thy end;
+
+
+(* access 'field_splits' *)
 
 fun add_record_splits splits thy =
   let
-    val (tab, (sps, ss)) = RecordsData.get thy;
-    val simps = map #2 splits;
-  in RecordsData.put (tab, (Symtab.extend (sps, splits), Simplifier.addsimps (ss, simps))) thy end;
+    val {records, sel_upd, field_splits = {fields, simpset}} = RecordsData.get thy;
+    val flds = map (rpair () o fst) splits;
+    val simps = map snd splits;
+    val data = make_record_data records sel_upd
+      {fields = Symtab.extend (fields, flds), simpset = Simplifier.addsimps (simpset, simps)};
+  in RecordsData.put data thy end;
 
 
 (* parent records *)
@@ -411,19 +462,51 @@ fun add_parents thy (None, parents) = parents
 
 
 
+(** record simproc **)
+
+local
+
+val sel_upd_pat = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s (u k r)", HOLogic.termTVar)];
+
+fun proc sg _ t =
+  (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>
+    (case get_selectors sg s of Some () =>
+      (case get_updates sg u of Some u_name =>
+        let
+          fun atomize x t = Free (x, fastype_of t);
+          val k' = atomize "k" k;
+          val r' = atomize "r" r;
+          val t' = sel $ (upd $ k' $ r');
+          val prove = mk_meta_eq o prove_simp sg (get_simpset sg) [] [];
+        in
+          if u_name = s then Some (prove (t' === k'))
+          else Some (prove (t' === sel $ r'))
+        end
+      | None => None)
+    | None => None)
+  | _ => None);
+
+in
+
+val record_simproc = Simplifier.mk_simproc "record_simp" sel_upd_pat proc;
+
+end;
+
+
+
 (** record field splitting **)
 
 (* tactic *)
 
 fun record_split_tac i st =
   let
-    val (_, (sps, ss)) = RecordsData.get_sg (Thm.sign_of_thm st);
+    val {field_splits = {fields, simpset}, ...} = RecordsData.get_sg (Thm.sign_of_thm st);
 
-    fun is_fieldT (_, Type (a, [_, _])) = is_some (Symtab.lookup (sps, a))
+    fun is_fieldT (_, Type (a, [_, _])) = is_some (Symtab.lookup (fields, a))
       | is_fieldT _ = false;
     val params = Logic.strip_params (Library.nth_elem (i - 1, Thm.prems_of st));
   in
-    if exists is_fieldT params then Simplifier.full_simp_tac ss i st
+    if exists is_fieldT params then Simplifier.full_simp_tac simpset i st
     else Seq.empty
   end handle Library.LIST _ => Seq.empty;
 
@@ -542,7 +625,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* 3rd stage: thms_thy *)
 
-    val prove = prove_simp defs_thy;
+    val prove = prove_simp (Theory.sign_of defs_thy) HOL_basic_ss;
     val prove_std = prove [] (field_defs @ dest_defs @ datatype_simps);
 
     val field_injects = map prove_std inject_props;
@@ -718,7 +801,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     (* 3rd stage: thms_thy *)
 
     val parent_simps = flat (map #simps parents);
-    val prove = prove_simp defs_thy [];
+    val prove = prove_simp (Theory.sign_of defs_thy) HOL_basic_ss [];
 
     val sel_convs = map (prove (parent_simps @ sel_defs @ field_simps)) sel_props;
     val update_convs = map (prove (parent_simps @ update_defs @ sel_convs)) update_props;
@@ -744,6 +827,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val final_thy =
       thms_thy
       |> put_record name {args = args, parent = parent, fields = fields, simps = simps}
+      |> put_sel_upd names (simps @ update_defs)
       |> add_record_splits named_splits
       |> Theory.parent_path;
 
@@ -871,7 +955,7 @@ val setup =
  [RecordsData.init,
   Theory.add_trfuns ([], parse_translation, [], []),
   Method.add_methods [record_split_method],
-  add_wrapper record_split_wrapper];
+  Simplifier.change_simpset_of Simplifier.addsimprocs [record_simproc]];
 
 
 (* outer syntax *)
