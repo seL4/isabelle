@@ -279,23 +279,14 @@ fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN'
 			premises to all the premises *)
 
 (*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
-
-(*old version, for compatibility with unstable old proofs*)
-infix 4 unsafe_addss;
-fun cs unsafe_addss ss = cs addbefore asm_full_simp_tac ss;
+infix 4 addSss addss;
+fun cs addSss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
+fun cs addss  ss = cs addbefore                        asm_full_simp_tac ss;
 
 fun Addss ss = (claset := !claset addss ss);
 
 (*Designed to be idempotent, except if best_tac instantiates variables
   in some of the subgoals*)
-(*old version, for compatibility with unstable old proofs*)
-fun unsafe_auto_tac (cs,ss) = 
-    ALLGOALS (asm_full_simp_tac ss) THEN
-    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
-    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
-    prune_params_tac;
 
 type clasimpset = (claset * simpset);
 
@@ -317,10 +308,13 @@ fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
 fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
 fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
 
-fun auto_tac (cs,ss) = let val cs' = cs addss ss in
-EVERY [	TRY (safe_tac cs'),
-	REPEAT (FIRSTGOAL (fast_tac cs')),
-	prune_params_tac] end;
+fun auto_tac (cs,ss) = 
+    let val cs' = cs addss ss 
+    in  EVERY [TRY (safe_tac cs'),
+	       REPEAT (FIRSTGOAL (fast_tac cs')),
+               TRY (safe_tac (cs addSss ss)),
+	       prune_params_tac] 
+    end;
 
 fun Auto_tac () = auto_tac (!claset, !simpset);
 
