@@ -1,10 +1,10 @@
-(*  Title: 	CTT/ex/elim
+(*  Title:      CTT/ex/elim
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Some examples taken from P. Martin-L\"of, Intuitionistic type theory
-	(Bibliopolis, 1984).
+        (Bibliopolis, 1984).
 
 by (safe_tac prems 1);
 by (step_tac prems 1);
@@ -65,9 +65,9 @@ result();
 
 (*more general goal with same proof*)
 val prems = goal CTT.thy
-    "[| A type; !!x. x:A ==> B(x) type; 			\
-\               !!z. z: (SUM x:A. B(x)) ==> C(z) type 		\
-\    |] ==> ?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).	\
+    "[| A type; !!x. x:A ==> B(x) type;                         \
+\               !!z. z: (SUM x:A. B(x)) ==> C(z) type           \
+\    |] ==> ?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).    \
 \                     (PROD x:A . PROD y:B(x) . C(<x,y>))";
 by (pc_tac prems 1);
 result();
@@ -131,9 +131,9 @@ result();
 (*Martin-Lof (1984) page 50*)
 writeln"AXIOM OF CHOICE!!!  Delicate use of elimination rules";
 val prems = goal CTT.thy   
-    "[| A type;  !!x. x:A ==> B(x) type;  			\
-\       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  		\
-\    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).   	\
+    "[| A type;  !!x. x:A ==> B(x) type;                        \
+\       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type                \
+\    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).        \
 \                        (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
 by (intr_tac prems);
 by (add_mp_tac 2);
@@ -148,9 +148,9 @@ result();
 
 writeln"Axiom of choice.  Proof without fst, snd.  Harder still!"; 
 val prems = goal CTT.thy   
-    "[| A type;  !!x.x:A ==> B(x) type; 			\
-\       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type		\
-\    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).    	\
+    "[| A type;  !!x.x:A ==> B(x) type;                         \
+\       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type                \
+\    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).        \
 \                        (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
 by (intr_tac prems);
 (*Must not use add_mp_tac as subst_prodE hides the construction.*)
