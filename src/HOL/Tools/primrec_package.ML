@@ -9,10 +9,13 @@ Package for defining functions on datatypes by primitive recursion.
 signature PRIMREC_PACKAGE =
 sig
   val quiet_mode: bool ref
+  val print_primrecs: theory -> unit
+  val get_primrec: theory -> string -> (string * thm list) list option
   val add_primrec: string -> ((bstring * string) * Args.src list) list
     -> theory -> theory * thm list
   val add_primrec_i: string -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * thm list
+  val setup: (theory -> theory) list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -31,6 +34,41 @@ fun primrec_eq_err sign s eq =
 
 val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
+
+
+(** theory data **)
+
+(* data kind 'HOL/primrec' *)
+
+structure PrimrecArgs =
+struct
+  val name = "HOL/primrec";
+  type T = (string * thm list) list Symtab.table;
+
+  val empty = Symtab.empty;
+  val copy = I;
+  val prep_ext = I;
+  val merge: T * T -> T = Symtab.merge (K true);
+
+  fun print sg tab =
+    Pretty.writeln (Pretty.strs ("primrecs:" ::
+      map #1 (Sign.cond_extern_table sg Sign.constK tab)));
+end;
+
+structure PrimrecData = TheoryDataFun(PrimrecArgs);
+val print_primrecs = PrimrecData.print;
+
+
+(* get and put data *)
+
+fun get_primrec thy name = Symtab.lookup (PrimrecData.get thy, name);
+
+fun put_primrec name info thy =
+  let val tab = PrimrecData.get thy
+  in 
+    PrimrecData.put (case Symtab.lookup (tab, name) of
+       None => Symtab.update_new ((name, [info]), tab)
+     | Some infos => Symtab.update ((name, info::infos), tab)) thy end;
 
 
 (* preprocessing of equations *)
@@ -257,17 +295,17 @@ fun add_primrec_i alt_name eqns_atts thy =
          "\nare not mutually recursive"));
     val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
-    val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
+    val simps = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
-    val simps = char_thms;
-
-    val thy'' =
-      thy'
-      |> (#1 o PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])])
-      |> (#1 o PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts))
-      |> (#1 o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
-      |> Theory.parent_path;
-  in (thy'', char_thms) end;
+    val (thy'', [simps']) = thy'
+      |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
+      |>> (#1 o PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts))
+      |>> (#1 o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
+      |>> Theory.parent_path
+  in
+    (foldl (fn (thy, (fname, _, _, tname)) =>
+       put_primrec fname (tname, simps') thy) (thy'', defs), simps')
+  end;
 
 
 fun add_primrec alt_name eqns thy =
@@ -283,6 +321,10 @@ fun add_primrec alt_name eqns thy =
     add_primrec_i alt_name (names ~~ eqn_ts' ~~ atts) thy
   end;
 
+
+(** package setup **)
+
+val setup = [PrimrecData.init];
 
 (* outer syntax *)
 
