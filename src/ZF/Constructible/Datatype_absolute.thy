@@ -980,7 +980,6 @@ lemma (in Formula_Rec) MH_rel2:
              \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h)))"
 apply (simp add: relation2_def MH_def, clarify)
 apply (rule lambda_abs2)
-apply (rule fr_lam_replace, assumption)
 apply (rule Relation1_formula_rec_case)
 apply (simp_all add: a_rel b_rel c_rel d_rel formula_rec_case_closed)
 done

@@ -493,7 +493,9 @@ lemma (in M_trivial) ball_iff_equiv:
 by (blast intro: transM)
 
 text{*Simplifies proofs of equalities when there's an iff-equality
-      available for rewriting, universally quantified over M. *}
+      available for rewriting, universally quantified over M.  
+      But it's not the only way to prove such equalities: its
+      premises @{term "M(A)"} and  @{term "M(B)"} can be too strong.*}
 lemma (in M_trivial) M_equalityI:
      "[| !!x. M(x) ==> x\<in>A <-> x\<in>B; M(A); M(B) |] ==> A=B"
 by (blast intro!: equalityI dest: transM)
@@ -669,14 +671,16 @@ apply (blast dest: transM)
 done
 
 lemma (in M_trivial) Replace_abs:
-     "[| M(A); M(z); univalent(M,A,P); strong_replacement(M, P);
+     "[| M(A); M(z); univalent(M,A,P); 
          !!x y. [| x\<in>A; P(x,y) |] ==> M(y)  |]
       ==> is_Replace(M,A,P,z) <-> z = Replace(A,P)"
 apply (simp add: is_Replace_def)
 apply (rule iffI)
-apply (rule M_equalityI)
-apply (simp_all add: univalent_Replace_iff, blast, blast)
+ apply (rule equality_iffI)
+ apply (simp_all add: univalent_Replace_iff) 
+ apply (blast dest: transM)+
 done
+
 
 (*The first premise can't simply be assumed as a schema.
   It is essential to take care when asserting instances of Replacement.
@@ -727,16 +731,17 @@ apply (simp add: lam_def)
 apply (blast intro: RepFun_closed2 dest: transM)
 done
 
-lemma (in M_trivial) lambda_abs2 [simp]:
-     "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
-         Relation1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |]
+lemma (in M_trivial) lambda_abs2:
+     "[| Relation1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |]
       ==> is_lambda(M,A,is_b,z) <-> z = Lambda(A,b)"
 apply (simp add: Relation1_def is_lambda_def)
 apply (rule iffI)
  prefer 2 apply (simp add: lam_def)
-apply (rule M_equalityI)
-  apply (simp add: lam_def)
- apply (simp add: lam_closed2)+
+apply (rule equality_iffI)
+apply (simp add: lam_def) 
+apply (rule iffI) 
+ apply (blast dest: transM) 
+apply (auto simp add: transM [of _ A]) 
 done
 
 lemma is_lambda_cong [cong]:
@@ -1159,8 +1164,7 @@ apply (insert comp_separation [of r s], simp)
 done
 
 lemma (in M_basic) composition_abs [simp]:
-     "[| M(r); M(s); M(t) |]
-      ==> composition(M,r,s,t) <-> t = r O s"
+     "[| M(r); M(s); M(t) |] ==> composition(M,r,s,t) <-> t = r O s"
 apply safe
  txt{*Proving @{term "composition(M, r, s, r O s)"}*}
  prefer 2

@@ -369,7 +369,7 @@ done
 lemma (in M_satisfies) a_rel:
      "M(A) ==> Relation2(M, nat, nat, satisfies_is_a(M,A), satisfies_a(A))"
 apply (simp add: Relation2_def satisfies_is_a_def satisfies_a_def)
-apply (simp add: lambda_abs2 [OF Member_replacement'] Relation1_def)
+apply (auto del: iffI intro!: lambda_abs2 simp add: Relation1_def) 
 done
 
 lemma (in M_satisfies) b_closed:
@@ -381,7 +381,7 @@ done
 lemma (in M_satisfies) b_rel:
      "M(A) ==> Relation2(M, nat, nat, satisfies_is_b(M,A), satisfies_b(A))"
 apply (simp add: Relation2_def satisfies_is_b_def satisfies_b_def)
-apply (simp add: lambda_abs2 [OF Equal_replacement'] Relation1_def)
+apply (auto del: iffI intro!: lambda_abs2 simp add: Relation1_def) 
 done
 
 lemma (in M_satisfies) c_closed:
@@ -400,8 +400,8 @@ lemma (in M_satisfies) c_rel:
 	       \<lambda>u v. satisfies_c(A, u, v, f ` succ(depth(u)) ` u, 
 					  f ` succ(depth(v)) ` v))"
 apply (simp add: Relation2_def satisfies_is_c_def satisfies_c_def)
-apply (simp add: lambda_abs2 [OF Nand_replacement' triv_Relation1] 
-                 formula_into_M)
+apply (auto del: iffI intro!: lambda_abs2 
+            simp add: Relation1_def formula_into_M) 
 done
 
 lemma (in M_satisfies) d_closed:
@@ -418,8 +418,7 @@ lemma (in M_satisfies) d_rel:
      \<lambda>u. satisfies_d(A, u, f ` succ(depth(u)) ` u))"
 apply (simp del: rall_abs 
             add: Relation1_def satisfies_is_d_def satisfies_d_def)
-apply (simp add: lambda_abs2 [OF Forall_replacement' triv_Relation1] 
-                 formula_into_M)
+apply (auto del: iffI intro!: lambda_abs2 simp add: Relation1_def) 
 done
 
 

@@ -220,9 +220,7 @@ given one on @{term A}.  We first introduce wellorderings for environments,
 which are lists built over @{term "A"}.  We combine it with the enumeration of
 formulas.  The order type of the resulting wellordering gives us a map from
 (environment, formula) pairs into the ordinals.  For each member of @{term
-"DPow(A)"}, we take the minimum such ordinal.  This yields a wellordering of
-@{term "DPow(A)-A"}, namely the set of elements just introduced, which we then
-extend to the full set @{term "DPow(A)"}.*}
+"DPow(A)"}, we take the minimum such ordinal.*}
 
 constdefs
   env_form_r :: "[i,i,i]=>i"
@@ -236,25 +234,21 @@ constdefs
    "env_form_map(f,r,A,z)
       == ordermap(list(A) * formula, env_form_r(f,r,A)) ` z"
 
-  DPow_new_ord :: "[i,i,i,i,i]=>o"
+  DPow_ord :: "[i,i,i,i,i]=>o"
     --{*predicate that holds if @{term k} is a valid index for @{term X}*}
-   "DPow_new_ord(f,r,A,X,k) ==
+   "DPow_ord(f,r,A,X,k) ==
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
              arity(p) \<le> succ(length(env)) &
              X = {x\<in>A. sats(A, p, Cons(x,env))} &
              env_form_map(f,r,A,<env,p>) = k"
 
-  DPow_new_least :: "[i,i,i,i]=>i"
+  DPow_least :: "[i,i,i,i]=>i"
     --{*function yielding the smallest index for @{term X}*}
-   "DPow_new_least(f,r,A,X) == \<mu>k. DPow_new_ord(f,r,A,X,k)"
-
-  DPow_new_r :: "[i,i,i]=>i"
-    --{*a wellordering on the difference set @{term "DPow(A)-A"}*}
-   "DPow_new_r(f,r,A) == measure(DPow(A)-A, DPow_new_least(f,r,A))"
+   "DPow_least(f,r,A,X) == \<mu>k. DPow_ord(f,r,A,X,k)"
 
   DPow_r :: "[i,i,i]=>i"
     --{*a wellordering on @{term "DPow(A)"}*}
-   "DPow_r(f,r,A) == (DPow_new_r(f,r,A) Un (A * (DPow(A)-A))) Un r"
+   "DPow_r(f,r,A) == measure(DPow(A), DPow_least(f,r,A))"
 
 
 lemma (in Nat_Times_Nat) well_ord_env_form_r:
@@ -267,23 +261,23 @@ lemma (in Nat_Times_Nat) Ord_env_form_map:
      ==> Ord(env_form_map(fn,r,A,z))"
 by (simp add: env_form_map_def Ord_ordermap well_ord_env_form_r)
 
-lemma DPow_imp_ex_DPow_new_ord:
-    "X \<in> DPow(A) ==> \<exists>k. DPow_new_ord(fn,r,A,X,k)"
-apply (simp add: DPow_new_ord_def)
+lemma DPow_imp_ex_DPow_ord:
+    "X \<in> DPow(A) ==> \<exists>k. DPow_ord(fn,r,A,X,k)"
+apply (simp add: DPow_ord_def)
 apply (blast dest!: DPowD)
 done
 
-lemma (in Nat_Times_Nat) DPow_new_ord_imp_Ord:
-     "[|DPow_new_ord(fn,r,A,X,k); well_ord(A,r)|] ==> Ord(k)"
-apply (simp add: DPow_new_ord_def, clarify)
+lemma (in Nat_Times_Nat) DPow_ord_imp_Ord:
+     "[|DPow_ord(fn,r,A,X,k); well_ord(A,r)|] ==> Ord(k)"
+apply (simp add: DPow_ord_def, clarify)
 apply (simp add: Ord_env_form_map)
 done
 
-lemma (in Nat_Times_Nat) DPow_imp_DPow_new_least:
+lemma (in Nat_Times_Nat) DPow_imp_DPow_least:
     "[|X \<in> DPow(A); well_ord(A,r)|]
-     ==> DPow_new_ord(fn, r, A, X, DPow_new_least(fn,r,A,X))"
-apply (simp add: DPow_new_least_def)
-apply (blast dest: DPow_imp_ex_DPow_new_ord intro: DPow_new_ord_imp_Ord LeastI)
+     ==> DPow_ord(fn, r, A, X, DPow_least(fn,r,A,X))"
+apply (simp add: DPow_least_def)
+apply (blast dest: DPow_imp_ex_DPow_ord intro: DPow_ord_imp_Ord LeastI)
 done
 
 lemma (in Nat_Times_Nat) env_form_map_inject:
@@ -295,63 +289,26 @@ apply (rule inj_apply_equality [OF bij_is_inj, OF ordermap_bij,
                                 OF well_ord_env_form_r], assumption+)
 done
 
-
-lemma (in Nat_Times_Nat) DPow_new_ord_unique:
-    "[|DPow_new_ord(fn,r,A,X,k); DPow_new_ord(fn,r,A,Y,k); well_ord(A,r)|]
+lemma (in Nat_Times_Nat) DPow_ord_unique:
+    "[|DPow_ord(fn,r,A,X,k); DPow_ord(fn,r,A,Y,k); well_ord(A,r)|]
      ==> X=Y"
-apply (simp add: DPow_new_ord_def, clarify)
+apply (simp add: DPow_ord_def, clarify)
 apply (drule env_form_map_inject, auto)
 done
 
-lemma (in Nat_Times_Nat) well_ord_DPow_new_r:
-    "well_ord(A,r) ==> well_ord(DPow(A)-A, DPow_new_r(fn,r,A))"
-apply (simp add: DPow_new_r_def)
-apply (rule well_ord_measure)
- apply (simp add: DPow_new_least_def Ord_Least, clarify)
-apply (drule DPow_imp_DPow_new_least, assumption)+
-apply simp
-apply (blast intro: DPow_new_ord_unique)
-done
-
-lemma DPow_new_r_subset: "DPow_new_r(f,r,A) <= (DPow(A)-A) * (DPow(A)-A)"
-by (simp add: DPow_new_r_def measure_type)
-
-lemma (in Nat_Times_Nat) linear_DPow_r:
-    "well_ord(A,r)
-     ==> linear(DPow(A), DPow_r(fn, r, A))"
-apply (frule well_ord_DPow_new_r)
-apply (drule well_ord_is_linear)+
-apply (auto simp add: linear_def DPow_r_def)
-done
-
-
-lemma (in Nat_Times_Nat) wf_DPow_new_r:
-    "well_ord(A,r) ==> wf(DPow_new_r(fn,r,A))"
-apply (rule well_ord_DPow_new_r [THEN well_ord_is_wf, THEN wf_on_imp_wf],
-       assumption+)
-apply (rule DPow_new_r_subset)
-done
-
 lemma (in Nat_Times_Nat) well_ord_DPow_r:
-    "[|well_ord(A,r); r \<subseteq> A * A|]
-     ==> well_ord(DPow(A), DPow_r(fn,r,A))"
-apply (rule well_ordI [OF wf_imp_wf_on])
- prefer 2 apply (blast intro: linear_DPow_r)
+    "well_ord(A,r) ==> well_ord(DPow(A), DPow_r(fn,r,A))"
 apply (simp add: DPow_r_def)
-apply (rule wf_Un)
-  apply (cut_tac DPow_new_r_subset [of fn r A], blast)
- apply (rule wf_Un)
-   apply (cut_tac DPow_new_r_subset [of fn r A], blast)
-  apply (blast intro: wf_DPow_new_r)
- apply (simp add: wf_times Diff_disjoint)
-apply (blast intro: well_ord_is_wf wf_on_imp_wf)
+apply (rule well_ord_measure)
+ apply (simp add: DPow_least_def Ord_Least)
+apply (drule DPow_imp_DPow_least, assumption)+
+apply simp
+apply (blast intro: DPow_ord_unique)
 done
 
 lemma (in Nat_Times_Nat) DPow_r_type:
-    "[|r \<subseteq> A * A; A \<subseteq> DPow(A)|]
-     ==> DPow_r(fn,r,A) \<subseteq> DPow(A) * DPow(A)"
-apply (simp add: DPow_r_def DPow_new_r_def measure_def, blast)
-done		
+    "DPow_r(fn,r,A) \<subseteq> DPow(A) * DPow(A)"
+by (simp add: DPow_r_def measure_def, blast)
 
 
 subsection{*Limit Construction for Well-Orderings*}
@@ -362,28 +319,20 @@ of wellorderings for smaller ordinals.*}
 
 constdefs
   rlimit :: "[i,i=>i]=>i"
-  --{*expresses the wellordering at limit ordinals.*}
+  --{*Expresses the wellordering at limit ordinals.  The conditional
+      lets us remove the premise @{term "Limit(i)"} from some theorems.*}
     "rlimit(i,r) ==
-       {z: Lset(i) * Lset(i).
-        \<exists>x' x. z = <x',x> &
-               (lrank(x') < lrank(x) |
-                (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}"
+       if Limit(i) then 
+	 {z: Lset(i) * Lset(i).
+	  \<exists>x' x. z = <x',x> &
+		 (lrank(x') < lrank(x) |
+		  (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}
+       else 0"
 
   Lset_new :: "i=>i"
   --{*This constant denotes the set of elements introduced at level
       @{term "succ(i)"}*}
     "Lset_new(i) == {x \<in> Lset(succ(i)). lrank(x) = i}"
-
-lemma Lset_new_iff_lrank_eq:
-     "Ord(i) ==> x \<in> Lset_new(i) <-> L(x) & lrank(x) = i"
-by (auto simp add: Lset_new_def Lset_iff_lrank_lt)
-
-lemma Lset_new_eq:
-     "Ord(i) ==> Lset_new(i) = Lset(succ(i)) - Lset(i)"
-apply (rule equality_iffI)
-apply (simp add: Lset_new_iff_lrank_eq Lset_iff_lrank_lt, auto)
-apply (blast elim: leE)
-done
 
 lemma Limit_Lset_eq2:
     "Limit(i) ==> Lset(i) = (\<Union>j\<in>i. Lset_new(j))"
@@ -404,11 +353,14 @@ lemma wf_on_Lset:
     "wf[Lset(succ(j))](r(succ(j))) ==> wf[Lset_new(j)](rlimit(i,r))"
 apply (simp add: wf_on_def Lset_new_def)
 apply (erule wf_subset)
-apply (force simp add: rlimit_def)
+apply (simp add: rlimit_def, force)
 done
 
 lemma wf_on_rlimit:
-    "[|Limit(i); \<forall>j<i. wf[Lset(j)](r(j)) |] ==> wf[Lset(i)](rlimit(i,r))"
+    "(\<forall>j<i. wf[Lset(j)](r(j))) ==> wf[Lset(i)](rlimit(i,r))"
+apply (case_tac "Limit(i)") 
+ prefer 2
+ apply (simp add: rlimit_def wf_on_any_0)
 apply (simp add: Limit_Lset_eq2)
 apply (rule wf_on_Union)
   apply (rule wf_imp_wf_on [OF wf_Memrel [of i]])
@@ -438,51 +390,33 @@ lemma well_ord_rlimit:
 by (blast intro: well_ordI wf_on_rlimit well_ord_is_wf
                            linear_rlimit well_ord_is_linear)
 
+lemma rlimit_cong:
+     "(!!j. j<i ==> r'(j) = r(j)) ==> rlimit(i,r) = rlimit(i,r')"
+apply (simp add: rlimit_def, clarify) 
+apply (rule refl iff_refl Collect_cong ex_cong conj_cong)+
+apply (simp add: Limit_is_Ord Lset_lrank_lt)
+done
+
 
 subsection{*Transfinite Definition of the Wellordering on @{term "L"}*}
 
 constdefs
  L_r :: "[i, i] => i"
-  "L_r(f,i) ==
-      transrec(i, \<lambda>x r.
-         if x=0 then 0
-         else if Limit(x) then rlimit(x, \<lambda>y. r`y)
-         else DPow_r(f, r ` Arith.pred(x), Lset(Arith.pred(x))))"
+  "L_r(f) == %i.
+      transrec3(i, 0, \<lambda>x r. DPow_r(f, r, Lset(x)), 
+                \<lambda>x r. rlimit(x, \<lambda>y. r`y))"
 
 subsubsection{*The Corresponding Recursion Equations*}
 lemma [simp]: "L_r(f,0) = 0"
-by (simp add: def_transrec [OF L_r_def])
+by (simp add: L_r_def)
 
-lemma [simp]: "Ord(i) ==> L_r(f, succ(i)) = DPow_r(f, L_r(f,i), Lset(i))"
-by (simp add: def_transrec [OF L_r_def])
+lemma [simp]: "L_r(f, succ(i)) = DPow_r(f, L_r(f,i), Lset(i))"
+by (simp add: L_r_def)
 
-text{*Needed to handle the limit case*}
-lemma L_r_eq:
-     "Ord(i) ==>
-      L_r(f, i) =
-      (if i = 0 then 0
-       else if Limit(i) then rlimit(i, op `(Lambda(i, L_r(f))))
-       else DPow_r (f, Lambda(i, L_r(f)) ` Arith.pred(i),
-                    Lset(Arith.pred(i))))"
-apply (induct i rule: trans_induct3_rule)
-apply (simp_all add: def_transrec [OF L_r_def])
-done
-
-lemma rlimit_eqI:
-     "[|Limit(i); \<forall>j<i. r'(j) = r(j)|] ==> rlimit(i,r) = rlimit(i,r')"
-apply (simp add: rlimit_def)
-apply (rule refl iff_refl Collect_cong ex_cong conj_cong)+
-apply (simp add: Limit_is_Ord Lset_lrank_lt)
-done
-
-text{*I don't know why the limit case is so complicated.*}
+text{*The limit case is non-trivial because of the distinction between
+object-level and meta-level abstraction.*}
 lemma [simp]: "Limit(i) ==> L_r(f,i) = rlimit(i, L_r(f))"
-apply (simp add: Limit_nonzero def_transrec [OF L_r_def])
-apply (rule rlimit_eqI, assumption)
-apply (rule oallI)
-apply (frule lt_Ord)
-apply (simp only: beta ltD L_r_eq [symmetric])
-done
+by (simp cong: rlimit_cong add: transrec3_Limit L_r_def ltD)
 
 lemma (in Nat_Times_Nat) L_r_type:
     "Ord(i) ==> L_r(fn,i) \<subseteq> Lset(i) * Lset(i)"

@@ -303,8 +303,8 @@ by (simp add: lambda_fm_def is_lambda_def is_b_iff_sats [THEN iff_sym])
 
 theorem is_lambda_reflection:
   assumes is_b_reflection:
-    "!!f' f g h. REFLECTS[\<lambda>x. is_b(L, f'(x), f(x), g(x)), 
-                     \<lambda>i x. is_b(**Lset(i), f'(x), f(x), g(x))]"
+    "!!f g h. REFLECTS[\<lambda>x. is_b(L, f(x), g(x), h(x)), 
+                     \<lambda>i x. is_b(**Lset(i), f(x), g(x), h(x))]"
   shows "REFLECTS[\<lambda>x. is_lambda(L, A(x), is_b(L,x), f(x)), 
                \<lambda>i x. is_lambda(**Lset(i), A(x), is_b(**Lset(i),x), f(x))]"
 apply (simp (no_asm_use) only: is_lambda_def)
