@@ -39,6 +39,7 @@
     \subitem Prolog style, 62
   \item {\tt bd}, 31
   \item {\tt be}, 31
+  \item {\tt Blast_tac}, 39
   \item {\tt br}, 31
   \item {\tt by}, 30
 
@@ -87,7 +88,6 @@
   \indexspace
 
   \item {\tt FalseE} theorem, 45
-  \item {\tt fast_tac}, 39
   \item first-order logic, 1
   \item flex-flex constraints, 6, 25, \bold{28}
   \item {\tt flexflex_rule}, 29

@@ -470,7 +470,7 @@
   \item {\tt PROP} symbol, 65
   \item {\tt prop} nonterminal, \bold{64}, 76
   \item {\tt prop} type, 60, 66
-  \item {\tt prove_goal}, 10, \bold{12}
+  \item {\tt prove_goal}, 10, \bold{13}
   \item {\tt prove_goalw}, \bold{13}
   \item {\tt prove_goalw_cterm}, \bold{13}
   \item {\tt prth}, \bold{36}
