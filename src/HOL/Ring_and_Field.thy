@@ -901,6 +901,9 @@ lemma mult_divide_cancel_eq_if:
       (if c=0 then 0 else a / (b::'a::{field,division_by_zero}))"
   by (simp add: mult_divide_cancel_left)
 
+lemma divide_1 [simp]: "a/1 = (a::'a::field)"
+  by (simp add: divide_inverse [OF not_sym])
+
 
 subsection {* Ordered Fields *}
 
@@ -1087,6 +1090,5 @@ by (simp add: divide_inverse_zero mult_le_0_iff)
 lemma divide_eq_0_iff [simp]:
      "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
 by (simp add: divide_inverse_zero field_mult_eq_0_iff)
-
 
 end

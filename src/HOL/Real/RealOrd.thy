@@ -360,15 +360,8 @@ lemma real_less_add_left_cancel: "!!(A::real). C + A < C + B ==> A < B"
 lemma real_le_add_right_cancel: "!!(A::real). A + C \<le> B + C ==> A \<le> B"
   by (rule Ring_and_Field.add_le_imp_le_right)
 
-		lemma add_le_imp_le_left:
-		      "c + a \<le> c + b ==> a \<le> (b::'a::ordered_ring)"
-		by simp
-
 lemma real_le_add_left_cancel: "!!(A::real). C + A \<le> C + B ==> A \<le> B"
   by (rule (*Ring_and_Field.*)add_le_imp_le_left)
-
-lemma real_minus_diff_eq: "- (z - y) = y - (z::real)"
-  by (rule Ring_and_Field.minus_diff_eq)
 
 lemma real_add_right_cancel_less [simp]: "(v+z < w+z) = (v < (w::real))"
   by (rule Ring_and_Field.add_less_cancel_right)
@@ -910,7 +903,6 @@ val real_less_sum_gt_zero = thm"real_less_sum_gt_zero";
 val real_sum_gt_zero_less = thm"real_sum_gt_zero_less";
 val real_less_sum_gt_0_iff = thm"real_less_sum_gt_0_iff";
 
-val real_minus_diff_eq = thm "real_minus_diff_eq";
 val real_gt_zero_preal_Ex = thm "real_gt_zero_preal_Ex";
 val real_gt_preal_preal_Ex = thm "real_gt_preal_preal_Ex";
 val real_ge_preal_preal_Ex = thm "real_ge_preal_preal_Ex";

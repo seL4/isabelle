@@ -1732,7 +1732,9 @@ Addsimps [pi_half_less_two RS order_less_imp_le];
 
 Goal "0 < pi";
 by (multr_by_tac "inverse 2" 1);
-by Auto_tac;
+by (Simp_tac 1);
+by (cut_facts_tac [pi_half_gt_zero] 1);
+by (full_simp_tac (HOL_ss addsimps [thm"mult_left_zero", real_divide_def]) 1);
 qed "pi_gt_zero";
 Addsimps [pi_gt_zero];
 Addsimps [(pi_gt_zero RS real_not_refl2) RS not_sym];
@@ -1842,8 +1844,9 @@ Addsimps [sin_two_pi];
 
 Goal "[| 0 < x; x < pi/2 |] ==> 0 < sin x";
 by (rtac sin_gt_zero 1);
-by (rtac real_less_trans 2 THEN assume_tac 2);
-by Auto_tac;
+by (assume_tac 1); 
+by (rtac real_less_trans 1 THEN assume_tac 1);
+by (rtac pi_half_less_two 1); 
 qed "sin_gt_zero2";
 
 Goal "[| - pi/2 < x; x < 0 |] ==> sin x < 0";
@@ -1854,13 +1857,22 @@ by (rtac (CLAIM "-y < x ==> -x < (y::real)") 2);
 by Auto_tac;
 qed "sin_less_zero";
 
+Goal "pi < 4";
+by (cut_facts_tac [pi_half_less_two] 1);
+by Auto_tac; 
+qed "pi_less_4";
+
 Goal "[| 0 < x; x < pi/2 |] ==> 0 < cos x";
+by (cut_facts_tac [pi_less_4] 1);
 by (cut_inst_tac [("f","cos"),("a","0"),("b","x"),("y","0")] IVT2_objl 1);
 by (Step_tac 1);
 by (cut_facts_tac [cos_is_zero] 5);
 by (Step_tac 5);
 by (dres_inst_tac [("x","xa")] spec 5);
 by (dres_inst_tac [("x","pi/2")] spec 5);
+by (force_tac (claset(), simpset() addsimps []) 1); 
+by (force_tac (claset(), simpset() addsimps []) 1); 
+by (force_tac (claset(), simpset() addsimps []) 1); 
 by (auto_tac (claset() addSDs [ pi_half_less_two RS order_less_trans, 
     CLAIM "~ m <= n ==> n < (m::real)"]
     addIs [DERIV_isCont,DERIV_cos],simpset()));
@@ -2323,7 +2335,7 @@ by (Auto_tac);
 qed "tan_arctan";
 
 Goal "- (pi/2) < arctan y  & arctan y < pi/2";
-by (Auto_tac);
+by (asm_full_simp_tac (HOL_ss addsimps [arctan]) 1); 
 qed "arctan_bounded";
 
 Goal "- (pi/2) < arctan y";
@@ -2331,7 +2343,7 @@ by (Auto_tac);
 qed "arctan_lbound";
 
 Goal "arctan y < pi/2";
-by (Auto_tac);
+by (asm_full_simp_tac (HOL_ss addsimps [arctan]) 1); 
 qed "arctan_ubound";
 
 Goalw [arctan_def]
@@ -2842,10 +2854,13 @@ qed "lemma_cos_sin_eq";
 Goal "[| 0 < x * x + y * y; \
 \       1 - cos xa ^ 2 = (y / sqrt (x * x + y * y)) ^ 2 \
 \     |] ==> cos xa ^ 2 = (x / sqrt (x * x + y * y)) ^ 2";
-by (auto_tac (claset(),simpset() addsimps [realpow_divide,
-    real_sqrt_gt_zero_pow2,realpow_two_eq_mult RS sym]));
+by (auto_tac (claset(),
+    simpset() addsimps [realpow_divide,
+          real_sqrt_gt_zero_pow2,realpow_two_eq_mult RS sym]));
 by (rtac (real_add_commute RS subst) 1);
-by (auto_tac (claset() addIs [lemma_divide_rearrange],simpset()));
+by (rtac lemma_divide_rearrange 1); 
+by (asm_full_simp_tac (simpset() addsimps []) 1);
+by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);  
 qed "lemma_sin_cos_eq";
 
 Goal "[| x ~= 0; \
@@ -2862,18 +2877,6 @@ by (Asm_full_simp_tac 2);
 by (auto_tac (claset(),simpset() addsimps [realpow_two_disj,realpow_num_two] 
     delsimps [realpow_Suc]));
 qed "sin_x_y_disj";
-
-(*
-Goal "(x / sqrt (x * x + y * y)) ^ 2 = (x * x) / (x * x + y * y)";
-by Auto_tac;
-val lemma = result();
-Addsimps [lemma];
-
-Goal "(x / sqrt (x * x + y * y)) *  (x / sqrt (x * x + y * y)) = \
-\        (x * x) / (x * x + y * y)";
-val lemma_too = result();
-Addsimps [lemma_too];
-*)
 
 Goal "y ~= 0 ==> x / sqrt (x * x + y * y) ~= -(1::real)";
 by Auto_tac;
