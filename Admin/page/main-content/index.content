@@ -35,22 +35,50 @@ workshops and courses.
 
 <p>
 
+<h2><!-- _GP_ distname --></h2>
+New features in <strong><!-- _GP_ distname --></strong> include
+<ul>
+<li>New theory Ring_and_Field with over 250 basic numerical laws, 
+  all proved in axiomatic type classes for semirings, rings and fields.</li>
+
+<li>New locale <code>ring</code> for non-commutative rings in HOL-Algebra.</li>
+
+<li>Type <code>rat</code> of the rational numbers available in HOL-Complex.</li>
+
+<li>Improved locales (named proof contexts), instantiation of locales.</li>
+
+<li>Improved calculational reasoning chains.</li>
+
+<li>Improved records handling.</li>
+
+<li>Improved handling of linear and partial orders in simplifier.</li>
+ 
+<li>New <code>specification</code> command for definition by specification.</li>  
+
+<li>New Isar command <code>finalconsts</code> prevents constants being given a definition later.</li>  
+
+<li><code>arith</code> now generates counterexamples for reals as well.</li>
+
+<li>New <code>refute</code> command to search for (finite) countermodels for a fragment of HOL.</li>
+
+<li>Presentation and x-symbol enhancements, greek letters and sub/superscripts in identifiers.</li>
+</ul>
+<a href="dist/<!-- _GP_ distname -->/NEWS">[Complete Changelog]</a>
+<p>
+The <strong><!-- _GP_ distname --></strong> distribution is available
+from several <a href="dist/index.html">mirror sites</a>.  It includes
+source and binary packages and browsable documentation. There is also
+a nightly generated <a href="http://isabelle.in.tum.de/devel/">development 
+snapshot</a> available.
+
+<p>
+
 <h2>Out now</h2>
 
 The 
 <a href="dist/<!-- _GP_ distname -->/doc/tutorial.pdf">Tutorial on Isabelle/HOL</a> --
 published by Springer Verlag as <a
 href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>.
-
-<p>
-
-<h2>Obtaining Isabelle</h2>
-
-The <strong><!-- _GP_ distname --></strong> distribution is available
-from several <a href="dist/index.html">mirror sites</a>.  It includes
-source and binary packages and browsable documentation. There is also
-a nightly generated <a href="http://isabelle.in.tum.de/devel/">development 
-snapshot</a> available.
 
 <p>
 
