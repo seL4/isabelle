@@ -63,7 +63,7 @@ fun inductive_decl coind =
         \local\n\
         \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
         \  InductivePackage.add_inductive true " ^
-        (if coind then "true " else "false ") ^ srec_tms ^ " [] " ^
+        (if coind then "true " else "false ") ^ srec_tms ^
          sintrs ^ " " ^ mk_list (no_atts monos) ^ " " ^ mk_list (no_atts con_defs) ^ " thy;\n\
         \in\n\
         \structure " ^ big_rec_name ^ " =\n\

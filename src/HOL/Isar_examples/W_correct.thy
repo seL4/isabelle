@@ -33,10 +33,10 @@ translations
   "a |- e :: t" == "(a, e, t) : has_type"
 
 inductive has_type
-  intros [simp]
-    Var: "n < length a ==> a |- Var n :: a ! n"
-    Abs: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
-    App: "a |- e1 :: t2 -> t1 ==> a |- e2 :: t2
+  intros
+    Var [simp]: "n < length a ==> a |- Var n :: a ! n"
+    Abs [simp]: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
+    App [simp]: "a |- e1 :: t2 -> t1 ==> a |- e2 :: t2
       ==> a |- App e1 e2 :: t1"
 
 

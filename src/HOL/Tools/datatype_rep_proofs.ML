@@ -175,7 +175,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (thy2, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name false true false
-           consts [] (map (fn x => (("", x), [])) intr_ts) [Funs_mono] []) thy1;
+           consts (map (fn x => (("", x), [])) intr_ts) [Funs_mono] []) thy1;
 
     (********************************* typedef ********************************)
 
