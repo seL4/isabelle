@@ -250,12 +250,11 @@ fun fomatch tsig (pat,obj) =
 			   handle Type.TYPE_MATCH => raise MATCH;
       fun mtch (tyinsts,insts) = fn
 	(Var(ixn,T), t)  =>
-	  if null (loose_bnos t)
-	  then case assoc(insts,ixn) of
+	  if loose_bvar(t,0) then raise MATCH
+	  else (case assoc(insts,ixn) of
 		  None => (typ_match (tyinsts, (T, fastype_of t)), 
 			   (ixn,t)::insts)
-		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH
-	  else raise MATCH
+		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
 	  if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
       | (Const (a,T), Const (b,U))  =>
