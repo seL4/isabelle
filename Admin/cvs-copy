@@ -52,7 +52,7 @@ function copy ()
     do
       if [ -n "$NAME" ]; then
         if [ "$TYPE" = D ]; then
-          echo "${PREFIX}$NAME"
+          echo "X ${PREFIX}$NAME"
           mkdir -p "$TODIR/${PREFIX}$NAME" || fail "Bad directory '$TODIR/${PREFIX}$NAME'"
           copy "${PREFIX}$NAME/" || return "$?"
         else
