@@ -67,7 +67,7 @@ $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES)
 $(BIN)/HOL:
 	cd ../HOL;  $(MAKE)
 
-EX_THYS = ex/Classlib.thy ex/Witness.thy\
+EX_THYS = ex/Classlib.thy\
 	  ex/Dnat.thy ex/Dlist.thy ex/Stream.thy\
 	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy\
 	  ex/Hoare.thy ex/Loop.thy
