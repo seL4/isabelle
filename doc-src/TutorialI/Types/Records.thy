@@ -112,7 +112,6 @@ text {*
   @{text [display]
 "    point = (| Xcoord :: int, Ycoord :: int |)
     'a point_scheme = (| Xcoord :: int, Ycoord :: int, ... :: 'a |)"}
-  Extensions `...' must be in type class @{text more}.
 *}
 
 constdefs

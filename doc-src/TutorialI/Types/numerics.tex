@@ -41,15 +41,15 @@ is available.
 \label{sec:numerals}
 
 \index{numeric literals|(}%
-Literals are available for the types of natural numbers, integers 
-and reals and denote integer values of arbitrary size. 
-They begin 
-with a number sign (\isa{\#}), have an optional minus sign (\isa{-}) and 
-then one or more decimal digits. Examples are \isa{\#0}, \isa{\#-3} 
-and \isa{\#441223334678}.\REMARK{will need updating?}
+The constants \cdx{0} and \cdx{1} are overloaded.  They denote zero and one,
+respectively, for all numeric types.  Other values are expressed by numeric
+literals, which consist of one or more decimal digits optionally preceeded by
+a minus sign (\isa{-}).  Examples are \isa{2}, \isa{-3} and
+\isa{441223334678}.  Literals are available for the types of natural numbers,
+integers and reals; they denote integer values of arbitrary size.
 
 Literals look like constants, but they abbreviate 
-terms, representing the number in a two's complement binary notation. 
+terms representing the number in a two's complement binary notation. 
 Isabelle performs arithmetic on literals by rewriting rather 
 than using the hardware arithmetic. In most cases arithmetic 
 is fast enough, even for large numbers. The arithmetic operations 
@@ -64,14 +64,14 @@ expression refers to a specific type, if necessary by inserting
 type constraints.  Here is an example of what can go wrong:
 \par
 \begin{isabelle}
-\isacommand{lemma}\ "\#2\ *\ m\ =\ m\ +\ m"
+\isacommand{lemma}\ "2\ *\ m\ =\ m\ +\ m"
 \end{isabelle}
 %
 Carefully observe how Isabelle displays the subgoal:
 \begin{isabelle}
-\ 1.\ (\#2::'a)\ *\ m\ =\ m\ +\ m
+\ 1.\ (2::'a)\ *\ m\ =\ m\ +\ m
 \end{isabelle}
-The type \isa{'a} given for the literal \isa{\#2} warns us that no numeric
+The type \isa{'a} given for the literal \isa{2} warns us that no numeric
 type has been specified.  The problem is underspecified.  Given a type
 constraint such as \isa{nat}, \isa{int} or \isa{real}, it becomes trivial.
 \end{warn}
@@ -83,13 +83,13 @@ must not be used in patterns.  For example, this declaration is
 rejected:
 \begin{isabelle}
 \isacommand{recdef}\ h\ "\isacharbraceleft \isacharbraceright "\isanewline
-"h\ \#3\ =\ \#2"\isanewline
+"h\ 3\ =\ 2"\isanewline
 "h\ i\ \ =\ i"
 \end{isabelle}
 
 You should use a conditional expression instead:
 \begin{isabelle}
-"h\ i\ =\ (if\ i\ =\ \#3\ then\ \#2\ else\ i)"
+"h\ i\ =\ (if\ i\ =\ 3\ then\ 2\ else\ i)"
 \end{isabelle}
 \index{numeric literals|)}
 \end{warn}
@@ -106,29 +106,30 @@ in exceptional circumstances should you resort to induction.
 
 \subsubsection{Literals}
 \index{numeric literals!for type \protect\isa{nat}}%
-The notational options for the natural numbers are confusing.  The 
-constant \cdx{0} is overloaded to serve as the neutral value 
-in a variety of additive types. The symbols \sdx{1} and \sdx{2} are 
-not constants but abbreviations for \isa{Suc 0} and \isa{Suc(Suc 0)},
-respectively. The literals \isa{\#0}, \isa{\#1} and \isa{\#2}  are
-syntactically different from \isa{0}, \isa{1} and \isa{2}. You  will\REMARK{will need updating?}
-sometimes prefer one notation to the other. Literals are  obviously
-necessary to express large values, while \isa{0} and \isa{Suc}  are needed
-in order to match many theorems, including the rewrite  rules for primitive
-recursive functions. The following default  simplification rules replace
+The notational options for the natural  numbers are confusing.  Recall that an
+overloaded constant can be defined independently for each type; the definition
+of \cdx{1} for type \isa{nat} is
+\begin{isabelle}
+1\ \isasymequiv\ Suc\ 0
+\rulename{One_nat_def}
+\end{isabelle}
+This is installed as a simplification rule, so the simplifier will replace
+every occurrence of \isa{1::nat} by \isa{Suc\ 0}.  Literals are obviously
+better than nested \isa{Suc}s at expressing large values.  But many theorems,
+including the rewrite rules for primitive recursive functions, can only be
+applied to terms of the form \isa{Suc\ $n$}.
+
+The following default  simplification rules replace
 small literals by zero and successor: 
 \begin{isabelle}
-\#0\ =\ 0
-\rulename{numeral_0_eq_0}\isanewline
-\#1\ =\ 1
-\rulename{numeral_1_eq_1}\isanewline
-\#2\ +\ n\ =\ Suc\ (Suc\ n)
+2\ +\ n\ =\ Suc\ (Suc\ n)
 \rulename{add_2_eq_Suc}\isanewline
-n\ +\ \#2\ =\ Suc\ (Suc\ n)
+n\ +\ 2\ =\ Suc\ (Suc\ n)
 \rulename{add_2_eq_Suc'}
 \end{isabelle}
-In special circumstances, you may wish to remove or reorient 
-these rules. 
+It is less easy to transform \isa{100} into \isa{Suc\ 99} (for example), and
+the simplifier will normally reverse this transformation.  Novices should
+express natural numbers using \isa{0} and \isa{Suc} only.
 
 \subsubsection{Typical lemmas}
 Inequalities involving addition and subtraction alone can be proved
@@ -225,11 +226,17 @@ P(a-b)\ =\ ((a<b\ \isasymlongrightarrow \ P\
 d))
 \rulename{nat_diff_split}
 \end{isabelle}
-For example, this splitting proves the following fact, which lies outside the scope of
-linear arithmetic:\REMARK{replace by new example!}
+For example, splitting helps to prove the following fact:
 \begin{isabelle}
-\isacommand{lemma}\ "(n-1)*(n+1)\ =\ n*n\ -\ 1"\isanewline
-\isacommand{apply}\ (simp\ split:\ nat_diff_split)\isanewline
+\isacommand{lemma}\ "(n\ -\ 2)\ *\ (n\ +\ 2)\ =\ n\ *\ n\ -\ (4::nat)"\isanewline
+\isacommand{apply}\ (simp\ split:\ nat_diff_split,\ clarify)\isanewline
+\ 1.\ \isasymAnd d.\ \isasymlbrakk n\ <\ 2;\ n\ *\ n\ =\ 4\ +\ d\isasymrbrakk \ \isasymLongrightarrow \ d\ =\ 0
+\end{isabelle}
+The result lies outside the scope of linear arithmetic, but
+ it is easily found
+if we explicitly split \isa{n<2} as \isa{n=0} or \isa{n=1}:
+\begin{isabelle}
+\isacommand{apply}\ (subgoal_tac\ "n=0\ |\ n=1",\ force,\ arith)\isanewline
 \isacommand{done}
 \end{isabelle}
 
@@ -313,13 +320,13 @@ the treatment of negative divisors follows
 mathematical practice: the sign of the remainder follows that
 of the divisor:
 \begin{isabelle}
-\#0\ <\ b\ \isasymLongrightarrow \ \#0\ \isasymle \ a\ mod\ b%
+0\ <\ b\ \isasymLongrightarrow \ 0\ \isasymle \ a\ mod\ b%
 \rulename{pos_mod_sign}\isanewline
-\#0\ <\ b\ \isasymLongrightarrow \ a\ mod\ b\ <\ b%
+0\ <\ b\ \isasymLongrightarrow \ a\ mod\ b\ <\ b%
 \rulename{pos_mod_bound}\isanewline
-b\ <\ \#0\ \isasymLongrightarrow \ a\ mod\ b\ \isasymle \ \#0
+b\ <\ 0\ \isasymLongrightarrow \ a\ mod\ b\ \isasymle \ 0
 \rulename{neg_mod_sign}\isanewline
-b\ <\ \#0\ \isasymLongrightarrow \ b\ <\ a\ mod\ b%
+b\ <\ 0\ \isasymLongrightarrow \ b\ <\ a\ mod\ b%
 \rulename{neg_mod_bound}
 \end{isabelle}
 ML treats negative divisors in the same way, but most computer hardware
@@ -342,9 +349,9 @@ a\ div\ c\ +\ b\ div\ c\ +\ (a\ mod\ c\ +\ b\ mod\ c)\ div\ c%
 \end{isabelle}
 
 \begin{isabelle}
-\#0\ <\ c\ \isasymLongrightarrow \ a\ div\ (b*c)\ =\ a\ div\ b\ div\ c%
+0\ <\ c\ \isasymLongrightarrow \ a\ div\ (b*c)\ =\ a\ div\ b\ div\ c%
 \rulename{zdiv_zmult2_eq}\isanewline
-\#0\ <\ c\ \isasymLongrightarrow \ a\ mod\ (b*c)\ =\ b*(a\ div\ b\ mod\
+0\ <\ c\ \isasymLongrightarrow \ a\ mod\ (b*c)\ =\ b*(a\ div\ b\ mod\
 c)\ +\ a\ mod\ b%
 \rulename{zmod_zmult2_eq}
 \end{isabelle}
@@ -426,18 +433,18 @@ for type \isa{real} have the same syntax as those for type
 \isa{int} and only express integral values.  Fractions expressed
 using the division operator are automatically simplified to lowest terms:
 \begin{isabelle}
-\ 1.\ P\ ((\#3\ /\ \#4)\ *\ (\#8\ /\ \#15))\isanewline
+\ 1.\ P\ ((3\ /\ 4)\ *\ (8\ /\ 15))\isanewline
 \isacommand{apply} simp\isanewline
-\ 1.\ P\ (\#2\ /\ \#5)
+\ 1.\ P\ (2\ /\ 5)
 \end{isabelle}
 Exponentiation can express floating-point values such as
-\isa{\#2 * \#10\isacharcircum\#6}, but at present no special simplification
+\isa{2 * 10\isacharcircum6}, but at present no special simplification
 is performed.
 
 
 \begin{warn}
 Type \isa{real} is only available in the logic HOL-Real, which
-is  HOL extended with the rather substantial development of the real
+is  HOL extended with a definitional development of the real
 numbers.  Base your theory upon theory
 \thydx{Real}, not the usual \isa{Main}.%
 \index{real numbers|)}\index{*real (type)|)}

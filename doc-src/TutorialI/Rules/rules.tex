@@ -1818,7 +1818,7 @@ theorem using~\attrdx{of}, which identifies variables in order of their
 appearance from left to right.  In this case, the variables  are \isa{?k}, \isa{?m}
 and~\isa{?n}. So, the expression
 \hbox{\texttt{[of k 1]}} replaces \isa{?k} by~\isa{k} and \isa{?m}
-by~\isa{1}.\REMARK{which 1 do we use?? (right the way down)}
+by~\isa{1}.
 \begin{isabelle}
 \isacommand{lemmas}\ gcd_mult_0\ =\ gcd_mult_distrib2\ [of\ k\ 1]
 \end{isabelle}
@@ -1890,8 +1890,7 @@ which extract  the two directions of reasoning about a boolean equivalence:
 \end{isabelle}
 %
 Normally we would never name the intermediate theorems
-such as \isa{gcd_mult_0} and
-\isa{gcd_mult_1} but would combine
+such as \isa{gcd_mult_0} and \isa{gcd_mult_1} but would combine
 the three forward steps: 
 \begin{isabelle}
 \isacommand{lemmas}\ gcd_mult\ =\ gcd_mult_distrib2\ [of\ k\ 1,\ simplified,\ THEN\ sym]%
@@ -1959,7 +1958,7 @@ We can use \isa{OF} to create an instance of this rule.
 First, we
 prove an instance of its first premise:
 \begin{isabelle}
-\isacommand{lemma}\ relprime_20_81:\ "gcd(\#20,\#81)\ =\ 1"\isanewline
+\isacommand{lemma}\ relprime_20_81:\ "gcd(20,81)\ =\ 1"\isanewline
 \isacommand{by}\ (simp\ add:\ gcd.simps)
 \end{isabelle}
 We have evaluated an application of the \isa{gcd} function by
@@ -1973,7 +1972,7 @@ give this new lemma to \isa{OF}.  The expression
 \end{isabelle}
 yields the theorem
 \begin{isabelle}
-\ \ \ \ \ \#20\ dvd\ (?m\ *\ \#81)\ \isasymLongrightarrow\ \#20\ dvd\ ?m%
+\ \ \ \ \ 20\ dvd\ (?m\ *\ 81)\ \isasymLongrightarrow\ 20\ dvd\ ?m%
 \end{isabelle}
 %
 \isa{OF} takes any number of operands.  Consider 
@@ -2048,10 +2047,10 @@ i\ \isasymle \ j\ \isasymLongrightarrow \ i\ *\ k\ \isasymle \ j\ *\ k%
 
 For example, let us prove a fact about divisibility in the natural numbers:
 \begin{isabelle}
-\isacommand{lemma}\ "\#2\ \isasymle \ u\ \isasymLongrightarrow \ u*m\ \isasymnoteq
+\isacommand{lemma}\ "2\ \isasymle \ u\ \isasymLongrightarrow \ u*m\ \isasymnoteq
 \ Suc(u*n)"\isanewline
 \isacommand{apply}\ intro\isanewline
-\ 1.\ \isasymlbrakk \#2\ \isasymle \ u;\ u\ *\ m\ =\ Suc\ (u\ *\ n)\isasymrbrakk \ \isasymLongrightarrow \ False%
+\ 1.\ \isasymlbrakk 2\ \isasymle \ u;\ u\ *\ m\ =\ Suc\ (u\ *\ n)\isasymrbrakk \ \isasymLongrightarrow \ False%
 \end{isabelle}
 %
 The key step is to apply the function \ldots\isa{mod\ u} to both sides of the
@@ -2060,7 +2059,7 @@ equation
 \begin{isabelle}
 \isacommand{apply}\ (drule_tac\ f="\isasymlambda x.\ x\ mod\ u"\ \isakeyword{in}\
 arg_cong)\isanewline
-\ 1.\ \isasymlbrakk \#2\ \isasymle \ u;\ u\ *\ m\ mod\ u\ =\ Suc\ (u\ *\ n)\ mod\
+\ 1.\ \isasymlbrakk 2\ \isasymle \ u;\ u\ *\ m\ mod\ u\ =\ Suc\ (u\ *\ n)\ mod\
 u\isasymrbrakk \ \isasymLongrightarrow \ False
 \end{isabelle}
 %
@@ -2175,13 +2174,13 @@ state the formula you are aiming for, and perhaps prove it automatically.
 
 Look at the following example. 
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk(z::int)\ <\ \#37;\ \#66\ <\ \#2*z;\ z*z\
-\isasymnoteq\ \#1225;\ Q(\#34);\ Q(\#36)\isasymrbrakk\isanewline
+\isacommand{lemma}\ "\isasymlbrakk(z::int)\ <\ 37;\ 66\ <\ 2*z;\ z*z\
+\isasymnoteq\ 1225;\ Q(34);\ Q(36)\isasymrbrakk\isanewline
 \ \ \ \ \ \ \ \ \,\isasymLongrightarrow\ Q(z)"\isanewline
-\isacommand{apply}\ (subgoal_tac\ "z\ =\ \#34\ \isasymor\ z\ =\
-\#36")\isanewline
+\isacommand{apply}\ (subgoal_tac\ "z\ =\ 34\ \isasymor\ z\ =\
+36")\isanewline
 \isacommand{apply}\ blast\isanewline
-\isacommand{apply}\ (subgoal_tac\ "z\ \isasymnoteq\ \#35")\isanewline
+\isacommand{apply}\ (subgoal_tac\ "z\ \isasymnoteq\ 35")\isanewline
 \isacommand{apply}\ arith\isanewline
 \isacommand{apply}\ force\isanewline
 \isacommand{done}
@@ -2196,25 +2195,25 @@ The Isabelle proof closely follows this reasoning. The first
 step is to claim that \isa{z} is either 34 or 36. The resulting proof 
 state gives us two subgoals: 
 \begin{isabelle}
-%\isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\ \#1225;\
-%Q\ \#34;\ Q\ \#36\isasymrbrakk\ \isasymLongrightarrow\ Q\ z\isanewline
-\ 1.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\ \#1225;\ Q\ \#34;\ Q\ \#36;\isanewline
-\ \ \ \ \ z\ =\ \#34\ \isasymor\ z\ =\ \#36\isasymrbrakk\isanewline
+%\isasymlbrakk z\ <\ 37;\ 66\ <\ 2\ *\ z;\ z\ *\ z\ \isasymnoteq\ 1225;\
+%Q\ 34;\ Q\ 36\isasymrbrakk\ \isasymLongrightarrow\ Q\ z\isanewline
+\ 1.\ \isasymlbrakk z\ <\ 37;\ 66\ <\ 2\ *\ z;\ z\ *\ z\ \isasymnoteq\ 1225;\ Q\ 34;\ Q\ 36;\isanewline
+\ \ \ \ \ z\ =\ 34\ \isasymor\ z\ =\ 36\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ Q\ z\isanewline
-\ 2.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk\isanewline
-\ \ \ \ \isasymLongrightarrow\ z\ =\ \#34\ \isasymor\ z\ =\ \#36
+\ 2.\ \isasymlbrakk z\ <\ 37;\ 66\ <\ 2\ *\ z;\ z\ *\ z\ \isasymnoteq\ 1225;\ Q\ 34;\ Q\ 36\isasymrbrakk\isanewline
+\ \ \ \ \isasymLongrightarrow\ z\ =\ 34\ \isasymor\ z\ =\ 36
 \end{isabelle}
 The first subgoal is trivial (\isa{blast}), but for the second Isabelle needs help to eliminate
 the case
 \isa{z}=35.  The second invocation  of {\isa{subgoal_tac}} leaves two
 subgoals: 
 \begin{isabelle}
-\ 1.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\
-\#1225;\ Q\ \#34;\ Q\ \#36;\isanewline
-\ \ \ \ \ z\ \isasymnoteq\ \#35\isasymrbrakk\isanewline
-\ \ \ \ \isasymLongrightarrow\ z\ =\ \#34\ \isasymor\ z\ =\ \#36\isanewline
-\ 2.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk\isanewline
-\ \ \ \ \isasymLongrightarrow\ z\ \isasymnoteq\ \#35
+\ 1.\ \isasymlbrakk z\ <\ 37;\ 66\ <\ 2\ *\ z;\ z\ *\ z\ \isasymnoteq\
+1225;\ Q\ 34;\ Q\ 36;\isanewline
+\ \ \ \ \ z\ \isasymnoteq\ 35\isasymrbrakk\isanewline
+\ \ \ \ \isasymLongrightarrow\ z\ =\ 34\ \isasymor\ z\ =\ 36\isanewline
+\ 2.\ \isasymlbrakk z\ <\ 37;\ 66\ <\ 2\ *\ z;\ z\ *\ z\ \isasymnoteq\ 1225;\ Q\ 34;\ Q\ 36\isasymrbrakk\isanewline
+\ \ \ \ \isasymLongrightarrow\ z\ \isasymnoteq\ 35
 \end{isabelle}
 
 Assuming that \isa{z} is not 35, the first subgoal follows by linear arithmetic
@@ -2286,8 +2285,8 @@ repetition, when the choice must be made over and over again.  Here is a chain o
 implications in which most of the antecedents are proved by assumption, but one is
 proved by arithmetic:
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ x<\#5\isasymlongrightarrow P;\
-Suc\ x\ <\ \#5\isasymrbrakk \ \isasymLongrightarrow \ R"\ \isanewline
+\isacommand{lemma}\ "\isasymlbrakk Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ x<5\isasymlongrightarrow P;\
+Suc\ x\ <\ 5\isasymrbrakk \ \isasymLongrightarrow \ R"\ \isanewline
 \isacommand{by}\ (drule\ mp,\ (assumption|arith))+
 \end{isabelle}
 The \isa{arith}

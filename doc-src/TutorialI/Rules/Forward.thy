@@ -33,15 +33,6 @@ text{*\noindent
 as far as HERE.
 *}
 
-
-text {*
-@{thm[display] gcd_1}
-\rulename{gcd_1}
-
-@{thm[display] gcd_1_left}
-\rulename{gcd_1_left}
-*};
-
 text{*\noindent
 SKIP THIS PROOF
 *}

@@ -112,10 +112,12 @@ this is what we get:
 \isacommand{lemma}\ gterms{\isacharunderscore}Int{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ \ \ \ {\isachardoublequote}gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ mono{\isacharunderscore}Int\ monoI\ gterms{\isacharunderscore}mono{\isacharparenright}\isanewline
-\isanewline
-\isanewline
-\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ mono{\isacharunderscore}Int\ monoI\ gterms{\isacharunderscore}mono{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+the following declaration isn't actually used%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ integer{\isacharunderscore}arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}integer{\isacharunderscore}op\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline

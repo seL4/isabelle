@@ -36,7 +36,7 @@ both of type~\isa{int}.  We now declare a constant of type
 \isa{point}:
 \begin{isabelle}
 \isacommand{constdefs}\ \ \ pt1\ ::\ point\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ "pt1\ ==\ (|\ Xcoord\ =\ \#999,\ Ycoord\ =\ \#23\ |)"
+\ \ \ \ \ \ \ \ \ \ \ \ "pt1\ ==\ (|\ Xcoord\ =\ 999,\ Ycoord\ =\ 23\ |)"
 \end{isabelle}
 We see above the ASCII notation for record brackets.  You can also use
 the symbolic brackets \isa{\isasymlparr} and  \isa{\isasymrparr}.
@@ -45,7 +45,7 @@ previously declared names:
 \begin{isabelle}
 \isacommand{constdefs}\ \ \ pt2\ ::\ "(|\ Xcoord\ ::\ int,\ Ycoord\ ::\ int\
 |)"\ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ "pt2\ ==\ (|\ Xcoord\ =\ \#-45,\ Ycoord\ =\ \#97\ |)"
+\ \ \ \ \ \ \ \ \ \ \ \ "pt2\ ==\ (|\ Xcoord\ =\ -45,\ Ycoord\ =\ 97\ |)"
 \end{isabelle}
 
 For each field, there is a \emph{selector} function of the same name.  For
@@ -57,12 +57,12 @@ selection are simplified automatically:
 \isacommand{by}\ simp
 \end{isabelle}
 The \emph{update} operation is functional.  For example,
-\isa{p\isasymlparr Xcoord:=\#0\isasymrparr} is a record whose \isa{Xcoord} value
+\isa{p\isasymlparr Xcoord:=0\isasymrparr} is a record whose \isa{Xcoord} value
 is zero and whose
 \isa{Ycoord} value is copied from~\isa{p}.  Updates are also simplified
 automatically:
 \begin{isabelle}
-\isacommand{lemma}\ "(|\ Xcoord\ =\ a,\ Ycoord\ =\ b\ |)\ (|\ Xcoord:=\ \#0\ |)\
+\isacommand{lemma}\ "(|\ Xcoord\ =\ a,\ Ycoord\ =\ b\ |)\ (|\ Xcoord:=\ 0\ |)\
 =\isanewline
 \ \ \ \ \ \ \ \ (|\ Xcoord\ =\ 0,\ Ycoord\ =\ b\ |)"\isanewline
 \isacommand{by}\ simp
@@ -94,7 +94,7 @@ The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and \isa{col}, in tha
 order:
 \begin{isabelle}
 \isacommand{constdefs}\ \ \ cpt1\ ::\ cpoint\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ "cpt1\ ==\ (|\ Xcoord\ =\ \#999,\ Ycoord\ =\ \#23,\ col\
+\ \ \ \ \ \ \ \ \ \ \ \ "cpt1\ ==\ (|\ Xcoord\ =\ 999,\ Ycoord\ =\ 23,\ col\
 =\ Green\ |)"
 \end{isabelle}
 
@@ -141,14 +141,11 @@ Type \isa{point} is for rigid records having the two fields
 comprises all possible extensions to those two fields.  For example,
 let us define two operations --- methods, if we regard records as
 objects --- to get and set any point's
-\isa{Xcoord} field.  The sort constraint in \isa{'a::more} is
-required, since all extensions must belong to the type class
-\isa{more}.%
-\REMARK{Why, and what does this imply in practice?}
+\isa{Xcoord} field. 
 \begin{isabelle}
-\ \ getX\ ::\ "('a::more)\ point_scheme\ \isasymRightarrow \ int"\isanewline
+\ \ getX\ ::\ "'a\ point_scheme\ \isasymRightarrow \ int"\isanewline
 \ \ \ "getX\ r\ ==\ Xcoord\ r"\isanewline
-\ \ setX\ ::\ "[('a::more)\ point_scheme,\ int]\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
+\ \ setX\ ::\ "['a\ point_scheme,\ int]\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
 \ \ \ "setX\ r\ a\ ==\ r\ (|\ Xcoord\ :=\ a\ |)"
 \end{isabelle}
 
@@ -158,9 +155,8 @@ are copied across.  It works for type \isa{point} and any of its
 extensions, such as \isa{cpoint}:
 \begin{isabelle}
 \isacommand{constdefs}\isanewline
-\ \ incX\ ::\ "('a::more)\ point_scheme\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
-\ \ "incX\ r\ ==\ \isasymlparr Xcoord\ =\ (Xcoord\ r)\ +\
-\#1,\isanewline
+\ \ incX\ ::\ "'a\ point_scheme\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
+\ \ "incX\ r\ ==\ \isasymlparr Xcoord\ =\ (Xcoord\ r)\ +\ 1,\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ycoord\ =\ Ycoord\ r,\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isasymdots \ =\ point.more\
 r\isasymrparr"
@@ -169,7 +165,7 @@ r\isasymrparr"
 Generic theorems can be proved about generic methods.  This trivial
 lemma relates \isa{incX} to \isa{getX} and \isa{setX}:
 \begin{isabelle}
-\isacommand{lemma}\ "incX\ r\ =\ setX\ r\ ((getX\ r)\ +\ \#1)"\isanewline
+\isacommand{lemma}\ "incX\ r\ =\ setX\ r\ ((getX\ r)\ +\ 1)"\isanewline
 \isacommand{by}\ (simp\ add:\ getX_def\ setX_def\ incX_def)
 \end{isabelle}
 

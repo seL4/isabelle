@@ -76,6 +76,7 @@ lemma gterms_Int_eq [simp]:
 by (blast intro!: mono_Int monoI gterms_mono)
 
 
+text{*the following declaration isn't actually used*}
 consts integer_arity :: "integer_op \<Rightarrow> nat"
 primrec
 "integer_arity (Number n)        = 0"

@@ -130,9 +130,25 @@ P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}
 \rulename{nat_diff_split}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n\ {\isacharminus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ n\ {\isacharasterisk}\ n\ {\isacharminus}\ {\isacharparenleft}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ n\ {\isacharasterisk}\ n\ {\isacharminus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{apply}\ {\isacharparenleft}clarsimp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\ %
+\isamarkupcmt{\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ Suc\ {\isadigit{0}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ Suc\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
+\end{isabelle}%
+}
+\isanewline
+\isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}n{\isacharequal}{\isadigit{0}}{\isachardoublequote}{\isacharcomma}\ force{\isacharcomma}\ arith{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isanewline
+\isanewline
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n\ {\isacharminus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ n\ {\isacharasterisk}\ n\ {\isacharminus}\ {\isacharparenleft}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}simp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharcomma}\ clarify{\isacharparenright}\isanewline
 \ %
 \isamarkupcmt{\begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ {\isadigit{2}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ {\isadigit{4}}\ {\isacharplus}\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
