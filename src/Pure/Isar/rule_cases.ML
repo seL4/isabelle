@@ -15,7 +15,7 @@ sig
   val get: thm -> string list * int
   val add: thm -> thm * (string list * int)
   val save: thm -> thm -> thm
-  type T (* = (string * typ) list * term list *)
+  type T
   val make: bool -> thm -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
@@ -24,11 +24,16 @@ end;
 structure RuleCases: RULE_CASES =
 struct
 
+(* names *)
+
+val consumes_tagN = "consumes";
+val cases_tagN = "cases";
+val case_conclN = "case";
+
+
 (* number of consumed facts *)
 
-val consumesN = "consumes";
-
-fun lookup_consumes thm = Library.assoc (Thm.tags_of_thm thm, consumesN);
+fun lookup_consumes thm = Library.assoc (Thm.tags_of_thm thm, consumes_tagN);
 
 fun get_consumes thm =
   let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [thm]) in
@@ -38,7 +43,7 @@ fun get_consumes thm =
     | _ => err ())
   end;
 
-fun put_consumes n = Drule.tag_rule (consumesN, [Library.string_of_int n]);
+fun put_consumes n = Drule.tag_rule (consumes_tagN, [Library.string_of_int n]);
 val save_consumes = put_consumes o get_consumes;
 
 fun consumes n x = Drule.rule_attribute (K (put_consumes n)) x;
@@ -47,14 +52,12 @@ fun consumes_default n x = if Library.is_some (lookup_consumes (#2 x)) then x el
 
 (* case names *)
 
-val casesN = "cases";
-
 fun name names thm =
   thm
-  |> Drule.untag_rule casesN
-  |> Drule.tag_rule (casesN, names);
+  |> Drule.untag_rule cases_tagN
+  |> Drule.tag_rule (cases_tagN, names);
 
-fun get_case_names thm = Library.assocs (Thm.tags_of_thm thm) casesN;
+fun get_case_names thm = Library.assocs (Thm.tags_of_thm thm) cases_tagN;
 val save_case_names = name o get_case_names;
 
 fun case_names ss = Drule.rule_attribute (K (name ss));
@@ -70,21 +73,25 @@ fun save thm = save_case_names thm o save_consumes thm;
 
 (* prepare cases *)
 
-type T = (string * typ) list * term list;
+type T = {fixes: (string * typ) list, assumes: term list, binds: (indexname * term option) list};
 
 fun prep_case open_parms thm name i =
   let
     val (_, _, Bi, _) = Thm.dest_state (thm, i)
       handle THM _ => raise THM ("More cases than premises in rule", 0, [thm]);
-    val rev_params = map (if open_parms then I else apfst Syntax.internal)
-      (rename_wrt_term Bi (Logic.strip_params Bi));
-    val rev_frees = map Free rev_params;
-    val props = map (fn t => Term.subst_bounds (rev_frees, t)) (Logic.strip_assums_hyp Bi);
-  in (name, (rev rev_params, props)) end;
+    val xs =
+      (rev (rename_wrt_term Bi (Logic.strip_params Bi)))    (* FIXME avoid rename_wrt_term? *)
+      |> map (if open_parms then I else apfst Syntax.internal);
+    val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
+    val concl_bind = ((case_conclN, 0),
+      Some (Term.list_abs (xs, AutoBind.drop_judgment (Logic.strip_assums_concl Bi))));
+  in (name, {fixes = xs, assumes = asms, binds = [concl_bind]}) end;
 
-fun make open_parms thm names =
-  #1 (foldr (fn (name, (cases, i)) => (prep_case open_parms thm name i :: cases, i - 1))
-    (Library.drop (length names - Thm.nprems_of thm, names), ([], Thm.nprems_of thm)));
+fun make open_parms raw_thm names =
+  let val thm = Tactic.norm_hhf raw_thm in
+    #1 (foldr (fn (name, (cases, i)) => (prep_case open_parms thm name i :: cases, i - 1))
+      (Library.drop (length names - Thm.nprems_of thm, names), ([], Thm.nprems_of thm)))
+  end;
 
 
 (* params *)
