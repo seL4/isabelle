@@ -352,6 +352,8 @@ associated concrete syntax.  The translations section specifies rewrite
 rules on abstract syntax trees, for defining notations and abbreviations.
 The {\ML} section contains code to perform arbitrary syntactic
 transformations.  The main declaration forms are discussed below.
+The full syntax can be found in \iflabelundefined{app:TheorySyntax}{the
+  appendix of the {\it Reference Manual}}{Appendix~\ref{app:TheorySyntax}}.
 
 All the declaration parts can be omitted.  In the simplest case, $T$ is
 just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one
@@ -432,7 +434,7 @@ end
 
 
 \subsection{Declaring type constructors}
-\indexbold{types!declaring}\indexbold{arities!declaring} 
+\indexbold{types!declaring}\indexbold{arities!declaring}
 %
 Types are composed of type variables and {\bf type constructors}.  Each
 type constructor takes a fixed number of arguments.  They are declared
@@ -515,6 +517,34 @@ Arity declarations resemble constant declarations, but there are {\it no\/}
 quotation marks!  Types and rules must be quoted because the theory
 translator passes them verbatim to the {\ML} output file.
 \end{warn}
+
+\subsection{Type synonyms}
+\indexbold{types!synonyms}\index{types!abbreviations|see{synonyms}}
+
+Isabelle supports {\bf type synonyms} ({\bf abbreviations}) which are similar
+to those found in ML. Such synonyms are defined in the type declaration part
+and are fairly self explanatory:
+\begin{ttbox}
+types gate = "[o,o] => o"
+      'a pred = "'a => o"
+      ('a,'b)nuf = "'b => 'a"
+\end{ttbox}
+Type declarations and synonyms can be mixed arbitrarily:
+\begin{ttbox}
+types nat
+      'a stream = "nat => 'a"
+      signal = "nat stream"
+      'a list
+\end{ttbox}
+A synonym is merely an abbreviation for some existing type expression. Hence
+synonyms may not be recursive! Internally all synonyms are fully expanded. As
+a consequence Isabelle output never contains synonyms. Their main purpose is
+to improve the readability of theories. Synonyms can be used just like any
+other type:
+\begin{ttbox}
+consts and,or :: "gate"
+       negate :: "signal => signal"
+\end{ttbox}
 
 \subsection{Infixes and Mixfixes}
 \indexbold{infix operators}\index{examples!of theories}
