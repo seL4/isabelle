@@ -4,17 +4,20 @@
 
 Formalization of section 4 of
 
-@inproceedings{Broy95-SRBLO,
-        author = {Manfred Broy},
-        title = {Specification and ReFinement of a Buffer of Length One},
-        booktitle = {Working Material of Marktoberdorf Summer School},
-        year = {1994},
-        publisher = {},
-        editor = {},
-        note = {\url{http://www4.in.tum.de/papers/broy_mod94.html}}
+@inproceedings {broy_mod94,
+    author = {Manfred Broy},
+    title = {{Specification and Refinement of a Buffer of Length One}},
+    booktitle = {Deductive Program Design},
+    year = {1994},
+    editor = {Manfred Broy},
+    volume = {152},
+    series = {ASI Series, Series F: Computer and System Sciences},
+    pages = {273 -- 304},
+    publisher = {Springer}
 }
 
 Slides available from http://isabelle.in.tum.de/HOLCF/1-Buffer.ps.gz
+
 *)
 
 Buffer = FOCUS + 
