@@ -550,41 +550,22 @@ next
   have mlessn: "m<n" by (simp add: nSuc)
   have "a \<in> h ` {i. i < n}" using aA by blast
   then obtain k where hkeq: "h k = a" and klessn: "k<n" by blast
+  let ?hm = "swap k m h"
+  have inj_hm: "inj_on ?hm {i. i < n}" using klessn mlessn 
+    by (simp add: inj_on_swap_iff inj_on)
   show ?thesis
-  proof cases
-    assume eq: "k=m"
-    show ?thesis
-    proof (intro exI conjI)
-      show "inj_on h {i::nat. i<m}" using inj_on
-	by (simp add: nSuc inj_on_def) 
-      show "m<n" by (rule mlessn)
-      show "A = h ` {i. i < m}" using aA anot nSuc hkeq eq inj_on
-	by (rules intro: insert_image_inj_on_eq) 
-    qed
-  next
-    assume diff: "k~=m"
-    hence klessm: "k<m" using nSuc klessn by arith
-    have hdiff: "h k ~= h m" using diff inj_on klessn mlessn
-	by (auto simp add: inj_on_def) 
-    let ?hm = "swap k m h"
-    have inj_onhm_n: "inj_on ?hm {i. i < n}" using klessn mlessn 
-      by (simp add: inj_on_swap_iff inj_on)
-    hence inj_onhm_m: "inj_on ?hm {i. i < m}"
+  proof (intro exI conjI)
+    show "inj_on ?hm {i. i < m}" using inj_hm
       by (auto simp add: nSuc less_Suc_eq intro: subset_inj_on)
-    show ?thesis
-    proof (intro exI conjI)
-      show "inj_on ?hm {i. i < m}" by (rule inj_onhm_m)
-      show "m<n" by (simp add: nSuc)
-      show "A = ?hm ` {i. i < m}" 
-      proof (rule insert_image_inj_on_eq)
-	show "inj_on (swap k m h) {i. i < Suc m}" using inj_onhm_n
-	  by (simp add: nSuc)
-        show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
-        show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
-          using aA hkeq diff hdiff nSuc
-	  by (auto simp add: swap_def image_less_Suc fun_upd_image klessm 
-                             inj_on_image_set_diff [OF inj_on])
-      qed
+    show "m<n" by (rule mlessn)
+    show "A = ?hm ` {i. i < m}" 
+    proof (rule insert_image_inj_on_eq)
+      show "inj_on (swap k m h) {i. i < Suc m}" using inj_hm nSuc by simp
+      show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
+      show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
+	using aA hkeq nSuc klessn
+	by (auto simp add: swap_def image_less_Suc fun_upd_image 
+			   less_Suc_eq inj_on_image_set_diff [OF inj_on])
     qed
   qed
 qed
