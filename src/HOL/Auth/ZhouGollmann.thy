@@ -35,7 +35,7 @@ constdefs
   broken :: "agent set"    
     --{*the compromised honest agents; TTP is included as it's not allowed to
         use the protocol*}
-   "broken == insert TTP (bad - {Spy})"
+   "broken == bad - {Spy}"
 
 declare broken_def [simp]
 
@@ -49,8 +49,7 @@ inductive zg
   Fake: "[| evsf \<in> zg;  X \<in> synth (analz (spies evsf)) |]
 	 ==> Says Spy B X  # evsf \<in> zg"
 
-Reception:  "[| evsr \<in> zg; A \<noteq> B; Says A B X \<in> set evsr |]
-	     ==> Gets B X # evsr \<in> zg"
+Reception:  "[| evsr \<in> zg; Says A B X \<in> set evsr |] ==> Gets B X # evsr \<in> zg"
 
   (*L is fresh for honest agents.
     We don't require K to be fresh because we don't bother to prove secrecy!
@@ -68,9 +67,8 @@ Reception:  "[| evsr \<in> zg; A \<noteq> B; Says A B X \<in> set evsr |]
 	   NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|}|]
        ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} # evs2  \<in>  zg"
 
-  (*K is symmetric must be repeated IF there's spy*)
-  (*A must check that NRR is B's signature to learn the sender's name*)
-  (*without spy, the matching label would be enough*)
+  (*A must check that NRR is B's signature to learn the sender's name;
+    without spy, the matching label would be enough*)
   ZG3: "[| evs3 \<in> zg; C = Crypt K M; K \<in> symKeys;
 	   Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs3;
 	   Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs3;
@@ -81,16 +79,20 @@ Reception:  "[| evsr \<in> zg; A \<noteq> B; Says A B X \<in> set evsr |]
 
  (*TTP checks that sub_K is A's signature to learn who issued K, then
    gives credentials to A and B.  The Notes event models the availability of
-   the credentials, but the act of fetching them is not modelled.*)
- (*Also said TTP_prepare_ftp*)
+   the credentials, but the act of fetching them is not modelled.  We also
+   give con_K to the Spy. This makes the threat model more dangerous, while 
+   also allowing lemma @{text Crypt_used_imp_spies} to omit the condition
+   @{term "K \<noteq> priK TTP"}. *)
   ZG4: "[| evs4 \<in> zg; K \<in> symKeys;
 	   Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|}
 	     \<in> set evs4;
 	   sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
 	   con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
 				      Nonce L, Key K|}|]
-       ==> Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
-	     # evs4 \<in> zg"
+       ==> Says TTP Spy con_K
+           #
+	   Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
+	   # evs4 \<in> zg"
 
 
 declare Says_imp_knows_Spy [THEN analz.Inj, dest]
@@ -132,7 +134,7 @@ by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 text{*Lets us replace proofs about @{term "used evs"} by simpler proofs 
 about @{term "parts (spies evs)"}.*}
 lemma Crypt_used_imp_spies:
-     "[| Crypt K X \<in> used evs;  K \<noteq> priK TTP; evs \<in> zg |]
+     "[| Crypt K X \<in> used evs; evs \<in> zg |]
       ==> Crypt K X \<in> parts (spies evs)"
 apply (erule rev_mp)
 apply (erule zg.induct)
@@ -205,13 +207,15 @@ txt{*ZG2*}
 txt{*Fake*}
 apply (simp add: parts_insert_knows_A, blast) 
 txt{*ZG1*}
-apply (auto intro!: exI)
+apply (force intro!: exI)
+txt{*ZG4*}
+apply (auto ); 
 done
 
 theorem NRO_authenticity:
      "[| NRO \<in> used evs;
          NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
-         A \<notin> broken;  evs \<in> zg |]
+         A \<notin> broken; evs \<in> zg |]
      ==> \<exists>C Y. Says A C Y \<in> set evs & NRO \<in> parts {Y}"
 apply auto
  apply (force dest!: Crypt_used_imp_spies NRO_authenticity_good)
@@ -340,8 +344,8 @@ apply (blast dest: parts_cut)
 done
 
 text{*If @{term TTP} holds @{term con_K} then @{term A} sent
- @{term sub_K}.  We assume that @{term A} is not broken.  Nothing needs to
- be assumed about the form of @{term con_K}!*}
+ @{term sub_K}.  We assume that @{term A} is not broken.  Importantly, nothing
+  needs to be assumed about the form of @{term con_K}!*}
 lemma Notes_TTP_imp_Says_A:
      "[|Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
            \<in> set evs;
@@ -350,7 +354,8 @@ lemma Notes_TTP_imp_Says_A:
     ==> \<exists>C Y. Says A C Y \<in> set evs & sub_K \<in> parts {Y}"
 by (blast dest!: Notes_TTP_imp_Gets [THEN Gets_imp_knows_Spy, THEN parts.Inj] intro: sub_K_authenticity)
 
-text{*If @{term con_K} exists, then @{term A} sent @{term sub_K}.*}
+text{*If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
+   assume that @{term A} is not broken. *}
 theorem B_sub_K_authenticity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
