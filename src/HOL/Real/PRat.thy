@@ -11,7 +11,7 @@ constdefs
     ratrel   ::  "((pnat * pnat) * (pnat * pnat)) set"
     "ratrel  ==  {p. ? x1 y1 x2 y2. p=((x1::pnat,y1),(x2,y2)) & x1*y2 = x2*y1}" 
 
-typedef prat = "{x::(pnat*pnat).True}/ratrel"          (Equiv.quotient_def)
+typedef prat = "UNIV/ratrel"          (Equiv.quotient_def)
 
 instance
    prat  :: {ord,plus,times}
@@ -28,12 +28,12 @@ constdefs
 defs
 
   prat_add_def  
-  "P + Q == Abs_prat(UN p1:Rep_prat(P). UN p2:Rep_prat(Q).
-                split(%x1 y1. split(%x2 y2. ratrel^^{(x1*y2 + x2*y1, y1*y2)}) p2) p1)"
+  "P + Q == Abs_prat(UN (x1,y1):Rep_prat(P). UN (x2,y2):Rep_prat(Q).
+		     ratrel^^{(x1*y2 + x2*y1, y1*y2)})"
 
   prat_mult_def  
-  "P * Q == Abs_prat(UN p1:Rep_prat(P). UN p2:Rep_prat(Q).
-                split(%x1 y1. split(%x2 y2. ratrel^^{(x1*x2, y1*y2)}) p2) p1)"
+  "P * Q == Abs_prat(UN (x1,y1):Rep_prat(P). UN (x2,y2):Rep_prat(Q).
+		     ratrel^^{(x1*x2, y1*y2)})"
  
   (*** Gleason p. 119 ***)
   prat_less_def
