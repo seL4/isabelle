@@ -82,8 +82,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy \
   Divides.thy Extraction.thy Finite_Set.ML Finite_Set.thy \
-  Fun.thy Gfp.ML Gfp.thy \
-  Hilbert_Choice.thy Hilbert_Choice_lemmas.ML HOL.ML \
+  Fun.thy Gfp.ML Gfp.thy Hilbert_Choice.thy HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Infinite_Set.thy Integ/Bin.thy \
   Integ/cooper_dec.ML Integ/cooper_proof.ML \
   Integ/Equiv.thy Integ/IntArith.thy Integ/IntDef.thy \
@@ -114,7 +113,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
   Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
-  document/root.tex hologic.ML meson_lemmas.ML simpdata.ML thy_syntax.ML
+  document/root.tex hologic.ML simpdata.ML thy_syntax.ML
 	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL
 
 
