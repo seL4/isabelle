@@ -16,7 +16,7 @@ function usage()
   echo
   echo "Usage: $PRG [FILES|DIRS...]"
   echo
-  echo "  Recursively find .thy and .ML files, fixing theorem names related"
+  echo "  Recursively find .thy/.ML files, fixing theorem names related"
   echo "  to SOME (Eps) in HOL."
   echo
   echo "  Renames old versions of FILES by appending \"~~\"."
@@ -37,4 +37,5 @@ SPECS="$@"; shift "$#"
 #set by configure
 AUTO_PERL=perl
 
-find $SPECS "(" -name \*.thy -o -name \*.ML ")" -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixsome.pl"
+find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
+  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixsome.pl"
