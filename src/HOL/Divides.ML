@@ -472,3 +472,17 @@ by (res_inst_tac [("t","n"),("n1","k")] (mod_div_equality RS subst) 1);
 by (stac mult_commute 1);
 by (Asm_simp_tac 1);
 qed "dvd_eq_mod_eq_0";
+
+Goal "(m mod d = 0) = (EX q::nat. m = d*q)";
+by (auto_tac (claset(), 
+     simpset() addsimps [dvd_eq_mod_eq_0 RS sym, dvd_def]));  
+qed "mod_eq_0_iff";
+AddSDs [mod_eq_0_iff RS iffD1];
+
+(*Loses information, namely we also have r<d provided d is nonzero*)
+Goal "(m mod d = r) ==> EX q::nat. m = r + q*d";
+by (cut_inst_tac [("m","m")] mod_div_equality 1);
+by (full_simp_tac (simpset() addsimps add_ac) 1); 
+by (blast_tac (claset() addIs [sym]) 1); 
+qed "mod_eqD";
+
