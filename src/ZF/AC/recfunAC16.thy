@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/recfunAC16.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 A recursive definition used in the proof of WO2 ==> AC16
 *)

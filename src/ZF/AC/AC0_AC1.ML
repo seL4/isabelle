@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/AC0_AC1.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 AC0 is equivalent to AC1
 AC0 comes from Suppes, AC1 from Rubin & Rubin
