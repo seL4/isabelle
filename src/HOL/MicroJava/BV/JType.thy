@@ -51,18 +51,18 @@ lemma PrimT_PrimT2: "(G \<turnstile> PrimT p \<preceq> xb) = (xb = PrimT p)"
   by (auto elim: widen.elims)
 
 lemma is_tyI:
-  "\<lbrakk> is_type G T; wf_prog wf_mb G \<rbrakk> \<Longrightarrow> is_ty G T"
+  "\<lbrakk> is_type G T; ws_prog G \<rbrakk> \<Longrightarrow> is_ty G T"
   by (auto simp add: is_ty_def intro: subcls_C_Object 
            split: ty.splits ref_ty.splits)
 
 lemma is_type_conv: 
-  "wf_prog wf_mb G \<Longrightarrow> is_type G T = is_ty G T"
+  "ws_prog G \<Longrightarrow> is_type G T = is_ty G T"
 proof
-  assume "is_type G T" "wf_prog wf_mb G" 
+  assume "is_type G T" "ws_prog G" 
   thus "is_ty G T"
     by (rule is_tyI)
 next
-  assume wf: "wf_prog wf_mb G" and
+  assume wf: "ws_prog G" and
          ty: "is_ty G T"
 
   show "is_type G T"
@@ -159,7 +159,7 @@ apply (blast intro: rtrancl_into_trancl2)
 done 
 
 lemma closed_err_types:
-  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
+  "\<lbrakk> ws_prog G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
   \<Longrightarrow> closed (err (types G)) (lift2 (sup G))"
   apply (unfold closed_def plussub_def lift2_def sup_def)
   apply (auto split: err.split)
@@ -171,22 +171,22 @@ lemma closed_err_types:
 
 
 lemma sup_subtype_greater:
-  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+  "\<lbrakk> ws_prog G; single_valued (subcls1 G); acyclic (subcls1 G);
       is_type G t1; is_type G t2; sup G t1 t2 = OK s \<rbrakk> 
   \<Longrightarrow> subtype G t1 s \<and> subtype G t2 s"
 proof -
-  assume wf_prog:       "wf_prog wf_mb G"
+  assume ws_prog:       "ws_prog G"
   assume single_valued: "single_valued (subcls1 G)" 
   assume acyclic:       "acyclic (subcls1 G)"
  
   { fix c1 c2
     assume is_class: "is_class G c1" "is_class G c2"
-    with wf_prog 
+    with ws_prog 
     obtain 
       "G \<turnstile> c1 \<preceq>C Object"
       "G \<turnstile> c2 \<preceq>C Object"
       by (blast intro: subcls_C_Object)
-    with wf_prog single_valued
+    with ws_prog single_valued
     obtain u where
       "is_lub ((subcls1 G)^* ) c1 c2 u"      
       by (blast dest: single_valued_has_lubs)
@@ -210,24 +210,24 @@ proof -
 qed
 
 lemma sup_subtype_smallest:
-  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
+  "\<lbrakk> ws_prog G; single_valued (subcls1 G); acyclic (subcls1 G);
       is_type G a; is_type G b; is_type G c; 
       subtype G a c; subtype G b c; sup G a b = OK d \<rbrakk>
   \<Longrightarrow> subtype G d c"
 proof -
-  assume wf_prog:       "wf_prog wf_mb G"
+  assume ws_prog:       "ws_prog G"
   assume single_valued: "single_valued (subcls1 G)" 
   assume acyclic:       "acyclic (subcls1 G)"
 
   { fix c1 c2 D
     assume is_class: "is_class G c1" "is_class G c2"
     assume le: "G \<turnstile> c1 \<preceq>C D" "G \<turnstile> c2 \<preceq>C D"
-    from wf_prog is_class
+    from ws_prog is_class
     obtain 
       "G \<turnstile> c1 \<preceq>C Object"
       "G \<turnstile> c2 \<preceq>C Object"
       by (blast intro: subcls_C_Object)
-    with wf_prog single_valued
+    with ws_prog single_valued
     obtain u where
       lub: "is_lub ((subcls1 G)^* ) c1 c2 u"
       by (blast dest: single_valued_has_lubs)   
@@ -260,22 +260,22 @@ lemma sup_exists:
            split: ty.splits ref_ty.splits)
 
 lemma err_semilat_JType_esl_lemma:
-  "\<lbrakk> wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
+  "\<lbrakk> ws_prog G; single_valued (subcls1 G); acyclic (subcls1 G) \<rbrakk> 
   \<Longrightarrow> err_semilat (esl G)"
 proof -
-  assume wf_prog:   "wf_prog wf_mb G"
+  assume ws_prog:   "ws_prog G"
   assume single_valued: "single_valued (subcls1 G)" 
   assume acyclic:   "acyclic (subcls1 G)"
   
   hence "order (subtype G)"
     by (rule order_widen)
   moreover
-  from wf_prog single_valued acyclic
+  from ws_prog single_valued acyclic
   have "closed (err (types G)) (lift2 (sup G))"
     by (rule closed_err_types)
   moreover
 
-  from wf_prog single_valued acyclic 
+  from ws_prog single_valued acyclic 
   have
     "(\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y) \<and> 
      (\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). y <=_(le (subtype G)) x +_(lift2 (sup G)) y)"
@@ -283,7 +283,7 @@ proof -
 
   moreover
 
-  from wf_prog single_valued acyclic 
+  from ws_prog single_valued acyclic 
   have
     "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). \<forall>z\<in>err (types G). 
     x <=_(le (subtype G)) z \<and> y <=_(le (subtype G)) z \<longrightarrow> x +_(lift2 (sup G)) y <=_(le (subtype G)) z"
@@ -297,12 +297,12 @@ proof -
 qed
 
 lemma single_valued_subcls1:
-  "wf_prog wf_mb G \<Longrightarrow> single_valued (subcls1 G)"
-  by (auto simp add: wf_prog_def unique_def single_valued_def
+  "ws_prog G \<Longrightarrow> single_valued (subcls1 G)"
+  by (auto simp add: ws_prog_def unique_def single_valued_def
     intro: subcls1I elim!: subcls1.elims)
 
 theorem err_semilat_JType_esl:
-  "wf_prog wf_mb G \<Longrightarrow> err_semilat (esl G)"
+  "ws_prog G \<Longrightarrow> err_semilat (esl G)"
   by (frule acyclic_subcls1, frule single_valued_subcls1, rule err_semilat_JType_esl_lemma)
 
 end

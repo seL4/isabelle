@@ -8,7 +8,7 @@
 
 theory CorrComp =  JTypeSafe + LemmasComp:
 
-
+declare wf_prog_ws_prog [simp add]
 
 (* If no exception is present after evaluation/execution, 
   none can have been present before *)
@@ -278,28 +278,27 @@ by (simp add: env_of_jmb_def split_beta)
 (**********************************************************************)
 
 
-(* ### to be moved to one of the J/* files *)
-
 lemma method_preserves [rule_format (no_asm)]:
   "\<lbrakk> wf_prog wf_mb G; is_class G C; 
   \<forall> S rT mb. \<forall> cn \<in> fst ` set G. wf_mdecl wf_mb G cn (S,rT,mb)  \<longrightarrow> (P cn S (rT,mb))\<rbrakk>
  \<Longrightarrow> \<forall> D. 
   method (G, C) S = Some (D, rT, mb) \<longrightarrow> (P D S (rT,mb))"
 
-apply (frule WellForm.wf_subcls1)
+apply (frule wf_prog_ws_prog [THEN wf_subcls1])
 apply (rule subcls1_induct, assumption, assumption)
 
 apply (intro strip)
 apply ((drule spec)+, drule_tac x="Object" in bspec)
-apply (simp add: wf_prog_def wf_syscls_def)
+apply (simp add: wf_prog_def ws_prog_def wf_syscls_def)
 apply (subgoal_tac "D=Object") apply simp
 apply (drule mp)
 apply (frule_tac C=Object in method_wf_mdecl)
- apply simp apply assumption apply simp apply assumption apply simp
+ apply simp
+ apply assumption apply simp apply assumption apply simp
 
 apply (subst method_rec) apply simp
 apply force
-apply assumption
+apply simp
 apply (simp only: map_add_def)
 apply (split option.split)
 apply (rule conjI)
@@ -331,14 +330,6 @@ apply (auto simp: wf_mdecl_def wf_java_mdecl_def)
 done
 
 (**********************************************************************)
-
-(* required for lemma wtpd_expr_call *)
-lemma ty_exprs_length [simp]: "(E\<turnstile>es[::]Ts \<longrightarrow> length es = length Ts)"
-apply (subgoal_tac "(E\<turnstile>e::T \<longrightarrow> True) \<and> (E\<turnstile>es[::]Ts \<longrightarrow> length es = length Ts) \<and> (E\<turnstile>s\<surd> \<longrightarrow> True)")
-apply blast
-apply (rule ty_expr_ty_exprs_wt_stmt.induct)
-apply auto
-done
 
 constdefs wtpd_expr :: "java_mb env \<Rightarrow> expr \<Rightarrow> bool"
   "wtpd_expr E e == (\<exists> T. E\<turnstile>e :: T)"
@@ -573,73 +564,43 @@ done
 
 
 
-
-
-
-
-
 (**********************************************************************)
 
-constdefs
-  state_ok :: "java_mb env \<Rightarrow> xstate \<Rightarrow> bool"
-  "state_ok E xs == xs::\<preceq>E"
-
-
-lemma state_ok_eval: "\<lbrakk>state_ok E xs; wf_java_prog (prg E); wtpd_expr E e;
-  (prg E)\<turnstile>xs -e\<succ>v -> xs'\<rbrakk> \<Longrightarrow>  state_ok E xs'"
-apply (simp only: state_ok_def wtpd_expr_def)
+lemma state_ok_eval: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_expr E e;
+  (prg E)\<turnstile>xs -e\<succ>v -> xs'\<rbrakk> \<Longrightarrow>  xs'::\<preceq>E"
+apply (simp only: wtpd_expr_def)
 apply (erule exE)
-apply (case_tac xs', case_tac xs, simp only:)
-apply (rule eval_type_sound [THEN conjunct1])
-apply (rule HOL.refl)
-apply assumption
-apply (subgoal_tac "fst E \<turnstile> (gx xs, gs xs) -e\<succ>v-> (gx xs', gs xs')")
-apply assumption
-apply (auto simp: gx_def gs_def)
+apply (case_tac xs', case_tac xs)
+apply (auto intro: eval_type_sound [THEN conjunct1])
 done
 
-(* to be moved into JTypeSafe.thy *)
-lemma evals_type_sound: "!!E s s'.  
-  [| G\<turnstile>(x,s) -es[\<succ>]vs -> (x',s'); G=prg E; wf_java_prog G; (x,s)::\<preceq>E; E\<turnstile>es[::]Ts |]  
-  ==> (x',s')::\<preceq>E \<and> (x'=None --> list_all2 (conf G (heap s')) vs Ts)"
-apply( simp (no_asm_simp) only: split_tupled_all)
-apply (drule eval_evals_exec_type_sound 
-             [THEN conjunct2, THEN conjunct1, THEN mp, THEN spec, THEN mp])
-apply auto
-done
-
-lemma state_ok_evals: "\<lbrakk>state_ok E xs; wf_java_prog (prg E); wtpd_exprs E es;
-  (xs,es,vs,xs') \<in> Eval.evals (prg E)\<rbrakk> \<Longrightarrow>  state_ok E xs'"
-apply (simp only: state_ok_def wtpd_exprs_def)
+lemma state_ok_evals: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_exprs E es;
+  (xs,es,vs,xs') \<in> Eval.evals (prg E)\<rbrakk> \<Longrightarrow> xs'::\<preceq>E"
+apply (simp only: wtpd_exprs_def)
 apply (erule exE)
-apply (case_tac xs) apply (case_tac xs') apply (simp only:)
-apply (rule evals_type_sound [THEN conjunct1])
-apply (auto simp: gx_def gs_def)
+apply (case_tac xs) apply (case_tac xs')
+apply (auto intro: evals_type_sound [THEN conjunct1])
 done
 
-lemma state_ok_exec: "\<lbrakk>state_ok E xs; wf_java_prog (prg E); wtpd_stmt E st;
-  (xs,st,xs') \<in> Eval.exec (prg E)\<rbrakk> \<Longrightarrow>  state_ok E xs'"
-apply (simp only: state_ok_def wtpd_stmt_def)
-apply (case_tac xs', case_tac xs, simp only:)
-apply (rule exec_type_sound)
-apply (rule HOL.refl)
-apply assumption
-apply (subgoal_tac "((gx xs, gs xs), st, (gx xs', gs xs')) \<in> Eval.exec (fst E)")
-apply assumption
-apply (auto simp: gx_def gs_def)
+lemma state_ok_exec: "\<lbrakk>xs::\<preceq>E; wf_java_prog (prg E); wtpd_stmt E st;
+  (xs,st,xs') \<in> Eval.exec (prg E)\<rbrakk> \<Longrightarrow>  xs'::\<preceq>E"
+apply (simp only: wtpd_stmt_def)
+apply (case_tac xs', case_tac xs)
+apply (auto intro: exec_type_sound)
 done
 
 
 lemma state_ok_init: 
-  "\<lbrakk> wf_java_prog G; state_ok (env_of_jmb G C S) (x, h, l); 
+  "\<lbrakk> wf_java_prog G; (x, h, l)::\<preceq>(env_of_jmb G C S); 
   is_class G dynT;
   method (G, dynT) (mn, pTs) = Some (md, rT, pns, lvars, blk, res);
   list_all2 (conf G h) pvs pTs; G,h \<turnstile> a' ::\<preceq> Class md\<rbrakk>
 \<Longrightarrow>
-state_ok (env_of_jmb G md (mn, pTs)) (np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))"
+(np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(env_of_jmb G md (mn, pTs))"
+apply (frule wf_prog_ws_prog)
 apply (frule method_in_md [THEN conjunct2], assumption+)
 apply (frule method_yields_wf_java_mdecl, assumption, assumption)
-apply (simp add: state_ok_def env_of_jmb_def gs_def conforms_def split_beta)
+apply (simp add: env_of_jmb_def gs_def conforms_def split_beta)
 apply (simp add: wf_java_mdecl_def)
 apply (rule conjI)
 apply (rule lconf_ext)
@@ -675,7 +636,7 @@ apply (auto elim: widen.cases)
 done
 
 
-lemma class_expr_is_class: "\<lbrakk>E \<turnstile> e :: Class C; wf_prog wf_mb (prg E)\<rbrakk> 
+lemma class_expr_is_class: "\<lbrakk>E \<turnstile> e :: Class C; ws_prog (prg E)\<rbrakk> 
   \<Longrightarrow> is_class (prg E) C"
 by (case_tac E, auto dest: ty_expr_is_type)
 
@@ -685,7 +646,7 @@ lemma max_spec_widen: "max_spec G C (mn, pTs) = {((md,rT),pTs')} \<Longrightarro
 by (blast dest: singleton_in_set max_spec2appl_meths appl_methsD)
 
 
-lemma eval_conf: "\<lbrakk>G \<turnstile> s -e\<succ>v-> s'; wf_java_prog G; state_ok E s;
+lemma eval_conf: "\<lbrakk>G \<turnstile> s -e\<succ>v-> s'; wf_java_prog G; s::\<preceq>E;
   E\<turnstile>e::T; gx s' = None; prg E = G \<rbrakk> 
   \<Longrightarrow> G,gh s'\<turnstile>v::\<preceq>T"
 apply (simp add: gh_def)
@@ -694,15 +655,13 @@ apply (rule_tac x2="fst s" and "s2"="snd s"and "x'2"="fst s'"
 apply (rule sym) apply assumption
 apply assumption
 apply (simp (no_asm_use) add: surjective_pairing [THEN sym])
-apply (simp only: state_ok_def gs_def)
-apply (case_tac s, simp)
-apply assumption
-apply (simp add: gx_def)
+apply (simp only: surjective_pairing [THEN sym])
+apply (auto simp add: gs_def gx_def)
 done
 
 lemma evals_preserves_conf:
   "\<lbrakk> G\<turnstile> s -es[\<succ>]vs-> s'; G,gh s \<turnstile> t ::\<preceq> T; E \<turnstile>es[::]Ts;
-  wf_java_prog G; state_ok E s; 
+  wf_java_prog G; s::\<preceq>E; 
   prg E = G \<rbrakk> \<Longrightarrow> G,gh s' \<turnstile> t ::\<preceq> T"
 apply (subgoal_tac "gh s\<le>| gh s'")
 apply (frule conf_hext, assumption, assumption)
@@ -711,15 +670,14 @@ apply (subgoal_tac "G \<turnstile> (gx s, (gh s, gl s)) -es[\<succ>]vs-> (gx s',
 apply assumption
 apply (simp add: gx_def gh_def gl_def surjective_pairing [THEN sym])
 apply (case_tac E)
-apply (simp add: gx_def gs_def gh_def gl_def state_ok_def
-  surjective_pairing [THEN sym])
+apply (simp add: gx_def gs_def gh_def gl_def surjective_pairing [THEN sym])
 done
 
 lemma eval_of_class: "\<lbrakk> G \<turnstile> s -e\<succ>a'-> s'; E \<turnstile> e :: Class C; 
-  wf_java_prog G; state_ok E s; gx s'=None; a' \<noteq> Null; G=prg E\<rbrakk>
+  wf_java_prog G; s::\<preceq>E; gx s'=None; a' \<noteq> Null; G=prg E\<rbrakk>
   \<Longrightarrow> (\<exists> lc. a' = Addr lc)"
 apply (case_tac s, case_tac s', simp)
-apply (frule eval_type_sound, (simp add: state_ok_def gs_def)+)
+apply (frule eval_type_sound, (simp add: gs_def)+)
 apply (case_tac a')
 apply (auto simp: conf_def)
 done
@@ -727,9 +685,10 @@ done
 
 lemma dynT_subcls: 
   "\<lbrakk> a' \<noteq> Null; G,h\<turnstile>a'::\<preceq> Class C; dynT = fst (the (h (the_Addr a')));
-  is_class G dynT; wf_prog wf_mb G \<rbrakk> \<Longrightarrow> G\<turnstile>dynT \<preceq>C C"
+  is_class G dynT; ws_prog G \<rbrakk> \<Longrightarrow> G\<turnstile>dynT \<preceq>C C"
 apply (case_tac "C = Object")
 apply (simp, rule subcls_C_Object, assumption+)
+apply simp
 apply (frule non_np_objD, auto)
 done
 
@@ -746,7 +705,7 @@ apply (simp add: appl_methds_def)
 apply ((erule exE)+, (erule conjE)+, (erule exE)+)
 apply (drule widen_methd)
 apply assumption
-apply (rule dynT_subcls, assumption+, simp, assumption+)
+apply (rule dynT_subcls) apply assumption+ apply simp apply simp
 apply (erule exE)+ apply simp
 done
 
@@ -764,7 +723,7 @@ theorem compiler_correctness:
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
   (wtpd_expr (env_of_jmb G CL S) ex) \<longrightarrow>
-  (state_ok (env_of_jmb G CL S) xs) \<longrightarrow>
+  (xs ::\<preceq> (env_of_jmb G CL S)) \<longrightarrow>
   ( {TranslComp.comp G, CL, S} \<turnstile>
     {gh xs, os, (locvars_xstate G CL S xs)}
     >- (compExpr (gmb G CL S) ex) \<rightarrow>
@@ -775,7 +734,7 @@ theorem compiler_correctness:
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
   (wtpd_exprs (env_of_jmb G CL S) exs) \<longrightarrow>
-  (state_ok (env_of_jmb G CL S) xs) \<longrightarrow>
+  (xs::\<preceq>(env_of_jmb G CL S)) \<longrightarrow>
   ( {TranslComp.comp G, CL, S} \<turnstile>
     {gh xs, os, (locvars_xstate G CL S xs)}
     >- (compExprs (gmb G CL S) exs) \<rightarrow>
@@ -786,7 +745,7 @@ theorem compiler_correctness:
   (\<forall> os CL S.
   (class_sig_defined G CL S) \<longrightarrow> 
   (wtpd_stmt (env_of_jmb G CL S) st) \<longrightarrow>
-  (state_ok (env_of_jmb G CL S) xs) \<longrightarrow>
+  (xs::\<preceq>(env_of_jmb G CL S)) \<longrightarrow>
   ( {TranslComp.comp G, CL, S} \<turnstile>
     {gh xs, os, (locvars_xstate G CL S xs)}
     >- (compStmt (gmb G CL S) st) \<rightarrow>
@@ -797,8 +756,8 @@ apply (rule Eval.eval_evals_exec.induct)
 apply simp
 
 (* case NewC *) 
-apply clarify
-apply (frule wf_subcls1) (* establish  wf ((subcls1 G)^-1) *)
+apply clarify 
+apply (frule wf_prog_ws_prog [THEN wf_subcls1]) (* establish  wf ((subcls1 G)^-1) *)
 apply (simp add: c_hupd_hp_invariant)
 apply (rule progression_one_step)
 apply (rotate_tac 1, drule sym) (* reverse equation (a, None) = new_Addr (fst s) *)
@@ -828,7 +787,7 @@ apply simp
 apply (intro allI impI)
 apply (frule_tac xs=s1 in eval_xcpt, assumption) (* establish (gx s1 = None) *)
 apply (frule wtpd_expr_binop)
-(* establish (state_ok \<dots> s1) *)
+(* establish (s1::\<preceq> \<dots>) *)
 apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp)) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst) 
 
 
@@ -896,8 +855,9 @@ apply (frule_tac xs="(np a' x1, s1)" in eval_xcpt)
 apply (simp only: gx_conv, simp only: gx_conv, frule np_NoneD, erule conjE)
 
 
-  (* establish (state_ok \<dots> (Norm s1)) *)
-apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply assumption apply (simp (no_asm_use) only: env_of_jmb_fst) 
+  (* establish ((Norm s1)::\<preceq> \<dots>) *)
+apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) 
+   apply assumption apply (simp (no_asm_use) only: env_of_jmb_fst) 
 
 apply (simp only: compExpr_compExprs.simps)
 
@@ -936,7 +896,7 @@ apply (rule progression_refl)
 apply (intro allI impI)
 apply (frule_tac xs=s1 in evals_xcpt, simp only: gx_conv) (* establish gx s1 = None *)
 apply (frule wtpd_exprs_cons)
-   (* establish (state_ok \<dots> (Norm s0)) *)
+   (* establish ((Norm s0)::\<preceq> \<dots>) *)
 apply (frule_tac e=e in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst)
 
 apply simp
@@ -967,7 +927,7 @@ apply (intro allI impI)
 apply (frule_tac xs=s1 in exec_xcpt, assumption) (* establish (gx s1 = None) *)
 apply (frule wtpd_stmt_comp)
 
-  (* establish (state_ok \<dots>  s1) *)
+  (* establish (s1::\<preceq> \<dots>) *)
 apply (frule_tac st=c1 in state_ok_exec) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst)
 
 apply simp
@@ -980,7 +940,7 @@ apply fast
 apply (intro allI impI)
 apply (frule_tac xs=s1 in exec_xcpt, assumption) (* establish (gx s1 = None) *)
 apply (frule wtpd_stmt_cond, (erule conjE)+)
-(* establish (state_ok \<dots> s1) *)
+(* establish (s1::\<preceq> \<dots>) *)
 apply (frule_tac e=e in state_ok_eval) 
 apply (simp (no_asm_simp) only: env_of_jmb_fst)
 apply assumption 
@@ -1053,9 +1013,9 @@ apply (frule_tac xs=s2 in exec_xcpt, assumption) (* establish (gx s2 = None) *)
 apply (frule_tac xs=s1 in exec_xcpt, assumption) (* establish (gx s1 = None) *)
 apply (frule wtpd_stmt_loop, (erule conjE)+)
 
-(* establish (state_ok \<dots> s1) *)
+(* establish (s1::\<preceq> \<dots>) *)
 apply (frule_tac e=e in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst)
-(* establish (state_ok \<dots> s2) *)
+(* establish (s2::\<preceq> \<dots>) *)
 apply (frule_tac xs=s1 and st=c in state_ok_exec)
 apply (simp (no_asm_simp) only: env_of_jmb_fst) apply assumption apply (simp (no_asm_use) only: env_of_jmb_fst)
 
@@ -1094,7 +1054,7 @@ apply simp
 apply blast
 
 (*****)
-(* case method call *) defer (* !!! NEWC *)
+(* case method call *)
 
 apply (intro allI impI)
 
@@ -1107,11 +1067,11 @@ apply (frule wtpd_expr_call, (erule conjE)+)
 
 (* assumptions about state_ok and is_class *)
 
-(* establish state_ok (env_of_jmb G CL S) s1 *)
+(* establish s1::\<preceq> (env_of_jmb G CL S) *)
 apply (frule_tac xs="Norm s0" and e=e in state_ok_eval)
 apply (simp (no_asm_simp) only: env_of_jmb_fst, assumption, simp (no_asm_use) only: env_of_jmb_fst)
 
-(* establish state_ok (env_of_jmb G CL S) (x, h, l) *)
+(* establish (x, h, l)::\<preceq>(env_of_jmb G CL S) *)
 apply (frule_tac xs=s1 and xs'="(x, h, l)" in state_ok_evals)
 apply (simp (no_asm_simp) only: env_of_jmb_fst, assumption, simp only: env_of_jmb_fst)
 
@@ -1130,7 +1090,7 @@ apply (subgoal_tac "G\<turnstile>Class dynT \<preceq> Class md")
 apply (subgoal_tac " method (G, md) (mn, pTs) = Some (md, rT, pns, lvars, blk, res)")
 apply (subgoal_tac "list_all2 (conf G h) pvs pTs")
 
-(* establish state_ok (env_of_jmb G md (mn, pTs)) (np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a')) *)
+(* establish (np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(env_of_jmb G md (mn, pTs)) *)
 apply (subgoal_tac "G,h \<turnstile> a' ::\<preceq> Class dynT")
 apply (frule (2) conf_widen)
 apply (frule state_ok_init, assumption+)
@@ -1138,16 +1098,14 @@ apply (frule state_ok_init, assumption+)
 apply (subgoal_tac "class_sig_defined G md (mn, pTs)")
 apply (frule wtpd_blk, assumption, assumption)
 apply (frule wtpd_res, assumption, assumption)
-apply (subgoal_tac "state_ok (env_of_jmb G md (mn, pTs)) s3")
+apply (subgoal_tac "s3::\<preceq>(env_of_jmb G md (mn, pTs))")
 
-(* establish method (TranslComp.comp G, md) (mn, pTs) =
-          Some (md, rT, compMethod (pns, lvars, blk, res)) *)
-apply (frule_tac C=md and D=md in comp_method, assumption, assumption)
-
-(* establish
-   method (TranslComp.comp G, dynT) (mn, pTs) =
-          Some (md, rT, compMethod (pns, lvars, blk, res)) *)
- apply (frule_tac C=dynT and D=md in comp_method, assumption, assumption)
+apply (subgoal_tac "method (TranslComp.comp G, md) (mn, pTs) =
+          Some (md, rT, snd (snd (compMethod G md ((mn, pTs), rT, pns, lvars, blk, res))))")
+prefer 2 apply (simp add: wf_prog_ws_prog [THEN comp_method])
+apply (subgoal_tac "method (TranslComp.comp G, dynT) (mn, pTs) =
+          Some (md, rT, snd (snd (compMethod G md ((mn, pTs), rT, pns, lvars, blk, res))))")
+prefer 2 apply (simp add: wf_prog_ws_prog [THEN comp_method])
  apply (simp only: fst_conv snd_conv)
 
 (* establish length pns = length pTs *)
@@ -1209,7 +1167,7 @@ apply (simp only: drop_append)
 apply (simp (no_asm_simp))
 apply (simp (no_asm_simp))
 
-(* show state_ok \<dots> s3 *)
+(* show s3::\<preceq>\<dots> *)
 apply (rule_tac xs = "(np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))" and st=blk in state_ok_exec)
 apply assumption apply (simp (no_asm_simp) only: env_of_jmb_fst) 
 apply assumption apply (simp (no_asm_use) only: env_of_jmb_fst)
@@ -1231,7 +1189,7 @@ apply (rule_tac Ts="pTsa" in conf_list_gext_widen) apply assumption
 apply (subgoal_tac "((gx s1, gs s1), ps, pvs, x, h, l) \<in> evals G")
 apply (frule_tac E="env_of_jmb G CL S" in evals_type_sound)
 apply (simp only: env_of_jmb_fst) 
-apply assumption apply (simp only: state_ok_def)
+apply assumption
 apply (simp add: conforms_def xconf_def gs_def)
 apply simp
 apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
@@ -1242,14 +1200,14 @@ apply (simp (no_asm_use) only: gx_def gs_def surjective_pairing [THEN sym])
 
 
 (* show method (G, md) (mn, pTs) = Some (md, rT, pns, lvars, blk, res) *)
-apply (frule method_in_md [THEN conjunct2], assumption+)
+apply (frule wf_prog_ws_prog [THEN method_in_md [THEN conjunct2]], assumption+)
 
   (* show G\<turnstile>Class dynT \<preceq> Class md *)
 apply (simp (no_asm_use) only: widen_Class_Class)
 apply (rule method_wf_mdecl [THEN conjunct1], assumption+)
 
   (* is_class G md *)
-apply (rule method_in_md [THEN conjunct1], assumption+)
+apply (rule wf_prog_ws_prog [THEN method_in_md [THEN conjunct1]], assumption+)
 
   (* show is_class G dynT *)
 apply (frule non_npD) apply assumption
@@ -1257,6 +1215,7 @@ apply (erule exE)+ apply (erule conjE)+
 apply simp
 apply (rule subcls_is_class2) apply assumption
 apply (frule class_expr_is_class) apply (simp only: env_of_jmb_fst)
+apply (rule wf_prog_ws_prog, assumption)
 apply (simp only: env_of_jmb_fst)
 
  (* show G,h \<turnstile> a' ::\<preceq> Class C *)
@@ -1280,7 +1239,7 @@ theorem compiler_correctness_eval: "
       >- (compExpr (gmb G C S) ex) \<rightarrow> 
     {hp', val#os, (locvars_locals G C S loc')}"
 apply (frule compiler_correctness [THEN conjunct1])
-apply (auto simp: gh_def gx_def gs_def gl_def locvars_xstate_def state_ok_def)
+apply (auto simp: gh_def gx_def gs_def gl_def locvars_xstate_def)
 done
 
 theorem compiler_correctness_exec: "
@@ -1294,7 +1253,7 @@ theorem compiler_correctness_exec: "
       >- (compStmt (gmb G C S) st) \<rightarrow>
     {hp', os, (locvars_locals G C S loc')}"
 apply (frule compiler_correctness [THEN conjunct2 [THEN conjunct2]])
-apply (auto simp: gh_def gx_def gs_def gl_def locvars_xstate_def state_ok_def)
+apply (auto simp: gh_def gx_def gs_def gl_def locvars_xstate_def)
 done
 
 (**********************************************************************)
@@ -1305,5 +1264,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
 simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
 *}
+
+declare wf_prog_ws_prog [simp del]
 
 end

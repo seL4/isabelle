@@ -4,8 +4,7 @@
     Copyright   GPL 2002
 *)
 
-theory CorrCompTp =  LemmasComp + JVM + TypeInf + NatCanonify + Altern:
-
+theory CorrCompTp =  LemmasComp + JVM + TypeInf + Altern:
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
@@ -27,7 +26,7 @@ lemma local_env_fst [simp]: "fst (local_env G C S pns lvars) = G"
 by (simp add: local_env_def split_beta)
 
 
-lemma wt_class_expr_is_class: "\<lbrakk> wf_prog wf_mb G; E \<turnstile> expr :: Class cname;
+lemma wt_class_expr_is_class: "\<lbrakk> ws_prog G; E \<turnstile> expr :: Class cname;
   E = local_env G C (mn, pTs) pns lvars\<rbrakk>
   \<Longrightarrow> is_class G cname "
 apply (subgoal_tac "((fst E), (snd E)) \<turnstile> expr :: Class cname")
@@ -308,7 +307,7 @@ apply (simp add: replST_def)
   (* show is_class G cname \<and> field (G, cname) vname = Some (cname, T) *)
   apply (rule field_in_fd) apply assumption+
   (* show is_class G Ca *)
-  apply (rule wt_class_expr_is_class, assumption+, rule HOL.refl)
+  apply (fast intro: wt_class_expr_is_class)
 
 (* FAss *)
 apply (intro strip)
@@ -485,8 +484,8 @@ by (auto simp: opt_def)
 lemma states_mono: "\<lbrakk> mxs \<le> mxs' \<rbrakk>
   \<Longrightarrow> states G mxs mxr \<subseteq> states G mxs' mxr"
 apply (simp add: states_def JVMType.sl_def)
-apply (simp add: Product.esl_def stk_esl_def reg_sl_def upto_esl_def Listn.sl_def Err.sl_def
-  JType.esl_def)
+apply (simp add: Product.esl_def stk_esl_def reg_sl_def 
+  upto_esl_def Listn.sl_def Err.sl_def  JType.esl_def)
 apply (simp add: Err.esl_def Err.le_def Listn.le_def)
 apply (simp add: Product.le_def Product.sup_def Err.sup_def)
 apply (simp add: Opt.esl_def Listn.sup_def)
@@ -528,14 +527,12 @@ lemma pc_succs_shift: "pc'\<in>set (succs i (pc'' + n))
 apply (induct i)
 apply simp+
   (* case Goto *)
-apply (simp only: nat_canonify)
-apply simp
+apply arith
   (* case Ifcmpeq *)
 apply simp
 apply (erule disjE)
-apply simp
-apply (simp only: nat_canonify)
-apply simp
+apply arith
+apply arith
   (* case Throw *)
 apply simp
 done
@@ -547,14 +544,12 @@ lemma pc_succs_le: "\<lbrakk> pc' \<in> set (succs i (pc'' + n));
 apply (induct i)
 apply simp+
   (* case Goto *)
-apply (simp only: nat_canonify)
-apply simp
+apply arith
   (* case Ifcmpeq *)
 apply simp
 apply (erule disjE)
 apply simp
-apply (simp only: nat_canonify)
-apply simp
+apply arith
   (* case Throw *)
 apply simp
 done
@@ -1255,33 +1250,35 @@ lemma bc_mt_corresp_Getfield: "\<lbrakk> wf_prog wf_mb G;
   \<Longrightarrow> bc_mt_corresp [Getfield vname cname] 
         (replST (Suc 0) (snd (the (field (G, cname) vname))))
         (Class C # ST, LT) (comp G) rT mxr (Suc 0)"
-  apply (frule wf_subcls1)
+  apply (frule wf_prog_ws_prog [THEN wf_subcls1])
   apply (frule field_in_fd, assumption+)
   apply (frule widen_field, assumption+)
   apply (simp add: bc_mt_corresp_def replST_def wt_instr_altern_def eff_def norm_eff_def)
-  apply (simp add: comp_field [THEN sym] comp_subcls1 [THEN sym] comp_widen [THEN sym] comp_is_class [THEN sym])
+  apply (simp add: comp_field comp_subcls1 comp_widen comp_is_class)
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def)
   apply (intro strip)
 apply (simp add: check_type_simps)
 apply clarify
 apply (rule_tac x="Suc (length ST)" in exI)
 apply simp+
-apply (simp only: comp_is_type [THEN sym])
+apply (simp only: comp_is_type)
 apply (rule_tac C=cname in fields_is_type)
 apply (simp add: field_def)
 apply (drule JBasis.table_of_remap_SomeD)+
 apply assumption+
+apply (erule wf_prog_ws_prog)
+apply assumption
 done
 
 lemma bc_mt_corresp_Putfield: "\<lbrakk> wf_prog wf_mb G; 
   field (G, C) vname = Some (cname, Ta); G \<turnstile> T \<preceq> Ta; is_class G C \<rbrakk>
   \<Longrightarrow> bc_mt_corresp [Putfield vname cname] (popST 2) (T # Class C # T # ST, LT)
            (comp G) rT mxr (Suc 0)"
-  apply (frule wf_subcls1)
+  apply (frule wf_prog_ws_prog [THEN wf_subcls1])
   apply (frule field_in_fd, assumption+)
   apply (frule widen_field, assumption+)
   apply (simp add: bc_mt_corresp_def popST_def wt_instr_altern_def eff_def norm_eff_def)
-  apply (simp add: comp_field [THEN sym] comp_subcls1 [THEN sym] comp_widen [THEN sym] comp_is_class [THEN sym])
+  apply (simp add: comp_field comp_subcls1 comp_widen comp_is_class)
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def max_def)
 
   apply (intro strip)
@@ -1302,13 +1299,13 @@ max_spec G cname (mname, pTsa) = {((md, T), pTs')} \<rbrakk>
   apply (simp add: comp_is_class)
   apply (rule_tac x=pTsa in exI)
   apply (rule_tac x="Class cname" in exI)
-  apply (simp add: max_spec_preserves_length comp_is_class [THEN sym])
+  apply (simp add: max_spec_preserves_length comp_is_class)
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
-  apply (simp add: comp_widen list_all2_def)
+  apply (simp add: split_paired_all comp_widen list_all2_def)
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (rule exI)+
-  apply (rule comp_method)
-  apply assumption+
+  apply (simp add: wf_prog_ws_prog [THEN comp_method])
+  apply auto
   done
 
 
@@ -1329,7 +1326,7 @@ lemma bc_mt_corresp_Invoke: "\<lbrakk> wf_prog wf_mb G;
 
   -- {* @{text "<=s"} *}
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
-  apply (frule comp_method, assumption+)
+  apply (simp add: wf_prog_ws_prog [THEN comp_method])
   apply (simp add: max_spec_preserves_length [THEN sym])
 
   -- "@{text check_type}"
@@ -1341,7 +1338,7 @@ apply (simp add: check_type_simps)
 apply clarify
 apply (rule_tac x="Suc (length ST)" in exI)
 apply simp+
-apply (simp only: comp_is_type [THEN sym])
+apply (simp only: comp_is_type)
 apply (frule method_wf_mdecl) apply assumption apply assumption
 apply (simp add: wf_mdecl_def wf_mhead_def)
 apply (simp add: max_def)
@@ -1714,6 +1711,7 @@ apply (rule bc_mt_corresp_comb) apply (rule HOL.refl, simp (no_asm_simp), blast)
 apply (simp (no_asm_simp), rule bc_mt_corresp_Checkcast)
 apply (simp add: comp_is_class)
 apply (simp only: compTpExpr_LT_ST)
+apply (drule cast_RefT)
 apply blast
 apply (simp add: start_sttp_resp_def)
 
@@ -1885,7 +1883,7 @@ apply (simp (no_asm_use))
 apply (rule bc_mt_corresp_comb) apply (rule HOL.refl, simp (no_asm_simp), blast) 
   apply (simp (no_asm_simp))
   apply (rule bc_mt_corresp_Getfield) apply assumption+
-     apply (rule wt_class_expr_is_class, assumption+) apply (rule HOL.refl)
+     apply (fast intro: wt_class_expr_is_class)
 apply (simp (no_asm_simp) add: start_sttp_resp_def)
 
 
@@ -1905,7 +1903,7 @@ apply (rule_tac "bc1.0"="[Dup_x1]" and "bc2.0"="[Putfield vname cname]" in bc_mt
 apply (rule bc_mt_corresp_Dup_x1)
   apply (simp (no_asm_simp) add: dup_x1ST_def)
 apply (rule bc_mt_corresp_Putfield) apply assumption+
-     apply (rule wt_class_expr_is_class, assumption+) apply (rule HOL.refl)
+     apply (fast intro: wt_class_expr_is_class)
 apply (simp (no_asm_simp) add: start_sttp_resp_def)
 apply (simp (no_asm_simp) add: start_sttp_resp_def)
 apply (simp (no_asm_simp) add: start_sttp_resp_def)
@@ -1922,7 +1920,7 @@ apply (rule bc_mt_corresp_comb, (rule HOL.refl)+) apply blast
   apply (simp only: compTpExprs_LT_ST)
   apply (simp (no_asm_simp))
 apply (rule bc_mt_corresp_Invoke) apply assumption+
-  apply (rule wt_class_expr_is_class, assumption+) apply (rule HOL.refl)
+     apply (fast intro: wt_class_expr_is_class)
 apply (simp (no_asm_simp) add: start_sttp_resp_def)
 apply (rule start_sttp_resp_comb) 
   apply (simp (no_asm_simp))
@@ -2247,14 +2245,13 @@ apply (drule_tac "bc1.0" = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpe
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)+ 
   apply (intro strip)
   apply (rule wt_instr_Goto)
-  apply (simp (no_asm_simp) add: nat_canonify)
-  apply (simp (no_asm_simp) add: nat_canonify)
+  apply arith
+  apply arith
     (* \<dots> ! nat (int pc + i) = \<dots> ! pc *)
-  apply (simp (no_asm_simp) add: nat_canonify)
+  apply (simp (no_asm_simp))
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)
   apply (simp (no_asm_simp) add: pushST_def popST_def nochangeST_def)
   apply (simp only: compTpExpr_LT_ST compTpStmt_LT_ST)
-  apply (simp (no_asm_simp) only: int_outside_right nat_int)
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)
   apply (simp only: compTpExpr_LT_ST compTpStmt_LT_ST)
   apply (simp (no_asm_simp) add: pushST_def popST_def nochangeST_def)
@@ -2592,52 +2589,56 @@ apply (simp add: wf_java_mdecl_def local_env_def)
 apply (simp only: split_paired_All, simp)
 
   (* subgoal is_class / wf_mhead / wf_java_mdecl *)
-apply (rule methd [THEN conjunct2]) apply assumption+ apply (simp only:)
-apply (rule wf_prog_wf_mhead, assumption+) apply (simp only:)
+apply (blast intro: methd [THEN conjunct2])
+apply (frule wf_prog_wf_mdecl, assumption+) apply (simp only:) apply (simp add: wf_mdecl_def)
 apply (rule wf_java_prog_wf_java_mdecl, assumption+)
-
 done
-
-
-  (**********************************************************************************)
-
 
 
 lemma comp_set_ms: "(C, D, fs, cms)\<in>set (comp G) 
   \<Longrightarrow> \<exists> ms. (C, D, fs, ms) \<in>set G   \<and> cms = map (compMethod G C) ms"
 by (auto simp: comp_def compClass_def)
 
-lemma method_body_source: "\<lbrakk> wf_prog wf_mb G; is_class G C;  method (comp G, C) sig = Some (D, rT, cmb) \<rbrakk>  
-  \<Longrightarrow>  (\<exists> mb. method (G, C) sig = Some (D, rT, mb))"
-apply (simp add: comp_method_eq comp_method_result_def)
-apply (case_tac "method (G, C) sig")
-apply auto
-done
+
+  (* ---------------------------------------------------------------------- *)
 
 section "Main Theorem"
   (* MAIN THEOREM: 
   Methodtype computed by comp is correct for bytecode generated by compTp *)
 theorem wt_prog_comp: "wf_java_prog G  \<Longrightarrow> wt_jvm_prog (comp G) (compTp G)"
 apply (simp add: wf_prog_def)
+
 apply (subgoal_tac "wf_java_prog G") prefer 2 apply (simp add: wf_prog_def)
 apply (simp (no_asm_simp) add: wf_prog_def wt_jvm_prog_def)
-apply (simp add:  comp_unique comp_wf_syscls wf_cdecl_def)
+apply (simp add: comp_ws_prog)
+
+apply (intro strip)
+apply (subgoal_tac "\<exists> C D fs cms. c = (C, D, fs, cms)")
 apply clarify
 apply (frule comp_set_ms)
 apply clarify
 apply (drule bspec, assumption)
-apply (simp add: comp_wf_fdecl)
-apply (simp add: wf_mdecl_def)
-
 apply (rule conjI)
-apply (rule ballI)
-apply (subgoal_tac "\<exists> sig rT mb. x = (sig, rT, mb)") prefer 2 apply (case_tac x, simp)
+
+  (* wf_mrT *)
+apply (case_tac "C = Object")
+apply (simp add: wf_mrT_def)
+apply (subgoal_tac "is_class G D")
+apply (simp add: comp_wf_mrT)
+apply (simp add: wf_prog_def ws_prog_def ws_cdecl_def)
+apply blast
+
+  (* wf_cdecl_mdecl *)
+apply (simp add: wf_cdecl_mdecl_def)
+apply (simp add: split_beta)
+apply (intro strip)
+
+  (* show wt_method \<dots> *)
+apply (subgoal_tac "\<exists> sig rT mb. x = (sig, rT, mb)") 
 apply (erule exE)+
 apply (simp (no_asm_simp) add: compMethod_def split_beta)
 apply (erule conjE)+
 apply (drule_tac x="(sig, rT, mb)" in bspec) apply simp
-apply (rule conjI)
-apply (simp add: comp_wf_mhead)
 apply (rule_tac mn="fst sig" and pTs="snd sig" in wt_method_comp)
   apply assumption+
   apply simp
@@ -2647,24 +2648,8 @@ apply (frule WellForm.methd) apply assumption+
 apply simp
 apply simp
 apply (simp add: compMethod_def split_beta)
-
-apply (rule conjI)
-apply (rule unique_map_fst [THEN iffD1]) 
-  apply (simp (no_asm_simp) add: compMethod_def split_beta) apply simp
-
-apply clarify
-apply (rule conjI) apply (simp add: comp_is_class)
-apply (rule conjI) apply (simp add: comp_subcls)
-apply (simp add: compMethod_def split_beta)
-apply (intro strip) 
-  apply (drule_tac x=x in bspec, assumption, drule_tac x="D'" in spec, drule_tac x="rT'" in spec)
-  apply (erule exE)
-
-apply (frule method_body_source) apply assumption+
-apply (drule mp, assumption)
-apply (simp add: comp_widen)
+apply auto
 done
-
 
 
 

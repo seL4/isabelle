@@ -108,19 +108,19 @@ types
 -- "local variables might include This, which is hidden anyway"
 
 consts
-  ty_expr :: "(java_mb env \<times> expr      \<times> ty     ) set"
-  ty_exprs:: "(java_mb env \<times> expr list \<times> ty list) set"
-  wt_stmt :: "(java_mb env \<times> stmt               ) set"
+  ty_expr :: "('c env \<times> expr      \<times> ty     ) set"
+  ty_exprs:: "('c env \<times> expr list \<times> ty list) set"
+  wt_stmt :: "('c env \<times> stmt               ) set"
 
 syntax (xsymbols)
-  ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ \<turnstile> _ :: _"   [51,51,51]50)
-  ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ \<turnstile> _ [::] _" [51,51,51]50)
-  wt_stmt :: "java_mb env =>  stmt                => bool" ("_ \<turnstile> _ \<surd>"      [51,51   ]50)
+  ty_expr :: "'c env => [expr     , ty     ] => bool" ("_ \<turnstile> _ :: _"   [51,51,51]50)
+  ty_exprs:: "'c env => [expr list, ty list] => bool" ("_ \<turnstile> _ [::] _" [51,51,51]50)
+  wt_stmt :: "'c env =>  stmt                => bool" ("_ \<turnstile> _ \<surd>"      [51,51   ]50)
 
 syntax
-  ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ |- _ :: _"   [51,51,51]50)
-  ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ |- _ [::] _" [51,51,51]50)
-  wt_stmt :: "java_mb env =>  stmt                => bool" ("_ |- _ [ok]"   [51,51   ]50)
+  ty_expr :: "'c env => [expr     , ty     ] => bool" ("_ |- _ :: _"   [51,51,51]50)
+  ty_exprs:: "'c env => [expr list, ty list] => bool" ("_ |- _ [::] _" [51,51,51]50)
+  wt_stmt :: "'c env =>  stmt                => bool" ("_ |- _ [ok]"   [51,51   ]50)
 
 
 translations
@@ -134,9 +134,9 @@ inductive "ty_expr" "ty_exprs" "wt_stmt" intros
          E\<turnstile>NewC C::Class C"  -- "cf. 15.8"
 
   -- "cf. 15.15"
-  Cast: "[| E\<turnstile>e::Class C; is_class (prg E) D;
-            prg E\<turnstile>C\<preceq>? D |] ==>
-         E\<turnstile>Cast D e::Class D"
+  Cast: "[| E\<turnstile>e::C; is_class (prg E) D;
+            prg E\<turnstile>C\<preceq>? Class D |] ==>
+         E\<turnstile>Cast D e:: Class D"
 
   -- "cf. 15.7.1"
   Lit:    "[| typeof (\<lambda>v. None) x = Some T |] ==>
@@ -213,7 +213,7 @@ inductive "ty_expr" "ty_exprs" "wt_stmt" intros
 
 constdefs
 
- wf_java_mdecl :: "java_mb prog => cname => java_mb mdecl => bool"
+ wf_java_mdecl :: "'c prog => cname => java_mb mdecl => bool"
 "wf_java_mdecl G C == \<lambda>((mn,pTs),rT,(pns,lvars,blk,res)).
   length pTs = length pns \<and>
   distinct pns \<and>
@@ -225,25 +225,22 @@ constdefs
    E\<turnstile>blk\<surd> \<and> (\<exists>T. E\<turnstile>res::T \<and> G\<turnstile>T\<preceq>rT))"
 
 syntax 
- wf_java_prog :: "java_mb prog => bool"
+ wf_java_prog :: "'c prog => bool"
 translations
   "wf_java_prog" == "wf_prog wf_java_mdecl"
 
 lemma wf_java_prog_wf_java_mdecl: "\<lbrakk> 
   wf_java_prog G; (C, D, fds, mths) \<in> set G; jmdcl \<in> set mths \<rbrakk>
   \<Longrightarrow> wf_java_mdecl G C jmdcl"
-apply (simp add: wf_prog_def) 
-apply (simp add: wf_cdecl_def)
+apply (simp only: wf_prog_def) 
 apply (erule conjE)+
 apply (drule bspec, assumption)
-apply simp
-apply (erule conjE)+
-apply (drule bspec, assumption)
-apply (simp add: wf_mdecl_def split_beta)
+apply (simp add: wf_cdecl_mdecl_def split_beta)
 done
 
-lemma wt_is_type: "(E\<turnstile>e::T \<longrightarrow> wf_prog wf_mb (prg E) \<longrightarrow> is_type (prg E) T) \<and>  
-       (E\<turnstile>es[::]Ts \<longrightarrow> wf_prog wf_mb (prg E) \<longrightarrow> Ball (set Ts) (is_type (prg E))) \<and> 
+
+lemma wt_is_type: "(E\<turnstile>e::T \<longrightarrow> ws_prog (prg E) \<longrightarrow> is_type (prg E) T) \<and>  
+       (E\<turnstile>es[::]Ts \<longrightarrow> ws_prog (prg E) \<longrightarrow> Ball (set Ts) (is_type (prg E))) \<and> 
        (E\<turnstile>c \<surd> \<longrightarrow> True)"
 apply (rule ty_expr_ty_exprs_wt_stmt.induct)
 apply auto
@@ -253,10 +250,15 @@ apply ( drule field_fields)
 apply ( drule (1) fields_is_type)
 apply (  simp (no_asm_simp))
 apply  (assumption)
-apply (auto dest!: max_spec2mheads method_wf_mdecl is_type_rTI 
+apply (auto dest!: max_spec2mheads method_wf_mhead is_type_rTI 
             simp add: wf_mdecl_def)
 done
 
 lemmas ty_expr_is_type = wt_is_type [THEN conjunct1,THEN mp, rule_format]
+
+lemma expr_class_is_class: "
+  \<lbrakk>ws_prog (prg E); E \<turnstile> e :: Class C\<rbrakk> \<Longrightarrow> is_class (prg E) C"
+  by (frule ty_expr_is_type, assumption, simp)
+
 
 end

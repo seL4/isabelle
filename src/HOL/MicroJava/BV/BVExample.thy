@@ -186,6 +186,7 @@ section "Program structure"
 text {*
   The program is structurally wellformed:
 *}
+
 lemma wf_struct:
   "wf_prog (\<lambda>G C mb. True) E" (is "wf_prog ?mb E")
 proof -
@@ -223,7 +224,8 @@ proof -
     apply (auto simp add: name_defs distinct_classes distinct_fields)
     done       
   ultimately
-  show ?thesis by (simp add: wf_prog_def E_def SystemClasses_def)
+  show ?thesis 
+    by (simp add: wf_prog_def ws_prog_def wf_cdecl_mrT_cdecl_mdecl E_def SystemClasses_def)
 qed
 
 section "Welltypings"

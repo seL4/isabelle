@@ -20,7 +20,7 @@ lemma NewC_invers: "E\<turnstile>NewC C::T
 by (erule ty_expr.cases, auto)
 
 lemma Cast_invers: "E\<turnstile>Cast D e::T
-  \<Longrightarrow> \<exists> C. T = Class D \<and> E\<turnstile>e::Class C \<and> is_class (prg E) D \<and> prg E\<turnstile>C\<preceq>? D"
+  \<Longrightarrow> \<exists> C. T = Class D \<and> E\<turnstile>e::C \<and> is_class (prg E) D \<and> prg E\<turnstile>C\<preceq>? Class D"
 by (erule ty_expr.cases, auto)
 
 lemma Lit_invers: "E\<turnstile>Lit x::T
@@ -87,9 +87,10 @@ declare split_paired_Ex [simp del]
 (* Uniqueness of types property *)
 
 lemma uniqueness_of_types: "
-  (\<forall> E T1 T2. E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2) \<and>
-  (\<forall> E Ts1 Ts2. E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
-
+  (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) T1 T2. 
+  E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2) \<and>
+  (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) Ts1 Ts2. 
+  E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
 apply (rule expr.induct)
 
 (* NewC *)

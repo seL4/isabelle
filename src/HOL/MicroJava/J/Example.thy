@@ -293,60 +293,74 @@ apply   auto
 done
 
 lemma wf_ObjectC: 
-"wf_cdecl wf_java_mdecl tprg ObjectC"
-apply (unfold wf_cdecl_def wf_fdecl_def ObjectC_def)
+"ws_cdecl tprg ObjectC \<and> 
+  wf_cdecl_mdecl wf_java_mdecl tprg ObjectC \<and> wf_mrT tprg ObjectC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def 
+  wf_mrT_def wf_fdecl_def ObjectC_def)
 apply (simp (no_asm))
 done
 
 lemma wf_NP:
-"wf_cdecl wf_java_mdecl tprg NullPointerC"
-apply (unfold wf_cdecl_def wf_fdecl_def NullPointerC_def)
+"ws_cdecl tprg NullPointerC \<and>
+  wf_cdecl_mdecl wf_java_mdecl tprg NullPointerC \<and> wf_mrT tprg NullPointerC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def 
+  wf_mrT_def wf_fdecl_def NullPointerC_def)
 apply (simp add: class_def)
 apply (fold NullPointerC_def class_def)
 apply auto
 done
 
 lemma wf_OM:
-"wf_cdecl wf_java_mdecl tprg OutOfMemoryC"
-apply (unfold wf_cdecl_def wf_fdecl_def OutOfMemoryC_def)
+"ws_cdecl tprg OutOfMemoryC \<and>
+  wf_cdecl_mdecl wf_java_mdecl tprg OutOfMemoryC \<and> wf_mrT tprg OutOfMemoryC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def 
+  wf_mrT_def wf_fdecl_def OutOfMemoryC_def)
 apply (simp add: class_def)
 apply (fold OutOfMemoryC_def class_def)
 apply auto
 done
 
 lemma wf_CC:
-"wf_cdecl wf_java_mdecl tprg ClassCastC"
-apply (unfold wf_cdecl_def wf_fdecl_def ClassCastC_def)
+"ws_cdecl tprg ClassCastC \<and>
+  wf_cdecl_mdecl wf_java_mdecl tprg ClassCastC \<and> wf_mrT tprg ClassCastC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def 
+  wf_mrT_def wf_fdecl_def ClassCastC_def)
 apply (simp add: class_def)
 apply (fold ClassCastC_def class_def)
 apply auto
 done
 
 lemma wf_BaseC: 
-"wf_cdecl wf_java_mdecl tprg BaseC"
-apply (unfold wf_cdecl_def wf_fdecl_def BaseC_def)
+"ws_cdecl tprg BaseC \<and>
+  wf_cdecl_mdecl wf_java_mdecl tprg BaseC \<and> wf_mrT tprg BaseC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def
+  wf_mrT_def wf_fdecl_def BaseC_def)
 apply (simp (no_asm))
 apply (fold BaseC_def)
-apply (rule wf_foo_Base [THEN conjI])
-apply auto
+apply (rule mp) defer apply (rule wf_foo_Base)
+apply (auto simp add: wf_mdecl_def)
 done
 
+
 lemma wf_ExtC: 
-"wf_cdecl wf_java_mdecl tprg ExtC"
-apply (unfold wf_cdecl_def wf_fdecl_def ExtC_def)
+"ws_cdecl tprg ExtC \<and>
+  wf_cdecl_mdecl wf_java_mdecl tprg ExtC \<and> wf_mrT tprg ExtC"
+apply (unfold ws_cdecl_def wf_cdecl_mdecl_def
+  wf_mrT_def wf_fdecl_def ExtC_def)
 apply (simp (no_asm))
 apply (fold ExtC_def)
-apply (rule wf_foo_Ext [THEN conjI])
-apply auto
+apply (rule mp) defer apply (rule wf_foo_Ext)
+apply (auto simp add: wf_mdecl_def)
 apply (drule rtranclD)
 apply auto
 done
+
 
 lemma [simp]: "fst ObjectC = Object" by (simp add: ObjectC_def)
 
 lemma wf_tprg: 
 "wf_prog wf_java_mdecl tprg"
-apply (unfold wf_prog_def Let_def)
+apply (unfold wf_prog_def ws_prog_def Let_def)
 apply (simp add: wf_ObjectC wf_BaseC wf_ExtC wf_NP wf_OM wf_CC unique_classes)
 apply (rule wf_syscls)
 apply (simp add: SystemClasses_def)

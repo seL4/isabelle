@@ -86,7 +86,8 @@ proof -
   let ?f    = "JVMType.sup G mxs mxr"
   let ?A    = "states G mxs mxr"
 
-  have "semilat (JVMType.sl G mxs mxr)" by (rule semilat_JVM_slI)
+  have "semilat (JVMType.sl G mxs mxr)" 
+    by (rule semilat_JVM_slI, rule wf_prog_ws_prog)
   hence "semilat (?A, ?r, ?f)" by (unfold sl_triple_conv)
   moreover
   have "top ?r Err"  by (simp add: JVM_le_unfold)
@@ -217,7 +218,8 @@ proof -
     app_eff:    "wt_app_eff (sup_state_opt G) ?app ?eff phi"
     by (simp (asm_lr) add: wt_method_def2)
   
-  have "semilat (JVMType.sl G mxs ?mxr)" by (rule semilat_JVM_slI)
+  have "semilat (JVMType.sl G mxs ?mxr)" 
+    by (rule semilat_JVM_slI, rule wf_prog_ws_prog)
   hence "semilat (?A, ?r, ?f)" by (unfold sl_triple_conv)
   moreover
   have "top ?r Err"  by (simp add: JVM_le_unfold)
@@ -234,7 +236,8 @@ proof -
     by (clarsimp simp add: exec_def) 
        (intro bounded_lift check_bounded_is_bounded)
   with wf
-  have "mono ?r ?step (length ins) ?A" by (rule exec_mono)
+  have "mono ?r ?step (length ins) ?A"
+    by (rule wf_prog_ws_prog [THEN exec_mono])
   hence "mono ?r ?step (length ?phi) ?A" by (simp add: length)
   moreover
   have "pres_type ?step (length ins) ?A" by (rule exec_pres_type)

@@ -1,3 +1,13 @@
+(*  Title:      HOL/MicroJava/BV/Altern.thy
+    ID:         $Id$
+    Author:     Martin Strecker
+    Copyright   GPL 2003
+*)
+
+
+(* Alternative definition of well-typing of bytecode, 
+   used in compiler type correctness proof *)
+
 
 theory Altern = BVSpec:
 

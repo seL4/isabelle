@@ -299,9 +299,10 @@ proof -
         have "\<exists>D vs. hp (the_Addr v) = Some (D,vs) \<and> G \<turnstile> D \<preceq>C C" 
           by (auto dest!: non_np_objD)
       }
-      ultimately show ?thesis using Getfield field class stk hconf
+      ultimately show ?thesis using Getfield field class stk hconf wf
         apply clarsimp
-        apply (fastsimp dest!: hconfD widen_cfs_fields [OF _ _ wf] oconf_objD)
+        apply (fastsimp intro: wf_prog_ws_prog
+	  dest!: hconfD widen_cfs_fields oconf_objD)
         done
     next
       case (Putfield F C)

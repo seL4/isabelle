@@ -677,6 +677,7 @@ apply (clarsimp simp add: defs2)
 apply (rule conjI)
  apply (drule widen_cfs_fields)
  apply assumption+
+ apply (erule wf_prog_ws_prog)
  apply (erule conf_widen)
  prefer 2
   apply assumption
@@ -772,7 +773,8 @@ proof -
   moreover
   from wf hp heap_ok is_class_X
   have hp': "G \<turnstile>h ?hp' \<surd>"
-    by - (rule hconf_newref, auto simp add: oconf_def dest: fields_is_type)
+    by - (rule hconf_newref, 
+          auto simp add: oconf_def dest: fields_is_type)
   moreover
   from hp
   have sup: "hp \<le>| ?hp'" by (rule hext_new)
@@ -915,7 +917,7 @@ proof -
   obtain mD'': 
     "method (G, D'') (mn, pTs) = Some (D'', rT', mxs', mxl', ins', et')"
     "is_class G D''"
-    by (auto dest: method_in_md)
+    by (auto dest: wf_prog_ws_prog [THEN method_in_md])
       
   from loc obj_ty have "fst (the (hp ref)) = D" by (simp add: obj_ty_def)
 
@@ -1319,7 +1321,9 @@ lemma
   shows hconf_start: "\<Gamma> \<turnstile>h (start_heap \<Gamma>) \<surd>"
   apply (unfold hconf_def start_heap_def)
   apply (auto simp add: fun_upd_apply blank_def oconf_def split: split_if_asm)
-  apply (simp add: fields_is_type [OF _ wf is_class_xcpt [OF wf]])+
+  apply (simp add: fields_is_type 
+          [OF _ wf [THEN wf_prog_ws_prog] 
+	        is_class_xcpt [OF wf [THEN wf_prog_ws_prog]]])+
   done
     
 lemma 

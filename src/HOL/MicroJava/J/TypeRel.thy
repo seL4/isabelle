@@ -11,19 +11,19 @@ theory TypeRel = Decl:
 consts
   subcls1 :: "'c prog => (cname \<times> cname) set"  -- "subclass"
   widen   :: "'c prog => (ty    \<times> ty   ) set"  -- "widening"
-  cast    :: "'c prog => (cname \<times> cname) set"  -- "casting"
+  cast    :: "'c prog => (ty    \<times> ty   ) set"  -- "casting"
 
 syntax (xsymbols)
   subcls1 :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
   subcls  :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<preceq>C _"  [71,71,71] 70)
   widen   :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq> _"   [71,71,71] 70)
-  cast    :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<preceq>? _"  [71,71,71] 70)
+  cast    :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq>? _"  [71,71,71] 70)
 
 syntax
   subcls1 :: "'c prog => [cname, cname] => bool" ("_ |- _ <=C1 _" [71,71,71] 70)
   subcls  :: "'c prog => [cname, cname] => bool" ("_ |- _ <=C _"  [71,71,71] 70)
   widen   :: "'c prog => [ty   , ty   ] => bool" ("_ |- _ <= _"   [71,71,71] 70)
-  cast    :: "'c prog => [cname, cname] => bool" ("_ |- _ <=? _"  [71,71,71] 70)
+  cast    :: "'c prog => [ty   , ty   ] => bool" ("_ |- _ <=? _"  [71,71,71] 70)
 
 translations
   "G\<turnstile>C \<prec>C1 D" == "(C,D) \<in> subcls1 G"
@@ -132,8 +132,8 @@ inductive "widen G" intros
 -- "casting conversion, cf. 5.5 / 5.1.5"
 -- "left out casts on primitve types"
 inductive "cast G" intros
-  widen:  "G\<turnstile>C\<preceq>C D ==> G\<turnstile>C \<preceq>? D"
-  subcls: "G\<turnstile>D\<preceq>C C ==> G\<turnstile>C \<preceq>? D"
+  widen:  "G\<turnstile> C\<preceq> D ==> G\<turnstile>C \<preceq>? D"
+  subcls: "G\<turnstile> D\<preceq>C C ==> G\<turnstile>Class C \<preceq>? Class D"
 
 lemma widen_PrimT_RefT [iff]: "(G\<turnstile>PrimT pT\<preceq>RefT rT) = False"
 apply (rule iffI)
@@ -166,6 +166,21 @@ lemma widen_Class_Class [iff]: "(G\<turnstile>Class C\<preceq> Class D) = (G\<tu
 apply (rule iffI)
 apply (ind_cases "G\<turnstile>S\<preceq>T")
 apply (auto elim: widen.subcls)
+done
+
+lemma widen_NT_Class [simp]: "G \<turnstile> T \<preceq> NT \<Longrightarrow> G \<turnstile> T \<preceq> Class D"
+by (ind_cases "G \<turnstile> T \<preceq> NT",  auto)
+
+lemma cast_PrimT_RefT [iff]: "(G\<turnstile>PrimT pT\<preceq>? RefT rT) = False"
+apply (rule iffI)
+apply (erule cast.elims)
+apply auto
+done
+
+lemma cast_RefT: "G \<turnstile> C \<preceq>? Class D \<Longrightarrow> \<exists> rT. C = RefT rT"
+apply (erule cast.cases)
+apply simp apply (erule widen.cases) 
+apply auto
 done
 
 theorem widen_trans[trans]: "\<lbrakk>G\<turnstile>S\<preceq>U; G\<turnstile>U\<preceq>T\<rbrakk> \<Longrightarrow> G\<turnstile>S\<preceq>T"

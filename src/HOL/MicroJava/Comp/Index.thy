@@ -63,6 +63,10 @@ apply (frule_tac f = "(the \<circ> loc)" in nth_map)
 apply simp
 done
 
+lemma lift_if: "(f (if b then t else e)) = (if b then (f t) else (f e))"
+apply auto
+done
+
 lemma update_at_index: "
   \<lbrakk> distinct (gjmb_plns (gmb G C S)); 
   x \<in> set (gjmb_plns (gmb G C S)); x \<noteq> This \<rbrakk> \<Longrightarrow> 

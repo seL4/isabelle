@@ -15,21 +15,28 @@ lemma NewC_conforms:
   (x,(h(a\<mapsto>(C,(init_vars (fields (G,C))))), l))::\<preceq>(G, lT)"
 apply( erule conforms_upd_obj)
 apply(  unfold oconf_def)
-apply(  auto dest!: fields_is_type)
+apply(  auto dest!: fields_is_type simp add: wf_prog_ws_prog)
 done
- 
+
+
 lemma Cast_conf: 
- "[| wf_prog wf_mb G; G,h\<turnstile>v::\<preceq>Class C; G\<turnstile>C\<preceq>? D; cast_ok G D h v|]  
-  ==> G,h\<turnstile>v::\<preceq>Class D" 
+ "[| wf_prog wf_mb G; G,h\<turnstile>v::\<preceq>CC; G\<turnstile>CC \<preceq>? Class D; cast_ok G D h v|]  
+  ==> G,h\<turnstile>v::\<preceq>Class D"
+apply (case_tac "CC")
+apply simp
+apply (case_tac "ref_ty")
+apply (clarsimp simp add: conf_def)
+apply simp
+apply (ind_cases "G \<turnstile> Class cname \<preceq>? Class D", simp) 
+apply (rule conf_widen, assumption+) apply (erule widen.subcls)
+
 apply (unfold cast_ok_def)
 apply( case_tac "v = Null")
 apply(  simp)
-apply(  drule widen_RefT)
 apply(  clarify)
 apply( drule (1) non_npD)
 apply( auto intro!: conf_AddrI simp add: obj_ty_def)
 done
-
 
 
 lemma FAcc_type_sound: 
@@ -43,6 +50,7 @@ apply( drule non_np_objD)
 apply   auto
 apply( drule conforms_heapD [THEN hconfD])
 apply(  assumption)
+apply (frule wf_prog_ws_prog)
 apply( drule (2) widen_cfs_fields)
 apply( drule (1) oconf_objD)
 apply auto
@@ -82,6 +90,7 @@ prefer 2
 apply(  force)
 apply( rule oconf_hext)
 apply(  erule_tac [2] hext_upd_obj)
+apply (frule wf_prog_ws_prog)
 apply( drule (2) widen_cfs_fields)
 apply( rule oconf_obj [THEN iffD2])
 apply( simp (no_asm))
@@ -157,7 +166,6 @@ prefer 2
 apply(  fast elim!: widen_trans)
 apply (rule conforms_xcpt_change)
 apply( rule conforms_hext) apply assumption
-(* apply( erule conforms_hext)*)
 apply(  erule (1) hext_trans)
 apply( erule conforms_heapD)
 apply (simp add: conforms_def)
@@ -168,6 +176,8 @@ done
 declare split_if [split del]
 declare fun_upd_apply [simp del]
 declare fun_upd_same [simp]
+declare wf_prog_ws_prog [simp]
+
 ML{*
 val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
   (mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]))
@@ -267,6 +277,7 @@ apply (rule conjI)
   apply (rule Cast_conf)
   apply assumption+
 
+
 -- "7 LAss"
 apply (fold fun_upd_def)
 apply( tactic {* (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
@@ -342,7 +353,8 @@ apply(  drule eval_xcpt)
 apply(  simp)
 apply (rule conjI)
   apply(  fast elim: hext_trans)
-  apply (rule conforms_xcpt_change, assumption) apply (simp (no_asm_simp) add: xconf_def)
+  apply (rule conforms_xcpt_change, assumption) 
+  apply (simp (no_asm_simp) add: xconf_def)
 apply(clarsimp)
 
 apply( drule ty_expr_is_type, simp)
@@ -367,6 +379,15 @@ lemma eval_type_sound: "!!E s s'.
 apply( simp (no_asm_simp) only: split_tupled_all)
 apply (drule eval_evals_exec_type_sound 
              [THEN conjunct1, THEN mp, THEN spec, THEN mp])
+apply auto
+done
+
+lemma evals_type_sound: "!!E s s'.  
+  [| G\<turnstile>(x,s) -es[\<succ>]vs -> (x',s'); G=prg E; wf_java_prog G; (x,s)::\<preceq>E; E\<turnstile>es[::]Ts |]  
+  ==> (x',s')::\<preceq>E \<and> (x'=None --> list_all2 (conf G (heap s')) vs Ts)"
+apply( simp (no_asm_simp) only: split_tupled_all)
+apply (drule eval_evals_exec_type_sound 
+             [THEN conjunct2, THEN conjunct1, THEN mp, THEN spec, THEN mp])
 apply auto
 done
 
@@ -395,6 +416,7 @@ done
 
 declare split_beta [simp del]
 declare fun_upd_apply [simp]
+declare wf_prog_ws_prog [simp del]
 
 end
 

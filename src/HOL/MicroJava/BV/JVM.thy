@@ -29,7 +29,6 @@ constdefs
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_kil G C (snd sig) rT maxs maxl et b) G"
 
 
-
 theorem is_bcv_kiljvm:
   "\<lbrakk> wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) \<rbrakk> \<Longrightarrow>
       is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT et bs)
@@ -37,14 +36,15 @@ theorem is_bcv_kiljvm:
   apply (unfold kiljvm_def sl_triple_conv)
   apply (rule is_bcv_kildall)
        apply (simp (no_asm) add: sl_triple_conv [symmetric]) 
-       apply (force intro!: semilat_JVM_slI dest: wf_acyclic simp add: symmetric sl_triple_conv)
+       apply (force intro!: semilat_JVM_slI dest: wf_acyclic 
+	 simp add: symmetric sl_triple_conv)
       apply (simp (no_asm) add: JVM_le_unfold)
       apply (blast intro!: order_widen wf_converse_subcls1_impl_acc_subtype
-                   dest: wf_subcls1 wf_acyclic) 
+                   dest: wf_subcls1 wf_acyclic wf_prog_ws_prog)
      apply (simp add: JVM_le_unfold)
     apply (erule exec_pres_type)
    apply assumption
-  apply (erule exec_mono, assumption)  
+  apply (drule wf_prog_ws_prog, erule exec_mono, assumption)  
   done
 
 lemma subset_replicate: "set (replicate n x) \<subseteq> {x}"

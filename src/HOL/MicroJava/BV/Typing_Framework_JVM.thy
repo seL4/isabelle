@@ -239,11 +239,11 @@ lemma eff_mono:
   done
 
 lemma order_sup_state_opt:
-  "wf_prog wf_mb G \<Longrightarrow> order (sup_state_opt G)"
+  "ws_prog G \<Longrightarrow> order (sup_state_opt G)"
   by (unfold sup_state_opt_unfold) (blast dest: acyclic_subcls1 order_widen)
 
 theorem exec_mono:
-  "wf_prog wf_mb G \<Longrightarrow> bounded (exec G maxs rT et bs) (size bs) \<Longrightarrow>
+  "ws_prog G \<Longrightarrow> bounded (exec G maxs rT et bs) (size bs) \<Longrightarrow>
   mono (JVMType.le G maxs maxr) (exec G maxs rT et bs) (size bs) (states G maxs maxr)"  
   apply (unfold exec_def JVM_le_unfold JVM_states_unfold)  
   apply (rule mono_lift)
@@ -257,7 +257,7 @@ theorem exec_mono:
   done
 
 theorem semilat_JVM_slI:
-  "wf_prog wf_mb G \<Longrightarrow> semilat (JVMType.sl G maxs maxr)"
+  "ws_prog G \<Longrightarrow> semilat (JVMType.sl G maxs maxr)"
   apply (unfold JVMType.sl_def stk_esl_def reg_sl_def)
   apply (rule semilat_opt)
   apply (rule err_semilat_Product_esl)
@@ -287,7 +287,7 @@ proof
          "(C,S,fs,mdecls) \<in> set G"
          "((mn,pTs),rT,code) \<in> set mdecls"
   hence "wf_mdecl wf_mb G C ((mn,pTs),rT,code)"
-    by (unfold wf_prog_def wf_cdecl_def) auto  
+    by (rule wf_prog_wf_mdecl)
   hence "\<forall>t \<in> set pTs. is_type G t" 
     by (unfold wf_mdecl_def wf_mhead_def) auto
   moreover
@@ -319,11 +319,10 @@ proof -
     apply (unfold wf_prog_def wf_cdecl_def)
     apply clarsimp
     apply (drule bspec, assumption)
-    apply (unfold wf_mdecl_def)
+    apply (unfold wf_cdecl_mdecl_def)
     apply clarsimp
     apply (drule bspec, assumption)
-    apply clarsimp
-    apply (frule methd [OF wf], assumption+)
+    apply (frule methd [OF wf [THEN wf_prog_ws_prog]], assumption+)
     apply (frule is_type_pTs [OF wf], assumption+)
     apply clarify
     apply (drule rule [OF wf], assumption+)
