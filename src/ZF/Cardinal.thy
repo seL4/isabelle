@@ -3,10 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Cardinals in Zermelo-Fraenkel Set Theory 
-
-This theory does NOT assume the Axiom of Choice
 *)
+
+header{*Cardinal Numbers Without the Axiom of Choice*}
 
 theory Cardinal = OrderType + Finite + Nat + Sum:
 

@@ -3,9 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Arithmetic operators and their definitions
-
-Proofs about elementary arithmetic: addition, multiplication, etc.
 *)
 
 (*"Difference" is subtraction of natural numbers.
@@ -14,7 +11,11 @@ Proofs about elementary arithmetic: addition, multiplication, etc.
   Also, rec(m, 0, %z w.z) is pred(m).   
 *)
 
+header{*Arithmetic Operators and Their Definitions*} 
+
 theory Arith = Univ:
+
+text{*Proofs about elementary arithmetic: addition, multiplication, etc.*}
 
 constdefs
   pred   :: "i=>i"    (*inverse of succ*)

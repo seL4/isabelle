@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 
-Arithmetic with simplification
 *)
+
+header{*Arithmetic with simplification*}
 
 theory ArithSimp = Arith
 files "arith_data.ML":

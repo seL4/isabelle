@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Epsilon induction and recursion
 *)
+
+header{*Epsilon Induction and Recursion*}
 
 theory Epsilon = Nat + mono:
 

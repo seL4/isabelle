@@ -523,11 +523,6 @@ subsection{*Internalized formulas for basic concepts*}
 
 subsubsection{*The subset relation*}
 
-lemma lt_length_in_nat:
-   "[|x < length(xs); xs \<in> list(A)|] ==> x \<in> nat"
-apply (frule lt_nat_in_nat, typecheck) 
-done
-
 constdefs subset_fm :: "[i,i]=>i"
     "subset_fm(x,y) == Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
 

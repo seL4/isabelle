@@ -3,10 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Booleans in Zermelo-Fraenkel Set Theory 
-
-2 is equal to bool, but serves a different purpose
 *)
+
+header{*Booleans in Zermelo-Fraenkel Set Theory*}
 
 theory Bool = pair:
 
@@ -17,6 +16,8 @@ syntax
 translations
    "1"  == "succ(0)"
    "2"  == "succ(1)"
+
+text{*2 is equal to bool, but is used as a number rather than a type.*}
 
 constdefs
   bool        :: i

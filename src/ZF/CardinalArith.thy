@@ -3,13 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Cardinal arithmetic -- WITHOUT the Axiom of Choice
-
-Note: Could omit proving the algebraic laws for cardinal addition and
-multiplication.  On finite cardinals these operations coincide with
-addition and multiplication of natural numbers; on infinite cardinals they
-coincide with union (maximum).  Either way we get most laws for free.
 *)
+
+header{*Cardinal Arithmetic Without the Axiom of Choice*}
 
 theory CardinalArith = Cardinal + OrderArith + ArithSimp + Finite:
 
@@ -93,6 +89,11 @@ done
 
 
 (*** Cardinal addition ***)
+
+text{*Note: Could omit proving the algebraic laws for cardinal addition and
+multiplication.  On finite cardinals these operations coincide with
+addition and multiplication of natural numbers; on infinite cardinals they
+coincide with union (maximum).  Either way we get most laws for free.*}
 
 (** Cardinal addition is commutative **)
 

@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Cardinal Arithmetic WITH the Axiom of Choice
-
 These results help justify infinite-branching datatypes
 *)
+
+header{*Cardinal Arithmetic Using AC*}
 
 theory Cardinal_AC = CardinalArith + Zorn:
 

@@ -3,12 +3,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Finite powerset operator; finite function space
-
 prove X:Fin(A) ==> |X| < nat
 
 prove:  b: Fin(A) ==> inj(b,b) <= surj(b,b)
 *)
+
+header{*Finite Powerset Operator and Finite Function Space*}
 
 theory Finite = Inductive + Epsilon + Nat:
 

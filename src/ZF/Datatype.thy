@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-(Co)Datatype Definitions for Zermelo-Fraenkel Set Theory.
 *)
+
+header{*Datatype and CoDatatype Definitions*}
 
 theory Datatype = Inductive + Univ + QUniv
   files
