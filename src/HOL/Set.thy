@@ -113,8 +113,8 @@ syntax (symbols output)
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "op \\<subseteq>" => "op <="
-  "op \\<subset>" => "op <"
+  "op \\<subseteq>" => "op <= :: [_ set, _ set] => bool"
+  "op \\<subset>" => "op <  :: [_ set, _ set] => bool"
 
 
 
