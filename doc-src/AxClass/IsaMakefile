@@ -1,0 +1,46 @@
+
+## targets
+
+default: Group Nat
+images: 
+test: Group Nat
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d dvi -D ../generated
+
+
+## Group
+
+Group: HOL $(LOG)/HOL-Group.gz
+
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+$(LOG)/HOL-Group.gz: $(OUT)/HOL Group/ROOT.ML Group/document/root.tex \
+  Group/Group.thy Group/Product.thy Group/Semigroup.thy Group/Semigroups.thy
+	@$(USEDIR) $(OUT)/HOL Group
+
+
+## Nat
+
+Nat: FOL $(LOG)/FOL-Nat.gz
+
+FOL:
+	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+
+$(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/document/root.tex \
+  Nat/NatClass.ML Nat/NatClass.thy
+	@$(USEDIR) $(OUT)/FOL Nat
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Group.gz $(LOG)/FOL-Nat.gz

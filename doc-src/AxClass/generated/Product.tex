@@ -1,0 +1,16 @@
+\begin{isabelle}%
+\isanewline
+\isanewline
+\isacommand{theory}~Product~=~Main:\isanewline
+\isanewline
+\isacommand{axclass}\isanewline
+~~product~<~{"}term{"}\isanewline
+\isacommand{consts}\isanewline
+~~product~::~{"}'a::product~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymotimes}{"}~70)\isanewline
+\isanewline
+\isacommand{instance}~bool~::~product\isanewline
+~~\isacommand{by}~intro\_classes\isanewline
+\isacommand{defs}\isanewline
+~~product\_bool\_def:~{"}x~{\isasymotimes}~y~{\isasymequiv}~x~{\isasymand}~y{"}\isanewline
+\isanewline
+\isacommand{end}\end{isabelle}%

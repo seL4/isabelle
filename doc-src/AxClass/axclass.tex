@@ -1,747 +1,82 @@
 
-\input{style}
+\documentclass[12pt,a4paper,fleqn]{report}
+\usepackage{graphicx,../iman,../extra,../pdfsetup}
+\usepackage{generated/isabelle,generated/isabellesym}
+
+\newcommand{\isasymOtimes}{\emph{$\odot$}}
+\newcommand{\isasymOplus}{\emph{$\oplus$}}
+\newcommand{\isasyminv}{\emph{${}^{-1}$}}
+\newcommand{\isasymunit}{\emph{$1$}}
+\newcommand{\TIMES}{\odot}
+\newcommand{\PLUS}{\oplus}
+
+
+\newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\figref}[1]{figure~\ref{#1}}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+\hyphenation{Haskell}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] Using Axiomatic Type Classes in Isabelle}
+\author{\emph{Markus Wenzel} \\ TU M\"unchen}
+
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
 
 \begin{document}
 
-\title{Using Axiomatic Type Classes in Isabelle \\ a tutorial}
-\author{Markus Wenzel}
-%\date{29 August 1995}
-\maketitle
-
-\Isa\ features a \Haskell-like type system with ordered type classes
-already since 1991 (see \cite{Nipkow93}). Initially, classes mainly
-served as a \E{syntactic tool} to formulate polymorphic object logics
-in a clean way (like many-sorted \FOL, see
-\cite[\S1.1.2--1.1.3]{Paulson94}).
-
-Applying classes at the \E{logical level} to provide a simple notion
-of abstract theories and instantiations to concrete ones, has also
-been long proposed (see \cite{Nipkow-slides} and
-\cite[\S4]{Nipkow93}). At that time, \Isa\ still lacked built-in
-support for these \E{axiomatic type classes}. More importantly, their
-semantics was not yet fully fleshed out and unnecessarily complicated.
-
-How simple things really are has been shown in \cite[esp.\ 
-\S4]{Wenzel94} which also provided an implementation of the axclass
-package that was eventually released with \Isa94. Unfortunately there
-was a snag: That version of \Isa\ still contained an old conceptual
-bug in the core machinery which caused theories to become inconsistent
-after introducing empty sorts. Note that empty intersections of
-axiomatic type classes easily occur, unless all basic classes are very
-trivial.
-
-These problems prevented the axclass package to be used seriously ---
-they have been fixed in \Isa94-2.
-
-
-\section{Some simple examples} \label{sec:ex}
-
-Axiomatic type classes are a concept of \Isa's meta-logic.  They may
-be applied to any object-logic that directly uses the meta type
-system. Subsequently, we present various examples that are formulated
-within \Isa/\HOL\footnote{See also directory
-  \TT{HOL/AxClasses/Tutorial}.}, except the one of
-\secref{sec:ex-natclass} which is in \Isa/\FOL\footnote{See also files
-  \TT{FOL/ex/NatClass.thy} and \TT{FOL/ex/NatClass.ML}.}.
-
-
-\subsection{Semigroups}
-
-An axiomatic type class is simply a class of types that all meet
-certain \E{axioms}. Thus, type classes may be also understood as type
-predicates --- i.e.\ abstractions over a single type argument
-$\alpha$.  Class axioms typically contain polymorphic constants that
-depend on this type $\alpha$. These \E{characteristic constants}
-behave like operations associated with the ``carrier'' $\alpha$.
-
-We illustrate these basic concepts with the following theory
-\TT{Semigroup}:
-
-\begin{ascbox}
-Semigroup = HOL +\medskip
-consts
-  "<*>"         :: "['a, 'a] => 'a"             (infixl 70)\medskip
-axclass
-  semigroup < term
-  assoc         "(x <*> y) <*> z = x <*> (y <*> z)"\medskip
-end
-\end{ascbox}
-
-\TT{Semigroup} first declares a polymorphic constant $\TIMES ::
-[\alpha, \alpha] \To \alpha$ and then defines the class \TT{semigroup}
-of all those types $\tau$ such that $\TIMES :: [\tau, \tau] \To \tau$
-is an associative operator\footnote{Note that $\TIMES$ is used here
-  instead of $*$, because the latter is already declared in theory
-  \TT{HOL} in a slightly different way.}. The axiom \TT{assoc}
-contains exactly one type variable, which is invisible in the above
-presentation, though.  Also note that free term variables (like $x$,
-$y$, $z$) are allowed for user convenience --- conceptually all of
-these are bound by outermost universal quantifiers.
-
-\medskip
-
-In general, type classes may be used to describe \E{structures} with
-exactly one carrier $\alpha$ and a fixed \E{signature}. Different
-signatures require different classes. In the following theory
-\TT{Semigroups}, class \TT{plus\_sg} represents semigroups of the form
-$(\tau, \PLUS^\tau)$ while \TT{times\_sg} represents semigroups
-$(\tau, \TIMES^\tau)$:
-
-\begin{ascbox}
-Semigroups = HOL +\medskip
-consts
-  "<+>"         :: "['a, 'a] => 'a"             (infixl 65)
-  "<*>"         :: "['a, 'a] => 'a"             (infixl 70)
-  assoc         :: "(['a, 'a] => 'a) => bool"\medskip
-defs
-  assoc_def     "assoc f == ALL x y z. f (f x y) z = f x (f y z)"\medskip
-axclass
-  plus_sg < term
-  plus_assoc    "assoc (op <+>)"\medskip
-axclass
-  times_sg < term
-  times_assoc   "assoc (op <*>)"\medskip
-end
-\end{ascbox}
-
-Even if both classes \TT{plus\_sg} and \TT{times\_sg} represent
-semigroups in a sense, they are not the same!
-
-
-\subsection{Basic group theory}
-
-The meta type system of \Isa\ supports \E{intersections} and
-\E{inclusions} of type classes. These directly correspond to
-intersections and inclusions of type predicates in a purely set
-theoretic sense. This is sufficient as a means to describe simple
-hierarchies of structures.  As an illustration, we use the well-known
-example of semigroups, monoids, general groups and abelian groups.
-
-
-\subsubsection{Monoids and Groups}
-
-First a small theory that provides some polymorphic constants to be
-used later for the signature parts:
-
-\begin{ascbox}
-Sigs = HOL +\medskip
-consts
-  "<*>"     :: "['a, 'a] => 'a"       (infixl 70)
-  inverse   :: "'a => 'a"
-  "1"       :: "'a"                   ("1")\medskip
-end
-\end{ascbox}
-
-Next comes the theory \TT{Monoid} which defines class
-\TT{monoid}\footnote{Note that multiple class axioms are allowed for
-  user convenience --- they simply represent the conjunction of their
-  respective universal closures.}:
-
-\begin{ascbox}
-Monoid = Sigs +\medskip
-axclass
-  monoid < term
-  assoc         "(x <*> y) <*> z = x <*> (y <*> z)"
-  left_unit     "1 <*> x = x"
-  right_unit    "x <*> 1 = x"\medskip
-end
-\end{ascbox}
-
-So class \TT{monoid} contains exactly those types $\tau$ where $\TIMES
-:: [\tau, \tau] \To \tau$ and $\TT{1} :: \tau$ are specified
-appropriately, such that $\TIMES$ is associative and $\TT{1}$ is a
-left and right unit for $\TIMES$.
-
-\medskip
-
-Independently of \TT{Monoid}, we now define theory \TT{Group} which
-introduces a linear hierarchy of semigroups, general groups and
-abelian groups:
-
-\begin{ascbox}
-Group = Sigs +\medskip
-axclass
-  semigroup < term
-  assoc         "(x <*> y) <*> z = x <*> (y <*> z)"\brk
-axclass
-  group < semigroup
-  left_unit     "1 <*> x = x"
-  left_inverse  "inverse x <*> x = 1"\medskip
-axclass
-  agroup < group
-  commut        "x <*> y = y <*> x"\medskip
-end
-\end{ascbox}
-
-Class \TT{group} inherits associativity of $\TIMES$ from
-\TT{semigroup} and adds the other two group axioms. Similarly,
-\TT{agroup} is defined as the subset of \TT{group} such that for all
-of its elements $\tau$, the operation $\TIMES :: [\tau, \tau] \To
-\tau$ is even commutative.
-
-
-\subsubsection{Abstract reasoning}
-
-In a sense, axiomatic type classes may be viewed as \E{abstract
-  theories}.  Above class definitions internally generate the
-following abstract axioms:
-
-\begin{ascbox}
-assoc:        (?x::?'a::semigroup) <*> (?y::?'a::semigroup)
-                <*> (?z::?'a::semigroup) = ?x <*> (?y <*> ?z)\medskip
-left_unit:    1 <*> (?x::?'a::group) = ?x
-left_inverse: inverse (?x::?'a::group) <*> ?x = 1\medskip
-commut:       (?x::?'a::agroup) <*> (?y::?'a::agroup) = ?y <*> ?x
-\end{ascbox}
-
-All of these contain type variables $\alpha :: c$ that are restricted
-to types of some class $c$. These \E{sort constraints} express a
-logical precondition for the whole formula. For example, \TT{assoc}
-states that for all $\tau$, provided that $\tau :: \TT{semigroup}$,
-the operation $\TIMES :: [\tau, \tau] \To \tau$ is associative.
-
-\medskip
-
-From a purely technical point of view, abstract axioms are just
-ordinary \Isa-theorems (of \ML-type \TT{thm}). They may be used for
-\Isa-proofs without special treatment. Such ``abstract proofs''
-usually yield new abstract theorems. For example, in theory \TT{Group}
-we may derive:
-
-\begin{ascbox}
-right_unit:      (?x::?'a::group) <*> 1 = ?x
-right_inverse:   (?x::?'a::group) <*> inverse ?x = 1
-inverse_product: inverse ((?x::?'a::group) <*> (?y::?'a::group)) =
-                   inverse ?y <*> inverse ?x
-inverse_inv:     inverse (inverse (?x::?'a::group)) = ?x
-ex1_inverse:     ALL x::?'a::group. EX! y::?'a::group. y <*> x = 1
-\end{ascbox}
-
-Abstract theorems (which include abstract axioms, of course) may be
-instantiated to only those types $\tau$ where the appropriate class
-membership $\tau :: c$ is known at \Isa's type signature level.  Since
-we have $\TT{agroup} \subseteq \TT{group} \subseteq \TT{semigroup}$ by
-definition, all theorems of \TT{semigroup} and \TT{group} are
-automatically inherited by \TT{group} and \TT{agroup}.
-
-
-\subsubsection{Abstract instantiation}
-
-Until now, theories \TT{Monoid} and \TT{Group} were independent.
-Forming their union $\TT{Monoid} + \TT{Group}$ we get the following
-class hierarchy at the type signature level (left hand side):
-
-\begin{center}
-  \small
-  \unitlength 0.75mm
-  \begin{picture}(65,90)(0,-10)
-    \put(15,10){\line(0,1){10}} \put(15,30){\line(0,1){10}}
-    \put(15,50){\line(1,1){10}} \put(35,60){\line(1,-1){10}}
-    \put(15,5){\makebox(0,0){\tt agroup}}
-    \put(15,25){\makebox(0,0){\tt group}}
-    \put(15,45){\makebox(0,0){\tt semigroup}}
-    \put(30,65){\makebox(0,0){\tt term}} \put(50,45){\makebox(0,0){\tt
-    monoid}}
-  \end{picture}
-  \hspace{4em}
-  \begin{picture}(30,90)(0,0)
-    \put(15,10){\line(0,1){10}} \put(15,30){\line(0,1){10}}
-    \put(15,50){\line(0,1){10}} \put(15,70){\line(0,1){10}}
-    \put(15,5){\makebox(0,0){\tt agroup}}
-    \put(15,25){\makebox(0,0){\tt group}}
-    \put(15,45){\makebox(0,0){\tt monoid}}
-    \put(15,65){\makebox(0,0){\tt semigroup}}
-    \put(15,85){\makebox(0,0){\tt term}}
-  \end{picture}
-\end{center}
-
-We know by definition that $\TIMES$ is associative for monoids, i.e.\ 
-$\TT{monoid} \subseteq \TT{semigroup}$. Furthermore we have
-\TT{assoc}, \TT{left\_unit} and \TT{right\_unit} for groups (where
-\TT{right\_unit} is derivable from the group axioms), that is
-$\TT{group} \subseteq \TT{monoid}$. This way we get the refined class
-hierarchy shown above at the right hand side.
-
-The additional inclusions $\TT{monoid} \subseteq \TT{semigroup}$ and
-$\TT{group} \subseteq \TT{monoid}$ are established by logical means
-and have to be explicitly made known at the type signature level. This
-is what the theory section \TT{instance} does. So we define
-\TT{MonoidGroupInsts} as follows:
-
-\begin{ascbox}
-MonoidGroupInsts = Monoid + Group +\medskip
-instance
-  monoid < semigroup            (Monoid.assoc)\medskip
-instance
-  group < monoid                (assoc, left_unit, right_unit)\medskip
-end
-\end{ascbox}
-
-The \TT{instance} section does really check that the class inclusions
-(or type arities) to be added are derivable. To this end, it sets up a
-suitable goal and attempts a proof with the help of some internal
-axioms and user supplied theorems. These latter \E{witnesses} usually
-should be appropriate type instances of the class axioms (as are
-\TT{Monoid.assoc} and \TT{assoc}, \TT{left\_unit}, \TT{right\_unit}
-above).
-
-The most important internal tool for instantiation proofs is the class
-introduction rule that is automatically generated by \TT{axclass}. For
-class \TT{group} this is axiom \TT{groupI}:
-
-\begin{ascbox}
-groupI:   [| OFCLASS(?'a::term, semigroup_class);
-             !!x::?'a::term. 1 <*> x = x;
-             !!x::?'a::term. inverse x <*> x = 1 |]
-          ==> OFCLASS(?'a::term, group_class)
-\end{ascbox}
-
-There are also axioms \TT{monoidI}, \TT{semigroupI} and \TT{agroupI}
-of a similar form.  Note that $\TT{OFCLASS}(\tau, c \TT{\_class})$
-expresses class membership $\tau :: c$ as a proposition of the
-meta-logic.
-
-
-\subsubsection{Concrete instantiation}
-
-So far we have covered the case of \TT{instance $c_1$ < $c_2$} that
-could be described as \E{abstract instantiation} --- $c_1$ is more
-special than $c_2$ and thus an instance of $c_2$. Even more
-interesting for practical applications are \E{concrete instantiations}
-of axiomatic type classes. That is, certain simple schemes $(\alpha_1,
-\ldots, \alpha_n)t :: c$ of class membership may be transferred to
-\Isa's type signature level. This form of \TT{instance} is a ``safe''
-variant of the old-style \TT{arities} theory section.
-
-As an example, we show that type \TT{bool} with exclusive-or as
-operation $\TIMES$, identity as \TT{inverse}, and \TT{False} as \TT{1}
-forms an abelian group. We first define theory \TT{Xor}:
-
-\begin{ascbox}
-Xor = Group +\medskip
-defs
-  prod_bool_def     "x <*> y   == x ~= (y::bool)"
-  inverse_bool_def  "inverse x == x::bool"
-  unit_bool_def     "1         == False"\medskip
-end
-\end{ascbox}
-
-It is important to note that above \TT{defs} are just overloaded
-meta-level constant definitions. In particular, type classes are not
-yet involved at all! This form of constant definition with overloading
-(and optional primitive recursion over types) would be also possible
-in traditional versions of \HOL\ that lack type classes.
-% (see FIXME <foundation> for more details)
-Nonetheless, such definitions are best applied in the context of
-classes.
-
-\medskip
-
-Since we chose the \TT{defs} of theory \TT{Xor} suitably, the class
-membership $\TT{bool} :: \TT{agroup}$ is now derivable as follows:
-
-\begin{ascbox}
-open AxClass;
-goal_arity Xor.thy ("bool", [], "agroup");
-\out{Level 0}
-\out{OFCLASS(bool, agroup_class)}
-\out{ 1. OFCLASS(bool, agroup_class)}\brk
-by (axclass_tac []);
-\out{Level 1}
-\out{OFCLASS(bool, agroup_class)}
-\out{ 1. !!(x::bool) (y::bool) z::bool. x <*> y <*> z = x <*> (y <*> z)}
-\out{ 2. !!x::bool. 1 <*> x = x}
-\out{ 3. !!x::bool. inverse x <*> x = 1}
-\out{ 4. !!(x::bool) y::bool. x <*> y = y <*> x}
-\end{ascbox}
-
-The tactic \TT{axclass\_tac} has applied \TT{agroupI} internally to
-expand the class definition. It now remains to be shown that the
-\TT{agroup} axioms hold for bool. To this end, we expand the
-definitions of \TT{Xor} and solve the new subgoals by \TT{fast\_tac}
-of \HOL:
-
-\begin{ascbox}
-by (rewrite_goals_tac [Xor.prod_bool_def, Xor.inverse_bool_def,
-        Xor.unit_bool_def]);
-\out{Level 2}
-\out{OFCLASS(bool, agroup_class)}
-\out{ 1. !!(x::bool) (y::bool) z::bool. x ~= y ~= z = (x ~= (y ~= z))}
-\out{ 2. !!x::bool. False ~= x = x}
-\out{ 3. !!x::bool. x ~= x = False}
-\out{ 4. !!(x::bool) y::bool. x ~= y = (y ~= x)}
-by (ALLGOALS (fast_tac HOL_cs));
-\out{Level 3}
-\out{OFCLASS(bool, agroup_class)}
-\out{No subgoals!}
-qed "bool_in_agroup";
-\out{val bool_in_agroup = "OFCLASS(bool, agroup_class)"}
-\end{ascbox}
-
-The result is theorem $\TT{OFCLASS}(\TT{bool}, \TT{agroup\_class})$
-which expresses $\TT{bool} :: \TT{agroup}$ as a meta-proposition. This
-is not yet known at the type signature level, though.
-
-\medskip
-
-What we have done here by hand, can be also performed via
-\TT{instance} in a similar way behind the scenes. This may look as
-follows\footnote{Subsequently, theory \TT{Xor} is no longer
-  required.}:
-
-\begin{ascbox}
-BoolGroupInsts = Group +\medskip
-defs
-  prod_bool_def     "x <*> y   == x ~= (y::bool)"
-  inverse_bool_def  "inverse x == x::bool"
-  unit_bool_def     "1         == False"\medskip
-instance
-  bool :: agroup                \{| ALLGOALS (fast_tac HOL_cs) |\}\medskip
-end
-\end{ascbox}
-
-This way, we have $\TT{bool} :: \TT{agroup}$ in the type signature of
-\TT{BoolGroupInsts}, and all abstract group theorems are transferred
-to \TT{bool} for free.
-
-Similarly, we could now also instantiate our group theory classes to
-many other concrete types. For example, $\TT{int} :: \TT{agroup}$ (by
-defining $\TIMES$ as addition, \TT{inverse} as negation and \TT{1} as
-zero, say) or $\TT{list} :: (\TT{term})\TT{semigroup}$ (e.g.\ if
-$\TIMES$ is list append). Thus, the characteristic constants $\TIMES$,
-\TT{inverse}, \TT{1} really become overloaded, i.e.\ have different
-meanings on different types.
-
-
-\subsubsection{Lifting and Functors}
-
-As already mentioned above, \HOL-like systems not only support
-overloaded definitions of polymorphic constants (without requiring
-type classes), but even primitive recursion over types. That is,
-definitional equations $c^\tau \Eq t$ may also contain constants of
-name $c$ on the RHS --- provided that these have types that are
-strictly simpler (structurally) than $\tau$.
-
-This feature enables us to \E{lift operations}, e.g.\ to Cartesian
-products, direct sums or function spaces. Below, theory
-\TT{ProdGroupInsts} lifts $\TIMES$ componentwise to two-place
-Cartesian products $\alpha \times \beta$:
-
-\begin{ascbox}
-ProdGroupInsts = Prod + Group +\medskip
-defs
-  prod_prod_def "p <*> q == (fst p <*> fst q, snd p <*> snd q)"\medskip
-instance
-  "*" :: (semigroup, semigroup) semigroup
-    \{| simp_tac (prod_ss addsimps [assoc]) 1 |\}
-end
-\end{ascbox}
-
-Note that \TT{prod\_prod\_def} basically has the form $\edrv
-{\TIMES}^{\alpha \times \beta} \Eq \ldots {\TIMES}^\alpha \ldots
-{\TIMES}^\beta \ldots$, i.e.\ the recursive occurrences
-$\TIMES^\alpha$ and $\TIMES^\beta$ are really at ``simpler'' types.
-
-It is very easy to see that associativity of $\TIMES^\alpha$,
-$\TIMES^\beta$ transfers to ${\TIMES}^{\alpha \times \beta}$. Hence
-the two-place type constructor $\times$ maps semigroups into
-semigroups. This fact is proven and put into \Isa's type signature by
-above \TT{instance} section.
-
-\medskip
-
-Thus, if we view class instances as ``structures'', overloaded
-constant definitions with primitive recursion over types indirectly
-provide some kind of ``functors'' (mappings between abstract theories,
-that is).
-
-
-\subsection{Syntactic classes}
-
-There is still a feature of \Isa's type system left that we have not
-yet used: When declaring polymorphic constants $c :: \tau$, the type
-variables occurring in $\tau$ may be constrained by type classes (or
-even general sorts). Note that by default, in \Isa/\HOL\ the
-declaration:
-
-\begin{ascbox}
-  <*> :: ['a, 'a] => 'a
-\end{ascbox}
-
-is actually an abbreviation for:
-
-\begin{ascbox}
-  <*> :: ['a::term, 'a::term] => 'a::term
-\end{ascbox}
-
-Since class \TT{term} is the universal class of \HOL, this is not
-really a restriction at all. A less trivial example is the following
-theory \TT{Product}:
-
-\begin{ascbox}
-Product = HOL +\medskip
-axclass
-  product < term\medskip
-consts
-  "<*>" :: "['a::product, 'a] => 'a"      (infixl 70)\medskip
-end
-\end{ascbox}
-
-Here class \TT{product} is defined as subclass of \TT{term}, but
-without any additional axioms. This effects in logical equivalence of
-\TT{product} and \TT{term}, since \TT{productI} is as follows:
-
-\begin{ascbox}
-productI: OFCLASS(?'a::logic, term_class) ==>
-            OFCLASS(?'a::logic, product_class)
-\end{ascbox}
-
-I.e.\ $\TT{term} \subseteq \TT{product}$. The converse inclusion is
-already contained in the type signature of theory \TT{Product}.
-
-Now, what is the difference of declaring $\TIMES :: [\alpha ::
-\TT{product}, \alpha] \To \alpha$ vs.\ declaring $\TIMES :: [\alpha ::
-\TT{term}, \alpha] \To \alpha$? In this special case (where
-$\TT{product} \Eq \TT{term}$), it should be obvious that both
-declarations are the same from the logic's point of view.  It is even
-most sensible in the general case not to attach any \E{logical}
-meaning to sort constraints occurring in constant \E{declarations}
-(see \cite[page 79]{Wenzel94} for more details).
-
-On the other hand there are syntactic differences, of course.
-Constants $\TIMES^\tau$ are rejected by the type-checker, unless $\tau
-:: \TT{product}$ is part of the type signature.  In our example, this
-arity may be always added when required by means of a trivial
-\TT{instance}.
-
-Thus, we can follow this discipline: Overloaded polymorphic constants
-have their type arguments restricted to an associated (logically
-trivial) class $c$. Only immediately before \E{specifying} these
-constants on a certain type $\tau$ do we instantiate $\tau :: c$.
-
-This is done for class \TT{product} and type \TT{bool} in theory
-\TT{ProductInsts} below:
-
-\begin{ascbox}
-ProductInsts = Product +\medskip
-instance
-  bool :: product\medskip
-defs
-  prod_bool_def "x <*> y  == x & y::bool"\medskip
-end
-\end{ascbox}
-
-Note that \TT{instance bool ::\ product} does not require any
-witnesses, since this statement is logically trivial. Nonetheless,
-\TT{instance} really performs a proof.
-
-Only after $\TT{bool} :: \TT{product}$ is made known to the type
-checker, does \TT{prod\_bool\_def} become syntactically well-formed.
-
-\medskip
-
-It is very important to see that above \TT{defs} are not directly
-connected with \TT{instance} at all! We were just following our
-convention to specify $\TIMES$ on \TT{bool} after having instantiated
-$\TT{bool} :: \TT{product}$. \Isa\ does not require these definitions,
-which is in contrast to programming languages like \Haskell.
-
-\medskip
-
-While \Isa\ type classes and those of \Haskell\ are almost the same as
-far as type-checking and type inference are concerned, there are major
-semantic differences. \Haskell\ classes require their instances to
-\E{provide operations} of certain \E{names}. Therefore, its
-\TT{instance} has a \TT{where} part that tells the system what these
-``member functions'' should be.
-
-This style of \TT{instance} won't make much sense in \Isa, because its
-meta-logic has no corresponding notion of ``providing operations'' or
-``names''.
-
-
-\subsection{Defining natural numbers in FOL}
-\label{sec:ex-natclass}
-
-Axiomatic type classes abstract over exactly one type argument. Thus,
-any \E{axiomatic} theory extension where each axiom refers to at most
-one type variable, may be trivially turned into a \E{definitional}
-one.
-
-We illustrate this with the natural numbers in \Isa/\FOL:
-
-\begin{ascbox}
-NatClass = FOL +\medskip
-consts
-  "0"           :: "'a"                                 ("0")
-  Suc           :: "'a => 'a"
-  rec           :: "['a, 'a, ['a, 'a] => 'a] => 'a"\medskip
-axclass
-  nat < term
-  induct        "[| P(0); !!x. P(x) ==> P(Suc(x)) |] ==> P(n)"
-  Suc_inject    "Suc(m) = Suc(n) ==> m = n"
-  Suc_neq_0     "Suc(m) = 0 ==> R"
-  rec_0         "rec(0, a, f) = a"
-  rec_Suc       "rec(Suc(m), a, f) = f(m, rec(m, a, f))"\medskip
-consts
-  "+"           :: "['a::nat, 'a] => 'a"                (infixl 60)\medskip
-defs
-  add_def       "m + n == rec(m, n, %x y. Suc(y))"\medskip
-end
-\end{ascbox}
-
-\TT{NatClass} is an abstract version of \TT{Nat}\footnote{See
-  directory \TT{FOL/ex}.}. Basically, we have just replaced all
-occurrences of \E{type} \TT{nat} by $\alpha$ and used the natural
-number axioms to define \E{class} \TT{nat}\footnote{There's a snag:
-  The original recursion operator \TT{rec} had to be made monomorphic,
-  in a sense.}. Thus class \TT{nat} contains exactly those types
-$\tau$ that are isomorphic to ``the'' natural numbers (with signature
-\TT{0}, \TT{Suc}, \TT{rec}).
-
-Furthermore, theory \TT{NatClass} defines an ``abstract constant'' $+$
-based on class \TT{nat}.
-
-\medskip
-
-What we have done here can be also viewed as \E{type specification}.
-Of course, it still remains open if there is some type at all that
-meets the class axioms. Now a very nice property of axiomatic type
-classes is, that abstract reasoning is always possible --- independent
-of satisfiability. The meta-logic won't break, even if some class (or
-general sort) turns out to be empty (``inconsistent'')
-later\footnote{As a consequence of an old bug, this is \E{not} true
-  for pre-\Isa94-2 versions.}.
-
-For example, we may derive the following abstract natural numbers
-theorems:
-
-\begin{ascbox}
-add_0:    0 + (?n::?'a::nat) = ?n
-add_Suc:  Suc(?m::?'a::nat) + (?n::?'a::nat) = Suc(?m + ?n)
-\end{ascbox}
-
-See also file \TT{FOL/ex/NatClass.ML}. Note that this required only
-some trivial modifications of the original \TT{Nat.ML}.
-
-
-\section{The user interface of Isabelle's axclass package}
-
-The actual axiomatic type class package of \Isa/\Pure\ mainly consists
-of two new theory sections: \TT{axclass} and \TT{instance}.  Some
-typical applications of these have already been demonstrated in
-\secref{sec:ex}, below their syntax and semantics are presented more
-completely.
-
-
-\subsection{The axclass section}
-
-Within theory files, \TT{axclass} introduces an axiomatic type class
-definition. Its concrete syntax is:
-
-\begin{matharray}{l}
-  \TT{axclass} \\
-  \ \ c \TT{ < } c_1\TT, \ldots\TT, c_n \\
-  \ \ \idt{id}_1\ \idt{axm}_1 \\
-  \ \ \vdots \\
-  \ \ \idt{id}_m\ \idt{axm}_m
-\end{matharray}
-
-Where $c, c_1, \ldots, c_n$ are classes (category $\idt{id}$ or
-$\idt{string}$) and $\idt{axm}_1, \ldots, \idt{axm}_m$ (with $m \ge
-0$) are formulas (category $\idt{string}$).
-
-Class $c$ has to be new, and sort $\{c_1, \ldots, c_n\}$ a subsort of
-\TT{logic}. Each class axiom $\idt{axm}_j$ may contain any term
-variables, but at most one type variable (which need not be the same
-for all axioms). The sort of this type variable has to be a supersort
-of $\{c_1, \ldots, c_n\}$.
-
-\medskip
-
-The \TT{axclass} section declares $c$ as subclass of $c_1, \ldots,
-c_n$ to the type signature.
-
-Furthermore, $\idt{axm}_1, \ldots, \idt{axm}_m$ are turned into the
-``abstract axioms'' of $c$ with names $\idt{id}_1, \ldots,
-\idt{id}_m$.  This is done by replacing all occurring type variables
-by $\alpha :: c$. Original axioms that do not contain any type
-variable will be prefixed by the logical precondition
-$\TT{OFCLASS}(\alpha :: \TT{logic}, c\TT{\_class})$.
-
-Another axiom of name $c\TT{I}$ --- the ``class $c$ introduction
-rule'' --- is built from the respective universal closures of
-$\idt{axm}_1, \ldots, \idt{axm}_m$ appropriately.
-
-
-\subsection{The instance section}
-
-Section \TT{instance} proves class inclusions or type arities at the
-logical level and then transfers these into the type signature.
-
-Its concrete syntax is:
-
-\begin{matharray}{l}
-  \TT{instance} \\
-  \ \ [\ c_1 \TT{ < } c_2 \ |\
-      t \TT{ ::\ (}\idt{sort}_1\TT, \ldots \TT, \idt{sort}_n\TT) \idt{sort}\ ] \\
-  \ \ [\ \TT(\idt{name}_1 \TT, \ldots\TT, \idt{name}_m\TT)\ ] \\
-  \ \ [\ \TT{\{|} \idt{text} \TT{|\}}\ ]
-\end{matharray}
-
-Where $c_1, c_2$ are classes and $t$ is an $n$-place type constructor
-(all of category $\idt{id}$ or $\idt{string})$. Furthermore,
-$\idt{sort}_i$ are sorts in the usual \Isa-syntax.
-
-\medskip
-
-Internally, \TT{instance} first sets up an appropriate goal that
-expresses the class inclusion or type arity as a meta-proposition.
-Then tactic \TT{AxClass.axclass\_tac} is applied with all preceding
-meta-definitions of the current theory file and the user-supplied
-witnesses. The latter are $\idt{name}_1, \ldots, \idt{name}_m$, where
-$\idt{id}$ refers to an \ML-name of a theorem, and $\idt{string}$ to an
-axiom of the current theory node\footnote{Thus, the user may reference
-  axioms from above this \TT{instance} in the theory file. Note
-  that new axioms appear at the \ML-toplevel only after the file is
-  processed completely.}.
-
-Tactic \TT{AxClass.axclass\_tac} first unfolds the class definition by
-resolving with rule $c\TT{I}$, and then applies the witnesses
-according to their form: Meta-definitions are unfolded, all other
-formulas are repeatedly resolved\footnote{This is done in a way that
-  enables proper object-\E{rules} to be used as witnesses for
-  corresponding class axioms.} with.
-
-The final optional argument $\idt{text}$ is \ML-code of an arbitrary
-user tactic which is applied last to any remaining goals.
-
-\medskip
-
-Because of the complexity of \TT{instance}'s witnessing mechanisms,
-new users of the axclass package are advised to only use the simple
-form $\TT{instance}\ \ldots\ (\idt{id}_1, \ldots, \idt{id}_m)$, where
-the identifiers refer to theorems that are appropriate type instances
-of the class axioms. This typically requires an auxiliary theory,
-though, which defines some constants and then proves these witnesses.
-
-
-\begin{thebibliography}{}
-
-\bibitem[Nipkow, 1993a]{Nipkow-slides} T. Nipkow. Axiomatic Type
-  Classes (in Isabelle). Presentation at the workshop \E{Types for
-    Proof and Programs}, Nijmegen, 1993.
-
-\bibitem[Nipkow, 1993b]{Nipkow93} T. Nipkow. Order-Sorted Polymorphism
-  in Isabelle. In G. Huet, G. Plotkin, editors, \E{Logical
-    Environments}, pp.\ 164--188, Cambridge University Press, 1993.
-
-\bibitem[Paulson, 1994]{Paulson94} L.C. Paulson. \E{Isabelle --- A
-    Generic Theorem Prover}. LNCS 828, 1994.
-
-\bibitem[Wenzel, 1994]{Wenzel94} M. Wenzel. \E{Axiomatische
-    Typ-Klassen in Isabelle}. Diplom\-arbeit, TU München, 1994.
-
-\end{thebibliography}
+\underscoreoff
+
+\maketitle 
+
+\begin{abstract}
+  Isabelle offers order-sorted type classes on top of the simple types of
+  plain Higher-Order Logic.  The resulting type system is similar to that of
+  the programming language Haskell.  Its interpretation within the logic
+  enables further application, though, apart from restricting polymorphism
+  syntactically.  In particular, the concept of \emph{Axiomatic Type Classes}
+  provides a useful light-weight mechanism for hierarchically-structured
+  abstract theories. Subsequently, we demonstrate typical uses of Isabelle's
+  axiomatic type classes to model basic algebraic structures.
+  
+  Note that this document describes axiomatic type classes using Isabelle/Isar
+  theories, with proofs expressed via Isar proof language elements.  The new
+  theory format greatly simplifies the arrangement of the overall development,
+  since definitions and proofs may be freely intermixed.  Users who prefer
+  tactic scripts over structured proofs do not need to fall back on separate
+  ML scripts, but may refer to Isar's tactic emulation commands.
+\end{abstract}
+
+
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+\include{body}
+
+%FIXME
+\nocite{nipkow-types93}
+\nocite{nipkow-sorts93}
+\nocite{Wenzel:1997:TPHOL}
+\nocite{paulson-isa-book}
+\nocite{isabelle-isar-ref}
+\nocite{Wenzel:1999:TPHOL}
+
+\begingroup
+  \bibliographystyle{plain} \small\raggedright\frenchspacing
+  \bibliography{../manual}
+\endgroup
 
 \end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+% LocalWords:  Isabelle FIXME

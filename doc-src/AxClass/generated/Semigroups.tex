@@ -1,0 +1,28 @@
+\begin{isabelle}%
+\isacommand{theory}~Semigroups~=~Main:%
+\begin{isamarkuptext}%
+\noindent Associativity of binary operations:%
+\end{isamarkuptext}%
+\isacommand{constdefs}\isanewline
+~~is\_assoc~::~{"}('a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a)~{\isasymRightarrow}~bool{"}\isanewline
+~~{"}is\_assoc~f~==~{\isasymforall}x~y~z.~f~(f~x~y)~z~=~f~x~(f~y~z){"}%
+\begin{isamarkuptext}%
+\medskip\noindent Semigroups over \isa{(op~{\isasymOplus})}:
+ %term (latex xsymbols symbols) "op \<Oplus>";%
+\end{isamarkuptext}%
+\isacommand{consts}\isanewline
+~~plus~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOplus}{"}~65)\isanewline
+\isacommand{axclass}\isanewline
+~~plus\_semigroup~<~{"}term{"}\isanewline
+~~assoc:~{"}is\_assoc~(op~{\isasymOplus}){"}%
+\begin{isamarkuptext}%
+\medskip\noindent Semigroups over \isa{(op~{\isasymOtimes})}:
+ %term (latex xsymbols symbols) "op \<Otimes>";%
+\end{isamarkuptext}%
+\isacommand{consts}\isanewline
+~~times~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOtimes}{"}~65)\isanewline
+\isacommand{axclass}\isanewline
+~~times\_semigroup~<~{"}term{"}\isanewline
+~~assoc:~{"}is\_assoc~(op~{\isasymOtimes}){"}\isanewline
+\isanewline
+\isacommand{end}\end{isabelle}%

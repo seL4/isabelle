@@ -1,0 +1,9 @@
+%%
+%% $Id$
+%%
+%% conditional url/hyperref setup
+%%
+
+\@ifundefined{pdfoutput}{\usepackage{url}}
+{\usepackage[pdftex,a4paper,colorlinks=true]{hyperref}
+  \IfFileExists{thumbpdf.sty}{\usepackage{thumbpdf}}{}}
