@@ -228,7 +228,6 @@ by (case_tac "n<m" 1);
  by (subgoal_tac "(m-n) div n < (m-n)" 1);
   by (REPEAT (ares_tac [impI,less_trans_Suc] 1));
   by (asm_full_simp_tac (simpset() addsimps [diff_less]) 1);
- by (dres_inst_tac [("m","n")] less_imp_diff_positive 1);
  by (asm_full_simp_tac (simpset() addsimps [diff_less]) 1);
 (* case n=m *)
 by (subgoal_tac "m=n" 1);
