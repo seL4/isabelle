@@ -33,13 +33,13 @@ defs
 
 constdefs
 
-  real_preal :: preal => real              ("%#_" [80] 80)
+  real_preal :: preal => real              ("%#_" [100] 100)
   "%# m     == Abs_real(realrel^^{(m+@#($#1p),@#($#1p))})"
 
   rinv       :: real => real
   "rinv(R)   == (@S. R ~= 0r & S*R = 1r)"
 
-  real_nat :: nat => real                  ("%%# _" [80] 80) 
+  real_nat :: nat => real                  ("%%# _" [100] 100) 
   "%%# n      == %#(@#($#(*# n)))"
 
 defs
