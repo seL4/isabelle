@@ -463,11 +463,6 @@ fun metahyps_aux_tac tacf (prem,i) state =
       fun embed B = list_all_free (params, Logic.list_implies (hyps, B))
       (*Strip the context using elimination rules*)
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
-      (*Embed an ff pair in the original params*)
-      fun embed_ff(t,u) = Logic.mk_flexpair (list_abs_free (params, t),
-                                             list_abs_free (params, u))
-      (*Remove parameter abstractions from the ff pairs*)
-      fun elim_ff ff = flexpair_abs_elim_list cparams ff
       (*A form of lifting that discharges assumptions.*)
       fun relift st =
         let val prop = #prop(rep_thm st)
@@ -475,17 +470,14 @@ fun metahyps_aux_tac tacf (prem,i) state =
                   foldr add_term_vars (Logic.strip_imp_prems prop, [])
             and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
-            val st' = instantiate ([], map mk_ctpair subgoal_insts) st
+            val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
             val emBs = map (cterm o embed) (prems_of st')
-            and ffs = map (cterm o embed_ff) (tpairs_of st')
-            val Cth  = implies_elim_list st'
-                            (map (elim_ff o assume) ffs @
-                             map (elim o assume) emBs)
+            val Cth  = implies_elim_list st' (map (elim o assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
             free_instantiate (map swap_ctpair insts @
                               map mk_subgoal_swap_ctpair subgoal_insts)
                 (*discharge assumptions from state in same order*)
-                (implies_intr_list (ffs@emBs)
+                (implies_intr_list emBs
                   (forall_intr_list cparams (implies_intr_list chyps Cth)))
         end
       val subprems = map (forall_elim_vars 0) hypths
