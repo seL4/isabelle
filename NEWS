@@ -166,6 +166,11 @@ New in this Isabelle release
   for a fragment of HOL.  The installation of an external SAT solver is
   highly recommended.  See "HOL/Refute.thy" for details.
 
+* 'quickcheck' command: Allows to find counterexamples by evaluating
+  formulae under an assignment of free variables to random values.
+  In contrast to 'refute', it can deal with inductive datatypes,
+  but cannot handle quantifiers. See "HOL/ex/Quickcheck_Examples.thy"
+  for examples.
 
 *** HOLCF ***
 
