@@ -45,7 +45,7 @@ Usage: $PRG VERSION
 
   Make Isabelle distribution from the master sources at TUM.
 
-  VERSION may be either a tag like "Isabelle99-XX" that specifies the
+  VERSION may be either a tag like "Isabelle2002-XX" that specifies the
   release to be exported from the repository, or "-" to checkout the
   current sources as an unofficial release, or "--" to produce a
   tentative release from the present copy of the Isabelle repository.
@@ -56,7 +56,7 @@ Usage: $PRG VERSION
     * Check ANNOUNCE, README, INSTALL, NEWS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
-        cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle99-X isabelle
+        cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle2002 isabelle
       PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
 
 EOF
