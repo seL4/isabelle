@@ -442,6 +442,8 @@ following commands provide some way to do so.
 \begin{verbatim}
  Method.no_args (Method.METHOD (fn facts => foobar_tac))
  Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
+ Method.ctxt_args (fn ctxt => Method.METHOD (fn facts => foobar_tac))
+ Method.thms_ctxt_args (fn thms => fn ctxt => Method.METHOD (fn facts => foobar_tac))
 \end{verbatim}
 }
 
