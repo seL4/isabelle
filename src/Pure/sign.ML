@@ -60,6 +60,7 @@ sig
   val intern_tycons: sg -> xtyp -> typ
   val print_sg: sg -> unit
   val pretty_sg: sg -> Pretty.T
+  val str_of_sg: sg -> string
   val pprint_sg: sg -> pprint_args -> unit
   val pretty_term: sg -> term -> Pretty.T
   val pretty_typ: sg -> typ -> Pretty.T
@@ -159,8 +160,6 @@ val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
 
 val tsig_of = #tsig o rep_sg;
-val get_data = Data.get o #data o rep_sg;
-val print_data = Data.print o #data o rep_sg;
 
 fun const_type (Sg (_, {const_tab, ...})) c = Symtab.lookup (const_tab, c);
 val classes = #classes o Type.rep_tsig o tsig_of;
@@ -168,6 +167,15 @@ val classes = #classes o Type.rep_tsig o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
+
+
+(* data *)
+
+fun access_data f sg = f (#data (rep_sg sg))
+  handle ERROR => error ("of theory " ^ str_of_sg sg);
+
+val get_data = access_data Data.get;
+val print_data = access_data Data.print;
 
 
 (* id and self *)
@@ -847,7 +855,6 @@ fun merge_refs (sgr1 as SgRef (Some (ref sg1)),
       else if subsig (sg1, sg2) then sgr2
       else raise TERM ("Attempt to do non-trivial merge of signatures", [])
   | merge_refs _ = sys_error "Sign.merge_refs";
-
 
 
 (* proper merge *)
