@@ -266,10 +266,9 @@ val pure_xsym_syntax =
   ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
   ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
   ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-  ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
+  ("==",       "['a, 'a] => prop",      InfixrName ("\\<equiv>", 2)),
   ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
   ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
-  ("=?=",      "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>\\<^sup>?", 2)),
   ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
   ("_DDDOT",   "logic",                 Delimfix "\\<dots>")];
