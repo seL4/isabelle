@@ -291,70 +291,9 @@ theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> vs \<in> good"
   apply simp
   done
 
-
-subsection {* Realizer for Bar induction *}
-
-datatype Bar =
-   Good "letter list list"
- | Bar "letter list list" "letter list \<Rightarrow> Bar"
-
-consts
-  bar_realizes :: "Bar \<Rightarrow> letter list list \<Rightarrow> bool"
-
-primrec
-  "bar_realizes (Good ws') ws = (ws = ws' \<and> ws' \<in> good)"
-  "bar_realizes (Bar ws' f) ws = (ws = ws' \<and> (\<forall>w. bar_realizes (f w) (w # ws')))"
-
-theorem Good_realizer: "ws \<in> good \<Longrightarrow> bar_realizes (Good ws) ws"
-  by simp
-
-theorem Bar_realizer:
-  "\<forall>w. bar_realizes (f w) (w # ws) \<Longrightarrow> bar_realizes (Bar ws f) ws"
-  by simp
-
-consts
-  bar_ind :: "Bar \<Rightarrow> (letter list list \<Rightarrow> 'a) \<Rightarrow>
-    (letter list list \<Rightarrow> (letter list \<Rightarrow> Bar \<times> 'a) \<Rightarrow> 'a) \<Rightarrow> 'a"
-
-primrec
-  "bar_ind (Good ws) f g = f ws"
-  "bar_ind (Bar ws f') f g = g ws (\<lambda>w. (f' w, bar_ind (f' w) f g))"
-
-theorem Bar_ind_realizer:
-  assumes bar: "bar_realizes r x"
-  and f: "\<And>ws. ws \<in> good \<Longrightarrow> P (f ws) ws"
-  and g: "\<And>ws f. (\<forall>w. bar_realizes (fst (f w)) (w # ws) \<and> P (snd (f w)) (w # ws)) \<Longrightarrow>
-    P (g ws f) ws"
-  shows "P (bar_ind r f g) x"
-proof -
-  have "\<And>x. bar_realizes r x \<Longrightarrow> P (bar_ind r f g) x"
-    apply (induct r)
-    apply simp
-    apply (rules intro: f)
-    apply simp
-    apply (rule g)
-    apply simp
-    done
-  thus ?thesis .
-qed
-
-extract_type
-  "typeof bar \<equiv> Type (TYPE(Bar))"
-
-realizability
-  "realizes r (w : bar) \<equiv> bar_realizes r w"
-
-realizers
-  bar1: "Good" "Good_realizer"
-
-  bar2: "Bar" "\<Lambda>ws f. Bar_realizer \<cdot> _ \<cdot> _"
-
-  bar.induct (P): "\<lambda>x P. bar_ind"
-    "\<Lambda>x P r (h1: _) f (h2: _) g.
-       Bar_ind_realizer \<cdot> _ \<cdot> _ \<cdot> (\<lambda>r x. realizes r (P x)) \<cdot> _ \<cdot> _ \<bullet> h1 \<bullet> h2"
-
-
 subsection {* Extracting the program *}
+
+declare bar.induct [ind_realizer]
 
 extract good_prefix
 
