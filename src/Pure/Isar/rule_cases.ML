@@ -9,11 +9,12 @@ signature RULE_CASES =
 sig
   type T (* = (string * typ) list * term list *)
   val name: string list -> thm -> thm
+  val case_names: string list -> 'a attribute
   val get: thm -> string list
   val add: thm -> thm * string list
   val none: thm -> thm * string list
   val make: thm -> string list -> (string * T) list
-  val case_names: string list -> 'a attribute
+  val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
 
@@ -34,11 +35,9 @@ fun name names thm =
   |> Drule.untag_rule (casesN, [])
   |> Drule.tag_rule (casesN, names);
 
-fun get thm =
-  (case assoc (Thm.tags_of_thm thm, casesN) of
-    None => map Library.string_of_int (1 upto Thm.nprems_of thm)
-  | Some names => names);
+fun case_names ss = Drule.rule_attribute (K (name ss));
 
+fun get thm = Library.assocs (Thm.tags_of_thm thm) casesN;
 fun add thm = (thm, get thm);
 fun none thm = (thm, []);
 
@@ -59,9 +58,7 @@ fun make thm names =
     (Library.drop (length names - Thm.nprems_of thm, names), ([], Thm.nprems_of thm)));
 
 
-(* attributes *)
-
-fun case_names ss = Drule.rule_attribute (K (name ss));
+(* params *)
 
 fun rename_params xss thm =
   #1 (foldl (fn ((th, i), xs) => (Thm.rename_params_rule (xs, i) th, i + 1)) ((thm, 1), xss));
