@@ -78,6 +78,10 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val          rewrite: simpset -> cterm -> thm
+  val      asm_rewrite: simpset -> cterm -> thm
+  val     full_rewrite: simpset -> cterm -> thm
+  val asm_full_rewrite: simpset -> cterm -> thm
   val setup: (theory -> theory) list
   val get_local_simpset: local_theory -> simpset
   val put_local_simpset: simpset -> local_theory -> local_theory
@@ -404,20 +408,26 @@ fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 
 
-(** simplification meta rules **)
+(** simplification rules and conversions **)
 
-fun simp mode (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}) thm =
+fun simp rew mode (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}) thm =
   let
     val tacf = solve_all_tac (subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
     fun prover m th = apsome fst (Seq.pull (tacf m th));
-  in
-    Drule.rewrite_thm mode prover mss thm
-  end;
+  in rew mode prover mss thm end;
 
-val          simplify = simp (false, false, false);
-val      asm_simplify = simp (false, true, false);
-val     full_simplify = simp (true, false, false);
-val asm_full_simplify = simp (true, true, false);
+val simp_thm = simp Drule.rewrite_thm;
+val simp_cterm = simp Drule.rewrite_cterm;
+
+val          simplify = simp_thm (false, false, false);
+val      asm_simplify = simp_thm (false, true, false);
+val     full_simplify = simp_thm (true, false, false);
+val asm_full_simplify = simp_thm (true, true, false);
+
+val          rewrite = simp_cterm (false, false, false);
+val      asm_rewrite = simp_cterm (false, true, false);
+val     full_rewrite = simp_cterm (true, false, false);
+val asm_full_rewrite = simp_cterm (true, true, false);
 
 
 
