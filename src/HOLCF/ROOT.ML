@@ -39,5 +39,6 @@ init_thy_reader();
 init_pps ();
 
 print_depth 100;  
+make_html:=false;
 
 val HOLCF_build_completed = (); (*indicate successful build*)
