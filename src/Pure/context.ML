@@ -18,8 +18,8 @@ sig
   val set_context: theory option -> unit
   val reset_context: unit -> unit
   val setmp: theory option -> ('a -> 'b) -> 'a -> 'b
-  val fetch: theory option -> ('a -> 'b) -> 'a -> 'b * theory option
-  val fetch_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
+  val pass: theory option -> ('a -> 'b) -> 'a -> 'b * theory option
+  val pass_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
   val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
 end;
@@ -46,11 +46,11 @@ fun the_context () =
 fun context thy = set_context (Some thy);
 fun reset_context () = set_context None;
 
-fun fetch opt_thy f x =
+fun pass opt_thy f x =
   setmp opt_thy (fn x => let val y = f x in (y, get_context ()) end) x;
 
-fun fetch_theory thy f x =
-  (case fetch (Some thy) f x of
+fun pass_theory thy f x =
+  (case pass (Some thy) f x of
     (y, Some thy') => (y, thy')
   | (_, None) => error "Missing ML theory context");
 
