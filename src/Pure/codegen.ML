@@ -36,6 +36,7 @@ sig
     (exn option * string) Graph.T * term -> (exn option * string) Graph.T * Pretty.T
   val invoke_tycodegen: theory -> string -> bool ->
     (exn option * string) Graph.T * typ -> (exn option * string) Graph.T * Pretty.T
+  val mk_id: string -> string
   val mk_const_id: Sign.sg -> string -> string
   val mk_type_id: Sign.sg -> string -> string
   val rename_term: term -> term
@@ -273,34 +274,55 @@ fun get_assoc_type thy s = assoc (#types (CodegenData.get thy), s);
 
 (**** make valid ML identifiers ****)
 
-fun gen_mk_id kind rename sg s =
+fun is_ascii_letdig x = Symbol.is_ascii_letter x orelse
+  Symbol.is_ascii_digit x orelse Symbol.is_ascii_quasi x;
+
+fun dest_sym s = (case split_last (snd (take_prefix (equal "\\") (explode s))) of
+    ("<" :: "^" :: xs, ">") => (true, implode xs)
+  | ("<" :: xs, ">") => (false, implode xs)
+  | _ => sys_error "dest_sym");
+  
+fun mk_id s = if s = "" then "" else
   let
-    val (xs as x::_) = explode (rename (space_implode "_"
-      (NameSpace.unpack (Sign.cond_extern sg kind s))));
-    fun check_str [] = ""
-      | check_str (" " :: xs) = "_" ^ check_str xs
-      | check_str (x :: xs) =
-          (if Symbol.is_letdig x then x
-           else "_" ^ string_of_int (ord x)) ^ check_str xs
+    fun check_str [] = []
+      | check_str xs = (case take_prefix is_ascii_letdig xs of
+          ([], " " :: zs) => check_str zs
+        | ([], "_" :: zs) => check_str zs
+        | ([], z :: zs) =>
+          if size z = 1 then string_of_int (ord z) :: check_str zs
+          else (case dest_sym z of
+              (true, "isub") => check_str zs
+            | (true, "isup") => "" :: check_str zs
+            | (ctrl, s') => (if ctrl then "ctrl_" ^ s' else s') :: check_str zs)
+        | (ys, zs) => implode ys :: check_str zs);
+    val s' = space_implode "_"
+      (flat (map (check_str o Symbol.explode) (NameSpace.unpack s)))
   in
-    (if not (Symbol.is_letter x) then "id" else "") ^ check_str xs
+    if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
 
-val mk_const_id = gen_mk_id Sign.constK
-  (fn s => if s mem ThmDatabase.ml_reserved then s ^ "_const" else s);
+fun mk_const_id sg s =
+  let val s' = mk_id (Sign.cond_extern sg Sign.constK s)
+  in if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s' end;
 
-val mk_type_id = gen_mk_id Sign.typeK
-  (fn s => if s mem ThmDatabase.ml_reserved then s ^ "_type" else s);
+fun mk_type_id sg s =
+  let val s' = mk_id (Sign.cond_extern sg Sign.typeK s)
+  in if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s' end;
 
 fun rename_terms ts =
   let
     val names = foldr add_term_names
       (ts, map (fst o fst) (Drule.vars_of_terms ts));
-    val clash = names inter ThmDatabase.ml_reserved;
-    val ps = clash ~~ variantlist (clash, names);
+    val reserved = names inter ThmDatabase.ml_reserved;
+    val (illegal, alt_names) = split_list (mapfilter (fn s =>
+      let val s' = mk_id s in if s = s' then None else Some (s, s') end) names)
+    val ps = (reserved @ illegal) ~~
+      variantlist (map (suffix "'") reserved @ alt_names, names);
 
-    fun rename (Var ((a, i), T)) = Var ((if_none (assoc (ps, a)) a, i), T)
-      | rename (Free (a, T)) = Free (if_none (assoc (ps, a)) a, T)
+    fun rename_id s = if_none (assoc (ps, s)) s;
+
+    fun rename (Var ((a, i), T)) = Var ((rename_id a, i), T)
+      | rename (Free (a, T)) = Free (rename_id a, T)
       | rename (Abs (s, T, t)) = Abs (s, T, rename t)
       | rename (t $ u) = rename t $ rename u
       | rename t = t;
@@ -387,7 +409,7 @@ fun mk_app _ p [] = p
          separate (Pretty.brk 1) (p :: ps) @ [Pretty.str ")"])
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
-fun new_names t xs = variantlist (xs,
+fun new_names t xs = variantlist (map mk_id xs,
   map (fst o fst o dest_Var) (term_vars t) union
   add_term_names (t, ThmDatabase.ml_reserved));
 
