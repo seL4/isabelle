@@ -253,7 +253,13 @@ fun rat_of_term(numt,dent) =
 
 (* Warning: in rare cases number_of encloses a non-numeral,
    in which case dest_binum raises TERM; hence all the handles below.
+   Same for Suc-terms that turn out not to be numerals -
+   although the simplifier should eliminate those anyway...
 *)
+
+fun number_of_Sucs (Const("Suc",_) $ n) = number_of_Sucs n + 1
+  | number_of_Sucs t = if HOLogic.is_zero t then 0
+                       else raise TERM("number_of_Sucs",[])
 
 (* decompose nested multiplications, bracketing them to the right and combining all
    their coefficients
@@ -262,6 +268,8 @@ fun rat_of_term(numt,dent) =
 fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
         Const("Numeral.number_of",_)$n
         => demult(t,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
+      | Const("Suc",_) $ _
+        => demult(t,ratmul(m,rat_of_int(number_of_Sucs s)))
       | Const("op *",_) $ s1 $ s2 => demult(mC $ s1 $ (mC $ s2 $ t),m)
       | Const("HOL.divide",_) $ numt $ (Const("Numeral.number_of",_)$dent) =>
           let val den = HOLogic.dest_binum dent
