@@ -64,7 +64,7 @@ qed "empty_fun";
 (*The singleton function*)
 goalw ZF.thy [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
 by (fast_tac eq_cs 1);
-qed "single_fun";
+qed "singleton_fun";
 
 (*** Function Application ***)
 
@@ -355,7 +355,7 @@ qed "range_of_fun";
 
 goal ZF.thy
     "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
-by (forward_tac [single_fun RS fun_disjoint_Un] 1);
+by (forward_tac [singleton_fun RS fun_disjoint_Un] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [cons_eq]) 2);
 by (fast_tac eq_cs 1);
 qed "fun_extend";
