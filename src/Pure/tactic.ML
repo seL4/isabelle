@@ -46,6 +46,9 @@ sig
   val forward_tac: thm list -> int -> tactic   
   val forw_inst_tac: (string*string)list -> thm -> int -> tactic
   val freeze: thm -> thm   
+  val insert_tagged_brl:  ('a*(bool*thm)) * 
+                    (('a*(bool*thm))net * ('a*(bool*thm))net) ->
+                    ('a*(bool*thm))net * ('a*(bool*thm))net
   val is_fact: thm -> bool
   val lessb: (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule: thm * int * (string*string)list * thm -> thm
@@ -314,16 +317,16 @@ fun untaglist [] = []
 val orderlist = untaglist o sort (fn(x,y)=> #1 x < #1 y); 
 
 (*insert one tagged brl into the pair of nets*)
-fun insert_kbrl (kbrl as (k,(eres,th)), (inet,enet)) =
+fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
     if eres then 
 	case prems_of th of
 	    prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
-	  | [] => error"insert_kbrl: elimination rule with no premises"
+	  | [] => error"insert_tagged_brl: elimination rule with no premises"
     else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls = 
-    foldr insert_kbrl (taglist 1 brls, netpair);
+    foldr insert_tagged_brl (taglist 1 brls, netpair);
 
 (*biresolution using a pair of nets rather than rules*)
 fun biresolution_from_nets_tac match (inet,enet) =
@@ -386,8 +389,8 @@ val net_match_tac = match_from_net_tac o build_net;
 (*** For Natural Deduction using (bires_flg, rule) pairs ***)
 
 (*The number of new subgoals produced by the brule*)
-fun subgoals_of_brl (true,rule) = length (prems_of rule) - 1
-  | subgoals_of_brl (false,rule) = length (prems_of rule);
+fun subgoals_of_brl (true,rule)  = nprems_of rule - 1
+  | subgoals_of_brl (false,rule) = nprems_of rule;
 
 (*Less-than test: for sorting to minimize number of new subgoals*)
 fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
