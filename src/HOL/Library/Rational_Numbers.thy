@@ -488,7 +488,7 @@ proof
     by (induct q, induct r) (simp add: add_rat zadd_ac zmult_ac)
   show "0 + q = q"
     by (induct q) (simp add: zero_rat add_rat)
-  show "q + (-q) = 0"
+  show "(-q) + q = 0"
     by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
