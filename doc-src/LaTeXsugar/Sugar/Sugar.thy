@@ -31,13 +31,17 @@ that must be punished by instant rejection.
 
 This document shows you how to make Isabelle and \LaTeX\ cooperate to
 produce ordinary looking mathematics that hides the fact that it was
-typeset by a machine. You merely need to import theory
-\texttt{LaTeXsugar} in the header of your own theory and copy the bits
-of \texttt{OptionalSugar} that you want to use. You may also need
-additional \LaTeX\ packages. These should be included at the beginning
-of your \LaTeX\ document, typically in \texttt{root.tex}. 
+typeset by a machine. You merely need to load the right files:
+\begin{itemize}
+\item Import theory \texttt{LaTeXsugar} in the header of your own
+theory.  You may also want bits of \texttt{OptionalSugar}, which you can
+copy selectively into your own theory or import as a whole.  Both
+theories live in \texttt{HOL/Library} and are found automatically.
 
-The theories and support files are available from \cite{tar}.
+\item Should you need additional \LaTeX\ packages (the text will tell
+you so), you include them at the beginning of your \LaTeX\ document,
+typically in \texttt{root.tex}.
+\end{itemize}
 *}
 
 section{* HOL syntax*}
@@ -139,7 +143,10 @@ premises for one line:
  G \<longrightarrow> H; H \<longrightarrow> I; I \<longrightarrow> J; J \<longrightarrow> K \<rbrakk> \<Longrightarrow> A \<longrightarrow> K"}
 \end{center}
 
-Limitations: premises and conclusion must each not be longer than the line.
+Limitations: 1. Premises and conclusion must each not be longer than
+the line.  2. Premises that are @{text"\<Longrightarrow>"}-implications are again
+displayed with a horizontal line, which looks at least unusual.
+
 *}
 
 subsection{*If-then*}
@@ -148,11 +155,11 @@ text{* If you prefer a fake ``natural language'' style you can produce
 the body of
 \newtheorem{theorem}{Theorem}
 \begin{theorem}
-@{thm[mode=IfThen,eta_contract=false] setsum_cartesian_product[no_vars]}
+@{thm[mode=IfThen] zle_trans[no_vars]}
 \end{theorem}
 by typing
 \begin{quote}
-\verb!@!\verb!{thm[mode=IfThen] setsum_cartesian_product[no_vars]}!
+\verb!@!\verb!{thm[mode=IfThen] le_trans[no_vars]}!
 \end{quote}
 
 In order to prevent odd line breaks, the premises are put into boxes.
