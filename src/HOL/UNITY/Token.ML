@@ -108,7 +108,7 @@ qed "leadsTo_j";
 Goal "j<N ==> F : ({s. token s < N} Int H j) leadsTo (E j)";
 by (rtac (leadsTo_cancel1 RS leadsTo_Un_duplicate) 1);
 by (rtac TR6 2);
-by (rtac leadsTo_weaken_R 1);
+by (rtac leadsTo_weaken 1);
 by (rtac ([leadsTo_j, TR3] MRS psp) 1);
 by (ALLGOALS Blast_tac);
 qed "token_progress";
