@@ -53,7 +53,7 @@ by Auto_tac;
 getgoal 1;  
 
 
-Goal "(#1 <= i & i <= #3) = (i = #1 | i = #2 | i = #3)";
+Goal "((#1::int) <= i & i <= #3) = (i = #1 | i = #2 | i = #3)";
 by (arith_tac 1);
 qed "eq_123";
 

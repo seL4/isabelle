@@ -13,111 +13,111 @@ set proof_timing;
 
 (** Addition **)
 
-Goal "#13  +  #19 = #32";
+Goal "(#13::int)  +  #19 = #32";
 by (Simp_tac 1);
 result();
 
-Goal "#1234  +  #5678 = #6912";
+Goal "(#1234::int)  +  #5678 = #6912";
 by (Simp_tac 1);
 result();
 
-Goal "#1359  +  #-2468 = #-1109";
+Goal "(#1359::int)  +  #-2468 = #-1109";
 by (Simp_tac 1);
 result();
 
-Goal "#93746 +  #-46375 = #47371";
+Goal "(#93746::int) +  #-46375 = #47371";
 by (Simp_tac 1);
 result();
 
 (** Negation **)
 
-Goal "- #65745 = #-65745";
+Goal "- (#65745::int) = #-65745";
 by (Simp_tac 1);
 result();
 
-Goal "- #-54321 = #54321";
+Goal "- (#-54321::int) = #54321";
 by (Simp_tac 1);
 result();
 
 
 (** Multiplication **)
 
-Goal "#13  *  #19 = #247";
+Goal "(#13::int)  *  #19 = #247";
 by (Simp_tac 1);
 result();
 
-Goal "#-84  *  #51 = #-4284";
+Goal "(#-84::int)  *  #51 = #-4284";
 by (Simp_tac 1);
 result();
 
-Goal "#255  *  #255 = #65025";
+Goal "(#255::int)  *  #255 = #65025";
 by (Simp_tac 1);
 result();
 
-Goal "#1359  *  #-2468 = #-3354012";
+Goal "(#1359::int)  *  #-2468 = #-3354012";
 by (Simp_tac 1);
 result();
 
-Goal "#89 * #10 ~= #889";  
+Goal "(#89::int) * #10 ~= #889";  
 by (Simp_tac 1); 
 result();
 
-Goal "#13 < #18 - #4";  
+Goal "(#13::int) < #18 - #4";  
 by (Simp_tac 1); 
 result();
 
-Goal "#-345 < #-242 + #-100";  
+Goal "(#-345::int) < #-242 + #-100";  
 by (Simp_tac 1); 
 result();
 
-Goal "#13557456 < #18678654";  
+Goal "(#13557456::int) < #18678654";  
 by (Simp_tac 1); 
 result();
 
-Goal "#999999 <= (#1000001 + #1)-#2";  
+Goal "(#999999::int) <= (#1000001 + #1)-#2";  
 by (Simp_tac 1); 
 result();
 
-Goal "#1234567 <= #1234567";  
+Goal "(#1234567::int) <= #1234567";  
 by (Simp_tac 1); 
 result();
 
 
 (** Testing the cancellation of complementary terms **)
 
-Goal "y + (x + -x) = #0 + y";
+Goal "y + (x + -x) = (#0::int) + y";
 by (Simp_tac 1);
 result();
 
-Goal "y + (-x + (- y + x)) = #0";
+Goal "y + (-x + (- y + x)) = (#0::int)";
 by (Simp_tac 1);
 result();
 
-Goal "-x + (y + (- y + x)) = #0";
+Goal "-x + (y + (- y + x)) = (#0::int)";
 by (Simp_tac 1);
 result();
 
-Goal "x + (x + (- x + (- x + (- y + - z)))) = #0 - y - z";
+Goal "x + (x + (- x + (- x + (- y + - z)))) = (#0::int) - y - z";
 by (Simp_tac 1);
 result();
 
-Goal "x + x - x - x - y - z = #0 - y - z";
+Goal "x + x - x - x - y - z = (#0::int) - y - z";
 by (Simp_tac 1);
 result();
 
-Goal "x + y + z - (x + z) = y - #0";
+Goal "x + y + z - (x + z) = y - (#0::int)";
 by (Simp_tac 1);
 result();
 
-Goal "x+(y+(y+(y+ (-x + -x)))) = #0 + y - x + y + y";
+Goal "x+(y+(y+(y+ (-x + -x)))) = (#0::int) + y - x + y + y";
 by (Simp_tac 1);
 result();
 
-Goal "x+(y+(y+(y+ (-y + -x)))) = y + #0 + y";
+Goal "x+(y+(y+(y+ (-y + -x)))) = y + (#0::int) + y";
 by (Simp_tac 1);
 result();
 
-Goal "x + y - x + z - x - y - z + x < #1";
+Goal "x + y - x + z - x - y - z + x < (#1::int)";
 by (Simp_tac 1);
 result();
 
@@ -179,7 +179,7 @@ by (safe_tac (claset() addSDs [normal_BIT_D]));
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "bin_add_normal";
 
-Goal "w: normal ==> (w = Pls) = (integ_of w = #0)";
+Goal "w: normal ==> (w = Pls) = (number_of w = (#0::int))";
 by (etac normal.induct 1);
 by Auto_tac;
 qed "normal_Pls_eq_0";
@@ -191,7 +191,7 @@ by (resolve_tac normal.intrs 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [normal_Pls_eq_0]) 1);
 by (asm_full_simp_tac 
-    (simpset_of Int.thy addsimps [integ_of_minus, iszero_def, 
+    (simpset_of Int.thy addsimps [number_of_minus, iszero_def, 
 				  zminus_exchange]) 1);
 qed "bin_minus_normal";
 

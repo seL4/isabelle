@@ -340,7 +340,7 @@ qed "LessThan_induct";
 
 (*Integer version.  Could generalize from #0 to any lower bound*)
 val [reach, prem] =
-Goal "[| F : Always {s. #0 <= f s};  \
+Goal "[| F : Always {s. (#0::int) <= f s};  \
 \        !! z. F : (A Int {s. f s = z}) LeadsTo                     \
 \                           ((A Int {s. f s < z}) Un B) |] \
 \     ==> F : A LeadsTo B";
