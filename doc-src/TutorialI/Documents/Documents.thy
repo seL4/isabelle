@@ -333,15 +333,15 @@ text {*
   In contrast to the highly interactive mode of Isabelle/Isar theory
   development, the document preparation stage essentially works in
   batch-mode.  An Isabelle \bfindex{session} consists of a collection
-  of theory source files that contribute to an output document
+  of theory source files that may contribute to an output document
   eventually.  Each session is derived from a single parent, usually
   an object-logic image like \texttt{HOL}.  This results in an overall
   tree structure, which is reflected by the output location in the
   file system (usually rooted at \verb,~/isabelle/browser_info,).
 
   \medskip The easiest way to manage Isabelle sessions is via
-  \texttt{isatool mkdir} (generates an initial source setup) and
-  \texttt{isatool make} (runs a session controlled by
+  \texttt{isatool mkdir} (generates an initial session source setup)
+  and \texttt{isatool make} (run sessions controlled by
   \texttt{IsaMakefile}).  For example, a new session
   \texttt{MySession} derived from \texttt{HOL} may be produced as
   follows:
@@ -351,15 +351,14 @@ text {*
   isatool make
 \end{verbatim}
 
-  The \texttt{isatool make} job tells about the file-system location
-  of the ultimate results.  The above dry run should be able to
-  produce some \texttt{document.pdf} of a single page (with dummy
-  title, empty table of contents etc.).  Any failure at that stage
-  usually indicates technical problems of the {\LaTeX}
-  installation.\footnote{Especially make sure that \texttt{pdflatex}
-  is present; if all fails one may fall back on DVI output by changing
-  \texttt{usedir} options in \texttt{IsaMakefile}
-  \cite{isabelle-sys}.}
+  The \texttt{isatool make} job also informs about the file-system
+  location of the ultimate results.  The above dry run should be able
+  to produce some \texttt{document.pdf} (with dummy title, empty table
+  of contents etc.).  Any failure at that stage usually indicates
+  technical problems of the {\LaTeX} installation.\footnote{Especially
+  make sure that \texttt{pdflatex} is present; if all fails one may
+  fall back on DVI output by changing \texttt{usedir} options in
+  \texttt{IsaMakefile} \cite{isabelle-sys}.}
 
   \medskip The detailed arrangement of the session sources is as
   follows:
@@ -394,37 +393,32 @@ text {*
 
   \end{itemize}
 
-  With everything put in its proper place, \texttt{isatool make}
-  should be sufficient to process the Isabelle session completely,
-  with the generated document appearing in its proper place.
+  One may now start to populate the directory \texttt{MySession}, and
+  the file \texttt{MySession/ROOT.ML} accordingly.
+  \texttt{MySession/document/root.tex} should also be adapted at some
+  point; the default version is mostly self-explanatory.  Note that
+  \verb,\isabellestyle, enables fine-tuning of the general appearance
+  of characters and mathematical symbols (see also
+  \S\ref{sec:doc-prep-symbols}).
 
-  \medskip One may now start to populate the directory
-  \texttt{MySession}, and the file \texttt{MySession/ROOT.ML}
-  accordingly.  \texttt{MySession/document/root.tex} should also be
-  adapted at some point; the default version is mostly
-  self-explanatory.  Note that \verb,\isabellestyle, enables
-  fine-tuning of the general appearance of characters and mathematical
-  symbols (see also \S\ref{sec:doc-prep-symbols}).
+  Especially observe the included {\LaTeX} packages \texttt{isabelle}
+  (mandatory), \texttt{isabellesym} (required for mathematical
+  symbols), and the final \texttt{pdfsetup} (provides handsome
+  defaults for \texttt{hyperref}, including URL markup) --- all three
+  are distributed with Isabelle. Further packages may be required in
+  particular applications, e.g.\ for unusual mathematical symbols.
 
-  Especially observe inclusion of the {\LaTeX} packages
-  \texttt{isabelle} (mandatory), and \texttt{isabellesym} (required
-  for mathematical symbols), and the final \texttt{pdfsetup} (provides
-  handsome defaults for \texttt{hyperref}, including URL markup).
-  Further packages may be required in particular applications, e.g.\
-  for unusual Isabelle symbols.
-
-  \medskip Additional files for the {\LaTeX} stage may be included in
-  the directory \texttt{MySession/document}, too, such as {\TeX}
-  sources or graphics).  In particular, adding \texttt{root.bib} here
-  (with that specific name) causes an automatic run of \texttt{bibtex}
-  to process a bibliographic database; see also \texttt{isatool
-  document} covered in \cite{isabelle-sys}.
+  \medskip Additional files for the {\LaTeX} stage may be put into the
+  \texttt{MySession/document} directory, too.  In particular, adding
+  \texttt{root.bib} here (with that specific name) causes an automatic
+  run of \texttt{bibtex} to process a bibliographic database; see also
+  \texttt{isatool document} covered in \cite{isabelle-sys}.
 
   \medskip Any failure of the document preparation phase in an
   Isabelle batch session leaves the generated sources in their target
   location (as pointed out by the accompanied error message).  This
-  enables users to trace {\LaTeX} at the file positions of the
-  generated material.
+  enables users to trace {\LaTeX} problems with the target files at
+  hand.
 *}
 
 
