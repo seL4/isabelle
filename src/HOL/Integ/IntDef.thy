@@ -37,19 +37,19 @@ defs (overloaded)
   One_int_def:   "1 == int 1"
 
   minus_int_def:
-    "- z == contents (\<Union>(x,y) \<in> Rep_Integ(z). { Abs_Integ(intrel``{(y,x)}) })"
+    "- z == Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. intrel``{(y,x)})"
 
   add_int_def:
    "z + w ==
-       contents (\<Union>(x,y) \<in> Rep_Integ(z). \<Union>(u,v) \<in> Rep_Integ(w).
-		 { Abs_Integ(intrel``{(x+u, y+v)}) })"
+       Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. \<Union>(u,v) \<in> Rep_Integ w.
+		 intrel``{(x+u, y+v)})"
 
   diff_int_def:  "z - (w::int) == z + (-w)"
 
   mult_int_def:
    "z * w ==
-       contents (\<Union>(x,y) \<in> Rep_Integ(z). \<Union>(u,v) \<in> Rep_Integ(w).
-		 { Abs_Integ(intrel``{(x*u + y*v, x*v + y*u)}) })"
+       Abs_Integ (\<Union>(x,y) \<in> Rep_Integ z. \<Union>(u,v) \<in> Rep_Integ w.
+		  intrel``{(x*u + y*v, x*v + y*u)})"
 
   le_int_def:
    "z \<le> (w::int) == 
@@ -76,7 +76,7 @@ declare equiv_intrel_iff [simp]
 
 
 text{*All equivalence classes belong to set of representatives*}
-lemma intrel_in_integ [simp]: "intrel``{(x,y)} \<in> Integ"
+lemma [simp]: "intrel``{(x,y)} \<in> Integ"
 by (auto simp add: Integ_def intrel_def quotient_def)
 
 lemma inj_on_Abs_Integ: "inj_on Abs_Integ Integ"
@@ -114,7 +114,7 @@ subsubsection{*Integer Unary Negation*}
 
 lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
 proof -
-  have "congruent intrel (\<lambda>(x,y). {Abs_Integ (intrel``{(y,x)})})"
+  have "congruent intrel (\<lambda>(x,y). intrel``{(y,x)})"
     by (simp add: congruent_def) 
   thus ?thesis
     by (simp add: minus_int_def UN_equiv_class [OF equiv_intrel])
@@ -134,7 +134,7 @@ lemma add:
       Abs_Integ (intrel``{(x+u, y+v)})"
 proof -
   have "congruent2 intrel
-        (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Integ (intrel `` {(x+u, y+v)})}) w) z)"
+        (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z)"
     by (simp add: congruent2_def)
   thus ?thesis
     by (simp add: add_int_def UN_UN_split_split_eq
@@ -189,14 +189,16 @@ text{*Congruence property for multiplication*}
 lemma mult_congruent2:
      "congruent2 intrel
         (%p1 p2. (%(x,y). (%(u,v).
-                    { Abs_Integ(intrel``{(x*u + y*v, x*v + y*u)}) }) p2) p1)"
+                    intrel``{(x*u + y*v, x*v + y*u)}) p2) p1)"
 apply (rule equiv_intrel [THEN congruent2_commuteI])
-apply (auto simp add: congruent_def mult_ac)  
+ apply (force simp add: mult_ac, clarify) 
+apply (simp add: congruent_def mult_ac)  
 apply (rename_tac u v w x y z)
 apply (subgoal_tac "u*y + x*y = w*y + v*y  &  u*z + x*z = w*z + v*z")
 apply (simp add: mult_ac, arith)
 apply (simp add: add_mult_distrib [symmetric])
 done
+
 
 lemma mult:
      "Abs_Integ((intrel``{(x,y)})) * Abs_Integ((intrel``{(u,v)})) =
@@ -391,7 +393,7 @@ subsection{*Magnitide of an Integer, as a Natural Number: @{term nat}*}
 
 constdefs
    nat  :: "int => nat"
-    "nat z == contents (\<Union>(x,y) \<in> Rep_Integ(z). { x-y })"
+    "nat z == contents (\<Union>(x,y) \<in> Rep_Integ z. { x-y })"
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
@@ -689,7 +691,7 @@ subsection{*Embedding of the Integers into any Ring: @{term of_int}*}
 
 constdefs
    of_int :: "int => 'a::ring"
-   "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ(z). { of_nat i - of_nat j })"
+   "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
