@@ -58,11 +58,7 @@ val dist_eqI = prove_goal Porder.thy "~(x::'a::po) << y ==> x ~= y" (fn prems =>
 
 in
 
-
-type thms = (thm list * thm * thm * thm list *
-	     thm list * thm list * thm list * thm list * thm  list * thm list *
-	     thm list * thm list);
-fun (theorems thy: eq list -> eq -> thms) eqs ((dname,_),cons)  =
+fun theorems (((dname,_),cons) : eq, eqs : eq list) thy =
 let
 
 val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
@@ -79,15 +75,16 @@ fun g defs t = let val sg = sign_of thy;
 
 (* ----- getting the axioms and definitions --------------------------------- *)
 
-local val ga = get_axiom thy in
-val ax_abs_iso    = ga (dname^"_abs_iso"   );
-val ax_rep_iso    = ga (dname^"_rep_iso"   );
-val ax_when_def   = ga (dname^"_when_def"  );
-val axs_con_def   = map (fn (con,_) => ga (extern_name con ^"_def")) cons;
-val axs_dis_def   = map (fn (con,_) => ga (   dis_name con ^"_def")) cons;
+local fun ga s dn = get_axiom thy (dn^"."^s) in
+val ax_abs_iso    = ga "abs_iso"  dname;
+val ax_rep_iso    = ga "rep_iso"  dname;
+val ax_when_def   = ga "when_def" dname;
+val axs_con_def   = map (fn (con,_) => ga (extern_name con^"_def") dname) cons;
+val axs_dis_def   = map (fn (con,_) => ga (   dis_name con^"_def") dname) cons;
 val axs_sel_def   = flat(map (fn (_,args) => 
-                    map (fn     arg => ga (sel_of arg      ^"_def")) args)cons);
-val ax_copy_def   = ga (dname^"_copy_def"  );
+                    map (fn     arg => ga (sel_of arg     ^"_def") dname) args)
+									  cons);
+val ax_copy_def   = ga "copy_def" dname;
 end; (* local *)
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
@@ -118,7 +115,7 @@ fun exh foldr1 cn quant foldr2 var = let
                               map (defined o (var vns)) (nonlazy args))) end
   in foldr1 ((cn(%x_name===UU))::map one_con cons) end;
 in
-val cases = let 
+val casedist = let 
             fun common_tac thm = rtac thm 1 THEN contr_tac 1;
             fun unit_tac true = common_tac upE1
             |   unit_tac _    = all_tac;
@@ -161,7 +158,7 @@ val cases = let
                                      simp_tac (HOLCF_ss addsimps [ax_rep_iso]) 1
                                 else sum_tac cons (tl prems)])end;
 val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %)))[
-                                rtac cases 1,
+                                rtac casedist 1,
                                 UNTIL_SOLVED(fast_tac HOL_cs 1)];
 end;
 
@@ -198,7 +195,7 @@ val dis_rews = let
         in flat(map (fn (c,_) => map (one_dis c) cons) cons) end;
   val dis_defins = map (fn (con,args) => pg [] (defined(%x_name) ==> 
                       defined(%%(dis_name con)`%x_name)) [
-                                rtac cases 1,
+                                rtac casedist 1,
                                 contr_tac 1,
                                 UNTIL_SOLVED (CHANGED(asm_simp_tac 
                                         (HOLCF_ss addsimps dis_apps) 1))]) cons;
@@ -238,7 +235,7 @@ in flat(map  (fn (c,args) =>
      flat(mapn (fn n => fn arg => one_sel c n (sel_of arg)) 0 args)) cons) end;
 val sel_defins = if length cons=1 then map (fn arg => pg [](defined(%x_name)==> 
                         defined(%%(sel_of arg)`%x_name)) [
-                                rtac cases 1,
+                                rtac casedist 1,
                                 contr_tac 1,
                                 UNTIL_SOLVED (CHANGED(asm_simp_tac 
                                              (HOLCF_ss addsimps sel_apps) 1))]) 
@@ -262,8 +259,8 @@ val distincts_le = let
     fun distincts []      = []
     |   distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
 in distincts cons end;
-val dists_le = flat (flat distincts_le);
-val dists_eq = let
+val dist_les = flat (flat distincts_le);
+val dist_eqs = let
     fun distinct (_,args1) ((_,args2),leqs) = let
         val (le1,le2) = (hd leqs, hd(tl leqs));
         val (eq1,eq2) = (le1 RS dist_eqI, le2 RS dist_eqI) in
@@ -324,18 +321,25 @@ val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                              asm_simp_tac (HOLCF_ss addsimps rews) 1] end))
                         (filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
 val copy_rews = copy_strict::copy_apps @ copy_stricts;
-
-in     (iso_rews, exhaust, cases, when_rews,
-        con_rews, sel_rews, dis_rews, dists_le, dists_eq, inverts, injects,
-        copy_rews)
+in thy |> Theory.add_path (Sign.base_name dname)
+       |> PureThy.store_thmss [
+		("iso_rews" , iso_rews  ),
+		("exhaust"  , [exhaust] ),
+		("casedist" , [casedist]),
+		("when_rews", when_rews ),
+		("con_rews", con_rews),
+		("sel_rews", sel_rews),
+		("dis_rews", dis_rews),
+		("dist_les", dist_les),
+		("dist_eqs", dist_eqs),
+		("inverts" , inverts ),
+		("injects" , injects ),
+		("copy_rews", copy_rews)]
+       |> Theory.add_path ".."
 end; (* let *)
 
-
-fun comp_theorems thy (comp_dnam, eqs: eq list, thmss: thms list) =
+fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
-val casess    =       map #3  thmss;
-val con_rews  = flat (map #5  thmss);
-val copy_rews = flat (map #12 thmss);
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
 val comp_dname = Sign.full_name (sign_of thy) comp_dnam;
@@ -345,12 +349,19 @@ val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
-local val ga = get_axiom thy in
-val axs_reach      = map (fn dn => ga (dn ^  "_reach"   )) dnames;
-val axs_take_def   = map (fn dn => ga (dn ^  "_take_def")) dnames;
-val axs_finite_def = map (fn dn => ga (dn ^"_finite_def")) dnames;
-val ax_copy2_def   = ga (comp_dname^ "_copy_def");
-val ax_bisim_def   = ga (comp_dname^"_bisim_def");
+local fun ga s dn = get_axiom thy (dn^"."^s) in
+val axs_reach      = map (ga "reach"     ) dnames;
+val axs_take_def   = map (ga "take_def"  ) dnames;
+val axs_finite_def = map (ga "finite_def") dnames;
+val ax_copy2_def   =      ga "copy_def"  comp_dnam;
+val ax_bisim_def   =      ga "bisim_def" comp_dnam;
+end; (* local *)
+
+local fun gt  s dn = get_thm  thy (dn^"."^s);
+      fun gts s dn = get_thms thy (dn^"."^s) in
+val cases     =       map (gt  "casedist" ) dnames;
+val con_rews  = flat (map (gts "con_rews" ) dnames);
+val copy_rews = flat (map (gts "copy_rews") dnames);
 end; (* local *)
 
 fun dc_take dn = %%(dn^"_take");
@@ -367,7 +378,6 @@ local
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
             strict(dc_take dn $ %"n")) eqs))) ([
-			if n_eqs = 1 then all_tac else rewtac ax_copy2_def,
                         nat_ind_tac "n" 1,
                          simp_tac iterate_Cprod_ss 1,
                         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews)1]);
@@ -455,7 +465,7 @@ val finite_ind = pg'' thy [] (ind_term (fn n => fn dn => %(P_name n)$
                                   map (K (atac 1))      (nonlazy args) @
                                   map (K (etac spec 1)) (filter is_rec args)) 
                                  cons))
-                                (conss~~casess)));
+                                (conss~~cases)));
 
 val take_lemmas =mapn(fn n=> fn(dn,ax_reach)=> pg'' thy axs_take_def(mk_All("n",
                 mk_trp(dc_take dn $ Bound 0 `%(x_name n) === 
@@ -508,7 +518,7 @@ val (finites,ind) = if is_finite then
                                       asm_simp_tac take_ss 1])
                                     (nonlazy_rec args)))
                                   cons))
-                                1 (conss~~casess)));
+                                1 (conss~~cases)));
     val finites = map (fn (dn,l1b) => pg axs_finite_def (mk_trp(
                                                 %%(dn^"_finite") $ %"x"))[
                                 case_UU_tac take_rews 1 "x",
@@ -586,8 +596,15 @@ val coind = pg [] (mk_trp(%%(comp_dname^"_bisim") $ %"R") ===>
 end; (* local *)
 
 
-in (take_rews, take_lemmas, finites, finite_ind, ind, coind)
-
+in thy |> Theory.add_path comp_dnam
+       |> PureThy.store_thmss [
+		("take_rews"  , take_rews  ),
+		("take_lemmas", take_lemmas),
+		("finites"    , finites    ),
+		("finite_ind", [finite_ind]),
+		("ind"       , [ind       ]),
+		("coind"     , [coind     ])]
+       |> Theory.add_path ".."
 end; (* let *)
 end; (* local *)
 end; (* struct *)

@@ -77,7 +77,7 @@ open Domain_Library;
 	fun type_of c = case (Sign.const_type sg' c) of Some t => t
 				| None => error ("Unknown constructor: "^c);
 	fun args_result_type (t as (Type(tn,[arg,rest]))) = 
-		if tn = "->" orelse tn = "=>"
+		if tn = cfun_arrow orelse tn = "=>"
 		then let val (ts,r) = args_result_type rest in (arg::ts,r) end
 		else ([],t)
 	|   args_result_type t = ([],t);
@@ -139,9 +139,8 @@ in
 	 )) cons') : cons list;
     val eqs = map (fn (dtnvs,cons') => (dtnvs,cons cons')) eqs' : eq list;
     val thy       = thy' |> Domain_Axioms.add_axioms (comp_dnam,eqs);
-    val thmss     = map (Domain_Theorems.theorems thy eqs) eqs;
-    val comp_thms = Domain_Theorems.comp_theorems thy (comp_dnam, eqs, thmss);
-  in (thy, thmss, comp_thms) end;
+  in (foldl (fn (thy0,eq) => Domain_Theorems.theorems (eq,eqs) thy0) (thy,eqs)) 
+                          |> Domain_Theorems.comp_theorems (comp_dnam, eqs) end;
 
   fun add_gen_by ((tname,finite),(typs',cnstrss')) thy' = let
    val (typs,cnstrs) = check_gen_by (sign_of thy') (typs',cnstrss');

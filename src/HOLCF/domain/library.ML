@@ -60,8 +60,9 @@ fun dis_name_ con = "is_"^ (strip_esc   con);
    forbidding "o", "x..","f..","P.." as names *)
 (* a number string is added if necessary *)
 fun mk_var_names types : string list = let
+    fun strip ss = drop (find ("'", ss)+1, ss);
     fun typid (Type  (id,_)   ) = hd     (explode (Sign.base_name id))
-      | typid (TFree (id,_)   ) = hd (tl (explode (Sign.base_name id)))
+      | typid (TFree (id,_)   ) = hd (strip (tl (explode (Sign.base_name id))))
       | typid (TVar ((id,_),_)) = hd (tl (explode (Sign.base_name id)));
     fun nonreserved s = if s mem ["x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
@@ -110,6 +111,7 @@ fun mk_tvar s = TFree("'"^s,pcpoS);
 fun mk_typ t (S,T) = Sign.intern_typ HOLCF_sg (Type(t,[S,T]));
 infixr 5 -->;
 infixr 6 ~>; val op ~> = mk_typ "->";
+val cfun_arrow = fst (rep_Type (dummyT ~> dummyT));
 val NoSyn' = ThyOps.Mixfix NoSyn;
 
 (* ----- support for term expressions ----- *)

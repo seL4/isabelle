@@ -12,31 +12,34 @@ local
 
 (* --- generation of bindings for axioms and theorems in .thy.ML - *)
 
-  fun gt_ax         name   = "get_axiom thy " ^ quote name;
-  fun gen_val dname name   = "val "^name^" = "^ gt_ax (dname^"_"^name)^";";
-  fun gen_vall      name l = "val "^name^" = "^ mk_list l^";";
-  val rews1 = "iso_rews @ when_rews @\n\
- 	      \con_rews @ sel_rews @ dis_rews @ dists_le @ dists_eq @\n\
-	      \copy_rews";
+  fun get      dname name   = "get_thm thy " ^ quote (dname^"."^name);
+  fun gen_vals dname name   = "val "^ name ^ " = get_thm" ^ 
+			(if hd (rev (explode name)) = "s" then "s" else "")^
+			" thy " ^ quote (dname^"."^name)^";";
+  fun gen_vall       name l = "val "^name^" = "^ mk_list l^";";
+  val rews = "iso_rews @ when_rews @\n\
+ 	   \  con_rews @ sel_rews @ dis_rews @ dist_les @ dist_eqs @\n\
+	   \  copy_rews";
 
-  fun gen_struct thms_str num ((dname,_), cons') = let
+  fun gen_struct num ((dname,_), cons') = let
     val axioms1 = ["abs_iso", "rep_iso", "when_def"];
 		   (* con_defs , sel_defs, dis_defs *) 
-    val axioms2 = ["copy_def"];
-    val theorems = 
-	"iso_rews, exhaust, cases, when_rews, con_rews, sel_rews, dis_rews,\n    \
-	\dists_le, dists_eq, inverts, injects, copy_rews";
+    val axioms2 = ["copy_def", "reach", "take_def", "finite_def"];
+    val theorems = ["iso_rews", "exhaust", "casedist", "when_rews", "con_rews", 
+		    "sel_rews", "dis_rews", "dist_les", "dist_eqs", "inverts", 
+		    "injects", "copy_rews"];
     in
       "structure "^dname^" = struct\n"^
-      cat_lines(map (gen_val dname) axioms1)^"\n"^
-      gen_vall"con_defs"(map(fn (con,_,_) => gt_ax(strip_esc con^"_def")) cons')^"\n"^
-      gen_vall"sel_defs"(flat(map (fn (_,_,args) => map (fn (_,sel,_) => 
-					     gt_ax(sel^"_def")) args)    cons'))^"\n"^
-      gen_vall"dis_defs"(map(fn (con,_,_) => gt_ax(dis_name_ con^"_def")) 
-								          cons')^"\n"^
-      cat_lines(map (gen_val dname) axioms2)^"\n"^
-      "val ("^ theorems ^") = "^thms_str^";\n" ^
-      (if num > 1 then "val rews = " ^rews1 ^";\n" else "")
+      cat_lines (map (gen_vals dname) axioms1)^"\n"^
+      gen_vall "con_defs"       (map (fn (con,_,_) => 
+		get dname (strip_esc con^"_def")) cons')^"\n"^
+      gen_vall "sel_defs" (flat (map (fn (_,_,args) => map (fn (_,sel,_) => 
+		get dname (sel^"_def")) args)    cons'))^"\n"^
+      gen_vall "dis_defs"       (map (fn (con,_,_) => 
+		get dname (dis_name_ con^"_def")) cons')^"\n"^
+      cat_lines (map (gen_vals dname) axioms2)^"\n"^
+      cat_lines (map (gen_vals dname) theorems)^"\n"^
+      (if num > 1 then "val rews = " ^rews ^";\n" else "")
     end;
 
   fun mk_domain eqs'' = let
@@ -45,10 +48,10 @@ local
     val dnames = map fst dtnvs;
     val comp_dname = implode (separate "_" dnames);
     val conss' = ListPair.map 
-	(fn (dname,cons'') => let fun sel n m = upd_second 
-			      (fn None   => dname^"_sel_"^(string_of_int n)^
-						      "_"^(string_of_int m)
-				| Some s => s)
+	(fn (dnam,cons'') => let fun sel n m = upd_second 
+			     (fn None   => dnam^"_sel_"^(string_of_int n)^
+						    "_"^(string_of_int m)
+			       | Some s => s)
 	      fun fill_sels n con = upd_third (mapn (sel n) 1) con;
 	  in mapn fill_sels 1 cons'' end)
 	(dnames, map snd eqs'');
@@ -61,7 +64,7 @@ local
 	  mk_list (map (fn (c,syn,ts)=> "\n"^
 		    mk_triple(quote c, syn, mk_list (map (fn (b,s ,tp) =>
 		    mk_triple(Bool.toString b, quote s, tp)) ts))) cons');
-    in "val (thy, thmss, comp_thms) = thy |> Domain_Extender.add_domain "
+    in "val thy = thy |> Domain_Extender.add_domain "
        ^ mk_pair(quote comp_dname, mk_list(map (fn ((n,vs),cs) => "\n"^
 				   mk_pair (mk_pair (quote n, mk_list vs), 
 					    mk_conslist cs)) eqs'))
@@ -71,35 +74,29 @@ local
 (* ----- string for calling (comp_)theorems and producing the structures ---- *)
 
     val val_gen_string =  let
-      fun plural s = if num > 1 then s^"s" else "["^s^"]";
       val comp_axioms   = [(* copy, *) "reach", "take_def", "finite_def"
 			   (*, "bisim_def" *)];
-      val comp_theorems = "take_rews, " ^ implode (separate ", " (map plural
-			   ["take_lemma","finite"]))^", finite_ind, ind, coind";
-      fun thms_str n = "hd (funpow "^string_of_int n^" tl thmss)";
+      val comp_theorems = ["take_rews", "take_lemmas", "finites", 
+			   "finite_ind", "ind", "coind"];
       fun collect sep name = if num = 1 then name else
-			     implode (separate sep (map (fn s => s^"."^name) dnames));
+		   implode (separate sep (map (fn s => s^"."^name) dnames));
     in
 	implode (separate "end; (* struct *)\n" 
-			  (mapn (fn n => gen_struct (thms_str n) num) 0 eqs')) ^
-	(if num > 1 then "end; (* struct *)\n\n\
-		       \structure "^comp_dname^" = struct\n" else "") ^
-	(if num > 1 then gen_val comp_dname "copy_def" ^"\n" else "") ^
-	implode (map (fn s => gen_vall (plural s)
-			      (map (fn dn => gt_ax(dn ^ "_" ^ s)) dnames) ^"\n")
-		 comp_axioms) ^
-	gen_val comp_dname "bisim_def" ^"\n\
-        \val ("^ comp_theorems ^") = comp_thms;\n\
-	\val rews = "^(if num>1 then collect" @ " "rews"else rews1)^ 
+			  (map (gen_struct num) eqs')) ^
+	(if num > 1 then "end; (* struct *)\n\
+		         \structure "^comp_dname^" = struct\n" ^
+			 gen_vals comp_dname "copy_def" ^"\n" ^
+			 cat_lines (map (fn name => gen_vall (name^"s")
+			 (map (fn dn => dn^"."^name) dnames)) comp_axioms)^"\n"
+		    else "") ^
+	gen_vals comp_dname "bisim_def" ^"\n"^
+        cat_lines (map (gen_vals comp_dname) comp_theorems)^"\n"^
+	"val rews = "^(if num>1 then collect" @ " "rews"else rews)^ 
 		    " @ take_rews;\n\
       \end; (* struct *)\n"
     end;
-  in ("local\n"^
-      thy_ext_string^
-      "in\n"^
-      "val thy = thy;\n"^
+  in (thy_ext_string^
       val_gen_string^
-      "end; (* local *)\n\n"^
       "val thy = thy",
       "") end;
 
@@ -113,7 +110,7 @@ local
        ^ mk_pair(mk_pair(quote tname, Bool.toString finite),
 		 mk_pair(mk_list(map quote typs), 
 			 mk_list (map (fn cns => mk_list(map quote cns)) cnstrss))),
-       "val "^tname^"_induct = " ^gt_ax (tname^"_induct")^";") end;
+       "val "^tname^"_induct = " ^get tname "induct" ^";") end;
 
 (* ----- parser for domain declaration equation ----------------------------- *)
 
@@ -140,14 +137,14 @@ local
 		    -- ThyOps.opt_cmixfix
 		    >> (fn ((con,args),syn) => (con,syn,args));
 in
-  val domain_decl = (enum1 "," (con_typ --$$ "="  -- !! 
-			       (enum1 "|" domain_cons))) >> mk_domain;
+  val domain_decl = (enum1 "and" (con_typ --$$ "="  -- !! 
+				 (enum1 "|" domain_cons))) >> mk_domain;
   val gen_by_decl = (optional ($$ "finite" >> K true) false) -- 
 		    (enum1 "," (name'   --$$ "by" -- !!
 			       (enum1 "|" name'))) >> mk_gen_by;
 
   val _ = ThySyn.add_syntax
-    ["lazy", "by", "finite"]
+    ["lazy", "and", "by", "finite"]
     [("domain", domain_decl), ("generated", gen_by_decl)]
 
 end; (* local *)
