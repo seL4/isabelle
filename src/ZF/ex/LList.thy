@@ -14,7 +14,7 @@ co_recursion for defining lconst, flip, etc.
 a typing rule for it, based on some notion of "productivity..."
 *)
 
-LList = Datatype +
+LList = Main +
 
 consts
   llist  :: i=>i

@@ -4,11 +4,11 @@
     Copyright   1995  University of Cambridge
 *)
 
-Language = Datatype + QUniv +
+Language = Main +
 
 consts
   Const :: i                    (* Abstract type of constants *)
-  c_app :: [i,i] => i           (*Abstract constructor for fun application*)
+  c_app :: [i,i] => i           (* Abstract constructor for fun application*)
 
 rules
   constNEE  "c \\<in> Const ==> c \\<noteq> 0"

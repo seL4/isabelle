@@ -6,7 +6,7 @@
 Trees & forests, a mutually recursive type definition.
 *)
 
-TF = List +
+TF = Main +
 consts
   tree, forest, tree_forest    :: i=>i
 

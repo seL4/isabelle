@@ -8,7 +8,7 @@ The Mutilated Chess Board Problem, formalized inductively
   Popularized as the Mutilated Checkerboard Problem by J McCarthy
 *)
 
-Mutil = CardinalArith +
+Mutil = Main +
 consts
   domino  :: i
   tiling  :: i=>i

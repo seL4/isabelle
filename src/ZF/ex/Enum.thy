@@ -8,7 +8,7 @@ Example of a BIG enumeration type
 Can go up to at least 100 constructors, but it takes nearly 7 minutes...
 *)
 
-Enum = Datatype + 
+Enum = Main + 
 
 consts
   enum :: i

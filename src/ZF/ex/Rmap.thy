@@ -6,7 +6,7 @@
 Inductive definition of an operator to "map" a relation over a list
 *)
 
-Rmap = List +
+Rmap = Main +
 
 consts
   rmap :: i=>i

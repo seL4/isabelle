@@ -13,7 +13,7 @@ Example taken from
 *)
 
 
-Comb = Datatype +
+Comb = Main +
 
 (** Datatype definition of combinators S and K, with infixed application **)
 consts comb :: i

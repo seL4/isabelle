@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-Map = QUniv +
+Map = Main +
 
 constdefs
   TMap :: [i,i] => i

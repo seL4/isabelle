@@ -8,7 +8,8 @@ Infinite branching datatype definitions
   (2) the Martin-Löf wellordering type
 *)
 
-Brouwer = InfDatatype +
+Brouwer = Main +
+
 consts
   brouwer :: i
   Well    :: [i,i=>i]=>i

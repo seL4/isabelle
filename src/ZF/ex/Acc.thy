@@ -9,7 +9,7 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-Acc = WF + Inductive +
+Acc = Main +
 
 consts
   acc :: i=>i

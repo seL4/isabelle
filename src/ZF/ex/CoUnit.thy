@@ -10,7 +10,7 @@ See discussion in
   Report 334,  Cambridge University Computer Laboratory.  1994.
 *)
 
-CoUnit = Datatype +
+CoUnit = Main +
 
 (*This degenerate definition does not work well because the one constructor's
   definition is trivial!  The same thing occurs with Aczel's Special Final

@@ -9,7 +9,7 @@ Demonstrates a simple use of function space in a datatype definition
 Based upon ex/Term.thy
 *)
 
-Ntree = InfDatatype +
+Ntree = Main +
 consts
   ntree    :: i=>i
   maptree  :: i=>i

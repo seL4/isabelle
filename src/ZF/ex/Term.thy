@@ -7,7 +7,7 @@ Terms over an alphabet.
 Illustrates the list functor (essentially the same type as in Trees & Forests)
 *)
 
-Term = List +
+Term = Main +
 consts
   term      :: i=>i
 

@@ -18,7 +18,7 @@ See also
     Available from the author: kaufmann@cli.com
 *)
 
-Ramsey = Arith +
+Ramsey = Main +
 consts
   Symmetric             :: i=>o
   Atleast               :: [i,i]=>o
