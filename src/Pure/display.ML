@@ -44,12 +44,19 @@ struct
 val show_hyps = ref true;	(*false: print meta-hypotheses as dots*)
 val show_tags = ref false;	(*false: suppress tags*)
 
+local
+
 fun pretty_tag (name, args) = Pretty.strs (name :: args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
+fun is_oracle (Thm.Oracle _) = true
+  | is_oracle _ = false;
+
+fun ex_oracle (Join (der, ders)) = is_oracle der orelse exists ex_oracle ders;
+
 fun pretty_thm_aux quote th =
   let
-    val {sign, hyps, prop, ...} = rep_thm th;
+    val {sign, hyps, prop, der, ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
@@ -60,16 +67,22 @@ fun pretty_thm_aux quote th =
       if hlen = 0 then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map prt_term hyps @ map (Sign.pretty_sort sign) xshyps)]
-      else
-        [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
+          (map prt_term hyps @ map (Sign.pretty_sort sign) xshyps @
+            (if ex_oracle der then [Pretty.str "!"] else []))]
+      else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
+        (if ex_oracle der then "!" else "") ^ "]")];
     val tsymbs =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
+in
+
 val pretty_thm_no_quote = pretty_thm_aux false;
 val pretty_thm = pretty_thm_aux true;
+
+end;
+
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 val pprint_thm = Pretty.pprint o pretty_thm;
