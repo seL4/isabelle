@@ -130,19 +130,21 @@ fun type_of1 (Ts, Const (_,T)) = T
 	                        [T,U], [f$u])
       end;
 
-
 fun type_of t : typ = type_of1 ([],t);
 
 (*Determines the type of a term, with minimal checking*)
-fun fastype_of(Ts, f$u) = (case fastype_of(Ts,f) of
+fun fastype_of1 (Ts, f$u) = 
+    (case fastype_of1 (Ts,f) of
 	Type("fun",[_,T]) => T
 	| _ => raise TERM("fastype_of: expected function type", [f$u]))
-  | fastype_of(_, Const (_,T)) = T
-  | fastype_of(_, Free (_,T)) = T
-  | fastype_of(Ts, Bound i) = (nth_elem(i,Ts)
+  | fastype_of1 (_, Const (_,T)) = T
+  | fastype_of1 (_, Free (_,T)) = T
+  | fastype_of1 (Ts, Bound i) = (nth_elem(i,Ts)
   	 handle LIST _ => raise TERM("fastype_of: Bound", [Bound i]))
-  | fastype_of(_, Var (_,T)) = T 
-  | fastype_of(Ts, Abs (_,T,u)) = T --> fastype_of(T::Ts, u);
+  | fastype_of1 (_, Var (_,T)) = T 
+  | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
+
+fun fastype_of t : typ = fastype_of1 ([],t);
 
 
 (* maps  (x1,...,xn)t   to   t  *)
