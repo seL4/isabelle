@@ -14,7 +14,7 @@ val trace_res : bool ref
 val axiom_file : Path.T
 val hyps_file : Path.T
 val isar_atp : ProofContext.context * Thm.thm -> unit
-(*val prob_file : Path.T*)
+val prob_file : Path.T;
 (*val atp_ax_tac : Thm.thm list -> int -> Tactical.tactic*)
 (*val atp_tac : int -> Tactical.tactic*)
 val debug: bool ref
@@ -126,9 +126,13 @@ fun isar_atp_h thms =
 (*********************************************************************)
 
 fun tptp_inputs_tfrees thms n tfrees = 
-    let val clss = map (ResClause.make_conjecture_clause_thm) thms
+    let val _ = (warning ("in tptp_inputs_tfrees 0"))
+        val clss = map (ResClause.make_conjecture_clause_thm) thms
+         val _ = (warning ("in tptp_inputs_tfrees 1"))
 	val (tptp_clss,tfree_litss) = ResLib.unzip (map ResClause.clause2tptp clss)
+        val _ = (warning ("in tptp_inputs_tfrees 2"))
 	val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
+         val _ = (warning ("in tptp_inputs_tfrees 3"))
         val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
 	val out = TextIO.openOut(probfile)
     in
@@ -142,55 +146,56 @@ fun tptp_inputs_tfrees thms n tfrees =
 (* should be modified to allow other provers to be called            *)
 (*********************************************************************)
 
-fun call_resolve_tac thms sg_term (childin, childout,pid)  = let
-                            val newprobfile = new_prob_file ()
+fun call_resolve_tac thms sg_term (childin, childout,pid) n  = let
                              val thmstring = concat_with_and (map string_of_thm thms) ""
-                            val thm_no = length thms
-                            val _ = warning ("number of thms is : "^(string_of_int thm_no))
-                           val _ = warning ("thmstring in call_res is: "^thmstring)
-                            val goalstr = Sign.string_of_term Mainsign sg_term 
-                            val goalproofstring = proofstring goalstr
-                               val no_returns =List.filter not_newline ( goalproofstring)
-                            val goalstring = implode no_returns
-                            val _ = warning ("goalstring in call_res is: "^goalstring)
+                             val thm_no = length thms
+                             val _ = warning ("number of thms is : "^(string_of_int thm_no))
+                             val _ = warning ("thmstring in call_res is: "^thmstring)
+
+                             val goalstr = Sign.string_of_term Mainsign sg_term 
+                             val goalproofstring = proofstring goalstr
+                             val no_returns =List.filter not_newline ( goalproofstring)
+                             val goalstring = implode no_returns
+                             val _ = warning ("goalstring in call_res is: "^goalstring)
         
-                            val prob_file =File.tmp_path (Path.basic newprobfile); 
+                             (*val prob_file =File.tmp_path (Path.basic newprobfile); *)
                              (*val _ =( warning ("calling make_clauses "))
                              val clauses = make_clauses thms
                              val _ =( warning ("called make_clauses "))*)
-                            (*val _ = tptp_inputs clauses prob_file*)
-                            val thmstring = concat_with_and (map string_of_thm thms) ""
+                             (*val _ = tptp_inputs clauses prob_file*)
+                             val thmstring = concat_with_and (map string_of_thm thms) ""
                            
-                            val goalstr = Sign.string_of_term Mainsign sg_term 
-                            val goalproofstring = proofstring goalstr
+                             val goalstr = Sign.string_of_term Mainsign sg_term 
+                             val goalproofstring = proofstring goalstr
                              val no_returns =List.filter not_newline ( goalproofstring)
-                            val goalstring = implode no_returns
+                             val goalstring = implode no_returns
 
-                            val thmproofstring = proofstring ( thmstring)
-                            val no_returns =List.filter   not_newline ( thmproofstring)
-                            val thmstr = implode no_returns
+                             val thmproofstring = proofstring ( thmstring)
+                             val no_returns =List.filter   not_newline ( thmproofstring)
+                             val thmstr = implode no_returns
                             
-                            val prob_path = File.sysify_path prob_file
-                            val outfile = TextIO.openOut("/home/clq20/Jia_Code/hellofile")
-                            val _ = TextIO.output(outfile, "prob file path is "^prob_path^" thmstring is "^thmstr^" goalstring is "^goalstring);
-                            val _ = TextIO.flushOut outfile;
-                            val _ =  TextIO.closeOut outfile
+                             val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
+                             val outfile = TextIO.openOut("/home/clq20/Jia_Code/hellofile")
+                             val _ = TextIO.output(outfile, "prob file path is "^probfile^" thmstring is "^thmstr^" goalstring is "^goalstring);
+                             val _ = TextIO.flushOut outfile;
+                             val _ =  TextIO.closeOut outfile
                           in
                            (* without paramodulation *)
-                           (*(warning ("goalstring in call_res_tac is: "^goalstring));
-                           (warning ("prob path in cal_res_tac is: "^prob_path));
+                           (warning ("goalstring in call_res_tac is: "^goalstring));
+                           (warning ("prob file in cal_res_tac is: "^probfile));
                             Watcher.callResProvers(childout,
                             [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",  
                              "-FullRed=0%-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
-                             prob_path)]);*)
+                             probfile)]);
+
                            (* with paramodulation *)
                            (*Watcher.callResProvers(childout,
                                   [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",
                                   "-FullRed=0%-ISPm=1%-Split=0%-PObv=0%-DocProof", 
                                     prob_path)]); *)
-                           Watcher.callResProvers(childout,
+                          (* Watcher.callResProvers(childout,
                            [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS", 
-                           "-DocProof",  prob_path)]);
+                           "-DocProof",  prob_path)]);*)
                            dummy_tac
                          end
 
@@ -199,7 +204,7 @@ fun call_resolve_tac thms sg_term (childin, childout,pid)  = let
 (* process subgoal into skolemized, negated form*)
 (* then call call_resolve_tac to send to ATP    *)
 (************************************************)
-
+(*
 fun resolve_tac sg_term  (childin, childout,pid) = 
    let val _ = warning ("in resolve_tac ")
    in
@@ -207,7 +212,7 @@ fun resolve_tac sg_term  (childin, childout,pid) =
   (EVERY1 [rtac ccontr,atomize_tac,skolemize_tac,  METAHYPS(fn negs => (warning ("calling call_resolve_tac next ");dummy_tac (*call_resolve_tac negs sg_term (childin, childout,pid)*)))])
    end;
 
-
+*)
 
 
 (* Need to replace call_atp_tac_tfrees with call res_provers as it's the dummy one *)
@@ -219,16 +224,18 @@ fun resolve_tac sg_term  (childin, childout,pid) =
 (* should call call_res_tac here, not resolve_tac *)
 (* if we take tptpinputs out it gets into call_res_tac then falls over as usual after printing out goalstring. but if we leave it in it falls over here *)
 fun call_atp_tac_tfrees thms n tfrees sg_term (childin, childout,pid) = 
-                                         ((*tptp_inputs_tfrees (make_clauses thms) n tfrees;*)
-                                          call_resolve_tac thms sg_term (childin, childout, pid);
+
+                                         ( (warning("in call_atp_tac_tfrees"));
+                                           tptp_inputs_tfrees (make_clauses thms) n tfrees;
+                                          call_resolve_tac thms sg_term (childin, childout, pid) n;
   					  dummy_tac);
 
 fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n  = 
 let val _ = (warning ("in atp_tac_tfrees "))
    in
 SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac, (*skolemize_tac, *)
-  METAHYPS(fn negs => (call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
+  (EVERY1 [rtac ccontr,atomize_tac,(*skolemize_tac, *)
+  METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees"));call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
 end;
 
 
@@ -292,7 +299,7 @@ fun isar_atp' (thms, thm) =
         (* val _ = write_out_clasimp (File.sysify_path axiom_file)*)
         (* cq: add write out clasimps to file *)
         (* cq:create watcher and pass to isar_atp_aux *)                    
-        val (childin,childout,pid) = Watcher.createWatcher(thm)
+        val (childin,childout,pid) = Watcher.createWatcher()
         val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
     in
 	case prems of [] => () 
