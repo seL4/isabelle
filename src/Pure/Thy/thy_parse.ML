@@ -446,7 +446,7 @@ fun make_syntax keywords sects =
     val keys = map Symbol.explode (map fst sects' @ keywords);
   in
     if null dups then ()
-    else warning ("Duplicate declaration of theory file sections:\n" ^ commas_quote dups);
+    else warning ("Duplicate declaration of theory file section(s): " ^ commas_quote dups);
     (Scan.make_lexicon keys, Symtab.make sects')
   end;
 

@@ -102,7 +102,7 @@ val defaultsortP =
 (* types *)
 
 val typedeclP =
-  OuterSyntax.command "typedecl" "Pure type declaration" K.thy_decl
+  OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix -- P.marg_comment >> (fn (((args, a), mx), cmt) =>
       Toplevel.theory (IsarThy.add_typedecl ((a, args, mx), cmt))));
 

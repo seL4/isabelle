@@ -261,7 +261,7 @@ val typedef_proof_i = gen_typedef_proof cert_term;
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val typedeclP =
-  OuterSyntax.command "typedecl" "HOL type declaration" K.thy_decl
+  OuterSyntax.command "typedecl" "type declaration (HOL)" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix --| P.marg_comment >> (fn ((vs, t), mx) =>
       Toplevel.theory (add_typedecls [(t, vs, mx)])));
 
