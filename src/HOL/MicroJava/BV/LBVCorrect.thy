@@ -264,7 +264,7 @@ proof (unfold wtl_method_def, simp only: Let_def, elim conjE)
   assume wtl: "wtl_inst_list ins G rT cert (length ins) 0 ?s0 \<noteq> Err"
 
   obtain phi where fits: "fits phi ins G rT ?s0 cert"    
-    by (rule exists_phi [elimify]) blast
+    by (rule exists_phi [elimified]) blast
 
   with wtl
   have allpc:

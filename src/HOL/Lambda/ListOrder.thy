@@ -64,7 +64,7 @@ lemma append_step1I:
   apply (blast intro: append_eq_appendI)
   done
 
-lemma Cons_step1E [rulify_prems, elim!]:
+lemma Cons_step1E [rulified, elim!]:
   "[| (ys, x # xs) \<in> step1 r;
     \<forall>y. ys = y # xs --> (y, x) \<in> r --> R;
     \<forall>zs. ys = x # zs --> (zs, xs) \<in> step1 r --> R
@@ -87,7 +87,7 @@ lemma Snoc_step1_SnocD:
   apply blast
   done
 
-lemma Cons_acc_step1I [rulify, intro!]:
+lemma Cons_acc_step1I [rulified, intro!]:
     "x \<in> acc r ==> \<forall>xs. xs \<in> acc (step1 r) --> x # xs \<in> acc (step1 r)"
   apply (erule acc_induct)
   apply (erule thin_rl)

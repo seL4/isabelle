@@ -120,7 +120,7 @@ lemma subst_lt [simp]: "j < i ==> (Var j)[u/i] = Var j"
   apply (simp add: subst_Var)
   done
 
-lemma lift_lift [rulify]:
+lemma lift_lift [rulified]:
     "\<forall>i k. i < k + 1 --> lift (lift t i) (Suc k) = lift (lift t k) i"
   apply (induct_tac t)
     apply auto
@@ -144,7 +144,7 @@ lemma subst_lift [simp]:
     apply simp_all
   done
 
-lemma subst_subst [rulify]:
+lemma subst_subst [rulified]:
     "\<forall>i j u v. i < j + 1 --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]"
   apply (induct_tac t)
     apply (simp_all
@@ -183,19 +183,19 @@ subsection {* Preservation theorems *}
 text {* Not used in Church-Rosser proof, but in Strong
   Normalization. \medskip *}
 
-theorem subst_preserves_beta [rulify, simp]:
+theorem subst_preserves_beta [rulified, simp]:
     "r -> s ==> \<forall>t i. r[t/i] -> s[t/i]"
   apply (erule beta.induct)
      apply (simp_all add: subst_subst [symmetric])
   done
 
-theorem lift_preserves_beta [rulify, simp]:
+theorem lift_preserves_beta [rulified, simp]:
     "r -> s ==> \<forall>i. lift r i -> lift s i"
   apply (erule beta.induct)
      apply auto
   done
 
-theorem subst_preserves_beta2 [rulify, simp]:
+theorem subst_preserves_beta2 [rulified, simp]:
     "\<forall>r s i. r -> s --> t[r/i] ->> t[s/i]"
   apply (induct_tac t)
     apply (simp add: subst_Var r_into_rtrancl)

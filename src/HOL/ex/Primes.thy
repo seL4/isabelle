@@ -71,7 +71,7 @@ lemmas gcd_dvd2 = gcd_dvd_both [THEN conjunct2];
 
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
-lemma gcd_greatest [rulify]: "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
+lemma gcd_greatest [rulified]: "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
   apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 dvd_mod);
   done;

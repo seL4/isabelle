@@ -45,7 +45,7 @@ inductive_cases eta_cases [elim!]:
 
 subsection "Properties of eta, subst and free"
 
-lemma subst_not_free [rulify, simp]:
+lemma subst_not_free [rulified, simp]:
     "\<forall>i t u. \<not> free s i --> s[t/i] = s[u/i]"
   apply (induct_tac s)
     apply (simp_all add: subst_Var)
@@ -74,7 +74,7 @@ lemma free_subst [simp]:
   apply simp_all
   done
 
-lemma free_eta [rulify]:
+lemma free_eta [rulified]:
     "s -e> t ==> \<forall>i. free t i = free s i"
   apply (erule eta.induct)
      apply (simp_all cong: conj_cong)
@@ -85,7 +85,7 @@ lemma not_free_eta:
   apply (simp add: free_eta)
   done
 
-lemma eta_subst [rulify, simp]:
+lemma eta_subst [rulified, simp]:
     "s -e> t ==> \<forall>u i. s[u/i] -e> t[u/i]"
   apply (erule eta.induct)
   apply (simp_all add: subst_subst [symmetric])
@@ -136,13 +136,13 @@ lemma rtrancl_eta_App:
 
 subsection "Commutation of beta and eta"
 
-lemma free_beta [rulify]:
+lemma free_beta [rulified]:
     "s -> t ==> \<forall>i. free t i --> free s i"
   apply (erule beta.induct)
      apply simp_all
   done
 
-lemma beta_subst [rulify, intro]:
+lemma beta_subst [rulified, intro]:
     "s -> t ==> \<forall>u i. s[u/i] -> t[u/i]"
   apply (erule beta.induct)
      apply (simp_all add: subst_subst [symmetric])
@@ -153,13 +153,13 @@ lemma subst_Var_Suc [simp]: "\<forall>i. t[Var i/i] = t[Var(i)/i + 1]"
   apply (auto elim!: linorder_neqE simp: subst_Var)
   done
 
-lemma eta_lift [rulify, simp]:
+lemma eta_lift [rulified, simp]:
     "s -e> t ==> \<forall>i. lift s i -e> lift t i"
   apply (erule eta.induct)
      apply simp_all
   done
 
-lemma rtrancl_eta_subst [rulify]:
+lemma rtrancl_eta_subst [rulified]:
     "\<forall>s t i. s -e> t --> u[s/i] -e>> u[t/i]"
   apply (induct_tac u)
     apply (simp_all add: subst_Var)
@@ -190,7 +190,7 @@ subsection "Implicit definition of eta"
 
 text {* @{term "Abs (lift s 0 $ Var 0) -e> s"} *}
 
-lemma not_free_iff_lifted [rulify]:
+lemma not_free_iff_lifted [rulified]:
     "\<forall>i. (\<not> free s i) = (\<exists>t. s = lift t i)"
   apply (induct_tac s)
     apply simp

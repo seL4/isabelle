@@ -383,7 +383,7 @@ proof -
 qed
 
 
-theorem sup_loc_update [rulify]:
+theorem sup_loc_update [rulified]:
   "\<forall> n y. (G \<turnstile> a <=o b) \<longrightarrow> n < length y \<longrightarrow> (G \<turnstile> x <=l y) \<longrightarrow> 
           (G \<turnstile> x[n := a] <=l y[n := b])" (is "?P x")
 proof (induct x)
@@ -485,7 +485,7 @@ proof -
 
   with G
   show ?thesis 
-    by (auto intro!: all_nth_sup_loc [rulify] dest!: sup_loc_length) 
+    by (auto intro!: all_nth_sup_loc [rulified] dest!: sup_loc_length) 
 qed
   
 

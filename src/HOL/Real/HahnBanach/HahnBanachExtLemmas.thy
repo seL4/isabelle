@@ -273,7 +273,7 @@ proof;
     by case analysis on $a$. *};
 
     also; have "... <= p (y + a \<cdot> x0)";
-    proof (rule linorder_less_split); 
+    proof (rule linorder_cases);
 
       assume z: "a = #0"; 
       with vs y a; show ?thesis; by simp;

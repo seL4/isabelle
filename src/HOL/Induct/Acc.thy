@@ -18,7 +18,7 @@ consts
 
 inductive "acc r"
   intros
-    accI [rulify_prems]:
+    accI [rulified]:
       "\<forall>y. (y, x) \<in> r --> y \<in> acc r ==> x \<in> acc r"
 
 syntax

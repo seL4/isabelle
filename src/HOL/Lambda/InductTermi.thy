@@ -26,7 +26,7 @@ inductive IT
 
 subsection {* Every term in IT terminates *}
 
-lemma double_induction_lemma [rulify]:
+lemma double_induction_lemma [rulified]:
   "s : termi beta ==> \<forall>t. t : termi beta -->
     (\<forall>r ss. t = r[s/0] $$ ss --> Abs r $ s $$ ss : termi beta)"
   apply (erule acc_induct)

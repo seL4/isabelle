@@ -587,7 +587,7 @@ lemma correct_state_impl_Some_method:
 by (auto simp add: correct_state_def Let_def)
 
 
-lemma BV_correct_1 [rulify]:
+lemma BV_correct_1 [rulified]:
 "\<And>state. \<lbrakk> wt_jvm_prog G phi; G,phi \<turnstile>JVM state\<surd>\<rbrakk> 
  \<Longrightarrow> exec (G,state) = Some state' \<longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (simp only: split_tupled_all)
@@ -617,7 +617,7 @@ apply (fast intro: BV_correct_1)
 done
 
 
-theorem BV_correct [rulify]:
+theorem BV_correct [rulified]:
 "\<lbrakk> wt_jvm_prog G phi; G \<turnstile> s -jvm\<rightarrow> t \<rbrakk> \<Longrightarrow> G,phi \<turnstile>JVM s\<surd> \<longrightarrow> G,phi \<turnstile>JVM t\<surd>"
 apply (unfold exec_all_def)
 apply (erule rtrancl_induct)
