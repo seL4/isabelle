@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# SML/NJ startup script (for 109.27 or later).
+# SML/NJ startup script (for 109.27-109.33, 110 or later).
 #
 # Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
 # and from settings
@@ -17,50 +17,49 @@ function fail_out()
 }
 
 
-## basic setup
-
-EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
-COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
-COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\\n"); false);'
-eval $($ML_HOME/.arch-n-opsys)
-SUFFIX=".$ARCH-$OPSYS"
-
-
 ## prepare databases
 
-DB="$INFILE"
-
-if [ -n "$DB" ]; then
-  DB="@SMLload=$INFILE"
+if [ -z "$INFILE" ]; then
+  EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
+  DB=""
+else
   EXIT=""
+  DB="@SMLload=$INFILE"
 fi
 
-[ -z "$OUTFILE" ] && COMMIT="$COMMIT_RO"
-[ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
-
-MLTEXT="$EXIT $COMMIT $MLTEXT"
-MLEXIT="commit ();"
+if [ -z "$OUTFILE" ]; then
+  COMMIT='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
+else
+  COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
+  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
+fi
 
 
 ## run it!
 
-START_SML="$ML_HOME/sml $ML_OPTIONS $DB"
+MLTEXT="$EXIT $COMMIT $MLTEXT"
+MLEXIT="commit();"
 
-if [ -n "$TERMINATE" ]; then
-  sh -c "echo '$MLTEXT' '$MLEXIT' | $START_SML"
-  RC=$?
-elif [ -z "$MLTEXT" ]; then
-  sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
-  RC=$?
+if [ -z "$TERMINATE" ]; then
+  FEEDER_OPTS=""
 else
-  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
-  RC=$?
+  FEEDER_OPTS="-q"
 fi
 
-#fix heap file name
-[ -n "$OUTFILE" -a -n "$SUFFIX" -a -f "$OUTFILE$SUFFIX" ] \
-  && mv "$OUTFILE$SUFFIX" "$OUTFILE"
+$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; $ML_HOME/sml $ML_OPTIONS $DB; RC=$?; kill -HUP $FPID; exit $RC; }
+RC=$?
 
-[ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+
+## fix heap file name and permissions
+
+if [ -n "$OUTFILE" ]; then
+  eval $($ML_HOME/.arch-n-opsys)
+  SUFFIX=".$ARCH-$OPSYS"
+  if [ -f "$OUTFILE$SUFFIX" ]; then
+    mv "$OUTFILE$SUFFIX" "$OUTFILE"
+    [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+  fi
+fi
 
 exit $RC

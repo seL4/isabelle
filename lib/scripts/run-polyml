@@ -59,22 +59,20 @@ fi
 
 ## run it!
 
-START_POLY="$POLY $ML_OPTIONS $DB"
+if [ -z "$TERMINATE" ]; then
+  FEEDER_OPTS="-s"
+else
+  FEEDER_OPTS="-q"
+fi
+
 DB_INFO=$(ls -l "$DB")
 
-if [ -n "$TERMINATE" ]; then
-  echo "$MLTEXT" | $START_POLY
-  RC=$?
-elif [ -z "$MLTEXT" ]; then
-  sh -c "$ISABELLE_HOME/lib/Tools/symbolinput | $START_POLY"
-  RC=$?
-else
-  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/Tools/symbolinput; } | $START_POLY"
-  RC=$?
-fi
+$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" $FEEDER_OPTS | \
+  { read FPID; $POLY $ML_OPTIONS "$DB"; RC=$?; kill -HUP $FPID; exit $RC; }
+RC=$?
 
 NEW_DB_INFO=$(ls -l "$DB")
 [ -n "$OUTFILE" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB "$OUTFILE"
-[ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+[ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit $RC
