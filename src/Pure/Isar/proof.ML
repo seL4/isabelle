@@ -62,6 +62,7 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
+  val norm_hhf_tac: int -> tactic
   val hard_asm_tac: int -> tactic
   val soft_asm_tac: int -> tactic
   val assm: ProofContext.exporter
@@ -515,6 +516,10 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume *)
 
+val norm_hhf_tac = Tactic.rewrite_goal_tac [Drule.norm_hhf_eq];
+val hard_asm_tac = Tactic.etac Drule.triv_goal;
+val soft_asm_tac = Tactic.rtac Drule.triv_goal THEN' norm_hhf_tac;
+
 local
 
 fun gen_assume f exp args state =
@@ -527,12 +532,9 @@ fun gen_assume f exp args state =
 
 fun simple_exporter tac1 tac2 =
   (Seq.single oo Drule.implies_intr_list,
-    fn is_goal => fn n => replicate n (if is_goal then tac1 else tac2));
+    fn is_goal => fn n => replicate n (norm_hhf_tac THEN' (if is_goal then tac1 else tac2)));
 
 in
-
-val hard_asm_tac = Tactic.etac Drule.triv_goal;
-val soft_asm_tac = Tactic.rtac Drule.triv_goal;
 
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
