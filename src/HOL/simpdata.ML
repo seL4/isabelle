@@ -94,8 +94,13 @@ val if_bool_eq = prove_goal HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
 
-infix addcongs;
+(*Add congruence rules for = (instead of ==) *)
+infix 4 addcongs;
 fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
 
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
