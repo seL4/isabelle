@@ -57,10 +57,8 @@ by clean_tac;
 by (rtac ve_owrI 1);
 by clean_tac;
 by (dtac (ElabRel.dom_subset RS subsetD) 1);
-by ( eres_inst_tac 
-     [("Q","te_owr(te,f,t_fun(t1,t2)):TyEnv")] 
-     (SigmaD1 RS te_owrE) 1
-   );
+by (eres_inst_tac [("Q","te_owr(te,f,t_fun(t1,t2)):TyEnv")] 
+    (SigmaD1 RS te_owrE) 1);
 by (assume_tac 1);
 by (rtac ElabRel.elab_fnI 1);
 by clean_tac;
@@ -79,6 +77,8 @@ by (rtac v_closNE 1);
 by (rtac subsetI 1);
 by (etac RepFunE 1);
 by (excluded_middle_tac "f=y" 1);
+by (rtac UnI1 2);
+by (rtac UnI2 1);
 by (Auto_tac());
 qed "consistency_fix";
 
