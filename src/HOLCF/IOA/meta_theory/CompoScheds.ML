@@ -452,7 +452,7 @@ qed"mkex_actions_in_AorB";
 (* ------------------------------------------------------------------ *)
 
 Goal  
-"sch : schedules (A||B) = \
+"(sch : schedules (A||B)) = \
 \ (Filter (%a. a:act A)$sch : schedules A &\
 \  Filter (%a. a:act B)$sch : schedules B &\
 \  Forall (%x. x:act (A||B)) sch)";

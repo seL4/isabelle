@@ -614,7 +614,7 @@ done
 (*Knowing some session keys is no help in getting new nonces*)
 lemma analz_insert_key [simp]:
      "evs \<in> tls ==>
-      Nonce N \<in> analz (insert (Key (sessionK z)) (spies evs)) =
+      (Nonce N \<in> analz (insert (Key (sessionK z)) (spies evs))) =
       (Nonce N \<in> analz (spies evs))"
 by (simp del: image_insert
          add: insert_Key_singleton analz_image_keys)

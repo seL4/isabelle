@@ -187,7 +187,7 @@ qed_spec_mp "analz_image_freshK";
 
 
 Goal "[| evs \\<in> kerberos_ban;  KAB \\<notin> range shrK |] ==>     \
-\     Key K \\<in> analz (insert (Key KAB) (spies evs)) =       \
+\     (Key K \\<in> analz (insert (Key KAB) (spies evs))) =       \
 \     (K = KAB | Key K \\<in> analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";

@@ -501,7 +501,7 @@ AddSEs [DiffE];
 
 section "Augmenting a set -- insert";
 
-Goalw [insert_def] "a : insert b A = (a=b | a:A)";
+Goalw [insert_def] "(a : insert b A) = (a=b | a:A)";
 by (Blast_tac 1);
 qed "insert_iff";
 Addsimps [insert_iff];
@@ -558,7 +558,7 @@ AddSIs [singletonI];
 AddSDs [singleton_inject];
 AddSEs [singletonE];
 
-Goal "{b} = insert a A = (a = b & A <= {b})";
+Goal "({b} = insert a A) = (a = b & A <= {b})";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "singleton_insert_inj_eq";
 
@@ -743,7 +743,7 @@ Goal "(f`A <= B) = (ALL x:A. f(x): B)";
 by (Blast_tac 1);
 qed "image_subset_iff";
 
-Goal "B <= f ` A = (? AA. AA <= A & B = f ` AA)";
+Goal "(B <= f ` A) = (? AA. AA <= A & B = f ` AA)";
 by Safe_tac;
 by  (Fast_tac 2);
 by (res_inst_tac [("x","{a. a : A & f a : B}")] exI 1);

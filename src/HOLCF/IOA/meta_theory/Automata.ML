@@ -377,7 +377,7 @@ val trans_of_defs2 = [trans_A_proj,trans_B_proj,trans_A_proj2,
 
 
 Goal 
-"(s,a,t) : trans_of(A || B || C || D) =                                      \
+"((s,a,t) : trans_of(A || B || C || D)) =                                    \
 \ ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |  \
 \   a:actions(asig_of(D))) &                                                 \
 \  (if a:actions(asig_of(A)) then (fst(s),a,fst(t)):trans_of(A)              \

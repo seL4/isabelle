@@ -332,7 +332,7 @@ Addsimps [prat_mult_1, prat_mult_1_right,
 (* prove introduction and elimination rules for prat_less *)
 
 Goalw [prat_less_def]
-    "Q1 < (Q2::prat) = (EX Q3. Q1 + Q3 = Q2)";
+    "(Q1 < (Q2::prat)) = (EX Q3. Q1 + Q3 = Q2)";
 by (Fast_tac 1);
 qed "prat_less_iff";
 

@@ -230,7 +230,7 @@ done
 
 lemma analz_insert_freshK:
      "\\<lbrakk>evs \\<in> ns_shared;  KAB \\<notin> range shrK\\<rbrakk> \\<Longrightarrow>
-       Key K \\<in> analz (insert (Key KAB) (spies evs)) =
+       (Key K \\<in> analz (insert (Key KAB) (spies evs))) =
        (K = KAB \\<or> Key K \\<in> analz (spies evs))"
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 

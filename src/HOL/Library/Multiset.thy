@@ -749,7 +749,7 @@ theorem mult_le_trans:
   apply (blast intro: mult_less_trans)
   done
 
-theorem mult_less_le: "M < N = (M <= N \<and> M \<noteq> (N::'a::order multiset))"
+theorem mult_less_le: "(M < N) = (M <= N \<and> M \<noteq> (N::'a::order multiset))"
   apply (unfold le_multiset_def)
   apply auto
   done

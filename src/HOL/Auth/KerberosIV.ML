@@ -645,7 +645,7 @@ qed_spec_mp "Key_analz_image_Key";
 (* authentication keys or shared keys.                          *)
 Goal "[| evs \\<in> kerberos;  K \\<in> (AuthKeys evs) Un range shrK;      \
 \        SesKey \\<notin> range shrK |]                                 \
-\     ==> Key K \\<in> analz (insert (Key SesKey) (spies evs)) = \
+\     ==> (Key K \\<in> analz (insert (Key SesKey) (spies evs))) = \
 \         (K = SesKey | Key K \\<in> analz (spies evs))";
 by (ftac AuthKeys_are_not_KeyCryptKey 1 THEN assume_tac 1);
 by (asm_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
@@ -655,7 +655,7 @@ qed "analz_insert_freshK1";
 (* Second simplification law for analz: no service keys encrypt *)
 (* any other keys.					        *)
 Goal "[| evs \\<in> kerberos;  ServKey \\<notin> (AuthKeys evs); ServKey \\<notin> range shrK|]\
-\     ==> Key K \\<in> analz (insert (Key ServKey) (spies evs)) = \
+\     ==> (Key K \\<in> analz (insert (Key ServKey) (spies evs))) = \
 \         (K = ServKey | Key K \\<in> analz (spies evs))";
 by (ftac not_AuthKeys_not_KeyCryptKey 1 
     THEN assume_tac 1
@@ -671,7 +671,7 @@ Goal
 \           (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|}) \
 \             \\<in> set evs;          \ 
 \           AuthKey \\<noteq> AuthKey'; AuthKey' \\<notin> range shrK; evs \\<in> kerberos |]    \
-\       ==> Key ServKey \\<in> analz (insert (Key AuthKey') (spies evs)) =  \
+\       ==> (Key ServKey \\<in> analz (insert (Key AuthKey') (spies evs))) =  \
 \               (ServKey = AuthKey' | Key ServKey \\<in> analz (spies evs))";
 by (dres_inst_tac [("AuthKey'","AuthKey'")] Says_Tgs_KeyCryptKey 1);
 by (Blast_tac 1);

@@ -397,7 +397,7 @@ Addsimps [hypnat_mult_is_0];
 (* prove introduction and elimination rules for hypnat_less *)
 
 Goalw [hypnat_less_def]
- "P < (Q::hypnat) = (EX X Y. X : Rep_hypnat(P) & \
+ "(P < (Q::hypnat)) = (EX X Y. X : Rep_hypnat(P) & \
 \                             Y : Rep_hypnat(Q) & \
 \                             {n. X n < Y n} : FreeUltrafilterNat)";
 by (Fast_tac 1);
@@ -609,7 +609,7 @@ by Auto_tac;
 qed "hypnat_neq_iff";
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(w::hypnat) < z = (w <= z & w ~= z)";
+Goal "((w::hypnat) < z) = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [hypnat_le_def, hypnat_neq_iff]) 1);
 by (blast_tac (claset() addIs [hypnat_less_asym]) 1);
 qed "hypnat_less_le";

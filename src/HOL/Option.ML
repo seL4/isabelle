@@ -78,7 +78,7 @@ AddDs[ospec];
 claset_ref() := claset() addSD2 ("ospec", ospec);
 
 
-Goal "x : o2s xo = (xo = Some x)";
+Goal "(x : o2s xo) = (xo = Some x)";
 by (case_tac "xo" 1);
 by Auto_tac;
 qed "elem_o2s";

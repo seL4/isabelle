@@ -415,7 +415,7 @@ by (rtac (preal_mem_add_set RS Abs_preal_inverse RS ssubst) 1);
 by (Fast_tac 1);
 qed "mem_Rep_preal_addI";
 
-Goal " z: Rep_preal(R+S) = (EX x: Rep_preal(R). \
+Goal "(z: Rep_preal(R+S)) = (EX x: Rep_preal(R). \
 \                                 EX y: Rep_preal(S). z = x + y)";
 by (fast_tac (claset() addSIs [mem_Rep_preal_addD,mem_Rep_preal_addI]) 1);
 qed "mem_Rep_preal_add_iff";
@@ -434,7 +434,7 @@ by (rtac (preal_mem_mult_set RS Abs_preal_inverse RS ssubst) 1);
 by (Fast_tac 1);
 qed "mem_Rep_preal_multI";
 
-Goal " z: Rep_preal(R*S) = (EX x: Rep_preal(R). \
+Goal "(z: Rep_preal(R*S)) = (EX x: Rep_preal(R). \
 \                                 EX y: Rep_preal(S). z = x * y)";
 by (fast_tac (claset() addSIs [mem_Rep_preal_multD,mem_Rep_preal_multI]) 1);
 qed "mem_Rep_preal_mult_iff";
@@ -785,7 +785,7 @@ by (auto_tac (claset() addEs [preal_less_irrefl], simpset()));
 qed "preal_neq_iff";
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(w::preal) < z = (w <= z & w ~= z)";
+Goal "((w::preal) < z) = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [preal_less_le_iff RS sym, preal_neq_iff]) 1);
 by (blast_tac (claset() addSEs [preal_less_asym]) 1);
 qed "preal_less_le";

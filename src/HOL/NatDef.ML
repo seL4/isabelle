@@ -108,8 +108,7 @@ by (rtac (wf_pred_nat RS wf_trancl RS wf_subset) 1);
 by (Blast_tac 1); 
 qed "wf_less";
 
-(*Used in TFL/post.sml*)
-Goalw [less_def] "(m,n) : pred_nat^+ = (m<n)";
+Goalw [less_def] "((m,n) : pred_nat^+) = (m<n)";
 by (rtac refl 1);
 qed "less_eq";
 
@@ -426,7 +425,7 @@ qed "Suc_le_mono";
 AddIffs [Suc_le_mono];
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(m::nat) < n = (m <= n & m ~= n)";
+Goal "((m::nat) < n) = (m <= n & m ~= n)";
 by (simp_tac (simpset() addsimps [le_def, nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_asym]) 1);
 qed "nat_less_le";

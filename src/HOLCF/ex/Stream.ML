@@ -23,7 +23,7 @@ Addsimps[eq_UU_iff RS sym];
 
 section "scons";
 
-Goal "a && s = UU = (a = UU)";
+Goal "(a && s = UU) = (a = UU)";
 by Safe_tac;
 by (etac contrapos_pp 1);
 by (safe_tac (claset() addSIs stream.con_rews));
@@ -34,7 +34,7 @@ by (dresolve_tac [stream_con_rew2] 1);
 by (contr_tac 1);
 qed "scons_not_empty";
 
-Goal "x ~= UU = (EX a y. a ~= UU &  x = a && y)";
+Goal "(x ~= UU) = (EX a y. a ~= UU &  x = a && y)";
 by (cut_facts_tac [stream.exhaust] 1);
 by (best_tac (claset() addDs [stream_con_rew2]) 1);
 qed "stream_exhaust_eq";
@@ -407,7 +407,7 @@ qed "slen_scons";
 
 Addsimps [slen_empty, slen_scons];
 
-Goal "#x < Fin 1' = (x = UU)";
+Goal "(#x < Fin 1') = (x = UU)";
 by (stream_case_tac "x" 1);
 by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
  [thm "Fin_0", thm "iSuc_Fin" RS sym, thm "i0_iless_iSuc", thm "iSuc_mono"]));
@@ -420,7 +420,7 @@ by (rotate_tac ~1 2);
 by Auto_tac;
 qed "slen_empty_eq";
 
-Goal "Fin (Suc n) < #x = (? a y. x = a && y &  a ~= \\<bottom> &  Fin n < #y)";
+Goal "(Fin (Suc n) < #x) = (? a y. x = a && y &  a ~= \\<bottom> &  Fin n < #y)";
 by (stream_case_tac "x" 1);
 by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
                 [thm "iSuc_Fin" RS sym, thm "iSuc_mono"]));
@@ -437,7 +437,7 @@ qed_spec_mp "slen_iSuc";
 
 
 Goal 
-"#x < Fin (Suc (Suc n)) = (!a y. x ~= a && y |  a = \\<bottom> |  #y < Fin (Suc n))";
+"(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \\<bottom> |  #y < Fin (Suc n))";
 by (stac (thm "iSuc_Fin" RS sym) 1);
 by (stac (thm "iSuc_Fin" RS sym) 1);
 by (safe_tac HOL_cs);
@@ -455,7 +455,7 @@ by ( fast_tac HOL_cs 1);
 by (Asm_full_simp_tac 1);
 qed "slen_scons_eq_rev";
 
-Goal "!x. Fin n < #x = (stream_take n\\<cdot>x ~= x)";
+Goal "!x. (Fin n < #x) = (stream_take n\\<cdot>x ~= x)";
 by (nat_ind_tac "n" 1);
 by  (simp_tac(simpset() addsimps [slen_empty_eq, thm "Fin_0"]) 1);
 by  (Fast_tac 1);
@@ -469,7 +469,7 @@ by (rotate_tac ~1 2);
 by Auto_tac;
 qed_spec_mp "slen_take_eq";
 
-Goalw [thm "ile_def"] "#x <= Fin n = (stream_take n\\<cdot>x = x)";
+Goalw [thm "ile_def"] "(#x <= Fin n) = (stream_take n\\<cdot>x = x)";
 by (simp_tac (simpset() addsimps [slen_take_eq]) 1);
 qed "slen_take_eq_rev";
 

@@ -888,7 +888,7 @@ Goal "(A = B) = ((A <= (B::'a set)) & (B<=A))";
 by (Blast_tac 1);
 qed "set_eq_subset";
 
-Goal "A <= B =  (ALL t. t:A --> t:B)";
+Goal "(A <= B) =  (ALL t. t:A --> t:B)";
 by (Blast_tac 1);
 qed "subset_iff";
 

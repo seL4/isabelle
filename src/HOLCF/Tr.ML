@@ -157,12 +157,12 @@ Addsimps [Def_bool1,Def_bool2,Def_bool3,Def_bool4];
    replaced by a more general admissibility test that also checks 
    chain-finiteness, of which these lemmata are specific examples *)
 
-Goal "x~=FF = (x=TT|x=UU)";
+Goal "(x~=FF) = (x=TT|x=UU)";
 by (res_inst_tac [("p","x")] trE 1);
 by (TRYALL (Asm_full_simp_tac));
 qed"adm_trick_1";
 
-Goal "x~=TT = (x=FF|x=UU)";
+Goal "(x~=TT) = (x=FF|x=UU)";
 by (res_inst_tac [("p","x")] trE 1);
 by (TRYALL (Asm_full_simp_tac));
 qed"adm_trick_2";

@@ -158,7 +158,7 @@ apply spy_analz
 done
 
 lemma analz_insert_freshK: "[| evs \<in> yahalom;  KAB \<notin> range shrK |] ==>
-      Key K \<in> analz (insert (Key KAB) (knows Spy evs)) =
+      (Key K \<in> analz (insert (Key KAB) (knows Spy evs))) =
       (K = KAB | Key K \<in> analz (knows Spy evs))"
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 

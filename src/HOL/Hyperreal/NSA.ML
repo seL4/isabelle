@@ -474,7 +474,7 @@ qed "Infinitesimal_hypreal_of_real_mult2";
  ----------------------------------------------------------------------*)
 
 Goalw [Infinitesimal_def,approx_def] 
-        "x:Infinitesimal = (x @= #0)";
+        "(x:Infinitesimal) = (x @= #0)";
 by (Simp_tac 1);
 qed "mem_infmal_iff";
 

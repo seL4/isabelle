@@ -21,7 +21,7 @@ val mono_BufEq_F = prove_goalw thy [mono_def, BufEq_F_def]
 
 val BufEq_fix = mono_BufEq_F RS (BufEq_def RS def_gfp_unfold);
 
-val BufEq_unfold = prove_goal thy "f:BufEq = (!d. f\\<cdot>(Md d\\<leadsto><>) = <> & \
+val BufEq_unfold = prove_goal thy "(f:BufEq) = (!d. f\\<cdot>(Md d\\<leadsto><>) = <> & \
 		\(!x. ? ff:BufEq. f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>x) = d\\<leadsto>(ff\\<cdot>x)))" (K [
 	stac (BufEq_fix RS set_cong) 1,
 	rewtac BufEq_F_def,
@@ -40,7 +40,7 @@ val mono_BufAC_Asm_F = prove_goalw thy [mono_def, BufAC_Asm_F_def]
 
 val BufAC_Asm_fix = mono_BufAC_Asm_F RS (BufAC_Asm_def RS def_gfp_unfold);
 
-val BufAC_Asm_unfold = prove_goal thy "s:BufAC_Asm = (s = <> | (? d x. \
+val BufAC_Asm_unfold = prove_goal thy "(s:BufAC_Asm) = (s = <> | (? d x. \
 \       s = Md d\\<leadsto>x & (x = <> | (ft\\<cdot>x = Def \\<bullet> & (rt\\<cdot>x):BufAC_Asm))))" (K [
 				stac (BufAC_Asm_fix RS set_cong) 1,
 				rewtac BufAC_Asm_F_def,
@@ -61,7 +61,7 @@ val mono_BufAC_Cmt_F = prove_goalw thy [mono_def, BufAC_Cmt_F_def]
 
 val BufAC_Cmt_fix = mono_BufAC_Cmt_F RS (BufAC_Cmt_def RS def_gfp_unfold);
 
-val BufAC_Cmt_unfold = prove_goal thy "(s,t):BufAC_Cmt = (!d x. \
+val BufAC_Cmt_unfold = prove_goal thy "((s,t):BufAC_Cmt) = (!d x. \
     \(s = <>       -->      t = <>) & \
     \(s = Md d\\<leadsto><>  -->      t = <>) & \
     \(s = Md d\\<leadsto>\\<bullet>\\<leadsto>x --> ft\\<cdot>t = Def d & (x, rt\\<cdot>t):BufAC_Cmt))" (K [
@@ -128,7 +128,7 @@ val mono_BufSt_F = prove_goalw thy [mono_def, BufSt_F_def]
 
 val BufSt_P_fix = mono_BufSt_F RS (BufSt_P_def RS def_gfp_unfold);
 
-val BufSt_P_unfold = prove_goal thy "h:BufSt_P = (!s. h s\\<cdot><> = <> & \
+val BufSt_P_unfold = prove_goal thy "(h:BufSt_P) = (!s. h s\\<cdot><> = <> & \
 	 \ (!d x. h \\<currency>     \\<cdot>(Md d\\<leadsto>x)   =    h (Sd d)\\<cdot>x & \
   \   (? hh:BufSt_P. h (Sd d)\\<cdot>(\\<bullet>\\<leadsto>x)   = d\\<leadsto>(hh \\<currency>    \\<cdot>x))))" (K [
 	stac (BufSt_P_fix RS set_cong) 1,

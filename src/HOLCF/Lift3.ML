@@ -30,7 +30,7 @@ val distinct1' = prove_goal thy "UU ~= Def a"
                  (fn _ => [Simp_tac 1]);
 val distinct2' = prove_goal thy "Def a ~= UU"
                  (fn _ => [Simp_tac 1]);
-val inject' = prove_goal thy "Def a = Def aa = (a = aa)"
+val inject' = prove_goal thy "(Def a = Def aa) = (a = aa)"
                (fn _ => [Simp_tac 1]);
 val rec1' = prove_goal thy "lift_rec f1 f2 UU = f1"
             (fn _ => [Simp_tac 1]);

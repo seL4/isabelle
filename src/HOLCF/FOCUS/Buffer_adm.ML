@@ -15,7 +15,7 @@ val BufAC_Asm_d3 = prove_forw
     "a\\<leadsto>b\\<leadsto>s:BufAC_Asm ==> ? d. a=Md d & b=\\<bullet> & s:BufAC_Asm" BufAC_Asm_unfold;
 
 val BufAC_Asm_F_def3 = prove_goalw thy [BufAC_Asm_F_def] 
- "s:BufAC_Asm_F A = (s=<> | \
+ "(s:BufAC_Asm_F A) = (s=<> | \
 \ (? d. ft\\<cdot>s=Def(Md d)) & (rt\\<cdot>s=<> | ft\\<cdot>(rt\\<cdot>s)=Def \\<bullet> & rt\\<cdot>(rt\\<cdot>s):A))" (K [
 	Auto_tac]);
 
@@ -24,7 +24,7 @@ by (auto_tac (claset(),simpset() addsimps [down_cont_def,BufAC_Asm_F_def3]));
 qed "cont_BufAC_Asm_F";
 
 val BufAC_Cmt_F_def3 = prove_goalw thy [BufAC_Cmt_F_def] 
- "(s,t):BufAC_Cmt_F C = (!d x.\
+ "((s,t):BufAC_Cmt_F C) = (!d x.\
 \   (s = <>       --> t = <>                   ) & \
 \   (s = Md d\\<leadsto><>  --> t = <>                   ) & \
 \   (s = Md d\\<leadsto>\\<bullet>\\<leadsto>x --> ft\\<cdot>t = Def d & (x,rt\\<cdot>t):C))" (fn _=> [
@@ -166,7 +166,7 @@ by ( eatac (BufAC_Asm_antiton RS antitonPD) 1 1);
 by (EVERY[stac BufAC_Asm_cong 1, atac 1, atac 3, atac 1, atac 1]);
 qed "BufAC_Cmt_2stream_monoP";
 
-Goalw [BufAC_Cmt_def] "x\\<in>BufAC_Cmt = (\\<forall>n. x\\<in>down_iterate BufAC_Cmt_F n)";
+Goalw [BufAC_Cmt_def] "(x\\<in>BufAC_Cmt) = (\\<forall>n. x\\<in>down_iterate BufAC_Cmt_F n)";
 by (stac (cont_BufAC_Cmt_F RS INTER_down_iterate_is_gfp) 1);
 by (Fast_tac 1);
 qed "BufAC_Cmt_iterate_all";

@@ -10,7 +10,7 @@ The integers as equivalence classes over nat*nat.
 (*Rewrite the overloaded 0::int to (int 0)*)
 Addsimps [Zero_def];
 
-Goalw  [intrel_def] "((x1,y1),(x2,y2)): intrel = (x1+y2 = x2+y1)";
+Goalw  [intrel_def] "(((x1,y1),(x2,y2)): intrel) = (x1+y2 = x2+y1)";
 by (Blast_tac 1);
 qed "intrel_iff";
 
@@ -465,7 +465,7 @@ by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
 qed "zle_anti_sym";
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(w::int) < z = (w <= z & w ~= z)";
+Goal "((w::int) < z) = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [zle_def, int_neq_iff]) 1);
 by (blast_tac (claset() addSEs [zless_asym]) 1);
 qed "int_less_le";

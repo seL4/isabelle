@@ -736,7 +736,7 @@ qed "hypreal_inverse_distrib";
 (* prove introduction and elimination rules for hypreal_less *)
 
 Goalw [hypreal_less_def]
- "P < (Q::hypreal) = (EX X Y. X : Rep_hypreal(P) & \
+ "(P < (Q::hypreal)) = (EX X Y. X : Rep_hypreal(P) & \
 \                             Y : Rep_hypreal(Q) & \
 \                             {n. X n < Y n} : FreeUltrafilterNat)";
 by (Fast_tac 1);
@@ -1030,7 +1030,7 @@ by (fast_tac (claset() addDs [hypreal_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_hypreal_less";
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(w::hypreal) < z = (w <= z & w ~= z)";
+Goal "((w::hypreal) < z) = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [hypreal_le_def, hypreal_neq_iff]) 1);
 by (blast_tac (claset() addIs [hypreal_less_asym]) 1);
 qed "hypreal_less_le";

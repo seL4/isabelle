@@ -973,7 +973,7 @@ by (blast_tac (claset() addDs [real_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_real_less";
 
 (* Axiom 'order_less_le' of class 'order': *)
-Goal "(w::real) < z = (w <= z & w ~= z)";
+Goal "((w::real) < z) = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [real_le_def, real_neq_iff]) 1);
 by (blast_tac (claset() addSEs [real_less_asym]) 1);
 qed "real_less_le";

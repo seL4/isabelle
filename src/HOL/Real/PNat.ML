@@ -341,7 +341,7 @@ qed "pnat_less_add_eq_less";
 (* ordering on positive naturals in terms of existence of sum *)
 (* could provide alternative definition -- Gleason *)
 Goalw [pnat_less_def,pnat_add_def] 
-      "(z1::pnat) < z2 = (EX z3. z1 + z3 = z2)";
+      "((z1::pnat) < z2) = (EX z3. z1 + z3 = z2)";
 by (rtac iffI 1);
 by (res_inst_tac [("t","z2")] (Rep_pnat_inverse RS subst) 1);
 by (dtac lemma_less_ex_sum_Rep_pnat 1);

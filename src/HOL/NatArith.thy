@@ -9,8 +9,8 @@ files "arith_data.ML":
 
 setup arith_setup
 
-lemma pred_nat_trancl_eq_le: "(m, n) : pred_nat^* = (m <= n)"
-apply (simp add: less_eq reflcl_trancl [THEN sym] 
+lemma pred_nat_trancl_eq_le: "((m, n) : pred_nat^*) = (m <= n)"
+apply (simp add: less_eq reflcl_trancl [symmetric]
             del: reflcl_trancl)
 by arith
 

@@ -18,7 +18,7 @@ by (etac exE 1);
 by (eresolve_tac prems 1);
 qed "IdE";
 
-Goalw [Id_def] "(a,b):Id = (a=b)";
+Goalw [Id_def] "((a,b):Id) = (a=b)";
 by (Blast_tac 1);
 qed "pair_in_Id_conv";
 AddIffs [pair_in_Id_conv];
@@ -217,7 +217,7 @@ qed "trans_converse";
 
 (** Domain **)
 
-Goalw [Domain_def] "a: Domain(r) = (EX y. (a,y): r)";
+Goalw [Domain_def] "(a: Domain(r)) = (EX y. (a,y): r)";
 by (Blast_tac 1);
 qed "Domain_iff";
 
@@ -275,7 +275,7 @@ qed "Domain_mono";
 
 (** Range **)
 
-Goalw [Domain_def, Range_def] "a: Range(r) = (EX y. (y,a): r)";
+Goalw [Domain_def, Range_def] "(a: Range(r)) = (EX y. (y,a): r)";
 by (Blast_tac 1);
 qed "Range_iff";
 
@@ -333,7 +333,7 @@ qed "Range_Union";
 
 overload_1st_set "Relation.Image";
 
-Goalw [Image_def] "b : r``A = (EX x:A. (x,b):r)";
+Goalw [Image_def] "(b : r``A) = (EX x:A. (x,b):r)";
 by (Blast_tac 1);
 qed "Image_iff";
 

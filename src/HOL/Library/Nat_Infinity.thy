@@ -95,7 +95,7 @@ lemma Fin_iless_mono [simp]: "(Fin n < Fin m) = (n < m)"
 lemma Fin_iless_Infty [simp]: "Fin n < \<infinity>"
   by (simp add: inat_defs split:inat_splits, arith?)
 
-lemma Infty_eq [simp]: "n < \<infinity> = (n \<noteq> \<infinity>)"
+lemma Infty_eq [simp]: "(n < \<infinity>) = (n \<noteq> \<infinity>)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
 lemma i0_eq [simp]: "((0::inat) < n) = (n \<noteq> 0)"
@@ -110,13 +110,13 @@ lemma not_ilessi0 [simp]: "\<not> n < (0::inat)"
 lemma Fin_iless: "n < Fin m ==> \<exists>k. n = Fin k"
   by (simp add: inat_defs split:inat_splits, arith?)
 
-lemma iSuc_mono [simp]: "iSuc n < iSuc m = (n < m)"
+lemma iSuc_mono [simp]: "(iSuc n < iSuc m) = (n < m)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
 
 (* ----------------------------------------------------------------------- *)
 
-lemma ile_def2: "m \<le> n = (m < n \<or> m = (n::inat))"
+lemma ile_def2: "(m \<le> n) = (m < n \<or> m = (n::inat))"
   by (simp add: inat_defs split:inat_splits, arith?)
 
 lemma ile_refl [simp]: "n \<le> (n::inat)"
@@ -149,13 +149,13 @@ lemma ilessI1: "n \<le> m ==> n \<noteq> m ==> n < (m::inat)"
 lemma ileI1: "m < n ==> iSuc m \<le> n"
   by (simp add: inat_defs split:inat_splits, arith?)
 
-lemma Suc_ile_eq: "Fin (Suc m) \<le> n = (Fin m < n)"
+lemma Suc_ile_eq: "(Fin (Suc m) \<le> n) = (Fin m < n)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
-lemma iSuc_ile_mono [simp]: "iSuc n \<le> iSuc m = (n \<le> m)"
+lemma iSuc_ile_mono [simp]: "(iSuc n \<le> iSuc m) = (n \<le> m)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
-lemma iless_Suc_eq [simp]: "Fin m < iSuc n = (Fin m \<le> n)"
+lemma iless_Suc_eq [simp]: "(Fin m < iSuc n) = (Fin m \<le> n)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
 lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"

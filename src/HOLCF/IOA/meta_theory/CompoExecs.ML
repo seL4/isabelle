@@ -231,7 +231,7 @@ qed"lemma_1_2";
 
 
 Goal 
-"ex:executions(A||B) =\
+"(ex:executions(A||B)) =\
 \(Filter_ex (asig_of A) (ProjA ex) : executions A &\
 \ Filter_ex (asig_of B) (ProjB ex) : executions B &\
 \ stutter (asig_of A) (ProjA ex) & stutter (asig_of B) (ProjB ex) &\

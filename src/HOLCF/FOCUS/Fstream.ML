@@ -34,7 +34,7 @@ qed_goal "fstream_cases" thy "[| x = UU ==> P; !!a y. x = a~> y ==> P |] ==> P"
 fun fstream_case_tac s i = res_inst_tac [("x",s)] fstream_cases i
 			  THEN hyp_subst_tac i THEN hyp_subst_tac (i+1);
 
-qed_goal "fstream_exhaust_eq" thy "x ~= UU = (? a y. x = a~> y)" (fn _ => [
+qed_goal "fstream_exhaust_eq" thy "(x ~= UU) = (? a y. x = a~> y)" (fn _ => [
 	simp_tac(simpset() addsimps [fscons_def2,stream_exhaust_eq]) 1,
 	fast_tac (claset() addDs [not_Undef_is_Def RS iffD1] addEs [DefE]) 1]);
 
@@ -125,12 +125,12 @@ qed_goalw "slen_fscons" thy [fscons_def] "#(m~> s) = iSuc (#s)" (fn _ => [
 	(Simp_tac 1)]);
 
 qed_goal "slen_fscons_eq" thy 
-	"Fin (Suc n) < #x = (? a y. x = a~> y & Fin n < #y)" (fn _ => [
+	"(Fin (Suc n) < #x) = (? a y. x = a~> y & Fin n < #y)" (fn _ => [
 	simp_tac (HOL_ss addsimps [fscons_def2, slen_scons_eq]) 1,
 	fast_tac (HOL_cs addDs [not_Undef_is_Def RS iffD1] addEs [DefE]) 1]);
 
 qed_goal "slen_fscons_eq_rev" thy 
-	"#x < Fin (Suc (Suc n)) = (!a y. x ~= a~> y | #y < Fin (Suc n))" (K [
+	"(#x < Fin (Suc (Suc n))) = (!a y. x ~= a~> y | #y < Fin (Suc n))" (K [
 	simp_tac (HOL_ss addsimps [fscons_def2, slen_scons_eq_rev]) 1,
 	step_tac (HOL_cs addSEs [DefE]) 1,
 	step_tac (HOL_cs addSEs [DefE]) 1,
@@ -142,7 +142,7 @@ qed_goal "slen_fscons_eq_rev" thy
 	fast_tac (HOL_cs addDs [not_Undef_is_Def RS iffD1] addEs [DefE]) 1]);
 
 qed_goal "slen_fscons_less_eq" thy 
-	"#(a~> y) < Fin (Suc (Suc n)) = (#y < Fin (Suc n))" (fn _ => [
+	"(#(a~> y) < Fin (Suc (Suc n))) = (#y < Fin (Suc n))" (fn _ => [
 	stac slen_fscons_eq_rev 1,
 	fast_tac (HOL_cs addSDs [fscons_inject RS iffD1]) 1]);
 

@@ -143,7 +143,7 @@ constdefs
   lin :: "('a::{minus,plus,zero}) \<Rightarrow> 'a set"
   "lin x \<equiv> {a \<cdot> x | a. True}"
 
-lemma linD: "x \<in> lin v = (\<exists>a::real. x = a \<cdot> v)"
+lemma linD: "(x \<in> lin v) = (\<exists>a::real. x = a \<cdot> v)"
   by (unfold lin_def) fast
 
 lemma linI [intro?]: "a \<cdot> x0 \<in> lin x0"
@@ -222,7 +222,7 @@ defs (overloaded)
   vs_sum_def: "U + V \<equiv> {u + v | u v. u \<in> U \<and> v \<in> V}"
 
 lemma vs_sumD:
-  "x \<in> U + V = (\<exists>u \<in> U. \<exists>v \<in> V. x = u + v)"
+  "(x \<in> U + V) = (\<exists>u \<in> U. \<exists>v \<in> V. x = u + v)"
     by (unfold vs_sum_def) fast
 
 lemmas vs_sumE = vs_sumD [THEN iffD1, elim_format, standard]

@@ -372,7 +372,7 @@ qed "iszero_number_of_1";
 (** Less-than (<) **)
 
 Goalw [zless_def,zdiff_def] 
-    "(number_of x::int) < number_of y \
+    "((number_of x::int) < number_of y) \
 \    = neg (number_of (bin_add x (bin_minus y)))";
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 qed "less_number_of_eq_neg"; 

@@ -1157,7 +1157,7 @@ qed"FilterBmksch_is_schB";
 Goal 
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
-\       ==>  tr: traces(A||B) = \
+\       ==>  (tr: traces(A||B)) = \
 \            (Filter (%a. a:act A)$tr : traces A &\
 \             Filter (%a. a:act B)$tr : traces B &\
 \             Forall (%x. x:ext(A||B)) tr)";

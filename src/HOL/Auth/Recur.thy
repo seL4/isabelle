@@ -273,7 +273,7 @@ lemmas resp_analz_image_freshK =
 
 lemma analz_insert_freshK:
      "[| evs \<in> recur;  KAB \<notin> range shrK |]
-      ==> Key K \<in> analz (insert (Key KAB) (spies evs)) =
+      ==> (Key K \<in> analz (insert (Key KAB) (spies evs))) =
           (K = KAB | Key K \<in> analz (spies evs))"
 by (simp del: image_insert
          add: analz_image_freshK_simps raw_analz_image_freshK)
