@@ -85,6 +85,8 @@ sig
   val triv_goal		: thm
   val rev_triv_goal	: thm
   val mk_triv_goal      : cterm -> thm
+  val mk_cgoal		: cterm -> cterm
+  val assume_goal	: cterm -> thm
   val tvars_of_terms	: term list -> (indexname * sort) list
   val vars_of_terms	: term list -> (indexname * typ) list
   val tvars_of		: thm -> (indexname * sort) list
@@ -613,6 +615,9 @@ in
   val triv_goal = store_thm "triv_goal" (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume A));
   val rev_triv_goal = store_thm "rev_triv_goal" (Thm.equal_elim G_def (Thm.assume G));
 end;
+
+val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign (Const ("Goal", propT --> propT)));
+fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
 
 
 
