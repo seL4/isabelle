@@ -10,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool -> string
-    -> string -> string -> string -> int -> bool -> unit
+    -> string -> string -> string -> int -> bool -> bool -> unit
   val finish: unit -> unit
 end;
 
@@ -79,14 +79,14 @@ fun get_rpath rpath_str =
        rpath := Some (Url.unpack rpath_str);
    (!rpath, rpath_str <> ""));
 
-fun use_dir root_file build modes reset info doc doc_graph parent name dump rpath_str level verbose =
+fun use_dir root_file build modes reset info doc doc_graph parent name dump rpath_str level verbose hide =
   Library.setmp print_mode (modes @ ! print_mode)
-    (Library.setmp Proofterm.proofs level (fn () =>
+    (Library.setmp Proofterm.proofs level (Library.setmp IsarOutput.hide_commands hide (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph (path ()) name
          (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str) verbose;
        File.use (Path.basic root_file);
-       finish ()))) ()
+       finish ())))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
