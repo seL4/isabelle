@@ -50,32 +50,14 @@ actual installation directory of Proof~General.  From now on, the capital
 interface.\footnote{There is also a \texttt{ProofGeneral/isa} interface, for
   classic Isabelle tactic scripts.}
 
-%FIXME remove?
-%Its usage is as follows:
-%\begin{ttbox}
-%Usage: interface [OPTIONS] [FILES ...]
-%
-%  Options are:
-%    -l NAME      logic image name (default $ISABELLE_LOGIC=HOL)
-%    -p NAME      Emacs program name (default xemacs)
-%    -u BOOL      use .emacs file (default true)
-%    -w BOOL      use window system (default true)
-%    -x BOOL      enable x-symbol package
-%  Starts Proof General for Isabelle/Isar with proof documents FILES
-%  (default Scratch.thy).
-%
-%  PROOFGENERAL_OPTIONS=
-%\end{ttbox} %$
+The interface script provides several options, just pass ``\texttt{-?}'' to
+see its usage.  Apart from the command line, the defaults for these options
+may be overridden via the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For
+example, plain FSF Emacs (instead of the default XEmacs) may be configured in
+Isabelle's settings via \texttt{PROOFGENERAL_OPTIONS="-p emacs"}.
 
-The interface script provides several options (pass ``\texttt{-?}'' to see its
-usage).  Apart from the command line, the defaults for these options may be
-overridden via the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For
-example, plain GNU Emacs instead of XEmacs (which is the default) may be
-configured in Isabelle's settings via \texttt{PROOFGENERAL_OPTIONS="-p
-  emacs"}.
-
-Occasionally, a user's \texttt{.emacs} file contains material that is
-incompatible with the version of (X)Emacs that Proof~General prefers.  Then
+Occasionally, the user's \verb,~/.emacs, file contains material that is
+incompatible with the version of Emacs that Proof~General prefers.  Then
 proper startup may be still achieved by using the \texttt{-u false} option.
 Also note that any Emacs lisp file \texttt{proofgeneral-settings.el} occurring
 in \texttt{\$ISABELLE_HOME/etc} or \texttt{\$ISABELLE_HOME_USER/etc} is
@@ -89,22 +71,29 @@ visiting appropriate theory files, e.g.\
 Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 \end{ttbox}
 Users of XEmacs may note the tool bar for navigating forward and backward
-through the text.  Consult the Proof~General documentation
-\cite{proofgeneral,Aspinall:TACAS:2000} for further basic command sequences,
-such as ``\texttt{c-c return}'' or ``\texttt{c-c u}''.
+through the text.  Consult the Proof~General documentation \cite{proofgeneral}
+for further basic command sequences, such as ``\texttt{c-c c-return}'' or
+``\texttt{c-c u}''.
 
 \medskip
 
 Proof~General also supports the Emacs X-Symbol package \cite{x-symbol}, which
 provides a nice way to get proper mathematical symbols displayed on screen.
 Just pass option \texttt{-x true} to the Isabelle interface script, or check
-the appropriate menu setting by hand.  In any case, the X-Symbol package
-already must have been properly installed.
+the appropriate menu setting by hand.  In any case, the X-Symbol package must
+have been properly installed already.
+
+Note that using actual mathematical symbols in the text easily makes the ASCII
+sources hard to read.  For example, $\forall$ will appear as \verb,\\<forall>,
+according the default set of Isabelle symbols.  On the other hand, the
+Isabelle document preparation system \cite{isabelle-sys} will be happy to
+print non-ASCII symbols properly.  It is even possible to invent additional
+notation beyond the display capabilities of XEmacs~/X-Symbol.
 
 
 \section{Isabelle/Isar theories}
 
-Isabelle/Isar offers two main improvements over classic Isabelle:
+Isabelle/Isar offers the following main improvements over classic Isabelle:
 \begin{enumerate}
 \item A new \emph{theory format}, occasionally referred to as ``new-style
   theories'', supporting interactive development and unlimited undo operation.
@@ -112,6 +101,10 @@ Isabelle/Isar offers two main improvements over classic Isabelle:
   semi-automated reasoning.  Instead of putting together unreadable tactic
   scripts, the author is enabled to express the reasoning in way that is close
   to usual mathematical practice.
+\item A simple document preparation system for Isabelle/Isar theories, for
+  typesetting formal developments together with informal text.  The resulting
+  resulting hyper-linked PDF documents are equally well suited for WWW
+  presentation and printed copies.
 \end{enumerate}
 
 The Isar proof language is embedded into the new theory format as a proper
@@ -158,11 +151,12 @@ on Isar.
 give some clues of how the concepts introduced here may be put into practice.
 Appendix~\ref{ap:refcard} provides a quick reference card of the most common
 Isabelle/Isar language elements.  There are several examples distributed with
-Isabelle, and available via the Isabelle WWW library:
+Isabelle, and available via the Isabelle WWW library as well as the
+Isabelle/Isar page:
 \begin{center}\small
   \begin{tabular}{l}
     \url{http://www.cl.cam.ac.uk/Research/HVG/Isabelle/library/} \\
-    \url{http://isabelle.in.tum.de/library/} \\
+    \url{http://isabelle.in.tum.de/library/} \\[1ex]
     \url{http://isabelle.in.tum.de/Isar/} \\
   \end{tabular}
 \end{center}
