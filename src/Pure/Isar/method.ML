@@ -28,6 +28,8 @@ sig
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
+  val defer: int option -> Proof.method
+  val prefer: int -> Proof.method
   val insert_tac: thm list -> int -> tactic
   val insert: thm list -> Proof.method
   val insert_facts: Proof.method
@@ -193,6 +195,12 @@ fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Method may not be used with
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
+
+
+(* shuffle *)
+
+fun prefer i = METHOD (K (PRIMITIVE (Thm.permute_prems 0 (i - 1))));
+fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
 
 
 (* insert *)
