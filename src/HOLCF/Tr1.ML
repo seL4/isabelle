@@ -123,7 +123,7 @@ qed_goal "trE" Tr1.thy
 (* type tr is flat                                                          *) 
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flat_tr" Tr1.thy [flat_def] "flat(TT)"
+qed_goalw "flat_tr" Tr1.thy [is_flat_def] "is_flat(TT)"
  (fn prems =>
 	[
 	(rtac allI 1),

@@ -499,7 +499,7 @@ qed_goal "dnat_ind" Dnat.thy
 	]);
 
 
-qed_goalw "dnat_flat" Dnat.thy [flat_def] "flat(dzero)"
+qed_goalw "dnat_flat" Dnat.thy [is_flat_def] "is_flat(dzero)"
  (fn prems =>
 	[
 	(rtac allI 1),

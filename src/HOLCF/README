@@ -19,6 +19,6 @@ Changes:
 28.06.95 The old uncurried version of HOLCF is no longer supported
 	 in the distribution.
  
-18.08.95 added sections axioms, ops, domain, genertated
-	 and 8bit support
+18.08.95 added sections axioms, ops, domain, generated
+	 and optional 8bit support
 

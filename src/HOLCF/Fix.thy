@@ -18,7 +18,7 @@ fix     :: "('a->'a)->'a"
 adm          :: "('a=>bool)=>bool"
 admw         :: "('a=>bool)=>bool"
 chain_finite :: "'a=>bool"
-flat         :: "'a=>bool"
+is_flat         :: "'a=>bool"
 
 defs
 
@@ -35,7 +35,7 @@ admw_def      "admw P == !F. (!n.P (iterate n F UU)) -->
 chain_finite_def  "chain_finite (x::'a)==
                         !Y. is_chain (Y::nat=>'a) --> (? n.max_in_chain n Y)"
 
-flat_def          "flat (x::'a) ==
+is_flat_def          "is_flat (x::'a) ==
                         ! x y. (x::'a) << y --> (x = UU) | (x=y)"
 
 end

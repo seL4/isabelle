@@ -68,7 +68,7 @@ val dist_eq_one = dist_eq_one @ (map (fn thm => (thm RS not_sym)) dist_eq_one);
 (* one is flat                                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flat_one" One.thy [flat_def] "flat(one)"
+qed_goalw "flat_one" One.thy [is_flat_def] "is_flat(one)"
  (fn prems =>
 	[
 	(rtac allI 1),
