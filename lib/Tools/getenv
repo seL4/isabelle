@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# DESCRIPTION: get value from Isabelle settings
+# $Id$
 #
+# DESCRIPTION: get value from Isabelle settings
+
 
 PRG=$(basename $0)
 

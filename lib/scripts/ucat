@@ -1,9 +1,11 @@
 #!/bin/bash
 #
-# ucat - uninterruptible cat
-# NOTE: If perl is unavailable we simply fall back on normal cat!
-#
 # $Id$
+#
+# ucat - uninterruptible cat
+#
+# NOTE: If perl is unavailable we simply fall back on normal cat!
+
 
 PERL=$(type -path perl)
 

@@ -1,15 +1,14 @@
 #!/bin/bash
 #
-# Isabelle tool starter -- keeps your PATH name space clean.
-#
 # $Id$
+#
+# Isabelle tool starter -- keeps your PATH name space clean.
 
 
 ## settings
 
 ISABELLE_HOME=$(dirname $(dirname $0))
 . $ISABELLE_HOME/lib/scripts/getsettings
-
 
 
 ## diagnostics

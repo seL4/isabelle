@@ -1,10 +1,11 @@
 #!/bin/bash
 #
-# Isabelle within an xterm.
-#
 # $Id$
 #
-# TODO: isabelle fonts
+# Isabelle within an xterm.
+#
+# TODO:
+#   - font menu (cf. isa-xterm from 8bit package)
 
 
 ## diagnostics
