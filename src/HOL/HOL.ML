@@ -29,7 +29,7 @@ struct
   val arbitrary_def = arbitrary_def;
 end;
 
-AddXIs [equal_intr_rule, disjI1, disjI2, ext];
-AddXEs [ex1_implies_ex, sym];
+AddXIs [equal_intr_rule, ext];
+AddXEs [disjI1, disjI2, ex1_implies_ex, sym];
 
 open HOL;
