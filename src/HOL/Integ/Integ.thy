@@ -17,12 +17,11 @@ defs
    "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 subtype (Integ)
-  int = "{x::(nat*nat).True}/intrel"		("quotient_def")
+  int = "{x::(nat*nat).True}/intrel"		(Equiv.quotient_def)
 
-arities int :: ord
-        int :: plus
-        int :: times
-        int :: minus
+instance
+  int :: {ord, plus, times, minus}
+
 consts
   zNat        :: "nat set"
   znat	      :: "nat => int"	   ("$# _" [80] 80)
