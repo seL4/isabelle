@@ -159,10 +159,13 @@ which is either a single class name $c$ or a list $\{c@1, \dots, c@n\}$
 referring to the intersection of these classes.  The syntax of type arities is
 given directly at the outer level.
 
+\railalias{subseteq}{\isasymsubseteq}
+\railterm{subseteq}
+
 \indexouternonterm{sort}\indexouternonterm{arity}\indexouternonterm{simplearity}
 \indexouternonterm{classdecl}
 \begin{rail}
-  classdecl: name ('<' (nameref + ','))?
+  classdecl: name (('<' | subseteq) (nameref + ','))?
   ;
   sort: nameref
   ;

@@ -159,17 +159,18 @@ preceding the actual theory definition.
 \begin{rail}
   'classes' (classdecl comment? +)
   ;
-  'classrel' nameref '<' nameref comment?
+  'classrel' nameref ('<' | subseteq) nameref comment?
   ;
   'defaultsort' sort comment?
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{classes}~c<\vec c$] declares class $c$ to be a subclass
-  of existing classes $\vec c$.  Cyclic class structures are ruled out.
-\item [$\isarkeyword{classrel}~c@1<c@2$] states a subclass relation between
-  existing classes $c@1$ and $c@2$.  This is done axiomatically!  The
+\item [$\isarkeyword{classes}~c \subseteq \vec c$] declares class $c$ to be a
+  subclass of existing classes $\vec c$.  Cyclic class structures are ruled
+  out.
+\item [$\isarkeyword{classrel}~c@1 \subseteq c@2$] states a subclass relation
+  between existing classes $c@1$ and $c@2$.  This is done axiomatically!  The
   $\INSTANCE$ command (see \S\ref{sec:axclass}) provides a way to introduce
   proven class relations.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for

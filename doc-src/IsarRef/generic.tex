@@ -25,23 +25,24 @@ Isabelle documentation.
 \begin{rail}
   'axclass' classdecl (axmdecl prop comment? +)
   ;
-  'instance' (nameref '<' nameref | nameref '::' simplearity) comment?
+  'instance' (nameref ('<' | subseteq) nameref | nameref '::' simplearity) comment?
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\AXCLASS~c < \vec c~axms$] defines an axiomatic type class as the
-  intersection of existing classes, with additional axioms holding.  Class
+\item [$\AXCLASS~c \subseteq \vec c~axms$] defines an axiomatic type class as
+  the intersection of existing classes, with additional axioms holding.  Class
   axioms may not contain more than one type variable.  The class axioms (with
   implicit sort constraints added) are bound to the given names.  Furthermore
   a class introduction rule is generated, which is employed by method
   $intro_classes$ to support instantiation proofs of this class.
   
-\item [$\INSTANCE~c@1 < c@2$ and $\INSTANCE~t :: (\vec s)c$] setup a goal
-  stating a class relation or type arity.  The proof would usually proceed by
-  $intro_classes$, and then establish the characteristic theorems of the type
-  classes involved.  After finishing the proof, the theory will be augmented
-  by a type signature declaration corresponding to the resulting theorem.
+\item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)c$] setup a
+  goal stating a class relation or type arity.  The proof would usually
+  proceed by $intro_classes$, and then establish the characteristic theorems
+  of the type classes involved.  After finishing the proof, the theory will be
+  augmented by a type signature declaration corresponding to the resulting
+  theorem.
 \item [$intro_classes$] repeatedly expands all class introduction rules of
   this theory.  Note that this method usually needs not be named explicitly,
   as it is already included in the default proof step (of $\PROOFNAME$,
