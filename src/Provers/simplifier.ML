@@ -7,7 +7,7 @@ Generic simplifier, suitable for most logics.
  
 *)
 
-infix 4 addsimps addeqcongs delsimps
+infix 4 addsimps addeqcongs addsolver delsimps
         setsolver setloop setmksimps setsubgoaler;
 
 signature SIMPLIFIER =
@@ -15,6 +15,7 @@ sig
   type simpset
   val addeqcongs: simpset * thm list -> simpset
   val addsimps: simpset * thm list -> simpset
+  val addsolver: simpset * (thm list -> int -> tactic) -> simpset
   val delsimps: simpset * thm list -> simpset
   val asm_full_simp_tac: simpset -> int -> tactic
   val     full_simp_tac: simpset -> int -> tactic
@@ -73,6 +74,14 @@ fun (Simpset{mss,simps,congs,subgoal_tac,loop_tac,...}) setsolver finish_tac =
           congs= congs,
           subgoal_tac= subgoal_tac,
           finish_tac=finish_tac,
+          loop_tac=loop_tac};
+
+fun (Simpset{mss,simps,congs,subgoal_tac,loop_tac,finish_tac}) addsolver tac =
+  Simpset{mss=mss,
+          simps= simps,
+          congs= congs,
+          subgoal_tac= subgoal_tac,
+          finish_tac=fn hyps => finish_tac hyps ORELSE' tac hyps,
           loop_tac=loop_tac};
 
 fun (Simpset{mss,simps,congs,finish_tac,loop_tac,...}) setsubgoaler
