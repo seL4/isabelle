@@ -455,11 +455,11 @@ text{*\noindent
 For a start, the example demonstrates two new constructs:
 \begin{itemize}
 \item \isakeyword{let} introduces an abbreviation for a term, in our case
-the witness for the claim, because the term occurs multiple times in the proof.
+the witness for the claim.
 \item Proof by @{text"cases"} starts a proof by cases. Note that it remains
 implicit what the two cases are: it is merely expected that the two subproofs
-prove @{prop"P \<Longrightarrow> Q"} and @{prop"\<not>P \<Longrightarrow> Q"} for suitable @{term P} and
-@{term Q}.
+prove @{text"P \<Longrightarrow> ?thesis"} and @{text"\<not>P \<Longrightarrow> ?thesis"} (in that order)
+for some @{term P}.
 \end{itemize}
 If you wonder how to \isakeyword{obtain} @{term y}:
 via the predefined elimination rule @{thm rangeE[no_vars]}.
@@ -478,15 +478,15 @@ proof
     then obtain y where fy: "?S = f y" ..
     show False
     proof cases
-      assume A: "y \<in> ?S"
-      hence isin: "y \<in> f y"   by(simp add:fy)
-      from A have "y \<notin> f y"   by simp
-      with isin show False    by contradiction
+      assume "y \<in> ?S"
+      hence "y \<notin> f y"   by simp
+      hence "y \<notin> ?S"    by(simp add:fy)
+      thus False        by contradiction
     next
-      assume A: "y \<notin> ?S"
-      hence notin: "y \<notin> f y"   by(simp add:fy)
-      from A have "y \<in> f y"    by simp
-      with notin show False    by contradiction
+      assume "y \<notin> ?S"
+      hence "y \<in> f y"   by simp
+      hence "y \<in> ?S"    by(simp add:fy)
+      thus False        by contradiction
     qed
   qed
 qed
@@ -562,11 +562,13 @@ next
 qed
 text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
 \isakeyword{assume}~@{prop"xs = []"} and \isakeyword{case}~@{text Cons}
-abbreviates \isakeyword{assume}~@{text"xs = _ # _"}. The names of the head
-and tail of @{text xs} have been chosen by the system. Therefore we cannot
+abbreviates \isakeyword{fix}~@{text"? ??"}
+\isakeyword{assume}~@{text"xs = ? # ??"} where @{text"?"} and @{text"??"}
+stand for variable names that have been chosen by the system.
+Therefore we cannot
 refer to them (this would lead to obscure proofs) and have not even shown
 them. Luckily, this proof is simple enough we do not need to refer to them.
-However, in general one may have to. Hence Isar offers a simple scheme for
+However, sometimes one may have to. Hence Isar offers a simple scheme for
 naming those variables: replace the anonymous @{text Cons} by, for example,
 @{text"(Cons y ys)"}, which abbreviates \isakeyword{fix}~@{text"y ys"}
 \isakeyword{assume}~@{text"xs = Cons y ys"}, i.e.\ @{prop"xs = y # ys"}. Here
@@ -644,42 +646,38 @@ bound variable @{term x} you may write @{text"(Suc n x)"}, thus abbreviating
 \isakeyword{fix}~@{term x}.
 It should be clear how this example generalizes to more complex formulae.
 
-As a concrete example we will now prove complete induction
-@{prop[display,indent=5]"(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n) \<Longrightarrow> P n"}
-via structural induction. It is well known that one needs to prove
-something more general first: *}
-lemma cind_lemma:
-  assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
-  shows "\<And>m. m < n \<Longrightarrow> P(m::nat)"
-proof (induct n)
-  case 0 thus ?case by simp
-next
-  case (Suc n m)    -- {*@{text"?m < n \<Longrightarrow> P ?m"}  and  @{prop"m < Suc n"}*}
-  show ?case       -- {*@{term ?case}*}
-  proof cases
-    assume eq: "m = n"
-    from Suc A have "P n" by blast
-    with eq show "P m" by simp
+As a concrete example we will now prove complete induction via
+structural induction: *}
+
+lemma assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
+  shows "P(n::nat)"
+proof (rule A)
+  show "\<And>m. m < n \<Longrightarrow> P m"
+  proof (induct n)
+    case 0 thus ?case by simp
   next
-    assume neq: "m \<noteq> n"
-    with Suc have "m < n" by simp
-    with Suc show "P m" by blast
+    case (Suc n m)    -- {*@{text"?m < n \<Longrightarrow> P ?m"}  and  @{prop"m < Suc n"}*}
+    show ?case       -- {*@{term ?case}*}
+    proof cases
+      assume eq: "m = n"
+      from Suc A have "P n" by blast
+      with eq show "P m" by simp
+    next
+      assume "m \<noteq> n"
+      with Suc have "m < n" by arith
+      thus "P m" by(rule Suc)
+    qed
   qed
 qed
 text{* \noindent Given the explanations above and the comments in
 the proof text, the proof should be quite readable.
 
-The statemt of the lemma is interesting because it deviates from the style in
+The statement of the lemma is interesting because it deviates from the style in
 the Tutorial~\cite{LNCS2283}, which suggests to introduce @{text"\<forall>"} or
 @{text"\<longrightarrow>"} into a theorem to strengthen it for induction. In structured Isar
 proofs we can use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This simplifies the
-proof and means we don't have to convert between the two kinds of
-connectives. As usual, at the end of the proof @{text"\<And>"} disappears and the
-bound variable is turned into a @{text"?"}-variable. Thus
-@{thm[source]cind_lemma} becomes @{thm[display,indent=5] cind_lemma} Complete
-induction is an easy corollary: instantiation followed by simplification,
-@{text"cind_lemma[of _ n \"Suc n\", simplified]"}, yields
-@{thm[display,indent=5] cind_lemma[of _ n "Suc n", simplified]}
+proof and means we do not have to convert between the two kinds of
+connectives.
 *}
 
 subsection{*Rule induction*}
