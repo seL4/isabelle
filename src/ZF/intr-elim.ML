@@ -235,7 +235,7 @@ val rec_typechecks = [dom_subset] RL (asm_rl::monos) RL [subsetD];
   disjIn selects the correct disjunct after unfolding*)
 fun intro_tacsf disjIn prems = 
   [(*insert prems and underlying sets*)
-   cut_facts_tac (prems @ (prems RL [PartD1])) 1,
+   cut_facts_tac prems 1,
    rtac (unfold RS ssubst) 1,
    REPEAT (resolve_tac [Part_eqI,CollectI] 1),
    (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
@@ -244,9 +244,10 @@ fun intro_tacsf disjIn prems =
    rewrite_goals_tac con_defs,
    (*Now can solve the trivial equation*)
    REPEAT (rtac refl 2),
-   REPEAT (FIRSTGOAL (eresolve_tac (asm_rl::type_elims)
+   REPEAT (FIRSTGOAL (eresolve_tac (asm_rl::PartE::type_elims)
+		      ORELSE' hyp_subst_tac
 		      ORELSE' dresolve_tac rec_typechecks)),
-   DEPTH_SOLVE (ares_tac type_intrs 1)];
+   DEPTH_SOLVE (swap_res_tac type_intrs 1)];
 
 (*combines disjI1 and disjI2 to access the corresponding nested disjunct...*)
 val mk_disj_rls = 
@@ -260,7 +261,10 @@ val intrs = map (prove part_rec_defs)
 (********)
 val dummy = writeln "Proving the elimination rule...";
 
-val elim_rls = [asm_rl, FalseE, conjE, exE, disjE];
+(*Includes rules for succ and Pair since they are common constructions*)
+val elim_rls = [asm_rl, FalseE, succ_neq_0, sym RS succ_neq_0, 
+		Pair_neq_0, sym RS Pair_neq_0, succ_inject, refl_thin,
+		conjE, exE, disjE];
 
 val sumprod_free_SEs = 
     map (gen_make_elim [conjE,FalseE])

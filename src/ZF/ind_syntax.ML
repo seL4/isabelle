@@ -172,4 +172,7 @@ val def_swap_iff = result();
 val def_trans = prove_goal IFOL.thy "[| f==g;  g(a)=b |] ==> f(a)=b"
   (fn [rew,prem] => [ rewtac rew, rtac prem 1 ]);
 
+(*Delete needless equality assumptions*)
+val refl_thin = prove_goal IFOL.thy "!!P. [| a=a;  P |] ==> P"
+     (fn _ => [assume_tac 1]);
 

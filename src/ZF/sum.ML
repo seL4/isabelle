@@ -32,47 +32,41 @@ by (REPEAT (rtac refl 1
      ORELSE eresolve_tac (prems@[SigmaE,singletonE,ssubst]) 1));
 val sumE = result();
 
-(** Injection and freeness rules **)
-
-val [major] = goalw Sum.thy sum_defs "Inl(a)=Inl(b) ==> a=b";
-by (EVERY1 [rtac (major RS Pair_inject), assume_tac]);
-val Inl_inject = result();
-
-val [major] = goalw Sum.thy sum_defs "Inr(a)=Inr(b) ==> a=b";
-by (EVERY1 [rtac (major RS Pair_inject), assume_tac]);
-val Inr_inject = result();
-
-val [major] = goalw Sum.thy sum_defs "Inl(a)=Inr(b) ==> P";
-by (rtac (major RS Pair_inject) 1);
-by (etac (sym RS one_neq_0) 1);
-val Inl_neq_Inr = result();
-
-val Inr_neq_Inl = sym RS Inl_neq_Inr;
-
 (** Injection and freeness equivalences, for rewriting **)
 
-goal Sum.thy "Inl(a)=Inl(b) <-> a=b";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [Inl_inject,subst_context] 1));
+goalw Sum.thy sum_defs "Inl(a)=Inl(b) <-> a=b";
+by (simp_tac (ZF_ss addsimps [Pair_iff]) 1);
 val Inl_iff = result();
 
-goal Sum.thy "Inr(a)=Inr(b) <-> a=b";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [Inr_inject,subst_context] 1));
+goalw Sum.thy sum_defs "Inr(a)=Inr(b) <-> a=b";
+by (simp_tac (ZF_ss addsimps [Pair_iff]) 1);
 val Inr_iff = result();
 
-goal Sum.thy "Inl(a)=Inr(b) <-> False";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [Inl_neq_Inr,FalseE] 1));
+goalw Sum.thy sum_defs "Inl(a)=Inr(b) <-> False";
+by (simp_tac (ZF_ss addsimps [Pair_iff, one_not_0 RS not_sym]) 1);
 val Inl_Inr_iff = result();
 
-goal Sum.thy "Inr(b)=Inl(a) <-> False";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [Inr_neq_Inl,FalseE] 1));
+goalw Sum.thy sum_defs "Inr(b)=Inl(a) <-> False";
+by (simp_tac (ZF_ss addsimps [Pair_iff, one_not_0]) 1);
 val Inr_Inl_iff = result();
 
-val sum_cs = ZF_cs addIs [InlI,InrI] addSEs [sumE,Inl_neq_Inr,Inr_neq_Inl]
+(*Injection and freeness rules*)
+
+val Inl_inject = standard (Inl_iff RS iffD1);
+val Inr_inject = standard (Inr_iff RS iffD1);
+val Inl_neq_Inr = standard (Inl_Inr_iff RS iffD1 RS FalseE);
+val Inr_neq_Inl = standard (Inr_Inl_iff RS iffD1 RS FalseE);
+
+val sum_cs = ZF_cs addSIs [InlI,InrI] addSEs [sumE,Inl_neq_Inr,Inr_neq_Inl]
                    addSDs [Inl_inject,Inr_inject];
+
+goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
+by (fast_tac sum_cs 1);
+val InlD = result();
+
+goal Sum.thy "!!A B. Inr(b): A+B ==> b: B";
+by (fast_tac sum_cs 1);
+val InrD = result();
 
 goal Sum.thy "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))";
 by (fast_tac sum_cs 1);

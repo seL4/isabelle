@@ -52,8 +52,7 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 			    Pair_in_univ]) 1);
 val list_univ = result();
 
-val list_subset_univ = standard
-    (list_mono RS (list_univ RSN (2,subset_trans)));
+val list_subset_univ = standard ([list_mono, list_univ] MRS subset_trans);
 
 val major::prems = goal List.thy
     "[| l: list(A);    \

@@ -55,12 +55,16 @@ end;
 val data_typechecks = 
     [SigmaI, InlI, InrI,
      Pair_in_univ, Inl_in_univ, Inr_in_univ, 
-     zero_in_univ, A_into_univ, nat_into_univ, sum_univ RS subsetD];
+     zero_in_univ, A_into_univ, nat_into_univ, UnCI];
 
+(*Needed for mutual recursion*)
+val data_elims = [make_elim InlD, make_elim InrD];
 
 (*For most co-datatypes involving quniv*)
 val co_data_typechecks = 
     [QSigmaI, QInlI, QInrI,
      QPair_in_quniv, QInl_in_quniv, QInr_in_quniv, 
-     zero_in_quniv, A_into_quniv, nat_into_quniv, qsum_quniv RS subsetD];
+     zero_in_quniv, A_into_quniv, nat_into_quniv, UnCI];
+
+val co_data_elims = [make_elim QInlD, make_elim QInrD];
 

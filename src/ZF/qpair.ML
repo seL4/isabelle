@@ -182,48 +182,42 @@ by (REPEAT (rtac refl 1
      ORELSE eresolve_tac (prems@[QSigmaE,singletonE,ssubst]) 1));
 val qsumE = result();
 
-(** QInjection and freeness rules **)
-
-val [major] = goalw QPair.thy qsum_defs "QInl(a)=QInl(b) ==> a=b";
-by (EVERY1 [rtac (major RS QPair_inject), assume_tac]);
-val QInl_inject = result();
-
-val [major] = goalw QPair.thy qsum_defs "QInr(a)=QInr(b) ==> a=b";
-by (EVERY1 [rtac (major RS QPair_inject), assume_tac]);
-val QInr_inject = result();
-
-val [major] = goalw QPair.thy qsum_defs "QInl(a)=QInr(b) ==> P";
-by (rtac (major RS QPair_inject) 1);
-by (etac (sym RS one_neq_0) 1);
-val QInl_neq_QInr = result();
-
-val QInr_neq_QInl = sym RS QInl_neq_QInr;
-
 (** Injection and freeness equivalences, for rewriting **)
 
-goal QPair.thy "QInl(a)=QInl(b) <-> a=b";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [QInl_inject,subst_context] 1));
+goalw QPair.thy qsum_defs "QInl(a)=QInl(b) <-> a=b";
+by (simp_tac (ZF_ss addsimps [QPair_iff]) 1);
 val QInl_iff = result();
 
-goal QPair.thy "QInr(a)=QInr(b) <-> a=b";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [QInr_inject,subst_context] 1));
+goalw QPair.thy qsum_defs "QInr(a)=QInr(b) <-> a=b";
+by (simp_tac (ZF_ss addsimps [QPair_iff]) 1);
 val QInr_iff = result();
 
-goal QPair.thy "QInl(a)=QInr(b) <-> False";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [QInl_neq_QInr,FalseE] 1));
+goalw QPair.thy qsum_defs "QInl(a)=QInr(b) <-> False";
+by (simp_tac (ZF_ss addsimps [QPair_iff, one_not_0 RS not_sym]) 1);
 val QInl_QInr_iff = result();
 
-goal QPair.thy "QInr(b)=QInl(a) <-> False";
-by (rtac iffI 1);
-by (REPEAT (eresolve_tac [QInr_neq_QInl,FalseE] 1));
+goalw QPair.thy qsum_defs "QInr(b)=QInl(a) <-> False";
+by (simp_tac (ZF_ss addsimps [QPair_iff, one_not_0]) 1);
 val QInr_QInl_iff = result();
+
+(*Injection and freeness rules*)
+
+val QInl_inject = standard (QInl_iff RS iffD1);
+val QInr_inject = standard (QInr_iff RS iffD1);
+val QInl_neq_QInr = standard (QInl_QInr_iff RS iffD1 RS FalseE);
+val QInr_neq_QInl = standard (QInr_QInl_iff RS iffD1 RS FalseE);
 
 val qsum_cs = 
     ZF_cs addIs [QInlI,QInrI] addSEs [qsumE,QInl_neq_QInr,QInr_neq_QInl]
           addSDs [QInl_inject,QInr_inject];
+
+goal QPair.thy "!!A B. QInl(a): A<+>B ==> a: A";
+by (fast_tac qsum_cs 1);
+val QInlD = result();
+
+goal QPair.thy "!!A B. QInr(b): A<+>B ==> b: B";
+by (fast_tac qsum_cs 1);
+val QInrD = result();
 
 (** <+> is itself injective... who cares?? **)
 
