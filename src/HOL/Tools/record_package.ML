@@ -848,7 +848,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) update_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes)
-        [make_spec, fields_spec, extend_spec, truncate_spec];
+        [make_spec, fields_spec, extend_spec, truncate_spec]
+      |>> Theory.hide_consts false [full makeN, full fieldsN, full extendN, full truncateN,
+        full moreN, full (suffix updateN moreN)];
 
 
     (* 3rd stage: thms_thy *)
