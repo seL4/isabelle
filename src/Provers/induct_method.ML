@@ -63,22 +63,6 @@ fun prep_inst align cert tune (tm, ts) =
   end;
 
 
-(* tactics with cases *)
-
-fun resolveq_cases_tac make tac ruleq i st =
-  ruleq |> Seq.map (fn (rule, (cases, facts)) =>
-    (Method.insert_tac facts THEN' tac THEN' Tactic.rtac rule) i st
-    |> Seq.map (rpair (make rule cases)))
-  |> Seq.flat;
-
-
-infix 1 THEN_ALL_NEW_CASES;
-
-fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
-  st |> Seq.THEN (tac1 i, (fn (st', cases) =>
-    Seq.map (rpair cases) (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st')));
-
-
 
 (** cases method **)
 
@@ -91,6 +75,12 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 *)
 
 local
+
+fun resolveq_cases_tac make ruleq i st =
+  ruleq |> Seq.map (fn (rule, (cases, facts)) =>
+    (Method.insert_tac facts THEN' Tactic.rtac rule) i st
+    |> Seq.map (rpair (make rule cases)))
+  |> Seq.flat;
 
 fun find_casesT ctxt ((Some t :: _) :: _) = InductAttrib.find_casesT ctxt (fastype_of t)
   | find_casesT _ _ = [];
@@ -122,10 +112,7 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
     fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
       (Method.multi_resolves (take (n, facts)) [th]);
-  in
-    resolveq_cases_tac (RuleCases.make open_parms) (K all_tac)
-      (Seq.flat (Seq.map prep_rule ruleq))
-  end;
+  in resolveq_cases_tac (RuleCases.make open_parms) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
 in
 
@@ -145,6 +132,9 @@ end;
 *)
 
 local
+
+
+(* atomize and rulify *)
 
 fun atomize_cterm ct =
   Thm.cterm_fun (ObjectLogic.drop_judgment (#sign (Thm.rep_cterm ct)))
@@ -167,6 +157,8 @@ fun rulify_cases sg cert =
   in map (apsnd ruly_case) ooo RuleCases.make_raw end;
 
 
+(* join multi-rules *)
+
 val eq_prems = curry (Term.aconvs o pairself Thm.prems_of);
 
 fun join_rules [] = []
@@ -185,6 +177,58 @@ fun join_rules [] = []
           |> Drule.standard']
         end;
 
+
+(* divinate rule instantiation (cannot handle pending goal parameters) *)
+
+fun dest_env sign (Envir.Envir {asol, iTs, ...}) =
+  let
+    val pairs = Vartab.dest asol;
+    val ts = map (Thm.cterm_of sign o #2) pairs;
+    val xs = map2 (Thm.cterm_of sign o Var) (map #1 pairs, map (#T o Thm.rep_cterm) ts);
+  in (map (apsnd (Thm.ctyp_of sign)) (Vartab.dest iTs), xs ~~ ts) end;
+
+fun divinate_inst rule i st =
+  let
+    val {sign, maxidx, ...} = Thm.rep_thm st;
+    val goal = List.nth (Thm.prems_of st, i - 1);  (*exception Subscript*)
+    val params = rev (rename_wrt_term goal (Logic.strip_params goal));  (*as they are printed :-*)
+  in
+    if not (null params) then
+      (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^
+        commas (map (Sign.string_of_term sign o Syntax.mark_boundT) params));
+      Seq.single rule)
+    else
+      let
+        val rule' = Thm.incr_indexes (maxidx + 1) rule;
+        val concl = Logic.strip_assums_concl goal;
+      in
+        Unify.smash_unifiers (sign, Envir.empty (#maxidx (Thm.rep_thm rule')),
+          [(Thm.concl_of rule', concl)])
+        |> Seq.map (fn env => Thm.instantiate (dest_env sign env) rule')
+      end
+  end handle Subscript => Seq.empty;
+
+
+(* compose tactics with cases *)
+
+fun resolveq_cases_tac' make ruleq i st =
+  ruleq |> Seq.map (fn (rule, (cases, facts)) => st
+    |> (Method.insert_tac facts THEN' atomize_tac) i
+    |> Seq.map (fn st' => divinate_inst rule i st'
+      |> Seq.map (fn rule' => st' |> Tactic.rtac rule' i |> Seq.map (rpair (make rule' cases)))
+      |> Seq.flat)
+    |> Seq.flat)
+  |> Seq.flat;
+
+infix 1 THEN_ALL_NEW_CASES;
+
+fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
+  st |> Seq.THEN (tac1 i, (fn (st', cases) =>
+    Seq.map (rpair cases) (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st')));
+
+
+(* find rules *)
+
 fun find_inductT ctxt insts =
   foldr multiply (insts |> mapfilter (fn [] => None | ts => last_elem ts)
     |> map (InductAttrib.find_inductT ctxt o fastype_of), [[]])
@@ -192,6 +236,9 @@ fun find_inductT ctxt insts =
 
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
   | find_inductS _ _ = [];
+
+
+(* main tactic *)
 
 fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
   let
@@ -215,11 +262,9 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
           end
       | Some r => Seq.single (inst_rule r));
 
-    (* FIXME divinate rule_inst *)
-
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [th]);
-    val tac = resolveq_cases_tac (rulify_cases sg cert open_parms) atomize_tac
+    val tac = resolveq_cases_tac' (rulify_cases sg cert open_parms)
       (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 
