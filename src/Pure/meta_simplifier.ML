@@ -630,7 +630,7 @@ fun rewritec (prover, signt, maxt)
              | Some raw_thm =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
-                    None => (trace false "IGNORED"; proc_rews ps)
+                    None => (trace_cterm false "IGNORED - does not match" t; proc_rews ps)
                   | some => some)))
           else proc_rews ps;
   in case eta_t of
