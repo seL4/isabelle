@@ -12,6 +12,7 @@ Derived rule for turning meta-level surjective pairing into split rule:
 
 signature SPLIT_PAIRED_ALL =
 sig
+  val rule_params: string -> string -> thm -> thm
   val rule: thm -> thm
 end;
 
@@ -25,7 +26,7 @@ infixr ==>;
 val op ==> = Logic.mk_implies;
 
 
-fun rule raw_surj_pair =
+fun rule_params a b raw_surj_pair =
   let
     val ct = Thm.cterm_of (Thm.sign_of_thm raw_surj_pair);
 
@@ -37,7 +38,7 @@ fun rule raw_surj_pair =
     val P = Free (variant used "P", pT --> propT);
 
    (*"!!a b. PROP (a, b)"*)
-   val all_a_b = all "a" aT (all "b" bT (P $ (con $ Bound 1 $ Bound 0)));
+   val all_a_b = all a aT (all b bT (P $ (con $ Bound 1 $ Bound 0)));
    (*"!!x. PROP P x"*)
    val all_x = all "x" pT (P $ Bound 0);
 
@@ -56,6 +57,8 @@ fun rule raw_surj_pair =
    val lem4 = prove_goalw_cterm [] (ct (all_x ==> all_a_b))
      (fn prems => [resolve_tac prems 1]);
   in standard (Thm.equal_intr lem4 lem3) end;
+
+val rule = rule_params "a" "b";
 
 
 end;
