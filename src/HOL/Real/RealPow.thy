@@ -6,10 +6,7 @@
 
 *)
 
-theory RealPow = RealAbs:
-
-(*belongs to theory RealAbs*)
-lemmas [arith_split] = abs_split
+theory RealPow = RealArith:
 
 instance real :: power ..
 

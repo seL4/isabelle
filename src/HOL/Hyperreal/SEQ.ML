@@ -859,8 +859,8 @@ by (induct_tac "M" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (Asm_full_simp_tac 1);
 by (Step_tac 1);
-by (cut_inst_tac [("R1.0","abs (X (Suc n))"),("R2.0","abs(X m)")]
-        real_linear 1);
+by (cut_inst_tac [("x","abs (X (Suc n))"),("y","abs(X m)")]
+        linorder_less_linear 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","m")] exI 1);
 by (res_inst_tac [("x","m")] exI 2);
@@ -919,8 +919,8 @@ by (Asm_full_simp_tac 1);
 by (dtac lemmaCauchy 1);
 by (cut_inst_tac [("M","M"),("X","X")] SUP_rabs_subseq 1);
 by (Step_tac 1);
-by (cut_inst_tac [("R1.0","abs(X m)"),
-     ("R2.0","1 + abs(X M)")] real_linear 1);
+by (cut_inst_tac [("x","abs(X m)"),
+     ("y","1 + abs(X M)")] linorder_less_linear 1);
 by (Step_tac 1);
 by (dtac lemma_trans1 1 THEN assume_tac 1);
 by (dtac lemma_trans2 3 THEN assume_tac 3);

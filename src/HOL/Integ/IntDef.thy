@@ -38,7 +38,7 @@ constdefs
   iszero :: "int => bool"
   "iszero z == z = (0::int)"
   
-defs (*of overloaded constants*)
+defs (overloaded)
   
   Zero_int_def:  "0 == int 0"
   One_int_def:  "1 == int 1"

@@ -1,6 +1,7 @@
 (*  Title:   HOL/Ring_and_Field.thy
     ID:      $Id$
     Author:  Gertrud Bauer and Markus Wenzel, TU Muenchen
+             Lawrence C Paulson, University of Cambridge
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -145,11 +146,11 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma right_inverse [simp]: "a \<noteq> 0 ==> a * inverse (a::'a::field) = 1"
+lemma right_inverse [simp]:
+      assumes not0: "a ~= 0" shows "a * inverse (a::'a::field) = 1"
 proof -
   have "a * inverse a = inverse a * a" by (simp add: mult_ac)
-  also assume "a \<noteq> 0"
-  hence "inverse a * a = 1" by simp
+  also have "... = 1" using not0 by simp
   finally show ?thesis .
 qed
 
@@ -241,7 +242,7 @@ apply (erule add_strict_left_mono)
 done
 
 lemma le_imp_neg_le:
-   assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
+      assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
   proof -
   have "-a+a \<le> -a+b"
     by (rule add_left_mono) 
@@ -485,9 +486,9 @@ subsection {* Fields *}
 
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
-  assumes cnz: "c \<noteq> (0::'a::field)"
-      and eq:  "a*c = b*c"
-     shows "a=b"
+      assumes cnz: "c \<noteq> (0::'a::field)"
+	  and eq:  "a*c = b*c"
+	 shows "a=b"
   proof -
   have "(a * c) * inverse c = (b * c) * inverse c"
     by (simp add: eq)
@@ -497,7 +498,7 @@ lemma field_mult_cancel_right_lemma:
 
 lemma field_mult_cancel_right:
      "(a*c = b*c) = (c = (0::'a::field) | a=b)"
-  proof (cases "c=0")
+  proof cases
     assume "c=0" thus ?thesis by simp
   next
     assume "c\<noteq>0" 
@@ -534,18 +535,17 @@ lemma inverse_nonzero_iff_nonzero [simp]:
 by (force dest: inverse_nonzero_imp_nonzero) 
 
 lemma nonzero_inverse_minus_eq:
-     "a\<noteq>0 ==> inverse(-a) = -inverse(a::'a::field)";
+      assumes [simp]: "a\<noteq>0"  shows "inverse(-a) = -inverse(a::'a::field)"
   proof -
-    assume "a\<noteq>0" 
-    hence "-a * inverse (- a) = -a * - inverse a"
+    have "-a * inverse (- a) = -a * - inverse a"
       by simp
     thus ?thesis 
-      by (simp only: field_mult_cancel_left, simp add: prems)
+      by (simp only: field_mult_cancel_left, simp)
   qed
 
 lemma inverse_minus_eq [simp]:
      "inverse(-a) = -inverse(a::'a::{field,division_by_zero})";
-  proof (cases "a=0")
+  proof cases
     assume "a=0" thus ?thesis by (simp add: inverse_zero)
   next
     assume "a\<noteq>0" 
@@ -553,10 +553,10 @@ lemma inverse_minus_eq [simp]:
   qed
 
 lemma nonzero_inverse_eq_imp_eq:
-   assumes inveq: "inverse a = inverse b"
-       and anz:  "a \<noteq> 0"
-       and bnz:  "b \<noteq> 0"
-      shows "a = (b::'a::field)"
+      assumes inveq: "inverse a = inverse b"
+	  and anz:  "a \<noteq> 0"
+	  and bnz:  "b \<noteq> 0"
+	 shows "a = (b::'a::field)"
   proof -
   have "a * inverse b = a * inverse a"
     by (simp add: inveq)
@@ -582,8 +582,7 @@ by (force dest!: inverse_eq_imp_eq)
 subsection {* Ordered Fields *}
 
 lemma inverse_gt_0: 
-    assumes a_gt_0: "0 < a"
-      shows "0 < inverse (a::'a::ordered_field)"
+      assumes a_gt_0: "0 < a"  shows "0 < inverse (a::'a::ordered_field)"
   proof -
   have "0 < a * inverse a" 
     by (simp add: a_gt_0 [THEN order_less_imp_not_eq2] zero_less_one)
@@ -597,9 +596,9 @@ lemma inverse_less_0:
       simp add: nonzero_inverse_minus_eq order_less_imp_not_eq) 
 
 lemma inverse_le_imp_le:
-   assumes invle: "inverse a \<le> inverse b"
-       and apos:  "0 < a"
-      shows "b \<le> (a::'a::ordered_field)"
+      assumes invle: "inverse a \<le> inverse b"
+	  and apos:  "0 < a"
+	 shows "b \<le> (a::'a::ordered_field)"
   proof (rule classical)
   assume "~ b \<le> a"
   hence "a < b"
@@ -615,9 +614,9 @@ lemma inverse_le_imp_le:
   qed
 
 lemma less_imp_inverse_less:
-   assumes less: "a < b"
-       and apos:  "0 < a"
-     shows "inverse b < inverse (a::'a::ordered_field)"
+      assumes less: "a < b"
+	  and apos:  "0 < a"
+	shows "inverse b < inverse (a::'a::ordered_field)"
   proof (rule ccontr)
   assume "~ inverse b < inverse a"
   hence "inverse a \<le> inverse b"

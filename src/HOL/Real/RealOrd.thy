@@ -8,20 +8,6 @@ header{*The Reals Form an Ordered Field, etc.*}
 
 theory RealOrd = RealDef:
 
-instance real :: order
-  by (intro_classes,
-      (assumption | 
-       rule real_le_refl real_le_trans real_le_anti_sym real_less_le)+)
-
-instance real :: linorder
-  by (intro_classes, rule real_le_linear)
-
-instance real :: plus_ac0
-  by (intro_classes,
-      (assumption | 
-       rule real_add_commute real_add_assoc real_add_zero_left)+)
-
-
 defs (overloaded)
   real_abs_def:  "abs (r::real) == (if 0 \<le> r then r else -r)"
 
@@ -220,6 +206,110 @@ lemma real_le_minus_iff: "(-s \<le> -r) = ((r::real) \<le> s)"
 
 lemma real_le_square [simp]: "(0::real) \<le> x*x"
  by (rule Ring_and_Field.zero_le_square)
+
+
+subsection{*Division Lemmas*}
+
+(** Inverse of zero!  Useful to simplify certain equations **)
+
+lemma INVERSE_ZERO [simp]: "inverse 0 = (0::real)"
+apply (unfold real_inverse_def)
+apply (rule someI2)
+apply (auto simp add: real_zero_not_eq_one)
+done
+
+lemma DIVISION_BY_ZERO [simp]: "a / (0::real) = 0"
+by (simp add: real_divide_def INVERSE_ZERO)
+
+lemma real_mult_left_cancel: "(c::real) ~= 0 ==> (c*a=c*b) = (a=b)"
+apply auto
+done
+
+lemma real_mult_right_cancel: "(c::real) ~= 0 ==> (a*c=b*c) = (a=b)"
+apply (auto ); 
+done
+
+lemma real_mult_left_cancel_ccontr: "c*a ~= c*b ==> a ~= b"
+by auto
+
+lemma real_mult_right_cancel_ccontr: "a*c ~= b*c ==> a ~= b"
+by auto
+
+lemma real_inverse_not_zero: "x ~= 0 ==> inverse(x::real) ~= 0"
+  by (rule Ring_and_Field.nonzero_imp_inverse_nonzero)
+
+lemma real_mult_not_zero: "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::real)"
+apply (simp add: ); 
+done
+
+lemma real_inverse_inverse: "inverse(inverse (x::real)) = x"
+apply (case_tac "x=0", simp)
+apply (rule_tac c1 = "inverse x" in real_mult_right_cancel [THEN iffD1])
+apply (erule real_inverse_not_zero)
+apply (auto dest: real_inverse_not_zero)
+done
+declare real_inverse_inverse [simp]
+
+lemma real_inverse_1: "inverse((1::real)) = (1::real)"
+apply (unfold real_inverse_def)
+apply (cut_tac real_zero_not_eq_one [THEN not_sym, THEN real_mult_inv_left_ex])
+apply (auto simp add: real_zero_not_eq_one [THEN not_sym])
+done
+declare real_inverse_1 [simp]
+
+lemma real_minus_inverse: "inverse(-x) = -inverse(x::real)"
+apply (case_tac "x=0", simp)
+apply (rule_tac c1 = "-x" in real_mult_right_cancel [THEN iffD1])
+ prefer 2 apply (subst real_mult_inv_left, auto)
+done
+
+lemma real_inverse_distrib: "inverse(x*y) = inverse(x)*inverse(y::real)"
+apply (case_tac "x=0", simp)
+apply (case_tac "y=0", simp)
+apply (frule_tac y = y in real_mult_not_zero, assumption)
+apply (rule_tac c1 = x in real_mult_left_cancel [THEN iffD1])
+apply (auto simp add: real_mult_assoc [symmetric])
+apply (rule_tac c1 = y in real_mult_left_cancel [THEN iffD1])
+apply (auto simp add: real_mult_left_commute)
+apply (simp add: real_mult_assoc [symmetric])
+done
+
+lemma real_times_divide1_eq: "(x::real) * (y/z) = (x*y)/z"
+by (simp add: real_divide_def real_mult_assoc)
+
+lemma real_times_divide2_eq: "(y/z) * (x::real) = (y*x)/z"
+by (simp add: real_divide_def real_mult_ac)
+
+declare real_times_divide1_eq [simp] real_times_divide2_eq [simp]
+
+lemma real_divide_divide1_eq: "(x::real) / (y/z) = (x*z)/y"
+by (simp add: real_divide_def real_inverse_distrib real_mult_ac)
+
+lemma real_divide_divide2_eq: "((x::real) / y) / z = x/(y*z)"
+by (simp add: real_divide_def real_inverse_distrib real_mult_assoc)
+
+declare real_divide_divide1_eq [simp] real_divide_divide2_eq [simp]
+
+(** As with multiplication, pull minus signs OUT of the / operator **)
+
+lemma real_minus_divide_eq: "(-x) / (y::real) = - (x/y)"
+by (simp add: real_divide_def)
+declare real_minus_divide_eq [simp]
+
+lemma real_divide_minus_eq: "(x / -(y::real)) = - (x/y)"
+by (simp add: real_divide_def real_minus_inverse)
+declare real_divide_minus_eq [simp]
+
+lemma real_add_divide_distrib: "(x+y)/(z::real) = x/z + y/z"
+by (simp add: real_divide_def real_add_mult_distrib)
+
+(*The following would e.g. convert (x+y)/2 to x/2 + y/2.  Sometimes that
+  leads to cancellations in x or y, but is also prevents "multiplying out"
+  the 2 in e.g. (x+y)/2 = 5.
+
+Addsimps [inst "z" "number_of ?w" real_add_divide_distrib]
+**)
+
 
 
 subsection{*An Embedding of the Naturals in the Reals*}
@@ -710,6 +800,26 @@ val real_of_nat_le_zero_cancel_iff = thm "real_of_nat_le_zero_cancel_iff";
 val not_real_of_nat_less_zero = thm "not_real_of_nat_less_zero";
 val real_of_nat_ge_zero_cancel_iff = thm "real_of_nat_ge_zero_cancel_iff";
 val real_of_nat_num_if = thm "real_of_nat_num_if";
+
+val INVERSE_ZERO = thm"INVERSE_ZERO";
+val DIVISION_BY_ZERO = thm"DIVISION_BY_ZERO";
+val real_mult_left_cancel = thm"real_mult_left_cancel";
+val real_mult_right_cancel = thm"real_mult_right_cancel";
+val real_mult_left_cancel_ccontr = thm"real_mult_left_cancel_ccontr";
+val real_mult_right_cancel_ccontr = thm"real_mult_right_cancel_ccontr";
+val real_inverse_not_zero = thm"real_inverse_not_zero";
+val real_mult_not_zero = thm"real_mult_not_zero";
+val real_inverse_inverse = thm"real_inverse_inverse";
+val real_inverse_1 = thm"real_inverse_1";
+val real_minus_inverse = thm"real_minus_inverse";
+val real_inverse_distrib = thm"real_inverse_distrib";
+val real_times_divide1_eq = thm"real_times_divide1_eq";
+val real_times_divide2_eq = thm"real_times_divide2_eq";
+val real_divide_divide1_eq = thm"real_divide_divide1_eq";
+val real_divide_divide2_eq = thm"real_divide_divide2_eq";
+val real_minus_divide_eq = thm"real_minus_divide_eq";
+val real_divide_minus_eq = thm"real_divide_minus_eq";
+val real_add_divide_distrib = thm"real_add_divide_distrib";
 *}
 
 end

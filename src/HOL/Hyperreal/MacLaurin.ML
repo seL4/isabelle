@@ -317,7 +317,7 @@ by (assume_tac 2 THEN assume_tac 2);
 by (induct_tac "n" 1);
 by (Simp_tac 1);
 by Auto_tac;
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by Auto_tac;
 by (cut_inst_tac [("f","diff 0"),
                  ("diff","diff"),

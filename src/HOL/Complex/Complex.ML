@@ -594,7 +594,7 @@ by (simp_tac (simpset() addsimps [complex_of_real_def,complex_minus]) 1);
 qed "complex_of_real_minus";
 
 Goal "complex_of_real(inverse x) = inverse(complex_of_real x)";
-by (real_div_undefined_case_tac "x=0" 1);
+by (case_tac "x=0" 1);
 by (simp_tac (simpset() addsimps [DIVISION_BY_ZERO,COMPLEX_INVERSE_ZERO]) 1);
 by (auto_tac (claset(),simpset() addsimps [complex_inverse,
     complex_of_real_def,realpow_num_two,real_divide_def,
@@ -616,8 +616,8 @@ qed "complex_of_real_mult";
 
 Goalw [complex_divide_def] 
       "complex_of_real x / complex_of_real y = complex_of_real(x/y)";
-by (real_div_undefined_case_tac "y=0" 1);
-by (simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
+by (case_tac "y=0" 1);
+by (asm_simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
     COMPLEX_INVERSE_ZERO]) 1);
 by (asm_simp_tac (simpset() addsimps [complex_of_real_mult RS sym,
     complex_of_real_inverse,real_divide_def]) 1);
@@ -1273,7 +1273,7 @@ qed "complex_of_real_zero_iff";
 Addsimps [complex_of_real_zero_iff];
 
 Goal "y ~= 0 ==> cos (arg(ii * complex_of_real y)) = 0";
-by (cut_inst_tac [("R1.0","y"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","y"),("y","0")] linorder_less_linear 1);
 by Auto_tac;
 qed "cos_arg_i_mult_zero3";
 Addsimps [cos_arg_i_mult_zero3];
@@ -1475,8 +1475,8 @@ qed "cis_inverse";
 Addsimps [cis_inverse];
 
 Goal "inverse(rcis r a) = rcis (1/r) (-a)";
-by (real_div_undefined_case_tac "r=0" 1);
-by (simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
+by (case_tac "r=0" 1);
+by (asm_simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
     COMPLEX_INVERSE_ZERO]) 1);
 by (auto_tac (claset(),simpset() addsimps [complex_inverse_complex_split,
     complex_add_mult_distrib2,complex_of_real_mult,rcis_def,cis_def,
@@ -1491,8 +1491,8 @@ qed "cis_divide";
 
 Goalw [complex_divide_def]
  "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)";
-by (real_div_undefined_case_tac "r2=0" 1);
-by (simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
+by (case_tac "r2=0" 1);
+by (asm_simp_tac (simpset() addsimps [rename_numerals DIVISION_BY_ZERO,
     COMPLEX_INVERSE_ZERO]) 1);
 by (auto_tac (claset(),simpset() addsimps [rcis_inverse,rcis_mult,
     real_diff_def]));
@@ -1578,7 +1578,7 @@ Goalw [arg_def]
 \  ==> arg(complex_of_real r * \
 \      (complex_of_real(cos a) + ii * complex_of_real(sin a))) = a";
 by Auto_tac;
-by (cut_inst_tac [("R1.0","0"),("R2.0","r")] real_linear 1);
+by (cut_inst_tac [("x","0"),("y","r")] linorder_less_linear 1);
 by (auto_tac (claset(),simpset() addsimps (map (full_rename_numerals thy)
     [rabs_eqI2,rabs_minus_eqI2,real_minus_rinv]) @ [real_divide_def,
     real_minus_mult_eq2 RS sym] @ real_mult_ac));

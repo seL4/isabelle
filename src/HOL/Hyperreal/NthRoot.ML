@@ -160,7 +160,7 @@ qed "realpow_pos_nth2";
 (* uniqueness of nth positive root *)
 Goal "[| (0::real) < a; 0 < n |] ==> EX! r. 0 < r & r ^ n = a";
 by (auto_tac (claset() addSIs [realpow_pos_nth],simpset()));
-by (cut_inst_tac [("R1.0","r"),("R2.0","y")] real_linear 1);
+by (cut_inst_tac [("x","r"),("y","y")] linorder_less_linear 1);
 by (Auto_tac);
 by (dres_inst_tac [("x","r")] realpow_less 1);
 by (dres_inst_tac [("x","y")] realpow_less 4);

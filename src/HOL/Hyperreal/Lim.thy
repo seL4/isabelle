@@ -5,7 +5,7 @@
                   differentiation of real=>real functions
 *)
 
-Lim = SEQ + RealAbs + 
+Lim = SEQ + RealArith + 
 
 (*-----------------------------------------------------------------------
     Limits, continuity and differentiation: standard and NS definitions

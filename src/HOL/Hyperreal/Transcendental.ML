@@ -146,7 +146,7 @@ qed "real_sqrt_pow_abs";
 Goal "(~ (0::real) < x*x) = (x = 0)";
 by Auto_tac;
 by (rtac ccontr 1);
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by Auto_tac;
 by (ftac (real_mult_order) 2);
 by (asm_full_simp_tac (simpset() addsimps [real_0_less_mult_iff]) 1); 
@@ -1675,7 +1675,7 @@ Goal "EX! x. 0 <= x & x <= 2 & cos x = 0";
 by (subgoal_tac "EX x.  0 <= x & x <= 2 & cos x = 0" 1);
 by (rtac IVT2  2);
 by (auto_tac (claset() addIs [DERIV_isCont,DERIV_cos],simpset ()));
-by (cut_inst_tac [("R1.0","xa"),("R2.0","y")] real_linear 1);
+by (cut_inst_tac [("x","xa"),("y","y")] linorder_less_linear 1);
 by (rtac ccontr 1);
 by (subgoal_tac "(ALL x. cos differentiable x) & \
 \   (ALL x. isCont cos x)" 1);
@@ -1898,7 +1898,7 @@ by (subgoal_tac "EX x.  0 <= x & x <= pi & cos x = y" 1);
 by (rtac IVT2  2);
 by (auto_tac (claset() addIs [order_less_imp_le,DERIV_isCont,DERIV_cos],
     simpset ()));
-by (cut_inst_tac [("R1.0","xa"),("R2.0","y")] real_linear 1);
+by (cut_inst_tac [("x","xa"),("y","y")] linorder_less_linear 1);
 by (rtac ccontr 1 THEN Auto_tac);
 by (dres_inst_tac [("f","cos")] Rolle 1);
 by (dres_inst_tac [("f","cos")] Rolle 5);
@@ -2171,7 +2171,7 @@ qed "lemma_tan_total1";
 Goal "EX! x. -(pi/2) < x & x < (pi/2) & tan x = y";
 by (cut_inst_tac [("y","y")] lemma_tan_total1 1);
 by (Auto_tac);
-by (cut_inst_tac [("R1.0","xa"),("R2.0","y")] real_linear 1);
+by (cut_inst_tac [("x","xa"),("y","y")] linorder_less_linear 1);
 by (Auto_tac);
 by (subgoal_tac "EX z. xa < z & z < y & DERIV tan z :> 0" 1);
 by (subgoal_tac "EX z. y < z & z < xa & DERIV tan z :> 0" 3);
@@ -2628,7 +2628,7 @@ qed "real_sqrt_sos_eq_one_iff";
 Addsimps [real_sqrt_sos_eq_one_iff];
 
 Goalw [real_divide_def] "(((r::real) * a) / (r * r)) = a / r";
-by (real_div_undefined_case_tac "r=0" 1);
+by (case_tac "r=0" 1);
 by (auto_tac (claset(),simpset() addsimps [real_inverse_distrib] @ real_mult_ac));
 qed "real_divide_square_eq";
 Addsimps [real_divide_square_eq];
@@ -2675,7 +2675,7 @@ by (auto_tac (claset(),simpset() addsimps [real_0_less_mult_iff]));
 qed "real_sqrt_sum_squares_gt_zero2";
 
 Goal "x ~= 0 ==> 0 < sqrt(x ^ 2 + y ^ 2)";
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (auto_tac (claset() addIs [real_sqrt_sum_squares_gt_zero2,
     real_sqrt_sum_squares_gt_zero1],simpset() addsimps [realpow_num_two]));
 qed "real_sqrt_sum_squares_gt_zero3";
@@ -2741,7 +2741,7 @@ qed "lemma_real_divide_sqrt_le_one2";
 (* was qed "lemma_real_mult_self_rinv_sqrt_squared5" *)
 
 Goal "-(1::real)<= x / sqrt (x * x + y * y)";
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (Step_tac 1);
 by (rtac lemma_real_divide_sqrt_ge_minus_one2 1);
 by (rtac lemma_real_divide_sqrt_ge_minus_one 3);
@@ -2757,7 +2757,7 @@ Addsimps [cos_x_y_ge_minus_one1a,
           simplify (simpset()) cos_x_y_ge_minus_one1a];
 
 Goal "x / sqrt (x * x + y * y) <= 1";
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (Step_tac 1);
 by (rtac lemma_real_divide_sqrt_le_one 1);
 by (rtac lemma_real_divide_sqrt_le_one2 3);
@@ -2778,7 +2778,7 @@ Addsimps [[cos_x_y_ge_minus_one1a,cos_x_y_le_one2] MRS cos_arcos];
 Addsimps [[cos_x_y_ge_minus_one1a,cos_x_y_le_one2] MRS arcos_bounded];
 
 Goal "-(1::real) <= abs(x) / sqrt (x * x + y * y)";
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (auto_tac (claset(),simpset() addsimps [abs_minus_eqI2,abs_eqI2]));
 by (dtac lemma_real_divide_sqrt_ge_minus_one 1 THEN Force_tac 1);
 qed "cos_rabs_x_y_ge_minus_one";
@@ -2787,7 +2787,7 @@ Addsimps [cos_rabs_x_y_ge_minus_one,
           simplify (simpset()) cos_rabs_x_y_ge_minus_one];
 
 Goal "abs(x) / sqrt (x * x + y * y) <= 1";
-by (cut_inst_tac [("R1.0","x"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (auto_tac (claset(),simpset() addsimps [abs_minus_eqI2,abs_eqI2]));
 by (dtac lemma_real_divide_sqrt_ge_minus_one2 1 THEN Force_tac 1);
 qed "cos_rabs_x_y_le_one";
@@ -2952,7 +2952,7 @@ by (auto_tac (claset() addIs [real_sum_squares_cancel],simpset()));
 qed "real_sum_squares_cancel2a";
 
 Goal "[| x ~= 0; y < 0 |] ==> EX r a. x = r * cos a & y = r * sin a";
-by (cut_inst_tac [("R1.0","0"),("R2.0","x")] real_linear 1);
+by (cut_inst_tac [("x","0"),("y","x")] linorder_less_linear 1);
 by Auto_tac;
 by (res_inst_tac [("x","sqrt(x ^ 2 + y ^ 2)")] exI 1);
 by (res_inst_tac [("x","arcsin(y / sqrt (x * x + y * y))")] exI 1);
@@ -2982,7 +2982,7 @@ by (case_tac "x = 0" 1);
 by Auto_tac;
 by (res_inst_tac [("x","y")] exI 1);
 by (res_inst_tac [("x","pi/2")] exI 1 THEN Auto_tac);
-by (cut_inst_tac [("R1.0","0"),("R2.0","y")] real_linear 1);
+by (cut_inst_tac [("x","0"),("y","y")] linorder_less_linear 1);
 by Auto_tac;
 by (res_inst_tac [("x","x")] exI 2);
 by (res_inst_tac [("x","0")] exI 2 THEN Auto_tac);
@@ -3176,7 +3176,7 @@ qed "LIM_fun_less_zero";
 
 Goal "[| f -- c --> l; l ~= 0 |] \
 \        ==> EX r. 0 < r & (ALL x. x ~= c & abs (c - x) < r --> f x ~= 0)";
-by (cut_inst_tac [("R1.0","l"),("R2.0","0")] real_linear 1);
+by (cut_inst_tac [("x","l"),("y","0")] linorder_less_linear 1);
 by Auto_tac;
 by (dtac LIM_fun_less_zero 1);
 by (dtac LIM_fun_gt_zero 3);
