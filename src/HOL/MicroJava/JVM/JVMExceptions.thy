@@ -49,16 +49,28 @@ primrec
         | Some handler_pc \<Rightarrow> (None, hp, ([xc], loc, C, sig, handler_pc)#frs)))"
 
 
+text {*
+  System exceptions are allocated in all heaps, 
+  and they don't carry any information other than their type: 
+*}
+constdefs
+  preallocated :: "aheap \<Rightarrow> bool"
+  "preallocated hp \<equiv> \<forall>x. hp (XcptRef x) = Some (Xcpt x, empty)"
+
+lemma preallocated_iff [iff]:
+  "preallocated hp \<Longrightarrow> hp (XcptRef x) = Some (Xcpt x, empty)"
+  by (unfold preallocated_def) fast
 
 lemma cname_of_xcp:
-  "raise_system_xcpt b x = Some xcp \<Longrightarrow> cname_of (hp::aheap) xcp = Xcpt x"
+  "raise_system_xcpt b x = Some xcp \<Longrightarrow> preallocated hp 
+  \<Longrightarrow> cname_of (hp::aheap) xcp = Xcpt x"
 proof -
   assume "raise_system_xcpt b x = Some xcp"
   hence "xcp = Addr (XcptRef x)"
     by (simp add: raise_system_xcpt_def split: split_if_asm)
   moreover
-  have "hp (XcptRef x) = Some (Xcpt x, empty)"
-    by (rule system_xcpt_allocated)
+  assume "preallocated hp" 
+  hence "hp (XcptRef x) = Some (Xcpt x, empty)" ..
   ultimately
   show ?thesis by simp
 qed

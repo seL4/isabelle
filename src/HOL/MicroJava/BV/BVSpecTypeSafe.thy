@@ -247,16 +247,16 @@ lemma exec_instr_xcpt_hp:
   ==> \<exists>adr T. xcp = Addr adr \<and> hp adr = Some T" 
   (is "[| ?xcpt; ?wt; ?correct |] ==> ?thesis")
 proof -
-  note [simp] = system_xcpt_allocated split_beta raise_system_xcpt_def
+  note [simp] = split_beta raise_system_xcpt_def
   note [split] = split_if_asm option.split_asm 
   
   assume wt: ?wt ?correct
+  hence pre: "preallocated hp" by (simp add: correct_state_def)
 
-  assume xcpt: ?xcpt
-  thus ?thesis 
+  assume xcpt: ?xcpt with pre show ?thesis 
   proof (cases "ins!pc")
-    case New with xcpt
-    show ?thesis by (auto dest: new_Addr_OutOfMemory)
+    case New with xcpt pre
+    show ?thesis by (auto dest: new_Addr_OutOfMemory) 
   next
     case Throw with xcpt wt
     show ?thesis
@@ -311,6 +311,7 @@ proof -
     from correct meth
     obtain ST LT where
       hp_ok:  "G \<turnstile>h hp \<surd>" and
+      prehp:  "preallocated hp" and
       class:  "is_class G C" and
       phi_pc: "phi C sig ! pc = Some (ST, LT)" and
       frame:  "correct_frame G hp (ST, LT) maxl ins (stk, loc, C, sig, pc)" and
@@ -349,8 +350,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef OutOfMemory)"
         by (simp add: raise_system_xcpt_def split_beta new_Addr_OutOfMemory)
-      hence "cname_of hp xcp = Xcpt OutOfMemory" 
-        by (simp add: system_xcpt_allocated)
+      with prehp have "cname_of hp xcp = Xcpt OutOfMemory" by simp
       with New some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -359,9 +359,9 @@ proof -
         by (simp add: xcpt_eff_def) blast
       note phi'
       moreover
-      { from xcp
+      { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt OutOfMemory)"
-          by (simp add: conf_def obj_ty_def system_xcpt_allocated)
+          by (simp add: conf_def obj_ty_def)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -380,8 +380,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      hence "cname_of hp xcp = Xcpt NullPointer" 
-        by (simp add: system_xcpt_allocated)
+      with prehp have "cname_of hp xcp = Xcpt NullPointer" by simp
       with Getfield some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -390,9 +389,9 @@ proof -
         by (simp add: xcpt_eff_def) blast
       note phi'
       moreover
-      { from xcp
+      { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt NullPointer)"
-          by (simp add: conf_def obj_ty_def system_xcpt_allocated)
+          by (simp add: conf_def obj_ty_def)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -411,8 +410,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      hence "cname_of hp xcp = Xcpt NullPointer" 
-        by (simp add: system_xcpt_allocated)
+      with prehp have "cname_of hp xcp = Xcpt NullPointer" by simp
       with Putfield some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -421,9 +419,9 @@ proof -
         by (simp add: xcpt_eff_def) blast
       note phi'
       moreover
-      { from xcp
+      { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt NullPointer)"
-          by (simp add: conf_def obj_ty_def system_xcpt_allocated)
+          by (simp add: conf_def obj_ty_def)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -442,8 +440,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef ClassCast)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      hence "cname_of hp xcp = Xcpt ClassCast" 
-        by (simp add: system_xcpt_allocated)
+      with prehp have "cname_of hp xcp = Xcpt ClassCast" by simp
       with Checkcast some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -452,9 +449,9 @@ proof -
         by (simp add: xcpt_eff_def) blast
       note phi'
       moreover
-      { from xcp
+      { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt ClassCast)"
-          by (simp add: conf_def obj_ty_def system_xcpt_allocated)
+          by (simp add: conf_def obj_ty_def)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -702,6 +699,7 @@ apply (blast
          hext_upd_obj approx_stk_sup_heap
          approx_loc_sup_heap 
          hconf_field_update
+         preallocated_field_update
          correct_frames_field_update conf_widen 
        dest: 
          widen_cfs_fields)
@@ -729,6 +727,7 @@ proof -
   from ins conf meth
   obtain ST LT where
     heap_ok:    "G\<turnstile>h hp\<surd>" and
+    prealloc:   "preallocated hp" and
     phi_pc:     "phi C sig!pc = Some (ST,LT)" and
     is_class_C: "is_class G C" and
     frame:      "correct_frame G hp (ST,LT) maxl ins (stk, loc, C, sig, pc)" and
@@ -775,6 +774,8 @@ proof -
   have "correct_frames G ?hp' phi rT sig frs"
     by - (rule correct_frames_newref, 
           auto simp add: oconf_def dest: fields_is_type)
+  moreover
+  from hp prealloc have "preallocated ?hp'" by (rule preallocated_newref)
   ultimately
   show ?thesis
     by (simp add: is_class_C meth phi_suc correct_state_def del: not_None_eq)
@@ -809,6 +810,7 @@ proof -
   from ins method approx
   obtain s where
     heap_ok: "G\<turnstile>h hp\<surd>" and
+    prealloc:"preallocated hp" and
     phi_pc:  "phi C sig!pc = Some s" and
     is_class_C: "is_class G C" and
     frame:   "correct_frame G hp s maxl ins (stk, loc, C, sig, pc)" and
@@ -955,7 +957,7 @@ proof -
   qed
 
   from state'_val heap_ok mD'' ins method phi_pc s X' l mX
-       frames s' LT0 c_f is_class_C stk' oX_Addr frame 
+       frames s' LT0 c_f is_class_C stk' oX_Addr frame prealloc
   show ?thesis by (simp add: correct_state_def) (intro exI conjI, blast)
 qed
 
@@ -1002,6 +1004,7 @@ proof -
     from correct meth
     obtain ST LT where
       hp_ok:  "G \<turnstile>h hp \<surd>" and
+      alloc:  "preallocated hp" and
       phi_pc: "phi C sig ! pc = Some (ST, LT)" and
       frame:  "correct_frame G hp (ST, LT) maxl ins (stk,loc,C,sig,pc)" and
       frames: "correct_frames G hp phi rT sig frs"
@@ -1077,7 +1080,7 @@ proof -
       show ?thesis by (simp add: correct_frame_def)
     qed
 
-    with state' frs' f meth hp_ok hd_stk phi_suc frames' meth' phi' class'
+    with state' frs' f meth hp_ok hd_stk phi_suc frames' meth' phi' class' alloc
     have ?thesis by (simp add: correct_state_def)
   }
   ultimately
@@ -1285,7 +1288,7 @@ apply (erule rtrancl_induct)
 apply (auto intro: BV_correct_1)
 done
 
-theorem BV_correct_initial:
+theorem BV_correct_implies_approx:
 "[| wt_jvm_prog G phi; 
     G \<turnstile> s0 -jvm-> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>|] 
 ==> approx_stk G hp stk (fst (the (phi C sig ! pc))) \<and> 

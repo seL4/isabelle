@@ -1,3 +1,4 @@
+
 (*  Title:      HOL/MicroJava/BV/Correct.thy
     ID:         $Id$
     Author:     Cornelia Pusch, Gerwin Klein
@@ -55,7 +56,7 @@ constdefs
    case xp of
      None => (case frs of
              [] => True
-             | (f#fs) => G\<turnstile>h hp\<surd> \<and>
+             | (f#fs) => G\<turnstile>h hp\<surd> \<and> preallocated hp \<and> 
       (let (stk,loc,C,sig,pc) = f
              in
                          \<exists>rT maxs maxl ins et s.
@@ -261,6 +262,27 @@ lemma hconf_field_update:
   apply (fastsimp intro: oconf_heap_update oconf_field_update 
                   simp add: obj_ty_def)
   done
+
+section {* preallocated *}
+
+lemma preallocated_field_update:
+  "\<lbrakk> map_of (fields (G, oT)) X = Some T; hp a = Some(oT,fs); 
+     G\<turnstile>h hp\<surd>; preallocated hp \<rbrakk> 
+  \<Longrightarrow> preallocated (hp(a \<mapsto> (oT, fs(X\<mapsto>v))))"
+  apply (unfold preallocated_def)
+  apply (rule allI)
+  apply (erule_tac x=x in allE)
+  apply simp
+  apply (rule ccontr)  
+  apply (unfold hconf_def)
+  apply (erule allE, erule allE, erule impE, assumption)
+  apply (unfold oconf_def lconf_def)
+  apply (simp del: split_paired_All)
+  done  
+
+lemma preallocated_newref:
+  "\<lbrakk> hp oref = None; preallocated hp \<rbrakk> \<Longrightarrow> preallocated (hp(oref\<mapsto>obj))"
+  by (unfold preallocated_def) auto
 
 section {* correct-frames *}
 

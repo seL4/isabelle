@@ -27,14 +27,6 @@ types aheap  = "loc \<leadsto> obj"    -- {* "@{text heap}" used in a translatio
       state  = "aheap \<times> locals"      -- "heap, local parameter including This"
       xstate = "xcpt option \<times> state" -- "state including exception information"
 
-
-text {*
-  System exceptions are allocated in all heaps, 
-  and they don't carry any information other than their type: *}
-axioms
-  system_xcpt_allocated: "(hp::aheap) (XcptRef x) = Some (Xcpt x, empty)"
-
-
 syntax
   heap    :: "state => aheap"
   locals  :: "state => locals"
