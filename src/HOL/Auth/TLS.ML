@@ -7,10 +7,10 @@ Protocol goals:
 * M, serverK(NA,NB,M) and clientK(NA,NB,M) will be known only to the two
      parties (though A is not necessarily authenticated).
 
-* B upon receiving CERTIFICATE VERIFY knows that A is present (But this
+* B upon receiving CertVerify knows that A is present (But this
     message is optional!)
 
-* A upon receiving SERVER FINISHED knows that B is present
+* A upon receiving ServerFinished knows that B is present
 
 * Each party who has received a FINISHED message can trust that the other
   party agrees on all message components, including XA and XB (thus foiling
@@ -86,34 +86,26 @@ AddIffs (keys_distinct @ (keys_distinct RL [not_sym]));
 **)
 
 
-
-(*Possibility property ending with ServerFinished.*)
+(*Possibility property ending with ClientAccepts.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX SID NA XA NB XB M. EX evs: tls.    \
-\  Says B A (Crypt (serverK(NA,NB,M))                       \
-\            (Hash{|Nonce M, Number SID,             \
-\                   Nonce NA, Number XA, Agent A,      \
-\                   Nonce NB, Number XB, Agent B|})) \
-\    : set evs";
+\           A ~= B |] ==> EX SID M. EX evs: tls.    \
+\  Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
-	  RS tls.ServerFinished) 2);
+	RS tls.ClientFinished RS tls.ServerFinished RS tls.ClientAccepts) 2);
 by possibility_tac;
 by (REPEAT (Blast_tac 1));
 result();
 
-(*And one for ClientFinished.  Either FINISHED message may come first.*)
+(*And one for ServerAccepts.  Either FINISHED message may come first.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
 \           A ~= B |] ==> EX SID NA XA NB XB M. EX evs: tls.    \
-\  Says A B (Crypt (clientK(NA,NB,M))                           \
-\            (Hash{|Nonce M, Number SID,             \
-\                   Nonce NA, Number XA, Agent A,      \
-\                   Nonce NB, Number XB, Agent B|})) : set evs";
+\  Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
-	  RS tls.ClientFinished) 2);
+	  RS tls.ServerFinished RS tls.ClientFinished RS tls.ServerAccepts) 2);
 by possibility_tac;
 by (REPEAT (Blast_tac 1));
 result();
@@ -130,6 +122,24 @@ by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
 by possibility_tac;
 by (REPEAT (Blast_tac 1));
 result();
+
+(*Another one, for session resumption (both ServerResume and ClientResume) *)
+goal thy 
+ "!!A B. [| evs0 : tls;     \
+\           Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
+\           Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
+\           ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
+\           A ~= B |] ==> EX NA XA NB XB. EX evs: tls.    \
+\  Says A B (Crypt (clientK(NA,NB,M))                           \
+\            (Hash{|Nonce M, Number SID,             \
+\                   Nonce NA, Number XA, Agent A,      \
+\                   Nonce NB, Number XB, Agent B|})) : set evs";
+by (REPEAT (resolve_tac [exI,bexI] 1));
+by (etac (tls.ClientHello RS tls.ServerResume RS tls.ClientResume) 2);
+by possibility_tac;
+by (REPEAT (Blast_tac 1));
+result();
+
 
 
 (**** Inductive proofs about tls ****)
@@ -216,24 +226,7 @@ fun analz_induct_tac i =
                         setloop split_tac [expand_if]));
 
 
-(*** Hashing of nonces ***)
-
-(*Every Nonce that's hashed is already in past traffic.  
-  This event occurs in CERTIFICATE VERIFY*)
-goal thy "!!evs. [| Hash {|Nonce NB, X|} : parts (spies evs);  \
-\                   NB ~: range PRF;  evs : tls |]  \
-\                ==> Nonce NB : parts (spies evs)";
-by (etac rev_mp 1);
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_spies])));
-by (Fake_parts_insert_tac 1);
-(*FINISHED messages are trivial because M : range PRF*)
-by (REPEAT (Blast_tac 2));
-(*CERTIFICATE VERIFY is the only interesting case*)
-by (blast_tac (!claset addSEs spies_partsEs) 1);
-qed "Hash_Nonce_CV";
-
+(*** Notes are made under controlled circumstances ***)
 
 goal thy "!!evs. [| Notes A {|Agent B, X|} : set evs;  evs : tls |]  \
 \                ==> Crypt (pubK B) X : parts (spies evs)";
@@ -242,8 +235,65 @@ by (analz_induct_tac 1);
 by (blast_tac (!claset addIs [parts_insertI]) 1);
 qed "Notes_Crypt_parts_spies";
 
+(*C might be either A or B*)
+goal thy
+    "!!evs. [| Notes C {|Number SID, Agent A, Agent B, Nonce M|} : set evs;  \
+\              evs : tls     \
+\           |] ==> M : range PRF";
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+by (Auto_tac());
+qed "Notes_master_range_PRF";
 
-(*** Protocol goal: if B receives CERTIFICATE VERIFY, then A sent it ***)
+(*C might be either A or B*)
+goal thy
+ "!!evs. [| Notes C {|Number SID, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} \
+\             : set evs;     evs : tls     \
+\        |] ==> Crypt (pubK B) (Nonce PMS) : parts (spies evs)";
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Fake*)
+by (blast_tac (!claset addIs [parts_insertI]) 1);
+(*Client, Server Accept*)
+by (Step_tac 1);
+by (REPEAT (blast_tac (!claset addSEs spies_partsEs
+                               addSDs [Notes_Crypt_parts_spies]) 1));
+qed "Notes_master_imp_Crypt_PMS";
+
+(*Compared with the theorem above, both premise and conclusion are stronger*)
+goal thy
+ "!!evs. [| Notes A {|Number SID, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} \
+\             : set evs;     evs : tls     \
+\        |] ==> Notes A {|Agent B, Nonce PMS|} : set evs";
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*ServerAccepts*)
+by (Fast_tac 1);	(*Blast_tac's very slow here*)
+qed "Notes_master_imp_Notes_PMS";
+
+
+(*Every Nonce that's hashed is already in past traffic; this event
+  occurs in CertVerify.  The condition NB ~: range PRF excludes the 
+  MASTER SECRET from consideration; it is created using PRF.*)
+goal thy "!!evs. [| Hash {|Nonce NB, X|} : parts (spies evs);  \
+\                   NB ~: range PRF;  evs : tls |]  \
+\                ==> Nonce NB : parts (spies evs)";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_spies])));
+(*Server/Client Resume: wrong sort of nonce!*)
+by (REPEAT (blast_tac (!claset addSDs [Notes_master_range_PRF]) 5));
+(*FINISHED messages are trivial because M : range PRF*)
+by (REPEAT (Blast_tac 3));
+(*CertVerify is the only interesting case*)
+by (blast_tac (!claset addSEs spies_partsEs) 2);
+by (Fake_parts_insert_tac 1);
+qed "Hash_Nonce_CV";
+
+
+
+(*** Protocol goal: if B receives CertVerify, then A sent it ***)
 
 (*B can check A's signature if he has received A's certificate.
   Perhaps B~=Spy is unnecessary, but there's no obvious proof if the first
@@ -265,7 +315,7 @@ by (blast_tac (!claset addSDs [Hash_Nonce_CV]
 qed_spec_mp "TrustCertVerify";
 
 
-(*If CERTIFICATE VERIFY is present then A has chosen PMS.*)
+(*If CertVerify is present then A has chosen PMS.*)
 goal thy
  "!!evs. [| Crypt (priK A) (Hash{|Nonce NB, certificate B KB, Nonce PMS|})  \
 \             : parts (spies evs);                                \
@@ -392,12 +442,14 @@ by (analz_induct_tac 1);
 (*Fake*)
 by (asm_simp_tac (!simpset addsimps [parts_insert_spies]) 2);
 by (Fake_parts_insert_tac 2);
-(*Base, ClientFinished, ServerFinished: trivial, e.g. by freshness*)
+(*Base, ClientFinished, ServerFinished, ClientResume: 
+  trivial, e.g. by freshness*)
 by (REPEAT 
-    (blast_tac (!claset addSDs [Notes_Crypt_parts_spies]
+    (blast_tac (!claset addSDs [Notes_Crypt_parts_spies, 
+				Notes_master_imp_Crypt_PMS]
                         addSEs spies_partsEs) 1));
 qed "Crypt_sessionK_notin_parts";
-
+				                               
 Addsimps [Crypt_sessionK_notin_parts];
 AddEs [Crypt_sessionK_notin_parts RSN (2, rev_notE)];
 
@@ -437,6 +489,11 @@ goal thy
 by (prove_unique_tac lemma 1);
 qed "unique_PMS";
 
+(** It is frustrating that we need two versions of the unicity results.
+    But Notes A {|Agent B, Nonce PMS|} determines both A and B, while
+    Crypt(pubK B) (Nonce PMS) determines only B, and sometimes only
+    this weaker item is available.
+**)
 
 (*In A's internal Note, PMS determines A and B.*)
 goal thy 
@@ -467,7 +524,7 @@ goal thy
  "!!evs. [| evs : tls;  A ~: bad;  B ~: bad |]           \
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs  -->   \
 \            Nonce PMS ~: analz (spies evs)";
-by (analz_induct_tac 1);   (*30 seconds???*)
+by (analz_induct_tac 1);   (*30 seconds??*)
 (*ClientAccepts and ServerAccepts: because PMS ~: range PRF*)
 by (REPEAT (fast_tac (!claset addss (!simpset)) 6));
 (*ServerHello and ClientCertKeyEx: mostly freshness reasoning*)
@@ -486,7 +543,15 @@ by (spy_analz_tac 1);
 bind_thm ("Spy_not_see_PMS", result() RSN (2, rev_mp));
 
 
-
+(*Another way of showing unicity*)
+goal thy 
+ "!!evs. [| Notes A  {|Agent B,  Nonce PMS|} : set evs;  \
+\           Notes A' {|Agent B', Nonce PMS|} : set evs;  \
+\           A ~: bad;  B ~: bad;                         \
+\           evs : tls |]                                 \
+\        ==> A=A' & B=B'";
+by (REPEAT (ares_tac [Notes_unique_PMS, Spy_not_see_PMS] 1));
+qed "good_Notes_unique_PMS";
 
 
 (*If A sends ClientCertKeyEx to an honest B, then the MASTER SECRET
@@ -516,12 +581,12 @@ by (REPEAT (blast_tac (!claset addSEs partsEs
 bind_thm ("Spy_not_see_MS", result() RSN (2, rev_mp));
 
 
-(*** Protocol goals: if A receives SERVER FINISHED, then B is present 
+(*** Protocol goals: if A receives ServerFinished, then B is present 
      and has used the quoted values XA, XB, etc.  Note that it is up to A
      to compare XA with what she originally sent.
 ***)
 
-(*The mention of her name (A) in X assumes A that B knows who she is.*)
+(*The mention of her name (A) in X assures A that B knows who she is.*)
 goal thy
  "!!evs. [| X = Crypt (serverK(Na,Nb,M))                  \
 \                 (Hash{|Nonce M, Number SID,             \
@@ -533,6 +598,8 @@ goal thy
 \        X : parts (spies evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);	(*16 seconds*)
+(*ServerResume is trivial, but Blast_tac is too slow*)
+by (Best_tac 3);
 (*ClientCertKeyEx*)
 by (Blast_tac 2);
 (*Fake: the Spy doesn't have the critical session key!*)
@@ -544,8 +611,8 @@ by (Fake_parts_insert_tac 1);
 qed_spec_mp "TrustServerFinished";
 
 
-(*This version refers not to SERVER FINISHED but to any message from B.
-  We don't assume B has received CERTIFICATE VERIFY, and an intruder could
+(*This version refers not to ServerFinished but to any message from B.
+  We don't assume B has received CertVerify, and an intruder could
   have changed A's identity in all other messages, so we can't be sure
   that B sends his message to A.  If CLIENT KEY EXCHANGE were augmented
   to bind A's identity with M, then we could replace A' by A below.*)
@@ -558,6 +625,17 @@ goal thy
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);	(*12 seconds*)
 by (REPEAT_FIRST (rtac impI));
+(*ServerResume, by unicity of PMS*)
+by (blast_tac (!claset addSEs [MPair_parts]
+		       addDs  [Spy_not_see_PMS, 
+			       Notes_Crypt_parts_spies,
+			       Notes_master_imp_Crypt_PMS, unique_PMS]) 4);
+(*ServerFinished, by unicity of PMS (10 seconds)*)
+by (blast_tac (!claset addSEs [MPair_parts]
+		       addDs  [Spy_not_see_PMS, 
+			       Notes_Crypt_parts_spies,
+			       Says_imp_spies RS parts.Inj,
+			       unique_PMS]) 3);
 (*ClientCertKeyEx*)
 by (Blast_tac 2);
 (*Fake: the Spy doesn't have the critical session key!*)
@@ -565,24 +643,13 @@ by (subgoal_tac "Key (serverK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_MS, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
-(*ServerFinished.  If the message is old then apply induction hypothesis...*)
-by (rtac conjI 1 THEN Blast_tac 2);
-(*...otherwise delete induction hyp and use unicity of PMS.*)
-by (thin_tac "?PP-->?QQ" 1);
-by (Step_tac 1);
-by (subgoal_tac "Nonce PMS ~: analz(spies evsSF)" 1);
-by (asm_simp_tac (!simpset addsimps [Spy_not_see_PMS]) 2);
-by (blast_tac (!claset addSEs [MPair_parts]
-		       addDs  [Notes_Crypt_parts_spies,
-			       Says_imp_spies RS parts.Inj,
-			       unique_PMS]) 1);
 qed_spec_mp "TrustServerMsg";
 
 
 (*** Protocol goal: if B receives any message encrypted with clientK
      then A has sent it, ASSUMING that A chose PMS.  Authentication is
      assumed here; B cannot verify it.  But if the message is
-     CLIENT FINISHED, then B can then check the quoted values XA, XB, etc.
+     ClientFinished, then B can then check the quoted values XA, XB, etc.
 ***)
 goal thy
  "!!evs. [| evs : tls;  A ~: bad;  B ~: bad |]                         \
@@ -598,17 +665,21 @@ by (subgoal_tac "Key (clientK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_MS, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
-(*ClientFinished.  If the message is old then apply induction hypothesis...*)
-by (step_tac (!claset delrules [conjI]) 1);
-by (subgoal_tac "Nonce PMS ~: analz (spies evsCF)" 1);
-by (asm_simp_tac (!simpset addsimps [Spy_not_see_PMS]) 2);
-by (blast_tac (!claset addSEs [MPair_parts]
-		       addDs  [Notes_unique_PMS]) 1);
+(*ClientResume: by unicity of PMS*)
+by (blast_tac (!claset delrules [conjI]
+		       addSEs [MPair_parts]
+                       addSDs [Notes_master_imp_Notes_PMS]
+	 	       addDs  [good_Notes_unique_PMS]) 2);
+(*ClientFinished: by unicity of PMS*)
+by (blast_tac (!claset delrules [conjI]
+		       addSEs [MPair_parts]
+		       addDs  [good_Notes_unique_PMS]) 1);
 qed_spec_mp "TrustClientMsg";
 
 
-(*** Protocol goal: if B receives CLIENT FINISHED, and if B is able to
-     check a CERTIFICATE VERIFY from A, then A has used the quoted
+
+(*** Protocol goal: if B receives ClientFinished, and if B is able to
+     check a CertVerify from A, then A has used the quoted
      values XA, XB, etc.  Even this one requires A to be uncompromised.
  ***)
 goal thy
