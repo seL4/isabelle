@@ -628,6 +628,8 @@ qed
 
 declare zmod_eq_0_iff [THEN iffD1, dest!]
 
+lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
+by(simp add:dvd_def zmod_eq_0_iff)
 
 (** proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) **)
 
