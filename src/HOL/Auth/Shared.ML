@@ -12,6 +12,9 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 
 Addsimps [parts_cut_eq];
 
+(*GOALS.ML??*)
+fun prlim n = (goals_limit:=n; pr());
+
 (*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
 goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
 by (fast_tac (!claset addEs [equalityE]) 1);
@@ -224,8 +227,9 @@ fun safe_solver prems =
     match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
     ORELSE' etac FalseE;
 
-(*Analysis of Fake cases and of messages that forward unknown parts*)
-val enemy_analz_tac =
+(*Analysis of Fake cases and of messages that forward unknown parts
+  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset*)
+fun enemy_analz_tac i =
   SELECT_GOAL 
    (EVERY [  (*push in occurrences of X...*)
 	   (REPEAT o CHANGED)
@@ -238,6 +242,6 @@ val enemy_analz_tac =
 	   Fast_tac 1,
 	   Asm_full_simp_tac 1,
 	   IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
-	   ]);
+	   ]) i;
 
 
