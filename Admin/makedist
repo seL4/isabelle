@@ -124,7 +124,8 @@ cd $DISTBASE/$DISTNAME
 
 find . -name CVS -exec rm -rf {} \;
 
-find Doc \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) -exec mv {} Distribution/doc \;
+find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) \) \
+  -exec mv -f {} Distribution/doc \;
 rm Distribution/doc/Isa-logics.eps
 cp Admin/index.html $DISTBASE
 rm -rf Admin Doc
