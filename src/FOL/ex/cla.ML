@@ -531,3 +531,6 @@ writeln"Reached end of file.";
 (*Wed Nov 16 1994: loaded in 138s [after addition of norm_term_skip] *)
 (*Mon Nov 21 1994: loaded in 131s [DEPTH_FIRST suppressing repetitions] *)
 
+(*Tue Mar  4 1997: loaded in 93s (on pochard, version 94-7) *)
+(*Tue Mar  4 1997: loaded in 89s (on pochard) *)
+
