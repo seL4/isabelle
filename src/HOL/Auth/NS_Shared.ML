@@ -27,6 +27,14 @@ by (rtac (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS
 by possibility_tac;
 result();
 
+goal thy 
+ "!!A B. [| A ~= B; A ~= Server; B ~= Server |]       \
+\        ==> EX evs: ns_shared.          \
+\               Says A B (Crypt ?K {|Nonce ?N, Nonce ?N|}) : set evs";
+by (REPEAT (resolve_tac [exI,bexI] 1));
+by (rtac (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS 
+          ns_shared.NS3 RS ns_shared.NS4 RS ns_shared.NS5) 2);
+by possibility_tac;
 
 (**** Inductive proofs about ns_shared ****)
 
@@ -264,8 +272,7 @@ by (etac ns_shared.induct 1);
 by analz_sees_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_insert_eq, not_parts_not_analz, 
-			  analz_insert_freshK] @ pushes)
+     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ pushes)
                setloop split_tac [expand_if])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 5);
