@@ -13,7 +13,7 @@ sig
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
-  val syntax_of: context -> Syntax.syntax * string list * string list  (* FIXME *)
+  val syntax_of: context -> Syntax.syntax * string list * string list
   val fixed_names_of: context -> string list
   val assumptions_of: context -> (cterm list * exporter) list
   val prems_of: context -> thm list
@@ -274,6 +274,87 @@ fun init thy =
 
 
 
+
+(** local syntax **)
+
+val fixedN = "\\<^fixed>";
+val structN = "\\<^struct>";
+
+
+(* add_syntax and syn_of *)
+
+local
+
+val aT = TFree ("'a", logicS);
+
+fun mixfix x None mx = (fixedN ^ x, replicate (Syntax.mixfix_args mx) aT ---> aT, mx)
+  | mixfix x (Some T) mx = (fixedN ^ x, T, mx);
+
+fun prep_mixfix (_, _, None) = None
+  | prep_mixfix (x, opt_T, Some mx) = Some (mixfix x opt_T mx);
+
+fun prep_mixfix' (_, _, None) = None
+  | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
+  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.Delimfix x));
+
+fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
+
+fun index_tr (Const ("_structs", _) $ Const ("_struct", _) $ idx) = index_tr idx + 1
+  | index_tr (Const ("_struct", _)) = 0
+  | index_tr t = raise TERM ("index_tr", [t]);
+
+fun struct_app_tr structs [idx, f] =
+      let val i = index_tr idx in
+        if i < length structs then f $ Syntax.free (Library.nth_elem (i, structs))
+        else error ("Illegal reference to structure #" ^ string_of_int (i + 1))
+      end
+  | struct_app_tr _ ts = raise TERM ("struct_app_tr", ts);
+
+fun prep_struct (x, _, None) = Some x
+  | prep_struct _ = None;
+
+in
+
+fun add_syntax decls =
+  map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
+    let
+      val structs' = structs @ mapfilter prep_struct decls;
+      val mxs = mapfilter prep_mixfix decls;
+      val (fixed, mxs_output) = Library.split_list (mapfilter prep_mixfix' decls);
+      val trs = map fixed_tr fixed;
+      val syn' = syn
+        |> Syntax.extend_const_gram ("", false) mxs_output
+        |> Syntax.extend_const_gram ("", true) mxs
+        |> Syntax.extend_trfuns ([], trs, [], []);
+    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
+
+fun syn_of (Context {syntax = (syn, structs, _), ...}) =
+  syn |> Syntax.extend_trfuns ([], [("_struct_app", struct_app_tr structs)], [], []);
+
+
+end;
+
+
+(* context_tr' *)
+
+fun context_tr' (Context {syntax = (_, structs, mixfixed), ...}) =
+  let
+    fun structs_tr' 0 t = t
+      | structs_tr' i t = Syntax.const "_structs" $ Syntax.const "_struct" $ structs_tr' (i - 1) t;
+
+    fun tr' (f $ (t as Free (x, T))) =
+          let val i = Library.find_index (equal x) structs in
+            if i < 0 then tr' f $ tr' t
+            else Syntax.const "_struct_app" $ structs_tr' i (Syntax.const "_struct") $ f
+          end
+      | tr' (t as Free (x, T)) = if x mem_string mixfixed then Const (fixedN ^ x, T) else t
+      | tr' (t $ u) = tr' t $ tr' u
+      | tr' (Abs (x, T, t)) = Abs (x, T, tr' t)
+      | tr' a = a;
+  in tr' end;
+
+
+
 (** default sorts and types **)
 
 fun def_sort (Context {defs = (_, sorts, _), ...}) xi = Vartab.lookup (sorts, xi);
@@ -294,7 +375,7 @@ fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
 local
 
 fun read_typ_aux read ctxt s =
-  transform_error (read (#1 (syntax_of ctxt)) (sign_of ctxt, def_sort ctxt)) s
+  transform_error (read (syn_of ctxt) (sign_of ctxt, def_sort ctxt)) s
     handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
 fun cert_typ_aux cert ctxt raw_T =
@@ -436,7 +517,7 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 local
 
 fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
-  (transform_error (read (#1 (syntax_of ctxt))
+  (transform_error (read (syn_of ctxt)
       (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
@@ -529,69 +610,9 @@ end;
 
 
 
-(** local syntax **)
-
-val fixedN = "\\<^fixed>";
-val structN = "\\<^struct>";
-
-
-(* add_syntax *)
-
-local
-
-val aT = TFree ("'a", logicS);
-
-fun mixfix x None mx = (fixedN ^ x, replicate (Syntax.mixfix_args mx) aT ---> aT, mx)
-  | mixfix x (Some T) mx = (fixedN ^ x, T, mx);
-
-fun prep_mixfix (_, _, None) = None
-  | prep_mixfix (x, opt_T, Some mx) = Some (mixfix x opt_T mx);
-
-fun prep_mixfix' (_, _, None) = None
-  | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
-  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.Delimfix x));
-
-fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
-
-fun prep_struct (x, _, None) = Some x
-  | prep_struct _ = None;
-
-in
-
-fun add_syntax decls =
-  map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
-    let
-      val structs' = mapfilter prep_struct decls @ structs;
-      val mxs = mapfilter prep_mixfix decls;
-      val (fixed, mxs_output) = Library.split_list (mapfilter prep_mixfix' decls);
-      val trs = map fixed_tr fixed;
-      val syn' = syn
-        |> Syntax.extend_const_gram ("", false) mxs_output
-        |> Syntax.extend_const_gram ("", true) mxs
-        |> Syntax.extend_trfuns ([], trs, [], []);
-    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
-
-end;
-
-
-(* annotate_term *)  (* FIXME structs *)
-
-fun annotate_term ctxt =
-  let
-    val (_, structs, mixfixed) = syntax_of ctxt;
-    fun annotate (t as Free (x, T)) = if x mem_string mixfixed then Const (fixedN ^ x, T) else t
-      | annotate (t $ u) = annotate t $ annotate u
-      | annotate (Abs (x, T, t)) = Abs (x, T, annotate t)
-      | annotate a = a;
-  in annotate end;
-
-
-
 (** pretty printing **)
 
-fun pretty_term ctxt =
-  Sign.pretty_term' (#1 (syntax_of ctxt)) (sign_of ctxt) o annotate_term ctxt;
-
+fun pretty_term ctxt = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) o context_tr' ctxt;
 val pretty_typ = Sign.pretty_typ o sign_of;
 val pretty_sort = Sign.pretty_sort o sign_of;
 
@@ -953,7 +974,6 @@ fun cert_def ctxt eq =
       err "Element to be defined occurs on rhs");
     conditional (not (null extra_frees)) (fn () =>
       err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
-    (* FIXME check for extra type variables on rhs *)
     (c, Term.list_all_free (mapfilter (try Term.dest_Free) xs, eq))
   end;
 
@@ -1135,7 +1155,7 @@ fun pretty_items prt name items =
 
 (* local syntax *)
 
-val print_syntax = Syntax.print_syntax o #1 o syntax_of;
+val print_syntax = Syntax.print_syntax o syn_of;
 
 
 (* term bindings *)
@@ -1208,25 +1228,31 @@ fun pretty_asms ctxt =
   let
     val prt_term = pretty_term ctxt;
 
+    (*structures*)
+    val (_, structs, _) = syntax_of ctxt;
+    val prt_structs = if null structs then []
+      else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
+        Pretty.commas (map Pretty.str structs))];
+
     (*fixes*)
     fun prt_fix (x, x') =
       if x = x' then Pretty.str x
       else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
-    fun prt_fixes [] = []
-      | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
-          Pretty.commas (map prt_fix xs))];
+    val fixes = rev (filter_out
+      ((can Syntax.dest_internal o #1) orf (fn (_, x') => x' mem_string structs)) (fixes_of ctxt));
+    val prt_fixes = if null fixes then []
+      else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
+        Pretty.commas (map prt_fix fixes))];
 
     (*prems*)
     val limit = ! prems_limit;
     val prems = prems_of ctxt;
     val len = length prems;
-    val prt_prems =
-      (if len <= limit then [] else [Pretty.str "..."]) @
-      map (pretty_thm ctxt) (Library.drop (len - limit, prems));
-  in
-    prt_fixes (rev (filter_out (can Syntax.dest_internal o #1) (fixes_of ctxt))) @
-    (if null prems then [] else [Pretty.big_list "prems:" prt_prems])
-  end;
+    val prt_prems = if null prems then []
+      else [Pretty.big_list "prems:" ((if len <= limit then [] else [Pretty.str "..."]) @
+        map (pretty_thm ctxt) (Library.drop (len - limit, prems)))];
+
+  in prt_structs @ prt_fixes @ prt_prems end;
 
 
 (* main context *)
