@@ -55,4 +55,16 @@ axclass order < ord
 axclass linorder < order
   linorder_linear "x <= y | y <= x"
 
+(*bounded quantifiers*)
+syntax
+  "@lessAll" :: [idt, 'a, bool] => bool   ("(3! _<_./ _)"  [0, 0, 10] 10)
+  "@lessEx"  :: [idt, 'a, bool] => bool   ("(3? _<_./ _)"  [0, 0, 10] 10)
+  "@leAll"   :: [idt, 'a, bool] => bool   ("(3! _<=_./ _)" [0, 0, 10] 10)
+  "@leEx"    :: [idt, 'a, bool] => bool   ("(3? _<=_./ _)" [0, 0, 10] 10)
+translations
+ "! x<y.  P"  =>  "! x. x < y  --> P"
+ "! x<=y. P"  =>  "! x. x <= y --> P"
+ "? x<y.  P"  =>  "? x. x < y  & P"
+ "? x<=y. P"  =>  "! x. x <= y & P"
+
 end
