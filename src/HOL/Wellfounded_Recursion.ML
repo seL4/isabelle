@@ -123,8 +123,7 @@ by (asm_full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by Safe_tac;
 by (EVERY1[rtac allE, assume_tac, etac impE, Blast_tac]);
 by (etac bexE 1);
-by (rename_tac "a" 1);
-by (case_tac "a = x" 1);
+by (rename_tac "a" 1 THEN case_tac "a = x" 1);
  by (res_inst_tac [("x","a")]bexI 2);
   by (assume_tac 3);
  by (Blast_tac 2);
@@ -163,8 +162,7 @@ Goal "[| ALL i:I. wf(r i); \
 \     |] ==> wf(UN i:I. r i)";
 by (asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
 by (Clarify_tac 1);
-by (rename_tac "A a" 1);
-by (case_tac "EX i:I. EX a:A. EX b:A. (b,a) : r i" 1);
+by (rename_tac "A a" 1 THEN case_tac "EX i:I. EX a:A. EX b:A. (b,a) : r i" 1);
  by (Asm_full_simp_tac 2);
  by (Best_tac 2);  (*much faster than Blast_tac*)
 by (Clarify_tac 1);
@@ -368,3 +366,24 @@ Goal "ALL M R f. (f=wfrec R M) --> wf R --> (ALL x. f x = M (cut f R x) x)";
 by (Clarify_tac 1);
 by (etac wfrec 1);
 qed "tfl_wfrec";
+
+(*LEAST and wellorderings*)
+(* ### see also wf_linord_ex_has_least and its consequences in Wellfounded_Relations.ML *)
+
+Goal "P (k::'a::wellorder) --> P (LEAST x. P(x)) & (LEAST x. P(x)) <= k";
+by (res_inst_tac [("a","k")] (wf RS wf_induct) 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (res_inst_tac [("s","x")] (Least_equality RS ssubst) 1);
+by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));  
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+bind_thm("wellorder_LeastI",   result() RS mp RS conjunct1);
+bind_thm("wellorder_Least_le", result() RS mp RS conjunct2);
+
+Goal "[| k < (LEAST x. P x) |] ==> ~P (k::'a::wellorder)";
+by (full_simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (etac contrapos_nn 1);
+by (etac wellorder_Least_le 1);
+qed "wellorder_not_less_Least";
+
