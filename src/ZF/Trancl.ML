@@ -6,8 +6,6 @@
 Transitive closure of a relation
 *)
 
-open Trancl;
-
 Goal "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, Un_mono, comp_mono] 2));
@@ -17,7 +15,7 @@ qed "rtrancl_bnd_mono";
 Goalw [rtrancl_def] "r<=s ==> r^* <= s^*";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac [rtrancl_bnd_mono, subset_refl, id_mono,
-                         comp_mono, Un_mono, field_mono, Sigma_mono] 1));
+		      comp_mono, Un_mono, field_mono, Sigma_mono] 1));
 qed "rtrancl_mono";
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
@@ -25,7 +23,8 @@ val rtrancl_unfold = rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (** The relation rtrancl **)
 
-bind_thm ("rtrancl_type", (rtrancl_def RS def_lfp_subset));
+(*  r^* <= field(r) * field(r)  *)
+bind_thm ("rtrancl_type", rtrancl_def RS def_lfp_subset);
 
 (*Reflexivity of rtrancl*)
 Goal "[| a: field(r) |] ==> <a,a> : r^*";
@@ -93,6 +92,8 @@ by (eres_inst_tac [("b","z")] rtrancl_induct 1);
 by (DEPTH_SOLVE (eresolve_tac [asm_rl, rtrancl_into_rtrancl] 1));
 qed "trans_rtrancl";
 
+bind_thm ("rtrancl_trans", trans_rtrancl RS transD);
+
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = Goal
     "[| <a,b> : r^*;  (a=b) ==> P;                       \
@@ -112,6 +113,8 @@ Goalw [trans_def,trancl_def] "trans(r^+)";
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl RS 
 			      (trans_rtrancl RS transD RS compI)]) 1);
 qed "trans_trancl";
+
+bind_thm ("trancl_trans", trans_trancl RS transD);
 
 (** Conversions between trancl and rtrancl **)
 
@@ -140,7 +143,7 @@ val prems = goal Trancl.thy
     "[| <a,b> : r;  <b,c> : r^* |]   ==>  <a,c> : r^+";
 by (resolve_tac (prems RL [rtrancl_induct]) 1);
 by (resolve_tac (prems RL [r_into_trancl]) 1);
-by (etac (trans_trancl RS transD) 1);
+by (etac trancl_trans 1);
 by (etac r_into_trancl 1);
 qed "rtrancl_into_trancl2";
 
@@ -180,3 +183,53 @@ Goalw [trancl_def] "r<=s ==> r^+ <= s^+";
 by (REPEAT (ares_tac [comp_mono, rtrancl_mono] 1));
 qed "trancl_mono";
 
+(** Suggested by Sidi Ould Ehmety **)
+
+Goal "(r^*)^* = r^*";
+by (rtac equalityI 1);
+by Auto_tac;
+by (ALLGOALS (forward_tac [impOfSubs rtrancl_type]));
+by (ALLGOALS Clarify_tac);
+by (etac r_into_rtrancl 2);
+by (etac rtrancl_induct 1);
+by (asm_full_simp_tac (simpset() addsimps [rtrancl_refl, rtrancl_field]) 1);
+by (blast_tac (claset() addIs [rtrancl_trans]) 1);
+qed "rtrancl_idemp";
+Addsimps [rtrancl_idemp];
+
+Goal "[| R <= S; S <= R^* |] ==> S^* = R^*";
+by (dtac rtrancl_mono 1);
+by (dtac rtrancl_mono 1);
+by (ALLGOALS Asm_full_simp_tac);
+by (Blast_tac 1);
+qed "rtrancl_subset";
+
+Goal "[| r<= Sigma(A,B); s<=Sigma(C,D) |] ==> (r^* Un s^*)^* = (r Un s)^*";
+by (rtac rtrancl_subset 1);
+by (blast_tac (claset() addDs [r_subset_rtrancl]) 1);
+by (blast_tac (claset() addIs [rtrancl_mono RS subsetD]) 1);
+qed "rtrancl_Un_rtrancl";
+
+(** "converse" laws by Sidi Ould Ehmety **)
+
+Goal "<x,y>:converse(r)^* ==> <x,y>:converse(r^*)";
+by (rtac converseI 1);
+by (forward_tac [rtrancl_type RS subsetD] 1);
+by (etac rtrancl_induct 1);
+by (blast_tac (claset() addIs [rtrancl_refl]) 1);
+by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
+qed "rtrancl_converseD";
+
+Goal "<x,y>:converse(r^*) ==> <x,y>:converse(r)^*";
+by (dtac converseD 1);
+by (forward_tac [rtrancl_type RS subsetD] 1);
+by (etac rtrancl_induct 1);
+by (blast_tac (claset() addIs [rtrancl_refl]) 1);
+by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
+qed "rtrancl_converseI";
+
+Goal "converse(r)^* = converse(r^*)";
+by (safe_tac (claset() addSIs [equalityI]));
+by (forward_tac [rtrancl_type RS subsetD] 1);
+by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
+qed "rtrancl_converse";
