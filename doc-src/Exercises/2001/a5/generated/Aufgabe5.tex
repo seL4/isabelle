@@ -1,0 +1,165 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Aufgabe{\isadigit{5}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Interval lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sets of natural numbers can be implemented as lists of
+intervals, where an interval is simply a pair of numbers. For example
+the set \isa{{\isacharbraceleft}{\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharcomma}\ {\isadigit{5}}{\isacharcomma}\ {\isadigit{7}}{\isacharcomma}\ {\isadigit{8}}{\isacharcomma}\ {\isadigit{9}}{\isacharbraceright}} can be represented by the
+list \isa{{\isacharbrackleft}{\isacharparenleft}{\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}{\isadigit{5}}{\isacharcomma}\ {\isadigit{5}}{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}{\isadigit{7}}{\isacharcomma}\ {\isadigit{9}}{\isacharparenright}{\isacharbrackright}}. A typical application
+is the list of free blocks of dynamically allocated memory.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Definitions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We introduce the type%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{types}\ intervals\ {\isacharequal}\ {\isachardoublequote}{\isacharparenleft}nat{\isacharasterisk}nat{\isacharparenright}\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This type contains all possible lists of pairs of natural
+numbers, even those that we may not recognize as meaningful
+representations of sets. Thus you should introduce an \emph{invariant}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}intervals\ {\isacharequal}{\isachargreater}\ bool{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+that characterizes exactly those interval lists representing
+sets.  (The reason why we call this an invariant will become clear
+below.)  For efficiency reasons intervals should be sorted in
+ascending order, the lower bound of each interval should be less or
+equal the upper bound, and the intervals should be chosen as large as
+possible, i.e.\ no two adjecent intervals should overlap or even touch
+each other.  It turns out to be convenient to define \isa{Aufgabe{\isadigit{5}}{\isachardot}inv} in
+terms of a more general function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ inv{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isacharequal}{\isachargreater}\ intervals\ {\isacharequal}{\isachargreater}\ bool{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+such that the additional argument is a lower bound for the
+intervals in the list.
+
+To relate intervals back to sets define an \emph{abstraktion funktion}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ set{\isacharunderscore}of\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}intervals\ {\isacharequal}{\isachargreater}\ nat\ set{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+that yields the set corresponding to an interval list (that
+satisfies the invariant).
+
+Finally, define two primitive recursive functions%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat{\isacharasterisk}nat{\isacharparenright}\ {\isacharequal}{\isachargreater}\ intervals\ {\isacharequal}{\isachargreater}\ intervals{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ rem\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat{\isacharasterisk}nat{\isacharparenright}\ {\isacharequal}{\isachargreater}\ intervals\ {\isacharequal}{\isachargreater}\ intervals{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+for inserting and deleting an interval from an interval
+list. The result should again satisfies the invariant. Hence the name:
+\isa{inv} is invariant under the application of the operations
+\isa{add} and \isa{rem} --- if \isa{inv} holds for the input, it
+must also hold for the output.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Proving the invariant%
+}
+\isamarkuptrue%
+\isacommand{declare}\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}\isanewline
+\isamarkupfalse%
+\isacommand{declare}\ split{\isacharunderscore}split\ {\isacharbrackleft}split{\isacharbrackright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Start off by proving the monotonicity of \isa{inv{\isadigit{2}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ inv{\isadigit{2}}{\isacharunderscore}monotone{\isacharcolon}\ {\isachardoublequote}inv{\isadigit{2}}\ m\ ins\ {\isasymLongrightarrow}\ n{\isasymle}m\ {\isasymLongrightarrow}\ inv{\isadigit{2}}\ n\ ins{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now show that \isa{add} and \isa{rem} preserve the invariant:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ inv{\isacharunderscore}add{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ i{\isasymle}j{\isacharsemicolon}\ inv\ ins\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ inv\ {\isacharparenleft}add\ {\isacharparenleft}i{\isacharcomma}j{\isacharparenright}\ ins{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ inv{\isacharunderscore}rem{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ i{\isasymle}j{\isacharsemicolon}\ inv\ ins\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ inv\ {\isacharparenleft}rem\ {\isacharparenleft}i{\isacharcomma}j{\isacharparenright}\ ins{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hint: you should first prove a more general statement
+(involving \isa{inv{\isadigit{2}}}). This will probably involve some advanced
+forms of induction discussed in section~9.3.1 of
+\cite{isabelle-tutorial}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Proving correctness of the implementation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Show the correctness of \isa{add} and \isa{rem} wrt.\
+their counterparts \isa{{\isasymunion}} and \isa{{\isacharminus}} on sets:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ set{\isacharunderscore}of{\isacharunderscore}add{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequote}{\isasymlbrakk}\ i{\isasymle}j{\isacharsemicolon}\ inv\ ins\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ set{\isacharunderscore}of\ {\isacharparenleft}add\ {\isacharparenleft}i{\isacharcomma}j{\isacharparenright}\ ins{\isacharparenright}\ {\isacharequal}\ set{\isacharunderscore}of\ {\isacharbrackleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isacharbrackright}\ {\isasymunion}\ set{\isacharunderscore}of\ ins{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ set{\isacharunderscore}of{\isacharunderscore}rem{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}{\isasymlbrakk}\ i\ {\isasymle}\ j{\isacharsemicolon}\ inv\ ins\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ set{\isacharunderscore}of\ {\isacharparenleft}rem\ {\isacharparenleft}i{\isacharcomma}j{\isacharparenright}\ ins{\isacharparenright}\ {\isacharequal}\ set{\isacharunderscore}of\ ins\ {\isacharminus}\ set{\isacharunderscore}of\ {\isacharbrackleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isacharbrackright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hints: in addition to the hints above, you may also find it
+useful to prove some relationship between \isa{inv{\isadigit{2}}} and \isa{set{\isacharunderscore}of} as a lemma.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{General hints%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{itemize}
+
+\item You should be familiar both with simplification and predicate
+calculus reasoning. Automatic tactics like \isa{blast} and \isa{force} can simplify the proof.
+
+\item
+Equality of two sets can often be proved via the rule \isa{set{\isacharunderscore}ext}:
+\begin{isabelle}%
+{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharparenleft}x\ {\isasymin}\ A{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymin}\ B{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isacharequal}\ B%
+\end{isabelle}
+
+\item 
+Potentially useful theorems for the simplification of sets include \\
+\isa{Un{\isacharunderscore}Diff{\isacharcolon}}~\isa{A\ {\isasymunion}\ B\ {\isacharminus}\ C\ {\isacharequal}\ A\ {\isacharminus}\ C\ {\isasymunion}\ {\isacharparenleft}B\ {\isacharminus}\ C{\isacharparenright}} \\
+\isa{Diff{\isacharunderscore}triv{\isacharcolon}}~\isa{A\ {\isasyminter}\ B\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}\ {\isasymLongrightarrow}\ A\ {\isacharminus}\ B\ {\isacharequal}\ A}.
+
+\item 
+Theorems can be instantiated and simplified via \isa{of} and
+\isa{{\isacharbrackleft}simplified{\isacharbrackright}} (see \cite{isabelle-tutorial}).
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

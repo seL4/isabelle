@@ -1,0 +1,50 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{3}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Compilation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+This exercise deals with the compiler example in section~3.3
+of \cite{isabelle-tutorial}. The simple side effect free expressions
+are extended with side effects.
+\begin{enumerate}
+
+\item Read sections 3.3 and 8.2 of \cite{isabelle-tutorial}.  Study
+the section about \isa{fun{\isacharunderscore}upd} in theory \isa{Fun} of HOL:
+\isa{fun{\isacharunderscore}upd\ f\ x\ y}, written \isa{f{\isacharparenleft}x{\isacharcolon}{\isacharequal}y{\isacharparenright}}, is \isa{f}
+updated at \isa{x} with new value \isa{y}.
+
+\item Extend data type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ expr} with a new alternative
+\isa{Assign\ x\ e} that shall represent an assignment \isa{x\ {\isacharequal}\ e} of the value of the expression \isa{e} to the variable \isa{x}.
+The value of an assignment shall be the value of \isa{e}.
+
+\item Modify the evaluation function \isa{value} such that it can
+deal with assignments. Note that since the evaluation of an expression
+may now change the environment, it no longer suffices to return only
+the value from the evaluation of an expression.
+
+Define a function \isa{se{\isacharunderscore}free\ {\isacharcolon}{\isacharcolon}\ expr\ {\isasymRightarrow}\ bool} that
+identifies side effect free expressions. Show that \isa{se{\isacharunderscore}free\ e}
+implies that evaluation of \isa{e} does not change the environment.
+
+\item Extend data type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ instr} with a new instruction
+\isa{Store\ x} that stores the topmost element on the stack in
+address/variable \isa{x}, without removing it from the stack.
+Update the machine semantics \isa{exec} accordingly. You will face
+the same problem as in the extension of \isa{value}.
+
+\item Modify the compiler \isa{comp} and its correctness proof to
+accommodate the above changes.
+\end{enumerate}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

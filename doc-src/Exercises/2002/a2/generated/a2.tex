@@ -1,0 +1,137 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{2}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Sorting \label{psv2002a2}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+For simplicity we sort natural numbers.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Sorting with lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The task is to define insertion sort and prove its correctness.
+The following functions are required:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ \isanewline
+\ \ insort\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequote}\isanewline
+\ \ sort\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequote}\isanewline
+\ \ le\ \ \ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ sorted\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+In your definition, \isa{insort\ x\ xs} should insert a
+number \isa{x} into an already sorted list \isa{xs}, and \isa{sort\ ys} should build on \isa{insort} to produce the sorted
+version of \isa{ys}.
+
+To show that the resulting list is indeed sorted we need a predicate
+\isa{sorted} that checks if each element in the list is less or equal
+to the following ones; \isa{le\ n\ xs} should be true iff
+\isa{n} is less or equal to all elements of \isa{xs}.
+
+Start out by showing a monotonicity property of \isa{le}.
+For technical reasons the lemma should be phrased as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ le\ y\ xs\ {\isasymlongrightarrow}\ le\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now show the following correctness theorem:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}sorted\ {\isacharparenleft}sort\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This theorem alone is too weak. It does not guarantee that the
+sorted list contains the same elements as the input. In the worst
+case, \isa{sort} might always return \isa{{\isacharbrackleft}{\isacharbrackright}} --- surely an
+undesirable implementation of sorting.
+
+Define a function \isa{count\ xs\ x} that counts how often \isa{x}
+occurs in \isa{xs}. Show that%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}count\ {\isacharparenleft}sort\ xs{\isacharparenright}\ x\ {\isacharequal}\ count\ xs\ x{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\isamarkupsubsubsection{Sorting with trees%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Our second sorting algorithm uses trees. Thus you should first
+define a data type \isa{bintree} of binary trees that are either
+empty or consist of a node carrying a natural number and two subtrees.
+
+Define a function \isa{tsorted} that checks if a binary tree is
+sorted. It is convenien to employ two auxiliary functions \isa{tge}/\isa{tle} that test whether a number is
+greater-or-equal/less-or-equal to all elements of a tree.
+
+Finally define a function \isa{tree{\isacharunderscore}of} that turns a list into a
+sorted tree. It is helpful to base \isa{tree{\isacharunderscore}of} on a function
+\isa{ins\ n\ b} that inserts a number \isa{n} into a sorted tree
+\isa{b}.
+
+Show%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}tsorted\ {\isacharparenleft}tree{\isacharunderscore}of\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Again we have to show that no elements are lost (or added).
+As for lists, define a function \isa{tcount\ x\ b} that counts the
+number of occurrences of the number \isa{x} in the tree \isa{b}.
+Show%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}tcount\ {\isacharparenleft}tree{\isacharunderscore}of\ xs{\isacharparenright}\ x\ {\isacharequal}\ count\ xs\ x{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now we are ready to sort lists. We know how to produce an
+ordered tree from a list. Thus we merely need a function \isa{list{\isacharunderscore}of} that turns an (ordered) tree into an (ordered) list.
+Define this function and prove%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}sorted\ {\isacharparenleft}list{\isacharunderscore}of\ {\isacharparenleft}tree{\isacharunderscore}of\ xs{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}count\ {\isacharparenleft}list{\isacharunderscore}of\ {\isacharparenleft}tree{\isacharunderscore}of\ xs{\isacharparenright}{\isacharparenright}\ n\ {\isacharequal}\ count\ xs\ n{\isachardoublequote}\ \ \ \ \isanewline
+\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hints:
+\begin{itemize}
+\item
+Try to formulate all your lemmas as equations rather than implications
+because that often simplifies their proof.
+Make sure that the right-hand side is (in some sense)
+simpler than the left-hand side.
+\item
+Eventually you need to relate \isa{sorted} and \isa{tsorted}.
+This is facilitated by a function \isa{ge} on lists (analogously to
+\isa{tge} on trees) and the following lemma (that you will need to prove):
+\begin{isabelle}%
+sorted\ {\isacharparenleft}a\ {\isacharat}\ x\ {\isacharhash}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}sorted\ a\ {\isasymand}\ sorted\ b\ {\isasymand}\ ge\ x\ a\ {\isasymand}\ le\ x\ b{\isacharparenright}%
+\end{isabelle}
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

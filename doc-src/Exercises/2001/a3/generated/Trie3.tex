@@ -1,0 +1,26 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Trie{\isadigit{3}}}%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Instead of association lists we can also use partial functions
+that map letters to subtrees. Partiality can be modelled with the help
+of type \isa{{\isacharprime}a\ option}: if \isa{f} is a function of type
+\mbox{\isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}}, set \isa{f\ a\ {\isacharequal}\ Some\ b}
+if \isa{a} should be mapped to some \isa{b} and set \isa{f\ a\ {\isacharequal}\ None} otherwise.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isacharequal}\ Trie\ \ {\isachardoublequote}{\isacharprime}v\ option{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}\ trie\ option{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Modify the definitions of \isa{lookup} and \isa{modify}
+accordingly and show the same correctness theorem as above.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,0 +1,84 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Aufgabe{\isadigit{1}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a function \isa{replace}, such that \isa{replace\ x\ y\ zs}
+yields \isa{zs} with every occurrence of \isa{x} replaced by \isa{y}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ replace\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove or disprove (by counter example) the following theorems.
+You may have to prove some lemmas first.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}rev{\isacharparenleft}replace\ x\ y\ zs{\isacharparenright}\ {\isacharequal}\ replace\ x\ y\ {\isacharparenleft}rev\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}replace\ x\ y\ {\isacharparenleft}replace\ u\ v\ zs{\isacharparenright}\ {\isacharequal}\ replace\ u\ v\ {\isacharparenleft}replace\ x\ y\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}replace\ y\ z\ {\isacharparenleft}replace\ x\ y\ zs{\isacharparenright}\ {\isacharequal}\ replace\ x\ z\ zs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define two functions for removing elements from a list:
+\isa{del{\isadigit{1}}\ x\ xs} deletes the first occurrence (from the left) of
+\isa{x} in \isa{xs}, \isa{delall\ x\ xs} all of them.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ del{\isadigit{1}}\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ delall\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove or disprove (by counter example) the following theorems.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}del{\isadigit{1}}\ x\ {\isacharparenleft}delall\ x\ xs{\isacharparenright}\ {\isacharequal}\ delall\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}delall\ x\ {\isacharparenleft}delall\ x\ xs{\isacharparenright}\ {\isacharequal}\ delall\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}delall\ x\ {\isacharparenleft}del{\isadigit{1}}\ x\ xs{\isacharparenright}\ {\isacharequal}\ delall\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}del{\isadigit{1}}\ x\ {\isacharparenleft}del{\isadigit{1}}\ y\ zs{\isacharparenright}\ {\isacharequal}\ del{\isadigit{1}}\ y\ {\isacharparenleft}del{\isadigit{1}}\ x\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}delall\ x\ {\isacharparenleft}del{\isadigit{1}}\ y\ zs{\isacharparenright}\ {\isacharequal}\ del{\isadigit{1}}\ y\ {\isacharparenleft}delall\ x\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}delall\ x\ {\isacharparenleft}delall\ y\ zs{\isacharparenright}\ {\isacharequal}\ delall\ y\ {\isacharparenleft}delall\ x\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}del{\isadigit{1}}\ y\ {\isacharparenleft}replace\ x\ y\ xs{\isacharparenright}\ {\isacharequal}\ del{\isadigit{1}}\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}delall\ y\ {\isacharparenleft}replace\ x\ y\ xs{\isacharparenright}\ {\isacharequal}\ delall\ x\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}replace\ x\ y\ {\isacharparenleft}delall\ x\ zs{\isacharparenright}\ {\isacharequal}\ delall\ x\ zs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}replace\ x\ y\ {\isacharparenleft}delall\ z\ zs{\isacharparenright}\ {\isacharequal}\ delall\ z\ {\isacharparenleft}replace\ x\ y\ zs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}rev{\isacharparenleft}del{\isadigit{1}}\ x\ xs{\isacharparenright}\ {\isacharequal}\ del{\isadigit{1}}\ x\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}rev{\isacharparenleft}delall\ x\ xs{\isacharparenright}\ {\isacharequal}\ delall\ x\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

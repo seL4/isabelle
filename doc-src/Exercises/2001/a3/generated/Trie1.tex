@@ -1,0 +1,99 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Trie{\isadigit{1}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Tries%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Section~3.4.4 of \cite{isabelle-tutorial} is a case study
+about so-called \emph{tries}, a data structure for fast indexing with
+strings. Read that section.
+
+The data type of tries over the alphabet type \isa{{\isacharprime}a} und the value
+type \isa{{\isacharprime}v} is defined as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isacharequal}\ Trie\ \ {\isachardoublequote}{\isacharprime}v\ option{\isachardoublequote}\ \ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}\ trie{\isacharparenright}\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+A trie consists of an optional value and an association list
+that maps letters of the alphabet to subtrees. Type \isa{{\isacharprime}a\ option} is
+defined in section~2.5.3 of \cite{isabelle-tutorial}.
+
+There are also two selector functions \isa{value} and \isa{alist}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ value\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isasymRightarrow}\ {\isacharprime}v\ option{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\ {\isachardoublequote}value\ {\isacharparenleft}Trie\ ov\ al{\isacharparenright}\ {\isacharequal}\ ov{\isachardoublequote}\ \isanewline
+\isanewline
+\isamarkupfalse%
+\isacommand{consts}\ alist\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}\ trie{\isacharparenright}\ list{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\ {\isachardoublequote}alist\ {\isacharparenleft}Trie\ ov\ al{\isacharparenright}\ {\isacharequal}\ al{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Furthermore there is a function \isa{lookup} on tries
+defined with the help of the generic search function \isa{assoc} on
+association lists:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ assoc\ {\isacharcolon}{\isacharcolon}\ \ {\isachardoublequote}{\isacharparenleft}{\isacharprime}key\ {\isacharasterisk}\ {\isacharprime}val{\isacharparenright}list\ {\isasymRightarrow}\ {\isacharprime}key\ {\isasymRightarrow}\ {\isacharprime}val\ option{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\ {\isachardoublequote}assoc\ {\isacharbrackleft}{\isacharbrackright}\ x\ {\isacharequal}\ None{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ {\isachardoublequote}assoc\ {\isacharparenleft}p{\isacharhash}ps{\isacharparenright}\ x\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}let\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ p\ in\ if\ a\ {\isacharequal}\ x\ then\ Some\ b\ else\ assoc\ ps\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\isanewline
+\isamarkupfalse%
+\isacommand{consts}\ lookup\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}v\ option{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\ {\isachardoublequote}lookup\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ value\ t{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ {\isachardoublequote}lookup\ t\ {\isacharparenleft}a{\isacharhash}as{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ assoc\ {\isacharparenleft}alist\ t{\isacharparenright}\ a\ of\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ None\ {\isasymRightarrow}\ None\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Some\ at\ {\isasymRightarrow}\ lookup\ at\ as{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Finally, \isa{update} updates the value associated with some
+string with a new value, overwriting the old one:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ update\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}v\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\isanewline
+\ \ {\isachardoublequote}update\ t\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ v\ {\isacharequal}\ Trie\ {\isacharparenleft}Some\ v{\isacharparenright}\ {\isacharparenleft}alist\ t{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}update\ t\ {\isacharparenleft}a{\isacharhash}as{\isacharparenright}\ v\ {\isacharequal}\isanewline
+\ \ \ \ \ {\isacharparenleft}let\ tt\ {\isacharequal}\ {\isacharparenleft}case\ assoc\ {\isacharparenleft}alist\ t{\isacharparenright}\ a\ of\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ None\ {\isasymRightarrow}\ Trie\ None\ {\isacharbrackleft}{\isacharbrackright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Some\ at\ {\isasymRightarrow}\ at{\isacharparenright}\isanewline
+\ \ \ \ \ \ in\ Trie\ {\isacharparenleft}value\ t{\isacharparenright}\ {\isacharparenleft}{\isacharparenleft}a{\isacharcomma}\ update\ tt\ as\ v{\isacharparenright}\ {\isacharhash}\ alist\ t{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The following theorem tells us that \isa{update} behaves as
+expected:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}{\isasymforall}t\ v\ bs{\isachardot}\ lookup\ {\isacharparenleft}update\ t\ as\ v{\isacharparenright}\ bs\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}if\ as\ {\isacharequal}\ bs\ then\ Some\ v\ else\ lookup\ t\ bs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+As a warming up exercise, define a function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ modify\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}v\ option\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}v{\isacharparenright}\ trie{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+for inserting as well as deleting elements from a trie. Show
+that \isa{modify} satisfies a suitably modified version of the
+correctness theorem for \isa{update}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

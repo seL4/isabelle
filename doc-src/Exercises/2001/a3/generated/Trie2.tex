@@ -1,0 +1,32 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Trie{\isadigit{2}}}%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Die above definition of \isa{update} has the disadvantage
+that it often creates junk: each association list it passes through is
+extended at the left end with a new (letter,value) pair without
+removing any old association of that letter which may already be
+present.  Logically, such cleaning up is unnecessary because \isa{assoc} always searches the list from the left. However, it constitutes
+a space leak: the old associations cannot be garbage collected because
+physically they are still reachable. This problem can be solved by
+means of a function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ overwrite\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharprime}b{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharprime}b{\isacharparenright}\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+that does not just add new pairs at the front but replaces old
+associations by new pairs if possible.
+
+Define \isa{overwrite}, modify \isa{modify} to employ \isa{overwrite}, and show the same relationship between \isa{modify} and
+\isa{lookup} as before.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

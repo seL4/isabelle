@@ -1,0 +1,90 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{1}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a universal and an existential quantifier on lists.
+Expression \isa{alls\ P\ xs} should be true iff \isa{P\ x} holds
+for every element \isa{x} of \isa{xs}, and \isa{exs\ P\ xs}
+should be true iff \isa{P\ x} holds for some element \isa{x} of
+\isa{xs}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ \isanewline
+\ \ alls\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ exs\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove or disprove (by counter example) the following theorems.
+You may have to prove some lemmas first.
+
+Use the \isa{{\isacharbrackleft}simp{\isacharbrackright}}-attribute only if the equation is truly a
+simplification and is necessary for some later proof.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}alls\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P\ x\ {\isasymand}\ Q\ x{\isacharparenright}\ xs\ {\isacharequal}\ {\isacharparenleft}alls\ P\ xs\ {\isasymand}\ alls\ Q\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}alls\ P\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ alls\ P\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}exs\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P\ x\ {\isasymand}\ Q\ x{\isacharparenright}\ xs\ {\isacharequal}\ {\isacharparenleft}exs\ P\ xs\ {\isasymand}\ exs\ Q\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}exs\ P\ {\isacharparenleft}map\ f\ xs{\isacharparenright}\ {\isacharequal}\ exs\ {\isacharparenleft}P\ o\ f{\isacharparenright}\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}exs\ P\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ exs\ P\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Find a term \isa{Z} such that the following equation holds:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}exs\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P\ x\ {\isasymor}\ Q\ x{\isacharparenright}\ xs\ {\isacharequal}\ Z{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Express the existential via the universal quantifier ---
+\isa{exs} should not occur on the right-hand side:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}exs\ P\ xs\ {\isacharequal}\ Z{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{is{\isacharunderscore}in\ x\ xs} that checks if \isa{x} occurs in
+\isa{xs} vorkommt. Now express \isa{is{\isacharunderscore}in} via \isa{exs}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}is{\isacharunderscore}in\ a\ xs\ {\isacharequal}\ Z{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{nodups\ xs} that is true iff
+\isa{xs} does not contain duplicates, and a function \isa{deldups\ xs} that removes all duplicates. Note that \isa{deldups\ {\isacharbrackleft}x{\isacharcomma}\ y{\isacharcomma}\ x{\isacharbrackright}}
+(where \isa{x} and \isa{y} are distinct) can be either
+\isa{{\isacharbrackleft}x{\isacharcomma}\ y{\isacharbrackright}} or \isa{{\isacharbrackleft}y{\isacharcomma}\ x{\isacharbrackright}}.
+
+Prove or disprove (by counter example) the following theorems.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}length\ {\isacharparenleft}deldups\ xs{\isacharparenright}\ {\isacharless}{\isacharequal}\ length\ xs{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}nodups\ {\isacharparenleft}deldups\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}deldups\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ {\isacharparenleft}deldups\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

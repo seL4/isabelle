@@ -1,0 +1,92 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Arithmetic}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Arithmetic%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Power%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a primitive recursive function $pow~x~n$ that
+computes $x^n$ on natural numbers.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ pow\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isacharequal}{\isachargreater}\ nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove the well known equation $x^{m \cdot n} = (x^m)^n$:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ pow{\isacharunderscore}mult{\isacharcolon}\ {\isachardoublequote}pow\ x\ {\isacharparenleft}m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ pow\ {\isacharparenleft}pow\ x\ m{\isacharparenright}\ n{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hint: prove a suitable lemma first.  If you need to appeal to
+associativity and commutativity of multiplication: the corresponding
+simplification rules are named \isa{mult{\isacharunderscore}ac}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Summation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a (primitive recursive) function $sum~ns$ that sums a list
+of natural numbers: $sum [n_1, \dots, n_k] = n_1 + \cdots + n_k$.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show that $sum$ is compatible with $rev$. You may need a lemma.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ sum{\isacharunderscore}rev{\isacharcolon}\ {\isachardoublequote}sum\ {\isacharparenleft}rev\ ns{\isacharparenright}\ {\isacharequal}\ sum\ ns{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function $Sum~f~k$ that sums $f$ from $0$
+up to $k-1$: $Sum~f~k = f~0 + \cdots + f(k - 1)$.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ Sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isacharequal}{\isachargreater}\ nat{\isacharparenright}\ {\isacharequal}{\isachargreater}\ nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Show the following equations for the pointwise summation of functions.
+Determine first what the expression \isa{whatever} should be.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}Sum\ {\isacharparenleft}{\isacharpercent}i{\isachardot}\ f\ i\ {\isacharplus}\ g\ i{\isacharparenright}\ k\ {\isacharequal}\ Sum\ f\ k\ {\isacharplus}\ Sum\ g\ k{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}Sum\ f\ {\isacharparenleft}k\ {\isacharplus}\ l{\isacharparenright}\ {\isacharequal}\ Sum\ f\ k\ {\isacharplus}\ Sum\ whatever\ l{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+What is the relationship between \isa{sum} and \isa{Sum}?
+Prove the following equation, suitably instantiated.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}Sum\ f\ k\ {\isacharequal}\ sum\ whatever{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hint: familiarize yourself with the predefined functions \isa{map} and
+\isa{{\isacharbrackleft}i{\isachardot}{\isachardot}j{\isacharparenleft}{\isacharbrackright}} on lists in theory List.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

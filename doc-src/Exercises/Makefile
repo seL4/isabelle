@@ -8,23 +8,23 @@ dvi: gen
 	latex exercises
 	latex exercises
 
-pdf: gen
+pdf: gen 
 	pdflatex exercises
 	bibtex exercises
 	pdflatex exercises
 	pdflatex exercises
 
 g2000:
-	cd 2000; isatool make
+	cd 2000; make
 
 g2001:
-	cd 2001; isatool make
+	cd 2001; make
 
 g2002:
-	cd 2002; isatool make
+	cd 2002; make
 
 clean:
 	rm -f *.log *.aux *.bbl *.blg *.toc *.out *~
 
 realclean: clean
-	rm -rf exercises.pdf */*/generated
+	rm -rf exercises.pdf execrcises.dvi

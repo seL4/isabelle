@@ -1,0 +1,34 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Snoc}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a primitive recursive function \isa{snoc} that appends an element
+at the \emph{right} end of a list. Do not use \isa{{\isacharat}} itself.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\isanewline
+\ \ snoc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove the following theorem:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ rev{\isacharunderscore}cons{\isacharcolon}\ {\isachardoublequote}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ snoc\ {\isacharparenleft}rev\ xs{\isacharparenright}\ x{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Hint: you need to prove a suitable lemma first.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

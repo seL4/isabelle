@@ -1,0 +1,55 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{5}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Merge sort%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Implement \emph{merge sort}: a list is sorted by splitting it
+into two lists, sorting them separately, and merging the results.
+
+With the help of \isa{recdef} define two functions%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ merge\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymtimes}\ nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ msort\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+and show%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}sorted\ {\isacharparenleft}msort\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}count\ {\isacharparenleft}msort\ xs{\isacharparenright}\ x\ {\isacharequal}\ count\ xs\ x{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+where \isa{sorted} and \isa{count} are defined as in
+section~\ref{psv2002a2}.
+
+Hints:
+\begin{itemize}
+\item For \isa{recdef} see section~3.5 of \cite{isabelle-tutorial}.
+
+\item To split a list into two halves of almost equal length you can
+use the functions \mbox{\isa{n\ div\ {\isadigit{2}}}}, \isa{take} und \isa{drop},
+where \isa{take\ n\ xs} returns the first \isa{n} elements of
+\isa{xs} and \isa{drop\ n\ xs} the remainder.
+
+\item Here are some potentially useful lemmas:\\
+  \isa{linorder{\isacharunderscore}not{\isacharunderscore}le{\isacharcolon}} \isa{{\isacharparenleft}{\isasymnot}\ x\ {\isasymle}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y\ {\isacharless}\ x{\isacharparenright}}\\
+  \isa{order{\isacharunderscore}less{\isacharunderscore}le{\isacharcolon}} \isa{{\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymle}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}}\\
+  \isa{min{\isacharunderscore}def{\isacharcolon}} \isa{min\ a\ b\ {\isasymequiv}\ if\ a\ {\isasymle}\ b\ then\ a\ else\ b}
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

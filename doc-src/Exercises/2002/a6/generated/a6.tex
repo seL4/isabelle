@@ -1,0 +1,31 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{6}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{The towers of Hanoi%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In section \ref{psv2000hanoi} we introduced the towers of Hanoi and
+defined a function \isa{moves} to generate the moves to solve the
+puzzle.  Now it is time to show that \isa{moves} is correct. This
+means that
+\begin{itemize}
+\item when executing the list of moves, the result is indeed the
+intended one, i.e.\ all disks are moved from one peg to another, and
+\item all of the moves are legal, i.e.\ never place a larger disk
+on top of a smaller one.
+\end{itemize}
+Hint: this is a nontrivial undertaking. The complexity of your proofs
+will depend crucially on your choice of model and you may have to
+revise your model as you proceed with the proof.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
