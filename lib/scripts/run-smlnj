@@ -31,16 +31,16 @@ function fail_out()
 
 if [ -z "$OUTFILE" ]; then
   DB="$INFILE"
-  COMMIT="fun commit() = output (std_out, \"Error - Database is not opened for writing.\\n\");"
+  COMMIT='fun commit() = (output (std_out, "Error - Database is not opened for writing.\n"); false);'
 elif [ -n "$INFILE" -a "$INFILE" != "$OUTFILE" ]; then           # FIXME ! -ef !?
   [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
   cp "$INFILE" "$OUTFILE" || fail_out
   chmod +w "$OUTFILE"
   DB="$INFILE"
-  COMMIT="fun commit() = (exportML\"$OUTFILE\"; ());"
+  COMMIT="fun commit() = not (exportML\"$OUTFILE\");"
 else
   DB="$INFILE"
-  COMMIT="fun commit() = (exportML\"$OUTFILE\"; ());"
+  COMMIT="fun commit() = not (exportML\"$OUTFILE\");"
 fi
 
 [ -n "$DB" ] && DB="@SMLload=$DB"
