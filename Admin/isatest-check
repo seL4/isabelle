@@ -95,7 +95,7 @@ if [ -e $ERRORLOG ]; then
 
     for R in $MAILTO; do
         LOGS=$ERRORDIR/isatest*.log
-        $MAIL "isabelle test failed" $R $TMP *.log
+        $MAIL "isabelle test failed" $R $TMP $LOGS
     done
 
     rm $TMP
