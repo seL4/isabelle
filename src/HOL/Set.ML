@@ -117,12 +117,16 @@ val prems = Goalw [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
+(*Map the type ('a set => anything) to just 'a.
+  For overloading constants whose first argument has type "'a set" *)
+fun overload_1st_set s = Blast.overloaded (s, HOLogic.dest_setT o domain_type);
+
 (*While (:) is not, its type must be kept
   for overloading of = to work.*)
 Blast.overloaded ("op :", domain_type);
-seq (fn a => Blast.overloaded (a, HOLogic.dest_setT o domain_type))
-    ["Ball", "Bex"];
-(*need UNION, INTER also?*)
+
+overload_1st_set "Ball";		(*need UNION, INTER also?*)
+overload_1st_set "Bex";
 
 (*Image: retain the type of the set being expressed*)
 Blast.overloaded ("op ``", domain_type);
