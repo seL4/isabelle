@@ -753,6 +753,95 @@ theorem mod_div_equality': "(m::nat) mod n = m - (m div n) * n"
   apply arith
   done
 
+subsection {*An ``induction'' law for modulus arithmetic.*}
+
+lemma mod_induct_0:
+  assumes step: "\<forall>i<p. P i \<longrightarrow> P ((Suc i) mod p)"
+  and base: "P i" and i: "i<p"
+  shows "P 0"
+proof (rule ccontr)
+  assume contra: "\<not>(P 0)"
+  from i have p: "0<p" by simp
+  have "\<forall>k. 0<k \<longrightarrow> \<not> P (p-k)" (is "\<forall>k. ?A k")
+  proof
+    fix k
+    show "?A k"
+    proof (induct k)
+      show "?A 0" by simp  -- "by contradiction"
+    next
+      fix n
+      assume ih: "?A n"
+      show "?A (Suc n)"
+      proof (clarsimp)
+	assume y: "P (p - Suc n)"
+	have n: "Suc n < p"
+	proof (rule ccontr)
+	  assume "\<not>(Suc n < p)"
+	  hence "p - Suc n = 0"
+	    by simp
+	  with y contra show "False"
+	    by simp
+	qed
+	hence n2: "Suc (p - Suc n) = p-n" by arith
+	from p have "p - Suc n < p" by arith
+	with y step have z: "P ((Suc (p - Suc n)) mod p)"
+	  by blast
+	show "False"
+	proof (cases "n=0")
+	  case True
+	  with z n2 contra show ?thesis by simp
+	next
+	  case False
+	  with p have "p-n < p" by arith
+	  with z n2 False ih show ?thesis by simp
+	qed
+      qed
+    qed
+  qed
+  moreover
+  from i obtain k where "0<k \<and> i+k=p"
+    by (blast dest: less_imp_add_positive)
+  hence "0<k \<and> i=p-k" by auto
+  moreover
+  note base
+  ultimately
+  show "False" by blast
+qed
+
+lemma mod_induct:
+  assumes step: "\<forall>i<p. P i \<longrightarrow> P ((Suc i) mod p)"
+  and base: "P i" and i: "i<p" and j: "j<p"
+  shows "P j"
+proof -
+  have "\<forall>j<p. P j"
+  proof
+    fix j
+    show "j<p \<longrightarrow> P j" (is "?A j")
+    proof (induct j)
+      from step base i show "?A 0"
+	by (auto elim: mod_induct_0)
+    next
+      fix k
+      assume ih: "?A k"
+      show "?A (Suc k)"
+      proof
+	assume suc: "Suc k < p"
+	hence k: "k<p" by simp
+	with ih have "P k" ..
+	with step k have "P (Suc k mod p)"
+	  by blast
+	moreover
+	from suc have "Suc k mod p = Suc k"
+	  by simp
+	ultimately
+	show "P (Suc k)" by simp
+      qed
+    qed
+  qed
+  with j show ?thesis by blast
+qed
+
+
 ML
 {*
 val div_def = thm "div_def"
