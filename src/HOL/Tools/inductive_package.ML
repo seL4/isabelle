@@ -452,7 +452,7 @@ fun project_rules [name] rule = [(name, rule)]
             RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
       in names ~~ map proj (1 upto n) end;
 
-fun add_cases_induct no_elim no_ind names elims induct induct_cases =
+fun add_cases_induct no_elim no_ind names elims induct =
   let
     fun cases_spec (name, elim) thy =
       thy
@@ -461,8 +461,8 @@ fun add_cases_induct no_elim no_ind names elims induct induct_cases =
       |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
-    fun induct_spec (name, th) = (#1 o PureThy.add_thms
-      [(("", th), [RuleCases.case_names induct_cases, InductAttrib.induct_set_global name])]);
+    fun induct_spec (name, th) = #1 o PureThy.add_thms
+      [(("", RuleCases.save induct th), [InductAttrib.induct_set_global name])];
     val induct_specs = if no_ind then [] else map induct_spec (project_rules names induct);
   in Library.apply (cases_specs @ induct_specs) end;
 
@@ -521,16 +521,16 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
     val rules1 = [CollectE, disjE, make_elim vimageD, exE];
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @ map make_elim [Inl_inject, Inr_inject];
   in
-    map (fn (t, cases) => SkipProof.prove_goalw_cterm thy rec_sets_defs
-      (Thm.cterm_of (Theory.sign_of thy) t) (fn prems =>
-        [cut_facts_tac [hd prems] 1,
-         dtac (unfold RS subst) 1,
-         REPEAT (FIRSTGOAL (eresolve_tac rules1)),
-         REPEAT (FIRSTGOAL (eresolve_tac rules2)),
-         EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))])
-      |> rulify
-      |> RuleCases.name cases)
-      (mk_elims cs cTs params intr_ts intr_names)
+    mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
+      SkipProof.prove_goalw_cterm thy rec_sets_defs
+        (Thm.cterm_of (Theory.sign_of thy) t) (fn prems =>
+          [cut_facts_tac [hd prems] 1,
+           dtac (unfold RS subst) 1,
+           REPEAT (FIRSTGOAL (eresolve_tac rules1)),
+           REPEAT (FIRSTGOAL (eresolve_tac rules2)),
+           EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))])
+        |> rulify
+        |> RuleCases.name cases)
   end;
 
 
@@ -768,9 +768,13 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       thy1 |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts);
     val (thy3, ([intrs'', elims'], [induct'])) =
       thy2
-      |> PureThy.add_thmss [(("intros", intrs'), atts), (("elims", elims), [])]
+      |> PureThy.add_thmss
+        [(("intros", intrs'), atts),
+          (("elims", elims), [RuleCases.consumes 1])]
       |>>> PureThy.add_thms
-        [((coind_prefix coind ^ "induct", rulify induct), [RuleCases.case_names induct_cases])]
+        [((coind_prefix coind ^ "induct", rulify induct),
+         [RuleCases.case_names induct_cases,
+          RuleCases.consumes 1])]
       |>> Theory.parent_path;
   in (thy3,
     {defs = fp_def :: rec_sets_defs,
@@ -819,7 +823,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
         con_defs thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames elims induct induct_cases;
+      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames elims induct;
   in (thy2, result) end;
 
 fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs thy =
