@@ -311,20 +311,20 @@ val stream_rews = [stream_iso_strict RS conjunct1,
 
 fun prover reach defs thm  = prove_goalw Stream.thy defs thm
  (fn prems =>
-        [
-        (res_inst_tac [("t","s1")] (reach RS subst) 1),
-        (res_inst_tac [("t","s2")] (reach RS subst) 1),
-        (rtac (fix_def2 RS ssubst) 1),
-        (rtac (contlub_cfun_fun RS ssubst) 1),
-        (rtac is_chain_iterate 1),
-        (rtac (contlub_cfun_fun RS ssubst) 1),
-        (rtac is_chain_iterate 1),
-        (rtac lub_equal 1),
-        (rtac (is_chain_iterate RS ch2ch_fappL) 1),
-        (rtac (is_chain_iterate RS ch2ch_fappL) 1),
-        (rtac allI 1),
-        (resolve_tac prems 1)
-        ]);
+	[
+	(res_inst_tac [("t","s1")] (reach RS subst) 1),
+	(res_inst_tac [("t","s2")] (reach RS subst) 1),
+	(rtac (fix_def2 RS ssubst) 1),
+	(rtac (contlub_cfun_fun RS ssubst) 1),
+	(rtac is_chain_iterate 1),
+	(rtac (contlub_cfun_fun RS ssubst) 1),
+	(rtac is_chain_iterate 1),
+	(rtac lub_equal 1),
+	(rtac (is_chain_iterate RS ch2ch_fappL) 1),
+	(rtac (is_chain_iterate RS ch2ch_fappL) 1),
+	(rtac allI 1),
+	(resolve_tac prems 1),
+	]);
 
 val stream_take_lemma = prover stream_reach  [stream_take_def]
         "(!!n.stream_take n`s1 = stream_take n`s2) ==> s1=s2";
