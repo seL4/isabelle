@@ -18,7 +18,6 @@ function usage()
   echo "    -c           cleanup -- be aggressive in removing old stuff"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
   echo "                 ps.gz, pdf"
-  echo "    -v           be verbose"
   echo
   echo "  Prepare the theory session document in DIR (default 'document')"
   echo "  producing the specified output format."
@@ -39,9 +38,8 @@ function fail()
 
 CLEAN=""
 OUTFORMAT=dvi
-VERBOSE=""
 
-while getopts "co:v" OPT
+while getopts "co:" OPT
 do
   case "$OPT" in
     c)
@@ -49,9 +47,6 @@ do
       ;;
     o)
       OUTFORMAT="$OPTARG"
-      ;;
-    v)
-      VERBOSE=true
       ;;
     \?)
       usage
@@ -122,8 +117,7 @@ function pre_latex ()
   fi
 
   if [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ]; then
-    cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT" && \
-    [ -n "$VERBOSE" ] && echo "$(cd ..; echo "Prepared $PWD/document.$OUTFORMAT")" >&2
+    cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
   fi
 
   exit "$RC"
