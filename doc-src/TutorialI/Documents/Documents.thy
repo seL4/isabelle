@@ -805,9 +805,8 @@ text {*
   elements need to be kept in mind, too --- the system performs little
   sanity checks here.  Arguments of markup commands and formal
   comments must not be hidden, otherwise presentation fails.  Open and
-  close parentheses need to be inserted carefully; it is fairly easy
-  to hide the wrong parts, especially after rearranging the theory
-  text.
+  close parentheses need to be inserted carefully; it is easy to hide
+  the wrong parts, especially after rearranging the theory text.
 *}
 
 (*<*)
