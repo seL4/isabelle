@@ -585,11 +585,15 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
       |> enter_forward
       |> map_context_result (fn c => prepp (c, raw_propp));
     val cprop = Thm.cterm_of (sign_of state') prop;
+(* FIXME
     val casms = map #1 (assumptions state');
 
     val revcut_rl = Drule.incr_indexes_wrt [] [] (cprop :: casms) [] Drule.revcut_rl;
     fun cut_asm (casm, thm) = Thm.rotate_rule ~1 1 ((Drule.assume_goal casm COMP revcut_rl) RS thm);
+
     val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
+*)
+    val goal = Drule.mk_triv_goal cprop;
   in
     state'
     |> opt_block
