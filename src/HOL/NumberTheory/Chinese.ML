@@ -37,7 +37,7 @@ by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 1);
 qed_spec_mp "funprod_pos";
 
 Goal "(ALL i. k<=i & i<=(k+l) --> zgcd (mf i, mf m) = #1) --> \
-\      #0 < mf m --> zgcd (funprod mf k l, mf m) = #1";
+\     zgcd (funprod mf k l, mf m) = #1";
 by (induct_tac "l" 1);
 by (ALLGOALS Simp_tac);
 by (REPEAT (rtac impI 1));
@@ -111,13 +111,11 @@ by (ALLGOALS Simp_tac);
 by (blast_tac (claset() addIs [lemma]) 1);
 by (REPEAT (rtac impI 1));
 by (rtac zcong_zgcd_zmult_zmod 1);
-by (blast_tac (claset() addIs [lemma]) 3);
-by (stac zgcd_commute 4);
-by (rtac funprod_zgcd 6);
-by (rtac funprod_pos 5);
-by (rtac funprod_pos 2);
-by (rewrite_goals_tac [m_cond_def,km_cond_def,lincong_sol_def]);
-by Auto_tac;
+by (blast_tac (claset() addIs [lemma]) 1);
+by (stac zgcd_commute 2);
+by (rtac funprod_zgcd 2);
+by (auto_tac (claset(), 
+              simpset() addsimps [m_cond_def,km_cond_def,lincong_sol_def]));  
 qed_spec_mp "zcong_funprod";
 
 
@@ -133,9 +131,8 @@ Goal "[| 0<n; i<=n; m_cond n mf; km_cond n kf mf |] \
 by (rtac zcong_lineq_unique 1);
 by (stac zgcd_zmult_cancel 2);
 by (rewrite_goals_tac [m_cond_def,km_cond_def,mhf_def]);
-by (case_tac "i=0" 4);
-by (case_tac "i=n" 5);
 by (ALLGOALS Asm_simp_tac);
+by Auto_tac;  
 by (stac zgcd_zmult_cancel 3);
 by (Asm_simp_tac 3);
 by (ALLGOALS (rtac funprod_zgcd));

@@ -8,6 +8,12 @@ More abstract approach than Boyer-Moore (which seems necessary
 to achieve the extended version)
 *)
 
+(*LCP: not sure why this lemma is needed now*)
+Goal "(abs z = (#1::int)) = (z = #1 | z = #-1)";
+by (auto_tac (claset(), simpset() addsimps [zabs_def]));  
+qed "abs_eq_1_iff";
+AddIffs [abs_eq_1_iff];
+
 
 (***  norRRset  ***)
 
@@ -112,12 +118,12 @@ qed "norR_mem_unique";
 (***  noXRRset  ***)
 
 Goalw [is_RRset_def] 
-      "[| #0<m; is_RRset A m; #0<m |] ==> a:A --> zgcd (a,m) = #1";
+      "is_RRset A m ==> a:A --> zgcd (a,m) = #1";
 by (rtac RsetR.induct 1);
 by Auto_tac;
 qed_spec_mp "RRset_gcd";
 
-Goal "[|  A : RsetR m; #0<m; zgcd (x, m) = #1 |] ==> (%a. a*x)``A : RsetR m";
+Goal "[| A : RsetR m;  #0<m; zgcd(x, m) = #1 |] ==> (%a. a*x)``A : RsetR m";
 by (etac RsetR.induct 1);
 by (ALLGOALS Simp_tac);
 by (rtac RsetR.insert 1);
@@ -144,17 +150,16 @@ by (ALLGOALS Asm_simp_tac);
 qed "noX_is_RRset";
 
 Goal "[| #1<m; is_RRset A m; a:A |] \
-\    ==> zcong a (@ b. [a = b](mod m) & b : norRRset m) m & \
-\        (@ b. [a = b](mod m) & b : norRRset m) : norRRset m";
+\     ==> zcong a (@ b. [a = b](mod m) & b : norRRset m) m & \
+\         (@ b. [a = b](mod m) & b : norRRset m) : norRRset m";
 by (rtac (norR_mem_unique RS ex1_implies_ex RS ex_someI) 1);
 by (rtac RRset_gcd 2);
 by (ALLGOALS Asm_simp_tac);
 val lemma_some = result();
 
 Goalw [RRset2norRR_def]
-      "[| #1<m; is_RRset A m; a:A |] \
-\     ==> zcong a (RRset2norRR A m a) m & \
-\         (RRset2norRR A m a):(norRRset m)";
+     "[| #1<m; is_RRset A m; a:A |] \
+\     ==> [a = RRset2norRR A m a] (mod m) & (RRset2norRR A m a):(norRRset m)";
 by (Asm_simp_tac 1);
 by (rtac lemma_some 1);
 by (ALLGOALS Asm_simp_tac);
@@ -234,7 +239,7 @@ by (auto_tac (claset() addIs [fin_bijRl,fin_bijRr,zcong_zmult],
 qed "bijzcong_zcong_prod";
 
 Goalw [norRRset_def,phi_def]
-      "#0<m --> a<m --> zgcd (setprod (BnorRset (a,m)),m) = #1";
+      "a<m --> zgcd (setprod (BnorRset (a,m)),m) = #1";
 by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
@@ -244,7 +249,7 @@ by (blast_tac (claset() addIs [zgcd_zgcd_zmult]) 1);
 qed_spec_mp "Bnor_prod_zgcd";
 
 Goalw [norRRset_def,phi_def]
-      "[| #0<m; zgcd(x,m) = #1 |] ==> zcong (x^phi(m)) #1 m";
+      "[| #0<m; zgcd(x,m) = #1 |] ==> [x^phi(m) = #1] (mod m)";
 by (case_tac "x=#0" 1);
 by (case_tac "m=#1" 2);
 by (rtac iffD1 3);
@@ -274,9 +279,6 @@ by (induct_thm_tac BnorRset.induct "a p" 1);
 by (stac BnorRset_eq 1);
 by (rewtac Let_def);
 by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [Bnor_mem_zle_swap,Bnor_fin]) 1);
-by (stac (int_int_eq RS sym) 1);
-by Auto_tac;
 qed_spec_mp "Bnor_prime";
 
 Goalw [phi_def,norRRset_def]
@@ -287,7 +289,7 @@ by (etac zless_zprime_imp_zrelprime 1);
 by (ALLGOALS Asm_simp_tac);
 qed "phi_prime";
 
-Goal "[| p:zprime; ~p dvd x |] ==> zcong (x^(nat (p-#1))) #1 p";
+Goal "[| p:zprime; ~p dvd x |] ==> [x^(nat (p-#1)) = #1] (mod p)";
 by (stac (phi_prime RS sym) 1);
 by (rtac EulerFermatTheorem 2);
 by (etac zprime_imp_zrelprime 3);

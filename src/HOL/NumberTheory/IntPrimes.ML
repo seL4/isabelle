@@ -1,17 +1,38 @@
 (*  Title:	IntPrimes.ML
     ID:         $Id$
-    Author:	Thomas M. Rasmussen
+    Author:	Thomas M. Rasmussen & L C Paulson
     Copyright	2000  University of Cambridge
 
 dvd relation, GCD, Euclid's extended algorithm, primes, congruences
 (all on the Integers)
 
-Comparable to 'Primes' theory but dvd is included here as it is not present in
-'IntDiv'. Also includes extended GCD and congruences not
-present in 'Primes'.  Also a few extra theorems concerning 'mod'
+Comparable to Primes theory, but dvd is included here as it is not present in
+IntDiv.  Also includes extended GCD and congruences -- not present in Primes. 
 *)
 
 eta_contract:=false;
+
+
+Goal "(abs (z::int) = w) = (z=w & #0 <= z | z=-w & z < #0)";
+by (auto_tac (claset(), simpset() addsimps [zabs_def]));  
+qed "zabs_eq_iff";
+
+
+(** gcd lemmas **)
+
+val gcd_non_0 = thm "gcd_non_0";
+val gcd_add1 = thm "gcd_add1";
+val gcd_commute = thm "gcd_commute";
+
+Goal "gcd (m+k, k) = gcd (m+k, m)";
+by (simp_tac (simpset() addsimps [gcd_commute]) 1); 
+qed "gcd_add1_eq";
+
+Goal "m <= n \\<Longrightarrow> gcd (n, n - m) = gcd (n, m)";
+by (subgoal_tac "n = m + (n-m)" 1);
+by (etac ssubst 1 THEN rtac gcd_add1_eq 1);
+by (Asm_simp_tac 1);
+qed "gcd_diff2";
 
 
 (************************************************)
@@ -23,9 +44,10 @@ by (blast_tac (claset() addIs [zmult_0_right RS sym]) 1);
 qed "zdvd_0_right";
 AddIffs [zdvd_0_right];
 
-Goalw [dvd_def] "#0 dvd (m::int) ==> m = #0";
+Goalw [dvd_def] "(#0 dvd (m::int)) = (m = #0)";
 by Auto_tac;
 qed "zdvd_0_left";
+AddIffs [zdvd_0_left];
 
 Goalw [dvd_def] "#1 dvd (m::int)";
 by (Simp_tac 1);
@@ -146,139 +168,158 @@ by (dtac (zmult_zless_cancel1 RS iffD1) 1);
 by Auto_tac;  
 qed "zdvd_not_zless";
 
+Goal "(int m dvd z) = (m dvd nat(abs z))";
+by (auto_tac (claset(), 
+       simpset() addsimps [dvd_def, nat_abs_mult_distrib]));  
+by (auto_tac (claset(), simpset() addsimps [nat_eq_iff, zabs_eq_iff]));  
+by (res_inst_tac [("x","-(int k)")] exI 2);
+by (auto_tac (claset(), simpset() addsimps [zmult_int RS sym]));  
+qed "int_dvd_iff";
+
+Goal "(z dvd int m) = (nat(abs z) dvd m)";
+by (auto_tac (claset(), 
+       simpset() addsimps [dvd_def, zabs_def, zmult_int RS sym]));  
+by (res_inst_tac [("x","nat k")] exI 3); 
+by (res_inst_tac [("x","-(int k)")] exI 2);
+by (res_inst_tac [("x","nat (-k)")] exI 1);
+by (cut_inst_tac [("k","m")] int_less_0_conv 3);
+by (cut_inst_tac [("k","m")] int_less_0_conv 1);
+by (auto_tac (claset(), 
+         simpset() addsimps [int_0_le_mult_iff, zmult_less_0_iff,
+                             nat_mult_distrib RS sym, nat_eq_iff2]));  
+qed "dvd_int_iff";
+
+Goal "(nat z dvd m) = (if #0 <= z then (z dvd int m) else m=0)";
+by (auto_tac (claset(), simpset() addsimps [dvd_def, zmult_int RS sym]));  
+by (res_inst_tac [("x","nat k")] exI 1);
+by (cut_inst_tac [("k","m")] int_less_0_conv 1);
+by (auto_tac (claset(), 
+         simpset() addsimps [int_0_le_mult_iff, zmult_less_0_iff,
+                             nat_mult_distrib RS sym, nat_eq_iff2]));  
+qed "nat_dvd_iff";
+
+Goal "(-z dvd w) = (z dvd (w::int))";
+by (auto_tac (claset(), simpset() addsimps [dvd_def]));  
+by (ALLGOALS (res_inst_tac [("x","-k")] exI));
+by Auto_tac;  
+qed "zminus_dvd_iff";
+
+Goal "(z dvd -w) = (z dvd (w::int))";
+by (auto_tac (claset(), simpset() addsimps [dvd_def]));  
+by (dtac (zminus_equation RS iffD1) 1);
+by (ALLGOALS (res_inst_tac [("x","-k")] exI));
+by Auto_tac;  
+qed "dvd_zminus_iff";
+AddIffs [zminus_dvd_iff, dvd_zminus_iff];
+
 
 (************************************************)
 (** Euclid's Algorithm and GCD                 **)
 (************************************************)
 
-val [zgcd_eq] = zgcd.simps;
-Delsimps zgcd.simps;
-
-Goal "zgcd(m,#0) = m";
-by (rtac (zgcd_eq RS trans) 1);
-by (Simp_tac 1);
+Goal "zgcd(m,#0) = abs m";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def]) 1); 
 qed "zgcd_0";
 Addsimps [zgcd_0];
 
-Goal"#0<(m::int) ==> zgcd(#0,m) = m";
-by (auto_tac (claset(), simpset() addsimps zgcd.simps));
+Goal"zgcd(#0,m) = abs m";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def]) 1); 
 qed "zgcd_0_left";
 Addsimps [zgcd_0_left];
 
+Goal "zgcd(-m,n) = zgcd(m,n)";
+by (simp_tac (simpset() addsimps [zgcd_def]) 1); 
+qed "zgcd_zminus";
+Addsimps [zgcd_zminus];
+
+Goal "zgcd(m,-n) = zgcd(m,n)";
+by (simp_tac (simpset() addsimps [zgcd_def]) 1); 
+qed "zgcd_zminus2";
+Addsimps [zgcd_zminus2];
+
 Goal "#0<n ==> zgcd(m,n) = zgcd (n, m mod n)";
-by (rtac (zgcd_eq RS trans) 1);
-by (Asm_simp_tac 1);
+by (forw_inst_tac [("b","n"), ("a","m")] pos_mod_sign 1);
+by (asm_simp_tac (simpset() addsimps [zgcd_def, zabs_def, nat_mod_distrib]) 1);
+by (cut_inst_tac [("a","-m"),("b","n")] zmod_zminus1_eq_if 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [gcd_non_0, nat_mod_distrib RS sym,
+                                  zmod_zminus1_eq_if]));
+by (forw_inst_tac [("a","m")] pos_mod_bound 1);
+by (asm_simp_tac (simpset() addsimps [nat_diff_distrib]) 1);  
+by (rtac gcd_diff2 1);
+by (asm_full_simp_tac (simpset() addsimps [nat_le_eq_zle]) 1); 
 qed "zgcd_non_0";
 
+Goal "zgcd(m,n) = zgcd (n, m mod n)";
+by (zdiv_undefined_case_tac "n = #0" 1);
+by (auto_tac
+    (claset(),
+     simpset() addsimps [linorder_neq_iff, zgcd_non_0]));
+by (cut_inst_tac [("m","-m"),("n","-n")] zgcd_non_0 1);
+by Auto_tac;  
+qed "zgcd_eq";
+
 Goal "zgcd(m,#1) = #1";
-by (simp_tac (simpset() addsimps [zgcd_non_0]) 1);
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def]) 1); 
 qed "zgcd_1";
 Addsimps [zgcd_1];
 
-Goal "(zgcd(#0,m) = #1) = (m = #1)";
-by (auto_tac (claset(),simpset() addsimps zgcd.simps));
+Goal "(zgcd(#0,m) = #1) = (abs m = #1)";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def]) 1); 
 qed "zgcd_0_1_iff";
 Addsimps [zgcd_0_1_iff];
 
-Goal "#0<=(n::int) --> (zgcd(m,n) dvd m) & (zgcd(m,n) dvd n)";
-by (induct_thm_tac zgcd.induct "m n" 1);
-by (case_tac "n=#0" 1);
-by (auto_tac (claset() addDs [zdvd_zmod_imp_zdvd],
-              simpset() addsimps [zle_neq_implies_zless,neq_commute,
-                                  pos_mod_sign,zgcd_non_0]));
-by (ALLGOALS (rotate_tac 1));
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zle_anti_sym])));
-qed_spec_mp "zgcd_zdvd_both";
+Goal "zgcd(m,n) dvd m";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def, int_dvd_iff]) 1); 
+qed "zgcd_zdvd1";
 
-bind_thm ("zgcd_zdvd1", zgcd_zdvd_both RS conjunct1);
-bind_thm ("zgcd_zdvd2", zgcd_zdvd_both RS conjunct2);
+Goal "zgcd(m,n) dvd n";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def, int_dvd_iff]) 1); 
+qed "zgcd_zdvd2";
+AddIffs [zgcd_zdvd1, zgcd_zdvd2];
 
-Goal "[| (n::int) <= #0;  #0 <= n; #0 ~= n |] ==> False";
-by (asm_full_simp_tac (simpset() addsimps [zle_anti_sym]) 1);
-val lemma_false = result();
+Goal "k dvd zgcd(m,n) = (k dvd m & k dvd n)";
+by (simp_tac (simpset() addsimps [zgcd_def, zabs_def, int_dvd_iff, 
+                                  dvd_int_iff, nat_dvd_iff]) 1); 
+qed "zgcd_greatest_iff";
 
-Goal "#0<=(n::int) --> (f dvd m) --> (f dvd n) --> f dvd zgcd(m,n)";
-by (induct_thm_tac zgcd.induct "m n" 1);
-by (case_tac "n=#0" 1);
-by (auto_tac (claset() addDs [lemma_false] addIs [pos_mod_sign,zdvd_zmod],
-        simpset() addsimps [zgcd_non_0,neq_commute,zle_neq_implies_zless]));
-qed_spec_mp "zgcd_greatest";
-
-Goal "#0 < (n::int) --> #0 < zgcd (m, n)";
-by (induct_thm_tac zgcd.induct "m n" 1);
-by (auto_tac (claset(), simpset() addsimps zgcd.simps));
-qed_spec_mp "zgcd_zless";
-
-Goalw [is_zgcd_def] "#0<(n::int) ==> is_zgcd (zgcd(m,n)) m n";
-by (asm_simp_tac (simpset() addsimps 
-      [zgcd_greatest,zgcd_zdvd_both,zgcd_zless]) 1);
-qed "is_zgcd";
-
-Goalw [is_zgcd_def] "[| is_zgcd m a b; is_zgcd n a b |] ==> m=n";
-by (blast_tac (claset() addIs [zdvd_anti_sym]) 1);
-qed "is_zgcd_unique";
-
-Goalw [is_zgcd_def] "[| is_zgcd m a b; k dvd a; k dvd b |] ==> k dvd m";
-by (Blast_tac 1);
-qed "is_zgcd_zdvd";
-
-Goalw [is_zgcd_def] "is_zgcd k m n = is_zgcd k n m";
-by (Blast_tac 1);
-qed "is_zgcd_commute";
-
-Goalw [is_zgcd_def] "is_zgcd k (-m) n = is_zgcd k m n";
-by (asm_full_simp_tac (simpset() addsimps [zdvd_zminus_iff]) 1);
-qed "is_zgcd_zminus";
-
-Goal "#0<(n::int) ==> zgcd(-m,n) = zgcd(m,n)";
-by (rtac is_zgcd_unique 1);
-by (rtac is_zgcd 1);
-by (asm_simp_tac (simpset() addsimps [is_zgcd,is_zgcd_zminus]) 2);
-by (assume_tac 1);
-qed "zgcd_zminus";
-
-Goal "[| #0<(m::int); #0<n |] ==> zgcd(m,n) = zgcd(n,m)";
-by (rtac is_zgcd_unique 1);
-by (rtac is_zgcd 2);
-by (asm_simp_tac (simpset() addsimps [is_zgcd,is_zgcd_commute]) 1);
-by (assume_tac 1);
+Goal "zgcd(m,n) = zgcd(n,m)";
+by (simp_tac (simpset() addsimps [zgcd_def, thm"gcd_commute"]) 1); 
 qed "zgcd_commute";
 
-Goal "#0<=(m::int) ==> zgcd(#1,m) = #1";
-by (case_tac "m=#0" 1);
-by (stac zgcd_commute 2);
-by (ALLGOALS (asm_full_simp_tac (simpset() 
-      addsimps [zle_neq_implies_zless,neq_commute])));
+Goal "zgcd(#1,m) = #1";
+by (simp_tac (simpset() addsimps [zgcd_def, thm"gcd_1_left"]) 1); 
 qed "zgcd_1_left";
 Addsimps [zgcd_1_left];
 
-Goal "[| #0<(m::int); #0<n |] ==> zgcd(zgcd(k,m),n) = zgcd(k,zgcd(m,n))";
-by (rtac is_zgcd_unique 1);
-by (rtac is_zgcd 2);
-by (rewrite_goals_tac [is_zgcd_def]);
-by Auto_tac;
-by (rtac zgcd_greatest 3);
-by (res_inst_tac [("n","zgcd (k,m)")] zdvd_trans 2);
-by (res_inst_tac [("n","zgcd (k,m)")] zdvd_trans 5);
-by (rtac zgcd_greatest 8);
-by (rtac zgcd_greatest 9);
-by (res_inst_tac [("n","zgcd (m,n)")] zdvd_trans 12);
-by (res_inst_tac [("n","zgcd (m,n)")] zdvd_trans 11);
-by (ALLGOALS (asm_simp_tac (simpset() 
-      addsimps [zgcd_zdvd1,zgcd_zdvd2,zgcd_zless])));
+Goal "zgcd(zgcd(k,m),n) = zgcd(k,zgcd(m,n))";
+by (simp_tac (simpset() addsimps [zgcd_def, thm"gcd_assoc"]) 1); 
 qed "zgcd_assoc";
 
-Goal "#0<=(n::int) --> #0<=k --> k * zgcd(m,n) = zgcd(k*m, k*n)";
-by (induct_thm_tac zgcd.induct "m n" 1);
-by (case_tac "n=#0" 1);
-by (auto_tac (claset() addDs [lemma_false],
-              simpset() addsimps [zle_neq_implies_zless,pos_mod_sign,
-                                  zgcd_non_0,neq_commute]));
-by (case_tac "k=#0" 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() 
-      addsimps [zle_neq_implies_zless,zgcd_non_0,zmod_zmult_zmult1,
-                int_0_less_mult_iff,neq_commute])));
-qed_spec_mp "zgcd_zmult_distrib2";
+Goal "zgcd(k,zgcd(m,n)) = zgcd(m,zgcd(k,n))";
+by (rtac (zgcd_commute RS trans) 1);
+by (rtac (zgcd_assoc RS trans) 1);
+by (rtac (zgcd_commute RS arg_cong) 1);
+qed "zgcd_left_commute";
+
+(*Addition is an AC-operator*)
+bind_thms ("zgcd_ac", [zgcd_assoc, zgcd_commute, zgcd_left_commute]);
+
+val gcd_mult_distrib2 = thm"gcd_mult_distrib2";
+
+Goal "#0<=k ==> k * zgcd(m,n) = zgcd(k*m, k*n)";
+by (asm_simp_tac 
+    (simpset() delsimps [zmult_zminus_right] 
+	       addsimps [zmult_zminus_right RS sym, 
+                         nat_mult_distrib, zgcd_def, zabs_def, 
+                         zmult_less_0_iff, gcd_mult_distrib2 RS sym, 
+                         zmult_int RS sym]) 1); 
+qed "zgcd_zmult_distrib2";
+
+Goal "zgcd(k*m, k*n) = abs k * zgcd(m,n)";
+by (simp_tac (simpset() addsimps [zabs_def, zgcd_zmult_distrib2]) 1);
+qed "zgcd_zmult_distrib2_abs";
+
 
 Goal "#0<=m ==> zgcd(m,m) = m";
 by (cut_inst_tac [("k","m"),("m","#1"),("n","#1")] zgcd_zmult_distrib2 1);
@@ -286,7 +327,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "zgcd_self";
 Addsimps [zgcd_self];
 
-Goal "[| #0<=k; #0<=n |] ==> zgcd(k, k*n) = k";
+Goal "#0<=k ==> zgcd(k, k*n) = k";
 by (cut_inst_tac [("k","k"),("m","#1"),("n","n")] zgcd_zmult_distrib2 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "zgcd_zmult_eq_self";
@@ -298,16 +339,23 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "zgcd_zmult_eq_self2";
 Addsimps [zgcd_zmult_eq_self2];
 
-Goal "[| #0<=(m::int); #0<=k; zgcd(n,k)=#1; k dvd (m*n) |] ==> k dvd m";
+Goal "[| zgcd(n,k)=#1; k dvd (m*n); #0 <= m |] ==> k dvd m";
 by (subgoal_tac "m = zgcd(m*n, m*k)" 1);
-by (etac ssubst 1 THEN rtac zgcd_greatest 1);
+by (etac ssubst 1 THEN rtac (zgcd_greatest_iff RS iffD2) 1);
 by (ALLGOALS (asm_simp_tac (simpset() 
       addsimps [zgcd_zmult_distrib2 RS sym,int_0_le_mult_iff])));
+val lemma = result();
+
+Goal "[| zgcd(n,k)=#1; k dvd (m*n) |] ==> k dvd m";
+by (case_tac "#0 <= m" 1);
+by (blast_tac (claset() addIs [lemma]) 1); 
+by (subgoal_tac "k dvd -m" 1);
+by (rtac lemma 2);
+by Auto_tac;  
 qed "zrelprime_zdvd_zmult";
 
 Goalw [zprime_def] "[| p:zprime; ~p dvd n |] ==> zgcd(n,p) = #1";
-by (cut_inst_tac [("m","n"),("n","p")] zgcd_zdvd_both 1);
-by Auto_tac;
+by Auto_tac;  
 qed "zprime_imp_zrelprime";
 
 Goal "[| p:zprime; #0<n; n<p |] ==> zgcd(n,p) = #1";
@@ -319,61 +367,42 @@ qed "zless_zprime_imp_zrelprime";
 Goal "[| #0<=(m::int); p:zprime; p dvd (m*n) |] ==> p dvd m | p dvd n";
 by Safe_tac;
 by (rtac zrelprime_zdvd_zmult 1);
-by (rtac zprime_imp_zrelprime 3);
-by (SELECT_GOAL (rewrite_goals_tac [zprime_def]) 2);
+by (rtac zprime_imp_zrelprime 1);
 by Auto_tac;
 qed "zprime_zdvd_zmult";
 
-Goal "#0<n ==> zgcd(m+n*k,n) = zgcd(m,n)";
+val gcd_add_mult = thm "gcd_add_mult";
+
+Goal "zgcd(m + n*k, n) = zgcd(m,n)";
 by (rtac (zgcd_eq RS trans) 1);
-by Auto_tac;
 by (simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1);
-by (rtac trans 1);
-by (rtac (zgcd_eq RS sym) 2);
-by Auto_tac;
+by (rtac (zgcd_eq RS sym) 1);
 qed "zgcd_zadd_zmult";
 Addsimps [zgcd_zadd_zmult];
 
-Goal "#0<=n ==> zgcd(m,n) dvd zgcd(k*m,n)";
-by (rtac zgcd_greatest 1);
-by (rtac zdvd_trans 2);
-by (rtac zgcd_zdvd1 2);
-by (rtac zgcd_zdvd2 4);
-by (ALLGOALS Asm_simp_tac);
+
+Goal "zgcd(m,n) dvd zgcd(k*m,n)";
+by (simp_tac (simpset() addsimps [zgcd_greatest_iff]) 1); 
+by (blast_tac (claset() addIs [zdvd_trans]) 1); 
 qed "zgcd_zdvd_zgcd_zmult";
 
-Goal "[| #0<k; #0<m; #0<n; zgcd(k,n) = #1 |] ==> zgcd(k*m,n) dvd zgcd(m,n)";
-by (rtac zgcd_greatest 1);
-by (res_inst_tac [("n","k")] zrelprime_zdvd_zmult 2);
-by (stac zmult_commute 5);
-by (stac (zgcd_assoc RS sym) 4);
-by (rtac zless_imp_zle 3);
-by (ALLGOALS (asm_simp_tac (simpset() 
-      addsimps [zgcd_zdvd1,zgcd_zdvd2,zgcd_zless,int_0_less_mult_iff])));
+Goal "zgcd(k,n) = #1 ==> zgcd(k*m,n) dvd zgcd(m,n)";
+by (simp_tac (simpset() addsimps [zgcd_greatest_iff]) 1); 
+by (res_inst_tac [("n","k")] zrelprime_zdvd_zmult 1);
+by (simp_tac (simpset() addsimps [zmult_commute]) 2); 
+by (subgoal_tac "zgcd (k, zgcd (k * m, n)) =  zgcd (k * m, zgcd (k, n))" 1);
+by (Asm_full_simp_tac 1); 
+by (simp_tac (simpset() addsimps zgcd_ac) 1); 
 qed "zgcd_zmult_zdvd_zgcd";
 
-Goal "[| #0<n; zgcd(k,n) = #1 |] ==> zgcd(k*m, n) = zgcd(m,n)";
-by (rtac zdvd_anti_sym 1);
-by (rtac zgcd_zdvd_zgcd_zmult 4);
-by (case_tac "m=#0" 3);
-by (case_tac "k=#0" 4);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zgcd_zless])));
-by (case_tac "#0<k" 1);
-by (ALLGOALS (case_tac "#0<m"));
-by (rtac zgcd_zmult_zdvd_zgcd 1);
-by (subgoal_tac "zgcd (k*(-m),n) dvd zgcd (-m,n)" 5);
-by (rtac zgcd_zmult_zdvd_zgcd 6);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zgcd_zminus])));
-by (subgoal_tac "zgcd ((-k)*m,n) dvd zgcd (m,n)" 2);
-by (rtac zgcd_zmult_zdvd_zgcd 3);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zgcd_zminus])));
-by (subgoal_tac "zgcd ((-k)*(-m),n) dvd zgcd (-m,n)" 3);
-by (rtac zgcd_zmult_zdvd_zgcd 4);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zgcd_zminus])));
-by (auto_tac (claset() addIs [zle_neq_implies_zless], simpset()));
+val gcd_mult_cancel = thm "gcd_mult_cancel";
+
+Goal "zgcd(k,n) = #1 ==> zgcd(k*m, n) = zgcd(m,n)";
+by (asm_full_simp_tac (simpset() addsimps [zgcd_def, 
+                           nat_abs_mult_distrib, gcd_mult_cancel]) 1); 
 qed "zgcd_zmult_cancel";
 
-Goal "[| #0<m; zgcd(k,m) = #1; zgcd(n,m) = #1 |] ==> zgcd(k*n,m) = #1";
+Goal "[| zgcd(k,m) = #1; zgcd(n,m) = #1 |] ==> zgcd(k*n,m) = #1";
 by (asm_simp_tac (simpset() addsimps [zgcd_zmult_cancel]) 1);
 qed "zgcd_zgcd_zmult";
 
@@ -483,7 +512,7 @@ by (asm_simp_tac (simpset() addsimps [zmult_commute,zcong_cancel]) 1);
 qed "zcong_cancel2";
 
 Goalw [zcong_def,dvd_def]
-      "[| #0<m; #0<n; [a = b] (mod m); [a = b] (mod n); zgcd(m,n) = #1 |] \
+      "[| [a = b] (mod m); [a = b] (mod n); zgcd(m,n) = #1 |] \
 \     ==> [a=b](mod m*n)";
 by Auto_tac;
 by (subgoal_tac "m dvd (n*ka)" 1);
@@ -491,12 +520,11 @@ by (subgoal_tac "m dvd ka" 1);
 by (case_tac "#0<=ka" 2);
 by (stac (zdvd_zminus_iff RS sym) 3);
 by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 2);
-by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 4);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 4);
-by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 4);
-by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 6);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute,zdvd_zminus_iff]) 6);
-by (ALLGOALS Asm_simp_tac);
+by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 2);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 2);
+by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 2);
+by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 2);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute,zdvd_zminus_iff]) 2);
 by (rewtac dvd_def);
 by Safe_tac;
 by (res_inst_tac [("x","kc")] exI 1);
@@ -601,6 +629,25 @@ by (res_inst_tac [("m1","m")] (lemma RS trans) 1);
 by Auto_tac;
 qed "zcong_zmod_eq";
 
+Goal "[a = b] (mod -m) = [a = b] (mod m)";
+by (auto_tac (claset(), simpset() addsimps [zcong_def]));  
+qed "zcong_zminus";
+AddIffs [zcong_zminus];
+
+Goal "[a = b] (mod #0) = (a = b)";
+by (auto_tac (claset(), simpset() addsimps [zcong_def]));  
+qed "zcong_zero";
+AddIffs [zcong_zero];
+
+Goal "[a = b] (mod m) = (a mod m = b mod m)";
+by (zdiv_undefined_case_tac "m = #0" 1);
+by (case_tac "#0<m" 1);
+by (asm_simp_tac (simpset() addsimps [zcong_zmod_eq]) 1); 
+by (res_inst_tac [("t","m")] (zminus_zminus RS subst) 1); 
+by (stac zcong_zminus 1);
+by (stac zcong_zmod_eq 1);
+by (arith_tac 1); 
+(*FIXME: finish this proof?*)
 
 (************************************************)
 (** Modulo                                     **)
@@ -617,6 +664,7 @@ by (rtac zmod_zdiv_equality 2);
 by (assume_tac 1);
 qed "zmod_zdvd_zmod";
 
+
 (************************************************)
 (** Extended GCD                               **)
 (************************************************)
@@ -624,7 +672,7 @@ qed "zmod_zdvd_zmod";
 val [xzgcda_eq] = xzgcda.simps;
 Delsimps xzgcda.simps;
 
-Goal "zgcd(r',r) = k --> \
+Goal "zgcd(r',r) = k --> #0 < r \\<longrightarrow> \
 \     (EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn))";
 by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
                   ("y","s'"),("z","s"),("aa","t'"),("ab","t")] 
@@ -632,23 +680,39 @@ by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
 by (stac zgcd_eq 1);
 by (stac xzgcda_eq 1);
 by Auto_tac;
+by (case_tac "r' mod r = #0" 1);
+by (forw_inst_tac [("a","r'")] pos_mod_sign 2);
+by Auto_tac;  
+by (arith_tac 2);
+by (rtac exI 1);
+by (rtac exI 1);
+by (stac xzgcda_eq 1);
+by Auto_tac;  
+by (asm_full_simp_tac (simpset() addsimps [zabs_def]) 1); 
 val lemma1 = result();
 
-Goal "(EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn)) --> \
+Goal "(EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn)) --> #0 < r \\<longrightarrow>  \
 \     zgcd(r',r) = k";
 by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
                   ("y","s'"),("z","s"),("aa","t'"),("ab","t")] 
                   xzgcda.induct 1);
 by (stac zgcd_eq 1);
 by (stac xzgcda_eq 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [linorder_not_le]));  
+by (case_tac "r' mod r = #0" 1);
+by (forw_inst_tac [("a","r'")] pos_mod_sign 2);
+by Auto_tac;  
+by (arith_tac 2);
+by (eres_inst_tac [("P","xzgcda ?u = ?v")] rev_mp 1); 
+by (stac xzgcda_eq 1);
+by Auto_tac;  
+by (asm_full_simp_tac (simpset() addsimps [zabs_def]) 1); 
 val lemma2 = result();
 
-Goalw [xzgcd_def] "(zgcd(m,n) = k) = (EX s t. xzgcd m n = (k,s,t))"; 
+Goalw [xzgcd_def] "#0 < n \\<Longrightarrow> (zgcd(m,n) = k) = (EX s t. xzgcd m n = (k,s,t))"; 
 by (rtac iffI 1);
-by (ALLGOALS (rtac mp));
-by (rtac lemma2 3);
-by (rtac lemma1 1);
+by (rtac (lemma2 RS mp RS mp) 2);
+by (rtac (lemma1 RS mp RS mp) 1);
 by Auto_tac;
 qed "xzgcd_correct";
 
@@ -697,7 +761,7 @@ by Auto_tac;
 qed "xzgcd_linear";
 
 Goal "[| #0<n; zgcd(m,n) = k |] ==> (EX s t. k = s*m + t*n)";
-by (full_simp_tac (simpset() addsimps [xzgcd_correct]) 1);
+by (asm_full_simp_tac (simpset() addsimps [xzgcd_correct]) 1);
 by Safe_tac;
 by (REPEAT (rtac exI 1));
 by (etac xzgcd_linear 1);
