@@ -184,9 +184,9 @@ val cont_lemmas1 = [cont_const, cont_id, cont_fapp2,
 
 Addsimps cont_lemmas1;
 
+(* HINT: cont_tac is now installed in simplifier in Lift3.ML ! *)
 
 (*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
-
 (*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
 
 (* ------------------------------------------------------------------------ *)
@@ -369,4 +369,5 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (* use cont_tac as autotac.                                                *)
 (* ------------------------------------------------------------------------ *)
 
+(* HINT: cont_tac is now installed in simplifier in Lift3.ML ! *)
 (*simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
