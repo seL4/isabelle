@@ -187,7 +187,7 @@ goal thy
 \       ==> EX! c. c:{v:s_u(u, t_n, succ(k), y). a <= v} & b:c";
 by (etac ballE 1);
 by (fast_tac (FOL_cs addSIs [CollectI, cons_cons_subset,
-			     eqpoll_sym RS cons_cons_eqpoll]) 2);
+                             eqpoll_sym RS cons_cons_eqpoll]) 2);
 by (etac ex1E 1);
 by (res_inst_tac [("a","w")] ex1I 1);
 by (rtac conjI 1);
@@ -532,9 +532,9 @@ by (resolve_tac [lepoll_imp_eqpoll_subset RS exE] 1 THEN (assume_tac 1));
 by (eres_inst_tac [("x","xa")] ballE 1);
 by (fast_tac (!claset addSEs [eqpoll_sym]) 2);
 by (etac alt_ex1E 1);
-bd spec 1;
-bd spec 1;
-be mp 1;
+by (dtac spec 1);
+by (dtac spec 1);
+by (etac mp 1);
 by (Fast_tac 1);
 val unique_superset_in_MM = result();
 
@@ -669,11 +669,11 @@ by (rtac oallI 1);
 by (asm_full_simp_tac 
     (!simpset delsimps ball_simps
               addsimps [ltD,
-			ordermap_bij RS bij_converse_bij RS
-			bij_is_fun RS apply_type]) 1);
+                        ordermap_bij RS bij_converse_bij RS
+                        bij_is_fun RS apply_type]) 1);
 by (rtac eqpoll_sum_imp_Diff_lepoll 1);
 by (REPEAT (fast_tac 
-	    (FOL_cs addSDs [ltD]
+            (FOL_cs addSDs [ltD]
         addSIs [eqpoll_sum_imp_Diff_lepoll, in_LL_eqpoll_n]
         addEs [unique_superset_in_MM RS theI RS conjunct1 RS in_MM_eqpoll_n,
           in_LL_eq_Int RS equalityD1 RS (Int_lower1 RSN (2, subset_trans)),
