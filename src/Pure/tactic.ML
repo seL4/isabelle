@@ -83,6 +83,7 @@ signature TACTIC =
   val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
   val resolve_tac       : thm list -> int -> tactic
   val res_inst_tac      : (string*string)list -> thm -> int -> tactic
+  val full_rewrite      : thm list -> cterm -> thm
   val full_rewrite_cterm : thm list -> cterm -> cterm
   val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
@@ -486,10 +487,10 @@ fun result1 tacf mss thm =
 val simple_prover =
   result1 (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
 
-val full_rewrite_cterm = MetaSimplifier.full_rewrite_cterm_aux simple_prover;
+val full_rewrite = MetaSimplifier.full_rewrite_aux simple_prover;
+val full_rewrite_cterm = (#2 o Thm.dest_comb o #prop o Thm.crep_thm) oo full_rewrite;
 val rewrite_rule = MetaSimplifier.rewrite_rule_aux simple_prover;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
-
 
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
 fun asm_rewrite_goal_tac mode prover_tac mss =
