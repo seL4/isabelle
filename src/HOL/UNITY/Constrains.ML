@@ -201,10 +201,10 @@ qed "Stable_reachable";
 (*** Increasing ***)
 
 Goalw [Increasing_def, Stable_def, Constrains_def, stable_def, constrains_def]
-     "Increasing f <= Increasing (length o f)";
+     "mono g ==> Increasing f <= Increasing (g o f)";
 by Auto_tac;
-by (blast_tac (claset() addIs [prefix_length_le, le_trans]) 1);
-qed "Increasing_size";
+by (blast_tac (claset() addIs [monoD, order_trans]) 1);
+qed "mono_Increasing_o";
 
 Goalw [Increasing_def]
      "Increasing f <= {F. ALL z::nat. F: Stable {s. z < f s}}";
@@ -216,7 +216,6 @@ Goalw [increasing_def, Increasing_def]
      "F : increasing f ==> F : Increasing f";
 by (blast_tac (claset() addIs [stable_imp_Stable]) 1);
 qed "increasing_imp_Increasing";
-
 
 
 (*** The Elimination Theorem.  The "free" m has become universally quantified!
