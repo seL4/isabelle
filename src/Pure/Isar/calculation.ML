@@ -123,7 +123,7 @@ fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
 
 fun calculate final opt_rules print state =
   let
-    val facts = Proof.the_facts state;
+    val facts = Proof.the_facts (Proof.assert_forward state);
 
     val strip_assums_concl = Logic.strip_assums_concl o #prop o Thm.rep_thm;
     val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
@@ -157,7 +157,7 @@ fun finally print = calculate true print;
 
 fun collect final print state =
   let
-    val facts = Proof.the_facts state;
+    val facts = Proof.the_facts (Proof.assert_forward state);
     val (initial, thms) =
       (case get_calculation state of
         None => (true, [])
