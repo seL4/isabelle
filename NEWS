@@ -401,6 +401,10 @@ via 'generate_code' theory section;
 
 * HOL: canonical cases/induct rules for n-tuples (n = 3..7);
 
+* HOL: consolidated and renamed several theories.  In particular:
+	Ord.thy has been absorbed into HOL.thy
+	String.thy has been absorbed into List.thy
+ 
 * HOL: concrete setsum syntax "\<Sum>i:A. b" == "setsum (%i. b) A"
 (beware of argument permutation!);
 
@@ -409,7 +413,8 @@ via 'generate_code' theory section;
 * HOL/List: "nodups" renamed to "distinct";
 
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
-to peripheral theory "Hilbert_Choice";
+to peripheral theory "Hilbert_Choice"; some INCOMPATIBILITIES:
+  - Ex_def has changed, now need to use some_eq_ex
 
 * HOL: made split_all_tac safe; EXISTING PROOFS MAY FAIL OR LOOP, so
 in this (rare) case use:
