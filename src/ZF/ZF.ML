@@ -405,7 +405,7 @@ qed_goal "equals0D" ZF.thy "[| A=0;  a:A |] ==> P"
 qed_goal "not_emptyI" ZF.thy "!!A a. a:A ==> A ~= 0"
  (fn _ => [REPEAT (ares_tac [notI, equals0D] 1)]);
 
-qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R";
+qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R"
  (fn [major,minor]=>
   [ rtac ([major, equals0I] MRS swap) 1,
     swap_res_tac [minor] 1,
