@@ -81,6 +81,10 @@ extended records as well; admit "r" as field name;
 * HOL/ex: new theory Factorization proving the Fundamental Theorem of
 Arithmetic, by Thomas M Rasmussen;
 
+* HOL/ex/Multiquote: multiple nested quotations and anti-quotations --
+basically a generalized version of de-Bruijn representation; very
+useful in avoiding lifting all operations;
+
 * new version of "case_tac" subsumes both boolean case split and
 "exhaust_tac" on datatypes; INCOMPATIBILITY: exhaust_tac no longer
 exists, may define val exhaust_tac = case_tac for ad-hoc portability;
