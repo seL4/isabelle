@@ -9,7 +9,7 @@ Theory of the natural numbers: Peano's axioms, primitive recursion
 *)
 
 Nat = IFOLP +
-types   nat 0
+types   nat
 arities nat         :: term
 consts  "0"         :: "nat"    ("0")
         Suc         :: "nat=>nat"
