@@ -707,11 +707,9 @@ by (auto_tac (claset() addIs [ccontr] addDs [hypreal_mult_not_0],
               simpset()));
 qed "hypreal_mult_zero_disj";
 
-Goal "x ~= 0 ==> x * x ~= (0::hypreal)";
-by (blast_tac (claset() addDs [hypreal_mult_not_0]) 1);
-qed "hypreal_mult_self_not_zero";
-
-Goal "[| x ~= 0; y ~= 0 |] ==> inverse(x*y) = inverse(x)*inverse(y::hypreal)";
+Goal "inverse(x*y) = inverse(x)*inverse(y::hypreal)";
+by (case_tac "x=0 | y=0" 1);
+by (force_tac (claset(), simpset() addsimps [HYPREAL_INVERSE_ZERO]) 1); 
 by (res_inst_tac [("c1","x")] (hypreal_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),
         simpset() addsimps [hypreal_mult_assoc RS sym, hypreal_mult_not_0]));
@@ -1109,6 +1107,7 @@ qed "hypreal_of_real_le_iff";
 Goalw [hypreal_of_real_def] "hypreal_of_real (-r) = - hypreal_of_real  r";
 by (auto_tac (claset(),simpset() addsimps [hypreal_minus]));
 qed "hypreal_of_real_minus";
+Addsimps [hypreal_of_real_minus];
 
 (*DON'T insert this or the next one as default simprules.
   They are used in both orientations and anyway aren't the ones we finally

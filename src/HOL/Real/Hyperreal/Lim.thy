@@ -62,5 +62,18 @@ constdefs
   isNSUCont :: (real=>real) => bool
   "isNSUCont f == (ALL x y. x @= y --> (*f* f) x @= (*f* f) y)"
 
+
+(*Used in the proof of the Bolzano theorem*)
+consts
+  Bolzano_bisect :: "[real*real=>bool, real, real, nat] => (real*real)"
+
+primrec
+  "Bolzano_bisect P a b 0 = (a,b)"
+  "Bolzano_bisect P a b (Suc n) =
+      (let (x,y) = Bolzano_bisect P a b n
+       in if P(x, (x+y)/#2) then ((x+y)/#2, y)
+                            else (x, (x+y)/#2) )"
+  
+
 end
 

@@ -208,16 +208,15 @@ by (auto_tac (claset() addIs [inf_close_add],
     simpset() addsimps [starfunNat_add RS sym,hypreal_of_real_add]));
 qed "NSLIMSEQ_add";
 
-Goal "[| X ----> a; Y ----> b |] \
-\           ==> (%n. X n + Y n) ----> a + b";
+Goal "[| X ----> a; Y ----> b |] ==> (%n. X n + Y n) ----> a + b";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
     NSLIMSEQ_add]) 1);
 qed "LIMSEQ_add";
 
 Goalw [NSLIMSEQ_def]
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b";
-by (auto_tac (claset() addSIs [starfunNat_mult_HFinite_inf_close],
-    simpset() addsimps [hypreal_of_real_mult]));
+by (auto_tac (claset() addSIs [inf_close_mult_HFinite],
+    simpset() addsimps [hypreal_of_real_mult, starfunNat_mult RS sym]));
 qed "NSLIMSEQ_mult";
 
 Goal "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b";
@@ -227,8 +226,7 @@ qed "LIMSEQ_mult";
 
 Goalw [NSLIMSEQ_def] 
      "X ----NS> a ==> (%n. -(X n)) ----NS> -a";
-by (auto_tac (claset() addIs [inf_close_minus],
-       simpset() addsimps [starfunNat_minus RS sym, hypreal_of_real_minus]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat_minus RS sym]));
 qed "NSLIMSEQ_minus";
 
 Goal "X ----> a ==> (%n. -(X n)) ----> -a";
@@ -756,14 +754,13 @@ by (dtac LIMSEQ_minus 1 THEN Auto_tac);
 qed "convergent_minus_iff";
 
 Goalw [Bseq_def] "Bseq (%n. -(X n)) = Bseq X";
-by (asm_full_simp_tac (simpset() addsimps [abs_minus_cancel]) 1);
+by (Asm_full_simp_tac 1);
 qed "Bseq_minus_iff";
 
 (*--------------------------------
    **** main mono theorem ****
  -------------------------------*)
-Goalw [monoseq_def] 
-      "[| Bseq X; monoseq X |] ==> convergent X";
+Goalw [monoseq_def] "[| Bseq X; monoseq X |] ==> convergent X";
 by (Step_tac 1);
 by (rtac (convergent_minus_iff RS ssubst) 2);
 by (dtac (Bseq_minus_iff RS ssubst) 2);

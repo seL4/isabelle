@@ -32,7 +32,7 @@ by (auto_tac (claset(), simpset() addsimps [hypreal_of_real_inverse]));
 qed "SReal_inverse";
 
 Goalw [SReal_def] "x: SReal ==> -x : SReal";
-by (auto_tac (claset(), simpset() addsimps [hypreal_of_real_minus RS sym]));
+by (blast_tac (claset() addIs [hypreal_of_real_minus RS sym]) 1); 
 qed "SReal_minus";
 
 Goal "[| x + y : SReal; y: SReal |] ==> x: SReal";
@@ -220,7 +220,7 @@ by (blast_tac (claset() addSIs [SReal_mult,hrabs_mult_less]) 1);
 qed "HFinite_mult";
 
 Goalw [HFinite_def] "(x:HFinite)=(-x:HFinite)";
-by (simp_tac (simpset() addsimps [hrabs_minus_cancel]) 1);
+by (Simp_tac 1);
 qed "HFinite_minus_iff";
 
 Goal "[| x: HFinite; y: HFinite|] ==> (x + -y): HFinite";
@@ -298,7 +298,7 @@ qed "Infinitesimal_add";
 
 Goalw [Infinitesimal_def] 
      "(x:Infinitesimal) = (-x:Infinitesimal)";
-by (full_simp_tac (simpset() addsimps [hrabs_minus_cancel]) 1);
+by (Full_simp_tac 1);
 qed "Infinitesimal_minus_iff";
 
 Goal "x ~:Infinitesimal = (-x ~:Infinitesimal)";
@@ -389,8 +389,7 @@ by (blast_tac (claset() addIs [HInfinite_add_ge_zero,
 qed "HInfinite_add_gt_zero";
 
 Goalw [HInfinite_def] "(-x: HInfinite) = (x: HInfinite)";
-by (auto_tac (claset(),simpset() addsimps 
-    [hrabs_minus_cancel]));
+by Auto_tac;
 qed "HInfinite_minus_iff";
 
 Goal "[|x: HInfinite; y <= 0; x <= 0|] ==> (x + y): HInfinite";
@@ -592,7 +591,7 @@ by (simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "inf_close_minus";
 
 Goal "-a @= -b ==> a @= b";
-by (auto_tac (claset() addDs [inf_close_minus],simpset()));
+by (auto_tac (claset() addDs [inf_close_minus], simpset()));
 qed "inf_close_minus2";
 
 Goal "(-a @= -b) = (a @= b)";
@@ -614,12 +613,6 @@ qed "inf_close_mult1";
 Goal "[|a @= b; c: HFinite|] ==> c*a @= c*b"; 
 by (asm_simp_tac (simpset() addsimps [inf_close_mult1,hypreal_mult_commute]) 1);
 qed "inf_close_mult2";
-
-val [prem1,prem2,prem3,prem4] = 
-goal thy "[|a @= b; c @= d; b: HFinite; c: HFinite|] ==> a*c @= b*d";
-by (fast_tac (claset() addIs [([prem1,prem4] MRS inf_close_mult1), 
-    ([prem2,prem3] MRS inf_close_mult2),inf_close_trans]) 1);
-qed "inf_close_mult_HFinite";
 
 Goal "[|u @= v*x; x @= y; v: HFinite|] ==> u @= v*y";
 by (fast_tac (claset() addIs [inf_close_mult2,inf_close_trans]) 1);
@@ -730,7 +723,7 @@ Goal "[| x: HFinite; x @= y |] ==> y: HFinite";
 by (dtac (bex_Infinitesimal_iff2 RS iffD2) 1);
 by (Step_tac 1);
 by (dtac (Infinitesimal_subset_HFinite RS subsetD 
-           RS (HFinite_minus_iff RS iffD1)) 1);
+          RS (HFinite_minus_iff RS iffD1)) 1);
 by (dtac HFinite_add 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "inf_close_HFinite";
@@ -740,10 +733,18 @@ by (rtac (inf_close_sym RSN (2,inf_close_HFinite)) 1);
 by Auto_tac;
 qed "inf_close_hypreal_of_real_HFinite";
 
+Goal "[|a @= b; c @= d; b: HFinite; d: HFinite|] ==> a*c @= b*d";
+by (rtac inf_close_trans 1); 
+by (rtac inf_close_mult2 2); 
+by (rtac inf_close_mult1 1);
+by (blast_tac (claset() addIs [inf_close_HFinite, inf_close_sym]) 2);  
+by Auto_tac;  
+qed "inf_close_mult_HFinite";
+
 Goal "[|a @= hypreal_of_real b; c @= hypreal_of_real d |] \
 \     ==> a*c @= hypreal_of_real b*hypreal_of_real d";
 by (blast_tac (claset() addSIs [inf_close_mult_HFinite,
-     inf_close_hypreal_of_real_HFinite,HFinite_hypreal_of_real]) 1);
+            inf_close_hypreal_of_real_HFinite,HFinite_hypreal_of_real]) 1);
 qed "inf_close_mult_hypreal_of_real";
 
 Goal "[| a: SReal; a ~= 0; a*x @= 0 |] ==> x @= 0";
@@ -886,7 +887,7 @@ qed "inf_close_hypreal_of_real_not_zero";
 Goal "[| x @= y; y : HFinite - Infinitesimal |] \
 \     ==> x : HFinite - Infinitesimal";
 by (auto_tac (claset() addIs [inf_close_sym RSN (2,inf_close_HFinite)],
-    simpset() addsimps [mem_infmal_iff]));
+              simpset() addsimps [mem_infmal_iff]));
 by (dtac inf_close_trans3 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [inf_close_sym]) 1);
 qed "HFinite_diff_Infinitesimal_inf_close";
@@ -1457,12 +1458,14 @@ Goalw [Infinitesimal_def]
 by (dtac (hypreal_less_minus_iff RS iffD1) 1 THEN Step_tac 1);
 by (rtac (hypreal_less_minus_iff RS iffD2) 1);
 by (dres_inst_tac [("x","hypreal_of_real y + -hypreal_of_real x")] bspec 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_add_commute,
-    hypreal_of_real_minus RS sym, hypreal_of_real_add RS sym,
-    hrabs_interval_iff]));
+by (auto_tac (claset(),
+              simpset() addsimps [hypreal_add_commute, 
+                                  hypreal_of_real_add, hrabs_interval_iff,
+                                  SReal_add, SReal_minus]));
 by (dres_inst_tac [("x1","xa")] (hypreal_less_minus_iff RS iffD1) 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_minus,
-    hypreal_minus_add_distrib,hypreal_of_real_add] @ hypreal_add_ac));
+by (auto_tac (claset(),
+        simpset() addsimps [hypreal_minus_add_distrib,hypreal_of_real_add] @ 
+                           hypreal_add_ac));
 qed "Infinitesimal_add_hypreal_of_real_less";
 
 Goal "[| x: Infinitesimal; abs(hypreal_of_real r) < hypreal_of_real y |] \
@@ -2241,12 +2244,14 @@ qed "FreeUltrafilterNat_inverse_real_of_posnat";
  -----------------------------------------------------*)
 Goal "ALL n. abs(X n + -x) < inverse(real_of_posnat n) \ 
 \    ==> Abs_hypreal(hyprel^^{X}) + -hypreal_of_real x : Infinitesimal";
-by (auto_tac (claset() addSIs [bexI] addDs [rename_numerals 
-    FreeUltrafilterNat_inverse_real_of_posnat,
-    FreeUltrafilterNat_all,FreeUltrafilterNat_Int] addIs [order_less_trans,
-    FreeUltrafilterNat_subset],simpset() addsimps [hypreal_minus,
-    hypreal_of_real_minus RS sym,hypreal_of_real_def,hypreal_add,
-    Infinitesimal_FreeUltrafilterNat_iff,hypreal_inverse,hypreal_of_real_of_posnat]));
+by (auto_tac (claset() addSIs [bexI] 
+           addDs [rename_numerals FreeUltrafilterNat_inverse_real_of_posnat,
+                  FreeUltrafilterNat_all,FreeUltrafilterNat_Int] 
+           addIs [order_less_trans, FreeUltrafilterNat_subset],
+      simpset() addsimps [hypreal_minus, 
+                          hypreal_of_real_def,hypreal_add,
+                          Infinitesimal_FreeUltrafilterNat_iff,hypreal_inverse,
+                          hypreal_of_real_of_posnat]));
 qed "real_seq_to_hypreal_Infinitesimal";
 
 Goal "ALL n. abs(X n + -x) < inverse(real_of_posnat n) \ 
@@ -2274,4 +2279,3 @@ by (auto_tac (claset() addSIs [bexI]
             [Infinitesimal_FreeUltrafilterNat_iff,hypreal_minus,hypreal_add, 
              hypreal_inverse,hypreal_of_real_of_posnat]));
 qed "real_seq_to_hypreal_Infinitesimal2";
- 

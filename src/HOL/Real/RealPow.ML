@@ -94,15 +94,13 @@ qed "realpow_eq_one";
 Addsimps [realpow_eq_one];
 
 Goal "abs(-(#1 ^ n)) = (#1::real)";
-by (simp_tac (simpset() addsimps 
-    [abs_minus_cancel,abs_one]) 1);
+by (simp_tac (simpset() addsimps [abs_one]) 1);
 qed "abs_minus_realpow_one";
 Addsimps [abs_minus_realpow_one];
 
 Goal "abs((#-1) ^ n) = (#1::real)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps [abs_mult,
-         abs_minus_cancel,abs_one]));
+by (auto_tac (claset(),simpset() addsimps [abs_mult,abs_one]));
 qed "abs_realpow_minus_one";
 Addsimps [abs_realpow_minus_one];
 

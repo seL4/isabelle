@@ -212,6 +212,7 @@ Goal "(*f* f) xa * (*f* g) xa = (*f* (%x. f x * g x)) xa";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,hypreal_mult]));
 qed "starfun_mult";
+Addsimps [starfun_mult RS sym];
 
 (*---------------------------------------
   addition: ( *f ) + ( *g ) = *(f + g)  
@@ -220,6 +221,7 @@ Goal "(*f* f) xa + (*f* g) xa = (*f* (%x. f x + g x)) xa";
 by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,hypreal_add]));
 qed "starfun_add";
+Addsimps [starfun_add RS sym];
 
 (*--------------------------------------------
   subtraction: ( *f ) + -( *g ) = *(f + -g)  
@@ -229,21 +231,25 @@ Goal "- (*f* f) x = (*f* (%x. - f x)) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun, hypreal_minus]));
 qed "starfun_minus";
+Addsimps [starfun_minus RS sym];
 
+(*FIXME: delete*)
 Goal "(*f* f) xa + -(*f* g) xa = (*f* (%x. f x + -g x)) xa";
-by (simp_tac (simpset() addsimps [starfun_minus, starfun_add]) 1);
+by (Simp_tac 1);
 qed "starfun_add_minus";
+Addsimps [starfun_add_minus RS sym];
 
 Goalw [hypreal_diff_def,real_diff_def]
   "(*f* f) xa  - (*f* g) xa = (*f* (%x. f x - g x)) xa";
 by (rtac starfun_add_minus 1);
 qed "starfun_diff";
+Addsimps [starfun_diff RS sym];
 
 (*--------------------------------------
   composition: ( *f ) o ( *g ) = *(f o g)  
  ---------------------------------------*)
 
-Goal "(%x. (*f* f) ((*f* g) x)) = *f* (%x. f (g x))";
+Goal "(%x. (*f* f) ((*f* g) x)) = *f* (%x. f (g x))"; 
 by (rtac ext 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
@@ -343,13 +349,12 @@ Goal "[| (*f* f) xa @= l; (*f* g) xa @= m; \
 by (dtac inf_close_mult_HFinite 1);
 by (REPEAT(assume_tac 1));
 by (auto_tac (claset() addIs [inf_close_sym RSN (2,inf_close_HFinite)],
-              simpset() addsimps [starfun_mult]));
+              simpset()));
 qed "starfun_mult_HFinite_inf_close";
 
 Goal "[| (*f* f) xa @= l; (*f* g) xa @= m \
 \              |] ==>  (*f* (%x. f x + g x)) xa @= l + m";
-by (auto_tac (claset() addIs [inf_close_add],
-              simpset() addsimps [starfun_add RS sym]));
+by (auto_tac (claset() addIs [inf_close_add], simpset()));
 qed "starfun_add_inf_close";
 
 (*----------------------------------------------------
@@ -363,7 +368,7 @@ qed "starfun_add_inf_close";
 
 Goal "*f* abs = abs";
 by (rtac (hrabs_is_starext_rabs RS 
-    (is_starext_starfun_iff RS iffD1) RS sym) 1);
+          (is_starext_starfun_iff RS iffD1) RS sym) 1);
 qed "starfun_rabs_hrabs";
 
 Goal "(*f* inverse) x = inverse(x)";
@@ -382,11 +387,13 @@ by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
               simpset() addsimps [starfun, hypreal_inverse]));
 qed "starfun_inverse";
+Addsimps [starfun_inverse RS sym];
 
 Goalw [hypreal_divide_def,real_divide_def]
   "(*f* f) xa  / (*f* g) xa = (*f* (%x. f x / g x)) xa";
-by (simp_tac (simpset() addsimps [starfun_inverse, starfun_mult]) 1);
+by Auto_tac;
 qed "starfun_divide";
+Addsimps [starfun_divide RS sym];
 
 Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
@@ -424,12 +431,13 @@ qed "hypreal_hrabs";
    by its NS extenson ( *f* f). See second NS set extension below.
  ----------------------------------------------------------------*)
 Goalw [starset_def]
-   "*s* {x. abs (x + - y) < r} = {x. abs(x + -hypreal_of_real y) < hypreal_of_real r}";
+   "*s* {x. abs (x + - y) < r} = \
+\    {x. abs(x + -hypreal_of_real y) < hypreal_of_real r}";
 by (Step_tac 1);
 by (ALLGOALS(res_inst_tac [("z","x")] eq_Abs_hypreal));
 by (auto_tac (claset() addSIs [exI] addSDs [bspec],
-    simpset() addsimps [hypreal_minus, hypreal_of_real_def,hypreal_add,
-    hypreal_hrabs,hypreal_less_def]));
+          simpset() addsimps [hypreal_minus, hypreal_of_real_def,hypreal_add,
+                              hypreal_hrabs,hypreal_less_def]));
 by (Fuf_tac 1);
 qed "STAR_rabs_add_minus";
 

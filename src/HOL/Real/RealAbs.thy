@@ -9,6 +9,6 @@ RealAbs = RealArith +
 
 
 defs
-  abs_real_def "abs r == (if (#0::real) <= r then r else -r)"
+  real_abs_def "abs r == (if (#0::real) <= r then r else -r)"
 
 end
