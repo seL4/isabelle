@@ -411,38 +411,6 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         rule_by_tactic (atac 2) (thm RSN (2, inv'))
       end;
 
-    (* prove  x : dt_rep_set_i --> x : range dt_Rep_i *)
-
-    fun mk_iso_t (((set_name, iso_name), i), T) =
-      let val isoT = T --> Univ_elT
-      in HOLogic.imp $ 
-        HOLogic.mk_mem (mk_Free "x" Univ_elT i, Const (set_name, UnivT)) $
-          (if i < length newTs then Const ("True", HOLogic.boolT)
-           else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
-             Const ("image", [isoT, HOLogic.mk_setT T] ---> UnivT) $
-               Const (iso_name, isoT) $ Const ("UNIV", HOLogic.mk_setT T)))
-      end;
-
-    val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t
-      (rep_set_names ~~ all_rep_names ~~ (0 upto (length descr' - 1)) ~~ recTs)));
-
-    (* all the theorems are proved by one single simultaneous induction *)
-
-    val iso_thms = if length descr = 1 then [] else
-      drop (length newTs, split_conj_thm
-        (prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
-           [indtac rep_induct 1,
-            REPEAT (rtac TrueI 1),
-            REPEAT (EVERY
-              [rewrite_goals_tac [mk_meta_eq Collect_mem_eq],
-               REPEAT (etac Funs_IntE 1),
-               REPEAT (eresolve_tac [rangeE, Funs_rangeE] 1),
-               REPEAT (eresolve_tac (map (fn (iso, _, _) => iso RS subst) newT_iso_axms @
-                 map (fn (iso, _, _) => mk_funs_inv iso RS subst) newT_iso_axms) 1),
-               TRY (hyp_subst_tac 1),
-               rtac (sym RS range_eqI) 1,
-               resolve_tac iso_char_thms 1])])));
-
     (* prove  inj dt_Rep_i  and  dt_Rep_i x : dt_rep_set_i *)
 
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
@@ -464,7 +432,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val (ind_concl1, ind_concl2) = ListPair.unzip (map mk_ind_concl ds);
 
         val rewrites = map mk_meta_eq iso_char_thms;
-        val inj_thms' = flat (map (fn r => [r RS injD, r RS inj_o]) inj_thms);
+        val inj_thms' = flat (map (fn r => [r RS injD, r RS inj_o])
+          (map snd newT_iso_inj_thms @ inj_thms));
 
         val inj_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5)
           (HOLogic.mk_Trueprop (mk_conj ind_concl1))) (fn _ =>
@@ -501,16 +470,50 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 			 REPEAT (FIRST [atac 1, etac spec 1,
 				 resolve_tac (FunsI :: elem_thms) 1])])]);
 
-      in (inj_thms @ inj_thms'', elem_thms @ (split_conj_thm elem_thm))
+      in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
 
-    val (iso_inj_thms, iso_elem_thms) = foldr prove_iso_thms
-      (tl descr, (map snd newT_iso_inj_thms, map #3 newT_iso_axms));
-    val iso_inj_thms_unfolded = drop (length (hd descr), iso_inj_thms);
+    val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
+      (tl descr, ([], map #3 newT_iso_axms));
+    val iso_inj_thms = map snd newT_iso_inj_thms @ iso_inj_thms_unfolded;
+
+    (* prove  x : dt_rep_set_i --> x : range dt_Rep_i *)
+
+    fun mk_iso_t (((set_name, iso_name), i), T) =
+      let val isoT = T --> Univ_elT
+      in HOLogic.imp $ 
+        HOLogic.mk_mem (mk_Free "x" Univ_elT i, Const (set_name, UnivT)) $
+          (if i < length newTs then Const ("True", HOLogic.boolT)
+           else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
+             Const ("image", [isoT, HOLogic.mk_setT T] ---> UnivT) $
+               Const (iso_name, isoT) $ Const ("UNIV", HOLogic.mk_setT T)))
+      end;
+
+    val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t
+      (rep_set_names ~~ all_rep_names ~~ (0 upto (length descr' - 1)) ~~ recTs)));
+
+    (* all the theorems are proved by one single simultaneous induction *)
+
+    val iso_thms = if length descr = 1 then [] else
+      drop (length newTs, split_conj_thm
+        (prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
+           [indtac rep_induct 1,
+            REPEAT (rtac TrueI 1),
+            REPEAT (EVERY
+              [rewrite_goals_tac [mk_meta_eq Collect_mem_eq],
+               REPEAT (etac Funs_IntE 1),
+               REPEAT (eresolve_tac (rangeE ::
+                 map (fn r => r RS Funs_rangeE) iso_inj_thms_unfolded) 1),
+               REPEAT (eresolve_tac (map (fn (iso, _, _) => iso RS subst) newT_iso_axms @
+                 map (fn (iso, _, _) => mk_funs_inv iso RS subst) newT_iso_axms) 1),
+               TRY (hyp_subst_tac 1),
+               rtac (sym RS range_eqI) 1,
+               resolve_tac iso_char_thms 1])])));
 
     val Abs_inverse_thms' =
       map #1 newT_iso_axms @
-      map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp]) (iso_inj_thms_unfolded, iso_thms);
+      map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp])
+        (iso_inj_thms_unfolded, iso_thms);
 
     val Abs_inverse_thms = map (fn r => r RS subst) (Abs_inverse_thms' @
       map mk_funs_inv Abs_inverse_thms');
@@ -589,9 +592,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val _ = message "Proving induction rule for datatypes ...";
 
     val Rep_inverse_thms = (map (fn (_, iso, _) => iso RS subst) newT_iso_axms) @
-      (map (fn r => r RS myinv_f_f RS subst) (drop (length newTs, iso_inj_thms)));
-    val Rep_inverse_thms' = map (fn r => r RS myinv_f_f)
-      (drop (length newTs, iso_inj_thms));
+      (map (fn r => r RS myinv_f_f RS subst) iso_inj_thms_unfolded);
+    val Rep_inverse_thms' = map (fn r => r RS myinv_f_f) iso_inj_thms_unfolded;
 
     fun mk_indrule_lemma ((prems, concls), ((i, _), T)) =
       let
