@@ -16,16 +16,19 @@ better in printed text;
 
 *** Isar ***
 
-* Isar/Pure: renamed "antecedent" case to "rule_context";
+* renamed "antecedent" case to "rule_context";
 
-* Isar/HOL: 'recdef' now fails on unfinished automated proofs, use
+* improved proof by cases and induction:
+  - moved induct/cases attributes to Pure;
+  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
+  - generic setup instantiated for FOL and HOL;
+  - removed obsolete "(simplified)" and "(stripped)" options;
+
+* HOL: 'recdef' now fails on unfinished automated proofs, use
 "(permissive)" option to recover old behavior;
 
-* Isar/HOL: 'inductive' now longer features separate (collective)
+* HOL: 'inductive' now longer features separate (collective)
 attributes for 'intros';
-
-* moved induct/cases attributes to Pure, added 'print_induct_rules'
-command;
 
 
 *** HOL ***
