@@ -38,8 +38,8 @@ constdefs
   guar :: ['a program set, 'a=>'b, 'a program set] => 'a program set
    ("(_/ guarantees[_]/ _)" [55,0,55] 55)
                               (*higher than membership, lower than Co*)
-   "X guarantees[v] Y == {F. ALL G. G : preserves v --> F Join G : X -->
-		       F Join G : Y}"
+   "X guarantees[v] Y == {F. ALL G : preserves v. 
+                               F Join G : X --> F Join G : Y}"
 
   refines :: ['a program, 'a program, 'a program set] => bool
 			("(3_ refines _ wrt _)" [10,10,10] 10)

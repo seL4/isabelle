@@ -283,7 +283,7 @@ qed "extend_act_D";
 Goalw [extend_act_def, project_act_def]
      "project_act h (extend_act h act) = act";
 by (Blast_tac 1);
-qed "project_act_extend_act";
+qed "extend_act_inverse";
 
 Goalw [extend_act_def, project_act_def]
      "project_act h (Restrict C (extend_act h act)) = \
@@ -291,13 +291,6 @@ Goalw [extend_act_def, project_act_def]
 by (Blast_tac 1);
 qed "project_act_extend_act_restrict";
 Addsimps [project_act_extend_act_restrict];
-
-(*Premise is still undesirably strong, since Domain act can include
-  non-reachable states, but it seems necessary for this result.*)
-Goal "Domain act <= project_set h C \
-\     ==> project_act h (Restrict C (extend_act h act)) = act";
-by (asm_simp_tac (simpset() addsimps [Restrict_triv]) 1);
-qed "extend_act_inverse";
 
 Goalw [extend_act_def, project_act_def]
      "act' <= extend_act h act ==> project_act h act' <= act";
@@ -307,7 +300,6 @@ qed "subset_extend_act_D";
 Goal "inj (extend_act h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_act_inverse 1);
-by (Force_tac 1);
 qed "inj_extend_act";
 
 Goalw [extend_set_def, extend_act_def]
@@ -454,7 +446,8 @@ Goal "(extend h F : invariant (extend_set h A)) = (F : invariant A)";
 by (asm_simp_tac (simpset() addsimps [invariant_def, extend_stable]) 1);
 qed "extend_invariant";
 
-(*Converse fails: A and B may differ in their extra variables*)
+(*Projects the state predicates in the property satisfied by  extend h F.
+  Converse fails: A and B may differ in their extra variables*)
 Goal "extend h F : A co B ==> F : (project_set h A) co (project_set h B)";
 by (auto_tac (claset(), simpset() addsimps [constrains_def]));
 by (Force_tac 1);
@@ -527,6 +520,7 @@ by (asm_full_simp_tac
     (simpset() addsimps [stable_def, project_constrains_mono]) 1);
 qed "project_stable_mono";
 
+(*Key lemma used in several proofs about project and co*)
 Goalw [constrains_def]
      "(project h C F : A co B)  =  \
 \     (F : (C Int extend_set h A) co (extend_set h B) & A <= B)";
@@ -551,6 +545,7 @@ Goal "A Int extend_set h ((project_set h A) Int B) = A Int extend_set h B";
 by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
 qed "Int_extend_set_lemma";
 
+(*Strange (look at occurrences of C) but used in leadsETo proofs*)
 Goal "G : C co B ==> project h C G : project_set h C co project_set h B";
 by (full_simp_tac (simpset() addsimps [constrains_def, project_def, 
 				       project_act_def]) 1);
@@ -688,7 +683,7 @@ qed "inj_extend_preserves";
 Goal "project h UNIV ((extend h F) Join G) = F Join (project h UNIV G)";
 by (rtac program_equalityI 1);
 by (asm_simp_tac
-    (simpset() addsimps [image_eq_UN, UN_Un, project_act_extend_act]) 2);
+    (simpset() addsimps [image_eq_UN, UN_Un, extend_act_inverse]) 2);
 by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
 qed "project_extend_Join";
 
@@ -711,11 +706,11 @@ qed "guarantees_imp_extend_guarantees";
 Goal "extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y) \
 \     ==> F : X guarantees[v] Y";
 by (auto_tac (claset(), simpset() addsimps [guar_def]));
-by (dres_inst_tac [("x", "extend h G")] spec 1);
+by (dres_inst_tac [("x", "extend h G")] bspec 1);
 by (asm_full_simp_tac 
     (simpset() delsimps [extend_Join] 
-           addsimps [extend_Join RS sym, extend_preserves,
-		     inj_extend RS inj_image_mem_iff]) 1);
+           addsimps [extend_Join RS sym, inj_extend RS inj_image_mem_iff]) 2);
+by (asm_simp_tac (simpset() addsimps [extend_preserves]) 1);
 qed "extend_guarantees_imp_guarantees";
 
 Goal "(extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)) = \
@@ -728,7 +723,6 @@ qed "extend_guarantees_eq";
 Close_locale "Extend";
 
 (*Close_locale should do this!
-Delsimps [f_h_eq, extend_set_inverse, f_image_extend_set, extend_act_inverse,
-	  extend_act_Image];
+Delsimps [f_h_eq, extend_set_inverse, f_image_extend_set, extend_act_Image];
 Delrules [make_elim h_inject1];
 *)

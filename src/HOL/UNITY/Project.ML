@@ -27,7 +27,8 @@ by (blast_tac (claset() addDs [stable_constrains_Int]
 			addIs [constrains_weaken]) 1);
 qed_spec_mp "project_unless";
 
-(*This form's useful with guarantees reasoning*)
+(*Generalizes project_constrains to the program F Join project h C G;
+  useful with guarantees reasoning*)
 Goal "(F Join project h C G : A co B)  =  \
 \       (extend h F Join G : (C Int extend_set h A) co (extend_set h B) &  \
 \        F : A co B)";
@@ -197,6 +198,7 @@ qed "extending_increasing";
 
 (** Reachability and project **)
 
+(*In practice, C = reachable(...): the inclusion is equality*)
 Goal "[| reachable (extend h F Join G) <= C;  \
 \        z : reachable (extend h F Join G) |] \
 \     ==> f z : reachable (F Join project h C G)";
@@ -244,12 +246,12 @@ qed "project_Increasing_D";
 
 (** Converse results for weak safety: benefits of the argument C *)
 
+(*In practice, C = reachable(...): the inclusion is equality*)
 Goal "[| C <= reachable(extend h F Join G);   \
 \        x : reachable (F Join project h C G) |] \
 \     ==> EX y. h(x,y) : reachable (extend h F Join G)";
 by (etac reachable.induct 1);
 by (ALLGOALS Asm_full_simp_tac);
-(*SLOW: 6.7s*)
 by (force_tac (claset() delrules [Id_in_Acts]
 		        addIs [reachable.Acts, extend_act_D],
 	       simpset() addsimps [project_act_def]) 2);
@@ -264,6 +266,7 @@ by (auto_tac (claset() addDs [subset_refl RS reachable_imp_reachable_project,
 	      simpset()));
 qed "project_set_reachable_extend_eq";
 
+(*UNUSED*)
 Goal "reachable (extend h F Join G) <= C  \
 \     ==> reachable (extend h F Join G) <= \
 \         extend_set h (reachable (F Join project h C G))";
@@ -591,12 +594,12 @@ qed "project_Ensures_D";
 (*Weak precondition and postcondition
   Not clear that it has a converse [or that we want one!]*)
 
-(*The raw version*)
+(*The raw version; 3rd premise could be weakened by adding the
+  precondition extend h F Join G : X' *)
 val [xguary,project,extend] =
 Goal "[| F : X guarantees[v] Y;  \
 \        !!G. extend h F Join G : X' ==> F Join project h (C G) G : X;  \
-\        !!G. [| F Join project h (C G) G : Y; extend h F Join G : X'; \
-\                G : preserves (v o f) |] \
+\        !!G. [| F Join project h (C G) G : Y; G : preserves (v o f) |] \
 \             ==> extend h F Join G : Y' |] \
 \     ==> extend h F : X' guarantees[v o f] Y'";
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
