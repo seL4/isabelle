@@ -224,6 +224,7 @@ qed "elimination_sing";
 Goalw [constrains_def]
    "[| F : constrains A (A' Un B); F : constrains B B' |] \
 \   ==> F : constrains A (A' Un B')";
+by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "constrains_cancel";
 

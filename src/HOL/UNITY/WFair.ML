@@ -421,6 +421,7 @@ Goalw [constrains_def]
 \      F : constrains (A1 - B) (A1 Un B); \
 \      F : constrains (A2 - C) (A2 Un C) |] \
 \   ==> F : constrains (A1 Un A2 - C) (A1 Un A2 Un C)";
+by (Clarify_tac 1);
 by (Blast_tac 1);
 val lemma1 = result();
 

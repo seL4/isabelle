@@ -170,6 +170,7 @@ qed "Elimination_sing";
 Goalw [Constrains_def, constrains_def]
    "[| F : Constrains A (A' Un B); F : Constrains B B' |] \
 \   ==> F : Constrains A (A' Un B')";
+by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "Constrains_cancel";
 
