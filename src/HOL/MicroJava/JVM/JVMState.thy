@@ -2,25 +2,26 @@
     ID:         $Id$
     Author:     Cornelia Pusch
     Copyright   1999 Technische Universitaet Muenchen
-
-State of the JVM
 *)
 
-JVMState = Store +
+
+header {* State of the JVM *}
 
 
-(** frame stack **)
+theory JVMState = Store:
 
+
+text {* frame stack :*}
 types
  opstack 	 = "val list"
  locvars 	 = "val list" 
  p_count 	 = nat
 
- frame = "opstack \\<times>			
-	  locvars \\<times>		
-	  cname \\<times>			
-	  sig \\<times>			
-	  p_count"
+ frame = "opstack \<times>			
+          locvars \<times>		
+          cname \<times>			
+          sig \<times>			
+          p_count"
 
 	(* operand stack *)
 	(* local variables *)
@@ -29,22 +30,20 @@ types
 	(* program counter within frame *)
 
 
-(** exceptions **)
-
+text {* exceptions: *}
 constdefs
- raise_xcpt :: "bool => xcpt => xcpt option"
-"raise_xcpt c x == (if c then Some x else None)"
+  raise_xcpt :: "bool => xcpt => xcpt option"
+  "raise_xcpt c x == (if c then Some x else None)"
 
-(** runtime state **)
 
+text {* runtime state: *}
 types
- jvm_state = "xcpt option \\<times> aheap \\<times> frame list"	
+  jvm_state = "xcpt option \<times> aheap \<times> frame list"	
 
 
-
-(** dynamic method lookup **)
-
+text {* dynamic method lookup: *}
 constdefs
- dyn_class	:: "'code prog \\<times> sig \\<times> cname => cname"
-"dyn_class == \\<lambda>(G,sig,C). fst(the(method(G,C) sig))"
+  dyn_class	:: "'code prog \<times> sig \<times> cname => cname"
+  "dyn_class == \<lambda>(G,sig,C). fst(the(method(G,C) sig))"
+
 end

@@ -2,11 +2,14 @@
     ID:         $Id$
     Author:     Cornelia Pusch, Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
-
-Semantics of JVM instructions
 *)
 
-JVMExecInstr = JVMInstructions + JVMState +
+
+header {* JVM Instruction Semantics *}
+
+
+theory JVMExecInstr = JVMInstructions + JVMState:
+
 
 consts
   exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, 
@@ -25,10 +28,10 @@ primrec
       (None, hp, (Null # stk, vars, Cl, sig, pc+1)#frs)"
 
  "exec_instr (New C) G hp stk vars Cl sig pc frs = 
-	(let xp'	= raise_xcpt (\\<forall>x. hp x \\<noteq> None) OutOfMemory;
+	(let xp'	= raise_xcpt (\<forall>x. hp x \<noteq> None) OutOfMemory;
 	     oref	= newref hp;
              fs		= init_vars (fields(G,C));
-	     hp'	= if xp'=None then hp(oref \\<mapsto> (C,fs)) else hp;
+	     hp'	= if xp'=None then hp(oref \<mapsto> (C,fs)) else hp;
 	     stk'	= if xp'=None then (Addr oref)#stk else stk
 	 in 
       (xp', hp', (stk', vars, Cl, sig, pc+1)#frs))"	
@@ -46,13 +49,13 @@ primrec
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
 	     a		= the_Addr oref;
 	     (oc,fs)	= the(hp a);
-	     hp'	= if xp'=None then hp(a \\<mapsto> (oc, fs((F,C) \\<mapsto> fval))) else hp
+	     hp'	= if xp'=None then hp(a \<mapsto> (oc, fs((F,C) \<mapsto> fval))) else hp
 	 in
       (xp', hp', (tl (tl stk), vars, Cl, sig, pc+1)#frs))"
 
  "exec_instr (Checkcast C) G hp stk vars Cl sig pc frs =
 	(let oref	= hd stk;
-	     xp'	= raise_xcpt (\\<not> cast_ok G C hp oref) ClassCast; 
+	     xp'	= raise_xcpt (\<not> cast_ok G C hp oref) ClassCast; 
 	     stk'	= if xp'=None then stk else tl stk
 	 in
       (xp', hp, (stk', vars, Cl, sig, pc+1)#frs))"

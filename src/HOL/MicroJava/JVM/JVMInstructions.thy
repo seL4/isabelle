@@ -2,11 +2,12 @@
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
-
-Instructions of the JVM
 *)
 
-JVMInstructions = JVMState +
+header {* Instructions of the JVM *}
+
+
+theory JVMInstructions = JVMState:
 
 
 datatype 
@@ -19,19 +20,19 @@ datatype
         | Putfield vname cname		  (* Set field in object     *)
         | Checkcast cname	          (* Check whether object is of given type *)
         | Invoke cname mname "(ty list)"  (* inv. instance meth of an object *)
-        | Return
-        | Pop
-        | Dup
-        | Dup_x1
-        | Dup_x2
-        | Swap
-        | IAdd
-        | Goto int
+        | Return                    (* return from method *)
+        | Pop                       (* pop top element from opstack *)
+        | Dup                       (* duplicate top element of opstack *)
+        | Dup_x1                    (* duplicate next to top element *)
+        | Dup_x2                    (* duplicate 3rd element *)
+        | Swap                      (* swap top and next to top element *)
+        | IAdd                      (* integer addition *)
+        | Goto int                  (* goto relative address *)
         | Ifcmpeq int               (* Branch if int/ref comparison succeeds *)
 
 
 types
   bytecode = "instr list"
-  jvm_prog = "(nat \\<times> bytecode) prog" 
+  jvm_prog = "(nat \<times> bytecode) prog" 
 
 end
