@@ -229,7 +229,7 @@ fun nodup_TVars(tvars,T) = (case T of
            Some(S') => if S=S' then tvars
                        else raise_type
                             ("Type variable "^Syntax.string_of_vname a^
-                             "has two distinct sorts") [TVar(a,S'),T] []
+                             " has two distinct sorts") [TVar(a,S'),T] []
          | None => v::tvars));
 
 (* check for duplicate Vars with distinct types *)
@@ -242,7 +242,7 @@ let fun nodups vars tvars tm = (case tm of
                Some(T') => if T=T' then (vars,nodup_TVars(tvars,T))
                            else raise_type
                              ("Variable "^Syntax.string_of_vname ixn^
-                              "has two distinct types") [T',T] []
+                              " has two distinct types") [T',T] []
              | None => (v::vars,tvars))
         | Bound _ => (vars,tvars)
         | Abs(_,T,t) => nodups vars (nodup_TVars(tvars,T)) t
