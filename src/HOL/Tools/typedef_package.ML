@@ -59,7 +59,6 @@ fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
       map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.termS)) vs;
 
     val tname = Syntax.type_name t mx;
-    val tlen = length vs;
     val newT = Type (full_name tname, map TFree lhs_tfrees);
 
     val Rep_name = "Rep_" ^ name;
@@ -106,10 +105,9 @@ fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     prove_nonempty cset (map (get_axiom thy) axms @ thms) usr_tac;
 
     thy
-    |> Theory.add_types [(t, tlen, mx)]
+    |> PureThy.add_typedecls [(t, vs, mx)]
     |> Theory.add_arities_i
-     [(full_name tname, replicate tlen logicS, logicS),
-      (full_name tname, replicate tlen HOLogic.termS, HOLogic.termS)]
+     [(full_name tname, replicate (length vs) HOLogic.termS, HOLogic.termS)]
     |> Theory.add_consts_i
      [(name, setT, NoSyn),
       (Rep_name, newT --> oldT, NoSyn),
