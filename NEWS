@@ -15,9 +15,10 @@ New in Isabelle??? (FIXME)
   This implies that addbefore, addSbefore, addaltern, and addSaltern now take
   a pair (name, tactic) as argument, and that adding two tactics with the same
   name overwrites the first one (emitting a warning).
+  type wrapper = (int -> tactic) -> (int -> tactic)
   setWrapper, setSWrapper, compWrapper and compSWrapper are replaced by
-  addWrapper, addSWrapper: claset * wrapper -> claset
-  delWrapper, delSWrapper: claset *  string -> claset
+  addWrapper, addSWrapper: claset * (string * wrapper) -> claset
+  delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
 * Inductive definitions now handle disjunctive premises correctly (HOL and ZF)
@@ -25,11 +26,17 @@ New in Isabelle??? (FIXME)
 
 *** HOL ***
 
+* new force_tac (and its derivations Force_tac, force) 
+  combines rewriting and classical reasoning (and whatever other tools)
+  similarly to auto_tac, but is aimed to solve the given subgoal totally.
+
 * added option_map_eq_Some to simpset(), option_map_eq_Some RS iffD1 to claset()
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
-* split_all_tac now fails if there is nothing to split
-  split_all_tac has moved within claset() from usafe wrappers to safe wrappers
+* split_all_tac is now much faster and fails if there is nothing to split
+  split_all_tac has moved within claset() from usafe wrappers to safe wrappers,
+  which means that !!-bound variables are splitted much more aggressively.
+  If this splitting is not appropriate, use delSWrapper "split_all_tac".
 
 * added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
 
