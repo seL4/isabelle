@@ -12,9 +12,7 @@ sig
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
   val varify: term * string list -> term
-  val freeze_vars: typ -> typ
-  val thaw_vars: typ -> typ
-  val freeze: term -> term
+  val freeze_thaw : term -> term * (term -> term)
 
   (*type signatures*)
   type type_sig
@@ -105,60 +103,37 @@ fun varify (t, fixed) =
   end;
 
 
-(* thaw, freeze *)
+(** Freeze TVars in a term; return the "thaw" inverse **)
 
-val thaw_vars =
-  let
-    fun thaw (f as (a, S)) =
-      (case explode a of
-        "?" :: "'" :: vn =>
-          let val ((b, i), _) = Syntax.scan_varname vn in
-            TVar (("'" ^ b, i), S)
-          end
-      | _ => TFree f)
-  in map_type_tfree thaw end;
+fun newName (ix, (pairs,used)) = 
+      let val v = variant used (string_of_indexname ix)
+      in  ((ix,v)::pairs, v::used)  end;
 
-val freeze_vars =
-  map_type_tvar (fn (v, S) => TFree (Syntax.string_of_vname v, S));
+fun freezeOne alist (ix,sort) = TFree (the (assoc (alist, ix)), sort)
+      handle OPTION _ => 
+	  raise_type ("Failure during freezing of ?" ^
+		      string_of_indexname ix) [] [];
 
+fun thawOne alist (a,sort) = TVar (the (assoc (alist,a)), sort)
+      handle OPTION _ => TFree(a,sort);
 
-local
-  fun nextname (pref, c) =
-    if c = "z" then (pref ^ "a", "a")
-    else (pref, chr (ord c + 1));
+(*This sort of code could replace unvarifyT (?)
+    fun freeze_thaw_type T =
+	let val used = add_typ_tfree_names (T, [])
+	  and tvars = map #1 (add_typ_tvars (T, []))
+	  val (alist, _) = foldr newName (tvars, ([], used))
+	in  (map_type_tvar (freezeOne alist) T, 
+	   map_type_tfree (thawOne (map swap alist)))  
+	end;
+*)
 
-  fun newtvars used =
-    let
-      fun new ([], _, vmap) = vmap
-        | new (ixn :: ixns, p as (pref, c), vmap) =
-            let val nm = pref ^ c in
-              if nm mem_string used then new (ixn :: ixns, nextname p, vmap)
-              else new (ixns, nextname p, (ixn, nm) :: vmap)
-            end
-    in new end;
-
-  (*Turn all TVars which satisfy p into new (if freeze then TFrees else TVars).
-    Note that if t contains frozen TVars there is the possibility that a TVar is
-    turned into one of those. This is sound but not complete.*)
-
-  fun convert used freeze p t =
-    let
-      val used =
-        if freeze then add_term_tfree_names (t, used)
-        else used union (map #1 (filter_out p (add_term_tvar_ixns (t, []))));
-      val ixns = filter p (add_term_tvar_ixns (t, []));
-      val vmap = newtvars used (ixns, ("'", "a"), []);
-      fun conv (var as (ixn, S)) =
-        (case assoc (vmap, ixn) of
-          None => TVar(var)
-        | Some a => if freeze then TFree (a, S) else TVar ((a, 0), S));
-    in
-      map_term_types (map_type_tvar conv) t
+fun freeze_thaw t =
+    let val used = it_term_types add_typ_tfree_names (t, [])
+	and tvars = map #1 (it_term_types add_typ_tvars (t, []))
+	val (alist, _) = foldr newName (tvars, ([], used))
+    in  (map_term_types (map_type_tvar (freezeOne alist)) t,
+	 map_term_types (map_type_tfree (thawOne (map swap alist)))) 
     end;
-in
-  fun freeze t = convert (add_term_tfree_names(t,[])) true (K true) t;
-end;
-
 
 
 (*** type signatures ***)
