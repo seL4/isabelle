@@ -660,22 +660,28 @@ current context as a list of theorems.
 \subsection{Facts and forward chaining}
 
 \indexisarcmd{note}\indexisarcmd{then}\indexisarcmd{from}\indexisarcmd{with}
+\indexisarcmd{using}
 \begin{matharray}{rcl}
   \isarcmd{note} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{then} & : & \isartrans{proof(state)}{proof(chain)} \\
   \isarcmd{from} & : & \isartrans{proof(state)}{proof(chain)} \\
   \isarcmd{with} & : & \isartrans{proof(state)}{proof(chain)} \\
+  \isarcmd{using} & : & \isartrans{proof(prove)}{proof(prove)} \\
 \end{matharray}
 
 New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
 arguments of proof methods, or when forward chaining towards the next goal via
-$\THEN$ (and variants).  Note that the special theorem name
-$this$\indexisarthm{this} refers to the most recently established facts.
+$\THEN$ (and variants); $\FROMNAME$ and $\WITHNAME$ are composite forms
+involving $\NOTE$.  The $\USINGNAME$ elements allows to augment the collection
+of used facts \emph{after} a goal has been stated.  Note that the special
+theorem name $this$\indexisarthm{this} refers to the most recently established
+facts, but only \emph{before} issuing a follow-up claim.
+
 \begin{rail}
   'note' (thmdef? thmrefs + 'and')
   ;
-  ('from' | 'with') (thmrefs + 'and')
+  ('from' | 'with' | 'using') (thmrefs + 'and')
   ;
 \end{rail}
 
@@ -695,19 +701,24 @@ $this$\indexisarthm{this} refers to the most recently established facts.
   equivalent to $\FROM{this}$.
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~this}$; thus the forward
   chaining is from earlier facts together with the current ones.
+\item [$\USING{\vec b}$] augments the facts being currently indicated for use
+  in a subsequent refinement step (such as $\APPLYNAME$ or $\PROOFNAME$).
 \end{descr}
-
-Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth-att}) expect
-multiple facts to be given in their proper order, corresponding to a prefix of
-the premises of the rule involved.  Note that positions may be easily skipped
-using something like $\FROM{\Text{\texttt{_}}~a~b}$, for example.  This
-involves the trivial rule $\PROP\psi \Imp \PROP\psi$, which happens to be
-bound in Isabelle/Pure as ``\texttt{_}''
-(underscore).\indexisarthm{_@\texttt{_}}
 
 Forward chaining with an empty list of theorems is the same as not chaining.
 Thus $\FROM{nothing}$ has no effect apart from entering $prove(chain)$ mode,
 since $nothing$\indexisarthm{nothing} is bound to the empty list of theorems.
+
+Basic proof methods (such as $rule$) expect multiple facts to be given in
+their proper order, corresponding to a prefix of the premises of the rule
+involved.  Note that positions may be easily skipped using something like
+$\FROM{\Text{\texttt{_}}~a~b}$, for example.  This involves the trivial rule
+$\PROP\psi \Imp \PROP\psi$, which happens to be bound in Isabelle/Pure as
+``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
+
+Automated methods (such as $simp$ or $auto$) just insert any given facts
+before their usual operation.  Depending on the kind of procedure involved,
+the order of facts is less significant here.
 
 
 \subsection{Goal statements}
@@ -735,24 +746,25 @@ eventually.  A pending multi-goal is internally represented as a meta-level
 conjunction (printed as \verb,&&,), which is automatically split into the
 corresponding number of sub-goals prior to any initial method application, via
 $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
-(\S\ref{sec:tactic-commands}).\footnote{Deviating from the latter principle,
-  the $induct$ method covered in \S\ref{sec:cases-induct-meth} acts on
-  multiple claims simultaneously.}
+(\S\ref{sec:tactic-commands}).\footnote{The $induct$ method covered in
+  \S\ref{sec:cases-induct-meth} acts on multiple claims simultaneously.}
+
+Claims at the theory level may be either in ``short'' or ``long'' form.  A
+short goal merely consists of several simultaneous propositions (often just
+one).  A long goal includes an explicit context specification for the
+subsequent conclusions, involving local parameters; here the role of each part
+of the statement is explicitly marked by separate keywords (see also
+\S\ref{sec:locale}).
 
 \begin{rail}
-  ('lemma' | 'theorem' | 'corollary') goalprefix goal
+  ('lemma' | 'theorem' | 'corollary') locale? (shortgoal | longgoal)
   ;
-  ('have' | 'show' | 'hence' | 'thus') goal
+  ('have' | 'show' | 'hence' | 'thus') shortgoal
   ;
-
-  goal: (props + 'and')
+  
+  shortgoal: (props + 'and')
   ;
-
-  goalprefix: thmdecl? locale? context?
-  ;
-  locale: '(' 'in' name ')'
-  ;
-  context: '(' (contextelem +) ')'
+  longgoal: thmdecl? (contextelem *) 'shows' shortgoal
   ;
 \end{rail}
 
