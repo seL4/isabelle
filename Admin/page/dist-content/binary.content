@@ -2,36 +2,83 @@
 Isabelle Binary Distribution
 
 %body%
-The binary distribution of {ISABELLE} for rpm-based Linux/x86 systems:
+
+<h2>(1) Linux/x86 systems with RPM</h2>
+
+This is the binary distribution of <!-- _GP_ distname --> for
+Linux/x86 systems.  It requires RPM based package management (as used
+by most Linux distributions), and <em>root</em> user access to
+install.
 
 <p>
 
 <!-- _GP_ setdowncolor("#E0E0E0") -->
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
-
-  <!-- _GP_ download("ML system", "rpm/smlnj-110.0-3.i386.rpm", "{RPM_SML_SIZE} K") -->
-  <!-- _GP_ download("Isabelle system", "rpm/isabelle.rpm", "{RPM_BASE_SIZE} K") -->
-  <!-- _GP_ download("Isabelle/HOL image", "rpm/isabelle-HOL.i386.rpm", "{RPM_HOL_SIZE} K") -->
-  <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "rpm/isabelle-HOL-Real.i386.rpm", "{RPM_REAL_SIZE} K") -->
-  <!-- _GP_ download("Isabelle/ZF image (optional)", "rpm/isabelle-ZF.i386.rpm", "{RPM_ZF_SIZE} K") -->
-  <!-- _GP_ download("Isabelle pdf documentation (optional)", "rpm/isabelle-pdfdocs.rpm", "{RPM_DOCS_SIZE} K") -->
-
+  <!-- _GP_ download("Poly/ML system", "contrib/polyml.i386.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle main system", "isabelle.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle/HOL image", "isabelle-HOL.i386.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "isabelle-HOL-Real.i386.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle/ZF image (optional)", "isabelle-ZF.i386.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle pdf documentation (optional)", "isabelle-pdfdocs.rpm", "../..") -->
+  <!-- _GP_ download("Proof General system (recommended)", "contrib/proofgeneral.rpm", "../..") -->
+  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/xsymbol.rpm", "../..") -->
 </table>
-
 </center>
 
 <p>
 
-Example installation procedure:
+Example installation in <tt>/usr/share</tt> (the default location).
 
 <pre>
-rpm -i smlnj-110.0-3.i386.rpm 
-rpm -i --prefix /usr/share isabelle.rpm             
-rpm -i --prefix /usr/share isabelle-HOL.i386.rpm    
+rpm -i --prefix /usr/share polyml.i386.rpm
+rpm -i --prefix /usr/share isabelle.rpm
+rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
+rpm -i --prefix /usr/share proofgeneral.rpm               #requires XEmacs-21
+rpm -i --prefix /usr/share xsymbol.rpm                    #requires XEmacs-21
 </pre>
 
 <p>
 
-Use the mailing list <a href="mailto:isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a>
-to discuss problems and results.  (Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)
+
+<h2>(2) Generic Linux/x86 or Solaris/Sparc systems</h2>
+
+The following distribution of <!-- _GP_ distname --> works for any
+Linux/x86 or Solaris/Sparc system -- only Poly/ML is platform
+dependent.  Installation does not rely on package management; it may
+be performed by non-root users as well.
+
+<p>
+
+<!-- _GP_ setdowncolor("#E0E0E0") -->
+<center>
+<table border="0" cellspacing="5" cellpadding="4" width="520">
+  <!-- _GP_ download("Poly/ML base system", "contrib/polyml.tar.gz", "../..") -->
+  <!-- _GP_ download("Poly/ML module for Linux/x86", "contrib/polyml_x86-linux.tar.gz", "../..") -->
+  <!-- _GP_ download("Poly/ML module for Solaris/Sparc", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
+  <!-- _GP_ download("Isabelle main system", distname . ".tar.gz", "../..") -->
+  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General system (recommended)", "contrib/proofgeneral.tar.gz", "../..") -->
+  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/xsymbol.tar.gz", "../..") -->
+</table>
+</center>
+
+<p>
+
+Example installation in <tt>/usr/share</tt> for Linux/x86.
+
+<pre>
+tar -C /usr/share -x -z -f polyml.tar.gz
+tar -C /usr/share -x -z -f polyml_x86-linux.tar.gz
+tar -C /usr/share -x -z -f <!-- _GP_ distname . ".tar.gz"-->
+tar -C /usr/share -x -z -f proofgeneral.tar.gz            #requires XEmacs-21
+tar -C /usr/share -x -z -f xsymbol.tar.gz                 #requires XEmacs-21
+
+cd <!-- _GP_ "/usr/share/" . distname -->
+./configure
+./build
+./bin/isatool install -p /usr/bin
+</pre>
+
+<p>
+
+<p>

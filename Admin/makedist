@@ -14,6 +14,12 @@ DISTPREFIX=~/tmp/isadist
 
 umask 022
 
+TAR=tar
+type -path gtar >/dev/null && TAR=gtar
+
+FIND=find
+type -path gfind >/dev/null && FIND=gfind
+
 
 ## diagnostics
 
@@ -110,10 +116,10 @@ echo "###"
 cd "$DISTBASE"
 
 $EXPORT
-find . -name CVS -print | xargs rm -rf
-find . "(" -type d -a -empty ")" -print | xargs rm -f
-find . "(" -type d -a -empty ")" -print | xargs rm -f
-find . "(" -type d -a -empty ")" -print | xargs rm -f
+$FIND . -name CVS -print | xargs rm -rf
+$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
+$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
+$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 
 
 # build docs
@@ -128,24 +134,27 @@ PDFLATEX=$(type -path pdflatex)
 for DOC in $(cat Contents)
 do
   cd "$DOC"
-  make dvi
-  [ -n "$PDFLATEX" ] && make clean pdf
+  #FIXME make dvi
+  #FIXME [ -n "$PDFLATEX" ] && make clean pdf
   cd ..
 done
 
 
-# make WWW pages
-
-#FIXME
-#export DISTNAME
-#( cd "$DISTBASE/$DISTNAME/Admin/page"; make clean; make dist; cd dist; cp * "$DISTBASE"; )
-
-
 # prepare dist dir for release
+
+echo "###"
+echo "### Preparing distribution ..."
+echo "###"
 
 cd "$DISTBASE/$DISTNAME"
 
-MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+cp -R Admin/page ../page
+cp Distribution/Doc/Contents ../page/Contents
+cp Distribution/lib/logo/isabelle.gif ../page/main-content
+cp Distribution/lib/logo/isabelle.gif ../page/dist-content
+echo "$DISTNAME" > ../page/DISTNAME
+
+MOVE=$($FIND Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 rm -rf Doc Tools
@@ -194,9 +203,6 @@ chgrp -R isabelle "$DISTNAME"
 chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
 
-TAR=tar
-type -path gtar >/dev/null && TAR=gtar
-
 mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
@@ -215,7 +221,6 @@ gzip "${DISTNAME}_pdf.tar"
 mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
-mv "${DISTNAME}-old/lib/logo/isabelle.gif" .
 mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
@@ -225,14 +230,8 @@ chgrp -R isabelle "$DISTNAME"
 rm -rf "${DISTNAME}-old"
 
 
-# prepare web pages
-
-#FIXME
-#$THIS/filesizes -norpm
-
-
 # final note
 
 echo "###"
-echo "### Finished. You will find the distribution in $DISTBASE."
+echo "### Finished."
 echo "###"

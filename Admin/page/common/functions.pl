@@ -1,9 +1,12 @@
 <!-- _GP_
 # undef all the functions we're defining. This stops lots of
-# complaining about re-defining the sub for each content file thats
+# complaining about re-defining the sub for each content file that's
 # processed.
 
        if (defined(&me)) { undef &me; }
+       if (defined(&distname)) { undef &distname; }
+       if (defined(&href)) { undef &href; }
+       if (defined(&twodig)) { undef &twodig; }
        if (defined(&when)) { undef &when; }
        if (defined(&size)) { undef &size; }
        if (defined(&page)) { undef &page; }
@@ -16,6 +19,14 @@
  -->
 
 <!--  _GP_ 
+
+    sub distname {
+      return $ENV{"DISTNAME"};
+    }
+
+    sub href {
+	return "<a href=\"" . $_[0] . "\">" . $_[1] . "</a>";
+    }
 
     sub twodig {
       if ($_[0] < 10) {
@@ -85,9 +96,9 @@ EOF
     sub size {
       my $filename = $_[0];
       my @s = stat $filename;
-      my $size = $s[7]/1024;
+      my $size = defined $s[7] ? $s[7]/1024 : 0;
 
-      return sprintf("%.1f",$size);
+      return sprintf("%.1f", $size);
     }
 
     sub setdowncolor {
@@ -95,17 +106,15 @@ EOF
       return "";
     }
 
-   # download(description, url, size)
+   # download(description, url, prefix)
     sub download {
 
       my $descr = $_[0];
       my $url   = $_[1];
-      my $size  = $_[2];
+      my $prefix  = $_[2];
 
-      if ($size eq "") {
-	$size = size($url);
-	$size = "$size K";
-      }
+      my $size = size("$prefix/$url");
+      $size = "$size K";
 
       my $filename = $path;
 

@@ -43,7 +43,7 @@ Visit the <a href="dist/">download page</a>.
   href="dist/source.html">sources</a>, <a
   href="dist/binary.html">binary packages</a>, and <a
   href="dist/docs.html">documentation</a>. 
-  The current version is <strong>{ISABELLE}</strong>.
+  The current version is <strong><!-- _GP_ distname --></strong>.
 
 <p>
 

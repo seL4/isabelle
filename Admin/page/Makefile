@@ -1,12 +1,10 @@
-# --- uses $DISTNAME environment variable 
-
 # -- makefile for Isabelle web pages (dist and main)
 # -- $Id$
 
-# --- perl scripts used in this makefile
+# --- external tools
 
-GENPAGE   = bin/genpage
-MKCONTENT = bin/mkcontents
+GENPAGE   = ./bin/genpage
+MKCONTENT = ./bin/mkcontents
 
 # ---
 # --- genpage stuff 
@@ -30,11 +28,7 @@ TEMPLATE_NAME = template.html
 # --- doc content generation
 
 # --- location of the Contents file of the Isabelle documentation
-DOC_CONTENT_FILE = ../../Distribution/doc/Contents
-
-# --- url prefixes for documentation links in main and dist dirs
-DIST_DOCU_PREFIX = $(DISTNAME)/doc/
-MAIN_DOCU_PREFIX = dist/$(DISTNAME)/doc/
+DOC_CONTENT_FILE = Contents
 
 # --- target include files with documentation links
 DOC_CONTENTS_MAIN = docu-contents.main
@@ -43,28 +37,24 @@ DOC_CONTENTS_DIST = docu-contents.dist
 # ---
 # --- begin rules
 
-all: clean gen
+all: clean main dist
+	@echo "###"
+	@echo "### Finished.  See main/ and dist/ for the resulting pages."
+	@echo "###"
 
-gen: main dist
+main:
+	@$(MKCONTENT) -p dist/`cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_MAIN)
+	@env DISTNAME=`cat DISTNAME` \
+	  $(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
 
-main: check
-	$(MKCONTENT) -p $(MAIN_DOCU_PREFIX) Contents $(DOC_CONTENTS_MAIN)
-	$(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
-
-	cd $(MAIN_TARGET); perl -pi -e "s/{ISABELLE}/$(DISTNAME)/g;" *.html
-
-dist: check
-	$(MKCONTENT) -p $(DIST_DOCU_PREFIX) $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
-	$(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
-
-	cd $(DIST_TARGET); perl -pi -e "s/{ISABELLE}/$(DISTNAME)/g;" *.html
+dist:
+	@$(MKCONTENT) -p `cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
+	@env DISTNAME=`cat DISTNAME` \
+	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
 
 clean: 
-	rm -rf $(MAIN_TARGET)
-	rm -rf $(DIST_TARGET)
-	rm -rf $(DOC_CONTENTS_MAIN)
-	rm -rf $(DOC_CONTENTS_DIST)
-	rm -f `find . -name "*~" -type f`
-
-check:
-	@if [ "$(DISTNAME)" = "" ]; then echo "Error: \$$DISTNAME not set."; exit 1; fi
+	@rm -rf $(MAIN_TARGET)
+	@rm -rf $(DIST_TARGET)
+	@rm -rf $(DOC_CONTENTS_MAIN)
+	@rm -rf $(DOC_CONTENTS_DIST)
+	@find . -name "*~" -type f -print | xargs rm -f

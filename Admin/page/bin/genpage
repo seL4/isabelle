@@ -1,7 +1,4 @@
-#!/bin/sh
-exec perl -x. $0 ${1+"$@"} 
-#
-#!perl -w
+#!/usr/bin/perl -w
 
 # Genpage - Webpage Generator.
 #

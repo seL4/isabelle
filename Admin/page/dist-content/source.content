@@ -2,7 +2,7 @@
 Isabelle Source Distribution
 
 %body%
-The standard source distribution of Isabelle:
+This is the complete source distribution of <!-- _GP_ distname -->.
 
 <p>
 
@@ -11,20 +11,21 @@ The standard source distribution of Isabelle:
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="500">
 
-  <!-- _GP_ download("Isabelle sources with dvi documentation", "{ISABELLE}.tar.gz", "{PACKED_SIZE} K") -->
-  <!-- _GP_ download("Documentation as pdf files", "{ISABELLE}_pdf.tar.gz", "{PACKED_SIZE_PDF} K") -->
-  <!-- _GP_ download("Browse all files unpacked", "{ISABELLE}", "{UNPACKED_SIZE} K") -->
+  <!-- _GP_ download("Isabelle sources with dvi documentation", distname . ".tar.gz", "../..") -->
+  <!-- _GP_ download("Documentation as pdf files", distname . "_pdf.tar.gz", "../..") -->
 
 </table>
 </center>
 
 <p>
 
-Please see the Isabelle <a href="{ISABELLE}/README.html">README</a>
-and <a href="{ISABELLE}/INSTALL">INSTALL</a> files for more
-information.
+Please see the Isabelle <!-- _GP_ href(distname . "/README.html",
+"README") --> and <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
+files for more information.
 
 <p>
 
-Use the mailing list <a href="mailto:isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a>
-to discuss problems and results.  (Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)
+Use the mailing list <a
+href="mailto:isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a>
+to discuss problems and results.  Why not <a
+href="mailto:lcp@cl.cam.ac.uk">subscribe</a>?
