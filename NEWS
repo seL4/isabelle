@@ -7,6 +7,16 @@ New in Isabelle??? (FIXME)
 
 *** General Changes ***
 
+* Simplifier:
+
+ -Asm_full_simp_tac is now more aggressive:
+  1. It will sometimes reorient premises if that increases their power to
+     simplify.
+  2. It does no longer proceed strictly from left to right but may also
+     rotate premises to achieve further simplification.
+  For compatibility reasons there is now Asm_lr_simp_tac which is like the
+  old Asm_full_simp_tac in that it does not rotate premises.
+
 * Changed wrapper mechanism for the classical reasoner now allows for
 selected deletion of wrappers, by introduction of names for wrapper
 functionals.  This implies that addbefore, addSbefore, addaltern, and
@@ -64,33 +74,25 @@ instead of "inverse";
 * recdef can now declare non-recursive functions, with {} supplied as
 the well-founded relation;
 
+* expand_if, expand_split, expand_sum_case and expand_nat_case are now called
+  split_if, split_split, split_sum_case and split_nat_case
+  (to go with add/delsplits).
+
 * Simplifier:
 
  -Rewrite rules for case distinctions can now be added permanently to the
   default simpset using Addsplits just like Addsimps. They can be removed via
   Delsplits just like Delsimps. Lower-case versions are also available.
 
- -The rule expand_if is now part of the default simpset. This means that
+ -The rule split_if is now part of the default simpset. This means that
   the simplifier will eliminate all ocurrences of if-then-else in the
-  conclusion of a goal. To prevent this, you can either remove expand_if
-  completely from the default simpset by `Delsplits [expand_if]' or
+  conclusion of a goal. To prevent this, you can either remove split_if
+  completely from the default simpset by `Delsplits [split_if]' or
   remove it in a specific call of the simplifier using
-  `... delsplits [expand_if]'.
+  `... delsplits [split_if]'.
   You can also add/delete other case splitting rules to/from the default
   simpset: every datatype generates a suitable rule `split_t_case' (where t
   is the name of the datatype).
-
- -Asm_full_simp_tac is now more aggressive:
-  1. It will sometimes reorient premises if that increases their power to
-     simplify.
-  2. It does no longer proceed strictly from left to right but may also
-     rotate premises to achieve further simplification.
-  For compatibility reasons there is now Asm_lr_simp_tac which is like the
-  old Asm_full_simp_tac in that it does not rotate premises.
-
-* expand_if, expand_split, expand_sum_case and expand_nat_case are now called
-  split_if, split_split, split_sum_case and split_nat_case
-  (to go with add/delsplits).
 
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
