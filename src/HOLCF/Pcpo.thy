@@ -5,6 +5,9 @@
 
 introduction of the classes cpo and pcpo 
 *)
+
+header {* Classes cpo and pcpo *}
+
 theory Pcpo = Porder:
 
 (* The class cpo of chain complete partial orders *)
@@ -318,4 +321,10 @@ apply (unfold finite_chain_def)
 apply (unfold max_in_chain_def)
 apply (fast dest: le_imp_less_or_eq elim: chain_mono)
 done
+
+instance flat<chfin
+apply (intro_classes)
+apply (rule flat_imp_chfin)
+done
+
 end 

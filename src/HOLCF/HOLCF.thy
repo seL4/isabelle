@@ -5,4 +5,4 @@
 Top theory for HOLCF system.
 *)
 
-HOLCF = Sprod3 + Ssum3 + Up3 + Lift + Discrete + One + Tr
+HOLCF = Sprod + Ssum + Up + Lift + Discrete + One + Tr

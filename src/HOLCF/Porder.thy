@@ -3,10 +3,53 @@
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
+Definition of class porder (partial order).
 Conservative extension of theory Porder0 by constant definitions 
 *)
 
-theory Porder = Porder0:
+header {* Type class of partial orders *}
+
+theory Porder = Main:
+
+	(* introduce a (syntactic) class for the constant << *)
+axclass sq_ord < type
+
+	(* characteristic constant << for po *)
+consts
+  "<<"          :: "['a,'a::sq_ord] => bool"        (infixl 55)
+
+syntax (xsymbols)
+  "op <<"       :: "['a,'a::sq_ord] => bool"        (infixl "\<sqsubseteq>" 55)
+
+axclass po < sq_ord
+        (* class axioms: *)
+refl_less [iff]: "x << x"        
+antisym_less:    "[|x << y; y << x |] ==> x = y"    
+trans_less:      "[|x << y; y << z |] ==> x << z"
+
+text {* minimal fixes least element *}
+
+lemma minimal2UU[OF allI] : "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)"
+apply (blast intro: someI2 antisym_less)
+done
+
+text {* the reverse law of anti-symmetry of @{term "op <<"} *}
+
+lemma antisym_less_inverse: "(x::'a::po)=y ==> x << y & y << x"
+apply blast
+done
+
+lemma box_less: "[| (a::'a::po) << b; c << a; b << d|] ==> c << d"
+apply (erule trans_less)
+apply (erule trans_less)
+apply assumption
+done
+
+lemma po_eq_conv: "((x::'a::po)=y) = (x << y & y << x)"
+apply (fast elim!: antisym_less_inverse intro!: antisym_less)
+done
+
+subsection {* Constant definitions *}
 
 consts  
         "<|"    ::      "['a set,'a::po] => bool"       (infixl 55)
@@ -21,11 +64,9 @@ syntax
   "@LUB"	:: "('b => 'a) => 'a"	(binder "LUB " 10)
 
 translations
-
   "LUB x. t"	== "lub(range(%x. t))"
 
 syntax (xsymbols)
-
   "LUB "	:: "[idts, 'a] => 'a"		("(3\<Squnion>_./ _)"[0,10] 10)
 
 defs
@@ -46,18 +87,7 @@ finite_chain_def: "finite_chain C == chain(C) & (? i. max_in_chain i C)"
 
 lub_def:          "lub S == (@x. S <<| x)"
 
-(*  Title:      HOLCF/Porder
-    ID:         $Id$
-    Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Conservative extension of theory Porder0 by constant definitions 
-*)
-
-(* ------------------------------------------------------------------------ *)
-(* lubs are unique                                                          *)
-(* ------------------------------------------------------------------------ *)
-
+text {* lubs are unique *}
 
 lemma unique_lub: 
         "[| S <<| x ; S <<| y |] ==> x=y"
@@ -65,9 +95,7 @@ apply (unfold is_lub_def is_ub_def)
 apply (blast intro: antisym_less)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* chains are monotone functions                                            *)
-(* ------------------------------------------------------------------------ *)
+text {* chains are monotone functions *}
 
 lemma chain_mono [rule_format]: "chain F ==> x<y --> F x<<F y"
 apply (unfold chain_def)
@@ -82,10 +110,7 @@ apply (drule le_imp_less_or_eq)
 apply (blast intro: chain_mono)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* The range of a chain is a totally ordered     <<                         *)
-(* ------------------------------------------------------------------------ *)
+text {* The range of a chain is a totally ordered *}
 
 lemma chain_tord: "chain(F) ==> tord(range(F))"
 apply (unfold tord_def)
@@ -94,10 +119,8 @@ apply (rule nat_less_cases)
 apply (fast intro: chain_mono)+
 done
 
+text {* technical lemmas about @{term lub} and @{term is_lub} *}
 
-(* ------------------------------------------------------------------------ *)
-(* technical lemmas about lub and is_lub                                    *)
-(* ------------------------------------------------------------------------ *)
 lemmas lub = lub_def [THEN meta_eq_to_obj_eq, standard]
 
 lemma lubI[OF exI]: "EX x. M <<| x ==> M <<| lub(M)"
@@ -111,15 +134,11 @@ apply (erule someI)
 apply assumption
 done
 
-
-lemma lub_singleton: "lub{x} = x"
+lemma lub_singleton [simp]: "lub{x} = x"
 apply (simp (no_asm) add: thelubI is_lub_def is_ub_def)
 done
-declare lub_singleton [simp]
 
-(* ------------------------------------------------------------------------ *)
-(* access to some definition as inference rule                              *)
-(* ------------------------------------------------------------------------ *)
+text {* access to some definition as inference rule *}
 
 lemma is_lubD1: "S <<| x ==> S <| x"
 apply (unfold is_lub_def)
@@ -153,9 +172,7 @@ apply clarsimp
 apply (erule chainE)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* technical lemmas about (least) upper bounds of chains                    *)
-(* ------------------------------------------------------------------------ *)
+text {* technical lemmas about (least) upper bounds of chains *}
 
 lemma ub_rangeD: "range S <| x  ==> S(i) << x"
 apply (unfold is_ub_def)
@@ -170,10 +187,7 @@ done
 lemmas is_ub_lub = is_lubD1 [THEN ub_rangeD, standard]
 (* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1                                    *)
 
-
-(* ------------------------------------------------------------------------ *)
-(* results about finite chains                                              *)
-(* ------------------------------------------------------------------------ *)
+text {* results about finite chains *}
 
 lemma lub_finch1: 
         "[| chain C; max_in_chain i C|] ==> range C <<| C i"
@@ -200,7 +214,6 @@ prefer 2 apply (best intro: someI)
 apply blast
 done
 
-
 lemma bin_chain: "x<<y ==> chain (%i. if i=0 then x else y)"
 apply (rule chainI)
 apply (induct_tac "i")
@@ -222,17 +235,13 @@ apply (erule_tac [2] bin_chainmax)
 apply (simp (no_asm))
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the maximal element in a chain is its lub                                *)
-(* ------------------------------------------------------------------------ *)
+text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "[| Y i = c;  ALL i. Y i<<c |] ==> lub(range Y) = c"
 apply (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the lub of a constant chain is the constant                              *)
-(* ------------------------------------------------------------------------ *)
+text {* the lub of a constant chain is the constant *}
 
 lemma lub_const: "range(%x. c) <<| c"
 apply (blast dest: ub_rangeD intro: is_lubI ub_rangeI)

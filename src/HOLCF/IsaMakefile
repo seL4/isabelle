@@ -27,15 +27,15 @@ HOLCF: HOL $(OUT)/HOLCF
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-$(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
-  Cfun3.ML Cfun3.thy Cont.ML Cont.thy Cprod1.ML Cprod1.thy Cprod2.ML \
-  Cprod2.thy Cprod3.ML Cprod3.thy Discrete.thy Fix.ML Fix.thy Fun1.ML \
-  Fun1.thy Fun2.ML Fun2.thy Fun3.ML Fun3.thy HOLCF.ML HOLCF.thy Lift.ML \
-  Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy Porder0.ML \
-  Porder0.thy ROOT.ML Sprod0.ML Sprod0.thy Sprod1.ML Sprod1.thy \
-  Sprod2.ML Sprod2.thy Sprod3.ML Sprod3.thy Ssum0.ML Ssum0.thy Ssum1.ML \
-  Ssum1.thy Ssum2.ML Ssum2.thy Ssum3.ML Ssum3.thy Tr.ML Tr.thy Up1.ML \
-  Up1.thy Up2.ML Up2.thy Up3.ML Up3.thy adm.ML cont_consts.ML \
+$(OUT)/HOLCF: $(OUT)/HOL Cfun.ML Cfun.thy \
+  Cont.ML Cont.thy Cprod.ML Cprod.thy \
+  Discrete.thy Fix.ML Fix.thy FunCpo.ML \
+  FunCpo.thy HOLCF.ML HOLCF.thy Lift.ML \
+  Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy \
+  ROOT.ML Sprod.ML Sprod.thy \
+  Ssum.ML Ssum.thy \
+  Tr.ML Tr.thy Up.ML \
+  Up.thy adm.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
   domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
   ex/Stream.thy

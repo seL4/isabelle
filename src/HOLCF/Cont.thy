@@ -6,7 +6,7 @@
     Results about continuity and monotonicity
 *)
 
-theory Cont = Fun3:
+theory Cont = FunCpo:
 
 (* 
 

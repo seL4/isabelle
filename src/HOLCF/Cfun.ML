@@ -1,6 +1,46 @@
 
 (* legacy ML bindings *)
 
+val less_cfun_def = thm "less_cfun_def";
+val Rep_Cfun = thm "Rep_Cfun";
+val Rep_Cfun_inverse = thm "Rep_Cfun_inverse";
+val Abs_Cfun_inverse = thm "Abs_Cfun_inverse";
+val refl_less_cfun = thm "refl_less_cfun";
+val antisym_less_cfun = thm "antisym_less_cfun";
+val trans_less_cfun = thm "trans_less_cfun";
+val cfun_cong = thm "cfun_cong";
+val cfun_fun_cong = thm "cfun_fun_cong";
+val cfun_arg_cong = thm "cfun_arg_cong";
+val Abs_Cfun_inverse2 = thm "Abs_Cfun_inverse2";
+val Cfunapp2 = thm "Cfunapp2";
+val beta_cfun = thm "beta_cfun";
+val inst_cfun_po = thm "inst_cfun_po";
+val less_cfun = thm "less_cfun";
+val minimal_cfun = thm "minimal_cfun";
+val UU_cfun_def = thm "UU_cfun_def";
+val least_cfun = thm "least_cfun";
+val cont_Rep_CFun2 = thm "cont_Rep_CFun2";
+val monofun_Rep_CFun2 = thm "monofun_Rep_CFun2";
+val contlub_Rep_CFun2 = thm "contlub_Rep_CFun2";
+val cont_cfun_arg = thm "cont_cfun_arg";
+val contlub_cfun_arg = thm "contlub_cfun_arg";
+val monofun_Rep_CFun1 = thm "monofun_Rep_CFun1";
+val monofun_cfun_fun = thm "monofun_cfun_fun";
+val monofun_cfun_arg = thm "monofun_cfun_arg";
+val chain_monofun = thm "chain_monofun";
+val monofun_cfun = thm "monofun_cfun";
+val strictI = thm "strictI";
+val ch2ch_Rep_CFunR = thm "ch2ch_Rep_CFunR";
+val ch2ch_Rep_CFunL = thm "ch2ch_Rep_CFunL";
+val lub_cfun_mono = thm "lub_cfun_mono";
+val ex_lubcfun = thm "ex_lubcfun";
+val cont_lubcfun = thm "cont_lubcfun";
+val lub_cfun = thm "lub_cfun";
+val thelub_cfun = thm "thelub_cfun";
+val cpo_cfun = thm "cpo_cfun";
+val ext_cfun = thm "ext_cfun";
+val semi_monofun_Abs_CFun = thm "semi_monofun_Abs_CFun";
+val less_cfun2 = thm "less_cfun2";
 val Istrictify_def = thm "Istrictify_def";
 val strictify_def = thm "strictify_def";
 val ID_def = thm "ID_def";
@@ -42,7 +82,7 @@ val ID2 = thm "ID2";
 val ID3 = thm "ID3";
 val assoc_oo = thm "assoc_oo";
 
-structure Cfun3 =
+structure Cfun =
 struct
   val thy = the_context ();
   val Istrictify_def = Istrictify_def;

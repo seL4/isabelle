@@ -1,10 +1,53 @@
-(*  Title:      HOLCF/Fun2.thy
+(*  Title:      HOLCF/Fun1.thy
     ID:         $Id$
     Author:     Franz Regensburger
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
+Definition of the partial ordering for the type of all functions => (fun)
+
+REMARK: The ordering on 'a => 'b is only defined if 'b is in class po !!
+
+Class instance of  => (fun) for class pcpo
 *)
 
-theory Fun2 = Fun1:
+header {* Class instances for the type of all functions *}
+
+theory FunCpo = Pcpo:
+
+(* to make << defineable: *)
+
+instance fun  :: (type, sq_ord) sq_ord ..
+
+defs (overloaded)
+  less_fun_def: "(op <<) == (%f1 f2.!x. f1 x << f2 x)"  
+
+(* ------------------------------------------------------------------------ *)
+(* less_fun is a partial order on 'a => 'b                                  *)
+(* ------------------------------------------------------------------------ *)
+
+lemma refl_less_fun: "(f::'a::type =>'b::po) << f"
+apply (unfold less_fun_def)
+apply (fast intro!: refl_less)
+done
+
+lemma antisym_less_fun:
+        "[|(f1::'a::type =>'b::po) << f2; f2 << f1|] ==> f1 = f2"
+apply (unfold less_fun_def)
+(* apply (cut_tac prems) *)
+apply (subst expand_fun_eq)
+apply (fast intro!: antisym_less)
+done
+
+lemma trans_less_fun:
+        "[|(f1::'a::type =>'b::po) << f2; f2 << f3 |] ==> f1 << f3"
+apply (unfold less_fun_def)
+(* apply (cut_tac prems) *)
+apply clarify
+apply (rule trans_less)
+apply (erule allE)
+apply assumption
+apply (erule allE, assumption)
+done
 
 (* default class is still type!*)
 
@@ -14,12 +57,6 @@ apply (rule refl_less_fun)
 apply (rule antisym_less_fun, assumption+)
 apply (rule trans_less_fun, assumption+)
 done
-
-(*  Title:      HOLCF/Fun2.ML
-    ID:         $Id$
-    Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
-*)
 
 (* for compatibility with old HOLCF-Version *)
 lemma inst_fun_po: "(op <<)=(%f g.!x. f x << g x)"
@@ -56,7 +93,6 @@ done
 (* ------------------------------------------------------------------------ *)
 
 lemma ch2ch_fun: "chain (S::nat=>('a=>'b::po)) ==> chain (%i. S i x)"
-
 apply (unfold chain_def)
 apply (simp add: less_fun)
 done
@@ -100,12 +136,22 @@ apply (rule exI)
 apply (erule lub_fun)
 done
 
+(* default class is still type *)
+
+instance fun  :: (type, cpo) cpo
+apply (intro_classes)
+apply (erule cpo_fun)
+done
+
+instance fun  :: (type, pcpo)pcpo
+apply (intro_classes)
+apply (rule least_fun)
+done
+
+(* for compatibility with old HOLCF-Version *)
+lemma inst_fun_pcpo: "UU = (%x. UU)"
+apply (simp add: UU_def UU_fun_def)
+done
+
 end
-
-
-
-
-
-
-
 
