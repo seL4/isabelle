@@ -14,7 +14,7 @@ From page 11 of
 
 OtwayRees_AN = Shared + 
 
-consts  otway   :: "agent set => event list set"
+consts  otway   :: agent set => event list set
 inductive "otway lost"
   intrs 
          (*Initial trace is empty*)

@@ -16,7 +16,7 @@ From page 259 of
 
 Yahalom2 = Shared + 
 
-consts  yahalom   :: "agent set => event list set"
+consts  yahalom   :: agent set => event list set
 inductive "yahalom lost"
   intrs 
          (*Initial trace is empty*)

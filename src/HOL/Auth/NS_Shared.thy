@@ -12,7 +12,7 @@ From page 247 of
 
 NS_Shared = Shared + 
 
-consts  ns_shared   :: "agent set => event list set"
+consts  ns_shared   :: agent set => event list set
 inductive "ns_shared lost"
   intrs 
          (*Initial trace is empty*)
