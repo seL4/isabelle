@@ -52,7 +52,7 @@ apply (auto simp: exec_all_def elim: Transitive_Closure.rtrancl_trans)
 done
 
 theorem exec_all_refl: "exec_all G s s"
-by (simp only: exec_all_def (* CBtrancl, rule rtrancl_refl*) )
+by (simp only: exec_all_def)
 
 
 theorem exec_instr_in_exec_all:
