@@ -518,7 +518,7 @@ qed "succ_leI";
 (*Identical to  succ(i) < succ(j) ==> i<j  *)
 goal Ordinal.thy "!!i j. succ(i) le j ==> i<j";
 by (rtac (not_le_iff_lt RS iffD1) 1);
-by (fast_tac le_cs 3);
+by (blast_tac le_cs 3);
 by (ALLGOALS (blast_tac (claset() addEs [ltE, make_elim Ord_succD])));
 qed "succ_leE";
 
