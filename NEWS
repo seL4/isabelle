@@ -9,6 +9,8 @@ New in this Isabelle version
 
 * several changes of proof tools;
 
+* HOL: new version of inductive and datatype;
+
 * HOL: major changes to the inductive and datatype packages;
 
 * HOL: renamed r^-1 to 'converse' from 'inverse'; `inj_onto' is now
@@ -262,13 +264,15 @@ also src/Pure/README;
 
 * improved the theory data mechanism to support encapsulation (data
 kind name replaced by private Object.kind, acting as authorization
-key); new type-safe user interface via functor TheoryDataFun;
+key); new type-safe user interface via functor TheoryDataFun; generic
+print_data function becomes basically useless;
 
 * removed global_names compatibility flag -- all theory declarations
 are qualified by default;
 
 * module Pure/Syntax now offers quote / antiquote translation
 functions (useful for Hoare logic etc. with implicit dependencies);
+see HOL/ex/Antiquote for an example use;
 
 * Simplifier now offers conversions (asm_)(full_)rewrite: simpset ->
 cterm -> thm;
