@@ -6,7 +6,7 @@
 
 %tab = (
 #GENERATED TEXT FOLLOWS - Do not edit!
-  "\xa0", "\\<space2>",
+  "\xa0", "\\<spacespace>",
   "\xa1", "\\<Gamma>",
   "\xa2", "\\<Delta>",
   "\xa3", "\\<Theta>",
