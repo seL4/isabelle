@@ -99,14 +99,14 @@ val DiffD1 = prove_goalw ZF.thy [Diff_def]
  (fn [major]=> [ (rtac (major RS CollectD1) 1) ]);
 
 val DiffD2 = prove_goalw ZF.thy [Diff_def]
-    "[| c : A - B;  c : B |] ==> P"
- (fn [major,minor]=> [ (rtac (minor RS (major RS CollectD2 RS notE)) 1) ]);
+    "c : A - B ==> c ~: B"
+ (fn [major]=> [ (rtac (major RS CollectD2) 1) ]);
 
 val DiffE = prove_goal ZF.thy
     "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
  (fn prems=>
   [ (resolve_tac prems 1),
-    (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
+    (REPEAT (ares_tac (prems RL [DiffD1, DiffD2]) 1)) ]);
 
 val Diff_iff = prove_goal ZF.thy "c : A-B <-> (c:A & c~:B)"
  (fn _ => [ (fast_tac (lemmas_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
@@ -174,7 +174,7 @@ val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
 val the_0 = prove_goalw ZF.thy [the_def]
     "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
  (fn _ =>
-  [ (fast_tac (lemmas_cs addIs [equalityI]) 1) ]);
+  [ (fast_tac (lemmas_cs addIs [equalityI] addSEs [ReplaceE]) 1) ]);
 
 
 (*** if -- a conditional expression for formulae ***)

@@ -95,7 +95,7 @@ fun wf_ind_tac a prems i =
 	   rename_last_tac a ["1"] (i+1),
 	   ares_tac prems i];
 
-(*The form of this rule is designed to match wfI2*)
+(*The form of this rule is designed to match wfI*)
 val wfr::amem::prems = goal WF.thy
     "[| wf(r);  a:A;  field(r)<=A;  \
 \       !!x.[| x: A;  ALL y. <y,x>: r --> P(y) |] ==> P(x) \
@@ -133,7 +133,7 @@ val [subs,indhyp] = goal WF.thy
 \    ==>  wf(r)";
 by (rtac ([wf_onI2, subs] MRS (wf_on_subset_A RS wf_on_field_imp_wf)) 1);
 by (REPEAT (ares_tac [indhyp] 1));
-val wfI2 = result();
+val wfI = result();
 
 
 (*** Properties of well-founded relations ***)

@@ -40,7 +40,7 @@ val prems = goalw ZF.thy [Pi_def]
 by (simp_tac (FOL_ss addsimps prems addcongs [Sigma_cong]) 1);
 val Pi_cong = result();
 
-(*Weaking one function type to another*)
+(*Weakening one function type to another; see also Pi_type*)
 goalw ZF.thy [Pi_def] "!!f. [| f: A->B;  B<=D |] ==> f: A->D";
 by (safe_tac ZF_cs);
 by (set_mp_tac 1);
@@ -55,7 +55,6 @@ val Pi_empty1 = result();
 goalw ZF.thy [Pi_def] "!!A a. a:A ==> A->0 = 0";
 by (fast_tac (ZF_cs addIs [equalityI]) 1);
 val Pi_empty2 = result();
-
 
 (*** Function Application ***)
 
@@ -380,4 +379,24 @@ val fun_empty = result();
 goal ZF.thy "{<a,b>} : {a} -> cons(b,C)";
 by (REPEAT (ares_tac [fun_extend,fun_empty,notI] 1 ORELSE etac emptyE 1));
 val fun_single = result();
+
+goal ZF.thy
+    "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
+by (safe_tac eq_cs);
+(*Inclusion of right into left is easy*)
+by (fast_tac (ZF_cs addEs [fun_extend RS fun_weaken_type]) 2);
+(*Inclusion of left into right*)
+by (subgoal_tac "restrict(x, A) : A -> B" 1);
+by (fast_tac (ZF_cs addEs [restrict_type2]) 2);
+by (rtac UN_I 1 THEN assume_tac 1);
+by (rtac UN_I 1 THEN fast_tac (ZF_cs addEs [apply_type]) 1);
+by (subgoal_tac "x = cons(<c, x ` c>, restrict(x, A))" 1);
+by (fast_tac ZF_cs 1);
+(*Proving the lemma*)
+by (resolve_tac [fun_extension] 1 THEN REPEAT (ares_tac [fun_extend] 1));
+by (etac consE 1);
+by (ALLGOALS 
+    (asm_simp_tac (FOL_ss addsimps [restrict, fun_extend_apply1, 
+				   fun_extend_apply2])));
+val cons_fun_eq = result();
 

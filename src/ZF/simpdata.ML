@@ -95,7 +95,7 @@ fun atomize th =
 
 val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
 		beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff,
-		triv_RepFun];
+		triv_RepFun, subset_refl];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause
   flex-flex pairs and the "Check your prover" error -- because most

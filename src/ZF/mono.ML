@@ -11,7 +11,7 @@ Monotonicity of various operations (for lattice properties see subset.ML)
 (*Not easy to express monotonicity in P, since any "bigger" predicate
   would have to be single-valued*)
 goal ZF.thy "!!A B. A<=B ==> Replace(A,P) <= Replace(B,P)";
-by (fast_tac ZF_cs 1);
+by (fast_tac (ZF_cs addSEs [ReplaceE]) 1);
 val Replace_mono = result();
 
 goal ZF.thy "!!A B. A<=B ==> {f(x). x:A} <= {f(x). x:B}";

@@ -39,6 +39,7 @@ signature ZF_LEMMAS =
   val InterD	: thm
   val InterE	: thm
   val InterI	: thm
+  val Inter_iff : thm
   val INT_E	: thm
   val INT_I	: thm
   val INT_cong	: thm
@@ -49,7 +50,9 @@ signature ZF_LEMMAS =
   val RepFunI	: thm
   val RepFun_eqI	: thm
   val RepFun_cong	: thm
+  val RepFun_iff	: thm
   val ReplaceE	: thm
+  val ReplaceE2	: thm
   val ReplaceI	: thm
   val Replace_iff	: thm
   val Replace_cong	: thm
@@ -244,7 +247,7 @@ val Replace_iff = prove_goalw ZF.thy [Replace_def]
 
 (*Introduction; there must be a unique y such that P(x,y), namely y=b. *)
 val ReplaceI = prove_goal ZF.thy
-    "[| x: A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> \
+    "[| P(x,b);  x: A;  !!y. P(x,y) ==> y=b |] ==> \
 \    b : {y. x:A, P(x,y)}"
  (fn prems=>
   [ (rtac (Replace_iff RS iffD2) 1),
@@ -258,6 +261,15 @@ val ReplaceE = prove_goal ZF.thy
  (fn prems=>
   [ (rtac (Replace_iff RS iffD1 RS bexE) 1),
     (etac conjE 2),
+    (REPEAT (ares_tac prems 1)) ]);
+
+(*As above but without the (generally useless) 3rd assumption*)
+val ReplaceE2 = prove_goal ZF.thy 
+    "[| b : {y. x:A, P(x,y)};  \
+\       !!x. [| x: A;  P(x,b) |] ==> R \
+\    |] ==> R"
+ (fn major::prems=>
+  [ (rtac (major RS ReplaceE) 1),
     (REPEAT (ares_tac prems 1)) ]);
 
 val Replace_cong = prove_goal ZF.thy
@@ -294,6 +306,10 @@ val RepFunE = prove_goalw ZF.thy [RepFun_def]
 val RepFun_cong = prove_goalw ZF.thy [RepFun_def]
     "[| A=B;  !!x. x:B ==> f(x)=g(x) |] ==> RepFun(A,f) = RepFun(B,g)"
  (fn prems=> [ (simp_tac (FOL_ss addcongs [Replace_cong] addsimps prems) 1) ]);
+
+val RepFun_iff = prove_goalw ZF.thy [Bex_def]
+    "b : {f(x). x:A} <-> (EX x:A. b=f(x))"
+ (fn _ => [ (fast_tac (FOL_cs addIs [RepFunI] addSEs [RepFunE]) 1) ]);
 
 
 (*** Rules for Collect -- forming a subset by separation ***)
@@ -335,13 +351,13 @@ val Collect_cong = prove_goalw ZF.thy [Collect_def]
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 val UnionI = prove_goal ZF.thy "[| B: C;  A: B |] ==> A: Union(C)"
  (fn prems=>
-  [ (resolve_tac [union_iff RS iffD2] 1),
+  [ (resolve_tac [Union_iff RS iffD2] 1),
     (REPEAT (resolve_tac (prems @ [bexI]) 1)) ]);
 
 val UnionE = prove_goal ZF.thy
     "[| A : Union(C);  !!B.[| A: B;  B: C |] ==> R |] ==> R"
  (fn prems=>
-  [ (resolve_tac [union_iff RS iffD1 RS bexE] 1),
+  [ (resolve_tac [Union_iff RS iffD1 RS bexE] 1),
     (REPEAT (ares_tac prems 1)) ]);
 
 (*** Rules for Inter ***)
@@ -376,6 +392,11 @@ val InterE = prove_goalw ZF.thy [Inter_def]
 (*** Rules for Unions of families ***)
 (* UN x:A. B(x) abbreviates Union({B(x). x:A}) *)
 
+val UN_iff = prove_goalw ZF.thy [Bex_def]
+    "b : (UN x:A. B(x)) <-> (EX x:A. b : B(x))"
+ (fn _=> [ (fast_tac (FOL_cs addIs [UnionI, RepFunI] 
+                             addSEs [UnionE, RepFunE]) 1) ]);
+
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 val UN_I = prove_goal ZF.thy "[| a: A;  b: B(a) |] ==> b: (UN x:A. B(x))"
  (fn prems=>
@@ -394,6 +415,12 @@ val UN_cong = prove_goal ZF.thy
 
 (*** Rules for Intersections of families ***)
 (* INT x:A. B(x) abbreviates Inter({B(x). x:A}) *)
+
+val INT_iff = prove_goal ZF.thy
+    "b : (INT x:A. B(x)) <-> (ALL x:A. b : B(x)) & (EX x. x:A)"
+ (fn _=> [ (simp_tac (FOL_ss addsimps [Inter_def, Ball_def, Bex_def, 
+				       separation, Union_iff, RepFun_iff]) 1),
+	   (fast_tac FOL_cs 1) ]);
 
 val INT_I = prove_goal ZF.thy
     "[| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))"
@@ -415,10 +442,10 @@ val INT_cong = prove_goal ZF.thy
 (*** Rules for Powersets ***)
 
 val PowI = prove_goal ZF.thy "A <= B ==> A : Pow(B)"
- (fn [prem]=> [ (rtac (prem RS (power_set RS iffD2)) 1) ]);
+ (fn [prem]=> [ (rtac (prem RS (Pow_iff RS iffD2)) 1) ]);
 
 val PowD = prove_goal ZF.thy "A : Pow(B)  ==>  A<=B"
- (fn [major]=> [ (rtac (major RS (power_set RS iffD1)) 1) ]);
+ (fn [major]=> [ (rtac (major RS (Pow_iff RS iffD1)) 1) ]);
 
 
 (*** Rules for the empty set ***)
@@ -448,7 +475,7 @@ val equals0D = prove_goal ZF.thy "[| A=0;  a:A |] ==> P"
 val lemmas_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, subsetI]
   addIs [bexI, UnionI, ReplaceI, RepFunI]
-  addSEs [bexE, make_elim PowD, UnionE, ReplaceE, RepFunE,
+  addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
 	  CollectE, emptyE]
   addEs [rev_ballE, InterD, make_elim InterD, subsetD, subsetCE];
 

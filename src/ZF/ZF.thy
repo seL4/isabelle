@@ -133,8 +133,8 @@ subset_def      "A <= B == ALL x:A. x:B"
         uniqueness is derivable using extensionality.  *)
 
 extension       "A = B <-> A <= B & B <= A"
-union_iff       "A : Union(C) <-> (EX B:C. A:B)"
-power_set       "A : Pow(B) <-> A <= B"
+Union_iff       "A : Union(C) <-> (EX B:C. A:B)"
+Pow_iff         "A : Pow(B) <-> A <= B"
 succ_def        "succ(i) == cons(i,i)"
 
  (*We may name this set, though it is not uniquely defined. *)

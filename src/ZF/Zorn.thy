@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-simpdata = "func"
+Zorn = Zorn0
