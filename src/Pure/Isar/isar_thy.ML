@@ -577,7 +577,11 @@ fun add_locale (do_pred, name, import, body) thy =
 (* theory init and exit *)
 
 fun gen_begin_theory upd name parents files =
-  ThyInfo.begin_theory Present.begin_theory upd name parents (map (apfst Path.unpack) files);
+  let val ml_filename = Path.pack (ThyLoad.ml_path name);
+      val () = if exists (equal ml_filename o #1) files
+               then error ((quote ml_filename) ^ " not allowed in files section for theory " ^ name)
+               else ()
+  in ThyInfo.begin_theory Present.begin_theory upd name parents (map (apfst Path.unpack) files) end;
 
 val begin_theory = gen_begin_theory false;
 

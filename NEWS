@@ -45,6 +45,11 @@ New in this Isabelle release
   later.  It is useful for constants whose behaviour is fixed axiomatically
   rather than definitionally, such as the meta-logic connectives.
 
+* Pure: It is now illegal to specify Theory.ML explicitly as a dependency
+  in the files section of the theory Theory. (This is more of a diagnostic
+  than a restriction, as the theory loader screws up if Theory.ML is manually
+  loaded.)
+
 *** Isar ***
 
 * Tactic emulation methods ?rule_tac, cut_tac, subgoal_tac and thin_tac:
