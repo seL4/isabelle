@@ -15,11 +15,10 @@ begin
 
 defaultsort cpo
 
+subsection {* Definition of continuous function type *}
+
 typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}"
 by (rule exI, rule CfunI)
-
-(* to make << defineable *)
-instance "->"  :: (cpo,cpo)sq_ord ..
 
 syntax
 	Rep_CFun  :: "('a -> 'b) => ('a => 'b)" ("_$_" [999,1000] 999)
@@ -37,76 +36,23 @@ syntax (xsymbols)
 syntax (HTML output)
   Rep_CFun      :: "('a -> 'b) => ('a => 'b)"  ("(_\<cdot>_)" [999,1000] 999)
 
-defs (overloaded)
-  less_cfun_def: "(op <<) == (% fo1 fo2. Rep_CFun fo1 << Rep_CFun fo2 )"
-
-(* ------------------------------------------------------------------------ *)
-(* derive old type definition rules for Abs_CFun & Rep_CFun
-    *)
-(* Rep_CFun and Abs_CFun should be replaced by Rep_Cfun anf Abs_Cfun in future
-    *)
-(* ------------------------------------------------------------------------ *)
+text {*
+  Derive old type definition rules for @{term Abs_CFun} \& @{term Rep_CFun}.
+  @{term Rep_CFun} and @{term Abs_CFun} should be replaced by
+  @{term Rep_Cfun} and @{term Abs_Cfun} in future.
+*}
 
 lemma Rep_Cfun: "Rep_CFun fo : CFun"
-apply (rule Rep_CFun)
-done
+by (rule Rep_CFun)
 
 lemma Rep_Cfun_inverse: "Abs_CFun (Rep_CFun fo) = fo"
-apply (rule Rep_CFun_inverse)
-done
+by (rule Rep_CFun_inverse)
 
 lemma Abs_Cfun_inverse: "f:CFun==>Rep_CFun(Abs_CFun f)=f"
-apply (erule Abs_CFun_inverse)
-done
+by (erule Abs_CFun_inverse)
 
-(* ------------------------------------------------------------------------ *)
-(* less_cfun is a partial order on type 'a -> 'b                            *)
-(* ------------------------------------------------------------------------ *)
-
-lemma refl_less_cfun: "(f::'a->'b) << f"
-
-apply (unfold less_cfun_def)
-apply (rule refl_less)
-done
-
-lemma antisym_less_cfun: 
-        "[|(f1::'a->'b) << f2; f2 << f1|] ==> f1 = f2"
-apply (unfold less_cfun_def)
-apply (rule injD)
-apply (rule_tac [2] antisym_less)
-prefer 3 apply (assumption)
-prefer 2 apply (assumption)
-apply (rule inj_on_inverseI)
-apply (rule Rep_Cfun_inverse)
-done
-
-lemma trans_less_cfun: 
-        "[|(f1::'a->'b) << f2; f2 << f3|] ==> f1 << f3"
-apply (unfold less_cfun_def)
-apply (erule trans_less)
-apply assumption
-done
-
-(* ------------------------------------------------------------------------ *)
-(* lemmas about application of continuous functions                         *)
-(* ------------------------------------------------------------------------ *)
-
-lemma cfun_cong: "[| f=g; x=y |] ==> f$x = g$y"
-apply (simp (no_asm_simp))
-done
-
-lemma cfun_fun_cong: "f=g ==> f$x = g$x"
-apply (simp (no_asm_simp))
-done
-
-lemma cfun_arg_cong: "x=y ==> f$x = f$y"
-apply (simp (no_asm_simp))
-done
-
-
-(* ------------------------------------------------------------------------ *)
-(* additional lemma about the isomorphism between -> and Cfun               *)
-(* ------------------------------------------------------------------------ *)
+text {* Additional lemma about the isomorphism between
+        @{typ "'a -> 'b"} and @{term Cfun} *}
 
 lemma Abs_Cfun_inverse2: "cont f ==> Rep_CFun (Abs_CFun f) = f"
 apply (rule Abs_Cfun_inverse)
@@ -114,52 +60,61 @@ apply (unfold CFun_def)
 apply (erule mem_Collect_eq [THEN ssubst])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* simplification of application                                            *)
-(* ------------------------------------------------------------------------ *)
+text {* Simplification of application *}
 
 lemma Cfunapp2: "cont f ==> (Abs_CFun f)$x = f x"
-apply (erule Abs_Cfun_inverse2 [THEN fun_cong])
-done
+by (erule Abs_Cfun_inverse2 [THEN fun_cong])
 
-(* ------------------------------------------------------------------------ *)
-(* beta - equality for continuous functions                                 *)
-(* ------------------------------------------------------------------------ *)
+text {* Beta - equality for continuous functions *}
 
 lemma beta_cfun: "cont(c1) ==> (LAM x .c1 x)$u = c1 u"
-apply (rule Cfunapp2)
-apply assumption
-done
+by (rule Cfunapp2)
 
+subsection {* Type @{typ "'a -> 'b"} is a partial order *}
 
-(* Class Instance ->::(cpo,cpo)po *)
+instance "->"  :: (cpo, cpo) sq_ord ..
 
-instance "->"::(cpo,cpo)po
-apply (intro_classes)
-apply (rule refl_less_cfun)
-apply (rule antisym_less_cfun, assumption+)
-apply (rule trans_less_cfun, assumption+)
-done
+defs (overloaded)
+  less_cfun_def: "(op <<) == (% fo1 fo2. Rep_CFun fo1 << Rep_CFun fo2 )"
 
-(* Class Instance ->::(cpo,cpo)po *)
+lemma refl_less_cfun: "(f::'a->'b) << f"
+by (unfold less_cfun_def, rule refl_less)
 
-(* for compatibility with old HOLCF-Version *)
+lemma antisym_less_cfun: 
+        "[|(f1::'a->'b) << f2; f2 << f1|] ==> f1 = f2"
+by (unfold less_cfun_def, rule Rep_CFun_inject[THEN iffD1], rule antisym_less)
+
+lemma trans_less_cfun: 
+        "[|(f1::'a->'b) << f2; f2 << f3|] ==> f1 << f3"
+by (unfold less_cfun_def, rule trans_less)
+
+instance "->" :: (cpo, cpo) po
+by intro_classes
+  (assumption | rule refl_less_cfun antisym_less_cfun trans_less_cfun)+
+
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_po: "(op <<)=(%f1 f2. Rep_CFun f1 << Rep_CFun f2)"
 apply (fold less_cfun_def)
 apply (rule refl)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* access to less_cfun in class po                                          *)
-(* ------------------------------------------------------------------------ *)
+text {* lemmas about application of continuous functions *}
+
+lemma cfun_cong: "[| f=g; x=y |] ==> f$x = g$y"
+by simp
+
+lemma cfun_fun_cong: "f=g ==> f$x = g$x"
+by simp
+
+lemma cfun_arg_cong: "x=y ==> f$x = f$y"
+by simp
+
+text {* access to @{term less_cfun} in class po *}
 
 lemma less_cfun: "( f1 << f2 ) = (Rep_CFun(f1) << Rep_CFun(f2))"
-apply (simp (no_asm) add: inst_cfun_po)
-done
+by (simp add: inst_cfun_po)
 
-(* ------------------------------------------------------------------------ *)
-(* Type 'a ->'b  is pointed                                                 *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Type @{typ "'a -> 'b"} is pointed *}
 
 lemma minimal_cfun: "Abs_CFun(% x. UU) << f"
 apply (subst less_cfun)
@@ -175,11 +130,13 @@ apply (rule_tac x = "Abs_CFun (% x. UU) " in exI)
 apply (rule minimal_cfun [THEN allI])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Rep_CFun yields continuous functions in 'a => 'b                             *)
-(* this is continuity of Rep_CFun in its 'second' argument                      *)
-(* cont_Rep_CFun2 ==> monofun_Rep_CFun2 & contlub_Rep_CFun2                            *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Monotonicity of application *}
+
+text {*
+  @{term Rep_CFun} yields continuous functions in @{typ "'a => 'b"}.
+  This is continuity of @{term Rep_CFun} in its 'second' argument:
+  @{prop "cont_Rep_CFun2 ==> monofun_Rep_CFun2 & contlub_Rep_CFun2"}
+*}
 
 lemma cont_Rep_CFun2: "cont(Rep_CFun(fo))"
 apply (rule_tac P = "cont" in CollectD)
@@ -188,48 +145,36 @@ apply (rule Rep_Cfun)
 done
 
 lemmas monofun_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2mono, standard]
-(* monofun(Rep_CFun(?fo1)) *)
-
+ -- {* @{thm monofun_Rep_CFun2} *} (* monofun(Rep_CFun(?fo)) *)
 
 lemmas contlub_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2contlub, standard]
-(* contlub(Rep_CFun(?fo1)) *)
+ -- {* @{thm contlub_Rep_CFun2} *} (* contlub(Rep_CFun(?fo)) *)
 
-(* ------------------------------------------------------------------------ *)
-(* expanded thms cont_Rep_CFun2, contlub_Rep_CFun2                                 *)
-(* looks nice with mixfix syntac                                            *)
-(* ------------------------------------------------------------------------ *)
+text {* expanded thms @{thm [source] cont_Rep_CFun2}, @{thm [source] contlub_Rep_CFun2} look nice with mixfix syntax *}
 
 lemmas cont_cfun_arg = cont_Rep_CFun2 [THEN contE, THEN spec, THEN mp]
-(* chain(?x1) ==> range (%i. ?fo3$(?x1 i)) <<| ?fo3$(lub (range ?x1))    *)
+  -- {* @{thm cont_cfun_arg} *} (* chain(x1) ==> range (%i. fo3$(x1 i)) <<| fo3$(lub (range ?x1))    *)
  
 lemmas contlub_cfun_arg = contlub_Rep_CFun2 [THEN contlubE, THEN spec, THEN mp]
-(* chain(?x1) ==> ?fo4$(lub (range ?x1)) = lub (range (%i. ?fo4$(?x1 i))) *)
+ -- {* @{thm contlub_cfun_arg} *} (* chain(?x1) ==> ?fo4$(lub (range ?x1)) = lub (range (%i. ?fo4$(?x1 i))) *)
 
-
-(* ------------------------------------------------------------------------ *)
-(* Rep_CFun is monotone in its 'first' argument                                 *)
-(* ------------------------------------------------------------------------ *)
+text {* @{term Rep_CFun} is monotone in its 'first' argument *}
 
 lemma monofun_Rep_CFun1: "monofun(Rep_CFun)"
-apply (unfold monofun)
-apply (intro strip)
+apply (rule monofunI [rule_format])
 apply (erule less_cfun [THEN subst])
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* monotonicity of application Rep_CFun in mixfix syntax [_]_                   *)
-(* ------------------------------------------------------------------------ *)
+text {* monotonicity of application @{term Rep_CFun} in mixfix syntax @{text "[_]_"} *}
 
 lemma monofun_cfun_fun: "f1 << f2 ==> f1$x << f2$x"
 apply (rule_tac x = "x" in spec)
 apply (rule less_fun [THEN subst])
-apply (erule monofun_Rep_CFun1 [THEN monofunE, THEN spec, THEN spec, THEN mp])
+apply (erule monofun_Rep_CFun1 [THEN monofunE [rule_format]])
 done
 
-
-lemmas monofun_cfun_arg = monofun_Rep_CFun2 [THEN monofunE, THEN spec, THEN spec, THEN mp, standard]
-(* ?x2 << ?x1 ==> ?fo5$?x2 << ?fo5$?x1                                      *)
+lemmas monofun_cfun_arg = monofun_Rep_CFun2 [THEN monofunE [rule_format], standard]
+ -- {* @{thm monofun_cfun_arg} *} (* ?x2 << ?x1 ==> ?fo5$?x2 << ?fo5$?x1 *)
 
 lemma chain_monofun: "chain Y ==> chain (%i. f\<cdot>(Y i))"
 apply (rule chainI)
@@ -237,10 +182,7 @@ apply (rule monofun_cfun_arg)
 apply (erule chainE)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* monotonicity of Rep_CFun in both arguments in mixfix syntax [_]_             *)
-(* ------------------------------------------------------------------------ *)
+text {* monotonicity of @{term Rep_CFun} in both arguments in mixfix syntax @{text "[_]_"} *}
 
 lemma monofun_cfun: "[|f1<<f2;x1<<x2|] ==> f1$x1 << f2$x2"
 apply (rule trans_less)
@@ -248,32 +190,23 @@ apply (erule monofun_cfun_arg)
 apply (erule monofun_cfun_fun)
 done
 
-
 lemma strictI: "f$x = UU ==> f$UU = UU"
 apply (rule eq_UU_iff [THEN iffD2])
 apply (erule subst)
 apply (rule minimal [THEN monofun_cfun_arg])
 done
 
+subsection {* Type @{typ "'a -> 'b"} is a cpo *}
 
-(* ------------------------------------------------------------------------ *)
-(* ch2ch - rules for the type 'a -> 'b                                      *)
-(* use MF2 lemmas from Cont.ML                                              *)
-(* ------------------------------------------------------------------------ *)
+text {* ch2ch - rules for the type @{typ "'a -> 'b"} use MF2 lemmas from Cont.thy *}
 
 lemma ch2ch_Rep_CFunR: "chain(Y) ==> chain(%i. f$(Y i))"
-apply (erule monofun_Rep_CFun2 [THEN ch2ch_MF2R])
-done
-
+by (erule monofun_Rep_CFun2 [THEN ch2ch_MF2R])
 
 lemmas ch2ch_Rep_CFunL = monofun_Rep_CFun1 [THEN ch2ch_MF2L, standard]
-(* chain(?F) ==> chain (%i. ?F i$?x)                                  *)
+ -- {* @{thm ch2ch_Rep_CFunL} *} (* chain(?F) ==> chain (%i. ?F i$?x) *)
 
-
-(* ------------------------------------------------------------------------ *)
-(*  the lub of a chain of continous functions is monotone                   *)
-(* use MF2 lemmas from Cont.ML                                              *)
-(* ------------------------------------------------------------------------ *)
+text {* the lub of a chain of continous functions is monotone: uses MF2 lemmas from Cont.thy *}
 
 lemma lub_cfun_mono: "chain(F) ==> monofun(% x. lub(range(% j.(F j)$x)))"
 apply (rule lub_MF2_mono)
@@ -282,10 +215,7 @@ apply (rule monofun_Rep_CFun2 [THEN allI])
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* a lemma about the exchange of lubs for type 'a -> 'b                     *)
-(* use MF2 lemmas from Cont.ML                                              *)
-(* ------------------------------------------------------------------------ *)
+text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"}: uses MF2 lemmas from Cont.thy *}
 
 lemma ex_lubcfun: "[| chain(F); chain(Y) |] ==> 
                 lub(range(%j. lub(range(%i. F(j)$(Y i))))) = 
@@ -297,24 +227,19 @@ apply assumption
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the lub of a chain of cont. functions is continuous                      *)
-(* ------------------------------------------------------------------------ *)
+text {* the lub of a chain of cont. functions is continuous *}
 
 lemma cont_lubcfun: "chain(F) ==> cont(% x. lub(range(% j. F(j)$x)))"
 apply (rule monocontlub2cont)
 apply (erule lub_cfun_mono)
-apply (rule contlubI)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (subst contlub_cfun_arg [THEN ext])
 apply assumption
 apply (erule ex_lubcfun)
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* type 'a -> 'b is chain complete                                          *)
-(* ------------------------------------------------------------------------ *)
+text {* type @{typ "'a -> 'b"} is chain complete *}
 
 lemma lub_cfun: "chain(CCF) ==> range(CCF) <<| (LAM x. lub(range(% i. CCF(i)$x)))"
 apply (rule is_lubI)
@@ -333,7 +258,7 @@ apply (erule monofun_Rep_CFun1 [THEN ub2ub_monofun])
 done
 
 lemmas thelub_cfun = lub_cfun [THEN thelubI, standard]
-(* 
+ -- {* @{thm thelub_cfun} *} (* 
 chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i$x)))
 *)
 
@@ -342,35 +267,25 @@ apply (rule exI)
 apply (erule lub_cfun)
 done
 
+instance "->" :: (cpo, cpo) cpo
+by intro_classes (rule cpo_cfun)
 
-(* ------------------------------------------------------------------------ *)
-(* Extensionality in 'a -> 'b                                               *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Miscellaneous *}
+
+text {* Extensionality in @{typ "'a -> 'b"} *}
 
 lemma ext_cfun: "(!!x. f$x = g$x) ==> f = g"
-apply (rule_tac t = "f" in Rep_Cfun_inverse [THEN subst])
-apply (rule_tac t = "g" in Rep_Cfun_inverse [THEN subst])
-apply (rule_tac f = "Abs_CFun" in arg_cong)
+apply (rule Rep_CFun_inject [THEN iffD1])
 apply (rule ext)
 apply simp
 done
 
-(* ------------------------------------------------------------------------ *)
-(* Monotonicity of Abs_CFun                                                     *)
-(* ------------------------------------------------------------------------ *)
+text {* Monotonicity of @{term Abs_CFun} *}
 
 lemma semi_monofun_Abs_CFun: "[| cont(f); cont(g); f<<g|] ==> Abs_CFun(f)<<Abs_CFun(g)"
-apply (rule less_cfun [THEN iffD2])
-apply (subst Abs_Cfun_inverse2)
-apply assumption
-apply (subst Abs_Cfun_inverse2)
-apply assumption
-apply assumption
-done
+by (simp add: less_cfun Abs_Cfun_inverse2)
 
-(* ------------------------------------------------------------------------ *)
-(* Extenionality wrt. << in 'a -> 'b                                        *)
-(* ------------------------------------------------------------------------ *)
+text {* Extensionality wrt. @{term "op <<"} in @{typ "'a -> 'b"} *}
 
 lemma less_cfun2: "(!!x. f$x << g$x) ==> f << g"
 apply (rule_tac t = "f" in Rep_Cfun_inverse [THEN subst])
@@ -379,55 +294,28 @@ apply (rule semi_monofun_Abs_CFun)
 apply (rule cont_Rep_CFun2)
 apply (rule cont_Rep_CFun2)
 apply (rule less_fun [THEN iffD2])
-apply (rule allI)
 apply simp
 done
 
-(* Class instance of  -> for class pcpo *)
+subsection {* Class instance of @{typ "'a -> 'b"} for class pcpo *}
 
-instance "->" :: (cpo,cpo)cpo
-by (intro_classes, rule cpo_cfun)
-
-instance "->" :: (cpo,pcpo)pcpo
+instance "->" :: (cpo, pcpo) pcpo
 by (intro_classes, rule least_cfun)
 
-defaultsort pcpo
-
-consts  
-        Istrictify   :: "('a->'b)=>'a=>'b"
-        strictify    :: "('a->'b)->'a->'b"
-defs
-
-Istrictify_def:  "Istrictify f x == if x=UU then UU else f$x"    
-strictify_def:   "strictify == (LAM f x. Istrictify f x)"
-
-consts
-        ID      :: "('a::cpo) -> 'a"
-        cfcomp  :: "('b->'c)->(('a::cpo)->('b::cpo))->'a->('c::cpo)"
-
-syntax  "@oo"   :: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
-     
-translations    "f1 oo f2" == "cfcomp$f1$f2"
-
-defs
-
-  ID_def:        "ID ==(LAM x. x)"
-  oo_def:        "cfcomp == (LAM f g x. f$(g$x))" 
-
-(* for compatibility with old HOLCF-Version *)
+text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "UU = Abs_CFun(%x. UU)"
 apply (simp add: UU_def UU_cfun_def)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the contlub property for Rep_CFun its 'first' argument                       *)
-(* ------------------------------------------------------------------------ *)
+defaultsort pcpo
+
+subsection {* Continuity of application *}
+
+text {* the contlub property for @{term Rep_CFun} its 'first' argument *}
 
 lemma contlub_Rep_CFun1: "contlub(Rep_CFun)"
-apply (rule contlubI)
-apply (intro strip)
-apply (rule expand_fun_eq [THEN iffD2])
-apply (intro strip)
+apply (rule contlubI [rule_format])
+apply (rule ext)
 apply (subst thelub_cfun)
 apply assumption
 apply (subst Cfunapp2)
@@ -437,10 +325,7 @@ apply (erule monofun_Rep_CFun1 [THEN ch2ch_monofun])
 apply (rule refl)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* the cont property for Rep_CFun in its first argument                        *)
-(* ------------------------------------------------------------------------ *)
+text {* the cont property for @{term Rep_CFun} in its first argument *}
 
 lemma cont_Rep_CFun1: "cont(Rep_CFun)"
 apply (rule monocontlub2cont)
@@ -448,10 +333,7 @@ apply (rule monofun_Rep_CFun1)
 apply (rule contlub_Rep_CFun1)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* contlub, cont properties of Rep_CFun in its first argument in mixfix _[_]   *)
-(* ------------------------------------------------------------------------ *)
+text {* contlub, cont properties of @{term Rep_CFun} in its first argument in mixfix @{text "_[_]"} *}
 
 lemma contlub_cfun_fun: 
 "chain(FY) ==> 
@@ -463,7 +345,6 @@ apply (erule monofun_Rep_CFun1 [THEN ch2ch_monofun])
 apply (rule refl)
 done
 
-
 lemma cont_cfun_fun: 
 "chain(FY) ==> 
   range(%i. FY(i)$x) <<| lub(range FY)$x"
@@ -472,10 +353,7 @@ apply (erule ch2ch_Rep_CFunL)
 apply (erule contlub_cfun_fun [symmetric])
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* contlub, cont  properties of Rep_CFun in both argument in mixfix _[_]       *)
-(* ------------------------------------------------------------------------ *)
+text {* contlub, cont  properties of @{term Rep_CFun} in both argument in mixfix @{text "_[_]"} *}
 
 lemma contlub_cfun: 
 "[|chain(FY);chain(TY)|] ==> 
@@ -501,20 +379,13 @@ apply (erule contlub_cfun [symmetric])
 apply assumption
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* cont2cont lemma for Rep_CFun                                               *)
-(* ------------------------------------------------------------------------ *)
+text {* cont2cont lemma for @{term Rep_CFun} *}
 
 lemma cont2cont_Rep_CFun: "[|cont(%x. ft x);cont(%x. tt x)|] ==> cont(%x. (ft x)$(tt x))"
 apply (best intro: cont2cont_app2 cont_const cont_Rep_CFun1 cont_Rep_CFun2)
 done
 
-
-
-(* ------------------------------------------------------------------------ *)
-(* cont2mono Lemma for %x. LAM y. c1(x)(y)                                  *)
-(* ------------------------------------------------------------------------ *)
+text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
 
 lemma cont2mono_LAM:
 assumes p1: "!!x. cont(c1 x)"
@@ -532,9 +403,7 @@ apply (rule p1)
 apply (erule p2 [THEN monofunE, THEN spec, THEN spec, THEN mp])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* cont2cont Lemma for %x. LAM y. c1 x y)                                 *)
-(* ------------------------------------------------------------------------ *)
+text {* cont2cont Lemma for @{term "%x. LAM y. c1 x y"} *}
 
 lemma cont2cont_LAM:
 assumes p1: "!!x. cont(c1 x)"
@@ -555,169 +424,33 @@ apply (subst p1 [THEN beta_cfun, THEN ext])
 apply (erule p2 [THEN cont2contlub, THEN contlubE, THEN spec, THEN mp])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* cont2cont tactic                                                       *)
-(* ------------------------------------------------------------------------ *)
+text {* cont2cont tactic *}
 
 lemmas cont_lemmas1 = cont_const cont_id cont_Rep_CFun2
                     cont2cont_Rep_CFun cont2cont_LAM
 
 declare cont_lemmas1 [simp]
 
-(* HINT: cont_tac is now installed in simplifier in Lift.ML ! *)
+text {* HINT: @{text cont_tac} is now installed in simplifier in Lift.ML ! *}
 
 (*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
 (*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
 
-(* ------------------------------------------------------------------------ *)
-(* function application _[_]  is strict in its first arguments              *)
-(* ------------------------------------------------------------------------ *)
+text {* function application @{text "_[_]"} is strict in its first arguments *}
 
-lemma strict_Rep_CFun1: "(UU::'a::cpo->'b)$x = (UU::'b)"
-apply (subst inst_cfun_pcpo)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (rule refl)
-done
+lemma strict_Rep_CFun1 [simp]: "(UU::'a::cpo->'b)$x = (UU::'b)"
+by (simp add: inst_cfun_pcpo beta_cfun)
 
+text {* Instantiate the simplifier *}
 
-(* ------------------------------------------------------------------------ *)
-(* results about strictify                                                  *)
-(* ------------------------------------------------------------------------ *)
+declare beta_cfun [simp]
 
-lemma Istrictify1: 
-        "Istrictify(f)(UU)= (UU)"
-apply (unfold Istrictify_def)
-apply (simp (no_asm))
-done
+text {* use @{text cont_tac} as autotac. *}
 
-lemma Istrictify2: 
-        "~x=UU ==> Istrictify(f)(x)=f$x"
-apply (unfold Istrictify_def)
-apply (simp (no_asm_simp))
-done
-
-lemma monofun_Istrictify1: "monofun(Istrictify)"
-apply (rule monofunI)
-apply (intro strip)
-apply (rule less_fun [THEN iffD2])
-apply (intro strip)
-apply (rule_tac Q = "xa=UU" in excluded_middle [THEN disjE])
-apply (subst Istrictify2)
-apply assumption
-apply (subst Istrictify2)
-apply assumption
-apply (rule monofun_cfun_fun)
-apply assumption
-apply (erule ssubst)
-apply (subst Istrictify1)
-apply (subst Istrictify1)
-apply (rule refl_less)
-done
-
-lemma monofun_Istrictify2: "monofun(Istrictify(f))"
-apply (rule monofunI)
-apply (intro strip)
-apply (rule_tac Q = "x=UU" in excluded_middle [THEN disjE])
-apply (simplesubst Istrictify2)
-apply (erule notUU_I)
-apply assumption
-apply (subst Istrictify2)
-apply assumption
-apply (rule monofun_cfun_arg)
-apply assumption
-apply (erule ssubst)
-apply (subst Istrictify1)
-apply (rule minimal)
-done
-
-
-lemma contlub_Istrictify1: "contlub(Istrictify)"
-apply (rule contlubI)
-apply (intro strip)
-apply (rule expand_fun_eq [THEN iffD2])
-apply (intro strip)
-apply (subst thelub_fun)
-apply (erule monofun_Istrictify1 [THEN ch2ch_monofun])
-apply (rule_tac Q = "x=UU" in excluded_middle [THEN disjE])
-apply (subst Istrictify2)
-apply assumption
-apply (subst Istrictify2 [THEN ext])
-apply assumption
-apply (subst thelub_cfun)
-apply assumption
-apply (subst beta_cfun)
-apply (rule cont_lubcfun)
-apply assumption
-apply (rule refl)
-apply (erule ssubst)
-apply (subst Istrictify1)
-apply (subst Istrictify1 [THEN ext])
-apply (rule chain_UU_I_inverse [symmetric])
-apply (rule refl [THEN allI])
-done
-
-lemma contlub_Istrictify2: "contlub(Istrictify(f::'a -> 'b))"
-apply (rule contlubI)
-apply (intro strip)
-apply (case_tac "lub (range (Y))= (UU::'a) ")
-apply (simp (no_asm_simp) add: Istrictify1 chain_UU_I_inverse chain_UU_I Istrictify1)
-apply (subst Istrictify2)
-apply assumption
-apply (rule_tac s = "lub (range (%i. f$ (Y i))) " in trans)
-apply (rule contlub_cfun_arg)
-apply assumption
-apply (rule lub_equal2)
-prefer 3 apply (best intro: ch2ch_monofun monofun_Istrictify2)
-prefer 2 apply (best intro: ch2ch_monofun monofun_Rep_CFun2)
-apply (rule chain_mono2 [THEN exE])
-prefer 2 apply (assumption)
-apply (erule chain_UU_I_inverse2)
-apply (blast intro: Istrictify2 [symmetric])
-done
-
-
-lemmas cont_Istrictify1 = contlub_Istrictify1 [THEN monofun_Istrictify1 [THEN monocontlub2cont], standard]
-
-lemmas cont_Istrictify2 = contlub_Istrictify2 [THEN monofun_Istrictify2 [THEN monocontlub2cont], standard]
-
-
-lemma strictify1: "strictify$f$UU=UU"
-apply (unfold strictify_def)
-apply (subst beta_cfun)
-apply (simp (no_asm) add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
-apply (subst beta_cfun)
-apply (rule cont_Istrictify2)
-apply (rule Istrictify1)
-done
-
-lemma strictify2: "~x=UU ==> strictify$f$x=f$x"
-apply (unfold strictify_def)
-apply (subst beta_cfun)
-apply (simp (no_asm) add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
-apply (subst beta_cfun)
-apply (rule cont_Istrictify2)
-apply (erule Istrictify2)
-done
-
-
-(* ------------------------------------------------------------------------ *)
-(* Instantiate the simplifier                                               *)
-(* ------------------------------------------------------------------------ *)
-
-declare minimal [simp] refl_less [simp] beta_cfun [simp] strict_Rep_CFun1 [simp] strictify1 [simp] strictify2 [simp]
-
-
-(* ------------------------------------------------------------------------ *)
-(* use cont_tac as autotac.                                                *)
-(* ------------------------------------------------------------------------ *)
-
-(* HINT: cont_tac is now installed in simplifier in Lift.ML ! *)
+text {* HINT: @{text cont_tac} is now installed in simplifier in Lift.ML ! *}
 (*simpset_ref() := simpset() addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
 
-(* ------------------------------------------------------------------------ *)
-(* some lemmata for functions with flat/chfin domain/range types	    *)
-(* ------------------------------------------------------------------------ *)
+text {* some lemmata for functions with flat/chfin domain/range types *}
 
 lemma chfin_Rep_CFunR: "chain (Y::nat => 'a::cpo->'b::chfin)  
       ==> !s. ? n. lub(range(Y))$s = Y n$s"
@@ -727,10 +460,9 @@ apply assumption
 apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_CFunL)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* continuous isomorphisms are strict                                       *)
-(* a prove for embedding projection pairs is similar                        *)
-(* ------------------------------------------------------------------------ *)
+subsection {* Continuous isomorphisms *}
+
+text {* Continuous isomorphisms are strict. A proof for embedding projection pairs is similar. *}
 
 lemma iso_strict: 
 "!!f g.[|!y. f$(g$y)=(y::'b) ; !x. g$(f$x)=(x::'a) |]  
@@ -745,7 +477,6 @@ apply (rule_tac s = "g$ (f$ (UU::'a))" and t = "UU::'a" in subst)
 apply (erule spec)
 apply (rule minimal [THEN monofun_cfun_arg])
 done
-
 
 lemma isorep_defined: "[|!x. rep$(ab$x)=x;!y. ab$(rep$y)=y; z~=UU|] ==> rep$z ~= UU"
 apply (erule contrapos_nn)
@@ -765,21 +496,19 @@ apply (erule iso_strict [THEN conjunct2])
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
-(* ------------------------------------------------------------------------ *)
+text {* propagation of flatness and chain-finiteness by continuous isomorphisms *}
 
-lemma chfin2chfin: "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y);  
+lemma chfin2chfin: "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y);
   !y. f$(g$y)=(y::'b) ; !x. g$(f$x)=(x::'a::chfin) |]  
   ==> ! Y::nat=>'b. chain Y --> (? n. max_in_chain n Y)"
 apply (unfold max_in_chain_def)
-apply (intro strip)
+apply (clarify)
 apply (rule exE)
 apply (rule_tac P = "chain (%i. g$ (Y i))" in mp)
 apply (erule spec)
 apply (erule ch2ch_Rep_CFunR)
 apply (rule exI)
-apply (intro strip)
+apply (clarify)
 apply (rule_tac s = "f$ (g$ (Y x))" and t = "Y (x) " in subst)
 apply (erule spec)
 apply (rule_tac s = "f$ (g$ (Y j))" and t = "Y (j) " in subst)
@@ -789,7 +518,6 @@ apply (rule mp)
 apply (erule spec)
 apply assumption
 done
-
 
 lemma flat2flat: "!!f g.[|!x y::'a. x<<y --> x=UU | x=y;  
   !y. f$(g$y)=(y::'b); !x. g$(f$x)=(x::'a)|] ==> !x y::'b. x<<y --> x=UU | x=y"
@@ -815,9 +543,7 @@ apply (erule spec)
 apply (erule cfun_arg_cong)
 done
 
-(* ------------------------------------------------------------------------- *)
-(* a result about functions with flat codomain                               *)
-(* ------------------------------------------------------------------------- *)
+text {* a result about functions with flat codomain *}
 
 lemma flat_codom: "f$(x::'a)=(c::'b::flat) ==> f$(UU::'a)=(UU::'b) | (!z. f$(z::'a)=c)"
 apply (case_tac "f$ (x::'a) = (UU::'b) ")
@@ -840,13 +566,113 @@ apply simp
 apply assumption
 done
 
+subsection {* Strictified functions *}
 
-(* ------------------------------------------------------------------------ *)
-(* Access to definitions                                                    *)
-(* ------------------------------------------------------------------------ *)
+consts  
+        Istrictify   :: "('a->'b)=>'a=>'b"
+        strictify    :: "('a->'b)->'a->'b"
+defs
 
+Istrictify_def:  "Istrictify f x == if x=UU then UU else f$x"    
+strictify_def:   "strictify == (LAM f x. Istrictify f x)"
 
-lemma ID1: "ID$x=x"
+text {* results about strictify *}
+
+lemma Istrictify1: 
+        "Istrictify(f)(UU)= (UU)"
+apply (unfold Istrictify_def)
+apply (simp (no_asm))
+done
+
+lemma Istrictify2: 
+        "~x=UU ==> Istrictify(f)(x)=f$x"
+by (simp add: Istrictify_def)
+
+lemma monofun_Istrictify1: "monofun(Istrictify)"
+apply (rule monofunI [rule_format])
+apply (rule less_fun [THEN iffD2, rule_format])
+apply (case_tac "xa=UU")
+apply (simp add: Istrictify1)
+apply (simp add: Istrictify2)
+apply (erule monofun_cfun_fun)
+done
+
+lemma monofun_Istrictify2: "monofun(Istrictify(f))"
+apply (rule monofunI [rule_format])
+apply (case_tac "x=UU")
+apply (simp add: Istrictify1)
+apply (frule notUU_I)
+apply assumption
+apply (simp add: Istrictify2)
+apply (erule monofun_cfun_arg)
+done
+
+lemma contlub_Istrictify1: "contlub(Istrictify)"
+apply (rule contlubI [rule_format])
+apply (rule ext)
+apply (subst thelub_fun)
+apply (erule monofun_Istrictify1 [THEN ch2ch_monofun])
+apply (case_tac "x=UU")
+apply (simp add: Istrictify1)
+apply (simp add: lub_const [THEN thelubI])
+apply (simp add: Istrictify2)
+apply (erule contlub_cfun_fun)
+done
+
+lemma contlub_Istrictify2: "contlub(Istrictify(f::'a -> 'b))"
+apply (rule contlubI [rule_format])
+apply (case_tac "lub (range (Y))=UU")
+apply (simp add: Istrictify1 chain_UU_I)
+apply (simp add: lub_const [THEN thelubI])
+apply (simp add: Istrictify2)
+apply (rule_tac s = "lub (range (%i. f$ (Y i)))" in trans)
+apply (erule contlub_cfun_arg)
+apply (rule lub_equal2)
+apply (rule chain_mono2 [THEN exE])
+apply (erule chain_UU_I_inverse2)
+apply (assumption)
+apply (blast intro: Istrictify2 [symmetric])
+apply (erule chain_monofun)
+apply (erule monofun_Istrictify2 [THEN ch2ch_monofun])
+done
+
+lemmas cont_Istrictify1 = contlub_Istrictify1 [THEN monofun_Istrictify1 [THEN monocontlub2cont], standard]
+
+lemmas cont_Istrictify2 = contlub_Istrictify2 [THEN monofun_Istrictify2 [THEN monocontlub2cont], standard]
+
+lemma strictify1 [simp]: "strictify$f$UU=UU"
+apply (unfold strictify_def)
+apply (subst beta_cfun)
+apply (simp add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
+apply (subst beta_cfun)
+apply (rule cont_Istrictify2)
+apply (rule Istrictify1)
+done
+
+lemma strictify2 [simp]: "~x=UU ==> strictify$f$x=f$x"
+apply (unfold strictify_def)
+apply (subst beta_cfun)
+apply (simp add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
+apply (subst beta_cfun)
+apply (rule cont_Istrictify2)
+apply (erule Istrictify2)
+done
+
+subsection {* Identity and composition *}
+
+consts
+        ID      :: "('a::cpo) -> 'a"
+        cfcomp  :: "('b->'c)->(('a::cpo)->('b::cpo))->'a->('c::cpo)"
+
+syntax  "@oo"   :: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
+     
+translations    "f1 oo f2" == "cfcomp$f1$f2"
+
+defs
+  ID_def:        "ID ==(LAM x. x)"
+  oo_def:        "cfcomp == (LAM f g x. f$(g$x))" 
+
+lemma ID1 [simp]: "ID$x=x"
 apply (unfold ID_def)
 apply (subst beta_cfun)
 apply (rule cont_id)
@@ -854,61 +680,26 @@ apply (rule refl)
 done
 
 lemma cfcomp1: "(f oo g)=(LAM x. f$(g$x))"
-apply (unfold oo_def)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (rule refl)
-done
+by (simp add: oo_def)
 
-lemma cfcomp2: "(f oo g)$x=f$(g$x)"
-apply (subst cfcomp1)
-apply (subst beta_cfun)
-apply (simp (no_asm))
-apply (rule refl)
-done
+lemma cfcomp2 [simp]: "(f oo g)$x=f$(g$x)"
+by (simp add: cfcomp1)
 
+text {*
+  Show that interpretation of (pcpo,@{text "_->_"}) is a category.
+  The class of objects is interpretation of syntactical class pcpo.
+  The class of arrows  between objects @{typ 'a} and @{typ 'b} is interpret. of @{typ "'a -> 'b"}.
+  The identity arrow is interpretation of @{term ID}.
+  The composition of f and g is interpretation of @{text "oo"}.
+*}
 
-(* ------------------------------------------------------------------------ *)
-(* Show that interpretation of (pcpo,_->_) is a category                    *)
-(* The class of objects is interpretation of syntactical class pcpo         *)
-(* The class of arrows  between objects 'a and 'b is interpret. of 'a -> 'b *)
-(* The identity arrow is interpretation of ID                               *)
-(* The composition of f and g is interpretation of oo                       *)
-(* ------------------------------------------------------------------------ *)
+lemma ID2 [simp]: "f oo ID = f "
+by (rule ext_cfun, simp)
 
-
-lemma ID2: "f oo ID = f "
-apply (rule ext_cfun)
-apply (subst cfcomp2)
-apply (subst ID1)
-apply (rule refl)
-done
-
-lemma ID3: "ID oo f = f "
-apply (rule ext_cfun)
-apply (subst cfcomp2)
-apply (subst ID1)
-apply (rule refl)
-done
-
+lemma ID3 [simp]: "ID oo f = f "
+by (rule ext_cfun, simp)
 
 lemma assoc_oo: "f oo (g oo h) = (f oo g) oo h"
-apply (rule ext_cfun)
-apply (rule_tac s = "f$ (g$ (h$x))" in trans)
-apply (subst cfcomp2)
-apply (subst cfcomp2)
-apply (rule refl)
-apply (subst cfcomp2)
-apply (subst cfcomp2)
-apply (rule refl)
-done
-
-(* ------------------------------------------------------------------------ *)
-(* Merge the different rewrite rules for the simplifier                     *)
-(* ------------------------------------------------------------------------ *)
-
-declare  ID1[simp] ID2[simp] ID3[simp] cfcomp2[simp]
+by (rule ext_cfun, simp)
 
 end
