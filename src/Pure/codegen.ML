@@ -642,7 +642,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
               Pretty.block [Pretty.str "Library.Some ", Pretty.block (Pretty.str "[" ::
                 flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
-                    [Pretty.str ("(" ^ Library.quote s ^ ","), Pretty.brk 1,
+                    [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of sg false T)
                        [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],
