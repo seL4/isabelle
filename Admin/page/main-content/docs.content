@@ -9,6 +9,7 @@ Isabelle <a href="dist/index.html">distribution</a>.  For getting
 started with Isabelle quickly, we recommend the 
 <a href="dist/<!-- _GP_ distname -->/doc/tutorial.pdf">Tutorial on Isabelle/HOL</a> --
 published by Springer Verlag as <a
-href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>.
+href="http://www4.in.tum.de/~nipkow/LNCS2283/">LNCS 2283</a>. See the
+<a href="faq.html">FAQ</a> for answers to frequent problems.
 
 <!-- _GP_ include("$pwd/docu-contents.main") -->
