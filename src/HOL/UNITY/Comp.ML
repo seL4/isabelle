@@ -247,14 +247,29 @@ Goalw [guarantees_def]
 \    ==> (JOIN I F) : (INTER I X) guar (INTER I Y)";
 by (simp_tac (simpset() addsimps [JN_component_iff]) 1);
 by (Blast_tac 1);
-qed "guarantees_JN_INT";
+bind_thm ("guarantees_JN_INT", ballI RS result());
 
 Goalw [guarantees_def]
     "[| ALL i:I. F i : X i guar Y i |] \
 \    ==> (JOIN I F) : (UNION I X) guar (UNION I Y)";
 by (simp_tac (simpset() addsimps [JN_component_iff]) 1);
 by (Blast_tac 1);
-qed "guarantees_JN_UN";
+bind_thm ("guarantees_JN_UN", ballI RS result());
+
+
+(*** guarantees laws for breaking down the program, by lcp ***)
+
+Goalw [guarantees_def]
+    "F: X guar Y | G: X guar Y ==> F Join G: X guar Y";
+by (simp_tac (simpset() addsimps [Join_component_iff]) 1);
+by (Blast_tac 1);
+qed "guarantees_Join_I";
+
+Goalw [guarantees_def]
+     "[| i : I;  F i: X guar Y |] ==> (JN i:I. (F i)) : X guar Y";
+by (simp_tac (simpset() addsimps [JN_component_iff]) 1);
+by (Blast_tac 1);
+qed "guarantees_JN_I";
 
 
 (*** well-definedness ***)
