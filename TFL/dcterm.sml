@@ -4,9 +4,6 @@
 
 structure Dcterm :
 sig
-    val caconv : cterm -> cterm -> bool
-    val mk_eq : cterm * cterm -> cterm
-    val mk_imp : cterm * cterm -> cterm
     val mk_conj : cterm * cterm -> cterm
     val mk_disj : cterm * cterm -> cterm
     val mk_select : cterm * cterm -> cterm
@@ -40,12 +37,9 @@ sig
     val is_pair : cterm -> bool
     val is_select : cterm -> bool
     val is_var : cterm -> bool
-    val list_mk_comb : cterm * cterm list -> cterm
     val list_mk_abs : cterm list -> cterm -> cterm
-    val list_mk_imp : cterm list * cterm -> cterm
     val list_mk_exists : cterm list * cterm -> cterm
     val list_mk_forall : cterm list * cterm -> cterm
-    val list_mk_conj : cterm list -> cterm
     val list_mk_disj : cterm list -> cterm
     val strip_abs : cterm -> cterm list * cterm
     val strip_comb : cterm -> cterm * cterm list
@@ -68,7 +62,6 @@ fun ERR func mesg = Utils.ERR{module = "Dcterm", func = func, mesg = mesg};
 val can = Utils.can;
 val quote = Utils.quote;
 fun swap (x,y) = (y,x);
-val bool = Type("bool",[]);
 
 fun itlist f L base_value =
    let fun it [] = base_value
@@ -76,24 +69,7 @@ fun itlist f L base_value =
    in it L 
    end;
 
-fun end_itlist f =
-let fun endit [] = raise ERR"end_itlist" "list too short"
-      | endit alist = 
-         let val (base::ralist) = rev alist
-         in itlist f (rev ralist) base  end
-in endit
-end;
-
-fun rev_itlist f =
-   let fun rev_it [] base = base
-         | rev_it (a::rst) base = rev_it rst (f a base)
-   in rev_it
-   end;
-
-(*---------------------------------------------------------------------------
- * Alpha conversion.
- *---------------------------------------------------------------------------*)
-fun caconv ctm1 ctm2 = Term.aconv(#t(rep_cterm ctm1),#t(rep_cterm ctm2));
+val end_itlist = Utils.end_itlist;
 
 
 (*---------------------------------------------------------------------------
@@ -103,44 +79,30 @@ fun caconv ctm1 ctm2 = Term.aconv(#t(rep_cterm ctm1),#t(rep_cterm ctm2));
 fun mk_const sign pr = cterm_of sign (Const pr);
 val mk_hol_const = mk_const (sign_of HOL.thy);
 
-fun list_mk_comb (h,[]) = h
-  | list_mk_comb (h,L) = rev_itlist (fn t1 => fn t2 => capply t2 t1) L h;
-
-
-fun mk_eq(lhs,rhs) = 
-   let val ty = #T(rep_cterm lhs)
-       val c = mk_hol_const("op =", ty --> ty --> bool)
-   in list_mk_comb(c,[lhs,rhs])
-   end;
-
-local val c = mk_hol_const("op -->", bool --> bool --> bool)
-in fun mk_imp(ant,conseq) = list_mk_comb(c,[ant,conseq])
-end;
-
 fun mk_select (r as (Bvar,Body)) = 
   let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("Eps", (ty --> bool) --> ty)
+      val c = mk_hol_const("Eps", (ty --> HOLogic.boolT) --> ty)
   in capply c (uncurry cabs r)
   end;
 
 fun mk_forall (r as (Bvar,Body)) = 
   let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("All", (ty --> bool) --> bool)
+      val c = mk_hol_const("All", (ty --> HOLogic.boolT) --> HOLogic.boolT)
   in capply c (uncurry cabs r)
   end;
 
 fun mk_exists (r as (Bvar,Body)) = 
   let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("Ex", (ty --> bool) --> bool)
+      val c = mk_hol_const("Ex", (ty --> HOLogic.boolT) --> HOLogic.boolT)
   in capply c (uncurry cabs r)
   end;
 
 
-local val c = mk_hol_const("op &", bool --> bool --> bool)
+local val c = mk_hol_const("op &", HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_conj(conj1,conj2) = capply (capply c conj1) conj2
 end;
 
-local val c = mk_hol_const("op |", bool --> bool --> bool)
+local val c = mk_hol_const("op |", HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_disj(disj1,disj2) = capply (capply c disj1) disj2
 end;
 
@@ -226,10 +188,8 @@ val is_cons   = can dest_cons
  *---------------------------------------------------------------------------*)
 val list_mk_abs = itlist cabs;
 
-fun list_mk_imp(A,c) = itlist(fn a => fn tm => mk_imp(a,tm)) A c;
 fun list_mk_exists(V,t) = itlist(fn v => fn b => mk_exists(v, b)) V t;
 fun list_mk_forall(V,t) = itlist(fn v => fn b => mk_forall(v, b)) V t;
-val list_mk_conj = end_itlist(fn c1 => fn tm => mk_conj(c1, tm))
 val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj(d1, tm))
 
 (*---------------------------------------------------------------------------

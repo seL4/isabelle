@@ -1,65 +1,59 @@
 signature Rules_sig =
 sig
 (*  structure USyntax : USyntax_sig *)
-  type Type
-  type Preterm
-  type Term
-  type Thm
-  type Tactic
   type 'a binding
 
-  val dest_thm : Thm -> Preterm list * Preterm
+  val dest_thm : thm -> term list * term
 
   (* Inference rules *)
-  val REFL      :Term -> Thm
-  val ASSUME    :Term -> Thm
-  val MP        :Thm -> Thm -> Thm
-  val MATCH_MP  :Thm -> Thm -> Thm
-  val CONJUNCT1 :Thm -> Thm
-  val CONJUNCT2 :Thm -> Thm
-  val CONJUNCTS :Thm -> Thm list
-  val DISCH     :Term -> Thm -> Thm
-  val UNDISCH   :Thm  -> Thm
-  val INST_TYPE :Type binding list -> Thm -> Thm
-  val SPEC      :Term -> Thm -> Thm
-  val ISPEC     :Term -> Thm -> Thm
-  val ISPECL    :Term list -> Thm -> Thm
-  val GEN       :Term -> Thm -> Thm
-  val GENL      :Term list -> Thm -> Thm
-  val BETA_RULE :Thm -> Thm
-  val LIST_CONJ :Thm list -> Thm
+  val REFL      :cterm -> thm
+  val ASSUME    :cterm -> thm
+  val MP        :thm -> thm -> thm
+  val MATCH_MP  :thm -> thm -> thm
+  val CONJUNCT1 :thm -> thm
+  val CONJUNCT2 :thm -> thm
+  val CONJUNCTS :thm -> thm list
+  val DISCH     :cterm -> thm -> thm
+  val UNDISCH   :thm  -> thm
+  val INST_TYPE :typ binding list -> thm -> thm
+  val SPEC      :cterm -> thm -> thm
+  val ISPEC     :cterm -> thm -> thm
+  val ISPECL    :cterm list -> thm -> thm
+  val GEN       :cterm -> thm -> thm
+  val GENL      :cterm list -> thm -> thm
+  val LIST_CONJ :thm list -> thm
 
-  val SYM : Thm -> Thm
-  val DISCH_ALL : Thm -> Thm
-  val FILTER_DISCH_ALL : (Preterm -> bool) -> Thm -> Thm
-  val SPEC_ALL  : Thm -> Thm
-  val GEN_ALL   : Thm -> Thm
-  val IMP_TRANS : Thm -> Thm -> Thm
-  val PROVE_HYP : Thm -> Thm -> Thm
+  val SYM : thm -> thm
+  val DISCH_ALL : thm -> thm
+  val FILTER_DISCH_ALL : (term -> bool) -> thm -> thm
+  val SPEC_ALL  : thm -> thm
+  val GEN_ALL   : thm -> thm
+  val IMP_TRANS : thm -> thm -> thm
+  val PROVE_HYP : thm -> thm -> thm
 
-  val CHOOSE : Term * Thm -> Thm -> Thm
-  val EXISTS : Term * Term -> Thm -> Thm
-  val EXISTL : Term list -> Thm -> Thm
-  val IT_EXISTS : Term binding list -> Thm -> Thm
+  val CHOOSE : cterm * thm -> thm -> thm
+  val EXISTS : cterm * cterm -> thm -> thm
+  val EXISTL : cterm list -> thm -> thm
+  val IT_EXISTS : cterm binding list -> thm -> thm
 
-  val EVEN_ORS : Thm list -> Thm list
-  val DISJ_CASESL : Thm -> Thm list -> Thm
+  val EVEN_ORS : thm list -> thm list
+  val DISJ_CASESL : thm -> thm list -> thm
 
-  val SUBS : Thm list -> Thm -> Thm
-  val simplify : Thm list -> Thm -> Thm
-  val simpl_conv : Thm list -> Term -> Thm
+  val SUBS : thm list -> thm -> thm
+  val simplify : thm list -> thm -> thm
+  val simpl_conv : thm list -> cterm -> thm
 
 (* For debugging my isabelle solver in the conditional rewriter *)
 (*
-  val term_ref : Preterm list ref
-  val thm_ref : Thm list ref
+  val term_ref : term list ref
+  val thm_ref : thm list ref
   val mss_ref : meta_simpset list ref
   val tracing :bool ref
 *)
-  val CONTEXT_REWRITE_RULE : Preterm * Preterm
-                             -> {thms:Thm list,congs: Thm list, th:Thm} 
-                             -> Thm * Preterm list
-  val RIGHT_ASSOC : Thm -> Thm 
+  val CONTEXT_REWRITE_RULE : term * term
+                             -> {thms:thm list,congs: thm list, th:thm} 
+                             -> thm * term list
+  val RIGHT_ASSOC : thm -> thm 
 
-  val prove : Term * Tactic -> Thm
+  val prove : cterm * tactic -> thm
 end;

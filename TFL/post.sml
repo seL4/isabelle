@@ -1,3 +1,11 @@
+(*-------------------------------------------------------------------------
+there are 3 postprocessors that get applied to the definition:
+
+    - a wellfoundedness prover (WF_TAC)
+    - a simplifier (tries to eliminate the language of termination expressions)
+    - a termination prover
+*-------------------------------------------------------------------------*)
+
 signature TFL = 
   sig
    structure Prim : TFL_sig
@@ -38,7 +46,7 @@ struct
  * have a tactic directly applied to them.
  *--------------------------------------------------------------------------*)
 fun termination_goals rules = 
-    map (Logic.freeze_vars o S.drop_Trueprop)
+    map (Logic.freeze_vars o HOLogic.dest_Trueprop)
       (foldr (fn (th,A) => union_term (prems_of th, A)) (rules, []));
 
  (*---------------------------------------------------------------------------
@@ -48,26 +56,23 @@ fun termination_goals rules =
  fun tgoalw thy defs rules = 
     let val L = termination_goals rules
         open USyntax
-        val g = cterm_of (sign_of thy) (mk_prop(list_mk_conj L))
+        val g = cterm_of (sign_of thy) (HOLogic.mk_Trueprop(list_mk_conj L))
     in goalw_cterm defs g
     end;
 
- val tgoal = Utils.C tgoalw [];
+ fun tgoal thy = tgoalw thy [];
 
  (*---------------------------------------------------------------------------
   * Simple wellfoundedness prover.
   *--------------------------------------------------------------------------*)
  fun WF_TAC thms = REPEAT(FIRST1(map rtac thms))
- val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, wf_less_than,
-                    wf_pred_nat, wf_pred_list, wf_trancl];
+ val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, wf_less_than, 
+                    wf_pred_list, wf_trancl];
 
- val terminator = simp_tac(!simpset addsimps [less_than_def, pred_nat_def,
-					      pred_list_def]) 1
+ val terminator = simp_tac(!simpset addsimps [less_Suc_eq, pred_list_def]) 1
                   THEN TRY(best_tac
-			   (!claset addSDs [not0_implies_Suc]
-				    addIs [r_into_trancl,
-					   trans_trancl RS transD]
-				    addss (!simpset)) 1);
+                           (!claset addSDs [not0_implies_Suc]
+                                    addss (!simpset)) 1);
 
  val simpls = [less_eq RS eq_reflection,
                lex_prod_def, rprod_def, measure_def, inv_image_def];
@@ -83,7 +88,7 @@ fun termination_goals rules =
                                     simplifier = Prim.Rules.simpl_conv simpls};
 
  val simplifier = rewrite_rule (simpls @ #simps(rep_ss (!simpset)) @ 
-                                [less_than_def, pred_nat_def, pred_list_def]);
+                                [pred_list_def]);
 
  fun tflcongs thy = Prim.Context.read() @ (#case_congs(Thry.extract_info thy));
 
@@ -102,12 +107,12 @@ fun define_i thy R eqs =
   end;
 
 (*lcp's version: takes strings; doesn't return "thm" 
-	(whose signature is a draft and therefore useless) *)
+        (whose signature is a draft and therefore useless) *)
 fun define thy R eqs = 
   let fun read thy = readtm (sign_of thy) (TVar(("DUMMY",0),[])) 
       val (thy',(_,pats)) =
-	     define_i thy (read thy R) 
-	              (fold_bal (app Ind_Syntax.conj) (map (read thy) eqs))
+             define_i thy (read thy R) 
+                      (fold_bal (app Ind_Syntax.conj) (map (read thy) eqs))
   in  (thy',pats)  end
   handle Utils.ERR {mesg,...} => error mesg;
 
@@ -134,7 +139,7 @@ fun mk_meta_eq r = case concl_of r of
      Const("==",_)$_$_ => r
   |   _$(Const("op =",_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True
-fun rewrite L = rewrite_rule (map mk_meta_eq (Utils.filter(not o id_thm) L))
+fun rewrite L = rewrite_rule (map mk_meta_eq (filter(not o id_thm) L))
 fun reducer thl = rewrite (map standard thl @ #simps(rep_ss HOL_ss))
 
 fun join_assums th = 
@@ -143,7 +148,7 @@ fun join_assums th =
       val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
       val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
-      val cntxt = U.union S.aconv cntxtl cntxtr
+      val cntxt = gen_union (op aconv) (cntxtl, cntxtr)
   in 
     R.GEN_ALL 
       (R.DISCH_ALL 
@@ -198,22 +203,22 @@ val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 fun simplify_defn (thy,(id,pats)) =
    let val dummy = deny (id  mem  map ! (stamps_of_thy thy))
                         ("Recursive definition " ^ id ^ 
-			 " would clash with the theory of the same name!")
+                         " would clash with the theory of the same name!")
        val def = freezeT(get_def thy id  RS  meta_eq_to_obj_eq)
        val {theory,rules,TCs,full_pats_TCs,patterns} = 
-		Prim.post_definition (thy,(def,pats))
+                Prim.post_definition (thy,(def,pats))
        val {lhs=f,rhs} = S.dest_eq(concl def)
        val (_,[R,_]) = S.strip_comb rhs
        val {induction, rules, tcs} = 
              proof_stage theory reducer
-	       {f = f, R = R, rules = rules,
-		full_pats_TCs = full_pats_TCs,
-		TCs = TCs}
+               {f = f, R = R, rules = rules,
+                full_pats_TCs = full_pats_TCs,
+                TCs = TCs}
        val rules' = map (standard o normalize_thm [RSmp]) (R.CONJUNCTS rules)
    in  {induct = meta_outer
-	          (normalize_thm [RSspec,RSmp] (induction RS spec')), 
-	rules = rules', 
-	tcs = (termination_goals rules') @ tcs}
+                  (normalize_thm [RSspec,RSmp] (induction RS spec')), 
+        rules = rules', 
+        tcs = (termination_goals rules') @ tcs}
    end
   handle Utils.ERR {mesg,...} => error mesg
 end;

@@ -7,7 +7,6 @@ use"mask.sml";
 
 (* Establish a base of common and/or helpful functions. *)
 use "utils.sig";
-use "utils.sml";
 
 (* Get the specifications - these are independent of any system *)
 use "usyntax.sig";
@@ -23,16 +22,16 @@ use "tfl.sig";
 
 use "tfl.sml";
 
-structure Utils = UTILS(val int_to_string = string_of_int);
+use "utils.sml";
 
 (*----------------------------------------------------------------------------
  *      Supply implementations
  *---------------------------------------------------------------------------*)
 
-(* Ignore "Time" exception raised at end of building theory. *)
 use "usyntax.sml";
 use "thms.sml";
-use"dcterm.sml"; use"rules.new.sml";
+use"dcterm.sml"; 
+use"rules.new.sml";
 use "thry.sml";
 
 

@@ -10,23 +10,16 @@ structure S  = USyntax;
 structure U  = Utils;
 structure D = Dcterm;
 
-type Type = USyntax.Type
-type Preterm  = USyntax.Preterm
-type Term = USyntax.Term
-type Thm = Thm.thm
-type Tactic = tactic;
 
 fun RULES_ERR{func,mesg} = Utils.ERR{module = "FastRules",func=func,mesg=mesg};
 
-nonfix ##;    val ## = Utils.##;      infix  4 ##; 
 
 fun cconcl thm = D.drop_prop(#prop(crep_thm thm));
 fun chyps thm = map D.drop_prop(#hyps(crep_thm thm));
 
 fun dest_thm thm = 
-   let val drop = S.drop_Trueprop
-       val {prop,hyps,...} = rep_thm thm
-   in (map drop hyps, drop prop)
+   let val {prop,hyps,...} = rep_thm thm
+   in (map HOLogic.dest_Trueprop hyps, HOLogic.dest_Trueprop prop)
    end;
 
 
@@ -46,11 +39,9 @@ fun ALPHA thm ctm1 =
    in equal_elim (transitive ctm2_eq ctm1_eq) thm
    end;
 
-val BETA_RULE = Utils.I;
-
 
 (*----------------------------------------------------------------------------
- *        Type instantiation
+ *        typ instantiation
  *---------------------------------------------------------------------------*)
 fun INST_TYPE blist thm = 
   let val {sign,...} = rep_thm thm
@@ -82,9 +73,9 @@ fun DISCH_ALL thm = Utils.itlist DISCH (#hyps (crep_thm thm)) thm;
 
 
 fun FILTER_DISCH_ALL P thm =
- let fun check tm = U.holds P (S.drop_Trueprop (#t(rep_cterm tm)))
- in  U.itlist (fn tm => fn th => if (check tm) then DISCH tm th else th)
-              (chyps thm) thm
+ let fun check tm = U.holds P (#t(rep_cterm tm))
+ in  foldr (fn (tm,th) => if (check tm) then DISCH tm th else th)
+              (chyps thm, thm)
  end;
 
 (* freezeT expensive! *)
@@ -97,10 +88,10 @@ fun UNDISCH thm =
 fun PROVE_HYP ath bth =  MP (DISCH (cconcl ath) bth) ath;
 
 local val [p1,p2] = goal HOL.thy "(A-->B) ==> (B --> C) ==> (A-->C)"
-      val _ = by (rtac impI 1)
-      val _ = by (rtac (p2 RS mp) 1)
-      val _ = by (rtac (p1 RS mp) 1)
-      val _ = by (assume_tac 1)
+      val dummy = by (rtac impI 1)
+      val dummy = by (rtac (p2 RS mp) 1)
+      val dummy = by (rtac (p1 RS mp) 1)
+      val dummy = by (assume_tac 1)
       val imp_trans = result()
 in
 fun IMP_TRANS th1 th2 = th2 RS (th1 RS imp_trans)
@@ -167,11 +158,11 @@ fun EVEN_ORS thms =
  *
  *---------------------------------------------------------------------------*)
 local val [p1,p2,p3] = goal HOL.thy "(P | Q) ==> (P --> R) ==> (Q --> R) ==> R"
-      val _ = by (rtac (p1 RS disjE) 1)
-      val _ = by (rtac (p2 RS mp) 1)
-      val _ = by (assume_tac 1)
-      val _ = by (rtac (p3 RS mp) 1)
-      val _ = by (assume_tac 1)
+      val dummy = by (rtac (p1 RS disjE) 1)
+      val dummy = by (rtac (p2 RS mp) 1)
+      val dummy = by (assume_tac 1)
+      val dummy = by (rtac (p3 RS mp) 1)
+      val dummy = by (assume_tac 1)
       val tfl_exE = result()
 in
 fun DISJ_CASES th1 th2 th3 = 
@@ -215,7 +206,9 @@ fun organize eq =    (* a bit slow - analogous to insertion sort *)
 (* freezeT expensive! *)
 fun DISJ_CASESL disjth thl =
    let val c = cconcl disjth
-       fun eq th atm = exists (D.caconv atm) (chyps th)
+       fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t 
+			               aconv term_of atm)
+	                      (#hyps(rep_thm th))
        val tml = D.strip_disj c
        fun DL th [] = raise RULES_ERR{func="DISJ_CASESL",mesg="no cases"}
          | DL th [th1] = PROVE_HYP th th1
@@ -262,7 +255,7 @@ in
 fun GEN v th =
    let val gth = forall_intr v th
        val {prop=Const("all",_)$Abs(x,ty,rst),sign,...} = rep_thm gth
-       val P' = Abs(x,ty, S.drop_Trueprop rst)  (* get rid of trueprop *)
+       val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val tsig = #tsig(Sign.rep_sg sign)
        val theta = Pattern.match tsig (P,P')
        val allI2 = instantiate (certify sign theta) allI
@@ -289,8 +282,8 @@ fun freeze th =
   let val fth = freezeT th
       val {prop,sign,...} = rep_thm fth
       fun mk_inst (Var(v,T)) = 
-	  (cterm_of sign (Var(v,T)),
-	   cterm_of sign (Free(string_of v, T)))
+          (cterm_of sign (Var(v,T)),
+           cterm_of sign (Free(string_of v, T)))
       val insts = map mk_inst (term_vars prop)
   in  instantiate ([],insts) fth  
   end
@@ -318,10 +311,10 @@ fun MATCH_MP th1 th2 =
  *---------------------------------------------------------------------------*)
 
 local val [p1,p2] = goal HOL.thy "(? x. P x) ==> (!x. P x --> Q) ==> Q"
-      val _ = by (rtac (p1 RS exE) 1)
-      val _ = by (rtac ((p2 RS allE) RS mp) 1)
-      val _ = by (assume_tac 2)
-      val _ = by (assume_tac 1)
+      val dummy = by (rtac (p1 RS exE) 1)
+      val dummy = by (rtac ((p2 RS allE) RS mp) 1)
+      val dummy = by (assume_tac 2)
+      val dummy = by (assume_tac 1)
       val choose_thm = result()
 in
 fun CHOOSE(fvar,exth) fact =
@@ -378,7 +371,7 @@ fun IT_EXISTS blist th =
        
   in
   U.itlist (fn (b as (r1 |-> r2)) => fn thm => 
-        EXISTS(?r2(S.subst[b] (S.drop_Trueprop(#prop(rep_thm thm)))), tych r1)
+        EXISTS(?r2(S.subst[b] (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
               thm)
        blist' th
   end;
@@ -426,10 +419,6 @@ end;
  *---------------------------------------------------------------------------*)
 
 
-
-val bool = S.bool
-val prop = Type("prop",[]);
-
 (* Object language quantifier, i.e., "!" *)
 fun Forall v M = S.mk_forall{Bvar=v, Body=M};
 
@@ -452,8 +441,8 @@ fun dest_equal(Const ("==",_) $
   | dest_equal tm = S.dest_eq tm;
 
 
-fun get_rhs tm = #rhs(dest_equal (S.drop_Trueprop tm));
-fun get_lhs tm = #lhs(dest_equal (S.drop_Trueprop tm));
+fun get_rhs tm = #rhs(dest_equal (HOLogic.dest_Trueprop tm));
+fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
 fun variants FV vlist =
   rev(#1(U.rev_itlist (fn v => fn (V,W) =>
@@ -589,17 +578,11 @@ fun dest_combn tm 0 = (tm,[])
 
 local fun dest_pair M = let val {fst,snd} = S.dest_pair M in (fst,snd) end
       fun mk_fst tm = 
-          let val ty = S.type_of tm
-              val {Tyop="*",Args=[fty,sty]} = S.dest_type ty
-              val fst = S.mk_const{Name="fst",Ty = ty --> fty}
-          in S.mk_comb{Rator=fst, Rand=tm}
-          end
+          let val ty as Type("*", [fty,sty]) = type_of tm
+          in  Const ("fst", ty --> fty) $ tm  end
       fun mk_snd tm = 
-          let val ty = S.type_of tm
-              val {Tyop="*",Args=[fty,sty]} = S.dest_type ty
-              val snd = S.mk_const{Name="snd",Ty = ty --> sty}
-          in S.mk_comb{Rator=snd, Rand=tm}
-          end
+          let val ty as Type("*", [fty,sty]) = type_of tm
+          in  Const ("snd", ty --> sty) $ tm  end
 in
 fun XFILL tych x vstruct = 
   let fun traverse p xocc L =
@@ -622,7 +605,7 @@ end end;
 
 fun VSTRUCT_ELIM tych a vstr th = 
   let val L = S.free_vars_lr vstr
-      val bind1 = tych (S.mk_prop (S.mk_eq{lhs=a, rhs=vstr}))
+      val bind1 = tych (HOLogic.mk_Trueprop (HOLogic.mk_eq(a,vstr)))
       val thm1 = implies_intr bind1 (SUBS [SYM(assume bind1)] th)
       val thm2 = forall_intr_list (map tych L) thm1
       val thm3 = forall_elim_list (XFILL tych a vstr) thm2
@@ -648,7 +631,7 @@ fun PGEN tych a vstr th =
  *---------------------------------------------------------------------------*)
 fun dest_pbeta_redex M n = 
   let val (f,args) = dest_combn M n
-      val _ = dest_aabs f
+      val dummy = dest_aabs f
   in (strip_aabs f,args)
   end;
 
@@ -666,30 +649,30 @@ val restricted = U.can(S.find_term
 
 fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
  let val tc_list = ref[]: term list ref
-     val _ = term_ref := []
-     val _ = thm_ref  := []
-     val _ = mss_ref  := []
+     val dummy = term_ref := []
+     val dummy = thm_ref  := []
+     val dummy = mss_ref  := []
      val cut_lemma' = (cut_lemma RS mp) RS eq_reflection
      fun prover mss thm =
      let fun cong_prover mss thm =
-         let val _ = say "cong_prover:\n"
+         let val dummy = say "cong_prover:\n"
              val cntxt = prems_of_mss mss
-             val _ = print_thms "cntxt:\n" cntxt
-             val _ = say "cong rule:\n"
-             val _ = say (string_of_thm thm^"\n")
-             val _ = thm_ref := (thm :: !thm_ref)
-             val _ = mss_ref := (mss :: !mss_ref)
+             val dummy = print_thms "cntxt:\n" cntxt
+             val dummy = say "cong rule:\n"
+             val dummy = say (string_of_thm thm^"\n")
+             val dummy = thm_ref := (thm :: !thm_ref)
+             val dummy = mss_ref := (mss :: !mss_ref)
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,sign) = 
                  let val tych = cterm_of sign
-                     val _ = print_cterms "To eliminate:\n" [tych imp]
+                     val dummy = print_cterms "To eliminate:\n" [tych imp]
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val mss' = add_prems(mss, map ASSUME ants)
                      val lhs_eq_lhs1 = rewrite_cterm(false,true)mss' prover lhs
                        handle _ => reflexive lhs
-                     val _ = print_thms "proven:\n" [lhs_eq_lhs1]
+                     val dummy = print_thms "proven:\n" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
                      val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
                   in
@@ -697,10 +680,12 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                   end
              fun pq_eliminate (thm,sign,vlist,imp_body,lhs_eq) =
               let val ((vstrl,_),args) = dest_pbeta_redex lhs_eq(length vlist)
-                  val true = forall (fn (tm1,tm2) => S.aconv tm1 tm2)
-                                   (Utils.zip vlist args)
+                  val dummy = assert (forall (op aconv)
+                                      (ListPair.zip (vlist, args)))
+                               "assertion failed in CONTEXT_REWRITE_RULE"
 (*                val fbvs1 = variants (S.free_vars imp) fbvs *)
-                  val imp_body1 = S.subst (map (op|->) (U.zip args vstrl))
+                  val imp_body1 = S.subst (map (op|->) 
+                                           (ListPair.zip (args, vstrl)))
                                           imp_body
                   val tych = cterm_of sign
                   val ants1 = map tych (Logic.strip_imp_prems imp_body1)
@@ -711,8 +696,8 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                   val mss' = add_prems(mss, map ASSUME ants1)
                   val Q1eeqQ2 = rewrite_cterm (false,true) mss' prover Q1
                                 handle _ => reflexive Q1
-                  val Q2 = get_rhs(S.drop_Trueprop(#prop(rep_thm Q1eeqQ2)))
-                  val Q3 = tych(S.list_mk_comb(list_mk_aabs(vstrl,Q2),vstrl))
+                  val Q2 = get_rhs(HOLogic.dest_Trueprop(#prop(rep_thm Q1eeqQ2)))
+                  val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
                   val Q2eeqQ3 = symmetric(pbeta_reduce Q3 RS eq_reflection)
                   val thA = transitive(QeqQ1 RS eq_reflection) Q1eeqQ2
                   val QeeqQ3 = transitive thA Q2eeqQ3 handle _ =>
@@ -757,12 +742,12 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
          end handle _ => None
 
         fun restrict_prover mss thm =
-          let val _ = say "restrict_prover:\n"
+          let val dummy = say "restrict_prover:\n"
               val cntxt = rev(prems_of_mss mss)
-              val _ = print_thms "cntxt:\n" cntxt
+              val dummy = print_thms "cntxt:\n" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
-              fun genl tm = let val vlist = U.set_diff (U.curry(op aconv))
+              fun genl tm = let val vlist = U.set_diff (curry(op aconv))
                                            (add_term_frees(tm,[])) [func,R]
                             in U.itlist Forall vlist tm
                             end
@@ -780,19 +765,19 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                                handle _ => false
               val nested = U.can(S.find_term is_func)
               val rcontext = rev cntxt
-              val cncl = S.drop_Trueprop o #prop o rep_thm
+              val cncl = HOLogic.dest_Trueprop o #prop o rep_thm
               val antl = case rcontext of [] => [] 
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
-              val _ = print_cterms "func:\n" [cterm_of sign func]
-              val _ = print_cterms "TC:\n" [cterm_of sign (S.mk_prop TC)]
-              val _ = tc_list := (TC :: !tc_list)
+              val dummy = print_cterms "func:\n" [cterm_of sign func]
+              val dummy = print_cterms "TC:\n" [cterm_of sign (HOLogic.mk_Trueprop TC)]
+              val dummy = tc_list := (TC :: !tc_list)
               val nestedp = nested TC
-              val _ = if nestedp then say "nested\n" else say "not_nested\n"
-              val _ = term_ref := ([func,TC]@(!term_ref))
+              val dummy = if nestedp then say "nested\n" else say "not_nested\n"
+              val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR{func = "solver", 
                                                       mesg = "nested function"}
-                        else let val cTC = cterm_of sign (S.mk_prop TC)
+                        else let val cTC = cterm_of sign (HOLogic.mk_Trueprop TC)
                              in case rcontext of
                                 [] => SPEC_ALL(ASSUME cTC)
                                | _ => MP (SPEC_ALL (ASSUME cTC)) 
@@ -809,14 +794,14 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                             prover ctm
     val th2 = equal_elim th1 th
  in
- (th2, U.filter (not o restricted) (!tc_list))
+ (th2, filter (not o restricted) (!tc_list))
  end;
 
 
 
 fun prove (tm,tac) = 
   let val {t,sign,...} = rep_cterm tm
-      val ptm = cterm_of sign(S.mk_prop t)
+      val ptm = cterm_of sign(HOLogic.mk_Trueprop t)
   in
   freeze(prove_goalw_cterm [] ptm (fn _ => [tac]))
   end;

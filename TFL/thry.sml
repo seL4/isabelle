@@ -2,11 +2,6 @@ structure Thry : Thry_sig (* LThry_sig *) =
 struct
 
 structure USyntax  = USyntax;
-type Type = USyntax.Type
-type Preterm = USyntax.Preterm
-type Term = USyntax.Term
-type Thm = Thm.thm
-type Thry = theory;
 
 open Mask;
 structure S = USyntax;
@@ -66,9 +61,9 @@ fun make_definition parent s tm =
        val {Name,Ty} = S.dest_var lhs
        val lhs1 = S.mk_const{Name = Name, Ty = Ty}
        val eeq1 = S.mk_const{Name = eeq_name, Ty = Ty --> Ty --> prop}
-       val dtm = S.list_mk_comb(eeq1,[lhs1,rhs])      (* Rename "=" to "==" *)
+       val dtm = list_comb(eeq1,[lhs1,rhs])      (* Rename "=" to "==" *)
        val (_, tm', _) = Sign.infer_types (sign_of parent)
-	             (K None) (K None) [] true ([dtm],propT)
+                     (K None) (K None) [] true ([dtm],propT)
        val new_thy = add_defs_i [(s,tm')] parent
    in 
    (freezeT((get_axiom new_thy s) RS meta_eq_to_obj_eq), new_thy)
@@ -112,24 +107,24 @@ val prod_record =
  * is temporary, I hope!
  *---------------------------------------------------------------------------*)
 val match_info = fn thy =>
-    fn "*" => Utils.SOME({case_const = #case_const (#2 prod_record),
+    fn "*" => Some({case_const = #case_const (#2 prod_record),
                      constructors = #constructors (#2 prod_record)})
-     | "nat" => Utils.SOME({case_const = #case_const (#2 nat_record),
+     | "nat" => Some({case_const = #case_const (#2 nat_record),
                        constructors = #constructors (#2 nat_record)})
      | ty => case assoc(!datatypes,ty)
-               of None => Utils.NONE
+               of None => None
                 | Some{case_const,constructors, ...} =>
-                   Utils.SOME{case_const=case_const, constructors=constructors}
+                   Some{case_const=case_const, constructors=constructors}
 
 val induct_info = fn thy =>
-    fn "*" => Utils.SOME({nchotomy = #nchotomy (#2 prod_record),
+    fn "*" => Some({nchotomy = #nchotomy (#2 prod_record),
                      constructors = #constructors (#2 prod_record)})
-     | "nat" => Utils.SOME({nchotomy = #nchotomy (#2 nat_record),
+     | "nat" => Some({nchotomy = #nchotomy (#2 nat_record),
                        constructors = #constructors (#2 nat_record)})
      | ty => case assoc(!datatypes,ty)
-               of None => Utils.NONE
+               of None => None
                 | Some{nchotomy,constructors, ...} =>
-                  Utils.SOME{nchotomy=nchotomy, constructors=constructors}
+                  Some{nchotomy=nchotomy, constructors=constructors}
 
 val extract_info = fn thy => 
  let val case_congs = map (#case_cong o #2) (!datatypes)
@@ -139,6 +134,5 @@ val extract_info = fn thy =>
      case_rewrites = #case_rewrites(#2 prod_record)@
                      #case_rewrites(#2 nat_record)@case_rewrites}
  end;
-
 
 end; (* Thry *)

@@ -2,11 +2,7 @@ functor TFL(structure Rules : Rules_sig
             structure Thry  : Thry_sig
             structure Thms  : Thms_sig
             sharing type Rules.binding = Thry.binding = 
-                         Thry.USyntax.binding = Mask.binding
-            sharing type Rules.Type = Thry.Type = Thry.USyntax.Type
-            sharing type Rules.Preterm = Thry.Preterm = Thry.USyntax.Preterm
-            sharing type Rules.Term = Thry.Term = Thry.USyntax.Term
-            sharing type Thms.Thm = Rules.Thm = Thry.Thm) : TFL_sig  =
+                         Thry.USyntax.binding = Mask.binding) : TFL_sig  =
 struct
 
 (* Declarations *)
@@ -15,12 +11,6 @@ structure Rules = Rules;
 structure Thry = Thry;
 structure USyntax = Thry.USyntax;
 
-type Preterm = Thry.USyntax.Preterm;
-type Term = Thry.USyntax.Term;
-type Thm = Thms.Thm;
-type Thry = Thry.Thry;
-type Tactic = Rules.Tactic;
-   
 
 (* Abbreviations *)
 structure R = Rules;
@@ -30,22 +20,16 @@ structure U = S.Utils;
 (* Declares 'a binding datatype *)
 open Mask;
 
-nonfix mem --> |-> ##;
+nonfix mem --> |->;
 val --> = S.-->;
-val ##    = U.##;
 
 infixr 3 -->;
 infixr 7 |->;
-infix  4 ##; 
 
 val concl = #2 o R.dest_thm;
 val hyp = #1 o R.dest_thm;
 
-val list_mk_type = U.end_itlist (U.curry(op -->));
-
-fun flatten [] = []
-  | flatten (h::t) = h@flatten t;
-
+val list_mk_type = U.end_itlist (curry(op -->));
 
 fun gtake f =
   let fun grab(0,rst) = ([],rst)
@@ -59,8 +43,8 @@ fun enumerate L =
  rev(#1(U.rev_itlist (fn x => fn (alist,i) => ((x,i)::alist, i+1)) L ([],0)));
 
 fun stringize [] = ""
-  | stringize [i] = U.int_to_string i
-  | stringize (h::t) = (U.int_to_string h^", "^stringize t);
+  | stringize [i] = Int.toString i
+  | stringize (h::t) = (Int.toString h^", "^stringize t);
 
 
 fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
@@ -78,12 +62,12 @@ local val counter = ref 0
 in
 fun gvvariant vlist =
   let val slist = ref (map (#Name o S.dest_var) vlist)
-      val mem = U.mem (U.curry (op=))
-      val _ = counter := 0
+      val mem = U.mem (curry (op=))
+      val dummy = counter := 0
       fun pass str = 
          if (mem str (!slist)) 
          then ( counter := !counter + 1;
-                pass (U.concat"v" (U.int_to_string(!counter))))
+                pass (U.concat"v" (Int.toString(!counter))))
          else (slist := str :: !slist; str)
   in 
   fn ty => S.mk_var{Name=pass "v",  Ty=ty}
@@ -111,7 +95,7 @@ fun ipartition gv (constructors,rows) =
                      then ((args@rst, rhs)::in_group, not_in_group)
                      else (in_group, row::not_in_group)
                   end)      rows ([],[])
-              val col_types = U.take S.type_of (length L, #1(hd in_group))
+              val col_types = U.take type_of (length L, #1(hd in_group))
           in 
           part{constrs = crst, rows = not_in_group, 
                A = {constructor = c, 
@@ -127,8 +111,8 @@ fun ipartition gv (constructors,rows) =
  * This datatype carries some information about the origin of a
  * clause in a function definition.
  *---------------------------------------------------------------------------*)
-datatype pattern = GIVEN   of S.Preterm * int
-                 | OMITTED of S.Preterm * int
+datatype pattern = GIVEN   of term * int
+                 | OMITTED of term * int
 
 fun psubst theta (GIVEN (tm,i)) = GIVEN(S.subst theta tm, i)
   | psubst theta (OMITTED (tm,i)) = OMITTED(S.subst theta tm, i);
@@ -195,13 +179,13 @@ end;
  * Misc. routines used in mk_case
  *---------------------------------------------------------------------------*)
 
-fun mk_pat c =
-  let val L = length(#1(S.strip_type(S.type_of c)))
+fun mk_pat (c,l) =
+  let val L = length(#1(S.strip_type(type_of c)))
       fun build (prefix,tag,plist) =
-          let val (args,plist') = gtake U.I (L, plist)
-           in (prefix,tag,S.list_mk_comb(c,args)::plist') end
-  in map build 
-  end;
+          let val args   = take (L,plist)
+              and plist' = drop(L,plist)
+          in (prefix,tag,list_comb(c,args)::plist') end
+  in map build l end;
 
 fun v_to_prefix (prefix, v::pats) = (v::prefix,pats)
   | v_to_prefix _ = raise TFL_ERR{func="mk_case", mesg="v_to_prefix"};
@@ -228,7 +212,7 @@ fun mk_case ty_info ty_match FV range_ty =
        if (S.is_var p) 
        then let val fresh = fresh_constr ty_match ty fresh_var
                 fun expnd (c,gvs) = 
-                  let val capp = S.list_mk_comb(c,gvs)
+                  let val capp = list_comb(c,gvs)
                   in ((prefix, capp::rst), psubst[p |-> capp] rhs)
                   end
             in map expnd (map fresh constructors)  end
@@ -241,41 +225,44 @@ fun mk_case ty_info ty_match FV range_ty =
    | mk{path=[], rows = _::_} = mk_case_fail"blunder"
    | mk{path as u::rstp, rows as ((prefix, []), rhs)::rst} = 
         mk{path = path, 
-           rows = ((prefix, [fresh_var(S.type_of u)]), rhs)::rst}
+           rows = ((prefix, [fresh_var(type_of u)]), rhs)::rst}
    | mk{path = u::rstp, rows as ((_, p::_), _)::_} =
-     let val (pat_rectangle,rights) = U.unzip rows
+     let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map(hd o #2) pat_rectangle
      in 
-     if (U.all S.is_var col0) 
-     then let val rights' = map(fn(v,e) => psubst[v|->u] e) (U.zip col0 rights)
+     if (forall S.is_var col0) 
+     then let val rights' = map (fn(v,e) => psubst[v|->u] e)
+                                (ListPair.zip (col0, rights))
               val pat_rectangle' = map v_to_prefix pat_rectangle
               val (pref_patl,tm) = mk{path = rstp,
-                                      rows = U.zip pat_rectangle' rights'}
+                                      rows = ListPair.zip (pat_rectangle',
+                                                           rights')}
           in (map v_to_pats pref_patl, tm)
           end
      else
-     let val pty = S.type_of p
-         val ty_name = (#Tyop o S.dest_type) pty
+     let val pty as Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
-     of U.NONE => mk_case_fail("Not a known datatype: "^ty_name)
-      | U.SOME{case_const,constructors} =>
+     of None => mk_case_fail("Not a known datatype: "^ty_name)
+      | Some{case_const,constructors} =>
         let val case_const_name = #Name(S.dest_const case_const)
-            val nrows = flatten (map (expand constructors pty) rows)
+            val nrows = List_.concat (map (expand constructors pty) rows)
             val subproblems = divide(constructors, pty, range_ty, nrows)
             val groups      = map #group subproblems
             and new_formals = map #new_formals subproblems
             and constructors' = map #constructor subproblems
             val news = map (fn (nf,rows) => {path = nf@rstp, rows=rows})
-                           (U.zip new_formals groups)
+                           (ListPair.zip (new_formals, groups))
             val rec_calls = map mk news
-            val (pat_rect,dtrees) = U.unzip rec_calls
-            val case_functions = map S.list_mk_abs(U.zip new_formals dtrees)
-            val types = map S.type_of (case_functions@[u]) @ [range_ty]
+            val (pat_rect,dtrees) = ListPair.unzip rec_calls
+            val case_functions = map S.list_mk_abs
+                                  (ListPair.zip (new_formals, dtrees))
+            val types = map type_of (case_functions@[u]) @ [range_ty]
             val case_const' = S.mk_const{Name = case_const_name,
                                          Ty   = list_mk_type types}
-            val tree = S.list_mk_comb(case_const', case_functions@[u])
-            val pat_rect1 = flatten(U.map2 mk_pat constructors' pat_rect)
+            val tree = list_comb(case_const', case_functions@[u])
+            val pat_rect1 = List_.concat
+                              (ListPair.map mk_pat (constructors', pat_rect))
         in (pat_rect1,tree)
         end 
      end end
@@ -307,24 +294,26 @@ local fun paired1{lhs,rhs} = (lhs,rhs)
       and paired2{Rator,Rand} = (Rator,Rand)
       fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
       fun single [f] = f
-	| single fs  = mk_functional_err (Int.toString (length fs) ^ 
-					  " distinct function names!")
+        | single fs  = mk_functional_err (Int.toString (length fs) ^ 
+                                          " distinct function names!")
 in
 fun mk_functional thy eqs =
  let val clauses = S.strip_conj eqs
-     val (L,R) = U.unzip (map (paired1 o S.dest_eq o U.snd o S.strip_forall)
-                              clauses)
-     val (funcs,pats) = U.unzip(map (paired2 o S.dest_comb) L)
+     val (L,R) = ListPair.unzip 
+                    (map (paired1 o S.dest_eq o #2 o S.strip_forall)
+                         clauses)
+     val (funcs,pats) = ListPair.unzip(map (paired2 o S.dest_comb) L)
      val f = single (U.mk_set (S.aconv) funcs)
      val fvar = if (S.is_var f) then f else S.mk_var(S.dest_const f)
-     val _ = map (no_repeat_vars thy) pats
-     val rows = U.zip (map (fn x => ([],[x])) pats) (map GIVEN (enumerate R))
+     val dummy = map (no_repeat_vars thy) pats
+     val rows = ListPair.zip (map (fn x => ([],[x])) pats,
+                              map GIVEN (enumerate R))
      val fvs = S.free_varsl R
-     val a = S.variant fvs (S.mk_var{Name="a", Ty = S.type_of(hd pats)})
+     val a = S.variant fvs (S.mk_var{Name="a", Ty = type_of(hd pats)})
      val FV = a::fvs
      val ty_info = Thry.match_info thy
      val ty_match = Thry.match_type thy
-     val range_ty = S.type_of (hd R)
+     val range_ty = type_of (hd R)
      val (patts, case_tm) = mk_case ty_info ty_match FV range_ty 
                                     {path=[a], rows=rows}
      val patts1 = map (fn (_,(tag,i),[pat]) => tag (pat,i)) patts handle _ 
@@ -333,7 +322,7 @@ fun mk_functional thy eqs =
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
      fun int_eq i1 (i2:int) =  (i1=i2)
-     val _ = case (U.set_diff int_eq originals finals)
+     val dummy = case (U.set_diff int_eq originals finals)
              of [] => ()
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
@@ -365,8 +354,8 @@ fun wfrec_definition0 thy R functional =
      val def_name = U.concat Name "_def"
      val (_,ty_theta) = Thry.match_term thy f (S.mk_var{Name=fname,Ty=Ty})
      val wfrec' = S.inst ty_theta wfrec
-     val wfrec_R_M' = S.list_mk_comb(wfrec',[R,functional])
-     val def_term = S.mk_eq{lhs=Bvar, rhs=wfrec_R_M'}
+     val wfrec_R_M' = list_comb(wfrec',[R,functional])
+     val def_term = HOLogic.mk_eq(Bvar, wfrec_R_M')
   in 
   Thry.make_definition thy def_name def_term
   end
@@ -380,7 +369,7 @@ end;
  *---------------------------------------------------------------------------*)
 structure Context =
 struct
-  val non_datatype_context = ref []:Rules.Thm list ref
+  val non_datatype_context = ref []: thm list ref
   fun read() = !non_datatype_context
   fun write L = (non_datatype_context := L)
 end;
@@ -430,14 +419,14 @@ fun post_definition (theory, (def, pats)) =
                          {thms = [(R.ISPECL o map tych)[f,R] Thms.CUT_LEMMA],
                          congs = context_congs,
                             th = th}
-     val (rules, TCs) = U.unzip (map xtract corollaries')
+     val (rules, TCs) = ListPair.unzip (map xtract corollaries')
      val rules0 = map (R.simplify [Thms.CUT_DEF]) rules
      val mk_cond_rule = R.FILTER_DISCH_ALL(not o S.aconv WFR)
      val rules1 = R.LIST_CONJ(map mk_cond_rule rules0)
  in
  {theory = theory,   (* holds def, if it's needed *)
   rules = rules1,
-  full_pats_TCs = merge (map pat_of pats) (U.zip given_pats TCs), 
+  full_pats_TCs = merge (map pat_of pats) (ListPair.zip (given_pats, TCs)), 
   TCs = TCs, 
   patterns = pats}
  end;
@@ -452,8 +441,7 @@ fun wfrec_eqns thy eqns =
      val given_pats = givens pats
      val {Bvar = f, Body} = S.dest_abs functional
      val {Bvar = x, ...} = S.dest_abs Body
-     val {Name,Ty = fty} = S.dest_var f
-     val {Tyop="fun", Args = [f_dty, f_rty]} = S.dest_type fty
+     val {Name, Ty = Type("fun", [f_dty, f_rty])} = S.dest_var f
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
@@ -487,8 +475,8 @@ fun lazyR_def thy eqns =
      val R1 = S.rand WFR
      val f = S.lhs proto_def
      val {Name,...} = S.dest_var f
-     val (extractants,TCl) = U.unzip extracta
-     val TCs = U.Union S.aconv TCl
+     val (extractants,TCl) = ListPair.unzip extracta
+     val TCs = foldr (gen_union (op aconv)) (TCl, [])
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
@@ -502,11 +490,11 @@ fun lazyR_def thy eqns =
                              (R.SPEC (tych R') (R.GENL[tych R1, tych f] baz)))
                      def
      val body_th = R.LIST_CONJ (map (R.ASSUME o tych) full_rqt)
-     val bar = R.MP (R.BETA_RULE(R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX))
+     val bar = R.MP (R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX)
                     body_th
  in {theory = theory, R=R1,
      rules = U.rev_itlist (U.C R.MP) (R.CONJUNCTS bar) def',
-     full_pats_TCs = merge (map pat_of pats) (U.zip (givens pats) TCl),
+     full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
  end;
 
@@ -538,22 +526,21 @@ fun lazyR_def thy eqns =
  * pairing the incoming new variable with the term it gets beta-reduced into.
  *---------------------------------------------------------------------------*)
 
-fun alpha_ex_unroll xlist tm =
+fun alpha_ex_unroll (xlist, tm) =
   let val (qvars,body) = S.strip_exists tm
       val vlist = #2(S.strip_comb (S.rhs body))
-      val plist = U.zip vlist xlist
-      val args = map (U.C (U.assoc1 (U.uncurry S.aconv)) plist) qvars
-      val args' = map (fn U.SOME(_,v) => v 
-                        | U.NONE => raise TFL_ERR{func = "alpha_ex_unroll",
-                                       mesg = "no correspondence"}) args
+      val plist = ListPair.zip (vlist, xlist)
+      val args = map (fn qv => the (gen_assoc (op aconv) (plist, qv))) qvars
+                   handle OPTION _ => error 
+                       "TFL fault [alpha_ex_unroll]: no correspondence"
       fun build ex [] = []
         | build ex (v::rst) =
            let val ex1 = S.beta_conv(S.mk_comb{Rator=S.rand ex, Rand=v})
            in ex1::build ex1 rst
            end
-     val (nex::exl) = rev (tm::build tm args')
+     val (nex::exl) = rev (tm::build tm args)
   in 
-  (nex, U.zip args' (rev exl))
+  (nex, ListPair.zip (args, rev exl))
   end;
 
 
@@ -574,27 +561,28 @@ fun mk_case ty_info FV thy =
    | mk{path=[], rows = [([], (thm, bindings))]} = 
                          R.IT_EXISTS (map tych_binding bindings) thm
    | mk{path = u::rstp, rows as (p::_, _)::_} =
-     let val (pat_rectangle,rights) = U.unzip rows
+     let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map hd pat_rectangle
          val pat_rectangle' = map tl pat_rectangle
      in 
-     if (U.all S.is_var col0) (* column 0 is all variables *)
+     if (forall S.is_var col0) (* column 0 is all variables *)
      then let val rights' = map (fn ((thm,theta),v) => (thm,theta@[u|->v]))
-                                (U.zip rights col0)
-          in mk{path = rstp, rows = U.zip pat_rectangle' rights'}
+                                (ListPair.zip (rights, col0))
+          in mk{path = rstp, rows = ListPair.zip (pat_rectangle', rights')}
           end
      else                     (* column 0 is all constructors *)
-     let val ty_name = (#Tyop o S.dest_type o S.type_of) p
+     let val Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
-     of U.NONE => fail("Not a known datatype: "^ty_name)
-      | U.SOME{constructors,nchotomy} =>
+     of None => fail("Not a known datatype: "^ty_name)
+      | Some{constructors,nchotomy} =>
         let val thm' = R.ISPEC (tych u) nchotomy
             val disjuncts = S.strip_disj (concl thm')
             val subproblems = divide(constructors, rows)
             val groups      = map #group subproblems
             and new_formals = map #new_formals subproblems
-            val existentials = U.map2 alpha_ex_unroll new_formals disjuncts
+            val existentials = ListPair.map alpha_ex_unroll
+                                   (new_formals, disjuncts)
             val constraints = map #1 existentials
             val vexl = map #2 existentials
             fun expnd tm (pats,(th,b)) = (pats,(R.SUBS[R.ASSUME(tych tm)]th,b))
@@ -602,8 +590,10 @@ fun mk_case ty_info FV thy =
                                                rows = map (expnd c) rows})
                            (U.zip3 new_formals groups constraints)
             val recursive_thms = map mk news
-            val build_exists = U.itlist(R.CHOOSE o (tych##(R.ASSUME o tych)))
-            val thms' = U.map2 build_exists vexl recursive_thms
+            val build_exists = foldr
+                                (fn((x,t), th) => 
+                                 R.CHOOSE (tych x, R.ASSUME (tych t)) th)
+            val thms' = ListPair.map build_exists (vexl, recursive_thms)
             val same_concls = R.EVEN_ORS thms'
         in R.DISJ_CASESL thm' same_concls
         end 
@@ -618,11 +608,11 @@ fun complete_cases thy =
      val ty_info = Thry.induct_info thy
  in fn pats =>
  let val FV0 = S.free_varsl pats
-     val a = S.variant FV0 (pmk_var "a" (S.type_of(hd pats)))
-     val v = S.variant (a::FV0) (pmk_var "v" (S.type_of a))
+     val a = S.variant FV0 (pmk_var "a" (type_of(hd pats)))
+     val v = S.variant (a::FV0) (pmk_var "v" (type_of a))
      val FV = a::v::FV0
-     val a_eq_v = S.mk_eq{lhs = a, rhs = v}
-     val ex_th0 = R.EXISTS ((tych##tych) (S.mk_exists{Bvar=v,Body=a_eq_v},a))
+     val a_eq_v = HOLogic.mk_eq(a,v)
+     val ex_th0 = R.EXISTS (tych (S.mk_exists{Bvar=v,Body=a_eq_v}), tych a)
                            (R.REFL (tych a))
      val th0 = R.ASSUME (tych a_eq_v)
      val rows = map (fn x => ([x], (th0,[]))) pats
@@ -665,7 +655,7 @@ fun build_ih f P (pat,TCs) =
          end
  in case TCs
     of [] => (S.list_mk_forall(globals, P^pat), [])
-     |  _ => let val (ihs, TCs_locals) = U.unzip(map dest_TC TCs)
+     |  _ => let val (ihs, TCs_locals) = ListPair.unzip(map dest_TC TCs)
                  val ind_clause = S.list_mk_conj ihs ==> P^pat
              in (S.list_mk_forall(globals,ind_clause), TCs_locals)
              end
@@ -725,15 +715,13 @@ fun LEFT_ABS_VSTRUCT tych thm =
         let val ex_tm = S.mk_exists{Bvar=v,Body=tm}
         in (ex_tm, R.CHOOSE(tych v, R.ASSUME (tych ex_tm)) thm)
         end
-      val [veq] = U.filter (U.can S.dest_eq) (#1 (R.dest_thm thm))
+      val [veq] = filter (U.can S.dest_eq) (#1 (R.dest_thm thm))
       val {lhs,rhs} = S.dest_eq veq
       val L = S.free_vars_lr rhs
-  in U.snd(U.itlist CHOOSER L (veq,thm))
-  end;
+  in  #2 (U.itlist CHOOSER L (veq,thm))  end;
 
 
 fun combize M N = S.mk_comb{Rator=M,Rand=N};
-fun eq v tm = S.mk_eq{lhs=v,rhs=tm};
 
 
 (*----------------------------------------------------------------------------
@@ -746,15 +734,15 @@ fun eq v tm = S.mk_eq{lhs=v,rhs=tm};
 fun mk_induction thy f R pat_TCs_list =
 let val tych = Thry.typecheck thy
     val Sinduction = R.UNDISCH (R.ISPEC (tych R) Thms.WF_INDUCTION_THM)
-    val (pats,TCsl) = U.unzip pat_TCs_list
+    val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
-    val domain = (S.type_of o hd) pats
-    val P = S.variant (S.all_varsl (pats@flatten TCsl))
-                      (S.mk_var{Name="P", Ty=domain --> S.bool})
+    val domain = (type_of o hd) pats
+    val P = S.variant (S.all_varsl (pats @ List_.concat TCsl))
+                      (S.mk_var{Name="P", Ty=domain --> HOLogic.boolT})
     val Sinduct = R.SPEC (tych P) Sinduction
     val Sinduct_assumf = S.rand ((#ant o S.dest_imp o concl) Sinduct)
     val Rassums_TCl' = map (build_ih f P) pat_TCs_list
-    val (Rassums,TCl') = U.unzip Rassums_TCl'
+    val (Rassums,TCl') = ListPair.unzip Rassums_TCl'
     val Rinduct_assum = R.ASSUME (tych (S.list_mk_conj Rassums))
     val cases = map (S.beta_conv o combize Sinduct_assumf) pats
     val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
@@ -762,12 +750,13 @@ let val tych = Thry.typecheck thy
     val v = S.variant (S.free_varsl (map concl proved_cases))
                       (S.mk_var{Name="v", Ty=domain})
     val vtyped = tych v
-    val substs = map (R.SYM o R.ASSUME o tych o eq v) pats
-    val proved_cases1 = U.map2 (fn th => R.SUBS[th]) substs proved_cases
+    val substs = map (R.SYM o R.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
+    val proved_cases1 = ListPair.map (fn (th,th') => R.SUBS[th]th') 
+                          (substs, proved_cases)
     val abs_cases = map (LEFT_ABS_VSTRUCT tych) proved_cases1
     val dant = R.GEN vtyped (R.DISJ_CASESL (R.ISPEC vtyped case_thm) abs_cases)
     val dc = R.MP Sinduct dant
-    val Parg_ty = S.type_of(#Bvar(S.dest_forall(concl dc)))
+    val Parg_ty = type_of(#Bvar(S.dest_forall(concl dc)))
     val vars = map (gvvariant[P]) (S.strip_prod_type Parg_ty)
     val dc' = U.itlist (R.GEN o tych) vars
                        (R.SPEC (tych(S.mk_vstruct Parg_ty vars)) dc)
@@ -880,11 +869,10 @@ let val tych = Thry.typecheck theory
             val r2 = R.FILTER_DISCH_ALL(not o S.is_WFR) r1
         in loop(rst, nthms@extra_tc_thms, r2::R, ind1)
         end
-   val rules_tcs = U.zip (R.CONJUNCTS rules1) TCs
+   val rules_tcs = ListPair.zip (R.CONJUNCTS rules1, TCs)
    val (rules2,ind2,extras) = loop(rules_tcs,[],[],induction1)
 in
   {induction = ind2, rules = R.LIST_CONJ rules2, nested_tcs = extras}
 end;
-
 
 end; (* TFL *)

@@ -5,57 +5,51 @@ sig
    structure Thry : Thry_sig
    structure USyntax : USyntax_sig
 
-   type Preterm
-   type Term
-   type Thm
-   type Thry
-   type Tactic
-   
-   datatype pattern = GIVEN of Preterm * int
-                    | OMITTED of Preterm * int
+   datatype pattern = GIVEN of term * int
+                    | OMITTED of term * int
 
-   val mk_functional : Thry -> Preterm
-                       -> {functional:Preterm,
+   val mk_functional : theory -> term
+                       -> {functional:term,
                            pats: pattern list}
 
-   val wfrec_definition0 : Thry -> Preterm -> Preterm -> Thm * Thry
+   val wfrec_definition0 : theory -> term -> term -> thm * theory
 
-   val post_definition : Thry * (Thm * pattern list)
-                              -> {theory : Thry,
-                                  rules  : Thm, 
-                                    TCs  : Preterm list list,
-                          full_pats_TCs  : (Preterm * Preterm list) list, 
+   val post_definition : theory * (thm * pattern list)
+                              -> {theory : theory,
+                                  rules  : thm, 
+                                    TCs  : term list list,
+                          full_pats_TCs  : (term * term list) list, 
                                patterns  : pattern list}
 
 
-   val wfrec_eqns : Thry -> Preterm
-                     -> {WFR : Preterm, 
-                         proto_def : Preterm,
-                         extracta :(Thm * Preterm list) list,
+   val wfrec_eqns : theory -> term
+                     -> {WFR : term, 
+                         proto_def : term,
+                         extracta :(thm * term list) list,
                          pats  : pattern list}
 
 
-   val lazyR_def : Thry
-                   -> Preterm
-                   -> {theory:Thry,
-                       rules :Thm,
-                           R :Preterm,
-                       full_pats_TCs :(Preterm * Preterm list) list, 
+   val lazyR_def : theory
+                   -> term
+                   -> {theory:theory,
+                       rules :thm,
+                           R :term,
+                       full_pats_TCs :(term * term list) list, 
                        patterns: pattern list}
 
-   val mk_induction : Thry 
-                       -> Preterm -> Preterm 
-                         -> (Preterm * Preterm list) list
-                           -> Thm
+   val mk_induction : theory 
+                       -> term -> term 
+                         -> (term * term list) list
+                           -> thm
 
-   val postprocess: {WFtac:Tactic, terminator:Tactic, simplifier:Term -> Thm}
-                     -> Thry 
-                      -> {rules:Thm, induction:Thm, TCs:Preterm list list}
-                       -> {rules:Thm, induction:Thm, nested_tcs:Thm list}
+   val postprocess: {WFtac:tactic, terminator:tactic, simplifier:cterm -> thm}
+                     -> theory 
+                      -> {rules:thm, induction:thm, TCs:term list list}
+                       -> {rules:thm, induction:thm, nested_tcs:thm list}
 
    structure Context
      : sig
-         val read : unit -> Thm list
-         val write : Thm list -> unit
+         val read : unit -> thm list
+         val write : thm list -> unit
        end
 end;

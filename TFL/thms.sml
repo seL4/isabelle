@@ -1,7 +1,5 @@
 structure Thms : Thms_sig =
 struct
-   type Thm = Thm.thm
-
    val WFREC_COROLLARY = get_thm WF_Rel.thy "tfl_wfrec"
    val WF_INDUCTION_THM = get_thm WF_Rel.thy "tfl_wf_induct"
    val CUT_LEMMA = get_thm WF_Rel.thy "tfl_cut_apply"
