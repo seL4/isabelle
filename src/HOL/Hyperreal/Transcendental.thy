@@ -75,7 +75,7 @@ apply (auto simp add: zero_less_mult_iff)
 apply (rule_tac x = u and y = x in linorder_cases)
 apply (drule_tac n1 = n and x = u in zero_less_Suc [THEN [3] realpow_less])
 apply (drule_tac [4] n1 = n and x = x in zero_less_Suc [THEN [3] realpow_less])
-apply (auto simp add: order_less_irrefl)
+apply (auto)
 done
 
 lemma real_root_pos2: "0 \<le> x ==> root(Suc n) (x ^ (Suc n)) = x"
@@ -100,7 +100,7 @@ apply (rule ccontr)
 apply (rule_tac x = u and y = 1 in linorder_cases)
 apply (drule_tac n = n in realpow_Suc_less_one)
 apply (drule_tac [4] n = n in power_gt1_lemma)
-apply (auto simp add: order_less_irrefl)
+apply (auto)
 done
 
 
@@ -117,7 +117,7 @@ by (simp add: sqrt_def)
 lemma real_sqrt_one [simp]: "sqrt 1 = 1"
 by (simp add: sqrt_def)
 
-lemma real_sqrt_pow2_iff [simp]: "((sqrt x)\<twosuperior> = x) = (0 \<le> x)"
+lemma real_sqrt_pow2_iff [iff]: "((sqrt x)\<twosuperior> = x) = (0 \<le> x)"
 apply (simp add: sqrt_def)
 apply (rule iffI) 
  apply (cut_tac r = "root 2 x" in realpow_two_le)
@@ -130,7 +130,7 @@ lemma [simp]: "(sqrt(u2\<twosuperior> + v2\<twosuperior>))\<twosuperior> = u2\<t
 by (rule realpow_two_le_add_order [THEN real_sqrt_pow2_iff [THEN iffD2]])
 
 lemma real_sqrt_pow2 [simp]: "0 \<le> x ==> (sqrt x)\<twosuperior> = x"
-by (simp add: real_sqrt_pow2_iff)
+by (simp)
 
 lemma real_sqrt_abs_abs [simp]: "sqrt\<bar>x\<bar> ^ 2 = \<bar>x\<bar>"
 by (rule real_sqrt_pow2_iff [THEN iffD2], arith)
@@ -209,13 +209,13 @@ by (auto intro!: real_sqrt_ge_zero simp add: zero_le_mult_iff)
 
 lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
      "sqrt ((x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)) ^ 2 = (x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)"
-by (auto simp add: real_sqrt_pow2_iff zero_le_mult_iff simp del: realpow_Suc)
+by (auto simp add: zero_le_mult_iff simp del: realpow_Suc)
 
 lemma real_sqrt_abs [simp]: "sqrt(x\<twosuperior>) = \<bar>x\<bar>"
 apply (rule abs_realpow_two [THEN subst])
 apply (rule real_sqrt_abs_abs [THEN subst])
 apply (subst real_pow_sqrt_eq_sqrt_pow)
-apply (auto simp add: numeral_2_eq_2 abs_mult)
+apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma real_sqrt_abs2 [simp]: "sqrt(x*x) = \<bar>x\<bar>"
@@ -229,7 +229,7 @@ by simp
 
 lemma real_sqrt_not_eq_zero: "0 < x ==> sqrt x \<noteq> 0"
 apply (frule real_sqrt_pow2_gt_zero)
-apply (auto simp add: numeral_2_eq_2 order_less_irrefl)
+apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma real_inv_sqrt_pow2: "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x"
@@ -269,20 +269,19 @@ apply (cut_tac 'a = real in zero_less_one [THEN dense], safe)
 apply (cut_tac x = r in reals_Archimedean3, auto)
 apply (drule_tac x = "\<bar>x\<bar>" in spec, safe)
 apply (rule_tac N = n and c = r in ratio_test)
-apply (auto simp add: abs_mult mult_assoc [symmetric] simp del: fact_Suc)
+apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc)
 apply (rule mult_right_mono)
 apply (rule_tac b1 = "\<bar>x\<bar>" in mult_commute [THEN ssubst])
 apply (subst fact_Suc)
 apply (subst real_of_nat_mult)
-apply (auto simp add: abs_mult inverse_mult_distrib)
+apply (auto)
 apply (auto simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
 apply (rule order_less_imp_le)
 apply (rule_tac z1 = "real (Suc na)" in real_mult_less_iff1 [THEN iffD1])
-apply (auto simp add: real_not_refl2 [THEN not_sym] mult_assoc abs_inverse)
+apply (auto simp add: real_not_refl2 [THEN not_sym] mult_assoc)
 apply (erule order_less_trans)
 apply (auto simp add: mult_less_cancel_left mult_ac)
 done
-
 
 lemma summable_sin: 
      "summable (%n.  
@@ -321,10 +320,8 @@ lemma lemma_STAR_cos1 [simp]:
 by (induct "n", auto)
 
 lemma lemma_STAR_cos2 [simp]:
-     "sumr 1 n (%n. if even n  
-                    then (- 1) ^ (n div 2)/(real (fact n)) *  
-                          0 ^ n  
-                    else 0) = 0"
+  "(\<Sum>n=1..<n. if even n then (- 1) ^ (n div 2)/(real (fact n)) *  0 ^ n 
+                         else 0) = 0"
 apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
@@ -364,34 +361,33 @@ done
 subsection{*Properties of Power Series*}
 
 lemma lemma_realpow_diff_sumr:
-     "sumr 0 (Suc n) (%p. (x ^ p) * y ^ ((Suc n) - p)) =  
-      y * sumr 0 (Suc n) (%p. (x ^ p) * (y ^ (n - p)))"
-apply (auto simp add: setsum_mult simp del: sumr_Suc)
-apply (rule sumr_subst)
-apply (intro strip)
+     "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
+      y * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))::real)"
+apply (auto simp add: setsum_mult simp del: setsum_Suc)
+apply (rule setsum_cong[OF refl])
 apply (subst lemma_realpow_diff)
 apply (auto simp add: mult_ac)
 done
 
 lemma lemma_realpow_diff_sumr2:
      "x ^ (Suc n) - y ^ (Suc n) =  
-      (x - y) * sumr 0 (Suc n) (%p. (x ^ p) * (y ^(n - p)))"
+      (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^(n - p))::real)"
 apply (induct "n", simp)
-apply (auto simp del: sumr_Suc)
-apply (subst sumr_Suc)
+apply (auto simp del: setsum_Suc)
+apply (subst setsum_Suc)
 apply (drule sym)
-apply (auto simp add: lemma_realpow_diff_sumr right_distrib diff_minus mult_ac simp del: sumr_Suc)
+apply (auto simp add: lemma_realpow_diff_sumr right_distrib diff_minus mult_ac simp del: setsum_Suc)
 done
 
 lemma lemma_realpow_rev_sumr:
-     "sumr 0 (Suc n) (%p. (x ^ p) * (y ^ (n - p))) =  
-      sumr 0 (Suc n) (%p. (x ^ (n - p)) * (y ^ p))"
+     "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =  
+      (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p)::real)"
 apply (case_tac "x = y")
-apply (auto simp add: mult_commute power_add [symmetric] simp del: sumr_Suc)
+apply (auto simp add: mult_commute power_add [symmetric] simp del: setsum_Suc)
 apply (rule_tac c1 = "x - y" in real_mult_left_cancel [THEN iffD1])
 apply (rule_tac [2] minus_minus [THEN subst], simp)
 apply (subst minus_mult_left)
-apply (simp add: lemma_realpow_diff_sumr2 [symmetric] del: sumr_Suc)
+apply (simp add: lemma_realpow_diff_sumr2 [symmetric] del: setsum_Suc)
 done
 
 text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
@@ -412,7 +408,7 @@ apply (rule_tac c="\<bar>x ^ n\<bar>" in mult_right_le_imp_le)
 apply (auto simp add: mult_assoc power_abs)
  prefer 2
  apply (drule_tac x = 0 in spec, force)
-apply (auto simp add: abs_mult power_abs mult_ac)
+apply (auto simp add: power_abs mult_ac)
 apply (rule_tac a2 = "z ^ n" 
        in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
 apply (auto intro!: mult_right_mono simp add: mult_assoc [symmetric] power_abs summable_def power_0_left)
@@ -423,8 +419,7 @@ apply (auto simp add: power_abs [symmetric])
 apply (subgoal_tac "x \<noteq> 0")
 apply (subgoal_tac [3] "x \<noteq> 0")
 apply (auto simp del: abs_inverse abs_mult simp add: abs_inverse [symmetric] realpow_not_zero abs_mult [symmetric] power_inverse power_mult_distrib [symmetric])
-apply (auto intro!: geometric_sums 
-            simp add: power_abs inverse_eq_divide times_divide_eq)
+apply (auto intro!: geometric_sums  simp add: power_abs inverse_eq_divide)
 done
 
 lemma powser_inside:
@@ -443,16 +438,16 @@ by (simp add: diffs_def)
 
 text{*Show that we can shift the terms down one*}
 lemma lemma_diffs:
-     "sumr 0 n (%n. (diffs c)(n) * (x ^ n)) =  
-      sumr 0 n (%n. real n * c(n) * (x ^ (n - Suc 0))) +  
+     "(\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) =  
+      (\<Sum>n=0..<n. real n * c(n) * (x ^ (n - Suc 0))) +  
       (real n * c(n) * x ^ (n - Suc 0))"
 apply (induct "n")
 apply (auto simp add: mult_assoc add_assoc [symmetric] diffs_def)
 done
 
 lemma lemma_diffs2:
-     "sumr 0 n (%n. real n * c(n) * (x ^ (n - Suc 0))) =  
-      sumr 0 n (%n. (diffs c)(n) * (x ^ n)) -  
+     "(\<Sum>n=0..<n. real n * c(n) * (x ^ (n - Suc 0))) =  
+      (\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) -  
       (real n * c(n) * x ^ (n - Suc 0))"
 by (auto simp add: lemma_diffs)
 
@@ -474,10 +469,9 @@ done
 subsection{*Term-by-Term Differentiability of Power Series*}
 
 lemma lemma_termdiff1:
-     "sumr 0 m (%p. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
-        sumr 0 m (%p. (z ^ p) *  
-        (((z + h) ^ (m - p)) - (z ^ (m - p))))"
-apply (rule sumr_subst)
+  "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
+   (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p)))::real)"
+apply (rule setsum_cong[OF refl])
 apply (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac)
 done
 
@@ -489,54 +483,59 @@ by arith
 
 
 lemma lemma_termdiff2:
-     " h \<noteq> 0 ==>  
-        (((z + h) ^ n) - (z ^ n)) * inverse h -  
-            real n * (z ^ (n - Suc 0)) =  
-         h * sumr 0 (n - Suc 0) (%p. (z ^ p) *  
-               sumr 0 ((n - Suc 0) - p)  
-                 (%q. ((z + h) ^ q) * (z ^ (((n - 2) - p) - q))))"
+  "h \<noteq> 0 ==>
+   (((z + h) ^ n) - (z ^ n)) * inverse h - real n * (z ^ (n - Suc 0)) =
+   h * (\<Sum>p=0..< n - Suc 0. (z ^ p) *
+       (\<Sum>q=0..< (n - Suc 0) - p. ((z + h) ^ q) * (z ^ (((n - 2) - p) - q))))"
 apply (rule real_mult_left_cancel [THEN iffD1], simp (no_asm_simp))
 apply (simp add: right_diff_distrib mult_ac)
 apply (simp add: mult_assoc [symmetric])
 apply (case_tac "n")
 apply (auto simp add: lemma_realpow_diff_sumr2 
                       right_diff_distrib [symmetric] mult_assoc
-            simp del: realpow_Suc sumr_Suc)
-apply (auto simp add: lemma_realpow_rev_sumr simp del: sumr_Suc)
+            simp del: realpow_Suc setsum_Suc)
+apply (auto simp add: lemma_realpow_rev_sumr simp del: setsum_Suc)
 apply (auto simp add: real_of_nat_Suc sumr_diff_mult_const left_distrib 
                 sumdiff lemma_termdiff1 setsum_mult)
-apply (auto intro!: sumr_subst simp add: diff_minus real_add_assoc)
-apply (simp add: diff_minus [symmetric] less_iff_Suc_add) 
+apply (auto intro!: setsum_cong[OF refl] simp add: diff_minus real_add_assoc)
+apply (simp add: diff_minus [symmetric] less_iff_Suc_add)
 apply (auto simp add: setsum_mult lemma_realpow_diff_sumr2 mult_ac simp
-                 del: sumr_Suc realpow_Suc)
+                 del: setsum_Suc realpow_Suc)
 done
+
+(* FIXME move *)
+lemma sumr_bound2 [rule_format (no_asm)]:
+     "(\<forall>p. 0 \<le> p & p < n --> (f(p) \<le> K))  
+      --> setsum f {0..<n::nat} \<le> (real n * K)"
+using setsum_bounded[where A = "{0..<n}"]
+by (auto simp:real_of_nat_def)
 
 lemma lemma_termdiff3:
      "[| h \<noteq> 0; \<bar>z\<bar> \<le> K; \<bar>z + h\<bar> \<le> K |]  
       ==> abs (((z + h) ^ n - z ^ n) * inverse h - real n * z ^ (n - Suc 0))  
           \<le> real n * real (n - Suc 0) * K ^ (n - 2) * \<bar>h\<bar>"
 apply (subst lemma_termdiff2, assumption)
-apply (simp add: abs_mult mult_commute) 
+apply (simp add: mult_commute) 
 apply (simp add: mult_commute [of _ "K ^ (n - 2)"]) 
 apply (rule setsum_abs [THEN real_le_trans])
 apply (simp add: mult_assoc [symmetric])
 apply (simp add: mult_commute [of _ "real (n - Suc 0)"])
-apply (auto intro!: sumr_bound2 simp add: abs_mult)
+apply (auto intro!: sumr_bound2)
 apply (case_tac "n", auto)
 apply (drule less_add_one)
 (*CLAIM_SIMP " (a * b * c = a * (c * (b::real))" mult_ac]*)
 apply clarify 
 apply (subgoal_tac "K ^ p * K ^ d * real (Suc (Suc (p + d))) =
                     K ^ p * (real (Suc (Suc (p + d))) * K ^ d)") 
-apply (simp (no_asm_simp) add: power_add del: sumr_Suc)
-apply (auto intro!: mult_mono simp del: sumr_Suc)
-apply (auto intro!: power_mono simp add: power_abs simp del: sumr_Suc)
+apply (simp (no_asm_simp) add: power_add del: setsum_Suc)
+apply (auto intro!: mult_mono simp del: setsum_Suc)
+apply (auto intro!: power_mono simp add: power_abs simp del: setsum_Suc)
 apply (rule_tac j = "real (Suc d) * (K ^ d)" in real_le_trans)
 apply (subgoal_tac [2] "0 \<le> K")
 apply (drule_tac [2] n = d in zero_le_power)
-apply (auto simp del: sumr_Suc)
+apply (auto simp del: setsum_Suc)
 apply (rule setsum_abs [THEN real_le_trans])
-apply (rule sumr_bound2, auto dest!: less_add_one intro!: mult_mono simp add: abs_mult power_add)
+apply (rule sumr_bound2, auto dest!: less_add_one intro!: mult_mono simp add: power_add)
 apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
 done
 
@@ -910,7 +909,7 @@ proof -
   hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
     by (auto simp add: exp_add exp_minus)
   thus ?thesis
-    by (simp add: divide_inverse [symmetric] pos_less_divide_eq times_divide_eq
+    by (simp add: divide_inverse [symmetric] pos_less_divide_eq
              del: divide_self_if)
 qed
 
@@ -1067,7 +1066,8 @@ lemma sin_zero [simp]: "sin 0 = 0"
 by (auto intro!: sums_unique [symmetric] LIMSEQ_const 
          simp add: sin_def sums_def simp del: power_0_left)
 
-lemma lemma_series_zero2: "(\<forall>m. n \<le> m --> f m = 0) --> f sums sumr 0 n f"
+lemma lemma_series_zero2:
+ "(\<forall>m. n \<le> m --> f m = 0) --> f sums setsum f {0..<n}"
 by (auto intro: series_zero)
 
 lemma cos_zero [simp]: "cos 0 = 1"
@@ -1237,7 +1237,6 @@ lemmas DERIV_intros = DERIV_Id DERIV_const DERIV_cos DERIV_cmult
                     DERIV_add  DERIV_diff  DERIV_mult  DERIV_minus 
                     DERIV_inverse_fun DERIV_quotient DERIV_fun_pow 
                     DERIV_fun_exp DERIV_fun_sin DERIV_fun_cos 
-                    DERIV_Id DERIV_const DERIV_cos
 
 (* lemma *)
 lemma lemma_DERIV_sin_cos_add:
@@ -1361,9 +1360,8 @@ apply (erule sums_summable)
 apply (case_tac "m=0")
 apply (simp (no_asm_simp))
 apply (subgoal_tac "6 * (x * (x * x) / real (Suc (Suc (Suc (Suc (Suc (Suc 0))))))) < 6 * x") 
-apply (simp only: mult_less_cancel_left, simp add: times_divide_eq)  
-apply (simp (no_asm_simp) add: times_divide_eq 
-               numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
+apply (simp only: mult_less_cancel_left, simp)  
+apply (simp (no_asm_simp) add: numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
 apply (subgoal_tac "x*x < 2*3", simp) 
 apply (rule mult_strict_mono)
 apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc)
@@ -1375,7 +1373,7 @@ apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
-apply (simp (no_asm) add: divide_inverse inverse_mult_distrib del: fact_Suc)
+apply (simp (no_asm) add: divide_inverse del: fact_Suc)
 apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc)
 apply (rule_tac c="real (Suc (Suc (4*m)))" in mult_less_imp_less_right) 
 apply (auto simp add: mult_assoc simp del: fact_Suc)
@@ -1422,12 +1420,12 @@ lemma cos_two_less_zero: "cos (2) < 0"
 apply (cut_tac x = 2 in cos_paired)
 apply (drule sums_minus)
 apply (rule neg_less_iff_less [THEN iffD1]) 
-apply (frule sums_unique, auto simp add: times_divide_eq)
-apply (rule_tac y = "sumr 0 (Suc (Suc (Suc 0))) 
-                      (%n. - ((- 1) ^ n / (real(fact (2*n))) * 2 ^ (2*n)))" 
+apply (frule sums_unique, auto)
+apply (rule_tac y =
+ "\<Sum>n=0..< Suc(Suc(Suc 0)). - ((- 1) ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
        in order_less_trans)
 apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
-apply (simp (no_asm) add: mult_assoc times_divide_eq del: sumr_Suc)
+apply (simp (no_asm) add: mult_assoc del: setsum_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
@@ -1520,10 +1518,10 @@ apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma cos_pi [simp]: "cos pi = -1"
-by (cut_tac x = "pi/2" and y = "pi/2" in cos_add, simp add: times_divide_eq)
+by (cut_tac x = "pi/2" and y = "pi/2" in cos_add, simp)
 
 lemma sin_pi [simp]: "sin pi = 0"
-by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp add: times_divide_eq)
+by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp)
 
 lemma sin_cos_eq: "sin x = cos (pi/2 - x)"
 by (simp add: diff_minus cos_add)
@@ -1706,7 +1704,7 @@ apply (drule cos_zero_lemma, assumption+)
 apply (cut_tac x="-x" in cos_zero_lemma, simp, simp) 
 apply (force simp add: minus_equation_iff [of x]) 
 apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib) 
-apply (auto simp add: cos_add times_divide_eq)
+apply (auto simp add: cos_add)
 done
 
 (* ditto: but to a lesser extent *)
@@ -1719,7 +1717,7 @@ apply (cut_tac linorder_linear [of 0 x], safe)
 apply (drule sin_zero_lemma, assumption+)
 apply (cut_tac x="-x" in sin_zero_lemma, simp, simp, safe)
 apply (force simp add: minus_equation_iff [of x]) 
-apply (auto simp add: even_mult_two_ex times_divide_eq)
+apply (auto simp add: even_mult_two_ex)
 done
 
 
@@ -1757,7 +1755,7 @@ lemma add_tan_eq:
 apply (simp add: tan_def)
 apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
 apply (auto simp add: mult_assoc left_distrib)
-apply (simp add: sin_add times_divide_eq)
+apply (simp add: sin_add)
 done
 
 lemma tan_add:
@@ -2068,7 +2066,7 @@ lemma isCont_exp [simp]: "isCont exp x"
 by (rule DERIV_exp [THEN DERIV_isCont])
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
-by (auto simp add: sin_zero_iff even_mult_two_ex times_divide_eq)
+by (auto simp add: sin_zero_iff even_mult_two_ex)
 
 lemma exp_eq_one_iff [simp]: "(exp x = 1) = (x = 0)"
 apply auto
@@ -2185,7 +2183,7 @@ done
 lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"
 apply (simp add: divide_inverse)
 apply (case_tac "r=0")
-apply (auto simp add: inverse_mult_distrib mult_ac)
+apply (auto simp add: mult_ac)
 done
 
 
@@ -2456,7 +2454,7 @@ lemma real_sqrt_two_gt_one [simp]: "1 < sqrt 2"
 apply (rule order_less_le_trans [of _ "7/5"], simp) 
 apply (rule_tac n = 1 in realpow_increasing)
   prefer 3 apply (simp add: numeral_2_eq_2 [symmetric] del: realpow_Suc)
-apply (simp_all add: numeral_2_eq_2 times_divide_eq)
+apply (simp_all add: numeral_2_eq_2)
 done
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"

@@ -63,7 +63,7 @@ apply (drule_tac f1 = f in sumc_split_add [symmetric])
 apply (simp add: add_ac)
 done
 
-lemma sumc_cmod: "cmod(sumc m n f) \<le> sumr m n (%i. cmod(f i))"
+lemma sumc_cmod: "cmod(sumc m n f) \<le> (\<Sum>i=m..<n. cmod(f i))"
 apply (induct "n")
 apply (auto intro: complex_mod_triangle_ineq [THEN order_trans])
 done
@@ -147,11 +147,11 @@ by (arith_tac 1)
 qed_spec_mp "sumc_ge_zero2";
 ***)
 
-lemma sumr_cmod_ge_zero [iff]: "0 \<le> sumr m n (%n. cmod (f n))"
-by (induct "n", auto simp add: add_increasing) 
+lemma sumr_cmod_ge_zero [iff]: "0 \<le> (\<Sum>n=m..<n::nat. cmod (f n))"
+by (induct "n", auto simp add: add_increasing)
 
 lemma rabs_sumc_cmod_cancel [simp]:
-     "abs (sumr m n (%n. cmod (f n))) = (sumr m n (%n. cmod (f n)))"
+     "abs (\<Sum>n=m..<n::nat. cmod (f n)) = (\<Sum>n=m..<n. cmod (f n))"
 by (simp add: abs_if linorder_not_less)
 
 lemma sumc_one_lb_complexpow_zero [simp]: "sumc 1 n (%n. f(n) * 0 ^ n) = 0"

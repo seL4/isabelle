@@ -167,7 +167,7 @@ lemma FreeUltrafilterNat_Compl_mem:
      "X\<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
 apply (cut_tac FreeUltrafilterNat_mem [THEN FreeUltrafilter_iff [THEN iffD1]])
 apply (safe, drule_tac x = X in bspec)
-apply (auto simp add: UNIV_diff_Compl)
+apply (auto)
 done
 
 lemma FreeUltrafilterNat_Compl_iff1:
@@ -183,11 +183,8 @@ apply (drule FreeUltrafilterNat_finite)
 apply (simp add: FreeUltrafilterNat_Compl_iff2 [symmetric])
 done
 
-lemma FreeUltrafilterNat_UNIV [simp]: "(UNIV::nat set) \<in> FreeUltrafilterNat"
+lemma FreeUltrafilterNat_UNIV [iff]: "UNIV \<in> FreeUltrafilterNat"
 by (rule FreeUltrafilterNat_mem [THEN FreeUltrafilter_Ultrafilter, THEN Ultrafilter_Filter, THEN mem_FiltersetD4])
-
-lemma FreeUltrafilterNat_Nat_set [simp]: "UNIV \<in> FreeUltrafilterNat"
-by auto
 
 lemma FreeUltrafilterNat_Nat_set_refl [intro]:
      "{n. P(n) = P(n)} \<in> FreeUltrafilterNat"
@@ -200,7 +197,7 @@ lemma FreeUltrafilterNat_Ex_P: "{n. P(n)} \<in> FreeUltrafilterNat ==> \<exists>
 by (rule ccontr, simp)
 
 lemma FreeUltrafilterNat_all: "\<forall>n. P(n) ==> {n. P(n)} \<in> FreeUltrafilterNat"
-by (auto intro: FreeUltrafilterNat_Nat_set)
+by (auto)
 
 
 text{*Define and use Ultrafilter tactics*}
@@ -335,8 +332,7 @@ by (force simp add: congruent_def)
 
 lemma hypreal_minus: 
    "- (Abs_hypreal(hyprel``{%n. X n})) = Abs_hypreal(hyprel `` {%n. -(X n)})"
-by (simp add: hypreal_minus_def Abs_hypreal_inject 
-              hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
+by (simp add: hypreal_minus_def hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
               UN_equiv_class [OF equiv_hyprel hypreal_minus_congruent])
 
 lemma hypreal_diff:
@@ -348,7 +344,7 @@ lemma hypreal_add_minus [simp]: "z + -z = (0::hypreal)"
 by (cases z, simp add: hypreal_zero_def hypreal_minus hypreal_add)
 
 lemma hypreal_add_minus_left: "-z + z = (0::hypreal)"
-by (simp add: hypreal_add_commute hypreal_add_minus)
+by (simp add: hypreal_add_commute)
 
 
 subsection{*Hyperreal Multiplication*}
@@ -390,8 +386,7 @@ by (auto simp add: congruent_def, ultra)
 lemma hypreal_inverse: 
       "inverse (Abs_hypreal(hyprel``{%n. X n})) =  
        Abs_hypreal(hyprel `` {%n. if X n = 0 then 0 else inverse(X n)})"
-by (simp add: hypreal_inverse_def Abs_hypreal_inject 
-              hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
+by (simp add: hypreal_inverse_def hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
               UN_equiv_class [OF equiv_hyprel hypreal_inverse_congruent])
 
 lemma hypreal_mult_inverse: 
@@ -466,7 +461,7 @@ instance hypreal :: linorder
   by intro_classes (rule hypreal_le_linear)
 
 lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
-by (auto simp add: order_less_irrefl)
+by (auto)
 
 lemma hypreal_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::hypreal)"
 apply (cases x, cases y, cases z)
@@ -702,7 +697,6 @@ val FreeUltrafilterNat_Compl_mem = thm "FreeUltrafilterNat_Compl_mem";
 val FreeUltrafilterNat_Compl_iff1 = thm "FreeUltrafilterNat_Compl_iff1";
 val FreeUltrafilterNat_Compl_iff2 = thm "FreeUltrafilterNat_Compl_iff2";
 val FreeUltrafilterNat_UNIV = thm "FreeUltrafilterNat_UNIV";
-val FreeUltrafilterNat_Nat_set = thm "FreeUltrafilterNat_Nat_set";
 val FreeUltrafilterNat_Nat_set_refl = thm "FreeUltrafilterNat_Nat_set_refl";
 val FreeUltrafilterNat_P = thm "FreeUltrafilterNat_P";
 val FreeUltrafilterNat_Ex_P = thm "FreeUltrafilterNat_Ex_P";

@@ -162,5 +162,78 @@ val diff_Suc_diff_eq1 = thm "diff_Suc_diff_eq1";
 val diff_Suc_diff_eq2 = thm "diff_Suc_diff_eq2";
 *}
 
+subsection{*Embedding of the Naturals into any @{text
+comm_semiring_1_cancel}: @{term of_nat}*}
+
+consts of_nat :: "nat => 'a::comm_semiring_1_cancel"
+
+primrec
+  of_nat_0:   "of_nat 0 = 0"
+  of_nat_Suc: "of_nat (Suc m) = of_nat m + 1"
+
+lemma of_nat_1 [simp]: "of_nat 1 = 1"
+by simp
+
+lemma of_nat_add [simp]: "of_nat (m+n) = of_nat m + of_nat n"
+apply (induct m)
+apply (simp_all add: add_ac)
+done
+
+lemma of_nat_mult [simp]: "of_nat (m*n) = of_nat m * of_nat n"
+apply (induct m)
+apply (simp_all add: mult_ac add_ac right_distrib)
+done
+
+lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semidom)"
+apply (induct m, simp_all)
+apply (erule order_trans)
+apply (rule less_add_one [THEN order_less_imp_le])
+done
+
+lemma less_imp_of_nat_less:
+     "m < n ==> of_nat m < (of_nat n::'a::ordered_semidom)"
+apply (induct m n rule: diff_induct, simp_all)
+apply (insert add_le_less_mono [OF zero_le_imp_of_nat zero_less_one], force)
+done
+
+lemma of_nat_less_imp_less:
+     "of_nat m < (of_nat n::'a::ordered_semidom) ==> m < n"
+apply (induct m n rule: diff_induct, simp_all)
+apply (insert zero_le_imp_of_nat)
+apply (force simp add: linorder_not_less [symmetric])
+done
+
+lemma of_nat_less_iff [simp]:
+     "(of_nat m < (of_nat n::'a::ordered_semidom)) = (m<n)"
+by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
+
+text{*Special cases where either operand is zero*}
+declare of_nat_less_iff [of 0, simplified, simp]
+declare of_nat_less_iff [of _ 0, simplified, simp]
+
+lemma of_nat_le_iff [simp]:
+     "(of_nat m \<le> (of_nat n::'a::ordered_semidom)) = (m \<le> n)"
+by (simp add: linorder_not_less [symmetric])
+
+text{*Special cases where either operand is zero*}
+declare of_nat_le_iff [of 0, simplified, simp]
+declare of_nat_le_iff [of _ 0, simplified, simp]
+
+text{*The ordering on the @{text comm_semiring_1_cancel} is necessary
+to exclude the possibility of a finite field, which indeed wraps back to
+zero.*}
+lemma of_nat_eq_iff [simp]:
+     "(of_nat m = (of_nat n::'a::ordered_semidom)) = (m = n)"
+by (simp add: order_eq_iff)
+
+text{*Special cases where either operand is zero*}
+declare of_nat_eq_iff [of 0, simplified, simp]
+declare of_nat_eq_iff [of _ 0, simplified, simp]
+
+lemma of_nat_diff [simp]:
+     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::comm_ring_1)"
+by (simp del: of_nat_add
+	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
+
 
 end

@@ -389,7 +389,7 @@ done
 lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat(floor x) = n"
 apply (rule inj_int [THEN injD])
 apply (simp add: real_of_nat_Suc)
-apply (simp add: real_of_nat_Suc floor_eq floor_eq [where n = "of_nat n"])
+apply (simp add: real_of_nat_Suc floor_eq floor_eq [where n = "int n"])
 done
 
 lemma floor_eq4: "[| real n \<le> x; x < real (Suc n) |] ==> nat(floor x) = n"
@@ -532,7 +532,3 @@ val real_of_int_ceiling_le_add_one = thm "real_of_int_ceiling_le_add_one";
 
 
 end
-
-
-
-

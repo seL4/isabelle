@@ -771,7 +771,7 @@ apply (drule_tac x = u in spec, auto)
 apply (drule_tac c = "u - hypreal_of_real x" and b = "hypreal_of_real D" in approx_mult1)
 apply (drule_tac [!] hypreal_not_eq_minus_iff [THEN iffD1])
 apply (subgoal_tac [2] "( *f* (%z. z-x)) u \<noteq> (0::hypreal) ")
-apply (auto simp add: times_divide_eq_left diff_minus
+apply (auto simp add: diff_minus
 	       approx_minus_iff [THEN iffD1, THEN mem_infmal_iff [THEN iffD2]]
 		     Infinitesimal_subset_HFinite [THEN subsetD])
 done
@@ -787,7 +787,7 @@ apply (auto simp add: diff_minus)
 apply (drule_tac x = h in bspec)
 apply (drule_tac [2] c = h in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: times_divide_eq_left diff_minus)
+            simp add: diff_minus)
 done
 
 lemma NSDERIVD3:
@@ -799,7 +799,7 @@ apply (auto simp add: nsderiv_def)
 apply (rule ccontr, drule_tac x = h in bspec)
 apply (drule_tac [2] c = h in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc times_divide_eq_left diff_minus)
+            simp add: mult_assoc diff_minus)
 done
 
 text{*Now equivalence between NSDERIV and DERIV*}
@@ -821,7 +821,7 @@ apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
 apply (drule_tac x3=D in
            HFinite_hypreal_of_real [THEN [2] Infinitesimal_HFinite_mult,
              THEN mem_infmal_iff [THEN iffD1]])
-apply (auto simp add: times_divide_eq_right mult_commute
+apply (auto simp add: mult_commute
             intro: approx_trans approx_minus_iff [THEN iffD2])
 done
 
@@ -872,7 +872,7 @@ lemma lemma_nsderiv2: "[| (x + y) / z = hypreal_of_real D + yb; z \<noteq> 0;
 apply (frule_tac c1 = z in hypreal_mult_right_cancel [THEN iffD2], assumption)
 apply (erule_tac V = "(x + y) / z = hypreal_of_real D + yb" in thin_rl)
 apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add
-            simp add: times_divide_eq_left mult_assoc mem_infmal_iff [symmetric])
+            simp add: mult_assoc mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
@@ -983,7 +983,7 @@ apply (frule_tac b1 = "hypreal_of_real (D) + y"
         in hypreal_mult_right_cancel [THEN iffD2])
 apply (erule_tac [2] V = "(( *f* f) (hypreal_of_real (x) + h) + - hypreal_of_real (f x)) / h = hypreal_of_real (D) + y" in thin_rl)
 apply assumption
-apply (simp add: times_divide_eq_left times_divide_eq_right [symmetric])
+apply (simp add: times_divide_eq_right [symmetric])
 apply (auto simp add: left_distrib)
 done
 
@@ -1188,7 +1188,7 @@ proof
   show "\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) \<and> isCont g x \<and> g x = l"
   proof (intro exI conjI)
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
-    show "\<forall>z. f z - f x = ?g z * (z-x)" by (simp add: times_divide_eq)
+    show "\<forall>z. f z - f x = ?g z * (z-x)" by (simp)
     show "isCont ?g x" using der
       by (simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -1327,13 +1327,13 @@ lemma Bolzano_bisect_Suc_le_snd: "a \<le> b ==>
    \<forall>n. snd(Bolzano_bisect P a b (Suc n)) \<le> snd (Bolzano_bisect P a b n)"
 apply (rule allI)
 apply (induct_tac "n")
-apply (auto simp add: Bolzano_bisect_le Let_def split_def times_divide_eq)
+apply (auto simp add: Bolzano_bisect_le Let_def split_def)
 done
 
 lemma eq_divide_2_times_iff: "((x::real) = y / (2 * z)) = (2 * x = y/z)" 
-apply (auto simp add: times_divide_eq) 
+apply (auto)
 apply (drule_tac f = "%u. (1/2) *u" in arg_cong)
-apply (simp add: times_divide_eq) 
+apply (simp)
 done
 
 lemma Bolzano_bisect_diff:
@@ -1798,7 +1798,7 @@ next
   hence ba: "b-a \<noteq> 0" by arith
   show ?thesis
     by (rule real_mult_left_cancel [OF ba, THEN iffD1],
-        simp add: times_divide_eq right_diff_distrib, 
+        simp add: right_diff_distrib, 
         simp add: left_diff_distrib)
 qed
 
@@ -1834,8 +1834,7 @@ proof -
   proof (intro exI conjI)
     show "a < z" .
     show "z < b" .
-    show "f b - f a = (b - a) * ((f b - f a)/(b-a))" 
-      by (simp add: times_divide_eq)
+    show "f b - f a = (b - a) * ((f b - f a)/(b-a))" by (simp)
     show "DERIV f z :> ((f b - f a)/(b-a))"  using derF by simp
   qed
 qed
@@ -1885,14 +1884,14 @@ done
 lemma DERIV_const_ratio_const2:
      "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b-a) = k"
 apply (rule_tac c1 = "b-a" in real_mult_right_cancel [THEN iffD1])
-apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc times_divide_eq)
+apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc)
 done
 
 lemma real_average_minus_first [simp]: "((a + b) /2 - a) = (b-a)/(2::real)"
-by (simp add: times_divide_eq) 
+by (simp) 
 
 lemma real_average_minus_second [simp]: "((b + a)/2 - a) = (b-a)/(2::real)"
-by (simp add: times_divide_eq) 
+by (simp) 
 
 text{*Gallileo's "trick": average velocity = av. of end velocities*}
 

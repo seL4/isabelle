@@ -15,10 +15,10 @@ constdefs
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
    "sumhr p == 
       (%(M,N,f). Abs_hypreal(\<Union>X \<in> Rep_hypnat(M). \<Union>Y \<in> Rep_hypnat(N).  
-                             hyprel ``{%n::nat. sumr (X n) (Y n) f})) p"
+                             hyprel ``{%n::nat. setsum f {X n..<Y n}})) p"
 
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
-   "f NSsums s  == (%n. sumr 0 n f) ----NS> s"
+   "f NSsums s  == (%n. setsum f {0..<n}) ----NS> s"
 
   NSsummable :: "(nat=>real) => bool"
    "NSsummable f == (\<exists>s. f NSsums s)"
@@ -30,9 +30,9 @@ constdefs
 lemma sumhr: 
      "sumhr(Abs_hypnat(hypnatrel``{%n. M n}),  
             Abs_hypnat(hypnatrel``{%n. N n}), f) =  
-      Abs_hypreal(hyprel `` {%n. sumr (M n) (N n) f})"
+      Abs_hypreal(hyprel `` {%n. setsum f {M n..<N n}})"
 apply (simp add: sumhr_def)
-apply (rule arg_cong [where f = Abs_hypreal]) 
+apply (rule arg_cong [where f = Abs_hypreal])
 apply (auto, ultra)
 done
 
@@ -84,7 +84,7 @@ done
 lemma sumhr_split_add: "n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
 apply (cases n, cases p)
 apply (auto elim!: FreeUltrafilterNat_subset simp 
-            add: hypnat_zero_def sumhr hypreal_add hypnat_less sumr_split_add)
+            add: hypnat_zero_def sumhr hypreal_add hypnat_less setsum_add_nat_ivl)
 done
 
 lemma sumhr_split_diff: "n<p ==> sumhr(0,p,f) - sumhr(0,n,f) = sumhr(n,p,f)"
@@ -124,7 +124,7 @@ done
 lemma sumhr_shift_bounds:
      "sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) = sumhr(m,n,%i. f(i + k))"
 apply (cases m, cases n)
-apply (simp add: sumhr hypnat_add sumr_shift_bounds hypnat_of_nat_eq)
+apply (simp add: sumhr hypnat_add setsum_shift_bounds_nat_ivl hypnat_of_nat_eq)
 done
 
 
@@ -147,15 +147,20 @@ by (simp del: realpow_Suc
          add: sumhr hypnat_add nat_mult_2 [symmetric] hypreal_zero_def 
               hypnat_zero_def hypnat_omega_def)
 
+(* FIXME move *)
+lemma setsum_ivl_cong:
+ "i = m \<Longrightarrow> j = n \<Longrightarrow> (!!x. m <= x \<Longrightarrow> x < n \<Longrightarrow> f x = g x) \<Longrightarrow>
+ setsum f {i..<j} = setsum g {m..<n}"
+by(rule setsum_cong, simp_all)
+
 lemma sumhr_interval_const:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
       ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) =  
           (hypreal_of_nat (na - m) * hypreal_of_real r)"
-by (auto dest!: sumr_interval_const 
-         simp add: hypreal_of_real_def sumhr hypreal_of_nat_eq 
-                   hypnat_of_nat_eq hypreal_of_real_def hypreal_mult)
+by(simp add: sumhr hypreal_of_nat_eq hypnat_of_nat_eq hypreal_of_real_def
+             real_of_nat_def hypreal_mult cong: setsum_ivl_cong)
 
-lemma starfunNat_sumr: "( *fNat* (%n. sumr 0 n f)) N = sumhr(0,N,f)"
+lemma starfunNat_sumr: "( *fNat* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
 apply (cases N)
 apply (simp add: hypnat_zero_def starfunNat sumhr)
 done
@@ -192,7 +197,8 @@ done
 lemma NSsums_unique: "f NSsums s ==> (s = NSsuminf f)"
 by (simp add: suminf_NSsuminf_iff [symmetric] sums_NSsums_iff sums_unique)
 
-lemma NSseries_zero: "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (sumr 0 n f)"
+lemma NSseries_zero:
+  "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (setsum f {0..<n})"
 by (simp add: sums_NSsums_iff [symmetric] series_zero)
 
 lemma NSsummable_NSCauchy:

@@ -40,7 +40,7 @@ constdefs
   --{*Riemann sum*}
 
   rsum :: "[((nat=>real)*(nat=>real)),real=>real] => real"
-  "rsum == %(D,p) f. sumr 0 (psize(D)) (%n. f(p n) * (D(Suc n) - D(n)))"
+  "rsum == %(D,p) f. \<Sum>n=0..<psize(D). f(p n) * (D(Suc n) - D(n))"
 
   --{*Gauge integrability (definite)*}
 
@@ -331,7 +331,7 @@ apply (auto dest: partition_eq simp add: gauge_def tpart_def rsum_def)
 done
 
 lemma sumr_partition_eq_diff_bounds [simp]:
-     "sumr 0 m (%n. D (Suc n) - D n) = D(m) - D 0"
+     "(\<Sum>n=0..<m. D (Suc n) - D n::real) = D(m) - D 0"
 by (induct "m", auto)
 
 lemma Integral_eq_diff_bounds: "a \<le> b ==> Integral(a,b) (%x. 1) (b - a)"
@@ -453,7 +453,7 @@ apply (drule_tac e = "ea/ (b - a)" in lemma_straddle)
 apply (auto simp add: zero_less_divide_iff)
 apply (rule exI)
 apply (auto simp add: tpart_def rsum_def)
-apply (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = f b - f a")
+apply (subgoal_tac "(\<Sum>n=0..<psize D. f(D(Suc n)) - f(D n)) = f b - f a")
  prefer 2
  apply (cut_tac D = "%n. f (D n)" and m = "psize D"
         in sumr_partition_eq_diff_bounds)
@@ -461,10 +461,10 @@ apply (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = f b - f a")
 apply (drule sym, simp)
 apply (simp (no_asm) add: setsum_subtractf[symmetric])
 apply (rule setsum_abs [THEN order_trans])
-apply (subgoal_tac "ea = sumr 0 (psize D) (%n. (ea / (b - a)) * (D (Suc n) - (D n)))")
+apply (subgoal_tac "ea = (\<Sum>n=0..<psize D. (ea / (b - a)) * (D (Suc n) - (D n)))")
 apply (simp add: abs_minus_commute)
 apply (rule_tac t = ea in ssubst, assumption)
-apply (rule sumr_le2)
+apply (rule setsum_mono)
 apply (rule_tac [2] setsum_mult [THEN subst])
 apply (auto simp add: partition_rhs partition_lhs partition_lb partition_ub
           fine_def)
@@ -812,7 +812,7 @@ lemma lemma_Integral_rsum_le:
          tpart(a,b) (D,p)
       |] ==> rsum(D,p) f \<le> rsum(D,p) g"
 apply (simp add: rsum_def)
-apply (auto intro!: sumr_le2 dest: tpart_partition [THEN partition_lt_gen2]
+apply (auto intro!: setsum_mono dest: tpart_partition [THEN partition_lt_gen2]
                dest!: lemma_Integral_le)
 done
 

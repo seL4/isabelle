@@ -71,7 +71,7 @@ by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
 lemma hrabs_hrealpow_two [simp]:
      "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)"
-by (simp add: abs_mult)
+by (simp)
 
 lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::hypreal"], simp)

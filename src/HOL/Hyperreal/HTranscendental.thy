@@ -56,7 +56,6 @@ by (simp add: starfun hypreal_one_num)
 lemma hypreal_sqrt_pow2_iff: "(( *f* sqrt)(x) ^ 2 = x) = (0 \<le> x)"
 apply (cases x)
 apply (auto simp add: hypreal_le hypreal_zero_num starfun hrealpow 
-                      real_sqrt_pow2_iff 
             simp del: hpowr_Suc realpow_Suc)
 done
 
@@ -586,7 +585,7 @@ lemma STAR_sin_pi_divide_HNatInfinite_approx_pi:
 apply (frule STAR_sin_Infinitesimal_divide
                [OF Infinitesimal_pi_divide_HNatInfinite 
                    pi_divide_HNatInfinite_not_zero])
-apply (auto simp add: inverse_mult_distrib)
+apply (auto)
 apply (rule approx_SReal_mult_cancel [of "inverse (hypreal_of_real pi)"])
 apply (auto intro: SReal_inverse simp add: divide_inverse mult_ac)
 done

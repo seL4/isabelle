@@ -9,25 +9,32 @@ theory MacLaurin
 imports Log
 begin
 
-lemma sumr_offset: "sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"
+(* FIXME generalize? *)
+lemma sumr_offset:
+ "(\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
 by (induct "n", auto)
 
-lemma sumr_offset2: "\<forall>f. sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"
+lemma sumr_offset2:
+ "\<forall>f. (\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
 by (induct "n", auto)
 
-lemma sumr_offset3: "sumr 0 (n+k) f = sumr 0 n (%m. f (m+k)) + sumr 0 k f"
+lemma sumr_offset3:
+  "setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
 by (simp  add: sumr_offset)
 
-lemma sumr_offset4: "\<forall>n f. sumr 0 (n+k) f = sumr 0 n (%m. f (m+k)) + sumr 0 k f"
+lemma sumr_offset4:
+ "\<forall>n f. setsum f {0::nat..<n+k} =
+        (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
 by (simp add: sumr_offset)
 
+(*
 lemma sumr_from_1_from_0: "0 < n ==>
-      sumr (Suc 0) (Suc n) (%n. (if even(n) then 0 else
-             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n) =
-      sumr 0 (Suc n) (%n. (if even(n) then 0 else
-             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n)"
+      (\<Sum>n=Suc 0 ..< Suc n. if even(n) then 0 else
+             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n =
+      (\<Sum>n=0..<Suc n. if even(n) then 0 else
+             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n"
 by (rule_tac n1 = 1 in sumr_split_add [THEN subst], auto)
-
+*)
 
 subsection{*Maclaurin's Theorem with Lagrange Form of Remainder*}
 
@@ -36,12 +43,12 @@ into lemmas.*}
 
 lemma Maclaurin_lemma:
     "0 < h ==>
-     \<exists>B. f h = sumr 0 n (%m. (j m / real (fact m)) * (h^m)) +
+     \<exists>B. f h = (\<Sum>m=0..<n. (j m / real (fact m)) * (h^m)) +
                (B * ((h^n) / real(fact n)))"
-apply (rule_tac x = "(f h - sumr 0 n (%m. (j m / real (fact m)) * h^m)) *
+apply (rule_tac x = "(f h - (\<Sum>m=0..<n. (j m / real (fact m)) * h^m)) *
                  real(fact n) / (h^n)"
        in exI)
-apply (simp add: times_divide_eq) 
+apply (simp) 
 done
 
 lemma eq_diff_eq': "(x = y - z) = (y = x + (z::real))"
@@ -92,9 +99,9 @@ apply (rule_tac [2] DERIV_pow)
   prefer 3 apply (simp add: fact_diff_Suc)
  prefer 2 apply simp
 apply (frule_tac m = m in less_add_one, clarify)
-apply (simp del: sumr_Suc)
+apply (simp del: setsum_Suc)
 apply (insert sumr_offset4 [of 1])
-apply (simp del: sumr_Suc fact_Suc realpow_Suc)
+apply (simp del: setsum_Suc fact_Suc realpow_Suc)
 apply (rule lemma_DERIV_subst)
 apply (rule DERIV_add)
 apply (rule_tac [2] DERIV_const)
@@ -106,7 +113,7 @@ apply (rule lemma_DERIV_subst)
 apply (best intro: DERIV_chain2 intro!: DERIV_intros)
 apply (subst fact_Suc)
 apply (subst real_of_nat_mult)
-apply (simp add: inverse_mult_distrib mult_ac)
+apply (simp add: mult_ac)
 done
 
 
@@ -137,7 +144,7 @@ lemma Maclaurin:
     ==> \<exists>t. 0 < t &
               t < h &
               f h =
-              sumr 0 n (%m. (diff m 0 / real (fact m)) * h ^ m) +
+              setsum (%m. (diff m 0 / real (fact m)) * h ^ m) {0..<n} +
               (diff n t / real (fact n)) * h ^ n"
 apply (case_tac "n = 0", force)
 apply (drule not0_implies_Suc)
@@ -145,15 +152,15 @@ apply (erule exE)
 apply (frule_tac f=f and n=n and j="%m. diff m 0" in Maclaurin_lemma)
 apply (erule exE)
 apply (subgoal_tac "\<exists>g.
-     g = (%t. f t - (sumr 0 n (%m. (diff m 0 / real(fact m)) * t^m) + (B * (t^n / real(fact n)))))")
+     g = (%t. f t - (setsum (%m. (diff m 0 / real(fact m)) * t^m) {0..<n} + (B * (t^n / real(fact n)))))")
  prefer 2 apply blast
 apply (erule exE)
 apply (subgoal_tac "g 0 = 0 & g h =0")
  prefer 2
- apply (simp del: sumr_Suc)
+ apply (simp del: setsum_Suc)
  apply (cut_tac n = m and k = 1 in sumr_offset2)
- apply (simp add: eq_diff_eq' del: sumr_Suc)
-apply (subgoal_tac "\<exists>difg. difg = (%m t. diff m t - (sumr 0 (n - m) (%p. (diff (m + p) 0 / real (fact p)) * (t ^ p)) + (B * ((t ^ (n - m)) / real (fact (n - m))))))")
+ apply (simp add: eq_diff_eq' del: setsum_Suc)
+apply (subgoal_tac "\<exists>difg. difg = (%m t. diff m t - (setsum (%p. (diff (m + p) 0 / real (fact p)) * (t ^ p)) {0..<n-m} + (B * ((t ^ (n - m)) / real (fact (n - m))))))")
  prefer 2 apply blast
 apply (erule exE)
 apply (subgoal_tac "difg 0 = g")
@@ -165,15 +172,15 @@ apply (subgoal_tac "\<forall>ma. ma < n --> (\<exists>t. 0 < t & t < h & difg (S
   apply (simp (no_asm_simp))
  apply (erule exE)
  apply (rule_tac x = t in exI)
- apply (simp add: times_divide_eq del: realpow_Suc fact_Suc)
+ apply (simp del: realpow_Suc fact_Suc)
 apply (subgoal_tac "\<forall>m. m < n --> difg m 0 = 0")
  prefer 2
  apply clarify
  apply simp
  apply (frule_tac m = ma in less_add_one, clarify)
- apply (simp del: sumr_Suc)
+ apply (simp del: setsum_Suc)
 apply (insert sumr_offset4 [of 1])
-apply (simp del: sumr_Suc fact_Suc realpow_Suc)
+apply (simp del: setsum_Suc fact_Suc realpow_Suc)
 apply (subgoal_tac "\<forall>m. m < n --> (\<exists>t. 0 < t & t < h & DERIV (difg m) t :> 0) ")
 apply (rule allI, rule impI)
 apply (drule_tac x = ma and P="%m. m<n --> (\<exists>t. ?QQ m t)" in spec)
@@ -181,11 +188,11 @@ apply (erule impE, assumption)
 apply (erule exE)
 apply (rule_tac x = t in exI)
 (* do some tidying up *)
-apply (erule_tac [!] V= "difg = (%m t. diff m t - (sumr 0 (n - m) (%p. diff (m + p) 0 / real (fact p) * t ^ p) + B * (t ^ (n - m) / real (fact (n - m)))))"
+apply (erule_tac [!] V= "difg = (%m t. diff m t - (setsum (%p. diff (m + p) 0 / real (fact p) * t ^ p) {0..<n-m} + B * (t ^ (n - m) / real (fact (n - m)))))"
        in thin_rl)
-apply (erule_tac [!] V="g = (%t. f t - (sumr 0 n (%m. diff m 0 / real (fact m) * t ^ m) + B * (t ^ n / real (fact n))))"
+apply (erule_tac [!] V="g = (%t. f t - (setsum (%m. diff m 0 / real (fact m) * t ^ m) {0..<n} + B * (t ^ n / real (fact n))))"
        in thin_rl)
-apply (erule_tac [!] V="f h = sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) + B * (h ^ n / real (fact n))"
+apply (erule_tac [!] V="f h = setsum (%m. diff m 0 / real (fact m) * h ^ m) {0..<n} + B * (h ^ n / real (fact n))"
        in thin_rl)
 (* back to business *)
 apply (simp (no_asm_simp))
@@ -215,7 +222,7 @@ lemma Maclaurin_objl:
     --> (\<exists>t. 0 < t &
               t < h &
               f h =
-              sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n)"
 by (blast intro: Maclaurin)
 
@@ -227,7 +234,7 @@ lemma Maclaurin2:
     ==> \<exists>t. 0 < t &
               t \<le> h &
               f h =
-              sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n"
 apply (case_tac "n", auto)
 apply (drule Maclaurin, auto)
@@ -240,7 +247,7 @@ lemma Maclaurin2_objl:
     --> (\<exists>t. 0 < t &
               t \<le> h &
               f h =
-              sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n)"
 by (blast intro: Maclaurin2)
 
@@ -250,12 +257,12 @@ lemma Maclaurin_minus:
     ==> \<exists>t. h < t &
               t < 0 &
               f h =
-              sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n"
 apply (cut_tac f = "%x. f (-x)"
         and diff = "%n x. ((- 1) ^ n) * diff n (-x)"
         and h = "-h" and n = n in Maclaurin_objl)
-apply (simp add: times_divide_eq) 
+apply (simp)
 apply safe
 apply (subst minus_mult_right)
 apply (rule DERIV_cmult)
@@ -278,7 +285,7 @@ lemma Maclaurin_minus_objl:
     --> (\<exists>t. h < t &
               t < 0 &
               f h =
-              sumr 0 n (%m. diff m 0 / real (fact m) * h ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n)"
 by (blast intro: Maclaurin_minus)
 
@@ -299,12 +306,12 @@ lemma Maclaurin_bi_le:
        \<forall>m t. m < n & abs t \<le> abs x --> DERIV (diff m) t :> diff (Suc m) t |]
     ==> \<exists>t. abs t \<le> abs x &
               f x =
-              sumr 0 n (%m. diff m 0 / real (fact m) * x ^ m) +
+              (\<Sum>m=0..<n. diff m 0 / real (fact m) * x ^ m) +
               diff n t / real (fact n) * x ^ n"
 apply (case_tac "n = 0", force)
 apply (case_tac "x = 0")
 apply (rule_tac x = 0 in exI)
-apply (force simp add: Maclaurin_bi_le_lemma times_divide_eq)
+apply (force simp add: Maclaurin_bi_le_lemma)
 apply (cut_tac x = x and y = 0 in linorder_less_linear, auto)
 txt{*Case 1, where @{term "x < 0"}*}
 apply (cut_tac f = "diff 0" and diff = diff and h = x and n = n in Maclaurin_minus_objl, safe)
@@ -323,7 +330,7 @@ lemma Maclaurin_all_lt:
          \<forall>m x. DERIV (diff m) x :> diff(Suc m) x;
         x ~= 0; 0 < n
       |] ==> \<exists>t. 0 < abs t & abs t < abs x &
-               f x = sumr 0 n (%m. (diff m 0 / real (fact m)) * x ^ m) +
+               f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n"
 apply (rule_tac x = x and y = 0 in linorder_cases)
 prefer 2 apply blast
@@ -337,21 +344,21 @@ lemma Maclaurin_all_lt_objl:
       (\<forall>m x. DERIV (diff m) x :> diff(Suc m) x) &
       x ~= 0 & 0 < n
       --> (\<exists>t. 0 < abs t & abs t < abs x &
-               f x = sumr 0 n (%m. (diff m 0 / real (fact m)) * x ^ m) +
+               f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n)"
 by (blast intro: Maclaurin_all_lt)
 
 lemma Maclaurin_zero [rule_format]:
      "x = (0::real)
       ==> 0 < n -->
-          sumr 0 n (%m. (diff m (0::real) / real (fact m)) * x ^ m) =
+          (\<Sum>m=0..<n. (diff m (0::real) / real (fact m)) * x ^ m) =
           diff 0 0"
 by (induct n, auto)
 
 lemma Maclaurin_all_le: "[| diff 0 = f;
         \<forall>m x. DERIV (diff m) x :> diff (Suc m) x
       |] ==> \<exists>t. abs t \<le> abs x &
-              f x = sumr 0 n (%m. (diff m 0 / real (fact m)) * x ^ m) +
+              f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                     (diff n t / real (fact n)) * x ^ n"
 apply (insert linorder_le_less_linear [of n 0])
 apply (erule disjE, force)
@@ -366,7 +373,7 @@ done
 lemma Maclaurin_all_le_objl: "diff 0 = f &
       (\<forall>m x. DERIV (diff m) x :> diff (Suc m) x)
       --> (\<exists>t. abs t \<le> abs x &
-              f x = sumr 0 n (%m. (diff m 0 / real (fact m)) * x ^ m) +
+              f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                     (diff n t / real (fact n)) * x ^ n)"
 by (blast intro: Maclaurin_all_le)
 
@@ -376,14 +383,14 @@ subsection{*Version for Exponential Function*}
 lemma Maclaurin_exp_lt: "[| x ~= 0; 0 < n |]
       ==> (\<exists>t. 0 < abs t &
                 abs t < abs x &
-                exp x = sumr 0 n (%m. (x ^ m) / real (fact m)) +
+                exp x = (\<Sum>m=0..<n. (x ^ m) / real (fact m)) +
                         (exp t / real (fact n)) * x ^ n)"
 by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_lt_objl, auto)
 
 
 lemma Maclaurin_exp_le:
      "\<exists>t. abs t \<le> abs x &
-            exp x = sumr 0 n (%m. (x ^ m) / real (fact m)) +
+            exp x = (\<Sum>m=0..<n. (x ^ m) / real (fact m)) +
                        (exp t / real (fact n)) * x ^ n"
 by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_le_objl, auto)
 
@@ -421,29 +428,29 @@ text{*It is unclear why so many variant results are needed.*}
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
        sin x =
-       (sumr 0 n (%m. (if even m then 0
+       (\<Sum>m=0..<n. (if even m then 0
                        else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
-                       x ^ m))
+                       x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and x = x
         and diff = "%n x. sin (x + 1/2*real n * pi)" in Maclaurin_all_lt_objl)
 apply safe
 apply (simp (no_asm))
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (case_tac "n", clarify, simp, simp)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
+apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 lemma Maclaurin_sin_expansion:
      "\<exists>t. sin x =
-       (sumr 0 n (%m. (if even m then 0
+       (\<Sum>m=0..<n. (if even m then 0
                        else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
-                       x ^ m))
+                       x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (insert Maclaurin_sin_expansion2 [of x n]) 
 apply (blast intro: elim:); 
@@ -455,63 +462,60 @@ lemma Maclaurin_sin_expansion3:
      "[| 0 < n; 0 < x |] ==>
        \<exists>t. 0 < t & t < x &
        sin x =
-       (sumr 0 n (%m. (if even m then 0
+       (\<Sum>m=0..<n. (if even m then 0
                        else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
-                       x ^ m))
+                       x ^ m)
       + ((sin(t + 1/2 * real(n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
 apply simp
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
+apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 lemma Maclaurin_sin_expansion4:
      "0 < x ==>
        \<exists>t. 0 < t & t \<le> x &
        sin x =
-       (sumr 0 n (%m. (if even m then 0
+       (\<Sum>m=0..<n. (if even m then 0
                        else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
-                       x ^ m))
+                       x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
 apply safe
 apply simp
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
-apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex times_divide_eq)
+apply (auto simp add: sin_zero_iff odd_Suc_mult_two_ex)
 done
 
 
 subsection{*Maclaurin Expansion for Cosine Function*}
 
 lemma sumr_cos_zero_one [simp]:
-     "sumr 0 (Suc n)
-         (%m. (if even m
-               then (- 1) ^ (m div 2)/(real  (fact m))
-               else 0) *
-              0 ^ m) = 1"
+ "(\<Sum>m=0..<(Suc n).
+     (if even m then (- 1) ^ (m div 2)/(real  (fact m)) else 0) * 0 ^ m) = 1"
 by (induct "n", auto)
 
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &
        cos x =
-       (sumr 0 n (%m. (if even m
+       (\<Sum>m=0..<n. (if even m
                        then (- 1) ^ (m div 2)/(real (fact m))
                        else 0) *
-                       x ^ m))
+                       x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and x = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_all_lt_objl)
 apply safe
 apply (simp (no_asm))
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (case_tac "n", simp)
-apply (simp del: sumr_Suc)
+apply (simp del: setsum_Suc)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
@@ -524,15 +528,15 @@ lemma Maclaurin_cos_expansion2:
      "[| 0 < x; 0 < n |] ==>
        \<exists>t. 0 < t & t < x &
        cos x =
-       (sumr 0 n (%m. (if even m
+       (\<Sum>m=0..<n. (if even m
                        then (- 1) ^ (m div 2)/(real (fact m))
                        else 0) *
-                       x ^ m))
+                       x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
 apply simp
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -543,15 +547,15 @@ lemma Maclaurin_minus_cos_expansion:
      "[| x < 0; 0 < n |] ==>
        \<exists>t. x < t & t < 0 &
        cos x =
-       (sumr 0 n (%m. (if even m
+       (\<Sum>m=0..<n. (if even m
                        then (- 1) ^ (m div 2)/(real (fact m))
                        else 0) *
-                       x ^ m))
+                       x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_minus_objl)
 apply safe
 apply simp
-apply (simp (no_asm) add: times_divide_eq)
+apply (simp (no_asm))
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -567,7 +571,7 @@ lemma sin_bound_lemma:
 by auto
 
 lemma Maclaurin_sin_bound:
-  "abs(sin x - sumr 0 n (%m. (if even m then 0 else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+  "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
   x ^ m))  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"
 proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"

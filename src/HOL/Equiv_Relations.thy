@@ -327,7 +327,7 @@ apply(subst card_UN_disjoint)
    apply assumption
   apply simp
  apply(fastsimp simp add:inj_on_def)
-apply (simp add:setsum_constant_nat)
+apply (simp add:setsum_constant)
 done
 
 ML

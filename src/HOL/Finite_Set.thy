@@ -1064,17 +1064,6 @@ next
     by (simp add: setsum_def)
 qed
 
-lemma setsum_mono2_nat:
-  assumes fin: "finite B" and sub: "A \<subseteq> B"
-shows "setsum f A \<le> (setsum f B :: nat)"
-proof -
-  have "setsum f A \<le> setsum f A + setsum f (B-A)" by arith
-  also have "\<dots> = setsum f (A \<union> (B-A))" using fin finite_subset[OF sub fin]
-    by (simp add:setsum_Un_disjoint del:Un_Diff_cancel)
-  also have "A \<union> (B-A) = B" using sub by blast
-  finally show ?thesis .
-qed
-
 lemma setsum_negf:
  "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
 proof (cases "finite A")
@@ -1118,6 +1107,30 @@ next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
+lemma setsum_mono2:
+fixes f :: "'a \<Rightarrow> 'b :: {pordered_ab_semigroup_add_imp_le,comm_monoid_add}"
+assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
+shows "setsum f A \<le> setsum f B"
+proof -
+  have "setsum f A \<le> setsum f A + setsum f (B-A)"
+    by(simp add: add_increasing2[OF setsum_nonneg] nn Ball_def)
+  also have "\<dots> = setsum f (A \<union> (B-A))" using fin finite_subset[OF sub fin]
+    by (simp add:setsum_Un_disjoint del:Un_Diff_cancel)
+  also have "A \<union> (B-A) = B" using sub by blast
+  finally show ?thesis .
+qed
+(*
+lemma setsum_mono2_nat:
+  assumes fin: "finite B" and sub: "A \<subseteq> B"
+shows "setsum f A \<le> (setsum f B :: nat)"
+proof -
+  have "setsum f A \<le> setsum f A + setsum f (B-A)" by arith
+  also have "\<dots> = setsum f (A \<union> (B-A))" using fin finite_subset[OF sub fin]
+    by (simp add:setsum_Un_disjoint del:Un_Diff_cancel)
+  also have "A \<union> (B-A) = B" using sub by blast
+  finally show ?thesis .
+qed
+*)
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
@@ -1159,6 +1172,26 @@ proof (cases "finite A")
     case empty thus ?case by simp
   next
     case (insert x A) thus ?case by (auto intro: order_trans)
+  qed
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
+
+lemma abs_setsum_abs[simp]: 
+  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  shows "abs (\<Sum>a\<in>A. abs(f a)) = (\<Sum>a\<in>A. abs(f a))"
+proof (cases "finite A")
+  case True
+  thus ?thesis
+  proof (induct)
+    case empty thus ?case by simp
+  next
+    case (insert a A)
+    hence "\<bar>\<Sum>a\<in>insert a A. \<bar>f a\<bar>\<bar> = \<bar>\<bar>f a\<bar> + (\<Sum>a\<in>A. \<bar>f a\<bar>)\<bar>" by simp
+    also have "\<dots> = \<bar>\<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>\<bar>"  using insert by simp
+    also have "\<dots> = \<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>" by simp
+    also have "\<dots> = (\<Sum>a\<in>insert a A. \<bar>f a\<bar>)" using insert by simp
+    finally show ?case .
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
@@ -1430,7 +1463,7 @@ lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
   by (simp add: card_insert_if)
 
 lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow> card A \<le> card B"
-by (simp add: card_def setsum_mono2_nat)
+by (simp add: card_def setsum_mono2)
 
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
   apply (induct set: Finites, simp, clarify)
@@ -1497,12 +1530,12 @@ apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition
 done
 
 
-lemma setsum_constant_nat: "(\<Sum>x\<in>A. y) = (card A) * y"
-  -- {* Generalized to any @{text comm_semiring_1_cancel} in
-        @{text IntDef} as @{text setsum_constant}. *}
-apply (cases "finite A") 
-apply (erule finite_induct, auto)
+lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
+apply (cases "finite A")
+apply (erule finite_induct)
+apply (auto simp add: ring_distrib add_ac)
 done
+
 
 lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
   apply (erule finite_induct)
@@ -1512,15 +1545,18 @@ lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card
 
 subsubsection {* Cardinality of unions *}
 
+lemma of_nat_id[simp]: "(of_nat n :: nat) = n"
+by(induct n, auto)
+
 lemma card_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
-  apply (simp add: card_def)
+  apply (simp add: card_def del: setsum_constant)
   apply (subgoal_tac
            "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
-  apply (simp add: setsum_UN_disjoint)
-  apply (simp add: setsum_constant_nat cong: setsum_cong)
+  apply (simp add: setsum_UN_disjoint del: setsum_constant)
+  apply (simp cong: setsum_cong)
   done
 
 lemma card_Union_disjoint:
@@ -1546,7 +1582,7 @@ lemma card_image_le: "finite A ==> card (f ` A) <= card A"
   done
 
 lemma card_image: "inj_on f A ==> card (f ` A) = card A"
-by(simp add:card_def setsum_reindex o_def)
+by(simp add:card_def setsum_reindex o_def del:setsum_constant)
 
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
   by (simp add: card_seteq card_image)
@@ -1587,18 +1623,17 @@ lemma SigmaI_insert: "y \<notin> A ==>
 lemma card_SigmaI [simp]:
   "\<lbrakk> finite A; ALL a:A. finite (B a) \<rbrakk>
   \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
-by(simp add:card_def setsum_Sigma)
+by(simp add:card_def setsum_Sigma del:setsum_constant)
 
 lemma card_cartesian_product: "card (A <*> B) = card(A) * card(B)"
 apply (cases "finite A") 
 apply (cases "finite B") 
-  apply (simp add: setsum_constant_nat) 
 apply (auto simp add: card_eq_0_iff
-            dest: finite_cartesian_productD1 finite_cartesian_productD2) 
+            dest: finite_cartesian_productD1 finite_cartesian_productD2)
 done
 
 lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
-by (simp add: card_cartesian_product) 
+by (simp add: card_cartesian_product)
 
 
 

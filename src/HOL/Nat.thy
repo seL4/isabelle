@@ -1022,4 +1022,5 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (fastsimp dest: mult_less_mono2)
   done
 
+
 end

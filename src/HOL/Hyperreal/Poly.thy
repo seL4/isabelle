@@ -1026,7 +1026,7 @@ lemma poly_mono: "abs(x) \<le> k ==> abs(poly p x) \<le> poly (map abs p) k"
 apply (induct "p", auto)
 apply (rule_tac j = "abs a + abs (x * poly p x)" in real_le_trans)
 apply (rule abs_triangle_ineq)
-apply (auto intro!: mult_mono simp add: abs_mult, arith)
+apply (auto intro!: mult_mono, arith)
 done
 
 ML

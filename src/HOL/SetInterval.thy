@@ -589,6 +589,22 @@ special form for @{term"{..<n}"}. *}
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)
 
+lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
+  setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
+by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)
+
+lemma setsum_diff_nat_ivl:
+fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
+  setsum f {m..<p} - setsum f {m..<n} = setsum f {n..<p}"
+using setsum_add_nat_ivl [of m n p f,symmetric]
+apply (simp add: add_ac)
+done
+
+lemma setsum_shift_bounds_nat_ivl:
+  "setsum f {m+k..<n+k} = setsum (%i. f(i + k)){m..<n::nat}"
+by (induct "n", auto simp:atLeastLessThanSuc)
+
 
 ML
 {*

@@ -169,7 +169,7 @@ apply (drule lemmaLIM [THEN [2] FreeUltrafilterNat_subset])
 apply (drule FreeUltrafilterNat_all)
 apply (erule_tac V = "{n. \<bar>Y n\<bar> < r} : FreeUltrafilterNat" in thin_rl)
 apply (drule FreeUltrafilterNat_Int, assumption)
-apply (simp add: lemmaLIM2 FreeUltrafilterNat_empty)
+apply (simp add: lemmaLIM2)
 done
 
 lemma NSLIMSEQ_LIMSEQ: "X ----NS> L ==> X ----> L"
@@ -207,7 +207,7 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add)
 lemma NSLIMSEQ_mult:
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
 by (auto intro!: approx_mult_HFinite 
-        simp add: NSLIMSEQ_def hypreal_of_real_mult starfunNat_mult [symmetric])
+        simp add: NSLIMSEQ_def starfunNat_mult [symmetric])
 
 lemma LIMSEQ_mult: "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_mult)
@@ -707,7 +707,7 @@ apply (drule_tac M = M in lemmaCauchy1)
 apply (drule_tac M = M in lemmaCauchy1)
 apply (rule_tac x1 = xa in lemmaCauchy2 [THEN [2] FreeUltrafilterNat_subset])
 apply (rule FreeUltrafilterNat_Int)
-apply (auto intro: FreeUltrafilterNat_Int FreeUltrafilterNat_Nat_set)
+apply (auto intro: FreeUltrafilterNat_Int)
 done
 
 subsubsection{*Nonstandard Implies Standard*}

@@ -319,6 +319,11 @@ lemma add_increasing:
   shows  "[|0\<le>a; b\<le>c|] ==> b \<le> a + c"
 by (insert add_mono [of 0 a b c], simp)
 
+lemma add_increasing2:
+  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  shows  "[|0\<le>c; b\<le>a|] ==> b \<le> a + c"
+by (simp add:add_increasing add_commute[of a])
+
 lemma add_strict_increasing:
   fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows "[|0<a; b\<le>c|] ==> b < a + c"
@@ -806,7 +811,7 @@ by (insert abs_le_D1 [of "-a"], simp)
 lemma abs_le_iff: "(abs a \<le> b) = (a \<le> b & -a \<le> (b::'a::lordered_ab_group_abs))"
 by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
-lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::lordered_ab_group_abs)"
+lemma abs_triangle_ineq: "abs(a+b) \<le> abs a + abs(b::'a::lordered_ab_group_abs)"
 proof -
   have g:"abs a + abs b = join (a+b) (join (-a-b) (join (-a+b) (a + (-b))))" (is "_=join ?m ?n")
     apply (simp add: abs_lattice add_meet_join_distribs join_aci)
@@ -827,6 +832,17 @@ proof -
   have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
   also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
   finally show ?thesis .
+qed
+
+lemma abs_add_abs[simp]:
+fixes a:: "'a::{lordered_ab_group_abs}"
+shows "abs(abs a + abs b) = abs a + abs b" (is "?L = ?R")
+proof (rule order_antisym)
+  show "?L \<ge> ?R" by(rule abs_ge_self)
+next
+  have "?L \<le> \<bar>\<bar>a\<bar>\<bar> + \<bar>\<bar>b\<bar>\<bar>" by(rule abs_triangle_ineq)
+  also have "\<dots> = ?R" by simp
+  finally show "?L \<le> ?R" .
 qed
 
 text {* Needed for abelian cancellation simprocs: *}
