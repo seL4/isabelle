@@ -109,7 +109,7 @@ fun getenv var = drop_last_char
 end;
 
 
-(* non-ASCII input (see also Thy/symbol_input.ML) *)
+(* non-ASCII input (see also Thy/use.ML) *)
 
 val needs_filtered_use =
   (case explode ml_system of

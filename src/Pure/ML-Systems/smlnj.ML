@@ -117,6 +117,6 @@ fun getenv var =
   | SOME txt => txt);
 
 
-(* non-ASCII input (see also Thy/symbol_input.ML) *)
+(* non-ASCII input (see also Thy/use.ML) *)
 
 val needs_filtered_use = false;
