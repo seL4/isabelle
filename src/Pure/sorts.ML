@@ -84,8 +84,8 @@ val rems_sort = gen_rems eq_sort;
   arities: table of association lists of all type arities; (t, ars)
     means that type constructor t has the arities ars; an element (c,
     Ss) of ars represents the arity t::(Ss)c.  "Coregularity" of the
-    arities structure requires that for any two declarations t:(Ss1)c1
-    and t:(Ss2)c2 such that c1 <= c2 holds Ss1 <= Ss2.
+    arities structure requires that for any two declarations
+    t::(Ss1)c1 and t::(Ss2)c2 such that c1 <= c2 holds Ss1 <= Ss2.
 *)
 
 type classes = stamp Graph.T;

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Compatibility file for Poly/ML (version 4.0).
+Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 *)
 
 (** ML system related **)
@@ -26,13 +26,16 @@ val chr = SML90.chr;
 val explode = SML90.explode;
 val implode = SML90.implode;
 
+
 (* compiler-independent timing functions *)
 
 use "ML-Systems/cpu-timer-basis.ML";
 
+
 (* bounded time execution *)
 
 use "ML-Systems/polyml-time-limit.ML";
+
 
 (* prompts *)
 
