@@ -1148,12 +1148,8 @@ val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_ta
 
 (* contradiction *)
 
-(* FIXME
-val contradiction = Method.METHOD (fn facts =>
-  Method.FINISHED (ALLGOALS (Method.same_tac facts THEN' (contr_tac ORELSE' assume_tac))));
-*)
-
-val contradiction = Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
+val contradiction =
+  Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
 
 
 (* automatic methods *)
@@ -1188,10 +1184,10 @@ val setup_methods = Method.add_methods
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("safe_tac", cla_method safe_tac, "safe_tac"),
   ("safe_step", cla_method' safe_step_tac, "step_tac"),
-  ("fast", cla_method' fast_tac, "fast_tac"),
-  ("best", cla_method' best_tac, "best_tac"),
-  ("slow", cla_method' slow_tac, "slow_tac"),
-  ("slow_best", cla_method' slow_best_tac, "slow_best_tac")];
+  ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
+  ("best", cla_method' best_tac, "classical prover (best-first)"),
+  ("slow", cla_method' slow_tac, "classical prover (depth-first, more backtracking)"),
+  ("slow_best", cla_method' slow_best_tac, "classical prover (best-first, more backtracking)")];
 
 
 
