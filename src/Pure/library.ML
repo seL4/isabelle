@@ -514,6 +514,10 @@ fun ([]:int list) subset_int ys = true
 fun ([]:string list) subset_string ys = true
   | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
 
+(*set equality*)
+fun eq_set (xs, ys) =
+  xs = ys orelse (xs subset ys andalso ys subset xs);
+
 (*set equality for strings*)
 fun eq_set_string ((xs:string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
