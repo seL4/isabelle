@@ -151,7 +151,7 @@ proof -
                   "is_class G cname" and
               oT: "G\<turnstile> oT\<preceq> (Class cname)" and
               vT: "G\<turnstile> vT\<preceq> b" and
-              xc: "Ball (set (match G (Xcpt NullPointer) pc et)) (is_class G)"
+              xc: "Ball (set (match G NullPointer pc et)) (is_class G)"
         by force
       moreover
       from s1 G
