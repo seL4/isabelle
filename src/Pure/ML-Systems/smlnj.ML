@@ -43,7 +43,7 @@ fun print_depth n =
 (* compiler-independent timing functions *)
 
 (case #version_id (Compiler.version) of
-  [110, x] => if x >= 45
+  [110, x] => if x >= 44
 	      then use "ML-Systems/cpu-timer-basis.ML"
 	      else use "ML-Systems/cpu-timer-gc.ML"
 | _ => use "ML-Systems/cpu-timer-gc.ML");
@@ -56,7 +56,7 @@ fun ml_prompts p1 p2 =
 
 
 (case #version_id (Compiler.version) of
-  [110, x] => if x >= 45
+  [110, x] => if x >= 44
 	      then use "ML-Systems/smlnj-basis-compat.ML"
 	      else ()
 | _ => ());
@@ -64,7 +64,7 @@ fun ml_prompts p1 p2 =
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
 (case #version_id (Compiler.version) of
-  [110, x] => if x >= 45
+  [110, x] => if x >= 44
 	      then use "ML-Systems/smlnj-pp-new.ML"
 	      else use "ML-Systems/smlnj-pp-old.ML"
 | _ => use "ML-Systems/smlnj-pp-old.ML");

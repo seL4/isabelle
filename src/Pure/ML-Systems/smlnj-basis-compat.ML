@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 
-Compatibility file for Standard ML of New Jersey 110.45 or later. Here
+Compatibility file for Standard ML of New Jersey 110.44 or later. Here
 signatures that have changed to adhere to the SML Basis Library are
 changed back to their old values. So much for standards...
 *)
