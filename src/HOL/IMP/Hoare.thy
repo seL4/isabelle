@@ -3,47 +3,32 @@
     Author: 	Tobias Nipkow
     Copyright   1995 TUM
 
-Semantic embedding of Hoare logic
+Inductive definition of Hoare logic
 *)
 
 Hoare = Denotation +
+
+types assn = state => bool
+
 consts
+  hoare :: "(assn * com * assn) set"
   spec :: [state=>bool,com,state=>bool] => bool
-(* syntax "@spec" :: [bool,com,bool] => bool *)
-          ("{{(1_)}}/ (_)/ {{(1_)}}" 10)
 defs
   spec_def "spec P c Q == !s t. (s,t) : C(c) --> P s --> Q t"
-end
-(* Pretty-printing of assertions.
-   Not very helpful as long as programs are not pretty-printed.
-ML
 
-local open Syntax
+syntax "@hoare" :: [bool,com,bool] => bool ("{{(1_)}}/ (_)/ {{(1_)}}" 10)
+translations "{{P}}c{{Q}}" == "(P,c,Q) : hoare"
 
-fun is_loc a = let val ch = hd(explode a)
-               in ord "A" <= ord ch andalso ord ch <= ord "Z" end;
-
-fun tr(s$t,i) = tr(s,i)$tr(t,i)
-  | tr(Abs(x,T,u),i) = Abs(x,T,tr(u,i+1))
-  | tr(t as Free(a,T),i) = if is_loc a then Bound(i) $ free(a) else t
-  | tr(t,_) = t;
-
-fun cond_tr(p) = Abs("",dummyT,tr(p,0))
-
-fun spec_tr[p,c,q] = const"spec" $ cond_tr p $ c $ cond_tr q;
-
-fun tr'(t as (Bound j $ (u as Free(a,_))),i) = if i=j then u else t
-  | tr'(s$t,i) = tr'(s,i)$tr'(t,i)
-  | tr'(Abs(x,T,u),i) = Abs(x,T,tr'(u,i+1))
-  | tr'(t,_) = t;
-
-fun spec_tr'[Abs(_,_,p),c,Abs(_,_,q)] =
-  const"@spec" $ tr'(p,0) $ c $ tr'(q,0);
-
-in
-
-val parse_translation = [("@spec", spec_tr)];
-val print_translation = [("spec", spec_tr')];
+inductive "hoare"
+intrs
+  hoare_skip "{{P}}skip{{P}}"
+  hoare_ass  "{{%s.P(s[A a s/x])}} x:=a {{P}}"
+  hoare_semi "[| {{P}}c{{Q}}; {{Q}}d{{R}} |] ==> {{P}} c;d {{R}}"
+  hoare_if   "[| {{%s. P s & B b s}}c{{Q}}; {{%s. P s & ~B b s}}d{{Q}} |] ==>
+              {{P}} ifc b then c else d {{Q}}"
+  hoare_while "[| {{%s. P s & B b s}} c {{P}} |] ==>
+	       {{P}} while b do c {{%s. P s & ~B b s}}"
+  hoare_conseq "[| !s. P' s --> P s; {{P}}c{{Q}}; !s. Q s --> Q' s |] ==>
+		{{P'}}c{{Q'}}"
 
 end
-*)

@@ -10,4 +10,4 @@ writeln"Root file for HOL/IMP";
 proof_timing := true;
 time_use_thy "Properties";
 time_use_thy "Equiv";
-time_use_thy "Hoare";
+time_use_thy "VC";

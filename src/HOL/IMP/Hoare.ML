@@ -3,55 +3,28 @@
     Author: 	Tobias Nipkow
     Copyright   1995 TUM
 
-Derivation of Hoare rules
+Soundness of Hoare rules wrt denotational semantics
 *)
 
 open Hoare;
 
-Unify.trace_bound := 30;
-Unify.search_bound := 30;
-
-goalw Hoare.thy [spec_def]
-  "!!P.[| !s. P' s --> P s; {{P}}c{{Q}}; !s. Q s --> Q' s |] \
-\  ==> {{P'}}c{{Q'}}";
-by(fast_tac HOL_cs 1);
-bind_thm("hoare_conseq", impI RSN (3,allI RSN (3,impI RS allI RS result())));
-
-goalw Hoare.thy (spec_def::C_simps)  "{{P}} skip {{P}}";
-by(fast_tac comp_cs 1);
-qed"hoare_skip";
-
-goalw Hoare.thy (spec_def::C_simps)
-  "!!P. [| !s. P s --> Q(s[A a s/x]) |] ==> {{P}} x := a {{Q}}";
-by(Asm_full_simp_tac 1);
-qed"hoare_assign";
-
-goalw Hoare.thy (spec_def::C_simps)
-  "!!P. [| {{P}} c {{Q}}; {{Q}} d {{R}} |] ==> {{P}} c;d {{R}}";
-by(fast_tac comp_cs 1);
-qed"hoare_seq";
-
-goalw Hoare.thy (spec_def::C_simps)
-  "!!P. [| {{%s. P s & B b s}} c {{Q}}; {{%s. P s & ~B b s}} d {{Q}} |] ==> \
-\  {{P}} ifc b then c else d {{Q}}";
-by(Simp_tac 1);
-by(fast_tac comp_cs 1);
-qed"hoare_if";
-
-goalw Hoare.thy (spec_def::C_simps)
-  "!!P. [| {{%s. P s & B b s}} c {{P}} |] ==> \
-\  {{P}} while b do c {{%s. P s & ~B b s}}";
+goalw Hoare.thy [spec_def] "!P c Q. ({{P}}c{{Q}}) --> spec P c Q";
+br hoare.mutual_induct 1;
+    by(ALLGOALS Asm_simp_tac);
+  by(fast_tac rel_cs 1);
+ by(fast_tac HOL_cs 1);
 br allI 1;
 br allI 1;
 br impI 1;
 be induct2 1;
-br Gamma_mono 1;
+ br Gamma_mono 1;
 by (rewrite_goals_tac [Gamma_def]);  
 by(eres_inst_tac [("x","a")] allE 1);
 by (safe_tac comp_cs);
-by(ALLGOALS Asm_full_simp_tac);
-qed"hoare_while";
+  by(ALLGOALS Asm_full_simp_tac);
+qed "hoare_sound";
 
+(*
 fun while_tac inv ss i =
   EVERY[res_inst_tac[("P",inv)] hoare_conseq i, atac i, rtac hoare_while i,
         asm_full_simp_tac ss (i+1)];
@@ -75,3 +48,4 @@ by(hoare_tac ss);
 by(while_tac "%s.s z = i + s u & s y = j" ss 3);
 by(hoare_tac ss);
 result();
+*)
