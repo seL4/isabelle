@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* isatool usedir: new option -f that allows to specify the ML file to
+  be used by Isabelle; default is ROOT.ML.
+
 * Theory headers: the new header syntax for Isar theories is
 
   theory <name>
