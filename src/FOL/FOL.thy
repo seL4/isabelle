@@ -20,7 +20,7 @@ axioms
 subsection {* Lemmas and proof tools *}
 
 use "FOL_lemmas1.ML"
-theorems case_split = case_split_thm [case_names True False]
+theorems case_split = case_split_thm [case_names True False, cases type: o]
 
 use "cladata.ML"
 setup Cla.setup
