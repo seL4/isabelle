@@ -366,9 +366,9 @@ section "standard classes"
 
 consts
 
-  Object_mdecls  ::  "mdecl list" --{* methods of Object *}
-  SXcpt_mdecls   ::  "mdecl list" --{* methods of SXcpts *}
-  ObjectC ::         "cdecl"      --{* declaration  of root      class   *}
+  Object_mdecls  ::  "mdecl list" --{* methods of Object *}
+  SXcpt_mdecls   ::  "mdecl list" --{* methods of SXcpts *}
+  ObjectC ::         "cdecl"      --{* declaration  of root      class   *}
   SXcptC  ::"xname \<Rightarrow> cdecl"      --{* declarations of throwable classes *}
 
 defs 

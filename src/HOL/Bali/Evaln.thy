@@ -57,7 +57,7 @@ syntax (xsymbols)
   evalsn:: "[prog, state, expr list, val  list, nat, state] \<Rightarrow> bool"
 				("_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<midarrow>_\<rightarrow> _" [61,61,61,61,61,61] 60)
   execn	:: "[prog, state, stmt ,                nat, state] \<Rightarrow> bool"
-				("_\<turnstile>_ \<midarrow>_\<midarrow>_\<rightarrow> _"     [61,61,65,   61,61] 60)
+				("_\<turnstile>_ \<midarrow>_\<midarrow>_\<rightarrow> _"     [61,61,65,   61,61] 60)
 
 translations
 

@@ -29,16 +29,16 @@ design issues:
 
 consts
 
-(*subint1, in Decl.thy*)                     (* direct subinterface       *)
-(*subint , by translation*)                  (* subinterface (+ identity) *)
-(*subcls1, in Decl.thy*)                     (* direct subclass           *)
-(*subcls , by translation*)                  (*        subclass           *)
-(*subclseq, by translation*)                 (* subclass + identity       *)
+(*subint1, in Decl.thy*)                     (* direct subinterface       *)
+(*subint , by translation*)                  (* subinterface (+ identity) *)
+(*subcls1, in Decl.thy*)                     (* direct subclass           *)
+(*subcls , by translation*)                  (*        subclass           *)
+(*subclseq, by translation*)                 (* subclass + identity       *)
   implmt1   :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
-  implmt    :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{*        implementation *}
+  implmt    :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{*        implementation *}
   widen     :: "prog \<Rightarrow> (ty    \<times> ty   ) set" --{*        widening       *}
   narrow    :: "prog \<Rightarrow> (ty    \<times> ty   ) set" --{*        narrowing      *}
-  cast     :: "prog \<Rightarrow> (ty    \<times> ty   ) set"  --{*        casting        *}
+  cast     :: "prog \<Rightarrow> (ty    \<times> ty   ) set"  --{*        casting        *}
 
 syntax
 

@@ -26,7 +26,7 @@ section "extension of global store"
 
 constdefs
 
-  gext    :: "st \<Rightarrow> st \<Rightarrow> bool"                ("_\<le>|_"       [71,71]   70)
+  gext    :: "st \<Rightarrow> st \<Rightarrow> bool"                ("_\<le>|_"       [71,71]   70)
    "s\<le>|s' \<equiv> \<forall>r. \<forall>obj\<in>globs s r: \<exists>obj'\<in>globs s' r: tag obj'= tag obj"
 
 text {* For the the proof of type soundness we will need the 
@@ -186,7 +186,7 @@ section "value list conformance"
 constdefs
 
   lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool"
-                                                ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70)
+                                                ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70)
            "G,s\<turnstile>vs[\<Colon>\<preceq>]Ts \<equiv> \<forall>n. \<forall>T\<in>Ts n: \<exists>v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T"
 
 lemma lconfD: "\<lbrakk>G,s\<turnstile>vs[\<Colon>\<preceq>]Ts; Ts n = Some T\<rbrakk> \<Longrightarrow> G,s\<turnstile>(the (vs n))\<Colon>\<preceq>T"
@@ -272,7 +272,7 @@ text {* Only if the value is defined it has to conform to its type.
 constdefs
 
   wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool"
-                                          ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70)
+                                          ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70)
            "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts \<equiv> \<forall>n. \<forall>T\<in>Ts n: \<forall> v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T"
 
 lemma wlconfD: "\<lbrakk>G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts; Ts n = Some T; vs n = Some v\<rbrakk> \<Longrightarrow> G,s\<turnstile>v\<Colon>\<preceq>T"
@@ -389,7 +389,7 @@ section "state conformance"
 
 constdefs
 
-  conforms :: "state \<Rightarrow> env_ \<Rightarrow> bool"          (     "_\<Colon>\<preceq>_"   [71,71]      70)
+  conforms :: "state \<Rightarrow> env_ \<Rightarrow> bool"          (     "_\<Colon>\<preceq>_"   [71,71]      70)
    "xs\<Colon>\<preceq>E \<equiv> let (G, L) = E; s = snd xs; l = locals s in
     (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
                 \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>
