@@ -503,7 +503,7 @@ Goal "(! x. P1 x --> P0 x) & (? x. P1 x) &     \
 \     (! x y. P3 x & P5 y --> ~R x y) &       \
 \     (! x. (P4 x|P5 x) --> (? y. Q0 y & R x y))      \
 \     --> (? x y. P0 x & P0 y & (? z. Q1 z & R y z & R x y))";
-by (safe_meson_tac 1);   (*40 secs*)
+by (safe_best_meson_tac 1);     (*MUCH faster than iterative deepening*)
 result();
 
 (*The Los problem?  Circulated by John Harrison*)
