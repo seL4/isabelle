@@ -306,8 +306,7 @@ HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
   Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy \
   Lambda/InductTermi.thy Lambda/Lambda.ML Lambda/Lambda.thy \
-  Lambda/ListApplication.ML Lambda/ListApplication.thy \
-  Lambda/ListBeta.thy Lambda/ListOrder.ML Lambda/ListOrder.thy \
+  Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy \
   Lambda/ParRed.ML Lambda/ParRed.thy Lambda/Type.thy Lambda/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lambda
 

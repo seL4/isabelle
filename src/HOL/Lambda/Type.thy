@@ -371,7 +371,8 @@ lemma subst_type_IT [rulify]:
       apply (simp (no_asm_use))
       apply (subgoal_tac "(Var 0 $$ map (\<lambda>t. lift t 0)
         (map (\<lambda>t. t[u/i]) list))[(u $ a[u/i])/0] : IT")
-       apply (simp (no_asm_use) del: map_compose add: map_compose [symmetric] o_def)
+       apply (simp (no_asm_use) del: map_compose
+	 add: map_compose [symmetric] o_def)
       apply (erule_tac x = "Ts =>> T" in allE)
       apply (erule impE)
        apply simp
@@ -445,8 +446,9 @@ lemma type_implies_IT: "e |- t : T ==> t : IT"
   apply (subgoal_tac "(Var 0 $ lift t 0)[s/0] : IT")
    apply simp
   apply (rule subst_type_IT)
-  apply (rule lists.Nil [THEN 2 lists.Cons [THEN IT.Var], unfold foldl_Nil [THEN eq_reflection]
-    foldl_Cons [THEN eq_reflection]])
+  apply (rule lists.Nil
+    [THEN 2 lists.Cons [THEN IT.Var], unfold foldl_Nil [THEN eq_reflection]
+      foldl_Cons [THEN eq_reflection]])
       apply (erule lift_IT)
      apply (rule typing.App)
      apply (rule typing.Var)

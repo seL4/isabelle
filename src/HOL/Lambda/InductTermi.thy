@@ -19,7 +19,6 @@ inductive IT
     Var: "rs : lists IT ==> Var n $$ rs : IT"
     Lambda: "r : IT ==> Abs r : IT"
     Beta: "[| (r[s/0])$$ss : IT; s : IT |] ==> (Abs r $ s)$$ss : IT"
-  monos lists_mono       (* FIXME move to HOL!? *)
 
 
 text {* Every term in IT terminates. *}
@@ -34,7 +33,7 @@ lemma double_induction_lemma [rulify]:
   apply (erule acc_induct)
   apply clarify
   apply (rule accI)
-  apply (tactic {* safe_tac (claset () addSEs [thm "apps_betasE"]) *})  -- FIXME
+  apply (safe elim!: apps_betasE)
      apply assumption
     apply (blast intro: subst_preserves_beta apps_preserves_beta)
    apply (blast intro: apps_preserves_beta2 subst_preserves_beta2 rtrancl_converseI

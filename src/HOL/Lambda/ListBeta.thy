@@ -24,8 +24,7 @@ lemma head_Var_reduction_aux:
    apply (rule allI)
    apply (rule_tac xs = rs in rev_exhaust)
     apply simp
-    apply (tactic {* mk_auto_tac (claset() addIs [disjI2 RS append_step1I], simpset()) 0 3 *})
-      -- FIXME
+    apply (auto 0 3 intro: disjI2 [THEN append_step1I])
   done
 
 
@@ -37,9 +36,9 @@ lemma head_Var_reduction:
 
 lemma apps_betasE_aux:
   "u -> u' ==> \<forall>r rs. u = r $$ rs -->
-    ((\<exists>r'. r -> r' \<and> u' = r'$$rs) \<or>
-     (\<exists>rs'. rs => rs' \<and> u' = r$$rs') \<or>
-     (\<exists>s t ts. r = Abs s \<and> rs = t#ts \<and> u' = s[t/0]$$ts))"
+    ((\<exists>r'. r -> r' \<and> u' = r' $$ rs) \<or>
+     (\<exists>rs'. rs => rs' \<and> u' = r $$ rs') \<or>
+     (\<exists>s t ts. r = Abs s \<and> rs = t # ts \<and> u' = s[t/0] $$ ts))"
   apply (erule beta.induct)
      apply (clarify del: disjCI)
      apply (case_tac r)
@@ -64,8 +63,7 @@ lemma apps_betasE_aux:
    apply (simp only: split: split_if_asm)
     apply simp
     apply blast
-   apply (tactic {* mk_auto_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 0 3 *})
-     -- FIXME
+   apply (auto 0 3 intro: disjI2 [THEN append_step1I])
   done
 
 lemma apps_betasE [elim!]:
