@@ -12,8 +12,14 @@ constdefs
   nat :: i
     "nat == lfp(Inf, %X. {0} Un {succ(i). i:X})"
 
+  (*Has an unconditional succ case, which is used in "recursor" below.*)
   nat_case :: "[i, i=>i, i]=>i"
     "nat_case(a,b,k) == THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))"
+
+  (*Slightly different from the version above. Requires k to be a 
+    natural number, but it has a splitting rule.*)
+  nat_case3 :: "[i, i=>i, i]=>i"
+    "nat_case3(a,b,k) == THE y. k=0 & y=a | (EX x:nat. k=succ(x) & y=b(x))"
 
   nat_rec :: "[i, i, [i,i]=>i]=>i"
     "nat_rec(k,a,b) ==   
@@ -193,16 +199,42 @@ by (blast intro: succ_lt_induct_lemma lt_nat_in_nat)
 (** nat_case **)
 
 lemma nat_case_0 [simp]: "nat_case(a,b,0) = a"
-by (unfold nat_case_def, blast)
+by (simp add: nat_case_def, blast)
 
-lemma nat_case_succ [simp]: "nat_case(a,b,succ(m)) = b(m)"
-by (unfold nat_case_def, blast)
+lemma nat_case_succ [simp]: "nat_case(a,b,succ(n)) = b(n)" 
+by (simp add: nat_case_def, blast)
 
-lemma nat_case_type: 
-    "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |]
-     ==> nat_case(a,b,n) : C(n)"
-apply (erule nat_induct, auto) 
+lemma nat_case_type [TC]:
+    "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |] 
+     ==> nat_case(a,b,n) : C(n)";
+by (erule nat_induct, auto) 
+
+(** nat_case3 **)
+
+lemma nat_case3_0 [simp]: "nat_case3(a,b,0) = a"
+by (simp add: nat_case3_def, blast)
+
+lemma nat_case3_succ [simp]: "n\<in>nat \<Longrightarrow> nat_case3(a,b,succ(n)) = b(n)"
+by (simp add: nat_case3_def, blast)
+
+lemma non_nat_case3: "x\<notin>nat \<Longrightarrow> nat_case3(a,b,x) = 0"
+apply (simp add: nat_case3_def) 
+apply (blast intro: the_0) 
 done
+
+lemma split_nat_case3:
+  "P(nat_case3(a,b,k)) <-> 
+   ((k=0 --> P(a)) & (\<forall>x\<in>nat. k=succ(x) --> P(b(x))) & (k \<notin> nat \<longrightarrow> P(0)))"
+apply (rule_tac P="k\<in>nat" in case_split_thm)  
+    (*case_tac method not available yet; needs "inductive"*)
+apply (erule natE) 
+apply (auto simp add: non_nat_case3) 
+done
+
+lemma nat_case3_type [TC]:
+    "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |] 
+     ==> nat_case3(a,b,n) : C(n)";
+by (erule nat_induct, auto) 
 
 
 (** nat_rec -- used to define eclose and transrec, then obsolete
@@ -222,12 +254,12 @@ done
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-lemma Un_nat_type: "[| i: nat; j: nat |] ==> i Un j: nat"
+lemma Un_nat_type [TC]: "[| i: nat; j: nat |] ==> i Un j: nat"
 apply (rule Un_least_lt [THEN ltD])
 apply (simp_all add: lt_def) 
 done
 
-lemma Int_nat_type: "[| i: nat; j: nat |] ==> i Int j: nat"
+lemma Int_nat_type [TC]: "[| i: nat; j: nat |] ==> i Int j: nat"
 apply (rule Int_greatest_lt [THEN ltD])
 apply (simp_all add: lt_def) 
 done

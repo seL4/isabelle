@@ -186,9 +186,7 @@ by (simp add: mult_def raw_mult_type)
 (** Difference **)
 
 lemma raw_diff_type: "[| m:nat;  n:nat |] ==> raw_diff (m, n) : nat"
-apply (induct_tac "n", auto)
-apply (fast intro: nat_case_type)
-done
+by (induct_tac "n", auto)
 
 lemma diff_type [iff,TC]: "m #- n : nat"
 by (simp add: diff_def raw_diff_type)
