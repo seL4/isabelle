@@ -1,0 +1,82 @@
+(*  Title:      HOL/ex/Recdef.thy
+    ID:         $Id$
+    Author:     Konrad Slind and Lawrence C Paulson
+    Copyright   1996  University of Cambridge
+
+Examples of recdef definitions.  Most, but not all, are handled automatically.
+*)
+
+Recdef = WF_Rel + List +
+
+consts map2 :: "('a => 'b => 'c) * 'a list * 'b list => 'c list"
+
+recdef map2 "measure(%(f,l1,l2).size l1)"
+    "map2(f, [], [])  = []"
+    "map2(f, h#t, []) = []"
+    "map2(f, h1#t1, h2#t2) = f h1 h2 # map2 (f, t1, t2)"
+
+consts finiteRchain :: "(['a,'a] => bool) * 'a list => bool"
+recdef finiteRchain "measure (%(R,l).size l)"
+    "finiteRchain(R,  []) = True"
+    "finiteRchain(R, [x]) = True"
+    "finiteRchain(R, x#y#rst) = (R x y & finiteRchain(R, y#rst))"
+
+consts qsort   ::"('a => 'a => bool) * 'a list => 'a list"
+recdef qsort "measure (size o snd)"
+    simpset "!simpset addsimps [le_eq_less_Suc RS sym, filter_size]"
+    "qsort(ord, [])    = []"
+    "qsort(ord, x#rst) = qsort(ord, filter(Not o ord x) rst)  
+                         @ [x] @   
+                         qsort(ord, filter(ord x) rst)"
+
+(*Not handled automatically: too complicated.*)
+consts variant :: "nat * nat list => nat"
+recdef variant "measure(%(n::nat, ns). size(filter(%y. n <= y) ns))"
+    "variant(x, L) = (if (x mem L) then variant(Suc x, L) else x)"
+
+consts gcd :: "nat * nat => nat"
+recdef gcd "measure (%(x,y).x+y)"
+    simpset "!simpset addsimps [le_eq_less_Suc RS sym, le_add1, diff_le_self]"
+    "gcd (0,y)          = y"
+    "gcd (Suc x, 0)     = Suc x"
+    "gcd (Suc x, Suc y) = (if (y <= x) then gcd(x - y, Suc y)  
+                                       else gcd(Suc x, y - x))"
+
+(*Not handled automatically.  In fact, g is the identity function.*)
+consts g   :: "nat => nat"
+recdef g "less_than"
+    "g 0 = 0"
+    "g(Suc x) = g(g x)"
+
+consts Div :: "nat * nat => nat * nat"
+recdef Div "measure fst"
+    "Div(0,x)      = (0,0)"
+    "Div(Suc x, y) =      
+         (let (q,r) = Div(x,y)
+          in                      
+          if (y <= Suc r) then (Suc q,0) else (q, Suc r))"
+
+(*Not handled automatically.  Should be the predecessor function, but there
+  is an unnecessary "looping" recursive call in k(1) *)
+consts k   :: "nat => nat"
+recdef k "less_than"
+    "k 0 = 0"
+    "k (Suc n) = (let x = k 1  
+                  in if (0=1) then k (Suc 1) else n)"
+
+consts part :: "('a=>bool) * 'a list * 'a list * 'a list => 'a list * 'a list"
+recdef part "measure (%(P,l,l1,l2).size l)"
+    "part(P, [], l1,l2) = (l1,l2)"
+    "part(P, h#rst, l1,l2) =  
+        (if P h then part(P,rst, h#l1,  l2)  
+                else part(P,rst,  l1,  h#l2))"
+
+consts fqsort :: "(['a,'a] => bool) * 'a list => 'a list"
+recdef fqsort "measure (size o snd)"
+    "fqsort(ord,[]) = []"
+    "fqsort(ord, x#rst) =    
+     (let (less,more) = part((%y. ord y x), rst, ([],[]))
+      in  
+      fqsort(ord,less)@[x]@fqsort(ord,more))"
+
+end
