@@ -14,7 +14,7 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-USEDIR = $(ISATOOL) usedir -v true -i true -d pdf -D generated
+USEDIR = $(ISATOOL) usedir -v true -i true -d pdf -D generated -H false
 
 
 ## Sugar
@@ -23,7 +23,8 @@ Sugar: $(LOG)/HOL-Sugar.gz
 
 $(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/Sugar.thy \
   Sugar/document/root.tex Sugar/document/root.bib \
-  ../../HOL/Library/LaTeXsugar.thy ../../HOL/Library/OptionalSugar.thy
+  ../../HOL/Library/LaTeXsugar.thy ../../HOL/Library/OptionalSugar.thy \
+  ../../Distribution/lib/texinputs/sugar.sty
 	@$(USEDIR) HOL Sugar
 
 
