@@ -1,0 +1,11 @@
+
+$id$
+
+This directory contains some axiomatic type class demos.
+
+
+  Tutorial/     Some simple axclass demos that go along with the paper
+                "Using Axiomatic Type Classes in Isabelle --- a
+                tutorial".
+
+  Group/        Basic group theory with axiomatic type classes.
