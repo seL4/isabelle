@@ -296,7 +296,7 @@ val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 val all_not_allowed = 
     "Introduction rule must not have a leading \"!!\" quantifier";
 
-val atomize_cterm = Tactic.rewrite_cterm true inductive_atomize;
+fun atomize_term sg = MetaSimplifier.rewrite_term sg inductive_atomize;
 
 in
 
@@ -304,7 +304,7 @@ fun check_rule sg cs ((name, rule), att) =
   let
     val concl = Logic.strip_imp_concl rule;
     val prems = Logic.strip_imp_prems rule;
-    val aprems = prems |> map (Thm.term_of o atomize_cterm o Thm.cterm_of sg);
+    val aprems = map (atomize_term sg) prems;
     val arule = Logic.list_implies (aprems, concl);
 
     fun check_prem (prem, aprem) =
@@ -324,7 +324,7 @@ fun check_rule sg cs ((name, rule), att) =
   end;
 
 val rulify =
-  standard o Tactic.norm_hhf o
+  standard o Tactic.norm_hhf_rule o
   hol_simplify inductive_rulify2 o hol_simplify inductive_rulify1 o
   hol_simplify inductive_conj;
 
