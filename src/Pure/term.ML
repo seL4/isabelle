@@ -24,6 +24,7 @@ sig
   val --> : typ * typ -> typ
   val ---> : typ list * typ -> typ
   val is_TVar: typ -> bool
+  val is_funtype: typ -> bool
   val domain_type: typ -> typ
   val range_type: typ -> typ
   val binder_types: typ -> typ list
@@ -45,6 +46,7 @@ sig
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
+  val is_first_order: term -> bool
   val dest_Type: typ -> string * typ list
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
@@ -276,6 +278,10 @@ fun is_Var (Var _) = true
 
 fun is_TVar (TVar _) = true
   | is_TVar _ = false;
+
+(*Differs from proofterm/is_fun in its treatment of TVar*)
+fun is_funtype (Type("fun",[_,_])) = true
+  | is_funtype _ = false;
 
 (** Destructors **)
 
@@ -677,6 +683,26 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
         | subst(Abs(a,T,t)) = Abs(a,typ_subst_TVars iTs T,subst t)
         | subst(f$t) = subst f $ subst t
   in subst end;
+
+
+(** Identifying first-order terms **)
+
+(*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
+fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
+
+(*First order means in all terms of the form f(t1,...,tn) no argument has a function
+  type.*)
+fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
+  | first_order1 Ts t =
+      case strip_comb t of
+	       (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	     | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	     | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	     | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	     | (Abs _, ts) => false (*not in beta-normal form*)
+	     | _ => error "first_order: unexpected case";
+
+val is_first_order = first_order1 [];
 
 
 (*Computing the maximum index of a typ*)
