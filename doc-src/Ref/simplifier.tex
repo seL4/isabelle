@@ -703,26 +703,34 @@ explicitly, via the above tactics used in conjunction with
 \end{warn}
 
 
-\section{Forward simplification rules}
-\index{simplification!forward rules}
-\begin{ttbox}\index{*simplify}\index{*asm_simplify}\index{*full_simplify}\index{*asm_full_simplify}
+\section{Forward rules and conversions}
+\index{simplification!forward rules}\index{simplification!conversions}
+\begin{ttbox}\index{*simplify}\index{*asm_simplify}\index{*full_simplify}\index{*asm_full_simplify}\index{*Simplifier.rewrite}\index{*Simplifier.asm_rewrite}\index{*Simplifier.full_rewrite}\index{*Simplifier.asm_full_rewrite}
 simplify          : simpset -> thm -> thm
 asm_simplify      : simpset -> thm -> thm
 full_simplify     : simpset -> thm -> thm
-asm_full_simplify : simpset -> thm -> thm
+asm_full_simplify : simpset -> thm -> thm\medskip
+Simplifier.rewrite           : simpset -> cterm -> thm
+Simplifier.asm_rewrite       : simpset -> cterm -> thm
+Simplifier.full_rewrite      : simpset -> cterm -> thm
+Simplifier.asm_full_rewrite  : simpset -> cterm -> thm
 \end{ttbox}
 
-These functions provide \emph{forward} rules for simplification.
-Their effect is analogous to the corresponding tactics described in
-\S\ref{simp-tactics}, but affect the whole theorem instead of just a
-certain subgoal.  Also note that the looper~/ solver process as
-described in \S\ref{sec:simp-looper} and \S\ref{sec:simp-solver} is
-omitted in forward simplification.
+The first four of these functions provide \emph{forward} rules for
+simplification.  Their effect is analogous to the corresponding
+tactics described in \S\ref{simp-tactics}, but affect the whole
+theorem instead of just a certain subgoal.  Also note that the
+looper~/ solver process as described in \S\ref{sec:simp-looper} and
+\S\ref{sec:simp-solver} is omitted in forward simplification.
+
+The latter four are \emph{conversions}, establishing proven equations
+of the form $t \equiv u$ where the l.h.s.\ $t$ has been given as
+argument.
 
 \begin{warn}
-  Forward simplification should be used rarely in ordinary proof
-  scripts.  It as mainly intended to provide an internal interface to
-  the simplifier for special utilities.
+  Forward simplification rules and conversions should be used rarely
+  in ordinary proof scripts.  The main intention is to provide an
+  internal interface to the simplifier for special utilities.
 \end{warn}
 
 
@@ -816,19 +824,27 @@ set trace_simp;
 by (Asm_simp_tac 1);
 \ttbreak
 {\out Adding rewrite rule:}
-{\out .x + Suc(n) == Suc(.x + n)}
+{\out .x + Suc n == Suc (.x + n)}
 \ttbreak
+{\out Applying instance of rewrite rule:}
+{\out ?m + Suc ?n == Suc (?m + ?n)}
 {\out Rewriting:}
-{\out Suc(.x) + Suc(n) == Suc(.x + Suc(n))}
+{\out Suc .x + Suc n == Suc (Suc .x + n)}
 \ttbreak
+{\out Applying instance of rewrite rule:}
+{\out Suc ?m + ?n == Suc (?m + ?n)}
 {\out Rewriting:}
-{\out .x + Suc(n) == Suc(.x + n)}
+{\out Suc .x + n == Suc (.x + n)}
 \ttbreak
+{\out Applying instance of rewrite rule:}
+{\out Suc ?m + ?n == Suc (?m + ?n)}
 {\out Rewriting:}
-{\out Suc(.x) + n == Suc(.x + n)}
+{\out Suc .x + n == Suc (.x + n)}
 \ttbreak
+{\out Applying instance of rewrite rule:}
+{\out ?x = ?x == True}
 {\out Rewriting:}
-{\out Suc(Suc(.x + n)) = Suc(Suc(.x + n)) == True}
+{\out Suc (Suc (.x + n)) = Suc (Suc (.x + n)) == True}
 \ttbreak
 {\out Level 3}
 {\out m + Suc(n) = Suc(m + n)}
@@ -1424,21 +1440,27 @@ by (simp_tac (simpset() addsplits [expand_if]) 1);
 \end{ttbox}
 
 
-\subsection{Theory data for implicit simpsets}
-\begin{ttbox}\indexbold{*simpset_thy_data}
-simpset_thy_data: string * (object * (object -> object) *
-    (object * object -> object) * (Sign.sg -> object -> unit))
+\subsection{Theory setup}\index{simplification!setting up the theory}
+\begin{ttbox}\indexbold{*Simplifier.setup}\index{*setup!simplifier}
+Simplifier.setup: (theory -> theory) list
 \end{ttbox}
 
-Theory data for implicit simpsets has to be set up explicitly.  The
-simplifier already provides an appropriate data kind definition
-record.  This has to be installed into the base theory of any new
-object-logic as \ttindexbold{thy_data} within the \texttt{ML} section.
+Advanced theory related features of the simplifier (e.g.\ implicit
+simpset support) have to be set up explicitly.  The simplifier already
+provides a suitable setup function definition.  This has to be
+installed into the base theory of any new object-logic via a
+\texttt{setup} declaration.
 
-This is done at the end of \texttt{IFOL.thy} as follows:
+For example, this is done in \texttt{FOL/IFOL.thy} as follows:
 \begin{ttbox}
-ML val thy_data = [Simplifier.simpset_thy_data];
+setup Simplifier.setup
 \end{ttbox}
 
 
 \index{simplification|)}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "ref"
+%%% End: 
