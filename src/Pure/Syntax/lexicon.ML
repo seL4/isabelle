@@ -77,7 +77,7 @@ signature LEXICON =
   val token_assoc: (token option * 'a list) list * token -> 'a list
   val valued_token: token -> bool
   val predef_term: string -> token option
-  val tokenize: lexicon -> bool -> string -> token list
+  val tokenize: lexicon -> bool -> string list -> token list
   end;
 
 structure Lexicon : LEXICON =
@@ -372,7 +372,7 @@ fun scan_literal lex chrs =
 
 (** tokenize **)
 
-fun tokenize lex xids str =
+fun tokenize lex xids chs =
   let
     val scan_xid =
       if xids then $$ "_" ^^ scan_id || scan_id
@@ -409,7 +409,7 @@ fun tokenize lex xids str =
               (None, _) => error ("Lexical error at: " ^ quote (implode chs))
             | (Some (tk, s), chs') => scan (tk s :: rev_toks, chs'));
   in
-    scan ([], explode str)
+    scan ([], chs)
   end;
 
 
