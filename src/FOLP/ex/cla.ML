@@ -6,7 +6,7 @@
 Classical First-Order Logic
 *)
 
-writeln"File FOL/ex/cla.";
+writeln"File FOLP/ex/cla.ML";
 
 open Cla;    (*in case structure Int is open!*)
 

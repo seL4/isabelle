@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/prop
+(*  Title:      FOLP/ex/prop.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -7,7 +7,7 @@ First-Order Logic: propositional examples (intuitionistic and classical)
 Needs declarations of the theory "thy" and the tactic "tac"
 *)
 
-writeln"File FOL/ex/prop.";
+writeln"File FOLP/ex/prop.ML";
 
 
 writeln"commutative laws of & and | ";

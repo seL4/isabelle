@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/quant
+(*  Title:      FOLP/ex/quant.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -7,7 +7,7 @@ First-Order Logic: quantifier examples (intuitionistic and classical)
 Needs declarations of the theory "thy" and the tactic "tac"
 *)
 
-writeln"File FOL/ex/quant.";
+writeln"File FOLP/ex/quant.ML";
 
 goal thy "?p : (ALL x y.P(x,y))  -->  (ALL y x.P(x,y))";
 by tac;

@@ -22,7 +22,6 @@ time_use     "int.ML";
 val thy = IFOLP.thy  and  tac = Int.fast_tac 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
-commit();
 
 writeln"\n** Classical examples **\n";
 time_use     "cla.ML";

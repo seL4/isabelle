@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/foundn
+(*  Title:      FOLP/ex/foundn.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -6,7 +6,7 @@
 Intuitionistic FOL: Examples from The Foundation of a Generic Theorem Prover
 *)
 
-writeln"File FOL/ex/foundn.";
+writeln"File FOLP/ex/foundn.ML";
 
 goal IFOLP.thy "?p : A&B  --> (C-->A&C)";
 by (rtac impI 1);

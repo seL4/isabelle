@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/int
+(*  Title:      FOLP/ex/int.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -15,7 +15,7 @@ by (Int.mp_tac 1);
 by (Int.fast_tac 1);
 *)
 
-writeln"File FOL/ex/int.";
+writeln"File FOLP/ex/int.ML";
 
 (*Note: for PROPOSITIONAL formulae...
   ~A is classically provable iff it is intuitionistically provable.  
