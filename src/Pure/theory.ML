@@ -10,6 +10,7 @@ Theories.
 signature BASIC_THEORY =
 sig
   type theory
+  type local_theory
   exception THEORY of string * theory list
   val rep_theory: theory ->
     {sign: Sign.sg,
@@ -77,6 +78,7 @@ sig
     (object * object -> object) * (Sign.sg -> object -> unit))) list -> theory -> theory
   val get_data: theory -> string -> object
   val put_data: string * object -> theory -> theory
+  val setup: (theory -> theory) list -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val pre_pure: theory
@@ -96,6 +98,9 @@ datatype theory =
     oracles: ((Sign.sg * object -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
+
+(*forward definition for Isar proof contexts*)
+type local_theory = theory * object Symtab.table;
 
 fun make_thy sign axms oras parents ancestors =
   Theory {sign = sign, axioms = axms, oracles = oras,
@@ -379,6 +384,10 @@ val add_defs = ext_defns read_axm;
 fun init_data ds = foldl (op o) (I, map (ext_sg Sign.init_data) ds);
 val get_data = Sign.get_data o sign_of;
 val put_data = ext_sg Sign.put_data;
+
+(*generic setup*)
+fun setup [] thy = thy
+  | setup (f :: fs) thy = setup fs (f thy);
 
 
 
