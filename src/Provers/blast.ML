@@ -1,15 +1,31 @@
-(*  ID:         $Id$
-use "/homes/lcp/Isa/new/blast.ML";
+(*  Title: 	Provers/blast
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1992  University of Cambridge
+
+Generic tableau prover with proof reconstruction
+
   SKOLEMIZES ReplaceI WRONGLY: allow new vars in prems, or forbid such rules??
-  Needs explicit instantiation of assumptions?  (#55 takes 32s)
+  Needs explicit instantiation of assumptions?
+
+
+Limitations compared with fast_tac:
+  * ignores addss, addbefore, addafter; this restriction is intrinsic
+  * seems to loop given transitivity and similar rules
+  * ignores elimination rules that don't have the correct format
+	(conclusion must be a formula variable)
+  * ignores types, which can make HOL proofs fail
+
+Known problems:
+  With hyp_subst_tac:
+    1.  Sometimes hyp_subst_tac will fail due to occurrence of the parameter
+        as the argument of a function variable
+    2.  When a literal is affected, it is moved back to the active formulae.
+        But there's no way of putting it in the right place.
+    3.  Affected haz formulae should also be moved, but they are not.
 
 *)
 
-
-proof_timing:=true;
-print_depth 20;
-
-structure List = List_;
 
 (*Should be a type abbreviation?*)
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
@@ -533,30 +549,30 @@ fun orientGoal (t,u) =
      | _             => raise DEST_EQ;
 
 
-(*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
-  Ex(P) is duplicated as the assumption ~Ex(P). *)
-fun negOfGoal (Const"*Goal*" $ G, md) = (negate G, md)
-  | negOfGoal G                   = G;
-
-(*Substitute through the branch if an equality goal (else raise DEST_EQ)*)
-fun equalSubst (G, br, hazs, lits, vars, lim) = 
+(*Substitute through the branch if an equality goal (else raise DEST_EQ).
+  Moves affected literals back into the branch, but it is not clear where
+  they should go: this could make proofs fail.  ??? *)
+fun equalSubst (G, pairs, lits, vars, lim) = 
   let val subst = subst_atomic (orientGoal(dest_eq G))
       fun subst2(G,md) = (subst G, md)
-      fun subLits ([],        br, nlits) = 
-	    (br, map (map subst2) hazs, nlits, vars, lim)
-	| subLits (lit::lits, br, nlits) =
+      val pairs' = map (fn(Gs,Hs) => (map subst2 Gs, map subst2 Hs)) pairs
+      (*substitute throughout literals and note those affected*)
+      fun subLits ([], [], nlits) =          (pairs', nlits, vars, lim)
+	| subLits ([], Gs, nlits) = ((Gs,[])::pairs', nlits, vars, lim)
+	| subLits (lit::lits, Gs, nlits) =
 	    let val nlit = subst lit
-	    in  if nlit aconv lit then subLits (lits, br, nlit::nlits)
-		                  else subLits (lits, (nlit,true)::br, nlits)
+	    in  if nlit aconv lit then subLits (lits, Gs, nlit::nlits)
+		                  else subLits (lits, (nlit,true)::Gs, nlits)
             end
-  in  subLits (rev lits,  map subst2 br,  [])  
+  in  subLits (rev lits, [], [])  
   end;
 
 
 exception NEWBRANCHES and CLOSEF;
 
-type branch = (term*bool) list *	(*pending formulae with md flags*)
-              (term*bool) list list *   (*stack of haz formulae*)
+(*Pending formulae carry md (may duplicate) flags*)
+type branch = ((term*bool) list *	(*safe formulae on this level*)
+               (term*bool) list) list * (*haz formulae  on this level*)
 	      term list *               (*literals: irreducible formulae*)
 	      term option ref list *    (*variables occurring in branch*)
 	      int;                      (*resource limit*)
@@ -578,20 +594,6 @@ fun tryClose (Const"*Goal*" $ G,  L) = (unify([],G,L); eAssume_tac)
   | tryClose _                       = raise UNIFY;
 
 
-(*hazs is a list of lists of unsafe formulae.  This "stack" keeps them
-  in the right relative order: they must go after *all* safe formulae, 
-  with newly introduced ones coming before older ones.*)
-
-(*Add an empty "stack frame" unless there's already one there*)
-fun nilHaz hazs =
-    case hazs of []::_ => hazs
-               | _     => []::hazs;
-
-fun addHaz (G, haz::hazs) = (haz@[negOfGoal G]) :: hazs;
-
-(*Convert *Goal* to negated assumption in FIRST position*)
-val negOfGoal_tac = rtac Data.ccontr THEN' rotate_tac ~1;
-
 (*Were there Skolem terms in the premise?  Must NOT chase Vars*)
 fun hasSkolem (Skolem _)     = true
   | hasSkolem (Abs (_,body)) = hasSkolem body 
@@ -603,10 +605,21 @@ fun hasSkolem (Skolem _)     = true
 fun joinMd md [] = []
   | joinMd md (G::Gs) = (G, hasSkolem G orelse md) :: joinMd md Gs;
 
-(*Join new formulae to a branch.*)
-fun appendBr md (ts,us) = 
-    if (exists isGoal ts) then joinMd md ts @ map negOfGoal us
-    else joinMd md ts @ us;
+(*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
+  Ex(P) is duplicated as the assumption ~Ex(P). *)
+fun negOfGoal (Const"*Goal*" $ G) = negate G
+  | negOfGoal G                   = G;
+
+fun negOfGoal2 (G,md) = (negOfGoal G, md);
+
+(*Converts all Goals to Nots in the safe parts of a branch.  They could
+  have been moved there from the literals list after substitution (equalSubst).
+  There can be at most one--this function could be made more efficient.*)
+fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
+
+(*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
+val negOfGoal_tac = rtac Data.ccontr THEN' rotate_tac ~1;
+
 
 (** Backtracking and Pruning **)
 
@@ -646,14 +659,15 @@ fun prune (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
 				   choices)
   in  traceIt (pruneAux (choices, !ntrail, !trail, choices))  end;
 
-fun nextVars ((br, hazs, lits, vars, lim) :: _) = map Var vars
+fun nextVars ((br, lits, vars, lim) :: _) = map Var vars
   | nextVars []                                 = [];
 
 fun backtrack ((_, _, exn)::_) = raise exn
   | backtrack _                = raise PROVE;
 
-(*Change all *Goal* literals to Not.  Also delete all those identical to G.*)
-fun addLit (Const "*Goal*" $ G,lits) = 
+(*Add the literal G, handling *Goal* and detecting duplicates.*)
+fun addLit (Const "*Goal*" $ G, lits) = 
+      (*New literal is a *Goal*, so change all other Goals to Nots*)
       let fun bad (Const"*Goal*" $ _) = true
 	    | bad (Const"Not" $ G')   = G aconv G'
 	    | bad _                   = false;
@@ -680,18 +694,22 @@ fun prove (cs, brs, cont) =
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) = (cont (trs,choices,tacs))
        | prv (tacs, trs, choices, 
-	      brs0 as ((G,md)::br, hazs, lits, vars, lim) :: brs) =
+	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
 	  let exception PRV (*backtrack to precisely this recursion!*)
 	      val ntrl = !ntrail 
 	      val nbrs = length brs0
               val nxtVars = nextVars brs
 	      val G = norm G
 	      (*Make a new branch, decrementing "lim" if instantiations occur*)
-	      fun newBr vars prems =
-		  map (fn prem => (appendBr md (prem, br),  
-				   nilHaz hazs,  lits,
-				   add_terms_vars (prem,vars), 
-				   if ntrl < !ntrail then lim-3 else lim)) 
+	      fun newBr (vars',lim') prems =
+		  map (fn prem => 
+		       if (exists isGoal prem) 
+		       then (((joinMd md prem, []) :: 
+			      negOfGoals ((br, haz)::pairs)),
+			     map negOfGoal lits, 
+			     vars', lim') 
+		       else (((joinMd md prem, []) :: (br, haz) :: pairs),
+			     lits, vars', lim'))
 		  prems @
 		  brs		  
 	      (*Seek a matching rule.  If unifiable then add new premises
@@ -701,6 +719,9 @@ fun prove (cs, brs, cont) =
 		    let val dummy = unify(add_term_vars(P,[]), P, G)
 			    (*P comes from the rule; G comes from the branch.*)
                         val ntrl' = !ntrail
+			val lim' = if ntrl < !ntrail then lim-3 else lim
+                        val vars  = vars_in_vars vars
+                        val vars' = foldr add_terms_vars (prems, vars)
 			val choices' = (ntrl, nbrs, PRV) :: choices
                     in
 			if null prems then (*closed the branch: prune!*)
@@ -714,7 +735,7 @@ fun prove (cs, brs, cont) =
 		        else 
 			  prv(tac false :: tacs,	(*no duplication*)
 			      brs0::trs, choices',
-			      newBr (vars_in_vars vars) prems)
+			      newBr (vars',lim') prems)
 			  handle PRV => 
 			      if ntrl < ntrl' then
 				   (*Vars have been updated: must backtrack
@@ -738,42 +759,48 @@ fun prove (cs, brs, cont) =
 			 (clearTo ntrl;  closeF Ls)
                     end
 		    handle UNIFY => closeF Ls
+	      fun closeFl [] = raise CLOSEF
+		| closeFl ((br, haz)::pairs) =
+		    closeF (map fst br)
+		      handle CLOSEF => closeF (map fst haz)
+			handle CLOSEF => closeFl pairs
 	  in if !trace then fullTrace := brs0 :: !fullTrace else ();
 	     if lim<0 then backtrack choices
 	     else
 	     prv (Data.vars_gen_hyp_subst_tac false :: tacs, 
 		  brs0::trs,  choices,
-		  equalSubst (G, br, hazs, lits, vars, lim) :: brs)
+		  equalSubst (G, (br,haz)::pairs, lits, vars, lim) :: brs)
 	     handle DEST_EQ => closeF lits
-	      handle CLOSEF => closeF (map #1 br)
-	       handle CLOSEF => closeF (map #1 (List.concat hazs))
+	      handle CLOSEF => closeFl ((br,haz)::pairs)
 	        handle CLOSEF => 
-		   (deeper (netMkRules G vars safeList)
-		    handle NEWBRANCHES => 
-		     (case netMkRules G vars hazList of
-			 [] => (*no plausible rules: move G to literals*)
-			     prv (tacs, brs0::trs, choices,
-				  (br, hazs, addLit(G,lits), vars, lim)::brs)
-		      | _ => (*G admits some haz rules: try later*)
-			     prv (if isGoal G then negOfGoal_tac :: tacs
-				  else tacs, 
-				  brs0::trs,  choices,
-				  (br, addHaz((G,md),hazs), lits, vars, lim)
-				  ::brs)))
+		 deeper (netMkRules G vars safeList)
+		  handle NEWBRANCHES => 
+		   (case netMkRules G vars hazList of
+		       [] => (*no plausible rules: move G to literals*)
+			   prv (tacs, brs0::trs, choices,
+				((br,haz)::pairs, addLit(G,lits), vars, lim)
+				::brs)
+		    | _ => (*G admits some haz rules: try later*)
+			   prv (if isGoal G then negOfGoal_tac :: tacs
+				else tacs, 
+				brs0::trs,  choices,
+				((br, haz@[(negOfGoal G, md)])::pairs,
+				 lits, vars, lim)  ::  brs))
 	  end
-       | prv (tacs, trs, choices, ([], []::hazs, lits, vars, lim) :: brs) =
-			(*removal of empty list from hazs*)
-	   prv (tacs, trs, choices, ([], hazs, lits, vars, lim) :: brs)
+       | prv (tacs, trs, choices, (([],haz)::(Gs,haz')::pairs, 
+				   lits, vars, lim) :: brs) =
+	     (*no more "safe" formulae: transfer haz down a level*)
+	   prv (tacs, trs, choices, ((Gs,haz@haz')::pairs, lits, vars, lim) 
+		:: brs)
        | prv (tacs, trs, choices, 
-	      brs0 as ([], ((G,md)::Gs)::hazs, lits, vars, lim) :: brs) =
-			(*application of haz rule*)
+	      brs0 as ([([], (H,md)::Hs)], lits, vars, lim) :: brs) =
+   	     (*no safe steps possible at any level: apply a haz rule*)
 	  let exception PRV (*backtrack to precisely this recursion!*)
-	      val G = norm G
+	      val H = norm H
 	      val ntrl = !ntrail
 	      fun newPrem (vars,dup) prem = 
-		  (map (fn P => (P,false)) prem,   
-		   nilHaz (if dup then Gs :: hazs @ [[negOfGoal (G,md)]]
-			   else Gs :: hazs),  
+		  ([(map (fn P => (P,false)) prem, []), (*may NOT duplicate*)
+		    ([], if dup then Hs @ [(negOfGoal H, md)] else Hs)],  
 		   lits,  
 		   vars,  
 		   (*Decrement "lim" if instantiations occur or the
@@ -785,12 +812,12 @@ fun prove (cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    let val dummy = unify(add_term_vars(P,[]), P, G)
+		    let val dummy = unify(add_term_vars(P,[]), P, H)
 			val ntrl' = !ntrail
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
                         val dup = md andalso vars' <> vars
-			(*duplicate G only if md and the premise has new vars*)
+			(*duplicate H only if md and the premise has new vars*)
                     in
 		      prv(tac dup :: tacs, 
 			  brs0::trs, 
@@ -808,11 +835,11 @@ fun prove (cs, brs, cont) =
 	  in if !trace then fullTrace := brs0 :: !fullTrace else ();
 	     if lim<1 then backtrack choices
 	     else
-	     deeper (netMkRules G vars hazList)
+	     deeper (netMkRules H vars hazList)
 	     handle NEWBRANCHES => 
-		 (*cannot close branch: move G to literals*)
+		 (*cannot close branch: move H to literals*)
 		 prv (tacs,  brs0::trs,  choices,
-		      ([], Gs::hazs, G::lits, vars, lim)::brs)
+		      ([([], Hs)], H::lits, vars, lim)::brs)
 	  end
        | prv (tacs, trs, choices, _ :: brs) = backtrack choices
  in prv ([], [], [(!ntrail, length brs, PROVE)], brs) end;
@@ -820,8 +847,8 @@ fun prove (cs, brs, cont) =
 
 (*Construct an initial branch.*)
 fun initBranch (ts,lim) = 
-    (map (fn t => (t,true)) ts, 
-     [[]], [], add_terms_vars (ts,[]), lim);
+    ([(map (fn t => (t,true)) ts, [])],
+     [], add_terms_vars (ts,[]), lim);
 
 
 (*** Conversion & Skolemization of the Isabelle proof state ***)
