@@ -74,6 +74,7 @@ signature BLAST_DATA =
 signature BLAST =
   sig
   type claset 
+  exception TRANS of string    (*reports translation errors*)
   datatype term = 
       Const of string
     | TConst of string * term
@@ -194,8 +195,8 @@ fun fromConst alist (a,T) =
       None   => Const a		(*not overloaded*)
     | Some f => 
 	let val T' = f T
-		     handle Match =>
-		       error ("Blast_tac: unexpected type for overloaded constant " ^ a)
+		     handle Match => error
+                ("Blast_tac: unexpected type for overloaded constant " ^ a)
         in  TConst(a, fromType alist T')  end;
 
 end;
@@ -1107,8 +1108,9 @@ fun getVars []                  i = []
 	if i mem is then getVars alist i
 	else v :: getVars alist i;
 
+exception TRANS of string;
 
-(*Conversion of a subgoal: Skolemize all parameters*)
+(*Translation of a subgoal: Skolemize all parameters*)
 fun fromSubgoal t =
   let val alistVar = ref []
       and alistTVar = ref []
@@ -1118,9 +1120,11 @@ fun fromSubgoal t =
 	    fun apply u = list_comb (u, map (from lev) ts)
 	    fun bounds [] = []
 	      | bounds (Term.Bound i::ts) = 
-		  if i<lev then error"Function Var's argument not a parameter"
+		  if i<lev then raise TRANS
+		      "Function unknown's argument not a parameter"
 		  else i-lev :: bounds ts
-	      | bounds ts = error"Function Var's argument not a bound variable"
+	      | bounds ts = raise TRANS
+		      "Function unknown's argument not a bound variable"
         in
 	  case ht of 
 	      Term.Const aT    => apply (fromConst alistTVar aT)
@@ -1132,11 +1136,12 @@ fun fromSubgoal t =
 					  :: !alistVar;
 				Var (hdvar(!alistVar)))
 		     | Some(v,is) => if is=bounds ts then Var v
-			    else error("Discrepancy among occurrences of ?"
-				       ^ Syntax.string_of_vname ix))
+			    else raise TRANS
+				("Discrepancy among occurrences of ?"
+				 ^ Syntax.string_of_vname ix))
 	    | Term.Abs (a,_,body) => 
 		  if null ts then Abs(a, from (lev+1) body)
-		  else error "fromSubgoal: argument not in normal form"
+		  else raise TRANS "argument not in normal form"
         end
 
       val npars = length (Logic.strip_params t)
@@ -1170,7 +1175,8 @@ fun depth_tac cs lim i st =
      end
      handle PROVE     => Sequence.null);
 
-fun blast_tac cs = (DEEPEN (1,20) (depth_tac cs) 0);
+fun blast_tac cs i st = (DEEPEN (1,20) (depth_tac cs) 0) i st
+     handle TRANS s => (warning ("Blast_tac: " ^ s); Sequence.null);
 
 fun Blast_tac i = blast_tac (Data.claset()) i;
 
