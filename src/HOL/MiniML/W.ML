@@ -12,7 +12,7 @@ open W;
 (* stronger version of Suc_leD *)
 goalw Nat.thy [le_def] 
         "!!m. Suc m <= n ==> m < n";
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (cut_facts_tac [less_linear] 1);
 by (fast_tac HOL_cs 1);
 qed "Suc_le_lessD";
@@ -42,7 +42,7 @@ by (Asm_full_simp_tac 1);
 by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym]) 1);
 by ( (rtac has_type_cl_sub 1) THEN (rtac has_type_cl_sub 1));
 by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
-by (asm_full_simp_tac (!simpset addsimps [subst_comp_tel RS sym,has_type_cl_sub,eq_sym_conv]) 1);
+by (asm_full_simp_tac (!simpset addsimps [subst_comp_tel RS sym,o_def,has_type_cl_sub,eq_sym_conv]) 1);
 qed_spec_mp "W_correct";
 
 val has_type_casesE = map(has_type.mk_cases expr.simps)
@@ -77,7 +77,7 @@ by (eres_inst_tac [("x","nb")] allE 1);
 by (etac conjE 1);
 by (res_inst_tac [("j","na")] le_trans 1); 
 by (Asm_simp_tac 1);
-by (asm_simp_tac (!simpset addsimps [Suc_leD]) 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
@@ -128,7 +128,7 @@ by (eres_inst_tac [("x","$ s a")] allE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
 by (eres_inst_tac [("x","ta")] allE 1);
 by (eres_inst_tac [("x","nb")] allE 1);
-by( asm_full_simp_tac (!simpset addsimps [rotate_Ok]) 1);
+by( asm_full_simp_tac (!simpset addsimps [o_def,rotate_Ok]) 1);
 by (rtac conjI 1);
 by (rtac new_tv_subst_comp_2 1);
 by (rtac new_tv_subst_comp_2 1);
@@ -177,7 +177,8 @@ by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
-by (fast_tac (HOL_cs addIs [cod_app_subst] addss !simpset) 1);
+by (fast_tac (HOL_cs addIs [cod_app_subst]
+                     addss (!simpset addsimps [less_Suc_eq])) 1);
 
 (* case App e1 e2 *)
 by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
@@ -197,7 +198,7 @@ by (eres_inst_tac [("x","ta")] allE 1);
 by (eres_inst_tac [("x","nb")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
 by (safe_tac (empty_cs addSIs [conjI,impI] addSEs [conjE]) ); 
-by (asm_full_simp_tac (!simpset addsimps [rotate_Ok]) 1);
+by (asm_full_simp_tac (!simpset addsimps [rotate_Ok,o_def]) 1);
 by (dtac W_var_geD 1);
 by (dtac W_var_geD 1);
 by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
