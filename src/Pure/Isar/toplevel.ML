@@ -68,7 +68,7 @@ sig
   val quiet: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
-  val excursion_result: ((transition * (state -> 'a -> 'a)) list * 'a) -> 'a
+  val excursion_result: ((transition * (state -> state -> 'a -> 'a)) list * 'a) -> 'a
   val excursion: transition list -> unit
   val set_state: state -> unit
   val get_state: unit -> state
@@ -480,7 +480,7 @@ fun excur [] x = x
   | excur ((tr, f) :: trs) (st, res) =
       (case apply false tr st of
         Some (st', None) =>
-          excur trs (st', transform_error (fn () => f st' res) () handle exn =>
+          excur trs (st', transform_error (fn () => f st st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
       | Some (st', Some exn_info) => raise EXCURSION_FAIL exn_info
       | None => raise EXCURSION_FAIL (TERMINATE, at_command tr));
@@ -494,7 +494,7 @@ fun excursion_result (trs, res) =
   handle exn => error (exn_message exn);
 
 fun excursion trs =
-  excursion_result (map (fn tr => (tr, fn _ => fn _ => ())) trs, ());
+  excursion_result (map (fn tr => (tr, fn _ => fn _ => fn _ => ())) trs, ());
 
 end;
 
