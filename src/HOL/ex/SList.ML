@@ -156,18 +156,18 @@ val List_rec_unfold = [List_rec_def, wf_pred_sexp RS wf_trancl] MRS def_wfrec
 (** pred_sexp lemmas **)
 
 goalw SList.thy [CONS_def,In1_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> <M, CONS M N> : pred_sexp^+";
+    "!!M. [| M: sexp;  N: sexp |] ==> (M, CONS M N) : pred_sexp^+";
 by (asm_simp_tac pred_sexp_ss 1);
 qed "pred_sexp_CONS_I1";
 
 goalw SList.thy [CONS_def,In1_def]
-    "!!M. [| M: sexp;  N: sexp |] ==> <N, CONS M N> : pred_sexp^+";
+    "!!M. [| M: sexp;  N: sexp |] ==> (N, CONS M N) : pred_sexp^+";
 by (asm_simp_tac pred_sexp_ss 1);
 qed "pred_sexp_CONS_I2";
 
 val [prem] = goal SList.thy
-    "<CONS M1 M2, N> : pred_sexp^+ ==> \
-\    <M1,N> : pred_sexp^+ & <M2,N> : pred_sexp^+";
+    "(CONS M1 M2, N) : pred_sexp^+ ==> \
+\    (M1,N) : pred_sexp^+ & (M2,N) : pred_sexp^+";
 by (rtac (prem RS (pred_sexp_subset_Sigma RS trancl_subset_Sigma RS 
 		   subsetD RS SigmaE2)) 1);
 by (etac (sexp_CONS_D RS conjE) 1);

@@ -32,7 +32,7 @@ defs
 \                           | (? N1 N2. M = N1 $ N2  & z=e N1 N2)"
 
   pred_sexp_def
-     "pred_sexp == UN M: sexp. UN N: sexp. {<M, M$N>, <N, M$N>}"
+     "pred_sexp == UN M: sexp. UN N: sexp. {(M, M$N), (N, M$N)}"
 
   sexp_rec_def
    "sexp_rec M c d e == wfrec pred_sexp M  \

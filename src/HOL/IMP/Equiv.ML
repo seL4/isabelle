@@ -25,7 +25,7 @@ val BfstI = read_instantiate_sg (sign_of Equiv.thy)
 val BfstD = read_instantiate_sg (sign_of Equiv.thy)
               [("P","%x.B ?b x")] (fst_conv RS subst);
 
-goal Equiv.thy "!!c. <c,s> -c-> t ==> <s,t> : C(c)";
+goal Equiv.thy "!!c. <c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
 be (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;

@@ -16,7 +16,7 @@ Univ = Arith + Sum +
 (** lists, trees will be sets of nodes **)
 
 subtype (Node)
-  'a node = "{p. EX f x k. p = <f::nat=>nat, x::'a+nat> & f(k)=0}"
+  'a node = "{p. EX f x k. p = (f::nat=>nat, x::'a+nat) & f(k)=0}"
 
 types
   'a item = "'a node set"
@@ -58,13 +58,13 @@ defs
   Push_Node_def  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 
   (*crude "lists" of nats -- needed for the constructions*)
-  apfst_def  "apfst == (%f. split(%x y. <f(x),y>))"
+  apfst_def  "apfst == (%f. split(%x y. (f(x),y)))"
   Push_def   "Push == (%b h. nat_case (Suc b) h)"
 
   (** operations on S-expressions -- sets of nodes **)
 
   (*S-expression constructors*)
-  Atom_def   "Atom == (%x. {Abs_Node(<%k.0, x>)})"
+  Atom_def   "Atom == (%x. {Abs_Node((%k.0, x))})"
   Scons_def  "M$N == (Push_Node(0) `` M) Un (Push_Node(Suc(0)) `` N)"
 
   (*Leaf nodes, with arbitrary or nat labels*)
@@ -92,12 +92,12 @@ defs
 
   (** diagonal sets and equality for the "universe" **)
 
-  diag_def   "diag(A) == UN x:A. {<x,x>}"
+  diag_def   "diag(A) == UN x:A. {(x,x)}"
 
   dprod_def  "r<**>s == UN u:r. split (%x x'. \
-\                       UN v:s. split (%y y'. {<x$y,x'$y'>}) v) u"
+\                       UN v:s. split (%y y'. {(x$y,x'$y')}) v) u"
 
-  dsum_def   "r<++>s == (UN u:r. split (%x x'. {<In0(x),In0(x')>}) u) Un \
-\                       (UN v:s. split (%y y'. {<In1(y),In1(y')>}) v)"
+  dsum_def   "r<++>s == (UN u:r. split (%x x'. {(In0(x),In0(x'))}) u) Un \
+\                       (UN v:s. split (%y y'. {(In1(y),In1(y'))}) v)"
 
 end

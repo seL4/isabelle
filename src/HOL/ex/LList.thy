@@ -19,8 +19,8 @@ A nice but complex example would be [ML for the Working Programmer, page 176]
 Previous definition of llistD_Fun was explicit:
   llistD_Fun_def
    "llistD_Fun(r) == 	\
-\       {<LNil,LNil>}  Un  	\
-\       (UN x. (split(%l1 l2.<LCons(x,l1),LCons(x,l2)>))``r)"
+\       {(LNil,LNil)}  Un  	\
+\       (UN x. (split(%l1 l2.(LCons(x,l1),LCons(x,l2))))``r)"
 *)
 
 LList = Gfp + SList +
@@ -69,9 +69,9 @@ coinductive "llist(A)"
 
 coinductive "LListD(r)"
   intrs
-    NIL_I  "<NIL, NIL> : LListD(r)"
-    CONS_I "[| <a,b>: r;  <M,N> : LListD(r)   \
-\	    |] ==> <CONS a M, CONS b N> : LListD(r)"
+    NIL_I  "(NIL, NIL) : LListD(r)"
+    CONS_I "[| (a,b): r;  (M,N) : LListD(r)   \
+\	    |] ==> (CONS a M, CONS b N) : LListD(r)"
 
 defs
   (*Now used exclusively for abbreviating the coinduction rule*)
@@ -79,9 +79,9 @@ defs
 \		  {z. z = NIL | (? M a. z = CONS a M & a : A & M : X)}"
 
   LListD_Fun_def "LListD_Fun r X ==   \
-\		  {z. z = <NIL, NIL> |   \
-\		      (? M N a b. z = <CONS a M, CONS b N> &   \
-\		                  <a, b> : r & <M, N> : X)}"
+\		  {z. z = (NIL, NIL) |   \
+\		      (? M N a b. z = (CONS a M, CONS b N) &   \
+\		                  (a, b) : r & (M, N) : X)}"
 
   (*defining the abstract constructors*)
   LNil_def  	"LNil == Abs_llist(NIL)"
@@ -102,7 +102,7 @@ defs
   llist_corec_def
    "llist_corec a f == \
 \       Abs_llist(LList_corec a (%z.sum_case (%x.Inl(x)) \
-\                                    (split(%v w. Inr(<Leaf(v), w>))) (f z)))"
+\                                    (split(%v w. Inr((Leaf(v), w)))) (f z)))"
 
   llistD_Fun_def
    "llistD_Fun(r) == 	\
@@ -113,28 +113,28 @@ defs
   Lconst_def	"Lconst(M) == lfp(%N. CONS M N)"     
 
   Lmap_def
-   "Lmap f M == LList_corec M (List_case (Inl Unity) (%x M'. Inr(<f(x), M'>)))"
+   "Lmap f M == LList_corec M (List_case (Inl ()) (%x M'. Inr((f(x), M'))))"
 
   lmap_def
-   "lmap f l == llist_corec l (llist_case (Inl Unity) (%y z. Inr(<f(y), z>)))"
+   "lmap f l == llist_corec l (llist_case (Inl ()) (%y z. Inr((f(y), z))))"
 
-  iterates_def	"iterates f a == llist_corec a (%x. Inr(<x, f(x)>))"     
+  iterates_def	"iterates f a == llist_corec a (%x. Inr((x, f(x))))"     
 
 (*Append generates its result by applying f, where
-    f(<NIL,NIL>) = Inl(Unity)
-    f(<NIL, CONS N1 N2>) = Inr(<N1, <NIL,N2>)
-    f(<CONS M1 M2, N>)    = Inr(<M1, <M2,N>)
+    f((NIL,NIL)) = Inl(())
+    f((NIL, CONS N1 N2)) = Inr((N1, (NIL,N2))
+    f((CONS M1 M2, N))    = Inr((M1, (M2,N))
 *)
 
   Lappend_def
-   "Lappend M N == LList_corec <M,N>	   				     \
-\     (split(List_case (List_case (Inl Unity) (%N1 N2. Inr(<N1, <NIL,N2>>))) \
-\                      (%M1 M2 N. Inr(<M1, <M2,N>>))))"
+   "Lappend M N == LList_corec (M,N)	   				     \
+\     (split(List_case (List_case (Inl ()) (%N1 N2. Inr((N1, (NIL,N2))))) \
+\                      (%M1 M2 N. Inr((M1, (M2,N))))))"
 
   lappend_def
-   "lappend l n == llist_corec <l,n>	   				     \
-\   (split(llist_case (llist_case (Inl Unity) (%n1 n2. Inr(<n1, <LNil,n2>>))) \
-\                     (%l1 l2 n. Inr(<l1, <l2,n>>))))"
+   "lappend l n == llist_corec (l,n)	   				     \
+\   (split(llist_case (llist_case (Inl ()) (%n1 n2. Inr((n1, (LNil,n2))))) \
+\                     (%l1 l2 n. Inr((l1, (l2,n))))))"
 
 rules
     (*faking a type definition...*)

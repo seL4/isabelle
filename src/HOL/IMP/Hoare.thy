@@ -12,7 +12,7 @@ consts
 (* syntax "@spec" :: "[bool,com,bool] => bool" *)
           ("{{(1_)}}/ (_)/ {{(1_)}}" 10)
 defs
-  spec_def "spec P c Q == !s t. <s,t> : C(c) --> P s --> Q t"
+  spec_def "spec P c Q == !s t. (s,t) : C(c) --> P s --> Q t"
 end
 (* Pretty-printing of assertions.
    Not very helpful as long as programs are not pretty-printed.

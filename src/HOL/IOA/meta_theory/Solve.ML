@@ -18,7 +18,7 @@ goalw Solve.thy [is_weak_pmap_def,behaviours_def]
   by (safe_tac set_cs);
 
   (* give execution of abstract automata *)
-  by (res_inst_tac[("x","<mk_behaviour A (fst ex),%i.f(snd ex i)>")] bexI 1);
+  by (res_inst_tac[("x","(mk_behaviour A (fst ex),%i.f(snd ex i))")] bexI 1);
 
   (* Behaviours coincide *)
   by (asm_simp_tac (SS addsimps [mk_behaviour_def,filter_oseq_idemp])1);

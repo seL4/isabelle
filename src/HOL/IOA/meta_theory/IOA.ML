@@ -13,12 +13,12 @@ val ioa_projections = [asig_of_def, starts_of_def, trans_of_def];
 val exec_rws = [executions_def,is_execution_fragment_def];
 
 goal IOA.thy
-"asig_of(<x,y,z>) = x & starts_of(<x,y,z>) = y & trans_of(<x,y,z>) = z";
+"asig_of((x,y,z)) = x & starts_of((x,y,z)) = y & trans_of((x,y,z)) = z";
   by (simp_tac (SS addsimps ioa_projections) 1);
   qed "ioa_triple_proj";
 
 goalw IOA.thy [ioa_def,state_trans_def,actions_def, is_asig_def]
-  "!!A. [| IOA(A); <s1,a,s2>:trans_of(A) |] ==> a:actions(asig_of(A))";
+  "!!A. [| IOA(A); (s1,a,s2):trans_of(A) |] ==> a:actions(asig_of(A))";
   by (REPEAT(etac conjE 1));
   by (EVERY1[etac allE, etac impE, atac]);
   by (asm_full_simp_tac SS 1);
@@ -45,18 +45,18 @@ goalw IOA.thy [mk_behaviour_def,filter_oseq_def]
 qed "mk_behaviour_thm";
 
 goalw IOA.thy [reachable_def] "!!A. s:starts_of(A) ==> reachable A s";
-  by (res_inst_tac [("x","<%i.None,%i.s>")] bexI 1);
+  by (res_inst_tac [("x","(%i.None,%i.s)")] bexI 1);
   by (simp_tac SS 1);
   by (asm_simp_tac (SS addsimps exec_rws) 1);
 qed "reachable_0";
 
 goalw IOA.thy (reachable_def::exec_rws)
-"!!A. [| reachable A s; <s,a,t> : trans_of(A) |] ==> reachable A t";
+"!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by(asm_full_simp_tac SS 1);
   by(safe_tac set_cs);
-  by(res_inst_tac [("x","<%i.if i<n then fst ex i                    \
+  by(res_inst_tac [("x","(%i.if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
-\                         %i.if i<Suc n then snd ex i else t>")] bexI 1);
+\                         %i.if i<Suc n then snd ex i else t)")] bexI 1);
   by(res_inst_tac [("x","Suc(n)")] exI 1);
   by(simp_tac SS 1);
   by(asm_simp_tac (SS delsimps [less_Suc_eq]) 1);
@@ -73,7 +73,7 @@ qed "reachable_n";
 
 val [p1,p2] = goalw IOA.thy [invariant_def]
   "[| !!s. s:starts_of(A) ==> P(s);                                          \
-\     !!s t a. [|reachable A s; P(s)|] ==> <s,a,t>: trans_of(A) --> P(t) |] \
+\     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
   by (safe_tac set_cs);
@@ -91,7 +91,7 @@ qed "invariantI";
 
 val [p1,p2] = goal IOA.thy
  "[| !!s. s : starts_of(A) ==> P(s); \
-\   !!s t a. reachable A s ==> P(s) --> <s,a,t>:trans_of(A) --> P(t) \
+\   !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
   by (fast_tac (HOL_cs addSIs [invariantI] addSDs [p1,p2]) 1);
 qed "invariantI1";
@@ -121,18 +121,18 @@ qed "states_of_exec_reachable";
 
 
 goal IOA.thy 
-"<s,a,t> : trans_of(A || B || C || D) =                                      \
+"(s,a,t) : trans_of(A || B || C || D) =                                      \
 \ ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |  \
 \   a:actions(asig_of(D))) &                                                 \
-\  (if a:actions(asig_of(A)) then <fst(s),a,fst(t)>:trans_of(A)              \
+\  (if a:actions(asig_of(A)) then (fst(s),a,fst(t)):trans_of(A)              \
 \   else fst t=fst s) &                                                      \
-\  (if a:actions(asig_of(B)) then <fst(snd(s)),a,fst(snd(t))>:trans_of(B)    \
+\  (if a:actions(asig_of(B)) then (fst(snd(s)),a,fst(snd(t))):trans_of(B)    \
 \   else fst(snd(t))=fst(snd(s))) &                                          \
 \  (if a:actions(asig_of(C)) then                                            \
-\     <fst(snd(snd(s))),a,fst(snd(snd(t)))>:trans_of(C)                      \
+\     (fst(snd(snd(s))),a,fst(snd(snd(t)))):trans_of(C)                      \
 \   else fst(snd(snd(t)))=fst(snd(snd(s)))) &                                \
 \  (if a:actions(asig_of(D)) then                                            \
-\     <snd(snd(snd(s))),a,snd(snd(snd(t)))>:trans_of(D)                      \
+\     (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                      \
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
   by(simp_tac (SS addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]@
                             ioa_projections)

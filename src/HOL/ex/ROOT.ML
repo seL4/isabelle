@@ -8,7 +8,7 @@ Executes miscellaneous examples for Higher-Order Logic.
 
 CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
 
-(writeln"Root file for CHOL examples";
+(writeln "Root file for CHOL examples";
  proof_timing := true;
  loadpath := ["ex"];
  time_use     "ex/cla.ML";
@@ -28,5 +28,5 @@ CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
  time_use_thy "Term";
  time_use_thy "Simult";
  time_use_thy "MT";
- writeln     "END: Root file for HOL examples"
+ writeln "END: Root file for CHOL examples"
 )  handle _ => exit 1;

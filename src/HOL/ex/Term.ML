@@ -119,7 +119,7 @@ val Term_rec_unfold =
 
 val [prem] = goal Term.thy
     "N: list(term(A)) ==>  \
-\    !M. <N,M>: pred_sexp^+ --> \
+\    !M. (N,M): pred_sexp^+ --> \
 \        Abs_map (cut h (pred_sexp^+) M) N = \
 \        Abs_map h N";
 by (rtac (prem RS list.induct) 1);

@@ -39,7 +39,7 @@ is_asig_def
 
 
 mk_ext_asig_def
-  "mk_ext_asig(triple) == <inputs(triple), outputs(triple), {}>"
+  "mk_ext_asig(triple) == (inputs(triple), outputs(triple), {})"
 
 
 end 

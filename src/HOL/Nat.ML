@@ -136,12 +136,12 @@ qed "nat_case_Suc";
 
 (** Introduction rules for 'pred_nat' **)
 
-goalw Nat.thy [pred_nat_def] "<n, Suc(n)> : pred_nat";
+goalw Nat.thy [pred_nat_def] "(n, Suc(n)) : pred_nat";
 by (fast_tac set_cs 1);
 qed "pred_natI";
 
 val major::prems = goalw Nat.thy [pred_nat_def]
-    "[| p : pred_nat;  !!x n. [| p = <n, Suc(n)> |] ==> R \
+    "[| p : pred_nat;  !!x n. [| p = (n, Suc(n)) |] ==> R \
 \    |] ==> R";
 by (rtac (major RS CollectE) 1);
 by (REPEAT (eresolve_tac ([asm_rl,exE]@prems) 1));
@@ -204,7 +204,7 @@ goalw Nat.thy [less_def] "n < Suc(n)";
 by (rtac (pred_natI RS r_into_trancl) 1);
 qed "lessI";
 
-(* i<j ==> i<Suc(j) *)
+(* i(j ==> i(Suc(j) *)
 val less_SucI = lessI RSN (2, less_trans);
 
 goal Nat.thy "0 < Suc(n)";
@@ -220,7 +220,7 @@ val prems = goalw Nat.thy [less_def] "n<m ==> ~ m<(n::nat)";
 by(fast_tac (HOL_cs addIs ([wf_pred_nat, wf_trancl RS wf_asym]@prems))1);
 qed "less_not_sym";
 
-(* [| n<m; m<n |] ==> R *)
+(* [| n(m; m(n |] ==> R *)
 bind_thm ("less_asym", (less_not_sym RS notE));
 
 goalw Nat.thy [less_def] "~ n<(n::nat)";
@@ -228,7 +228,7 @@ by (rtac notI 1);
 by (etac (wf_pred_nat RS wf_trancl RS wf_anti_refl) 1);
 qed "less_not_refl";
 
-(* n<n ==> R *)
+(* n(n ==> R *)
 bind_thm ("less_anti_refl", (less_not_refl RS notE));
 
 goal Nat.thy "!!m. n<m ==> m ~= (n::nat)";

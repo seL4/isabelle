@@ -45,13 +45,13 @@ val infsys_mono_tac =
       (REPEAT (etac exE 1)) THEN (REPEAT (rtac exI 1)) THEN (fast_tac set_cs 1)
     );
 
-val prems = goal MT.thy "P a b ==> P (fst <a,b>) (snd <a,b>)";
+val prems = goal MT.thy "P a b ==> P (fst (a,b)) (snd (a,b))";
 by (rtac (fst_conv RS ssubst) 1);
 by (rtac (snd_conv RS ssubst) 1);
 by (resolve_tac prems 1);
 qed "infsys_p1";
 
-val prems = goal MT.thy "P (fst <a,b>) (snd <a,b>) ==> P a b";
+val prems = goal MT.thy "P (fst (a,b)) (snd (a,b)) ==> P a b";
 by (cut_facts_tac prems 1);
 by (dtac (fst_conv RS subst) 1);
 by (dtac (snd_conv RS subst) 1);
@@ -59,7 +59,7 @@ by (assume_tac 1);
 qed "infsys_p2";
 
 val prems = goal MT.thy 
-  "P a b c ==> P (fst(fst <<a,b>,c>)) (snd(fst <<a,b>,c>)) (snd <<a,b>,c>)";
+  "P a b c ==> P (fst(fst ((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c))";
 by (rtac (fst_conv RS ssubst) 1);
 by (rtac (fst_conv RS ssubst) 1);
 by (rtac (snd_conv RS ssubst) 1);
@@ -68,7 +68,7 @@ by (resolve_tac prems 1);
 qed "infsys_pp1";
 
 val prems = goal MT.thy 
-  "P (fst(fst <<a,b>,c>)) (snd(fst <<a,b>,c>)) (snd <<a,b>,c>) ==> P a b c";
+  "P (fst(fst ((a,b),c))) (snd(fst ((a,b),c))) (snd ((a,b),c)) ==> P a b c";
 by (cut_facts_tac prems 1);
 by (dtac (fst_conv RS subst) 1);
 by (dtac (fst_conv RS subst) 1);
@@ -240,23 +240,23 @@ qed "eval_app2";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def]
   " [| ve |- e ---> v; \
-\      !!ve c. P(<<ve,e_const(c)>,v_const(c)>); \
-\      !!ev ve. ev:ve_dom(ve) ==> P(<<ve,e_var(ev)>,ve_app ve ev>); \
-\      !!ev ve e. P(<<ve,fn ev => e>,v_clos(<|ev,e,ve|>)>); \
+\      !!ve c. P(((ve,e_const(c)),v_const(c))); \
+\      !!ev ve. ev:ve_dom(ve) ==> P(((ve,e_var(ev)),ve_app ve ev)); \
+\      !!ev ve e. P(((ve,fn ev => e),v_clos(<|ev,e,ve|>))); \
 \      !!ev1 ev2 ve cl e. \
 \        cl = <| ev1, e, ve + {ev2 |-> v_clos(cl)} |> ==> \
-\        P(<<ve,fix ev2(ev1) = e>,v_clos(cl)>); \
+\        P(((ve,fix ev2(ev1) = e),v_clos(cl))); \
 \      !!ve c1 c2 e1 e2. \
-\        [| P(<<ve,e1>,v_const(c1)>); P(<<ve,e2>,v_const(c2)>) |] ==> \
-\        P(<<ve,e1 @ e2>,v_const(c_app c1 c2)>); \
+\        [| P(((ve,e1),v_const(c1))); P(((ve,e2),v_const(c2))) |] ==> \
+\        P(((ve,e1 @ e2),v_const(c_app c1 c2))); \
 \      !!ve vem xm e1 e2 em v v2. \
-\        [|  P(<<ve,e1>,v_clos(<|xm,em,vem|>)>); \
-\            P(<<ve,e2>,v2>); \
-\            P(<<vem + {xm |-> v2},em>,v>) \
+\        [|  P(((ve,e1),v_clos(<|xm,em,vem|>))); \
+\            P(((ve,e2),v2)); \
+\            P(((vem + {xm |-> v2},em),v)) \
 \        |] ==> \
-\        P(<<ve,e1 @ e2>,v>) \
+\        P(((ve,e1 @ e2),v)) \
 \   |] ==> \
-\   P(<<ve,e>,v>)";
+\   P(((ve,e),v))";
 by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
@@ -356,23 +356,23 @@ qed "elab_app";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def]
   " [| te |- e ===> t; \
-\      !!te c t. c isof t ==> P(<<te,e_const(c)>,t>); \
-\      !!te x. x:te_dom(te) ==> P(<<te,e_var(x)>,te_app te x>); \
+\      !!te c t. c isof t ==> P(((te,e_const(c)),t)); \
+\      !!te x. x:te_dom(te) ==> P(((te,e_var(x)),te_app te x)); \
 \      !!te x e t1 t2. \
-\        [| te + {x |=> t1} |- e ===> t2; P(<<te + {x |=> t1},e>,t2>) |] ==> \
-\        P(<<te,fn x => e>,t1->t2>); \
+\        [| te + {x |=> t1} |- e ===> t2; P(((te + {x |=> t1},e),t2)) |] ==> \
+\        P(((te,fn x => e),t1->t2)); \
 \      !!te f x e t1 t2. \
 \        [| te + {f |=> t1->t2} + {x |=> t1} |- e ===> t2; \
-\           P(<<te + {f |=> t1->t2} + {x |=> t1},e>,t2>) \
+\           P(((te + {f |=> t1->t2} + {x |=> t1},e),t2)) \
 \        |] ==> \
-\        P(<<te,fix f(x) = e>,t1->t2>); \
+\        P(((te,fix f(x) = e),t1->t2)); \
 \      !!te e1 e2 t1 t2. \
-\        [| te |- e1 ===> t1->t2; P(<<te,e1>,t1->t2>); \
-\           te |- e2 ===> t1; P(<<te,e2>,t1>) \
+\        [| te |- e1 ===> t1->t2; P(((te,e1),t1->t2)); \
+\           te |- e2 ===> t1; P(((te,e2),t1)) \
 \        |] ==> \
-\        P(<<te,e1 @ e2>,t2>) \
+\        P(((te,e1 @ e2),t2)) \
 \   |] ==> \
-\   P(<<te,e>,t>)";
+\   P(((te,e),t))";
 by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
@@ -412,18 +412,18 @@ qed "elab_ind";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def]
   " [| te |- e ===> t; \
-\      !!te c t. c isof t ==> P(<<te,e_const(c)>,t>); \
-\      !!te x. x:te_dom(te) ==> P(<<te,e_var(x)>,te_app te x>); \
+\      !!te c t. c isof t ==> P(((te,e_const(c)),t)); \
+\      !!te x. x:te_dom(te) ==> P(((te,e_var(x)),te_app te x)); \
 \      !!te x e t1 t2. \
-\        te + {x |=> t1} |- e ===> t2 ==> P(<<te,fn x => e>,t1->t2>); \
+\        te + {x |=> t1} |- e ===> t2 ==> P(((te,fn x => e),t1->t2)); \
 \      !!te f x e t1 t2. \
 \        te + {f |=> t1->t2} + {x |=> t1} |- e ===> t2 ==> \
-\        P(<<te,fix f(x) = e>,t1->t2>); \
+\        P(((te,fix f(x) = e),t1->t2)); \
 \      !!te e1 e2 t1 t2. \
 \        [| te |- e1 ===> t1->t2; te |- e2 ===> t1 |] ==> \
-\        P(<<te,e1 @ e2>,t2>) \
+\        P(((te,e1 @ e2),t2)) \
 \   |] ==> \
-\   P(<<te,e>,t>)";
+\   P(((te,e),t))";
 by (resolve_tac (prems RL [lfp_elim2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
@@ -545,7 +545,7 @@ bind_thm("mono_hasty_fun",  result());
 
 (* First strong indtroduction (co-induction) rule for hasty_rel *)
 
-val prems = goalw MT.thy [hasty_rel_def] "c isof t ==> <v_const(c),t> : hasty_rel";
+val prems = goalw MT.thy [hasty_rel_def] "c isof t ==> (v_const(c),t) : hasty_rel";
 by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac MT.hasty_fun_def);
@@ -561,9 +561,9 @@ val prems = goalw MT.thy [hasty_rel_def]
 \       ve_dom(ve) = te_dom(te); \
 \       ! ev1. \
 \         ev1:ve_dom(ve) --> \
-\         <ve_app ve ev1,te_app te ev1> : {<v_clos(<|ev,e,ve|>),t>} Un hasty_rel \
+\         (ve_app ve ev1,te_app te ev1) : {(v_clos(<|ev,e,ve|>),t)} Un hasty_rel \
 \   |] ==> \
-\   <v_clos(<|ev,e,ve|>),t> : hasty_rel";
+\   (v_clos(<|ev,e,ve|>),t) : hasty_rel";
 by (cut_facts_tac prems 1);
 by (rtac gfp_coind2 1);
 by (rewtac hasty_fun_def);
@@ -575,14 +575,14 @@ qed "hasty_rel_clos_coind";
 (* Elimination rule for hasty_rel *)
 
 val prems = goalw MT.thy [hasty_rel_def]
-  " [| !! c t.c isof t ==> P(<v_const(c),t>); \
+  " [| !! c t.c isof t ==> P((v_const(c),t)); \
 \      !! te ev e t ve. \
 \        [| te |- fn ev => e ===> t; \
 \           ve_dom(ve) = te_dom(te); \
-\           !ev1.ev1:ve_dom(ve) --> <ve_app ve ev1,te_app te ev1> : hasty_rel \
-\        |] ==> P(<v_clos(<|ev,e,ve|>),t>); \
-\      <v,t> : hasty_rel \
-\   |] ==> P(<v,t>)";
+\           !ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
+\        |] ==> P((v_clos(<|ev,e,ve|>),t)); \
+\      (v,t) : hasty_rel \
+\   |] ==> P((v,t))";
 by (cut_facts_tac prems 1);
 by (etac gfp_elim2 1);
 by (rtac mono_hasty_fun 1);
@@ -595,12 +595,12 @@ by (ALLGOALS (fast_tac set_cs));
 qed "hasty_rel_elim0";
 
 val prems = goal MT.thy 
-  " [| <v,t> : hasty_rel; \
+  " [| (v,t) : hasty_rel; \
 \      !! c t.c isof t ==> P (v_const c) t; \
 \      !! te ev e t ve. \
 \        [| te |- fn ev => e ===> t; \
 \           ve_dom(ve) = te_dom(te); \
-\           !ev1.ev1:ve_dom(ve) --> <ve_app ve ev1,te_app te ev1> : hasty_rel \
+\           !ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
 \        |] ==> P (v_clos <|ev,e,ve|>) t \
 \   |] ==> P v t";
 by (res_inst_tac [("P","P")] infsys_p2 1);

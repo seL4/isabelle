@@ -51,12 +51,12 @@ qed "not_less_Least";
 
 (** apfst -- can be used in similar type definitions **)
 
-goalw Univ.thy [apfst_def] "apfst f <a,b> = <f(a),b>";
+goalw Univ.thy [apfst_def] "apfst f (a,b) = (f(a),b)";
 by (rtac split 1);
 qed "apfst";
 
 val [major,minor] = goal Univ.thy
-    "[| q = apfst f p;  !!x y. [| p = <x,y>;  q = <f(x),y> |] ==> R \
+    "[| q = apfst f p;  !!x y. [| p = (x,y);  q = (f(x),y) |] ==> R \
 \    |] ==> R";
 by (rtac PairE 1);
 by (rtac minor 1);
@@ -109,7 +109,7 @@ val Abs_Node_inject = inj_onto_Abs_Node RS inj_ontoD;
 
 (*** Introduction rules for Node ***)
 
-goalw Univ.thy [Node_def] "<%k. 0,a> : Node";
+goalw Univ.thy [Node_def] "(%k. 0,a) : Node";
 by (fast_tac set_cs 1);
 qed "Node_K0_I";
 
@@ -256,7 +256,7 @@ val univ_simps = [apfst,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
 val univ_ss = nat_ss addsimps univ_simps;
 
 
-goalw Univ.thy [ndepth_def] "ndepth (Abs_Node(<%k.0, x>)) = 0";
+goalw Univ.thy [ndepth_def] "ndepth (Abs_Node((%k.0, x))) = 0";
 by (sstac [Node_K0_I RS Abs_Node_inverse, split] 1);
 by (rtac Least_equality 1);
 by (rtac refl 1);
@@ -496,7 +496,7 @@ qed "In1_UN1";
 
 (*** Equality : the diagonal relation ***)
 
-goalw Univ.thy [diag_def] "!!a A. [| a=b;  a:A |] ==> <a,b> : diag(A)";
+goalw Univ.thy [diag_def] "!!a A. [| a=b;  a:A |] ==> (a,b) : diag(A)";
 by (fast_tac set_cs 1);
 qed "diag_eqI";
 
@@ -505,7 +505,7 @@ val diagI = refl RS diag_eqI |> standard;
 (*The general elimination rule*)
 val major::prems = goalw Univ.thy [diag_def]
     "[| c : diag(A);  \
-\       !!x y. [| x:A;  c = <x,x> |] ==> P \
+\       !!x y. [| x:A;  c = (x,x) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS UN_E) 1);
 by (REPEAT (eresolve_tac [asm_rl,singletonE] 1 ORELSE resolve_tac prems 1));
@@ -514,14 +514,14 @@ qed "diagE";
 (*** Equality for Cartesian Product ***)
 
 goalw Univ.thy [dprod_def]
-    "!!r s. [| <M,M'>:r;  <N,N'>:s |] ==> <M$N, M'$N'> : r<**>s";
+    "!!r s. [| (M,M'):r;  (N,N'):s |] ==> (M$N, M'$N') : r<**>s";
 by (fast_tac prod_cs 1);
 qed "dprodI";
 
 (*The general elimination rule*)
 val major::prems = goalw Univ.thy [dprod_def]
     "[| c : r<**>s;  \
-\       !!x y x' y'. [| <x,x'> : r;  <y,y'> : s;  c = <x$y,x'$y'> |] ==> P \
+\       !!x y x' y'. [| (x,x') : r;  (y,y') : s;  c = (x$y,x'$y') |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, UN_E, mem_splitE, singletonE]));
@@ -531,18 +531,18 @@ qed "dprodE";
 
 (*** Equality for Disjoint Sum ***)
 
-goalw Univ.thy [dsum_def]  "!!r. <M,M'>:r ==> <In0(M), In0(M')> : r<++>s";
+goalw Univ.thy [dsum_def]  "!!r. (M,M'):r ==> (In0(M), In0(M')) : r<++>s";
 by (fast_tac prod_cs 1);
 qed "dsum_In0I";
 
-goalw Univ.thy [dsum_def]  "!!r. <N,N'>:s ==> <In1(N), In1(N')> : r<++>s";
+goalw Univ.thy [dsum_def]  "!!r. (N,N'):s ==> (In1(N), In1(N')) : r<++>s";
 by (fast_tac prod_cs 1);
 qed "dsum_In1I";
 
 val major::prems = goalw Univ.thy [dsum_def]
     "[| w : r<++>s;  \
-\       !!x x'. [| <x,x'> : r;  w = <In0(x), In0(x')> |] ==> P; \
-\       !!y y'. [| <y,y'> : s;  w = <In1(y), In1(y')> |] ==> P \
+\       !!x x'. [| (x,x') : r;  w = (In0(x), In0(x')) |] ==> P; \
+\       !!y y'. [| (y,y') : s;  w = (In1(y), In1(y')) |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, UN_E, UnE, mem_splitE, singletonE]));

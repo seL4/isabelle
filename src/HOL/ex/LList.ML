@@ -135,7 +135,7 @@ qed "LList_corec_type";
 
 (*Lemma for the proof of llist_corec*)
 goal LList.thy
-   "LList_corec a (%z.sum_case Inl (split(%v w.Inr(<Leaf(v),w>))) (f z)) : \
+   "LList_corec a (%z.sum_case Inl (split(%v w.Inr((Leaf(v),w)))) (f z)) : \
 \   llist(range(Leaf))";
 by (res_inst_tac [("X", "range(%x.LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
@@ -156,7 +156,7 @@ by (fast_tac (univ_cs addSIs (equalityI :: map rew LListD.intrs)
 end;
 qed "LListD_unfold";
 
-goal LList.thy "!M N. <M,N> : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
+goal LList.thy "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac set_cs);
 by (etac LListD.elim 1);
@@ -202,12 +202,12 @@ be (subsetD RS CollectD) 1;
 ba 1;
 qed "LListD_coinduct";
 
-goalw LList.thy [LListD_Fun_def,NIL_def] "<NIL,NIL> : LListD_Fun r s";
+goalw LList.thy [LListD_Fun_def,NIL_def] "(NIL,NIL) : LListD_Fun r s";
 by (fast_tac set_cs 1);
 qed "LListD_Fun_NIL_I";
 
 goalw LList.thy [LListD_Fun_def,CONS_def]
- "!!x. [| x:A;  <M,N>:s |] ==> <CONS x M, CONS x N> : LListD_Fun (diag A) s";
+ "!!x. [| x:A;  (M,N):s |] ==> (CONS x M, CONS x N) : LListD_Fun (diag A) s";
 by (fast_tac univ_cs 1);
 qed "LListD_Fun_CONS_I";
 
@@ -237,7 +237,7 @@ by (REPEAT (resolve_tac [equalityI, LListD_subset_diag,
 qed "LListD_eq_diag";
 
 goal LList.thy 
-    "!!M N. M: llist(A) ==> <M,M> : LListD_Fun (diag A) (X Un diag(llist(A)))";
+    "!!M N. M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
 br LListD_Fun_LListD_I 1;
 by (asm_simp_tac (HOL_ss addsimps [LListD_eq_diag, diagI]) 1);
@@ -248,7 +248,7 @@ qed "LListD_Fun_diag_I";
       [also admits true equality]
    Replace "A" by some particular set, like {x.True}??? *)
 goal LList.thy 
-    "!!r. [| <M,N> : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
+    "!!r. [| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
 \         |] ==>  M=N";
 by (rtac (LListD_subset_diag RS subsetD RS diagE) 1);
 by (etac LListD_coinduct 1);
@@ -267,7 +267,7 @@ val [prem1,prem2] = goal LList.thy
 by (rtac ext 1);
 (*next step avoids an unknown (and flexflex pair) in simplification*)
 by (res_inst_tac [("A", "{u.True}"),
-		  ("r", "range(%u. <h1(u),h2(u)>)")] LList_equalityI 1);
+		  ("r", "range(%u. (h1(u),h2(u)))")] LList_equalityI 1);
 by (rtac rangeI 1);
 by (safe_tac set_cs);
 by (stac prem1 1);
@@ -332,14 +332,14 @@ by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
 
-goal LList.thy "Lconst(M) = LList_corec M (%x.Inr(<x,x>))";
+goal LList.thy "Lconst(M) = LList_corec M (%x.Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (simp_tac sum_ss 1);
 by (rtac Lconst 1);
 qed "Lconst_eq_LList_corec";
 
 (*Thus we could have used gfp in the definition of Lconst*)
-goal LList.thy "gfp(%N. CONS M N) = LList_corec M (%x.Inr(<x,x>))";
+goal LList.thy "gfp(%N. CONS M N) = LList_corec M (%x.Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (simp_tac sum_ss 1);
 by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);
@@ -420,8 +420,8 @@ val [Mlist,gMlist,NILcase,CONScase] = goal LList.thy
  "[| M: llist(A); g(NIL): llist(A); 				\
 \    f(NIL)=g(NIL);						\
 \    !!x l. [| x:A;  l: llist(A) |] ==>				\
-\	    <f(CONS x l),g(CONS x l)> :				\
-\               LListD_Fun (diag A) ((%u.<f(u),g(u)>)``llist(A) Un  \
+\	    (f(CONS x l),g(CONS x l)) :				\
+\               LListD_Fun (diag A) ((%u.(f(u),g(u)))``llist(A) Un  \
 \                                   diag(llist(A)))		\
 \ |] ==> f(M) = g(M)";
 by (rtac LList_equalityI 1);
@@ -637,7 +637,7 @@ by (asm_simp_tac (HOL_ss addsimps [o_def,prod_fun,Abs_llist_inverse]) 1);
 qed "prod_fun_lemma";
 
 goal LList.thy
-    "prod_fun Rep_llist  Rep_llist `` range(%x. <x, x>) = \
+    "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
 \    diag(llist(range(Leaf)))";
 br equalityI 1;
 by (fast_tac (univ_cs addIs [Rep_llist]) 1);
@@ -647,7 +647,7 @@ qed "prod_fun_range_eq_diag";
 (** To show two llists are equal, exhibit a bisimulation! 
       [also admits true equality] **)
 val [prem1,prem2] = goalw LList.thy [llistD_Fun_def]
-    "[| <l1,l2> : r;  r <= llistD_Fun(r Un range(%x.<x,x>)) |] ==> l1=l2";
+    "[| (l1,l2) : r;  r <= llistD_Fun(r Un range(%x.(x,x))) |] ==> l1=l2";
 by (rtac (inj_Rep_llist RS injD) 1);
 by (res_inst_tac [("r", "prod_fun Rep_llist Rep_llist ``r"),
 		  ("A", "range(Leaf)")] 
@@ -664,19 +664,19 @@ by (rtac diag_subset_Sigma 1);
 qed "llist_equalityI";
 
 (** Rules to prove the 2nd premise of llist_equalityI **)
-goalw LList.thy [llistD_Fun_def,LNil_def] "<LNil,LNil> : llistD_Fun(r)";
+goalw LList.thy [llistD_Fun_def,LNil_def] "(LNil,LNil) : llistD_Fun(r)";
 by (rtac (LListD_Fun_NIL_I RS prod_fun_imageI) 1);
 qed "llistD_Fun_LNil_I";
 
 val [prem] = goalw LList.thy [llistD_Fun_def,LCons_def]
-    "<l1,l2>:r ==> <LCons x l1, LCons x l2> : llistD_Fun(r)";
+    "(l1,l2):r ==> (LCons x l1, LCons x l2) : llistD_Fun(r)";
 by (rtac (rangeI RS LListD_Fun_CONS_I RS prod_fun_imageI) 1);
 by (rtac (prem RS prod_fun_imageI) 1);
 qed "llistD_Fun_LCons_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
 goalw LList.thy [llistD_Fun_def]
-     "!!l. <l,l> : llistD_Fun(r Un range(%x.<x,x>))";
+     "!!l. (l,l) : llistD_Fun(r Un range(%x.(x,x)))";
 br (Rep_llist_inverse RS subst) 1;
 br prod_fun_imageI 1;
 by (rtac (image_Un RS ssubst) 1);
@@ -687,10 +687,10 @@ qed "llistD_Fun_range_I";
 (*A special case of list_equality for functions over lazy lists*)
 val [prem1,prem2] = goal LList.thy
     "[| f(LNil)=g(LNil);						\
-\       !!x l. <f(LCons x l),g(LCons x l)> :				\
-\              llistD_Fun(range(%u. <f(u),g(u)>) Un range(%v. <v,v>))	\
+\       !!x l. (f(LCons x l),g(LCons x l)) :				\
+\              llistD_Fun(range(%u. (f(u),g(u))) Un range(%v. (v,v)))	\
 \    |]	==> f(l) = (g(l :: 'a llist) :: 'b llist)";
-by (res_inst_tac [("r", "range(%u. <f(u),g(u)>)")] llist_equalityI 1);
+by (res_inst_tac [("r", "range(%u. (f(u),g(u)))")] llist_equalityI 1);
 by (rtac rangeI 1);
 by (rtac subsetI 1);
 by (etac rangeE 1);
@@ -744,7 +744,7 @@ by (simp_tac sum_ss 1);
 qed "iterates";
 
 goal LList.thy "lmap f (iterates f x) = iterates f (f x)";
-by (res_inst_tac [("r", "range(%u.<lmap f (iterates f u),iterates f (f u)>)")] 
+by (res_inst_tac [("r", "range(%u.(lmap f (iterates f u),iterates f (f u)))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
 by (safe_tac set_cs);
@@ -777,14 +777,14 @@ qed "fun_power_Suc";
 val Pair_cong = read_instantiate_sg (sign_of Prod.thy)
  [("f","Pair")] (standard(refl RS cong RS cong));
 
-(*The bisimulation consists of {<lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u))>}
+(*The bisimulation consists of {(lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u)))}
   for all u and all n::nat.*)
 val [prem] = goal LList.thy
     "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
 br ext 1;
 by (res_inst_tac [("r", 
-   "UN u. range(%n. <nat_rec n (h u) (%m y.lmap f y), \
-\                    nat_rec n (iterates f u) (%m y.lmap f y)>)")] 
+   "UN u. range(%n. (nat_rec n (h u) (%m y.lmap f y), \
+\                    nat_rec n (iterates f u) (%m y.lmap f y)))")] 
     llist_equalityI 1);
 by (REPEAT (resolve_tac [UN1_I, range_eqI, Pair_cong, nat_rec_0 RS sym] 1));
 by (safe_tac set_cs);
@@ -834,7 +834,7 @@ qed "lappend_LNil2";
 
 (*The infinite first argument blocks the second*)
 goal LList.thy "lappend (iterates f x) N = iterates f x";
-by (res_inst_tac [("r", "range(%u.<lappend (iterates f u) N,iterates f u>)")] 
+by (res_inst_tac [("r", "range(%u.(lappend (iterates f u) N,iterates f u))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
 by (safe_tac set_cs);
@@ -848,7 +848,7 @@ qed "lappend_iterates";
 goal LList.thy "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
 by (res_inst_tac 
     [("r",  
-      "UN n. range(%l.<lmap f (lappend l n),lappend (lmap f l) (lmap f n)>)")] 
+      "UN n. range(%l.(lmap f (lappend l n),lappend (lmap f l) (lmap f n)))")] 
     llist_equalityI 1);
 by (rtac UN1_I 1);
 by (rtac rangeI 1);

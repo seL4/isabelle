@@ -196,27 +196,27 @@ derived.
   eval_fun_def 
     " eval_fun(s) == \
 \     { pp. \
-\       (? ve c. pp=<<ve,e_const(c)>,v_const(c)>) | \
-\       (? ve x. pp=<<ve,e_var(x)>,ve_app ve x> & x:ve_dom(ve)) |\
-\       (? ve e x. pp=<<ve,fn x => e>,v_clos(<|x,e,ve|>)>)| \
+\       (? ve c. pp=((ve,e_const(c)),v_const(c))) | \
+\       (? ve x. pp=((ve,e_var(x)),ve_app ve x) & x:ve_dom(ve)) |\
+\       (? ve e x. pp=((ve,fn x => e),v_clos(<|x,e,ve|>)))| \
 \       ( ? ve e x f cl. \
-\           pp=<<ve,fix f(x) = e>,v_clos(cl)> & \
+\           pp=((ve,fix f(x) = e),v_clos(cl)) & \
 \           cl=<|x, e, ve+{f |-> v_clos(cl)} |>  \
 \       ) | \
 \       ( ? ve e1 e2 c1 c2. \
-\           pp=<<ve,e1 @ e2>,v_const(c_app c1 c2)> & \
-\           <<ve,e1>,v_const(c1)>:s & <<ve,e2>,v_const(c2)>:s \
+\           pp=((ve,e1 @ e2),v_const(c_app c1 c2)) & \
+\           ((ve,e1),v_const(c1)):s & ((ve,e2),v_const(c2)):s \
 \       ) | \
 \       ( ? ve vem e1 e2 em xm v v2. \
-\           pp=<<ve,e1 @ e2>,v> & \
-\           <<ve,e1>,v_clos(<|xm,em,vem|>)>:s & \
-\           <<ve,e2>,v2>:s & \
-\           <<vem+{xm |-> v2},em>,v>:s \
+\           pp=((ve,e1 @ e2),v) & \
+\           ((ve,e1),v_clos(<|xm,em,vem|>)):s & \
+\           ((ve,e2),v2):s & \
+\           ((vem+{xm |-> v2},em),v):s \
 \       ) \
 \     }"
 
   eval_rel_def "eval_rel == lfp(eval_fun)"
-  eval_def "ve |- e ---> v == <<ve,e>,v>:eval_rel"
+  eval_def "ve |- e ---> v == ((ve,e),v):eval_rel"
 
 (* The static semantics is defined in the same way as the dynamic
 semantics.  The relation te |- e ===> t express the expression e has the
@@ -226,19 +226,19 @@ type t in the type environment te.
   elab_fun_def 
   "elab_fun(s) == \
 \  { pp. \
-\    (? te c t. pp=<<te,e_const(c)>,t> & c isof t) | \
-\    (? te x. pp=<<te,e_var(x)>,te_app te x> & x:te_dom(te)) | \
-\    (? te x e t1 t2. pp=<<te,fn x => e>,t1->t2> & <<te+{x |=> t1},e>,t2>:s) | \
+\    (? te c t. pp=((te,e_const(c)),t) & c isof t) | \
+\    (? te x. pp=((te,e_var(x)),te_app te x) & x:te_dom(te)) | \
+\    (? te x e t1 t2. pp=((te,fn x => e),t1->t2) & ((te+{x |=> t1},e),t2):s) | \
 \    (? te f x e t1 t2. \
-\       pp=<<te,fix f(x)=e>,t1->t2> & <<te+{f |=> t1->t2}+{x |=> t1},e>,t2>:s \
+\       pp=((te,fix f(x)=e),t1->t2) & ((te+{f |=> t1->t2}+{x |=> t1},e),t2):s \
 \    ) | \
 \    (? te e1 e2 t1 t2. \
-\       pp=<<te,e1 @ e2>,t2> & <<te,e1>,t1->t2>:s & <<te,e2>,t1>:s \
+\       pp=((te,e1 @ e2),t2) & ((te,e1),t1->t2):s & ((te,e2),t1):s \
 \    ) \
 \  }"
 
   elab_rel_def "elab_rel == lfp(elab_fun)"
-  elab_def "te |- e ===> t == <<te,e>,t>:elab_rel"
+  elab_def "te |- e ===> t == ((te,e),t):elab_rel"
 
 (* The original correspondence relation *)
 
@@ -258,18 +258,18 @@ type t in the type environment te.
   hasty_fun_def
     " hasty_fun(r) == \
 \     { p. \
-\       ( ? c t. p = <v_const(c),t> & c isof t) | \
+\       ( ? c t. p = (v_const(c),t) & c isof t) | \
 \       ( ? ev e ve t te. \
-\           p = <v_clos(<|ev,e,ve|>),t> & \
+\           p = (v_clos(<|ev,e,ve|>),t) & \
 \           te |- fn ev => e ===> t & \
 \           ve_dom(ve) = te_dom(te) & \
-\           (! ev1.ev1:ve_dom(ve) --> <ve_app ve ev1,te_app te ev1> : r) \
+\           (! ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : r) \
 \       ) \
 \     } \
 \   "
 
   hasty_rel_def "hasty_rel == gfp(hasty_fun)"
-  hasty_def "v hasty t == <v,t> : hasty_rel"
+  hasty_def "v hasty t == (v,t) : hasty_rel"
   hasty_env_def 
     " ve hastyenv te == \
 \     ve_dom(ve) = te_dom(te) & \

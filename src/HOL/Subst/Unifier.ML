@@ -25,7 +25,7 @@ val Unifier_Comb  = store_thm("Unifier_Comb", result() RS mp RS conjE);
 
 goal Unifier.thy
   "~v : vars_of(t) --> ~v : vars_of(u) -->Unifier s t u --> \
-\  Unifier (<v,r>#s) t u";
+\  Unifier ((v,r)#s) t u";
 by (simp_tac (subst_ss addsimps [Unifier_iff,repl_invariance]) 1);
 val Cons_Unifier  = store_thm("Cons_Unifier", result() RS mp RS mp RS mp);
 
@@ -49,7 +49,7 @@ by (fast_tac (set_cs addIs [comp_Nil RS sym RS subst_refl]) 1);
 qed "MGU_iff";
 
 val [prem] = goal Unifier.thy
-     "~ Var(v) <: t ==> MGUnifier [<v,t>] (Var v) t";
+     "~ Var(v) <: t ==> MGUnifier [(v,t)] (Var v) t";
 by (simp_tac (subst_ss addsimps [MGU_iff,MoreGen_iff,Unifier_iff]) 1);
 by (REPEAT_SOME (step_tac set_cs));
 by (etac subst 1);
@@ -85,7 +85,7 @@ goal Unifier.thy "Idem([])";
 by (simp_tac (subst_ss addsimps [raw_Idem_iff,refl RS subst_refl]) 1);
 qed "Idem_Nil";
 
-goal Unifier.thy "~ (Var(v) <: t) --> Idem([<v,t>])";
+goal Unifier.thy "~ (Var(v) <: t) --> Idem([(v,t)])";
 by (simp_tac (subst_ss addsimps [Var_subst,vars_iff_occseq,Idem_iff,srange_iff]
                        setloop (split_tac [expand_if])) 1);
 by (fast_tac set_cs 1);
@@ -114,8 +114,8 @@ qed "lemma_lemma";
 
 val prems = goal Unifier.thy 
     "x : sdom(s) -->  ~x : srange(s) --> \
-\   ~vars_of(Var(x) <| s<> <x,Var(x)>#s) = \
-\      vars_of(Var(x) <| <x,Var(x)>#s)";
+\   ~vars_of(Var(x) <| s<> (x,Var(x))#s) = \
+\      vars_of(Var(x) <| (x,Var(x))#s)";
 by (simp_tac (subst_ss addsimps [not_equal_iff]) 1);
 by (REPEAT (resolve_tac [impI,disjI2] 1));
 by(res_inst_tac [("x","x")] exI 1);
@@ -141,8 +141,8 @@ qed "not_cong";
 
 val prems = goal Unifier.thy 
    "~w=x --> x : vars_of(Var(w) <| s) --> w : sdom(s) --> ~w : srange(s) --> \
-\   ~vars_of(Var(w) <| s<> <x,Var(w)>#s) = \
-\   vars_of(Var(w) <| <x,Var(w)>#s)";
+\   ~vars_of(Var(w) <| s<> (x,Var(w))#s) = \
+\   vars_of(Var(w) <| (x,Var(w))#s)";
 by (simp_tac (subst_ss addsimps [not_equal_iff]) 1);
 by (REPEAT (resolve_tac [impI,disjI1] 1));
 by(res_inst_tac [("x","w")] exI 1);
@@ -167,10 +167,10 @@ val MGIU_srange = store_thm("MGIU_srange", result() RS mp);
 (*                                                                           *)
 (*  fun unify Const(m) Const(n) = if m=n then Nil else Fail                  *)
 (*    | unify Const(m) _        = Fail                                       *)
-(*    | unify Var(v)   t        = if Var(v)<:t then Fail else <v,t>#Nil      *)
+(*    | unify Var(v)   t        = if Var(v)<:t then Fail else (v,t)#Nil      *)
 (*    | unify Comb(t,u) Const(n) = Fail                                      *)
 (*    | unify Comb(t,u) Var(v)  = if Var(v) <: Comb(t,u) then Fail           *)
-(*                                               else <v,Comb(t,u>#Nil       *)
+(*                                               else (v,Comb(t,u)#Nil       *)
 (*    | unify Comb(t,u) Comb(v,w) = let s = unify t v                        *)
 (*                                  in if s=Fail then Fail                   *)
 (*                                               else unify (u<|s) (w<|s);   *)
@@ -191,7 +191,7 @@ by (simp_tac (subst_ss addsimps[Unifier_iff]) 1);
 val Unify2 = store_thm("Unify2", result() RS mp);
 
 val [prem] = goalw Unifier.thy [MGIUnifier_def] 
- "~Var(v) <: t ==> MGIUnifier [<v,t>] (Var v) t";
+ "~Var(v) <: t ==> MGIUnifier [(v,t)] (Var v) t";
 by (fast_tac (HOL_cs addSIs [prem RS MGUnifier_Var,prem RS Var_Idem]) 1);
 qed "Unify3";
 

@@ -13,12 +13,12 @@ open Acc;
 
 (*The intended introduction rule*)
 val prems = goal Acc.thy
-    "[| !!b. <b,a>:r ==> b: acc(r) |] ==> a: acc(r)";
+    "[| !!b. (b,a):r ==> b: acc(r) |] ==> a: acc(r)";
 by (fast_tac (set_cs addIs (prems @ 
 			    map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
-goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
+goal Acc.thy "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (rewtac pred_def);
 by (fast_tac set_cs 1);
@@ -26,7 +26,7 @@ qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
     "[| a : acc(r);						\
-\       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x)	\
+\       !!x. [| x: acc(r);  ALL y. (y,x):r --> P(y) |] ==> P(x)	\
 \    |] ==> P(a)";
 by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);
@@ -44,7 +44,7 @@ by (rewtac pred_def);
 by (fast_tac set_cs 1);
 qed "acc_wfI";
 
-val [major] = goal Acc.thy "wf(r) ==> ALL x. <x,y>: r | <y,x>:r --> y: acc(r)";
+val [major] = goal Acc.thy "wf(r) ==> ALL x. (x,y): r | (y,x):r --> y: acc(r)";
 by (rtac (major RS wf_induct) 1);
 br (impI RS allI) 1;
 br accI 1;

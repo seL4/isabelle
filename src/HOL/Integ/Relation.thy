@@ -16,9 +16,9 @@ consts
     Range       ::      "('a*'a) set => 'a set"
 
 defs
-    converse_def  "converse(r) == {z. (? w:r. ? x y. w=<x,y> & z=<y,x>)}"
-    Domain_def    "Domain(r) == {z. ! x. (z=x --> (? y. <x,y>:r))}"
+    converse_def  "converse(r) == {z. (? w:r. ? x y. w=(x,y) & z=(y,x))}"
+    Domain_def    "Domain(r) == {z. ! x. (z=x --> (? y. (x,y):r))}"
     Range_def     "Range(r) == Domain(converse(r))"
-    Image_def     "r ^^ s == {y. y:Range(r) &  (? x:s. <x,y>:r)}"
+    Image_def     "r ^^ s == {y. y:Range(r) &  (? x:s. (x,y):r)}"
 
 end

@@ -39,8 +39,8 @@ by(fast_tac comp_cs 1);
 qed"hoare_if";
 
 val major::prems = goal Hoare.thy
-  "[| <a,b> :lfp f; mono f; \
-\     !!a b. <a,b> : f(lfp f Int Collect(split P)) ==> P a b |] ==> P a b";
+  "[| (a,b) :lfp f; mono f; \
+\     !!a b. (a,b) : f(lfp f Int Collect(split P)) ==> P a b |] ==> P a b";
 by(res_inst_tac [("c1","P")] (split RS subst) 1);
 br (major RS induct) 1;
 brs prems 1;

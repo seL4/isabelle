@@ -62,7 +62,7 @@ defs
 state_trans_def
   "state_trans asig R == \
   \  (!triple. triple:R --> fst(snd(triple)):actions(asig)) & \
-  \  (!a. (a:inputs(asig)) --> (!s1. ? s2. <s1,a,s2>:R))"
+  \  (!a. (a:inputs(asig)) --> (!s1. ? s2. (s1,a,s2):R))"
 
 
 asig_of_def   "asig_of == fst"
@@ -83,7 +83,7 @@ is_execution_fragment_def
   "is_execution_fragment A ex ==                                        \
   \  let act = fst(ex); state = snd(ex)                                 \
   \  in !n a. (act(n)=None --> state(Suc(n)) = state(n)) &              \
-  \           (act(n)=Some(a) --> <state(n),a,state(Suc(n))>:trans_of(A))"
+  \           (act(n)=Some(a) --> (state(n),a,state(Suc(n))):trans_of(A))"
 
 
 executions_def
@@ -98,7 +98,7 @@ executions_def
  *      ----------------
  *      reachable(ioa,x)  
  *
- *      reachable(ioa,s) & ? <s,a,s'>:trans_of(ioa)
+ *      reachable(ioa,s) & ? (s,a,s'):trans_of(ioa)
  *      -------------------------------------------
  *               reachable(ioa,s')
  *
@@ -147,35 +147,35 @@ compat_ioas_def
 
 asig_comp_def
   "asig_comp a1 a2 ==                                                   \
-  \   (<(inputs(a1) Un inputs(a2)) - (outputs(a1) Un outputs(a2)),      \
+  \   (((inputs(a1) Un inputs(a2)) - (outputs(a1) Un outputs(a2)),      \
   \     (outputs(a1) Un outputs(a2)),                                   \
-  \     (internals(a1) Un internals(a2))>)"
+  \     (internals(a1) Un internals(a2))))"
 
 
 par_def
   "(ioa1 || ioa2) ==                                                    \
-  \    <asig_comp (asig_of ioa1) (asig_of ioa2),                        \
+  \    (asig_comp (asig_of ioa1) (asig_of ioa2),                        \
   \     {pr. fst(pr):starts_of(ioa1) & snd(pr):starts_of(ioa2)},        \
   \     {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))        \
   \          in (a:actions(asig_of(ioa1)) | a:actions(asig_of(ioa2))) & \
   \             (if a:actions(asig_of(ioa1)) then                       \
-  \                <fst(s),a,fst(t)>:trans_of(ioa1)                     \
+  \                (fst(s),a,fst(t)):trans_of(ioa1)                     \
   \              else fst(t) = fst(s))                                  \
   \             &                                                       \
   \             (if a:actions(asig_of(ioa2)) then                       \
-  \                <snd(s),a,snd(t)>:trans_of(ioa2)                     \
-  \              else snd(t) = snd(s))}>"
+  \                (snd(s),a,snd(t)):trans_of(ioa2)                     \
+  \              else snd(t) = snd(s))})"
 
 
 restrict_asig_def
   "restrict_asig asig actns ==                                          \
-\    <inputs(asig) Int actns, outputs(asig) Int actns,                  \
-\     internals(asig) Un (externals(asig) - actns)>"
+\    (inputs(asig) Int actns, outputs(asig) Int actns,                  \
+\     internals(asig) Un (externals(asig) - actns))"
 
 
 restrict_def
   "restrict ioa actns ==                                               \
-\    <restrict_asig (asig_of ioa) actns, starts_of(ioa), trans_of(ioa)>"
+\    (restrict_asig (asig_of ioa) actns, starts_of(ioa), trans_of(ioa))"
 
 
 ioa_implements_def

@@ -10,6 +10,6 @@ LexProd = WF + Prod +
 consts "**" :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set" (infixl 70)
 rules
 lex_prod_def "ra**rb == {p. ? a a' b b'. \
-\	p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb)}"
+\	p = ((a,b),(a',b')) & ((a,a') : ra | a=a' & (b,b') : rb)}"
 end
 

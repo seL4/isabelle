@@ -26,6 +26,6 @@ end
 
 (*"Difference" is subtraction of natural numbers.
   There are no negative numbers; we have
-     m - n = 0  iff  m<=n   and     m - n = Suc(k) iff m>n.
+     m - n = 0  iff  m<=n   and     m - n = Suc(k) iff m)n.
   Also, nat_rec(m, 0, %z w.z) is pred(m).   *)
 

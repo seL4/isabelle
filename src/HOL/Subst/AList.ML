@@ -12,13 +12,13 @@ val al_rews =
                             (fn _ => [simp_tac list_ss 1])
   in map mk_thm 
      ["alist_rec [] c d = c",
-      "alist_rec (<a,b>#al) c d = d a b al (alist_rec al c d)",
+      "alist_rec ((a,b)#al) c d = d a b al (alist_rec al c d)",
       "assoc v d [] = d",
-      "assoc v d (<a,b>#al) = (if v=a then b else assoc v d al)"] end;
+      "assoc v d ((a,b)#al) = (if v=a then b else assoc v d al)"] end;
 
 val prems = goal AList.thy
     "[| P([]);   \
-\       !!x y xs. P(xs) ==> P(<x,y>#xs) |]  ==> P(l)";
+\       !!x y xs. P(xs) ==> P((x,y)#xs) |]  ==> P(l)";
 by (list.induct_tac "l" 1);
 by (resolve_tac prems 1);
 by (rtac PairE 1);

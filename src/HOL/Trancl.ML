@@ -11,55 +11,55 @@ open Trancl;
 (** Natural deduction for trans(r) **)
 
 val prems = goalw Trancl.thy [trans_def]
-    "(!! x y z. [| <x,y>:r;  <y,z>:r |] ==> <x,z>:r) ==> trans(r)";
+    "(!! x y z. [| (x,y):r;  (y,z):r |] ==> (x,z):r) ==> trans(r)";
 by (REPEAT (ares_tac (prems@[allI,impI]) 1));
 qed "transI";
 
 val major::prems = goalw Trancl.thy [trans_def]
-    "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
+    "[| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
 by (cut_facts_tac [major] 1);
 by (fast_tac (HOL_cs addIs prems) 1);
 qed "transD";
 
 (** Identity relation **)
 
-goalw Trancl.thy [id_def] "<a,a> : id";  
+goalw Trancl.thy [id_def] "(a,a) : id";  
 by (rtac CollectI 1);
 by (rtac exI 1);
 by (rtac refl 1);
 qed "idI";
 
 val major::prems = goalw Trancl.thy [id_def]
-    "[| p: id;  !!x.[| p = <x,x> |] ==> P  \
+    "[| p: id;  !!x.[| p = (x,x) |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS CollectE) 1);
 by (etac exE 1);
 by (eresolve_tac prems 1);
 qed "idE";
 
-goalw Trancl.thy [id_def] "<a,b>:id = (a=b)";
+goalw Trancl.thy [id_def] "(a,b):id = (a=b)";
 by(fast_tac prod_cs 1);
 qed "pair_in_id_conv";
 
 (** Composition of two relations **)
 
 val prems = goalw Trancl.thy [comp_def]
-    "[| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s";
+    "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
 by (fast_tac (set_cs addIs prems) 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
 val prems = goalw Trancl.thy [comp_def]
     "[| xz : r O s;  \
-\       !!x y z. [| xz = <x,z>;  <x,y>:s;  <y,z>:r |] ==> P \
+\       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac prems 1);
 by (REPEAT (eresolve_tac [CollectE, exE, conjE] 1 ORELSE ares_tac prems 1));
 qed "compE";
 
 val prems = goal Trancl.thy
-    "[| <a,c> : r O s;  \
-\       !!y. [| <a,y>:s;  <y,c>:r |] ==> P \
+    "[| (a,c) : r O s;  \
+\       !!y. [| (a,y):s;  (y,c):r |] ==> P \
 \    |] ==> P";
 by (rtac compE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
@@ -88,20 +88,20 @@ qed "rtrancl_fun_mono";
 val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (*Reflexivity of rtrancl*)
-goal Trancl.thy "<a,a> : r^*";
+goal Trancl.thy "(a,a) : r^*";
 by (stac rtrancl_unfold 1);
 by (fast_tac comp_cs 1);
 qed "rtrancl_refl";
 
 (*Closure under composition with r*)
 val prems = goal Trancl.thy
-    "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*";
+    "[| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
 by (fast_tac (comp_cs addIs prems) 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
-val [prem] = goal Trancl.thy "[| <a,b> : r |] ==> <a,b> : r^*";
+val [prem] = goal Trancl.thy "[| (a,b) : r |] ==> (a,b) : r^*";
 by (rtac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 by (rtac prem 1);
 qed "r_into_rtrancl";
@@ -114,22 +114,22 @@ qed "rtrancl_mono";
 (** standard induction rule **)
 
 val major::prems = goal Trancl.thy 
-  "[| <a,b> : r^*; \
-\     !!x. P(<x,x>); \
-\     !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |] \
-\  ==>  P(<a,b>)";
+  "[| (a,b) : r^*; \
+\     !!x. P((x,x)); \
+\     !!x y z.[| P((x,y)); (x,y): r^*; (y,z): r |]  ==>  P((x,z)) |] \
+\  ==>  P((a,b))";
 by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_induct) 1);
 by (fast_tac (comp_cs addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule*)
 val major::prems = goal Trancl.thy
-    "[| <a::'a,b> : r^*;    \
+    "[| (a::'a,b) : r^*;    \
 \       P(a); \
-\	!!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z) |]  \
+\	!!y z.[| (a,y) : r^*;  (y,z) : r;  P(y) |] ==> P(z) |]  \
 \     ==> P(b)";
 (*by induction on this formula*)
-by (subgoal_tac "! y. <a::'a,b> = <a,y> --> P(y)" 1);
+by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
 (*now solve first subgoal: this formula is sufficient*)
 by (fast_tac HOL_cs 1);
 (*now do the induction*)
@@ -147,10 +147,10 @@ qed "trans_rtrancl";
 
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = goal Trancl.thy
-    "[| <a::'a,b> : r^*;  (a = b) ==> P; 	\
-\	!!y.[| <a,y> : r^*; <y,b> : r |] ==> P 	\
+    "[| (a::'a,b) : r^*;  (a = b) ==> P; 	\
+\	!!y.[| (a,y) : r^*; (y,b) : r |] ==> P 	\
 \    |] ==> P";
-by (subgoal_tac "(a::'a) = b  | (? y. <a,y> : r^* & <y,b> : r)" 1);
+by (subgoal_tac "(a::'a) = b  | (? y. (a,y) : r^* & (y,b) : r)" 1);
 by (rtac (major RS rtrancl_induct) 2);
 by (fast_tac (set_cs addIs prems) 2);
 by (fast_tac (set_cs addIs prems) 2);
@@ -163,26 +163,26 @@ qed "rtranclE";
 (** Conversions between trancl and rtrancl **)
 
 val [major] = goalw Trancl.thy [trancl_def]
-    "<a,b> : r^+ ==> <a,b> : r^*";
+    "(a,b) : r^+ ==> (a,b) : r^*";
 by (resolve_tac [major RS compEpair] 1);
 by (REPEAT (ares_tac [rtrancl_into_rtrancl] 1));
 qed "trancl_into_rtrancl";
 
 (*r^+ contains r*)
 val [prem] = goalw Trancl.thy [trancl_def]
-   "[| <a,b> : r |] ==> <a,b> : r^+";
+   "[| (a,b) : r |] ==> (a,b) : r^+";
 by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
 qed "r_into_trancl";
 
 (*intro rule by definition: from rtrancl and r*)
 val prems = goalw Trancl.thy [trancl_def]
-    "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
+    "[| (a,b) : r^*;  (b,c) : r |]   ==>  (a,c) : r^+";
 by (REPEAT (resolve_tac ([compI]@prems) 1));
 qed "rtrancl_into_trancl1";
 
 (*intro rule from r and rtrancl*)
 val prems = goal Trancl.thy
-    "[| <a,b> : r;  <b,c> : r^* |]   ==>  <a,c> : r^+";
+    "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+";
 by (resolve_tac (prems RL [rtranclE]) 1);
 by (etac subst 1);
 by (resolve_tac (prems RL [r_into_trancl]) 1);
@@ -192,11 +192,11 @@ qed "rtrancl_into_trancl2";
 
 (*elimination of r^+ -- NOT an induction rule*)
 val major::prems = goal Trancl.thy
-    "[| <a::'a,b> : r^+;  \
-\       <a,b> : r ==> P; \
-\	!!y.[| <a,y> : r^+;  <y,b> : r |] ==> P  \
+    "[| (a::'a,b) : r^+;  \
+\       (a,b) : r ==> P; \
+\	!!y.[| (a,y) : r^+;  (y,b) : r |] ==> P  \
 \    |] ==> P";
-by (subgoal_tac "<a::'a,b> : r | (? y. <a,y> : r^+  &  <y,b> : r)" 1);
+by (subgoal_tac "(a::'a,b) : r | (? y. (a,y) : r^+  &  (y,b) : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
 by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
 by (etac rtranclE 1);
@@ -214,7 +214,7 @@ by (REPEAT (assume_tac 1));
 qed "trans_trancl";
 
 val prems = goal Trancl.thy
-    "[| <a,b> : r;  <b,c> : r^+ |]   ==>  <a,c> : r^+";
+    "[| (a,b) : r;  (b,c) : r^+ |]   ==>  (a,c) : r^+";
 by (rtac (r_into_trancl RS (trans_trancl RS transD)) 1);
 by (resolve_tac prems 1);
 by (resolve_tac prems 1);
@@ -222,7 +222,7 @@ qed "trancl_into_trancl2";
 
 
 val major::prems = goal Trancl.thy
-    "[| <a,b> : r^*;  r <= Sigma A (%x.A) |] ==> a=b | a:A";
+    "[| (a,b) : r^*;  r <= Sigma A (%x.A) |] ==> a=b | a:A";
 by (cut_facts_tac prems 1);
 by (rtac (major RS rtrancl_induct) 1);
 by (rtac (refl RS disjI1) 1);

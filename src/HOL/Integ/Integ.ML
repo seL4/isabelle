@@ -34,20 +34,20 @@ qed "integ_trans_lemma";
 
 val prems = goalw Integ.thy [intrel_def]
     "[| x1+y2 = x2+y1|] ==> \
-\    <<x1,y1>,<x2,y2>>: intrel";
+\    ((x1,y1),(x2,y2)): intrel";
 by (fast_tac (rel_cs addIs prems) 1);
 qed "intrelI";
 
 (*intrelE is hard to derive because fast_tac tries hyp_subst_tac so soon*)
 goalw Integ.thy [intrel_def]
   "p: intrel --> (EX x1 y1 x2 y2. \
-\                  p = <<x1,y1>,<x2,y2>> & x1+y2 = x2+y1)";
+\                  p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1)";
 by (fast_tac rel_cs 1);
 qed "intrelE_lemma";
 
 val [major,minor] = goal Integ.thy
   "[| p: intrel;  \
-\     !!x1 y1 x2 y2. [| p = <<x1,y1>,<x2,y2>>;  x1+y2 = x2+y1|] ==> Q |] \
+\     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1+y2 = x2+y1|] ==> Q |] \
 \  ==> Q";
 by (cut_facts_tac [major RS (intrelE_lemma RS mp)] 1);
 by (REPEAT (eresolve_tac [asm_rl,exE,conjE,minor] 1));
@@ -55,11 +55,11 @@ qed "intrelE";
 
 val intrel_cs = rel_cs addSIs [intrelI] addSEs [intrelE];
 
-goal Integ.thy "<<x1,y1>,<x2,y2>>: intrel = (x1+y2 = x2+y1)";
+goal Integ.thy "((x1,y1),(x2,y2)): intrel = (x1+y2 = x2+y1)";
 by (fast_tac intrel_cs 1);
 qed "intrel_iff";
 
-goal Integ.thy "<x,x>: intrel";
+goal Integ.thy "(x,x): intrel";
 by (rtac (surjective_pairing RS ssubst) 1 THEN rtac (refl RS intrelI) 1);
 qed "intrel_refl";
 
@@ -74,7 +74,7 @@ val equiv_intrel_iff =
     ([CollectI, CollectI] MRS 
     (equiv_intrel RS eq_equiv_class_iff));
 
-goalw Integ.thy  [Integ_def,intrel_def,quotient_def] "intrel^^{<x,y>}:Integ";
+goalw Integ.thy  [Integ_def,intrel_def,quotient_def] "intrel^^{(x,y)}:Integ";
 by (fast_tac set_cs 1);
 qed "intrel_in_integ";
 
@@ -113,7 +113,7 @@ qed "inj_znat";
 (**** zminus: unary negation on Integ ****)
 
 goalw Integ.thy [congruent_def]
-  "congruent intrel (%p. split (%x y. intrel^^{<y,x>}) p)";
+  "congruent intrel (%p. split (%x y. intrel^^{(y,x)}) p)";
 by (safe_tac intrel_cs);
 by (asm_simp_tac (intrel_ss addsimps add_ac) 1);
 qed "zminus_congruent";
@@ -123,7 +123,7 @@ qed "zminus_congruent";
 val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
 
 goalw Integ.thy [zminus_def]
-      "$~ Abs_Integ(intrel^^{<x,y>}) = Abs_Integ(intrel ^^ {<y,x>})";
+      "$~ Abs_Integ(intrel^^{(x,y)}) = Abs_Integ(intrel ^^ {(y,x)})";
 by (res_inst_tac [("f","Abs_Integ")] arg_cong 1);
 by (simp_tac (set_ss addsimps 
    [intrel_in_integ RS Abs_Integ_inverse,zminus_ize UN_equiv_class]) 1);
@@ -133,7 +133,7 @@ qed "zminus";
 
 (*by lcp*)
 val [prem] = goal Integ.thy
-    "(!!x y. z = Abs_Integ(intrel^^{<x,y>}) ==> P) ==> P";
+    "(!!x y. z = Abs_Integ(intrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [Integ_def] Rep_Integ RS quotientE) 1);
 by (dres_inst_tac [("f","Abs_Integ")] arg_cong 1);
@@ -202,7 +202,7 @@ by (ALLGOALS(asm_simp_tac arith_ss));
 qed "diff_Suc_add_inverse";
 
 goalw Integ.thy [congruent_def]
-    "congruent intrel (split (%x y. intrel^^{<(y-x) + (x-(y::nat)),0>}))";
+    "congruent intrel (split (%x y. intrel^^{((y-x) + (x-(y::nat)),0)}))";
 by (safe_tac intrel_cs);
 by (asm_simp_tac intrel_ss 1);
 by (etac rev_mp 1);
@@ -225,8 +225,8 @@ val zmagnitude_ize = RSLIST [equiv_intrel, zmagnitude_congruent];
 
 
 goalw Integ.thy [zmagnitude_def]
-    "zmagnitude (Abs_Integ(intrel^^{<x,y>})) = \
-\    Abs_Integ(intrel^^{<(y - x) + (x - y),0>})";
+    "zmagnitude (Abs_Integ(intrel^^{(x,y)})) = \
+\    Abs_Integ(intrel^^{((y - x) + (x - y),0)})";
 by (res_inst_tac [("f","Abs_Integ")] arg_cong 1);
 by (asm_simp_tac (intrel_ss addsimps [zmagnitude_ize UN_equiv_class]) 1);
 qed "zmagnitude";
@@ -246,7 +246,7 @@ qed "zmagnitude_zminus_znat";
 
 goalw Integ.thy [congruent2_def]
     "congruent2 intrel (%p1 p2.                  \
-\         split (%x1 y1. split (%x2 y2. intrel^^{<x1+x2, y1+y2>}) p2) p1)";
+\         split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)";
 (*Proof via congruent2_commuteI seems longer*)
 by (safe_tac intrel_cs);
 by (asm_simp_tac (intrel_ss addsimps [add_assoc]) 1);
@@ -260,8 +260,8 @@ qed "zadd_congruent2";
 val zadd_ize = RSLIST [equiv_intrel, zadd_congruent2];
 
 goalw Integ.thy [zadd_def]
-  "Abs_Integ(intrel^^{<x1,y1>}) + Abs_Integ(intrel^^{<x2,y2>}) = \
-\  Abs_Integ(intrel^^{<x1+x2, y1+y2>})";
+  "Abs_Integ(intrel^^{(x1,y1)}) + Abs_Integ(intrel^^{(x2,y2)}) = \
+\  Abs_Integ(intrel^^{(x1+x2, y1+y2)})";
 by (asm_simp_tac
     (intrel_ss addsimps [zadd_ize UN_equiv_class2]) 1);
 qed "zadd";
@@ -333,7 +333,7 @@ qed "zmult_congruent_lemma";
 goal Integ.thy 
     "congruent2 intrel (%p1 p2.  		\
 \               split (%x1 y1. split (%x2 y2. 	\
-\                   intrel^^{<x1*x2 + y1*y2, x1*y2 + y1*x2>}) p2) p1)";
+\                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (safe_tac intrel_cs);
 by (rewtac split_def);
@@ -352,8 +352,8 @@ qed "zmult_congruent2";
 val zmult_ize = RSLIST [equiv_intrel, zmult_congruent2];
 
 goalw Integ.thy [zmult_def]
-   "Abs_Integ((intrel^^{<x1,y1>})) * Abs_Integ((intrel^^{<x2,y2>})) = 	\
-\   Abs_Integ(intrel ^^ {<x1*x2 + y1*y2, x1*y2 + y1*x2>})";
+   "Abs_Integ((intrel^^{(x1,y1)})) * Abs_Integ((intrel^^{(x2,y2)})) = 	\
+\   Abs_Integ(intrel ^^ {(x1*x2 + y1*y2, x1*y2 + y1*x2)})";
 by (simp_tac (intrel_ss addsimps [zmult_ize UN_equiv_class2]) 1);
 qed "zmult";
 

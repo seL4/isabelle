@@ -16,11 +16,11 @@ consts
     trancl  :: "('a * 'a)set => ('a * 'a)set"	("(_^+)" [100] 100)  
     O	    :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set" (infixr 60)
 defs   
-trans_def	"trans(r) == (!x y z. <x,y>:r --> <y,z>:r --> <x,z>:r)"
+trans_def	"trans(r) == (!x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 comp_def	(*composition of relations*)
-		"r O s == {xz. ? x y z. xz = <x,z> & <x,y>:s & <y,z>:r}"
+		"r O s == {xz. ? x y z. xz = (x,z) & (x,y):s & (y,z):r}"
 id_def		(*the identity relation*)
-		"id == {p. ? x. p = <x,x>}"
+		"id == {p. ? x. p = (x,x)}"
 rtrancl_def	"r^* == lfp(%s. id Un (r O s))"
 trancl_def	"r^+ == r O rtrancl(r)"
 end

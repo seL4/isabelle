@@ -17,8 +17,8 @@ val thy = extend_theory Univ.thy "Rel"
  ],
  None)
  [
-  ("domain_def",     "domain(r) == {a. ? b. <a,b> : r}" ),
-  ("range2_def",     "range2(r) == {b. ? a. <a,b> : r}" ),
+  ("domain_def",     "domain(r) == {a. ? b. (a,b) : r}" ),
+  ("range2_def",     "range2(r) == {b. ? a. (a,b) : r}" ),
   ("field_def",      "field(r)  == domain(r) Un range2(r)" )
  ];
 end;
@@ -33,12 +33,12 @@ end;
 
 (*** domain ***)
 
-val [prem] = goalw Rel.thy [domain_def,Pair_def] "<a,b>: r ==> a : domain(r)";
+val [prem] = goalw Rel.thy [domain_def,Pair_def] "(a,b): r ==> a : domain(r)";
 by (fast_tac (set_cs addIs [prem]) 1);
 qed "domainI";
 
 val major::prems = goalw Rel.thy [domain_def]
-    "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P";
+    "[| a : domain(r);  !!y. (a,y): r ==> P |] ==> P";
 by (rtac (major RS CollectE) 1);
 by (etac exE 1);
 by (REPEAT (ares_tac prems 1));
@@ -47,12 +47,12 @@ qed "domainE";
 
 (*** range2 ***)
 
-val [prem] = goalw Rel.thy [range2_def,Pair_def] "<a,b>: r ==> b : range2(r)";
+val [prem] = goalw Rel.thy [range2_def,Pair_def] "(a,b): r ==> b : range2(r)";
 by (fast_tac (set_cs addIs [prem]) 1);
 qed "range2I";
 
 val major::prems = goalw Rel.thy [range2_def]
-    "[| b : range2(r);  !!x. <x,b>: r ==> P |] ==> P";
+    "[| b : range2(r);  !!x. (x,b): r ==> P |] ==> P";
 by (rtac (major RS CollectE) 1);
 by (etac exE 1);
 by (REPEAT (ares_tac prems 1));
@@ -61,16 +61,16 @@ qed "range2E";
 
 (*** field ***)
 
-val [prem] = goalw Rel.thy [field_def] "<a,b>: r ==> a : field(r)";
+val [prem] = goalw Rel.thy [field_def] "(a,b): r ==> a : field(r)";
 by (rtac (prem RS domainI RS UnI1) 1);
 qed "fieldI1";
 
-val [prem] = goalw Rel.thy [field_def] "<a,b>: r ==> b : field(r)";
+val [prem] = goalw Rel.thy [field_def] "(a,b): r ==> b : field(r)";
 by (rtac (prem RS range2I RS UnI2) 1);
 qed "fieldI2";
 
 val [prem] = goalw Rel.thy [field_def]
-    "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)";
+    "(~ (c,a):r ==> (a,b): r) ==> a : field(r)";
 by (rtac (prem RS domainI RS UnCI) 1);
 by (swap_res_tac [range2I] 1);
 by (etac notnotD 1);
@@ -78,8 +78,8 @@ qed "fieldCI";
 
 val major::prems = goalw Rel.thy [field_def]
      "[| a : field(r);  \
-\        !!x. <a,x>: r ==> P;  \
-\        !!x. <x,a>: r ==> P        |] ==> P";
+\        !!x. (a,x): r ==> P;  \
+\        !!x. (x,a): r ==> P        |] ==> P";
 by (rtac (major RS UnE) 1);
 by (REPEAT (eresolve_tac (prems@[domainE,range2E]) 1));
 qed "fieldE";
@@ -98,7 +98,7 @@ qed "range2_in_field";
 (*If r allows well-founded induction then wf(r)*)
 val [prem1,prem2] = goalw Rel.thy [wf_def] 
     "[| field(r)<=A;  \
-\       !!P u. ! x:A. (! y. <y,x>: r --> P(y)) --> P(x) ==> P(u) |]  \
+\       !!P u. ! x:A. (! y. (y,x): r --> P(y)) --> P(x) ==> P(u) |]  \
 \    ==>  wf(r)";
 by (rtac (prem1 RS wfI) 1);
 by (res_inst_tac [ ("B", "A-Z") ] (prem2 RS subsetCE) 1);

@@ -26,7 +26,7 @@ rules
 \                         (%x.Const(x))			\
 \                         (%u v q r.Comb q r)"
 
-  comp_def     "al <> bl == alist_rec al bl (%x y xs g.<x,y <| bl>#g)"
+  comp_def     "al <> bl == alist_rec al bl (%x y xs g.(x,y <| bl)#g)"
 
   sdom_def
   "sdom(al) == alist_rec al {}  \

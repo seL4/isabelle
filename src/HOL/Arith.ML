@@ -175,7 +175,7 @@ qed "div_termination";
 
 val wf_less_trans = wf_pred_nat RS wf_trancl RSN (2, def_wfrec RS trans);
 
-goalw Nat.thy [less_def] "<m,n> : pred_nat^+ = (m<n)";
+goalw Nat.thy [less_def] "(m,n) : pred_nat^+ = (m<n)";
 by (rtac refl 1);
 qed "less_eq";
 

@@ -14,7 +14,7 @@ val H_cong1 = refl RS H_cong;
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
 val [prem1,prem2] = goalw WF.thy [wf_def]
  "[| r <= Sigma A (%u.A);  \
-\    !!x P. [| ! x. (! y. <y,x> : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
+\    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
 by (strip_tac 1);
 by (rtac allE 1);
@@ -24,7 +24,7 @@ qed "wfI";
 
 val major::prems = goalw WF.thy [wf_def]
     "[| wf(r);          \
-\       !!x.[| ! y. <y,x>: r --> P(y) |] ==> P(x) \
+\       !!x.[| ! y. (y,x): r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
 by (rtac (major RS spec RS mp RS spec) 1);
 by (fast_tac (HOL_cs addEs prems) 1);
@@ -36,14 +36,14 @@ fun wf_ind_tac a prems i =
 	   rename_last_tac a ["1"] (i+1),
 	   ares_tac prems i];
 
-val prems = goal WF.thy "[| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
-by (subgoal_tac "! x. <a,x>:r --> <x,a>:r --> P" 1);
+val prems = goal WF.thy "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
+by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
 by (fast_tac (HOL_cs addIs prems) 1);
 by (wf_ind_tac "a" prems 1);
 by (fast_tac set_cs 1);
 qed "wf_asym";
 
-val prems = goal WF.thy "[| wf(r);  <a,a>: r |] ==> P";
+val prems = goal WF.thy "[| wf(r);  (a,a): r |] ==> P";
 by (rtac wf_asym 1);
 by (REPEAT (resolve_tac prems 1));
 qed "wf_anti_refl";
@@ -68,12 +68,12 @@ qed "wf_trancl";
 (*This rewrite rule works upon formulae; thus it requires explicit use of
   H_cong to expose the equality*)
 goalw WF.thy [cut_def]
-    "(cut f r x = cut g r x) = (!y. <y,x>:r --> f(y)=g(y))";
+    "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
 by(simp_tac (HOL_ss addsimps [expand_fun_eq]
                     setloop (split_tac [expand_if])) 1);
 qed "cut_cut_eq";
 
-goalw WF.thy [cut_def] "!!x. <x,a>:r ==> (cut f r a)(x) = f(x)";
+goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
 by(asm_simp_tac HOL_ss 1);
 qed "cut_apply";
 
@@ -81,12 +81,12 @@ qed "cut_apply";
 (*** is_recfun ***)
 
 goalw WF.thy [is_recfun_def,cut_def]
-    "!!f. [| is_recfun r a H f;  ~<b,a>:r |] ==> f(b) = (@z.True)";
+    "!!f. [| is_recfun r a H f;  ~(b,a):r |] ==> f(b) = (@z.True)";
 by (etac ssubst 1);
 by(asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";
 
-(*eresolve_tac transD solves <a,b>:r using transitivity AT MOST ONCE
+(*eresolve_tac transD solves (a,b):r using transitivity AT MOST ONCE
   mp amd allE  instantiate induction hypotheses*)
 fun indhyp_tac hyps =
     ares_tac (TrueI::hyps) ORELSE' 
@@ -104,7 +104,7 @@ val wf_super_ss = HOL_ss setsolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def,cut_def]
     "[| wf(r);  trans(r);  is_recfun r a H f;  is_recfun r b H g |] ==> \
-    \ <x,a>:r --> <x,b>:r --> f(x)=g(x)";
+    \ (x,a):r --> (x,b):r --> f(x)=g(x)";
 by (cut_facts_tac prems 1);
 by (etac wf_induct 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
@@ -115,7 +115,7 @@ bind_thm ("is_recfun_equal", (is_recfun_equal_lemma RS mp RS mp));
 
 val prems as [wfr,transr,recfa,recgb,_] = goalw WF.thy [cut_def]
     "[| wf(r);  trans(r); \
-\       is_recfun r a H f;  is_recfun r b H g;  <b,a>:r |] ==> \
+\       is_recfun r a H f;  is_recfun r b H g;  (b,a):r |] ==> \
 \    cut f r b = g";
 val gundef = recgb RS is_recfun_undef
 and fisg   = recgb RS (recfa RS (transr RS (wfr RS is_recfun_equal)));
@@ -150,13 +150,13 @@ qed "unfold_the_recfun";
 
 (*Beware incompleteness of unification!*)
 val prems = goal WF.thy
-    "[| wf(r);  trans(r);  <c,a>:r;  <c,b>:r |] \
+    "[| wf(r);  trans(r);  (c,a):r;  (c,b):r |] \
 \    ==> the_recfun r a H c = the_recfun r b H c";
 by (DEPTH_SOLVE (ares_tac (prems@[is_recfun_equal,unfold_the_recfun]) 1));
 qed "the_recfun_equal";
 
 val prems = goal WF.thy
-    "[| wf(r); trans(r); <b,a>:r |] \
+    "[| wf(r); trans(r); (b,a):r |] \
 \    ==> cut (the_recfun r a H) r b = the_recfun r b H";
 by (REPEAT (ares_tac (prems@[is_recfun_cut,unfold_the_recfun]) 1));
 qed "the_recfun_cut";

@@ -7,7 +7,7 @@ For lex-prod.thy.
 The lexicographic product of two wellfounded relations is again wellfounded.
 *)
 
-val prems = goal Prod.thy "!a b. P(<a,b>) ==> !p.P(p)";
+val prems = goal Prod.thy "!a b. P((a,b)) ==> !p.P(p)";
 by (cut_facts_tac prems 1);
 by (rtac allI 1);
 by (rtac (surjective_pairing RS ssubst) 1);

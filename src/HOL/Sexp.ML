@@ -63,19 +63,19 @@ goalw Sexp.thy [pred_sexp_def] "pred_sexp <= Sigma sexp (%u.sexp)";
 by (fast_tac sexp_cs 1);
 qed "pred_sexp_subset_Sigma";
 
-(* <a,b> : pred_sexp^+ ==> a : sexp *)
+(* (a,b) : pred_sexp^+ ==> a : sexp *)
 val trancl_pred_sexpD1 = 
     pred_sexp_subset_Sigma RS trancl_subset_Sigma RS subsetD RS SigmaD1
 and trancl_pred_sexpD2 = 
     pred_sexp_subset_Sigma RS trancl_subset_Sigma RS subsetD RS SigmaD2;
 
 val prems = goalw Sexp.thy [pred_sexp_def]
-    "[| M: sexp;  N: sexp |] ==> <M, M$N> : pred_sexp";
+    "[| M: sexp;  N: sexp |] ==> (M, M$N) : pred_sexp";
 by (fast_tac (set_cs addIs prems) 1);
 qed "pred_sexpI1";
 
 val prems = goalw Sexp.thy [pred_sexp_def]
-    "[| M: sexp;  N: sexp |] ==> <N, M$N> : pred_sexp";
+    "[| M: sexp;  N: sexp |] ==> (N, M$N) : pred_sexp";
 by (fast_tac (set_cs addIs prems) 1);
 qed "pred_sexpI2";
 
@@ -86,7 +86,7 @@ and pred_sexp_t2 = pred_sexpI2 RS r_into_trancl;
 val pred_sexp_trans1 = pred_sexp_t1 RSN (2, trans_trancl RS transD)
 and pred_sexp_trans2 = pred_sexp_t2 RSN (2, trans_trancl RS transD);
 
-(*Proves goals of the form <M,N>:pred_sexp^+ provided M,N:sexp*)
+(*Proves goals of the form (M,N):pred_sexp^+ provided M,N:sexp*)
 val pred_sexp_simps =
             sexp.intrs @
 	    [pred_sexp_t1, pred_sexp_t2,
@@ -95,8 +95,8 @@ val pred_sexp_ss = HOL_ss addsimps pred_sexp_simps;
 
 val major::prems = goalw Sexp.thy [pred_sexp_def]
     "[| p : pred_sexp;  \
-\       !!M N. [| p = <M, M$N>;  M: sexp;  N: sexp |] ==> R; \
-\       !!M N. [| p = <N, M$N>;  M: sexp;  N: sexp |] ==> R  \
+\       !!M N. [| p = (M, M$N);  M: sexp;  N: sexp |] ==> R; \
+\       !!M N. [| p = (N, M$N);  M: sexp;  N: sexp |] ==> R  \
 \    |] ==> R";
 by (cut_facts_tac [major] 1);
 by (REPEAT (eresolve_tac ([asm_rl,emptyE,insertE,UN_E]@prems) 1));

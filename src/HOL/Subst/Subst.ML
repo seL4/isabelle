@@ -19,9 +19,9 @@ in val subst_rews = map mk_thm
 ["Const(c) <| al = Const(c)",
  "Comb t u <| al = Comb (t <| al) (u <| al)",
  "[] <> bl = bl",
- "(<a,b>#al) <> bl = <a,b <| bl> # (al <> bl)",
+ "((a,b)#al) <> bl = (a,b <| bl) # (al <> bl)",
  "sdom([]) = {}",
- "sdom(<a,b>#al) = (if Var(a)=b then (sdom al) Int Compl({a}) \
+ "sdom((a,b)#al) = (if Var(a)=b then (sdom al) Int Compl({a}) \
 \                               else (sdom al) Un {a})"
 ];
    (* This rewrite isn't always desired *)
@@ -42,10 +42,10 @@ by (uterm_ind_tac "u" 1);
 by (ALLGOALS (asm_simp_tac subst_ss));
 val subst_mono  = store_thm("subst_mono", result() RS mp);
 
-goal Subst.thy  "~ (Var(v) <: t) --> t <| <v,t <| s>#s = t <| s";
+goal Subst.thy  "~ (Var(v) <: t) --> t <| (v,t <| s)#s = t <| s";
 by (imp_excluded_middle_tac "t = Var(v)" 1);
 by (res_inst_tac [("P",
-    "%x.~x=Var(v) --> ~(Var(v) <: x) --> x <| <v,t<|s>#s=x<|s")]
+    "%x.~x=Var(v) --> ~(Var(v) <: x) --> x <| (v,t<|s)#s=x<|s")]
     uterm_induct 2);
 by (ALLGOALS (simp_tac (subst_ss addsimps [Var_subst])));
 by (fast_tac HOL_cs 1);
@@ -59,13 +59,13 @@ by (ALLGOALS (asm_simp_tac subst_ss));
 by (ALLGOALS (fast_tac HOL_cs));
 qed "agreement";
 
-goal Subst.thy   "~ v: vars_of(t) --> t <| <v,u>#s = t <| s";
+goal Subst.thy   "~ v: vars_of(t) --> t <| (v,u)#s = t <| s";
 by(simp_tac(subst_ss addsimps [agreement,Var_subst]
                      setloop (split_tac [expand_if])) 1);
 val repl_invariance  = store_thm("repl_invariance", result() RS mp);
 
 val asms = goal Subst.thy 
-     "v : vars_of(t) --> w : vars_of(t <| <v,Var(w)>#s)";
+     "v : vars_of(t) --> w : vars_of(t <| (v,Var(w))#s)";
 by (uterm_ind_tac "t" 1);
 by (ALLGOALS (asm_simp_tac (subst_ss addsimps [Var_subst])));
 val Var_in_subst  = store_thm("Var_in_subst", result() RS mp);
@@ -113,7 +113,7 @@ goal Subst.thy "(q <> r) <> s =s= q <> (r <> s)";
 by (simp_tac (subst_ss addsimps [subst_eq_iff,subst_comp]) 1);
 qed "comp_assoc";
 
-goal Subst.thy "<w,Var(w) <| s>#s =s= s"; 
+goal Subst.thy "(w,Var(w) <| s)#s =s= s"; 
 by (rtac (allI RS (subst_eq_iff RS iffD2)) 1);
 by (uterm_ind_tac "t" 1);
 by (REPEAT (etac rev_mp 3));
