@@ -344,6 +344,7 @@ $n$.  All goals may be specified by $[!]$, which is the same as $[1-]$.
   typ & : & \isarantiq \\
   text & : & \isarantiq \\
   goals & : & \isarantiq \\
+  subgoals & : & \isarantiq \\
 \end{matharray}
 
 The text body of formal comments (see also \S\ref{sec:comments}) may contain
@@ -402,6 +403,8 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   
   Please do not include goal states into document output unless you really
   know what you are doing!
+\item [$\at\{subgoals\}$] behaves almost like $goals$, except that it does
+  not print the overall goal.
 \end{descr}
 
 \medskip
