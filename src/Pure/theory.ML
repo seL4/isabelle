@@ -80,6 +80,7 @@ sig
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
+  val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val merge_theories: string -> theory * theory -> theory
   val requires: theory -> string -> string -> unit
@@ -211,6 +212,7 @@ val root_path        = add_path "/";
 val add_space        = ext_sign Sign.add_space;
 val add_name         = ext_sign Sign.add_name;
 val copy             = ext_sign (K Sign.copy) ();
+val prep_ext         = ext_sign (K Sign.prep_ext) ();
 
 
 
@@ -237,7 +239,7 @@ fun cert_axm sg (name, raw_tm) =
   handle ERROR => err_in_axm name;
 
 (*some duplication of code with read_def_cterm*)
-fun read_def_axm (sg, types, sorts) used (name, str) = 
+fun read_def_axm (sg, types, sorts) used (name, str) =
   let
     val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
     val (t, _) = Sign.infer_types sg types sorts used true (ts, propT);
@@ -410,7 +412,7 @@ fun put_data kind f = ext_sign (Sign.put_data kind f);
 
 
 
-(** merge theories **)		(*exception ERROR*)
+(** merge theories **)          (*exception ERROR*)
 
 fun merge_sign (sg, thy) =
   Sign.nontriv_merge (sg, sign_of thy) handle TERM (msg, _) => error msg;
