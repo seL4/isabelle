@@ -122,7 +122,7 @@ cd $DISTBASE/$DISTNAME
 find . -name CVS -exec rm -rf {} \;
 
 mkdir -p Tools/8bit/bin    #FIXME tmp
-find Doc -name \*.dvi -o -name \*.eps -o \*.ps -exec mv {} Distribution/doc \;
+find Doc -name \*.dvi -o -name \*.eps -o -name \*.ps -exec mv {} Distribution/doc \;
 rm -rf Admin Doc
 
 mkdir src
