@@ -34,6 +34,7 @@ sig
       val prf_chain: string
       val prf_decl: string
       val prf_asm: string
+      val prf_asm_goal: string
       val prf_script: string
       val kinds: string list
     end
@@ -82,10 +83,11 @@ struct
   val prf_chain = "proof-chain";
   val prf_decl = "proof-decl";
   val prf_asm = "proof-asm";
+  val prf_asm_goal = "proof-asm-goal";
   val prf_script = "proof-script";
 
   val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_goal,
-    qed, qed_block, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_script];
+    qed, qed_block, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 end;
 
 
