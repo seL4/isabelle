@@ -76,7 +76,7 @@ qed_goal "UnE'" thy
 (*Classical introduction rule: no commitment to A vs B*)
 qed_goal "UnCI" thy "(c ~: B ==> c : A) ==> c : A Un B"
  (fn prems=>
-  [ Simp_tac 1, fast_tac (!claset addIs prems) 1 ]);
+  [ Simp_tac 1, fast_tac (!claset addSIs prems) 1 ]);
 
 AddSIs [UnCI];
 AddSEs [UnE];
