@@ -41,6 +41,7 @@ sig
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val quiet_update_thy: bool -> string -> unit
+  val pretend_use_thy_only: string -> unit
   val begin_theory: (string -> string list -> (Path.T * bool) list -> theory -> theory) ->
     bool -> string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
@@ -265,12 +266,16 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy ml time initiators dir name parents =
+fun load_thy really ml time initiators dir name parents =
   let
-    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ =
+      if really then priority ("Loading theory " ^ quote name ^ required_by " " initiators)
+      else priority ("Registering theory " ^ quote name);
 
     val _ = touch_thy name;
-    val master = ThyLoad.load_thy dir name ml time;
+    val master =
+      if really then ThyLoad.load_thy dir name ml time
+      else #1 (ThyLoad.deps_thy dir name ml);
 
     val files = get_files name;
     val missing_files = mapfilter (fn (path, None) => Some (Path.pack path) | _ => None) files;
@@ -310,7 +315,7 @@ fun current_deps ml strict dir name =
               end)
       end);
 
-fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
+fun require_thy really ml time strict keep_strict initiators prfx (visited, str) =
   let
     val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
@@ -321,21 +326,22 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
     else
       let
         val dir = Path.append prfx (Path.dir path);
-        val req_parent =
-          require_thy true time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
+        val req_parent = require_thy true true time (strict andalso keep_strict) keep_strict
+          (name :: initiators) dir;
 
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
             (if null initiators then "" else required_by "\n" initiators));
         val (visited', parent_results) = foldl_map req_parent (name :: visited, parents);
 
+        val thy = if not really then Some (get_theory name) else None;
         val result =
           if current andalso forall #1 parent_results then true
           else
             ((case new_deps of
-              Some deps => change_thys (update_node name parents (deps, None))
+              Some deps => change_thys (update_node name parents (deps, thy))
             | None => ());
-             load_thy ml (time orelse ! Library.timing) initiators dir name parents;
+             load_thy really ml (time orelse ! Library.timing) initiators dir name parents;
              false);
       in (visited', (result, name)) end
   end;
@@ -348,14 +354,15 @@ fun warn_finished f name = (check_unfinished warning name; f name);
 
 in
 
-val weak_use_thy        = gen_use_thy (require_thy true false false false);
-fun quiet_update_thy ml = gen_use_thy (require_thy ml false true true);
+val weak_use_thy        = gen_use_thy (require_thy true true false false false);
+fun quiet_update_thy ml = gen_use_thy (require_thy true ml false true true);
 
-val use_thy          = warn_finished (gen_use_thy (require_thy true false true false));
-val time_use_thy     = warn_finished (gen_use_thy (require_thy true true true false));
-val use_thy_only     = warn_finished (gen_use_thy (require_thy false false true false));
-val update_thy       = warn_finished (gen_use_thy (require_thy true false true true));
-val update_thy_only  = warn_finished (gen_use_thy (require_thy false false true true));
+val use_thy          = warn_finished (gen_use_thy (require_thy true true false true false));
+val time_use_thy     = warn_finished (gen_use_thy (require_thy true true true true false));
+val use_thy_only     = warn_finished (gen_use_thy (require_thy true false false true false));
+val update_thy       = warn_finished (gen_use_thy (require_thy true true false true true));
+val update_thy_only  = warn_finished (gen_use_thy (require_thy true false false true true));
+val pretend_use_thy_only = warn_finished (gen_use_thy (require_thy false false false true false));
 
 end;
 
