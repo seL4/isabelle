@@ -29,6 +29,7 @@ sig
   val output: string -> string
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
+  val use: Path.T -> unit
 end;
 
 structure Symbol: SYMBOL =
@@ -269,10 +270,29 @@ fun output s = let val chr = (* if "isabelle_font" mem_string !print_mode *)
 		in (implode o map chr o sym_explode) s end;
 
 
+(* version of 'use' with input filtering *)
+
+val use =
+  if not needs_filtered_use then File.use
+  else
+    fn path =>
+      let
+        val txt = File.read path;
+        val txt_out = input txt;
+      in
+        if txt = txt_out then File.use path
+        else
+          let val tmp_path = File.tmp_path path in
+            File.write tmp_path txt_out;
+            File.use tmp_path handle exn => (File.rm tmp_path; raise exn);
+            File.rm tmp_path
+          end
+      end;
+
+
 (*final declarations of this structure!*)
 val explode = sym_explode;
 val length = sym_length;
 val size = sym_size;
-
 
 end;
