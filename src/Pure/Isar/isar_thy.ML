@@ -309,12 +309,9 @@ val invoke_case_i = ProofHistory.apply o Proof.invoke_case;
 
 local
 
-fun prt_fact ctxt ("", ths) = ProofContext.pretty_thms ctxt ths
-  | prt_fact ctxt (name, ths) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, ProofContext.pretty_thms ctxt ths];
-
 fun prt_facts ctxt =
-  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o map (single o prt_fact ctxt);
+  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o
+    map (single o ProofContext.pretty_fact ctxt);
 
 fun pretty_results ctxt ((kind, ""), facts) =
       Pretty.block (Pretty.str kind :: Pretty.brk 1 :: prt_facts ctxt facts)
