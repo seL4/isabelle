@@ -94,6 +94,7 @@ sig
   val read_def_terms:
     sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
+  val simple_read_term: sg -> typ -> string -> term
   val add_classes: (bclass * xclass list) list -> sg -> sg
   val add_classes_i: (bclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
@@ -740,6 +741,10 @@ fun read_def_terms (sign, types, sorts) used freeze sTs =
       in (Syntax.read syn T' s, T') end;
     val tsTs = map read sTs;
   in infer_types_simult sign types sorts used freeze tsTs end;
+
+fun simple_read_term sign T s =
+  (read_def_terms (sign, K None, K None) [] true [(s, T)]
+    handle ERROR => error ("The error(s) above occurred for " ^ s)) |> #1 |> hd;
 
 
 
