@@ -254,10 +254,16 @@ may also be iterated as in f(a:=b,c:=d,...);
 * HOL/Relation: renamed the relational operator r^-1 "converse"
 instead of "inverse";
 
+* HOL/Induct/Multiset: a theory of multisets, including the wellfoundedness
+  of the multiset ordering;
+
 * directory HOL/Real: a construction of the reals using Dedekind cuts
-(not included by default);
+  (not included by default);
 
 * directory HOL/UNITY: Chandy and Misra's UNITY formalism;
+
+* directory HOL/Hoare: a new version of Hoare logic which permits many-sorted
+  programs, i.e. different program variables may have different types.
 
 * calling (stac rew i) now fails if "rew" has no effect on the goal
   [previously, this check worked only if the rewrite rule was unconditional]
