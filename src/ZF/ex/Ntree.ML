@@ -9,27 +9,16 @@ Demonstrates a simple use of function space in a datatype definition
 Based upon ex/Term.ML
 *)
 
-structure Ntree = Datatype_Fun
- (val thy	= Univ.thy;
-  val thy_name 	= "Ntree";
-  val rec_specs = 
-      [("ntree", "univ(A)",
-	  [(["Branch"], "[i,i]=>i", NoSyn)])];
-  val rec_styp 	= "i=>i";
-  val sintrs 	= 
-	["[| a: A;  n: nat;  h: n -> ntree(A) |] ==> Branch(a,h) : ntree(A)"];
-  val monos 	= [Pi_mono];
-  val type_intrs = (nat_fun_univ RS subsetD) :: datatype_intrs;
-  val type_elims = []);
-
-val [BranchI] = Ntree.intrs;
+open Ntree;
 
 goal Ntree.thy "ntree(A) = A * (UN n: nat. n -> ntree(A))";
-by (rtac (Ntree.unfold RS trans) 1);
-bws Ntree.con_defs;
-by (fast_tac (sum_cs addIs ([equalityI] @ datatype_intrs)
- 	             addDs [Ntree.dom_subset RS subsetD]
- 	             addEs [A_into_univ, nat_fun_into_univ]) 1);
+by (rtac (ntree.unfold RS trans) 1);
+bws ntree.con_defs;
+br equalityI 1;
+by (fast_tac sum_cs 1);
+by (fast_tac (sum_cs addIs datatype_intrs
+ 	             addDs [ntree.dom_subset RS subsetD]
+ 	             addEs [nat_fun_into_univ]) 1);
 val ntree_unfold = result();
 
 (*A nicer induction rule than the standard one*)
@@ -38,7 +27,8 @@ val major::prems = goal Ntree.thy
 \       !!x n h. [| x: A;  n: nat;  h: n -> ntree(A);  ALL i:n. P(h`i)  \
 \                |] ==> P(Branch(x,h))  \
 \    |] ==> P(t)";
-by (rtac (major RS Ntree.induct) 1);
+by (rtac (major RS ntree.induct) 1);
+by (etac UN_E 1);
 by (REPEAT_SOME (ares_tac prems));
 by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
 by (fast_tac (ZF_cs addDs [apply_type]) 1);
@@ -60,14 +50,14 @@ val ntree_induct_eqn = result();
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
 
-goalw Ntree.thy Ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
+goalw Ntree.thy ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
 by (rtac lfp_mono 1);
-by (REPEAT (rtac Ntree.bnd_mono 1));
+by (REPEAT (rtac ntree.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
 val ntree_mono = result();
 
 (*Easily provable by induction also*)
-goalw Ntree.thy (Ntree.defs@Ntree.con_defs) "ntree(univ(A)) <= univ(A)";
+goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (safe_tac ZF_cs);

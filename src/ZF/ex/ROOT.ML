@@ -21,12 +21,12 @@ time_use_thy "ex/Equiv";
 time_use_thy "ex/Integ";
 (*Binary integer arithmetic*)
 use          "ex/twos_compl.ML";
-time_use_thy "ex/BinFn";
+time_use_thy "ex/Bin";
 
 (** Datatypes **)
-time_use_thy "ex/BT_Fn";	(*binary trees*)
-time_use_thy "ex/TermFn";	(*terms: recursion over the list functor*)
-time_use_thy "ex/TF_Fn";	(*trees/forests: mutual recursion*)
+time_use_thy "ex/BT";		(*binary trees*)
+time_use_thy "ex/Term";		(*terms: recursion over the list functor*)
+time_use_thy "ex/TF";		(*trees/forests: mutual recursion*)
 time_use_thy "ex/Ntree";	(*variable-branching trees; function demo*)
 time_use_thy "ex/Brouwer";	(*Brouwer ordinals: infinite-branching trees*)
 time_use_thy "ex/Data";		(*Sample datatype*)
@@ -35,16 +35,14 @@ time_use_thy "ex/Enum";		(*Enormous enumeration type*)
 (** Inductive definitions **)
 time_use_thy "ex/Rmap";		(*mapping a relation over a list*)
 time_use_thy "ex/PropLog";	(*completeness of propositional logic*)
-(*two Coq examples by Ch. Paulin-Mohring*)
+(*two Coq examples by Christine Paulin-Mohring*)
 time_use_thy "ex/ListN";
 time_use_thy "ex/Acc";
-time_use_thy "ex/Contract0";	(*Contraction relation for combinatory logic*)
-time_use_thy "ex/ParContract";	(*Diamond property for combinatory logic*)
-time_use_thy "ex/Primrec0";
+time_use_thy "ex/Comb";		(*Combinatory Logic example*)
+time_use_thy "ex/Primrec";
 
 (** CoDatatypes **)
 time_use_thy "ex/LList";
-time_use_thy "ex/LListFn";
 time_use     "ex/CoUnit.ML";
 
 maketest"END: Root file for ZF Set Theory examples";

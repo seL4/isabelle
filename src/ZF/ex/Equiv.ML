@@ -46,14 +46,15 @@ val comp_equivI = result();
 (** Equivalence classes **)
 
 (*Lemma for the next result*)
-goalw Equiv.thy [equiv_def,trans_def,sym_def]
-    "!!A r. [| equiv(A,r);  <a,b>: r |] ==> r``{a} <= r``{b}";
+goalw Equiv.thy [trans_def,sym_def]
+    "!!A r. [| sym(r);  trans(r);  <a,b>: r |] ==> r``{a} <= r``{b}";
 by (fast_tac ZF_cs 1);
 val equiv_class_subset = result();
 
-goal Equiv.thy "!!A r. [| equiv(A,r);  <a,b>: r |] ==> r``{a} = r``{b}";
-by (REPEAT (ares_tac [equalityI, equiv_class_subset] 1));
-by (rewrite_goals_tac [equiv_def,sym_def]);
+goalw Equiv.thy [equiv_def]
+    "!!A r. [| equiv(A,r);  <a,b>: r |] ==> r``{a} = r``{b}";
+by (safe_tac (subset_cs addSIs [equalityI, equiv_class_subset]));
+by (rewrite_goals_tac [sym_def]);
 by (fast_tac ZF_cs 1);
 val equiv_class_eq = result();
 

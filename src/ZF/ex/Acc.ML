@@ -9,21 +9,19 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-structure Acc = Inductive_Fun
- (val thy        = WF.thy |> add_consts [("acc","i=>i",NoSyn)]
-  val thy_name   = "Acc"
-  val rec_doms   = [("acc", "field(r)")]
-  val sintrs     = ["[| r-``{a}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"]
-  val monos      = [Pow_mono]
-  val con_defs   = []
-  val type_intrs = []
-  val type_elims = []);
+open Acc;
 
 (*The introduction rule must require  a:field(r)  
   Otherwise acc(r) would be a proper class!    *)
 
+(*The intended introduction rule*)
+val prems = goal Acc.thy
+    "[| !!b. <b,a>:r ==> b: acc(r);  a: field(r) |] ==> a: acc(r)";
+by (fast_tac (ZF_cs addIs (prems@acc.intrs)) 1);
+val accI = result();
+
 goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
-by (etac Acc.elim 1);
+by (etac acc.elim 1);
 by (fast_tac ZF_cs 1);
 val acc_downward = result();
 
@@ -31,12 +29,12 @@ val [major,indhyp] = goal Acc.thy
     "[| a : acc(r);						\
 \       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x)	\
 \    |] ==> P(a)";
-by (rtac (major RS Acc.induct) 1);
+by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);
 by (fast_tac ZF_cs 2);
-by (resolve_tac Acc.intrs 1);
+by (resolve_tac acc.intrs 1);
 by (assume_tac 2);
-by (fast_tac ZF_cs 1);
+be (Collect_subset RS Pow_mono RS subsetD) 1;
 val acc_induct = result();
 
 goal Acc.thy "wf[acc(r)](r)";
@@ -52,7 +50,7 @@ val [major] = goal Acc.thy "wf(r) ==> field(r) <= acc(r)";
 by (rtac subsetI 1);
 by (etac (major RS wf_induct2) 1);
 by (rtac subset_refl 1);
-by (resolve_tac Acc.intrs 1);
+by (resolve_tac [accI] 1);
 by (assume_tac 2);
 by (fast_tac ZF_cs 1);
 val acc_wfD = result();

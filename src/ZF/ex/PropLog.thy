@@ -1,25 +1,48 @@
-(*  Title: 	ZF/ex/prop-log.thy
+(*  Title: 	ZF/ex/PropLog.thy
     ID:         $Id$
     Author: 	Tobias Nipkow & Lawrence C Paulson
     Copyright   1993  University of Cambridge
 
-Inductive definition of propositional logic.
+Datatype definition of propositional logic formulae and inductive definition
+of the propositional tautologies.
 *)
 
-PropLog = Prop + Fin +
-consts
-  (*semantics*)
-  prop_rec :: "[i, i, i=>i, [i,i,i,i]=>i] => i"
-  is_true  :: "[i,i] => o"
-  "|="     :: "[i,i] => o"    			(infixl 50)
-  hyps     :: "[i,i] => i"
+PropLog = Finite + Univ +
 
-  (*proof theory*)
+(** The datatype of propositions; note mixfix syntax **)
+consts
+  prop     :: "i"
+
+datatype
+  "prop" = Fls
+         | Var ("n: nat")	                ("#_" [100] 100)
+         | "=>" ("p: prop", "q: prop")		(infixr 90)
+
+(** The proof system **)
+consts
   thms     :: "i => i"
   "|-"     :: "[i,i] => o"    			(infixl 50)
 
 translations
   "H |- p" == "p : thms(H)"
+
+inductive
+  domains "thms(H)" <= "prop"
+  intrs
+    H  "[| p:H;  p:prop |] ==> H |- p"
+    K  "[| p:prop;  q:prop |] ==> H |- p=>q=>p"
+    S  "[| p:prop;  q:prop;  r:prop |] ==> H |- (p=>q=>r) => (p=>q) => p=>r"
+    DN "p:prop ==> H |- ((p=>Fls) => Fls) => p"
+    MP "[| H |- p=>q;  H |- p;  p:prop;  q:prop |] ==> H |- q"
+  type_intrs "prop.intrs"
+
+
+(** The semantics **)
+consts
+  prop_rec :: "[i, i, i=>i, [i,i,i,i]=>i] => i"
+  is_true  :: "[i,i] => o"
+  "|="     :: "[i,i] => o"    			(infixl 50)
+  hyps     :: "[i,i] => i"
 
 rules
 
