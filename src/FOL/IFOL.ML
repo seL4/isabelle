@@ -248,7 +248,7 @@ bind_thm ("ssubst", sym RS subst);
 (*Apply an equality or definition ONCE.
   Fails unless the substitution has an effect*)
 fun stac th = 
-  let val th' = th RS meta_eq_to_obj_eq handle _ => th
+  let val th' = th RS meta_eq_to_obj_eq handle THM _ => th
   in  CHANGED_GOAL (rtac (th' RS ssubst))
   end;
 

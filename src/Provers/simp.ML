@@ -118,14 +118,14 @@ val refl_tac = resolve_tac refl_thms;
 
 fun find_res thms thm =
     let fun find [] = (prths thms; error"Check Simp_Data")
-          | find(th::thms) = thm RS th handle _ => find thms
+          | find(th::thms) = thm RS th handle THM _ => find thms
     in find thms end;
 
 val mk_trans = find_res trans_thms;
 
 fun mk_trans2 thm =
 let fun mk[] = error"Check transitivity"
-      | mk(t::ts) = (thm RSN (2,t))  handle _  => mk ts
+      | mk(t::ts) = (thm RSN (2,t))  handle THM _  => mk ts
 in mk trans_thms end;
 
 (*Applies tactic and returns the first resulting state, FAILS if none!*)
