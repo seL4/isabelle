@@ -6,7 +6,7 @@
 %% definitions of standard Isabelle symbols
 %%
 
-% required packages for unusual symbols -- see below for details
+% Required packages for unusual symbols -- see below for details.
 %\usepackage{latexsym}
 %\usepackage{amssymb}
 %\usepackage[english]{babel}
@@ -14,7 +14,7 @@
 %\usepackage[only,bigsqcap]{stmaryrd}
 %\usepackage{wasysym}
 
-% Note: \emph is the key to proper spacing in fake math mode; it
+% Note: \emph is important for proper spacing in fake math mode, it
 % automatically inserts italic corrections around symbols wherever
 % appropriate.
 
@@ -127,8 +127,8 @@
 \newcommand{\isasymLongleftarrow}{\emph{$\Longleftarrow$}}
 \newcommand{\isasymLongleftrightarrow}{\emph{$\Longleftrightarrow$}}
 \newcommand{\isasymbar}{\emph{$\mid$}}
-\newcommand{\isasymhyphen}{-}
-\newcommand{\isasymmacron}{\={}}
+\newcommand{\isasymhyphen}{\emph{\rm-}}
+\newcommand{\isasymmacron}{\emph{\rm\=\relax}}
 \newcommand{\isasymexclamdown}{\emph{\rm\textexclamdown}}
 \newcommand{\isasymquestiondown}{\emph{\rm\textquestiondown}}
 \newcommand{\isasymguillemotleft}{\emph{\flqq}}  %requires babel
@@ -144,7 +144,7 @@
 \newcommand{\isasymregistered}{\emph{\rm\textregistered}}
 \newcommand{\isasymordfeminine}{\emph{\rm\textordfeminine}}
 \newcommand{\isasymordmasculine}{\emph{\rm\textordmasculine}}
-\newcommand{\isasymsection}{\S}
+\newcommand{\isasymsection}{\emph{\S}}
 \newcommand{\isasympounds}{\emph{$\pounds$}}
 \newcommand{\isasymyen}{\emph{\yen}}  %requires amssymb
 \newcommand{\isasymcent}{\emph{\cent}}  %requires wasysym
@@ -232,3 +232,5 @@
 \newcommand{\isasymlessapprox}{\emph{$\lessapprox$}}  %requires amssymb
 \newcommand{\isasymgreaterapprox}{\emph{$\gtrapprox$}}  %requires amssymb
 \newcommand{\isasymtriangleq}{\emph{$\triangleq$}}  %requires amssymb
+\newcommand{\isasymlparr}{\emph{$\mathopen{(\mkern-3mu\mid}$}}
+\newcommand{\isasymrparr}{\emph{$\mathclose{\mid\mkern-3mu)}$}}
