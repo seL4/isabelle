@@ -235,7 +235,7 @@ fun cases_tac (ctxt, (simplified, args)) facts =
 
 in
 
-val cases_meth = Method.METHOD_CASES o (FINDGOAL oo cases_tac);
+val cases_meth = Method.METHOD_CASES o (HEADGOAL oo cases_tac);
 
 end;
 
@@ -333,7 +333,7 @@ fun induct_tac (ctxt, (stripped, args)) facts =
 
 in
 
-val induct_meth = Method.METHOD_CASES o (FINDGOAL oo induct_tac);
+val induct_meth = Method.METHOD_CASES o (HEADGOAL oo induct_tac);
 
 end;
 

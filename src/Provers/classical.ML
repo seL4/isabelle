@@ -1060,7 +1060,7 @@ end;
 (* METHOD_CLASET' *)
 
 fun METHOD_CLASET' tac ctxt =
-  Method.METHOD (FINDGOAL o tac (get_local_claset ctxt));
+  Method.METHOD (HEADGOAL o tac (get_local_claset ctxt));
 
 
 val trace_rules = ref false;

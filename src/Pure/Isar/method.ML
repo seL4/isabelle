@@ -279,14 +279,14 @@ local
 fun gen_rule_tac tac rules [] = tac rules
   | gen_rule_tac tac erules facts = gen_resolveq_tac (tac o single) (multi_resolves facts erules);
 
-fun gen_rule tac rules = METHOD (FINDGOAL o tac rules);
+fun gen_rule tac rules = METHOD (HEADGOAL o tac rules);
 
 fun gen_rule' tac arg_rules ctxt = METHOD (fn facts =>
   let val rules =
     if not (null arg_rules) then arg_rules
     else if null facts then #1 (LocalRules.get ctxt)
     else op @ (LocalRules.get ctxt);
-  in FINDGOAL (tac rules facts) end);
+  in HEADGOAL (tac rules facts) end);
 
 fun setup raw_tac =
   let val tac = gen_rule_tac raw_tac
@@ -304,7 +304,7 @@ end;
 
 (* this *)
 
-val this = METHOD (EVERY o map (FINDGOAL o Tactic.rtac));
+val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 
 (* assumption *)
@@ -316,7 +316,7 @@ fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ [fact] = resolve_tac [fact]
   | assumption_tac _ _ = K no_tac;
 
-fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
+fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 
 
 (* res_inst_tac emulations *)
@@ -346,7 +346,7 @@ fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
  (Context.use_mltext
-   ("let fun (tactic: PureIsar.Proof.context -> thm list -> tactic) ctxt facts = \
+   ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
     \let val thm = PureIsar.ProofContext.get_thm ctxt and thms = PureIsar.ProofContext.get_thms ctxt in\n"
     ^ txt ^
     "\nend in PureIsar.Method.set_tactic tactic end")

@@ -306,7 +306,7 @@ fun class_axms sign =
 (* intro_classes *)
 
 fun intro_classes_tac facts st =
-  FINDGOAL (Method.insert_tac facts THEN'
+  HEADGOAL (Method.insert_tac facts THEN'
       REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) st;
 
 val intro_classes_method =
