@@ -356,11 +356,17 @@ by (auto_tac (claset() addDs [order_less_trans],
 	      simpset() addsimps [neg_eq_less_0])); 
 qed "zless_nat_eq_int_zless";
 
+Goal "0 <= z ==> int (nat z) = z"; 
+by (asm_full_simp_tac
+    (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat]) 1); 
+qed "nat_0_le"; 
+
 Goal "z <= 0 ==> nat z = 0"; 
 by (auto_tac (claset(), 
 	      simpset() addsimps [order_le_less, neg_eq_less_0, 
 				  zle_def, neg_nat])); 
-qed "nat_le_int0"; 
+qed "nat_le_0"; 
+Addsimps [nat_0_le, nat_le_0];
 
 (*An alternative condition is  0 <= w  *)
 Goal "0 < z ==> (nat w < nat z) = (w < z)";
@@ -375,8 +381,7 @@ val lemma = result();
 
 Goal "(nat w < nat z) = (0 < z & w < z)";
 by (case_tac "0 < z" 1);
-by (auto_tac (claset(), 
-	      simpset() addsimps [lemma, nat_le_int0, linorder_not_less])); 
+by (auto_tac (claset(), simpset() addsimps [lemma, linorder_not_less])); 
 qed "zless_nat_conj";
 
 

@@ -135,6 +135,24 @@ lemma "100094 mod 144 = (14::int)"
   by simp
 
 
+text {* \medskip Powers *}
+
+lemma "2 ^ 10 = (1024::int)"
+  by simp
+
+lemma "-3 ^ 7 = (-2187::int)"
+  by simp
+
+lemma "13 ^ 7 = (62748517::int)"
+  by simp
+
+lemma "3 ^ 15 = (14348907::int)"
+  by simp
+
+lemma "-5 ^ 11 = (-48828125::int)"
+  by simp
+
+
 subsection {* The Natural Numbers *}
 
 text {* Successor *}
@@ -198,6 +216,24 @@ lemma "(10000::nat) div 16 = 625"
   by simp
 
 lemma "(10000::nat) mod 16 = 0"
+  by simp
+
+
+text {* \medskip Powers *}
+
+lemma "2 ^ 12 = (4096::nat)"
+  by simp
+
+lemma "3 ^ 10 = (59049::nat)"
+  by simp
+
+lemma "12 ^ 7 = (35831808::nat)"
+  by simp
+
+lemma "3 ^ 14 = (4782969::nat)"
+  by simp
+
+lemma "5 ^ 11 = (48828125::nat)"
   by simp
 
 

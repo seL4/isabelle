@@ -64,6 +64,24 @@ lemma "(1234567::real) \<le> 1234567"
   by simp
 
 
+text {* \medskip Powers *}
+
+lemma "2 ^ 15 = (32768::real)"
+  by simp
+
+lemma "-3 ^ 7 = (-2187::real)"
+  by simp
+
+lemma "13 ^ 7 = (62748517::real)"
+  by simp
+
+lemma "3 ^ 15 = (14348907::real)"
+  by simp
+
+lemma "-5 ^ 11 = (-48828125::real)"
+  by simp
+
+
 text {* \medskip Tests *}
 
 lemma "(x + y = x) = (y = (0::real))"

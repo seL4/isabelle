@@ -39,12 +39,13 @@ Goalw [int_def,real_zero_def] "real (int 0) = 0";
 by (simp_tac (simpset() addsimps [real_of_int, preal_add_commute]) 1);
 qed "real_of_int_zero";
 
-Goalw [int_def,real_one_def] "real (int 1) = (1::real)";
+Goal "real (1::int) = (1::real)";
+by (stac (int_1 RS sym) 1); 
 by (auto_tac (claset(),
-	      simpset() addsimps [real_of_int,
-				  preal_of_prat_add RS sym,pnat_two_eq,
-			       prat_of_pnat_add RS sym,pnat_one_iff RS sym]));
-qed "real_of_int_one";
+	      simpset() addsimps [int_def, real_one_def, real_of_int,
+			       preal_of_prat_add RS sym,pnat_two_eq,
+			       prat_of_pnat_add RS sym, pnat_one_iff RS sym]));
+qed "real_of_one";
 
 Goal "real (x::int) + real y = real (x + y)";
 by (res_inst_tac [("z","x")] eq_Abs_Integ 1);
@@ -81,7 +82,7 @@ qed "real_of_int_mult";
 Addsimps [real_of_int_mult RS sym];
 
 Goal "real (int (Suc n)) = real (int n) + (1::real)";
-by (simp_tac (simpset() addsimps [real_of_int_one RS sym, zadd_int] @ 
+by (simp_tac (simpset() addsimps [real_of_one RS sym, zadd_int] @ 
                                  zadd_ac) 1);
 qed "real_of_int_Suc";
 
@@ -133,3 +134,6 @@ Goal "(real (x::int) <= real y) = (x <= y)";
 by (full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
 qed "real_of_int_le_iff";
 Addsimps [real_of_int_le_iff];
+
+Addsimps [real_of_one];
+

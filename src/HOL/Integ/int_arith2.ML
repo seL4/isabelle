@@ -21,20 +21,6 @@ Addsimps [zadd_left_cancel0];
 
 (* nat *)
 
-Goal "0 <= z ==> int (nat z) = z"; 
-by (asm_full_simp_tac
-    (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat]) 1); 
-qed "nat_0_le"; 
-
-Goal "z <= 0 ==> nat z = 0"; 
-by (case_tac "z = 0" 1);
-by (asm_simp_tac (simpset() addsimps [nat_le_int0]) 1); 
-by (asm_full_simp_tac 
-    (simpset() addsimps [neg_eq_less_0, neg_nat, linorder_neq_iff]) 1);
-qed "nat_le_0"; 
-
-Addsimps [nat_0_le, nat_le_0];
-
 val [major,minor] = Goal "[| 0 <= z;  !!m. z = int m ==> P |] ==> P"; 
 by (rtac (major RS nat_0_le RS sym RS minor) 1);
 qed "nonneg_eq_int"; 

@@ -207,6 +207,22 @@ by (simp_tac (simpset() addsimps
                hypreal_of_nat_zero, hypreal_of_nat_Suc]) 1);
 qed "hrealpow_sum_square_expand";
 
+
+(*** Literal arithmetic involving powers, type hypreal ***)
+
+Goal "hypreal_of_real (x ^ n) = hypreal_of_real x ^ n";
+by (induct_tac "n" 1); 
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [nat_mult_distrib])));
+qed "hypreal_of_real_power";
+Addsimps [hypreal_of_real_power];
+
+Goal "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)";
+by (simp_tac (HOL_ss addsimps [hypreal_number_of_def, 
+                               hypreal_of_real_power]) 1);
+qed "power_hypreal_of_real_number_of";
+
+Addsimps [inst "n" "number_of ?w" power_hypreal_of_real_number_of];
+
 (*---------------------------------------------------------------
    we'll prove the following theorem by going down to the
    level of the ultrafilter and relying on the analogous
@@ -465,9 +481,9 @@ Goalw [hypreal_of_real_def,hypnat_of_nat_def]
 by (auto_tac (claset(), simpset() addsimps [hyperpow]));
 qed "hyperpow_realpow";
 
-Goalw [SReal_def]
-     "(hypreal_of_real r) pow (hypnat_of_nat n) : Reals";
-by (auto_tac (claset(), simpset() addsimps [hyperpow_realpow]));
+Goalw [SReal_def] "(hypreal_of_real r) pow (hypnat_of_nat n) : Reals";
+by (simp_tac (simpset() delsimps [hypreal_of_real_power]
+			addsimps [hyperpow_realpow]) 1); 
 qed "hyperpow_SReal";
 Addsimps [hyperpow_SReal];
 

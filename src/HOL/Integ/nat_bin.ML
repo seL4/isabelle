@@ -493,3 +493,62 @@ Addsimps (map (inst "k" "number_of ?v")
 	  [add_mult_distrib, add_mult_distrib2,
 	   diff_mult_distrib, diff_mult_distrib2]);
 
+
+(*** Literal arithmetic involving powers, type nat ***)
+
+Goal "(0::int) <= z ==> nat (z^n) = nat z ^ n";
+by (induct_tac "n" 1); 
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [nat_mult_distrib])));
+qed "nat_power_eq";
+
+Goal "(number_of v :: nat) ^ n = \
+\      (if neg (number_of v) then 0^n else nat ((number_of v :: int) ^ n))";
+by (simp_tac
+    (simpset_of Int.thy addsimps [neg_nat, not_neg_eq_ge_0, nat_number_of_def, 
+				  nat_power_eq]) 1);
+qed "power_nat_number_of";
+
+Addsimps [inst "n" "number_of ?w" power_nat_number_of];
+
+
+
+(*** Literal arithmetic involving powers, type int ***)
+
+Goal "(z::int) ^ (2*a) = (z^a)^2";
+by (simp_tac (simpset() addsimps [zpower_zpower, mult_commute]) 1); 
+qed "zpower_even";
+
+Goal "(p::int) ^ 2 = p*p"; 
+by (simp_tac numeral_ss 1);
+qed "zpower_two";  
+
+Goal "(z::int) ^ (2*a + 1) = z * (z^a)^2";
+by (simp_tac (simpset() addsimps [zpower_even, zpower_zadd_distrib]) 1); 
+qed "zpower_odd";
+
+Goal "(z::int) ^ number_of (w BIT False) = \
+\     (let w = z ^ (number_of w) in  w*w)";
+by (simp_tac (simpset_of Int.thy addsimps [nat_number_of_def,
+        number_of_BIT, Let_def]) 1);
+by (res_inst_tac [("x","number_of w")] spec 1 THEN Clarify_tac 1); 
+by (case_tac "(0::int) <= x" 1);
+by (auto_tac (claset(), 
+     simpset() addsimps [nat_mult_distrib, zpower_even, zpower_two])); 
+qed "zpower_number_of_even";
+
+Goal "(z::int) ^ number_of (w BIT True) = \
+\         (if (0::int) <= number_of w                   \
+\          then (let w = z ^ (number_of w) in  z*w*w)   \
+\          else 1)";
+by (simp_tac (simpset_of Int.thy addsimps [nat_number_of_def,
+        number_of_BIT, Let_def]) 1);
+by (res_inst_tac [("x","number_of w")] spec 1 THEN Clarify_tac 1); 
+by (case_tac "(0::int) <= x" 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [nat_add_distrib, nat_mult_distrib, 
+                                  zpower_even, zpower_two])); 
+qed "zpower_number_of_odd";
+
+Addsimps (map (inst "z" "number_of ?v")
+              [zpower_number_of_even, zpower_number_of_odd]);
+

@@ -18,7 +18,8 @@ by (simp_tac (simpset() addsimps [real_of_int_zero RS sym]) 1);
 qed "real_numeral_0_eq_0";
 
 Goalw [real_number_of_def] "Numeral1 = (1::real)";
-by (simp_tac (simpset() addsimps [real_of_int_one RS sym]) 1);
+by (stac (real_of_one RS sym) 1); 
+by (Simp_tac 1); 
 qed "real_numeral_1_eq_1";
 
 (** Addition **)

@@ -371,3 +371,18 @@ by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [real_0_le_mult_iff]));  
 qed "zero_le_realpow_abs";
 Addsimps [zero_le_realpow_abs];
+
+
+(*** Literal arithmetic involving powers, type real ***)
+
+Goal "real (x::int) ^ n = real (x ^ n)";
+by (induct_tac "n" 1); 
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [nat_mult_distrib])));
+qed "real_of_int_power";
+Addsimps [real_of_int_power RS sym];
+
+Goal "(number_of v :: real) ^ n = real ((number_of v :: int) ^ n)";
+by (simp_tac (HOL_ss addsimps [real_number_of_def, real_of_int_power]) 1);
+qed "power_real_number_of";
+
+Addsimps [inst "n" "number_of ?w" power_real_number_of];
