@@ -6,6 +6,7 @@
 Examples for First-Order Logic. 
 *)
 
+time_use_thy "First_Order_Logic";
 time_use     "intro.ML";
 time_use_thy "Nat";
 time_use_thy "Natural_Numbers";
