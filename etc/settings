@@ -14,10 +14,10 @@
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x, 4.0, 4.1, and 4.1.1
+# Poly/ML 3.x, 4.0, 4.1, 4.1.1, 4.1.2
 if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
-  #maybe a shrink-wrapped polyml-4.1.1 on x86-linux ...
-  ML_SYSTEM=polyml-4.1.1
+  #maybe a shrink-wrapped polyml-4.1.2 on x86-linux ...
+  ML_SYSTEM=polyml-4.1.2
   ML_PLATFORM=x86-linux
   ML_HOME=/usr/bin
   ML_DBASE=/usr/lib/poly/ML_dbase
