@@ -134,7 +134,7 @@ fun get_tthm thy name =
 
 fun get_tthmss thy names = flat (map (get_tthms thy) names);
 
-fun get_thms thy = map Attribute.thm_of o get_tthms thy;
+fun get_thms thy = Attribute.thms_of o get_tthms thy;
 fun get_thm thy = Attribute.thm_of o get_tthm thy;
 
 
