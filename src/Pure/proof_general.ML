@@ -279,6 +279,8 @@ val options = ref
       bool_option show_types)),
    ("show-sorts", ("Whether to show sorts in Isabelle.",
       bool_option show_sorts)),
+   ("show-structs", ("Whether to show implicit structures in Isabelle.",
+      bool_option show_structs)),
    ("show-consts", ("Whether to show types of consts in Isabelle goals.",
       bool_option show_consts)),
    ("long-names", ("Whether to show fully qualified names in Isabelle.",

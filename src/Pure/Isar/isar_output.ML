@@ -262,6 +262,7 @@ val break = ref false;
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
   ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
+  ("show_structs", Library.setmp show_structs o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("display", Library.setmp display o boolean),

@@ -6,6 +6,8 @@
 Proof context information.
 *)
 
+val show_structs = ref false;
+
 signature PROOF_CONTEXT =
 sig
   type context
@@ -317,7 +319,8 @@ fun context_tr' ctxt =
       | tr' (t as Free (x, T)) =
           let val i = Library.find_index_eq x structs + 1 in
             if i = 0 andalso x mem_string mixfixed then Const (fixedN ^ x, T)
-            else if i = 1 then Syntax.const "_struct" $ Syntax.const "_indexdefault"
+            else if i = 1 andalso not (! show_structs) then
+              Syntax.const "_struct" $ Syntax.const "_indexdefault"
             else t
           end
       | tr' a = a;

@@ -15,33 +15,34 @@ single 'constdefs' section; moreover, the declared name needs to be an
 identifier.  If all fails, consider to fall back on 'consts' and
 'defs' separately.
 
-* Pure: 'advanced' translation functions (parse_translation etc.) may
-depend on the signature of the theory context being presently used for
-parsing/printing, see also isar-ref manual.
-
-
 * Pure: improved indexed syntax and implicit structures.  First of
 all, indexed syntax provides a notational device for subscripted
 application, using the new syntax \<^bsub>term\<^esub> for arbitrary
 expressions.  Secondly, in a local context with structure
 declarations, number indexes \<^sub>n or the empty index (default
-number 1) refer to a certain fixed variable implicitly.  Typical
+number 1) refer to a certain fixed variable implicitly; option
+show_structs controls printing of implicit structures.  Typical
 applications of these concepts involve record types and locales.
+
+* Pure: 'advanced' translation functions (parse_translation etc.) may
+depend on the signature of the theory context being presently used for
+parsing/printing, see also isar-ref manual.
 
 * Pure: tuned internal renaming of symbolic identifiers -- attach
 primes instead of base 26 numbers.
 
+
 *** HOL ***
 
-* Records:
-   Reimplementation of records to avoid performance problems for
-   type inference. Records are no longer composed of nested field types,
-   but of nested extension types. Therefore the record type only grows
-   linear in the number of extensions and not in the number of fields.
-   The top-level (users) view on records is preserved. 
-   Potential INCOMPATIBILITY only in strange cases, where the theory
-   depends on the old record representation. The type generated for
-   a record is called <record_name>_ext_type.    
+* HOL/record: reimplementation of records to avoid performance
+problems for type inference. Records are no longer composed of nested
+field types, but of nested extension types. Therefore the record type
+only grows linear in the number of extensions and not in the number of
+fields.  The top-level (users) view on records is preserved.
+Potential INCOMPATIBILITY only in strange cases, where the theory
+depends on the old record representation. The type generated for a
+record is called <record_name>_ext_type.
+
 
 *** HOLCF ***
 
