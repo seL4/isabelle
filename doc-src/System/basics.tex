@@ -4,10 +4,10 @@
 \chapter{The Isabelle system environment}
 
 This manual describes Isabelle together with related tools and user interfaces
-as seen from an outside (system oriented) view.  See also the \emph{Isabelle
-  Isar Reference Manual}~\cite{isabelle-isar-ref} and the \emph{Isabelle
-  Reference Manual}~\cite{isabelle-ref} for the actual Isabelle commands and
-related functions.
+as seen from an outside (system oriented) view.  See also the
+\emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref} and the
+\emph{Isabelle Reference Manual}~\cite{isabelle-ref} for the actual Isabelle
+commands and related functions.
 
 \medskip The Isabelle system environment emerges from a few general concepts.
 \begin{itemize}
@@ -26,7 +26,7 @@ related functions.
   Proof~General \cite{proofgeneral}.
 \end{itemize}
 
-\medskip The beginning user would probably just run a standard user interface
+\medskip The beginning user would probably just run the default user interface
 (by invoking the capital \texttt{Isabelle}).  This assumes that the system has
 already been installed, of course.  In case you have to do this yourself, see
 the \ttindex{INSTALL} file in the top-level directory of the distribution of
@@ -55,7 +55,7 @@ straight away.\footnote{Occasionally, users would still want to put the
   not required.}
 
 
-\subsection{Constructing the environment}
+\subsection{Building the environment}
 
 Whenever any of the Isabelle executables is run, their settings environment is
 put together as follows.
@@ -73,11 +73,11 @@ put together as follows.
 \item The file \texttt{\$ISABELLE_HOME/etc/settings} ist run as a shell script
   with the auto-export option for variables enabled.
   
-  This file typically contains a rather long list of shell variable
-  assigments, thus providing the site-wide default settings.  The Isabelle
-  distribution already contains a global settings file with sensible defaults
-  for most variables. When installing the system, only a few of these may have
-  to be adapted (probably \texttt{ML_SYSTEM} etc.).
+  This file holds a rather long list of shell variable assigments, thus
+  providing the site-wide default settings.  The Isabelle distribution already
+  contains a global settings file with sensible defaults for most variables.
+  When installing the system, only a few of these may have to be adapted
+  (probably \texttt{ML_SYSTEM} etc.).
   
 \item The file \texttt{\$ISABELLE_HOME_USER/etc/settings} (if it exists) is
   run in the same way as the site default settings. Note that the variable
@@ -290,8 +290,8 @@ If the input heap file does not have write permission bits set, or the
 \texttt{-r} option is given explicitely, then the session started will be
 read-only.  That is, the {\ML} world cannot be committed back into the image
 file.  Otherwise, a writable session enables commits into either the input
-file, or into an alternative output heap file (in case that is given as the
-second argument on the command line).
+file, or into another output heap file (if that is given as the second
+argument on the command line).
 
 The read-write state of sessions is determined at startup only, it cannot be
 changed intermediately. Also note that heap images may require considerable
@@ -333,7 +333,7 @@ interaction, thus providing a pure batch mode facility.
 \medskip The \texttt{-I} option makes Isabelle enter Isar interaction mode on
 startup, instead of the primitive {\ML} top-level.  The \texttt{-P} option
 configures the top-level loop for interaction with the Proof~General user
-interface; do not enable this in ordinary sessions.
+interface; do not enable this in plain TTY sessions.
 
 
 \subsection*{Examples}
@@ -381,10 +381,10 @@ by the {\ML} runtime environment.
 
 Isabelle is a generic theorem prover, even w.r.t.\ its user interface.  The
 \ttindex{Isabelle} (or \ttindex{isabelle-interface}) executable provides a
-uniform way for end-users to invoke a certain interface; which one to start
-actually is determined by the \settdx{ISABELLE_INTERFACE} setting variable.
-Also note that the \texttt{install} utility provides some options to install
-desktop environment icons as well (see \S\ref{sec:tool-install}).
+uniform way for end-users to invoke a certain interface; which one to start is
+determined by the \settdx{ISABELLE_INTERFACE} setting variable.  Also note
+that the \texttt{install} utility provides some options to install desktop
+environment icons as well (see \S\ref{sec:tool-install}).
 
 An interface may be specified either by giving an identifier that the Isabelle
 distribution knows about, or by specifying an actual path name (containing a
@@ -416,8 +416,8 @@ PROOFGENERAL_OPTIONS=""
   the Proof~General Lisp packages.  There are some options available, such as
   \texttt{-l} for passing the logic image to be used by default, or
   \texttt{-m} to tune the standard print mode.  The \texttt{-I} option allows
-  to switch between the Isar and ML view, independently of the actual
-  interface script being used.
+  to switch between the Isar and ML view, independently of the interface
+  script being used.
   
   \medskip Note that the world may be also seen the other way round: Emacs may
   be started first (with proper setup of Proof~General mode), and

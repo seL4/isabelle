@@ -153,19 +153,16 @@ Usage: browser [OPTIONS] [GRAPHFILE]
 When no filename is specified, the browser automatically changes to the
 directory \texttt{ISABELLE_BROWSER_INFO}.
 
-\medskip The \texttt{-d} option cases the source file (!)\ to be deleted after
-the browser terminates; this is mainly intended for detaching interactive
-graph views from a running Isabelle session.
+\medskip The \texttt{-d} option causes the source file (!)\ to be deleted
+after the browser terminates; this is mainly intended for detaching
+interactive graph views from a running Isabelle session.
 
 The \texttt{-o} option indicates batch-mode operation, with the output written
 to the indicated file; note that \texttt{pdf} produces an \texttt{eps} copy as
 well.
 
-\medskip The applet version of the browser can be invoked by opening the {\tt
-  index.html} file in the directory \texttt{ISABELLE_BROWSER_INFO} from your
-Web browser and selecting the version ``including theory graph browser''.
-There is also a link to the corresponding theory graph in every logic's {\tt
-  index.html} file.
+\medskip The applet version of the browser is part of the standard WWW theory
+presentation, see the link ``theory dependencies'' within each session index.
 
 
 \subsection{Using the graph browser}
@@ -282,8 +279,8 @@ The meaning of the items in a vertex description is as follows:
 The \tooldx{mkdir} utility prepares Isabelle session source directories,
 including a sensible default setup of \texttt{IsaMakefile}, \texttt{ROOT.ML},
 and a \texttt{document} directory with a minimal \texttt{root.tex} that is
-sufficient print all theories of the session (in the order of appearance); see
-\S\ref{sec:tool-document} for further information on Isabelle document
+sufficient to print all theories of the session (in the order of appearance);
+see \S\ref{sec:tool-document} for further information on Isabelle document
 preparation.  The usage of \texttt{isatool mkdir} is:
 \begin{ttbox}
 Usage: mkdir [OPTIONS] [LOGIC] NAME
@@ -343,8 +340,8 @@ isatool mkdir Foo && isatool make
 \texttt{ROOT.ML} should be edited to load all required theories.  Invoking
 \texttt{isatool make} again would run the whole session, generating browser
 information and the document automatically.  The \texttt{IsaMakefile} is
-typically tuned manually later, e.g.\ adding actual source dependencies, or
-changing the options passed to \texttt{usedir}.
+typically tuned manually later, e.g.\ adding source dependencies, or changing
+the options passed to \texttt{usedir}.
 
 \medskip Large projects may demand further sessions, potentially with separate
 logic images being created.  This usually requires manual editing of the
@@ -428,10 +425,10 @@ or any of \texttt{dvi}, \texttt{dvi.gz}, \texttt{ps}, \texttt{ps.gz},
 The \texttt{-g} option produces images of the theory dependency graph (cf.\ 
 \S\ref{sec:browse}) for inclusion in the generated document, both as
 \texttt{session_graph.eps} and \texttt{session_graph.pdf} at the same time.
-In order to make this appear the final {\LaTeX} document one would typically
-say \verb,\includegraphics{session_graph}, in the \texttt{document/root.tex}
-file.  (Omitting the file-name extension enables {\LaTeX} to select to correct
-version, either for the DVI or PDF output path.)
+To include this in the final {\LaTeX} document one could say
+\verb,\includegraphics{session_graph}, in \texttt{document/root.tex} (omitting
+the file-name extension enables {\LaTeX} to select to correct version, either
+for the DVI or PDF output path).
 
 \medskip The \texttt{-D} option causes the generated document sources
 (including the user's template of \texttt{document/root.tex} etc.) to be
@@ -448,7 +445,7 @@ proof objects, see also the \emph{Isabelle Reference
   Manual}~\cite{isabelle-ref}.
 
 \medskip The \texttt{-v} option causes additional information to be printed
-during while running the session, notably the location of prepared documents.
+while running the session, notably the location of prepared documents.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend on
@@ -518,8 +515,8 @@ theories.
 
 The {\LaTeX} versions of the theories require some macros defined in
 \texttt{isabelle.sty} as distributed with Isabelle.  Doing
-\verb,\usepackage{isabelle}, somewhere in \texttt{root.tex} should work fine;
-the underlying Isabelle \texttt{latex} utility already includes an appropriate
+\verb,\usepackage{isabelle}, in \texttt{root.tex} should be fine; the
+underlying Isabelle \texttt{latex} utility already includes an appropriate
 {\TeX} inputs path.
 
 If the text contains any references to Isabelle symbols (such as

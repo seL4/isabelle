@@ -32,7 +32,7 @@ an automatically converted script work again --- the success rate is around
 
 The \tooldx{doc} utility displays online documentation:
 \begin{ttbox}
-Usage: isatool doc [DOC]
+Usage: doc [DOC]
 
   View Isabelle documentation DOC, or show list of available documents.
 \end{ttbox}
@@ -63,7 +63,7 @@ Usage: expandshort [FILES|DIRS...]
 In the files or directories supplied as arguments, all occurrences of the
 shorthand commands \texttt{br}, \texttt{be} etc.\ in proof scripts are
 replaced with the corresponding full commands.  The old versions of the files
-are renamed to have the suffix``~\verb'~~'''.
+are renamed to have the suffix ``\verb'~~'''.
 
 
 \section{Getting logic images --- \texttt{isatool findlogics}}
@@ -71,7 +71,7 @@ are renamed to have the suffix``~\verb'~~'''.
 The \tooldx{findlogics} utility traverses all directories specified in
 \texttt{ISABELLE_PATH}, looking for Isabelle logic images. Its usage is:
 \begin{ttbox}
-Usage: isatool findlogics
+Usage: findlogics
 
   Collect heap file names from ISABELLE_PATH.
 \end{ttbox}
@@ -89,7 +89,7 @@ The Isabelle settings environment --- as provided by the site-default and
 user-specific settings files --- can be inspected with the \tooldx{getenv}
 utility:
 \begin{ttbox}
-Usage: isatool getenv [OPTIONS] [VARNAMES ...]
+Usage: getenv [OPTIONS] [VARNAMES ...]
 
   Options are:
     -a           display complete environment
@@ -182,8 +182,8 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
 You are encouraged to use this to create a derived logo for your Isabelle
-project.  For example, \texttt{isatool logo HOOL} creates
-\texttt{isabelle_hool.eps}.
+project.  For example, \texttt{isatool logo Bali} creates
+\texttt{isabelle_bali.eps}.
 
 
 \section{Isabelle's version of make --- \texttt{isatool make}}
@@ -192,7 +192,7 @@ project.  For example, \texttt{isatool logo HOOL} creates
 The Isabelle \tooldx{make} utility is a very simple wrapper for
 ordinary Unix \texttt{make}:
 \begin{ttbox}
-Usage: isatool make [ARGS ...]
+Usage: make [ARGS ...]
 
   Compile the logic in current directory using IsaMakefile.
   ARGS are directly passed to the system make program.
@@ -215,7 +215,7 @@ examples.  The \texttt{all} target shall do \texttt{images} and
 \subsection*{Examples}
 
 Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
-object-logics as a model for your own developements.  For example, see
+object-logics as a model for your own developments.  For example, see
 \texttt{src/FOL/IsaMakefile}.
 
 
