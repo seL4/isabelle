@@ -382,12 +382,12 @@ fun add_cases_induct no_elim no_ind names elims induct induct_cases =
     fun cases_spec (name, elim) thy =
       thy
       |> Theory.add_path (Sign.base_name name)
-      |> (#1 o PureThy.add_thms [(("cases", elim), [InductMethod.cases_set_global name])])
+      |> (#1 o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
       |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
     fun induct_spec (name, th) = (#1 o PureThy.add_thms
-      [(("", th), [RuleCases.case_names induct_cases, InductMethod.induct_set_global name])]);
+      [(("", th), [RuleCases.case_names induct_cases, InductAttrib.induct_set_global name])]);
     val induct_specs = if no_ind then [] else map induct_spec (project_rules names induct);
   in Library.apply (cases_specs @ induct_specs) end;
 

@@ -298,8 +298,8 @@ fun add_cases_induct infos =
           |> RuleCases.name (RuleCases.get thm);
 
     fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
-      (("", proj index (length descr) induction), [InductMethod.induct_type_global name]) ::
-      (("", exhaustion), [InductMethod.cases_type_global name]) :: ths;
+      (("", proj index (length descr) induction), [InductAttrib.induct_type_global name]) ::
+      (("", exhaustion), [InductAttrib.cases_type_global name]) :: ths;
   in #1 o PureThy.add_thms (foldl add ([], infos)) end;
 
 
