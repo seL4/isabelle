@@ -19,16 +19,16 @@ constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
 type @{typ"bool list"}, namely the list with the elements @{term"True"} and
-@{term"False"}. Because this notation becomes unwieldy very quickly, the
+@{term"False"}. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 @{term[source]Nil} and \isa{Cons x xs} we can write
 @{term"[]"}\index{$HOL2list@\texttt{[]}|bold} and
 @{term"x # xs"}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
-alternative syntax is the standard syntax. Thus the list \isa{Cons True
+alternative syntax is the familiar one.  Thus the list \isa{Cons True
 (Cons False Nil)} becomes @{term"True # False # []"}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
 means that @{text"#"} associates to
-the right, i.e.\ the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
+the right: the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
 and not as @{text"(x # y) # z"}.
 The @{text 65} is the priority of the infix @{text"#"}.
 

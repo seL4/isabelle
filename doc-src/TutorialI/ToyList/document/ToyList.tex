@@ -21,16 +21,16 @@ constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
 type \isa{bool\ list}, namely the list with the elements \isa{True} and
-\isa{False}. Because this notation becomes unwieldy very quickly, the
+\isa{False}. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 \isa{Nil} and \isa{Cons x xs} we can write
 \isa{{\isacharbrackleft}{\isacharbrackright}}\index{$HOL2list@\texttt{[]}|bold} and
 \isa{x\ {\isacharhash}\ xs}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
-alternative syntax is the standard syntax. Thus the list \isa{Cons True
+alternative syntax is the familiar one.  Thus the list \isa{Cons True
 (Cons False Nil)} becomes \isa{True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
 means that \isa{{\isacharhash}} associates to
-the right, i.e.\ the term \isa{x\ {\isacharhash}\ y\ {\isacharhash}\ z} is read as \isa{x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ z{\isacharparenright}}
+the right: the term \isa{x\ {\isacharhash}\ y\ {\isacharhash}\ z} is read as \isa{x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ z{\isacharparenright}}
 and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\isacharhash}\ z}.
 The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isacharhash}}.
 

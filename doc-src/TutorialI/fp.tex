@@ -1,17 +1,19 @@
 \chapter{Functional Programming in HOL}
 
-Although on the surface this chapter is mainly concerned with how to write
-functional programs in HOL and how to verify them, most of the constructs and
-proof procedures introduced are general purpose and recur in any specification
-or verification task. In fact, we really should speak of functional
-\emph{modelling} rather than \emph{programming}: our primary aim is not
+This chapter describes how to write
+functional programs in HOL and how to verify them.  However, 
+most of the constructs and
+proof procedures introduced are general and recur in any specification
+or verification task.  We really should speak of functional
+\emph{modelling} rather than functional \emph{programming}: 
+our primary aim is not
 to write programs but to design abstract models of systems.  HOL is
 a specification language that goes well beyond what can be expressed as a
 program. However, for the time being we concentrate on the computable.
 
-The dedicated functional programmer should be warned: HOL offers only
-\emph{total functional programming} --- all functions in HOL must be total,
-i.e.\ they must terminate for all inputs; lazy data structures are not
+If you are a purist functional programmer, please note that all functions
+in HOL must be total:
+they must terminate for all inputs.  Lazy data structures are not
 directly available.
 
 \section{An Introductory Theory}
@@ -25,22 +27,24 @@ We will now examine it line by line.
 \begin{figure}[htbp]
 \begin{ttbox}\makeatother
 \input{ToyList2/ToyList1}\end{ttbox}
-\caption{A theory of lists}
+\caption{A Theory of Lists}
 \label{fig:ToyList}
 \end{figure}
 
+\index{*ToyList (example)|(}
 {\makeatother\input{ToyList/document/ToyList.tex}}
 
 The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
 concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
 constitutes the complete theory \texttt{ToyList} and should reside in file
 \texttt{ToyList.thy}. It is good practice to present all declarations and
-definitions at the beginning of a theory to facilitate browsing.
+definitions at the beginning of a theory to facilitate browsing.%
+\index{*ToyList (example)|)}
 
 \begin{figure}[htbp]
 \begin{ttbox}\makeatother
 \input{ToyList2/ToyList2}\end{ttbox}
-\caption{Proofs about lists}
+\caption{Proofs about Lists}
 \label{fig:ToyList-proofs}
 \end{figure}
 
@@ -465,7 +469,7 @@ update function, and prove that they behave as expected.
 \put(30,30){\line(3,-2){13}}
 \end{picture}
 \end{center}
-\caption{A sample trie}
+\caption{A Sample Trie}
 \label{fig:trie}
 \end{figure}
 

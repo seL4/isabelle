@@ -8,10 +8,11 @@ implementing logical formalisms, and Isabelle/HOL is the specialization
 of Isabelle for HOL, which abbreviates Higher-Order Logic. We introduce
 HOL step by step following the equation
 \[ \mbox{HOL} = \mbox{Functional Programming} + \mbox{Logic}. \]
-We do not assume that the reader is familiar with mathematical logic but that
-(s)he is used to logical and set theoretic notation, such as covered
-in a good discrete math course~\cite{Rosen-DMA}. In contrast, we do assume
-that the reader is familiar with the basic concepts of functional
+We do not assume that you are familiar with mathematical logic but that
+you are used to logical and set theoretic notation, such as covered
+in a good discrete mathematics course~\cite{Rosen-DMA}. 
+In contrast, we do assume
+that you are familiar with the basic concepts of functional
 programming~\cite{Bird-Haskell,Hudak-Haskell,paulson-ml2,Thompson-Haskell}.
 Although this tutorial initially concentrates on functional programming, do
 not be misled: HOL can express most mathematical concepts, and functional
@@ -19,15 +20,16 @@ programming is just one particularly simple and ubiquitous instance.
 
 Isabelle~\cite{paulson-isa-book} is implemented in ML~\cite{SML}.  This has
 influenced some of Isabelle/HOL's concrete syntax but is otherwise irrelevant
-for us because this tutorial is based on
+for us: this tutorial is based on
 Isabelle/Isar~\cite{isabelle-isar-ref}, an extension of Isabelle which hides
 the implementation language almost completely.  Thus the full name of the
 system should be Isabelle/Isar/HOL, but that is a bit of a mouthful.
 
 There are other implementations of HOL, in particular the one by Mike Gordon
+\index{Gordon, Mike}%
 \emph{et al.}, which is usually referred to as ``the HOL system''
 \cite{mgordon-hol}. For us, HOL refers to the logical system, and sometimes
-its incarnation Isabelle/HOL.
+its incarnation Isabelle/HOL\@.
 
 A tutorial is by definition incomplete.  Currently the tutorial only
 introduces the rudiments of Isar's proof language. To fully exploit the power
@@ -50,23 +52,24 @@ specification language. In fact, theories in HOL can be either. The general
 format of a theory \texttt{T} is
 \begin{ttbox}
 theory T = B\(@1\) + \(\cdots\) + B\(@n\):
-\(\textit{declarations, definitions, and proofs}\)
+{\rmfamily\textit{declarations, definitions, and proofs}}
 end
 \end{ttbox}
 where \texttt{B}$@1$, \dots, \texttt{B}$@n$ are the names of existing
-theories that \texttt{T} is based on and \texttt{\textit{declarations,
-    definitions, and proofs}} represents the newly introduced concepts
+theories that \texttt{T} is based on and \textit{declarations,
+    definitions, and proofs} represents the newly introduced concepts
 (types, functions etc.) and proofs about them. The \texttt{B}$@i$ are the
-direct \textbf{parent theories}\indexbold{parent theory} of \texttt{T}.
-Everything defined in the parent theories (and their parents \dots) is
+direct \textbf{parent theories}\indexbold{parent theories} of~\texttt{T}\@.
+Everything defined in the parent theories (and their parents, recursively) is
 automatically visible. To avoid name clashes, identifiers can be
-\textbf{qualified} by theory names as in \texttt{T.f} and
-\texttt{B.f}.\indexbold{identifier!qualified} Each theory \texttt{T} must
+\textbf{qualified}\indexbold{identifiers!qualified}
+by theory names as in \texttt{T.f} and~\texttt{B.f}. 
+Each theory \texttt{T} must
 reside in a \textbf{theory file}\index{theory files} named \texttt{T.thy}.
 
 This tutorial is concerned with introducing you to the different linguistic
-constructs that can fill \textit{\texttt{declarations, definitions, and
-    proofs}} in the above theory template.  A complete grammar of the basic
+constructs that can fill the \textit{declarations, definitions, and
+    proofs} above.  A complete grammar of the basic
 constructs is found in the Isabelle/Isar Reference Manual.
 
 HOL's theory collection is available online at
@@ -92,24 +95,28 @@ proofs are in separate ML files.
 
 Embedded in a theory are the types, terms and formulae of HOL\@. HOL is a typed
 logic whose type system resembles that of functional programming languages
-like ML or Haskell. Thus there are\index{types}
+like ML or Haskell. Thus there are
+\index{types|(}
 \begin{description}
-\item[base types,] in particular \tydx{bool}, the type of truth values,
+\item[base types,] 
+in particular \tydx{bool}, the type of truth values,
 and \tydx{nat}, the type of natural numbers.
-\item[type constructors,] in particular \tydx{list}, the type of
+\item[type constructors,]\index{type constructors}
+ in particular \tydx{list}, the type of
 lists, and \tydx{set}, the type of sets. Type constructors are written
 postfix, e.g.\ \isa{(nat)list} is the type of lists whose elements are
 natural numbers. Parentheses around single arguments can be dropped (as in
 \isa{nat list}), multiple arguments are separated by commas (as in
 \isa{(bool,nat)ty}).
-\item[function types,] denoted by \isasymFun\indexbold{$IsaFun@\isasymFun}.
+\item[function types,]\index{function types}
+denoted by \isasymFun\indexbold{$IsaFun@\isasymFun}.
   In HOL \isasymFun\ represents \emph{total} functions only. As is customary,
   \isa{$\tau@1$ \isasymFun~$\tau@2$ \isasymFun~$\tau@3$} means
   \isa{$\tau@1$ \isasymFun~($\tau@2$ \isasymFun~$\tau@3$)}. Isabelle also
   supports the notation \isa{[$\tau@1,\dots,\tau@n$] \isasymFun~$\tau$}
   which abbreviates \isa{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
     \isasymFun~$\tau$}.
-\item[type variables,]\indexbold{type variables}\indexbold{variables!type}
+\item[type variables,]\index{type variables}\index{variables!type}
   denoted by \ttindexboldpos{'a}{$Isatype}, \isa{'b} etc., just like in ML\@. They give rise
   to polymorphic types like \isa{'a \isasymFun~'a}, the type of the identity
   function.
@@ -125,7 +132,7 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   strange happens, we recommend that you set the flag\index{flags}
   \isa{show_types}\index{*show_types (flag)}.  
   Isabelle will then display type information
-  that is usually suppressed.   simply type
+  that is usually suppressed.  Simply type
 \begin{ttbox}
 ML "set show_types"
 \end{ttbox}
@@ -134,36 +141,41 @@ ML "set show_types"
 This can be reversed by \texttt{ML "reset show_types"}. Various other flags,
 which we introduce as we go along, can be set and reset in the same manner.%
 \index{flags!setting and resetting}
-\end{warn}
+\end{warn}%
+\index{types|)}
 
 
-\textbf{Terms}\index{terms} are formed as in functional programming by
+\index{terms|(}
+\textbf{Terms} are formed as in functional programming by
 applying functions to arguments. If \isa{f} is a function of type
 \isa{$\tau@1$ \isasymFun~$\tau@2$} and \isa{t} is a term of type
 $\tau@1$ then \isa{f~t} is a term of type $\tau@2$. HOL also supports
 infix functions like \isa{+} and some basic constructs from functional
 programming, such as conditional expressions:
 \begin{description}
-\item[\isa{if $b$ then $t@1$ else $t@2$}]\indexbold{*if (symbol)}
+\item[\isa{if $b$ then $t@1$ else $t@2$}]\index{*if expressions}
 Here $b$ is of type \isa{bool} and $t@1$ and $t@2$ are of the same type.
-\item[\isa{let $x$ = $t$ in $u$}]\indexbold{*let (symbol)}
+\item[\isa{let $x$ = $t$ in $u$}]\index{*let expressions}
 is equivalent to $u$ where all occurrences of $x$ have been replaced by
 $t$. For example,
 \isa{let x = 0 in x+x} is equivalent to \isa{0+0}. Multiple bindings are separated
 by semicolons: \isa{let $x@1$ = $t@1$; \dots; $x@n$ = $t@n$ in $u$}.
 \item[\isa{case $e$ of $c@1$ \isasymFun~$e@1$ |~\dots~| $c@n$ \isasymFun~$e@n$}]
-\indexbold{*case (symbol)}
+\index{*case expressions}
 evaluates to $e@i$ if $e$ is of the form $c@i$.
 \end{description}
 
 Terms may also contain
-\isasymlambda-abstractions\indexbold{$Isalam@\isasymlambda}. For example,
+\isasymlambda-abstractions.\index{lambda@$\lambda$ expressions}
+For example,
 \isa{\isasymlambda{}x.~x+1} is the function that takes an argument \isa{x} and
 returns \isa{x+1}. Instead of
 \isa{\isasymlambda{}x.\isasymlambda{}y.\isasymlambda{}z.~$t$} we can write
-\isa{\isasymlambda{}x~y~z.~$t$}.
+\isa{\isasymlambda{}x~y~z.~$t$}.%
+\index{terms|)}
 
-\textbf{Formulae}\indexbold{formulae} are terms of type \tydx{bool}.
+\index{formulae|(}%
+\textbf{Formulae} are terms of type \tydx{bool}.
 There are the basic constants \cdx{True} and \cdx{False} and
 the usual logical connectives (in decreasing order of priority):
 \indexboldpos{\protect\isasymnot}{$HOL0not}, \indexboldpos{\protect\isasymand}{$HOL0and},
@@ -173,49 +185,41 @@ particular \isa{A \isasymimp~B \isasymimp~C} means \isa{A \isasymimp~(B
   \isasymimp~C)} and is thus logically equivalent to \isa{A \isasymand~B
   \isasymimp~C} (which is \isa{(A \isasymand~B) \isasymimp~C}).
 
-Equality is available in the form of the infix function
-\isa{=}\indexbold{$HOL0eq@\texttt{=}} of type \isa{'a \isasymFun~'a
+Equality\index{equality} is available in the form of the infix function
+\isa{=} of type \isa{'a \isasymFun~'a
   \isasymFun~bool}. Thus \isa{$t@1$ = $t@2$} is a formula provided $t@1$
-and $t@2$ are terms of the same type. In case $t@1$ and $t@2$ are of type
-\isa{bool}, \isa{=} acts as if-and-only-if. The formula
+and $t@2$ are terms of the same type. If $t@1$ and $t@2$ are of type
+\isa{bool} then \isa{=} acts as \rmindex{if-and-only-if}.
+The formula
 \isa{$t@1$~\isasymnoteq~$t@2$} is merely an abbreviation for
 \isa{\isasymnot($t@1$ = $t@2$)}.
 
-Quantifiers are written as
-\isa{\isasymforall{}x.~$P$}\index{$HOL0All@\isasymforall|bold} and
-\isa{\isasymexists{}x.~$P$}\index{$HOL0Ex@\isasymexists|bold}. 
+Quantifiers\index{quantifiers} are written as
+\isa{\isasymforall{}x.~$P$} and \isa{\isasymexists{}x.~$P$}. 
 There is even
-\isa{\isasymuniqex{}x.~$P$}\index{$HOL0ExU@\isasymuniqex|bold}, which
+\isa{\isasymuniqex{}x.~$P$}, which
 means that there exists exactly one \isa{x} that satisfies \isa{$P$}. 
 Nested quantifications can be abbreviated:
 \isa{\isasymforall{}x~y~z.~$P$} means
-\isa{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.~$P$}.
+\isa{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.~$P$}.%
+\index{formulae|)}
 
 Despite type inference, it is sometimes necessary to attach explicit
 \bfindex{type constraints} to a term.  The syntax is
 \isa{$t$::$\tau$} as in \isa{x < (y::nat)}. Note that
 \ttindexboldpos{::}{$Isatype} binds weakly and should therefore be enclosed
-in parentheses: \isa{x < y::nat} is ill-typed because it is interpreted as
-\isa{(x < y)::nat}. The main reason for type constraints is overloading of
-functions like \isa{+}, \isa{*} and \isa{<}. See {\S}\ref{sec:overloading} for
-a full discussion of overloading and Table~\ref{tab:overloading} for the most
+in parentheses.  For instance,
+\isa{x < y::nat} is ill-typed because it is interpreted as
+\isa{(x < y)::nat}.  Type constraints may be needed to disambiguate
+expressions
+involving overloaded functions such as~\isa{+}, 
+\isa{*} and~\isa{<}.  Section~\ref{sec:overloading} 
+discusses overloading, while Table~\ref{tab:overloading} presents the most
 important overloaded function symbols.
 
-\begin{warn}
-In general, HOL's concrete syntax tries to follow the conventions of
-functional programming and mathematics. Below we list the main rules that you
-should be familiar with to avoid certain syntactic traps. A particular
-problem for novices can be the priority of operators. If you are unsure, use
-additional parentheses. In those cases where Isabelle echoes your
-input, you can see which parentheses are dropped --- they were superfluous. If
-you are unsure how to interpret Isabelle's output because you don't know
-where the (dropped) parentheses go, set the flag\index{flags}
-\isa{show_brackets}\index{*show_brackets (flag)}:
-\begin{ttbox}
-ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
-\end{ttbox}
-\end{warn}
-
+In general, HOL's concrete \rmindex{syntax} tries to follow the conventions of
+functional programming and mathematics.  Here are the main rules that you
+should be familiar with to avoid certain syntactic traps:
 \begin{itemize}
 \item
 Remember that \isa{f t u} means \isa{(f t) u} and not \isa{f(t u)}!
@@ -233,26 +237,43 @@ means \isa{(f~x)~+~y} and not \isa{f(x+y)}.
 \item
 Constructs with an opening but without a closing delimiter bind very weakly
 and should therefore be enclosed in parentheses if they appear in subterms, as
-in \isa{(\isasymlambda{}x.~x) = f}. This includes \sdx{if},
-\sdx{let}, \sdx{case}, \isa{\isasymlambda}, and quantifiers.
+in \isa{(\isasymlambda{}x.~x) = f}.  This includes 
+\isa{if},\index{*if expressions}
+\isa{let},\index{*let expressions}
+\isa{case},\index{*case expressions}
+\isa{\isasymlambda}, and quantifiers.
 \item
 Never write \isa{\isasymlambda{}x.x} or \isa{\isasymforall{}x.x=x}
-because \isa{x.x} is always read as a single qualified identifier that
+because \isa{x.x} is always taken as a single qualified identifier that
 refers to an item \isa{x} in theory \isa{x}. Write
 \isa{\isasymlambda{}x.~x} and \isa{\isasymforall{}x.~x=x} instead.
-\item Identifiers\indexbold{identifier} may contain \isa{_} and \isa{'}.
+\item Identifiers\indexbold{identifiers} may contain the characters \isa{_} 
+and~\isa{'}.
 \end{itemize}
 
-For the sake of readability the usual mathematical symbols are used throughout
+For the sake of readability, we use the usual mathematical symbols throughout
 the tutorial. Their \textsc{ascii}-equivalents are shown in table~\ref{tab:ascii} in
 the appendix.
+
+\begin{warn}
+A particular
+problem for novices can be the priority of operators. If you are unsure, use
+additional parentheses. In those cases where Isabelle echoes your
+input, you can see which parentheses are dropped --- they were superfluous. If
+you are unsure how to interpret Isabelle's output because you don't know
+where the (dropped) parentheses go, set the flag\index{flags}
+\isa{show_brackets}\index{*show_brackets (flag)}:
+\begin{ttbox}
+ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
+\end{ttbox}
+\end{warn}
 
 
 \section{Variables}
 \label{sec:variables}
-\indexbold{variable}
+\index{variables|(}
 
-Isabelle distinguishes free and bound variables just as is customary. Bound
+Isabelle distinguishes free and bound variables, as is customary. Bound
 variables are automatically renamed to avoid clashes with free variables. In
 addition, Isabelle has a third kind of variable, called a \textbf{schematic
   variable}\index{variables!schematic} or \textbf{unknown}\index{unknowns}, 
@@ -266,15 +287,18 @@ calls unknowns {\em logical\/} variables.
 
 Most of the time you can and should ignore unknowns and work with ordinary
 variables. Just don't be surprised that after you have finished the proof of
-a theorem, Isabelle will turn your free variables into unknowns: it merely
+a theorem, Isabelle will turn your free variables into unknowns.  It
 indicates that Isabelle will automatically instantiate those unknowns
 suitably when the theorem is used in some other proof.
 Note that for readability we often drop the \isa{?}s when displaying a theorem.
 \begin{warn}
-  If you use \isa{?}\index{$HOL0Ex@\texttt{?}} as an existential
-  quantifier, it needs to be followed by a space. Otherwise \isa{?x} is
-  interpreted as a schematic variable.
-\end{warn}
+  For historical reasons, Isabelle accepts \isa{?} as an ASCII representation
+  of the \(\exists\) symbol.  However, the \isa{?} character must then be followed
+  by a space, as in \isa{?~x. f(x) = 0}.  Otherwise, \isa{?x} is
+  interpreted as a schematic variable.  The preferred ASCII representation of
+  the \(\exists\) symbol is \isa{EX}\@. 
+\end{warn}%
+\index{variables|)}
 
 \section{Interaction and Interfaces}
 
@@ -287,7 +311,7 @@ interfaces perform the same act by cursor movements and/or mouse clicks.
 Although shell-based interaction is quite feasible for the kind of proof
 scripts currently presented in this tutorial, the recommended interface for
 Isabelle/Isar is the Emacs-based \bfindex{Proof
-  General}~\cite{Aspinall:TACAS:2000,proofgeneral}.
+  General}~\cite{proofgeneral,Aspinall:TACAS:2000}.
 
 Some interfaces (including the shell level) offer special fonts with
 mathematical symbols. For those that do not, remember that \textsc{ascii}-equivalents
@@ -308,7 +332,7 @@ Assuming you have installed Isabelle, you start it by typing \texttt{isabelle
   controlled by the \texttt{ISABELLE_LOGIC} setting, see \emph{The Isabelle
     System Manual} for more details.} This presents you with Isabelle's most
 basic \textsc{ascii} interface.  In addition you need to open an editor window to
-create theory files.  While you are developing a theory, we recommend to
+create theory files.  While you are developing a theory, we recommend that you
 type each command into the file first and then enter it into Isabelle by
 copy-and-paste, thus ensuring that you have a complete record of your theory.
 As mentioned above, Proof General offers a much superior interface.

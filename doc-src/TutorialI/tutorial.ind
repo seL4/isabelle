@@ -1,20 +1,16 @@
 \begin{theindex}
 
   \item \emph {$\forall \tmspace +\thinmuskip {.1667em}$}, \bold{189}
-  \item \isasymforall, \bold{3}
   \item \ttall, \bold{189}
   \item \emph {$\exists \tmspace +\thinmuskip {.1667em}$}, \bold{189}
-  \item \isasymexists, \bold{3}
   \item \texttt{?}, 5, \bold{189}
   \item \emph {$\varepsilon $}, \bold{189}
-  \item \isasymuniqex, \bold{3}, \bold{189}
+  \item \isasymuniqex, \bold{189}
   \item \ttuniquex, \bold{189}
   \item \emph {$\wedge $}, \bold{189}
   \item \isasymand, \bold{3}
   \item {\texttt {\&}}, \bold{189}
-  \item \texttt {=}, \bold{3}
-  \item \emph {$\DOTSB \mathrel {\smash -}\mathrel {\mkern -3mu}\rightarrow $}, 
-		\bold{189}
+  \item \emph {$\DOTSB \relbar \joinrel \rightarrow $}, \bold{189}
   \item \isasymimp, \bold{3}
   \item \texttt {-->}, \bold{189}
   \item \emph {$\neg $}, \bold{189}
@@ -60,14 +56,13 @@
   \item \emph {$\Rightarrow $}, \bold{3}, \bold{189}
   \item \texttt {=>}, \bold{189}
   \item \texttt {<=}, \bold{189}
-  \item \emph {$\DOTSB \mathrel =\mathrel {\mkern -3mu}\Rightarrow $}, 
-		\bold{189}
+  \item \emph {$\DOTSB \Relbar \joinrel \Rightarrow $}, \bold{189}
   \item \texttt {==>}, \bold{189}
   \item \emph {$\mathopen {[\mkern -3mu[}$}, \bold{10}, \bold{189}
   \item \ttlbr, \bold{189}
   \item \emph {$\mathclose {]\mkern -3mu]}$}, \bold{10}, \bold{189}
   \item \ttrbr, \bold{189}
-  \item \emph {$\lambda $}, \bold{3}, \bold{189}
+  \item \emph {$\lambda $}, \bold{189}
   \item \texttt {\%}, \bold{189}
   \item \texttt {,}, \bold{29}
   \item \texttt {;}, \bold{5}
@@ -138,7 +133,8 @@
   \item \isa {card_Pow} (theorem), \bold{93}
   \item \isa {card_Un_Int} (theorem), \bold{93}
   \item cardinality, 93
-  \item \isa {case} (symbol), \bold{3}, 4, 16, 30, 31
+  \item \isa {case} (symbol), 16, 30, 31
+  \item \isa {case} expressions, 3, 4
   \item case distinction, \bold{17}
   \item case splits, \bold{29}
   \item \isa {case_tac} (method), 17, 85
@@ -154,6 +150,7 @@
   \item composition
     \subitem of functions, \bold{94}
     \subitem of relations, \bold{96}
+  \item conditional expressions, \see{\isa{if} expressions}{1}
   \item congruence rules, \bold{157}
   \item \isa {conjE} (theorem), \bold{55}
   \item \isa {conjI} (theorem), \bold{52}
@@ -202,7 +199,7 @@
   \item \isa {elim!} (attribute), 115
   \item elimination rules, 53--54
   \item \isa {Eps} (constant), 93
-  \item equality
+  \item equality, 3
     \subitem of functions, \bold{93}
     \subitem of records, 143
     \subitem of sets, \bold{90}
@@ -234,11 +231,12 @@
   \item flags, 3, 4, 31
     \subitem setting and resetting, 3
   \item \isa {force} (method), 75, 76
-  \item formulae, \bold{3}
+  \item formulae, 3
   \item forward proof, 76--82
   \item \isa {frule} (method), 67
   \item \isa {frule_tac} (method), 60
   \item \isa {fst} (constant), 21
+  \item function types, 3
   \item functions, 93--95
     \subitem total, 9, 45--50
     \subitem underdefined, 165
@@ -248,6 +246,7 @@
   \item \isa {gcd} (constant), 76--78, 85--87
   \item generalizing for induction, 113
   \item Girard, Jean-Yves, \fnote{55}
+  \item Gordon, Mike, 1
   \item ground terms example, 119--124
 
   \indexspace
@@ -262,10 +261,12 @@
   \item \isa {Id_def} (theorem), \bold{96}
   \item \isa {id_def} (theorem), \bold{94}
   \item identifier, \bold{4}
+  \item identifiers
     \subitem qualified, \bold{2}
   \item identity function, \bold{94}
   \item identity relation, \bold{96}
-  \item \isa {if} (symbol), \bold{3}, 4
+  \item \isa {if} expressions, 3, 4
+  \item if-and-only-if, 3
   \item \isa {iff} (attribute), 73, 74, 86, 114
   \item \isa {iffD1} (theorem), \bold{78}
   \item \isa {iffD2} (theorem), \bold{78}
@@ -324,6 +325,7 @@
 
   \indexspace
 
+  \item $\lambda$ expressions, 3
   \item \isa {LEAST} (symbol), 21, 69
   \item least number operator, \see{\protect\isa{LEAST}}{69}
   \item \isacommand {lemma} (command), 11
@@ -332,7 +334,8 @@
   \item \isa {length_induct}, \bold{172}
   \item \isa {less_than} (constant), 98
   \item \isa {less_than_iff} (theorem), \bold{98}
-  \item \isa {let} (symbol), \bold{3}, 4, 29
+  \item \isa {let} (symbol), 29
+  \item \isa {let} expressions, 3, 4
   \item \isa {lex_prod_def} (theorem), \bold{99}
   \item lexicographic product, \bold{99}, 160
   \item {\texttt{lfp}}
@@ -400,7 +403,7 @@
   \indexspace
 
   \item pairs and tuples, 21, 137--140
-  \item parent theory, \bold{2}
+  \item parent theories, \bold{2}
   \item partial function, 164
   \item pattern, higher-order, \bold{159}
   \item PDL, 102--105
@@ -419,7 +422,7 @@
 
   \indexspace
 
-  \item quantifiers
+  \item quantifiers, 3
     \subitem and inductive definitions, 119--121
     \subitem existential, 66
     \subitem for sets, 92
@@ -543,11 +546,12 @@
   \item tuples, \see{pairs and tuples}{1}
   \item \isacommand {typ} (command), 14
   \item type constraints, \bold{4}
+  \item type constructors, 2
   \item type inference, \bold{3}
-  \item type variables, \bold{3}
+  \item type variables, 3
   \item \isacommand {typedecl} (command), 150
   \item \isacommand {typedef} (command), 151--155
-  \item types, 2
+  \item types, 2--3
     \subitem declaring, 150--151
     \subitem defining, 151--155
   \item \isacommand {types} (command), 22
@@ -577,11 +581,12 @@
   \item variable, \bold{4}
   \item variables
     \subitem schematic, 4
-    \subitem type, \bold{3}
+    \subitem type, 3
   \item \isa {vimage_def} (theorem), \bold{95}
 
   \indexspace
 
+  \item Wenzel, Markus, v
   \item \isa {wf_induct} (theorem), \bold{99}
   \item \isa {while} (constant), 167
   \item \isa {While_Combinator} (theory), 167
