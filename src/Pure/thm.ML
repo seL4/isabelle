@@ -1809,10 +1809,6 @@ fun del_simps(mss,thms) =
 
 (* add_congs *)
 
-(*FIXME -> term.ML *)
-fun is_Bound (Bound _) = true
-fun is_Bound _         = false;
-
 fun is_full_cong_prems [] varpairs = null varpairs
   | is_full_cong_prems (p::prems) varpairs =
     (case Logic.strip_assums_concl p of
@@ -1821,7 +1817,7 @@ fun is_full_cong_prems [] varpairs = null varpairs
          in is_Var x  andalso  forall is_Bound xs  andalso
             null(findrep(xs))  andalso xs=ys andalso
             (x,y) mem varpairs andalso
-            is_full_cong_prems (p::prems) (varpairs\(x,y))
+            is_full_cong_prems prems (varpairs\(x,y))
          end
      | _ => false);
 

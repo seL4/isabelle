@@ -37,6 +37,7 @@ sig
     $ of term * term
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
+  val is_Bound: term -> bool
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
@@ -240,6 +241,9 @@ fun dest_Type (Type x) = x
 
 
 (** Discriminators **)
+
+fun is_Bound (Bound _) = true
+  | is_Bound _         = false;
 
 fun is_Const (Const _) = true
   | is_Const _ = false;
