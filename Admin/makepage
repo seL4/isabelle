@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# $Id$
+#
+# makemainpage -- make main Isabelle web pages
+
+TARGET=/usr/proj/isabelle-repository/web
+FILES="index.html docs.html about.html cambridge.gif munich.gif"
+PREFIX=main
+
+PRG=$(basename $0)
+THIS=$(cd $(dirname "$0"); echo $PWD)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG VERSION DIST"
+  echo
+  cat <<EOF
+  Make Isabelle main web pages with links to documentation for VERSION
+
+  VERSION should be the Isabelle version contained in DIST
+  DIST should be an Isabelle distribution archive or directory
+
+EOF
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ $# -ne 2 ] && usage
+
+export DISTNAME=$1
+shift
+DIST=$1
+
+cd $THIS/page
+
+if [ -d $DIST ]; then
+    cp $DIST/doc/Contents .
+else
+  if [ -f $DIST ]; then
+      gzip -dc $DIST | tar -Bxf - $DISTNAME/doc/Contents 
+      mv $DISTNAME/doc/Contents .
+      rmdir -p $DISTNAME/doc
+  else 
+      echo error: $DIST not found
+      fail
+  fi
+fi
+
+make main
+
+mkdir -p $TARGET
+chgrp isabelle $TARGET
+chmod 775 $TARGET
+
+for FILE in $FILES; do
+    cp $PREFIX/$FILE $TARGET
+done
+
+cd $TARGET
+echo You should find the Isabelle pages in `pwd`
