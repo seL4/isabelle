@@ -16,6 +16,7 @@ sig
   val add: thm -> thm * (string list * int)
   val save: thm -> thm -> thm
   type T
+  val empty: T
   val make: bool -> thm -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
@@ -75,6 +76,8 @@ fun save thm = save_case_names thm o save_consumes thm;
 (* prepare cases *)
 
 type T = {fixes: (string * typ) list, assumes: term list, binds: (indexname * term option) list};
+
+val empty = {fixes = [], assumes = [], binds = []};
 
 fun prep_case open_parms thm name i =
   let
