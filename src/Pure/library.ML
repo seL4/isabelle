@@ -1,4 +1,4 @@
-(*  Title: 	library
+(*  Title:      library
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -583,3 +583,25 @@ fun scanwords is_let cs =
 	    let val (lets, rest) = take_prefix is_let cs
 	    in  implode lets :: scanwords is_let rest  end;
   in  scan1 (#2 (take_prefix (not o is_let) cs))  end;
+
+
+(*** Operations on filenames ***)
+
+(*Convert Unix filename of the form path/file to "path/" and "file" ;
+  if filename contains no slash, then it returns "" and "file" *)
+fun split_filename name =
+  let val (file,path) = take_prefix (apr(op<>,"/")) (rev (explode name))
+  in  (implode(rev path), implode(rev file)) end;
+
+(*Merge splitted filename (path and file);
+  if path does not end with one a slash is appended *)
+fun tack_on "" name = name
+  | tack_on path name =
+      if (hd (rev (explode path))) = "/" then path ^ name
+                                         else path ^ "/" ^ name;
+
+(*Remove the extension of a filename, i.e. the part after the last '.' *)
+fun remove_ext name =
+  let val (file,_) = take_prefix (apr(op<>,".")) (rev (explode name))
+  in implode (rev file) end;
+
