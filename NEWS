@@ -151,6 +151,10 @@ situations;
 text; the fixed correlation with particular command syntax has been
 discontinued;
 
+* Pure: new method 'rules' is particularly well-suited for proof
+search in intuitionistic logic; a bit slower than 'blast' or 'fast',
+but often produces more compact proof terms with less detours;
+
 * Pure/Provers/classical: simplified integration with pure rule
 attributes and methods; the classical "intro?/elim?/dest?"
 declarations coincide with the pure ones; the "rule" method no longer
@@ -232,6 +236,11 @@ in typings (of consts etc.); internally the class is called
     parts, and schematic more parts -- in that order);
   - internal definitions directly based on a light-weight abstract
     theory of product types over typedef rather than datatype;
+
+* HOL: generic code generator for generating executable ML code from
+specifications; specific support for HOL constructs such as inductive
+datatypes and sets, as well as recursive functions; can be invoked
+via 'generate_code' theory section;
 
 * HOL: canonical cases/induct rules for n-tuples (n = 3..7);
 
