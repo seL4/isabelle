@@ -16,21 +16,33 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -d           delete file after use"
+  echo "    -o FILE      output to FILE (ps, eps, pdf)"
   echo
   exit 1
 }
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
 
 ## process command line
 
 # options
 
 DELETE=""
+OUTFILE=""
 
-while getopts "d" OPT
+while getopts "do:" OPT
 do
   case "$OPT" in
     d)
       DELETE=true
+      ;;
+    o)
+      OUTFILE="$OPTARG"
       ;;
     \?)
       usage
@@ -55,7 +67,23 @@ if [ -z "$GRAPHFILE" ]; then
   cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
 else
-  java GraphBrowser.GraphBrowser "$GRAPHFILE"
+  case "$OUTFILE" in
+    *.pdf)
+      TMPOUTFILE="${OUTFILE%.pdf}.eps"
+      PDF=true
+      ;;
+    *)
+      TMPOUTFILE="$OUTFILE"
+      PDF=""
+      ;;
+  esac
+
+  java GraphBrowser.GraphBrowser "$GRAPHFILE" "$TMPOUTFILE"
+
+  if [ -n "$PDF" ]; then
+    "$ISABELLE_EPSTOPDF" "$TMPOUTFILE" || fail "Failed to produce pdf output"
+    rm -f "$TMPOUTFILE"
+  fi
+
   [ -n "$DELETE" ] && rm -f "$GRAPHFILE"
 fi
-
