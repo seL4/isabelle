@@ -31,4 +31,14 @@ datatype
   monos       "[subset_refl RS FiniteFun_mono]"
   type_intrs   FiniteFun_in_univ'
 
+
+constdefs
+  ntree_rec  :: [[i,i,i]=>i, i] => i
+   "ntree_rec(b) == 
+    Vrecursor(%pr. ntree_case(%x h. b(x, h, lam i: domain(h). pr`(h`i))))"
+
+constdefs
+    ntree_copy     :: i=>i
+    "ntree_copy(z) == ntree_rec(%x h r. Branch(x,r), z)"
+
 end

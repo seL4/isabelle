@@ -63,6 +63,31 @@ qed "ntree_univ";
 val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 
 
+(** ntree recursion **)
+
+Goal "ntree_rec(b, Branch(x,h)) \
+\     = b(x, h, lam i: domain(h). ntree_rec(b, h`i))";
+by (rtac (ntree_rec_def RS def_Vrecursor RS trans) 1);
+by (Simp_tac 1);
+by (rewrite_goals_tac ntree.con_defs);
+by (asm_simp_tac (simpset() addsimps [rank_pair2 RSN (2, lt_trans), 
+				      rank_apply]) 1);;
+qed "ntree_rec_Branch";
+
+Goalw [ntree_copy_def]
+ "ntree_copy (Branch(x, h)) = Branch(x, lam i : domain(h). ntree_copy (h`i))";
+by (rtac ntree_rec_Branch 1);
+qed "ntree_copy_Branch";
+
+Addsimps [ntree_copy_Branch];
+
+Goal "z : ntree(A) ==> ntree_copy(z) = z";
+by (induct_tac "z" 1);
+by (auto_tac (claset(), simpset() addsimps [domain_of_fun, Pi_Collect_iff]));
+qed "ntree_copy_is_ident";
+
+
+
 (** maptree **)
 
 Goal "maptree(A) = A * (maptree(A) -||> maptree(A))";
