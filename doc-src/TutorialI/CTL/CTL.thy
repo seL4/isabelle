@@ -281,7 +281,7 @@ is extensionally equal to @{term"path s Q"},
 where @{term nat_rec} is the predefined primitive recursor on @{typ nat}.
 *};
 (*<*)
-lemma infinity_lemma:
+lemma
 "\<lbrakk> Q s; \<forall> s. Q s \<longrightarrow> (\<exists> t. (s,t)\<in>M \<and> Q t) \<rbrakk> \<Longrightarrow>
  \<exists> p\<in>Paths s. \<forall> i. Q(p i)";
 apply(subgoal_tac
