@@ -230,7 +230,7 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
     free_tv_app_subst_te RS subsetD,free_tv_app_subst_scheme_list RS subsetD,
     less_le_trans,subsetD]
   addEs [UnE]
-  addss simpset()) 1);
+  addss (simpset() setSolver unsafe_solver)) 1);
 (* LET e1 e2 *)
 by (simp_tac (simpset() addsplits [split_option_bind] delsimps all_simps) 1);
 by (strip_tac 1); 

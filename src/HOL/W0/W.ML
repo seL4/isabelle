@@ -209,7 +209,8 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
                             free_tv_app_subst_tel RS subsetD,
                             less_le_trans,subsetD]
                      addSEs [UnE]
-                     addss simpset()) 1); 
+                     addss (simpset() setSolver unsafe_solver)) 1);
+(* builtin arithmetic in simpset messes things up *)
 qed_spec_mp "free_tv_W"; 
 
 (* Completeness of W w.r.t. has_type *)

@@ -190,11 +190,9 @@ Addsimps [lessI RS less_imp_le RS new_tv_list_le];
 Goal
   "[| n<=m; new_tv n (s::subst) |] ==> new_tv m s";
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
-by (rtac conjI 1);
-by (slow_tac (HOL_cs addIs [le_trans]) 1);
-by (safe_tac HOL_cs );
+by (Clarify_tac 1);
 by (res_inst_tac [("P","l < n"),("Q","n <= l")] disjE 1);
-by (fast_tac (HOL_cs addss (HOL_ss addsimps [le_def])) 1);
+by (Clarify_tac 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [new_tv_le])) );
 qed "new_tv_subst_le";
 Addsimps [lessI RS less_imp_le RS new_tv_subst_le];

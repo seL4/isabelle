@@ -64,12 +64,11 @@ Goal "|- VARS a b. \
 \ DO b := b*a; a := a-1 OD \
 \ {b = fac A}";
 by (hoare_tac Asm_full_simp_tac 1);
-by Safe_tac;
+by (Clarify_tac 1);
 by (exhaust_tac "a" 1);
 by (ALLGOALS
     (asm_simp_tac
      (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
-by (Fast_tac 1);
 qed"factorial";
 
 (*** LISTS ***)
