@@ -304,6 +304,17 @@ fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
+val cong_add_global = Simplifier.change_global_ss (op addcongs);
+val cong_del_global = Simplifier.change_global_ss (op delcongs);
+val cong_add_local = Simplifier.change_local_ss (op addcongs);
+val cong_del_local = Simplifier.change_local_ss (op delcongs);
+
+val cong_attrib_setup =
+ [Attrib.add_attributes [("cong",
+   (Attrib.add_del_args cong_add_global cong_del_global,
+    Attrib.add_del_args cong_add_local cong_del_local),
+    "declare Simplifier congruence rules")]];
+
 
 val meta_simps =
    [triv_forall_equality,  (* prunes params *)
