@@ -30,17 +30,17 @@ consts
   acc :: "[('a,'s)da, 's, 'a list list*'a list, 'a list, 'a list, 'a list]
           => 'a list list * 'a list"
 primrec acc List.list
-  "acc A s r []     ys zs = (if ys=[] then r else (ys#fst(r),snd(r)))" 
-  "acc A s r (x#xs) ys zs =
+  "acc A s r ps []     zs = (if ps=[] then r else (ps#fst(r),snd(r)))" 
+  "acc A s r ps (x#xs) zs =
             (let t = next A x s
              in if fin A t
-                then acc A t (acc A (start A) ([],xs) xs [] [])
-                         xs (zs@[x]) (zs@[x])
-                else acc A t r xs ys (zs@[x]))"
+                then acc A t (acc A (start A) ([],xs) [] xs [])
+                         (zs@[x]) xs (zs@[x])
+                else acc A t r ps xs (zs@[x]))"
 
 constdefs
  auto_chopper :: ('a,'s)da => 'a chopper
-"auto_chopper A xs == acc A (start A) ([],xs) xs [] []"
+"auto_chopper A xs == acc A (start A) ([],xs) [] xs []"
 
 (* acc_prefix is an auxiliary notion for the proof *)
 constdefs
