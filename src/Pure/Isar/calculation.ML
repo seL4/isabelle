@@ -125,7 +125,7 @@ fun calculate final opt_rules print state =
   let
     val facts = Proof.the_facts state;
 
-    val eq_prop = op aconv o pairself (#prop o Thm.rep_thm);
+    val eq_prop = op aconv o pairself (Pattern.eta_contract o #prop o Thm.rep_thm);
     fun differ thms thms' = not (Library.equal_lists eq_prop (thms, thms'));
 
     fun combine thms =
