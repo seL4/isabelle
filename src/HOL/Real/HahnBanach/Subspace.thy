@@ -329,13 +329,13 @@ proof
   proof (rule add_minus_eq)
     show "u1 \<in> E" ..
     show "u2 \<in> E" ..
-    from u u' and direct show "u1 - u2 = 0" by blast
+    from u u' and direct show "u1 - u2 = 0" by force
   qed
   show "v1 = v2"
   proof (rule add_minus_eq [symmetric])
     show "v1 \<in> E" ..
     show "v2 \<in> E" ..
-    from v v' and direct show "v2 - v1 = 0" by blast
+    from v v' and direct show "v2 - v1 = 0" by force
   qed
 qed
 

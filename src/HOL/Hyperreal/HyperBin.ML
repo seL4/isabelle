@@ -148,21 +148,6 @@ Addsimps [hypreal_add_number_of_left, hypreal_mult_number_of_left,
 
 (**** Simprocs for numeric literals ****)
 
-(** Combining of literal coefficients in sums of products **)
-
-Goal "(x < y) = (x-y < (0::hypreal))";
-by (simp_tac (simpset() addsimps [hypreal_diff_less_eq]) 1);
-qed "hypreal_less_iff_diff_less_0";
-
-Goal "(x = y) = (x-y = (0::hypreal))";
-by (simp_tac (simpset() addsimps [hypreal_diff_eq_eq]) 1);
-qed "hypreal_eq_iff_diff_eq_0";
-
-Goal "(x <= y) = (x-y <= (0::hypreal))";
-by (simp_tac (simpset() addsimps [hypreal_diff_le_eq]) 1);
-qed "hypreal_le_iff_diff_le_0";
-
-
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::hypreal)";
@@ -173,12 +158,12 @@ qed "left_hypreal_add_mult_distrib";
 (** For cancel_numerals **)
 
 val rel_iff_rel_0_rls =
-    map (inst "y" "?u+?v")
-      [hypreal_less_iff_diff_less_0, hypreal_eq_iff_diff_eq_0,
-       hypreal_le_iff_diff_le_0] @
-    map (inst "y" "n")
-      [hypreal_less_iff_diff_less_0, hypreal_eq_iff_diff_eq_0,
-       hypreal_le_iff_diff_le_0];
+    map (inst "b" "?u+?v")
+      [less_iff_diff_less_0, eq_iff_diff_eq_0,
+       le_iff_diff_le_0] @
+    map (inst "b" "n")
+      [less_iff_diff_less_0, eq_iff_diff_eq_0,
+       le_iff_diff_le_0];
 
 Goal "!!i::hypreal. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (asm_simp_tac
@@ -582,9 +567,9 @@ structure Hyperreal_Times_Assoc = Assoc_Fold (Hyperreal_Times_Assoc_Data);
 Addsimprocs [Hyperreal_Times_Assoc.conv];
 
 (*Simplification of  x-y < 0, etc.*)
-AddIffs [hypreal_less_iff_diff_less_0 RS sym];
-AddIffs [hypreal_eq_iff_diff_eq_0 RS sym];
-AddIffs [hypreal_le_iff_diff_le_0 RS sym];
+AddIffs [less_iff_diff_less_0 RS sym];
+AddIffs [eq_iff_diff_eq_0 RS sym];
+AddIffs [le_iff_diff_le_0 RS sym];
 
 
 (** number_of related to hypreal_of_real **)

@@ -183,7 +183,7 @@ by (rtac (ARITH_PROVE "0 < m - Suc n ==> (m - n) = Suc(m - Suc n)"
 by (dres_inst_tac [("x","psize D - Suc n")] spec 2);
 by (thin_tac "ALL n. psize D <= n --> D n = b" 2);
 by (Asm_full_simp_tac 2);
-by (Blast_tac 1);
+by (arith_tac 1);
 qed "partition_ub";
 
 Goal "[| partition(a,b) D; n < psize D |] ==> D(n) < b"; 

@@ -1130,9 +1130,9 @@ by (ftac real_inverse_gt_0 1);
 by (ftac order_less_trans 1 THEN assume_tac 1);
 by (forw_inst_tac [("x","f n")] real_inverse_gt_0 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
-by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
+by (res_inst_tac [("t","r")] (inverse_inverse_eq RS subst) 1);
 by (auto_tac (claset() addIs [inverse_less_iff_less RS iffD2], 
-            simpset() delsimps [thm"Ring_and_Field.inverse_inverse_eq"]));
+            simpset() delsimps [inverse_inverse_eq]));
 qed "LIMSEQ_inverse_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \

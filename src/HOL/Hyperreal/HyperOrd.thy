@@ -7,95 +7,6 @@
 
 theory HyperOrd = HyperDef:
 
-instance hypreal :: division_by_zero
-proof
-  fix x :: hypreal
-  show "inverse 0 = (0::hypreal)" by (rule HYPREAL_INVERSE_ZERO)
-  show "x/0 = 0" by (rule HYPREAL_DIVISION_BY_ZERO) 
-qed
-
-
-defs (overloaded)
-  hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
-
-
-lemma hypreal_hrabs:
-     "abs (Abs_hypreal (hyprel `` {X})) = 
-      Abs_hypreal(hyprel `` {%n. abs (X n)})"
-apply (auto simp add: hrabs_def hypreal_zero_def hypreal_le hypreal_minus)
-apply (ultra, arith)+
-done
-
-instance hypreal :: order
-  by (intro_classes,
-      (assumption | 
-       rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym
-            hypreal_less_le)+)
-
-instance hypreal :: linorder 
-  by (intro_classes, rule hypreal_le_linear)
-
-instance hypreal :: plus_ac0
-  by (intro_classes,
-      (assumption | 
-       rule hypreal_add_commute hypreal_add_assoc hypreal_add_zero_left)+)
-
-lemma hypreal_add_less_mono1: "(A::hypreal) < B ==> A + C < B + C"
-apply (rule_tac z = A in eq_Abs_hypreal)
-apply (rule_tac z = B in eq_Abs_hypreal)
-apply (rule_tac z = C in eq_Abs_hypreal)
-apply (auto intro!: exI simp add: hypreal_less_def hypreal_add, ultra)
-done
-
-lemma hypreal_mult_order: "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto intro!: exI simp add: hypreal_less_def hypreal_mult, ultra)
-apply (auto intro: real_mult_order)
-done
-
-lemma hypreal_add_left_le_mono1: "(q1::hypreal) \<le> q2  ==> x + q1 \<le> x + q2"
-apply (drule order_le_imp_less_or_eq)
-apply (auto intro: order_less_imp_le hypreal_add_less_mono1 simp add: hypreal_add_commute)
-done
-
-lemma hypreal_mult_less_mono1: "[| (0::hypreal) < z; x < y |] ==> x*z < y*z"
-apply (rotate_tac 1)
-apply (drule hypreal_less_minus_iff [THEN iffD1])
-apply (rule hypreal_less_minus_iff [THEN iffD2])
-apply (drule hypreal_mult_order, assumption)
-apply (simp add: hypreal_add_mult_distrib2 hypreal_mult_commute)
-done
-
-lemma hypreal_mult_less_mono2: "[| (0::hypreal)<z; x<y |] ==> z*x<z*y"
-apply (simp (no_asm_simp) add: hypreal_mult_commute hypreal_mult_less_mono1)
-done
-
-subsection{*The Hyperreals Form an Ordered Field*}
-
-instance hypreal :: inverse ..
-
-instance hypreal :: ordered_field
-proof
-  fix x y z :: hypreal
-  show "(x + y) + z = x + (y + z)" by (rule hypreal_add_assoc)
-  show "x + y = y + x" by (rule hypreal_add_commute)
-  show "0 + x = x" by simp
-  show "- x + x = 0" by simp
-  show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
-  show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
-  show "x * y = y * x" by (rule hypreal_mult_commute)
-  show "1 * x = x" by simp
-  show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
-  show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
-  show "x \<le> y ==> z + x \<le> z + y" by (rule hypreal_add_left_le_mono1)
-  show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: hypreal_mult_less_mono2)
-  show "\<bar>x\<bar> = (if x < 0 then -x else x)"
-    by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
-  show "x \<noteq> 0 ==> inverse x * x = 1" by simp
-  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
-qed
 
 (*** Monotonicity results ***)
 
@@ -277,9 +188,6 @@ val hypreal_less_irrefl = thm"hypreal_less_irrefl";
 
 ML
 {*
-val hrabs_def = thm "hrabs_def";
-val hypreal_hrabs = thm "hypreal_hrabs";
-
 val hypreal_add_less_mono1 = thm"hypreal_add_less_mono1";
 val hypreal_add_less_mono2 = thm"hypreal_add_less_mono2";
 val hypreal_mult_order = thm"hypreal_mult_order";

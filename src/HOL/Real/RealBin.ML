@@ -192,17 +192,6 @@ Addsimps [real_of_nat_number_of];
 
 (**** Simprocs for numeric literals ****)
 
-(** Combining of literal coefficients in sums of products **)
-
-Goal "(x = y) = (x-y = (0::real))";
-by (simp_tac (simpset() addsimps compare_rls) 1);
-qed "real_eq_iff_diff_eq_0";
-
-Goal "(x <= y) = (x-y <= (0::real))";
-by (simp_tac (simpset() addsimps compare_rls) 1);
-qed "real_le_iff_diff_le_0";
-
-
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::real)";
@@ -212,12 +201,10 @@ qed "left_real_add_mult_distrib";
 
 (** For cancel_numerals **)
 
-val rel_iff_rel_0_rls = map (inst "y" "?u+?v")
-                          [real_less_eq_diff, real_eq_iff_diff_eq_0,
-                           real_le_iff_diff_le_0] @
-                        map (inst "y" "n")
-                          [real_less_eq_diff, real_eq_iff_diff_eq_0,
-                           real_le_iff_diff_le_0];
+val rel_iff_rel_0_rls = map (inst "b" "?u+?v")
+                   [less_iff_diff_less_0, eq_iff_diff_eq_0, le_iff_diff_le_0] @
+                 map (inst "b" "n")
+                   [less_iff_diff_less_0, eq_iff_diff_eq_0, le_iff_diff_le_0];
 
 Goal "!!i::real. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]@
@@ -603,9 +590,9 @@ structure Real_Times_Assoc = Assoc_Fold (Real_Times_Assoc_Data);
 Addsimprocs [Real_Times_Assoc.conv];
 
 (*Simplification of  x-y < 0, etc.*)
-AddIffs [real_less_eq_diff RS sym];
-AddIffs [real_eq_iff_diff_eq_0 RS sym];
-AddIffs [real_le_iff_diff_le_0 RS sym];
+AddIffs [less_iff_diff_less_0 RS sym];
+AddIffs [eq_iff_diff_eq_0 RS sym];
+AddIffs [le_iff_diff_le_0 RS sym];
 
 (** <= monotonicity results: needed for arithmetic **)
 

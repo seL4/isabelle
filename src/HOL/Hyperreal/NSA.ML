@@ -350,7 +350,7 @@ by (eres_inst_tac [("x","inverse r")] ballE 1);
 by (forw_inst_tac [("x1","r"),("z","abs x")]
     (hypreal_inverse_gt_0 RS order_less_trans) 1);
 by (assume_tac 1);
-by (dtac ((hypreal_inverse_inverse RS sym) RS subst) 1);
+by (dtac ((inverse_inverse_eq RS sym) RS subst) 1);
 by (rtac (hypreal_inverse_less_iff RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [SReal_inverse]));
 qed "HInfinite_inverse_Infinitesimal";
@@ -2244,7 +2244,7 @@ qed "real_of_nat_inverse_le_iff";
 
 Goal "(u = inverse (real(Suc n))) = (real(Suc n) = inverse u)";
 by (auto_tac (claset(),
-      simpset() addsimps [real_inverse_inverse, real_of_nat_Suc_gt_zero,
+      simpset() addsimps [inverse_inverse_eq, real_of_nat_Suc_gt_zero,
                           real_not_refl2 RS not_sym]));
 qed "real_of_nat_inverse_eq_iff";
 

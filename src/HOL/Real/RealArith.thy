@@ -31,9 +31,7 @@ lemma real_0_le_add_iff [iff]: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
 
-(** Simprules combining x-y and 0; see also real_less_iff_diff_less_0, etc.,
-    in RealBin
-**)
+(** Simprules combining x-y and 0 (needed??) **)
 
 lemma real_0_less_diff_iff [iff]: "((0::real) < x-y) = (y < x)"
 by auto

@@ -93,17 +93,17 @@ defs (overloaded)
   real_of_nat_def:   "real n == real_of_posnat n + (- 1)"
 
   real_add_def:
-  "P+Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).
+  "P+Q == Abs_REAL(\<Union>p1\<in>Rep_REAL(P). \<Union>p2\<in>Rep_REAL(Q).
                    (%(x1,y1). (%(x2,y2). realrel``{(x1+x2, y1+y2)}) p2) p1)"
 
   real_mult_def:
-  "P*Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).
+  "P*Q == Abs_REAL(\<Union>p1\<in>Rep_REAL(P). \<Union>p2\<in>Rep_REAL(Q).
                    (%(x1,y1). (%(x2,y2). realrel``{(x1*x2+y1*y2,x1*y2+x2*y1)})
 		   p2) p1)"
 
   real_less_def:
   "P<Q == \<exists>x1 y1 x2 y2. x1 + y2 < x2 + y1 &
-                            (x1,y1):Rep_REAL(P) & (x2,y2):Rep_REAL(Q)"
+                            (x1,y1)\<in>Rep_REAL(P) & (x2,y2)\<in>Rep_REAL(Q)"
   real_le_def:
   "P \<le> (Q::real) == ~(Q < P)"
 
@@ -112,7 +112,7 @@ syntax (xsymbols)
   Nats      :: "'a set"                   ("\<nat>")
 
 
-(*** Proving that realrel is an equivalence relation ***)
+subsection{*Proving that realrel is an equivalence relation*}
 
 lemma preal_trans_lemma:
      "[| (x1::preal) + y2 = x2 + y1; x2 + y3 = x3 + y2 |]
@@ -225,7 +225,7 @@ done
 
 declare real_minus_zero_iff [simp]
 
-(*** Congruence property for addition ***)
+subsection{*Congruence property for addition*}
 
 lemma real_add_congruent2_lemma:
      "[|a + ba = aa + b; ab + bc = ac + bb|]
@@ -298,9 +298,10 @@ by (simp add: real_add_commute)
 declare real_add_minus_left [simp]
 
 
-(*** Congruence property for multiplication ***)
+subsection{*Congruence property for multiplication*}
 
-lemma real_mult_congruent2_lemma: "!!(x1::preal). [| x1 + y2 = x2 + y1 |] ==>
+lemma real_mult_congruent2_lemma:
+     "!!(x1::preal). [| x1 + y2 = x2 + y1 |] ==>
           x * x1 + y * y1 + (x * y2 + x2 * y) =
           x * x2 + y * y2 + (x * y1 + x1 * y)"
 apply (simp add: preal_add_left_commute preal_add_assoc [symmetric] preal_add_mult_distrib2 [symmetric])
@@ -407,7 +408,8 @@ by simp
 
 (** Lemmas **)
 
-lemma real_add_assoc_cong: "(z::real) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
+lemma real_add_assoc_cong:
+     "(z::real) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
 by (simp add: real_add_assoc [symmetric])
 
 lemma real_add_mult_distrib: "((z1::real) + z2) * w = (z1 * w) + (z2 * w)"
@@ -428,13 +430,13 @@ done
 lemma real_diff_mult_distrib2: "(w::real) * (z1 - z2) = (w * z1) - (w * z2)"
 by (simp add: real_mult_commute [of w] real_diff_mult_distrib)
 
-(*** one and zero are distinct ***)
+text{*one and zero are distinct*}
 lemma real_zero_not_eq_one: "0 ~= (1::real)"
 apply (unfold real_zero_def real_one_def)
 apply (auto simp add: preal_self_less_add_left [THEN preal_not_refl2])
 done
 
-(*** existence of inverse ***)
+subsection{*existence of inverse*}
 (** lemma -- alternative definition of 0 **)
 lemma real_zero_iff: "0 = Abs_REAL (realrel `` {(x, x)})"
 apply (unfold real_zero_def)
@@ -449,7 +451,9 @@ apply (cut_tac x = xa and y = y in linorder_less_linear)
 apply (auto dest!: preal_less_add_left_Ex simp add: real_zero_iff [symmetric])
 apply (rule_tac x = "Abs_REAL (realrel `` { (preal_of_prat (prat_of_pnat 1), pinv (D) + preal_of_prat (prat_of_pnat 1))}) " in exI)
 apply (rule_tac [2] x = "Abs_REAL (realrel `` { (pinv (D) + preal_of_prat (prat_of_pnat 1), preal_of_prat (prat_of_pnat 1))}) " in exI)
-apply (auto simp add: real_mult pnat_one_def preal_mult_1_right preal_add_mult_distrib2 preal_add_mult_distrib preal_mult_1 preal_mult_inv_right preal_add_ac preal_mult_ac)
+apply (auto simp add: real_mult pnat_one_def preal_mult_1_right
+              preal_add_mult_distrib2 preal_add_mult_distrib preal_mult_1
+              preal_mult_inv_right preal_add_ac preal_mult_ac)
 done
 
 lemma real_mult_inv_left_ex: "x ~= 0 ==> \<exists>y. y*x = (1::real)"
@@ -471,21 +475,21 @@ done
 declare real_mult_inv_right [simp]
 
 
-(*---------------------------------------------------------
-     Theorems for ordering
- --------------------------------------------------------*)
-(* prove introduction and elimination rules for real_less *)
+subsection{*Theorems for Ordering*}
 
-(* real_less is a strong order i.e. nonreflexive and transitive *)
+(* real_less is a strict order: irreflexive *)
 
-(*** lemmas ***)
-lemma preal_lemma_eq_rev_sum: "!!(x::preal). [| x = y; x1 = y1 |] ==> x + y1 = x1 + y"
+text{*lemmas*}
+lemma preal_lemma_eq_rev_sum:
+     "!!(x::preal). [| x = y; x1 = y1 |] ==> x + y1 = x1 + y"
 by (simp add: preal_add_commute)
 
-lemma preal_add_left_commute_cancel: "!!(b::preal). x + (b + y) = x1 + (b + y1) ==> x + y = x1 + y1"
+lemma preal_add_left_commute_cancel:
+     "!!(b::preal). x + (b + y) = x1 + (b + y1) ==> x + y = x1 + y1"
 by (simp add: preal_add_ac)
 
-lemma preal_lemma_for_not_refl: "!!(x::preal). [| x + y2a = x2a + y;
+lemma preal_lemma_for_not_refl:
+     "!!(x::preal). [| x + y2a = x2a + y;
                        x + y2b = x2b + y |]
                     ==> x2a + y2b = x2b + y2a"
 apply (drule preal_lemma_eq_rev_sum, assumption)
@@ -569,10 +573,11 @@ apply (auto simp add: preal_add_commute preal_add_assoc)
 apply (simp add: preal_add_assoc [symmetric] preal_self_less_add_left)
 done
 
-lemma real_of_preal_iff: "(\<exists>m. Abs_REAL (realrel `` {(x,y)}) = real_of_preal m) = (y < x)"
+lemma real_of_preal_iff:
+     "(\<exists>m. Abs_REAL (realrel `` {(x,y)}) = real_of_preal m) = (y < x)"
 by (blast intro!: real_of_preal_ExI real_of_preal_ExD)
 
-(*** Gleason prop 9-4.4 p 127 ***)
+text{*Gleason prop 9-4.4 p 127*}
 lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (unfold real_of_preal_def real_zero_def)
@@ -583,7 +588,8 @@ apply (auto dest!: preal_less_add_left_Ex simp add: preal_add_assoc [symmetric])
 apply (auto simp add: preal_add_commute)
 done
 
-lemma real_of_preal_trichotomyE: "!!P. [| !!m. x = real_of_preal m ==> P;
+lemma real_of_preal_trichotomyE:
+     "!!P. [| !!m. x = real_of_preal m ==> P;
               x = 0 ==> P;
               !!m. x = -(real_of_preal m) ==> P |] ==> P"
 apply (cut_tac x = x in real_of_preal_trichotomy, auto)
@@ -606,7 +612,8 @@ apply (rule conjI, rule_tac [2] conjI)
 apply (simp add: preal_self_less_add_left del: preal_add_less_iff2)
 done
 
-lemma real_of_preal_less_iff1: "(real_of_preal m1 < real_of_preal m2) = (m1 < m2)"
+lemma real_of_preal_less_iff1:
+     "(real_of_preal m1 < real_of_preal m2) = (m1 < m2)"
 by (blast intro: real_of_preal_lessI real_of_preal_lessD)
 
 declare real_of_preal_less_iff1 [simp]
@@ -677,7 +684,8 @@ apply (cut_tac real_of_preal_minus_less_all)
 apply (blast dest: real_less_trans elim: real_less_irrefl)
 done
 
-lemma real_of_preal_minus_less_rev1: "- real_of_preal m1 < - real_of_preal m2
+lemma real_of_preal_minus_less_rev1:
+     "- real_of_preal m1 < - real_of_preal m2
       ==> real_of_preal m2 < real_of_preal m1"
 apply (auto simp add: real_of_preal_def real_less_def real_minus)
 apply (rule exI)+
@@ -688,7 +696,8 @@ apply (simp add: preal_add_assoc [symmetric])
 apply (auto simp add: preal_add_ac)
 done
 
-lemma real_of_preal_minus_less_rev2: "real_of_preal m1 < real_of_preal m2
+lemma real_of_preal_minus_less_rev2:
+     "real_of_preal m1 < real_of_preal m2
       ==> - real_of_preal m2 < - real_of_preal m1"
 apply (auto simp add: real_of_preal_def real_less_def real_minus)
 apply (rule exI)+
@@ -699,7 +708,8 @@ apply (simp add: preal_add_assoc [symmetric])
 apply (auto simp add: preal_add_ac)
 done
 
-lemma real_of_preal_minus_less_rev_iff: "(- real_of_preal m1 < - real_of_preal m2) =
+lemma real_of_preal_minus_less_rev_iff:
+     "(- real_of_preal m1 < - real_of_preal m2) =
       (real_of_preal m2 < real_of_preal m1)"
 apply (blast intro!: real_of_preal_minus_less_rev1 real_of_preal_minus_less_rev2)
 done
@@ -721,7 +731,8 @@ lemma real_neq_iff: "!!w::real. (w ~= z) = (w<z | z<w)"
 by (cut_tac real_linear, blast)
 
 
-lemma real_linear_less2: "!!(R1::real). [| R1 < R2 ==> P;  R1 = R2 ==> P;
+lemma real_linear_less2:
+     "!!(R1::real). [| R1 < R2 ==> P;  R1 = R2 ==> P;
                        R2 < R1 ==> P |] ==> P"
 apply (cut_tac x = R1 and y = R2 in real_linear, auto)
 done
