@@ -1,7 +1,10 @@
 % pr(latex xsymbols symbols)
 \documentclass[11pt,a4paper]{report}
+\newif\ifremarks
+\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
 \usepackage{isabelle,isabellesym}
 \usepackage{latexsym,verbatim,graphicx,../iman,../extra,../ttbox,comment}
+\usepackage{proof,amsmath}
 \usepackage{../pdfsetup}    %last package!
 
 %\newtheorem{theorem}{Theorem}[section]
@@ -21,6 +24,15 @@
 \newcommand{\isasymuniqex}{\isamath{\exists!\,}}
 
 \renewenvironment{isamarkuptxt}{\begin{isamarkuptext}}{\end{isamarkuptext}}
+
+%% lcp's macros
+\newcommand{\remark}[1]{\ifremarks\marginpar{\raggedright\footnotesize#1}\fi}
+\newcommand{\rulename}[1]{\hfill$(\text{#1})$} %names of Isabelle rules
+\let\bigisa=\isa
+%% was previously
+%% \newcommand{\bigisa}[1]{\texttt{\textsl{#1}}} 
+%% because \isa is too small for variables, but does it really matter?
+
 
 %%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
 %%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
@@ -65,9 +77,8 @@ read and comment on a draft version.
 
 \input{basics}
 \input{fp}
-\chapter{The Rules of the Game}
-\label{ch:Rules}
-\input{sets}
+\input{Rules/rules}
+\input{Sets/sets}\input{CTL/ctl}  %these constitute ONE chapter
 \input{Inductive/inductive}
 \input{Advanced/advanced}
 \chapter{More about Types}
