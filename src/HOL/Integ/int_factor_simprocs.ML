@@ -29,6 +29,11 @@ by (stac zdiv_zmult_zmult1 1);
 by Auto_tac;  
 qed "int_mult_div_cancel1";
 
+(*For ExtractCommonTermFun, cancelling common factors*)
+Goal "(k*m) div (k*n) = (if k = (#0::int) then #0 else m div n)";
+by (simp_tac (simpset() addsimps [int_mult_div_cancel1]) 1); 
+qed "int_mult_div_cancel_disj";
+
 local
   open Int_Numeral_Simprocs
 in
@@ -135,5 +140,88 @@ test "#-2 * x < -(y::int)";
 test "#-2 * x <= #-1 * (y::int)";
 test "-x < #-23 * (y::int)";
 test "-x <= #-23 * (y::int)";
+*)
+
+
+(** Declarations for ExtractCommonTerm **)
+
+local
+  open Int_Numeral_Simprocs
+in
+
+
+(*this version ALWAYS includes a trailing one*)
+fun long_mk_prod []        = one
+  | long_mk_prod (t :: ts) = mk_times (t, mk_prod ts);
+
+(*Find first term that matches u*)
+fun find_first past u []         = raise TERM("find_first", []) 
+  | find_first past u (t::terms) =
+	if u aconv t then (rev past @ terms)
+        else find_first (t::past) u terms
+	handle TERM _ => find_first (t::past) u terms;
+
+(*Final simplification: cancel + and *  *)
+fun cancel_simplify_meta_eq cancel_th th = 
+    Int_Numeral_Simprocs.simplify_meta_eq 
+        [zmult_1, zmult_1_right] 
+        (([th, cancel_th]) MRS trans);
+
+structure CancelFactorCommon =
+  struct
+  val mk_sum    	= long_mk_prod
+  val dest_sum		= dest_prod
+  val mk_coeff		= mk_coeff
+  val dest_coeff	= dest_coeff
+  val find_first	= find_first []
+  val trans_tac         = trans_tac
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@zmult_ac))
+  end;
+
+structure EqCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = prove_conv "int_eq_cancel_factor"
+  val mk_bal   = HOLogic.mk_eq
+  val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
+  val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_eq_cancel1
+);
+
+structure DivideCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = prove_conv "int_divide_cancel_factor"
+  val mk_bal   = HOLogic.mk_binop "Divides.op div"
+  val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.intT
+  val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_div_cancel_disj
+);
+
+val int_cancel_factor = 
+  map prep_simproc
+   [("int_eq_cancel_factor",
+     prep_pats ["(l::int) * m = n", "(l::int) = m * n"], 
+     EqCancelFactor.proc),
+    ("int_divide_cancel_factor", 
+     prep_pats ["((l::int) * m) div n", "(l::int) div (m * n)"], 
+     DivideCancelFactor.proc)];
+
+end;
+
+Addsimprocs int_cancel_factor;
+
+
+(*examples:
+print_depth 22;
+set timing;
+set trace_simp;
+fun test s = (Goal s; by (Asm_simp_tac 1)); 
+
+test "x*k = k*(y::int)";
+test "k = k*(y::int)"; 
+test "a*(b*c) = (b::int)";
+test "a*(b*c) = d*(b::int)*(x*a)";
+
+test "(x*k) div (k*(y::int)) = (uu::int)";
+test "(k) div (k*(y::int)) = (uu::int)"; 
+test "(a*(b*c)) div ((b::int)) = (uu::int)";
+test "(a*(b*c)) div (d*(b::int)*(x*a)) = (uu::int)";
 *)
 
