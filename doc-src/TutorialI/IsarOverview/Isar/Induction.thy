@@ -39,6 +39,7 @@ In contrast to the previous proof we can prove the cases
 in arbitrary order.
 
 The same game can be played with other datatypes, for example lists:
+\tweakskip
 *}
 (*<*)declare length_tl[simp del](*>*)
 lemma "length(tl xs) = length xs - 1"
@@ -169,7 +170,11 @@ the Tutorial~\cite{LNCS2283}, which suggests to introduce @{text"\<forall>"} or
 proofs we can use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This simplifies the
 proof and means we do not have to convert between the two kinds of
 connectives.
-*}
+
+Note that in a nested induction over the same data type, the inner
+case labels hide the outer ones of the same name. If you want to refer
+to the outer ones inside, you need to name them on the outside:
+\isakeyword{note}~@{text"outer_IH = Suc"}.  *}
 
 subsection{*Rule induction*}
 
@@ -248,26 +253,12 @@ general.
 The example is an unusual definition of rotation: *}
 
 consts rot :: "'a list \<Rightarrow> 'a list"
-recdef rot "measure length"
+recdef rot "measure length"  --"for the internal termination proof"
 "rot [] = []"
 "rot [x] = [x]"
 "rot (x#y#zs) = y # rot(x#zs)"
 text{*\noindent This yields, among other things, the induction rule
 @{thm[source]rot.induct}: @{thm[display]rot.induct[no_vars]}
-
-In the first proof we set up each case explicitly, merely using
-pattern matching to abbreviate the statement: *}
-
-lemma "length(rot xs) = length xs" (is "?P xs")
-proof (induct xs rule: rot.induct)
-  show "?P []" by simp
-next
-  fix x show "?P [x]" by simp
-next
-  fix x y zs assume "?P (x#zs)"
-  thus "?P (x#y#zs)" by simp
-qed
-text{*
 In the following proof we rely on a default naming scheme for cases: they are
 called 1, 2, etc, unless they have been named explicitly. The latter happens
 only with datatypes and inductively defined sets, but not with recursive
@@ -286,9 +277,7 @@ next
   finally show ?case .
 qed
 
-text{*\noindent Why can case 2 get away with \isakeyword{show} instead
-of \isakeyword{thus}?
-
+text{*\noindent
 The third case is only shown in gory detail (see \cite{BauerW-TPHOLs01}
 for how to reason with chains of equations) to demonstrate that the
 `\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}' notation also
@@ -299,9 +288,15 @@ theorem. For induction theorems produced by \isakeyword{recdef} it is
 the order in which the variables appear on the left-hand side of the
 equation.
 
-Of course both proofs are so simple that they can be condensed to*}
+The proof is so simple that it can be condensed to
+\Tweakskip*}
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
 
-
+text{*\small
+\paragraph{Acknowledgment}
+I am deeply indebted to Markus Wenzel for conceiving Isar. Clemens Ballarin,
+Gertrud Bauer, Stefan Berghofer, Gerwin Klein, Norbert Schirmer,
+Markus Wenzel and three referees commented on and improved this document.
+*}
 (*<*)end(*>*)

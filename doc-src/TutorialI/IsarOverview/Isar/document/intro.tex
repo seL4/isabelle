@@ -2,17 +2,16 @@
 
 Isar is an extension of Isabelle with structured proofs in a stylized
 language of mathematics. These proofs are readable for both a human
-and a machine.  This document is a very compact introduction to
-structured proofs in Isar/HOL, an extension of
-Isabelle/HOL~\cite{LNCS2283}. We intentionally do not present the full
-language but concentrate on the essentials. Neither do we give a
-formal semantics of Isar. Instead we introduce Isar by example. Again
-this is intentional: we believe that the language ``speaks for
-itself'' in the same way that traditional mathematical proofs do, which
-are also introduced by example rather than by teaching students logic
-first. A detailed exposition of Isar can be found in Markus Wenzel's
-PhD thesis~\cite{Wenzel-PhD} and the Isar reference
-manual~\cite{Isar-Ref-Man}.
+and a machine.  This document is a compact introduction to structured
+proofs in Isar/HOL, an extension of Isabelle/HOL~\cite{LNCS2283}. We
+intentionally do not present the full language but concentrate on the
+essentials. Neither do we give a formal semantics of Isar. Instead we
+introduce Isar by example. We believe that the language ``speaks for
+itself'' in the same way that traditional mathematical proofs do,
+which are also introduced by example rather than by teaching students
+logic first. A detailed exposition of Isar can be found in Markus
+Wenzel's PhD thesis~\cite{Wenzel-PhD} (which also discusses related
+work) and the Isar reference manual~\cite{Isar-Ref-Man}.
 
 \subsection{Background}
 
@@ -33,12 +32,13 @@ favour of a mathematics-like proof language is communication: as soon as not
 just the theorem but also the proof becomes an object of interest, it should
 be readable.  From a system development point of view there is a second
 important argument against tactic-style proofs: they are much harder to
-maintain when the system is modified. The reason is as follows. Since it is
-usually quite unclear what exactly is proved at some point in the middle of a
-command sequence, updating a failed proof often requires executing the proof
-up to the point of failure using the old version of the system.  In contrast,
-mathematics-like proofs contain enough information to tell you what is proved
-at any point.
+maintain when the system is modified.
+%The reason is as follows. Since it is
+%usually quite unclear what exactly is proved at some point in the middle of a
+%command sequence, updating a failed proof often requires executing the proof
+%up to the point of failure using the old version of the system.  In contrast,
+%mathematics-like proofs contain enough information to tell you what is proved
+%at any point.
 
 For these reasons the Isabelle system, originally firmly in the
 LCF-tradition, was extended with a language for writing structured
@@ -51,19 +51,7 @@ Furthermore, we have Isabelle's powerful automatic proof procedures at
 our disposal.  A closer comparison of Isar and Mizar can be found
 elsewhere~\cite{WenzelW-JAR}.
 
-Finally, a word of warning for potential writers of Isar proofs.  It
-has always been easier to write obscure rather than readable texts.
-Similarly, tactic-style proofs are often (though by no means always!)
-easier to write than readable ones: structure does not emerge
-automatically but needs to be understood and imposed. If the precise
-structure of the proof is not clear from the beginning, it can be
-useful to start in a tactic-based style for exploratory purposes until
-one has found a proof which can then be converted into a structured
-text in a second step. Top down conversion is possible because Isar
-allows tactic-style proofs as components of structured ones.
-
 \subsection{A first glimpse of Isar}
-
 Below you find a simplified grammar for Isar proofs.
 Parentheses are used for grouping and $^?$ indicates an optional item:
 \begin{center}
@@ -137,13 +125,26 @@ Section~\ref{sec:Logic} introduces proofs in pure logic based on
 natural deduction. Section~\ref{sec:Induct} is dedicated to induction,
 the key reasoning principle for computer science applications.
 
-There are at least two further areas where Isar provides specific support,
-but which we do not document here. Reasoning by chains of (in)equations is
-described elsewhere~\cite{BauerW-TPHOLs01}.  Reasoning about axiomatically
-defined structures by means of so called ``locales'' was first described in
-\cite{KWP-TPHOLs99} but has evolved much since then.
+There are two further areas where Isar provides specific support, but
+which we do not document here. Reasoning by chains of (in)equations is
+described elsewhere~\cite{BauerW-TPHOLs01}.  Reasoning about
+axiomatically defined structures by means of so called ``locales'' was
+first described in \cite{KWP-TPHOLs99} but has evolved much since
+then.
 
-Do not be mislead by the simplicity of the formulae being proved,
-especially in the beginning. Isar has been used very successfully in
-large applications, for example the formalization of Java, in
-particular the verification of the bytecode verifier~\cite{KleinN-TCS}.
+Finally, a word of warning for potential writers of Isar proofs.  It
+has always been easier to write obscure rather than readable texts.
+Similarly, tactic-style proofs are often (though by no means always!)
+easier to write than readable ones: structure does not emerge
+automatically but needs to be understood and imposed. If the precise
+structure of the proof is unclear at beginning, it can be useful to
+start in a tactic-based style for exploratory purposes until one has
+found a proof which can be converted into a structured text in a
+second step.
+% Top down conversion is possible because Isar
+%allows tactic-style proofs as components of structured ones.
+
+%Do not be mislead by the simplicity of the formulae being proved,
+%especially in the beginning. Isar has been used very successfully in
+%large applications, for example the formalization of Java, in
+%particular the verification of the bytecode verifier~\cite{KleinN-TCS}.

@@ -51,7 +51,7 @@ proof
   show "A \<and> A" by(rule conjI)
 qed
 text{*\noindent Rule @{thm[source]conjI} is of course @{thm conjI}.
-A drawback of these implicit proofs by assumption is that it
+A drawback of implicit proofs by assumption is that it
 is no longer obvious where an assumption is used.
 
 Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"} can be
@@ -331,7 +331,7 @@ proof -
     assume B show ?thesis ..
   qed
 qed
-text{*\noindent Could \isakeyword{using} help to eliminate this ``@{text"-"}''? *}
+
 
 subsection{*Predicate calculus*}
 
@@ -461,8 +461,8 @@ navigates through the large search space:
 
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 by best
-text{*\noindent Of course this only works in the context of HOL's carefully
-constructed introduction and elimination rules for set theory.*}
+(* Of course this only works in the context of HOL's carefully
+constructed introduction and elimination rules for set theory.*)
 
 subsection{*Raw proof blocks*}
 
@@ -502,8 +502,8 @@ proof -
 qed
 
 text{*\noindent
-This can be simplified further by \emph{raw proof blocks},
-which are proofs enclosed in braces: *}
+This can be simplified further by \emph{raw proof blocks}, i.e.\
+proofs enclosed in braces: *}
 
 lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
 proof -
@@ -520,19 +520,9 @@ out of the \isakeyword{fixe}s, \isakeyword{assume}s and
 \isakeyword{have} in the block. Thus they again serve to avoid
 duplication. Note that the conclusion of a raw proof block is stated with
 \isakeyword{have} rather than \isakeyword{show} because it is not the
-conclusion of some pending goal but some independent claim.  If you
-would like to name the result of a raw proof block simply follow it
-with *}
+conclusion of some pending goal but some independent claim.
 
-(*<*)
-lemma "P"
-proof -
-  { assume A hence A . }
-(*>*)
-note some_name = this
-(*<*)oops(*>*)
-
-text{* The general idea demonstrated in this subsection is very
+The general idea demonstrated in this subsection is very
 important in Isar and distinguishes it from tactic-style proofs:
 \begin{quote}\em
 Do not manipulate the proof state into a particular form by applying
@@ -544,8 +534,7 @@ This yields more readable and also more robust proofs. *}
 subsection{*Further refinements*}
 
 text{* This subsection discusses some further tricks that can make
-life easier although they are not essential. We start with some small
-syntactic items.*}
+life easier although they are not essential. *}
 
 subsubsection{*\isakeyword{and}*}
 
@@ -553,13 +542,23 @@ text{* Propositions (following \isakeyword{assume} etc) may but need not be
 separated by \isakeyword{and}. This is not just for readability
 (\isakeyword{from} \isa{A} \isakeyword{and} \isa{B} looks nicer than
 \isakeyword{from} \isa{A} \isa{B}) but for structuring lists of propositions
-into possibly named blocks. For example in
+into possibly named blocks. In
 \begin{center}
 \isakeyword{assume} \isa{A:} $A_1$ $A_2$ \isakeyword{and} \isa{B:} $A_3$
 \isakeyword{and} $A_4$
 \end{center}
 label \isa{A} refers to the list of propositions $A_1$ $A_2$ and
 label \isa{B} to $A_3$. *}
+
+subsubsection{*\isakeyword{note}*}
+text{* If you want to remember intermediate fact(s) that cannot be
+named directly, use \isakeyword{note}. For example the result of raw
+proof block can be named by following it with
+\isakeyword{note}~@{text"note some_name = this"}.  As a side effect
+@{text this} is set to the list of facts on the right-hand side. You
+can also say @{text"note some_fact"}, which simply sets @{text this},
+i.e.\ recalls @{text"some_fact"}. *}
+
 
 subsubsection{*\isakeyword{fixes}*}
 
@@ -577,8 +576,7 @@ This is avoided by \isakeyword{fixes}: *}
 theorem fixes f :: "'a \<Rightarrow> 'a set" shows "\<exists>S. S \<notin> range f"
 (*<*)oops(*>*)
 text{* \noindent
-But the real strength of \isakeyword{fixes} lies in the possibility to
-introduce concrete syntax locally:*}
+Even better, \isakeyword{fixes} allows to introduce concrete syntax locally:*}
 
 lemma comm_mono:
   fixes r :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix ">" 60) and
@@ -589,7 +587,7 @@ lemma comm_mono:
 by(simp add: comm mono)
 
 text{*\noindent The concrete syntax is dropped at the end of the proof and the
-theorem becomes @{thm[display,margin=50]comm_mono} *}
+theorem becomes @{thm[display,margin=60]comm_mono} *}
 
 subsubsection{*\isakeyword{obtain}*}
 

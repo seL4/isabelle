@@ -6,6 +6,11 @@
 \urlstyle{rm}
 %\isabellestyle{it}
 
+\newcommand{\tweakskip}{\vspace{-\medskipamount}}
+\newcommand{\Tweakskip}{\tweakskip\tweakskip}
+
+\pagestyle{plain}
+
 \begin{document}
 
 \title{A Compact Introduction to Structured Proofs in Isar/HOL}
@@ -18,29 +23,19 @@
 \begin{abstract}
   Isar is an extension of the theorem prover Isabelle with a language
   for writing human-readable structured proofs. This paper is an
-  introduction to the basic constructs of this language. It is aimed
-  at potential users of Isar but also discusses the design rationals
-  behind the language and its constructs.
+  introduction to the basic constructs of this language.
+% It is aimed at potential users of Isar
+% but also discusses the design rationals
+% behind the language and its constructs.
 \end{abstract}
 
 \input{intro.tex}
 \input{Logic.tex}
+\Tweakskip\Tweakskip
 \input{Induction.tex}
 
-%\input{Isar.tex}
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: "root"
-%%% End:
-
-{\small
-\paragraph{Acknowledgment}
-I am deeply indebted to Markus Wenzel for conceiving Isar. Clemens Ballarin,
-Gertrud Bauer, Stefan Berghofer, Gerwin Klein, Norbert Schirmer and
-Markus Wenzel commented on and improved this document.
-}
-
+\Tweakskip
+\Tweakskip
 \begingroup
 \bibliographystyle{plain} \small\raggedright\frenchspacing
 \bibliography{root}
