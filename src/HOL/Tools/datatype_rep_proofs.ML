@@ -183,7 +183,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       setmp TypedefPackage.quiet_mode true
         (TypedefPackage.add_typedef_i_no_def name' (name, tvs, mx) c [] []
           (Some (QUIET_BREADTH_FIRST (has_fewer_prems 1)
-            (resolve_tac (Funs_nonempty::rep_intrs) 1)))) thy)
+            (resolve_tac (Funs_nonempty::rep_intrs) 1)))) thy |> #1)
               (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
                 (take (length newTs, consts)) ~~ new_type_names));
 
