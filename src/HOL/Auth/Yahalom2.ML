@@ -196,8 +196,9 @@ by (ALLGOALS
 	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);
-(*YM3*)
-by (blast_tac (claset() delrules [impCE]) 2);
+(*YM3: delete a useless induction hypothesis*)
+by (thin_tac "?P-->?Q" 2);
+by (Blast_tac 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
@@ -350,10 +351,11 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (Blast_tac 1);
 (*YM3: by new_keys_not_used we note that Crypt K (Nonce NB) could not exist*)
-by (fast_tac (claset() addSDs [Crypt_imp_keysFor] addss (simpset())) 1); 
+by (force_tac (claset() addSDs [Crypt_imp_keysFor], simpset()) 1); 
 (*YM4: was Crypt K (Nonce NB) the very last message?  If not, use ind. hyp.*)
 by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
-(*yes: apply unicity of session keys*)
+(*yes: delete a useless induction hypothesis; apply unicity of session keys*)
+by (thin_tac "?P-->?Q" 1);
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
 			addDs  [unique_session_keys]) 1);

@@ -449,8 +449,7 @@ Goal "[| Says Server A                                                \
 \                : set evs";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS Blast_tac);
+by Auto_tac;
 qed "Says_Server_imp_YM2";
 
 
@@ -470,8 +469,7 @@ by (ALLGOALS
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]
 	                addSEs [MPair_parts]
-		        addDs  [no_nonce_YM1_YM2, Says_unique_NB]) 4
-    THEN flexflex_tac);
+		        addDs  [no_nonce_YM1_YM2, Says_unique_NB]) 4);
 (*YM2: similar freshness reasoning*) 
 by (blast_tac (claset() addSEs partsEs
 		        addDs  [Says_imp_spies RS analz.Inj,
@@ -482,23 +480,22 @@ by (blast_tac (claset() addSIs [parts_insertI]
 (*Fake*)
 by (spy_analz_tac 1);
 (** LEVEL 7: YM4 and Oops remain **)
-by (ALLGOALS Clarify_tac);
+by (ALLGOALS (Clarify_tac THEN' 
+	      full_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*YM4: key K is visible to Spy, contradicting session key secrecy theorem*) 
 by (not_bad_tac "Aa" 1);
 by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
 by (forward_tac [Says_Server_imp_YM2] 3);
-by (REPEAT_FIRST (eresolve_tac [asm_rl, bexE, exE, disjE]));
-(*  use Says_unique_NB to identify message components: Aa=A, Ba=B, NAa=NA *)
-by (blast_tac (claset() addDs [Says_unique_NB, Spy_not_see_encrypted_key,
-			       impOfSubs Fake_analz_insert]) 1);
+by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
+(*  use Says_unique_NB to identify message components: Aa=A, Ba=B*)
+by (blast_tac (claset() addDs [Says_unique_NB, Spy_not_see_encrypted_key]) 1);
 (** LEVEL 13 **)
 (*Oops case: if the nonce is betrayed now, show that the Oops event is 
   covered by the quantified Oops assumption.*)
-by (full_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
 by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1 THEN etac exE 1);
 by (expand_case_tac "NB = NBa" 1);
 (*If NB=NBa then all other components of the Oops message agree*)
-by (blast_tac (claset() addDs [Says_unique_NB]) 1 THEN flexflex_tac);
+by (blast_tac (claset() addDs [Says_unique_NB]) 1);
 (*case NB ~= NBa*)
 by (asm_simp_tac (simpset() addsimps [single_Nonce_secrecy]) 1);
 by (Clarify_tac 1);
