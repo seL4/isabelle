@@ -38,5 +38,9 @@ time_use_thy "BinEx";
 (*Monoids and Groups as predicates over record schemes*)
 time_use_thy "MonoidGroup";
 
+(*Groups via locales*)
+time_use_thy "PiSets";
+time_use_thy "LocaleGroup";
+
 
 writeln "END: Root file for HOL examples";
