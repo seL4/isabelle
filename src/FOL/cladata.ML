@@ -45,26 +45,8 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val FOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
                      addSEs [exE,alt_ex1E] addEs [allE];
 
+claset_ref() := FOL_cs;
 
-exception CS_DATA of claset;
-
-let fun merge [] = CS_DATA empty_cs
-      | merge cs = let val cs = map (fn CS_DATA x => x) cs;
-                   in CS_DATA (foldl merge_cs (hd cs, tl cs)) end;
-
-    fun put (CS_DATA cs) = claset := cs;
-
-    fun get () = CS_DATA (!claset);
-in add_thydata "FOL"
-     ("claset", ThyMethods {merge = merge, put = put, get = get})
-end;
-
-claset := FOL_cs;
-
-fun claset_of tname =
-  case get_thydata tname "claset" of
-      None => empty_cs
-    | Some (CS_DATA cs) => cs;
 
 (*** Applying BlastFun to create Blast_tac ***)
 structure Blast_Data = 
