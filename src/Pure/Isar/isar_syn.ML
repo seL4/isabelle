@@ -385,8 +385,8 @@ val letP =
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.let_bind)));
 
 val case_spec =
-  (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.underscore >> K None || P.name >> Some)
-    --| P.$$$ ")") || P.xname >> rpair []) -- P.opt_attribs >> P.triple1;
+  (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 P.uname --| P.$$$ ")") ||
+    P.xname >> rpair []) -- P.opt_attribs >> P.triple1;
 
 val caseP =
   OuterSyntax.command "case" "invoke local context" K.prf_asm
