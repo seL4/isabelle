@@ -471,7 +471,7 @@ for details.
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
-  \{$a@1$, $\ldots$, $a@n$\}  &  insert($a@1$,$\cdots$,insert($a@n$,0)) &
+  \{$a@1$, $\ldots$, $a@n$\}  &  insert($a@1$,$\cdots$,insert($a@n$,\{\})) &
         \rm finite set \\
   \{$x$.$P[x]$\}        &  Collect($\lambda x.P[x]$) &
         \rm comprehension \\
@@ -525,7 +525,7 @@ for details.
 \idx{Collect_mem_eq}    \{x.x:A\} = A
 \subcaption{Isomorphisms between predicates and sets}
 
-\idx{empty_def}         \{\}          == \{x.x= False\}
+\idx{empty_def}         \{\}          == \{x.x=False\}
 \idx{insert_def}        insert(a,B) == \{x.x=a\} Un B
 \idx{Ball_def}          Ball(A,P)   == ! x. x:A --> P(x)
 \idx{Bex_def}           Bex(A,P)    == ? x. x:A & P(x)
@@ -670,7 +670,7 @@ operator~{\tt``}.  Note that $a$\verb|~:|$b$ is translated to
 sets constructed in the obvious manner using~{\tt insert} and~$\{\}$ (the
 empty set):
 \begin{eqnarray*}
- \{a,b,c\} & \equiv & {\tt insert}(a,{\tt insert}(b,{\tt insert}(c,\emptyset)))
+ \{a,b,c\} & \equiv & {\tt insert}(a,{\tt insert}(b,{\tt insert}(c,\{\})))
 \end{eqnarray*}
 
 The set \hbox{\tt\{$x$.$P[x]$\}} consists of all $x$ (of suitable type)
