@@ -73,11 +73,17 @@ Integ:  $(BIN)/CHOL  $(INTEG_FILES)
 	echo 'exit_use"Integ/ROOT.ML";quit();' | $(LOGIC)
 
 ##I/O Automata
-IOA_EX_NAMES = Action Channels Correctness Impl Lemmas Multiset Receiver Sender
+IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
+                Receiver Sender
+IOA_ABP_NAMES = Action Correctness Lemmas
 IOA_MT_NAMES = Asig IOA Option Solve
 
-IOA_FILES = IOA/ROOT.ML IOA/example/Packet.thy IOA/example/Spec.thy\
- $(IOA_EX_NAMES:%=IOA/example/%.thy) $(IOA_EX_NAMES:%=IOA/example/%.ML)\
+IOA_FILES = IOA/ROOT.ML IOA/NTP/Spec.thy\
+ $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML)\
+ IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy\
+ IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy\
+ IOA/ABP/Receiver.thy IOA/ABP/Sender.thy IOA/ABP/Spec.thy\
+ $(IOA_ABP_NAMES:%=IOA/ABP/%.thy) $(IOA_ABP_NAMES:%=IOA/ABP/%.ML)\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:    $(BIN)/CHOL  $(IOA_FILES)
