@@ -44,7 +44,7 @@ To do all obvious logical steps, even if they do not prove the
 subgoal, type one of the following:
 \begin{ttbox}
 by Safe_tac;                   \emph{\textrm{applies to all subgoals}}
-by (Clarify_tac \(i\));        \emph{\textrm{applies to one subgoal}}
+by (Clarify_tac \(i\));            \emph{\textrm{applies to one subgoal}}
 \end{ttbox}
 
 
@@ -317,6 +317,7 @@ tried first (see \S\ref{biresolve_tac}).
 For elimination and destruction rules there are variants of the add operations
 adding a rule in a way such that it is applied only if also its second premise
 can be unified with an assumption of the current proof state:
+\indexbold{*addSE2}\indexbold{*addSD2}\indexbold{*addE2}\indexbold{*addD2}
 \begin{ttbox}
 addSE2      : claset * (string * thm) -> claset           \hfill{\bf infix 4}
 addSD2      : claset * (string * thm) -> claset           \hfill{\bf infix 4}
@@ -435,30 +436,6 @@ When a simpset combined with a claset is to be augmented, this should done
 powerful theorem-proving tactics.  Most of them have capitalized analogues
 that use the default claset; see \S\ref{sec:current-claset}.
 
-\subsection{Semi-automatic tactics}
-\begin{ttbox} 
-clarify_tac      : claset -> int -> tactic
-clarify_step_tac : claset -> int -> tactic
-clarsimp_tac     : clasimpset -> int -> tactic
-\end{ttbox}
-Use these when the automatic tactics fail.  They perform all the obvious
-logical inferences that do not split the subgoal.  The result is a
-simpler subgoal that can be tackled by other means, such as by
-instantiating quantifiers yourself.
-\begin{ttdescription}
-\item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
-subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
-\item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
-  subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
-  B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
-  performed provided they do not instantiate unknowns.  Assumptions of the
-  form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
-  applied.
-\item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
-also does simplification with the given simpset. Still note that if the simpset 
-includes a splitter for the premises, the subgoal may be split.
-\end{ttdescription}
-
 
 \subsection{The tableau prover}
 The tactic \texttt{blast_tac} searches for a proof using a fast tableau prover,
@@ -531,6 +508,32 @@ use the default claset and simpset (see \S\ref{sec:current-claset} below).
 For interactive use, 
 the shorthand \texttt{auto();} abbreviates \texttt{by Auto_tac;} 
 while \texttt{force 1;} abbreviates \texttt{by (Force_tac 1);}
+
+
+\subsection{Semi-automatic tactics}
+\begin{ttbox} 
+clarify_tac      : claset -> int -> tactic
+clarify_step_tac : claset -> int -> tactic
+clarsimp_tac     : clasimpset -> int -> tactic
+\end{ttbox}
+Use these when the automatic tactics fail.  They perform all the obvious
+logical inferences that do not split the subgoal.  The result is a
+simpler subgoal that can be tackled by other means, such as by
+instantiating quantifiers yourself.
+\begin{ttdescription}
+\item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
+subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
+\item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
+  subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
+  B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
+  performed provided they do not instantiate unknowns.  Assumptions of the
+  form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
+  applied.
+\item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
+also does simplification with the given simpset. Still note that if the simpset 
+includes a splitter for the premises, the subgoal may be split.
+\end{ttdescription}
+
 
 \subsection{Other classical tactics}
 \begin{ttbox} 
@@ -619,21 +622,14 @@ but allows unknowns to be instantiated.
   The resulting search space is larger.
 \end{ttdescription}
 
+
 \subsection{The current claset}\label{sec:current-claset}
 
-Each theory is equipped with an implicit \emph{current
-  claset}\index{claset!current}.  This is a default set of classical
+Each theory is equipped with an implicit \emph{current claset}
+\index{claset!current}.  This is a default set of classical
 rules.  The underlying idea is quite similar to that of a current
 simpset described in \S\ref{sec:simp-for-dummies}; please read that
-section, including its warnings.  The implicit claset can be accessed
-as follows:
-\begin{ttbox}
-claset        : unit -> claset
-claset_ref    : unit -> claset ref
-claset_of     : theory -> claset
-claset_ref_of : theory -> claset ref
-print_claset  : theory -> unit
-\end{ttbox}
+section, including its warnings.  
 
 The tactics
 \begin{ttbox}
@@ -653,15 +649,15 @@ Step_tac         : int -> tactic
 \indexbold{*Blast_tac}\indexbold{*Auto_tac}\indexbold{*Force_tac}
 \indexbold{*Best_tac}\indexbold{*Fast_tac}%
 \indexbold{*Deepen_tac}
-\indexbold{*Clarify_tac}\indexbold{*Clarify_step_tac}
+\indexbold{*Clarify_tac}\indexbold{*Clarify_step_tac}\indexbold{*Clarsimp_tac}
 \indexbold{*Safe_tac}\indexbold{*Safe_step_tac}
 \indexbold{*Step_tac}
 make use of the current claset.  For example, \texttt{Blast_tac} is defined as 
 \begin{ttbox}
 fun Blast_tac i st = blast_tac (claset()) i st;
 \end{ttbox}
-and gets the current claset, only after it is applied to a proof
-state.  The functions
+and gets the current claset, only after it is applied to a proof state.  
+The functions
 \begin{ttbox}
 AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
 \end{ttbox}
@@ -673,6 +669,27 @@ lower case counterparts, such as \texttt{addSIs}.  Calling
 Delrules : thm list -> unit
 \end{ttbox}
 deletes rules from the current claset. 
+
+
+\subsection{Accessing the current claset}
+\label{sec:access-current-claset}
+
+the functions to access the current claset are analogous to the functions 
+for the current simpset, so please see \label{sec:access-current-simpset}
+for a description.
+\begin{ttbox}
+claset        : unit   -> claset
+claset_ref    : unit   -> claset ref
+claset_of     : theory -> claset
+claset_ref_of : theory -> claset ref
+print_claset  : theory -> unit
+CLASET        :(claset     ->       tactic) ->       tactic
+CLASET'       :(claset     -> 'a -> tactic) -> 'a -> tactic
+
+CLASIMPSET    :(clasimpset ->       tactic) ->       tactic
+CLASIMPSET'   :(clasimpset -> 'a -> tactic) -> 'a -> tactic
+\end{ttbox}
+
 
 \subsection{Other useful tactics}
 \index{tactics!for contradiction}
