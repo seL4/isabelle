@@ -24,9 +24,9 @@ K.~Futatsugi, J.A. Goguen, Jean-Pierre Jouannaud, and J.~Meseguer.
 \bibitem{martin-nipkow}
 Ursula Martin and Tobias Nipkow.
 \newblock Ordered rewriting and confluence.
-\newblock In M.~E. Stickel, editor, {\em 10th International Conference on
+\newblock In Mark~E. Stickel, editor, {\em 10th International Conference on
   Automated Deduction}, pages 366--380. Springer, 1990.
-\newblock LNCS 449.
+\newblock LNAI 449.
 
 \bibitem{Nipkow-LICS-93}
 Tobias Nipkow.

@@ -165,14 +165,6 @@ Lawrence~C. Paulson.
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
 \newblock Cambridge University Press, 1987.
 
-\bibitem{paulson-COLOG}
-Lawrence~C. Paulson.
-\newblock A formulation of the simple theory of types (for {Isabelle}).
-\newblock In P.~Martin-L\"of and G.~Mints, editors, {\em COLOG-88:
-  International Conference on Computer Logic}, Tallinn, 1990. Estonian Academy
-  of Sciences, Springer.
-\newblock LNCS 417.
-
 \bibitem{paulson-coind}
 Lawrence~C. Paulson.
 \newblock Co-induction and co-recursion in higher-order logic.
@@ -201,8 +193,15 @@ Lawrence~C. Paulson.
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
 \newblock In Alan Bundy, editor, {\em 12th International Conference on
-  Automated Deduction}, pages 148--161. Springer, 1994.
-\newblock LNAI 814.
+  Automated Deduction}, volume 814, pages 148--161. Springer, 1994.
+
+\bibitem{paulson-COLOG}
+Lawrence~C. Paulson.
+\newblock A formulation of the simple theory of types (for {Isabelle}).
+\newblock In P.~Martin-L\"of and G.~Mints, editors, {\em COLOG-88:
+  International Conference on Computer Logic}, pages 246--274, Tallinn,
+  Published 1990. Estonian Academy of Sciences, Springer.
+\newblock LNCS 417.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.
@@ -228,7 +227,7 @@ Patrick Suppes.
 \bibitem{takeuti87}
 G.~Takeuti.
 \newblock {\em Proof Theory}.
-\newblock North Holland, 2nd edition, 1987.
+\newblock North-Holland, 2nd edition, 1987.
 
 \bibitem{thompson91}
 Simon Thompson.
