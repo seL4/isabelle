@@ -2,7 +2,8 @@
 \begin{isabellebody}%
 \def\isabellecontext{Group}%
 %
-\isamarkupheader{Basic group theory}
+\isamarkupheader{Basic group theory%
+}
 \isacommand{theory}\ Group\ {\isacharequal}\ Main{\isacharcolon}%
 \begin{isamarkuptext}%
 \medskip\noindent The meta-level type system of Isabelle supports
@@ -14,7 +15,8 @@
  general groups and Abelian groups.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Monoids and Groups}
+\isamarkupsubsection{Monoids and Groups%
+}
 %
 \begin{isamarkuptext}%
 First we declare some polymorphic constants required later for the
@@ -64,7 +66,8 @@ First we declare some polymorphic constants required later for the
  is even commutative.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Abstract reasoning}
+\isamarkupsubsection{Abstract reasoning%
+}
 %
 \begin{isamarkuptext}%
 In a sense, axiomatic type classes may be viewed as \emph{abstract
@@ -124,7 +127,8 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
  known at Isabelle's type signature level.  Since we have \isa{agroup\ {\isasymsubseteq}\ group\ {\isasymsubseteq}\ semigroup} by definition, all theorems of \isa{semigroup} and \isa{group} are automatically inherited by \isa{group} and \isa{agroup}.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Abstract instantiation}
+\isamarkupsubsection{Abstract instantiation%
+}
 %
 \begin{isamarkuptext}%
 From the definition, the \isa{monoid} and \isa{group} classes
@@ -191,7 +195,8 @@ From the definition, the \isa{monoid} and \isa{group} classes
  hierarchy.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Concrete instantiation \label{sec:inst-arity}}
+\isamarkupsubsection{Concrete instantiation \label{sec:inst-arity}%
+}
 %
 \begin{isamarkuptext}%
 So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isadigit{1}}\ {\isacharless}\ c\isactrlsub {\isadigit{2}}}, namely \emph{abstract instantiation} ---
@@ -250,7 +255,8 @@ The result of an $\INSTANCE$ statement is both expressed as a theorem
  types.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Lifting and Functors}
+\isamarkupsubsection{Lifting and Functors%
+}
 %
 \begin{isamarkuptext}%
 As already mentioned above, overloading in the simply-typed HOL
