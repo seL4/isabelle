@@ -512,87 +512,60 @@ fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
 val op delrules = foldl delrule;
 
 
-(*** Setting or modifying the wrapper tacticals ***)
+(*** Modifying the wrapper tacticals ***)
+fun update_swrappers 
+(CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) f =
+ CS{safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
+    swrappers = f swrappers, uwrappers = uwrappers,
+    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair};
+
+fun update_uwrappers 
+(CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) f =
+ CS{safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
+    swrappers = swrappers, uwrappers = f uwrappers,
+    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair};
+
 
 (*Add/replace a safe wrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    addSWrapper new_swrapper  =
-  CS{safeIs	= safeIs,
-     safeEs	= safeEs,
-     hazIs	= hazIs,
-     hazEs	= hazEs,
-     swrappers 	= (case assoc_string (swrappers,(fst new_swrapper)) of None =>()
+fun cs addSWrapper new_swrapper = update_swrappers cs (fn swrappers =>
+    (case assoc_string (swrappers,(fst new_swrapper)) of None =>()
 	   | Some x => warning("overwriting safe wrapper "^fst new_swrapper); 
-		   overwrite (swrappers, new_swrapper)),
-     uwrappers  = uwrappers,
-     safe0_netpair = safe0_netpair,
-     safep_netpair = safep_netpair,
-     haz_netpair = haz_netpair,
-     dup_netpair = dup_netpair};
+		   overwrite (swrappers, new_swrapper)));
 
 (*Add/replace an unsafe wrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    addWrapper new_uwrapper =
-  CS{safeIs	= safeIs,
-     safeEs	= safeEs,
-     hazIs	= hazIs,
-     hazEs	= hazEs,
-     swrappers  = swrappers,
-     uwrappers 	= (case assoc_string (uwrappers,(fst new_uwrapper)) of None =>()
+fun cs addWrapper new_uwrapper = update_uwrappers cs (fn uwrappers =>
+    (case assoc_string (uwrappers,(fst new_uwrapper)) of None =>()
 	   | Some x => warning ("overwriting unsafe wrapper "^fst new_uwrapper);
-		   overwrite (uwrappers, new_uwrapper)),
-     safe0_netpair = safe0_netpair,
-     safep_netpair = safep_netpair,
-     haz_netpair = haz_netpair,
-     dup_netpair = dup_netpair};
+		   overwrite (uwrappers, new_uwrapper)));
 
 (*Remove a safe wrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    delSWrapper name =
-  CS{safeIs	= safeIs,
-     safeEs	= safeEs,
-     hazIs	= hazIs,
-     hazEs	= hazEs,
-     swrappers 	= let val (del,rest) = partition (fn (n,_) => n=name) swrappers
-               in if null del then (warning ("No such safe wrapper in claset: "
-				 ^ name); swrappers) else rest end,
-     uwrappers  = uwrappers,
-     safe0_netpair = safe0_netpair,
-     safep_netpair = safep_netpair,
-     haz_netpair = haz_netpair,
-     dup_netpair = dup_netpair};
+fun cs delSWrapper name = update_swrappers cs (fn swrappers =>
+    let val (del,rest) = partition (fn (n,_) => n=name) swrappers
+    in if null del then (warning ("No such safe wrapper in claset: "^ name); 
+			 swrappers) else rest end);
 
 (*Remove an unsafe wrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    delWrapper name =
-  CS{safeIs	= safeIs,
-     safeEs	= safeEs,
-     hazIs	= hazIs,
-     hazEs	= hazEs,
-     swrappers  = swrappers,
-     uwrappers 	= let val (del,rest) = partition (fn (n,_) => n=name) uwrappers
-             in if null del then (warning ("No such unsafe wrapper in claset: "
-				^ name); uwrappers) else rest end,
-     safe0_netpair = safe0_netpair,
-     safep_netpair = safep_netpair,
-     haz_netpair = haz_netpair,
-     dup_netpair = dup_netpair};
+fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
+    let val (del,rest) = partition (fn (n,_) => n=name) uwrappers
+    in if null del then (warning ("No such unsafe wrapper in claset: " ^ name);
+                         uwrappers) else rest end);
 
 (*compose a safe tactic sequentially before/alternatively after safe_step_tac*)
-fun cs addSbefore (name,tac1) = cs addSWrapper (name, 
-					fn tac2 => tac1 THEN_MAYBE' tac2);
-fun cs addSaltern (name,tac2) = cs addSWrapper (name,
-					fn tac1 => tac1 ORELSE'     tac2);
+fun cs addSbefore  (name,    tac1) = 
+    cs addSWrapper (name, fn tac2 => tac1 THEN_MAYBE' tac2);
+fun cs addSaltern  (name,    tac2) = 
+    cs addSWrapper (name, fn tac1 => tac1 ORELSE'     tac2);
 
 (*compose a tactic sequentially before/alternatively after the step tactic*)
-fun cs addbefore  (name,tac1) = cs addWrapper  (name,
-					fn tac2 => tac1 THEN_MAYBE' tac2);
-fun cs addaltern  (name,tac2) = cs addWrapper  (name,
-					fn tac1 => tac1 APPEND'     tac2);
+fun cs addbefore   (name,    tac1) = 
+    cs addWrapper  (name, fn tac2 => tac1 THEN_MAYBE' tac2);
+fun cs addaltern   (name,    tac2) =
+    cs addWrapper  (name, fn tac1 => tac1 APPEND'     tac2);
+
 
 (*Merge works by adding all new rules of the 2nd claset into the 1st claset.
   Merging the term nets may look more efficient, but the rather delicate
@@ -605,13 +578,13 @@ fun merge_cs
       val safeEs' = gen_rems eq_thm (safeEs2,safeEs)
       val  hazIs' = gen_rems eq_thm ( hazIs2, hazIs)
       val  hazEs' = gen_rems eq_thm ( hazEs2, hazEs)
-      val cs'   = cs addSIs safeIs'
+      val cs1   = cs addSIs safeIs'
 		     addSEs safeEs'
 		     addIs  hazIs'
 		     addEs  hazEs'
-      val cs''  = foldl (op addSWrapper) (cs' , swrappers);
-      val cs''' = foldl (op addWrapper ) (cs'', uwrappers);
-  in cs''' 
+      val cs2 = update_swrappers cs1 (fn ws => merge_alists ws swrappers);
+      val cs3 = update_uwrappers cs2 (fn ws => merge_alists ws uwrappers);
+  in cs3 
   end;
 
 
