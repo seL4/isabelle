@@ -37,7 +37,7 @@ locale ring = abelian_group R +
       and left:  "distrib_l (carrier R) (prod R) (sum R)"
       and right: "distrib_r (carrier R) (prod R) (sum R)"
 
-constdefs (*????FIXME needed?*)
+constdefs
   Ring :: "('a,'b) ring_scheme set"
    "Ring == Collect ring"
 
@@ -46,10 +46,11 @@ lemma ring_is_abelian_group: "ring(R) ==> abelian_group(R)"
 by (simp add: ring_def abelian_group_def)
 
 text{*Construction of a ring from a semigroup and an Abelian group*}
-lemma "[|abelian_group R; 
-         semigroup(|carrier = carrier R, sum = prod R|);
-         distrib_l (carrier R) (prod R) (sum R);
-         distrib_r (carrier R) (prod R) (sum R)|] ==> ring R"
+lemma ringI:
+     "[|abelian_group R; 
+        semigroup(|carrier = carrier R, sum = prod R|);
+        distrib_l (carrier R) (prod R) (sum R);
+        distrib_r (carrier R) (prod R) (sum R)|] ==> ring R"
 by (simp add: abelian_group_def ring_def ring_axioms_def semigroup_def) 
 
 lemma (in ring) prod_closed [simp]:
@@ -97,6 +98,23 @@ lemma (in ring) prod_minus_right:
 by (simp add: minus_unique prod_zero_right distrib_left [symmetric]) 
 
 
+subsection {*Example: The Ring of Integers*}
+
+constdefs
+ integers :: "int ring"
+  "integers == (|carrier = UNIV, 
+                 sum = op +,
+                 gminus = (%x. -x),
+                 zero = 0::int,
+                 prod = op *|)"
+
+theorem ring_integers: "ring (integers)"
+by (simp add: integers_def ring_def ring_axioms_def 
+              distrib_l_def distrib_r_def 
+              zadd_zmult_distrib zadd_zmult_distrib2 
+              abelian_group_axioms_def group_axioms_def semigroup_def) 
+
+
 subsection {*Ring Homomorphisms*}
 
 constdefs
@@ -125,7 +143,7 @@ lemma restrict_Inv_ring_hom:
       "[|ring R; h \<in> ring_hom R R; h \<in> Bij (carrier R)|]
        ==> restrict (Inv (carrier R) h) (carrier R) \<in> ring_hom R R"
 by (simp add: ring.axioms group.axioms 
-              ring_hom_def Bij_Inv_mem restrictI ring.sum_closed 
+              ring_hom_def Bij_Inv_mem restrictI 
               semigroup.sum_funcset ring.prod_funcset Bij_Inv_lemma)
 
 text{*Ring automorphisms are a subgroup of the group of bijections over the 
@@ -135,7 +153,7 @@ lemma subgroup_ring_auto:
 apply (rule group.subgroupI) 
     apply (rule group_BijGroup) 
    apply (force simp add: ring_auto_def BijGroup_def) 
-  apply (blast intro: dest: id_in_ring_auto) 
+  apply (blast dest: id_in_ring_auto) 
  apply (simp add: ring_auto_def BijGroup_def restrict_Inv_Bij
                   restrict_Inv_ring_hom) 
 apply (simp add: ring_auto_def BijGroup_def compose_Bij)
