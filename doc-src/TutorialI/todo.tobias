@@ -5,8 +5,6 @@ Hide global names like Node.
 Why is comp needed in addition to op O?
 Explain in syntax section!
 
-defs with = and pattern matching
-
 replace "simp only split" by "split_tac".
 
 arithmetic: allow mixed nat/int formulae
@@ -33,11 +31,17 @@ More predefined functions for datatypes: map?
 Induction rules for int: int_le/ge_induct?
 Needed for ifak example. But is that example worth it?
 
+defs with = and pattern matching
+
 
 Minor fixes in the tutorial
 ===========================
 
-explanation of absence of contrapos_pn in Rules?
+explanation of term "contrapositive"/contraposition in Rules?
+Index the notion and maybe the rules contrapos_xy
+
+Even: forward ref from problem with "Suc(Suc n) : even" to general solution in
+AdvancedInd section.
 
 get rid of use_thy in tutorial?
 
