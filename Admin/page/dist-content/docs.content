@@ -2,10 +2,14 @@
 Isabelle Documentation
 
 %body%
+
 <!-- _GP_ distname --> documentation is included here as browsable PDF
 for convenience.  These documents are also part of the standard
 Isabelle distribution.  For getting started with Isabelle quickly, we
-recommend the <a href="tutorial.pdf">Tutorial on Isabelle/HOL</a>.
+recommend the <a href="tutorial.pdf">Tutorial on Isabelle/HOL</a> --
+published by Springer Verlag as <a
+href="http://link.springer.de/link/service/series/0558/tocs/t2283.htm">LNCS
+2283</a>.
 
 <!-- _GP_ include("$pwd/docu-contents.dist") -->
 
