@@ -3,10 +3,10 @@
     Author:     Tjark Weber
     Copyright   2003-2004
 
-Finite model generation for HOL formulae, using a SAT solver.
+Finite model generation for HOL formulas, using a SAT solver.
 *)
 
-(* TODO: case, rec, size for IDTs are not supported yet      *)
+(* TODO: case, recursion, size for IDTs are not supported yet *)
 
 (* ------------------------------------------------------------------------- *)
 (* Declares the 'REFUTE' signature as well as a structure 'Refute'.          *)
@@ -59,7 +59,7 @@ end;
 structure Refute : REFUTE =
 struct
 
-	(* FIXME comptibility -- should avoid std_output altogether *)
+	(* FIXME compatibility -- should avoid std_output altogether *)
 	val std_output = Output.std_output o Output.output;
 
 	open PropLogic;
@@ -903,16 +903,16 @@ struct
 				val fm    = PropLogic.all [#wellformed args, fm_ax, fm_t]
 			in
 				std_output " invoking SAT solver...";
-				case SatSolver.invoke_solver satsolver fm of
-				  None =>
-					error ("SAT solver " ^ quote satsolver ^ " not configured.")
-				| Some None =>
+				(case SatSolver.invoke_solver satsolver fm of
+				  SatSolver.SATISFIABLE assignment =>
+					writeln ("\n*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of Some b => b | None => true))
+				| _ =>  (* SatSolver.UNSATISFIABLE, SatSolver.UNKNOWN *)
 					(std_output " no model found.\n";
 					case next_universe universe sizes minsize maxsize of
 					  Some universe' => find_model_loop universe'
-					| None           => writeln "Search terminated, no larger universe within the given limits.")
-				| Some (Some assignment) =>
-					writeln ("\n*** Model found: ***\n" ^ print_model thy model assignment)
+					| None           => writeln "Search terminated, no larger universe within the given limits."))
+				handle SatSolver.NOT_CONFIGURED =>
+					error ("SAT solver " ^ quote satsolver ^ " is not configured.")
 			end handle MAXVARS_EXCEEDED =>
 				writeln ("\nSearch terminated, number of Boolean variables (" ^ string_of_int maxvars ^ " allowed) exceeded.")
 			| CANNOT_INTERPRET t' =>
@@ -931,14 +931,12 @@ struct
 			writeln ("Trying to find a model that " ^ (if negate then "refutes" else "satisfies") ^ ": "
 				^ Sign.string_of_term (sign_of thy) t);
 			if maxtime>0 then
-				(* TODO: this only works with SML/NJ *)
-				((*TimeLimit.timeLimit (Time.fromSeconds (Int32.fromInt maxtime))*)
+				(TimeLimit.timeLimit (Time.fromSeconds (Int.toLarge maxtime))
 					wrapper ()
-				(*handle TimeLimit.TimeOut =>
+				handle TimeLimit.TimeOut =>
 					writeln ("\nSearch terminated, time limit ("
-						^ string_of_int maxtime ^ " second"
-						^ (if maxtime=1 then "" else "s")
-						^ ") exceeded.")*))
+						^ string_of_int maxtime ^ (if maxtime=1 then " second" else " seconds")
+						^ ") exceeded."))
 			else
 				wrapper ()
 		end;
