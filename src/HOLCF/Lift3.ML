@@ -243,4 +243,3 @@ fun cont_tacR i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
 		  REPEAT (cont_tac i);
 
 simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
-
