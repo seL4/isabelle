@@ -25,7 +25,7 @@ consts
 recdef acc "inv_image (less_than ** less_than)
               (%(A,ys,s,xss,zs,xs). (length xs + length ys + length zs,
                                      length ys))"
-simpset "simpset() addsimps (less_add_Suc2::add_ac) addsplits [expand_if]"
+simpset "simpset() addsimps (less_add_Suc2::add_ac)"
 "acc(A,[],s,xss,zs,[]) = (xss, zs)"
 "acc(A,[],s,xss,zs,x#xs) = acc(A,zs,start A, xss @ [x#xs],[],[])"
 "acc(A,y#ys,s,xss,zs,xs) =
