@@ -11,12 +11,13 @@ use "seq.ML";
 use "name_space.ML";
 use "position.ML";
 use "scan.ML";
+use "source.ML";
+use "symbol.ML";
 use "path.ML";
+use "url.ML";
 use "file.ML";
 use "buffer.ML";
 use "history.ML";
-use "source.ML";
-use "symbol.ML";
 use "pretty.ML";
 
 structure PureGeneral =
@@ -28,11 +29,12 @@ struct
   structure NameSpace = NameSpace;
   structure Position = Position;
   structure Scan = Scan;
+  structure Symbol = Symbol;
   structure Path = Path;
+  structure Url = Url;
   structure File = File;
   structure Buffer = Buffer;
   structure History = History;
   structure Source = Source;
-  structure Symbol = Symbol;
   structure Pretty = Pretty;
 end;
