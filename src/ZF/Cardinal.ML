@@ -169,7 +169,8 @@ val prems = goal Cardinal.thy
 by (simp_tac (FOL_ss addsimps prems) 1);
 qed "Least_cong";
 
-(*Need AC to prove   X lepoll Y ==> |X| le |Y| ; see well_ord_lepoll_imp_le  *)
+(*Need AC to prove   X lepoll Y ==> |X| le |Y| ; 
+  see well_ord_lepoll_imp_Card_le  *)
 goalw Cardinal.thy [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
 by (rtac Least_cong 1);
 by (fast_tac (ZF_cs addEs [comp_bij,bij_converse_bij]) 1);
@@ -215,6 +216,10 @@ goalw Cardinal.thy [Card_def, cardinal_def] "!!i. Card(i) ==> Ord(i)";
 by (etac ssubst 1);
 by (rtac Ord_Least 1);
 qed "Card_is_Ord";
+
+goal Cardinal.thy "!!K. Card(K) ==> K le |K|";
+by (asm_simp_tac (ZF_ss addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
+val Card_cardinal_le = result();
 
 goalw Cardinal.thy [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);
