@@ -156,8 +156,7 @@ text{*\label{sec:Simp-with-Defs}\index{simplification!with definitions}
 Constant definitions (\S\ref{sec:ConstDefinitions}) can be used as
 simplification rules, but by default they are not: the simplifier does not
 expand them automatically.  Definitions are intended for introducing abstract
-concepts and not merely as abbreviations.  (Contrast with syntax
-translations, \S\ref{sec:def-translations}.)  Of course, we need to expand
+concepts and not merely as abbreviations.  Of course, we need to expand
 the definition initially, but once we have proved enough abstract properties
 of the new constant, we can forget its original definition.  This style makes
 proofs more robust: if the definition has to be changed,
