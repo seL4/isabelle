@@ -55,9 +55,11 @@ sig
   val have_i: string -> context attribute list -> term * term list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
-  val end_block: (context -> method) -> state -> state Seq.seq
-  val qed: (context -> method) -> bstring option -> theory attribute list option -> state
-    -> theory * (string * string * thm)
+  val end_block: state -> state
+  val at_bottom: state -> bool
+  val local_qed: (state -> state Seq.seq) -> state -> state Seq.seq
+  val global_qed: (state -> state Seq.seq) -> bstring option
+    -> theory attribute list option -> state -> theory * (string * string * thm)
 end;
 
 signature PROOF_PRIVATE =
@@ -555,13 +557,19 @@ fun next_block state =
 fun current_goal (State ({goal = Some goal, ...}, _)) = goal
   | current_goal state = raise STATE ("No current goal!", state);
 
-fun assert_current_goal state = (current_goal state; state);
+fun assert_current_goal true (state as State ({goal = None, ...}, _)) =
+      raise STATE ("No goal in this block!", state)
+  | assert_current_goal false (state as State ({goal = Some _, ...}, _)) =
+      raise STATE ("Goal present in this block!", state)
+  | assert_current_goal _ state = state;
 
 fun assert_bottom true (state as State (_, _ :: _)) =
       raise STATE ("Not at bottom of proof!", state)
   | assert_bottom false (state as State (_, [])) =
       raise STATE ("Already at bottom of proof!", state)
   | assert_bottom _ state = state;
+
+val at_bottom = can (assert_bottom true o close_block);
 
 
 (* finish proof *)
@@ -571,17 +579,28 @@ fun check_finished state states =
     None => raise STATE ("Failed to finish proof", state)
   | Some s_sq => Seq.cons s_sq);
 
-fun finish_proof bot meth_fun state =
+fun finish_proof bot finalize state =
   state
   |> assert_forward
   |> close_block
   |> assert_bottom bot
-  |> assert_current_goal
-  |> refine meth_fun
+  |> assert_current_goal true
+  |> finalize
   |> check_finished state;
 
 
-(* conclude local proof *)
+(* end_block *)
+
+fun end_block state =
+  state
+  |> assert_forward
+  |> close_block
+  |> assert_current_goal false
+  |> close_block
+  |> fetch_facts state;
+
+
+(* local_qed *)
 
 fun finish_local state =
   let
@@ -599,21 +618,13 @@ fun finish_local state =
     |> opt_solve
   end;
 
-fun end_block meth_fun state =
-  if can assert_current_goal (close_block state) then
-    state
-    |> finish_proof false meth_fun
-    |> (Seq.flat o Seq.map finish_local)
-  else
-    state
-    |> assert_forward
-    |> close_block
-    |> close_block
-    |> fetch_facts state
-    |> Seq.single;
+fun local_qed finalize state =
+  state
+  |> finish_proof false finalize
+  |> (Seq.flat o Seq.map finish_local);
 
 
-(* conclude global proof *)
+(* global_qed *)
 
 fun finish_global alt_name alt_atts state =
   let
@@ -630,9 +641,9 @@ fun finish_global alt_name alt_atts state =
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
   in (thy', (kind_name kind, name, result')) end;
 
-fun qed meth_fun alt_name alt_atts state =
+fun global_qed finalize alt_name alt_atts state =
   state
-  |> finish_proof true meth_fun
+  |> finish_proof true finalize
   |> Seq.hd
   |> finish_global alt_name alt_atts;
 

@@ -49,17 +49,19 @@ sig
     Try of text |
     Repeat of text |
     Repeat1 of text
-  val dynamic_method: string -> (Proof.context -> Proof.method)
   val refine: text -> Proof.state -> Proof.state Seq.seq
   val tac: text -> Proof.state -> Proof.state Seq.seq
   val then_tac: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
-  val end_block: Proof.state -> Proof.state Seq.seq
-  val terminal_proof: text -> Proof.state -> Proof.state Seq.seq
-  val immediate_proof: Proof.state -> Proof.state Seq.seq
-  val default_proof: Proof.state -> Proof.state Seq.seq
-  val qed: bstring option -> theory attribute list option -> Proof.state
-    -> theory * (string * string * thm)
+  val local_qed: text option -> Proof.state -> Proof.state Seq.seq
+  val local_terminal_proof: text -> Proof.state -> Proof.state Seq.seq
+  val local_immediate_proof: Proof.state -> Proof.state Seq.seq
+  val local_default_proof: Proof.state -> Proof.state Seq.seq
+  val global_qed: bstring option -> theory attribute list option -> text option
+    -> Proof.state -> theory * (string * string * thm)
+  val global_terminal_proof: text -> Proof.state -> theory * (string * string * thm)
+  val global_immediate_proof: Proof.state -> theory * (string * string * thm)
+  val global_default_proof: Proof.state -> theory * (string * string * thm)
   val setup: (theory -> theory) list
 end;
 
@@ -241,12 +243,6 @@ datatype text =
   Repeat1 of text;
 
 
-(* dynamic methods *)
-
-fun dynamic_method name = (fn ctxt =>
-  method (ProofContext.theory_of ctxt) (Args.src ((name, []), Position.none)) ctxt);
-
-
 (* refine *)
 
 fun refine text state =
@@ -262,6 +258,8 @@ fun refine text state =
       | eval (Repeat1 txt) = Seq.REPEAT1 (eval txt);
   in eval text state end;
 
+fun named_method name = Source (Args.src ((name, []), Position.none));
+
 
 (* unstructured steps *)
 
@@ -276,27 +274,28 @@ fun then_tac text state =
   |> refine text;
 
 
-(* proof steps *)
+(* structured proof steps *)
 
-val default_txt = Source (Args.src (("default", []), Position.none));
-val finishN = "finish";
+val default_text = named_method "default";
+val finish_text = named_method "finish";
 
 fun proof opt_text state =
   state
   |> Proof.assert_backward
-  |> refine (if_none opt_text default_txt)
+  |> refine (if_none opt_text default_text)
   |> Seq.map Proof.enter_forward;
 
+fun local_qed opt_text = Proof.local_qed (refine (if_none opt_text finish_text));
+fun local_terminal_proof text = Seq.THEN (proof (Some text), local_qed None);
+val local_immediate_proof = local_terminal_proof (Basic (K same));
+val local_default_proof = local_terminal_proof default_text;
 
-(* conclusions *)
+fun global_qed alt_name alt_atts opt_text =
+  Proof.global_qed (refine (if_none opt_text finish_text)) alt_name alt_atts;
 
-val end_block = Proof.end_block (dynamic_method finishN);
-
-fun terminal_proof text = Seq.THEN (proof (Some text), end_block);
-val immediate_proof = terminal_proof (Basic (K same));
-val default_proof = terminal_proof default_txt;
-
-val qed = Proof.qed (dynamic_method finishN);
+fun global_terminal_proof text = Seq.hd o Seq.map (global_qed None None None) o proof (Some text);
+val global_immediate_proof = global_terminal_proof (Basic (K same));
+val global_default_proof = global_terminal_proof default_text;
 
 
 

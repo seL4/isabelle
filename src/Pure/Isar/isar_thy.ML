@@ -61,20 +61,18 @@ sig
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
-  val qed_with: bstring option * Args.src list option -> ProofHistory.T -> theory
-  val qed_with_i: bstring option * theory attribute list option -> ProofHistory.T -> theory
-  val qed: ProofHistory.T -> theory
-  val kill_proof: ProofHistory.T -> theory
   val tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val tac_i: (Proof.context -> Proof.method) -> ProofHistory.T -> ProofHistory.T
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val then_tac_i: (Proof.context -> Proof.method) -> ProofHistory.T -> ProofHistory.T
   val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
-  val proof_i: (Proof.context -> Proof.method) option -> ProofHistory.T -> ProofHistory.T
-  val terminal_proof: Method.text -> ProofHistory.T -> ProofHistory.T
-  val terminal_proof_i: (Proof.context -> Proof.method) -> ProofHistory.T -> ProofHistory.T
-  val immediate_proof: ProofHistory.T -> ProofHistory.T
-  val default_proof: ProofHistory.T -> ProofHistory.T
+  val kill_proof: ProofHistory.T -> theory
+  val global_qed_with: bstring option * Args.src list option -> Method.text option
+    -> Toplevel.transition -> Toplevel.transition
+  val global_qed_with_i: bstring option * theory attribute list option -> Method.text option
+    -> Toplevel.transition -> Toplevel.transition
+  val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
+  val terminal_proof: Method.text -> Toplevel.transition -> Toplevel.transition
+  val immediate_proof: Toplevel.transition -> Toplevel.transition
+  val default_proof: Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> theory option -> theory option
   val use_mltext_theory: string -> theory -> theory
   val use_setup: string -> theory -> theory
@@ -201,46 +199,63 @@ val have = local_statement true Proof.have;
 val have_i = local_statement_i true Proof.have_i;
 
 
-(* end proof *)
-
-fun gen_qed_with prep_att (alt_name, raw_atts) prf =
-  let
-    val state = ProofHistory.current prf;
-    val thy = Proof.theory_of state;
-    val alt_atts = apsome (map (prep_att thy)) raw_atts;
-    val (thy', (kind, name, thm)) = Method.qed alt_name alt_atts state;
-
-    val prt_result = Pretty.block
-      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
-  in Pretty.writeln prt_result; thy end;
-
-val qed_with = gen_qed_with Attrib.global_attribute;
-val qed_with_i = gen_qed_with (K I);
-
-val qed = qed_with (None, None);
-
-val kill_proof = Proof.theory_of o ProofHistory.current;
-
-
 (* blocks *)
 
 val begin_block = ProofHistory.apply_open Proof.begin_block;
 val next_block = ProofHistory.apply Proof.next_block;
+val end_block = ProofHistory.apply_close Proof.end_block;
 
 
 (* backward steps *)
 
 val tac = ProofHistory.applys o Method.tac;
-val tac_i = tac o Method.Basic;
 val then_tac = ProofHistory.applys o Method.then_tac;
-val then_tac_i = then_tac o Method.Basic;
 val proof = ProofHistory.applys o Method.proof;
-val proof_i = proof o apsome Method.Basic;
-val end_block = ProofHistory.applys_close Method.end_block;
-val terminal_proof = ProofHistory.applys_close o Method.terminal_proof;
-val terminal_proof_i = terminal_proof o Method.Basic;
-val immediate_proof = ProofHistory.applys_close Method.immediate_proof;
-val default_proof = ProofHistory.applys_close Method.default_proof;
+
+
+(* local endings *)
+
+val local_qed = Toplevel.proof o ProofHistory.applys_close o Method.local_qed;
+val local_terminal_proof = Toplevel.proof o ProofHistory.applys_close o Method.local_terminal_proof;
+val local_immediate_proof = Toplevel.proof (ProofHistory.applys_close Method.local_immediate_proof);
+val local_default_proof = Toplevel.proof (ProofHistory.applys_close Method.local_default_proof);
+
+
+(* global endings *)
+
+val kill_proof = Proof.theory_of o ProofHistory.current;
+
+fun global_result finish = Toplevel.proof_to_theory (fn prf =>
+  let
+    val state = ProofHistory.current prf;
+    val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
+    val (thy, (kind, name, thm)) = finish state;
+
+    val prt_result = Pretty.block
+      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
+  in Pretty.writeln prt_result; thy end);
+
+fun gen_global_qed_with prep_att (alt_name, raw_atts) opt_text state =
+  let
+    val thy = Proof.theory_of state;
+    val alt_atts = apsome (map (prep_att thy)) raw_atts;
+  in Method.global_qed alt_name alt_atts opt_text state end;
+
+val global_qed_with = global_result oo gen_global_qed_with Attrib.global_attribute;
+val global_qed_with_i = global_result oo gen_global_qed_with (K I);
+val global_qed = global_qed_with (None, None);
+
+val global_terminal_proof = global_result o Method.global_terminal_proof;
+val global_immediate_proof = global_result Method.global_immediate_proof;
+val global_default_proof = global_result Method.global_default_proof;
+
+
+(* common endings *)
+
+fun qed opt_text = local_qed opt_text o global_qed opt_text;
+fun terminal_proof opt_text = local_terminal_proof opt_text o global_terminal_proof opt_text;
+val immediate_proof = local_immediate_proof o global_immediate_proof;
+val default_proof = local_default_proof o global_default_proof;
 
 
 (* use ML text *)

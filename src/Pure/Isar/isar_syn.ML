@@ -33,7 +33,7 @@ val theoryP =
 
 (*end current theory / sub-proof / excursion*)
 val endP =
-  OuterSyntax.command "end" "end current theory / sub-proof / excursion"
+  OuterSyntax.command "end" "end current block / theory / excursion"
     (Scan.succeed (Toplevel.print o Toplevel.exit o Toplevel.proof IsarThy.end_block));
 
 val contextP =
@@ -308,42 +308,45 @@ val nextP =
 
 (* end proof *)
 
-val qedP =
-  OuterSyntax.command "qed" "conclude proof"
-    (Scan.succeed (Toplevel.proof_to_theory IsarThy.qed));
-
-val qed_withP =
-  OuterSyntax.improper_command "qed_with" "conclude proof, may patch name and attributes"
-    (Scan.option name -- Scan.option attribs >> (Toplevel.proof_to_theory o IsarThy.qed_with));
-
 val kill_proofP =
   OuterSyntax.improper_command "kill" "abort current proof"
     (Scan.succeed (Toplevel.print o Toplevel.proof_to_theory IsarThy.kill_proof));
 
+val qed_withP =
+  OuterSyntax.improper_command "qed_with" "conclude proof, may patch name and attributes"
+    (Scan.option name -- Scan.option attribs -- Scan.option method
+      >> (uncurry IsarThy.global_qed_with));
 
-(* proof steps *)
+val qedP =
+  OuterSyntax.command "qed" "conclude (sub-)proof"
+    (Scan.option method >> IsarThy.qed);
 
-fun gen_stepP meth int name cmt f =
-  OuterSyntax.parser int name cmt
-    (meth >> (fn txt => Toplevel.print o Toplevel.proof (f txt)));
-
-val stepP = gen_stepP method;
-
-val refineP = stepP true "refine" "unstructured backward proof step, ignoring facts" IsarThy.tac;
-val then_refineP =
-  stepP true "then_refine" "unstructured backward proof step, using facts" IsarThy.then_tac;
-
-
-val proofP = gen_stepP (Scan.option method) false "proof" "backward proof" IsarThy.proof;
-val terminal_proofP = stepP false "by" "terminal backward proof" IsarThy.terminal_proof;
+val terminal_proofP =
+  OuterSyntax.command "by" "terminal backward proof"
+    (method >> (Toplevel.print oo IsarThy.terminal_proof));
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof"
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.immediate_proof));
+    (Scan.succeed (Toplevel.print o IsarThy.immediate_proof));
 
 val default_proofP =
   OuterSyntax.command ".." "default proof"
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.default_proof));
+    (Scan.succeed (Toplevel.print o IsarThy.default_proof));
+
+
+(* proof steps *)
+
+val refineP =
+  OuterSyntax.improper_command "refine" "unstructured backward proof step, ignoring facts"
+    (method >> (Toplevel.print oo (Toplevel.proof o IsarThy.tac)));
+
+val then_refineP =
+  OuterSyntax.improper_command "then_refine" "unstructured backward proof step, using facts"
+    (method >> (Toplevel.print oo (Toplevel.proof o IsarThy.then_tac)));
+
+val proofP =
+  OuterSyntax.command "proof" "backward proof"
+    (Scan.option method >> (Toplevel.print oo (Toplevel.proof o IsarThy.proof)));
 
 
 (* proof history *)
@@ -507,10 +510,10 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
-  factsP, beginP, nextP, qedP, qed_withP, kill_proofP, refineP,
-  then_refineP, proofP, terminal_proofP, immediate_proofP,
-  default_proofP, clear_undoP, undoP, redoP, undosP, redosP, backP,
-  prevP, upP, topP,
+  factsP, beginP, nextP, kill_proofP, qed_withP, qedP,
+  terminal_proofP, immediate_proofP, default_proofP, refineP,
+  then_refineP, proofP, clear_undoP, undoP, redoP, undosP, redosP,
+  backP, prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
