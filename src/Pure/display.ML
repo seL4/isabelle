@@ -52,22 +52,23 @@ fun pretty_thm th =
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
+    val prt_term = Pretty.quote o Sign.pretty_term sign;
+
     val hlen = length xshyps + length hyps;
     val hsymbs =
       if hlen = 0 then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (Sign.pretty_term sign) hyps @
-           map (Sign.pretty_sort sign) xshyps)]
+          (map prt_term hyps @ map (Sign.pretty_sort sign) xshyps)]
       else
         [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
     val tsymbs =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];
-  in Pretty.block (Sign.pretty_term sign prop :: (hsymbs @ tsymbs)) end;
+  in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
-val pprint_thm = Pretty.pprint o Pretty.quote o pretty_thm;
+val pprint_thm = Pretty.pprint o pretty_thm;
 
 fun pretty_thms [th] = pretty_thm th
   | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
