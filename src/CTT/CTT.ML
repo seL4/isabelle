@@ -55,7 +55,7 @@ qed_goal "subst_prodE" CTT.thy
 
 (** Tactics for type checking **)
 
-fun is_rigid_elem (Const("Elem",_) $ a $ _) = not (is_Var (head_of a))
+fun is_rigid_elem (Const("CTT.Elem",_) $ a $ _) = not (is_Var (head_of a))
   | is_rigid_elem _ = false;
 
 (*Try solving a:A by assumption provided a is rigid!*) 
