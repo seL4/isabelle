@@ -43,6 +43,14 @@ diagnostic information (PG: in trace buffer) when it fails. This is
 useful for figuring out why single step proofs like rule, erule or
 assumption failed.
 
+* Pure: you can find all matching introduction rules for subgoal 1,
+  i.e. all rules whose conclusion matches subgoal 1, by executing
+  ML"ProofGeneral.print_intros()"
+  The rules are ordered by how closely they match the subgoal.
+  In particular, rules that solve a subgoal outright are displayed first
+  (or rather last, the way it is printed).
+  TODO: integration with PG
+
 * Pure: locale specifications now produce predicate definitions
 according to the body of text (covering assumptions modulo local
 definitions); predicate "loc_axioms" covers newly introduced text,
