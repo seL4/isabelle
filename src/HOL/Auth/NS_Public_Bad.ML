@@ -26,9 +26,8 @@ val Says_imp_sees_Spy' =
 
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
- "!!A B. [| A ~= B |]   \
-\        ==> EX NB. EX evs: ns_public.               \
-\               Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
+ "!!A B. A ~= B ==> EX NB. EX evs: ns_public.               \
+\                     Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_public.Nil RS ns_public.NS1 RS ns_public.NS2 RS ns_public.NS3) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
@@ -109,7 +108,7 @@ fun analz_induct_tac i =
     etac ns_public.induct i	THEN
     ALLGOALS (asm_simp_tac 
 	      (!simpset addsimps [not_parts_not_analz]
-               setloop split_tac [expand_if]));
+                        setloop split_tac [expand_if]));
 
 
 (**** Authenticity properties obtained from NS2 ****)
@@ -138,7 +137,7 @@ by (fast_tac (!claset addss (!simpset)) 1);
 bind_thm ("no_nonce_NS1_NS2", result() RSN (2, rev_mp) RSN (2, rev_mp));
 
 
-(*Uniqueness for NS1: nonce NA identifies agents A and B*)
+(*Unicity for NS1: nonce NA identifies agents A and B*)
 goal thy 
  "!!evs. evs : ns_public                                                    \
 \ ==> Nonce NA ~: analz (sees lost Spy evs) -->                             \
@@ -257,7 +256,7 @@ qed_spec_mp "B_trusts_NS1";
 
 (**** Authenticity properties obtained from NS2 ****)
 
-(*Uniqueness for NS2: nonce NB identifies agent A and nonce NA
+(*Unicity for NS2: nonce NB identifies agent A and nonce NA
   [proof closely follows that for unique_NA] *)
 goal thy 
  "!!evs. evs : ns_public                                                    \

@@ -84,9 +84,8 @@ AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
 
 (*** Future nonces can't be seen or used! ***)
 
-goal thy "!!evs. evs : ns_public ==>          \
-\                length evs <= i --> \
-\                Nonce (newN i) ~: parts (sees lost Spy evs)";
+goal thy "!!i. evs : ns_public ==>        \
+\             length evs <= i --> Nonce (newN i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs
@@ -115,7 +114,7 @@ goal thy
  "!!evs. evs : ns_public                       \
 \ ==> Nonce NA ~: analz (sees lost Spy evs) -->           \
 \     Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\     Crypt (pubK C) {|X, Nonce NA, Agent D|} ~: parts (sees lost Spy evs)";
+\     Crypt (pubK C) {|NA', Nonce NA, Agent D|} ~: parts (sees lost Spy evs)";
 by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSEs partsEs
@@ -133,7 +132,7 @@ by (fast_tac (!claset addss (!simpset)) 1);
 bind_thm ("no_nonce_NS1_NS2", result() RSN (2, rev_mp) RSN (2, rev_mp));
 
 
-(*Uniqueness for NS1: nonce NA identifies agents A and B*)
+(*Unicity for NS1: nonce NA identifies agents A and B*)
 goal thy 
  "!!evs. evs : ns_public                                                    \
 \ ==> Nonce NA ~: analz (sees lost Spy evs) -->                             \
@@ -162,12 +161,7 @@ goal thy
 \           Nonce NA ~: analz (sees lost Spy evs);                            \
 \           evs : ns_public |]                                                \
 \        ==> A=A' & B=B'";
-by (dtac lemma 1);
-by (mp_tac 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_NA";
 
 
@@ -240,7 +234,8 @@ goal thy
  "!!evs. evs : ns_public                   \
 \    ==> Nonce NA ~: analz (sees lost Spy evs) --> \
 \        Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\        Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs"; by (analz_induct_tac 1);
+\        Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+by (analz_induct_tac 1);
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
 		      addSDs [impOfSubs Fake_parts_insert]
@@ -255,7 +250,7 @@ qed_spec_mp "B_trusts_NS1";
 
 (**** Authenticity properties obtained from NS2 ****)
 
-(*Uniqueness for NS2: nonce NB identifies nonce NA and agents A, B 
+(*Unicity for NS2: nonce NB identifies nonce NA and agents A, B 
   [unicity of B makes Lowe's fix work]
   [proof closely follows that for unique_NA] *)
 goal thy 
