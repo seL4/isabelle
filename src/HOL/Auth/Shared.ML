@@ -5,7 +5,7 @@
 
 Theory of Shared Keys (common to all symmetric-key protocols)
 
-Server keys; initial states of agents; new nonces and keys; function "sees" 
+Server keys; initial states of agents; freshness; function "sees" 
 *)
 
 
@@ -24,35 +24,16 @@ Addsimps [Un_insert_left, Un_insert_right];
   will not!*)
 Addsimps [o_def];
 
-(*** Basic properties of shrK and newK ***)
+(*** Basic properties of shrK ***)
 
-(*Injectiveness and freshness of new keys and nonces*)
-AddIffs [inj_shrK RS inj_eq, inj_newN RS inj_eq, 
-         inj_newK RS inj_eq, inj_nPair RS inj_eq];
+(*Injectiveness: Agents' long-term keys are distinct.*)
+AddIffs [inj_shrK RS inj_eq];
 
-(* invKey (shrK A) = shrK A *)
-bind_thm ("invKey_id", rewrite_rule [isSymKey_def] isSym_keys);
-
-Addsimps [invKey_id];
-
-goal thy "!!K. newK i = invKey K ==> newK i = K";
-by (rtac (invKey_eq RS iffD1) 1);
-by (Full_simp_tac 1);
-val newK_invKey = result();
-
-AddSDs [newK_invKey, sym RS newK_invKey];
-
-Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
+(* invKey(shrK A) = shrK A *)
+Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
-
-goal thy "Key (newK i) ~: parts (initState lost B)";
-by (agent.induct_tac "B" 1);
-by (Auto_tac ());
-qed "newK_notin_initState";
-
-AddIffs [newK_notin_initState];
 
 goalw thy [keysFor_def] "keysFor (parts (initState lost C)) = {}";
 by (agent.induct_tac "C" 1);
@@ -64,12 +45,6 @@ goalw thy [keysFor_def] "keysFor (Key``E) = {}";
 by (Auto_tac ());
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
-
-goal thy "shrK A ~: newK``E";
-by (agent.induct_tac "A" 1);
-by (Auto_tac ());
-qed "shrK_notin_image_newK";
-Addsimps [shrK_notin_image_newK];
 
 
 (*** Function "sees" ***)
@@ -371,10 +346,7 @@ val parts_insert_sees =
                  |> standard;
 
 
-(*** Specialized rewriting for analz_insert_Key_newK ***)
-
-(*Push newK applications in, allowing other keys to be pulled out*)
-val pushKey_newK = insComm thy "Key (newK ?evs)"  "Key (shrK ?C)";
+(*** Specialized rewriting for analz_insert_freshK ***)
 
 goal thy "!!A. A <= Compl (range shrK) ==> shrK x ~: A";
 by (Blast_tac 1);

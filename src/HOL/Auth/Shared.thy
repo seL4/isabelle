@@ -14,8 +14,8 @@ consts
   shrK    :: agent => key  (*symmetric keys*)
 
 rules
-  (*ALL keys are symmetric*)
-  isSym_keys "isSymKey K"
+  isSym_keys "isSymKey K"	(*All keys are symmetric*)
+  inj_shrK   "inj shrK"		(*No two agents have the same long-term key*)
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: [agent set, agent] => msg set
@@ -60,26 +60,5 @@ rules
     many fresh session keys.  We could, alternatively, restrict agents to
     an unspecified finite number.*)
   Key_supply_ax  "finite KK ==> EX K. K ~: KK & Key K ~: used evs"
-
-
-(*Agents generate random (symmetric) keys and nonces.
-  The numeric argument is typically the length of the current trace.
-  An injective pairing function allows multiple keys/nonces to be generated
-	in one protocol round.  A typical candidate for npair(i,j) is
-	2^j(2i+1)
-*)
-
-consts
-  nPair :: "nat*nat => nat"
-  newN  :: "nat => nat"
-  newK  :: "nat => key"
-
-rules
-  inj_shrK        "inj shrK"
-  inj_nPair       "inj nPair"
-  inj_newN        "inj newN"
-  inj_newK        "inj newK"
-
-  newK_neq_shrK   "newK i ~= shrK A" 
 
 end
