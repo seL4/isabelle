@@ -6,12 +6,12 @@
 
 header {*  Square roots of primes are irrational *}
 
-text {*
-  \medskip Contrast this linear Isar script with Markus Wenzel's 
-           more mathematical version.
-*}
-
 theory Sqrt_Script = Primes + Real:
+
+text {*
+  \medskip Contrast this linear Isar script with Markus Wenzel's more
+  mathematical version.
+*}
 
 section {* Preliminaries *}
 
@@ -56,8 +56,8 @@ constdefs
 section {* Main theorem *}
 
 text {*
-  \tweakskip The square root of any prime number (including @{text 2})
-  is irrational.
+  The square root of any prime number (including @{text 2}) is
+  irrational.
 *}
 
 theorem prime_sqrt_irrational: "\<lbrakk>p \<in> prime; x*x = real p; 0 \<le> x\<rbrakk> \<Longrightarrow> x \<notin> \<rat>"
@@ -66,12 +66,12 @@ apply clarify
 apply (erule_tac P="real m / real n * ?x = ?y" in rev_mp) 
 apply (simp del: real_of_nat_mult
 	    add: real_divide_eq_eq prime_not_square
-                 real_of_nat_mult [THEN sym])
+                 real_of_nat_mult [symmetric])
 done
 
 lemma two_is_prime: "2 \<in> prime"
 apply (auto simp add: prime_def)
-apply (case_tac "m")
+apply (case_tac m)
 apply (auto dest!: dvd_imp_le)
 apply arith
 done
