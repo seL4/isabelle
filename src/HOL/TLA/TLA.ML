@@ -946,7 +946,7 @@ qed_goal "wf_box_dmd_decrease" TLA.thy
             Force_tac 1,
             etac STL4E 1,
             rtac DmdImpl 1,
-            force_tac (temp_css addSEs2 [prem RS wf_irrefl]) 1
+            force_tac (temp_css addIs2 [prem RS wf_irrefl]) 1
            ]);
 
 (* In particular, for natural numbers, if n decreases infinitely often
@@ -972,8 +972,8 @@ section "Flexible quantification";
 
 qed_goal "aallI" TLA.thy 
   "[| basevars vs; (!!x. basevars (x,vs) ==> sigma |= F x) |] ==> sigma |= (AALL x. F x)"
-  (fn prems => [auto_tac (temp_css addsimps2 [aall_def] addSEs2 [eexE] 
-                                   addSIs2 prems addSDs2 prems)]);
+  (fn [prem1,prem2] => [auto_tac (temp_css addsimps2 [aall_def] addSEs2 [eexE] 
+                                   addSIs2 [prem1] addSDs2 [prem2])]);
 
 qed_goalw "aallE" TLA.thy [aall_def] "|- (AALL x. F x) --> F x"
    (K [Clarsimp_tac 1, etac swap 1,
