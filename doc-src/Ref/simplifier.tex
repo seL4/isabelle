@@ -267,15 +267,16 @@ merge_ss : simpset * simpset -> simpset
 
 
 \subsection{Accessing the current simpset}
+\label{sec:access-current-simpset}
 
 \begin{ttbox}
-simpset        : unit -> simpset
-simpset_ref    : unit -> simpset ref
+simpset        : unit   -> simpset
+simpset_ref    : unit   -> simpset ref
 simpset_of     : theory -> simpset
 simpset_ref_of : theory -> simpset ref
-SIMPSET        : (simpset -> tactic) -> tactic
-SIMPSET'       : (simpset -> 'a -> tactic) -> 'a -> tactic
 print_simpset  : theory -> unit
+SIMPSET        :(simpset ->       tactic) ->       tactic
+SIMPSET'       :(simpset -> 'a -> tactic) -> 'a -> tactic
 \end{ttbox}
 
 Each theory contains a current simpset\index{simpset!current} stored
@@ -297,13 +298,13 @@ modified as follows.
 \item[\ttindexbold{simpset_ref_of} $thy$;] retrieves the simpset
   reference variable from theory $thy$.
 
+\item[\ttindexbold{print_simpset} $thy$;] prints the current simpset
+  of theory $thy$ in the same way as \texttt{print_ss}.
+
 \item[\ttindexbold{SIMPSET} $tacf$, \ttindexbold{SIMPSET'} $tacf'$]
   are tacticals that make a tactic depend on the implicit current
   simpset of the theory associated with the proof state they are
   applied on.
-
-\item[\ttindexbold{print_simpset} $thy$;] prints the current simpset
-  of theory $thy$ in the same way as \texttt{print_ss}.
 
 \end{ttdescription}
 
