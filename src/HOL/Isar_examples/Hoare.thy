@@ -410,6 +410,38 @@ text {*
  meta-variables or parameters, for example.
 *}
 
+lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
+by (auto simp:Valid_def)
+
+lemma BasicRule: "p \<subseteq> {s. f s \<in> q} \<Longrightarrow> Valid p (Basic f) q"
+by (auto simp:Valid_def)
+
+lemma SeqRule: "Valid P c1 Q \<Longrightarrow> Valid Q c2 R \<Longrightarrow> Valid P (c1;c2) R"
+by (auto simp:Valid_def)
+
+lemma CondRule:
+ "p \<subseteq> {s. (s \<in> b \<longrightarrow> s \<in> w) \<and> (s \<notin> b \<longrightarrow> s \<in> w')}
+  \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
+by (auto simp:Valid_def)
+
+lemma iter_aux: "! s s'. Sem c s s' --> s : I & s : b --> s' : I ==>
+       (\<And>s s'. s : I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : I & s' ~: b)";
+apply(induct n)
+ apply clarsimp
+apply(simp (no_asm_use))
+apply blast
+done
+
+lemma WhileRule:
+ "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i c) q"
+apply (clarsimp simp:Valid_def)
+apply(drule iter_aux)
+  prefer 2 apply assumption
+ apply blast
+apply blast
+done
+
+
 ML {* val Valid_def = thm "Valid_def" *}
 use "~~/src/HOL/Hoare/hoare.ML"
 
