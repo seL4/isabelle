@@ -10,8 +10,6 @@ writeln"File HOL/equalities";
 
 AddSIs [equalityI];
 
-val eq_cs = set_cs addSIs [equalityI];
-
 section "{}";
 
 goal Set.thy "{x.False} = {}";
@@ -70,6 +68,15 @@ goal Set.thy "!!a. a:A ==> ? B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Fast_tac 1);
 qed "mk_disjoint_insert";
+
+goal Set.thy
+    "!!A. A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
+by (Fast_tac 1);
+qed "UN_insert_distrib";
+
+goal Set.thy "(UN x. insert a (B x)) = insert a (UN x. B x)";
+by (Fast_tac 1);
+qed "UN1_insert_distrib";
 
 section "``";
 
@@ -192,7 +199,7 @@ by (Fast_tac 1);
 qed "Un_UNIV_right";
 Addsimps[Un_UNIV_right];
 
-goal Set.thy "insert a B Un C = insert a (B Un C)";
+goal Set.thy "(insert a B) Un C = insert a (B Un C)";
 by (Fast_tac 1);
 qed "Un_insert_left";
 
