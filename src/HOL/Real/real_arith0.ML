@@ -24,7 +24,7 @@ val add_rules =
          real_mult_minus_1, real_mult_minus_1_right];
 
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
-               Real_Numeral_Simprocs.cancel_numerals(* @ real_cancel_numeral_factors*);
+               Real_Numeral_Simprocs.cancel_numerals;
 
 val mono_ss = simpset() addsimps
                 [real_add_le_mono,real_add_less_mono,

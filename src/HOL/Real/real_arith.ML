@@ -12,7 +12,7 @@ local
 val simps = [True_implies_equals,inst "w" "number_of ?v" real_add_mult_distrib2,
              real_divide_1,real_times_divide1_eq,real_times_divide2_eq];
 
-val simprocs = [hd(rev real_cancel_numeral_factors)];
+val simprocs = [real_cancel_numeral_factors_divide];
 
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
