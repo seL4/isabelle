@@ -44,9 +44,9 @@ inductive "yahalom lost"
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                : set_of_list evs |]
           ==> Says Server A
-                  {|Crypt (shrK A) {|Agent B, Key KAB, Nonce NA, Nonce NB|},
-                    Crypt (shrK B) {|Agent A, Key KAB|}|}
-                 # evs : yahalom lost"
+                   {|Crypt (shrK A) {|Agent B, Key KAB, Nonce NA, Nonce NB|},
+                     Crypt (shrK B) {|Agent A, Key KAB|}|}
+                # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
@@ -64,5 +64,13 @@ inductive "yahalom lost"
                                    {|Agent B, Key K, Nonce NA, Nonce NB|},
                              X|}  : set_of_list evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
+
+
+constdefs 
+  KeyWithNonce :: [key, nat, event list] => bool
+  "KeyWithNonce K NB evs ==
+     EX A B na X. 
+       Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, Nonce NB|}, X|} 
+         : set_of_list evs"
 
 end
