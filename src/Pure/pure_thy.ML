@@ -234,6 +234,8 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         val named_thms = post_name name thms';
 
         val r as ref {space, thms_tab, index} = get_theorems_sg sg;
+        val _ = conditional (Sign.is_draft sg andalso is_some (Symtab.lookup (thms_tab, name)))
+          (fn () => error ("Duplicate fact binding " ^ quote name));
         val space' = NameSpace.extend (space, [name]);
         val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
         val index' = FactIndex.add (K false) (index, (name, named_thms));
