@@ -6,17 +6,25 @@
 Type "int" is a linear order
 *)
 
-Int = IntDef + 
+theory Int = IntDef
+files ("int.ML"):
 
-instance int :: order (zle_refl,zle_trans,zle_anti_sym,int_less_le)
-instance int :: plus_ac0 (zadd_commute,zadd_assoc,zadd_0)
-instance int :: linorder (zle_linear)
+instance int :: order
+proof qed (assumption | rule zle_refl zle_trans zle_anti_sym int_less_le)+
+
+instance int :: plus_ac0
+proof qed (rule zadd_commute zadd_assoc zadd_0)+
+
+instance int :: linorder
+proof qed (rule zle_linear)
 
 constdefs
-  nat  :: int => nat
-  "nat(Z) == if neg Z then 0 else (THE m. Z = int m)"
+  nat  :: "int => nat"
+ "nat(Z) == if neg Z then 0 else (THE m. Z = int m)"
 
-defs
-  zabs_def  "abs(i::int) == if i < 0 then -i else i"
+defs (overloaded)
+  zabs_def:  "abs(i::int) == if i < 0 then -i else i"
+
+use "int.ML"
 
 end
