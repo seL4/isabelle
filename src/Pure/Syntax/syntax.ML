@@ -47,6 +47,7 @@ sig
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
+  val trfun_names: syntax -> string list * string list * string list * string list
   val test_read: syntax -> string -> string -> unit
   val read: syntax -> typ -> string -> term list
   val read_typ: syntax -> ((indexname * sort) list -> indexname -> sort) -> string -> typ
@@ -71,7 +72,7 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 (*does not subsume typed print translations*)
 type 'a trtab = (('a list -> 'a) * stamp) Symtab.table;
 
-val dest_trtab = Symtab.dest;
+fun dest_trtab tab = map fst (Symtab.dest tab);
 
 fun lookup_trtab tab c =
   apsome fst (Symtab.lookup (tab, c));
@@ -269,6 +270,7 @@ val type_syn =
 val pure_syn = extend_syntax ("", true) type_syn pure_ext;
 
 
+
 (** inspect syntax **)
 
 fun pretty_strs_qs name strs =
@@ -294,7 +296,7 @@ fun print_gram (Syntax tabs) =
 fun print_trans (Syntax tabs) =
   let
     fun pretty_trtab name tab =
-      pretty_strs_qs name (map fst (dest_trtab tab));
+      pretty_strs_qs name (dest_trtab tab);
 
     fun pretty_ruletab name tab =
       Pretty.big_list name (map pretty_rule (dest_ruletab tab));
@@ -318,6 +320,13 @@ fun print_trans (Syntax tabs) =
 (* print_syntax *)
 
 fun print_syntax syn = (print_gram syn; print_trans syn);
+
+
+(* trfun_names *)
+
+fun trfun_names (Syntax {parse_ast_trtab, parse_trtab, print_trtab, print_ruletab, ...}) =
+  (dest_trtab parse_ast_trtab, dest_trtab parse_trtab,
+    dest_trtab print_trtab, dest_trtab print_ruletab);
 
 
 
