@@ -12,6 +12,7 @@ FILES =  ref.tex introduction.tex goals.tex tactic.tex tctical.tex\
 	 ../iman.sty ../extra.sty
 
 ref.dvi.gz:   $(FILES) 
+	-rm ref.dvi.gz
 	latex209 ref
 	bibtex ref
 	latex209 ref
