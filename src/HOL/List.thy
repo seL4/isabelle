@@ -679,6 +679,63 @@ primrec
    "listset(A#As) = set_Cons A (listset As)"
 
 
+subsection{*Lifting a Relation on List Elements to the Lists*}
+consts  listrel :: "('a * 'a)set => ('a list * 'a list)set"
+
+inductive "listrel(r)"
+ intros
+   Nil:  "([],[]) \<in> listrel r"
+   Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
+
+inductive_cases listrel_Nil1 [elim!]: "([],xs) \<in> listrel r"
+inductive_cases listrel_Nil2 [elim!]: "(xs,[]) \<in> listrel r"
+inductive_cases listrel_Cons1 [elim!]: "(y#ys,xs) \<in> listrel r"
+inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
+
+
+lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
+apply clarify  
+apply (erule listrel.induct)
+apply (blast intro: listrel.intros)+
+done
+
+lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
+apply clarify 
+apply (erule listrel.induct, auto) 
+done
+
+lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
+apply (simp add: refl_def listrel_subset Ball_def)
+apply (rule allI) 
+apply (induct_tac x) 
+apply (auto intro: listrel.intros)
+done
+
+lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)" 
+apply (auto simp add: sym_def)
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
+done
+
+lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)" 
+apply (simp add: trans_def)
+apply (intro allI) 
+apply (rule impI) 
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
+done
+
+theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
+by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
+
+lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
+by (blast intro: listrel.intros)
+
+lemma listrel_Cons:
+     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})";
+by (auto simp add: set_Cons_def intro: listrel.intros) 
+
+
 subsection {* @{text mem} *}
 
 lemma set_mem_eq: "(x mem xs) = (x : set xs)"
