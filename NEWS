@@ -11,15 +11,23 @@ New in Isabelle???? (DATE ????)
 
 * removed obsolete init_pps and init_database;
 
-* defs may now be conditional;
+* defs may now be conditional; improved rewrite_goals_tac to handle
+conditional equations;
 
 * improved output of warnings / errors;
 
-* deleted the obsolete tactical STATE, which was declared by
+* deleted the obsolete tactical STATE, which was declared by:
     fun STATE tacfun st = tacfun st st;
 
-* added simplification meta rules
+* added simplification meta rules:
     (asm_)(full_)simplify: simpset -> thm -> thm;
+
+* simplifier.ML no longer part of Pure -- has to be loaded by object
+logics (again);
+
+* added prems argument to simplification procedures;
+
+
 
 New in Isabelle94-8 (May 1997)
 ------------------------------
