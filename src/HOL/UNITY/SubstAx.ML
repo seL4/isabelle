@@ -84,6 +84,13 @@ by (stac Un_eq_Union 1);
 by (blast_tac (claset() addIs [LeadsTo_Union]) 1);
 qed "LeadsTo_Un";
 
+(*Lets us look at the starting state*)
+val prems = 
+Goal "(!!s. s : A ==> F : {s} LeadsTo B) ==> F : A LeadsTo B";
+by (stac (UN_singleton RS sym) 1 THEN rtac LeadsTo_UN 1);
+by (blast_tac (claset() addIs prems) 1);
+qed "single_LeadsTo_I";
+
 Goal "A <= B ==> F : A LeadsTo B";
 by (simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
@@ -257,22 +264,22 @@ by (full_simp_tac
 by (dtac psp_stable 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps Int_ac) 1);
-qed "PSP_stable";
+qed "PSP_Stable";
 
 Goal "[| F : A LeadsTo A'; F : Stable B |] \
 \     ==> F : (B Int A) LeadsTo (B Int A')";
-by (asm_simp_tac (simpset() addsimps PSP_stable::Int_ac) 1);
-qed "PSP_stable2";
+by (asm_simp_tac (simpset() addsimps PSP_Stable::Int_ac) 1);
+qed "PSP_Stable2";
 
 Goal "[| F : A LeadsTo A'; F : B Co B' |] \
-\     ==> F : (A Int B) LeadsTo ((A' Int B) Un (B' - B))";
+\     ==> F : (A Int B') LeadsTo ((A' Int B) Un (B' - B))";
 by (full_simp_tac
     (simpset() addsimps [LeadsTo_def, Constrains_eq_constrains]) 1);
 by (blast_tac (claset() addDs [psp] addIs [leadsTo_weaken]) 1);
 qed "PSP";
 
 Goal "[| F : A LeadsTo A'; F : B Co B' |] \
-\     ==> F : (B Int A) LeadsTo ((B Int A') Un (B' - B))";
+\     ==> F : (B' Int A) LeadsTo ((B Int A') Un (B' - B))";
 by (asm_simp_tac (simpset() addsimps PSP::Int_ac) 1);
 qed "PSP2";
 
@@ -290,7 +297,7 @@ Goal "[| F : Stable A;  F : transient C;  \
 \        F : Always (-A Un B Un C) |] ==> F : A LeadsTo B";
 by (etac Always_LeadsTo_weaken 1);
 by (rtac LeadsTo_Diff 1);
-by (etac (transient_imp_leadsTo RS leadsTo_imp_LeadsTo RS PSP_stable2) 2);
+by (etac (transient_imp_leadsTo RS leadsTo_imp_LeadsTo RS PSP_Stable2) 2);
 by (ALLGOALS (blast_tac (claset() addIs [subset_imp_LeadsTo])));
 qed "Stable_transient_Always_LeadsTo";
 
