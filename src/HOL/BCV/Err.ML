@@ -87,7 +87,6 @@ Goalw
  [semilat_Def,closed_def,plussub_def,lesub_def,lift2_def,Err.le_def,err_def]
  "semilat(A,r,f) ==> semilat(err A, Err.le r, lift2(%x y. OK(f x y)))";
 by (asm_full_simp_tac (simpset() addsplits [err.split]) 1);
-by (Blast_tac 1);
 qed "semilat_errI";
 
 Goalw [sl_def,esl_def]

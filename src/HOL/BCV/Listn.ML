@@ -115,7 +115,6 @@ qed "in_list_Suc_iff";
 
 Goal "(x#xs : list (Suc n) A) = (x:A & xs : list n A)";
 by (simp_tac (simpset() addsimps [in_list_Suc_iff]) 1);
-by (Blast_tac 1);
 qed "Cons_in_list_Suc";
 AddIffs [Cons_in_list_Suc];
 
