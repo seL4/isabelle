@@ -49,9 +49,9 @@ Logic.auto_rename := true; Logic.set_rename_prefix "a";
 
 writeln"Problem 25";
 Goal "(? x. P x) &  \
-\       (! x. L x --> ~ (M x & R x)) &  \
-\       (! x. P x --> (M x & L x)) &   \
-\       ((! x. P x --> Q x) | (? x. P x & R x))  \
+\     (! x. L x --> ~ (M x & R x)) &  \
+\     (! x. P x --> (M x & L x)) &   \
+\     ((! x. P x --> Q x) | (? x. P x & R x))  \
 \   --> (? x. Q x & P x)";
 by (rtac ccontr 1);
 val [prem25] = gethyps 1;
@@ -90,7 +90,7 @@ by (depth_prolog_tac horns26);  (*1.4 secs*)
 
 writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";  (*16 Horn clauses*)
 Goal "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))  \
-\         --> (! x. (! y. q x y = (q y x::bool)))";
+\     --> (! x. (! y. q x y = (q y x::bool)))";
 by (rtac ccontr 1);
 val [prem43] = gethyps 1;
 val nnf43 = make_nnf prem43;
@@ -309,16 +309,16 @@ result();
 
 writeln"Problem 24";  (*The first goal clause is useless*)
 Goal "~(? x. S x & Q x) & (! x. P x --> Q x | R x) &  \
-\    (~(? x. P x) --> (? x. Q x)) & (! x. Q x | R x --> S x)  \
+\     (~(? x. P x) --> (? x. Q x)) & (! x. Q x | R x --> S x)  \
 \   --> (? x. P x & R x)";
 by (safe_meson_tac 1); 
 result();
 
 writeln"Problem 25";
 Goal "(? x. P x) &  \
-\       (! x. L x --> ~ (M x & R x)) &  \
-\       (! x. P x --> (M x & L x)) &   \
-\       ((! x. P x --> Q x) | (? x. P x & R x))  \
+\     (! x. L x --> ~ (M x & R x)) &  \
+\     (! x. P x --> (M x & L x)) &   \
+\     ((! x. P x --> Q x) | (? x. P x & R x))  \
 \   --> (? x. Q x & P x)";
 by (safe_meson_tac 1); 
 result();
@@ -332,17 +332,17 @@ result();
 
 writeln"Problem 27";    (*13 Horn clauses*)
 Goal "(? x. P x & ~Q x) &   \
-\             (! x. P x --> R x) &   \
-\             (! x. M x & L x --> P x) &   \
-\             ((? x. R x & ~ Q x) --> (! x. L x --> ~ R x))  \
-\         --> (! x. M x --> ~L x)";
+\     (! x. P x --> R x) &   \
+\     (! x. M x & L x --> P x) &   \
+\     ((? x. R x & ~ Q x) --> (! x. L x --> ~ R x))  \
+\     --> (! x. M x --> ~L x)";
 by (safe_meson_tac 1); 
 result();
 
 writeln"Problem 28.  AMENDED";  (*14 Horn clauses*)
 Goal "(! x. P x --> (! x. Q x)) &   \
-\       ((! x. Q x | R x) --> (? x. Q x & S x)) &  \
-\       ((? x. S x) --> (! x. L x --> M x))  \
+\     ((! x. Q x | R x) --> (? x. Q x & S x)) &  \
+\     ((? x. S x) --> (! x. L x --> M x))  \
 \   --> (! x. P x & L x --> M x)";
 by (safe_meson_tac 1);  
 result();
@@ -357,39 +357,39 @@ result();
 
 writeln"Problem 30";
 Goal "(! x. P x | Q x --> ~ R x) & \
-\       (! x. (Q x --> ~ S x) --> P x & R x)  \
+\     (! x. (Q x --> ~ S x) --> P x & R x)  \
 \   --> (! x. S x)";
 by (safe_meson_tac 1);  
 result();
 
 writeln"Problem 31";  (*10 Horn clauses; first negative clauses is useless*)
 Goal "~(? x. P x & (Q x | R x)) & \
-\       (? x. L x & P x) & \
-\       (! x. ~ R x --> M x)  \
+\     (? x. L x & P x) & \
+\     (! x. ~ R x --> M x)  \
 \   --> (? x. L x & M x)";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 32";
 Goal "(! x. P x & (Q x | R x)-->S x) & \
-\       (! x. S x & R x --> L x) & \
-\       (! x. M x --> R x)  \
+\     (! x. S x & R x --> L x) & \
+\     (! x. M x --> R x)  \
 \   --> (! x. P x & M x --> L x)";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 33";  (*55 Horn clauses*)
 Goal "(! x. P a & (P x --> P b)-->P c)  =    \
-\    (! x. (~P a | P x | P c) & (~P a | ~P b | P c))";
+\     (! x. (~P a | P x | P c) & (~P a | ~P b | P c))";
 by (safe_meson_tac 1);          (*5.6 secs*)
 result();
 
 writeln"Problem 34  AMENDED (TWICE!!)"; (*924 Horn clauses*)
 (*Andrews's challenge*)
 Goal "((? x. ! y. p x = p y)  =               \
-\              ((? x. q x) = (! y. p y)))     =       \
-\             ((? x. ! y. q x = q y)  =               \
-\              ((? x. p x) = (! y. q y)))";
+\      ((? x. q x) = (! y. p y)))     =       \
+\     ((? x. ! y. q x = q y)  =               \
+\      ((? x. p x) = (! y. q y)))";
 by (safe_meson_tac 1);          (*13 secs*)
 result();
 
@@ -400,9 +400,9 @@ result();
 
 writeln"Problem 36";  (*15 Horn clauses*)
 Goal "(! x. ? y. J x y) & \
-\       (! x. ? y. G x y) & \
-\       (! x y. J x y | G x y -->       \
-\       (! z. J y z | G y z --> H x z))   \
+\     (! x. ? y. G x y) & \
+\     (! x y. J x y | G x y -->       \
+\     (! z. J y z | G y z --> H x z))   \
 \   --> (! x. ? y. H x y)";
 by (safe_meson_tac 1);
 result();
@@ -410,19 +410,18 @@ result();
 writeln"Problem 37";  (*10 Horn clauses*)
 Goal "(! z. ? w. ! x. ? y. \
 \          (P x z --> P y w) & P y z & (P y w --> (? u. Q u w))) & \
-\       (! x z. ~P x z --> (? y. Q y z)) & \
-\       ((? x y. Q x y) --> (! x. R x x))  \
+\     (! x z. ~P x z --> (? y. Q y z)) & \
+\     ((? x y. Q x y) --> (! x. R x x))  \
 \   --> (! x. ? y. R x y)";
 by (safe_meson_tac 1);   (*causes unification tracing messages*)
 result();
 
 writeln"Problem 38";  (*Quite hard: 422 Horn clauses!!*)
-Goal
-    "(! x. p a & (p x --> (? y. p y & r x y)) -->            \
+Goal "(! x. p a & (p x --> (? y. p y & r x y)) -->            \
 \          (? z. ? w. p z & r x w & r w z))  =                 \
-\    (! x. (~p a | p x | (? z. ? w. p z & r x w & r w z)) &  \
-\          (~p a | ~(? y. p y & r x y) |                      \
-\           (? z. ? w. p z & r x w & r w z)))";
+\     (! x. (~p a | p x | (? z. ? w. p z & r x w & r w z)) &  \
+\           (~p a | ~(? y. p y & r x y) |                      \
+\            (? z. ? w. p z & r x w & r w z)))";
 by (safe_best_meson_tac 1);  (*10 secs; iter. deepening is slightly slower*)
 result();
 
@@ -433,13 +432,13 @@ result();
 
 writeln"Problem 40.  AMENDED";
 Goal "(? y. ! x. F x y = F x x)  \
-\       -->  ~ (! x. ? y. ! z. F z y = (~F z x))";
+\     -->  ~ (! x. ? y. ! z. F z y = (~F z x))";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 41";
 Goal "(! z. (? y. (! x. f x y = (f x z & ~ f x x))))    \
-\              --> ~ (? z. ! x. f x z)";
+\     --> ~ (? z. ! x. f x z)";
 by (safe_meson_tac 1);
 result();
 
@@ -450,78 +449,77 @@ result();
 
 writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";
 Goal "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))  \
-\         --> (! x. (! y. q x y = (q y x::bool)))";
+\     --> (! x. (! y. q x y = (q y x::bool)))";
 by (safe_best_meson_tac 1);     
 (*1.6 secs; iter. deepening is slightly slower*)
 result();
 
 writeln"Problem 44";  (*13 Horn clauses; 7-step proof*)
 Goal "(! x. f x -->                                    \
-\             (? y. g y & h x y & (? y. g y & ~ h x y)))  &   \
-\             (? x. j x & (! y. g y --> h x y))               \
-\             --> (? x. j x & ~f x)";
+\           (? y. g y & h x y & (? y. g y & ~ h x y)))  &   \
+\     (? x. j x & (! y. g y --> h x y))               \
+\     --> (? x. j x & ~f x)";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 45";  (*27 Horn clauses; 54-step proof*)
 Goal "(! x. f x & (! y. g y & h x y --> j x y)        \
-\                     --> (! y. g y & h x y --> k y)) &       \
+\           --> (! y. g y & h x y --> k y)) &       \
 \     ~ (? y. l y & k y) &                                    \
 \     (? x. f x & (! y. h x y --> l y)                        \
-\                  & (! y. g y & h x y --> j x y))             \
+\               & (! y. g y & h x y --> j x y))             \
 \     --> (? x. f x & ~ (? y. g y & h x y))";
 by (safe_best_meson_tac 1);     
 (*1.6 secs; iter. deepening is slightly slower*)
 result();
 
 writeln"Problem 46";  (*26 Horn clauses; 21-step proof*)
-Goal
-    "(! x. f x & (! y. f y & h y x --> g y) --> g x) &      \
-\    ((? x. f x & ~g x) -->                                    \
+Goal "(! x. f x & (! y. f y & h y x --> g y) --> g x) &      \
+\     ((? x. f x & ~g x) -->                                    \
 \     (? x. f x & ~g x & (! y. f y & ~g y --> j x y))) &    \
-\    (! x y. f x & f y & h x y --> ~j y x)                    \
+\     (! x y. f x & f y & h x y --> ~j y x)                    \
 \     --> (! x. f x --> g x)";
 by (safe_best_meson_tac 1);     
 (*1.7 secs; iter. deepening is slightly slower*)
 result();
 
 writeln"Problem 47.  Schubert's Steamroller";
-        (*26 clauses; 63 Horn clauses*)
-Goal
-    "(! x. P1 x --> P0 x) & (? x. P1 x) &     \
-\    (! x. P2 x --> P0 x) & (? x. P2 x) &     \
-\    (! x. P3 x --> P0 x) & (? x. P3 x) &     \
-\    (! x. P4 x --> P0 x) & (? x. P4 x) &     \
-\    (! x. P5 x --> P0 x) & (? x. P5 x) &     \
-\    (! x. Q1 x --> Q0 x) & (? x. Q1 x) &     \
-\    (! x. P0 x --> ((! y. Q0 y-->R x y) |    \
-\                     (! y. P0 y & S y x &     \
-\                          (? z. Q0 z&R y z) --> R x y))) &   \
-\    (! x y. P3 y & (P5 x|P4 x) --> S x y) &        \
-\    (! x y. P3 x & P2 y --> S x y) &        \
-\    (! x y. P2 x & P1 y --> S x y) &        \
-\    (! x y. P1 x & (P2 y|Q1 y) --> ~R x y) &       \
-\    (! x y. P3 x & P4 y --> R x y) &        \
-\    (! x y. P3 x & P5 y --> ~R x y) &       \
-\    (! x. (P4 x|P5 x) --> (? y. Q0 y & R x y))      \
-\    --> (? x y. P0 x & P0 y & (? z. Q1 z & R y z & R x y))";
-by (safe_meson_tac 1);   (*119 secs*)
+        (*26 clauses; 63 Horn clauses
+          87094 inferences so far.  Searching to depth 36*)
+Goal "(! x. P1 x --> P0 x) & (? x. P1 x) &     \
+\     (! x. P2 x --> P0 x) & (? x. P2 x) &     \
+\     (! x. P3 x --> P0 x) & (? x. P3 x) &     \
+\     (! x. P4 x --> P0 x) & (? x. P4 x) &     \
+\     (! x. P5 x --> P0 x) & (? x. P5 x) &     \
+\     (! x. Q1 x --> Q0 x) & (? x. Q1 x) &     \
+\     (! x. P0 x --> ((! y. Q0 y-->R x y) |    \
+\                      (! y. P0 y & S y x &     \
+\                           (? z. Q0 z&R y z) --> R x y))) &   \
+\     (! x y. P3 y & (P5 x|P4 x) --> S x y) &        \
+\     (! x y. P3 x & P2 y --> S x y) &        \
+\     (! x y. P2 x & P1 y --> S x y) &        \
+\     (! x y. P1 x & (P2 y|Q1 y) --> ~R x y) &       \
+\     (! x y. P3 x & P4 y --> R x y) &        \
+\     (! x y. P3 x & P5 y --> ~R x y) &       \
+\     (! x. (P4 x|P5 x) --> (? y. Q0 y & R x y))      \
+\     --> (? x y. P0 x & P0 y & (? z. Q1 z & R y z & R x y))";
+by (safe_meson_tac 1);   (*40 secs*)
 result();
 
 (*The Los problem?  Circulated by John Harrison*)
 Goal "(! x y z. P x y & P y z --> P x z) &      \
-\      (! x y z. Q x y & Q y z --> Q x z) &             \
-\      (! x y. P x y --> P y x) &                       \
-\      (! x y. P x y | Q x y)                           \
-\      --> (! x y. P x y) | (! x y. Q x y)";
+\     (! x y z. Q x y & Q y z --> Q x z) &             \
+\     (! x y. P x y --> P y x) &                       \
+\     (! x y. P x y | Q x y)                           \
+\     --> (! x y. P x y) | (! x y. Q x y)";
 by (safe_best_meson_tac 1);     (*2.3 secs; iter. deepening is VERY slow*)
 result();
 
 (*A similar example, suggested by Johannes Schumann and credited to Pelletier*)
 Goal "(!x y z. P x y --> P y z --> P x z) --> \
-\       (!x y z. Q x y --> Q y z --> Q x z) --> \
-\       (!x y. Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
-\       (!x y. P x y) | (!x y. Q x y)";
+\     (!x y z. Q x y --> Q y z --> Q x z) --> \
+\     (!x y. Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
+\     (!x y. P x y) | (!x y. Q x y)";
 by (safe_best_meson_tac 1);          (*2.7 secs*)
 result();
 
@@ -536,28 +534,26 @@ writeln"Problem 55";
 (*Non-equational version, from Manthey and Bry, CADE-9 (Springer, 1988).
   meson_tac cannot report who killed Agatha. *)
 Goal "lives agatha & lives butler & lives charles & \
-\  (killed agatha agatha | killed butler agatha | killed charles agatha) & \
-\  (!x y. killed x y --> hates x y & ~richer x y) & \
-\  (!x. hates agatha x --> ~hates charles x) & \
-\  (hates agatha agatha & hates agatha charles) & \
-\  (!x. lives x & ~richer x agatha --> hates butler x) & \
-\  (!x. hates agatha x --> hates butler x) & \
-\  (!x. ~hates x agatha | ~hates x butler | ~hates x charles) --> \
-\  (? x. killed x agatha)";
+\     (killed agatha agatha | killed butler agatha | killed charles agatha) & \
+\     (!x y. killed x y --> hates x y & ~richer x y) & \
+\     (!x. hates agatha x --> ~hates charles x) & \
+\     (hates agatha agatha & hates agatha charles) & \
+\     (!x. lives x & ~richer x agatha --> hates butler x) & \
+\     (!x. hates agatha x --> hates butler x) & \
+\     (!x. ~hates x agatha | ~hates x butler | ~hates x charles) --> \
+\     (? x. killed x agatha)";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 57";
-Goal
-    "P (f a b) (f b c) & P (f b c) (f a c) & \
-\    (! x y z. P x y & P y z --> P x z)    -->   P (f a b) (f a c)";
+Goal "P (f a b) (f b c) & P (f b c) (f a c) & \
+\     (! x y z. P x y & P y z --> P x z)    -->   P (f a b) (f a c)";
 by (safe_meson_tac 1);
 result();
 
 writeln"Problem 58";
 (* Challenge found on info-hol *)
-Goal
-    "! P Q R x. ? v w. ! y z. P x & Q y --> (P v | R w) & (R z --> Q v)";
+Goal "! P Q R x. ? v w. ! y z. P x & Q y --> (P v | R w) & (R z --> Q v)";
 by (safe_meson_tac 1);
 result();
 
@@ -572,10 +568,9 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 62 as corrected in JAR 18 (1997), page 135";
-Goal
-    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =   \
-\    (ALL x. (~ p a | p x | p(f(f x))) &                        \
-\            (~ p a | ~ p(f x) | p(f(f x))))";
+Goal "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =   \
+\     (ALL x. (~ p a | p x | p(f(f x))) &                        \
+\             (~ p a | ~ p(f x) | p(f(f x))))";
 by (safe_meson_tac 1);
 result();
 
@@ -604,6 +599,7 @@ result();
 writeln"Problem 67";  
 Goal (axjoin([axa,axb,axc,axd], "! x. T(i(n(n x)) x)"));
 (*TOO SLOW: more than 3 minutes!
+  51061 inferences so far.  Searching to depth 21
 by (safe_meson_tac 1);
 result();
 *)
