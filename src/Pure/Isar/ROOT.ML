@@ -6,6 +6,7 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 *)
 
 (*proof engine*)
+use "auto_bind.ML";
 use "proof_context.ML";
 use "proof.ML";
 use "proof_data.ML";
@@ -37,6 +38,7 @@ use "isar.ML";
 
 structure PureIsar =
 struct
+  structure AutoBind = AutoBind;
   structure ProofContext = ProofContext;
   structure Proof = Proof;
   structure ProofHistory = ProofHistory;

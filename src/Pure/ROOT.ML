@@ -39,7 +39,6 @@ use "logic.ML";
 use "theory.ML";
 use "theory_data.ML";
 use "context.ML";
-use "object_logic.ML";
 use "thm.ML";
 use "display.ML";
 use "pure_thy.ML";
