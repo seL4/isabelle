@@ -15,10 +15,12 @@ sig
     {sign: Sign.sg,
       axioms: term Symtab.table,
       oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
-      parents: theory list}
+      parents: theory list,
+      ancestors: theory list}
   val sign_of: theory -> Sign.sg
   val syn_of: theory -> Syntax.syntax
   val parents_of: theory -> theory list
+  val ancestors_of: theory -> theory list
   val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
   val cert_axm: Sign.sg -> string * term -> string * term
@@ -92,16 +94,19 @@ datatype theory =
     sign: Sign.sg,
     axioms: term Symtab.table,
     oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
-    parents: theory list};
+    parents: theory list,
+    ancestors: theory list};
 
-fun make_thy sign axms oras parents =
-  Theory {sign = sign, axioms = axms, oracles = oras, parents = parents};
+fun make_thy sign axms oras parents ancestors =
+  Theory {sign = sign, axioms = axms, oracles = oras,
+    parents = parents, ancestors = ancestors};
 
 fun rep_theory (Theory args) = args;
 
 val sign_of = #sign o rep_theory;
 val syn_of = #syn o Sign.rep_sg o sign_of;
 val parents_of = #parents o rep_theory;
+val ancestors_of = #ancestors o rep_theory;
 
 (*errors involving theories*)
 exception THEORY of string * theory list;
@@ -113,7 +118,7 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (* partial Pure theory *)
 
-val pre_pure = make_thy Sign.pre_pure Symtab.null Symtab.null [];
+val pre_pure = make_thy Sign.pre_pure Symtab.null Symtab.null [] [];
 
 
 
@@ -135,7 +140,7 @@ fun err_dup_oras names =
 
 fun ext_thy thy sign' new_axms new_oras =
   let
-    val Theory {sign, axioms, oracles, parents} = thy;
+    val Theory {sign, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
     val axioms' =
       Symtab.extend_new (if draft then axioms else Symtab.null, new_axms)
@@ -143,9 +148,10 @@ fun ext_thy thy sign' new_axms new_oras =
     val oracles' =
       Symtab.extend_new (oracles, new_oras)
         handle Symtab.DUPS names => err_dup_oras names;
-    val parents' = if draft then parents else [thy];
+    val (parents', ancestors') =
+      if draft then (parents, ancestors) else ([thy], thy :: ancestors);
   in
-    make_thy sign' axioms' oracles' parents'
+    make_thy sign' axioms' oracles' parents' ancestors'
   end;
 
 
@@ -256,11 +262,8 @@ fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
 
 (*results may contain duplicates!*)
 
-fun ancestry_of thy =
-  thy :: List.concat (map ancestry_of (parents_of thy));
-
-val all_axioms_of =
-  List.concat o map (Symtab.dest o #axioms o rep_theory) o ancestry_of;
+fun all_axioms_of thy =
+  flat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors_of thy));
 
 
 (* clash_types, clash_consts *)
@@ -377,30 +380,37 @@ val put_data = ext_sg Sign.put_data;
 
 
 
-(** merge theories **)
+(** merge theories **)		(*exception ERROR*)
+
+fun merge_sign (sg, thy) =
+  Sign.merge (sg, sign_of thy) handle TERM (msg, _) => error msg;
 
 (*merge list of theories from left to right, preparing extend*)
 fun prep_ext_merge thys =
   if null thys then
-    raise THEORY ("Merge: no parent theories", [])
+    error "Merge: no parent theories"
   else if exists (Sign.is_draft o sign_of) thys then
-    raise THEORY ("Attempt to merge draft theories", thys)
+    error "Attempt to merge draft theories"
   else
     let
-      fun add_sign (sg, Theory {sign, ...}) =
-        Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
       val sign' =
-        foldl add_sign (sign_of (hd thys), tl thys)
+        foldl merge_sign (sign_of (hd thys), tl thys)
         |> Sign.prep_ext
         |> Sign.add_path "/";
+
+      val axioms' = Symtab.null;
 
       fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
       val oracles' =
         Symtab.make (gen_distinct eq_ora
           (flat (map (Symtab.dest o #oracles o rep_theory) thys)))
         handle Symtab.DUPS names => err_dup_oras names;
+
+      val parents' = gen_distinct eq_thy thys;
+      val ancestors' =
+        gen_distinct eq_thy (parents' @ flat (map ancestors_of thys));
     in
-      make_thy sign' Symtab.null oracles' thys
+      make_thy sign' axioms' oracles' parents' ancestors'
     end;
 
 fun merge_theories name (thy1, thy2) =
