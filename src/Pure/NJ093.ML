@@ -85,7 +85,7 @@ structure OS =
   struct
   structure FileSys =
     struct
-    val OS.FileSys.chDir = System.Directory.cd
+    val chDir = System.Directory.cd
     val remove = System.Unsafe.SysIO.unlink       (*Delete a file *)
     val getDir = System.Directory.getWD           (*path of working directory*)
     end
@@ -110,7 +110,7 @@ fun execute command =
                 open_in tmp_name);
       val result = input (is, 999999);
   in close_in is;
-     delete_file tmp_name;
+     OS.FileSys.remove tmp_name;
      result
   end;
 
