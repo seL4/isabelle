@@ -1,11 +1,13 @@
 (*  Title: 	CHOL/IMP/ROOT.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
-    Copyright   1994 TUM
+    Author: 	Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow
+    Copyright   1995 TUM
 
-Executes the formalization of the denotational and operational semantics of a
-simple while-language, including an equivalence proof. The whole development
-essentially formalizes/transcribes chapters 2 and 5 of
+The formalization of the denotational, operational and axiomatic semantics of
+a simple while-language, including
+(1) an equivalence proof between denotational and operational semantics and
+(2) the derivation of the Hoare rules from the denotational semantics.
+The whole development essentially formalizes/transcribes chapters 2, 5 and 6 of
 
 Glynn Winskel. The Formal Semantics of Programming Languages.
 MIT Press, 1993.
@@ -19,3 +21,4 @@ proof_timing := true;
 loadpath := [".","IMP"];
 time_use_thy "Properties";
 time_use_thy "Equiv";
+time_use_thy "Hoare";
