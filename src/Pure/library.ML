@@ -976,6 +976,10 @@ fun scanwords is_let cs =
 datatype 'a mtree = Join of 'a * 'a mtree list;
 
 
+(* generic objects -- fool the ML type system via exception constructors *)
+type object = exn;
+
+
 end;
 
 open Library;
