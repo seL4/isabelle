@@ -256,7 +256,7 @@ qed_goalw "RepFunE" ZF.thy [RepFun_def]
   [ (rtac (major RS ReplaceE) 1),
     (REPEAT (ares_tac prems 1)) ]);
 
-AddIs  [RepFunI];  
+AddIs  [RepFun_eqI];  
 AddSEs [RepFunE];
 
 qed_goalw "RepFun_cong" ZF.thy [RepFun_def]
@@ -375,13 +375,13 @@ qed_goalw "InterD" ZF.thy [Inter_def]
 
 (*"Classical" elimination rule -- does not require exhibiting B:C *)
 qed_goalw "InterE" ZF.thy [Inter_def]
-    "[| A : Inter(C);  A:B ==> R;  B~:C ==> R |] ==> R"
+    "[| A : Inter(C);  B~:C ==> R;  A:B ==> R |] ==> R"
  (fn major::prems=>
   [ (rtac (major RS CollectD2 RS ballE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);
 
 AddSIs [InterI];
-AddEs  [InterD, make_elim InterD];
+AddEs  [InterD, InterE];
 
 (*** Rules for Intersections of families ***)
 (* INT x:A. B(x) abbreviates Inter({B(x). x:A}) *)
