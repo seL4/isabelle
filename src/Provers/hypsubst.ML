@@ -78,7 +78,7 @@ fun has_vars t = maxidx_of_term t <> ~1;
   When can we safely delete the equality?
     Not if it equates two constants; consider 0=1.
     Not if it resembles x=t[x], since substitution does not eliminate x.
-    Not if it resembles ?x=0; another goal could instantiate ?x to Suc(i)
+    Not if it resembles ?x=0; consider ?x=0 ==> ?x=1 or even ?x=0 ==> P
     Not if it involves a variable free in the premises, 
         but we can't check for this -- hence bnd and bound_hyp_subst_tac
   Prefer to eliminate Bound variables if possible.
