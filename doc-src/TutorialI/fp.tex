@@ -1,4 +1,54 @@
-\chapter{Functional Programming in HOL}Although on the surface this chapter is mainly concerned with how to writefunctional programs in HOL and how to verify them, most of the constructs andproof procedures introduced are general purpose and recur in any specificationor verification task. In fact, we really should speak of functional\emph{modelling} rather than \emph{programming}: our primary aim is notto write programs but to design abstract models of systems.  HOL isa specification language that goes well beyond what can be expressed as aprogram. However, for the time being we concentrate on the computable.The dedicated functional programmer should be warned: HOL offers only\emph{total functional programming} --- all functions in HOL must be total,i.e.\ they must terminate for all inputs; lazy data structures are notdirectly available.\section{An Introductory Theory}\label{sec:intro-theory}Functional programming needs datatypes and functions. Both of them can bedefined in a theory with a syntax reminiscent of languages like ML orHaskell. As an example consider the theory in figure~\ref{fig:ToyList}.We will now examine it line by line.\begin{figure}[htbp]\begin{ttbox}\makeatother\input{ToyList2/ToyList1}\end{ttbox}\caption{A theory of lists}\label{fig:ToyList}\end{figure}{\makeatother\input{ToyList/document/ToyList.tex}}The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. Theconcatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}constitutes the complete theory \texttt{ToyList} and should reside in file\texttt{ToyList.thy}. It is good practice to present all declarations anddefinitions at the beginning of a theory to facilitate browsing.\begin{figure}[htbp]\begin{ttbox}\makeatother\input{ToyList2/ToyList2}\end{ttbox}\caption{Proofs about lists}\label{fig:ToyList-proofs}\end{figure}\subsubsection*{Review}This is the end of our toy proof. It should have familiarized you with\begin{itemize}\item the standard theorem proving procedure:
+\chapter{Functional Programming in HOL}
+
+Although on the surface this chapter is mainly concerned with how to write
+functional programs in HOL and how to verify them, most of the constructs and
+proof procedures introduced are general purpose and recur in any specification
+or verification task. In fact, we really should speak of functional
+\emph{modelling} rather than \emph{programming}: our primary aim is not
+to write programs but to design abstract models of systems.  HOL is
+a specification language that goes well beyond what can be expressed as a
+program. However, for the time being we concentrate on the computable.
+
+The dedicated functional programmer should be warned: HOL offers only
+\emph{total functional programming} --- all functions in HOL must be total,
+i.e.\ they must terminate for all inputs; lazy data structures are not
+directly available.
+
+\section{An Introductory Theory}
+\label{sec:intro-theory}
+
+Functional programming needs datatypes and functions. Both of them can be
+defined in a theory with a syntax reminiscent of languages like ML or
+Haskell. As an example consider the theory in figure~\ref{fig:ToyList}.
+We will now examine it line by line.
+
+\begin{figure}[htbp]
+\begin{ttbox}\makeatother
+\input{ToyList2/ToyList1}\end{ttbox}
+\caption{A theory of lists}
+\label{fig:ToyList}
+\end{figure}
+
+{\makeatother\input{ToyList/document/ToyList.tex}}
+
+The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
+concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
+constitutes the complete theory \texttt{ToyList} and should reside in file
+\texttt{ToyList.thy}. It is good practice to present all declarations and
+definitions at the beginning of a theory to facilitate browsing.
+
+\begin{figure}[htbp]
+\begin{ttbox}\makeatother
+\input{ToyList2/ToyList2}\end{ttbox}
+\caption{Proofs about lists}
+\label{fig:ToyList-proofs}
+\end{figure}
+
+\subsubsection*{Review}
+
+This is the end of our toy proof. It should have familiarized you with
+\begin{itemize}
+\item the standard theorem proving procedure:
 state a goal (lemma or theorem); proceed with proof until a separate lemma is
 required; prove that lemma; come back to the original goal.
 \item a specific procedure that works well for functional programs:
@@ -16,30 +66,32 @@ and can be skipped by casual readers.
 There are two kinds of commands used during a proof: the actual proof
 commands and auxiliary commands for examining the proof state and controlling
 the display. Simple proof commands are of the form
-\isacommand{apply}\isa{(method)}\indexbold{apply} where \bfindex{method} is a
-synonym for ``theorem proving function''. Typical examples are
-\isa{induct_tac} and \isa{auto}. Further methods are introduced throughout
-the tutorial.  Unless stated otherwise you may assume that a method attacks
-merely the first subgoal. An exception is \isa{auto} which tries to solve all
-subgoals.
+\commdx{apply}\isa{(method)}, where \isa{method} is typically 
+\isa{induct_tac} or \isa{auto}.  All such theorem proving operations
+are referred to as \bfindex{methods}, and further ones are
+introduced throughout the tutorial.  Unless stated otherwise, you may
+assume that a method attacks merely the first subgoal. An exception is
+\isa{auto}, which tries to solve all subgoals.
 
-The most useful auxiliary commands are:
+The most useful auxiliary commands are as follows:
 \begin{description}
-\item[Undoing:] \isacommand{undo}\indexbold{*undo} undoes the effect of the
+\item[Undoing:] \commdx{undo} undoes the effect of
+the
   last command; \isacommand{undo} can be undone by
-  \isacommand{redo}\indexbold{*redo}.  Both are only needed at the shell
+  \commdx{redo}.  Both are only needed at the shell
   level and should not occur in the final theory.
-\item[Printing the current state:] \isacommand{pr}\indexbold{*pr} redisplays
+\item[Printing the current state:] \commdx{pr}
+redisplays
   the current proof state, for example when it has scrolled past the top of
   the screen.
 \item[Limiting the number of subgoals:] \isacommand{pr}~$n$ tells Isabelle to
   print only the first $n$ subgoals from now on and redisplays the current
   proof state. This is helpful when there are many subgoals.
 \item[Modifying the order of subgoals:]
-\isacommand{defer}\indexbold{*defer} moves the first subgoal to the end and
-\isacommand{prefer}\indexbold{*prefer}~$n$ moves subgoal $n$ to the front.
+\commdx{defer} moves the first subgoal to the end and
+\commdx{prefer}~$n$ moves subgoal $n$ to the front.
 \item[Printing theorems:]
-  \isacommand{thm}\indexbold{*thm}~\textit{name}$@1$~\dots~\textit{name}$@n$
+  \commdx{thm}~\textit{name}$@1$~\dots~\textit{name}$@n$
   prints the named theorems.
 \item[Displaying types:] We have already mentioned the flag
   \ttindex{show_types} above. It can also be useful for detecting typos in
@@ -62,10 +114,10 @@ Variables:\isanewline
 \end{isabelle}%
 \par\noindent
 would have alerted us because of the unexpected variable \isa{re}.
-\item[Reading terms and types:] \isacommand{term}\indexbold{*term}
+\item[Reading terms and types:] \commdx{term}
   \textit{string} reads, type-checks and prints the given string as a term in
   the current context; the inferred type is output as well.
-  \isacommand{typ}\indexbold{*typ} \textit{string} reads and prints the given
+  \commdx{typ} \textit{string} reads and prints the given
   string as a type in the current context.
 \item[(Re)loading theories:] When you start your interaction you must open a
   named theory with the line \isa{\isacommand{theory}~T~=~\dots~:}. Isabelle
@@ -76,7 +128,7 @@ would have alerted us because of the unexpected variable \isa{re}.
   If you suddenly discover that you need to modify a parent theory of your
   current theory, you must first abandon your current theory\indexbold{abandon
   theory}\indexbold{theory!abandon} (at the shell
-  level type \isacommand{kill}\indexbold{*kill}). After the parent theory has
+  level type \commdx{kill}). After the parent theory has
   been modified, you go back to your original theory. When its first line
   \isa{\isacommand{theory}~T~=~\dots~:} is processed, the
   modified parent is reloaded automatically.
@@ -84,7 +136,7 @@ would have alerted us because of the unexpected variable \isa{re}.
 %  The only time when you need to load a theory by hand is when you simply
 %  want to check if it loads successfully without wanting to make use of the
 %  theory itself. This you can do by typing
-%  \isa{\isacommand{use\_thy}\indexbold{*use_thy}~"T"}.
+%  \isa{\commdx{use\_thy}~"T"}.
 \end{description}
 Further commands are found in the Isabelle/Isar Reference Manual.
 
@@ -109,7 +161,7 @@ tutorial and users of HOL need to be familiar with their basic operations.
 Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
 \isa{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
 The latter contains many further operations. For example, the functions
-\isaindexbold{hd} (``head'') and \isaindexbold{tl} (``tail'') return the first
+\cdx{hd} (``head'') and \cdx{tl} (``tail'') return the first
 element and the remainder of a list. (However, pattern-matching is usually
 preferable to \isa{hd} and \isa{tl}.)  
 Also available are higher-order functions like \isa{map} and \isa{filter}.
@@ -142,11 +194,11 @@ primitive recursive function definitions.
 Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
 the natural numbers (see~{\S}\ref{sec:nat} below). For lists, \isa{size} is
 just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
-  1}.  In general, \isaindexbold{size} returns \isa{0} for all constructors
+  1}.  In general, \cdx{size} returns \isa{0} for all constructors
 that do not have an argument of type $t$, and for all other constructors
 \isa{1 +} the sum of the sizes of all arguments of type $t$. Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
-\isa{size} is also called \isaindexbold{length}, which is not overloaded.
+\isa{size} is also called \sdx{length}, which is not overloaded.
 Isabelle will always show \isa{size} on lists as \isa{length}.
 
 
@@ -324,7 +376,59 @@ This section presents advanced forms of \isacommand{datatype}s.
 {\makeatother\input{Datatype/document/Nested.tex}}
 
 
-\subsection{The Limits of Nested Recursion}How far can we push nested recursion? By the unfolding argument above, we canreduce nested to mutual recursion provided the nested recursion only involvespreviously defined datatypes. This does not include functions:\begin{isabelle}\isacommand{datatype} t = C "t \isasymRightarrow\ bool"\end{isabelle}This declaration is a real can of worms.In HOL it must be ruled out because it requires a type\isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have thesame cardinality --- an impossibility. For the same reason it is not possibleto allow recursion involving the type \isa{set}, which is isomorphic to\isa{t \isasymFun\ bool}.Fortunately, a limited form of recursioninvolving function spaces is permitted: the recursive type may occur on theright of a function arrow, but never on the left. Hence the above can of wormsis ruled out but the following example of a potentially infinitely branching tree isaccepted:\smallskip\input{Datatype/document/Fundata.tex}\bigskipIf you need nested recursion on the left of a function arrow, there arealternatives to pure HOL\@.  In the Logic for Computable Functions (LCF), types like\begin{isabelle}\isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"\end{isabelle}do indeed make sense~\cite{paulson87}.  Note the different arrow,\isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},expressing the type of \emph{continuous} functions. There is even a version of LCF on top of HOL,called HOLCF~\cite{MuellerNvOS99}.\index{*primrec|)}\index{*datatype|)}\subsection{Case Study: Tries}\label{sec:Trie}Tries are a classic search tree data structure~\cite{Knuth3-75} for fastindexing with strings. Figure~\ref{fig:trie} gives a graphical example of atrie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and``cat''.  When searching a string in a trie, the letters of the string areexamined sequentially. Each letter determines which subtrie to search next.In this case study we model tries as a datatype, define a lookup and anupdate function, and prove that they behave as expected.\begin{figure}[htbp]\begin{center}
+\subsection{The Limits of Nested Recursion}
+
+How far can we push nested recursion? By the unfolding argument above, we can
+reduce nested to mutual recursion provided the nested recursion only involves
+previously defined datatypes. This does not include functions:
+\begin{isabelle}
+\isacommand{datatype} t = C "t \isasymRightarrow\ bool"
+\end{isabelle}
+This declaration is a real can of worms.
+In HOL it must be ruled out because it requires a type
+\isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
+same cardinality --- an impossibility. For the same reason it is not possible
+to allow recursion involving the type \isa{set}, which is isomorphic to
+\isa{t \isasymFun\ bool}.
+
+Fortunately, a limited form of recursion
+involving function spaces is permitted: the recursive type may occur on the
+right of a function arrow, but never on the left. Hence the above can of worms
+is ruled out but the following example of a potentially infinitely branching tree is
+accepted:
+\smallskip
+
+\input{Datatype/document/Fundata.tex}
+\bigskip
+
+If you need nested recursion on the left of a function arrow, there are
+alternatives to pure HOL\@.  In the Logic for Computable Functions 
+(LCF), types like
+\begin{isabelle}
+\isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"
+\end{isabelle}
+do indeed make sense~\cite{paulson87}.  Note the different arrow,
+\isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},
+expressing the type of \emph{continuous} functions. 
+There is even a version of LCF on top of HOL,
+called HOLCF~\cite{MuellerNvOS99}.
+
+\index{*primrec|)}
+\index{*datatype|)}
+
+\subsection{Case Study: Tries}
+\label{sec:Trie}
+
+Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
+indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
+trie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and
+``cat''.  When searching a string in a trie, the letters of the string are
+examined sequentially. Each letter determines which subtrie to search next.
+In this case study we model tries as a datatype, define a lookup and an
+update function, and prove that they behave as expected.
+
+\begin{figure}[htbp]
+\begin{center}
 \unitlength1mm
 \begin{picture}(60,30)
 \put( 5, 0){\makebox(0,0)[b]{l}}
@@ -341,7 +445,58 @@ This section presents advanced forms of \isacommand{datatype}s.
 %
 \put( 5,10){\makebox(0,0)[b]{l}}
 \put(15,10){\makebox(0,0)[b]{n}}
-\put(25,10){\makebox(0,0)[b]{p}}\put(45,10){\makebox(0,0)[b]{a}}%\put(14,19){\line(-3,-2){9}}\put(15,19){\line(0,-1){5}}\put(16,19){\line(3,-2){9}}\put(45,19){\line(0,-1){5}}%\put(15,20){\makebox(0,0)[b]{a}}\put(45,20){\makebox(0,0)[b]{c}}%\put(30,30){\line(-3,-2){13}}\put(30,30){\line(3,-2){13}}\end{picture}\end{center}\caption{A sample trie}\label{fig:trie}\end{figure}Proper tries associate some value with each string. Since theinformation is stored only in the final node associated with the string, manynodes do not carry any value. This distinction is modeled with the helpof the predefined datatype \isa{option} (see {\S}\ref{sec:option}).\input{Trie/document/Trie.tex}\section{Total Recursive Functions}\label{sec:recdef}\index{*recdef|(}Although many total functions have a natural primitive recursive definition,this is not always the case. Arbitrary total recursive functions can bedefined by means of \isacommand{recdef}: you can use full pattern-matching,recursion need not involve datatypes, and termination is proved by showingthat the arguments of all recursive calls are smaller in a suitable (usersupplied) sense. In this section we restrict ourselves to measure functions;more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.\subsection{Defining Recursive Functions}\label{sec:recdef-examples}\input{Recdef/document/examples.tex}\subsection{Proving Termination}\input{Recdef/document/termination.tex}\subsection{Simplification with Recdef}\label{sec:recdef-simplification}\input{Recdef/document/simplification.tex}\subsection{Induction}\index{induction!recursion|(}
+\put(25,10){\makebox(0,0)[b]{p}}
+\put(45,10){\makebox(0,0)[b]{a}}
+%
+\put(14,19){\line(-3,-2){9}}
+\put(15,19){\line(0,-1){5}}
+\put(16,19){\line(3,-2){9}}
+\put(45,19){\line(0,-1){5}}
+%
+\put(15,20){\makebox(0,0)[b]{a}}
+\put(45,20){\makebox(0,0)[b]{c}}
+%
+\put(30,30){\line(-3,-2){13}}
+\put(30,30){\line(3,-2){13}}
+\end{picture}
+\end{center}
+\caption{A sample trie}
+\label{fig:trie}
+\end{figure}
+
+Proper tries associate some value with each string. Since the
+information is stored only in the final node associated with the string, many
+nodes do not carry any value. This distinction is modeled with the help
+of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
+\input{Trie/document/Trie.tex}
+
+\section{Total Recursive Functions}
+\label{sec:recdef}
+\index{*recdef|(}
+
+Although many total functions have a natural primitive recursive definition,
+this is not always the case. Arbitrary total recursive functions can be
+defined by means of \isacommand{recdef}: you can use full pattern-matching,
+recursion need not involve datatypes, and termination is proved by showing
+that the arguments of all recursive calls are smaller in a suitable (user
+supplied) sense. In this section we restrict ourselves to measure functions;
+more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
+
+\subsection{Defining Recursive Functions}
+\label{sec:recdef-examples}
+\input{Recdef/document/examples.tex}
+
+\subsection{Proving Termination}
+
+\input{Recdef/document/termination.tex}
+
+\subsection{Simplification with Recdef}
+\label{sec:recdef-simplification}
+
+\input{Recdef/document/simplification.tex}
+
+\subsection{Induction}
+\index{induction!recursion|(}
 \index{recursion induction|(}
 
 \input{Recdef/document/Induction.tex}
