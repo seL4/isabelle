@@ -160,17 +160,17 @@ exception SAME;
 fun norm_term1 (asol,t) : term =
   let fun norm (Var (w,T)) =
 	    (case xsearch(asol,w) of
-		Some u => normh u
+		Some u => (norm u handle SAME => u)
 	      | None   => raise SAME)
 	| norm (Abs(a,T,body)) =  Abs(a, T, norm body)
-	| norm (Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
+	| norm (Abs(_,_,body) $ t) = normh(subst_bound (t, body))
 	| norm (f $ t) =
 	    ((case norm f of
-	       Abs(_,_,body) => normh(subst_bounds([t], body))
-	     | nf => nf $ normh t)
+	       Abs(_,_,body) => normh(subst_bound (t, body))
+	     | nf => nf $ (norm t handle SAME => t))
 	    handle SAME => f $ norm t)
 	| norm _ =  raise SAME
-      and normh t = (norm t) handle SAME => t
+      and normh t = norm t handle SAME => t
   in normh t end
 
 and norm_term2(asol,iTs,t) : term =
@@ -191,10 +191,10 @@ and norm_term2(asol,iTs,t) : term =
 	      | None   => Var(w,normT T))
 	| norm(Abs(a,T,body)) =
 	      (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
-	| norm(Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
+	| norm(Abs(_,_,body) $ t) = normh(subst_bound (t, body))
 	| norm(f $ t) =
 	    ((case norm f of
-	       Abs(_,_,body) => normh(subst_bounds([t], body))
+	       Abs(_,_,body) => normh(subst_bound (t, body))
 	     | nf => nf $ normh t)
 	    handle SAME => f $ norm t)
 	| norm _ =  raise SAME
