@@ -35,7 +35,7 @@ by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
 qed "imageE";
 
-AddIs  [imageI]; 
+AddIs  [image_eqI];
 AddSEs [imageE]; 
 
 goalw Fun.thy [o_def] "(f o g)``r = f``(g``r)";
@@ -59,6 +59,8 @@ val [major,minor] = goal Fun.thy
 by (rtac (major RS imageE) 1);
 by (etac minor 1);
 qed "rangeE";
+
+
 (*** inj(f): f is a one-to-one function ***)
 
 val prems = goalw Fun.thy [inj_def]
