@@ -133,15 +133,18 @@ which cannot be solved by reflexivity.
 
 (* replace parameters of product type by individual component parameters *)
 local
-  fun exists_paired_all prem =   (* FIXME check deeper nesting of params!?! *)
-    Library.exists (can HOLogic.dest_prodT o #2) (Logic.strip_params prem);
-  val ss = HOL_basic_ss
-    addsimps [split_paired_all, unit_all_eq2, unit_abs_eta_conv]
-    addsimprocs [unit_eq_proc];
-  val split_tac = full_simp_tac ss;
+  fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
+        can HOLogic.dest_prodT T orelse exists_paired_all t
+    | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
+    | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
+    | exists_paired_all _ = false;
+  val split_tac = full_simp_tac
+    (HOL_basic_ss
+      addsimps [split_paired_all, unit_all_eq2, unit_abs_eta_conv]
+      addsimprocs [unit_eq_proc]);
 in
-  val split_all_tac = SUBGOAL (fn (prem,i) =>
-    if exists_paired_all prem then split_tac i else no_tac);
+  val split_all_tac = SUBGOAL (fn (t, i) =>
+    if exists_paired_all t then split_tac i else no_tac);
 end;
 
 claset_ref() := claset()
