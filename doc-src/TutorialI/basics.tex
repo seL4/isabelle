@@ -61,24 +61,24 @@ constructs that can fill \textit{\texttt{declarations, definitions, and
     proofs}} in the above theory template.  A complete grammar of the basic
 constructs is found in the Isabelle/Isar Reference Manual.
 
-HOL's theory library is available online at
+HOL's theory collection is available online at
 \begin{center}\small
     \url{http://isabelle.in.tum.de/library/}
 \end{center}
-and is recommended browsing. Note that most of the theories in the library
+and is recommended browsing. Note that most of the theories 
 are based on classical Isabelle without the Isar extension. This means that
 they look slightly different than the theories in this tutorial, and that all
 proofs are in separate ML files.
 
 \begin{warn}
   HOL contains a theory \isaindexbold{Main}, the union of all the basic
-  predefined theories like arithmetic, lists, sets, etc.\ (see the online
-  library).  Unless you know what you are doing, always include \isa{Main}
+  predefined theories like arithmetic, lists, sets, etc.  
+  Unless you know what you are doing, always include \isa{Main}
   as a direct or indirect parent theory of all your theories.
 \end{warn}
 
 
-\section{Types, terms and formulae}
+\section{Types, Terms and Formulae}
 \label{sec:TypesTermsForms}
 \indexbold{type}
 
@@ -264,7 +264,7 @@ Note that for readability we often drop the \isa{?}s when displaying a theorem.
   interpreted as a schematic variable.
 \end{warn}
 
-\section{Interaction and interfaces}
+\section{Interaction and Interfaces}
 
 Interaction with Isabelle can either occur at the shell level or through more
 advanced interfaces. To keep the tutorial independent of the interface we
@@ -288,7 +288,7 @@ is executed immediately; otherwise Isabelle may wait for the next keyword
 before it knows that the command is complete.
 
 
-\section{Getting started}
+\section{Getting Started}
 
 Assuming you have installed Isabelle, you start it by typing \texttt{isabelle
   -I HOL} in a shell window.\footnote{Simply executing \texttt{isabelle -I}

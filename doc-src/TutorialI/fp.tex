@@ -12,7 +12,7 @@ functions in HOL need not be computable: HOL is a specification language that
 goes well beyond what can be expressed as a program. However, for the time
 being we concentrate on the computable.
 
-\section{An introductory theory}
+\section{An Introductory Theory}
 \label{sec:intro-theory}
 
 Functional programming needs datatypes and functions. Both of them can be
@@ -55,7 +55,7 @@ induction followed by all-out simplification via \isa{auto}.
 \end{itemize}
 
 
-\section{Some helpful commands}
+\section{Some Helpful Commands}
 \label{sec:commands-and-hints}
 
 This section discusses a few basic commands for manipulating the proof state
@@ -167,7 +167,7 @@ $x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
 always use HOL's predefined lists.
 
 
-\subsection{The general format}
+\subsection{The General Format}
 \label{sec:general-datatype}
 
 The general HOL \isacommand{datatype} definition is of the form
@@ -198,7 +198,7 @@ that do not have an argument of type $t$, and for all other constructors
 Isabelle will always show \isa{size} on lists as \isa{length}.
 
 
-\subsection{Primitive recursion}
+\subsection{Primitive Recursion}
 
 Functions on datatypes are usually defined by recursion. In fact, most of the
 time they are defined by what is called \bfindex{primitive recursion}.
@@ -221,10 +221,10 @@ A more general method for defining total recursive functions is introduced in
 
 \input{Ifexpr/document/Ifexpr.tex}
 
-\section{Some basic types}
+\section{Some Basic Types}
 
 
-\subsection{Natural numbers}
+\subsection{Natural Numbers}
 \label{sec:nat}
 \index{arithmetic|(}
 
@@ -251,7 +251,7 @@ called type synonyms, those on the term level are called (constant)
 definitions.
 
 
-\subsection{Type synonyms}
+\subsection{Type Synonyms}
 \indexbold{type synonym}
 
 Type synonyms are similar to those found in ML\@. Their syntax is fairly self
@@ -302,7 +302,7 @@ little bit of how the simplifier works. The serious student should read that
 section as well, in particular in order to understand what happened if things
 do not simplify as expected.
 
-\subsubsection{What is simplification}
+\subsubsection{What is Simplification?}
 
 In its most basic form, simplification means repeated application of
 equations from left to right. For example, taking the rules for \isa{\at}
@@ -329,7 +329,7 @@ necessarily become simpler in the process.
 \input{CodeGen/document/CodeGen.tex}
 
 
-\section{Advanced datatypes}
+\section{Advanced Datatypes}
 \label{sec:advanced-datatypes}
 \index{*datatype|(}
 \index{*primrec|(}
@@ -337,18 +337,18 @@ necessarily become simpler in the process.
 
 This section presents advanced forms of \isacommand{datatype}s.
 
-\subsection{Mutual recursion}
+\subsection{Mutual Recursion}
 \label{sec:datatype-mut-rec}
 
 \input{Datatype/document/ABexpr.tex}
 
-\subsection{Nested recursion}
+\subsection{Nested Recursion}
 \label{sec:nested-datatype}
 
 {\makeatother\input{Datatype/document/Nested.tex}}
 
 
-\subsection{The limits of nested recursion}
+\subsection{The Limits of Nested Recursion}
 
 How far can we push nested recursion? By the unfolding argument above, we can
 reduce nested to mutual recursion provided the nested recursion only involves
@@ -387,7 +387,7 @@ called HOLCF~\cite{MuellerNvOS99}.
 \index{*primrec|)}
 \index{*datatype|)}
 
-\subsection{Case study: Tries}
+\subsection{Case Study: Tries}
 \label{sec:Trie}
 
 Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
@@ -455,7 +455,7 @@ of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
   deletion, if possible.
 \end{exercise}
 
-\section{Total recursive functions}
+\section{Total Recursive Functions}
 \label{sec:recdef}
 \index{*recdef|(}
 
@@ -467,15 +467,15 @@ that the arguments of all recursive calls are smaller in a suitable (user
 supplied) sense. In this section we ristrict ourselves to measure functions;
 more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 
-\subsection{Defining recursive functions}
+\subsection{Defining Recursive Functions}
 \label{sec:recdef-examples}
 \input{Recdef/document/examples.tex}
 
-\subsection{Proving termination}
+\subsection{Proving Termination}
 
 \input{Recdef/document/termination.tex}
 
-\subsection{Simplification with recdef}
+\subsection{Simplification with Recdef}
 \label{sec:recdef-simplification}
 
 \input{Recdef/document/simplification.tex}

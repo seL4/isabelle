@@ -1,6 +1,6 @@
 (*<*)theory CTLind = CTL:(*>*)
 
-subsection{*CTL revisited*}
+subsection{*CTL Revisited*}
 
 text{*\label{sec:CTL-revisited}
 The purpose of this section is twofold: we want to demonstrate
@@ -55,9 +55,8 @@ In the induction step, we have an infinite @{term A}-avoiding path @{term f}
 starting from @{term u}, a successor of @{term t}. Now we simply instantiate
 the @{text"\<forall>f\<in>Paths t"} in the induction hypothesis by the path starting with
 @{term t} and continuing with @{term f}. That is what the above $\lambda$-term
-expresses. That fact that this is a path starting with @{term t} and that
-the instantiated induction hypothesis implies the conclusion is shown by
-simplification.
+expresses.  Simplification shows that this is a path starting with @{term t} 
+and that the instantiated induction hypothesis implies the conclusion.
 
 Now we come to the key lemma. It says that if @{term t} can be reached by a
 finite @{term A}-avoiding path from @{term s}, then @{prop"t \<in> lfp(af A)"},
@@ -68,11 +67,12 @@ s}.
 lemma Avoid_in_lfp[rule_format(no_asm)]:
   "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)";
 txt{*\noindent
-The trick is not to induct on @{prop"t \<in> Avoid s A"}, as already the base
-case would be a problem, but to proceed by well-founded induction @{term
-t}. Hence @{prop"t \<in> Avoid s A"} needs to be brought into the conclusion as
+The trick is not to induct on @{prop"t \<in> Avoid s A"}, as even the base
+case would be a problem, but to proceed by well-founded induction on~@{term
+t}. Hence\hbox{ @{prop"t \<in> Avoid s A"}} must be brought into the conclusion as
 well, which the directive @{text rule_format} undoes at the end (see below).
-But induction with respect to which well-founded relation? The restriction
+But induction with respect to which well-founded relation? The
+one we want is the restriction
 of @{term M} to @{term"Avoid s A"}:
 @{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}"}
 As we shall see in a moment, the absence of infinite @{term A}-avoiding paths
@@ -86,7 +86,11 @@ apply(subgoal_tac
  apply(clarsimp);
 
 txt{*\noindent
-Now can assume additionally (induction hypothesis) that if @{prop"t \<notin> A"}
+@{subgoals[display,indent=0,margin=65]}
+\REMARK{I put in this proof state but I wonder if readers will be able to
+follow this proof. You could prove that your relation is WF in a 
+lemma beforehand, maybe omitting that proof.}
+Now the induction hypothesis states that if @{prop"t \<notin> A"}
 then all successors of @{term t} that are in @{term"Avoid s A"} are in
 @{term"lfp (af A)"}. To prove the actual goal we unfold @{term lfp} once. Now
 we have to prove that @{term t} is in @{term A} or all successors of @{term
@@ -103,14 +107,13 @@ hence, by the induction hypothesis, all successors of @{term t} are indeed in
 
 txt{*
 Having proved the main goal we return to the proof obligation that the above
-relation is indeed well-founded. This is proved by contraposition: we assume
-the relation is not well-founded. Thus there exists an infinite @{term
+relation is indeed well-founded. This is proved by contradiction: if
+the relation is not well-founded then there exists an infinite @{term
 A}-avoiding path all in @{term"Avoid s A"}, by theorem
 @{thm[source]wf_iff_no_infinite_down_chain}:
 @{thm[display]wf_iff_no_infinite_down_chain[no_vars]}
 From lemma @{thm[source]ex_infinite_path} the existence of an infinite
-@{term A}-avoiding path starting in @{term s} follows, just as required for
-the contraposition.
+@{term A}-avoiding path starting in @{term s} follows, contradiction.
 *}
 
 apply(erule contrapos_pp);

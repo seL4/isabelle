@@ -2,7 +2,7 @@
 theory Itrev = Main:;
 (*>*)
 
-section{*Induction heuristics*}
+section{*Induction Heuristics*}
 
 text{*\label{sec:InductionHeuristics}
 The purpose of this section is to illustrate some simple heuristics for

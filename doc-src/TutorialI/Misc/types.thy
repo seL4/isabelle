@@ -13,7 +13,7 @@ type:
 consts nand :: gate
        xor  :: gate;
 
-subsection{*Constant definitions*}
+subsection{*Constant Definitions*}
 
 text{*\label{sec:ConstDefinitions}\indexbold{definition}%
 The above constants @{term"nand"} and @{term"xor"} are non-recursive and can

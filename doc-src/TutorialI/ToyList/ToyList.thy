@@ -107,7 +107,7 @@ When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \bfindex{inner syntax} and the enclosing theory language as the \bfindex{outer syntax}.
 
 
-\section{An introductory proof}
+\section{An Introductory Proof}
 \label{sec:intro-proof}
 
 Assuming you have input the declarations and definitions of \texttt{ToyList}
@@ -220,7 +220,7 @@ In order to simplify this subgoal further, a lemma suggests itself.
 oops
 (*>*)
 
-subsubsection{*First lemma: @{text"rev(xs @ ys) = (rev ys) @ (rev xs)"}*}
+subsubsection{*First Lemma: @{text"rev(xs @ ys) = (rev ys) @ (rev xs)"}*}
 
 text{*
 After abandoning the above proof attempt\indexbold{abandon
@@ -259,7 +259,7 @@ embarking on the proof of a lemma usually remains implicit.
 oops
 (*>*)
 
-subsubsection{*Second lemma: @{text"xs @ [] = xs"}*}
+subsubsection{*Second Lemma: @{text"xs @ [] = xs"}*}
 
 text{*
 This time the canonical proof procedure
@@ -312,7 +312,7 @@ and the missing lemma is associativity of @{text"@"}.
 *}
 (*<*)oops(*>*)
 
-subsubsection{*Third lemma: @{text"(xs @ ys) @ zs = xs @ (ys @ zs)"}*}
+subsubsection{*Third Lemma: @{text"(xs @ ys) @ zs = xs @ (ys @ zs)"}*}
 
 text{*
 Abandoning the previous proof, the canonical proof procedure

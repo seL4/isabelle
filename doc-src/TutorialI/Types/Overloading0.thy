@@ -4,7 +4,7 @@ text{* We start with a concept that is required for type classes but already
 useful on its own: \emph{overloading}. Isabelle allows overloading: a
 constant may have multiple definitions at non-overlapping types. *}
 
-subsubsection{*An initial example*}
+subsubsection{*An Initial Example*}
 
 text{*
 If we want to introduce the notion of an \emph{inverse} for arbitrary types we

@@ -11,9 +11,9 @@ is helpful to understand why a particular rule does or does not apply in some
 situation.
 *}
 
-subsection{*Advanced features*}
+subsection{*Advanced Features*}
 
-subsubsection{*Congruence rules*}
+subsubsection{*Congruence Rules*}
 
 text{*\label{sec:simp-cong}
 It is hardwired into the simplifier that while simplifying the conclusion $Q$
@@ -45,7 +45,7 @@ strategy in programming languages, which is why this is the default
 congruence rule for @{text if}. Analogous rules control the evaluaton of
 @{text case} expressions.
 
-You can delare your own congruence rules with the attribute @{text cong},
+You can declare your own congruence rules with the attribute @{text cong},
 either globally, in the usual manner,
 \begin{quote}
 \isacommand{declare} \textit{theorem-name} @{text"[cong]"}
@@ -59,11 +59,12 @@ The effect is reversed by @{text"cong del"} instead of @{text cong}.
 \begin{warn}
 The congruence rule @{thm[source]conj_cong}
 @{thm[display]conj_cong[no_vars]}
-is occasionally useful but not a default rule; you have to use it explicitly.
+\par\noindent
+is occasionally useful but is not a default rule; you have to declare it explicitly.
 \end{warn}
 *}
 
-subsubsection{*Permutative rewrite rules*}
+subsubsection{*Permutative Rewrite Rules*}
 
 text{*
 \index{rewrite rule!permutative|bold}
@@ -105,11 +106,11 @@ lexicographically:
  f(f(b,c),a) \maps{A} f(b,f(c,a)) \maps{C} f(b,f(a,c)) \maps{LC} f(a,f(b,c)) \]
 
 Note that ordered rewriting for @{text"+"} and @{text"*"} on numbers is rarely
-necessary because the builtin arithmetic capabilities often take care of
-this.
+necessary because the built-in arithmetic prover often succeeds without
+such hints.
 *}
 
-subsection{*How it works*}
+subsection{*How It Works*}
 
 text{*\label{sec:SimpHow}
 Roughly speaking, the simplifier proceeds bottom-up (subterms are simplified
@@ -117,7 +118,7 @@ first) and a conditional equation is only applied if its condition could be
 proved (again by simplification). Below we explain some special features of the rewriting process.
 *}
 
-subsubsection{*Higher-order patterns*}
+subsubsection{*Higher-Order Patterns*}
 
 text{*\index{simplification rule|(}
 So far we have pretended the simplifier can deal with arbitrary
@@ -139,7 +140,7 @@ both directions: all arguments of the unknowns @{text"?P"} and
 
 If the left-hand side is not a higher-order pattern, not all is lost
 and the simplifier will still try to apply the rule, but only if it
-matches ``directly'', i.e.\ without much $\lambda$-calculus hocus
+matches \emph{directly}, i.e.\ without much $\lambda$-calculus hocus
 pocus. For example, @{text"?f ?x \<in> range ?f = True"} rewrites
 @{term"g a \<in> range g"} to @{term True}, but will fail to match
 @{text"g(h b) \<in> range(\<lambda>x. g(h x))"}.  However, you can
@@ -148,24 +149,24 @@ is not a pattern) by adding new variables and conditions: @{text"?y =
 ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is fine
 as a conditional rewrite rule since conditions can be arbitrary
 terms. However, this trick is not a panacea because the newly
-introduced conditions may be hard to prove, which has to take place
+introduced conditions may be hard to prove, as they must be
 before the rule can actually be applied.
   
-There is basically no restriction on the form of the right-hand
+There is no restriction on the form of the right-hand
 sides.  They may not contain extraneous term or type variables, though.
 *}
 
-subsubsection{*The preprocessor*}
+subsubsection{*The Preprocessor*}
 
 text{*\label{sec:simp-preprocessor}
-When some theorem is declared a simplification rule, it need not be a
+When a theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
-conditional equations automatically.  For example, given @{prop"f x =
-g x & h x = k x"} the simplifier will turn this into the two separate
-simplifiction rules @{prop"f x = g x"} and @{prop"h x = k x"}. In
+conditional equations automatically.  For example, @{prop"f x =
+g x & h x = k x"} becomes the two separate
+simplification rules @{prop"f x = g x"} and @{prop"h x = k x"}. In
 general, the input theorem is converted as follows:
 \begin{eqnarray}
-\neg P &\mapsto& P = False \nonumber\\
+\neg P &\mapsto& P = \hbox{\isa{False}} \nonumber\\
 P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
 P \land Q &\mapsto& P,\ Q \nonumber\\
 \forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
@@ -174,11 +175,12 @@ P \land Q &\mapsto& P,\ Q \nonumber\\
  P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations
-$P$ are turned into trivial equations $P = True$.
-For example, the formula \begin{center}@{prop"(p \<longrightarrow> q \<and> r) \<and> s"}\end{center}
+$P$ are turned into trivial equations $P =\isa{True}$.
+For example, the formula 
+\begin{center}@{prop"(p \<longrightarrow> t=u \<and> ~r) \<and> s"}\end{center}
 is converted into the three rules
 \begin{center}
-@{prop"p \<Longrightarrow> q = True"},\quad  @{prop"p \<Longrightarrow> r = True"},\quad  @{prop"s = True"}.
+@{prop"p \<Longrightarrow> t = u"},\quad  @{prop"p \<Longrightarrow> r = False"},\quad  @{prop"s = True"}.
 \end{center}
 \index{simplification rule|)}
 \index{simplification|)}

@@ -1,6 +1,6 @@
 (*<*)theory Overloading1 = Main:(*>*)
 
-subsubsection{*Controlled overloading with type classes*}
+subsubsection{*Controlled Overloading with Type Classes*}
 
 text{*
 We now start with the theory of ordering relations, which we want to phrase

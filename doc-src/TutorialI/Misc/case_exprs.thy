@@ -2,7 +2,7 @@
 theory case_exprs = Main:
 (*>*)
 
-subsection{*Case expressions*}
+subsection{*Case Expressions*}
 
 text{*\label{sec:case-expressions}
 HOL also features \isaindexbold{case}-expressions for analyzing
@@ -40,7 +40,7 @@ Note that @{text"case"}-expressions may need to be enclosed in parentheses to
 indicate their scope
 *}
 
-subsection{*Structural induction and case distinction*}
+subsection{*Structural Induction and Case Distinction*}
 
 text{*\label{sec:struct-ind-case}
 \indexbold{structural induction}

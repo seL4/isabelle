@@ -9,7 +9,7 @@ just as in axiomatic mathematics. These ideas are demonstrated by means of
 our above ordering relations.
 *}
 
-subsubsection{*Partial orders*}
+subsubsection{*Partial Orders*}
 
 text{*
 A \emph{partial order} is a subclass of @{text ordrel}
@@ -27,7 +27,7 @@ The first three axioms are the familiar ones, and the final one
 requires that @{text"<<"} and @{text"<<="} are related as expected.
 Note that behind the scenes, Isabelle has restricted the axioms to class
 @{text parord}. For example, this is what @{thm[source]refl} really looks like:
-@{thm[show_types]refl}.
+@{thm[show_sorts]refl}.
 
 We have not made @{thm[source]less_le} a global definition because it would
 fix once and for all that @{text"<<"} is defined in terms of @{text"<<="}.
@@ -84,14 +84,14 @@ lemma "(P::bool) << Q \<Longrightarrow> \<not>(Q << P)";
 by simp;
 
 text{*\noindent
-The effect is not stunning but demonstrates the principle.  It also shows
+The effect is not stunning, but it demonstrates the principle.  It also shows
 that tools like the simplifier can deal with generic rules as well. Moreover,
 it should be clear that the main advantage of the axiomatic method is that
 theorems can be proved in the abstract and one does not need to repeat the
 proof for each instance.
 *}
 
-subsubsection{*Linear orders*}
+subsubsection{*Linear Orders*}
 
 text{* If any two elements of a partial order are comparable it is a
 \emph{linear} or \emph{total} order: *}
@@ -118,7 +118,7 @@ later on, i.e.\ subclassing by proof. This is the topic of the following
 paragraph.
 *}
 
-subsubsection{*Strict orders*}
+subsubsection{*Strict Orders*}
 
 text{*
 An alternative axiomatization of partial orders takes @{text"<<"} rather than
@@ -162,7 +162,7 @@ apply(blast intro: irrefl[THEN notE]);
 done
 *)
 
-subsubsection{*Multiple inheritance and sorts*}
+subsubsection{*Multiple Inheritance and Sorts*}
 
 text{*
 A class may inherit from more than one direct superclass. This is called
@@ -196,7 +196,7 @@ Figure~\ref{fig:subclass}.
 & & \isa{wellord}
 \end{array}
 \]
-\caption{Subclass diagramm}
+\caption{Subclass Diagram}
 \label{fig:subclass}
 \end{figure}
 

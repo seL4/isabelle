@@ -2,7 +2,7 @@
 theory Ifexpr = Main:;
 (*>*)
 
-subsection{*Case study: boolean expressions*}
+subsection{*Case Study: Boolean Expressions*}
 
 text{*\label{sec:boolex}
 The aim of this case study is twofold: it shows how to model boolean
@@ -10,7 +10,7 @@ expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.
 *}
 
-subsubsection{*How can we model boolean expressions?*}
+subsubsection{*How Can We Model Boolean Expressions?*}
 
 text{*
 We want to represent boolean expressions built up from variables and
@@ -28,7 +28,7 @@ The two constants are represented by @{term"Const True"} and
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
 @{term"And (Var 0) (Neg(Var 1))"}.
 
-\subsubsection{What is the value of a boolean expression?}
+\subsubsection{What is the Value of a Boolean Expression?}
 
 The value of a boolean expression depends on the value of its variables.
 Hence the function @{text"value"} takes an additional parameter, an
@@ -44,7 +44,7 @@ primrec
 "value (And b c) env = (value b env \<and> value c env)";
 
 text{*\noindent
-\subsubsection{If-expressions}
+\subsubsection{If-Expressions}
 
 An alternative and often more efficient (because in a certain sense
 canonical) representation are so-called \emph{If-expressions} built up
@@ -66,8 +66,9 @@ primrec
                                         else valif e env)";
 
 text{*
-\subsubsection{Transformation into and of If-expressions}
+\subsubsection{Transformation Into and of If-Expressions}
 
+\REMARK{is this the title you wanted?}
 The type @{typ"boolex"} is close to the customary representation of logical
 formulae, whereas @{typ"ifex"} is designed for efficiency. It is easy to
 translate from @{typ"boolex"} into @{typ"ifex"}:

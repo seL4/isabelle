@@ -2,7 +2,7 @@
 theory simp = Main:
 (*>*)
 
-subsubsection{*Simplification rules*}
+subsubsection{*Simplification Rules*}
 
 text{*\indexbold{simplification rule}
 To facilitate simplification, theorems can be declared to be simplification
@@ -39,7 +39,7 @@ indicate a badly designed theory.
 \end{warn}
 *}
 
-subsubsection{*The simplification method*}
+subsubsection{*The Simplification Method*}
 
 text{*\index{*simp (method)|bold}
 The general format of the simplification method is
@@ -54,7 +54,7 @@ only the first subgoal and may thus need to be repeated---use
 Note that @{text simp} fails if nothing changes.
 *}
 
-subsubsection{*Adding and deleting simplification rules*}
+subsubsection{*Adding and Deleting Simplification Rules*}
 
 text{*
 If a certain theorem is merely needed in a few proofs by simplification,
@@ -123,7 +123,7 @@ Note that only one of the options is allowed, and it must precede all
 other arguments.
 *}
 
-subsubsection{*Rewriting with definitions*}
+subsubsection{*Rewriting with Definitions*}
 
 text{*\index{simplification!with definitions}
 Constant definitions (\S\ref{sec:ConstDefinitions}) can
@@ -171,7 +171,7 @@ rule because this defeats the whole purpose of an abbreviation.
 \end{warn}
 *}
 
-subsubsection{*Simplifying let-expressions*}
+subsubsection{*Simplifying Let-Expressions*}
 
 text{*\index{simplification!of let-expressions}
 Proving a goal containing \isaindex{let}-expressions almost invariably
@@ -192,7 +192,7 @@ default:
 *}
 declare Let_def [simp]
 
-subsubsection{*Conditional equations*}
+subsubsection{*Conditional Equations*}
 
 text{*
 So far all examples of rewrite rules were equations. The simplifier also
@@ -224,7 +224,7 @@ assumption of the subgoal.
 *}
 
 
-subsubsection{*Automatic case splits*}
+subsubsection{*Automatic Case Splits*}
 
 text{*\indexbold{case splits}\index{*split (method, attr.)|(}
 Goals containing @{text"if"}-expressions are usually proved by case

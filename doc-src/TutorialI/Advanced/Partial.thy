@@ -34,7 +34,7 @@ partial recursive functions by other means that non-exhaustive pattern
 matching.
 *}
 
-subsubsection{*Guarded recursion*}
+subsubsection{*Guarded Recursion*}
 
 text{* Neither \isacommand{primrec} nor \isacommand{recdef} allow to
 prefix an equation with a condition in the way ordinary definitions do
@@ -58,8 +58,8 @@ recdef divi "measure(\<lambda>(m,n). m)"
 text{*\noindent Of course we could also have defined
 @{term"divi(m,0)"} to be some specific number, for example 0. The
 latter option is chosen for the predefined @{text div} function, which
-simplifies proofs at the expense of moving further away from the
-standard mathematical divison function.
+simplifies proofs at the expense of deviating from the
+standard mathematical division function.
 
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function (@{term f}) of
@@ -130,11 +130,11 @@ apply(induct_tac f x rule:find.induct);
 apply simp
 done
 
-subsubsection{*The {\tt\slshape while} combinator*}
+subsubsection{*The {\tt\slshape while} Combinator*}
 
 text{*If the recursive function happens to be tail recursive, its
 definition becomes a triviality if based on the predefined \isaindexbold{while}
-combinator.  The latter lives in the library theory
+combinator.  The latter lives in the Library theory
 \isa{While_Combinator}, which is not part of @{text Main} but needs to
 be included explicitly among the ancestor theories.
 
@@ -166,9 +166,9 @@ termination rears its ugly head again. Here is
 correctness of loops expressed with @{term while}:
 @{thm[display,margin=50]while_rule[no_vars]} @{term P} needs to be
 true of the initial state @{term s} and invariant under @{term c}
-(premises 1 and 2).The post-condition @{term Q} must become true when
-leaving the loop (premise 3). And each loop iteration must descend
-along a well-founded relation @{term r} (premises 4 and 5).
+(premises 1 and~2). The post-condition @{term Q} must become true when
+leaving the loop (premise~3). And each loop iteration must descend
+along a well-founded relation @{term r} (premises 4 and~5).
 
 Let us now prove that @{term find2} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
@@ -176,9 +176,9 @@ Only the final premise of @{thm[source]while_rule} is left unproved
 by @{text auto} but falls to @{text simp}:
 *}
 
-lemma lem: "\<lbrakk> wf(step1 f); x' = f x \<rbrakk> \<Longrightarrow> \<exists>y y'.
-   while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,x') = (y,y') \<and>
-   y' = y \<and> f y = y"
+lemma lem: "\<lbrakk> wf(step1 f); x' = f x \<rbrakk> \<Longrightarrow> 
+   \<exists>y. while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,x') = (y,y) \<and>
+       f y = y"
 apply(rule_tac P = "\<lambda>(x,x'). x' = f x" and
                r = "inv_image (step1 f) fst" in while_rule);
 apply auto
@@ -205,8 +205,8 @@ equation for @{term while} is a directly executable functional
 program. This is in stark contrast to guarded recursion as introduced
 above which requires an explicit test @{prop"x \<in> dom f"} in the
 function body.  Unless @{term dom} is trivial, this leads to a
-definition which is either not at all executable or prohibitively
-expensive. Thus, if you are aiming for an efficiently executable definition
+definition that is impossible to execute (or prohibitively slow).
+Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need @{term while}.
 *}
 

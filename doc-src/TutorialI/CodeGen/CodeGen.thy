@@ -2,7 +2,7 @@
 theory CodeGen = Main:
 (*>*)
 
-section{*Case study: compiling expressions*}
+section{*Case Study: Compiling Expressions*}
 
 text{*\label{sec:ExprCompiler}
 The task is to develop a compiler from a generic type of expressions (built

@@ -18,7 +18,7 @@ text{*\noindent
 The infix function @{text"!"} yields the nth element of a list.
 *}
 
-subsubsection{*Predefined overloading*}
+subsubsection{*Predefined Overloading*}
 
 text{*
 HOL comes with a number of overloaded constants and corresponding classes.
@@ -45,7 +45,7 @@ Constant & Type & Syntax \\
 @{term Least} & @{text "('a::ord \<Rightarrow> bool) \<Rightarrow> 'a"} &
 @{text LEAST}$~x.~P$
 \end{tabular}
-\caption{Overloaded constants in HOL}
+\caption{Overloaded Constants in HOL}
 \label{tab:overloading}
 \end{center}
 \end{table}

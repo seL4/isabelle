@@ -1,13 +1,13 @@
 (*<*)theory Typedef = Main:(*>*)
 
-section{*Introducing new types*}
+section{*Introducing New Types*}
 
 text{*\label{sec:adv-typedef}
 By now we have seen a number of ways for introducing new types, for example
 type synonyms, recursive datatypes and records. For most applications, this
 repertoire should be quite sufficient. Very occasionally you may feel the
-need for a more advanced type. If you cannot avoid that type, and you are
-quite certain that it is not definable by any of the standard means,
+need for a more advanced type. If you cannot do without that type, and you are
+certain that it is not definable by any of the standard means,
 then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
@@ -15,7 +15,7 @@ then read on.
 \end{warn}
 *}
 
-subsection{*Declaring new types*}
+subsection{*Declaring New Types*}
 
 text{*\label{sec:typedecl}
 The most trivial way of introducing a new type is by a \bfindex{type
@@ -49,11 +49,11 @@ text{*\noindent
 However, we strongly discourage this approach, except at explorative stages
 of your development. It is extremely easy to write down contradictory sets of
 axioms, in which case you will be able to prove everything but it will mean
-nothing.  In the above case it also turns out that the axiomatic approach is
+nothing.  Here the axiomatic approach is
 unnecessary: a one-element type called @{typ unit} is already defined in HOL.
 *}
 
-subsection{*Defining new types*}
+subsection{*Defining New Types*}
 
 text{*\label{sec:typedef}
 Now we come to the most general method of safely introducing a new type, the
@@ -124,16 +124,16 @@ Rep_three} are inverses of each other:
 @{thm Abs_three_inverse[no_vars]} &~~ (@{thm[source]Abs_three_inverse})
 \end{tabular}
 \end{center}
-
-From the above example it should be clear what \isacommand{typedef} does
-in general: simply replace the name @{text three} and the set
-@{term"{n. n\<le>2}"} by the respective arguments.
+%
+From this example it should be clear what \isacommand{typedef} does
+in general given a name (here @{text three}) and a set
+(here @{term"{n. n\<le>2}"}).
 
 Our next step is to define the basic functions expected on the new type.
 Although this depends on the type at hand, the following strategy works well:
 \begin{itemize}
-\item define a small kernel of basic functions such that all further
-functions you anticipate can be defined on top of that kernel.
+\item define a small kernel of basic functions that can express all other
+functions you anticipate.
 \item define the kernel in terms of corresponding functions on the
 representing type using @{term Abs} and @{term Rep} to convert between the
 two levels.
@@ -168,10 +168,12 @@ lemma [simp]:
  "\<lbrakk> x \<in> three; y \<in> three \<rbrakk> \<Longrightarrow> (Abs_three x = Abs_three y) = (x=y)";
 
 txt{*\noindent
-We prove both directions separately. From @{prop"Abs_three x = Abs_three y"}
-we derive @{prop"Rep_three(Abs_three x) = Rep_three(Abs_three y)"} (via
-@{thm[source]arg_cong}: @{thm arg_cong}), and thus the required @{prop"x =
-y"} by simplification with @{thm[source]Abs_three_inverse}. The other direction
+We prove each direction separately. From @{prop"Abs_three x = Abs_three y"}
+we use @{thm[source]arg_cong} to apply @{term Rep_three} to both sides,
+deriving @{prop[display]"Rep_three(Abs_three x) = Rep_three(Abs_three y)"}
+Thus we get the required @{prop"x =
+y"} by simplification with @{thm[source]Abs_three_inverse}. 
+The other direction
 is trivial by simplification:
 *}
 
@@ -229,7 +231,7 @@ apply(rule subst[OF Rep_three_inverse]);
 txt{*\noindent
 This substitution step worked nicely because there was just a single
 occurrence of a term of type @{typ three}, namely @{term x}.
-When we now apply the above lemma, @{term Q} becomes @{term"\<lambda>n. P(Abs_three
+When we now apply the lemma, @{term Q} becomes @{term"\<lambda>n. P(Abs_three
 n)"} because @{term"Rep_three x"} is the only term of type @{typ nat}:
 *}
 
@@ -262,7 +264,7 @@ Although @{typ three} could be defined in one line, we have chosen this
 example to demonstrate \isacommand{typedef} because its simplicity makes the
 key concepts particularly easy to grasp. If you would like to see a
 nontrivial example that cannot be defined more directly, we recommend the
-definition of \emph{finite multisets} in the HOL library.
+definition of \emph{finite multisets} in the HOL Library.
 
 Let us conclude by summarizing the above procedure for defining a new type.
 Given some abstract axiomatic description $P$ of a type $ty$ in terms of a

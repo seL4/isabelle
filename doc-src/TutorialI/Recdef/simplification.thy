@@ -19,8 +19,8 @@ text{*\noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
 @{term[display]"n ~= 0 ==> m mod n < n"}
-is provded automatically because it is already present as a lemma in the
-arithmetic library. Thus the recursion equation becomes a simplification
+is proved automatically because it is already present as a lemma in
+HOL\@.  Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
 the recursive call inside the @{text else} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does

@@ -11,26 +11,27 @@ section is concerned with introducing some syntactic sugar to overcome this
 problem: pattern matching with tuples.
 *}
 
-subsection{*Pattern matching with tuples*}
+subsection{*Pattern Matching with Tuples*}
 
 text{*
-It is possible to use (nested) tuples as patterns in $\lambda$-abstractions,
+Tuples may be used as patterns in $\lambda$-abstractions,
 for example @{text"\<lambda>(x,y,z).x+y+z"} and @{text"\<lambda>((x,y),z).x+y+z"}. In fact,
-tuple patterns can be used in most variable binding constructs. Here are
+tuple patterns can be used in most variable binding constructs,
+and they can be nested. Here are
 some typical examples:
 \begin{quote}
 @{term"let (x,y) = f z in (y,x)"}\\
 @{term"case xs of [] => 0 | (x,y)#zs => x+y"}\\
 @{text"\<forall>(x,y)\<in>A. x=y"}\\
-@{text"{(x,y). x=y}"}\\
+@{text"{(x,y,z). x=z}"}\\
 @{term"\<Union>(x,y)\<in>A. {x+y}"}
 \end{quote}
 *}
 
 text{*
-The intuitive meaning of this notations should be pretty obvious.
+The intuitive meanings of these expressions should be obvious.
 Unfortunately, we need to know in more detail what the notation really stands
-for once we have to reason about it. The fact of the matter is that abstraction
+for once we have to reason about it.  Abstraction
 over pairs and tuples is merely a convenient shorthand for a more complex
 internal representation.  Thus the internal and external form of a term may
 differ, which can affect proofs. If you want to avoid this complication,
@@ -51,7 +52,7 @@ other variable binding constructs is translated similarly. Thus we need to
 understand how to reason about such constructs.
 *}
 
-subsection{*Theorem proving*}
+subsection{*Theorem Proving*}
 
 text{*
 The most obvious approach is the brute force expansion of @{term split}:
@@ -61,7 +62,7 @@ lemma "(\<lambda>(x,y).x) p = fst p"
 by(simp add:split_def)
 
 text{* This works well if rewriting with @{thm[source]split_def} finishes the
-proof, as in the above lemma. But if it doesn't, you end up with exactly what
+proof, as it does above.  But if it doesn't, you end up with exactly what
 we are trying to avoid: nests of @{term fst} and @{term snd}. Thus this
 approach is neither elegant nor very practical in large examples, although it
 can be effective in small ones.

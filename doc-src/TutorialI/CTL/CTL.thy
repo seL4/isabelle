@@ -456,10 +456,10 @@ text{*
 Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.
-\REMARK{you had `in the library' but I assume you meant it was a 
-built in lemma.  Do we give its name?}
-Fortunately, Isabelle/HOL provides a theorem stating that 
-in the case of finite sets and a monotone @{term F},
+Fortunately, the HOL Library%
+\footnote{See theory \isa{While_Combinator_Example}.}
+provides a theorem stating that 
+in the case of finite sets and a monotone function~@{term F},
 the value of @{term"lfp F"} can be computed by iterated application of @{term F} to~@{term"{}"} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.

@@ -15,10 +15,10 @@ recdef trev "measure size"
 (*>*)
 text{*\noindent
 By making this theorem a simplification rule, \isacommand{recdef}
-applies it automatically and the above definition of @{term"trev"}
+applies it automatically and the definition of @{term"trev"}
 succeeds now. As a reward for our effort, we can now prove the desired
-lemma directly. The key is the fact that we no longer need the verbose
-induction schema for type @{text"term"} but the simpler one arising from
+lemma directly.  We no longer need the verbose
+induction schema for type @{text"term"} and can use the simpler one arising from
 @{term"trev"}:
 *};
 
@@ -33,7 +33,7 @@ both of which are solved by simplification:
 by(simp_all add:rev_map sym[OF map_compose] cong:map_cong);
 
 text{*\noindent
-If the proof of the induction step mystifies you, we recommend to go through
+If the proof of the induction step mystifies you, we recommend that you go through
 the chain of simplification steps in detail; you will probably need the help of
 @{text"trace_simp"}. Theorem @{thm[source]map_cong} is discussed below.
 %\begin{quote}
@@ -46,9 +46,9 @@ the chain of simplification steps in detail; you will probably need the help of
 %{term[display]"App f ts"}
 %\end{quote}
 
-The above definition of @{term"trev"} is superior to the one in
-\S\ref{sec:nested-datatype} because it brings @{term"rev"} into play, about
-which already know a lot, in particular @{prop"rev(rev xs) = xs"}.
+The definition of @{term"trev"} above is superior to the one in
+\S\ref{sec:nested-datatype} because it uses @{term"rev"}
+and lets us use existing facts such as \hbox{@{prop"rev(rev xs) = xs"}}.
 Thus this proof is a good example of an important principle:
 \begin{quote}
 \emph{Chose your definitions carefully\\
