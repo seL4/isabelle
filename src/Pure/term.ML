@@ -125,6 +125,7 @@ sig
   val maxidx_of_term: term -> int
   val read_radixint: int * string list -> int * string list
   val read_int: string list -> int * string list
+  val oct_char: string -> string
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
   val variant_abs: string * typ * term -> string * term
@@ -690,7 +691,10 @@ fun read_radixint (radix: int, cs) : int * string list =
 	      else (num, c::cs)
   in  scan(0,cs)  end;
 
-fun read_int cs = read_radixint(10,cs);
+fun read_int cs = read_radixint (10, cs);
+
+fun octal s = #1 (read_radixint (8, explode s));
+val oct_char = chr o octal;
 
 
 (*** Printing ***)
