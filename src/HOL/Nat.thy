@@ -10,4 +10,7 @@ Nat = NatDef +
 
 instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
 
+consts
+  "^"           :: ['a::power,nat] => 'a            (infixr 80)
+
 end

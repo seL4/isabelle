@@ -16,7 +16,7 @@ arities
   set :: (term) term
 
 instance
-  set :: (term) {ord, minus}
+  set :: (term) {ord, minus, power}
 
 consts
   "{}"          :: 'a set                           ("{}")

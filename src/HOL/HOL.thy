@@ -66,12 +66,14 @@ axclass
 axclass
   times < term
 
+axclass
+  power < term
+
 consts
-  "+"           :: ['a::plus, 'a] => 'a             (infixl 65)
+  "+"           :: ['a::plus, 'a]  => 'a            (infixl 65)
   "-"           :: ['a::minus, 'a] => 'a            (infixl 65)
   "*"           :: ['a::times, 'a] => 'a            (infixl 70)
-
-
+  (*See Nat.thy for "^"*)
 
 (** Additional concrete syntax **)
 
