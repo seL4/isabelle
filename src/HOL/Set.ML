@@ -225,6 +225,10 @@ by (rtac mp 1);
 by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
+Goal "A = B ==> (x : A) = (x : B)";
+by (Asm_simp_tac 1);
+qed "eqset_imp_iff";
+
 
 section "The universal set -- UNIV";
 
