@@ -34,21 +34,21 @@ text {*
 theorem group_right_inverse: "x * inv x = (one::'a::group)";
 proof same;
   have "x * inv x = one * (x * inv x)";
-    by (simp add: group_left_unit);
+    by (simp only: group_left_unit);
   also; have "... = (one * x) * inv x";
-    by (simp add: group_assoc);
+    by (simp only: group_assoc);
   also; have "... = inv (inv x) * inv x * x * inv x";
-    by (simp add: group_left_inverse);
+    by (simp only: group_left_inverse);
   also; have "... = inv (inv x) * (inv x * x) * inv x";
-    by (simp add: group_assoc);
+    by (simp only: group_assoc);
   also; have "... = inv (inv x) * one * inv x";
-    by (simp add: group_left_inverse);
+    by (simp only: group_left_inverse);
   also; have "... = inv (inv x) * (one * inv x)";
-    by (simp add: group_assoc);
+    by (simp only: group_assoc);
   also; have "... = inv (inv x) * inv x";
-    by (simp add: group_left_unit);
+    by (simp only: group_left_unit);
   also; have "... = one";
-    by (simp add: group_left_inverse);
+    by (simp only: group_left_inverse);
   finally; show ??thesis; .;
 qed;
 
@@ -60,13 +60,13 @@ text {*
 theorem group_right_unit: "x * one = (x::'a::group)";
 proof same;
   have "x * one = x * (inv x * x)";
-    by (simp add: group_left_inverse);
+    by (simp only: group_left_inverse);
   also; have "... = x * inv x * x";
-    by (simp add: group_assoc);
+    by (simp only: group_assoc);
   also; have "... = one * x";
-    by (simp add: group_right_inverse);
+    by (simp only: group_right_inverse);
   also; have "... = x";
-    by (simp add: group_left_unit);
+    by (simp only: group_left_unit);
   finally; show ??thesis; .;
 qed;
 
@@ -87,25 +87,25 @@ text {*
 theorem "x * one = (x::'a::group)";
 proof same;
   have "x * one = x * (inv x * x)";
-    by (simp add: group_left_inverse);
+    by (simp only: group_left_inverse);
 
   note calculation = facts
     -- {* first calculational step: init calculation register *};
 
   have "... = x * inv x * x";
-    by (simp add: group_assoc);
+    by (simp only: group_assoc);
 
   note calculation = trans [OF calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = one * x";
-    by (simp add: group_right_inverse);
+    by (simp only: group_right_inverse);
 
   note calculation = trans [OF calculation facts]
     -- {* general calculational step: compose with transitivity rule *};
 
   have "... = x";
-    by (simp add: group_left_unit);
+    by (simp only: group_left_unit);
 
   note calculation = trans [OF calculation facts]
     -- {* final calculational step: compose with transitivity rule ... *};
