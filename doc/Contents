@@ -1,12 +1,17 @@
-tutorial	Tutorial on Isabelle/HOL
-isar-overview	Tutorial on Isar
-exercises	Exercises for Isabelle/HOL
-axclass		Tutorial on Axiomatic Type Classes
-isar-ref	The Isabelle/Isar Reference Manual
-ref		The Isabelle Reference Manual
-system		The Isabelle System Manual
-intro		Introduction to Isabelle
-logics		Isabelle's Logics: overview and misc logics
-logics-HOL	Isabelle's Logics: HOL
-logics-ZF	Isabelle's Logics: FOL and ZF
-ind-defs	(Co)Inductive Definitions in ZF
+Tutorials
+  tutorial      Tutorial on Isabelle/HOL
+  isar-overview Tutorial on Isar
+
+Reference Manuals
+  isar-ref      The Isabelle/Isar Reference Manual
+  ref           The Isabelle Reference Manual
+  system        The Isabelle System Manual
+
+Logics
+  logics        Isabelle's Logics: overview and misc logics
+  logics-HOL    Isabelle's Logics: HOL
+  logics-ZF     Isabelle's Logics: FOL and ZF
+
+Specific Topics
+  axclass       Tutorial on Axiomatic Type Classes
+  ind-defs      (Co)Inductive Definitions in ZF
