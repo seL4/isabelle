@@ -85,11 +85,11 @@ in
 		| None   => raise SAME)
 	  | hnorm (Abs(a,T,body)) =  Abs(a, T, hnorm body)
 	  | hnorm (Abs(_,_,body) $ t) =
-	      head_norm (env, subst_bounds([t], body))
+	      head_norm (env, subst_bound (t, body))
 	  | hnorm (f $ t) =
 	      (case hnorm f of
 		 Abs(_,_,body) =>
-		   head_norm (env, subst_bounds([t], body))
+		   head_norm (env, subst_bound (t, body))
 	       | nf => nf $ t)
 	  | hnorm _ =  raise SAME
     in  hnorm t  handle SAME=> t  end

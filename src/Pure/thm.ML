@@ -781,7 +781,7 @@ fun beta_conversion ct =
 		 maxidx = maxidx,
 		 shyps = [],
 		 hyps = [],
-		 prop = Logic.mk_equals(t, subst_bounds([u],bodt))})
+		 prop = Logic.mk_equals(t, subst_bound (u,bodt))})
         | _ =>  raise THM("beta_conversion: not a redex", 0, [])
   end;
 
@@ -1643,7 +1643,7 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
       end
   in case etat of
        Abs(_,_,body) $ u => Some(shypst, hypst, maxt, 
-				 subst_bounds([u], body),
+				 subst_bound (u, body),
 				 ders)
      | _                 => rews (sort_rrules (Net.match_term net etat))
   end;
@@ -1710,7 +1710,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
 		 val mss' = Mss{net=net, congs=congs, bounds=b::bounds,
 				prems=prems,mk_rews=mk_rews}
 	     in case botc true mss' 
-		       (shyps,hyps,maxidx,subst_bounds([v],t),ders) of
+		       (shyps,hyps,maxidx,subst_bound (v,t),ders) of
 		  Some(shyps',hyps',maxidx',t',ders') =>
 		    Some(shyps', hyps', maxidx',
 			 Abs(a, T, abstract_over(v,t')),
@@ -1720,7 +1720,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
 	 | t$u => (case t of
 	     Const("==>",_)$s  => Some(impc(shyps,hyps,maxidx,s,u,mss,ders))
 	   | Abs(_,_,body) =>
-	       let val trec = (shyps,hyps,maxidx,subst_bounds([u],body),ders)
+	       let val trec = (shyps,hyps,maxidx,subst_bound (u,body),ders)
 	       in case subc mss trec of
 		    None => Some(trec)
 		  | trec => trec
