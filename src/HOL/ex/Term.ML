@@ -65,7 +65,7 @@ val Rep_term_in_sexp =
 
 (*Induction for the abstract type 'a term*)
 val prems = goalw Term.thy [App_def,Rep_Tlist_def,Abs_Tlist_def]
-    "[| !!x ts. list_all R ts ==> R(App x ts)  \
+    "[| !!x ts. (ALL t: setOfList ts. R t) ==> R(App x ts)  \
 \    |] ==> R(t)";
 by (rtac (Rep_term_inverse RS subst) 1);   (*types force good instantiation*)
 by (res_inst_tac [("P","Rep_term(t) : sexp")] conjunct2 1);
@@ -86,8 +86,8 @@ by (stac Abs_map_CONS 2);
 by (etac conjunct1 2);
 by (etac rev_subsetD 2);
 by (rtac list_subset_sexp 2);
-by (fast_tac set_cs 2);
 by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS Fast_tac);
 qed "term_induct";
 
 (*Induction for the abstract type 'a term*)
