@@ -1535,44 +1535,16 @@ fun merge_mss
 
 (* mk_rrule *)
 
-fun vperm (Var _, Var _) = true
-  | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
-  | vperm (t1 $ t2, u1 $ u2) = vperm (t1, u1) andalso vperm (t2, u2)
-  | vperm (t, u) = (t = u);
-
-fun var_perm (t, u) =
-  vperm (t, u) andalso eq_set_term (term_vars t, term_vars u);
-
-(*simple test for looping rewrite*)
-fun loops sign prems (lhs, rhs) =
-   is_Var (head_of lhs)
-  orelse
-   (exists (apl (lhs, Logic.occs)) (rhs :: prems))
-  orelse
-   (null prems andalso
-    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs));
-(*the condition "null prems" in the last case is necessary because
-  conditional rewrites with extra variables in the conditions may terminate
-  although the rhs is an instance of the lhs. Example:
-  ?m < ?n ==> f(?n) == f(?m)*)
-
 fun mk_rrule (thm as Thm {sign, prop, ...}) =
   let
     val prems = Logic.strip_imp_prems prop;
     val concl = Logic.strip_imp_concl prop;
-    val (lhs, _) = Logic.dest_equals concl handle TERM _ =>
+    val (lhs, rhs) = Logic.dest_equals concl handle TERM _ =>
       raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
-    val econcl = Pattern.eta_contract concl;
-    val (elhs, erhs) = Logic.dest_equals econcl;
-    val perm = var_perm (elhs, erhs) andalso not (elhs aconv erhs)
-      andalso not (is_Var elhs);
-  in
-    if not ((term_vars erhs) subset
-        (union_term (term_vars elhs, List.concat(map term_vars prems)))) then
-      (prtm_warning "extra Var(s) on rhs" sign prop; None)
-    else if not perm andalso loops sign prems (elhs, erhs) then
-      (prtm_warning "ignoring looping rewrite rule" sign prop; None)
-    else Some {thm = thm, lhs = lhs, perm = perm}
+  in case Logic.loops sign prems lhs rhs of
+     (None,perm) => Some {thm = thm, lhs = lhs, perm = perm}
+   | (Some msg,_) =>
+        (prtm_warning("ignoring rewrite rule ("^msg^")") sign prop; None)
   end;
 
 
