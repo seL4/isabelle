@@ -28,6 +28,7 @@ sig
   val dest_binding: string -> string
   val skolem: string -> string
   val dest_skolem: string -> string
+  val read_nat: string -> int option
 end;
 
 signature LEXICON =
@@ -332,6 +333,14 @@ val dest_binding = unsuffix "_BIND_";
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
+
+
+(* read_nat *)
+
+fun read_nat str =
+  (case Scan.finite Symbol.stopper (Scan.option scan_digits1) (Symbol.explode str) of
+    (Some cs, []) => Some (#1 (Term.read_int cs))
+  | _ => None);
 
 
 end;
