@@ -42,7 +42,7 @@ by(Blast_tac 1);
 qed "in_steps_append";
 AddIffs [in_steps_append];
 
-(** Equivalence of steps and delta **)
+(* Equivalence of steps and delta
 (* Use "(? x : f `` A. P x) = (? a:A. P(f x))" ?? *)
 goal thy "!p. (p,q) : steps A w = (q : delta A w p)";
 by (induct_tac "w" 1);
@@ -50,3 +50,4 @@ by (induct_tac "w" 1);
 by (asm_simp_tac (simpset() addsimps [comp_def,step_def]) 1);
 by(Blast_tac 1);
 qed_spec_mp "steps_equiv_delta";
+*)
