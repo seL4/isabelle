@@ -1,5 +1,13 @@
 (*<*)theory FP1 = Main:(*>*)
 
+subsection{*Quickcheck*}
+
+lemma "rev(xs @ ys) = rev xs @ rev ys"
+quickcheck
+oops
+
+subsection{*More Syntax*}
+
 lemma "if xs = ys
        then rev xs = rev ys
        else rev xs \<noteq> rev ys"
@@ -32,6 +40,10 @@ lemma "\<lbrakk> \<not> m < n; m < n+(1::int) \<rbrakk> \<Longrightarrow> m = n"
 by(auto)
 
 lemma "min i (max j k) = max (min k i) (min i (j::nat))"
+by(arith)
+
+text{*Full Presburger arithmetic:*}
+lemma "8 \<le> (n::int) \<Longrightarrow> \<exists>i j. 0\<le>i \<and> 0\<le>j \<and> n = 3*i + 5*j"
 by(arith)
 
 text{*Not proved automatically because it involves multiplication:*}
@@ -166,13 +178,13 @@ primrec
 
 subsubsection{*The Compiler*}
 
-consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list"
+consts compile :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list"
 primrec
-"comp (Cex v)       = [Const v]"
-"comp (Vex a)       = [Load a]"
-"comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]"
+"compile (Cex v)       = [Const v]"
+"compile (Vex a)       = [Load a]"
+"compile (Bex f e1 e2) = (compile e2) @ (compile e1) @ [Apply f]"
 
-theorem "exec (comp e) s [] = [value e s]"
+theorem "exec (compile e) s [] = [value e s]"
 (*<*)oops(*>*)
 
 
@@ -228,18 +240,18 @@ by simp_all
 
 subsubsection{*Nested Recursion*}
 
-datatype tree = C "tree list"
+datatype tree = Tree "tree list"
 
 text{*Some trees:*}
-term "C []"
-term "C [C [C []], C []]"
+term "Tree []"
+term "Tree [Tree [Tree []], Tree []]"
 
 consts
 mirror :: "tree \<Rightarrow> tree"
 mirrors:: "tree list \<Rightarrow> tree list"
 
 primrec
-  "mirror(C ts) = C(mirrors ts)"
+  "mirror(Tree ts) = Tree(mirrors ts)"
 
   "mirrors [] = []"
   "mirrors (t # ts) = mirrors ts @ [mirror t]"
@@ -272,13 +284,48 @@ apply(induct_tac T, rename_tac[2] F)
 apply simp_all
 done
 
+text{*The ordinals:*}
+datatype ord = Zero | Succ ord | Lim "nat \<Rightarrow> ord"
+
+thm ord.induct[no_vars]
+
+instance ord :: plus ..
+instance ord :: times ..
+
+primrec
+"a + Zero   = a"
+"a + Succ b = Succ(a+b)"
+"a + Lim F  = Lim(\<lambda>n. a + F n)"
+
+primrec
+"a * Zero   = Zero"
+"a * Succ b = a*b + a"
+"a * Lim F  = Lim(\<lambda>n. a * F n)"
+
+text{*An example provided by Stan Wainer:*}
+consts H :: "ord \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat)"
+primrec
+"H Zero     f n = n"
+"H (Succ b) f n = H b f (f n)"
+"H (Lim F)  f n = H (F n) f n"
+
+lemma [simp]: "H (a+b) f = H a f \<circ> H b f"
+apply(induct b)
+apply auto
+done
+
+lemma [simp]: "H (a*b) = H b \<circ> H a"
+apply(induct b)
+apply auto
+done
+
 text{* This is \emph{not} allowed:
 \begin{verbatim}
 datatype lambda = C "lambda => lambda"
 \end{verbatim}
 
 \begin{exercise}
-Define a datatype of ordinals and the ordinal $\Gamma_0$.
+Define the ordinal $\Gamma_0$.
 \end{exercise}
 *}
 (*<*)end(*>*)

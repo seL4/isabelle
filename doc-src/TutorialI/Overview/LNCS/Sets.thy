@@ -39,15 +39,12 @@ text{*
 @{thm converse_def[no_vars]}\\
 @{thm Image_def[no_vars]}\\
 @{thm rtrancl_refl[no_vars]}\\
-@{thm rtrancl_into_rtrancl[no_vars]}\\
-@{thm trancl_def[no_vars]}
+@{thm rtrancl_into_rtrancl[no_vars]}
 \end{tabular}*}
 (*<*)thm Id_def
-thm converse_def[no_vars]
-thm Image_def[no_vars]
+thm converse_def[no_vars] Image_def[no_vars]
 thm relpow.simps[no_vars]
-thm rtrancl.intros[no_vars]
-thm trancl_def[no_vars](*>*)
+thm rtrancl.intros[no_vars](*>*)
 
 
 subsection{*Wellfoundedness*}
@@ -69,9 +66,9 @@ text{*
 @{thm lfp_unfold[no_vars]}\\
 @{thm lfp_induct[no_vars]}
 \end{tabular}*}
-(*<*)thm lfp_def gfp_def
-thm lfp_unfold
-thm lfp_induct(*>*)
+(*<*)thm lfp_def[no_vars] gfp_def[no_vars]
+thm lfp_unfold[no_vars]
+thm lfp_induct[no_vars](*>*)
 
 
 subsection{*Case Study: Verified Model Checking*}
@@ -132,6 +129,39 @@ theorem "mc f = {s. s \<Turnstile> f}"
 apply(induct_tac f)
 apply(auto simp add: EF_lemma)
 done
+
+text{*Preview of coming attractions: a structured proof of the
+@{thm[source]EF_lemma}.*}
+lemma EF_lemma:
+  "lfp(\<lambda>T. A \<union> (M\<inverse> `` T)) = {s. \<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<in> A}"
+  (is "lfp ?F = ?R") 
+proof
+  show "lfp ?F \<subseteq> ?R"
+  proof (rule lfp_lowerbound)
+    show "?F ?R \<subseteq> ?R" by(blast intro: rtrancl_trans)
+  qed
+next
+  show "?R \<subseteq> lfp ?F"
+  proof
+    fix s assume "s \<in> ?R"
+    then obtain t where st: "(s,t) \<in> M\<^sup>*" and tA: "t \<in> A" by blast
+    from st show "s \<in> lfp ?F"
+    proof (rule converse_rtrancl_induct)
+      show "t \<in> lfp ?F"
+      proof (subst lfp_unfold[OF mono_ef])
+	show "t \<in> ?F(lfp ?F)" using tA by blast
+      qed
+    next
+      fix s s'
+      assume ss': "(s,s') \<in> M" and s't: "(s',t) \<in> M\<^sup>*"
+         and IH: "s' \<in> lfp ?F"
+      show "s \<in> lfp ?F"
+      proof (subst lfp_unfold[OF mono_ef])
+	show "s \<in> ?F(lfp ?F)" using prems by blast
+      qed
+    qed
+  qed
+qed
 
 text{*
 \begin{exercise}
