@@ -33,17 +33,24 @@ style files, achieving self-contained LaTeX sources;
 
 *** Isar ***
 
-* Pure now provides its own version of intro/elim/dest attributes;
-useful for building new logics, but beware of confusion with the
-Provers/classical ones;
+* Pure: local results and corresponding term bindings are now subject
+to Hindley-Milner polymorphism (similar to ML); this accommodates
+incremental type-inference nicely;
 
-* Pure: new 'obtain' language element supports generalized elimination
-proofs;
+* Pure: new 'obtain' language element supports generalized existence
+reasoning;
+
+* Pure: new calculational elements 'moreover' and 'ultimately' support
+plain accumulation of results, without applying any rules yet;
 
 * Pure: scalable support for case-analysis type proofs: new 'case'
 language element refers to local contexts symbolically, as produced by
 certain proof methods; internally, case names are attached to theorems
 as "tags";
+
+* Pure now provides its own version of intro/elim/dest attributes;
+useful for building new logics, but beware of confusion with the
+Provers/classical ones;
 
 * Provers: splitter support (via 'split' attribute and 'simp' method
 modifier); 'simp' method: 'only:' modifier removes loopers as well
