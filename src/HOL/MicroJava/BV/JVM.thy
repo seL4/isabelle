@@ -208,13 +208,13 @@ proof -
   have 
     "\<exists>ts\<in>list (length bs) (states G maxs maxr).
          ?start <=[JVMType.le G maxs maxr] ts \<and>
-         welltyping (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) ts"
+         wt_step (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) ts"
     by (unfold is_bcv_def) auto
 
   then obtain phi' where
     l: "phi' \<in> list (length bs) (states G maxs maxr)" and
     s: "?start <=[JVMType.le G maxs maxr] phi'" and
-    w: "welltyping (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) phi'"
+    w: "wt_step (JVMType.le G maxs maxr) Err (exec G maxs rT bs) (\<lambda>pc. succs (bs ! pc) pc) phi'"
     by blast
    
   hence dynamic:
@@ -231,7 +231,7 @@ proof -
   
   with instrs w
   have "phi' ! 0 \<noteq> Err"
-    by (unfold welltyping_def) simp
+    by (unfold wt_step_def) simp
 
   with instrs l
   have phi0: "OK (map ok_val phi' ! 0) = phi' ! 0"
@@ -380,7 +380,7 @@ proof -
   qed         
 
   from dynamic
-  have "welltyping (le G maxs ?maxr) Err (exec G maxs rT bs) ?succs ?phi"
+  have "wt_step (le G maxs ?maxr) Err (exec G maxs rT bs) ?succs ?phi"
     by (simp add: dynamic_wt_def JVM_le_Err_conv)
   
   with start 1 2 is_bcv

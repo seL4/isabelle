@@ -29,11 +29,11 @@ constdefs
            => nat => 's set => ('s list => 's list) => bool"
 "is_bcv r T step succs n A bcv == !ss : list n A.
    (!p<n. (bcv ss)!p ~= T) =
-   (? ts: list n A. ss <=[r] ts & welltyping r T step succs ts)"
+   (? ts: list n A. ss <=[r] ts & wt_step r T step succs ts)"
 
- welltyping ::
+ wt_step ::
 "'s ord => 's => (nat => 's => 's) => (nat => nat list) => 's list => bool"
-"welltyping r T step succs ts ==
+"wt_step r T step succs ts ==
  !p<size(ts). ts!p ~= T & stable r step succs ts p"
 
 end

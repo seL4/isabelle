@@ -13,7 +13,7 @@ constdefs
 
 dynamic_wt :: "'s ord => (nat => 's err => 's err) => (nat => nat list) => 
                's err list => bool"
-"dynamic_wt r step succs ts == welltyping (Err.le r) Err step succs ts"
+"dynamic_wt r step succs ts == wt_step (Err.le r) Err step succs ts"
 
 static_wt :: "'s ord => (nat => 's => bool) => 
               (nat => 's => 's) => (nat => nat list) =>  's list => bool"
@@ -55,7 +55,7 @@ proof (unfold static_wt_def, intro strip, rule conjI)
 
   from wt lp
   have [intro?]: "!!p. p < length ts ==> ts ! p ~= Err" 
-    by (unfold dynamic_wt_def welltyping_def) simp
+    by (unfold dynamic_wt_def wt_step_def) simp
 
   show app: "app p (map ok_val ts ! p)"
   proof -
@@ -67,7 +67,7 @@ proof (unfold static_wt_def, intro strip, rule conjI)
     obtain s where
       OKp:  "ts ! p = OK s" and
       less: "err_step app step p (ts ! p) <=_(Err.le r) ts ! q"
-      by (unfold dynamic_wt_def welltyping_def stable_def) 
+      by (unfold dynamic_wt_def wt_step_def stable_def) 
          (auto iff: not_Err_eq)
 
     from lp b q
@@ -96,7 +96,7 @@ proof (unfold static_wt_def, intro strip, rule conjI)
     obtain s where
       OKp:  "ts ! p = OK s" and
       less: "err_step app step p (ts ! p) <=_(Err.le r) ts ! q"
-      by (unfold dynamic_wt_def welltyping_def stable_def) 
+      by (unfold dynamic_wt_def wt_step_def stable_def) 
          (auto iff: not_Err_eq)
 
     from lp b q
@@ -117,7 +117,7 @@ qed
 lemma static_imp_dynamic:
   "[| static_wt r app step succs ts; bounded succs (size ts) |] 
   ==> dynamic_wt r (err_step app step) succs (map OK ts)"
-proof (unfold dynamic_wt_def welltyping_def, intro strip, rule conjI)
+proof (unfold dynamic_wt_def wt_step_def, intro strip, rule conjI)
   assume bounded: "bounded succs (size ts)"
   assume static:  "static_wt r app step succs ts"
   fix p assume "p < length (map OK ts)" 

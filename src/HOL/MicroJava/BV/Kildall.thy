@@ -349,7 +349,7 @@ lemma is_bcv_kildall:
       pres_type step n A; bounded succs n; 
       mono r step n A |]
   ==> is_bcv r T step succs n A (kildall r f step succs)"
-apply(unfold is_bcv_def welltyping_def)
+apply(unfold is_bcv_def wt_step_def)
 apply(insert kildall_properties[of A])
 apply(simp add:stables_def)
 apply clarify
