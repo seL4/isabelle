@@ -21,7 +21,7 @@ Previous definition of llistD_Fun was explicit:
        (UN x. (split(%l1 l2.(LCons(x,l1),LCons(x,l2))))`r)"
 *)
 
-header {*Definition of type 'a llist by a greatest fixed point*}
+header {*Definition of type llist by a greatest fixed point*}
 
 theory LList = Main + SList:
 
@@ -95,12 +95,12 @@ constdefs
 
 
 
-text{*The case syntax for type 'a llist*}
+text{* The case syntax for type @{text "'a llist"} *}
 translations
   "case p of LNil => a | LCons x l => b" == "llist_case a (%x l. b) p"
 
 
-subsubsection{* Sample function definitions.  Item-based ones start with L *}
+subsubsection{* Sample function definitions.  Item-based ones start with @{text L} *}
 
 constdefs
   Lmap       :: "('a item => 'b item) => ('a item => 'b item)"
@@ -134,7 +134,7 @@ text{*Append generates its result by applying f, where
 *}
 
 text{*
-SHOULD LListD_Fun_CONS_I, etc., be equations (for rewriting)?
+SHOULD @{text LListD_Fun_CONS_I}, etc., be equations (for rewriting)?
 *}
 
 lemmas UN1_I = UNIV_I [THEN UN_I, standard]
@@ -156,8 +156,11 @@ lemma llist_unfold: "llist(A) = usum {Numb(0)} (uprod A (llist A))"
            elim: llist.cases [unfolded NIL_def CONS_def])
 
 
-subsection{* Type checking by coinduction, using list_Fun 
-     THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
+subsection{* Type checking by coinduction *}
+
+text {*
+  {\dots} using @{text list_Fun} THE COINDUCTIVE DEFINITION PACKAGE
+  COULD DO THIS!
 *}
 
 lemma llist_coinduct: 
@@ -176,7 +179,7 @@ apply (unfold list_Fun_def CONS_def, fast)
 done
 
 
-text{*Utilise the "strong" part, i.e. gfp(f)*}
+text{*Utilise the ``strong'' part, i.e. @{text "gfp(f)"}*}
 lemma list_Fun_llist_I: "M \<in> llist(A) ==> M \<in> list_Fun A (X Un llist(A))"
 apply (unfold llist.defs list_Fun_def)
 apply (rule gfp_fun_UnI2) 
@@ -184,7 +187,7 @@ apply (rule monoI, blast)
 apply assumption
 done
 
-subsection{* LList_corec satisfies the desired recurion equation *}
+subsection{* @{text LList_corec} satisfies the desired recurion equation *}
 
 text{*A continuity result?*}
 lemma CONS_UN1: "CONS M (\<Union>x. f(x)) = (\<Union>x. CONS M (f x))"
@@ -220,7 +223,7 @@ apply (simp add: CONS_UN1, safe)
 apply (rule_tac a="Suc(?k)" in UN_I, simp, simp)+ 
 done
 
-text{*the recursion equation for LList_corec -- NOT SUITABLE FOR REWRITING!*}
+text{*the recursion equation for @{text LList_corec} -- NOT SUITABLE FOR REWRITING!*}
 lemma LList_corec:
      "LList_corec a f =   
       (case f a of None => NIL | Some(z,w) => CONS z (LList_corec w f))"
@@ -232,8 +235,8 @@ lemma def_LList_corec:
       ==> h(a) = (case f a of None => NIL | Some(z,w) => CONS z (h w))"
 by (simp add: LList_corec)
 
-text{*A typical use of co-induction to show membership in the gfp. 
-  Bisimulation is  range(%x. LList_corec x f) *}
+text{*A typical use of co-induction to show membership in the @{text gfp}. 
+  Bisimulation is @{text "range(%x. LList_corec x f)"} *}
 lemma LList_corec_type: "LList_corec a f \<in> llist UNIV"
 apply (rule_tac X = "range (%x. LList_corec x ?g) " in llist_coinduct)
 apply (rule rangeI, safe)
@@ -241,7 +244,7 @@ apply (subst LList_corec, simp)
 done
 
 
-subsection{* llist equality as a gfp; the bisimulation principle *}
+subsection{* @{text llist} equality as a @{text gfp}; the bisimulation principle *}
 
 text{*This theorem is actually used, unlike the many similar ones in ZF*}
 lemma LListD_unfold: "LListD r = dsum (diag {Numb 0}) (dprod r (LListD r))"
@@ -260,17 +263,17 @@ apply (case_tac "n'")
 apply (simp_all add: CONS_def less_Suc_eq)
 done
 
-text{*The domain of the LListD relation*}
+text{*The domain of the @{text LListD} relation*}
 lemma Domain_LListD: 
     "Domain (LListD(diag A)) <= llist(A)"
 apply (unfold llist.defs NIL_def CONS_def)
 apply (rule gfp_upperbound)
-txt{*avoids unfolding LListD on the rhs*}
+txt{*avoids unfolding @{text LListD} on the rhs*}
 apply (rule_tac P = "%x. Domain x <= ?B" in LListD_unfold [THEN ssubst], simp)
 apply blast 
 done
 
-text{*This inclusion justifies the use of coinduction to show M=N*}
+text{*This inclusion justifies the use of coinduction to show @{text "M = N"}*}
 lemma LListD_subset_diag: "LListD(diag A) <= diag(llist(A))"
 apply (rule subsetI)
 apply (rule_tac p = "x" in PairE, safe)
@@ -280,9 +283,9 @@ apply (erule DomainI [THEN Domain_LListD [THEN subsetD]])
 done
 
 
-subsubsection{* Coinduction, using LListD_Fun
-    THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
- *}
+subsubsection{* Coinduction, using @{text LListD_Fun} *}
+
+text {* THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS! *}
 
 lemma LListD_Fun_mono: "A<=B ==> LListD_Fun r A <= LListD_Fun r B"
 apply (unfold LListD_Fun_def)
@@ -304,7 +307,7 @@ lemma LListD_Fun_CONS_I:
 apply (unfold LListD_Fun_def CONS_def, blast)
 done
 
-text{*Utilise the "strong" part, i.e. gfp(f)*}
+text{*Utilise the "strong" part, i.e. @{text "gfp(f)"}*}
 lemma LListD_Fun_LListD_I:
      "M \<in> LListD(r) ==> M \<in> LListD_Fun r (X Un LListD(r))"
 apply (unfold LListD.defs LListD_Fun_def)
@@ -314,7 +317,7 @@ apply assumption
 done
 
 
-text{*This converse inclusion helps to strengthen LList_equalityI*}
+text{*This converse inclusion helps to strengthen @{text LList_equalityI}*}
 lemma diag_subset_LListD: "diag(llist(A)) <= LListD(diag A)"
 apply (rule subsetI)
 apply (erule LListD_coinduct)
@@ -338,7 +341,7 @@ done
 
 subsubsection{* To show two LLists are equal, exhibit a bisimulation! 
       [also admits true equality]
-   Replace "A" by some particular set, like {x.True}??? *}
+   Replace @{text A} by some particular set, like @{text "{x. True}"}??? *}
 lemma LList_equalityI:
      "[| (M,N) \<in> r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) |] 
       ==>  M=N"
@@ -348,10 +351,10 @@ apply (simp add: LListD_eq_diag, safe)
 done
 
 
-subsection{* Finality of llist(A): Uniqueness of functions defined by corecursion *}
+subsection{* Finality of @{text "llist(A)"}: Uniqueness of functions defined by corecursion *}
 
-text{*We must remove Pair_eq because it may turn an instance of reflexivity
-  (h1 b, h2 b) = (h1 ?x17, h2 ?x17) into a conjunction! 
+text{*We must remove @{text Pair_eq} because it may turn an instance of reflexivity
+  @{text "(h1 b, h2 b) = (h1 ?x17, h2 ?x17)"} into a conjunction! 
   (or strengthen the Solver?) 
 *}
 declare Pair_eq [simp del]
@@ -407,7 +410,7 @@ apply simp_all
 done
 
 
-subsection{*Lconst: defined directly by lfp *}
+subsection{*Lconst: defined directly by @{text lfp} *}
 
 text{*But it could be defined by corecursion.*}
 
@@ -416,11 +419,11 @@ apply (rule monoI subset_refl CONS_mono)+
 apply assumption 
 done
 
-text{* Lconst(M) = CONS M (Lconst M) *}
+text{* @{text "Lconst(M) = CONS M (Lconst M)"} *}
 lemmas Lconst = Lconst_fun_mono [THEN Lconst_def [THEN def_lfp_unfold]]
 
 text{*A typical use of co-induction to show membership in the gfp.
-  The containing set is simply the singleton {Lconst(M)}. *}
+  The containing set is simply the singleton @{text "{Lconst(M)}"}. *}
 lemma Lconst_type: "M\<in>A ==> Lconst(M): llist(A)"
 apply (rule singletonI [THEN llist_coinduct], safe)
 apply (rule_tac P = "%u. u \<in> ?A" in Lconst [THEN ssubst])
@@ -478,7 +481,7 @@ apply (rule llist.CONS_I [THEN LListI, THEN Abs_LList_inverse]
             rangeI Rep_LList [THEN LListD])+
 done
 
-subsubsection{* Injectiveness of CONS and LCons *}
+subsubsection{* Injectiveness of @{text CONS} and @{text LCons} *}
 
 lemma CONS_CONS_eq2: "(CONS M N=CONS M' N') = (M=M' & N=N')"
 apply (unfold CONS_def)
@@ -505,9 +508,9 @@ apply (erule CONS_neq_NIL, fast)
 done
 
 
-subsection{* Reasoning about llist(A) *}
+subsection{* Reasoning about @{text "llist(A)"} *}
 
-text{*A special case of list_equality for functions over lazy lists*}
+text{*A special case of @{text list_equality} for functions over lazy lists*}
 lemma LList_fun_equalityI:
  "[| M \<in> llist(A); g(NIL): llist(A);                              
      f(NIL)=g(NIL);                                              
@@ -524,7 +527,7 @@ apply (erule ssubst, erule ssubst, erule LListD_Fun_diag_I, blast)
 done
 
 
-subsection{* The functional "Lmap" *}
+subsection{* The functional @{text Lmap} *}
 
 lemma Lmap_NIL [simp]: "Lmap f NIL = NIL"
 by (rule Lmap_def [THEN def_LList_corec, THEN trans], simp)
@@ -541,13 +544,13 @@ apply (erule imageI [THEN llist_coinduct], safe)
 apply (erule llist.cases, simp_all)
 done
 
-text{*This type checking rule synthesises a sufficiently large set for f*}
+text{*This type checking rule synthesises a sufficiently large set for @{text f}*}
 lemma Lmap_type2: "M \<in> llist(A) ==> Lmap f M \<in> llist(f`A)"
 apply (erule Lmap_type)
 apply (erule imageI)
 done
 
-subsubsection{* Two easy results about Lmap *}
+subsubsection{* Two easy results about @{text Lmap} *}
 
 lemma Lmap_compose: "M \<in> llist(A) ==> Lmap (f o g) M = Lmap f (Lmap g M)"
 apply (unfold o_def)
@@ -567,7 +570,7 @@ apply assumption
 done
 
 
-subsection{* Lappend -- its two arguments cause some complications! *}
+subsection{* @{text Lappend} -- its two arguments cause some complications! *}
 
 lemma Lappend_NIL_NIL [simp]: "Lappend NIL NIL = NIL"
 apply (unfold Lappend_def)
@@ -597,7 +600,7 @@ lemma Lappend_NIL2: "M \<in> llist(A) ==> Lappend M NIL = M"
 by (erule LList_fun_equalityI, simp_all)
 
 
-subsubsection{* Alternative type-checking proofs for Lappend *}
+subsubsection{* Alternative type-checking proofs for @{text Lappend} *}
 
 text{*weak co-induction: bisimulation and case analysis on both variables*}
 lemma Lappend_type: "[| M \<in> llist(A); N \<in> llist(A) |] ==> Lappend M N \<in> llist(A)"
@@ -618,9 +621,9 @@ apply (erule_tac aa = "x" in llist.cases)
 apply (simp add: list_Fun_llist_I, simp)
 done
 
-subsection{* Lazy lists as the type 'a llist -- strongly typed versions of above *}
+subsection{* Lazy lists as the type @{text "'a llist"} -- strongly typed versions of above *}
 
-subsubsection{* llist_case: case analysis for 'a llist *}
+subsubsection{* @{text llist_case}: case analysis for @{text "'a llist"} *}
 
 declare LListI [THEN Abs_LList_inverse, simp]
 declare Rep_LList_inverse [simp]
@@ -644,9 +647,9 @@ apply (erule LListI [THEN Rep_LList_cases], clarify)
 apply (simp add: Rep_LList_LCons [symmetric] Rep_LList_inject, blast) 
 done
 
-subsubsection{* llist_corec: corecursion for 'a llist *}
+subsubsection{* @{text llist_corec}: corecursion for @{text "'a llist"} *}
 
-text{*Lemma for the proof of llist_corec*}
+text{*Lemma for the proof of @{text llist_corec}*}
 lemma LList_corec_type2:
      "LList_corec a  
            (%z. case f z of None => None | Some(v,w) => Some(Leaf(v),w)) 
@@ -672,9 +675,9 @@ lemma def_llist_corec:
       h(a) = (case f a of None => LNil | Some(z,w) => LCons z (h w))"
 by (simp add: llist_corec)
 
-subsection{* Proofs about type 'a llist functions *}
+subsection{* Proofs about type @{text "'a llist"} functions *}
 
-subsection{* Deriving llist_equalityI -- llist equality is a bisimulation *}
+subsection{* Deriving @{text llist_equalityI} -- @{text llist} equality is a bisimulation *}
 
 lemma LListD_Fun_subset_Times_llist: 
     "r <= (llist A) <*> (llist A) ==>  
@@ -704,7 +707,7 @@ apply (rule equalityI, blast)
 apply (fast elim: LListI [THEN Abs_LList_inverse, THEN subst])
 done
 
-text{*Used with lfilter*}
+text{*Used with @{text lfilter}*}
 lemma llistD_Fun_mono: 
     "A<=B ==> llistD_Fun A <= llistD_Fun B"
 apply (unfold llistD_Fun_def prod_fun_def, auto)
@@ -730,7 +733,7 @@ apply (rule subset_Times_llist [THEN Un_least])
 apply (rule diag_subset_Times)
 done
 
-subsubsection{* Rules to prove the 2nd premise of llist_equalityI *}
+subsubsection{* Rules to prove the 2nd premise of @{text llist_equalityI} *}
 lemma llistD_Fun_LNil_I [simp]: "(LNil,LNil) \<in> llistD_Fun(r)"
 apply (unfold llistD_Fun_def LNil_def)
 apply (rule LListD_Fun_NIL_I [THEN prod_fun_imageI])
@@ -743,7 +746,7 @@ apply (rule rangeI [THEN LListD_Fun_CONS_I, THEN prod_fun_imageI])
 apply (erule prod_fun_imageI)
 done
 
-text{*Utilise the "strong" part, i.e. gfp(f)*}
+text{*Utilise the "strong" part, i.e. @{text "gfp(f)"}*}
 lemma llistD_Fun_range_I: "(l,l) \<in> llistD_Fun(r Un range(%x.(x,x)))"
 apply (unfold llistD_Fun_def)
 apply (rule Rep_LList_inverse [THEN subst])
@@ -753,7 +756,7 @@ apply (subst prod_fun_range_eq_diag)
 apply (rule Rep_LList [THEN LListD, THEN LListD_Fun_diag_I])
 done
 
-text{*A special case of list_equality for functions over lazy lists*}
+text{*A special case of @{text list_equality} for functions over lazy lists*}
 lemma llist_fun_equalityI:
      "[| f(LNil)=g(LNil);                                                 
          !!x l. (f(LCons x l),g(LCons x l)) 
@@ -766,7 +769,7 @@ apply (simp_all add: llistD_Fun_range_I)
 done
 
 
-subsection{* The functional "lmap" *}
+subsection{* The functional @{text lmap} *}
 
 lemma lmap_LNil [simp]: "lmap f LNil = LNil"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
@@ -775,7 +778,7 @@ lemma lmap_LCons [simp]: "lmap f (LCons M N) = LCons (f M) (lmap f N)"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
 
 
-subsubsection{* Two easy results about lmap *}
+subsubsection{* Two easy results about @{text lmap} *}
 
 lemma lmap_compose [simp]: "lmap (f o g) l = lmap f (lmap g l)"
 by (rule_tac l = "l" in llist_fun_equalityI, simp_all)
@@ -784,7 +787,7 @@ lemma lmap_ident [simp]: "lmap (%x. x) l = l"
 by (rule_tac l = "l" in llist_fun_equalityI, simp_all)
 
 
-subsection{* iterates -- llist_fun_equalityI cannot be used! *}
+subsection{* iterates -- @{text llist_fun_equalityI} cannot be used! *}
 
 lemma iterates: "iterates f x = LCons x (iterates f (f x))"
 by (rule iterates_def [THEN def_llist_corec, THEN trans], simp)
@@ -803,7 +806,8 @@ done
 
 subsection{* A rather complex proof about iterates -- cf Andy Pitts *}
 
-subsubsection{* Two lemmas about natrec n x (%m.g), which is essentially (g^n)(x) *}
+subsubsection{* Two lemmas about @{text "natrec n x (%m. g)"}, which is essentially
+  @{text "(g^n)(x)"} *}
 
 lemma fun_power_lmap: "nat_rec (LCons b l) (%m. lmap(f)) n =       
      LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)"
@@ -816,8 +820,8 @@ by (induct_tac "n", simp_all)
 lemmas Pair_cong = refl [THEN cong, THEN cong, of concl: Pair]
 
 
-text{*The bisimulation consists of {(lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u)))}
-  for all u and all n::nat.*}
+text{*The bisimulation consists of @{text "{(lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u)))}"}
+  for all @{text u} and all @{text "n::nat"}.*}
 lemma iterates_equality:
      "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)"
 apply (rule ext)
@@ -839,7 +843,7 @@ apply (subst fun_power_Suc, blast)
 done
 
 
-subsection{* lappend -- its two arguments cause some complications! *}
+subsection{* @{text lappend} -- its two arguments cause some complications! *}
 
 lemma lappend_LNil_LNil [simp]: "lappend LNil LNil = LNil"
 apply (unfold lappend_def)
@@ -873,7 +877,7 @@ apply (rule rangeI, safe)
 apply (subst iterates, simp)
 done
 
-subsubsection{* Two proofs that lmap distributes over lappend *}
+subsubsection{* Two proofs that @{text lmap} distributes over lappend *}
 
 text{*Long proof requiring case analysis on both both arguments*}
 lemma lmap_lappend_distrib:
@@ -888,7 +892,7 @@ apply (rule_tac l = "n" in llistE, simp_all)
 apply (blast intro: llistD_Fun_LCons_I) 
 done
 
-text{*Shorter proof of theorem above using llist_equalityI as strong coinduction*}
+text{*Shorter proof of theorem above using @{text llist_equalityI} as strong coinduction*}
 lemma lmap_lappend_distrib:
      "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)"
 apply (rule_tac l = "l" in llist_fun_equalityI, simp)

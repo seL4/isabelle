@@ -29,7 +29,7 @@ constdefs
                                           | LCons y z => Some(y,z))"
 
 
-subsection {* findRel: basic laws *}
+subsection {* @{text findRel}: basic laws *}
 
 inductive_cases
   findRel_LConsE [elim!]: "(LCons x l, l'') \<in> findRel p"
@@ -47,7 +47,7 @@ lemma findRel_LNil [elim!]: "(LNil,l): findRel p ==> R"
 by (blast elim: findRel.cases)
 
 
-subsection {* Properties of Domain (findRel p) *}
+subsection {* Properties of @{text "Domain (findRel p)"} *}
 
 lemma LCons_Domain_findRel [simp]:
      "LCons x l \<in> Domain(findRel p) = (p x | l \<in> Domain(findRel p))"
@@ -64,7 +64,7 @@ apply (erule findRel.induct, blast+)
 done
 
 
-subsection {* find: basic equations *}
+subsection {* @{text find}: basic equations *}
 
 lemma find_LNil [simp]: "find p LNil = LNil"
 by (unfold find_def, blast)
@@ -92,7 +92,7 @@ by (simp add: find_LCons_seek find_LCons_found)
 
 
 
-subsection {* lfilter: basic equations *}
+subsection {* @{text lfilter}: basic equations *}
 
 lemma lfilter_LNil [simp]: "lfilter p LNil = LNil"
 by (rule lfilter_def [THEN def_llist_corec, THEN trans], simp)
@@ -144,7 +144,7 @@ apply (auto iff: Domain_findRel_iff)
 done
 
 
-subsection {* lfilter: simple facts by coinduction *}
+subsection {* @{text lfilter}: simple facts by coinduction *}
 
 lemma lfilter_K_True: "lfilter (%x. True) l = l"
 by (rule_tac l = "l" in llist_fun_equalityI, simp_all)
@@ -152,7 +152,7 @@ by (rule_tac l = "l" in llist_fun_equalityI, simp_all)
 lemma lfilter_idem: "lfilter p (lfilter p l) = lfilter p l"
 apply (rule_tac l = "l" in llist_fun_equalityI, simp_all)
 apply safe
-txt{*Cases: p x is true or false*}
+txt{*Cases: @{text "p x"} is true or false*}
 apply (rule lfilter_cases [THEN disjE])
  apply (erule ssubst, auto)
 done
@@ -204,21 +204,22 @@ lemma lfilter_conj_lemma:
 apply (case_tac "l \<in> Domain (findRel q)")
  apply (subgoal_tac [2] "l ~: Domain (findRel (%x. p x & q x))")
   prefer 3 apply (blast intro: rev_subsetD [OF _ Domain_findRel_mono])
- txt{*There are no qs in l: both lists are LNil*}
+ txt{*There are no @{text qs} in @{text l}: both lists are @{text LNil}*}
  apply (simp_all add: Domain_findRel_iff, clarify) 
-txt{*case q x*}
+txt{*case @{text "q x"}*}
 apply (case_tac "p x")
  apply (simp_all add: findRel_conj [THEN findRel_imp_lfilter])
- txt{*case q x and ~(p x) *}
+ txt{*case @{text "q x"} and @{text "~(p x)"} *}
 apply (case_tac "l' \<in> Domain (findRel (%x. p x & q x))")
- txt{*subcase: there is no p&q in l' and therefore none in l*}
+ txt{*subcase: there is no @{text "p & q"} in @{text l'} and therefore none in @{text l}*}
  apply (subgoal_tac [2] "l ~: Domain (findRel (%x. p x & q x))")
   prefer 3 apply (blast intro: findRel_not_conj_Domain)
  apply (subgoal_tac [2] "lfilter q l' ~: Domain (findRel p) ")
   prefer 3 apply (blast intro: findRel_lfilter_Domain_conj)
- txt{*    ...and therefore too, no p in lfilter q l'.  Both results are Lnil*}
+ txt{*    {\dots} and therefore too, no @{text p} in @{text "lfilter q l'"}.
+   Both results are @{text LNil}*}
  apply (simp_all add: Domain_findRel_iff, clarify) 
-txt{*subcase: there is a p&q in l' and therefore also one in l*}
+txt{*subcase: there is a @{text "p & q"} in @{text l'} and therefore also one in @{text l} *}
 apply (subgoal_tac " (l, LCons xa l'a) \<in> findRel (%x. p x & q x) ")
  prefer 2 apply (blast intro: findRel_conj2)
 apply (subgoal_tac " (lfilter q l', LCons xa (lfilter q l'a)) \<in> findRel p")
@@ -234,7 +235,7 @@ done
 
 
 subsection {* Numerous lemmas required to prove ??:
-     lfilter p (lmap f l) = lmap f (lfilter (%x. p(f x)) l)
+     @{text "lfilter p (lmap f l) = lmap f (lfilter (%x. p(f x)) l)"}
  *}
 
 lemma findRel_lmap_Domain:

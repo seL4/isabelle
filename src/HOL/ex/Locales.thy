@@ -338,9 +338,10 @@ text {*
 lemma
   includes group G
   includes group H
-  shows "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" and
-  "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" and
-  "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" by (rule refl)+
+  shows "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)"
+    and "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)"
+    and "x \<cdot> \<one>\<^sub>2 = prod G x (one H)"
+  by (rule refl)+
 
 text {*
   Note that the trivial statements above need to be given as a
