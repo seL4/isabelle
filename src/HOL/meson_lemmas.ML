@@ -6,13 +6,6 @@
 Lemmas for Meson.
 *)
 
-(* "Axiom" of Choice, proved using the description operator *)
-
-Goal "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)";
-by (fast_tac (claset() addEs [someI]) 1);
-qed "choice";
-
-
 (* Generation of contrapositives *)
 
 (*Inserts negated disjunct after removing the negation; P is a literal*)

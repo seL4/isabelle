@@ -17,6 +17,7 @@ Goal "EX x. P x ==> P (SOME x. P x)";
 by (etac exE 1);
 by (etac someI 1);
 qed "someI_ex";
+AddXEs [someI_ex];
 
 (*Easier to apply than someI: conclusion has only one occurrence of P*)
 val prems = Goal "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
@@ -68,28 +69,25 @@ by (rtac some_equality 1);
 by (rtac refl 1);
 by (etac sym 1);
 qed "some_sym_eq_trivial";
-
-
-AddXEs [someI_ex];
-AddIs [some_equality];
-
 Addsimps [some_eq_trivial, some_sym_eq_trivial];
 
 
 (** "Axiom" of Choice, proved using the description operator **)
 
-(*"choice" is now proved in Tools/meson.ML*)
+(*Used in Tools/meson.ML*)
+Goal "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)";
+by (fast_tac (claset() addEs [someI]) 1);
+qed "choice";
 
 Goal "ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
 by (fast_tac (claset() addEs [someI]) 1);
 qed "bchoice";
 
 
-(**** Function Inverse ****)
+section "Function Inverse";
 
 val inv_def = thm "inv_def";
 val Inv_def = thm "Inv_def";
-
 
 Goal "inv id = id";
 by (simp_tac (simpset() addsimps [inv_def,id_def]) 1);
@@ -212,7 +210,8 @@ by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 2);
 by (blast_tac (claset() addIs [bij_is_inj RS inv_f_f RS sym]) 1);
 qed "bij_vimage_eq_inv_image";
 
-(*** Inverse ***)
+
+section "Inverse of a PI-function (restricted domain)";
 
 Goalw [Inv_def] "f ` A = B ==> (lam x: B. (Inv A f) x) : B funcset A";
 by (fast_tac (claset() addIs [restrict_in_funcset, someI2]) 1);
@@ -248,7 +247,8 @@ by (asm_full_simp_tac (simpset() addsimps [Inv_f_f]) 1);
 qed "compose_Inv_id";
 
 
-(**** split ****)
+
+section "split and SOME";
 
 (*Can't be added to simpset: loops!*)
 Goal "(SOME x. P x) = (SOME (a,b). P(a,b))";
@@ -265,10 +265,7 @@ qed "Eps_split_eq";
 Addsimps [Eps_split_eq];
 
 
-(*---------------------------------------------------------------------------
- * A relation is wellfounded iff it has no infinite descending chain
- * Cannot go into WF because it needs type nat.
- *---------------------------------------------------------------------------*)
+section "A relation is wellfounded iff it has no infinite descending chain";
 
 Goalw [wf_eq_minimal RS eq_reflection]
   "wf r = (~(EX f. ALL i. (f(Suc i),f i) : r))";
