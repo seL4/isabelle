@@ -259,7 +259,9 @@ val type_decls = repeat1 (old_type_decl || type_decl) >>
 
 (* consts *)
 
-val simple_type = ident || kind TypeVar;
+val simple_type = ident ||
+  (kind TypeVar -- optional ("::" $$-- ident >> cat "::") "" >>
+   (fn (tv, cl) => tv ^ cl));
 
 (*Types with type arguments, like e.g. "'a list list"*)
 fun complex_type toks =
@@ -274,7 +276,7 @@ fun complex_type toks =
 (*Const type which is limited at the end by "=>", ")", "]" or ","*)
 fun param_type toks =
   ((complex_type || "(" $$-- param_type --$$ ")" >> parens ||
-    "[" $$-- !! (list1 param_type) --$$ "]" >> mk_list) --
+    "[" $$-- (list1 param_type) --$$ "]" >> mk_list) --
      repeat ("=>" $$-- param_type >> cat " =>") >>
      (fn (t, ts) => t ^ implode ts)) toks;
 
