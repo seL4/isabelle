@@ -746,7 +746,7 @@ fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (Ts, c ins cs)
 val add_term_classes = it_term_types add_typ_classes;
 val add_term_tycons = it_term_types add_typ_tycons;
 
-fun add_term_consts (Const (c, _), cs) = c ins cs
+fun add_term_consts (Const (c, _), cs) = c ins_string cs
   | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
