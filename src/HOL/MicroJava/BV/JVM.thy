@@ -15,7 +15,7 @@ constdefs
 
   kiljvm :: "jvm_prog => nat => nat => ty => instr list => state list => state list"
   "kiljvm G maxs maxr rT bs ==
-  kildall (JVMType.sl G maxs maxr) (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)"
+  kildall (JVMType.sup G maxs maxr) (exec G maxs rT bs) (\<lambda>pc. succs (bs!pc) pc)"
 
   wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
   "wt_kil G C pTs rT mxs mxl ins ==
