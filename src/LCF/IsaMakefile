@@ -1,0 +1,21 @@
+#
+# $Id$
+#
+# IsaMakefile for LCF
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+FILES =	ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
+
+$(OUT)/LCF: $(OUT)/FOL $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/FOL LCF
+	@chmod -w $@
+
+$(OUT)/FOL:
+	@cd ../FOL; $(ISATOOL) make
+
+test: ex.ML $(OUT)/LCF
+	@$(ISABELLE) -e 'make_html := $(ISABELLE_HTML); use"ex.ML"; quit();' \
+	  -rq $(OUT)/LCF
+
+.PRECIOUS: $(OUT)/FOL $(OUT)/LCF
