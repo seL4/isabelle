@@ -282,3 +282,11 @@ Goalw [PLam_def]
 \    ==> (PLam I F) : X guarantees[v] Y";
 by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
 qed "guarantees_PLam_I";
+
+Goal "(PLam I F : preserves (v o sub j)) = \
+\     (if j: I then F j : preserves v else True)";
+by (asm_simp_tac (simpset() addsimps [PLam_def, lift_prog_preserves_sub]) 1);
+by (Blast_tac 1);
+qed "PLam_preserves";
+
+AddIffs [PLam_preserves];

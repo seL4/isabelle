@@ -381,6 +381,17 @@ qed "lift_prog_transient_eq_disj";
 
 (*** guarantees properties ***)
 
+Goal "lift_prog i F : preserves (v o sub j) = \
+\     (if i=j then F : preserves v else True)";
+by (simp_tac (simpset() addsimps [lift_prog_correct,
+				  lift_export extend_preserves]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, extend_def, extend_act_def, 
+				  stable_def, constrains_def, lift_map_def]));
+qed "lift_prog_preserves_sub";
+
+Addsimps [lift_prog_preserves_sub];
+
 Goal "G : preserves (v o sub i) ==> drop_prog i C G : preserves v";
 by (asm_simp_tac
     (simpset() addsimps [drop_prog_correct, fold_o_sub,

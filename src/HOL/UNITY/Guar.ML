@@ -77,9 +77,10 @@ Goalw [guar_def, component_def]
 by (Blast_tac 1);
 qed "guaranteesD";
 
-(*This version of guaranteesD matches more easily in the conclusion*)
+(*This version of guaranteesD matches more easily in the conclusion
+  The major premise can no longer be  F<=H since we need to reason about G*)
 Goalw [guar_def]
-     "[| F : X guarantees[v] Y;  H : X;  H = F Join G;  G : preserves v |] \
+     "[| F : X guarantees[v] Y;  H : X;  F Join G = H;  G : preserves v |] \
 \     ==> H : Y";
 by (Blast_tac 1);
 qed "component_guaranteesD";
@@ -133,6 +134,11 @@ Goalw [guar_def]
 by (Blast_tac 1);
 qed "guarantees_Int_right";
 
+Goal "(F : X guarantees[v] (INTER I Y)) = \
+\     (ALL i:I. F : X guarantees[v] (Y i))";
+by (simp_tac (simpset() addsimps [guarantees_INT_right]) 1);
+qed "guarantees_INT_right_iff";
+
 Goalw [guar_def] "(X guarantees[v] Y) = (UNIV guarantees[v] (-X Un Y))";
 by (Blast_tac 1);
 qed "shunting";
@@ -180,9 +186,9 @@ Goalw [guar_def]
 \    ==> F Join G: (U Int X) guarantees[v] (V Int Y)";
 by (Simp_tac 1);
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [Join_preserves, Join_assoc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
-by (asm_full_simp_tac (simpset() addsimps [Join_preserves]) 1);
+by (Asm_full_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
 qed "guarantees_Join_Int";
 
@@ -192,9 +198,9 @@ Goalw [guar_def]
 \    ==> F Join G: (U Un X) guarantees[v] (V Un Y)";
 by (Simp_tac 1);
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [Join_preserves, Join_assoc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
-by (asm_full_simp_tac (simpset() addsimps [Join_preserves]) 1);
+by (Asm_full_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
 qed "guarantees_Join_Un";
 
@@ -205,8 +211,7 @@ Goalw [guar_def]
 by Auto_tac;
 by (ball_tac 1);
 by (dres_inst_tac [("x", "JOIN I F Join G")] spec 1);
-by (asm_full_simp_tac (simpset() addsimps [Join_assoc RS sym, JN_absorb, 
-					   Join_preserves, JN_preserves]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Join_assoc RS sym, JN_absorb]) 1);
 qed "guarantees_JN_INT";
 
 Goalw [guar_def]
@@ -218,8 +223,7 @@ by (ball_tac 1);
 by (dres_inst_tac [("x", "JOIN I F Join G")] spec 1);
 by (auto_tac
     (claset(),
-     simpset() addsimps [Join_assoc RS sym, JN_absorb, 
-			 Join_preserves, JN_preserves]));
+     simpset() addsimps [Join_assoc RS sym, JN_absorb]));
 qed "guarantees_JN_UN";
 
 
@@ -230,7 +234,7 @@ Goalw [guar_def]
 \     ==> F Join G: X guarantees[v] Y";
 by (Simp_tac 1);
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [Join_preserves, Join_assoc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
 qed "guarantees_Join_I1";
 
 Goal "[| G: X guarantees[v] Y;  F: preserves v |] \
@@ -246,8 +250,7 @@ Goalw [guar_def]
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "JOIN (I-{i}) F Join G")] spec 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [JN_Join_diff, Join_assoc RS sym, 
-				  Join_preserves, JN_preserves]));
+	      simpset() addsimps [JN_Join_diff, Join_assoc RS sym]));
 qed "guarantees_JN_I";
 
 

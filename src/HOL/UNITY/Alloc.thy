@@ -91,8 +91,13 @@ constdefs
 		 LeadsTo[givenBy (funPair rel ask)]
 		 {s. tokens h <= (tokens o rel) s})"
 
+  (*spec: preserves part*)
+    client_preserves :: clientState program set
+    "client_preserves == preserves giv"
+
   client_spec :: clientState program set
-    "client_spec == client_increasing Int client_bounded Int client_progress"
+    "client_spec == client_increasing Int client_bounded Int client_progress
+                    Int client_preserves"
 
 (** Allocator specification (required) ***)
 
@@ -129,8 +134,13 @@ constdefs
 	      INT h. {s. h <= (sub i o allocAsk) s} LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
 
+  (*spec: preserves part*)
+    alloc_preserves :: allocState program set
+    "alloc_preserves == preserves (funPair allocRel allocAsk)"
+  
   alloc_spec :: allocState program set
-    "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress"
+    "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
+                   alloc_preserves"
 
 (** Network specification ***)
 
@@ -155,8 +165,16 @@ constdefs
                     guarantees[allocRel]
                     ((sub i o allocRel) Fols (rel o sub i o client))"
 
+  (*spec: preserves part*)
+    network_preserves :: systemState program set
+    "network_preserves == preserves allocGiv
+                          Int
+                          (INT i : lessThan Nclients.
+                           preserves (funPair rel ask o sub i o client))"
+  
   network_spec :: systemState program set
-    "network_spec == network_ask Int network_giv Int network_rel"
+    "network_spec == network_ask Int network_giv Int
+                     network_rel Int network_preserves"
 
 
 (** State mappings **)

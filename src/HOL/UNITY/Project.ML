@@ -545,6 +545,12 @@ by (auto_tac (claset(),
 				  Collect_eq_extend_set RS sym]));
 qed "extend_preserves";
 
+Goal "inj h ==> (extend h G : preserves g)";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, extend_def, extend_act_def, 
+				  stable_def, constrains_def, g_def]));
+qed "inj_extend_preserves";
+
 (** Strong precondition and postcondition; doesn't seem very useful. **)
 
 Goal "F : X guarantees[v] Y ==> \

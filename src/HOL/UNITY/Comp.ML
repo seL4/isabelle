@@ -100,6 +100,8 @@ by (simp_tac (simpset() addsimps [JN_stable, preserves_def]) 1);
 by (Blast_tac 1);
 qed "JN_preserves";
 
+AddIffs [Join_preserves, JN_preserves];
+
 Goal "preserves (funPair v w) = preserves v Int preserves w";
 by (auto_tac (claset(),
 	      simpset() addsimps [funPair_def, preserves_def, 
