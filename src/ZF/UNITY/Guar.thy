@@ -25,25 +25,20 @@ constdefs
     case, proving equivalence with Chandy and Sanders's n-ary definitions*)
 
    ex_prop :: i =>o
-   "ex_prop(X) == ALL F:program. ALL G:program.
-                  F ok G --> F:X | G:X --> (F Join G):X"
+   "ex_prop(X) == X<=program &
+    (ALL F:program. ALL G:program. F ok G --> F:X | G:X --> (F Join G):X)"
 
-  (* Equivalent definition of ex_prop given at the end of section 3*)
-  ex_prop2 :: i =>o
- "ex_prop2(X) == ALL G:program. (G:X <-> (ALL H:program. (G component_of H) --> H:X))"
-  
   strict_ex_prop  :: i => o
-   "strict_ex_prop(X) == ALL F:program. ALL  G:program.
-                          F ok G --> (F:X | G: X) <-> (F Join G : X)"
-
+  "strict_ex_prop(X) == X<=program &
+   (ALL F:program. ALL  G:program. F ok G --> (F:X | G: X) <-> (F Join G : X))"
 
   uv_prop  :: i => o
-   "uv_prop(X) == SKIP:X & (ALL F:program. ALL G:program.
-			    F ok G --> F:X & G:X --> (F Join G):X)"
+   "uv_prop(X) == X<=program &
+    (SKIP:X & (ALL F:program. ALL G:program. F ok G --> F:X & G:X --> (F Join G):X))"
   
  strict_uv_prop  :: i => o
-   "strict_uv_prop(X) == SKIP:X &
-      (ALL F:program. ALL G:program. F ok G -->(F:X & G:X) <-> (F Join G:X))"
+   "strict_uv_prop(X) == X<=program &
+    (SKIP:X & (ALL F:program. ALL G:program. F ok G -->(F:X & G:X) <-> (F Join G:X)))"
 
   guar :: [i, i] => i (infixl "guarantees" 55)
               (*higher than membership, lower than Co*)

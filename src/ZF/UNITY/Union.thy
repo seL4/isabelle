@@ -34,12 +34,8 @@ constdefs
 				AllowedActs(F) Int AllowedActs(G))"
   (*Characterizes safety properties.  Used with specifying AllowedActs*)
   safety_prop :: "i => o"
-  "safety_prop(X) == SKIP:X &
-                      (ALL G:program. Acts(G) <= (UN F:X. Acts(F)) --> G:X)"
-
-  property :: i
- "property == Pow(program)"
-
+  "safety_prop(X) == X<=program &
+      SKIP:X & (ALL G:program. Acts(G) <= (UN F:X. Acts(F)) --> G:X)"
   
 syntax
   "@JOIN1"     :: [pttrns, i] => i         ("(3JN _./ _)" 10)
@@ -50,7 +46,7 @@ translations
   "JN x y. B"   == "JN x. JN y. B"
   "JN x. B"     == "JOIN(state,(%x. B))"
 
-syntax (xsymbols)
+syntax (symbols)
    SKIP     :: i                    ("\\<bottom>")
   "op Join" :: [i, i] => i   (infixl "\\<squnion>" 65)
   "@JOIN1"  :: [pttrns, i] => i     ("(3\\<Squnion> _./ _)" 10)

@@ -11,13 +11,12 @@ Theory ported from HOL.
 SubstAx = WFair + Constrains + 
 
 constdefs
+  (* The definitions below are not `conventional', but yields simpler rules *)
    Ensures :: "[i,i] => i"            (infixl 60)
-    "A Ensures B == {F:program. F : (reachable(F) Int A) ensures B &
-		                A:condition & B:condition}"
+    "A Ensures B == {F:program. F : (reachable(F) Int A) ensures (reachable(F) Int B) }"
 
-   LeadsTo :: "[i, i] => i"            (infixl 60)
-    "A LeadsTo B == {F:program. F:(reachable(F) Int A) leadsTo B &
-		                A:condition & B:condition}"
+  LeadsTo :: "[i, i] => i"            (infixl 60)
+    "A LeadsTo B == {F:program. F:(reachable(F) Int A) leadsTo (reachable(F) Int B)}"
 
 syntax (xsymbols)
   "op LeadsTo" :: "[i, i] => i" (infixl " \\<longmapsto>w " 60)

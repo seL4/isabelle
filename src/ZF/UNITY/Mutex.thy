@@ -5,9 +5,8 @@
 
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 
-Variables' types are introduced globally so that type verification of
-UNITY programs/specifications reduce to the usual ZF typechecking.
-An ill-tyed expression will reduce to the empty set.
+Variables' types are introduced globally so that type verification
+reduces to the usual ZF typechecking: an ill-tyed expressions reduce to the empty set.
 *)
 
 Mutex = SubstAx + 
@@ -65,7 +64,7 @@ constdefs
 
  Mutex :: i
  "Mutex == mk_program({s:state. s`u=0 & s`v=0 & s`m = #0 & s`n = #0},
-                       {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, action)"
+                       {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4}, Pow(state*state))"
 
   (** The correct invariants **)
 

@@ -10,55 +10,46 @@ From Misra, "A Logic for Concurrent Programming", 1994
 Theory ported form HOL.
 *)
 
-
-Goalw [FP_Orig_def] 
-  "FP_Orig(F):condition";
+Goalw [FP_Orig_def] "FP_Orig(F)<=state";
 by (Blast_tac 1);
 qed "FP_Orig_type";
-AddIffs [FP_Orig_type];
-AddTCs  [FP_Orig_type];
 
-Goalw [FP_Orig_def, condition_def]  
-  "x:FP_Orig(F) ==> x:state";
-by Auto_tac;
-qed "FP_OrigD";
+Goalw [st_set_def] "st_set(FP_Orig(F))";
+by (rtac FP_Orig_type 1);
+qed "st_set_FP_Orig";
+AddIffs [st_set_FP_Orig];
 
-Goalw [FP_def, condition_def] 
-         "FP(F):condition";
+Goalw [FP_def] "FP(F)<=state";
 by (Blast_tac 1);
 qed "FP_type";
-AddIffs [FP_type];
-AddTCs  [FP_type];
 
-Goalw [FP_def, condition_def]  
-  "x:FP(F) ==> x:state";
-by Auto_tac;
-qed "FP_D";
+Goalw [st_set_def] "st_set(FP(F))";
+by (rtac FP_type 1);
+qed "st_set_FP";
+AddIffs [st_set_FP];
 
 Goal "Union(B) Int A = (UN C:B. C Int A)"; 
 by (Blast_tac 1);
 qed "Int_Union2";
 
-Goalw [FP_Orig_def, stable_def] 
-"[| F:program; B:condition |] \
-\        ==> F:stable(FP_Orig(F) Int B)";
+Goalw [FP_Orig_def, stable_def] "F:program ==> F:stable(FP_Orig(F) Int B)";
 by (stac Int_Union2 1);
 by (blast_tac (claset() addIs [constrains_UN]) 1);
 qed "stable_FP_Orig_Int";
 
-Goalw [FP_Orig_def, stable_def]
-    "[| ALL B:condition. F : stable (A Int B); A:condition |] \
-\    ==> A <= FP_Orig(F)";
+Goalw [FP_Orig_def, stable_def, st_set_def]
+    "[| ALL B. F: stable (A Int B); st_set(A) |]  ==> A <= FP_Orig(F)";
 by (Blast_tac 1);
-bind_thm("FP_Orig_weakest",  ballI RS result());
+qed "FP_Orig_weakest2";
+
+bind_thm("FP_Orig_weakest",  allI RS FP_Orig_weakest2);
 
 Goal "A Int cons(a, B) = \
    \ (if a : A then cons(a, cons(a, (A Int B))) else A Int B)";
 by Auto_tac;
 qed "Int_cons_right";
 
-
-Goal "[| F:program; B:condition |] ==> F : stable (FP(F) Int B)";
+Goal "F:program ==> F : stable (FP(F) Int B)";
 by (subgoal_tac "FP(F) Int B = (UN x:B. FP(F) Int {x})" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [Int_cons_right]) 1);
@@ -67,38 +58,33 @@ by (rtac constrains_UN 1);
 by (auto_tac (claset(), simpset() addsimps [cons_absorb]));
 qed "stable_FP_Int";
 
-
 Goal "F:program ==> FP(F) <= FP_Orig(F)";
 by (rtac (stable_FP_Int RS FP_Orig_weakest) 1);
 by Auto_tac;
-val lemma1 = result();
+qed "FP_subset_FP_Orig";
 
-
-Goalw [FP_Orig_def, FP_def] 
-"F:program ==> FP_Orig(F) <= FP(F)";
+Goalw [FP_Orig_def, FP_def] "F:program ==> FP_Orig(F) <= FP(F)";
 by (Clarify_tac 1);
-by (dres_inst_tac [("x", "{x}")] bspec 1);
-by (force_tac (claset(), simpset() addsimps [condition_def]) 1);
+by (dres_inst_tac [("x", "{x}")] spec 1);
 by (asm_full_simp_tac (simpset() addsimps [Int_cons_right]) 1);
-by (auto_tac (claset(), simpset() addsimps [cons_absorb]));
-by (force_tac (claset(), simpset() addsimps [condition_def]) 1);
-val lemma2 = result();
+by (forward_tac [stableD2] 1);
+by (auto_tac (claset(), simpset() addsimps [cons_absorb, st_set_def]));
+qed "FP_Orig_subset_FP";
 
 
 Goal "F:program ==> FP(F) = FP_Orig(F)";
-by (rtac ([lemma1,lemma2] MRS equalityI) 1);
+by (rtac ([FP_subset_FP_Orig,FP_Orig_subset_FP] MRS equalityI) 1);
 by (ALLGOALS(assume_tac));
 qed "FP_equivalence";
 
 
-Goal  "[| ALL B:condition. F : stable(A Int B); A:condition; F:program |] \
-\      ==> A <= FP(F)";
+Goal  "[| ALL B. F : stable(A Int B); F:program; st_set(A) |] ==> A <= FP(F)";
 by (asm_simp_tac (simpset() addsimps [FP_equivalence, FP_Orig_weakest]) 1);
-bind_thm("FP_weakest", result() RS ballI);
+qed "FP_weakest2";
+bind_thm("FP_weakest", allI RS FP_weakest2);
 
-Goalw [FP_def, stable_def, constrains_def, condition_def]
-    "[| F:program;  A:condition |] ==> \
-\ A - FP(F) = (UN act: Acts(F). A -{s:state. act``{s} <= {s}})";
+Goalw [FP_def, stable_def, constrains_def, st_set_def]
+"[| F:program;  st_set(A) |] ==> A-FP(F) = (UN act:Acts(F). A-{s:state. act``{s} <= {s}})";
 by (Blast_tac 1);
 qed "Diff_FP";
 

@@ -14,7 +14,7 @@ FP = UNITY +
 
 constdefs   
   FP_Orig :: i=>i
-    "FP_Orig(F) == Union({A:condition. ALL B:condition. F : stable(A Int B)})"
+    "FP_Orig(F) == Union({A:Pow(state). ALL B. F : stable(A Int B)})"
 
   FP :: i=>i
     "FP(F) == {s:state. F : stable({s})}"

@@ -11,51 +11,10 @@ Revised by Sidi Ehmety on January 2001
 Proofs ported from HOL.
 *)
 
-
-Goal 
-"F~:program ==> F Join G = programify(G)";
-by (rtac program_equalityI 1);
-by Auto_tac;
-by (auto_tac (claset(),
-    simpset() addsimps [Join_def, programify_def, SKIP_def, 
-                        Acts_def, Init_def, AllowedActs_def, 
-                        RawInit_eq, RawActs_eq, RawAllowedActs_eq,
-                        Int_absorb, Int_assoc, Un_absorb]));
-by (forward_tac [Id_in_RawActs] 2);
-by (forward_tac [Id_in_RawAllowedActs] 3);
-by (dtac   RawInit_type 1);
-by (dtac   RawActs_type 2);
-by (dtac   RawAllowedActs_type 3);
-by (auto_tac (claset(), simpset() 
-      addsimps [condition_def, actionSet_def, cons_absorb]));
-qed "not_program_Join1";
-
-Goal
-"G~:program ==> F Join G = programify(F)";
-by (stac Join_commute 1);
-by (blast_tac (claset() addIs [not_program_Join1]) 1);
-qed "not_program_Join2";
-
-Goal "F~:program ==> F ok G";
-by (auto_tac (claset(),
-    simpset() addsimps [ok_def, programify_def, SKIP_def, mk_program_def,
-                        Acts_def, Init_def, AllowedActs_def, 
-                        RawInit_def, RawActs_def, RawAllowedActs_def,
-                        Int_absorb, Int_assoc, Un_absorb]));
-by (auto_tac (claset(), simpset() 
-      addsimps [condition_def, actionSet_def, program_def, cons_absorb]));
-qed "not_program_ok1";
-
-Goal "G~:program ==> F ok G";
-by (rtac ok_sym  1);
-by (blast_tac (claset() addIs [not_program_ok1]) 1);
-qed "not_program_ok2";
-
-
 Goal "OK(cons(i, I), F) <-> \
 \ (i:I & OK(I, F)) | (i~:I & OK(I, F) & F(i) ok JOIN(I,F))";
 by (asm_full_simp_tac (simpset() addsimps [OK_iff_ok]) 1);
-(** Auto_tac proves the goal in one step, but take more time **)
+(** Auto_tac proves the goal in one-step, but takes more time **)
 by Safe_tac;
 by (ALLGOALS(Clarify_tac));
 by (REPEAT(blast_tac (claset() addIs [ok_sym]) 10));
@@ -63,6 +22,10 @@ by (REPEAT(Blast_tac 1));
 qed "OK_cons_iff";
 
 (*** existential properties ***)
+
+Goalw [ex_prop_def] "ex_prop(X) ==> X<=program";
+by (Asm_simp_tac 1);
+qed "ex_imp_subset_program";
 
 Goalw [ex_prop_def]
  "GG:Fin(program) ==> (ex_prop(X) \
@@ -77,8 +40,9 @@ by (Fast_tac 1);
 qed_spec_mp "ex1";
 
 Goalw [ex_prop_def]
-     "X<=program ==> (ALL GG. GG:Fin(program) & GG Int X ~= 0\
-\  --> OK(GG,(%G. G)) -->(JN G:GG. G):X) --> ex_prop(X)";
+"X<=program ==> \
+\(ALL GG. GG:Fin(program) & GG Int X ~= 0 --> OK(GG,(%G. G))-->(JN G:GG. G):X)\
+\  --> ex_prop(X)";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{F,G}")] spec 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [OK_iff_ok])));
@@ -88,37 +52,35 @@ qed "ex2";
 
 (*Chandy & Sanders take this as a definition*)
 
-Goal "X<=program ==> ex_prop(X) <-> \
-\ (ALL GG. GG:Fin(program) & GG Int X ~= 0 &\
-\ OK(GG,( %G. G)) --> (JN G:GG. G):X)";
-by (blast_tac (claset() addIs [ex1, ex2 RS mp]) 1);
+Goal "ex_prop(X) <-> (X<=program & \
+\ (ALL GG. GG:Fin(program) & GG Int X ~= 0& OK(GG,( %G. G))-->(JN G:GG. G):X))";
+by Auto_tac;
+by (ALLGOALS(blast_tac (claset() addIs [ex1, ex2 RS mp] 
+                                 addDs [ex_imp_subset_program])));
 qed "ex_prop_finite";
 
-
-(*Their "equivalent definition" given at the end of section 3*)
-Goalw [ex_prop2_def]
- "ex_prop(X) <-> ex_prop2(X)";
-by (Asm_full_simp_tac 1);
-by (rewrite_goals_tac 
-          [ex_prop_def, component_of_def]);
+(* Equivalent definition of ex_prop given at the end of section 3*)
+Goalw [ex_prop_def, component_of_def]
+"ex_prop(X) <-> \
+\ X<=program & (ALL G:program. (G:X <-> (ALL H:program. (G component_of H) --> H:X)))";
 by Safe_tac;
 by (stac Join_commute 4);
 by (dtac  ok_sym 4);
-by (case_tac "G:program" 1);
-by (dres_inst_tac [("x", "G")] bspec 5);
-by (dres_inst_tac [("x", "F")] bspec 4);
+by (dres_inst_tac [("x", "G")] bspec 4);
+by (dres_inst_tac [("x", "F")] bspec 3);
 by Safe_tac;
-by (force_tac (claset(), 
-           simpset() addsimps [not_program_Join1]) 2);
 by (REPEAT(Force_tac 1));
 qed "ex_prop_equiv";
 
 (*** universal properties ***)
 
+Goalw [uv_prop_def] "uv_prop(X)==> X<=program";
+by (Asm_simp_tac 1);
+qed "uv_imp_subset_program";
+
 Goalw [uv_prop_def]
      "GG:Fin(program) ==> \
-\ (uv_prop(X)-->  \
-\  GG <= X & OK(GG, (%G. G)) --> (JN G:GG. G):X)";
+\ (uv_prop(X)--> GG <= X & OK(GG, (%G. G)) --> (JN G:GG. G):X)";
 by (etac Fin_induct 1);
 by (auto_tac (claset(), simpset() addsimps 
            [OK_cons_iff]));
@@ -137,14 +99,14 @@ qed "uv2";
 
 (*Chandy & Sanders take this as a definition*)
 Goal 
-"X<=program ==> \
-\ uv_prop(X) <-> (ALL GG. GG:Fin(program) & GG <= X &\
-\    OK(GG, %G. G) --> (JN G:GG. G): X)";
-by (REPEAT(blast_tac (claset() addIs [uv1,uv2 RS mp]) 1));
+"uv_prop(X) <-> X<=program & \
+\ (ALL GG. GG:Fin(program) & GG <= X & OK(GG, %G. G) --> (JN G:GG. G): X)";
+by Auto_tac;
+by (REPEAT(blast_tac (claset() addIs [uv1,uv2 RS mp]
+                               addDs [uv_imp_subset_program]) 1));
 qed "uv_prop_finite";
 
 (*** guarantees ***)
-(* The premise G:program is needed later *)
 val major::prems = Goal
      "[| (!!G. [| F ok G; F Join G:X; G:program |] ==> F Join G : Y); F:program |]  \
 \   ==> F : X guarantees Y";
@@ -184,31 +146,35 @@ Goalw [guar_def] "[| X <= Y; F:program |] \
 by (Blast_tac 1);
 qed "subset_imp_guarantees";
 
+Goalw [component_of_def] 
+"F ok G ==> F component_of (F Join G)";
+by (Blast_tac 1);
+qed "component_of_Join1";
+
+Goal "F ok G ==> G component_of (F Join G)";
+by (stac Join_commute 1);
+by (blast_tac (claset() addIs [ok_sym, component_of_Join1]) 1);
+qed "component_of_Join2";
+
 (*Remark at end of section 4.1 *)
 Goalw [guar_def, component_of_def] 
-"Y<=program ==>ex_prop(Y) --> (Y = (program guarantees Y))";
-by (simp_tac (simpset() addsimps [ex_prop_equiv]) 1);
-(* Simplification tactics with ex_prop2_def loops *)
-by (rewrite_goals_tac [ex_prop2_def]);
+"ex_prop(Y) ==> (Y = (program guarantees Y))";
+by (full_simp_tac (simpset() addsimps [ex_prop_equiv]) 1);
 by (Clarify_tac 1);
 by (rtac equalityI 1);
 by Safe_tac;
-by (Blast_tac 1);
-by (dres_inst_tac [("x", "x")] bspec 1);
-by (dres_inst_tac [("x", "x")] bspec 3);
-by (dtac iff_sym 4);
-by (Blast_tac 1);
-by (ALLGOALS(Asm_full_simp_tac));
-by (etac iffE 2);
+by (dres_inst_tac [("x", "x")] bspec 2);
+by (dres_inst_tac [("x", "x")] bspec 4);
+by (dtac iff_sym 5);
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [component_of_Join1])));
+by (etac iffE 3);
 by (ALLGOALS(full_simp_tac (simpset() addsimps [component_of_def])));
 by Safe_tac;
 by (REPEAT(Force_tac 1));
 qed "ex_prop_imp";
 
-Goalw [guar_def] 
-  "(Y = program guarantees Y) ==> ex_prop(Y)";
+Goalw [guar_def] "(Y = program guarantees Y) ==> ex_prop(Y)";
 by (asm_simp_tac (simpset() addsimps [ex_prop_equiv]) 1);
-by (rewrite_goals_tac [ex_prop2_def]);
 by Safe_tac;
 by (ALLGOALS(full_simp_tac (simpset() addsimps [component_of_def])));
 by (dtac sym 2);
@@ -216,11 +182,8 @@ by (ALLGOALS(etac equalityE));
 by (REPEAT(Force_tac 1));
 qed "guarantees_imp";
 
-Goal "Y<=program ==>(ex_prop(Y)) <-> (Y = program guarantees Y)";
-by (rtac iffI 1);
-by (rtac (ex_prop_imp RS mp) 1);
-by (rtac guarantees_imp 3);
-by (ALLGOALS(Asm_simp_tac));
+Goal "(ex_prop(Y)) <-> (Y = program guarantees Y)";
+by (blast_tac (claset() addIs [ex_prop_imp, guarantees_imp]) 1);
 qed "ex_prop_equiv2";
 
 (** Distributive laws.  Re-orient to perform miniscoping **)
@@ -403,7 +366,20 @@ Goalw [refines_def] "F refines F wrt X";
 by (Blast_tac 1);
 qed "refines_refl";
 
-(* Added by Sidi Ehmety from Chandy & Sander, section 6 *)
+(* More results on guarantees, added by Sidi Ehmety from Chandy & Sander, section 6 *)
+
+Goalw [wg_def] "wg(F, X) <= program";
+by Auto_tac;
+qed "wg_type";
+
+Goalw [guar_def] "X guarantees Y <= program";
+by Auto_tac;
+qed "guarantees_type";
+
+Goalw [wg_def] "G:wg(F, X) ==> G:program & F:program";
+by Auto_tac;
+by (blast_tac (claset() addDs [guarantees_type RS subsetD]) 1);
+qed "wgD2";
 
 Goalw [guar_def, component_of_def]
 "(F:X guarantees Y) <-> \
@@ -421,21 +397,18 @@ Goalw [wg_def, guar_def]
 by (Blast_tac 1);
 qed "wg_guarantees";
 
-Goalw [wg_def]
-  "[| F:program; H:program |] ==> \
-\ (H: wg(F,X)) <-> H:program & (F component_of H --> H:X)";
+Goalw [wg_def] "(H: wg(F,X)) <-> ((F component_of H --> H:X) & F:program & H:program)";
 by (simp_tac (simpset() addsimps [guarantees_equiv]) 1);
 by (rtac iffI 1);
 by Safe_tac;
+by (res_inst_tac [("x", "{H}")] bexI 4);
 by (res_inst_tac [("x", "{H}")] bexI 3);
-by (res_inst_tac [("x", "{H}")] bexI 2);
 by (REPEAT(Blast_tac 1));
 qed "wg_equiv";
 
 Goal
-"[| F component_of H; F:program; H:program |] ==> \
-\ H:wg(F,X) <-> H:X";
-by (asm_full_simp_tac (simpset() addsimps [wg_equiv]) 1);
+"F component_of H ==> H:wg(F,X) <-> (H:X & F:program & H:program)";
+by (asm_simp_tac (simpset() addsimps [wg_equiv]) 1);
 qed "component_of_wg";
 
 Goal
@@ -457,10 +430,8 @@ qed "wg_finite";
    ==> JOIN(FF, %F. F):wg(G, X) <-> JOIN(FF, %F. F):X"  *)
 val wg_finite2 = wg_finite RS bspec RS mp RS mp RS bspec;
 
-
-Goal "[| ex_prop(X); F:program |] ==> (F:X) <-> (ALL H:program. H : wg(F,X))";
-by (asm_full_simp_tac (simpset() addsimps [ex_prop_equiv, wg_equiv]) 1);
-by (rewrite_goals_tac [ex_prop2_def]);
+Goal "ex_prop(X) ==> (F:X) <-> (ALL H:program. H : wg(F,X) & F:program)";
+by (full_simp_tac (simpset() addsimps [ex_prop_equiv, wg_equiv]) 1);
 by (Blast_tac 1);
 qed "wg_ex_prop";
 
@@ -470,15 +441,12 @@ Goalw [wx_def] "wx(X)<=X";
 by Auto_tac;
 qed "wx_subset";
 
-Goalw [wx_def] "wx(X)<=program";
-by Auto_tac;
-qed "wx_into_program";
-
 Goal
 "ex_prop(wx(X))";
 by (full_simp_tac (simpset() 
         addsimps [ex_prop_def, wx_def]) 1);
 by Safe_tac;
+by (Blast_tac 1);
 by (ALLGOALS(res_inst_tac [("x", "xb")] bexI));
 by (REPEAT(Force_tac 1));
 qed "wx_ex_prop";
@@ -494,10 +462,10 @@ Goalw [ex_prop_def]
 by Safe_tac;
 by (dres_inst_tac [("x", "G Join Ga")] bspec 1);
 by (Simp_tac 1);
-by (force_tac (claset(), simpset() addsimps [ok_Join_iff1, Join_assoc]) 1);
+by (force_tac (claset(), simpset() addsimps [Join_assoc]) 1);
 by (dres_inst_tac [("x", "F Join Ga")] bspec 1);
 by (Simp_tac 1);
-by (full_simp_tac (simpset() addsimps [ok_Join_iff1]) 1);
+by (Full_simp_tac 1);
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [ok_commute]) 1);
 by (subgoal_tac "F Join G = G Join F" 1);
@@ -513,6 +481,7 @@ by (rtac equalityI 1);
 by Safe_tac;
 by (Blast_tac 1);
 by (full_simp_tac (simpset() addsimps [ex_prop_def]) 1);
+by Safe_tac;
 by (dres_inst_tac [("x", "x")] bspec 1);
 by (dres_inst_tac [("x", "G")] bspec 2);
 by (forw_inst_tac [("c", "x Join G")] subsetD 3);
@@ -534,13 +503,13 @@ qed "wx_equiv";
 
 (* Proposition 12 *)
 (* Main result of the paper *)
-Goalw [guar_def] 
-   "(X guarantees Y) = wx((program-X) Un Y)";
+Goalw [guar_def]  "(X guarantees Y) = wx((program-X) Un Y)";
 by (simp_tac (simpset() addsimps [wx_equiv]) 1);
 by Auto_tac;
 qed "guarantees_wx_eq";
 
-(* {* Corollary, but this result has already been proved elsewhere *}
+(* 
+{* Corollary, but this result has already been proved elsewhere *}
  "ex_prop(X guarantees Y)";
   by (simp_tac (simpset() addsimps [guar_wx_iff, wx_ex_prop]) 1);
   qed "guarantees_ex_prop";
@@ -549,33 +518,33 @@ qed "guarantees_wx_eq";
 (* Rules given in section 7 of Chandy and Sander's
     Reasoning About Program composition paper *)
 
-Goal "[| Init(F) <= A; F:program |] \
-\   ==> F:(stable(A)) guarantees (Always(A))";
+Goal "[| Init(F) <= A; F:program |] ==> F:(stable(A)) guarantees (Always(A))";
 by (rtac guaranteesI 1);
 by (assume_tac 2);
 by (simp_tac (simpset() addsimps [Join_commute]) 1);
 by (rtac stable_Join_Always1 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() 
-     addsimps [invariant_def, Join_stable])));
-by (auto_tac (claset(), simpset() addsimps [programify_def]));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [invariant_def])));
+by (auto_tac (claset(), simpset() addsimps [programify_def, initially_def]));
 qed "stable_guarantees_Always";
 
 (* To be moved to WFair.ML *)
-Goal "[| F:A co A Un B; F:transient(A) |] ==> F:A leadsTo B";
+Goal "[| F:A co A Un B; F:transient(A); st_set(B) |] ==> F:A leadsTo B";
+by (forward_tac [constrainsD2] 1);
 by (dres_inst_tac [("B", "A-B")] constrains_weaken_L 1);
 by (dres_inst_tac [("B", "A-B")] transient_strengthen 2);
 by (rtac (ensuresI RS leadsTo_Basis) 3);
 by (ALLGOALS(Blast_tac));
 qed "leadsTo_Basis'";
 
-Goal "[| F:transient(A); B:condition |] \
-\  ==> F: (A co A Un B) guarantees (A leadsTo (B-A))";
+Goal "[| F:transient(A); st_set(B) |] ==> F: (A co A Un B) guarantees (A leadsTo (B-A))";
 by (rtac guaranteesI 1);
+by (blast_tac (claset() addDs [transient_type RS subsetD]) 2);
 by (rtac leadsTo_Basis' 1);
+by (Blast_tac 3);
 by (dtac constrains_weaken_R 1);
-by (assume_tac 3);
-by (blast_tac (claset() addIs [Join_transient_I1]) 3);
-by (REPEAT(blast_tac (claset() addDs [transientD]) 1));
+by (assume_tac 2);
+by (rtac Join_transient_I1 2);
+by (REPEAT(Blast_tac 1));
 qed "constrains_guarantees_leadsTo";
 
 

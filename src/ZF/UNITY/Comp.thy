@@ -32,13 +32,13 @@ constdefs
   strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)
   "F strict_component_of H  == F component_of H  & F~=H"
 
-  (* preserves any state function f, in particular a variable *)
+  (* Preserves a state function f, in particular a variable *)
   preserves :: (i=>i)=>i
   "preserves(f) == {F:program. ALL z. F: stable({s:state. f(s) = z})}"
 
 localize  :: "[i=>i, i] => i"
   "localize(f,F) == mk_program(Init(F), Acts(F),
-			       AllowedActs(F Int (UN G:preserves(f). Acts(G))))"
+			       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
 
   
   end

@@ -5,6 +5,10 @@
 
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 
+Variables' types are introduced globally so that type verification
+reduces to the usual ZF typechecking: an ill-tyed expression will
+reduce to the empty set.
+
 *)
 
 (** Variables' types **)
@@ -12,43 +16,35 @@ Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 AddIffs  [p_type, u_type, v_type, m_type, n_type];
 
 Goal "!!s. s:state ==> s`u:bool";
-by (dres_inst_tac [("a", "u"), ("A", "variable")]
-       apply_type 1);
-by (auto_tac (claset(), simpset() addsimps [u_type]));
+by (dres_inst_tac [("a", "u"), ("A", "var")] apply_type 1);
+by Auto_tac;
 qed "u_apply_type";
 
 Goal "!!s. s:state ==> s`v:bool";
-by (dres_inst_tac [("a", "v"), ("A", "variable")]
-       apply_type 1);
-by (auto_tac (claset(), simpset() addsimps [v_type]));
+by (dres_inst_tac [("a", "v"), ("A", "var")] apply_type 1);
+by Auto_tac;
 qed "v_apply_type";
 
-
 Goal "!!s. s:state ==> s`p:bool";
-by (dres_inst_tac [("a", "p"), ("A", "variable")]
-       apply_type 1);
-by (auto_tac (claset(), simpset() addsimps [p_type]));
+by (dres_inst_tac [("a", "p"), ("A", "var")] apply_type 1);
+by Auto_tac;
 qed "p_apply_type";
 
 Goal "!!s. s:state ==> s`m:int";
-by (dres_inst_tac [("a", "m"), ("A", "variable")]
-       apply_type 1);
-by (auto_tac (claset(), simpset() addsimps [m_type]));
+by (dres_inst_tac [("a", "m"), ("A", "var")] apply_type 1);
+by Auto_tac;
 qed "m_apply_type";
 
 Goal "!!s. s:state ==> s`n:int";
-by (dres_inst_tac [("a", "n"), ("A", "variable")]
-       apply_type 1);
-by (auto_tac (claset(), simpset() addsimps [n_type]));
+by (dres_inst_tac [("a", "n"), ("A", "var")] apply_type 1);
+by Auto_tac;
 qed "n_apply_type";
-
-Addsimps [p_apply_type, u_apply_type, v_apply_type, m_apply_type, n_apply_type];
-
+Addsimps [p_apply_type, u_apply_type, v_apply_type,
+          m_apply_type, n_apply_type];
 
 (** Mutex is a program **)
 
-Goalw [Mutex_def]
-"Mutex:program";
+Goalw [Mutex_def] "Mutex:program";
 by Auto_tac;
 qed "Mutex_in_program";
 AddIffs [Mutex_in_program];
@@ -65,17 +61,9 @@ Addsimps (map simp_of_set [U0_def, U1_def, U2_def, U3_def, U4_def,
 
 Addsimps (map simp_of_set [IU_def, IV_def, bad_IU_def]);
 
-Addsimps [condition_def, actionSet_def];
-
-
-Addsimps variable.intrs;
-AddIs variable.intrs;
-
 (** In case one wants to be sure that the initial state is not empty **)
 Goal "some(u:=0,v:=0, m:= #0,n:= #0):Init(Mutex)";
-by Auto_tac;
-by (REPEAT(rtac update_type2 1));
-by (auto_tac (claset(), simpset() addsimps [lam_type]));
+by (auto_tac (claset() addSIs [update_type2], simpset()));
 qed "Mutex_Init_not_empty";
 
 Goal "Mutex : Always(IU)";
@@ -85,7 +73,6 @@ qed "IU";
 
 Goal "Mutex : Always(IV)";
 by (always_tac 1);
-by Auto_tac;
 qed "IV";
 
 
@@ -124,25 +111,21 @@ getgoal 1;
 Goalw [Unless_def] 
 "Mutex : {s:state. s`m=#2} Unless {s:state. s`m=#3}";
 by (constrains_tac 1);
-by Auto_tac;
 qed "U_F0";
 
 Goal "Mutex : {s:state. s`m=#1} LeadsTo {s:state. s`p = s`v & s`m = #2}";
 by (ensures_tac "U1" 1);
-by Auto_tac;
 qed "U_F1";
 
 Goal "Mutex : {s:state. s`p =0 & s`m = #2} LeadsTo {s:state. s`m = #3}";
 by (cut_facts_tac [IU] 1);
 by (ensures_tac "U2" 1);
-by Auto_tac;
 qed "U_F2";
 
 Goal "Mutex : {s:state. s`m = #3} LeadsTo {s:state. s`p=1}";
 by (res_inst_tac [("B", "{s:state. s`m = #4}")] LeadsTo_Trans 1);
 by (ensures_tac "U4" 2);
 by (ensures_tac "U3" 1);
-by Auto_tac;
 qed "U_F3";
 
 
@@ -191,7 +174,6 @@ qed "u_Leadsto_p";
 Goalw [Unless_def] 
 "Mutex : {s:state. s`n=#2} Unless {s:state. s`n=#3}";
 by (constrains_tac 1);
-by Auto_tac;
 qed "V_F0";
 
 Goal "Mutex : {s:state. s`n=#1} LeadsTo {s:state. s`p = not(s`u) & s`n = #2}";
@@ -202,14 +184,12 @@ qed "V_F1";
 Goal "Mutex : {s:state. s`p=1 & s`n = #2} LeadsTo {s:state. s`n = #3}";
 by (cut_facts_tac [IV] 1);
 by (ensures_tac "V2" 1);
-by Auto_tac;
 qed "V_F2";
 
 Goal "Mutex : {s:state. s`n = #3} LeadsTo {s:state. s`p=0}";
 by (res_inst_tac [("B", "{s:state. s`n = #4}")] LeadsTo_Trans 1);
 by (ensures_tac "V4" 2);
 by (ensures_tac "V3" 1);
-by Auto_tac;
 qed "V_F3";
 
 

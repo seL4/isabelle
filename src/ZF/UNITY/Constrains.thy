@@ -11,7 +11,7 @@ Theory ported from HOL.
 Constrains = UNITY +
 consts traces :: "[i, i] => i"
   (* Initial states and program => (final state, reversed trace to it)... 
-      the domain might also be state*list(state) *)
+      the domain may also be state*list(state) *)
 inductive 
   domains 
      "traces(init, acts)" <=
@@ -45,8 +45,7 @@ consts
 
 defs
   Constrains_def
-    "A Co B == {F:program. F:(reachable(F) Int A) co B &
-		           A:condition & B:condition}"
+    "A Co B == {F:program. F:(reachable(F) Int A) co B}"
 
   Unless_def
     "A Unless B == (A-B) Co (A Un B)"
@@ -56,20 +55,10 @@ constdefs
     "Stable(A) == A Co A"
   (*Always is the weak form of "invariant"*)
   Always :: "i => i"
-    "Always(A) == {F:program. Init(F) <= A} Int Stable(A)"
+    "Always(A) == initially(A) Int Stable(A)"
 
-  (*
-  The constant Increasing_on defines a weak form of the Charpentier's
-  increasing notion.  It should not be confused with the ZF's
-  increasing constant which have a different meaning.
-  Increasing's parameters: a state function f,
-  a domain A and a order relation r over the domain A.
-  Should f be a meta function instead ?
-  *)
-  Increasing_on :: [i,i, i] => i  ("Increasing[_]'(_,_')")
-  "Increasing[A](f, r) == {F:program. f:state->A &
-			      part_order(A,r) &
-			      F: (INT z:A. Stable({s:state.  <z, f`s>:r}))}"
-
+  (* Increasing is the weak from of increasing *)
+  Increasing :: [i,i, i] => i 
+  "Increasing(A, r, f) ==  INT a:A. Stable({s:state.  <a, f`s>:r})"
 end
 
