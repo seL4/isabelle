@@ -54,7 +54,7 @@ fun inductive_decl coind =
         \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
         \  InductivePackage.add_inductive true " ^
         (if coind then "true " else "false ") ^ srec_tms ^ " " ^
-         sintrs ^ " " ^ monos ^ " " ^ con_defs ^ " thy;\n\
+         sintrs ^ " " ^ mk_list monos ^ " " ^ mk_list con_defs ^ " thy;\n\
         \in\n\
         \structure " ^ big_rec_name ^ " =\n\
         \struct\n\
@@ -72,9 +72,9 @@ fun inductive_decl coind =
         \val thy = thy\n"
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
-    fun optstring s = optional (s $$-- string >> trim) "[]"
+    fun optlist s = optional (s $$-- list1 name) []
   in
-    repeat1 name -- ipairs -- optstring "monos" -- optstring "con_defs"
+    repeat1 name -- ipairs -- optlist "monos" -- optlist "con_defs"
       >> mk_params
   end;
 
@@ -143,13 +143,13 @@ local
     ";\nlocal\n\
     \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
     \  case_thms, split_thms, induction, size, simps}) =\n\
-    \  DatatypePackage.add_rep_datatype " ^
+    \  DatatypePackage.rep_datatype " ^
     (case names of
-        Some names => "(Some [" ^ commas (map quote names) ^ "]) (" ^
-          distinct ^ ") (" ^ inject ^ ") (" ^ induct ^ ") thy;\nin\n" ^
-            mk_bind_thms_string names
-      | None => "None (" ^ distinct ^ ") (" ^ inject ^ ") (" ^ induct ^
-          ") thy;\nin\n") ^
+        Some names => "(Some [" ^ commas_quote names ^ "]) " ^
+          mk_list (map mk_list distinct) ^ " " ^ mk_list (map mk_list inject) ^
+            " " ^ induct ^ " thy;\nin\n" ^ mk_bind_thms_string names
+      | None => "None " ^ mk_list (map mk_list distinct) ^ " " ^
+          mk_list (map mk_list inject) ^ " " ^ induct ^ " thy;\nin\n") ^
     "val thy = thy;\nend;\nval thy = thy\n";
 
   (*** parsers ***)
@@ -168,8 +168,10 @@ local
   val opt_typs = repeat ((string >> strip_quotes) ||
     simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
-    parens (n ^ ", " ^ brackets (commas (map quote Ts)) ^ ", " ^ mx));
+    parens (n ^ ", " ^ brackets (commas_quote Ts) ^ ", " ^ mx));
   val opt_name = optional ("(" $$-- name --$$ ")" >> Some) None
+
+  fun optlistlist s = optional (s $$-- enum "and" (list name)) [[]]
 
 in
   val datatype_decl =
@@ -177,24 +179,26 @@ in
       enum1 "|" constructor) >> mk_dt_string;
   val rep_datatype_decl =
     ((optional ((repeat1 (name >> strip_quotes)) >> Some) None) --
-      ("distinct" $$-- (name >> strip_quotes)) -- ("inject" $$--
-        (name >> strip_quotes)) -- ("induct" $$-- (name >> strip_quotes))) >>
-          mk_rep_dt_string;
+      optlistlist "distinct" -- optlistlist "inject" --
+        ("induct" $$-- name)) >> mk_rep_dt_string;
 end;
 
 
 (** primrec **)
 
-fun mk_primrec_decl (alt_name, (names, eqns)) =
-  ";\nval (thy, " ^ (if null names then "_" else brackets (commas names)) ^
-  ") = PrimrecPackage.add_primrec (" ^ alt_name ^ ") " ^
-    brackets (commas_quote names) ^ " " ^ brackets (commas eqns) ^ " thy;\n\
-  \val thy = thy\n";
+fun mk_primrec_decl (alt_name, eqns) =
+  let
+    val names = map (fn (s, _) => if s = "" then "_" else s) eqns
+  in
+    ";\nval (thy, " ^ mk_list names ^
+    ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
+      mk_list (map mk_pair (map (apfst quote) eqns)) ^ " " ^ " thy;\n\
+    \val thy = thy\n"
+  end;
 
 (* either names and axioms or just axioms *)
-val primrec_decl = (optional ("(" $$-- name --$$ ")" >> (cat "Some")) "None" --
-  ((repeat1 (ident -- string) >> ListPair.unzip) ||
-   (repeat1 string >> (pair [])))) >> mk_primrec_decl;
+val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
+  (repeat1 ((ident -- string) || (string >> pair "")))) >> mk_primrec_decl;
 
 
 (** rec: interface to Slind's TFL **)
