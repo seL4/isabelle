@@ -75,6 +75,8 @@ fun cont_tacRs i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
 
 simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
 
+
+
 (* ---------------------------------------------------------- *)
               section"flift1, flift2";
 (* ---------------------------------------------------------- *)
