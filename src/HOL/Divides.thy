@@ -480,6 +480,12 @@ apply (simp add: not_less_iff_le le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le diff_less le_mod_geq)
 done
 
+lemma nat_mod_div_trivial [simp]: "m mod n div n = (0 :: nat)"
+by (case_tac "n=0", auto)
+
+lemma nat_mod_mod_trivial [simp]: "m mod n mod n = (m mod n :: nat)"
+by (case_tac "n=0", auto)
+
 
 subsection{*The Divides Relation*}
 
