@@ -60,6 +60,13 @@ by (asm_full_simp_tac (simpset() addsplits [option.split]) 1);
 qed "option_map_eq_Some";
 AddIffs[option_map_eq_Some];
 
+Goal 
+"option_map f o sum_case g h = sum_case (option_map f o g) (option_map f o h)";
+by (rtac ext 1);
+by (simp_tac (simpset() addsplits [sum.split]) 1);
+qed "option_map_o_sum_case";
+Addsimps [option_map_o_sum_case];
+
 
 section "o2s";
 
