@@ -169,7 +169,12 @@ New in this Isabelle release
 
   They are not perfect but work quite well.
 
-* HOL: There is new syntax for summation over finite sets:
+* HOL: The syntax for 'setsum', summation over finite sets, has changed:
+
+  The syntax for 'setsum (%x. e) A' used to be '\<Sum>x:A. e'
+  and is now either 'SUM x:A. e' or '\<Sum>x\<in>A. e'.
+
+  There is new syntax for summation over finite sets:
 
   '\<Sum>x | P. e'    is the same as  'setsum (%x. e) {x. P}'
   '\<Sum>x=a..b. e'   is the same as  'setsum (%x. e) {a..b}'
