@@ -538,49 +538,6 @@ by simp
   the search space.*)
 
 
-subsection{*Rules for Inter*}
-
-(*Not obviously useful for proving InterI, InterD, InterE*)
-lemma Inter_iff:
-    "A : Inter(C) <-> (ALL x:C. A: x) & (EX x. x:C)"
-by (simp add: Inter_def Ball_def, blast)
-
-(* Intersection is well-behaved only if the family is non-empty! *)
-lemma InterI [intro!]: 
-    "[| !!x. x: C ==> A: x;  EX c. c:C |] ==> A : Inter(C)"
-by (simp add: Inter_iff)
-
-(*A "destruct" rule -- every B in C contains A as an element, but
-  A:B can hold when B:C does not!  This rule is analogous to "spec". *)
-lemma InterD [elim]: "[| A : Inter(C);  B : C |] ==> A : B"
-by (unfold Inter_def, blast)
-
-(*"Classical" elimination rule -- does not require exhibiting B:C *)
-lemma InterE [elim]: 
-    "[| A : Inter(C);  B~:C ==> R;  A:B ==> R |] ==> R"
-by (simp add: Inter_def, blast) 
-  
-
-subsection{*Rules for Intersections of families*}
-(* INT x:A. B(x) abbreviates Inter({B(x). x:A}) *)
-
-lemma INT_iff: "b : (INT x:A. B(x)) <-> (ALL x:A. b : B(x)) & (EX x. x:A)"
-by (simp add: Inter_def, best)
-
-lemma INT_I: 
-    "[| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))"
-by blast
-
-lemma INT_E: "[| b : (INT x:A. B(x));  a: A |] ==> b : B(a)"
-by blast
-
-lemma INT_cong:
-    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A. C(x)) = (INT x:B. D(x))"
-by simp
-
-(*No "Addcongs [INT_cong]" because INT is a combination of constants*)
-
-
 subsection{*Rules for the empty set*}
 
 (*The set {x:0.False} is empty; by foundation it equals 0 
@@ -609,6 +566,48 @@ by blast
 
 lemma not_emptyE:  "[| A ~= 0;  !!x. x:A ==> R |] ==> R"
 by blast
+
+
+subsection{*Rules for Inter*}
+
+(*Not obviously useful for proving InterI, InterD, InterE*)
+lemma Inter_iff: "A : Inter(C) <-> (ALL x:C. A: x) & C\<noteq>0"
+by (simp add: Inter_def Ball_def, blast)
+
+(* Intersection is well-behaved only if the family is non-empty! *)
+lemma InterI [intro!]: 
+    "[| !!x. x: C ==> A: x;  C\<noteq>0 |] ==> A : Inter(C)"
+by (simp add: Inter_iff)
+
+(*A "destruct" rule -- every B in C contains A as an element, but
+  A:B can hold when B:C does not!  This rule is analogous to "spec". *)
+lemma InterD [elim]: "[| A : Inter(C);  B : C |] ==> A : B"
+by (unfold Inter_def, blast)
+
+(*"Classical" elimination rule -- does not require exhibiting B:C *)
+lemma InterE [elim]: 
+    "[| A : Inter(C);  B~:C ==> R;  A:B ==> R |] ==> R"
+by (simp add: Inter_def, blast) 
+  
+
+subsection{*Rules for Intersections of families*}
+
+(* INT x:A. B(x) abbreviates Inter({B(x). x:A}) *)
+
+lemma INT_iff: "b : (INT x:A. B(x)) <-> (ALL x:A. b : B(x)) & A\<noteq>0"
+by (force simp add: Inter_def)
+
+lemma INT_I: "[| !!x. x: A ==> b: B(x);  A\<noteq>0 |] ==> b: (INT x:A. B(x))"
+by blast
+
+lemma INT_E: "[| b : (INT x:A. B(x));  a: A |] ==> b : B(a)"
+by blast
+
+lemma INT_cong:
+    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A. C(x)) = (INT x:B. D(x))"
+by simp
+
+(*No "Addcongs [INT_cong]" because INT is a combination of constants*)
 
 
 subsection{*Rules for Powersets*}

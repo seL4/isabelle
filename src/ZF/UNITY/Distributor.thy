@@ -81,8 +81,6 @@ lemma (in distr) D_ok_iff:
 apply (cut_tac distr_spec)
 apply (auto simp add: INT_iff distr_spec_def distr_allowed_acts_def
                       Allowed_def ok_iff_Allowed)
-apply (drule_tac [2] x = G and P = "%y. x \<notin> Acts(y)" in bspec)
-apply auto
 apply (drule safety_prop_Acts_iff [THEN [2] rev_iffD1])
 apply (auto intro: safety_prop_Inter)
 done

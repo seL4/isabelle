@@ -88,10 +88,7 @@ by (cut_tac Nclients_pos NbT_pos, auto)
 
 lemma INT_Nclient_iff [iff]:
      "b\<in>Inter(RepFun(Nclients, B)) <-> (\<forall>x\<in>Nclients. b\<in>B(x))"
-apply (auto simp add: INT_iff)
-apply (rule_tac x = 0 in exI)
-apply (rule ltD, auto)
-done
+by (force simp add: INT_iff)
 
 lemma setsum_fun_mono [rule_format]:
      "n\<in>nat ==>  

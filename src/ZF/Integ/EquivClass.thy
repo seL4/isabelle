@@ -125,9 +125,9 @@ subsection{*Defining Unary Operations upon Equivalence Classes*}
 (*Conversion rule*)
 lemma UN_equiv_class:
     "[| equiv(A,r);  congruent(r,b);  a: A |] ==> (UN x:r``{a}. b(x)) = b(a)"
-apply (rule trans [OF refl [THEN UN_cong] UN_constant])
-apply (erule_tac [2] equiv_class_self)
-prefer 2 apply assumption
+apply (subgoal_tac "\<forall>x \<in> r``{a}. b(x) = b(a)") 
+ apply simp
+ apply (blast intro: equiv_class_self)  
 apply (unfold equiv_def sym_def congruent_def, blast)
 done
 

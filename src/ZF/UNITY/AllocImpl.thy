@@ -575,7 +575,7 @@ lemma (in alloc_progress) length_ask_giv2:
 			n < length(s`giv)}"
 apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF safety length_ask_giv], assumption+, clarify)
-apply (simp add: INT_iff, clarify)
+apply (simp add: INT_iff)
 apply (drule_tac x = "length(x ` giv)" and P = "%x. ?f (x) \<le> NbT" in bspec)
 apply simp
 apply (blast intro: le_trans)
@@ -656,10 +656,11 @@ theorem alloc_prog_progress:
               {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} LeadsTo
               {s\<in>state. <h, s`giv> \<in> prefix(tokbag)})"
 apply (rule guaranteesI)
-apply (rule INT_I [OF _ list.Nil])
+apply (rule INT_I)
 apply (rule alloc_progress.final)
-apply (simp_all add: alloc_progress_def)
+apply (auto simp add: alloc_progress_def)
 done
+
 
 
 end

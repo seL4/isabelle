@@ -509,7 +509,7 @@ lemma UN_mono:
 by blast  
 
 (*Intersection is ANTI-monotonic.  There are TWO premises! *)
-lemma Inter_anti_mono: "[| A<=B;  a:A |] ==> Inter(B) <= Inter(A)"
+lemma Inter_anti_mono: "[| A<=B;  A\<noteq>0 |] ==> Inter(B) <= Inter(A)"
 by blast
 
 lemma cons_mono: "C<=D ==> cons(a,C) <= cons(a,D)"

@@ -274,26 +274,33 @@ lemma Always_Follows1:
     \<forall>x \<in> state. g(x):A |] ==> F \<in> Follows(A, r, g, h)"
 apply (unfold Follows_def Increasing_def Stable_def)
 apply (simp add: INT_iff, auto)
-apply (rule_tac [3] C = "{s \<in> state. f (s) =g (s) }" and A = "{s \<in> state. <ka, h (s) > \<in> r}" and A' = "{s \<in> state. <ka, f (s) > \<in> r}" in Always_LeadsTo_weaken)
-apply (erule_tac A = "{s \<in> state. <ka,f (s) > \<in> r}" and A' = "{s \<in> state. <ka,f (s) > \<in> r}" in Always_Constrains_weaken)
+apply (rule_tac [3] C = "{s \<in> state. f(s)=g(s)}" 
+	and A = "{s \<in> state. <k, h (s)> \<in> r}" 
+	and A' = "{s \<in> state. <k, f(s)> \<in> r}" in Always_LeadsTo_weaken)
+apply (erule_tac A = "{s \<in> state. <k,f(s) > \<in> r}" 
+           and A' = "{s \<in> state. <k,f(s) > \<in> r}" in Always_Constrains_weaken)
 apply auto
 apply (drule Always_Int_I, assumption)
-apply (erule_tac A = "{s \<in> state . f (s) = g (s) } \<inter> {s \<in> state . \<langle>f (s), h (s) \<rangle> \<in> r}" in Always_weaken)
+apply (erule_tac A = "{s \<in> state. f(s)=g(s)} \<inter> {s \<in> state. <f(s), h(s)> \<in> r}" 
+       in Always_weaken)
 apply auto
 done
+
 
 lemma Always_Follows2: 
 "[| F \<in> Always({s \<in> state. g(s) = h(s)});  
   F \<in> Follows(A, r, f, g); \<forall>x \<in> state. h(x):A |] ==> F \<in> Follows(A, r, f, h)"
 apply (unfold Follows_def Increasing_def Stable_def)
-apply (simp (no_asm_use) add: INT_iff)
-apply auto
-apply (erule_tac [3] V = "k \<in> A" in thin_rl)
-apply (rule_tac [3] C = "{s \<in> state. g (s) =h (s) }" and A = "{s \<in> state. <ka, g (s) > \<in> r}" and A' = "{s \<in> state. <ka, f (s) > \<in> r}" in Always_LeadsTo_weaken)
-apply (erule_tac A = "{s \<in> state. <ka, g (s) > \<in> r}" and A' = "{s \<in> state. <ka, g (s) > \<in> r}" in Always_Constrains_weaken)
+apply (simp add: INT_iff, auto)
+apply (rule_tac [3] C = "{s \<in> state. g (s) =h (s) }" 
+            and A = "{s \<in> state. <k, g (s) > \<in> r}" 
+            and A' = "{s \<in> state. <k, f (s) > \<in> r}" in Always_LeadsTo_weaken)
+apply (erule_tac A = "{s \<in> state. <k, g(s)> \<in> r}" 
+         and A' = "{s \<in> state. <k, g(s)> \<in> r}" in Always_Constrains_weaken)
 apply auto
 apply (drule Always_Int_I, assumption)
-apply (erule_tac A = "{s \<in> state . g (s) = h (s) } \<inter> {s \<in> state . \<langle>f (s), g (s) \<rangle> \<in> r}" in Always_weaken)
+apply (erule_tac A = "{s \<in> state. g(s)=h(s)} \<inter> {s \<in> state. <f(s), g(s)> \<in> r}" 
+       in Always_weaken)
 apply auto
 done
 

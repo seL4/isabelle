@@ -14,9 +14,7 @@ time_use_thy"Mutex";
 (*Basic meta-theory*)
 time_use_thy "Guar";
 
-(* Prefix relation; part of the Allocator example *)
-time_use_thy "GenPrefix";
-
+(* Prefix relation; the Allocator example *)
 time_use_thy "Distributor";
 time_use_thy "Merge";
 time_use_thy "ClientImpl";

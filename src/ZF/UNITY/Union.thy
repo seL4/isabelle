@@ -13,8 +13,6 @@ Theory ported form HOL..
 
 theory Union = SubstAx + FP:
 
-declare Inter_0 [simp]
-
 constdefs
 
   (*FIXME: conjoin Init(F) Int Init(G) \<noteq> 0 *) 
@@ -160,9 +158,7 @@ by (unfold JOIN_def, auto)
 
 lemma Init_JN [simp]:
      "Init(\<Squnion>i \<in> I. F(i)) = (if I=0 then state else (\<Inter>i \<in> I. Init(F(i))))"
-apply (simp add: JOIN_def)
-apply (auto elim!: not_emptyE simp add: INT_extend_simps simp del: INT_simps)
-done
+by (simp add: JOIN_def INT_extend_simps del: INT_simps)
 
 lemma Acts_JN [simp]: 
      "Acts(JOIN(I,F)) = cons(id(state), \<Union>i \<in> I.  Acts(F(i)))"
@@ -208,9 +204,7 @@ by (rule program_equalityI, auto)
 lemma JN_Join_distrib:
      "(\<Squnion>i \<in> I. F(i) Join G(i)) = (\<Squnion>i \<in> I. F(i))  Join  (\<Squnion>i \<in> I. G(i))"
 apply (rule program_equalityI)
-apply (simp_all add: Int_absorb)
-apply (safe elim!: not_emptyE)
-apply (simp_all add: INT_Int_distrib Int_absorb, force)
+apply (simp_all add: INT_Int_distrib, blast) 
 done
 
 lemma JN_Join_miniscope: "(\<Squnion>i \<in> I. F(i) Join G) = ((\<Squnion>i \<in> I. F(i) Join G))"
