@@ -176,7 +176,6 @@ sig
   val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
-  val single_tac: claset -> thm list -> int -> tactic
   val setup: (theory -> theory) list
 end;
 
@@ -1090,11 +1089,35 @@ val setup_attrs = Attrib.add_attributes
 
 
 
-(** single rule proof method **)
+(** proof methods **)
 
-(* utils *)
+(* get nets (appropriate order for semi-automatic methods) *)
 
-fun resolve_from_seq_tac rq i st = Seq.flat (Seq.map (fn r => rtac r i st) rq);
+local
+  val imp_elim_netpair = insert (0, 0) ([], [imp_elim]) empty_netpair;
+  val not_elim_netpair = insert (0, 0) ([], [Data.not_elim]) empty_netpair;
+in
+  fun get_nets (CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair, ...}) =
+    [imp_elim_netpair, safe0_netpair, safep_netpair, not_elim_netpair, haz_netpair, dup_netpair, xtra_netpair];
+end;
+
+
+(* METHOD_CLASET' *)
+
+fun METHOD_CLASET' tac =
+  Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => tac cs facts)));
+
+
+val trace_rules = ref false;
+
+local
+
+fun trace rules i =
+  if not (! trace_rules) then ()
+  else Pretty.writeln (Pretty.big_list ("trying standard rule(s) on goal #" ^ string_of_int i ^ ":")
+    (map Display.pretty_thm rules));
+
+
 fun order_rules xs = map snd (Tactic.orderlist xs);
 
 fun find_rules concl nets =
@@ -1109,27 +1132,9 @@ fun find_erules [] _ = []
       in flat (map erules_of nets) end;
 
 
-(* trace rules *)
-
-val trace_rules = ref false;
-
-fun print_rules rules i =
-  if not (! trace_rules) then ()
-  else
-    Pretty.writeln (Pretty.big_list ("trying standard rule(s) on goal #" ^ string_of_int i ^ ":")
-      (map Display.pretty_thm rules));
-
-
-(* single_tac *)
-
-val imp_elim_netpair = insert (0, 0) ([], [imp_elim]) empty_netpair;
-val not_elim_netpair = insert (0, 0) ([], [Data.not_elim]) empty_netpair;
-
-fun single_tac cs facts =
+fun some_rule_tac cs facts =
   let
-    val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair, ...} = cs;
-    val nets = [imp_elim_netpair, safe0_netpair, safep_netpair,
-      not_elim_netpair, haz_netpair, dup_netpair, xtra_netpair];
+    val nets = get_nets cs;
     val erules = find_erules facts nets;
 
     val tac = SUBGOAL (fn (goal, i) =>
@@ -1137,18 +1142,33 @@ fun single_tac cs facts =
         val irules = find_rules (Logic.strip_assums_concl goal) nets;
         val rules = erules @ irules;
         val ruleq = Method.forward_chain facts rules;
-      in
-        print_rules rules i;
-        fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
+      in trace rules i; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
   in tac end;
 
-val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_tac cs facts)));
+in
+  val some_rule = METHOD_CLASET' some_rule_tac;
+end;
 
 
+(* intro / elim methods *)
 
-(** more proof methods **)
+local
 
-(* contradiction *)
+fun intro_elim_tac netpair_of _ [] cs facts =
+      Method.same_tac facts THEN' FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs))
+  | intro_elim_tac _ res_tac rules _ facts =
+      Method.same_tac facts THEN' res_tac rules;
+
+val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) resolve_tac;
+val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) eresolve_tac;
+
+in
+  val intro = METHOD_CLASET' o intro_tac;
+  val elim = METHOD_CLASET' o elim_tac;
+end;
+
+
+(* contradiction method *)
 
 val contradiction = Method.METHOD (fn facts =>
   FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
@@ -1184,8 +1204,10 @@ val cla_method' = cla_args o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("single", Method.no_args single, "apply standard rule (single step)"),
-  ("default", Method.no_args single, "apply standard rule (single step)"),
+ [("default", Method.no_args some_rule, "apply some standard rule"),
+  ("some_rule", Method.no_args some_rule, "apply some standard rule"),
+  ("intro", Method.thms_args intro, "apply some introduction rule"),
+  ("elim", Method.thms_args elim, "apply some elimination rule"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
   ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
