@@ -1,0 +1,25 @@
+ERRATA in Springer book
+
+* = corrected by sending new pages
+
+*page 50: In section heading, Mixfix should be mixfix
+
+page 52: the declaration  "types bool,nat"  is illegal    
+
+*page 217 and 251: fst and snd should be fst_conv and snd_conv.
+*Also affects index: pages 310 and 317!
+
+pages 222, 223: The braces need escaping in
+\tdx{qconverse_def}   qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}
+\tdx{QSigma_def}      QSigma(A,B)  == UN x:A. UN y:B(x). {<x;y>}
+\tdx{lfp_def}        lfp(D,h) == Inter({X: Pow(D). h(X) <= X})
+\tdx{gfp_def}        gfp(D,h) == Union({X: Pow(D). X <= h(X)})
+
+*page 224: type of id, namely $\To i$, should be $i \To i$ 
+
+Intro/advanced.tex:val add_ss = FOL_ss addrews [add_0, add_Suc]
+should be addsimps
+
+Ref/tactic: documented subgoals_tac
+
+Logics/ZF: renamed mem_anti_sym and mem_anti_refl
