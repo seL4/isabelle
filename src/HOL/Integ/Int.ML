@@ -230,6 +230,20 @@ Goalw [nat_def] "neg z ==> nat z = 0";
 by Auto_tac; 
 qed "neg_nat"; 
 
+Goal "(m < nat z) = (int m < z)";
+by (case_tac "neg z" 1);
+by (etac (not_neg_nat RS subst) 2);
+by (auto_tac (claset(), simpset() addsimps [neg_nat])); 
+by (auto_tac (claset() addDs [order_less_trans], 
+	      simpset() addsimps [neg_eq_less_int0])); 
+qed "zless_nat_eq_int_zless";
+
+Goal "z <= int 0 ==> nat z = 0"; 
+by (auto_tac (claset(), 
+	      simpset() addsimps [order_le_less, neg_eq_less_int0, 
+				  zle_def, neg_nat])); 
+qed "nat_le_int0"; 
+
 (*An alternative condition is  int 0 <= w  *)
 Goal "int 0 < z ==> (nat w < nat z) = (w < z)";
 by (stac (zless_int RS sym) 1);
@@ -241,23 +255,11 @@ by (asm_full_simp_tac (simpset() addsimps [neg_eq_less_int0, neg_nat]) 1);
 by (blast_tac (claset() addIs [order_less_trans]) 1);
 val lemma = result();
 
-Goal "z <= int 0 ==> nat z = 0"; 
-by (auto_tac (claset(), 
-	      simpset() addsimps [order_le_less, neg_eq_less_int0, 
-				  zle_def, neg_nat])); 
-qed "nat_le_int0"; 
-
 Goal "(nat w < nat z) = (int 0 < z & w < z)";
 by (case_tac "int 0 < z" 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [lemma, nat_le_int0, linorder_not_less])); 
 qed "zless_nat_conj";
-
-Goal "(0 < nat z) = (int 0 < z)";
-by (stac (order_refl RS nat_le_int0 RS sym) 1);
-by (stac zless_nat_conj 1);
-by (Simp_tac 1);
-qed "zless_zero_nat";
 
 
 (* a case theorem distinguishing non-negative and negative int *)  
