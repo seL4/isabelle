@@ -21,9 +21,9 @@ sub fixdots {
     while (1) {
 	$_ = $rest;
 	($pre, $str, $rest) =
-	    m/^((?: \(\*.*?\*\) | [^"] )*)     # pre: text or (non-nested!) comments
+	    m/^((?: \(\*.*?\*\) | [^"] )*)      # pre: text or (non-nested!) comments
             "((?: [^"\\] | \\\S | \\\s+\\ )*)"  # quoted string
-            (.*)$/sx;                          # rest of file
+            (.*)$/sx;                           # rest of file
 	if ($str) {
 	    $_ = $str;
 	    if (!m/^[a-zA-Z0-9_\/\.]*$/s && !m/\.ML/s && !m/\.thy/s) {   # exclude filenames!
