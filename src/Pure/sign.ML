@@ -848,15 +848,27 @@ fun prep_ext sg      = extend_sign false K "#" () sg;
 
 (** merge signatures **)    	(*exception TERM*)
 
+(* merge_stamps *)
+
+fun merge_stamps stamps1 stamps2 =
+  let val stamps = merge_rev_lists stamps1 stamps2 in
+    (case duplicates (map ! stamps) of
+      [] => stamps
+    | dups => raise TERM ("Attempt to merge different versions of theories "
+        ^ commas_quote dups, []))
+  end;
+
+
 (* merge of sg_refs -- trivial only *)
 
-fun merge_refs (sgr1 as SgRef (Some (ref sg1)),
-        sgr2 as SgRef (Some (ref sg2))) =
+fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
+        sgr2 as SgRef (Some (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
       if fast_subsig (sg2, sg1) then sgr1
       else if fast_subsig (sg1, sg2) then sgr2
       else if subsig (sg2, sg1) then sgr1
       else if subsig (sg1, sg2) then sgr2
-      else raise TERM ("Attempt to do non-trivial merge of signatures", [])
+      else (merge_stamps s1 s2; (*check for different versions*)
+        raise TERM ("Attempt to do non-trivial merge of signatures", []))
   | merge_refs _ = sys_error "Sign.merge_refs";
 
 
@@ -878,13 +890,8 @@ fun merge_aux (sg1, sg2) =
       val id = ref "";
       val self_ref = ref sg1;                   (*dummy value*)
       val self = SgRef (Some self_ref);
-      val stamps = merge_rev_lists stamps1 stamps2;
-      val _ =
-        (case duplicates (map ! stamps) of
-          [] => ()
-        | dups => raise TERM ("Attempt to merge different versions of theories "
-            ^ commas_quote dups, []));
 
+      val stamps = merge_stamps stamps1 stamps2;
       val tsig = Type.merge_tsigs (tsig1, tsig2);
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
         handle Symtab.DUPS cs =>
