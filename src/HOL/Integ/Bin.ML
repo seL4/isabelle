@@ -254,6 +254,8 @@ Goalw [iszero_def] "~ iszero ((number_of bin.Min)::int)";
 by (Simp_tac 1);
 qed "nonzero_number_of_Min"; 
 
+fun int_case_tac x = res_inst_tac [("z",x)] int_cases;
+
 Goalw [iszero_def]
      "iszero (number_of (w BIT x)) = (~x & iszero (number_of w::int))"; 
 by (int_case_tac "number_of w" 1); 
