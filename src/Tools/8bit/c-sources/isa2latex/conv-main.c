@@ -45,7 +45,8 @@ FILE* foutput;               /* output file,default = stdout */
 int use2e = FALSE;           /* generate latex2e output */
 int bigTabs = FALSE;         /* flag for big tabs */
 int tabBlanks = TABBLANKS;   /* number of blanks subsituted for a tab */
-char isa_env_beg[200];       /* latex command to begin isa environment */
+char isa_env_beg0[200],      /* latex command to begin isa environment */
+     isa_env_beg1[200];
 char isa_env_end[200];       /* latex command to end   isa environment */
 int cc;                      /* character counter in line  */
 int tabcount;                /* counter for tab positions  */
@@ -199,14 +200,17 @@ int main(int argc, char* argv[]) {
   if (convMode == STANDALONE) {
     if (use2e){
       fprintf(foutput, 
-	 "\\documentclass[a4paper,11pt]{article}\n");
+	 "\\documentclass[]{article}\n");
       fprintf(foutput, 
 	 "\\usepackage{latexsym,amssymb,isa2latex}\n");
     } else {
       fprintf(foutput, 
-	 "\\documentstyle[11pt,a4,latexsym,amssymb,isa2latex]{article}\n");
+	 "\\documentstyle[10pt,latexsym,amssymb,isa2latex]{article}\n");
     }
-      fprintf(foutput, "\\begin{document}\n");
+      fprintf(foutput, "\\topmargin-8ex\n"
+	               "\\oddsidemargin0ex\n"
+	               "\\textheight158ex\n"
+	               "\\begin{document}\n");
   }
 
   if(texFont[0] != '\0') /* adjust font definition */
@@ -214,18 +218,21 @@ int main(int argc, char* argv[]) {
 
   /*
    * prepare a tabbing environment with tabstops every 'tabBlanks' blanks:
-   */
   strcpy(isa_env_beg, "{\\isamode\\begin{tabbing}");
   for (i = 0; i < NUM_TABS; i++) {
     for (j = 0; j < tabBlanks; j++)
       strcat(isa_env_beg, bigTabs ? BIG_TABBING_UNIT : NORMAL_TABBING_UNIT);
     strcat(isa_env_beg, "\\=");
   }
-  strcat(isa_env_beg, "\\kill{}\\hspace{-1ex}\n");
+  strcat(isa_env_beg, "\\kill{}\\hspace{-1.2ex}\n");
   strcpy(isa_env_end, "\n\\end{tabbing}}");
+   */
+  strcpy(isa_env_beg0, "{\\isabegin{}\\noindent ");
+  strcpy(isa_env_beg1, "{\\isabegin{\\isamodify}\\noindent ");
+  strcpy(isa_env_end , "\\isaend}\\noindent ");
   
-  if (convMode == STANDALONE || convMode == INCLUDE)
-    fprintf(foutput, isa_env_beg);
+  if (convMode == STANDALONE || (convMode == INCLUDE) && (destCode != TO_7bit))
+    fprintf(foutput, isa_env_beg0);
 
   /*
    * start the conversion: use lexer in all modes to do the job.
@@ -238,7 +245,7 @@ int main(int argc, char* argv[]) {
    * output footers
    */
 
-  if(convMode == STANDALONE || convMode == INCLUDE)
+  if(convMode == STANDALONE || (convMode == INCLUDE) && (destCode != TO_7bit))
     fprintf(foutput, isa_env_end);
 
   if(convMode == STANDALONE) 
