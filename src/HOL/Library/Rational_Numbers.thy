@@ -500,6 +500,9 @@ proof
     by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
   show "r \<noteq> 0 ==> q / r = q * inverse r"
     by (induct q, induct r) (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
+  show "0 \<noteq> (1::rat)"
+    by (simp add: zero_rat_def one_rat_def rat_of_equality 
+                  zero_fraction_def one_fraction_def) 
 qed
 
 instance rat :: linorder

@@ -33,7 +33,8 @@ axclass ordered_ring \<subseteq> ring, linorder
 
 axclass field \<subseteq> ring, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
-  divide_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
+  divide_inverse:      "b \<noteq> 0 ==> a / b = a * inverse b"
+  zero_neq_one [simp]: "0 \<noteq> 1"
 
 axclass ordered_field \<subseteq> ordered_ring, field
 
@@ -43,9 +44,7 @@ axclass division_by_zero \<subseteq> zero, inverse
 
 
 
-subsection {* Derived rules *}
-
-subsubsection {* Derived rules for addition *}
+subsection {* Derived rules for addition *}
 
 lemma right_zero [simp]: "a + 0 = (a::'a::ring)"
 proof -
@@ -129,7 +128,7 @@ lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::ring))"
 by (subst neg_equal_iff_equal [symmetric], simp)
 
 
-subsubsection {* Derived rules for multiplication *}
+subsection {* Derived rules for multiplication *}
 
 lemma right_one [simp]: "a = a * (1::'a::field)"
 proof -
@@ -180,7 +179,7 @@ lemma mult_right_zero [simp]:
   by (simp add: mult_commute)
 
 
-subsubsection {* Distribution rules *}
+subsection {* Distribution rules *}
 
 lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::ring)"
 proof -
@@ -212,7 +211,7 @@ by (simp add: right_distrib diff_minus
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
 
 
-subsubsection {* Ordering rules *}
+subsection {* Ordering rules *}
 
 lemma add_right_mono: "a \<le> (b::'a::ordered_ring) ==> a + c \<le> b + c"
 by (simp add: add_commute [of _ c] add_left_mono)
@@ -262,19 +261,116 @@ lemma mult_strict_right_mono:
      "[|a < b; 0 < c|] ==> a * c < b * (c::'a::ordered_ring)"
 by (simp add: mult_commute [of _ c] mult_strict_left_mono)
 
-lemma mult_neg_left_mono:
+lemma mult_left_mono: "[|a \<le> b; 0 < c|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+by (force simp add: mult_strict_left_mono order_le_less) 
+
+lemma mult_right_mono: "[|a \<le> b; 0 < c|] ==> a*c \<le> b * (c::'a::ordered_ring)"
+by (force simp add: mult_strict_right_mono order_le_less) 
+
+lemma mult_strict_left_mono_neg:
      "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring)"
- apply (drule mult_strict_left_mono [of _ _ "-c"])
+apply (drule mult_strict_left_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_left [symmetric]) 
 done
 
+lemma mult_strict_right_mono_neg:
+     "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring)"
+apply (drule mult_strict_right_mono [of _ _ "-c"])
+apply (simp_all add: minus_mult_right [symmetric]) 
+done
 
-subsubsection{* Products of Signs *}
+lemma mult_left_mono_neg:
+     "[|b \<le> a; c < 0|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+by (force simp add: mult_strict_left_mono_neg order_le_less) 
+
+lemma mult_right_mono_neg:
+     "[|b \<le> a; c < 0|] ==> a * c \<le> b * (c::'a::ordered_ring)"
+by (force simp add: mult_strict_right_mono_neg order_le_less) 
+
+
+subsection{* Products of Signs *}
 
 lemma mult_pos: "[| (0::'a::ordered_ring) < a; 0 < b |] ==> 0 < a*b"
 by (drule mult_strict_left_mono [of 0 b], auto)
 
 lemma mult_pos_neg: "[| (0::'a::ordered_ring) < a; b < 0 |] ==> a*b < 0"
 by (drule mult_strict_left_mono [of b 0], auto)
+
+lemma mult_neg: "[| a < (0::'a::ordered_ring); b < 0 |] ==> 0 < a*b"
+by (drule mult_strict_right_mono_neg, auto)
+
+lemma zero_less_mult_pos: "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_ring)"
+apply (case_tac "b\<le>0") 
+ apply (auto simp add: order_le_less linorder_not_less)
+apply (drule_tac mult_pos_neg [of a b]) 
+ apply (auto dest: order_less_not_sym)
+done
+
+lemma zero_less_mult_iff:
+     "((0::'a::ordered_ring) < a*b) = (0 < a & 0 < b | a < 0 & b < 0)"
+apply (auto simp add: order_le_less linorder_not_less mult_pos mult_neg)
+apply (blast dest: zero_less_mult_pos) 
+apply (simp add: mult_commute [of a b]) 
+apply (blast dest: zero_less_mult_pos) 
+done
+
+
+lemma mult_eq_0_iff [iff]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
+apply (case_tac "a < 0")
+apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
+apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
+done
+
+lemma zero_le_mult_iff:
+     "((0::'a::ordered_ring) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
+by (auto simp add: order_le_less linorder_not_less zero_less_mult_iff)
+
+lemma mult_less_0_iff:
+     "(a*b < (0::'a::ordered_ring)) = (0 < a & b < 0 | a < 0 & 0 < b)"
+apply (insert zero_less_mult_iff [of "-a" b]) 
+apply (force simp add: minus_mult_left[symmetric]) 
+done
+
+lemma mult_le_0_iff:
+     "(a*b \<le> (0::'a::ordered_ring)) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
+apply (insert zero_le_mult_iff [of "-a" b]) 
+apply (force simp add: minus_mult_left[symmetric]) 
+done
+
+lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
+by (simp add: zero_le_mult_iff linorder_linear) 
+
+
+subsection {* Absolute Value *}
+
+text{*But is it really better than just rewriting with @{text abs_if}?*}
+lemma abs_split:
+     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
+
+lemma abs_zero [simp]: "abs 0 = (0::'a::ordered_ring)"
+by (simp add: abs_if)
+
+lemma abs_mult: "abs (x * y) = abs x * abs (y::'a::ordered_ring)" 
+apply (case_tac "x=0 | y=0", force) 
+apply (auto elim: order_less_asym
+            simp add: abs_if mult_less_0_iff linorder_neq_iff
+                  minus_mult_left [symmetric] minus_mult_right [symmetric])  
+done
+
+lemma abs_eq_0 [iff]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
+by (simp add: abs_if)
+
+lemma zero_less_abs_iff [iff]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
+by (simp add: abs_if linorder_neq_iff)
+
+
+subsection {* Fields *}
+
+lemma zero_less_one: "(0::'a::ordered_field) < 1"
+apply (insert zero_le_square [of 1]) 
+apply (simp add: order_less_le) 
+done
+
 
 end

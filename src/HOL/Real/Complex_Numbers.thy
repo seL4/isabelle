@@ -126,6 +126,8 @@ proof
     by (simp add: mult_complex_def)
   show "1 * z = z"
     by (simp add: one_complex_def mult_complex_def)
+  show "0 \<noteq> (1::complex)"  --{*for some reason it has to be early*}
+    by (simp add: zero_complex_def one_complex_def) 
   show "(u + v) * w = u * w + v * w"
     by (simp add: add_complex_def mult_complex_def ring_distrib)
   assume neq: "w \<noteq> 0"
