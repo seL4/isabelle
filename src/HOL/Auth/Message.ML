@@ -616,15 +616,6 @@ br ([parts_mono, parts_Un_subset2] MRS subset_trans) 1;
 by (Fast_tac 1);
 qed "parts_insert_subset_Un";
 
-(*More specifically for Fake****OBSOLETE VERSION
-goal thy "!!H. X: synth (analz H) ==> \
-\              parts (insert X H) <= synth (analz H) Un parts H";
-bd parts_insert_subset_Un 1;
-by (Full_simp_tac 1);
-by (Fast_tac 1);
-qed "Fake_parts_insert";
-*)
-
 (*More specifically for Fake*)
 goal thy "!!H. X: synth (analz G) ==> \
 \              parts (insert X H) <= synth (analz G) Un parts G Un parts H";
