@@ -993,6 +993,17 @@ by (asm_full_simp_tac (simpset() addsimps [zip_append]) 1);
 qed_spec_mp "zip_rev";
 
 Goal
+ "!ys. set(zip xs ys) = {(xs!i,ys!i) |i. i < min (length xs) (length ys)}";
+by(induct_tac "xs" 1);
+ by (Simp_tac 1);
+br allI 1;
+by(exhaust_tac "ys" 1);
+ by(Asm_simp_tac 1);
+by(auto_tac (claset(),
+           simpset() addsimps [nth_Cons,gr0_conv_Suc] addsplits [nat.split]));
+qed_spec_mp "set_zip";
+
+Goal
 "!i xs. i < length xs --> i < length ys --> (zip xs ys)!i = (xs!i, ys!i)";
 by (induct_tac "ys" 1);
  by (Simp_tac 1);
@@ -1017,6 +1028,34 @@ by (exhaust_tac "j" 1);
 qed "zip_replicate";
 Addsimps [zip_replicate];
 
+(** list_all2 **)
+section "list_all2";
+
+Goalw [list_all2_def] "list_all2 P xs ys ==> length xs = length ys";
+by(Asm_simp_tac 1);
+qed "list_all2_lengthD";
+
+Goalw [list_all2_def] "list_all2 P [] ys = (ys=[])";
+by (Simp_tac 1);
+qed "list_all2_Nil";
+AddIffs [list_all2_Nil];
+
+Goalw [list_all2_def] "list_all2 P xs [] = (xs=[])";
+by (Simp_tac 1);
+qed "list_all2_Nil2";
+AddIffs [list_all2_Nil2];
+
+Goalw [list_all2_def]
+ "list_all2 P (x#xs) (y#ys) = (P x y & list_all2 P xs ys)";
+by (Auto_tac);
+qed "list_all2_Cons";
+AddIffs[list_all2_Cons];
+
+Goalw [list_all2_def]
+  "list_all2 P xs ys = \
+\  (length xs = length ys & (!i<length xs. P (xs!i) (ys!i)))";
+by(force_tac (claset(), simpset() addsimps [set_zip]) 1);
+qed "list_all2_conv_all_nth";
 
 (** foldl **)
 section "foldl";

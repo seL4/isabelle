@@ -19,6 +19,7 @@ consts
   hd, last    :: 'a list => 'a
   set         :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
+  list_all2   :: ('a => 'b => bool) => 'a list => 'b list => bool
   map         :: ('a=>'b) => ('a list => 'b list)
   mem         :: ['a, 'a list] => bool                    (infixl 55)
   nth         :: ['a list, nat] => 'a			  (infixl "!" 100)
@@ -164,6 +165,10 @@ primrec
 primrec
   replicate_0   "replicate  0      x = []"
   replicate_Suc "replicate (Suc n) x = x # replicate n x"
+defs
+ list_all2_def
+ "list_all2 P xs ys == length xs = length ys & (!(x,y):set(zip xs ys). P x y)"
+
 
 (** Lexicographic orderings on lists **)
 

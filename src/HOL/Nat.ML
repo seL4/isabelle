@@ -46,6 +46,10 @@ AddIffs [zero_neq_conv];
 (*This theorem is useful with blast_tac: (n=0 ==> False) ==> 0<n *)
 bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
 
+Goal "(0<n) = (EX m. n = Suc m)";
+by(fast_tac (claset() addIs [not0_implies_Suc]) 1);
+qed "gr0_conv_Suc";
+
 Goal "(~(0 < n)) = (n=0)";
 by (rtac iffI 1);
  by (etac swap 1);
