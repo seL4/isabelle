@@ -154,9 +154,9 @@ fun and_list scan = enum "and" scan;
 
 (* names and text *)
 
-val name = group "name declaration" (short_ident || sym_ident || string);
-val xname = group "name reference" (short_ident || long_ident || sym_ident || string);
-val text = group "text" (short_ident || long_ident || sym_ident || string || verbatim);
+val name = group "name declaration" (short_ident || sym_ident || string || number);
+val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
+val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 
 
 (* formal comments *)
@@ -182,8 +182,8 @@ val simple_arity = gen_arity name;
 
 (* types *)
 
-val typ =
-  group "type" (short_ident || long_ident || sym_ident || type_ident || type_var || string);
+val typ = group "type"
+  (short_ident || long_ident || sym_ident || type_ident || type_var || string || number);
 
 val type_args =
   type_ident >> single ||
@@ -243,6 +243,7 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 (* arguments *)
 
 fun keyword_symid is_symid = Scan.one (OuterLex.keyword_with is_symid) >> OuterLex.val_of;
+val keyword_sid = keyword_symid OuterLex.is_sid;
 
 fun atom_arg is_symid blk =
   group "argument"
@@ -266,7 +267,7 @@ and args1 is_symid blk x =
 
 (* theorem specifications *)
 
-val attrib = position (xname -- !!! (args OuterLex.is_sid false)) >> Args.src;
+val attrib = position ((xname || keyword_sid) -- !!! (args OuterLex.is_sid false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
