@@ -136,6 +136,13 @@ Robin Milner and Mads Tofte.
 \newblock Co-induction in relational semantics.
 \newblock {\em Theoretical Computer Science}, 87:209--220, 1991.
 
+\bibitem{Naraschewski-Wenzel:1998:TPHOL}
+Wolfgang Naraschewski and Markus Wenzel.
+\newblock Object-oriented verification based on record subtyping in
+  higher-order logic.
+\newblock In J.~Grundy and M.~Newey, editors, {\em Theorem Proving in Higher
+  Order Logics: {TPHOLs} '98}, LNCS 1479, pages 349--366, 1998.
+
 \bibitem{nazareth-nipkow}
 Dieter Nazareth and Tobias Nipkow.
 \newblock Formal verification of algorithm {W}: The monomorphic case.
