@@ -127,6 +127,10 @@ fun is_eqT (Type (s, Ts)) = s <> "fun" andalso forall is_eqT Ts
 val term_vs = map (fst o fst o dest_Var) o term_vars;
 val terms_vs = distinct o flat o (map term_vs);
 
+fun assoc' s tab key = (case assoc (tab, key) of
+      None => error ("Unable to determine " ^ s ^ " of " ^ quote key)
+    | Some x => x);
+
 (** collect all Vars in a term (with duplicates!) **)
 fun term_vTs t = map (apfst fst o dest_Var)
   (filter is_Var (foldl_aterms (op :: o Library.swap) ([], t)));
@@ -163,11 +167,12 @@ fun modes_of modes t =
         (fn (None, _) => [None]
           | (Some js, arg) => map Some
               (filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
-                (iss ~~ args)))) (the (assoc (modes, name))))
+                (iss ~~ args)))) (assoc' "modes" modes name))
 
   in (case strip_comb t of
       (Const (name, _), args) => mk_modes name args
-    | (Var ((name, _), _), args) => mk_modes name args)
+    | (Var ((name, _), _), args) => mk_modes name args
+    | (Free (name, _), args) => mk_modes name args)
   end;
 
 datatype indprem = Prem of term list * term | Sidecond of term;
@@ -478,9 +483,9 @@ and mk_ind_def thy gr dep names intrs =
   end;
 
 fun mk_ind_call thy gr dep t u is_query = (case head_of u of
-  Const (s, _) => (case get_clauses thy s of
-       None => None
-     | Some (names, intrs) =>
+  Const (s, T) => (case (get_clauses thy s, get_assoc_code thy s T) of
+       (None, _) => None
+     | (Some (names, intrs), None) =>
          let
           fun mk_mode (((ts, mode), i), Const ("dummy_pattern", _)) =
                 ((ts, mode), i+1)
@@ -504,7 +509,8 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
          in
            Some (gr3, Pretty.block
              (ps @ [Pretty.brk 1, mk_tuple in_ps]))
-         end)
+         end
+     | _ => None)
   | _ => None);
 
 fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
