@@ -1,73 +1,48 @@
-
-Subject: Announcing Isabelle2002
+Subject: Announcing Isabelle2003
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2002 is now available.
+Isabelle2003 is now available.
 
-This release provides major improvements.  The Isar language has
-reached a mature state; the core engine is able to record full proof
-terms; many aspects of the library have been reworked; several
-substantial case studies have been added.  Some changes may cause
-incompatibility with earlier versions, but improve accessibility of
-Isabelle for new users.
+This release provides many improvements and a few substantial advances over
+Isabelle2002.  The most prominent highlights of Isabelle2003 are as follows
+(see the NEWS of the distribution for more details):
 
-The most prominent highlights of Isabelle2002 are as follows (see the
-NEWS of the distribution for more details).
+ * New framework for extracting programs from constructive proofs in HOL.
+   (Berghofer)
 
-  * The Isabelle/HOL tutorial is to be published as LNCS 2283;
-    Isabelle2002 is the official version to go along with that book
-    (by Tobias Nipkow, Larry Paulson, Markus Wenzel).
+ * Improved simplifier. The premises of a goal are completely
+   interreduced, ie simplified wrt each other. (Berghofer)
 
-  * Pure: explicit proof terms for all internal inferences;
-    object-logics, proof tools etc. will benefit automatically
-    (by Stefan Berghofer).
+ * Presburger arithmetic. Method arith can deal with quantified formulae over
+   nat and int, and with mod, div and dvd wrt a numeral.  (Chaieb and Nipkow)
 
-  * Pure/Isar: proper integration of the locale package for modular
-    theory development; additional support for rename/merge
-    operations, and type-inference for structured specifications
-    (by Markus Wenzel).
+ * New command to find all rules whose conclusion matches the current goal.
 
-  * Pure/Isar: streamlined cases/induction proof patterns
-    (by Markus Wenzel).
+ * New command to trace why unification failed.
 
-  * Pure/HOL: infrastructure for generating functional and relational
-    code, using the ML run-time environment
-    (by Stefan Berghofer).
+ * Locales (named proof contexts).  The new implementation is fully
+   integrated with Isar's notion of proof context, and locale specifications
+   produce predicate definitions that allow to work with locales in more
+   flexible ways. (Wenzel)
 
-  * HOL/library: numerals on all number types; several improvements of
-    tuple and record types; new definite description operator; keep
-    Hilbert's epsilon (Axiom of Choice) out of basic theories
-    (by Stefan Berghofer, Larry Paulson, Markus Wenzel).
+ * HOL/Algebra: proofs in classical algebra.  Intended as a base for all
+   algebraic developments in HOL.  Currently covers group and ring theory.
+   (Ballarin, Kammüller, Paulson)
 
-  * HOL/Bali: large application concerning formal treatment of Java.
-    (by David von Oheimb and Norbert Schirmer).
+ * HOL/Complex defines the type "complex" of the complex numbers, with numeric
+   constants and some complex analysis, including nonstandard analysis.  The
+   image HOL-Complex should be used for developments involving the real
+   numbers too.  Gauge integration and hyperreal logarithms have recently
+   been added. (Fleuriot)
 
-  * HOL/HoareParallel: large application concerning verification of
-    parallel imperative programs (Owicki-Gries method, Rely-Guarantee
-    method, examples of garbage collection, mutual exclusion)
-    (by Leonor Prensa Nieto).
+ * HOL/NumberTheory: added Gauss's law of quadratic reciprocity. (Avigad,
+   Gray and Kramer)
 
-  * HOL/GroupTheory: group theory examples including Sylow's theorem
-    (by Florian Kammueller).
+ * ZF/Constructible: Gödel's proof of the relative consistency of the axiom
+   of choice is mechanized using Isabelle/ZF, following, Kunen's famous
+   textbook "Set Theory". (Paulson)
 
-  * HOL/IMP: several new proofs in Isar format
-    (by Gerwin Klein).
-
-  * HOL/MicroJava: exception handling on the bytecode level
-    (by Gerwin Klein).
-
-  * ZF/UNITY: typeless version of Chandy and Misra's formalism
-    (by Sidi O Ehmety).
-
-  * System: improvements and simplifications of document preparation
-    (by Markus Wenzel).
-
-  * System: support for Poly/ML 4.1.1 and PolyML/4.1.2, admitting
-    larger heap size of applications; support for MacOS X (Poly/ML and
-    SML/NJ).
-
-You may get Isabelle2002 from any of the following mirror sites:
+You may get Isabelle2003 from any of the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/
-  New Jersey (USA)  ftp://ftp.research.bell-labs.com/dist/smlnj/isabelle/index.html
