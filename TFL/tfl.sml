@@ -493,10 +493,6 @@ fun wfrec_eqns thy fid tflCongs eqns =
      fun extract X = R.CONTEXT_REWRITE_RULE 
 	               (f, R1::SV, cut_apply, tflCongs@context_congs) X
  in {proto_def = proto_def,
-     (*LCP: want this??
-  (*Use == rather than = for definitions*)
-	 mk_const_def (Theory.sign_of thy) 
-	              (Name, Ty, S.rhs proto_def), *)
      SV=SV,
      WFR=WFR, 
      pats=pats,
@@ -516,7 +512,6 @@ fun lazyR_def thy fid tflCongs eqns =
 	   wfrec_eqns thy fid (congs tflCongs) eqns
      val R1 = S.rand WFR
      val f = #lhs(S.dest_eq proto_def)
-(*LCP: want this?     val f = #1 (Logic.dest_equals proto_def) *)
      val (extractants,TCl) = ListPair.unzip extracta
      val dummy = if !trace 
 		 then (writeln "Extractants = ";
@@ -537,13 +532,6 @@ fun lazyR_def thy fid tflCongs eqns =
      val (Name,Ty) = dest_atom c
      val defn = mk_const_def (Theory.sign_of thy) 
                  (Name, Ty, S.list_mk_abs (args,rhs)) 
-     (*LCP: want this??
-     val theory =
-       thy
-       |> PureThy.add_defs_i 
-            [Thm.no_attributes (fid ^ "_def", proto_def')];
-     val def = get_axiom theory (fid ^ "_def") RS meta_eq_to_obj_eq
-     *)
      val theory =
        thy
        |> PureThy.add_defs_i 
