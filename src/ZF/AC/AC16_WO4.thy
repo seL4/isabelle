@@ -213,7 +213,7 @@ locale AC16 =
   assumes all_ex:    "\<forall>z \<in> {z \<in> Pow(x Un y) . z \<approx> succ(k)}.
 	               \<exists>! w. w \<in> t_n & z \<subseteq> w "
     and disjoint[iff]:  "x Int y = 0"
-    and includes:  "t_n \<subseteq> {v \<in> Pow(x Un y). v \<approx> succ(k #+ m)}"
+    and "includes":  "t_n \<subseteq> {v \<in> Pow(x Un y). v \<approx> succ(k #+ m)}"
     and WO_R[iff]:      "well_ord(y,R)"
     and lnat[iff]:      "l \<in> nat"
     and mnat[iff]:      "m \<in> nat"
@@ -321,9 +321,9 @@ lemma (in AC16) w_Int_eqpoll_m:
 apply (erule CollectE)
 apply (subst w_Int_eq_w_Diff)
 apply (fast dest!: s_subset [THEN subsetD] 
-                   includes [simplified k_def, THEN subsetD])
+                   "includes" [simplified k_def, THEN subsetD])
 apply (blast dest: s_subset [THEN subsetD] 
-                   includes [simplified k_def, THEN subsetD] 
+                   "includes" [simplified k_def, THEN subsetD] 
              dest: eqpoll_sym [THEN cons_eqpoll_succ, THEN eqpoll_sym] 
                    in_s_imp_u_in
             intro!: eqpoll_sum_imp_Diff_eqpoll)
@@ -394,7 +394,7 @@ done
 
 lemma (in AC16) LL_subset: "LL \<subseteq> {z \<in> Pow(y). z \<lesssim> succ(k #+ m)}"
 apply (unfold LL_def MM_def)
-apply (insert includes)
+apply (insert "includes")
 apply (blast intro: subset_imp_lepoll eqpoll_imp_lepoll lepoll_trans)
 done
 
@@ -442,7 +442,7 @@ lemma (in AC16) the_in_MM_subset:
      "v \<in> LL ==> (THE x. x \<in> MM & v \<subseteq> x) \<subseteq> x Un y"
 apply (drule unique_superset1)
 apply (unfold MM_def)
-apply (fast dest!: unique_superset1 includes [THEN subsetD])
+apply (fast dest!: unique_superset1 "includes" [THEN subsetD])
 done
 
 lemma (in AC16) GG_subset: "v \<in> LL ==> GG ` v \<subseteq> x"
@@ -473,7 +473,7 @@ apply (rule ccontr)
 apply (subgoal_tac "\<forall>v \<in> s (u) . k \<approx> v Int y")
 prefer 2 apply (simp add: s_def, blast intro: succ_not_lepoll_imp_eqpoll)
 apply (unfold k_def)
-apply (insert all_ex includes lnat)
+apply (insert all_ex "includes" lnat)
 apply (rule ex_subset_eqpoll_n [THEN exE], assumption)
 apply (rule noLepoll [THEN notE])
 apply (blast intro: lepoll_trans [OF y_lepoll_subset_s subset_s_lepoll_w])
@@ -516,7 +516,7 @@ done
 
 lemma (in AC16) in_MM_eqpoll_n: "w \<in> MM ==> w \<approx> succ(k #+ m)"
 apply (unfold MM_def)
-apply (fast dest: includes [THEN subsetD])
+apply (fast dest: "includes" [THEN subsetD])
 done
 
 lemma (in AC16) in_LL_eqpoll_n: "w \<in> LL ==> succ(k) \<lesssim> w"
@@ -531,7 +531,7 @@ lemma (in AC16) all_in_lepoll_m:
 apply (unfold GG_def)
 apply (rule oallI)
 apply (simp add: ltD ordermap_bij [THEN bij_converse_bij, THEN bij_is_fun, THEN apply_type])
-apply (insert includes)
+apply (insert "includes")
 apply (rule eqpoll_sum_imp_Diff_lepoll)
 apply (blast del: subsetI
 	     dest!: ltD 
