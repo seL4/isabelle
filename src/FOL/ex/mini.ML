@@ -31,7 +31,7 @@ val demorgans = map prove_fun
 
 (*** Removal of --> and <-> (positive and negative occurrences) ***)
 (*Last one is important for computing a compact CNF*)
-val nnf_rews = map prove_fun
+val nnf_simps = map prove_fun
                 ["(P-->Q) <-> (~P | Q)",
                  "~(P-->Q) <-> (P & ~Q)",
                  "(P<->Q) <-> (~P | Q) & (~Q | P)",
@@ -41,7 +41,7 @@ val nnf_rews = map prove_fun
 
 (*** Pushing in the existential quantifiers ***)
 
-val ex_rews = map prove_fun 
+val ex_simps = map prove_fun 
                 ["(EX x. P) <-> P",
                  "(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
                  "(EX x. P & Q(x)) <-> P & (EX x.Q(x))",
@@ -51,7 +51,7 @@ val ex_rews = map prove_fun
 
 (*** Pushing in the universal quantifiers ***)
 
-val all_rews = map prove_fun
+val all_simps = map prove_fun
                 ["(ALL x. P) <-> P",
                  "(ALL x. P(x) & Q(x)) <-> (ALL x.P(x)) & (ALL x.Q(x))",
                  "(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
@@ -67,7 +67,7 @@ val mini_ss =
                           ORELSE' assume_tac
                           ORELSE' etac FalseE)
   setsubgoaler asm_simp_tac
-  addsimps (demorgans @ nnf_rews @ ex_rews @ all_rews);
+  addsimps (demorgans @ nnf_simps @ ex_simps @ all_simps);
 
 val mini_tac = rtac ccontr THEN' asm_full_simp_tac mini_ss;
 
