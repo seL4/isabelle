@@ -60,7 +60,7 @@ bind_thm
 goal Lfp.thy "!!f. [| mono f; f A <= A |] ==> lfp(f) <= A";
 by (rtac subsetI 1);
 by (EVERY[etac induct 1, atac 1, etac subsetD 1, rtac subsetD 1,
-                atac 2, fast_tac (set_cs addSEs [monoD]) 1]);
+                atac 2, fast_tac (!claset addSEs [monoD]) 1]);
 qed "Park_induct";
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)

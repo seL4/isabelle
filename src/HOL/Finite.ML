@@ -16,7 +16,7 @@ by (REPEAT (ares_tac basic_monos 1));
 qed "Fin_mono";
 
 goalw Finite.thy Fin.defs "Fin(A) <= Pow(A)";
-by (fast_tac (set_cs addSIs [lfp_lowerbound]) 1);
+by (fast_tac (!claset addSIs [lfp_lowerbound]) 1);
 qed "Fin_subset_Pow";
 
 (* A : Fin(B) ==> A <= B *)
@@ -55,7 +55,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "Fin_subset";
 
 goal Finite.thy "(F Un G : Fin(A)) = (F: Fin(A) & G: Fin(A))";
-by (fast_tac (set_cs addIs [Fin_UnI] addDs
+by (fast_tac (!claset addIs [Fin_UnI] addDs
                 [Un_upper1 RS Fin_subset, Un_upper2 RS Fin_subset]) 1);
 qed "subset_Fin";
 Addsimps[subset_Fin];
@@ -63,7 +63,7 @@ Addsimps[subset_Fin];
 goal Finite.thy "(insert a A : Fin M) = (a:M & A : Fin M)";
 by (stac insert_is_Un 1);
 by (Simp_tac 1);
-by (fast_tac (set_cs addSIs Fin.intrs addDs [FinD]) 1);
+by (fast_tac (!claset addSIs Fin.intrs addDs [FinD]) 1);
 qed "insert_Fin";
 Addsimps[insert_Fin];
 
@@ -163,7 +163,7 @@ qed "finite_empty_induct";
 section "Finite cardinality -- 'card'";
 
 goal Set.thy "{f i |i. P i | i=n} = insert (f n) {f i|i. P i}";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 val Collect_conv_insert = result();
 
 goalw Finite.thy [card_def] "card {} = 0";
@@ -197,7 +197,7 @@ by (hyp_subst_tac 1);
 by (case_tac "? a. a:A" 1);
  by (res_inst_tac [("x","0")] exI 2);
  by (Simp_tac 2);
- by (fast_tac eq_cs 2);
+ by (Fast_tac 2);
 by (etac exE 1);
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (rtac exI 1);
@@ -212,7 +212,7 @@ by (SELECT_GOAL(safe_tac eq_cs)1);
   by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
   by (SELECT_GOAL(safe_tac eq_cs)1);
    by (subgoal_tac "x ~= f m" 1);
-    by (fast_tac set_cs 2);
+    by (Fast_tac 2);
    by (subgoal_tac "? k. f k = x & k<m" 1);
     by (best_tac set_cs 2);
    by (SELECT_GOAL(safe_tac HOL_cs)1);
@@ -226,7 +226,7 @@ by (SELECT_GOAL(safe_tac eq_cs)1);
  by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
  by (SELECT_GOAL(safe_tac eq_cs)1);
   by (subgoal_tac "x ~= f m" 1);
-   by (fast_tac set_cs 2);
+   by (Fast_tac 2);
   by (subgoal_tac "? k. f k = x & k<m" 1);
    by (best_tac set_cs 2);
   by (SELECT_GOAL(safe_tac HOL_cs)1);
@@ -237,7 +237,7 @@ by (SELECT_GOAL(safe_tac eq_cs)1);
 by (res_inst_tac [("x","%j. if f j = f i then f m else f j")] exI 1);
 by (SELECT_GOAL(safe_tac eq_cs)1);
  by (subgoal_tac "x ~= f i" 1);
-  by (fast_tac set_cs 2);
+  by (Fast_tac 2);
  by (case_tac "x = f m" 1);
   by (res_inst_tac [("x","i")] exI 1);
   by (Asm_simp_tac 1);
@@ -305,8 +305,8 @@ by (etac exE 1);
 by (Asm_simp_tac 1);
 by (rtac card_insert_disjoint 1);
 by (rtac (major RSN (2,finite_subset)) 1);
-by (fast_tac set_cs 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
+by (Fast_tac 1);
 by (asm_simp_tac (!simpset addsimps [major RS card_insert_disjoint]) 1);
 qed "card_insert";
 Addsimps [card_insert];

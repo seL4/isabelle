@@ -69,12 +69,12 @@ val Abs_Node_inject = inj_onto_Abs_Node RS inj_ontoD;
 (*** Introduction rules for Node ***)
 
 goalw Univ.thy [Node_def] "(%k. 0,a) : Node";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "Node_K0_I";
 
 goalw Univ.thy [Node_def,Push_def]
     "!!p. p: Node ==> apfst (Push i) p : Node";
-by (fast_tac (set_cs addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
+by (fast_tac (!claset addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
 qed "Node_Push_I";
 
 
@@ -100,7 +100,7 @@ val Atom_neq_Scons = sym RS Scons_neq_Atom;
 (** Atomic nodes **)
 
 goalw Univ.thy [Atom_def, inj_def] "inj(Atom)";
-by (fast_tac (prod_cs addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
+by (fast_tac (!claset addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
 val Atom_inject = inj_Atom RS injD;
 
@@ -139,13 +139,13 @@ qed "Push_Node_inject";
 
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> M<=M'";
 by (cut_facts_tac [major] 1);
-by (fast_tac (set_cs addSDs [Suc_inject]
+by (fast_tac (!claset addSDs [Suc_inject]
                      addSEs [Push_Node_inject, Zero_neq_Suc]) 1);
 qed "Scons_inject_lemma1";
 
 val [major] = goalw Univ.thy [Scons_def] "M$N <= M'$N' ==> N<=N'";
 by (cut_facts_tac [major] 1);
-by (fast_tac (set_cs addSDs [Suc_inject]
+by (fast_tac (!claset addSDs [Suc_inject]
                      addSEs [Push_Node_inject, Suc_neq_Zero]) 1);
 qed "Scons_inject_lemma2";
 
@@ -167,11 +167,11 @@ qed "Scons_inject";
 
 (*rewrite rules*)
 goal Univ.thy "(Atom(a)=Atom(b)) = (a=b)";
-by (fast_tac (HOL_cs addSEs [Atom_inject]) 1);
+by (fast_tac (!claset addSEs [Atom_inject]) 1);
 qed "Atom_Atom_eq";
 
 goal Univ.thy "(M$N = M'$N') = (M=M' & N=N')";
-by (fast_tac (HOL_cs addSEs [Scons_inject]) 1);
+by (fast_tac (!claset addSEs [Scons_inject]) 1);
 qed "Scons_Scons_eq";
 
 (*** Distinctness involving Leaf and Numb ***)
@@ -323,11 +323,11 @@ qed "uprodE2";
 (*** Disjoint Sum ***)
 
 goalw Univ.thy [usum_def] "!!M. M:A ==> In0(M) : A<+>B";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "usum_In0I";
 
 goalw Univ.thy [usum_def] "!!N. N:B ==> In1(N) : A<+>B";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "usum_In1I";
 
 val major::prems = goalw Univ.thy [usum_def]
@@ -364,12 +364,12 @@ qed "In1_inject";
 (*** proving equality of sets and functions using ntrunc ***)
 
 goalw Univ.thy [ntrunc_def] "ntrunc k M <= M";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "ntrunc_subsetI";
 
 val [major] = goalw Univ.thy [ntrunc_def]
     "(!!k. ntrunc k M <= N) ==> M<=N";
-by (fast_tac (set_cs addIs [less_add_Suc1, less_add_Suc2, 
+by (fast_tac (!claset addIs [less_add_Suc1, less_add_Suc2, 
                             major RS subsetD]) 1);
 qed "ntrunc_subsetD";
 
@@ -391,15 +391,15 @@ qed "ntrunc_o_equality";
 (*** Monotonicity ***)
 
 goalw Univ.thy [uprod_def] "!!A B. [| A<=A';  B<=B' |] ==> A<*>B <= A'<*>B'";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "uprod_mono";
 
 goalw Univ.thy [usum_def] "!!A B. [| A<=A';  B<=B' |] ==> A<+>B <= A'<+>B'";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "usum_mono";
 
 goalw Univ.thy [Scons_def] "!!M N. [| M<=M';  N<=N' |] ==> M$N <= M'$N'";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "Scons_mono";
 
 goalw Univ.thy [In0_def] "!!M N. M<=N ==> In0(M) <= In0(N)";
@@ -414,31 +414,31 @@ qed "In1_mono";
 (*** Split and Case ***)
 
 goalw Univ.thy [Split_def] "Split c (M$N) = c M N";
-by (fast_tac (set_cs addIs [select_equality] addEs [Scons_inject]) 1);
+by (fast_tac (!claset addIs [select_equality] addEs [Scons_inject]) 1);
 qed "Split";
 
 goalw Univ.thy [Case_def] "Case c d (In0 M) = c(M)";
-by (fast_tac (set_cs addIs [select_equality] 
+by (fast_tac (!claset addIs [select_equality] 
                      addEs [make_elim In0_inject, In0_neq_In1]) 1);
 qed "Case_In0";
 
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
-by (fast_tac (set_cs addIs [select_equality] 
+by (fast_tac (!claset addIs [select_equality] 
                      addEs [make_elim In1_inject, In1_neq_In0]) 1);
 qed "Case_In1";
 
 (**** UN x. B(x) rules ****)
 
 goalw Univ.thy [ntrunc_def] "ntrunc k (UN x.f(x)) = (UN x. ntrunc k (f x))";
-by (fast_tac (set_cs addIs [equalityI]) 1);
+by (fast_tac (!claset addIs [equalityI]) 1);
 qed "ntrunc_UN1";
 
 goalw Univ.thy [Scons_def] "(UN x.f(x)) $ M = (UN x. f(x) $ M)";
-by (fast_tac (set_cs addIs [equalityI]) 1);
+by (fast_tac (!claset addIs [equalityI]) 1);
 qed "Scons_UN1_x";
 
 goalw Univ.thy [Scons_def] "M $ (UN x.f(x)) = (UN x. M $ f(x))";
-by (fast_tac (set_cs addIs [equalityI]) 1);
+by (fast_tac (!claset addIs [equalityI]) 1);
 qed "Scons_UN1_y";
 
 goalw Univ.thy [In0_def] "In0(UN x.f(x)) = (UN x. In0(f(x)))";
@@ -453,7 +453,7 @@ qed "In1_UN1";
 (*** Equality : the diagonal relation ***)
 
 goalw Univ.thy [diag_def] "!!a A. [| a=b;  a:A |] ==> (a,b) : diag(A)";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "diag_eqI";
 
 val diagI = refl RS diag_eqI |> standard;
@@ -471,7 +471,7 @@ qed "diagE";
 
 goalw Univ.thy [dprod_def]
     "!!r s. [| (M,M'):r;  (N,N'):s |] ==> (M$N, M'$N') : r<**>s";
-by (fast_tac prod_cs 1);
+by (Fast_tac 1);
 qed "dprodI";
 
 (*The general elimination rule*)
@@ -488,11 +488,11 @@ qed "dprodE";
 (*** Equality for Disjoint Sum ***)
 
 goalw Univ.thy [dsum_def]  "!!r. (M,M'):r ==> (In0(M), In0(M')) : r<++>s";
-by (fast_tac prod_cs 1);
+by (Fast_tac 1);
 qed "dsum_In0I";
 
 goalw Univ.thy [dsum_def]  "!!r. (N,N'):s ==> (In1(N), In1(N')) : r<++>s";
-by (fast_tac prod_cs 1);
+by (Fast_tac 1);
 qed "dsum_In1I";
 
 val major::prems = goalw Univ.thy [dsum_def]
@@ -511,26 +511,29 @@ val univ_cs =
             addIs  [usum_In0I, usum_In1I, dsum_In0I, dsum_In1I]
             addSEs [diagE, uprodE, dprodE, usumE, dsumE];
 
+AddSIs [diagI, uprodI, dprodI];
+AddIs  [usum_In0I, usum_In1I, dsum_In0I, dsum_In1I];
+AddSEs [diagE, uprodE, dprodE, usumE, dsumE];
 
 (*** Monotonicity ***)
 
 goal Univ.thy "!!r s. [| r<=r';  s<=s' |] ==> r<**>s <= r'<**>s'";
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "dprod_mono";
 
 goal Univ.thy "!!r s. [| r<=r';  s<=s' |] ==> r<++>s <= r'<++>s'";
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "dsum_mono";
 
 
 (*** Bounding theorems ***)
 
 goal Univ.thy "diag(A) <= A Times A";
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "diag_subset_Sigma";
 
 goal Univ.thy "((A Times B) <**> (C Times D)) <= (A<*>C) Times (B<*>D)";
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "dprod_Sigma";
 
 val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
@@ -540,11 +543,11 @@ goal Univ.thy
     "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
 by (safe_tac univ_cs);
 by (stac Split 1);
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "dprod_subset_Sigma2";
 
 goal Univ.thy "(A Times B <++> C Times D) <= (A<+>C) Times (B<+>D)";
-by (fast_tac univ_cs 1);
+by (Fast_tac 1);
 qed "dsum_Sigma";
 
 val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
@@ -553,16 +556,16 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 (*** Domain ***)
 
 goal Univ.thy "fst `` diag(A) = A";
-by (fast_tac (prod_cs addIs [equalityI, diagI] addSEs [diagE]) 1);
+by (fast_tac (!claset addIs [equalityI, diagI] addSEs [diagE]) 1);
 qed "fst_image_diag";
 
 goal Univ.thy "fst `` (r<**>s) = (fst``r) <*> (fst``s)";
-by (fast_tac (prod_cs addIs [equalityI, uprodI, dprodI]
+by (fast_tac (!claset addIs [equalityI, uprodI, dprodI]
                      addSEs [uprodE, dprodE]) 1);
 qed "fst_image_dprod";
 
 goal Univ.thy "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
-by (fast_tac (prod_cs addIs [equalityI, usum_In0I, usum_In1I, 
+by (fast_tac (!claset addIs [equalityI, usum_In0I, usum_In1I, 
                              dsum_In0I, dsum_In1I]
                      addSEs [usumE, dsumE]) 1);
 qed "fst_image_dsum";

@@ -188,7 +188,7 @@ qed "ComplD";
 val ComplE = make_elim ComplD;
 
 qed_goal "Compl_iff" Set.thy "(c : Compl(A)) = (c~:A)"
- (fn _ => [ (fast_tac (HOL_cs addSIs [ComplI] addSEs [ComplE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSIs [ComplI] addSEs [ComplE]) 1) ]);
 
 
 section "Binary union -- Un";
@@ -215,7 +215,7 @@ by (REPEAT (eresolve_tac prems 1));
 qed "UnE";
 
 qed_goal "Un_iff" Set.thy "(c : A Un B) = (c:A | c:B)"
- (fn _ => [ (fast_tac (HOL_cs addSIs [UnCI] addSEs [UnE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSIs [UnCI] addSEs [UnE]) 1) ]);
 
 
 section "Binary intersection -- Int";
@@ -241,7 +241,7 @@ by (rtac (major RS IntD2) 1);
 qed "IntE";
 
 qed_goal "Int_iff" Set.thy "(c : A Int B) = (c:A & c:B)"
- (fn _ => [ (fast_tac (HOL_cs addSIs [IntI] addSEs [IntE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSIs [IntI] addSEs [IntE]) 1) ]);
 
 
 section "Set difference";
@@ -266,7 +266,7 @@ qed_goal "DiffE" Set.thy
     (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
 
 qed_goal "Diff_iff" Set.thy "(c : A-B) = (c:A & c~:B)"
- (fn _ => [ (fast_tac (HOL_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSIs [DiffI] addSEs [DiffE]) 1) ]);
 
 section "The empty set -- {}";
 
@@ -286,7 +286,7 @@ qed_goal "equals0D" Set.thy "[| A={};  a:A |] ==> P"
   [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
 
 qed_goal "empty_iff" Set.thy "(c : {}) = False"
- (fn _ => [ (fast_tac (HOL_cs addSEs [emptyE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSEs [emptyE]) 1) ]);
 
 
 section "Augmenting a set -- insert";
@@ -304,7 +304,7 @@ qed_goalw "insertE" Set.thy [insert_def]
     (REPEAT (eresolve_tac (prems @ [CollectE]) 1)) ]);
 
 qed_goal "insert_iff" Set.thy "a : insert b A = (a=b | a:A)"
- (fn _ => [fast_tac (HOL_cs addIs [insertI1,insertI2] addSEs [insertE]) 1]);
+ (fn _ => [fast_tac (!claset addIs [insertI1,insertI2] addSEs [insertE]) 1]);
 
 (*Classical introduction rule*)
 qed_goal "insertCI" Set.thy "(a~:B ==> a=b) ==> a: insert b B"
@@ -323,7 +323,7 @@ qed_goal "singletonE" Set.thy "[| a: {b};  a=b ==> P |] ==> P"
     (REPEAT (eresolve_tac (prems @ [emptyE]) 1)) ]);
 
 goalw Set.thy [insert_def] "!!a. b : {a} ==> b=a";
-by (fast_tac (HOL_cs addSEs [emptyE,CollectE,UnE]) 1);
+by (fast_tac (!claset addSEs [emptyE,CollectE,UnE]) 1);
 qed "singletonD";
 
 val singletonE = make_elim singletonD;

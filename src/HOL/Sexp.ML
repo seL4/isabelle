@@ -16,19 +16,24 @@ val sexp_free_cs =
                    Numb_neq_Scons, Numb_neq_Leaf,
                    Scons_neq_Leaf, Scons_neq_Numb];
 
+AddSDs [Leaf_inject, Numb_inject, Scons_inject];
+AddSEs [Leaf_neq_Scons, Leaf_neq_Numb,
+                   Numb_neq_Scons, Numb_neq_Leaf,
+                   Scons_neq_Leaf, Scons_neq_Numb];
+
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
 by (resolve_tac [select_equality] 1);
-by (ALLGOALS (fast_tac sexp_free_cs));
+by (ALLGOALS (Fast_tac));
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
 by (resolve_tac [select_equality] 1);
-by (ALLGOALS (fast_tac sexp_free_cs));
+by (ALLGOALS (Fast_tac));
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
 by (resolve_tac [select_equality] 1);
-by (ALLGOALS (fast_tac sexp_free_cs));
+by (ALLGOALS (Fast_tac));
 qed "sexp_case_Scons";
 
 
@@ -46,21 +51,23 @@ qed "sexp_In1I";
 
 val sexp_cs = set_cs addIs sexp.intrs@[SigmaI, uprodI];
 
+AddIs (sexp.intrs@[SigmaI, uprodI]);
+
 goal Sexp.thy "range(Leaf) <= sexp";
-by (fast_tac sexp_cs 1);
+by (Fast_tac 1);
 qed "range_Leaf_subset_sexp";
 
 val [major] = goal Sexp.thy "M$N : sexp ==> M: sexp & N: sexp";
 by (rtac (major RS setup_induction) 1);
 by (etac sexp.induct 1);
 by (ALLGOALS 
-    (fast_tac (set_cs addSEs [Scons_neq_Leaf,Scons_neq_Numb,Scons_inject])));
+    (fast_tac (!claset addSEs [Scons_neq_Leaf,Scons_neq_Numb,Scons_inject])));
 qed "Scons_D";
 
 (** Introduction rules for 'pred_sexp' **)
 
 goalw Sexp.thy [pred_sexp_def] "pred_sexp <= sexp Times sexp";
-by (fast_tac sexp_cs 1);
+by (Fast_tac 1);
 qed "pred_sexp_subset_Sigma";
 
 (* (a,b) : pred_sexp^+ ==> a : sexp *)
@@ -71,12 +78,12 @@ and trancl_pred_sexpD2 =
 
 val prems = goalw Sexp.thy [pred_sexp_def]
     "[| M: sexp;  N: sexp |] ==> (M, M$N) : pred_sexp";
-by (fast_tac (set_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "pred_sexpI1";
 
 val prems = goalw Sexp.thy [pred_sexp_def]
     "[| M: sexp;  N: sexp |] ==> (N, M$N) : pred_sexp";
-by (fast_tac (set_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "pred_sexpI2";
 
 (*Combinations involving transitivity and the rules above*)
@@ -102,9 +109,9 @@ qed "pred_sexpE";
 goal Sexp.thy "wf(pred_sexp)";
 by (rtac (pred_sexp_subset_Sigma RS wfI) 1);
 by (etac sexp.induct 1);
-by (fast_tac (HOL_cs addSEs [mp, pred_sexpE, Pair_inject, Scons_inject]) 3);
-by (fast_tac (HOL_cs addSEs [mp, pred_sexpE, Pair_inject, Numb_neq_Scons]) 2);
-by (fast_tac (HOL_cs addSEs [mp, pred_sexpE, Pair_inject, Leaf_neq_Scons]) 1);
+by (fast_tac (!claset addSEs [mp, pred_sexpE, Pair_inject, Scons_inject]) 3);
+by (fast_tac (!claset addSEs [mp, pred_sexpE, Pair_inject, Numb_neq_Scons]) 2);
+by (fast_tac (!claset addSEs [mp, pred_sexpE, Pair_inject, Leaf_neq_Scons]) 1);
 qed "wf_pred_sexp";
 
 (*** sexp_rec -- by wf recursion on pred_sexp ***)

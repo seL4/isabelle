@@ -95,7 +95,7 @@ qed "list_all_conj";
 goal List.thy "(Alls x:xs.P(x)) = (!x. x mem xs --> P(x))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "list_all_mem_conv";
 
 
@@ -106,13 +106,13 @@ goal List.thy
 \                         (!y ys. xs=y#ys --> P(f y ys)))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "expand_list_case";
 
 goal List.thy  "(xs=[] --> P([])) & (!y ys. xs=y#ys --> P(y#ys)) --> P(xs)";
 by (list.induct_tac "xs" 1);
-by (fast_tac HOL_cs 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
+by (Fast_tac 1);
 bind_thm("list_eq_cases",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (conjI RS (result() RS mp))))));
 

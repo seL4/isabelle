@@ -13,11 +13,11 @@ qed_goal "subset_insertI" Set.thy "B <= insert a B"
  (fn _=> [ (rtac subsetI 1), (etac insertI2 1) ]);
 
 goal Set.thy "!!x. x ~: A ==> (A <= insert x B) = (A <= B)";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "subset_insert";
 
 qed_goal "subset_empty_iff" Set.thy "(A<={}) = (A={})"
- (fn _=> [ (fast_tac (set_cs addIs [equalityI]) 1) ]);
+ (fn _=> [ (fast_tac (!claset addIs [equalityI]) 1) ]);
 
 (*** Big Union -- least upper bound of a set  ***)
 
