@@ -14,7 +14,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
-  echo "                 pdf, or bbl"
+  echo "                 pdf, bbl, png"
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
   echo "  producing the specified output format."
@@ -78,6 +78,7 @@ function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
+function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
 
 
 # process file
@@ -109,6 +110,10 @@ case "$OUTFORMAT" in
     ;;
   bbl)
     run_bibtex
+    RC=$?
+    ;;
+  png)
+    run_thumbpdf
     RC=$?
     ;;
   *)
