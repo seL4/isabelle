@@ -1,5 +1,5 @@
 #!/bin/csh
-# Executed from the main Isabelle directory, this script transfers all
+# Executed from the Isabelle src directory, this script transfers all
 # files needed for the HTML version of Isabelle's theories to the HTTP
 # server.
 # If you don't want to copy all the logics, you can supply the names of
@@ -11,7 +11,7 @@ if ( "$*" == "" ) then
 endif
 
 rcp index.html www4:.html-data/isabelle
-rcp ../Tools/*.gif www4:.html-data/isabelle/Tools
+rcp Tools/*.gif www4:.html-data/isabelle/Tools
 
 if ( "$*" == "" ) then
   rcp -r CCL CTT Cube FOL FOLP HOL HOLCF LCF Sequents ZF \
@@ -19,4 +19,4 @@ if ( "$*" == "" ) then
 else
   rcp -r $* www4:.html-data/isabelle
 endif
-rsh www4 "chgrp -R isabelle .html-data/isabelle/*;                                       chmod -R g+w .html-data/isabelle/*"
+rsh www4 "chgrp -R isabelle .html-data/isabelle/*; chmod -R g+w .html-data/isabelle/*"
