@@ -23,6 +23,7 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
+  val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
@@ -118,13 +119,7 @@ sig
   val next_block: state -> state
 end;
 
-signature PRIVATE_PROOF =
-sig
-  include PROOF
-  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> state -> state
-end;
-
-structure Proof: PRIVATE_PROOF =
+structure Proof: PROOF =
 struct
 
 
@@ -214,7 +209,6 @@ fun map_context_result f (state as State (Node {context, facts, mode, goal}, nod
   in (State (make_node (context', facts, mode, goal), nodes), result) end;
 
 
-fun put_data kind f = map_context o ProofContext.put_data kind f;
 val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
 val add_binds_i = map_context o ProofContext.add_binds_i;
 val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
@@ -802,14 +796,15 @@ fun local_qed finalize print state =
 
 fun finish_global state =
   let
-    val export = Drule.local_standard ooo ProofContext.export_single;
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
 
     val ts = flat tss;
-    val locale_results = map (export goal_ctxt locale_ctxt) (prep_result state ts raw_thm);
-    val results = map (Drule.strip_shyps_warning o export locale_ctxt theory_ctxt) locale_results;
+    val locale_results = map (ProofContext.export_standard goal_ctxt locale_ctxt)
+      (prep_result state ts raw_thm);
+    val results = map (Drule.strip_shyps_warning o
+        ProofContext.export_standard locale_ctxt theory_ctxt) locale_results;
     val {kind = k, theory_spec = ((name, atts), attss), locale_spec} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
@@ -823,7 +818,7 @@ fun finish_global state =
           |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
-              |> (#1 o #1 o Locale.add_thmss loc [((name, flat res), loc_atts)])))
+              |> (#1 o #1 o Locale.add_thmss loc [((name, flat (map #2 res)), loc_atts)])))
       |> Locale.smart_have_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
