@@ -27,7 +27,7 @@ structure Enum = Datatype_Fun
   val type_intrs = data_typechecks
   val type_elims = []);
 
-goal Enum.thy "~ con59=con60";
+goal Enum.thy "con59 ~= con60";
 by (simp_tac (ZF_ss addsimps Enum.free_iffs) 1);  (*2.3 secs*)
 result();
 

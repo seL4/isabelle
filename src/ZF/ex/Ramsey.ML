@@ -65,7 +65,7 @@ by (resolve_tac prems 1);
 val Atleast_superset = result();
 
 val prems = goalw Ramsey.thy [Atleast_def,succ_def]
-    "[| Atleast(m,B);  ~ b: B |] ==> Atleast(succ(m), cons(b,B))";
+    "[| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
 by (cut_facts_tac prems 1);
 by (etac exE 1);
 by (rtac exI 1);
@@ -153,7 +153,7 @@ val Atleast_partition = result();
 
 (*For the Atleast part, proves ~(a:I) from the second premise!*)
 val prems = goalw Ramsey.thy [Symmetric_def,Indept_def]
-    "[| Symmetric(E);  Indept(I, {z: V-{a}. ~ <a,z>:E}, E);  a: V;  \
+    "[| Symmetric(E);  Indept(I, {z: V-{a}. <a,z> ~: E}, E);  a: V;  \
 \       Atleast(j,I) |] ==>   \
 \    Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))";
 by (cut_facts_tac prems 1);

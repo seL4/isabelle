@@ -30,10 +30,10 @@ rules
     "Symmetric(E) == (ALL x y. <x,y>:E --> <y,x>:E)"
 
   Clique_def
-    "Clique(C,V,E) == (C<=V) & (ALL x:C. ALL y:C. ~ x=y --> <x,y>:E)"
+    "Clique(C,V,E) == (C<=V) & (ALL x:C. ALL y:C. x~=y --> <x,y> : E)"
 
   Indept_def
-    "Indept(I,V,E) == (I<=V) & (ALL x:I. ALL y:I. ~ x=y --> ~ <x,y>:E)"
+    "Indept(I,V,E) == (I<=V) & (ALL x:I. ALL y:I. x~=y --> <x,y> ~: E)"
 
   Atleast_def
     "Atleast(n,S) == (EX f. f: inj(n,S))"

@@ -26,18 +26,18 @@ val cantor_cs = FOL_cs   (*precisely the rules needed for the proof*)
   addSEs [CollectE, equalityCE];
 
 (*The search is undirected and similar proof attempts fail*)
-goal ZF.thy "ALL f: A->Pow(A). EX S: Pow(A). ALL x:A. ~ f`x = S";
+goal ZF.thy "ALL f: A->Pow(A). EX S: Pow(A). ALL x:A. f`x ~= S";
 by (best_tac cantor_cs 1);
 result();
 
-(*This form displays the diagonal term, {x: A . ~ x: f`x} *)
+(*This form displays the diagonal term, {x: A . x ~: f`x} *)
 val [prem] = goal ZF.thy
-    "f: A->Pow(A) ==> (ALL x:A. ~ f`x = ?S) & ?S: Pow(A)";
+    "f: A->Pow(A) ==> (ALL x:A. f`x ~= ?S) & ?S: Pow(A)";
 by (best_tac cantor_cs 1);
 result();
 
 (*yet another version...*)
-goalw Perm.thy [surj_def] "~ f : surj(A,Pow(A))";
+goalw Perm.thy [surj_def] "f ~: surj(A,Pow(A))";
 by (safe_tac ZF_cs);
 by (etac ballE 1);
 by (best_tac (cantor_cs addSEs [bexE]) 1);
