@@ -40,8 +40,8 @@ and not as @{text"(x # y) # z"}.
 Next, two functions @{text"app"} and \isaindexbold{rev} are declared:
 *}
 
-consts app :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list"   (infixr "@" 65)
-       rev :: "'a list \\<Rightarrow> 'a list";
+consts app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"   (infixr "@" 65)
+       rev :: "'a list \<Rightarrow> 'a list";
 
 text{*
 \noindent
@@ -100,7 +100,7 @@ To lessen this burden, quotation marks around a single identifier can be
 dropped, unless the identifier happens to be a keyword, as in
 *}
 
-consts "end" :: "'a list \\<Rightarrow> 'a"
+consts "end" :: "'a list \<Rightarrow> 'a"
 
 text{*\noindent
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
@@ -188,7 +188,7 @@ The induction step is an example of the general format of a subgoal:
 \end{isabelle}
 The prefix of bound variables \isasymAnd$x\sb{1}$~\dots~$x\sb{n}$ can be
 ignored most of the time, or simply treated as a list of variables local to
-this subgoal. Their deeper significance is explained in \S\ref{sec:PCproofs}.
+this subgoal. Their deeper significance is explained in Chapter~\ref{ch:Rules}.
 The {\it assumptions} are the local assumptions for this subgoal and {\it
   conclusion} is the actual proposition to be proved. Typical proof steps
 that add new assumptions are induction or case distinction. In our example

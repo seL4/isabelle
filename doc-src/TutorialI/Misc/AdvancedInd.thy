@@ -231,13 +231,17 @@ From the above axiom and lemma for @{term"f"} show that @{term"f"} is the
 identity.
 \end{exercise}
 
-In general, @{text"induct_tac"} can be applied with any rule $r$
+In general, @{text induct_tac} can be applied with any rule $r$
 whose conclusion is of the form ${?}P~?x@1 \dots ?x@n$, in which case the
 format is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"rule:"} $r$@{text")"}
 \end{quote}\index{*induct_tac}%
 where $y@1, \dots, y@n$ are variables in the first subgoal.
+A further example of a useful induction rule is @{thm[source]length_induct},
+induction on the length of a list:\indexbold{*length_induct}
+@{thm[display]length_induct[no_vars]}
+
 In fact, @{text"induct_tac"} even allows the conclusion of
 $r$ to be an (iterated) conjunction of formulae of the above form, in
 which case the application is

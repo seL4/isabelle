@@ -216,6 +216,12 @@ format is
 \isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $y@1 \dots y@n$ \isa{rule{\isacharcolon}} $r$\isa{{\isacharparenright}}
 \end{quote}\index{*induct_tac}%
 where $y@1, \dots, y@n$ are variables in the first subgoal.
+A further example of a useful induction rule is \isa{length{\isacharunderscore}induct},
+induction on the length of a list:\indexbold{*length_induct}
+\begin{isabelle}%
+\ \ \ \ \ {\isacharparenleft}{\isasymAnd}xs{\isachardot}\ {\isasymforall}ys{\isachardot}\ length\ ys\ {\isacharless}\ length\ xs\ {\isasymlongrightarrow}\ P\ ys\ {\isasymLongrightarrow}\ P\ xs{\isacharparenright}\ {\isasymLongrightarrow}\ P\ xs%
+\end{isabelle}
+
 In fact, \isa{induct{\isacharunderscore}tac} even allows the conclusion of
 $r$ to be an (iterated) conjunction of formulae of the above form, in
 which case the application is

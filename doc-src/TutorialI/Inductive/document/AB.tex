@@ -3,123 +3,278 @@
 \def\isabellecontext{AB}%
 %
 \isamarkupsection{A context free grammar}
-\isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b\isanewline
-\isanewline
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isachartilde}{\isacharequal}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isacharampersand}\ {\isacharparenleft}x\ {\isachartilde}{\isacharequal}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
+%
+\begin{isamarkuptext}%
+Grammars are nothing but shorthands for inductive definitions of nonterminals
+which represent sets of strings. For example, the production
+$A \to B c$ is short for
+\[ w \in B \Longrightarrow wc \in A \]
+This section demonstrates this idea with a standard example
+\cite[p.\ 81]{HopcroftUllman}, a grammar for generating all words with an
+equal number of $a$'s and $b$'s:
+\begin{eqnarray}
+S &\to& \epsilon \mid b A \mid a B \nonumber\\
+A &\to& a S \mid b A A \nonumber\\
+B &\to& b S \mid a B B \nonumber
+\end{eqnarray}
+At the end we say a few words about the relationship of the formalization
+and the text in the book~\cite[p.\ 81]{HopcroftUllman}.
+
+We start by fixing the alpgabet, which consists only of \isa{a}'s
+and \isa{b}'s:%
+\end{isamarkuptext}%
+\isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b%
+\begin{isamarkuptext}%
+\noindent
+For convenience we includ the following easy lemmas as simplification rules:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}x\ {\isasymnoteq}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isanewline
+\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Words over this alphabet are of type \isa{alfa\ list}, and
+the three nonterminals are declare as sets of such words:%
+\end{isamarkuptext}%
 \isacommand{consts}\ S\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
-\isanewline
+\ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+The above productions are recast as a \emph{simultaneous} inductive
+definition of \isa{S}, \isa{A} and \isa{B}:%
+\end{isamarkuptext}%
 \isacommand{inductive}\ S\ A\ B\isanewline
 \isakeyword{intros}\isanewline
-{\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}\ {\isacharcolon}\ S{\isachardoublequote}\isanewline
-{\isachardoublequote}w\ {\isacharcolon}\ A\ {\isacharequal}{\isacharequal}{\isachargreater}\ b{\isacharhash}w\ {\isacharcolon}\ S{\isachardoublequote}\isanewline
-{\isachardoublequote}w\ {\isacharcolon}\ B\ {\isacharequal}{\isacharequal}{\isachargreater}\ a{\isacharhash}w\ {\isacharcolon}\ S{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}\ {\isasymin}\ S{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}w\ {\isasymin}\ A\ {\isasymLongrightarrow}\ b{\isacharhash}w\ {\isasymin}\ S{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}w\ {\isasymin}\ B\ {\isasymLongrightarrow}\ a{\isacharhash}w\ {\isasymin}\ S{\isachardoublequote}\isanewline
 \isanewline
-{\isachardoublequote}w\ {\isacharcolon}\ S\ {\isacharequal}{\isacharequal}{\isachargreater}\ a{\isacharhash}w\ {\isacharcolon}\ A{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isacharbrackleft}{\isacharbar}\ v{\isacharcolon}A{\isacharsemicolon}\ w{\isacharcolon}A\ {\isacharbar}{\isacharbrackright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ b{\isacharhash}v{\isacharat}w\ {\isacharcolon}\ A{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ a{\isacharhash}w\ \ \ {\isasymin}\ A{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}{\isasymlbrakk}\ v{\isasymin}A{\isacharsemicolon}\ w{\isasymin}A\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ b{\isacharhash}v{\isacharat}w\ {\isasymin}\ A{\isachardoublequote}\isanewline
 \isanewline
-{\isachardoublequote}w\ {\isacharcolon}\ S\ {\isacharequal}{\isacharequal}{\isachargreater}\ b{\isacharhash}w\ {\isacharcolon}\ B{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isacharbrackleft}{\isacharbar}\ v{\isacharcolon}B{\isacharsemicolon}\ w{\isacharcolon}B\ {\isacharbar}{\isacharbrackright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ a{\isacharhash}v{\isacharat}w\ {\isacharcolon}\ B{\isachardoublequote}\isanewline
-\isanewline
-\isacommand{thm}\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharbrackleft}no{\isacharunderscore}vars{\isacharbrackright}\isanewline
-\isanewline
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}w\ {\isacharcolon}\ S\ {\isacharminus}{\isacharminus}{\isachargreater}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ {\isacharampersand}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}w\ {\isacharcolon}\ A\ {\isacharminus}{\isacharminus}{\isachargreater}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharampersand}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}w\ {\isacharcolon}\ B\ {\isacharminus}{\isacharminus}{\isachargreater}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ b{\isacharhash}w\ \ \ {\isasymin}\ B{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+First we show that all words in \isa{S} contain the same number of \isa{a}'s and \isa{b}'s. Since the definition of \isa{S} is by simultaneous
+induction, so is this proof: we show at the same time that all words in
+\isa{A} contain one more \isa{a} than \isa{b} and all words in \isa{B} contains one more \isa{b} than \isa{a}.%
+\end{isamarkuptext}%
+\isacommand{lemma}\ correctness{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}{\isacharparenleft}w\ {\isasymin}\ S\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isasymand}\isanewline
+\ \ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{filter\ P\ xs}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
+holds. The length of a list is usually written \isa{size}, and \isa{size} is merely a shorthand.
+
+The proof itself is by rule induction and afterwards automatic:%
+\end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isanewline
-\isacommand{lemma}\ intermed{\isacharunderscore}val{\isacharbrackleft}rule{\isacharunderscore}format{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharbrackright}{\isacharcolon}\isanewline
-\ {\isachardoublequote}{\isacharparenleft}{\isacharbang}i{\isacharless}n{\isachardot}\ abs{\isacharparenleft}f{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isacharparenright}\ {\isacharless}{\isacharequal}\ {\isacharhash}{\isadigit{1}}{\isacharparenright}\ {\isacharminus}{\isacharminus}{\isachargreater}\ \isanewline
-\ \ f\ {\isadigit{0}}\ {\isacharless}{\isacharequal}\ k\ {\isacharampersand}\ k\ {\isacharless}{\isacharequal}\ f\ n\ {\isacharminus}{\isacharminus}{\isachargreater}\ {\isacharparenleft}{\isacharquery}\ i\ {\isacharless}{\isacharequal}\ n{\isachardot}\ f\ i\ {\isacharequal}\ {\isacharparenleft}k{\isacharcolon}{\isacharcolon}int{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ n\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ {\isachardoublequote}k\ {\isacharequal}\ f{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}force{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}zabs{\isacharunderscore}def\ split{\isacharcolon}split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}le{\isacharunderscore}SucI{\isacharparenright}\isanewline
-\isanewline
-\isacommand{lemma}\ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}ALL\ i\ {\isacharless}\ size\ w{\isachardot}\isanewline
-\ \ abs{\isacharparenleft}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w\ {\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}\ {\isacharminus}\ int{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w\ {\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharminus}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}take\ i\ w\ {\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}\ {\isacharminus}\ int{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}take\ i\ w\ {\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharless}{\isacharequal}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+This may seem surprising at first, and is indeed an indication of the power
+of inductive definitions. But it is also quite straightforward. For example,
+consider the production $A \to b A A$: if $v,w \in A$ and the elements of $A$
+contain one more $a$ than $b$'s, then $bvw$ must again contain one more $a$
+than $b$'s.
+
+As usual, the correctness of syntactic descriptions is easy, but completeness
+is hard: does \isa{S} contain \emph{all} words with an equal number of
+\isa{a}'s and \isa{b}'s? It turns out that this proof requires the
+following little lemma: every string with two more \isa{a}'s than \isa{b}'s can be cut somehwere such that each half has one more \isa{a} than
+\isa{b}. This is best seen by imagining counting the difference between the
+number of \isa{a}'s than \isa{b}'s starting at the left end of the
+word. We start at 0 and end (at the right end) with 2. Since each move to the
+right increases or decreases the difference by 1, we must have passed through
+1 on our way from 0 to 2. Formally, we appeal to the following discrete
+intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val}
+\begin{isabelle}%
+\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ abs\ {\isacharparenleft}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isacharparenright}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ i\ {\isasymle}\ n\ {\isasymand}\ f\ i\ {\isacharequal}\ k%
+\end{isabelle}
+where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the integers,
+\isa{abs} is the absolute value function, and \isa{{\isacharhash}{\isadigit{1}}} is the
+integer 1 (see \S\ref{sec:int}).
+
+First we show that the our specific function, the difference between the
+numbers of \isa{a}'s and \isa{b}'s, does indeed only change by 1 in every
+move to the right. At this point we also start generalizing from \isa{a}'s
+and \isa{b}'s to an arbitrary property \isa{P}. Otherwise we would have
+to prove the desired lemma twice, once as stated above and once with the
+roles of \isa{a}'s and \isa{b}'s interchanged.%
+\end{isamarkuptext}%
+\isacommand{lemma}\ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i\ {\isacharless}\ size\ w{\isachardot}\isanewline
+\ \ abs{\isacharparenleft}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ \ P\ x{\isacharbrackright}{\isacharparenright}\ {\isacharminus}\isanewline
+\ \ \ \ \ \ \ int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ {\isacharminus}\isanewline
+\ \ \ \ \ \ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ \ P\ x{\isacharbrackright}{\isacharparenright}\ {\isacharminus}\isanewline
+\ \ \ \ \ \ \ int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharless}{\isacharequal}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+The lemma is a bit hard to read because of the coercion function
+\isa{{\isachardoublequote}int{\isacharcolon}{\isacharcolon}nat\ {\isasymRightarrow}\ int{\isachardoublequote}}. It is required because \isa{size} returns
+a natural number, but \isa{{\isacharminus}} on \isa{nat} will do the wrong thing.
+Function \isa{take} is predefined and \isa{take\ i\ xs} is the prefix of
+length \isa{i} of \isa{xs}; below we als need \isa{drop\ i\ xs}, which
+is what remains after that prefix has been dropped from \isa{xs}.
+
+The proof is by induction on \isa{w}, with a trivial base case, and a not
+so trivial induction step. Since it is essentially just arithmetic, we do not
+discuss it.%
+\end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct\ w{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}take{\isacharunderscore}Cons\ split{\isacharcolon}nat{\isachardot}split{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ allE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ allE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isanewline
-\isanewline
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}%
+\begin{isamarkuptext}%
+Finally we come to the above mentioned lemma about cutting a word with two
+more elements of one sort than of the other sort into two halfs:%
+\end{isamarkuptext}%
 \isacommand{lemma}\ part{\isadigit{1}}{\isacharcolon}\isanewline
-\ {\isachardoublequote}size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ Suc{\isacharparenleft}Suc{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}{\isacharequal}{\isachargreater}\isanewline
-\ \ EX\ i{\isacharless}{\isacharequal}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isacharcolon}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}take\ i\ w{\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}insert\ intermed{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}{\isacharhash}{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x{\isacharequal}i\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ int{\isacharunderscore}int{\isacharunderscore}eq{\isacharbrackleft}THEN\ iffD{\isadigit{1}}{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isanewline
+\ {\isachardoublequote}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
+\ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+This is proved with the help of the intermediate value theorem, instantiated
+appropriately and with its first premise disposed of by lemma
+\isa{step{\isadigit{1}}}.%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}{\isacharhash}{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}int{\isacharunderscore}Suc\ add{\isacharcolon}zdiff{\isacharunderscore}eq{\isacharunderscore}eq\ sym{\isacharbrackleft}OF\ int{\isacharunderscore}Suc{\isacharbrackright}{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+The additional lemmas are needed to mediate between \isa{nat} and \isa{int}.
+
+Lemma \isa{part{\isadigit{1}}} tells us only about the prefix \isa{take\ i\ w}.
+The suffix \isa{drop\ i\ w} is dealt with in the following easy lemma:%
+\end{isamarkuptext}%
 \isacommand{lemma}\ part{\isadigit{2}}{\isacharcolon}\isanewline
-{\isachardoublequote}{\isacharbrackleft}{\isacharbar}\ size{\isacharbrackleft}x{\isacharcolon}take\ i\ xs\ {\isacharat}\ drop\ i\ xs{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}take\ i\ xs\ {\isacharat}\ drop\ i\ xs{\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}{\isacharsemicolon}\isanewline
-\ \ \ \ size{\isacharbrackleft}x{\isacharcolon}take\ i\ xs{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}take\ i\ xs{\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}\ {\isacharbar}{\isacharbrackright}\isanewline
-\ {\isacharequal}{\isacharequal}{\isachargreater}\ size{\isacharbrackleft}x{\isacharcolon}drop\ i\ xs{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}drop\ i\ xs{\isachardot}\ {\isachartilde}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}\isanewline
-\isanewline
-\isacommand{lemmas}\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharequal}\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros\isanewline
-\isanewline
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharminus}{\isacharminus}{\isachargreater}\ w\ {\isacharcolon}\ S{\isacharparenright}\ {\isacharampersand}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}{\isacharminus}{\isachargreater}\ w\ {\isacharcolon}\ A{\isacharparenright}\ {\isacharampersand}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isacharcolon}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}{\isacharminus}{\isachargreater}\ w\ {\isacharcolon}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ {\isachardoublequote}xs{\isachardoublequote}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\ \ {\isachardoublequote}{\isasymlbrakk}size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\isanewline
+\ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}{\isacharsemicolon}\isanewline
+\ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isasymrbrakk}\isanewline
+\ \ \ {\isasymLongrightarrow}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Lemma \isa{append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id}, \isa{take\ n\ xs\ {\isacharat}\ drop\ n\ xs\ {\isacharequal}\ xs},
+which is generally useful, needs to be disabled for once.
+
+To dispose of trivial cases automatically, the rules of the inductive
+definition are declared simplification rules:%
+\end{isamarkuptext}%
+\isacommand{declare}\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharbrackleft}simp{\isacharbrackright}%
+\begin{isamarkuptext}%
+\noindent
+This could have been done earlier but was not necessary so far.
+
+The completeness theorem tells us that if a word has the same number of
+\isa{a}'s and \isa{b}'s, then it is in \isa{S}, and similarly and
+simultaneously for \isa{A} and \isa{B}:%
+\end{isamarkuptext}%
+\isacommand{theorem}\ completeness{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+The proof is by induction on \isa{w}. Structural induction would fail here
+because, as we can see from the grammar, we need to make bigger steps than
+merely appending a single letter at the front. Hence we induct on the length
+of \isa{w}, using the induction rule \isa{length{\isacharunderscore}induct}:%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+The \isa{rule} parameter tells \isa{induct{\isacharunderscore}tac} explicitly which induction
+rule to use. For details see \S\ref{sec:complete-ind} below.
+In this case the result is that we may assume the lemma already
+holds for all words shorter than \isa{w}.
+
+The proof continues with a case distinction on \isa{w},
+i.e.\ if \isa{w} is empty or not.%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+Simplification disposes of the base case and leaves only two step
+cases to be proved:
+if \isa{w\ {\isacharequal}\ a\ {\isacharhash}\ v} and \isa{length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{2}}} then
+\isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}, and similarly for \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v}.
+We only consider the first case in detail.
+
+After breaking the conjuction up into two cases, we can apply
+\isa{part{\isadigit{1}}} to the assumption that \isa{w} contains two more \isa{a}'s than \isa{b}'s.%
+\end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isacharpercent}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isacharpercent}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}list\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}force\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+This yields an index \isa{i\ {\isasymle}\ length\ v} such that
+\isa{length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}}.
+With the help of \isa{part{\isadigit{1}}} it follows that
+\isa{length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}}.%
+\end{isamarkuptxt}%
+\ \isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+Now it is time to decompose \isa{v} in the conclusion \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}
+into \isa{take\ i\ v\ {\isacharat}\ drop\ i\ v},
+after which the appropriate rule of the grammar reduces the goal
+to the two subgoals \isa{take\ i\ v\ {\isasymin}\ A} and \isa{drop\ i\ v\ {\isasymin}\ A}:%
+\end{isamarkuptxt}%
+\ \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+Both subgoals follow from the induction hypothesis because both \isa{take\ i\ v} and \isa{drop\ i\ v} are shorter than \isa{w}:%
+\end{isamarkuptxt}%
+\ \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}force\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+Note that the variables \isa{n{\isadigit{1}}} and \isa{t} referred to in the
+substitution step above come from the derived theorem \isa{subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}}.
+
+The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved completely analogously:%
+\end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isacharpercent}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isacharpercent}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}list\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}%
+\begin{isamarkuptext}%
+We conclude this section with a comparison of the above proof and the one
+in the textbook \cite[p.\ 81]{HopcroftUllman}. For a start, the texbook
+grammar, for no good reason, excludes the empty word, which complicates
+matters just a little bit because we now have 8 instead of our 7 productions.
+
+More importantly, the proof itself is different: rather than separating the
+two directions, they perform one induction on the length of a word. This
+deprives them of the beauty of rule induction and in the easy direction
+(correctness) their reasoning is more detailed than our \isa{auto}. For the
+hard part (completeness), they consider just one of the cases that our \isa{simp{\isacharunderscore}all} disposes of automatically. Then they conclude the proof by saying
+about the remaining cases: ``We do this in a manner similar to our method of
+proof for part (1); this part is left to the reader''. But this is precisely
+the part that requires the intermediate value theorem and thus is not at all
+similar to the other cases (which are automatic in Isabelle). We conclude
+that the authors are at least cavalier about this point and may even have
+overlooked the slight difficulty lurking in the omitted cases. This is not
+atypical for pen-and-paper proofs, once analysed in detail.%
+\end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -36,6 +36,8 @@ then a number of (unchecked!) @texts could be converted to @terms.
 
 it would be nice if one could get id to the enclosing quotes in the [source] option.
 
+arithmetic: allow mixed nat/int formulae
+-> simplify proof of part1 in Inductive/AB.thy
 
 Minor fixes in the tutorial
 ===========================
