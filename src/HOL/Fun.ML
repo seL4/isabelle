@@ -637,7 +637,7 @@ by (asm_simp_tac
 qed "compose_Inv_id";
 
 
-(*** Pi and Applyall ***)
+(*** Pi ***)
 
 Goalw [Pi_def] "[| B(x) = {};  x: A |] ==> (PI x: A. B x) = {}";
 by Auto_tac;
@@ -647,14 +647,7 @@ Goal "[| (PI x: A. B x) ~= {};  x: A |] ==> B(x) ~= {}";
 by (blast_tac (HOL_cs addIs [Pi_eq_empty]) 1);
 qed "Pi_total1";
 
-Goal "[| a : A; Pi A B ~= {} |] ==> Applyall (Pi A B) a = B a";
-by (auto_tac (claset(), simpset() addsimps [Applyall_def, Pi_def]));
-by (rename_tac "g z" 1);
-by (res_inst_tac [("x","%y. if  (y = a) then z else g y")] exI 1);
-by (auto_tac (claset(), simpset() addsimps [split_if_mem1, split_if_eq1]));
-qed "Applyall_beta";
-
-Goal "Pi {} B = { (%x. @ y. True) }";
+Goal "Pi {} B = { %x. @y. True }";
 by (auto_tac (claset() addIs [ext], simpset() addsimps [Pi_def]));
 qed "Pi_empty";
 
