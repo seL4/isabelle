@@ -11,23 +11,23 @@ SKIP most developments...
 (** Commutativity **)
 
 lemma is_gcd_commute: "is_gcd k m n = is_gcd k n m"
-  apply (auto simp add: is_gcd_def);
-  done
+apply (auto simp add: is_gcd_def);
+done
 
 lemma gcd_commute: "gcd(m,n) = gcd(n,m)"
-  apply (rule is_gcd_unique)
-  apply (rule is_gcd)
-  apply (subst is_gcd_commute)
-  apply (simp add: is_gcd)
-  done
+apply (rule is_gcd_unique)
+apply (rule is_gcd)
+apply (subst is_gcd_commute)
+apply (simp add: is_gcd)
+done
 
 lemma gcd_1 [simp]: "gcd(m,1) = 1"
-  apply (simp)
-  done
+apply simp
+done
 
 lemma gcd_1_left [simp]: "gcd(1,m) = 1"
-  apply (simp add: gcd_commute [of 1])
-  done
+apply (simp add: gcd_commute [of 1])
+done
 
 text{*\noindent
 as far as HERE.
@@ -49,7 +49,7 @@ SKIP THIS PROOF
 lemma gcd_mult_distrib2: "k * gcd(m,n) = gcd(k*m, k*n)"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
-apply (simp)
+apply simp
 apply (case_tac "k=0")
 apply (simp_all add: mod_geq gcd_non_0 mod_mult_distrib2)
 done
@@ -115,12 +115,50 @@ lemma gcd_self [simp]: "gcd(k,k) = k"
 by (rule gcd_mult [of k 1, simplified])
 
 
+text{*
+NEXT SECTION: Methods for Forward Proof
+
+NEW
+
+theorem arg_cong, useful in forward steps
+@{thm[display] arg_cong[no_vars]}
+\rulename{arg_cong}
+*}
+
+lemma "#2 \<le> u \<Longrightarrow> u*m \<noteq> Suc(u*n)"
+apply intro
+txt{*
+before using arg_cong
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply (drule_tac f="\<lambda>x. x mod u" in arg_cong)
+txt{*
+after using arg_cong
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply (simp add: mod_Suc)
+done
+
+text{*
+have just used this rule:
+@{thm[display] mod_Suc[no_vars]}
+\rulename{mod_Suc}
+
+@{thm[display] mult_le_mono1[no_vars]}
+\rulename{mult_le_mono1}
+*}
+
+
+text{*
+example of "insert"
+*}
+
 lemma relprime_dvd_mult: 
       "\<lbrakk> gcd(k,n)=1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m";
 apply (insert gcd_mult_distrib2 [of m k n])
-apply (simp)
+apply simp
 apply (erule_tac t="m" in ssubst);
-apply (simp)
+apply simp
 done
 
 
@@ -134,7 +172,7 @@ Another example of "insert"
 lemma div_mult_self_is_m: 
       "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
 apply (insert mod_div_equality [of "m*n" n])
-apply (simp)
+apply simp
 done
 
 lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
@@ -143,13 +181,6 @@ by (blast intro: relprime_dvd_mult dvd_trans)
 
 lemma relprime_20_81: "gcd(#20,#81) = 1";
 by (simp add: gcd.simps)
-
-text{*example of arg_cong (NEW)
-
-@{thm[display] arg_cong[no_vars]}
-\rulename{arg_cong}
-*}
-
 
 text {*
 Examples of 'OF'
@@ -172,36 +203,19 @@ Examples of 'OF'
 
 lemma "\<lbrakk>(z::int) < #37; #66 < #2*z; z*z \<noteq> #1225; Q(#34); Q(#36)\<rbrakk> \<Longrightarrow> Q(z)";
 apply (subgoal_tac "z = #34 \<or> z = #36")
+txt{*
+the tactic leaves two subgoals:
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply blast
 apply (subgoal_tac "z \<noteq> #35")
+txt{*
+the tactic leaves two subgoals:
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply arith
 apply force
 done
-
-text
-{*
-proof\ (prove):\ step\ 1\isanewline
-\isanewline
-goal\ (lemma):\isanewline
-\isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk \ \isasymLongrightarrow \ Q\ z\isanewline
-\ 1.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36;\isanewline
-\ \ \ \ \ \ \ z\ =\ \#34\ \isasymor \ z\ =\ \#36\isasymrbrakk \isanewline
-\ \ \ \ \isasymLongrightarrow \ Q\ z\isanewline
-\ 2.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk \isanewline
-\ \ \ \ \isasymLongrightarrow \ z\ =\ \#34\ \isasymor \ z\ =\ \#36
-
-
-
-proof\ (prove):\ step\ 3\isanewline
-\isanewline
-goal\ (lemma):\isanewline
-\isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk \ \isasymLongrightarrow \ Q\ z\isanewline
-\ 1.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36;\isanewline
-\ \ \ \ \ \ \ z\ \isasymnoteq \ \#35\isasymrbrakk \isanewline
-\ \ \ \ \isasymLongrightarrow \ z\ =\ \#34\ \isasymor \ z\ =\ \#36\isanewline
-\ 2.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq \ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk \isanewline
-\ \ \ \ \isasymLongrightarrow \ z\ \isasymnoteq \ \#35
-*}
 
 
 end
