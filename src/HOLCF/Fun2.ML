@@ -12,7 +12,7 @@ open Fun2;
 (* Type 'a::term => 'b::pcpo is pointed                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_fun = prove_goalw  Fun2.thy [UU_fun_def] "UU_fun << f"
+qed_goalw "minimal_fun"  Fun2.thy [UU_fun_def] "UU_fun << f"
 (fn prems =>
 	[
 	(rtac (inst_fun_po RS ssubst) 1),
@@ -24,7 +24,7 @@ val minimal_fun = prove_goalw  Fun2.thy [UU_fun_def] "UU_fun << f"
 (* make the symbol << accessible for type fun                               *)
 (* ------------------------------------------------------------------------ *)
 
-val less_fun = prove_goal  Fun2.thy  "(f1 << f2) = (! x. f1(x) << f2(x))"
+qed_goal "less_fun"  Fun2.thy  "(f1 << f2) = (! x. f1(x) << f2(x))"
 (fn prems =>
 	[
 	(rtac (inst_fun_po RS ssubst) 1),
@@ -36,7 +36,7 @@ val less_fun = prove_goal  Fun2.thy  "(f1 << f2) = (! x. f1(x) << f2(x))"
 (* chains of functions yield chains in the po range                         *)
 (* ------------------------------------------------------------------------ *)
 
-val ch2ch_fun = prove_goal  Fun2.thy 
+qed_goal "ch2ch_fun"  Fun2.thy 
 	"is_chain(S::nat=>('a::term => 'b::po)) ==> is_chain(% i.S(i)(x))"
 (fn prems =>
 	[
@@ -53,7 +53,7 @@ val ch2ch_fun = prove_goal  Fun2.thy
 (* upper bounds of function chains yield upper bound in the po range        *)
 (* ------------------------------------------------------------------------ *)
 
-val ub2ub_fun = prove_goal Fun2.thy 
+qed_goal "ub2ub_fun" Fun2.thy 
    " range(S::nat=>('a::term => 'b::po)) <| u ==> range(%i. S(i,x)) <| u(x)"
 (fn prems =>
 	[
@@ -70,7 +70,7 @@ val ub2ub_fun = prove_goal Fun2.thy
 (* Type 'a::term => 'b::pcpo is chain complete                              *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_fun = prove_goal  Fun2.thy
+qed_goal "lub_fun"  Fun2.thy
 	"is_chain(S::nat=>('a::term => 'b::pcpo)) ==> \
 \        range(S) <<| (% x.lub(range(% i.S(i)(x))))"
 (fn prems =>
@@ -95,7 +95,7 @@ val lub_fun = prove_goal  Fun2.thy
 val thelub_fun = (lub_fun RS thelubI);
 (* is_chain(?S1) ==> lub(range(?S1)) = (%x. lub(range(%i. ?S1(i,x)))) *)
 
-val cpo_fun = prove_goal  Fun2.thy
+qed_goal "cpo_fun"  Fun2.thy
 	"is_chain(S::nat=>('a::term => 'b::pcpo)) ==> ? x. range(S) <<| x"
 (fn prems =>
 	[

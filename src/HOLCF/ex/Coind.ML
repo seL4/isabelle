@@ -24,7 +24,7 @@ val from_def2 = fix_prover Coind.thy from_def
 (* ------------------------------------------------------------------------- *)
 
 
-val from = prove_goal Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
+qed_goal "from" Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -34,7 +34,7 @@ val from = prove_goal Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
 	]);
 
 
-val from1 = prove_goal Coind.thy "from[UU] = UU"
+qed_goal "from1" Coind.thy "from[UU] = UU"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -53,7 +53,7 @@ val coind_rews =
 (* ------------------------------------------------------------------------- *)
 
 
-val coind_lemma1 = prove_goal Coind.thy "iterator[n][smap[dsucc]][nats] =\
+qed_goal "coind_lemma1" Coind.thy "iterator[n][smap[dsucc]][nats] =\
 \		 scons[n][iterator[dsucc[n]][smap[dsucc]][nats]]"
  (fn prems =>
 	[
@@ -74,7 +74,7 @@ val coind_lemma1 = prove_goal Coind.thy "iterator[n][smap[dsucc]][nats] =\
 	]);
 
 
-val nats_eq_from = prove_goal Coind.thy "nats = from[dzero]"
+qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
  (fn prems =>
 	[
 	(res_inst_tac [("R",
@@ -105,7 +105,7 @@ val nats_eq_from = prove_goal Coind.thy "nats = from[dzero]"
 
 (* another proof using stream_coind_lemma2 *)
 
-val nats_eq_from = prove_goal Coind.thy "nats = from[dzero]"
+qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
  (fn prems =>
 	[
 	(res_inst_tac [("R","% p q.? n. p = \

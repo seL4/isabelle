@@ -15,7 +15,7 @@ open Void;
 (* A non-emptyness result for Void                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val VoidI = prove_goalw Void.thy [UU_void_Rep_def,Void_def] 
+qed_goalw "VoidI" Void.thy [UU_void_Rep_def,Void_def] 
  " UU_void_Rep : Void"
 (fn prems =>
 	[
@@ -27,13 +27,13 @@ val VoidI = prove_goalw Void.thy [UU_void_Rep_def,Void_def]
 (* less_void is a partial ordering on void                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val refl_less_void = prove_goalw Void.thy [ less_void_def ] "less_void(x,x)"
+qed_goalw "refl_less_void" Void.thy [ less_void_def ] "less_void(x,x)"
 (fn prems =>
 	[
 	(fast_tac HOL_cs 1)
 	]);
 
-val antisym_less_void = prove_goalw Void.thy [ less_void_def ] 
+qed_goalw "antisym_less_void" Void.thy [ less_void_def ] 
 	"[|less_void(x,y); less_void(y,x)|] ==> x = y"
 (fn prems =>
 	[
@@ -43,7 +43,7 @@ val antisym_less_void = prove_goalw Void.thy [ less_void_def ]
 	(rtac (Rep_Void_inverse RS sym) 1)
 	]);
 
-val trans_less_void = prove_goalw Void.thy [ less_void_def ] 
+qed_goalw "trans_less_void" Void.thy [ less_void_def ] 
 	"[|less_void(x,y); less_void(y,z)|] ==> less_void(x,z)"
 (fn prems =>
 	[
@@ -56,7 +56,7 @@ val trans_less_void = prove_goalw Void.thy [ less_void_def ]
 (* every element in void is represented by UU_void_Rep                      *)
 (* ------------------------------------------------------------------------ *)
 
-val unique_void = prove_goal Void.thy "Rep_Void(x) = UU_void_Rep"
+qed_goal "unique_void" Void.thy "Rep_Void(x) = UU_void_Rep"
 (fn prems =>
 	[
 	(rtac (mem_Collect_eq RS subst) 1), 

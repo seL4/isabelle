@@ -12,13 +12,13 @@ open Fix;
 (* derive inductive properties of iterate from primitive recursion          *)
 (* ------------------------------------------------------------------------ *)
 
-val iterate_0 = prove_goal Fix.thy "iterate(0,F,x) = x"
+qed_goal "iterate_0" Fix.thy "iterate(0,F,x) = x"
  (fn prems =>
 	[
 	(resolve_tac (nat_recs iterate_def) 1)
 	]);
 
-val iterate_Suc = prove_goal Fix.thy "iterate(Suc(n),F,x) = F[iterate(n,F,x)]"
+qed_goal "iterate_Suc" Fix.thy "iterate(Suc(n),F,x) = F[iterate(n,F,x)]"
  (fn prems =>
 	[
 	(resolve_tac (nat_recs iterate_def) 1)
@@ -26,7 +26,7 @@ val iterate_Suc = prove_goal Fix.thy "iterate(Suc(n),F,x) = F[iterate(n,F,x)]"
 
 val iterate_ss = Cfun_ss addsimps [iterate_0,iterate_Suc];
 
-val iterate_Suc2 = prove_goal Fix.thy "iterate(Suc(n),F,x) = iterate(n,F,F[x])"
+qed_goal "iterate_Suc2" Fix.thy "iterate(Suc(n),F,x) = iterate(n,F,F[x])"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
@@ -39,7 +39,7 @@ val iterate_Suc2 = prove_goal Fix.thy "iterate(Suc(n),F,x) = iterate(n,F,F[x])"
 (* This property is essential since monotonicity of iterate makes no sense  *)
 (* ------------------------------------------------------------------------ *)
 
-val is_chain_iterate2 = prove_goalw Fix.thy [is_chain] 
+qed_goalw "is_chain_iterate2" Fix.thy [is_chain] 
 	" x << F[x] ==> is_chain(%i.iterate(i,F,x))"
  (fn prems =>
 	[
@@ -53,7 +53,7 @@ val is_chain_iterate2 = prove_goalw Fix.thy [is_chain]
 	]);
 
 
-val is_chain_iterate = prove_goal Fix.thy  
+qed_goal "is_chain_iterate" Fix.thy  
 	"is_chain(%i.iterate(i,F,UU))"
  (fn prems =>
 	[
@@ -68,7 +68,7 @@ val is_chain_iterate = prove_goal Fix.thy
 (* ------------------------------------------------------------------------ *)
 
 
-val Ifix_eq = prove_goalw Fix.thy  [Ifix_def] "Ifix(F)=F[Ifix(F)]"
+qed_goalw "Ifix_eq" Fix.thy  [Ifix_def] "Ifix(F)=F[Ifix(F)]"
  (fn prems =>
 	[
 	(rtac (contlub_cfun_arg RS ssubst) 1),
@@ -92,7 +92,7 @@ val Ifix_eq = prove_goalw Fix.thy  [Ifix_def] "Ifix(F)=F[Ifix(F)]"
 	]);
 
 
-val Ifix_least = prove_goalw Fix.thy [Ifix_def] "F[x]=x ==> Ifix(F) << x"
+qed_goalw "Ifix_least" Fix.thy [Ifix_def] "F[x]=x ==> Ifix(F) << x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -113,7 +113,7 @@ val Ifix_least = prove_goalw Fix.thy [Ifix_def] "F[x]=x ==> Ifix(F) << x"
 (* monotonicity and continuity of iterate                                   *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_iterate = prove_goalw Fix.thy  [monofun] "monofun(iterate(i))"
+qed_goalw "monofun_iterate" Fix.thy  [monofun] "monofun(iterate(i))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -134,7 +134,7 @@ val monofun_iterate = prove_goalw Fix.thy  [monofun] "monofun(iterate(i))"
 (* In this special case it is the application function fapp                 *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_iterate = prove_goalw Fix.thy  [contlub] "contlub(iterate(i))"
+qed_goalw "contlub_iterate" Fix.thy  [contlub] "contlub(iterate(i))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -165,7 +165,7 @@ val contlub_iterate = prove_goalw Fix.thy  [contlub] "contlub(iterate(i))"
 	]);
 
 
-val contX_iterate = prove_goal Fix.thy "contX(iterate(i))"
+qed_goal "contX_iterate" Fix.thy "contX(iterate(i))"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -177,7 +177,7 @@ val contX_iterate = prove_goal Fix.thy "contX(iterate(i))"
 (* a lemma about continuity of iterate in its third argument                *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_iterate2 = prove_goal Fix.thy "monofun(iterate(n,F))"
+qed_goal "monofun_iterate2" Fix.thy "monofun(iterate(n,F))"
  (fn prems =>
 	[
 	(rtac monofunI 1),
@@ -188,7 +188,7 @@ val monofun_iterate2 = prove_goal Fix.thy "monofun(iterate(n,F))"
 	(etac monofun_cfun_arg 1)
 	]);
 
-val contlub_iterate2 = prove_goal Fix.thy "contlub(iterate(n,F))"
+qed_goal "contlub_iterate2" Fix.thy "contlub(iterate(n,F))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -203,7 +203,7 @@ val contlub_iterate2 = prove_goal Fix.thy "contlub(iterate(n,F))"
 	(etac (monofun_iterate2 RS ch2ch_monofun) 1)
 	]);
 
-val contX_iterate2 = prove_goal Fix.thy "contX(iterate(n,F))"
+qed_goal "contX_iterate2" Fix.thy "contX(iterate(n,F))"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -215,7 +215,7 @@ val contX_iterate2 = prove_goal Fix.thy "contX(iterate(n,F))"
 (* monotonicity and continuity of Ifix                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_Ifix = prove_goalw Fix.thy  [monofun,Ifix_def] "monofun(Ifix)"
+qed_goalw "monofun_Ifix" Fix.thy  [monofun,Ifix_def] "monofun(Ifix)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -233,7 +233,7 @@ val monofun_Ifix = prove_goalw Fix.thy  [monofun,Ifix_def] "monofun(Ifix)"
 (* be derived for lubs in this argument                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val is_chain_iterate_lub = prove_goal Fix.thy   
+qed_goal "is_chain_iterate_lub" Fix.thy   
 "is_chain(Y) ==> is_chain(%i. lub(range(%ia. iterate(ia,Y(i),UU))))"
  (fn prems =>
 	[
@@ -254,7 +254,7 @@ val is_chain_iterate_lub = prove_goal Fix.thy
 (* chains is the essential argument which is usually derived from monot.    *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_Ifix_lemma1 = prove_goal Fix.thy 
+qed_goal "contlub_Ifix_lemma1" Fix.thy 
 "is_chain(Y) ==> iterate(n,lub(range(Y)),y) = lub(range(%i. iterate(n,Y(i),y)))"
  (fn prems =>
 	[
@@ -269,7 +269,7 @@ val contlub_Ifix_lemma1 = prove_goal Fix.thy
 	]);
 
 
-val ex_lub_iterate = prove_goal Fix.thy  "is_chain(Y) ==>\
+qed_goal "ex_lub_iterate" Fix.thy  "is_chain(Y) ==>\
 \         lub(range(%i. lub(range(%ia. iterate(i,Y(ia),UU))))) =\
 \         lub(range(%i. lub(range(%ia. iterate(ia,Y(i),UU)))))"
  (fn prems =>
@@ -303,7 +303,7 @@ val ex_lub_iterate = prove_goal Fix.thy  "is_chain(Y) ==>\
 	]);
 
 
-val contlub_Ifix = prove_goalw Fix.thy  [contlub,Ifix_def] "contlub(Ifix)"
+qed_goalw "contlub_Ifix" Fix.thy  [contlub,Ifix_def] "contlub(Ifix)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -313,7 +313,7 @@ val contlub_Ifix = prove_goalw Fix.thy  [contlub,Ifix_def] "contlub(Ifix)"
 	]);
 
 
-val contX_Ifix = prove_goal Fix.thy "contX(Ifix)"
+qed_goal "contX_Ifix" Fix.thy "contX(Ifix)"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -325,14 +325,14 @@ val contX_Ifix = prove_goal Fix.thy "contX(Ifix)"
 (* propagate properties of Ifix to its continuous counterpart               *)
 (* ------------------------------------------------------------------------ *)
 
-val fix_eq = prove_goalw Fix.thy  [fix_def] "fix[F]=F[fix[F]]"
+qed_goalw "fix_eq" Fix.thy  [fix_def] "fix[F]=F[fix[F]]"
  (fn prems =>
 	[
 	(asm_simp_tac (Cfun_ss addsimps [contX_Ifix]) 1),
 	(rtac Ifix_eq 1)
 	]);
 
-val fix_least = prove_goalw Fix.thy [fix_def] "F[x]=x ==> fix[F] << x"
+qed_goalw "fix_least" Fix.thy [fix_def] "F[x]=x ==> fix[F] << x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -341,14 +341,14 @@ val fix_least = prove_goalw Fix.thy [fix_def] "F[x]=x ==> fix[F] << x"
 	]);
 
 
-val fix_eq2 = prove_goal Fix.thy "f == fix[F] ==> f = F[f]"
+qed_goal "fix_eq2" Fix.thy "f == fix[F] ==> f = F[f]"
  (fn prems =>
 	[
 	(rewrite_goals_tac prems),
 	(rtac fix_eq 1)
 	]);
 
-val fix_eq3 = prove_goal Fix.thy "f == fix[F] ==> f[x] = F[f][x]"
+qed_goal "fix_eq3" Fix.thy "f == fix[F] ==> f[x] = F[f][x]"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -358,7 +358,7 @@ val fix_eq3 = prove_goal Fix.thy "f == fix[F] ==> f[x] = F[f][x]"
 
 fun fix_tac3 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq3) i)); 
 
-val fix_eq4 = prove_goal Fix.thy "f = fix[F] ==> f = F[f]"
+qed_goal "fix_eq4" Fix.thy "f = fix[F] ==> f = F[f]"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -366,7 +366,7 @@ val fix_eq4 = prove_goal Fix.thy "f = fix[F] ==> f = F[f]"
 	(rtac fix_eq 1)
 	]);
 
-val fix_eq5 = prove_goal Fix.thy "f = fix[F] ==> f[x] = F[f][x]"
+qed_goal "fix_eq5" Fix.thy "f = fix[F] ==> f[x] = F[f][x]"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -406,7 +406,7 @@ val smap_def2 = fix_prover Stream2.thy smap_def
 (* ------------------------------------------------------------------------ *)
 
 
-val Ifix_def2 = prove_goal Fix.thy "Ifix=(%x. lub(range(%i. iterate(i,x,UU))))"
+qed_goal "Ifix_def2" Fix.thy "Ifix=(%x. lub(range(%i. iterate(i,x,UU))))"
  (fn prems =>
 	[
 	(rtac ext 1),
@@ -418,7 +418,7 @@ val Ifix_def2 = prove_goal Fix.thy "Ifix=(%x. lub(range(%i. iterate(i,x,UU))))"
 (* direct connection between fix and iteration without Ifix                 *)
 (* ------------------------------------------------------------------------ *)
 
-val fix_def2 = prove_goalw Fix.thy [fix_def]
+qed_goalw "fix_def2" Fix.thy [fix_def]
  "fix[F] = lub(range(%i. iterate(i,F,UU)))"
  (fn prems =>
 	[
@@ -435,14 +435,14 @@ val fix_def2 = prove_goalw Fix.thy [fix_def]
 (* access to definitions                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val adm_def2 = prove_goalw Fix.thy [adm_def]
+qed_goalw "adm_def2" Fix.thy [adm_def]
 	"adm(P) = (!Y. is_chain(Y) --> (!i.P(Y(i))) --> P(lub(range(Y))))"
  (fn prems =>
 	[
 	(rtac refl 1)
 	]);
 
-val admw_def2 = prove_goalw Fix.thy [admw_def]
+qed_goalw "admw_def2" Fix.thy [admw_def]
 	"admw(P) = (!F.((!n.P(iterate(n,F,UU)))-->\
 \			 P(lub(range(%i.iterate(i,F,UU))))))"
  (fn prems =>
@@ -454,7 +454,7 @@ val admw_def2 = prove_goalw Fix.thy [admw_def]
 (* an admissible formula is also weak admissible                            *)
 (* ------------------------------------------------------------------------ *)
 
-val adm_impl_admw = prove_goalw  Fix.thy [admw_def] "adm(P)==>admw(P)"
+qed_goalw "adm_impl_admw"  Fix.thy [admw_def] "adm(P)==>admw(P)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -469,7 +469,7 @@ val adm_impl_admw = prove_goalw  Fix.thy [admw_def] "adm(P)==>admw(P)"
 (* fixed point induction                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val fix_ind = prove_goal  Fix.thy  
+qed_goal "fix_ind"  Fix.thy  
 "[| adm(P);P(UU);!!x. P(x) ==> P(F[x])|] ==> P(fix[F])"
  (fn prems =>
 	[
@@ -491,7 +491,7 @@ val fix_ind = prove_goal  Fix.thy
 (* computational induction for weak admissible formulae                     *)
 (* ------------------------------------------------------------------------ *)
 
-val wfix_ind = prove_goal  Fix.thy  
+qed_goal "wfix_ind"  Fix.thy  
 "[| admw(P); !n. P(iterate(n,F,UU))|] ==> P(fix[F])"
  (fn prems =>
 	[
@@ -507,7 +507,7 @@ val wfix_ind = prove_goal  Fix.thy
 (* for chain-finite (easy) types every formula is admissible                *)
 (* ------------------------------------------------------------------------ *)
 
-val adm_max_in_chain = prove_goalw  Fix.thy  [adm_def]
+qed_goalw "adm_max_in_chain"  Fix.thy  [adm_def]
 "!Y. is_chain(Y::nat=>'a) --> (? n.max_in_chain(n,Y)) ==> adm(P::'a=>bool)"
  (fn prems =>
 	[
@@ -524,7 +524,7 @@ val adm_max_in_chain = prove_goalw  Fix.thy  [adm_def]
 	]);
 
 
-val adm_chain_finite = prove_goalw  Fix.thy  [chain_finite_def]
+qed_goalw "adm_chain_finite"  Fix.thy  [chain_finite_def]
 	"chain_finite(x::'a) ==> adm(P::'a=>bool)"
  (fn prems =>
 	[
@@ -536,7 +536,7 @@ val adm_chain_finite = prove_goalw  Fix.thy  [chain_finite_def]
 (* flat types are chain_finite                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val flat_imp_chain_finite = prove_goalw  Fix.thy  [flat_def,chain_finite_def]
+qed_goalw "flat_imp_chain_finite"  Fix.thy  [flat_def,chain_finite_def]
 	"flat(x::'a)==>chain_finite(x::'a)"
  (fn prems =>
 	[
@@ -576,7 +576,7 @@ val flat_imp_chain_finite = prove_goalw  Fix.thy  [flat_def,chain_finite_def]
 val adm_flat = flat_imp_chain_finite RS adm_chain_finite;
 (* flat(?x::?'a) ==> adm(?P::?'a => bool) *)
 
-val flat_void = prove_goalw Fix.thy [flat_def] "flat(UU::void)"
+qed_goalw "flat_void" Fix.thy [flat_def] "flat(UU::void)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -589,7 +589,7 @@ val flat_void = prove_goalw Fix.thy [flat_def] "flat(UU::void)"
 (* a prove for embedding projection pairs is similar                        *)
 (* ------------------------------------------------------------------------ *)
 
-val iso_strict = prove_goal  Fix.thy  
+qed_goal "iso_strict"  Fix.thy  
 "!!f g.[|!y.f[g[y]]=(y::'b) ; !x.g[f[x]]=(x::'a) |] \
 \ ==> f[UU]=UU & g[UU]=UU"
  (fn prems =>
@@ -606,7 +606,7 @@ val iso_strict = prove_goal  Fix.thy
 	]);
 
 
-val isorep_defined = prove_goal Fix.thy 
+qed_goal "isorep_defined" Fix.thy 
 	"[|!x.rep[abs[x]]=x;!y.abs[rep[y]]=y;z~=UU|] ==> rep[z]~=UU"
  (fn prems =>
 	[
@@ -620,7 +620,7 @@ val isorep_defined = prove_goal Fix.thy
 	(atac 1)
 	]);
 
-val isoabs_defined = prove_goal Fix.thy 
+qed_goal "isoabs_defined" Fix.thy 
 	"[|!x.rep[abs[x]]=x;!y.abs[rep[y]]=y;z~=UU|] ==> abs[z]~=UU"
  (fn prems =>
 	[
@@ -638,7 +638,7 @@ val isoabs_defined = prove_goal Fix.thy
 (* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
 (* ------------------------------------------------------------------------ *)
 
-val chfin2chfin = prove_goalw  Fix.thy  [chain_finite_def]
+qed_goalw "chfin2chfin"  Fix.thy  [chain_finite_def]
 "!!f g.[|chain_finite(x::'a); !y.f[g[y]]=(y::'b) ; !x.g[f[x]]=(x::'a) |] \
 \ ==> chain_finite(y::'b)"
  (fn prems =>
@@ -661,7 +661,7 @@ val chfin2chfin = prove_goalw  Fix.thy  [chain_finite_def]
 	(atac 1)
 	]);
 
-val flat2flat = prove_goalw  Fix.thy  [flat_def]
+qed_goalw "flat2flat"  Fix.thy  [flat_def]
 "!!f g.[|flat(x::'a); !y.f[g[y]]=(y::'b) ; !x.g[f[x]]=(x::'a) |] \
 \ ==> flat(y::'b)"
  (fn prems =>
@@ -692,7 +692,7 @@ val flat2flat = prove_goalw  Fix.thy  [flat_def]
 (* a result about functions with flat codomain                               *)
 (* ------------------------------------------------------------------------- *)
 
-val flat_codom = prove_goalw Fix.thy [flat_def]
+qed_goalw "flat_codom" Fix.thy [flat_def]
 "[|flat(y::'b);f[x::'a]=(c::'b)|] ==> f[UU::'a]=(UU::'b) | (!z.f[z::'a]=c)"
  (fn prems =>
 	[
@@ -729,7 +729,7 @@ val flat_codom = prove_goalw Fix.thy [flat_def]
 (* admissibility of special formulae and propagation                        *)
 (* ------------------------------------------------------------------------ *)
 
-val adm_less = prove_goalw  Fix.thy [adm_def]
+qed_goalw "adm_less"  Fix.thy [adm_def]
 	"[|contX(u);contX(v)|]==> adm(%x.u(x)<<v(x))"
  (fn prems =>
 	[
@@ -749,7 +749,7 @@ val adm_less = prove_goalw  Fix.thy [adm_def]
 	(atac 1)
 	]);
 
-val adm_conj = prove_goal  Fix.thy  
+qed_goal "adm_conj"  Fix.thy  
 	"[| adm(P); adm(Q) |] ==> adm(%x.P(x)&Q(x))"
  (fn prems =>
 	[
@@ -767,7 +767,7 @@ val adm_conj = prove_goal  Fix.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-val adm_cong = prove_goal  Fix.thy  
+qed_goal "adm_cong"  Fix.thy  
 	"(!x. P(x) = Q(x)) ==> adm(P)=adm(Q)"
  (fn prems =>
 	[
@@ -778,13 +778,13 @@ val adm_cong = prove_goal  Fix.thy
 	(etac spec 1)
 	]);
 
-val adm_not_free = prove_goalw  Fix.thy [adm_def] "adm(%x.t)"
+qed_goalw "adm_not_free"  Fix.thy [adm_def] "adm(%x.t)"
  (fn prems =>
 	[
 	(fast_tac HOL_cs 1)
 	]);
 
-val adm_not_less = prove_goalw  Fix.thy [adm_def]
+qed_goalw "adm_not_less"  Fix.thy [adm_def]
 	"contX(t) ==> adm(%x.~ t(x) << u)"
  (fn prems =>
 	[
@@ -799,7 +799,7 @@ val adm_not_less = prove_goalw  Fix.thy [adm_def]
 	(atac 1)
 	]);
 
-val adm_all = prove_goal  Fix.thy  
+qed_goal "adm_all"  Fix.thy  
 	" !y.adm(P(y)) ==> adm(%x.!y.P(y,x))"
  (fn prems =>
 	[
@@ -816,7 +816,7 @@ val adm_all = prove_goal  Fix.thy
 
 val adm_all2 = (allI RS adm_all);
 
-val adm_subst = prove_goal  Fix.thy  
+qed_goal "adm_subst"  Fix.thy  
 	"[|contX(t); adm(P)|] ==> adm(%x.P(t(x)))"
  (fn prems =>
 	[
@@ -834,7 +834,7 @@ val adm_subst = prove_goal  Fix.thy
 	(atac 1)
 	]);
 
-val adm_UU_not_less = prove_goal  Fix.thy "adm(%x.~ UU << t(x))"
+qed_goal "adm_UU_not_less"  Fix.thy "adm(%x.~ UU << t(x))"
  (fn prems =>
 	[
 	(res_inst_tac [("P2","%x.False")] (adm_cong RS iffD1) 1),
@@ -842,7 +842,7 @@ val adm_UU_not_less = prove_goal  Fix.thy "adm(%x.~ UU << t(x))"
 	(rtac adm_not_free 1)
 	]);
 
-val adm_not_UU = prove_goalw  Fix.thy [adm_def] 
+qed_goalw "adm_not_UU"  Fix.thy [adm_def] 
 	"contX(t)==> adm(%x.~ t(x) = UU)"
  (fn prems =>
 	[
@@ -860,7 +860,7 @@ val adm_not_UU = prove_goalw  Fix.thy [adm_def]
 	(atac 1)
 	]);
 
-val adm_eq = prove_goal  Fix.thy 
+qed_goal "adm_eq"  Fix.thy 
 	"[|contX(u);contX(v)|]==> adm(%x.u(x)= v(x))"
  (fn prems =>
 	[
@@ -886,7 +886,7 @@ val adm_eq = prove_goal  Fix.thy
 (* admissibility for disjunction is hard to prove. It takes 10 Lemmas       *)
 (* ------------------------------------------------------------------------ *)
 
-val adm_disj_lemma1 = prove_goal  Pcpo.thy 
+qed_goal "adm_disj_lemma1"  Pcpo.thy 
 "[| is_chain(Y); !n.P(Y(n))|Q(Y(n))|]\
 \ ==> (? i.!j. i<j --> Q(Y(j))) | (!i.? j.i<j & P(Y(j)))"
  (fn prems =>
@@ -895,7 +895,7 @@ val adm_disj_lemma1 = prove_goal  Pcpo.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-val adm_disj_lemma2 = prove_goal  Fix.thy  
+qed_goal "adm_disj_lemma2"  Fix.thy  
 "[| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
 \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
  (fn prems =>
@@ -912,7 +912,7 @@ val adm_disj_lemma2 = prove_goal  Fix.thy
 	(atac 1)
 	]);
 
-val adm_disj_lemma3 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma3"  Fix.thy
 "[| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
 \         is_chain(%m. if(m < Suc(i),Y(Suc(i)),Y(m)))"
  (fn prems =>
@@ -944,7 +944,7 @@ val adm_disj_lemma3 = prove_goal  Fix.thy
 	(rtac refl_less 1)
 	]);
 
-val adm_disj_lemma4 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma4"  Fix.thy
 "[| ! j. i < j --> Q(Y(j)) |] ==>\
 \	 ! n. Q(if(n < Suc(i),Y(Suc(i)),Y(n)))"
  (fn prems =>
@@ -982,7 +982,7 @@ val adm_disj_lemma4 = prove_goal  Fix.thy
 	(etac Suc_lessD 1)
 	]);
 
-val adm_disj_lemma5 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma5"  Fix.thy
 "[| is_chain(Y::nat=>'a); ! j. i < j --> Q(Y(j)) |] ==>\
 \         lub(range(Y)) = lub(range(%m. if(m < Suc(i),Y(Suc(i)),Y(m))))"
  (fn prems =>
@@ -1006,7 +1006,7 @@ val adm_disj_lemma5 = prove_goal  Fix.thy
 	(rtac refl 1)
 	]);
 
-val adm_disj_lemma6 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma6"  Fix.thy
 "[| is_chain(Y::nat=>'a); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
 \         ? X. is_chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
@@ -1027,7 +1027,7 @@ val adm_disj_lemma6 = prove_goal  Fix.thy
 	]);
 
 
-val adm_disj_lemma7 = prove_goal  Fix.thy 
+qed_goal "adm_disj_lemma7"  Fix.thy 
 "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j))  |] ==>\
 \         is_chain(%m. Y(theleast(%j. m<j & P(Y(j)))))"
  (fn prems =>
@@ -1050,7 +1050,7 @@ val adm_disj_lemma7 = prove_goal  Fix.thy
 	(atac 1)
 	]);
 
-val adm_disj_lemma8 = prove_goal  Fix.thy 
+qed_goal "adm_disj_lemma8"  Fix.thy 
 "[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(theleast(%j. m<j & P(Y(j)))))"
  (fn prems =>
 	[
@@ -1061,7 +1061,7 @@ val adm_disj_lemma8 = prove_goal  Fix.thy
 	(etac (theleast1 RS conjunct2) 1)
 	]);
 
-val adm_disj_lemma9 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma9"  Fix.thy
 "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
 \         lub(range(Y)) = lub(range(%m. Y(theleast(%j. m<j & P(Y(j))))))"
  (fn prems =>
@@ -1092,7 +1092,7 @@ val adm_disj_lemma9 = prove_goal  Fix.thy
 	(rtac lessI 1)
 	]);
 
-val adm_disj_lemma10 = prove_goal  Fix.thy
+qed_goal "adm_disj_lemma10"  Fix.thy
 "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
 \         ? X. is_chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
@@ -1112,7 +1112,7 @@ val adm_disj_lemma10 = prove_goal  Fix.thy
 	]);
 
 
-val adm_disj_lemma11 = prove_goal Fix.thy
+qed_goal "adm_disj_lemma11" Fix.thy
 "[| adm(P); is_chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
  (fn prems =>
 	[
@@ -1122,7 +1122,7 @@ val adm_disj_lemma11 = prove_goal Fix.thy
 	(atac 1)
 	]);
 
-val adm_disj_lemma12 = prove_goal Fix.thy
+qed_goal "adm_disj_lemma12" Fix.thy
 "[| adm(P); is_chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
  (fn prems =>
 	[
@@ -1132,7 +1132,7 @@ val adm_disj_lemma12 = prove_goal Fix.thy
 	(atac 1)
 	]);
 
-val adm_disj = prove_goal  Fix.thy  
+qed_goal "adm_disj"  Fix.thy  
 	"[| adm(P); adm(Q) |] ==> adm(%x.P(x)|Q(x))"
  (fn prems =>
 	[
@@ -1153,7 +1153,7 @@ val adm_disj = prove_goal  Fix.thy
 	]);
 
 
-val adm_impl = prove_goal  Fix.thy  
+qed_goal "adm_impl"  Fix.thy  
 	"[| adm(%x.~P(x)); adm(Q) |] ==> adm(%x.P(x)-->Q(x))"
  (fn prems =>
 	[

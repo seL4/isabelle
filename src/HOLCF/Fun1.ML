@@ -12,13 +12,13 @@ open Fun1;
 (* less_fun is a partial order on 'a => 'b                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val refl_less_fun = prove_goalw Fun1.thy [less_fun_def] "less_fun(f,f)"
+qed_goalw "refl_less_fun" Fun1.thy [less_fun_def] "less_fun(f,f)"
 (fn prems =>
 	[
 	(fast_tac (HOL_cs addSIs [refl_less]) 1)
 	]);
 
-val antisym_less_fun = prove_goalw Fun1.thy [less_fun_def] 
+qed_goalw "antisym_less_fun" Fun1.thy [less_fun_def] 
 	"[|less_fun(f1,f2); less_fun(f2,f1)|] ==> f1 = f2"
 (fn prems =>
 	[
@@ -27,7 +27,7 @@ val antisym_less_fun = prove_goalw Fun1.thy [less_fun_def]
 	(fast_tac (HOL_cs addSIs [antisym_less]) 1)
 	]);
 
-val trans_less_fun = prove_goalw Fun1.thy [less_fun_def] 
+qed_goalw "trans_less_fun" Fun1.thy [less_fun_def] 
 	"[|less_fun(f1,f2); less_fun(f2,f3)|] ==> less_fun(f1,f3)"
 (fn prems =>
 	[

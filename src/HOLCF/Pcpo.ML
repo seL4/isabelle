@@ -12,7 +12,7 @@ open Pcpo;
 (* in pcpo's everthing equal to THE lub has lub properties for every chain  *)
 (* ------------------------------------------------------------------------ *)
 
-val thelubE = prove_goal  Pcpo.thy 
+qed_goal "thelubE"  Pcpo.thy 
 	"[| is_chain(S);lub(range(S)) = (l::'a::pcpo)|] ==> range(S) <<| l "
 (fn prems =>
 	[
@@ -38,7 +38,7 @@ val is_lub_thelub = (cpo RS lubI RS is_lub_lub);
 (* the << relation between two chains is preserved by their lubs            *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_mono = prove_goal Pcpo.thy 
+qed_goal "lub_mono" Pcpo.thy 
 	"[|is_chain(C1::(nat=>'a::pcpo));is_chain(C2); ! k. C1(k) << C2(k)|]\
 \           ==> lub(range(C1)) << lub(range(C2))"
 (fn prems =>
@@ -56,7 +56,7 @@ val lub_mono = prove_goal Pcpo.thy
 (* the = relation between two chains is preserved by their lubs            *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_equal = prove_goal Pcpo.thy
+qed_goal "lub_equal" Pcpo.thy
 "[| is_chain(C1::(nat=>'a::pcpo));is_chain(C2);!k.C1(k)=C2(k)|]\
 \	==> lub(range(C1))=lub(range(C2))"
 (fn prems =>
@@ -81,7 +81,7 @@ val lub_equal = prove_goal Pcpo.thy
 (* more results about mono and = of lubs of chains                          *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_mono2 = prove_goal Pcpo.thy 
+qed_goal "lub_mono2" Pcpo.thy 
 "[|? j.!i. j<i --> X(i::nat)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
 \ ==> lub(range(X))<<lub(range(Y))"
  (fn prems =>
@@ -110,7 +110,7 @@ val lub_mono2 = prove_goal Pcpo.thy
 	(resolve_tac prems 1)
 	]);
 
-val lub_equal2 = prove_goal Pcpo.thy 
+qed_goal "lub_equal2" Pcpo.thy 
 "[|? j.!i. j<i --> X(i)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
 \ ==> lub(range(X))=lub(range(Y))"
  (fn prems =>
@@ -127,7 +127,7 @@ val lub_equal2 = prove_goal Pcpo.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-val lub_mono3 = prove_goal Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
+qed_goal "lub_mono3" Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
 \! i. ? j. Y(i)<< X(j)|]==> lub(range(Y))<<lub(range(X))"
  (fn prems =>
 	[
@@ -148,7 +148,7 @@ val lub_mono3 = prove_goal Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
 (* usefull lemmas about UU                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val eq_UU_iff = prove_goal Pcpo.thy "(x=UU)=(x<<UU)"
+qed_goal "eq_UU_iff" Pcpo.thy "(x=UU)=(x<<UU)"
  (fn prems =>
 	[
 	(rtac iffI 1),
@@ -159,14 +159,14 @@ val eq_UU_iff = prove_goal Pcpo.thy "(x=UU)=(x<<UU)"
 	(rtac minimal 1)
 	]);
 
-val UU_I = prove_goal Pcpo.thy "x << UU ==> x = UU"
+qed_goal "UU_I" Pcpo.thy "x << UU ==> x = UU"
  (fn prems =>
 	[
 	(rtac (eq_UU_iff RS ssubst) 1),
 	(resolve_tac prems 1)
 	]);
 
-val not_less2not_eq = prove_goal Pcpo.thy "~x<<y ==> ~x=y"
+qed_goal "not_less2not_eq" Pcpo.thy "~x<<y ==> ~x=y"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -177,7 +177,7 @@ val not_less2not_eq = prove_goal Pcpo.thy "~x<<y ==> ~x=y"
 	]);
 
 
-val chain_UU_I = prove_goal Pcpo.thy
+qed_goal "chain_UU_I" Pcpo.thy
 	"[|is_chain(Y);lub(range(Y))=UU|] ==> ! i.Y(i)=UU"
 (fn prems =>
 	[
@@ -191,7 +191,7 @@ val chain_UU_I = prove_goal Pcpo.thy
 	]);
 
 
-val chain_UU_I_inverse = prove_goal Pcpo.thy 
+qed_goal "chain_UU_I_inverse" Pcpo.thy 
 	"!i.Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU"
 (fn prems =>
 	[
@@ -210,7 +210,7 @@ val chain_UU_I_inverse = prove_goal Pcpo.thy
 	(etac spec 1)
 	]);
 
-val chain_UU_I_inverse2 = prove_goal Pcpo.thy 
+qed_goal "chain_UU_I_inverse2" Pcpo.thy 
 	"~lub(range(Y::(nat=>'a::pcpo)))=UU ==> ? i.~ Y(i)=UU"
  (fn prems =>
 	[
@@ -223,7 +223,7 @@ val chain_UU_I_inverse2 = prove_goal Pcpo.thy
 	]);
 
 
-val notUU_I = prove_goal Pcpo.thy "[| x<<y; ~x=UU |] ==> ~y=UU"
+qed_goal "notUU_I" Pcpo.thy "[| x<<y; ~x=UU |] ==> ~y=UU"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -234,7 +234,7 @@ val notUU_I = prove_goal Pcpo.thy "[| x<<y; ~x=UU |] ==> ~y=UU"
 	]);
 
 
-val chain_mono2 = prove_goal Pcpo.thy 
+qed_goal "chain_mono2" Pcpo.thy 
 "[|? j.~Y(j)=UU;is_chain(Y::nat=>'a::pcpo)|]\
 \ ==> ? j.!i.j<i-->~Y(i)=UU"
  (fn prems =>
@@ -256,7 +256,7 @@ val chain_mono2 = prove_goal Pcpo.thy
 (* uniqueness in void                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val unique_void2 = prove_goal Pcpo.thy "(x::void)=UU"
+qed_goal "unique_void2" Pcpo.thy "(x::void)=UU"
  (fn prems =>
 	[
 	(rtac (inst_void_pcpo RS ssubst) 1),

@@ -12,7 +12,7 @@ open Lift2;
 (* type ('a)u is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_lift = prove_goal Lift2.thy "UU_lift << z"
+qed_goal "minimal_lift" Lift2.thy "UU_lift << z"
  (fn prems =>
 	[
 	(rtac (inst_lift_po RS ssubst) 1),
@@ -23,14 +23,14 @@ val minimal_lift = prove_goal Lift2.thy "UU_lift << z"
 (* access to less_lift in class po                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val less_lift2b = prove_goal Lift2.thy "~ Iup(x) << UU_lift"
+qed_goal "less_lift2b" Lift2.thy "~ Iup(x) << UU_lift"
  (fn prems =>
 	[
 	(rtac (inst_lift_po RS ssubst) 1),
 	(rtac less_lift1b 1)
 	]);
 
-val less_lift2c = prove_goal Lift2.thy "(Iup(x)<<Iup(y)) = (x<<y)"
+qed_goal "less_lift2c" Lift2.thy "(Iup(x)<<Iup(y)) = (x<<y)"
  (fn prems =>
 	[
 	(rtac (inst_lift_po RS ssubst) 1),
@@ -41,14 +41,14 @@ val less_lift2c = prove_goal Lift2.thy "(Iup(x)<<Iup(y)) = (x<<y)"
 (* Iup and Ilift are monotone                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_Iup = prove_goalw Lift2.thy [monofun] "monofun(Iup)"
+qed_goalw "monofun_Iup" Lift2.thy [monofun] "monofun(Iup)"
  (fn prems =>
 	[
 	(strip_tac 1),
 	(etac (less_lift2c RS iffD2) 1)
 	]);
 
-val monofun_Ilift1 = prove_goalw Lift2.thy [monofun] "monofun(Ilift)"
+qed_goalw "monofun_Ilift1" Lift2.thy [monofun] "monofun(Ilift)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -60,7 +60,7 @@ val monofun_Ilift1 = prove_goalw Lift2.thy [monofun] "monofun(Ilift)"
 	(etac monofun_cfun_fun 1)
 	]);
 
-val monofun_Ilift2 = prove_goalw Lift2.thy [monofun] "monofun(Ilift(f))"
+qed_goalw "monofun_Ilift2" Lift2.thy [monofun] "monofun(Ilift(f))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -85,7 +85,7 @@ val monofun_Ilift2 = prove_goalw Lift2.thy [monofun] "monofun(Ilift(f))"
 (* ------------------------------------------------------------------------ *)
 
 
-val lift_lemma1 = prove_goal Lift2.thy  "z=Iup(x) ==> Iup(Ilift(LAM x.x)(z)) = z"
+qed_goal "lift_lemma1" Lift2.thy  "z=Iup(x) ==> Iup(Ilift(LAM x.x)(z)) = z"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -96,7 +96,7 @@ val lift_lemma1 = prove_goal Lift2.thy  "z=Iup(x) ==> Iup(Ilift(LAM x.x)(z)) = z
 (* ('a)u is a cpo                                                           *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_lift1a = prove_goal Lift2.thy 
+qed_goal "lub_lift1a" Lift2.thy 
 "[|is_chain(Y);? i x.Y(i)=Iup(x)|] ==>\
 \ range(Y) <<| Iup(lub(range(%i.(Ilift (LAM x.x) (Y(i))))))"
  (fn prems =>
@@ -133,7 +133,7 @@ val lub_lift1a = prove_goal Lift2.thy
 	(etac (monofun_Ilift2 RS ub2ub_monofun) 1)
 	]);
 
-val lub_lift1b = prove_goal Lift2.thy 
+qed_goal "lub_lift1b" Lift2.thy 
 "[|is_chain(Y);!i x.~Y(i)=Iup(x)|] ==>\
 \ range(Y) <<| UU_lift"
  (fn prems =>
@@ -165,7 +165,7 @@ val thelub_lift1b = lub_lift1b RS thelubI;
 (*                                     lub(range(?Y1)) = UU_lift  *)
 
 
-val cpo_lift = prove_goal Lift2.thy 
+qed_goal "cpo_lift" Lift2.thy 
 	"is_chain(Y::nat=>('a)u) ==> ? x.range(Y) <<|x"
  (fn prems =>
 	[

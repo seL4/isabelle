@@ -20,21 +20,21 @@ val iterator_def2 = fix_prover Dnat2.thy iterator_def
 (* recursive  properties                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val iterator1 = prove_goal Dnat2.thy "iterator[UU][f][x] = UU"
+qed_goal "iterator1" Dnat2.thy "iterator[UU][f][x] = UU"
  (fn prems =>
 	[
 	(rtac (iterator_def2 RS ssubst) 1),
 	(simp_tac (HOLCF_ss addsimps dnat_when) 1)
 	]);
 
-val iterator2 = prove_goal Dnat2.thy "iterator[dzero][f][x] = x"
+qed_goal "iterator2" Dnat2.thy "iterator[dzero][f][x] = x"
  (fn prems =>
 	[
 	(rtac (iterator_def2 RS ssubst) 1),
 	(simp_tac (HOLCF_ss addsimps dnat_when) 1)
 	]);
 
-val iterator3 = prove_goal Dnat2.thy 
+qed_goal "iterator3" Dnat2.thy 
 "n~=UU ==> iterator[dsucc[n]][f][x] = f[iterator[n][f][x]]"
  (fn prems =>
 	[

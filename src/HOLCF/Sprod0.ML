@@ -12,7 +12,7 @@ open Sprod0;
 (* A non-emptyness result for Sprod                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val SprodI = prove_goalw Sprod0.thy [Sprod_def]
+qed_goalw "SprodI" Sprod0.thy [Sprod_def]
 	"Spair_Rep(a,b):Sprod"
 (fn prems =>
 	[
@@ -20,7 +20,7 @@ val SprodI = prove_goalw Sprod0.thy [Sprod_def]
 	]);
 
 
-val inj_onto_Abs_Sprod = prove_goal Sprod0.thy 
+qed_goal "inj_onto_Abs_Sprod" Sprod0.thy 
 	"inj_onto(Abs_Sprod,Sprod)"
 (fn prems =>
 	[
@@ -34,7 +34,7 @@ val inj_onto_Abs_Sprod = prove_goal Sprod0.thy
 (* ------------------------------------------------------------------------ *)
 
 
-val strict_Spair_Rep = prove_goalw Sprod0.thy [Spair_Rep_def]
+qed_goalw "strict_Spair_Rep" Sprod0.thy [Spair_Rep_def]
  "(a=UU | b=UU) ==> (Spair_Rep(a,b) = Spair_Rep(UU,UU))"
  (fn prems =>
 	[
@@ -46,7 +46,7 @@ val strict_Spair_Rep = prove_goalw Sprod0.thy [Spair_Rep_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val defined_Spair_Rep_rev = prove_goalw Sprod0.thy [Spair_Rep_def]
+qed_goalw "defined_Spair_Rep_rev" Sprod0.thy [Spair_Rep_def]
  "(Spair_Rep(a,b) = Spair_Rep(UU,UU)) ==> (a=UU | b=UU)"
  (fn prems =>
 	[
@@ -64,7 +64,7 @@ val defined_Spair_Rep_rev = prove_goalw Sprod0.thy [Spair_Rep_def]
 (* injectivity of Spair_Rep and Ispair                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val inject_Spair_Rep = prove_goalw Sprod0.thy [Spair_Rep_def]
+qed_goalw "inject_Spair_Rep" Sprod0.thy [Spair_Rep_def]
 "[|~aa=UU ; ~ba=UU ; Spair_Rep(a,b)=Spair_Rep(aa,ba) |] ==> a=aa & b=ba"
  (fn prems =>
 	[
@@ -76,7 +76,7 @@ val inject_Spair_Rep = prove_goalw Sprod0.thy [Spair_Rep_def]
 	]);
 
 
-val inject_Ispair =  prove_goalw Sprod0.thy [Ispair_def]
+qed_goalw "inject_Ispair" Sprod0.thy [Ispair_def]
 	"[|~aa=UU ; ~ba=UU ; Ispair(a,b)=Ispair(aa,ba) |] ==> a=aa & b=ba"
 (fn prems =>
 	[
@@ -93,7 +93,7 @@ val inject_Ispair =  prove_goalw Sprod0.thy [Ispair_def]
 (* strictness and definedness of Ispair                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val strict_Ispair = prove_goalw Sprod0.thy [Ispair_def] 
+qed_goalw "strict_Ispair" Sprod0.thy [Ispair_def] 
  "(a=UU | b=UU) ==> Ispair(a,b)=Ispair(UU,UU)"
 (fn prems =>
 	[
@@ -101,7 +101,7 @@ val strict_Ispair = prove_goalw Sprod0.thy [Ispair_def]
 	(etac (strict_Spair_Rep RS arg_cong) 1)
 	]);
 
-val strict_Ispair1 = prove_goalw Sprod0.thy [Ispair_def]
+qed_goalw "strict_Ispair1" Sprod0.thy [Ispair_def]
 	"Ispair(UU,b) = Ispair(UU,UU)"
 (fn prems =>
 	[
@@ -110,7 +110,7 @@ val strict_Ispair1 = prove_goalw Sprod0.thy [Ispair_def]
 	(rtac refl 1)
 	]);
 
-val strict_Ispair2 = prove_goalw Sprod0.thy [Ispair_def]
+qed_goalw "strict_Ispair2" Sprod0.thy [Ispair_def]
 	"Ispair(a,UU) = Ispair(UU,UU)"
 (fn prems =>
 	[
@@ -119,7 +119,7 @@ val strict_Ispair2 = prove_goalw Sprod0.thy [Ispair_def]
 	(rtac refl 1)
 	]);
 
-val strict_Ispair_rev = prove_goal Sprod0.thy 
+qed_goal "strict_Ispair_rev" Sprod0.thy 
 	"~Ispair(x,y)=Ispair(UU,UU) ==> ~x=UU & ~y=UU"
 (fn prems =>
 	[
@@ -129,7 +129,7 @@ val strict_Ispair_rev = prove_goal Sprod0.thy
 	(etac strict_Ispair 1)
 	]);
 
-val defined_Ispair_rev = prove_goalw Sprod0.thy [Ispair_def]
+qed_goalw "defined_Ispair_rev" Sprod0.thy [Ispair_def]
 	"Ispair(a,b) = Ispair(UU,UU) ==> (a = UU | b = UU)"
 (fn prems =>
 	[
@@ -141,7 +141,7 @@ val defined_Ispair_rev = prove_goalw Sprod0.thy [Ispair_def]
 	(rtac SprodI 1)
 	]);
 
-val defined_Ispair = prove_goal Sprod0.thy  
+qed_goal "defined_Ispair" Sprod0.thy  
 "[|~a=UU; ~b=UU|] ==> ~(Ispair(a,b) = Ispair(UU,UU))" 
 (fn prems =>
 	[
@@ -158,7 +158,7 @@ val defined_Ispair = prove_goal Sprod0.thy
 (* Exhaustion of the strict product **                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val Exh_Sprod = prove_goalw Sprod0.thy [Ispair_def]
+qed_goalw "Exh_Sprod" Sprod0.thy [Ispair_def]
 	"z=Ispair(UU,UU) | (? a b. z=Ispair(a,b) & ~a=UU & ~b=UU)"
 (fn prems =>
 	[
@@ -185,7 +185,7 @@ val Exh_Sprod = prove_goalw Sprod0.thy [Ispair_def]
 (* general elimination rule for strict product                              *)
 (* ------------------------------------------------------------------------ *)
 
-val IsprodE = prove_goal Sprod0.thy
+qed_goal "IsprodE" Sprod0.thy
 "[|p=Ispair(UU,UU) ==> Q ;!!x y. [|p=Ispair(x,y); ~x=UU ; ~y=UU|] ==> Q|] ==> Q"
 (fn prems =>
 	[
@@ -205,7 +205,7 @@ val IsprodE = prove_goal Sprod0.thy
 (* some results about the selectors Isfst, Issnd                            *)
 (* ------------------------------------------------------------------------ *)
 
-val strict_Isfst = prove_goalw Sprod0.thy [Isfst_def] 
+qed_goalw "strict_Isfst" Sprod0.thy [Isfst_def] 
 	"p=Ispair(UU,UU)==>Isfst(p)=UU"
 (fn prems =>
 	[
@@ -221,7 +221,7 @@ val strict_Isfst = prove_goalw Sprod0.thy [Isfst_def]
 	]);
 
 
-val strict_Isfst1 =  prove_goal Sprod0.thy
+qed_goal "strict_Isfst1" Sprod0.thy
 	"Isfst(Ispair(UU,y)) = UU"
 (fn prems =>
 	[
@@ -230,7 +230,7 @@ val strict_Isfst1 =  prove_goal Sprod0.thy
 	(rtac refl 1)
 	]);
 
-val strict_Isfst2 =  prove_goal Sprod0.thy
+qed_goal "strict_Isfst2" Sprod0.thy
 	"Isfst(Ispair(x,UU)) = UU"
 (fn prems =>
 	[
@@ -240,7 +240,7 @@ val strict_Isfst2 =  prove_goal Sprod0.thy
 	]);
 
 
-val strict_Issnd = prove_goalw Sprod0.thy [Issnd_def] 
+qed_goalw "strict_Issnd" Sprod0.thy [Issnd_def] 
 	"p=Ispair(UU,UU)==>Issnd(p)=UU"
 (fn prems =>
 	[
@@ -255,7 +255,7 @@ val strict_Issnd = prove_goalw Sprod0.thy [Issnd_def]
 	(REPEAT (fast_tac HOL_cs  1))
 	]);
 
-val strict_Issnd1 =  prove_goal Sprod0.thy
+qed_goal "strict_Issnd1" Sprod0.thy
 	"Issnd(Ispair(UU,y)) = UU"
 (fn prems =>
 	[
@@ -264,7 +264,7 @@ val strict_Issnd1 =  prove_goal Sprod0.thy
 	(rtac refl 1)
 	]);
 
-val strict_Issnd2 =  prove_goal Sprod0.thy
+qed_goal "strict_Issnd2" Sprod0.thy
 	"Issnd(Ispair(x,UU)) = UU"
 (fn prems =>
 	[
@@ -273,7 +273,7 @@ val strict_Issnd2 =  prove_goal Sprod0.thy
 	(rtac refl 1)
 	]);
 
-val Isfst = prove_goalw Sprod0.thy [Isfst_def]
+qed_goalw "Isfst" Sprod0.thy [Isfst_def]
 	"[|~x=UU ;~y=UU |] ==> Isfst(Ispair(x,y)) = x"
 (fn prems =>
 	[
@@ -293,7 +293,7 @@ val Isfst = prove_goalw Sprod0.thy [Isfst_def]
 	(fast_tac HOL_cs  1)
 	]);
 
-val Issnd = prove_goalw Sprod0.thy [Issnd_def]
+qed_goalw "Issnd" Sprod0.thy [Issnd_def]
 	"[|~x=UU ;~y=UU |] ==> Issnd(Ispair(x,y)) = y"
 (fn prems =>
 	[
@@ -313,7 +313,7 @@ val Issnd = prove_goalw Sprod0.thy [Issnd_def]
 	(fast_tac HOL_cs  1)
 	]);
 
-val Isfst2 = prove_goal Sprod0.thy "~y=UU ==>Isfst(Ispair(x,y))=x"
+qed_goal "Isfst2" Sprod0.thy "~y=UU ==>Isfst(Ispair(x,y))=x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -324,7 +324,7 @@ val Isfst2 = prove_goal Sprod0.thy "~y=UU ==>Isfst(Ispair(x,y))=x"
 	(rtac strict_Isfst1 1)
 	]);
 
-val Issnd2 = prove_goal Sprod0.thy "~x=UU ==>Issnd(Ispair(x,y))=y"
+qed_goal "Issnd2" Sprod0.thy "~x=UU ==>Issnd(Ispair(x,y))=y"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -346,7 +346,7 @@ val Sprod_ss =
 		 Isfst2,Issnd2];
 
 
-val defined_IsfstIssnd = prove_goal Sprod0.thy 
+qed_goal "defined_IsfstIssnd" Sprod0.thy 
 	"~p=Ispair(UU,UU) ==> ~Isfst(p)=UU & ~Issnd(p)=UU"
  (fn prems =>
 	[
@@ -364,7 +364,7 @@ val defined_IsfstIssnd = prove_goal Sprod0.thy
 (* Surjective pairing: equivalent to Exh_Sprod                              *)
 (* ------------------------------------------------------------------------ *)
 
-val surjective_pairing_Sprod = prove_goal Sprod0.thy 
+qed_goal "surjective_pairing_Sprod" Sprod0.thy 
 	"z = Ispair(Isfst(z))(Issnd(z))"
 (fn prems =>
 	[

@@ -12,7 +12,7 @@ open One;
 (* Exhaustion and Elimination for type one                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val Exh_one = prove_goalw One.thy [one_def] "z=UU | z = one"
+qed_goalw "Exh_one" One.thy [one_def] "z=UU | z = one"
  (fn prems =>
 	[
 	(res_inst_tac [("p","rep_one[z]")] liftE1 1),
@@ -28,7 +28,7 @@ val Exh_one = prove_goalw One.thy [one_def] "z=UU | z = one"
 	(atac 1)
 	]);
 
-val oneE = prove_goal One.thy
+qed_goal "oneE" One.thy
 	"[| p=UU ==> Q; p = one ==>Q|] ==>Q"
  (fn prems =>
 	[
@@ -68,7 +68,7 @@ val dist_eq_one = dist_eq_one @ (map (fn thm => (thm RS not_sym)) dist_eq_one);
 (* one is flat                                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val flat_one = prove_goalw One.thy [flat_def] "flat(one)"
+qed_goalw "flat_one" One.thy [flat_def] "flat(one)"
  (fn prems =>
 	[
 	(rtac allI 1),

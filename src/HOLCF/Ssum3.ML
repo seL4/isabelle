@@ -13,7 +13,7 @@ open Ssum3;
 (* ------------------------------------------------------------------------ *)
 
 
-val contlub_Isinl = prove_goal Ssum3.thy "contlub(Isinl)"
+qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -45,7 +45,7 @@ val contlub_Isinl = prove_goal Ssum3.thy "contlub(Isinl)"
 	(asm_simp_tac Ssum_ss 1)
 	]);
 
-val contlub_Isinr = prove_goal Ssum3.thy "contlub(Isinr)"
+qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -76,7 +76,7 @@ val contlub_Isinr = prove_goal Ssum3.thy "contlub(Isinr)"
 	(asm_simp_tac Ssum_ss 1)
 	]);
 
-val contX_Isinl = prove_goal Ssum3.thy "contX(Isinl)"
+qed_goal "contX_Isinl" Ssum3.thy "contX(Isinl)"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -84,7 +84,7 @@ val contX_Isinl = prove_goal Ssum3.thy "contX(Isinl)"
 	(rtac contlub_Isinl 1)
 	]);
 
-val contX_Isinr = prove_goal Ssum3.thy "contX(Isinr)"
+qed_goal "contX_Isinr" Ssum3.thy "contX(Isinr)"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -97,7 +97,7 @@ val contX_Isinr = prove_goal Ssum3.thy "contX(Isinr)"
 (* continuity for Iwhen in the firts two arguments                          *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_Iwhen1 = prove_goal Ssum3.thy "contlub(Iwhen)"
+qed_goal "contlub_Iwhen1" Ssum3.thy "contlub(Iwhen)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -122,7 +122,7 @@ val contlub_Iwhen1 = prove_goal Ssum3.thy "contlub(Iwhen)"
 	(rtac (lub_const RS thelubI RS sym) 1)
 	]);
 
-val contlub_Iwhen2 = prove_goal Ssum3.thy "contlub(Iwhen(f))"
+qed_goal "contlub_Iwhen2" Ssum3.thy "contlub(Iwhen(f))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -149,7 +149,7 @@ val contlub_Iwhen2 = prove_goal Ssum3.thy "contlub(Iwhen(f))"
 (* first 5 ugly lemmas                                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val ssum_lemma9 = prove_goal Ssum3.thy 
+qed_goal "ssum_lemma9" Ssum3.thy 
 "[| is_chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x.Y(i)=Isinl(x)"
  (fn prems =>
 	[
@@ -167,7 +167,7 @@ val ssum_lemma9 = prove_goal Ssum3.thy
 	]);
 
 
-val ssum_lemma10 = prove_goal Ssum3.thy 
+qed_goal "ssum_lemma10" Ssum3.thy 
 "[| is_chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x.Y(i)=Isinr(x)"
  (fn prems =>
 	[
@@ -186,7 +186,7 @@ val ssum_lemma10 = prove_goal Ssum3.thy
 	(etac is_ub_thelub 1)
 	]);
 
-val ssum_lemma11 = prove_goal Ssum3.thy 
+qed_goal "ssum_lemma11" Ssum3.thy 
 "[| is_chain(Y); lub(range(Y)) = Isinl(UU) |] ==>\
 \   Iwhen(f,g,lub(range(Y))) = lub(range(%i. Iwhen(f,g,Y(i))))"
  (fn prems =>
@@ -203,7 +203,7 @@ val ssum_lemma11 = prove_goal Ssum3.thy
 	(asm_simp_tac Ssum_ss 1)
 	]);
 
-val ssum_lemma12 = prove_goal Ssum3.thy 
+qed_goal "ssum_lemma12" Ssum3.thy 
 "[| is_chain(Y); lub(range(Y)) = Isinl(x); ~ x = UU |] ==>\
 \   Iwhen(f,g,lub(range(Y))) = lub(range(%i. Iwhen(f,g,Y(i))))"
  (fn prems =>
@@ -262,7 +262,7 @@ val ssum_lemma12 = prove_goal Ssum3.thy
 	]);
 
 
-val ssum_lemma13 = prove_goal Ssum3.thy 
+qed_goal "ssum_lemma13" Ssum3.thy 
 "[| is_chain(Y); lub(range(Y)) = Isinr(x); ~ x = UU |] ==>\
 \   Iwhen(f,g,lub(range(Y))) = lub(range(%i. Iwhen(f,g,Y(i))))"
  (fn prems =>
@@ -326,7 +326,7 @@ val ssum_lemma13 = prove_goal Ssum3.thy
 	]);
 
 
-val contlub_Iwhen3 = prove_goal Ssum3.thy "contlub(Iwhen(f)(g))"
+qed_goal "contlub_Iwhen3" Ssum3.thy "contlub(Iwhen(f)(g))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -342,7 +342,7 @@ val contlub_Iwhen3 = prove_goal Ssum3.thy "contlub(Iwhen(f)(g))"
 	(atac 1)
 	]);
 
-val contX_Iwhen1 = prove_goal Ssum3.thy "contX(Iwhen)"
+qed_goal "contX_Iwhen1" Ssum3.thy "contX(Iwhen)"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -350,7 +350,7 @@ val contX_Iwhen1 = prove_goal Ssum3.thy "contX(Iwhen)"
 	(rtac contlub_Iwhen1 1)
 	]);
 
-val contX_Iwhen2 = prove_goal Ssum3.thy "contX(Iwhen(f))"
+qed_goal "contX_Iwhen2" Ssum3.thy "contX(Iwhen(f))"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -358,7 +358,7 @@ val contX_Iwhen2 = prove_goal Ssum3.thy "contX(Iwhen(f))"
 	(rtac contlub_Iwhen2 1)
 	]);
 
-val contX_Iwhen3 = prove_goal Ssum3.thy "contX(Iwhen(f)(g))"
+qed_goal "contX_Iwhen3" Ssum3.thy "contX(Iwhen(f)(g))"
  (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -370,21 +370,21 @@ val contX_Iwhen3 = prove_goal Ssum3.thy "contX(Iwhen(f)(g))"
 (* continuous versions of lemmas for 'a ++ 'b                               *)
 (* ------------------------------------------------------------------------ *)
 
-val strict_sinl = prove_goalw Ssum3.thy [sinl_def] "sinl[UU]=UU"
+qed_goalw "strict_sinl" Ssum3.thy [sinl_def] "sinl[UU]=UU"
  (fn prems =>
 	[
 	(simp_tac (Ssum_ss addsimps [contX_Isinl]) 1),
 	(rtac (inst_ssum_pcpo RS sym) 1)
 	]);
 
-val strict_sinr = prove_goalw Ssum3.thy [sinr_def] "sinr[UU]=UU"
+qed_goalw "strict_sinr" Ssum3.thy [sinr_def] "sinr[UU]=UU"
  (fn prems =>
 	[
 	(simp_tac (Ssum_ss addsimps [contX_Isinr]) 1),
 	(rtac (inst_ssum_pcpo RS sym) 1)
 	]);
 
-val noteq_sinlsinr = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "noteq_sinlsinr" Ssum3.thy [sinl_def,sinr_def] 
 	"sinl[a]=sinr[b] ==> a=UU & b=UU"
  (fn prems =>
 	[
@@ -395,7 +395,7 @@ val noteq_sinlsinr = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(asm_simp_tac (Ssum_ss addsimps [contX_Isinr,contX_Isinl]) 1)
 	]);
 
-val inject_sinl = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "inject_sinl" Ssum3.thy [sinl_def,sinr_def] 
 	"sinl[a1]=sinl[a2]==> a1=a2"
  (fn prems =>
 	[
@@ -406,7 +406,7 @@ val inject_sinl = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(asm_simp_tac (Ssum_ss addsimps [contX_Isinr,contX_Isinl]) 1)
 	]);
 
-val inject_sinr = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "inject_sinr" Ssum3.thy [sinl_def,sinr_def] 
 	"sinr[a1]=sinr[a2]==> a1=a2"
  (fn prems =>
 	[
@@ -418,7 +418,7 @@ val inject_sinr = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	]);
 
 
-val defined_sinl = prove_goal Ssum3.thy  
+qed_goal "defined_sinl" Ssum3.thy  
 	"~x=UU ==> ~sinl[x]=UU"
  (fn prems =>
 	[
@@ -429,7 +429,7 @@ val defined_sinl = prove_goal Ssum3.thy
 	(etac notnotD 1)
 	]);
 
-val defined_sinr = prove_goal Ssum3.thy  
+qed_goal "defined_sinr" Ssum3.thy  
 	"~x=UU ==> ~sinr[x]=UU"
  (fn prems =>
 	[
@@ -440,7 +440,7 @@ val defined_sinr = prove_goal Ssum3.thy
 	(etac notnotD 1)
 	]);
 
-val Exh_Ssum1 = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "Exh_Ssum1" Ssum3.thy [sinl_def,sinr_def] 
 	"z=UU | (? a. z=sinl[a] & ~a=UU) | (? b. z=sinr[b] & ~b=UU)"
  (fn prems =>
 	[
@@ -450,7 +450,7 @@ val Exh_Ssum1 = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	]);
 
 
-val ssumE = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "ssumE" Ssum3.thy [sinl_def,sinr_def] 
 	"[|p=UU ==> Q ;\
 \	!!x.[|p=sinl[x]; ~x=UU |] ==> Q;\
 \	!!y.[|p=sinr[y]; ~y=UU |] ==> Q|] ==> Q"
@@ -469,7 +469,7 @@ val ssumE = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	]);
 
 
-val ssumE2 = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "ssumE2" Ssum3.thy [sinl_def,sinr_def] 
       "[|!!x.[|p=sinl[x]|] ==> Q;\
 \	!!y.[|p=sinr[y]|] ==> Q|] ==> Q"
  (fn prems =>
@@ -485,7 +485,7 @@ val ssumE2 = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(atac 1)
 	]);
 
-val when1 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def] 
+qed_goalw "when1" Ssum3.thy [when_def,sinl_def,sinr_def] 
 	"when[f][g][UU] = UU"
  (fn prems =>
 	[
@@ -502,7 +502,7 @@ val when1 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def]
 	(simp_tac Ssum_ss  1)
 	]);
 
-val when2 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def] 
+qed_goalw "when2" Ssum3.thy [when_def,sinl_def,sinr_def] 
 	"~x=UU==>when[f][g][sinl[x]] = f[x]"
  (fn prems =>
 	[
@@ -524,7 +524,7 @@ val when2 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def]
 
 
 
-val when3 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def] 
+qed_goalw "when3" Ssum3.thy [when_def,sinl_def,sinr_def] 
 	"~x=UU==>when[f][g][sinr[x]] = g[x]"
  (fn prems =>
 	[
@@ -545,7 +545,7 @@ val when3 = prove_goalw Ssum3.thy [when_def,sinl_def,sinr_def]
 	]);
 
 
-val less_ssum4a = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "less_ssum4a" Ssum3.thy [sinl_def,sinr_def] 
 	"(sinl[x] << sinl[y]) = (x << y)"
  (fn prems =>
 	[
@@ -558,7 +558,7 @@ val less_ssum4a = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(rtac less_ssum3a 1)
 	]);
 
-val less_ssum4b = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "less_ssum4b" Ssum3.thy [sinl_def,sinr_def] 
 	"(sinr[x] << sinr[y]) = (x << y)"
  (fn prems =>
 	[
@@ -571,7 +571,7 @@ val less_ssum4b = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(rtac less_ssum3b 1)
 	]);
 
-val less_ssum4c = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "less_ssum4c" Ssum3.thy [sinl_def,sinr_def] 
 	"(sinl[x] << sinr[y]) = (x = UU)"
  (fn prems =>
 	[
@@ -584,7 +584,7 @@ val less_ssum4c = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(rtac less_ssum3c 1)
 	]);
 
-val less_ssum4d = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "less_ssum4d" Ssum3.thy [sinl_def,sinr_def] 
 	"(sinr[x] << sinl[y]) = (x = UU)"
  (fn prems =>
 	[
@@ -597,7 +597,7 @@ val less_ssum4d = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	(rtac less_ssum3d 1)
 	]);
 
-val ssum_chainE = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "ssum_chainE" Ssum3.thy [sinl_def,sinr_def] 
 	"is_chain(Y) ==> (!i.? x.Y(i)=sinl[x])|(!i.? y.Y(i)=sinr[y])"
  (fn prems =>
 	[
@@ -607,7 +607,7 @@ val ssum_chainE = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	]);
 
 
-val thelub_ssum2a = prove_goalw Ssum3.thy [sinl_def,sinr_def,when_def] 
+qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,when_def] 
 "[| is_chain(Y); !i.? x. Y(i) = sinl[x] |] ==>\ 
 \   lub(range(Y)) = sinl[lub(range(%i. when[LAM x. x][LAM y. UU][Y(i)]))]"
  (fn prems =>
@@ -632,7 +632,7 @@ val thelub_ssum2a = prove_goalw Ssum3.thy [sinl_def,sinr_def,when_def]
 	(asm_simp_tac (Ssum_ss addsimps [contX_Isinl]) 1)
 	]);
 
-val thelub_ssum2b = prove_goalw Ssum3.thy [sinl_def,sinr_def,when_def] 
+qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,when_def] 
 "[| is_chain(Y); !i.? x. Y(i) = sinr[x] |] ==>\ 
 \   lub(range(Y)) = sinr[lub(range(%i. when[LAM y. UU][LAM x. x][Y(i)]))]"
  (fn prems =>
@@ -663,7 +663,7 @@ val thelub_ssum2b = prove_goalw Ssum3.thy [sinl_def,sinr_def,when_def]
 	contX_Iwhen3]) 1)
 	]);
 
-val thelub_ssum2a_rev = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "thelub_ssum2a_rev" Ssum3.thy [sinl_def,sinr_def] 
 	"[| is_chain(Y); lub(range(Y)) = sinl[x]|] ==> !i.? x.Y(i)=sinl[x]"
  (fn prems =>
 	[
@@ -677,7 +677,7 @@ val thelub_ssum2a_rev = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	contX_Iwhen3]) 1)
 	]);
 
-val thelub_ssum2b_rev = prove_goalw Ssum3.thy [sinl_def,sinr_def] 
+qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def] 
 	"[| is_chain(Y); lub(range(Y)) = sinr[x]|] ==> !i.? x.Y(i)=sinr[x]"
  (fn prems =>
 	[
@@ -691,7 +691,7 @@ val thelub_ssum2b_rev = prove_goalw Ssum3.thy [sinl_def,sinr_def]
 	contX_Iwhen3]) 1)
 	]);
 
-val thelub_ssum3 = prove_goal Ssum3.thy  
+qed_goal "thelub_ssum3" Ssum3.thy  
 "is_chain(Y) ==>\ 
 \   lub(range(Y)) = sinl[lub(range(%i. when[LAM x. x][LAM y. UU][Y(i)]))]\
 \ | lub(range(Y)) = sinr[lub(range(%i. when[LAM y. UU][LAM x. x][Y(i)]))]"
@@ -709,7 +709,7 @@ val thelub_ssum3 = prove_goal Ssum3.thy
 	]);
 
 
-val when4 = prove_goal Ssum3.thy  
+qed_goal "when4" Ssum3.thy  
 	"when[sinl][sinr][z]=z"
  (fn prems =>
 	[

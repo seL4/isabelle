@@ -12,7 +12,7 @@ open Ssum2;
 (* access to less_ssum in class po                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val less_ssum3a = prove_goal Ssum2.thy 
+qed_goal "less_ssum3a" Ssum2.thy 
 	"(Isinl(x) << Isinl(y)) = (x << y)"
  (fn prems =>
 	[
@@ -20,7 +20,7 @@ val less_ssum3a = prove_goal Ssum2.thy
 	(rtac less_ssum2a 1)
 	]);
 
-val less_ssum3b = prove_goal Ssum2.thy 
+qed_goal "less_ssum3b" Ssum2.thy 
 	"(Isinr(x) << Isinr(y)) = (x << y)"
  (fn prems =>
 	[
@@ -28,7 +28,7 @@ val less_ssum3b = prove_goal Ssum2.thy
 	(rtac less_ssum2b 1)
 	]);
 
-val less_ssum3c = prove_goal Ssum2.thy 
+qed_goal "less_ssum3c" Ssum2.thy 
 	"(Isinl(x) << Isinr(y)) = (x = UU)"
  (fn prems =>
 	[
@@ -36,7 +36,7 @@ val less_ssum3c = prove_goal Ssum2.thy
 	(rtac less_ssum2c 1)
 	]);
 
-val less_ssum3d = prove_goal Ssum2.thy 
+qed_goal "less_ssum3d" Ssum2.thy 
 	"(Isinr(x) << Isinl(y)) = (x = UU)"
  (fn prems =>
 	[
@@ -49,7 +49,7 @@ val less_ssum3d = prove_goal Ssum2.thy
 (* type ssum ++ is pointed                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_ssum = prove_goal Ssum2.thy "Isinl(UU) << s"
+qed_goal "minimal_ssum" Ssum2.thy "Isinl(UU) << s"
  (fn prems =>
 	[
 	(res_inst_tac [("p","s")] IssumE2 1),
@@ -67,14 +67,14 @@ val minimal_ssum = prove_goal Ssum2.thy "Isinl(UU) << s"
 (* Isinl, Isinr are monotone                                                *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_Isinl = prove_goalw Ssum2.thy [monofun] "monofun(Isinl)"
+qed_goalw "monofun_Isinl" Ssum2.thy [monofun] "monofun(Isinl)"
  (fn prems =>
 	[
 	(strip_tac 1),
 	(etac (less_ssum3a RS iffD2) 1)
 	]);
 
-val monofun_Isinr = prove_goalw Ssum2.thy [monofun] "monofun(Isinr)"
+qed_goalw "monofun_Isinr" Ssum2.thy [monofun] "monofun(Isinr)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -87,7 +87,7 @@ val monofun_Isinr = prove_goalw Ssum2.thy [monofun] "monofun(Isinr)"
 (* ------------------------------------------------------------------------ *)
 
 
-val monofun_Iwhen1 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen)"
+qed_goalw "monofun_Iwhen1" Ssum2.thy [monofun] "monofun(Iwhen)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -103,7 +103,7 @@ val monofun_Iwhen1 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen)"
 	(asm_simp_tac Ssum_ss 1)
 	]);
 
-val monofun_Iwhen2 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen(f))"
+qed_goalw "monofun_Iwhen2" Ssum2.thy [monofun] "monofun(Iwhen(f))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -117,7 +117,7 @@ val monofun_Iwhen2 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen(f))"
 	(etac monofun_cfun_fun 1)
 	]);
 
-val monofun_Iwhen3 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
+qed_goalw "monofun_Iwhen3" Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -165,7 +165,7 @@ val monofun_Iwhen3 = prove_goalw Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
 (* ------------------------------------------------------------------------ *)
 
 
-val ssum_lemma1 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma1" Ssum2.thy 
 "[|~(!i.? x.Y(i::nat)=Isinl(x))|] ==> (? i.! x.~Y(i)=Isinl(x))"
  (fn prems =>
 	[
@@ -173,7 +173,7 @@ val ssum_lemma1 = prove_goal Ssum2.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-val ssum_lemma2 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma2" Ssum2.thy 
 "[|(? i.!x.~(Y::nat => 'a++'b)(i::nat)=Isinl(x::'a))|] ==>\
 \   (? i y. (Y::nat => 'a++'b)(i::nat)=Isinr(y::'b) & ~y=UU)"
  (fn prems =>
@@ -189,7 +189,7 @@ val ssum_lemma2 = prove_goal Ssum2.thy
 	]);
 
 
-val ssum_lemma3 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma3" Ssum2.thy 
 "[|is_chain(Y);(? i x. Y(i)=Isinr(x) & ~x=UU)|] ==> (!i.? y.Y(i)=Isinr(y))"
  (fn prems =>
 	[
@@ -227,7 +227,7 @@ val ssum_lemma3 = prove_goal Ssum2.thy
 	(atac 1)
 	]);
 
-val ssum_lemma4 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma4" Ssum2.thy 
 "is_chain(Y) ==> (!i.? x.Y(i)=Isinl(x))|(!i.? y.Y(i)=Isinr(y))"
  (fn prems =>
 	[
@@ -245,7 +245,7 @@ val ssum_lemma4 = prove_goal Ssum2.thy
 (* restricted surjectivity of Isinl                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val ssum_lemma5 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma5" Ssum2.thy 
 "z=Isinl(x)==> Isinl((Iwhen (LAM x.x) (LAM y.UU))(z)) = z"
  (fn prems =>
 	[
@@ -260,7 +260,7 @@ val ssum_lemma5 = prove_goal Ssum2.thy
 (* restricted surjectivity of Isinr                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val ssum_lemma6 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma6" Ssum2.thy 
 "z=Isinr(x)==> Isinr((Iwhen (LAM y.UU) (LAM x.x))(z)) = z"
  (fn prems =>
 	[
@@ -275,7 +275,7 @@ val ssum_lemma6 = prove_goal Ssum2.thy
 (* technical lemmas                                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val ssum_lemma7 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma7" Ssum2.thy 
 "[|Isinl(x) << z; ~x=UU|] ==> ? y.z=Isinl(y) & ~y=UU"
  (fn prems =>
 	[
@@ -293,7 +293,7 @@ val ssum_lemma7 = prove_goal Ssum2.thy
 	(atac 1)
 	]);
 
-val ssum_lemma8 = prove_goal Ssum2.thy 
+qed_goal "ssum_lemma8" Ssum2.thy 
 "[|Isinr(x) << z; ~x=UU|] ==> ? y.z=Isinr(y) & ~y=UU"
  (fn prems =>
 	[
@@ -313,7 +313,7 @@ val ssum_lemma8 = prove_goal Ssum2.thy
 (* the type 'a ++ 'b is a cpo in three steps                                *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_ssum1a = prove_goal Ssum2.thy 
+qed_goal "lub_ssum1a" Ssum2.thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinl(x))|] ==>\
 \ range(Y) <<|\
 \ Isinl(lub(range(%i.(Iwhen (LAM x.x) (LAM y.UU))(Y(i)))))"
@@ -354,7 +354,7 @@ val lub_ssum1a = prove_goal Ssum2.thy
 	]);
 
 
-val lub_ssum1b = prove_goal Ssum2.thy 
+qed_goal "lub_ssum1b" Ssum2.thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinr(x))|] ==>\
 \ range(Y) <<|\
 \ Isinr(lub(range(%i.(Iwhen (LAM y.UU) (LAM x.x))(Y(i)))))"
@@ -403,7 +403,7 @@ val thelub_ssum1b = lub_ssum1b RS thelubI;
 (* [| is_chain(?Y1); ! i. ? x. ?Y1(i) = Isinr(x) |] ==>                     *)
 (* lub(range(?Y1)) = Isinr(lub(range(%i. Iwhen(LAM y. UU,LAM x. x,?Y1(i)))))*)
 
-val cpo_ssum = prove_goal Ssum2.thy 
+qed_goal "cpo_ssum" Ssum2.thy 
 	"is_chain(Y::nat=>'a ++'b) ==> ? x.range(Y) <<|x"
  (fn prems =>
 	[

@@ -212,7 +212,7 @@ end;
 (* optimize lemmas about less_ssum                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val less_ssum2a = prove_goal Ssum1.thy 
+qed_goal "less_ssum2a" Ssum1.thy 
 	"less_ssum(Isinl(x),Isinl(y)) = (x << y)"
  (fn prems =>
 	[
@@ -221,7 +221,7 @@ val less_ssum2a = prove_goal Ssum1.thy
 	(rtac refl 1)
 	]);
 
-val less_ssum2b = prove_goal Ssum1.thy 
+qed_goal "less_ssum2b" Ssum1.thy 
 	"less_ssum(Isinr(x),Isinr(y)) = (x << y)"
  (fn prems =>
 	[
@@ -230,7 +230,7 @@ val less_ssum2b = prove_goal Ssum1.thy
 	(rtac refl 1)
 	]);
 
-val less_ssum2c = prove_goal Ssum1.thy 
+qed_goal "less_ssum2c" Ssum1.thy 
 	"less_ssum(Isinl(x),Isinr(y)) = (x = UU)"
  (fn prems =>
 	[
@@ -239,7 +239,7 @@ val less_ssum2c = prove_goal Ssum1.thy
 	(rtac refl 1)
 	]);
 
-val less_ssum2d = prove_goal Ssum1.thy 
+qed_goal "less_ssum2d" Ssum1.thy 
 	"less_ssum(Isinr(x),Isinl(y)) = (x = UU)"
  (fn prems =>
 	[
@@ -253,7 +253,7 @@ val less_ssum2d = prove_goal Ssum1.thy
 (* less_ssum is a partial order on ++                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val refl_less_ssum = prove_goal Ssum1.thy "less_ssum(p,p)"
+qed_goal "refl_less_ssum" Ssum1.thy "less_ssum(p,p)"
  (fn prems =>
 	[
 	(res_inst_tac [("p","p")] IssumE2 1),
@@ -265,7 +265,7 @@ val refl_less_ssum = prove_goal Ssum1.thy "less_ssum(p,p)"
 	(rtac refl_less 1)
 	]);
 
-val antisym_less_ssum = prove_goal Ssum1.thy 
+qed_goal "antisym_less_ssum" Ssum1.thy 
  "[|less_ssum(p1,p2);less_ssum(p2,p1)|] ==> p1=p2"
  (fn prems =>
 	[
@@ -295,7 +295,7 @@ val antisym_less_ssum = prove_goal Ssum1.thy
 	(etac (less_ssum2b RS iffD1) 1)
 	]);
 
-val trans_less_ssum = prove_goal Ssum1.thy 
+qed_goal "trans_less_ssum" Ssum1.thy 
  "[|less_ssum(p1,p2);less_ssum(p2,p3)|] ==> less_ssum(p1,p3)"
  (fn prems =>
 	[

@@ -20,14 +20,14 @@ by (contX_tacR 1);
 by (rtac monofun_cfun_arg 1);
 by (rtac monofun_cfun_arg 1);
 by (atac 1);
-val lemma3 = result();
+qed "lemma3";
 
 val prems = goal Dagstuhl.thy "scons[y][YYS] << YYS";
 by (rtac (YYS_def2 RS ssubst) 1);
 back();
 by (rtac monofun_cfun_arg 1);
 by (rtac lemma3 1);
-val lemma4 = result();
+qed "lemma4";
 
 (* val  lemma5 = lemma3 RS (lemma4 RS antisym_less) *)
 
@@ -35,7 +35,7 @@ val prems = goal Dagstuhl.thy "scons[y][YYS] = YYS";
 by (rtac antisym_less 1);
 by (rtac lemma4 1);
 by (rtac lemma3 1);
-val lemma5 = result();
+qed "lemma5";
 
 val prems = goal Dagstuhl.thy "YS = YYS";
 by (rtac stream_take_lemma 1);
@@ -46,7 +46,7 @@ by (res_inst_tac [("y1","y")] (YYS_def2 RS ssubst) 1);
 by (asm_simp_tac (HOLCF_ss addsimps stream_rews) 1);
 by (rtac (lemma5 RS sym RS subst) 1);
 by (rtac refl 1);
-val wir_moel = result();
+qed "wir_moel";
 
 (* ------------------------------------------------------------------------ *)
 (* Zweite L"osung: Bernhard M"oller                                         *)
@@ -60,7 +60,7 @@ by (rtac fix_least 1);
 by (rtac (beta_cfun RS ssubst) 1);
 by (contX_tacR 1);
 by (simp_tac (HOLCF_ss addsimps [YS_def2 RS sym]) 1);
-val lemma6 = result();
+qed "lemma6";
 
 val prems = goal Dagstuhl.thy "YS << YYS";
 by (rtac (YS_def RS ssubst) 1);
@@ -72,7 +72,7 @@ by (rtac (beta_cfun RS ssubst) 1);
 by (contX_tacR 1);
 by (res_inst_tac [("y2","y10")] (lemma5 RS sym RS ssubst) 1);
 by (etac monofun_cfun_arg 1);
-val lemma7 = result();
+qed "lemma7";
 
 val  wir_moel = lemma6 RS (lemma7 RS antisym_less);
 
@@ -90,7 +90,7 @@ back();
 by (rtac (beta_cfun RS ssubst) 1);
 by (contX_tacR 1);
 by (rtac refl 1);
-val lemma1 = result();
+qed "lemma1";
 
 val prems = goal Stream2.thy
     "(fix[ LAM z. scons[y][scons[y][z]]]) = \
@@ -101,7 +101,7 @@ back();
 by (rtac (beta_cfun RS ssubst) 1);
 by (contX_tacR 1);
 by (rtac refl 1);
-val lemma2 = result();
+qed "lemma2";
 
 val prems = goal Stream2.thy
 "fix[LAM z. scons[y][scons[y][z]]] << \
@@ -114,7 +114,7 @@ by (asm_simp_tac (HOLCF_ss addsimps stream_rews) 1);
 by (rtac monofun_cfun_arg 1);
 by (rtac monofun_cfun_arg 1);
 by (atac 1);
-val lemma3 = result();
+qed "lemma3";
 
 val prems = goal Stream2.thy
 " scons[y][fix[LAM z. scons[y][scons[y][z]]]] <<\
@@ -123,7 +123,7 @@ by (rtac (lemma2 RS ssubst) 1);
 back();
 by (rtac monofun_cfun_arg 1);
 by (rtac lemma3 1);
-val lemma4 = result();
+qed "lemma4";
 
 val prems = goal Stream2.thy
 " scons[y][fix[LAM z. scons[y][scons[y][z]]]] =\
@@ -131,7 +131,7 @@ val prems = goal Stream2.thy
 by (rtac antisym_less 1);
 by (rtac lemma4 1);
 by (rtac lemma3 1);
-val lemma5 = result();
+qed "lemma5";
 
 val prems = goal Stream2.thy
     "(fix[LAM x. scons[y][x]]) = (fix[ LAM z. scons[y][scons[y][z]]])";
@@ -143,7 +143,7 @@ by (rtac (lemma2 RS ssubst) 1);
 by (asm_simp_tac (HOLCF_ss addsimps stream_rews) 1);
 by (rtac (lemma5 RS sym RS subst) 1);
 by (rtac refl 1);
-val wir_moel = result();
+qed "wir_moel";
 
 
 

@@ -12,7 +12,7 @@ open Cfun2;
 (* access to less_cfun in class po                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val less_cfun = prove_goal Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
+qed_goal "less_cfun" Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (fn prems =>
 	[
 	(rtac (inst_cfun_po RS ssubst) 1),
@@ -24,7 +24,7 @@ val less_cfun = prove_goal Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (* Type 'a ->'b  is pointed                                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_cfun = prove_goalw Cfun2.thy [UU_cfun_def] "UU_cfun << f"
+qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 (fn prems =>
 	[
 	(rtac (less_cfun RS ssubst) 1),
@@ -40,7 +40,7 @@ val minimal_cfun = prove_goalw Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 (* contX_fapp2 ==> monofun_fapp2 & contlub_fapp2                            *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_fapp2 = prove_goal Cfun2.thy "contX(fapp(fo))"
+qed_goal "contX_fapp2" Cfun2.thy "contX(fapp(fo))"
 (fn prems =>
 	[
 	(res_inst_tac [("P","contX")] CollectD 1),
@@ -72,7 +72,7 @@ val contlub_cfun_arg = (contlub_fapp2 RS contlubE RS spec RS mp);
 (* fapp is monotone in its 'first' argument                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_fapp1 = prove_goalw Cfun2.thy [monofun] "monofun(fapp)"
+qed_goalw "monofun_fapp1" Cfun2.thy [monofun] "monofun(fapp)"
 (fn prems =>
 	[
 	(strip_tac 1),
@@ -84,7 +84,7 @@ val monofun_fapp1 = prove_goalw Cfun2.thy [monofun] "monofun(fapp)"
 (* monotonicity of application fapp in mixfix syntax [_]_                   *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_cfun_fun = prove_goal Cfun2.thy  "f1 << f2 ==> f1[x] << f2[x]"
+qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1[x] << f2[x]"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -101,7 +101,7 @@ val monofun_cfun_arg = (monofun_fapp2 RS monofunE RS spec RS spec RS mp);
 (* monotonicity of fapp in both arguments in mixfix syntax [_]_             *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_cfun = prove_goal Cfun2.thy
+qed_goal "monofun_cfun" Cfun2.thy
 	"[|f1<<f2;x1<<x2|] ==> f1[x1] << f2[x2]"
 (fn prems =>
 	[
@@ -117,7 +117,7 @@ val monofun_cfun = prove_goal Cfun2.thy
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val ch2ch_fappR = prove_goal Cfun2.thy 
+qed_goal "ch2ch_fappR" Cfun2.thy 
  "is_chain(Y) ==> is_chain(%i. f[Y(i)])"
 (fn prems =>
 	[
@@ -135,7 +135,7 @@ val ch2ch_fappL = (monofun_fapp1 RS ch2ch_MF2L);
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_cfun_mono = prove_goal Cfun2.thy 
+qed_goal "lub_cfun_mono" Cfun2.thy 
 	"is_chain(F) ==> monofun(% x.lub(range(% j.F(j)[x])))"
 (fn prems =>
 	[
@@ -151,7 +151,7 @@ val lub_cfun_mono = prove_goal Cfun2.thy
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val ex_lubcfun = prove_goal Cfun2.thy
+qed_goal "ex_lubcfun" Cfun2.thy
 	"[| is_chain(F); is_chain(Y) |] ==>\
 \		lub(range(%j. lub(range(%i. F(j)[Y(i)])))) =\
 \		lub(range(%i. lub(range(%j. F(j)[Y(i)]))))"
@@ -169,7 +169,7 @@ val ex_lubcfun = prove_goal Cfun2.thy
 (* the lub of a chain of cont. functions is continuous                      *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_lubcfun = prove_goal Cfun2.thy 
+qed_goal "contX_lubcfun" Cfun2.thy 
 	"is_chain(F) ==> contX(% x.lub(range(% j.F(j)[x])))"
 (fn prems =>
 	[
@@ -188,7 +188,7 @@ val contX_lubcfun = prove_goal Cfun2.thy
 (* type 'a -> 'b is chain complete                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_cfun = prove_goal Cfun2.thy 
+qed_goal "lub_cfun" Cfun2.thy 
   "is_chain(CCF) ==> range(CCF) <<| fabs(% x.lub(range(% i.CCF(i)[x])))"
 (fn prems =>
 	[
@@ -216,7 +216,7 @@ val thelub_cfun = (lub_cfun RS thelubI);
 is_chain(?CCF1) ==> lub(range(?CCF1)) = fabs(%x. lub(range(%i. ?CCF1(i)[x])))
 *)
 
-val cpo_cfun = prove_goal Cfun2.thy 
+qed_goal "cpo_cfun" Cfun2.thy 
   "is_chain(CCF::nat=>('a::pcpo->'b::pcpo)) ==> ? x. range(CCF) <<| x"
 (fn prems =>
 	[
@@ -230,7 +230,7 @@ val cpo_cfun = prove_goal Cfun2.thy
 (* Extensionality in 'a -> 'b                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val ext_cfun = prove_goal Cfun1.thy "(!!x. f[x] = g[x]) ==> f = g"
+qed_goal "ext_cfun" Cfun1.thy "(!!x. f[x] = g[x]) ==> f = g"
  (fn prems =>
 	[
 	(res_inst_tac [("t","f")] (Rep_Cfun_inverse RS subst) 1),
@@ -244,7 +244,7 @@ val ext_cfun = prove_goal Cfun1.thy "(!!x. f[x] = g[x]) ==> f = g"
 (* Monotonicity of fabs                                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val semi_monofun_fabs = prove_goal Cfun2.thy 
+qed_goal "semi_monofun_fabs" Cfun2.thy 
 	"[|contX(f);contX(g);f<<g|]==>fabs(f)<<fabs(g)"
  (fn prems =>
 	[
@@ -260,7 +260,7 @@ val semi_monofun_fabs = prove_goal Cfun2.thy
 (* Extenionality wrt. << in 'a -> 'b                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val less_cfun2 = prove_goal Cfun2.thy "(!!x. f[x] << g[x]) ==> f << g"
+qed_goal "less_cfun2" Cfun2.thy "(!!x. f[x] << g[x]) ==> f << g"
  (fn prems =>
 	[
 	(res_inst_tac [("t","f")] (Rep_Cfun_inverse RS subst) 1),

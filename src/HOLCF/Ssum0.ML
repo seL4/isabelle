@@ -12,7 +12,7 @@ open Ssum0;
 (* A non-emptyness result for Sssum                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val SsumIl = prove_goalw Ssum0.thy [Ssum_def] "Sinl_Rep(a):Ssum"
+qed_goalw "SsumIl" Ssum0.thy [Ssum_def] "Sinl_Rep(a):Ssum"
  (fn prems =>
 	[
 	(rtac CollectI 1),
@@ -21,7 +21,7 @@ val SsumIl = prove_goalw Ssum0.thy [Ssum_def] "Sinl_Rep(a):Ssum"
 	(rtac refl 1)
 	]);
 
-val SsumIr = prove_goalw Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
+qed_goalw "SsumIr" Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
  (fn prems =>
 	[
 	(rtac CollectI 1),
@@ -30,7 +30,7 @@ val SsumIr = prove_goalw Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
 	(rtac refl 1)
 	]);
 
-val inj_onto_Abs_Ssum = prove_goal Ssum0.thy "inj_onto(Abs_Ssum,Ssum)"
+qed_goal "inj_onto_Abs_Ssum" Ssum0.thy "inj_onto(Abs_Ssum,Ssum)"
 (fn prems =>
 	[
 	(rtac inj_onto_inverseI 1),
@@ -41,7 +41,7 @@ val inj_onto_Abs_Ssum = prove_goal Ssum0.thy "inj_onto(Abs_Ssum,Ssum)"
 (* Strictness of Sinr_Rep, Sinl_Rep and Isinl, Isinr                        *)
 (* ------------------------------------------------------------------------ *)
 
-val strict_SinlSinr_Rep = prove_goalw Ssum0.thy [Sinr_Rep_def,Sinl_Rep_def]
+qed_goalw "strict_SinlSinr_Rep" Ssum0.thy [Sinr_Rep_def,Sinl_Rep_def]
  "Sinl_Rep(UU) = Sinr_Rep(UU)"
  (fn prems =>
 	[
@@ -51,7 +51,7 @@ val strict_SinlSinr_Rep = prove_goalw Ssum0.thy [Sinr_Rep_def,Sinl_Rep_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val strict_IsinlIsinr = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
+qed_goalw "strict_IsinlIsinr" Ssum0.thy [Isinl_def,Isinr_def]
  "Isinl(UU) = Isinr(UU)"
  (fn prems =>
 	[
@@ -63,7 +63,7 @@ val strict_IsinlIsinr = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
 (* distinctness of  Sinl_Rep, Sinr_Rep and Isinl, Isinr                     *)
 (* ------------------------------------------------------------------------ *)
 
-val noteq_SinlSinr_Rep = prove_goalw Ssum0.thy [Sinl_Rep_def,Sinr_Rep_def]
+qed_goalw "noteq_SinlSinr_Rep" Ssum0.thy [Sinl_Rep_def,Sinr_Rep_def]
 	"(Sinl_Rep(a) = Sinr_Rep(b)) ==> a=UU & b=UU"
  (fn prems =>
 	[
@@ -83,7 +83,7 @@ val noteq_SinlSinr_Rep = prove_goalw Ssum0.thy [Sinl_Rep_def,Sinr_Rep_def]
 	]);
 
 
-val noteq_IsinlIsinr = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
+qed_goalw "noteq_IsinlIsinr" Ssum0.thy [Isinl_def,Isinr_def]
 	"Isinl(a)=Isinr(b) ==> a=UU & b=UU"
  (fn prems =>
 	[
@@ -100,7 +100,7 @@ val noteq_IsinlIsinr = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
 (* injectivity of Sinl_Rep, Sinr_Rep and Isinl, Isinr                       *)
 (* ------------------------------------------------------------------------ *)
 
-val inject_Sinl_Rep1 = prove_goalw Ssum0.thy [Sinl_Rep_def]
+qed_goalw "inject_Sinl_Rep1" Ssum0.thy [Sinl_Rep_def]
  "(Sinl_Rep(a) = Sinl_Rep(UU)) ==> a=UU"
  (fn prems =>
 	[
@@ -112,7 +112,7 @@ val inject_Sinl_Rep1 = prove_goalw Ssum0.thy [Sinl_Rep_def]
 	(atac 1)
 	]);
 
-val inject_Sinr_Rep1 = prove_goalw Ssum0.thy [Sinr_Rep_def]
+qed_goalw "inject_Sinr_Rep1" Ssum0.thy [Sinr_Rep_def]
  "(Sinr_Rep(b) = Sinr_Rep(UU)) ==> b=UU"
  (fn prems =>
 	[
@@ -124,7 +124,7 @@ val inject_Sinr_Rep1 = prove_goalw Ssum0.thy [Sinr_Rep_def]
 	(atac 1)
 	]);
 
-val inject_Sinl_Rep2 = prove_goalw Ssum0.thy [Sinl_Rep_def]
+qed_goalw "inject_Sinl_Rep2" Ssum0.thy [Sinl_Rep_def]
 "[|~a1=UU ; ~a2=UU ; Sinl_Rep(a1)=Sinl_Rep(a2) |] ==> a1=a2"
  (fn prems =>
 	[
@@ -134,7 +134,7 @@ val inject_Sinl_Rep2 = prove_goalw Ssum0.thy [Sinl_Rep_def]
 	(resolve_tac prems 1)
 	]);
 
-val inject_Sinr_Rep2 = prove_goalw Ssum0.thy [Sinr_Rep_def]
+qed_goalw "inject_Sinr_Rep2" Ssum0.thy [Sinr_Rep_def]
 "[|~b1=UU ; ~b2=UU ; Sinr_Rep(b1)=Sinr_Rep(b2) |] ==> b1=b2"
  (fn prems =>
 	[
@@ -144,7 +144,7 @@ val inject_Sinr_Rep2 = prove_goalw Ssum0.thy [Sinr_Rep_def]
 	(resolve_tac prems 1)
 	]);
 
-val inject_Sinl_Rep = prove_goal Ssum0.thy 
+qed_goal "inject_Sinl_Rep" Ssum0.thy 
 	"Sinl_Rep(a1)=Sinl_Rep(a2) ==> a1=a2"
  (fn prems =>
 	[
@@ -161,7 +161,7 @@ val inject_Sinl_Rep = prove_goal Ssum0.thy
 	(atac 1)
 	]);
 
-val inject_Sinr_Rep = prove_goal Ssum0.thy 
+qed_goal "inject_Sinr_Rep" Ssum0.thy 
 	"Sinr_Rep(b1)=Sinr_Rep(b2) ==> b1=b2"
  (fn prems =>
 	[
@@ -178,7 +178,7 @@ val inject_Sinr_Rep = prove_goal Ssum0.thy
 	(atac 1)
 	]);
 
-val inject_Isinl = prove_goalw Ssum0.thy [Isinl_def]
+qed_goalw "inject_Isinl" Ssum0.thy [Isinl_def]
 "Isinl(a1)=Isinl(a2)==> a1=a2"
  (fn prems =>
 	[
@@ -189,7 +189,7 @@ val inject_Isinl = prove_goalw Ssum0.thy [Isinl_def]
 	(rtac SsumIl 1)
 	]);
 
-val inject_Isinr = prove_goalw Ssum0.thy [Isinr_def]
+qed_goalw "inject_Isinr" Ssum0.thy [Isinr_def]
 "Isinr(b1)=Isinr(b2) ==> b1=b2"
  (fn prems =>
 	[
@@ -200,7 +200,7 @@ val inject_Isinr = prove_goalw Ssum0.thy [Isinr_def]
 	(rtac SsumIr 1)
 	]);
 
-val inject_Isinl_rev = prove_goal Ssum0.thy  
+qed_goal "inject_Isinl_rev" Ssum0.thy  
 "~a1=a2 ==> ~Isinl(a1) = Isinl(a2)"
  (fn prems =>
 	[
@@ -210,7 +210,7 @@ val inject_Isinl_rev = prove_goal Ssum0.thy
 	(atac 1)
 	]);
 
-val inject_Isinr_rev = prove_goal Ssum0.thy  
+qed_goal "inject_Isinr_rev" Ssum0.thy  
 "~b1=b2 ==> ~Isinr(b1) = Isinr(b2)"
  (fn prems =>
 	[
@@ -225,7 +225,7 @@ val inject_Isinr_rev = prove_goal Ssum0.thy
 (* choice of the bottom representation is arbitrary                         *)
 (* ------------------------------------------------------------------------ *)
 
-val Exh_Ssum = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
+qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
 	"z=Isinl(UU) | (? a. z=Isinl(a) & ~a=UU) | (? b. z=Isinr(b) & ~b=UU)"
  (fn prems =>
 	[
@@ -270,7 +270,7 @@ val Exh_Ssum = prove_goalw Ssum0.thy [Isinl_def,Isinr_def]
 (* elimination rules for the strict sum ++                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val IssumE = prove_goal Ssum0.thy
+qed_goal "IssumE" Ssum0.thy
 	"[|p=Isinl(UU) ==> Q ;\
 \	!!x.[|p=Isinl(x); ~x=UU |] ==> Q;\
 \	!!y.[|p=Isinr(y); ~y=UU |] ==> Q|] ==> Q"
@@ -289,7 +289,7 @@ val IssumE = prove_goal Ssum0.thy
 	(atac 1)
 	]);
 
-val IssumE2 = prove_goal Ssum0.thy 
+qed_goal "IssumE2" Ssum0.thy 
 "[| !!x. [| p = Isinl(x) |] ==> Q;   !!y. [| p = Isinr(y) |] ==> Q |] ==>Q"
  (fn prems =>
 	[
@@ -306,7 +306,7 @@ val IssumE2 = prove_goal Ssum0.thy
 (* rewrites for Iwhen                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val Iwhen1 = prove_goalw Ssum0.thy [Iwhen_def]
+qed_goalw "Iwhen1" Ssum0.thy [Iwhen_def]
 	"Iwhen(f)(g)(Isinl(UU)) = UU"
  (fn prems =>
 	[
@@ -331,7 +331,7 @@ val Iwhen1 = prove_goalw Ssum0.thy [Iwhen_def]
 	]);
 
 
-val Iwhen2 = prove_goalw Ssum0.thy [Iwhen_def]
+qed_goalw "Iwhen2" Ssum0.thy [Iwhen_def]
 	"~x=UU ==> Iwhen(f)(g)(Isinl(x)) = f[x]"
  (fn prems =>
 	[
@@ -357,7 +357,7 @@ val Iwhen2 = prove_goalw Ssum0.thy [Iwhen_def]
 	(fast_tac HOL_cs  1)
 	]);
 
-val Iwhen3 = prove_goalw Ssum0.thy [Iwhen_def]
+qed_goalw "Iwhen3" Ssum0.thy [Iwhen_def]
 	"~y=UU ==> Iwhen(f)(g)(Isinr(y)) = g[y]"
  (fn prems =>
 	[

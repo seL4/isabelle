@@ -14,7 +14,7 @@ open Porder;
 (* the reverse law of anti--symmetrie of <<                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val antisym_less_inverse = prove_goal Porder.thy "x=y ==> x << y & y << x"
+qed_goal "antisym_less_inverse" Porder.thy "x=y ==> x << y & y << x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -24,7 +24,7 @@ val antisym_less_inverse = prove_goal Porder.thy "x=y ==> x << y & y << x"
 	]);
 
 
-val box_less = prove_goal Porder.thy 
+qed_goal "box_less" Porder.thy 
 "[| a << b; c << a; b << d|] ==> c << d"
  (fn prems =>
 	[
@@ -38,7 +38,7 @@ val box_less = prove_goal Porder.thy
 (* lubs are unique                                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val unique_lub  = prove_goalw Porder.thy [is_lub, is_ub] 
+qed_goalw "unique_lub " Porder.thy [is_lub, is_ub] 
 	"[| S <<| x ; S <<| y |] ==> x=y"
 ( fn prems =>
 	[
@@ -54,7 +54,7 @@ val unique_lub  = prove_goalw Porder.thy [is_lub, is_ub]
 (* chains are monotone functions                                            *)
 (* ------------------------------------------------------------------------ *)
 
-val chain_mono = prove_goalw Porder.thy [is_chain]
+qed_goalw "chain_mono" Porder.thy [is_chain]
 	" is_chain(F) ==> x<y --> F(x)<<F(y)"
 ( fn prems =>
 	[
@@ -74,7 +74,7 @@ val chain_mono = prove_goalw Porder.thy [is_chain]
 	(atac 1)
 	]);
 
-val chain_mono3 = prove_goal  Porder.thy 
+qed_goal "chain_mono3"  Porder.thy 
 	"[| is_chain(F); x <= y |] ==> F(x) << F(y)"
  (fn prems =>
 	[
@@ -92,7 +92,7 @@ val chain_mono3 = prove_goal  Porder.thy
 (* The range of a chain is a totaly ordered     <<                           *)
 (* ------------------------------------------------------------------------ *)
 
-val chain_is_tord = prove_goalw Porder.thy [is_tord]
+qed_goalw "chain_is_tord" Porder.thy [is_tord]
 	"is_chain(F) ==> is_tord(range(F))"
 ( fn prems =>
 	[
@@ -127,22 +127,22 @@ val chain_is_tord = prove_goalw Porder.thy [is_tord]
 (* technical lemmas about lub and is_lub                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val lubI = prove_goal Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
+qed_goal "lubI" Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac (lub RS ssubst) 1),
-	(etac selectI2 1)
+	(etac selectI3 1)
 	]);
 
-val lubE = prove_goal Porder.thy " M <<| lub(M) ==>  ? x. M <<| x"
+qed_goal "lubE" Porder.thy " M <<| lub(M) ==>  ? x. M <<| x"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(etac exI 1)
 	]);
 
-val lub_eq = prove_goal Porder.thy 
+qed_goal "lub_eq" Porder.thy 
 	"(? x. M <<| x)  = M <<| lub(M)"
 (fn prems => 
 	[
@@ -152,7 +152,7 @@ val lub_eq = prove_goal Porder.thy
 	]);
 
 
-val thelubI = prove_goal  Porder.thy " M <<| l ==> lub(M) = l"
+qed_goal "thelubI"  Porder.thy " M <<| l ==> lub(M) = l"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1), 
@@ -167,7 +167,7 @@ val thelubI = prove_goal  Porder.thy " M <<| l ==> lub(M) = l"
 (* access to some definition as inference rule                              *)
 (* ------------------------------------------------------------------------ *)
 
-val is_lubE = prove_goalw  Porder.thy [is_lub]
+qed_goalw "is_lubE"  Porder.thy [is_lub]
 	"S <<| x  ==> S <| x & (! u. S <| u  --> x << u)"
 (fn prems =>
 	[
@@ -175,7 +175,7 @@ val is_lubE = prove_goalw  Porder.thy [is_lub]
 	(atac 1)
 	]);
 
-val is_lubI = prove_goalw  Porder.thy [is_lub]
+qed_goalw "is_lubI"  Porder.thy [is_lub]
 	"S <| x & (! u. S <| u  --> x << u) ==> S <<| x"
 (fn prems =>
 	[
@@ -183,14 +183,14 @@ val is_lubI = prove_goalw  Porder.thy [is_lub]
 	(atac 1)
 	]);
 
-val is_chainE = prove_goalw Porder.thy [is_chain] 
+qed_goalw "is_chainE" Porder.thy [is_chain] 
  "is_chain(F) ==> ! i. F(i) << F(Suc(i))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(atac 1)]);
 
-val is_chainI = prove_goalw Porder.thy [is_chain] 
+qed_goalw "is_chainI" Porder.thy [is_chain] 
  "! i. F(i) << F(Suc(i)) ==> is_chain(F) "
 (fn prems =>
 	[
@@ -201,7 +201,7 @@ val is_chainI = prove_goalw Porder.thy [is_chain]
 (* technical lemmas about (least) upper bounds of chains                    *)
 (* ------------------------------------------------------------------------ *)
 
-val ub_rangeE = prove_goalw  Porder.thy [is_ub]
+qed_goalw "ub_rangeE"  Porder.thy [is_ub]
 	"range(S) <| x  ==> ! i. S(i) << x"
 (fn prems =>
 	[
@@ -212,7 +212,7 @@ val ub_rangeE = prove_goalw  Porder.thy [is_ub]
 	(rtac rangeI 1)
 	]);
 
-val ub_rangeI = prove_goalw Porder.thy [is_ub]
+qed_goalw "ub_rangeI" Porder.thy [is_ub]
 	"! i. S(i) << x  ==> range(S) <| x"
 (fn prems =>
 	[
@@ -237,7 +237,7 @@ val is_lub_lub = (is_lubE RS conjunct2 RS spec RS mp);
 (* a technical argument about << on void                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val less_void = prove_goal Porder.thy "((u1::void) << u2) = (u1 = u2)"
+qed_goal "less_void" Porder.thy "((u1::void) << u2) = (u1 = u2)"
 (fn prems =>
 	[
 	(rtac (inst_void_po RS ssubst) 1),
@@ -254,7 +254,7 @@ val less_void = prove_goal Porder.thy "((u1::void) << u2) = (u1 = u2)"
 (* void is pointed. The least element is UU_void                            *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_void = prove_goal Porder.thy  	"UU_void << x"
+qed_goal "minimal_void" Porder.thy  	"UU_void << x"
 (fn prems =>
 	[
 	(rtac (inst_void_po RS ssubst) 1),
@@ -266,7 +266,7 @@ val minimal_void = prove_goal Porder.thy  	"UU_void << x"
 (* UU_void is the trivial lub of all chains in void                         *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_void = prove_goalw  Porder.thy [is_lub] "M <<| UU_void"
+qed_goalw "lub_void"  Porder.thy [is_lub] "M <<| UU_void"
 (fn prems =>
 	[
 	(rtac conjI 1),
@@ -289,7 +289,7 @@ val thelub_void = (lub_void RS thelubI);
 (* void is a cpo wrt. countable chains                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val cpo_void = prove_goal Porder.thy
+qed_goal "cpo_void" Porder.thy
 	"is_chain((S::nat=>void)) ==> ? x. range(S) <<| x "
 (fn prems =>
 	[
@@ -307,7 +307,7 @@ val cpo_void = prove_goal Porder.thy
 (* results about finite chains                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_finch1 = prove_goalw Porder.thy [max_in_chain_def]
+qed_goalw "lub_finch1" Porder.thy [max_in_chain_def]
 	"[| is_chain(C) ; max_in_chain(i,C)|] ==> range(C) <<| C(i)"
 (fn prems =>
 	[
@@ -329,19 +329,19 @@ val lub_finch1 = prove_goalw Porder.thy [max_in_chain_def]
 	(etac (ub_rangeE RS spec) 1)
 	]);	
 
-val lub_finch2 = prove_goalw Porder.thy [finite_chain_def]
+qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
 	"finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain(i,C))"
  (fn prems=>
 	[
 	(cut_facts_tac prems 1),
 	(rtac lub_finch1 1),
 	(etac conjunct1 1),
-	(rtac selectI2 1),
+	(rtac selectI3 1),
 	(etac conjunct2 1)
 	]);
 
 
-val bin_chain = prove_goal Porder.thy "x<<y ==> is_chain(%i. if(i=0,x,y))"
+qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain(%i. if(i=0,x,y))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -353,7 +353,7 @@ val bin_chain = prove_goal Porder.thy "x<<y ==> is_chain(%i. if(i=0,x,y))"
 	(rtac refl_less 1)
 	]);
 
-val bin_chainmax = prove_goalw Porder.thy [max_in_chain_def,le_def]
+qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
 	"x<<y ==> max_in_chain(Suc(0),%i. if(i=0,x,y))"
 (fn prems =>
 	[
@@ -364,7 +364,7 @@ val bin_chainmax = prove_goalw Porder.thy [max_in_chain_def,le_def]
 	(asm_simp_tac nat_ss 1)
 	]);
 
-val lub_bin_chain = prove_goal Porder.thy 
+qed_goal "lub_bin_chain" Porder.thy 
 	"x << y ==> range(%i. if(i = 0,x,y)) <<| y"
 (fn prems=>
 	[ (cut_facts_tac prems 1),
@@ -379,7 +379,7 @@ val lub_bin_chain = prove_goal Porder.thy
 (* the maximal element in a chain is its lub                                *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_chain_maxelem = prove_goal Porder.thy
+qed_goal "lub_chain_maxelem" Porder.thy
 "[|is_chain(Y);? i.Y(i)=c;!i.Y(i)<<c|] ==> lub(range(Y)) = c"
 (fn prems =>
 	[
@@ -399,7 +399,7 @@ val lub_chain_maxelem = prove_goal Porder.thy
 (* the lub of a constant chain is the constant                              *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_const = prove_goal Porder.thy "range(%x.c) <<| c"
+qed_goal "lub_const" Porder.thy "range(%x.c) <<| c"
  (fn prems =>
 	[
 	(rtac is_lubI 1),

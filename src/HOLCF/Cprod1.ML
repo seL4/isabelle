@@ -8,14 +8,14 @@ Lemmas for theory cprod1.thy
 
 open Cprod1;
 
-val less_cprod1b = prove_goalw Cprod1.thy [less_cprod_def]
+qed_goalw "less_cprod1b" Cprod1.thy [less_cprod_def]
  "less_cprod(p1,p2) = ( fst(p1) << fst(p2) & snd(p1) << snd(p2))"
  (fn prems =>
 	[
 	(rtac refl 1)
 	]);
 
-val less_cprod2a = prove_goalw Cprod1.thy [less_cprod_def]
+qed_goalw "less_cprod2a" Cprod1.thy [less_cprod_def]
  "less_cprod(<x,y>,<UU,UU>) ==> x = UU & y = UU"
  (fn prems =>
 	[
@@ -32,7 +32,7 @@ val less_cprod2a = prove_goalw Cprod1.thy [less_cprod_def]
 	(etac UU_I 1)
 	]);
 
-val less_cprod2b = prove_goal Cprod1.thy 
+qed_goal "less_cprod2b" Cprod1.thy 
  "less_cprod(p,<UU,UU>) ==> p=<UU,UU>"
  (fn prems =>
 	[
@@ -43,7 +43,7 @@ val less_cprod2b = prove_goal Cprod1.thy
 	(asm_simp_tac HOL_ss 1)
 	]);
 
-val less_cprod2c = prove_goalw Cprod1.thy [less_cprod_def]
+qed_goalw "less_cprod2c" Cprod1.thy [less_cprod_def]
  "less_cprod(<x1,y1>,<x2,y2>) ==> x1 << x2 & y1 << y2"
  (fn prems =>
 	[
@@ -64,7 +64,7 @@ val less_cprod2c = prove_goalw Cprod1.thy [less_cprod_def]
 (* less_cprod is a partial order on 'a * 'b                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val refl_less_cprod = prove_goalw Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
+qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
  (fn prems =>
 	[
 	(res_inst_tac [("p","p")] PairE 1),
@@ -73,7 +73,7 @@ val refl_less_cprod = prove_goalw Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
 	(simp_tac Cfun_ss 1)
 	]);
 
-val antisym_less_cprod = prove_goal Cprod1.thy 
+qed_goal "antisym_less_cprod" Cprod1.thy 
  "[|less_cprod(p1,p2);less_cprod(p2,p1)|] ==> p1=p2"
  (fn prems =>
 	[
@@ -91,7 +91,7 @@ val antisym_less_cprod = prove_goal Cprod1.thy
 	]);
 
 
-val trans_less_cprod = prove_goal Cprod1.thy 
+qed_goal "trans_less_cprod" Cprod1.thy 
  "[|less_cprod(p1,p2);less_cprod(p2,p3)|] ==> less_cprod(p1,p3)"
  (fn prems =>
 	[

@@ -43,7 +43,7 @@ val stream_rews =  stream_copy @ stream_rews;
 (* Exhaustion and elimination for streams                                  *)
 (* ------------------------------------------------------------------------*)
 
-val Exh_stream = prove_goalw Stream.thy [scons_def]
+qed_goalw "Exh_stream" Stream.thy [scons_def]
 	"s = UU | (? x xs. x~=UU & s = scons[x][xs])"
  (fn prems =>
 	[
@@ -61,7 +61,7 @@ val Exh_stream = prove_goalw Stream.thy [scons_def]
 	(asm_simp_tac HOLCF_ss  1)
 	]);
 
-val streamE = prove_goal Stream.thy 
+qed_goal "streamE" Stream.thy 
 	"[| s=UU ==> Q; !!x xs.[|s=scons[x][xs];x~=UU|]==>Q|]==>Q"
  (fn prems =>
 	[
@@ -269,7 +269,7 @@ val stream_rews = stream_take @ stream_rews;
 (* enhance the simplifier                                                  *)
 (* ------------------------------------------------------------------------*)
 
-val stream_copy2 = prove_goal Stream.thy 
+qed_goal "stream_copy2" Stream.thy 
      "stream_copy[f][scons[x][xs]]= scons[x][f[xs]]"
  (fn prems =>
 	[
@@ -278,7 +278,7 @@ val stream_copy2 = prove_goal Stream.thy
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]);
 
-val shd2 = prove_goal Stream.thy "shd[scons[x][xs]]=x"
+qed_goal "shd2" Stream.thy "shd[scons[x][xs]]=x"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
@@ -286,7 +286,7 @@ val shd2 = prove_goal Stream.thy "shd[scons[x][xs]]=x"
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]);
 
-val stream_take2 = prove_goal Stream.thy 
+qed_goal "stream_take2" Stream.thy 
  "stream_take(Suc(n))[scons[x][xs]]=scons[x][stream_take(n)[xs]]"
  (fn prems =>
 	[
@@ -330,7 +330,7 @@ val stream_take_lemma = prover stream_reach  [stream_take_def]
 	"(!!n.stream_take(n)[s1]=stream_take(n)[s2]) ==> s1=s2";
 
 
-val stream_reach2 = prove_goal Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
+qed_goal "stream_reach2" Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
  (fn prems =>
 	[
 	(res_inst_tac [("t","s")] (stream_reach RS subst) 1),
@@ -345,7 +345,7 @@ val stream_reach2 = prove_goal Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
 (* Co -induction for streams                                               *)
 (* ------------------------------------------------------------------------*)
 
-val stream_coind_lemma = prove_goalw Stream.thy [stream_bisim_def] 
+qed_goalw "stream_coind_lemma" Stream.thy [stream_bisim_def] 
 "stream_bisim(R) ==> ! p q.R(p,q) --> stream_take(n)[p]=stream_take(n)[q]"
  (fn prems =>
 	[
@@ -365,7 +365,7 @@ val stream_coind_lemma = prove_goalw Stream.thy [stream_bisim_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val stream_coind = prove_goal Stream.thy "[|stream_bisim(R);R(p,q)|] ==> p = q"
+qed_goal "stream_coind" Stream.thy "[|stream_bisim(R);R(p,q)|] ==> p = q"
  (fn prems =>
 	[
 	(rtac stream_take_lemma 1),
@@ -378,7 +378,7 @@ val stream_coind = prove_goal Stream.thy "[|stream_bisim(R);R(p,q)|] ==> p = q"
 (* structural induction for admissible predicates                          *)
 (* ------------------------------------------------------------------------*)
 
-val stream_finite_ind = prove_goal Stream.thy
+qed_goal "stream_finite_ind" Stream.thy
 "[|P(UU);\
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
 \  |] ==> !s.P(stream_take(n)[s])"
@@ -397,7 +397,7 @@ val stream_finite_ind = prove_goal Stream.thy
 	(etac spec 1)
 	]);
 
-val stream_finite_ind2 = prove_goalw Stream.thy  [stream_finite_def]
+qed_goalw "stream_finite_ind2" Stream.thy  [stream_finite_def]
 "(!!n.P(stream_take(n)[s])) ==>  stream_finite(s) -->P(s)"
  (fn prems =>
 	[
@@ -407,7 +407,7 @@ val stream_finite_ind2 = prove_goalw Stream.thy  [stream_finite_def]
 	(resolve_tac prems 1)
 	]);
 
-val stream_finite_ind3 = prove_goal Stream.thy 
+qed_goal "stream_finite_ind3" Stream.thy 
 "[|P(UU);\
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
 \  |] ==> stream_finite(s) --> P(s)"
@@ -423,7 +423,7 @@ val stream_finite_ind3 = prove_goal Stream.thy
    stream_reach rsp. stream_reach2 
    and finite induction stream_finite_ind *)
 
-val stream_ind = prove_goal Stream.thy
+qed_goal "stream_ind" Stream.thy
 "[|adm(P);\
 \  P(UU);\
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
@@ -443,7 +443,7 @@ val stream_ind = prove_goal Stream.thy
 	]);
 
 (* prove induction with usual LCF-Method using fixed point induction *)
-val stream_ind = prove_goal Stream.thy
+qed_goal "stream_ind" Stream.thy
 "[|adm(P);\
 \  P(UU);\
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
@@ -469,7 +469,7 @@ val stream_ind = prove_goal Stream.thy
 (* simplify use of Co-induction                                            *)
 (* ------------------------------------------------------------------------*)
 
-val surjectiv_scons = prove_goal Stream.thy "scons[shd[s]][stl[s]]=s"
+qed_goal "surjectiv_scons" Stream.thy "scons[shd[s]][stl[s]]=s"
  (fn prems =>
 	[
 	(res_inst_tac [("s","s")] streamE 1),
@@ -478,7 +478,7 @@ val surjectiv_scons = prove_goal Stream.thy "scons[shd[s]][stl[s]]=s"
 	]);
 
 
-val stream_coind_lemma2 = prove_goalw Stream.thy [stream_bisim_def]
+qed_goalw "stream_coind_lemma2" Stream.thy [stream_bisim_def]
 "!s1 s2. R(s1, s2)-->shd[s1]=shd[s2] & R(stl[s1],stl[s2]) ==>stream_bisim(R)"
  (fn prems =>
 	[
@@ -523,7 +523,7 @@ val stream_coind_lemma2 = prove_goalw Stream.thy [stream_bisim_def]
 (* 2 lemmas about stream_finite                                            *)
 (* ----------------------------------------------------------------------- *)
 
-val stream_finite_UU = prove_goalw Stream.thy [stream_finite_def]
+qed_goalw "stream_finite_UU" Stream.thy [stream_finite_def]
 	 "stream_finite(UU)"
  (fn prems =>
 	[
@@ -531,7 +531,7 @@ val stream_finite_UU = prove_goalw Stream.thy [stream_finite_def]
 	(simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]);
 
-val inf_stream_not_UU = prove_goal Stream.thy  "~stream_finite(s)  ==> s ~= UU"
+qed_goal "inf_stream_not_UU" Stream.thy  "~stream_finite(s)  ==> s ~= UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -545,7 +545,7 @@ val inf_stream_not_UU = prove_goal Stream.thy  "~stream_finite(s)  ==> s ~= UU"
 (* a lemma about shd                                                       *)
 (* ----------------------------------------------------------------------- *)
 
-val stream_shd_lemma1 = prove_goal Stream.thy "shd[s]=UU --> s=UU"
+qed_goal "stream_shd_lemma1" Stream.thy "shd[s]=UU --> s=UU"
  (fn prems =>
 	[
 	(res_inst_tac [("s","s")] streamE 1),
@@ -559,7 +559,7 @@ val stream_shd_lemma1 = prove_goal Stream.thy "shd[s]=UU --> s=UU"
 (* lemmas about stream_take                                                *)
 (* ----------------------------------------------------------------------- *)
 
-val stream_take_lemma1 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma1" Stream.thy 
  "!x xs.x~=UU --> \
 \  stream_take(Suc(n))[scons[x][xs]] = scons[x][xs] --> stream_take(n)[xs]=xs"
  (fn prems =>
@@ -576,7 +576,7 @@ val stream_take_lemma1 = prove_goal Stream.thy
 	]);
 
 
-val stream_take_lemma2 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma2" Stream.thy 
  "! s2. stream_take(n)[s2] = s2 --> stream_take(Suc(n))[s2]=s2"
  (fn prems =>
 	[
@@ -599,7 +599,7 @@ val stream_take_lemma2 = prove_goal Stream.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-val stream_take_lemma3 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma3" Stream.thy 
  "!x xs.x~=UU --> \
 \  stream_take(n)[scons[x][xs]] = scons[x][xs] --> stream_take(n)[xs]=xs"
  (fn prems =>
@@ -618,7 +618,7 @@ val stream_take_lemma3 = prove_goal Stream.thy
 	(etac (stream_take2 RS subst) 1)
 	]);
 
-val stream_take_lemma4 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma4" Stream.thy 
  "!x xs.\
 \stream_take(n)[xs]=xs --> stream_take(Suc(n))[scons[x][xs]] = scons[x][xs]"
  (fn prems =>
@@ -630,7 +630,7 @@ val stream_take_lemma4 = prove_goal Stream.thy
 
 (* ---- *)
 
-val stream_take_lemma5 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma5" Stream.thy 
 "!s. stream_take(n)[s]=s --> iterate(n,stl,s)=UU"
  (fn prems =>
 	[
@@ -651,7 +651,7 @@ val stream_take_lemma5 = prove_goal Stream.thy
 	(atac 1)
 	]);
 
-val stream_take_lemma6 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma6" Stream.thy 
 "!s.iterate(n,stl,s)=UU --> stream_take(n)[s]=s"
  (fn prems =>
 	[
@@ -668,7 +668,7 @@ val stream_take_lemma6 = prove_goal Stream.thy
 	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1)
 	]);
 
-val stream_take_lemma7 = prove_goal Stream.thy 
+qed_goal "stream_take_lemma7" Stream.thy 
 "(iterate(n,stl,s)=UU) = (stream_take(n)[s]=s)"
  (fn prems =>
 	[
@@ -678,7 +678,7 @@ val stream_take_lemma7 = prove_goal Stream.thy
 	]);
 
 
-val stream_take_lemma8 = prove_goal Stream.thy
+qed_goal "stream_take_lemma8" Stream.thy
 "[|adm(P); !n. ? m. n < m & P(stream_take(m)[s])|] ==> P(s)"
  (fn prems =>
 	[
@@ -696,7 +696,7 @@ val stream_take_lemma8 = prove_goal Stream.thy
 (* lemmas stream_finite                                                    *)
 (* ----------------------------------------------------------------------- *)
 
-val stream_finite_lemma1 = prove_goalw Stream.thy [stream_finite_def]
+qed_goalw "stream_finite_lemma1" Stream.thy [stream_finite_def]
  "stream_finite(xs) ==> stream_finite(scons[x][xs])"
  (fn prems =>
 	[
@@ -706,7 +706,7 @@ val stream_finite_lemma1 = prove_goalw Stream.thy [stream_finite_def]
 	(etac (stream_take_lemma4 RS spec RS spec RS mp) 1)
 	]);
 
-val stream_finite_lemma2 = prove_goalw Stream.thy [stream_finite_def]
+qed_goalw "stream_finite_lemma2" Stream.thy [stream_finite_def]
  "[|x~=UU; stream_finite(scons[x][xs])|] ==> stream_finite(xs)"
  (fn prems =>
 	[
@@ -717,7 +717,7 @@ val stream_finite_lemma2 = prove_goalw Stream.thy [stream_finite_def]
 	(atac 1)
 	]);
 
-val stream_finite_lemma3 = prove_goal Stream.thy 
+qed_goal "stream_finite_lemma3" Stream.thy 
  "x~=UU ==> stream_finite(scons[x][xs]) = stream_finite(xs)"
  (fn prems =>
 	[
@@ -729,7 +729,7 @@ val stream_finite_lemma3 = prove_goal Stream.thy
 	]);
 
 
-val stream_finite_lemma5 = prove_goalw Stream.thy [stream_finite_def]
+qed_goalw "stream_finite_lemma5" Stream.thy [stream_finite_def]
  "(!n. s1 << s2  --> stream_take(n)[s2] = s2 --> stream_finite(s1))\
 \=(s1 << s2  --> stream_finite(s2) --> stream_finite(s1))"
  (fn prems =>
@@ -739,7 +739,7 @@ val stream_finite_lemma5 = prove_goalw Stream.thy [stream_finite_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val stream_finite_lemma6 = prove_goal Stream.thy
+qed_goal "stream_finite_lemma6" Stream.thy
  "!s1 s2. s1 << s2  --> stream_take(n)[s2] = s2 --> stream_finite(s1)"
  (fn prems =>
 	[
@@ -781,7 +781,7 @@ val stream_finite_lemma6 = prove_goal Stream.thy
 	(atac 1)
 	]);
 
-val stream_finite_lemma7 = prove_goal Stream.thy 
+qed_goal "stream_finite_lemma7" Stream.thy 
 "s1 << s2  --> stream_finite(s2) --> stream_finite(s1)"
  (fn prems =>
 	[
@@ -790,7 +790,7 @@ val stream_finite_lemma7 = prove_goal Stream.thy
 	(rtac (stream_finite_lemma6 RS spec RS spec) 1)
 	]);
 
-val stream_finite_lemma8 = prove_goalw Stream.thy [stream_finite_def]
+qed_goalw "stream_finite_lemma8" Stream.thy [stream_finite_def]
 "stream_finite(s) = (? n. iterate(n,stl,s)=UU)"
  (fn prems =>
 	[
@@ -802,7 +802,7 @@ val stream_finite_lemma8 = prove_goalw Stream.thy [stream_finite_def]
 (* admissibility of ~stream_finite                                         *)
 (* ----------------------------------------------------------------------- *)
 
-val adm_not_stream_finite = prove_goalw Stream.thy [adm_def]
+qed_goalw "adm_not_stream_finite" Stream.thy [adm_def]
  "adm(%s. ~ stream_finite(s))"
  (fn prems =>
 	[
@@ -825,7 +825,7 @@ val adm_not_stream_finite = prove_goalw Stream.thy [adm_def]
 (* ----------------------------------------------------------------------- *)
 
 
-val adm_not_stream_finite2=prove_goal Stream.thy "adm(%s. ~ stream_finite(s))"
+qed_goal "adm_not_stream_finite" Stream.thy "adm(%s. ~ stream_finite(s))"
  (fn prems =>
 	[
 	(subgoal_tac "(!s.(~stream_finite(s))=(!n.iterate(n,stl,s)~=UU))" 1),

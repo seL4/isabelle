@@ -12,7 +12,7 @@ open Holcfb;
 (* <::nat=>nat=>bool is a well-ordering                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val well_ordering_nat = prove_goal  Nat.thy 
+qed_goal "well_ordering_nat"  Nat.thy 
 	"!P. P(x::nat) --> (? y. P(y) & (! x. P(x) --> y <= x))"
  (fn prems =>
 	[
@@ -40,7 +40,7 @@ val well_ordering_nat = prove_goal  Nat.thy
 (* Lemmas for selecting the least element in a nonempty set                 *)
 (* ------------------------------------------------------------------------ *)
 
-val theleast = prove_goalw  Holcfb.thy [theleast_def] 
+qed_goalw "theleast"  Holcfb.thy [theleast_def] 
 "P(x) ==> P(theleast(P)) & (!x.P(x)--> theleast(P) <= x)"
  (fn prems =>
 	[
@@ -54,7 +54,7 @@ val theleast = prove_goalw  Holcfb.thy [theleast_def]
 val theleast1= theleast RS conjunct1;
 (* ?P1(?x1) ==> ?P1(theleast(?P1)) *)
 
-val theleast2 = prove_goal  Holcfb.thy  "P(x) ==> theleast(P) <= x"
+qed_goal "theleast2"  Holcfb.thy  "P(x) ==> theleast(P) <= x"
  (fn prems =>
 	[
 	(rtac (theleast RS conjunct2 RS spec RS mp) 1),
@@ -68,7 +68,7 @@ val theleast2 = prove_goal  Holcfb.thy  "P(x) ==> theleast(P) <= x"
 (* ------------------------------------------------------------------------ *)
 
 
-val de_morgan1 = prove_goal HOL.thy "(~a & ~b)=(~(a | b))"
+qed_goal "de_morgan1" HOL.thy "(~a & ~b)=(~(a | b))"
 (fn prems =>
 	[
 	(rtac iffI 1),
@@ -76,24 +76,7 @@ val de_morgan1 = prove_goal HOL.thy "(~a & ~b)=(~(a | b))"
 	(fast_tac HOL_cs 1)
 	]);
 
-val de_morgan2 = prove_goal HOL.thy "(~a | ~b)=(~(a & b))"
-(fn prems =>
-	[
-	(rtac iffI 1),
-	(fast_tac HOL_cs 1),
-	(fast_tac HOL_cs 1)
-	]);
-
-
-val notall2ex = prove_goal HOL.thy "(~ (!x.P(x))) = (? x.~P(x))"
-(fn prems =>
-	[
-	(rtac iffI 1),
-	(fast_tac HOL_cs 1),
-	(fast_tac HOL_cs 1)
-	]);
-
-val notex2all = prove_goal HOL.thy "(~ (? x.P(x))) = (!x.~P(x))"
+qed_goal "de_morgan2" HOL.thy "(~a | ~b)=(~(a & b))"
 (fn prems =>
 	[
 	(rtac iffI 1),
@@ -102,7 +85,24 @@ val notex2all = prove_goal HOL.thy "(~ (? x.P(x))) = (!x.~P(x))"
 	]);
 
 
-val selectI2 = prove_goal HOL.thy "(? x. P(x)) ==> P(@ x.P(x))"
+qed_goal "notall2ex" HOL.thy "(~ (!x.P(x))) = (? x.~P(x))"
+(fn prems =>
+	[
+	(rtac iffI 1),
+	(fast_tac HOL_cs 1),
+	(fast_tac HOL_cs 1)
+	]);
+
+qed_goal "notex2all" HOL.thy "(~ (? x.P(x))) = (!x.~P(x))"
+(fn prems =>
+	[
+	(rtac iffI 1),
+	(fast_tac HOL_cs 1),
+	(fast_tac HOL_cs 1)
+	]);
+
+
+qed_goal "selectI3" HOL.thy "(? x. P(x)) ==> P(@ x.P(x))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -110,25 +110,25 @@ val selectI2 = prove_goal HOL.thy "(? x. P(x)) ==> P(@ x.P(x))"
 	(etac selectI 1)
 	]);
 
-val selectE = prove_goal HOL.thy "P(@ x.P(x)) ==> (? x. P(x))"
+qed_goal "selectE" HOL.thy "P(@ x.P(x)) ==> (? x. P(x))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(etac exI 1)
 	]);
 
-val select_eq_Ex = prove_goal HOL.thy "(P(@ x.P(x))) =  (? x. P(x))"
+qed_goal "select_eq_Ex" HOL.thy "(P(@ x.P(x))) =  (? x. P(x))"
 (fn prems =>
 	[
 	(rtac (iff RS mp  RS mp) 1),
 	(strip_tac 1),
 	(etac selectE 1),
 	(strip_tac 1),
-	(etac selectI2 1)
+	(etac selectI3 1)
 	]);
 
 
-val notnotI = prove_goal HOL.thy "P ==> ~~P"
+qed_goal "notnotI" HOL.thy "P ==> ~~P"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -136,7 +136,7 @@ val notnotI = prove_goal HOL.thy "P ==> ~~P"
 	]);
 
 
-val classical2 = prove_goal HOL.thy "[|Q ==> R; ~Q ==> R|]==>R"
+qed_goal "classical2" HOL.thy "[|Q ==> R; ~Q ==> R|]==>R"
  (fn prems =>
 	[
 	(rtac disjE 1),
@@ -151,7 +151,7 @@ val classical3 = (notE RS notI);
 (* [| ?P ==> ~ ?P1; ?P ==> ?P1 |] ==> ~ ?P *)
 
 
-val nat_less_cases = prove_goal Nat.thy 
+qed_goal "nat_less_cases" Nat.thy 
     "[| (m::nat) < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
 ( fn prems =>
 	[

@@ -12,7 +12,7 @@ open Cprod3;
 (* continuity of <_,_> , fst, snd                                           *)
 (* ------------------------------------------------------------------------ *)
 
-val Cprod3_lemma1 = prove_goal Cprod3.thy 
+qed_goal "Cprod3_lemma1" Cprod3.thy 
 "is_chain(Y::(nat=>'a)) ==>\
 \ <lub(range(Y)),(x::'b)> =\
 \ <lub(range(%i. fst(<Y(i),x>))),lub(range(%i. snd(<Y(i),x>)))>"
@@ -33,7 +33,7 @@ val Cprod3_lemma1 = prove_goal Cprod3.thy
 	(rtac (lub_const RS thelubI) 1)
 	]);
 
-val contlub_pair1 = prove_goal Cprod3.thy "contlub(Pair)"
+qed_goal "contlub_pair1" Cprod3.thy "contlub(Pair)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -49,7 +49,7 @@ val contlub_pair1 = prove_goal Cprod3.thy "contlub(Pair)"
 	(etac Cprod3_lemma1 1)
 	]);
 
-val Cprod3_lemma2 = prove_goal Cprod3.thy 
+qed_goal "Cprod3_lemma2" Cprod3.thy 
 "is_chain(Y::(nat=>'a)) ==>\
 \ <(x::'b),lub(range(Y))> =\
 \ <lub(range(%i. fst(<x,Y(i)>))),lub(range(%i. snd(<x,Y(i)>)))>"
@@ -69,7 +69,7 @@ val Cprod3_lemma2 = prove_goal Cprod3.thy
 	(simp_tac pair_ss 1)
 	]);
 
-val contlub_pair2 = prove_goal Cprod3.thy "contlub(Pair(x))"
+qed_goal "contlub_pair2" Cprod3.thy "contlub(Pair(x))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -80,7 +80,7 @@ val contlub_pair2 = prove_goal Cprod3.thy "contlub(Pair(x))"
 	(etac Cprod3_lemma2 1)
 	]);
 
-val contX_pair1 = prove_goal Cprod3.thy "contX(Pair)"
+qed_goal "contX_pair1" Cprod3.thy "contX(Pair)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -88,7 +88,7 @@ val contX_pair1 = prove_goal Cprod3.thy "contX(Pair)"
 	(rtac contlub_pair1 1)
 	]);
 
-val contX_pair2 = prove_goal Cprod3.thy "contX(Pair(x))"
+qed_goal "contX_pair2" Cprod3.thy "contX(Pair(x))"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -96,7 +96,7 @@ val contX_pair2 = prove_goal Cprod3.thy "contX(Pair(x))"
 	(rtac contlub_pair2 1)
 	]);
 
-val contlub_fst = prove_goal Cprod3.thy "contlub(fst)"
+qed_goal "contlub_fst" Cprod3.thy "contlub(fst)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -106,7 +106,7 @@ val contlub_fst = prove_goal Cprod3.thy "contlub(fst)"
 	(simp_tac pair_ss 1)
 	]);
 
-val contlub_snd = prove_goal Cprod3.thy "contlub(snd)"
+qed_goal "contlub_snd" Cprod3.thy "contlub(snd)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -116,7 +116,7 @@ val contlub_snd = prove_goal Cprod3.thy "contlub(snd)"
 	(simp_tac pair_ss 1)
 	]);
 
-val contX_fst = prove_goal Cprod3.thy "contX(fst)"
+qed_goal "contX_fst" Cprod3.thy "contX(fst)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -124,7 +124,7 @@ val contX_fst = prove_goal Cprod3.thy "contX(fst)"
 	(rtac contlub_fst 1)
 	]);
 
-val contX_snd = prove_goal Cprod3.thy "contX(snd)"
+qed_goal "contX_snd" Cprod3.thy "contX(snd)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -143,7 +143,7 @@ val contX_snd = prove_goal Cprod3.thy "contX(snd)"
 (* convert all lemmas to the continuous versions                            *)
 (* ------------------------------------------------------------------------ *)
 
-val beta_cfun_cprod = prove_goalw Cprod3.thy [cpair_def]
+qed_goalw "beta_cfun_cprod" Cprod3.thy [cpair_def]
 	"(LAM x y.<x,y>)[a][b] = <a,b>"
  (fn prems =>
 	[
@@ -157,7 +157,7 @@ val beta_cfun_cprod = prove_goalw Cprod3.thy [cpair_def]
 	(rtac refl 1)
 	]);
 
-val inject_cpair = prove_goalw Cprod3.thy [cpair_def]
+qed_goalw "inject_cpair" Cprod3.thy [cpair_def]
 	" (a#b)=(aa#ba)  ==> a=aa & b=ba"
  (fn prems =>
 	[
@@ -168,7 +168,7 @@ val inject_cpair = prove_goalw Cprod3.thy [cpair_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val inst_cprod_pcpo2 = prove_goalw Cprod3.thy [cpair_def] "UU = (UU#UU)"
+qed_goalw "inst_cprod_pcpo2" Cprod3.thy [cpair_def] "UU = (UU#UU)"
  (fn prems =>
 	[
 	(rtac sym 1),
@@ -178,7 +178,7 @@ val inst_cprod_pcpo2 = prove_goalw Cprod3.thy [cpair_def] "UU = (UU#UU)"
 	(rtac inst_cprod_pcpo 1)
 	]);
 
-val defined_cpair_rev = prove_goal Cprod3.thy
+qed_goal "defined_cpair_rev" Cprod3.thy
  "(a#b) = UU ==> a = UU & b = UU"
  (fn prems =>
 	[
@@ -187,7 +187,7 @@ val defined_cpair_rev = prove_goal Cprod3.thy
 	(etac inject_cpair 1)
 	]);
 
-val Exh_Cprod2 = prove_goalw Cprod3.thy [cpair_def]
+qed_goalw "Exh_Cprod2" Cprod3.thy [cpair_def]
 	"? a b. z=(a#b) "
  (fn prems =>
 	[
@@ -197,7 +197,7 @@ val Exh_Cprod2 = prove_goalw Cprod3.thy [cpair_def]
 	(etac (beta_cfun_cprod RS ssubst) 1)
 	]);
 
-val cprodE = prove_goalw Cprod3.thy [cpair_def]
+qed_goalw "cprodE" Cprod3.thy [cpair_def]
 "[|!!x y. [|p=(x#y) |] ==> Q|] ==> Q"
  (fn prems =>
 	[
@@ -206,7 +206,7 @@ val cprodE = prove_goalw Cprod3.thy [cpair_def]
 	(etac (beta_cfun_cprod RS ssubst) 1)
 	]);
 
-val cfst2 = prove_goalw Cprod3.thy [cfst_def,cpair_def] 
+qed_goalw "cfst2" Cprod3.thy [cfst_def,cpair_def] 
 	"cfst[x#y]=x"
  (fn prems =>
 	[
@@ -217,7 +217,7 @@ val cfst2 = prove_goalw Cprod3.thy [cfst_def,cpair_def]
 	(simp_tac pair_ss  1)
 	]);
 
-val csnd2 = prove_goalw Cprod3.thy [csnd_def,cpair_def] 
+qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def] 
 	"csnd[x#y]=y"
  (fn prems =>
 	[
@@ -228,7 +228,7 @@ val csnd2 = prove_goalw Cprod3.thy [csnd_def,cpair_def]
 	(simp_tac pair_ss  1)
 	]);
 
-val surjective_pairing_Cprod2 = prove_goalw Cprod3.thy 
+qed_goalw "surjective_pairing_Cprod2" Cprod3.thy 
 	[cfst_def,csnd_def,cpair_def] "(cfst[p] # csnd[p]) = p"
  (fn prems =>
 	[
@@ -241,7 +241,7 @@ val surjective_pairing_Cprod2 = prove_goalw Cprod3.thy
 	]);
 
 
-val less_cprod5b = prove_goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
+qed_goalw "less_cprod5b" Cprod3.thy [cfst_def,csnd_def,cpair_def]
  " (p1 << p2) = (cfst[p1]<<cfst[p2] & csnd[p1]<<csnd[p2])"
  (fn prems =>
 	[
@@ -256,7 +256,7 @@ val less_cprod5b = prove_goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
 	(rtac less_cprod3b 1)
 	]);
 
-val less_cprod5c = prove_goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
+qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
  "xa#ya << x#y ==>xa<<x & ya << y"
  (fn prems =>
 	[
@@ -268,7 +268,7 @@ val less_cprod5c = prove_goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
 	]);
 
 
-val lub_cprod2 = prove_goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
+qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
 "[|is_chain(S)|] ==> range(S) <<| \
 \ (lub(range(%i.cfst[S(i)])) # lub(range(%i.csnd[S(i)])))"
  (fn prems =>
@@ -287,7 +287,7 @@ val thelub_cprod2 = (lub_cprod2 RS thelubI);
 (*  "is_chain(?S1) ==> lub(range(?S1)) =                         *)
 (*    lub(range(%i. cfst[?S1(i)]))#lub(range(%i. csnd[?S1(i)]))" *)
 
-val csplit2 = prove_goalw Cprod3.thy [csplit_def]
+qed_goalw "csplit2" Cprod3.thy [csplit_def]
 	"csplit[f][x#y]=f[x][y]"
  (fn prems =>
 	[
@@ -297,7 +297,7 @@ val csplit2 = prove_goalw Cprod3.thy [csplit_def]
 	(simp_tac (Cfun_ss addsimps [cfst2,csnd2]) 1)
 	]);
 
-val csplit3 = prove_goalw Cprod3.thy [csplit_def]
+qed_goalw "csplit3" Cprod3.thy [csplit_def]
   "csplit[cpair][z]=z"
  (fn prems =>
 	[

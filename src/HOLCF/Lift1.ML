@@ -6,7 +6,7 @@
 
 open Lift1;
 
-val Exh_Lift = prove_goalw Lift1.thy [UU_lift_def,Iup_def ]
+qed_goalw "Exh_Lift" Lift1.thy [UU_lift_def,Iup_def ]
 	"z = UU_lift | (? x. z = Iup(x))"
  (fn prems =>
 	[
@@ -22,21 +22,21 @@ val Exh_Lift = prove_goalw Lift1.thy [UU_lift_def,Iup_def ]
 	(atac 1)
 	]);
 
-val inj_Abs_Lift = prove_goal Lift1.thy "inj(Abs_Lift)"
+qed_goal "inj_Abs_Lift" Lift1.thy "inj(Abs_Lift)"
  (fn prems =>
 	[
 	(rtac inj_inverseI 1),
 	(rtac Abs_Lift_inverse 1)
 	]);
 
-val inj_Rep_Lift = prove_goal Lift1.thy "inj(Rep_Lift)"
+qed_goal "inj_Rep_Lift" Lift1.thy "inj(Rep_Lift)"
  (fn prems =>
 	[
 	(rtac inj_inverseI 1),
 	(rtac Rep_Lift_inverse 1)
 	]);
 
-val inject_Iup = prove_goalw Lift1.thy [Iup_def] "Iup(x)=Iup(y) ==> x=y"
+qed_goalw "inject_Iup" Lift1.thy [Iup_def] "Iup(x)=Iup(y) ==> x=y"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -45,7 +45,7 @@ val inject_Iup = prove_goalw Lift1.thy [Iup_def] "Iup(x)=Iup(y) ==> x=y"
 	(atac 1)
 	]);
 
-val defined_Iup=prove_goalw Lift1.thy [Iup_def,UU_lift_def] "~ Iup(x)=UU_lift"
+qed_goalw "defined_Iup" Lift1.thy [Iup_def,UU_lift_def] "~ Iup(x)=UU_lift"
  (fn prems =>
 	[
 	(rtac notI 1),
@@ -56,7 +56,7 @@ val defined_Iup=prove_goalw Lift1.thy [Iup_def,UU_lift_def] "~ Iup(x)=UU_lift"
 	]);
 
 
-val liftE = prove_goal  Lift1.thy
+qed_goal "liftE"  Lift1.thy
 	"[| p=UU_lift ==> Q; !!x. p=Iup(x)==>Q|] ==>Q"
  (fn prems =>
 	[
@@ -66,7 +66,7 @@ val liftE = prove_goal  Lift1.thy
 	(eresolve_tac prems 1)
 	]);
 
-val Ilift1 = prove_goalw  Lift1.thy [Ilift_def,UU_lift_def]
+qed_goalw "Ilift1"  Lift1.thy [Ilift_def,UU_lift_def]
 	"Ilift(f)(UU_lift)=UU"
  (fn prems =>
 	[
@@ -75,7 +75,7 @@ val Ilift1 = prove_goalw  Lift1.thy [Ilift_def,UU_lift_def]
 	(rtac refl 1)
 	]);
 
-val Ilift2 = prove_goalw  Lift1.thy [Ilift_def,Iup_def]
+qed_goalw "Ilift2"  Lift1.thy [Ilift_def,Iup_def]
 	"Ilift(f)(Iup(x))=f[x]"
  (fn prems =>
 	[
@@ -86,7 +86,7 @@ val Ilift2 = prove_goalw  Lift1.thy [Ilift_def,Iup_def]
 
 val Lift_ss = Cfun_ss addsimps [Ilift1,Ilift2];
 
-val less_lift1a = prove_goalw  Lift1.thy [less_lift_def,UU_lift_def]
+qed_goalw "less_lift1a"  Lift1.thy [less_lift_def,UU_lift_def]
 	"less_lift(UU_lift)(z)"
  (fn prems =>
 	[
@@ -95,7 +95,7 @@ val less_lift1a = prove_goalw  Lift1.thy [less_lift_def,UU_lift_def]
 	(rtac TrueI 1)
 	]);
 
-val less_lift1b = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
+qed_goalw "less_lift1b"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	"~less_lift(Iup(x),UU_lift)"
  (fn prems =>
 	[
@@ -109,7 +109,7 @@ val less_lift1b = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	(rtac refl 1)
 	]);
 
-val less_lift1c = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
+qed_goalw "less_lift1c"  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	"less_lift(Iup(x),Iup(y))=(x<<y)"
  (fn prems =>
 	[
@@ -121,7 +121,7 @@ val less_lift1c = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	]);
 
 
-val refl_less_lift = prove_goal  Lift1.thy "less_lift(p,p)"
+qed_goal "refl_less_lift"  Lift1.thy "less_lift(p,p)"
  (fn prems =>
 	[
 	(res_inst_tac [("p","p")] liftE 1),
@@ -132,7 +132,7 @@ val refl_less_lift = prove_goal  Lift1.thy "less_lift(p,p)"
 	(rtac refl_less 1)
 	]);
 
-val antisym_less_lift = prove_goal  Lift1.thy 
+qed_goal "antisym_less_lift"  Lift1.thy 
 	"[|less_lift(p1,p2);less_lift(p2,p1)|] ==> p1=p2"
  (fn prems =>
 	[
@@ -159,7 +159,7 @@ val antisym_less_lift = prove_goal  Lift1.thy
 	(etac (less_lift1c RS iffD1) 1)
 	]);
 
-val trans_less_lift = prove_goal  Lift1.thy 
+qed_goal "trans_less_lift"  Lift1.thy 
 	"[|less_lift(p1,p2);less_lift(p2,p3)|] ==> less_lift(p1,p3)"
  (fn prems =>
 	[

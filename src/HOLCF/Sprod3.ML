@@ -12,7 +12,7 @@ open Sprod3;
 (* continuity of Ispair, Isfst, Issnd                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val sprod3_lemma1 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma1" Sprod3.thy 
 "[| is_chain(Y);  x~= UU;  lub(range(Y))~= UU |] ==>\
 \ Ispair(lub(range(Y)),x) =\
 \ Ispair(lub(range(%i. Isfst(Ispair(Y(i),x)))),\
@@ -54,7 +54,7 @@ val sprod3_lemma1 = prove_goal Sprod3.thy
 	]);
 
 
-val sprod3_lemma2 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma2" Sprod3.thy 
 "[| is_chain(Y); ~ x = UU; lub(range(Y)) = UU |] ==>\
 \   Ispair(lub(range(Y)),x) =\
 \   Ispair(lub(range(%i. Isfst(Ispair(Y(i),x)))),\
@@ -76,7 +76,7 @@ val sprod3_lemma2 = prove_goal Sprod3.thy
 	]);
 
 
-val sprod3_lemma3 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma3" Sprod3.thy 
 "[| is_chain(Y); x = UU |] ==>\
 \          Ispair(lub(range(Y)),x) =\
 \          Ispair(lub(range(%i. Isfst(Ispair(Y(i),x)))),\
@@ -96,7 +96,7 @@ val sprod3_lemma3 = prove_goal Sprod3.thy
 	]);
 
 
-val contlub_Ispair1 = prove_goal Sprod3.thy "contlub(Ispair)"
+qed_goal "contlub_Ispair1" Sprod3.thy "contlub(Ispair)"
 (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -122,7 +122,7 @@ val contlub_Ispair1 = prove_goal Sprod3.thy "contlub(Ispair)"
 	(atac 1)
 	]);
 
-val sprod3_lemma4 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma4" Sprod3.thy 
 "[| is_chain(Y); ~ x = UU; ~ lub(range(Y)) = UU |] ==>\
 \         Ispair(x,lub(range(Y))) =\
 \         Ispair(lub(range(%i. Isfst(Ispair(x,Y(i))))),\
@@ -161,7 +161,7 @@ val sprod3_lemma4 = prove_goal Sprod3.thy
 	(asm_simp_tac Sprod_ss 1)
 	]);
 
-val sprod3_lemma5 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma5" Sprod3.thy 
 "[| is_chain(Y); ~ x = UU; lub(range(Y)) = UU |] ==>\
 \         Ispair(x,lub(range(Y))) =\
 \         Ispair(lub(range(%i. Isfst(Ispair(x,Y(i))))),\
@@ -182,7 +182,7 @@ val sprod3_lemma5 = prove_goal Sprod3.thy
 	(atac 1)
 	]);
 
-val sprod3_lemma6 = prove_goal Sprod3.thy 
+qed_goal "sprod3_lemma6" Sprod3.thy 
 "[| is_chain(Y); x = UU |] ==>\
 \         Ispair(x,lub(range(Y))) =\
 \         Ispair(lub(range(%i. Isfst(Ispair(x,Y(i))))),\
@@ -201,7 +201,7 @@ val sprod3_lemma6 = prove_goal Sprod3.thy
 	(simp_tac Sprod_ss  1)
 	]);
 
-val contlub_Ispair2 = prove_goal Sprod3.thy "contlub(Ispair(x))"
+qed_goal "contlub_Ispair2" Sprod3.thy "contlub(Ispair(x))"
 (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -223,7 +223,7 @@ val contlub_Ispair2 = prove_goal Sprod3.thy "contlub(Ispair(x))"
 	]);
 
 
-val contX_Ispair1 = prove_goal Sprod3.thy "contX(Ispair)"
+qed_goal "contX_Ispair1" Sprod3.thy "contX(Ispair)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -232,7 +232,7 @@ val contX_Ispair1 = prove_goal Sprod3.thy "contX(Ispair)"
 	]);
 
 
-val contX_Ispair2 = prove_goal Sprod3.thy "contX(Ispair(x))"
+qed_goal "contX_Ispair2" Sprod3.thy "contX(Ispair(x))"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -240,7 +240,7 @@ val contX_Ispair2 = prove_goal Sprod3.thy "contX(Ispair(x))"
 	(rtac contlub_Ispair2 1)
 	]);
 
-val contlub_Isfst = prove_goal Sprod3.thy "contlub(Isfst)"
+qed_goal "contlub_Isfst" Sprod3.thy "contlub(Isfst)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -269,7 +269,7 @@ val contlub_Isfst = prove_goal Sprod3.thy "contlub(Isfst)"
 	]);
 
 
-val contlub_Issnd = prove_goal Sprod3.thy "contlub(Issnd)"
+qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
 (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -297,7 +297,7 @@ val contlub_Issnd = prove_goal Sprod3.thy "contlub(Issnd)"
 	]);
 
 
-val contX_Isfst = prove_goal Sprod3.thy "contX(Isfst)"
+qed_goal "contX_Isfst" Sprod3.thy "contX(Isfst)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -305,7 +305,7 @@ val contX_Isfst = prove_goal Sprod3.thy "contX(Isfst)"
 	(rtac contlub_Isfst 1)
 	]);
 
-val contX_Issnd = prove_goal Sprod3.thy "contX(Issnd)"
+qed_goal "contX_Issnd" Sprod3.thy "contX(Issnd)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -320,7 +320,7 @@ val contX_Issnd = prove_goal Sprod3.thy "contX(Issnd)"
  -------------------------------------------------------------------------- 
 *)
 
-val spair_eq = prove_goal Sprod3.thy "[|x1=x2;y1=y2|] ==> x1##y1 = x2##y2"
+qed_goal "spair_eq" Sprod3.thy "[|x1=x2;y1=y2|] ==> x1##y1 = x2##y2"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -331,7 +331,7 @@ val spair_eq = prove_goal Sprod3.thy "[|x1=x2;y1=y2|] ==> x1##y1 = x2##y2"
 (* convert all lemmas to the continuous versions                            *)
 (* ------------------------------------------------------------------------ *)
 
-val beta_cfun_sprod = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "beta_cfun_sprod" Sprod3.thy [spair_def]
 	"(LAM x y.Ispair(x,y))[a][b] = Ispair(a,b)"
  (fn prems =>
 	[
@@ -345,7 +345,7 @@ val beta_cfun_sprod = prove_goalw Sprod3.thy [spair_def]
 	(rtac refl 1)
 	]);
 
-val inject_spair = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "inject_spair" Sprod3.thy [spair_def]
 	"[|~aa=UU ; ~ba=UU ; (a##b)=(aa##ba) |] ==> a=aa & b=ba"
  (fn prems =>
 	[
@@ -357,7 +357,7 @@ val inject_spair = prove_goalw Sprod3.thy [spair_def]
 	(rtac beta_cfun_sprod 1)
 	]);
 
-val inst_sprod_pcpo2 = prove_goalw Sprod3.thy [spair_def] "UU = (UU##UU)"
+qed_goalw "inst_sprod_pcpo2" Sprod3.thy [spair_def] "UU = (UU##UU)"
  (fn prems =>
 	[
 	(rtac sym 1),
@@ -367,7 +367,7 @@ val inst_sprod_pcpo2 = prove_goalw Sprod3.thy [spair_def] "UU = (UU##UU)"
 	(rtac inst_sprod_pcpo 1)
 	]);
 
-val strict_spair = prove_goalw Sprod3.thy [spair_def] 
+qed_goalw "strict_spair" Sprod3.thy [spair_def] 
 	"(a=UU | b=UU) ==> (a##b)=UU"
  (fn prems =>
 	[
@@ -379,7 +379,7 @@ val strict_spair = prove_goalw Sprod3.thy [spair_def]
 	(etac strict_Ispair 1)
 	]);
 
-val strict_spair1 = prove_goalw Sprod3.thy [spair_def] "(UU##b) = UU"
+qed_goalw "strict_spair1" Sprod3.thy [spair_def] "(UU##b) = UU"
  (fn prems =>
 	[
 	(rtac (beta_cfun_sprod RS ssubst) 1),
@@ -388,7 +388,7 @@ val strict_spair1 = prove_goalw Sprod3.thy [spair_def] "(UU##b) = UU"
 	(rtac strict_Ispair1 1)
 	]);
 
-val strict_spair2 = prove_goalw Sprod3.thy [spair_def] "(a##UU) = UU"
+qed_goalw "strict_spair2" Sprod3.thy [spair_def] "(a##UU) = UU"
  (fn prems =>
 	[
 	(rtac (beta_cfun_sprod RS ssubst) 1),
@@ -397,7 +397,7 @@ val strict_spair2 = prove_goalw Sprod3.thy [spair_def] "(a##UU) = UU"
 	(rtac strict_Ispair2 1)
 	]);
 
-val strict_spair_rev = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "strict_spair_rev" Sprod3.thy [spair_def]
 	"~(x##y)=UU ==> ~x=UU & ~y=UU"
  (fn prems =>
 	[
@@ -408,7 +408,7 @@ val strict_spair_rev = prove_goalw Sprod3.thy [spair_def]
 	(atac 1)
 	]);
 
-val defined_spair_rev = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "defined_spair_rev" Sprod3.thy [spair_def]
  "(a##b) = UU ==> (a = UU | b = UU)"
  (fn prems =>
 	[
@@ -419,7 +419,7 @@ val defined_spair_rev = prove_goalw Sprod3.thy [spair_def]
 	(atac 1)
 	]);
 
-val defined_spair = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "defined_spair" Sprod3.thy [spair_def]
 	"[|~a=UU; ~b=UU|] ==> ~(a##b) = UU"
  (fn prems =>
 	[
@@ -430,7 +430,7 @@ val defined_spair = prove_goalw Sprod3.thy [spair_def]
 	(atac 1)
 	]);
 
-val Exh_Sprod2 = prove_goalw Sprod3.thy [spair_def]
+qed_goalw "Exh_Sprod2" Sprod3.thy [spair_def]
 	"z=UU | (? a b. z=(a##b) & ~a=UU & ~b=UU)"
  (fn prems =>
 	[
@@ -450,7 +450,7 @@ val Exh_Sprod2 = prove_goalw Sprod3.thy [spair_def]
 	]);
 
 
-val sprodE =  prove_goalw Sprod3.thy [spair_def]
+qed_goalw "sprodE" Sprod3.thy [spair_def]
 "[|p=UU ==> Q;!!x y. [|p=(x##y);~x=UU ; ~y=UU|] ==> Q|] ==> Q"
 (fn prems =>
 	[
@@ -466,7 +466,7 @@ val sprodE =  prove_goalw Sprod3.thy [spair_def]
 	]);
 
 
-val strict_sfst = prove_goalw Sprod3.thy [sfst_def] 
+qed_goalw "strict_sfst" Sprod3.thy [sfst_def] 
 	"p=UU==>sfst[p]=UU"
  (fn prems =>
 	[
@@ -478,7 +478,7 @@ val strict_sfst = prove_goalw Sprod3.thy [sfst_def]
 	(atac 1)
 	]);
 
-val strict_sfst1 = prove_goalw Sprod3.thy [sfst_def,spair_def] 
+qed_goalw "strict_sfst1" Sprod3.thy [sfst_def,spair_def] 
 	"sfst[UU##y] = UU"
  (fn prems =>
 	[
@@ -488,7 +488,7 @@ val strict_sfst1 = prove_goalw Sprod3.thy [sfst_def,spair_def]
 	(rtac strict_Isfst1 1)
 	]);
  
-val strict_sfst2 = prove_goalw Sprod3.thy [sfst_def,spair_def] 
+qed_goalw "strict_sfst2" Sprod3.thy [sfst_def,spair_def] 
 	"sfst[x##UU] = UU"
  (fn prems =>
 	[
@@ -498,7 +498,7 @@ val strict_sfst2 = prove_goalw Sprod3.thy [sfst_def,spair_def]
 	(rtac strict_Isfst2 1)
 	]);
 
-val strict_ssnd = prove_goalw Sprod3.thy [ssnd_def] 
+qed_goalw "strict_ssnd" Sprod3.thy [ssnd_def] 
 	"p=UU==>ssnd[p]=UU"
  (fn prems =>
 	[
@@ -510,7 +510,7 @@ val strict_ssnd = prove_goalw Sprod3.thy [ssnd_def]
 	(atac 1)
 	]);
 
-val strict_ssnd1 = prove_goalw Sprod3.thy [ssnd_def,spair_def] 
+qed_goalw "strict_ssnd1" Sprod3.thy [ssnd_def,spair_def] 
 	"ssnd[UU##y] = UU"
  (fn prems =>
 	[
@@ -520,7 +520,7 @@ val strict_ssnd1 = prove_goalw Sprod3.thy [ssnd_def,spair_def]
 	(rtac strict_Issnd1 1)
 	]);
 
-val strict_ssnd2 = prove_goalw Sprod3.thy [ssnd_def,spair_def] 
+qed_goalw "strict_ssnd2" Sprod3.thy [ssnd_def,spair_def] 
 	"ssnd[x##UU] = UU"
  (fn prems =>
 	[
@@ -530,7 +530,7 @@ val strict_ssnd2 = prove_goalw Sprod3.thy [ssnd_def,spair_def]
 	(rtac strict_Issnd2 1)
 	]);
 
-val sfst2 = prove_goalw Sprod3.thy [sfst_def,spair_def] 
+qed_goalw "sfst2" Sprod3.thy [sfst_def,spair_def] 
 	"~y=UU ==>sfst[x##y]=x"
  (fn prems =>
 	[
@@ -541,7 +541,7 @@ val sfst2 = prove_goalw Sprod3.thy [sfst_def,spair_def]
 	(etac Isfst2 1)
 	]);
 
-val ssnd2 = prove_goalw Sprod3.thy [ssnd_def,spair_def] 
+qed_goalw "ssnd2" Sprod3.thy [ssnd_def,spair_def] 
 	"~x=UU ==>ssnd[x##y]=y"
  (fn prems =>
 	[
@@ -553,7 +553,7 @@ val ssnd2 = prove_goalw Sprod3.thy [ssnd_def,spair_def]
 	]);
 
 
-val defined_sfstssnd = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
+qed_goalw "defined_sfstssnd" Sprod3.thy [sfst_def,ssnd_def,spair_def]
 	"~p=UU ==> ~sfst[p]=UU & ~ssnd[p]=UU"
  (fn prems =>
 	[
@@ -568,7 +568,7 @@ val defined_sfstssnd = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
 	]);
  
 
-val surjective_pairing_Sprod2 = prove_goalw Sprod3.thy 
+qed_goalw "surjective_pairing_Sprod2" Sprod3.thy 
 	[sfst_def,ssnd_def,spair_def] "(sfst[p] ## ssnd[p]) = p"
  (fn prems =>
 	[
@@ -581,7 +581,7 @@ val surjective_pairing_Sprod2 = prove_goalw Sprod3.thy
 	]);
 
 
-val less_sprod5b = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
+qed_goalw "less_sprod5b" Sprod3.thy [sfst_def,ssnd_def,spair_def]
  "~p1=UU ==> (p1<<p2) = (sfst[p1]<<sfst[p2] & ssnd[p1]<<ssnd[p2])"
  (fn prems =>
 	[
@@ -600,7 +600,7 @@ val less_sprod5b = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
 	]);
 
  
-val less_sprod5c = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
+qed_goalw "less_sprod5c" Sprod3.thy [sfst_def,ssnd_def,spair_def]
  "[|xa##ya<<x##y;~xa=UU;~ya=UU;~x=UU;~y=UU|] ==>xa<<x & ya << y"
  (fn prems =>
 	[
@@ -612,7 +612,7 @@ val less_sprod5c = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
 	(atac 1)
 	]);
 
-val lub_sprod2 = prove_goalw Sprod3.thy [sfst_def,ssnd_def,spair_def]
+qed_goalw "lub_sprod2" Sprod3.thy [sfst_def,ssnd_def,spair_def]
 "[|is_chain(S)|] ==> range(S) <<| \
 \ (lub(range(%i.sfst[S(i)])) ## lub(range(%i.ssnd[S(i)])))"
  (fn prems =>
@@ -634,7 +634,7 @@ val thelub_sprod2 = (lub_sprod2 RS thelubI);
 
 
 
-val ssplit1 = prove_goalw Sprod3.thy [ssplit_def]
+qed_goalw "ssplit1" Sprod3.thy [ssplit_def]
 	"ssplit[f][UU]=UU"
  (fn prems =>
 	[
@@ -644,7 +644,7 @@ val ssplit1 = prove_goalw Sprod3.thy [ssplit_def]
 	(rtac refl 1)
 	]);
 
-val ssplit2 = prove_goalw Sprod3.thy [ssplit_def]
+qed_goalw "ssplit2" Sprod3.thy [ssplit_def]
 	"[|~x=UU;~y=UU|] ==> ssplit[f][x##y]=f[x][y]"
  (fn prems =>
 	[
@@ -664,7 +664,7 @@ val ssplit2 = prove_goalw Sprod3.thy [ssplit_def]
 	]);
 
 
-val ssplit3 = prove_goalw Sprod3.thy [ssplit_def]
+qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
   "ssplit[spair][z]=z"
  (fn prems =>
 	[

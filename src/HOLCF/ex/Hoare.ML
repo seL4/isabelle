@@ -8,7 +8,7 @@ open Hoare;
 
 (* --------- pure HOLCF logic, some little lemmas ------ *)
 
-val hoare_lemma2 = prove_goal HOLCF.thy "~b=TT ==> b=FF | b=UU"
+qed_goal "hoare_lemma2" HOLCF.thy "~b=TT ==> b=FF | b=UU"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -19,14 +19,14 @@ val hoare_lemma2 = prove_goal HOLCF.thy "~b=TT ==> b=FF | b=UU"
 	(fast_tac HOL_cs 1)
 	]);
 
-val hoare_lemma3 = prove_goal HOLCF.thy 
+qed_goal "hoare_lemma3" HOLCF.thy 
 " (!k.b1[iterate(k,g,x)]=TT) | (? k.~ b1[iterate(k,g,x)]=TT)"
  (fn prems =>
 	[
 	(fast_tac HOL_cs 1)
 	]);
 
-val hoare_lemma4 = prove_goal HOLCF.thy 
+qed_goal "hoare_lemma4" HOLCF.thy 
 "(? k.~ b1[iterate(k,g,x)]=TT) ==> \
 \ ? k.b1[iterate(k,g,x)]=FF | b1[iterate(k,g,x)]=UU"
  (fn prems =>
@@ -38,7 +38,7 @@ val hoare_lemma4 = prove_goal HOLCF.thy
 	(atac 1)
 	]);
 
-val hoare_lemma5 = prove_goal HOLCF.thy 
+qed_goal "hoare_lemma5" HOLCF.thy 
 "[|(? k.~ b1[iterate(k,g,x)]=TT);\
 \   k=theleast(%n.~ b1[iterate(n,g,x)]=TT)|] ==> \
 \ b1[iterate(k,g,x)]=FF | b1[iterate(k,g,x)]=UU"
@@ -51,7 +51,7 @@ val hoare_lemma5 = prove_goal HOLCF.thy
 	(etac theleast1 1)
 	]);
 
-val hoare_lemma6 = prove_goal HOLCF.thy "b=UU ==> ~b=TT"
+qed_goal "hoare_lemma6" HOLCF.thy "b=UU ==> ~b=TT"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -59,7 +59,7 @@ val hoare_lemma6 = prove_goal HOLCF.thy "b=UU ==> ~b=TT"
 	(resolve_tac dist_eq_tr 1)
 	]);
 
-val hoare_lemma7 = prove_goal HOLCF.thy "b=FF ==> ~b=TT"
+qed_goal "hoare_lemma7" HOLCF.thy "b=FF ==> ~b=TT"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -67,7 +67,7 @@ val hoare_lemma7 = prove_goal HOLCF.thy "b=FF ==> ~b=TT"
 	(resolve_tac dist_eq_tr 1)
 	]);
 
-val hoare_lemma8 = prove_goal HOLCF.thy 
+qed_goal "hoare_lemma8" HOLCF.thy 
 "[|(? k.~ b1[iterate(k,g,x)]=TT);\
 \   k=theleast(%n.~ b1[iterate(n,g,x)]=TT)|] ==> \
 \ !m. m<k --> b1[iterate(m,g,x)]=TT"
@@ -89,7 +89,7 @@ val hoare_lemma8 = prove_goal HOLCF.thy
 	(etac hoare_lemma7 1)
 	]);
 
-val hoare_lemma28 = prove_goal HOLCF.thy 
+qed_goal "hoare_lemma28" HOLCF.thy 
 "b1[y::'a]=(UU::tr) ==> b1[UU] = UU"
  (fn prems =>
 	[
@@ -102,14 +102,14 @@ val hoare_lemma28 = prove_goal HOLCF.thy
 
 (* ----- access to definitions ----- *)
 
-val p_def2 = prove_goalw Hoare.thy [p_def]
+qed_goalw "p_def2" Hoare.thy [p_def]
 "p = fix[LAM f x. If b1[x] then f[g[x]] else x fi]"
  (fn prems =>
 	[
 	(rtac refl 1)
 	]);
 
-val q_def2 = prove_goalw Hoare.thy [q_def]
+qed_goalw "q_def2" Hoare.thy [q_def]
 "q = fix[LAM f x. If b1[x] orelse b2[x] then \
 \     f[g[x]] else x fi]"
  (fn prems =>
@@ -118,7 +118,7 @@ val q_def2 = prove_goalw Hoare.thy [q_def]
 	]);
 
 
-val p_def3 = prove_goal Hoare.thy 
+qed_goal "p_def3" Hoare.thy 
 "p[x] = If b1[x] then p[g[x]] else x fi"
  (fn prems =>
 	[
@@ -126,7 +126,7 @@ val p_def3 = prove_goal Hoare.thy
 	(simp_tac HOLCF_ss 1)
 	]);
 
-val q_def3 = prove_goal Hoare.thy 
+qed_goal "q_def3" Hoare.thy 
 "q[x] = If b1[x] orelse b2[x] then q[g[x]] else x fi"
  (fn prems =>
 	[
@@ -136,7 +136,7 @@ val q_def3 = prove_goal Hoare.thy
 
 (** --------- proves about iterations of p and q ---------- **)
 
-val hoare_lemma9 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma9" Hoare.thy 
 "(! m. m<Suc(k) --> b1[iterate(m,g,x)]=TT) -->\
 \  p[iterate(k,g,x)]=p[x]"
  (fn prems =>
@@ -161,7 +161,7 @@ val hoare_lemma9 = prove_goal Hoare.thy
 	(simp_tac nat_ss 1)
 	]);
 
-val hoare_lemma24 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma24" Hoare.thy 
 "(! m. m<Suc(k) --> b1[iterate(m,g,x)]=TT) --> \
 \ q[iterate(k,g,x)]=q[x]"
  (fn prems =>
@@ -196,7 +196,7 @@ val hoare_lemma10 = (hoare_lemma8 RS (hoare_lemma9 RS mp));
 p[iterate(?k3,g,?x1)] = p[?x1]
 *)
 
-val hoare_lemma11 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma11" Hoare.thy 
 "(? n.b1[iterate(n,g,x)]~=TT) ==>\
 \ k=theleast(%n.b1[iterate(n,g,x)]~=TT) & b1[iterate(k,g,x)]=FF \
 \ --> p[x] = iterate(k,g,x)"
@@ -235,7 +235,7 @@ val hoare_lemma11 = prove_goal Hoare.thy
 	(simp_tac HOLCF_ss 1)
 	]);
 
-val hoare_lemma12 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma12" Hoare.thy 
 "(? n.~ b1[iterate(n,g,x)]=TT) ==>\
 \ k=theleast(%n.~ b1[iterate(n,g,x)]=TT) & b1[iterate(k,g,x)]=UU \
 \ --> p[x] = UU"
@@ -273,7 +273,7 @@ val hoare_lemma12 = prove_goal Hoare.thy
 
 (* -------- results about p for case  (! k. b1[iterate(k,g,x)]=TT) ------- *)
 
-val fernpass_lemma = prove_goal Hoare.thy 
+qed_goal "fernpass_lemma" Hoare.thy 
 "(! k. b1[iterate(k,g,x)]=TT) ==> !k.p[iterate(k,g,x)] = UU"
  (fn prems =>
 	[
@@ -296,7 +296,7 @@ val fernpass_lemma = prove_goal Hoare.thy
 	(etac spec 1)
 	]);
 
-val hoare_lemma16 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma16" Hoare.thy 
 "(! k. b1[iterate(k,g,x)]=TT) ==> p[x] = UU"
  (fn prems =>
 	[
@@ -307,7 +307,7 @@ val hoare_lemma16 = prove_goal Hoare.thy
 
 (* -------- results about q for case  (! k. b1[iterate(k,g,x)]=TT) ------- *)
 
-val hoare_lemma17 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma17" Hoare.thy 
 "(! k. b1[iterate(k,g,x)]=TT) ==> !k.q[iterate(k,g,x)] = UU"
  (fn prems =>
 	[
@@ -330,7 +330,7 @@ val hoare_lemma17 = prove_goal Hoare.thy
 	(etac spec 1)
 	]);
 
-val hoare_lemma18 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma18" Hoare.thy 
 "(! k. b1[iterate(k,g,x)]=TT) ==> q[x] = UU"
  (fn prems =>
 	[
@@ -339,7 +339,7 @@ val hoare_lemma18 = prove_goal Hoare.thy
 	(etac (hoare_lemma17 RS spec) 1)
 	]);
 
-val hoare_lemma19 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma19" Hoare.thy 
 "(!k. (b1::'a->tr)[iterate(k,g,x)]=TT) ==> b1[UU::'a] = UU | (!y.b1[y::'a]=TT)"
  (fn prems =>
 	[
@@ -349,7 +349,7 @@ val hoare_lemma19 = prove_goal Hoare.thy
 	(etac spec 1)
 	]);
 
-val hoare_lemma20 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma20" Hoare.thy 
 "(! y. b1[y::'a]=TT) ==> !k.q[iterate(k,g,x::'a)] = UU"
  (fn prems =>
 	[
@@ -372,7 +372,7 @@ val hoare_lemma20 = prove_goal Hoare.thy
 	(etac spec 1)
 	]);
 
-val hoare_lemma21 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma21" Hoare.thy 
 "(! y. b1[y::'a]=TT) ==> q[x::'a] = UU"
  (fn prems =>
 	[
@@ -381,7 +381,7 @@ val hoare_lemma21 = prove_goal Hoare.thy
 	(etac (hoare_lemma20 RS spec) 1)
 	]);
 
-val hoare_lemma22 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma22" Hoare.thy 
 "b1[UU::'a]=UU ==> q[UU::'a] = UU"
  (fn prems =>
 	[
@@ -399,7 +399,7 @@ val hoare_lemma25 = (hoare_lemma8 RS (hoare_lemma24 RS mp) );
 q[iterate(?k3,?g1,?x1)] = q[?x1]
 *)
 
-val hoare_lemma26 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma26" Hoare.thy 
 "(? n.~ b1[iterate(n,g,x)]=TT) ==>\
 \ k=theleast(%n.~ b1[iterate(n,g,x)]=TT) & b1[iterate(k,g,x)]=FF \
 \ --> q[x] = q[iterate(k,g,x)]"
@@ -428,7 +428,7 @@ val hoare_lemma26 = prove_goal Hoare.thy
 	]);
 
 
-val hoare_lemma27 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma27" Hoare.thy 
 "(? n.~ b1[iterate(n,g,x)]=TT) ==>\
 \ k=theleast(%n.~ b1[iterate(n,g,x)]=TT) & b1[iterate(k,g,x)]=UU \
 \ --> q[x] = UU"
@@ -465,7 +465,7 @@ val hoare_lemma27 = prove_goal Hoare.thy
 
 (* ------- (! k. b1[iterate(k,g,x)]=TT) ==> q o p = q   ----- *)
 
-val hoare_lemma23 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma23" Hoare.thy 
 "(! k. b1[iterate(k,g,x)]=TT) ==> q[p[x]] = q[x]"
  (fn prems =>
 	[
@@ -488,7 +488,7 @@ val hoare_lemma23 = prove_goal Hoare.thy
 
 (* ------------  ? k. ~ b1[iterate(k,g,x)] = TT ==> q o p = q   ----- *)
 
-val hoare_lemma29 = prove_goal Hoare.thy 
+qed_goal "hoare_lemma29" Hoare.thy 
 "? k. ~ b1[iterate(k,g,x)] = TT ==> q[p[x]] = q[x]"
  (fn prems =>
 	[
@@ -527,7 +527,7 @@ val hoare_lemma29 = prove_goal Hoare.thy
 
 (* ------ the main prove q o p = q ------ *)
 
-val hoare_main = prove_goal Hoare.thy "q oo p = q"
+qed_goal "hoare_main" Hoare.thy "q oo p = q"
  (fn prems =>
 	[
 	(rtac ext_cfun 1),

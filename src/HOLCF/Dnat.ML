@@ -44,7 +44,7 @@ val dnat_rews =  dnat_copy @ dnat_rews;
 (* Exhaustion and elimination for dnat                                     *)
 (* ------------------------------------------------------------------------*)
 
-val Exh_dnat = prove_goalw Dnat.thy [dsucc_def,dzero_def]
+qed_goalw "Exh_dnat" Dnat.thy [dsucc_def,dzero_def]
 	"n = UU | n = dzero | (? x . x~=UU & n = dsucc[x])"
  (fn prems =>
 	[
@@ -63,7 +63,7 @@ val Exh_dnat = prove_goalw Dnat.thy [dsucc_def,dzero_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val dnatE = prove_goal Dnat.thy 
+qed_goal "dnatE" Dnat.thy 
  "[| n=UU ==> Q; n=dzero ==> Q; !!x.[|n=dsucc[x];x~=UU|]==>Q|]==>Q"
  (fn prems =>
 	[
@@ -359,7 +359,7 @@ val dnat_take_lemma = prover dnat_reach  [dnat_take_def]
 (* Co -induction for dnats                                                 *)
 (* ------------------------------------------------------------------------*)
 
-val dnat_coind_lemma = prove_goalw Dnat.thy [dnat_bisim_def] 
+qed_goalw "dnat_coind_lemma" Dnat.thy [dnat_bisim_def] 
 "dnat_bisim(R) ==> ! p q.R(p,q) --> dnat_take(n)[p]=dnat_take(n)[q]"
  (fn prems =>
 	[
@@ -380,7 +380,7 @@ val dnat_coind_lemma = prove_goalw Dnat.thy [dnat_bisim_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val dnat_coind = prove_goal Dnat.thy "[|dnat_bisim(R);R(p,q)|] ==> p = q"
+qed_goal "dnat_coind" Dnat.thy "[|dnat_bisim(R);R(p,q)|] ==> p = q"
  (fn prems =>
 	[
 	(rtac dnat_take_lemma 1),
@@ -395,7 +395,7 @@ val dnat_coind = prove_goal Dnat.thy "[|dnat_bisim(R);R(p,q)|] ==> p = q"
 (* ------------------------------------------------------------------------*)
 
 (* not needed any longer
-val dnat_ind = prove_goal Dnat.thy
+qed_goal "dnat_ind" Dnat.thy
 "[| adm(P);\
 \   P(UU);\
 \   P(dzero);\
@@ -426,7 +426,7 @@ val dnat_ind = prove_goal Dnat.thy
 	]);
 *)
 
-val dnat_finite_ind = prove_goal Dnat.thy
+qed_goal "dnat_finite_ind" Dnat.thy
 "[|P(UU);P(dzero);\
 \  !! s1.[|s1~=UU;P(s1)|] ==> P(dsucc[s1])\
 \  |] ==> !s.P(dnat_take(n)[s])"
@@ -450,7 +450,7 @@ val dnat_finite_ind = prove_goal Dnat.thy
 	(etac spec 1)
 	]);
 
-val dnat_all_finite_lemma1 = prove_goal Dnat.thy
+qed_goal "dnat_all_finite_lemma1" Dnat.thy
 "!s.dnat_take(n)[s]=UU |dnat_take(n)[s]=s"
  (fn prems =>
 	[
@@ -467,7 +467,7 @@ val dnat_all_finite_lemma1 = prove_goal Dnat.thy
 	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
 	]);
 
-val dnat_all_finite_lemma2 = prove_goal Dnat.thy "? n.dnat_take(n)[s]=s"
+qed_goal "dnat_all_finite_lemma2" Dnat.thy "? n.dnat_take(n)[s]=s"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","s=UU")] classical2 1),
@@ -485,7 +485,7 @@ val dnat_all_finite_lemma2 = prove_goal Dnat.thy "? n.dnat_take(n)[s]=s"
 	]);
 
 
-val dnat_ind = prove_goal Dnat.thy
+qed_goal "dnat_ind" Dnat.thy
 "[|P(UU);P(dzero);\
 \  !! s1.[|s1~=UU;P(s1)|] ==> P(dsucc[s1])\
 \  |] ==> P(s)"
@@ -499,7 +499,7 @@ val dnat_ind = prove_goal Dnat.thy
 	]);
 
 
-val dnat_flat = prove_goalw Dnat.thy [flat_def] "flat(dzero)"
+qed_goalw "dnat_flat" Dnat.thy [flat_def] "flat(dzero)"
  (fn prems =>
 	[
 	(rtac allI 1),

@@ -63,7 +63,7 @@ val dlist_rews =  dlist_copy @ dlist_rews;
 (* Exhaustion and elimination for dlists                                   *)
 (* ------------------------------------------------------------------------*)
 
-val Exh_dlist = prove_goalw Dlist.thy [dcons_def,dnil_def]
+qed_goalw "Exh_dlist" Dlist.thy [dcons_def,dnil_def]
 	"l = UU | l = dnil | (? x xl. x~=UU &xl~=UU & l = dcons[x][xl])"
  (fn prems =>
 	[
@@ -88,7 +88,7 @@ val Exh_dlist = prove_goalw Dlist.thy [dcons_def,dnil_def]
 	]);
 
 
-val dlistE = prove_goal Dlist.thy 
+qed_goal "dlistE" Dlist.thy 
 "[| l=UU ==> Q; l=dnil ==> Q;!!x xl.[|l=dcons[x][xl];x~=UU;xl~=UU|]==>Q|]==>Q"
  (fn prems =>
 	[
@@ -340,7 +340,7 @@ val dlist_rews = dlist_discsel_def @ dlist_rews;
 (* enhance the simplifier                                                  *)
 (* ------------------------------------------------------------------------*)
 
-val dhd2 = prove_goal Dlist.thy "xl~=UU ==> dhd[dcons[x][xl]]=x"
+qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd[dcons[x][xl]]=x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -349,7 +349,7 @@ val dhd2 = prove_goal Dlist.thy "xl~=UU ==> dhd[dcons[x][xl]]=x"
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
 	]);
 
-val dtl2 = prove_goal Dlist.thy "x~=UU ==> dtl[dcons[x][xl]]=xl"
+qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl[dcons[x][xl]]=xl"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -446,7 +446,7 @@ val dlist_take_lemma = prover dlist_reach  [dlist_take_def]
 (* Co -induction for dlists                                               *)
 (* ------------------------------------------------------------------------*)
 
-val dlist_coind_lemma = prove_goalw Dlist.thy [dlist_bisim_def] 
+qed_goalw "dlist_coind_lemma" Dlist.thy [dlist_bisim_def] 
 "dlist_bisim(R) ==> ! p q.R(p,q) --> dlist_take(n)[p]=dlist_take(n)[q]"
  (fn prems =>
 	[
@@ -468,7 +468,7 @@ val dlist_coind_lemma = prove_goalw Dlist.thy [dlist_bisim_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val dlist_coind = prove_goal Dlist.thy "[|dlist_bisim(R);R(p,q)|] ==> p = q"
+qed_goal "dlist_coind" Dlist.thy "[|dlist_bisim(R);R(p,q)|] ==> p = q"
  (fn prems =>
 	[
 	(rtac dlist_take_lemma 1),
@@ -481,7 +481,7 @@ val dlist_coind = prove_goal Dlist.thy "[|dlist_bisim(R);R(p,q)|] ==> p = q"
 (* structural induction                                                    *)
 (* ------------------------------------------------------------------------*)
 
-val dlist_finite_ind = prove_goal Dlist.thy
+qed_goal "dlist_finite_ind" Dlist.thy
 "[|P(UU);P(dnil);\
 \  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons[x][l1])\
 \  |] ==> !l.P(dlist_take(n)[l])"
@@ -506,7 +506,7 @@ val dlist_finite_ind = prove_goal Dlist.thy
 	(etac spec 1)
 	]);
 
-val dlist_all_finite_lemma1 = prove_goal Dlist.thy
+qed_goal "dlist_all_finite_lemma1" Dlist.thy
 "!l.dlist_take(n)[l]=UU |dlist_take(n)[l]=l"
  (fn prems =>
 	[
@@ -523,7 +523,7 @@ val dlist_all_finite_lemma1 = prove_goal Dlist.thy
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
 	]);
 
-val dlist_all_finite_lemma2 = prove_goal Dlist.thy "? n.dlist_take(n)[l]=l"
+qed_goal "dlist_all_finite_lemma2" Dlist.thy "? n.dlist_take(n)[l]=l"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","l=UU")] classical2 1),
@@ -540,13 +540,13 @@ val dlist_all_finite_lemma2 = prove_goal Dlist.thy "? n.dlist_take(n)[l]=l"
 	(rtac dlist_all_finite_lemma1 1)
 	]);
 
-val dlist_all_finite= prove_goalw Dlist.thy [dlist_finite_def] "dlist_finite(l)"
+qed_goalw "dlist_all_finite" Dlist.thy [dlist_finite_def] "dlist_finite(l)"
  (fn prems =>
 	[
 	(rtac  dlist_all_finite_lemma2 1)
 	]);
 
-val dlist_ind = prove_goal Dlist.thy
+qed_goal "dlist_ind" Dlist.thy
 "[|P(UU);P(dnil);\
 \  !! x l1.[|x~=UU;l1~=UU;P(l1)|] ==> P(dcons[x][l1])|] ==> P(l)"
  (fn prems =>

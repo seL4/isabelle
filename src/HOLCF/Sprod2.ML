@@ -13,7 +13,7 @@ open Sprod2;
 (* access to less_sprod in class po                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val less_sprod3a = prove_goal Sprod2.thy 
+qed_goal "less_sprod3a" Sprod2.thy 
 	"p1=Ispair(UU,UU) ==> p1 << p2"
 (fn prems =>
 	[
@@ -23,7 +23,7 @@ val less_sprod3a = prove_goal Sprod2.thy
 	]);
 
 
-val less_sprod3b = prove_goal Sprod2.thy
+qed_goal "less_sprod3b" Sprod2.thy
  "~p1=Ispair(UU,UU) ==>\
 \	(p1<<p2) = (Isfst(p1)<<Isfst(p2) & Issnd(p1)<<Issnd(p2))" 
 (fn prems =>
@@ -33,7 +33,7 @@ val less_sprod3b = prove_goal Sprod2.thy
 	(etac less_sprod1b 1)
 	]);
 
-val less_sprod4b = prove_goal Sprod2.thy 
+qed_goal "less_sprod4b" Sprod2.thy 
 	"p << Ispair(UU,UU) ==> p = Ispair(UU,UU)"
 (fn prems =>
 	[
@@ -45,7 +45,7 @@ val less_sprod4b = prove_goal Sprod2.thy
 val less_sprod4a = (less_sprod4b RS defined_Ispair_rev);
 (* Ispair(?a,?b) << Ispair(UU,UU) ==> ?a = UU | ?b = UU *)
 
-val less_sprod4c = prove_goal Sprod2.thy
+qed_goal "less_sprod4c" Sprod2.thy
  "[|Ispair(xa,ya)<<Ispair(x,y);~xa=UU;~ya=UU;~x=UU;~y=UU|] ==>\
 \		xa<<x & ya << y"
 (fn prems =>
@@ -60,7 +60,7 @@ val less_sprod4c = prove_goal Sprod2.thy
 (* type sprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_sprod = prove_goal Sprod2.thy  "Ispair(UU,UU)<<p"
+qed_goal "minimal_sprod" Sprod2.thy  "Ispair(UU,UU)<<p"
 (fn prems =>
 	[
 	(rtac less_sprod3a 1),
@@ -71,7 +71,7 @@ val minimal_sprod = prove_goal Sprod2.thy  "Ispair(UU,UU)<<p"
 (* Ispair is monotone in both arguments                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_Ispair1 = prove_goalw Sprod2.thy [monofun] "monofun(Ispair)"
+qed_goalw "monofun_Ispair1" Sprod2.thy [monofun] "monofun(Ispair)"
 (fn prems =>
 	[
 	(strip_tac 1),
@@ -111,7 +111,7 @@ val monofun_Ispair1 = prove_goalw Sprod2.thy [monofun] "monofun(Ispair)"
 	]);
 
 
-val monofun_Ispair2 = prove_goalw Sprod2.thy [monofun] "monofun(Ispair(x))"
+qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
 (fn prems =>
 	[
 	(strip_tac 1),
@@ -148,7 +148,7 @@ val monofun_Ispair2 = prove_goalw Sprod2.thy [monofun] "monofun(Ispair(x))"
 	(etac (strict_Ispair_rev RS  conjunct2) 1)
 	]);
 
-val  monofun_Ispair = prove_goal Sprod2.thy 
+qed_goal " monofun_Ispair" Sprod2.thy 
  "[|x1<<x2; y1<<y2|] ==> Ispair(x1,y1)<<Ispair(x2,y2)"
 (fn prems =>
 	[
@@ -166,7 +166,7 @@ val  monofun_Ispair = prove_goal Sprod2.thy
 (* Isfst and Issnd are monotone                                             *)
 (* ------------------------------------------------------------------------ *)
 
-val  monofun_Isfst = prove_goalw Sprod2.thy [monofun] "monofun(Isfst)"
+qed_goalw " monofun_Isfst" Sprod2.thy [monofun] "monofun(Isfst)"
 (fn prems =>
 	[
 	(strip_tac 1),
@@ -193,7 +193,7 @@ val  monofun_Isfst = prove_goalw Sprod2.thy [monofun] "monofun(Isfst)"
 	(REPEAT (atac 1))
 	]);
 
-val monofun_Issnd = prove_goalw Sprod2.thy [monofun] "monofun(Issnd)"
+qed_goalw "monofun_Issnd" Sprod2.thy [monofun] "monofun(Issnd)"
 (fn prems =>
 	[
 	(strip_tac 1),
@@ -225,7 +225,7 @@ val monofun_Issnd = prove_goalw Sprod2.thy [monofun] "monofun(Issnd)"
 (* the type 'a ** 'b is a cpo                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_sprod = prove_goal Sprod2.thy 
+qed_goal "lub_sprod" Sprod2.thy 
 "[|is_chain(S)|] ==> range(S) <<| \
 \ Ispair(lub(range(%i.Isfst(S(i)))),lub(range(%i.Issnd(S(i)))))"
 (fn prems =>
@@ -256,7 +256,7 @@ val thelub_sprod = (lub_sprod RS thelubI);
 (* is_chain(?S1) ==> lub(range(?S1)) =                                     *)
 (* Ispair(lub(range(%i. Isfst(?S1(i)))),lub(range(%i. Issnd(?S1(i)))))     *)
 
-val cpo_sprod = prove_goal Sprod2.thy 
+qed_goal "cpo_sprod" Sprod2.thy 
 	"is_chain(S::nat=>'a**'b)==>? x.range(S)<<| x"
 (fn prems =>
 	[

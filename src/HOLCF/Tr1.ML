@@ -77,7 +77,7 @@ val dist_eq_tr = dist_eq_tr @ (map (fn thm => (thm RS not_sym)) dist_eq_tr);
 (* Exhaustion and elimination for type tr                                   *) 
 (* ------------------------------------------------------------------------ *)
 
-val Exh_tr = prove_goalw Tr1.thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
+qed_goalw "Exh_tr" Tr1.thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
  (fn prems =>
 	[
 	(res_inst_tac [("p","rep_tr[t]")] ssumE 1),
@@ -107,7 +107,7 @@ val Exh_tr = prove_goalw Tr1.thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
 	]);
 
 
-val trE = prove_goal Tr1.thy
+qed_goal "trE" Tr1.thy
 	"[| p=UU ==> Q; p = TT ==>Q; p = FF ==>Q|] ==>Q"
  (fn prems =>
 	[
@@ -123,7 +123,7 @@ val trE = prove_goal Tr1.thy
 (* type tr is flat                                                          *) 
 (* ------------------------------------------------------------------------ *)
 
-val flat_tr = prove_goalw Tr1.thy [flat_def] "flat(TT)"
+qed_goalw "flat_tr" Tr1.thy [flat_def] "flat(TT)"
  (fn prems =>
 	[
 	(rtac allI 1),

@@ -14,7 +14,7 @@ open ccc1;
 (* ------------------------------------------------------------------------ *)
 
 
-val ID1 = prove_goalw ccc1.thy [ID_def] "ID[x]=x"
+qed_goalw "ID1" ccc1.thy [ID_def] "ID[x]=x"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
@@ -22,7 +22,7 @@ val ID1 = prove_goalw ccc1.thy [ID_def] "ID[x]=x"
 	(rtac refl 1)
 	]);
 
-val cfcomp1 = prove_goalw ccc1.thy [oo_def] "(f oo g)=(LAM x.f[g[x]])"
+qed_goalw "cfcomp1" ccc1.thy [oo_def] "(f oo g)=(LAM x.f[g[x]])"
  (fn prems =>
 	[
 	(rtac (beta_cfun RS ssubst) 1),
@@ -32,7 +32,7 @@ val cfcomp1 = prove_goalw ccc1.thy [oo_def] "(f oo g)=(LAM x.f[g[x]])"
 	(rtac refl 1)
 	]);
 
-val cfcomp2 = prove_goal ccc1.thy  "(f oo g)[x]=f[g[x]]"
+qed_goal "cfcomp2" ccc1.thy  "(f oo g)[x]=f[g[x]]"
  (fn prems =>
 	[
 	(rtac (cfcomp1 RS ssubst) 1),
@@ -51,7 +51,7 @@ val cfcomp2 = prove_goal ccc1.thy  "(f oo g)[x]=f[g[x]]"
 (* ------------------------------------------------------------------------ *)
 
 
-val ID2 = prove_goal ccc1.thy "f oo ID = f "
+qed_goal "ID2" ccc1.thy "f oo ID = f "
  (fn prems =>
 	[
 	(rtac ext_cfun 1),
@@ -60,7 +60,7 @@ val ID2 = prove_goal ccc1.thy "f oo ID = f "
 	(rtac refl 1)
 	]);
 
-val ID3 = prove_goal ccc1.thy "ID oo f = f "
+qed_goal "ID3" ccc1.thy "ID oo f = f "
  (fn prems =>
 	[
 	(rtac ext_cfun 1),
@@ -70,7 +70,7 @@ val ID3 = prove_goal ccc1.thy "ID oo f = f "
 	]);
 
 
-val assoc_oo = prove_goal ccc1.thy "f oo (g oo h) = (f oo g) oo h"
+qed_goal "assoc_oo" ccc1.thy "f oo (g oo h) = (f oo g) oo h"
  (fn prems =>
 	[
 	(rtac ext_cfun 1),

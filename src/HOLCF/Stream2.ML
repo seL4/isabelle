@@ -21,14 +21,14 @@ val smap_def2 = fix_prover Stream2.thy smap_def
 (* ------------------------------------------------------------------------- *)
 
 
-val smap1 = prove_goal Stream2.thy "smap[f][UU] = UU"
+qed_goal "smap1" Stream2.thy "smap[f][UU] = UU"
  (fn prems =>
 	[
 	(rtac (smap_def2 RS ssubst) 1),
 	(simp_tac (HOLCF_ss addsimps stream_when) 1)
 	]);
 
-val smap2 = prove_goal Stream2.thy 
+qed_goal "smap2" Stream2.thy 
 	"x~=UU ==> smap[f][scons[x][xs]] = scons[f[x]][smap[f][xs]]"
  (fn prems =>
 	[

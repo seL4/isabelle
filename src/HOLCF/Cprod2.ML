@@ -8,7 +8,7 @@ Lemmas for cprod2.thy
 
 open Cprod2;
 
-val less_cprod3a = prove_goal Cprod2.thy 
+qed_goal "less_cprod3a" Cprod2.thy 
 	"p1=<UU,UU> ==> p1 << p2"
  (fn prems =>
 	[
@@ -22,7 +22,7 @@ val less_cprod3a = prove_goal Cprod2.thy
 	(rtac minimal 1)
 	]);
 
-val less_cprod3b = prove_goal Cprod2.thy
+qed_goal "less_cprod3b" Cprod2.thy
  "(p1 << p2) = (fst(p1)<<fst(p2) & snd(p1)<<snd(p2))"
  (fn prems =>
 	[
@@ -30,7 +30,7 @@ val less_cprod3b = prove_goal Cprod2.thy
 	(rtac less_cprod1b 1)
 	]);
 
-val less_cprod4a = prove_goal Cprod2.thy 
+qed_goal "less_cprod4a" Cprod2.thy 
 	"<x1,x2> << <UU,UU> ==> x1=UU & x2=UU"
  (fn prems =>
 	[
@@ -39,7 +39,7 @@ val less_cprod4a = prove_goal Cprod2.thy
 	(etac (inst_cprod_po RS subst) 1)
 	]);
 
-val less_cprod4b = prove_goal Cprod2.thy 
+qed_goal "less_cprod4b" Cprod2.thy 
 	"p << <UU,UU> ==> p = <UU,UU>"
 (fn prems =>
 	[
@@ -48,7 +48,7 @@ val less_cprod4b = prove_goal Cprod2.thy
 	(etac (inst_cprod_po RS subst) 1)
 	]);
 
-val less_cprod4c = prove_goal Cprod2.thy
+qed_goal "less_cprod4c" Cprod2.thy
  " <xa,ya> << <x,y> ==> xa<<x & ya << y"
 (fn prems =>
 	[
@@ -62,7 +62,7 @@ val less_cprod4c = prove_goal Cprod2.thy
 (* type cprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val minimal_cprod = prove_goal Cprod2.thy  "<UU,UU><<p"
+qed_goal "minimal_cprod" Cprod2.thy  "<UU,UU><<p"
 (fn prems =>
 	[
 	(rtac less_cprod3a 1),
@@ -73,7 +73,7 @@ val minimal_cprod = prove_goal Cprod2.thy  "<UU,UU><<p"
 (* Pair <_,_>  is monotone in both arguments                                *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_pair1 = prove_goalw Cprod2.thy [monofun] "monofun(Pair)"
+qed_goalw "monofun_pair1" Cprod2.thy [monofun] "monofun(Pair)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -84,7 +84,7 @@ val monofun_pair1 = prove_goalw Cprod2.thy [monofun] "monofun(Pair)"
 	(asm_simp_tac Cfun_ss 1)
 	]);
 
-val monofun_pair2 = prove_goalw Cprod2.thy [monofun] "monofun(Pair(x))"
+qed_goalw "monofun_pair2" Cprod2.thy [monofun] "monofun(Pair(x))"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -93,7 +93,7 @@ val monofun_pair2 = prove_goalw Cprod2.thy [monofun] "monofun(Pair(x))"
 	(asm_simp_tac Cfun_ss 1)
 	]);
 
-val monofun_pair = prove_goal Cprod2.thy 
+qed_goal "monofun_pair" Cprod2.thy 
  "[|x1<<x2; y1<<y2|] ==> <x1,y1> << <x2,y2>"
  (fn prems =>
 	[
@@ -110,7 +110,7 @@ val monofun_pair = prove_goal Cprod2.thy
 (* fst and snd are monotone                                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_fst = prove_goalw Cprod2.thy [monofun] "monofun(fst)"
+qed_goalw "monofun_fst" Cprod2.thy [monofun] "monofun(fst)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -122,7 +122,7 @@ val monofun_fst = prove_goalw Cprod2.thy [monofun] "monofun(fst)"
 	(etac (less_cprod4c RS conjunct1) 1)
 	]);
 
-val monofun_snd = prove_goalw Cprod2.thy [monofun] "monofun(snd)"
+qed_goalw "monofun_snd" Cprod2.thy [monofun] "monofun(snd)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -138,7 +138,7 @@ val monofun_snd = prove_goalw Cprod2.thy [monofun] "monofun(snd)"
 (* the type 'a * 'b is a cpo                                                *)
 (* ------------------------------------------------------------------------ *)
 
-val lub_cprod = prove_goal Cprod2.thy 
+qed_goal "lub_cprod" Cprod2.thy 
 " is_chain(S) ==> range(S) <<| \
 \   < lub(range(%i.fst(S(i)))),lub(range(%i.snd(S(i))))> "
  (fn prems =>
@@ -170,7 +170,7 @@ val thelub_cprod = (lub_cprod RS thelubI);
 (*  <lub(range(%i. fst(?S1(i)))), lub(range(%i. snd(?S1(i))))>"        *)
 
 
-val cpo_cprod = prove_goal Cprod2.thy 
+qed_goal "cpo_cprod" Cprod2.thy 
 	"is_chain(S::nat=>'a*'b)==>? x.range(S)<<| x"
 (fn prems =>
 	[

@@ -10,7 +10,7 @@ open Cfun3;
 (* the contlub property for fapp its 'first' argument                       *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_fapp1 = prove_goal Cfun3.thy "contlub(fapp)"
+qed_goal "contlub_fapp1" Cfun3.thy "contlub(fapp)"
 (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -31,7 +31,7 @@ val contlub_fapp1 = prove_goal Cfun3.thy "contlub(fapp)"
 (* the contX property for fapp in its first argument                        *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_fapp1 = prove_goal Cfun3.thy "contX(fapp)"
+qed_goal "contX_fapp1" Cfun3.thy "contX(fapp)"
 (fn prems =>
 	[
 	(rtac monocontlub2contX 1),
@@ -44,7 +44,7 @@ val contX_fapp1 = prove_goal Cfun3.thy "contX(fapp)"
 (* contlub, contX properties of fapp in its first argument in mixfix _[_]   *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_cfun_fun = prove_goal Cfun3.thy 
+qed_goal "contlub_cfun_fun" Cfun3.thy 
 "is_chain(FY) ==>\
 \ lub(range(FY))[x] = lub(range(%i.FY(i)[x]))"
 (fn prems =>
@@ -58,7 +58,7 @@ val contlub_cfun_fun = prove_goal Cfun3.thy
 	]);
 
 
-val contX_cfun_fun = prove_goal Cfun3.thy 
+qed_goal "contX_cfun_fun" Cfun3.thy 
 "is_chain(FY) ==>\
 \ range(%i.FY(i)[x]) <<| lub(range(FY))[x]"
 (fn prems =>
@@ -74,7 +74,7 @@ val contX_cfun_fun = prove_goal Cfun3.thy
 (* contlub, contX  properties of fapp in both argument in mixfix _[_]       *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_cfun = prove_goal Cfun3.thy 
+qed_goal "contlub_cfun" Cfun3.thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
 \ lub(range(FY))[lub(range(TY))] = lub(range(%i.FY(i)[TY(i)]))"
 (fn prems =>
@@ -88,7 +88,7 @@ val contlub_cfun = prove_goal Cfun3.thy
 	(atac 1)
 	]);
 
-val contX_cfun = prove_goal Cfun3.thy 
+qed_goal "contX_cfun" Cfun3.thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
 \ range(%i.FY(i)[TY(i)]) <<| lub(range(FY))[lub(range(TY))]"
 (fn prems =>
@@ -109,7 +109,7 @@ val contX_cfun = prove_goal Cfun3.thy
 (* contX2contX lemma for fapp                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2contX_fapp = prove_goal Cfun3.thy 
+qed_goal "contX2contX_fapp" Cfun3.thy 
 	"[|contX(%x.ft(x));contX(%x.tt(x))|] ==> contX(%x.(ft(x))[tt(x)])"
  (fn prems =>
 	[
@@ -129,7 +129,7 @@ val contX2contX_fapp = prove_goal Cfun3.thy
 (* contX2mono Lemma for %x. LAM y. c1(x,y)                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2mono_LAM = prove_goal Cfun3.thy 
+qed_goal "contX2mono_LAM" Cfun3.thy 
  "[|!x.contX(c1(x)); !y.monofun(%x.c1(x,y))|] ==>\
 \	 		monofun(%x. LAM y. c1(x,y))"
 (fn prems =>
@@ -151,7 +151,7 @@ val contX2mono_LAM = prove_goal Cfun3.thy
 (* contX2contX Lemma for %x. LAM y. c1(x,y)                                 *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2contX_LAM = prove_goal Cfun3.thy 
+qed_goal "contX2contX_LAM" Cfun3.thy 
  "[| !x.contX(c1(x)); !y.contX(%x.c1(x,y)) |] ==> contX(%x. LAM y. c1(x,y))"
 (fn prems =>
 	[
@@ -205,7 +205,7 @@ val contX_tacR = (fn i => (REPEAT (contX_tac i)));
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-val strict_fapp1 = prove_goal Cfun3.thy "UU[x] = UU"
+qed_goal "strict_fapp1" Cfun3.thy "UU[x] = UU"
  (fn prems =>
 	[
 	(rtac (inst_cfun_pcpo RS ssubst) 1),
@@ -220,7 +220,7 @@ val strict_fapp1 = prove_goal Cfun3.thy "UU[x] = UU"
 (* results about strictify                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val Istrictify1 = prove_goalw Cfun3.thy [Istrictify_def]
+qed_goalw "Istrictify1" Cfun3.thy [Istrictify_def]
 	"Istrictify(f)(UU)=UU"
  (fn prems =>
 	[
@@ -229,7 +229,7 @@ val Istrictify1 = prove_goalw Cfun3.thy [Istrictify_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val Istrictify2 = prove_goalw Cfun3.thy [Istrictify_def]
+qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
 	"~x=UU ==> Istrictify(f)(x)=f[x]"
  (fn prems =>
 	[
@@ -239,7 +239,7 @@ val Istrictify2 = prove_goalw Cfun3.thy [Istrictify_def]
 	(fast_tac HOL_cs 1)
 	]);
 
-val monofun_Istrictify1 = prove_goal Cfun3.thy "monofun(Istrictify)"
+qed_goal "monofun_Istrictify1" Cfun3.thy "monofun(Istrictify)"
  (fn prems =>
 	[
 	(rtac monofunI 1),
@@ -259,7 +259,7 @@ val monofun_Istrictify1 = prove_goal Cfun3.thy "monofun(Istrictify)"
 	(rtac refl_less 1)
 	]);
 
-val monofun_Istrictify2 = prove_goal Cfun3.thy "monofun(Istrictify(f))"
+qed_goal "monofun_Istrictify2" Cfun3.thy "monofun(Istrictify(f))"
  (fn prems =>
 	[
 	(rtac monofunI 1),
@@ -278,7 +278,7 @@ val monofun_Istrictify2 = prove_goal Cfun3.thy "monofun(Istrictify(f))"
 	]);
 
 
-val contlub_Istrictify1 = prove_goal Cfun3.thy "contlub(Istrictify)"
+qed_goal "contlub_Istrictify1" Cfun3.thy "contlub(Istrictify)"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -305,7 +305,7 @@ val contlub_Istrictify1 = prove_goal Cfun3.thy "contlub(Istrictify)"
 	(rtac (refl RS allI) 1)
 	]);
 
-val contlub_Istrictify2 = prove_goal Cfun3.thy "contlub(Istrictify(f))"
+qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
@@ -354,7 +354,7 @@ val contX_Istrictify2 = (contlub_Istrictify2 RS
 	(monofun_Istrictify2 RS monocontlub2contX)); 
 
 
-val strictify1 = prove_goalw Cfun3.thy [strictify_def]
+qed_goalw "strictify1" Cfun3.thy [strictify_def]
 	"strictify[f][UU]=UU"
  (fn prems =>
 	[
@@ -368,7 +368,7 @@ val strictify1 = prove_goalw Cfun3.thy [strictify_def]
 	(rtac Istrictify1 1)
 	]);
 
-val strictify2 = prove_goalw Cfun3.thy [strictify_def]
+qed_goalw "strictify2" Cfun3.thy [strictify_def]
 	"~x=UU ==> strictify[f][x]=f[x]"
  (fn prems =>
 	[

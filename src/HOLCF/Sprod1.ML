@@ -13,7 +13,7 @@ open Sprod1;
 (* ------------------------------------------------------------------------ *)
 
 
-val less_sprod1a = prove_goalw Sprod1.thy [less_sprod_def]
+qed_goalw "less_sprod1a" Sprod1.thy [less_sprod_def]
 	"p1=Ispair(UU,UU) ==> less_sprod(p1,p2)"
 (fn prems =>
 	[
@@ -29,7 +29,7 @@ val less_sprod1a = prove_goalw Sprod1.thy [less_sprod_def]
 	(atac 1)
 	]);
 
-val less_sprod1b = prove_goalw Sprod1.thy [less_sprod_def]
+qed_goalw "less_sprod1b" Sprod1.thy [less_sprod_def]
  "~p1=Ispair(UU,UU) ==> \
 \ less_sprod(p1,p2) = ( Isfst(p1) << Isfst(p2) & Issnd(p1) << Issnd(p2))"
 (fn prems =>
@@ -45,7 +45,7 @@ val less_sprod1b = prove_goalw Sprod1.thy [less_sprod_def]
 	(atac 1)
 	]);
 
-val less_sprod2a = prove_goal Sprod1.thy
+qed_goal "less_sprod2a" Sprod1.thy
 	"less_sprod(Ispair(x,y),Ispair(UU,UU)) ==> x = UU | y = UU"
 (fn prems =>
 	[
@@ -65,7 +65,7 @@ val less_sprod2a = prove_goal Sprod1.thy
 	(REPEAT (fast_tac HOL_cs 1))
 	]);
 
-val less_sprod2b = prove_goal Sprod1.thy
+qed_goal "less_sprod2b" Sprod1.thy
  "less_sprod(p,Ispair(UU,UU)) ==> p = Ispair(UU,UU)"
 (fn prems =>
 	[
@@ -77,7 +77,7 @@ val less_sprod2b = prove_goal Sprod1.thy
 	(etac less_sprod2a 1)
 	]);
 
-val less_sprod2c = prove_goal Sprod1.thy 
+qed_goal "less_sprod2c" Sprod1.thy 
  "[|less_sprod(Ispair(xa,ya),Ispair(x,y));\
 \~ xa = UU ; ~ ya = UU;~ x = UU ; ~ y = UU |] ==> xa << x & ya << y"
 (fn prems =>
@@ -105,7 +105,7 @@ val less_sprod2c = prove_goal Sprod1.thy
 (* less_sprod is a partial order on Sprod                                   *)
 (* ------------------------------------------------------------------------ *)
 
-val refl_less_sprod = prove_goal Sprod1.thy "less_sprod(p,p)"
+qed_goal "refl_less_sprod" Sprod1.thy "less_sprod(p,p)"
 (fn prems =>
 	[
 	(res_inst_tac [("p","p")] IsprodE 1),
@@ -117,7 +117,7 @@ val refl_less_sprod = prove_goal Sprod1.thy "less_sprod(p,p)"
 	]);
 
 
-val antisym_less_sprod = prove_goal Sprod1.thy 
+qed_goal "antisym_less_sprod" Sprod1.thy 
  "[|less_sprod(p1,p2);less_sprod(p2,p1)|] ==> p1=p2"
  (fn prems =>
 	[
@@ -145,7 +145,7 @@ val antisym_less_sprod = prove_goal Sprod1.thy
 	(asm_simp_tac (HOL_ss addsimps [less_sprod2c RS conjunct2]) 1)
 	]);
 
-val trans_less_sprod = prove_goal Sprod1.thy 
+qed_goal "trans_less_sprod" Sprod1.thy 
  "[|less_sprod(p1,p2);less_sprod(p2,p3)|] ==> less_sprod(p1,p3)"
 (fn prems =>
 	[

@@ -12,7 +12,7 @@ open Cont;
 (* access to definition                                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val contlubI = prove_goalw Cont.thy [contlub]
+qed_goalw "contlubI" Cont.thy [contlub]
 	"! Y. is_chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))==>\
 \	 contlub(f)"
 (fn prems =>
@@ -21,7 +21,7 @@ val contlubI = prove_goalw Cont.thy [contlub]
 	(atac 1)
 	]);
 
-val contlubE = prove_goalw Cont.thy [contlub]
+qed_goalw "contlubE" Cont.thy [contlub]
 	" contlub(f)==>\
 \         ! Y. is_chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))"
 (fn prems =>
@@ -31,7 +31,7 @@ val contlubE = prove_goalw Cont.thy [contlub]
 	]);
 
 
-val contXI = prove_goalw Cont.thy [contX]
+qed_goalw "contXI" Cont.thy [contX]
  "! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y))) ==> contX(f)"
 (fn prems =>
 	[
@@ -39,7 +39,7 @@ val contXI = prove_goalw Cont.thy [contX]
 	(atac 1)
 	]);
 
-val contXE = prove_goalw Cont.thy [contX]
+qed_goalw "contXE" Cont.thy [contX]
  "contX(f) ==> ! Y. is_chain(Y) --> range(% i.f(Y(i))) <<| f(lub(range(Y)))"
 (fn prems =>
 	[
@@ -48,7 +48,7 @@ val contXE = prove_goalw Cont.thy [contX]
 	]);
 
 
-val monofunI = prove_goalw Cont.thy [monofun]
+qed_goalw "monofunI" Cont.thy [monofun]
 	"! x y. x << y --> f(x) << f(y) ==> monofun(f)"
 (fn prems =>
 	[
@@ -56,7 +56,7 @@ val monofunI = prove_goalw Cont.thy [monofun]
 	(atac 1)
 	]);
 
-val monofunE = prove_goalw Cont.thy [monofun]
+qed_goalw "monofunE" Cont.thy [monofun]
 	"monofun(f) ==> ! x y. x << y --> f(x) << f(y)"
 (fn prems =>
 	[
@@ -73,7 +73,7 @@ val monofunE = prove_goalw Cont.thy [monofun]
 (* monotone functions map chains to chains                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val ch2ch_monofun= prove_goal Cont.thy 
+qed_goal "ch2ch_monofun" Cont.thy 
 	"[| monofun(f); is_chain(Y) |] ==> is_chain(%i. f(Y(i)))"
 (fn prems =>
 	[
@@ -88,7 +88,7 @@ val ch2ch_monofun= prove_goal Cont.thy
 (* monotone functions map upper bound to upper bounds                       *)
 (* ------------------------------------------------------------------------ *)
 
-val ub2ub_monofun = prove_goal Cont.thy 
+qed_goal "ub2ub_monofun" Cont.thy 
  "[| monofun(f); range(Y) <| u|]  ==> range(%i.f(Y(i))) <| f(u)"
 (fn prems =>
 	[
@@ -103,7 +103,7 @@ val ub2ub_monofun = prove_goal Cont.thy
 (* left to right: monofun(f) & contlub(f)  ==> contX(f)                     *)
 (* ------------------------------------------------------------------------ *)
 
-val monocontlub2contX = prove_goalw Cont.thy [contX]
+qed_goalw "monocontlub2contX" Cont.thy [contX]
 	"[|monofun(f);contlub(f)|] ==> contX(f)"
 (fn prems =>
 	[
@@ -120,7 +120,7 @@ val monocontlub2contX = prove_goalw Cont.thy [contX]
 (* first a lemma about binary chains                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val binchain_contX =  prove_goal Cont.thy
+qed_goal "binchain_contX" Cont.thy
 "[| contX(f); x << y |]  ==> range(%i. f(if(i = 0,x,y))) <<| f(y)"
 (fn prems => 
 	[
@@ -137,7 +137,7 @@ val binchain_contX =  prove_goal Cont.thy
 (* part1:         contX(f) ==> monofun(f                                    *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2mono =  prove_goalw Cont.thy [monofun]
+qed_goalw "contX2mono" Cont.thy [monofun]
 	"contX(f) ==> monofun(f)"
 (fn prems =>
 	[
@@ -155,7 +155,7 @@ val contX2mono =  prove_goalw Cont.thy [monofun]
 (* part2:         contX(f) ==>              contlub(f)                      *)
 (* ------------------------------------------------------------------------ *)
 
-val contX2contlub = prove_goalw Cont.thy [contlub]
+qed_goalw "contX2contlub" Cont.thy [contlub]
 	"contX(f) ==> contlub(f)"
 (fn prems =>
 	[
@@ -171,7 +171,7 @@ val contX2contlub = prove_goalw Cont.thy [contlub]
 (* in both arguments                                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val ch2ch_MF2L = prove_goal Cont.thy 
+qed_goal "ch2ch_MF2L" Cont.thy 
 "[|monofun(MF2); is_chain(F)|] ==> is_chain(%i. MF2(F(i),x))"
 (fn prems =>
 	[
@@ -181,7 +181,7 @@ val ch2ch_MF2L = prove_goal Cont.thy
 	]);
 
 
-val ch2ch_MF2R = prove_goal Cont.thy 
+qed_goal "ch2ch_MF2R" Cont.thy 
 "[|monofun(MF2(f)); is_chain(Y)|] ==> is_chain(%i. MF2(f,Y(i)))"
 (fn prems =>
 	[
@@ -190,7 +190,7 @@ val ch2ch_MF2R = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val ch2ch_MF2LR = prove_goal Cont.thy 
+qed_goal "ch2ch_MF2LR" Cont.thy 
 "[|monofun(MF2); !f.monofun(MF2(f)); is_chain(F); is_chain(Y)|] ==> \
 \  is_chain(%i. MF2(F(i))(Y(i)))"
  (fn prems =>
@@ -206,7 +206,7 @@ val ch2ch_MF2LR = prove_goal Cont.thy
 	]);
 
 
-val ch2ch_lubMF2R = prove_goal Cont.thy 
+qed_goal "ch2ch_lubMF2R" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F);is_chain(Y)|] ==> \
@@ -226,7 +226,7 @@ val ch2ch_lubMF2R = prove_goal Cont.thy
 	]);
 
 
-val ch2ch_lubMF2L = prove_goal Cont.thy 
+qed_goal "ch2ch_lubMF2L" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F);is_chain(Y)|] ==> \
@@ -246,7 +246,7 @@ val ch2ch_lubMF2L = prove_goal Cont.thy
 	]);
 
 
-val lub_MF2_mono = prove_goal Cont.thy 
+qed_goal "lub_MF2_mono" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F)|] ==> \
@@ -266,7 +266,7 @@ val lub_MF2_mono = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val ex_lubMF2 = prove_goal Cont.thy 
+qed_goal "ex_lubMF2" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F); is_chain(Y)|] ==> \
@@ -305,7 +305,7 @@ val ex_lubMF2 = prove_goal Cont.thy
 	]);
 
 
-val diag_lubMF2_1 = prove_goal Cont.thy 
+qed_goal "diag_lubMF2_1" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \  is_chain(FY);is_chain(TY)|] ==>\
@@ -349,7 +349,7 @@ val diag_lubMF2_1 = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val diag_lubMF2_2 = prove_goal Cont.thy 
+qed_goal "diag_lubMF2_2" Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \  is_chain(FY);is_chain(TY)|] ==>\
@@ -373,7 +373,7 @@ val diag_lubMF2_2 = prove_goal Cont.thy
 (* in both arguments                                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_CF2 = prove_goal Cont.thy 
+qed_goal "contlub_CF2" Cont.thy 
 "[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
 \ CF2(lub(range(FY)))(lub(range(TY))) = lub(range(%i.CF2(FY(i))(TY(i))))"
  (fn prems =>
@@ -399,7 +399,7 @@ val contlub_CF2 = prove_goal Cont.thy
 (* The following results are about application for functions in 'a=>'b      *)
 (* ------------------------------------------------------------------------ *)
 
-val monofun_fun_fun = prove_goal Cont.thy 
+qed_goal "monofun_fun_fun" Cont.thy 
 	"f1 << f2 ==> f1(x) << f2(x)"
 (fn prems =>
 	[
@@ -407,7 +407,7 @@ val monofun_fun_fun = prove_goal Cont.thy
 	(etac (less_fun RS iffD1 RS spec) 1)
 	]);
 
-val monofun_fun_arg = prove_goal Cont.thy 
+qed_goal "monofun_fun_arg" Cont.thy 
 	"[|monofun(f); x1 << x2|] ==> f(x1) << f(x2)"
 (fn prems =>
 	[
@@ -416,7 +416,7 @@ val monofun_fun_arg = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val monofun_fun = prove_goal Cont.thy 
+qed_goal "monofun_fun" Cont.thy 
 "[|monofun(f1); monofun(f2); f1 << f2; x1 << x2|] ==> f1(x1) << f2(x2)"
 (fn prems =>
 	[
@@ -433,7 +433,7 @@ val monofun_fun = prove_goal Cont.thy
 (* continuity                                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val mono2mono_MF1L = prove_goal Cont.thy 
+qed_goal "mono2mono_MF1L" Cont.thy 
 	"[|monofun(c1)|] ==> monofun(%x. c1(x,y))"
 (fn prems =>
 	[
@@ -444,7 +444,7 @@ val mono2mono_MF1L = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val contX2contX_CF1L = prove_goal Cont.thy 
+qed_goal "contX2contX_CF1L" Cont.thy 
 	"[|contX(c1)|] ==> contX(%x. c1(x,y))"
 (fn prems =>
 	[
@@ -465,7 +465,7 @@ val contX2contX_CF1L = prove_goal Cont.thy
 
 (*********  Note "(%x.%y.c1(x,y)) = c1" ***********)
 
-val mono2mono_MF1L_rev = prove_goal Cont.thy
+qed_goal "mono2mono_MF1L_rev" Cont.thy
 	"!y.monofun(%x.c1(x,y)) ==> monofun(c1)"
 (fn prems =>
 	[
@@ -478,7 +478,7 @@ val mono2mono_MF1L_rev = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-val contX2contX_CF1L_rev = prove_goal Cont.thy
+qed_goal "contX2contX_CF1L_rev" Cont.thy
 	"!y.contX(%x.c1(x,y)) ==> contX(c1)"
 (fn prems =>
 	[
@@ -504,7 +504,7 @@ val contX2contX_CF1L_rev = prove_goal Cont.thy
 (* never used here                                                          *)
 (* ------------------------------------------------------------------------ *)
 
-val contlub_abstraction = prove_goal Cont.thy
+qed_goal "contlub_abstraction" Cont.thy
 "[|is_chain(Y::nat=>'a);!y.contX(%x.(c::'a=>'b=>'c)(x,y))|] ==>\
 \ (%y.lub(range(%i.c(Y(i),y)))) = (lub(range(%i.%y.c(Y(i),y))))"
  (fn prems =>
@@ -521,7 +521,7 @@ val contlub_abstraction = prove_goal Cont.thy
 	]);
 
 
-val mono2mono_app = prove_goal Cont.thy 
+qed_goal "mono2mono_app" Cont.thy 
 "[|monofun(ft);!x.monofun(ft(x));monofun(tt)|] ==>\
 \	 monofun(%x.(ft(x))(tt(x)))"
  (fn prems =>
@@ -539,7 +539,7 @@ val mono2mono_app = prove_goal Cont.thy
 	]);
 
 
-val contX2contlub_app = prove_goal Cont.thy 
+qed_goal "contX2contlub_app" Cont.thy 
 "[|contX(ft);!x.contX(ft(x));contX(tt)|] ==> contlub(%x.(ft(x))(tt(x)))"
  (fn prems =>
 	[
@@ -556,7 +556,7 @@ val contX2contlub_app = prove_goal Cont.thy
 	]);
 
 
-val contX2contX_app = prove_goal Cont.thy 
+qed_goal "contX2contX_app" Cont.thy 
 "[|contX(ft);!x.contX(ft(x));contX(tt)|] ==>\
 \	 contX(%x.(ft(x))(tt(x)))"
  (fn prems =>
@@ -587,7 +587,7 @@ val contX2contX_app2 = (allI RSN (2,contX2contX_app));
 (* The identity function is continuous                                      *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_id = prove_goal Cont.thy "contX(% x.x)"
+qed_goal "contX_id" Cont.thy "contX(% x.x)"
  (fn prems =>
 	[
 	(rtac contXI 1),
@@ -602,7 +602,7 @@ val contX_id = prove_goal Cont.thy "contX(% x.x)"
 (* constant functions are continuous                                        *)
 (* ------------------------------------------------------------------------ *)
 
-val contX_const = prove_goalw Cont.thy [contX] "contX(%x.c)"
+qed_goalw "contX_const" Cont.thy [contX] "contX(%x.c)"
  (fn prems =>
 	[
 	(strip_tac 1),
@@ -617,7 +617,7 @@ val contX_const = prove_goalw Cont.thy [contX] "contX(%x.c)"
 	]);
 
 
-val contX2contX_app3 = prove_goal Cont.thy 
+qed_goal "contX2contX_app3" Cont.thy 
  "[|contX(f);contX(t) |] ==> contX(%x. f(t(x)))"
  (fn prems =>
 	[
