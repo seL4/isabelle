@@ -86,7 +86,7 @@ $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
   Constructible/WF_absolute.thy \
   Constructible/Reflection.thy  Constructible/WFrec.thy \
   Constructible/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/ZF Constructible
+	@$(ISATOOL) usedir -g true $(OUT)/ZF Constructible
 
 
 ## ZF-IMP
