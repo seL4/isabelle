@@ -43,7 +43,7 @@ signature LOGIC =
   val varify: term -> term  
   end;
 
-functor LogicFun (structure Unify: UNIFY and Net:NET) : LOGIC  = 
+functor LogicFun (structure Unify: UNIFY and Net:NET)(* : LOGIC *) =  (* FIXME *)
 struct
 structure Type = Unify.Sign.Type;
 

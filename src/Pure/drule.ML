@@ -71,7 +71,7 @@ signature DRULE =
   end
   end;
 
-functor DruleFun (structure Logic: LOGIC and Thm: THM) : DRULE = 
+functor DruleFun (structure Logic: LOGIC and Thm: THM)(* : DRULE *) = (* FIXME *)
 struct
 structure Thm = Thm;
 structure Sign = Thm.Sign;
