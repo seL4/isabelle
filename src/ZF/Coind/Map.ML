@@ -6,6 +6,32 @@
 
 open Map;
 
+(** Some sample proofs of inclusions for the final coalgebra "U" (by lcp) **)
+
+
+goalw Map.thy [TMap_def]
+     "{0,1} <= {1} Un TMap(I, {0,1})";
+by (Blast_tac 1);
+result();
+
+goalw Map.thy [TMap_def]
+     "{0} Un TMap(I,1) <= {1} Un TMap(I, {0} Un TMap(I,1))";
+by (Blast_tac 1);
+result();
+
+goalw Map.thy [TMap_def]
+     "{0,1} Un TMap(I,2) <= {1} Un TMap(I, {0,1} Un TMap(I,2))";
+by (Blast_tac 1);
+result();
+
+goalw Map.thy [TMap_def]
+     "{0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2) <= \
+\     {1} Un TMap(I, {0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2))";
+(*twice as fast as Blast_tac alone*)
+by (Safe_tac THEN ALLGOALS Blast_tac);
+result();
+
+
 (* ############################################################ *)
 (* Lemmas                                                       *)
 (* ############################################################ *)
@@ -132,7 +158,7 @@ by (Fast_tac 1);
 qed "pmap_domainD";
 
 (* ############################################################ *)
-(* Equalitites                                                  *)
+(* Equalities                                                   *)
 (* ############################################################ *)
 
 (** Domain **)
