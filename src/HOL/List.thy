@@ -83,13 +83,11 @@ syntax   length :: 'a list => nat
 translations  "length"  =>  "size:: _ list => nat"
 
 primrec
-  "hd([]) = arbitrary"
   "hd(x#xs) = x"
 primrec
   "tl([]) = []"
   "tl(x#xs) = xs"
 primrec
-  "last [] = arbitrary"
   "last(x#xs) = (if xs=[] then x else last xs)"
 primrec
   "butlast [] = []"
