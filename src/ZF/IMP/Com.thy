@@ -84,7 +84,6 @@ datatype <= "univ(loc Un aexp Un bexp)"
         | semic ("c0:com", "c1:com")		("_; _"  [60, 60] 10)
 	| while ("b:bexp", "c:com")		("while _ do _"  60)
 	| ifc   ("b:bexp", "c0:com", "c1:com")	("ifc _ then _ else _"  60)
-  type_intrs "aexp.intrs"
 
 (*Constructor ";" has low precedence to avoid syntactic ambiguities
   with [| m: nat; x: loc; ... |] ==> ...  It usually will need parentheses.*)
