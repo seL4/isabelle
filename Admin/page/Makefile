@@ -56,8 +56,8 @@ install: dist
 	@cp -R dist/. ..
 
 weblint:
-	@weblint -x netscape $(MAIN_TARGET)
-	@weblint -x netscape $(DIST_TARGET)
+	-weblint -x netscape $(MAIN_TARGET)
+	-weblint -x netscape $(DIST_TARGET)
 
 clean: 
 	@rm -rf $(MAIN_TARGET)
