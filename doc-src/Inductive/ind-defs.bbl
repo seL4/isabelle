@@ -44,7 +44,7 @@ Dybjer, P.,
 Dybjer, P., Nordstr{\"om}, B., Smith, J., Eds.,
 \newblock {\em Types for Proofs and Programs: International Workshop {TYPES
   '94}},
-\newblock LNCS 996. Springer, published 1995
+\newblock LNCS 996. Springer, 1995
 
 \bibitem{IMPS}
 Farmer, W.~M., Guttman, J.~D., Thayer, F.~J.,
@@ -141,6 +141,11 @@ Paulson, L.~C.,
 \newblock Springer, 1994,
 \newblock LNCS 828
 
+\bibitem{paulson-final}
+Paulson, L.~C.,
+\newblock A concrete final coalgebra theorem for {ZF} set theory,
+\newblock In Dybjer et~al. \cite{types94}, pp.~120--139
+
 \bibitem{paulson-set-II}
 Paulson, L.~C.,
 \newblock Set theory for verification: {II}. {Induction} and recursion,
@@ -150,11 +155,6 @@ Paulson, L.~C.,
 Paulson, L.~C.,
 \newblock Mechanizing coinduction and corecursion in higher-order logic,
 \newblock {\em J. Logic and Comput. {\bf 7}}, 2 (Mar. 1997), 175--204
-
-\bibitem{paulson-final}
-Paulson, L.~C.,
-\newblock A concrete final coalgebra theorem for {ZF} set theory,
-\newblock In Dybjer et~al. \cite{types94}, pp.~120--139
 
 \bibitem{paulson-markt}
 Paulson, L.~C.,
