@@ -1,11 +1,13 @@
 (*  Title:      HOL/Isar_examples/MutilatedCheckerboard.thy
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory (original script)
-                Markus Wenzel, TU Muenchen (Isar document)
+    Author:     Markus Wenzel, TU Muenchen (Isar document)
+                Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
 
-The Mutilated Chess Board Problem, formalized inductively.
+The Mutilated Checker Board Problem, formalized inductively.
   Originator is Max Black, according to J A Robinson.
   Popularized as the Mutilated Checkerboard Problem by J McCarthy.
+
+See also HOL/Induct/Mutil for the original Isabelle tactic scripts.
 *)
 
 theory MutilatedCheckerboard = Main:;
@@ -32,7 +34,7 @@ proof;
     show "??P {}"; by simp;
 
     fix a t;
-    assume "a:A" "t : ??T" "??P t" "a <= - t";
+    assume "a : A" "t : ??T" "??P t" "a <= - t";
     show "??P (a Un t)";
     proof (intro impI);
       assume "u : ??T" "(a Un t) Int u = {}";
@@ -45,9 +47,6 @@ proof;
   qed;
 qed;
 
-lemma tiling_UnI: "[| t : tiling A; u : tiling A; t Int u = {} |] ==> t Un u : tiling A";
-  by (rule tiling_Un [rulify]);
-  
 
 section {* Basic properties of below *};
 
@@ -58,7 +57,7 @@ constdefs
 lemma below_less_iff [iff]: "(i: below k) = (i < k)";
   by (simp add: below_def);
 
-lemma below_0 [simp]: "below 0 = {}";
+lemma below_0: "below 0 = {}";
   by (simp add: below_def);
 
 lemma Sigma_Suc1: "below (Suc n) Times B = ({n} Times B) Un (below n Times B)";
@@ -73,33 +72,31 @@ lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2;
 section {* Basic properties of evnodd *};
 
 constdefs
-  evnodd :: "[(nat * nat) set, nat] => (nat * nat) set"
+  evnodd :: "(nat * nat) set => nat => (nat * nat) set"
   "evnodd A b == A Int {(i, j). (i + j) mod 2 = b}";
 
 lemma evnodd_iff: "(i, j): evnodd A b = ((i, j): A  & (i + j) mod 2 = b)";
   by (simp add: evnodd_def);
 
 lemma evnodd_subset: "evnodd A b <= A";
-proof (unfold evnodd_def);
-  show "!!B. A Int B <= A"; by (rule Int_lower1);
-qed;
+  by (unfold evnodd_def, rule Int_lower1);
 
 lemma evnoddD: "x : evnodd A b ==> x : A";
   by (rule subsetD, rule evnodd_subset);
 
-lemma evnodd_finite [simp]: "finite A ==> finite (evnodd A b)";
+lemma evnodd_finite: "finite A ==> finite (evnodd A b)";
   by (rule finite_subset, rule evnodd_subset);
 
-lemma evnodd_Un [simp]: "evnodd (A Un B) b = evnodd A b Un evnodd B b";
+lemma evnodd_Un: "evnodd (A Un B) b = evnodd A b Un evnodd B b";
   by (unfold evnodd_def) blast;
 
-lemma evnodd_Diff [simp]: "evnodd (A - B) b = evnodd A b - evnodd B b";
+lemma evnodd_Diff: "evnodd (A - B) b = evnodd A b - evnodd B b";
   by (unfold evnodd_def) blast;
 
-lemma evnodd_empty [simp]: "evnodd {} b = {}";
+lemma evnodd_empty: "evnodd {} b = {}";
   by (simp add: evnodd_def);
 
-lemma evnodd_insert [simp]: "evnodd (insert (i, j) C) b =
+lemma evnodd_insert: "evnodd (insert (i, j) C) b =
   (if (i + j) mod 2 = b then insert (i, j) (evnodd C b) else evnodd C b)";
   by (simp add: evnodd_def) blast;
 
@@ -111,43 +108,41 @@ consts
 
 inductive domino
   intrs
-    horiz:  "{(i, j), (i, Suc j)} : domino"
-    vertl:  "{(i, j), (Suc i, j)} : domino";
+    horiz:  "{(i, j), (i, j + 1)} : domino"
+    vertl:  "{(i, j), (i + 1, j)} : domino";
 
 
-lemma dominoes_tile_row: "{i} Times below (n + n) : tiling domino"
+lemma dominoes_tile_row: "{i} Times below (2 * n) : tiling domino"
   (is "??P n" is "??B n : ??T");
 proof (induct n);
-  have "??B 0 = {}"; by simp;
-  also; have "... : ??T"; by (rule tiling.empty);
-  finally; show "??P 0"; .;
+  show "??P 0"; by (simp add: below_0 tiling.empty);
 
   fix n; assume hyp: "??P n";
-  let ??a = "{i} Times {Suc (n + n)} Un {i} Times {n + n}";
+  let ??a = "{i} Times {2 * n + 1} Un {i} Times {2 * n}";
 
   have "??B (Suc n) = ??a Un ??B n"; by (simp add: Sigma_Suc Un_assoc);
   also; have "... : ??T";
   proof (rule tiling.Un);
-    have "{(i, n + n), (i, Suc (n + n))} : domino"; by (rule domino.horiz);
-    also; have "{(i, n + n), (i, Suc (n + n))} = ??a"; by blast;
-    finally; show "??a : domino"; .;
+    have "{(i, 2 * n), (i, 2 * n + 1)} : domino"; by (rule domino.horiz);
+    also; have "{(i, 2 * n), (i, 2 * n + 1)} = ??a"; by blast;
+    finally; show "... : domino"; .;
     show "??B n : ??T"; by (rule hyp);
     show "??a <= - ??B n"; by force;
   qed;
   finally; show "??P (Suc n)"; .;
 qed;
 
-lemma dominoes_tile_matrix: "below m Times below (n + n) : tiling domino"
+lemma dominoes_tile_matrix: "below m Times below (2 * n) : tiling domino"
   (is "??P m" is "??B m : ??T");
 proof (induct m);
-  show "??P 0"; by (simp add: tiling.empty) -- {* same as above *};
+  show "??P 0"; by (simp add: below_0 tiling.empty);
 
   fix m; assume hyp: "??P m";
-  let ??t = "{m} Times below (n + n)";
+  let ??t = "{m} Times below (2 * n)";
 
   have "??B (Suc m) = ??t Un ??B m"; by (simp add: Sigma_Suc);
   also; have "... : ??T";
-  proof (rule tiling_UnI);
+  proof (rule tiling_Un [rulify]);
     show "??t : ??T"; by (rule dominoes_tile_row);
     show "??B m : ??T"; by (rule hyp);
     show "??t Int ??B m = {}"; by blast;
@@ -162,19 +157,19 @@ proof -;
   assume "d : domino";
   thus ??thesis (is "??P d");
   proof (induct d set: domino);
-    fix i j;
     have b_cases: "b = 0 | b = 1"; by arith;
-    note [simp] = less_Suc_eq mod_Suc;
-    from b_cases; show "??P {(i, j), (i, Suc j)}"; by rule auto;
-    from b_cases; show "??P {(i, j), (Suc i, j)}"; by rule auto;
+    fix i j;
+    note [simp] = evnodd_empty evnodd_insert mod_Suc;
+    from b_cases; show "??P {(i, j), (i, j + 1)}"; by rule auto;
+    from b_cases; show "??P {(i, j), (i + 1, j)}"; by rule auto;
   qed;
 qed;
 
 lemma domino_finite: "d: domino ==> finite d";
 proof (induct set: domino);
   fix i j;
-  show "finite {(i, j), (i, Suc j)}"; by (intro Finites.intrs);
-  show "finite {(i, j), (Suc i, j)}"; by (intro Finites.intrs);
+  show "finite {(i, j), (i, j + 1)}"; by (intro Finites.intrs);
+  show "finite {(i, j), (i + 1, j)}"; by (intro Finites.intrs);
 qed;
 
 
@@ -184,7 +179,7 @@ lemma tiling_domino_finite: "t : tiling domino ==> finite t" (is "t : ??T ==> ??
 proof -;
   assume "t : ??T";
   thus "??F t";
-  proof (induct set: tiling);
+  proof (induct t set: tiling);
     show "??F {}"; by (rule Finites.emptyI);
     fix a t; assume "??F t";
     assume "a : domino"; hence "??F a"; by (rule domino_finite);
@@ -197,7 +192,7 @@ lemma tiling_domino_01: "t : tiling domino ==> card (evnodd t 0) = card (evnodd 
 proof -;
   assume "t : ??T";
   thus "??P t";
-  proof (induct set: tiling);
+  proof (induct t set: tiling);
     show "??P {}"; by (simp add: evnodd_def);
 
     fix a t;
@@ -237,29 +232,30 @@ section {* Main theorem *};
 
 constdefs
   mutilated_board :: "nat => nat => (nat * nat) set"
-  "mutilated_board m n == below (Suc m + Suc m) Times below (Suc n + Suc n)
-    - {(0, 0)} - {(Suc (m + m), Suc (n + n))}";
+  "mutilated_board m n == below (2 * (m + 1)) Times below (2 * (n + 1))
+    - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}";
 
-theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino" (is "_ ~: ??T");
+theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino";
 proof (unfold mutilated_board_def);
-  let ??t = "below (Suc m + Suc m) Times below (Suc n + Suc n)";
+  let ??T = "tiling domino";
+  let ??t = "below (2 * (m + 1)) Times below (2 * (n + 1))";
   let ??t' = "??t - {(0, 0)}";
-  let ??t'' = "??t' - {(Suc (m + m), Suc (n + n))}";
+  let ??t'' = "??t' - {(2 * m + 1, 2 * n + 1)}";
   show "??t'' ~: ??T";
   proof;
-    let ??e = evnodd;
-    note [simp] = evnodd_iff;
+    have t: "??t : ??T"; by (rule dominoes_tile_matrix);
     assume t'': "??t'' : ??T";
 
-    have t: "??t : ??T"; by (rule dominoes_tile_matrix);
+    let ??e = evnodd;
     have fin: "finite (??e ??t 0)"; by (rule evnodd_finite, rule tiling_domino_finite, rule t);
 
+    note [simp] = evnodd_iff evnodd_empty evnodd_insert evnodd_Diff;
     have "card (??e ??t'' 0) < card (??e ??t' 0)";
     proof -;
-      have "card (??e ??t' 0 - {(Suc (m + m), Suc (n + n))}) < card (??e ??t' 0)";
+      have "card (??e ??t' 0 - {(2 * m + 1, 2 * n + 1)}) < card (??e ??t' 0)";
       proof (rule card_Diff1_less);
 	show "finite (??e ??t' 0)"; by (rule finite_subset, rule fin) force;
-	show "(Suc (m + m), Suc (n + n)) : ??e ??t' 0"; by simp;
+	show "(2 * m + 1, 2 * n + 1) : ??e ??t' 0"; by simp;
       qed;
       thus ??thesis; by simp;
     qed;
@@ -271,7 +267,7 @@ proof (unfold mutilated_board_def);
     qed;
     also; from t; have "... = card (??e ??t 1)"; by (rule tiling_domino_01);
     also; have "??e ??t 1 = ??e ??t'' 1"; by simp;
-    also; have "card ... = card (??e ??t'' 0)"; by (rule sym, rule tiling_domino_01);
+    also; from t''; have "card ... = card (??e ??t'' 0)"; by (rule tiling_domino_01 [RS sym]);
     finally; show False; ..;
   qed;
 qed;
