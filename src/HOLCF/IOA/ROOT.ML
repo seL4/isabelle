@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/meta_theory/ROOT.ML
+(*  Title:      HOL/IOA/ROOT.ML
     ID:         $Id$
     Author:     Olaf Mueller
     Copyright   1997  TU Muenchen
@@ -9,9 +9,6 @@ I/O-Automata.  See the README.html file for details.
 
 goals_limit := 1;
 
-add_path "meta_theory";
-
-use_thy "Abstraction";
-
-use"~/isabelle/src/HOLCF/IOA/meta_theory/ioa_package.ML";
-use"~/isabelle/src/HOLCF/IOA/meta_theory/ioa_syn.ML";
+use_thy "meta_theory/Abstraction";
+use "meta_theory/ioa_package.ML";
+use "meta_theory/ioa_syn.ML";

@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/Modelcheck/ROOT.ML
+(*  Title:      HOLCF/IOA/Modelcheck/ROOT.ML
     ID:         $Id$
     Author:     Olaf Mueller
     Copyright   1997  TU Muenchen
@@ -9,10 +9,8 @@ I/O-Automata.  See the README.html file for details.
 
 goals_limit := 1;
 
-add_path"~/isabelle/src/HOL/Modelcheck";
-use"~/isabelle/src/HOL/Modelcheck/mucke_oracle.ML";
-use_thy"MuIOAOracle";
-use_thy"Cockpit";
-use_thy"Ring3";
-
-reset_path();
+use "../../../HOL/Modelcheck/mucke_oracle.ML";
+use_thy "../../../HOL/Modelcheck/MuckeSyn";
+use_thy "MuIOAOracle";
+use_thy "Cockpit";
+use_thy "Ring3";

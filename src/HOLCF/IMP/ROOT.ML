@@ -4,8 +4,5 @@
     Copyright   1997  TU Muenchen
 *)
 
-add_path "../../HOL/IMP";
-use_thy "Natural";
-
-reset_path ();
+use_thy "../../HOL/IMP/Natural";
 use_thy "HoareEx";
