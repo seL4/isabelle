@@ -910,7 +910,7 @@ fun transitive_closure [] = []
       CACM 31 (1988), 1192-1201. 
     Real number version for systems with 46-bit mantissae
     Computes  (a*seed) mod m ;  should be applied to integers only! **)
-local val a = 16807.0  and  m = 2147483647.0
+local val a = 16807.0  and  m = 2147483647.0  (* 2^31 - 1 *)
 in  fun nextrandom seed =
           let val t = a*seed
           in  t - m * real(floor(t/m))  end
@@ -935,9 +935,11 @@ fun newid n =
           else  (*i=63*)    "'"
   in  implode (map char (radixpand (64,n)))  end;
 
-(*Randomly generated identifiers with given prefix; MUST start with a letter*)
+(*Randomly generated identifiers with given prefix; MUST start with a letter
+    [division by two avoids overflow for ML systems whose maxint is 2^30 - 1 *)
 fun gensym pre = pre ^ 
-                 (#1(newid (floor (!seedr)), seedr := nextrandom (!seedr)))
+                 (#1(newid (floor (!seedr/2.0)), 
+		     seedr := nextrandom (!seedr)))
 
 (*Increment a list of letters like a reversed base 26 number.
   If head is "z", bumps chars in tail.
