@@ -255,11 +255,7 @@ fun use_thy name =
          if thy_uptodate orelse thy_file = "" then ()
          else (writeln ("Reading \"" ^ name ^ ".thy\"");
                read_thy tname thy_file;
-               use (out_name tname);
-               use_string
-                 ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"]
-                       (*Store theory object in case it is needed for store_thm
-                         while reading the ML file*)
+               use (out_name tname)
               );
 
          if ml_file = "" then ()
