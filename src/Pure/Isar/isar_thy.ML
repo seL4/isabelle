@@ -91,24 +91,15 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * string option list * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> (xstring * Args.src list) option * Args.src Locale.element list
+  val theorem: string
     -> ((bstring * Args.src list) * (string * (string list * string list))) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val theorem_i: string -> (string * Proof.context attribute list) option
-    * Proof.context attribute Locale.element_i list
-    -> ((bstring * Theory.theory Thm.attribute list) *
-      (Term.term * (Term.term list * Term.term list))) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val multi_theorem: string -> (bstring * Args.src list)
-    -> (xstring * Args.src list) option * Args.src Locale.element list
-    -> (((bstring * Args.src list) * (string * (string list * string list)) list)
-    * Comment.text) list -> bool -> theory -> ProofHistory.T
-  val multi_theorem_i: string -> (bstring * theory attribute list)
-    -> (string * Proof.context attribute list) option
-      * Proof.context attribute Locale.element_i list ->
-    (((bstring * Theory.theory Thm.attribute list) *
-      (Term.term * (Term.term list * Term.term list)) list) * Comment.text) list
-    -> bool -> theory -> ProofHistory.T
+  val theorem_i: string -> ((bstring * theory attribute list) *
+    (term * (term list * term list))) * Comment.text -> bool -> theory -> ProofHistory.T
+  val smart_multi_theorem: string -> bstring * Args.src list ->
+    xstring Library.option * Args.src Locale.element list ->
+    (((bstring * Args.src list) * (string * (string list * string list)) list)
+      * Comment.text) list -> bool -> theory -> ProofHistory.T
   val assume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val assume_i: (((string * Proof.context attribute list) * (term * (term list * term list)) list)
@@ -120,26 +111,26 @@ sig
   val have: (((string * Args.src list) *
     (string * (string list * string list)) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
-  val have_i: (((string * Proof.context Thm.attribute list) *
-    (Term.term * (Term.term list * Term.term list)) list) * Comment.text) list
+  val have_i: (((string * Proof.context attribute list) *
+    (term * (term list * term list)) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val hence: (((string * Args.src list) *
     (string * (string list * string list)) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
-  val hence_i: (((string * Proof.context Thm.attribute list) *
-    (Term.term * (Term.term list * Term.term list)) list) * Comment.text) list
+  val hence_i: (((string * Proof.context attribute list) *
+    (term * (term list * term list)) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val show: (((string * Args.src list) *
     (string * (string list * string list)) list) * Comment.text) list
     -> bool -> ProofHistory.T -> ProofHistory.T
-  val show_i: (((string * Proof.context Thm.attribute list) *
-    (Term.term * (Term.term list * Term.term list)) list) * Comment.text) list
+  val show_i: (((string * Proof.context attribute list) *
+    (term * (term list * term list)) list) * Comment.text) list
     -> bool -> ProofHistory.T -> ProofHistory.T
   val thus: (((string * Args.src list) *
     (string * (string list * string list)) list) * Comment.text) list
     -> bool -> ProofHistory.T -> ProofHistory.T
-  val thus_i: (((string * Proof.context Thm.attribute list) *
-    (Term.term * (Term.term list * Term.term list)) list) * Comment.text) list
+  val thus_i: (((string * Proof.context attribute list) *
+    (term * (term list * term list)) list) * Comment.text) list
     -> bool -> ProofHistory.T -> ProofHistory.T
   val local_def: ((string * Args.src list) * (string * (string * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -201,7 +192,6 @@ end;
 
 structure IsarThy: ISAR_THY =
 struct
-
 
 
 (** derived theory and proof operations **)
@@ -437,32 +427,44 @@ end;
 local
 
 fun global_attributes thy ((name, src), s) = ((name, map (Attrib.global_attribute thy) src), s);
+fun local_attributes thy ((name, src), s) = ((name, map (Attrib.local_attribute thy) src), s);
+fun local_attributes' state = local_attributes (Proof.theory_of state);
 
 fun global_statement f args int thy =
   ProofHistory.init (Toplevel.undo_limit int) (f (map (global_attributes thy) args) thy);
 fun global_statement_i f args int thy = ProofHistory.init (Toplevel.undo_limit int) (f args thy);
 
-fun local_attributes state ((name, src), s) =
-  ((name, map (Attrib.local_attribute (Proof.theory_of state)) src), s);
-
 fun local_statement' f g args int = ProofHistory.apply (fn state =>
-  f (map (local_attributes state) args) int (g state));
+  f (map (local_attributes' state) args) int (g state));
 fun local_statement_i' f g args int = ProofHistory.apply (f args int o g);
 fun local_statement f g args = local_statement' (K o f) g args ();
 fun local_statement_i f g args = local_statement_i' (K o f) g args ();
 
-in
-
-fun multi_theorem k a (locale, elems) args int thy =
-  global_statement (Proof.multi_theorem k (apsnd (map (Attrib.global_attribute thy)) a)
-    (apsome (apsnd (map (Attrib.local_attribute thy))) locale)
+fun multi_theorem k a elems args int thy =
+  global_statement (Proof.multi_theorem k (apsnd (map (Attrib.global_attribute thy)) a) None
     (map (Locale.attribute (Attrib.local_attribute thy)) elems)) (map Comment.ignore args) int thy;
 
-fun multi_theorem_i k a (locale, elems) =
-  global_statement_i (Proof.multi_theorem_i k a locale elems) o map Comment.ignore;
+fun multi_theorem_i k a elems =
+  global_statement_i (Proof.multi_theorem_i k a None elems) o map Comment.ignore;
 
-fun theorem k loc ((a, t), cmt) = multi_theorem k a loc [((("", []), [t]), cmt)];
-fun theorem_i k loc ((a, t), cmt) = multi_theorem_i k a loc [((("", []), [t]), cmt)];
+fun locale_multi_theorem k a locale elems args int thy =
+  global_statement (Proof.multi_theorem k (apsnd (map (Attrib.global_attribute thy)) a)
+      (Some (locale, map (map (Attrib.local_attribute thy) o snd o fst o Comment.ignore) args))
+      (map (Locale.attribute (Attrib.local_attribute thy)) elems))
+    (map (apfst (apsnd (K [])) o Comment.ignore) args) int thy;
+
+fun locale_multi_theorem_i k a locale elems args =
+  global_statement_i (Proof.multi_theorem_i k a
+      (Some (locale, map (snd o fst o Comment.ignore) args)) elems)
+    (map (apfst (apsnd (K [])) o Comment.ignore) args);
+
+in
+
+fun theorem k ((a, t), cmt) = multi_theorem k a [] [((("", []), [t]), cmt)];
+fun theorem_i k ((a, t), cmt) = multi_theorem_i k a [] [((("", []), [t]), cmt)];
+
+fun smart_multi_theorem k a (None, elems) = multi_theorem k a elems
+  | smart_multi_theorem k a (Some locale, elems) = locale_multi_theorem k a locale elems;
 
 val assume      = local_statement Proof.assume I o map Comment.ignore;
 val assume_i    = local_statement_i Proof.assume_i I o map Comment.ignore;
@@ -485,7 +487,7 @@ val local_def_i = gen_def Proof.def_i o Comment.ignore;
 
 fun obtain (xs, asms) = ProofHistory.applys (fn state =>
   Obtain.obtain (map Comment.ignore xs)
-    (map (local_attributes state) (map Comment.ignore asms)) state);
+    (map (local_attributes' state) (map Comment.ignore asms)) state);
 
 fun obtain_i (xs, asms) = ProofHistory.applys (fn state =>
   Obtain.obtain_i (map Comment.ignore xs) (map Comment.ignore asms) state);
