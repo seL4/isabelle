@@ -483,7 +483,8 @@ val apply_endP =
 
 val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
-    (Scan.option P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.proof)));
+    (Scan.option P.method >> (fn m => Toplevel.print o Toplevel.proof (IsarThy.proof m) o
+      Toplevel.skip_proof (History.apply (fn i => i + 1))));
 
 
 (* calculational proof commands *)

@@ -129,15 +129,18 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
 val clear_undos_theory = Toplevel.history o History.clear;
-val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
+val redo = Toplevel.history History.redo o Toplevel.proof'' ProofHistory.redo o
+  Toplevel.skip_proof History.redo;
 
-fun undos_proof n = Toplevel.proof (fn prf =>
-  if ProofHistory.is_initial prf then raise Toplevel.UNDEF else funpow n ProofHistory.undo prf);
+fun undos_proof n = Toplevel.proof'' (fn prf =>
+    if ProofHistory.is_initial prf then raise Toplevel.UNDEF else funpow n ProofHistory.undo prf) o
+  Toplevel.skip_proof (fn h =>
+    if History.is_initial h then raise Toplevel.UNDEF else funpow n History.undo h);
 
 fun kill_proof_notify (f: unit -> unit) = Toplevel.history (fn hist =>
   (case History.current hist of
     Toplevel.Theory _ => raise Toplevel.UNDEF
-  | Toplevel.Proof _ => (f (); History.undo hist)));
+  | _ => (f (); History.undo hist)));
 
 val kill_proof = kill_proof_notify (K ());
 

@@ -446,6 +446,8 @@ val proof = ProofHistory.applys o Method.proof;
 (* local endings *)
 
 val local_qed = proof'' o (ProofHistory.applys oo Method.local_qed true);
+val skip_local_qed =
+  Toplevel.skip_proof (History.apply (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF));
 val local_terminal_proof = proof'' o (ProofHistory.applys oo Method.local_terminal_proof);
 val local_default_proof = proof'' (ProofHistory.applys o Method.local_default_proof);
 val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
@@ -469,6 +471,7 @@ fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   end);
 
 fun global_qed m = global_result (K (Method.global_qed true m));
+val skip_global_qed = Toplevel.skip_proof_to_theory (equal 1 o History.current);
 fun global_terminal_proof m = global_result (K (Method.global_terminal_proof m));
 val global_default_proof = global_result (K Method.global_default_proof);
 val global_immediate_proof = global_result (K Method.global_immediate_proof);
@@ -478,13 +481,14 @@ val global_done_proof = global_result (K Method.global_done_proof);
 
 (* common endings *)
 
-fun qed meth = local_qed meth o global_qed meth;
+fun qed meth = local_qed meth o global_qed meth o skip_local_qed o skip_global_qed;
 fun terminal_proof meths = local_terminal_proof meths o global_terminal_proof meths;
 val default_proof = local_default_proof o global_default_proof;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
-val forget_proof = Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current);
+val forget_proof = Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current) o
+  Toplevel.skip_proof_to_theory (K true);
 
 
 (* calculational proof commands *)
