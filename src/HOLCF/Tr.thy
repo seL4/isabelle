@@ -16,7 +16,7 @@ consts
         trand           :: "tr -> tr -> tr"
         tror            :: "tr -> tr -> tr"
         neg             :: "tr -> tr"
-        plift           :: "('a => bool) => 'a lift -> tr"
+        plift           :: "('a::term => bool) => 'a lift -> tr"
 
 syntax  "@cifte"        :: "tr=>'c=>'c=>'c" ("(3If _/ (then _/ else _) fi)" 60)
         "@andalso"      :: "tr => tr => tr" ("_ andalso _" [36,35] 35)
