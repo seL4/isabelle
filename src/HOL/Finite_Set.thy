@@ -487,6 +487,60 @@ by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
+(* only used in the next lemma, but in there twice *)
+lemma card_lemma: assumes A1: "A = insert b B" and notinB: "b \<notin> B" and
+  card: "A = h`{i. i<Suc n}" and new: "\<not>(EX k<n. h n = h k)"
+shows "EX h. B = h`{i. i<n}" (is "EX h. ?P h")
+proof
+  let ?h = "%i. if h i = b then h n else h i"
+  show "B = ?h`{i. i<n}" (is "_ = ?r")
+  proof
+    show "B \<subseteq> ?r"
+    proof
+      fix u assume "u \<in> B"
+      hence uinA: "u \<in> A" and unotb: "u \<noteq> b" using A1 notinB by blast+
+      then obtain i\<^isub>u where below: "i\<^isub>u < Suc n" and [simp]: "u = h i\<^isub>u"
+	using card by(auto simp:image_def)
+      show "u \<in> ?r"
+      proof cases
+	assume "i\<^isub>u < n"
+	thus ?thesis using unotb by(fastsimp)
+      next
+	assume "\<not> i\<^isub>u < n"
+	with below have [simp]: "i\<^isub>u = n" by arith
+	obtain i\<^isub>k where i\<^isub>k: "i\<^isub>k < Suc n" and [simp]: "b = h i\<^isub>k"
+	  using A1 card by blast
+	have "i\<^isub>k < n"
+	proof (rule ccontr)
+	  assume "\<not> i\<^isub>k < n"
+	  hence "i\<^isub>k = n" using i\<^isub>k by arith
+	  thus False using unotb by simp
+	qed
+	thus ?thesis by(auto simp add:image_def)
+      qed
+    qed
+  next
+    show "?r \<subseteq> B"
+    proof
+      fix u assume "u \<in> ?r"
+      then obtain i\<^isub>u where below: "i\<^isub>u < n" and
+        or: "b = h i\<^isub>u \<and> u = h n \<or> h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
+	by(auto simp:image_def)
+      from or show "u \<in> B"
+      proof
+	assume [simp]: "b = h i\<^isub>u \<and> u = h n"
+	have "u \<in> A" using card by auto
+        moreover have "u \<noteq> b" using new below by auto
+	ultimately show "u \<in> B" using A1 by blast
+      next
+	assume "h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
+	moreover hence "u \<in> A" using card below by auto
+	ultimately show "u \<in> B" using A1 by blast
+      qed
+    qed
+  qed
+qed
+
 lemma (in ACf) foldSet_determ_aux:
   "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; (A,x) : foldSet f g e; (A,x') : foldSet f g e \<rbrakk>
    \<Longrightarrow> x' = x"
@@ -523,58 +577,15 @@ next
 	assume eq2: "(A,x') = (insert c C, g c \<cdot> z)"
 	  and z: "(C,z) \<in> foldSet f g e" and notinC: "c \<notin> C"
 	hence A2: "A = insert c C" and x': "x' = g c \<cdot> z" by auto
-	let ?h = "%i. if h i = b then h n else h i"
-	have less: "B = ?h`{i. i<n}" (is "_ = ?r")
-	proof
-	  show "B \<subseteq> ?r"
-	  proof
-	    fix u assume "u \<in> B"
-	    hence uinA: "u \<in> A" and unotb: "u \<noteq> b" using A1 notinB by blast+
-	    then obtain i\<^isub>u where below: "i\<^isub>u < Suc n" and [simp]: "u = h i\<^isub>u"
-	      using card by(auto simp:image_def)
-	    show "u \<in> ?r"
-	    proof cases
-	      assume "i\<^isub>u < n"
-	      thus ?thesis using unotb by(fastsimp)
-	    next
-	      assume "\<not> i\<^isub>u < n"
-	      with below have [simp]: "i\<^isub>u = n" by arith
-	      obtain i\<^isub>k where i\<^isub>k: "i\<^isub>k < Suc n" and [simp]: "b = h i\<^isub>k"
-		using A1 card by blast
-	      have "i\<^isub>k < n"
-	      proof (rule ccontr)
-		assume "\<not> i\<^isub>k < n"
-		hence "i\<^isub>k = n" using i\<^isub>k by arith
-		thus False using unotb by simp
-	      qed
-	      thus ?thesis by(auto simp add:image_def)
-	    qed
-	  qed
-	next
-	  show "?r \<subseteq> B"
-	  proof
-	    fix u assume "u \<in> ?r"
-	    then obtain i\<^isub>u where below: "i\<^isub>u < n" and
-              or: "b = h i\<^isub>u \<and> u = h n \<or> h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
-	      by(auto simp:image_def)
-	    from or show "u \<in> B"
-	    proof
-	      assume [simp]: "b = h i\<^isub>u \<and> u = h n"
-	      have "u \<in> A" using card by auto
-              moreover have "u \<noteq> b" using new below by auto
-	      ultimately show "u \<in> B" using A1 by blast
-	    next
-	      assume "h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
-	      moreover hence "u \<in> A" using card below by auto
-	      ultimately show "u \<in> B" using A1 by blast
-	    qed
-	  qed
-	qed
+	obtain hB where lessB: "B = hB ` {i. i<n}"
+	  using card_lemma[OF A1 notinB card new] by auto
+	obtain hC where lessC: "C = hC ` {i. i<n}"
+	  using card_lemma[OF A2 notinC card new] by auto
 	show ?thesis
 	proof cases
 	  assume "b = c"
 	  then moreover have "B = C" using A1 A2 notinB notinC by auto
-	  ultimately show ?thesis using IH[OF less] y z x x' by auto
+	  ultimately show ?thesis using IH[OF lessB] y z x x' by auto
 	next
 	  assume diff: "b \<noteq> c"
 	  let ?D = "B - {c}"
@@ -587,58 +598,9 @@ next
 	  moreover have cinB: "c \<in> B" using B by(auto)
 	  ultimately have "(B,g c \<cdot> d) \<in> foldSet f g e"
 	    by(rule Diff1_foldSet)
-	  hence "g c \<cdot> d = y" by(rule IH[OF less y])
+	  hence "g c \<cdot> d = y" by(rule IH[OF lessB y])
           moreover have "g b \<cdot> d = z"
-	  proof (rule IH[OF _ z])
-	    let ?h = "%i. if h i = c then h n else h i"
-	    show "C = ?h`{i. i<n}" (is "_ = ?r")
-	    proof
-	      show "C \<subseteq> ?r"
-	      proof
-		fix u assume "u \<in> C"
-		hence uinA: "u \<in> A" and unotc: "u \<noteq> c"
-		  using A2 notinC by blast+
-		then obtain i\<^isub>u where below: "i\<^isub>u < Suc n" and [simp]: "u = h i\<^isub>u"
-		  using card by(auto simp:image_def)
-		show "u \<in> ?r"
-		proof cases
-		  assume "i\<^isub>u < n"
-		  thus ?thesis using unotc by(fastsimp)
-		next
-		  assume "\<not> i\<^isub>u < n"
-		  with below have [simp]: "i\<^isub>u = n" by arith
-		  obtain i\<^isub>k where i\<^isub>k: "i\<^isub>k < Suc n" and [simp]: "c = h i\<^isub>k"
-		    using A2 card by blast
-		  have "i\<^isub>k < n"
-		  proof (rule ccontr)
-		    assume "\<not> i\<^isub>k < n"
-		    hence "i\<^isub>k = n" using i\<^isub>k by arith
-		    thus False using unotc by simp
-		  qed
-		  thus ?thesis by(auto simp add:image_def)
-		qed
-	      qed
-	    next
-	      show "?r \<subseteq> C"
-	      proof
-		fix u assume "u \<in> ?r"
-		then obtain i\<^isub>u where below: "i\<^isub>u < n" and
-		  or: "c = h i\<^isub>u \<and> u = h n \<or> h i\<^isub>u \<noteq> c \<and> h i\<^isub>u = u"
-		  by(auto simp:image_def)
-		from or show "u \<in> C"
-		proof
-		  assume [simp]: "c = h i\<^isub>u \<and> u = h n"
-		  have "u \<in> A" using card by auto
-		  moreover have "u \<noteq> c" using new below by auto
-		  ultimately show "u \<in> C" using A2 by blast
-		next
-		  assume "h i\<^isub>u \<noteq> c \<and> h i\<^isub>u = u"
-		  moreover hence "u \<in> A" using card below by auto
-		  ultimately show "u \<in> C" using A2 by blast
-		qed
-	      qed
-	    qed
-	  next
+	  proof (rule IH[OF lessC z])
 	    show "(C,g b \<cdot> d) \<in> foldSet f g e" using C notinB Dfoldd
 	      by fastsimp
 	  qed
