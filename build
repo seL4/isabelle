@@ -141,6 +141,8 @@ else
   echo "ML_HOME=$ML_HOME"
   echo "ML_OPTIONS=$ML_OPTIONS"
   echo
+  echo "ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
+  echo
 fi
 
 
