@@ -196,6 +196,11 @@ mode to get Isabelle font glyphs as before;
 * refined token_translation interface; INCOMPATIBILITY: output length
 now of type real instead of int;
 
+* theory loader actions may be traced via new ThyInfo.add_hook
+interface (see src/Pure/Thy/thy_info.ML); example application: keep
+your own database of information attached to *whole* theories -- as
+opposed to intra-theory data slots offered via TheoryDataFun;
+
 
 
 New in Isabelle98-1 (October 1998)
