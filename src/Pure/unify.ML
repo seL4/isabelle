@@ -7,6 +7,10 @@ Higher-Order Unification
 
 Potential problem: type of Vars is often ignored, so two Vars with same
 indexname but different types can cause errors!
+
+Types as well as terms are unified.  The outermost functions assume the
+terms to be unified already have the same type.  In resolution, this is
+assured because both have type "prop".
 *)
 
 
@@ -303,7 +307,10 @@ fun head_norm_dpair (env, (rbinder,t,u)) : dpair * Envir.env =
 
 (*flexflex: the flex-flex pairs,  flexrigid: the flex-rigid pairs
   Does not perform assignments for flex-flex pairs:
-    may create nonrigid paths, which prevent other assignments*)
+    may create nonrigid paths, which prevent other assignments.
+  Does not even identify Vars in dpairs such as ?a =?= ?b; an attempt to
+    do so caused numerous problems with no compensating advantage.
+*)
 fun SIMPL0 (dp0, (env,flexflex,flexrigid))
 	: Envir.env * dpair list * dpair list =
     let val (dp as (rbinder,t,u), env) = head_norm_dpair(env,dp0);

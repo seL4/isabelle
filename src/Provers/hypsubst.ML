@@ -1,6 +1,6 @@
 (*  Title: 	Provers/hypsubst
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Martin Coen's tactic for substitution in the hypotheses
@@ -49,6 +49,7 @@ fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
 
 (*It's not safe to substitute for a constant; consider 0=1.
   It's not safe to substitute for x=t[x] since x is not eliminated.
+  It's not safe to substitute for a Var; what if it appears in other goals?
   It's not safe to substitute for a variable free in the premises,
     but how could we check for this?*)
 fun inspect_pair bnd (t,u) =
