@@ -23,6 +23,7 @@ sig
   val init: theory -> context
   val def_sort: context -> indexname -> sort option
   val def_type: context -> bool -> indexname -> typ option
+  val cert_skolem: context -> string -> string * typ option
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
@@ -34,7 +35,6 @@ sig
   val cert_prop: context -> term -> term
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
-  val declare_thm: thm -> context -> context
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
   val match_binds: (string list * string) list -> context -> context
@@ -94,7 +94,6 @@ datatype context =
     defs:
       typ Vartab.table *                                                (*type constraints*)
       sort Vartab.table *                                               (*default sorts*)
-      int *                                                             (*maxidx*)
       string list};                                                     (*used type var names*)
 
 exception CONTEXT of string * context;
@@ -168,7 +167,7 @@ fun strings_of_prems ctxt =
   | prems => [Pretty.string_of (Pretty.big_list "prems:" (map pretty_thm prems))]);
 
 fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
-    defs = (types, sorts, maxidx, used), ...}) =
+    defs = (types, sorts, used), ...}) =
   let
     val sign = sign_of ctxt;
 
@@ -208,7 +207,6 @@ fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
     verb strings_of_thms ctxt @
     verb_string (Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb_string (Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb_string (Pretty.str ("maxidx: " ^ string_of_int maxidx)) @
     verb_string (Pretty.strs ("used type variable names:" :: used))
   end;
 
@@ -303,16 +301,15 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty,
-      (Vartab.empty, Vartab.empty, 0, []))
-        (*Note: maxidx = 0 is workaround for obscure bug in Unify.smash_unifiers*)
+      (Vartab.empty, Vartab.empty, []))
   end;
 
 
 (** default sorts and types **)
 
-fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts, xi);
+fun def_sort (Context {defs = (_, sorts, _), ...}) xi = Vartab.lookup (sorts, xi);
 
-fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
+fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
   (case Vartab.lookup (types, xi) of
     None =>
       if is_pat then None
@@ -370,7 +367,7 @@ fun cert_prop_sg sg tm =
   end;
 
 
-(* intern_skolem *)
+(* internalize Skolem constants *)
 
 fun get_skolem (Context {asms = (_, (fixes, _)), ...}) x = assoc (fixes, x);
 
@@ -392,6 +389,11 @@ fun intern_skolem ctxt check =
       | intern (Abs (x, T, t)) = Abs (x, T, intern t)
       | intern a = a;
   in intern end;
+
+fun cert_skolem ctxt x =
+  (case get_skolem ctxt x of
+    None => raise CONTEXT ("Undeclared variable: " ^ quote x, ctxt)
+  | Some x' => (x', def_type ctxt false (x', ~1)));
 
 
 (* norm_term *)
@@ -444,7 +446,7 @@ end;
 
 (* read terms *)
 
-fun gen_read read app is_pat (ctxt as Context {defs = (_, _, _, used), ...}) s =
+fun gen_read read app is_pat (ctxt as Context {defs = (_, _, used), ...}) s =
   (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
@@ -500,21 +502,15 @@ fun map_defaults f = map_context
 
 fun declare (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
   ctxt
-  |> map_defaults (fn (types, sorts, maxidx, used) => (ins_types (types, t), sorts, maxidx, used))
-  |> map_defaults (fn (types, sorts, maxidx, used) => (types, ins_sorts (sorts, t), maxidx, used))
-  |> map_defaults (fn (types, sorts, maxidx, used) => (types, sorts, maxidx, ins_used (used, t)))
-  |> map_defaults (fn (types, sorts, maxidx, used) =>
-      (types, sorts, Int.max (maxidx, Term.maxidx_of_term t), used))
-  |> map_defaults (fn (types, sorts, maxidx, used) =>
-      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, maxidx, used));
+  |> map_defaults (fn (types, sorts, used) => (ins_types (types, t), sorts, used))
+  |> map_defaults (fn (types, sorts, used) => (types, ins_sorts (sorts, t), used))
+  |> map_defaults (fn (types, sorts, used) => (types, sorts, ins_used (used, t)))
+  |> map_defaults (fn (types, sorts, used) =>
+      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, used));
 
 
 fun declare_term t ctxt = declare (ctxt, t);
 fun declare_terms ts ctxt = foldl declare (ctxt, ts);
-
-fun declare_thm thm ctxt =
-  let val {prop, hyps, ...} = Thm.rep_thm thm
-  in ctxt |> declare_terms (prop :: hyps) end;
 
 
 
@@ -565,13 +561,15 @@ fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
     val matches = map (fn (f, raw_pat) => (prep_pat ctxt' raw_pat, f t)) raw_pats;
   in (ctxt', (matches, t)) end;
 
+fun maxidx_of_pair (t1, t2) = Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2);
+
 fun gen_match_binds _ [] ctxt = ctxt
   | gen_match_binds prepp args ctxt =
       let
         val raw_pairs = map (apfst (map (pair I))) args;
         val (ctxt', matches) = foldl_map (prep_declare_match prepp) (ctxt, raw_pairs);
         val pairs = flat (map #1 matches);
-        val Context {defs = (_, _, maxidx, _), ...} = ctxt';
+        val maxidx = foldl (fn (i, p) => Int.max (i, maxidx_of_pair p)) (~1, pairs);
         val envs = Unify.smash_unifiers (sign_of ctxt', Envir.empty maxidx, pairs);
         val env =
           (case Seq.pull envs of
@@ -667,11 +665,10 @@ local
 fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
-    val Context {defs = (_, _, maxidx, _), ...} = ctxt';
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
     val cprops_tac = map (rpair tac) cprops;
-    val asms = map (Drule.forall_elim_vars (maxidx + 1) o Drule.assume_goal) cprops;
+    val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =
