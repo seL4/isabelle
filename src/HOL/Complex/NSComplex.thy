@@ -475,50 +475,47 @@ apply (cases x, cases y)
 apply (simp add: hcomplex_of_hypreal)
 done
 
-lemma hcomplex_of_hypreal_minus:
-     "hcomplex_of_hypreal(-x) = - hcomplex_of_hypreal x"
-apply (cases x)
-apply (simp add: hcomplex_of_hypreal hcomplex_minus hypreal_minus complex_of_real_minus)
-done
-
-lemma hcomplex_of_hypreal_inverse:
-     "hcomplex_of_hypreal(inverse x) = inverse(hcomplex_of_hypreal x)"
-apply (cases x)
-apply (simp add: hcomplex_of_hypreal hypreal_inverse hcomplex_inverse complex_of_real_inverse)
-done
-
-lemma hcomplex_of_hypreal_add:
-     "hcomplex_of_hypreal x + hcomplex_of_hypreal y =
-      hcomplex_of_hypreal (x + y)"
-apply (cases x, cases y)
-apply (simp add: hcomplex_of_hypreal hypreal_add hcomplex_add complex_of_real_add)
-done
-
-lemma hcomplex_of_hypreal_diff:
-     "hcomplex_of_hypreal x - hcomplex_of_hypreal y =
-      hcomplex_of_hypreal (x - y)"
-by (simp add: hcomplex_diff_def hcomplex_of_hypreal_minus [symmetric] hcomplex_of_hypreal_add hypreal_diff_def)
-
-lemma hcomplex_of_hypreal_mult:
-     "hcomplex_of_hypreal x * hcomplex_of_hypreal y =
-      hcomplex_of_hypreal (x * y)"
-apply (cases x, cases y)
-apply (simp add: hcomplex_of_hypreal hypreal_mult hcomplex_mult complex_of_real_mult)
-done
-
-lemma hcomplex_of_hypreal_divide:
-  "hcomplex_of_hypreal x / hcomplex_of_hypreal y = hcomplex_of_hypreal(x/y)"
-apply (simp add: hcomplex_divide_def)
-apply (case_tac "y=0", simp)
-apply (auto simp add: hcomplex_of_hypreal_mult hcomplex_of_hypreal_inverse [symmetric])
-apply (simp add: hypreal_divide_def)
-done
-
 lemma hcomplex_of_hypreal_one [simp]: "hcomplex_of_hypreal 1 = 1"
 by (simp add: hcomplex_one_def hcomplex_of_hypreal hypreal_one_num)
 
 lemma hcomplex_of_hypreal_zero [simp]: "hcomplex_of_hypreal 0 = 0"
 by (simp add: hcomplex_zero_def hypreal_zero_def hcomplex_of_hypreal)
+
+lemma hcomplex_of_hypreal_minus [simp]:
+     "hcomplex_of_hypreal(-x) = - hcomplex_of_hypreal x"
+apply (cases x)
+apply (simp add: hcomplex_of_hypreal hcomplex_minus hypreal_minus)
+done
+
+lemma hcomplex_of_hypreal_inverse [simp]:
+     "hcomplex_of_hypreal(inverse x) = inverse(hcomplex_of_hypreal x)"
+apply (cases x)
+apply (simp add: hcomplex_of_hypreal hypreal_inverse hcomplex_inverse)
+done
+
+lemma hcomplex_of_hypreal_add [simp]:
+  "hcomplex_of_hypreal (x + y) = hcomplex_of_hypreal x + hcomplex_of_hypreal y"
+apply (cases x, cases y)
+apply (simp add: hcomplex_of_hypreal hypreal_add hcomplex_add)
+done
+
+lemma hcomplex_of_hypreal_diff [simp]:
+     "hcomplex_of_hypreal (x - y) =
+      hcomplex_of_hypreal x - hcomplex_of_hypreal y "
+by (simp add: hcomplex_diff_def hypreal_diff_def)
+
+lemma hcomplex_of_hypreal_mult [simp]:
+  "hcomplex_of_hypreal (x * y) = hcomplex_of_hypreal x * hcomplex_of_hypreal y"
+apply (cases x, cases y)
+apply (simp add: hcomplex_of_hypreal hypreal_mult hcomplex_mult)
+done
+
+lemma hcomplex_of_hypreal_divide [simp]:
+  "hcomplex_of_hypreal(x/y) = hcomplex_of_hypreal x / hcomplex_of_hypreal y"
+apply (simp add: hcomplex_divide_def)
+apply (case_tac "y=0", simp)
+apply (simp add: hypreal_divide_def)
+done
 
 lemma hRe_hcomplex_of_hypreal [simp]: "hRe(hcomplex_of_hypreal z) = z"
 apply (cases z)
@@ -599,7 +596,7 @@ done
 
 lemma HComplex_add [simp]:
      "HComplex x1 y1 + HComplex x2 y2 = HComplex (x1+x2) (y1+y2)"
-by (simp add: HComplex_def hcomplex_of_hypreal_add [symmetric] add_ac right_distrib) 
+by (simp add: HComplex_def add_ac right_distrib) 
 
 lemma HComplex_minus [simp]: "- HComplex x y = HComplex (-x) (-y)"
 by (simp add: HComplex_def hcomplex_of_hypreal_minus) 
@@ -611,7 +608,6 @@ by (simp add: diff_minus)
 lemma HComplex_mult [simp]:
   "HComplex x1 y1 * HComplex x2 y2 = HComplex (x1*x2 - y1*y2) (x1*y2 + y1*x2)"
 by (simp add: HComplex_def diff_minus hcomplex_of_hypreal_minus 
-       hcomplex_of_hypreal_add [symmetric] hcomplex_of_hypreal_mult [symmetric]
        add_ac mult_ac right_distrib)
 
 (*HComplex_inverse is proved below*)
@@ -1000,7 +996,9 @@ lemma hcomplex_inverse_complex_split:
       hcomplex_of_hypreal(x/(x ^ 2 + y ^ 2)) -
       iii * hcomplex_of_hypreal(y/(x ^ 2 + y ^ 2))"
 apply (cases x, cases y)
-apply (simp add: hcomplex_of_hypreal hcomplex_mult hcomplex_add iii_def starfun hypreal_mult hypreal_add hcomplex_inverse hypreal_divide hcomplex_diff complex_inverse_complex_split numeral_2_eq_2)
+apply (simp add: hcomplex_of_hypreal hcomplex_mult hcomplex_add iii_def
+         starfun hypreal_mult hypreal_add hcomplex_inverse hypreal_divide
+         hcomplex_diff numeral_2_eq_2 complex_of_real_def i_def)
 apply (simp add: diff_minus) 
 done
 
@@ -1163,8 +1161,7 @@ lemma hrcis_mult:
   "hrcis r1 a * hrcis r2 b = hrcis (r1*r2) (a + b)"
 apply (simp add: hrcis_def, cases r1, cases r2, cases a, cases b)
 apply (simp add: hrcis hcis hypreal_add hypreal_mult hcomplex_of_hypreal
-                      hcomplex_mult cis_mult [symmetric]
-                      complex_of_real_mult [symmetric])
+                      hcomplex_mult cis_mult [symmetric])
 done
 
 lemma hcis_mult: "hcis a * hcis b = hcis (a + b)"
@@ -1304,17 +1301,28 @@ by (auto intro: FreeUltrafilterNat_P
 
 lemma hcomplex_of_complex_inverse [simp]:
      "hcomplex_of_complex (inverse r) = inverse (hcomplex_of_complex r)"
-apply (case_tac "r=0")
-apply (simp add: hcomplex_of_complex_zero)
-apply (rule_tac c1 = "hcomplex_of_complex r"
-       in hcomplex_mult_left_cancel [THEN iffD1])
-apply (force simp add: hcomplex_of_complex_zero_iff)
-apply (subst hcomplex_of_complex_mult [symmetric])
-apply (simp add: hcomplex_of_complex_one hcomplex_of_complex_zero_iff)
-done
+proof cases
+  assume "r=0" thus ?thesis by simp
+next
+  assume nz: "r\<noteq>0" 
+  show ?thesis
+  proof (rule hcomplex_mult_left_cancel [THEN iffD1]) 
+    show "hcomplex_of_complex r \<noteq> 0"
+      by (simp add: nz) 
+  next
+    have "hcomplex_of_complex r * hcomplex_of_complex (inverse r) =
+          hcomplex_of_complex (r * inverse r)"
+      by simp
+    also have "... = hcomplex_of_complex r * inverse (hcomplex_of_complex r)" 
+      by (simp add: nz)
+    finally show "hcomplex_of_complex r * hcomplex_of_complex (inverse r) =
+                  hcomplex_of_complex r * inverse (hcomplex_of_complex r)" .
+  qed
+qed
 
 lemma hcomplex_of_complex_divide [simp]:
-     "hcomplex_of_complex (z1 / z2) = hcomplex_of_complex z1 / hcomplex_of_complex z2"
+     "hcomplex_of_complex (z1 / z2) = 
+      hcomplex_of_complex z1 / hcomplex_of_complex z2"
 by (simp add: hcomplex_divide_def complex_divide_def)
 
 lemma hRe_hcomplex_of_complex:
@@ -1334,38 +1342,38 @@ subsection{*Numerals and Arithmetic*}
 
 instance hcomplex :: number ..
 
-primrec (*the type constraint is essential!*)
-  number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::hcomplex)"
-  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-	                               (number_of w) + (number_of w)"
-
-declare number_of_Pls [simp del]
-        number_of_Min [simp del]
-        number_of_BIT [simp del]
+defs (overloaded)
+  hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int (Rep_Bin w)"
+    --{*the type constraint is essential!*}
 
 instance hcomplex :: number_ring
-proof
-  show "Numeral0 = (0::hcomplex)" by (rule number_of_Pls)
-  show "-1 = - (1::hcomplex)" by (rule number_of_Min)
-  fix w :: bin and x :: bool
-  show "(number_of (w BIT x) :: hcomplex) =
-        (if x then 1 else 0) + number_of w + number_of w"
-    by (rule number_of_BIT)
+by (intro_classes, simp add: hcomplex_number_of_def) 
+
+
+lemma hcomplex_of_complex_of_nat [simp]:
+     "hcomplex_of_complex (of_nat n) = of_nat n"
+by (induct n, simp_all) 
+
+lemma hcomplex_of_complex_of_int [simp]:
+     "hcomplex_of_complex (of_int z) = of_int z"
+proof (cases z)
+  case (1 n)
+    thus ?thesis by simp
+next
+  case (2 n)
+    thus ?thesis 
+      by (simp only: of_int_minus hcomplex_of_complex_minus, simp)
 qed
 
 
 text{*Collapse applications of @{term hcomplex_of_complex} to @{term number_of}*}
 lemma hcomplex_number_of [simp]:
      "hcomplex_of_complex (number_of w) = number_of w"
-apply (induct w) 
-apply (simp_all only: number_of hcomplex_of_complex_add 
-                      hcomplex_of_complex_minus, simp_all) 
-done
+by (simp add: hcomplex_number_of_def complex_number_of_def) 
 
 lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 
      "hcomplex_of_hypreal (hypreal_of_real x) =  
-      hcomplex_of_complex(complex_of_real x)"
+      hcomplex_of_complex (complex_of_real x)"
 by (simp add: hypreal_of_real_def hcomplex_of_hypreal hcomplex_of_complex_def 
               complex_of_real_def)
 

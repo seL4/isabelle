@@ -282,9 +282,9 @@ fun dest_nat (Const ("0", _)) = 0
 
 val binT = Type ("Numeral.bin", []);
 
-val pls_const = Const ("Numeral.bin.Pls", binT)
-and min_const = Const ("Numeral.bin.Min", binT)
-and bit_const = Const ("Numeral.bin.Bit", [binT, boolT] ---> binT);
+val pls_const = Const ("Numeral.Pls", binT)
+and min_const = Const ("Numeral.Min", binT)
+and bit_const = Const ("Numeral.Bit", [binT, boolT] ---> binT);
 
 fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 
@@ -296,9 +296,9 @@ fun dest_bit (Const ("False", _)) = 0
   | dest_bit (Const ("True", _)) = 1
   | dest_bit t = raise TERM("dest_bit", [t]);
 
-fun bin_of (Const ("Numeral.bin.Pls", _)) = []
-  | bin_of (Const ("Numeral.bin.Min", _)) = [~1]
-  | bin_of (Const ("Numeral.bin.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
+fun bin_of (Const ("Numeral.Pls", _)) = []
+  | bin_of (Const ("Numeral.Min", _)) = [~1]
+  | bin_of (Const ("Numeral.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of t = raise TERM("bin_of", [t]);
 
 val dest_binum = int_of o bin_of;

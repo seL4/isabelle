@@ -478,8 +478,8 @@ by (simp only: simp_thms number_of_BIT lemma1 lemma2 eq_commute
 
 
 lemma eq_number_of_BIT_Pls:
-     "((number_of (v BIT x) ::int) = number_of bin.Pls) =  
-      (x=False & (((number_of v) ::int) = number_of bin.Pls))"
+     "((number_of (v BIT x) ::int) = Numeral0) =  
+      (x=False & (((number_of v) ::int) = Numeral0))"
 apply (simp only: simp_thms  add: number_of_BIT number_of_Pls eq_commute
             split add: split_if cong: imp_cong)
 apply (rule_tac x = "number_of v" in spec, safe)
@@ -489,15 +489,15 @@ apply (simp add: zmod_zadd1_eq)
 done
 
 lemma eq_number_of_BIT_Min:
-     "((number_of (v BIT x) ::int) = number_of bin.Min) =  
-      (x=True & (((number_of v) ::int) = number_of bin.Min))"
+     "((number_of (v BIT x) ::int) = number_of Numeral.Min) =  
+      (x=True & (((number_of v) ::int) = number_of Numeral.Min))"
 apply (simp only: simp_thms  add: number_of_BIT number_of_Min eq_commute
             split add: split_if cong: imp_cong)
 apply (rule_tac x = "number_of v" in spec, auto)
 apply (drule_tac f = "%x. x mod 2" in arg_cong, auto)
 done
 
-lemma eq_number_of_Pls_Min: "(number_of bin.Pls ::int) ~= number_of bin.Min"
+lemma eq_number_of_Pls_Min: "(Numeral0 ::int) ~= number_of Numeral.Min"
 by auto
 
 
@@ -569,10 +569,10 @@ setup nat_bin_arith_setup
 declare split_div[of _ _ "number_of k", standard, arith_split]
 declare split_mod[of _ _ "number_of k", standard, arith_split]
 
-lemma nat_number_of_Pls: "number_of bin.Pls = (0::nat)"
+lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
   by (simp add: number_of_Pls nat_number_of_def)
 
-lemma nat_number_of_Min: "number_of bin.Min = (0::nat)"
+lemma nat_number_of_Min: "number_of Numeral.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
   apply (simp add: neg_nat)
   done
@@ -622,23 +622,12 @@ by (simp only: mult_2 nat_add_distrib of_nat_add)
 lemma nat_numeral_m1_eq_0: "-1 = (0::nat)"
 by (simp only:  nat_number_of_def, simp)
 
-lemma int_double_iff: "(0::int) \<le> 2*x + 1 = (0 \<le> x)"
-by arith
-
 lemma of_nat_number_of_lemma:
      "of_nat (number_of v :: nat) =  
          (if 0 \<le> (number_of v :: int) 
           then (number_of v :: 'a :: number_ring)
           else 0)"
-apply (induct v, simp, simp add: nat_numeral_m1_eq_0)
-apply (simp only: number_of nat_number_of_def)
-txt{*Generalize in order to eliminate the function @{term number_of} and
-its annoying simprules*}
-apply (erule rev_mp)
-apply (rule_tac x="number_of bin :: int" in spec) 
-apply (rule_tac x="number_of bin :: 'a" in spec) 
-apply (simp add: nat_add_distrib of_nat_double int_double_iff)
-done
+by (simp add: int_number_of_def nat_number_of_def number_of_eq of_nat_nat);
 
 lemma of_nat_number_of_eq [simp]:
      "of_nat (number_of v :: nat) =  
@@ -850,6 +839,8 @@ consts_code
   "uminus" :: "int => int"      ("`~")
   "op +" :: "int => int => int" ("(_ `+/ _)")
   "op *" :: "int => int => int" ("(_ `*/ _)")
+  "op div" :: "int => int => int" ("(_ `div/ _)")
+  "op mod" :: "int => int => int" ("(_ `mod/ _)")
   "op <" :: "int => int => bool" ("(_ </ _)")
   "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")

@@ -9,6 +9,25 @@ header{*Nonstandard Extensions of Transcendental Functions*}
 
 theory HTranscendental = Transcendental + Integration:
 
+text{*really belongs in Transcendental*}
+lemma sqrt_divide_self_eq:
+  assumes nneg: "0 \<le> x"
+  shows "sqrt x / x = inverse (sqrt x)"
+proof cases
+  assume "x=0" thus ?thesis by simp
+next
+  assume nz: "x\<noteq>0" 
+  hence pos: "0<x" using nneg by arith
+  show ?thesis
+  proof (rule right_inverse_eq [THEN iffD1, THEN sym]) 
+    show "sqrt x / x \<noteq> 0" by (simp add: divide_inverse nneg nz) 
+    show "inverse (sqrt x) / (sqrt x / x) = 1"
+      by (simp add: divide_inverse mult_assoc [symmetric] 
+                  power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
+  qed
+qed
+
+
 constdefs
 
   exphr :: "real => hypreal"

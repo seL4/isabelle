@@ -1103,7 +1103,7 @@ lemma BV_VB: "(All::(nat => bool) => bool)
       ((op <::nat => nat => bool) x
         ((number_of::bin => nat)
           ((op BIT::bin => bool => bin)
-            ((op BIT::bin => bool => bin) (bin.Pls::bin) (True::bool))
+            ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
             (False::bool))))
       ((op =::nat => nat => bool) ((BV::bool => nat) ((VB::nat => bool) x))
         x))"
@@ -1298,7 +1298,7 @@ lemma ACARRY_EQ_ADD_DIV: "(All::(nat => bool) => bool)
                          ((op ^::nat => nat => nat)
                            ((number_of::bin => nat)
                              ((op BIT::bin => bool => bin)
-                               ((op BIT::bin => bool => bin) (bin.Pls::bin)
+                               ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
                                  (True::bool))
                                (False::bool)))
                            k)))))))"

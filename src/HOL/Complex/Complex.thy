@@ -291,35 +291,33 @@ lemma complex_of_real_eq_iff [iff]:
      "(complex_of_real x = complex_of_real y) = (x = y)"
 by (simp add: complex_of_real_def)
 
-lemma complex_of_real_minus: "complex_of_real(-x) = - complex_of_real x"
+lemma complex_of_real_minus [simp]: "complex_of_real(-x) = - complex_of_real x"
 by (simp add: complex_of_real_def complex_minus)
 
-lemma complex_of_real_inverse:
+lemma complex_of_real_inverse [simp]:
      "complex_of_real(inverse x) = inverse(complex_of_real x)"
 apply (case_tac "x=0", simp)
-apply (simp add: complex_inverse complex_of_real_def real_divide_def
-                 inverse_mult_distrib power2_eq_square)
+apply (simp add: complex_of_real_def divide_inverse power2_eq_square)
 done
 
-lemma complex_of_real_add:
-     "complex_of_real x + complex_of_real y = complex_of_real (x + y)"
+lemma complex_of_real_add [simp]:
+     "complex_of_real (x + y) = complex_of_real x + complex_of_real y"
 by (simp add: complex_add complex_of_real_def)
 
-lemma complex_of_real_diff:
-     "complex_of_real x - complex_of_real y = complex_of_real (x - y)"
-by (simp add: complex_of_real_minus [symmetric] complex_diff_def 
-              complex_of_real_add)
+lemma complex_of_real_diff [simp]:
+     "complex_of_real (x - y) = complex_of_real x - complex_of_real y"
+by (simp add: complex_of_real_minus diff_minus)
 
-lemma complex_of_real_mult:
-     "complex_of_real x * complex_of_real y = complex_of_real (x * y)"
+lemma complex_of_real_mult [simp]:
+     "complex_of_real (x * y) = complex_of_real x * complex_of_real y"
 by (simp add: complex_mult complex_of_real_def)
 
-lemma complex_of_real_divide:
-      "complex_of_real x / complex_of_real y = complex_of_real(x/y)"
+lemma complex_of_real_divide [simp]:
+      "complex_of_real(x/y) = complex_of_real x / complex_of_real y"
 apply (simp add: complex_divide_def)
 apply (case_tac "y=0", simp)
-apply (simp add: complex_of_real_mult [symmetric] complex_of_real_inverse 
-                 real_divide_def)
+apply (simp add: complex_of_real_mult complex_of_real_inverse 
+                 divide_inverse)
 done
 
 lemma complex_mod [simp]: "cmod (Complex x y) = sqrt(x ^ 2 + y ^ 2)"
@@ -407,7 +405,7 @@ lemma complex_cnj_add: "cnj(w + z) = cnj(w) + cnj(z)"
 by (induct w, induct z, simp add: complex_cnj complex_add)
 
 lemma complex_cnj_diff: "cnj(w - z) = cnj(w) - cnj(z)"
-by (simp add: complex_diff_def complex_cnj_add complex_cnj_minus)
+by (simp add: diff_minus complex_cnj_add complex_cnj_minus)
 
 lemma complex_cnj_mult: "cnj(w * z) = cnj(w) * cnj(z)"
 by (induct w, induct z, simp add: complex_cnj complex_mult)
@@ -423,7 +421,7 @@ by (induct z, simp add: complex_add complex_cnj complex_of_real_def)
 
 lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im(z)) * ii"
 apply (induct z)
-apply (simp add: complex_add complex_cnj complex_of_real_def complex_diff_def
+apply (simp add: complex_add complex_cnj complex_of_real_def diff_minus
                  complex_minus i_def complex_mult)
 done
 
@@ -561,7 +559,7 @@ apply (auto simp add: complex_mod_mult [symmetric])
 done
 
 lemma complex_mod_divide: "cmod(x/y) = cmod(x)/(cmod y)"
-by (simp add: complex_divide_def real_divide_def complex_mod_mult complex_mod_inverse)
+by (simp add: complex_divide_def divide_inverse complex_mod_mult complex_mod_inverse)
 
 
 subsection{*Exponentiation*}
@@ -639,24 +637,33 @@ by (simp add: complex_one_def)
 lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 & y = 1)"
 by (simp add: i_def)
 
+
+
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
-apply (induct z)
-apply (simp add: sgn_def complex_divide_def complex_of_real_inverse [symmetric])
-apply (simp add: complex_of_real_def complex_mult real_divide_def)
-done
+proof (induct z)
+  case (Complex x y)
+    have "sqrt (x\<twosuperior> + y\<twosuperior>) * inverse (x\<twosuperior> + y\<twosuperior>) = inverse (sqrt (x\<twosuperior> + y\<twosuperior>))"
+      by (simp add: divide_inverse [symmetric] sqrt_divide_self_eq)
+    thus "Re (sgn (Complex x y)) = Re (Complex x y) /cmod (Complex x y)"
+       by (simp add: sgn_def complex_of_real_def divide_inverse)
+qed
+
 
 lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
-apply (induct z)
-apply (simp add: sgn_def complex_divide_def complex_of_real_inverse [symmetric])
-apply (simp add: complex_of_real_def complex_mult real_divide_def)
-done
+proof (induct z)
+  case (Complex x y)
+    have "sqrt (x\<twosuperior> + y\<twosuperior>) * inverse (x\<twosuperior> + y\<twosuperior>) = inverse (sqrt (x\<twosuperior> + y\<twosuperior>))"
+      by (simp add: divide_inverse [symmetric] sqrt_divide_self_eq)
+    thus "Im (sgn (Complex x y)) = Im (Complex x y) /cmod (Complex x y)"
+       by (simp add: sgn_def complex_of_real_def divide_inverse)
+qed
 
 lemma complex_inverse_complex_split:
      "inverse(complex_of_real x + ii * complex_of_real y) =
       complex_of_real(x/(x ^ 2 + y ^ 2)) -
       ii * complex_of_real(y/(x ^ 2 + y ^ 2))"
 by (simp add: complex_of_real_def i_def complex_mult complex_add
-         complex_diff_def complex_minus complex_inverse real_divide_def)
+         diff_minus complex_minus complex_inverse divide_inverse)
 
 (*----------------------------------------------------------------------------*)
 (* Many of the theorems below need to be moved elsewhere e.g. Transc. Also *)
@@ -738,7 +745,8 @@ lemma cis_rcis_eq: "cis a = rcis 1 a"
 by (simp add: rcis_def)
 
 lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
-by (simp add: rcis_def cis_def complex_of_real_mult_Complex cos_add sin_add right_distrib right_diff_distrib)
+by (simp add: rcis_def cis_def cos_add sin_add right_distrib right_diff_distrib
+              complex_of_real_def)
 
 lemma cis_mult: "cis a * cis b = cis (a + b)"
 by (simp add: cis_rcis_eq rcis_mult)
@@ -774,7 +782,7 @@ by (simp add: rcis_def power_mult_distrib DeMoivre complex_of_real_pow)
 
 lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
 by (simp add: cis_def complex_inverse_complex_split complex_of_real_minus 
-              complex_diff_def)
+              diff_minus)
 
 lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
 by (simp add: divide_inverse rcis_def complex_of_real_inverse)
@@ -818,33 +826,31 @@ subsection{*Numerals and Arithmetic*}
 
 instance complex :: number ..
 
-primrec (*the type constraint is essential!*)
-  number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::complex)"
-  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-	                               (number_of w) + (number_of w)"
-
-declare number_of_Pls [simp del]
-        number_of_Min [simp del]
-        number_of_BIT [simp del]
+defs (overloaded)
+  complex_number_of_def: "(number_of w :: complex) == of_int (Rep_Bin w)"
+    --{*the type constraint is essential!*}
 
 instance complex :: number_ring
-proof
-  show "Numeral0 = (0::complex)" by (rule number_of_Pls)
-  show "-1 = - (1::complex)" by (rule number_of_Min)
-  fix w :: bin and x :: bool
-  show "(number_of (w BIT x) :: complex) =
-        (if x then 1 else 0) + number_of w + number_of w"
-    by (rule number_of_BIT)
+by (intro_classes, simp add: complex_number_of_def) 
+
+
+lemma complex_of_real_of_nat [simp]: "complex_of_real (of_nat n) = of_nat n"
+by (induct n, simp_all) 
+
+lemma complex_of_real_of_int [simp]: "complex_of_real (of_int z) = of_int z"
+proof (cases z)
+  case (1 n)
+    thus ?thesis by simp
+next
+  case (2 n)
+    thus ?thesis 
+      by (simp only: of_int_minus complex_of_real_minus, simp)
 qed
 
 
 text{*Collapse applications of @{term complex_of_real} to @{term number_of}*}
 lemma complex_number_of [simp]: "complex_of_real (number_of w) = number_of w"
-apply (induct w) 
-apply (simp_all only: number_of complex_of_real_add [symmetric] 
-                      complex_of_real_minus, simp_all) 
-done
+by (simp add: complex_number_of_def real_number_of_def) 
 
 text{*This theorem is necessary because theorems such as
    @{text iszero_number_of_0} only hold for ordered rings. They cannot
@@ -854,50 +860,6 @@ lemma iszero_complex_number_of [simp]:
      "iszero (number_of w :: complex) = iszero (number_of w :: real)"
 by (simp only: complex_of_real_zero_iff complex_number_of [symmetric] 
                iszero_def)  
-
-
-(*These allow simplification of expressions involving mixed numbers.
-  Convert???
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + ii * number_of ya =  
-        number_of xb) =  
-   (((number_of xa :: complex) = number_of xb) &  
-    ((number_of ya :: complex) = 0))"
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff2,
-    complex_of_real_zero_iff]));
-qed "complex_number_of_eq_cancel_iff2";
-Addsimps [complex_number_of_eq_cancel_iff2];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + number_of ya * ii = \
-\       number_of xb) = \
-\  (((number_of xa :: complex) = number_of xb) & \
-\   ((number_of ya :: complex) = 0))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff2a,
-    complex_of_real_zero_iff]));
-qed "complex_number_of_eq_cancel_iff2a";
-Addsimps [complex_number_of_eq_cancel_iff2a];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + ii * number_of ya = \
-\    ii * number_of yb) = \
-\  (((number_of xa :: complex) = 0) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff3,
-    complex_of_real_zero_iff]));
-qed "complex_number_of_eq_cancel_iff3";
-Addsimps [complex_number_of_eq_cancel_iff3];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + number_of ya * ii= \
-\    ii * number_of yb) = \
-\  (((number_of xa :: complex) = 0) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff3a,
-    complex_of_real_zero_iff]));
-qed "complex_number_of_eq_cancel_iff3a";
-Addsimps [complex_number_of_eq_cancel_iff3a];
-*)
 
 lemma complex_number_of_cnj [simp]: "cnj(number_of v :: complex) = number_of v"
 apply (subst complex_number_of [symmetric])
@@ -957,7 +919,6 @@ ML
 val complex_zero_def = thm"complex_zero_def";
 val complex_one_def = thm"complex_one_def";
 val complex_minus_def = thm"complex_minus_def";
-val complex_diff_def = thm"complex_diff_def";
 val complex_divide_def = thm"complex_divide_def";
 val complex_mult_def = thm"complex_mult_def";
 val complex_add_def = thm"complex_add_def";

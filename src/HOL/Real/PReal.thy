@@ -705,7 +705,7 @@ proof (cases z rule: int_cases)
       from preal_nonempty [OF A]
       show ?case  by force 
     case (Suc k)
-      from this obtain b where "b \<in> A" "b + of_int (int k) * u \<in> A" ..
+      from this obtain b where "b \<in> A" "b + of_nat k * u \<in> A" ..
       hence "b + of_int (int k)*u + u \<in> A" by (simp add: prems)
       thus ?case by (force simp add: left_distrib add_ac prems) 
   qed

@@ -810,9 +810,8 @@ text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
 by (induct n, auto)
 
-lemma of_int_int_eq [simp]: "of_int (int n) = int n"
+lemma of_int_int_eq [simp]: "of_int (int n) = of_nat n"
 by (simp add: int_eq_of_nat)
-
 
 lemma Ints_cases [case_names of_int, cases set: Ints]:
   "q \<in> \<int> ==> (!!z. q = of_int z ==> C) ==> C"
@@ -920,6 +919,12 @@ done
 theorem int_induct [induct type: int, case_names nonneg neg]:
      "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z) auto
+
+
+lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
+apply (cases z)
+apply (simp_all add: not_zle_0_negative del: int_Suc)
+done
 
 
 (*Legacy ML bindings, but no longer the structure Int.*)

@@ -120,9 +120,9 @@ val allowed_consts =
    ("HOL.max", nT --> nT --> nT),
    ("HOL.min", nT --> nT --> nT),
 
-   ("Numeral.bin.Bit", binT --> bT --> binT),
-   ("Numeral.bin.Pls", binT),
-   ("Numeral.bin.Min", binT),
+   ("Numeral.Bit", binT --> bT --> binT),
+   ("Numeral.Pls", binT),
+   ("Numeral.Min", binT),
    ("Numeral.number_of", binT --> iT),
    ("Numeral.number_of", binT --> nT),
    ("0", nT),

@@ -969,7 +969,7 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
 theorem number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (n BIT b)"
   by simp
 
-theorem number_of2: "(0::int) <= number_of bin.Pls" by simp
+theorem number_of2: "(0::int) <= Numeral0" by simp
 
 theorem Suc_plus1: "Suc n = n + 1" by simp
 

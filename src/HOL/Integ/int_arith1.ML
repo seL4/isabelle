@@ -7,49 +7,37 @@ Simprocs and decision procedure for linear arithmetic.
 
 (** Misc ML bindings **)
 
-val NCons_Pls = thm"NCons_Pls";
-val NCons_Min = thm"NCons_Min";
-val NCons_BIT = thm"NCons_BIT";
-val number_of_Pls = thm"number_of_Pls";
-val number_of_Min = thm"number_of_Min";
-val number_of_BIT = thm"number_of_BIT";
 val bin_succ_Pls = thm"bin_succ_Pls";
 val bin_succ_Min = thm"bin_succ_Min";
-val bin_succ_BIT = thm"bin_succ_BIT";
-val bin_pred_Pls = thm"bin_pred_Pls";
-val bin_pred_Min = thm"bin_pred_Min";
-val bin_pred_BIT = thm"bin_pred_BIT";
-val bin_minus_Pls = thm"bin_minus_Pls";
-val bin_minus_Min = thm"bin_minus_Min";
-val bin_minus_BIT = thm"bin_minus_BIT";
-val bin_add_Pls = thm"bin_add_Pls";
-val bin_add_Min = thm"bin_add_Min";
-val bin_mult_Pls = thm"bin_mult_Pls";
-val bin_mult_Min = thm"bin_mult_Min";
-val bin_mult_BIT = thm"bin_mult_BIT";
-
-val neg_def = thm "neg_def";
-val iszero_def = thm "iszero_def";
-
-val NCons_Pls_0 = thm"NCons_Pls_0";
-val NCons_Pls_1 = thm"NCons_Pls_1";
-val NCons_Min_0 = thm"NCons_Min_0";
-val NCons_Min_1 = thm"NCons_Min_1";
 val bin_succ_1 = thm"bin_succ_1";
 val bin_succ_0 = thm"bin_succ_0";
+
+val bin_pred_Pls = thm"bin_pred_Pls";
+val bin_pred_Min = thm"bin_pred_Min";
 val bin_pred_1 = thm"bin_pred_1";
 val bin_pred_0 = thm"bin_pred_0";
+
+val bin_minus_Pls = thm"bin_minus_Pls";
+val bin_minus_Min = thm"bin_minus_Min";
 val bin_minus_1 = thm"bin_minus_1";
 val bin_minus_0 = thm"bin_minus_0";
+
+val bin_add_Pls = thm"bin_add_Pls";
+val bin_add_Min = thm"bin_add_Min";
 val bin_add_BIT_11 = thm"bin_add_BIT_11";
 val bin_add_BIT_10 = thm"bin_add_BIT_10";
 val bin_add_BIT_0 = thm"bin_add_BIT_0";
 val bin_add_Pls_right = thm"bin_add_Pls_right";
 val bin_add_Min_right = thm"bin_add_Min_right";
-val bin_add_BIT_BIT = thm"bin_add_BIT_BIT";
+
+val bin_mult_Pls = thm"bin_mult_Pls";
+val bin_mult_Min = thm"bin_mult_Min";
 val bin_mult_1 = thm"bin_mult_1";
 val bin_mult_0 = thm"bin_mult_0";
-val number_of_NCons = thm"number_of_NCons";
+
+val neg_def = thm "neg_def";
+val iszero_def = thm "iszero_def";
+
 val number_of_succ = thm"number_of_succ";
 val number_of_pred = thm"number_of_pred";
 val number_of_minus = thm"number_of_minus";
@@ -86,7 +74,6 @@ val less_iff_diff_less_0 = thm"less_iff_diff_less_0";
 val eq_iff_diff_eq_0 = thm"eq_iff_diff_eq_0";
 val le_iff_diff_le_0 = thm"le_iff_diff_le_0";
 
-val NCons_simps = thms"NCons_simps";
 val bin_arith_extra_simps = thms"bin_arith_extra_simps";
 val bin_arith_simps = thms"bin_arith_simps";
 val bin_rel_simps = thms"bin_rel_simps";
@@ -298,10 +285,9 @@ val non_add_bin_simps =
     bin_simps \\ [add_number_of_left, number_of_add RS sym];
 
 (*To evaluate binary negations of coefficients*)
-val minus_simps = NCons_simps @
-                   [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,
-                    bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
-                    bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
+val minus_simps = [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,
+                   bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
+                   bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [diff_minus, minus_add_distrib, minus_minus];
@@ -335,10 +321,10 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   val trans_tac         = trans_tac
   val norm_tac =
-     ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+     ALLGOALS (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
                                          diff_simps@minus_simps@add_ac))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps minus_from_mult_simps@
+     THEN ALLGOALS (simp_tac (num_ss addsimps non_add_bin_simps@mult_minus_simps))
+     THEN ALLGOALS (simp_tac (num_ss addsimps minus_from_mult_simps@
                                               add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
@@ -411,10 +397,10 @@ structure CombineNumeralsData =
   val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac          = trans_tac
   val norm_tac =
-     ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+     ALLGOALS (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
                                          diff_simps@minus_simps@add_ac))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps minus_from_mult_simps@
+     THEN ALLGOALS (simp_tac (num_ss addsimps non_add_bin_simps@mult_minus_simps))
+     THEN ALLGOALS (simp_tac (num_ss addsimps minus_from_mult_simps@
                                               add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))

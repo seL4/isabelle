@@ -674,25 +674,12 @@ subsection {* Numerals and Arithmetic *}
 
 instance rat :: number ..
 
-primrec  -- {* the type constraint is essential! *}
-  number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::rat)"
-  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-                                       (number_of w) + (number_of w)"
-
-declare number_of_Pls [simp del]
-        number_of_Min [simp del]
-        number_of_BIT [simp del]
+defs (overloaded)
+  rat_number_of_def: "(number_of w :: rat) == of_int (Rep_Bin w)"
+    --{*the type constraint is essential!*}
 
 instance rat :: number_ring
-proof
-  show "Numeral0 = (0::rat)" by (rule number_of_Pls)
-  show "-1 = - (1::rat)" by (rule number_of_Min)
-  fix w :: bin and x :: bool
-  show "(number_of (w BIT x) :: rat) =
-        (if x then 1 else 0) + number_of w + number_of w"
-    by (rule number_of_BIT)
-qed
+by (intro_classes, simp add: rat_number_of_def) 
 
 declare diff_rat_def [symmetric]
 

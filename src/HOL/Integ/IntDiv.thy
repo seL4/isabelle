@@ -221,7 +221,7 @@ by (simp add: div_def mod_def divAlg_def posDivAlg.simps)
 (** Basic laws about division and remainder **)
 
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def div_def mod_def)
 done
@@ -302,7 +302,7 @@ done
 
 (*Simpler laws such as -a div b = -(a div b) FAIL, but see just below*)
 lemma zdiv_zminus_zminus [simp]: "(-a) div (-b) = a div (b::int)"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (simp add: quorem_div_mod [THEN quorem_neg, simplified, 
                                  THEN quorem_div, THEN sym])
 
@@ -310,7 +310,7 @@ done
 
 (*Simpler laws such as -a mod b = -(a mod b) FAIL, but see just below*)
 lemma zmod_zminus_zminus [simp]: "(-a) mod (-b) = - (a mod (b::int))"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (subst quorem_div_mod [THEN quorem_neg, simplified, THEN quorem_mod],
        auto)
 done
@@ -332,7 +332,7 @@ by (blast intro: quorem_div_mod [THEN zminus1_lemma, THEN quorem_div])
 
 lemma zmod_zminus1_eq_if:
      "(-a::int) mod b = (if a mod b = 0 then 0 else  b - (a mod b))"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (blast intro: quorem_div_mod [THEN zminus1_lemma, THEN quorem_mod])
 done
 
@@ -384,7 +384,7 @@ by (simp add: quorem_div_mod [THEN self_quotient])
 
 (*Here we have 0 mod 0 = 0, also assumed by Knuth (who puts m mod 0 = 0) *)
 lemma zmod_self [simp]: "a mod a = (0::int)"
-apply (case_tac "a = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "a = 0", simp)
 apply (simp add: quorem_div_mod [THEN self_remainder])
 done
 
@@ -588,12 +588,12 @@ lemma zmult1_lemma:
 by (force simp add: split_ifs quorem_def linorder_neq_iff right_distrib)
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
-apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "c = 0", simp)
 apply (blast intro: quorem_div_mod [THEN zmult1_lemma, THEN quorem_div])
 done
 
 lemma zmod_zmult1_eq: "(a*b) mod c = a*(b mod c) mod (c::int)"
-apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "c = 0", simp)
 apply (blast intro: quorem_div_mod [THEN zmult1_lemma, THEN quorem_mod])
 done
 
@@ -642,22 +642,22 @@ by (force simp add: split_ifs quorem_def linorder_neq_iff right_distrib)
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq:
      "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
-apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod] quorem_div)
 done
 
 lemma zmod_zadd1_eq: "(a+b) mod (c::int) = (a mod c + b mod c) mod c"
-apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod] quorem_mod)
 done
 
 lemma mod_div_trivial [simp]: "(a mod b) div b = (0::int)"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
 done
 
 lemma mod_mod_trivial [simp]: "(a mod b) mod b = a mod (b::int)"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (force simp add: linorder_neq_iff mod_pos_pos_trivial mod_neg_neg_trivial)
 done
 
@@ -680,12 +680,12 @@ lemma zdiv_zadd_self2[simp]: "a ~= (0::int) ==> (b+a) div a = b div a + 1"
 by (simp add: zdiv_zadd1_eq)
 
 lemma zmod_zadd_self1[simp]: "(a+b) mod a = b mod (a::int)"
-apply (case_tac "a = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "a = 0", simp)
 apply (simp add: zmod_zadd1_eq)
 done
 
 lemma zmod_zadd_self2[simp]: "(b+a) mod a = b mod (a::int)"
-apply (case_tac "a = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "a = 0", simp)
 apply (simp add: zmod_zadd1_eq)
 done
 
@@ -737,13 +737,13 @@ by (auto simp add: mult_ac quorem_def linorder_neq_iff
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4)
 
 lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (force simp add: quorem_div_mod [THEN zmult2_lemma, THEN quorem_div])
 done
 
 lemma zmod_zmult2_eq:
      "(0::int) < c ==> a mod (b*c) = b*(a div b mod c) + a mod b"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (force simp add: quorem_div_mod [THEN zmult2_lemma, THEN quorem_mod])
 done
 
@@ -759,7 +759,7 @@ apply (rule_tac [2] zdiv_zmult_zmult1_aux1, auto)
 done
 
 lemma zdiv_zmult_zmult1: "c ~= (0::int) ==> (c*a) div (c*b) = a div b"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
 done
 
@@ -781,8 +781,8 @@ apply (rule_tac [2] zmod_zmult_zmult1_aux1, auto)
 done
 
 lemma zmod_zmult_zmult1: "(c*a) mod (c*b) = (c::int) * (a mod b)"
-apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
-apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "b = 0", simp)
+apply (case_tac "c = 0", simp)
 apply (auto simp add: linorder_neq_iff zmod_zmult_zmult1_aux1 zmod_zmult_zmult1_aux2)
 done
 
@@ -832,7 +832,7 @@ lemma split_zdiv:
    (0<k --> (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i)) & 
    (k<0 --> (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i)))"
 apply (case_tac "k=0")
- apply (simp add: DIVISION_BY_ZERO)
+ apply (simp)
 apply (simp only: linorder_neq_iff)
 apply (erule disjE) 
  apply (simp_all add: split_pos_lemma [of concl: "%x y. P x"] 
@@ -845,7 +845,7 @@ lemma split_zmod:
    (0<k --> (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P j)) & 
    (k<0 --> (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P j)))"
 apply (case_tac "k=0")
- apply (simp add: DIVISION_BY_ZERO)
+ apply (simp)
 apply (simp only: linorder_neq_iff)
 apply (erule disjE) 
  apply (simp_all add: split_pos_lemma [of concl: "%x y. P y"] 
@@ -904,20 +904,16 @@ lemma zdiv_number_of_BIT[simp]:
           (if ~b | (0::int) \<le> number_of w                    
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
-apply (simp only: add_assoc number_of_BIT)
-(*create subgoal because the next step can't simplify numerals*)
-apply (subgoal_tac "2 ~= (0::int) ") 
-apply (simp del: bin_arith_extra_simps arith_special
-         add: zdiv_zmult_zmult1 pos_zdiv_mult_2 not_0_le_lemma neg_zdiv_mult_2)
-apply simp
+apply (simp only: number_of_eq Bin_simps UNIV_I split: split_if) 
+apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac)
 done
 
 
-(** computing mod by shifting (proofs resemble those for div) **)
+subsection{*Computing mod by Shifting (proofs resemble those for div)*}
 
 lemma pos_zmod_mult_2:
      "(0::int) \<le> a ==> (1 + 2*b) mod (2*a) = 1 + 2 * (b mod a)"
-apply (case_tac "a = 0", simp add: DIVISION_BY_ZERO)
+apply (case_tac "a = 0", simp)
 apply (subgoal_tac "1 \<le> a")
  prefer 2 apply arith
 apply (subgoal_tac "1 < a * 2")
@@ -952,15 +948,14 @@ lemma zmod_number_of_BIT [simp]:
                 then 2 * (number_of v mod number_of w) + 1     
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1   
            else 2 * (number_of v mod number_of w))"
-apply (simp only: zadd_assoc number_of_BIT)
-apply (simp del: bin_arith_extra_simps bin_rel_simps arith_special
-         add: zmod_zmult_zmult1 pos_zmod_mult_2 not_0_le_lemma neg_zmod_mult_2
- neg_def) 
+apply (simp only: number_of_eq Bin_simps UNIV_I split: split_if) 
+apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
+                 not_0_le_lemma neg_zmod_mult_2 add_ac)
 done
 
 
 
-(** Quotients of signs **)
+subsection{*Quotients of Signs*}
 
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)

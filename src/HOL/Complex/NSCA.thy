@@ -508,7 +508,7 @@ done
 lemma capprox_SComplex_mult_cancel_zero:
      "[| a \<in> SComplex; a \<noteq> 0; a*x @c= 0 |] ==> x @c= 0"
 apply (drule SComplex_inverse [THEN SComplex_subset_CFinite [THEN subsetD]])
-apply (auto dest: capprox_mult2 simp add: hcomplex_mult_assoc [symmetric])
+apply (auto dest: capprox_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma capprox_mult_SComplex1: "[| a \<in> SComplex; x @c= 0 |] ==> x*a @c= 0"
@@ -524,7 +524,7 @@ by (blast intro: capprox_SComplex_mult_cancel_zero capprox_mult_SComplex2)
 lemma capprox_SComplex_mult_cancel:
      "[| a \<in> SComplex; a \<noteq> 0; a* w @c= a*z |] ==> w @c= z"
 apply (drule SComplex_inverse [THEN SComplex_subset_CFinite [THEN subsetD]])
-apply (auto dest: capprox_mult2 simp add: hcomplex_mult_assoc [symmetric])
+apply (auto dest: capprox_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma capprox_SComplex_mult_cancel_iff1 [simp]:
@@ -618,7 +618,7 @@ done
 lemma CInfinitesimal_ratio:
      "[| y \<noteq> 0;  y \<in> CInfinitesimal;  x/y \<in> CFinite |] ==> x \<in> CInfinitesimal"
 apply (drule CInfinitesimal_CFinite_mult2, assumption)
-apply (simp add: divide_inverse hcomplex_mult_assoc)
+apply (simp add: divide_inverse mult_assoc)
 done
 
 lemma SComplex_capprox_iff:
@@ -901,10 +901,11 @@ apply (frule_tac x = x in not_CInfinitesimal_not_zero2)
 apply (drule CFinite_inverse2)+
 apply (drule capprox_mult2, assumption, auto)
 apply (drule_tac c = "inverse x" in capprox_mult1, assumption)
-apply (auto intro: capprox_sym simp add: hcomplex_mult_assoc)
+apply (auto intro: capprox_sym simp add: mult_assoc)
 done
 
-lemmas hcomplex_of_complex_capprox_inverse =  hcomplex_of_complex_CFinite_diff_CInfinitesimal [THEN [2] capprox_inverse]
+lemmas hcomplex_of_complex_capprox_inverse =
+  hcomplex_of_complex_CFinite_diff_CInfinitesimal [THEN [2] capprox_inverse]
 
 lemma inverse_add_CInfinitesimal_capprox:
      "[| x \<in> CFinite - CInfinitesimal;  
@@ -935,7 +936,7 @@ lemma capprox_CFinite_mult_cancel:
 apply safe
 apply (frule CFinite_inverse, assumption)
 apply (drule not_CInfinitesimal_not_zero)
-apply (auto dest: capprox_mult2 simp add: hcomplex_mult_assoc [symmetric])
+apply (auto dest: capprox_mult2 simp add: mult_assoc [symmetric])
 done
 
 lemma capprox_CFinite_mult_cancel_iff1:

@@ -5,7 +5,7 @@
 
 header {* Integer arithmetic *}
 
-theory IntArith = Bin
+theory IntArith = Numeral
 files ("int_arith1.ML"):
 
 text{*Duplicate: can't understand why it's necessary*}
@@ -16,26 +16,12 @@ subsection{*Instantiating Binary Arithmetic for the Integers*}
 instance
   int :: number ..
 
-primrec (*the type constraint is essential!*)
-  number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::int)"
-  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-	                               (number_of w) + (number_of w)"
-
-declare number_of_Pls [simp del]
-        number_of_Min [simp del]
-        number_of_BIT [simp del]
+defs (overloaded)
+  int_number_of_def: "(number_of w :: int) == of_int (Rep_Bin w)"
+    --{*the type constraint is essential!*}
 
 instance int :: number_ring
-proof
-  show "Numeral0 = (0::int)" by (rule number_of_Pls)
-  show "-1 = - (1::int)" by (rule number_of_Min)
-  fix w :: bin and x :: bool
-  show "(number_of (w BIT x) :: int) =
-        (if x then 1 else 0) + number_of w + number_of w"
-    by (rule number_of_BIT)
-qed
-
+by (intro_classes, simp add: int_number_of_def) 
 
 
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
@@ -135,9 +121,7 @@ by (simp add: power_abs)
 
 lemma of_int_number_of_eq:
      "of_int (number_of v) = (number_of v :: 'a :: number_ring)"
-apply (induct v)
-apply (simp_all only: number_of of_int_add, simp_all) 
-done
+by (simp add: number_of_eq) 
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma mult_2: "2 * z = (z+z::'a::number_ring)"
@@ -210,7 +194,7 @@ qed
 
 
 (*Analogous to zadd_int*)
-lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)"
+lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)" 
 by (induct m n rule: diff_induct, simp_all)
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"

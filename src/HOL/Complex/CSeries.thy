@@ -72,7 +72,7 @@ by (induct_tac "n", auto)
 
 lemma sumc_const [simp]: "sumc 0 n (%i. r) = complex_of_real (real n) * r"
 apply (induct_tac "n")
-apply (auto simp add: left_distrib complex_of_real_add [symmetric] real_of_nat_Suc)
+apply (auto simp add: left_distrib real_of_nat_Suc)
 done
 
 lemma sumc_add_mult_const:
@@ -98,16 +98,16 @@ by (induct_tac "n", auto)
 
 lemma sumc_interval_const [rule_format (no_asm)]:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
-                 --> sumc m na f = (complex_of_real(real (na - m)) * r)"
+      --> sumc m na f = (complex_of_real(real (na - m)) * r)"
 apply (induct_tac "na")
-apply (auto simp add: Suc_diff_le real_of_nat_Suc complex_of_real_add [symmetric] left_distrib)
+apply (auto simp add: Suc_diff_le real_of_nat_Suc left_distrib)
 done
 
 lemma sumc_interval_const2 [rule_format (no_asm)]:
      "(\<forall>n. m \<le> n --> f n = r) & m \<le> na  
       --> sumc m na f = (complex_of_real(real (na - m)) * r)"
 apply (induct_tac "na")
-apply (auto simp add: left_distrib Suc_diff_le real_of_nat_Suc complex_of_real_add [symmetric])
+apply (auto simp add: left_distrib Suc_diff_le real_of_nat_Suc)
 done
 
 (*** 

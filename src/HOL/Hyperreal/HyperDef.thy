@@ -526,6 +526,14 @@ lemma hypreal_of_real_add [simp]:
      "hypreal_of_real (w + z) = hypreal_of_real w + hypreal_of_real z"
 by (simp add: hypreal_of_real_def, simp add: hypreal_add left_distrib)
 
+lemma hypreal_of_real_minus [simp]:
+     "hypreal_of_real (-r) = - hypreal_of_real  r"
+by (auto simp add: hypreal_of_real_def hypreal_minus)
+
+lemma hypreal_of_real_diff [simp]: 
+     "hypreal_of_real (w - z) = hypreal_of_real w - hypreal_of_real z"
+by (simp add: diff_minus) 
+
 lemma hypreal_of_real_mult [simp]: 
      "hypreal_of_real (w * z) = hypreal_of_real w * hypreal_of_real z"
 by (simp add: hypreal_of_real_def, simp add: hypreal_mult right_distrib)
@@ -572,10 +580,6 @@ declare hypreal_of_real_less_iff [of _ 1, simplified, simp]
 declare hypreal_of_real_le_iff   [of _ 1, simplified, simp]
 declare hypreal_of_real_eq_iff   [of _ 1, simplified, simp]
 
-lemma hypreal_of_real_minus [simp]:
-     "hypreal_of_real (-r) = - hypreal_of_real  r"
-by (auto simp add: hypreal_of_real_def hypreal_minus)
-
 lemma hypreal_of_real_inverse [simp]:
      "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)"
 apply (case_tac "r=0", simp)
@@ -586,6 +590,19 @@ done
 lemma hypreal_of_real_divide [simp]:
      "hypreal_of_real (w / z) = hypreal_of_real w / hypreal_of_real z"
 by (simp add: hypreal_divide_def real_divide_def)
+
+lemma hypreal_of_real_of_nat [simp]: "hypreal_of_real (of_nat n) = of_nat n"
+by (induct n, simp_all) 
+
+lemma hypreal_of_real_of_int [simp]:  "hypreal_of_real (of_int z) = of_int z"
+proof (cases z)
+  case (1 n)
+    thus ?thesis  by simp
+next
+  case (2 n)
+    thus ?thesis
+      by (simp only: of_int_minus hypreal_of_real_minus, simp)
+qed
 
 
 subsection{*Misc Others*}

@@ -14,32 +14,18 @@ subsection{*Numerals and Arithmetic*}
 
 instance hypreal :: number ..
 
-primrec (*the type constraint is essential!*)
-  number_of_Pls: "number_of bin.Pls = 0"
-  number_of_Min: "number_of bin.Min = - (1::hypreal)"
-  number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
-	                               (number_of w) + (number_of w)"
-
-declare number_of_Pls [simp del]
-        number_of_Min [simp del]
-        number_of_BIT [simp del]
+defs (overloaded)
+  hypreal_number_of_def: "(number_of w :: hypreal) == of_int (Rep_Bin w)"
+    --{*the type constraint is essential!*}
 
 instance hypreal :: number_ring
-proof
-  show "Numeral0 = (0::hypreal)" by (rule number_of_Pls)
-  show "-1 = - (1::hypreal)" by (rule number_of_Min)
-  fix w :: bin and x :: bool
-  show "(number_of (w BIT x) :: hypreal) =
-        (if x then 1 else 0) + number_of w + number_of w"
-    by (rule number_of_BIT)
-qed
+by (intro_classes, simp add: hypreal_number_of_def) 
 
 
 text{*Collapse applications of @{term hypreal_of_real} to @{term number_of}*}
 lemma hypreal_number_of [simp]: "hypreal_of_real (number_of w) = number_of w"
-apply (induct w) 
-apply (simp_all only: number_of hypreal_of_real_add hypreal_of_real_minus, simp_all) 
-done
+by (simp add: hypreal_number_of_def real_number_of_def) 
+
 
 
 use "hypreal_arith.ML"

@@ -378,13 +378,14 @@ lemma [simp]: "length (bv_not w) = length w"
 
 constdefs
   bv_to_nat :: "bit list => int"
-  "bv_to_nat bv == number_of (foldl (%bn b. bn BIT (b = \<one>)) bin.Pls bv)"
+  "bv_to_nat bv == number_of (foldl (%bn b. bn BIT (b = \<one>)) Numeral.Pls bv)"
 
 lemma [simp]: "bv_to_nat [] = 0"
   by (simp add: bv_to_nat_def)
 
-lemma pos_number_of: "(0::int)\<le> number_of w ==> number_of (w BIT b) = (2::int) * number_of w + (if b then 1 else 0)"
-  by (induct w,auto,simp add: iszero_def)
+lemma pos_number_of:
+     "number_of (w BIT b) = (2::int) * number_of w + (if b then 1 else 0)"
+by (simp add: mult_2) 
 
 lemma bv_to_nat_helper [simp]: "bv_to_nat (b # bs) = bitval b * 2 ^ length bs + bv_to_nat bs"
 proof -
@@ -393,26 +394,24 @@ proof -
     by (simp add: bv_to_nat'_def)
   have [rule_format]: "\<forall> base bs. (0::int) \<le> number_of base --> (\<forall> b. bv_to_nat' base (b # bs) = bv_to_nat' (base BIT (b = \<one>)) bs)"
     by (simp add: bv_to_nat'_def)
-  have helper [rule_format]: "\<forall> base. (0::int) \<le> number_of base --> bv_to_nat' base bs = number_of base * 2 ^ length bs + bv_to_nat' bin.Pls bs"
+  have helper [rule_format]: "\<forall> base. (0::int) \<le> number_of base --> bv_to_nat' base bs = number_of base * 2 ^ length bs + bv_to_nat' Numeral.Pls bs"
   proof (induct bs,simp add: bv_to_nat'_def,clarify)
     fix x xs base
-    assume ind [rule_format]: "\<forall> base. (0::int) \<le> number_of base --> bv_to_nat' base xs = number_of base * 2 ^ length xs + bv_to_nat' bin.Pls xs"
+    assume ind [rule_format]: "\<forall> base. (0::int) \<le> number_of base --> bv_to_nat' base xs = number_of base * 2 ^ length xs + bv_to_nat' Numeral.Pls xs"
     assume base_pos: "(0::int) \<le> number_of base"
     def qq == "number_of base::int"
-    show "bv_to_nat' base (x # xs) = number_of base * 2 ^ (length (x # xs)) + bv_to_nat' bin.Pls (x # xs)"
+    show "bv_to_nat' base (x # xs) = number_of base * 2 ^ (length (x # xs)) + bv_to_nat' Numeral.Pls (x # xs)"
       apply (unfold bv_to_nat'_def)
       apply (simp only: foldl.simps)
       apply (fold bv_to_nat'_def)
       apply (subst ind [of "base BIT (x = \<one>)"])
       using base_pos
       apply simp
-      apply (subst ind [of "bin.Pls BIT (x = \<one>)"])
+      apply (subst ind [of "Numeral.Pls BIT (x = \<one>)"])
       apply simp
       apply (subst pos_number_of [of "base" "x = \<one>"])
       using base_pos
-      apply simp
-      apply (subst pos_number_of [of "bin.Pls" "x = \<one>"])
-      apply simp
+      apply (subst pos_number_of [of "Numeral.Pls" "x = \<one>"])
       apply (fold qq_def)
       apply (simp add: ring_distrib)
       done
@@ -2859,14 +2858,15 @@ lemma length_int_mono_lt0: "[| x \<le> y ; y \<le> 0 |] ==> length_int y \<le> l
 
 lemmas [simp] = length_nat_non0
 
-lemma "nat_to_bv (number_of bin.Pls) = []"
+lemma "nat_to_bv (number_of Numeral.Pls) = []"
   by simp
 
+(***NO LONGER WORKS
 consts
   fast_nat_to_bv_helper :: "bin => bit list => bit list"
 
 primrec
-  fast_nat_to_bv_Pls: "fast_nat_to_bv_helper bin.Pls res = res"
+  fast_nat_to_bv_Pls: "fast_nat_to_bv_helper Numeral.Pls res = res"
   fast_nat_to_bv_Bit: "fast_nat_to_bv_helper (w BIT b) res = fast_nat_to_bv_helper w ((if b then \<one> else \<zero>) # res)"
 
 lemma fast_nat_to_bv_def:
@@ -2889,7 +2889,7 @@ proof -
       by (simp add: qq_def)
     with posbb
     show "\<forall> l. norm_unsigned (nat_to_bv_helper (number_of (bin BIT b)) l) = norm_unsigned (fast_nat_to_bv_helper (bin BIT b) l)"
-      apply (subst pos_number_of,simp)
+      apply (subst pos_number_of)
       apply safe
       apply (fold qq_def)
       apply (cases "qq = 0")
@@ -2938,6 +2938,8 @@ lemma fast_nat_to_bv_Bit1: "fast_nat_to_bv_helper (w BIT True) res = fast_nat_to
 declare fast_nat_to_bv_Bit [simp del]
 declare fast_nat_to_bv_Bit0 [simp]
 declare fast_nat_to_bv_Bit1 [simp]
+****)
+
 
 consts
   fast_bv_to_nat_helper :: "[bit list, bin] => bin"
@@ -2952,13 +2954,13 @@ lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin = fast_bv_to
 lemma fast_bv_to_nat_Cons1: "fast_bv_to_nat_helper (\<one>#bs) bin = fast_bv_to_nat_helper bs (bin BIT True)"
   by simp
 
-lemma fast_bv_to_nat_def: "bv_to_nat bs == number_of (fast_bv_to_nat_helper bs bin.Pls)"
+lemma fast_bv_to_nat_def: "bv_to_nat bs == number_of (fast_bv_to_nat_helper bs Numeral.Pls)"
 proof (simp add: bv_to_nat_def)
   have "\<forall> bin. (foldl (%bn b. bn BIT (b = \<one>)) bin bs) = (fast_bv_to_nat_helper bs bin)"
     apply (induct bs,simp)
     apply (case_tac a,simp_all)
     done
-  thus "number_of (foldl (%bn b. bn BIT (b = \<one>)) bin.Pls bs) == number_of (fast_bv_to_nat_helper bs bin.Pls)::int"
+  thus "number_of (foldl (%bn b. bn BIT (b = \<one>)) Numeral.Pls bs) == number_of (fast_bv_to_nat_helper bs Numeral.Pls)::int"
     by simp
 qed
 
@@ -2987,13 +2989,5 @@ lemma [simp]: "length w1 = length w2 ==> bv_mapzip f (x#w1) (y#w2) = f x y # bv_
 
 lemma [code]: "bv_to_nat bs = list_rec (0::int) (\<lambda>b bs n. bitval b * 2 ^ length bs + n) bs"
   by (induct bs,simp_all add: bv_to_nat_helper)
-
-text {* The following can be added for speedup, but depends on the
-exact definition of division and modulo of the ML compiler for soundness. *}
-
-(*
-consts_code "op div" ("'('(_') div '(_')')")
-consts_code "op mod" ("'('(_') mod '(_')')")
-*)
 
 end

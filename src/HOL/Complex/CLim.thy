@@ -666,8 +666,8 @@ apply (drule capprox_minus_iff [THEN iffD1])
 apply (subgoal_tac "xa + - (hcomplex_of_complex x) \<noteq> 0")
  prefer 2 apply (simp add: compare_rls) 
 apply (drule_tac x = "- hcomplex_of_complex x + xa" in bspec)
- prefer 2 apply (simp add: hcomplex_add_assoc [symmetric]) 
-apply (auto simp add: mem_cinfmal_iff [symmetric] hcomplex_add_commute)
+ prefer 2 apply (simp add: add_assoc [symmetric]) 
+apply (auto simp add: mem_cinfmal_iff [symmetric] add_commute)
 apply (drule_tac c = "xa + - hcomplex_of_complex x" in capprox_mult1)
 apply (auto intro: CInfinitesimal_subset_CFinite [THEN subsetD]
             simp add: mult_assoc)
@@ -740,7 +740,7 @@ apply (auto intro!: CInfinitesimal_add_capprox_self2 [THEN capprox_sym]
 		    CInfinitesimal_add CInfinitesimal_mult
 		    CInfinitesimal_hcomplex_of_complex_mult
 		    CInfinitesimal_hcomplex_of_complex_mult2
-            simp add: hcomplex_add_assoc [symmetric])
+            simp add: add_assoc [symmetric])
 done
 
 lemma CDERIV_mult:
@@ -899,7 +899,7 @@ lemma CDERIV_pow [simp]:
      "CDERIV (%x. x ^ n) x :> (complex_of_real (real n)) * (x ^ (n - Suc 0))"
 apply (induct_tac "n")
 apply (drule_tac [2] CDERIV_Id [THEN CDERIV_mult])
-apply (auto simp add: complex_of_real_add [symmetric] left_distrib real_of_nat_Suc)
+apply (auto simp add: left_distrib real_of_nat_Suc)
 apply (case_tac "n")
 apply (auto simp add: mult_ac add_commute)
 done
@@ -930,7 +930,8 @@ apply (auto simp add: starfunC_inverse_inverse diff_minus
 apply (simp add: hcomplex_add_commute numeral_2_eq_2 inverse_add
                  inverse_mult_distrib [symmetric] inverse_minus_eq [symmetric]
                  add_ac mult_ac 
-            del: inverse_minus_eq inverse_mult_distrib minus_mult_right [symmetric] minus_mult_left [symmetric])
+            del: inverse_minus_eq inverse_mult_distrib
+                 minus_mult_right [symmetric] minus_mult_left [symmetric])
 apply (simp only: mult_assoc [symmetric] right_distrib)
 apply (rule_tac y = " inverse (- hcomplex_of_complex x * hcomplex_of_complex x) " in capprox_trans)
 apply (rule inverse_add_CInfinitesimal_capprox2)
@@ -952,7 +953,8 @@ lemma CDERIV_inverse_fun:
      "[| CDERIV f x :> d; f(x) \<noteq> 0 |]
       ==> CDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))"
 apply (rule mult_commute [THEN subst])
-apply (simp (no_asm_simp) add: minus_mult_left power_inverse del: complexpow_Suc minus_mult_left [symmetric])
+apply (simp add: minus_mult_left power_inverse
+            del: complexpow_Suc minus_mult_left [symmetric])
 apply (fold o_def)
 apply (blast intro!: CDERIV_chain CDERIV_inverse)
 done
