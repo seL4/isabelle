@@ -275,7 +275,8 @@ val coinduct_lemma = result();
 goal Fixedpt.thy
     "!!X D. [| bnd_mono(D,h);  a: X;  X <= h(X Un gfp(D,h));  X <= D |] ==> \
 \           a : gfp(D,h)";
-by (rtac (coinduct_lemma RSN (2, weak_coinduct)) 1);
+by (rtac weak_coinduct 1);
+by (etac coinduct_lemma 2);
 by (REPEAT (ares_tac [gfp_subset, UnI1, Un_least] 1));
 val coinduct = result();
 
