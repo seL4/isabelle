@@ -53,10 +53,11 @@ sig
   val rep_cs: (* BLAST_DATA in blast.ML dependent on this *)
     claset -> {safeIs: thm list, safeEs: thm list,
 		 hazIs: thm list, hazEs: thm list,
+		 xtraIs: thm list, xtraEs: thm list,
 		 swrappers: (string * wrapper) list, 
 		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
-		 haz_netpair: netpair, dup_netpair: netpair}
+		 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: netpair}
   val merge_cs		: claset * claset -> claset
   val addDs 		: claset * thm list -> claset
   val addEs 		: claset * thm list -> claset
@@ -128,6 +129,9 @@ sig
   val AddSDs		: thm list -> unit
   val AddSEs		: thm list -> unit
   val AddSIs		: thm list -> unit
+  val AddXDs		: thm list -> unit
+  val AddXEs		: thm list -> unit
+  val AddXIs		: thm list -> unit
   val Delrules		: thm list -> unit
   val Safe_tac         	: tactic
   val Safe_step_tac	: int -> tactic
@@ -147,19 +151,25 @@ sig
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
-  val haz_dest_global: theory attribute
-  val haz_elim_global: theory attribute
-  val haz_intro_global: theory attribute
   val safe_dest_global: theory attribute
   val safe_elim_global: theory attribute
   val safe_intro_global: theory attribute
+  val haz_dest_global: theory attribute
+  val haz_elim_global: theory attribute
+  val haz_intro_global: theory attribute
+  val xtra_dest_global: theory attribute
+  val xtra_elim_global: theory attribute
+  val xtra_intro_global: theory attribute
   val delrule_global: theory attribute
-  val haz_dest_local: Proof.context attribute
-  val haz_elim_local: Proof.context attribute
-  val haz_intro_local: Proof.context attribute
   val safe_dest_local: Proof.context attribute
   val safe_elim_local: Proof.context attribute
   val safe_intro_local: Proof.context attribute
+  val haz_dest_local: Proof.context attribute
+  val haz_elim_local: Proof.context attribute
+  val haz_intro_local: Proof.context attribute
+  val xtra_dest_local: Proof.context attribute
+  val xtra_elim_local: Proof.context attribute
+  val xtra_intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
   val cla_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
@@ -255,19 +265,23 @@ datatype claset =
 	 safeEs		: thm list,		(*safe elimination rules*)
 	 hazIs		: thm list,		(*unsafe introduction rules*)
 	 hazEs		: thm list,		(*unsafe elimination rules*)
+	 xtraIs		: thm list,		(*extra introduction rules*)
+	 xtraEs		: thm list,		(*extra elimination rules*)
 	 swrappers	: (string * wrapper) list, (*for transf. safe_step_tac*)
 	 uwrappers	: (string * wrapper) list, (*for transforming step_tac*)
 	 safe0_netpair	: netpair,		(*nets for trivial cases*)
 	 safep_netpair	: netpair,		(*nets for >0 subgoals*)
 	 haz_netpair  	: netpair,		(*nets for unsafe rules*)
-	 dup_netpair	: netpair};		(*nets for duplication*)
+	 dup_netpair	: netpair,		(*nets for duplication*)
+	 xtra_netpair	: netpair};		(*nets for extra rules*)
 
 (*Desired invariants are
 	safe0_netpair = build safe0_brls,
 	safep_netpair = build safep_brls,
 	haz_netpair = build (joinrules(hazIs, hazEs)),
 	dup_netpair = build (joinrules(map dup_intr hazIs, 
-				       map dup_elim hazEs))}
+				       map dup_elim hazEs)),
+	xtra_netpair = build (joinrules(xtraIs, xtraEs))}
 
 where build = build_netpair(Net.empty,Net.empty), 
       safe0_brls contains all brules that solve the subgoal, and
@@ -283,19 +297,24 @@ val empty_cs =
      safeEs	= [],
      hazIs	= [],
      hazEs	= [],
+     xtraIs	= [],
+     xtraEs	= [],
      swrappers  = [],
      uwrappers  = [],
      safe0_netpair = empty_netpair,
      safep_netpair = empty_netpair,
      haz_netpair   = empty_netpair,
-     dup_netpair   = empty_netpair};
+     dup_netpair   = empty_netpair,
+     xtra_netpair  = empty_netpair};
 
-fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) =
   let val pretty_thms = map Display.pretty_thm in
     Pretty.writeln (Pretty.big_list "safe introduction rules:" (pretty_thms safeIs));
     Pretty.writeln (Pretty.big_list "unsafe introduction rules:" (pretty_thms hazIs));
+    Pretty.writeln (Pretty.big_list "extra introduction rules:" (pretty_thms xtraIs));
     Pretty.writeln (Pretty.big_list "safe elimination rules:" (pretty_thms safeEs));
-    Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs))
+    Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs));
+    Pretty.writeln (Pretty.big_list "extra elimination rules:" (pretty_thms xtraEs))
   end;
 
 fun rep_cs (CS args) = args;
@@ -342,7 +361,7 @@ and rem_thm = gen_rem eq_thm;
 
 (*Warn if the rule is already present ELSEWHERE in the claset.  The addition
   is still allowed.*)
-fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) = 
+fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) = 
        if mem_thm (th, safeIs) then 
 	 warning ("Rule already in claset as Safe Intr\n" ^ string_of_thm th)
   else if mem_thm (th, safeEs) then
@@ -351,12 +370,16 @@ fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
          warning ("Rule already in claset as unsafe Intr\n" ^ string_of_thm th)
   else if mem_thm (th, hazEs) then 
          warning ("Rule already in claset as unsafe Elim\n" ^ string_of_thm th)
+  else if mem_thm (th, xtraIs) then 
+         warning ("Rule already in claset as extra Intr\n" ^ string_of_thm th)
+  else if mem_thm (th, xtraEs) then 
+         warning ("Rule already in claset as extra Elim\n" ^ string_of_thm th)
   else ();
 
 (*** Safe rules ***)
 
-fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	   th)  =
   if mem_thm (th, safeIs) then 
 	 (warning ("Ignoring duplicate Safe Intr\n" ^ string_of_thm th);
@@ -373,14 +396,17 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
 	safeEs	= safeEs,
 	hazIs	= hazIs,
 	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers    = swrappers,
 	uwrappers    = uwrappers,
 	haz_netpair  = haz_netpair,
-	dup_netpair  = dup_netpair}
+	dup_netpair  = dup_netpair,
+	xtra_netpair = xtra_netpair}
   end;
 
-fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	   th)  =
   if mem_thm (th, safeEs) then 
 	 (warning ("Ignoring duplicate Safe Elim\n" ^ string_of_thm th);
@@ -397,10 +423,13 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
 	safeIs	= safeIs,
 	hazIs	= hazIs,
 	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers    = swrappers,
 	uwrappers    = uwrappers,
 	haz_netpair  = haz_netpair,
-	dup_netpair  = dup_netpair}
+	dup_netpair  = dup_netpair,
+	xtra_netpair = xtra_netpair}
   end;
 
 fun rev_foldl f (e, l) = foldl f (e, rev l);
@@ -413,8 +442,8 @@ fun cs addSDs ths = cs addSEs (map make_elim ths);
 
 (*** Hazardous (unsafe) rules ***)
 
-fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th)=
   if mem_thm (th, hazIs) then 
 	 (warning ("Ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
@@ -429,14 +458,17 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
 	safeIs 	= safeIs, 
 	safeEs	= safeEs,
 	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers     = swrappers,
 	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair}
+	safep_netpair = safep_netpair,
+	xtra_netpair = xtra_netpair}
   end;
 
-fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th) =
   if mem_thm (th, hazEs) then 
 	 (warning ("Ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
@@ -451,16 +483,79 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
 	safeIs	= safeIs, 
 	safeEs	= safeEs,
 	hazIs	= hazIs,
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers     = swrappers,
 	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair}
+	safep_netpair = safep_netpair,
+	xtra_netpair = xtra_netpair}
   end;
 
 val op addIs = rev_foldl addI;
 val op addEs = rev_foldl addE;
 
 fun cs addDs ths = cs addEs (map make_elim ths);
+
+
+(*** Extra (single step) rules ***)
+
+fun addXI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers,
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
+	  th)=
+  if mem_thm (th, xtraIs) then 
+	 (warning ("Ignoring duplicate extra Intr\n" ^ string_of_thm th);
+	  cs)
+  else
+  let val nI = length xtraIs + 1
+      and nE = length xtraEs
+  in warn_dup th cs;
+     CS{xtraIs	= th::xtraIs,
+	xtra_netpair = insert (nI,nE) ([th], []) xtra_netpair,
+	safeIs 	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	xtraEs	= xtraEs,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair,
+	haz_netpair  = haz_netpair,
+	dup_netpair  = dup_netpair}
+  end;
+
+fun addXE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
+	  th) =
+  if mem_thm (th, xtraEs) then
+	 (warning ("Ignoring duplicate extra Elim\n" ^ string_of_thm th);
+	  cs)
+  else
+  let val nI = length xtraIs 
+      and nE = length xtraEs + 1
+  in warn_dup th cs;
+     CS{xtraEs	= th::xtraEs,
+	xtra_netpair = insert (nI,nE) ([], [th]) xtra_netpair,
+	safeIs	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair,
+	haz_netpair  = haz_netpair,
+	dup_netpair  = dup_netpair}
+  end;
+
+infix 4 addXIs addXEs addXDs;
+
+val op addXIs = rev_foldl addXI;
+val op addXEs = rev_foldl addXE;
+
+fun cs addXDs ths = cs addXEs (map make_elim ths);
 
 
 (*** Deletion of rules 
@@ -471,8 +566,8 @@ fun cs addDs ths = cs addEs (map make_elim ths);
 ***)
 
 fun delSI th 
-          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers,
+		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, safeIs) then
    let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
    in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
@@ -481,16 +576,19 @@ fun delSI th
 	 safeEs	= safeEs,
 	 hazIs	= hazIs,
 	 hazEs	= hazEs,
+	 xtraIs	= xtraIs,
+	 xtraEs	= xtraEs,
 	 swrappers    = swrappers,
 	 uwrappers    = uwrappers,
 	 haz_netpair  = haz_netpair,
-	 dup_netpair  = dup_netpair}
+	 dup_netpair  = dup_netpair,
+	 xtra_netpair = xtra_netpair}
    end
  else cs;
 
 fun delSE th
-          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	            safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	            safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, safeEs) then
    let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
    in CS{safe0_netpair = delete ([], safe0_rls) safe0_netpair,
@@ -499,17 +597,20 @@ fun delSE th
 	 safeEs	= rem_thm (safeEs,th),
 	 hazIs	= hazIs,
 	 hazEs	= hazEs,
+	 xtraIs	= xtraIs,
+	 xtraEs	= xtraEs,
 	 swrappers    = swrappers,
 	 uwrappers    = uwrappers,
 	 haz_netpair  = haz_netpair,
-	 dup_netpair  = dup_netpair}
+	 dup_netpair  = dup_netpair,
+	 xtra_netpair = xtra_netpair}
    end
  else cs;
 
 
 fun delI th
-         (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+         (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, hazIs) then
      CS{haz_netpair = delete ([th], []) haz_netpair,
 	dup_netpair = delete ([dup_intr th], []) dup_netpair,
@@ -517,15 +618,18 @@ fun delI th
 	safeEs	= safeEs,
 	hazIs	= rem_thm (hazIs,th),
 	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers     = swrappers,
 	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair}
+	safep_netpair = safep_netpair,
+	xtra_netpair = xtra_netpair}
  else cs;
 
 fun delE th
-	 (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+	 (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, hazEs) then
      CS{haz_netpair = delete ([], [th]) haz_netpair,
 	dup_netpair = delete ([], [dup_elim th]) dup_netpair,
@@ -533,17 +637,60 @@ fun delE th
 	safeEs	= safeEs,
 	hazIs	= hazIs,
 	hazEs	= rem_thm (hazEs,th),
+	xtraIs	= xtraIs,
+	xtraEs	= xtraEs,
 	swrappers     = swrappers,
 	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair}
+	safep_netpair = safep_netpair,
+	xtra_netpair = xtra_netpair}
+ else cs;
+
+
+fun delXI th
+         (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+ if mem_thm (th, xtraIs) then
+     CS{xtra_netpair = delete ([th], []) xtra_netpair,
+	safeIs 	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	xtraIs	= rem_thm (xtraIs,th),
+	xtraEs	= xtraEs,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair,
+	haz_netpair  = haz_netpair,
+	dup_netpair  = dup_netpair}
+ else cs;
+
+fun delXE th
+	 (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+ if mem_thm (th, xtraEs) then
+     CS{xtra_netpair = delete ([], [th]) xtra_netpair,
+	safeIs	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	xtraIs	= xtraIs,
+	xtraEs	= rem_thm (xtraEs,th),
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair,
+	haz_netpair  = haz_netpair,
+	dup_netpair  = dup_netpair}
  else cs;
 
 (*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
-fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
+fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}, th) =
        if mem_thm (th, safeIs) orelse mem_thm (th, safeEs) orelse
-	  mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) 
-       then delSI th (delSE th (delI th (delE th cs)))
+	  mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) orelse
+          mem_thm (th, xtraIs)  orelse mem_thm (th, xtraEs) 
+       then delSI th (delSE th (delI th (delE th (delXI th (delXE th cs)))))
        else (warning ("Rule not in claset\n" ^ (string_of_thm th)); 
 	     cs);
 
@@ -552,20 +699,22 @@ val op delrules = foldl delrule;
 
 (*** Modifying the wrapper tacticals ***)
 fun update_swrappers 
-(CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) f =
+(CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) f =
  CS{safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
+    xtraIs = xtraIs, xtraEs = xtraEs,
     swrappers = f swrappers, uwrappers = uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    haz_netpair = haz_netpair, dup_netpair = dup_netpair};
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair, xtra_netpair = xtra_netpair};
 
 fun update_uwrappers 
-(CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
-    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) f =
+(CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers, 
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) f =
  CS{safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
+    xtraIs = xtraIs, xtraEs = xtraEs,
     swrappers = swrappers, uwrappers = f uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    haz_netpair = haz_netpair, dup_netpair = dup_netpair};
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair, xtra_netpair = xtra_netpair};
 
 
 (*Add/replace a safe wrapper*)
@@ -617,17 +766,21 @@ fun cs addSE2     (name, thm) =
   Merging the term nets may look more efficient, but the rather delicate
   treatment of priority might get muddled up.*)
 fun merge_cs
-    (cs as CS{safeIs, safeEs, hazIs, hazEs, ...},
+    (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...},
      CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2,
-	swrappers, uwrappers, ...}) =
+        xtraIs=xtraIs2, xtraEs=xtraEs2,	swrappers, uwrappers, ...}) =
   let val safeIs' = gen_rems eq_thm (safeIs2,safeIs)
       val safeEs' = gen_rems eq_thm (safeEs2,safeEs)
       val  hazIs' = gen_rems eq_thm ( hazIs2, hazIs)
       val  hazEs' = gen_rems eq_thm ( hazEs2, hazEs)
+      val xtraIs' = gen_rems eq_thm (xtraIs2, xtraIs)
+      val xtraEs' = gen_rems eq_thm (xtraEs2, xtraEs)
       val cs1   = cs addSIs safeIs'
 		     addSEs safeEs'
 		     addIs  hazIs'
 		     addEs  hazEs'
+		     addXIs xtraIs'
+		     addXEs xtraEs'
       val cs2 = update_swrappers cs1 (fn ws => merge_alists ws swrappers);
       val cs3 = update_uwrappers cs2 (fn ws => merge_alists ws uwrappers);
   in cs3 
@@ -829,6 +982,9 @@ val AddIs = change_claset (op addIs);
 val AddSDs = change_claset (op addSDs);
 val AddSEs = change_claset (op addSEs);
 val AddSIs = change_claset (op addSIs);
+val AddXDs = change_claset (op addXDs);
+val AddXEs = change_claset (op addXEs);
+val AddXIs = change_claset (op addXIs);
 val Delrules = change_claset (op delrules);
 
 
@@ -858,20 +1014,26 @@ fun change_local_cs f (ctxt, th) =
   let val cs = f (get_local_claset ctxt, [th])
   in (put_local_claset cs ctxt, th) end;
 
-val haz_dest_global = change_global_cs (op addDs);
-val haz_elim_global = change_global_cs (op addEs);
-val haz_intro_global = change_global_cs (op addIs);
 val safe_dest_global = change_global_cs (op addSDs);
 val safe_elim_global = change_global_cs (op addSEs);
 val safe_intro_global = change_global_cs (op addSIs);
+val haz_dest_global = change_global_cs (op addDs);
+val haz_elim_global = change_global_cs (op addEs);
+val haz_intro_global = change_global_cs (op addIs);
+val xtra_dest_global = change_global_cs (op addXDs);
+val xtra_elim_global = change_global_cs (op addXEs);
+val xtra_intro_global = change_global_cs (op addXIs);
 val delrule_global = change_global_cs (op delrules);
 
-val haz_dest_local = change_local_cs (op addDs);
-val haz_elim_local = change_local_cs (op addEs);
-val haz_intro_local = change_local_cs (op addIs);
 val safe_dest_local = change_local_cs (op addSDs);
 val safe_elim_local = change_local_cs (op addSEs);
 val safe_intro_local = change_local_cs (op addSIs);
+val haz_dest_local = change_local_cs (op addDs);
+val haz_elim_local = change_local_cs (op addEs);
+val haz_intro_local = change_local_cs (op addIs);
+val xtra_dest_local = change_local_cs (op addXDs);
+val xtra_elim_local = change_local_cs (op addXEs);
+val xtra_intro_local = change_local_cs (op addXIs);
 val delrule_local = change_local_cs (op delrules);
 
 
@@ -905,20 +1067,21 @@ val delN = "del";
 val delruleN = "delrule";
 
 val bang = Args.$$$ "!";
+val bbang = Args.$$$ "!!";
 
-fun cla_att change haz safe =
-  Attrib.syntax (Scan.lift ((bang >> K haz || Scan.succeed safe) >> change));
+fun cla_att change xtra haz safe = Attrib.syntax
+  (Scan.lift ((bbang >> K xtra || bang >> K haz || Scan.succeed safe) >> change));
 
-fun cla_attr f g = (cla_att change_global_cs f g, cla_att change_local_cs f g);
+fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
 
 
 (* setup_attrs *)
 
 val setup_attrs = Attrib.add_attributes
- [(destN, cla_attr (op addDs) (op addSDs), "destruction rule"),
-  (elimN, cla_attr (op addEs) (op addSEs), "elimination rule"),
-  (introN, cla_attr (op addIs) (op addSIs), "introduction rule"),
+ [(destN, cla_attr (op addXDs) (op addDs) (op addSDs), "destruction rule"),
+  (elimN, cla_attr (op addXEs) (op addEs) (op addSEs), "elimination rule"),
+  (introN, cla_attr (op addXIs) (op addIs) (op addSIs), "introduction rule"),
   (delruleN, del_attr, "delete rule")];
 
 
@@ -935,10 +1098,10 @@ fun find_rules concl nets =
   in flat (map rules_of nets) end;
 
 fun find_erules [] _ = []
-  | find_erules facts nets =
+  | find_erules (fact :: _) nets =
       let
         fun may_unify net = Net.unify_term net o Logic.strip_assums_concl o #prop o Thm.rep_thm;
-        fun erules_of (_, enet) = order_rules (flat (map (may_unify enet) facts));
+        fun erules_of (_, enet) = order_rules (may_unify enet fact);
       in flat (map erules_of nets) end;
 
 
@@ -960,9 +1123,9 @@ val not_elim_netpair = insert (0, 0) ([], [Data.not_elim]) empty_netpair;
 
 fun single_tac cs facts =
   let
-    val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
+    val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair, ...} = cs;
     val nets = [imp_elim_netpair, safe0_netpair, safep_netpair,
-      not_elim_netpair, haz_netpair, dup_netpair];
+      not_elim_netpair, haz_netpair, dup_netpair, xtra_netpair];
     val erules = find_erules facts nets;
 
     val tac = SUBGOAL (fn (goal, i) =>
@@ -994,10 +1157,13 @@ val contradiction = Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts 
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- bang >> K haz_dest_local,
+ [Args.$$$ destN -- bbang >> K xtra_dest_local,
+  Args.$$$ destN -- bang >> K haz_dest_local,
   Args.$$$ destN >> K safe_dest_local,
+  Args.$$$ elimN -- bbang >> K xtra_elim_local,
   Args.$$$ elimN -- bang >> K haz_elim_local,
   Args.$$$ elimN >> K safe_elim_local,
+  Args.$$$ introN -- bbang >> K xtra_intro_local,
   Args.$$$ introN -- bang >> K haz_intro_local,
   Args.$$$ introN >> K safe_intro_local,
   Args.$$$ delN >> K delrule_local];

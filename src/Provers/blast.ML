@@ -62,10 +62,11 @@ signature BLAST_DATA =
   val rep_cs	: (* dependent on classical.ML *)
       claset -> {safeIs: thm list, safeEs: thm list, 
 		 hazIs: thm list, hazEs: thm list,
+		 xtraIs: thm list, xtraEs: thm list,
 		 swrappers: (string * wrapper) list, 
 		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
-		 haz_netpair: netpair, dup_netpair: netpair}
+		 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: netpair}
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   end;
 
