@@ -159,7 +159,7 @@ Goal "A<=B ==> Part A h <= Part B h";
 by (Blast_tac 1);
 qed "Part_mono";
 
-val basic_monos = basic_monos @ [Part_mono];
+bind_thms ("basic_monos", basic_monos @ [Part_mono]);
 
 Goalw [Part_def] "a : Part A h ==> a : A";
 by (etac IntD1 1);
