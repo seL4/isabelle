@@ -121,16 +121,16 @@
   \item {\tt ccontr} theorem, 66
   \item {\tt classical} theorem, 66
   \item {\tt coinduct} theorem, 45
-  \item {\tt coinductive}, 101--104
+  \item {\tt coinductive}, 102--105
   \item {\tt Collect} constant, 26, 27, 30, 68, 70
   \item {\tt Collect_def} theorem, 31
   \item {\tt Collect_mem_eq} theorem, 70, 71
   \item {\tt Collect_subset} theorem, 37
-  \item {\tt CollectD} theorem, 72, 107
+  \item {\tt CollectD} theorem, 72, 108
   \item {\tt CollectD1} theorem, 33, 35
   \item {\tt CollectD2} theorem, 33, 35
   \item {\tt CollectE} theorem, 33, 35, 72
-  \item {\tt CollectI} theorem, 35, 72, 107
+  \item {\tt CollectI} theorem, 35, 72, 108
   \item {\tt comp_assoc} theorem, 46
   \item {\tt comp_bij} theorem, 46
   \item {\tt comp_def} theorem, 46
@@ -187,7 +187,7 @@
 
   \indexspace
 
-  \item {\tt datatype}, 87--94
+  \item {\tt datatype}, 87--95
   \item {\tt Delsplits}, \bold{76}
   \item {\tt delsplits}, \bold{76}
   \item {\tt diff_0_eq_0} theorem, 133
@@ -280,7 +280,7 @@
   \item {\tt exhaust_tac}, \bold{92}
   \item {\tt exI} theorem, 8, 66
   \item {\tt exL} theorem, 112
-  \item {\tt Exp} theory, 105
+  \item {\tt Exp} theory, 106
   \item {\tt exR} theorem, 112, 116, 117
   \item {\tt exR_thin} theorem, 113, 117, 118
   \item {\tt ext} theorem, 63, 64
@@ -405,7 +405,7 @@
   \item {\textit {ind}} type, 78
   \item {\tt induct} theorem, 45
   \item {\tt induct_tac}, 80, \bold{92}
-  \item {\tt inductive}, 101--104
+  \item {\tt inductive}, 102--105
   \item {\tt Inf} constant, 26, 30
   \item {\tt infinity} theorem, 32
   \item {\tt inj} constant, 46, 75
@@ -502,7 +502,7 @@
   \item {\tt Let} constant, 25, 26, 60, 63
   \item {\tt let} symbol, 28, 61, 63
   \item {\tt Let_def} theorem, 25, 31, 63, 64
-  \item {\tt LFilter} theory, 105
+  \item {\tt LFilter} theory, 106
   \item {\tt lfp_def} theorem, 45
   \item {\tt lfp_greatest} theorem, 45
   \item {\tt lfp_lowerbound} theorem, 45
@@ -522,7 +522,7 @@
   \item {\tt LK} theory, 1, 109, 113
   \item {\tt LK_dup_pack}, \bold{116}, 117
   \item {\tt LK_pack}, \bold{116}
-  \item {\tt LList} theory, 105
+  \item {\tt LList} theory, 106
   \item {\tt logic} class, 5
 
   \indexspace
@@ -648,7 +648,7 @@
   \item {\tt Pow_mono} theorem, 53
   \item {\tt PowD} theorem, 34, 54, 73
   \item {\tt PowI} theorem, 34, 54, 73
-  \item {\tt primrec}, 95--98
+  \item {\tt primrec}, 95--99
   \item {\tt primrec} symbol, 80
   \item {\tt PrimReplace} constant, 26, 30
   \item priorities, 2
@@ -686,7 +686,7 @@
 
   \indexspace
 
-  \item {\tt range} constant, 26, 68, 106
+  \item {\tt range} constant, 26, 68, 107
   \item {\tt range_def} theorem, 32, 71
   \item {\tt range_of_fun} theorem, 40, 41
   \item {\tt range_subset} theorem, 39
@@ -699,11 +699,11 @@
   \item {\tt rec_0} theorem, 48
   \item {\tt rec_def} theorem, 48
   \item {\tt rec_succ} theorem, 48
-  \item {\tt recdef}, 98--101
+  \item {\tt recdef}, 99--102
   \item recursion
-    \subitem general, 98--101
-    \subitem primitive, 95--98
-  \item recursive functions, \see{recursion}{94}
+    \subitem general, 99--102
+    \subitem primitive, 95--99
+  \item recursive functions, \see{recursion}{95}
   \item {\tt red_if_equal} theorem, 125
   \item {\tt Reduce} constant, 122, 125, 131
   \item {\tt refl} theorem, 8, 63, 112
