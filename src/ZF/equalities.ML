@@ -217,13 +217,13 @@ val INT_singleton = ballI RSN (2,INT_singleton_lemma);
 (** Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
     Union of a family of unions **)
 
-goal ZF.thy "(UN i:I. A(x) Un B(x)) = (UN i:I. A(x))  Un  (UN i:I. B(x))";
+goal ZF.thy "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
 by (fast_tac eq_cs 1);
 val UN_Un_distrib = result();
 
 goal ZF.thy
     "!!A B. i:I ==> \
-\           (INT i:I. A(x)  Int  B(x)) = (INT i:I. A(x)) Int (INT i:I. B(x))";
+\           (INT i:I. A(i)  Int  B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
 by (fast_tac eq_cs 1);
 val INT_Int_distrib = result();
 
@@ -243,27 +243,31 @@ goal ZF.thy "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
 by (fast_tac eq_cs 1);
 val SUM_UN_distrib1 = result();
 
-goal ZF.thy "(SUM x:A. UN y:B. C(x,y)) = (UN y:B. SUM x:A. C(x,y))";
+goal ZF.thy "(SUM i:I. UN j:J. C(i,j)) = (UN j:J. SUM i:I. C(i,j))";
 by (fast_tac eq_cs 1);
 val SUM_UN_distrib2 = result();
 
-goal ZF.thy "(SUM x:A Un B. C(x)) = (SUM x:A. C(x)) Un (SUM x:B. C(x))";
+goal ZF.thy "(SUM i:I Un J. C(i)) = (SUM i:I. C(i)) Un (SUM j:J. C(j))";
 by (fast_tac eq_cs 1);
 val SUM_Un_distrib1 = result();
 
-goal ZF.thy
-    "(SUM i:I. A(x) Un B(x)) = (SUM i:I. A(x)) Un (SUM i:I. B(x))";
+goal ZF.thy "(SUM i:I. A(i) Un B(i)) = (SUM i:I. A(i)) Un (SUM i:I. B(i))";
 by (fast_tac eq_cs 1);
 val SUM_Un_distrib2 = result();
 
-goal ZF.thy "(SUM x:A Int B. C(x)) = (SUM x:A. C(x)) Int (SUM x:B. C(x))";
+goal ZF.thy "(SUM i:I Int J. C(i)) = (SUM i:I. C(i)) Int (SUM j:J. C(j))";
 by (fast_tac eq_cs 1);
 val SUM_Int_distrib1 = result();
 
 goal ZF.thy
-    "(SUM i:I. A(x) Int B(x)) = (SUM i:I. A(x)) Int (SUM i:I. B(x))";
+    "(SUM i:I. A(i) Int B(i)) = (SUM i:I. A(i)) Int (SUM i:I. B(i))";
 by (fast_tac eq_cs 1);
 val SUM_Int_distrib2 = result();
+
+(*Cf Aczel, Non-Well-Founded Sets, page 115*)
+goal ZF.thy "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))";
+by (fast_tac eq_cs 1);
+val SUM_eq_UN = result();
 
 (** Domain, Range and Field **)
 
