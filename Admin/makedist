@@ -10,6 +10,9 @@
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
 case $(hostname) in
+  *lapbroy*)
+    export CVSROOT=sunbroy1:/usr/proj/isabelle-repository/archive
+    ;;
   *broy*)
     export CVSROOT=/usr/proj/isabelle-repository/archive
     ;;

@@ -173,6 +173,7 @@ ISABELLE_INTERFACE=$(choosefrom \
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
+#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
 
 # X-Symbol mode for Proof General
 XSYMBOL_HOME=$(choosefrom \
