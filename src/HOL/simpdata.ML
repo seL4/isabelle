@@ -429,10 +429,10 @@ fun mk_atomize pairs =
 
 fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
-fun unsafe_solver prems = FIRST'[resolve_tac (reflexive_thm::TrueI::refl::prems),
-				 atac, etac FalseE];
+fun unsafe_solver prems = FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems),
+				 atac         ,       etac  FalseE ];
 (*No premature instantiation of variables during simplification*)
-fun   safe_solver prems = FIRST'[match_tac (reflexive_thm::TrueI::prems),
+fun   safe_solver prems = FIRST'[  match_tac(reflexive_thm::TrueI::refl::prems),
 				 eq_assume_tac, ematch_tac [FalseE]];
 
 val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
