@@ -31,9 +31,9 @@ Function \isa{map{\isacharunderscore}bt} applies a function to all labels in a \
 %
 \begin{isamarkuptext}%
 \noindent This is a valid \isacommand{primrec} definition because the
-recursive calls of \isa{map{\isacharunderscore}bt} involve only subtrees obtained from
-\isa{F}: the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might try expressing
+recursive calls of \isa{map{\isacharunderscore}bt} involve only subtrees of
+\isa{F}, which is itself a subterm of the left-hand side. Thus termination
+is assured.  The seasoned functional programmer might try expressing
 \isa{{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}} as \isa{map{\isacharunderscore}bt\ f\ {\isasymcirc}\ F}, which Isabelle 
 however will reject.  Applying \isa{map{\isacharunderscore}bt} to only one of its arguments
 makes the termination proof less obvious.

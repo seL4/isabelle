@@ -25,9 +25,9 @@ primrec
 "map_bt f (Br a F) = Br (f a) (\<lambda>i. map_bt f (F i))"
 
 text{*\noindent This is a valid \isacommand{primrec} definition because the
-recursive calls of @{term"map_bt"} involve only subtrees obtained from
-@{term"F"}: the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might try expressing
+recursive calls of @{term"map_bt"} involve only subtrees of
+@{term"F"}, which is itself a subterm of the left-hand side. Thus termination
+is assured.  The seasoned functional programmer might try expressing
 @{term"%i. map_bt f (F i)"} as @{term"map_bt f o F"}, which Isabelle 
 however will reject.  Applying @{term"map_bt"} to only one of its arguments
 makes the termination proof less obvious.
