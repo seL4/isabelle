@@ -4,34 +4,53 @@
     Copyright   1998  TU Munich
 
 A generic linear arithmetic package.
-The two tactics provided:
+It provides two tactics
+
     lin_arith_tac:         int -> tactic
 cut_lin_arith_tac: thms -> int -> tactic
-Only take premises and conclusions into account
-that are already (negated) (in)equations.
+
+and a simplification procedure
+
+    lin_arith_prover: Sign.sg -> thm list -> term -> thm option
+
+Only take premises and conclusions into account that are already (negated)
+(in)equations. lin_arith_prover tries to prove or disprove the term.
 *)
 
 (*** Data needed for setting up the linear arithmetic package ***)
+
+signature LIN_ARITH_LOGIC =
+sig
+  val conjI:		thm
+  val ccontr:           thm (* (~ P ==> False) ==> P *)
+  val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
+  val notI:             thm (* (P ==> False) ==> ~ P *)
+  val sym:		thm (* x = y ==> y = x *)
+  val mk_Eq: thm -> thm
+  val mk_Trueprop: term -> term
+  val neg_prop: term -> term
+  val is_False: thm -> bool
+end;
+(*
+mk_Eq(~in) = `in == False'
+mk_Eq(in) = `in == True'
+where `in' is an (in)equality.
+
+neg_prop(t) = neg if t is wrapped up in Trueprop and
+  nt is the (logically) negated version of t, where the negation
+  of a negative term is the term itself (no double negation!);
+*)
 
 signature LIN_ARITH_DATA =
 sig
   val add_mono_thms:    thm list
                             (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
-  val conjI:		thm
-  val ccontr:           thm (* (~ P ==> False) ==> P *)
   val lessD:            thm (* m < n ==> Suc m <= n *)
-  val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
-  val notI:             thm (* (P ==> False) ==> ~ P *)
   val not_leD:          thm (* ~(m <= n) ==> Suc n <= m *)
   val not_lessD:        thm (* ~(m < n) ==> n < m *)
-  val sym:		thm (* x = y ==> y = x *)
   val decomp: term ->
              ((term * int)list * int * string * (term * int)list * int)option
-  val mk_Eq: thm -> thm
-  val mk_Trueprop: term -> term
-  val neg_prop: term -> term
   val simp: thm -> thm
-  val is_False: thm -> bool
   val is_nat: typ list * term -> bool
   val mk_nat_thm: Sign.sg -> term -> thm
 end;
@@ -40,14 +59,6 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j)
    where Rel is one of "<", "~<", "<=", "~<=" and "=" and
          p/q is the decomposition of the sum terms x/y into a list
          of summand * multiplicity pairs and a constant summand.
-
-mk_Eq(~in) = `in == False'
-mk_Eq(in) = `in == True'
-where `in' is an (in)equality.
-
-neg_prop(t) = neg if t is wrapped up in Trueprop and
-  nt is the (logically) negated version of t, where the negation
-  of a negative term is the term itself (no double negation!);
 
 simp must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
@@ -64,7 +75,8 @@ sig
   val cut_lin_arith_tac: thm list -> int -> tactic
 end;
 
-functor Fast_Lin_Arith(LA_Data:LIN_ARITH_DATA):FAST_LIN_ARITH =
+functor Fast_Lin_Arith(structure LA_Logic:LIN_ARITH_LOGIC 
+                       and       LA_Data:LIN_ARITH_DATA) : FAST_LIN_ARITH =
 struct
 
 (*** A fast decision procedure ***)
@@ -241,18 +253,18 @@ fun mkthm sg asms just =
                         ([], mapfilter (LA_Data.decomp o concl_of) asms)
 
       fun addthms thm1 thm2 =
-        let val conj = thm1 RS (thm2 RS LA_Data.conjI)
+        let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
         in the(get_first (fn th => Some(conj RS th) handle _ => None)
                          LA_Data.add_mono_thms)
         end;
 
       fun multn(n,thm) =
         let fun mul(i,th) = if i=1 then th else mul(i-1, addthms thm th)
-        in if n < 0 then mul(~n,thm) RS LA_Data.sym else mul(n,thm) end;
+        in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
 
       fun simp thm =
         let val thm' = LA_Data.simp thm
-        in if LA_Data.is_False thm' then raise FalseE thm' else thm' end
+        in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = nth_elem(i,asms)
         | mk(Nat(i)) = LA_Data.mk_nat_thm sg (nth_elem(i,atoms))
@@ -307,7 +319,7 @@ fun refute1(pTs,items) =
 fun refute1_tac(i,just) =
   fn state =>
     let val sg = #sign(rep_thm state)
-    in resolve_tac [LA_Data.notI,LA_Data.ccontr] i THEN
+    in resolve_tac [LA_Logic.notI,LA_Logic.ccontr] i THEN
        METAHYPS (fn asms => rtac (mkthm sg asms just) 1) i
     end
     state;
@@ -324,7 +336,7 @@ fun refute2(pTs,items, (rhs,i,_,lhs,j), nHs) =
 fun refute2_tac(i,just1,just2) =
   fn state => 
     let val sg = #sign(rep_thm state)
-    in rtac LA_Data.ccontr i THEN rotate_tac ~1 i THEN etac LA_Data.neqE i THEN
+    in rtac LA_Logic.ccontr i THEN rotate_tac ~1 i THEN etac LA_Logic.neqE i THEN
        METAHYPS (fn asms => rtac (mkthm sg asms just1) 1) i THEN
        METAHYPS (fn asms => rtac (mkthm sg asms just2) 1) i
     end
@@ -362,19 +374,19 @@ val lin_arith_tac = SUBGOAL (fn (A,n) =>
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac i;
 
 fun prover1(just,sg,thms,concl,pos) =
-let val nconcl = LA_Data.neg_prop concl
+let val nconcl = LA_Logic.neg_prop concl
     val cnconcl = cterm_of sg nconcl
     val Fthm = mkthm sg (thms @ [assume cnconcl]) just
-    val contr = if pos then LA_Data.ccontr else LA_Data.notI
-in Some(LA_Data.mk_Eq ((implies_intr cnconcl Fthm) COMP contr)) end
+    val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
+in Some(LA_Logic.mk_Eq ((implies_intr cnconcl Fthm) COMP contr)) end
 handle _ => None;
 
 (* handle thm with equality conclusion *)
 fun prover2(just1,just2,sg,thms,concl) =
-let val nconcl = LA_Data.neg_prop concl (* m ~= n *)
+let val nconcl = LA_Logic.neg_prop concl (* m ~= n *)
     val cnconcl = cterm_of sg nconcl
     val neqthm = assume cnconcl
-    val casethm = neqthm COMP LA_Data.neqE (* [|m<n ==> R; n<m ==> R|] ==> R *)
+    val casethm = neqthm COMP LA_Logic.neqE (* [|m<n ==> R; n<m ==> R|] ==> R *)
     val [lessimp1,lessimp2] = prems_of casethm
     val less1 = fst(Logic.dest_implies lessimp1) (* m<n *)
     and less2 = fst(Logic.dest_implies lessimp2) (* n<m *)
@@ -383,17 +395,17 @@ let val nconcl = LA_Data.neg_prop concl (* m ~= n *)
     and thm2 = mkthm sg (thms @ [assume cless2]) just2
     val dthm1 = implies_intr cless1 thm1 and dthm2 = implies_intr cless2 thm2
     val thm = dthm2 COMP (dthm1 COMP casethm)
-in Some(LA_Data.mk_Eq ((implies_intr cnconcl thm) COMP LA_Data.ccontr)) end
+in Some(LA_Logic.mk_Eq ((implies_intr cnconcl thm) COMP LA_Logic.ccontr)) end
 handle _ => None;
 
 (* PRE: concl is not negated! *)
 fun lin_arith_prover sg thms concl =
 let val Hs = map (#prop o rep_thm) thms
-    val Tconcl = LA_Data.mk_Trueprop concl
+    val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove([],Hs,Tconcl) of
      [j] => prover1(j,sg,thms,Tconcl,true)
    | [j1,j2] => prover2(j1,j2,sg,thms,Tconcl)
-   | _ => let val nTconcl = LA_Data.neg_prop Tconcl
+   | _ => let val nTconcl = LA_Logic.neg_prop Tconcl
           in case prove([],Hs,nTconcl) of
                [j] => prover1(j,sg,thms,nTconcl,false)
                (* [_,_] impossible because of negation *)
