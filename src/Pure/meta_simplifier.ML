@@ -7,7 +7,7 @@ Meta-level Simplification.
 
 infix 4
   addsimps delsimps addeqcongs deleqcongs addcongs delcongs addsimprocs delsimprocs
-  setmksimps setmksimps2 setmkcong setmksym setmkeqTrue settermless setsubgoaler
+  setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
   setloop addloop delloop setSSolver addSSolver setSolver addSolver;
 
 signature BASIC_META_SIMPLIFIER =
@@ -30,7 +30,6 @@ sig
     procs: proc Net.net,
     mk_rews:
      {mk: thm -> thm list,
-      mk2: thm list -> thm -> thm list,
       mk_cong: thm -> thm,
       mk_sym: thm -> thm option,
       mk_eq_True: thm -> thm option},
@@ -55,7 +54,6 @@ sig
   val addsimprocs: simpset * simproc list -> simpset
   val delsimprocs: simpset * simproc list -> simpset
   val setmksimps: simpset * (thm -> thm list) -> simpset
-  val setmksimps2: simpset * (thm list -> thm -> thm list) -> simpset
   val setmkcong: simpset * (thm -> thm) -> simpset
   val setmksym: simpset * (thm -> thm option) -> simpset
   val setmkeqTrue: simpset * (thm -> thm option) -> simpset
@@ -205,7 +203,6 @@ val merge_solvers = gen_merge_lists eq_solver;
       (functions that prove rewrite rules on the fly);
     mk_rews:
       mk: turn simplification thms into rewrite rules;
-      mk2: like mk but may also depend on the other premises
       mk_cong: prepare congruence rules;
       mk_sym: turn == around;
       mk_eq_True: turn P into P == True;
@@ -213,7 +210,6 @@ val merge_solvers = gen_merge_lists eq_solver;
 
 type mk_rews =
  {mk: thm -> thm list,
-  mk2: thm list -> thm -> thm list,
   mk_cong: thm -> thm,
   mk_sym: thm -> thm option,
   mk_eq_True: thm -> thm option};
@@ -306,7 +302,6 @@ fun init_ss mk_rews termless subgoal_tac solvers =
 
 val basic_mk_rews: mk_rews =
  {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
-  mk2 = fn thms => fn thm => [],
   mk_cong = I,
   mk_sym = Some o Drule.symmetric_fun,
   mk_eq_True = K None};
@@ -491,11 +486,8 @@ fun orient_rrule ss (thm, name) =
     else rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm)
   end;
 
-fun extract_rews (Simpset ({prems, ...}, {mk_rews = {mk, ...}, ...}), thms)
-  = flat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
-
-fun extract_rews2 (Simpset ({prems, ...}, {mk_rews = {mk2, ...}, ...}), thms)
-  = flat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk2 prems thm)) thms);
+fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
+  flat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
 
 fun orient_comb_simps comb mk_rrule (ss, thms) =
   let
@@ -506,19 +498,10 @@ fun orient_comb_simps comb mk_rrule (ss, thms) =
 fun extract_safe_rrules (ss, thm) =
   flat (map (orient_rrule ss) (extract_rews (ss, [thm])));
 
-fun extract_safe_rrules2 (ss, thm) =
-  flat (map (orient_rrule ss) (extract_rews2 (ss, [thm])));
-
 (*add rewrite rules explicitly; do not reorient!*)
 fun ss addsimps thms =
   orient_comb_simps (insert_rrule false) (mk_rrule ss) (ss, thms);
 
-
-fun add_prem2(ss,thm) =
-  foldl (insert_rrule true) (ss,extract_safe_rrules2(ss,thm))
-  |> add_prems [thm];
-
-fun add_prems2 thms ss = foldl add_prem2 (ss,thms);
 
 (* delsimps *)
 
@@ -634,29 +617,26 @@ end;
 
 local
 
-fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk2, mk_cong, mk_sym, mk_eq_True},
+fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_True},
       termless, subgoal_tac, loop_tacs, solvers) =>
-  let val (mk', mk2', mk_cong', mk_sym', mk_eq_True') = f (mk, mk2, mk_cong, mk_sym, mk_eq_True) in
-    (congs, procs, {mk = mk', mk2 = mk2', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True'},
+  let val (mk', mk_cong', mk_sym', mk_eq_True') = f (mk, mk_cong, mk_sym, mk_eq_True) in
+    (congs, procs, {mk = mk', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True'},
       termless, subgoal_tac, loop_tacs, solvers)
   end);
 
 in
 
-fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk2, mk_cong, mk_sym, mk_eq_True) =>
-  (mk, mk2, mk_cong, mk_sym, mk_eq_True));
+fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
 
-fun ss setmksimps2 mk2 = ss |> map_mk_rews (fn (mk, _, mk_cong, mk_sym, mk_eq_True) =>
-  (mk, mk2, mk_cong, mk_sym, mk_eq_True));
+fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, _, mk_sym, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
 
-fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, mk2, _, mk_sym, mk_eq_True) =>
-  (mk, mk2, mk_cong, mk_sym, mk_eq_True));
+fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk_cong, _, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
 
-fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk2, mk_cong, _, mk_eq_True) =>
-  (mk, mk2, mk_cong, mk_sym, mk_eq_True));
-
-fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk2, mk_cong, mk_sym, _) =>
-  (mk, mk2, mk_cong, mk_sym, mk_eq_True));
+fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk_cong, mk_sym, _) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
 
 end;
 
@@ -1019,8 +999,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
         in (extract_safe_rrules (ss, asm), Some asm) end
 
     and add_rrules (rrss, asms) ss =
-      let val Asms = mapfilter I asms
-      in foldl (insert_rrule true) (ss, flat rrss) |> add_prems2 Asms end
+      foldl (insert_rrule true) (ss, flat rrss) |> add_prems (mapfilter I asms)
 
     and disch r (prem, eq) =
       let
