@@ -54,6 +54,10 @@ should have to change intro!! to intro? only);
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
+* Isar: renamed 'RS' attribute to 'THEN';
+
+* Isar/HOL: renamed "intrs" to "intros" in inductive definitions;
+
 * Provers: strengthened force_tac by using new first_best_tac;
 
 * Provers: Blast_tac now warns of and ignores "weak elimination rules" e.g.
@@ -130,12 +134,14 @@ indicate potential overloading;
 
 * Pure: changed syntax of local blocks from {{ }} to { };
 
+* Pure: renamed 'RS' attribute to 'THEN';
+
 * Pure: syntax of sorts made 'inner', i.e. have to write "{a, b, c}"
 instead of {a, b, c};
 
 * Pure now provides its own version of intro/elim/dest attributes;
 useful for building new logics, but beware of confusion with the
-Provers/classical ones;
+version in Provers/classical;
 
 * Pure: the local context of (non-atomic) goals is provided via case
 name 'antecedent';
@@ -146,9 +152,17 @@ current context is now done automatically);
 * Pure: theory command 'method_setup' provides a simple interface for
 definining proof methods in ML;
 
+* Provers: hypsubst support; also plain subst and symmetric attribute
+(the latter supercedes [RS sym]);
+
 * Provers: splitter support (via 'split' attribute and 'simp' method
 modifier); 'simp' method: 'only:' modifier removes loopers as well
 (including splits);
+
+* Provers: added 'fastsimp' and 'clarsimp' methods (combination of
+Simplifier and Classical reasoner);
+
+* Provers: added 'arith_split' attribute;
 
 * HOL: new proof method 'cases' and improved version of 'induct' now
 support named cases; major packages (inductive, datatype, primrec,
@@ -157,18 +171,23 @@ recdef) support case names and properly name parameters;
 * HOL: removed 'case_split' thm binding, should use 'cases' proof
 method anyway;
 
-* HOL/Calculation: new rules for substitution in inequalities
-(monotonicity conditions are extracted to be proven at end);
-
 * HOL: removed obsolete expand_if = split_if; theorems if_splits =
 split_if split_if_asm; datatype package provides theorems foo.splits =
 foo.split foo.split_asm for each datatype;
 
-* names of theorems etc. may be natural numbers as well;
+* HOL/Calculation: new rules for substitution in inequalities
+(monotonicity conditions are extracted to be proven at end);
+
+* HOL/inductive: rename "intrs" to "intros" (potential
+INCOMPATIBILITY); emulation of mk_cases feature for proof scripts:
+'inductive_cases' command and 'ind_cases' method; NOTE: use (cases
+(simplified)) method in proper proofs;
 
 * Provers: intro/elim/dest attributes: changed intro/intro!/intro!!
 flags to intro!/intro/intro? (in most cases, one should have to change
 intro!! to intro? only);
+
+* names of theorems etc. may be natural numbers as well;
 
 * 'pr' command: optional goals_limit argument; no longer prints theory
 contexts, but only proof states;
@@ -178,8 +197,9 @@ additional print modes to be specified; e.g. "pr(latex)" will print
 proof state according to the Isabelle LaTeX style;
 
 * improved support for emulating tactic scripts, including proof
-methods 'tactic', 'res_inst_tac' etc., 'subgoal_tac', and 'case_tac' /
-'induct_tac' (for HOL datatypes);
+methods 'rule_tac' etc., 'cut_tac', 'thin_tac', 'subgoal_tac',
+'rename_tac', 'rotate_tac', 'tactic', and 'case_tac' / 'induct_tac'
+(for HOL datatypes);
 
 * simplified (more robust) goal selection of proof methods: 1st goal,
 all goals, or explicit goal specifier (tactic emulation); thus 'proof
@@ -213,8 +233,9 @@ Theorem, by Thomas M Rasmussen;
 
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
 
-* HOL/record: fixed select-update simplification procedure to handle
-extended records as well; admit "r" as field name;
+* HOL/record: added general record equality rule to simpset; fixed
+select-update simplification procedure to handle extended records as
+well; admit "r" as field name;
 
 * HOL: 0 is now overloaded over the new sort "zero", allowing its use with
 other numeric types and also as the identity of groups, rings, etc.;
@@ -379,11 +400,11 @@ readable proof documents (Isar == Intelligible semi-automated
 reasoning); for further information see isatool doc isar-ref,
 src/HOL/Isar_examples and http://isabelle.in.tum.de/Isar/
 
-* improved presentation of theories: better HTML markup (including
-colors), graph views in several sizes; isatool usedir now provides a
-proper interface for user theories (via -P option); actual document
-preparation based on (PDF)LaTeX is available as well (for new-style
-theories only); see isatool doc system for more information;
+* improved and simplified presentation of theories: better HTML markup
+(including colors), graph views in several sizes; isatool usedir now
+provides a proper interface for user theories (via -P option); actual
+document preparation based on (PDF)LaTeX is available as well (for
+new-style theories only); see isatool doc system for more information;
 
 * native support for Proof General, both for classic Isabelle and
 Isabelle/Isar;
