@@ -1,23 +1,23 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
-# Isabelle tool starter -- provides settings environment,
-#   and keeps your PATH name space clean.
+# Isabelle tool starter -- provides settings environment
+# and keeps your PATH name space clean.
 
 
 ## settings
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
-ISABELLE_HOME=$(dirname $0)/..
-. $ISABELLE_HOME/lib/scripts/getsettings || \
+ISABELLE_HOME=$(dirname "$0")/..
+. "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
 
 
 ## diagnostics
-
-TOOLDIRS=$(echo $ISABELLE_TOOLS | tr : " ")
 
 function usage()
 {
@@ -29,9 +29,11 @@ function usage()
   echo
   echo "  Available tools are:"
   (
-    for DIR in $TOOLDIRS
+    ORIG_IFS="$IFS"
+    IFS=":"
+    for DIR in $ISABELLE_TOOLS
     do
-      cd $DIR
+      cd "$DIR"
       echo
       for T in *
       do
@@ -41,6 +43,7 @@ function usage()
         fi
       done
     done
+    IFS="$ORIG_IFS"
   )
   echo
   exit 1
@@ -55,7 +58,7 @@ function fail()
 
 ## args
 
-[ $# -lt 1 -o "$1" = "-?" ] && usage
+[ "$#" -lt 1 -o "$1" = "-?" ] && usage
 
 TOOLNAME="$1"
 shift
@@ -63,10 +66,13 @@ shift
 
 ## main
 
-for DIR in $TOOLDIRS
+ORIG_IFS="$IFS"
+IFS=":"
+for DIR in $ISABELLE_TOOLS
 do
-  TOOL=$DIR/$TOOLNAME
+  TOOL="$DIR/$TOOLNAME"
   [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
 done
+IFS="$ORIG_IFS"
 
 fail "Unknown Isabelle tool: $TOOLNAME"

@@ -1,16 +1,18 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Basic Isabelle startup script.
 
 
 ## settings
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
-ISABELLE_HOME=$(dirname $0)/..
-. $ISABELLE_HOME/lib/scripts/getsettings || \
+ISABELLE_HOME=$(dirname "$0")/..
+. "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
 
 
@@ -102,17 +104,17 @@ shift $(($OPTIND - 1))
 INPUT=""
 OUTPUT=""
 
-if [ $# -ge 1 ]; then
+if [ "$#" -ge 1 ]; then
   INPUT="$1"
   shift
 fi
 
-if [ $# -ge 1 ]; then
+if [ "$#" -ge 1 ]; then
   OUTPUT="$1"
   shift
 fi
 
-[ $# -ne 0 ] && { echo "Bad args: $*"; usage; }
+[ "$#" -ne 0 ] && { echo "Bad args: $*"; usage; }
 
 
 ## check ML system
@@ -133,19 +135,22 @@ case "$INPUT" in
     [ ! -f "$INFILE" ] && fail "Bad heap file: \"$INFILE\""
     ;;
   *)
-    ISA_PATH=""
     INFILE=""
-    for DIR in $(echo $ISABELLE_PATH | tr : " ")
+    ISA_PATH=""
+
+    ORIG_IFS="$IFS"
+    IFS=":"
+    for DIR in $ISABELLE_PATH
     do
-      ISA_PATH="$ISA_PATH $DIR"
-      [ -z "$INFILE" -a -f $DIR/$INPUT ] && INFILE=$DIR/$INPUT
+      DIR="$DIR/$ML_IDENTIFIER"
+      ISA_PATH="$ISA_PATH  $DIR\n"
+      [ -z "$INFILE" -a -f "$DIR/$INPUT" ] && INFILE="$DIR/$INPUT"
     done
+    IFS="$ORIG_IFS"
+
     if [ -z "$INFILE" ]; then
       echo "Unknown logic \"$INPUT\" -- no heap file found in:" >&2
-      for DIR in $ISA_PATH
-      do
-        echo "  $DIR" >&2
-      done
+      echo -ne "$ISA_PATH" >&2
       exit 2
     fi
     ;;
@@ -178,20 +183,20 @@ mkdir -p "$ISABELLE_TMP"
 
 ## run it!
 
-ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
+ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
 export INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
-if [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ]; then
-  $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
+if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
+  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
 else
-  $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
+  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
 fi
-RC=$?
+RC="$?"
 
 #Do not even think of 'rm -r'!!
-rmdir $ISABELLE_TMP
+rmdir "$ISABELLE_TMP"
 
-exit $RC
+exit "$RC"
