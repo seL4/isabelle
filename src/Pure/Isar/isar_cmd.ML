@@ -183,7 +183,7 @@ fun update_thy_only name =
 (* present draft files *)
 
 fun display_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts "dvi" files)
+  let val outfile = File.quote_sysify_path (Present.drafts "pdf" files)
   in system ("\"$ISATOOL\" display -c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
