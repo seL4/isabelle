@@ -4,8 +4,8 @@ theory case_exprs = Main:
 
 subsection{*Case Expressions*}
 
-text{*\label{sec:case-expressions}
-HOL also features \sdx{case}-expressions for analyzing
+text{*\label{sec:case-expressions}\index{*case expressions}%
+HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 @{term[display]"case xs of [] => 1 | y#ys => y"}
 evaluates to @{term"1"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if 
@@ -43,14 +43,11 @@ indicate their scope
 subsection{*Structural Induction and Case Distinction*}
 
 text{*\label{sec:struct-ind-case}
-\indexbold{structural induction}
-\indexbold{induction!structural}
-\indexbold{case distinction}
-Almost all the basic laws about a datatype are applied automatically during
-simplification. Only induction is invoked by hand via \methdx{induct_tac},
-which works for any datatype. In some cases, induction is overkill and a case
-distinction over all constructors of the datatype suffices. This is performed
-by \methdx{case_tac}. A trivial example:
+\index{case distinctions}\index{induction!structural}%
+Induction is invoked by \methdx{induct_tac}, as we have seen above; 
+it works for any datatype.  In some cases, induction is overkill and a case
+distinction over all constructors of the datatype suffices.  This is performed
+by \methdx{case_tac}.  Here is a trivial example:
 *}
 
 lemma "(case xs of [] \<Rightarrow> [] | y#ys \<Rightarrow> xs) = xs";
@@ -67,8 +64,11 @@ apply(auto)
 text{*
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.
+Other basic laws about a datatype are applied automatically during
+simplification, so no special methods are provided for them.
 
 \begin{warn}
+ 
   Induction is only allowed on free (or \isasymAnd-bound) variables that
   should not occur among the assumptions of the subgoal; see
   \S\ref{sec:ind-var-in-prems} for details. Case distinction

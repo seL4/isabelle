@@ -33,10 +33,11 @@ and not as @{text"(x # y) # z"}.
 The @{text 65} is the priority of the infix @{text"#"}.
 
 \begin{warn}
-  Syntax annotations are a powerful but optional feature. You
+  Syntax annotations are can be powerful, but they are difficult to master and 
+  are never necessary.  You
   could drop them from theory @{text"ToyList"} and go back to the identifiers
   @{term[source]Nil} and @{term[source]Cons}.
-  We recommend that novices avoid using
+  Novices should avoid using
   syntax annotations in their own theories.
 \end{warn}
 Next, two functions @{text"app"} and \cdx{rev} are declared:
@@ -49,7 +50,7 @@ text{*
 \noindent
 In contrast to many functional programming languages,
 Isabelle insists on explicit declarations of all functions
-(keyword \isacommand{consts}).  Apart from the declaration-before-use
+(keyword \commdx{consts}).  Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained. Function
 @{text"app"} is annotated with concrete syntax too. Instead of the
 prefix syntax @{text"app xs ys"} the infix
@@ -66,7 +67,7 @@ primrec
 "rev (x # xs)  = (rev xs) @ (x # [])";
 
 text{*
-\noindent
+\noindent\index{*rev (constant)|(}\index{append function|(}
 The equations for @{text"app"} and @{term"rev"} hardly need comments:
 @{text"app"} appends two lists and @{term"rev"} reverses a list.  The
 keyword \commdx{primrec} indicates that the recursion is
@@ -82,16 +83,16 @@ $f(n)$ on both sides.
 % However, this is a subtle issue that we cannot discuss here further.
 
 \begin{warn}
-  As we have indicated, the requirement for total functions is not a gratuitous
-  restriction but an essential characteristic of HOL\@. It is only
+  As we have indicated, the requirement for total functions is an essential characteristic of HOL\@. It is only
   because of totality that reasoning in HOL is comparatively easy.  More
-  generally, the philosophy in HOL is not to allow arbitrary axioms (such as
+  generally, the philosophy in HOL is to refrain from asserting arbitrary axioms (such as
   function definitions whose totality has not been proved) because they
   quickly lead to inconsistencies. Instead, fixed constructs for introducing
   types and functions are offered (such as \isacommand{datatype} and
   \isacommand{primrec}) which are guaranteed to preserve consistency.
 \end{warn}
 
+\index{syntax}%
 A remark about syntax.  The textual definition of a theory follows a fixed
 syntax with keywords like \isacommand{datatype} and \isacommand{end}.
 % (see Fig.~\ref{fig:keywords} in Appendix~\ref{sec:Appendix} for a full list).
@@ -108,7 +109,7 @@ consts "end" :: "'a list \<Rightarrow> 'a"
 
 text{*\noindent
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
-the \bfindex{inner syntax} and the enclosing theory language as the \bfindex{outer syntax}.
+the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
 
 \section{An Introductory Proof}
@@ -119,27 +120,24 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main Goal: @{text"rev(rev xs) = xs"}.}
+\subsubsection*{Main Goal}
 
 Our goal is to show that reversing a list twice produces the original
-list. The input line
+list.
 *}
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 
 txt{*\index{theorem@\isacommand {theorem} (command)|bold}%
-\index{*simp (attribute)|bold}
 \noindent
-does several things.  It
+This \isacommand{theorem} command does several things:
 \begin{itemize}
 \item
-establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"},
+It establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"}.
 \item
-gives that theorem the name @{text"rev_rev"} by which it can be
-referred to,
+It gives that theorem the name @{text"rev_rev"}, for later reference.
 \item
-and tells Isabelle (via @{text"[simp]"}) to use the theorem (once it has been
-proved) as a simplification rule, i.e.\ all future proofs involving
+It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
 simplification will replace occurrences of @{term"rev(rev xs)"} by
 @{term"xs"}.
 
@@ -156,7 +154,7 @@ rev~(rev~xs)~=~xs\isanewline
 The first three lines tell us that we are 0 steps into the proof of
 theorem @{text"rev_rev"}; for compactness reasons we rarely show these
 initial lines in this tutorial. The remaining lines display the current
-proof state.
+\rmindex{proof state}.
 Until we have finished a proof, the proof state always looks like this:
 \begin{isabelle}
 $G$\isanewline
@@ -167,7 +165,8 @@ $G$\isanewline
 where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
-establish $G$. At @{text"step 0"} there is only one subgoal, which is
+establish $G$.\index{subgoals}
+At @{text"step 0"} there is only one subgoal, which is
 identical with the overall goal.  Normally $G$ is constant and only serves as
 a reminder. Hence we rarely show it in this tutorial.
 
@@ -187,16 +186,18 @@ two subgoals, namely the base case (@{term[source]Nil}) and the induction step
 (@{term[source]Cons}):
 @{subgoals[display,indent=0,margin=65]}
 
-The induction step is an example of the general format of a subgoal:
+The induction step is an example of the general format of a subgoal:\index{subgoals}
 \begin{isabelle}
 ~$i$.~{\isasymAnd}$x\sb{1}$~\dots~$x\sb{n}$.~{\it assumptions}~{\isasymLongrightarrow}~{\it conclusion}
 \end{isabelle}\index{$IsaAnd@\isasymAnd|bold}
 The prefix of bound variables \isasymAnd$x\sb{1}$~\dots~$x\sb{n}$ can be
 ignored most of the time, or simply treated as a list of variables local to
 this subgoal. Their deeper significance is explained in Chapter~\ref{chap:rules}.
-The {\it assumptions} are the local assumptions for this subgoal and {\it
-  conclusion} is the actual proposition to be proved. Typical proof steps
-that add new assumptions are induction or case distinction. In our example
+The {\it assumptions}\index{assumptions!of subgoal}
+are the local assumptions for this subgoal and {\it
+  conclusion}\index{conclusion!of subgoal} is the actual proposition to be proved. 
+Typical proof steps
+that add new assumptions are induction and case distinction. In our example
 the only assumption is the induction hypothesis @{term"rev (rev list) =
   list"}, where @{term"list"} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
@@ -262,7 +263,7 @@ oops
 subsubsection{*Second Lemma*}
 
 text{*
-This time the canonical proof procedure
+We again try the canonical proof procedure:
 *}
 
 lemma app_Nil2 [simp]: "xs @ [] = xs";
@@ -271,7 +272,7 @@ apply(auto);
 
 txt{*
 \noindent
-leads to the desired message @{text"No subgoals!"}:
+It works, yielding the desired message @{text"No subgoals!"}:
 @{goals[display,indent=0]}
 We still need to confirm that the proof is now finished:
 *}
@@ -312,10 +313,11 @@ and the missing lemma is associativity of @{text"@"}.
 *}
 (*<*)oops(*>*)
 
-subsubsection{*Third Lemma: @{text"(xs @ ys) @ zs = xs @ (ys @ zs)"}*}
+subsubsection{*Third Lemma*}
 
 text{*
-Abandoning the previous proof, the canonical proof procedure
+Abandoning the previous attempt, the canonical proof procedure
+succeeds without further ado.
 *}
 
 lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)";
@@ -325,8 +327,7 @@ done
 
 text{*
 \noindent
-succeeds without further ado.
-Now we can prove the first lemma
+Now we can prove the first lemma:
 *}
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
@@ -335,7 +336,7 @@ apply(auto);
 done
 
 text{*\noindent
-and then prove our main theorem:
+Finally, we prove our main theorem:
 *}
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
@@ -344,8 +345,9 @@ apply(auto);
 done
 
 text{*\noindent
-The final \isacommand{end} tells Isabelle to close the current theory because
-we are finished with its development:
+The final \commdx{end} tells Isabelle to close the current theory because
+we are finished with its development:%
+\index{*rev (constant)|)}\index{append function|)}
 *}
 
 end

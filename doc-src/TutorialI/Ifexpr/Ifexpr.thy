@@ -4,7 +4,7 @@ theory Ifexpr = Main:;
 
 subsection{*Case Study: Boolean Expressions*}
 
-text{*\label{sec:boolex}
+text{*\label{sec:boolex}\index{boolean expressions example|(}
 The aim of this case study is twofold: it shows how to model boolean
 expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.
@@ -120,7 +120,7 @@ primrec
 "norm (IF b t e) = normif b (norm t) (norm e)";
 
 text{*\noindent
-Their interplay is a bit tricky, and we leave it to the reader to develop an
+Their interplay is tricky; we leave it to you to develop an
 intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:
 *}
@@ -129,7 +129,7 @@ theorem "valif (norm b) env = valif b env";(*<*)oops;(*>*)
 
 text{*\noindent
 The proof is canonical, provided we first show the following simplification
-lemma (which also helps to understand what @{term"normif"} does):
+lemma, which also helps to understand what @{term"normif"} does:
 *}
 
 lemma [simp]:
@@ -147,7 +147,7 @@ Note that the lemma does not have a name, but is implicitly used in the proof
 of the theorem shown above because of the @{text"[simp]"} attribute.
 
 But how can we be sure that @{term"norm"} really produces a normal form in
-the above sense? We define a function that tests If-expressions for normality
+the above sense? We define a function that tests If-expressions for normality:
 *}
 
 consts normal :: "ifex \<Rightarrow> bool";
@@ -158,7 +158,7 @@ primrec
      (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))";
 
 text{*\noindent
-and prove @{term"normal(norm b)"}. Of course, this requires a lemma about
+Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
 normality of @{term"normif"}:
 *}
 
@@ -186,6 +186,7 @@ can provide the clue.  The necessity of universal quantification
   some of the goals as implications (@{text"\<longrightarrow>"}) rather than
   equalities (@{text"="}).)
 \end{exercise}
+\index{boolean expressions example|)}
 *}
 (*<*)
 end

@@ -4,12 +4,12 @@
 %
 \begin{isamarkuptext}%
 \noindent
-Define the datatype of binary trees%
+Define the datatype of \rmindex{binary trees}:%
 \end{isamarkuptext}%
 \isacommand{datatype}\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-and a function \isa{mirror} that mirrors a binary tree
+Define a function \isa{mirror} that mirrors a binary tree
 by swapping subtrees recursively. Prove%
 \end{isamarkuptext}%
 \isacommand{lemma}\ mirror{\isacharunderscore}mirror{\isacharcolon}\ {\isachardoublequote}mirror{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}%

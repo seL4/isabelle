@@ -309,13 +309,13 @@ text{*but we know nothing about inv Suc 0*}
 
 theorem Least_equality:
      "\<lbrakk> P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x \<rbrakk> \<Longrightarrow> (LEAST x. P(x)) = k"
-apply (simp add: Least_def LeastM_def)
+apply (simp add: Least_def)
  
 txt{*omit maybe?
 @{subgoals[display,indent=0,margin=65]}
 *};
    
-apply (rule some_equality)
+apply (rule the_equality)
 
 txt{*
 @{subgoals[display,indent=0,margin=65]}

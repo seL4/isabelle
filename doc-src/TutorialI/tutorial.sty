@@ -50,8 +50,12 @@
 \newcommand\ttindex[1]{\texttt{#1}\index{#1@\texttt{#1}}\@}
 \newcommand\ttindexbold[1]{\texttt{#1}\index{#1@\texttt{#1}|bold}\@}
 
-\newcommand{\indexboldpos}[2]{#1\index{#2@#1|bold}\@}
-\newcommand{\ttindexboldpos}[2]{\texttt{#1}\index{#2@\texttt{#1}|bold}\@}
+%Commented-out the original versions to see what the index looks like without them.
+%   In any event, they need to use \isa or \protect\isa rather than \texttt.
+%%\newcommand{\indexboldpos}[2]{#1\index{#2@#1|bold}\@}
+%%\newcommand{\ttindexboldpos}[2]{\texttt{#1}\index{#2@\texttt{#1}|bold}\@}
+\newcommand{\indexboldpos}[2]{#1\@}
+\newcommand{\ttindexboldpos}[2]{\isa{#1}\@}
 
 %\newtheorem{theorem}{Theorem}[section]
 \newtheorem{Exercise}{Exercise}[section]

@@ -6,8 +6,8 @@
 }
 %
 \begin{isamarkuptext}%
-\label{sec:case-expressions}
-HOL also features \sdx{case}-expressions for analyzing
+\label{sec:case-expressions}\index{*case expressions}%
+HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
@@ -54,14 +54,11 @@ indicate their scope%
 %
 \begin{isamarkuptext}%
 \label{sec:struct-ind-case}
-\indexbold{structural induction}
-\indexbold{induction!structural}
-\indexbold{case distinction}
-Almost all the basic laws about a datatype are applied automatically during
-simplification. Only induction is invoked by hand via \methdx{induct_tac},
-which works for any datatype. In some cases, induction is overkill and a case
-distinction over all constructors of the datatype suffices. This is performed
-by \methdx{case_tac}. A trivial example:%
+\index{case distinctions}\index{induction!structural}%
+Induction is invoked by \methdx{induct_tac}, as we have seen above; 
+it works for any datatype.  In some cases, induction is overkill and a case
+distinction over all constructors of the datatype suffices.  This is performed
+by \methdx{case_tac}.  Here is a trivial example:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}%
@@ -79,8 +76,11 @@ which is solved automatically:%
 \begin{isamarkuptext}%
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.
+Other basic laws about a datatype are applied automatically during
+simplification, so no special methods are provided for them.
 
 \begin{warn}
+ 
   Induction is only allowed on free (or \isasymAnd-bound) variables that
   should not occur among the assumptions of the subgoal; see
   \S\ref{sec:ind-var-in-prems} for details. Case distinction

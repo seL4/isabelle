@@ -35,10 +35,11 @@ and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\i
 The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isacharhash}}.
 
 \begin{warn}
-  Syntax annotations are a powerful but optional feature. You
+  Syntax annotations are can be powerful, but they are difficult to master and 
+  are never necessary.  You
   could drop them from theory \isa{ToyList} and go back to the identifiers
   \isa{Nil} and \isa{Cons}.
-  We recommend that novices avoid using
+  Novices should avoid using
   syntax annotations in their own theories.
 \end{warn}
 Next, two functions \isa{app} and \cdx{rev} are declared:%
@@ -49,7 +50,7 @@ Next, two functions \isa{app} and \cdx{rev} are declared:%
 \noindent
 In contrast to many functional programming languages,
 Isabelle insists on explicit declarations of all functions
-(keyword \isacommand{consts}).  Apart from the declaration-before-use
+(keyword \commdx{consts}).  Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained. Function
 \isa{app} is annotated with concrete syntax too. Instead of the
 prefix syntax \isa{app\ xs\ ys} the infix
@@ -64,7 +65,7 @@ form. Both functions are defined recursively:%
 {\isachardoublequote}rev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
 {\isachardoublequote}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ \ {\isacharequal}\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}x\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent
+\noindent\index{*rev (constant)|(}\index{append function|(}
 The equations for \isa{app} and \isa{rev} hardly need comments:
 \isa{app} appends two lists and \isa{rev} reverses a list.  The
 keyword \commdx{primrec} indicates that the recursion is
@@ -80,16 +81,16 @@ $f(n)$ on both sides.
 % However, this is a subtle issue that we cannot discuss here further.
 
 \begin{warn}
-  As we have indicated, the requirement for total functions is not a gratuitous
-  restriction but an essential characteristic of HOL\@. It is only
+  As we have indicated, the requirement for total functions is an essential characteristic of HOL\@. It is only
   because of totality that reasoning in HOL is comparatively easy.  More
-  generally, the philosophy in HOL is not to allow arbitrary axioms (such as
+  generally, the philosophy in HOL is to refrain from asserting arbitrary axioms (such as
   function definitions whose totality has not been proved) because they
   quickly lead to inconsistencies. Instead, fixed constructs for introducing
   types and functions are offered (such as \isacommand{datatype} and
   \isacommand{primrec}) which are guaranteed to preserve consistency.
 \end{warn}
 
+\index{syntax}%
 A remark about syntax.  The textual definition of a theory follows a fixed
 syntax with keywords like \isacommand{datatype} and \isacommand{end}.
 % (see Fig.~\ref{fig:keywords} in Appendix~\ref{sec:Appendix} for a full list).
@@ -105,7 +106,7 @@ dropped, unless the identifier happens to be a keyword, as in%
 \begin{isamarkuptext}%
 \noindent
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
-the \bfindex{inner syntax} and the enclosing theory language as the \bfindex{outer syntax}.
+the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
 
 \section{An Introductory Proof}
@@ -116,26 +117,23 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main Goal: \isa{rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.}
+\subsubsection*{Main Goal}
 
 Our goal is to show that reversing a list twice produces the original
-list. The input line%
+list.%
 \end{isamarkuptext}%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \index{theorem@\isacommand {theorem} (command)|bold}%
-\index{*simp (attribute)|bold}
 \noindent
-does several things.  It
+This \isacommand{theorem} command does several things:
 \begin{itemize}
 \item
-establishes a new theorem to be proved, namely \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs},
+It establishes a new theorem to be proved, namely \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.
 \item
-gives that theorem the name \isa{rev{\isacharunderscore}rev} by which it can be
-referred to,
+It gives that theorem the name \isa{rev{\isacharunderscore}rev}, for later reference.
 \item
-and tells Isabelle (via \isa{{\isacharbrackleft}simp{\isacharbrackright}}) to use the theorem (once it has been
-proved) as a simplification rule, i.e.\ all future proofs involving
+It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
 simplification will replace occurrences of \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}} by
 \isa{xs}.
 
@@ -152,7 +150,7 @@ rev~(rev~xs)~=~xs\isanewline
 The first three lines tell us that we are 0 steps into the proof of
 theorem \isa{rev{\isacharunderscore}rev}; for compactness reasons we rarely show these
 initial lines in this tutorial. The remaining lines display the current
-proof state.
+\rmindex{proof state}.
 Until we have finished a proof, the proof state always looks like this:
 \begin{isabelle}
 $G$\isanewline
@@ -163,7 +161,8 @@ $G$\isanewline
 where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
-establish $G$. At \isa{step\ {\isadigit{0}}} there is only one subgoal, which is
+establish $G$.\index{subgoals}
+At \isa{step\ {\isadigit{0}}} there is only one subgoal, which is
 identical with the overall goal.  Normally $G$ is constant and only serves as
 a reminder. Hence we rarely show it in this tutorial.
 
@@ -186,16 +185,18 @@ two subgoals, namely the base case (\isa{Nil}) and the induction step
 \isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }rev\ {\isacharparenleft}rev\ list{\isacharparenright}\ {\isacharequal}\ list\ {\isasymLongrightarrow}\ rev\ {\isacharparenleft}rev\ {\isacharparenleft}a\ {\isacharhash}\ list{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ a\ {\isacharhash}\ list%
 \end{isabelle}
 
-The induction step is an example of the general format of a subgoal:
+The induction step is an example of the general format of a subgoal:\index{subgoals}
 \begin{isabelle}
 ~$i$.~{\isasymAnd}$x\sb{1}$~\dots~$x\sb{n}$.~{\it assumptions}~{\isasymLongrightarrow}~{\it conclusion}
 \end{isabelle}\index{$IsaAnd@\isasymAnd|bold}
 The prefix of bound variables \isasymAnd$x\sb{1}$~\dots~$x\sb{n}$ can be
 ignored most of the time, or simply treated as a list of variables local to
 this subgoal. Their deeper significance is explained in Chapter~\ref{chap:rules}.
-The {\it assumptions} are the local assumptions for this subgoal and {\it
-  conclusion} is the actual proposition to be proved. Typical proof steps
-that add new assumptions are induction or case distinction. In our example
+The {\it assumptions}\index{assumptions!of subgoal}
+are the local assumptions for this subgoal and {\it
+  conclusion}\index{conclusion!of subgoal} is the actual proposition to be proved. 
+Typical proof steps
+that add new assumptions are induction and case distinction. In our example
 the only assumption is the induction hypothesis \isa{rev\ {\isacharparenleft}rev\ list{\isacharparenright}\ {\isacharequal}\ list}, where \isa{list} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
@@ -256,14 +257,14 @@ embarking on the proof of a lemma usually remains implicit.%
 }
 %
 \begin{isamarkuptext}%
-This time the canonical proof procedure%
+We again try the canonical proof procedure:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ app{\isacharunderscore}Nil{\isadigit{2}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-leads to the desired message \isa{No\ subgoals{\isacharbang}}:
+It works, yielding the desired message \isa{No\ subgoals{\isacharbang}}:
 \begin{isabelle}%
 xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs\isanewline
 No\ subgoals{\isacharbang}%
@@ -307,11 +308,12 @@ in their \isacommand{infixr} annotation). Thus the conclusion really is
 and the missing lemma is associativity of \isa{{\isacharat}}.%
 \end{isamarkuptxt}%
 %
-\isamarkupsubsubsection{Third Lemma: \isa{{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}}%
+\isamarkupsubsubsection{Third Lemma%
 }
 %
 \begin{isamarkuptext}%
-Abandoning the previous proof, the canonical proof procedure%
+Abandoning the previous attempt, the canonical proof procedure
+succeeds without further ado.%
 \end{isamarkuptext}%
 \isacommand{lemma}\ app{\isacharunderscore}assoc\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
@@ -319,8 +321,7 @@ Abandoning the previous proof, the canonical proof procedure%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-succeeds without further ado.
-Now we can prove the first lemma%
+Now we can prove the first lemma:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
@@ -328,7 +329,7 @@ Now we can prove the first lemma%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-and then prove our main theorem:%
+Finally, we prove our main theorem:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
@@ -336,8 +337,9 @@ and then prove our main theorem:%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-The final \isacommand{end} tells Isabelle to close the current theory because
+The final \commdx{end} tells Isabelle to close the current theory because
 we are finished with its development:%
+\index{*rev (constant)|)}\index{append function|)}%
 \end{isamarkuptext}%
 \isacommand{end}\isanewline
 \end{isabellebody}%

@@ -22,6 +22,7 @@ done
 
 text{*\newcommand{\mystar}{*%
 }
+\index{arithmetic operations!for \protect\isa{nat}}%
 The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{\mystar}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
@@ -29,13 +30,15 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \indexboldpos{\isasymle}{$HOL2arithrel} and
 \ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = 0"} if
 @{prop"m<n"}. There is even a least number operation
-\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 1 < n) = 2"}, although
-Isabelle does not prove this automatically. Note that @{term 1}
+\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 1 < n) = 2"}. 
+\REMARK{Isabelle CAN prove it automatically, using \isa{auto intro: Least_equality}.
+ The following needs changing with our new system of numbers.}
+Note that @{term 1}
 and @{term 2} are available as abbreviations for the corresponding
 @{term Suc}-expressions. If you need the full set of numerals,
 see~\S\ref{sec:numerals}.
 
-\begin{warn}
+\begin{warn}\index{overloading}
   The constant \cdx{0} and the operations
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
@@ -58,25 +61,25 @@ see~\S\ref{sec:numerals}.
   operations.
 \end{warn}
 
-Simple arithmetic goals are proved automatically by both @{term auto} and the
-simplification method introduced in \S\ref{sec:Simplification}.  For
-example,
+Both @{text auto} and @{text simp}
+(a method introduced below, \S\ref{sec:Simplification}) prove 
+simple arithmetic goals automatically:
 *}
 
 lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
 (*<*)by(auto)(*>*)
 
 text{*\noindent
-is proved automatically. The main restriction is that only addition is taken
-into account; other arithmetic operations and quantified formulae are ignored.
+For efficiency's sake, this built-in prover ignores quantified formulae and all 
+arithmetic operations apart from addition.
 
-For more complex goals, there is the special method \methdx{arith}
-(which attacks the first subgoal). It proves arithmetic goals involving the
+The method \methdx{arith} is more general.  It attempts to prove
+the first subgoal provided it is a quantifier free \textbf{linear arithmetic} formula.
+Such formulas may involve the
 usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
 @{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
 and the operations
-@{text"+"}, @{text"-"}, @{term min} and @{term max}. Technically, this is
-known as the class of (quantifier free) \textbf{linear arithmetic} formulae.
+@{text"+"}, @{text"-"}, @{term min} and @{term max}. 
 For example,
 *}
 
@@ -92,7 +95,7 @@ lemma "n*n = n \<Longrightarrow> n=0 \<or> n=1"
 (*<*)oops(*>*)
 
 text{*\noindent
-is not even proved by @{text arith} because the proof relies essentially
+is not proved even by @{text arith} because the proof relies 
 on properties of multiplication.
 
 \begin{warn}
@@ -100,10 +103,9 @@ on properties of multiplication.
   of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and
   \cdx{max} because they are first eliminated by case distinctions.
 
-  \isa{arith} is incomplete even for the restricted class of
-  linear arithmetic formulae. If divisibility plays a
+  Even for linear arithmetic formulae, \isa{arith} is incomplete. If divisibility plays a
   role, it may fail to prove a valid formula, for example
-  @{prop"m+m \<noteq> n+n+1"}. Fortunately, such examples are rare in practice.
+  @{prop"m+m \<noteq> n+n+1"}. Fortunately, such examples are rare.
 \end{warn}
 *}
 

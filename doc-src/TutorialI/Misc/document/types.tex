@@ -9,7 +9,7 @@
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
 output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
-type:%
+type.  Here, we declare two constants of type \isa{gate}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
 \ \ \ \ \ \ \ xor\ \ {\isacharcolon}{\isacharcolon}\ gate%
@@ -18,19 +18,20 @@ type:%
 %
 \begin{isamarkuptext}%
 \label{sec:ConstDefinitions}\indexbold{definitions}%
-The above constants \isa{nand} and \isa{xor} are non-recursive and can
-therefore be defined directly by%
+The constants \isa{nand} and \isa{xor} above are non-recursive and can 
+be defined directly:%
 \end{isamarkuptext}%
 \isacommand{defs}\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequote}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent%
-where \commdx{defs} is a keyword and
+Here \commdx{defs} is a keyword and
 \isa{nand{\isacharunderscore}def} and \isa{xor{\isacharunderscore}def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
-Declarations and definitions can also be merged in a \commdx{constdefs} 
-command:%
+A \commdx{constdefs} command combines the effects of \isacommand{consts} and 
+\isacommand{defs}.  For instance, we can introduce \isa{nand} and \isa{xor} by a 
+single command:%
 \end{isamarkuptext}%
 \isacommand{constdefs}\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isanewline

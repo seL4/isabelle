@@ -6,7 +6,7 @@
 }
 %
 \begin{isamarkuptext}%
-\label{sec:boolex}
+\label{sec:boolex}\index{boolean expressions example|(}
 The aim of this case study is twofold: it shows how to model boolean
 expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.%
@@ -114,7 +114,7 @@ primitive recursive functions perform this task:%
 {\isachardoublequote}norm\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ normif\ b\ {\isacharparenleft}norm\ t{\isacharparenright}\ {\isacharparenleft}norm\ e{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-Their interplay is a bit tricky, and we leave it to the reader to develop an
+Their interplay is tricky; we leave it to you to develop an
 intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:%
 \end{isamarkuptext}%
@@ -122,7 +122,7 @@ transformation preserves the value of the expression:%
 \begin{isamarkuptext}%
 \noindent
 The proof is canonical, provided we first show the following simplification
-lemma (which also helps to understand what \isa{normif} does):%
+lemma, which also helps to understand what \isa{normif} does:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ valif\ {\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env{\isachardoublequote}%
@@ -132,7 +132,7 @@ Note that the lemma does not have a name, but is implicitly used in the proof
 of the theorem shown above because of the \isa{{\isacharbrackleft}simp{\isacharbrackright}} attribute.
 
 But how can we be sure that \isa{norm} really produces a normal form in
-the above sense? We define a function that tests If-expressions for normality%
+the above sense? We define a function that tests If-expressions for normality:%
 \end{isamarkuptext}%
 \isacommand{consts}\ normal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ifex\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
@@ -142,7 +142,7 @@ the above sense? We define a function that tests If-expressions for normality%
 \ \ \ \ \ {\isacharparenleft}case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ {\isacharbar}\ VIF\ x\ {\isasymRightarrow}\ True\ {\isacharbar}\ IF\ x\ y\ z\ {\isasymRightarrow}\ False{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-and prove \isa{normal\ {\isacharparenleft}norm\ b{\isacharparenright}}. Of course, this requires a lemma about
+Now we prove \isa{normal\ {\isacharparenleft}norm\ b{\isacharparenright}}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
 \isacommand{lemma}{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}%
@@ -160,7 +160,8 @@ can provide the clue.  The necessity of universal quantification
   development to this changed requirement. (Hint: you may need to formulate
   some of the goals as implications (\isa{{\isasymlongrightarrow}}) rather than
   equalities (\isa{{\isacharequal}}).)
-\end{exercise}%
+\end{exercise}
+\index{boolean expressions example|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

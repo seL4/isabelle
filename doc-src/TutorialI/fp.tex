@@ -70,7 +70,7 @@ and can be skipped by casual readers.
 There are two kinds of commands used during a proof: the actual proof
 commands and auxiliary commands for examining the proof state and controlling
 the display. Simple proof commands are of the form
-\commdx{apply}\isa{(method)}, where \isa{method} is typically 
+\commdx{apply}\isa{(\textit{method})}, where \textit{method} is typically 
 \isa{induct_tac} or \isa{auto}.  All such theorem proving operations
 are referred to as \bfindex{methods}, and further ones are
 introduced throughout the tutorial.  Unless stated otherwise, you may
@@ -98,8 +98,9 @@ redisplays
   \commdx{thm}~\textit{name}$@1$~\dots~\textit{name}$@n$
   prints the named theorems.
 \item[Displaying types:] We have already mentioned the flag
-  \ttindex{show_types} above. It can also be useful for detecting typos in
-  formulae early on. For example, if \texttt{show_types} is set and the goal
+  \texttt{show_types} above.\index{*show_types (flag)}
+  It can also be useful for detecting misspellings in
+  formulae. For example, if \texttt{show_types} is set and the goal
   \isa{rev(rev xs) = xs} is started, Isabelle prints the additional output
 \par\noindent
 \begin{isabelle}%
@@ -124,7 +125,7 @@ would have alerted us because of the unexpected variable \isa{re}.
   \commdx{typ} \textit{string} reads and prints the given
   string as a type in the current context.
 \item[(Re)loading theories:] When you start your interaction you must open a
-  named theory with the line \isa{\isacommand{theory}~T~=~\dots~:}. Isabelle
+  named theory with the line \commdx{theory}~\isa{T~=~\dots~:}. Isabelle
   automatically loads all the required parent theories from their respective
   files (which may take a moment, unless the theories are already loaded and
   the files have not been modified).
@@ -152,6 +153,7 @@ starting with inductive datatypes.
 \section{Datatypes}
 \label{sec:datatype}
 
+\index{datatypes|(}%
 Inductive datatypes are part of almost every non-trivial application of HOL.
 First we take another look at a very important example, the datatype of
 lists, before we turn to datatypes in general. The section closes with a
@@ -161,8 +163,7 @@ case study.
 \subsection{Lists}
 
 \index{*list (type)}%
-Lists are one of the essential datatypes in computing. Readers of this
-tutorial and users of HOL need to be familiar with their basic operations.
+Lists are one of the essential datatypes in computing.  You need to be familiar with their basic operations.
 Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
 \thydx{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
 The latter contains many further operations. For example, the functions
@@ -199,9 +200,14 @@ primitive recursive function definitions.
 Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
 the natural numbers (see~{\S}\ref{sec:nat} below). For lists, \isa{size} is
 just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
-  1}.  In general, \cdx{size} returns \isa{0} for all constructors
-that do not have an argument of type $t$, and for all other constructors
-\isa{1 +} the sum of the sizes of all arguments of type $t$. Note that because
+  1}.  In general, \cdx{size} returns 
+\begin{itemize}
+\item \isa{0} for all constructors
+that do not have an argument of type $t$\\
+\item for all other constructors,
+one plus the sum of the sizes of all arguments of type~$t$.
+\end{itemize}
+Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
 \isa{size} is also called \sdx{length}, which is not overloaded.
 Isabelle will always show \isa{size} on lists as \isa{length}.
@@ -209,6 +215,7 @@ Isabelle will always show \isa{size} on lists as \isa{length}.
 
 \subsection{Primitive Recursion}
 
+\index{recursion!primitive}%
 Functions on datatypes are usually defined by recursion. In fact, most of the
 time they are defined by what is called \textbf{primitive recursion}.
 The keyword \commdx{primrec} is followed by a list of
@@ -229,12 +236,14 @@ A more general method for defining total recursive functions is introduced in
 \input{Misc/document/case_exprs.tex}
 
 \input{Ifexpr/document/Ifexpr.tex}
+\index{datatypes|)}
+
 
 \section{Some Basic Types}
 
 
 \subsection{Natural Numbers}
-\label{sec:nat}
+\label{sec:nat}\index{natural numbers}%
 \index{linear arithmetic|(}
 
 \input{Misc/document/fakenat.tex}
@@ -256,23 +265,23 @@ A more general method for defining total recursive functions is introduced in
 A definition is simply an abbreviation, i.e.\ a new name for an existing
 construction. In particular, definitions cannot be recursive. Isabelle offers
 definitions on the level of types and terms. Those on the type level are
-called type synonyms, those on the term level are called (constant)
+called \textbf{type synonyms}; those on the term level are simply called 
 definitions.
 
 
 \subsection{Type Synonyms}
 
-\indexbold{type synonyms|(}%
-Type synonyms are similar to those found in ML\@. They are issued by a 
+\index{type synonyms|(}%
+Type synonyms are similar to those found in ML\@. They are created by a 
 \commdx{types} command:
 
 \input{Misc/document/types.tex}%
 
-Note that pattern-matching is not allowed, i.e.\ each definition must be of
+Pattern-matching is not allowed, i.e.\ each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~{\S}\ref{sec:Simp-with-Defs} explains how definitions are used
 in proofs.%
-\indexbold{type synonyms|)}
+\index{type synonyms|)}
 
 \input{Misc/document/prime_def.tex}
 
@@ -283,23 +292,16 @@ in proofs.%
 \label{sec:definitional}
 
 As we pointed out at the beginning of the chapter, asserting arbitrary
-axioms, e.g. $f(n) = f(n) + 1$, may easily lead to contradictions. In order
+axioms such as $f(n) = f(n) + 1$ can easily lead to contradictions. In order
 to avoid this danger, this tutorial advocates the definitional rather than
-the axiomatic approach: introduce new concepts by definitions, thus
-preserving consistency. However, on the face of it, Isabelle/HOL seems to
-support many more constructs than just definitions, for example
-\isacommand{primrec}. The crucial point is that internally, everything
-(except real axioms) is reduced to a definition. For example, given some
-\isacommand{primrec} function definition, this is turned into a proper
-(nonrecursive!) definition, and the user-supplied recursion equations are
-derived as theorems from that definition. This tricky process is completely
-hidden from the user and it is not necessary to understand the details. The
-result of the definitional approach is that \isacommand{primrec} is as safe
-as pure \isacommand{defs} are, but more convenient. And this is not just the
-case for \isacommand{primrec} but also for the other commands described
-later, like \isacommand{recdef} and \isacommand{inductive}.
-This strict adherence to the definitional approach reduces the risk of 
-soundness errors inside Isabelle/HOL.
+the axiomatic approach: introduce new concepts by definitions. However,  Isabelle/HOL seems to
+support many richer definitional constructs, such as
+\isacommand{primrec}. The point is that Isabelle reduces such constructs to first principles. For example, each
+\isacommand{primrec} function definition is turned into a proper
+(nonrecursive!) definition from which the user-supplied recursion equations are
+derived as theorems.  This process is
+hidden from the user, who does not have to understand the details.  Other commands described
+later, like \isacommand{recdef} and \isacommand{inductive}, are treated similarly.  This strict adherence to the definitional approach reduces the risk of soundness errors.
 
 \chapter{More Functional Programming}
 

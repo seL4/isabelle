@@ -1,6 +1,7 @@
 (* ID:         $Id$ *)
-theory Force = Divides: (*Divides rather than Main so that the first proof
-                         isn't done by the nat_divide_cancel_factor simprocs.*)
+theory Force = Main: 
+  (*Use Divides rather than Main to experiment with the first proof.
+    Otherwise, it is done by the nat_divide_cancel_factor simprocs.*)
 
 declare div_mult_self_is_m [simp del];
 

@@ -3,7 +3,7 @@ theory Tree = Main:
 (*>*)
 
 text{*\noindent
-Define the datatype of binary trees
+Define the datatype of \rmindex{binary trees}:
 *}
 
 datatype 'a tree = Tip | Node "'a tree" 'a "'a tree";(*<*)
@@ -14,7 +14,7 @@ primrec
 "mirror (Node l x r) = Node (mirror r) x (mirror l)";(*>*)
 
 text{*\noindent
-and a function @{term"mirror"} that mirrors a binary tree
+Define a function @{term"mirror"} that mirrors a binary tree
 by swapping subtrees recursively. Prove
 *}
 
