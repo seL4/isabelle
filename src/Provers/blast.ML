@@ -627,17 +627,15 @@ fun traceTerm sign t =
   end;
 
 
-val prs = std_output o Output.output;
-
 (*Print tracing information at each iteration of prover*)
 fun tracing sign brs = 
-  let fun printPairs (((G,_)::_,_)::_)  = prs(traceTerm sign G)
-	| printPairs (([],(H,_)::_)::_) = prs(traceTerm sign H ^ "\t (Unsafe)")
+  let fun printPairs (((G,_)::_,_)::_)  = immediate_output(traceTerm sign G)
+	| printPairs (([],(H,_)::_)::_) = immediate_output(traceTerm sign H ^ "\t (Unsafe)")
 	| printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
 	    (fullTrace := brs0 :: !fullTrace;
-	     seq (fn _ => prs "+") brs;
-	     prs (" [" ^ Int.toString lim ^ "] ");
+	     seq (fn _ => immediate_output "+") brs;
+	     immediate_output (" [" ^ Int.toString lim ^ "] ");
 	     printPairs pairs;
 	     writeln"")
   in if !trace then printBrs (map normBr brs) else ()
@@ -650,10 +648,10 @@ fun traceVars sign ntrl =
   if !trace then 
       (case !ntrail-ntrl of
 	    0 => ()
-	  | 1 => prs"\t1 variable UPDATED:"
-	  | n => prs("\t" ^ Int.toString n ^ " variables UPDATED:");
+	  | 1 => immediate_output"\t1 variable UPDATED:"
+	  | n => immediate_output("\t" ^ Int.toString n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       seq (fn v => prs("   " ^ string_of sign 4 (the (!v))))
+       seq (fn v => immediate_output("   " ^ string_of sign 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
        writeln"")
     else ();
@@ -662,9 +660,9 @@ fun traceVars sign ntrl =
 fun traceNew prems =
     if !trace then 
         case length prems of
-	    0 => prs"branch closed by rule"
-	  | 1 => prs"branch extended (1 new subgoal)"
-	  | n => prs("branch split: "^ Int.toString n ^ " new subgoals")
+	    0 => immediate_output"branch closed by rule"
+	  | 1 => immediate_output"branch extended (1 new subgoal)"
+	  | n => immediate_output("branch split: "^ Int.toString n ^ " new subgoals")
     else ();
 
 
@@ -1010,7 +1008,7 @@ fun prove (sign, start, cs, brs, cont) =
 			None     => closeF Ls
 		      | Some tac => 
 			    let val choices' = 
-				    (if !trace then (prs"branch closed";
+				    (if !trace then (immediate_output"branch closed";
 						     traceVars sign ntrl)
 				               else ();
 				     prune (nbrs, nxtVars, 
@@ -1141,9 +1139,9 @@ fun prove (sign, start, cs, brs, cont) =
 			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
 			 traceNew prems;  
-			 if !trace andalso dup then prs" (duplicating)"
+			 if !trace andalso dup then immediate_output" (duplicating)"
 					         else ();
-			 if !trace andalso recur then prs" (recursive)"
+			 if !trace andalso recur then immediate_output" (recursive)"
 					         else ();
 			 traceVars sign ntrl;
 			 if null prems then nclosed := !nclosed + 1

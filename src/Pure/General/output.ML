@@ -11,6 +11,7 @@ sig
   val print_mode: string list ref
   val std_output: string -> unit
   val std_error: string -> unit
+  val immediate_output: string -> unit
   val writeln_default: string -> unit
   val writeln_fn: (string -> unit) ref
   val priority_fn: (string -> unit) ref
@@ -99,13 +100,17 @@ fun raw x = #raw (get_mode ()) x;
 
 (** output channels **)
 
-(*primitive process channels -- normally NOT used directly!*)
+(* output primitives -- normally NOT used directly!*)
+
 fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
+val immediate_output = std_output o output;
 val writeln_default = std_output o suffix "\n";
 
-(*hooks for Isabelle channels*)
+
+(* Isabelle output channels *)
+
 val writeln_fn = ref writeln_default;
 val priority_fn = ref (fn s => ! writeln_fn s);
 val tracing_fn = ref (fn s => ! writeln_fn s);

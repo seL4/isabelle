@@ -59,9 +59,6 @@ end;
 structure Refute : REFUTE =
 struct
 
-	(* FIXME compatibility -- should avoid std_output altogether *)
-	val std_output = Output.std_output o Output.output;
-
 	open PropLogic;
 
 	(* We use 'REFUTE' only for internal error conditions that should    *)
@@ -408,7 +405,7 @@ struct
 
 	fun collect_axioms thy t =
 	let
-		val _ = std_output "Adding axioms..."
+		val _ = immediate_output "Adding axioms..."
 		(* (string * Term.term) list *)
 		val axioms = flat (map (Symtab.dest o #axioms o Theory.rep_theory) (thy :: Theory.ancestors_of thy))
 		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
@@ -506,15 +503,15 @@ struct
 								(* collect relevant type axioms for the argument types *)
 								foldl collect_type_axioms (axs, Ts)
 							else
-								(std_output (" " ^ axname);
+								(immediate_output (" " ^ axname);
 								collect_term_axioms (ax :: axs, ax))
 						| None =>
 							(* at least collect relevant type axioms for the argument types *)
 							foldl collect_type_axioms (axs, Ts))
 				end
 			(* TODO: include sort axioms *)
-			| TFree (_, sorts)       => ((*if not (null sorts) then std_output " *ignoring sorts*" else ();*) axs)
-			| TVar  (_, sorts)       => ((*if not (null sorts) then std_output " *ignoring sorts*" else ();*) axs)
+			| TFree (_, sorts)       => ((*if not (null sorts) then immediate_output " *ignoring sorts*" else ();*) axs)
+			| TVar  (_, sorts)       => ((*if not (null sorts) then immediate_output " *ignoring sorts*" else ();*) axs)
 		(* Term.term list * Term.term -> Term.term list *)
 		and collect_term_axioms (axs, t) =
 			case t of
@@ -535,7 +532,7 @@ struct
 					if mem_term (ax, axs) then
 						collect_type_axioms (axs, T)
 					else
-						(std_output " HOL.the_eq_trivial";
+						(immediate_output " HOL.the_eq_trivial";
 						collect_term_axioms (ax :: axs, ax))
 				end
 			| Const ("Hilbert_Choice.Eps", T) =>
@@ -545,7 +542,7 @@ struct
 					if mem_term (ax, axs) then
 						collect_type_axioms (axs, T)
 					else
-						(std_output " Hilbert_Choice.someI";
+						(immediate_output " Hilbert_Choice.someI";
 						collect_term_axioms (ax :: axs, ax))
 				end
 			| Const ("All", _) $ t1           => collect_term_axioms (axs, t1)
@@ -638,7 +635,7 @@ struct
 								(* collect relevant type axioms *)
 								collect_type_axioms (axs, T)
 							else
-								(std_output (" " ^ axname);
+								(immediate_output (" " ^ axname);
 								collect_term_axioms (ax :: axs, ax))
 						| None =>
 							(* collect relevant type axioms *)
@@ -888,7 +885,7 @@ struct
 			(let
 				val init_model             = (universe, [])
 				val init_args              = {maxvars = maxvars, next_idx = 1, bounds = [], wellformed = True}
-				val _                      = std_output ("Translating term (sizes: " ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
+				val _                      = immediate_output ("Translating term (sizes: " ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
 				(* translate 't' and all axioms *)
 				val ((model, args), intrs) = foldl_map (fn ((m, a), t') =>
 					let
@@ -902,12 +899,12 @@ struct
 				val fm_ax = PropLogic.all (map toTrue (tl intrs))
 				val fm    = PropLogic.all [#wellformed args, fm_ax, fm_t]
 			in
-				std_output " invoking SAT solver...";
+				immediate_output " invoking SAT solver...";
 				(case SatSolver.invoke_solver satsolver fm of
 				  SatSolver.SATISFIABLE assignment =>
 					writeln ("\n*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of Some b => b | None => true))
 				| _ =>  (* SatSolver.UNSATISFIABLE, SatSolver.UNKNOWN *)
-					(std_output " no model found.\n";
+					(immediate_output " no model found.\n";
 					case next_universe universe sizes minsize maxsize of
 					  Some universe' => find_model_loop universe'
 					| None           => writeln "Search terminated, no larger universe within the given limits."))
