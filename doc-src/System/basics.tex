@@ -55,7 +55,7 @@ straight away.\footnote{Occasionally, users would still want to put the
   not required.}
 
 
-\subsection{Creating the environment}
+\subsection{Building the environment}
 
 Whenever any of the Isabelle executables is run, their settings environment is
 built as follows.
@@ -207,14 +207,15 @@ selection. Variables that are special in some sense are marked with *.
 
 \section{Isabelle proper --- \texttt{isabelle}}
 
-The \ttindex{isabelle} executable runs logic sessions --- either interactively
-or in batch mode. It provides an abstraction over the underlying {\ML} system,
-and over the actual heap file locations. Its usage is:
+The \ttindex{isabelle} executable runs bare-bones logic sessions --- either
+interactively or in batch mode. It provides an abstraction over the underlying
+{\ML} system, and over the actual heap file locations. Its usage is:
 \begin{ttbox}
 Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -I           startup Isar interaction mode
+    -c           tell ML system to compress output image
     -e MLTEXT    pass MLTEXT to the ML session
     -m MODE      add print mode for output
     -q           non-interactive session
@@ -253,6 +254,11 @@ files when they are no longer needed.
 \medskip The \texttt{-w} option makes the output heap file read-only after
 terminating.  Thus subsequent invocations cause the logic image to be
 read-only automatically.
+
+\medskip The \texttt{-c} option tells the underlying ML system to compress the
+output heap (fully transparently).  On Poly/ML for example, the image is
+garbage collected and all values maximally shared, resulting in up to 50\%
+less disk space consumption.
 
 \medskip Using the \texttt{-e} option, arbitrary {\ML} code may be passed to
 the Isabelle session from the command line. Multiple \texttt{-e}'s are
