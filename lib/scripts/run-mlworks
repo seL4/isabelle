@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# $Id$
+#
+# MLWorks startup script (for 1.0r2 or later).
+#
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
+# and from settings
+
+
+## diagnostics
+
+function fail_out()
+{
+  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
+  exit 2
+}
+
+
+## basic setup
+
+EXIT="fun exit 0 : unit = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
+COMMIT="fun commit () = (Shell.saveImage (\"$OUTFILE\", false); true);"
+COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\\n"); false);'
+
+
+## prepare databases
+
+if [ -z "$INFILE" ]; then
+  MLWORKS="mlworks-basis -tty"
+else
+  MLWORKS="mlimage -load $INFILE -tty"
+  EXIT=""
+fi
+
+[ -z "$OUTFILE" ] && COMMIT="$COMMIT_RO"
+[ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
+
+MLTEXT="$EXIT $COMMIT $MLTEXT"
+MLEXIT="commit ();"
+
+
+## run it!
+
+START_MLWORKS="$ML_HOME/$MLWORKS $ML_OPTIONS"
+
+if [ -n "$TERMINATE" ]; then
+  sh -c "echo '$MLTEXT' '$MLEXIT' | $START_MLWORKS"
+  RC=$?
+elif [ -z "$MLTEXT" ]; then
+  sh -c "{ $ISABELLE_HOME/lib/Tools/symbolinput; echo '$MLEXIT'; } | $START_MLWORKS"
+  RC=$?
+else
+  sh -c "{ echo '$MLTEXT'; $ISABELLE_HOME/lib/Tools/symbolinput; echo '$MLEXIT'; } | $START_MLWORKS"
+  RC=$?
+fi
+
+#fix heap file name
+[ -n "$OUTFILE" -a -n "$SUFFIX" -a -f "$OUTFILE$SUFFIX" ] \
+  && mv "$OUTFILE$SUFFIX" "$OUTFILE"
+
+[ -n "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+
+exit $RC
