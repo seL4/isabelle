@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
                 Stefan Berghofer,   TU Muenchen
     Copyright   1994  University of Cambridge
-                1998  TU Muenchen     
+                1998  TU Muenchen
 
 (Co)Inductive Definition module for HOL.
 
@@ -49,15 +49,16 @@ sig
       (xstring * Args.src list) list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
-  val inductive_cases: (((bstring * Args.src list) * xstring) * string list) * Comment.text
+  val inductive_cases: ((bstring * Args.src list) * string list) * Comment.text
     -> theory -> theory
-  val inductive_cases_i: (((bstring * theory attribute list) * string) * term list) * Comment.text
+  val inductive_cases_i: ((bstring * theory attribute list) * term list) * Comment.text
     -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
 struct
+
 
 (*** theory data ***)
 
@@ -91,6 +92,11 @@ val print_inductives = InductiveData.print;
 (* get and put data *)
 
 fun get_inductive thy name = Symtab.lookup (fst (InductiveData.get thy), name);
+
+fun the_inductive thy name =
+  (case get_inductive thy name of
+    None => error ("Unknown (co)inductive set " ^ quote name)
+  | Some info => info);
 
 fun put_inductives names info thy =
   let
@@ -291,7 +297,7 @@ fun mk_elims cs cTs params intr_ts intr_names =
   in
     map mk_elim (cs ~~ cTs)
   end;
-        
+
 
 
 (** premises and conclusions of induction rules **)
@@ -331,7 +337,7 @@ fun mk_indrule cs cTs params intr_ts =
         fun mk_prem (s, prems) = (case subst s of
               (_, Some (t, u)) => t :: u :: prems
             | (t, _) => t :: prems);
-          
+
         val Const ("op :", _) $ t $ u =
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
@@ -472,52 +478,65 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
 (** derivation of simplified elimination rules **)
 
 (*Applies freeness of the given constructors, which *must* be unfolded by
-  the given defs.  Cannot simply use the local con_defs because con_defs=[] 
+  the given defs.  Cannot simply use the local con_defs because con_defs=[]
   for inference systems.
  *)
 
 (*cprop should have the form t:Si where Si is an inductive set*)
-fun mk_cases_i solved elims ss cprop =
+
+val mk_cases_err = "mk_cases: proposition not of form 't : S_i'";
+
+fun mk_cases_i elims ss cprop =
   let
     val prem = Thm.assume cprop;
-    val tac = TRYALL (InductMethod.simp_case_tac solved ss) THEN prune_params_tac;
+    val tac = ALLGOALS (InductMethod.simp_case_tac false ss) THEN prune_params_tac;
     fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic tac (prem RS rl));
   in
     (case get_first (try mk_elim) elims of
       Some r => r
     | None => error (Pretty.string_of (Pretty.block
-        [Pretty.str "mk_cases: proposition not of form 't : S_i'", Pretty.fbrk,
-          Display.pretty_cterm cprop])))
+        [Pretty.str mk_cases_err, Pretty.fbrk, Display.pretty_cterm cprop])))
   end;
 
 fun mk_cases elims s =
-  mk_cases_i false elims (simpset()) (Thm.read_cterm (Thm.sign_of_thm (hd elims)) (s, propT));
+  mk_cases_i elims (simpset()) (Thm.read_cterm (Thm.sign_of_thm (hd elims)) (s, propT));
+
+fun smart_mk_cases thy ss cprop =
+  let
+    val c = #1 (Term.dest_Const (Term.head_of (#2 (HOLogic.dest_mem (HOLogic.dest_Trueprop
+      (Logic.strip_imp_concl (Thm.term_of cprop))))))) handle TERM _ => error mk_cases_err;
+    val (_, {elims, ...}) = the_inductive thy c;
+  in mk_cases_i elims ss cprop end;
 
 
 (* inductive_cases(_i) *)
 
 fun gen_inductive_cases prep_att prep_const prep_prop
-    ((((name, raw_atts), raw_set), raw_props), comment) thy =
-  let val sign = Theory.sign_of thy;
-  in (case get_inductive thy (prep_const sign raw_set) of
-      None => error ("Unknown (co)inductive set " ^ quote name)
-    | Some (_, {elims, ...}) =>
-        let
-          val atts = map (prep_att thy) raw_atts;
-          val cprops = map
-            (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
-          val thms = map
-            (mk_cases_i true elims (Simplifier.simpset_of thy)) cprops;
-        in
-          thy |> IsarThy.have_theorems_i
-            [(((name, atts), map Thm.no_attributes thms), comment)]
-        end)
-  end;
+    (((name, raw_atts), raw_props), comment) thy =
+  let
+    val ss = Simplifier.simpset_of thy;
+    val sign = Theory.sign_of thy;
+    val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
+    val atts = map (prep_att thy) raw_atts;
+    val thms = map (smart_mk_cases thy ss) cprops;
+  in thy |> IsarThy.have_theorems_i [(((name, atts), map Thm.no_attributes thms), comment)] end;
 
 val inductive_cases =
   gen_inductive_cases Attrib.global_attribute Sign.intern_const ProofContext.read_prop;
 
 val inductive_cases_i = gen_inductive_cases (K I) (K I) ProofContext.cert_prop;
+
+
+(* mk_cases_meth *)
+
+fun mk_cases_meth (ctxt, raw_props) =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val ss = Simplifier.get_local_simpset ctxt;
+    val cprops = map (Thm.cterm_of (Theory.sign_of thy) o ProofContext.read_prop ctxt) raw_props;
+  in Method.erule (map (smart_mk_cases thy ss) cprops) end;
+
+val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 
 
 
@@ -662,7 +681,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
     val mono = prove_mono setT fp_fun monos thy'
 
   in
-    (thy', mono, fp_def, rec_sets_defs, rec_const, sumT) 
+    (thy', mono, fp_def, rec_sets_defs, rec_const, sumT)
   end;
 
 fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
@@ -693,7 +712,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 
     val (thy'', [intrs']) =
       thy'
-      |> PureThy.add_thmss [(("intrs", intrs), atts)]
+      |> PureThy.add_thmss [(("intros", intrs), atts)]
       |>> (#1 o PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts))
       |>> (if no_elim then I else #1 o PureThy.add_thmss [(("elims", elims), [])])
       |>> (if no_ind then I else #1 o PureThy.add_thms
@@ -728,16 +747,14 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     val (elim_ts, elim_cases) = Library.split_list (mk_elims cs cTs params intr_ts intr_names);
     val (_, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
     val ind_t = Logic.list_implies (ind_prems, mutual_ind_concl);
-    
-    val thy'' =
+
+    val (thy'', [intrs, raw_elims]) =
       thy'
-      |> (#1 o PureThy.add_axiomss_i [(("intrs", intr_ts), atts), (("raw_elims", elim_ts), [])])
-      |> (if coind then I else
+      |> PureThy.add_axiomss_i [(("intros", intr_ts), atts), (("raw_elims", elim_ts), [])]
+      |>> (if coind then I else
             #1 o PureThy.add_axioms_i [(("raw_induct", ind_t), [apsnd (standard o split_rule)])]);
 
-    val intrs = PureThy.get_thms thy'' "intrs";
-    val elims = map2 (fn (th, cases) => RuleCases.name cases th)
-      (PureThy.get_thms thy'' "raw_elims", elim_cases);
+    val elims = map2 (fn (th, cases) => RuleCases.name cases th) (raw_elims, elim_cases);
     val raw_induct = if coind then Drule.asm_rl else PureThy.get_thm thy'' "raw_induct";
     val induct = if coind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
@@ -828,6 +845,8 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
 
 val setup =
  [InductiveData.init,
+  Method.add_methods [("mk_cases_tac", mk_cases_meth oo mk_cases_args,
+    "dynamic case analysis on sets")],
   Attrib.add_attributes [("mono", mono_attr, "monotonicity rule")]];
 
 
@@ -840,7 +859,7 @@ fun mk_ind coind (((sets, (atts, intrs)), monos), con_defs) =
 
 fun ind_decl coind =
   (Scan.repeat1 P.term --| P.marg_comment) --
-  (P.$$$ "intrs" |--
+  (P.$$$ "intros" |--
     P.!!! (P.opt_attribs -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment))) --
   Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
   Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1 --| P.marg_comment) []
@@ -854,14 +873,14 @@ val coinductiveP =
 
 
 val ind_cases =
-  P.opt_thm_name "=" -- P.xname --| P.$$$ ":" -- Scan.repeat1 P.prop -- P.marg_comment
+  P.opt_thm_name "=" -- Scan.repeat1 P.prop -- P.marg_comment
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =
-  OuterSyntax.command "inductive_cases" "create simplified instances of elimination rules"
-    K.thy_decl ind_cases;
+  OuterSyntax.improper_command "inductive_cases"
+    "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
 
-val _ = OuterSyntax.add_keywords ["intrs", "monos", "con_defs"];
+val _ = OuterSyntax.add_keywords ["intros", "monos", "con_defs", "of"];
 val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
