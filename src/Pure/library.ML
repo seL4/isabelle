@@ -1213,7 +1213,7 @@ fun transform_error f x =
 (* transform any exception, including ERROR *)
 
 fun transform_failure exn f x =
-  transform_error f x handle e => raise exn e;
+  transform_error f x handle Interrupt => raise Interrupt | e => raise exn e;
 
 
 
