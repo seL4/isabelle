@@ -10,6 +10,8 @@ section "Simplifier";
 
 (*** Addition of rules to simpsets and clasets simultaneously ***)
 
+infix 4 addIffs delIffs;
+
 (*Takes UNCONDITIONAL theorems of the form A<->B to 
         the Safe Intr     rule B==>A and 
         the Safe Destruct rule A==>B.
@@ -18,36 +20,40 @@ section "Simplifier";
 local
   val iff_const = HOLogic.eq_const HOLogic.boolT;
 
-  fun addIff th = 
-      (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-                (Const("Not",_) $ A) =>
-                    AddSEs [zero_var_indexes (th RS notE)]
+  fun addIff ((cla, simp), th) = 
+      (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
+                (Const("Not", _) $ A) =>
+                    cla addSEs [zero_var_indexes (th RS notE)]
               | (con $ _ $ _) =>
-                    if con=iff_const
-                    then (AddSIs [zero_var_indexes (th RS iffD2)];  
-                          AddSDs [zero_var_indexes (th RS iffD1)])
-                    else  AddSIs [th]
-              | _ => AddSIs [th];
-       Addsimps [th])
+                    if con = iff_const
+                    then cla addSIs [zero_var_indexes (th RS iffD2)]  
+                              addSDs [zero_var_indexes (th RS iffD1)]
+                    else  cla addSIs [th]
+              | _ => cla addSIs [th],
+       simp addsimps [th])
       handle _ => error ("AddIffs: theorem must be unconditional\n" ^ 
-                         string_of_thm th)
+                         string_of_thm th);
 
-  fun delIff th = 
-      (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-                (Const("Not",_) $ A) =>
-                    Delrules [zero_var_indexes (th RS notE)]
+  fun delIff ((cla, simp), th) = 
+      (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
+                (Const ("Not", _) $ A) =>
+                    cla delrules [zero_var_indexes (th RS notE)]
               | (con $ _ $ _) =>
-                    if con=iff_const
-                    then Delrules [zero_var_indexes (th RS iffD2),
-                                   make_elim (zero_var_indexes (th RS iffD1))]
-                    else Delrules [th]
-              | _ => Delrules [th];
-       Delsimps [th])
-      handle _ => warning("DelIffs: ignoring conditional theorem\n" ^ 
-                          string_of_thm th)
+                    if con = iff_const
+                    then cla delrules [zero_var_indexes (th RS iffD2),
+                                       make_elim (zero_var_indexes (th RS iffD1))]
+                    else cla delrules [th]
+              | _ => cla delrules [th],
+       simp delsimps [th])
+      handle _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
+                          string_of_thm th); (cla, simp));
+
+  fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
 in
-val AddIffs = seq addIff
-val DelIffs = seq delIff
+val op addIffs = foldl addIff;
+val op delIffs = foldl delIff;
+fun AddIffs thms = store_clasimp ((claset (), simpset ()) addIffs thms);
+fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
 end;
 
 qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
