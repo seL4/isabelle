@@ -565,6 +565,10 @@ val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
+val print_rulesP =
+  OuterSyntax.improper_command "print_rules" "print intro/elim rules" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_rules));
+
 val print_induct_rulesP =
   OuterSyntax.improper_command "print_induct_rules" "print induction and cases rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_induct_rules));
@@ -750,16 +754,16 @@ val parsers = [
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
-  print_attributesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, thms_containingP, thm_depsP,
-  print_bindsP, print_lthmsP, print_casesP, print_thmsP, print_prfsP,
-  print_full_prfsP, print_propP, print_termP, print_typeP,
+  print_attributesP, print_rulesP, print_induct_rulesP,
+  print_trans_rulesP, print_methodsP, print_antiquotationsP,
+  thms_containingP, thm_depsP, print_bindsP, print_lthmsP,
+  print_casesP, print_thmsP, print_prfsP, print_full_prfsP,
+  print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
   kill_thyP, prP, disable_prP, enable_prP, commitP, quitP, exitP,
   init_toplevelP, welcomeP];
-
 
 end;
 
