@@ -17,7 +17,7 @@ sig
   val sign_of: state -> Sign.sg
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
-  val get_goal: state -> thm list * thm
+  val get_goal: state -> term * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
@@ -42,7 +42,7 @@ sig
     (thm list * context attribute list) list -> state -> state
   val simple_have_thms: string -> thm list -> state -> state
   val fix: (string list * string option) list -> state -> state
-  val fix_i: (string list * typ) list -> state -> state
+  val fix_i: (string list * typ option) list -> state -> state
   val assm: (int -> tactic) * (int -> tactic)
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> state -> state
@@ -222,8 +222,8 @@ fun find_goal i (state as State (Node {goal = Some goal, ...}, _)) = (context_of
   | find_goal _ (state as State (_, [])) = err_malformed "find_goal" state;
 
 fun get_goal state =
-  let val (_, (_, ((_, goal), _))) = find_goal 0 state
-  in goal end;
+  let val (_, (_, (((_, _, t), goal), _))) = find_goal 0 state
+  in (t, goal) end;
 
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
