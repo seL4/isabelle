@@ -21,6 +21,7 @@ time_use_thy "NatSum";
 time_use     "cla.ML";
 time_use     "meson.ML";
 time_use     "mesontest.ML";
+time_use     "mesontest2.ML";
 time_use_thy "BT";
 time_use_thy "InSort";
 time_use_thy "Qsort";
