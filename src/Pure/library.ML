@@ -84,6 +84,7 @@ sig
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
+  val get_first: ('a -> 'b option) -> 'a list -> 'b option
   val flat: 'a list list -> 'a list
   val seq: ('a -> unit) -> 'a list -> unit
   val separate: 'a -> 'a list -> 'a list
@@ -470,6 +471,13 @@ fun find_index_eq x = find_index (equal x);
 fun find_first _ [] = None
   | find_first pred (x :: xs) =
       if pred x then Some x else find_first pred xs;
+
+(*get first element by lookup function*)
+fun get_first _ [] = None
+  | get_first f (x :: xs) =
+      (case f x of
+        None => get_first f xs
+      | some => some);
 
 (*flatten a list of lists to a list*)
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
