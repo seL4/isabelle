@@ -241,14 +241,21 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'consts' (constdecl +)
+  'consts' ((name '::' type mixfix?) +)
   ;
-  'defs' ('(overloaded)')? (axmdecl prop +)
+  'defs' ('(' 'overloaded' ')')? (axmdecl prop +)
   ;
-  'constdefs' (constdecl prop +)
+\end{rail}
+
+\begin{rail}
+  'constdefs' structs? (constdecl? constdef +)
   ;
 
-  constdecl: name '::' type mixfix?
+  structs: '(' 'structure' (vars + 'and') ')'
+  ;
+  constdecl: (name '::' type) mixfix | (name '::' type) | name 'where' | mixfix
+  ;
+  constdef: thmdecl? prop
   ;
 \end{rail}
 
@@ -261,13 +268,28 @@ preceding the actual theory definition.
   existing constant.  See \cite[\S6]{isabelle-ref} for more details on the
   form of equations admitted as constant definitions.
   
-  The $overloaded$ option declares definitions to be potentially overloaded.
+  The $(overloaded)$ option declares definitions to be potentially overloaded.
   Unless this option is given, a warning message would be issued for any
   definitional equation with a more special type than that of the
   corresponding constant declaration.
   
-\item [$\CONSTDEFS~c::\sigma~eqn$] combines declarations and definitions of
-  constants, using the canonical name $c_def$ for the definitional axiom.
+\item [$\CONSTDEFS$] provides a streamlined combination of constants
+  declarations and definitions: type-inference takes care of the most general
+  typing of the given specification (the optional type constraint may refer to
+  type-inference dummies ``$_$'' as usual).  The resulting type declaration
+  needs to agree with that of the specification; overloading is \emph{not}
+  supported here!
+  
+  The constant name may be omitted altogether, if neither type nor syntax
+  declarations are given.  The canonical name of the definitional axiom for
+  constant $c$ will be $c_def$, unless specified otherwise.  Also note that
+  the given list of specifications is processed in a strictly sequential
+  manner, with type-checking being performed independently.
+  
+  An optional initial context of $(structure)$ declarations admits use of
+  indexed syntax, using the special symbol \verb,\<index>, (printed as
+  ``\i'').  The latter concept is particularly useful with locales (see also
+  \S\ref{sec:locale}).
 \end{descr}
 
 
@@ -503,13 +525,15 @@ tactic.
 
 \begin{rail}
   ( parseasttranslation | parsetranslation | printtranslation | typedprinttranslation |
-  printasttranslation | tokentranslation ) text
+  printasttranslation ) ('(' 'advanced' ')')? text;
+
+  tokentranslation text
 \end{rail}
 
 Syntax translation functions written in ML admit almost arbitrary
 manipulations of Isabelle's inner syntax.  Any of the above commands have a
 single \railqtok{text} argument that refers to an ML expression of appropriate
-type.
+type, which are as follows by default:
 
 \begin{ttbox}
 val parse_ast_translation   : (string * (ast list -> ast)) list
@@ -521,7 +545,27 @@ val print_ast_translation   : (string * (ast list -> ast)) list
 val token_translation       :
   (string * string * (string -> string * real)) list
 \end{ttbox}
-See \cite[\S8]{isabelle-ref} for more information on syntax transformations.
+
+In case that the $(advanced)$ option is given, the corresponding translation
+functions may depend on the signature of the current theory context.  This
+allows to implement advanced syntax mechanisms, as translations functions may
+refer to specific theory declarations and auxiliary data.
+
+See also \cite[\S8]{isabelle-ref} for more information on the general concept
+of syntax transformations in Isabelle.
+
+\begin{ttbox}
+val parse_ast_translation:
+  (string * (Sign.sg -> ast list -> ast)) list
+val parse_translation:
+  (string * (Sign.sg -> term list -> term)) list
+val print_translation:
+  (string * (Sign.sg -> term list -> term)) list
+val typed_print_translation:
+  (string * (Sign.sg -> bool -> typ -> term list -> term)) list
+val print_ast_translation:
+  (string * (Sign.sg -> ast list -> ast)) list
+\end{ttbox}
 
 
 \subsection{Oracles}

@@ -131,8 +131,7 @@ val constsP =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
     (Scan.repeat1 P.const >> (Toplevel.theory o Theory.add_consts));
 
-val opt_overloaded =
-  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false;
+val opt_overloaded = P.opt_keyword "overloaded";
 
 val finalconstsP =
   OuterSyntax.command "finalconsts" "declare constants as final" K.thy_decl
@@ -177,9 +176,24 @@ val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
     (opt_overloaded -- Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_defs));
 
+
+(* constant definitions *)
+
+val vars = P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ));
+
+val structs =
+  Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (vars --| P.$$$ ")")) [];
+
+val constdecl =
+  (P.name --| P.$$$ "where") >> (fn x => (x, None, Syntax.NoSyn)) ||
+    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> Some) -- P.opt_mixfix' >> P.triple1 ||
+    P.name -- (P.mixfix' >> pair None) >> P.triple2;
+
+val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
+
 val constdefsP =
-  OuterSyntax.command "constdefs" "declare and define constants" K.thy_decl
-    (Scan.repeat1 (P.const -- P.term) >> (Toplevel.theory o IsarThy.add_constdefs));
+  OuterSyntax.command "constdefs" "standard constant definitions" K.thy_decl
+    (structs -- Scan.repeat1 constdef >> (Toplevel.theory o Constdefs.add_constdefs));
 
 
 (* theorems *)
@@ -248,25 +262,27 @@ val method_setupP =
 
 (* translation functions *)
 
+val trfun = P.opt_keyword "advanced" -- P.text;
+
 val parse_ast_translationP =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.parse_ast_translation));
+    (trfun >> (Toplevel.theory o IsarThy.parse_ast_translation));
 
 val parse_translationP =
   OuterSyntax.command "parse_translation" "install parse translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.parse_translation));
+    (trfun >> (Toplevel.theory o IsarThy.parse_translation));
 
 val print_translationP =
   OuterSyntax.command "print_translation" "install print translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.print_translation));
+    (trfun >> (Toplevel.theory o IsarThy.print_translation));
 
 val typed_print_translationP =
   OuterSyntax.command "typed_print_translation" "install typed print translation functions"
-    K.thy_decl (P.text >> (Toplevel.theory o IsarThy.typed_print_translation));
+    K.thy_decl (trfun >> (Toplevel.theory o IsarThy.typed_print_translation));
 
 val print_ast_translationP =
   OuterSyntax.command "print_ast_translation" "install print ast translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.print_ast_translation));
+    (trfun >> (Toplevel.theory o IsarThy.print_ast_translation));
 
 val token_translationP =
   OuterSyntax.command "token_translation" "install token translation functions" K.thy_decl
@@ -287,12 +303,10 @@ val locale_val =
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.locale_element)) [] ||
   Scan.repeat1 P.locale_element >> pair Locale.empty);
 
-val locale_pred =
-  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "open" >> K false) --| P.$$$ ")")) true;
-
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (locale_pred -- P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
+    ((P.opt_keyword "open" >> not) -- P.name
+        -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
 
@@ -366,9 +380,8 @@ val instantiateP =
 (* proof context *)
 
 val fixP =
-  OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
-    (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
+  OuterSyntax.command "fix" "fix local variables (Skolem constants)" K.prf_asm
+    (vars >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
@@ -733,10 +746,10 @@ val welcomeP =
 
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
-  "<=", "=", "==", "=>", "?", "[", "]", "and", "assumes", "binder",
-  "concl", "defines", "files", "fixes", "in", "includes", "infix",
-  "infixl", "infixr", "is", "notes", "open", "output", "overloaded",
-  "shows", "structure", "where", "|", "\\<equiv>",
+  "<=", "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes",
+  "binder", "concl", "defines", "files", "fixes", "in", "includes",
+  "infix", "infixl", "infixr", "is", "notes", "open", "output",
+  "overloaded", "shows", "structure", "where", "|", "\\<equiv>",
   "\\<leftharpoondown>", "\\<rightharpoonup>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 

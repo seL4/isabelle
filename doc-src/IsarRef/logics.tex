@@ -544,7 +544,7 @@ the following attributes.
 \begin{rail}
 ('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
 ;
-decl: ((name ':')? term '(overloaded)'?)
+decl: ((name ':')? term '(' 'overloaded' ')'?)
 \end{rail}
 
 \begin{descr}
@@ -742,19 +742,23 @@ actually covers the new-style theory format as well).
   \isarcmd{constdefs} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
+\begin{rail}
+  'constdefs' (name '::' type mixfix? prop +)
+  ;
+\end{rail}
+
 HOLCF provides a separate type for continuous functions $\alpha \to
 \beta$, with an explicit application operator $f \cdot x$.  Isabelle mixfix
 syntax normally refers directly to the pure meta-level function type $\alpha
 \To \beta$, with application $f\,x$.
 
-The HOLCF variants of $\CONSTS$ and $\CONSTDEFS$ have the same outer syntax as
-the pure versions (cf.\ \S\ref{sec:consts}).  Internally, declarations
-involving continuous function types are treated specifically, transforming the
-syntax template accordingly and generating syntax translation rules for the
-abstract and concrete representation of application.
-
-The behavior for plain meta-level function types is unchanged.  Mixed
-continuous and meta-level application is \emph{not} supported.
+The HOLCF variants of $\CONSTS$ and $\CONSTDEFS$ resemble those of Pure
+Isabelle (cf.\ \S\ref{sec:consts}), although automated type-inference is not
+supported here.  Internally, declarations involving continuous function types
+are treated specifically, transforming the syntax template accordingly and
+generating syntax translation rules for the abstract and concrete
+representation of application.  Note that mixing continuous and meta-level
+application is \emph{not} supported!
 
 \subsection{Recursive domains}
 
