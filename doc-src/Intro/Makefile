@@ -25,3 +25,6 @@ dist:   $(FILES)
 	latex intro
 	../sedindex intro
 	latex intro
+
+clean:
+	@rm *.aux *.log *.toc *.idx

@@ -26,3 +26,7 @@ dist:   $(FILES)
 	latex logics
 	../sedindex logics
 	latex logics
+
+clean:
+	@rm *.aux *.log *.toc *.idx *.rai
+

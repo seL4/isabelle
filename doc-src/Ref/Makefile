@@ -28,3 +28,6 @@ dist:   $(FILES)
 	latex ref
 	../sedindex ref
 	latex ref
+
+clean:
+	@rm *.aux *.log *.toc *.idx *.rai
