@@ -127,54 +127,61 @@ lemma "list_all2 P a b \<Longrightarrow> \<forall>(x,y) \<in> set (zip a b). P x
 
 text "Conditions under which eff is applicable:"
 consts
-app' :: "instr \<times> jvm_prog \<times> nat \<times> ty \<times> state_type => bool"
+app' :: "instr \<times> jvm_prog \<times> p_count \<times> nat \<times> ty \<times> state_type => bool"
 
 recdef app' "{}"
-"app' (Load idx, G, maxs, rT, s)                  = (idx < length (snd s) \<and> 
-                                                    (snd s) ! idx \<noteq> Err \<and> 
-                                                    length (fst s) < maxs)"
-"app' (Store idx, G, maxs, rT, (ts#ST, LT))       = (idx < length LT)"
-"app' (LitPush v, G, maxs, rT, s)                  = (length (fst s) < maxs \<and> typeof (\<lambda>t. None) v \<noteq> None)"
-"app' (Getfield F C, G, maxs, rT, (oT#ST, LT))    = (is_class G C \<and>
-                                              field (G,C) F \<noteq> None \<and>
-                                              fst (the (field (G,C) F)) = C \<and>
-                                              G \<turnstile> oT \<preceq> (Class C))"
-"app' (Putfield F C, G, maxs, rT, (vT#oT#ST, LT)) = (is_class G C \<and> 
-                                              field (G,C) F \<noteq> None \<and>
-                                              fst (the (field (G,C) F)) = C \<and>
-                                              G \<turnstile> oT \<preceq> (Class C) \<and>
-                                              G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
-"app' (New C, G, maxs, rT, s)                     = (is_class G C \<and> length (fst s) < maxs)"
-"app' (Checkcast C, G, maxs, rT, (RefT rt#ST,LT)) = (is_class G C)"
-"app' (Pop, G, maxs, rT, (ts#ST,LT))              = True"
-"app' (Dup, G, maxs, rT, (ts#ST,LT))              = (1+length ST < maxs)"
-"app' (Dup_x1, G, maxs, rT, (ts1#ts2#ST,LT))      = (2+length ST < maxs)"
-"app' (Dup_x2, G, maxs, rT, (ts1#ts2#ts3#ST,LT))  = (3+length ST < maxs)"
-"app' (Swap, G, maxs, rT, (ts1#ts2#ST,LT))        = True"
-"app' (IAdd, G, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
-                                                 = True"
-"app' (Ifcmpeq b, G, maxs, rT, (ts#ts'#ST,LT))    = (isPrimT ts \<and> ts' = ts \<or> 
-                                                     isRefT ts \<and> isRefT ts')"
-"app' (Goto b, G, maxs, rT, s)                    = True"
-"app' (Return, G, maxs, rT, (T#ST,LT))            = (G \<turnstile> T \<preceq> rT)"
-"app' (Throw, G, maxs, rT, (T#ST,LT))             = isRefT T"
-
-"app' (Invoke C mn fpTs, G, maxs, rT, s)          = 
-   (length fpTs < length (fst s) \<and> 
-   (let apTs = rev (take (length fpTs) (fst s));
-        X    = hd (drop (length fpTs) (fst s)) 
-    in  
-        G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and>
-        list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs fpTs))"
+"app' (Load idx, G, pc, maxs, rT, s) = 
+  (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> length (fst s) < maxs)"
+"app' (Store idx, G, pc, maxs, rT, (ts#ST, LT)) = 
+  (idx < length LT)"
+"app' (LitPush v, G, pc, maxs, rT, s) = 
+  (length (fst s) < maxs \<and> typeof (\<lambda>t. None) v \<noteq> None)"
+"app' (Getfield F C, G, pc, maxs, rT, (oT#ST, LT)) = 
+  (is_class G C \<and> field (G,C) F \<noteq> None \<and> fst (the (field (G,C) F)) = C \<and> 
+  G \<turnstile> oT \<preceq> (Class C))"
+"app' (Putfield F C, G, pc, maxs, rT, (vT#oT#ST, LT)) = 
+  (is_class G C \<and> field (G,C) F \<noteq> None \<and> fst (the (field (G,C) F)) = C \<and>
+  G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
+"app' (New C, G, pc, maxs, rT, s) = 
+  (is_class G C \<and> length (fst s) < maxs)"
+"app' (Checkcast C, G, pc, maxs, rT, (RefT rt#ST,LT)) = 
+  (is_class G C)"
+"app' (Pop, G, pc, maxs, rT, (ts#ST,LT)) = 
+  True"
+"app' (Dup, G, pc, maxs, rT, (ts#ST,LT)) = 
+  (1+length ST < maxs)"
+"app' (Dup_x1, G, pc, maxs, rT, (ts1#ts2#ST,LT)) = 
+  (2+length ST < maxs)"
+"app' (Dup_x2, G, pc, maxs, rT, (ts1#ts2#ts3#ST,LT)) = 
+  (3+length ST < maxs)"
+"app' (Swap, G, pc, maxs, rT, (ts1#ts2#ST,LT)) = 
+  True"
+"app' (IAdd, G, pc, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) =
+  True"
+"app' (Ifcmpeq b, G, pc, maxs, rT, (ts#ts'#ST,LT)) = 
+  (0 \<le> int pc + b \<and> (isPrimT ts \<and> ts' = ts \<or> isRefT ts \<and> isRefT ts'))"
+"app' (Goto b, G, pc, maxs, rT, s) = 
+  (0 \<le> int pc + b)"
+"app' (Return, G, pc, maxs, rT, (T#ST,LT)) = 
+  (G \<turnstile> T \<preceq> rT)"
+"app' (Throw, G, pc, maxs, rT, (T#ST,LT)) = 
+  isRefT T"
+"app' (Invoke C mn fpTs, G, pc, maxs, rT, s) = 
+  (length fpTs < length (fst s) \<and> 
+  (let apTs = rev (take (length fpTs) (fst s));
+       X    = hd (drop (length fpTs) (fst s)) 
+   in  
+       G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and>
+       list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs fpTs))"
   
-"app' (i,G,maxs,rT,s)                             = False"
+"app' (i,G, pc,maxs,rT,s) = False"
 
 constdefs
   xcpt_app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> bool"
   "xcpt_app i G pc et \<equiv> \<forall>C\<in>set(xcpt_names (i,G,pc,et)). is_class G C"
 
   app :: "instr => jvm_prog => nat => ty => nat => exception_table => state_type option => bool"
-  "app i G maxs rT pc et s == case s of None => True | Some t => app' (i,G,maxs,rT,t) \<and> xcpt_app i G pc et"
+  "app i G maxs rT pc et s == case s of None => True | Some t => app' (i,G,pc,maxs,rT,t) \<and> xcpt_app i G pc et"
 
 
 lemma 1: "2 < length a ==> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
@@ -303,8 +310,9 @@ qed
 
 
 lemma appIfcmpeq[simp]:
-"app (Ifcmpeq b) G maxs rT pc et (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
- ((\<exists> p. ts1 = PrimT p \<and> ts2 = PrimT p) \<or> (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
+"app (Ifcmpeq b) G maxs rT pc et (Some s) = 
+  (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 0 \<le> int pc + b \<and>
+  ((\<exists> p. ts1 = PrimT p \<and> ts2 = PrimT p) \<or> (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
   by (cases s, cases "2 <length (fst s)", auto dest!: 1 2)
 
 lemma appReturn[simp]:
@@ -312,7 +320,7 @@ lemma appReturn[simp]:
   by (cases s, cases "2 <length (fst s)", auto dest: 1 2)
 
 lemma appGoto[simp]:
-"app (Goto branch) G maxs rT pc et (Some s) = True"
+"app (Goto b) G maxs rT pc et (Some s) = (0 \<le> int pc + b)"
   by simp
 
 lemma appThrow[simp]:
