@@ -97,12 +97,6 @@ qed "Spy_sees_lost";
 
 AddSIs [sees_own_shrK, Spy_sees_lost];
 
-(*Added for Yahalom/lost_tac*)
-goal thy "!!A. [| Crypt (shrK A) X : analz (sees lost Spy evs);  A: lost |] \
-\              ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
-qed "Crypt_Spy_analz_lost";
-
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
 
 goal thy "sees lost B (Says A B X # evs) = insert X (sees lost B evs)";
@@ -153,39 +147,23 @@ qed_spec_mp "Says_imp_sees_Spy";
   items known to be fresh*)
 val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj):: partsEs;
 
-goal thy  
- "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;  C : lost |] \
-\        ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
-qed "Says_Crypt_lost";
+(*For not_lost_tac*)
+goal thy "!!A. [| Crypt (shrK A) X : analz (sees lost Spy evs);  A: lost |] \
+\              ==> X : analz (sees lost Spy evs)";
+by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
+qed "Crypt_Spy_analz_lost";
 
-goal thy  
- "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;        \
-\           X ~: analz (sees lost Spy evs) |]                     \
-\        ==> C ~: lost";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
-qed "Says_Crypt_not_lost";
-
-(*NEEDED??*)
-goal thy "initState lost C <= Key `` range shrK";
-by (agent.induct_tac "C" 1);
-by (Auto_tac ());
-qed "initState_subset";
-
-(*NEEDED??*)
-goal thy "X : sees lost C evs --> \
-\          (EX A B. Says A B X : set_of_list evs) | (EX A. X = Key (shrK A))";
-by (list.induct_tac "evs" 1);
-by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addDs [impOfSubs initState_subset]) 1);
-by (rtac conjI 1);
-by (Blast_tac 2);
-by (event.induct_tac "a" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [mem_if])));
-by (ALLGOALS Blast_tac);
-qed_spec_mp "seesD";
+(*Prove that the agent is uncompromised by the confidentiality of 
+  a component of a message she's said.*)
+fun not_lost_tac s =
+    case_tac ("(" ^ s ^ ") : lost") THEN'
+    SELECT_GOAL 
+      (REPEAT_DETERM (dtac (Says_imp_sees_Spy RS analz.Inj) 1) THEN
+       REPEAT_DETERM (etac MPair_analz 1) THEN
+       THEN_BEST_FIRST 
+         (dres_inst_tac [("A", s)] Crypt_Spy_analz_lost 1 THEN assume_tac 1)
+         (has_fewer_prems 1, size_of_thm)
+         (Step_tac 1));
 
 Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];
 Delsimps [sees_Cons];   (**** NOTE REMOVAL -- laws above are cleaner ****)
