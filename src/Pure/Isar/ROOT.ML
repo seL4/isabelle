@@ -33,8 +33,8 @@ use "outer_parse.ML";
 
 (*toplevel environment*)
 use "toplevel.ML";
-use "session.ML";
 use "isar_output.ML";
+use "session.ML";
 
 (*theory syntax*)
 use "thy_header.ML";
