@@ -63,9 +63,7 @@ fun mk_var_names types : string list = let
     fun typid (Type  (id,_)   ) = hd     (explode id)
       | typid (TFree (id,_)   ) = hd (tl (explode id))
       | typid (TVar ((id,_),_)) = hd (tl (explode id));
-    fun nonreserved id = let val cs = explode id in
-			 if not(hd cs mem ["x","f","P"]) then id
-			 else implode(chr(1+ord (hd cs))::tl cs) end;
+    fun nonreserved s = if s mem ["x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
           (case assoc(occupied,vn) of
              None => if vn mem vns
