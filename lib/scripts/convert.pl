@@ -257,6 +257,7 @@ while (<>) { # main loop
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_standard($2)/se;
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/process_tac($1,$2).$3/se;
+  s/^b\sy(\s*)(.*?)(\s*)$/process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
   s/^Addsimps\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"simp")/seg;
