@@ -10,18 +10,18 @@ Dlist = Classlib +
 
 domain 'a dlist = dnil | "##" (dhd::'a) (dtl::'a dlist) (cinfixr 65)
 
-ops curried
+
+consts
 
 lmap	:: "('a -> 'b) -> 'a dlist -> 'b dlist"
-lmem	:: "('a::eq)  -> 'a dlist -> tr"		(cinfixl 50)
+lmem	:: "('a::eq)  -> 'a dlist -> tr"
 
 defs
 
-lmap_def "   lmap Ú fix`(LAM h f s. case s of dnil => dnil 
-				      | x ## xs => f`x ## h`f`xs)"
+lmap_def "lmap == fix`(LAM h f s. case s of dnil => dnil
+			          | x ## xs => f`x ## h`f`xs)"
 
-lmem_def "op lmem Ú fix`(LAM h e l. case l of dnil => FF
-			 | x ## xs => If e Ù x then TT else h`e`xs fi)"
+lmem_def "lmem == fix`(LAM h e l. case l of dnil => FF
+     	 	  		  | x ## xs => If e Ù x then TT else h`e`xs fi)"
 
 end
-
