@@ -281,26 +281,18 @@ AddSDs [MS_imp_PMS];
 
 (*** Unicity results for PMS, the pre-master-secret ***)
 
-(*PMS determines B.  Proof borrowed from NS_Public/unique_NA and from Yahalom*)
-Goal "[| Nonce PMS ~: analz (spies evs);  evs : tls |]   \
-\     ==> EX B'. ALL B.   \
-\           Crypt (pubK B) (Nonce PMS) : parts (spies evs) --> B=B'";
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
-by (Blast_tac 1);
-(*ClientKeyExch*)
-by (ClientKeyExch_tac 1);
-by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
-by (expand_case_tac "PMS = ?y" 1 THEN
-    blast_tac (claset() addSEs partsEs) 1);
-val lemma = result();
-
+(*PMS determines B.*)
 Goal "[| Crypt(pubK B)  (Nonce PMS) : parts (spies evs); \
 \        Crypt(pubK B') (Nonce PMS) : parts (spies evs); \
 \        Nonce PMS ~: analz (spies evs);                 \
 \        evs : tls |]                                          \
 \     ==> B=B'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Fake, ClientKeyExch*)
+by (ALLGOALS Blast_tac);
 qed "Crypt_unique_PMS";
 
 
@@ -311,22 +303,16 @@ qed "Crypt_unique_PMS";
 **)
 
 (*In A's internal Note, PMS determines A and B.*)
-Goal "evs : tls ==> EX A' B'. ALL A B.  \
-\                   Notes A {|Agent B, Nonce PMS|} : set evs --> A=A' & B=B'";
-by (parts_induct_tac 1);
-by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
-(*ClientKeyExch: if PMS is fresh, then it can't appear in Notes A X.*)
-by (expand_case_tac "PMS = ?y" 1 THEN
-    blast_tac (claset() addSDs [Notes_Crypt_parts_spies] addSEs partsEs) 1);
-val lemma = result();
-
 Goal "[| Notes A  {|Agent B,  Nonce PMS|} : set evs;  \
 \        Notes A' {|Agent B', Nonce PMS|} : set evs;  \
 \        evs : tls |]                               \
 \     ==> A=A' & B=B'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*ClientKeyExch*)
+by (blast_tac (claset() addSDs [Notes_Crypt_parts_spies]) 1);
 qed "Notes_unique_PMS";
-
 
 
 (**** Secrecy Theorems ****)

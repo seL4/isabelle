@@ -11,10 +11,17 @@ Datatype of events; function "spies"; freshness
     stores are visible to him
 *)
 
-Event = Message + List + 
+theory Event = Message
+files ("Event_lemmas.ML"):
+
+(*from Message.ML*)
+method_setup spy_analz = {*
+    Method.no_args (Method.METHOD (fn facts => spy_analz_tac 1)) *}
+    "for proving the Fake case when analz is involved"
+
 
 consts  (*Initial states of agents -- parameter of the construction*)
-  initState :: agent => msg set
+  initState :: "agent => msg set"
 
 datatype
   event = Says  agent agent msg
@@ -22,26 +29,26 @@ datatype
         | Notes agent       msg
        
 consts 
-  bad    :: agent set        (*compromised agents*)
-  knows  :: agent => event list => msg set
+  bad    :: "agent set"				(*compromised agents*)
+  knows  :: "agent => event list => msg set"
 
 
 (*"spies" is retained for compability's sake*)
 syntax
-  spies  :: event list => msg set
+  spies  :: "event list => msg set"
 
 translations
   "spies"   => "knows Spy"
 
 
-rules
+axioms
   (*Spy has access to his own key for spoof messages, but Server is secure*)
-  Spy_in_bad     "Spy: bad"
-  Server_not_bad "Server ~: bad"
+  Spy_in_bad     [iff] :     "Spy: bad"
+  Server_not_bad [iff] : "Server ~: bad"
 
 primrec
-  knows_Nil   "knows A []         = initState A"
-  knows_Cons
+  knows_Nil:   "knows A [] = initState A"
+  knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then 
 	(case ev of
@@ -67,16 +74,22 @@ primrec
 consts
   (*Set of items that might be visible to somebody:
     complement of the set of fresh items*)
-  used :: event list => msg set
+  used :: "event list => msg set"
 
 primrec
-  used_Nil   "used []         = (UN B. parts (initState B))"
-  used_Cons  "used (ev # evs) =
-	         (case ev of
-		    Says A B X => parts {X} Un (used evs)
-		  | Gets A X   => used evs
-		  | Notes A X  => parts {X} Un (used evs))"
+  used_Nil:   "used []         = (UN B. parts (initState B))"
+  used_Cons:  "used (ev # evs) =
+		     (case ev of
+			Says A B X => parts {X} Un (used evs)
+		      | Gets A X   => used evs
+		      | Notes A X  => parts {X} Un (used evs))"
 
 
+use "Event_lemmas.ML"
+
+method_setup analz_mono_contra = {*
+    Method.no_args
+      (Method.METHOD (fn facts => REPEAT_FIRST analz_mono_contra_tac)) *}
+    "for proving theorems of the form X ~: analz (knows Spy evs) --> P"
 
 end

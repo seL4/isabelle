@@ -142,31 +142,20 @@ qed "analz_insert_freshK";
 
 (*** The Key K uniquely identifies the Server's  message. **)
 
-Goal "evs : yahalom ==>                                     \
-\   EX A' B' na' nb' X'. ALL A B na nb X.                   \
-\       Says Server A                                       \
-\        {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}   \
-\       : set evs --> A=A' & B=B' & na=na' & nb=nb' & X=X'";
-by (etac yahalom.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by (ALLGOALS Clarify_tac);
-by (ex_strip_tac 2);
-by (Blast_tac 2);
-(*Remaining case: YM3*)
-by (expand_case_tac "K = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-(*...we assume X is a recent message and handle this case by contradiction*)
-by (blast_tac (claset() addSEs knows_Spy_partsEs
-                        delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
-val lemma = result();
-
 Goal "[| Says Server A                                                 \
 \         {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|} : set evs;  \
 \       Says Server A'                                                 \
 \         {|Crypt (shrK A') {|Agent B', Key K, na', nb'|}, X'|} : set evs; \
 \       evs : yahalom |]                                    \
 \    ==> A=A' & B=B' & na=na' & nb=nb'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac yahalom.induct 1);
+by (ALLGOALS Asm_simp_tac);
+(*YM4*)
+by (Blast_tac 2);
+(*YM3, by freshness*)
+by (blast_tac (claset() addSEs knows_Spy_partsEs) 1);
 qed "unique_session_keys";
 
 

@@ -163,25 +163,6 @@ qed "analz_insert_freshK";
 
 (*** The Key K uniquely identifies the Server's message. **)
 
-Goal "evs : otway ==>                                            \
-\   EX A' B' NA' NB'. ALL A B NA NB.                             \
-\    Says Server B                                               \
-\      {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},             \
-\        Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set evs  \
-\    --> A=A' & B=B' & NA=NA' & NB=NB'";
-by (etac otway.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by (ALLGOALS Clarify_tac);
-(*Remaining cases: OR3 and OR4*)
-by (ex_strip_tac 2);
-by (Blast_tac 2);
-by (expand_case_tac "K = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-(*...we assume X is a recent message and handle this case by contradiction*)
-by (blast_tac (claset() addSEs knows_Spy_partsEs) 1);
-val lemma = result();
-
-
 Goal "[| Says Server B                                           \
 \         {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},         \
 \           Crypt (shrK B) {|NB, Agent A, Agent B, K|}|}        \
@@ -192,7 +173,12 @@ Goal "[| Says Server B                                           \
 \        : set evs;                                             \
 \       evs : otway |]                                          \
 \    ==> A=A' & B=B' & NA=NA' & NB=NB'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac otway.induct 1);
+by (ALLGOALS Asm_simp_tac);
+(*Remaining cases: OR3 and OR4*)
+by (REPEAT (Blast_tac 1)); 
 qed "unique_session_keys";
 
 

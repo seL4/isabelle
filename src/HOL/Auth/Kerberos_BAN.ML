@@ -202,27 +202,16 @@ qed "analz_insert_freshK";
 
 (** The session key K uniquely identifies the message **)
 
-Goal "evs : kerberos_ban ==>                                         \
-\   EX A' Ts' B' X'. ALL A Ts B X.                                   \
-\    Says Server A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) \
-\          : set evs \
-\    -->         A=A' & Ts=Ts' & B=B' & X=X'";
-by (etac kerberos_ban.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by Safe_tac;
-(*Kb2: it can't be a new key*)
-by (expand_case_tac "K = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-by (blast_tac (claset() delrules [conjI]) 1);
-val lemma = result();
-
-(*In messages of this form, the session key uniquely identifies the rest*)
 Goal "[| Says Server A                                    \
 \          (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) : set evs; \ 
 \        Says Server A'                                   \
 \         (Crypt (shrK A') {|Number Ts', Agent B', Key K, X'|}) : set evs;\
 \        evs : kerberos_ban |] ==> A=A' & Ts=Ts' & B=B' & X = X'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Kb2: it can't be a new key*)
+by (Blast_tac 1);
 qed "unique_session_keys";
 
 

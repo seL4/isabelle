@@ -169,26 +169,15 @@ qed "analz_insert_freshK";
 
 (*** The Key K uniquely identifies the Server's  message. **)
 
-Goal "evs : otway ==>                                                  \
-\     EX B' NA' NB' X'. ALL B NA NB X.                                 \
-\     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs -->  \
-\     B=B' & NA=NA' & NB=NB' & X=X'";
-by (etac otway.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by (ALLGOALS Clarify_tac);
-(*Remaining cases: OR3 and OR4*)
-by (ex_strip_tac 2);
-by (Best_tac 2);	(*Blast_tac's too slow (in reconstruction)*)
-by (expand_case_tac "K = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-(*...we assume X is a recent message, and handle this case by contradiction*)
-by (blast_tac (claset() addSEs knows_Spy_partsEs) 1);
-val lemma = result();
-
 Goal "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   : set evs; \ 
 \        Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} : set evs; \
 \        evs : otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac otway.induct 1);
+by (ALLGOALS Asm_simp_tac);
+(*Remaining cases: OR3 and OR4*)
+by (REPEAT (Blast_tac 1)); 
 qed "unique_session_keys";
 
 
@@ -216,23 +205,15 @@ qed"Crypt_imp_OR1_Gets";
 
 (** The Nonce NA uniquely identifies A's message. **)
 
-Goal "[| evs : otway; A ~: bad |]               \
-\ ==> EX B'. ALL B.                                 \
-\        Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (knows Spy evs) \
-\        --> B = B'";
-by (parts_induct_tac 1);
-by (Blast_tac 1);
-by (simp_tac (simpset() addsimps [all_conj_distrib]) 1); 
-(*OR1: creation of new Nonce.  Move assertion into global context*)
-by (expand_case_tac "NA = ?y" 1);
-by (Blast_tac 1);
-val lemma = result();
-
 Goal "[| Crypt (shrK A) {|NA, Agent A, Agent B|}: parts (knows Spy evs); \
 \        Crypt (shrK A) {|NA, Agent A, Agent C|}: parts (knows Spy evs); \
 \        evs : otway;  A ~: bad |]                                   \
 \     ==> B = C";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Fake, OR1*)
+by (REPEAT (Blast_tac 1)); 
 qed "unique_NA";
 
 
@@ -363,23 +344,15 @@ qed "Crypt_imp_OR2";
 
 (** The Nonce NB uniquely identifies B's  message. **)
 
-Goal "[| evs : otway; B ~: bad |]  \
-\ ==> EX NA' A'. ALL NA A.            \
-\      Crypt (shrK B) {|NA, NB, Agent A, Agent B|} : parts(knows Spy evs) \
-\      --> NA = NA' & A = A'";
-by (parts_induct_tac 1);
-by (Blast_tac 1);
-by (simp_tac (simpset() addsimps [all_conj_distrib]) 1); 
-(*OR2: creation of new Nonce.  Move assertion into global context*)
-by (expand_case_tac "NB = ?y" 1);
-by (Blast_tac 1);
-val lemma = result();
-
 Goal "[| Crypt (shrK B) {|NA, NB, Agent A, Agent B|} : parts(knows Spy evs); \
 \        Crypt (shrK B) {|NC, NB, Agent C, Agent B|} : parts(knows Spy evs); \
 \          evs : otway;  B ~: bad |]             \
 \        ==> NC = NA & C = A";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Fake, OR2*)
+by (REPEAT (Blast_tac 1)); 
 qed "unique_NB";
 
 (*If the encrypted message appears, and B has used Nonce NB,
@@ -401,15 +374,7 @@ by (Blast_tac 1);
 (*OR4*)
 by (blast_tac (claset() addSDs [Crypt_imp_OR2]) 2);
 (*OR3*)
-(*Provable in 38s by the single command
-    by (blast_tac (claset() addDs  [unique_NB] addEs[nonce_OR1_OR2_E]) 1);
-*)
-by (safe_tac (claset() delrules [disjCI, impCE]));
-by (Blast_tac 3); 
-by (blast_tac (claset() addSDs  [unique_NB]
-                        delrules [impCE] (*stop split-up*)) 2);
-by (blast_tac (claset() addSEs [nonce_OR1_OR2_E]
-                        delrules [conjI] (*stop split-up*)) 1);
+by (blast_tac (claset() addDs  [unique_NB] addEs [nonce_OR1_OR2_E]) 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
 
 

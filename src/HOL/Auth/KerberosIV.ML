@@ -358,7 +358,7 @@ Goal "[| Says Tgs' A (Crypt AuthKey \
 \                 Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|})  \
 \          | ServTicket : analz (spies evs)";
 by (case_tac "Key AuthKey : analz (spies evs)" 1);
-by (force_tac (claset() addSDs [Says_imp_spies RS analz.Inj], simpset()) 1);
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]) 1); 
 by (forward_tac [Says_imp_spies RS parts.Inj] 1);
 by (blast_tac (claset() addSDs [ServTicket_form]) 1);
 qed "Says_tgs_message_form";
@@ -370,43 +370,21 @@ qed "Says_tgs_message_form";
 (* The session key, if secure, uniquely identifies the Ticket
    whether AuthTicket or ServTicket. As a matter of fact, one can read
    also Tgs in the place of B.                                     *)
-Goal "evs : kerberos ==>                                        \
-\     Key SesKey ~: analz (spies evs) -->   \
-\     (EX A B T. ALL A' B' T'.                          \
-\      Crypt (shrK B') {|Agent A', Agent B', Key SesKey, T'|}    \
-\        : parts (spies evs) --> A'=A & B'=B & T'=T)";
-by (parts_induct_tac 1);
-by (REPEAT (etac (exI RSN (2,exE)) 1)   (*stripping EXs makes proof faster*)
-    THEN Fake_parts_insert_tac 1);
-by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1); 
-by (expand_case_tac "SesKey = ?y" 1);
-by (blast_tac (claset() addSEs spies_partsEs) 1);
-by (expand_case_tac "SesKey = ?y" 1);
-by (blast_tac (claset() addSEs spies_partsEs) 1);
-val lemma = result();
 
 Goal "[| Crypt (shrK B)  {|Agent A,  Agent B,  Key SesKey, T|}        \
 \          : parts (spies evs);            \
 \        Crypt (shrK B') {|Agent A', Agent B', Key SesKey, T'|}     \
-\          : parts (spies evs);            \
-\        evs : kerberos;  Key SesKey ~: analz (spies evs) |]  \
+\          : parts (spies evs);  Key SesKey ~: analz (spies evs);   \
+\        evs : kerberos |]  \
 \     ==> A=A' & B=B' & T=T'";
-by (prove_unique_tac lemma 1);
-qed "unique_CryptKey";
-
-Goal "evs : kerberos \
-\     ==> Key SesKey ~: analz (spies evs) -->   \
-\         (EX K' B' T' Ticket'. ALL K B T Ticket.                          \
-\          Crypt K {|Key SesKey, Agent B, T, Ticket|}    \
-\            : parts (spies evs) --> K=K' & B=B' & T=T' & Ticket=Ticket')";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (REPEAT (etac (exI RSN (2,exE)) 1) THEN Fake_parts_insert_tac 1);
-by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1); 
-by (expand_case_tac "SesKey = ?y" 1);
-by (blast_tac (claset() addSEs spies_partsEs) 1);
-by (expand_case_tac "SesKey = ?y" 1);
-by (blast_tac (claset() addSEs spies_partsEs) 1);
-val lemma = result();
+(*Fake, K2, K4*)
+by (Fake_parts_insert_tac 1);
+by (REPEAT (blast_tac (claset() addSEs knows_Spy_partsEs) 1)); 
+qed "unique_CryptKey";
 
 (*An AuthKey is encrypted by one and only one Shared key.
   A ServKey is encrypted by one and only one AuthKey.
@@ -414,10 +392,16 @@ val lemma = result();
 Goal "[| Crypt K  {|Key SesKey,  Agent B, T, Ticket|}        \
 \          : parts (spies evs);            \
 \        Crypt K' {|Key SesKey,  Agent B', T', Ticket'|}     \
-\          : parts (spies evs);            \
-\        evs : kerberos;  Key SesKey ~: analz (spies evs) |]  \
+\          : parts (spies evs);  Key SesKey ~: analz (spies evs);            \
+\        evs : kerberos |]  \
 \     ==> K=K' & B=B' & T=T' & Ticket=Ticket'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*Fake, K2, K4*)
+by (Fake_parts_insert_tac 1);
+by (REPEAT (blast_tac (claset() addSEs knows_Spy_partsEs) 1)); 
 qed "Key_unique_SesKey";
 
 
@@ -439,50 +423,29 @@ qed "Key_unique_SesKey";
   would fail on the K2 and K4 cases.
 *)
 
-(* AuthKey uniquely identifies the message from Kas *)
-Goal "evs : kerberos ==>                                        \
-\      EX A' Ka' Tk' X'. ALL A Ka Tk X.                          \
-\        Says Kas A (Crypt Ka {|Key AuthKey, Agent Tgs, Tk, X|})  \
-\          : set evs --> A=A' & Ka=Ka' & Tk=Tk' & X=X'";
-by (etac kerberos.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by (Step_tac 1);
-(*K2: it can't be a new key*)
-by (expand_case_tac "AuthKey = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-by (blast_tac (claset() delrules [conjI]   (*prevent split-up into 4 subgoals*)
-                      addSEs spies_partsEs) 1);
-val lemma = result();
-
 Goal "[| Says Kas A                                          \
 \             (Crypt Ka {|Key AuthKey, Agent Tgs, Tk, X|}) : set evs;     \ 
 \        Says Kas A'                                         \
 \             (Crypt Ka' {|Key AuthKey, Agent Tgs, Tk', X'|}) : set evs;   \
 \        evs : kerberos |] ==> A=A' & Ka=Ka' & Tk=Tk' & X=X'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*K2*)
+by (blast_tac (claset() addSEs knows_Spy_partsEs) 1); 
 qed "unique_AuthKeys";
 
 (* ServKey uniquely identifies the message from Tgs *)
-Goal "evs : kerberos ==>                                        \
-\      EX A' B' AuthKey' Tk' X'. ALL A B AuthKey Tk X.                     \
-\        Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tk, X|})  \
-\          : set evs --> A=A' & B=B' & AuthKey=AuthKey' & Tk=Tk' & X=X'";
-by (etac kerberos.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-by (Step_tac 1);
-(*K4: it can't be a new key*)
-by (expand_case_tac "ServKey = ?y" 1);
-by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-by (blast_tac (claset() delrules [conjI]   (*prevent split-up into 4 subgoals*)
-                      addSEs spies_partsEs) 1);
-val lemma = result();
-
 Goal "[| Says Tgs A                                             \
 \             (Crypt K {|Key ServKey, Agent B, Tt, X|}) : set evs; \ 
 \        Says Tgs A'                                                 \
 \             (Crypt K' {|Key ServKey, Agent B', Tt', X'|}) : set evs; \
 \        evs : kerberos |] ==> A=A' & B=B' & K=K' & Tt=Tt' & X=X'";
-by (prove_unique_tac lemma 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+(*K4*)
+by (blast_tac (claset() addSEs knows_Spy_partsEs) 1); 
 qed "unique_ServKeys";
 
 

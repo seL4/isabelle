@@ -367,7 +367,7 @@ by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "analz_mono";
 
-val analz_insertI = impOfSubs (subset_insertI RS analz_mono);
+bind_thm ("analz_insertI", impOfSubs (subset_insertI RS analz_mono));
 
 (** General equational properties **)
 
@@ -847,7 +847,7 @@ val pushCrypts = map (insComm thy "Crypt ?X ?K")
 		      "Hash ?X'", "MPair ?X' ?Y"];
 
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
-val pushes = pushKeys@pushCrypts;
+bind_thms ("pushes", pushKeys@pushCrypts);
 
 
 (*** Tactics useful for many protocol proofs ***)
@@ -899,20 +899,6 @@ fun spy_analz_tac i =
        Simp_tac 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac 1)]) i);
-
-
-(** Useful in many uniqueness proofs **)
-fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
-                     assume_tac (i+1);
-
-(*Apply the EX-ALL quantification to prove uniqueness theorems in 
-  their standard form*)
-fun prove_unique_tac lemma = 
-  EVERY' [dtac lemma,
-          REPEAT o (mp_tac ORELSE' eresolve_tac [asm_rl,exE]),
-          (*Duplicate the assumption*)
-          forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl,
-          Blast.depth_tac (claset() addSDs [spec]) 0];
 
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
