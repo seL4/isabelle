@@ -67,7 +67,7 @@ form.
 
 Both functions are defined recursively. The equations for \texttt{app} and
 \texttt{rev} hardly need comments: \texttt{app} appends two lists and
-\texttt{rev} reverses a list.  The keyword \texttt{primrec} indicates that
+\texttt{rev} reverses a list.  The keyword \ttindex{primrec} indicates that
 the recursion is of a particularly primitive kind where each recursive call
 peels off a datatype constructor from one of the arguments (see
 \S\ref{sec:datatype}).  Thus the recursion always terminates, i.e.\ the
@@ -104,7 +104,7 @@ consts "end" :: 'a list => 'a
 To lessen this burden, quotation marks around types can be dropped,
 provided their syntax does not go beyond what is described in
 \S\ref{sec:TypesTermsForms}. Types containing further operators, e.g.\
-\texttt{*} for Cartesian products, need quotation marks.
+\label{startype} \texttt{*} for Cartesian products, need quotation marks.
 
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \bfindex{inner syntax}.
@@ -394,7 +394,7 @@ definitions.
 
 Functions on datatypes are usually defined by recursion. In fact, most of the
 time they are defined by what is called \bfindex{primitive recursion}.
-The keyword \texttt{primrec} is followed by a list of equations
+The keyword \ttindexbold{primrec} is followed by a list of equations
 \[ f \, x@1 \, \dots \, (C \, y@1 \, \dots \, y@k)\, \dots \, x@n = r \]
 such that $C$ is a constructor of the datatype $t$ and all recursive calls of
 $f$ in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$. Thus
@@ -1242,6 +1242,351 @@ merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.
 
+
+\section{Advanced datatypes}
+\index{*datatype|(}
+\index{*primrec|(}
+
+\subsection{Mutual recursion}
+
+Sometimes it is necessary to define two datatypes that depend on each
+other. This is called \textbf{mutual recursion}. As an example consider a
+language of arithmetic and boolean expressions where
+\begin{itemize}
+\item arithmetic expressions contain boolean expressions because there are
+  conditional arithmetic expressions like ``if $m<n$ then $n-m$ else $m-n$'',
+  and
+\item boolean expressions contain arithmetic expressions because of
+  comparisons like ``$m<n$''.
+\end{itemize}
+In Isabelle this becomes
+\begin{ttbox}
+\input{Datatype/abdata}\end{ttbox}\indexbold{*and}
+Type \texttt{aexp} is similar to \texttt{expr} in \S\ref{sec:ExprCompiler},
+except that we have fixed the values to be of type \texttt{nat} and that we
+have fixed the two binary operations \texttt{Sum} and \texttt{Diff}. Boolean
+expressions can be arithmetic comparisons, conjunctions and negations.
+The semantics is fixed via two evaluation functions
+\begin{ttbox}
+\input{Datatype/abconstseval}\end{ttbox}
+that take an environment (a mapping from variables \texttt{'a} to values
+\texttt{nat}) and an expression and return its arithmetic/boolean
+value. Since the datatypes are mutually recursive, so are functions that
+operate on them. Hence they need to be defined in a single \texttt{primrec}
+section:
+\begin{ttbox}
+\input{Datatype/abevala}
+\input{Datatype/abevalb}\end{ttbox}
+
+%In general, given $n$ mutually recursive datatypes, whenever you define a
+%\texttt{primrec} function on one of them, Isabelle expects you to define $n$
+%(possibly mutually recursive) functions simultaneously.
+
+In the same fashion we also define two functions that perform substitution:
+\begin{ttbox}
+\input{Datatype/abconstssubst}\end{ttbox}
+The first argument is a function mapping variables to expressions, the
+substitution. It is applied to all variables in the second argument. As a
+result, the type of variables in the expression may change from \texttt{'a}
+to \texttt{'b}. Note that there are only arithmetic and no boolean variables.
+\begin{ttbox}
+\input{Datatype/absubsta}
+\input{Datatype/absubstb}\end{ttbox}
+
+Now we can prove a fundamental theorem about the interaction between
+evaluation and substitution: applying a substitution $s$ to an expression $a$
+and evaluating the result in an environment $env$ yields the same result as
+evaluation $a$ in the environment that maps every variable $x$ to the value
+of $s(x)$ under $env$. If you try to prove this separately for arithmetic or
+boolean expressions (by induction), you find that you always need the other
+theorem in the induction step. Therefore you need to state and prove both
+theorems simultaneously:
+\begin{quote}\small
+\verbatiminput{Datatype/abgoalind.ML}
+\end{quote}\indexbold{*mutual_induct_tac}
+The resulting 8 goals (one for each constructor) are proved in one fell swoop
+\texttt{by Auto_tac;}.
+
+In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
+Isabelle expects an inductive proof to start with a goal of the form
+\[ P@1(x@1)\ \texttt{\&}\ \dots\ \texttt{\&}\ P@n(x@n) \]
+where each variable $x@i$ is of type $\tau@i$. Induction is started by
+\begin{ttbox}
+by(mutual_induct_tac ["\(x@1\)",\(\dots\),"\(x@n\)"] \(k\));
+\end{ttbox}
+
+\begin{exercise}
+  Define a function \texttt{norma} of type \texttt{'a aexp => 'a aexp} that
+  replaces \texttt{IF}s with complex boolean conditions by nested
+  \texttt{IF}s where each condition is a \texttt{Less} --- \texttt{And} and
+  \texttt{Neg} should be eliminated completely. Prove that \texttt{norma}
+  preserves the value of an expression and that the result of \texttt{norma}
+  is really normal, i.e.\ no more \texttt{And}s and \texttt{Neg}s occur in
+  it.  ({\em Hint:} proceed as in \S\ref{sec:boolex}).
+\end{exercise}
+
+\subsection{Nested recursion}
+
+So far, all datatypes had the property that on the right-hand side of their
+definition they occurred only at the top-level, i.e.\ directly below a
+constructor. This is not the case any longer for the following model of terms
+where function symbols can be applied to a list of arguments:
+\begin{ttbox}
+\input{Datatype/tdata}\end{ttbox}
+Parameter \texttt{'a} is the type of variables and \texttt{'b} the type of
+function symbols.
+A mathematical term like $f(x,g(y))$ becomes \texttt{App f [Var x, App g
+  [Var y]]}, where \texttt{f}, \texttt{g}, \texttt{x}, \texttt{y} are
+suitable values, e.g.\ numbers or strings.
+
+What complicates the definition of \texttt{term} is the nested occurrence of
+\texttt{term} inside \texttt{list} on the right-hand side. In principle,
+nested recursion can be eliminated in favour of mutual recursion by unfolding
+the offending datatypes, here \texttt{list}. The result for \texttt{term}
+would be something like
+\begin{ttbox}
+\input{Datatype/tunfoldeddata}\end{ttbox}
+Although we do not recommend this unfolding to the user, this is how Isabelle
+deals with nested recursion internally. Strictly speaking, this information
+is irrelevant at the user level (and might change in the future), but it
+motivates why \texttt{primrec} and induction work for nested types they way
+they do. We now return to the initial definition of \texttt{term} using
+nested recursion.
+
+Let us define a substitution function on terms. Because terms involve term
+lists, we need to define two substitution functions simultaneously:
+\begin{ttbox}
+\input{Datatype/tconstssubst}
+\input{Datatype/tsubst}
+\input{Datatype/tsubsts}\end{ttbox}
+Similarly, when proving a statement about terms inductively, we need
+to prove a related statement about term lists simultaneously. For example,
+the fact that the identity substitution does not change a term needs to be
+strengthened and proved as follows:
+\begin{quote}\small
+\verbatiminput{Datatype/tidproof.ML}
+\end{quote}
+Note that \texttt{Var} is the identity substitution because by definition it
+leaves variables unchanged: \texttt{subst Var (Var $x$) = Var $x$}. Note also
+that the type annotations are necessary because otherwise there is nothing in
+the goal to enforce that both halfs of the goal talk about the same type
+parameters \texttt{('a,'b)}. As a result, induction would fail
+because the two halfs of the goal would be unrelated.
+
+\begin{exercise}
+Substitution distributes over composition can be expressed roughly as
+follows:
+\begin{ttbox}
+subst (f o g) t = subst f (subst g t)
+\end{ttbox}
+Correct this statement (you will find that it does not type-check),
+strengthen it and prove it. (Note: \texttt{o} is function composition; its
+definition is found in the theorem \texttt{o_def}).
+\end{exercise}
+
+If you feel that the \texttt{App}-equation in the definition of substitution
+is overly complicated, you are right: the simpler
+\begin{ttbox}
+\input{Datatype/appmap}\end{ttbox}
+would have done the job. Unfortunately, Isabelle insists on the more verbose
+equation given above. Nevertheless, we can easily {\em prove} that the
+\texttt{map}-equation holds: simply by induction on \texttt{ts} followed by
+\texttt{Auto_tac}.
+
+%FIXME: forward pointer to section where better induction principles are
+%derived?
+
+\begin{exercise}
+  Define a function \texttt{rev_term} of type \texttt{term -> term} that
+  recursively reverses the order of arguments of all function symbols in a
+  term. Prove that \texttt{rev_term(rev_term t) = t}.
+\end{exercise}
+
+Of course, you may also combine mutual and nested recursion as in the
+following example
+\begin{ttbox}
+\input{Datatype/mutnested}\end{ttbox}
+taken from an operational semantics of applied lambda terms. Note that double
+quotes are required around the type involving \texttt{*}, as explained on
+page~\pageref{startype}.
+
+\subsection{The limits of nested recursion}
+
+How far can we push nested recursion? By the unfolding argument above, we can
+reduce nested to mutual recursion provided the nested recursion only involves
+previously defined datatypes. Isabelle is a bit more generous and also permits
+products as in the \texttt{data} example above.
+However, functions are most emphatically not allowed:
+\begin{ttbox}
+datatype t = C (t => bool)
+\end{ttbox}
+is a real can of worms: in HOL it must be ruled out because it requires a
+type \texttt{t} such that \texttt{t} and its power set \texttt{t => bool}
+have the same cardinality---an impossibility.
+In theory, we could allow limited forms of recursion involving function
+spaces. For example
+\begin{ttbox}
+datatype t = C (nat => t) | D
+\end{ttbox}
+is unproblematic. However, Isabelle does not support recursion involving
+\texttt{=>} at all at the moment.
+
+For a theoretical analysis of what kinds of datatypes are feasible in HOL
+see, for example,~\cite{Gunter-HOL92}. There are alternatives to pure HOL:
+LCF~\cite{Paulson-LCF} is a logic where types like
+\begin{ttbox}
+datatype t = C (t -> t)
+\end{ttbox}
+makes enormous sense (note the intentionally different arrow \texttt{->}!).
+There is even a version of LCF on top of HOL, called
+HOLCF~\cite{MuellerNvOS98}.
+
+\index{*primrec|)}
+\index{*datatype|)}
+
+\subsection{Case study: Tries}
+
+Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
+indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
+trie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and
+``cat''.  When searching a string in a trie, the letters of the string are
+examined sequentially. Each letter determines which subtrie to search next.
+In this case study we model tries as a datatype, define a lookup and an
+update function, and prove that they behave as expected.
+
+\begin{figure}[htbp]
+\begin{center}
+\unitlength1mm
+\begin{picture}(60,30)
+\put( 5, 0){\makebox(0,0)[b]{l}}
+\put(25, 0){\makebox(0,0)[b]{e}}
+\put(35, 0){\makebox(0,0)[b]{n}}
+\put(45, 0){\makebox(0,0)[b]{r}}
+\put(55, 0){\makebox(0,0)[b]{t}}
+%
+\put( 5, 9){\line(0,-1){5}}
+\put(25, 9){\line(0,-1){5}}
+\put(44, 9){\line(-3,-2){9}}
+\put(45, 9){\line(0,-1){5}}
+\put(46, 9){\line(3,-2){9}}
+%
+\put( 5,10){\makebox(0,0)[b]{l}}
+\put(15,10){\makebox(0,0)[b]{n}}
+\put(25,10){\makebox(0,0)[b]{p}}
+\put(45,10){\makebox(0,0)[b]{a}}
+%
+\put(14,19){\line(-3,-2){9}}
+\put(15,19){\line(0,-1){5}}
+\put(16,19){\line(3,-2){9}}
+\put(45,19){\line(0,-1){5}}
+%
+\put(15,20){\makebox(0,0)[b]{a}}
+\put(45,20){\makebox(0,0)[b]{c}}
+%
+\put(30,30){\line(-3,-2){13}}
+\put(30,30){\line(3,-2){13}}
+\end{picture}
+\end{center}
+\caption{A sample trie}
+\label{fig:trie}
+\end{figure}
+
+Proper tries associates some value with each string. Since the
+information is stored only in the final node associated with the string, many
+nodes do not carry any value. This distinction is captured by the
+following predefined datatype:
+\begin{ttbox}
+datatype 'a option = None | Some 'a
+\end{ttbox}
+
+To minimize running time, each node of a trie should contain an array that maps
+letters to subtries. We have chose a more space efficient representation
+where the subtries are held in an association list, i.e.\ a list of
+(letter,trie) pairs.  Abstracting over the alphabet \texttt{'a} and the
+values \texttt{'v} we define a trie as follows:
+\begin{ttbox}
+\input{Datatype/trie}\end{ttbox}
+The first component is the optional value, the second component the
+association list of subtries. We define two corresponding selector functions:
+\begin{ttbox}
+\input{Datatype/triesels}\end{ttbox}
+Association lists come with a generic lookup function:
+\begin{ttbox}
+\input{Datatype/assoc}\end{ttbox}
+
+Now we can define the lookup function for tries. It descends into the trie
+examining the letters of the search string one by one. As
+recursion on lists is simpler than on tries, let us express this as primitive
+recursion on the search string argument:
+\begin{ttbox}
+\input{Datatype/lookup}\end{ttbox}
+As a first simple property we prove that looking up a string in the empty
+trie \texttt{Trie~None~[]} always returns \texttt{None}. The proof merely
+distinguishes the two cases whether the search string is empty or not:
+\begin{ttbox}
+\input{Datatype/lookupempty.ML}\end{ttbox}
+This lemma is added to the simpset as usual.
+
+Things begin to get interesting with the definition of an update function
+that adds a new (string,value) pair to a trie, overwriting the old value
+associated with that string:
+\begin{ttbox}
+\input{Datatype/update}\end{ttbox}
+The base case is obvious. In the recursive case the subtrie
+\texttt{tt} associated with the first letter \texttt{a} is extracted,
+recursively updated, and then placed in front of the association list.
+The old subtrie associated with \texttt{a} is still in the association list
+but no longer accessible via \texttt{assoc}. Clearly, there is room here for
+optimizations!
+
+Our main goal is to prove the correct interaction of \texttt{update} and
+\texttt{lookup}:
+\begin{quote}\small
+\verbatiminput{Datatype/triemain.ML}
+\end{quote}
+Our plan will be to induct on \texttt{as}; hence the remaining variables are
+quantified. From the definitions it is clear that induction on either
+\texttt{as} or \texttt{bs} is required. The choice of \texttt{as} is merely
+guided by the intuition that simplification of \texttt{lookup} might be easier
+if \texttt{update} has already been simplified, which can only happen if
+\texttt{as} is instantiated.
+The start of the proof is completely conventional:
+\begin{ttbox}
+\input{Datatype/trieinduct.ML}\end{ttbox}
+Unfortunately, this time we are left with three intimidating looking subgoals:
+\begin{ttbox}
+{\out 1. ... ==> ... lookup (...) bs = lookup t bs}
+{\out 2. ... ==> ... lookup (...) bs = lookup t bs}
+{\out 3. ... ==> ... lookup (...) bs = lookup t bs}
+\end{ttbox}
+Clearly, if we want to make headway we have to instantiate \texttt{bs} as
+well now. It turns out that instead of induction, case distinction
+suffices:
+\begin{ttbox}
+\input{Datatype/trieexhaust.ML}\end{ttbox}
+The {\em tactical} \texttt{ALLGOALS} merely applies the tactic following it
+to all subgoals, which results in a total of six subgoals; \texttt{Auto_tac}
+solves them all.
+
+This proof may look surprisingly straightforward. The reason is that we
+have told the simplifier (without telling the reader) to expand all
+\texttt{let}s and to split all \texttt{case}-constructs over options before
+we started on the main goal:
+\begin{ttbox}
+\input{Datatype/trieAdds.ML}\end{ttbox}
+
+\begin{exercise}
+  Write an improved version of \texttt{update} that does not suffer from the
+  space leak in the version above. Prove the main theorem for your improved
+  \texttt{update}.
+\end{exercise}
+
+\begin{exercise}
+  Modify \texttt{update} so that it can also {\em delete} entries from a
+  trie. It is up to you if you want to shrink tries if possible. Prove (a
+  modified version of) the main theorem above.
+\end{exercise}
+
 \section{Total recursive functions}
 \label{sec:recdef}
 \index{*recdef|(}
@@ -1294,7 +1639,7 @@ recdef last "measure (\%xs. length xs)"
 
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:
-\begin{ttbox}
+v\begin{ttbox}
 recdef sep "measure (\%(a,xs). length xs)"
     "sep(a, x#y#zs) = x # a # sep(a,y#zs)"
     "sep(a, xs)     = xs"

@@ -4,7 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Misc
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Datatype HOL-Misc
 
 
 ## global settings
@@ -62,6 +62,32 @@ $(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/CodeGen.thy CodeGen/goal1.ML \
   CodeGen/goal2.ML CodeGen/simpsplit.ML CodeGen/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL CodeGen
 
+## HOL-Datatype
+
+HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
+
+Datatype/appmap.ML: Datatype/appmap
+	cat Datatype/goal Datatype/appmap Datatype/semi > Datatype/appmap.ML
+
+Datatype/ABexp.thy: Datatype/abprolog Datatype/abdata Datatype/abconstseval \
+  Datatype/abevala Datatype/abevalb Datatype/abconstssubst Datatype/absubsta\
+  Datatype/absubstb
+	cd Datatype; cat abprolog abdata abconstseval abevala abevalb abconstssubst absubsta absubstb end > ABexp.thy
+
+Datatype/Term.thy: Datatype/tprolog Datatype/mutnested Datatype/tdata \
+  Datatype/tconstssubst Datatype/tsubst Datatype/tsubsts
+	cd Datatype; cat tprolog mutnested tdata tconstssubst tsubst tsubsts end > Term.thy
+
+Datatype/Trie.thy: Datatype/trieprolog Datatype/assoc Datatype/trie \
+  Datatype/triesels Datatype/lookup Datatype/update
+	cd Datatype; cat trieprolog assoc trie triesels lookup update end > Trie.thy
+
+$(LOG)/HOL-Datatype.gz: $(OUT)/HOL \
+  Datatype/ABexp.thy Datatype/Term.thy Datatype/Trie.thy \
+  Datatype/ROOT.ML Datatype/abgoalind.ML Datatype/autotac.ML \
+  Datatype/tidproof.ML Datatype/appmap.ML Datatype/lookupempty.ML \
+  Datatype/trieAdds.ML Datatype/triemain.ML Datatype/trieinduct.ML Datatype/trieexhaust.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Datatype
 
 ## HOL-Misc
 
