@@ -17,8 +17,12 @@ Fibonacci numbers: proofs of laws taken from
     selectively at first.
 **)
 
-bind_thm ("fib_Suc_Suc", hd(rev fib.rules));
+val [fib_0, fib_1, fib_Suc_Suc] = fib.rules;
 
+Addsimps [fib_0, fib_1];
+
+
+val fib_Suc3 = read_instantiate [("x", "(Suc ?n)")] fib_Suc_Suc;
 
 (*Concrete Mathematics, page 280*)
 goal thy "fib (Suc (n + k)) = fib(Suc k) * fib(Suc n) + fib k * fib n";
@@ -28,23 +32,23 @@ by (asm_full_simp_tac
     (simpset() addsimps [read_instantiate[("x","Suc(?m+?n)")] fib_Suc_Suc]) 3);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps 
-		   (fib.rules @ add_ac @ mult_ac @
-		    [add_mult_distrib, add_mult_distrib2]))));
+		   ([] @ add_ac @ mult_ac @
+		    [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2]))));
 qed "fib_add";
 
 
 goal thy "fib (Suc n) ~= 0";
 by (res_inst_tac [("u","n")] fib.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps fib.rules)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [fib_Suc_Suc])));
 qed "fib_Suc_neq_0";
-Addsimps [fib_Suc_neq_0];
 
-goal thy "0 < fib (Suc n)";
-by (res_inst_tac [("u","n")] fib.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps fib.rules)));
-qed "fib_Suc_gr_0";
-Addsimps [fib_Suc_gr_0];
+(* Also add  0 < fib (Suc n) *)
+Addsimps [fib_Suc_neq_0, [neq0_conv, fib_Suc_neq_0] MRS iffD1];
 
+goal thy "!!n. 0<n ==> 0 < fib n";
+br (not0_implies_Suc RS exE) 1;
+auto();
+qed "fib_gr_0";
 
 
 (*Concrete Mathematics, page 278: Cassini's identity*)
@@ -55,16 +59,58 @@ by (res_inst_tac [("u","n")] fib.induct 1);
 by (res_inst_tac [("P", "%z. ?ff(x) * z = ?kk(x)")] (fib_Suc_Suc RS ssubst) 3);
 by (stac (read_instantiate [("x", "Suc(Suc ?n)")] fib_Suc_Suc) 3);
 by (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 3);
-by (stac (read_instantiate [("x", "Suc ?n")] fib_Suc_Suc) 3);
-by (ALLGOALS  (*using fib.rules here results in a longer proof!*)
+by (stac fib_Suc3 3);
+by (ALLGOALS  (*using [fib_Suc_Suc] here results in a longer proof!*)
     (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
 				       mod_less, mod_Suc])));
 by (ALLGOALS
     (asm_full_simp_tac
-     (simpset() addsimps (fib.rules @ add_ac @ mult_ac @
-			 [add_mult_distrib, add_mult_distrib2, 
+     (simpset() addsimps ([] @ add_ac @ mult_ac @
+			 [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
 			  mod_less, mod_Suc]))));
 qed "fib_Cassini";
 
 
-(** exercise: prove gcd(fib m, fib n) = fib(gcd(m,n)) **)
+(** Towards Law 6.111 of Concrete Mathematics **)
+
+goal thy "gcd(fib n, fib (Suc n)) = 1";
+by (res_inst_tac [("u","n")] fib.induct 1);
+by (asm_simp_tac (simpset() addsimps [fib_Suc3, gcd_commute, gcd_add2]) 3);
+by (ALLGOALS (simp_tac (simpset() addsimps [fib_Suc_Suc])));
+qed "gcd_fib_Suc_eq_1"; 
+
+val gcd_fib_commute = 
+    read_instantiate_sg (sign_of thy) [("m", "fib m")] gcd_commute;
+
+goal thy "gcd(fib m, fib (n+m)) = gcd(fib m, fib n)";
+by (simp_tac (simpset() addsimps [gcd_fib_commute]) 1);
+by (case_tac "m=0" 1);
+by (Asm_simp_tac 1);
+by (clarify_tac (claset() addSDs [not0_implies_Suc]) 1);
+by (simp_tac (simpset() addsimps [fib_add]) 1);
+by (asm_simp_tac (simpset() addsimps [add_commute, gcd_non_0]) 1);
+by (asm_simp_tac (simpset() addsimps [gcd_non_0 RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [gcd_fib_Suc_eq_1, gcd_mult_cancel]) 1);
+qed "gcd_fib_add";
+
+goal thy "!!m. m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
+br (gcd_fib_add RS sym RS trans) 1;
+by (Asm_simp_tac 1);
+qed "gcd_fib_diff";
+
+goal thy "!!m. 0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
+by (res_inst_tac [("n","n")] less_induct 1);
+by (stac mod_if 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [gcd_fib_diff, mod_less, mod_geq, 
+				      not_less_iff_le, diff_less]) 1);
+qed "gcd_fib_mod";
+
+(*Law 6.111*)
+goal thy "fib(gcd(m,n)) = gcd(fib m, fib n)";
+by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
+by (case_tac "n=0" 1);
+by (Asm_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [gcd_non_0]) 1);
+by (asm_full_simp_tac (simpset() addsimps [gcd_commute, gcd_fib_mod]) 1);
+qed "fib_gcd";

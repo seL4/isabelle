@@ -13,8 +13,8 @@ set proof_timing;
 
 (**Some examples of recursive function definitions: the TFL package**)
 time_use_thy "Recdef";
-time_use_thy "Fib";
 time_use_thy "Primes";
+time_use_thy "Fib";
 time_use_thy "Primrec";
 
 time_use_thy "NatSum";
