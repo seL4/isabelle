@@ -182,7 +182,8 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/Library.thy Library/List_Prefix.thy Library/Multiset.thy \
   Library/Permutation.thy Library/Quotient.thy Library/Ring_and_Field.thy \
-  Library/Ring_and_Field_Example.thy Library/README.html \
+  Library/Ring_and_Field_Example.thy Library/Nat_Infinity.thy \
+  Library/README.html Library/Continuity.thy \
   Library/Nested_Environment.thy Library/Rational_Numbers.thy Library/ROOT.ML \
   Library/While_Combinator.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Library
