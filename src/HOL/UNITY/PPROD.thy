@@ -17,7 +17,7 @@ constdefs
     "drop_set i A == (%f. f i) `` A"
 
   lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
-    "lift_act i act == {(f,f'). EX s'. f' = f(i:=s') & (f i, s') : act}"
+    "lift_act i act == {(f,f'). f(i:= f' i) = f' & (f i, f' i) : act}"
 
   drop_act :: "['a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
     "drop_act i act == (%(f,f'). (f i, f' i)) `` act"
@@ -33,13 +33,13 @@ constdefs
 		   drop_act i `` (Acts F))"
 
   (*products of programs*)
-  PPROD  :: ['a set, 'a => 'b program] => ('a => 'b) program
-    "PPROD I F == JN i:I. lift_prog i (F i)"
+  PLam  :: ['a set, 'a => 'b program] => ('a => 'b) program
+    "PLam I F == JN i:I. lift_prog i (F i)"
 
 syntax
-  "@PPROD" :: [pttrn, 'a set, 'b set] => ('a => 'b) set ("(3PPI _:_./ _)" 10)
+  "@PLam" :: [pttrn, 'a set, 'b set] => ('a => 'b) set ("(3plam _:_./ _)" 10)
 
 translations
-  "PPI x:A. B"   == "PPROD A (%x. B)"
+  "plam x:A. B"   == "PLam A (%x. B)"
 
 end
