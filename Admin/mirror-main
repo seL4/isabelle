@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# $Id$
+#
+
+case $(hostname) in
+  sunbroy30)
+    DEST=/home/html/isabelle/html-data
+    ;;
+  foobar)
+    DEST=/foo/bar
+    ;;
+  *)
+    echo "Unknown destination directory!"
+    exit 2
+    ;;
+esac
+
+rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
+  sunbroy1.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/www/. $DEST/.
