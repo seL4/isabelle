@@ -112,26 +112,23 @@ fun join_assums th =
   val gen_all = S.gen_all
 in
 fun rfunction theory reducer R eqs = 
- let val _ = output(std_out, "Making definition..  ")
-     val _ = flush_out std_out
+ let val _ = prs "Making definition..  "
      val {rules,theory, full_pats_TCs,
           TCs,...} = Prim.gen_wfrec_definition theory {R=R,eqs=eqs} 
      val f = func_of_cond_eqn(concl(R.CONJUNCT1 rules handle _ => rules))
-     val _ = output(std_out, "Definition made.\n")
-     val _ = output(std_out, "Proving induction theorem..  ")
-     val _ = flush_out std_out
+     val _ = prs "Definition made.\n"
+     val _ = prs "Proving induction theorem..  "
      val ind = Prim.mk_induction theory f R full_pats_TCs
-     val _ = output(std_out, "Proved induction theorem.\n")
+     val _ = prs "Proved induction theorem.\n"
      val pp = std_postprocessor theory
-     val _ = output(std_out, "Postprocessing..  ")
-     val _ = flush_out std_out
+     val _ = prs "Postprocessing..  "
      val {rules,induction,nested_tcs} = pp{rules=rules,induction=ind,TCs=TCs}
      val normal_tcs = Prim.termination_goals rules
  in
  case nested_tcs
- of [] => (output(std_out, "Postprocessing done.\n");
+ of [] => (prs "Postprocessing done.\n";
            {theory=theory, induction=induction, rules=rules,tcs=normal_tcs})
-  | L  => let val _ = output(std_out, "Simplifying nested TCs..  ")
+  | L  => let val _ = prs "Simplifying nested TCs..  "
               val (solved,simplified,stubborn) =
                U.itlist (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -140,7 +137,7 @@ fun rfunction theory reducer R eqs =
               val simplified' = map join_assums simplified
               val induction' = reducer (solved@simplified') induction
               val rules' = reducer (solved@simplified') rules
-              val _ = output(std_out, "Postprocessing done.\n")
+              val _ = prs "Postprocessing done.\n"
           in
           {induction = induction',
                rules = rules',
@@ -165,13 +162,13 @@ end;
 local structure R = Prim.Rules
 in
 fun function theory eqs = 
- let val _ = output(std_out, "Making definition..  ")
+ let val _ = prs "Making definition..  "
      val {rules,R,theory,full_pats_TCs,...} = Prim.lazyR_def theory eqs
      val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-     val _ = output(std_out, "Definition made.\n")
-     val _ = output(std_out, "Proving induction theorem..  ")
+     val _ = prs "Definition made.\n"
+     val _ = prs "Proving induction theorem..  "
      val induction = Prim.mk_induction theory f R full_pats_TCs
-      val _ = output(std_out, "Induction theorem proved.\n")
+     val _ = prs "Induction theorem proved.\n"
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end

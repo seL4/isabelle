@@ -8,4 +8,5 @@ Should be executed in the subdirectory HOL.
 *)
 
 use"sys.sml";
-use_dir"examples/Subst";
+cd"examples/Subst";
+use"ROOT.ML";
