@@ -68,11 +68,6 @@ fun is_none (Some _) = false
 fun apsome f (Some x) = Some (f x)
   | apsome _ None = None;
 
-fun merge_opts _ (None, None) = None
-  | merge_opts _ (some as Some _, None) = some
-  | merge_opts _ (None, some as Some _) = some
-  | merge_opts merge (Some x, Some y) = Some (merge (x, y));
-
 (*handle partial functions*)
 fun can f x = (f x; true) handle _ => false;
 fun try f x = Some (f x) handle _ => None;
@@ -903,16 +898,15 @@ val charVec = Vector.tabulate (64, char);
 
 fun newid n = 
   let 
-  in  implode (map (fn i => Vector.sub(charVec,i)) (radixpand (64,n)))  end
+  in  implode (map (fn i => Vector.sub(charVec,i)) (radixpand (64,n)))  end;
 
-  val seedr = ref 0;
+val seedr = ref 0;
 
 in
+
 fun init_gensym() = (seedr := 0);
 
-fun gensym pre = pre ^ 
-                 (#1(newid (!seedr), 
-                     seedr := 1+ !seedr))
+fun gensym pre = pre ^ (#1(newid (!seedr), inc seedr));
 end;
 
 
