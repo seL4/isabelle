@@ -6,7 +6,7 @@ The concrete syntax of types (used to bootstrap Pure).
 
 TODO:
   term_of_typ: prune sorts
-  move "_K" (?)
+  move "_K", "_explode", "_implode"
 *)
 
 signature TYPE_EXT0 =
@@ -17,19 +17,19 @@ end;
 signature TYPE_EXT =
 sig
   include TYPE_EXT0
-  structure Extension: EXTENSION
-  local open Extension Extension.XGram.Ast in
+  structure SynExt: SYN_EXT
+  local open SynExt SynExt.Ast in
     val term_of_typ: bool -> typ -> term
     val tappl_ast_tr': ast * ast list -> ast
-    val type_ext: ext
+    val type_ext: syn_ext
   end
 end;
 
-functor TypeExtFun(structure Extension: EXTENSION and Lexicon: LEXICON): TYPE_EXT =
+functor TypeExtFun(structure Lexicon: LEXICON and SynExt: SYN_EXT): TYPE_EXT =
 struct
 
-structure Extension = Extension;
-open Extension Extension.XGram Extension.XGram.Ast Lexicon;
+structure SynExt = SynExt;
+open Lexicon SynExt SynExt.Ast;
 
 
 (** typ_of_term **)
@@ -170,32 +170,30 @@ val sortT = Type ("sort", []);
 val classesT = Type ("classes", []);
 val typesT = Type ("types", []);
 
-val type_ext =
-  Ext {
-    roots = [logic, "type"],
-    mfix = [
-      Mfix ("_",           tfreeT --> typeT,              "", [], max_pri),
-      Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
-      Mfix ("_",           idT --> typeT,                 "", [], max_pri),
-      Mfix ("_::_",        [tfreeT, sortT] ---> typeT,    "_ofsort", [max_pri, 0], max_pri),
-      Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
-      Mfix ("_",           idT --> sortT,                 "", [], max_pri),
-      Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
-      Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
-      Mfix ("_",           idT --> classesT,              "", [], max_pri),
-      Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
-      Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),  (* FIXME ambiguous *)
-      Mfix ("((1'(_'))_)", [typesT, idT] ---> typeT,      "_tappl", [], max_pri),           (* FIXME ambiguous *)
-      Mfix ("_",           typeT --> typesT,              "", [], max_pri),
-      Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
-      Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
-      Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0)],
-    extra_consts = ["_K"],
-    parse_ast_translation = [("_tapp", tappl_ast_tr), ("_tappl", tappl_ast_tr),
-      ("_bracket", bracket_ast_tr)],
-    parse_translation = [],
-    print_translation = [],
-    print_ast_translation = [("fun", fun_ast_tr')]};
+val type_ext = syn_ext
+  [logic, "type"]
+  [Mfix ("_",           tfreeT --> typeT,              "", [], max_pri),
+   Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
+   Mfix ("_",           idT --> typeT,                 "", [], max_pri),
+   Mfix ("_::_",        [tfreeT, sortT] ---> typeT,    "_ofsort", [max_pri, 0], max_pri),
+   Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
+   Mfix ("_",           idT --> sortT,                 "", [], max_pri),
+   Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
+   Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
+   Mfix ("_",           idT --> classesT,              "", [], max_pri),
+   Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
+   Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),  (* FIXME ambiguous *)
+   Mfix ("((1'(_'))_)", [typesT, idT] ---> typeT,      "_tappl", [], max_pri),           (* FIXME ambiguous *)
+   Mfix ("_",           typeT --> typesT,              "", [], max_pri),
+   Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
+   Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
+   Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0)]
+  ["_K", "_explode", "_implode"]
+  ([("_tapp", tappl_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
+   [],
+   [],
+   [("fun", fun_ast_tr')])
+  ([], []);
 
 
 end;
