@@ -14,7 +14,7 @@ rcp index.html www4:.html-data/isabelle
 rcp Tools/*.gif www4:.html-data/isabelle/Tools
 
 if ( "$*" == "" ) then
-  rcp -r CCL CTT Cube FOL FOLP HOL HOLCF LCF LK Modal ZF \
+  rcp -r CCL CTT Cube FOL FOLP HOL HOLCF LCF Sequents ZF \
          www4:.html-data/isabelle
 else
   rcp -r $* www4:.html-data/isabelle
