@@ -501,7 +501,10 @@ fun tha COMP thb =
 
 (** theorem equality **)
 
+(*True if the two theorems have the same signature.*)
 val eq_thm_sg = Sign.eq_sg o pairself Thm.sign_of_thm;
+
+(*True if the two theorems have the same prop field, ignoring hyps, der, etc.*)
 val eq_thm_prop = op aconv o pairself Thm.prop_of;
 
 (*Useful "distance" function for BEST_FIRST*)

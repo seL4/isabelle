@@ -337,7 +337,7 @@ val res_inst = gen_res_inst Tactic.res_inst_tac Tactic.resolve_tac;
 val eres_inst = gen_res_inst Tactic.eres_inst_tac Tactic.eresolve_tac;
 val dres_inst = gen_res_inst Tactic.dres_inst_tac Tactic.dresolve_tac;
 val forw_inst = gen_res_inst Tactic.forw_inst_tac Tactic.forward_tac;
-val cut_inst = gen_res_inst Tactic.cut_inst_tac Tactic.cut_facts_tac;
+val cut_inst = gen_res_inst Tactic.cut_inst_tac Tactic.cut_rules_tac;
 
 
 (* simple Prolog interpreter *)

@@ -291,10 +291,13 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 
 fun FILTER pred tac st = Seq.filter pred (tac st);
 
+(*Accept only next states that change the theorem somehow*)
 fun CHANGED tac st =
   let fun diff st' = not (Thm.eq_thm (st, st'));
   in Seq.filter diff (tac st) end;
 
+(*Accept only next states that change the theorem's prop field
+  (changes to signature, hyps, etc. don't count)*)
 fun CHANGED_PROP tac st =
   let fun diff st' = not (Drule.eq_thm_prop (st, st'));
   in Seq.filter diff (tac st) end;

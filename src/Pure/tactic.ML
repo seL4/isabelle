@@ -29,6 +29,7 @@ sig
                           int -> tactic
   val compose_tac       : (bool * thm * int) -> int -> tactic
   val cut_facts_tac     : thm list -> int -> tactic
+  val cut_rules_tac     : thm list -> int -> tactic
   val cut_inst_tac      : (string*string)list -> thm -> int -> tactic
   val datac             : thm -> int -> int -> tactic
   val defer_tac         : int -> tactic
@@ -346,9 +347,13 @@ fun is_fact rl =
     case prems_of rl of
         [] => true  |  _::_ => false;
 
-(*"Cut" all facts from theorem list into the goal as assumptions. *)
-fun cut_facts_tac ths i =
-    EVERY (map (fn th => metacut_tac th i) (filter is_fact ths));
+(*"Cut" a list of rules into the goal.  Their premises will become new
+  subgoals.*)
+fun cut_rules_tac ths i = EVERY (map (fn th => metacut_tac th i) ths);
+
+(*As above, but inserts only facts (unconditional theorems);
+  generates no additional subgoals. *)
+fun cut_facts_tac ths = cut_rules_tac  (filter is_fact ths);
 
 (*Introduce the given proposition as a lemma and subgoal*)
 fun subgoal_tac sprop =
