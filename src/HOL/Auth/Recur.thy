@@ -27,8 +27,8 @@ inductive "respond evs" (*Server's response to the nested message*)
              PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|};
              B ~= Server |]
           ==> (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|}, 
-               {|Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
-                 Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
+               {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
+                 Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
                  RA|},
                KBC)
               : respond evs"
@@ -80,8 +80,7 @@ inductive "recur lost"
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs : recur lost"
 
-         (*The Server receives and decodes Bob's message.  Then he generates
-           a new session key and a response.*)
+         (*The Server receives Bob's message and prepares a response.*)
     RA3  "[| evs: recur lost;  B ~= Server;
              Says B' Server PB : set_of_list evs;
              (PB,RB,K) : respond evs |]
@@ -90,11 +89,12 @@ inductive "recur lost"
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
     RA4  "[| evs: recur lost;  A ~= B;  
-             Says C' B {|Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
-                         Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, RA|}
-               : set_of_list evs;
              Says B  C {|XH, Agent B, Agent C, Nonce NB, 
                          XA, Agent A, Agent B, Nonce NA, P|} 
+               : set_of_list evs;
+             Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
+                         Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
+                         RA|}
                : set_of_list evs |]
           ==> Says B A RA # evs : recur lost"
 
