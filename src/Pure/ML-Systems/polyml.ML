@@ -29,7 +29,7 @@ fun endTiming before =
 
 (* prompts *)
 
-fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt1 := p2);
+fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
