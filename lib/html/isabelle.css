@@ -1,0 +1,28 @@
+/* css style file for generated Isabelle HTML output */
+
+body { background-color: #FFFFFF; }
+
+.tclass { color: red; }
+.tfree  { color: purple; }
+.tvar   { color: purple; }
+.free   { color: blue; }
+.bound  { color: green; }
+.var    { color: blue; }
+.xstr   { color: brown; }
+
+.name     { font-style: italic; }
+.keyword  { font-weight: bold; }
+.filename { font-family: fixed; }
+
+.head     { background-color: #FFFFFF; }
+.source   { background-color: #F0F0F0; padding: 10px; }
+.theorems { background-color: #E0E0E0; padding: 10px; }
+
+.mlsource { background-color: #F0F0F0; padding: 10px; }
+.mlfooter { background-color: #FFFFFF; }
+
+.theories { background-color: #F0F0F0; padding: 10px; }
+.sessions { background-color: #F0F0F0; padding: 10px; }
+
+/* hide hr for this style */
+hr { height: 0px; border: 0px; }
