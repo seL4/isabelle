@@ -78,6 +78,17 @@ AC_FILES = AC/ROOT.ML $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 AC:  $(BIN)/ZF  $(AC_FILES)
 	echo 'exit_use"AC/ROOT.ML";quit();' | $(LOGIC)
 
+##Residuals example
+
+RESID_NAMES = Confluence Redex SubUnion Conversion Reduction Substitution \
+              Cube Residuals Terms
+
+RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) \
+                            $(RESID_NAMES:%=Resid/%.ML)
+
+Resid:  $(BIN)/ZF  $(RESID_FILES)
+	echo 'exit_use"Resid/ROOT.ML";quit();' | $(LOGIC)
+
 ##Miscellaneous examples
 EX_NAMES = Ramsey Integ twos_compl Bin BT Term TF Ntree Brouwer Data Enum \
 	   Rmap PropLog ListN Acc Comb Primrec LList CoUnit 
@@ -89,7 +100,7 @@ ex:     $(BIN)/ZF  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
-test:   $(BIN)/ZF IMP Coind AC ex
+test:   $(BIN)/ZF IMP Coind AC Resid ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/ZF 
