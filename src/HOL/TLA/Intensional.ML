@@ -8,16 +8,19 @@ Lemmas and tactics for "intensional" logics.
 
 val intensional_rews = [unl_con,unl_lift,unl_lift2,unl_lift3,unl_Rall,unl_Rex,unl_Rex1];
 
-qed_goalw "inteq_reflection" Intensional.thy  [Valid_def,unl_lift2]
-  "|- x=y  ==>  (x==y)"
-  (fn [prem] => [rtac eq_reflection 1, rtac ext 1, rtac (prem RS spec) 1 ]);
+Goalw [Valid_def,unl_lift2] "|- x=y  ==>  (x==y)";
+by (rtac eq_reflection 1);
+by (rtac ext 1);
+by (etac spec 1);
+qed "inteq_reflection";
 
-qed_goalw "intI" Intensional.thy [Valid_def] "(!!w. w |= A) ==> |- A"
-  (fn [prem] => [REPEAT (resolve_tac [allI,prem] 1)]);
+val [prem] = goalw thy [Valid_def] "(!!w. w |= A) ==> |- A";
+by (REPEAT (resolve_tac [allI,prem] 1));
+qed "intI";
 
-qed_goalw "intD" Intensional.thy [Valid_def] "|- A ==> w |= A"
-  (fn [prem] => [rtac (prem RS spec) 1]);
-
+Goalw [Valid_def] "|- A ==> w |= A";
+by (etac spec 1);
+qed "intD";
 
 (** Lift usual HOL simplifications to "intensional" level. **)
 local
@@ -45,11 +48,12 @@ val int_simps = map prover
    "|- (P | P) = P", "|- (P | ~P) = #True", "|- (~P | P) = #True",
    "|- (! x. P) = P", "|- (? x. P) = P", 
    "|- (~Q --> ~P) = (P --> Q)",
-   "|- (P|Q --> R) = ((P-->R)&(Q-->R))" ];
+   "|- (P|Q --> R) = ((P-->R)&(Q-->R))" ]
 end;
 
-qed_goal "TrueW" Intensional.thy "|- #True"
-  (fn _ => [simp_tac (simpset() addsimps [Valid_def,unl_con]) 1]);
+Goal "|- #True";
+by (simp_tac (simpset() addsimps [Valid_def,unl_con]) 1);
+qed "TrueW";
 
 Addsimps (TrueW::intensional_rews);
 Addsimps int_simps;
@@ -109,33 +113,13 @@ fun int_use th =
               ((flatten (int_unlift th)) handle _ => th)
     | _ => th;
 
-(***
-(* Make the simplifier accept "intensional" goals by either turning them into
-   a meta-equality or by unlifting them.
-*)
-
-let 
-  val ss = simpset_ref()
-  fun try_rewrite th = (int_rewrite th) handle _ => (int_use th) handle _ => th
-in 
-  ss := !ss setmksimps ((mksimps mksimps_pairs) o try_rewrite)
-end;
-***)
-
 (* ========================================================================= *)
 
-qed_goal "Not_Rall" Intensional.thy
-   "|- (~(! x. F x)) = (? x. ~F x)"
-   (fn _ => [simp_tac (simpset() addsimps [Valid_def]) 1]);
+Goalw [Valid_def] "|- (~(! x. F x)) = (? x. ~F x)";
+by (Simp_tac 1);
+qed "Not_Rall";
 
-qed_goal "Not_Rex" Intensional.thy
-   "|- (~ (? x. F x)) = (! x. ~ F x)"
-   (fn _ => [simp_tac (simpset() addsimps [Valid_def]) 1]);
+Goalw [Valid_def] "|- (~ (? x. F x)) = (! x. ~ F x)";
+by (Simp_tac 1);
+qed "Not_Rex";
 
-(* IntLemmas.ML contains a collection of further lemmas about "intensional" logic.
-   These are not loaded by default because they are not required for the
-   standard proof procedures that first unlift proof goals to the HOL level.
-
-use "IntLemmas.ML";
-
-*)

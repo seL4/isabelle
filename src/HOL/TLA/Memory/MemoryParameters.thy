@@ -12,18 +12,7 @@
 MemoryParameters = Datatype + RPCMemoryParams +
 
 (* the memory operations *)
-(***
-datatype  Rd = read
-datatype  Wr = write
-***)
-
 datatype memOp = read Locs | write Locs Vals
-
-(***
-types
-  (* legal arguments for the memory *)
-  memArgType = "(Rd * Locs) + (Wr * Locs * Vals)"
-***)
 
 consts
   (* memory locations and contents *)

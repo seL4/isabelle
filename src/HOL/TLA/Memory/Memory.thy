@@ -74,7 +74,7 @@ rules
                          & (GoodRead mm rs p l  |  BadRead mm rs p l)
                          & unchanged (rtrner ch ! p)"
   (* the read action with l quantified *)
-  Read_def          "Read ch mm rs p == ACT (? l. ReadInner ch mm rs p l)"
+  Read_def          "Read ch mm rs p == ACT (EX l. ReadInner ch mm rs p l)"
 
   (* similar definitions for the write action *)
   GoodWrite_def     "GoodWrite mm rs p l v == ACT
@@ -87,7 +87,7 @@ rules
                         $(WrRequest ch p l v)
                         & (GoodWrite mm rs p l v  |  BadWrite mm rs p l v)
                         & unchanged (rtrner ch ! p)"
-  Write_def         "Write ch mm rs p l == ACT (? v. WriteInner ch mm rs p l v)"
+  Write_def         "Write ch mm rs p l == ACT (EX v. WriteInner ch mm rs p l v)"
 
   (* the return action *)
   MemReturn_def     "MemReturn ch rs p == ACT
@@ -103,7 +103,7 @@ rules
   (* next-state relations for reliable / unreliable memory *)
   RNext_def         "RNext ch mm rs p == ACT 
                        (  Read ch mm rs p
-                        | (? l. Write ch mm rs p l)
+                        | (EX l. Write ch mm rs p l)
                         | MemReturn ch rs p)"
   UNext_def         "UNext ch mm rs p == ACT
                         (RNext ch mm rs p | MemFail ch rs p)"
@@ -120,13 +120,13 @@ rules
                         & WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
   MSpec_def         "MSpec ch mm rs l == TEMP
                         Init(MInit mm l)
-                        & [][ ? p. Write ch mm rs p l ]_(mm!l)"
+                        & [][ EX p. Write ch mm rs p l ]_(mm!l)"
   IRSpec_def        "IRSpec ch mm rs == TEMP
-                        (! p. RPSpec ch mm rs p)
-                        & (! l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        (ALL p. RPSpec ch mm rs p)
+                        & (ALL l. #l : #MemLoc --> MSpec ch mm rs l)"
   IUSpec_def        "IUSpec ch mm rs == TEMP
-                        (! p. UPSpec ch mm rs p)
-                        & (! l. #l : #MemLoc --> MSpec ch mm rs l)"
+                        (ALL p. UPSpec ch mm rs p)
+                        & (ALL l. #l : #MemLoc --> MSpec ch mm rs l)"
 
   RSpec_def         "RSpec ch rs == TEMP (EEX mm. IRSpec ch mm rs)"
   USpec_def         "USpec ch == TEMP (EEX mm rs. IUSpec ch mm rs)"

@@ -33,9 +33,6 @@ consts
   rst           :: "rpcStType"
   cst           :: "mClkStType"
   ires          :: "resType"
-(* the history variable : not defined as a constant
-  rmhist        :: "histType"
-*)
 
 constdefs
   (* auxiliary predicates *)
@@ -78,7 +75,7 @@ constdefs
                            & [][HNext rmhist p]_(c p,r p,m p, rmhist!p)"
 
   Hist          :: "histType => temporal"
-      "Hist rmhist == TEMP (!p. HistP rmhist p)"
+      "Hist rmhist == TEMP (ALL p. HistP rmhist p)"
 
   (* the implementation *)
   IPImp          :: "PrIds => temporal"
@@ -86,7 +83,7 @@ constdefs
 	               & MClkIPSpec memCh crCh cst p
   	               & RPCIPSpec crCh rmCh rst p
 	               & RPSpec rmCh mm ires p
-		       & (! l. #l : #MemLoc --> MSpec rmCh mm ires l))"
+		       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l))"
 
   ImpInit        :: "PrIds => stpred"
       "ImpInit p == PRED (  ~Calling memCh p
@@ -108,7 +105,7 @@ constdefs
 			& WF(MemReturn rmCh ires p)_(m p)"
 
   Implementation :: "temporal"
-      "Implementation == TEMP ( (!p. Init (~Calling memCh p) & [][ENext p]_(e p))
+      "Implementation == TEMP ( (ALL p. Init (~Calling memCh p) & [][ENext p]_(e p))
                                & MClkISpec memCh crCh cst
                                & RPCISpec crCh rmCh rst
                                & IRSpec rmCh mm ires)"

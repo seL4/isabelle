@@ -50,9 +50,9 @@ syntax
 translations
   "ACT A"            =>   "(A::state*state => _)"
   "_before"          ==   "before"
-  "_after"           =>   "_prime"
+  "_after"           ==   "after"
+  "_prime"           =>   "_after"
   "_unchanged"       ==   "unch"
-  "_prime"           ==   "after"
   "_SqAct"           ==   "SqAct"
   "_AnAct"           ==   "AnAct"
   "_Enabled"         ==   "enabled"
@@ -63,7 +63,7 @@ translations
 
 rules
   unl_before    "(ACT $v) (s,t) == v s"
-  unl_after     "(ACT v`) (s,t) == v t"
+  unl_after     "(ACT v$) (s,t) == v t"
 
   unchanged_def "(s,t) |= unchanged v == (v t = v s)"
   square_def    "ACT [A]_v == ACT (A | unchanged v)"

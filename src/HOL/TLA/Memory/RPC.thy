@@ -72,7 +72,7 @@ rules
                          & [][ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
                          & WF(RPCNext send rcv rst p)_(rst!p, rtrner send!p, caller rcv!p)"
 
-  RPCISpec_def      "RPCISpec send rcv rst == TEMP (! p. RPCIPSpec send rcv rst p)"
+  RPCISpec_def      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
 
 end
 

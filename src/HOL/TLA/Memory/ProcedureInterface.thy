@@ -69,11 +69,11 @@ rules
 
   Calling_def	"Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
   Call_def      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
-                                     & (cbit<ch!p>` ~= $rbit<ch!p>)
-                                     & (arg<ch!p>` = $v)"
+                                     & (cbit<ch!p>$ ~= $rbit<ch!p>)
+                                     & (arg<ch!p>$ = $v)"
   Return_def    "(ACT Return ch p v) == ACT  $Calling ch p
-                                     & (rbit<ch!p>` = $cbit<ch!p>)
-                                     & (res<ch!p>` = $v)"
+                                     & (rbit<ch!p>$ = $cbit<ch!p>)
+                                     & (res<ch!p>$ = $v)"
   PLegalCaller_def      "PLegalCaller ch p == TEMP
                              Init(~ Calling ch p)
                              & [][ ? a. Call ch p a ]_((caller ch)!p)"

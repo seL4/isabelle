@@ -1,5 +1,5 @@
 (* 
-    File:        TLA/ex/inc/Inc.thy
+    File:        TLA/Inc/Inc.thy
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -34,17 +34,17 @@ rules
 
   (* definitions for high-level program *)
   InitPhi_def   "InitPhi == PRED x = # 0 & y = # 0"
-  M1_def        "M1      == ACT  x` = Suc<$x> & y` = $y"
-  M2_def        "M2      == ACT  y` = Suc<$y> & x` = $x"
+  M1_def        "M1      == ACT  x$ = Suc<$x> & y$ = $y"
+  M2_def        "M2      == ACT  y$ = Suc<$y> & x$ = $x"
   Phi_def       "Phi     == TEMP Init InitPhi & [][M1 | M2]_(x,y)
                                  & WF(M1)_(x,y) & WF(M2)_(x,y)"
 
   (* definitions for low-level program *)
   InitPsi_def   "InitPsi == PRED pc1 = #a & pc2 = #a
                                  & x = # 0 & y = # 0 & sem = # 1"
-  alpha1_def    "alpha1  == ACT  $pc1 = #a & pc1$ = #b & $sem = Suc<sem`> 
+  alpha1_def    "alpha1  == ACT  $pc1 = #a & pc1$ = #b & $sem = Suc<sem$> 
                                  & unchanged(x,y,pc2)"
-  alpha2_def    "alpha2  == ACT  $pc2 = #a & pc2$ = #b & $sem = Suc<sem`>
+  alpha2_def    "alpha2  == ACT  $pc2 = #a & pc2$ = #b & $sem = Suc<sem$>
                                  & unchanged(x,y,pc1)"
   beta1_def     "beta1   == ACT  $pc1 = #b & pc1$ = #g & x$ = Suc<$x>
                                  & unchanged(y,sem,pc2)"

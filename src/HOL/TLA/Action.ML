@@ -9,11 +9,13 @@ Lemmas and tactics for TLA actions.
 (* The following assertion specializes "intI" for any world type 
    which is a pair, not just for "state * state".
 *)
-qed_goal "actionI" Action.thy "(!!s t. (s,t) |= A) ==> |- A"
-  (fn [prem] => [REPEAT (resolve_tac [prem,intI,prod_induct] 1)]);
+val [prem] = goal thy "(!!s t. (s,t) |= A) ==> |- A";
+by (REPEAT (resolve_tac [prem,intI,prod_induct] 1));
+qed "actionI";
 
-qed_goal "actionD" Action.thy "|- A ==> (s,t) |= A"
-  (fn [prem] => [rtac (prem RS intD) 1]);
+Goal "|- A ==> (s,t) |= A";
+by (etac intD 1);
+qed "actionD";
 
 local
   fun prover s = prove_goal Action.thy s 
@@ -57,166 +59,154 @@ fun action_use th =
 
 (* ===================== Update simpset and classical prover ============================= *)
 
-(***
-(* Make the simplifier use action_use rather than int_use
-   when action simplifications are added.
-*)
-
-let
-  val ss = simpset_ref()
-  fun try_rewrite th = 
-      (action_rewrite th) handle _ => (action_use th) handle _ => th
-in
-  ss := !ss setmksimps ((mksimps mksimps_pairs) o try_rewrite)
-end;
-***)
-
 AddSIs [actionI];
 AddDs  [actionD];
 
 (* =========================== square / angle brackets =========================== *)
 
-qed_goalw "idle_squareI" Action.thy [square_def]
-   "!!s t. (s,t) |= unchanged v ==> (s,t) |= [A]_v"
-   (fn _ => [ Asm_full_simp_tac 1 ]);
+Goalw [square_def] "(s,t) |= unchanged v ==> (s,t) |= [A]_v";
+by (Asm_full_simp_tac 1);
+qed "idle_squareI";
 
-qed_goalw "busy_squareI" Action.thy [square_def]
-   "!!s t. (s,t) |= A ==> (s,t) |= [A]_v"
-   (fn _ => [ Asm_simp_tac 1 ]);
+Goalw [square_def] "(s,t) |= A ==> (s,t) |= [A]_v";
+by (Asm_simp_tac 1);
+qed "busy_squareI";
 
-qed_goal "squareE" Action.thy
-  "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)"
-  (fn prems => [cut_facts_tac prems 1,
-                rewrite_goals_tac (square_def::action_rews),
-                etac disjE 1,
-                REPEAT (eresolve_tac prems 1)]);
+val prems = goal thy
+  "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)";
+by (cut_facts_tac prems 1);
+by (rewrite_goals_tac (square_def::action_rews));
+by (etac disjE 1);
+by (REPEAT (eresolve_tac prems 1));
+qed "squareE";
 
-qed_goalw "squareCI" Action.thy (square_def::action_rews)
-  "[| v t ~= v s ==> A (s,t) |] ==> (s,t) |= [A]_v"
-  (fn prems => [rtac disjCI 1,
-                eresolve_tac prems 1]);
+val prems = goalw thy (square_def::action_rews)
+  "[| v t ~= v s ==> A (s,t) |] ==> (s,t) |= [A]_v";
+by (rtac disjCI 1);
+by (eresolve_tac prems 1);
+qed "squareCI";
 
-qed_goalw "angleI" Action.thy [angle_def]
-  "!!s t. [| A (s,t); v t ~= v s |] ==> (s,t) |= <A>_v"
-  (fn _ => [ Asm_simp_tac 1 ]);
+goalw thy [angle_def]
+  "!!s t. [| A (s,t); v t ~= v s |] ==> (s,t) |= <A>_v";
+by (Asm_simp_tac 1);
+qed "angleI";
 
-qed_goalw "angleE" Action.thy (angle_def::action_rews)
-  "[| (s,t) |= <A>_v; [| A (s,t); v t ~= v s |] ==> R |] ==> R"
-  (fn prems => [cut_facts_tac prems 1,
-                etac conjE 1,
-                REPEAT (ares_tac prems 1)]);
+val prems = goalw thy (angle_def::action_rews)
+  "[| (s,t) |= <A>_v; [| A (s,t); v t ~= v s |] ==> R |] ==> R";
+by (cut_facts_tac prems 1);
+by (etac conjE 1);
+by (REPEAT (ares_tac prems 1));
+qed "angleE";
 
 AddIs [angleI, squareCI];
 AddEs [angleE, squareE];
 
-qed_goal "square_simulation" Action.thy
+goal thy
    "!!f. [| |- unchanged f & ~B --> unchanged g;   \
 \           |- A & ~unchanged g --> B              \
-\        |] ==> |- [A]_f --> [B]_g"
-   (fn _ => [Clarsimp_tac 1,
-             etac squareE 1,
-             auto_tac (claset(), simpset() addsimps [square_def])
-            ]);
+\        |] ==> |- [A]_f --> [B]_g";
+by (Clarsimp_tac 1);
+by (etac squareE 1);
+by (auto_tac (claset(), simpset() addsimps [square_def]));
+qed "square_simulation";
 
-qed_goalw "not_square" Action.thy [square_def,angle_def]
-   "|- (~ [A]_v) = <~A>_v"
-   (fn _ => [ Auto_tac ]);
+goalw thy [square_def,angle_def]
+   "|- (~ [A]_v) = <~A>_v";
+by Auto_tac;
+qed "not_square";
 
-qed_goalw "not_angle" Action.thy [square_def,angle_def]
-   "|- (~ <A>_v) = [~A]_v"
-   (fn _ => [ Auto_tac ]);
+goalw thy [square_def,angle_def]
+   "|- (~ <A>_v) = [~A]_v";
+by Auto_tac;
+qed "not_angle";
 
 (* ============================== Facts about ENABLED ============================== *)
 
-qed_goal "enabledI" Action.thy
-  "|- A --> $Enabled A"
-  (fn _ => [ auto_tac (claset(), simpset() addsimps [enabled_def]) ]);
+goal thy "|- A --> $Enabled A";
+by (auto_tac (claset(), simpset() addsimps [enabled_def]));
+qed "enabledI";
 
-qed_goalw "enabledE" Action.thy [enabled_def]
-  "[| s |= Enabled A; !!u. A (s,u) ==> Q |] ==> Q"
-  (fn prems => [cut_facts_tac prems 1,
-                etac exE 1,
-                resolve_tac prems 1, atac 1
-               ]);
+val prems = goalw thy [enabled_def]
+  "[| s |= Enabled A; !!u. A (s,u) ==> Q |] ==> Q";
+by (cut_facts_tac prems 1);
+by (etac exE 1);
+by (resolve_tac prems 1);
+by (atac 1);
+qed "enabledE";
 
-qed_goal "notEnabledD" Action.thy
-  "|- ~$Enabled G --> ~ G"
-  (fn _ => [ auto_tac (claset(), simpset() addsimps [enabled_def]) ]);
+goal thy "|- ~$Enabled G --> ~ G";
+by (auto_tac (claset(), simpset() addsimps [enabled_def]));
+qed "notEnabledD";
 
 (* Monotonicity *)
-qed_goal "enabled_mono" Action.thy
-  "[| s |= Enabled F; |- F --> G |] ==> s |= Enabled G"
-  (fn [min,maj] => [rtac (min RS enabledE) 1,
-                    rtac (action_use enabledI) 1,
-                    etac (action_use maj) 1
-                   ]);
+val [min,maj] = goal thy
+  "[| s |= Enabled F; |- F --> G |] ==> s |= Enabled G";
+by (rtac (min RS enabledE) 1);
+by (rtac (action_use enabledI) 1);
+by (etac (action_use maj) 1);
+qed "enabled_mono";
 
 (* stronger variant *)
-qed_goal "enabled_mono2" Action.thy
-   "[| s |= Enabled F; !!t. F (s,t) ==> G (s,t) |] ==> s |= Enabled G"
-   (fn [min,maj] => [rtac (min RS enabledE) 1,
-		     rtac (action_use enabledI) 1,
-		     etac maj 1
-		    ]);
+val [min,maj] = goal thy
+  "[| s |= Enabled F; !!t. F (s,t) ==> G (s,t) |] ==> s |= Enabled G";
+by (rtac (min RS enabledE) 1);
+by (rtac (action_use enabledI) 1);
+by (etac maj 1);
+qed "enabled_mono2";
 
-qed_goal "enabled_disj1" Action.thy
-  "|- Enabled F --> Enabled (F | G)"
-  (fn _ => [ auto_tac (claset() addSEs [enabled_mono], simpset()) ]);
+goal thy "|- Enabled F --> Enabled (F | G)";
+by (auto_tac (claset() addSEs [enabled_mono], simpset()));
+qed "enabled_disj1";
 
-qed_goal "enabled_disj2" Action.thy
-  "|- Enabled G --> Enabled (F | G)"
-  (fn _ => [ auto_tac (claset() addSEs [enabled_mono], simpset()) ]);
+goal thy "|- Enabled G --> Enabled (F | G)";
+by (auto_tac (claset() addSEs [enabled_mono], simpset()));
+qed "enabled_disj2";
 
-qed_goal "enabled_conj1" Action.thy
-  "|- Enabled (F & G) --> Enabled F"
-  (fn _ => [ auto_tac (claset() addSEs [enabled_mono], simpset()) ]);
+goal thy "|- Enabled (F & G) --> Enabled F";
+by (auto_tac (claset() addSEs [enabled_mono], simpset()));
+qed "enabled_conj1";
 
-qed_goal "enabled_conj2" Action.thy
-  "|- Enabled (F & G) --> Enabled G"
-  (fn _ => [ auto_tac (claset() addSEs [enabled_mono], simpset()) ]);
+goal thy "|- Enabled (F & G) --> Enabled G";
+by (auto_tac (claset() addSEs [enabled_mono], simpset()));
+qed "enabled_conj2";
 
-qed_goal "enabled_conjE" Action.thy
-  "[| s |= Enabled (F & G); [| s |= Enabled F; s |= Enabled G |] ==> Q |] ==> Q"
-  (fn prems => [cut_facts_tac prems 1, resolve_tac prems 1,
-                etac (action_use enabled_conj1) 1, 
-		etac (action_use enabled_conj2) 1
-	       ]);
+val prems = goal thy
+  "[| s |= Enabled (F & G); [| s |= Enabled F; s |= Enabled G |] ==> Q |] ==> Q";
+by (cut_facts_tac prems 1);
+by (resolve_tac prems 1);
+by (etac (action_use enabled_conj1) 1);
+by (etac (action_use enabled_conj2) 1);
+qed "enabled_conjE";
 
-qed_goal "enabled_disjD" Action.thy
-  "|- Enabled (F | G) --> Enabled F | Enabled G"
-  (fn _ => [ auto_tac (claset(), simpset() addsimps [enabled_def]) ]);
+goal thy "|- Enabled (F | G) --> Enabled F | Enabled G";
+by (auto_tac (claset(), simpset() addsimps [enabled_def]));
+qed "enabled_disjD";
 
-qed_goal "enabled_disj" Action.thy
-  "|- Enabled (F | G) = (Enabled F | Enabled G)"
-  (fn _ => [Clarsimp_tac 1,
-	    rtac iffI 1,
-            etac (action_use enabled_disjD) 1,
-            REPEAT (eresolve_tac (disjE::map action_use [enabled_disj1,enabled_disj2]) 1)
-           ]);
+goal thy "|- Enabled (F | G) = (Enabled F | Enabled G)";
+by (Clarsimp_tac 1);
+by (rtac iffI 1);
+by (etac (action_use enabled_disjD) 1);
+by (REPEAT (eresolve_tac (disjE::map action_use [enabled_disj1,enabled_disj2]) 1));
+qed "enabled_disj";
 
-qed_goal "enabled_ex" Action.thy
-  "|- Enabled (? x. F x) = (? x. Enabled (F x))"
-  (fn _ => [ force_tac (claset(), simpset() addsimps [enabled_def]) 1 ]);
+goal thy "|- Enabled (EX x. F x) = (EX x. Enabled (F x))";
+by (force_tac (claset(), simpset() addsimps [enabled_def]) 1);
+qed "enabled_ex";
 
 
-(* A rule that combines enabledI and baseE, but generates fewer possible instantiations *)
-qed_goal "base_enabled" Action.thy
-  "[| basevars vs; ? c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
-  (fn prems => [cut_facts_tac prems 1,
-		etac exE 1, etac baseE 1, 
-                rtac (action_use enabledI) 1,
-                etac allE 1, etac mp 1, atac 1
-               ]);
-                
-(*** old version immediately generates schematic variable
-qed_goal "base_enabled" Action.thy
-  "[| basevars vs; !!u. vs u = c s ==> A (s,u) |] ==> s |= Enabled A"
-  (fn prems => [cut_facts_tac prems 1,
-		etac baseE 1, rtac (action_use enabledI) 1,
-		REPEAT (ares_tac prems 1)]);
-***)
+(* A rule that combines enabledI and baseE, but generates fewer instantiations *)
+val prems = goal thy
+  "[| basevars vs; EX c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A";
+by (cut_facts_tac prems 1);
+by (etac exE 1);
+by (etac baseE 1);
+by (rtac (action_use enabledI) 1);
+by (etac allE 1);
+by (etac mp 1);
+by (atac 1);
+qed "base_enabled";
 
-(* ================================ action_simp_tac ================================== *)
+(* ======================= action_simp_tac ============================== *)
 
 (* A dumb simplification-based tactic with just a little first-order logic:
    should plug in only "very safe" rules that can be applied blindly.
@@ -244,16 +234,6 @@ val Action_simp_tac = action_simp_tac (simpset()) [] [];
    - Solve for the unknowns using standard HOL reasoning.
    The following tactic combines these steps except the final one.
 *)
-(*** old version
-fun enabled_tac base_vars i =
-    EVERY [(* apply actionI (plus rewriting) if the goal is of the form $(Enabled A),
-	      do nothing if it is of the form s |= Enabled A *)
-	   TRY ((resolve_tac [actionI,intI] i) 
-                THEN (SELECT_GOAL (rewrite_goals_tac action_rews) i)),
-	   clarify_tac (claset() addSIs [base_vars RS base_enabled]) i,
-	   (SELECT_GOAL (rewrite_goals_tac action_rews) i)
-	  ];
-***)
 
 fun enabled_tac base_vars =
     clarsimp_tac (claset() addSIs [base_vars RS base_enabled], simpset());

@@ -81,7 +81,7 @@ rules
   primeI     "|- []P --> Init P`"
   primeE     "|- [](Init P --> []F) --> Init P` --> (F --> []F)"
   indT       "|- [](Init P & ~[]F --> Init P` & F) --> Init P --> []F"
-  allT       "|- (! x. [](F x)) = ([](! x. F x))"
+  allT       "|- (ALL x. [](F x)) = ([](ALL x. F x))"
 
   necT       "|- F ==> |- []F"      (* polymorphic *)
 

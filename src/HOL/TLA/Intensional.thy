@@ -82,17 +82,17 @@ syntax
   (** TODO: syntax for lifted collection / comprehension **)
   "_liftPair"   :: [lift,liftargs] => lift                   ("(1'(_,/ _'))")
   (* infix syntax for list operations *)
-  "_liftCons" :: [lift, lift] => lift                    ("(_ #/ _)" [65,66] 65)
-  "_liftApp"  :: [lift, lift] => lift                    ("(_ @/ _)" [65,66] 65)
-  "_liftList" :: liftargs => lift                        ("[(_)]")
+  "_liftCons" :: [lift, lift] => lift                  ("(_ #/ _)" [65,66] 65)
+  "_liftApp"  :: [lift, lift] => lift                  ("(_ @/ _)" [65,66] 65)
+  "_liftList" :: liftargs => lift                      ("[(_)]")
 
   (* Rigid quantification (syntax level) *)
-  "_RAll"  :: [idts, lift] => lift                     ("(3! _./ _)" [0, 10] 10)
-  "_REx"   :: [idts, lift] => lift                     ("(3? _./ _)" [0, 10] 10)
-  "_REx1"  :: [idts, lift] => lift                     ("(3?! _./ _)" [0, 10] 10)
-  "_ARAll" :: [idts, lift] => lift                     ("(3ALL _./ _)" [0, 10] 10)
-  "_AREx"  :: [idts, lift] => lift                     ("(3EX _./ _)" [0, 10] 10)
-  "_AREx1" :: [idts, lift] => lift                     ("(3EX! _./ _)" [0, 10] 10)
+  "_ARAll"  :: [idts, lift] => lift                    ("(3! _./ _)" [0, 10] 10)
+  "_AREx"   :: [idts, lift] => lift                    ("(3? _./ _)" [0, 10] 10)
+  "_AREx1"  :: [idts, lift] => lift                    ("(3?! _./ _)" [0, 10] 10)
+  "_RAll" :: [idts, lift] => lift                      ("(3ALL _./ _)" [0, 10] 10)
+  "_REx"  :: [idts, lift] => lift                      ("(3EX _./ _)" [0, 10] 10)
+  "_REx1" :: [idts, lift] => lift                      ("(3EX! _./ _)" [0, 10] 10)
 
 translations
   "_const"        == "const"
@@ -142,9 +142,9 @@ translations
   "w |= A | B"    <= "_liftOr A B w"
   "w |= A --> B"  <= "_liftImp A B w"
   "w |= u = v"    <= "_liftEqu u v w"
-  "w |= ! x. A"   <= "_RAll x A w"
-  "w |= ? x. A"   <= "_REx x A w"
-  "w |= ?! x. A"  <= "_REx1 x A w"
+  "w |= ALL x. A"   <= "_RAll x A w"
+  "w |= EX x. A"   <= "_REx x A w"
+  "w |= EX! x. A"  <= "_REx1 x A w"
 
 syntax (symbols)
   "_Valid"      :: lift => bool                        ("(\\<turnstile> _)" 5)
@@ -172,7 +172,7 @@ rules
   unl_lift2   "LIFT f<x, y> w == f (x w) (y w)"
   unl_lift3   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
 
-  unl_Rall    "w |= ! x. A x  ==  ! x. (w |= A x)" 
-  unl_Rex     "w |= ? x. A x  ==  ? x. (w |= A x)"
-  unl_Rex1    "w |= ?! x. A x  ==  ?! x. (w |= A x)"
+  unl_Rall    "w |= ALL x. A x  ==  ALL x. (w |= A x)" 
+  unl_Rex     "w |= EX x. A x   ==  EX x. (w |= A x)"
+  unl_Rex1    "w |= EX! x. A x  ==  EX! x. (w |= A x)"
 end

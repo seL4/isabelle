@@ -16,17 +16,6 @@ RPCParameters = MemoryParameters +
 datatype  rpcOp = memcall memOp | othercall Vals
 datatype  rpcState = rpcA | rpcB
 
-(***
-types
-  (* type of RPC arguments other than memory calls *)
-  noMemArgType
-  (* legal arguments for (our instance of) the RPC component *)
-  rpcArgType = "(rpcOps * memArgType) + (rpcOps * noMemArgType)"
-
-arities
-  noMemArgType :: term
-***)
-
 consts
   (* some particular return values *)
   RPCFailure     :: Vals
@@ -36,10 +25,6 @@ consts
      is legal for the receiver (i.e., the memory). This can now be a little
      simpler than for the generic RPC component. RelayArg returns an arbitrary
      memory call for illegal arguments. *)
-(***
-  IsLegalRcvArg  :: rpcArgType => bool
-  RPCRelayArg    :: rpcArgType => memArgType
-***)
   IsLegalRcvArg  :: rpcOp => bool
   RPCRelayArg    :: rpcOp => memOp
 
@@ -50,12 +35,6 @@ rules
   OKNotRF           "OK ~= RPCFailure"
   BANotRF           "BadArg ~= RPCFailure"
 
-(***
-  IsLegalRcvArg_def "IsLegalRcvArg ra == EX marg. ra = Inl (remoteCall,marg)"
-  RPCRelayArg_def   "RPCRelayArg ra == 
-                         case ra of Inl (rm) => (snd rm)
-                                  | Inr (rn) => (read, @ l. True)"
-***)
 defs
   IsLegalRcvArg_def "IsLegalRcvArg ra ==
 		         case ra of (memcall m) => True

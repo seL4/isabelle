@@ -26,7 +26,8 @@ qed "Deq_visible";
 (* Enabling condition for dequeue -- NOT NEEDED *)
 Goalw [temp_rewrite Deq_visible]
    "!!q. basevars (ic,q,oc) ==> |- Enabled (<Deq ic q oc>_(ic,q,oc)) = (q ~= #[])";
-by (force_tac (claset() addSEs [base_enabled,enabledE], simpset() addsimps [Deq_def]) 1);
+by (force_tac (claset() addSEs [base_enabled,enabledE], 
+               simpset() addsimps [Deq_def]) 1);
 qed "Deq_enabled";
 
 (* For the left-to-right implication, we don't need the base variable stuff *)

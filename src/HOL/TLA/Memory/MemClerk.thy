@@ -62,7 +62,7 @@ constdefs
                          & SF(MClkReply send rcv cst p)_(cst!p, rtrner send!p, caller rcv!p)"
 
   MClkISpec     :: "mClkSndChType => mClkRcvChType => mClkStType => temporal"
-      "MClkISpec send rcv cst == TEMP (!p. MClkIPSpec send rcv cst p)"
+      "MClkISpec send rcv cst == TEMP (ALL p. MClkIPSpec send rcv cst p)"
 
 end
 

@@ -17,40 +17,36 @@ val mem_css = (claset(), simpset());
    unanswered call for that process.
 *)
 
-qed_goal "RPCidle" RPC.thy
-   "|- ~$(Calling send p) --> ~RPCNext send rcv rst p"
-   (fn _ => [ auto_tac (mem_css addsimps2 (Return_def::RPC_action_defs)) ]);
+Goal "|- ~$(Calling send p) --> ~RPCNext send rcv rst p";
+by (auto_tac (mem_css addsimps2 (Return_def::RPC_action_defs)));
+qed "RPCidle";
 
-qed_goal "RPCbusy" RPC.thy
-   "|- $(Calling rcv p) & $(rst!p) = #rpcB --> ~RPCNext send rcv rst p"
-   (fn _ => [ auto_tac (mem_css addsimps2 RPC_action_defs) ]);
+Goal "|- $(Calling rcv p) & $(rst!p) = #rpcB --> ~RPCNext send rcv rst p";
+by (auto_tac (mem_css addsimps2 RPC_action_defs));
+qed "RPCbusy";
 
 (* RPC failure actions are visible. *)
-qed_goal "RPCFail_vis" RPC.thy
-   "|- RPCFail send rcv rst p --> \
-\      <RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p)"
-   (fn _ => [auto_tac (claset() addSDs [Return_changed],
-		       simpset() addsimps [angle_def,RPCNext_def,RPCFail_def])
-	    ]);
+Goal "|- RPCFail send rcv rst p --> \
+\        <RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p)";
+by (auto_tac (claset() addSDs [Return_changed],
+	     simpset() addsimps [angle_def,RPCNext_def,RPCFail_def]));
+qed "RPCFail_vis";
 
-qed_goal "RPCFail_Next_enabled" RPC.thy
-   "|- Enabled (RPCFail send rcv rst p) --> \
-\      Enabled (<RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p))"
-   (fn _ => [force_tac (mem_css addSEs2 [enabled_mono,RPCFail_vis]) 1]);
+Goal "|- Enabled (RPCFail send rcv rst p) --> \
+\        Enabled (<RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p))";
+by (force_tac (mem_css addSEs2 [enabled_mono,RPCFail_vis]) 1);
+qed "RPCFail_Next_enabled";
 
 (* Enabledness of some actions *)
+Goal "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==> \
+\     |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)";
+by (action_simp_tac (simpset() addsimps [RPCFail_def,Return_def,caller_def,rtrner_def])
+                    [exI] [base_enabled,Pair_inject] 1);
+qed "RPCFail_enabled";
 
-qed_goal "RPCFail_enabled" RPC.thy
-   "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==> \
-\        |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
-   (fn _ => [action_simp_tac (simpset() addsimps [RPCFail_def,Return_def,caller_def,rtrner_def])
-                             [exI] [base_enabled,Pair_inject] 1
-	    ]);
-
-qed_goal "RPCReply_enabled" RPC.thy
-   "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==> \
-\        |- ~Calling rcv p & Calling send p & rst!p = #rpcB \
-\           --> Enabled (RPCReply send rcv rst p)"
-   (fn _ => [action_simp_tac (simpset() addsimps [RPCReply_def,Return_def,caller_def,rtrner_def])
-                             [exI] [base_enabled,Pair_inject] 1]);
-
+Goal "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==> \
+\     |- ~Calling rcv p & Calling send p & rst!p = #rpcB \
+\        --> Enabled (RPCReply send rcv rst p)";
+by (action_simp_tac (simpset() addsimps [RPCReply_def,Return_def,caller_def,rtrner_def])
+                    [exI] [base_enabled,Pair_inject] 1);
+qed "RPCReply_enabled";

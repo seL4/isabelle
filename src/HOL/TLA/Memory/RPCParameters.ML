@@ -7,11 +7,5 @@
 *)
 
 
-(*
-val RP_simps = MP_simps @ [RFNoMemVal, NotAResultNotRF, OKNotRF, BANotRF]
-                        @ (map (fn x => x RS not_sym) [NotAResultNotRF, OKNotRF, BANotRF])
-                        @ rpcState.simps @ rpcOp.simps;
-*)
-
 Addsimps ([RFNoMemVal, NotAResultNotRF, OKNotRF, BANotRF]
           @ (map (fn x => x RS not_sym) [NotAResultNotRF, OKNotRF, BANotRF]));
