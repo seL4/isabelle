@@ -154,14 +154,14 @@ AddIs [rtrancl_refl, r_into_rtrancl,
 
 (*Example only: not used*)
 goalw Comb.thy [I_def] "I#x ---> x";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 qed "reduce_I";
 
 goal Comb.thy "parcontract <= contract^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
-by (ALLGOALS (deepen_tac (!claset) 0));
+by (ALLGOALS (Deepen_tac 0));
 qed "parcontract_subset_reduce";
 
 goal Comb.thy "contract^* = parcontract^*";

@@ -151,32 +151,32 @@ writeln"Problems requiring quantifier duplication";
 
 (*Needs multiple instantiation of the quantifier.*)
 goal HOL.thy "(! x. P(x)-->P(f(x)))  &  P(d)-->P(f(f(f(d))))";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 (*Needs double instantiation of the quantifier*)
 goal HOL.thy "? x. P(x) --> P(a) & P(b)";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 goal HOL.thy "? z. P(z) --> (! x. P(x))";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 goal HOL.thy "? x. (? y. P(y)) --> P(x)";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 writeln"Hard examples with quantifiers";
 
 writeln"Problem 18";
 goal HOL.thy "? y. ! x. P(y)-->P(x)";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result(); 
 
 writeln"Problem 19";
 goal HOL.thy "? x. ! y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 writeln"Problem 20";
@@ -187,7 +187,7 @@ result();
 
 writeln"Problem 21";
 goal HOL.thy "(? x. P-->Q(x)) & (? x. Q(x)-->P) --> (? x. P=Q(x))";
-by (deepen_tac (!claset) 1 1); 
+by (Deepen_tac 1 1); 
 result();
 
 writeln"Problem 22";
@@ -197,7 +197,7 @@ result();
 
 writeln"Problem 23";
 goal HOL.thy "(! x. P | Q(x))  =  (P | (! x. Q(x)))";
-by (best_tac (!claset) 1);  
+by (Best_tac 1);  
 result();
 
 writeln"Problem 24";
@@ -213,7 +213,7 @@ goal HOL.thy "(? x. P(x)) &  \
 \       (! x. P(x) --> (M(x) & L(x))) &   \
 \       ((! x. P(x)-->Q(x)) | (? x. P(x)&R(x)))  \
 \   --> (? x. Q(x)&P(x))";
-by (best_tac (!claset) 1); 
+by (Best_tac 1); 
 result();
 
 writeln"Problem 26";
@@ -267,13 +267,13 @@ goal HOL.thy "(! x. P(x) & (Q(x)|R(x))-->S(x)) & \
 \       (! x. S(x) & R(x) --> L(x)) & \
 \       (! x. M(x) --> R(x))  \
 \   --> (! x. P(x) & M(x) --> L(x))";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 result();
 
 writeln"Problem 33";
 goal HOL.thy "(! x. P(a) & (P(x)-->P(b))-->P(c))  =    \
 \    (! x. (~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c)))";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 result();
 
 writeln"Problem 34  AMENDED (TWICE!!)";
@@ -282,13 +282,13 @@ goal HOL.thy "((? x. ! y. p(x) = p(y))  =               \
 \                   ((? x. q(x)) = (! y. p(y))))   =    \
 \                  ((? x. ! y. q(x) = q(y))  =          \
 \                   ((? x. p(x)) = (! y. q(y))))";
-by (deepen_tac (!claset) 3 1);
+by (Deepen_tac 3 1);
 (*slower with smaller bounds*)
 result();
 
 writeln"Problem 35";
 goal HOL.thy "? x y. P x y -->  (! u v. P u v)";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 writeln"Problem 36";
@@ -316,7 +316,7 @@ goal HOL.thy
 \    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &  \
 \          (~p(a) | ~(? y. p(y) & r x y) |                      \
 \           (? z. ? w. p(z) & r x w & r w z)))";
-by (deepen_tac (!claset) 0 1);  (*beats fast_tac!*)
+by (Deepen_tac 0 1);  (*beats fast_tac!*)
 result();
 
 writeln"Problem 39";
@@ -333,12 +333,12 @@ result();
 writeln"Problem 41";
 goal HOL.thy "(! z. ? y. ! x. f x y = (f x z & ~ f x x))        \
 \              --> ~ (? z. ! x. f x z)";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 result();
 
 writeln"Problem 42";
 goal HOL.thy "~ (? y. ! x. p x y = (~ (? z. p x z & p z x)))";
-by (deepen_tac (!claset) 3 1);
+by (Deepen_tac 3 1);
 result();
 
 writeln"Problem 43  NOT PROVED AUTOMATICALLY";
@@ -363,7 +363,7 @@ goal HOL.thy
 \    (? x. f(x) & (! y. h x y --> l(y))                         \
 \               & (! y. g(y) & h x y --> j x y))                \
 \     --> (? x. f(x) & ~ (? y. g(y) & h x y))";
-by (best_tac (!claset) 1); 
+by (Best_tac 1); 
 result();
 
 
@@ -390,14 +390,14 @@ result();
 writeln"Problem 50";  
 (*What has this to do with equality?*)
 goal HOL.thy "(! x. P a x | (! y.P x y)) --> (? x. ! y.P x y)";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 writeln"Problem 51";
 goal HOL.thy
     "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
 \    (? z. ! x. ? w. (! y. P x y = (y=w)) = (x=z))";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 result();
 
 writeln"Problem 52";
@@ -405,7 +405,7 @@ writeln"Problem 52";
 goal HOL.thy
     "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
 \    (? w. ! y. ? z. (! x. P x y = (x=z)) = (y=w))";
-by (best_tac (!claset) 1);
+by (Best_tac 1);
 result();
 
 writeln"Problem 55";
@@ -445,7 +445,7 @@ result();
 
 writeln"Problem 59";
 goal HOL.thy "(! x. P(x) = (~P(f(x)))) --> (? x. P(x) & ~P(f(x)))";
-by (deepen_tac (!claset) 1 1);
+by (Deepen_tac 1 1);
 result();
 
 writeln"Problem 60";
