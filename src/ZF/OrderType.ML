@@ -10,6 +10,13 @@ But a definition by transfinite recursion would be much simpler!
 *)
 
 
+(*??for Ordinal.ML*)
+(*suitable for rewriting PROVIDED i has been fixed*)
+Goal "[| j:i; Ord(i) |] ==> Ord(j)";
+by (blast_tac (claset() addIs [Ord_in_Ord]) 1);
+qed "Ord_in_Ord'";
+
+
 (**** Proofs needing the combination of Ordinal.thy and Order.thy ****)
 
 val [prem] = goal (the_context ()) "j le i ==> well_ord(j, Memrel(i))";
@@ -164,10 +171,10 @@ bind_thm ("ordermap_surj",
 
 Goalw [well_ord_def, tot_ord_def, bij_def, inj_def]
     "well_ord(A,r) ==> ordermap(A,r) : bij(A, ordertype(A,r))";
-by (fast_tac (claset() addSIs [ordermap_type, ordermap_surj]
-                      addEs [linearE]
-                      addDs [ordermap_mono]
-                      addss (simpset() addsimps [mem_not_refl])) 1);
+by (force_tac (claset() addSIs [ordermap_type, ordermap_surj]
+		       addEs [linearE]
+		       addDs [ordermap_mono],
+	       simpset() addsimps [mem_not_refl]) 1);
 qed "ordermap_bij";
 
 (*** Isomorphisms involving ordertype ***)
@@ -278,14 +285,12 @@ Goal "well_ord(A,r) ==>  \
 \           ordertype(A,r) = {ordertype(pred(A,x,r),r). x:A}";
 by (rtac equalityI 1);
 by (safe_tac (claset() addSIs [ordertype_pred_lt RS ltD]));
-by (fast_tac
-    (claset() addss
-     (simpset() addsimps [ordertype_def, 
+by (auto_tac (claset(), 
+              simpset() addsimps [ordertype_def, 
                       well_ord_is_wf RS ordermap_eq_image, 
                       ordermap_type RS image_fun, 
                       ordermap_pred_eq_ordermap, 
-                      pred_subset]))
-    1);
+                      pred_subset])); 
 qed "ordertype_pred_unfold";
 
 
@@ -370,49 +375,92 @@ Goal "[| b:B;  well_ord(A,r);  well_ord(B,s) |] ==>  \
 \        ordertype(pred(A+B, Inr(b), radd(A,r,B,s)), radd(A,r,B,s)) = \
 \        ordertype(A+pred(B,b,s), radd(A,r,pred(B,b,s),s))";
 by (resolve_tac [pred_Inr_bij RS ord_isoI RS ord_iso_sym RS ordertype_eq] 1);
-by (fast_tac (claset() addss (simpset() addsimps [pred_def, id_def])) 2);
+by (force_tac (claset(), simpset() addsimps [pred_def, id_def]) 2);
 by (REPEAT_FIRST (ares_tac [well_ord_radd, pred_subset, well_ord_subset]));
 qed "ordertype_pred_Inr_eq";
 
+
+(*** ordify: trivial coercion to an ordinal ***)
+
+Goal "Ord(ordify(x))";
+by (asm_full_simp_tac (simpset() addsimps [ordify_def]) 1); 
+qed "Ord_ordify";
+AddIffs [Ord_ordify];
+AddTCs [Ord_ordify];
+
+(*Collapsing*)
+Goal "ordify(ordify(x)) = ordify(x)";
+by (asm_full_simp_tac (simpset() addsimps [ordify_def]) 1);
+qed "ordify_idem";
+Addsimps [ordify_idem];
+
+
 (*** Basic laws for ordinal addition ***)
 
-Goalw [oadd_def] 
-    "[| Ord(i);  Ord(j) |] ==> Ord(i++j)";
-by (REPEAT (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel] 1));
+Goal "[|Ord(i); Ord(j)|] ==> Ord(raw_oadd(i,j))";
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_def, ordify_def, Ord_ordertype, well_ord_radd, well_ord_Memrel]) 1); 
+qed "Ord_raw_oadd";
+
+Goal "Ord(i++j)";
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, Ord_raw_oadd]) 1); 
 qed "Ord_oadd";
-Addsimps [Ord_oadd]; AddIs [Ord_oadd]; AddTCs [Ord_oadd];
+AddIffs [Ord_oadd]; AddTCs [Ord_oadd];
+
 
 (** Ordinal addition with zero **)
 
-Goalw [oadd_def] "Ord(i) ==> i++0 = i";
-by (asm_simp_tac (simpset() addsimps [Memrel_0, ordertype_sum_0_eq, 
+Goal "Ord(i) ==> raw_oadd(i,0) = i";
+by (asm_simp_tac (simpset() addsimps [raw_oadd_def, ordify_def, Memrel_0, ordertype_sum_0_eq, 
                                   ordertype_Memrel, well_ord_Memrel]) 1);
+qed "raw_oadd_0";
+
+Goal "Ord(i) ==> i++0 = i";
+by (asm_simp_tac (simpset() addsimps [oadd_def, raw_oadd_0, ordify_def]) 1);
 qed "oadd_0";
+Addsimps [oadd_0];
 
-Goalw [oadd_def] "Ord(i) ==> 0++i = i";
-by (asm_simp_tac (simpset() addsimps [Memrel_0, ordertype_0_sum_eq, 
+Goal "Ord(i) ==> raw_oadd(0,i) = i";
+by (asm_simp_tac (simpset() addsimps [raw_oadd_def, ordify_def, Memrel_0, ordertype_0_sum_eq, 
                                   ordertype_Memrel, well_ord_Memrel]) 1);
-qed "oadd_0_left";
+qed "raw_oadd_0_left";
 
-Addsimps [oadd_0, oadd_0_left];
+Goal "Ord(i) ==> 0++i = i";
+by (asm_simp_tac (simpset() addsimps [oadd_def, raw_oadd_0_left, ordify_def]) 1);
+qed "oadd_0_left";
+Addsimps [oadd_0_left];
+
+
+Goal "i++j = (if Ord(i) then (if Ord(j) then raw_oadd(i,j) else i) \
+\                       else (if Ord(j) then j else 0))";
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, ordify_def, raw_oadd_0_left, raw_oadd_0]) 1);
+qed "oadd_eq_if_raw_oadd";
+
+
+Goal "[|Ord(i); Ord(j)|] ==> raw_oadd(i,j) = i++j";
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, ordify_def]) 1);
+qed "raw_oadd_eq_oadd";
 
 (*** Further properties of ordinal addition.  Statements by Grabczewski,
     proofs by lcp. ***)
 
-Goalw [oadd_def] "[| k<i;  Ord(j) |] ==> k < i++j";
+(*Surely also provable by transfinite induction on j?*)
+Goal "k<i ==> k < i++j";
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, ordify_def, lt_Ord2, raw_oadd_0]) 1);
+by (Clarify_tac 1);  
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_def]) 1); 
 by (rtac ltE 1 THEN assume_tac 1);
 by (rtac ltI 1);
 by (REPEAT (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel] 2));
-by (asm_simp_tac 
-    (simpset() addsimps [ordertype_pred_unfold, 
+by (force_tac 
+    (claset(),
+     simpset() addsimps [ordertype_pred_unfold, 
                         well_ord_radd, well_ord_Memrel,
                         ordertype_pred_Inl_eq, 
-                        lt_pred_Memrel, leI RS le_ordertype_Memrel]
-           setloop rtac (InlI RSN (2,bexI))) 1);
+                        lt_pred_Memrel, leI RS le_ordertype_Memrel]) 1);
 qed "lt_oadd1";
 
 (*Thus also we obtain the rule  i++j = k ==> i le k *)
-Goal "[| Ord(i);  Ord(j) |] ==> i le i++j";
+Goal "Ord(i) ==> i le i++j";
 by (rtac all_lt_imp_le 1);
 by (REPEAT (ares_tac [Ord_oadd, lt_oadd1] 1));
 qed "oadd_le_self";
@@ -434,7 +482,10 @@ by (eresolve_tac [OrdmemD RS id_ord_iso_Memrel RS ord_iso_sym] 1);
 by (REPEAT_FIRST (ares_tac [well_ord_radd, well_ord_Memrel]));
 qed "ordertype_sum_Memrel";
 
-Goalw [oadd_def] "[| k<j;  Ord(i) |] ==> i++k < i++j";
+Goal "k<j ==> i++k < i++j";
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, ordify_def, raw_oadd_0_left, lt_Ord, lt_Ord2]) 1);
+by (Clarify_tac 1);  
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_def]) 1); 
 by (rtac ltE 1 THEN assume_tac 1);
 by (resolve_tac [ordertype_pred_unfold RS equalityD2 RS subsetD RS ltI] 1);
 by (REPEAT_FIRST (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel]));
@@ -446,45 +497,52 @@ by (asm_simp_tac
                      ordertype_sum_Memrel]) 1);
 qed "oadd_lt_mono2";
 
-Goal "[| i++j < i++k;  Ord(i);  Ord(j); Ord(k) |] ==> j<k";
+Goal "[| i++j < i++k;  Ord(j) |] ==> j<k";
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd] addsplits [split_if_asm]) 1); 
+by (forw_inst_tac [("i","i"),("j","j")] oadd_le_self 2); 
+by (asm_full_simp_tac (simpset() addsimps [oadd_def, ordify_def, lt_Ord, not_lt_iff_le RS iff_sym]) 2);
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [raw_oadd_eq_oadd]))); 
 by (ALLGOALS
     (blast_tac (claset() addDs [oadd_lt_mono2] addEs [lt_irrefl, lt_asym])));
 qed "oadd_lt_cancel2";
 
-Goal "[| Ord(i); Ord(j); Ord(k) |] ==> i++j < i++k <-> j<k";
+Goal "Ord(j) ==> i++j < i++k <-> j<k";
 by (blast_tac (claset() addSIs [oadd_lt_mono2] addSDs [oadd_lt_cancel2]) 1);
 qed "oadd_lt_iff2";
 
-Goal "[| i++j = i++k;  Ord(i);  Ord(j); Ord(k) |] ==> j=k";
+Goal "[| i++j = i++k;  Ord(j); Ord(k) |] ==> j=k";
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd] addsplits [split_if_asm]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_eq_oadd]) 1); 
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
-    (fast_tac (claset() addDs [oadd_lt_mono2] 
-                       addss (simpset() addsimps [lt_not_refl]))));
+    (force_tac (claset() addDs [inst "i" "i" oadd_lt_mono2],
+                simpset() addsimps [lt_not_refl])));
 qed "oadd_inject";
 
-Goalw [oadd_def] 
-    "[| k < i++j;  Ord(i);  Ord(j) |] ==> k<i | (EX l:j. k = i++l )";
-(*Rotate the hypotheses so that simplification will work*)
-by (etac revcut_rl 1);
+Goal "k < i++j ==> k<i | (EX l:j. k = i++l )";
+by (asm_full_simp_tac (simpset() addsimps [inst "i" "j" Ord_in_Ord', oadd_eq_if_raw_oadd] addsplits [split_if_asm]) 1); 
 by (asm_full_simp_tac 
-    (simpset() addsimps [ordertype_pred_unfold, well_ord_radd,
-                     well_ord_Memrel]) 1);
+    (simpset() addsimps [inst "i" "j" Ord_in_Ord', lt_def]) 2);
+by (asm_full_simp_tac (simpset() addsimps [ordertype_pred_unfold, well_ord_radd,
+                     well_ord_Memrel, raw_oadd_def]) 1); 
 by (eresolve_tac [ltD RS RepFunE] 1);
-by (fast_tac (claset() addss 
-              (simpset() addsimps [ordertype_pred_Inl_eq, well_ord_Memrel, 
+by (force_tac (claset(),
+              simpset() addsimps [ordertype_pred_Inl_eq, well_ord_Memrel, 
                                ltI, lt_pred_Memrel, le_ordertype_Memrel, leI,
                                ordertype_pred_Inr_eq, 
-                               ordertype_sum_Memrel])) 1);
+                               ordertype_sum_Memrel]) 1);
 qed "lt_oadd_disj";
 
 
 (*** Ordinal addition with successor -- via associativity! ***)
 
-Goalw [oadd_def]
-    "[| Ord(i);  Ord(j);  Ord(k) |] ==> (i++j)++k = i++(j++k)";
+Goal "(i++j)++k = i++(j++k)";
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd, Ord_raw_oadd, raw_oadd_0, raw_oadd_0_left]) 1); 
+by (Clarify_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_def]) 1); 
 by (resolve_tac [ordertype_eq RS trans] 1);
 by (rtac ([ordertype_ord_iso RS ord_iso_sym, ord_iso_refl] MRS 
           sum_ord_iso_cong) 1);
@@ -499,8 +557,8 @@ Goal "[| Ord(i);  Ord(j) |] ==> i++j = i Un (UN k:j. {i++k})";
 by (rtac (subsetI RS equalityI) 1);
 by (eresolve_tac [ltI RS lt_oadd_disj RS disjE] 1);
 by (REPEAT (ares_tac [Ord_oadd] 1));
-by (fast_tac (claset() addIs [lt_oadd1, oadd_lt_mono2]
-                      addss (simpset() addsimps [Ord_mem_iff_lt, Ord_oadd])) 3);
+by (force_tac (claset() addIs [lt_oadd1, oadd_lt_mono2],
+              simpset() addsimps [Ord_mem_iff_lt]) 3);
 by (Blast_tac 2);
 by (blast_tac (claset() addSEs [ltE]) 1);
 qed "oadd_unfold";
@@ -510,10 +568,12 @@ by (asm_simp_tac (simpset() addsimps [oadd_unfold, Ord_1, oadd_0]) 1);
 by (Blast_tac 1);
 qed "oadd_1";
 
-Goal "[| Ord(i);  Ord(j) |] ==> i++succ(j) = succ(i++j)";
-                (*FOL_ss prevents looping*)
-by (asm_simp_tac (FOL_ss delsimps [oadd_1]
-		 addsimps [Ord_oadd, oadd_1 RS sym, oadd_assoc, Ord_1]) 1);
+Goal "Ord(j) ==> i++succ(j) = succ(i++j)";
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd]) 1); 
+by (Clarify_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_eq_oadd]) 1); 
+by (asm_simp_tac (simpset() 
+		 addsimps [inst "i" "j" oadd_1 RS sym, inst "i" "i++j" oadd_1 RS sym, oadd_assoc]) 1);
 qed "oadd_succ";
 Addsimps [oadd_succ];
 
@@ -521,14 +581,14 @@ Addsimps [oadd_succ];
 (** Ordinal addition with limit ordinals **)
 
 val prems = 
-Goal "[| Ord(i);  !!x. x:A ==> Ord(j(x));  a:A |] ==> \
+Goal "[| !!x. x:A ==> Ord(j(x));  a:A |] ==> \
 \     i ++ (UN x:A. j(x)) = (UN x:A. i++j(x))";
 by (blast_tac (claset() addIs prems @ [ltI, Ord_UN, Ord_oadd, 
 				       lt_oadd1 RS ltD, oadd_lt_mono2 RS ltD]
                         addSEs [ltE] addSDs [ltI RS lt_oadd_disj]) 1);
 qed "oadd_UN";
 
-Goal "[| Ord(i);  Limit(j) |] ==> i++j = (UN k:j. i++k)";
+Goal "Limit(j) ==> i++j = (UN k:j. i++k)";
 by (forward_tac [Limit_has_0 RS ltD] 1);
 by (asm_simp_tac (simpset() addsimps [Limit_is_Ord RS Ord_in_Ord,
 				      oadd_UN RS sym, Union_eq_UN RS sym, 
@@ -537,22 +597,26 @@ qed "oadd_Limit";
 
 (** Order/monotonicity properties of ordinal addition **)
 
-Goal "[| Ord(i);  Ord(j) |] ==> i le j++i";
+Goal "Ord(i) ==> i le j++i";
 by (eres_inst_tac [("i","i")] trans_induct3 1);
 by (asm_simp_tac (simpset() addsimps [Ord_0_le]) 1);
 by (asm_simp_tac (simpset() addsimps [oadd_succ, succ_leI]) 1);
 by (asm_simp_tac (simpset() addsimps [oadd_Limit]) 1);
 by (rtac le_trans 1);
 by (rtac le_implies_UN_le_UN 2);
-by (Blast_tac 2);
+by (etac bspec 2); 
+by (assume_tac 2); 
 by (asm_simp_tac (simpset() addsimps [Union_eq_UN RS sym, Limit_Union_eq, 
                                      le_refl, Limit_is_Ord]) 1);
 qed "oadd_le_self2";
 
-Goal "[| k le j;  Ord(i) |] ==> k++i le j++i";
+Goal "k le j ==> k++i le j++i";
 by (ftac lt_Ord 1);
 by (ftac le_Ord2 1);
-by (etac trans_induct3 1);
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd]) 1);
+by (Clarify_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_eq_oadd]) 1); 
+by (eres_inst_tac [("i","i")] trans_induct3 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [oadd_succ, succ_le_iff]) 1);
 by (asm_simp_tac (simpset() addsimps [oadd_Limit]) 1);
@@ -571,10 +635,9 @@ by (asm_simp_tac (simpset() delsimps [oadd_succ]
 		   addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
 qed "oadd_le_mono";
 
-Goal "[| Ord(i); Ord(j); Ord(k) |] ==> i++j le i++k <-> j le k";
+Goal "[| Ord(j); Ord(k) |] ==> i++j le i++k <-> j le k";
 by (asm_simp_tac (simpset() delsimps [oadd_succ]
-			    addsimps [oadd_lt_iff2, oadd_succ RS sym, 
-                                  Ord_succ]) 1);
+			    addsimps [oadd_lt_iff2, oadd_succ RS sym, Ord_succ]) 1);
 qed "oadd_le_iff2";
 
 
@@ -604,44 +667,46 @@ by (asm_simp_tac (simpset() addsimps [Ord_mem_iff_lt, lt_Ord, not_lt_iff_le]) 1)
 by (blast_tac (claset() addIs [lt_trans2, lt_trans]) 1);
 qed "ordertype_sum_Diff";
 
-Goalw [oadd_def, odiff_def]
+Goalw [odiff_def] 
+    "[| Ord(i);  Ord(j) |] ==> Ord(i--j)";
+by (REPEAT (ares_tac [Ord_ordertype, well_ord_Memrel RS well_ord_subset, 
+                      Diff_subset] 1));
+qed "Ord_odiff";
+Addsimps [Ord_odiff]; AddTCs [Ord_odiff];
+
+
+Goal
     "i le j  \
-\    ==> i ++ (j--i) = ordertype(i+(j-i), radd(i,Memrel(j),j-i,Memrel(j)))";
+\    ==> raw_oadd(i,j--i) = ordertype(i+(j-i), radd(i,Memrel(j),j-i,Memrel(j)))";
+by (asm_full_simp_tac (simpset() addsimps [raw_oadd_def, odiff_def]) 1); 
 by (safe_tac (claset() addSDs [le_subset_iff RS iffD1]));
 by (resolve_tac [sum_ord_iso_cong RS ordertype_eq] 1);
 by (etac id_ord_iso_Memrel 1);
 by (resolve_tac [ordertype_ord_iso RS ord_iso_sym] 1);
 by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel RS well_ord_subset,
                       Diff_subset] 1));
-qed "oadd_ordertype_Diff";
+qed "raw_oadd_ordertype_Diff";
 
 Goal "i le j ==> i ++ (j--i) = j";
-by (asm_simp_tac (simpset() addsimps [oadd_ordertype_Diff, ordertype_sum_Diff, 
+by (asm_simp_tac (simpset() addsimps [lt_Ord, le_Ord2, oadd_def, ordify_def, raw_oadd_ordertype_Diff, ordertype_sum_Diff, 
                                   ordertype_Memrel, lt_Ord2 RS Ord_succD]) 1);
 qed "oadd_odiff_inverse";
-
-Goalw [odiff_def] 
-    "[| Ord(i);  Ord(j) |] ==> Ord(i--j)";
-by (REPEAT (ares_tac [Ord_ordertype, well_ord_Memrel RS well_ord_subset, 
-                      Diff_subset] 1));
-qed "Ord_odiff";
 
 (*By oadd_inject, the difference between i and j is unique.  Note that we get
   i++j = k  ==>  j = k--i.  *)
 Goal "[| Ord(i); Ord(j) |] ==> (i++j) -- i = j";
 by (rtac oadd_inject 1);
 by (REPEAT (ares_tac [Ord_ordertype, Ord_oadd, Ord_odiff] 2));
-by (asm_simp_tac (simpset() addsimps [oadd_odiff_inverse, oadd_le_self]) 1);
+by (blast_tac (claset() addIs [oadd_odiff_inverse, oadd_le_self]) 1); 
 qed "odiff_oadd_inverse";
 
-val [i_lt_j, k_le_i] = goal (the_context ())
-    "[| i<j;  k le i |] ==> i--k < j--k";
-by (rtac (k_le_i RS lt_Ord RSN (2,oadd_lt_cancel2)) 1);
-by (simp_tac
-    (simpset() addsimps [i_lt_j, k_le_i, [k_le_i, leI] MRS le_trans,
-			 oadd_odiff_inverse]) 1);
-by (REPEAT (resolve_tac (Ord_odiff :: 
-                         ([i_lt_j, k_le_i] RL [lt_Ord, lt_Ord2])) 1));
+Goal "[| i<j;  k le i |] ==> i--k < j--k";
+by (res_inst_tac [("i","k")] oadd_lt_cancel2 1);
+by (asm_full_simp_tac (simpset() addsimps [oadd_odiff_inverse]) 1); 
+by (stac oadd_odiff_inverse 1); 
+by (blast_tac (claset() addIs [le_trans, leI]) 1); 
+by (assume_tac 1); 
+by (asm_simp_tac (simpset() addsimps [lt_Ord, le_Ord2]) 1);
 qed "odiff_lt_mono2";
 
 
@@ -651,16 +716,14 @@ Goalw [omult_def]
     "[| Ord(i);  Ord(j) |] ==> Ord(i**j)";
 by (REPEAT (ares_tac [Ord_ordertype, well_ord_rmult, well_ord_Memrel] 1));
 qed "Ord_omult";
+Addsimps [Ord_omult]; AddTCs [Ord_omult];
 
 (*** A useful unfolding law ***)
 
 Goalw [pred_def]
  "[| a:A;  b:B |] ==> pred(A*B, <a,b>, rmult(A,r,B,s)) =     \
 \                     pred(A,a,r)*B Un ({a} * pred(B,b,s))";
-by (rtac equalityI 1);
-by Safe_tac;
-by (ALLGOALS Asm_full_simp_tac);
-by (ALLGOALS Blast_tac);
+by (Blast_tac 1);
 qed "pred_Pair_eq";
 
 Goal "[| a:A;  b:B;  well_ord(A,r);  well_ord(B,s) |] ==>           \
@@ -674,11 +737,11 @@ by (REPEAT_FIRST (ares_tac [pred_subset, well_ord_rmult RS well_ord_subset]));
 by (blast_tac (claset() addSEs [predE]) 1);
 qed "ordertype_pred_Pair_eq";
 
-Goalw [oadd_def, omult_def]
+Goalw [raw_oadd_def, omult_def]
  "[| i'<i;  j'<j |] ==>                                         \
 \        ordertype(pred(i*j, <i',j'>, rmult(i,Memrel(i),j,Memrel(j))), \
 \                  rmult(i,Memrel(i),j,Memrel(j))) =                   \
-\        j**i' ++ j'";
+\        raw_oadd (j**i', j')";
 by (asm_simp_tac (simpset() addsimps [ordertype_pred_Pair_eq, lt_pred_Memrel, 
 				     ltD, lt_Ord2, well_ord_Memrel]) 1);
 by (rtac trans 1);
@@ -700,7 +763,8 @@ by (asm_full_simp_tac (simpset() addsimps [ordertype_pred_unfold,
                                        well_ord_rmult, well_ord_Memrel]) 1);
 by (safe_tac (claset() addSEs [ltE]));
 by (asm_simp_tac (simpset() addsimps [ordertype_pred_Pair_lemma, ltI,
-				     symmetric omult_def]) 1);
+				     symmetric omult_def, 
+           inst "i" "i" Ord_in_Ord', inst "i" "j" Ord_in_Ord', raw_oadd_eq_oadd]) 1);
 by (blast_tac (claset() addIs [ltI]) 1);
 qed "lt_omult";
 
@@ -718,6 +782,8 @@ by (blast_tac (claset() addSEs [ltE]) 2);
 by (asm_simp_tac 
     (simpset() addsimps [ordertype_pred_Pair_lemma, ltI,
                         symmetric omult_def]) 1);
+by (asm_simp_tac (simpset() addsimps [
+           lt_Ord, lt_Ord2, raw_oadd_eq_oadd]) 1);
 qed "omult_oadd_lt";
 
 Goal "[| Ord(i);  Ord(j) |] ==> j**i = (UN j':j. UN i':i. {j**i' ++ j'})";
@@ -765,8 +831,9 @@ Addsimps [omult_1, omult_1_left];
 
 (** Distributive law for ordinal multiplication and addition **)
 
-Goalw [omult_def, oadd_def]
-    "[| Ord(i);  Ord(j);  Ord(k) |] ==> i**(j++k) = (i**j)++(i**k)";
+Goal "[| Ord(i);  Ord(j);  Ord(k) |] ==> i**(j++k) = (i**j)++(i**k)";
+by (asm_full_simp_tac (simpset() addsimps [oadd_eq_if_raw_oadd]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [omult_def, raw_oadd_def]) 1); 
 by (resolve_tac [ordertype_eq RS trans] 1);
 by (rtac ([ordertype_ord_iso RS ord_iso_sym, ord_iso_refl] MRS 
           prod_ord_iso_cong) 1);
@@ -780,9 +847,9 @@ by (REPEAT (ares_tac [well_ord_rmult, well_ord_radd, well_ord_Memrel,
 qed "oadd_omult_distrib";
 
 Goal "[| Ord(i);  Ord(j) |] ==> i**succ(j) = (i**j)++i";
-                (*FOL_ss prevents looping*)
-by (asm_simp_tac (FOL_ss addsimps [oadd_1 RS sym, omult_1, oadd_omult_distrib,
-                                   Ord_1]) 1);
+by (asm_simp_tac (simpset() 
+		 delsimps [oadd_succ]
+		 addsimps [inst "i" "j" oadd_1 RS sym, oadd_omult_distrib]) 1);
 qed "omult_succ";
 
 (** Associative law **)
@@ -894,8 +961,7 @@ Goal "[| i**j = i**k;  0<i;  Ord(j);  Ord(k) |] ==> j=k";
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
-    (best_tac (claset() addDs [omult_lt_mono2] 
-                        addss (simpset() addsimps [lt_not_refl]))));
+    (force_tac (claset() addDs [omult_lt_mono2],
+                simpset() addsimps [lt_not_refl])));
 qed "omult_inject";
-
 
