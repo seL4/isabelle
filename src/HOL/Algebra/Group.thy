@@ -28,10 +28,11 @@ record 'a monoid = "'a semigroup" +
   one :: 'a ("\<one>\<index>")
 
 constdefs (structure G)
-  m_inv :: "_ => 'a => 'a" ("inv\<index> _" [81] 80)
+  m_inv :: "('a, 'b) monoid_scheme => 'a => 'a" ("inv\<index> _" [81] 80)
   "inv x == (THE y. y \<in> carrier G & x \<otimes> y = \<one> & y \<otimes> x = \<one>)"
 
   Units :: "_ => 'a set"
+  --{*The set of invertible elements*}
   "Units G == {y. y \<in> carrier G & (EX x : carrier G. x \<otimes> y = \<one> & y \<otimes> x = \<one>)}"
 
 consts
