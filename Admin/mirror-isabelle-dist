@@ -5,22 +5,9 @@
 # $Id$
 #
 
-
-
-## self references
+## diagnostics
 
 PRG=`basename "$0"`
-
-if [ -h "$0" ]; then
-  THIS=`cd \`dirname "$0"\`; cd \`dirname \\\`find "$0" -ls | cut -d ">" -f 2\\\`\`; pwd`
-else
-  THIS=`cd \`dirname "$0"\`; pwd`
-fi
-
-SUPER=`cd "$THIS/.."; pwd`
-
-
-## diagnostics
 
 usage()
 {
@@ -29,7 +16,7 @@ usage()
   echo
   echo "  Options are:"
   echo "    -n    dry run, don't do anything, just report what would happen"
-  echo "    -d    delete files that are not on the server"
+  echo "    -d    delete files that are not on the server (beware!)"
   echo
   exit 1
 }
@@ -71,6 +58,7 @@ shift `expr $OPTIND - 1`
 
 DEST="$1"; shift;
 
+
 ## main
 
-rsync -va $ARGS rsync://www4.in.tum.de/isabelle-dist/. $DEST/.
+exec rsync -va $ARGS rsync://www4.in.tum.de/isabelle-dist/. "$DEST/."

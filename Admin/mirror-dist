@@ -6,7 +6,7 @@
 HOST=$(hostname)
 
 case  ${HOST} in
-  sunbroy79)
+  sunbroy*)
     #test
     DEST=/tmp/isabelle-dist
     mkdir -p $DEST
@@ -20,4 +20,4 @@ case  ${HOST} in
     ;;
 esac
 
-mirror-isabelle-dist -d $DEST
+exec $(dirname $0)/mirror-isabelle-dist -d $DEST
