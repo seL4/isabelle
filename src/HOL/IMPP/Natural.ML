@@ -36,11 +36,6 @@ by (etac evaln.induct 1);
 by (ALLGOALS (resolve_tac evalc.intrs THEN_ALL_NEW atac));
 qed "evaln_evalc";
 
-goal Nat.thy "(Suc n <= m') --> (? m. m' = Suc m)";
-by (induct_tac "m'" 1);
-by (CLASIMPSET auto_tac);
-qed_spec_mp "Suc_le_D";
-
 Goal "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'";
 by (cut_facts_tac (premises()) 1);
 by (ftac Suc_le_D 1);
