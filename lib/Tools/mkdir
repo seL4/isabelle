@@ -216,23 +216,23 @@ else
 
 % further packages required for unusual symbols (see also isabellesym.sty)
 % use only when needed
-%\usepackage{amsmath}                  % for \<leadsto>, \<box>, \<diamond>,
+%\usepackage{amssymb}                  % for \<leadsto>, \<box>, \<diamond>,
                                        % \<sqsupset>, \<mho>, \<Join>, 
-                                       % \<lhd>, ..
-%\usepackage{amssymb}                  % for \<lesssim>, \<greatersim>,
+                                       % \<lhd>, \<lesssim>, \<greatersim>,
                                        % \<lessapprox>, \<greaterapprox>,
                                        % \<triangleq>, \<yen>, \<lozenge>
-%\usepackage[english]{babel}           % for \<guillemotleft>, 
-                                       %     \<guillemotright>
+%\usepackage[greek,english]{babel}     % greek for \<euro>,
+                                       % english for \<guillemotleft>, 
+                                       %             \<guillemotright>
+                                       % default language = last
 %\usepackage[latin1]{inputenc}         % for \<onesuperior>, \<onequarter>,
                                        % \<twosuperior>, \<onehalf>,
                                        % \<threesuperior>, \<threequarters>,
                                        % \<degree>
 %\usepackage[only,bigsqcap]{stmaryrd}  % for \<Sqinter>
-%\usepackage{wasysym}
 %\usepackage{eufrak}                   % for \<AA> ... \<ZZ>, \<aa> ... \<zz>
-%\usepackage{textcomp}                 % \<cent>, \<currency>
-%\usepackage{eurosans}                 % for \<euro>
+                                       % (only needed if amssymb not used)
+%\usepackage{textcomp}                 % for \<cent>, \<currency>
 
 % this should be the last package used
 \usepackage{pdfsetup}
