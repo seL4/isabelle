@@ -210,8 +210,8 @@ Ycoord\ r\isasymrparr "\isanewline
 \end{isabelle}
 The generic version of this equality includes the field \isa{more}:
 \begin{isabelle}
-\isacommand{lemma}\ "r\ =\ \isasymlparr Xcoord\ =\ Xcoord\ r,\ Ycoord\ =\ Ycoord\ r,\ \isasymdots \ =\ point.more\
-r\isasymrparr"
+\ \ \ \ r\ =\ \isasymlparr Xcoord\ =\ Xcoord\ r,\ Ycoord\ =\ Ycoord\ r,\ \isasymdots \ =\ point.more\
+r\isasymrparr
 \end{isabelle}
 
 \medskip
@@ -234,28 +234,23 @@ a\ =\ a'
 Now, \isa{simp} will reduce the assumption to the desired
 conclusion.
 
-An alternative to such forward steps is record splitting.  A record
-variable can be split only if it is bound in the subgoal by the 
-meta-quantifier \isa{\isasymAnd}, or \isa{!!} in ASCII\@.  So,
-we enter the lemma again:
+The \isa{cases} method is preferable to such a forward proof.  
+State the desired lemma again:
 \begin{isabelle}
-\isacommand{lemma}\ "!!r.\ r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\ \isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \ a\ =\
-a'"\isanewline
+\isacommand{lemma}\ "r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\ \isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \ a\ =\ a'"
 \end{isabelle}
-The \methdx{record_split} method replaces the record variable by an
-explicit record, listing all fields.  Even the field \isa{more} is
-included, since the record equality is generic.
+The \methdx{cases} method adds an equality to replace
+the named record variable by an explicit record, listing all fields.  
+It even includes the field \isa{more}, since the record equality is generic.
 \begin{isabelle}
-\isacommand{apply}\ record_split\isanewline
+\isacommand{apply}\ (cases\ r)\isanewline
 \ 1.\ \isasymAnd Xcoord\ Ycoord\ more.\isanewline
-\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ =\ Xcoord,\ Ycoord\ =\ Ycoord,\ \isasymdots \ =\ more\isasymrparr \isanewline
-\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ :=\ a\isasymrparr \ =\isanewline
-\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ =\ Xcoord,\ Ycoord\ =\ Ycoord,\ \isasymdots \ =\ more\isasymrparr \isanewline
-\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \isanewline
-\isaindent{\ 1.\ \ \ \ }a\ =\ a'
+\isaindent{\ 1.\ \ \ \ }\isasymlbrakk r\isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\isasymlparr Xcoord\ :=\ a'\isasymrparr ;\isanewline
+\isaindent{\ 1.\ \ \ \ \ \ \ }r\ =\ \isasymlparr Xcoord\ =\ Xcoord,\ Ycoord\ =\ Ycoord,\ \isasymdots \ =\ more\isasymrparr \isasymrbrakk \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymLongrightarrow \ a\ =\ a'
 \end{isabelle}
-Again, \isa{simp} finishes the proof.  Because the records have
-been split, the updates can be applied and the record equality can be
+Again, \isa{simp} finishes the proof.  Because \isa{r} has become an explicit
+record expression, the updates can be applied and the record equality can be
 replaced by equality of the corresponding fields.
 
 

@@ -234,13 +234,10 @@ apply (drule_tac f=Xcoord in arg_cong)
     --{* @{subgoals[display,indent=0,margin=65]} *}
 by simp
 
-text {*
-So we replace the ugly manual proof by splitting.  These must be quantified: 
-  the @{text "!!r"} is \emph{necessary}!  Note the occurrence of more, since
-  r is polymorphic.
-*}  (* FIXME better us cases/induct *)
-lemma "!!r. r \<lparr>Xcoord := a\<rparr> = r \<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
-apply record_split --{* @{subgoals[display,indent=0,margin=65]} *}
+text {*So we replace the ugly manual proof by the "cases" method.*}
+lemma "r \<lparr>Xcoord := a\<rparr> = r \<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
+apply (cases r)
+  --{* @{subgoals[display,indent=0,margin=65]} *}
 by simp
 
 constdefs
