@@ -275,7 +275,7 @@ simpset_ref() := simpset() addsplits [split_split];
 Goal "R (split c p) = (~(? x y. p = (x,y) & (~R (c x y))))";
 by (stac split_split 1);
 by (Simp_tac 1);
-qed "expand_split_asm";
+qed "split_split_asm";
 
 (** split used as a logical connective or set former **)
 
