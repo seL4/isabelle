@@ -149,16 +149,21 @@ val snd_lepoll_SigmaI = prod_lepoll_self RS
         ((prod_commute_eqpoll RS eqpoll_imp_lepoll) RSN (2,lepoll_trans));
 
 
+Goal "[|0 \\<notin> A; B \\<in> A|] ==> nat \\<lesssim> ((nat \\<rightarrow> Union(A)) \\<times> B) \\<times> nat";
+by (blast_tac (claset() addDs [Sigma_fun_space_not0]
+                        addIs [snd_lepoll_SigmaI]) 1);
+qed "nat_lepoll_lemma";
+
+
 Goal "[| 0~:A;  A~=0;  \
 \        C = {((nat->Union(A))*B)*nat. B:A}  Un \
 \            {cons(0,((nat->Union(A))*B)*nat). B:A}; \
 \        B1: C;  B2: C |]  \
 \     ==> B1 eqpoll B2";
-by (blast_tac (claset() addSIs [nat_cons_eqpoll RS eqpoll_trans]
-                addDs [Sigma_fun_space_not0]
-                addIs [eqpoll_trans, eqpoll_sym, snd_lepoll_SigmaI, 
-                       eqpoll_refl RSN (2, prod_eqpoll_cong), 
-                       Sigma_fun_space_eqpoll]) 1);
+by (blast_tac
+    (claset() addSIs [nat_lepoll_lemma, nat_cons_eqpoll RS eqpoll_trans, 
+                      eqpoll_refl RSN (2, prod_eqpoll_cong)]
+              addIs [eqpoll_trans, eqpoll_sym, Sigma_fun_space_eqpoll]) 1);
 val lemma1 = result();
 
 Goal "ALL B1:{(F*B)*N. B:A} Un {cons(0,(F*B)*N). B:A}.  \
