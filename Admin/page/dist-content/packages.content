@@ -112,7 +112,6 @@ The installation may be finished as follows:
 
 <tt>
 &nbsp;&nbsp; <!-- _GP_ "cd /usr/local/" . distname --> <br>
-&nbsp;&nbsp; ./configure <br>
 &nbsp;&nbsp; ./bin/isatool install -p /usr/local/bin <br>
 </tt>
 
