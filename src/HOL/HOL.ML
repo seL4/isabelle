@@ -268,19 +268,35 @@ qed_goal "select_equality" HOL.thy
                 REPEAT (ares_tac prems 1) ]);
 
 qed_goalw "select1_equality" HOL.thy [Ex1_def]
-  "!!P. [| ?!x. P(x); P(a) |] ==> (@x. P(x)) = a"
-(fn _ => [rtac select_equality 1, atac 1,
+  "!!P. [| ?!x. P(x); P(a) |] ==> (@x. P(x)) = a" (K [
+	  rtac select_equality 1, atac 1,
           etac exE 1, etac conjE 1,
           rtac allE 1, atac 1,
           etac impE 1, atac 1, etac ssubst 1,
           etac allE 1, etac impE 1, atac 1, etac ssubst 1,
           rtac refl 1]);
 
-qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (fn prems => [
+qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (K [
         rtac iffI 1,
         etac exI 1,
         etac exE 1,
         etac selectI 1]);
+
+val Eps_eq = prove_goal HOL.thy "Eps (op = x) = x" (K [
+	rtac select_equality 1, rtac refl 1, etac sym 1]);
+
+val ex1_Eps_eq = prove_goal HOL.thy "!!X. [|?!x. P x; P y|] ==> Eps P = y" (K [
+	rtac select_equality 1,
+	 atac 1,
+	etac ex1E 1,
+	etac all_dupE 1,
+	etac impE 1,
+	 atac 1,
+	rtac trans 1,
+	 etac sym 2,
+	dtac spec 1,
+	etac impE 1,
+	 ALLGOALS atac]);
 
 
 (** Classical intro rules for disjunction and existential quantifiers *)
