@@ -52,6 +52,7 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
+  val read_var: string -> string * int
 end;
 
 signature LEXICON =
@@ -490,6 +491,15 @@ fun scan_var str =
       scan_rest >> (free o implode);
   in
     #1 (scan (explode str))
+  end;
+
+
+(* read_var *)
+
+fun read_var str =
+  let val scan = $$ "?" -- scan_vname -- scan_end >> (#2 o #1) in
+    #1 (scan (explode str)) handle LEXICAL_ERROR
+      => error ("Bad variable " ^ quote str)
   end;
 
 
