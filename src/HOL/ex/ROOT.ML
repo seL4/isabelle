@@ -18,7 +18,6 @@ time_use_thy "String";
 time_use_thy "BT";
 time_use_thy "InSort";
 time_use_thy "Qsort";
-time_use_thy "LexProd";
 time_use_thy "Puzzle";
 time_use_thy "Primes";
 time_use_thy "NatSum";
