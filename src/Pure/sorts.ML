@@ -130,7 +130,7 @@ fun inter_class classrel (c, S) =
   in intr S end;
 
 (*instersect sorts (preserves minimality)*)
-fun inter_sort classrel = foldr (inter_class classrel);
+fun inter_sort classrel = sort_strings o foldr (inter_class classrel);
 
 
 
