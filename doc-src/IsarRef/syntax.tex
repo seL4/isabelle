@@ -79,17 +79,28 @@ syntax as presented in \cite{isabelle-ref}.
   typefree & = & \verb,',ident \\
   typevar & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
   string & = & \verb,", ~\dots~ \verb,", \\
-  verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\
-\end{matharray}
-\begin{matharray}{rcl}
-  letter & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
+  verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\[1ex]
+
+  letter & = & sletter ~|~ xletter \\
   digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
   quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
   sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~  %$
    \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~ \\
   & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
   \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
-  symbol & = & {\forall} ~|~ {\exists} ~|~ {\land} ~|~ {\lor} ~|~ \dots
+  symbol & = & {\forall} ~|~ {\exists} ~|~ {\land} ~|~ {\lor} ~|~ \dots\\
+sletter & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
+xletter & = & {\tt \backslash<} ~ (sletter ~|~ dletter ~|~ gletter ~|~ cletter) ~ {\tt >}\\
+dletter & = & \verb,aa, ~|~ \dots ~|~ \verb,zz, ~|~ \verb,AA, ~|~ \dots ~|~ \verb,ZZ, \\
+bletter & = & {\tt bool} ~|~ {\tt complex} ~|~ {\tt nat} ~|~ {\tt rat} ~|~ {\tt real} ~|~ {\tt int}\\
+cletter & = & {\tt \hat{}\, isup} ~~|~~ {\tt \hat{}\, isub}
+\end{matharray}
+\begin{matharray}{rcl}
+gletter & = & {\tt alpha} ~|~ {\tt beta} ~|~ {\tt gamma} ~|~ {\tt delta} ~|~ {\tt epsilon} ~|~ {\tt zeta} ~|~ {\tt eta} ~|\\ 
+        &   & {\tt theta} ~|~ {\tt iota} ~|~ {\tt kappa} ~|~ {\tt mu} ~|~ {\tt nu} ~|~ {\tt xi} ~|~ {\tt pi} ~|~ {\tt rho} ~|\\
+        &   & {\tt sigma} ~|~ {\tt tau} ~|~ {\tt upsilon} ~|~ {\tt phi} ~|~ {\tt psi} ~|~ {\tt omega} ~|~ {\tt Gamma} ~|\\
+        &   & {\tt Delta} ~|~ {\tt Theta} ~|~ {\tt Lambda} ~|~ {\tt Xi} ~|~ {\tt Pi} ~|~ {\tt Sigma} ~|~ {\tt Upsilon} ~|\\
+        &   & {\tt Phi} ~|~ {\tt Psi} ~|~ {\tt Omega}
 \end{matharray}
 
 The syntax of $string$ admits any characters, including newlines; ``\verb|"|''
@@ -117,6 +128,12 @@ provides \emph{formal comments} that are considered as part of the text (see
 Mathematical symbols such as ``$\forall$'' are represented in plain ASCII as
 ``\verb,\<forall>,''.  Concerning Isabelle itself, any sequence of the form
 \verb,\<,$ident$\verb,>, (or \verb,\\<,$ident$\verb,>,) is a legal symbol.
+Greek letters \verb+\<alpha>+, \verb+\<beta>+, etc (apart from
+\verb+\<lambda>+), caligraphic letters in various styles, as
+well as the special \verb+\<^isub>+ and \verb+\<^isup>+ sub/superscipt
+control characters are considered proper letters and can be used as
+part of any identifier. 
+
 Display of appropriate glyphs is a matter of front-end tools, say the
 user-interface of Proof~General plus the X-Symbol package, or the {\LaTeX}
 macro setup of document output.  A list of predefined Isabelle symbols is
