@@ -42,7 +42,7 @@ proof -;
   assume r: "(!! u v. [| u:F; v:F |] ==> a u <= (b v::real))";
 
   txt {* From the completeness of the reals follows:
-  The set $S = \{a\ap u.\ap u\in F\}$ has a supremum, if
+  The set $S = \{a\: u\dt\: u\in F\}$ has a supremum, if
   it is non-empty and has an upper bound. *};
 
   let ?S = "{a u :: real | u. u:F}";
@@ -116,8 +116,8 @@ proof -;
   qed;
 qed;
 
-text{* The function $h_0$ is defined as a
-$h_0\ap x = h\ap y + a\cdot \xi$ where $x = y + a\prod \xi$
+text{* \medskip The function $h_0$ is defined as a
+$h_0\ap x = h\ap y + a\cdot \xi$ where $x = y + a\mult \xi$
 is a linear extension of $h$ to $H_0$. *};
 
 lemma h0_lf: 
@@ -168,7 +168,8 @@ proof -;
          and y: "x1 + x2 = y + a <*> x0"   and y':  "y  : H"; 
 
       have ya: "y1 + y2 = y & a1 + a2 = a"; 
-      proof (rule decomp_H0);  txt{*\label{decomp-H0-use}*}; 
+      proof (rule decomp_H0);;
+	txt_raw {* \label{decomp-H0-use} *};;
         show "y1 + y2 + (a1 + a2) <*> x0 = y + a <*> x0"; 
           by (simp! add: vs_add_mult_distrib2 [of E]);
         show "y1 + y2 : H"; ..;
@@ -235,16 +236,15 @@ proof -;
   qed;
 qed;
 
-text{* The linear extension $h_0$ of $h$
+text{* \medskip The linear extension $h_0$ of $h$
 is bounded by the seminorm $p$. *};
 
 lemma h0_norm_pres:
   "[| h0 == (\<lambda>x. let (y, a) = SOME (y, a). x = y + a <*> x0 & y:H 
                 in h y + a * xi);
   H0 == H + lin x0; x0 ~: H; x0 : E; x0 ~= <0>; is_vectorspace E; 
-  is_subspace H E; is_seminorm E p; is_linearform H h; 
-  ALL y:H. h y <= p y; (ALL y:H. - p (y + x0) - h y <= xi) 
-  & (ALL y:H. xi <= p (y + x0) - h y) |]
+  is_subspace H E; is_seminorm E p; is_linearform H h; ALL y:H. h y <= p y; 
+  ALL y:H. - p (y + x0) - h y <= xi & xi <= p (y + x0) - h y |]
    ==> ALL x:H0. h0 x <= p x"; 
 proof; 
   assume h0_def: 
@@ -270,7 +270,7 @@ proof;
 
     txt{* Now we show  
     $h\ap y + a \cdot \xi\leq  p\ap (y\plus a \mult x_0)$ 
-    by case analysis on $a$. *};
+    by case analysis on $a$. \label{linorder_linear_split}*};
 
     also; have "... <= p (y + a <*> x0)";
     proof (rule linorder_linear_split); 

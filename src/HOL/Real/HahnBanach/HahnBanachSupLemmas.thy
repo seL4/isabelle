@@ -12,7 +12,7 @@ theory HahnBanachSupLemmas = FunctionNorm + ZornLemma:;
 text{* This section contains some lemmas that will be used in the
 proof of the Hahn-Banach Theorem.
 In this section the following context is presumed. 
-Let $E$ be a real vector space with a seminorm $q$ on $E$. 
+Let $E$ be a real vector space with a seminorm $p$ on $E$. 
 $F$ is a subspace of $E$ and $f$ a linear form on $F$. We 
 consider a chain $c$ of norm-preserving extensions of $f$, such that
 $\Union c = \idt{graph}\ap H\ap h$. 
@@ -109,7 +109,7 @@ proof -;
 qed;
 
 
-text{*  Let $c$ be a chain of norm-preserving extensions of the
+text{*  \medskip Let $c$ be a chain of norm-preserving extensions of the
 function $f$ and let $\idt{graph}\ap H\ap h$ be the supremum of $c$. 
 Every element in the domain $H$ of the supremum function is member of
 the domain $H'$ of some function $h'$, such that $h$ extends $h'$.
@@ -184,7 +184,7 @@ qed;
 ***)
 
 
-text{* Any two elements $x$ and $y$ in the domain $H$ of the 
+text{* \medskip Any two elements $x$ and $y$ in the domain $H$ of the 
 supremum function $h$ are both in the domain $H'$ of some function 
 $h'$, such that $h$ extends $h'$. *};
 
@@ -228,7 +228,7 @@ proof -;
 
    txt {* Since both $h'$ and $h''$ are elements of the chain,  
    $h''$ is an extension of $h'$ or vice versa. Thus both 
-   $x$ and $y$ are contained in the greater one. *};
+   $x$ and $y$ are contained in the greater one. \label{cases1}*};
 
     have "graph H'' h'' <= graph H' h' | graph H' h' <= graph H'' h''"
       (is "?case1 | ?case2");
@@ -336,7 +336,7 @@ qed;
 
 ***)
 
-text{* The relation induced by the graph of the supremum
+text{* \medskip The relation induced by the graph of the supremum
 of a chain $c$ is definite, i.~e.~it is the graph of a function. *};
 
 lemma sup_definite: 
@@ -367,7 +367,7 @@ proof -;
       assume "graph H1 h1 = G1" "graph H2 h2 = G2";
 
       txt{* $G_1$ is contained in $G_2$ or vice versa, 
-      since both $G_1$ and $G_2$ are members of $c$. *};
+      since both $G_1$ and $G_2$ are members of $c$. \label{cases2}*};
 
       have "G1 <= G2 | G2 <= G1" (is "?case1 | ?case2"); ..;
       thus ?thesis;
@@ -390,7 +390,7 @@ proof -;
   qed;
 qed;
 
-text{* The limit function $h$ is linear. Every element $x$ in the
+text{* \medskip The limit function $h$ is linear. Every element $x$ in the
 domain of $h$ is in the domain of a function $h'$ in the chain of norm
 preserving extensions.  Furthermore, $h$ is an extension of $h'$ so
 the function values of $x$ are identical for $h'$ and $h$.  Finally, the
@@ -452,7 +452,7 @@ proof -;
   qed;
 qed;
 
-text{* The limit of a non-empty chain of norm
+text{* \medskip The limit of a non-empty chain of norm
 preserving extensions of $f$ is an extension of $f$,
 since every element of the chain is an extension
 of $f$ and the supremum is an extension
@@ -492,10 +492,10 @@ proof -;
   qed;
 qed;
 
-text{* The domain $H$ of the limit function is a superspace of $F$,
+text{* \medskip The domain $H$ of the limit function is a superspace of $F$,
 since $F$ is a subset of $H$. The existence of the $\zero$ element in
 $F$ and the closure properties follow from the fact that $F$ is a
-vectorspace. *};
+vector space. *};
 
 lemma sup_supF: 
   "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c;
@@ -526,7 +526,7 @@ proof -;
   qed;
 qed;
 
-text{* The domain $H$ of the limit function is a subspace
+text{* \medskip The domain $H$ of the limit function is a subspace
 of $E$. *};
 
 lemma sup_subE: 
@@ -608,7 +608,7 @@ proof -;
   qed;
 qed;
 
-text {* The limit function is bounded by 
+text {* \medskip The limit function is bounded by 
 the norm $p$ as well, since all elements in the chain are
 bounded by $p$.
 *};
@@ -636,10 +636,9 @@ proof;
 qed;
 
 
-text{* \medskip The following lemma is a property of linearforms on 
+text{* \medskip The following lemma is a property of linear forms on 
 real vector spaces. It will be used for the lemma 
-$\idt{rabs{\dsh}HahnBanach}$ (see page \pageref{rabs-HahnBanach}).
-\label{rabs-ineq-iff}
+$\idt{rabs{\dsh}HahnBanach}$ (see page \pageref{rabs-HahnBanach}). \label{rabs-ineq-iff}
 For real vector spaces the following inequations are equivalent:
 \begin{matharray}{ll} 
 \forall x\in H.\ap |h\ap x|\leq p\ap x& {\rm and}\\ 
