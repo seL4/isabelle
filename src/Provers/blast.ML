@@ -24,16 +24,14 @@ Known problems:
   "Recursive" chains of rules can sometimes exclude other unsafe formulae
 	from expansion.  This happens because newly-created formulae always
 	have priority over existing ones.  But obviously recursive rules 
-	such as transitivity are treated specially to prevent this.
+	such as transitivity are treated specially to prevent this.  Sometimes
+	the formulae get into the wrong order (see WRONG below).
 
   With overloading:
-        Overloading can't follow all chains of type dependencies.  Cannot
-        prove "In1 x ~: Part A In0" because PartE introducees the polymorphic
-	equality In1 x = In0 y, when the corresponding rule uses the (distinct)
-	set equality.  Workaround: supply a type instance of the rule that
-	creates new equalities (e.g. PartE in HOL/ex/Simult)
-	==> affects freeness reasoning about Sexp constants (since they have
-		type ... set)
+        Calls to Blast.overloaded (see HOL/Set.ML for examples) are needed
+	to tell Blast_tac when to retain some type information.  Make sure
+	you know the constant's internal name, which might be "op <=" or 
+	"Relation.op ^^".
 
   With substition for equalities (hyp_subst_tac):
         When substitution affects a haz formula or literal, it is moved
@@ -118,14 +116,14 @@ val trace = ref false
 and stats = ref false;   (*for runtime and search statistics*)
 
 datatype term = 
-    Const of string
+    Const  of string
   | TConst of string * term    (*type of overloaded constant--as a term!*)
   | Skolem of string * term option ref list
-  | Free  of string
-  | Var   of term option ref
-  | Bound of int
-  | Abs   of string*term
-  | op $  of term*term;
+  | Free   of string
+  | Var    of term option ref
+  | Bound  of int
+  | Abs    of string*term
+  | $      of term*term;
 
 
 (** Basic syntactic operations **)
@@ -482,12 +480,18 @@ end;
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
-(*Tableau rule from elimination rule.  Flag "dup" requests duplication of the
-  affected formula.*)
+(*Resolution/matching tactics: if upd then the proof state may be updated.
+  Matching makes the tactics more deterministic in the presence of Vars.*)
+fun emtac upd rl = TRACE rl (if upd then etac rl else ematch_tac [rl]);
+fun rmtac upd rl = TRACE rl (if upd then rtac rl else match_tac [rl]);
+
+(*Tableau rule from elimination rule.  
+  Flag "upd" says that the inference updated the branch.
+  Flag "dup" requests duplication of the affected formula.*)
 fun fromRule vars rl = 
   let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertRule vars
-      fun tac (dup,rot) i = 
-	TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
+      fun tac (upd, dup,rot) i = 
+	emtac upd (if dup then rev_dup_elim rl else rl) i
 	THEN
 	rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end
@@ -508,12 +512,15 @@ fun convertIntrRule vars t =
   in  (mkGoal P, map (convertIntrPrem o skoPrem vars) Ps) 
   end;
 
-(*Tableau rule from introduction rule.  Since haz rules are now delayed, 
-  "dup" is always FALSE for introduction rules.*)
+(*Tableau rule from introduction rule.  
+  Flag "upd" says that the inference updated the branch.
+  Flag "dup" requests duplication of the affected formula.
+  Since haz rules are now delayed, "dup" is always FALSE for
+  introduction rules.*)
 fun fromIntrRule vars rl = 
   let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertIntrRule vars
-      fun tac (dup,rot) i = 
-	 TRACE rl (rtac (if dup then Data.dup_intr rl else rl)) i
+      fun tac (upd,dup,rot) i = 
+	 rmtac upd (if dup then Data.dup_intr rl else rl) i
 	 THEN
 	 rot_subgoals_tac (rot, #2 trl) i
   in (trl, tac) end;
@@ -631,7 +638,7 @@ fun tracing sign brs =
   in if !trace then printBrs (map normBr brs) else ()
   end;
 
-fun traceMsg s = if !trace then prs s else ();
+fun traceMsg s = if !trace then writeln s else ();
 
 (*Tracing: variables updated in the last branch operation?*)
 fun traceVars sign ntrl =
@@ -952,15 +959,15 @@ fun prove (sign, start, cs, brs, cont) =
 		| deeper (((P,prems),tac)::grls) =
 		    if unify(add_term_vars(P,[]), P, G) 
 		    then  (*P comes from the rule; G comes from the branch.*)
-		     let val ntrl' = !ntrail
-			 val lim' = if ntrl < !ntrail 
+		     let val updated = ntrl < !ntrail (*branch updated*)
+			 val lim' = if updated
 				    then lim - (1+log(length rules))
 				    else lim   (*discourage branching updates*)
 			 val vars  = vars_in_vars vars
 			 val vars' = foldr add_terms_vars (prems, vars)
 			 val choices' = (ntrl, nbrs, PRV) :: choices
-			 val tacs' = (DETERM o tac(false,true)) :: tacs 
-					 (*no duplication; rotate*)
+			 val tacs' = (DETERM o tac(updated,false,true)) 
+                                     :: tacs  (*no duplication; rotate*)
 		     in
 			 traceNew prems;  traceVars sign ntrl;
 			 (if null prems then (*closed the branch: prune!*)
@@ -970,15 +977,14 @@ fun prove (sign, start, cs, brs, cont) =
 				 brs))
 			  else (*prems non-null*)
 			  if lim'<0 (*faster to kill ALL the alternatives*)
-			  then (traceMsg"Excessive branching: KILLED\n";
+			  then (traceMsg"Excessive branching: KILLED";
 			        clearTo ntrl;  raise NEWBRANCHES)
 			  else
 			    (ntried := !ntried + length prems - 1;
 			     prv(tacs',  brs0::trs, choices',
 				 newBr (vars',lim') prems)))
                          handle PRV => 
-			   if ntrl < ntrl' (*Vars have been updated*)
-			   then
+			   if updated then
 				(*Backtrack at this level.
 				  Reset Vars and try another rule*)
 				(clearTo ntrl;  deeper grls)
@@ -1069,7 +1075,7 @@ fun prove (sign, start, cs, brs, cont) =
 		| deeper (((P,prems),tac)::grls) =
 		    if unify(add_term_vars(P,[]), P, H)
 		    then
-		     let val ntrl' = !ntrail
+		     let val updated = ntrl < !ntrail (*branch updated*)
 			 val vars  = vars_in_vars vars
 			 val vars' = foldr add_terms_vars (prems, vars)
 			    (*duplicate H if md and the subgoal has new vars*)
@@ -1077,7 +1083,7 @@ fun prove (sign, start, cs, brs, cont) =
 			     (*any instances of P in the subgoals?*)
 			 and recur = exists (exists (match P)) prems
 			 val lim' = (*Decrement "lim" extra if updates occur*)
-			     if ntrl < !ntrail then lim - (1+log(length rules))
+			     if updated then lim - (1+log(length rules))
 			     else lim-1 
 				 (*It is tempting to leave "lim" UNCHANGED if
 				   both dup and recur are false.  Proofs are
@@ -1093,16 +1099,18 @@ fun prove (sign, start, cs, brs, cont) =
 			       emulate Fast_tac, which allows all unsafe steps
 			       to be undone.*)
 			     not(null grls)   (*other rules to try?*)
-			     orelse ntrl < ntrl' (*variables updated?*)
+			     orelse updated
 			     orelse vars=vars'   (*no new Vars?*)
-			 val tac' = if mayUndo then tac(dup, true)
-				    else   DETERM o tac(dup, true) 
+			 val tac' = if mayUndo then tac(updated, dup, true)
+				    else   DETERM o tac(updated, dup, true) 
 			       (*if recur then doesn't call rotate_tac: 
-				 new formulae should be last*)
+				 new formulae should be last; WRONG
+                                 if the new formulae are Goals, since
+				 they remain in the first position*)
 		     in
 		       if lim'<0 andalso not (null prems)
 		       then (*it's faster to kill ALL the alternatives*)
-			   (traceMsg"Excessive branching: KILLED\n";
+			   (traceMsg"Excessive branching: KILLED";
 			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
 			 traceNew prems;  
@@ -1281,4 +1289,3 @@ fun tryInThy thy lim s =
 
 
 end;
-
