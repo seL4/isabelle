@@ -83,7 +83,7 @@ by (rtac ballI 2);
 by (eres_inst_tac [("r","r"),("a","x")] wf_on_induct 2 THEN assume_tac 2);
 by (best_tac (claset() addSEs [raddE, bspec RS mp]) 2);
 (*Returning to main part of proof*)
-by (REPEAT_FIRST (eresolve_tac [sumE, ssubst]));
+by Safe_tac;
 by (Blast_tac 1);
 by (eres_inst_tac [("r","s"),("a","ya")] wf_on_induct 1 THEN assume_tac 1);
 by (best_tac (claset() addSEs [raddE, bspec RS mp]) 1);

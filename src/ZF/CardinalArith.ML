@@ -21,8 +21,7 @@ Goalw [eqpoll_def] "A+B eqpoll B+A";
 by (rtac exI 1);
 by (res_inst_tac [("c", "case(Inr, Inl)"), ("d", "case(Inr, Inl)")] 
     lam_bijective 1);
-by (safe_tac (claset() addSEs [sumE]));
-by (ALLGOALS (Asm_simp_tac));
+by Auto_tac;
 qed "sum_commute_eqpoll";
 
 Goalw [cadd_def] "i |+| j = j |+| i";
@@ -272,7 +271,7 @@ by (rtac exI 1);
 by (res_inst_tac [("c", "%<x,y>. if(x=A, Inl(y), Inr(<x,y>))"), 
                   ("d", "case(%y. <A,y>, %z. z)")] 
     lam_bijective 1);
-by (safe_tac (claset() addSEs [sumE]));
+by Safe_tac;
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [succI2, if_type, mem_imp_not_eq])));
 qed "prod_succ_eqpoll";
@@ -390,14 +389,12 @@ qed "ordermap_eqpoll_pred";
 
 (** Establishing the well-ordering **)
 
-Goalw [inj_def]
- "Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
-by (fast_tac (claset() addss (simpset())
-                       addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
+Goalw [inj_def] "Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
+by (force_tac (claset() addIs [lam_type, Un_least_lt RS ltD, ltI],
+	       simpset()) 1);
 qed "csquare_lam_inj";
 
-Goalw [csquare_rel_def]
- "Ord(K) ==> well_ord(K*K, csquare_rel(K))";
+Goalw [csquare_rel_def] "Ord(K) ==> well_ord(K*K, csquare_rel(K))";
 by (rtac (csquare_lam_inj RS well_ord_rvimage) 1);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
 qed "well_ord_csquare";
@@ -405,22 +402,21 @@ qed "well_ord_csquare";
 (** Characterising initial segments of the well-ordering **)
 
 Goalw [csquare_rel_def]
- "[| x<K;  y<K;  z<K |] ==> \
-\      <<x,y>, <z,z>> : csquare_rel(K) --> x le z & y le z";
+ "[| <<x,y>, <z,z>> : csquare_rel(K);  x<K;  y<K;  z<K |] ==> x le z & y le z";
+by (etac rev_mp 1);
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
 				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (safe_tac (claset() addSEs [mem_irrefl] 
                        addSIs [Un_upper1_le, Un_upper2_le]));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2, Ord_succ])));
-qed_spec_mp "csquareD";
+qed "csquareD";
 
 Goalw [pred_def]
  "z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
-by (safe_tac (claset_of ZF.thy addSEs [SigmaE]));  (*avoids using succCI,...*)
-by (rtac (csquareD RS conjE) 1);
+by (safe_tac (claset() delrules [SigmaI,succCI]));  (*avoids using succCI,...*)
+by (etac (csquareD RS conjE) 1);
 by (rewtac lt_def);
-by (assume_tac 4);
 by (ALLGOALS Blast_tac);
 qed "pred_csquare_subset";
 

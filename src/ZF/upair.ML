@@ -223,7 +223,7 @@ qed_goal "theI2" thy
 (*If it's "undefined", it's zero!*)
 qed_goalw "the_0" thy [the_def]
     "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
- (fn _ => [ (deepen_tac (claset() addSEs [ReplaceE]) 0 1) ]);
+ (fn _ => [ (blast_tac (claset() addSEs [ReplaceE]) 1) ]);
 
 
 (*** if -- a conditional expression for formulae ***)

@@ -504,7 +504,7 @@ by (REPEAT
 by (asm_simp_tac 
     (simpset() addsimps [ord_iso_map_fun RSN (2,apply_equality)]) 1);
 by (rewtac ord_iso_map_def);
-by (safe_tac (claset() addSEs [UN_E]));
+by Safe_tac;
 by (rtac well_ord_iso_preserving 1 THEN REPEAT_FIRST assume_tac);
 qed "ord_iso_map_mono_map";
 
