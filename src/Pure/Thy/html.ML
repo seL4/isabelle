@@ -141,17 +141,17 @@ val _ = Symbol.add_mode htmlN (output_width, Symbol.default_indent);
 
 (* token translations *)
 
-fun color col =
-  apfst (enclose ("<font color=" ^ quote col ^ ">") "</font>") o output_width;
+fun style stl =
+  apfst (enclose ("<span class=" ^ quote stl ^ ">") "</span>") o output_width;
 
 val html_trans =
- [("class", color "red"),
-  ("tfree", color "purple"),
-  ("tvar",  color "purple"),
-  ("free",  color "blue"),
-  ("bound", color "green"),
-  ("var",   color "blue"),
-  ("xstr",  color "brown")];
+ [("class", style "tclass"),
+  ("tfree", style "tfree"),
+  ("tvar",  style "tvar"),
+  ("free",  style "free"),
+  ("bound", style "bound"),
+  ("var",   style "var"),
+  ("xstr",  style "xstr")];
 
 
 
@@ -163,9 +163,9 @@ type text = string;
 (* atoms *)
 
 val plain = output;
-fun name s = "<i>" ^ output s ^ "</i>";
-fun keyword s = "<b>" ^ output s ^ "</b>";
-fun file_name s = "<tt>" ^ output s ^ "</tt>";
+fun name s = "<span class=\"name\">" ^ output s ^ "</span>";
+fun keyword s = "<span class=\"keyword\">" ^ output s ^ "</span>";
+fun file_name s = "<span class=\"filename\">" ^ output s ^ "</span>";
 val file_path = file_name o Url.pack;
 
 
@@ -194,12 +194,14 @@ fun begin_document title =
   \<head>\n\
   \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n\
   \<title>" ^ plain (title ^ " (" ^ version ^ ")") ^ "</title>\n\
+  \<link rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\">\n\
   \</head>\n\
   \\n\
   \<body>\n\
+  \<div class=\"head\">\
   \<h1>" ^ plain title ^ "</h1>\n"
 
-val end_document = "\n</body>\n</html>\n";
+val end_document = "\n</div>\n</body>\n</html>\n";
 
 fun gen_link how (path, name) = para (href_path path how ^ " to index of " ^ plain name);
 val up_link = gen_link "Up";
@@ -213,7 +215,7 @@ fun begin_index up (index_path, session) opt_readme opt_doc graph =
   para ("View " ^ href_path graph "theory dependencies" ^
     (case opt_readme of None => "" | Some p => "<br>\nView " ^ href_path p "README") ^
     (case opt_doc of None => "" | Some p => "<br>\nView " ^ href_path p "document")) ^
-  "\n<hr>\n\n<h2>Theories</h2>\n<ul>\n";
+  "\n</div>\n<hr>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
 
@@ -235,7 +237,8 @@ fun applet_pages session back =
         (name, begin_document ("Theory dependencies of " ^ session) ^
           back_link back ^
           para browser_size ^
-          "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
+          "\n</div>\n<hr>\n<div class=\"graphbrowser\">\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
+          \archive=\"GraphBrowser.jar\" \
           \width=" ^ width ^ " height=" ^ height ^ ">\n\
           \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\">\n\
           \</applet>\n<hr>" ^ end_document)
@@ -249,12 +252,14 @@ val theory_entry = entry;
 
 fun session_entries [] = "</ul>"
   | session_entries es =
-      "</ul>\n<hr>\n\n<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
+      "</ul>\n</div>\n<hr>\n<div class=\"sessions\">\n<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
 
 
 (* theory *)
 
-fun verbatim_source ss = "\n<hr>\n<pre>" ^ implode (output_symbols ss)  ^ "</pre>\n<hr>\n";
+fun verbatim_source ss = "\n</div>\n<hr>\n<div class=\"source\">\n<pre>" ^ 
+                         implode (output_symbols ss)  ^ 
+                         "</pre>\n</div>\n<hr>\n<div class=\"theorems\">\n";
 
 
 local
@@ -283,7 +288,10 @@ val end_theory = end_document;
 
 fun ml_file path str =
   begin_document ("File " ^ Url.pack path) ^
-  "\n<hr>\n" ^ verbatim str ^ "\n<hr>\n" ^ end_document;
+  "\n</div>\n<hr><div class=\"mlsource\">\n" ^ 
+  verbatim str ^ 
+  "\n</div>\n<hr>\n<div class=\"mlfooter\">\n" ^ 
+  end_document;
 
 
 (* theorems *)
@@ -315,7 +323,6 @@ fun chapter heading = "\n\n<h1>" ^ plain heading ^ "</h1>\n";
 fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
 fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
 fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
-
 
 
 (** theory setup **)
