@@ -74,7 +74,9 @@ fun atomize th = case concl_of th of (*The operator below is Trueprop*)
     | _ $ (Const("False",_)) => []
     | _ => [th];
 
-fun mk_rew_rules th = map mk_meta_eq (atomize th);
+fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
+
+fun mk_rew_rules th = map mk_meta_eq (atomize(gen_all th));
 
 structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
