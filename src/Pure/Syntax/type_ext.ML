@@ -189,7 +189,7 @@ val typesT = Type ("types", []);
 
 local open Lexicon SynExt in
 
-val type_ext = mk_syn_ext false ["dummy"]
+val type_ext = syn_ext' false (K false)
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
    Mfix ("_",           idT --> typeT,                 "", [], max_pri),

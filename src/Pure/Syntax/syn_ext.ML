@@ -34,7 +34,6 @@ sig
   datatype mfix = Mfix of string * typ * string * int list * int
   datatype syn_ext =
     SynExt of {
-      logtypes: string list,
       xprods: xprod list,
       consts: string list,
       prmodes: string list,
@@ -47,27 +46,25 @@ sig
       token_translation: (string * string * (string -> string * real)) list}
   val mfix_args: string -> int
   val escape_mfix: string -> string
-  val mk_syn_ext: bool -> string list -> mfix list ->
+  val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext: string list -> mfix list -> string list ->
+  val syn_ext: mfix list -> string list ->
     (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext_logtypes: string list -> syn_ext
-  val syn_ext_const_names: string list -> string list -> syn_ext
-  val syn_ext_rules: string list -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext_trfuns: string list ->
+  val syn_ext_const_names: string list -> syn_ext
+  val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+  val syn_ext_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list *
     (string * (Ast.ast list -> Ast.ast)) list -> syn_ext
-  val syn_ext_tokentrfuns: string list
-    -> (string * string * (string -> string * real)) list -> syn_ext
+  val syn_ext_tokentrfuns: (string * string * (string -> string * real)) list -> syn_ext
   val pure_ext: syn_ext
 end;
 
@@ -224,7 +221,7 @@ end;
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
   let
     fun check_pri p =
       if p >= 0 andalso p <= max_pri then ()
@@ -260,7 +257,7 @@ fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
       | rem_pri sym = sym;
 
     fun logify_types copy_prod (a as (Argument (s, p))) =
-          if s mem logtypes then Argument (logic, p) else a
+          if s <> "prop" andalso is_logtype s then Argument (logic, p) else a
       | logify_types _ a = a;
 
 
@@ -292,8 +289,7 @@ fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
         andalso not (exists is_delim symbs);
     val lhs' =
       if convert andalso not copy_prod then
-       (if lhs mem logtypes then logic
-        else if lhs = "prop" then sprop else lhs)
+       (if lhs = "prop" then sprop else if is_logtype lhs then logic else lhs)
       else lhs;
     val symbs' = map (logify_types copy_prod) symbs;
     val xprod = XProd (lhs', symbs', const', pri);
@@ -315,7 +311,6 @@ fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
 
 datatype syn_ext =
   SynExt of {
-    logtypes: string list,
     xprods: xprod list,
     consts: string list,
     prmodes: string list,
@@ -330,18 +325,16 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns (parse_rules, print_rules) =
+fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
-    val logtypes' = logtypes \ "prop";
 
-    val (xprods, parse_rules') = map (mfix_to_xprod convert logtypes') mfixes
+    val (xprods, parse_rules') = map (mfix_to_xprod convert is_logtype) mfixes
       |> split_list |> apsnd (rev o flat);
     val mfix_consts = distinct (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in
     SynExt {
-      logtypes = logtypes',
       xprods = xprods,
       consts = consts union_string mfix_consts,
       prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
@@ -355,27 +348,17 @@ fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns (parse_rules, p
   end;
 
 
-val syn_ext = mk_syn_ext true;
+val syn_ext = syn_ext' true (K false);
 
-fun syn_ext_logtypes logtypes =
-  syn_ext logtypes [] [] ([], [], [], []) [] ([], []);
-
-fun syn_ext_const_names logtypes cs =
-  syn_ext logtypes [] cs ([], [], [], []) [] ([], []);
-
-fun syn_ext_rules logtypes rules =
-  syn_ext logtypes [] [] ([], [], [], []) [] rules;
-
-fun syn_ext_trfuns logtypes trfuns =
-  syn_ext logtypes [] [] trfuns [] ([], []);
-
-fun syn_ext_tokentrfuns logtypes tokentrfuns =
-  syn_ext logtypes [] [] ([], [], [], []) tokentrfuns ([], []);
+fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) [] ([], []);
+fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) [] rules;
+fun syn_ext_trfuns trfuns = syn_ext [] [] trfuns [] ([], []);
+fun syn_ext_tokentrfuns trfuns = syn_ext [] [] ([], [], [], []) trfuns ([], []);
 
 
 (* pure_ext *)
 
-val pure_ext = mk_syn_ext false []
+val pure_ext = syn_ext' false (K false)
   [Mfix ("_", spropT --> propT, "", [0], 0),
    Mfix ("_", logicT --> anyT, "", [0], 0),
    Mfix ("_", spropT --> anyT, "", [0], 0),

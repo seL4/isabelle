@@ -42,10 +42,8 @@ end;
 signature MIXFIX =
 sig
   include MIXFIX1
-  val syn_ext_types: string list -> (string * int * mixfix) list
-    -> SynExt.syn_ext
-  val syn_ext_consts: string list -> (string * typ * mixfix) list
-    -> SynExt.syn_ext
+  val syn_ext_types: (string * int * mixfix) list -> SynExt.syn_ext
+  val syn_ext_consts: (string -> bool) -> (string * typ * mixfix) list -> SynExt.syn_ext
 end;
 
 
@@ -133,7 +131,7 @@ fun mixfix_args NoSyn = 0
 
 (* syn_ext_types *)
 
-fun syn_ext_types logtypes type_decls =
+fun syn_ext_types type_decls =
   let
     fun name_of (t, _, mx) = type_name t mx;
 
@@ -151,17 +149,17 @@ fun syn_ext_types logtypes type_decls =
         | (sy, 2, Infix p) => Some (mk_infix sy t (p + 1) (p + 1) p)
         | (sy, 2, Infixl p) => Some (mk_infix sy t p (p + 1) p)
         | (sy, 2, Infixr p) => Some (mk_infix sy t (p + 1) p p)
-        | _ => error ("Bad mixfix declaration for type " ^ quote t))
+        | _ => error ("Bad mixfix declaration for type: " ^ quote t))
       end;
 
     val mfix = mapfilter mfix_of type_decls;
     val xconsts = map name_of type_decls;
-  in SynExt.syn_ext logtypes mfix xconsts ([], [], [], []) [] ([], []) end;
+  in SynExt.syn_ext mfix xconsts ([], [], [], []) [] ([], []) end;
 
 
 (* syn_ext_consts *)
 
-fun syn_ext_consts logtypes const_decls =
+fun syn_ext_consts is_logtype const_decls =
   let
     fun name_of (c, _, mx) = const_name c mx;
 
@@ -171,7 +169,7 @@ fun syn_ext_consts logtypes const_decls =
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
           [Type ("idts", []), ty2] ---> ty3
-      | binder_typ c _ = error ("Bad type of binder " ^ quote c);
+      | binder_typ c _ = error ("Bad type of binder: " ^ quote c);
 
     fun mfix_of decl =
       let val c = name_of decl in
@@ -198,7 +196,10 @@ fun syn_ext_consts logtypes const_decls =
     val binder_trs = map SynTrans.mk_binder_tr binders;
     val binder_trs' =
       map (apsnd SynTrans.non_typed_tr' o SynTrans.mk_binder_tr' o swap) binders;
-  in SynExt.syn_ext logtypes mfix xconsts ([], binder_trs, binder_trs', []) [] ([], []) end;
+  in
+    SynExt.syn_ext' true is_logtype
+      mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
+  end;
 
 
 
