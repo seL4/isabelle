@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Isabelle configuration for Proof General (see http://www.proofgeneral.org).
+Isabelle configuration for Proof General (see http://proofgeneral.inf.ed.ac.uk).
 *)
 
 signature PROOF_GENERAL =
