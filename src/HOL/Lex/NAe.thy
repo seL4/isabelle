@@ -10,10 +10,6 @@ NAe = List + Option + NA +
 
 types ('a,'s)nae = ('a option,'s)na
 
-constdefs
- step :: "('a,'s)nae => 'a option => ('s * 's)set"
-"step A a == {(p,q) . q : next A a p}"
-
 syntax eps :: "('a,'s)nae => ('s * 's)set"
 translations "eps A" == "step A None"
 
