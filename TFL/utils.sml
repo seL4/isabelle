@@ -83,8 +83,8 @@ fun zip3 [][][] = []
   | zip3 _ _ _ = raise UTILS_ERR{func="zip3",mesg="different lengths"};
 
 
-fun can f x = (f x ; true) handle _ => false;
-fun holds P x = P x handle _ => false;
+fun can f x = (f x ; true) handle _ => false; (* FIXME do not handle _ !!! *)
+fun holds P x = P x handle _ => false; (* FIXME do not handle _ !!! *)
 
 
 fun sort R = 

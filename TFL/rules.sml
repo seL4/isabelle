@@ -114,7 +114,7 @@ fun INST_TYPE blist thm =
       val blist' = map (fn (TVar(idx,_), B) => (idx, ctyp_of sign B)) blist
   in Thm.instantiate (blist',[]) thm
   end
-  handle _ => raise RULES_ERR{func = "INST_TYPE", mesg = ""};
+  handle _ => raise RULES_ERR{func = "INST_TYPE", mesg = ""}; (* FIXME do not handle _ !!! *)
 
 
 (*----------------------------------------------------------------------------
@@ -150,7 +150,7 @@ fun UNDISCH thm =
    let val tm = D.mk_prop(#1(D.dest_imp(cconcl (freezeT thm))))
    in implies_elim (thm RS mp) (ASSUME tm)
    end
-   handle _ => raise RULES_ERR{func = "UNDISCH", mesg = ""};
+   handle _ => raise RULES_ERR{func = "UNDISCH", mesg = ""}; (* FIXME do not handle _ !!! *)
 
 fun PROVE_HYP ath bth =  MP (DISCH (cconcl ath) bth) ath;
 
@@ -170,7 +170,7 @@ end;
 fun CONJUNCT1 thm = (thm RS conjunct1)
 fun CONJUNCT2 thm = (thm RS conjunct2);
 fun CONJUNCTS th  = (CONJUNCTS (CONJUNCT1 th) @ CONJUNCTS (CONJUNCT2 th))
-                    handle _ => [th];
+                    handle _ => [th]; (* FIXME do not handle _ !!! *)
 
 fun LIST_CONJ [] = raise RULES_ERR{func = "LIST_CONJ", mesg = "empty list"}
   | LIST_CONJ [th] = th
@@ -211,7 +211,7 @@ fun EVEN_ORS thms =
                 val rdisj_tl = D.list_mk_disj tail
             in itlist DISJ2 ldisjs (DISJ1 th rdisj_tl)
                :: blue (ldisjs@[cconcl th]) rst tail
-            end handle _ => [itlist DISJ2 ldisjs th]
+            end handle _ => [itlist DISJ2 ldisjs th] (* FIXME do not handle _ !!! *)
    in
    blue [] thms (map cconcl thms)
    end;
@@ -450,7 +450,7 @@ fun IT_EXISTS blist th =
  *---------------------------------------------------------------------------*)
 
 fun SUBS thl = 
-   rewrite_rule (map (fn th => (th RS eq_reflection) handle _ => th) thl);
+   rewrite_rule (map (fn th => (th RS eq_reflection) handle _ => th) thl); (* FIXME do not handle _ !!! *)
 
 local fun rew_conv mss = Thm.rewrite_cterm (true,false,false) mss (K(K None))
 in
@@ -544,7 +544,7 @@ fun get ([],_,L) = rev L
                 val names  = variantlist (map (#1 o dest_Free) vstrl,
 					  add_term_names(body, []))
             in get (rst, n+1, (names,n)::L)
-            end handle _ => get (rst, n+1, L);
+            end handle _ => get (rst, n+1, L); (* FIXME do not handle _ !!! *)
 
 (* Note: rename_params_rule counts from 1, not 0 *)
 fun rename thm = 
@@ -589,7 +589,7 @@ fun print_cterms s L =
  * General abstraction handlers, should probably go in USyntax.
  *---------------------------------------------------------------------------*)
 fun mk_aabs(vstr,body) = S.mk_abs{Bvar=vstr,Body=body}
-                         handle _ => S.mk_pabs{varstruct = vstr, body = body};
+                         handle _ => S.mk_pabs{varstruct = vstr, body = body}; (* FIXME do not handle _ !!! *)
 
 fun list_mk_aabs (vstrl,tm) =
     U.itlist (fn vstr => fn tm => mk_aabs(vstr,tm)) vstrl tm;
@@ -597,7 +597,7 @@ fun list_mk_aabs (vstrl,tm) =
 fun dest_aabs tm = 
    let val {Bvar,Body} = S.dest_abs tm
    in (Bvar,Body)
-   end handle _ => let val {varstruct,body} = S.dest_pabs tm
+   end handle _ => let val {varstruct,body} = S.dest_pabs tm (* FIXME do not handle _ !!! *)
                    in (varstruct,body)
                    end;
 
@@ -606,7 +606,7 @@ fun strip_aabs tm =
        val (bvs, core) = strip_aabs body
    in (vstr::bvs, core)
    end
-   handle _ => ([],tm);
+   handle _ => ([],tm); (* FIXME do not handle _ !!! *)
 
 fun dest_combn tm 0 = (tm,[])
   | dest_combn tm n = 
@@ -715,7 +715,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val lhs = tych(get_lhs eq)
                      val mss' = add_prems(mss, map ASSUME ants)
                      val lhs_eq_lhs1 = Thm.rewrite_cterm(false,true,false)mss' prover lhs
-                       handle _ => reflexive lhs
+                       handle _ => reflexive lhs (* FIXME do not handle _ !!! *)
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
                      val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
@@ -737,12 +737,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val Q1 = #2(D.dest_eq(cconcl QeqQ1))
                   val mss' = add_prems(mss, map ASSUME ants1)
                   val Q1eeqQ2 = Thm.rewrite_cterm (false,true,false) mss' prover Q1
-                                handle _ => reflexive Q1
+                                handle _ => reflexive Q1 (* FIXME do not handle _ !!! *)
                   val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
                   val Q2eeqQ3 = symmetric(pbeta_reduce Q3 RS eq_reflection)
                   val thA = transitive(QeqQ1 RS eq_reflection) Q1eeqQ2
-                  val QeeqQ3 = transitive thA Q2eeqQ3 handle _ =>
+                  val QeeqQ3 = transitive thA Q2eeqQ3 handle _ => (* FIXME do not handle _ !!! *)
                                ((Q2eeqQ3 RS meta_eq_to_obj_eq) 
                                 RS ((thA RS meta_eq_to_obj_eq) RS trans))
                                 RS eq_reflection
@@ -763,7 +763,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val mss' = add_prems(mss, map ASSUME ants1)
                      val Q_eeq_Q1 = Thm.rewrite_cterm(false,true,false) mss' 
                                                      prover (tych Q)
-                      handle _ => reflexive (tych Q)
+                      handle _ => reflexive (tych Q) (* FIXME do not handle _ !!! *)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
                      val lhs_eq_lhs2 = lhs_eeq_lhs2 RS meta_eq_to_obj_eq
                      val ant_th = forall_intr_list(map tych vlist)lhs_eq_lhs2
@@ -781,7 +781,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
          in Some(eliminate (rename thm))
-         end handle _ => None
+         end handle _ => None (* FIXME do not handle _ !!! *)
 
         fun restrict_prover mss thm =
           let val dummy = say "restrict_prover:"
@@ -826,7 +826,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                              end
               val th'' = th' RS thm
           in Some (th'')
-          end handle _ => None
+          end handle _ => None (* FIXME do not handle _ !!! *)
     in
     (if (is_cong thm) then cong_prover else restrict_prover) mss thm
     end

@@ -163,7 +163,7 @@ fun strip break tm =
   let fun dest (p as (ctm,accum)) = 
         let val (M,N) = break ctm
         in dest (N, M::accum)
-        end handle _ => p
+        end handle _ => p   (* FIXME do not handle _ !!! *)
   in dest (tm,[])
   end;
 
@@ -188,6 +188,6 @@ in fun mk_prop ctm =
         |  _ => capply prop ctm
 end;
 
-fun drop_prop ctm = dest_monop "Trueprop" ctm handle _ => ctm;
+fun drop_prop ctm = dest_monop "Trueprop" ctm handle _ => ctm; (* FIXME do not handle _ !!! *)
 
 end;

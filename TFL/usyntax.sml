@@ -217,7 +217,7 @@ fun mk_pabs{varstruct,body} =
             end
  in mpa(varstruct,body)
  end
- handle _ => raise USYN_ERR{func = "mk_pabs", mesg = ""};
+ handle _ => raise USYN_ERR{func = "mk_pabs", mesg = ""}; (* FIXME do not handle _ !!! *)
 end;
 
 (* Destruction routines *)
@@ -288,7 +288,7 @@ fun dest_pabs tm =
    let val {Bvar,Body} = dest_abs tm
    in {varstruct = Bvar, body = Body}
    end 
-    handle 
+    handle (* FIXME do not handle _ !!! *)
      _ => let val {Rator,Rand} = dest_comb tm
               val _ = ucheck Rator
               val {varstruct = lv,body} = dest_pabs Rand
@@ -392,7 +392,7 @@ fun find_term p =
       if (p tm) then Some tm 
       else case tm of
 	  Abs(_,_,body) => find body
-	| (t$u)         => (Some (the (find t)) handle _ => find u)
+	| (t$u)         => (Some (the (find t)) handle _ => find u) (* FIXME do not handle _ !!! *)
 	| _             => None
    in find
    end;
@@ -402,7 +402,7 @@ fun dest_relation tm =
    then let val (Const("op :",_) $ (Const("Pair",_)$y$x) $ R) = tm
         in (R,y,x)
         end handle _ => raise USYN_ERR{func="dest_relation",
-                                  mesg="unexpected term structure"}
+                                  mesg="unexpected term structure"} (* FIXME do not handle _ !!! *)
    else raise USYN_ERR{func="dest_relation",mesg="not a boolean term"};
 
 fun is_WFR (Const("WF.wf",_)$_) = true

@@ -95,7 +95,7 @@ val solved = not o U.can S.dest_eq o #2 o S.strip_forall o concl
 fun id_thm th =
    let val {lhs,rhs} = S.dest_eq(#2(S.strip_forall(#2 (R.dest_thm th))))
    in lhs aconv rhs
-   end handle _ => false
+   end handle _ => false (* FIXME do not handle _ !!! *)
 
 fun prover s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
 val P_imp_P_iff_True = prover "P --> (P= True)" RS mp;
@@ -213,7 +213,7 @@ end;
 fun defer_i thy congs fid eqs =
  let val {rules,R,theory,full_pats_TCs,SV,...} =
              Prim.lazyR_def thy (Sign.base_name fid) congs eqs
-     val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
+     val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules)) (* FIXME do not handle _ !!! *)
      val dummy = message "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
                         {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}

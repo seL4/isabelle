@@ -162,7 +162,7 @@ fun mk_group Name rows =
   U.itlist (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
                let val (pc,args) = S.strip_comb p
-               in if ((#1(dest_Const pc) = Name) handle _ => false)
+               in if ((#1(dest_Const pc) = Name) handle _ => false) (* FIXME do not handle _ !!! *)
                   then (((prfx,args@rst), rhs)::in_group, not_in_group)
                   else (in_group, row::not_in_group) end)
       rows ([],[]);
@@ -328,7 +328,7 @@ local fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
 in
 fun mk_functional thy clauses =
  let val (L,R) = ListPair.unzip (map HOLogic.dest_eq clauses)
-                   handle _ => raise TFL_ERR
+                   handle _ => raise TFL_ERR (* FIXME do not handle _ !!! *)
                        {func = "mk_functional",
                         mesg = "recursion equations must use the = relation"}
      val (funcs,pats) = ListPair.unzip (map (fn (t$u) =>(t,u)) L)
@@ -347,7 +347,7 @@ fun mk_functional thy clauses =
      val (patts, case_tm) = mk_case ty_info ty_match (aname::names) range_ty
                                     {path=[a], rows=rows}
      val patts1 = map (fn (_,tag,[pat]) => (pat,tag)) patts
-          handle _ => mk_functional_err "error in pattern-match translation"
+          handle _ => mk_functional_err "error in pattern-match translation" (* FIXME do not handle _ !!! *)
      val patts2 = U.sort(fn p1=>fn p2=> row_of_pat p1 < row_of_pat p2) patts1
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
@@ -736,7 +736,7 @@ fun build_ih f P (pat,TCs) =
                | _  => let
                     val imp = S.list_mk_conj cntxt ==> P_y
                     val lvs = gen_rems (op aconv) (S.free_vars_lr imp, globals)
-                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle _ => lvs
+                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle _ => lvs (* FIXME do not handle _ !!! *)
                     in (S.list_mk_forall(locals,imp), (tm,locals)) end
          end
  in case TCs
@@ -765,7 +765,7 @@ fun build_ih f (P,SV) (pat,TCs) =
                | _  => let
                     val imp = S.list_mk_conj cntxt ==> P_y
                     val lvs = gen_rems (op aconv) (S.free_vars_lr imp, globals)
-                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle _ => lvs
+                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle _ => lvs (* FIXME do not handle _ !!! *)
                     in (S.list_mk_forall(locals,imp), (tm,locals)) end
          end
  in case TCs
@@ -793,7 +793,7 @@ fun prove_case f thy (tm,TCs_locals,thm) =
      fun mk_ih ((TC,locals),th2,nested) =
          R.GENL (map tych locals)
             (if nested
-              then R.DISCH (get_cntxt TC) th2 handle _ => th2
+              then R.DISCH (get_cntxt TC) th2 handle _ => th2 (* FIXME do not handle _ !!! *)
                else if S.is_imp(concl TC)
                      then R.IMP_TRANS TC th2
                       else R.MP th2 TC)
@@ -874,7 +874,7 @@ let val tych = Thry.typecheck thy
 in
    R.GEN (tych P) (R.DISCH (tych(concl Rinduct_assum)) dc')
 end
-handle _ => raise TFL_ERR{func = "mk_induction", mesg = "failed derivation"};
+handle _ => raise TFL_ERR{func = "mk_induction", mesg = "failed derivation"}; (* FIXME do not handle _ !!! *)
 
 
 
@@ -922,7 +922,7 @@ let val tych = Thry.typecheck theory
                                   (hd(#1(R.dest_thm rules)))),
                              wf_tac)
        in (R.PROVE_HYP thm rules,  R.PROVE_HYP thm induction)
-       end handle _ => (rules,induction)
+       end handle _ => (rules,induction) (* FIXME do not handle _ !!! *)
 
    (*----------------------------------------------------------------------
     * The termination condition (tc) is simplified to |- tc = tc' (there
@@ -948,12 +948,12 @@ let val tych = Thry.typecheck theory
            val _ = print_thms "result: " [tc_eq]
        in
        elim_tc (R.MATCH_MP Thms.eqT tc_eq) (r,ind)
-       handle _ =>
+       handle _ => (* FIXME do not handle _ !!! *)
         (elim_tc (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
                   (R.prove(tych(HOLogic.mk_Trueprop(S.rhs(concl tc_eq))),
                            terminator)))
                  (r,ind)
-         handle _ =>
+         handle _ => (* FIXME do not handle _ !!! *)
           (R.UNDISCH(R.MATCH_MP (R.MATCH_MP Thms.simp_thm r) tc_eq),
            simplify_induction theory tc_eq ind))
        end
@@ -976,11 +976,11 @@ let val tych = Thry.typecheck theory
       in
       R.GEN_ALL
        (R.MATCH_MP Thms.eqT tc_eq
-        handle _
+        handle _ (* FIXME do not handle _ !!! *)
         => (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
                       (R.prove(tych(HOLogic.mk_Trueprop (S.rhs(concl tc_eq))),
                                terminator))
-            handle _ => tc_eq))
+            handle _ => tc_eq)) (* FIXME do not handle _ !!! *)
       end
 
    (*-------------------------------------------------------------------
