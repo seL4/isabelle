@@ -23,7 +23,7 @@ done
 text{*\newcommand{\mystar}{*%
 }
 \index{arithmetic operations!for \protect\isa{nat}}%
-The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
+The arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{\mystar}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
@@ -36,8 +36,8 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
   \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
-  \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
-  not just for natural numbers but at other types as well.
+  \ttindexboldpos{<}{$HOL2arithrel} are overloaded: they are available
+  not just for natural numbers but for other types as well.
   For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
   that @{term x} is of some arbitrary type where @{text 0} and @{text"+"} are
@@ -56,7 +56,7 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
   overloaded operations.
 \end{warn}
 \begin{warn}
-  Constant @{text"1::nat"} is defined to be @{term"Suc 0"}. This definition
+  Constant @{text"1::nat"} is defined to equal @{term"Suc 0"}. This definition
   (see \S\ref{sec:ConstDefinitions}) is unfolded automatically by some
   tactics (like @{text auto}, @{text simp} and @{text arith}) but not by
   others (especially the single step tactics in Chapter~\ref{chap:rules}).
