@@ -8,7 +8,7 @@ strings, lists as sets, association lists, generic tables, balanced
 trees, orders, I/O and diagnostics, timing, misc.
 *)
 
-infix |> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
+infix |> |>> |>>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
@@ -22,6 +22,8 @@ sig
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
   val |> : 'a * ('a -> 'b) -> 'b
+  val |>> : ('a * 'b) * ('a -> 'c) -> 'c * 'b
+  val |>>> : ('a * 'b) * ('a -> 'c * 'd) -> 'c * ('b * 'd)
   val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
   val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
@@ -272,6 +274,8 @@ fun K x y = x;
 
 (*reverse apply*)
 fun (x |> f) = f x;
+fun ((x, y) |>> f) = (f x, y);
+fun ((x, y) |>>> f) = let val (x', z) = f x in (x', (y, z)) end;
 
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
