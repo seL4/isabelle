@@ -28,7 +28,6 @@ sig
   val cert_axm          : Sign.sg -> string * term -> string * term
   val read_axm          : Sign.sg -> string * string -> string * term
   val inferT_axm        : Sign.sg -> string * term -> string * term
-  val merge_theories    : theory * theory -> theory
 end
 
 signature THEORY =
@@ -75,11 +74,11 @@ sig
   val add_path		: string -> theory -> theory
   val add_space		: string * string list -> theory -> theory
   val add_name		: string -> theory -> theory
-  val init_data		: string * exn * (exn * exn -> exn) * (string -> exn -> Pretty.T)
-    -> theory -> theory
+  val init_data		: string * exn * (exn -> exn) * (exn * exn -> exn) *
+    (string -> exn -> unit) -> theory -> theory
   val get_data		: theory -> string -> exn
   val put_data		: string * exn -> theory -> theory
-  val merge_thy_list    : bool -> theory list -> theory
+  val merge_list	: theory list -> theory
 end;
 
 
@@ -118,13 +117,12 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (* the Pure theories *)
 
-fun make_thy sign parents =
-  Theory {sign = sign, new_axioms = Symtab.null,
-    oracles = Symtab.null, parents = parents};
+fun make_thy sign axms oras parents =
+  Theory {sign = sign, new_axioms = axms, oracles = oras, parents = parents};
 
-val proto_pure_thy = make_thy Sign.proto_pure [];
-val pure_thy = make_thy Sign.pure [proto_pure_thy];
-val cpure_thy = make_thy Sign.cpure [proto_pure_thy];
+val proto_pure_thy = make_thy Sign.proto_pure Symtab.null Symtab.null [];
+val pure_thy = make_thy Sign.pure Symtab.null Symtab.null [proto_pure_thy];
+val cpure_thy = make_thy Sign.cpure Symtab.null Symtab.null [proto_pure_thy];
 
 
 
@@ -156,8 +154,7 @@ fun ext_thy thy sign' new_axms new_oras =
         handle Symtab.DUPS names => err_dup_oras names;
     val parents' = if draft then parents else [thy];
   in
-    Theory {sign = sign', new_axioms = new_axioms',
-      oracles = oracles', parents = parents'}
+    make_thy sign' new_axioms' oracles' parents'
   end;
 
 
@@ -379,6 +376,7 @@ val add_defs_i = ext_defns cert_axm;
 val add_defs = ext_defns read_axm;
 
 
+
 (** additional theory data **)
 
 val init_data = ext_sg Sign.init_data;
@@ -389,33 +387,32 @@ val put_data = ext_sg Sign.put_data;
 
 (** merge theories **)
 
-fun merge_thy_list mk_draft thys =
+(*merge list of theories from left to right, preparing extend*)
+fun merge_list thys =
   let
     fun is_union thy = forall (fn t => subthy (t, thy)) thys;
     val is_draft = Sign.is_draft o sign_of;
 
     fun add_sign (sg, Theory {sign, ...}) =
-      Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
+      Sign.nontriv_merge (sg, sign) handle TERM (msg, _) => error msg;
 
     fun oracles_of (Theory {oracles, ...}) = Symtab.dest oracles;
     fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
-    val all_oracles =
-      Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
-        handle Symtab.DUPS names => err_dup_oras names;
   in
-    (case (find_first is_union thys, exists is_draft thys) of
-      (Some thy, _) => thy
-    | (None, true) => raise THEORY ("Illegal merge of draft theories", thys)
-    | (None, false) => Theory {
-        sign =
-          (if mk_draft then Sign.make_draft else I)
-          (foldl add_sign (Sign.proto_pure, thys)),
-        new_axioms = Symtab.null,
-        oracles = all_oracles,
-        parents = thys})
+    if exists is_draft thys then
+      raise THEORY ("Illegal merge of draft theories", thys)
+    else
+      (case find_first is_union thys of
+        Some (Theory {sign, oracles, new_axioms = _, parents = _}) =>
+          make_thy (Sign.prep_ext sign) Symtab.null oracles thys
+      | None =>
+          make_thy
+            (Sign.prep_ext (foldl add_sign (Sign.proto_pure, thys)))
+            Symtab.null
+            (Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
+              handle Symtab.DUPS names => err_dup_oras names)
+            thys)
   end;
-
-fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
 
 
 end;
