@@ -372,7 +372,7 @@ fun transaction f thy =
     val {name, generation} = get_info thy;
     val copy_thy =
       thy
-      |> Theory.prep_ext
+      |> Theory.copy
       |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)  (* FIXME !!?? *)
       |> put_info {name = name, generation = generation + 1};
     val (thy', opt_exn) = (transform_error f thy, None) handle exn => (thy, Some exn);
