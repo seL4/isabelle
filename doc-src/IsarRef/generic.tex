@@ -88,8 +88,13 @@ theory.  A localized goal ``$\LEMMANAME~(\IN~loc)~a:~\phi$'' works similarly,
 only that the fact emerges through the subsequent proof, which may refer to
 the full infrastructure of the locale context (covering local parameters with
 typing and concrete syntax, assumptions, definitions etc.).  Most notably,
-fact declarations of the locale are active during the proof as well (e.g.\
+fact declarations of the locale are active during the proof as well (e.g.\ 
 local $simp$ rules).
+
+As a general principle, results exported from a locale context acquire
+additional premises according to the specification.  Usually this is only a
+single predicate according to the standard ``closed'' view of locale
+specifications.
 
 
 \subsubsection{Locale specifications}
@@ -107,7 +112,7 @@ local $simp$ rules).
 \railterm{printlocale}
 
 \begin{rail}
-  'locale' name ('=' localeexpr)?
+  'locale' ('(open)')? name ('=' localeexpr)?
   ;
   printlocale localeexpr
   ;
@@ -132,8 +137,8 @@ local $simp$ rules).
 \end{rail}
 
 \begin{descr}
-
-\item [$\LOCALE~loc~=~import~+~body$] defines new locale $loc$ as a context
+  
+\item [$\LOCALE~loc~=~import~+~body$] defines a new locale $loc$ as a context
   consisting of a certain view of existing locales ($import$) plus some
   additional elements ($body$).  Both $import$ and $body$ are optional; the
   degenerate form $\LOCALE~loc$ defines an empty locale, which may still be
@@ -181,11 +186,31 @@ local $simp$ rules).
     maintains a dynamic relation to the locales being referenced (benefiting
     from any later fact declarations in the obvious manner).
   \end{descr}
-
+  
   Note that ``$\IS{p}$'' patterns given in the syntax of $\ASSUMESNAME$ and
-  $\DEFINESNAME$ above are actually illegal in locale definitions.  In the
-  long goal format of \S\ref{sec:goals}, term bindings may be included as
-  expected, though.
+  $\DEFINESNAME$ above are illegal in locale definitions.  In the long goal
+  format of \S\ref{sec:goals}, term bindings may be included as expected,
+  though.
+  
+  \medskip By default, locale specifications are ``closed up'' by turning the
+  given text into a predicate definition $loc_axioms$ and deriving the
+  original assumptions as local lemmas (modulo local definitions).  The
+  predicate statement covers only the newly specified assumptions, omitting
+  the content of included locale expressions.  The full cumulative view is
+  only provided on export, involving another predicate $loc$ that refers to
+  the complete specification text.
+  
+  In any case, the predicate arguments are those locale parameters that
+  actually occur in the respective piece of text.  Also note that these
+  predicates operate at the meta-level in theory, but the locale packages
+  attempts to internalize statements according to the object-logic setup
+  (e.g.\ replacing $\Forall$ by $\forall$, and $\Imp$ by $\imp$ in HOL; see
+  also \S\ref{sec:object-logic}).  Separate introduction rules
+  $loc_axioms.intro$ and $loc.intro$ are declared as well.
+  
+  The $(open)$ option of a locale specification prevents both the current
+  $loc_axioms$ and cumulative $loc$ predicate constructions.  Predicates are
+  also omitted for empty specification texts.
 
 \item [$\isarkeyword{print_locale}~import~+~body$] prints the specified locale
   expression in a flattened form.  The notable special case
