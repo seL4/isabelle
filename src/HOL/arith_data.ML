@@ -123,7 +123,13 @@ end);
 
 (* nat diff *)
 
-(* FIXME *)
+structure DiffCancelSums = CancelSumsFun
+(struct
+  open Sum;
+  val mk_bal = HOLogic.mk_binop "op -";
+  val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT;
+  val uncancel_tac = gen_uncancel_tac diff_cancel;
+end);
 
 
 
@@ -189,11 +195,13 @@ fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"];
 val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"];
 val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"];
+val diff_pats = prep_pats ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"];
 
 val nat_cancel_sums = map prep_simproc
   [("nateq_cancel_sums", eq_pats, EqCancelSums.proc),
    ("natless_cancel_sums", less_pats, LessCancelSums.proc),
-   ("natle_cancel_sums", le_pats, LeCancelSums.proc)];
+   ("natle_cancel_sums", le_pats, LeCancelSums.proc),
+   ("natdiff_cancel_sums", diff_pats, DiffCancelSums.proc)];
 
 val nat_cancel_factor = map prep_simproc
   [("nateq_cancel_factor", eq_pats, EqCancelFactor.proc),
