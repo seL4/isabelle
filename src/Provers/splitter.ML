@@ -185,23 +185,28 @@ fun mk_split_pack(thm,T,n,ts,apsns,pos,TB,t) =
    t    : the term to be scanned
 ******************************************************************************)
 
-fun split_posns cmap Ts t =
-  let fun posns Ts pos apsns (Abs(_,T,t)) =
-            let val U = fastype_of1(T::Ts,t)
-            in posns (T::Ts) (0::pos) ((T,U,pos)::apsns) t end
-        | posns Ts pos apsns t =
-            let val (h,ts) = strip_comb t
-                fun iter((i,a),t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
-                val a = case h of
-                  Const(c,_) =>
-                    (case assoc(cmap,c) of
-                       Some(thm, T, n) =>
-                         let val t2 = list_comb (h, take (n, ts)) in
-                           mk_split_pack(thm,T,n,ts,apsns,pos,type_of1(Ts, t2),t2)
-                         end
-                     | None => [])
-                | _ => []
-             in snd(foldl iter ((0,a),ts)) end
+fun split_posns cmap sg Ts t =
+  let
+    fun posns Ts pos apsns (Abs(_,T,t)) =
+          let val U = fastype_of1(T::Ts,t)
+          in posns (T::Ts) (0::pos) ((T,U,pos)::apsns) t end
+      | posns Ts pos apsns t =
+          let
+            val (h,ts) = strip_comb t
+            fun iter((i,a),t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
+            val a = case h of
+              Const(c,cT) =>
+                (case assoc(cmap,c) of
+                   Some(gcT, thm, T, n) =>
+                     if Type.typ_instance(Sign.tsig_of sg, cT, gcT)
+                     then
+                       let val t2 = list_comb (h, take (n, ts))
+                       in mk_split_pack(thm,T,n,ts,apsns,pos,type_of1(Ts, t2),t2)
+                       end
+                     else []
+                 | None => [])
+            | _ => []
+          in snd(foldl iter ((0,a),ts)) end
   in posns Ts [] [] t end;
 
 
@@ -218,10 +223,11 @@ fun shorter((_,ps,pos,_,_),(_,qs,qos,_,_)) =
 *************************************************************)
 
 fun select cmap state i =
-  let val goali = nth_subgoal i state
+  let val sg = #sign(rep_thm state)
+      val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
       val _ $ t $ _ = Logic.strip_assums_concl goali;
-  in (Ts,t, sort shorter (split_posns cmap Ts t)) end;
+  in (Ts,t, sort shorter (split_posns cmap sg Ts t)) end;
 
 
 (*************************************************************
@@ -291,8 +297,8 @@ fun split_tac [] i = no_tac
   let val splits = map Data.mk_eq splits;
       fun const(thm) =
             (case concl_of thm of _$(t as _$lhs)$_ =>
-               (case strip_comb lhs of (Const(a,_),args) =>
-                  (a,(thm,fastype_of t,length args))
+               (case strip_comb lhs of (Const(a,aT),args) =>
+                  (a,(aT,thm,fastype_of t,length args))
                 | _ => split_format_err())
              | _ => split_format_err())
       val cmap = map const splits;
