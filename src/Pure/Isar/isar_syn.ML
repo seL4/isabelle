@@ -44,7 +44,7 @@ val update_contextP =
 (** formal comments **)
 
 val txtP = OuterSyntax.command "txt" "formal comment (proof)" K.prf_decl
-  (P.comment >> (Toplevel.proof o IsarThy.add_txt));
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
 val textP = OuterSyntax.command "text" "formal comment (theory)" K.thy_decl
   (P.comment >> (Toplevel.theory o IsarThy.add_text));

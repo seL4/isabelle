@@ -156,7 +156,7 @@ struct
 
 (* formal comments *)
 
-fun add_txt comment prf = prf;
+fun add_txt comment = ProofHistory.apply Proof.assert_forward;
 fun add_text comment thy = thy;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
