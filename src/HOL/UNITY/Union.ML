@@ -97,6 +97,44 @@ by (auto_tac
      simpset() addsimps [constrains_def, Join_def]));
 qed "constrains_Join";
 
+
+(**
+Michel says...
+
+    p inductive-next q' in F
+    p inductive-next q'' in G
+    p noninductive-next q in FoG
+    -------------------------------------------
+    p noninductive-next q /\ (q' \/ q'') in FoG
+
+  From which you deduce:
+
+    inductive-stable A /\ B in F
+    inductive-stable A      in G
+    noninductive-stable B   in FoG
+    ---------------------------------
+    noninductive-stable A /\ B in FoG
+**)
+
+Goal "[| F : constrains A B';  G : constrains A B'';  \
+\        F Join G : Constrains A B |]                 \
+\     ==> F Join G : Constrains A (B Int (B' Un B''))";
+by (auto_tac
+    (claset() addIs [constrains_Int RS constrains_weaken],
+     simpset() addsimps [Constrains_def, constrains_Join]));
+qed "constrains_imp_Join_Constrains";
+
+Goalw [Stable_def, stable_def]
+     "[| F : stable (A Int B);  G : stable A;  \
+\        F Join G : Stable B |]                 \
+\     ==> F Join G : Stable (A Int B)";
+by (auto_tac
+    (claset() addIs [constrains_Int RS constrains_weaken],
+     simpset() addsimps [Constrains_def, constrains_Join]));
+qed "stable_imp_Join_Stable";
+
+
+
 (**FAILS, I think; see 5.4.1, Substitution Axiom.
    The problem is to relate reachable (F Join G) with 
    reachable F and reachable G
