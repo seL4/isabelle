@@ -213,6 +213,7 @@ struct
   type T = (Object.kind * ((theory -> Object.T) * (context -> Object.T -> unit))) Symtab.table;
 
   val empty = Symtab.empty;
+  val copy = I;
   val prep_ext = I;
   fun merge tabs = Symtab.merge (Object.eq_kind o pairself fst) tabs
     handle Symtab.DUPS kinds => err_inconsistent kinds;
@@ -379,6 +380,22 @@ fun norm_term (ctxt as Context {binds, ...}) =
   in normh end;
 
 
+(* dummy patterns *)
+
+fun is_dummy (Const ("dummy", _)) = true
+  | is_dummy _ = false;
+
+fun reject_dummies ctxt tm =
+  if foldl_aterms (fn (ok, t) => ok andalso not (is_dummy t)) (true, tm) then tm
+  else raise CONTEXT ("Illegal dummy pattern(s) in term", ctxt);
+
+
+fun prep_dummy (i, Const ("dummy", T)) = (i + 1, Var (("_dummy_", i), T))
+  | prep_dummy i_t = i_t;
+
+fun prepare_dummies tm = #2 (Term.foldl_map_aterms prep_dummy (1, tm));
+
+
 (* read terms *)
 
 fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
@@ -397,6 +414,7 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
       | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
     |> app (intern_skolem ctxt true)
     |> app (if is_pat then I else norm_term ctxt)
+    |> app (if is_pat then prepare_dummies else (reject_dummies ctxt))
   end;
 
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
