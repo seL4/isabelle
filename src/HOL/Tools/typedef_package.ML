@@ -12,12 +12,12 @@ sig
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val add_typedef_x: string -> bstring * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
-  val add_typedef: bool -> string -> bstring * string list * mixfix ->
+  val add_typedef: bool -> string option -> bstring * string list * mixfix ->
     string -> (bstring * bstring) option -> tactic -> theory -> theory *
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
       Rep_induct: thm, Abs_induct: thm}
-  val add_typedef_i: bool -> string -> bstring * string list * mixfix ->
+  val add_typedef_i: bool -> string option -> bstring * string list * mixfix ->
     term -> (bstring * bstring) option -> tactic -> theory -> theory *
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
@@ -79,15 +79,15 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* prove_nonempty -- tactical version *)        (*exception ERROR*)
 
-fun prove_nonempty thy cset goal (witn_names, witn_thms, witn_tac) =
+fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
   let
     val is_def = Logic.is_equals o #prop o Thm.rep_thm;
     val thms = PureThy.get_thmss thy witn_names @ witn_thms;
     val tac =
-      rtac exI 1 THEN
+      witn1_tac THEN
       TRY (rewrite_goals_tac (filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      if_none witn_tac (TRY (ALLGOALS (CLASET' blast_tac)));
+      if_none witn2_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
     prove_goalw_cterm [] (cterm_of (sign_of thy) goal) (K [tac])
@@ -217,19 +217,20 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
 (* add_typedef interfaces *)
 
-fun gen_typedef prep_term def name typ set opt_morphs names thms tac thy =
+fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
   let
     val (cset, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val non_empty = prove_nonempty thy cset goal (names, thms, tac);
+    val non_empty = prove_nonempty thy cset goal (tac1, names, thms, tac2);
     val ((thy', _), result) = (thy, non_empty) |> typedef_result;
   in (thy', result) end;
 
-fun sane_typedef prep_term def name typ set opt_morphs tac =
-  gen_typedef prep_term def name typ set opt_morphs [] [] (Some tac);
+fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
+  gen_typedef prep_term def
+    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (Some tac);
 
 fun add_typedef_x name typ set names thms tac =
-  #1 o gen_typedef read_term true name typ set None names thms tac;
+  #1 o gen_typedef read_term true name typ set None (Tactic.rtac exI 1) names thms tac;
 
 val add_typedef = sane_typedef read_term;
 val add_typedef_i = sane_typedef cert_term;

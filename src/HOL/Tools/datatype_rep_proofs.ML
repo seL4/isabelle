@@ -181,8 +181,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val thy3 = add_path flat_names big_name (foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
       setmp TypedefPackage.quiet_mode true
-        (TypedefPackage.add_typedef_i false name' (name, tvs, mx) c None
-          (QUIET_BREADTH_FIRST (has_fewer_prems 1)
+        (TypedefPackage.add_typedef_i false (Some name') (name, tvs, mx) c None
+          (rtac exI 1 THEN
+            QUIET_BREADTH_FIRST (has_fewer_prems 1)
             (resolve_tac (Funs_nonempty::rep_intrs) 1))) thy |> #1)
               (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
                 (take (length newTs, consts)) ~~ new_type_names));
