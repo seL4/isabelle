@@ -11,7 +11,7 @@ It uses all premises of the form
 t = u, t < u, t <= u, ~(t < u), ~(t <= u)
 
 where t and u must be of type nat, to
-1. either derive a constradiction,
+1. either derive a contradiction,
    in which case the conclusion can be any term,
 2. or prove the conclusion, which must be of the same form as the premises.
 
@@ -225,7 +225,7 @@ fun mkconcl t =
 val trans_tac = SUBGOAL (fn (A,n) =>
   let val Hs = Logic.strip_assums_hyp A
       val C = Logic.strip_assums_concl A
-      val lesss = flat(map mkasm (Hs ~~ (0 upto (length Hs - 1))));
+      val lesss = flat(ListPair.map mkasm (Hs, 0 upto (length Hs - 1)))
       val clesss = close [] lesss
       val (subgoals,prf) = mkconcl C
       val prfs = map (solve clesss) subgoals
