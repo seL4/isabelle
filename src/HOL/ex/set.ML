@@ -11,22 +11,27 @@ writeln"File HOL/ex/set.";
 
 context Lfp.thy;
 
+(*trivial example of term synthesis: apparently hard for some provers!*)
+Goal "a ~= b ==> a:?X & b ~: ?X";
+by (Blast_tac 1);
+result();
+
 (*Nice demonstration of blast_tac--and its limitations*)
-goal Set.thy "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
+Goal "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 (*for some unfathomable reason, UNIV_I increases the search space greatly*)
 by (blast_tac (claset() delrules [UNIV_I]) 1);
 result();
 
 (*variant of the benchmark above*)
-goal Set.thy "!!S. ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
+Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
 by (blast_tac (claset() delrules [UNIV_I]) 1);
-(*just Blast_tac takes 27 seconds instead of 2.2*)
+(*just Blast_tac takes 5 seconds instead of 1*)
 result();
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
-val [prem] = goal HOL.thy "?!x. f(g(x))=x ==> ?!y. g(f(y))=y";
-by (EVERY1[rtac (prem RS ex1E), rtac ex1I, etac arg_cong,
+Goal "?!x. f(g(x))=x ==> ?!y. g(f(y))=y";
+by (EVERY1[etac ex1E, rtac ex1I, etac arg_cong,
           rtac subst, atac, etac allE, rtac arg_cong, etac mp, etac arg_cong]);
 result();
 
@@ -57,17 +62,17 @@ by (best_tac (claset() addSEs [equalityCE]) 1);
 
 (*** The Schroder-Berstein Theorem ***)
 
-goalw Lfp.thy [image_def] "!!f. inj(f) ==> inv(f)``(f``X) = X";
+Goalw [image_def] "inj(f) ==> inv(f)``(f``X) = X";
 by (rtac equalityI 1);
 by (fast_tac (claset() addEs [inv_f_f RS ssubst]) 1);
 by (fast_tac (claset() addEs [inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
-goal Set.thy "!!f. f(a) ~: (f``X) ==> a~:X";
+Goal "f(a) ~: (f``X) ==> a~:X";
 by (Blast_tac 1);
 qed "contra_imageI";
 
-goal Lfp.thy "(a ~: Compl(X)) = (a:X)";
+Goal "(a ~: Compl(X)) = (a:X)";
 by (Blast_tac 1);
 qed "not_Compl";
 
@@ -79,28 +84,28 @@ by (EVERY1 [rtac (not_Compl RS subst), rtac contra_imageI,
             rtac imageI, rtac Xa]);
 qed "disj_lemma";
 
-goalw Lfp.thy [image_def]
-    "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
+Goalw [image_def]
+     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "range_if_then_else";
 
-goal Lfp.thy "a : X Un Compl(X)";
+Goal "a : X Un Compl(X)";
 by (Blast_tac 1);
 qed "X_Un_Compl";
 
-goalw Lfp.thy [surj_def] "surj(f) = (!a. a : range(f))";
+Goalw [surj_def] "surj(f) = (!a. a : range(f))";
 by (fast_tac (claset() addEs [ssubst]) 1);
 qed "surj_iff_full_range";
 
-val [compl] = goal Lfp.thy
-    "Compl(f``X) = g``Compl(X) ==> surj(%z. if z:X then f(z) else g(z))";
+Goal "Compl(f``X) = g``Compl(X) ==> surj(%z. if z:X then f(z) else g(z))";
 by (EVERY1[stac surj_iff_full_range, stac range_if_then_else,
-           stac (compl RS sym)]);
+           etac subst]);
 by (rtac (X_Un_Compl RS allI) 1);
 qed "surj_if_then_else";
 
-val [injf,injg,compl,bij] = goal Lfp.thy
+val [injf,injg,compl,bij] = 
+goal Lfp.thy
     "[| inj_on f X;  inj_on g (Compl X);  Compl(f``X) = g``Compl(X); \
 \       bij = (%z. if z:X then f(z) else g(z)) |] ==> \
 \       inj(bij) & surj(bij)";
@@ -116,13 +121,13 @@ by (stac split_if 1);
 by (fast_tac (claset() addEs  [inj_onD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
-goal Lfp.thy "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";
+Goal "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";
 by (rtac exI 1);
 by (rtac lfp_Tarski 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
 qed "decomposition";
 
-val [injf,injg] = goal Lfp.thy
+val [injf,injg] = goal Lfp.thy 
    "[| inj(f:: 'a=>'b);  inj(g:: 'b=>'a) |] ==> \
 \   ? h:: 'a=>'b. inj(h) & surj(h)";
 by (rtac (decomposition RS exE) 1);
