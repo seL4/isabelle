@@ -112,6 +112,10 @@ fun orl [] = false
 fun andl [] = true
   | andl (x :: xs) = x andalso andl xs;
 
+(*Needed because several object-logics declare the theory, therefore structure,
+  List.*)
+structure List_ = List;
+
 (*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
 fun exists (pred: 'a -> bool) : 'a list -> bool =
   let fun boolf [] = false
