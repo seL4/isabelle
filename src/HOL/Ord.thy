@@ -82,7 +82,7 @@ axclass order < ord
   order_refl [iff]:                          "x <= x"
   order_trans:      "[| x <= y; y <= z |] ==> x <= z"
   order_antisym:    "[| x <= y; y <= x |] ==> x = y"
-  order_less_le:    "x < y = (x <= y & x ~= y)"
+  order_less_le:    "(x < y) = (x <= y & x ~= y)"
 
 (** Reflexivity **)
 
@@ -96,7 +96,7 @@ lemma order_less_irrefl [simp]: "~ x < (x::'a::order)"
 apply (simp (no_asm) add: order_less_le)
 done
 
-lemma order_le_less: "(x::'a::order) <= y = (x < y | x = y)"
+lemma order_le_less: "((x::'a::order) <= y) = (x < y | x = y)"
 apply (simp (no_asm) add: order_less_le)
    (*NOT suitable for AddIffs, since it can cause PROOF FAILED*)
 apply (blast intro!: order_refl)
@@ -201,7 +201,7 @@ apply (cut_tac linorder_linear)
 apply blast
 done
 
-lemma linorder_less_split: 
+lemma linorder_cases [case_names less equal greater]:
   "[| (x::'a::linorder)<y ==> P; x=y ==> P; y<x ==> P |] ==> P"
 apply (cut_tac linorder_less_linear)
 apply blast
@@ -370,7 +370,7 @@ val order_less_imp_triv = thm "order_less_imp_triv";
 val order_less_imp_not_eq = thm "order_less_imp_not_eq";
 val order_less_imp_not_eq2 = thm "order_less_imp_not_eq2";
 val linorder_less_linear = thm "linorder_less_linear";
-val linorder_less_split = thm "linorder_less_split";
+val linorder_cases = thm "linorder_cases";
 val linorder_not_less = thm "linorder_not_less";
 val linorder_not_le = thm "linorder_not_le";
 val linorder_neq_iff = thm "linorder_neq_iff";
