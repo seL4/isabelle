@@ -12,7 +12,7 @@ sig
   exception THEORY of string * theory list
   val rep_theory: theory ->
     {sign: Sign.sg,
-      const_deps: string list Symtab.table,
+      const_deps: unit Graph.T,
       axioms: term Symtab.table,
       oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
       parents: theory list,
@@ -73,8 +73,8 @@ sig
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_oracle: bstring * (Sign.sg * Object.T -> term) -> theory -> theory
-  val add_defs: (bstring * string) list -> theory -> theory
-  val add_defs_i: (bstring * term) list -> theory -> theory
+  val add_defs: bool -> (bstring * string) list -> theory -> theory
+  val add_defs_i: bool -> (bstring * term) list -> theory -> theory
   val add_path: string -> theory -> theory
   val parent_path: theory -> theory
   val root_path: theory -> theory
@@ -109,25 +109,19 @@ struct
 
 (** datatype theory **)
 
+(*Note: dependencies are only tracked for non-overloaded constant definitions*)
+
 datatype theory =
   Theory of {
     sign: Sign.sg,
-    const_deps: string list Symtab.table,
+    const_deps: unit Graph.T,
     axioms: term Symtab.table,
     oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
 
-(* currently, dependencies are 
-   - only tracked for non-overloaded definitions;
-   - hierarchical: c |-> cs means that constant c depends directly on the
-     constants cs, which may in turn depend on other constants.
-     This saves space, but requires more time when checking for circularity.
-*)
-
-
-fun make_theory sign deps axms oras parents ancestors =
-  Theory {sign = sign, const_deps = deps, axioms = axms, oracles = oras,
+fun make_theory sign const_deps axioms oracles parents ancestors =
+  Theory {sign = sign, const_deps = const_deps, axioms = axioms, oracles = oracles,
     parents = parents, ancestors = ancestors};
 
 fun rep_theory (Theory args) = args;
@@ -156,7 +150,7 @@ fun assert_super thy1 thy2 =
 
 (*partial Pure theory*)
 val pre_pure =
-  make_theory Sign.pre_pure Symtab.empty Symtab.empty Symtab.empty [] [];
+  make_theory Sign.pre_pure Graph.empty Symtab.empty Symtab.empty [] [];
 
 
 
@@ -175,7 +169,7 @@ fun err_dup_axms names =
 fun err_dup_oras names =
   error ("Duplicate oracles " ^ commas_quote names);
 
-fun ext_theory thy ext_sg new_axms new_oras =
+fun ext_theory thy ext_sg ext_deps new_axms new_oras =
   let
     val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
@@ -188,13 +182,13 @@ fun ext_theory thy ext_sg new_axms new_oras =
     val (parents', ancestors') =
       if draft then (parents, ancestors) else ([thy], thy :: ancestors);
   in
-    make_theory (ext_sg sign) const_deps axioms' oracles' parents' ancestors'
+    make_theory (ext_sg sign) (ext_deps const_deps) axioms' oracles' parents' ancestors'
   end;
 
 
 (* extend signature of a theory *)
 
-fun ext_sign extfun decls thy = ext_theory thy (extfun decls) [] [];
+fun ext_sign extfun decls thy = ext_theory thy (extfun decls) I [] [];
 
 val add_classes      = ext_sign Sign.add_classes;
 val add_classes_i    = ext_sign Sign.add_classes_i;
@@ -262,7 +256,7 @@ fun read_def_axm (sg, types, sorts) used (name, str) =
   let
     val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
     val (t, _) = Sign.infer_types sg types sorts used true (ts, propT);
-  in cert_axm sg (name,t) end
+  in cert_axm sg (name, t) end
   handle ERROR => err_in_axm name;
 
 fun read_axm sg name_str = read_def_axm (sg, K None, K None) [] name_str;
@@ -282,9 +276,7 @@ fun ext_axms prep_axm raw_axms (thy as Theory {sign, ...}) =
     val axioms =
       map (apsnd (Term.compress_term o Logic.varify) o prep_axm sign) raw_axms';
     val ext_sg = Sign.add_space (axiomK, map fst axioms);
-  in
-    ext_theory thy ext_sg axioms []
-  end;
+  in ext_theory thy ext_sg I axioms [] end;
 
 val add_axioms = ext_axms read_axm;
 val add_axioms_i = ext_axms cert_axm;
@@ -296,38 +288,11 @@ fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
   let
     val name = Sign.full_name sign raw_name;
     val ext_sg = Sign.add_space (oracleK, [name]);
-  in
-    ext_theory thy ext_sg [] [(name, (oracle, stamp ()))]
-  end;
+  in ext_theory thy ext_sg I [] [(name, (oracle, stamp ()))] end;
 
 
 
 (** add constant definitions **)
-
-(* add dependency *)
-(* check if not circular;
-   no dependency for c can have been declared already
-   because that would have raised a clash-of-definitions error.
-*)
-
-fun add_dependencies(dep,c,cs) =
-  let fun circular path (vis,d) =
-        if c=d then raise TERM(
-  "Definition would create circular dependency of constants:\n" ^
-  space_implode " -> " (c::rev(c::path)),
-                               [])
-        else if d mem_string vis then vis
-             else case Symtab.lookup(dep,d) of None => vis
-                  | Some ds => foldl (circular(d::path)) (vis,ds)
-  in foldl (circular []) ([],cs); Symtab.update_new((c,cs),dep) end;
-
-(* all_axioms_of *)
-
-(*results may contain duplicates!*)
-
-fun all_axioms_of thy =
-  flat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors_of thy));
-
 
 (* clash_types, clash_consts *)
 
@@ -337,9 +302,7 @@ fun clash_types ty1 ty2 =
   let
     val ty1' = Type.varifyT ty1;
     val ty2' = incr_tvar (maxidx_of_typ ty1' + 1) (Type.varifyT ty2);
-  in
-    Type.raw_unify (ty1', ty2')
-  end;
+  in Type.raw_unify (ty1', ty2') end;
 
 fun clash_consts (c1, ty1) (c2, ty2) =
   c1 = c2 andalso clash_types ty1 ty2;
@@ -356,16 +319,18 @@ fun clash_defns c_ty axms =
   distinct (mapfilter (clash_defn c_ty) axms);
 
 
-(* overloading checks *)
+(* overloading *)
 
-fun overloaded_def(tsig,cT,T) =
+datatype overloading = NoOverloading | Useless | Plain;
+
+fun overloading sg declT defT =
   let
-    val T = incr_tvar (maxidx_of_typ cT + 1) (Type.varifyT T);
+    val tsig = Sign.tsig_of sg;
+    val T = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
   in
-  if Type.typ_instance(tsig,cT,T) then None else (* overloading *)
-  if Type.typ_instance(tsig,Type.rem_sorts cT,Type.rem_sorts T)
-  then Some false (* useless additional sort constraints in def *)
-  else Some true  (* useful kind of overloading *)
+    if Type.typ_instance (tsig, declT, T) then NoOverloading
+    else if Type.typ_instance (tsig, Type.rem_sorts declT, Type.rem_sorts T) then Useless
+    else Plain
   end;
 
 
@@ -378,7 +343,7 @@ fun dest_defn tm =
     val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
       handle TERM _ => err "Not a meta-equality (==)";
     val (head, args) = strip_comb lhs;
-    val c_ty as (c,ty) = dest_Const head
+    val c_ty as (c, ty) = dest_Const head
       handle TERM _ => err "Head of lhs not a constant";
 
     fun dest_free (Free (x, _)) = x
@@ -402,17 +367,25 @@ fun dest_defn tm =
       err ("Extra type variables on rhs: " ^ show_tfrees rhs_extrasT)
     else if exists_Const (fn c_ty' => c_ty' = c_ty) rhs then
       err ("Constant to be defined occurs on rhs")
-    else (c_ty,rhs)
+    else (c_ty, rhs)
   end;
 
 
 (* check_defn *)
 
 fun err_in_defn sg name msg =
-  (error_msg msg; error ("The error(s) above occurred in definition " ^
-                         quote (Sign.full_name sg name)));
+  (error_msg msg;
+    error ("The error(s) above occurred in definition " ^ quote (Sign.full_name sg name)));
 
-fun check_defn sg ((dep,axms), def as (name,tm)) =
+fun cycle_msg namess =
+  "Cyclic dependency of constants:\n" ^ cat_lines (map (space_implode " -> " o map quote) namess);
+
+fun add_deps (c, cs) deps =
+  let fun declare (G, x) = Graph.new_node (x, ()) G handle Graph.DUP _ => G
+  in foldl declare (deps, c :: cs) |> Graph.add_deps_acyclic (c, cs) end;
+
+
+fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
   let
     fun show_const (c, ty) = quote (Pretty.string_of (Pretty.block
       [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sg ty]));
@@ -421,46 +394,45 @@ fun check_defn sg ((dep,axms), def as (name,tm)) =
     fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
     fun show_defns c = cat_lines o map (show_defn c);
 
-    val (c_ty as (c,ty),rhs) = dest_defn tm
+    val (c_ty as (c, ty), rhs) = dest_defn tm
       handle TERM (msg, _) => err_in_defn sg name msg;
-    val cs = add_term_consts(rhs,[]);
-    val defns = clash_defns c_ty axms;
-    val cT = case Sign.const_type sg c of Some T => T | None =>
-              err_in_defn sg name ("Undeclared constant "^quote c);
+    val c_decl =
+      (case Sign.const_type sg c of Some T => T
+      | None => err_in_defn sg name ("Undeclared constant " ^ quote c));
+
+    val clashed = clash_defns c_ty axms;
   in
-    if not (null defns) then
-      err_in_defn sg name (def_txt c_ty ^"\nclashes with "^ show_defns c defns)
-    else case overloaded_def(Sign.tsig_of sg,cT,ty) of
-           None => (add_dependencies(dep,c,cs)
-                    handle TERM(msg,_) => err_in_defn sg name msg,
-                    def::axms)
-         | Some true => (warning(def_txt c_ty
-             ^ "\nin definition " ^ quote(Sign.full_name sg name)
-       ^ "\nis strictly less general than the declared type of the constant.");
-                        (dep, def::axms))
-         | Some false =>
-           let val txt = Library.setmp show_sorts true def_txt c_ty
-           in err_in_defn sg name (txt ^
-"\nimposes additional class constraints on the declared type of the constant.")
-           end
+    if not (null clashed) then
+      err_in_defn sg name (def_txt c_ty ^"\nclashes with "^ show_defns c clashed)
+    else
+      (case overloading sg c_decl ty of
+        NoOverloading =>
+          (add_deps (c, Term.add_term_consts (rhs, [])) deps
+              handle Graph.CYCLES namess => err_in_defn sg name (cycle_msg namess),
+            def :: axms)
+      | Useless =>
+           err_in_defn sg name (Library.setmp show_sorts true def_txt c_ty ^
+             "\nimposes additional sort constraints on the declared type of the constant.")
+      | Plain =>
+         (if not overloaded then
+           warning (def_txt c_ty ^ "\nis strictly less general than the declared type (see "
+             ^ quote (Sign.full_name sg name) ^ ")")
+         else (); (deps, def :: axms)))
   end;
 
 
 (* add_defs *)
 
-fun update_deps(Theory{sign,axioms,oracles,parents,ancestors,...},deps) =
-  Theory{sign=sign, const_deps=deps, axioms=axioms, oracles=oracles,
-         parents=parents, ancestors=ancestors};
-
-fun ext_defns prep_axm raw_axms thy =
+fun ext_defns prep_axm overloaded raw_axms thy =
   let
-    val sg = sign_of thy
-    val axms = map (prep_axm sg) raw_axms;
-    val all_axms = all_axioms_of thy;
-    val Theory{const_deps = deps, ...} = thy;
-    val (deps1,_) = foldl (check_defn sg) ((deps,all_axms), axms);
+    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
+    val all_axioms = flat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors));
+
+    val axms = map (prep_axm sign) raw_axms;
+    val (const_deps', _) = foldl (check_defn sign overloaded) ((const_deps, all_axioms), axms);
   in
-    add_axioms_i axms (update_deps(thy,deps1))
+    make_theory sign const_deps' axioms oracles parents ancestors
+    |> add_axioms_i axms
   end;
 
 val add_defs_i = ext_defns cert_axm;
@@ -496,7 +468,8 @@ fun prep_ext_merge thys =
         |> Sign.add_path "/";
 
       val depss = map (#const_deps o rep_theory) thys;
-      val deps' = foldl (Symtab.merge op =) (hd depss, tl depss);
+      val deps' = foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
+        handle Graph.CYCLES namess => error (cycle_msg namess);
 
       val axioms' = Symtab.empty;
 
