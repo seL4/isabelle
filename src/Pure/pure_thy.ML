@@ -5,13 +5,25 @@
 Init 'theorems' data.  The Pure theories.
 *)
 
-signature PURE_THY =
+signature BASIC_PURE_THY =
 sig
-  val store_thms: (bstring * thm) list -> theory -> theory   	  (*DESTRUCTIVE*)
-  val store_thmss: (bstring * thm list) list -> theory -> theory  (*DESTRUCTIVE*)
-  val smart_store_thm: (bstring * thm) -> thm                     (*DESTRUCTIVE*)
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
+  val thms_of: theory -> (string * thm) list
+end
+
+signature PURE_THY =
+sig
+  include BASIC_PURE_THY
+  val ignored_consts: string list
+  val thms_containing: theory -> string list -> (string * thm) list
+  val store_thms: (bstring * thm) list -> theory -> theory
+  val store_thmss: (bstring * thm list) list -> theory -> theory
+  val smart_store_thm: (bstring * thm) -> thm
+  val add_store_axioms: (bstring * string) list -> theory -> theory
+  val add_store_axioms_i: (bstring * term) list -> theory -> theory
+  val add_store_defs: (bstring * string) list -> theory -> theory
+  val add_store_defs_i: (bstring * term) list -> theory -> theory
   val proto_pure: theory
   val pure: theory
   val cpure: theory
@@ -21,30 +33,27 @@ structure PureThy: PURE_THY =
 struct
 
 
-(** init theorems data **)
+(*** init theorems data ***)
 
-(* data kind theorems *)
+(** data kind theorems **)
 
 val theorems = "theorems";
 
 exception Theorems of
-  {space: NameSpace.T, thms_tab: thm list Symtab.table} ref;
+ {space: NameSpace.T,
+  thms_tab: thm list Symtab.table,
+  const_idx: int * (int * thm) list Symtab.table} ref;
 
 
 (* methods *)
 
 local
 
-val empty =
-  Theorems (ref {space = NameSpace.empty, thms_tab = Symtab.null});
+fun mk_empty _ =
+  Theorems (ref {space = NameSpace.empty,
+    thms_tab = Symtab.null, const_idx = (0, Symtab.null)});
 
-fun ext (Theorems (ref {space, ...})) =
-  Theorems (ref {space = space, thms_tab = Symtab.null});
-
-fun merge (Theorems (ref {space = space1, ...}), Theorems (ref {space = space2, ...})) =
-  Theorems (ref {space = NameSpace.merge (space1, space2), thms_tab = Symtab.null});
-
-fun print (Theorems (ref {space, thms_tab})) =
+fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
   let
     val prt_thm = Pretty.quote o pretty_thm;
     fun prt_thms (name, [th]) =
@@ -61,50 +70,110 @@ fun print (Theorems (ref {space, thms_tab})) =
 
 in
 
-val theorems_methods = (empty, ext, merge, print);
+val theorems_methods = (mk_empty (), mk_empty, mk_empty, print);
 
 end;
 
 
 (* get data record *)
 
-fun get_theorems sg =
+fun get_theorems_sg sg =
   (case Sign.get_data sg theorems of
     Theorems r => r
-  | _ => sys_error "get_theorems");
+  | _ => sys_error "get_theorems_sg");
+
+val get_theorems = get_theorems_sg o sign_of;
 
 
-(* retrieve theorems *)
 
-fun lookup_thms theory full_name =
+(** retrieve theorems **)
+
+(* get_thm(s) *)
+
+fun local_thms thy name =
   let
-    val tab_of = #thms_tab o ! o get_theorems o sign_of;
-    fun lookup [] = raise Match
-      | lookup (thy :: thys) =
-          (case Symtab.lookup (tab_of thy, full_name) of
-            Some thms => thms
-          | None => lookup (Theory.parents_of thy) handle Match => lookup thys)
-  in
-    lookup [theory] handle Match
-      => raise THEORY ("No theorems " ^ quote full_name ^ " stored in theory", [theory])
-  end;
+    val ref {space, thms_tab, ...} = get_theorems thy;
+    val full_name = NameSpace.intern space name;
+  in Symtab.lookup (thms_tab, full_name) end;
+
+fun all_local_thms [] _ = None
+  | all_local_thms (thy :: thys) name =
+      (case local_thms thy name of
+        None => all_local_thms thys name
+      | some => some);
+
 
 fun get_thms thy name =
-  let
-    val ref {space, ...} = get_theorems (sign_of thy);
-    val full_name = NameSpace.intern space name;
-  in lookup_thms thy full_name end;
+  (case all_local_thms (thy :: Theory.ancestors_of thy) name of
+    None => raise THEORY ("Theorems " ^ quote name ^ " not stored in theory", [thy])
+  | Some thms => thms);
 
 fun get_thm thy name =
   (case get_thms thy name of
     [thm] => thm
-  | _ => raise THEORY ("Singleton theorem list expected " ^ quote name, [thy]));
+  | _ => raise THEORY ("Singleton list of theorems expected " ^ quote name, [thy]));
 
 
-(* store theorems *)                    (*DESTRUCTIVE*)
+(* thms_of *)
 
-fun err_dup name =
-  error ("Duplicate theorems " ^ quote name);
+fun attach_name thm = (Thm.name_of_thm thm, thm);
+
+fun thms_of thy =
+  let val ref {thms_tab, ...} = get_theorems thy in
+    map attach_name (flat (map snd (Symtab.dest thms_tab)))
+  end;
+
+
+
+(** theorems indexed by constants **)
+
+(* make index *)
+
+val ignored_consts = ["Trueprop", "all", "==>", "=="];
+
+fun add_const_idx ((next, table), thm) =
+  let
+    val {hyps, prop, ...} = Thm.rep_thm thm;
+    val consts =
+      foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignored_consts;
+
+    fun add (tab, c) =
+      Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
+  in (next + 1, foldl add (table, consts)) end;
+
+fun make_const_idx thm_tab =
+  foldl (foldl add_const_idx) ((0, Symtab.null), map snd (Symtab.dest thm_tab));
+
+
+(* lookup index *)
+
+(*search locally*)
+fun containing [] thy = thms_of thy
+  | containing consts thy =
+      let
+        fun intr ([], _) = []
+          | intr (_, []) = []
+          | intr (xxs as ((x as (i:int, _)) :: xs), yys as ((y as (j, _)) :: ys)) =
+              if i = j then x :: intr (xs, ys)
+              else if i > j then intr (xs, yys)
+              else intr (xxs, ys);
+
+        fun intrs [xs] = xs
+          | intrs xss = if exists null xss then [] else foldl intr (hd xss, tl xss);
+
+        val ref {const_idx = (_, ctab), ...} = get_theorems thy;
+        val ithmss = map (fn c => Symtab.lookup_multi (ctab, c)) consts;
+      in
+        map (attach_name o snd) (intrs ithmss)
+      end;
+
+(*search globally*)
+fun thms_containing thy consts =
+  flat (map (containing consts) (thy :: Theory.ancestors_of thy));
+
+
+
+(** store theorems **)                    (*DESTRUCTIVE*)
 
 fun warn_overwrite name =
   warning ("Replaced old copy of theorems " ^ quote name);
@@ -123,20 +192,24 @@ fun enter_thms sg single (raw_name, thms) =
     val named_thms = ListPair.map Thm.name_thm (names, thms);
 
     val eq_thms = ListPair.all Thm.eq_thm;
-    val r as ref {space, thms_tab = tab} = get_theorems sg;
+
+    val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
+
+    val overwrite =
+      (case Symtab.lookup (thms_tab, name) of
+        None => false
+      | Some thms' =>
+          if length thms' = len andalso eq_thms (thms', named_thms) then
+            (warn_same name; false)
+          else (warn_overwrite name; true));
+
+    val space' = NameSpace.extend ([name], space);
+    val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
+    val const_idx' =
+      if overwrite then make_const_idx thms_tab'
+      else foldl add_const_idx (const_idx, named_thms);
   in
-    (case Symtab.lookup (tab, name) of
-      None =>
-        if NameSpace.declared space name then err_dup name else ()
-    | Some thms' =>
-        if length thms' = len andalso eq_thms (thms', named_thms) then
-          warn_same name
-        else warn_overwrite name);
-
-    r :=
-     {space = NameSpace.extend ([name], space),
-      thms_tab = Symtab.update ((name, named_thms), tab)};
-
+    r := {space = space', thms_tab = thms_tab', const_idx = const_idx'};
     named_thms
   end;
 
@@ -153,6 +226,20 @@ fun store_thms thms thy =
 fun smart_store_thm (name, thm) =
   let val [named_thm] = enter_thms (Thm.sign_of_thm thm) true (name, [thm])
   in named_thm end;
+
+
+(* store axioms as theorems *)
+
+fun add_store add named_axs thy =
+  let
+    val thy' = add named_axs thy;
+    val named_thms = map (fn name => (name, get_axiom thy' name)) (map fst named_axs);
+  in store_thms named_thms thy' end;
+
+val add_store_axioms = add_store Theory.add_axioms;
+val add_store_axioms_i = add_store Theory.add_axioms_i;
+val add_store_defs = add_store Theory.add_defs;
+val add_store_defs_i = add_store Theory.add_defs_i;
 
 
 
@@ -184,19 +271,28 @@ val proto_pure =
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
-  |> Theory.add_defs [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
+  |> Theory.add_path "ProtoPure"
+  |> add_store_defs [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
   |> Theory.add_name "ProtoPure";
 
-val pure = proto_pure
+val pure =
+  Theory.prep_ext_merge [proto_pure]
   |> Theory.add_syntax Syntax.pure_appl_syntax
+  |> Theory.add_path "Pure"
   |> Theory.add_name "Pure";
 
-val cpure = proto_pure
+val cpure =
+  Theory.prep_ext_merge [proto_pure]
   |> Theory.add_syntax Syntax.pure_applC_syntax
+  |> Theory.add_path "CPure"
   |> Theory.add_name "CPure";
 
 
 end;
+
+
+structure BasicPureThy: BASIC_PURE_THY = PureThy;
+open BasicPureThy;
 
 
 
