@@ -1,4 +1,4 @@
-(*  Title:      Provers/Arith/abel_cancel.ML
+(*  Title:      HOL/OrderedGroup.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -7,8 +7,10 @@ Simplification procedures for abelian groups (e.g. integers, reals)
 
 - Cancel complementary terms in sums
 - Cancel like terms on opposite sides of relations
+
 *)
 
+(* Modificaton in May 2004 by Steven Obua: polymorphic types work also now *) 
 
 signature ABEL_CANCEL =
 sig
@@ -18,7 +20,6 @@ sig
   val sg_ref            : Sign.sg_ref   (*signature of the theory of the group*)
   val T                 : typ           (*the type of group elements*)
 
-  val zero              : term
   val restrict_to_left  : thm
   val add_cancel_21     : thm
   val add_cancel_end    : thm
@@ -52,8 +53,10 @@ open Data;
                                     minus_add_distrib, minus_minus,
                                     minus_0, add_0, add_0_right];
 
- val plus = Const ("op +", [Data.T,Data.T] ---> Data.T);
- val minus = Const ("uminus", Data.T --> Data.T);
+ 
+ fun zero t = Const ("0", t);
+ fun plus t = Const ("op +", [t,t] ---> t);
+ fun minus t = Const ("uminus", t --> t);
 
  (*Cancel corresponding terms on the two sides of the equation, NOT on
    the same side!*)
@@ -63,13 +66,13 @@ open Data;
 
  val inverse_ss = Data.ss addsimps Data.add_inverses @ Data.cancel_simps;
 
- fun mk_sum []  = Data.zero
-   | mk_sum tms = foldr1 (fn (x,y) => plus $ x $ y) tms;
+ fun mk_sum ty []  = zero ty
+   | mk_sum ty tms = foldr1 (fn (x,y) => (plus ty) $ x $ y) tms;
 
  (*We map -t to t and (in other cases) t to -t.  No need to check the type of
    uminus, since the simproc is only called on sums of type T.*)
  fun negate (Const("uminus",_) $ t) = t
-   | negate t                       = minus $ t;
+   | negate t                       = (minus (fastype_of t)) $ t;
 
  (*Flatten a formula built from +, binary - and unary -.
    No need to check types PROVIDED they are checked upon entry!*)
@@ -106,7 +109,7 @@ open Data;
                else ()
        val (head::tail) = terms lhs
        val head' = negate head
-       val rhs = mk_sum (cancelled (head',tail))
+       val rhs = mk_sum (fastype_of head) (cancelled (head',tail))
        and chead' = Thm.cterm_of sg head'
        val _ = if !trace then
                  tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
@@ -151,12 +154,13 @@ open Data;
                else ()
        val ltms = terms lt
        and rtms = terms rt
+       val ty = fastype_of lt 
        val common = (*inter_term miscounts repetitions, so squash them*)
                     gen_distinct (op aconv) (inter_term (ltms, rtms))
        val _ = if null common then raise Cancel  (*nothing to do*)
                                    else ()
 
-       fun cancelled tms = mk_sum (foldl cancel1 (tms, common))
+       fun cancelled tms = mk_sum ty (foldl cancel1 (tms, common))
 
        val lt' = cancelled ltms
        and rt' = cancelled rtms
@@ -180,3 +184,5 @@ open Data;
        (map Data.dest_eqI eqI_rules) rel_proc;
 
 end;
+
+
