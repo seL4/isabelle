@@ -224,6 +224,15 @@ qed_goal "SigmaE2" Prod.thy
     (rtac (major RS SigmaD1) 1),
     (rtac (major RS SigmaD2) 1) ]);
 
+val prems = goal Prod.thy
+    "[| A<=C;  !!x. x:A ==> B<=D |] ==> Sigma A (%x.B) <= Sigma C (%x.D)";
+by (cut_facts_tac prems 1);
+by (fast_tac (set_cs addIs (prems RL [subsetD]) 
+                     addSIs [SigmaI] 
+                     addSEs [SigmaE]) 1);
+qed "Sigma_mono";
+
+
 (*** Domain of a relation ***)
 
 val prems = goalw Prod.thy [image_def] "(a,b) : r ==> a : fst``r";

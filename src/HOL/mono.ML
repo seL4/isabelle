@@ -61,15 +61,6 @@ goal Set.thy "!!A B. A<=B ==> Compl(B) <= Compl(A)";
 by (fast_tac set_cs 1);
 qed "Compl_anti_mono";
 
-val prems = goal Prod.thy
-    "[| A<=C;  !!x. x:A ==> B<=D |] ==> Sigma A (%x.B) <= Sigma C (%x.D)";
-by (cut_facts_tac prems 1);
-by (fast_tac (set_cs addIs (prems RL [subsetD]) 
-                     addSIs [SigmaI] 
-                     addSEs [SigmaE]) 1);
-qed "Sigma_mono";
-
-
 (** Monotonicity of implications.  For inductive definitions **)
 
 goal Set.thy "!!A B x. A<=B ==> x:A --> x:B";
@@ -119,5 +110,5 @@ qed "Int_Collect_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-                   ex_mono, Collect_mono, Part_mono, in_mono];
+                   ex_mono, Collect_mono, in_mono];
 

@@ -29,7 +29,6 @@ use     "hologic.ML";
 use     "typedef.ML";
 use_thy "Sum";
 use_thy "Gfp";
-use_thy "RelPow";
 
 use "datatype.ML";
 use "ind_syntax.ML";
@@ -38,6 +37,7 @@ use "intr_elim.ML";
 use "indrule.ML";
 use_thy "Inductive";
 
+use_thy "RelPow";
 use_thy "Finite";
 use_thy "Sexp";
 use_thy "List";

@@ -193,6 +193,8 @@ goal Sum.thy "!!A B. A<=B ==> Part A h <= Part B h";
 by (fast_tac (set_cs addSIs [PartI] addSEs [PartE]) 1);
 qed "Part_mono";
 
+val basic_monos = basic_monos @ [Part_mono];
+
 goalw Sum.thy [Part_def] "!!a. a : Part A h ==> a : A";
 by (etac IntD1 1);
 qed "PartD1";

@@ -272,24 +272,34 @@ fun strip_tac i = REPEAT(resolve_tac [impI,allI] i);
 
 local
 
-(* work around instantiation bug *)
+(* Use XXX to avoid forall_intr failing because of duplicate variable name *)
 val myspec = read_instantiate [("P","?XXX")] spec;
 val _ $ (_ $ (vx as Var(_,vxT))) = concl_of myspec;
 val cvx = cterm_of (#sign(rep_thm myspec)) vx;
 val aspec = forall_intr cvx myspec;
 
-fun specf th a =
-  let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),vxT))
-  in th RS forall_elim ca aspec end;
-
-fun spec_mpf th = case concl_of th of
-                    _ $ (Const("All",_) $ Abs(a,_,_)) => spec_mpf (specf th a)
-                  | _ $ (Const("op -->",_)$_$_) => spec_mpf (th RS mp)
-                  | _ => th
-
 in
 
-fun qed_spec_mp name = bind_thm(name, spec_mpf(result()));
+fun RSspec th =
+  (case concl_of th of
+     _ $ (Const("All",_) $ Abs(a,_,_)) =>
+         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),vxT))
+         in th RS forall_elim ca aspec end
+  | _ => raise THM("RSspec",0,[th]));
+
+fun RSmp th =
+  (case concl_of th of
+     _ $ (Const("op -->",_)$_$_) => th RS mp
+  | _ => raise THM("RSmp",0,[th]));
+
+fun normalize_thm funs =
+let fun trans [] th = th
+      | trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
+in trans funs end;
+
+fun qed_spec_mp name =
+  let val thm = normalize_thm [RSspec,RSmp] (result())
+  in bind_thm(name, thm) end;
 
 end;
 
