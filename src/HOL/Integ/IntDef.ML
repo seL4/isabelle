@@ -93,7 +93,7 @@ by (rtac equiv_intrel 1);
 by (Fast_tac 1);
 by Safe_tac;
 by (Asm_full_simp_tac 1);
-qed "inj_nat";
+qed "inj_int";
 
 
 (**** zminus: unary negation on Integ ****)
@@ -473,7 +473,7 @@ qed "int_neq_iff";
 bind_thm("int_neqE", int_neq_iff RS iffD1 RS disjE);
 
 Goal "(int m = int n) = (m = n)"; 
-by (fast_tac (claset() addSEs [inj_nat RS injD]) 1); 
+by (fast_tac (claset() addSEs [inj_int RS injD]) 1); 
 qed "int_int_eq"; 
 AddIffs [int_int_eq]; 
 
