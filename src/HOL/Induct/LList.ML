@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/LList
+(*  Title:      HOL/Induct/LList
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -10,8 +10,7 @@ bind_thm ("UN1_I", UNIV_I RS UN_I);
 
 (** Simplification **)
 
-simpset_ref() := simpset() addsplits [split_split, split_sum_case] delsimprocs [unit_eq_proc];
-
+Addsplits [split_split, split_sum_case];
 
 (*This justifies using llist in other recursive type definitions*)
 Goalw llist.defs "!!A B. A<=B ==> llist(A) <= llist(B)";
