@@ -1,0 +1,31 @@
+
+\railalias{lbrace}{\ttlbrace}
+\railalias{rbrace}{\ttrbrace}
+\railalias{llbrace}{\ttlbrace\ttlbrace}
+\railalias{rrbrace}{\ttrbrace\ttrbrace}
+
+\setlength\railextra{3.6ex}
+\setlength\railboxleft{0.9ex}
+\setlength\railboxright{0.9ex}
+\setlength\railovalspace{1.8ex}
+\setlength\railframespace{1.8ex}
+\setlength\railtextleft{0.9ex}
+\setlength\railtextright{0.9ex}
+\setlength\railnamesep{0.9ex}
+
+\setlength\railboxheight{16pt}
+\setlength\railboxskip{24pt}
+\setlength\railtextup{5pt}
+\setlength\railjoinsize{16pt}
+
+\def\rail@termfont{\small\ttfamily\upshape}
+\def\rail@nontfont{\small\rmfamily\upshape}
+\def\rail@annofont{\small\rmfamily\itshape}
+\def\rail@namefont{\small\rmfamily\itshape}
+\def\rail@indexfont{\small\rmfamily\itshape}
+\newcommand{\railtoken}[1]{{\texttt{#1}}}
+\newcommand{\railqtoken}[1]{{\textsl{#1}}}
+\newcommand{\railnonterm}[1]{{\emph{#1}}}
+
+\newcommand\indexoutertoken[1]{\index{#1@\railtoken{#1} (outer syntax)|bold}}
+\newcommand\indexouternonterm[1]{\index{#1@\railnonterm{#1} (outer syntax)|bold}}
