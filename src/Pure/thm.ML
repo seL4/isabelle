@@ -50,7 +50,6 @@ signature BASIC_THM =
     | Theorem             of string * tag list
     | Assume              of cterm
     | Implies_intr        of cterm
-    | Implies_intr_shyps
     | Implies_intr_hyps
     | Implies_elim 
     | Forall_intr         of cterm
@@ -101,9 +100,7 @@ signature BASIC_THM =
   val concl_of          : thm -> term
   val cprop_of          : thm -> cterm
   val extra_shyps       : thm -> sort list
-  val force_strip_shyps : bool ref      (* FIXME tmp (since 1995/08/01) *)
   val strip_shyps       : thm -> thm
-  val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> xstring -> thm
   val def_name		: string -> string
   val get_def           : theory -> xstring -> thm
@@ -326,7 +323,6 @@ datatype rule =
 (*primitive inferences and compound versions of them*)
   | Assume              of cterm
   | Implies_intr        of cterm
-  | Implies_intr_shyps
   | Implies_intr_hyps
   | Implies_elim 
   | Forall_intr         of cterm
@@ -524,81 +520,47 @@ fun add_thm_sorts (Thm {hyps, prop, ...}, Ss) =
 
 fun add_thms_shyps ([], Ss) = Ss
   | add_thms_shyps (Thm {shyps, ...} :: ths, Ss) =
-      add_thms_shyps (ths, union_sort(shyps,Ss));
+      add_thms_shyps (ths, union_sort (shyps, Ss));
 
 
 (*get 'dangling' sort constraints of a thm*)
 fun extra_shyps (th as Thm {shyps, ...}) =
-  shyps \\ add_thm_sorts (th, []);
+  Term.rems_sort (shyps, add_thm_sorts (th, []));
 
 
 (* fix_shyps *)
 
+fun all_sorts_nonempty sign_ref = is_some (Sign.univ_witness (Sign.deref sign_ref));
+
 (*preserve sort contexts of rule premises and substituted types*)
-fun fix_shyps thms Ts thm =
-  let
-    val Thm {sign_ref, der, maxidx, hyps, prop, ...} = thm;
-    val shyps =
-      add_thm_sorts (thm, add_typs_sorts (Ts, add_thms_shyps (thms, [])));
-  in
-    Thm {sign_ref = sign_ref,
-         der = der,             (*No new derivation, as other rules call this*)
-         maxidx = maxidx,
-         shyps = shyps, hyps = hyps, prop = prop}
-  end;
+fun fix_shyps thms Ts (thm as Thm {sign_ref, der, maxidx, hyps, prop, ...}) =
+  Thm
+   {sign_ref = sign_ref,
+    der = der,             (*no new derivation, as other rules call this*)
+    maxidx = maxidx,
+    shyps =
+      if all_sorts_nonempty sign_ref then []
+      else add_thm_sorts (thm, add_typs_sorts (Ts, add_thms_shyps (thms, []))),
+    hyps = hyps, prop = prop}
 
 
-(* strip_shyps *)       (* FIXME improve? (e.g. only minimal extra sorts) *)
+(* strip_shyps *)
 
-val force_strip_shyps = ref true;  (* FIXME tmp (since 1995/08/01) *)
-
-(*remove extra sorts that are known to be syntactically non-empty*)
-fun strip_shyps thm =
-  let
-    val Thm {sign_ref, der, maxidx, shyps, hyps, prop} = thm;
-    val sorts = add_thm_sorts (thm, []);
-    val maybe_empty = not o Sign.nonempty_sort (Sign.deref sign_ref) sorts;
-    val shyps' = filter (fn S => mem_sort(S,sorts) orelse maybe_empty S) shyps;
-  in
-    Thm {sign_ref = sign_ref, der = der, maxidx = maxidx,
-         shyps =
-         (if eq_set_sort (shyps',sorts) orelse 
-             not (!force_strip_shyps) then shyps'
-          else    (* FIXME tmp (since 1995/08/01) *)
-              (warning ("Removed sort hypotheses: " ^
-                        commas (map Sorts.str_of_sort (shyps' \\ sorts)));
-               warning "Let's hope these sorts are non-empty!";
-           sorts)),
-      hyps = hyps, 
-      prop = prop}
-  end;
-
-
-(* implies_intr_shyps *)
-
-(*discharge all extra sort hypotheses*)
-fun implies_intr_shyps thm =
-  (case extra_shyps thm of
-    [] => thm
-  | xshyps =>
+(*remove extra sorts that are non-empty by virtue of type signature information*)
+fun strip_shyps (thm as Thm {shyps = [], ...}) = thm
+  | strip_shyps (thm as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
       let
-        val Thm {sign_ref, der, maxidx, shyps, hyps, prop} = thm;
-        val shyps' = ins_sort (logicS, shyps \\ xshyps);
-        val used_names = foldr add_term_tfree_names (prop :: hyps, []);
-        val names =
-          tl (variantlist (replicate (length xshyps + 1) "'", used_names));
-        val tfrees = map (TFree o rpair logicS) names;
+        val sign = Sign.deref sign_ref;
 
-        fun mk_insort (T, S) = map (Logic.mk_inclass o pair T) S;
-        val sort_hyps = List.concat (map2 mk_insort (tfrees, xshyps));
+        val present_sorts = add_thm_sorts (thm, []);
+        val extra_shyps = Term.rems_sort (shyps, present_sorts);
+        val witnessed_shyps = Sign.witness_sorts sign present_sorts extra_shyps;
       in
-        Thm {sign_ref = sign_ref, 
-             der = infer_derivs (Implies_intr_shyps, [der]), 
-             maxidx = maxidx, 
-             shyps = shyps',
-             hyps = hyps, 
-             prop = Logic.list_implies (sort_hyps, prop)}
-      end);
+        Thm {sign_ref = sign_ref, der = der, maxidx = maxidx,
+             shyps = Term.rems_sort (shyps, map #2 witnessed_shyps),
+             hyps = hyps, prop = prop}
+      end;
+
 
 
 (** Axioms **)
