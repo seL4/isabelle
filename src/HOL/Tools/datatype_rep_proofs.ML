@@ -41,14 +41,6 @@ fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
 
 (******************************************************************************)
 
-(*----------------------------------------------------------*)
-(* Proofs dependent on concrete representation of datatypes *)
-(*                                                          *)
-(* - injectivity of constructors                            *)
-(* - distinctness of constructors (internal version)        *)
-(* - induction theorem                                      *)
-(*----------------------------------------------------------*)
-
 fun representation_proofs (dt_info : datatype_info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax thy =
   let
