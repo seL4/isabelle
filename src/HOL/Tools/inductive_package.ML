@@ -675,11 +675,10 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE, exE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
-         REPEAT (FIRSTGOAL (etac conjE)),
+         REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac)),
          ALLGOALS (asm_simp_tac (HOL_basic_ss addsimps sum_case_rewrites)),
          EVERY (map (fn prem =>
-			DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1 APPEND 
-						hyp_subst_tac 1)) prems)]);
+   	             DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
 
     val lemma = quick_and_dirty_prove_goalw_cterm thy rec_sets_defs (Thm.cterm_of sign
       (Logic.mk_implies (ind_concl, mutual_ind_concl))) (fn prems =>
