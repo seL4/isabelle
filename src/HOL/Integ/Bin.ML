@@ -65,9 +65,10 @@ qed_goal "bin_add_BIT_0" Bin.thy
     "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y"
  (fn _ => [Auto_tac]);
 
-qed_goal "bin_add_BIT_Pls" Bin.thy
-    "bin_add (v BIT x) Pls = v BIT x"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_add w Pls = w";
+by (induct_tac "w" 1);
+by Auto_tac;
+qed "bin_add_Pls_right";
 
 qed_goal "bin_add_BIT_Min" Bin.thy
     "bin_add (v BIT x) Min = bin_pred (v BIT x)"
@@ -117,7 +118,7 @@ by (rtac bin.induct 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset()
-		  delsimps [pred_Pls,pred_Min,pred_BIT]
+		  delsimps [bin_pred_Pls, bin_pred_Min, bin_pred_BIT]
 		  addsimps [integ_of_succ,integ_of_pred,
 			    zadd_assoc]) 1);
 qed "integ_of_minus";
@@ -285,8 +286,8 @@ by (simp_tac (simpset() addsimps [zle_def]) 1);
 qed "le_integ_of_eq_not_less"; 
 
 (*Delete the original rewrites, with their clumsy conditional expressions*)
-Delsimps [succ_BIT, pred_BIT, minus_BIT, 
-          NCons_Pls, NCons_Min, add_BIT, mult_BIT];
+Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT, 
+          NCons_Pls, NCons_Min, bin_add_BIT, bin_mult_BIT];
 
 (*Hide the binary representation of integer constants*)
 Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];
@@ -298,7 +299,7 @@ Addsimps [integ_of_add RS sym,
           bin_succ_1, bin_succ_0, 
           bin_pred_1, bin_pred_0, 
           bin_minus_1, bin_minus_0,  
-          bin_add_BIT_Pls, bin_add_BIT_Min,
+          bin_add_Pls_right, bin_add_BIT_Min,
           bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
           bin_mult_1, bin_mult_0, 
           NCons_Pls_0, NCons_Pls_1, 
@@ -380,4 +381,47 @@ by (assume_tac 2);
 by (Simp_tac 1);
 qed "zless_zadd1_imp_zless";
 
+Goal "w + #-1 = w - #1";
+by (simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls) 1);
+qed "zplus_minus1_conv";
 
+(*Eliminates neg from the subgoal, introduced e.g. by zcompare_0_rls*)
+val no_neg_ss = 
+    simpset()
+      delsimps [less_integ_of_eq_neg]  (*loops: it introduces neg*)
+      addsimps [zadd_assoc RS sym, zplus_minus1_conv,
+		neg_eq_less_0, iszero_def] @ zcompare_rls;
+
+
+(*** nat_of ***)
+
+Goal "#0 <= z ==> $# (nat_of z) = z"; 
+by (asm_full_simp_tac
+    (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat_of]) 1); 
+qed "nat_of_0_le"; 
+
+Goal "z < #0 ==> nat_of z = 0"; 
+by (asm_full_simp_tac
+    (simpset() addsimps [neg_eq_less_0, zle_def, neg_nat_of]) 1); 
+qed "nat_of_less_0"; 
+
+Addsimps [nat_of_0_le, nat_of_less_0];
+
+Goal "#0 <= w ==> (nat_of w = m) = (w = $# m)";
+by Auto_tac;
+qed "nat_of_eq_iff";
+
+Goal "#0 <= w ==> (nat_of w < m) = (w < $# m)";
+by (rtac iffI 1);
+by (asm_full_simp_tac 
+    (simpset() delsimps [zless_eq_less] addsimps [zless_eq_less RS sym]) 2);
+by (etac (nat_of_0_le RS subst) 1);
+by (Simp_tac 1);
+qed "nat_of_less_iff";
+
+Goal "#0 <= w ==> (nat_of w < nat_of z) = (w<z)";
+by (case_tac "neg z" 1);
+by (auto_tac (claset(), simpset() addsimps [nat_of_less_iff]));
+by (auto_tac (claset() addIs [zless_trans], 
+	      simpset() addsimps [neg_eq_less_0, integ_of_Pls, zle_def]));
+qed "nat_of_less_eq_zless";
