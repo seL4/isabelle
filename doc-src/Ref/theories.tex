@@ -2,7 +2,7 @@
 
 \chapter{Theories, Terms and Types} \label{theories}
 \index{theories|(}\index{signatures|bold}
-\index{reading!axioms|see{{\tt extend_theory} and {\tt assume_ax}}}
+\index{reading!axioms|see{{\tt assume_ax}}}
 Theories organize the syntax, declarations and axioms of a mathematical
 development.  They are built, starting from the Pure theory, by extending
 and merging existing theories.  They have the \ML\ type \mltydx{theory}.
@@ -196,12 +196,11 @@ begins with the declaration {\tt open~$T$} and contains proofs involving
 the new theory.
 
 Special applications, such as \ZF's inductive definition package, construct
-theories directly by calling the \ML{} function {\tt extend_theory}.  In
-this situation there is no {\tt.thy} file, only an {\tt.ML} file.  The
-{\tt.ML} file must declare an \ML\ structure having the theory's name.  See
-the file {\tt ZF/ex/LList.ML} for an example.
-Section~\ref{sec:pseudo-theories} below describes a way of linking such
-theories to their parents.
+theories directly by calling \ML\ functions.  In this situation there is no
+{\tt.thy} file, only an {\tt.ML} file.  The {\tt.ML} file must declare an
+\ML\ structure having the theory's name.  See the file {\tt ZF/ex/LList.ML}
+for an example.  Section~\ref{sec:pseudo-theories} below describes a way of
+linking such theories to their parents.
 
 \begin{warn}
 Temporary files are written to the current directory, which therefore must
@@ -248,18 +247,11 @@ The theory mechanism depends upon reference variables.  At the end of a
 Poly/\ML{} session, the contents of references are lost unless they are
 declared in the current database.  Assignments to references in the {\tt
   Pure} database are lost, including all information about loaded theories.
-
-To avoid losing such information you must declare a new {\tt Readthy}
-structure in the child database:
+To avoid losing this information simply call
 \begin{ttbox}
-structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
-Readthy.loaded_thys := !loaded_thys;
-open Readthy;
+init_thy_reader();
 \end{ttbox}
-The assignment copies into the new reference \verb$loaded_thys$ the
-contents of the original reference, which is the list of already loaded
-theories.  You should not omit the declarations even if the parent database
-has no loaded theories, since they allocate new references.
+when building the new database.
 
 
 \subsection{*Pseudo theories}\label{sec:pseudo-theories}
@@ -337,7 +329,6 @@ For example, if {\it formula} is
 \begin{ttbox} 
 pure_thy       : theory
 merge_theories : theory * theory -> theory
-extend_theory  : theory -> string -> \(\cdots\) -> theory
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{pure_thy}] contains just the types, constants, and syntax
@@ -347,12 +338,13 @@ extend_theory  : theory -> string -> \(\cdots\) -> theory
   theories $thy@1$ and $thy@2$.  The resulting theory contains all types,
   constants and axioms of the constituent theories; its default sort is the
   union of the default sorts of the constituent theories.
-\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
-  the theory $thy$ with new types, constants, etc.  $T$ identifies the theory
-  internally.  When a theory is redeclared, say to change an incorrect axiom,
-  bindings to the old axiom may persist.  Isabelle ensures that the old and
-  new theories are not involved in the same proof.  Attempting to combine
-  different theories having the same name $T$ yields the fatal error
+%\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
+%  the theory $thy$ with new types, constants, etc.  $T$ identifies the theory
+%  internally.  When a theory is redeclared, say to change an incorrect axiom,
+%  bindings to the old axiom may persist.  Isabelle ensures that the old and
+%  new theories are not involved in the same proof.  Attempting to combine
+%  different theories having the same name $T$ yields the fatal error
+%extend_theory  : theory -> string -> \(\cdots\) -> theory
 \begin{ttbox}
 Attempt to merge different versions of theory: \(T\)
 \end{ttbox}
@@ -409,9 +401,7 @@ prints the theory {\it thy\/} at the terminal as a set of identifiers.
 returns the axioms of~$thy$ and its ancestors.
 
 \item[\ttindexbold{parents_of} $thy$] 
-returns the parents of~$thy$.  This list contains zero, one or two
-elements, depending upon whether $thy$ is {\tt pure_thy}, 
-\hbox{\tt extend_theory $thy$} or \hbox{\tt merge_theories ($thy@1$, $thy@2$)}.
+returns the complete list of ancestors of~$thy$.
 
 \item[\ttindexbold{stamps_of_thy} $thy$]\index{signatures}
 returns the \rmindex{stamps} of the signature associated with~$thy$.
