@@ -53,10 +53,10 @@ one (emitting a warning).
   delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
-* Classical reasoner: addbefore / addSbefore now have APPEND / ORELSE semantics;
+* Classical reasoner: addbefore/addSbefore now have APPEND/ORELSE semantics;
   addbefore now affects only the unsafe part of step_tac etc.;
-  This affects addss/auto_tac/force_tac, so EXISTING (INSTABLE) PROOFS MAY FAIL, but
-  most proofs should be fixable easily, e.g. by replacing Auto_tac by Force_tac.
+  This affects addss/auto_tac/force_tac,so EXISTING (INSTABLE) PROOFS MAY FAIL,
+  but proofs should be fixable easily, e.g. by replacing Auto_tac by Force_tac.
 
 * Classical reasoner: setwrapper to setWrapper and compwrapper to compWrapper; 
   added safe wrapper (and access functions for it);
