@@ -17,11 +17,14 @@ sig
   val induct_set_global: string -> theory attribute
   val induct_type_local: string -> Proof.context attribute
   val induct_set_local: string -> Proof.context attribute
+  val con_elim_tac: simpset -> tactic
+  val con_elim_solved_tac: simpset -> tactic
   val setup: (theory -> theory) list
 end;
 
 structure InductMethod: INDUCT_METHOD =
 struct
+
 
 (** global and local induct data **)
 
@@ -132,6 +135,31 @@ fun type_name t =
     handle TYPE _ => raise TERM ("Bad type of term argument", [t]);
 
 
+(* simplifying cases rules *)
+
+local
+
+(*delete needless equality assumptions*)
+val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
+     (fn _ => [assume_tac 1]);
+
+val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
+
+val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
+
+fun simp_case_tac ss = 
+  EVERY' [elim_tac, asm_full_simp_tac ss, elim_tac, REPEAT o bound_hyp_subst_tac];
+
+in
+
+fun con_elim_tac ss = ALLGOALS (simp_case_tac ss) THEN prune_params_tac;
+
+fun con_elim_solved_tac ss =
+  ALLGOALS (fn i => TRY (simp_case_tac ss i THEN_MAYBE no_tac)) THEN prune_params_tac;
+
+end;
+
+
 
 (** cases method **)
 
@@ -148,7 +176,10 @@ fun cases_var thm =
     None => raise THM ("Malformed cases rule", 0, [thm])
   | Some x => x);
 
-fun cases_tac (ctxt, args) facts =
+fun simplify_cases ctxt =
+  Tactic.rule_by_tactic (con_elim_solved_tac (Simplifier.get_local_simpset ctxt));
+
+fun cases_tac (ctxt, ((simplified, opt_tm), opt_rule)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -156,8 +187,8 @@ fun cases_tac (ctxt, args) facts =
     fun inst_rule t thm =
       Drule.cterm_instantiate [(cert (cases_var thm), cert t)] thm;
 
-    val thms =
-      (case (args, facts) of
+    val raw_thms =
+      (case ((opt_tm, opt_rule), facts) of
         ((None, None), []) => [case_split_thm]
       | ((None, None), th :: _) =>
           NetRules.may_unify (#2 (get_cases ctxt))
@@ -171,7 +202,10 @@ fun cases_tac (ctxt, args) facts =
           end
       | ((None, Some thm), _) => [thm]
       | ((Some t, Some thm), _) => [inst_rule t thm]);
-  in Method.rule_tac thms facts end;
+    val thms = raw_thms
+      |> Method.multi_resolves facts
+      |> (if simplified then Seq.map (simplify_cases ctxt) else I);
+  in Method.resolveq_tac thms end;
 
 val cases_meth = Method.METHOD o (FINDGOAL oo cases_tac);
 
@@ -252,6 +286,7 @@ val induct_meth = Method.METHOD o (FINDGOAL oo induct_tac);
 
 val casesN = "cases";
 val inductN = "induct";
+val simplifiedN = "simplified";
 val typeN = "type";
 val setN = "set";
 val ruleN = "rule";
@@ -298,9 +333,12 @@ val induct_rule = rule lookup_inductT lookup_inductS;
 val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.$$$ ":";
 val term = Scan.unless (Scan.lift kind) Args.local_term;
 
+val simp_mode =
+  Scan.lift (Scan.optional (Args.$$$ simplifiedN -- Args.$$$ ":" >> K true) false);
+
 in
 
-val cases_args = Method.syntax (Scan.option term -- Scan.option cases_rule);
+val cases_args = Method.syntax (simp_mode -- Scan.option term -- Scan.option cases_rule);
 val induct_args = Method.syntax (Args.and_list (Scan.repeat1 term) -- Scan.option induct_rule);
 
 end;
