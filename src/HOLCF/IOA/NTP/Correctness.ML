@@ -6,6 +6,8 @@
 The main correctness proof: Impl implements Spec
 *)
 
+(* repeated from Traces.ML *)
+claset_ref() := claset() delSWrapper "split_all_tac";
 
 
 val hom_ioas = [Spec.ioa_def, Spec.trans_def,

@@ -6,6 +6,12 @@
 Temporal Logic of Steps -- tailored for I/O automata
 *)   
 
+(* global changes to simpset() and claset(), repeated from Traces.ML *)
+Delsimps (ex_simps @ all_simps);
+Delsimps [split_paired_Ex];
+Addsimps [Let_def];
+claset_ref() := claset() delSWrapper "split_all_tac";
+
 
 (* ---------------------------------------------------------------- *)
 (*                                 ex2seqC                          *)
