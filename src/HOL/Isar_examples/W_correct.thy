@@ -32,7 +32,7 @@ inductive has_type
     AppI: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
               ==> a |- App e1 e2 :: t1";
 
-theorem has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
+lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
   assume "a |- e :: t";
   thus ?thesis (is "?P a e t");
@@ -142,4 +142,3 @@ qed;
 
 
 end;
-
