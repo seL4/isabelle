@@ -247,9 +247,11 @@ fun merge_ss (Simpset {mss, simps, procs, congs, subgoal_tac, loop_tac,
   let
     val simps' = gen_union eq_thm (simps, simps2);
     val procs' = gen_union eq_simproc (procs, procs2);
+    val meta_procs' = flat (map (fn Simproc {procs, ...} => procs) procs');
     val congs' = gen_union eq_thm (congs, congs2);
     val mss' = Thm.set_mk_rews (empty_mss, Thm.mk_rews_of_mss mss);
     val mss' = Thm.add_simps (mss', simps');
+    val mss' = Thm.add_simprocs (mss', meta_procs');
     val mss' = Thm.add_congs (mss', congs');
   in
     make_ss (mss', simps', procs', congs', subgoal_tac, loop_tac, 
