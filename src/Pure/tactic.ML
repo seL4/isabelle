@@ -1,105 +1,107 @@
-(*  Title: 	Pure/tactic.ML
+(*  Title:      Pure/tactic.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Tactics 
+Tactics.
 *)
 
 signature TACTIC =
   sig
-  val ares_tac		: thm list -> int -> tactic
+  val ares_tac          : thm list -> int -> tactic
   val asm_rewrite_goal_tac:
     bool*bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
-  val assume_tac	: int -> tactic
-  val atac	: int ->tactic
+  val assume_tac        : int -> tactic
+  val atac      : int ->tactic
   val bimatch_from_nets_tac: 
       (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
-  val bimatch_tac	: (bool*thm)list -> int -> tactic
+  val bimatch_tac       : (bool*thm)list -> int -> tactic
   val biresolution_from_nets_tac: 
-	('a list -> (bool * thm) list) ->
-	bool -> 'a Net.net * 'a Net.net -> int -> tactic
+        ('a list -> (bool * thm) list) ->
+        bool -> 'a Net.net * 'a Net.net -> int -> tactic
   val biresolve_from_nets_tac: 
       (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
-  val biresolve_tac	: (bool*thm)list -> int -> tactic
-  val build_net	: thm list -> (int*thm) Net.net
+  val biresolve_tac     : (bool*thm)list -> int -> tactic
+  val build_net : thm list -> (int*thm) Net.net
   val build_netpair:    (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net ->
       (bool*thm)list -> (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net
-  val compose_inst_tac	: (string*string)list -> (bool*thm*int) -> 
+  val compose_inst_tac  : (string*string)list -> (bool*thm*int) -> 
                           int -> tactic
-  val compose_tac	: (bool * thm * int) -> int -> tactic 
-  val cut_facts_tac	: thm list -> int -> tactic
-  val cut_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val compose_tac       : (bool * thm * int) -> int -> tactic 
+  val cut_facts_tac     : thm list -> int -> tactic
+  val cut_inst_tac      : (string*string)list -> thm -> int -> tactic   
   val datac             : thm -> int -> int -> tactic
-  val defer_tac 	: int -> tactic
-  val distinct_subgoals_tac	: tactic
-  val dmatch_tac	: thm list -> int -> tactic
-  val dresolve_tac	: thm list -> int -> tactic
-  val dres_inst_tac	: (string*string)list -> thm -> int -> tactic   
-  val dtac		: thm -> int ->tactic
+  val defer_tac         : int -> tactic
+  val distinct_subgoals_tac     : tactic
+  val dmatch_tac        : thm list -> int -> tactic
+  val dresolve_tac      : thm list -> int -> tactic
+  val dres_inst_tac     : (string*string)list -> thm -> int -> tactic   
+  val dtac              : thm -> int ->tactic
   val eatac             : thm -> int -> int -> tactic
-  val etac		: thm -> int ->tactic
-  val eq_assume_tac	: int -> tactic   
-  val ematch_tac	: thm list -> int -> tactic
-  val eresolve_tac	: thm list -> int -> tactic
-  val eres_inst_tac	: (string*string)list -> thm -> int -> tactic
+  val etac              : thm -> int ->tactic
+  val eq_assume_tac     : int -> tactic   
+  val ematch_tac        : thm list -> int -> tactic
+  val eresolve_tac      : thm list -> int -> tactic
+  val eres_inst_tac     : (string*string)list -> thm -> int -> tactic
   val fatac             : thm -> int -> int -> tactic
   val filter_prems_tac  : (term -> bool) -> int -> tactic  
-  val filter_thms	: (term*term->bool) -> int*term*thm list -> thm list
-  val filt_resolve_tac	: thm list -> int -> int -> tactic
-  val flexflex_tac	: tactic
-  val fold_goals_tac	: thm list -> tactic
-  val fold_rule		: thm list -> thm -> thm
-  val fold_tac		: thm list -> tactic
-  val forward_tac	: thm list -> int -> tactic   
-  val forw_inst_tac	: (string*string)list -> thm -> int -> tactic
-  val ftac		: thm -> int ->tactic
+  val filter_thms       : (term*term->bool) -> int*term*thm list -> thm list
+  val filt_resolve_tac  : thm list -> int -> int -> tactic
+  val flexflex_tac      : tactic
+  val fold_goals_tac    : thm list -> tactic
+  val fold_rule         : thm list -> thm -> thm
+  val fold_tac          : thm list -> tactic
+  val forward_tac       : thm list -> int -> tactic   
+  val forw_inst_tac     : (string*string)list -> thm -> int -> tactic
+  val ftac              : thm -> int ->tactic
   val insert_tagged_brl : ('a*(bool*thm)) * 
                           (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
                           ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
-  val delete_tagged_brl	: (bool*thm) * 
+  val delete_tagged_brl : (bool*thm) * 
                          ((int*(bool*thm))Net.net * (int*(bool*thm))Net.net) ->
                     (int*(bool*thm))Net.net * (int*(bool*thm))Net.net
-  val is_fact		: thm -> bool
-  val lessb		: (bool * thm) * (bool * thm) -> bool
-  val lift_inst_rule	: thm * int * (string*string)list * thm -> thm
-  val make_elim		: thm -> thm
-  val match_from_net_tac	: (int*thm) Net.net -> int -> tactic
-  val match_tac	: thm list -> int -> tactic
-  val metacut_tac	: thm -> int -> tactic
-  val net_bimatch_tac	: (bool*thm) list -> int -> tactic
-  val net_biresolve_tac	: (bool*thm) list -> int -> tactic
-  val net_match_tac	: thm list -> int -> tactic
-  val net_resolve_tac	: thm list -> int -> tactic
-  val orderlist		: (int * 'a) list -> 'a list
-  val PRIMITIVE		: (thm -> thm) -> tactic  
-  val PRIMSEQ		: (thm -> thm Seq.seq) -> tactic  
-  val prune_params_tac	: tactic
-  val rename_params_tac	: string list -> int -> tactic
-  val rename_tac	: string -> int -> tactic
-  val rename_last_tac	: string -> string list -> int -> tactic
-  val resolve_from_net_tac	: (int*thm) Net.net -> int -> tactic
-  val resolve_tac	: thm list -> int -> tactic
-  val res_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val is_fact           : thm -> bool
+  val lessb             : (bool * thm) * (bool * thm) -> bool
+  val lift_inst_rule    : thm * int * (string*string)list * thm -> thm
+  val make_elim         : thm -> thm
+  val match_from_net_tac        : (int*thm) Net.net -> int -> tactic
+  val match_tac : thm list -> int -> tactic
+  val metacut_tac       : thm -> int -> tactic
+  val net_bimatch_tac   : (bool*thm) list -> int -> tactic
+  val net_biresolve_tac : (bool*thm) list -> int -> tactic
+  val net_match_tac     : thm list -> int -> tactic
+  val net_resolve_tac   : thm list -> int -> tactic
+  val norm_hhf          : thm -> thm
+  val norm_hhf_tac      : int -> tactic
+  val orderlist         : (int * 'a) list -> 'a list
+  val PRIMITIVE         : (thm -> thm) -> tactic  
+  val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic  
+  val prune_params_tac  : tactic
+  val rename_params_tac : string list -> int -> tactic
+  val rename_tac        : string -> int -> tactic
+  val rename_last_tac   : string -> string list -> int -> tactic
+  val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
+  val resolve_tac       : thm list -> int -> tactic
+  val res_inst_tac      : (string*string)list -> thm -> int -> tactic   
   val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
-  val rewrite_rule	: thm list -> thm -> thm
-  val rewrite_goals_tac	: thm list -> tactic
-  val rewrite_tac	: thm list -> tactic
-  val rewtac		: thm -> tactic
-  val rotate_tac	: int -> int -> tactic
-  val rtac		: thm -> int -> tactic
-  val rule_by_tactic	: tactic -> thm -> thm
-  val solve_tac		: thm list -> int -> tactic
-  val subgoal_tac	: string -> int -> tactic
-  val subgoals_tac	: string list -> int -> tactic
-  val subgoals_of_brl	: bool * thm -> int
-  val term_lift_inst_rule	:
+  val rewrite_rule      : thm list -> thm -> thm
+  val rewrite_goals_tac : thm list -> tactic
+  val rewrite_tac       : thm list -> tactic
+  val rewtac            : thm -> tactic
+  val rotate_tac        : int -> int -> tactic
+  val rtac              : thm -> int -> tactic
+  val rule_by_tactic    : tactic -> thm -> thm
+  val solve_tac         : thm list -> int -> tactic
+  val subgoal_tac       : string -> int -> tactic
+  val subgoals_tac      : string list -> int -> tactic
+  val subgoals_of_brl   : bool * thm -> int
+  val term_lift_inst_rule       :
       thm * int * (indexname*typ)list * ((indexname*typ)*term)list  * thm
       -> thm
   val instantiate_tac   : (string * string) list -> tactic
-  val thin_tac		: string -> int -> tactic
-  val trace_goalno_tac	: (int -> tactic) -> int -> tactic
+  val thin_tac          : string -> int -> tactic
+  val trace_goalno_tac  : (int -> tactic) -> int -> tactic
   end;
 
 
@@ -109,15 +111,15 @@ struct
 (*Discover which goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
 fun trace_goalno_tac tac i st =  
     case Seq.pull(tac i st) of
-	None    => Seq.empty
+        None    => Seq.empty
       | seqcell => (writeln ("Subgoal " ^ string_of_int i ^ " selected"); 
-    			 Seq.make(fn()=> seqcell));
+                         Seq.make(fn()=> seqcell));
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
   let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
   in case Seq.pull (tac st)  of
-	None        => raise THM("rule_by_tactic", 0, [rl])
+        None        => raise THM("rule_by_tactic", 0, [rl])
       | Some(st',_) => Thm.varifyT (thaw st')
   end;
  
@@ -194,10 +196,10 @@ fun cterm_aconv (a,b) = #t (rep_cterm a) aconv #t (rep_cterm b);
 in
 fun distinct_subgoals_tac state = 
     let val (frozth,thawfn) = freeze_thaw state
-	val froz_prems = cprems_of frozth
-	val assumed = implies_elim_list frozth (map assume froz_prems)
-	val implied = implies_intr_list (gen_distinct cterm_aconv froz_prems)
-					assumed;
+        val froz_prems = cprems_of frozth
+        val assumed = implies_elim_list frozth (map assume froz_prems)
+        val implied = implies_intr_list (gen_distinct cterm_aconv froz_prems)
+                                        assumed;
     in  Seq.single (thawfn implied)  end
 end; 
 
@@ -206,19 +208,19 @@ end;
 fun lift_inst_rule (st, i, sinsts, rule) =
 let val {maxidx,sign,...} = rep_thm st
     val (_, _, Bi, _) = dest_state(st,i)
-    val params = Logic.strip_params Bi	        (*params of subgoal i*)
+    val params = Logic.strip_params Bi          (*params of subgoal i*)
     val params = rev(rename_wrt_term Bi params) (*as they are printed*)
     val paramTs = map #2 params
     and inc = maxidx+1
     fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> incr_tvar inc T)
       | liftvar t = raise TERM("Variable expected", [t]);
     fun liftterm t = list_abs_free (params, 
-				    Logic.incr_indexes(paramTs,inc) t)
+                                    Logic.incr_indexes(paramTs,inc) t)
     (*Lifts instantiation pair over params*)
     fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
     fun lifttvar((a,i),ctyp) =
-	let val {T,sign} = rep_ctyp ctyp
-	in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+        let val {T,sign} = rep_ctyp ctyp
+        in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
     val rts = types_sorts rule and (types,sorts) = types_sorts st
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
@@ -267,7 +269,7 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i st =
   else st |>
     (compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule), nsubgoal) i
      handle TERM (msg,_)   => (writeln msg;  no_tac)
-	  | THM  (msg,_,_) => (writeln msg;  no_tac));
+          | THM  (msg,_,_) => (writeln msg;  no_tac));
 
 (*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
   terms that are substituted contain (term or type) unknowns from the
@@ -291,8 +293,8 @@ fun make_elim_preserve rl =
   let val {maxidx,...} = rep_thm rl
       fun cvar ixn = cterm_of (Theory.sign_of ProtoPure.thy) (Var(ixn,propT));
       val revcut_rl' = 
-	  instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
-			     (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
+          instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
+                             (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
       val arg = (false, rl, nprems_of rl)
       val [th] = Seq.list_of (bicompose false arg 1 revcut_rl')
   in  th  end
@@ -326,7 +328,7 @@ fun metacut_tac rule = bires_cut_tac [(false,rule)];
 (*Recognizes theorems that are not rules, but simple propositions*)
 fun is_fact rl =
     case prems_of rl of
-	[] => true  |  _::_ => false;
+        [] => true  |  _::_ => false;
 
 (*"Cut" all facts from theorem list into the goal as assumptions. *)
 fun cut_facts_tac ths i =
@@ -349,15 +351,15 @@ fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
 (**** Indexing and filtering of theorems ****)
 
 (*Returns the list of potentially resolvable theorems for the goal "prem",
-	using the predicate  could(subgoal,concl).
+        using the predicate  could(subgoal,concl).
   Resulting list is no longer than "limit"*)
 fun filter_thms could (limit, prem, ths) =
   let val pb = Logic.strip_assums_concl prem;   (*delete assumptions*)
       fun filtr (limit, []) = []
-	| filtr (limit, th::ths) =
-	    if limit=0 then  []
-	    else if could(pb, concl_of th)  then th :: filtr(limit-1, ths)
-	    else filtr(limit,ths)
+        | filtr (limit, th::ths) =
+            if limit=0 then  []
+            else if could(pb, concl_of th)  then th :: filtr(limit-1, ths)
+            else filtr(limit,ths)
   in  filtr(limit,ths)  end;
 
 
@@ -382,9 +384,9 @@ fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
     if eres then 
-	case prems_of th of
-	    prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
-	  | [] => error"insert_tagged_brl: elimination rule with no premises"
+        case prems_of th of
+            prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
+          | [] => error"insert_tagged_brl: elimination rule with no premises"
     else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
@@ -398,9 +400,9 @@ local
 in
 fun delete_tagged_brl (brl as (eres,th), (inet,enet)) =
     if eres then 
-	case prems_of th of
-	    prem::_ => (inet, Net.delete_term ((prem, (0,brl)), enet, eq_kbrl))
-	  | []      => (inet,enet)     (*no major premise: ignore*)
+        case prems_of th of
+            prem::_ => (inet, Net.delete_term ((prem, (0,brl)), enet, eq_kbrl))
+          | []      => (inet,enet)     (*no major premise: ignore*)
     else (Net.delete_term ((concl_of th, (0,brl)), inet, eq_kbrl), enet);
 end;
 
@@ -444,9 +446,9 @@ fun filt_resolution_from_net_tac match pred net =
     (fn (prem,i) =>
       let val krls = Net.unify_term net (Logic.strip_assums_concl prem)
       in 
-	 if pred krls  
+         if pred krls  
          then PRIMSEQ
-		(biresolution match (map (pair false) (orderlist krls)) i)
+                (biresolution match (map (pair false) (orderlist krls)) i)
          else no_tac
       end);
 
@@ -491,7 +493,7 @@ val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 fun asm_rewrite_goal_tac mode prover_tac mss =
       SELECT_GOAL 
         (PRIMITIVE
-	   (rewrite_goal_rule mode (result1 prover_tac) mss 1));
+           (rewrite_goal_rule mode (result1 prover_tac) mss 1));
 
 fun rewrite_goal_tac rews =
   asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
@@ -502,6 +504,9 @@ fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
+
+val norm_hhf = Drule.forall_elim_vars_safe o rewrite_rule [Drule.norm_hhf_eq];
+val norm_hhf_tac = rewrite_goal_tac [Drule.norm_hhf_eq];
 
 
 (*** for folding definitions, handling critical pairs ***)
@@ -536,7 +541,7 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 fun rename_params_tac xs i =
   (if !Logic.auto_rename
     then (warning "Resetting Logic.auto_rename"; 
-	Logic.auto_rename := false)
+        Logic.auto_rename := false)
    else (); PRIMITIVE (rename_params_rule (xs, i)));
 
 fun rename_tac str i = 
