@@ -31,7 +31,9 @@ conv-main.o: conv-main.c conv-defs.h conv-tables.h
 	$(CC) -c conv-main.c
 
 conv-lex.o: conv-lex.x conv-defs.h conv-tables.h
-	flex -8 -t conv-lex.x | cat >tmp.c ; $(CC) -c -o conv-lex.o tmp.c
+	flex -8 -t conv-lex.x >/tmp/tmp.c ; 
+	$(CC) -c -o conv-lex.o /tmp/tmp.c ;
+	rm -f /tmp/tmp.c
 
 #conv-lex.x:  ../../config/conv-tables.inp
 #	touch conv-lex.x
@@ -42,4 +44,5 @@ conv-translate.o: conv-translate.c conv-defs.h
 # ----------------------------------------------------
 
 clean:
-	@rm -f *.o tmp.c tmp.txt
+	@echo "     cleaning up object and tmp files..."
+	@rm -f *.o 
