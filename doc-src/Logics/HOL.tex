@@ -1377,9 +1377,9 @@ dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)
 Figure~\ref{hol-list} presents the theory \thydx{List}: the basic list
 operations with their types and syntax. Type $\alpha \; list$ is
 defined as a {\tt datatype} with the constructors {\tt[]} and {\tt\#}.
-As a result the generic induction tactic \ttindex{induct_tac} also
-performs structural induction over lists. A \sdx{case} construct of
-the form
+As a result the generic structural induction and case analysis tactics
+\texttt{induct\_tac} and \texttt{exhaust\_tac} also become available for
+lists. A \sdx{case} construct of the form
 \begin{center}\tt
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
@@ -1636,6 +1636,19 @@ automatically. Only induction is invoked by hand:
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
  applies structural induction on variable $x$ to subgoal $i$, provided the
  type of $x$ is a datatype or type {\tt nat}.
+\end{ttdescription}
+In some cases, induction is overkill and a case distinction over all
+constructors of the datatype suffices:
+\begin{ttdescription}
+\item[\ttindexbold{exhaust_tac} {\tt"}$u${\tt"} $i$]
+ performs an exhaustive case analysis for an arbitrary term $u$ whose type
+ must be a datatyp or type {\tt nat}. If the datatype has $n$ constructors
+ $C@1$, \dots $C@n$, subgoal $i$ is replaced by $n$ new subgoals which
+ contain the additional assumption $u = C@j~x@1~\dots~x@{k@j}$ for
+ $j=1,\dots,n$.
+
+Note that in contrast to induction, exhaustion is possible even if $u$
+mentions identifiers that occur in the assumptions of the subgoal.
 \end{ttdescription}
 
 For the technically minded, we give a more detailed description.
