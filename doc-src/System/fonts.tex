@@ -1,20 +1,21 @@
 
 \chapter{Fonts and character encodings}
 
-With the advent of print modes in Isabelle (see also The
-\emph{Isabelle Reference Manual}, variant forms of output have become
-very easy. As the canonical application of this feature, {\Pure} and
-major object-logics (\FOL, \ZF, \HOL, \HOLCF) support optional output
-(and input) of nice mathematical symbols out of the box.
+With print modes being now available in Isabelle, variant forms of
+output have become very easy. As the canonical application of this
+feature, {\Pure} and major object-logics (\FOL, \ZF, \HOL, \HOLCF)
+support optional input and output of nice mathematical symbols as an
+built-in option.
 
 Symbolic output is enabled by activating the \ttindex{symbols} print
 mode. User interfaces (e.g.\ \texttt{isa-xterm}, see
-\S\ref{sec:isa-xterm}) usually do this by default.
+\S\ref{sec:isa-xterm}) usually do this already by default.
 
-\medskip Of course, this requires special screen fonts (see
-\S\ref{sec:tool-installfonts}). Furthermore, various {\ML} systems
-cause some problems with non-\textsc{ascii} characters in literal
-strings. These are avoided by the \texttt{symbolinput} filter (see
+\medskip Displaying non-standard characters requires special screen
+fonts, of course. The \texttt{installfonts} utility takes care of
+this, see \S\ref{sec:tool-installfonts}. Furthermore, some {\ML}
+systems disallow non-\textsc{ascii} characters in literal strings.
+This problem is avoided by the \texttt{symbolinput} filter (see
 \S\ref{sec:tool-symbolinput}).
 
 Both of these are invoked transparently in normal operation. So one
@@ -22,7 +23,7 @@ does not actually have to read the explanations below, unless
 something fails to work.
 
 
-\section{Telling X11 about Isabelle fonts --- \texttt{isatool installfonts}}
+\section{Telling X11 about the Isabelle fonts --- \texttt{isatool installfonts}}
 \label{sec:tool-installfonts}
 
 The \tooldx{installfonts} utility ensures that your currently running
@@ -35,19 +36,19 @@ Usage: isatool installfonts
   (May be safely called repeatedly.)
 \end{ttbox}
 Note that this need not be called manually under normal circumstances
---- user interfaces depending on the Isabelle fonts will invoke
-\texttt{installfonts} transparently.
+--- user interfaces depending on the Isabelle fonts usually invoke
+\texttt{installfonts} automatically.
 
 \medskip As simple as this might appear to be, it is not! X11 fonts
 are a surprisingly complicated matter. Depending on your network
 structure, fonts might have to be installed differently. This has to
-be specified via the \settdx{ISABELLE_INSTALLFONTS}.
+be specified via the \settdx{ISABELLE_INSTALLFONTS} variable in your
+local settings.
 
 \medskip In the simplest situation, X11 is used only locally, i.e.\ 
 the client program (Isabelle) and the display server are run on the
-same machine. Then most X11 display servers should be happy to being
-just told about the directory where the fonts reside within the
-Isabelle distribution:
+same machine. In this case, most X11 display servers should be happy
+by being about the directory where the fonts reside as follows:
 \begin{ttbox}
 ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 \end{ttbox}
@@ -55,32 +56,63 @@ The same also works for remote X11 sessions in a somewhat homogeneous
 network, where the X11 display machine mounts the Isabelle
 distribution under the same name as the client side.
 
-\medskip Above method fails, if the display machine does have the font
-files at the same location as the client. In case your server is a
-full workstation with its own file system, you could in principle just
-copy the fonts there and do an appropriate \texttt{xset~fp+} manually
-before running the Isabelle interface. This is awkward, of course, but
-is even \emph{impossible} for proper X terminals that do not have
-their own file system.
+\medskip Above method fails, though, if the display machine does have
+the font files at the same location as the client. In case your server
+is a full workstation with its own file system, you could in principle
+just copy the fonts there and do an appropriate \texttt{xset~fp+}
+manually before running the Isabelle interface. This is very awkward,
+of course. It is even \emph{impossible} for proper X terminals that do
+not have their own file system.
 
-A much better solution to this problem is to use an \emph{X11 font
-  server}, offering the Isabelle font to the Net. In principle it is
-relatively easy to setup one your own --- the program is called
-\texttt{xfs} (or just \texttt{fs)}, see the \texttt{man} pages of your
-system.
-
-Your are very lucky, though, if you have a sensible connection to the
-Internet. We already offer a world-wide X11 font service for the
-Isabelle fonts. To have \texttt{installfonts} make use of this, just
-set \texttt{ISABELLE_INSTALLFONTS} is follows:
+A much better solution to this problem is to have an X11 \emph{font
+  server} offer the Isabelle fonts to any X11 display on the network.
+There is already a font server running at Munich. So in case you have
+a sensible Internet connection, you may plug attach yourself as
+follows:
 \begin{ttbox}
 ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 \end{ttbox}
+
+\medskip In the (rare?) case that neither local fonts work, nor
+accessing our world-wide font service is practical, it might be best
+to start your own in-house font service. This is in principle quite
+easy to setup. The program is called \texttt{xfs} (or just
+\texttt{fs)}, see the \texttt{man} pages of your system. There is an
+example configuration available in the \texttt{lib/fontserver}
+directory of the Isabelle distribution.
 
 
 
 \section{Filtering non-ASCII characters --- \texttt{isatool symbolinput}}
 \label{sec:tool-symbolinput}
+
+Processing non-\textsc{ascii} text is notoriously difficult.  Some
+{\ML} systems reject character codes outside the range 32--127 as part
+of literal string constants. In order to circumvent such restrictions,
+Isabelle employs a general notation where glyphs are referred by some
+symbolic name instead of their actual encoding. Its general form is
+\texttt{$\backslash$<$charname$>}.
+
+The \tooldx{symbolinput} utility converts a input stream encoded
+according to the standard Isabelle font layout into pure
+\textsc{ascii} text. There is no usage --- \texttt{symbolinput} just
+works from standard input to standard output, without any options
+available.
+
+\medskip For example, the non-\textsc{ascii} input \texttt{"A $\land$
+  B $\lor$ C"} is replaced by \texttt{"A $\backslash\backslash$<and> B
+  $\backslash\backslash$<or> C"}.
+
+\medskip In many cases, it might be wise not to rely on symbolic
+characters and avoid non-\textsc{ascii} text in files altogether. Then
+symbolic syntax would be really optional, with always suitable
+\texttt{ascii} representations available. In theory definitions
+symbols appear only in mixfix annotations --- using the
+\texttt{$\backslash$<$charname$>} form, proof scripts are just left in
+plain \texttt{ascii}.
+
+Thus users with \texttt{ascii}-only facilities will still be able to
+read your files.
 
 
 %FIXME not yet

@@ -31,7 +31,7 @@ The program for viewing \texttt{dvi} files is set in
 The \tooldx{expandshort} utility tunes {\ML} proof scripts to enhance
 readability a bit:
 \begin{ttbox}
-Usage: expandshort [FILES ...]
+Usage: isatool expandshort [FILES ...]
 
   Expand shorthand goal commands in FILES.  Also contracts uses of
   resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on
@@ -58,7 +58,7 @@ Usage: isatool findlogics
 \end{ttbox}
 The base names of all files found on the path are printed --- sorted
 and with duplicates removed. Also note that \texttt{ISABELLE_PATH}
-implicitely depends upon \texttt{ML_SYSTEM}. Thus switching to another
+implicitly depends upon \texttt{ML_SYSTEM}. Thus switching to another
 {\ML} compiler may change the set of logic images available.
 
 
@@ -124,18 +124,19 @@ Usage: isatool make [ARGS ...]
   ARGS are directly passed to the system make program.
 \end{ttbox}
 Note that the Isabelle settings environment is also active. Thus one
-may refer to its values within the \texttt{IsaMakefile}, e.g.\ 
+may refer to its values within the \ttindex{IsaMakefile}, e.g.\
 \texttt{\$(ISABELLE_OUTPUT)}. Furthermore, programs started from the
 make file also inherit this environment.
 
-\medskip You may want to have a look at the \texttt{IsaMakefile}s of
-the distributed object-logics as examples for your own developements.
+Typically, \texttt{IsaMakefile}s defer the real work to the
+\texttt{usedir} utility, see \S\ref{sec:tool-usedir}.
+
 
 
 \section{Running complete logics --- \texttt{isatool usedir}} \label{sec:tool-usedir}
 
-FIXME
-
+The \tooldx{usedir} utility builds object-logic images, or runs
+example sessions based on existing logics. Its usage is:
 %FIXME
 %    -g BOOL      generate theory graph data (default false)
 \begin{ttbox}
@@ -150,4 +151,50 @@ Usage: isatool usedir LOGIC NAME
   information (HTML etc.) according to settings.
 \end{ttbox}
 
-FIXME
+The value of the \settdx{ISABELLE_USEDIR_OPTIONS} setting is
+implicitely prefixed to \emph{any} \texttt{usedir} call. Since the
+\ttindex{IsaMakefile}s of all object-logics distributed with Isabelle
+just invoke \texttt{usedir} for the real work, one may control
+compilation options globally via above variable. In particular,
+generation of \rmindex{HTML} browsing information is enabled or
+disabled this way.
+
+
+\subsection*{Options}
+
+There are two slightly different modes of operation: \emph{build} mode
+(enabled through the \texttt{-b} option) and \emph{example} mode.
+
+Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with
+input image \texttt{LOGIC} and output to \texttt{NAME}, as provided as
+arguments. This will be a batch session, executing just
+\texttt{use_dir".";}\index{*use_dir}, and then quitting. It is assumed
+that there is a file \texttt{ROOT.ML} in the current directory
+containing all {\ML} commands required to build the logic.
+
+In example mode, on the other hand, \texttt{usedir} runs a read-only
+session of \texttt{LOGIC} (typically just built before) and does an
+automatic \texttt{use_dir"NAME";}. I.e.\ it assumes that some file
+\texttt{ROOT.ML} in directory \texttt{NAME} contains appropriate {\ML}
+commands to run the desired examples.
+
+\medskip The \texttt{-h} option controls HTML browsing data
+generation. It may be explicitely turned on or off --- the last
+occurrence of some \texttt{-h} on the command line wins.
+
+\medskip Any \texttt{usedir} session is named by some \emph{session
+  identifier}. These may accumulate, documenting the way sessions
+depend on others. For example, consider \texttt{Pure/FOL/ZF/ex}, which
+refers the examples of {\ZF} set theory, built upon {\FOL}, built upon
+{\Pure}.
+
+The current session's identifier is by default just the base name of
+the \texttt{LOGIC} argument (in build mode), or the \texttt{NAME}
+argument (in example mode). This may be overridden explicitely via the
+\texttt{-s} option.
+
+
+\subsection*{Examples}
+
+Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
+object-logics as a model for your own developements.

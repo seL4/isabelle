@@ -3,11 +3,10 @@
 
 \chapter{Basic concepts}
 
-The \emph{Isabelle System Manual} describes Isabelle together with its
-related tools and user interfaces --- as seen from an outside
-(operating system oriented) view.  See the \emph{Isabelle Reference
-  Manual} for all internal {\ML} level user commands, on the other
-hand.
+The \emph{Isabelle System Manual} describes Isabelle together with
+related tools and user interfaces as seen from an outside (operating
+system oriented) view.  See the \emph{Isabelle Reference Manual} for
+all internal {\ML} level user commands, on the other hand.
 
 \medskip The Isabelle system level environment is based on a few
 general concepts:
@@ -31,10 +30,10 @@ general concepts:
 
 \medskip The beginning user would probably just run one of the
 interfaces (by invoking the capital \texttt{Isabelle}), and maybe some
-basic other tools like \texttt{doc} (see \S\ref{sec:tool-doc}).  This
+basic tools like \texttt{doc} (see \S\ref{sec:tool-doc}).  This
 assumes that the system has already been installed properly, of
-course.\footnote{In case you have to do this yourself from scratch,
-  see the \ttindex{INSTALL} file in the top-level directory of the
+course.\footnote{In case you have to do this yourself, see the
+  \ttindex{INSTALL} file in the top-level directory of the
   distribution. The information provided there should be sufficient as
   a start.}
 
@@ -50,7 +49,7 @@ intended to be set directly from the shell!
 Isabelle employs a somewhat more sophisticated scheme of
 \emph{settings files} --- one for site-wide defaults, another for
 optional user-specific modifications.  With all configuration
-variables in only one or two places, this is considered much more
+variables in just a few places, this is considered much more
 maintainable and user-friendly than ordinary shell environment
 variables.
 
@@ -64,7 +63,7 @@ shell's search path, of course.
 
 \subsection{Building the environment}
 
-Whenever any of the Isabelle executables is run, theri settings
+Whenever any of the Isabelle executables is run, their settings
 environment is built as follows:
 
 \begin{enumerate}
@@ -94,11 +93,11 @@ environment is built as follows:
   Thus individual users may override the site-wide defaults. See also
   file \texttt{etc/user-settings.sample} in the distribution.
   Typically, user settings are a few lines only, just containing the
-  assigments that are really required.  One should definitely
-  \emph{not} start with a full copy the central
-  \texttt{\$ISABELLE_HOME/etc/settings}. This could cause very anoying
-  maintainance problems later, when the Isabelle installation is
-  updated or changed otherwise.
+  assigments that are really needed.  One should definitely \emph{not}
+  start with a full copy the central
+  \texttt{\$ISABELLE_HOME/etc/settings}. This could cause very
+  annoying maintainance problems later, when the Isabelle installation
+  is updated or changed otherwise.
 
 \end{enumerate}
 
@@ -166,8 +165,8 @@ are marked with *.
   automatically.
   
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap
-  files should be stored. The \texttt{ML_SYSTEM} identifier is
-  appended here, too.
+  files should be stored by default. The \texttt{ML_SYSTEM} identifier
+  is appended here, too.
 
 \item[\settdx{ISABELLE_LOGIC}] specifies the default logic to load if
   none is given explicitely by the user --- e.g.\ when running
@@ -186,14 +185,14 @@ are marked with *.
 
 \item[\settdx{ISABELLE_DOCS}] is a colon separated list of directories
   with documentation files.
-
-\item[\settdx{DVI_VIEWER}] specifies the program to be used for
+  
+\item[\settdx{DVI_VIEWER}] specifies the command to be used for
   displaying \texttt{dvi} files.
   
 \item[\settdx{ISABELLE_INSTALL_FONTS}] determines the way that the
-  Isabelle symbol fonts are installed into your running X11 display
-  server. X11 fonts are a non-trivial issue, see \S\ref{sec:fonts} for
-  more information.
+  Isabelle symbol fonts are installed into your currently running X11
+  display server. X11 fonts are a non-trivial issue, see
+  \S\ref{sec:tool-installfonts} for more information.
   
 \item[\settdx{ISABELLE_INTERFACE}] is an identifier that specifies the
   actual user interface that the capital \texttt{Isabelle} should
@@ -228,8 +227,8 @@ Input files without path specifications are looked up in the
 components separated by colons --- these are tried in order.  Short
 output names are relative to the directory specified by
 \texttt{ISABELLE_OUTPUT} setting.  In any case, actual file locations
-could also be given by including at least one \texttt{/} in the name
-(use \texttt{./} to refer to the current directory).
+may also be given by including at least one \texttt{/} in the name
+(hint: use \texttt{./} to refer to the current directory).
 
 
 \subsection*{Options}
@@ -248,16 +247,16 @@ themselves to dispose their heap files when they are no longer needed.
 
 \medskip Using the \texttt{-e} option, arbitrary {\ML} code may be
 passed to the Isabelle session from the command line. Multiple
-\texttt{-e}'s are evaluated in the given order. Strange things may
-happen when errorneous {\ML} code is supplied. Also make sure that
-commands are terminated properly by semicolon.
+\texttt{-e}'s are evaluated in order. Strange things may happen when
+errorneous {\ML} code is given. Also make sure that commands are
+terminated properly by semicolon.
 
-\medskip The \texttt{-m} option adds identifiers of print modes that
-are to be made active for this session. Typically this is used by some
-user interface, for example to enable output of mathematical symbols
-from a special screen font. See also \S\ref{sec:tool-installfonts}
-about fonts and the \emph{Isabelle Reference Manual} about print modes
-in general.
+\medskip The \texttt{-m} option adds identifiers of print modes to be
+made active for this session. Typically, this is used by some user
+interface, for example to enable output of mathematical symbols from a
+special screen font. See also \S\ref{sec:tool-installfonts} about
+fonts and the \emph{Isabelle Reference Manual} about print modes in
+general.
 
 \medskip Isabelle normally enters an interactice {\ML} top-level loop
 (after processing the \texttt{-e} texts). The \texttt{-q} option
@@ -284,7 +283,7 @@ whole {\ML} system state into \texttt{Foo}. Be prepared for several
 megabytes!
 
 The \texttt{Foo} session may be continued later (still in writable
-state) at exactly the same point:
+state) by:
 \begin{ttbox}
 isabelle Foo
 \end{ttbox}
