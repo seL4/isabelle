@@ -796,7 +796,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     val induct_cases = map (#1 o #1) intros;
 
     val (thy1, result as {elims, induct, ...}) =
-      (if ! quick_and_dirty then add_ind_axm else add_ind_def)
+      (if ! quick_and_dirty andalso not coind (* FIXME *) then add_ind_axm else add_ind_def)
         verbose declare_consts alt_name coind no_elim no_ind cs atts intros monos
         con_defs thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
