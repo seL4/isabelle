@@ -13,7 +13,7 @@ RAIL = rail -a
 SEDINDEX = ../sedindex
 FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
-GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.blg *.out
+GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.ilg *.blg *.out
 OUTPUT = *.dvi *.pdf *.ps
 
 
