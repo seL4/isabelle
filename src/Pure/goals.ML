@@ -10,7 +10,7 @@ pending proofs.
 *)
 
 signature GOALS =
-  sig
+sig
   type proof
   val reset_goals       : unit -> unit
   val atomic_goal	: theory -> string -> thm list
@@ -47,9 +47,6 @@ signature GOALS =
   val goal		: theory -> string -> thm list
   val goalw		: theory -> thm list -> string -> thm list
   val goalw_cterm	: thm list -> cterm -> thm list
-  val current_goals_markers: (string * string * string) ref
-  val print_current_goals_default: (int -> int -> thm -> unit)
-  val print_current_goals_fn : (int -> int -> thm -> unit) ref
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
   val disable_pr        : unit -> unit
@@ -67,6 +64,8 @@ signature GOALS =
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
   val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
   val prove_goalw_cterm_nocheck	: thm list->cterm->(thm list->tactic list)->thm
+  val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
+    -> (thm list -> tactic list) -> thm
   val push_proof	: unit -> unit
   val read		: string -> term
   val ren		: string -> int -> unit
@@ -78,7 +77,22 @@ signature GOALS =
   val save_proof	: unit -> proof
   val topthm		: unit -> thm
   val undo		: unit -> unit
-  end;
+  val bind_thm          : string * thm -> unit
+  val bind_thms         : string * thm list -> unit
+  val qed               : string -> unit
+  val qed_goal          : string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw         : string -> theory -> thm list -> string
+    -> (thm list -> tactic list) -> unit
+  val qed_spec_mp       : string -> unit
+  val qed_goal_spec_mp  : string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw_spec_mp : string -> theory -> thm list -> string
+    -> (thm list -> tactic list) -> unit
+  val no_qed: unit -> unit
+  val thms_containing   : xstring list -> (string * thm) list
+  val findI             : int -> (string * thm) list
+  val findEs            : int -> (string * thm) list
+  val findE             : int -> int -> (string * thm) list
+end;
 
 structure Goals : GOALS =
 struct
@@ -131,7 +145,7 @@ fun sign_error (sign,sign') =
 (*Default action is to print an error message; could be suppressed for
   special applications.*)
 fun result_error_default state msg : thm =
-  Pretty.str "Bad final proof state:" :: pretty_goals (!goals_limit) state @
+  Pretty.str "Bad final proof state:" :: Display.pretty_goals (!goals_limit) state @
     [Pretty.str msg, Pretty.str "Proof failed!"] |> Pretty.chunks |> Pretty.string_of |> error;
 
 val result_error_fn = ref result_error_default;
@@ -275,7 +289,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
   in  mkresult (check, cond_timeit (!Library.timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
 	       writeln ("The exception above was raised for\n" ^ 
-		      string_of_cterm chorn); raise e);
+		      Display.string_of_cterm chorn); raise e);
 
 (*Two variants: one checking the result, one not.  
   Neither prints runtime messages: they are for internal packages.*)
@@ -296,6 +310,11 @@ fun prove_goalw thy rths agoal tacsf =
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
 
+(*quick and dirty version (conditional)*)
+fun quick_and_dirty_prove_goalw_cterm thy rews ct tacs =
+  prove_goalw_cterm rews ct
+    (if ! quick_and_dirty then (K [SkipProof.cheat_tac thy]) else tacs);
+
 
 (*** Commands etc ***)
 
@@ -309,25 +328,6 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
   | pop (pair::pairs) = (pair,pairs);
 
 
-(*Print goals of current level*)
-val current_goals_markers = ref ("", "", "");
-
-fun print_current_goals_default n max th =
-  let
-    val ref (begin_state, end_state, begin_goal) = current_goals_markers;
-    val ngoals = nprems_of th;
-  in
-    if begin_state = "" then () else writeln begin_state;
-    writeln ("Level " ^ string_of_int n ^
-      (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
-        (if ngoals <> 1 then "s" else "") ^ ")"
-      else ""));
-    Locale.print_goals_marker begin_goal max th;
-    if end_state = "" then () else writeln end_state
-  end;
-
-val print_current_goals_fn = ref print_current_goals_default;
-
 (* Print a level of the goal stack -- subject to quiet mode *)
 
 val quiet = ref false;
@@ -336,7 +336,7 @@ fun enable_pr () = quiet := false;
 
 fun print_top ((th, _), pairs) =
   if ! quiet then ()
-  else ! print_current_goals_fn (length pairs) (! goals_limit) th;
+  else ! Display.print_current_goals_fn (length pairs) (! goals_limit) th;
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Seq.empty)]  to set st as the state.  *)
@@ -560,6 +560,143 @@ fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
 (*Prints exceptions nicely at top level; 
   raises the exception in order to have a polymorphic type!*)
 fun print_exn e = (print_sign_exn_unit (top_sg()) e;  raise e);
+
+
+
+(** theorem database operations **)
+
+(* storing *)
+
+fun bind_thm (name, thm) = ThmDatabase.ml_store_thm (name, standard thm);
+fun bind_thms (name, thms) = ThmDatabase.ml_store_thms (name, map standard thms);
+
+fun qed name = ThmDatabase.ml_store_thm (name, result ());
+fun qed_goal name thy goal tacsf = ThmDatabase.ml_store_thm (name, prove_goal thy goal tacsf);
+fun qed_goalw name thy rews goal tacsf =
+  ThmDatabase.ml_store_thm (name, prove_goalw thy rews goal tacsf);
+fun qed_spec_mp name =
+  ThmDatabase.ml_store_thm (name, ObjectLogic.rulify_no_asm (result ()));
+fun qed_goal_spec_mp name thy s p =
+  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goal thy s p));
+fun qed_goalw_spec_mp name thy defs s p =
+  bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
+
+fun no_qed () = ();
+
+
+(* retrieval *)
+
+fun theory_of_goal () = ThyInfo.theory_of_sign (Thm.sign_of_thm (topthm ()));
+
+fun thms_containing raw_consts =
+  let
+    val thy = theory_of_goal ();
+    val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
+  in ThmDatabase.thms_containing thy consts end;
+
+
+(*top_const: main constant, ignoring Trueprop*)
+fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
+  | top_const _ = None;
+
+val intro_const = top_const o concl_of;
+
+fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const p;
+
+(* In case faster access is necessary, the thm db should provide special
+functions
+
+index_intros, index_elims: string -> (string * thm) list
+
+where thm [| A1 ; ...; An |] ==> B is returned by
+- index_intros c if B  is of the form c t1 ... tn
+- index_elims c  if A1 is of the form c t1 ... tn
+*)
+
+(* could be provided by thm db *)
+fun index_intros c =
+  let fun topc(_,thm) = intro_const thm = Some(c);
+      val named_thms = ThmDatabase.thms_containing (theory_of_goal ()) [c]
+  in filter topc named_thms end;
+
+(* could be provided by thm db *)
+fun index_elims c =
+  let fun topc(_,thm) = elim_const thm = Some(c);
+      val named_thms = ThmDatabase.thms_containing (theory_of_goal ()) [c]
+  in filter topc named_thms end;
+
+(*assume that parameters have unique names; reverse them for substitution*)
+fun goal_params i =
+  let val gi = getgoal i
+      val rfrees = rev(map Free (Logic.strip_params gi))
+  in (gi,rfrees) end;
+
+fun concl_of_goal i =
+  let val (gi,rfrees) = goal_params i
+      val B = Logic.strip_assums_concl gi
+  in subst_bounds(rfrees,B) end;
+
+fun prems_of_goal i =
+  let val (gi,rfrees) = goal_params i
+      val As = Logic.strip_assums_hyp gi
+  in map (fn A => subst_bounds(rfrees,A)) As end;
+
+(*returns all those named_thms whose subterm extracted by extract can be
+  instantiated to obj; the list is sorted according to the number of premises
+  and the size of the required substitution.*)
+fun select_match(obj, signobj, named_thms, extract) =
+  let fun matches(prop, tsig) =
+            case extract prop of
+              None => false
+            | Some pat => Pattern.matches tsig (pat, obj);
+
+      fun substsize(prop, tsig) =
+            let val Some pat = extract prop
+                val (_,subst) = Pattern.match tsig (pat,obj)
+            in foldl op+
+                (0, map (fn (_,t) => size_of_term t) subst)
+            end
+
+      fun thm_ord ((p0,s0,_),(p1,s1,_)) =
+            prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
+
+      fun select((p as (_,thm))::named_thms, sels) =
+            let val {prop, sign, ...} = rep_thm thm
+            in select(named_thms,
+                      if Sign.subsig(sign, signobj) andalso
+                         matches(prop,#tsig(Sign.rep_sg signobj))
+                      then
+                        (nprems_of thm,substsize(prop,#tsig(Sign.rep_sg signobj)),p)::sels
+                      else sels)
+            end
+        | select([],sels) = sels
+
+  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
+
+fun find_matching(prop,sign,index,extract) =
+  (case top_const prop of
+     Some c => select_match(prop,sign,index c,extract)
+   | _      => []);
+
+fun find_intros(prop,sign) =
+  find_matching(prop,sign,index_intros,Some o Logic.strip_imp_concl);
+
+fun find_elims sign prop =
+  let fun major prop = case Logic.strip_imp_prems prop of
+                         [] => None | p::_ => Some p
+  in find_matching(prop,sign,index_elims,major) end;
+
+fun findI i = find_intros(concl_of_goal i,#sign(rep_thm(topthm())));
+
+fun findEs i =
+  let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
+      val sign = #sign(rep_thm(topthm()))
+      val thmss = map (find_elims sign) (prems_of_goal i)
+  in foldl (gen_union eq_nth) ([],thmss) end;
+
+fun findE i j =
+  let val sign = #sign(rep_thm(topthm()))
+  in find_elims sign (nth_elem(j-1, prems_of_goal i)) end;
 
 end;
 
