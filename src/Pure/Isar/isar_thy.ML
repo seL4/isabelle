@@ -88,6 +88,10 @@ sig
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val presume_i: (string * Proof.context attribute list * (term * (term list * term list)) list)
     * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val local_def: (string * Args.src list * ((string * string option) * (string * string list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val local_def_i: (string * Args.src list * ((string * typ) * (term * term list)))
+    * Comment.text -> ProofHistory.T -> ProofHistory.T
   val show: (string * Args.src list * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val show_i: (string * Proof.context attribute list * (term * (term list * term list)))
@@ -112,12 +116,6 @@ sig
   val proof: Comment.interest * (Method.text * Comment.interest) option
     -> ProofHistory.T -> ProofHistory.T
   val kill_proof: ProofHistory.T -> theory
-  val global_qed_with: bstring option * Args.src list option
-    -> (Method.text * Comment.interest) option
-    -> Toplevel.transition -> Toplevel.transition
-  val global_qed_with_i: bstring option * theory attribute list option
-    -> (Method.text * Comment.interest) option
-    -> Toplevel.transition -> Toplevel.transition
   val qed: (Method.text * Comment.interest) option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: (Method.text * Comment.interest) * (Method.text * Comment.interest) option
     -> Toplevel.transition -> Toplevel.transition
@@ -279,22 +277,24 @@ fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
 
 fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
 
-val theorem   = global_statement Proof.theorem o Comment.ignore;
-val theorem_i = global_statement_i Proof.theorem_i o Comment.ignore;
-val lemma     = global_statement Proof.lemma o Comment.ignore;
-val lemma_i   = global_statement_i Proof.lemma_i o Comment.ignore;
-val assume    = local_statement Proof.assume I o Comment.ignore;
-val assume_i  = local_statement_i Proof.assume_i I o Comment.ignore;
-val presume   = local_statement Proof.presume I o Comment.ignore;
-val presume_i = local_statement_i Proof.presume_i I o Comment.ignore;
-val show      = local_statement Proof.show I o Comment.ignore;
-val show_i    = local_statement_i Proof.show_i I o Comment.ignore;
-val have      = local_statement Proof.have I o Comment.ignore;
-val have_i    = local_statement_i Proof.have_i I o Comment.ignore;
-val thus      = local_statement Proof.show Proof.chain o Comment.ignore;
-val thus_i    = local_statement_i Proof.show_i Proof.chain o Comment.ignore;
-val hence     = local_statement Proof.have Proof.chain o Comment.ignore;
-val hence_i   = local_statement_i Proof.have_i Proof.chain o Comment.ignore;
+val theorem     = global_statement Proof.theorem o Comment.ignore;
+val theorem_i   = global_statement_i Proof.theorem_i o Comment.ignore;
+val lemma       = global_statement Proof.lemma o Comment.ignore;
+val lemma_i     = global_statement_i Proof.lemma_i o Comment.ignore;
+val assume      = local_statement Proof.assume I o Comment.ignore;
+val assume_i    = local_statement_i Proof.assume_i I o Comment.ignore;
+val presume     = local_statement Proof.presume I o Comment.ignore;
+val presume_i   = local_statement_i Proof.presume_i I o Comment.ignore;
+val local_def   = local_statement LocalDefs.def I o Comment.ignore;
+val local_def_i = local_statement LocalDefs.def_i I o Comment.ignore;
+val show        = local_statement Proof.show I o Comment.ignore;
+val show_i      = local_statement_i Proof.show_i I o Comment.ignore;
+val have        = local_statement Proof.have I o Comment.ignore;
+val have_i      = local_statement_i Proof.have_i I o Comment.ignore;
+val thus        = local_statement Proof.show Proof.chain o Comment.ignore;
+val thus_i      = local_statement_i Proof.show_i Proof.chain o Comment.ignore;
+val hence       = local_statement Proof.have Proof.chain o Comment.ignore;
+val hence_i     = local_statement_i Proof.have_i Proof.chain o Comment.ignore;
 
 
 (* blocks *)
@@ -350,16 +350,7 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
     val (thy, res) = finish state;
   in print_result res; thy end);
 
-fun gen_global_qed_with prep_att (alt_name, raw_atts) meth state =
-  let
-    val thy = Proof.theory_of state;
-    val alt_atts = apsome (map (prep_att thy)) raw_atts;
-  in Method.global_qed alt_name alt_atts (apsome Comment.ignore_interest meth) state end;
-
-val global_qed_with = global_result oo gen_global_qed_with Attrib.global_attribute;
-val global_qed_with_i = global_result oo gen_global_qed_with (K I);
-val global_qed = global_qed_with (None, None);
-
+val global_qed = global_result o Method.global_qed o apsome Comment.ignore_interest;
 val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;
 val global_immediate_proof = global_result Method.global_immediate_proof;
 val global_default_proof = global_result Method.global_default_proof;
