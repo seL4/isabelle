@@ -7,8 +7,7 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
-      ("antisym_setup.ML")
+files ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("antisym_setup.ML")
 begin
 
 subsection {* Primitive logic *}
@@ -217,11 +216,568 @@ syntax (HTML output)
   abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
 
 
+subsection {*Equality*}
+
+lemma sym: "s=t ==> t=s"
+apply (erule subst)
+apply (rule refl)
+done
+
+(*calling "standard" reduces maxidx to 0*)
+lemmas ssubst = sym [THEN subst, standard]
+
+lemma trans: "[| r=s; s=t |] ==> r=t"
+apply (erule subst , assumption)
+done
+
+lemma def_imp_eq:  assumes meq: "A == B" shows "A = B"
+apply (unfold meq)
+apply (rule refl)
+done
+
+(*Useful with eresolve_tac for proving equalties from known equalities.
+        a = b
+        |   |
+        c = d   *)
+lemma box_equals: "[| a=b;  a=c;  b=d |] ==> c=d"
+apply (rule trans)
+apply (rule trans)
+apply (rule sym)
+apply assumption+
+done
+
+
+subsection {*Congruence rules for application*}
+
+(*similar to AP_THM in Gordon's HOL*)
+lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
+apply (erule subst)
+apply (rule refl)
+done
+
+(*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
+lemma arg_cong: "x=y ==> f(x)=f(y)"
+apply (erule subst)
+apply (rule refl)
+done
+
+lemma cong: "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
+apply (erule subst)+
+apply (rule refl)
+done
+
+
+subsection {*Equality of booleans -- iff*}
+
+lemma iffI: assumes prems: "P ==> Q" "Q ==> P" shows "P=Q"
+apply (rules intro: iff [THEN mp, THEN mp] impI prems)
+done
+
+lemma iffD2: "[| P=Q; Q |] ==> P"
+apply (erule ssubst)
+apply assumption
+done
+
+lemma rev_iffD2: "[| Q; P=Q |] ==> P"
+apply (erule iffD2)
+apply assumption
+done
+
+lemmas iffD1 = sym [THEN iffD2, standard]
+lemmas rev_iffD1 = sym [THEN [2] rev_iffD2, standard]
+
+lemma iffE:
+  assumes major: "P=Q"
+      and minor: "[| P --> Q; Q --> P |] ==> R"
+  shows "R"
+by (rules intro: minor impI major [THEN iffD2] major [THEN iffD1])
+
+
+subsection {*True*}
+
+lemma TrueI: "True"
+apply (unfold True_def)
+apply (rule refl)
+done
+
+lemma eqTrueI: "P ==> P=True"
+by (rules intro: iffI TrueI)
+
+lemma eqTrueE: "P=True ==> P"
+apply (erule iffD2)
+apply (rule TrueI)
+done
+
+
+subsection {*Universal quantifier*}
+
+lemma allI: assumes p: "!!x::'a. P(x)" shows "ALL x. P(x)"
+apply (unfold All_def)
+apply (rules intro: ext eqTrueI p)
+done
+
+lemma spec: "ALL x::'a. P(x) ==> P(x)"
+apply (unfold All_def)
+apply (rule eqTrueE)
+apply (erule fun_cong)
+done
+
+lemma allE:
+  assumes major: "ALL x. P(x)"
+      and minor: "P(x) ==> R"
+  shows "R"
+by (rules intro: minor major [THEN spec])
+
+lemma all_dupE:
+  assumes major: "ALL x. P(x)"
+      and minor: "[| P(x); ALL x. P(x) |] ==> R"
+  shows "R"
+by (rules intro: minor major major [THEN spec])
+
+
+subsection {*False*}
+(*Depends upon spec; it is impossible to do propositional logic before quantifiers!*)
+
+lemma FalseE: "False ==> P"
+apply (unfold False_def)
+apply (erule spec)
+done
+
+lemma False_neq_True: "False=True ==> P"
+by (erule eqTrueE [THEN FalseE])
+
+
+subsection {*Negation*}
+
+lemma notI:
+  assumes p: "P ==> False"
+  shows "~P"
+apply (unfold not_def)
+apply (rules intro: impI p)
+done
+
+lemma False_not_True: "False ~= True"
+apply (rule notI)
+apply (erule False_neq_True)
+done
+
+lemma True_not_False: "True ~= False"
+apply (rule notI)
+apply (drule sym)
+apply (erule False_neq_True)
+done
+
+lemma notE: "[| ~P;  P |] ==> R"
+apply (unfold not_def)
+apply (erule mp [THEN FalseE])
+apply assumption
+done
+
+(* Alternative ~ introduction rule: [| P ==> ~ Pa; P ==> Pa |] ==> ~ P *)
+lemmas notI2 = notE [THEN notI, standard]
+
+
+subsection {*Implication*}
+
+lemma impE:
+  assumes "P-->Q" "P" "Q ==> R"
+  shows "R"
+by (rules intro: prems mp)
+
+(* Reduces Q to P-->Q, allowing substitution in P. *)
+lemma rev_mp: "[| P;  P --> Q |] ==> Q"
+by (rules intro: mp)
+
+lemma contrapos_nn:
+  assumes major: "~Q"
+      and minor: "P==>Q"
+  shows "~P"
+by (rules intro: notI minor major [THEN notE])
+
+(*not used at all, but we already have the other 3 combinations *)
+lemma contrapos_pn:
+  assumes major: "Q"
+      and minor: "P ==> ~Q"
+  shows "~P"
+by (rules intro: notI minor major notE)
+
+lemma not_sym: "t ~= s ==> s ~= t"
+apply (erule contrapos_nn)
+apply (erule sym)
+done
+
+(*still used in HOLCF*)
+lemma rev_contrapos:
+  assumes pq: "P ==> Q"
+      and nq: "~Q"
+  shows "~P"
+apply (rule nq [THEN contrapos_nn])
+apply (erule pq)
+done
+
+subsection {*Existential quantifier*}
+
+lemma exI: "P x ==> EX x::'a. P x"
+apply (unfold Ex_def)
+apply (rules intro: allI allE impI mp)
+done
+
+lemma exE:
+  assumes major: "EX x::'a. P(x)"
+      and minor: "!!x. P(x) ==> Q"
+  shows "Q"
+apply (rule major [unfolded Ex_def, THEN spec, THEN mp])
+apply (rules intro: impI [THEN allI] minor)
+done
+
+
+subsection {*Conjunction*}
+
+lemma conjI: "[| P; Q |] ==> P&Q"
+apply (unfold and_def)
+apply (rules intro: impI [THEN allI] mp)
+done
+
+lemma conjunct1: "[| P & Q |] ==> P"
+apply (unfold and_def)
+apply (rules intro: impI dest: spec mp)
+done
+
+lemma conjunct2: "[| P & Q |] ==> Q"
+apply (unfold and_def)
+apply (rules intro: impI dest: spec mp)
+done
+
+lemma conjE:
+  assumes major: "P&Q"
+      and minor: "[| P; Q |] ==> R"
+  shows "R"
+apply (rule minor)
+apply (rule major [THEN conjunct1])
+apply (rule major [THEN conjunct2])
+done
+
+lemma context_conjI:
+  assumes prems: "P" "P ==> Q" shows "P & Q"
+by (rules intro: conjI prems)
+
+
+subsection {*Disjunction*}
+
+lemma disjI1: "P ==> P|Q"
+apply (unfold or_def)
+apply (rules intro: allI impI mp)
+done
+
+lemma disjI2: "Q ==> P|Q"
+apply (unfold or_def)
+apply (rules intro: allI impI mp)
+done
+
+lemma disjE:
+  assumes major: "P|Q"
+      and minorP: "P ==> R"
+      and minorQ: "Q ==> R"
+  shows "R"
+by (rules intro: minorP minorQ impI
+                 major [unfolded or_def, THEN spec, THEN mp, THEN mp])
+
+
+subsection {*Classical logic*}
+
+
+lemma classical:
+  assumes prem: "~P ==> P"
+  shows "P"
+apply (rule True_or_False [THEN disjE, THEN eqTrueE])
+apply assumption
+apply (rule notI [THEN prem, THEN eqTrueI])
+apply (erule subst)
+apply assumption
+done
+
+lemmas ccontr = FalseE [THEN classical, standard]
+
+(*notE with premises exchanged; it discharges ~R so that it can be used to
+  make elimination rules*)
+lemma rev_notE:
+  assumes premp: "P"
+      and premnot: "~R ==> ~P"
+  shows "R"
+apply (rule ccontr)
+apply (erule notE [OF premnot premp])
+done
+
+(*Double negation law*)
+lemma notnotD: "~~P ==> P"
+apply (rule classical)
+apply (erule notE)
+apply assumption
+done
+
+lemma contrapos_pp:
+  assumes p1: "Q"
+      and p2: "~P ==> ~Q"
+  shows "P"
+by (rules intro: classical p1 p2 notE)
+
+
+subsection {*Unique existence*}
+
+lemma ex1I:
+  assumes prems: "P a" "!!x. P(x) ==> x=a"
+  shows "EX! x. P(x)"
+by (unfold Ex1_def, rules intro: prems exI conjI allI impI)
+
+text{*Sometimes easier to use: the premises have no shared variables.  Safe!*}
+lemma ex_ex1I:
+  assumes ex_prem: "EX x. P(x)"
+      and eq: "!!x y. [| P(x); P(y) |] ==> x=y"
+  shows "EX! x. P(x)"
+by (rules intro: ex_prem [THEN exE] ex1I eq)
+
+lemma ex1E:
+  assumes major: "EX! x. P(x)"
+      and minor: "!!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R"
+  shows "R"
+apply (rule major [unfolded Ex1_def, THEN exE])
+apply (erule conjE)
+apply (rules intro: minor)
+done
+
+lemma ex1_implies_ex: "EX! x. P x ==> EX x. P x"
+apply (erule ex1E)
+apply (rule exI)
+apply assumption
+done
+
+
+subsection {*THE: definite description operator*}
+
+lemma the_equality:
+  assumes prema: "P a"
+      and premx: "!!x. P x ==> x=a"
+  shows "(THE x. P x) = a"
+apply (rule trans [OF _ the_eq_trivial])
+apply (rule_tac f = "The" in arg_cong)
+apply (rule ext)
+apply (rule iffI)
+ apply (erule premx)
+apply (erule ssubst, rule prema)
+done
+
+lemma theI:
+  assumes "P a" and "!!x. P x ==> x=a"
+  shows "P (THE x. P x)"
+by (rules intro: prems the_equality [THEN ssubst])
+
+lemma theI': "EX! x. P x ==> P (THE x. P x)"
+apply (erule ex1E)
+apply (erule theI)
+apply (erule allE)
+apply (erule mp)
+apply assumption
+done
+
+(*Easier to apply than theI: only one occurrence of P*)
+lemma theI2:
+  assumes "P a" "!!x. P x ==> x=a" "!!x. P x ==> Q x"
+  shows "Q (THE x. P x)"
+by (rules intro: prems theI)
+
+lemma the1_equality: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
+apply (rule the_equality)
+apply  assumption
+apply (erule ex1E)
+apply (erule all_dupE)
+apply (drule mp)
+apply  assumption
+apply (erule ssubst)
+apply (erule allE)
+apply (erule mp)
+apply assumption
+done
+
+lemma the_sym_eq_trivial: "(THE y. x=y) = x"
+apply (rule the_equality)
+apply (rule refl)
+apply (erule sym)
+done
+
+
+subsection {*Classical intro rules for disjunction and existential quantifiers*}
+
+lemma disjCI:
+  assumes "~Q ==> P" shows "P|Q"
+apply (rule classical)
+apply (rules intro: prems disjI1 disjI2 notI elim: notE)
+done
+
+lemma excluded_middle: "~P | P"
+by (rules intro: disjCI)
+
+text{*case distinction as a natural deduction rule. Note that @{term "~P"}
+   is the second case, not the first.*}
+lemma case_split_thm:
+  assumes prem1: "P ==> Q"
+      and prem2: "~P ==> Q"
+  shows "Q"
+apply (rule excluded_middle [THEN disjE])
+apply (erule prem2)
+apply (erule prem1)
+done
+
+(*Classical implies (-->) elimination. *)
+lemma impCE:
+  assumes major: "P-->Q"
+      and minor: "~P ==> R" "Q ==> R"
+  shows "R"
+apply (rule excluded_middle [of P, THEN disjE])
+apply (rules intro: minor major [THEN mp])+
+done
+
+(*This version of --> elimination works on Q before P.  It works best for
+  those cases in which P holds "almost everywhere".  Can't install as
+  default: would break old proofs.*)
+lemma impCE':
+  assumes major: "P-->Q"
+      and minor: "Q ==> R" "~P ==> R"
+  shows "R"
+apply (rule excluded_middle [of P, THEN disjE])
+apply (rules intro: minor major [THEN mp])+
+done
+
+(*Classical <-> elimination. *)
+lemma iffCE:
+  assumes major: "P=Q"
+      and minor: "[| P; Q |] ==> R"  "[| ~P; ~Q |] ==> R"
+  shows "R"
+apply (rule major [THEN iffE])
+apply (rules intro: minor elim: impCE notE)
+done
+
+lemma exCI:
+  assumes "ALL x. ~P(x) ==> P(a)"
+  shows "EX x. P(x)"
+apply (rule ccontr)
+apply (rules intro: prems exI allI notI notE [of "\<exists>x. P x"])
+done
+
+
+
 subsection {* Theory and package setup *}
 
-subsubsection {* Basic lemmas *}
+ML
+{*
+val plusI = thm "plusI"
+val minusI = thm "minusI"
+val timesI = thm "timesI"
+val eq_reflection = thm "eq_reflection"
+val refl = thm "refl"
+val subst = thm "subst"
+val ext = thm "ext"
+val impI = thm "impI"
+val mp = thm "mp"
+val True_def = thm "True_def"
+val All_def = thm "All_def"
+val Ex_def = thm "Ex_def"
+val False_def = thm "False_def"
+val not_def = thm "not_def"
+val and_def = thm "and_def"
+val or_def = thm "or_def"
+val Ex1_def = thm "Ex1_def"
+val iff = thm "iff"
+val True_or_False = thm "True_or_False"
+val Let_def = thm "Let_def"
+val if_def = thm "if_def"
+val sym = thm "sym"
+val ssubst = thm "ssubst"
+val trans = thm "trans"
+val def_imp_eq = thm "def_imp_eq"
+val box_equals = thm "box_equals"
+val fun_cong = thm "fun_cong"
+val arg_cong = thm "arg_cong"
+val cong = thm "cong"
+val iffI = thm "iffI"
+val iffD2 = thm "iffD2"
+val rev_iffD2 = thm "rev_iffD2"
+val iffD1 = thm "iffD1"
+val rev_iffD1 = thm "rev_iffD1"
+val iffE = thm "iffE"
+val TrueI = thm "TrueI"
+val eqTrueI = thm "eqTrueI"
+val eqTrueE = thm "eqTrueE"
+val allI = thm "allI"
+val spec = thm "spec"
+val allE = thm "allE"
+val all_dupE = thm "all_dupE"
+val FalseE = thm "FalseE"
+val False_neq_True = thm "False_neq_True"
+val notI = thm "notI"
+val False_not_True = thm "False_not_True"
+val True_not_False = thm "True_not_False"
+val notE = thm "notE"
+val notI2 = thm "notI2"
+val impE = thm "impE"
+val rev_mp = thm "rev_mp"
+val contrapos_nn = thm "contrapos_nn"
+val contrapos_pn = thm "contrapos_pn"
+val not_sym = thm "not_sym"
+val rev_contrapos = thm "rev_contrapos"
+val exI = thm "exI"
+val exE = thm "exE"
+val conjI = thm "conjI"
+val conjunct1 = thm "conjunct1"
+val conjunct2 = thm "conjunct2"
+val conjE = thm "conjE"
+val context_conjI = thm "context_conjI"
+val disjI1 = thm "disjI1"
+val disjI2 = thm "disjI2"
+val disjE = thm "disjE"
+val classical = thm "classical"
+val ccontr = thm "ccontr"
+val rev_notE = thm "rev_notE"
+val notnotD = thm "notnotD"
+val contrapos_pp = thm "contrapos_pp"
+val ex1I = thm "ex1I"
+val ex_ex1I = thm "ex_ex1I"
+val ex1E = thm "ex1E"
+val ex1_implies_ex = thm "ex1_implies_ex"
+val the_equality = thm "the_equality"
+val theI = thm "theI"
+val theI' = thm "theI'"
+val theI2 = thm "theI2"
+val the1_equality = thm "the1_equality"
+val the_sym_eq_trivial = thm "the_sym_eq_trivial"
+val disjCI = thm "disjCI"
+val excluded_middle = thm "excluded_middle"
+val case_split_thm = thm "case_split_thm"
+val impCE = thm "impCE"
+val impCE = thm "impCE"
+val iffCE = thm "iffCE"
+val exCI = thm "exCI"
 
-use "HOL_lemmas.ML"
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+  |   wrong_prem (Bound _) = true
+  |   wrong_prem _ = false
+  val filter_right = filter (fn t => not (wrong_prem (HOLogic.dest_Trueprop (hd (Thm.prems_of t)))))
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp])
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac]
+end
+
+
+fun strip_tac i = REPEAT(resolve_tac [impI,allI] i)
+
+(*Obsolete form of disjunctive case analysis*)
+fun excluded_middle_tac sP =
+    res_inst_tac [("Q",sP)] (excluded_middle RS disjE)
+
+fun case_tac a = res_inst_tac [("P",a)] case_split_thm
+*}
+
 theorems case_split = case_split_thm [case_names True False]
 
 
@@ -549,7 +1105,7 @@ setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
-declare disj_absorb [simp] conj_absorb [simp] 
+declare disj_absorb [simp] conj_absorb [simp]
 
 lemma ex1_eq[iff]: "EX! x. x = t" "EX! x. t = x"
 by blast+
@@ -632,14 +1188,14 @@ text {* Method setup. *}
 ML {*
   structure InductMethod = InductMethodFun
   (struct
-    val dest_concls = HOLogic.dest_concls;
-    val cases_default = thm "case_split";
-    val local_impI = thm "induct_impliesI";
-    val conjI = thm "conjI";
-    val atomize = thms "induct_atomize";
-    val rulify1 = thms "induct_rulify1";
-    val rulify2 = thms "induct_rulify2";
-    val localize = [Thm.symmetric (thm "induct_implies_def")];
+    val dest_concls = HOLogic.dest_concls
+    val cases_default = thm "case_split"
+    val local_impI = thm "induct_impliesI"
+    val conjI = thm "conjI"
+    val atomize = thms "induct_atomize"
+    val rulify1 = thms "induct_rulify1"
+    val rulify2 = thms "induct_rulify2"
+    val localize = [Thm.symmetric (thm "induct_implies_def")]
   end);
 *}
 
@@ -758,7 +1314,7 @@ lemma order_less_asym: "x < (y::'a::order) ==> (~P ==> y < x) ==> P"
   apply (erule contrapos_np, simp)
   done
 
-lemma order_eq_iff: "!!x::'a::order. (x = y) = (x \<le> y & y \<le> x)"  
+lemma order_eq_iff: "!!x::'a::order. (x = y) = (x \<le> y & y \<le> x)"
 by (blast intro: order_antisym)
 
 lemma order_antisym_conv: "(y::'a::order) <= x ==> (x <= y) = (x = y)"
@@ -1030,15 +1586,15 @@ fun decomp_gen sort sign (Trueprop $ t) =
 	  case dec t of
 	    None => None
 	  | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
-	| dec (Const ("op =",  _) $ t1 $ t2) = 
+	| dec (Const ("op =",  _) $ t1 $ t2) =
 	    if of_sort t1
 	    then Some (t1, "=", t2)
 	    else None
-	| dec (Const ("op <=",  _) $ t1 $ t2) = 
+	| dec (Const ("op <=",  _) $ t1 $ t2) =
 	    if of_sort t1
 	    then Some (t1, "<=", t2)
 	    else None
-	| dec (Const ("op <",  _) $ t1 $ t2) = 
+	| dec (Const ("op <",  _) $ t1 $ t2) =
 	    if of_sort t1
 	    then Some (t1, "<", t2)
 	    else None
@@ -1100,7 +1656,7 @@ simpset_ref() := simpset ()
 (*
 method_setup trans_partial =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.partial_tac)) *}
-  {* transitivity reasoner for partial orders *}	    
+  {* transitivity reasoner for partial orders *}	
 method_setup trans_linear =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.linear_tac)) *}
   {* transitivity reasoner for linear orders *}
@@ -1168,36 +1724,36 @@ let
   fun mk v v' q n P =
     if v=v' andalso not(v  mem (map fst (Term.add_frees([],n))))
     then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
-  fun all_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  fun all_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessAll" n P
 
-  | all_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  | all_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leAll" n P
 
-  | all_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op -->",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  | all_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op -->",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtAll" n P
 
-  | all_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op -->",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  | all_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op -->",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geAll" n P;
 
-  fun ex_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  fun ex_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessEx" n P
 
-  | ex_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+  | ex_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leEx" n P
 
-  | ex_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op &",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  | ex_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op &",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtEx" n P
 
-  | ex_tr' [Const ("_bound",_) $ Free (v,_), 
-               Const("op &",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
+  | ex_tr' [Const ("_bound",_) $ Free (v,_),
+               Const("op &",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geEx" n P
 in
 [("ALL ", all_tr'), ("EX ", ex_tr')]
@@ -1205,3 +1761,4 @@ end
 *}
 
 end
+
