@@ -1,0 +1,158 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: prepare logic session directory
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG LOGIC NAME"
+  echo
+  echo "  Options are:"
+  echo "    -b           setup build mode (session outputs heap image)"
+  echo "    -d           setup document"
+  echo
+  echo "  Prepare logic session directory, including IsaMakefile, document etc."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+BUILD=""
+DOCUMENT=""
+
+while getopts "bd" OPT
+do
+  case "$OPT" in
+    b)
+      BUILD=true
+      ;;
+    d)
+      DOCUMENT=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ $# -ne 2 ] && usage
+
+LOGIC="$1"; shift
+NAME="$1"; shift
+
+[ -z "$SESSION" ] && SESSION=$(basename $NAME)
+
+
+
+## main
+
+# IsaMakefile
+
+if [ -n "$BUILD" ]; then
+  IMAGES="$NAME"
+  TEST=""
+  TARGET="\$(OUT)/$NAME"
+  USEDIR="usedir -b"
+else
+  IMAGES=""
+  TEST="$NAME"
+  TARGET="\$(LOG)/$NAME.gz"
+  USEDIR="usedir"
+fi
+
+if [ -f IsaMakefile ]; then
+  echo "keeping $PWD/IsaMakefile" >&2
+else
+  { echo
+    echo "## targets"
+    echo
+    echo "default: $NAME"
+    echo "images: $IMAGES"
+    echo "test: $TEST"
+    echo
+    echo "all: images test"
+    echo
+    echo
+    echo "## global settings"
+    echo
+    echo "SRC = \$(ISABELLE_HOME)/src"
+    echo "OUT = \$(ISABELLE_OUTPUT)"
+    echo "LOG = \$(OUT)/log"
+    echo "INFO = \$(ISABELLE_BROWSER_INFO)"
+    echo
+    echo
+    echo "## $NAME"
+    echo ""
+    echo "$NAME: $LOGIC $TARGET"
+    echo
+    echo "$LOGIC:"
+    echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
+    echo
+    echo "$TARGET: \$(OUT)/$LOGIC     ## add $NAME sources here"
+    echo -e "\t@\$(ISATOOL) $USEDIR \$(OUT)/$LOGIC $NAME"
+    echo
+    echo
+    echo "## clean"
+    echo
+    echo "clean:"
+    echo -e "\t@rm -f $TARGET"
+    echo
+  } >IsaMakefile
+fi
+
+
+# base directory
+
+if [ -z "$BUILD" ]; then
+  mkdir -p "$NAME" || fail "Bad directory: $PWD/$NAME"
+  cd "$NAME"
+fi
+
+if [ -f ROOT.ML ]; then
+  echo "keeping $PWD/ROOT.ML" >&2
+else
+  echo -e "\n(* use_thy \"YourTheory\"; *)\n" >ROOT.ML
+fi
+
+
+# document directory
+
+if [ -n "$DOCUMENT" ]; then
+  if [ -e document ]; then
+    echo "keeping $PWD/document" >&2
+  else
+    mkdir document || fail "Bad directory: $PWD/document"
+    cat >document/root.tex <<EOF
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym,pdfsetup}
+
+\begin{document}
+\input{session}
+\end{document}
+
+EOF
+  fi
+fi
