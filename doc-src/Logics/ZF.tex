@@ -67,6 +67,7 @@ $x$ is a set.
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      &\it meta-type  & \it description \\ 
+  \cdx{Let}     & $[\alpha,\alpha\To\beta]\To\beta$ & let binder\\
   \cdx{0}       & $i$           & empty set\\
   \cdx{cons}    & $[i,i]\To i$  & finite set constructor\\
   \cdx{Upair}   & $[i,i]\To i$  & unordered pairing\\
@@ -134,8 +135,13 @@ Figure~\ref{zf-trans} presents the syntax translations.  Finally,
 Figure~\ref{zf-syntax} presents the full grammar for set theory, including
 the constructs of \FOL.
 
-Set theory does not use polymorphism.  All terms in {\ZF} have
-type~\tydx{i}, which is the type of individuals and has class~{\tt
+Local abbreviations can be introduced by a {\tt let} construct whose
+syntax appears in Fig.\ts\ref{zf-syntax}.  Internally it is translated into
+the constant~\cdx{Let}.  It can be expanded by rewriting with its
+definition, \tdx{Let_def}.
+
+Apart from {\tt let}, set theory does not use polymorphism.  All terms in
+{\ZF} have type~\tydx{i}, which is the type of individuals and has class~{\tt
   term}.  The type of first-order formulae, remember, is~{\tt o}.
 
 Infix operators include binary union and intersection ($A\union B$ and
@@ -219,9 +225,12 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 
 
 \begin{figure} 
+\index{*let symbol}
+\index{*in symbol}
 \dquotes
 \[\begin{array}{rcl}
     term & = & \hbox{expression of type~$i$} \\
+         & | & "let"~id~"="~term";"\dots";"~id~"="~term~"in"~term \\
          & | & "\{ " term\; ("," term)^* " \}" \\
          & | & "< "  term\; ("," term)^* " >"  \\
          & | & "\{ " id ":" term " . " formula " \}" \\
@@ -344,6 +353,8 @@ write
 
 \begin{figure}
 \begin{ttbox}
+\tdx{Let_def}            Let(s, f) == f(s)
+
 \tdx{Ball_def}           Ball(A,P) == ALL x. x:A --> P(x)
 \tdx{Bex_def}            Bex(A,P)  == EX x. x:A & P(x)
 
@@ -783,6 +794,31 @@ assert that \cdx{Sigma}$(A,B)$ consists of all pairs of the form
 $\pair{x,y}$, for $x\in A$ and $y\in B(x)$.  The rule \tdx{SigmaE2}
 merely states that $\pair{a,b}\in {\tt Sigma}(A,B)$ implies $a\in A$ and
 $b\in B(a)$.
+
+In addition, it is possible to use tuples as patterns in abstractions:
+\begin{center}
+{\tt\%<$x$,$y$>.$t$} \quad stands for\quad {\tt split(\%$x$ $y$.$t$)}
+\end{center}
+Nested patterns are translated recursively:
+{\tt\%<$x$,$y$,$z$>.$t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>.$t$} $\leadsto$
+{\tt split(\%$x$.\%<$y$,$z$>.$t$)} $\leadsto$ {\tt split(\%$x$.split(\%$y$
+  $z$.$t$))}. The reverse translation is performed upon printing.
+\begin{warn}
+  The translation between patterns and {\tt split} is performed automatically
+  by the parser and printer.  Thus the internal and external form of a term
+  may differ, whichs affects proofs.  For example the term {\tt
+    (\%<x,y>.<y,x>)<a,b>} requires the theorem {\tt split} to rewrite to
+  {\tt<b,a>}.
+\end{warn}
+In addition to explicit $\lambda$-abstractions, patterns can be used in any
+variable binding construct which is internally described by a
+$\lambda$-abstraction. Some important examples are
+\begin{description}
+\item[Let:] {\tt let {\it pattern} = $t$ in $u$}
+\item[Choice:] {\tt THE~{\it pattern}~.~$P$}
+\item[Set operations:] {\tt UN~{\it pattern}:$A$.~$B$}
+\item[Comprehension:] {\tt \{~{\it pattern}:$A$~.~$P$~\}}
+\end{description}
 
 
 %%% domrange.ML
