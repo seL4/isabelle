@@ -565,13 +565,13 @@ fun netMkRules P vars (nps: netpair list) =
 	    val intrs = List.concat 
 		             (map (fn (inet,_) => Net.unify_term inet pG) 
 			      nps)
-	in  map (fromIntrRule vars o #2) (orderlist intrs)  end
+	in  map (fromIntrRule vars o #2) (Tactic.orderlist intrs)  end
     | _ =>
 	let val pP = mk_tprop (toTerm 3 P)
 	    val elims = List.concat 
 		             (map (fn (_,enet) => Net.unify_term enet pP) 
 			      nps)
-	in  List.mapPartial (fromRule vars o #2) (orderlist elims)  end;
+	in  List.mapPartial (fromRule vars o #2) (Tactic.orderlist elims)  end;
 
 
 (*Pending formulae carry md (may duplicate) flags*)

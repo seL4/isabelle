@@ -780,7 +780,7 @@ fun nsubgoalsP n (k,brl) = (subgoals_of_brl brl = n);
 (*version of bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac n =
-    biresolution_from_nets_tac (orderlist o filter (nsubgoalsP n)) true;
+    biresolution_from_nets_tac (Tactic.orderlist o filter (nsubgoalsP n)) true;
 
 fun eq_contr_tac i = ematch_tac [not_elim] i  THEN  eq_assume_tac i;
 val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;
