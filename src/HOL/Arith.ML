@@ -592,7 +592,7 @@ by (dtac sym 1);
 by (rtac disjCI 1);
 by (rtac nat_less_cases 1 THEN assume_tac 2);
 by (fast_tac (!claset addSEs [less_SucE] addss !simpset) 1);
-by (fast_tac (!claset addDs [mult_less_mono2] 
+by (best_tac (!claset addDs [mult_less_mono2] 
                       addss (!simpset addsimps [zero_less_eq RS sym])) 1);
 qed "mult_eq_self_implies_10";
 
