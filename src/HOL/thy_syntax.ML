@@ -208,11 +208,12 @@ val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
   (repeat1 ((ident -- string) || (string >> pair "")))) >> mk_primrec_decl;
 
 
+(*** recdef: interface to Slind's TFL ***)
 
-(** recdef: interface to Slind's TFL **)
+(** TFL with explicit WF relations **)
 
 (*fname: name of function being defined; rel: well-founded relation*)
-fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
+fun mk_rec_decl ((((fname, rel), congs), ss), axms) =
   let
     val fid = strip_quotes fname;
     val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
@@ -232,11 +233,42 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
     \val thy = thy\n"
   end;
 
-val recdef_decl =
-  (name -- string --
-    optional ("congs" $$-- list1 name) [] --
-    optional ("simpset" $$-- string >> strip_quotes) "simpset()" --
-    repeat1 string >> mk_recdef_decl);
+
+(** TFL with no WF relation supplied **)
+
+(*fname: name of function being defined; rel: well-founded relation*)
+fun mk_rec_deferred_decl (((fname, congs), ss), axms) =
+  let val fid = strip_quotes fname
+      val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
+  in
+      ";\n\n\
+       \local\n\
+       \val (thy, induct_rules) = Tfl.function thy " ^ 
+          quote fid ^ " " ^ 
+	  " (" ^ congs_text ^ ")\n" 
+	  ^ mk_big_list axms ^ ";\n\
+       \in\n\
+       \structure " ^ fid ^ " =\n\
+       \struct\n\
+       \  val induct_rules = induct_rules \n\
+       \end;\n\
+       \val thy = thy;\nend;\n\
+       \val thy = thy\n"
+  end;
+
+
+(*parses either a standard or a deferred recdef; the latter has no WF
+  relation given*)
+val recdef_decl = 
+    (name -- string -- 
+     optional ("congs" $$-- list1 name) [] -- 
+     optional ("simpset" $$-- string >> strip_quotes) "simpset()" -- 
+     repeat1 string >> mk_rec_decl)
+    ||
+    (name --$$ "??" --
+     optional ("congs" $$-- list1 name) [] -- 
+     optional ("simpset" $$-- string >> strip_quotes) "simpset()" -- 
+     repeat1 string >> mk_rec_deferred_decl) ;
 
 
 
@@ -246,14 +278,14 @@ in
 
 val _ = ThySyn.add_syntax
  ["intrs", "monos", "con_defs", "congs", "simpset", "|",
-  "and", "distinct", "inject", "induct"]
+  "and", "distinct", "inject", "induct", "??"]
  [axm_section "typedef" "|> TypedefPackage.add_typedef" typedef_decl,
   section "record" "|> RecordPackage.add_record" record_decl,
-  section "inductive" "" (inductive_decl false),
-  section "coinductive" "" (inductive_decl true),
-  section "datatype" "" datatype_decl,
+  section "inductive" 	"" (inductive_decl false),
+  section "coinductive"	"" (inductive_decl true),
+  section "datatype" 	"" datatype_decl,
   section "rep_datatype" "" rep_datatype_decl,
-  section "primrec" "" primrec_decl,
-  section "recdef" "" recdef_decl];
+  section "primrec" 	"" primrec_decl,
+  section "recdef" 	"" recdef_decl];
 
 end;
