@@ -29,8 +29,8 @@ sig
   val ext_typeN: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
-  val get_extT_fields:  Sign.sg -> typ -> (string * typ) list
-  val get_recT_fields:  Sign.sg -> typ -> (string * typ) list
+  val get_extT_fields:  Sign.sg -> typ -> ((string * typ) list * (string * typ))
+  val get_recT_fields:  Sign.sg -> typ -> ((string * typ) list * (string * typ))
   val get_extension: Sign.sg -> Symtab.key -> (string * typ list) option
   val get_extinjects: Sign.sg -> thm list
   val get_simpset: Sign.sg -> simpset
@@ -403,18 +403,31 @@ fun get_extfields sg name =
   Symtab.lookup (#extfields (RecordsData.get_sg sg), name);
 
 fun get_extT_fields sg T = 
-  let val {extfields,...} = RecordsData.get_sg sg;
-  in Symtab.lookup_multi (extfields,fst (fst (dest_recT T)))
-  end; 
+  let
+    val ((name,Ts),moreT) = dest_recT T;
+    val recname = let val (nm::recn::rst) = rev (NameSpace.unpack name) 
+                  in NameSpace.pack (rev (nm::rst)) end;
+    val midx = maxidx_of_typs (moreT::Ts);
+    fun varify (a, S) = TVar ((a, midx), S);
+    val varifyT = map_type_tfree varify;
+    val {records,extfields,...} = RecordsData.get_sg sg;
+    val (flds,(more,_)) = split_last (Symtab.lookup_multi (extfields,name));
+    val args = map varifyT (snd (#extension (the (Symtab.lookup (records,recname)))));
 
-fun get_fields extfields T = 
-     foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
-             ([],(dest_recTs T));
+    val tsig = Sign.tsig_of sg;
+    fun unify (t,env) = Type.unify tsig env t;
+    val (subst,_) = foldr unify (but_last args ~~ but_last Ts,(Vartab.empty,0));
+    val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
+  in (flds',(more,moreT)) end;
 
 fun get_recT_fields sg T = 
-  let val {extfields,...} = RecordsData.get_sg sg;
-  in get_fields extfields T
-  end;
+  let 
+    val (root_flds,(root_more,root_moreT)) = get_extT_fields sg T;
+    val (rest_flds,rest_more) = 
+	   if is_recT root_moreT then get_recT_fields sg root_moreT 
+           else ([],(root_more,root_moreT));
+  in (root_flds@rest_flds,rest_more) end;
+
 
 (* access 'fieldext' *)
 
@@ -803,7 +816,12 @@ fun prove_split_simp sg T prop =
 
 
 
+local
 
+fun get_fields extfields T = 
+     foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
+             ([],(dest_recTs T));
+in
 (* record_simproc *)
 (* Simplifies selections of an record update:
  *  (1)  S (r(|S:=k|)) = k respectively
@@ -974,6 +992,7 @@ val record_upd_simproc =
              | _ => None)
 	 end
        | _ => None));
+end
 
 (* record_eq_simproc *)
 (* looks up the most specific record-equality.
