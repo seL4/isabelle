@@ -49,9 +49,17 @@ val rm = OS.FileSys.remove o sysify_path;
 val cd = Library.cd o sysify_path;
 val pwd = unsysify_path o Library.pwd;
 
-fun full_path path =
-  if Path.is_absolute path then path
-  else Path.append (pwd ()) path;
+fun norm_absolute p =
+  let
+    val p' = pwd ();
+    fun norm p = if can cd p then pwd ()
+      else Path.append (norm (Path.dir p)) (Path.base p);
+    val p'' = norm p
+  in (cd p'; p'') end
+
+fun full_path path = norm_absolute
+  (if Path.is_absolute path then path
+   else Path.append (pwd ()) path);
 
 
 (* tmp_path *)
