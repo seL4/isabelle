@@ -104,6 +104,25 @@ by (auto_tac (claset() addDs [order_less_not_sym],
 qed "zmult_le_0_iff";
 
 
+Goal "abs (x * y) = abs x * abs (y::int)";
+by (simp_tac (simpset () addsplits [zabs_split] addsimps [zmult_less_0_iff, zle_def]) 1);
+qed "abs_mult";
+
+Goal "(abs x = 0) = (x = (0::int))";
+by (simp_tac (simpset () addsplits [zabs_split]) 1);
+qed "abs_eq_0";
+AddIffs [abs_eq_0];
+
+Goal "#0 <= x * (x::int)";
+by (subgoal_tac "(- x) * x <= #0" 1);
+ by (Asm_full_simp_tac 1);
+by (simp_tac (HOL_basic_ss addsimps [zmult_le_0_iff]) 1);
+by Auto_tac;
+qed "square_nonzero";
+Addsimps [square_nonzero];
+AddIs [square_nonzero];
+
+
 (*** Products and 1, by T. M. Rasmussen ***)
 
 Goal "(m = m*(n::int)) = (n = #1 | m = #0)";
