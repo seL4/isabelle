@@ -49,7 +49,7 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (* ML command execution -- 'eval' *)
 
-fun use_text verbose txt =
+fun use_text print verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
@@ -101,12 +101,11 @@ in
 fun execute command =
   let
     val (is, os) =  ExtendedIO.execute command;
+    val _ = close_out os;
     val result = input (is, 999999);
-  in
-    close_out os;
-    close_in is;
-    result
-  end;
+  in close_in is; result end;
+
+fun system cmd = (print (execute cmd); 0);	(* FIXME rc not available *)
 
 
 (* file handling *)

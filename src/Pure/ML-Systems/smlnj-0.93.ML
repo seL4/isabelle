@@ -90,7 +90,7 @@ fun install_pp (path, pp) = System.PrettyPrint.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text _ = System.Compile.use_stream o open_string;
+fun use_text _ _ = System.Compile.use_stream o open_string;
 
 
 
@@ -179,6 +179,9 @@ fun execute command =
     System.Unsafe.SysIO.unlink tmp_name;
     result
   end;
+
+(*plain version; with return code*)
+fun system cmd = System.system cmd div 256;
 
 
 (* file handling *)

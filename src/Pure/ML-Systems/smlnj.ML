@@ -80,7 +80,7 @@ fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text verbose txt =
+fun use_text print verbose txt =
   let
     val ref out_orig = Compiler.Control.Print.out;
 
@@ -188,6 +188,9 @@ fun execute command =
     OS.FileSys.remove tmp_name;
     result
   end;
+
+(*plain version; with return code*)
+val system = OS.Process.system: string -> int; 
 
 
 (* file handling *)
