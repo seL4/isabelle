@@ -125,6 +125,8 @@ sig
   val conj_intr_list: thm list -> thm
   val conj_elim: thm -> thm * thm
   val conj_elim_list: thm -> thm list
+  val conj_elim_precise: int -> thm -> thm list
+  val conj_intr_thm: thm
 end;
 
 structure Drule: DRULE =
@@ -517,22 +519,22 @@ fun read_prop s = read_cterm proto_sign (s, propT);
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);
-fun open_store_thm name thm = hd (PureThy.open_smart_store_thms (name, [thm]));
-fun open_store_standard_thm name thm = open_store_thm name (standard' thm);
+fun store_thm_open name thm = hd (PureThy.smart_store_thms_open (name, [thm]));
+fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
   let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
-  in open_store_standard_thm "reflexive" (Thm.reflexive cx) end;
+  in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
   let val xy = read_prop "x::'a::logic == y"
-  in open_store_standard_thm "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
+  in store_standard_thm_open "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
   let val xy = read_prop "x::'a::logic == y"
       val yz = read_prop "y::'a::logic == z"
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
-  in open_store_standard_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
+  in store_standard_thm_open "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
@@ -548,7 +550,7 @@ val imp_cong =
     val AC = read_prop "PROP A ==> PROP C"
     val A = read_prop "PROP A"
   in
-    open_store_standard_thm "imp_cong" (implies_intr ABC (equal_intr
+    store_standard_thm_open "imp_cong" (implies_intr ABC (equal_intr
       (implies_intr AB (implies_intr A
         (equal_elim (implies_elim (assume ABC) (assume A))
           (implies_elim (assume AB) (assume A)))))
@@ -564,7 +566,7 @@ val swap_prems_eq =
     val A = read_prop "PROP A"
     val B = read_prop "PROP B"
   in
-    open_store_standard_thm "swap_prems_eq" (equal_intr
+    store_standard_thm_open "swap_prems_eq" (equal_intr
       (implies_intr ABC (implies_intr B (implies_intr A
         (implies_elim (implies_elim (assume ABC) (assume A)) (assume B)))))
       (implies_intr BAC (implies_intr A (implies_intr B
@@ -577,12 +579,12 @@ val refl_implies = reflexive implies;
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = open_store_standard_thm "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
+val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
 val _ = store_thm "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
-  open_store_standard_thm "cut_rl"
+  store_standard_thm_open "cut_rl"
     (Thm.trivial (read_prop "PROP ?psi ==> PROP ?theta"));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
@@ -591,7 +593,7 @@ val revcut_rl =
   let val V = read_prop "PROP V"
       and VW = read_prop "PROP V ==> PROP W";
   in
-    open_store_standard_thm "revcut_rl"
+    store_standard_thm_open "revcut_rl"
       (implies_intr V (implies_intr VW (implies_elim (assume VW) (assume V))))
   end;
 
@@ -599,8 +601,7 @@ val revcut_rl =
 val thin_rl =
   let val V = read_prop "PROP V"
       and W = read_prop "PROP W";
-  in  open_store_standard_thm "thin_rl" (implies_intr V (implies_intr W (assume W)))
-  end;
+  in store_standard_thm_open "thin_rl" (implies_intr V (implies_intr W (assume W))) end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
@@ -608,7 +609,7 @@ val triv_forall_equality =
       and QV = read_prop "!!x::'a. PROP V"
       and x  = read_cterm proto_sign ("x", TypeInfer.logicT);
   in
-    open_store_standard_thm "triv_forall_equality"
+    store_standard_thm_open "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
         (implies_intr V  (forall_intr x (assume V))))
   end;
@@ -624,7 +625,7 @@ val swap_prems_rl =
       val minor1 = assume cminor1;
       val cminor2 = read_prop "PROP PhiB";
       val minor2 = assume cminor2;
-  in open_store_standard_thm "swap_prems_rl"
+  in store_standard_thm_open "swap_prems_rl"
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
          (implies_elim (implies_elim major minor1) minor2))))
   end;
@@ -637,7 +638,7 @@ val equal_intr_rule =
   let val PQ = read_prop "PROP phi ==> PROP psi"
       and QP = read_prop "PROP psi ==> PROP phi"
   in
-    open_store_standard_thm "equal_intr_rule"
+    store_standard_thm_open "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
@@ -671,7 +672,7 @@ val norm_hhf_eq =
         |> Thm.forall_intr cx
         |> Thm.implies_intr cphi
         |> Thm.implies_intr rhs)
-    |> open_store_standard_thm "norm_hhf_eq"
+    |> store_standard_thm_open "norm_hhf_eq"
   end;
 
 
@@ -927,6 +928,14 @@ fun conj_elim th =
 fun conj_elim_list th =
   let val (th1, th2) = conj_elim th
   in conj_elim_list th1 @ conj_elim_list th2 end handle THM _ => [th];
+
+fun conj_elim_precise 1 th = [th]
+  | conj_elim_precise n th =
+      let val (th1, th2) = conj_elim th
+      in th1 :: conj_elim_precise (n - 1) th2 end;
+
+val conj_intr_thm = store_standard_thm_open "conjunctionI"
+  (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
 
 end;
 
