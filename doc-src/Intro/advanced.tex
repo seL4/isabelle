@@ -420,12 +420,17 @@ enclosed in quotation marks.
 
 \indexbold{definitions} The {\bf definition part} is similar, but with the
 keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are rules of the
-form $t\equiv u$, and should serve only as abbreviations.  Isabelle checks for
-common errors in definitions, such as extra variables on the right-hand side.
-Determined users can write non-conservative `definitions' by using mutual
-recursion, for example; the consequences of such actions are their
-responsibility.
-
+form $s \equiv t$, and should serve only as abbreviations. The simplest form
+of a definition is $f \equiv t$, where $f$ is a constant. Isabelle also
+allows a derived form where the parameters of $f$ appear on the left:
+\begin{itemize}
+\item In uncurried syntax: $f(x@1,\dots,x@n) \equiv u$ (\FOL, \ZF, \dots)
+\item In curried syntax: $f~x@1~\dots~x@n \equiv u$ (\HOL, \HOLCF)
+\end{itemize}
+Isabelle checks for common errors in definitions, such as extra variables on
+the right-hand side.  Determined users can write non-conservative
+`definitions' by using mutual recursion, for example; the consequences of
+such actions are their responsibility.
 
 \index{examples!of theories} 
 This theory extends first-order logic by declaring and defining two constants,
@@ -437,6 +442,27 @@ defs    nand_def "nand(P,Q) == ~(P & Q)"
         xor_def  "xor(P,Q)  == P & ~Q | ~P & Q"
 end
 \end{ttbox}
+
+Declaring and defining constants can be combined:
+\begin{ttbox}
+Gate = FOL +
+constdefs  nand :: [o,o] => o
+           "nand(P,Q) == ~(P & Q)"
+           xor  :: [o,o] => o
+           "xor(P,Q)  == P & ~Q | ~P & Q"
+end
+\end{ttbox}
+{\tt constdefs} generates the names {\tt nand_def} and {\tt xor_def}
+automatically, which is why it is restricted to alphanumeric identifiers. In
+general it has the form
+\begin{ttbox}
+constdefs  \(id@1\) :: \(\tau@1\)
+           "\(id@1 \equiv \dots\)"
+           \vdots
+           \(id@n\) :: \(\tau@n\)
+           "\(id@n \equiv \dots\)"
+\end{ttbox}
+
 
 \begin{warn}
 A common mistake when writing definitions is to introduce extra free variables
