@@ -10,7 +10,8 @@ New in Isabelle???? (DATE ????)
   are rewritten to
   `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t)'
 
-* HOL/Lists: the function "set_of_list" has been renamed "set"
+* HOL/Lists: the function "set_of_list" has been renamed "set" (and its 
+  theorems too)
 
 * removed old README and Makefiles;
 
