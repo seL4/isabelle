@@ -176,6 +176,7 @@ sig
   val untabify: string list -> string list
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
+  val unprefix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
 
@@ -838,6 +839,14 @@ fun unsuffix sfx s =
     if prfx_len >= 0 andalso implode (drop (prfx_len, cs)) = sfx then
       implode (take (prfx_len, cs))
     else raise LIST "unsuffix"
+  end;
+
+(*remove prefix*)
+fun unprefix prfx s =
+  let val (prfx', sfx) = splitAt (size prfx, explode s)
+  in
+    if implode prfx' = prfx then implode sfx
+    else raise LIST "unprefix"
   end;
 
 fun replicate_string 0 _ = ""
