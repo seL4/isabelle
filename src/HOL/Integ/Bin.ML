@@ -500,33 +500,33 @@ val arith_tac =
 
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a-d+ #2 <= b+(-c)";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a+c+ #1 < b+d";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a <= b; b+b <= c |] ==> a+a <= c";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b <= i+j; a<=b; i<=j |] \
 \     ==> a+a <= j+j";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b < i+j; a<b; i<j |] \
 \     ==> a+a - - #-1 < j+j - #3";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
-by(arith_tac 1);
+by (arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a <= l";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a <= l+l+l+l";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a <= l+l+l+l+i";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 *)
 
 (*---------------------------------------------------------------------------*)
@@ -548,50 +548,50 @@ Addsimps [add_integ_of_left, mult_integ_of_left];
 (** Simplification of inequalities involving numerical constants **)
 
 Goal "(w <= z + #1) = (w<=z | w = z + #1)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "zle_add1_eq";
 
 Goal "(w <= z - #1) = (w<z)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "zle_diff1_eq";
 Addsimps [zle_diff1_eq];
 
 (*2nd premise can be proved automatically if v is a literal*)
 Goal "[| w <= z; #0 <= v |] ==> w <= z + v";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zle_imp_zle_zadd";
 
 Goal "w <= z ==> w <= z + #1";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zle_imp_zle_zadd1";
 
 (*2nd premise can be proved automatically if v is a literal*)
 Goal "[| w < z; #0 <= v |] ==> w < z + v";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zless_imp_zless_zadd";
 
 Goal "w < z ==> w < z + #1";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zless_imp_zless_zadd1";
 
 Goal "(w < z + #1) = (w<=z)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "zle_add1_eq_le";
 Addsimps [zle_add1_eq_le];
 
 Goal "(z = z + w) = (w = #0)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "zadd_left_cancel0";
 Addsimps [zadd_left_cancel0];
 
 (*LOOPS as a simprule!*)
 Goal "[| w + v < z; #0 <= v |] ==> w < z";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zless_zadd_imp_zless";
 
 (*LOOPS as a simprule!  Analogous to Suc_lessD*)
 Goal "w + #1 < z ==> w < z";
-by(fast_arith_tac 1);
+by (fast_arith_tac 1);
 qed "zless_zadd1_imp_zless";
 
 Goal "w + #-1 = w - #1";

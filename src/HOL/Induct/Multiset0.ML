@@ -7,5 +7,5 @@ This theory merely proves that the representation of multisets is nonempty.
 *)
 
 Goal "(%x.0) : {f. finite {x. 0 < f x}}";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "multiset_witness";

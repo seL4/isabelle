@@ -747,7 +747,7 @@ by Auto_tac;
 qed "ex_bool_eq";
 
 Goal "A Un B = (UN b. if b then A else B)";
-by(auto_tac(claset()delWrapper"bspec",simpset()addsimps [split_if_mem2]));
+by (auto_tac(claset()delWrapper"bspec",simpset()addsimps [split_if_mem2]));
 qed "Un_eq_UN";
 
 Goal "(UN b::bool. A b) = (A True Un A False)";

@@ -467,7 +467,7 @@ qed "singleton_conv";
 Addsimps [singleton_conv];
 
 Goal "{x. a=x} = {a}";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "singleton_conv2";
 Addsimps [singleton_conv2];
 

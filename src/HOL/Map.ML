@@ -120,7 +120,7 @@ qed_goalw "finite_dom_map_of" Map.thy [dom_def] "finite (dom (map_of l))" (K[
 	Asm_full_simp_tac 1]);
 
 Goalw [dom_def] "dom(m++n) = dom n Un dom m";
-by(Simp_tac 1);
+by (Simp_tac 1);
 by (Blast_tac 1);
 qed "dom_override";
 Addsimps [dom_override];

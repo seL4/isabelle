@@ -161,10 +161,10 @@ qed "min_le_iff_disj";
 
 Goalw [min_def]
  "P(min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "split_min";
 
 Goalw [max_def]
  "P(max (i::'a::linorder) j) = ((i <= j --> P(j)) & (~ i <= j --> P(i)))";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "split_max";

@@ -105,13 +105,13 @@ qed "zero_is_add";
 AddIffs [zero_is_add];
 
 Goal "(m+n=1) = (m=1 & n=0 | m=0 & n=1)";
-by(exhaust_tac "m" 1);
-by(Auto_tac);
+by (exhaust_tac "m" 1);
+by (Auto_tac);
 qed "add_is_1";
 
 Goal "(1=m+n) = (m=1 & n=0 | m=0 & n=1)";
-by(exhaust_tac "m" 1);
-by(Auto_tac);
+by (exhaust_tac "m" 1);
+by (Auto_tac);
 qed "one_is_add";
 
 Goal "(0<m+n) = (0<m | 0<n)";
@@ -185,7 +185,7 @@ bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 Goal "i+j < (k::nat) --> i<k";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
-by(blast_tac (claset() addDs [Suc_lessD]) 1);
+by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed_spec_mp "add_lessD1";
 
 Goal "~ (i+j < (i::nat))";
@@ -972,10 +972,10 @@ simpset_ref () := (simpset() addSolver Fast_Arith.cut_lin_arith_tac);
 
 (* Elimination of `-' on nat due to John Harrison *)
 Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
-by(case_tac "a <= b" 1);
-by(Auto_tac);
-by(eres_inst_tac [("x","b-a")] allE 1);
-by(Auto_tac);
+by (case_tac "a <= b" 1);
+by (Auto_tac);
+by (eres_inst_tac [("x","b-a")] allE 1);
+by (Auto_tac);
 qed "nat_diff_split";
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
@@ -995,75 +995,75 @@ val arith_tac =
 (*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
 Goal "[| a < (b::nat); c <= a |] ==> a-c < b-c";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_less_mono";
 
 Goal "a+b < (c::nat) ==> a < c-b";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "add_less_imp_less_diff";
 
 Goal "(i < j-k) = (i+k < (j::nat))";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "less_diff_conv";
 
 Goal "(j-k <= (i::nat)) = (j <= i+k)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "le_diff_conv";
 
 Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "le_diff_conv2";
 
 Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "Suc_diff_Suc";
 
 Goal "i <= (n::nat) ==> n - (n - i) = i";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_diff_cancel";
 Addsimps [diff_diff_cancel];
 
 Goal "k <= (n::nat) ==> m <= n + m - k";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "le_add_diff";
 
 Goal "[| 0<k; j<i |] ==> j+k-i < k";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "add_diff_less";
 
 Goal "m-1 < n ==> m <= n";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "pred_less_imp_le";
 
 Goal "j<=i ==> i - j < Suc i - j";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_less_Suc_diff";
 
 Goal "i - j <= Suc i - j";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_le_Suc_diff";
 AddIffs [diff_le_Suc_diff];
 
 Goal "n - Suc i <= n - i";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
 
 Goal "0 < n ==> (m <= n-1) = (m<n)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "le_pred_eq";
 
 Goal "0 < n ==> (m-1 < n) = (m<=n)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "less_pred_eq";
 
 (*In ordinary notation: if 0<n and n<=m then m-n < m *)
 Goal "[| 0<n; ~ m<n |] ==> m - n < m";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_less";
 
 Goal "[| 0<n; n<=m |] ==> m - n < m";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "le_diff_less";
 
 
@@ -1072,19 +1072,19 @@ qed "le_diff_less";
 
 (* Monotonicity of subtraction in first argument *)
 Goal "m <= (n::nat) ==> (m-l) <= (n-l)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_le_mono";
 
 Goal "m <= (n::nat) ==> (l-n) <= (l-m)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_le_mono2";
 
 
 (*This proof requires natdiff_cancel_sums*)
 Goal "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diff_less_mono2";
 
 Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "diffs0_imp_equal";

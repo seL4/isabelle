@@ -253,6 +253,6 @@ fun enabled_tac base_vars =
 
 val [prem] = goal thy "basevars (x,y,z) ==> |- x --> Enabled ($x & (y$ = #False))";
 by (enabled_tac prem 1);
-auto();
+by Auto_tac;
 
 *)

@@ -213,6 +213,14 @@ Goalw [image_def] "inj(f) ==> inv(f)``(f``X) = X";
 by Auto_tac;
 qed "inv_image_comp";
 
+Goal "inj f ==> (f a : f``A) = (a : A)";
+by (blast_tac (claset() addDs [injD]) 1);
+qed "inj_image_mem_iff";
+
+Goal "inj f ==> (f``A = f``B) = (A = B)";
+by (blast_tac (claset() addSEs [equalityE] addDs [injD]) 1);
+qed "inj_image_eq_iff";
+
 val set_cs = claset() delrules [equalityI];
 
 

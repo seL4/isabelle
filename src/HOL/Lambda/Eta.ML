@@ -28,8 +28,8 @@ Addsimps [subst_not_free RS eqTrueI];
 Goal "!i k. free (lift t k) i = (i < k & free t i | k < i & free t (i-1))";
 by (induct_tac "t" 1);
   by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
- by(arith_tac 1);
-by(Auto_tac);
+ by (arith_tac 1);
+by (Auto_tac);
 qed "free_lift";
 Addsimps [free_lift];
 
@@ -115,7 +115,7 @@ AddIs [beta_subst];
 
 Goal "!i. t[Var i/i] = t[Var(i)/Suc i]";
 by (induct_tac "t" 1);
-by(auto_tac (claset() addSEs [linorder_neqE], addsplit (simpset())));
+by (auto_tac (claset() addSEs [linorder_neqE], addsplit (simpset())));
 qed_spec_mp "subst_Var_Suc";
 Addsimps [subst_Var_Suc];
 

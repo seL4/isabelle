@@ -45,7 +45,7 @@ qed "acc_induct";
 
 Goal "!x. x : acc(r) ==> wf(r)";
 by (rtac wfUNIVI 1);
-by(deepen_tac (claset() addEs [acc_induct]) 1 1);
+by (deepen_tac (claset() addEs [acc_induct]) 1 1);
 qed "acc_wfI";
 
 Goal "wf(r) ==> x : acc(r)";

@@ -39,8 +39,8 @@ qed "neq0_conv";
 AddIffs [neq0_conv];
 
 Goal "(0 ~= n) = (0 < n)";
-by(exhaust_tac "n" 1);
-by(Auto_tac);
+by (exhaust_tac "n" 1);
+by (Auto_tac);
 qed "zero_neq_conv";
 AddIffs [zero_neq_conv];
 

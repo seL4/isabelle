@@ -498,7 +498,7 @@ fun refute_tac test prep_tac ref_tac =
       val refute_prems_tac =
         REPEAT(eresolve_tac [conjE, exE] 1 ORELSE
                filter_prems_tac test 1 ORELSE
-               eresolve_tac [disjE] 1) THEN
+               etac disjE 1) THEN
         ref_tac 1;
   in EVERY'[TRY o filter_prems_tac test,
             DETERM o REPEAT o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
