@@ -20,7 +20,7 @@ sig
   val scan_int: string list -> string * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
-  val indexname: string list -> indexname
+  val indexname: string -> indexname
   val read_var: string -> term
   val const: string -> term
   val free: string -> term
@@ -324,10 +324,14 @@ fun scan_vname chrs =
 
 (* indexname *)
 
+val scan_indexname =
+     $$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i))
+  || scan_vname;
+
 fun indexname cs =
-  (case Scan.read Symbol.stopper scan_vname cs of
+  (case Scan.read Symbol.stopper scan_indexname (Symbol.explode cs) of
     Some xi => xi
-  | _ => error ("Lexical error in variable name: " ^ quote (implode cs)));
+  | _ => error ("Lexical error in variable name: " ^ quote cs));
 
 
 (* read_var *)
@@ -338,11 +342,8 @@ fun var xi = Var (xi, dummyT);
 
 fun read_var str =
   let
-    fun tvar (x, i) = var ("'" ^ x, i);
-
     val scan =
-      $$ "?" |-- $$ "'" |-- scan_vname >> tvar ||
-      $$ "?" |-- scan_vname >> var ||
+      $$ "?" |-- scan_indexname >> var ||
       Scan.any Symbol.not_eof >> (free o implode);
   in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
 
