@@ -26,12 +26,10 @@ struct
 
    val COND_CONG = if_cong RS eq_reflection;
 
-   fun C f x y = f y x;
-   fun prover thl = [fast_tac HOL_cs 1];
-   val P = C (prove_goal HOL.thy) prover;
+   fun prove s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
 
-   val eqT       = P"(x = True) --> x"
-   val rev_eq_mp = P"(x = y) --> y --> x"
-   val simp_thm  = P"(x-->y) --> (x = x') --> (x' --> y)"
+   val eqT       = prove"(x = True) --> x"
+   val rev_eq_mp = prove"(x = y) --> y --> x"
+   val simp_thm  = prove"(x-->y) --> (x = x') --> (x' --> y)"
 
 end;
