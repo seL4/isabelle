@@ -41,7 +41,7 @@ AddIs  [vimageI];
 AddSEs [vimageE];
 
 
-(*** Simple equalities ***)
+(*** Equations ***)
 
 Goal "f-``{} = {}";
 by (Blast_tac 1);
@@ -58,6 +58,10 @@ qed "vimage_Un";
 Goal "f -`` (A Int B) = (f -`` A) Int (f -`` B)";
 by (Fast_tac 1);
 qed "vimage_Int";
+
+Goal "f -`` (Union A) = (UN X:A. f -`` X)";
+by (Blast_tac 1);
+qed "vimage_Union";
 
 Goal "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
 by (Blast_tac 1);
@@ -92,9 +96,7 @@ Goal "f-``B = (UN y: B. f-``{y})";
 by (Blast_tac 1);
 qed "vimage_eq_UN";
 
-
-(** monotonicity **)
-
+(*monotonicity*)
 Goal "A<=B ==> f-``A <= f-``B";
 by (Blast_tac 1);
 qed "vimage_mono";
