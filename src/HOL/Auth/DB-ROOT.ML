@@ -14,11 +14,5 @@ writeln banner;
 
 init_thy_reader();
 
-(*Must be redefined in order to refer to the new instance of bind_thm
-  created by init_thy_reader.*)
-fun qed_spec_mp name =
-  let val thm = normalize_thm [RSspec,RSmp] (result())
-  in bind_thm(name, thm) end;
-
 use_thy "Message";
 
