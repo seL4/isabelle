@@ -49,7 +49,6 @@ signature TACTICAL =
   val REPEAT_SOME       : (int -> tactic) -> tactic
   val SELECT_GOAL       : tactic -> int -> tactic
   val SOMEGOAL          : (int -> tactic) -> tactic   
-  val STATE             : (thm -> tactic) -> tactic
   val strip_context     : term -> (string * typ) list * term list * term
   val SUBGOAL           : ((term*int) -> tactic) -> int -> tactic
   val suppress_tracing  : bool ref
@@ -74,9 +73,6 @@ struct
     if length > 1 then backtracking on the alternatives can occur.*)
 
 type tactic = thm -> thm Sequence.seq;
-
-(*Makes a tactic from one that uses the components of the state.*)
-fun STATE tacfun st = tacfun st st;
 
 
 (*** LCF-style tacticals ***)
