@@ -16,74 +16,74 @@ text {*
 
 subsection {* Proof text *}
 
-theorem tnd: "P \<or> \<not> P"
+theorem "A \<or> \<not> A"
 proof -
-  let ?A = "\<lambda>x. x = False \<or> x = True \<and> P"
-  let ?B = "\<lambda>x. x = False \<and> P \<or> x = True"
-  let ?f = "\<lambda>R. SOME y. R y"
+  let ?P = "\<lambda>X. X = False \<or> X = True \<and> A"
+  let ?Q = "\<lambda>X. X = False \<and> A \<or> X = True"
 
-  have a: "?A (?f ?A)"
+  have a: "?P (Eps ?P)"
   proof (rule someI)
     have "False = False" ..
-    thus "?A False" ..
+    thus "?P False" ..
   qed
-  have b: "?B (?f ?B)"
+  have b: "?Q (Eps ?Q)"
   proof (rule someI)
     have "True = True" ..
-    thus "?B True" ..
+    thus "?Q True" ..
   qed
 
   from a show ?thesis
   proof
-    assume fa: "?f ?A = False"
+    assume "Eps ?P = True \<and> A"
+    hence A ..
+    thus ?thesis ..
+  next
+    assume P: "Eps ?P = False"
     from b show ?thesis
     proof
-      assume "?f ?B = False \<and> P"
-      hence P ..
+      assume "Eps ?Q = False \<and> A"
+      hence A ..
       thus ?thesis ..
     next
-      assume fb: "?f ?B = True"
-      have neq: "?A \<noteq> ?B"
+      assume Q: "Eps ?Q = True"
+      have neq: "?P \<noteq> ?Q"
       proof
-	assume "?A = ?B" hence eq: "?f ?A = ?f ?B" by (rule arg_cong)
-	from fa have "False = ?f ?A" ..
-	also note eq
-	also note fb
-	finally have "False = True" .
+	assume "?P = ?Q"
+	hence "Eps ?P = Eps ?Q" by (rule arg_cong)
+	also note P
+	also note Q
+	finally have "False = True" .	
 	thus False by (rule False_neq_True)
       qed
-      have "\<not> P"
+      have "\<not> A"
       proof
-	assume p: P
-	have "?A = ?B"
+	assume a: A
+	have "?P = ?Q"
 	proof
-	  fix x
-	  show "?A x = ?B x"
+	  fix x show "?P x = ?Q x"
 	  proof
-	    assume "?A x"
-	    thus "?B x"
+	    assume "?P x"
+	    thus "?Q x"
 	    proof
 	      assume "x = False"
-	      from this and p
-	      have "x = False \<and> P" ..
-	      thus "?B x" ..
+	      from this and a have "x = False \<and> A" ..
+	      thus "?Q x" ..
 	    next
-	      assume "x = True \<and> P"
+	      assume "x = True \<and> A"
 	      hence "x = True" ..
-	      thus "?B x" ..
+	      thus "?Q x" ..
 	    qed
 	  next
-	    assume "?B x"
-	    thus "?A x"
+	    assume "?Q x"
+	    thus "?P x"
 	    proof
-	      assume "x = False \<and> P"
+	      assume "x = False \<and> A"
 	      hence "x = False" ..
-	      thus "?A x" ..
+	      thus "?P x" ..
 	    next
 	      assume "x = True"
-	      from this and p
-	      have "x = True \<and> P" ..
-	      thus "?A x" ..
+	      from this and a have "x = True \<and> A" ..
+	      thus "?P x" ..
 	    qed
 	  qed
 	qed
@@ -91,21 +91,18 @@ proof -
       qed
       thus ?thesis ..
     qed
-  next
-    assume "?f ?A = True \<and> P" hence P ..
-    thus ?thesis ..
   qed
 qed
 
 
 subsection {* Proof script *}
 
-theorem tnd': "P \<or> \<not> P"
+theorem tnd': "A \<or> \<not> A"
   apply (subgoal_tac
-    "(((SOME x. x = False \<or> x = True \<and> P) = False) \<or>
-      ((SOME x. x = False \<or> x = True \<and> P) = True) \<and> P) \<and>
-     (((SOME x. x = False \<and> P \<or> x = True) = False) \<and> P \<or>
-      ((SOME x. x = False \<and> P \<or> x = True) = True))")
+    "(((SOME x. x = False \<or> x = True \<and> A) = False) \<or>
+      ((SOME x. x = False \<or> x = True \<and> A) = True) \<and> A) \<and>
+     (((SOME x. x = False \<and> A \<or> x = True) = False) \<and> A \<or>
+      ((SOME x. x = False \<and> A \<or> x = True) = True))")
   prefer 2
   apply (rule conjI)
   apply (rule someI)
@@ -123,11 +120,11 @@ theorem tnd': "P \<or> \<not> P"
   apply (erule conjE)
   apply (erule disjI1)
   apply (subgoal_tac
-    "(\<lambda>x. (x = False) \<or> (x = True) \<and> P) \<noteq>
-     (\<lambda>x. (x = False) \<and> P \<or> (x = True))")
+    "(\<lambda>x. (x = False) \<or> (x = True) \<and> A) \<noteq>
+     (\<lambda>x. (x = False) \<and> A \<or> (x = True))")
   prefer 2
   apply (rule notI)
-  apply (drule_tac f="\<lambda>y. SOME x. y x" in arg_cong)
+  apply (drule_tac f = "\<lambda>y. SOME x. y x" in arg_cong)
   apply (drule trans, assumption)
   apply (drule sym)
   apply (drule trans, assumption)
