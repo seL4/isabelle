@@ -86,26 +86,15 @@ Goalw [abs_real_def] "-x<=abs (x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
 qed "abs_ge_minus_self";
 
-(* case splits nightmare *)
 Goalw [abs_real_def] "abs (x * y) = abs x * abs (y::real)";
-by (auto_tac (claset(),
-	      simpset() addsimps [real_minus_mult_eq1, real_minus_mult_commute,
-				  real_minus_mult_eq2]));
-by (blast_tac (claset() addDs [full_rename_numerals thy real_le_mult_order]) 1);
-by (auto_tac (claset() addSDs [not_real_leE], simpset()));
-by (EVERY1[dtac (full_rename_numerals thy real_mult_le_zero), 
-    assume_tac, dtac real_le_anti_sym]);
-by (EVERY[dtac (full_rename_numerals thy real_mult_le_zero) 3,
-     assume_tac 3, dtac real_le_anti_sym 3]);
-by (dtac (full_rename_numerals thy real_mult_less_zero1) 5 THEN assume_tac 5);
-by (auto_tac (claset() addDs [real_less_asym,sym],
-	      simpset() addsimps [real_minus_mult_eq2 RS sym] @real_mult_ac));
+by (auto_tac (claset() addSDs [order_antisym],
+	      simpset() addsimps [real_0_le_times_iff]));
 qed "abs_mult";
 
 Goalw [abs_real_def] "x~= (#0::real) ==> abs(rinv(x)) = rinv(abs(x))";
-by (auto_tac (claset(), simpset() addsimps [real_le_less] @ 
-    (map (full_rename_numerals thy) [real_minus_rinv,
-    real_rinv_gt_zero])));
+by (auto_tac (claset(), 
+              simpset() addsimps [real_le_less] @ 
+    (map (full_rename_numerals thy) [real_minus_rinv, real_rinv_gt_zero])));
 by (etac (full_rename_numerals thy (real_rinv_less_zero 
     RSN (2,real_less_asym))) 1);
 by (arith_tac 1);

@@ -13,7 +13,7 @@ by (simp_tac (simpset() addsimps [real_number_of_def]) 1);
 qed "real_number_of";
 Addsimps [real_number_of];
 
-Goalw [real_number_of_def] "0r = #0";
+Goalw [real_number_of_def] "(0::real) = #0";
 by (simp_tac (simpset() addsimps [real_of_int_zero RS sym]) 1);
 qed "zero_eq_numeral_0";
 
@@ -109,14 +109,14 @@ qed "le_real_number_of_eq_not_less";
 
 Addsimps [le_real_number_of_eq_not_less];
 
-(*** New versions of existing theorems involving 0r, 1r ***)
+(*** New versions of existing theorems involving 0, 1r ***)
 
 Goal "- #1 = (#-1::real)";
 by (Simp_tac 1);
 qed "minus_numeral_one";
 
 
-(*Maps 0r to #0 and 1r to #1 and -1r to #-1*)
+(*Maps 0 to #0 and 1r to #1 and -1r to #-1*)
 val real_numeral_ss = 
     HOL_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
 		     minus_numeral_one];
@@ -124,7 +124,7 @@ val real_numeral_ss =
 fun rename_numerals thy th = simplify real_numeral_ss (change_theory thy th);
 
 
-(*Now insert some identities previously stated for 0r and 1r*)
+(*Now insert some identities previously stated for 0 and 1r*)
 
 (** RealDef & Real **)
 
@@ -135,6 +135,17 @@ Addsimps (map (rename_numerals thy)
 	   real_mult_0_right, real_mult_0, real_mult_1_right, real_mult_1,
 	   real_mult_minus_1_right, real_mult_minus_1, real_rinv_1,
 	   real_minus_zero_less_iff]);
+
+AddIffs (map (rename_numerals thy) [real_mult_is_0, real_0_is_mult]);
+
+bind_thm ("real_0_less_times_iff", 
+	  rename_numerals thy real_zero_less_times_iff);
+bind_thm ("real_0_le_times_iff", 
+	  rename_numerals thy real_zero_le_times_iff);
+bind_thm ("real_times_less_0_iff", 
+	  rename_numerals thy real_times_less_zero_iff);
+bind_thm ("real_times_le_0_iff", 
+	  rename_numerals thy real_times_le_zero_iff);
 
 
 (*Perhaps add some theorems that aren't in the default simpset, as
@@ -200,4 +211,28 @@ Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 fun full_rename_numerals thy th = 
     asm_full_simplify real_numeral_ss (change_theory thy th);
 
+
+(** Simplification of arithmetic when nested to the right **)
+
+Goal "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::real)";
+by Auto_tac; 
+qed "real_add_number_of_left";
+
+Goal "number_of v * (number_of w * z) = (number_of(bin_mult v w) * z::real)";
+by (simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
+qed "real_mult_number_of_left";
+
+Goalw [real_diff_def]
+    "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::real)";
+by (rtac real_add_number_of_left 1);
+qed "real_add_number_of_diff1";
+
+Goal "number_of v + (c - number_of w) = \
+\    number_of (bin_add v (bin_minus w)) + (c::real)";
+by (stac (diff_real_number_of RS sym) 1);
+by Auto_tac;
+qed "real_add_number_of_diff2";
+
+Addsimps [real_add_number_of_left, real_mult_number_of_left,
+	  real_add_number_of_diff1, real_add_number_of_diff2]; 
 

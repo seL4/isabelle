@@ -270,11 +270,11 @@ by (rtac (prat_mult_commute RS subst) 1);
 by (simp_tac (simpset() addsimps [prat_mult_qinv]) 1);
 qed "prat_mult_qinv_right";
 
-Goal "? y. (x::prat) * y = prat_of_pnat (Abs_pnat 1)";
+Goal "EX y. (x::prat) * y = prat_of_pnat (Abs_pnat 1)";
 by (fast_tac (claset() addIs [prat_mult_qinv_right]) 1);
 qed "prat_qinv_ex";
 
-Goal "?! y. (x::prat) * y = prat_of_pnat (Abs_pnat 1)";
+Goal "EX! y. (x::prat) * y = prat_of_pnat (Abs_pnat 1)";
 by (auto_tac (claset() addIs [prat_mult_qinv_right],simpset()));
 by (dres_inst_tac [("f","%x. ya*x")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult_assoc RS sym]) 1);
@@ -282,7 +282,7 @@ by (asm_full_simp_tac (simpset() addsimps [prat_mult_commute,
     prat_mult_1,prat_mult_1_right]) 1);
 qed "prat_qinv_ex1";
 
-Goal "?! y. y * (x::prat) = prat_of_pnat (Abs_pnat 1)";
+Goal "EX! y. y * (x::prat) = prat_of_pnat (Abs_pnat 1)";
 by (auto_tac (claset() addIs [prat_mult_qinv],simpset()));
 by (dres_inst_tac [("f","%x. x*ya")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult_assoc]) 1);
@@ -296,7 +296,7 @@ by (res_inst_tac [("x1","y")] (prat_qinv_left_ex1 RS ex1E) 1);
 by (Blast_tac 1);
 qed "prat_mult_inv_qinv";
 
-Goal "? y. x = qinv y";
+Goal "EX y. x = qinv y";
 by (cut_inst_tac [("x","x")] prat_qinv_ex 1);
 by (etac exE 1 THEN dtac prat_mult_inv_qinv 1);
 by (Fast_tac 1);
@@ -386,7 +386,7 @@ qed "prat_less_not_sym";
 bind_thm ("prat_less_asym", prat_less_not_sym RS swap);
 
 (* half of positive fraction exists- Gleason p. 120- Proposition 9-2.6(i)*)
-Goal "!(q::prat). ? x. x + x = q";
+Goal "!(q::prat). EX x. x + x = q";
 by (rtac allI 1);
 by (res_inst_tac [("z","q")] eq_Abs_prat 1);
 by (res_inst_tac [("x","Abs_prat (ratrel ^^ {(x, y+y)})")] exI 1);
@@ -396,7 +396,7 @@ by (auto_tac (claset(),
                pnat_add_mult_distrib2]));
 qed "lemma_prat_dense";
 
-Goal "? (x::prat). x + x = q";
+Goal "EX (x::prat). x + x = q";
 by (res_inst_tac [("z","q")] eq_Abs_prat 1);
 by (res_inst_tac [("x","Abs_prat (ratrel ^^ {(x, y+y)})")] exI 1);
 by (auto_tac (claset(),simpset() addsimps 
@@ -407,7 +407,7 @@ qed "prat_lemma_dense";
 (* there exists a number between any two positive fractions *)
 (* Gleason p. 120- Proposition 9-2.6(iv) *)
 Goalw [prat_less_def] 
-      "!! (q1::prat). q1 < q2 ==> ? x. q1 < x & x < q2";
+      "!! (q1::prat). q1 < q2 ==> EX x. q1 < x & x < q2";
 by (auto_tac (claset() addIs [lemma_prat_dense],simpset()));
 by (res_inst_tac [("x","T")] (lemma_prat_dense RS allE) 1);
 by (etac exE 1);
@@ -442,7 +442,7 @@ by (auto_tac (claset() addDs [prat_mult_less2_mono1],
 qed "prat_mult_left_less2_mono1";
 
 (* there is no smallest positive fraction *)
-Goalw [prat_less_def] "? (x::prat). x < y";
+Goalw [prat_less_def] "EX (x::prat). x < y";
 by (cut_facts_tac [lemma_prat_dense] 1);
 by (Fast_tac 1);
 qed "qless_Ex";
@@ -765,7 +765,7 @@ Addsimps [prat_of_pnat_less_iff];
 (*** of preal type as defined using Dedekind Sections in PReal  ***)
 (*** Show that exists positive real `one' ***)
 
-Goal "? q. q: {x::prat. x < prat_of_pnat (Abs_pnat 1)}";
+Goal "EX q. q: {x::prat. x < prat_of_pnat (Abs_pnat 1)}";
 by (fast_tac (claset() addIs [prat_less_qinv_2_1]) 1);
 qed "lemma_prat_less_1_memEx";
 
@@ -781,7 +781,7 @@ by (asm_full_simp_tac (simpset() addsimps
 qed "empty_set_psubset_lemma_prat_less_1_set";
 
 (*** exists rational not in set --- prat_of_pnat (Abs_pnat 1) itself ***)
-Goal "? q. q ~: {x::prat. x < prat_of_pnat (Abs_pnat 1)}";
+Goal "EX q. q ~: {x::prat. x < prat_of_pnat (Abs_pnat 1)}";
 by (res_inst_tac [("x","prat_of_pnat (Abs_pnat 1)")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [prat_less_not_refl]));
 qed "lemma_prat_less_1_not_memEx";
@@ -803,7 +803,7 @@ qed "lemma_prat_less_1_set_psubset_rat_set";
 Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1)} : {A. {} < A & \
 \               A < UNIV & \
 \               (!y: A. ((!z. z < y --> z: A) & \
-\               (? u: A. y < u)))}";
+\               (EX u: A. y < u)))}";
 by (auto_tac (claset() addDs [prat_less_trans],
     simpset() addsimps [empty_set_psubset_lemma_prat_less_1_set,
                        lemma_prat_less_1_set_psubset_rat_set]));

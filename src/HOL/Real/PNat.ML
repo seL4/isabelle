@@ -289,7 +289,7 @@ by (rtac Rep_pnat_not_less_one 1);
 qed "Rep_pnat_le_one";
 
 Goalw [pnat_less_def]
-     "!! (z1::nat). z1 < z2  ==> ? z3. z1 + Rep_pnat z3 = z2";
+     "!! (z1::nat). z1 < z2  ==> EX z3. z1 + Rep_pnat z3 = z2";
 by (dtac less_imp_add_positive 1);
 by (force_tac (claset() addSIs [Abs_pnat_inverse],
 	       simpset() addsimps [Collect_pnat_gt_0]) 1);
@@ -473,7 +473,7 @@ qed "pnat_less_add_eq_less";
 (* ordering on positive naturals in terms of existence of sum *)
 (* could provide alternative definition -- Gleason *)
 Goalw [pnat_less_def,pnat_add_def] 
-      "(z1::pnat) < z2 = (? z3. z1 + z3 = z2)";
+      "(z1::pnat) < z2 = (EX z3. z1 + z3 = z2)";
 by (rtac iffI 1);
 by (res_inst_tac [("t","z2")] (Rep_pnat_inverse RS subst) 1);
 by (dtac lemma_less_ex_sum_Rep_pnat 1);
@@ -484,8 +484,8 @@ by (auto_tac (claset(),simpset() addsimps [sum_Rep_pnat_sum RS sym,
                Rep_pnat_gt_zero] delsimps [add_0_right]));
 qed "pnat_less_iff";
 
-Goal "(? (x::pnat). z1 + x = z2) | z1 = z2 \
-\          |(? x. z2 + x = z1)";
+Goal "(EX (x::pnat). z1 + x = z2) | z1 = z2 \
+\          |(EX x. z2 + x = z1)";
 by (cut_facts_tac [pnat_less_linear] 1);
 by (asm_full_simp_tac (simpset() addsimps [pnat_less_iff]) 1);
 qed "pnat_linear_Ex_eq";

@@ -14,16 +14,16 @@ claset_ref() := claset() delWrapper "bspec";
        previously in Real.ML. 
  ---------------------------------------------------------*)
  (*a few lemmas*)
-Goal "! x:P. #0 < x ==> \ 
-\       ((? x:P. y < x) = (? X. real_of_preal X : P & \
+Goal "ALL x:P. #0 < x ==> \ 
+\       ((EX x:P. y < x) = (EX X. real_of_preal X : P & \
 \                          y < real_of_preal X))";
 by (blast_tac (claset() addSDs [bspec,rename_numerals thy
 				real_gt_zero_preal_Ex RS iffD1]) 1);
 qed "real_sup_lemma1";
 
-Goal "[| ! x:P. #0 < x; ? x. x: P; ? y. !x: P. x < y |] \
-\         ==> (? X. X: {w. real_of_preal w : P}) & \
-\             (? Y. !X: {w. real_of_preal w : P}. X < Y)";
+Goal "[| ALL x:P. #0 < x; EX x. x: P; EX y. ALL x: P. x < y |] \
+\         ==> (EX X. X: {w. real_of_preal w : P}) & \
+\             (EX Y. ALL X: {w. real_of_preal w : P}. X < Y)";
 by (rtac conjI 1);
 by (blast_tac (claset() addDs [bspec, rename_numerals thy 
     real_gt_zero_preal_Ex RS iffD1]) 1);
@@ -49,8 +49,8 @@ qed "real_sup_lemma2";
  only have one case split 
 **)
 
-Goal "[| ! x:P. (#0::real) < x; ? x. x: P; ? y. !x: P. x < y |] \
-\         ==> (? S. !y. (? x: P. y < x) = (y < S))";
+Goal "[| ALL x:P. (#0::real) < x; EX x. x: P; EX y. ALL x: P. x < y |] \
+\         ==> (EX S. ALL y. (EX x: P. y < x) = (y < S))";
 by (res_inst_tac 
    [("x","real_of_preal (psup({w. real_of_preal w : P}))")] exI 1);
 by Auto_tac;
@@ -128,7 +128,7 @@ qed "posreals_complete";
 (*-------------------------------
     Lemmas
  -------------------------------*)
-Goal "! y : {z. ? x: P. z = x + (-xa) + #1} Int {x. #0 < x}. #0 < y";
+Goal "ALL y : {z. EX x: P. z = x + (-xa) + #1} Int {x. #0 < x}. #0 < y";
 by Auto_tac;
 qed "real_sup_lemma3";
  
@@ -158,9 +158,9 @@ qed "lemma_real_complete2b";
 Goal "[| EX X. X: S;  EX Y. isUb (UNIV::real set) S Y |]  \
 \     ==> EX t. isLub (UNIV :: real set) S t";
 by (Step_tac 1);
-by (subgoal_tac "? u. u: {z. ? x: S. z = x + (-X) + #1} \
+by (subgoal_tac "EX u. u: {z. EX x: S. z = x + (-X) + #1} \
 \                Int {x. #0 < x}" 1);
-by (subgoal_tac "isUb (UNIV::real set) ({z. ? x: S. z = x + (-X) + #1} \
+by (subgoal_tac "isUb (UNIV::real set) ({z. EX x: S. z = x + (-X) + #1} \
 \                Int {x. #0 < x})  (Y + (-X) + #1)" 1); 
 by (cut_inst_tac [("P","S"),("xa","X")] real_sup_lemma3 1);
 by (EVERY1[forward_tac [exI RSN (3,posreals_complete)], Blast_tac, Blast_tac, 
@@ -168,7 +168,7 @@ by (EVERY1[forward_tac [exI RSN (3,posreals_complete)], Blast_tac, Blast_tac,
 by (res_inst_tac [("x","t + X + (-#1)")] exI 1);
 by (rtac isLubI2 1);
 by (rtac setgeI 2 THEN Step_tac 2);
-by (subgoal_tac "isUb (UNIV:: real set) ({z. ? x: S. z = x + (-X) + #1} \
+by (subgoal_tac "isUb (UNIV:: real set) ({z. EX x: S. z = x + (-X) + #1} \
 \                Int {x. #0 < x})  (y + (-X) + #1)" 2); 
 by (dres_inst_tac [("y","(y + (- X) + #1)")] isLub_le_isUb 2 
       THEN assume_tac 2);

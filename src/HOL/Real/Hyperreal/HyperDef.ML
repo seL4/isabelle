@@ -587,29 +587,29 @@ Addsimps [hypreal_mult_0,hypreal_mult_0_right];
 Goal "-(x * y) = -x * (y::hypreal)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_minus,
-    hypreal_mult,real_minus_mult_eq1] 
-      @ real_mult_ac @ real_add_ac));
+by (auto_tac (claset(),
+	      simpset() addsimps [hypreal_minus, hypreal_mult] 
+                                 @ real_mult_ac @ real_add_ac));
 qed "hypreal_minus_mult_eq1";
 
 Goal "-(x * y) = (x::hypreal) * -y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_minus,
-   hypreal_mult,real_minus_mult_eq2] 
-    @ real_mult_ac @ real_add_ac));
+					   hypreal_mult] 
+                                           @ real_mult_ac @ real_add_ac));
 qed "hypreal_minus_mult_eq2";
 
 Goal "-x*-y = x*(y::hypreal)";
 by (full_simp_tac (simpset() addsimps [hypreal_minus_mult_eq2 RS sym,
-    hypreal_minus_mult_eq1 RS sym]) 1);
+				       hypreal_minus_mult_eq1 RS sym]) 1);
 qed "hypreal_minus_mult_cancel";
 
 Addsimps [hypreal_minus_mult_cancel];
 
 Goal "-x*y = (x::hypreal)*-y";
 by (full_simp_tac (simpset() addsimps [hypreal_minus_mult_eq2 RS sym,
-    hypreal_minus_mult_eq1 RS sym]) 1);
+				       hypreal_minus_mult_eq1 RS sym]) 1);
 qed "hypreal_minus_mult_commute";
 
 

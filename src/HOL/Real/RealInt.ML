@@ -37,7 +37,7 @@ by (auto_tac (claset() addSDs [inj_preal_of_prat RS injD,
      prat_of_pnat_add RS sym,pnat_of_nat_add]));
 qed "inj_real_of_int";
 
-Goalw [int_def,real_zero_def] "real_of_int (int 0) = 0r";
+Goalw [int_def,real_zero_def] "real_of_int (int 0) = 0";
 by (simp_tac (simpset() addsimps [real_of_int, preal_add_commute]) 1);
 qed "real_of_int_zero";
 
@@ -97,13 +97,13 @@ by (asm_simp_tac (simpset() addsimps [not_neg_nat,
 qed "real_of_nat_real_of_int";
 
 (* put with other properties of real_of_nat? *)
-Goal "neg z ==> real_of_nat (nat z) = 0r";
+Goal "neg z ==> real_of_nat (nat z) = 0";
 by (asm_simp_tac (simpset() addsimps [neg_nat,
     real_of_nat_zero]) 1);
 qed "real_of_nat_neg_int";
 Addsimps [real_of_nat_neg_int];
 
-Goal "(real_of_int x = 0r) = (x = int 0)";
+Goal "(real_of_int x = 0) = (x = int 0)";
 by (auto_tac (claset() addIs [inj_real_of_int RS injD],
     HOL_ss addsimps [real_of_int_zero]));
 qed "real_of_int_zero_cancel";

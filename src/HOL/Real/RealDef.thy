@@ -15,17 +15,16 @@ typedef real = "{x::(preal*preal).True}/realrel"          (Equiv.quotient_def)
 
 
 instance
-   real  :: {ord, plus, times, minus}
+   real  :: {ord, zero, plus, times, minus}
 
 consts 
 
-  "0r"       :: real               ("0r")   
   "1r"       :: real               ("1r")  
 
 defs
 
   real_zero_def  
-     "0r == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p),
+     "0 == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p),
                                 preal_of_prat(prat_of_pnat 1p))})"
   real_one_def   
      "1r == Abs_real(realrel^^{(preal_of_prat(prat_of_pnat 1p) + 
@@ -44,7 +43,7 @@ constdefs
                                preal_of_prat(prat_of_pnat 1p))})"
 
   rinv       :: real => real
-  "rinv(R)   == (@S. R ~= 0r & S*R = 1r)"
+  "rinv(R)   == (@S. R ~= 0 & S*R = 1r)"
 
   real_of_posnat :: nat => real             
   "real_of_posnat n == real_of_preal(preal_of_prat(prat_of_pnat(pnat_of_nat n)))"

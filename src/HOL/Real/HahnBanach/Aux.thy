@@ -109,13 +109,13 @@ proof -
   thus ?thesis by (simp only: real_mult_commute)
 qed
 
-lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x"
-proof - 
-  assume "#0 < x"
-  hence "0r < x" by simp
-  hence "0r < rinv x" by (rule real_rinv_gt_zero)
-  thus ?thesis by simp
-qed
+lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x";
+proof -; 
+  assume "#0 < x";
+  have "0 < x"; by simp;
+  hence "0 < rinv x"; by (rule real_rinv_gt_zero);
+  thus ?thesis; by simp;
+qed;
 
 lemma real_mult_inv_right1: "x ~= #0 ==> x*rinv(x) = #1"
    by simp
@@ -127,7 +127,7 @@ lemma real_le_mult_order1a:
       "[| (#0::real) <= x; #0 <= y |] ==> #0 <= x * y"
 proof -
   assume "#0 <= x" "#0 <= y"
-    have "[|0r <= x; 0r <= y|] ==> 0r <= x * y"  
+    have "[|0 <= x; 0 <= y|] ==> 0 <= x * y"  
       by (rule real_le_mult_order)
     thus ?thesis by (simp!)
 qed
@@ -139,7 +139,7 @@ proof -
   also have "a * ... = a * - x + a * - y" 
     by (simp only: real_add_mult_distrib2)
   also have "... = - a * x - a * y" 
-    by (simp add: real_minus_mult_eq2 [RS sym] real_minus_mult_eq1)
+    by simp;
   finally show ?thesis .
 qed
 
@@ -149,7 +149,7 @@ proof -
   also have "a * ... = a * x + a * - y" 
     by (simp only: real_add_mult_distrib2)
   also have "... = a * x - a * y"   
-    by (simp add: real_minus_mult_eq2 [RS sym] real_minus_mult_eq1)
+    by simp;
   finally show ?thesis .
 qed
 
