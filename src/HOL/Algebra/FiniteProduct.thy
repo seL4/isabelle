@@ -50,7 +50,7 @@ lemma finite_imp_foldSetD:
 proof (induct set: Finites)
   case empty then show ?case by auto
 next
-  case (insert F x)
+  case (insert x F)
   then obtain y where y: "(F, y) \<in> foldSetD D f e" by auto
   with insert have "y \<in> D" by (auto dest: foldSetD_closed)
   with y and insert have "(insert x F, f x y) \<in> foldSetD D f e"
@@ -90,7 +90,7 @@ lemma (in LCD) finite_imp_foldSetD:
 proof (induct set: Finites)
   case empty then show ?case by auto
 next
-  case (insert F x)
+  case (insert x F)
   then obtain y where y: "(F, y) \<in> foldSetD D f e" by auto
   with insert have "y \<in> D" by auto
   with y and insert have "(insert x F, f x y) \<in> foldSetD D f e"
@@ -339,7 +339,7 @@ lemma (in comm_monoid) finprod_one [simp]:
 proof (induct set: Finites)
   case empty show ?case by simp
 next
-  case (insert A a)
+  case (insert a A)
   have "(%i. \<one>) \<in> A -> carrier G" by auto
   with insert show ?case by simp
 qed
@@ -352,7 +352,7 @@ using fin f
 proof induct
   case empty show ?case by simp
 next
-  case (insert A a)
+  case (insert a A)
   then have a: "f a \<in> carrier G" by fast
   from insert have A: "f \<in> A -> carrier G" by fast
   from insert A a show ?case by simp
@@ -374,7 +374,7 @@ lemma (in comm_monoid) finprod_Un_Int:
 proof (induct set: Finites)
   case empty then show ?case by (simp add: finprod_closed)
 next
-  case (insert A a)
+  case (insert a A)
   then have a: "g a \<in> carrier G" by fast
   from insert have A: "g \<in> A -> carrier G" by fast
   from insert A a show ?case
@@ -396,7 +396,7 @@ lemma (in comm_monoid) finprod_multf:
 proof (induct set: Finites)
   case empty show ?case by simp
 next
-  case (insert A a) then
+  case (insert a A) then
   have fA: "f \<in> A -> carrier G" by fast
   from insert have fa: "f a \<in> carrier G" by fast
   from insert have gA: "g \<in> A -> carrier G" by fast
@@ -421,7 +421,7 @@ proof -
     proof induct
       case empty thus ?case by simp
     next
-      case (insert B x)
+      case (insert x B)
       then have "finprod G f A = finprod G f (insert x B)" by simp
       also from insert have "... = f x \<otimes> finprod G f B"
       proof (intro finprod_insert)

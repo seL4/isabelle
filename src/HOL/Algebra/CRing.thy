@@ -476,7 +476,7 @@ lemma (in cring) finsum_ldistr:
 proof (induct set: Finites)
   case empty then show ?case by simp
 next
-  case (insert F x) then show ?case by (simp add: Pi_def l_distr)
+  case (insert x F) then show ?case by (simp add: Pi_def l_distr)
 qed
 
 lemma (in cring) finsum_rdistr:
@@ -485,7 +485,7 @@ lemma (in cring) finsum_rdistr:
 proof (induct set: Finites)
   case empty then show ?case by simp
 next
-  case (insert F x) then show ?case by (simp add: Pi_def r_distr)
+  case (insert x F) then show ?case by (simp add: Pi_def r_distr)
 qed
 
 subsection {* Facts of Integral Domains *}

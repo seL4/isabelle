@@ -320,7 +320,7 @@ proof (induct set: Finites)
   case empty
   then show ?case by simp
 next
-  case (insert A x)
+  case (insert x A)
   show ?case
   proof (cases "A = {}")
     case True
@@ -350,7 +350,7 @@ lemma (in lattice) finite_sup_closed:
 proof (induct set: Finites)
   case empty then show ?case by simp
 next
-  case (insert A x) then show ?case
+  case insert then show ?case
     by - (rule finite_sup_insertI, simp_all)
 qed
 
@@ -546,7 +546,7 @@ lemma (in lattice) finite_inf_greatest:
 proof (induct set: Finites)
   case empty then show ?case by simp
 next
-  case (insert A x)
+  case (insert x A)
   show ?case
   proof (cases "A = {}")
     case True
@@ -577,7 +577,7 @@ lemma (in lattice) finite_inf_closed:
 proof (induct set: Finites)
   case empty then show ?case by simp
 next
-  case (insert A x) then show ?case
+  case insert then show ?case
     by (rule_tac finite_inf_insertI) (simp_all)
 qed
 
