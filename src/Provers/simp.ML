@@ -380,11 +380,11 @@ in NORM (split_tac (cong_tac,splits,split_consts)) i end;
 datatype cntrl = STOP | MK_EQ | ASMS of int | SIMP_LHS | REW | REFL | TRUE
 	       | PROVE | POP_CS | POP_ARTR | SPLIT;
 (*
-fun pr_cntrl c = case c of STOP => prs("STOP") | MK_EQ => prs("MK_EQ") |
-ASMS i => print_int i | POP_ARTR => prs("POP_ARTR") |
-SIMP_LHS => prs("SIMP_LHS") | REW => prs("REW") | REFL => prs("REFL") |
-TRUE => prs("TRUE") | PROVE => prs("PROVE") | POP_CS => prs("POP_CS") | SPLIT
-=> prs("SPLIT");
+fun pr_cntrl c = case c of STOP => std_output("STOP") | MK_EQ => std_output("MK_EQ") |
+ASMS i => print_int i | POP_ARTR => std_output("POP_ARTR") |
+SIMP_LHS => std_output("SIMP_LHS") | REW => std_output("REW") | REFL => std_output("REFL") |
+TRUE => std_output("TRUE") | PROVE => std_output("PROVE") | POP_CS => std_output("POP_CS") | SPLIT
+=> std_output("SPLIT");
 *)
 fun simp_refl([],_,ss) = ss
   | simp_refl(a'::ns,a,ss) = if a'=a then simp_refl(ns,a,SIMP_LHS::REFL::ss)

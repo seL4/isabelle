@@ -632,6 +632,8 @@ fun traceTerm sign t =
   end;
 
 
+val prs = std_output;
+
 (*Print tracing information at each iteration of prover*)
 fun tracing sign brs = 
   let fun printPairs (((G,_)::_,_)::_)  = prs(traceTerm sign G)
