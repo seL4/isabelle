@@ -47,9 +47,9 @@ goalw thy [keysFor_def] "keysFor (H Un H') = keysFor H Un keysFor H'";
 by (Blast_tac 1);
 qed "keysFor_Un";
 
-goalw thy [keysFor_def] "keysFor (UN i. H i) = (UN i. keysFor (H i))";
+goalw thy [keysFor_def] "keysFor (UN i:A. H i) = (UN i:A. keysFor (H i))";
 by (Blast_tac 1);
-qed "keysFor_UN1";
+qed "keysFor_UN";
 
 (*Monotonicity*)
 goalw thy [keysFor_def] "!!G H. G<=H ==> keysFor(G) <= keysFor(H)";
@@ -85,12 +85,12 @@ goalw thy [keysFor_def]
 by (Auto_tac());
 qed "keysFor_insert_Crypt";
 
-Addsimps [keysFor_empty, keysFor_Un, keysFor_UN1, 
+Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
           keysFor_insert_Agent, keysFor_insert_Nonce, 
 	  keysFor_insert_Number, keysFor_insert_Key, 
           keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
-	keysFor_UN1 RS equalityD1 RS subsetD RS UN1_E];
+	keysFor_UN RS equalityD1 RS subsetD RS UN_E];
 
 goalw thy [keysFor_def] "keysFor (Key``E) = {}";
 by (Auto_tac ());
@@ -195,16 +195,11 @@ goal thy "parts(UN x:A. H x) = (UN x:A. parts(H x))";
 by (REPEAT (ares_tac [equalityI, parts_UN_subset1, parts_UN_subset2] 1));
 qed "parts_UN";
 
-goal thy "parts(UN x. H x) = (UN x. parts(H x))";
-by (simp_tac (simpset() addsimps [UNION1_def, parts_UN]) 1);
-qed "parts_UN1";
-
 (*Added to simplify arguments to parts, analz and synth.
   NOTE: the UN versions are no longer used!*)
-Addsimps [parts_Un, parts_UN, parts_UN1];
+Addsimps [parts_Un, parts_UN];
 AddSEs [parts_Un RS equalityD1 RS subsetD RS UnE,
-	parts_UN RS equalityD1 RS subsetD RS UN_E,
-	parts_UN1 RS equalityD1 RS subsetD RS UN1_E];
+	parts_UN RS equalityD1 RS subsetD RS UN_E];
 
 goal thy "insert X (parts H) <= parts(insert X H)";
 by (blast_tac (claset() addIs [impOfSubs parts_mono]) 1);
@@ -559,13 +554,13 @@ by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
 qed "analz_trivial";
 
-(*Helps to prove Fake cases*)
-goal thy "!!X. X: analz (UN i. analz (H i)) ==> X: analz (UN i. H i)";
+(*These two are obsolete (with a single Spy) but cost little to prove...*)
+goal thy "!!X. X: analz (UN i:A. analz (H i)) ==> X: analz (UN i:A. H i)";
 by (etac analz.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [impOfSubs analz_mono])));
 val lemma = result();
 
-goal thy "analz (UN i. analz (H i)) = analz (UN i. H i)";
+goal thy "analz (UN i:A. analz (H i)) = analz (UN i:A. H i)";
 by (blast_tac (claset() addIs [lemma, impOfSubs analz_mono]) 1);
 qed "analz_UN_analz";
 Addsimps [analz_UN_analz];
