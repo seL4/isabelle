@@ -14,11 +14,13 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  val FINISHED: tactic -> tactic
   val LIFT: tactic -> thm -> (thm * (indexname * term) list * (string * thm list) list) Seq.seq
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
+  val same_tac: thm list -> int -> tactic
   val same: Proof.method
   val assumption: Proof.method
   val forward_chain: thm list -> thm list -> thm Seq.seq
@@ -69,6 +71,12 @@ structure Method: METHOD =
 struct
 
 
+(** utils **)
+
+val FINISHED = FILTER (equal 0 o Thm.nprems_of);
+
+
+
 (** proof methods **)
 
 (* method from tactic *)
@@ -94,7 +102,7 @@ fun same_tac [] = K all_tac
 val same = METHOD (ALLGOALS o same_tac);
 val assumption = METHOD (fn facts => FIRSTGOAL (same_tac facts THEN' assume_tac));
 
-val asm_finish = METHOD (K (FILTER (equal 0 o Thm.nprems_of) (ALLGOALS assume_tac)));
+val asm_finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
 
 
 (* rule *)
