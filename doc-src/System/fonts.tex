@@ -52,8 +52,7 @@ the client program (Isabelle) and the display server are run on the
 same machine. In this case, most X11 display servers should be happy
 by being told about the Isabelle fonts directory as follows:
 \begin{ttbox}
-ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
-
+ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"%$
 \end{ttbox}
 The same also works for remote X11 sessions in a somewhat homogeneous
 network, where any X11 display machine also mounts the Isabelle
@@ -133,7 +132,6 @@ available: In theory definitions, symbols appear only in mixfix
 annotations --- using the \verb|\<|$charname$\verb|>| form, proof
 scripts are just left in plain \textsc{ascii}.  Thus users with
 \textsc{ascii}-only facilities will still be able to read your files.
-
 
 %%% Local Variables: 
 %%% mode: latex
