@@ -19,7 +19,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_naturals";
 
 goal NatSum.thy
-  "Suc(Suc(Suc(Suc(Suc(Suc(0))))))*sum (%i.i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
+  "Suc(Suc(Suc(Suc 2)))*sum (%i.i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
@@ -27,7 +27,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_squares";
 
 goal NatSum.thy
-  "Suc(Suc(Suc(Suc(0))))*sum (%i.i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
+  "Suc(Suc 2)*sum (%i.i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
