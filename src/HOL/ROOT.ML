@@ -52,6 +52,7 @@ use "Tools/datatype_abs_proofs.ML";
 use "Tools/datatype_package.ML";
 use "Tools/primrec_package.ML";
 use_thy "Datatype";
+use_thy "Numeral";
 
 use "Tools/record_package.ML";
 use_thy "Record";
