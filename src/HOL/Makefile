@@ -76,6 +76,17 @@ LOGIC=`case \`basename "$(ISABELLECOMP)"\` in \
 			$(ISABELLECOMP) is not poly or sml; exit 1" ;;\
 	esac`
 
+##TFL (requires integration into HOL proper)
+TFL_NAMES = mask tfl thms thry usyntax utils
+TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
+            $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
+
+TFL:	$(BIN)/HOL  $(TFL_FILES)
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	then echo 'make_html:= true; exit_use_dir"../TFL";quit();' | $(LOGIC);\
+	else echo 'exit_use_dir"../TFL";quit();' | $(LOGIC); \
+	fi
+
 ##IMP-semantics example
 IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
@@ -211,7 +222,7 @@ ex:	$(BIN)/HOL  $(EX_FILES)
 	fi
 
 #Full test.
-test:	$(BIN)/HOL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
+test:	$(BIN)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
