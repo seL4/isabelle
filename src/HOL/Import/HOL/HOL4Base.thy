@@ -186,7 +186,7 @@ lemma bool_case_thm: "(ALL (e0::'a) e1::'a. (case True of True => e0 | False => 
 (ALL (e0::'a) e1::'a. (case False of True => e0 | False => e1) = e1)"
   by (import bool bool_case_thm)
 
-lemma bool_case_ID: "ALL x b. (case b of True => x | False => x) = x"
+lemma bool_case_ID: "ALL x b. (case b of True => x | _ => x) = x"
   by (import bool bool_case_ID)
 
 lemma boolAxiom: "ALL e0 e1. EX x. x True = e0 & x False = e1"
@@ -842,10 +842,39 @@ lemma NOT_LESS_EQ: "ALL (m::nat) n::nat. m = n --> ~ m < n"
 
 constdefs
   SIMP_REC_REL :: "(nat => 'a) => 'a => ('a => 'a) => nat => bool" 
-  "SIMP_REC_REL == %fun x f n. fun 0 = x & (ALL m<n. fun (Suc m) = f (fun m))"
+  "(op ==::((nat => 'a) => 'a => ('a => 'a) => nat => bool)
+        => ((nat => 'a) => 'a => ('a => 'a) => nat => bool) => prop)
+ (SIMP_REC_REL::(nat => 'a) => 'a => ('a => 'a) => nat => bool)
+ (%(fun::nat => 'a) (x::'a) (f::'a => 'a) n::nat.
+     (op &::bool => bool => bool)
+      ((op =::'a => 'a => bool) (fun (0::nat)) x)
+      ((All::(nat => bool) => bool)
+        (%m::nat.
+            (op -->::bool => bool => bool) ((op <::nat => nat => bool) m n)
+             ((op =::'a => 'a => bool) (fun ((Suc::nat => nat) m))
+               (f (fun m))))))"
 
-lemma SIMP_REC_REL: "ALL fun x f n.
-   SIMP_REC_REL fun x f n = (fun 0 = x & (ALL m<n. fun (Suc m) = f (fun m)))"
+lemma SIMP_REC_REL: "(All::((nat => 'a) => bool) => bool)
+ (%fun::nat => 'a.
+     (All::('a => bool) => bool)
+      (%x::'a.
+          (All::(('a => 'a) => bool) => bool)
+           (%f::'a => 'a.
+               (All::(nat => bool) => bool)
+                (%n::nat.
+                    (op =::bool => bool => bool)
+                     ((SIMP_REC_REL::(nat => 'a)
+                                     => 'a => ('a => 'a) => nat => bool)
+                       fun x f n)
+                     ((op &::bool => bool => bool)
+                       ((op =::'a => 'a => bool) (fun (0::nat)) x)
+                       ((All::(nat => bool) => bool)
+                         (%m::nat.
+                             (op -->::bool => bool => bool)
+                              ((op <::nat => nat => bool) m n)
+                              ((op =::'a => 'a => bool)
+                                (fun ((Suc::nat => nat) m))
+                                (f (fun m))))))))))"
   by (import prim_rec SIMP_REC_REL)
 
 lemma SIMP_REC_EXISTS: "ALL x f n. EX fun. SIMP_REC_REL fun x f n"
@@ -1074,7 +1103,17 @@ lemma LESS_ADD_SUC: "ALL m n. m < m + Suc n"
 lemma LESS_OR_EQ_ADD: "ALL (n::nat) m::nat. n < m | (EX p::nat. n = p + m)"
   by (import arithmetic LESS_OR_EQ_ADD)
 
-lemma WOP: "ALL P::nat => bool. Ex P --> (EX n::nat. P n & (ALL m<n. ~ P m))"
+lemma WOP: "(All::((nat => bool) => bool) => bool)
+ (%P::nat => bool.
+     (op -->::bool => bool => bool) ((Ex::(nat => bool) => bool) P)
+      ((Ex::(nat => bool) => bool)
+        (%n::nat.
+            (op &::bool => bool => bool) (P n)
+             ((All::(nat => bool) => bool)
+               (%m::nat.
+                   (op -->::bool => bool => bool)
+                    ((op <::nat => nat => bool) m n)
+                    ((Not::bool => bool) (P m)))))))"
   by (import arithmetic WOP)
 
 lemma INV_PRE_LESS: "ALL m. 0 < m --> (ALL n. (PRE m < PRE n) = (m < n))"
@@ -2474,7 +2513,17 @@ lemma CONS: "ALL l. ~ null l --> hd l # tl l = l"
 lemma MAP_EQ_NIL: "ALL l f. (map f l = []) = (l = []) & ([] = map f l) = (l = [])"
   by (import list MAP_EQ_NIL)
 
-lemma EVERY_EL: "ALL l P. list_all P l = (ALL n<length l. P (EL n l))"
+lemma EVERY_EL: "(All::('a list => bool) => bool)
+ (%l::'a list.
+     (All::(('a => bool) => bool) => bool)
+      (%P::'a => bool.
+          (op =::bool => bool => bool)
+           ((list_all::('a => bool) => 'a list => bool) P l)
+           ((All::(nat => bool) => bool)
+             (%n::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <::nat => nat => bool) n ((size::'a list => nat) l))
+                  (P ((EL::nat => 'a list => 'a) n l))))))"
   by (import list EVERY_EL)
 
 lemma EVERY_CONJ: "ALL l. list_all (%x. P x & Q x) l = (list_all P l & list_all Q l)"
@@ -2584,9 +2633,27 @@ lemma ZIP_MAP: "ALL l1 l2 f1 f2.
    zip l1 (map f2 l2) = map (%p. (fst p, f2 (snd p))) (zip l1 l2)"
   by (import list ZIP_MAP)
 
-lemma MEM_ZIP: "ALL l1 l2 p.
-   length l1 = length l2 -->
-   p mem zip l1 l2 = (EX n<length l1. p = (EL n l1, EL n l2))"
+lemma MEM_ZIP: "(All::('a list => bool) => bool)
+ (%l1::'a list.
+     (All::('b list => bool) => bool)
+      (%l2::'b list.
+          (All::('a * 'b => bool) => bool)
+           (%p::'a * 'b.
+               (op -->::bool => bool => bool)
+                ((op =::nat => nat => bool) ((size::'a list => nat) l1)
+                  ((size::'b list => nat) l2))
+                ((op =::bool => bool => bool)
+                  ((op mem::'a * 'b => ('a * 'b) list => bool) p
+                    ((zip::'a list => 'b list => ('a * 'b) list) l1 l2))
+                  ((Ex::(nat => bool) => bool)
+                    (%n::nat.
+                        (op &::bool => bool => bool)
+                         ((op <::nat => nat => bool) n
+                           ((size::'a list => nat) l1))
+                         ((op =::'a * 'b => 'a * 'b => bool) p
+                           ((Pair::'a => 'b => 'a * 'b)
+                             ((EL::nat => 'a list => 'a) n l1)
+                             ((EL::nat => 'b list => 'b) n l2)))))))))"
   by (import list MEM_ZIP)
 
 lemma EL_ZIP: "ALL l1 l2 n.
@@ -2599,7 +2666,17 @@ lemma MAP2_ZIP: "ALL l1 l2.
    (ALL f. map2 f l1 l2 = map (split f) (zip l1 l2))"
   by (import list MAP2_ZIP)
 
-lemma MEM_EL: "ALL l x. x mem l = (EX n<length l. x = EL n l)"
+lemma MEM_EL: "(All::('a list => bool) => bool)
+ (%l::'a list.
+     (All::('a => bool) => bool)
+      (%x::'a.
+          (op =::bool => bool => bool) ((op mem::'a => 'a list => bool) x l)
+           ((Ex::(nat => bool) => bool)
+             (%n::nat.
+                 (op &::bool => bool => bool)
+                  ((op <::nat => nat => bool) n ((size::'a list => nat) l))
+                  ((op =::'a => 'a => bool) x
+                    ((EL::nat => 'a list => 'a) n l))))))"
   by (import list MEM_EL)
 
 lemma LAST_CONS: "(ALL x::'a. last [x] = x) &
@@ -3378,9 +3455,22 @@ lemma FINITE_ISO_NUM: "ALL s.
           s = GSPEC (%n. (f n, n < CARD s)))"
   by (import pred_set FINITE_ISO_NUM)
 
-lemma FINITE_WEAK_ENUMERATE: "ALL x::'a => bool.
-   FINITE x =
-   (EX (f::nat => 'a) b::nat. ALL e::'a. IN e x = (EX n<b. e = f n))"
+lemma FINITE_WEAK_ENUMERATE: "(All::(('a => bool) => bool) => bool)
+ (%x::'a => bool.
+     (op =::bool => bool => bool) ((FINITE::('a => bool) => bool) x)
+      ((Ex::((nat => 'a) => bool) => bool)
+        (%f::nat => 'a.
+            (Ex::(nat => bool) => bool)
+             (%b::nat.
+                 (All::('a => bool) => bool)
+                  (%e::'a.
+                      (op =::bool => bool => bool)
+                       ((IN::'a => ('a => bool) => bool) e x)
+                       ((Ex::(nat => bool) => bool)
+                         (%n::nat.
+                             (op &::bool => bool => bool)
+                              ((op <::nat => nat => bool) n b)
+                              ((op =::'a => 'a => bool) e (f n)))))))))"
   by (import pred_set FINITE_WEAK_ENUMERATE)
 
 constdefs
@@ -4282,16 +4372,51 @@ lemma BUTLASTN_MAP: "ALL n l.
    n <= length l --> (ALL f. BUTLASTN n (map f l) = map f (BUTLASTN n l))"
   by (import rich_list BUTLASTN_MAP)
 
-lemma ALL_EL_LASTN: "ALL P l. list_all P l --> (ALL m<=length l. list_all P (LASTN m l))"
+lemma ALL_EL_LASTN: "(All::(('a => bool) => bool) => bool)
+ (%P::'a => bool.
+     (All::('a list => bool) => bool)
+      (%l::'a list.
+          (op -->::bool => bool => bool)
+           ((list_all::('a => bool) => 'a list => bool) P l)
+           ((All::(nat => bool) => bool)
+             (%m::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <=::nat => nat => bool) m ((size::'a list => nat) l))
+                  ((list_all::('a => bool) => 'a list => bool) P
+                    ((LASTN::nat => 'a list => 'a list) m l))))))"
   by (import rich_list ALL_EL_LASTN)
 
-lemma ALL_EL_BUTLASTN: "ALL P l. list_all P l --> (ALL m<=length l. list_all P (BUTLASTN m l))"
+lemma ALL_EL_BUTLASTN: "(All::(('a => bool) => bool) => bool)
+ (%P::'a => bool.
+     (All::('a list => bool) => bool)
+      (%l::'a list.
+          (op -->::bool => bool => bool)
+           ((list_all::('a => bool) => 'a list => bool) P l)
+           ((All::(nat => bool) => bool)
+             (%m::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <=::nat => nat => bool) m ((size::'a list => nat) l))
+                  ((list_all::('a => bool) => 'a list => bool) P
+                    ((BUTLASTN::nat => 'a list => 'a list) m l))))))"
   by (import rich_list ALL_EL_BUTLASTN)
 
 lemma LENGTH_FIRSTN: "ALL n l. n <= length l --> length (FIRSTN n l) = n"
   by (import rich_list LENGTH_FIRSTN)
 
-lemma FIRSTN_FIRSTN: "ALL m l. m <= length l --> (ALL n<=m. FIRSTN n (FIRSTN m l) = FIRSTN n l)"
+lemma FIRSTN_FIRSTN: "(All::(nat => bool) => bool)
+ (%m::nat.
+     (All::('a list => bool) => bool)
+      (%l::'a list.
+          (op -->::bool => bool => bool)
+           ((op <=::nat => nat => bool) m ((size::'a list => nat) l))
+           ((All::(nat => bool) => bool)
+             (%n::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <=::nat => nat => bool) n m)
+                  ((op =::'a list => 'a list => bool)
+                    ((FIRSTN::nat => 'a list => 'a list) n
+                      ((FIRSTN::nat => 'a list => 'a list) m l))
+                    ((FIRSTN::nat => 'a list => 'a list) n l))))))"
   by (import rich_list FIRSTN_FIRSTN)
 
 lemma LENGTH_BUTFIRSTN: "ALL n l. n <= length l --> length (BUTFIRSTN n l) = length l - n"
@@ -4500,10 +4625,32 @@ lemma ALL_EL_SEG: "ALL P l.
    list_all P l --> (ALL m k. m + k <= length l --> list_all P (SEG m k l))"
   by (import rich_list ALL_EL_SEG)
 
-lemma ALL_EL_FIRSTN: "ALL P l. list_all P l --> (ALL m<=length l. list_all P (FIRSTN m l))"
+lemma ALL_EL_FIRSTN: "(All::(('a => bool) => bool) => bool)
+ (%P::'a => bool.
+     (All::('a list => bool) => bool)
+      (%l::'a list.
+          (op -->::bool => bool => bool)
+           ((list_all::('a => bool) => 'a list => bool) P l)
+           ((All::(nat => bool) => bool)
+             (%m::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <=::nat => nat => bool) m ((size::'a list => nat) l))
+                  ((list_all::('a => bool) => 'a list => bool) P
+                    ((FIRSTN::nat => 'a list => 'a list) m l))))))"
   by (import rich_list ALL_EL_FIRSTN)
 
-lemma ALL_EL_BUTFIRSTN: "ALL P l. list_all P l --> (ALL m<=length l. list_all P (BUTFIRSTN m l))"
+lemma ALL_EL_BUTFIRSTN: "(All::(('a => bool) => bool) => bool)
+ (%P::'a => bool.
+     (All::('a list => bool) => bool)
+      (%l::'a list.
+          (op -->::bool => bool => bool)
+           ((list_all::('a => bool) => 'a list => bool) P l)
+           ((All::(nat => bool) => bool)
+             (%m::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <=::nat => nat => bool) m ((size::'a list => nat) l))
+                  ((list_all::('a => bool) => 'a list => bool) P
+                    ((BUTFIRSTN::nat => 'a list => 'a list) m l))))))"
   by (import rich_list ALL_EL_BUTFIRSTN)
 
 lemma SOME_EL_SEG: "ALL m k l.

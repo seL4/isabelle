@@ -500,7 +500,19 @@ lemma ADD_TWO_COMP_QT: "ALL a. EQUIV (MODw a + TWO_COMP a) 0"
 lemma TWO_COMP_ONE_COMP_QT: "ALL a. EQUIV (TWO_COMP a) (ONE_COMP a + AONE)"
   by (import word32 TWO_COMP_ONE_COMP_QT)
 
-lemma BIT_EQUIV_THM: "ALL x xa. (ALL xb<WL. bit xb x = bit xb xa) = EQUIV x xa"
+lemma BIT_EQUIV_THM: "(All::(nat => bool) => bool)
+ (%x::nat.
+     (All::(nat => bool) => bool)
+      (%xa::nat.
+          (op =::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%xb::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <::nat => nat => bool) xb (WL::nat))
+                  ((op =::bool => bool => bool)
+                    ((bit::nat => nat => bool) xb x)
+                    ((bit::nat => nat => bool) xb xa))))
+           ((EQUIV::nat => nat => bool) x xa)))"
   by (import word32 BIT_EQUIV_THM)
 
 lemma BITS_SUC2: "ALL n a. BITS (Suc n) 0 a = SLICE (Suc n) (Suc n) a + BITS n 0 a"
@@ -548,9 +560,29 @@ defs
 lemma COMP0_def: "COMP0 = ONE_COMP 0"
   by (import word32 COMP0_def)
 
-lemma BITWISE_THM2: "ALL y oper a b.
-   (ALL x<WL. oper (bit x a) (bit x b) = bit x y) =
-   EQUIV (BITWISE WL oper a b) y"
+lemma BITWISE_THM2: "(All::(nat => bool) => bool)
+ (%y::nat.
+     (All::((bool => bool => bool) => bool) => bool)
+      (%oper::bool => bool => bool.
+          (All::(nat => bool) => bool)
+           (%a::nat.
+               (All::(nat => bool) => bool)
+                (%b::nat.
+                    (op =::bool => bool => bool)
+                     ((All::(nat => bool) => bool)
+                       (%x::nat.
+                           (op -->::bool => bool => bool)
+                            ((op <::nat => nat => bool) x (WL::nat))
+                            ((op =::bool => bool => bool)
+                              (oper ((bit::nat => nat => bool) x a)
+                                ((bit::nat => nat => bool) x b))
+                              ((bit::nat => nat => bool) x y))))
+                     ((EQUIV::nat => nat => bool)
+                       ((BITWISE::nat
+                                  => (bool => bool => bool)
+                                     => nat => nat => nat)
+                         (WL::nat) oper a b)
+                       y)))))"
   by (import word32 BITWISE_THM2)
 
 lemma OR_ASSOC_QT: "ALL a b c. EQUIV (OR a (OR b c)) (OR (OR a b) c)"

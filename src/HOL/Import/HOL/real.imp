@@ -25,7 +25,7 @@ thm_maps
   "sumc" > "HOL4Real.real.sumc"
   "sum_def" > "HOL4Real.real.sum_def"
   "sum" > "HOL4Real.real.sum"
-  "real_sub" > "OrderedGroup.compare_rls_1"
+  "real_sub" > "OrderedGroup.diff_def"
   "real_of_num" > "HOL4Compat.real_of_num"
   "real_lte" > "HOL4Compat.real_lte"
   "real_lt" > "HOL.linorder_not_le"

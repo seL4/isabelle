@@ -682,9 +682,28 @@ lemma SUM_REINDEX: "ALL f m k n. real.sum (m + k, n) f = real.sum (m, n) (%r. f 
 lemma SUM_0: "ALL m n. real.sum (m, n) (%r. 0) = 0"
   by (import real SUM_0)
 
-lemma SUM_PERMUTE_0: "ALL n p.
-   (ALL y<n. EX! x. x < n & p x = y) -->
-   (ALL f. real.sum (0, n) (%n. f (p n)) = real.sum (0, n) f)"
+lemma SUM_PERMUTE_0: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (All::((nat => nat) => bool) => bool)
+      (%p::nat => nat.
+          (op -->::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%y::nat.
+                 (op -->::bool => bool => bool)
+                  ((op <::nat => nat => bool) y n)
+                  ((Ex1::(nat => bool) => bool)
+                    (%x::nat.
+                        (op &::bool => bool => bool)
+                         ((op <::nat => nat => bool) x n)
+                         ((op =::nat => nat => bool) (p x) y)))))
+           ((All::((nat => real) => bool) => bool)
+             (%f::nat => real.
+                 (op =::real => real => bool)
+                  ((real.sum::nat * nat => (nat => real) => real)
+                    ((Pair::nat => nat => nat * nat) (0::nat) n)
+                    (%n::nat. f (p n)))
+                  ((real.sum::nat * nat => (nat => real) => real)
+                    ((Pair::nat => nat => nat * nat) (0::nat) n) f)))))"
   by (import real SUM_PERMUTE_0)
 
 lemma SUM_CANCEL: "ALL f n d. real.sum (n, d) (%n. f (Suc n) - f n) = f (n + d) - f n"
@@ -1442,7 +1461,18 @@ lemma mono: "(All::((nat => real) => bool) => bool)
 lemma MONO_SUC: "ALL f. seq.mono f = ((ALL x. f x <= f (Suc x)) | (ALL n. f (Suc n) <= f n))"
   by (import seq MONO_SUC)
 
-lemma MAX_LEMMA: "ALL (s::nat => real) N::nat. EX k::real. ALL n<N. abs (s n) < k"
+lemma MAX_LEMMA: "(All::((nat => real) => bool) => bool)
+ (%s::nat => real.
+     (All::(nat => bool) => bool)
+      (%N::nat.
+          (Ex::(real => bool) => bool)
+           (%k::real.
+               (All::(nat => bool) => bool)
+                (%n::nat.
+                    (op -->::bool => bool => bool)
+                     ((op <::nat => nat => bool) n N)
+                     ((op <::real => real => bool)
+                       ((abs::real => real) (s n)) k)))))"
   by (import seq MAX_LEMMA)
 
 lemma SEQ_BOUNDED: "ALL s. bounded (mr1, nat_ge) s = (EX k. ALL n. abs (s n) < k)"
@@ -5785,9 +5815,46 @@ lemma gauge: "(All::((real => bool) => bool) => bool)
 
 constdefs
   fine :: "(real => real) => (nat => real) * (nat => real) => bool" 
-  "fine == %g (D, p). ALL n<dsize D. D (Suc n) - D n < g (p n)"
+  "(op ==::((real => real) => (nat => real) * (nat => real) => bool)
+        => ((real => real) => (nat => real) * (nat => real) => bool)
+           => prop)
+ (fine::(real => real) => (nat => real) * (nat => real) => bool)
+ (%g::real => real.
+     (split::((nat => real) => (nat => real) => bool)
+             => (nat => real) * (nat => real) => bool)
+      (%(D::nat => real) p::nat => real.
+          (All::(nat => bool) => bool)
+           (%n::nat.
+               (op -->::bool => bool => bool)
+                ((op <::nat => nat => bool) n
+                  ((dsize::(nat => real) => nat) D))
+                ((op <::real => real => bool)
+                  ((op -::real => real => real) (D ((Suc::nat => nat) n))
+                    (D n))
+                  (g (p n))))))"
 
-lemma fine: "ALL g D p. fine g (D, p) = (ALL n<dsize D. D (Suc n) - D n < g (p n))"
+lemma fine: "(All::((real => real) => bool) => bool)
+ (%g::real => real.
+     (All::((nat => real) => bool) => bool)
+      (%D::nat => real.
+          (All::((nat => real) => bool) => bool)
+           (%p::nat => real.
+               (op =::bool => bool => bool)
+                ((fine::(real => real)
+                        => (nat => real) * (nat => real) => bool)
+                  g ((Pair::(nat => real)
+                            => (nat => real)
+                               => (nat => real) * (nat => real))
+                      D p))
+                ((All::(nat => bool) => bool)
+                  (%n::nat.
+                      (op -->::bool => bool => bool)
+                       ((op <::nat => nat => bool) n
+                         ((dsize::(nat => real) => nat) D))
+                       ((op <::real => real => bool)
+                         ((op -::real => real => real)
+                           (D ((Suc::nat => nat) n)) (D n))
+                         (g (p n))))))))"
   by (import transc fine)
 
 constdefs
