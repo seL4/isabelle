@@ -41,7 +41,8 @@ fun inductive_decl coind =
       let val big_rec_name = space_implode "_" 
                            (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
-          and sintrs   = mk_big_list (map snd ipairs)
+          and sintrs   =
+            mk_big_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) ipairs)
           and inames   = mk_list (map (mk_intr_name "" o fst) ipairs)
       in
 	 ";\n\n\
@@ -50,8 +51,8 @@ fun inductive_decl coind =
 		    \bnd_mono, dom_subset, induct, mutual_induct, ...}) =\n\
 	 \  " ^
 	 (if coind then "Co" else "") ^ 
-	 "Ind_Package.add_inductive (" ^  srec_tms ^ ", " ^ sdom_sum ^ ", " ^
-	  sintrs ^ ", " ^ monos ^ ", " ^ con_defs ^ ", " ^ 
+	 "Ind_Package.add_inductive_x (" ^  srec_tms ^ ", " ^ sdom_sum ^ ") " ^
+	  sintrs ^ " (" ^ monos ^ ", " ^ con_defs ^ ", " ^ 
 	  type_intrs ^ ", " ^ type_elims ^ ") thy;\n\
 	 \in\n\
 	 \structure " ^ big_rec_name ^ " =\n\

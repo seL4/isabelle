@@ -51,15 +51,15 @@ structure Standard_Sum =
   val inr_iff   = Inr_iff
   val distinct  = Inl_Inr_iff
   val distinct' = Inr_Inl_iff
-  val free_SEs  = Ind_Syntax.mk_free_SEs 
+  val free_SEs  = Ind_Syntax.mk_free_SEs
             [distinct, distinct', inl_iff, inr_iff, Standard_Prod.pair_iff]
   end;
 
 
-structure Ind_Package = 
+structure Ind_Package =
     Add_inductive_def_Fun
       (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
-       and Su=Standard_Sum);
+       and Su=Standard_Sum val coind = false);
 
 
 structure Gfp =
@@ -98,12 +98,11 @@ structure Quine_Sum =
   val inr_iff   = QInr_iff
   val distinct  = QInl_QInr_iff
   val distinct' = QInr_QInl_iff
-  val free_SEs  = Ind_Syntax.mk_free_SEs 
+  val free_SEs  = Ind_Syntax.mk_free_SEs
             [distinct, distinct', inl_iff, inr_iff, Quine_Prod.pair_iff]
   end;
 
 
-structure CoInd_Package = 
-    Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
-                          and Su=Quine_Sum);
-
+structure CoInd_Package =
+  Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
+    and Su=Quine_Sum val coind = true);
