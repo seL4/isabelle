@@ -61,6 +61,7 @@ use_thy "Recdef";
 cd "~~/src/TFL";
 use "sys.sml";
 cd "~~/src/HOL";
+use "Tools/recdef_package.ML";
 
 cd "Integ";
 use_thy "IntDef";

@@ -52,12 +52,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   String.thy Sum.ML Sum.thy Tools/datatype_aux.ML \
   Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
   Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
-  Tools/inductive_package.ML Tools/primrec_package.ML \
+  Tools/inductive_package.ML \
+  Tools/primrec_package.ML Tools/recdef_package.ML \
   Tools/record_package.ML Tools/typedef_package.ML Trancl.ML \
   Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML WF.thy \
-  WF_Rel.ML WF_Rel.thy cladata.ML equalities.ML \
-  equalities.thy hologic.ML mono.ML mono.thy simpdata.ML subset.ML \
-  subset.thy thy_syntax.ML
+  WF_Rel.ML WF_Rel.thy cladata.ML equalities.ML equalities.thy \
+  hologic.ML mono.ML mono.thy simpdata.ML subset.ML subset.thy \
+  thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 
