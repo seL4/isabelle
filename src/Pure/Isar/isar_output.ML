@@ -22,6 +22,7 @@ sig
       (Toplevel.transition * (Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
   val display: bool ref
   val quotes: bool ref
+  val indent: int ref
 end;
 
 structure IsarOutput: ISAR_OUTPUT =
@@ -243,6 +244,7 @@ end;
 
 val display = ref false;
 val quotes = ref false;
+val indent = ref 0;
 
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
@@ -252,7 +254,8 @@ val _ = add_options
   ("display", Library.setmp display o boolean),
   ("quotes", Library.setmp quotes o boolean),
   ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
-  ("margin", Pretty.setmp_margin o integer)];
+  ("margin", Pretty.setmp_margin o integer),
+  ("indent", Library.setmp indent o integer)];
 
 
 (* commands *)
@@ -264,7 +267,7 @@ fun cond_quote prt =
 
 fun cond_display prt =
   if ! display then
-    Pretty.string_of prt
+    Pretty.string_of (Pretty.indent (! indent) prt)
     |> enclose "\n\\begin{isabelle}%\n" "\n\\end{isabelle}%\n"
   else
     Pretty.str_of prt
@@ -282,10 +285,14 @@ fun pretty_term ctxt t =
 fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
+fun pretty_name _ s =
+  Pretty.chunks (map Pretty.str (Library.split_lines s));
+
 in
 
 val _ = add_commands
- [("thm", args Attrib.local_thms (string_of oo pretty_thm)),
+ [("name", args (Scan.lift Args.name) (string_of oo pretty_name)),
+  ("thm", args Attrib.local_thms (string_of oo pretty_thm)),
   ("prop", args Args.local_prop (string_of oo pretty_term)),
   ("term", args Args.local_term (string_of oo pretty_term)),
   ("typ", args Args.local_typ_no_norm (string_of oo pretty_typ))];
