@@ -100,6 +100,45 @@ qed "bex_triv";
 
 Addsimps [ball_triv, bex_triv];
 
+Goalw [Bex_def] "(ALL x:A. x=a --> P x) = (a:A --> P a)";
+by(Blast_tac 1);
+qed "ball_one_point";
+
+Goal "(EX x:A. x=a & P x) = (a:A & P a)";
+by(Blast_tac 1);
+qed "bex_one_point";
+
+Addsimps [ball_one_point,bex_one_point];
+
+let
+val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("EX x:A. P(x) & Q(x)",HOLogic.boolT)
+
+val prove_bex_tac = rewrite_goals_tac [Bex_def] THEN
+                    Quantifier1.prove_one_point_ex_tac;
+
+val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
+
+val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("ALL x:A. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+
+val swap = prove_goal thy
+  "((!x. Q x --> P x --> R x) = S) ==> ((!x. P x --> Q x --> R x) = S)"
+  (fn ths => [cut_facts_tac ths 1, Blast_tac 1]);
+
+val prove_ball_tac = rewrite_goals_tac [Ball_def] THEN rtac swap 1 THEN
+                     Quantifier1.prove_one_point_all_tac;
+
+val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
+
+val defBEX_regroup = mk_simproc "defined BEX" [ex_pattern] rearrange_bex;
+val defBALL_regroup = mk_simproc "defined BALL" [all_pattern] rearrange_ball;
+in
+
+Addsimprocs [defBALL_regroup,defBEX_regroup]
+
+end;
+
 (** Congruence rules **)
 
 val prems = Goalw [Ball_def]

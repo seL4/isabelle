@@ -284,17 +284,15 @@ structure Quantifier1 = Quantifier1Fun
 end);
 
 local
-val ex_pattern =
-  Thm.read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x) & Q(x)",HOLogic.boolT)
-
-val all_pattern =
-  Thm.read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
-
+val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("EX x. P(x) & Q(x)",HOLogic.boolT)
+val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 in
-val defEX_regroup =
-  mk_simproc "defined EX" [ex_pattern] Quantifier1.rearrange_ex;
-val defALL_regroup =
-  mk_simproc "defined ALL" [all_pattern] Quantifier1.rearrange_all;
+val defEX_regroup = mk_simproc "defined EX" [ex_pattern]
+      Quantifier1.rearrange_ex
+val defALL_regroup = mk_simproc "defined ALL" [all_pattern]
+      Quantifier1.rearrange_all
 end;
 
 

@@ -103,7 +103,6 @@ Goal "ALL j. F j : preserves snd \
 \     ==> (PLam I F : preserves (v o sub j o fst)) = \
 \         (if j: I then F j : preserves (v o fst) else True)";
 by (asm_simp_tac (simpset() addsimps [PLam_def, lift_preserves_sub]) 1);
-by (Blast_tac 1);
 qed "PLam_preserves_fst";
 Addsimps [PLam_preserves_fst];
 

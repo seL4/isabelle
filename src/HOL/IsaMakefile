@@ -59,7 +59,8 @@ HOL: Pure $(OUT)/HOL
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
+$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
+  $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
