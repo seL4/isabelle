@@ -12,4 +12,6 @@ set timing;
 time_use_thy "Eta";
 no_document time_use_thy "Accessible_Part";
 time_use_thy "StrongNorm";
-time_use_thy "WeakNorm";
+if HOL_proofs < 2 then
+  warning "HOL proof terms required for running theory WeakNorm"
+else time_use_thy "WeakNorm";
