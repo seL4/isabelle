@@ -13,7 +13,7 @@ writeln banner;
 print_depth 1;  
 
 use_thy "CTT";
-use "$ISABELLE_HOME/src/Provers/typedsimp.ML";
+use "~~/src/Provers/typedsimp.ML";
 use "rew.ML";
 use_thy "Arith";
 use_thy "Bool";

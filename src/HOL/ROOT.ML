@@ -13,21 +13,21 @@ writeln banner;
 print_depth 1;
 
 (* Add user sections *)
-use "$ISABELLE_HOME/src/Pure/section_utils.ML";
+use "~~/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
 
-use "$ISABELLE_HOME/src/Provers/simplifier.ML";
-use "$ISABELLE_HOME/src/Provers/split_paired_all.ML";
-use "$ISABELLE_HOME/src/Provers/splitter.ML";
-use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
-use "$ISABELLE_HOME/src/Provers/classical.ML";
-use "$ISABELLE_HOME/src/Provers/blast.ML";
-use "$ISABELLE_HOME/src/Provers/clasimp.ML";
-use "$ISABELLE_HOME/src/Provers/Arith/fast_lin_arith.ML";
-use "$ISABELLE_HOME/src/Provers/Arith/cancel_sums.ML";
-use "$ISABELLE_HOME/src/Provers/Arith/cancel_factor.ML";
-use "$ISABELLE_HOME/src/Provers/Arith/abel_cancel.ML";
-use "$ISABELLE_HOME/src/Provers/quantifier1.ML";
+use "~~/src/Provers/simplifier.ML";
+use "~~/src/Provers/split_paired_all.ML";
+use "~~/src/Provers/splitter.ML";
+use "~~/src/Provers/hypsubst.ML";
+use "~~/src/Provers/classical.ML";
+use "~~/src/Provers/blast.ML";
+use "~~/src/Provers/clasimp.ML";
+use "~~/src/Provers/Arith/fast_lin_arith.ML";
+use "~~/src/Provers/Arith/cancel_sums.ML";
+use "~~/src/Provers/Arith/cancel_factor.ML";
+use "~~/src/Provers/Arith/abel_cancel.ML";
+use "~~/src/Provers/quantifier1.ML";
 
 use_thy "HOL";
 use "hologic.ML";
@@ -60,9 +60,9 @@ use_thy "Arith";
 
 use_thy "Recdef";
 (*TFL: recursive function definitions*)
-cd "$ISABELLE_HOME/src/TFL";
+cd "~~/src/TFL";
 use "sys.sml";
-cd "$ISABELLE_HOME/src/HOL";
+cd "~~/src/HOL";
 
 cd "Integ";
 use_thy "IntDef";
