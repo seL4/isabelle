@@ -25,7 +25,7 @@ FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 	drule.ML tctical.ML tactic.ML goals.ML axclass.ML install_pp.ML
 
 SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
-	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/sextension.ML\
+	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/syn_trans.ML\
 	Syntax/pretty.ML	Syntax/printer.ML	Syntax/syntax.ML\
 	Syntax/syn_ext.ML	Syntax/mixfix.ML
 
