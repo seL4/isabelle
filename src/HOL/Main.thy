@@ -17,7 +17,6 @@ subsection {* Configuration of the code generator *}
 types_code
   "bool"  ("bool")
   "*"     ("(_ */ _)")
-  "list"  ("_ list")
 
 consts_code
   "True"    ("true")
@@ -31,9 +30,6 @@ consts_code
   "fst"     ("fst")
   "snd"     ("snd")
 
-  "Nil"     ("[]")
-  "Cons"    ("(_ ::/ _)")
-
   "wfrec"   ("wf'_rec?")
 
 quickcheck_params [default_type = int]
@@ -42,7 +38,6 @@ ML {*
 fun wf_rec f x = f (wf_rec f) x;
 
 fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
-val term_of_list = HOLogic.mk_list;
 val term_of_int = HOLogic.mk_int;
 fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
 fun term_of_fun_type _ T _ U _ = Free ("<function>", T --> U);
@@ -64,10 +59,6 @@ val eq_codegen_setup = [Codegen.add_codegen "eq_codegen"
      | _ => None))];
 
 fun gen_bool i = one_of [false, true];
-
-fun gen_list' aG i j = frequency
-  [(i, fn () => aG j :: gen_list' aG (i-1) j), (1, fn () => [])] ()
-and gen_list aG i = gen_list' aG i i;
 
 fun gen_int i = one_of [~1, 1] * random_range 0 i;
 
