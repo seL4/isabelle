@@ -136,18 +136,17 @@ would have alerted us because of the unexpected variable \isa{re}.
   \commdx{typ} \textit{string} reads and prints the given
   string as a type in the current context.
 \item[(Re)loading theories:] When you start your interaction you must open a
-  named theory with the line \commdx{theory}~\isa{T~=~\dots~:}. Isabelle
-  automatically loads all the required parent theories from their respective
-  files (which may take a moment, unless the theories are already loaded and
-  the files have not been modified).
+  named theory with \commdx{theory}~\isa{T} \isacommand{imports} \dots
+  \isacommand{begin}. Isabelle automatically loads all the required parent
+  theories from their respective files (which may take a moment, unless the
+  theories are already loaded and the files have not been modified).
   
   If you suddenly discover that you need to modify a parent theory of your
   current theory, you must first abandon your current theory%
-  \indexbold{abandoning a theory}\indexbold{theories!abandoning} 
-  (at the shell
-  level type \commdx{kill}). After the parent theory has
-  been modified, you go back to your original theory. When its first line
-  \isa{\isacommand{theory}~T~=~\dots~:} is processed, the
+  \indexbold{abandoning a theory}\indexbold{theories!abandoning} (at the
+  shell level type \commdx{kill}). After the parent theory has been modified,
+  you go back to your original theory. When its opening
+  \isacommand{theory}~\isa{T} \dots \isacommand{begin} is processed, the
   modified parent is reloaded automatically.
   
 %  The only time when you need to load a theory by hand is when you simply
