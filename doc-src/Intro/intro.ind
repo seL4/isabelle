@@ -20,7 +20,7 @@
   \item {\tt allI} theorem, 37
   \item arities
     \subitem declaring, 4, \bold{49}
-  \item {\tt asm_simp_tac}, 60
+  \item {\tt Asm_simp_tac}, 60
   \item {\tt assume_tac}, 30, 32, 37, 47
   \item assumptions
     \subitem deleting, 20
@@ -207,7 +207,7 @@
   \item search
     \subitem depth-first, 63
   \item signatures, \bold{9}
-  \item {\tt simp_tac}, 60
+  \item {\tt Simp_tac}, 60
   \item simplification, 59
   \item simplification sets, 59
   \item sort constraints, 25

@@ -1024,14 +1024,14 @@ simplification tactics, which are described in
 
 \index{simplification}\index{examples!of simplification} 
 
-Isabelle's simplification tactics repeatedly apply equations to a subgoal,
-perhaps proving it.  For efficiency, the rewrite rules must be
-packaged into a {\bf simplification set},\index{simplification sets} 
-or {\bf simpset}.  We take the standard simpset for first-order logic and
-insert the equations proved in the previous section, namely
-$0+n=n$ and ${\tt Suc}(m)+n={\tt Suc}(m+n)$:
+Isabelle's simplification tactics repeatedly apply equations to a
+subgoal, perhaps proving it.  For efficiency, the rewrite rules must
+be packaged into a {\bf simplification set},\index{simplification
+  sets} or {\bf simpset}.  We augment the implicit simpset of {\FOL}
+with the equations proved in the previous section, namely $0+n=n$ and
+${\tt Suc}(m)+n={\tt Suc}(m+n)$:
 \begin{ttbox}
-val add_ss = FOL_ss addsimps [add_0, add_Suc];
+Addsimps [add_0, add_Suc];
 \end{ttbox}
 We state the goal for associativity of addition, and
 use \ttindex{res_inst_tac} to invoke induction on~$k$:
@@ -1049,10 +1049,10 @@ by (res_inst_tac [("n","k")] induct 1);
 {\out          Suc(x) + m + n = Suc(x) + (m + n)}
 \end{ttbox}
 The base case holds easily; both sides reduce to $m+n$.  The
-tactic~\ttindex{simp_tac} rewrites with respect to the given simplification
-set, applying the rewrite rules for addition:
+tactic~\ttindex{Simp_tac} rewrites with respect to the current
+simplification set, applying the rewrite rules for addition:
 \begin{ttbox}
-by (simp_tac add_ss 1);
+by (Simp_tac 1);
 {\out Level 2}
 {\out k + m + n = k + (m + n)}
 {\out  1. !!x. x + m + n = x + (m + n) ==>}
@@ -1060,10 +1060,10 @@ by (simp_tac add_ss 1);
 \end{ttbox}
 The inductive step requires rewriting by the equations for addition
 together the induction hypothesis, which is also an equation.  The
-tactic~\ttindex{asm_simp_tac} rewrites using a simplification set and any
-useful assumptions:
+tactic~\ttindex{Asm_simp_tac} rewrites using the implicit
+simplification set and any useful assumptions:
 \begin{ttbox}
-by (asm_simp_tac add_ss 1);
+by (Asm_simp_tac 1);
 {\out Level 3}
 {\out k + m + n = k + (m + n)}
 {\out No subgoals!}
