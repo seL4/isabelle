@@ -344,16 +344,16 @@ lemma vs_mult_left_commute:
   by (simp add: real_mult_commute)
 
 lemma vs_mult_zero_uniq:
-  "[| is_vectorspace V; x \<in> V; a \<cdot> x = 0; x \<noteq> 0 |] ==> a = #0"
+  "[| is_vectorspace V; x \<in> V; x \<noteq> 0; a \<cdot> x = 0 |] ==> a = 0"
 proof (rule classical)
   assume "is_vectorspace V" "x \<in> V" "a \<cdot> x = 0" "x \<noteq> 0"
-  assume "a \<noteq> #0"
+  assume "a \<noteq> 0"
   have "x = (inverse a * a) \<cdot> x" by (simp!)
   also have "... = inverse a \<cdot> (a \<cdot> x)" by (rule vs_mult_assoc)
   also have "... = inverse a \<cdot> 0" by (simp!)
   also have "... = 0" by (simp!)
   finally have "x = 0" .
-  thus "a = #0" by contradiction 
+  thus "a = 0" by contradiction 
 qed
 
 lemma vs_mult_left_cancel: 
@@ -375,37 +375,14 @@ lemma vs_mult_right_cancel: (*** forward ***)
   "[| is_vectorspace V; x \<in> V; x \<noteq> 0 |] 
   ==> (a \<cdot> x = b \<cdot> x) = (a = b)" (concl is "?L = ?R")
 proof
-  assume "is_vectorspace V" "x \<in> V" "x \<noteq> 0"
+  assume v: "is_vectorspace V" "x \<in> V" "x \<noteq> 0"
   have "(a - b) \<cdot> x = a \<cdot> x - b \<cdot> x" 
     by (simp! add: vs_diff_mult_distrib2)
   also assume ?L hence "a \<cdot> x - b \<cdot> x = 0" by (simp!)
-  finally have "(a - b) \<cdot> x = 0" . 
-  hence "a - b = #0" by (simp! add: vs_mult_zero_uniq)
-  thus "a = b" by (rule real_add_minus_eq)
-qed simp (*** 
-
-lemma vs_mult_right_cancel: 
-  "[| is_vectorspace V; x:V; x \<noteq> 0 |] ==>  
-  (a ( * ) x = b ( * ) x) = (a = b)"
-  (concl is "?L = ?R");
-proof;
-  assume "is_vectorspace V" "x:V" "x \<noteq> 0";
-  assume l: ?L; 
-  show "a = b"; 
-  proof (rule real_add_minus_eq);
-    show "a - b = (#0::real)"; 
-    proof (rule vs_mult_zero_uniq);
-      have "(a - b) ( * ) x = a ( * ) x - b ( * ) x";
-        by (simp! add: vs_diff_mult_distrib2);
-      also; from l; have "a ( * ) x - b ( * ) x = 0"; by (simp!);
-      finally; show "(a - b) ( * ) x  = 0"; .; 
-    qed;
-  qed;
-next;
-  assume ?R;
-  thus ?L; by simp;
-qed;
-**)
+  finally have "(a - b) \<cdot> x = 0" .
+  from v this have "a - b = 0" by (rule vs_mult_zero_uniq) 
+  thus "a = b" by simp
+qed simp 
 
 lemma vs_eq_diff_eq: 
   "[| is_vectorspace V; x \<in> V; y \<in> V; z \<in> V |] ==> 
