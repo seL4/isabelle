@@ -241,19 +241,21 @@ AddSEs [splitE, mem_splitE];
 goalw Prod.thy [prod_fun_def] "prod_fun f g (a,b) = (f(a),g(b))";
 by (rtac split 1);
 qed "prod_fun";
+Addsimps [prod_fun];
 
 goal Prod.thy 
     "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
 by (res_inst_tac [("p","x")] PairE 1);
-by (asm_simp_tac (simpset() addsimps [prod_fun,o_def]) 1);
+by (Asm_simp_tac 1);
 qed "prod_fun_compose";
 
 goal Prod.thy "prod_fun (%x. x) (%y. y) = (%z. z)";
 by (rtac ext 1);
 by (res_inst_tac [("p","z")] PairE 1);
-by (asm_simp_tac (simpset() addsimps [prod_fun]) 1);
+by (Asm_simp_tac 1);
 qed "prod_fun_ident";
+Addsimps [prod_fun_ident];
 
 val prems = goal Prod.thy "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";
 by (rtac image_eqI 1);
@@ -270,6 +272,7 @@ by (resolve_tac prems 1);
 by (Blast_tac 2);
 by (blast_tac (claset() addIs [prod_fun]) 1);
 qed "prod_fun_imageE";
+
 
 (*** Disjoint union of a family of sets - Sigma ***)
 

@@ -1,7 +1,7 @@
 (*  Title:      HOL/ex/SList.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1998  University of Cambridge
 
 Definition of type 'a list by a least fixed point
 *)
@@ -138,8 +138,11 @@ by (rtac Case_In0 1);
 qed "List_case_NIL";
 
 goalw SList.thy [List_case_def,CONS_def]  "List_case c h (CONS M N) = h M N";
-by (simp_tac (simpset() addsimps [Split,Case_In1]) 1);
+by (Simp_tac 1);
 qed "List_case_CONS";
+
+Addsimps [List_case_NIL, List_case_CONS];
+
 
 (*** List_rec -- by wf recursion on pred_sexp ***)
 
@@ -185,14 +188,17 @@ qed "pred_sexp_CONS_D";
 
 goal SList.thy "List_rec NIL c h = c";
 by (rtac (List_rec_unfold RS trans) 1);
-by (simp_tac (simpset() addsimps [List_case_NIL]) 1);
+by (Simp_tac 1);
 qed "List_rec_NIL";
 
 goal SList.thy "!!M. [| M: sexp;  N: sexp |] ==> \
 \    List_rec (CONS M N) c h = h M N (List_rec N c h)";
 by (rtac (List_rec_unfold RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [List_case_CONS, pred_sexp_CONS_I2]) 1);
+by (asm_simp_tac (simpset() addsimps [pred_sexp_CONS_I2]) 1);
 qed "List_rec_CONS";
+
+Addsimps [List_rec_NIL, List_rec_CONS];
+
 
 (*** list_rec -- by List_rec ***)
 
@@ -200,8 +206,7 @@ val Rep_list_in_sexp =
     [range_Leaf_subset_sexp RS list_subset_sexp, Rep_list] MRS subsetD;
 
 local
-  val list_rec_simps = [List_rec_NIL, List_rec_CONS, 
-                        Abs_list_inverse, Rep_list_inverse,
+  val list_rec_simps = [Abs_list_inverse, Rep_list_inverse,
                         Rep_list, rangeI, inj_Leaf, inv_f_f,
                         sexp.LeafI, Rep_list_in_sexp]
 in
@@ -364,8 +369,8 @@ qed "map_compose2";
 goal SList.thy "!!f. (!!x. f(x): sexp) ==> \
 \       Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs";
 by (list_ind_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac(simpset() addsimps
-       [Rep_map_type,list_sexp RS subsetD])));
+by (ALLGOALS (asm_simp_tac(simpset() addsimps
+			   [Rep_map_type, list_sexp RS subsetD])));
 qed "Abs_Rep_map";
 
 Addsimps [append_Nil4, map_ident2];

@@ -71,32 +71,34 @@ qed "Domain_findRel_mono";
 goalw thy [find_def] "find p LNil = LNil";
 by (blast_tac (claset() addIs [select_equality]) 1);
 qed "find_LNil";
+Addsimps [find_LNil];
 
 goalw thy [find_def] "!!p. (l,l') : findRel p ==> find p l = l'";
 by (blast_tac (claset() addIs [select_equality] addDs [findRel_functional]) 1);
 qed "findRel_imp_find";
+Addsimps [findRel_imp_find];
 
 goal thy "!!p. p x ==> find p (LCons x l) = LCons x l";
 by (blast_tac (claset() addIs (findRel_imp_find::findRel.intrs)) 1);
 qed "find_LCons_found";
+Addsimps [find_LCons_found];
 
 goalw thy [find_def] "!!p. l ~: Domain(findRel p) ==> find p l = LNil";
 by (blast_tac (claset() addIs [select_equality]) 1);
 qed "diverge_find_LNil";
-
 Addsimps [diverge_find_LNil];
 
 goal thy "!!p. ~ (p x) ==> find p (LCons x l) = find p l";
 by (case_tac "LCons x l : Domain(findRel p)" 1);
 by (Asm_full_simp_tac 2);
 by (Clarify_tac 1);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_find]) 1);
+by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs (findRel_imp_find::findRel.intrs)) 1);
 qed "find_LCons_seek";
+Addsimps [find_LCons_seek];
 
 goal thy "find p (LCons x l) = (if p x then LCons x l else find p l)";
-by (asm_simp_tac (simpset() addsimps [find_LCons_found, find_LCons_seek]
-                           addsplits [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
 qed "find_LCons";
 
 
@@ -105,54 +107,60 @@ qed "find_LCons";
 
 goal thy "lfilter p LNil = LNil";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
-by (simp_tac (simpset() addsimps [find_LNil]) 1);
+by (Simp_tac 1);
 qed "lfilter_LNil";
+Addsimps [lfilter_LNil];
 
 goal thy "!!p. l ~: Domain(findRel p) ==> lfilter p l = LNil";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (Asm_simp_tac 1);
 qed "diverge_lfilter_LNil";
 
+Addsimps [diverge_lfilter_LNil];
+
 
 goal thy "!!p. p x ==> lfilter p (LCons x l) = LCons x (lfilter p l)";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [find_LCons_found]) 1);
+by (Asm_simp_tac 1);
 qed "lfilter_LCons_found";
+(*This rewrite and lfilter_LCons_seek are NOT added because lfilter_LCons
+  subsumes both*)
 
 
 goal thy "!!p. (l, LCons x l') : findRel p \
 \              ==> lfilter p l = LCons x (lfilter p l')";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_find]) 1);
+by (Asm_simp_tac 1);
 qed "findRel_imp_lfilter";
+
+Addsimps [findRel_imp_lfilter];
+
 
 goal thy "!!p. ~ (p x) ==> lfilter p (LCons x l) = lfilter p l";
 by (rtac (lfilter_def RS def_llist_corec RS trans) 1);
 by (case_tac "LCons x l : Domain(findRel p)" 1);
-by (asm_full_simp_tac (simpset() addsimps [diverge_lfilter_LNil]) 2);
+by (Asm_full_simp_tac 2);
 by (etac Domain_findRelE 1);
 by (safe_tac (claset() delrules [conjI]));
-by (asm_full_simp_tac 
-    (simpset() addsimps [findRel_imp_lfilter, findRel_imp_find,
-                        find_LCons_seek]) 1);
+by (Asm_full_simp_tac 1);
 qed "lfilter_LCons_seek";
 
 
 goal thy "lfilter p (LCons x l) = \
 \         (if p x then LCons x (lfilter p l) else lfilter p l)";
 by (asm_simp_tac (simpset() addsimps [lfilter_LCons_found, lfilter_LCons_seek]
-                           addsplits [expand_if]) 1);
+                            addsplits [expand_if]) 1);
 qed "lfilter_LCons";
 
 AddSIs [llistD_Fun_LNil_I, llistD_Fun_LCons_I];
-Addsimps [lfilter_LNil, lfilter_LCons];
+Addsimps [lfilter_LCons];
 
 
 goal thy "!!p. lfilter p l = LNil ==> l ~: Domain(findRel p)";
 by (rtac notI 1);
 by (etac Domain_findRelE 1);
 by (etac rev_mp 1);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_lfilter]) 1);
+by (Asm_simp_tac 1);
 qed "lfilter_eq_LNil";
 
 
@@ -162,7 +170,7 @@ by (stac (lfilter_def RS def_llist_corec) 1);
 by (case_tac "l : Domain(findRel p)" 1);
 by (etac Domain_findRelE 1);
 by (Asm_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_find]) 1);
+by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "lfilter_eq_LCons";
 
@@ -170,9 +178,9 @@ qed_spec_mp "lfilter_eq_LCons";
 goal thy "lfilter p l = LNil  |  \
 \         (EX y l'. lfilter p l = LCons y (lfilter p l') & p y)";
 by (case_tac "l : Domain(findRel p)" 1);
-by (asm_simp_tac (simpset() addsimps [diverge_lfilter_LNil]) 2);
+by (Asm_simp_tac 2);
 by (blast_tac (claset() addSEs [Domain_findRelE] 
-                       addIs [findRel_imp_lfilter]) 1);
+                        addIs  [findRel_imp_lfilter]) 1);
 qed "lfilter_cases";
 
 
@@ -228,7 +236,7 @@ goal thy "!!p. (lx,ly) : findRel p \
 \                  --> l : Domain (findRel(%x. p x & q x))";
 by (etac findRel.induct 1);
 by (blast_tac (claset() addSDs [sym RS lfilter_eq_LCons]
-                       addIs  [findRel_conj]) 1);
+                        addIs  [findRel_conj]) 1);
 by Auto_tac;
 by (dtac (sym RS lfilter_eq_LCons) 1);
 by Auto_tac;
@@ -256,14 +264,13 @@ by (case_tac "l : Domain(findRel q)" 1);
 by (subgoal_tac "l ~: Domain (findRel (%x. p x & q x))" 2);
 by (blast_tac (claset() addIs [impOfSubs Domain_findRel_mono]) 3);
 (*There are no qs in l: both lists are LNil*)
-by (asm_simp_tac (simpset() addsimps [diverge_lfilter_LNil]) 2);
+by (Asm_simp_tac 2);
 by (etac Domain_findRelE 1);
 (*case q x*)
 by (case_tac "p x" 1);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_lfilter,
-                                     findRel_conj RS findRel_imp_lfilter]) 1);
+by (asm_simp_tac (simpset() addsimps [findRel_conj RS findRel_imp_lfilter]) 1);
 (*case q x and ~(p x) *)
-by (asm_simp_tac (simpset() addsimps [findRel_imp_lfilter]) 1);
+by (Asm_simp_tac 1);
 by (case_tac "l' : Domain (findRel (%x. p x & q x))" 1);
 (*subcase: there is no p&q in l' and therefore none in l*)
 by (subgoal_tac "l ~: Domain (findRel (%x. p x & q x))" 2);
@@ -271,14 +278,14 @@ by (blast_tac (claset() addIs [findRel_not_conj_Domain]) 3);
 by (subgoal_tac "lfilter q l' ~: Domain(findRel p)" 2);
 by (blast_tac (claset() addIs [findRel_lfilter_Domain_conj]) 3);
 (*    ...and therefore too, no p in lfilter q l'.  Both results are Lnil*)
-by (asm_simp_tac (simpset() addsimps [diverge_lfilter_LNil]) 2);
+by (Asm_simp_tac 2);
 (*subcase: there is a p&q in l' and therefore also one in l*)
 by (etac Domain_findRelE 1);
 by (subgoal_tac "(l, LCons xa l'a) : findRel(%x. p x & q x)" 1);
 by (blast_tac (claset() addIs [findRel_conj2]) 2);
 by (subgoal_tac "(lfilter q l', LCons xa (lfilter q l'a)) : findRel p" 1);
 by (blast_tac (claset() addIs [findRel_conj_lfilter]) 2);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_lfilter]) 1);
+by (Asm_simp_tac 1);
 val lemma = result();
 
 
@@ -327,9 +334,9 @@ by Safe_tac;
 by (case_tac "lmap f l : Domain (findRel p)" 1);
 by (subgoal_tac "l ~: Domain (findRel(%x. p (f x)))" 2);
 by (blast_tac (claset() addIs [findRel_lmap_Domain]) 3);
-by (asm_simp_tac (simpset() addsimps [diverge_lfilter_LNil]) 2);
+by (Asm_simp_tac 2);
 by (etac Domain_findRelE 1);
 by (forward_tac [lmap_LCons_findRel] 1);
 by (Clarify_tac 1);
-by (asm_simp_tac (simpset() addsimps [findRel_imp_lfilter]) 1);
+by (Asm_simp_tac 1);
 qed "lfilter_lmap";

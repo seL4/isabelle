@@ -22,6 +22,8 @@ goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
 by (blast_tac (claset() addSIs [select_equality]) 1);
 qed "sexp_case_Scons";
 
+Addsimps [sexp_case_Leaf, sexp_case_Numb, sexp_case_Scons];
+
 
 (** Introduction rules for sexp constructors **)
 
@@ -100,6 +102,13 @@ goal Sexp.thy
    "(%M. sexp_rec M c d e) = wfrec pred_sexp \
                        \ (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2)))";
 by (simp_tac (HOL_ss addsimps [sexp_rec_def]) 1);
+
+(* sexp_rec a c d e =
+   sexp_case c d
+    (%N1 N2.
+        e N1 N2 (cut (%M. sexp_rec M c d e) pred_sexp a N1)
+         (cut (%M. sexp_rec M c d e) pred_sexp a N2)) a
+*)
 bind_thm("sexp_rec_unfold", 
 	 [result() RS eq_reflection, wf_pred_sexp] MRS def_wfrec);
 
@@ -118,6 +127,5 @@ qed "sexp_rec_Numb";
 goal Sexp.thy "!!M. [| M: sexp;  N: sexp |] ==> \
 \    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [sexp_case_Scons,pred_sexpI1,pred_sexpI2])
-    1);
+by (asm_simp_tac (simpset() addsimps [pred_sexpI1, pred_sexpI2]) 1);
 qed "sexp_rec_Scons";

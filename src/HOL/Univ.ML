@@ -265,29 +265,34 @@ by (REPEAT (rtac Suc_less_SucD 1 THEN
             assume_tac 1));
 qed "ntrunc_Scons";
 
+Addsimps [ntrunc_0, ntrunc_Atom, ntrunc_Leaf, ntrunc_Numb, ntrunc_Scons];
+
+
 (** Injection nodes **)
 
 goalw Univ.thy [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
-by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
 qed "ntrunc_one_In0";
 
 goalw Univ.thy [In0_def]
     "ntrunc (Suc (Suc k)) (In0 M) = In0 (ntrunc (Suc k) M)";
-by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (Simp_tac 1);
 qed "ntrunc_In0";
 
 goalw Univ.thy [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
-by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
 qed "ntrunc_one_In1";
 
 goalw Univ.thy [In1_def]
     "ntrunc (Suc (Suc k)) (In1 M) = In1 (ntrunc (Suc k) M)";
-by (simp_tac (simpset() addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (Simp_tac 1);
 qed "ntrunc_In1";
+
+Addsimps [ntrunc_one_In0, ntrunc_In0, ntrunc_one_In1, ntrunc_In1];
 
 
 (*** Cartesian Product ***)
@@ -383,7 +388,7 @@ qed "ntrunc_subsetI";
 val [major] = goalw Univ.thy [ntrunc_def]
     "(!!k. ntrunc k M <= N) ==> M<=N";
 by (blast_tac (claset() addIs [less_add_Suc1, less_add_Suc2, 
-                            major RS subsetD]) 1);
+			       major RS subsetD]) 1);
 qed "ntrunc_subsetD";
 
 (*A generalized form of the take-lemma*)
@@ -437,6 +442,9 @@ qed "Case_In0";
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
 by (blast_tac (claset() addIs [select_equality]) 1);
 qed "Case_In1";
+
+Addsimps [Split, Case_In0, Case_In1];
+
 
 (**** UN x. B(x) rules ****)
 
@@ -562,15 +570,15 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 (*** Domain ***)
 
 goal Univ.thy "fst `` diag(A) = A";
-by (Blast_tac 1);
+by Auto_tac;
 qed "fst_image_diag";
 
 goal Univ.thy "fst `` (r<**>s) = (fst``r) <*> (fst``s)";
-by (Blast_tac 1);
+by Auto_tac;
 qed "fst_image_dprod";
 
 goal Univ.thy "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
-by (Blast_tac 1);
+by Auto_tac;
 qed "fst_image_dsum";
 
 Addsimps [fst_image_diag, fst_image_dprod, fst_image_dsum];
