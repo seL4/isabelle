@@ -1,0 +1,162 @@
+(*  Title:      HOL/Tools/specification_package.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
+Package for defining constants by specification.
+*)
+
+signature SPECIFICATION_PACKAGE =
+sig
+    val quiet_mode: bool ref
+    val add_specification: (bstring * bool) list -> bstring * Args.src list
+			   -> theory * thm -> theory * thm
+    val add_specification_i: (bstring * bool) list -> bstring * theory attribute list
+			     -> theory * thm -> theory * thm
+end
+
+structure SpecificationPackage : SPECIFICATION_PACKAGE =
+struct
+
+(* messages *)
+
+val quiet_mode = ref false
+fun message s = if ! quiet_mode then () else writeln s
+
+local
+    val _ = Goal "[| Ex P ; c == Eps P |] ==> P c"
+    val _ = by (Asm_simp_tac 1)
+    val _ = by (rtac (thm "someI_ex") 1)
+    val _ = ba 1
+in
+val helper = Goals.result()
+end
+
+(* Akin to HOLogic.exists_const *)
+fun choice_const T = Const("Hilbert_Choice.Eps",(T-->HOLogic.boolT)-->T)
+
+(* Actual code *)
+
+fun proc_exprop [] arg = arg
+  | proc_exprop ((cname,covld)::cos) (thy,thm) =
+    case concl_of thm of
+	Const("Trueprop",_) $ (Const("Ex",_) $ P) =>
+	let
+	    val ctype = domain_type (type_of P)
+	    val cdefname = Thm.def_name (Sign.base_name cname)
+	    val def_eq = Logic.mk_equals (Const(cname,ctype),choice_const ctype $  P)
+	    val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
+	    val thm' = [thm,hd thms] MRS helper
+	in
+	    proc_exprop cos (thy',thm')
+	end
+      | _ => raise THM ("Internal error: Bad specification theorem",0,[thm])
+
+fun add_specification_i cos (name,atts) arg =
+    let
+	fun apply_attributes arg = Thm.apply_attributes(arg,atts)
+	fun add_final (arg as (thy,thm)) =
+	    if name = ""
+	    then arg
+	    else (writeln ("specification " ^ name ^ ": " ^ (string_of_thm thm));
+		  PureThy.store_thm((name,thm),[]) thy)
+    in
+	arg |> apsnd freezeT
+	    |> proc_exprop cos
+	    |> apsnd standard
+	    |> apply_attributes
+	    |> add_final
+    end
+
+fun add_specification cos (name,atts) arg =
+    add_specification_i cos (name,map (Attrib.global_attribute thy) atts) arg
+
+(* Collect all intances of constants in term *)
+
+fun collect_consts (        t $ u,tms) = collect_consts (u,collect_consts (t,tms))
+  | collect_consts (   Abs(_,_,t),tms) = collect_consts (t,tms)
+  | collect_consts (tm as Const _,tms) = gen_ins (op aconv) (tm,tms)
+  | collect_consts (            _,tms) = tms
+
+(* Complementing Type.varify... *)
+
+fun unvarify t fmap =
+    let
+	val fmap' = map Library.swap fmap
+	fun unthaw (f as (a,S)) =
+	    (case assoc (fmap',a) of
+		 None => TVar f
+	       | Some b => TFree (b,S))
+    in
+	map_term_types (map_type_tvar unthaw) t
+    end
+
+(* The syntactic meddling needed to setup add_specification for work *)
+
+fun process_spec cos alt_name sprop int thy =
+    let
+	val sg = sign_of thy
+	fun typ_equiv t u =
+	    let
+		val tsig = Sign.tsig_of sg
+	    in
+		Type.typ_instance(tsig,t,u) andalso
+		Type.typ_instance(tsig,u,t)
+	    end
+	val prop = term_of (Thm.read_cterm sg (sprop,HOLogic.boolT))
+	val (prop_thawed,vmap) = Type.varify (prop,[])
+	val thawed_prop_consts = collect_consts (prop_thawed,[])
+	val (sconsts,overloaded) = Library.split_list cos
+	val consts = map (term_of o Thm.read_cterm sg o rpair TypeInfer.logicT) sconsts
+	val _ = assert (not (Library.exists (not o Term.is_Const) consts))
+		       "Non-constant found as parameter"
+	fun proc_const c =
+	    let
+		val c' = fst (Type.varify (c,[]))
+		val (cname,ctyp) = dest_Const c'
+	    in
+		case filter (fn t => let val (name,typ) = dest_Const t
+				     in name = cname andalso typ_equiv typ ctyp
+				     end) thawed_prop_consts of
+		    [] => error ("Constant \"" ^ (Sign.string_of_term sg c) ^ "\" not found in specification")
+		  | [cf] => unvarify cf vmap
+		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
+	    end
+	val proc_consts = map proc_const consts
+	fun mk_exist (c,prop) =
+	    let
+		val T = type_of c
+	    in
+		HOLogic.exists_const T $ Abs("x",T,Term.abstract_over (c,prop))
+	    end
+	val ex_prop = foldr mk_exist (proc_consts,prop)
+	val cnames = map (fst o dest_Const) proc_consts
+    in
+	IsarThy.theorem_i Drule.internalK
+	    (("",[add_specification (cnames ~~ overloaded) alt_name]),
+	     (HOLogic.mk_Trueprop ex_prop,([],[]))) int thy
+    end
+
+(* outer syntax *)
+
+local structure P = OuterParse and K = OuterSyntax.Keyword in
+
+(* taken from ~~/Pure/Isar/isar_syn.ML *)
+val opt_overloaded =
+  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false
+
+val specification_decl =
+    P.$$$ "(" |-- Scan.repeat1 (P.term -- opt_overloaded) --| P.$$$ ")" --
+	  P.opt_thm_name ":" -- P.prop
+
+val specificationP =
+  OuterSyntax.command "specification" "define constants by specification" K.thy_goal
+    (specification_decl >> (fn ((cos,alt_name), prop) =>
+			       Toplevel.print o (Toplevel.theory_to_proof (process_spec cos alt_name prop))))
+
+val _ = OuterSyntax.add_parsers [specificationP]
+
+end
+
+
+end

@@ -7,7 +7,7 @@
 header {* Hilbert's epsilon-operator and everything to do with the Axiom of Choice *}
 
 theory Hilbert_Choice = NatArith
-files ("Hilbert_Choice_lemmas.ML") ("meson_lemmas.ML") ("Tools/meson.ML"):
+files ("Hilbert_Choice_lemmas.ML") ("meson_lemmas.ML") ("Tools/meson.ML") ("Tools/specification_package.ML"):
 
 
 subsection {* Hilbert's epsilon *}
@@ -267,5 +267,7 @@ lemma meson_disj_assoc: "(P|Q)|R ==> P|(Q|R)"
 use "meson_lemmas.ML"
 use "Tools/meson.ML"
 setup meson_setup
+
+use "Tools/specification_package.ML"
 
 end

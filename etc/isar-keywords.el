@@ -136,6 +136,7 @@
     "setup"
     "show"
     "sorry"
+    "specification"
     "subsect"
     "subsection"
     "subsubsect"
@@ -373,6 +374,7 @@
     "instance"
     "lemma"
     "recdef_tc"
+    "specification"
     "theorem"
     "typedef"))
 
