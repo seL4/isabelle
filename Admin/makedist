@@ -219,7 +219,7 @@ echo "$DISTNAME.tar.gz"
 gzip "$DISTNAME.tar"
 
 echo "${DISTNAME}_pdf.tar.gz"
-( cd pdf; echo "${DISTNAME}_pdf.tar"; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
+( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 gzip "${DISTNAME}_pdf.tar"
 
 mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
@@ -243,5 +243,5 @@ rm -rf "${DISTNAME}-old"
 # final note
 
 echo "###"
-echo "### Finished."
+echo "### Finished makedist."
 echo "###"
