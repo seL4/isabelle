@@ -104,9 +104,18 @@ the well-founded relation;
 
 * many new identities for unions, intersections, set difference, etc.;
 
+
 *** ZF ***
 
 * in  let x=t in u(x), neither t nor u(x) has to be an FOL term.
+
+
+*** Internal changes ***
+
+* improved the theory data mechanism to support real encapsulation;
+main change of the internal interfaces: data kind name (string)
+replaced by private Object.kind, acting as authorization key;
+
 
 
 New in Isabelle98 (January 1998)
