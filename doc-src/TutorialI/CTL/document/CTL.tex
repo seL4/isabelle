@@ -126,7 +126,9 @@ a decision that \isa{auto} takes for us:%
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
 In this remaining case, we set \isa{t} to \isa{p\ {\isadigit{1}}}.
-The rest is automatic.%
+The rest is automatic, which is surprising because it involves
+finding the instantiation \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}
+for \isa{{\isasymforall}p}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ {\isadigit{1}}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline

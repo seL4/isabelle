@@ -125,7 +125,9 @@ apply(auto simp add: af_def Paths_def);
 txt{*
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 In this remaining case, we set @{term t} to @{term"p(1::nat)"}.
-The rest is automatic.
+The rest is automatic, which is surprising because it involves
+finding the instantiation @{term"\<lambda>i::nat. p(i+1)"}
+for @{text"\<forall>p"}.
 *};
 
 apply(erule_tac x = "p 1" in allE);
