@@ -29,8 +29,8 @@ FOL:
 $(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
   Arith.ML Arith.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy \
   CardinalArith.ML CardinalArith.thy Cardinal_AC.ML Cardinal_AC.thy \
-  Datatype.ML Datatype.thy Epsilon.ML Epsilon.thy EquivClass.ML \
-  EquivClass.thy Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy \
+  Datatype.ML Datatype.thy Epsilon.ML Epsilon.thy \
+  Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy \
   Inductive.ML Inductive.thy InfDatatype.ML InfDatatype.thy \
   Let.ML Let.thy List.ML List.thy Main.thy Nat.ML Nat.thy \
   Order.ML Order.thy OrderArith.ML \
@@ -43,7 +43,9 @@ $(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
   domrange.thy equalities.ML equalities.thy func.ML func.thy \
   ind_syntax.ML ind_syntax.thy indrule.ML indrule.thy intr_elim.ML \
   intr_elim.thy mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
-  subset.thy thy_syntax.ML typechk.ML upair.ML upair.thy
+  subset.thy thy_syntax.ML typechk.ML upair.ML upair.thy \
+  Integ/EquivClass.ML Integ/EquivClass.thy Integ/Integ.ML Integ/Integ.thy \
+  Integ/twos_compl.ML Integ/Bin.ML Integ/Bin.thy 
 	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
 
 
@@ -104,14 +106,14 @@ $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/Confluence.ML Resid/Confluence.thy \
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
-  ex/Bin.ML ex/Bin.thy ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
+  ex/BinEx.ML ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
   ex/CoUnit.thy ex/Comb.ML ex/Comb.thy ex/Data.ML ex/Data.thy ex/Enum.ML \
-  ex/Enum.thy ex/Integ.ML ex/Integ.thy ex/LList.ML ex/LList.thy \
+  ex/Enum.thy ex/LList.ML ex/LList.thy \
   ex/Limit.ML ex/Limit.thy ex/ListN.ML ex/ListN.thy ex/Mutil.ML \
   ex/Mutil.thy ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
   ex/Primrec.ML ex/Primrec.thy ex/PropLog.ML ex/PropLog.thy ex/ROOT.ML \
   ex/Ramsey.ML ex/Ramsey.thy ex/Rmap.ML ex/Rmap.thy ex/TF.ML ex/TF.thy \
-  ex/Term.ML ex/Term.thy ex/misc.ML ex/twos_compl.ML ex/twos_compl.thy
+  ex/Term.ML ex/Term.thy ex/misc.ML
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
