@@ -268,7 +268,7 @@ fun incr_boundvars  0  t = t
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
 fun add_loose_bnos (Bound i, lev, js) = 
-	if i<lev then js  else  (i-lev) ins js
+	if i<lev then js  else  (i-lev) ins_int js
   | add_loose_bnos (Abs (_,_,t), lev, js) = add_loose_bnos (t, lev+1, js)
   | add_loose_bnos (f$t, lev, js) =
 	add_loose_bnos (f, lev, add_loose_bnos (t, lev, js)) 
@@ -316,6 +316,44 @@ fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
   | (Abs(_,T,t)) aconv (Abs(_,U,u)) = t aconv u  andalso  T=U
   | (f$t) aconv (g$u) = (f aconv g) andalso (t aconv u)
   | _ aconv _  =  false;
+
+(** Membership, insertion, union for terms **)
+
+fun mem_term (_, []) = false
+  | mem_term (t, t'::ts) = t aconv t' orelse mem_term(t,ts);
+
+fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
+
+fun union_term (xs, []) = xs
+  | union_term ([], ys) = ys
+  | union_term ((x :: xs), ys) = union_term (xs, ins_term (x, ys));
+
+(** Equality, membership and insertion of indexnames (string*ints) **)
+
+(*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
+fun eq_ix ((a:string, i:int), (a',i')) = (a=a') andalso i=i';
+
+(*membership in a list, optimized version for indexnames*)
+fun mem_ix (x:string*int, []) = false
+  | mem_ix (x, y :: ys) = eq_ix(x,y) orelse mem_ix (x, ys);
+
+(*insertion into list, optimized version for indexnames*)
+fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
+
+(** Equality, membership and insertion of sorts (string lists) **)
+
+fun eq_sort ([]:sort, []) = true
+  | eq_sort ((s::ss), (t::ts)) = s=t andalso eq_sort(ss,ts)
+  | eq_sort (_, _) = false;
+
+fun mem_sort (_:sort, []) = false
+  | mem_sort (S, S'::Ss) = eq_sort (S, S') orelse mem_sort(S,Ss);
+
+fun ins_sort(S,Ss) = if mem_sort(S,Ss) then Ss else S :: Ss;
+
+fun union_sort (xs, []) = xs
+  | union_sort ([], ys) = ys
+  | union_sort ((x :: xs), ys) = union_sort (xs, ins_sort (x, ys));
 
 (*are two term lists alpha-convertible in corresponding elements?*)
 fun aconvs ([],[]) = true
@@ -490,8 +528,8 @@ fun add_new_id (bs, c) : string list =  variant bs c  ::  bs;
 
 (*Accumulates the names in the term, suppressing duplicates.
   Includes Frees and Consts.  For choosing unambiguous bound var names.*)
-fun add_term_names (Const(a,_), bs) = a ins bs
-  | add_term_names (Free(a,_), bs) = a ins bs
+fun add_term_names (Const(a,_), bs) = a ins_string bs
+  | add_term_names (Free(a,_), bs) = a ins_string bs
   | add_term_names (f$u, bs) = add_term_names (f, add_term_names(u, bs))
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
   | add_term_names (_, bs) = bs;
@@ -503,7 +541,7 @@ fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars (Ts,vs)
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
 fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names (Ts,fs)
-  | add_typ_tfree_names(TFree(f,_),fs) = f ins fs
+  | add_typ_tfree_names(TFree(f,_),fs) = f ins_string fs
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
 fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees (Ts,fs)
@@ -511,8 +549,8 @@ fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees (Ts,fs)
   | add_typ_tfrees(TVar(_),fs) = fs;
 
 fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames (Ts,nms)
-  | add_typ_varnames(TFree(nm,_),nms) = nm ins nms
-  | add_typ_varnames(TVar((nm,_),_),nms) = nm ins nms;
+  | add_typ_varnames(TFree(nm,_),nms) = nm ins_string nms
+  | add_typ_varnames(TVar((nm,_),_),nms) = nm ins_string nms;
 
 (*Accumulates the TVars in a term, suppressing duplicates. *)
 val add_term_tvars = it_term_types add_typ_tvars;
@@ -532,7 +570,8 @@ fun term_tvars t = add_term_tvars(t,[]);
 (*special code to enforce left-to-right collection of TVar-indexnames*)
 
 fun add_typ_ixns(ixns,Type(_,Ts)) = foldl add_typ_ixns (ixns,Ts)
-  | add_typ_ixns(ixns,TVar(ixn,_)) = if ixn mem ixns then ixns else ixns@[ixn]
+  | add_typ_ixns(ixns,TVar(ixn,_)) = if mem_ix (ixn, ixns) then ixns 
+				     else ixns@[ixn]
   | add_typ_ixns(ixns,TFree(_)) = ixns;
 
 fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
