@@ -51,7 +51,7 @@ by Auto_tac;
 qed "JN_empty";
 Addsimps [JN_empty];
 
-Goal "(JN x:insert a A. B x) = (B a) Join (JN x:A. B x)";
+Goal "(JN i:insert a I. F i) = (F a) Join (JN i:I. F i)";
 by (rtac program_equalityI 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [JOIN_def, Join_def])));
 qed "JN_insert";
@@ -68,8 +68,8 @@ qed "Acts_JN";
 Addsimps [Init_JN];
 
 val prems = Goalw [JOIN_def]
-    "[| A=B;  !!x. x:B ==> F(x) = G(x) |] ==> \
-\    (JN x:A. F(x)) = (JN x:B. G(x))";
+    "[| I=J;  !!i. i:J ==> F i = G i |] ==> \
+\    (JN i:I. F i) = (JN i:J. G i)";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "JN_cong";
 
@@ -109,72 +109,50 @@ Addsimps [Join_absorb];
 
 (*** JN laws ***)
 
-
-
-Goal "i : I ==> (JN i:I. A i Join B) = ((JN i:I. A i) Join B)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_JN, Acts_Join]));
-qed "JN_Join_miniscope";
-
-Goal "k:I ==> A k Join (JN i:I. A i) = (JN i:I. A i)";
+(*Also follows by JN_insert and insert_absorb, but the proof is longer*)
+Goal "k:I ==> F k Join (JN i:I. F i) = (JN i:I. F i)";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN, Acts_Join]));
 qed "JN_absorb";
 
-Goal "(JN i: I Un J. A i) = ((JN i: I. A i) Join (JN i:J. A i))";
+Goal "(JN i: I Un J. F i) = ((JN i: I. F i) Join (JN i:J. F i))";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN, Acts_Join]));
-qed "JN_Join";
+qed "JN_Un";
 
 Goal "i: I ==> (JN i:I. c) = c";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN]));
 qed "JN_constant";
 
-Goal "(JN i:I. A i Join B i) = (JN i:I. A i)  Join  (JN i:I. B i)";
+Goal "(JN i:I. F i Join G i) = (JN i:I. F i)  Join  (JN i:I. G i)";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN, Acts_Join]));
 qed "JN_Join_distrib";
 
+Goal "i : I ==> (JN i:I. F i Join G) = ((JN i:I. F i) Join G)";
+by (asm_simp_tac (simpset() addsimps [JN_Join_distrib, JN_constant]) 1);
+qed "JN_Join_miniscope";
+
 
 (*** Safety: co, stable, FP ***)
 
+(*Fails if I={} because it collapses to SKIP : A co B*)
 Goalw [constrains_def, JOIN_def]
-    "i : I ==> \
-\    (JN i:I. F i) : A co B = (ALL i:I. F i : A co B)";
+    "i : I ==> (JN i:I. F i) : A co B = (ALL i:I. F i : A co B)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "constrains_JN";
 
-Goal "F Join G : A co B =  \
-\     (F : A co B & G : A co B)";
+Goal "(F Join G : A co B) = (F : A co B & G : A co B)";
 by (auto_tac
     (claset(),
      simpset() addsimps [constrains_def, Join_def]));
 qed "constrains_Join";
 
-Goal "[| i : I;  ALL i:I. F i : A co B |] \
-\     ==> (JN i:I. F i) : A co B";
-by (full_simp_tac (simpset() addsimps [constrains_def, Acts_JN]) 1);
-by (Blast_tac 1);
-qed "constrains_imp_JN_constrains";
-
-    (**FAILS, I think; see 5.4.1, Substitution Axiom.
-       The problem is to relate reachable (F Join G) with 
-       reachable F and reachable G
-
-    Goalw [Constrains_def]
-	"(JN i:I. F i) : A Co B = (ALL i:I. F i : A Co B)";
-    by (simp_tac (simpset() addsimps [constrains_JN]) 1);
-    by (Blast_tac 1);
-    qed "Constrains_JN";
-
-    Goal "F Join G : A Co B = (F Co A B & G Co A B)";
-    by (auto_tac
-	(claset(),
-	 simpset() addsimps [Constrains_def, constrains_Join]));
-    qed "Constrains_Join";
-    **)
+(*Analogous weak versions FAIL; see Misra [1994] 5.4.1, Substitution Axiom.
+  reachable (F Join G) could be much bigger than reachable F, reachable G
+*)
 
 
 Goal "[| F : A co A';  G : B co B' |] \
@@ -182,6 +160,12 @@ Goal "[| F : A co A';  G : B co B' |] \
 by (simp_tac (simpset() addsimps [constrains_Join]) 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "constrains_Join_weaken";
+
+Goal "[| ALL i:I. F i : A i co A' i;  i: I |] \
+\     ==> (JN i:I. F i) : (INT i:I. A i) co (UN i:I. A' i)";
+by (asm_simp_tac (simpset() addsimps [constrains_JN]) 1);
+by (blast_tac (claset() addIs [constrains_weaken]) 1);
+qed "constrains_JN_weaken";
 
 Goal "i : I ==> \
 \     (JN i:I. F i) : stable A = (ALL i:I. F i : stable A)";
@@ -249,7 +233,7 @@ by (asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
 by (Blast_tac 1);
 qed "stable_constrains_Join";
 
-(*Premise for G cannot use Always because  Stable F A  is weaker than
+(*Premise for G cannot use Always because  F: Stable A  is weaker than
   G : stable A *)
 Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
 by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
