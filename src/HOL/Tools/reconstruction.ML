@@ -168,7 +168,7 @@ val DEMOD_local = gen_DEMOD local_thm;
 fun clausify_rule (A,i) =
   standard
     (make_meta_clause
-      (List.nth(ResAxioms.cnf_axiom A,i-1)));
+      (List.nth(ResAxioms.cnf_axiom A,i)));
 
 fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
 
