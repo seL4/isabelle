@@ -10,6 +10,7 @@ sig
   type token
   val group: string -> (token list -> 'a) -> token list -> 'a
   val !!! : (token list -> 'a) -> token list -> 'a
+  val !!!! : (token list -> 'a) -> token list -> 'a
   val $$$ : string -> token list -> string * token list
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
   val command: token list -> string * token list
@@ -86,14 +87,17 @@ fun group s scan = scan || fail_with s;
 
 (* cut *)
 
-fun !!! scan =
+fun cut kind scan =
   let
     fun get_pos [] = " (past end-of-file!)"
       | get_pos (tok :: _) = OuterLex.pos_of tok;
 
-    fun err (toks, None) = "Outer syntax error" ^ get_pos toks
-      | err (toks, Some msg) = "Outer syntax error" ^ get_pos toks ^ ": " ^ msg;
+    fun err (toks, None) = kind ^ get_pos toks
+      | err (toks, Some msg) = kind ^ get_pos toks ^ ": " ^ msg;
   in Scan.!! err scan end;
+
+val !!! = cut "Outer syntax error";
+val !!!! = cut "Corrupted outer syntax in presentation";
 
 
 
