@@ -92,29 +92,13 @@ qed_goal "chain_mono3"  Porder.thy
 (* The range of a chain is a totaly ordered     <<                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_is_tord" Porder.thy [is_tord,range_def] 
-"is_chain(F) ==> is_tord(range(F))"
- (fn prems =>
+qed_goalw "chain_is_tord" Porder.thy [is_tord] 
+"!!F. is_chain(F) ==> is_tord(range(F))"
+ (fn _ =>
         [
-        (cut_facts_tac prems 1),
-        (REPEAT (rtac allI 1 )),
-        (rtac (mem_Collect_eq RS ssubst) 1),
-        (rtac (mem_Collect_eq RS ssubst) 1),
-        (strip_tac 1),
-        (etac conjE 1),
-        (REPEAT (etac exE 1)),
-        (REPEAT (hyp_subst_tac 1)),
+        (Step_tac 1),
         (rtac nat_less_cases 1),
-        (rtac disjI1 1),
-        (etac (chain_mono RS mp) 1),
-        (atac 1),
-        (rtac disjI1 1),
-        (hyp_subst_tac 1),
-        (rtac refl_less 1),
-        (rtac disjI2 1),
-        (etac (chain_mono RS mp) 1),
-        (atac 1)
-        ]);
+        (ALLGOALS (fast_tac (!claset addIs [refl_less, chain_mono RS mp])))]);
 
 (* ------------------------------------------------------------------------ *)
 (* technical lemmas about lub and is_lub                                    *)
