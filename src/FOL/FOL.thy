@@ -81,27 +81,4 @@ ML {*
 
 setup InductMethod.setup
 
-
-subsection {* Calculational rules *}
-
-lemma forw_subst: "a = b ==> P(b) ==> P(a)"
-  by (rule ssubst)
-
-lemma back_subst: "P(a) ==> a = b ==> P(b)"
-  by (rule subst)
-
-text {*
-  Note that this list of rules is in reverse order of priorities.
-*}
-
-lemmas trans_rules [trans] =
-  forw_subst
-  back_subst
-  rev_mp
-  mp
-  transitive
-  trans
-
-lemmas [elim?] = sym
-
 end
