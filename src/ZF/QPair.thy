@@ -27,6 +27,7 @@ consts
 
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
+  "A <*> B"      => "QSigma(A, _K(B))"
 
 rules
   QPair_def       "<a;b> == a+b"
@@ -42,11 +43,6 @@ rules
 end
 
 ML
-
-(* 'Dependent' type operators *)
-
-val parse_translation =
-  [(" <*>", ndependent_tr "QSigma")];
 
 val print_translation =
   [("QSigma", dependent_tr' ("@QSUM", " <*>"))];
