@@ -535,8 +535,8 @@ fun flexpair_abs_elim_list cts =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl =
-  store_thm "asm_rl" (trivial(read_prop "PROP ?psi"));
+val asm_rl = store_thm "asm_rl" (trivial(read_prop "PROP ?psi"));
+val _ = store_thm "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
