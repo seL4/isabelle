@@ -133,7 +133,7 @@ struct
 val trace_rules = ref false;
 
 fun trace rules =
-  if not (! trace_rules) then ()
+  if not (! trace_rules) orelse null rules then ()
   else Pretty.writeln (Pretty.big_list "rules:" (map Display.pretty_thm rules));
 
 
