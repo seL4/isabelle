@@ -9,9 +9,9 @@ Package for defining constants by specification.
 signature SPECIFICATION_PACKAGE =
 sig
     val quiet_mode: bool ref
-    val add_specification: (bstring * bstring * bool) list -> bstring * Args.src list
+    val add_specification: (bstring * xstring * bool) list -> bstring * Args.src list
 			   -> theory * thm -> theory * thm
-    val add_specification_i: (bstring * bstring * bool) list -> bstring * theory attribute list
+    val add_specification_i: (bstring * xstring * bool) list -> bstring * theory attribute list
 			     -> theory * thm -> theory * thm
 end
 
