@@ -32,7 +32,7 @@ end;
 
 functor PrinterFun(structure Symtab: SYMTAB and Lexicon: LEXICON
   and TypeExt: TYPE_EXT and SExtension: SEXTENSION and Pretty: PRETTY
-  sharing TypeExt.Extension = SExtension.Extension) (*: PRINTER *) =  (* FIXME *)
+  sharing TypeExt.Extension = SExtension.Extension): PRINTER =
 struct
 
 structure Symtab = Symtab;

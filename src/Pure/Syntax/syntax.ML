@@ -40,7 +40,7 @@ functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
   and Parser: PARSER and SExtension: SEXTENSION and Printer: PRINTER
   sharing TypeExt.Extension = SExtension.Extension
   and Parser.XGram = TypeExt.Extension.XGram = Printer.XGram
-  and Parser.XGram.Ast = Parser.ParseTree.Ast)(*: SYNTAX *) = (* FIXME *)
+  and Parser.XGram.Ast = Parser.ParseTree.Ast): SYNTAX =
 struct
 
 structure Extension = TypeExt.Extension;
