@@ -192,8 +192,8 @@ fun read_def_cterm (sign, types, sorts) (a, T) =
   let
     val T' = Sign.certify_typ sign T
       handle TYPE (msg, _, _) => error msg;
-    val t = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
-    val (t', tye) = Sign.infer_types sign types sorts (t, T');
+    val ts = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
+    val (_, t', tye) = Sign.infer_types sign types sorts true (ts, T');
     val ct = cterm_of sign t'
       handle TERM (msg, _) => error msg;
   in (ct, tye) end;
@@ -358,7 +358,7 @@ fun read_axm sg (name, str) =
     handle ERROR => err_in_axm name;
 
 fun inferT_axm sg (name, pre_tm) =
-  (name, no_vars (#1 (Sign.infer_types sg (K None) (K None) (pre_tm, propT))))
+ (name, no_vars (#2 (Sign.infer_types sg (K None) (K None) true ([pre_tm], propT))))
     handle ERROR => err_in_axm name;
 
 

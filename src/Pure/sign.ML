@@ -39,7 +39,8 @@ sig
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
     val infer_types: sg -> (indexname -> typ option) ->
-      (indexname -> sort option) -> term * typ -> term * (indexname * typ) list
+      (indexname -> sort option) -> bool -> term list * typ ->
+      int * term * (indexname * typ) list
     val add_classes: (class * class list) list -> sg -> sg
     val add_classrel: (class * class) list -> sg -> sg
     val add_defsort: sort -> sg -> sg
@@ -243,7 +244,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 (** infer_types **)         (*exception ERROR*)
 
-fun infer_types sg types sorts (t, T) =
+fun infer_types sg types sorts print_msg (ts, T) =
   let
     val Sg {tsig, ...} = sg;
     val show_typ = string_of_typ sg;
@@ -251,16 +252,56 @@ fun infer_types sg types sorts (t, T) =
 
     fun term_err [] = ""
       | term_err [t] = "\nInvolving this term:\n" ^ show_term t
-      | term_err ts = "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
+      | term_err ts = 
+          "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
 
     val T' = certify_typ sg T
       handle TYPE (msg, _, _) => error msg;
-    val (t', tye) = Type.infer_types (tsig, const_type sg, types, sorts, T', t)
-      handle TYPE (msg, Ts, ts) => error ("Type checking error: " ^ msg ^ "\n"
-        ^ cat_lines (map show_typ Ts) ^ term_err ts);
-  in (t', tye) end;
+
+    val ct = const_type sg;
+
+    fun process_terms (t::ts) (idx, infrd_t, tye) msg n =
+         let fun mk_some (x, y) = (Some x, Some y);
+
+             val ((infrd_t', tye'), msg') = 
+              (mk_some (Type.infer_types (tsig, ct, types, sorts, T', t)), msg)
+              handle TYPE (tmsg, Ts, ts) => 
+                ((None, None), msg ^ "Type checking error: " ^ tmsg ^ "\n" ^
+                 cat_lines (map show_typ Ts) ^ term_err ts ^ "\n")
+
+             val old_show_brackets = !show_brackets;
+
+             val _ = (show_brackets := true);
+
+             val msg'' = 
+               if is_none idx then (if is_none infrd_t' then msg' else "")
+               else if is_none infrd_t' then "" 
+               else (if msg' = "" then 
+                "Error: More than one term is type correct:\n" ^
+                (show_term (the infrd_t)) else msg') ^ "\n" ^ 
+                (show_term (the infrd_t')) ^ "\n";
+
+             val _ = (show_brackets := old_show_brackets);
+         in if is_none infrd_t' then
+              process_terms ts (idx, infrd_t, tye) msg'' (n+1)
+            else
+              process_terms ts (Some n, infrd_t', tye') msg'' (n+1)
+         end
+      | process_terms [] (idx, infrd_t, tye) msg _ = 
+          if msg = "" then (the idx, the infrd_t, the tye) 
+          else error msg;
+
+    val (idx, infrd_t, tye) = process_terms ts (None, None, None) "" 0;
+  in if print_msg andalso length ts > 1 then
+       writeln "Fortunately, only one parse tree is type correct.\n\
+         \It helps (speed!) if you disambiguate your grammar or your input."
+     else ();
+     (idx, infrd_t, tye)
+  end;
 
 
+
+(** extend signature **)    (*exception ERROR*)
 
 (** signature extension functions **)  (*exception ERROR*)
 
@@ -385,7 +426,9 @@ fun ext_trfuns (syn, tsig, ctab) trfuns =
   (Syntax.extend_trfuns syn trfuns, tsig, ctab);
 
 fun ext_trrules (syn, tsig, ctab) xrules =
-  (Syntax.extend_trrules syn xrules, tsig, ctab);
+  (Syntax.extend_trrules syn
+  (infer_types (Sg {tsig = tsig, const_tab = ctab, syn = syn, 
+                   stamps = [ref "#"]}) (K None) (K None)) xrules, tsig, ctab);
 
 
 (* build signature *)
@@ -491,4 +534,3 @@ val pure =
 
 
 end;
-
