@@ -43,10 +43,11 @@ structure CancelNumeralFactorCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s))
-                 THEN ALLGOALS
-                    (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
-                                               bin_simps@zmult_ac))
+  val norm_tac = 
+     ALLGOALS (simp_tac (HOL_ss addsimps mult_1s))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@int_mult_minus_simps))
+     THEN ALLGOALS
+            (simp_tac (HOL_ss addsimps int_minus_from_mult_simps@zmult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
   val simplify_meta_eq  = simplify_meta_eq mult_1s
   end
