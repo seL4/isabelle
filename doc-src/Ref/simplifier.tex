@@ -313,8 +313,8 @@ modified as follows.
 \end{ttdescription}
 
 \begin{warn}
-  There is a subtle difference between \texttt{(SIMPSET'~$tacf$)} and
-  \texttt{($tacf$~(simpset()))}.  For example \texttt{(SIMPSET'
+  There is a small difference between \texttt{(SIMPSET'~$tacf$)} and
+  \texttt{($tacf\,$(simpset()))}.  For example \texttt{(SIMPSET'
     simp_tac)} would depend on the theory of the proof state it is
   applied to, while \texttt{(simp_tac (simpset()))} implicitly refers
   to the current theory context.  Both are usually the same in proof
@@ -676,8 +676,8 @@ for conditional expressions:
 \[ \Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp (\Var{Q} \imp \Var{P}(\Var{x}))
 \conj (\lnot\Var{Q} \imp \Var{P}(\Var{y})) 
 \] 
-Another example is the elimination operator (which happens to be
-called~$split$) for Cartesian products:
+Another example is the elimination operator for Cartesian products (which
+happens to be called~$split$):  
 \[ \Var{P}(split(\Var{f},\Var{p})) \bimp (\forall a~b. \Var{p} =
 \langle a,b\rangle \imp \Var{P}(\Var{f}(a,b))) 
 \] 
@@ -698,12 +698,15 @@ Case splits should be allowed only when necessary; they are expensive
 and hard to control.  Here is an example of use, where \texttt{split_if}
 is the first rule above:
 \begin{ttbox}
-by (simp_tac (simpset() addloop ("split if",split_tac [split_if])) 1);
+by (simp_tac (simpset() 
+                 addloop ("split if", split_tac [split_if])) 1);
 \end{ttbox}
 Users would usually prefer the following shortcut using \texttt{addsplits}:
 \begin{ttbox}
 by (simp_tac (simpset() addsplits [split_if]) 1);
 \end{ttbox}
+Case-splitting on conditional expressions is usually beneficial, so it is
+enabled by default in the object-logics \texttt{HOL} and \texttt{FOL}.
 
 
 \section{The simplification tactics}\label{simp-tactics}
@@ -927,7 +930,8 @@ by (ALLGOALS Asm_simp_tac);
 Here is a conjecture to be proved for an arbitrary function~$f$
 satisfying the law $f(Suc(\Var{n})) = Suc(f(\Var{n}))$:
 \begin{ttbox}
-val [prem] = Goal "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+val [prem] = Goal
+               "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 {\out Level 0}
 {\out f(i + j) = i + f(j)}
 {\out  1. f(i + j) = i + f(j)}
@@ -1112,7 +1116,7 @@ by (induct_tac "n" 1);
 {\out  1. 0 + (sum (\%i. i) 0 + sum (\%i. i) 0) = 0 * 0}
 \ttbreak
 {\out  2. !!n. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
-{\out           ==> Suc n + (sum (\%i. i) (Suc n) + sum (\%i. i) (Suc n)) =}
+{\out           ==> Suc n + (sum (\%i. i) (Suc n) + sum (\%i.\,i) (Suc n)) =}
 {\out               Suc n * Suc n}
 \end{ttbox}
 Simplification proves both subgoals immediately:\index{*ALLGOALS}
@@ -1128,7 +1132,7 @@ the simpset.  Observe that like terms have not been collected:
 {\out Level 3}
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out  1. !!n. n + sum (\%i. i) n + (n + sum (\%i. i) n) = n + n * n}
-{\out           ==> n + (n + sum (\%i. i) n) + (n + (n + sum (\%i. i) n)) =}
+{\out           ==> n + (n + sum (\%i. i) n) + (n + (n + sum (\%i.\,i) n)) =}
 {\out               n + (n + (n + n * n))}
 \end{ttbox}
 Ordered rewriting proves this by sorting the left-hand side.  Proving
@@ -1438,18 +1442,20 @@ P\bimp P$.
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls {\at} prems),
                                  atac, etac FalseE];
 
-fun   safe_solver prems = FIRST'[match_tac (triv_rls {\at} prems),
-                                 eq_assume_tac, ematch_tac [FalseE]];
+fun safe_solver prems = FIRST'[match_tac (triv_rls {\at} prems),
+                               eq_assume_tac, ematch_tac [FalseE]];
 
-val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
-                            addsimprocs [defALL_regroup, defEX_regroup]
-                            setSSolver   safe_solver
-                            setSolver  unsafe_solver
-                            setmksimps (map mk_eq o atomize o gen_all);
+val FOL_basic_ss = 
+      empty_ss setsubgoaler asm_simp_tac
+               addsimprocs [defALL_regroup, defEX_regroup]
+               setSSolver   safe_solver
+               setSolver  unsafe_solver
+               setmksimps (map mk_eq o atomize o gen_all);
 
-val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps {\at} 
-                                     int_ex_simps {\at} int_all_simps)
-                           addcongs [imp_cong];
+val IFOL_ss = 
+      FOL_basic_ss addsimps (IFOL_simps {\at} 
+                             int_ex_simps {\at} int_all_simps)
+                   addcongs [imp_cong];
 \end{ttbox}
 This simpset takes \texttt{imp_cong} as a congruence rule in order to use
 contextual information to simplify the conclusions of implications:

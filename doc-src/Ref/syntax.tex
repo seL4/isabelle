@@ -259,7 +259,7 @@ More precisely, the mapping $\astofterm{-}$ is defined as follows:
     \mtt{dummyT})$:
    \[ \astofterm{\ttfct{Abs} (x, \tau, t)} =
       \Appl{\Constant \mtt{"_abs"},
-        constrain(\Variable x', \tau), \astofterm{t'}}.
+        constrain(\Variable x', \tau), \astofterm{t'}}
     \]
 
   \item $\astofterm{\ttfct{Bound} i} = \Variable \mtt{"B.}i\mtt"$.
@@ -685,10 +685,10 @@ Recall that identifiers with a leading {\tt _} are allowed in translation
 rules, but not in ordinary terms.  Thus we can create \AST{}s containing
 names that are not directly expressible.
 
-The parse translation for {\tt _K} is already installed in Pure, and {\tt
-dependent_tr'} is exported by the syntax module for public use.  See
-\S\ref{sec:tr_funs} below for more of the arcane lore of translation functions.
-\index{macros|)}\index{rewriting!syntactic|)}
+The parse translation for {\tt _K} is already installed in Pure, and the
+function {\tt dependent_tr'} is exported by the syntax module for public use.
+See \S\ref{sec:tr_funs} below for more of the arcane lore of translation
+functions.  \index{macros|)}\index{rewriting!syntactic|)}
 
 
 \section{Translation functions} \label{sec:tr_funs}
@@ -814,7 +814,8 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = Syntax.variant_abs' (x, dummyT, B) in
           list_comb
-            (Const (q,{\thinspace}dummyT) $ Syntax.mark_boundT (x',{\thinspace}T) $ A $ B',{\thinspace}ts)
+            (Const (q,dummyT) $
+             Syntax.mark_boundT (x',{\thinspace}T) $ A $ B', ts)
         end
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
@@ -887,7 +888,8 @@ example at the end of \S\ref{sec:tr_funs}).
 \ttindex{token_translation} value within the \texttt{ML} section of a theory
 definition file:
 \begin{ttbox}
-val token_translation: (string * string * (string -> string * real)) list
+val token_translation: 
+      (string * string * (string -> string * real)) list
 \end{ttbox}\index{token_translation}
 The elements of this list are of the form $(m, c, f)$, where $m$ is a print
 mode identifier, $c$ a token class, and $f\colon string \to string \times

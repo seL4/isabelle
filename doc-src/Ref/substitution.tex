@@ -128,12 +128,12 @@ signature HYPSUBST_DATA =
   val dest_Trueprop    : term -> term
   val dest_eq          : term -> term*term*typ
   val dest_imp         : term -> term*term
-  val eq_reflection    : thm             (* a=b ==> a==b *)
-  val imp_intr         : thm             (* (P ==> Q) ==> P-->Q *)
-  val rev_mp           : thm             (* [| P;  P-->Q |] ==> Q *)
-  val subst            : thm             (* [| a=b;  P(a) |] ==> P(b) *)
-  val sym              : thm             (* a=b ==> b=a *)
-  val thin_refl        : thm             (* [|x=x; P|] ==> P *)
+  val eq_reflection    : thm         (* a=b ==> a==b *)
+  val imp_intr         : thm         (*(P ==> Q) ==> P-->Q *)
+  val rev_mp           : thm         (* [| P;  P-->Q |] ==> Q *)
+  val subst            : thm         (* [| a=b;  P(a) |] ==> P(b) *)
+  val sym              : thm         (* a=b ==> b=a *)
+  val thin_refl        : thm         (* [|x=x; P|] ==> P *)
   end;
 \end{ttbox}
 Thus, the functor requires the following items:

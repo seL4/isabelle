@@ -484,14 +484,14 @@ parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
 
 \section{Executing batch proofs}
 \index{batch execution}%
-To save space below, let type \texttt{tacfun} abbreviate \texttt{thm list ->
+To save space below, let type \texttt{tacfn} abbreviate \texttt{thm list ->
   tactic list}, which is the type of a tactical proof.
 \begin{ttbox}
-prove_goal :           theory ->             string -> tacfun -> thm
-qed_goal   : string -> theory ->             string -> tacfun -> unit
-prove_goalw:           theory -> thm list -> string -> tacfun -> thm
-qed_goalw  : string -> theory -> thm list -> string -> tacfun -> unit
-prove_goalw_cterm:               thm list -> cterm  -> tacfun -> thm
+prove_goal :           theory ->             string -> tacfn -> thm
+qed_goal   : string -> theory ->             string -> tacfn -> unit
+prove_goalw:           theory -> thm list -> string -> tacfn -> thm
+qed_goalw  : string -> theory -> thm list -> string -> tacfn -> unit
+prove_goalw_cterm:               thm list -> cterm  -> tacfn -> thm
 \end{ttbox}
 These batch functions create an initial proof state, then apply a tactic to
 it, yielding a sequence of final proof states.  The head of the sequence is
@@ -524,7 +524,7 @@ executes a proof of the {\it formula\/} in the given {\it theory}, using
 the given tactic function.
 
 \item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;] acts
-  like \texttt{prove_goal} but also stores the resulting theorem in the
+  like \texttt{prove_goal} but it also stores the resulting theorem in the
   theorem database associated with its theory and in the {\ML}
   variable $name$ (see \S\ref{ExtractingAndStoringTheProvedTheorem}).
 

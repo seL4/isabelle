@@ -73,12 +73,12 @@ converts {\it thm\/} to a string.
 \index{theorems!joining by resolution}
 \index{resolution}\index{forward proof}
 \begin{ttbox} 
-RSN : thm * (int * thm) -> thm                 \hfill{\bf infix}
-RS  : thm * thm -> thm                         \hfill{\bf infix}
-MRS : thm list * thm -> thm                    \hfill{\bf infix}
-RLN : thm list * (int * thm list) -> thm list  \hfill{\bf infix}
-RL  : thm list * thm list -> thm list          \hfill{\bf infix}
-MRL : thm list list * thm list -> thm list     \hfill{\bf infix}
+RSN : thm * (int * thm) -> thm                 \hfill\textbf{infix}
+RS  : thm * thm -> thm                         \hfill\textbf{infix}
+MRS : thm list * thm -> thm                    \hfill\textbf{infix}
+RLN : thm list * (int * thm list) -> thm list  \hfill\textbf{infix}
+RL  : thm list * thm list -> thm list          \hfill\textbf{infix}
+MRL : thm list list * thm list -> thm list     \hfill\textbf{infix}
 \end{ttbox}
 Joining rules together is a simple way of deriving new rules.  These
 functions are especially useful with destruction rules.  To store
@@ -126,20 +126,20 @@ rewrite_goals_rule : thm list -> thm -> thm
 unfolds the {\it defs} throughout the theorem~{\it thm}.
 
 \item[\ttindexbold{rewrite_goals_rule} {\it defs} {\it thm}]  
-unfolds the {\it defs} in the premises of~{\it thm}, but leaves the
-conclusion unchanged.  This rule underlies \ttindex{rewrite_goals_tac}, but 
-serves little purpose in forward proof.
+unfolds the {\it defs} in the premises of~{\it thm}, but it leaves the
+conclusion unchanged.  This rule is the basis for \ttindex{rewrite_goals_tac},
+but it serves little purpose in forward proof.
 \end{ttdescription}
 
 
 \subsection{Instantiating unknowns in a theorem} \label{sec:instantiate}
 \index{instantiation}
-\begin{ttbox}
+\begin{alltt}\footnotesize
 read_instantiate    :                (string*string) list -> thm -> thm
 read_instantiate_sg :     Sign.sg -> (string*string) list -> thm -> thm
 cterm_instantiate   :                  (cterm*cterm) list -> thm -> thm
 instantiate'      : ctyp option list -> cterm option list -> thm -> thm
-\end{ttbox}
+\end{alltt}
 These meta-rules instantiate type and term unknowns in a theorem.  They are
 occasionally useful.  They can prevent difficulties with higher-order
 unification, and define specialized versions of rules.
@@ -201,7 +201,8 @@ clashes.
 
 \item[\ttindexbold{make_elim} $thm$] 
 \index{rules!converting destruction to elimination}
-converts $thm$, a destruction rule of the form $\List{P@1;\ldots;P@m}\Imp
+converts $thm$, which should be  a destruction rule of the form
+$\List{P@1;\ldots;P@m}\Imp 
 Q$, to the elimination rule $\List{P@1; \ldots; P@m; Q\Imp R}\Imp R$.  This
 is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
 
@@ -234,11 +235,11 @@ nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term) list
 sign_of_thm   : thm -> Sign.sg
 theory_of_thm : thm -> theory
-dest_state    : thm * int -> (term*term) list * term list * term * term
-rep_thm       : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
-                        shyps: sort list, hyps: term list, prop: term\ttrbrace
-crep_thm      : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
-                        shyps: sort list, hyps: cterm list, prop: cterm\ttrbrace
+dest_state : thm * int -> (term*term) list * term list * term * term
+rep_thm    : thm -> \{sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
+                     shyps: sort list, hyps: term list, prop: term\}
+crep_thm   : thm -> \{sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
+                     shyps: sort list, hyps: cterm list, prop:{\ts}cterm\}
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{cprop_of} $thm$] returns the statement of $thm$ as
@@ -333,10 +334,10 @@ information.  This operation is performed by \texttt{strip_shyps} and
 \subsection{Tracing flags for unification}
 \index{tracing!of unification}
 \begin{ttbox} 
-Unify.trace_simp   : bool ref \hfill{\bf initially false}
-Unify.trace_types  : bool ref \hfill{\bf initially false}
-Unify.trace_bound  : int ref \hfill{\bf initially 10}
-Unify.search_bound : int ref \hfill{\bf initially 20}
+Unify.trace_simp   : bool ref \hfill\textbf{initially false}
+Unify.trace_types  : bool ref \hfill\textbf{initially false}
+Unify.trace_bound  : int ref \hfill\textbf{initially 10}
+Unify.search_bound : int ref \hfill\textbf{initially 20}
 \end{ttbox}
 Tracing the search may be useful when higher-order unification behaves
 unexpectedly.  Letting {\tt res_inst_tac} circumvent the problem is easier,
@@ -354,10 +355,10 @@ causes unification to print tracing information once it reaches depth~$n$.
 Use $n=0$ for full tracing.  At the default value of~10, tracing
 information is almost never printed.
 
-\item[Unify.search_bound := $n$;] causes unification to limit its
-  search to depth~$n$.  Because of this bound, higher-order
+\item[Unify.search_bound := $n$;] prevents unification from
+  searching past the depth~$n$.  Because of this bound, higher-order
   unification cannot return an infinite sequence, though it can return
-  a very long one.  The search rarely approaches the default value
+  an exponentially long one.  The search rarely approaches the default value
   of~20.  If the search is cut off, unification prints a warning
   \texttt{Unification bound exceeded}.
 \end{ttdescription}
@@ -399,7 +400,7 @@ handled transparently by the logic implementation.
 \bigskip
 
 \index{meta-implication}
-The {\bf implication} rules are $({\Imp}I)$
+The \textbf{implication} rules are $({\Imp}I)$
 and $({\Imp}E)$:
 \[ \infer[({\Imp}I)]{\phi\Imp \psi}{\infer*{\psi}{[\phi]}}  \qquad
    \infer[({\Imp}E)]{\psi}{\phi\Imp \psi & \phi}  \]
@@ -411,7 +412,7 @@ Equality of truth values means logical equivalence:
    \qquad
    \infer[({\equiv}E)]{\psi}{\phi\equiv \psi & \phi}   \]
 
-The {\bf equality} rules are reflexivity, symmetry, and transitivity:
+The \textbf{equality} rules are reflexivity, symmetry, and transitivity:
 \[ {a\equiv a}\,(refl)  \qquad
    \infer[(sym)]{b\equiv a}{a\equiv b}  \qquad
    \infer[(trans)]{a\equiv c}{a\equiv b & b\equiv c}   \]
@@ -424,14 +425,14 @@ in~$a$; $(ext)$ holds if $x$ is not free in the assumptions, $f$, or~$g$.}
    {((\lambda x.a)(b)) \equiv a[b/x]}           \qquad
    \infer[(ext)]{f\equiv g}{f(x) \equiv g(x)}   \]
 
-The {\bf abstraction} and {\bf combination} rules let conversions be
+The \textbf{abstraction} and \textbf{combination} rules let conversions be
 applied to subterms:\footnote{Abstraction holds if $x$ is not free in the
 assumptions.}
 \[  \infer[(abs)]{(\lambda x.a) \equiv (\lambda x.b)}{a\equiv b}   \qquad
     \infer[(comb)]{f(a)\equiv g(b)}{f\equiv g & a\equiv b}   \]
 
 \index{meta-quantifiers}
-The {\bf universal quantification} rules are $(\Forall I)$ and $(\Forall
+The \textbf{universal quantification} rules are $(\Forall I)$ and $(\Forall
 E)$:\footnote{$(\Forall I)$ holds if $x$ is not free in the assumptions.}
 \[ \infer[(\Forall I)]{\Forall x.\phi}{\phi}        \qquad
    \infer[(\Forall E)]{\phi[b/x]}{\Forall x.\phi}   \]
@@ -607,16 +608,16 @@ applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
 
 \subsection{Instantiation of unknowns}
 \index{instantiation}
-\begin{ttbox} 
+\begin{alltt}\footnotesize
 instantiate: (indexname * ctyp){\thinspace}list * (cterm * cterm){\thinspace}list -> thm -> thm
-\end{ttbox}
+\end{alltt}
 There are two versions of this rule.  The primitive one is
 \ttindexbold{Thm.instantiate}, which merely performs the instantiation and can
 produce a conclusion not in normal form.  A derived version is  
 \ttindexbold{Drule.instantiate}, which normalizes its conclusion.
 
 \begin{ttdescription}
-\item[\ttindexbold{instantiate} ($tyinsts$, $insts$) $thm$] 
+\item[\ttindexbold{instantiate} ($tyinsts$,$insts$) $thm$] 
 simultaneously substitutes types for type unknowns (the
 $tyinsts$) and terms for term unknowns (the $insts$).  Instantiations are
 given as $(v,t)$ pairs, where $v$ is an unknown and $t$ is a term (of the

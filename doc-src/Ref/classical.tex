@@ -240,21 +240,21 @@ Classical rule sets belong to the abstract type \mltydx{claset}, which
 supports the following operations (provided the classical reasoner is
 installed!):
 \begin{ttbox} 
-empty_cs    : claset
-print_cs    : claset -> unit
-rep_cs      : claset -> {safeEs: thm list, safeIs: thm list,
-                         hazEs: thm list,  hazIs: thm list, 
-                         swrappers: (string * wrapper) list, 
-                         uwrappers: (string * wrapper) list,
-                         safe0_netpair: netpair, safep_netpair: netpair,
-                           haz_netpair: netpair,   dup_netpair: netpair}
-addSIs      : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSEs      : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSDs      : claset * thm list -> claset                 \hfill{\bf infix 4}
-addIs       : claset * thm list -> claset                 \hfill{\bf infix 4}
-addEs       : claset * thm list -> claset                 \hfill{\bf infix 4}
-addDs       : claset * thm list -> claset                 \hfill{\bf infix 4}
-delrules    : claset * thm list -> claset                 \hfill{\bf infix 4}
+empty_cs : claset
+print_cs : claset -> unit
+rep_cs : claset -> \{safeEs: thm list, safeIs: thm list,
+                    hazEs: thm list,  hazIs: thm list, 
+                    swrappers: (string * wrapper) list, 
+                    uwrappers: (string * wrapper) list,
+                    safe0_netpair: netpair, safep_netpair: netpair,
+                    haz_netpair: netpair, dup_netpair: netpair\}
+addSIs   : claset * thm list -> claset                 \hfill{\bf infix 4}
+addSEs   : claset * thm list -> claset                 \hfill{\bf infix 4}
+addSDs   : claset * thm list -> claset                 \hfill{\bf infix 4}
+addIs    : claset * thm list -> claset                 \hfill{\bf infix 4}
+addEs    : claset * thm list -> claset                 \hfill{\bf infix 4}
+addDs    : claset * thm list -> claset                 \hfill{\bf infix 4}
+delrules : claset * thm list -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
 The add operations ignore any rule already present in the claset with the same
 classification (such as Safe Introduction).  They print a warning if the rule
@@ -451,9 +451,10 @@ reasoning tactics, but has major limitations too.
     rangeI} in {\HOL} and \texttt{RepFunI} in {\ZF}.  There are often
     alternatives to such rules, for example {\tt
     range_eqI} and \texttt{RepFun_eqI}.
-\item The message {\small\tt Function Var's argument not a bound variable\ }
-relates to the lack of higher-order unification.  Function variables
-may only be applied to parameters of the subgoal.
+\item Function variables may only be applied to parameters of the subgoal.
+(This restriction arises because the prover does not use higher-order
+unification.)  If other function variables are present then the prover will
+fail with the message {\small\tt Function Var's argument not a bound variable}.
 \item Its proof strategy is more general than \texttt{fast_tac}'s but can be
   slower.  If \texttt{blast_tac} fails or seems to be running forever, try {\tt
   fast_tac} and the other tactics described below.
@@ -555,16 +556,16 @@ total size of the proof state.  This function is supplied in the functor call
 that sets up the classical reasoner.
 \begin{ttdescription}
 \item[\ttindexbold{fast_tac} $cs$ $i$] applies \texttt{step_tac} using
-depth-first search, to prove subgoal~$i$.
+depth-first search to prove subgoal~$i$.
 
 \item[\ttindexbold{best_tac} $cs$ $i$] applies \texttt{step_tac} using
-best-first search, to prove subgoal~$i$.
+best-first search to prove subgoal~$i$.
 
 \item[\ttindexbold{slow_tac} $cs$ $i$] applies \texttt{slow_step_tac} using
-depth-first search, to prove subgoal~$i$.
+depth-first search to prove subgoal~$i$.
 
-\item[\ttindexbold{slow_best_tac} $cs$ $i$] applies \texttt{slow_step_tac} using
-best-first search, to prove subgoal~$i$.
+\item[\ttindexbold{slow_best_tac} $cs$ $i$] applies \texttt{slow_step_tac} with
+best-first search to prove subgoal~$i$.
 \end{ttdescription}
 
 
@@ -613,8 +614,9 @@ subgoals.  It is deterministic, with at most one outcome.
 but allows unknowns to be instantiated.
 
 \item[\ttindexbold{step_tac} $cs$ $i$] is the basic step of the proof
-  procedure.  The (unsafe) wrapper tacticals are applied to a tactic that tries
- \texttt{safe_tac}, \texttt{inst_step_tac}, or applies an unsafe rule from~$cs$.
+  procedure.  The unsafe wrapper tacticals are applied to a tactic that tries
+  \texttt{safe_tac}, \texttt{inst_step_tac}, or applies an unsafe rule
+  from~$cs$.
 
 \item[\ttindexbold{slow_step_tac}] 
   resembles \texttt{step_tac}, but allows backtracking between using safe

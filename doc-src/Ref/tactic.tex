@@ -131,11 +131,11 @@ $\sigma$ are unifiable.  If the unification of $\tau$ and $\sigma$
 instantiates any type unknowns in $\tau$, these instantiations
 are recorded for application to the rule.
 \end{itemize}
-Types are instantiated before terms.  Because type instantiations are
+Types are instantiated before terms are.  Because type instantiations are
 inferred from term instantiations, explicit type instantiations are seldom
 necessary --- if \verb$?t$ has type \verb$?'a$, then the instantiation list
-\verb$[("'a","bool"),("t","True")]$ may be simplified to
-\verb$[("t","True")]$.  Type unknowns in the proof state may cause
+\texttt{[("'a","bool"), ("t","True")]} may be simplified to
+\texttt{[("t","True")]}.  Type unknowns in the proof state may cause
 failure because the tactics cannot instantiate them.
 
 The instantiation tactics act on a given subgoal.  Terms in the
@@ -523,7 +523,7 @@ net_biresolve_tac: (bool*thm) list -> int -> tactic
 net_bimatch_tac  : (bool*thm) list -> int -> tactic
 filt_resolve_tac : thm list -> int -> int -> tactic
 could_unify      : term*term->bool
-filter_thms      : (term*term->bool) -> int*term*thm list -> thm list
+filter_thms      : (term*term->bool) -> int*term*thm list -> thm{\ts}list
 \end{ttbox}
 The module {\tt Net} implements a discrimination net data structure for
 fast selection of rules \cite[Chapter 14]{charniak80}.  A term is

@@ -34,7 +34,7 @@ concrete syntax for theory files; here follows an explanation of the
 constituent parts.
 \begin{description}
 \item[{\it theoryDef}] is the full definition.  The new theory is called $id$.
-  It is the union of the named {\bf parent
+  It is the union of the named \textbf{parent
     theories}\indexbold{theories!parent}, possibly extended with new
   components.  \thydx{Pure} and \thydx{CPure} are the basic theories, which
   contain only the meta-logic.  They differ just in their concrete syntax for
@@ -73,14 +73,14 @@ constituent parts.
   $(\alpha@1,\dots,\alpha@n)name$, where the type variables serve only to
   indicate the number~$n$.
 
-  A {\bf type synonym}\indexbold{type synonyms} is an abbreviation
+  A \textbf{type synonym}\indexbold{type synonyms} is an abbreviation
   $(\alpha@1,\dots,\alpha@n)name = \tau$, where $name$ and $\tau$ can
   be strings.
 
 \item[$infix$]
-  declares a type or constant to be an infix operator of priority $nat$
-  associating to the left (\texttt{infixl}) or right (\texttt{infixr}).  Only
-  2-place type constructors can have infix status; an example is {\tt
+  declares a type or constant to be an infix operator having priority $nat$
+  and associating to the left (\texttt{infixl}) or right (\texttt{infixr}).
+  Only 2-place type constructors can have infix status; an example is {\tt
   ('a,'b)~"*"~(infixr~20)}, which may express binary product types.
 
 \item[$arities$] is a series of type arity declarations.  Each assigns
@@ -183,7 +183,7 @@ declarations, translation rules and the \texttt{ML} section in more detail.
 
 \subsection{Definitions}\indexbold{definitions}
 
-{\bf Definitions} are intended to express abbreviations.  The simplest
+\textbf{Definitions} are intended to express abbreviations.  The simplest
 form of a definition is $f \equiv t$, where $f$ is a constant.
 Isabelle also allows a derived forms where the arguments of~$f$ appear
 on the left, abbreviating a string of $\lambda$-abstractions.
@@ -216,8 +216,8 @@ arity declarations must obey two conditions:
   excludes the following:
 \begin{ttbox}
 arities
-  foo :: ({\ttlbrace}logic{\ttrbrace}) logic
-  foo :: ({\ttlbrace}{\ttrbrace})logic
+  foo :: (\{logic{\}}) logic
+  foo :: (\{{\}})logic
 \end{ttbox}
 
 \item If there are two declarations $ty :: (s@1,\dots,s@n)c$ and $ty ::
@@ -229,8 +229,8 @@ set of types represented by $s$.  Assuming $term \preceq logic$, the
 following is forbidden:
 \begin{ttbox}
 arities
-  foo :: ({\ttlbrace}logic{\ttrbrace})logic
-  foo :: ({\ttlbrace}{\ttrbrace})term
+  foo :: (\{logic{\}})logic
+  foo :: (\{{\}})term
 \end{ttbox}
 
 \end{itemize}
@@ -249,7 +249,7 @@ use_thy_only    : string -> unit
 update_thy_only : string -> unit
 touch_thy       : string -> unit
 remove_thy      : string -> unit
-delete_tmpfiles : bool ref \hfill{\bf initially true}
+delete_tmpfiles : bool ref \hfill\textbf{initially true}
 \end{ttbox}
 
 \begin{ttdescription}
@@ -684,23 +684,23 @@ datatype term = Const of string * typ
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{Const} ($a$, $T$)] \index{constants|bold}
-  is the {\bf constant} with name~$a$ and type~$T$.  Constants include
+  is the \textbf{constant} with name~$a$ and type~$T$.  Constants include
   connectives like $\land$ and $\forall$ as well as constants like~0
   and~$Suc$.  Other constants may be required to define a logic's concrete
   syntax.
 
 \item[\ttindexbold{Free} ($a$, $T$)] \index{variables!free|bold}
-  is the {\bf free variable} with name~$a$ and type~$T$.
+  is the \textbf{free variable} with name~$a$ and type~$T$.
 
 \item[\ttindexbold{Var} ($v$, $T$)] \index{unknowns|bold}
-  is the {\bf scheme variable} with indexname~$v$ and type~$T$.  An
+  is the \textbf{scheme variable} with indexname~$v$ and type~$T$.  An
   \mltydx{indexname} is a string paired with a non-negative index, or
   subscript; a term's scheme variables can be systematically renamed by
   incrementing their subscripts.  Scheme variables are essentially free
   variables, but may be instantiated during unification.
 
 \item[\ttindexbold{Bound} $i$] \index{variables!bound|bold}
-  is the {\bf bound variable} with de Bruijn index~$i$, which counts the
+  is the \textbf{bound variable} with de Bruijn index~$i$, which counts the
   number of lambdas, starting from zero, between a variable's occurrence
   and its binding.  The representation prevents capture of variables.  For
   more information see de Bruijn \cite{debruijn72} or
@@ -708,12 +708,12 @@ datatype term = Const of string * typ
 
 \item[\ttindexbold{Abs} ($a$, $T$, $u$)]
   \index{lambda abs@$\lambda$-abstractions|bold}
-  is the $\lambda$-{\bf abstraction} with body~$u$, and whose bound
+  is the $\lambda$-\textbf{abstraction} with body~$u$, and whose bound
   variable has name~$a$ and type~$T$.  The name is used only for parsing
   and printing; it has no logical significance.
 
 \item[$t$ \$ $u$] \index{$@{\tt\$}|bold} \index{function applications|bold}
-is the {\bf application} of~$t$ to~$u$.
+is the \textbf{application} of~$t$ to~$u$.
 \end{ttdescription}
 Application is written as an infix operator to aid readability.
 Here is an \ML\ pattern to recognize \FOL{} formulae of
@@ -729,7 +729,7 @@ loose_bnos     : term -> int list
 incr_boundvars : int -> term -> term
 abstract_over  : term*term -> term
 variant_abs    : string * typ * term -> string * term
-aconv          : term * term -> bool\hfill{\bf infix}
+aconv          : term * term -> bool\hfill\textbf{infix}
 \end{ttbox}
 These functions are all concerned with the de Bruijn representation of
 bound variables.
@@ -782,7 +782,7 @@ bound variables.
 \end{ttdescription}
 
 \section{Certified terms}\index{terms!certified|bold}\index{signatures}
-A term $t$ can be {\bf certified} under a signature to ensure that every type
+A term $t$ can be \textbf{certified} under a signature to ensure that every type
 in~$t$ is well-formed and every constant in~$t$ is a type instance of a
 constant declared in the signature.  The term must be well-typed and its use
 of bound variables must be well-formed.  Meta-rules such as \texttt{forall_elim}
@@ -808,11 +808,11 @@ displays $t$ as a string, using the syntax of~$sign$.
 
 \subsection{Making and inspecting certified terms}
 \begin{ttbox}
-cterm_of          : Sign.sg -> term -> cterm
-read_cterm        : Sign.sg -> string * typ -> cterm
-cert_axm          : Sign.sg -> string * term -> string * term
-read_axm          : Sign.sg -> string * string -> string * term
-rep_cterm         : cterm -> {\ttlbrace}T:typ, t:term, sign:Sign.sg, maxidx:int\ttrbrace
+cterm_of       : Sign.sg -> term -> cterm
+read_cterm     : Sign.sg -> string * typ -> cterm
+cert_axm       : Sign.sg -> string * term -> string * term
+read_axm       : Sign.sg -> string * string -> string * term
+rep_cterm      : cterm -> \{T:typ, t:term, sign:Sign.sg, maxidx:int\}
 Sign.certify_term : Sign.sg -> term -> term * typ * int
 \end{ttbox}
 \begin{ttdescription}
@@ -867,7 +867,7 @@ fun S --> T = Type ("fun", [S, T]);
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{Type} ($a$, $Ts$)] \index{type constructors|bold}
-  applies the {\bf type constructor} named~$a$ to the type operands~$Ts$.
+  applies the \textbf{type constructor} named~$a$ to the type operand list~$Ts$.
   Type constructors include~\tydx{fun}, the binary function space
   constructor, as well as nullary type constructors such as~\tydx{prop}.
   Other type constructors may be introduced.  In expressions, but not in
@@ -875,10 +875,10 @@ fun S --> T = Type ("fun", [S, T]);
   types.
 
 \item[\ttindexbold{TFree} ($a$, $s$)] \index{type variables|bold}
-  is the {\bf type variable} with name~$a$ and sort~$s$.
+  is the \textbf{type variable} with name~$a$ and sort~$s$.
 
 \item[\ttindexbold{TVar} ($v$, $s$)] \index{type unknowns|bold}
-  is the {\bf type unknown} with indexname~$v$ and sort~$s$.
+  is the \textbf{type unknown} with indexname~$v$ and sort~$s$.
   Type unknowns are essentially free type variables, but may be
   instantiated during unification.
 \end{ttdescription}
@@ -907,7 +907,7 @@ displays $T$ as a string, using the syntax of~$sign$.
 \subsection{Making and inspecting certified types}
 \begin{ttbox}
 ctyp_of          : Sign.sg -> typ -> ctyp
-rep_ctyp         : ctyp -> {\ttlbrace}T: typ, sign: Sign.sg\ttrbrace
+rep_ctyp         : ctyp -> \{T: typ, sign: Sign.sg\}
 Sign.certify_typ : Sign.sg -> typ -> typ
 \end{ttbox}
 \begin{ttdescription}

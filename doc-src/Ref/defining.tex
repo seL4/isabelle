@@ -120,7 +120,7 @@ $type$ &=& {\tt(} $type$ {\tt)} \\
      &$|$& $type^{(1)}$ {\tt =>} $type$ & (0) \\
      &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0) \\\\
 $sort$ &=& $id$ ~~$|$~~ $longid$ ~~$|$~~ {\tt\ttlbrace\ttrbrace} ~~$|$~~
-  {\tt\ttlbrace} $id$ ~$|$~ $longid$ {\tt,} \dots {\tt,} $id$ ~$|$~ $longid$ {\tt\ttrbrace}
+  {\tt\ttlbrace} $id$ ~$|$~ $longid${\tt,}\dots{\tt,} $id$ ~$|$~$longid$ {\tt\ttrbrace}
 \end{tabular}
 \index{*PROP symbol}
 \index{*== symbol}\index{*=?= symbol}\index{*==> symbol}
@@ -291,8 +291,8 @@ functions:
 \item[\ttindexbold{syn_of} {\it thy}] returns the syntax of the Isabelle
   theory~{\it thy} as an \ML\ value.
 
-\item[\ttindexbold{print_syntax} $thy$] displays the syntax part of $thy$
-  using {\tt Syntax.print_syntax}.
+\item[\ttindexbold{print_syntax} $thy$] uses {\tt Syntax.print_syntax}
+ to display the syntax part of theory $thy$.
 
 \item[\ttindexbold{Syntax.print_syntax} {\it syn}] shows virtually all
   information contained in the syntax {\it syn}.  The displayed output can
@@ -508,7 +508,7 @@ syntax
   "-" :: exp => exp          ("- _"    [3] 3)
 end
 \end{ttbox}
-If you put this into a file {\tt ExpSyntax.thy} and load it via {\tt
+If you put this into a file {\tt ExpSyntax.thy} and load it by {\tt
   use_thy"ExpSyntax"}, you can run some tests:
 \begin{ttbox}
 val read_exp = Syntax.test_read (syn_of ExpSyntax.thy) "exp";
