@@ -1,4 +1,4 @@
-(*  Title: 	drule
+(*  Title: 	Pure/drule.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -41,6 +41,7 @@ signature DRULE =
   val print_theory: theory -> unit
   val pprint_sg: Sign.sg -> pprint_args -> unit
   val pprint_theory: theory -> pprint_args -> unit
+  val pretty_thm: thm -> Sign.Syntax.Pretty.T
   val print_thm: thm -> unit
   val prth: thm -> thm
   val prthq: thm Sequence.seq -> thm Sequence.seq
