@@ -145,9 +145,7 @@ goal Perm.thy
 \    : bij(Pow(A+B), Pow(A)*Pow(B))";
 by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
     lam_bijective 1);
-by (TRYALL (etac SigmaE));
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS (fast_tac (!claset addSIs [equalityI])));
+by (Auto_tac());
 val Pow_bij = result();
 
 writeln"Reached end of file.";

@@ -91,14 +91,11 @@ by (fast_tac (!claset addSDs [apply_type]) 1);
 val lemma1 = result();
 
 goal thy "!!f. domain(UN z:A. {z}*f(z)) = {a:A. f(a)~=0}";
-by (fast_tac (!claset addIs [equalityI]
-                addSEs [not_emptyE]
-                addSIs [not_emptyI]
-                addDs [range_type]) 1);
+by (fast_tac (!claset addSIs [not_emptyI] addDs [range_type]) 1);
 val lemma2 = result();
 
 goal thy "!!f. x:A ==> (UN z:A. {z}*f(z))``{x} = f(x)";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 val lemma3 = result();
 
 goalw thy AC_defs "!!Z. AC4 ==> AC3";
@@ -116,7 +113,7 @@ qed "AC4_AC3";
 goal thy "!!A. b~:A ==> (PROD x:{a:A. id(A)`a~=b}. id(A)`x) = (PROD x:A. x)";
 by (asm_full_simp_tac (!simpset addsimps [id_def] addcongs [Pi_cong]) 1);
 by (res_inst_tac [("b","A")] subst_context 1);
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val lemma = result();
 
 goalw thy AC_defs "!!Z. AC3 ==> AC1";

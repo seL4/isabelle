@@ -150,9 +150,9 @@ val ex1_two_eq = result();
 
 goalw thy [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
 by (etac CollectE 1);
-by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 THEN (assume_tac 1));
-by (fast_tac (!claset addSEs [RepFunE, apply_type]
-                addSIs [RepFunI] addIs [equalityI]) 1);
+by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 
+    THEN (assume_tac 1));
+by (fast_tac (!claset addSEs [apply_type] addIs [equalityI]) 1);
 val surj_image_eq = result();
 
 

@@ -316,7 +316,7 @@ val UN_image_succ_eq = result();
 goal thy "!!f. [| (UN x:f``n. P(x)) = y; P(f`n) = succ(y);  \
 \       f:nat -> X; n:nat |] ==> (UN x:f``succ(n). P(x)) = succ(y)";
 by (asm_full_simp_tac (!simpset addsimps [UN_image_succ_eq]) 1);
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val UN_image_succ_eq_succ = result();
 
 goal thy "!!f. [| f:succ(n) -> D;  n:nat;  \

@@ -191,7 +191,7 @@ by (eresolve_tac [mem_not_refl RSN (2, cons_lepoll_cong)] 1);
 val Un_lepoll_succ = result();
 
 goal thy "!!a. Ord(a) ==> F(a) - (UN b<succ(a). F(b)) = 0";
-by (fast_tac (!claset addSIs [OUN_I, le_refl] addIs [equalityI]) 1);
+by (fast_tac (!claset addSIs [OUN_I, le_refl]) 1);
 val Diff_UN_succ_empty = result();
 
 goal thy "!!a. Ord(a) ==> F(a) Un X - (UN b<succ(a). F(b)) <= X";
@@ -366,7 +366,7 @@ val Diffs_eq_imp_eq = result();
 
 goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
 by (etac nat_induct 1);
-by (fast_tac (!claset addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
+by (fast_tac (!claset addSDs [lepoll_0_is_0]) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (etac conjE 1));
 by (resolve_tac [succ_lepoll_imp_not_empty RS not_emptyE] 1

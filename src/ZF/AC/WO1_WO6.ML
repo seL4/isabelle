@@ -37,12 +37,12 @@ by (fast_tac (!claset addSIs [lam_type, apply_type]) 1);
 val lam_sets = result();
 
 goalw thy [surj_def] "!!f. f:surj(A,B) ==> (UN a:A. {f`a}) = B";
-by (fast_tac (!claset addSIs [equalityI] addSEs [apply_type]) 1);
+by (fast_tac (!claset addSEs [apply_type]) 1);
 val surj_imp_eq_ = result();
 
 goal thy "!!f. [| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
 by (fast_tac (!claset addSDs [surj_imp_eq_]
-                addSIs [equalityI, ltI] addSEs [ltE]) 1);
+                addSIs [ltI] addSEs [ltE]) 1);
 val surj_imp_eq = result();
 
 goalw thy WO_defs "!!Z. WO1 ==> WO4(1)";

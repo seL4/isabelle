@@ -297,7 +297,7 @@ by (etac impE 1);
 by (asm_full_simp_tac (!simpset addsimps [add_succ]) 1);
 by (fast_tac (!claset addSIs [Diff_sing_eqpoll, lepoll_Diff_sing]) 1);
 by (res_inst_tac [("P","%z. z lepoll m")] subst 1 THEN (assume_tac 2));
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val eqpoll_sum_imp_Diff_lepoll_lemma = result();
 
 goal thy "!!k. [| A eqpoll succ(k #+ m); B<=A; succ(k) lepoll B;  \
@@ -329,7 +329,7 @@ by (fast_tac (!claset addSIs [Diff_sing_eqpoll,
         eqpoll_sym RSN (2, Diff_sing_eqpoll) RS eqpoll_sym]
         addss (!simpset addsimps [add_succ])) 1);
 by (res_inst_tac [("P","%z. z eqpoll m")] subst 1 THEN (assume_tac 2));
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val eqpoll_sum_imp_Diff_eqpoll_lemma = result();
 
 goal thy "!!k. [| A eqpoll succ(k #+ m); B<=A; succ(k) eqpoll B;  \
@@ -347,7 +347,7 @@ val eqpoll_sum_imp_Diff_eqpoll = result();
 
 goal thy "!!w. [| x Int y = 0; w <= x Un y |]  \
 \        ==> w Int (x - {u}) = w - cons(u, w Int y)";
-by (fast_tac (!claset addSIs [equalityI] addEs [equals0D]) 1);
+by (fast_tac (!claset addEs [equals0D]) 1);
 val w_Int_eq_w_Diff = result();
 
 goal thy "!!w. [| w:{v:s_u(u, t_n, succ(l), y). a <= v};  \
@@ -440,7 +440,7 @@ val exists_proper_in_s_u = result();
 
 goal thy "{x:Pow(X). x lepoll 0} = {0}";
 by (fast_tac (!claset addSDs [lepoll_0_is_0]
-                    addSIs [lepoll_refl, equalityI]) 1);
+                      addSIs [lepoll_refl]) 1);
 val subsets_lepoll_0_eq_unit = result();
 
 goal thy "!!X. [| well_ord(X, R); ~Finite(X); n:nat |]  \
@@ -453,8 +453,7 @@ val well_ord_subsets_eqpoll_n = result();
 
 goal thy "!!n. n:nat ==> {z:Pow(y). z lepoll succ(n)} =  \
 \       {z:Pow(y). z lepoll n} Un {z:Pow(y). z eqpoll succ(n)}";
-by (fast_tac (!claset addIs [le_refl, leI,
-                le_imp_lepoll, equalityI]
+by (fast_tac (!claset addIs [le_refl, leI, le_imp_lepoll]
                 addSDs [lepoll_succ_disj]
                 addSEs [nat_into_Ord, lepoll_trans, eqpoll_imp_lepoll]) 1);
 val subsets_lepoll_succ = result();
@@ -476,7 +475,7 @@ by (Simp_tac 1);
 val tot_ord_unit = result();
 
 goalw thy [wf_on_def, wf_def] "wf[{a}](0)";
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val wf_on_unit = result();
 
 goalw thy [well_ord_def] "well_ord({a},0)";

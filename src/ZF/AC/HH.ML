@@ -29,7 +29,7 @@ by (Fast_tac 1);
 val HH_values = result();
 
 goal thy "!!A. B<=A ==> X-(UN a:A. P(a)) = X-(UN a:A-B. P(a))-(UN b:B. P(b))";
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val subset_imp_Diff_eq = result();
 
 goal thy "!!c. [| c:a-b; b<a |] ==> c=b | b<c & c<a";
@@ -41,8 +41,7 @@ val Ord_DiffE = result();
 
 val prems = goal thy "(!!y. y:A ==> P(y) = {x}) ==> x - (UN y:A. P(y)) = x";
 by (asm_full_simp_tac (!simpset addsimps prems) 1);
-by (fast_tac (!claset addSIs [equalityI] addSDs [prem]
-                addSEs [RepFunE, mem_irrefl]) 1);
+by (fast_tac (!claset addSDs [prem] addSEs [mem_irrefl]) 1);
 val Diff_UN_eq_self = result();
 
 goal thy "!!a. x - (UN b:a. HH(f,x,b)) = x - (UN b:a1. HH(f,x,b))  \

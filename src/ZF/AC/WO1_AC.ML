@@ -101,8 +101,7 @@ val lemma2_4 = result();
 
 goalw thy [bij_def, surj_def]
         "!!f. f : bij(D+D, B) ==> Union({{f`Inl(i), f`Inr(i)}. i:D})=B";
-by (fast_tac (!claset addSEs [inj_is_fun RS apply_type, CollectE, sumE]
-        addSIs [InlI, InrI, equalityI]) 1);
+by (fast_tac (!claset addSEs [inj_is_fun RS apply_type]) 1);
 val lemma2_5 = result();
 
 goal thy "!!A. [| WO1; ~Finite(B); 1 le n  |]  \

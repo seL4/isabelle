@@ -29,7 +29,7 @@ val contract_combD1 = contract.dom_subset RS subsetD RS SigmaD1;
 val contract_combD2 = contract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(contract) = comb";
-by (fast_tac (!claset addIs [equalityI,contract.K] addSEs [contract_combE2]) 1);
+by (fast_tac (!claset addIs [contract.K] addSEs [contract_combE2]) 1);
 qed "field_contract_eq";
 
 bind_thm ("reduction_refl",
@@ -121,8 +121,8 @@ val parcontract_combD1 = parcontract.dom_subset RS subsetD RS SigmaD1;
 val parcontract_combD2 = parcontract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(parcontract) = comb";
-by (fast_tac (!claset addIs [equalityI, parcontract.K] 
-                    addSEs [parcontract_combE2]) 1);
+by (fast_tac (!claset addIs [parcontract.K] 
+                      addSEs [parcontract_combE2]) 1);
 qed "field_parcontract_eq";
 
 (*Derive a case for each combinator constructor*)

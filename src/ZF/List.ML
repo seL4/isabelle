@@ -28,8 +28,7 @@ fun list_ind_tac a prems i =
 
 goal List.thy "list(A) = {0} + (A * list(A))";
 let open list;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
-                     addEs [rew elim]) 1)
+by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "list_unfold";
 

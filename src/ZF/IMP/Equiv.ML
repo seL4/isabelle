@@ -120,7 +120,7 @@ val com2 = result();
 
 goal Equiv.thy
     "ALL c:com. C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
-by (fast_tac (!claset addIs [equalityI, C_subset RS subsetD]
+by (fast_tac (!claset addIs [C_subset RS subsetD]
 	              addEs [com2 RS bspec]
 		      addDs [com1]
 		      addss (!simpset)) 1);

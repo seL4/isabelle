@@ -8,7 +8,7 @@ Lemmas used in the proofs concerning AC16
 open AC16_lemmas;
 
 goal thy "!!a. a~:A ==> cons(a,A)-{a}=A";
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val cons_Diff_eq = result();
 
 goalw thy [lepoll_def] "1 lepoll X <-> (EX x. x:X)";
@@ -94,7 +94,7 @@ val subsets_lepoll_lemma1 = result();
 val prems = goal thy "(!!y. y:z ==> Ord(y)) ==> z <= succ(Union(z))";
 by (rtac subsetI 1);
 by (res_inst_tac [("Q","ALL y:z. y<=x")] (excluded_middle RS disjE) 1);
-by (fast_tac (!claset addSIs [equalityI]) 2);
+by (Fast_tac 2);
 by (etac swap 1);
 by (rtac ballI 1);
 by (rtac Ord_linear_le 1);
@@ -114,16 +114,15 @@ by (eresolve_tac prems 1);
 val succ_Union_not_mem = result();
 
 goal thy "Union(cons(succ(Union(z)),z)) = succ(Union(z))";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 val Union_cons_eq_succ_Union = result();
 
 goal thy "!!i. [| Ord(i); Ord(j) |] ==> i Un j = i | i Un j = j";
-by (fast_tac (!claset addSDs [le_imp_subset] addIs [equalityI]
-                addEs [Ord_linear_le]) 1);
+by (fast_tac (!claset addSDs [le_imp_subset] addEs [Ord_linear_le]) 1);
 val Un_Ord_disj = result();
 
 goal thy "!!X. x:X ==> Union(X) = x Un Union(X-{x})";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 val Union_eq_Un = result();
 
 goal thy "!!n. n:nat ==>  \
@@ -208,12 +207,12 @@ val subsets_eqpoll_X = result();
 
 goalw thy [surj_def] "!!f. [| f:surj(A,B); y<=B |]  \
 \       ==> f``(converse(f)``y) = y";
-by (fast_tac (!claset addSIs [equalityI] addDs [apply_equality2]
-        addEs [apply_iff RS iffD2]) 1);
+by (fast_tac (!claset addDs [apply_equality2]
+	              addEs [apply_iff RS iffD2]) 1);
 val image_vimage_eq = result();
 
 goal thy "!!f. [| f:inj(A,B); y<=A |] ==> converse(f)``(f``y) = y";
-by (fast_tac (!claset addSIs [equalityI] addSEs [inj_is_fun RS apply_Pair]
+by (fast_tac (!claset addSEs [inj_is_fun RS apply_Pair]
                 addDs [inj_equality]) 1);
 val vimage_image_eq = result();
 

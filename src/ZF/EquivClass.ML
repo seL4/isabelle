@@ -26,8 +26,7 @@ qed "refl_comp_subset";
 
 goalw EquivClass.thy [equiv_def]
     "!!A r. equiv(A,r) ==> converse(r) O r = r";
-by (fast_tac (subset_cs addSIs [equalityI, sym_trans_comp_subset, 
-                                refl_comp_subset]) 1);
+by (fast_tac (subset_cs addSIs [sym_trans_comp_subset, refl_comp_subset]) 1);
 qed "equiv_comp_eq";
 
 (*second half*)

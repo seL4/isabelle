@@ -75,8 +75,7 @@ val double_Diff_sing = result();
 goal upair.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
 by (split_tac [expand_if] 1);
 by (asm_full_simp_tac (!simpset addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
-by (fast_tac (!claset addSIs [the_equality, equalityI, equals0I]
-                addEs [equalityE]) 1);
+by (fast_tac (!claset addSIs [the_equality] addEs [equalityE]) 1);
 val paired_bij_lemma = result();
 
 goal thy "(lam y:{{y,z}. y:x}. if(y-{z}=0, z, THE w. y-{z}={w}))  \
@@ -120,7 +119,7 @@ by (res_inst_tac [("Q","y=0")] (excluded_middle RS disjE) 1);
 by (fast_tac (!claset addSIs [Diff_sing_lepoll, the_first_in]) 1);
 by (res_inst_tac [("b","y-{THE b. first(b, y, r)}")] subst 1);
 by (rtac empty_lepollI 2);
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 val Diff_first_lepoll = result();
 
 goal thy "(UN x:X. P(x)) <= (UN x:X. P(x)-Q(x)) Un (UN x:X. Q(x))";

@@ -228,7 +228,7 @@ qed "rank_Pow";
 
 goal Epsilon.thy "rank(0) = 0";
 by (rtac (rank RS trans) 1);
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "rank_0";
 
 goal Epsilon.thy "rank(succ(x)) = succ(rank(x))";

@@ -55,7 +55,7 @@ by (etac (cons_absorb RS subst) 1 THEN etac cons_fun_type 1);
 val cons_fun_type2 = result();
 
 goal thy "!!n. n: nat ==> cons(<n,x>, g)``n = g``n";
-by (fast_tac (!claset addSIs [equalityI] addSEs [mem_irrefl]) 1);
+by (fast_tac (!claset addSEs [mem_irrefl]) 1);
 val cons_image_n = result();
 
 goal thy "!!n. g:n->X ==> cons(<n,x>, g)`n = x";
@@ -63,7 +63,7 @@ by (fast_tac (!claset addSIs [apply_equality] addSEs [cons_fun_type]) 1);
 val cons_val_n = result();
 
 goal thy "!!k. k : n ==> cons(<n,x>, g)``k = g``k";
-by (fast_tac (!claset addSIs [equalityI] addEs [mem_asym]) 1);
+by (fast_tac (!claset addEs [mem_asym]) 1);
 val cons_image_k = result();
 
 goal thy "!!k. [| k:n; g:n->X |] ==> cons(<n,x>, g)`k = g`k";

@@ -37,7 +37,7 @@ val lemma_AC18 = result();
 
 val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";
 by (resolve_tac [prem RS revcut_rl] 1);
-by (fast_tac (!claset addSEs [lemma_AC18, UN_E, not_emptyE, apply_type]
+by (fast_tac (!claset addSEs [lemma_AC18, not_emptyE, apply_type]
                 addSIs [equalityI, INT_I, UN_I]) 1);
 qed "AC1_AC18";
 
@@ -70,7 +70,7 @@ by (Fast_tac 1);
 by (rtac subsetI 1);
 by (excluded_middle_tac "x=0" 1);
 by (Fast_tac 1);
-by (fast_tac (!claset addEs [notE, subst_elem] addSIs [equalityI])  1);
+by (fast_tac (!claset addEs [notE, subst_elem])  1);
 val lemma1_1 = result();
 
 goalw thy [u_def]

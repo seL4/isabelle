@@ -23,8 +23,7 @@ val LNil_LCons_iff = llist.mk_free "~ LNil=LCons(a,l)";
 
 goal LList.thy "llist(A) = {0} <+> (A <*> llist(A))";
 let open llist;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (subsetI :: equalityI :: map rew intrs)
-                      addEs [rew elim]) 1)
+by (fast_tac (!claset addSIs (subsetI ::map rew intrs) addEs [rew elim]) 1)
 end;
 qed "llist_unfold";
 

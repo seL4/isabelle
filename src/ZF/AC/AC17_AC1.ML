@@ -56,8 +56,7 @@ val lemma1 = result();
 goal thy "!!x. ~ (EX f: Pow(x)-{0}->x. x - F(f) = 0)  \
 \       ==> (lam f: Pow(x)-{0}->x. x - F(f))  \
 \               : (Pow(x) -{0} -> x) -> Pow(x) - {0}";
-by (fast_tac (!claset addSIs [lam_type] addIs [equalityI]
-                addSDs [Diff_eq_0_iff RS iffD1]) 1);
+by (fast_tac (!claset addSIs [lam_type] addSDs [Diff_eq_0_iff RS iffD1]) 1);
 val lemma2 = result();
 
 goal thy "!!f. [| f`Z : Z; Z:Pow(x)-{0} |] ==>  \
