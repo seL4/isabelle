@@ -455,9 +455,12 @@ fun refine text state =
   in eval text state end;
 
 fun refine_no_facts text state =
-  state
-  |> Proof.goal_facts (K [])
-  |> refine text;
+  let val (_, (goal_facts, _)) = Proof.get_goal state in
+    state
+    |> Proof.goal_facts (K [])
+    |> refine text
+    |> Seq.map (Proof.goal_facts (K goal_facts))
+  end;
 
 
 (* structured proof steps *)
