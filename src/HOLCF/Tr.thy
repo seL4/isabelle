@@ -20,7 +20,7 @@ consts
         trand           :: "tr -> tr -> tr"
         tror            :: "tr -> tr -> tr"
         neg             :: "tr -> tr"
-        plift           :: "('a::term => bool) => 'a lift -> tr"
+        If2             :: "tr=>'c=>'c=>'c"
 
 syntax  "@cifte"        :: "tr=>'c=>'c=>'c" ("(3If _/ (then _/ else _) fi)" 60)
         "@andalso"      :: "tr => tr => tr" ("_ andalso _" [36,35] 35)
@@ -37,21 +37,7 @@ defs
   ifte_def    "Icifte == (LAM b t e.flift1(%b.if b then t else e)`b)"
   andalso_def "trand == (LAM x y.If x then y else FF fi)"
   orelse_def  "tror == (LAM x y.If x then TT else y fi)"
-(* andalso, orelse are different from strict functions 
-  andalso_def "trand == flift1(flift2 o (op &))"
-  orelse_def  "tror == flift1(flift2 o (op |))"
-*)
-  plift_def   "plift p == (LAM x. flift1(%a.Def(p a))`x)"
-
-(* FIXME remove?
-syntax
-  "GeqTT"        :: "tr => bool"               ("(\\<lceil>_\\<rceil>)")
-  "GeqFF"        :: "tr => bool"               ("(\\<lfloor>_\\<rfloor>)")
-
-translations
-  "\\<lceil>x\\<rceil>" == "x = TT"
-  "\\<lfloor>x\\<rfloor>" == "x = FF"
-*)
+  If2_def     "If2 Q x y == If Q then x else y fi"
 
 end
 
