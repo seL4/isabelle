@@ -195,6 +195,10 @@ val lemmasP =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl
     (name_facts >> (Toplevel.theory o IsarThy.have_lemmas));
 
+val declareP =
+  OuterSyntax.improper_command "declare" "declare theorems (improper)" K.thy_script
+    (P.xthms1 -- P.marg_comment >> (Toplevel.theory o IsarThy.declare_theorems));
+
 
 (* name space entry path *)
 
@@ -670,8 +674,8 @@ val parsers = [
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, syntaxP, translationsP, axiomsP,
-  defsP, constdefsP, theoremsP, lemmasP, globalP, localP, hideP, useP,
-  mlP, ml_commandP, ml_setupP, setupP, method_setupP,
+  defsP, constdefsP, theoremsP, lemmasP, declareP, globalP, localP,
+  hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
   parse_ast_translationP, parse_translationP, print_translationP,
   typed_print_translationP, print_ast_translationP,
   token_translationP, oracleP,
