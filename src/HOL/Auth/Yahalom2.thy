@@ -6,6 +6,8 @@
 Inductive relation "yahalom" for the Yahalom protocol, Variant 2.
 
 This version trades encryption of NB for additional explicitness in YM3.
+It also omits encryption in YM2.  The resulting protocol no longer guarantees
+that the other agent is present.
 
 From page 259 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
@@ -35,38 +37,37 @@ inductive "yahalom lost"
 	   the sender is, hence the A' in the sender field.*)
     YM2  "[| evs: yahalom lost;  B ~= Server;
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
-          ==> Says B Server 
-                  {|Agent B, Nonce (newN evs), 
-                    Crypt {|Agent A, Nonce NA|} (shrK B)|}
+          ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce (newN evs)|}
                  # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
-            new session key to Alice, with a packet for forwarding to Bob.*)
-    YM3  "[| evs: yahalom lost;  A ~= Server;
-             Says B' Server 
-                  {|Agent B, Nonce NB, Crypt {|Agent A, Nonce NA|} (shrK B)|}
+           new session key to Alice, with a packet for forwarding to Bob.
+           Fields are reversed in the 2nd packet to prevent attacks.*)
+    YM3  "[| evs: yahalom lost;  A ~= B;  A ~= Server;
+             Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                : set_of_list evs |]
           ==> Says Server A
                {|Nonce NB, 
                  Crypt {|Agent B, Key (newK evs), Nonce NA|} (shrK A),
-                 Crypt {|Agent A, Key (newK evs), Nonce NB, Nonce NB|} (shrK B)|}
+                 Crypt {|Nonce NB, Key (newK evs), Agent A|} (shrK B)|}
                  # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs: yahalom lost;  A ~= B;  
+    YM4  "[| evs: yahalom lost;  A ~= Server;  A ~= B;  
              Says S A {|Nonce NB, Crypt {|Agent B, Key K, Nonce NA|} (shrK A),
                         X|}
                : set_of_list evs;
              Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom lost"
 
-         (*This message models possible leaks of session keys.  The Nonce NA
-           identifies the protocol run.  We can't be sure about NB.*)
-    Revl "[| evs: yahalom lost;  A ~= Spy;
-             Says S A {|Nonce NB, Crypt {|Agent B, Key K, Nonce NA|} (shrK A),
-                        X|}
-               : set_of_list evs |]
-          ==> Says A Spy {|Nonce NA, Key K|} # evs : yahalom lost"
+         (*This message models possible leaks of session keys.  The nonces
+           identify the protocol run.  Quoting Server here ensures they are
+           correct. *)
+    Oops "[| evs: yahalom lost;  A ~= Spy;
+             Says Server A {|Nonce NB, 
+                             Crypt {|Agent B, Key K, Nonce NA|} (shrK A),
+                             X|}  : set_of_list evs |]
+          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
 
 end
