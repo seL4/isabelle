@@ -128,7 +128,7 @@ val dest_eq     = dest_binop "op ="
 val dest_imp    = dest_binop "op -->"
 val dest_conj   = dest_binop "op &"
 val dest_disj   = dest_binop "op |"
-val dest_cons   = dest_binop "op #"
+val dest_cons   = dest_binop "Cons"
 val dest_let    = swap o dest_binop "Let";
 (* val dest_cond   = dest_triop "if" *)
 val dest_select = dest_binder "Eps"
