@@ -187,7 +187,10 @@ fun modes_of modes t =
                 (iss ~~ args)))) (assoc' "modes" modes name))
 
   in (case strip_comb t of
-      (Const (name, _), args) => mk_modes name args
+      (Const ("op =", Type (_, [T, _])), _) =>
+        [Mode (([], [1]), []), Mode (([], [2]), [])] @
+        (if is_eqT T then [Mode (([], [1, 2]), [])] else [])
+    | (Const (name, _), args) => mk_modes name args
     | (Var ((name, _), _), args) => mk_modes name args
     | (Free (name, _), args) => mk_modes name args)
   end;
@@ -475,9 +478,7 @@ and mk_ind_def thy gr dep names intrs =
       val gr' = mk_extra_defs thy
         (Graph.add_edge (hd ids, dep)
           (Graph.new_node (hd ids, (None, "")) gr)) (hd ids) names intrs';
-      val (extra_modes', extra_factors) = lookup_modes gr' (hd ids);
-      val extra_modes =
-        ("op =", [([], [1]), ([], [2]), ([], [1, 2])]) :: extra_modes';
+      val (extra_modes, extra_factors) = lookup_modes gr' (hd ids);
       val fs = map (apsnd dest_factors)
         (foldl (add_prod_factors extra_factors) ([], flat (map (fn t =>
           Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs')));
