@@ -695,7 +695,7 @@ lemma assumes A: "(x,y) \<in> r*" and B: "(y,z) \<in> r*"
 proof -
   from A B show ?thesis
   proof induct
-    fix x assume "(x,z) \<in> r*"  -- "B[y := x]"
+    fix x assume "(x,z) \<in> r*"  -- {*@{text B}[@{text y} := @{text x}]*}
     thus "(x,z) \<in> r*" .
   next
     fix x' x y
