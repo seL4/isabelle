@@ -18,7 +18,7 @@ FILES = logics.tex preface.tex syntax.tex LK.tex CTT.tex \
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_hol.eps
+$(NAME).dvi: $(FILES) isabelle.eps
 	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
