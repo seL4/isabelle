@@ -126,14 +126,10 @@ Addsimps [diff_nat_number_of];
 
 Goal "(#0::int) <= z ==> nat (z*z') = nat z * nat z'";
 by (case_tac "#0 <= z'" 1);
-by (subgoal_tac "z'*z <= #0" 2);
-by (rtac (neg_imp_zmult_nonpos_iff RS iffD2) 3);
-by (auto_tac (claset(),
-	      simpset() addsimps [zmult_commute]));
-by (subgoal_tac "#0 <= z*z'" 1);
-by (force_tac (claset() addDs [zmult_zle_mono1], simpset()) 2);
+by (asm_full_simp_tac (simpset() addsimps [zmult_le_0_iff]) 2);
 by (rtac (inj_int RS injD) 1);
-by (asm_simp_tac (simpset() addsimps [zmult_int RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_int RS sym,
+				      int_0_le_mult_iff]) 1);
 qed "nat_mult_distrib";
 
 Goal "(number_of v :: nat) * number_of v' = \
