@@ -12,7 +12,7 @@ Addsimps [obj_ty_def2];
 val new_AddrD = prove_goalw thy [new_Addr_def] 
 "\\<And>X. (a,x) = new_Addr h \\<Longrightarrow> h a = None \\<and>  x = None |  x = Some OutOfMemory" (K[
 	asm_full_simp_tac (simpset() addsimps [Pair_fst_snd_eq,select_split]) 1,
-	rtac selectI 1,
+	rtac someI 1,
 	rtac disjI2 1,
 	res_inst_tac [("r","snd (a,Some OutOfMemory)")] trans 1,
 	 Auto_tac ]);

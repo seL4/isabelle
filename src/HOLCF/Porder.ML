@@ -56,7 +56,7 @@ bind_thm ("lubI", exI RS result());
 Goal "M <<| l ==> lub(M) = l";
 by (rtac unique_lub 1);
 by (stac lub 1);
-by (etac selectI 1);
+by (etac someI 1);
 by (atac 1);
 qed "thelubI";
 
@@ -130,7 +130,7 @@ qed "lub_finch1";
 Goalw [finite_chain_def]
         "finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain i C)";
 by (rtac lub_finch1 1);
-by (best_tac (claset() addIs [selectI]) 2);
+by (best_tac (claset() addIs [someI]) 2);
 by (Blast_tac 1);
 qed "lub_finch2";
 

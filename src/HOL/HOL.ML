@@ -9,7 +9,7 @@ struct
   val refl = refl;
   val subst = subst;
   val ext = ext;
-  val selectI = selectI;
+  val someI = someI;
   val impI = impI;
   val mp = mp;
   val True_def = True_def;

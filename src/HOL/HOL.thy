@@ -159,7 +159,7 @@ axioms
     rule, and similar to the ABS rule of HOL.*)
   ext:          "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
 
-  selectI:      "P (x::'a) ==> P (@x. P x)"
+  someI:        "P (x::'a) ==> P (@x. P x)"
 
   impI:         "(P ==> Q) ==> P-->Q"
   mp:           "[| P-->Q;  P |] ==> Q"

@@ -142,7 +142,7 @@ qed "Nonce_supply1";
 
 Goal "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
 by (rtac (lemma RS exE) 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (Fast_tac 1);
 qed "Nonce_supply";
 

@@ -158,7 +158,7 @@ qed "Nonce_supply3";
 
 Goal "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
 by (rtac (lemma RS exE) 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (Blast_tac 1);
 qed "Nonce_supply";
 
@@ -192,7 +192,7 @@ qed "Key_supply3";
 
 Goal "Key (@ K. Key K ~: used evs) ~: used evs";
 by (rtac (Finites.emptyI RS Key_supply_ax RS exE) 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (Blast_tac 1);
 qed "Key_supply";
 

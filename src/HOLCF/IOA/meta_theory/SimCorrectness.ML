@@ -86,11 +86,11 @@ by (Asm_full_simp_tac 2);
 (* Go on as usual *)
 by (etac exE 1);
 by (dres_inst_tac [("x","t'"),
-         ("P","%t'. ? ex.(t,t'):R & move A ex s' a t'")] selectI 1);
+         ("P","%t'. ? ex.(t,t'):R & move A ex s' a t'")] someI 1);
 by (etac exE 1);
 by (etac conjE 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def]) 1);
-by (res_inst_tac [("x","ex")] selectI 1);
+by (res_inst_tac [("x","ex")] someI 1);
 by (etac conjE 1);
 by (assume_tac 1);
 qed"move_is_move_sim";

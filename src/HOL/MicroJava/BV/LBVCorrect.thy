@@ -332,7 +332,7 @@ proof (clarsimp simp add: wt_jvm_prog_def wf_prog_def, intro conjI)
                  (\<epsilon>(Cl,x,y,mdecls). (Cl, x, y, mdecls) \<in> set G \<and> Cl = a))) mb) m"
           by - (drule bspec, assumption, 
                 clarsimp dest!: wtl_method_correct,
-                clarsimp intro!: selectI simp add: unique_epsilon) 
+                clarsimp intro!: someI simp add: unique_epsilon) 
       qed
     qed (auto simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
   qed

@@ -290,7 +290,7 @@ qed "is_recfun_cut";
 
 Goalw [the_recfun_def]
     "is_recfun r H a f ==> is_recfun r H a (the_recfun r H a)";
-by (eres_inst_tac [("P", "is_recfun r H a")] selectI 1);
+by (eres_inst_tac [("P", "is_recfun r H a")] someI 1);
 qed "is_the_recfun";
 
 Goal "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";

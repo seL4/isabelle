@@ -68,7 +68,7 @@ Goalw [is_ref_map_def]
 by (subgoal_tac "? ex. move A ex (f s) a (f t)" 1);
 by (Asm_full_simp_tac 2);
 by (etac exE 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (assume_tac 1);
 qed"move_is_move";
 

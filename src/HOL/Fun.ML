@@ -24,7 +24,7 @@ qed "apply_inverse";
 (*"choice" is now proved in Tools/meson.ML*)
 
 Goal "!!S. ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
-by (fast_tac (claset() addEs [selectI]) 1);
+by (fast_tac (claset() addEs [someI]) 1);
 qed "bchoice";
 
 
@@ -115,7 +115,7 @@ qed "inj_eq";
 
 Goal "inj(f) ==> (@x. f(x)=f(y)) = y";
 by (etac injD 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (rtac refl 1);
 qed "inj_select";
 
@@ -212,7 +212,7 @@ by (fast_tac (claset() addIs [inj_onI] addEs [inj_onD]) 1);
 qed "comp_inj_on";
 
 Goalw [inv_def] "y : range(f) ==> f(inv f y) = y";
-by (fast_tac (claset() addIs [selectI]) 1);
+by (fast_tac (claset() addIs [someI]) 1);
 qed "f_inv_f";
 
 Goal "surj f ==> f(inv f y) = y";

@@ -288,7 +288,7 @@ Goalw [inverse_def, dvd_def]
   "!! a::'a::ring. a dvd <1> ==> a * inverse a = <1>";
 by (Asm_simp_tac 1);
 by (Clarify_tac 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (rtac sym 1);
 by (assume_tac 1);
 qed "r_inverse_ring";

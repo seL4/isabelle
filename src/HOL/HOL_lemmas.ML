@@ -16,7 +16,7 @@ val eq_reflection = thm "eq_reflection";
 val refl = thm "refl";
 val subst = thm "subst";
 val ext = thm "ext";
-val selectI = thm "selectI";
+val someI = thm "someI";
 val impI = thm "impI";
 val mp = thm "mp";
 val True_def = thm "True_def";
@@ -221,7 +221,7 @@ bind_thm("not_sym", sym COMP rev_contrapos);
 section "EX ";
 
 Goalw [Ex_def] "P x ==> EX x::'a. P x";
-by (etac selectI 1) ;
+by (etac someI 1) ;
 qed "exI";
 
 val [major,minor] =
@@ -355,17 +355,17 @@ qed "ex1_implies_ex";
 (** Select: Hilbert's Epsilon-operator **)
 section "@";
 
-(*Easier to apply than selectI if witness ?a comes from an EX-formula*)
+(*Easier to apply than someI if witness ?a comes from an EX-formula*)
 Goal "EX x. P x ==> P (SOME x. P x)";
 by (etac exE 1);
-by (etac selectI 1);
+by (etac someI 1);
 qed "ex_someI";
 
-(*Easier to apply than selectI: conclusion has only one occurrence of P*)
+(*Easier to apply than someI: conclusion has only one occurrence of P*)
 val prems = Goal
     "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)";
 by (resolve_tac prems 1);
-by (rtac selectI 1);
+by (rtac someI 1);
 by (resolve_tac prems 1) ;
 qed "someI2";
 
@@ -400,7 +400,7 @@ Goal "P (@ x. P x) =  (EX x. P x)";
 by (rtac iffI 1);
 by (etac exI 1);
 by (etac exE 1);
-by (etac selectI 1);
+by (etac someI 1);
 qed "some_eq_ex";
 
 Goal "(@y. y=x) = x";
