@@ -457,19 +457,19 @@ is performed.
 
 
 \begin{warn}
-Type \isa{real} is only available in the logic HOL-Real, which
-is  HOL extended with a definitional development of the real
+Type \isa{real} is only available in the logic HOL-Complex, which
+is  HOL extended with a definitional development of the real and complex
 numbers.  Base your theory upon theory
-\thydx{Real}, not the usual \isa{Main}.%
+\thydx{Complex_Main}, not the usual \isa{Main}.%
 \index{real numbers|)}\index{*real (type)|)}
 Launch Isabelle using the command 
 \begin{verbatim}
-Isabelle -l HOL-Real
+Isabelle -l HOL-Complex
 \end{verbatim}
 \end{warn}
 
-Also distributed with Isabelle is HOL-Hyperreal,
-whose theory \isa{Hyperreal} defines the type \tydx{hypreal} of 
+Also available in HOL-Complex is the
+theory \isa{Hyperreal}, which define the type \tydx{hypreal} of 
 \rmindex{non-standard reals}.  These
 \textbf{hyperreals} include infinitesimals, which represent infinitely
 small and infinitely large quantities; they facilitate proofs
