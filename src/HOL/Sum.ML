@@ -152,6 +152,11 @@ by (res_inst_tac [("s","s")] sumE 1);
 by Auto_tac;
 qed "split_sum_case";
 
+qed_goal "split_sum_case_asm" Sum.thy "P (sum_case f g s) = \
+\ (~((? x. s = Inl x & ~P (f x)) | (? y. s = Inr y & ~P (g y))))"
+    (K [stac split_sum_case 1,
+	Blast_tac 1]);
+
 (*Prevents simplification of f and g: much faster*)
 qed_goal "sum_case_weak_cong" Sum.thy
   "s=t ==> sum_case f g s = sum_case f g t"
