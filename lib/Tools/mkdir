@@ -252,13 +252,19 @@ else
 
 \parindent 0pt\parskip 0.5ex
 
-% include generated text of all theories
+% generated text of all theories
 \input{session}
 
+% optional bibliography
 %\bibliographystyle{abbrv}
 %\bibliography{root}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
 EOF
 fi
 

@@ -87,8 +87,8 @@ function pre_latex ()
   "$ISATOOL" latex -o sty && \
   "$ISATOOL" latex -o "$FMT" && \
   { [ ! -f root.bib ] || "$ISATOOL" latex -o bbl; } && \
-  { [ ! -f root.idx ] || "$ISATOOL" latex -o idx; } && \  
-    "$ISATOOL" latex -o "$FMT"
+  { [ ! -f root.idx ] || "$ISATOOL" latex -o idx; } && \
+  "$ISATOOL" latex -o "$FMT"
 }
 
 (

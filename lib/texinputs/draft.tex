@@ -12,9 +12,14 @@
 
 \pagestyle{myheadings}
 \renewcommand{\isamarkupheader}[1]%
-{\section{#1}\markright{FILE~``\isabellecontext''}}
+{{\def\isacharunderscore{\mbox{-}}%
+\section*{#1}\markright{FILE~``\isabellecontext''}}}
 
 \begin{document}
 \input{session}
 \end{document}
 
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
