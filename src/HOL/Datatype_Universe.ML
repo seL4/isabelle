@@ -7,7 +7,7 @@
 (** apfst -- can be used in similar type definitions **)
 
 Goalw [apfst_def] "apfst f (a,b) = (f(a),b)";
-by (rtac split 1);
+by (rtac split_conv 1);
 qed "apfst_conv";
 
 val [major,minor] = Goal
@@ -61,7 +61,7 @@ by (rtac inj_on_inverseI 1);
 by (etac Abs_Node_inverse 1);
 qed "inj_on_Abs_Node";
 
-bind_thm ("Abs_Node_inject", inj_on_Abs_Node RS inj_onD);
+bind_thm ("Abs_Node_inj", inj_on_Abs_Node RS inj_onD);
 
 
 (*** Introduction rules for Node ***)
@@ -84,7 +84,7 @@ Goalw [Atom_def,Scons_def,Push_Node_def] "Scons M N ~= Atom(a)";
 by (rtac notI 1);
 by (etac (equalityD2 RS subsetD RS UnE) 1);
 by (rtac singletonI 1);
-by (REPEAT (eresolve_tac [imageE, Abs_Node_inject RS apfst_convE, 
+by (REPEAT (eresolve_tac [imageE, Abs_Node_inj RS apfst_convE, 
                           Pair_inject, sym RS Push_neq_K0] 1
      ORELSE resolve_tac [Node_K0_I, Rep_Node RS Node_Push_I] 1));
 qed "Scons_not_Atom";
@@ -96,7 +96,7 @@ bind_thm ("Atom_not_Scons", Scons_not_Atom RS not_sym);
 (** Atomic nodes **)
 
 Goalw [Atom_def] "inj(Atom)";
-by (blast_tac (claset() addSIs [injI, Node_K0_I] addSDs [Abs_Node_inject]) 1);
+by (blast_tac (claset() addSIs [injI, Node_K0_I] addSDs [Abs_Node_inj]) 1);
 qed "inj_Atom";
 bind_thm ("Atom_inject", inj_Atom RS injD);
 
@@ -126,7 +126,7 @@ AddSDs [Numb_inject];
 val [major,minor] = Goalw [Push_Node_def]
     "[| Push_Node i m =Push_Node j n;  [| i=j;  m=n |] ==> P \
 \    |] ==> P";
-by (rtac (major RS Abs_Node_inject RS apfst_convE) 1);
+by (rtac (major RS Abs_Node_inj RS apfst_convE) 1);
 by (REPEAT (resolve_tac [Rep_Node RS Node_Push_I] 1));
 by (etac (sym RS apfst_convE) 1);
 by (rtac minor 1);
@@ -207,7 +207,7 @@ AddIffs  [Scons_not_Atom, Atom_not_Scons, Scons_Scons_eq];
 
 
 Goalw [ndepth_def] "ndepth (Abs_Node(%k. Inr 0, x)) = 0";
-by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split]);
+by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split_conv]);
 by (rtac Least_equality 1);
 by Auto_tac;  
 qed "ndepth_K0";
