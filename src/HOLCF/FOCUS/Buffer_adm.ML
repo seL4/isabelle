@@ -110,7 +110,7 @@ qed "BufAC_Asm_antiton";
 Goal "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> Fin (l i) < #x --> \
 		\    (x,f\\<cdot>x):down_iterate BufAC_Cmt_F i --> \
 		\    (s,f\\<cdot>s):down_iterate BufAC_Cmt_F i";
-by (res_inst_tac [("x","%i. i+i")] exI 1);
+by (res_inst_tac [("x","%i. #2*i")] exI 1);
 by (rtac allI 1);
 by (nat_ind_tac "i" 1);
 by ( Simp_tac 1);
