@@ -87,7 +87,7 @@ by (Blast_tac 1);
 qed "shrK_neq";
 
 Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
-
+Delsimps [image_eqI]; (* loops together with shrK_neq *)
 
 (*** Fresh nonces ***)
 
