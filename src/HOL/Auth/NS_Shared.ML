@@ -302,8 +302,7 @@ by (Blast_tac 3);
 by (Blast_tac 1);
 (*NS2: contradiction from the assumptions  
   Key K ~: used evs2  and Crypt K (Nonce NB) : parts (spies evs2) *)
-by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
-			addSDs [Crypt_imp_keysFor]) 1);
+by (force_tac (claset() addSDs [Crypt_imp_keysFor], simpset()) 1);
 (**LEVEL 7**)
 (*NS4*)
 by (Clarify_tac 1);
@@ -319,7 +318,7 @@ Goal "[| Crypt K (Nonce NB) : parts (spies evs);                   \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]                  \
 \        ==> Says B A (Crypt K (Nonce NB)) : set evs";
 by (blast_tac (claset() addSIs [A_trusts_NS2, A_trusts_NS4_lemma]
-	         addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
+                     addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
 qed "A_trusts_NS4";
 
 
@@ -384,5 +383,5 @@ Goal "[| Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs);      \
 by (dtac B_trusts_NS3 1);
 by (ALLGOALS Clarify_tac);
 by (blast_tac (claset() addSIs [B_trusts_NS5_lemma]
-	         addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
+ 	                addDs [Spy_not_see_encrypted_key]) 1);
 qed "B_trusts_NS5";
