@@ -1,5 +1,5 @@
 (*  Title:      HOL/Prod.thy
-    ID:         Prod.thy,v 1.5 1994/08/19 09:04:27 lcp Exp
+    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
