@@ -8,7 +8,7 @@
 
 default: HOLCF
 images: HOLCF IOA
-test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP IOA-Storage
+test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP IOA-Modelcheck IOA-Storage IOA-ex
 all: images test
 
 
@@ -83,10 +83,10 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/TL.thy IOA/meta_theory/TL.ML IOA/meta_theory/TLS.thy \
   IOA/meta_theory/TLS.ML IOA/meta_theory/LiveIOA.thy IOA/meta_theory/LiveIOA.ML \
   IOA/meta_theory/Pred.thy IOA/meta_theory/Abstraction.thy \
-  IOA/meta_theory/Abstraction.ML IOA/meta_theory/TrivEx.thy IOA/meta_theory/TrivEx.ML \
-  IOA/meta_theory/TrivEx2.thy IOA/meta_theory/TrivEx2.ML \
+  IOA/meta_theory/Abstraction.ML \
   IOA/meta_theory/Simulations.thy IOA/meta_theory/Simulations.ML \
-  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/SimCorrectness.ML 
+  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/SimCorrectness.ML \
+  IOA/meta_theory/ioa_syn.ML IOA/meta_theory/ioa_package.ML 
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
 
@@ -103,7 +103,6 @@ $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
   IOA/ABP/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP
 
-
 ## IOA-NTP
 
 IOA-NTP: IOA $(LOG)/IOA-NTP.gz
@@ -119,6 +118,17 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 
 
+## IOA-Modelcheck
+
+IOA-Modelcheck: IOA $(LOG)/IOA-Modelcheck.gz
+
+$(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML IOA/Modelcheck/Cockpit.ML\
+  IOA/Modelcheck/Cockpit.thy IOA/Modelcheck/MuIOA.ML IOA/Modelcheck/MuIOA.thy \
+  IOA/Modelcheck/MuIOAOracle.ML IOA/Modelcheck/MuIOAOracle.thy \
+  IOA/Modelcheck/Ring3.ML IOA/Modelcheck/Ring3.thy 
+	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Modelcheck
+
+
 ## IOA-Storage
 
 IOA-Storage: IOA $(LOG)/IOA-Storage.gz
@@ -130,9 +140,19 @@ $(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.ML \
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
 
 
+## IOA-ex
+
+IOA-ex: IOA $(LOG)/IOA-ex.gz
+
+$(LOG)/IOA-ex.gz: $(OUT)/IOA IOA/ex/ROOT.ML \
+  IOA/ex/TrivEx.thy IOA/ex/TrivEx.ML \
+  IOA/ex/TrivEx2.thy IOA/ex/TrivEx2.ML 
+	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ex
+
+
 ## clean
 
 clean:
 	@rm -f $(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz \
 	  $(LOG)/HOLCF-ex.gz $(OUT)/IOA $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz \
-	  $(LOG)/IOA-NTP.gz $(LOG)/IOA-Storage.gz
+	  $(LOG)/IOA-NTP.gz $(LOG)/IOA-Modelcheck.gz $(LOG)/IOA-Storage.gz
