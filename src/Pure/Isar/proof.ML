@@ -43,7 +43,7 @@ sig
   val pretty_thms: thm list -> Pretty.T
   val verbose: bool ref
   val print_state: int -> state -> unit
-  val pretty_goals: state -> Pretty.T list
+  val pretty_goals: state -> bool -> Pretty.T list
   val level: state -> int
   type method
   val method: (thm list -> tactic) -> method
@@ -352,9 +352,9 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       else pretty_goal (find_goal 0 state))
   in Pretty.writeln (Pretty.chunks prts) end;
 
-fun pretty_goals state =
+fun pretty_goals state print_goal =
   let val (_, (_, ((_, (_, thm)), _))) = find_goal 0 state
-  in Locale.pretty_goals (! goals_limit) thm end;
+  in Locale.pretty_sub_goals print_goal (!goals_limit) thm end;
 
 
 
