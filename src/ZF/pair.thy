@@ -1,5 +1,5 @@
 theory pair = upair
-files "simpdata":
+files "simpdata.ML":
 end
 
 
