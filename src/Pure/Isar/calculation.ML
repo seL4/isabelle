@@ -134,18 +134,18 @@ val sym_attr =
 
 (** proof commands **)
 
+fun assert_sane final =
+  if final then Proof.assert_forward else Proof.assert_forward_or_chain;
+
+
 (* maintain calculation register *)
 
 val calculationN = "calculation";
 
 fun maintain_calculation false calc state =
-    let val facts = Proof.the_facts state 
-    in
       state
       |> put_calculation calc
-      |> Proof.simple_have_thms calculationN calc
-      |> Proof.simple_have_thms Proof.thisN facts
-    end
+      |> Proof.put_thms (calculationN, calc)
   | maintain_calculation true calc state =
       state
       |> reset_calculation
@@ -172,7 +172,7 @@ fun calculate final opt_rules print state =
       |> Seq.of_list |> Seq.map (Method.multi_resolve ths) |> Seq.flat
       |> Seq.filter (not o projection ths);
 
-    val facts = Proof.the_facts (Proof.assert_forward state);
+    val facts = Proof.the_facts (assert_sane final state);
     val (initial, calculations) =
       (case get_calculation state of
         None => (true, Seq.single facts)
@@ -192,7 +192,7 @@ fun finally print = calculate true print;
 
 fun collect final print state =
   let
-    val facts = Proof.the_facts (Proof.assert_forward state);
+    val facts = Proof.the_facts (assert_sane final state);
     val (initial, thms) =
       (case get_calculation state of
         None => (true, [])
