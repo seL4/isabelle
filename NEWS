@@ -162,6 +162,8 @@ many laws relating division to addition, multiplication, etc.;
 * kernel: meta-level proof terms (by Stefan Berghofer), see also ref
 manual;
 
+* Pure/axclass: removed obsolete ML interface goal_subclass/goal_arity;
+
 * classical: renamed addaltern to addafter, addSaltern to addSafter;
 
 * clasimp: ``iff'' declarations now handle conditional rules as well;
