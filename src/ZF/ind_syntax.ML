@@ -117,11 +117,10 @@ fun union_params rec_tm =
        | iargs => fold_bal (app Un) iargs
   end;
 
-fun data_domain rec_tms =
-  replicate (length rec_tms) (univ $ union_params (hd rec_tms));
-
-fun Codata_domain rec_tms =
-  replicate (length rec_tms) (quniv $ union_params (hd rec_tms));
+(*Previously these both did    replicate (length rec_tms);  however now
+  [q]univ itself constitutes the sum domain for mutual recursion!*)
+fun data_domain rec_tms = univ $ union_params (hd rec_tms);
+fun Codata_domain rec_tms = quniv $ union_params (hd rec_tms);
 
 (*Could go to FOL, but it's hardly general*)
 val def_swap_iff = prove_goal IFOL.thy "a==b ==> a=c <-> c=b"
