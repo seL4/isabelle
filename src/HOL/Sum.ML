@@ -88,18 +88,18 @@ AddIffs [Inl_eq, Inr_eq];
 
 (** Introduction rules for the injections **)
 
-Goalw [sum_def] "a : A ==> Inl(a) : A Plus B";
+Goalw [sum_def] "a : A ==> Inl(a) : A <+> B";
 by (Blast_tac 1);
 qed "InlI";
 
-Goalw [sum_def] "b : B ==> Inr(b) : A Plus B";
+Goalw [sum_def] "b : B ==> Inr(b) : A <+> B";
 by (Blast_tac 1);
 qed "InrI";
 
 (** Elimination rules **)
 
 val major::prems = Goalw [sum_def]
-    "[| u: A Plus B;  \
+    "[| u: A <+> B;  \
 \       !!x. [| x:A;  u=Inl(x) |] ==> P; \
 \       !!y. [| y:B;  u=Inr(y) |] ==> P \
 \    |] ==> P";
