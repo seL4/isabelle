@@ -113,7 +113,10 @@ fun print_items prt name items =
   let
     fun pretty_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
       | pretty_itms (name, xs) = Pretty.big_list (name ^ ":") (map prt xs);
-  in Pretty.writeln (Pretty.big_list name (map pretty_itms items)) end;
+  in
+    if null items andalso not (! verbose) then ()
+    else Pretty.writeln (Pretty.big_list name (map pretty_itms items))
+  end;
 
 
 (* term bindings *)
@@ -128,7 +131,10 @@ fun print_binds (Context {thy, binds, ...}) =
       | Some x' => if i = 0 then "??" ^ x' else Syntax.string_of_vname (x, i));
     fun pretty_bind (xi, (t, T)) = Pretty.block
       [Pretty.str (fix_var xi), Pretty.str " ==", Pretty.brk 1, prt_term t];
-  in Pretty.writeln (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds))) end;
+  in
+    if Vartab.is_empty binds andalso not (! verbose) then ()
+    else Pretty.writeln (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds)))
+  end;
 
 
 (* local theorems *)
@@ -169,7 +175,8 @@ fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)),
     val prt_defS = prt_atom prt_varT prt_sort;
   in
     verb Pretty.writeln pretty_thy;
-    Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
+    if null fixes andalso not (! verbose) then ()
+    else Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
     print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" assumes;
     verb print_binds ctxt;
     verb print_thms ctxt;
