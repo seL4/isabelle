@@ -51,7 +51,7 @@
 \contentsline {subsection}{\numberline {10.3}Deriving the $\neg $ introduction rule}{41}
 \contentsline {subsection}{\numberline {10.4}Deriving the $\neg $ elimination rule}{42}
 \contentsline {section}{\numberline {11}Defining theories}{44}
-\contentsline {subsection}{\numberline {11.1}Declaring constants and rules}{46}
+\contentsline {subsection}{\numberline {11.1}Declaring constants, definitions and rules}{46}
 \contentsline {subsection}{\numberline {11.2}Declaring type constructors}{46}
 \contentsline {subsection}{\numberline {11.3}Type synonyms}{48}
 \contentsline {subsection}{\numberline {11.4}Infix and mixfix operators}{48}
