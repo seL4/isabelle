@@ -237,7 +237,7 @@ text {*
 
   The corresponding introduction rule is as follows:
 
-  @{thm [display] group_context.intro [no_vars]}
+  @{thm [display, mode = no_brackets] group_context.intro [no_vars]}
 
   Occasionally, this ``externalized'' version of the informal idea of
   classes of tuple structures may cause some inconveniences,
@@ -270,7 +270,7 @@ record 'a group = "'a semigroup" +
 
 text {*
   The mixfix annotations above include a special ``structure index
-  indicator'' @{text \<index>} that makes gammer productions dependent on
+  indicator'' @{text \<index>} that makes grammar productions dependent on
   certain parameters that have been declared as ``structure'' in a
   locale context later on.  Thus we achieve casual notation as
   encountered in informal mathematics, e.g.\ @{text "x \<cdot> y"} for
@@ -283,7 +283,7 @@ text {*
 *}
 
 locale semigroup =
-  fixes S :: "'a group"    (structure)
+  fixes S    (structure)
   assumes assoc: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
 
 locale group = semigroup G +
@@ -355,5 +355,117 @@ text {*
   simultaneous goal in order to have type-inference make the implicit
   typing of structures @{text G} and @{text H} agree.
 *}
+
+
+subsection {* Simple meta-theory of structures *}
+
+text {*
+  The packaging of the logical specification as a predicate and the
+  syntactic structure as a record type provides a reasonable starting
+  point for simple meta-theoretic studies of mathematical structures.
+  This includes operations on structures (also known as ``functors''),
+  and statements about such constructions.
+
+  For example, the direct product of semigroups works as follows.
+*}
+
+constdefs
+  semigroup_product :: "'a semigroup \<Rightarrow> 'b semigroup \<Rightarrow> ('a \<times> 'b) semigroup"
+  "semigroup_product S T \<equiv> \<lparr>prod = \<lambda>p q. (prod S (fst p) (fst q), prod T (snd p) (snd q))\<rparr>"
+
+lemma semigroup_product [intro]:
+  assumes S: "semigroup S"
+    and T: "semigroup T"
+  shows "semigroup (semigroup_product S T)"
+proof
+  fix p q r :: "'a \<times> 'b"
+  have "prod S (prod S (fst p) (fst q)) (fst r) =
+      prod S (fst p) (prod S (fst q) (fst r))"
+    by (rule semigroup.assoc [OF S])
+  moreover have "prod T (prod T (snd p) (snd q)) (snd r) =
+      prod T (snd p) (prod T (snd q) (snd r))"
+    by (rule semigroup.assoc [OF T])
+  ultimately show "prod (semigroup_product S T) (prod (semigroup_product S T) p q) r =
+      prod (semigroup_product S T) p (prod (semigroup_product S T) q r)"
+    by (simp add: semigroup_product_def)
+qed
+
+text {*
+  The above proof is fairly easy, but obscured by the lack of concrete
+  syntax.  In fact, we didn't make use of the infrastructure of
+  locales, apart from the raw predicate definition of @{text
+  semigroup}.
+
+  The alternative version below uses local context expressions to
+  achieve a succinct proof body.  The resulting statement is exactly
+  the same as before, even though its specification is a bit more
+  complex.
+*}
+
+lemma
+  includes semigroup S + semigroup T
+  fixes U    (structure)
+  defines "U \<equiv> semigroup_product S T"
+  shows "semigroup U"
+proof
+  fix p q r :: "'a \<times> 'b"
+  have "(fst p \<cdot>\<^sub>1 fst q) \<cdot>\<^sub>1 fst r = fst p \<cdot>\<^sub>1 (fst q \<cdot>\<^sub>1 fst r)"
+    by (rule S.assoc)
+  moreover have "(snd p \<cdot>\<^sub>2 snd q) \<cdot>\<^sub>2 snd r = snd p \<cdot>\<^sub>2 (snd q \<cdot>\<^sub>2 snd r)"
+    by (rule T.assoc)
+  ultimately show "(p \<cdot>\<^sub>3 q) \<cdot>\<^sub>3 r = p \<cdot>\<^sub>3 (q \<cdot>\<^sub>3 r)"
+    by (simp add: U_def semigroup_product_def semigroup.defs)
+qed
+
+text {*
+  Direct products of group structures may be defined in a similar
+  manner, taking two further operations into account.  Subsequently,
+  we use high-level record operations to convert between different
+  signature types explicitly; see also
+  \cite[\S8.3]{isabelle-hol-book}.
+*}
+
+constdefs
+  group_product :: "'a group \<Rightarrow> 'b group \<Rightarrow> ('a \<times> 'b) group"
+  "group_product G H \<equiv>
+    semigroup.extend
+      (semigroup_product (semigroup.truncate G) (semigroup.truncate H))
+      (group.fields (\<lambda>p. (inv G (fst p), inv H (snd p))) (one G, one H))"
+
+lemma group_product_aux:
+  includes group G + group H
+  fixes I    (structure)
+  defines "I \<equiv> group_product G H"
+  shows "group I"
+proof
+  show "semigroup I"
+  proof -
+    let ?G' = "semigroup.truncate G" and ?H' = "semigroup.truncate H"
+    have "prod (semigroup_product ?G' ?H') = prod I"
+      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+    moreover
+    have "semigroup ?G'" and "semigroup ?H'"
+      using prems by (simp_all add: semigroup_def semigroup.defs)
+    then have "semigroup (semigroup_product ?G' ?H')" ..
+    ultimately show ?thesis by (simp add: I_def semigroup_def)
+  qed
+  show "group_axioms I"
+  proof
+    fix p :: "'a \<times> 'b"
+    have "(fst p)\<inv>\<^sub>1 \<cdot>\<^sub>1 fst p = \<one>\<^sub>1"
+      by (rule G.left_inv)
+    moreover have "(snd p)\<inv>\<^sub>2 \<cdot>\<^sub>2 snd p = \<one>\<^sub>2"
+      by (rule H.left_inv)
+    ultimately show "p\<inv>\<^sub>3 \<cdot>\<^sub>3 p = \<one>\<^sub>3"
+      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+    have "\<one>\<^sub>1 \<cdot>\<^sub>1 fst p = fst p" by (rule G.left_one)
+    moreover have "\<one>\<^sub>2 \<cdot>\<^sub>2 snd p = snd p" by (rule H.left_one)
+    ultimately show "\<one>\<^sub>3 \<cdot>\<^sub>3 p = p"
+      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+  qed
+qed
+
+theorem group_product: "group G \<Longrightarrow> group H \<Longrightarrow> group (group_product G H)"
+  by (rule group_product_aux) (assumption | rule group.axioms)+
 
 end
