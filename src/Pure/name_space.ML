@@ -7,15 +7,11 @@ Hierarchically structured name spaces.
 More general than ML-like nested structures, but also slightly more
 ad-hoc.  Does not support absolute addressing.  Unknown names are
 implicitely considered to be declared outermost.
-
-TODO:
-  - absolute paths?
-  - also enter into parents!?
 *)
 
 signature NAME_SPACE =
 sig
-  val separator: string		(*single char!*)
+  val separator: string         (*single char!*)
   val unpack: string -> string list
   val pack: string list -> string
   val base: string -> string
@@ -29,33 +25,19 @@ sig
   val prune: T -> string -> string
 end;
 
-structure NameSpace: NAME_SPACE =
+structure NameSpace(*: NAME_SPACE FIXME *) =
 struct
 
 
 (** long identifiers **)
 
-val separator = "'";
+val separator = ".";
 
-fun unpack_aux name =
-  let
-    (*handle trailing separators gracefully*)
-    val (chars, seps) = take_suffix (equal separator) name;
-    fun expl chs =
-      (case take_prefix (not_equal separator) chs of
-        (cs, []) => [implode (cs @ seps)]
-      | (cs, _ :: cs') => implode cs :: expl cs');
-  in expl chars end;
-
-val unpack = unpack_aux o explode;
+val unpack = space_explode separator;
 val pack = space_implode separator;
 
 val base = last_elem o unpack;
-
-fun qualified name =
-  let val chs = explode name in
-    exists (equal separator) chs andalso (length (unpack_aux chs) > 1)
-  end;
+fun qualified name = length (unpack name) > 1;
 
 
 
@@ -79,10 +61,16 @@ fun tab_of (NameSpace (_, tab)) = tab;
 
 fun make entries =
   let
-    fun accesses entry =
-      let val packed = pack entry in
-        map (rpair packed o pack) (suffixes1 entry)
-      end;
+    fun accesses [] = []		(* FIXME !? *)
+      | accesses entry =
+          let
+            val p = pack entry;
+            val (q, b) = split_last entry;
+            val sfxs = suffixes1 entry;
+            val pfxs = map (fn x => x @ [b]) (prefixes1 q);
+          in
+            map (rpair p o pack) (sfxs @ pfxs)
+          end;
     val mapping = filter_out (op =)
       (gen_distinct eq_fst (flat (map accesses entries)));
   in
@@ -113,7 +101,7 @@ fun prune space name =
   if not (qualified name) then name
   else
     let
-      fun try [] = name
+      fun try [] = "??" ^ separator ^ name      (*hidden name*)
         | try (nm :: nms) =
             if lookup space nm = name then nm
             else try nms;
