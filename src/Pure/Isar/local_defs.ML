@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/local_defs.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Local definitions.
 *)

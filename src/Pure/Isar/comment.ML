@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/comment.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Formal comments.
 *)

@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/rule_cases.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Manage local contexts of rules.
 *)

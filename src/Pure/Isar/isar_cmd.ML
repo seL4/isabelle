@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/isar_cmd.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Non-logical toplevel commands.
 *)

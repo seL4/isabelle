@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/proof_history.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Histories of proof states, with undo / redo and prev / back.
 *)

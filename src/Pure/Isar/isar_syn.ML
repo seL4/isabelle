@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/isar_syn.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isar/Pure outer syntax.
 *)

@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/outer_syntax.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The global Isabelle/Isar outer syntax.
 *)
