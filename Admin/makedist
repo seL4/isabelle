@@ -8,7 +8,6 @@
 ## global settings
 
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL Tools ZF"
-DOCS="Intro Ref Logics"
 
 CVSROOT=/isabelle/archive
 DISTBASE=~/tmp/isadist
@@ -105,10 +104,13 @@ cvs -f -q $EXPORT -P -d $DISTNAME isabelle
 
 # make docs
 
-for D in $DOCS
+cd $DISTBASE/$DISTNAME/Doc
+
+for DOC in $(cat Contents)
 do
-  cd $DISTBASE/$DISTNAME/Doc/$D
+  cd $DOC
   make dist
+  cd ..
 done
 
 
@@ -119,7 +121,7 @@ cd $DISTBASE/$DISTNAME
 find . -name CVS -exec rm -rf {} \;
 
 mkdir -p Tools/8bit/bin    #FIXME tmp
-find Doc -name \*.dvi -exec mv {} Distribution/doc \;
+find Doc -name \*.dvi -o -name \*.eps -o \*.ps -exec mv {} Distribution/doc \;
 rm -rf Admin Doc
 
 mkdir src
