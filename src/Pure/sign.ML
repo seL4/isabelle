@@ -23,15 +23,15 @@ sig
   type data
   val rep_sg: sg ->
    {self: sg_ref,
-    tsig: Type.type_sig,
-    const_tab: typ Symtab.table,
+    tsig: Type.tsig,
+    consts: (typ * stamp) Symtab.table,
     path: string list option,
     spaces: (string * NameSpace.T) list,
     data: data}
   val name_of: sg -> string
   val stamp_names_of: sg -> string list
   val exists_stamp: string -> sg -> bool
-  val tsig_of: sg -> Type.type_sig
+  val tsig_of: sg -> Type.tsig
   val deref: sg_ref -> sg
   val self_ref: sg -> sg_ref
   val subsig: sg * sg -> bool
@@ -46,10 +46,9 @@ sig
   val defaultS: sg -> sort
   val subsort: sg -> sort * sort -> bool
   val nodup_vars: term -> term
-  val norm_sort: sg -> sort -> sort
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
-  val univ_witness: sg -> (typ * sort) option
+  val universal_witness: sg -> (typ * sort) option
   val typ_instance: sg -> typ * typ -> bool
   val classK: string
   val typeK: string
@@ -92,9 +91,7 @@ sig
   val certify_class: sg -> class -> class
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
-  val certify_typ_no_norm: sg -> typ -> typ
-  val certify_tycon: sg -> string -> string
-  val certify_tyabbr: sg -> string -> string
+  val certify_typ_raw: sg -> typ -> typ
   val certify_tyname: sg -> string -> string
   val certify_const: sg -> string -> string
   val certify_term: sg -> term -> term * typ * int
@@ -102,7 +99,7 @@ sig
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
-  val read_typ_no_norm': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
+  val read_typ_raw': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> term * (indexname * typ) list
@@ -190,8 +187,8 @@ datatype sg =
     stamps: string ref list,                    (*unique theory indentifier*)
     syn: syn} *                                 (*syntax for parsing and printing*)
    {self: sg_ref,                               (*mutable self reference*)
-    tsig: Type.type_sig,                        (*order-sorted signature of types*)
-    const_tab: typ Symtab.table,                (*type schemes of constants*)
+    tsig: Type.tsig,                            (*order-sorted signature of types*)
+    consts: (typ * stamp) Symtab.table,         (*type schemes of constants*)
     path: string list option,                   (*current name space entry prefix*)
     spaces: (string * NameSpace.T) list,        (*name spaces for consts, types etc.*)
     data: data}                                 (*anytype data*)
@@ -215,9 +212,9 @@ and sg_ref =
   SgRef of sg ref option;
 
 (*make signature*)
-fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
+fun make_sign (id, self, tsig, consts, syn, path, spaces, data, stamps) =
   Sg ({id = id, stamps = stamps, syn = syn}, {self = self, tsig = tsig,
-    const_tab = const_tab, path = path, spaces = spaces, data = data});
+    consts = consts, path = path, spaces = spaces, data = data});
 
 
 (* basic operations *)
@@ -231,7 +228,7 @@ val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
 
 val tsig_of = #tsig o rep_sg;
-fun const_type (Sg (_, {const_tab, ...})) c = Symtab.lookup (const_tab, c);
+fun const_type (Sg (_, {consts, ...})) c = apsome #1 (Symtab.lookup (consts, c));
 
 
 (* id and self *)
@@ -334,11 +331,10 @@ fun merge_trfuns
 val classes = Type.classes o tsig_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
-val norm_sort = Type.norm_sort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
-val univ_witness = Type.univ_witness o tsig_of;
-fun typ_instance sg (T, U) = Type.typ_instance (tsig_of sg, T, U);
+val universal_witness = Type.universal_witness o tsig_of;
+val typ_instance = Type.typ_instance o tsig_of;
 
 
 (** signature data **)
@@ -357,8 +353,7 @@ fun err_dup_init sg kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
 
 fun err_uninit sg kind =
-  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^
-         of_theory sg);
+  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ of_theory sg);
 
 (*Trying to access theory data using get / put operations from a different
   instance of the TheoryDataFun result.  Typical cure: re-load all files*)
@@ -454,7 +449,7 @@ fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
   end;
 
 fun extend_sign keep extfun name decls
-    (sg as Sg ({id = _, stamps, syn}, {self, tsig, const_tab, path, spaces, data})) =
+    (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, path, spaces, data})) =
   let
     val _ = check_stale sg;
     val (self', data') =
@@ -462,7 +457,7 @@ fun extend_sign keep extfun name decls
       else (SgRef (Some (ref sg)), prep_ext_data data);
   in
     create_sign self' stamps name
-      (extfun sg (syn, tsig, const_tab, (path, spaces), data') decls)
+      (extfun sg (syn, tsig, consts, (path, spaces), data') decls)
   end;
 
 
@@ -494,14 +489,15 @@ fun hide_names b x = change_space (NameSpace.hide b) x;
 
 (*make full names*)
 fun full _ "" = error "Attempt to declare empty name \"\""
-  | full None name = name
-  | full (Some path) name =
-      if NameSpace.is_qualified name then
-        error ("Attempt to declare qualified name " ^ quote name)
+  | full None bname = bname
+  | full (Some path) bname =
+      if NameSpace.is_qualified bname then
+        error ("Attempt to declare qualified name " ^ quote bname)
       else
-       (if not (Syntax.is_identifier name)
-        then warning ("Declared non-identifier name " ^ quote name) else ();
-        NameSpace.pack (path @ [name]));
+        let val name = NameSpace.pack (path @ [bname]) in
+          if Syntax.is_identifier bname then ()
+          else warning ("Declared non-identifier " ^ quote name); name
+        end;
 
 (*base name*)
 val base_name = NameSpace.base;
@@ -579,12 +575,12 @@ end;
 val pure_syn =
   Syn (Syntax.pure_syn, (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
 
-val dummy_sg = make_sign (ref "", SgRef None, Type.tsig0,
+val dummy_sg = make_sign (ref "", SgRef None, Type.empty_tsig,
   Symtab.empty, pure_syn, Some [], [], empty_data, []);
 
 val pre_pure =
   create_sign (SgRef (Some (ref dummy_sg))) [] "#"
-    (pure_syn, Type.tsig0, Symtab.empty, (Some [], []), empty_data);
+    (pure_syn, Type.empty_tsig, Symtab.empty, (Some [], []), empty_data);
 
 val PureN = "Pure";
 val CPureN = "CPure";
@@ -658,8 +654,8 @@ fun err_in_type s =
   error ("The error(s) above occurred in type " ^ quote s);
 
 fun rd_raw_typ syn tsig spaces def_sort str =
-  intrn_tycons spaces
-    (Syntax.read_typ syn (Type.get_sort tsig def_sort (intrn_sort spaces)) (intrn_sort spaces) str
+  intrn_tycons spaces (Syntax.read_typ syn
+    (TypeInfer.get_sort tsig def_sort (intrn_sort spaces)) (intrn_sort spaces) str
       handle ERROR => err_in_type str);
 
 fun read_raw_typ' syn (sg as Sg (_, {tsig, spaces, ...}), def_sort) str =
@@ -673,10 +669,10 @@ local
     (cert (tsig_of sg) (rd (sg, def_sort) str)
       handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
 in
-  val read_typ              = read_typ_aux read_raw_typ Type.cert_typ;
-  val read_typ_no_norm      = read_typ_aux read_raw_typ Type.cert_typ_no_norm;
-  fun read_typ' syn         = read_typ_aux (read_raw_typ' syn) Type.cert_typ;
-  fun read_typ_no_norm' syn = read_typ_aux (read_raw_typ' syn) Type.cert_typ_no_norm;
+  val read_typ          = read_typ_aux read_raw_typ Type.cert_typ;
+  val read_typ_raw      = read_typ_aux read_raw_typ Type.cert_typ_raw;
+  fun read_typ' syn     = read_typ_aux (read_raw_typ' syn) Type.cert_typ;
+  fun read_typ_raw' syn = read_typ_aux (read_raw_typ' syn) Type.cert_typ_raw;
 end;
 
 
@@ -686,22 +682,15 @@ end;
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
-val certify_typ_no_norm = Type.cert_typ_no_norm o tsig_of;
-
-fun certify_tycon sg c =
-  if is_some (Symtab.lookup (#tycons (Type.rep_tsig (tsig_of sg)), c)) then c
-  else raise TYPE ("Undeclared type constructor " ^ quote c, [], []);
-
-fun certify_tyabbr sg c =
-  if is_some (Symtab.lookup (#abbrs (Type.rep_tsig (tsig_of sg)), c)) then c
-  else raise TYPE ("Unknown type abbreviation " ^ quote c, [], []);
+val certify_typ_raw = Type.cert_typ_raw o tsig_of;
 
 fun certify_tyname sg c =
-  certify_tycon sg c handle TYPE _ => certify_tyabbr sg c handle TYPE _ =>
-    raise TYPE ("Unknown type name " ^ quote c, [], []);
+  if is_some (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c)) then c
+  else raise TYPE ("Undeclared type constructor: " ^ quote c, [], []);
 
 fun certify_const sg c =
-  if is_some (const_type sg c) then c else raise TYPE ("Undeclared constant " ^ quote c, [], []);
+  if is_some (const_type sg c) then c
+  else raise TYPE ("Undeclared constant: " ^ quote c, [], []);
 
 
 (* certify_term *)
@@ -781,34 +770,34 @@ fun type_check sg tm =
 
   in typ_of ([], tm) end;
 
-
 fun certify_term sg tm =
   let
     val _ = check_stale sg;
-    val tsig = tsig_of sg;
+
+    val tm' = Term.map_term_types (Type.cert_typ (tsig_of sg)) tm;
+    val tm' = if tm = tm' then tm else tm';  (*avoid copying of already normal term*)
+
+    fun err msg = raise TYPE (msg, [], [tm']);
 
     fun show_const a T = quote a ^ " :: " ^ quote (string_of_typ sg T);
 
-    fun atom_err (errs, Const (a, T)) =
-        (case const_type sg a of
-          None => ("Undeclared constant " ^ show_const a T) :: errs
-        | Some U =>
-            if typ_instance sg (T, U) then errs
-            else ("Illegal type for constant " ^ show_const a T) :: errs)
-      | atom_err (errs, Var ((x, i), _)) =
-          if i < 0 then ("Negative index for Var " ^ quote x) :: errs else errs
-      | atom_err (errs, _) = errs;
-
-    val norm_tm =
-      (case it_term_types (Type.typ_errors tsig) (tm, []) of
-        [] => Type.norm_term tsig tm
-      | errs => raise TYPE (cat_lines errs, [], [tm]));
-    val _ = nodup_vars norm_tm;
+    fun check_atoms (t $ u) = (check_atoms t; check_atoms u)
+      | check_atoms (Abs (_, _, t)) = check_atoms t
+      | check_atoms (Const (a, T)) =
+          (case const_type sg a of
+            None => err ("Undeclared constant " ^ show_const a T)
+          | Some U =>
+              if typ_instance sg (T, U) then ()
+              else err ("Illegal type for constant " ^ show_const a T))
+      | check_atoms (Var ((x, i), _)) =
+          if i < 0 then err ("Malformed variable: " ^ quote x) else ()
+      | check_atoms _ = ();
   in
-    (case foldl_aterms atom_err ([], norm_tm) of
-      [] => (norm_tm, type_check sg norm_tm, maxidx_of_term norm_tm)
-    | errs => raise TYPE (cat_lines errs, [], [norm_tm]))
+    check_atoms tm';
+    nodup_vars tm';
+    (tm', type_check sg tm', maxidx_of_term tm')
   end;
+
 
 
 (** infer_types **)         (*exception ERROR*)
@@ -834,7 +823,7 @@ fun infer_types_simult sg def_type def_sort used freeze args =
       map (fn (_, T) => certify_typ sg T handle TYPE (msg, _, _) => error msg) args;
 
     fun infer ts = OK
-      (Type.infer_types prt prT tsig (const_type sg) def_type def_sort
+      (TypeInfer.infer_types prt prT tsig (const_type sg) def_type def_sort
         (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze typs ts)
       handle TYPE (msg, _, _) => Error msg;
 
@@ -899,7 +888,7 @@ fun no_read _ _ _ _ decl = decl;
 (* add default sort *)
 
 fun ext_defS prep_sort sg (syn, tsig, ctab, (path, spaces), data) S =
-  (syn, Type.ext_tsig_defsort tsig (prep_sort sg syn tsig spaces S),
+  (syn, Type.set_defsort (prep_sort sg syn tsig spaces S) tsig,
     ctab, (path, spaces), data);
 
 fun ext_defsort arg = ext_defS rd_sort arg;
@@ -911,12 +900,9 @@ fun ext_defsort_i arg = ext_defS cert_sort arg;
 fun ext_types _ (syn, tsig, ctab, (path, spaces), data) types =
   let val decls = decls_of path Syntax.type_name types in
     (map_syntax (Syntax.extend_type_gram types) syn,
-      Type.ext_tsig_types tsig decls, ctab,
+      Type.add_types decls tsig, ctab,
       (path, add_names spaces typeK (map fst decls)), data)
   end;
-
-fun ext_nonterminals sign sg nonterms =
-  ext_types sign sg (map (fn n => (n, 0, Syntax.NoSyn)) nonterms);
 
 
 (* add type abbreviations *)
@@ -936,11 +922,21 @@ fun ext_abbrs rd_abbr sg (syn, tsig, ctab, (path, spaces), data) abbrs =
     val spaces' = add_names spaces typeK (map #1 abbrs');
     val decls = map (rd_abbr sg syn' tsig spaces') abbrs';
   in
-    (syn', Type.ext_tsig_abbrs tsig decls, ctab, (path, spaces'), data)
+    (syn', Type.add_abbrs decls tsig, ctab, (path, spaces'), data)
   end;
 
 fun ext_tyabbrs abbrs = ext_abbrs read_abbr abbrs;
 fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
+
+
+(* add nonterminals *)
+
+fun ext_nonterminals _ (syn, tsig, ctab, (path, spaces), data) bnames =
+  let val names = map (full path) bnames in
+    (map_syntax (Syntax.extend_consts names) syn,
+      Type.add_nonterminals names tsig, ctab,
+      (path, add_names spaces typeK names), data)
+  end;
 
 
 (* add type arities *)
@@ -950,7 +946,7 @@ fun ext_ars int prep_sort sg (syn, tsig, ctab, (path, spaces), data) arities =
     val prepS = prep_sort sg syn tsig spaces;
     fun prep_arity (c, Ss, S) =
       (if int then intrn spaces typeK c else c, map prepS Ss, prepS S);
-    val tsig' = Type.ext_tsig_arities tsig (map prep_arity arities);
+    val tsig' = Type.add_arities (map prep_arity arities) tsig;
     val log_types = Type.logical_types tsig';
   in
     (map_syntax (Syntax.extend_log_types log_types) syn,
@@ -980,10 +976,10 @@ fun read_const sg syn tsig (path, spaces) (c, ty_src, mx) =
 fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data)
     raw_consts =
   let
-    fun prep_const (c, ty, mx) =
-      (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
-        handle TYPE (msg, _, _) =>
-          (error_msg msg; err_in_const (const_name path c mx));
+    val prep_typ = compress_type o Type.varifyT o Type.no_tvars o
+      (if syn_only then Type.cert_typ_syntax tsig else Term.no_dummyT o Type.cert_typ tsig);
+    fun prep_const (c, ty, mx) = (c, prep_typ ty, mx) handle TYPE (msg, _, _) =>
+      (error_msg msg; err_in_const (const_name path c mx));
 
     val consts = map (prep_const o rd_const sg syn tsig (path, spaces)) raw_consts;
     val decls =
@@ -991,7 +987,7 @@ fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data
       else decls_of path Syntax.const_name consts;
   in
     (map_syntax (Syntax.extend_const_gram prmode consts) syn, tsig,
-      Symtab.extend (ctab, decls)
+      Symtab.extend (ctab, map (fn (c, T) => (c, (T, stamp ()))) decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
       (path, add_names spaces constK (map fst decls)), data)
   end;
@@ -1031,7 +1027,7 @@ fun ext_classes int sg (syn, tsig, ctab, (path, spaces), data) classes =
   in
     ext_consts_i sg
       (map_syntax (Syntax.extend_consts names) syn,
-        Type.ext_tsig_classes tsig classes', ctab, (path, spaces'), data)
+        Type.add_classes classes' tsig, ctab, (path, spaces'), data)
     consts
   end;
 
@@ -1040,7 +1036,7 @@ fun ext_classes int sg (syn, tsig, ctab, (path, spaces), data) classes =
 
 fun ext_classrel int _ (syn, tsig, ctab, (path, spaces), data) pairs =
   let val intrn = if int then map (pairself (intrn_class spaces)) else I in
-    (syn, Type.ext_tsig_classrel tsig (intrn pairs), ctab, (path, spaces), data)
+    (syn, Type.add_classrel (intrn pairs) tsig, ctab, (path, spaces), data)
   end;
 
 
@@ -1116,13 +1112,13 @@ fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, f, x) =
 fun copy_data (k, (e, mths as (cp, _, _, _))) =
   (k, (cp e handle exn => err_method "copy" (Object.name_of_kind k) exn, mths));
 
-fun copy (sg as Sg ({id = _, stamps, syn}, {self, tsig, const_tab, path, spaces, data})) =
+fun copy (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, path, spaces, data})) =
   let
     val _ = check_stale sg;
     val self' = SgRef (Some (ref sg));
     val Data tab = data;
     val data' = Data (Symtab.map copy_data tab);
-  in create_sign self' stamps "#" (syn, tsig, const_tab, (path, spaces), data') end;
+  in create_sign self' stamps "#" (syn, tsig, consts, (path, spaces), data') end;
 
 
 (* the external interfaces *)
@@ -1204,10 +1200,10 @@ fun nontriv_merge (sg1, sg2) =
   else
     let
       val Sg ({id = _, stamps = stamps1, syn = Syn (syntax1, trfuns1)},
-          {self = _, tsig = tsig1, const_tab = const_tab1,
+          {self = _, tsig = tsig1, consts = consts1,
             path = _, spaces = spaces1, data = data1}) = sg1;
       val Sg ({id = _, stamps = stamps2, syn = Syn (syntax2, trfuns2)},
-          {self = _, tsig = tsig2, const_tab = const_tab2,
+          {self = _, tsig = tsig2, consts = consts2,
             path = _, spaces = spaces2, data = data2}) = sg2;
 
       val id = ref "";
@@ -1218,9 +1214,8 @@ fun nontriv_merge (sg1, sg2) =
       val syntax = Syntax.merge_syntaxes syntax1 syntax2;
       val trfuns = merge_trfuns trfuns1 trfuns2;
       val tsig = Type.merge_tsigs (tsig1, tsig2);
-      val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
-        handle Symtab.DUPS cs =>
-          raise TERM ("Incompatible types for constant(s) " ^ commas_quote cs, []);
+      val consts = Symtab.merge eq_snd (consts1, consts2)
+        handle Symtab.DUPS cs => err_dup_consts cs;
 
       val path = Some [];
       val kinds = distinct (map fst (spaces1 @ spaces2));
@@ -1231,7 +1226,7 @@ fun nontriv_merge (sg1, sg2) =
 
       val data = merge_data (data1, data2);
 
-      val sign = make_sign (id, self, tsig, const_tab, Syn (syntax, trfuns),
+      val sign = make_sign (id, self, tsig, consts, Syn (syntax, trfuns),
         path, spaces, data, stamps);
     in self_ref := sign; syn_of sign; sign end;
 
