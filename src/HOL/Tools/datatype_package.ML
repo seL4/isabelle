@@ -169,46 +169,65 @@ fun occs_in_prems tacf vars =
 
 (* generic induction tactic for datatypes *)
 
-fun induct_tac s i state =
+fun gen_induct_tac (vars, opt_rule) i state =
   let
-    val vars = Syntax.read_idents s;
     val (_, _, Bi, _) = dest_state (state, i);
     val {sign, ...} = rep_thm state;
-    val tn = find_tname (hd vars) Bi;
-    val {induction, ...} = datatype_info_sg_err sign tn;
+    val (rule, rule_name) =
+      (case opt_rule of
+        Some r => (r, "Induction rule")
+      | None =>
+          let val tn = find_tname (hd vars) Bi
+          in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
     val ind_vnames = map (fn (_ $ Var (ixn, _)) =>
       implode (tl (explode (Syntax.string_of_vname ixn))))
-        (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induction)));
+        (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)));
     val insts = (ind_vnames ~~ vars) handle LIST _ =>
-      error ("Induction rule for type " ^ tn ^ " has different number of variables")
-  in
-    occs_in_prems (res_inst_tac insts induction) vars i state
-  end;
+      error (rule_name ^ " has different number of variables");
+  in occs_in_prems (Tactic.res_inst_tac insts rule) vars i state end;
+
+fun induct_tac s = gen_induct_tac (Syntax.read_idents s, None);
 
 
 (* generic case tactic for datatypes *)
 
-fun case_tac aterm i state =
-  let val name = infer_tname state i aterm in
-    if name = HOLogic.boolN then res_inst_tac [("P", aterm)] case_split_thm i state
-    else
-      let
-        val {exhaustion, ...} = datatype_info_sg_err (Thm.sign_of_thm state) name;
-        val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
-          (hd (Logic.strip_assums_hyp (hd (prems_of exhaustion))));
-        val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
-      in res_inst_tac [(exh_vname, aterm)] exhaustion i state end
-  end;
+fun case_inst_tac t rule i state =
+  let
+    val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
+      (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
+    val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)));
+  in Tactic.res_inst_tac [(exh_vname, t)] rule i state end;
+
+fun gen_case_tac (t, Some rule) i state = case_inst_tac t rule i state
+  | gen_case_tac (t, None) i state =
+      let val tn = infer_tname state i t in
+        if tn = HOLogic.boolN then Tactic.res_inst_tac [("P", t)] case_split_thm i state
+        else case_inst_tac t (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn)) i state
+      end;
+
+fun case_tac t = gen_case_tac (t, None);
+
 
 
 (** Isar tactic emulations **)
 
-fun tactic_syntax tac = #2 oo Method.syntax (Args.goal_spec HEADGOAL -- Scan.lift Args.name >>
-  (fn (quant, s) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac s))));
+local
+
+val rule_spec = Scan.option (Scan.lift (Args.$$$ "rule" -- Args.$$$ ":") |-- Attrib.local_thm);
+
+fun tactic_syntax args tac =
+  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (Scan.lift args -- rule_spec) >>
+    (fn (quant, x) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac x))));
+
+in
 
 val tactic_emulations =
- [("induct_tac", tactic_syntax induct_tac, "induct_tac emulation (dynamic instantiation!)"),
-  ("case_tac", tactic_syntax case_tac, "case_tac emulation (dynamic instantiation!)")];
+ [("induct_tac", tactic_syntax (Scan.repeat1 Args.name) gen_induct_tac,
+    "induct_tac emulation (dynamic instantiation!)"),
+  ("case_tac", tactic_syntax Args.name gen_case_tac,
+    "case_tac emulation (dynamic instantiation!)")];
+
+end;
 
 
 
@@ -253,7 +272,8 @@ fun add_cases_induct infos =
       | proj i n thm =
           (if i + 1 < n then (fn th => th RS conjunct1) else I)
             (Library.funpow i (fn th => th RS conjunct2) thm)
-          |> Drule.standard;
+          |> Drule.standard
+          |> RuleCases.name (RuleCases.get thm);
 
     fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
       (("", proj index (length descr) induction), [InductMethod.induct_type_global name]) ::
