@@ -1037,9 +1037,9 @@ val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
 (* setup_attrs *)
 
 val setup_attrs = Attrib.add_attributes
- [(destN, cla_attr (op addXDs) (op addDs) (op addSDs), "destruction rule"),
-  (elimN, cla_attr (op addXEs) (op addEs) (op addSEs), "elimination rule"),
-  (introN, cla_attr (op addXIs) (op addIs) (op addSIs), "introduction rule"),
+ [(destN, cla_attr (op addXDs) (op addDs) (op addSDs), "declare destruction rule"),
+  (elimN, cla_attr (op addXEs) (op addEs) (op addSEs), "declare elimination rule"),
+  (introN, cla_attr (op addXIs) (op addIs) (op addSIs), "declare introduction rule"),
   (delruleN, del_attr, "delete rule")];
 
 
