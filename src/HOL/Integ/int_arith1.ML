@@ -410,8 +410,8 @@ val add_rules =
      zminus_0, zadd_0, zadd_0_right, zdiff_def,
      zadd_zminus_inverse, zadd_zminus_inverse2, 
      zmult_0, zmult_0_right, 
-     zmult_1, zmult_1_right, 
-     zmult_minus1, zmult_minus1_right,
+     zmult_1, zmult_1_right,
+     zmult_zminus, zmult_zminus_right,
      zminus_zadd_distrib, zminus_zminus, zmult_assoc,
      int_0, int_1, zadd_int RS sym, int_Suc];
 
