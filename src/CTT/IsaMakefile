@@ -1,0 +1,25 @@
+#
+# $Id$
+#
+# IsaMakefile for CTT
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+FILES =	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
+	Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML
+
+EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
+
+$(OUT)/CTT: $(OUT)/Pure $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure CTT
+	@chmod -w $@
+
+$(OUT)/Pure:
+	@cd ../Pure; $(ISATOOL) make
+
+test: ex/ROOT.ML $(OUT)/CTT $(EX_FILES)
+	@$(ISABELLE) -e 'make_html := $(ISABELLE_HTML); exit_use"ex/ROOT.ML"; quit();' \
+	  -rq $(OUT)/CTT
+
+.PRECIOUS: $(OUT)/Pure $(OUT)/CTT
