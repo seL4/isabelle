@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For integ.thy.  The integers as equivalence classes over nat*nat.
+The integers as equivalence classes over nat*nat.
 
 Could also prove...
 "znegative(z) ==> $# zmagnitude(z) = $~ z"
@@ -93,7 +93,7 @@ qed "znat_inject";
 (**** zminus: unary negation on integ ****)
 
 goalw Integ.thy [congruent_def]
-    "congruent(intrel, split(%x y. intrel``{<y,x>}))";
+    "congruent(intrel, %<x,y>. intrel``{<y,x>})";
 by (safe_tac intrel_cs);
 by (asm_full_simp_tac (intrel_ss addsimps add_ac) 1);
 qed "zminus_congruent";
@@ -154,15 +154,15 @@ qed "znegative_zminus_znat";
 (**** zmagnitude: magnitide of an integer, as a natural number ****)
 
 goalw Integ.thy [congruent_def]
-    "congruent(intrel, split(%x y. (y#-x) #+ (x#-y)))";
+    "congruent(intrel, %<x,y>. (y#-x) #+ (x#-y))";
 by (safe_tac intrel_cs);
 by (ALLGOALS (asm_simp_tac intrel_ss));
 by (etac rev_mp 1);
 by (res_inst_tac [("m","x1"),("n","y1")] diff_induct 1 THEN 
     REPEAT (assume_tac 1));
-by (asm_simp_tac (intrel_ss addsimps [succ_inject_iff]) 3);
+by (asm_simp_tac intrel_ss 3);
 by (asm_simp_tac  (*this one's very sensitive to order of rewrites*)
-    (arith_ss addsimps [diff_add_inverse,diff_add_0,add_0_right]) 2);
+    (arith_ss0 addsimps [diff_add_inverse,diff_add_0,add_0_right]) 2);
 by (asm_simp_tac intrel_ss 1);
 by (rtac impI 1);
 by (etac subst 1);

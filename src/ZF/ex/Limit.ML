@@ -1705,9 +1705,10 @@ val e_less_eq = result();
 (* ARITH_CONV proves the following in HOL. Would like something similar 
    in Isabelle/ZF. *)
 
-val prems = goalw Arith.thy []  (* lemma_succ_sub *)
+goalw Arith.thy []  (* lemma_succ_sub *)
     "!!z. [|n:nat; m:nat|] ==> succ(m#+n)#-m = succ(n)";
-by(asm_simp_tac(arith_ss addsimps [add_succ_right RS sym,diff_add_inverse])1);
+(*Uses add_succ_right the wrong way round!*)
+by(asm_simp_tac(nat_ss addsimps [add_succ_right RS sym, diff_add_inverse])1);
 val lemma_succ_sub = result();
 
 val prems = goalw Limit.thy [e_less_def] (* e_less_add *)
@@ -1755,7 +1756,7 @@ by (assume_tac 1);
 by(asm_full_simp_tac arith_ss 1);
 (* Great, by luck I found lt_cs. Such cs's and ss's should be documented. *)
 by(fast_tac lt_cs 1); 
-by(asm_simp_tac (arith_ss addsimps[add_succ_right RS sym]) 1);
+by(asm_simp_tac (nat_ss addsimps[add_succ, add_succ_right RS sym]) 1);
 by (rtac bexI 1);
 br(succ_sub1 RS mp RS ssubst)1;
 (* Instantiation. *)
