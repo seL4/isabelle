@@ -22,6 +22,7 @@ sig
   val strip_imp_concl   : term -> term
   val strip_prems       : int * term list * term -> term list * term
   val count_prems       : term * int -> int
+  val mk_conjunction    : term * term -> term
   val mk_flexpair       : term * term -> term
   val dest_flexpair     : term -> term * term
   val list_flexpairs    : (term*term)list * term -> term
@@ -116,6 +117,13 @@ fun strip_prems (0, As, B) = (As, B)
 (*Count premises -- quicker than (length ostrip_prems) *)
 fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
   | count_prems (_,n) = n;
+
+
+(** conjunction **)
+
+fun mk_conjunction (t, u) =
+  Term.list_all ([("C", propT)], mk_implies (list_implies ([t, u], Bound 0), Bound 0));
+
 
 
 (** flex-flex constraints **)
