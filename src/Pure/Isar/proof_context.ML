@@ -421,6 +421,8 @@ fun cert_typ_aux cert ctxt raw_T =
 
 in
 
+(* Read/certify type, using default sort information from context. *)
+
 val read_typ = read_typ_aux Sign.read_typ';
 val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm';
 val cert_typ = cert_typ_aux Sign.certify_typ;
