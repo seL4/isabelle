@@ -420,7 +420,7 @@ by (Simp_tac 1);
 qed "fun_upd_upd";
 Addsimps [fun_upd_upd];
 
-Goal "a ~= c ==> m(a:=b)(c:=d) = m(c:=d)(a:=b)";
+Goal "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)";
 by (rtac ext 1);
 by Auto_tac;
 qed "fun_upd_twist";

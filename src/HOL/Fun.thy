@@ -23,7 +23,7 @@ syntax
   "_updbind"       :: ['a, 'a] => updbind             ("(2_ :=/ _)")
   ""               :: updbind => updbinds             ("_")
   "_updbinds"      :: [updbind, updbinds] => updbinds ("_,/ _")
-  "_Update"        :: ['a, updbinds] => 'a            ("_/'((_)')" [900,0] 900)
+  "_Update"        :: ['a, updbinds] => 'a            ("_/'((_)')" [1000,0] 900)
 
 translations
   "_Update f (_updbinds b bs)"  == "_Update (_Update f b) bs"
