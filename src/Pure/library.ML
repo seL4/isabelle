@@ -69,6 +69,7 @@ sig
   val set: bool ref -> bool
   val reset: bool ref -> bool
   val toggle: bool ref -> bool
+  val change: 'a ref -> ('a -> 'a) -> unit
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -391,6 +392,8 @@ fun forall (pred: 'a -> bool) : 'a list -> bool =
 fun set flag = (flag := true; true);
 fun reset flag = (flag := false; false);
 fun toggle flag = (flag := not (! flag); ! flag);
+
+fun change r f = r := f (! r);
 
 (*temporarily set flag, handling errors*)
 fun setmp flag value f x =
@@ -725,7 +728,8 @@ fun untabify chs =
     val tab_width = 8;
 
     fun untab (_, "\n") = (0, ["\n"])
-      | untab (pos, "\t") = let val d = tab_width - (pos mod tab_width) in (pos + d, replicate d " ") end
+      | untab (pos, "\t") =
+          let val d = tab_width - (pos mod tab_width) in (pos + d, replicate d " ") end
       | untab (pos, c) = (pos + 1, [c]);
   in
     if not (exists (equal "\t") chs) then chs
