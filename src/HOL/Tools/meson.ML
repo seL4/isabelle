@@ -285,7 +285,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 
-fun skolemize_tac prems =
+fun skolemize_prems_tac prems =
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
 
@@ -293,7 +293,7 @@ fun skolemize_tac prems =
 fun MESON cltac = SELECT_GOAL
  (EVERY1 [rtac ccontr,
           METAHYPS (fn negs =>
-                    EVERY1 [skolemize_tac negs,
+                    EVERY1 [skolemize_prems_tac negs,
                             METAHYPS (cltac o make_clauses)])]);
 
 (** Best-first search versions **)
@@ -347,8 +347,8 @@ val meson_tac = CLASET' meson_claset_tac;
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)
 
-(*Convert a list of clauses to meta-level clauses, with no contrapositives,
-  for ordinary resolution.*)
+(*Convert a list of clauses (disjunctions) to meta-level clauses (==>), 
+  with no contrapositives, for ordinary resolution.*)
 
 (*Rules to convert the head literal into a negated assumption. If the head
   literal is already negated, then using notEfalse instead of notEfalse'
@@ -398,6 +398,19 @@ val skolemize_tac =
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
+(*Top-level conversion to clauses (disjunctions). Each clause has  
+  leading !!-bound universal variables, to express generality.*)
+val make_clauses_tac = 
+  SUBGOAL
+    (fn (prop,_) =>
+     let val ts = Logic.strip_assums_hyp prop
+     in EVERY1 
+	 [METAHYPS
+	    (fn hyps => 
+              (cut_rules_tac (map forall_intr_vars (make_clauses hyps)) 1)),
+	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+     end);
+
 
 
 (** proof method setup **)
@@ -412,6 +425,10 @@ val skolemize_meth =
   Method.SIMPLE_METHOD' HEADGOAL
     (CHANGED_PROP o skolemize_tac);
 
+val make_clauses_meth =
+  Method.SIMPLE_METHOD' HEADGOAL
+    (CHANGED_PROP o make_clauses_tac);
+
 in
 
 val meson_setup =
@@ -419,7 +436,9 @@ val meson_setup =
   [("meson", Method.ctxt_args meson_meth, 
     "The MESON resolution proof procedure"),
    ("skolemize", Method.no_args skolemize_meth, 
-    "Skolemization into existential quantifiers")]];
+    "Skolemization into existential quantifiers"),
+   ("make_clauses", Method.no_args make_clauses_meth, 
+    "Conversion to !!-quantified disjunctions")]];
 
 end;
 

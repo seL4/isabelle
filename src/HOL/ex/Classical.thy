@@ -781,4 +781,21 @@ lemma "(\<forall>x. p a & (p x --> p(f x)) --> p(f(f x)))  =
             (~ p a | ~ p(f x) | p(f(f x))))"
 by meson
 
+
+text{*A manual resolution proof of problem 19.*}
+lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
+proof (rule ccontr, skolemize, make_clauses)
+  fix f g
+  assume P: "\<And>U. P U" 
+     and Q: "\<And>U. \<not> Q U"
+     and PQ: "\<And>U. \<not> P (f U) \<or> Q (g U)"
+  from PQ [of a]
+  show False
+  proof
+    assume "\<not> P (f a)" thus False by (rule notE [OF _ P])
+  next
+    assume "Q (g a)" thus False by (rule notE [OF Q])
+  qed
+qed
+
 end
