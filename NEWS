@@ -79,6 +79,11 @@ proof state according to the Isabelle LaTeX style;
 methods 'tactic', 'res_inst_tac' etc., 'subgoal_tac', and 'case_tac' /
 'induct_tac' (for HOL datatypes);
 
+* simplified (more robust) goal selection of proof methods: 1st goal,
+all goals, or explicit goal specifier (tactic emulation); thus 'proof
+method scripts' have to be in depth-first order;
+
+* tuned 'let' syntax: replace 'as' keyword by 'and';
 
 
 *** HOL ***
