@@ -289,7 +289,7 @@ lemma cont_flift2_arg: "cont (lift_case UU (%y. Def (f y)))"
   done
 
 text {*
-  \medskip Extension of cont_tac and installation of simplifier.
+  \medskip Extension of @{text cont_tac} and installation of simplifier.
 *}
 
 lemma cont2cont_CF1L_rev2: "(!!y. cont (%x. c1 x y)) ==> cont c1"
