@@ -29,6 +29,7 @@ qed "idE";
 goalw Relation.thy [id_def] "(a,b):id = (a=b)";
 by (fast_tac prod_cs 1);
 qed "pair_in_id_conv";
+Addsimps [pair_in_id_conv];
 
 
 (** Composition of two relations **)
@@ -172,4 +173,12 @@ val rel_cs = converse_cs addSIs [converseI]
 
 val rel_eq_cs = rel_cs addSIs [equalityI];
 
-Addsimps [pair_in_id_conv];
+goal Relation.thy "R O id = R";
+by(fast_tac (rel_cs addIs [set_ext] addbefore (split_all_tac 1)) 1);
+qed "R_O_id";
+
+goal Relation.thy "id O R = R";
+by(fast_tac (rel_cs addIs [set_ext] addbefore (split_all_tac 1)) 1);
+qed "id_O_R";
+
+Addsimps [R_O_id,id_O_R];
