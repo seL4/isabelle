@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -norc
 #
 # $Id$
 #
@@ -9,11 +9,7 @@
 
 ISABELLE_HOME=$(dirname $(dirname $0))
 . $ISABELLE_HOME/lib/scripts/getsettings
-
-#get bash-style platform info
-unset HOSTTYPE
-unset OSTYPE
-PLATFORM=$(bash -noprofile -c 'echo $HOSTTYPE-$OSTYPE')
+. $ISABELLE_HOME/lib/scripts/getplatform
 
 
 ## diagnostics
@@ -27,16 +23,14 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -c           force copying of heap file"
-  echo "    -e MLTEXT    pass MLTEXT to ML session"
-#FIXME  echo "    -o OPTIONS   pass options to ML system"
+  echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
-  echo "    -u           pass 'use\"ROOT.ML\" handle _ => exit 1; commit();'"
-  echo "                 to the ML session"
+  echo "    -u           pass 'exit_use_dir\".\";' to the ML session"
   echo
   echo "  INPUT (default \"$DEFAULT_LOGIC\") and OUTPUT specify in/out heaps."
   echo "  These are either names to be searched in the Isabelle path, or actual"
-  echo "  file names (containing at least one /)."
+  echo "  file names (then containing at least one /)."
   echo "  If INPUT is \"SYSTEM\", just start the bare bones ML system."
   echo
   exit 1
@@ -44,7 +38,7 @@ function usage()
 
 function fail()
 {
-  echo "$1"
+  echo "$1" >&2
   exit 2
 }
 
@@ -56,7 +50,6 @@ function fail()
 COPYDB=""
 MLTEXT=""
 COPYDB=""
-OPTIONS=""
 TERMINATE=""
 READONLY=""
 
@@ -69,9 +62,6 @@ do
     e)
       MLTEXT="$MLTEXT $OPTARG"
       ;;
-    o)
-      OPTIONS="$OPTIONS $OPTARG"
-      ;;
     q)
       TERMINATE=true
       ;;
@@ -79,7 +69,7 @@ do
       READONLY=true
       ;;
     u)
-      MLTEXT="$MLTEXT use\"ROOT.ML\" handle _ => exit 1; commit();"
+      MLTEXT="$MLTEXT exit_use_dir\".\";"
       ;;
     \?)
       usage
@@ -105,7 +95,7 @@ if [ $# -ge 1 ]; then
   shift
 fi
 
-[ $# -ne 0 ] && fail "Bad args: $*"
+[ $# -ne 0 ] && { echo "Bad args: $*"; usage }
 
 
 ## check ML system
@@ -123,7 +113,7 @@ case "$INPUT" in
     ;;
   */*)
     INFILE="$INPUT"
-    [ ! -f "$INFILE" ] && fail "Bad heap file file: \"$INFILE\""
+    [ ! -f "$INFILE" ] && fail "Bad heap file: \"$INFILE\""
     ;;
   *)
     ISA_PATH=""
@@ -134,10 +124,10 @@ case "$INPUT" in
       [ -z "$INFILE" -a -f $DIR/$ML_SYSTEM-$PLATFORM/$INPUT ] && INFILE=$DIR/$ML_SYSTEM-$PLATFORM/$INPUT
     done
     if [ -z "$INFILE" ]; then
-      echo "Unknown logic \"$INPUT\" -- no heap file found in:"
+      echo "Unknown logic \"$INPUT\" -- no heap file found in:" >&2
       for DIR in $ISA_PATH
       do
-        echo "  $DIR"
+        echo "  $DIR" >&2
       done
       exit 2
     fi
@@ -166,6 +156,6 @@ esac
 
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 
-export INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE
+export INFILE OUTFILE COPYDB MLTEXT TERMINATE
 [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ] && exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
 exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
