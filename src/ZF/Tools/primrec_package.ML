@@ -169,7 +169,7 @@ fun add_primrec_i recursion_eqns thy =
 	foldr (process_eqn thy) (map snd recursion_eqns, None);
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns) 
     val (thy', [def_thm]) = thy |> Theory.add_path (Sign.base_name (#1 def))
-                   |> (PureThy.add_defs_i o map Thm.no_attributes) [def]
+                   |> (PureThy.add_defs_i false o map Thm.no_attributes) [def]
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val char_thms = 
 	(if !Ind_Syntax.trace then	(* FIXME message / quiet_mode (!?) *)

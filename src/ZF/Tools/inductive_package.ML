@@ -182,7 +182,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
   (*add definitions of the inductive sets*)
   val thy1 = thy |> Theory.add_path big_rec_base_name
-                 |> (#1 o PureThy.add_defs_i (map Thm.no_attributes axpairs))
+                 |> (#1 o PureThy.add_defs_i false (map Thm.no_attributes axpairs))
 
 
   (*fetch fp definitions from the theory*)

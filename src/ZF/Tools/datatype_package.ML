@@ -245,14 +245,14 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
       if need_recursor then
 	   thy |> Theory.add_consts_i 
 	            [(recursor_base_name, recursor_typ, NoSyn)]
-	       |> (#1 o PureThy.add_defs_i [Thm.no_attributes recursor_def])
+	       |> (#1 o PureThy.add_defs_i false [Thm.no_attributes recursor_def])
       else thy;
 
   val (thy0, con_defs) = thy_path
 	     |> Theory.add_consts_i 
 		 ((case_base_name, case_typ, NoSyn) ::
 		  map #1 (flat con_ty_lists))
-	     |> PureThy.add_defs_i
+	     |> PureThy.add_defs_i false
 		 (map Thm.no_attributes
 		  (case_def :: 
 		   flat (ListPair.map mk_con_defs
