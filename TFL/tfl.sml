@@ -337,8 +337,8 @@ fun mk_functional thy clauses =
      val originals = map (row_of_pat o #2) rows
      val dummy = case (originals\\finals)
              of [] => ()
-          | L => mk_functional_err("The following rows (counting from zero)\
-                                   \ are inaccessible: "^stringize L)
+          | L => mk_functional_err ("The following rows are inaccessible: " ^
+                   stringize (map (fn i => i + 1) L))
  in {functional = Abs(Sign.base_name fname, ftype,
 		      abstract_over (atom, 
 				     absfree(aname,atype, case_tm))),
