@@ -122,7 +122,9 @@ sig
   val string_of_indexname: string * int -> string
 
   (*strings*)
+  val nth_elem_string: int * string -> string
   val foldl_string: ('a * string -> 'a) -> 'a * string -> 'a
+  val exists_string: (string -> bool) -> string -> bool
   val enclose: string -> string -> string -> string
   val quote: string -> string
   val space_implode: string -> string list -> string
@@ -653,12 +655,18 @@ fun string_of_indexname (a,0) = a
 
 (** strings **)
 
-(*tuned version of foldl for strings, avoids explode*)
+(*functions tuned for strings, avoiding explode*)
+
+fun nth_elem_string (i, str) =
+  String.substring (str, i, 1) handle _ => raise LIST "nth_elem_string";
+
 fun foldl_string f (x0, str) =
   let
     val n = size str;
     fun fold (x, i) = if i < n then fold (f (x, String.substring (str, i, 1)), i + 1) else x
   in fold (x0, 0) end;
+
+fun exists_string pred str = foldl_string (fn (b, s) => b orelse pred s) (false, str);
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
