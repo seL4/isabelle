@@ -203,7 +203,8 @@ case may have a different wf condition. We could group the conditions
 together and say that they must be true to solve the general case,
 but that would hide from the user which sub-case they were related
 to. Probably this is not important, and it would work fine, but, for now, I
-prefer leaving more fine-grain control to the user. *)
+prefer leaving more fine-grain control to the user. 
+-- Lucas Dixon, Aug 2004 *)
 local
   fun get_related_thms i = 
       mapfilter ((fn (r,x) => if x = i then Some r else None));
@@ -212,11 +213,13 @@ local
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
+      (writeln "Proving unsplit equation...";
       [((standard o ObjectLogic.rulify_no_asm)
-          (CaseSplit.splitto splitths th), i)]
+          (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
-      handle ERROR_MESSAGE _ => map (fn x => (x,i)) splitths; 
+      handle ERROR_MESSAGE s => 
+             (writeln ("WARNING:post.ML:solve_eq: " ^ s); map (fn x => (x,i)) splitths); 
 in
 fun derive_init_eqs sgn rules eqs = 
     let 
@@ -237,7 +240,12 @@ end;
 fun define_i strict thy cs ss congs wfs fid R eqs =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy (Sign.base_name fid) R functional
-  in (thy, simplify_defn strict thy cs ss congs wfs fid pats def) end;
+      val {induct, rules, tcs} = 
+          simplify_defn strict thy cs ss congs wfs fid pats def
+      val rules' = 
+          if strict then derive_init_eqs (Theory.sign_of thy) rules eqs
+          else rules
+  in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
 
 fun define strict thy cs ss congs wfs fid R seqs =
   define_i strict thy cs ss congs wfs fid (read_term thy R) (map (read_term thy) seqs)
