@@ -1,16 +1,16 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle release
-----------------------------
+New in Isabelle2004 (April 2004)
+--------------------------------
 
 *** General ***
 
 * Provers/order.ML:  new efficient reasoner for partial and linear orders.
   Replaces linorder.ML.
 
-* Pure: Greek letters (except small lambda, \<lambda>), as well as gothic
-  (\<aa>...\<zz>\<AA>...\<ZZ>), calligraphic (\<A>...\<Z>), and euler
+* Pure: Greek letters (except small lambda, \<lambda>), as well as Gothic
+  (\<aa>...\<zz>\<AA>...\<ZZ>), calligraphic (\<A>...\<Z>), and Euler
   (\<a>...\<z>), are now considered normal letters, and can therefore
   be used anywhere where an ASCII letter (a...zA...Z) has until
   now. COMPATIBILITY: This obviously changes the parsing of some
@@ -23,18 +23,18 @@ New in this Isabelle release
 * Pure: Macintosh and Windows line-breaks are now allowed in theory files.
 
 * Pure: single letter sub/superscripts (\<^isub> and \<^isup>) are now 
-  allowed in identifiers. Similar to greek letters \<^isub> is now considered 
+  allowed in identifiers. Similar to Greek letters \<^isub> is now considered 
   a normal (but invisible) letter. For multiple letter subscripts repeat 
   \<^isub> like this: x\<^isub>1\<^isub>2. 
 
 * Pure: There are now sub-/superscripts that can span more than one
   character. Text between \<^bsub> and \<^esub> is set in subscript in
-  PG and LaTeX, text between \<^bsup> and \<^esup> in superscript. The
-  new control characters are not identifier parts.
+  ProofGeneral and LaTeX, text between \<^bsup> and \<^esup> in
+  superscript. The new control characters are not identifier parts.
 
 * Pure: Control-symbols of the form \<^raw:...> will literally print the
-  content of ... to the latex file instead of \isacntrl... . The ... 
-  accepts all printable characters excluding the end bracket >.
+  content of "..." to the latex file instead of \isacntrl... . The "..."
+  may consist of any printable characters excluding the end bracket >.
 
 * Pure: Using new Isar command "finalconsts" (or the ML functions
   Theory.add_finals or Theory.add_finals_i) it is now possible to
@@ -42,13 +42,11 @@ New in this Isabelle release
   later.  It is useful for constants whose behaviour is fixed axiomatically
   rather than definitionally, such as the meta-logic connectives.
 
-* Pure: It is now illegal to specify Theory.ML explicitly as a dependency
-  in the files section of the theory Theory. (This is more of a diagnostic
-  than a restriction, as the theory loader screws up if Theory.ML is manually
-  loaded.)
+* Pure: 'instance' now handles general arities with general sorts
+  (i.e. intersections of classes),
 
 * Presentation: generated HTML now uses a CSS style sheet to make layout
-  (somewhat) independet of content. It is copied from lib/html/isabelle.css. 
+  (somewhat) independent of content. It is copied from lib/html/isabelle.css. 
   It can be changed to alter the colors/layout of generated pages.
 
 
@@ -172,6 +170,7 @@ New in this Isabelle release
   but cannot handle quantifiers. See "HOL/ex/Quickcheck_Examples.thy"
   for examples.
 
+
 *** HOLCF ***
 
 * Streams now come with concatenation and are part of the HOLCF image
@@ -179,7 +178,7 @@ New in this Isabelle release
 
 
 New in Isabelle2003 (May 2003)
---------------------------------
+------------------------------
 
 *** General ***
 
