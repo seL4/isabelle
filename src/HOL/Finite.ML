@@ -215,18 +215,18 @@ AddIffs [finite_converse];
 
 (* A bounded set of natural numbers is finite *)
 Goal "!N. (!i:N. i<(n::nat)) --> finite N";
-by(induct_tac "n" 1);
- by(Simp_tac 1);
-by(asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-br allI 1;
-by(case_tac "n : N" 1);
- by(ftac insert_Diff 1);
- by(etac subst 1);
- br impI 1;
- br (finite_insert RS iffD2) 1;
- by(EVERY1[etac allE, etac mp]);
- by(Blast_tac 1);
-by(Blast_tac 1);
+by (induct_tac "n" 1);
+ by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+by (rtac allI 1);
+by (case_tac "n : N" 1);
+ by (ftac insert_Diff 1);
+ by (etac subst 1);
+ by (rtac impI 1);
+ by (rtac (finite_insert RS iffD2) 1);
+ by (EVERY1[etac allE, etac mp]);
+ by (Blast_tac 1);
+by (Blast_tac 1);
 qed_spec_mp "bounded_nat_set_is_finite";
 
 
@@ -367,9 +367,9 @@ qed "cardR_SucD";
 
 Goal "(A,m): cardR ==> (!n a. m = Suc n --> a:A --> (A-{a},n) : cardR)";
 by (etac cardR.induct 1);
- by (Auto_tac);
+ by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
-by (Auto_tac);
+by Auto_tac;
 by (ftac cardR_SucD 1);
 by (Blast_tac 1);
 val lemma = result();
@@ -713,6 +713,25 @@ by (auto_tac (claset() addIs [finite_imp_foldSet],
 				  fold_equality]));
 qed "fold_insert";
 
+Goal "finite A ==> ALL e. f x (fold f e A) = fold f (f x e) A";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [f_lcomm, fold_insert]) 1);
+qed_spec_mp "fold_commute";
+
+Goal "[| finite A; finite B |] \
+\     ==> fold f (fold f e B) A  =  fold f (fold f e (A Int B)) (A Un B)";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [fold_insert, fold_commute, 
+	                              Int_insert_left, insert_absorb]) 1);
+qed "fold_nest_Un_Int";
+
+Goal "[| finite A; finite B; A Int B = {} |] \
+\     ==> fold f e (A Un B)  =  fold f (fold f e B) A";
+by (asm_simp_tac (simpset() addsimps [fold_nest_Un_Int]) 1);
+qed "fold_nest_Un_disjoint";
+
 (* Delete rules to do with foldSet relation: obsolete *)
 Delsimps [foldSet_imp_finite];
 Delrules [empty_foldSetE];
@@ -721,6 +740,10 @@ Delrules foldSet.intrs;
 Close_locale "LC";
 
 Open_locale "ACe"; 
+
+(*We enter a more restrictive framework, with f :: ['a,'a] => 'a
+    instead of ['b,'a] => 'a 
+  At present, none of these results are used!*)
 
 val f_ident   = thm "ident";
 val f_commute = thm "commute";
@@ -767,8 +790,6 @@ qed "fold_Un_disjoint2";
 
 Close_locale "ACe";
 
-Delrules ([empty_foldSetE] @ foldSet.intrs);
-Delsimps [foldSet_imp_finite];
 
 (*** setsum ***)
 
@@ -783,19 +804,38 @@ by (asm_simp_tac (simpset() addsimps [export fold_insert]) 1);
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
-Goalw [setsum_def]
- "[| finite A; finite B; A Int B = {} |] ==> \
-\ setsum f (A Un B) = setsum f A + setsum f B";
-by (asm_simp_tac (simpset() addsimps [export fold_Un_disjoint2]) 1);
-qed_spec_mp "setsum_disj_Un";
+(*Could allow many "card" proofs to be simplified*)
+Goal "finite A ==> card A = setsum (%x. 1) A";
+by (etac finite_induct 1);
+by Auto_tac;
+qed "card_eq_setsum";
 
-Goal "[| finite F |] ==> \
-\     setsum f (F-{a}) = (if a:F then setsum f F - f a else setsum f F)";
+Goal "[| finite A; finite B |] \
+\     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [Int_insert_left, insert_absorb,
+					   add_commute]) 1);
+qed "setsum_Un_Int";
+
+Goal "[| finite A; finite B |] \
+\     ==> setsum f (A Un B) = setsum f A + setsum f B - setsum f (A Int B)";
+by (stac (setsum_Un_Int RS sym) 1);
+by Auto_tac;
+qed "setsum_Un";
+
+Goal "finite F \
+\     ==> setsum f (F-{a}) = (if a:F then setsum f F - f a else setsum f F)";
 by (etac finite_induct 1);
 by (auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
 by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
-by (Auto_tac);
+by Auto_tac;
 qed_spec_mp "setsum_diff1";
+
+Goal "finite A ==> setsum (%x. f x + g x) A = setsum f A + setsum g A";
+by (etac finite_induct 1);
+by Auto_tac;
+qed "setsum_addf";
 
 
 (*** Basic theorem about "choose".  By Florian Kammueller, tidied by LCP ***)
