@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# DESCRIPTION: install Isabelle symbol fonts
+#
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG"
+  echo
+  echo "  Install the Isabelle symbol fonts into your X11 server."
+  echo "  (May be savely called repeatedly.)"
+  echo
+  exit 1
+}
+
+
+## main
+
+[ $# -ne 0 ] && usage
+
+
+RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1)
+
+case "$RESULT" in
+  xlsfonts:*)
+    xset fp+ $ISABELLE_HOME/lib/fonts
+    xset fp rehash
+    ;;
+esac
