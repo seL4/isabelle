@@ -6,6 +6,15 @@
 Simplification data for FOL
 *)
 
+(* Elimination of True from asumptions: *)
+
+val True_implies_equals = prove_goal IFOL.thy
+ "(True ==> PROP P) == PROP P"
+(K [rtac equal_intr_rule 1, atac 2,
+          METAHYPS (fn prems => resolve_tac prems 1) 1,
+          rtac TrueI 1]);
+
+
 (*** Rewrite rules ***)
 
 fun int_prove_fun s = 
@@ -282,6 +291,10 @@ fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
 
+val meta_simps =
+   [triv_forall_equality,  (* prunes params *)
+    True_implies_equals];  (* prune asms `True' *)
+
 val IFOL_simps =
    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
     imp_simps @ iff_simps @ quant_simps;
@@ -305,8 +318,10 @@ val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 
 
 (*intuitionistic simprules only*)
-val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps @ int_ex_simps @ int_all_simps)
-			   addcongs [imp_cong];
+val IFOL_ss = 
+    FOL_basic_ss addsimps (meta_simps @ IFOL_simps @ 
+			   int_ex_simps @ int_all_simps)
+                 addcongs [imp_cong];
 
 val cla_simps = 
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
