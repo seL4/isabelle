@@ -69,7 +69,7 @@ use_thy "Recdef";
 cd "Integ";
 use_thy "IntDef";
 use "simproc.ML";
-use_thy "IntDiv";
+use_thy "NatBin";
 cd "..";
 
 (*the all-in-one theory*)

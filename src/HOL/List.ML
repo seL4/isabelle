@@ -411,10 +411,11 @@ bind_thm ("rev_exhaust",
 
 section "set";
 
-qed_goal "finite_set" thy "finite (set xs)" 
-	(K [induct_tac "xs" 1, Auto_tac]);
-Addsimps[finite_set];
-AddSIs[finite_set];
+Goal "finite (set xs)";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed "finite_set";
+AddIffs [finite_set];
 
 Goal "set (xs@ys) = (set xs Un set ys)";
 by (induct_tac "xs" 1);
@@ -1227,3 +1228,31 @@ by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed "Cons_in_lex";
 AddIffs [Cons_in_lex];
+
+
+(*** Versions of some theorems above using binary numerals ***)
+
+AddIffs (map (rename_numerals thy) 
+	  [length_0_conv, zero_length_conv, length_greater_0_conv,
+	   sum_eq_0_conv]);
+
+Goal "take n (x#xs) = (if n = #0 then [] else x # take (n-#1) xs)";
+by (exhaust_tac "n" 1);
+by (ALLGOALS 
+    (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
+qed "take_Cons'";
+
+Goal "drop n (x#xs) = (if n = #0 then x#xs else drop (n-#1) xs)";
+by (exhaust_tac "n" 1);
+by (ALLGOALS
+    (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
+qed "drop_Cons'";
+
+Goal "(x#xs)!n = (if n = #0 then x else xs!(n-#1))";
+by (exhaust_tac "n" 1);
+by (ALLGOALS
+    (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
+qed "nth_Cons'";
+
+Addsimps (map (inst "n" "number_of ?v") [take_Cons', drop_Cons', nth_Cons']);
+
