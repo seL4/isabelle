@@ -18,6 +18,7 @@ fun gen_fp_oper a (X,T,t) =
 
 structure Lfp_items =
   struct
+  val checkThy	= (fn thy => require_thy thy "Lfp" "inductive definitions")
   val oper      = gen_fp_oper "lfp"
   val Tarski    = def_lfp_Tarski
   val induct    = def_induct
@@ -25,6 +26,7 @@ structure Lfp_items =
 
 structure Gfp_items =
   struct
+  val checkThy	= (fn thy => require_thy thy "Gfp" "coinductive definitions")
   val oper      = gen_fp_oper "gfp"
   val Tarski    = def_gfp_Tarski
   val induct    = def_Collect_coinduct
@@ -63,7 +65,7 @@ signature INDUCTIVE_STRING =
   end;
 
 
-(*For upwards compatibility: can be called directly from ML*)
+(*Called by the theory sections or directly from ML*)
 functor Inductive_Fun
  (Inductive: sig include INDUCTIVE_STRING INDUCTIVE_ARG end)
    : sig include INTR_ELIM INDRULE end =
