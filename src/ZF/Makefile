@@ -19,7 +19,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES = ROOT.ML ZF.thy ZF.ML upair.thy upair.ML subset.thy subset.ML \
-	pair.thy pair.ML domrange.thy domrange.ML \
+	thy_syntax.ML pair.thy pair.ML domrange.thy domrange.ML \
 	func.thy func.ML AC.thy AC.ML simpdata.thy simpdata.ML\
 	equalities.thy equalities.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
