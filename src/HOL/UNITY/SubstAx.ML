@@ -21,19 +21,23 @@ qed "LeadsTo_eq_leadsTo";
 
 (** Conjoining an Always property **)
 
-Goal "[| F : Always C;  F : (C Int A) LeadsTo A' |]   \
-\     ==> F : A LeadsTo A'";
+Goal "F : Always INV ==> (F : (INV Int A) LeadsTo A') = (F : A LeadsTo A')";
 by (asm_full_simp_tac
     (simpset() addsimps [LeadsTo_def, Always_eq_includes_reachable,
 			 Int_absorb2, Int_assoc RS sym]) 1);
-qed "Always_LeadsToI";
+qed "Always_LeadsTo_pre";
 
-Goal "[| F : Always C;  F : A LeadsTo A' |]   \
-\     ==> F : A LeadsTo (C Int A')";
+Goal "F : Always INV ==> (F : A LeadsTo (INV Int A')) = (F : A LeadsTo A')";
 by (asm_full_simp_tac
     (simpset() addsimps [LeadsTo_eq_leadsTo, Always_eq_includes_reachable, 
 			 Int_absorb2, Int_assoc RS sym]) 1);
-qed "Always_LeadsToD";
+qed "Always_LeadsTo_post";
+
+(* [| F : Always C;  F : (C Int A) LeadsTo A' |] ==> F : A LeadsTo A' *)
+bind_thm ("Always_LeadsToI", Always_LeadsTo_pre RS iffD1);
+
+(* [| F : Always INV;  F : A LeadsTo A' |] ==> F : A LeadsTo (INV Int A') *)
+bind_thm ("Always_LeadsToD", Always_LeadsTo_post RS iffD2);
 
 
 (*** Introduction rules: Basis, Trans, Union ***)
