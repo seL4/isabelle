@@ -45,7 +45,7 @@ all: clean gen
 gen: main dist
 
 main: check
-	$(MKCONTENT) -p $(MAIN_DOCU_PREFIX) $(DOC_CONTENT_FILE) $(DOC_CONTENTS_MAIN)
+	$(MKCONTENT) -p $(MAIN_DOCU_PREFIX) Contents $(DOC_CONTENTS_MAIN)
 	$(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
 
 	cd $(MAIN_TARGET); perl -pi -e "s/{ISABELLE}/$(DISTNAME)/g;" *.html
