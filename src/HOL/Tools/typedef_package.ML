@@ -63,11 +63,14 @@ fun check_nonempty cset thm =
   end handle ERROR => error ("Bad non-emptiness theorem " ^ Display.string_of_thm thm ^
     "\nfor set " ^ quote (Display.string_of_cterm cset));
 
-fun goal_nonempty cset =
+fun goal_nonempty ex cset =
   let
     val {T = setT, t = A, maxidx, sign} = Thm.rep_cterm cset;
     val T = HOLogic.dest_setT setT;
-  in Thm.cterm_of sign (HOLogic.mk_Trueprop (HOLogic.mk_mem (Var (("x", maxidx + 1), T), A))) end;
+    val tm =
+      if ex then HOLogic.mk_exists ("x", T, HOLogic.mk_mem (Free ("x", T), A))
+      else HOLogic.mk_mem (Var (("x", maxidx + 1), T), A);   (*old-style version*)
+  in Thm.cterm_of sign (HOLogic.mk_Trueprop tm) end;
 
 fun prove_nonempty thy cset (witn_names, witn_thms, witn_tac) =
   let
@@ -79,7 +82,7 @@ fun prove_nonempty thy cset (witn_names, witn_thms, witn_tac) =
       if_none witn_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    prove_goalw_cterm [] (goal_nonempty cset) (K [tac])
+    prove_goalw_cterm [] (goal_nonempty false cset) (K [tac])
   end handle ERROR => error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
 
 
@@ -187,12 +190,12 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 (* typedef_proof interface *)
 
 fun typedef_attribute cset do_typedef (thy, thm) =
-  (check_nonempty cset thm; (thy |> do_typedef, thm));
+  (check_nonempty cset (thm RS (select_eq_Ex RS iffD2)); (thy |> do_typedef, thm));
 
 fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
   let
     val (cset, do_typedef) = prepare_typedef prep_term false name typ set thy;
-    val goal = Thm.term_of (goal_nonempty cset);
+    val goal = Thm.term_of (goal_nonempty true cset);
   in
     thy
     |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef], (goal, ([], []))), comment) int
