@@ -14,14 +14,10 @@ print_depth 1;
 
 use_thy "HOLCF";
 
-(* sections axioms, ops *)
-use "ax_ops/holcflogic.ML";
-use "ax_ops/thy_axioms.ML";
-use "ax_ops/thy_ops.ML";
-use "ax_ops/thy_syntax.ML";
+use "HOLCFLogic";
+use "contconsts";
 
-(* sections domain, generated *)
-
+(* domain package *)
 use "domain/library.ML";
 use "domain/syntax.ML";
 use "domain/axioms.ML";

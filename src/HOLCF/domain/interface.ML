@@ -71,7 +71,7 @@ local
        ^ ";\n"
     end;
 
-(* ----- string for calling (comp_)theorems and producing the structures ---- *)
+(* ----- string for producing the structures -------------------------------- *)
 
     val val_gen_string =  let
       val comp_axioms   = [(* copy, *) "reach", "take_def", "finite_def"
@@ -100,18 +100,6 @@ local
       "val thy = thy",
       "") end;
 
-(* ----- strings for calling add_gen_by and producing the value binding ----- *)
-
-  fun mk_gen_by (finite,eqs) = let
-      val typs    = map fst eqs;
-      val cnstrss = map snd eqs;
-      val tname = implode (separate "_" typs) in
-      ("|> Domain_Extender.add_gen_by "
-       ^ mk_pair(mk_pair(quote tname, Bool.toString finite),
-		 mk_pair(mk_list(map quote typs), 
-			 mk_list (map (fn cns => mk_list(map quote cns)) cnstrss))),
-       "val "^tname^"_induct = " ^get tname "induct" ^";") end;
-
 (* ----- parser for domain declaration equation ----------------------------- *)
 
   val name' = name >> strip_quotes;
@@ -122,7 +110,8 @@ local
 			|   esc ("]" ::xs) = "}"::esc xs
 			|   esc (x   ::xs) = x  ::esc xs
 		    in implode (esc (explode s)) end;
-  val tvar = (type_var' ^^ optional ($$ "::" ^^ (sort >> esc_quote)) "") >> quote;
+  val tvar = (type_var' ^^ 
+	      optional ($$ "::" ^^ (sort >> esc_quote)) "") >> quote;
   fun type_args l = (tvar >> (fn x => [x])
                  ||  "(" $$-- !! (list1 tvar --$$ ")")
                  ||  empty >> K []) l
@@ -131,20 +120,17 @@ local
                          to avoid ambiguity with standard mixfix option *)
   val domain_arg  = "(" $$-- (optional ($$ "lazy" >> K true) false)
 			  -- (optional ((name' >> Some) --$$ "::") None)
-			  -- typ --$$ ")" >> (fn ((lazy,sel),tp) => (lazy,sel,tp))
+			  -- typ --$$ ")" 
+		    >> (fn ((lazy,sel),tp) => (lazy,sel,tp))
 		 || typ >> (fn x => (false,None,x)) 
   val domain_cons = name' -- !! (repeat domain_arg) 
-		    -- ThyOps.opt_cmixfix
+		    -- ThyParse.opt_mixfix
 		    >> (fn ((con,args),syn) => (con,syn,args));
 in
   val domain_decl = (enum1 "and" (con_typ --$$ "="  -- !! 
 				 (enum1 "|" domain_cons))) >> mk_domain;
-  val gen_by_decl = (optional ($$ "finite" >> K true) false) -- 
-		    (enum1 "," (name'   --$$ "by" -- !!
-			       (enum1 "|" name'))) >> mk_gen_by;
-
   val _ = ThySyn.add_syntax
-    ["lazy", "and", "by", "finite"]
-    [("domain", domain_decl), ("generated", gen_by_decl)]
+    ["lazy", "and"]
+    [("domain", domain_decl)]
 
 end; (* local *)

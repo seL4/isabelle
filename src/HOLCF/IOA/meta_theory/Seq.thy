@@ -9,7 +9,7 @@ Partial, Finite and Infinite Sequences (lazy lists), modeled as domain.
 
 Seq = HOLCF + 
 
-domain 'a seq = nil | "##" (HD::'a) (lazy TL::'a seq)  (cinfixr 65) 
+domain 'a seq = nil | "##" (HD::'a) (lazy TL::'a seq)  (infixr 65) 
 
 
 consts    

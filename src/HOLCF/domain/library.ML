@@ -39,6 +39,8 @@ in map zero_var_indexes (at thm) end;
 
 structure Domain_Library = struct
 
+open HOLCFLogic;
+
 exception Impossible of string;
 fun Imposs msg = raise Impossible ("Domain:"^msg);
 
@@ -59,11 +61,7 @@ fun dis_name_ con = "is_"^ (strip_esc   con);
 (* make distinct names out of the type list, 
    forbidding "o", "x..","f..","P.." as names *)
 (* a number string is added if necessary *)
-fun mk_var_names types : string list = let
-    fun strip ss = drop (find ("'", ss)+1, ss);
-    fun typid (Type  (id,_)   ) = hd     (explode (Sign.base_name id))
-      | typid (TFree (id,_)   ) = hd (strip (tl (explode (Sign.base_name id))))
-      | typid (TVar ((id,_),_)) = hd (tl (explode (Sign.base_name id)));
+fun mk_var_names ids : string list = let
     fun nonreserved s = if s mem ["x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
           (case assoc(occupied,vn) of
@@ -73,13 +71,12 @@ fun mk_var_names types : string list = let
            | Some(i) => (vn^(string_of_int (i+1)))
 				   :: index_vnames(vns,(vn,i+1)::occupied))
       | index_vnames([],occupied) = [];
-in index_vnames(map (nonreserved o typid) types,[("O",0),("o",0)]) end;
+in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
 fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
 fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
 val tsig_of = #tsig o Sign.rep_sg;
-val HOLCF_sg = sign_of HOLCF.thy;
-val pcpoS = Sign.intern_sort HOLCF_sg ["pcpo"];
+
 fun pcpo_type sg t = Type.of_sort (tsig_of sg) (Sign.certify_typ sg t, pcpoS);
 fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;
 fun str2typ sg = typ_of o read_ctyp sg;
@@ -107,12 +104,7 @@ fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 (* ----- support for type and mixfix expressions ----- *)
 
-fun mk_tvar s = TFree("'"^s,pcpoS);
-fun mk_typ t (S,T) = Sign.intern_typ HOLCF_sg (Type(t,[S,T]));
 infixr 5 -->;
-infixr 6 ~>; val op ~> = mk_typ "->";
-val cfun_arrow = fst (rep_Type (dummyT ~> dummyT));
-val NoSyn' = ThyOps.Mixfix NoSyn;
 
 (* ----- support for term expressions ----- *)
 
@@ -140,9 +132,7 @@ in
 fun mk_constrain      (typ,T) = %%"_constrain" $ T $ tf typ;
 fun mk_constrainall (x,typ,P) = %%"All" $ (%%"_constrainAbs" $ mk_lam(x,P) $ tf typ);
 end;
-			
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
-fun mk_not     P  = Const("Not" ,boolT --> boolT) $ P;
 end;
 
 fun mk_All  (x,P) = %%"all" $ mk_lam(x,P); (* meta universal quantification *)

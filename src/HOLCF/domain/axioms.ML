@@ -137,25 +137,5 @@ in thy |> Theory.add_path comp_dnam
        |> Theory.add_path ".."
 end;
 
-
-fun add_induct ((tname,finite),(typs,cnstrs)) thy' = let
-  fun P_name typ = "P"^(if typs = [typ] then "" 
-			else string_of_int(1 + find(typ,typs)));
-  fun lift_adm t = lift (fn typ => %%"adm" $ %(P_name typ)) 
-			(if finite then [] else typs,t);
-  fun lift_pred_UU t = lift (fn typ => %(P_name typ) $ UU) (typs,t);
-  fun one_cnstr (cnstr,vns,(args,res)) = let 
-		val rec_args = filter (fn (_,typ) => typ mem typs)(vns~~args);
-		val app = mk_cfapp(%%cnstr,map (bound_arg vns) vns);
-	     in foldr mk_All (vns,
-			 lift (fn (vn,typ) => %(P_name typ) $ bound_arg vns vn)
-			      (rec_args,defined app ==> %(P_name res)$app)) end;
-  fun one_conc typ = let val pn = P_name typ 
-		     in %pn $ %("x"^implode(tl(explode pn))) end;
-  val concl = mk_trp(foldr' mk_conj (map one_conc typs));
-  val induct = (tname^"_induct",lift_adm(lift_pred_UU(
-			foldr (op ===>) (map one_cnstr cnstrs,concl))));
-in thy' |> Theory.add_axioms_i (infer_types thy' [induct]) end;
-
 end; (* local *)
 end; (* struct *)

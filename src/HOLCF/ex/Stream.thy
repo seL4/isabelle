@@ -8,7 +8,7 @@ general Stream domain
 
 Stream = HOLCF + 
 
-domain 'a stream = "&&" (ft::'a) (lazy rt::'a stream) (cinfixr 65)
+domain 'a stream = "&&" (ft::'a) (lazy rt::'a stream) (infixr 65)
 
 end
 
