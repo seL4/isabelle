@@ -10,10 +10,10 @@ Semigroups = HOL +
 consts
   "<+>"         :: "['a, 'a] => 'a"             (infixl 65)
   "<*>"         :: "['a, 'a] => 'a"             (infixl 70)
-  assoc         :: "(['a, 'a] => 'a) => bool"
 
-defs
-  assoc_def     "assoc f == ALL x y z. f (f x y) z = f x (f y z)"
+constdefs
+  assoc         :: "(['a, 'a] => 'a) => bool"
+  "assoc f == ALL x y z. f (f x y) z = f x (f y z)"
 
 
 (* semigroups with op <+> *)

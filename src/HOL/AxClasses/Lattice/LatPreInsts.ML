@@ -21,13 +21,13 @@ qed "Sup_is_sup";
 (* pairs *)
 
 goalw thy [is_inf_def, le_prod_def] "is_inf p q (fst p && fst q, snd p && snd q)";
-  by (simp_tac prod_ss 1);
+  by (Simp_tac 1);
   by (safe_tac HOL_cs);
   by (REPEAT_FIRST (fn i => resolve_tac [inf_lb1, inf_lb2, inf_ub_lbs] i ORELSE atac i));
 qed "prod_is_inf";
 
 goalw thy [is_sup_def, le_prod_def] "is_sup p q (fst p || fst q, snd p || snd q)";
-  by (simp_tac prod_ss 1);
+  by (Simp_tac 1);
   by (safe_tac HOL_cs);
   by (REPEAT_FIRST (fn i => resolve_tac [sup_ub1, sup_ub2, sup_lb_ubs] i ORELSE atac i));
 qed "prod_is_sup";

@@ -70,14 +70,14 @@ defs
                    (ALL ub. (ALL x:A. x [= ub) --> sup [= ub)"
 
 
+
 (* binary minima and maxima (on lin_orders) *)
 
-consts
+constdefs
   minimum      :: "['a::lin_order, 'a] => 'a"
-  maximum      :: "['a::lin_order, 'a] => 'a"
+  "minimum x y == (if x [= y then x else y)"
 
-defs
-  minimum_def  "minimum x y == (if x [= y then x else y)"
-  maximum_def  "maximum x y == (if x [= y then y else x)"
+  maximum      :: "['a::lin_order, 'a] => 'a"
+  "maximum x y == (if x [= y then y else x)"
 
 end
