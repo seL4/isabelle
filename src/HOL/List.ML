@@ -113,7 +113,7 @@ AddIffs [length_greater_0_conv];
 
 Goal "(length xs = Suc n) = (? y ys. xs = y#ys & length ys = n)";
 by (induct_tac "xs" 1);
-by (Auto_tac);
+by Auto_tac;
 qed "length_Suc_conv";
 
 (** @ - append **)
@@ -435,8 +435,8 @@ qed "set_map";
 Addsimps [set_map];
 
 Goal "set(filter P xs) = {x. x : set xs & P x}";
-by(induct_tac "xs" 1);
-by(Auto_tac);
+by (induct_tac "xs" 1);
+by Auto_tac;
 qed "set_filter";
 Addsimps [set_filter];
 (*
@@ -447,17 +447,17 @@ qed "in_set_filter";
 Addsimps [in_set_filter];
 *)
 Goal "set[i..j(] = {k. i <= k & k < j}";
-by(induct_tac "j" 1);
-by(Auto_tac);
-by(arith_tac 1);
+by (induct_tac "j" 1);
+by Auto_tac;
+by (arith_tac 1);
 qed "set_upt";
 Addsimps [set_upt];
 
 Goal "!i < size xs. set(xs[i := x]) <= insert x (set xs)";
-by(induct_tac "xs" 1);
- by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsplits [nat.split]) 1);
-by(Blast_tac 1);
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsplits [nat.split]) 1);
+by (Blast_tac 1);
 qed_spec_mp "set_list_update_subset";
 
 Goal "(x : set xs) = (? ys zs. xs = ys@x#zs)";
@@ -662,17 +662,17 @@ by (auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
 qed_spec_mp "nth_list_update";
 
 Goal "!i. i < size xs --> xs[i:=x, i:=y] = xs[i:=y]";
-by(induct_tac "xs" 1);
- by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsplits [nat.split]) 1);
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsplits [nat.split]) 1);
 qed_spec_mp "list_update_overwrite";
 Addsimps [list_update_overwrite];
 
 Goal "!i < length xs. (xs[i := x] = xs) = (xs!i = x)";
-by(induct_tac "xs" 1);
- by(Simp_tac 1);
-by(simp_tac (simpset() addsplits [nat.split]) 1);
-by(Blast_tac 1);
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (simp_tac (simpset() addsplits [nat.split]) 1);
+by (Blast_tac 1);
 qed_spec_mp "list_update_same_conv";
 
 
@@ -806,6 +806,13 @@ by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "take_drop";
 
+Goal "!xs. take n xs @ drop n xs = xs";
+by (induct_tac "n" 1);
+ by Auto_tac;
+by (exhaust_tac "xs" 1);
+ by Auto_tac;
+qed_spec_mp "append_take_drop_id";
+
 Goal "!xs. take n (map f xs) = map f (take n xs)"; 
 by (induct_tac "n" 1);
  by Auto_tac;
@@ -881,13 +888,13 @@ qed_spec_mp"set_take_whileD";
 section "zip";
 
 Goal "zip [] ys = []";
-by(induct_tac "ys" 1);
+by (induct_tac "ys" 1);
 by Auto_tac;
 qed "zip_Nil";
 Addsimps [zip_Nil];
 
 Goal "zip (x#xs) (y#ys) = (x,y)#zip xs ys";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "zip_Cons_Cons";
 Addsimps [zip_Cons_Cons];
 
@@ -966,41 +973,71 @@ qed_spec_mp "nth_upt";
 Addsimps [nth_upt];
 
 Goal "!i. i+m <= n --> take m [i..n(] = [i..i+m(]";
-by(induct_tac "m" 1);
- by(Simp_tac 1);
-by(Clarify_tac 1);
-by(stac upt_rec 1);
-br sym 1;
-by(stac upt_rec 1);
-by(asm_simp_tac (simpset() delsimps (thms"upt.simps")) 1);
+by (induct_tac "m" 1);
+ by (Simp_tac 1);
+by (Clarify_tac 1);
+by (stac upt_rec 1);
+by (rtac sym 1);
+by (stac upt_rec 1);
+by (asm_simp_tac (simpset() delsimps (thms"upt.simps")) 1);
 qed_spec_mp "take_upt";
 Addsimps [take_upt];
 
 Goal "!m i. i < n-m --> (map f [m..n(]) ! i = f(m+i)";
-by(induct_tac "n" 1);
- by(Simp_tac 1);
-by(Clarify_tac 1);
-by(subgoal_tac "m < Suc n" 1);
- by(arith_tac 2);
-by(stac upt_rec 1);
-by(asm_simp_tac (simpset() delsplits [split_if]) 1);
-by(split_tac [split_if] 1);
-br conjI 1;
- by(simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
- by(simp_tac (simpset() addsimps [nth_append] addsplits [nat.split]) 1);
- by(Clarify_tac 1);
- br conjI 1;
-  by(Clarify_tac 1);
-  by(subgoal_tac "Suc(m+nat) < n" 1);
-   by(arith_tac 2);
-  by(Asm_simp_tac 1);
- by(Clarify_tac 1);
- by(subgoal_tac "n = Suc(m+nat)" 1);
-  by(arith_tac 2);
- by(Asm_simp_tac 1);
-by(simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
-by(arith_tac 1);
+by (induct_tac "n" 1);
+ by (Simp_tac 1);
+by (Clarify_tac 1);
+by (subgoal_tac "m < Suc n" 1);
+ by (arith_tac 2);
+by (stac upt_rec 1);
+by (asm_simp_tac (simpset() delsplits [split_if]) 1);
+by (split_tac [split_if] 1);
+by (rtac conjI 1);
+ by (simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+ by (simp_tac (simpset() addsimps [nth_append] addsplits [nat.split]) 1);
+ by (Clarify_tac 1);
+ by (rtac conjI 1);
+  by (Clarify_tac 1);
+  by (subgoal_tac "Suc(m+nat) < n" 1);
+   by (arith_tac 2);
+  by (Asm_simp_tac 1);
+ by (Clarify_tac 1);
+ by (subgoal_tac "n = Suc(m+nat)" 1);
+  by (arith_tac 2);
+ by (Asm_simp_tac 1);
+by (simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+by (arith_tac 1);
 qed_spec_mp "nth_map_upt";
+
+Goal "ALL xs ys. k <= length xs --> k <= length ys -->  \
+\        (ALL i. i < k --> xs!i = ys!i)  \
+\     --> take k xs = take k ys";
+by (induct_tac "k" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_Suc_eq_0_disj, 
+						all_conj_distrib])));
+by (Clarify_tac 1);
+(*Both lists must be non-empty*)
+by (exhaust_tac "xs" 1);
+by (exhaust_tac "ys" 2);
+by (ALLGOALS Clarify_tac);
+(*prenexing's needed, not miniscoping*)
+by (ALLGOALS (full_simp_tac (simpset() addsimps (all_simps RL [sym])  
+                                       delsimps (all_simps))));
+by (Blast_tac 1);
+qed_spec_mp "nth_take_lemma";
+
+Goal "[| length xs = length ys;  \
+\        ALL i. i < length xs --> xs!i = ys!i |]  \
+\     ==> xs = ys";
+by (forward_tac [[le_refl, eq_imp_le] MRS nth_take_lemma] 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [take_all])));
+qed_spec_mp "nth_equalityI";
+
+(*The famous take-lemma*)
+Goal "(ALL i. take i xs = take i ys) ==> xs = ys";
+by (dres_inst_tac [("x", "max (length xs) (length ys)")] spec 1);
+by (full_simp_tac (simpset() addsimps [le_max_iff_disj, take_all]) 1);
+qed_spec_mp "take_equalityI";
 
 
 (** nodups & remdups **)
@@ -1027,51 +1064,51 @@ qed_spec_mp "nodups_filter";
 section "replicate";
 
 Goal "length(replicate n x) = n";
-by(induct_tac "n" 1);
-by(Auto_tac);
+by (induct_tac "n" 1);
+by Auto_tac;
 qed "length_replicate";
 Addsimps [length_replicate];
 
 Goal "map f (replicate n x) = replicate n (f x)";
 by (induct_tac "n" 1);
-by(Auto_tac);
+by Auto_tac;
 qed "map_replicate";
 Addsimps [map_replicate];
 
 Goal "(replicate n x) @ (x#xs) = x # replicate n x @ xs";
 by (induct_tac "n" 1);
-by(Auto_tac);
+by Auto_tac;
 qed "replicate_app_Cons_same";
 
 Goal "rev(replicate n x) = replicate n x";
 by (induct_tac "n" 1);
- by(Simp_tac 1);
+ by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [replicate_app_Cons_same]) 1);
 qed "rev_replicate";
 Addsimps [rev_replicate];
 
 Goal"n ~= 0 --> hd(replicate n x) = x";
 by (induct_tac "n" 1);
-by(Auto_tac);
+by Auto_tac;
 qed_spec_mp "hd_replicate";
 Addsimps [hd_replicate];
 
 Goal "n ~= 0 --> tl(replicate n x) = replicate (n-1) x";
 by (induct_tac "n" 1);
-by(Auto_tac);
+by Auto_tac;
 qed_spec_mp "tl_replicate";
 Addsimps [tl_replicate];
 
 Goal "n ~= 0 --> last(replicate n x) = x";
 by (induct_tac "n" 1);
-by(Auto_tac);
+by Auto_tac;
 qed_spec_mp "last_replicate";
 Addsimps [last_replicate];
 
 Goal "!i. i<n --> (replicate n x)!i = x";
-by(induct_tac "n" 1);
- by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+by (induct_tac "n" 1);
+ by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
 qed_spec_mp "nth_replicate";
 Addsimps [nth_replicate];
 
@@ -1101,12 +1138,12 @@ by (rtac wf_subset 1);
 by (rtac Int_lower1 2);
 by (rtac wf_prod_fun_image 1);
 by (rtac injI 2);
-by (Auto_tac);
+by Auto_tac;
 qed "wf_lexn";
 
 Goal "!xs ys. (xs,ys) : lexn r n --> length xs = n & length ys = n";
 by (induct_tac "n" 1);
-by (Auto_tac);
+by Auto_tac;
 qed_spec_mp "lexn_length";
 
 Goalw [lex_def] "wf r ==> wf(lex r)";
