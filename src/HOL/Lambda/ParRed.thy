@@ -8,9 +8,9 @@ Parallel reduction and a complete developments function "cd".
 
 ParRed = Lambda + Commutation +
 
-consts  par_beta :: "(db * db) set"
+consts  par_beta :: "(dB * dB) set"
 
-syntax  "=>" :: [db,db] => bool (infixl 50)
+syntax  "=>" :: [dB,dB] => bool (infixl 50)
 
 translations
   "s => t" == "(s,t) : par_beta"
@@ -18,24 +18,24 @@ translations
 inductive par_beta
   intrs
     var   "Var n => Var n"
-    abs   "s => t ==> Fun s => Fun t"
+    abs   "s => t ==> Abs s => Abs t"
     app   "[| s => s'; t => t' |] ==> s @ t => s' @ t'"
-    beta  "[| s => s'; t => t' |] ==> (Fun s) @ t => s'[t'/0]"
+    beta  "[| s => s'; t => t' |] ==> (Abs s) @ t => s'[t'/0]"
 
 consts
-  cd  :: db => db
-  deFun :: db => db
+  cd  :: dB => dB
+  deAbs :: dB => dB
 
-primrec cd db
+primrec cd dB
   "cd(Var n) = Var n"
   "cd(s @ t) = (case s of
             Var n => s @ (cd t) |
             s1 @ s2 => (cd s) @ (cd t) |
-            Fun u => deFun(cd s)[cd t/0])"
-  "cd(Fun s) = Fun(cd s)"
+            Abs u => deAbs(cd s)[cd t/0])"
+  "cd(Abs s) = Abs(cd s)"
 
-primrec deFun db
-  "deFun(Var n) = Var n"
-  "deFun(s @ t) = s @ t"
-  "deFun(Fun s) = s"
+primrec deAbs dB
+  "deAbs(Var n) = Var n"
+  "deAbs(s @ t) = s @ t"
+  "deAbs(Abs s) = s"
 end

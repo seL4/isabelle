@@ -11,9 +11,9 @@ open ParRed;
 
 Addsimps par_beta.intrs;
 
-val par_beta_cases = map (par_beta.mk_cases db.simps)
-    ["Var n => t", "Fun s => Fun t",
-     "(Fun s) @ t => u", "s @ t => u", "Fun s => t"];
+val par_beta_cases = map (par_beta.mk_cases dB.simps)
+    ["Var n => t", "Abs s => Abs t",
+     "(Abs s) @ t => u", "s @ t => u", "Abs s => t"];
 
 AddSIs par_beta.intrs;
 AddSEs par_beta_cases;
@@ -26,7 +26,7 @@ qed "par_beta_varL";
 Addsimps [par_beta_varL];
 
 goal ParRed.thy "t => t";
-by (db.induct_tac "t" 1);
+by (dB.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"par_beta_refl";
 Addsimps [par_beta_refl];
@@ -50,14 +50,14 @@ qed "par_beta_subset_beta";
 (*** => ***)
 
 goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
-by (db.induct_tac "t" 1);
+by (dB.induct_tac "t" 1);
 by (ALLGOALS(fast_tac (!claset addss (!simpset))));
 qed_spec_mp "par_beta_lift";
 Addsimps [par_beta_lift];
 
 goal ParRed.thy
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
-by (db.induct_tac "t" 1);
+by (dB.induct_tac "t" 1);
   by (asm_simp_tac (addsplit(!simpset)) 1);
  by (strip_tac 1);
  by (eresolve_tac par_beta_cases 1);
@@ -79,10 +79,10 @@ qed "diamond_par_beta";
 (*** cd ***)
 
 goal ParRed.thy "!t. s => t --> t => cd s";
-by (db.induct_tac "s" 1);
+by (dB.induct_tac "s" 1);
   by (Simp_tac 1);
  by (etac rev_mp 1);
- by (db.induct_tac "db1" 1);
+ by (dB.induct_tac "dB1" 1);
  by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] addss !simpset)));
 qed_spec_mp "par_beta_cd";
 

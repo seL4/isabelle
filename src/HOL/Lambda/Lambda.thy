@@ -9,40 +9,40 @@ substitution and beta-reduction.
 
 Lambda = Arith +
 
-datatype db = Var nat | "@" db db (infixl 200) | Fun db
+datatype dB = Var nat | "@" dB dB (infixl 200) | Abs dB
 
 consts
-  subst  :: [db,db,nat]=>db ("_[_'/_]" [300,0,0] 300)
-  lift   :: [db,nat] => db
+  subst  :: [dB,dB,nat]=>dB ("_[_'/_]" [300,0,0] 300)
+  lift   :: [dB,nat] => dB
   (* optimized versions *)
-  substn :: [db,db,nat] => db
-  liftn  :: [nat,db,nat] => db
+  substn :: [dB,dB,nat] => dB
+  liftn  :: [nat,dB,nat] => dB
 
-primrec lift db
+primrec lift dB
   "lift (Var i) k = (if i < k then Var i else Var(Suc i))"
   "lift (s @ t) k = (lift s k) @ (lift t k)"
-  "lift (Fun s) k = Fun(lift s (Suc k))"
+  "lift (Abs s) k = Abs(lift s (Suc k))"
 
-primrec subst db
+primrec subst dB
   subst_Var "(Var i)[s/k] = (if k < i then Var(pred i)
                             else if i = k then s else Var i)"
   subst_App "(t @ u)[s/k] = t[s/k] @ u[s/k]"
-  subst_Fun "(Fun t)[s/k] = Fun (t[lift s 0 / Suc k])"
+  subst_Abs "(Abs t)[s/k] = Abs (t[lift s 0 / Suc k])"
 
-primrec liftn db
+primrec liftn dB
   "liftn n (Var i) k = (if i < k then Var i else Var(i+n))"
   "liftn n (s @ t) k = (liftn n s k) @ (liftn n t k)"
-  "liftn n (Fun s) k = Fun(liftn n s (Suc k))"
+  "liftn n (Abs s) k = Abs(liftn n s (Suc k))"
 
-primrec substn db
+primrec substn dB
   "substn (Var i) s k = (if k < i then Var(pred i)
                          else if i = k then liftn k s 0 else Var i)"
   "substn (t @ u) s k = (substn t s k) @ (substn u s k)"
-  "substn (Fun t) s k = Fun (substn t s (Suc k))"
+  "substn (Abs t) s k = Abs (substn t s (Suc k))"
 
-consts  beta :: "(db * db) set"
+consts  beta :: "(dB * dB) set"
 
-syntax  "->", "->>" :: [db,db] => bool (infixl 50)
+syntax  "->", "->>" :: [dB,dB] => bool (infixl 50)
 
 translations
   "s -> t"  == "(s,t) : beta"
@@ -50,8 +50,8 @@ translations
 
 inductive beta
 intrs
-   beta  "(Fun s) @ t -> s[t/0]"
+   beta  "(Abs s) @ t -> s[t/0]"
    appL  "s -> t ==> s@u -> t@u"
    appR  "s -> t ==> u@s -> u@t"
-   abs   "s -> t ==> Fun s -> Fun t"
+   abs   "s -> t ==> Abs s -> Abs t"
 end

@@ -7,11 +7,11 @@ Eta-reduction and relatives.
 *)
 
 Eta = ParRed + Commutation +
-consts free :: db => nat => bool
-       decr :: [db,nat] => db
-       eta  :: "(db * db) set"
+consts free :: dB => nat => bool
+       decr :: dB => dB
+       eta  :: "(dB * dB) set"
 
-syntax  "-e>", "-e>>", "-e>=" , "->=" :: [db,db] => bool (infixl 50)
+syntax  "-e>", "-e>>", "-e>=" , "->=" :: [dB,dB] => bool (infixl 50)
 
 translations
   "s -e>  t" == "(s,t) : eta"
@@ -19,19 +19,16 @@ translations
   "s -e>= t" == "(s,t) : eta^="
   "s ->=  t" == "(s,t) : beta^="
 
-primrec free Lambda.db
+primrec free Lambda.dB
   "free (Var j) i = (j=i)"
   "free (s @ t) i = (free s i | free t i)"
-  "free (Fun s) i = free s (Suc i)"
-
-defs
-  decr_def "decr t i == t[Var i/i]"
+  "free (Abs s) i = free s (Suc i)"
 
 inductive eta
 intrs
-   eta  "~free s 0 ==> Fun(s @ Var 0) -e> decr s 0"
+   eta  "~free s 0 ==> Abs(s @ Var 0) -e> s[dummy/0]"
    appL  "s -e> t ==> s@u -e> t@u"
    appR  "s -e> t ==> u@s -e> u@t"
-   abs   "s -e> t ==> Fun s -e> Fun t"
+   abs   "s -e> t ==> Abs s -e> Abs t"
 end
 
