@@ -356,11 +356,13 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 (* assumption *)
 
-fun assm_tac ctxt =
-  assume_tac APPEND' resolve_tac (filter Thm.no_prems (ProofContext.prems_of ctxt));
+fun asm_tac ths =
+  foldr (op APPEND') (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths, K no_tac);
+
+fun assm_tac ctxt = assume_tac APPEND' asm_tac (ProofContext.prems_of ctxt);
 
 fun assumption_tac ctxt [] = assm_tac ctxt
-  | assumption_tac _ [fact] = resolve_tac [fact]
+  | assumption_tac _ [fact] = asm_tac [fact]
   | assumption_tac _ _ = K no_tac;
 
 fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
