@@ -120,13 +120,16 @@ val calculationN = "calculation";
 
 fun calculate final opt_rules print state =
   let
+    fun err_if b msg = if b then raise Proof.STATE (msg, state) else ();
     val fact = Proof.the_fact state;
     val rules = Seq.of_list (case opt_rules of None => get_local_rules state | Some thms => thms);
-    val calculations =
+    val (initial, calculations) =
       (case get_calculation state of
-        None => Seq.single fact
-      | Some thm => Seq.flat (Seq.map (Method.multi_resolve [thm, fact]) rules));
+        None => (true, Seq.single fact)
+      | Some thm => (false, Seq.flat (Seq.map (Method.multi_resolve [thm, fact]) rules)));
   in
+    err_if (initial andalso final) "No calculation yet";
+    err_if (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
     calculations |> Seq.map (fn calc =>
       (print calc;
         (if final then
