@@ -66,13 +66,13 @@ val output_chr = fn
   c => if Symbol.is_digit c then enclose "{\\isadigit{" "}}" c else c;
 
 fun output_sym s =
-  if size s = 1 then output_chr s
-  else
-    (case explode s of
-      "\\" :: "<" :: "^" :: "r"::"a"::"w"::":"::cs => implode (#1 (Library.split_last cs)) 
-    | "\\" :: "<" :: "^" :: cs => "\\isactrl" ^ implode (#1 (Library.split_last cs)) ^ " "
-    | "\\" :: "<" :: cs => "{\\isasym" ^ implode (#1 (Library.split_last cs)) ^ "}"
-    | _ => sys_error "output_sym");
+  if Symbol.is_char s then output_chr s
+  else if Symbol.is_raw s then Symbol.decode_raw s
+  else if String.isPrefix "\\<^" s then
+    enclose "\\isactrl" " " (String.substring (s, 3, size s - 4))
+  else if String.isPrefix "\\<" s then
+    enclose "{\\isasym" "}" (String.substring (s, 2, size s - 3))
+  else sys_error "output_sym";
 
 in
 
@@ -154,7 +154,7 @@ fun latex_indent "" = ""
 val token_translation =
   map (fn s => (latexN, s, latex_output)) Syntax.standard_token_classes;
 
-val _ = Symbol.add_mode latexN (latex_output, latex_indent o #1);
+val _ = Output.add_mode latexN (latex_output, latex_indent o #1, Symbol.default_raw);
 val setup = [Theory.add_tokentrfuns token_translation];
 
 
