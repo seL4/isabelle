@@ -20,22 +20,22 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	func.ML simpdata.ML Bool.thy Bool.ML \
-	Sum.thy Sum.ML Qpair.thy Qpair.ML mono.ML Fixedpt.thy Fixedpt.ML \
+	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
 	equalities.ML Perm.thy Perm.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Ord.thy Ord.ML Nat.thy Nat.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
-	Quniv.thy Quniv.ML constructor.ML datatype.ML  \
-	fin.ML list.ML ListFn.thy ListFn.ML
+	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
+	fin.ML List.ML ListFn.thy ListFn.ML
 
-EX_FILES = ex/ROOT.ML ex/acc.ML ex/bin.ML ex/BinFn.ML ex/BinFn.thy\
-	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/comb.ML\
-	   ex/Contract0.ML ex/Contract0.thy ex/counit.ML ex/data.ML\
-	   ex/enum.ML ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
-	   ex/listn.ML ex/llist.ML ex/llist_eq.ML ex/LListFn.ML ex/LListFn.thy\
-	   ex/misc.ML ex/parcontract.ML ex/Primrec0.ML ex/Primrec0.thy\
-	   ex/prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
-	   ex/rmap.ML ex/term.ML ex/TermFn.ML ex/TermFn.thy ex/tf.ML\
+EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
+	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/Comb.ML\
+	   ex/Contract0.ML ex/Contract0.thy ex/counit.ML ex/Data.ML\
+	   ex/Enum.ML ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
+	   ex/ListN.ML ex/llist.ML ex/LList_Eq.ML ex/LListFn.ML ex/LListFn.thy\
+	   ex/misc.ML ex/ParContract.ML ex/Primrec0.ML ex/Primrec0.thy\
+	   ex/Prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
+	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy ex/TF.ML\
 	   ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
