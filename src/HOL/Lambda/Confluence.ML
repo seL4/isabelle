@@ -37,15 +37,10 @@ qed "diamond_to_confluence";
 goalw Confluence.thy [confluent_def,diamond_def,Church_Rosser_def]
   "Church_Rosser(R) = confluent(R)";
 br iffI 1;
- by(safe_tac HOL_cs);
- be allE 1;
- be allE 1;
- be mp 1;
- br rtrancl_trans 1;
-  br (Un_upper2 RS rtrancl_mono RS subsetD) 1;
-  br rtrancl_converseI 1;
-  be converseI 1;
- be (Un_upper1 RS rtrancl_mono RS subsetD) 1;
+ by(fast_tac (HOL_cs addIs
+      [Un_upper2 RS rtrancl_mono RS subsetD RS rtrancl_trans,
+       rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
+by(safe_tac HOL_cs);
 be rtrancl_induct 1;
  by(fast_tac trancl_cs 1);
  by(slow_tac (rel_cs addIs [r_into_rtrancl]
