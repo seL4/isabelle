@@ -39,6 +39,7 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val verbose: bool ref
+  val show_main_goal: bool ref
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val level: state -> int
@@ -320,6 +321,8 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 
 (** pretty_state **)
 
+val show_main_goal = ref true;
+
 val verbose = ProofContext.verbose;
 
 fun pretty_goals_local ctxt = Display.pretty_goals_aux
@@ -351,7 +354,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
         (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
       [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^ prt_names names ^
           levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
-      pretty_goals_local ctxt begin_goal (true, true) (! Display.goals_limit) thm;
+      pretty_goals_local ctxt begin_goal (true, !show_main_goal) (! Display.goals_limit) thm;
 
     val ctxt_prts =
       if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
@@ -464,7 +467,7 @@ fun prep_result state ts raw_th =
     val ngoals = Thm.nprems_of raw_th;
     val _ =
       if ngoals = 0 then ()
-      else (err (Pretty.string_of (Pretty.chunks (pretty_goals_local ctxt "" (true, true)
+      else (err (Pretty.string_of (Pretty.chunks (pretty_goals_local ctxt "" (true, !show_main_goal)
             (! Display.goals_limit) raw_th @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
