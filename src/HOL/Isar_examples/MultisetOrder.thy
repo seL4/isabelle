@@ -22,8 +22,8 @@ lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
     (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K)"
   (concl is "?case1 (mult1 r) | ?case2");
 proof (unfold mult1_def);
-  let ?r = "\<lambda>K a. ALL b. elem K b --> (b, a) : r";
-  let ?R = "\<lambda>N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
+  let ?r = "\\<lambda>K a. ALL b. elem K b --> (b, a) : r";
+  let ?R = "\\<lambda>N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
   let ?case1 = "?case1 {(N, M). ?R N M}";
 
   assume "(N, M0 + {#a#}) : {(N, M). ?R N M}";
@@ -84,7 +84,7 @@ proof;
 	assume N: "N = M0 + K";
 	assume "ALL b. elem K b --> (b, a) : r";
 	have "?this --> M0 + K : ?W" (is "?P K");
-	proof (induct K rule: multiset_induct);
+	proof (induct K in rule: multiset_induct);
 	  from M0; have "M0 + {#} : ?W"; by simp;
 	  thus "?P {#}"; ..;
 
@@ -109,7 +109,7 @@ proof;
   assume wf: "wf r";
   fix M;
   show "M : ?W";
-  proof (induct M rule: multiset_induct);
+  proof (induct M in rule: multiset_induct);
     show "{#} : ?W";
     proof (rule accI);
       fix b; assume "(b, {#}) : ?R";

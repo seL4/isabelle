@@ -35,7 +35,7 @@ recdef fib less_than
 lemmas [simp] = fib.rules;
 
 lemma [simp]: "0 < fib (Suc n)";
-  by (induct n function: fib) (simp+);
+  by (induct n in function: fib) (simp+);
 
 
 text {* Alternative induction rule. *};

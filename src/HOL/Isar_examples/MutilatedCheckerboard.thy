@@ -35,7 +35,7 @@ lemma tiling_Un:
 proof;
   assume "t : tiling A" (is "_ : ?T");
   thus "u : ?T --> t Int u = {} --> t Un u : ?T" (is "?P t");
-  proof (induct t set: tiling);
+  proof (induct t in set: tiling);
     show "?P {}"; by simp;
 
     fix a t;
@@ -168,7 +168,7 @@ proof -;
   assume b: "b < 2";
   assume "d : domino";
   thus ?thesis (is "?P d");
-  proof (induct d set: domino);
+  proof (induct d in set: domino);
     from b; have b_cases: "b = 0 | b = 1"; by arith;
     fix i j;
     note [simp] = evnodd_empty evnodd_insert mod_Suc;
@@ -192,7 +192,7 @@ lemma tiling_domino_finite:
 proof -;
   assume "t : ?T";
   thus "?F t";
-  proof (induct t set: tiling);
+  proof (induct t in set: tiling);
     show "?F {}"; by (rule Finites.emptyI);
     fix a t; assume "?F t";
     assume "a : domino"; hence "?F a"; by (rule domino_finite);
@@ -206,7 +206,7 @@ lemma tiling_domino_01:
 proof -;
   assume "t : ?T";
   thus "?P t";
-  proof (induct t set: tiling);
+  proof (induct t in set: tiling);
     show "?P {}"; by (simp add: evnodd_def);
 
     fix a t;
