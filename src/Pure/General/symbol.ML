@@ -110,13 +110,17 @@ local
 
     val bbb_letters = ["bool","complex","nat","rat","real","int"]
 
+    val control_letters = ["^sub"]
+ 
     val pre_letters =
 	cal_letters   @
 	small_letters @
 	goth_letters  @
-	greek_letters
+	greek_letters @
+	control_letters
+
 in
-val ext_letters = map wrap pre_letters
+val ext_letters = map wrap pre_letters 
 
 fun is_ext_letter s = String.isPrefix "\\<" s andalso s mem ext_letters
 end
