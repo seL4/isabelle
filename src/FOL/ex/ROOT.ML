@@ -1,13 +1,14 @@
-(*  Title:      FOL/ex/ROOT
+(*  Title:      FOL/ex/ROOT.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Executes all examples for First-Order Logic. 
+Examples for First-Order Logic. 
 *)
 
 time_use     "intro.ML";
 time_use_thy "Nat";
+time_use_thy "Natural_Numbers";
 time_use     "foundn.ML";
 time_use_thy "Prolog";
 
