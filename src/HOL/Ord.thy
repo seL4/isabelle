@@ -56,16 +56,32 @@ axclass order < ord
 axclass linorder < order
   linorder_linear "x <= y | y <= x"
 
-(*bounded quantifiers*)
+
+(* bounded quantifiers *)
+
 syntax
-  "@lessAll" :: [idt, 'a, bool] => bool   ("(3! _<_./ _)"  [0, 0, 10] 10)
-  "@lessEx"  :: [idt, 'a, bool] => bool   ("(3? _<_./ _)"  [0, 0, 10] 10)
-  "@leAll"   :: [idt, 'a, bool] => bool   ("(3! _<=_./ _)" [0, 0, 10] 10)
-  "@leEx"    :: [idt, 'a, bool] => bool   ("(3? _<=_./ _)" [0, 0, 10] 10)
+  "_lessAll" :: [idt, 'a, bool] => bool   ("(3ALL _<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: [idt, 'a, bool] => bool   ("(3EX _<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: [idt, 'a, bool] => bool   ("(3ALL _<=_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: [idt, 'a, bool] => bool   ("(3EX _<=_./ _)" [0, 0, 10] 10)
+
+syntax (symbols)
+  "_lessAll" :: [idt, 'a, bool] => bool   ("(3\\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: [idt, 'a, bool] => bool   ("(3\\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: [idt, 'a, bool] => bool   ("(3\\<forall>_<=_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: [idt, 'a, bool] => bool   ("(3\\<exists>_<=_./ _)" [0, 0, 10] 10)
+
+syntax (HOL)
+  "_lessAll" :: [idt, 'a, bool] => bool   ("(3! _<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: [idt, 'a, bool] => bool   ("(3? _<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: [idt, 'a, bool] => bool   ("(3! _<=_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: [idt, 'a, bool] => bool   ("(3? _<=_./ _)" [0, 0, 10] 10)
+
 translations
- "! x<y.  P"  =>  "! x. x < y  --> P"
- "! x<=y. P"  =>  "! x. x <= y --> P"
- "? x<y.  P"  =>  "? x. x < y  & P"
- "? x<=y. P"  =>  "? x. x <= y & P"
+ "ALL x<y. P"   =>  "ALL x. x < y --> P"
+ "EX x<y. P"    =>  "EX x. x < y  & P"
+ "ALL x<=y. P"  =>  "ALL x. x <= y --> P"
+ "EX x<=y. P"   =>  "EX x. x <= y & P"
+
 
 end

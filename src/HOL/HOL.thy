@@ -40,9 +40,9 @@ consts
   (* Binders *)
 
   Eps           :: ('a => bool) => 'a
-  All           :: ('a => bool) => bool             (binder "! " 10)
-  Ex            :: ('a => bool) => bool             (binder "? " 10)
-  Ex1           :: ('a => bool) => bool             (binder "?! " 10)
+  All           :: ('a => bool) => bool             (binder "ALL " 10)
+  Ex            :: ('a => bool) => bool             (binder "EX " 10)
+  Ex1           :: ('a => bool) => bool             (binder "EX! " 10)
   Let           :: ['a, 'a => 'b] => 'b
 
   (* Infixes *)
@@ -75,6 +75,7 @@ consts
   (*See Nat.thy for "^"*)
 
 
+
 (** Additional concrete syntax **)
 
 nonterminals
@@ -82,16 +83,8 @@ nonterminals
   case_syn  cases_syn
 
 syntax
-
   "~="          :: ['a, 'a] => bool                 (infixl 50)
-
-  "@Eps"        :: [pttrn, bool] => 'a              ("(3@ _./ _)" [0, 10] 10)
-
-  (* Alternative Quantifiers *)
-
-  "*All"        :: [idts, bool] => bool             ("(3ALL _./ _)" [0, 10] 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3EX _./ _)" [0, 10] 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3EX! _./ _)" [0, 10] 10)
+  "_Eps"        :: [pttrn, bool] => 'a              ("(3SOME _./ _)" [0, 10] 10)
 
   (* Let expressions *)
 
@@ -108,11 +101,8 @@ syntax
   "@case2"      :: [case_syn, cases_syn] => cases_syn   ("_/ | _")
 
 translations
-  "x ~= y"      == "~ (x = y)"
-  "@ x. b"      == "Eps (%x. b)"
-  "ALL xs. P"   => "! xs. P"
-  "EX xs. P"    => "? xs. P"
-  "EX! xs. P"   => "?! xs. P"
+  "x ~= y"                == "~ (x = y)"
+  "SOME x. P"             == "Eps (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 
@@ -127,24 +117,28 @@ syntax (symbols)
   "op -->"      :: [bool, bool] => bool             (infixr "\\<midarrow>\\<rightarrow>" 25)
   "op o"        :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl "\\<circ>" 55)
   "op ~="       :: ['a, 'a] => bool                 (infixl "\\<noteq>" 50)
-  "@Eps"        :: [pttrn, bool] => 'a              ("(3\\<epsilon>_./ _)" [0, 10] 10)
-  "! "          :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
-  "? "          :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
-  "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
+  "_Eps"        :: [pttrn, bool] => 'a              ("(3\\<epsilon>_./ _)" [0, 10] 10)
+  "ALL "        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
   "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<Rightarrow>/ _)" 10)
 (*"@case2"      :: [case_syn, cases_syn] => cases_syn   ("_/ \\<orelse> _")*)
 
 syntax (symbols output)
   "op ~="       :: ['a, 'a] => bool                 ("(_ \\<noteq>/ _)" [51, 51] 50)
-  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
 
 syntax (xsymbols)
   "op -->"      :: [bool, bool] => bool             (infixr "\\<longrightarrow>" 25)
 
 syntax (HTML output)
   Not           :: bool => bool                     ("\\<not> _" [40] 40)
+
+syntax (HOL)
+  "_Eps"        :: [pttrn, bool] => 'a              ("(3@ _./ _)" [0, 10] 10)
+  "ALL "        :: [idts, bool] => bool             ("(3! _./ _)" [0, 10] 10)
+  "EX "         :: [idts, bool] => bool             ("(3? _./ _)" [0, 10] 10)
+  "EX! "        :: [idts, bool] => bool             ("(3?! _./ _)" [0, 10] 10)
+
 
 
 (** Rules and definitions **)
@@ -205,24 +199,3 @@ setup ClasetThyData.setup
 
 
 end
-
-
-ML
-
-
-(** Choice between the HOL and Isabelle style of quantifiers **)
-
-val HOL_quantifiers = ref true;
-
-fun alt_ast_tr' (name, alt_name) =
-  let
-    fun ast_tr' (*name*) args =
-      if ! HOL_quantifiers then raise Match
-      else Syntax.mk_appl (Syntax.Constant alt_name) args;
-  in
-    (name, ast_tr')
-  end;
-
-
-val print_ast_translation =
-  map alt_ast_tr' [("! ", "*All"), ("? ", "*Ex"), ("?! ", "*Ex1")];

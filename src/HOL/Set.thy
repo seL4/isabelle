@@ -44,14 +44,13 @@ consts
 
 syntax
 
-
   (* Infix syntax for non-membership *)
 
   "op ~:"       :: ['a, 'a set] => bool               ("op ~:")
   "op ~:"       :: ['a, 'a set] => bool               ("(_/ ~: _)" [50, 51] 50)
 
-  "@Finset"     :: args => 'a set                     ("{(_)}")
 
+  "@Finset"     :: args => 'a set                     ("{(_)}")
   "@Coll"       :: [pttrn, bool] => 'a set            ("(1{_./ _})")
   "@SetCompr"   :: ['a, idts, bool] => 'a set         ("(1{_ |/_./ _})")
 
@@ -64,11 +63,12 @@ syntax
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3UN _:_./ _)" 10)
 
   (* Bounded Quantifiers *)
+  "_Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" [0, 0, 10] 10)
 
-  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3! _:_./ _)" [0, 0, 10] 10)
-  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" [0, 0, 10] 10)
-  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" [0, 0, 10] 10)
-  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" [0, 0, 10] 10)
+syntax (HOL)
+  "_Ball"       :: [pttrn, 'a set, bool] => bool      ("(3! _:_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" [0, 0, 10] 10)
 
 translations
   "range f"     == "f``UNIV"
@@ -78,14 +78,12 @@ translations
   "{x. P}"      == "Collect (%x. P)"
   "UN x y. B"   == "UN x. UN y. B"
   "UN x. B"     == "UNION UNIV (%x. B)"
-  "INT x y. B"   == "INT x. INT y. B"
+  "INT x y. B"  == "INT x. INT y. B"
   "INT x. B"    == "INTER UNIV (%x. B)"
   "UN x:A. B"   == "UNION A (%x. B)"
   "INT x:A. B"  == "INTER A (%x. B)"
-  "! x:A. P"    == "Ball A (%x. P)"
-  "? x:A. P"    == "Bex A (%x. P)"
-  "ALL x:A. P"  => "Ball A (%x. P)"
-  "EX x:A. P"   => "Bex A (%x. P)"
+  "ALL x:A. P"  == "Ball A (%x. P)"
+  "EX x:A. P"   == "Bex A (%x. P)"
 
 syntax ("" output)
   "_setle"      :: ['a set, 'a set] => bool           ("op <=")
@@ -112,12 +110,8 @@ syntax (symbols)
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Inter> _\\<in>_./ _)" 10)
   Union         :: (('a set) set) => 'a set           ("\\<Union> _" [90] 90)
   Inter         :: (('a set) set) => 'a set           ("\\<Inter> _" [90] 90)
-  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
-  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
-
-syntax (symbols output)
-  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
-  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
+  "_Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
 
 translations
   "op \\<subseteq>" => "op <= :: [_ set, _ set] => bool"
@@ -138,7 +132,6 @@ rules
 
 
 defs
-
   Ball_def      "Ball A P       == ! x. x:A --> P(x)"
   Bex_def       "Bex A P        == ? x. x:A & P(x)"
   subset_def    "A <= B         == ! x:A. x:B"
@@ -156,6 +149,7 @@ defs
   UNIV_def      "UNIV           == {x. True}"
   insert_def    "insert a B     == {x. x=a} Un B"
   image_def     "f``A           == {y. ? x:A. y=f(x)}"
+
 
 end
 
@@ -178,7 +172,7 @@ fun less_tr' _ (*op <*) (Type ("fun", (Type ("set", _) :: _))) ts =
 (* Translates between { e | x1..xn. P} and {u. ? x1..xn. u=e & P}      *)
 (* {y. ? x1..xn. y = e & P} is only translated if [0..n] subset bvs(e) *)
 
-val ex_tr = snd(mk_binder_tr("? ","Ex"));
+val ex_tr = snd(mk_binder_tr("EX ","Ex"));
 
 fun nvars(Const("_idts",_) $ _ $ idts) = nvars(idts)+1
   | nvars(_) = 1;
@@ -208,7 +202,6 @@ in
 val parse_translation = [("@SetCompr", setcompr_tr)];
 val print_translation = [("Collect", setcompr_tr')];
 val typed_print_translation = [("op <=", le_tr'), ("op <", less_tr')];
-val print_ast_translation =
-  map HOL.alt_ast_tr' [("@Ball", "*Ball"), ("@Bex", "*Bex")];
+
 
 end;

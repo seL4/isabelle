@@ -147,18 +147,15 @@ proofs, but tags any invocation of the underlying oracle).
 
 ** HOL misc **
 
-* HOL/datatype: Now also handles arbitrarily branching datatypes
-  (using function types) such as
-
-  datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
-
 * HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
 -- avoids syntactic ambiguities and treats state, transition, and
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
 
-* New bounded quantifier syntax (input only):
-  ! x < y. P, ! x <= y. P, ? x < y. P, ? x <= y. P
+* HOL/datatype: Now also handles arbitrarily branching datatypes
+  (using function types) such as
+
+  datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
@@ -169,6 +166,17 @@ comma separated list of theorem names rather than an ML expression;
 * HOL/List: the constructors of type list are now Nil and Cons;
 INCOMPATIBILITY: while [] and infix # syntax is still there, of
 course, ML tools referring to List.list.op # etc. have to be adapted;
+
+* HOL_quantifiers flag superseded by "HOL" print mode, which is
+disabled by default; run isabelle with option -m HOL to get back to
+the original Gordon/HOL-style output;
+
+* HOL/Ord.thy: new bounded quantifier syntax (input only): ALL x<y. P,
+ALL x<=y. P, EX x<y. P, EX x<=y. P;
+
+* HOL basic syntax simplified (more orthogonal): all variants of
+All/Ex now support plain / symbolic / HOL notation; plain syntax for
+Eps operator is provided as well: "SOME x. P[x]";
 
 
 *** LK ***
