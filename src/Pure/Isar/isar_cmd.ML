@@ -42,7 +42,7 @@ val break = Toplevel.keep (fn state => raise Toplevel.BREAK state);
 
 val exit = Toplevel.keep (fn state =>
   (Context.set_context (try Toplevel.theory_of state);
-    writeln "Leaving the Isar loop.  Invoke 'main_loop();' to restart.";
+    writeln "Leaving the Isar loop.  Invoke 'loop();' to restart.";
     raise Toplevel.TERMINATE));
 
 val restart = Toplevel.imperative (fn () => raise Toplevel.RESTART);
