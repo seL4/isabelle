@@ -26,30 +26,26 @@ inductive "yahalom lost"
           ==> Says Spy B X  # evs : yahalom lost"
 
          (*Alice initiates a protocol run*)
-    YM1  "[| evs: yahalom lost;  A ~= B |]
-          ==> Says A B {|Agent A, Nonce (newN(length evs))|} # evs
-                : yahalom lost"
+    YM1  "[| evs: yahalom lost;  A ~= B;  Nonce NA ~: used evs |]
+          ==> Says A B {|Agent A, Nonce NA|} # evs : yahalom lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    YM2  "[| evs: yahalom lost;  B ~= Server;
+    YM2  "[| evs: yahalom lost;  B ~= Server;  Nonce NB ~: used evs;
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says B Server 
-                  {|Agent B, 
-                    Crypt (shrK B)
-                      {|Agent A, Nonce NA, Nonce (newN(length evs))|}|}
-                 # evs : yahalom lost"
+                  {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
+                # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
             new session key to Alice, with a packet for forwarding to Bob.*)
-    YM3  "[| evs: yahalom lost;  A ~= Server;
+    YM3  "[| evs: yahalom lost;  A ~= Server;  Key KAB ~: used evs;
              Says B' Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                : set_of_list evs |]
           ==> Says Server A
-                  {|Crypt (shrK A) {|Agent B, Key (newK(length evs)), 
-                            Nonce NA, Nonce NB|},
-                    Crypt (shrK B) {|Agent A, Key (newK(length evs))|}|}
+                  {|Crypt (shrK A) {|Agent B, Key KAB, Nonce NA, Nonce NB|},
+                    Crypt (shrK B) {|Agent A, Key KAB|}|}
                  # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and

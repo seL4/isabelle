@@ -26,20 +26,20 @@ inductive "ns_shared lost"
           ==> Says Spy B X # evs : ns_shared lost"
 
          (*Alice initiates a protocol run, requesting to talk to any B*)
-    NS1  "[| evs: ns_shared lost;  A ~= Server |]
-          ==> Says A Server {|Agent A, Agent B, Nonce (newN(length evs))|}
-                  # evs  :  ns_shared lost"
+    NS1  "[| evs: ns_shared lost;  A ~= Server;  Nonce NA ~: used evs |]
+          ==> Says A Server {|Agent A, Agent B, Nonce NA|} # evs
+                :  ns_shared lost"
 
          (*Server's response to Alice's message.
            !! It may respond more than once to A's request !!
 	   Server doesn't know who the true sender is, hence the A' in
                the sender field.*)
-    NS2  "[| evs: ns_shared lost;  A ~= B;  A ~= Server;
+    NS2  "[| evs: ns_shared lost;  A ~= B;  A ~= Server;  Key KAB ~: used evs;
              Says A' Server {|Agent A, Agent B, Nonce NA|} : set_of_list evs |]
           ==> Says Server A 
                 (Crypt (shrK A)
-                   {|Nonce NA, Agent B, Key (newK(length evs)),   
-                    (Crypt (shrK B) {|Key (newK(length evs)), Agent A|})|}) 
+                   {|Nonce NA, Agent B, Key KAB,
+                     (Crypt (shrK B) {|Key KAB, Agent A|})|}) 
                 # evs : ns_shared lost"
 
           (*We can't assume S=Server.  Agent A "remembers" her nonce.
@@ -52,9 +52,9 @@ inductive "ns_shared lost"
 
          (*Bob's nonce exchange.  He does not know who the message came
            from, but responds to A because she is mentioned inside.*)
-    NS4  "[| evs: ns_shared lost;  A ~= B;  
+    NS4  "[| evs: ns_shared lost;  A ~= B;  Nonce NB ~: used evs;
              Says A' B (Crypt (shrK B) {|Key K, Agent A|}) : set_of_list evs |]
-          ==> Says B A (Crypt K (Nonce (newN(length evs)))) # evs
+          ==> Says B A (Crypt K (Nonce NB)) # evs
                 : ns_shared lost"
 
          (*Alice responds with Nonce NB if she has seen the key before.

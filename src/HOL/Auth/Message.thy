@@ -41,7 +41,7 @@ datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
 
 (*Allows messages of the form {|A,B,NA|}, etc...*)
 syntax
-  "@MTuple"      :: "['a, args] => 'a * 'b"            ("(2{|_,/ _|})")
+  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
@@ -50,8 +50,8 @@ translations
 
 constdefs
   (*Message Y, paired with a MAC computed with the help of X*)
-  HPair :: "[msg,msg]=>msg"
-    "HPair X Y == {| Hash{|X,Y|}, Y|}"
+  HPair :: "[msg,msg]=>msg"                       ("(4Hash[_] /_)" [0, 1000])
+    "Hash[X] Y == {| Hash{|X,Y|}, Y|}"
 
   (*Keys useful to decrypt elements of a message set*)
   keysFor :: msg set => key set

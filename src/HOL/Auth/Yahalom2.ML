@@ -24,9 +24,9 @@ goal thy
 \        ==> EX X NB K. EX evs: yahalom lost.          \
 \               Says A B {|X, Crypt K (Nonce NB)|} : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS yahalom.YM4) 2);
-by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
-by (ALLGOALS Fast_tac);
+by (rtac (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS 
+          yahalom.YM4) 2);
+by possibility_tac;
 result();
 
 
@@ -91,87 +91,45 @@ fun parts_induct_tac i = SELECT_GOAL
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees another agent's shared key! (unless it is leaked at start)*)
+(*Spy never sees another agent's shared key! (unless it's lost at start)*)
 goal thy 
- "!!evs. [| evs : yahalom lost;  A ~: lost |]    \
-\        ==> Key (shrK A) ~: parts (sees lost Spy evs)";
+ "!!evs. evs : yahalom lost \
+\        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
 by (parts_induct_tac 1);
 by (Auto_tac());
-qed "Spy_not_see_shrK";
+qed "Spy_see_shrK";
+Addsimps [Spy_see_shrK];
 
-bind_thm ("Spy_not_analz_shrK",
-          [analz_subset_parts, Spy_not_see_shrK] MRS contra_subsetD);
-
-Addsimps [Spy_not_see_shrK, Spy_not_analz_shrK];
-
-(*We go to some trouble to preserve R in the 3rd and 4th subgoals
-  As usual fast_tac cannot be used because it uses the equalities too soon*)
-val major::prems = 
-goal thy  "[| Key (shrK A) : parts (sees lost Spy evs);       \
-\             evs : yahalom lost;                               \
-\             A:lost ==> R                                  \
-\           |] ==> R";
-by (rtac ccontr 1);
-by (rtac ([major, Spy_not_see_shrK] MRS rev_notE) 1);
-by (swap_res_tac prems 2);
-by (ALLGOALS (fast_tac (!claset addIs prems)));
-qed "Spy_see_shrK_E";
-
-bind_thm ("Spy_analz_shrK_E", 
-          analz_subset_parts RS subsetD RS Spy_see_shrK_E);
-
-AddSEs [Spy_see_shrK_E, Spy_analz_shrK_E];
-
-
-(*** Future keys can't be seen or used! ***)
-
-(*Nobody can have SEEN keys that will be generated in the future. *)
-goal thy "!!i. evs : yahalom lost ==> \
-\              length evs <= i --> Key(newK i) ~: parts (sees lost Spy evs)";
-by (parts_induct_tac 1);
-by (REPEAT_FIRST (best_tac (!claset addEs [leD RS notE]
-				    addDs [impOfSubs analz_subset_parts,
-                                           impOfSubs parts_insert_subset_Un,
-                                           Suc_leD]
-                                    addss (!simpset))));
-qed_spec_mp "new_keys_not_seen";
-Addsimps [new_keys_not_seen];
-
-(*Variant: old messages must contain old keys!*)
 goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Key (newK i) : parts {X};    \
-\           evs : yahalom lost                 \
-\        |] ==> i < length evs";
-by (rtac ccontr 1);
-by (dtac leI 1);
-by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
-                      addIs  [impOfSubs parts_mono]) 1);
-qed "Says_imp_old_keys";
+ "!!evs. evs : yahalom lost \
+\        ==> (Key (shrK A) : analz (sees lost Spy evs)) = (A : lost)";
+by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+qed "Spy_analz_shrK";
+Addsimps [Spy_analz_shrK];
+
+goal thy  "!!A. [| Key (shrK A) : parts (sees lost Spy evs);       \
+\                  evs : yahalom lost |] ==> A:lost";
+by (fast_tac (!claset addDs [Spy_see_shrK]) 1);
+qed "Spy_see_shrK_D";
+
+bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
+AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 
-(*Nobody can have USED keys that will be generated in the future.
-  ...very like new_keys_not_seen*)
-goal thy "!!i. evs : yahalom lost ==> \
-\             length evs <= i --> newK i ~: keysFor(parts(sees lost Spy evs))";
+(*Nobody can have used non-existent keys!*)
+goal thy "!!evs. evs : yahalom lost ==>          \
+\         Key K ~: used evs --> K ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
-by (dtac YM4_Key_parts_sees_Spy 5);
-(*YM1, YM2 and YM3*)
-by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,3,2]));
-(*Fake and Oops: these messages send unknown (X) components*)
-by (EVERY
-    (map (fast_tac
-          (!claset addDs [impOfSubs analz_subset_parts,
-                          impOfSubs (analz_subset_parts RS keysFor_mono),
-                          impOfSubs (parts_insert_subset_Un RS keysFor_mono),
-                          Suc_leD]
-                   addss (!simpset))) [3,1]));
-(*YM4: if K was used then it had been seen, contradicting new_keys_not_seen*)
-by (fast_tac
-      (!claset addSEs partsEs
-               addSDs [Says_imp_sees_Spy RS parts.Inj]
-               addEs [new_keys_not_seen RSN(2,rev_notE)]
-               addDs [Suc_leD]) 1);
+(*YM4: Key K is not fresh!*)
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 3);
+(*YM3*)
+by (fast_tac (!claset addss (!simpset)) 2);
+(*Fake*)
+by (best_tac
+      (!claset addIs [impOfSubs analz_subset_parts]
+               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
+                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addss (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -184,10 +142,10 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.*)
 goal thy 
- "!!evs. [| Says Server A {|NB', Crypt (shrK A) {|Agent B, K, NA|}, X|} \
+ "!!evs. [| Says Server A {|NB', Crypt (shrK A) {|Agent B, Key K, NA|}, X|} \
 \            : set_of_list evs;                                         \
 \           evs : yahalom lost |]                                       \
-\        ==> (EX i. K = Key(newK i)) & A ~= B";
+\        ==> K ~: range shrK & A ~= B";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -198,14 +156,14 @@ qed "Says_Server_message_form";
 val analz_Fake_tac = 
     dres_inst_tac [("lost","lost")] YM4_analz_sees_Spy 6 THEN
     forw_inst_tac [("lost","lost")] Says_Server_message_form 7 THEN
-    assume_tac 7 THEN Full_simp_tac 7 THEN
-    REPEAT ((eresolve_tac [exE,conjE] ORELSE' hyp_subst_tac) 7);
+    assume_tac 7 THEN
+    REPEAT ((etac conjE ORELSE' hyp_subst_tac) 7);
 
 
 (****
  The following is to prove theorems of the form
 
-          Key K : analz (insert (Key (newK i)) (sees lost Spy evs)) ==>
+          Key K : analz (insert (Key KAB) (sees lost Spy evs)) ==>
           Key K : analz (sees lost Spy evs)
 
  A more general formula must be proved inductively.
@@ -216,30 +174,26 @@ val analz_Fake_tac =
 
 goal thy  
  "!!evs. evs : yahalom lost ==> \
-\  ALL K E. (Key K : analz (Key``(newK``E) Un (sees lost Spy evs))) = \
-\           (K : newK``E | Key K : analz (sees lost Spy evs))";
+\  ALL K KK. KK <= Compl (range shrK) -->                      \
+\            (Key K : analz (Key``KK Un (sees lost Spy evs))) = \
+\            (K : KK | Key K : analz (sees lost Spy evs))";
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
-by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
-by (ALLGOALS (*Takes 11 secs*)
-    (asm_simp_tac 
-     (!simpset addsimps [Un_assoc RS sym, 
-			 insert_Key_singleton, insert_Key_image, pushKey_newK]
-               setloop split_tac [expand_if])));
+by (REPEAT_FIRST (resolve_tac [allI, impI]));
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
+by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
+(*Base*)
+by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
 (*YM4, Fake*) 
-by (EVERY (map spy_analz_tac [4, 2]));
-(*Oops, YM3, Base*)
-by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
-qed_spec_mp "analz_image_newK";
+by (REPEAT (spy_analz_tac 1));
+qed_spec_mp "analz_image_freshK";
 
 goal thy
- "!!evs. evs : yahalom lost ==>                               \
-\        Key K : analz (insert (Key (newK i)) (sees lost Spy evs)) = \
-\        (K = newK i | Key K : analz (sees lost Spy evs))";
-by (asm_simp_tac (HOL_ss addsimps [pushKey_newK, analz_image_newK, 
-                                   insert_Key_singleton]) 1);
-by (Fast_tac 1);
-qed "analz_insert_Key_newK";
+ "!!evs. [| evs : yahalom lost;  KAB ~: range shrK |] ==>             \
+\        Key K : analz (insert (Key KAB) (sees lost Spy evs)) = \
+\        (K = KAB | Key K : analz (sees lost Spy evs))";
+by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
+qed "analz_insert_freshK";
 
 
 (*** The Key K uniquely identifies the Server's  message. **)
@@ -256,8 +210,8 @@ by (Step_tac 1);
 (*Remaining case: YM3*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-(*...we assume X is a very new message, and handle this case by contradiction*)
-by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
+(*...we assume X is a recent message and handle this case by contradiction*)
+by (fast_tac (!claset addSEs sees_Spy_partsEs
                       delrules [conjI]    (*prevent split-up into 4 subgoals*)
                       addss (!simpset addsimps [parts_insertI])) 1);
 val lemma = result();
@@ -290,12 +244,13 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps [not_parts_not_analz, analz_insert_Key_newK]
+     (!simpset addsimps [not_parts_not_analz, analz_insert_freshK]
                setloop split_tac [expand_if])));
 (*YM3*)
-by (fast_tac (!claset addIs [parts_insertI]
-                      addEs [Says_imp_old_keys RS less_irrefl]
-                      addss (!simpset)) 2);
+by (fast_tac (!claset delrules [impCE]
+                      addSEs sees_Spy_partsEs
+                      addIs [impOfSubs analz_subset_parts]
+                      addss (!simpset addsimps [parts_insert2])) 2);
 (*OR4, Fake*) 
 by (REPEAT_FIRST spy_analz_tac);
 (*Oops*)
@@ -308,12 +263,12 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 (*Final version: Server's message in the most abstract form*)
 goal thy 
  "!!evs. [| Says Server A                                         \
-\              {|NB, Crypt (shrK A) {|Agent B, K, NA|},           \
-\                    Crypt (shrK B) {|NB, K, Agent A|}|}          \
+\              {|NB, Crypt (shrK A) {|Agent B, Key K, NA|},       \
+\                    Crypt (shrK B) {|NB, Key K, Agent A|}|}      \
 \           : set_of_list evs;                                    \
-\           Says A Spy {|NA, NB, K|} ~: set_of_list evs;          \
+\           Says A Spy {|NA, NB, Key K|} ~: set_of_list evs;      \
 \           A ~: lost;  B ~: lost;  evs : yahalom lost |]         \
-\        ==> K ~: analz (sees lost Spy evs)";
+\        ==> Key K ~: analz (sees lost Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (fast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
@@ -322,12 +277,12 @@ qed "Spy_not_see_encrypted_key";
 goal thy 
  "!!evs. [| C ~: {A,B,Server};                                    \
 \           Says Server A                                         \
-\              {|NB, Crypt (shrK A) {|Agent B, K, NA|},           \
-\                    Crypt (shrK B) {|NB, K, Agent A|}|}          \
+\              {|NB, Crypt (shrK A) {|Agent B, Key K, NA|},       \
+\                    Crypt (shrK B) {|NB, Key K, Agent A|}|}      \
 \           : set_of_list evs;                                    \
-\           Says A Spy {|NA, NB, K|} ~: set_of_list evs;          \
+\           Says A Spy {|NA, NB, Key K|} ~: set_of_list evs;      \
 \           A ~: lost;  B ~: lost;  evs : yahalom lost |]         \
-\        ==> K ~: analz (sees lost C evs)";
+\        ==> Key K ~: analz (sees lost C evs)";
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
 by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
 by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));

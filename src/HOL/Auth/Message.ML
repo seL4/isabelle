@@ -18,16 +18,6 @@ fun expand_case_tac P i =
     Simp_tac i;
 
 
-
-(*GOALS.ML??*)
-fun prlim n = (goals_limit:=n; pr());
-
-(*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
-goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
-by (fast_tac (!claset addEs [equalityE]) 1);
-val subset_range_iff = result();
-
-
 open Message;
 
 AddIffs (msg.inject);
@@ -42,49 +32,6 @@ by (Asm_simp_tac 1);
 qed "invKey_eq";
 
 Addsimps [invKey, invKey_eq];
-
-
-(**** Freeness laws for HPair ****)
-
-goalw thy [HPair_def] "Agent A ~= HPair X Y";
-by (Simp_tac 1);
-qed "Agent_neq_HPair";
-
-goalw thy [HPair_def] "Nonce N ~= HPair X Y";
-by (Simp_tac 1);
-qed "Nonce_neq_HPair";
-
-goalw thy [HPair_def] "Key K ~= HPair X Y";
-by (Simp_tac 1);
-qed "Key_neq_HPair";
-
-goalw thy [HPair_def] "Hash Z ~= HPair X Y";
-by (Simp_tac 1);
-qed "Hash_neq_HPair";
-
-goalw thy [HPair_def] "Crypt K X' ~= HPair X Y";
-by (Simp_tac 1);
-qed "Crypt_neq_HPair";
-
-val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, 
-		  Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
-
-AddIffs HPair_neqs;
-AddIffs (HPair_neqs RL [not_sym]);
-
-goalw thy [HPair_def] "(HPair X' Y' = HPair X Y) = (X' = X & Y'=Y)";
-by (Simp_tac 1);
-qed "HPair_eq";
-
-goalw thy [HPair_def] "({|X',Y'|} = HPair X Y) = (X' = Hash{|X,Y|} & Y'=Y)";
-by (Simp_tac 1);
-qed "MPair_eq_HPair";
-
-goalw thy [HPair_def] "(HPair X Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
-by (Auto_tac());
-qed "HPair_eq_MPair";
-
-AddIffs [HPair_eq, MPair_eq_HPair, HPair_eq_MPair];
 
 
 (**** keysFor operator ****)
@@ -133,7 +80,7 @@ qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
           keysFor_insert_Agent, keysFor_insert_Nonce, keysFor_insert_Key, 
-	  keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
+          keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 
 goalw thy [keysFor_def] "!!H. Crypt K X : H ==> invKey K : keysFor H";
 by (Fast_tac 1);
@@ -282,8 +229,8 @@ Addsimps [parts_cut_eq];
 
 fun parts_tac i =
   EVERY [rtac ([subsetI, parts_insert_subset] MRS equalityI) i,
-	 etac parts.induct i,
-	 REPEAT (fast_tac (!claset addss (!simpset)) i)];
+         etac parts.induct i,
+         REPEAT (fast_tac (!claset addss (!simpset)) i)];
 
 goal thy "parts (insert (Agent agt) H) = insert (Agent agt) (parts H)";
 by (parts_tac 1);
@@ -410,8 +357,8 @@ qed "analz_insert";
 
 fun analz_tac i =
   EVERY [rtac ([subsetI, analz_insert] MRS equalityI) i,
-	 etac analz.induct i,
-	 REPEAT (fast_tac (!claset addss (!simpset)) i)];
+         etac analz.induct i,
+         REPEAT (fast_tac (!claset addss (!simpset)) i)];
 
 goal thy "analz (insert (Agent agt) H) = insert (Agent agt) (analz H)";
 by (analz_tac 1);
@@ -488,7 +435,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt,
 qed "analz_Crypt_if";
 
 Addsimps [analz_insert_Agent, analz_insert_Nonce, analz_insert_Key, 
-	  analz_insert_Hash, analz_insert_MPair, analz_Crypt_if];
+          analz_insert_Hash, analz_insert_MPair, analz_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
 goal thy  "analz (insert (Crypt K X) H) <=  \
@@ -587,7 +534,7 @@ AddIs  synth.intrs;
   but can synth a pair or encryption from its components...*)
 val mk_cases = synth.mk_cases msg.simps;
 
-(*NO Agent_synth, as any Agent name can be synthd*)
+(*NO Agent_synth, as any Agent name can be synthesized*)
 val Nonce_synth = mk_cases "Nonce n : synth H";
 val Key_synth   = mk_cases "Key K : synth H";
 val Hash_synth  = mk_cases "Hash X : synth H";
@@ -752,17 +699,6 @@ by (Full_simp_tac 1);
 by (Fast_tac 1);
 qed "Fake_analz_insert";
 
-(*Needed????????????????*)
-goal thy "!!H. [| X: synth (analz G); G <= H |] ==> \
-\              analz (insert X H) <= synth (analz H) Un analz H";
-by (rtac subsetI 1);
-by (subgoal_tac "x : analz (synth (analz H))" 1);
-by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
-                      addSEs [impOfSubs analz_mono]) 2);
-by (Full_simp_tac 1);
-by (Fast_tac 1);
-qed "Fake_analz_insert_old";
-
 goal thy "(X: analz H & X: parts H) = (X: analz H)";
 by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]) 1);
 val analz_conj_parts = result();
@@ -788,8 +724,8 @@ by (Fast_tac 1);
 qed "Crypt_synth_analz";
 
 
-goal thy "!!K. Key K ~: analz H \
-\   ==> (Hash{|Key K,X|} : synth (analz H)) = (Hash{|Key K,X|} : analz H)";
+goal thy "!!K. X ~: synth (analz H) \
+\   ==> (Hash{|X,Y|} : synth (analz H)) = (Hash{|X,Y|} : analz H)";
 by (Fast_tac 1);
 qed "Hash_synth_analz";
 Addsimps [Hash_synth_analz];
@@ -799,41 +735,41 @@ Addsimps [Hash_synth_analz];
 
 (*** Freeness ***)
 
-goalw thy [HPair_def] "Agent A ~= HPair X Y";
+goalw thy [HPair_def] "Agent A ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Agent_neq_HPair";
 
-goalw thy [HPair_def] "Nonce N ~= HPair X Y";
+goalw thy [HPair_def] "Nonce N ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Nonce_neq_HPair";
 
-goalw thy [HPair_def] "Key K ~= HPair X Y";
+goalw thy [HPair_def] "Key K ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Key_neq_HPair";
 
-goalw thy [HPair_def] "Hash Z ~= HPair X Y";
+goalw thy [HPair_def] "Hash Z ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Hash_neq_HPair";
 
-goalw thy [HPair_def] "Crypt K X' ~= HPair X Y";
+goalw thy [HPair_def] "Crypt K X' ~= Hash[X] Y";
 by (Simp_tac 1);
 qed "Crypt_neq_HPair";
 
 val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, 
-		  Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
+                  Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
 
 AddIffs HPair_neqs;
 AddIffs (HPair_neqs RL [not_sym]);
 
-goalw thy [HPair_def] "(HPair X' Y' = HPair X Y) = (X' = X & Y'=Y)";
+goalw thy [HPair_def] "(Hash[X'] Y' = Hash[X] Y) = (X' = X & Y'=Y)";
 by (Simp_tac 1);
 qed "HPair_eq";
 
-goalw thy [HPair_def] "({|X',Y'|} = HPair X Y) = (X' = Hash{|X,Y|} & Y'=Y)";
+goalw thy [HPair_def] "({|X',Y'|} = Hash[X] Y) = (X' = Hash{|X,Y|} & Y'=Y)";
 by (Simp_tac 1);
 qed "MPair_eq_HPair";
 
-goalw thy [HPair_def] "(HPair X Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
+goalw thy [HPair_def] "(Hash[X] Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
 by (Auto_tac());
 qed "HPair_eq_MPair";
 
@@ -842,31 +778,31 @@ AddIffs [HPair_eq, MPair_eq_HPair, HPair_eq_MPair];
 
 (*** Specialized laws, proved in terms of those for Hash and MPair ***)
 
-goalw thy [HPair_def] "keysFor (insert (HPair X Y) H) = keysFor H";
+goalw thy [HPair_def] "keysFor (insert (Hash[X] Y) H) = keysFor H";
 by (Simp_tac 1);
 qed "keysFor_insert_HPair";
 
 goalw thy [HPair_def]
-    "parts (insert (HPair X Y) H) = \
-\    insert (HPair X Y) (insert (Hash{|X,Y|}) (parts (insert Y H)))";
+    "parts (insert (Hash[X] Y) H) = \
+\    insert (Hash[X] Y) (insert (Hash{|X,Y|}) (parts (insert Y H)))";
 by (Simp_tac 1);
 qed "parts_insert_HPair";
 
 goalw thy [HPair_def]
-    "analz (insert (HPair X Y) H) = \
-\    insert (HPair X Y) (insert (Hash{|X,Y|}) (analz (insert Y H)))";
+    "analz (insert (Hash[X] Y) H) = \
+\    insert (Hash[X] Y) (insert (Hash{|X,Y|}) (analz (insert Y H)))";
 by (Simp_tac 1);
 qed "analz_insert_HPair";
 
 goalw thy [HPair_def] "!!H. X ~: synth (analz H) \
-\   ==> (HPair X Y : synth (analz H)) = \
+\   ==> (Hash[X] Y : synth (analz H)) = \
 \       (Hash {|X, Y|} : analz H & Y : synth (analz H))";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "HPair_synth_analz";
 
 Addsimps [keysFor_insert_HPair, parts_insert_HPair, analz_insert_HPair, 
-	  HPair_synth_analz, HPair_synth_analz];
+          HPair_synth_analz, HPair_synth_analz];
 
 
 (*We do NOT want Crypt... messages broken up in protocols!!*)
@@ -881,7 +817,7 @@ fun insComm thy x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)]
 
 val pushKeys = map (insComm thy "Key ?K") 
                    ["Agent ?C", "Nonce ?N", "Hash ?X", 
-		    "MPair ?X ?Y", "Crypt ?X ?K'"];
+                    "MPair ?X ?Y", "Crypt ?X ?K'"];
 
 val pushCrypts = map (insComm thy "Crypt ?X ?K") 
                      ["Agent ?C", "Nonce ?N", "Hash ?X'", "MPair ?X' ?Y"];
@@ -898,7 +834,7 @@ fun safe_solver prems =
 
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
-		  impOfSubs Fake_parts_insert] THEN'
+                  impOfSubs Fake_parts_insert] THEN'
     eresolve_tac [asm_rl, synth.Inj];
 
 (*Analysis of Fake cases and of messages that forward unknown parts.
@@ -916,9 +852,9 @@ fun spy_analz_tac i =
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI])),
        DEPTH_SOLVE 
          (REPEAT (Fake_insert_tac 1) THEN Asm_full_simp_tac 1
-	  THEN
-	  IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono,
-						 impOfSubs analz_subset_parts]) 2 1))
+          THEN
+          IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono,
+                                                 impOfSubs analz_subset_parts]) 2 1))
        ]) i);
 
 (** Useful in many uniqueness proofs **)
@@ -929,10 +865,10 @@ fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN
   their standard form*)
 fun prove_unique_tac lemma = 
   EVERY' [dtac lemma,
-	  REPEAT o (mp_tac ORELSE' eresolve_tac [asm_rl,exE]),
-	  (*Duplicate the assumption*)
-	  forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl,
-	  fast_tac (!claset addSDs [spec])];
+          REPEAT o (mp_tac ORELSE' eresolve_tac [asm_rl,exE]),
+          (*Duplicate the assumption*)
+          forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl,
+          fast_tac (!claset addSDs [spec])];
 
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)

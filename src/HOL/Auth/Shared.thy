@@ -8,13 +8,14 @@ Theory of Shared Keys (common to all symmetric-key protocols)
 Server keys; initial states of agents; new nonces and keys; function "sees" 
 *)
 
-Shared = Message + List + 
+Shared = Message + List + Finite +
 
 consts
   shrK    :: agent => key  (*symmetric keys*)
 
 rules
-  isSym_shrK "isSymKey (shrK A)"
+  (*ALL keys are symmetric*)
+  isSym_keys "isSymKey K"
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: [agent set, agent] => msg set
@@ -44,6 +45,23 @@ primrec sees list
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
+constdefs
+  (*Set of items that might be visible to somebody: complement of the set
+        of fresh items*)
+  used :: event list => msg set
+    "used evs == parts (UN lost B. sees lost B evs)"
+
+
+rules
+  (*Unlike the corresponding property of nonces, this cannot be proved.
+    We have infinitely many agents and there is nothing to stop their
+    long-term keys from exhausting all the natural numbers.  The axiom
+    assumes that their keys are dispersed so as to leave room for infinitely
+    many fresh session keys.  We could, alternatively, restrict agents to
+    an unspecified finite number.*)
+  Key_supply_ax  "KK: Fin UNIV ==> EX K. K ~: KK & Key K ~: used evs"
+
+
 (*Agents generate random (symmetric) keys and nonces.
   The numeric argument is typically the length of the current trace.
   An injective pairing function allows multiple keys/nonces to be generated
@@ -63,6 +81,5 @@ rules
   inj_newK        "inj newK"
 
   newK_neq_shrK   "newK i ~= shrK A" 
-  isSym_newK      "isSymKey (newK i)"
 
 end

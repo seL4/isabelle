@@ -158,18 +158,20 @@ qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
 goalw thy [used_def] "!!X. X: parts (sees lost B evs) ==> X: used evs";
-be (impOfSubs parts_mono) 1;
+by (etac (impOfSubs parts_mono) 1);
 by (Fast_tac 1);
 qed "usedI";
 
 AddIs [usedI];
 
-(*Yields a supply of fresh nonces for possibility theorems.*)
+(** A supply of fresh nonces for possibility theorems. **)
+
 goalw thy [used_def] "EX N. ALL n. N<=n --> Nonce n ~: used evs";
 by (list.induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (Step_tac 1);
 by (Full_simp_tac 1);
+(*Inductive step*)
 by (event.induct_tac "a" 1);
 by (full_simp_tac (!simpset addsimps [UN_parts_sees_Says]) 1);
 by (msg.induct_tac "msg" 1);
@@ -184,11 +186,18 @@ by (fast_tac (!claset addSEs [add_leE] addafter (TRYALL trans_tac)) 1);
 val lemma = result();
 
 goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
-br (lemma RS exE) 1;
-br selectI 1;
+by (rtac (lemma RS exE) 1);
+by (rtac selectI 1);
 by (Fast_tac 1);
 qed "Nonce_supply";
 
+(*Tactic for possibility theorems*)
+val possibility_tac =
+    REPEAT 
+    (ALLGOALS (simp_tac (!simpset setsolver safe_solver))
+     THEN
+     REPEAT_FIRST (eq_assume_tac ORELSE' 
+                   resolve_tac [refl, conjI, Nonce_supply]));
 
 (** Power of the Spy **)
 

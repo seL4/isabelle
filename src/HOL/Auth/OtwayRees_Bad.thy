@@ -27,26 +27,25 @@ inductive otway
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs: otway;  A ~= B;  B ~= Server |]
-          ==> Says A B {|Nonce (newN(length evs)), Agent A, Agent B, 
-                         Crypt (shrK A) 
-                            {|Nonce (newN(length evs)), Agent A, Agent B|} |} 
+    OR1  "[| evs: otway;  A ~= B;  B ~= Server;  Nonce NA ~: used evs |]
+          ==> Says A B {|Nonce NA, Agent A, Agent B, 
+                         Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |} 
                  # evs : otway"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.
            We modify the published protocol by NOT encrypting NB.*)
-    OR2  "[| evs: otway;  B ~= Server;
+    OR2  "[| evs: otway;  B ~= Server;  Nonce NB ~: used evs;
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
           ==> Says B Server 
-                  {|Nonce NA, Agent A, Agent B, X, Nonce (newN(length evs)), 
+                  {|Nonce NA, Agent A, Agent B, X, Nonce NB,
                     Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
                  # evs : otway"
 
          (*The Server receives Bob's message and checks that the three NAs
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.*)
-    OR3  "[| evs: otway;  B ~= Server;
+    OR3  "[| evs: otway;  B ~= Server;  Key KAB ~: used evs;
              Says B' Server 
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
@@ -55,16 +54,16 @@ inductive otway
                : set_of_list evs |]
           ==> Says Server B 
                   {|Nonce NA, 
-                    Crypt (shrK A) {|Nonce NA, Key (newK(length evs))|},
-                    Crypt (shrK B) {|Nonce NB, Key (newK(length evs))|}|}
+                    Crypt (shrK A) {|Nonce NA, Key KAB|},
+                    Crypt (shrK B) {|Nonce NB, Key KAB|}|}
                  # evs : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs: otway;  A ~= B;
-             Says S B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
-               : set_of_list evs;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
+               : set_of_list evs;
+             Says S B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set_of_list evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway"
 

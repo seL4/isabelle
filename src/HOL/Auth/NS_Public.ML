@@ -11,7 +11,6 @@ open NS_Public;
 
 proof_timing:=true;
 HOL_quantifiers := false;
-Pretty.setdepth 20;
 
 AddIffs [Spy_in_lost];
 
@@ -26,10 +25,7 @@ goal thy
 \                     Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_public.Nil RS ns_public.NS1 RS ns_public.NS2 RS ns_public.NS3) 2);
-by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
-by (REPEAT_FIRST (resolve_tac [refl, conjI]));
-by (REPEAT_FIRST (fast_tac (!claset addSEs [Nonce_supply RS notE]
-				    addss (!simpset setsolver safe_solver))));
+by possibility_tac;
 result();
 
 
@@ -84,9 +80,9 @@ AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
 
 
 fun analz_induct_tac i = 
-    etac ns_public.induct i	THEN
+    etac ns_public.induct i     THEN
     ALLGOALS (asm_simp_tac 
-	      (!simpset addsimps [not_parts_not_analz]
+              (!simpset addsimps [not_parts_not_analz]
                         setloop split_tac [expand_if]));
 
 (**** Authenticity properties obtained from NS2 ****)
@@ -105,9 +101,9 @@ by (fast_tac (!claset addSEs partsEs) 4);
 by (fast_tac (!claset addSEs partsEs) 3);
 (*Fake*)
 by (best_tac (!claset addIs [analz_insertI]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
-	              addss (!simpset)) 2);
+                      addDs [impOfSubs analz_subset_parts,
+                             impOfSubs Fake_parts_insert]
+                      addss (!simpset)) 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
 bind_thm ("no_nonce_NS1_NS2", result() RSN (2, rev_mp) RSN (2, rev_mp));
@@ -132,8 +128,8 @@ by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-		      addSDs [impOfSubs Fake_parts_insert]
-	              addDs  [impOfSubs analz_subset_parts]
+                      addSDs [impOfSubs Fake_parts_insert]
+                      addDs  [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
 val lemma = result();
 
@@ -158,7 +154,7 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-		      addSDs [Says_imp_sees_Spy' RS parts.Inj]
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addIs  [impOfSubs analz_subset_parts]) 2);
 (*Fake*)
 by (spy_analz_tac 1);
@@ -191,9 +187,9 @@ by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NA] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSIs [disjI2]
-		      addSDs [impOfSubs Fake_parts_insert]
-		      addDs  [impOfSubs analz_subset_parts]
-	              addss (!simpset)) 1);
+                      addSDs [impOfSubs Fake_parts_insert]
+                      addDs  [impOfSubs analz_subset_parts]
+                      addss (!simpset)) 1);
 qed_spec_mp "NA_decrypt_imp_B_msg";
 
 (*Corollary: if A receives B's message NS2 and the nonce NA agrees
@@ -219,10 +215,10 @@ goal thy
 by (analz_induct_tac 1);
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
-		      addSDs [impOfSubs Fake_parts_insert]
-		      addIs  [analz_insertI]
-		      addDs  [impOfSubs analz_subset_parts]
-	              addss (!simpset)) 2);
+                      addSDs [impOfSubs Fake_parts_insert]
+                      addIs  [analz_insertI]
+                      addDs  [impOfSubs analz_subset_parts]
+                      addss (!simpset)) 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
 qed_spec_mp "B_trusts_NS1";
@@ -252,9 +248,9 @@ by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-	              addSDs [impOfSubs Fake_parts_insert]
-	              addDs  [impOfSubs analz_subset_parts] 
-	              addss (!simpset)) 1);
+                      addSDs [impOfSubs Fake_parts_insert]
+                      addDs  [impOfSubs analz_subset_parts] 
+                      addss (!simpset)) 1);
 val lemma = result();
 
 goal thy 
@@ -317,14 +313,14 @@ by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSIs [disjI2]
-		      addSDs [impOfSubs Fake_parts_insert]
-	              addDs  [impOfSubs analz_subset_parts] 
-	              addss (!simpset)) 1);
+                      addSDs [impOfSubs Fake_parts_insert]
+                      addDs  [impOfSubs analz_subset_parts] 
+                      addss (!simpset)) 1);
 (*NS3*)
 by (Step_tac 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSDs [Says_imp_sees_Spy'' RS parts.Inj]
-	              addDs  [unique_NB]) 1);
+                      addDs  [unique_NB]) 1);
 qed_spec_mp "NB_decrypt_imp_A_msg";
 
 (*Corollary: if B receives message NS3 and the nonce NB agrees,
@@ -363,14 +359,14 @@ by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSIs [disjI2]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
-	              addss (!simpset)) 1);
+                      addDs [impOfSubs analz_subset_parts,
+                             impOfSubs Fake_parts_insert]
+                      addss (!simpset)) 1);
 (*NS3*)
 by (Step_tac 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSDs [Says_imp_sees_Spy'' RS parts.Inj]
-	              addDs  [unique_NB]) 1);
+                      addDs  [unique_NB]) 1);
 val lemma = result() RSN (2, rev_mp) RSN (2, rev_mp);
 
 goal thy 

@@ -25,10 +25,11 @@ goal thy
 \                 : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
-	  woolam.WL4 RS woolam.WL5) 2);
+          woolam.WL4 RS woolam.WL5) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
 by (REPEAT_FIRST (resolve_tac [refl, conjI]));
-by (REPEAT_FIRST (fast_tac (!claset addss (!simpset setsolver safe_solver))));
+by (REPEAT_FIRST (fast_tac (!claset addSEs [Nonce_supply RS notE]
+                                    addss (!simpset setsolver safe_solver))));
 result();
 
 
@@ -92,23 +93,6 @@ qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
 AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
-
-
-(*** Future nonces can't be seen or used! ***)
-
-goal thy "!!i. evs : woolam ==>             \
-\             length evs <= i --> Nonce(newN(i)) ~: parts (sees lost Spy evs)";
-by (parts_induct_tac 1);
-by (REPEAT_FIRST (fast_tac (!claset 
-                              addSEs partsEs
-                              addSDs  [Says_imp_sees_Spy RS parts.Inj]
-                              addEs [leD RS notE]
-			      addDs  [impOfSubs analz_subset_parts,
-                                      impOfSubs parts_insert_subset_Un,
-                                      Suc_leD]
-                              addss (!simpset))));
-qed_spec_mp "new_nonces_not_seen";
-Addsimps [new_nonces_not_seen];
 
 
 (**** Autheticity properties for Woo-Lam ****)
@@ -201,6 +185,5 @@ goal thy
 \        --> Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs";
 by (parts_induct_tac 1);
 by (Step_tac 1);
-by (best_tac (!claset addSEs partsEs
-                      addEs  [new_nonces_not_seen RSN(2,rev_notE)]) 1);
+by (best_tac (!claset addSEs partsEs) 1);
 **)
