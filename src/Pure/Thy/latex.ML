@@ -107,7 +107,7 @@ fun output_tok (Basic tok, _) =
         else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
         else output_syms s
       end
-  | output_tok (Markup cmd, txt) = "%\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "}\n"
+  | output_tok (Markup cmd, txt) = "%\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "%\n}\n"
   | output_tok (MarkupEnv cmd, txt) = "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
       strip_blanks txt ^ "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
   | output_tok (Verbatim, txt) = "%\n" ^ strip_blanks txt ^ "\n";
