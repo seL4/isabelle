@@ -4,19 +4,28 @@
     Copyright   1995 TU Muenchen
 *)
 
+datatype thm_db_type =
+  ThmDB of {count: int,
+            thy_idx: (Sign.sg * (string list * int list)) list,
+            const_idx: ((int * (string * thm)) list) Symtab.table};
+    (*count: number of theorems in database (used as unique ID for next thm)
+      thy_idx: constants and IDs of theorems
+               indexed by the theory's signature they belong to
+      const_idx: named theorems tagged by numbers and
+                 indexed by the constants they contain*)
+
 signature THMDB =
 sig
-  type thm_db_type
-
-  val thm_db: thm_db_type
+  val thm_db: thm_db_type ref
   val store_thm_db: string * thm -> thm
+  val delete_thm_db: theory -> unit
   val thms_containing: string list -> (string * thm) list
   val findI:         int -> (string * thm)list
   val findEs:        int -> (string * thm)list
   val findE:  int -> int -> (string * thm)list
 end;
 
-functor ThmDBFUN(): THMDB =
+functor ThmDBFun(): THMDB =
 struct
 
 (*** ignore and top_const could be turned into functor-parameters, but are
@@ -29,13 +38,11 @@ val ignore = ["Trueprop", "all", "==>", "=="];
 fun top_const (_ $ t) = (case head_of t of Const(c,_) => Some c
                                          | _          => None);
 
-type thm_db_type = (int * ((int * (string * thm)) list) Symtab.table) ref;
-
 (*Symtab which associates a constant with a list of theorems that contain the
-  constant (theorems are represented as numbers)*)
-val thm_db = ref (0,
-           (Symtab.make ([] : (string * ((int * (string * thm)) list)) list)));
-                      (*number of next theorem and symtab containing theorems*)
+  constant (theorems are tagged with numbers)*)
+val thm_db = ref (ThmDB
+ {count = 0, thy_idx = []:(Sign.sg * (string list * int list)) list,
+  const_idx = Symtab.make ([]:(string * ((int * (string * thm)) list)) list)});
 
 (*list all relevant constants a term contains*)
 fun list_consts t =
@@ -49,43 +56,75 @@ fun list_consts t =
 
 (*store a theorem in database*)
 fun store_thm_db (named_thm as (name, thm)) =
-  let val {prop, hyps, ...} = rep_thm thm;
+  let val {prop, hyps, sign, ...} = rep_thm thm;
 
       val consts = distinct (flat (map list_consts (prop :: hyps)));
 
-      val (num, db) = !thm_db;
+      val ThmDB {count, thy_idx, const_idx} = !thm_db;
 
-      val tagged_thm = (num + 1, named_thm);
+      fun update_thys [] = [(sign, (consts, [count]))]
+        | update_thys ((thy as (thy_sign, (thy_consts, thy_nums))) :: ts) =
+            if Sign.eq_sg (sign, thy_sign) then
+              (thy_sign, (thy_consts union consts, count :: thy_nums)) :: ts
+            else thy :: update_thys ts;
 
-      fun update_db warned [] result = result
-        | update_db warned (c :: cs) result =
+      val tagged_thm = (count, named_thm);
+
+      fun update_db _ [] result = Some result
+        | update_db checked (c :: cs) result =
             let
               val old_thms = Symtab.lookup_multi (result, c);
 
-              val (duplicate, warned') =
-                case find_first (fn (_, (n, _)) => n = name) old_thms of
-                    Some (_, (_, t)) =>
-                      if same_thm (t, thm) then (true, warned)
-                      else
-                        (if not warned then
-                           writeln ("Warning: Duplicate theorem name " ^
-                                    quote name ^ " used in theorem database")
-                         else ();
-                         (false, true))
-                 | None => (false, warned);
-            in update_db warned' cs
-                 (if duplicate then result
-                  else (Symtab.update ((c, tagged_thm :: old_thms), result)))
+              val duplicate =
+                if checked then false
+                else case find_first (fn (_, (n, _)) => n = name) old_thms of
+                       Some (_, (_, t)) => eq_thm (t, thm)
+                     | None => false
+            in if duplicate then
+                 (writeln ("Warning: Theorem database already contains copy of\
+                           \ theorem " ^ quote name);
+                  None)
+               else update_db true
+                      cs (Symtab.update ((c, tagged_thm :: old_thms), result))
             end;
+
+      val const_idx' = update_db false consts const_idx;
   in if consts = [] then writeln ("Warning: Theorem " ^ name ^
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
-                    else ();
-     thm_db := (num+1, update_db false consts db);
+     else if is_some const_idx' then
+       thm_db := ThmDB {count = count+1, thy_idx = update_thys thy_idx,
+                        const_idx = the const_idx'}
+     else ();
      thm
   end;
 
-(*intersection of two descending theorem lists*)
+(*remove all theorems with given signature from database*)
+fun delete_thm_db thy =
+  let
+    val sign = sign_of thy;
+
+    val ThmDB {count, thy_idx, const_idx} = !thm_db;
+
+    fun update_thys [] result = (result, [], [])
+      | update_thys ((thy as (thy_sign, (thy_consts, thy_nums))) :: ts)
+                    result =
+          if Sign.eq_sg (sign, thy_sign) then
+            (result @ ts, thy_consts, thy_nums)
+          else update_thys ts (thy :: result);
+
+    val (thy_idx', thy_consts, thy_nums) = update_thys thy_idx [];
+
+    fun update_db [] result = result
+      | update_db (c :: cs) result =
+        let val thms' = filter_out (fn (num, _) => num mem thy_nums)
+                                   (Symtab.lookup_multi (result, c));
+        in update_db cs (Symtab.update ((c, thms'), result)) end;
+  in thm_db := ThmDB {count = count, thy_idx = thy_idx',
+                      const_idx = update_db thy_consts const_idx}
+  end;
+
+(*intersection of two theorem lists with descending tags*)
 infix desc_inter;
 fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
   | xs desc_inter [] = []
@@ -98,7 +137,9 @@ fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
 fun thms_containing constants =
   let fun collect [] _ result = map snd result
         | collect (c :: cs) first result =
-            let val new_thms = Symtab.lookup_multi (snd (!thm_db), c);
+            let val ThmDB {const_idx, ...} = !thm_db;
+
+                val new_thms = Symtab.lookup_multi (const_idx, c);
             in collect cs false (if first then new_thms
                                           else (result desc_inter new_thms))
             end;
@@ -152,22 +193,22 @@ fun prems_of_goal i =
       val As = Logic.strip_assums_hyp gi
   in map (fn A => subst_bounds(frees,A)) As end;
 
-fun select_match(obj,signobj,named_thms,extract) =
-  let fun matches(prop,tsig) =
+fun select_match(obj, signobj, named_thms, extract) =
+  let fun matches(prop, tsig) =
             case extract prop of
               None => false
-            | Some pat => Pattern.matches tsig (pat,obj);
+            | Some pat => Pattern.matches tsig (pat, obj);
 
-      fun select((p as (_,thm))::named_thms,sels) =
-            let val {prop,sign,...} = rep_thm thm
+      fun select((p as (_,thm))::named_thms, sels) =
+            let val {prop, sign, ...} = rep_thm thm
             in select(named_thms,
-                      if Sign.subsig(sign,signobj) andalso
+                      if Sign.subsig(sign, signobj) andalso
                          matches(prop,#tsig(Sign.rep_sg signobj))
                       then p::sels else sels)
             end
         | select([],sels) = sels
 
-  in select(named_thms,[]) end;
+  in select(named_thms, []) end;
 
 fun find_matching(prop,sign,index,extract) =
   (case top_const prop of
