@@ -180,7 +180,7 @@ by (Int.fast_tac 1);
 result();
 
 
-writeln"U****Examples with quantifiers****";
+writeln"****Examples with quantifiers****";
 
 
 writeln"The converse is classical in the following implications...";
