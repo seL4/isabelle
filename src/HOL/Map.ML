@@ -6,23 +6,43 @@
 Map lemmas
 *)
 
+section "empty";
+
 Goalw [empty_def] "empty k = None";
 by (Simp_tac 1);
 qed "empty_def2";
 Addsimps [empty_def2];
 
-Goalw [map_upd_def] "(m[a|->b])x = (if x=a then Some b else m x)";
-by (Simp_tac 1);
-qed "map_upd_def2";
-Addsimps [map_upd_def2];
 
-qed_goal "map_upd_same" thy "(t[k|->x]) k = Some x" 
-	(K [Simp_tac 1]);
-qed_goal "map_upd_other" thy "!!X. l~=k ==> (t[k|->x]) l = t l"
-	(K [Asm_simp_tac 1]);
-qed_goal "map_upd_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
+section "map_upd";
+
+qed_goal "map_upd_triv" thy "!!X. t k = Some x ==> t(k|->x) = t"
 	(K [rtac ext 1, Asm_simp_tac 1]);
-(*Addsimps [map_upd_same, map_upd_other, map_upd_triv];*)
+(*Addsimps [map_upd_triv];*)
+
+
+section "map_upds";
+
+Goal "a ~: set as --> (!m bs. (m(a|->b)(as[|->]bs)) = (m(as[|->]bs)(a|->b)))";
+by (induct_tac "as" 1);
+by  (auto_tac (claset(), simpset() delsimps[fun_upd_apply]));
+by (REPEAT(dtac spec 1));
+by (rotate_tac ~1 1);
+by (etac subst 1);
+by (etac (fun_upd_twist RS subst) 1);
+by (rtac refl 1);
+qed_spec_mp "map_upds_twist";
+Addsimps [map_upds_twist];
+
+
+section "chg_map";
+
+qed_goalw "chg_map_new" thy [chg_map_def]
+	"!!s. m a = None   ==> chg_map f a m = m"          (K [Auto_tac]);
+qed_goalw "chg_map_upd" thy [chg_map_def]
+	"!!s. m a = Some b ==> chg_map f a m = m(a|->f b)" (K [Auto_tac]);
+Addsimps[chg_map_new, chg_map_upd];
+
 
 section "option_map";
 
@@ -30,9 +50,10 @@ qed_goal "option_map_o_empty" thy
          "option_map f o empty = empty" (K [rtac ext 1, Simp_tac 1]);
 
 qed_goal "option_map_o_map_upd" thy 
-	 "option_map f o m[a|->b] = (option_map f o m)[a|->f b]" 
+	 "option_map f o m(a|->b) = (option_map f o m)(a|->f b)" 
 	(K [rtac ext 1, Simp_tac 1]);
 Addsimps[option_map_o_empty, option_map_o_map_upd];
+
 
 section "++";
 
@@ -77,6 +98,7 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "map_of_SomeD";
 
+
 section "dom";
 
 Goalw [dom_def] "dom empty = {}";
@@ -84,7 +106,7 @@ by (Simp_tac 1);
 qed "dom_empty";
 Addsimps [dom_empty];
 
-Goalw [dom_def] "dom(m[a|->b]) = insert a (dom m)";
+Goalw [dom_def] "dom(m(a|->b)) = insert a (dom m)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "dom_map_upd";
@@ -108,7 +130,7 @@ by (Simp_tac 1);
 qed "ran_empty";
 Addsimps [ran_empty];
 
-Goalw [ran_def] "m a = None ==> ran(m[a|->b]) = insert b (ran m)";
+Goalw [ran_def] "m a = None ==> ran(m(a|->b)) = insert b (ran m)";
 by Auto_tac;
 by (subgoal_tac "~(aa = a)" 1);
 by Auto_tac;
