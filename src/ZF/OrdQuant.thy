@@ -148,4 +148,9 @@ lemma OUN_Union_eq:
       ==> (UN z < Union(X). C(z)) = (UN x:X. UN z < x. C(z))"
 by (simp add: OUnion_def) 
 
+(*So that rule_format will get rid of ALL x<A...*)
+lemma atomize_oall [symmetric, rulify]:
+     "(!!x. x<A ==> P(x)) == Trueprop (ALL x<A. P(x))"
+by (simp add: oall_def atomize_all atomize_imp)
+
 end
