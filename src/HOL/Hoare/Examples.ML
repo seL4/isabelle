@@ -36,13 +36,12 @@ Goal
 
 by (hoare_tac 1);
 (*Now prove the verification conditions*)
-by Safe_tac;
-by (etac less_imp_diff_positive 1);
+by Auto_tac;
+by (etac gcd_nnn 4);
+by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 3);
+by (force_tac (claset(),
+	       simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 2);
 by (asm_simp_tac (simpset() addsimps [less_imp_le, gcd_diff_r]) 1);
-by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 2);
-by (etac gcd_nnn 2);
-by (full_simp_tac (simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 1);
-by (blast_tac (claset() addIs [less_imp_diff_positive]) 1);
 qed "Euclid_GCD";
 
 
