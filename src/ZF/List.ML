@@ -46,7 +46,7 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 			    Pair_in_univ]) 1);
 qed "list_univ";
 
-(*These two theorems are unused -- useful??*)
+(*These two theorems justify datatypes involving list(nat), list(A), ...*)
 bind_thm ("list_subset_univ", ([list_mono, list_univ] MRS subset_trans));
 
 goal List.thy "!!l A B. [| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
