@@ -137,10 +137,10 @@ by (cut_inst_tac [("q1.0","x"),("q2.0","y")] prat_linear 1);
 by Auto_tac;
 by (dtac prat_dense 1 THEN etac exE 1);
 by (eres_inst_tac [("c","xa")] equalityCE 1);
-by (auto_tac (claset() addDs [prat_less_asym],simpset()));
+by (auto_tac (claset() addDs [prat_less_not_sym],simpset()));
 by (dtac prat_dense 1 THEN etac exE 1);
 by (eres_inst_tac [("c","xa")] equalityCE 1);
-by (auto_tac (claset() addDs [prat_less_asym],simpset()));
+by (auto_tac (claset() addDs [prat_less_not_sym],simpset()));
 qed "lemma_prat_set_eq";
 
 Goal "inj(preal_prat)";
@@ -203,10 +203,14 @@ by (auto_tac (claset() addDs [subsetD,equalityI],
               simpset() addsimps [psubset_def]));
 qed "preal_less_trans";
 
-Goal "!! (q1::preal). [| q1 < q2; q2 < q1 |] ==> P";
+Goal "!! (q1::preal). q1 < q2 ==> ~ q2 < q1";
+by (rtac notI 1);
 by (dtac preal_less_trans 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [preal_less_not_refl]) 1);
-qed "preal_less_asym";
+qed "preal_less_not_sym";
+
+(* [| x < y;  ~P ==> y < x |] ==> P *)
+bind_thm ("preal_less_asym", preal_less_not_sym RS swap);
 
 Goalw [preal_less_def] 
       "(r1::preal) < r2 | r1 = r2 | r2 < r1";
@@ -217,9 +221,8 @@ by (assume_tac 1);
 by (fast_tac (claset() addDs [not_in_preal_ub]) 1);
 qed "preal_linear";
 
-Goal
-    "!!(r1::preal). [| r1 < r2 ==> P;  r1 = r2 ==> P; \
-\          r2 < r1 ==> P |] ==> P";
+Goal "!!(r1::preal). [| r1 < r2 ==> P;  r1 = r2 ==> P; \
+\                       r2 < r1 ==> P |] ==> P";
 by (cut_inst_tac [("r1.0","r1"),("r2.0","r2")] preal_linear 1);
 by Auto_tac;
 qed "preal_linear_less2";

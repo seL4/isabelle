@@ -395,14 +395,14 @@ qed "prat_less_not_refl";
 (*** y < y ==> P ***)
 bind_thm("prat_less_irrefl",prat_less_not_refl RS notE);
 
-Goal "!! (q1::prat). [| q1 < q2; q2 < q1 |] ==> P";
+Goal "!! (q1::prat). q1 < q2 ==> ~ q2 < q1";
+by (rtac notI 1);
 by (dtac prat_less_trans 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_less_not_refl]) 1);
-qed "prat_less_asym";
-
-Goal "!! (q1::prat). q1 < q2 ==> ~ q2 < q1";
-by (auto_tac (claset() addSDs [prat_less_asym],simpset()));
 qed "prat_less_not_sym";
+
+(* [| x < y;  ~P ==> y < x |] ==> P *)
+bind_thm ("prat_less_asym", prat_less_not_sym RS swap);
 
 (* half of positive fraction exists- Gleason p. 120- Proposition 9-2.6(i)*)
 Goal "!(q::prat). ? x. x + x = q";

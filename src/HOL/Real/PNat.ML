@@ -246,8 +246,8 @@ Goalw [pnat_less_def] "x < (y::pnat) ==> ~ y < x";
 by (etac less_not_sym 1);
 qed "pnat_less_not_sym";
 
-(* [| x < y; y < x |] ==> P *)
-bind_thm ("pnat_less_asym",pnat_less_not_sym RS notE);
+(* [| x < y;  ~P ==> y < x |] ==> P *)
+bind_thm ("pnat_less_asym", pnat_less_not_sym RS swap);
 
 Goalw [pnat_less_def] "~ y < (y::pnat)";
 by Auto_tac;

@@ -4,8 +4,6 @@
     Description : The reals
 *)
 
-open Real;
-
 (*** Proving that realrel is an equivalence relation ***)
 
 Goal "[| (x1::preal) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] \
@@ -22,18 +20,18 @@ qed "preal_trans_lemma";
 
 Goalw [realrel_def]
     "(((x1,y1),(x2,y2)): realrel) = (x1 + y2 = x2 + y1)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "realrel_iff";
 
 Goalw [realrel_def]
     "[| x1 + y2 = x2 + y1 |] ==> ((x1,y1),(x2,y2)): realrel";
-by (Fast_tac  1);
+by (Blast_tac  1);
 qed "realrelI";
 
 Goalw [realrel_def]
   "p: realrel --> (EX x1 y1 x2 y2. \
 \                  p = ((x1,y1),(x2,y2)) & x1 + y2 = x2 + y1)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "realrelE_lemma";
 
 val [major,minor] = goal thy
@@ -90,7 +88,7 @@ by (dtac (inj_on_Abs_real RS inj_onD) 1);
 by (REPEAT (rtac realrel_in_real 1));
 by (dtac eq_equiv_class 1);
 by (rtac equiv_realrel 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_real_preal";
@@ -219,7 +217,7 @@ by (simp_tac (simpset() addsimps
 qed "real_add_minus_left";
 
 Goal "? y. (x::real) + y = 0r";
-by (fast_tac (claset() addIs [real_add_minus]) 1);
+by (blast_tac (claset() addIs [real_add_minus]) 1);
 qed "real_minus_ex";
 
 Goal "?! y. (x::real) + y = 0r";
@@ -247,7 +245,7 @@ qed "real_add_minus_eq_minus";
 Goal "? y. x = %~y";
 by (cut_inst_tac [("x","x")] real_minus_ex 1);
 by (etac exE 1 THEN dtac real_add_minus_eq_minus 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "real_as_add_inverse_ex";
 
 (* real_minus_add_distrib *)
@@ -499,13 +497,13 @@ Goalw [real_less_def]
  "P < (Q::real) = (EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & \
 \                                  (x1,y1::preal):Rep_real(P) & \
 \                                  (x2,y2):Rep_real(Q))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "real_less_iff";
 
 Goalw [real_less_def]
  "[| x1 + y2 < x2 + y1; (x1,y1::preal):Rep_real(P); \
 \         (x2,y2):Rep_real(Q) |] ==> P < (Q::real)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "real_lessI";
 
 Goalw [real_less_def]
@@ -521,7 +519,7 @@ Goalw [real_less_def]
  "R1 < (R2::real) ==> (EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & \
 \                                  (x1,y1::preal):Rep_real(R1) & \
 \                                  (x2,y2):Rep_real(R2))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "real_lessD";
 
 (* real_less is a strong order i.e nonreflexive and transitive *)
@@ -621,7 +619,7 @@ by (asm_full_simp_tac (simpset() addsimps
 qed "real_preal_ExD";
 
 Goal "(? m. Abs_real (realrel ^^ {(x,y)}) = %#m) = (y < x)";
-by (fast_tac (claset() addSIs [real_preal_ExI,real_preal_ExD]) 1);
+by (blast_tac (claset() addSIs [real_preal_ExI,real_preal_ExD]) 1);
 qed "real_preal_iff";
 
 (*** Gleason prop 9-4.4 p 127 ***)
@@ -654,13 +652,13 @@ by (auto_tac (claset(),simpset() addsimps [real_preal_add,
     real_preal_def,real_less_def]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (simp_tac (simpset() addsimps [preal_self_less_add_left] 
     delsimps [preal_add_less_iff2]) 1);
 qed "real_preal_lessI";
 
 Goal "(%#m1 < %#m2) = (m1 < m2)";
-by (fast_tac (claset() addIs [real_preal_lessI,real_preal_lessD]) 1);
+by (blast_tac (claset() addIs [real_preal_lessI,real_preal_lessD]) 1);
 qed "real_preal_less_iff1";
 
 Addsimps [real_preal_less_iff1];
@@ -670,7 +668,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (full_simp_tac (simpset() addsimps preal_add_ac) 1);
 by (full_simp_tac (simpset() addsimps [preal_self_less_add_right,
     preal_add_assoc RS sym]) 1);
@@ -681,15 +679,15 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (full_simp_tac (simpset() addsimps 
   [preal_self_less_add_right] @ preal_add_ac) 1);
 qed "real_preal_minus_less_zero";
 
 Goal "~ 0r < %~ %#m";
 by (cut_facts_tac [real_preal_minus_less_zero] 1);
-by (fast_tac (claset() addDs [real_less_trans] 
-               addEs [real_less_irrefl]) 1);
+by (blast_tac (claset() addDs [real_less_trans] 
+                        addEs [real_less_irrefl]) 1);
 qed "real_preal_not_minus_gt_zero";
 
 Goalw [real_zero_def] " 0r < %#m";
@@ -697,14 +695,14 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (full_simp_tac (simpset() addsimps 
   [preal_self_less_add_right] @ preal_add_ac) 1);
 qed "real_preal_zero_less";
 
 Goal "~ %#m < 0r";
 by (cut_facts_tac [real_preal_zero_less] 1);
-by (fast_tac (claset() addDs [real_less_trans] 
+by (blast_tac (claset() addDs [real_less_trans] 
                addEs [real_less_irrefl]) 1);
 qed "real_preal_not_less_zero";
 
@@ -719,7 +717,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_add]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (full_simp_tac (simpset() addsimps preal_add_ac) 1);
 by (full_simp_tac (simpset() addsimps [preal_self_less_add_right,
     preal_add_assoc RS sym]) 1);
@@ -730,7 +728,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (full_simp_tac (simpset() addsimps preal_add_ac) 1);
 by (full_simp_tac (simpset() addsimps [preal_self_less_add_right,
     preal_add_assoc RS sym]) 1);
@@ -738,7 +736,7 @@ qed "real_preal_minus_less_all";
 
 Goal "~ %#m < %~ %#m1";
 by (cut_facts_tac [real_preal_minus_less_all] 1);
-by (fast_tac (claset() addDs [real_less_trans] 
+by (blast_tac (claset() addDs [real_less_trans] 
                addEs [real_less_irrefl]) 1);
 qed "real_preal_not_minus_gt_all";
 
@@ -747,7 +745,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
 by (asm_full_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1);
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
@@ -758,7 +756,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_preal_def,real_less_def,real_minus]));
 by (REPEAT(rtac exI 1));
 by (EVERY[rtac conjI 1, rtac conjI 2]);
-by (REPEAT(Fast_tac 2));
+by (REPEAT(Blast_tac 2));
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
 by (asm_full_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1);
 by (auto_tac (claset(),simpset() addsimps preal_add_ac));
@@ -799,25 +797,25 @@ qed "real_leD";
 val real_leE = make_elim real_leD;
 
 Goal "(~(w < z)) = (z <= (w::real))";
-by (fast_tac (claset() addSIs [real_leI,real_leD]) 1);
+by (blast_tac (claset() addSIs [real_leI,real_leD]) 1);
 qed "real_less_le_iff";
 
 Goalw [real_le_def] "~ z <= w ==> w<(z::real)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "not_real_leE";
 
 Goalw [real_le_def] "z < w ==> z <= (w::real)";
-by (fast_tac (claset() addEs [real_less_asym]) 1);
+by (blast_tac (claset() addEs [real_less_asym]) 1);
 qed "real_less_imp_le";
 
 Goalw [real_le_def] "!!(x::real). x <= y ==> x < y | x = y";
 by (cut_facts_tac [real_linear] 1);
-by (fast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
+by (blast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
 qed "real_le_imp_less_or_eq";
 
 Goalw [real_le_def] "z<w | z=w ==> z <=(w::real)";
 by (cut_facts_tac [real_linear] 1);
-by (fast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
+by (blast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
 qed "real_less_or_eq_imp_le";
 
 Goal "(x <= (y::real)) = (x < y | x=y)";
@@ -830,27 +828,27 @@ qed "real_le_refl";
 
 val prems = goal Real.thy "!!i. [| i <= j; j < k |] ==> i < (k::real)";
 by (dtac real_le_imp_less_or_eq 1);
-by (fast_tac (claset() addIs [real_less_trans]) 1);
+by (blast_tac (claset() addIs [real_less_trans]) 1);
 qed "real_le_less_trans";
 
 Goal "!! (i::real). [| i < j; j <= k |] ==> i < k";
 by (dtac real_le_imp_less_or_eq 1);
-by (fast_tac (claset() addIs [real_less_trans]) 1);
+by (blast_tac (claset() addIs [real_less_trans]) 1);
 qed "real_less_le_trans";
 
 Goal "[| i <= j; j <= k |] ==> i <= (k::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
-            rtac real_less_or_eq_imp_le, fast_tac (claset() addIs [real_less_trans])]);
+            rtac real_less_or_eq_imp_le, blast_tac (claset() addIs [real_less_trans])]);
 qed "real_le_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
-            fast_tac (claset() addEs [real_less_irrefl,real_less_asym])]);
+            blast_tac (claset() addEs [real_less_irrefl,real_less_asym])]);
 qed "real_le_anti_sym";
 
 Goal "[| ~ y < x; y ~= x |] ==> x < (y::real)";
 by (rtac not_real_leE 1);
-by (fast_tac (claset() addDs [real_le_imp_less_or_eq]) 1);
+by (blast_tac (claset() addDs [real_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_real_less";
 
 Goal "(0r < %~R) = (R < 0r)";
@@ -964,7 +962,7 @@ by (auto_tac (claset() addEs [real_less_asym],
 qed "real_sum_gt_zero_less";
 
 Goal "(0r < S + %~W) = (W < S)";
-by (fast_tac (claset() addIs [real_less_sum_gt_zero,
+by (blast_tac (claset() addIs [real_less_sum_gt_zero,
     real_sum_gt_zero_less]) 1);
 qed "real_less_sum_gt_0_iff";
 
@@ -986,17 +984,17 @@ qed "real_ex_add_positive_left_less";
 
 (*** alternative definition for real_less ***)
 Goal "!!(R::real). (? T. 0r < T & R + T = S) = (R < S)";
-by (fast_tac (claset() addSIs [real_less_add_positive_left_Ex,
+by (blast_tac (claset() addSIs [real_less_add_positive_left_Ex,
     real_ex_add_positive_left_less]) 1);
 qed "real_less_iffdef";
 
 Goal "(0r < x) = (%~x < x)";
-by (Step_tac 1);
+by Safe_tac;
 by (rtac ccontr 2 THEN forward_tac 
     [real_leI RS real_le_imp_less_or_eq] 2);
 by (Step_tac 2);
 by (dtac (real_minus_zero_less_iff RS iffD2) 2);
-by (fast_tac (claset() addDs [real_less_trans]) 2);
+by (blast_tac (claset() addIs [real_less_trans]) 2);
 by (auto_tac (claset(),simpset() addsimps 
     [real_gt_zero_preal_Ex,real_preal_minus_less_self]));
 qed "real_gt_zero_iff";
@@ -1120,9 +1118,9 @@ by (auto_tac (claset() addSDs [real_less_all_real2,
 by (forward_tac [real_sup_lemma2] 2 THEN Auto_tac);
 by (forward_tac [real_sup_lemma2] 1 THEN Auto_tac);
 by (rtac (preal_complete RS spec RS iffD2 RS bexE) 1);
-by (Fast_tac 3);
-by (Fast_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 3);
+by (Blast_tac 1);
+by (Blast_tac 1);
 by (Blast_tac 1);
 qed "posreal_complete";
 

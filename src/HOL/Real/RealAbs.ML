@@ -11,7 +11,7 @@ open RealAbs;
        (adapted version of previously proved theorems about abs)
  ----------------------------------------------------------------------------*)
 Goalw [rabs_def] "rabs r = (if 0r<=r then r else %~r)";
-by (Step_tac 1);
+by Auto_tac;
 qed "rabs_iff";
 
 Goalw [rabs_def] "rabs 0r = 0r";
@@ -39,7 +39,7 @@ qed "rabs_minus_eqI2";
 
 Goal "x<=0r ==> rabs x = %~x";
 by (dtac real_le_imp_less_or_eq 1);
-by (fast_tac (HOL_cs addIs [rabs_minus_zero,rabs_minus_eqI2]) 1);
+by (blast_tac (HOL_cs addIs [rabs_minus_zero,rabs_minus_eqI2]) 1);
 qed "rabs_minus_eqI1";
 
 Goalw [rabs_def,real_le_def] "0r<= rabs x";
@@ -154,13 +154,14 @@ by (Simp_tac 1);
 qed "real_mult_0_less";
 
 Goal "[| 0r<y; x<r; y*r<t*s |] ==> y*x<t*s";
-(*why PROOF FAILED for this*)
-by (best_tac (claset() addIs [real_mult_less_mono2, real_less_trans]) 1);
+by (blast_tac (claset() addSIs [real_mult_less_mono2]
+	                addIs  [real_less_trans]) 1);
 qed "real_mult_less_trans";
 
 Goal "!!(x::real) y.[| 0r<=y; x<r; y*r<t*s; 0r<t*s|] ==> y*x<t*s";
 by (dtac real_le_imp_less_or_eq 1);
-by (fast_tac (HOL_cs addEs [(real_mult_0_less RS iffD2),real_mult_less_trans]) 1);
+by (fast_tac (HOL_cs addEs [real_mult_0_less RS iffD2,
+			    real_mult_less_trans]) 1);
 qed "real_mult_le_less_trans";
 
 (* proofs lifted from previous older version *)
@@ -195,7 +196,7 @@ by (asm_full_simp_tac (simpset() addsimps [real_le_refl,rabs_mult]) 1);
 qed "rabs_mult_le";
 
 Goal "[| 1r < rabs x; r < rabs y|] ==> r < rabs(x*y)";
-by (fast_tac (HOL_cs addIs [rabs_mult_le, real_less_le_trans]) 1);
+by (blast_tac (HOL_cs addIs [rabs_mult_le, real_less_le_trans]) 1);
 qed "rabs_mult_gt";
 
 Goal "rabs(x)<r ==> 0r<r";
@@ -213,7 +214,7 @@ qed "rabs_lessI";
 
 Goal "rabs x =x | rabs x = %~x";
 by (cut_inst_tac [("R1.0","0r"),("R2.0","x")] real_linear 1);
-by (fast_tac (claset() addIs [rabs_eqI2,rabs_minus_eqI2,
+by (blast_tac (claset() addIs [rabs_eqI2,rabs_minus_eqI2,
                             rabs_zero,rabs_minus_zero]) 1);
 qed "rabs_disj";
 
@@ -225,7 +226,7 @@ by (REPEAT(Asm_simp_tac 1));
 qed "rabs_eq_disj";
 
 Goal "(rabs x < r) = (%~r<x & x<r)";
-by (Step_tac 1);
+by Safe_tac;
 by (rtac (real_less_swap_iff RS iffD2) 1);
 by (asm_simp_tac (simpset() addsimps [(rabs_ge_minus_self 
     RS real_le_less_trans)]) 1);
