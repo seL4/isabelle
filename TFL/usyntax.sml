@@ -38,9 +38,7 @@ fun type_varsl L = distinct (Utils.rev_itlist (curry op @ o type_vars) L []);
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
 
-fun strip_prod_type (Type("*", [ty1,ty2])) =
-	strip_prod_type ty1 @ strip_prod_type ty2
-  | strip_prod_type ty = [ty];
+val strip_prod_type = HOLogic.prodT_factors;
 
 
 
@@ -114,7 +112,7 @@ fun mk_disj{disj1,disj2} =
    in list_comb(c,[disj1,disj2])
    end;
 
-fun prod_ty ty1 ty2 = Type("*", [ty1,ty2]);
+fun prod_ty ty1 ty2 = HOLogic.mk_prodT (ty1,ty2);
 
 local
 fun mk_uncurry(xt,yt,zt) =
