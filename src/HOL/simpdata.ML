@@ -318,7 +318,8 @@ val HOL_safe_min_ss = HOL_base_ss setsolver (fn ps =>
 	FIRST'[match_tac (TrueI::refl::ps), eq_assume_tac, ematch_tac[FalseE]]);
 
 val HOL_ss = HOL_min_ss
-      addsimps ([if_True, if_False, if_cancel,
+      addsimps ([triv_forall_equality, (* prunes params *)
+                 if_True, if_False, if_cancel,
 		 o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
