@@ -13,4 +13,15 @@ For Isabelle2005:
   language specification (cf. http://validator.w3.org/) (Tjark, or anyone
   who is interested)
 
+- eliminate the last remaining old-style theories (Larry):  
+  Datatype_Universe.ML
+  Gfp.ML
+  HOL_lemmas.ML
+  Lfp.ML
+  NatArith.ML
+  Relation_Power.ML
+  Sum_Type.ML
+  Wellfounded_Recursion.ML
+  Wellfounded_Relations.ML
+
 - remove this file (Tobias)
