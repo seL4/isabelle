@@ -225,19 +225,16 @@ by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
 qed "r_into_trancl";
 
 (*intro rule by definition: from rtrancl and r*)
-val prems = goalw Trancl.thy [trancl_def]
-    "[| (a,b) : r^*;  (b,c) : r |]   ==>  (a,c) : r^+";
-by (REPEAT (resolve_tac ([compI]@prems) 1));
+Goalw [trancl_def] "[| (a,b) : r^*;  (b,c) : r |]   ==>  (a,c) : r^+";
+by Auto_tac;
 qed "rtrancl_into_trancl1";
 
 (*intro rule from r and rtrancl*)
-val prems = goal Trancl.thy
-    "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+";
-by (resolve_tac (prems RL [rtranclE]) 1);
-by (etac subst 1);
-by (resolve_tac (prems RL [r_into_trancl]) 1);
+Goal "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+";
+by (etac rtranclE 1);
+by (blast_tac (claset() addIs [r_into_trancl]) 1);
 by (rtac (rtrancl_trans RS rtrancl_into_trancl1) 1);
-by (REPEAT (ares_tac (prems@[r_into_rtrancl]) 1));
+by (REPEAT (ares_tac [r_into_rtrancl] 1));
 qed "rtrancl_into_trancl2";
 
 (*Nice induction rule for trancl*)
@@ -280,17 +277,12 @@ qed "trans_trancl";
 
 bind_thm ("trancl_trans", trans_trancl RS transD);
 
-Goalw [trancl_def]
-  "[| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
+Goalw [trancl_def] "[| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
 by (blast_tac (claset() addIs [rtrancl_trans,r_into_rtrancl]) 1);
 qed "rtrancl_trancl_trancl";
 
-val prems = goal Trancl.thy
-    "[| (a,b) : r;  (b,c) : r^+ |]   ==>  (a,c) : r^+";
-by (rtac (r_into_trancl RS (trans_trancl RS transD)) 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
-qed "trancl_into_trancl2";
+(* "[| (a,b) : r;  (b,c) : r^+ |]   ==>  (a,c) : r^+" *)
+bind_thm ("trancl_into_trancl2", [trans_trancl, r_into_trancl] MRS transD);
 
 (* primitive recursion for trancl over finite relations: *)
 Goal "(insert (y,x) r)^+ = r^+ Un {(a,b). (a,y):r^* & (x,b):r^*}";
@@ -319,14 +311,11 @@ val irrefl_tranclI = prove_goal Trancl.thy
 	 Fast_tac 1,
 	strip_tac 1,
 	etac trancl_induct 1,
-	 auto_tac (claset() addEs [equals0D, r_into_trancl], simpset())]);
+	 auto_tac (claset() addEs [equals0E, r_into_trancl], simpset())]);
 
-val major::prems = goal Trancl.thy
-    "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
-by (cut_facts_tac prems 1);
-by (rtac (major RS rtrancl_induct) 1);
-by (rtac (refl RS disjI1) 1);
-by (Blast_tac 1);
+Goal "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
+by (etac rtrancl_induct 1);
+by Auto_tac;
 val lemma = result();
 
 Goalw [trancl_def] "r <= A Times A ==> r^+ <= A Times A";
