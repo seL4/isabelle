@@ -128,7 +128,7 @@ ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
   ex/BinEx.thy ex/CoUnit.thy ex/Commutation.thy \
-  ex/Limit.ML ex/Limit.thy ex/LList.thy ex/Primes.thy \
+  ex/Limit.thy ex/LList.thy ex/Primes.thy \
   ex/NatSum.thy ex/Ramsey.thy ex/misc.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
