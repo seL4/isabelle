@@ -258,6 +258,10 @@ fun replicate n (x: 'a) : 'a list =
     else rep (n, [])
   end;
 
+(*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
+fun multiply ([], _) = []
+  | multiply (x :: xs, yss) = map (cons x) yss @ multiply (xs, yss);
+
 
 (* filter *)
 
@@ -781,6 +785,12 @@ fun assert_all pred l msg_fn =
 datatype 'a error =
   Error of string |
   OK of 'a;
+
+fun get_error (Error msg) = Some msg
+  | get_error _ = None;
+
+fun get_ok (OK x) = Some x
+  | get_ok _ = None;
 
 fun handle_error f x =
   let
