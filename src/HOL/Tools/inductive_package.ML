@@ -29,6 +29,7 @@ Products are used only to derive "streamlined" induction rules for relations
 
 signature INDUCTIVE_PACKAGE =
 sig
+  val quiet_mode : bool ref
   val add_inductive_i : bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     term list -> thm list -> thm list -> theory -> theory *
       {defs:thm list, elims:thm list, raw_induct:thm, induct:thm,
@@ -45,6 +46,9 @@ end;
 
 structure InductivePackage : INDUCTIVE_PACKAGE =
 struct
+
+val quiet_mode = ref false;
+fun message s = if !quiet_mode then () else writeln s;
 
 (*For proving monotonicity of recursion operator*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
@@ -219,7 +223,7 @@ fun mk_indrule cs cTs params intr_ts =
 
 fun prove_mono setT fp_fun monos thy =
   let
-    val _ = writeln "  Proving monotonicity...";
+    val _ = message "  Proving monotonicity...";
 
     val mono = prove_goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
@@ -231,7 +235,7 @@ fun prove_mono setT fp_fun monos thy =
 
 fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
   let
-    val _ = writeln "  Proving the introduction rules...";
+    val _ = message "  Proving the introduction rules...";
 
     val unfold = standard (mono RS (fp_def RS
       (if coind then def_gfp_Tarski else def_lfp_Tarski)));
@@ -261,7 +265,7 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
 
 fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
   let
-    val _ = writeln "  Proving the elimination rules...";
+    val _ = message "  Proving the elimination rules...";
 
     val rules1 = [CollectE, disjE, make_elim vimageD];
     val rules2 = [exE, conjE, Inl_neq_Inr, Inr_neq_Inl] @
@@ -309,7 +313,7 @@ fun mk_cases elims simps s =
 fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     fp_def rec_sets_defs thy =
   let
-    val _ = writeln "  Proving the induction rule...";
+    val _ = message "  Proving the induction rule...";
 
     val sign = sign_of thy;
 
@@ -377,7 +381,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     intr_ts monos con_defs thy params paramTs cTs cnames =
   let
-    val _ = if verbose then writeln ("Proofs for " ^
+    val _ = if verbose then message ("Proofs for " ^
       (if coind then "co" else "") ^ "inductive set(s) " ^ commas cnames) else ();
 
     val sumT = fold_bal (fn (T, U) => Type ("+", [T, U])) cTs;
@@ -484,7 +488,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     intr_ts monos con_defs thy params paramTs cTs cnames =
   let
-    val _ = if verbose then writeln ("Adding axioms for " ^
+    val _ = if verbose then message ("Adding axioms for " ^
       (if coind then "co" else "") ^ "inductive set(s) " ^ commas cnames) else ();
 
     val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
