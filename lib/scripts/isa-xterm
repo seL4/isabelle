@@ -1,10 +1,9 @@
-#!/bin/bash -norc
+#!/bin/bash -x
 #
 # $Id$
 #
 # Isabelle within an xterm.
 
-# FIXME startup prefix (ISABELLE_COMMAND_LINE !?)
 
 ## diagnostics
 
@@ -17,9 +16,8 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -g GEOM      main window geometry (default 80x60)"
+  echo "    -p TEXT      pass text (options etc.) to isabelle session"
   echo "    -s BOOL      symbolic font output? (default true)"
-#FIXME
-#  echo "    -r BOOL      actually run isabelle? (default true)"
   echo
   echo "  Starts Isabelle within an xterm window. CMDLINE is passed"
   echo "  directly to the isabelle session."
@@ -39,17 +37,17 @@ function fail()
 # options
 
 MAINGEOM="80x60"
+PASS=""
 SYMBOLS="true"
-RUN="true"
 
-while getopts "g:r:s:" OPT
+while getopts "g:p:s:" OPT
 do
   case "$OPT" in
     g)
       MAINGEOM="$OPTARG"
       ;;
-    r)
-      RUN="$OPTARG"
+    p)
+      PASS="$PASS $OPTARG"
       ;;
     s)
       SYMBOLS="$OPTARG"
@@ -65,36 +63,10 @@ shift $(($OPTIND - 1))
 
 ## main
 
-if [ -z "$RUN" -o "$RUN" = false ]; then
-  RUN=""
-else
-  RUN=true
-fi
-
 if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
-  if [ -z "$RUN" ]; then
-    exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM"
-  else
-    exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE "$@"
-  fi
+  exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
 else
   $ISATOOL installfonts
-  if [ -z "$RUN" ]; then
-    exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isacr14 \
-      -xrm "*fontMenu.Label: Isabelle fonts" \
-      -xrm "*fontMenu*font1*Label: Large" \
-      -xrm "*VT100*font1: isacb24" \
-      -xrm "*fontMenu*font2*Label:" \
-      -xrm "*VT100*font2:" \
-      -xrm "*fontMenu*font3*Label:" \
-      -xrm "*VT100*font3:" \
-      -xrm "*fontMenu*font4*Label:" \
-      -xrm "*VT100*font4:" \
-      -xrm "*fontMenu*font5*Label:" \
-      -xrm "*VT100*font5:" \
-      -xrm "*fontMenu*font6*Label:" \
-      -xrm "*VT100*font6:"
-  else
     exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isacr14 \
       -xrm "*fontMenu.Label: Isabelle fonts" \
       -xrm "*fontMenu*font1*Label: Large" \
@@ -109,6 +81,6 @@ else
       -xrm "*VT100*font5:" \
       -xrm "*fontMenu*font6*Label:" \
       -xrm "*VT100*font6:" \
-      -e $ISABELLE -m symbols "$@"
+      -e $ISABELLE -m symbols $PASS "$@"
   fi
 fi
