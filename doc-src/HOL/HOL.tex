@@ -1223,7 +1223,11 @@ which associates to the right and has a lower priority than $*$: $\tau@1 +
 
 The definition of products and sums in terms of existing types is not
 shown.  The constructions are fairly standard and can be found in the
-respective theory files.
+respective theory files. Although the sum and product types are
+constructed manually for foundational reasons, they are represented as
+actual datatypes later (see \S\ref{subsec:datatype:rep_datatype}).
+Therefore, the theory \texttt{Datatype} should be used instead of
+\texttt{Sum} or \texttt{Prod}.
 
 \begin{figure}
 \begin{constants}
@@ -1234,9 +1238,6 @@ respective theory files.
         & & conditional
 \end{constants}
 \begin{ttbox}\makeatletter
-%\tdx{sum_case_def}   sum_case == (\%f g p. @z. (!x. p=Inl x --> z=f x) &
-%                                        (!y. p=Inr y --> z=g y))
-%
 \tdx{Inl_not_Inr}    Inl a ~= Inr b
 
 \tdx{inj_Inl}        inj Inl
@@ -1248,7 +1249,7 @@ respective theory files.
 \tdx{sum_case_Inr}   sum_case f g (Inr x) = g x
 
 \tdx{surjective_sum} sum_case (\%x. f(Inl x)) (\%y. f(Inr y)) s = f s
-\tdx{split_sum_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
+\tdx{sum.split_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
                                      (! y. s = Inr(y) --> R(g(y))))
 \end{ttbox}
 \caption{Type $\alpha+\beta$}\label{hol-sum}
@@ -1350,7 +1351,8 @@ case \(e\) of 0 => \(a\) | Suc \(m\) => \(b\)
 Note that Isabelle insists on precisely this format; you may not even change
 the order of the two cases.
 Both \texttt{primrec} and \texttt{case} are realized by a recursion operator
-\cdx{nat_rec}, the details of which can be found in theory \texttt{NatDef}.
+\cdx{nat_rec}, which is available because \textit{nat} is represented as
+a datatype (see \S\ref{subsec:datatype:rep_datatype}).
 
 %The predecessor relation, \cdx{pred_nat}, is shown to be well-founded.
 %Recursion along this relation resembles primitive recursion, but is
@@ -2225,7 +2227,7 @@ In case of mutually recursive datatypes, \texttt{recs}, \texttt{size}, \texttt{i
 and \texttt{simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 
 
-\subsection{Representing existing types as datatypes}
+\subsection{Representing existing types as datatypes}\label{subsec:datatype:rep_datatype}
 
 For foundational reasons, some basic types such as \texttt{nat}, \texttt{*}, {\tt
   +}, \texttt{bool} and \texttt{unit} are not defined in a \texttt{datatype} section,
