@@ -804,7 +804,7 @@ fun get_sort tsig def_sort map_sort raw_env =
       | (None, Some S) => S
       | (Some S, None) => S
       | (Some S, Some S') =>
-          if eq_sort tsig (S, S') then S
+          if eq_sort tsig (S, S') then S'
           else error ("Sort constraint inconsistent with default for type variable " ^
             quote (Syntax.string_of_vname' xi)));
   in get end;
@@ -819,34 +819,34 @@ fun constrain t T =
 
 (* decode_types *)
 
-(*transform parse tree into raw term (idempotent)*)
+(*transform parse tree into raw term*)
 fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
     fun get_type xi = if_none (def_type xi) dummyT;
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
-    fun decodeT t =
-      cert_typ tsig (map_type (Syntax.typ_of_term sort_of t));
+    val certT = cert_typ tsig o map_type;
+    fun decodeT t = certT (Syntax.typ_of_term sort_of t);
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
           constrain (decode t) (decodeT typ)
-      | decode (Const ("_constrainAbs", _) $ (abs as Abs (x, T, t)) $ typ) =
+      | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
           if T = dummyT then Abs (x, decodeT typ, decode t)
-          else constrain abs (decodeT typ --> dummyT)
-      | decode (Abs (x, T, t)) = Abs (x, T, decode t)
+          else constrain (Abs (x, certT T, decode t)) (decodeT typ --> dummyT)
+      | decode (Abs (x, T, t)) = Abs (x, certT T, decode t)
       | decode (t $ u) = decode t $ decode u
-      | decode (t as Free (x, T)) =
+      | decode (Free (x, T)) =
           let val c = map_const x in
-            if is_const c then Const (c, T)
+            if is_const c then Const (c, certT T)
             else if T = dummyT then Free (x, get_type (x, ~1))
-            else constrain t (get_type (x, ~1))
+            else constrain (Free (x, certT T)) (get_type (x, ~1))
           end
-      | decode (t as Var (xi, T)) =
+      | decode (Var (xi, T)) =
           if T = dummyT then Var (xi, get_type xi)
-          else constrain t (get_type xi)
+          else constrain (Var (xi, certT T)) (get_type xi)
       | decode (t as Bound _) = t
-      | decode (Const (c, T)) = Const (map_const c, T);
+      | decode (Const (c, T)) = Const (map_const c, certT T);
   in
     decode tm
   end;
