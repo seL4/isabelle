@@ -24,42 +24,42 @@ qed "left_add_mult_distrib";
 (** For cancel_numerals **)
 
 Goal "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split'] 
+by (asm_simp_tac (simpset() addsplits [nat_diff_split] 
 		            addsimps [add_mult_distrib]) 1);
 qed "nat_diff_add_eq1";
 
 Goal "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split'] 
+by (asm_simp_tac (simpset() addsplits [nat_diff_split] 
 		            addsimps [add_mult_distrib]) 1);
 qed "nat_diff_add_eq2";
 
 Goal "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_eq_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_eq_add_iff2";
 
 Goal "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_less_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_less_add_iff2";
 
 Goal "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_le_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split] 
                                   addsimps [add_mult_distrib]));
 qed "nat_le_add_iff2";
 
@@ -115,8 +115,6 @@ val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
 val prove_conv = Int_Numeral_Simprocs.prove_conv;
 
-val simplify_meta_eq = Int_Numeral_Simprocs.simplify_meta_eq;
-
 val bin_simps = [add_nat_number_of, nat_number_of_add_left,
 		 diff_nat_number_of, le_nat_number_of_eq_not_less, 
 		 less_nat_number_of, Let_number_of, nat_number_of] @ 
@@ -168,6 +166,12 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 val add_0s = map (rename_numerals NatBin.thy) [add_0, add_0_right];
 val mult_1s = map (rename_numerals NatBin.thy) [mult_1, mult_1_right];
 
+(*Final simplification: cancel + and *; replace #0 by 0 and #1 by 1*)
+val simplify_meta_eq = 
+    Int_Numeral_Simprocs.simplify_meta_eq
+         [numeral_0_eq_0, numeral_1_eq_1, add_0, add_0_right,
+	 mult_0, mult_0_right, mult_1, mult_1_right];
+
 structure CancelNumeralsCommon =
   struct
   val mk_sum    	= mk_sum
@@ -183,7 +187,7 @@ structure CancelNumeralsCommon =
 				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
-  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
+  val simplify_meta_eq  = simplify_meta_eq
   end;
 
 
@@ -264,7 +268,7 @@ structure CombineNumeralsData =
 				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
-  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
+  val simplify_meta_eq  = simplify_meta_eq
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
@@ -279,14 +283,6 @@ end;
 
 Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
-
-
-(*If the result is just #1 + ..., replace it by Suc so that primrecs, etc.
-  will work.*)
-Goal "#1 + n = Suc n";
-by Auto_tac;
-qed "one_plus_eq_Suc";
-Addsimps [one_plus_eq_Suc];
 
 
 (*examples:
@@ -305,12 +301,11 @@ test "(i + j + #12 + (k::nat)) - #15 = y";
 test "(i + j + #12 + (k::nat)) - #5 = y";
 test "Suc u - #2 = y";
 test "Suc (Suc (Suc u)) - #2 = y";
-(*Unary*)
 test "(i + j + #2 + (k::nat)) - 1 = y";
 test "(i + j + #1 + (k::nat)) - 2 = y";
 
 test "(#2*x + (u*v) + y) - v*#3*u = (w::nat)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u*#4 = (w::nat)";
+test "(#2*x*u*v + #5 + (u*v)*#4 + y) - v*u*#4 = (w::nat)";
 test "(#2*x*u*v + (u*v)*#4 + y) - v*u = (w::nat)";
 test "Suc (Suc (#2*x*u*v + u*#4 + y)) - u = w";
 test "Suc ((u*v)*#4) - v*#3*u = w";
@@ -379,7 +374,7 @@ end;
 (** For simplifying  Suc m - #n **)
 
 Goal "#0 < n ==> Suc m - n = m - (n - #1)";
-by (asm_full_simp_tac (numeral_ss addsplits [nat_diff_split']) 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "Suc_diff_eq_diff_pred";
 
 (*Now just instantiating n to (number_of v) does the right simplification,
@@ -398,18 +393,61 @@ by (stac Suc_diff_eq_diff_pred 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (asm_full_simp_tac
-    (simpset_of Int.thy addsimps [less_0_number_of RS sym, 
+    (simpset_of Int.thy addsimps [diff_nat_number_of, less_0_number_of RS sym, 
 				  neg_number_of_bin_pred_iff_0]) 1);
 qed "Suc_diff_number_of";
 
 (* now redundant because of the inverse_fold simproc
     Addsimps [Suc_diff_number_of]; *)
 
+Goal "nat_case a f (number_of v) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then a else f (nat pv))";
+by (simp_tac
+    (simpset() addsplits [nat.split]
+			addsimps [Let_def, neg_number_of_bin_pred_iff_0]) 1);
+qed "nat_case_number_of"; 
+
+Goal "nat_case a f ((number_of v) + n) = \
+\      (let pv = number_of (bin_pred v) in \
+\        if neg pv then nat_case a f n else f (nat pv + n))";
+by (stac add_eq_if 1);
+by (asm_simp_tac
+    (simpset() addsplits [nat.split]
+               addsimps [Let_def, neg_imp_number_of_eq_0, 
+			 neg_number_of_bin_pred_iff_0]) 1);
+qed "nat_case_add_eq_if";
+
+Addsimps [nat_case_number_of, nat_case_add_eq_if];
+
+
+Goal "nat_rec a f (number_of v) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then a else f (nat pv) (nat_rec a f (nat pv)))";
+by (case_tac "(number_of v)::nat" 1);
+by (ALLGOALS (asm_simp_tac
+	      (simpset() addsimps [Let_def, neg_number_of_bin_pred_iff_0])));
+by (asm_full_simp_tac (simpset() addsplits [split_if_asm]) 1);
+qed "nat_rec_number_of"; 
+
+Goal "nat_rec a f (number_of v + n) = \
+\       (let pv = number_of (bin_pred v) in \
+\        if neg pv then nat_rec a f n \
+\                  else f (nat pv + n) (nat_rec a f (nat pv + n)))";
+by (stac add_eq_if 1);
+by (asm_simp_tac
+    (simpset() addsplits [nat.split]
+               addsimps [Let_def, neg_imp_number_of_eq_0, 
+			 neg_number_of_bin_pred_iff_0]) 1);
+qed "nat_rec_add_eq_if"; 
+
+Addsimps [nat_rec_number_of, nat_rec_add_eq_if];
+
 
 (** For simplifying  #m - Suc n **)
 
 Goal "m - Suc n = (m - #1) - n";
-by (simp_tac (numeral_ss addsplits [nat_diff_split']) 1);
+by (simp_tac (numeral_ss addsplits [nat_diff_split]) 1);
 qed "diff_Suc_eq_diff_pred";
 
 Addsimps [inst "m" "number_of ?v" diff_Suc_eq_diff_pred];
