@@ -374,6 +374,11 @@ by (asm_full_simp_tac (FOL_ss addsimps [cons_eq]) 2);
 by (fast_tac eq_cs 1);
 val fun_extend = result();
 
+goal ZF.thy
+    "!!f A B. [| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B";
+by (fast_tac (ZF_cs addEs [fun_extend RS fun_weaken_type]) 1);
+val fun_extend3 = result();
+
 goal ZF.thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
 by (rtac (apply_Pair RS consI2 RS apply_equality) 1);
 by (rtac fun_extend 3);
@@ -386,23 +391,20 @@ by (rtac fun_extend 1);
 by (REPEAT (assume_tac 1));
 val fun_extend_apply2 = result();
 
+(*For Finite.ML.  Inclusion of right into left is easy*)
 goal ZF.thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
-by (safe_tac eq_cs);
-(*Inclusion of right into left is easy*)
-by (fast_tac (ZF_cs addEs [fun_extend RS fun_weaken_type]) 2);
+by (safe_tac (eq_cs addSEs [fun_extend3]));
 (*Inclusion of left into right*)
 by (subgoal_tac "restrict(x, A) : A -> B" 1);
 by (fast_tac (ZF_cs addEs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
 by (rtac UN_I 1 THEN fast_tac (ZF_cs addEs [apply_type]) 1);
-by (subgoal_tac "x = cons(<c, x ` c>, restrict(x, A))" 1);
-by (fast_tac ZF_cs 1);
-(*Proving the lemma*)
+by (simp_tac (FOL_ss addsimps cons_iff::mem_simps) 1);
 by (resolve_tac [fun_extension] 1 THEN REPEAT (ares_tac [fun_extend] 1));
 by (etac consE 1);
 by (ALLGOALS 
     (asm_simp_tac (FOL_ss addsimps [restrict, fun_extend_apply1, 
-				   fun_extend_apply2])));
+				    fun_extend_apply2])));
 val cons_fun_eq = result();
 
