@@ -4,7 +4,8 @@
     Copyright   1998 TUM
 *)
 
-Addsimps [Abs_multiset_inverse,Rep_multiset_inverse,Rep_multiset];
+Addsimps [Abs_multiset_inverse, Rep_multiset_inverse, Rep_multiset,
+	  Zero_def];
 
 (** Preservation of representing set `multiset' **)
 
@@ -31,7 +32,7 @@ Goalw [multiset_def]
  "[| M : multiset |] ==> (%a. M a - N a) : multiset";
 by (Asm_full_simp_tac 1);
 by (etac (rotate_prems 1 finite_subset) 1);
-by (Auto_tac);
+by Auto_tac;
 qed "diff_preserves_multiset";
 Addsimps [diff_preserves_multiset];
 
@@ -141,7 +142,7 @@ Addsimps [set_of_single];
 
 Goalw [set_of_def]
  "set_of(M+N) = set_of M Un set_of N";
-by (Auto_tac);
+by Auto_tac;
 qed "set_of_union";
 Addsimps [set_of_union];
 
@@ -198,7 +199,7 @@ qed "single_not_empty";
 Addsimps [single_not_empty];
 
 Goalw [single_def] "({#a#}={#b#}) = (a=b)";
-by (Auto_tac);
+by Auto_tac;
 qed "single_eq_single";
 Addsimps [single_eq_single];
 
@@ -291,15 +292,15 @@ Better: use wf_finite_psubset in WF_Rel
 
 (** Towards the induction rule **)
 
-Goal "finite F ==> (setsum f F = 0) = (!a:F. f a = 0)";
+Goal "finite F ==> (setsum f F = 0) = (! a:F. f a = (0::nat))";
 by (etac finite_induct 1);
-by (Auto_tac);
+by Auto_tac;
 qed "setsum_0";
 Addsimps [setsum_0];
 
 Goal "finite F ==> setsum f F = Suc n --> (? a:F. 0 < f a)";
 by (etac finite_induct 1);
-by (Auto_tac);
+by Auto_tac;
 no_qed();
 val lemma = result();
 
@@ -311,10 +312,10 @@ qed "setsum_SucD";
 Goal "[| finite F; 0 < f a |] ==> \
 \     setsum (f(a:=f(a)-1)) F = (if a:F then setsum f F - 1 else setsum f F)";
 by (etac finite_induct 1);
-by (Auto_tac);
+by Auto_tac;
  by (asm_simp_tac (simpset() addsimps add_ac) 1);
 by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
-by (Auto_tac);
+by Auto_tac;
 qed "setsum_decr";
 
 val prems = Goalw [multiset_def]
@@ -384,7 +385,7 @@ Delsimps [Abs_multiset_inverse,Rep_multiset_inverse,Rep_multiset];
 Goal
  "(M+{#a#} = N+{#b#}) = (M = N & a = b | (? K. M = K+{#b#} & N = K+{#a#}))";
 by (simp_tac (simpset() addsimps [add_eq_conv_diff]) 1);
-by (Auto_tac);
+by Auto_tac;
 qed "add_eq_conv_ex";
 
 (** order **)
