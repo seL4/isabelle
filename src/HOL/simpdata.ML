@@ -36,17 +36,18 @@ local
 
   fun delIff ((cla, simp), th) = 
       (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
-                (Const ("Not", _) $ A) =>
-                    cla delrules [zero_var_indexes (th RS notE)]
-              | (con $ _ $ _) =>
-                    if con = iff_const
-                    then cla delrules [zero_var_indexes (th RS iffD2),
-                                       make_elim (zero_var_indexes (th RS iffD1))]
-                    else cla delrules [th]
-              | _ => cla delrules [th],
+	   (Const ("Not", _) $ A) =>
+	       cla delrules [zero_var_indexes (th RS notE)]
+	 | (con $ _ $ _) =>
+	       if con = iff_const
+	       then cla delrules 
+		        [zero_var_indexes (th RS iffD2),
+			 cla_make_elim (zero_var_indexes (th RS iffD1))]
+	       else cla delrules [th]
+	 | _ => cla delrules [th],
        simp delsimps [th])
       handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
-                          string_of_thm th); (cla, simp));
+				string_of_thm th); (cla, simp));
 
   fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
 in
