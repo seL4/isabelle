@@ -7,8 +7,10 @@ Extensible records with structural subtyping in HOL.
 TODO:
   - field types: typedef;
   - trfuns for record types;
-  - provide more operations and theorems: split, split_all/ex, ...;
-  - field constructor: specific type for snd component;
+  - operations and theorems: split, split_all/ex, ...;
+  - field constructor: specific type for snd component (?);
+  - update_more operation;
+  - "..." for "... = more", "?..." for "?... = ?more";
 *)
 
 signature RECORD_PACKAGE =
@@ -36,24 +38,9 @@ structure RecordPackage: RECORD_PACKAGE =
 struct
 
 
-(*** syntax operations ***)
+(*** utilities ***)
 
-(** names **)
-
-(* name components *)
-
-val moreN = "more";
-val schemeN = "_scheme";
-val fieldN = "_field";
-val field_typeN = "_field_type";
-val fstN = "_fst";
-val sndN = "_snd";
-val updateN = "_update";
-val makeN = "make";
-val make_schemeN = "make_scheme";
-
-
-(* suffixes *)
+(* string suffixes *)
 
 fun suffix sfx s = s ^ sfx;
 
@@ -68,11 +55,45 @@ fun unsuffix sfx s =
   end;
 
 
+(* definitions and equations *)
 
-(** generic Pure / HOL **)		(* FIXME move(?) *)
+infix 0 :== === ;
 
-val mk_def = Logic.mk_defpair;
-val mk_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+val (op :==) = Logic.mk_defpair;
+val (op ===) = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
+fun get_defs thy specs = map (PureThy.get_tthm thy o fst) specs;
+fun add_simps ss simps = Simplifier.addsimps (ss, map Attribute.thm_of simps);
+
+
+(* proof by simplification *)
+
+fun prove_simp opt_ss simps =
+  let
+    val ss = add_simps (if_none opt_ss HOL_basic_ss) simps;
+    fun prove thy goal =
+      Attribute.tthm_of
+        (Goals.prove_goalw_cterm [] (Thm.cterm_of (Theory.sign_of thy) goal)
+          (K [ALLGOALS (Simplifier.simp_tac ss)])
+        handle ERROR => error ("The error(s) above occurred while trying to prove "
+          ^ quote (Sign.string_of_term (Theory.sign_of thy) goal)));
+  in prove end;
+
+
+
+(*** syntax operations ***)
+
+(** name components **)
+
+val moreN = "more";
+val schemeN = "_scheme";
+val fieldN = "_field";
+val field_typeN = "_field_type";
+val fstN = "_fst";
+val sndN = "_snd";
+val updateN = "_update";
+val makeN = "make";
+val make_schemeN = "make_scheme";
 
 
 
@@ -149,6 +170,12 @@ fun mk_selC rT (c, T) = (c, rT --> T);
 fun mk_sel r c =
   let val rT = fastype_of r
   in Const (mk_selC rT (c, find_fieldT c rT)) $ r end;
+
+val mk_moreC = mk_selC;
+
+fun mk_more r c =
+  let val rT = fastype_of r
+  in Const (mk_moreC rT (c, snd (dest_recordT rT))) $ r end;
 
 
 (* updates *)
@@ -275,7 +302,6 @@ fun get_records thy =
 
 fun get_record thy name = Symtab.lookup (get_records thy, name);
 
-
 fun put_records tab thy =
   Theory.put_data (recordsK, Records tab) thy;
 
@@ -316,29 +342,13 @@ fun add_parents thy (None, parents) = parents
 
 (** internal theory extenders **)
 
-(* utils *)
+(* field_definitions *)
 
-fun get_defs thy specs = map (PureThy.get_tthm thy o fst) specs;
-
-(*proof by simplification*)
-fun prove_simp opt_ss simps =
-  let
-    val ss = if_none opt_ss HOL_basic_ss addsimps (map Attribute.thm_of simps);
-    fun prove thy goal =
-      Attribute.tthm_of
-        (Goals.prove_goalw_cterm [] (Thm.cterm_of (Theory.sign_of thy) goal)
-          (K [ALLGOALS (Simplifier.simp_tac ss)])
-        handle ERROR => error ("The error(s) above occurred while trying to prove "
-          ^ quote (Sign.string_of_term (Theory.sign_of thy) goal)));
-  in prove end;
-
-(*thms from Prod.thy*)
+(*theorems from Prod.thy*)
 val prod_convs = map Attribute.tthm_of [fst_conv, snd_conv];
 
 
-(* field_definitions *)		(* FIXME tune; actual typedefs! *)
-
-fun field_definitions fields names zeta moreT more vars thy =
+fun field_definitions fields names zeta moreT more vars named_vars thy =
   let
     val base = Sign.base_name;
 
@@ -357,26 +367,27 @@ fun field_definitions fields names zeta moreT more vars thy =
 
     (*field constructors*)
     fun mk_field_spec (c, v) =
-      mk_def (mk_field ((c, v), more), HOLogic.mk_prod (v, more));
-    val field_specs = ListPair.map mk_field_spec (names, vars);
+      mk_field ((c, v), more) :== HOLogic.mk_prod (v, more);
+    val field_specs = map mk_field_spec named_vars;
 
     (*field destructors*)
     fun mk_dest_spec dest dest' (c, T) =
       let
         val p = Free ("p",  mk_fieldT ((c, T), moreT));
-        val p' = Free ("p",  HOLogic.mk_prodT (T, moreT));  (*Note: field types are just abbreviations*)
-      in mk_def (dest p, dest' p') end;
+        val p' = Free ("p",  HOLogic.mk_prodT (T, moreT));
+          (*note: field types are just abbreviations*)
+      in dest p :== dest' p' end;
     val dest_specs =
       map (mk_dest_spec mk_fst HOLogic.mk_fst) fields @
       map (mk_dest_spec mk_snd HOLogic.mk_snd) fields;
 
 
     (* prepare theorems *)
+
     fun mk_dest_prop dest dest' (c, v) =
-      mk_eq (dest (mk_field ((c, v), more)), dest' (v, more));
+      dest (mk_field ((c, v), more)) === dest' (v, more);
     val dest_props =
-      ListPair.map (mk_dest_prop mk_fst fst) (names, vars) @
-      ListPair.map (mk_dest_prop mk_snd snd) (names, vars);
+      map (mk_dest_prop mk_fst fst) named_vars @ map (mk_dest_prop mk_snd snd) named_vars;
 
 
     (* 1st stage: defs_thy *)
@@ -392,11 +403,11 @@ fun field_definitions fields names zeta moreT more vars thy =
     val field_defs = get_defs defs_thy field_specs;
     val dest_defs = get_defs defs_thy dest_specs;
 
-    val dest_convs =
-      map (prove_simp None (prod_convs @ field_defs @ dest_defs) defs_thy) dest_props;
-
 
     (* 2nd stage: thms_thy *)
+
+    val dest_convs =
+      map (prove_simp None (field_defs @ dest_defs @ prod_convs) defs_thy) dest_props;
 
     val thms_thy =
       defs_thy
@@ -431,6 +442,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val parent_len = length parent_fields;
     val parent_xs = variantlist (map (base o fst) parent_fields, [moreN]);
     val parent_vars = ListPair.map Free (parent_xs, parent_types);
+    val parent_named_vars = parent_names ~~ parent_vars;
 
     val fields = map (apfst full) bfields;
     val names = map fst fields;
@@ -438,6 +450,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val len = length fields;
     val xs = variantlist (map fst bfields, moreN :: parent_xs);
     val vars = ListPair.map Free (xs, types);
+    val named_vars = names ~~ vars;
 
     val all_fields = parent_fields @ fields;
     val all_names = parent_names @ names;
@@ -445,17 +458,20 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val all_len = parent_len + len;
     val all_xs = parent_xs @ xs;
     val all_vars = parent_vars @ vars;
-
+    val all_named_vars = parent_named_vars @ named_vars;
 
     val zeta = variant alphas "'z";
     val moreT = TFree (zeta, moreS);
     val more = Free (variant xs moreN, moreT);
-
-    val rec_schemeT = mk_recordT (all_fields, moreT);
-    val recT = mk_recordT (all_fields, HOLogic.unitT);
-    val r = Free ("r", rec_schemeT);
+    fun more_part t = mk_more t (full moreN);
 
     val parent_more = funpow parent_len mk_snd;
+    val idxs = 0 upto (len - 1);
+
+    val rec_schemeT = mk_recordT (all_fields, moreT);
+    val rec_scheme = mk_record (all_named_vars, more);
+    val r = Free ("r", rec_schemeT);
+    val recT = mk_recordT (all_fields, HOLogic.unitT);
 
 
     (* prepare print translation functions *)
@@ -468,9 +484,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* prepare declarations *)
 
-    val sel_decls = map (mk_selC rec_schemeT) fields;
-    val more_decl = (moreN, rec_schemeT --> moreT);
-    val update_decls = map (mk_updateC rec_schemeT) fields;
+    val sel_decls = map (mk_selC rec_schemeT) bfields @ [mk_moreC rec_schemeT (moreN, moreT)];
+    val update_decls = map (mk_updateC rec_schemeT) bfields;
     val make_decls =
       [(mk_makeC rec_schemeT (make_schemeN, all_types @ [moreT])),
        (mk_makeC recT (makeN, all_types))];
@@ -483,30 +498,42 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       [(suffix schemeN bname, alphas @ [zeta], rec_schemeT, Syntax.NoSyn),
         (bname, alphas, recT, Syntax.NoSyn)];
 
-    (*field selectors*)
+    (*selectors*)
     fun mk_sel_spec (i, c) =
-      mk_def (mk_sel r c, mk_fst (funpow i mk_snd (parent_more r)));
-    val sel_specs = ListPair.map mk_sel_spec (0 upto (len - 1), names);
+      mk_sel r c :== mk_fst (funpow i mk_snd (parent_more r));
+    val sel_specs =
+      ListPair.map mk_sel_spec (idxs, names) @
+        [more_part r :== funpow len mk_snd (parent_more r)];
 
-    (*more quasi-selector*)
-    val more_part = Const (full moreN, rec_schemeT --> moreT) $ r;
-    val more_spec = mk_def (more_part, funpow len mk_snd (parent_more r));
-        
     (*updates*)
+    val all_sels = all_names ~~ map (mk_sel r) all_names;
     fun mk_upd_spec (i, (c, x)) =
-      let
-        val prfx = map (mk_sel r) (parent_names @ take (i, names));
-        val sffx = map (mk_sel r) (drop (i + 1, names));
-      in mk_def (mk_update r (c, x), mk_record (all_names ~~ (prfx @ [x] @ sffx), more_part)) end;
-    val update_specs = ListPair.map mk_upd_spec (0 upto (len - 1), names ~~ vars);
+      mk_update r (c, x) :==
+        mk_record (nth_update (c, x) (parent_len + i, all_sels), more_part r)
+    val update_specs = ListPair.map mk_upd_spec (idxs, named_vars);
 
     (*makes*)
     val make_scheme = Const (mk_makeC rec_schemeT (full make_schemeN, all_types @ [moreT]));
     val make = Const (mk_makeC recT (full makeN, all_types));
     val make_specs =
-      map mk_def
-        [(list_comb (make_scheme, all_vars) $ more, mk_record (all_names ~~ all_vars, more)),
-          (list_comb (make, all_vars), mk_record (all_names ~~ all_vars, HOLogic.unit))];
+      [list_comb (make_scheme, all_vars) $ more :== rec_scheme,
+        list_comb (make, all_vars) :== mk_record (all_named_vars, HOLogic.unit)];
+
+
+    (* prepare propositions *)
+
+    (*selectors*)
+    val sel_props =
+      map (fn (c, x) => mk_sel rec_scheme c === x) named_vars @
+        [more_part rec_scheme === more];
+
+    (*updates*)
+    fun mk_upd_prop (i, (c, T)) =
+      let val x' = Free (variant all_xs (base c ^ "'"), T) in
+        mk_update rec_scheme (c, x') ===
+          mk_record (nth_update (c, x') (parent_len + i, all_named_vars), more)
+      end;
+    val update_props = ListPair.map mk_upd_prop (idxs, fields);
 
 
     (* 1st stage: fields_thy *)
@@ -514,7 +541,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val (fields_thy, field_simps) =
       thy
       |> Theory.add_path bname
-      |> field_definitions fields names zeta moreT more vars;
+      |> field_definitions fields names zeta moreT more vars named_vars;
 
 
     (* 2nd stage: defs_thy *)
@@ -525,13 +552,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_tyabbrs_i recordT_specs	(*not made part of record name space!*)
       |> Theory.add_path bname
       |> Theory.add_trfuns field_trfuns
-      |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base))
-        (sel_decls @ [more_decl] @ update_decls @ make_decls)
+      |> (Theory.add_consts_i o map Syntax.no_syn)
+        (sel_decls @ update_decls @ make_decls)
       |> (PureThy.add_defs_i o map Attribute.none)
-        (sel_specs @ [more_spec] @ update_specs @ make_specs);
+        (sel_specs @ update_specs @ make_specs);
 
     val sel_defs = get_defs defs_thy sel_specs;
-    val more_def = hd (get_defs defs_thy [more_spec]);
     val update_defs = get_defs defs_thy update_specs;
     val make_defs = get_defs defs_thy make_specs;
 
@@ -543,19 +569,26 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         None => HOL_basic_ss
       | Some (_, pname) => #simpset (the (get_record thy pname)));
 
-    val simpset = parent_simpset;	(* FIXME *)
+    val pss = Some parent_simpset;
+
+    val sel_convs = map (prove_simp pss (sel_defs @ field_simps) defs_thy) sel_props;
+    val update_convs = map (prove_simp pss (update_defs @ sel_convs) defs_thy) update_props;
+    val simps = field_simps @ sel_convs @ update_convs @ make_defs;
 
     val thms_thy =
       defs_thy
       |> (PureThy.add_tthmss o map Attribute.none)
-        [("sel_defs", sel_defs),
+        [("selector_defs", sel_defs),
           ("update_defs", update_defs),
-          ("make_defs", make_defs)];
-
-(*    |> record_theorems FIXME *)
+          ("make_defs", make_defs),
+          ("selector_convs", sel_convs),
+          ("update_convs", update_convs)]
+      |> PureThy.add_tthmss [(("simps", simps), [Simplifier.simp_add_global])];
 
 
     (* 4th stage: final_thy *)
+
+    val simpset = add_simps parent_simpset simps;
 
     val final_thy =
       thms_thy
@@ -570,7 +603,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
 (* prepare arguments *)
 
-(*Note: read_raw_typ avoids expanding type abbreviations*)
+(*note: read_raw_typ avoids expanding type abbreviations*)
 fun read_raw_parent sign s =
   (case Sign.read_raw_typ (sign, K None) s handle TYPE (msg, _, _) => error msg of
     Type (name, Ts) => (Ts, name)
