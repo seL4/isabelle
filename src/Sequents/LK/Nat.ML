@@ -1,9 +1,9 @@
-(*  Title:      FOL/ex/Nat.ML
+(*  Title:      Sequents/LK/Nat
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1999  University of Cambridge
 
-Proofs about the natural numbers.
+Theory of the natural numbers: Peano's axioms, primitive recursion
 *)
 
 Addsimps [Suc_neq_0];
