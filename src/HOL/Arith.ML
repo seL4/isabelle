@@ -19,13 +19,7 @@ goalw Arith.thy [pred_def] "pred(Suc n) = n";
 by(Simp_tac 1);
 qed "pred_Suc";
 
-val [add_0,add_Suc] = nat_recs add_def; 
-val [mult_0,mult_Suc] = nat_recs mult_def;
-store_thm("add_0",add_0);
-store_thm("add_Suc",add_Suc);
-store_thm("mult_0",mult_0);
-store_thm("mult_Suc",mult_Suc);
-Addsimps [pred_0,pred_Suc,add_0,add_Suc,mult_0,mult_Suc];
+Addsimps [pred_0,pred_Suc];
 
 (** pred **)
 
@@ -38,20 +32,18 @@ Addsimps [Suc_pred];
 
 (** Difference **)
 
-bind_thm("diff_0", diff_def RS def_nat_rec_0);
-
-qed_goalw "diff_0_eq_0" Arith.thy [diff_def, pred_def]
+qed_goalw "diff_0_eq_0" Arith.thy [pred_def]
     "0 - n = 0"
  (fn _ => [nat_ind_tac "n" 1,  ALLGOALS Asm_simp_tac]);
 
 (*Must simplify BEFORE the induction!!  (Else we get a critical pair)
   Suc(m) - Suc(n)   rewrites to   pred(Suc(m) - n)  *)
-qed_goalw "diff_Suc_Suc" Arith.thy [diff_def, pred_def]
+qed_goalw "diff_Suc_Suc" Arith.thy [pred_def]
     "Suc(m) - Suc(n) = m - n"
  (fn _ =>
   [Simp_tac 1, nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
 
-Addsimps [diff_0, diff_0_eq_0, diff_Suc_Suc];
+Addsimps [diff_0_eq_0, diff_Suc_Suc];
 
 
 goal Arith.thy "!!k. 0<k ==> EX j. k = Suc(j)";
@@ -178,6 +170,10 @@ qed_goal "mult_left_commute" Arith.thy "x*(y*z) = y*((x*z)::nat)"
 val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
 
 (*** Difference ***)
+
+qed_goal "pred_Suc_diff" Arith.thy "pred(Suc m - n) = m - n"
+ (fn _ => [nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
+Addsimps [pred_Suc_diff];
 
 qed_goal "diff_self_eq_0" Arith.thy "m - m = 0"
  (fn _ => [nat_ind_tac "m" 1, ALLGOALS Asm_simp_tac]);
