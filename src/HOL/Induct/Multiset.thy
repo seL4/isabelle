@@ -14,7 +14,7 @@ Multiset = Multiset0 + Acc +
 typedef
   'a multiset = "{f :: 'a => nat . finite{x . 0 < f x}}" (multiset_witness)
 
-instance multiset :: (term){ord,plus,minus}
+instance multiset :: (term){ord,zero,plus,minus}
 
 consts
   "{#}"  :: 'a multiset                        ("{#}")
