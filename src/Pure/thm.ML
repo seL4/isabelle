@@ -1197,33 +1197,19 @@ fun rename_params_rule (cs, i) state =
                      prop = Logic.rule_of(tpairs, Bs@[newBi], C)}))
   end;
 
+
 (*** Preservation of bound variable names ***)
 
-(*Scan a pair of terms; while they are similar,
-  accumulate corresponding bound vars in "al"*)
-fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
-      match_bvs(s, t, if x="" orelse y="" then al
-                                          else (x,y)::al)
-  | match_bvs(f$s, g$t, al) = match_bvs(f,g,match_bvs(s,t,al))
-  | match_bvs(_,_,al) = al;
-
-(* strip abstractions created by parameters *)
-fun match_bvars((s,t),al) = match_bvs(strip_abs_body s, strip_abs_body t, al);
-
-fun rename_boundvars pat obj (thm as Thm {sign_ref,der,maxidx,hyps,shyps,prop}) =
-  let val ren = match_bvs (pat, obj, [])
-      fun renAbs (Abs (x, T, b)) =
-            Abs (if_none (assoc_string (ren, x)) x, T, renAbs b)
-        | renAbs (f $ t) = renAbs f $ renAbs t
-        | renAbs t = t
-  in if null ren then thm else Thm
-    {sign_ref = sign_ref,
-     der = der,
-     maxidx = maxidx,
-     hyps = hyps,
-     shyps = shyps,
-     prop = renAbs prop}
-  end;
+fun rename_boundvars pat obj (thm as Thm {sign_ref, der, maxidx, hyps, shyps, prop}) =
+  (case Term.rename_abs pat obj prop of
+    None => thm
+  | Some prop' => Thm
+      {sign_ref = sign_ref,
+       der = der,
+       maxidx = maxidx,
+       hyps = hyps,
+       shyps = shyps,
+       prop = prop'});
 
 
 (* strip_apply f A(,B) strips off all assumptions/parameters from A
@@ -1259,7 +1245,7 @@ fun rename_bvs([],_,_,_) = I
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars(dpairs, tpairs, B) =
-        rename_bvs(foldr match_bvars (dpairs,[]), dpairs, tpairs, B);
+        rename_bvs(foldr Term.match_bvars (dpairs,[]), dpairs, tpairs, B);
 
 
 (*** RESOLUTION ***)
