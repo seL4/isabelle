@@ -5,7 +5,7 @@
     Copyright   1994 TU Muenchen
 
 Functions for reading theory files, and storing and retrieving theories,
-theorems and the global simplifier set.
+theorems.
 *)
 
 (*Types for theory storage*)
@@ -111,7 +111,7 @@ end;
 functor ReadthyFun(structure ThySyn: THY_SYN and ThmDB: THMDB): READTHY =
 struct
 
-open ThmDB Simplifier;
+open ThmDB;
 
 datatype basetype = Thy  of string
                   | File of string;

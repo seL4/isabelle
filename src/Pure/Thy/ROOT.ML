@@ -10,7 +10,6 @@ use "thy_scan.ML";
 use "thy_parse.ML";
 use "thy_syn.ML";
 use "thm_database.ML";
-use "../../Provers/simplifier.ML";
 use "symbol_input.ML";
 use "thy_read.ML";
 
