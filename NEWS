@@ -13,6 +13,10 @@ this: "\<^bold>\<alpha>" or "\<^bold>A";
 * \<bullet> is no output as bold \cdot by default, which looks much
 better in printed text;
 
+* added default LaTeX bindings for \<tturnstile> and \<TTurnstile>;
+note that these symbols are currently unavailable in Proof General /
+X-Symbol;
+
 
 *** Isar ***
 
