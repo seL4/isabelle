@@ -167,7 +167,7 @@ val new_header =
 
 val old_header =
   name -- ($$$ "=" |-- name -- Scan.repeat ($$$ "+" |-- name))
-  >> (fn (A, (B, Bs)) => ((A, B :: Bs), []));
+  >> (fn (A, (B, Bs)) => ((A, B :: Bs), []: string list));
 
 end;
 
