@@ -319,12 +319,11 @@ goalw thy [new_tv_def]
 by (fast_tac HOL_cs 1 );
 qed "free_tv_le_new_tv";
 
-goal thy 
-     "free_tv (s (v::nat)) <= cod s Un {v}";
-by (cut_inst_tac [("P","v:dom s")] excluded_middle 1);
-by (safe_tac (HOL_cs addSIs [subsetI]) );
-by (fast_tac (set_cs addss (!simpset addsimps [dom_def])) 1);
+goal thy
+     "free_tv (s (v::nat)) <= insert v (cod s)";
+by (expand_case_tac "v:dom s" 1);
 by (fast_tac (set_cs addss (!simpset addsimps [cod_def])) 1);
+by (fast_tac (set_cs addss (!simpset addsimps [dom_def])) 1);
 qed "free_tv_subst_var";
 
 goal thy 
