@@ -12,6 +12,10 @@ INTRODUCTION TO ISABELLE
 
 Advanced Methods
 
+page 46: the theory sections can appear in any order
+
+page 48: theories may now contain a separate definition part
+
 page 52, middle: the declaration "types bool,nat" should be "types bool nat"
 
 page 57, bottom: should be addsimps in 
@@ -56,8 +60,9 @@ higher-order patterns.
 
 Classical reasoner
 
-page 176: The package also provides tactics slow_tac, slow_best_tac, depth_tac
-and deepen_tac. 
+page 176: Classical sets may specify a "wrapper tactical", which can be used
+to define addss.  The package also provides tactics slow_tac, slow_best_tac,
+depth_tac and deepen_tac.
 
 ISABELLE'S OBJECT-LOGICS
 
