@@ -13,12 +13,11 @@ open Zorn;
 
 (*** Section 1.  Mathematical Preamble ***)
 
-Goal "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
+Goal "(ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
 by (Blast_tac 1);
 qed "Union_lemma0";
 
-Goal
-    "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
+Goal "[| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
 by (Blast_tac 1);
 qed "Inter_lemma0";
 
