@@ -104,7 +104,7 @@ fun old_symbol_source name syms =
 
 val token_source = isabelle_env o output_tokens;
 
-fun theory_entry name = "\\input{" ^ name ^ ".tex}\n";
+fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 
 
 (* print mode *)
