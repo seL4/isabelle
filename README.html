@@ -14,32 +14,34 @@
 <h2>Version information</h2>
 
 This is the internal repository version of Isabelle.  Starting with
-Isabelle98, the current line of Isabelle introduces many new features,
-but also some incompatibilities with Isabelle94-XX.  See the
-<tt>NEWS</tt> file in the distribution for more details.
+Isabelle98, the current line of Isabelle development introduces many
+new features, but also some incompatibilities with Isabelle94-XX.  See
+the <tt>NEWS</tt> file in the distribution for more details.
 
 
 <h2>System requirements</h2>
 
 Isabelle requires a real Unix box with sufficient resources. Fun
-starts at about 32MB of main memory (somewhat depending on your ML
-system), with several tens of MB disk space and a relatively fast CPU.
+starts at about 32-64 MB of main memory (somewhat depending on your ML
+system), with several tens of MB disk space and a decent CPU.
+Speaking by today's hardware standards, even a rather low-end Linux
+box should make a nice platform for Isabelle.
 
 <p>
 
-Furthermore, it needs the following software, which is not part of the
-distribution:
+Furthermore, Isabelle needs the following software, which is not part
+of the distribution:
 <ul>
 <li> A full Standard ML Compiler (e.g. SML of New Jersey).
 <li> The GNU bash shell (version 1.x or 2.x).
 <li> Perl 5.x - the Pathologically Eclectic Rubbish Lister (Perl 4.x
-is *not* sufficient).
+is <em>not</em> sufficient).
 </ul>
 
 <p>
 
 The following ML system and platform combinations are known to work
-quite well:
+very well:
 <ul>
 <li> SML/NJ 110.x on any Unix platform (e.g. Suns, Linux).
 <li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
@@ -52,15 +54,18 @@ problems with Linux and HP-UX, though.
 <a
 href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">SML/NJ</a>
 needs lots of store and disk space, but it is free.  The current
-official release is 110.  We also still support the old 0.93 release.
+official release is 110 (there is an <a
+href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/smlnj-110.0-3.i386.rpm">RPM
+archive</a> available for Linux/x86).  We still support the old 0.93
+release, but do not recommend to use it.
 
 <p>
 
 <a href="http://www.harlequin.com/products/ads/ml/">MLWorks</a> is a
-commercial ML programming environment.  Isabelle on MLWorks 2.0 works well.
-It is about 20% faster than on SML/NJ while using slightly less memory and
-disk space.  A few minor features (e.g. top-level pretty printing) are not yet
-supported, though.
+commercial ML programming environment.  Isabelle on MLWorks 2.0 works
+well.  It is about 20% faster than on SML/NJ while using slightly less
+memory and disk space.  A few minor features (e.g. top-level pretty
+printing) are not yet supported, though.
 
 <p>
 
@@ -82,12 +87,23 @@ directory <tt>doc</tt>).
 <h2>Interfaces</h2>
 
 The distribution includes only a very primitive interface based on
-ordinary terminal sessions.<p>
+ordinary terminal sessions.
+
+<p>
 
 <a href="http://www.dcs.ed.ac.uk/home/da/Isamode/">Isamode</a> by
 David Aspinall is a more elaborate interface for Isabelle.  It runs
 under recent versions of XEmacs and is useful to both novices and
 experts.
+
+<p>
+
+<a href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a> is
+a generic Emacs interface for proof assistants, including Isabelle (as
+of version 2.0).  Proof General is suitable for use by pacifists and
+Emacs militants alike. Its most prominent feature is script
+management, providing a metaphor of <em>live proof script
+editing</em>.
 
 
 <h2>Other sources of information</h2>
