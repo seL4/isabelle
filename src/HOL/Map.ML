@@ -26,21 +26,21 @@ Addsimps [override_empty];
 goalw thy [override_def] "empty ++ m = m";
 by(Simp_tac 1);
 br ext 1;
-by(split_tac [expand_option_case] 1);
+by(split_tac [split_option_case] 1);
 by(Simp_tac 1);
 qed "empty_override";
 Addsimps [empty_override];
 
 goalw thy [override_def]
  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)";
-by(simp_tac (!simpset addsplits [expand_option_case]) 1);
+by(simp_tac (!simpset addsplits [split_option_case]) 1);
 qed_spec_mp "override_Some_iff";
 
 bind_thm("override_SomeD", standard(override_Some_iff RS iffD1));
 
 goalw thy [override_def]
  "((m ++ n) k = None) = (n k = None & m k = None)";
-by(simp_tac (!simpset addsplits [expand_option_case]) 1);
+by(simp_tac (!simpset addsplits [split_option_case]) 1);
 qed "override_None";
 AddIffs [override_None];
 
@@ -48,7 +48,7 @@ goalw thy [override_def] "map_of(xs@ys) = map_of ys ++ map_of xs";
 by(induct_tac "xs" 1);
 by(Simp_tac 1);
 br ext 1;
-by(asm_simp_tac (!simpset addsplits [expand_if,expand_option_case]) 1);
+by(asm_simp_tac (!simpset addsplits [expand_if,split_option_case]) 1);
 qed "map_of_append";
 Addsimps [map_of_append];
 

@@ -161,7 +161,7 @@ by (simp_tac
 			inv_image_def, less_eq]) 1);
 (** LEVEL 7 **)
 (*Comb-Comb case*)
-by (asm_simp_tac (!simpset addsplits [expand_option_case]) 1);
+by (asm_simp_tac (!simpset addsplits [split_option_case]) 1);
 by (strip_tac 1);
 by (rtac (trans_unifyRel RS transD) 1);
 by (Blast_tac 1);
@@ -184,7 +184,7 @@ goal Unify.thy
 \                            of None => None    \
 \                             | Some sigma => Some (theta <> sigma)))";
 by (asm_simp_tac (!simpset addsimps (unify_TC::unifyRules0)
-			   addsplits [expand_option_case]) 1);
+			   addsplits [split_option_case]) 1);
 qed "unifyCombComb";
 
 
@@ -220,7 +220,7 @@ by (stac mgu_sym 1);
 by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
 (** LEVEL 8 **)
 (*Comb-Comb case*)
-by (asm_simp_tac (!simpset addsplits [expand_option_case]) 1);
+by (asm_simp_tac (!simpset addsplits [split_option_case]) 1);
 by (strip_tac 1);
 by (rotate_tac ~2 1);
 by (asm_full_simp_tac 
@@ -246,7 +246,7 @@ by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS 
     (asm_simp_tac 
        (!simpset addsimps [Var_Idem] 
-	         addsplits [expand_if,expand_option_case])));
+	         addsplits [expand_if,split_option_case])));
 (*Comb-Comb case*)
 by (safe_tac (!claset));
 by (REPEAT (dtac spec 1 THEN mp_tac 1));
