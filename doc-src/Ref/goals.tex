@@ -161,6 +161,40 @@ qed       : string -> unit
 \end{ttdescription}
 
 
+\subsection{Retrieving theorems}
+\index{theorems!retrieving}
+
+The following functions retrieve theorems (together with their names) from
+the theorem database. Hence they can only find theorems which have explicitly
+been stored in the database, using \ttindex{qed}, \ttindex{bind_thm} or
+related functions.
+\begin{ttbox} 
+findI:         int -> (string * thm)list
+findE:  int -> int -> (string * thm)list
+findEs:        int -> (string * thm)list
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{findI} $i$]\index{assumptions!of main goal}
+  returns all ``introduction rules'' applicable to subgoal $i$, i.e.\ all
+  theorems whose conclusion matches (rather than unifies with) subgoal
+  $i$. Useful in connection with {\tt resolve_tac}.
+
+\item[\ttindexbold{findE} $n$ $i$] returns all ``elimination rules''
+  applicable to premise $n$ of subgoal $i$, i.e.\ all those theorems whose
+  first premise matches premise $n$ of subgoal $i$. Useful in connection with
+  {\tt eresolve_tac} and {\tt dresolve_tac}.
+
+\item[\ttindexbold{findEs} $i$] returns all ``elimination rules'' applicable
+  to subgoal $i$, i.e.\ all those theorems whose first premise matches some
+  premise of subgoal $i$. Useful in connection with {\tt eresolve_tac} and
+  {\tt dresolve_tac}.
+
+\item[\ttindexbold{thms_containing} $strings$] returns all theorems which
+  contain all of the constants in $strings$. Note that a few basic constants
+  like \verb$==>$ are ignored.
+\end{ttdescription}
+
+
 \subsection{Undoing and backtracking}
 \begin{ttbox} 
 chop    : unit -> unit
