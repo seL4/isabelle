@@ -141,9 +141,6 @@ val real_numeral_ss =
 fun rename_numerals thy th = simplify real_numeral_ss (change_theory thy th);
 
 
-fun inst x t = read_instantiate_sg (sign_of RealBin.thy) [(x,t)];
-
-
 (*Now insert some identities previously stated for 0r and 1r*)
 
 (** RealDef & Real **)

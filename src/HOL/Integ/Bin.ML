@@ -213,8 +213,6 @@ Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
 (** Special simplification, for constants only **)
 
-fun inst x t = read_instantiate_sg (sign_of Bin.thy) [(x,t)];
-
 (*Distributive laws for literals*)
 Addsimps (map (inst "w" "number_of ?v")
 	  [zadd_zmult_distrib, zadd_zmult_distrib2,

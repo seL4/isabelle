@@ -285,8 +285,6 @@ by (asm_full_simp_tac numeral_ss 1);
 qed "Suc_pred'";
 
 
-fun inst x t = read_instantiate_sg (sign_of NatBin.thy) [(x,t)];
-
 (*Expresses a natural number constant as the Suc of another one.
   NOT suitable for rewriting because n recurs in the condition.*)
 bind_thm ("expand_Suc", inst "n" "number_of ?v" Suc_pred');
