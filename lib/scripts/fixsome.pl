@@ -19,6 +19,7 @@ sub fixsome {
     s/select_eq_Ex/some_eq_ex/g;
     s/selectI2EX/someI2_ex/g;
     s/selectI2/someI2/g;
+    s/selectI/someI/g;
     s/select1_equality/some1_equality/g;
     s/Eps_sym_eq/some_sym_eq_trivial/g;
     s/Eps_eq/some_eq_trivial/g;
