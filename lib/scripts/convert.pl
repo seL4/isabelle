@@ -152,7 +152,7 @@ sub backpatch_thmnames {
       s/@@(\d+)@@/$thmnames[$1]/eg;
       print TMPW $_;
     }
-    system("mv $currfile $currfile.~0~");
+    system("mv $currfile $currfile~0~");
     system("rm $tmpfile");
   }
 }

@@ -20,7 +20,8 @@ function usage()
   echo "  Isabelle/Isar tactic emulation."
   echo "  Note: conversion is only approximated, based on some heuristics."
   echo
-  echo "  Renames new versions of FILES by appending \".thy\"."
+  echo "  Renames old versions of FILES by appending \"~0~\"."
+  echo "  Creates new versions of FILES by appending \".thy\"."
   echo
   exit 1
 }
