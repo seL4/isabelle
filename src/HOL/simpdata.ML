@@ -103,7 +103,7 @@ val simp_thms = map prover
    "(P | P) = P", "(P | (P | Q)) = (P | Q)",
    "((~P) = (~Q)) = (P=Q)",
    "(!x.P) = P", "(? x.P) = P", "? x. x=t", "? x. t=x", 
-   "(? x. x=t & P(x)) = P(t)", (*"(? x. t=x & P(x)) = P(t)",*)
+   "(? x. x=t & P(x)) = P(t)",
    "(! x. t=x --> P(x)) = P(t)" ];
 
 (*Add congruence rules for = (instead of ==) *)
