@@ -9,6 +9,7 @@ signature BASIC_SYNTAX =
 sig
   include AST0
   include SEXTENSION0
+(*  include MIXFIX0   *)   (* FIXME *)
   include PRINTER0
 end;
 
@@ -20,33 +21,51 @@ sig
   include TYPE_EXT0
   include SEXTENSION1
   include PRINTER0
-  type syntax
-  val extend: syntax -> (string -> typ) -> string list * string list * sext -> syntax
-  val merge: string list -> syntax -> syntax -> syntax
-  val type_syn: syntax
-  val print_gram: syntax -> unit
-  val print_trans: syntax -> unit
-  val print_syntax: syntax -> unit
-  val test_read: syntax -> string -> string -> unit
-  val read: syntax -> typ -> string -> term
-  val read_typ: syntax -> (indexname -> sort) -> string -> typ
-  val simple_read_typ: string -> typ
-  val pretty_term: syntax -> term -> Pretty.T
-  val pretty_typ: syntax -> typ -> Pretty.T
-  val string_of_term: syntax -> term -> string
-  val string_of_typ: syntax -> typ -> string
-  val simple_string_of_typ: typ -> string
-  val simple_pprint_typ: typ -> pprint_args -> unit
+  sharing type ast = Parser.SynExt.Ast.ast
+  structure Mixfix: MIXFIX
+  local open Mixfix in    (* FIXME *)
+    type syntax
+    val extend_log_types: syntax -> string list -> syntax
+    val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
+    val extend_const_gram: syntax -> (string * typ * mixfix) list -> syntax
+    val extend_consts: syntax -> string list -> syntax
+    val extend_trfuns: syntax ->
+      (string * (ast list -> ast)) list *
+      (string * (term list -> term)) list *
+      (string * (term list -> term)) list *
+      (string * (ast list -> ast)) list -> syntax
+    val extend_trrules: syntax -> xrule list -> syntax
+  end  (* FIXME *)
+    val extend: syntax -> (string -> typ) -> string list * string list * sext
+      -> syntax     (* FIXME *)
+    val merge_syntaxes: syntax -> syntax -> syntax
+    val type_syn: syntax
+    val print_gram: syntax -> unit
+    val print_trans: syntax -> unit
+    val print_syntax: syntax -> unit
+    val test_read: syntax -> string -> string -> unit
+    val read: syntax -> typ -> string -> term
+    val read_typ: syntax -> (indexname -> sort) -> string -> typ
+    val simple_read_typ: string -> typ
+    val pretty_term: syntax -> term -> Pretty.T
+    val pretty_typ: syntax -> typ -> Pretty.T
+    val string_of_term: syntax -> term -> string
+    val string_of_typ: syntax -> typ -> string
+    val simple_string_of_typ: typ -> string
+    val simple_pprint_typ: typ -> pprint_args -> unit
+
 end;
 
 functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
-  and SExtension: SEXTENSION and Printer: PRINTER
-  sharing SExtension.Parser.SynExt = TypeExt.SynExt = Printer.SynExt)(*: SYNTAX *) = (* FIXME *)
+  and SExtension: SEXTENSION and Mixfix: MIXFIX and Printer: PRINTER
+  sharing Mixfix.SynExt = SExtension.Parser.SynExt = TypeExt.SynExt = Printer.SynExt)
+  : SYNTAX =
 struct
 
 structure SynExt = TypeExt.SynExt;
 structure Parser = SExtension.Parser;
 structure Lexicon = Parser.Lexicon;
+structure Mixfix = Mixfix;
 open Lexicon SynExt SynExt.Ast Parser TypeExt SExtension Printer;
 
 
@@ -55,7 +74,7 @@ open Lexicon SynExt SynExt.Ast Parser TypeExt SExtension Printer;
 (*the ref serves as unique id*)
 type 'a trtab = (('a list -> 'a) * unit ref) Symtab.table;
 
-val dest_trtab = Symtab.alist_of;
+val dest_trtab = Symtab.dest;
 
 fun lookup_trtab tab c =
   apsome fst (Symtab.lookup (tab, c));
@@ -63,18 +82,18 @@ fun lookup_trtab tab c =
 
 (* empty, extend, merge trtabs *)
 
-fun err_dup_trfun name c =
-  error ("More than one " ^ name ^ " for " ^ quote c);
+fun err_dup_trfuns name cs =
+  error ("More than one " ^ name ^ " for " ^ commas_quote cs);
 
 val empty_trtab = Symtab.null;
 
 fun extend_trtab tab trfuns name =
-  Symtab.extend (K false) (tab, map (fn (c, f) => (c, (f, ref ()))) trfuns)
-    handle Symtab.DUPLICATE c => err_dup_trfun name c;
+  Symtab.extend_new (tab, map (fn (c, f) => (c, (f, ref ()))) trfuns)
+    handle Symtab.DUPS cs => err_dup_trfuns name cs;
 
 fun merge_trtabs tab1 tab2 name =
   Symtab.merge eq_snd (tab1, tab2)
-    handle Symtab.DUPLICATE c => err_dup_trfun name c;
+    handle Symtab.DUPS cs => err_dup_trfuns name cs;
 
 
 
@@ -82,7 +101,7 @@ fun merge_trtabs tab1 tab2 name =
 
 type ruletab = (ast * ast) list Symtab.table;
 
-fun dest_ruletab tab = flat (map snd (Symtab.alist_of tab));
+fun dest_ruletab tab = flat (map snd (Symtab.dest tab));
 
 
 (* lookup_ruletab *)
@@ -264,13 +283,16 @@ fun test_read (Syntax tabs) root str =
     val toks = tokenize lexicon false str;
     val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks))
 
-    fun show pt =
-       let val raw_ast = pt_to_ast (K None) pt;
-           val _ = writeln ("raw: " ^ str_of_ast raw_ast);
-           val pre_ast = pt_to_ast (lookup_trtab parse_ast_trtab) pt;
-           val _ = normalize true true (lookup_ruletab parse_ruletab) pre_ast;
-       in () end
-  in seq show (parse gram root toks) end;
+    fun show_pt pt =
+      let
+        val raw_ast = pt_to_ast (K None) pt;
+        val _ = writeln ("raw: " ^ str_of_ast raw_ast);
+        val pre_ast = pt_to_ast (lookup_trtab parse_ast_trtab) pt;
+        val _ = normalize true true (lookup_ruletab parse_ruletab) pre_ast;
+      in () end;
+  in
+    seq show_pt (parse gram root toks)
+  end;
 
 
 (* read_ast *)
@@ -280,18 +302,15 @@ fun read_ast (Syntax tabs) xids root str =
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val pts = parse gram root (tokenize lexicon xids str);
 
-    fun show_pts pts =
-      let fun show pt = writeln (str_of_ast (pt_to_ast (K None) pt))
-      in seq show pts end
+    fun show_pt pt =
+      writeln (str_of_ast (pt_to_ast (K None) pt));
   in
-    if tl pts = [] then
-      pt_to_ast (lookup_trtab parse_ast_trtab) (hd pts)
-    else
+    (case pts of
+      [pt] => pt_to_ast (lookup_trtab parse_ast_trtab) pt
+    | _ =>
       (writeln ("Ambiguous input " ^ quote str);
-       writeln "produces the following parse trees:";
-       show_pts pts;
-       writeln "Please disambiguate the grammar or your input.";
-       raise ERROR)
+       writeln "produces the following parse trees:"; seq show_pt pts;
+       error "Please disambiguate the grammar or your input."))
   end;
 
 
@@ -378,9 +397,37 @@ val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 
 
-(** build syntax **)
+(** extend syntax (external interfaces) **)
 
-(* extend *)
+(* FIXME -> syn_ext.ML *)
+fun syn_ext_const_names roots cs =
+  syn_ext roots [] [] cs ([], [], [], []) ([], []);
+
+(* FIXME -> syn_ext.ML *)
+fun syn_ext_trfuns roots trfuns =
+  syn_ext roots [] [] [] trfuns ([], []);
+
+
+fun ext_syntax mk_syn_ext (syn as Syntax {roots, ...}) decls =
+  extend_syntax syn (mk_syn_ext roots decls);
+
+
+fun extend_log_types (syn as Syntax {roots, ...}) all_roots =
+  extend_syntax syn (syn_ext_roots all_roots (all_roots \\ roots));
+
+val extend_type_gram = ext_syntax Mixfix.syn_ext_types;
+
+val extend_const_gram = ext_syntax Mixfix.syn_ext_consts;
+
+val extend_consts = ext_syntax syn_ext_const_names;
+
+val extend_trfuns = ext_syntax syn_ext_trfuns;
+
+fun extend_trrules syn xrules =
+  ext_syntax syn_ext_rules syn (read_xrules syn xrules);
+
+
+(* extend *)    (* FIXME remove *)
 
 fun extend syn0 read_ty (all_roots, xconsts, sext) =
   let
@@ -392,19 +439,6 @@ fun extend syn0 read_ty (all_roots, xconsts, sext) =
     val syn2 = extend_syntax syn1
       (syn_ext_rules all_roots (read_xrules syn1 (xrules_of sext)));
   in syn2 end;
-
-
-(* merge *)
-
-fun merge all_roots syn1 syn2 =
-  let
-    val syn as (Syntax {roots, ...}) = merge_syntaxes syn1 syn2;
-  in
-    (case all_roots \\ roots of
-      [] => syn
-    | new_roots => (writeln ("DEBUG new roots:" ^ commas new_roots); (* FIXME debug *)
-        extend_syntax syn (syn_ext_roots all_roots new_roots)))
-  end;
 
 
 end;
