@@ -991,51 +991,47 @@ type prover = meta_simpset -> thm -> thm option;
 type termrec = (Sign.sg * term list) * term;
 type conv = meta_simpset -> termrec -> termrec;
 
-datatype comparison = LESS | EQUAL | GREATER;
+datatype order = LESS | EQUAL | GREATER;
 
-fun stringcomp(a,b:string) = if a<b then LESS  else
-                             if a=b then EQUAL else GREATER;
+fun stringord(a,b:string) = if a<b then LESS  else
+                            if a=b then EQUAL else GREATER;
 
-fun intcomp(i,j:int) = if i<j then LESS  else
-                       if i=j then EQUAL else GREATER;
+fun intord(i,j:int) = if i<j then LESS  else
+                      if i=j then EQUAL else GREATER;
 
-fun xcomp((a,i),(b,j)) =
-  (case stringcomp(a,b) of EQUAL => intcomp(i,j) | c => c);
+(* FIXME: "***ABSTRACTION***" is a hack and makes the ordering non-linear *)
+fun string_of_hd(Const(a,_)) = a
+  | string_of_hd(Free(a,_))  = a
+  | string_of_hd(Var(v,_))   = Syntax.string_of_vname v
+  | string_of_hd(Bound i)    = string_of_int i
+  | string_of_hd(Abs _)      = "***ABSTRACTION***";
 
-(*a strict (not reflexive) linear ordering for terms*)
+(* a strict (not reflexive) linear well-founded AC-compatible ordering
+ * for terms:
+ * s < t <=> 1. size(s) < size(t) or
+             2. size(s) = size(t) and s=f(...) and t = g(...) and f<g or
+             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
+                (s1..sn) < (t1..tn) (lexicographically)
+ *)
+
 (* FIXME: should really take types into account as well.
-   Otherwise not linear *)
-fun termcomp (t,u) =
-  (case t of
-     Const(a,_) => (case u of
-                      Const(b,_) => stringcomp(a,b)
-                    | _          => GREATER)
-   | Free(a,_) => (case u of
-                     Const _   => LESS
-                   | Free(b,_) => stringcomp(a,b)
-                   | _         => GREATER)
-   | Var(v,_) => (case u of
-                    Const _  => LESS
-                  | Free _   => LESS
-                  | Var(w,_) => xcomp(v,w)
-                  | _        => GREATER)
-  | Bound i => (case u of
-                  Const _  => LESS
-                | Free _   => LESS
-                | Var _    => LESS
-                | Bound j  => intcomp(i,j)
-                | _        => GREATER)
-  | Abs(_,_,r) => (case u of
-                     _ $ _  => GREATER
-                   | Abs(_,_,s) => termcomp(r,s)
-                   | _          => LESS)
-  | t1$t2 => (case u of
-                u1$u2 => (case termcomp(t1,u1) of
-                            EQUAL => termcomp(t2,u2)
-                          | c => c)
-              |  _    => LESS));
+ * Otherwise not linear *)
+fun termord(t,u) =
+      (case intord(size_of_term t,size_of_term u) of
+         EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
+                  in case stringord(string_of_hd f, string_of_hd g) of
+                       EQUAL => lextermord(ts,us)
+                     | ord   => ord
+                  end
+       | ord => ord)
+and lextermord(t::ts,u::us) =
+      (case termord(t,u) of
+         EQUAL => lextermord(ts,us)
+       | ord   => ord)
+  | lextermord([],[]) = EQUAL
+  | lextermord _ = error("lextermord");
 
-fun termless tu = (termcomp tu = LESS);
+fun termless tu = (termord tu = LESS);
 
 fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
