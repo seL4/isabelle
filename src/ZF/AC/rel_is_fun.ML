@@ -8,6 +8,7 @@ The criteria are cardinalities of the relation and its domain.
 Used in WO6WO1.ML
 *)
 
+(*Using AC we could trivially prove, for all u, domain(u) lepoll u*)
 goalw Cardinal.thy [lepoll_def]
      "!!m. [| m:nat; u lepoll m |] ==> domain(u) lepoll m";
 by (eresolve_tac [exE] 1);
@@ -29,47 +30,21 @@ by (fast_tac (ZF_cs addSIs [domain_mono]) 1);
 by (resolve_tac [subsetI] 1);
 by (excluded_middle_tac "x = a" 1);
 by (REPEAT (fast_tac (ZF_cs addSIs [domainI] addSEs [domainE]) 1));
-val domain_diff_eq_domain = result();
+val domain_Diff_eq_domain = result();
 
-goal Cardinal.thy
+goalw Cardinal.thy [function_def]
     "!!r. [| succ(m) lepoll domain(r); r lepoll succ(m); m:nat |] ==> \
-\	  ALL a:domain(r). EX! b. <a, b> : r";
-by (resolve_tac [ballI] 1);
-by (eresolve_tac [domainE] 1);
-by (resolve_tac [ex1I] 1 THEN (atac 1));
+\	  function(r)";
+by (safe_tac ZF_cs);
 by (resolve_tac [excluded_middle RS disjE] 1 THEN (atac 2));
 by (fast_tac (ZF_cs addSEs [lepoll_trans RS succ_lepoll_natE, 
 			Diff_sing_lepoll RSN (2, lepoll_m_imp_domain_lepoll_m)]
-		addEs [not_sym RSN (2, domain_diff_eq_domain) RS subst]) 1);
+		addEs [not_sym RSN (2, domain_Diff_eq_domain) RS subst]) 1);
 val rel_domain_ex1 = result();
-
-goal ZF.thy "!! r. [| ALL a:A. EX! b. <a,b> : r; r<=A*B |]  \
-\		==> r = (lam a:A. THE b. <a,b> : r)";
-by (resolve_tac [equalityI] 1);
-by (resolve_tac [subsetI] 1);
-by (dresolve_tac [subsetD] 1 THEN (atac 1));
-by (eresolve_tac [SigmaE] 1);
-by (hyp_subst_tac 1);
-by (dresolve_tac [bspec] 1 THEN (atac 1));
-by (eresolve_tac [lamI RS subst_elem] 1);
-by (forward_tac [theI] 1);
-by (asm_simp_tac ZF_ss 1);
-by (fast_tac (ZF_cs addIs [theI] addSEs [bspec] addSEs [lamE]) 2);
-by (eresolve_tac [ex1_equalsE] 1 THEN (REPEAT (atac 1)));
-val rel_is_lam = result();
-
-goal ZF.thy "!! r. [| ALL a:A. EX! b. <a,b> : r; r<=A*B |]  \
-\		==> (lam a:A. THE b. <a,b> : r) : A->B";
-by (fast_tac (ZF_cs addSIs [lam_type] addSEs [Pair_inject]
-		addSDs [bspec, theI]) 1);
-val lam_the_type = result();
 
 goal Cardinal.thy
     "!!r. [| succ(m) lepoll domain(r);  r lepoll succ(m);  m:nat;  \
 \	     r<=A*B; A=domain(r) |] ==> r: A->B";
 by (hyp_subst_tac 1);
-by (resolve_tac [rel_domain_ex1 RS 
-		(rel_domain_ex1 RS rel_is_lam RSN (3,
-		lam_the_type RS subst_elem))] 1
-	THEN (TRYALL atac));
+by (asm_simp_tac (ZF_ss addsimps [Pi_iff, rel_domain_ex1]) 1);
 val rel_is_fun = result();
