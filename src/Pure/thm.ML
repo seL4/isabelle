@@ -30,7 +30,7 @@ signature THM =
   val dest_cimplies     : cterm -> cterm * cterm
   val dest_comb         : cterm -> cterm * cterm
   val dest_abs          : cterm -> cterm * cterm
-  val mk_prop           : cterm -> cterm
+  val capply            : cterm -> cterm -> cterm
   val read_def_cterm    :
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
@@ -212,24 +212,20 @@ fun dest_comb (Cterm{sign, T, maxidx, t = A $ B}) =
   | dest_comb _ = raise CTERM "dest_comb";
 
 (*Destruct abstraction in cterms*)
-fun dest_abs (Cterm{sign, T, maxidx, t = tm as Abs(s,ty,M)}) = 
-      let fun mk_var{Name,Ty} = Free(Name,Ty);
-          val v = mk_var{Name = s, Ty = ty};
-          val ty2 =
-            case T of Type("fun",[_,S]) => S
-                    | _ => error "Function type expected in dest_abs";
-      in (Cterm{sign = sign, T = ty, maxidx = maxidx, t = v},
-          Cterm{sign = sign, T = ty2, maxidx = maxidx, t = betapply (tm,v)})
+fun dest_abs (Cterm {sign, T as Type("fun",[_,S]), maxidx, t=Abs(x,ty,M)}) = 
+      let val (y,N) = variant_abs (x,ty,M)
+      in (Cterm {sign = sign, T = ty, maxidx = 0, t = Free(y,ty)},
+          Cterm {sign = sign, T = S, maxidx = maxidx, t = N})
       end
   | dest_abs _ = raise CTERM "dest_abs";
 
-(*Convert cterm of type "o" to "prop" by using Trueprop*)
-fun mk_prop (ct as Cterm{sign, T, maxidx, t = Const("Trueprop",_) $ _}) = ct
-  | mk_prop (Cterm{sign, T, maxidx, t}) =
-      if T = Type("o",[]) then
-        Cterm{sign = sign, T = Type("prop",[]), maxidx = maxidx,
-              t = Const("Trueprop", Type("o",[]) --> Type("prop",[])) $ t}
-      else error "Type o expected in mk_prop";
+(*Form cterm out of a function and an argument*)
+fun capply (Cterm {t=f, sign=sign1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
+           (Cterm {t=x, sign=sign2, T, maxidx=maxidx2}) =
+      if T = dty then Cterm{t=f$x, sign=Sign.merge(sign1,sign2), T=rty,
+                            maxidx=max[maxidx1, maxidx2]}
+      else raise CTERM "capply: types don't agree"
+  | capply _ _ = raise CTERM "capply: first arg is not a function"
 
 
 (** read cterms **)   (*exception ERROR*)
