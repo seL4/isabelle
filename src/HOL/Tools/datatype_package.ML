@@ -31,18 +31,7 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val rep_datatype : string list option -> xstring list list ->
-    xstring list list -> xstring -> theory -> theory *
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       size : thm list,
-       simps : thm list}
-  val rep_datatype_i : string list option -> thm list list ->
+  val rep_datatype : string list option -> thm list list ->
     thm list list -> thm -> theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
@@ -483,13 +472,9 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 (*********************** declare non-datatype as datatype *********************)
 
-fun gen_rep_datatype get get' alt_names distinct_names inject_names induction_name thy =
+fun rep_datatype alt_names distinct inject induction thy =
   let
     val sign = sign_of thy;
-
-    val distinct = map (get thy) distinct_names;
-    val inject = map (get thy) inject_names;
-    val induction = get' thy induction_name;
 
     val induction' = freezeT induction;
 
@@ -571,8 +556,6 @@ fun gen_rep_datatype get get' alt_names distinct_names inject_names induction_na
       simps = simps})
   end;
 
-val rep_datatype = gen_rep_datatype (fn thy => PureThy.get_thmss thy) get_thm;
-val rep_datatype_i = gen_rep_datatype (K I) (K I);
 
 (******************************** add datatype ********************************)
 

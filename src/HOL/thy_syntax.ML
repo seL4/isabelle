@@ -134,22 +134,25 @@ local
       ";\nlocal\n\
       \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
       \  case_thms, split_thms, induction, size, simps}) =\n\
-      \  DatatypePackage.add_datatype false " ^ add_datatype_args ^ " thy;\n\
+      \ DatatypePackage.add_datatype false " ^ add_datatype_args ^ " thy;\n\
       \in\n" ^ mk_bind_thms_string names ^
       "val thy = thy;\nend;\nval thy = thy\n"
     end;
+
+  fun mk_thmss namess = "(map (PureThy.get_thmss thy) " ^ mk_list (map mk_list namess) ^ ")";
+  fun mk_thm name = "(PureThy.get_thm thy " ^ name ^ ")";
 
   fun mk_rep_dt_string (((names, distinct), inject), induct) =
     ";\nlocal\n\
     \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
     \  case_thms, split_thms, induction, size, simps}) =\n\
-    \  DatatypePackage.rep_datatype " ^
+    \ DatatypePackage.rep_datatype " ^
     (case names of
-        Some names => "(Some [" ^ commas_quote names ^ "]) " ^
-          mk_list (map mk_list distinct) ^ " " ^ mk_list (map mk_list inject) ^
-            " " ^ induct ^ " thy;\nin\n" ^ mk_bind_thms_string names
-      | None => "None " ^ mk_list (map mk_list distinct) ^ " " ^
-          mk_list (map mk_list inject) ^ " " ^ induct ^ " thy;\nin\n") ^
+        Some names => "(Some [" ^ commas_quote names ^ "])\n " ^
+          mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
+            "\n " ^ mk_thm induct ^ " thy;\nin\n" ^ mk_bind_thms_string names
+      | None => "None\n " ^ mk_thmss distinct ^ "\n " ^ mk_thmss inject ^
+            "\n " ^ mk_thm induct ^ " thy;\nin\n") ^
     "val thy = thy;\nend;\nval thy = thy\n";
 
   (*** parsers ***)
