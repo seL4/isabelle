@@ -109,8 +109,8 @@ primrec
   bin_add_Min: "bin_add bin.Min w = bin_pred w"
   bin_add_BIT:
     "bin_add (v BIT x) w =
-       (case w of Pls => v BIT x
-                | Min => bin_pred (v BIT x)
+       (case w of bin.Pls => v BIT x
+                | bin.Min => bin_pred (v BIT x)
                 | (w BIT y) =>
       	            NCons (bin_add v (if (x & y) then bin_succ w else w))
 	                  (x~=y))"
