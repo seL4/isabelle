@@ -97,11 +97,11 @@ Goalw [Lprg_def] "Invariant Lprg moving_down";
 by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
+by Safe_tac;
 by (dres_inst_tac [("m","f")] le_imp_less_or_eq 3);
 by (auto_tac (claset(),
 	      simpset() addsimps [gr_implies_gr0 RS le_pred_eq]));
 qed "moving_down";
-
 
 Goal "Invariant Lprg bounded";
 by (rtac InvariantI 1);
@@ -109,6 +109,7 @@ br (Invariant_Int_rule [moving_up, moving_down] RS Invariant_StableI) 2;
 bw Lprg_def;
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
+by Safe_tac;
 by (TRYALL (resolve_tac [nat_exhaust_le_pred, nat_exhaust_pred_le]));
 by (auto_tac (claset(), simpset() addsimps [less_Suc_eq]));
 by (auto_tac (claset(), simpset() addsimps [less_Suc_eq, le_eq_less_or_eq]));
@@ -133,6 +134,7 @@ val defs = cmd_defs@always_defs@abbrev_defs;
 Goal "LeadsTo Lprg (stopped Int atFloor n) (opened Int atFloor n)";
 by (cut_facts_tac [stop_floor] 1);
 by (ensures_tac defs "open_act" 1);
+by Auto_tac;
 qed "E_thm01";
 
 (*lem_lift_1_1*)
@@ -140,12 +142,14 @@ Goal "LeadsTo Lprg (Req n Int stopped - atFloor n) \
 \                  (Req n Int opened - atFloor n)";
 by (cut_facts_tac [stop_floor] 1);
 by (ensures_tac defs "open_act" 1);
+by Auto_tac;
 qed "E_thm02";
 
 (*lem_lift_1_2*)
 Goal "LeadsTo Lprg (Req n Int opened - atFloor n) \
 \                  (Req n Int closed - (atFloor n - queueing))";
 by (ensures_tac defs "close_act" 1);
+by Auto_tac;
 qed "E_thm03";
 
 
@@ -153,6 +157,7 @@ qed "E_thm03";
 Goal "LeadsTo Lprg (Req n Int closed Int (atFloor n - queueing)) \
 \                  (opened Int atFloor n)";
 by (ensures_tac defs "open_act" 1);
+by Auto_tac;
 qed "E_thm04";
 
 
@@ -187,6 +192,7 @@ Goal "LeadsTo Lprg (Req n Int closed - (atFloor n - queueing))   \
 br ([E_thm05c, LeadsTo_Un] MRS LeadsTo_Trans) 1;
 by (ensures_tac defs "req_down" 2);
 by (ensures_tac defs "req_up" 1);
+by Auto_tac;
 qed "lift_2";
 
 
@@ -210,6 +216,7 @@ Goal "0 < N ==> \
 \       (moving Int Req n Int (metric n -`` lessThan N))";
 by (cut_facts_tac [moving_up] 1);
 by (ensures_tac defs "move_up" 1);
+by Auto_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
 be (leI RS le_anti_sym RS sym) 1;
 by (eres_inst_tac [("P", "?x < metric n s")] notE 2);
@@ -236,6 +243,7 @@ Goal "0 < N ==> \
 \       (moving Int Req n Int (metric n -`` lessThan N))";
 by (cut_facts_tac [moving_down] 1);
 by (ensures_tac defs "move_down" 1);
+by Auto_tac;
 by (ALLGOALS distinct_tac);
 by (ALLGOALS (etac less_floor_imp THEN' Clarify_tac THEN' Asm_full_simp_tac));
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
@@ -271,6 +279,8 @@ Goal "0<N   \
 \                      (moving Int Req n Int (metric n -`` lessThan N))";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac defs "req_up" 1);
+by Auto_tac;
+by (ALLGOALS (eres_inst_tac [("P", "?x < metric n s")] notE));
 by (REPEAT_FIRST (etac rev_mp'));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps)));
 by (auto_tac (claset() addIs [diff_Suc_less_diff], 
@@ -302,6 +312,8 @@ Goal "0<N ==>   \
 \                  (moving Int Req n Int (metric n -`` lessThan N))";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac defs "req_down" 1);
+by Auto_tac;
+by (ALLGOALS (eres_inst_tac [("P", "?x < metric n s")] notE));
 by (ALLGOALS (etac less_floor_imp THEN' Clarify_tac THEN' Asm_full_simp_tac));
 by (REPEAT_FIRST (etac rev_mp'));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps)));
@@ -357,7 +369,7 @@ qed "lift_5";
 Goal "[| metric n s = 0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
 be rev_mp 1;
 by (asm_simp_tac (simpset() addsimps metric_simps) 1);
-auto();
+by Auto_tac;
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
@@ -368,6 +380,7 @@ Goal "LeadsTo Lprg (moving Int Req n Int (metric n -`` {0}))   \
 \                  (stopped Int atFloor n)";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac defs "request_act" 1);
+by Auto_tac;
 qed "E_thm11";
 
 (*lem_lift_3_5*)
@@ -375,7 +388,7 @@ Goal "LeadsTo Lprg \
 \       (moving Int Req n Int (metric n -`` {N}) Int {s. floor s : req s})   \
 \       (stopped Int Req n Int (metric n -`` {N}) Int {s. floor s : req s})";
 by (ensures_tac defs "request_act" 1);
-by (asm_simp_tac (simpset() addsimps metric_simps) 1);
+by (auto_tac (claset(), simpset() addsimps metric_simps));
 qed "E_thm13";
 
 (*lem_lift_3_6*)
@@ -385,7 +398,7 @@ Goal "0 < N ==> \
 \       (opened Int Req n Int (metric n -`` {N}))";
 by (ensures_tac defs "open_act" 1);
 by (REPEAT_FIRST (etac rev_mp'));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps)));
+by (auto_tac (claset(), simpset() addsimps metric_simps));
 qed "E_thm14";
 
 (*lem_lift_3_7*)
@@ -393,7 +406,7 @@ Goal "LeadsTo Lprg \
 \       (opened Int Req n Int (metric n -`` {N}))  \
 \       (closed Int Req n Int (metric n -`` {N}))";
 by (ensures_tac defs "close_act" 1);
-by (asm_simp_tac (simpset() addsimps metric_simps) 1);
+by (auto_tac (claset(), simpset() addsimps metric_simps));
 qed "E_thm15";
 
 

@@ -122,8 +122,11 @@ by (simp_tac (simpset() addsimps [Diff_fixedpoint]) 1);
 by (rtac LeadsTo_UN 1);
 by Auto_tac;
 by (ensures_tac [Rprg_def, asgt_def] "asgt a b" 1);
-by (cut_facts_tac [metric_le RS le_imp_less_or_eq] 1);
-by (Fast_tac 1);
+by (Blast_tac 2);
+by (full_simp_tac (simpset() addsimps [not_less_iff_le]) 1);
+bd (metric_le RS le_anti_sym) 1;
+by (auto_tac (claset() addEs [less_not_refl3 RSN (2, rev_notE)],
+	      simpset()));
 qed "LeadsTo_Diff_fixedpoint";
 
 Goal "LeadsTo Rprg (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";

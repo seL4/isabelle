@@ -56,6 +56,7 @@ Goalw [Mprg_def, bad_invariantU_def] "Invariant Mprg bad_invariantU";
 by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac cmd_defs 1);
+by Auto_tac;
 by (safe_tac (claset() addSEs [le_SucE]));
 by (Asm_full_simp_tac 1);
 (*Resulting state: n=1, p=false, m=4, u=false.  
@@ -73,18 +74,21 @@ qed "U_F0";
 
 Goal "LeadsTo Mprg {s. MM s=1} {s. PP s = VV s & MM s = 2}";
 by (ensures_tac cmd_defs "cmd1U" 1);
+by Auto_tac;
 qed "U_F1";
 
 Goal "LeadsTo Mprg {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [invariantU] 1);
 by (rewtac Mprg_def);
 by (ensures_tac cmd_defs "cmd2U" 1);
+by Auto_tac;
 qed "U_F2";
 
 Goal "LeadsTo Mprg {s. MM s = 3} {s. PP s}";
 by (res_inst_tac [("B", "{s. MM s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac cmd_defs "cmd4U" 2);
 by (ensures_tac cmd_defs "cmd3U" 1);
+by Auto_tac;
 qed "U_F3";
 
 Goal "LeadsTo Mprg {s. MM s = 2} {s. PP s}";
@@ -122,17 +126,20 @@ qed "V_F0";
 
 Goal "LeadsTo Mprg {s. NN s=1} {s. PP s = (~ UU s) & NN s = 2}";
 by (ensures_tac cmd_defs "cmd1V" 1);
+by Auto_tac;
 qed "V_F1";
 
 Goal "LeadsTo Mprg {s. PP s & NN s = 2} {s. NN s = 3}";
 by (cut_facts_tac [invariantV] 1);
 by (ensures_tac cmd_defs "cmd2V" 1);
+by Auto_tac;
 qed "V_F2";
 
 Goal "LeadsTo Mprg {s. NN s = 3} {s. ~ PP s}";
 by (res_inst_tac [("B", "{s. NN s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac cmd_defs "cmd4V" 2);
 by (ensures_tac cmd_defs "cmd3V" 1);
+by Auto_tac;
 qed "V_F3";
 
 Goal "LeadsTo Mprg {s. NN s = 2} {s. ~ PP s}";
