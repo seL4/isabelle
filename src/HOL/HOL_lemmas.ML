@@ -373,7 +373,7 @@ qed "someI2";
 val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
 by (rtac (major RS exE) 1);
 by (etac someI2 1 THEN etac minor 1);
-qed "someI2EX";
+qed "someI2_ex";
 
 val prems = Goal
     "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a";
