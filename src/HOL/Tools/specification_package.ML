@@ -90,7 +90,8 @@ fun process_spec cos alt_name sprop int thy =
 		Type.typ_instance(tsig,t,u) andalso
 		Type.typ_instance(tsig,u,t)
 	    end
-	val prop = term_of (Thm.read_cterm sg (sprop,HOLogic.boolT))
+	val cprop = Thm.read_cterm sg (sprop,Term.propT)
+	val prop = term_of cprop
 	val (prop_thawed,vmap) = Type.varify (prop,[])
 	val thawed_prop_consts = collect_consts (prop_thawed,[])
 	val (altcos,overloaded) = Library.split_list cos
@@ -110,11 +111,14 @@ fun process_spec cos alt_name sprop int thy =
 		  | [cf] => unvarify cf vmap
 		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
 	    end
-	val frees = Term.term_frees prop
+	val rew_imp = Simplifier.full_rewrite (empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]) cprop
+	val cprop' = snd (dest_equals (cprop_of rew_imp))
+	val prop' = HOLogic.dest_Trueprop (term_of cprop')
+	val frees = Term.term_frees prop'
 	val tsig = Sign.tsig_of (sign_of thy)
 	val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
 		"Only free variables of sort 'type' allowed in specifications"
-	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
+	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop')
 	val proc_consts = map proc_const consts
 	fun mk_exist (c,prop) =
 	    let
@@ -145,8 +149,12 @@ fun process_spec cos alt_name sprop int thy =
 		    end
 		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
 		fun apply_atts arg = Thm.apply_attributes (arg,map (Attrib.global_attribute thy) atts)
+		fun undo_imps thm =
+		    equal_elim (symmetric rew_imp) thm
 	    in
-		arg |> apsnd (remove_alls frees)
+		arg |> apsnd freezeT
+		    |> apsnd (remove_alls frees)
+		    |> apsnd (undo_imps)
 		    |> apsnd standard
 		    |> apply_atts
 		    |> add_final
