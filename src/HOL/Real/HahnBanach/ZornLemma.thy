@@ -27,7 +27,7 @@ proof (rule Zorn_Lemma2);
   proof;
     fix c; assume "c:chain S"; 
     show "EX y:S. ALL z:c. z <= y";
-    proof (rule case_split);
+    proof cases;
  
       txt{* If $c$ is an empty chain, then every element
       in $S$ is an upper bound of $c$. *};

@@ -253,7 +253,7 @@ proof -;
  txt{* The proof is by case analysis on $x$. *};
  
   show ?thesis;
-  proof (rule case_split);
+  proof cases;
 
     txt {* For the case $x = \zero$ the thesis follows
     from the linearity of $f$: for every linear function

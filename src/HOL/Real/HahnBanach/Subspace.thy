@@ -378,7 +378,7 @@ proof;
         proof (unfold lin_def, elim CollectE exE conjE);
           fix a; assume "x = a <*> x0";
           show ?thesis;
-          proof (rule case_split);
+          proof cases;
             assume "a = 0r"; show ?thesis; by (simp!);
           next;
             assume "a ~= 0r"; 
@@ -435,27 +435,27 @@ are unique, so the function $h_0$ defined by
 $h_0 (y \plus a \mult x_0) = h y + a \cdot \xi$ is definite. *};
 
 lemma h0_definite:
-  "[| h0 == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
+  "[| h0 == (\\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
                 in (h y) + a * xi);
   x = y + a <*> x0; is_vectorspace E; is_subspace H E;
   y:H; x0 ~: H; x0:E; x0 ~= <0> |]
   ==> h0 x = h y + a * xi";
 proof -;  
   assume 
-    "h0 == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
+    "h0 == (\\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
                in (h y) + a * xi)"
     "x = y + a <*> x0" "is_vectorspace E" "is_subspace H E"
     "y:H" "x0 ~: H" "x0:E" "x0 ~= <0>";
   have "x : H + (lin x0)"; 
     by (simp! add: vs_sum_def lin_def) force+;
-  have "EX! xa. ((\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)"; 
+  have "EX! xa. ((\\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)"; 
   proof;
-    show "EX xa. ((\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)";
+    show "EX xa. ((\\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)";
       by (force!);
   next;
     fix xa ya;
-    assume "(\<lambda>(y,a). x = y + a <*> x0 & y : H) xa"
-           "(\<lambda>(y,a). x = y + a <*> x0 & y : H) ya";
+    assume "(\\<lambda>(y,a). x = y + a <*> x0 & y : H) xa"
+           "(\\<lambda>(y,a). x = y + a <*> x0 & y : H) ya";
     show "xa = ya"; ;
     proof -;
       show "fst xa = fst ya & snd xa = snd ya ==> xa = ya"; 
