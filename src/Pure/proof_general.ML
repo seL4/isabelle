@@ -777,8 +777,10 @@ local
 	let 
 	    val ((thyname,imports,files),_) = ThyHeader.args (toks@sync)
 	in 
-	    markup_text_attrs str "opentheory" [("thyname",thyname),
-						("parentnames", space_implode ";" imports)]
+	    markup_text_attrs str "opentheory" 
+			      ([("thyname",thyname)] @
+			       (if imports=[] then [] else
+				[("parentnames", (space_implode ";" imports) ^ ";")]))
 	end 
 
     fun xmls_of_thy_decl (name,toks,str) = (* see isar_syn.ML/thy_decl cases  *)
