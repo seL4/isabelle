@@ -491,7 +491,7 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
   let
     val _ = clean_message "  Proving the introduction rules ...";
 
-    val unfold = standard (mono RS (fp_def RS
+    val unfold = standard' (mono RS (fp_def RS
       (if coind then def_gfp_unfold else def_lfp_unfold)));
 
     fun select_disj 1 1 = []
