@@ -1,5 +1,5 @@
 (*<*)
-theory Nested1 = Nested0:;
+theory Nested1 = Nested0:
 (*>*)
 
 text{*\noindent
@@ -11,11 +11,11 @@ this subsection.
 Defining @{term trev} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:
-*};
+*}
 
-recdef trev "measure size"
+recdef (*<*)(permissive)(*<*)trev "measure size"
  "trev (Var x)    = Var x"
- "trev (App f ts) = App f (rev(map trev ts))";
+ "trev (App f ts) = App f (rev(map trev ts))"
 
 text{*\noindent
 Remember that function @{term size} is defined for each \isacommand{datatype}.
@@ -34,8 +34,8 @@ recursive call of @{term trev} is strictly less than @{term"size(App f ts)"},
 which equals @{term"Suc(term_list_size ts)"}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} knows about @{term map}.
-*};
+*}
 
 (*<*)
-end;
+end
 (*>*)

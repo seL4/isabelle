@@ -19,7 +19,7 @@ text {*
 *}
 
 consts while_aux :: "('a => bool) \<times> ('a => 'a) \<times> 'a => 'a"
-recdef while_aux
+recdef (permissive) while_aux
   "same_fst (\<lambda>b. True) (\<lambda>b. same_fst (\<lambda>c. True) (\<lambda>c.
       {(t, s).  b s \<and> c s = t \<and>
         \<not> (\<exists>f. f 0 = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))}))"

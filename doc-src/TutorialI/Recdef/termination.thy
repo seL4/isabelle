@@ -16,9 +16,9 @@ simplification rules.
 Isabelle may fail to prove the termination condition for some
 recursive call.  Let us try the following artificial function:*}
 
-consts f :: "nat\<times>nat \<Rightarrow> nat";
-recdef f "measure(\<lambda>(x,y). x-y)"
-  "f(x,y) = (if x \<le> y then x else f(x,y+1))";
+consts f :: "nat\<times>nat \<Rightarrow> nat"
+recdef (*<*)(permissive)(*<*)f "measure(\<lambda>(x,y). x-y)"
+  "f(x,y) = (if x \<le> y then x else f(x,y+1))"
 
 text{*\noindent
 Isabelle prints a
@@ -28,14 +28,14 @@ have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:
 *}
 
-lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y";
+lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y"
 
 txt{*\noindent
 It was not proved automatically because of the awkward behaviour of subtraction
 on type @{typ"nat"}. This requires more arithmetic than is tried by default:
 *}
 
-apply(arith);
+apply(arith)
 done
 
 text{*\noindent
@@ -45,7 +45,7 @@ says to use @{thm[source]termi_lem} as
 a simplification rule.  
 *}
 
-consts g :: "nat\<times>nat \<Rightarrow> nat";
+consts g :: "nat\<times>nat \<Rightarrow> nat"
 recdef g "measure(\<lambda>(x,y). x-y)"
   "g(x,y) = (if x \<le> y then x else g(x,y+1))"
 (hints recdef_simp: termi_lem)
@@ -56,8 +56,8 @@ the stated recursion equation for @{term g}, which has been stored as a
 simplification rule.  Thus we can automatically prove results such as this one:
 *}
 
-theorem "g(1,0) = g(1,1)";
-apply(simp);
+theorem "g(1,0) = g(1,1)"
+apply(simp)
 done
 
 text{*\noindent

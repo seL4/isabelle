@@ -33,7 +33,7 @@ recdef finiteRchain  "measure (\<lambda>(R, l). size l)"
 
 text {* Not handled automatically: too complicated. *}
 consts variant :: "nat * nat list => nat"
-recdef variant  "measure (\<lambda>(n::nat, ns). size (filter (\<lambda>y. n \<le> y) ns))"
+recdef (permissive) variant  "measure (\<lambda>(n::nat, ns). size (filter (\<lambda>y. n \<le> y) ns))"
   "variant (x, L) = (if x mem L then variant (Suc x, L) else x)"
 
 consts gcd :: "nat * nat => nat"
@@ -51,7 +51,7 @@ text {*
  *}
 
 consts g :: "nat => nat"
-recdef g  less_than
+recdef (permissive) g  less_than
   "g 0 = 0"
   "g (Suc x) = g (g x)"
 
@@ -80,7 +80,7 @@ text {*
 *}
 
 consts k :: "nat => nat"
-recdef k  less_than
+recdef (permissive) k  less_than
   "k 0 = 0"
   "k (Suc n) =
    (let x = k 1
@@ -94,7 +94,7 @@ recdef part  "measure (\<lambda>(P, l, l1, l2). size l)"
     else part (P, rst, l1, h # l2))"
 
 consts fqsort :: "('a => 'a => bool) * 'a list => 'a list"
-recdef fqsort  "measure (size o snd)"
+recdef (permissive) fqsort  "measure (size o snd)"
   "fqsort (ord, []) = []"
   "fqsort (ord, x # rst) =
   (let (less, more) = part ((\<lambda>y. ord y x), rst, ([], []))
@@ -109,7 +109,7 @@ text {*
 *}
 
 consts mapf :: "nat => nat list"
-recdef mapf  "measure (\<lambda>m. m)"
+recdef (permissive) mapf  "measure (\<lambda>m. m)"
   "mapf 0 = []"
   "mapf (Suc n) = concat (map (\<lambda>x. mapf x) (replicate n n))"
   (hints cong: map_cong)

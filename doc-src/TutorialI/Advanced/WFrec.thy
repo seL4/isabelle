@@ -8,11 +8,11 @@ general definitions. For example, termination of Ackermann's function
 can be shown by means of the \rmindex{lexicographic product} @{text"<*lex*>"}:
 *}
 
-consts ack :: "nat\<times>nat \<Rightarrow> nat";
+consts ack :: "nat\<times>nat \<Rightarrow> nat"
 recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
   "ack(0,n)         = Suc n"
   "ack(Suc m,0)     = ack(m, 1)"
-  "ack(Suc m,Suc n) = ack(m,ack(Suc m,n))";
+  "ack(Suc m,Suc n) = ack(m,ack(Suc m,n))"
 
 text{*\noindent
 The lexicographic product decreases if either its first component
@@ -67,8 +67,8 @@ of a recursive function that calls itself with increasing values up to ten:
 *}
 
 consts f :: "nat \<Rightarrow> nat"
-recdef f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
-"f i = (if #10 \<le> i then 0 else i * f(Suc i))";
+recdef (*<*)(permissive)(*<*)f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
+"f i = (if #10 \<le> i then 0 else i * f(Suc i))"
 
 text{*\noindent
 Since \isacommand{recdef} is not prepared for the relation supplied above,
@@ -81,9 +81,9 @@ lemma wf_greater: "wf {(i,j). j<i \<and> i \<le> (N::nat)}"
 txt{*\noindent
 The proof is by showing that our relation is a subset of another well-founded
 relation: one given by a measure function.\index{*wf_subset (theorem)}
-*};
+*}
 
-apply (rule wf_subset [of "measure (\<lambda>k::nat. N-k)"], blast);
+apply (rule wf_subset [of "measure (\<lambda>k::nat. N-k)"], blast)
 
 txt{*
 @{subgoals[display,indent=0,margin=65]}
@@ -91,7 +91,7 @@ txt{*
 \noindent
 The inclusion remains to be proved. After unfolding some definitions, 
 we are left with simple arithmetic:
-*};
+*}
 
 apply (clarify, simp add: measure_def inv_image_def)
 
@@ -100,9 +100,9 @@ txt{*
 
 \noindent
 And that is dispatched automatically:
-*};
+*}
 
-by arith;
+by arith
 
 text{*\noindent
 
@@ -114,7 +114,7 @@ consts g :: "nat \<Rightarrow> nat"
 recdef g "{(i,j). j<i \<and> i \<le> (#10::nat)}"
 "g i = (if #10 \<le> i then 0 else i * g(Suc i))"
 (*>*)
-(hints recdef_wf: wf_greater);
+(hints recdef_wf: wf_greater)
 
 text{*\noindent
 Alternatively, we could have given @{text "measure (\<lambda>k::nat. #10-k)"} for the
