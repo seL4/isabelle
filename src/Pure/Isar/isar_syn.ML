@@ -409,18 +409,6 @@ val finallyP =
     (calc_args -- P.marg_comment >> IsarThy.finally);
 
 
-(* obtain *)
-
-val obtainP =
-  OuterSyntax.command "obtain" "document-level existential quantifier (EXPERIMENTAL!)"
-    K.prf_asm_goal
-    (Scan.optional
-      (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
-        --| P.$$$ "in") [] --
-      P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
-    >> (Toplevel.print oo (Toplevel.proof o IsarThy.obtain)));
-
-
 (* proof navigation *)
 
 val backP =
@@ -628,8 +616,8 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, obtainP,
-  backP, cannot_undoP, clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
+  skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
+  cannot_undoP, clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
