@@ -27,11 +27,7 @@ signature BASIC_THM =
   val ctyp_of_term      : cterm -> ctyp
   val read_cterm        : Sign.sg -> string * typ -> cterm
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
-  val dest_comb         : cterm -> cterm * cterm
-  val dest_abs          : string option -> cterm -> cterm * cterm
   val adjust_maxidx     : cterm -> cterm
-  val capply            : cterm -> cterm -> cterm
-  val cabs              : cterm -> cterm -> cterm
   val read_def_cterm    :
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
@@ -153,6 +149,10 @@ end;
 signature THM =
 sig
   include BASIC_THM
+  val dest_comb         : cterm -> cterm * cterm
+  val dest_abs          : string option -> cterm -> cterm * cterm
+  val capply            : cterm -> cterm -> cterm
+  val cabs              : cterm -> cterm -> cterm
   val major_prem_of	: thm -> term
   val no_prems		: thm -> bool
   val no_attributes	: 'a -> 'a * 'b attribute list

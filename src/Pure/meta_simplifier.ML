@@ -696,7 +696,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
        (case term_of t0 of
            Abs (a, T, t) =>
              let val b = variant bounds a
-                 val (v, t') = dest_abs (Some ("." ^ b)) t0
+                 val (v, t') = Thm.dest_abs (Some ("." ^ b)) t0
                  val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless)
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0
              in case botc skel' mss' t' of
@@ -719,7 +719,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
                        val (tskel, uskel) = case skel of
                            tskel $ uskel => (tskel, uskel)
                          | _ => (skel0, skel0);
-                       val (ct, cu) = dest_comb t0
+                       val (ct, cu) = Thm.dest_comb t0
                      in
                      (case botc tskel mss ct of
                         Some thm1 =>
@@ -742,7 +742,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
                           (let
                              val thm = congc (prover mss, sign, maxidx) cong t0;
                              val t = rhs_of thm;
-                             val (cl, cr) = dest_comb t
+                             val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
                                list_comb (h, replicate (length ts) dVar)

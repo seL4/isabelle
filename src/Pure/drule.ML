@@ -123,15 +123,15 @@ struct
 fun dest_implies ct =
     case term_of ct of
         (Const("==>", _) $ _ $ _) =>
-            let val (ct1,ct2) = dest_comb ct
-            in  (#2 (dest_comb ct1), ct2)  end
+            let val (ct1,ct2) = Thm.dest_comb ct
+            in  (#2 (Thm.dest_comb ct1), ct2)  end
       | _ => raise TERM ("dest_implies", [term_of ct]) ;
 
 fun dest_equals ct =
     case term_of ct of
         (Const("==", _) $ _ $ _) =>
-            let val (ct1,ct2) = dest_comb ct
-            in  (#2 (dest_comb ct1), ct2)  end
+            let val (ct1,ct2) = Thm.dest_comb ct
+            in  (#2 (Thm.dest_comb ct1), ct2)  end
       | _ => raise TERM ("dest_equals", [term_of ct]) ;
 
 
@@ -151,7 +151,7 @@ fun strip_imp_prems ct =
 (* A1==>...An==>B  goes to B, where B is not an implication *)
 fun strip_imp_concl ct =
     case term_of ct of (Const("==>", _) $ _ $ _) =>
-        strip_imp_concl (#2 (dest_comb ct))
+        strip_imp_concl (#2 (Thm.dest_comb ct))
   | _ => ct;
 
 (*The premises of a theorem, as a cterm list*)
@@ -162,7 +162,7 @@ val proto_sign = Theory.sign_of ProtoPure.thy;
 val implies = cterm_of proto_sign Term.implies;
 
 (*cterm version of mk_implies*)
-fun mk_implies(A,B) = capply (capply implies A) B;
+fun mk_implies(A,B) = Thm.capply (Thm.capply implies A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
 fun list_implies([], B) = B

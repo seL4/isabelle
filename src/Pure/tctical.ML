@@ -374,7 +374,7 @@ fun REPEAT_ALL_NEW tac =
 val prop_equals = cterm_of (Theory.sign_of ProtoPure.thy) 
                     (Const("==", propT-->propT-->propT));
 
-fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
+fun mk_prop_equals(t,u) = Thm.capply (Thm.capply prop_equals t) u;
 
 (*Like trivial but returns [ct==X] ct==>X instead of ct==>ct, if possible.
   It is paired with a function to undo the transformation.  If ct contains
