@@ -243,10 +243,34 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 (* find rules *)
 
+(* rename all outermost !!-bound vars of type T in all premises of thm to x,
+   possibly indexed to avoid clashes *)
+fun rename [[Some(Free(x,Type(T,_)))]] thm =
+  let
+    fun index i [] = []
+      | index i (y::ys) = if x=y then x^string_of_int i :: index (i+1) ys
+                          else y :: index i ys;
+    fun rename_params [] = []
+      | rename_params ((y,Type(U,_))::ys) =
+          (if U=T then x else y)::rename_params ys
+      | rename_params ((y,_)::ys) = y::rename_params ys;
+    fun rename_asm (A:term):term = 
+      let val xs = rename_params (Logic.strip_params A)
+          val xs' = case filter (equal x) xs of
+                      [] => xs | [_] => xs | _ => index 1 xs
+      in Logic.list_rename_params (xs',A) end;
+    fun rename_prop (p:term) =
+      let val (As,C) = Logic.strip_horn p
+      in Logic.list_implies(map rename_asm As, C) end;
+    val cp' = cterm_fun rename_prop (cprop_of thm);
+    val thm' = equal_elim (reflexive cp') thm
+  in Thm.put_name_tags (Thm.get_name_tags thm) thm' end
+  | rename _ thm = thm;
+
 fun find_inductT ctxt insts =
   foldr multiply (insts |> mapfilter (fn [] => None | ts => last_elem ts)
     |> map (InductAttrib.find_inductT ctxt o fastype_of), [[]])
-  |> map join_rules |> flat;
+  |> map join_rules |> flat |> map (rename insts);
 
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
   | find_inductS _ _ = [];
