@@ -6,7 +6,7 @@
 Ordinals in Zermelo-Fraenkel Set Theory 
 *)
 
-Ordinal = WF + "simpdata" + "equalities" +
+Ordinal = WF + Bool + "simpdata" + "equalities" +
 consts
   Memrel      	:: "i=>i"
   Transset,Ord  :: "i=>o"
