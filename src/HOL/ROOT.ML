@@ -56,7 +56,6 @@ cd "Integ";
 use_thy "IntDef";
 use "simproc.ML";
 use_thy "NatBin";
-use "bin_simprocs.ML";
 cd "..";
 
 (*the all-in-one theory*)

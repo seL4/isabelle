@@ -895,45 +895,6 @@ struct
 
 val lessD = [Suc_leI];
 
-val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
-
-(* Turn term into list of summand * multiplicity plus a constant *)
-fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
-  | poly(Const("op +",_) $ s $ t, pi) = poly(s,poly(t,pi))
-  | poly(t,(p,i)) =
-      if t = Const("0",HOLogic.natT) then (p,i)
-      else (case assoc(p,t) of None => ((t,1)::p,i)
-            | Some m => (overwrite(p,(t,m+1)), i))
-fun poly(t, pi as (p,i)) =
-  if HOLogic.is_zero t then pi else
-  (case try HOLogic.dest_Suc t of
-    Some u => poly(u, (p,i+1))
-  | None => (case try dest_plus t of
-               Some(r,s) => poly(r,poly(s,pi))
-             | None => (case assoc(p,t) of None => ((t,1)::p,i)
-                        | Some m => (overwrite(p,(t,m+1)), i))))
-
-fun nnb T = T = ([HOLogic.natT,HOLogic.natT] ---> HOLogic.boolT);
-
-fun decomp2(rel,lhs,rhs) =
-  let val (p,i) = poly(lhs,([],0)) and (q,j) = poly(rhs,([],0))
-  in case rel of
-       "op <"  => Some(p,i,"<",q,j)
-     | "op <=" => Some(p,i,"<=",q,j)
-     | "op ="  => Some(p,i,"=",q,j)
-     | _       => None
-  end;
-
-fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
-  | negate None = None;
-
-fun decomp1(T,xxx) = if nnb T then decomp2 xxx else None;
-
-fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp1(T,(rel,lhs,rhs))
-  | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      negate(decomp1(T,(rel,lhs,rhs)))
-  | decomp _ = None
-
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
@@ -953,14 +914,70 @@ val add_mono_thms = map (fn s => prove_goal Arith.thy s
  "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
 ];
 
+(* Decomposition of terms *)
+
+fun nT (Type("fun",[N,_])) = N = HOLogic.natT
+  | nT _ = false;
+
+fun add_atom(t,m,(p,i)) = (case assoc(p,t) of None => ((t,m)::p,i)
+                           | Some n => (overwrite(p,(t,n+m:int)), i));
+
+(* Turn term into list of summand * multiplicity plus a constant *)
+fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
+  | poly(all as Const("op -",T) $ s $ t, m, pi) =
+      if nT T then add_atom(all,m,pi)
+      else poly(s,m,poly(t,~1*m,pi))
+  | poly(Const("uminus",_) $ t, m, pi) = poly(t,~1*m,pi)
+  | poly(Const("0",_), _, pi) = pi
+  | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,i+m))
+  | poly(all as Const("op *",_) $ (Const("Numeral.number_of",_)$c) $ t, m, pi)=
+      (poly(t,m*HOLogic.dest_binum c,pi)
+       handle TERM _ => add_atom(all,m,pi))
+  | poly(all as Const("op *",_) $ t $ (Const("Numeral.number_of",_)$c), m, pi)=
+      (poly(t,m*HOLogic.dest_binum c,pi)
+       handle TERM _ => add_atom(all,m,pi))
+  | poly(all as Const("Numeral.number_of",_)$t,m,(p,i)) =
+     ((p,i + m*HOLogic.dest_binum t)
+      handle TERM _ => add_atom(all,m,(p,i)))
+  | poly x  = add_atom x;
+
+fun decomp2(rel,lhs,rhs) =
+  let val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
+  in case rel of
+       "op <"  => Some(p,i,"<",q,j)
+     | "op <=" => Some(p,i,"<=",q,j)
+     | "op ="  => Some(p,i,"=",q,j)
+     | _       => None
+  end;
+
+fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
+  | negate None = None;
+
+fun decomp1 tab (T,xxx) =
+  (case T of
+     Type("fun",[Type(D,[]),_]) =>
+       (case assoc(!tab,D) of
+          None => None
+        | Some d => (case decomp2 xxx of
+                       None => None
+                     | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d)))
+   | _ => None);
+
+(* tab: (string * bool)list ref  contains the discreteneness flag *)
+fun decomp tab (_$(Const(rel,T)$lhs$rhs)) = decomp1 tab (T,(rel,lhs,rhs))
+  | decomp tab (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
+      negate(decomp1 tab (T,(rel,lhs,rhs)))
+  | decomp _ _ = None
+
 end;
 
 structure LA_Data_Ref =
 struct
   val add_mono_thms = ref Nat_LA_Data.add_mono_thms
   val lessD = ref Nat_LA_Data.lessD
-  val decomp = ref Nat_LA_Data.decomp
   val simp = ref Nat_LA_Data.simp
+  val discrete = ref [("nat",true)]
+  val decomp = Nat_LA_Data.decomp discrete
 end;
 
 structure Fast_Arith =
