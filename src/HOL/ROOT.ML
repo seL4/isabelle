@@ -17,6 +17,7 @@ use "$ISABELLE_HOME/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
 
 use "$ISABELLE_HOME/src/Provers/simplifier.ML";
+use "$ISABELLE_HOME/src/Provers/split_paired_all.ML";
 use "$ISABELLE_HOME/src/Provers/splitter.ML";
 use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
 use "$ISABELLE_HOME/src/Provers/classical.ML";
@@ -39,9 +40,6 @@ use "Tools/typedef_package.ML";
 use_thy "Sum";
 use_thy "Gfp";
 
-use "Tools/record_package.ML";
-use_thy "Record";
-
 use_thy "NatDef";
 
 use "Tools/inductive_package.ML";
@@ -54,6 +52,9 @@ use "Tools/datatype_abs_proofs.ML";
 use "Tools/datatype_package.ML";
 use "Tools/primrec_package.ML";
 use_thy "Datatype";
+
+use "Tools/record_package.ML";
+use_thy "Record";
 
 use_thy "Arith";
 use "arith_data.ML";

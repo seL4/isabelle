@@ -67,25 +67,9 @@ val surj_pair = prove_goal Prod.thy "? x y. z = (x, y)" (K [
 	rtac exI 1, rtac exI 1, rtac surjective_pairing 1]);
 Addsimps [surj_pair];
 
-(* lemmas for splitting paired `!!' *)
-local 
-    val lemma1 = prove_goal Prod.thy "(!!x. PROP P x) ==> (!!a b. PROP P(a,b))" 
-		 (fn prems => [resolve_tac prems 1]);
 
-    val psig = sign_of Prod.thy;
-    val pT = Sign.read_typ (psig, K None) "?'a*?'b=>prop";
-    val PeqP = reflexive(read_cterm psig ("P", pT));
-    val psplit = zero_var_indexes(read_instantiate [("p","x")]
-                                  surjective_pairing RS eq_reflection);
-    val adhoc = combination PeqP psplit;
-    val lemma = prove_goal Prod.thy "(!!a b. PROP P(a,b)) ==> PROP P x" 
-		(fn prems => [rewtac adhoc, resolve_tac prems 1]);
-    val lemma2 = prove_goal Prod.thy "(!!a b. PROP P(a,b)) ==> (!!x. PROP P x)"
-		(fn prems => [rtac lemma 1, resolve_tac prems 1]);
-in
-  val split_paired_all = equal_intr lemma1 lemma2
-end;
-bind_thm("split_paired_all", split_paired_all);
+bind_thm ("split_paired_all",
+  SplitPairedAll.rule (standard (surjective_pairing RS eq_reflection)));
 (*
 Addsimps [split_paired_all] does not work with simplifier 
 because it also affects premises in congrence rules, 
