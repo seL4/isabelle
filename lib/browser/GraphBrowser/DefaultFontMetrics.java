@@ -22,22 +22,24 @@ public class DefaultFontMetrics extends FontMetrics
 	 27, 27, 13, 27, 27, 11, 11, 24, 11, 40, 27, 27, 27, 27, 16, 24, 13,
 	 27, 24, 35, 24, 24, 24, 16, 12, 16, 28};
 
-    public DefaultFontMetrics(Font f)
-    { super(f); }
+    int size;
+
+    public DefaultFontMetrics(int size)
+    { super(null); this.size = size; }
 
     public int getLeading()
     { return 1; }
 
     public int getAscent()
-    { return (int)(Math.round(font.getSize() * 46.0 / 48.0)); }
+    { return (int)(Math.round(size * 46.0 / 48.0)); }
 
     public int getDescent()
-    { return (int)(Math.round(font.getSize() * 10.0 / 48.0)); }
+    { return (int)(Math.round(size * 10.0 / 48.0)); }
 
     public int charWidth(char c) {
 	if (c < 32 || c > 126) { return 0; }
 	else {
-	    return (int)(Math.round(chars[c - 32] * font.getSize() / 48.0));
+	    return (int)(Math.round(chars[c - 32] * size / 48.0));
 	}
     }
 
