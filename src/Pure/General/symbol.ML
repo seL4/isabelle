@@ -48,6 +48,8 @@ sig
   val output: string -> string
   val output_width: string -> string * real
   val indent: string * int -> string
+  val quote: string -> string
+  val commas_quote: string list -> string
 end;
 
 structure Symbol: SYMBOL =
@@ -307,9 +309,21 @@ val plain_output = #1 o default_output;
 fun indent x = #2 (get_mode ()) x;
 
 
+(* these variants allow escaping of quotes depending on mode *)
+
+fun quote s = output "\"" ^ s ^ output "\"";
+val commas_quote = space_implode (output ", ") o map quote;
+
+
 (*final declarations of this structure!*)
 val length = sym_length;
 val explode = sym_explode;
 val escape = sym_escape;
 
 end;
+
+
+(* Overwrites versions in Library *)
+
+val quote = Symbol.quote;
+val commas_quote = Symbol.commas_quote;
