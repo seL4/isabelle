@@ -43,11 +43,6 @@ AddSEs [vimageE];
 
 (*** Simple equalities ***)
 
-Goal "(%x. x) -`` B = B";
-by (Blast_tac 1);
-qed "ident_vimage";
-Addsimps [ident_vimage];
-
 Goal "f-``{} = {}";
 by (Blast_tac 1);
 qed "vimage_empty";

@@ -101,11 +101,6 @@ by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
-Goal "(%x. x) `` Y = Y";
-by (Blast_tac 1);
-qed "image_id";
-Addsimps [image_id];
-
 Goal "x:A ==> (%x. c) `` A = {c}";
 by (Blast_tac 1);
 qed "image_constant";
@@ -618,6 +613,11 @@ section "-";
 Goal "A-B = A Int (-B)";
 by (Blast_tac 1);
 qed "Diff_eq";
+
+Goal "(A-B = {}) = (A<=B)";
+by (Blast_tac 1);
+qed "Diff_eq_empty_iff";
+Addsimps[Diff_eq_empty_iff];
 
 Goal "A-A = {}";
 by (Blast_tac 1);
