@@ -27,8 +27,8 @@ function usage()
   echo "Usage: $PRG [OPTIONS] ARCHIVE"
   echo
   echo "  Options are:"
-  echo "    -l           include library"
-  echo "    -t           test run -- no build phase"
+  echo "    -l           produce library"
+  echo "    -n           dry run"
   echo
   echo "  Precompile Isabelle for the current platform."
   echo
@@ -47,16 +47,16 @@ function fail()
 # options
 
 DO_LIBRARY=""
-TEST_RUN=""
+DRY_RUN=""
 
-while getopts "lt" OPT
+while getopts "ln" OPT
 do
   case "$OPT" in
     l)
       DO_LIBRARY=true
       ;;
-    t)
-      TEST_RUN=true
+    n)
+      DRY_RUN=true
       ;;
     \?)
       usage
@@ -93,8 +93,13 @@ cd "$TMP"
 "$TAR" xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
-#activate default for precompiled distribution ...
-perl -pi -e 's/#ISABELLE_USEDIR_OPTIONS/ISABELLE_USEDIR_OPTIONS/' etc/settings
+if [ -n "$DO_LIBRARY" ]; then
+  perl -pi -e 's/^ISABELLE_USEDIR_OPTIONS=.*$/ISABELLE_USEDIR_OPTIONS="-i true -d pdf"/' \
+    etc/settings
+else
+  perl -pi -e 's/^ISABELLE_USEDIR_OPTIONS=.*$/ISABELLE_USEDIR_OPTIONS="-p 2"/' \
+    etc/settings
+fi
 
 ISABELLE_HOME_USER=$(./bin/isatool getenv -b ISABELLE_HOME_USER)
 [ -f "$ISABELLE_HOME_USER/etc/settings" ] && \
@@ -103,7 +108,7 @@ ISABELLE_HOME_USER=$(./bin/isatool getenv -b ISABELLE_HOME_USER)
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
 PLATFORM=$(./bin/isatool getenv -b ML_PLATFORM)
 
-if [ -n "$TEST_RUN" ]; then
+if [ -n "$DRY_RUN" ]; then
   mkdir -p "heaps/$COMPILER/log"
   touch "heaps/$COMPILER/HOL"
   touch "heaps/$COMPILER/log/HOL.gz"
@@ -112,10 +117,11 @@ if [ -n "$TEST_RUN" ]; then
   touch "heaps/$COMPILER/ZF"
   touch "heaps/$COMPILER/log/ZF.gz"
   mkdir browser_info
+elif [ -n "$DO_LIBRARY" ]; then
+  ./build -bait
 else
   ./build -b -m HOL-Real HOL
   ./build -b ZF
-  [ -n "$DO_LIBRARY" ] && ./build -bait
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
 fi
 
@@ -127,20 +133,20 @@ cd "$TMP"
 chmod -R g=o "$TMP"
 chgrp -R isabelle "$TMP"
 
-for IMG in HOL HOL-Real ZF
-do
-  "$TAR" cf "${IMG}_$PLATFORM.tar" \
-    "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
-    "$ISABELLE_NAME/heaps/$COMPILER/log/$IMG.gz"
-  gzip -f "${IMG}_$PLATFORM.tar"
-  cp -f "${IMG}_$PLATFORM.tar.gz" "$ARCHIVE_DIR"
-
-  if [ -n "$DO_LIBRARY" ]; then
-    "$TAR" cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
-      gzip -f "${ISABELLE_NAME}_library.tar"
-      cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
-  fi
-done
+if [ -n "$DO_LIBRARY" ]; then
+  "$TAR" cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
+    gzip -f "${ISABELLE_NAME}_library.tar"
+    cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
+else
+  for IMG in HOL HOL-Real ZF
+  do
+    "$TAR" cf "${IMG}_$PLATFORM.tar" \
+      "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
+      "$ISABELLE_NAME/heaps/$COMPILER/log/$IMG.gz"
+    gzip -f "${IMG}_$PLATFORM.tar"
+    cp -f "${IMG}_$PLATFORM.tar.gz" "$ARCHIVE_DIR"
+  done
+fi
 
 
 # clean up
