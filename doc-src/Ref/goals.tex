@@ -367,13 +367,14 @@ specifies~$k$ as the maximum number of subgoals to print.
 \subsection{Timing}
 \index{timing statistics}\index{proofs!timing}
 \begin{ttbox} 
-proof_timing: bool ref \hfill{\bf initially false}
+timing: bool ref \hfill{\bf initially false}
 \end{ttbox}
 
 \begin{ttdescription}
-\item[set \ttindexbold{proof_timing};] 
-makes the \ttindex{by} and \ttindex{prove_goal} commands display how much
-processor time was spent.  This information is compiler-dependent.
+\item[set \ttindexbold{timing};] enables global timing in Isabelle.  In
+  particular, this makes the \ttindex{by} and \ttindex{prove_goal} commands
+  display how much processor time was spent.  This information is
+  compiler-dependent.
 \end{ttdescription}
 
 
