@@ -10,6 +10,7 @@ struct
   val thy =
     PureThy.begin_theory "Pure" [ProtoPure.thy]
     |> Theory.add_syntax Syntax.pure_appl_syntax
+    |> Theory.apply Locale.setup
     |> PureThy.end_theory;
 end;
 
@@ -18,6 +19,7 @@ struct
   val thy =
     PureThy.begin_theory "CPure" [ProtoPure.thy]
     |> Theory.add_syntax Syntax.pure_applC_syntax
+    |> Theory.apply Locale.setup
     |> PureThy.end_theory;
 end;
 
