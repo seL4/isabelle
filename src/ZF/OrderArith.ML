@@ -35,7 +35,7 @@ qed "radd_Inr_Inl_iff";
 
 (** Elimination Rule **)
 
-val major::prems = goalw OrderArith.thy [radd_def]
+val major::prems = Goalw [radd_def]
     "[| <p',p> : radd(A,r,B,s);                 \
 \       !!x y. [| p'=Inl(x); x:A; p=Inr(y); y:B |] ==> Q;       \
 \       !!x' x. [| p'=Inl(x'); p=Inl(x); <x',x>: r; x':A; x:A |] ==> Q; \
@@ -74,8 +74,7 @@ qed "linear_radd";
 
 (** Well-foundedness **)
 
-Goal
-    "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))";
+Goal "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))";
 by (rtac wf_onI2 1);
 by (subgoal_tac "ALL x:A. Inl(x): Ba" 1);
 (*Proving the lemma, which is needed twice!*)
@@ -90,15 +89,13 @@ by (eres_inst_tac [("r","s"),("a","ya")] wf_on_induct 1 THEN assume_tac 1);
 by (best_tac (claset() addSEs [raddE, bspec RS mp]) 1);
 qed "wf_on_radd";
 
-Goal
-     "[| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))";
+Goal "[| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))";
 by (asm_full_simp_tac (simpset() addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (field_radd RSN (2, wf_on_subset_A)) 1);
 by (REPEAT (ares_tac [wf_on_radd] 1));
 qed "wf_radd";
 
-Goal 
-    "[| well_ord(A,r);  well_ord(B,s) |] ==> \
+Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \           well_ord(A+B, radd(A,r,B,s))";
 by (rtac well_ordI 1);
 by (asm_full_simp_tac (simpset() addsimps [well_ord_def, wf_on_radd]) 1);
@@ -108,8 +105,7 @@ qed "well_ord_radd";
 
 (** An ord_iso congruence law **)
 
-Goal
- "[| f: bij(A,C);  g: bij(B,D) |] ==> \
+Goal "[| f: bij(A,C);  g: bij(B,D) |] ==> \
 \        (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) : bij(A+B, C+D)";
 by (res_inst_tac 
         [("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(g)`y))")] 
@@ -134,8 +130,7 @@ qed "sum_ord_iso_cong";
 
 (*Could we prove an ord_iso result?  Perhaps 
      ord_iso(A+B, radd(A,r,B,s), A Un B, r Un s) *)
-Goal
-    "A Int B = 0 ==>     \
+Goal "A Int B = 0 ==>     \
 \           (lam z:A+B. case(%x. x, %y. y, z)) : bij(A+B, A Un B)";
 by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")] 
     lam_bijective 1);
@@ -148,16 +143,14 @@ qed "sum_disjoint_bij";
 
 (** Associativity **)
 
-Goal
- "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+Goal "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : bij((A+B)+C, A+(B+C))";
 by (res_inst_tac [("d", "case(%x. Inl(Inl(x)), case(%x. Inl(Inr(x)), Inr))")] 
     lam_bijective 1);
 by (ALLGOALS (asm_simp_tac (simpset() setloop etac sumE)));
 qed "sum_assoc_bij";
 
-Goal
- "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+Goal "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),    \
 \           A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))";
 by (resolve_tac [sum_assoc_bij RS ord_isoI] 1);
@@ -179,7 +172,7 @@ qed "rmult_iff";
 
 Addsimps [rmult_iff];
 
-val major::prems = goal OrderArith.thy
+val major::prems = Goal
     "[| <<a',b'>, <a,b>> : rmult(A,r,B,s);              \
 \       [| <a',a>: r;  a':A;  a:A;  b':B;  b:B |] ==> Q;        \
 \       [| <b',b>: s;  a:A;  a'=a;  b':B;  b:B |] ==> Q \
@@ -211,8 +204,7 @@ qed "linear_rmult";
 
 (** Well-foundedness **)
 
-Goal
-    "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))";
+Goal "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))";
 by (rtac wf_onI2 1);
 by (etac SigmaE 1);
 by (etac ssubst 1);
@@ -225,15 +217,13 @@ by (best_tac (claset() addSEs [rmultE, bspec RS mp]) 1);
 qed "wf_on_rmult";
 
 
-Goal
-    "[| wf(r);  wf(s) |] ==> wf(rmult(field(r),r,field(s),s))";
+Goal "[| wf(r);  wf(s) |] ==> wf(rmult(field(r),r,field(s),s))";
 by (asm_full_simp_tac (simpset() addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (field_rmult RSN (2, wf_on_subset_A)) 1);
 by (REPEAT (ares_tac [wf_on_rmult] 1));
 qed "wf_rmult";
 
-Goal 
-    "[| well_ord(A,r);  well_ord(B,s) |] ==> \
+Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \           well_ord(A*B, rmult(A,r,B,s))";
 by (rtac well_ordI 1);
 by (asm_full_simp_tac (simpset() addsimps [well_ord_def, wf_on_rmult]) 1);
@@ -244,8 +234,7 @@ qed "well_ord_rmult";
 
 (** An ord_iso congruence law **)
 
-Goal
- "[| f: bij(A,C);  g: bij(B,D) |] ==> \
+Goal "[| f: bij(A,C);  g: bij(B,D) |] ==> \
 \        (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
 by (res_inst_tac [("d", "%<x,y>. <converse(f)`x, converse(g)`y>")] 
     lam_bijective 1);
@@ -271,8 +260,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "singleton_prod_bij";
 
 (*Used??*)
-Goal
- "well_ord({x},xr) ==>  \
+Goal "well_ord({x},xr) ==>  \
 \         (lam z:A. <x,z>) : ord_iso(A, r, {x}*A, rmult({x}, xr, A, r))";
 by (resolve_tac [singleton_prod_bij RS ord_isoI] 1);
 by (Asm_simp_tac 1);
@@ -281,8 +269,7 @@ qed "singleton_prod_ord_iso";
 
 (*Here we build a complicated function term, then simplify it using
   case_cong, id_conv, comp_lam, case_case.*)
-Goal
- "a~:C ==> \
+Goal "a~:C ==> \
 \      (lam x:C*B + D. case(%x. x, %y.<a,y>, x)) \
 \      : bij(C*B + D, C*B Un {a}*D)";
 by (rtac subst_elem 1);
@@ -296,8 +283,7 @@ by (fast_tac (claset() addSEs [case_type]) 1);
 by (asm_simp_tac (simpset() addsimps [case_case]) 1);
 qed "prod_sum_singleton_bij";
 
-Goal
- "[| a:A;  well_ord(A,r) |] ==> \
+Goal "[| a:A;  well_ord(A,r) |] ==> \
 \   (lam x:pred(A,a,r)*B + pred(B,b,s). case(%x. x, %y.<a,y>, x)) \
 \   : ord_iso(pred(A,a,r)*B + pred(B,b,s),              \
 \                 radd(A*B, rmult(A,r,B,s), B, s),      \
@@ -313,8 +299,7 @@ qed "prod_sum_singleton_ord_iso";
 
 (** Distributive law **)
 
-Goal
- "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
+Goal "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : bij((A+B)*C, (A*C)+(B*C))";
 by (res_inst_tac
     [("d", "case(%<x,y>.<Inl(x),y>, %<x,y>.<Inr(x),y>)")] lam_bijective 1);
@@ -322,8 +307,7 @@ by (safe_tac (claset() addSEs [sumE]));
 by (ALLGOALS Asm_simp_tac);
 qed "sum_prod_distrib_bij";
 
-Goal
- "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
+Goal "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t), \
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
@@ -333,14 +317,12 @@ qed "sum_prod_distrib_ord_iso";
 
 (** Associativity **)
 
-Goal
- "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))";
+Goal "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))";
 by (res_inst_tac [("d", "%<x, <y,z>>. <<x,y>, z>")] lam_bijective 1);
 by (ALLGOALS (asm_simp_tac (simpset() setloop etac SigmaE)));
 qed "prod_assoc_bij";
 
-Goal
- "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)                   \
+Goal "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)                   \
 \ : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),  \
 \           A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))";
 by (resolve_tac [prod_assoc_bij RS ord_isoI] 1);
@@ -409,8 +391,7 @@ qed "tot_ord_rvimage";
 
 (** Well-foundedness **)
 
-Goal
-    "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))";
+Goal "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))";
 by (rtac wf_onI2 1);
 by (subgoal_tac "ALL z:A. f`z=f`y --> z: Ba" 1);
 by (Blast_tac 1);
@@ -421,8 +402,7 @@ by (blast_tac (claset() addSIs [apply_funtype]
 qed "wf_on_rvimage";
 
 (*Note that we need only wf[A](...) and linear(A,...) to get the result!*)
-Goal 
-    "[| f: inj(A,B);  well_ord(B,r) |] ==> well_ord(A, rvimage(A,f,r))";
+Goal "[| f: inj(A,B);  well_ord(B,r) |] ==> well_ord(A, rvimage(A,f,r))";
 by (rtac well_ordI 1);
 by (rewrite_goals_tac [well_ord_def, tot_ord_def]);
 by (blast_tac (claset() addSIs [wf_on_rvimage, inj_is_fun]) 1);

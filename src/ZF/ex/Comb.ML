@@ -165,8 +165,7 @@ Goal "S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
 by (Blast_tac 1);
 qed "S1_parcontractD";
 
-Goal
- "!!p q r. S#p#q =1=> r ==> (EX p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
+Goal "S#p#q =1=> r ==> (EX p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
 by (blast_tac (claset() addSDs [S1_parcontractD]) 1);
 qed "S2_parcontractD";
 

@@ -9,8 +9,7 @@ open Conversion;
 
 AddIs (Sconv.intrs @ Sconv1.intrs);
 
-Goal  
-    "!!u. m<--->n ==> n<--->m";
+Goal "m<--->n ==> n<--->m";
 by (etac Sconv.induct 1);
 by (etac Sconv1.induct 1);
 by (ALLGOALS Blast_tac);
@@ -20,8 +19,7 @@ qed "conv_sym";
 (*      Church_Rosser Theorem                                                *)
 (* ------------------------------------------------------------------------- *)
 
-Goal  
-    "!!u. m<--->n ==> EX p.(m --->p) & (n ---> p)";
+Goal "m<--->n ==> EX p.(m --->p) & (n ---> p)";
 by (etac Sconv.induct 1);
 by (etac Sconv1.induct 1);
 by (blast_tac (claset() addIs [red1D1,redD2]) 1);

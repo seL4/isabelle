@@ -273,8 +273,7 @@ qed "QInrD";
 
 (** <+> is itself injective... who cares?? **)
 
-Goal
-    "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
+Goal "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
 by (Blast_tac 1);
 qed "qsum_iff";
 

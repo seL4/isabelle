@@ -100,8 +100,7 @@ Goal "[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
 by (fast_tac (claset() addSIs [lemma1_1] addSEs [lemma1_2, lemma1_3]) 1);
 val lemma1 = result();
 
-Goal
-"[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
+Goal "[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
 \       ALL n:nat. <f`n, f`succ(n)> :  \
 \       {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  \
 \                       & restrict(z2, domain(z1)) = z1};  \
@@ -136,8 +135,7 @@ by (Full_simp_tac 1);
 by (deepen_tac (claset() addDs [domain_of_fun RS sym RS trans]) 0 1);
 val lemma2 = result();
 
-Goal 
-"[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
+Goal "[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
 \       ALL n:nat. <f`n, f`succ(n)> :  \
 \       {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  \
 \       & restrict(z2, domain(z1)) = z1};  \
@@ -282,8 +280,7 @@ by (fast_tac (claset() addSIs [singleton_fun RS Pi_type]
         addss (simpset() addsimps [singleton_0 RS sym])) 1);
 qed "singleton_in_funs";
 
-Goal
-        "[| XX = (UN n:nat.  \
+Goal "[| XX = (UN n:nat.  \
 \               {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       RR = {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
 \       & (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
@@ -375,8 +372,7 @@ by (dtac bspec 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [restrict_cons_eq_restrict]) 1);
 qed "all_in_image_restrict_eq";
 
-Goal
-"[| ALL b<nat. <f``b, f`b> :  \
+Goal "[| ALL b<nat. <f``b, f`b> :  \
 \       {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  & \
 \                            (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
 \                    (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f)) & \
@@ -455,8 +451,7 @@ by (fast_tac (claset()
 by (fast_tac (FOL_cs addSEs [conjE, f_n_pairs_in_R, trans, subst_context]) 1);
 val lemma2 = result();
 
-Goal 
-"[| XX = (UN n:nat.  \
+Goal "[| XX = (UN n:nat.  \
 \                {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       ALL b<nat. <f``b, f`b> :  \
 \              {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
@@ -551,8 +546,7 @@ qed "DC_WO3";
 (* WO1 ==> ALL K. Card(K) --> DC(K)                                       *)
 (* ********************************************************************** *)
 
-Goal
-        "[| Ord(a); b:a |] ==> (lam x:a. P(x))``b = (lam x:b. P(x))``b";
+Goal "[| Ord(a); b:a |] ==> (lam x:a. P(x))``b = (lam x:b. P(x))``b";
 by (rtac images_eq 1);
 by (REPEAT (fast_tac (claset() addSEs [RepFunI, OrdmemD]
         addSIs [lam_type]) 2));

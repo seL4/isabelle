@@ -43,8 +43,7 @@ AddSIs [QPair_Int_Vset_subset_UN RS subset_trans,
 AddSDs [qunivD];
 AddSEs [Ord_in_Ord];
 
-Goal
-   "Ord(i) ==> ALL l: llist(quniv(A)). l Int Vset(i) <= univ(eclose(A))";
+Goal "Ord(i) ==> ALL l: llist(quniv(A)). l Int Vset(i) <= univ(eclose(A))";
 by (etac trans_induct 1);
 by (rtac ballI 1);
 by (etac llist.elim 1);
@@ -71,8 +70,7 @@ AddSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono];
 AddSEs [Ord_in_Ord, Pair_inject];
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
-Goal
-   "Ord(i) ==> ALL l l'. <l,l'> : lleq(A) --> l Int Vset(i) <= l'";
+Goal "Ord(i) ==> ALL l l'. <l,l'> : lleq(A) --> l Int Vset(i) <= l'";
 by (etac trans_induct 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac lleq.elim 1);
@@ -155,8 +153,7 @@ AddIs  [bool_Int_subset_univ];
 
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
-Goal
-   "Ord(i) ==> ALL l: llist(bool). flip(l) Int Vset(i) <= \
+Goal "Ord(i) ==> ALL l: llist(bool). flip(l) Int Vset(i) <= \
 \                   univ(eclose(bool))";
 by (etac trans_induct 1);
 by (rtac ballI 1);

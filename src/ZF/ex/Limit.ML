@@ -331,8 +331,7 @@ by (assume_tac 1);
 by (Asm_simp_tac 1);
 qed "subchain_isub";
 
-Goal
-  "[|dominate(D,X,Y); subchain(Y,X); islub(D,X,x); islub(D,Y,y); cpo(D);  \
+Goal "[|dominate(D,X,Y); subchain(Y,X); islub(D,X,x); islub(D,Y,y); cpo(D);  \
 \    X:nat->set(D); Y:nat->set(D)|] ==> x = y";
 by (blast_tac (claset() addIs [cpo_antisym, dominate_islub, islub_least,
 			       subchain_isub, islub_isub, islub_in]) 1);
@@ -2156,8 +2155,7 @@ Goalw [emb_def]
 by (auto_tac (claset() addIs [exI,rho_projpair], simpset()));
 qed "emb_rho_emb";
 
-Goal 
-  "[| emb_chain(DD,ee); n:nat |] ==>   \
+Goal "[| emb_chain(DD,ee); n:nat |] ==>   \
 \  rho_proj(DD,ee,n) : cont(Dinf(DD,ee),DD`n)";
 by (auto_tac (claset() addIs [rho_projpair,projpair_p_cont], simpset()));
 qed "rho_proj_cont";

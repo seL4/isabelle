@@ -112,8 +112,7 @@ fun addsplit ss = (ss setloop (split_inside_tac [split_if])
                 addsimps [lift_rec_Var,subst_Var]);
 
 
-Goal  
-    "u:redexes ==> ALL k:nat. lift_rec(u,k):redexes";
+Goal "u:redexes ==> ALL k:nat. lift_rec(u,k):redexes";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS(asm_full_simp_tac 
     ((addsplit (simpset())) addsimps [lift_rec_Fun,lift_rec_App])));
@@ -209,8 +208,7 @@ by (asm_full_simp_tac (simpset()) 1);
 by (asm_full_simp_tac (simpset()) 1);
 qed "subst_rec_lift_rec";
 
-Goal  
-    "v:redexes ==>  \
+Goal "v:redexes ==>  \
 \       ALL m:nat. ALL n:nat. ALL u:redexes. ALL w:redexes. m le  n --> \
 \    subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m)=\
 \    subst_rec(w,subst_rec(u,v,m),n)";

@@ -19,7 +19,7 @@ Goalw [part_ord_def, irrefl_def, trans_on_def, asym_def]
 by (Blast_tac 1);
 qed "part_ord_Imp_asym";
 
-val major::premx::premy::prems = goalw Order.thy [linear_def]
+val major::premx::premy::prems = Goalw [linear_def]
     "[| linear(A,r);  x:A;  y:A;  \
 \       <x,y>:r ==> P;  x=y ==> P;  <y,x>:r ==> P |] ==> P";
 by (cut_facts_tac [major,premx,premy] 1);
@@ -66,7 +66,7 @@ qed "pred_iff";
 
 bind_thm ("predI", conjI RS (pred_iff RS iffD2));
 
-val [major,minor] = goalw Order.thy [pred_def]
+val [major,minor] = Goalw [pred_def]
     "[| y: pred(A,x,r);  [| y:A; <y,x>:r |] ==> P |] ==> P";
 by (rtac (major RS CollectE) 1);
 by (REPEAT (ares_tac [minor] 1));
@@ -216,7 +216,7 @@ qed "mono_map_is_inj";
 
 (** Order-isomorphisms -- or similarities, as Suppes calls them **)
 
-val prems = goalw Order.thy [ord_iso_def]
+val prems = Goalw [ord_iso_def]
     "[| f: bij(A, B);   \
 \       !!x y. [| x:A; y:A |] ==> <x, y> : r <-> <f`x, f`y> : s \
 \    |] ==> f: ord_iso(A,r,B,s)";
@@ -298,8 +298,7 @@ by (blast_tac (claset() addIs [apply_funtype]) 2);
 by (asm_full_simp_tac (simpset() addsimps [comp_eq_id_iff RS iffD1]) 1);
 qed "mono_ord_isoI";
 
-Goal
-    "[| well_ord(A,r);  well_ord(B,s);                             \
+Goal "[| well_ord(A,r);  well_ord(B,s);                             \
 \            f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r)      \
 \         |] ==> f: ord_iso(A,r,B,s)";
 by (REPEAT (ares_tac [mono_ord_isoI] 1));
@@ -362,8 +361,7 @@ qed "well_ord_iso_subset_lemma";
 
 (*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
                      of a well-ordering*)
-Goal
-    "[| well_ord(A,r);  f : ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P";
+Goal "[| well_ord(A,r);  f : ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P";
 by (metacut_tac well_ord_iso_subset_lemma 1);
 by (REPEAT_FIRST (ares_tac [pred_subset]));
 (*Now we know  f`x < x *)
@@ -374,8 +372,7 @@ by (asm_full_simp_tac (simpset() addsimps [well_ord_def, pred_def]) 1);
 qed "well_ord_iso_predE";
 
 (*Simple consequence of Lemma 6.1*)
-Goal
- "[| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);  \
+Goal "[| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);  \
 \         a:A;  c:A |] ==> a=c";
 by (forward_tac [well_ord_is_trans_on] 1);
 by (forward_tac [well_ord_is_linear] 1);
@@ -404,8 +401,7 @@ qed "ord_iso_image_pred";
 
 (*But in use, A and B may themselves be initial segments.  Then use
   trans_pred_pred_eq to simplify the pred(pred...) terms.  See just below.*)
-Goal
- "[| f : ord_iso(A,r,B,s);   a:A |] ==>    \
+Goal "[| f : ord_iso(A,r,B,s);   a:A |] ==>    \
 \      restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)";
 by (asm_simp_tac (simpset() addsimps [ord_iso_image_pred RS sym]) 1);
 by (rewtac ord_iso_def);
@@ -416,8 +412,7 @@ by (eresolve_tac [[bij_is_inj, pred_subset] MRS restrict_bij] 1);
 qed "ord_iso_restrict_pred";
 
 (*Tricky; a lot of forward proof!*)
-Goal
- "[| well_ord(A,r);  well_ord(B,s);  <a,c>: r;     \
+Goal "[| well_ord(A,r);  well_ord(B,s);  <a,c>: r;     \
 \         f : ord_iso(pred(A,a,r), r, pred(B,b,s), s);  \
 \         g : ord_iso(pred(A,c,r), r, pred(B,d,s), s);  \
 \         a:A;  c:A;  b:B;  d:B |] ==> <b,d>: s";
@@ -439,8 +434,7 @@ val  bij_apply_cs = claset() addSIs [bij_converse_bij]
                             addIs  [ord_iso_is_bij, bij_is_fun, apply_funtype];
 
 (*See Halmos, page 72*)
-Goal
-    "[| well_ord(A,r);  \
+Goal "[| well_ord(A,r);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |] \
 \         ==> ~ <g`y, f`y> : s";
 by (forward_tac [well_ord_iso_subset_lemma] 1);
@@ -453,8 +447,7 @@ by (asm_full_simp_tac bij_inverse_ss 1);
 qed "well_ord_iso_unique_lemma";
 
 (*Kunen's Lemma 6.2: Order-isomorphisms between well-orderings are unique*)
-Goal
-    "[| well_ord(A,r);  \
+Goal "[| well_ord(A,r);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g";
 by (rtac fun_extension 1);
 by (REPEAT (etac (ord_iso_is_bij RS bij_is_fun) 1));
@@ -492,8 +485,7 @@ by (blast_tac (claset() addIs [well_ord_iso_pred_eq,
 			      ord_iso_sym, ord_iso_trans]) 1);
 qed "function_ord_iso_map";
 
-Goal
-    "well_ord(B,s) ==> ord_iso_map(A,r,B,s)        \
+Goal "well_ord(B,s) ==> ord_iso_map(A,r,B,s)        \
 \          : domain(ord_iso_map(A,r,B,s)) -> range(ord_iso_map(A,r,B,s))";
 by (asm_simp_tac 
     (simpset() addsimps [Pi_iff, function_ord_iso_map,
@@ -551,8 +543,7 @@ by (Blast_tac 1);
 qed "domain_ord_iso_map_subset";
 
 (*For the 4-way case analysis in the main result*)
-Goal
-  "[| well_ord(A,r);  well_ord(B,s) |] ==> \
+Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \       domain(ord_iso_map(A,r,B,s)) = A |      \
 \       (EX x:A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))";
 by (forward_tac [well_ord_is_wf] 1);
@@ -572,8 +563,7 @@ by (REPEAT (ares_tac [domain_ord_iso_map_subset] 1));
 qed "domain_ord_iso_map_cases";
 
 (*As above, by duality*)
-Goal
-  "[| well_ord(A,r);  well_ord(B,s) |] ==> \
+Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \       range(ord_iso_map(A,r,B,s)) = B |       \
 \       (EX y:B. range(ord_iso_map(A,r,B,s))= pred(B,y,s))";
 by (resolve_tac [converse_ord_iso_map RS subst] 1);
@@ -582,8 +572,7 @@ by (asm_simp_tac
 qed "range_ord_iso_map_cases";
 
 (*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*)
-Goal
-  "[| well_ord(A,r);  well_ord(B,s) |] ==>         \
+Goal "[| well_ord(A,r);  well_ord(B,s) |] ==>         \
 \       ord_iso_map(A,r,B,s) : ord_iso(A, r, B, s) |    \
 \       (EX x:A. ord_iso_map(A,r,B,s) : ord_iso(pred(A,x,r), r, B, s)) | \
 \       (EX y:B. ord_iso_map(A,r,B,s) : ord_iso(A, r, pred(B,y,s), s))";

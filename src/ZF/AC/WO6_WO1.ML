@@ -205,8 +205,7 @@ by (eresolve_tac [subset_Diff_sing RS subset_imp_lepoll RSN (2,
         THEN REPEAT (assume_tac 1));
 qed "supset_lepoll_imp_eq";
 
-Goal
- "!!a. [| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->               \
+Goal "[| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->               \
 \         domain(uu(f, b, g, d)) eqpoll succ(m);                        \
 \         ALL b<a. f`b lepoll succ(m);  y*y <= y;                       \
 \         (UN b<a. f`b)=y;  b<a;  g<a;  d<a;                            \

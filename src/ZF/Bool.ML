@@ -3,7 +3,7 @@
     Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For ZF/bool.thy.  Booleans in Zermelo-Fraenkel Set Theory 
+Booleans in Zermelo-Fraenkel Set Theory 
 *)
 
 open Bool;
@@ -31,7 +31,7 @@ qed "one_not_0";
 (** 1=0 ==> R **)
 val one_neq_0 = one_not_0 RS notE;
 
-val major::prems = goalw Bool.thy bool_defs
+val major::prems = Goalw bool_defs
     "[| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P";
 by (rtac (major RS consE) 1);
 by (REPEAT (eresolve_tac (singletonE::prems) 1));
@@ -54,17 +54,16 @@ Addsimps [cond_1, cond_0];
 fun bool_tac i = fast_tac (claset() addSEs [boolE] addss (simpset())) i;
 
 
-Goal 
-    "[|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
+Goal "[|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
 by (bool_tac 1);
 qed "cond_type";
 
-val [rew] = goal Bool.thy "[| !!b. j(b)==cond(b,c,d) |] ==> j(1) = c";
+val [rew] = Goal "[| !!b. j(b)==cond(b,c,d) |] ==> j(1) = c";
 by (rewtac rew);
 by (rtac cond_1 1);
 qed "def_cond_1";
 
-val [rew] = goal Bool.thy "[| !!b. j(b)==cond(b,c,d) |] ==> j(0) = d";
+val [rew] = Goal "[| !!b. j(b)==cond(b,c,d) |] ==> j(0) = d";
 by (rewtac rew);
 by (rtac cond_0 1);
 qed "def_cond_0";
@@ -129,8 +128,7 @@ Goal "a: bool ==> (a and b) and c  =  a and (b and c)";
 by (bool_tac 1);
 qed "and_assoc";
 
-Goal
- "[| a: bool; b:bool; c:bool |] ==> \
+Goal "[| a: bool; b:bool; c:bool |] ==> \
 \      (a or b) and c  =  (a and c) or (b and c)";
 by (bool_tac 1);
 qed "and_or_distrib";
@@ -151,8 +149,7 @@ Goal "a: bool ==> (a or b) or c  =  a or (b or c)";
 by (bool_tac 1);
 qed "or_assoc";
 
-Goal
- "[| a: bool; b: bool; c: bool |] ==> \
+Goal "[| a: bool; b: bool; c: bool |] ==> \
 \          (a and b) or c  =  (a or c) and (b or c)";
 by (bool_tac 1);
 qed "or_and_distrib";

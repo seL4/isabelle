@@ -303,8 +303,7 @@ by (fast_tac (claset() addSEs [eqpoll_imp_lepoll]) 1);
 qed "Union_recfunAC16_lesspoll";
 
 
-Goal
-  "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
+Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
 \       fa : bij(a, {Y: Pow(A). Y eqpoll succ(k)}) |]  \
@@ -433,8 +432,7 @@ by (fast_tac (claset() addSDs [ltD]) 1);
 qed "bij_imp_arg_eq";
 
 
-Goal
-  "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
+Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
 \       fa : bij(a, {Y: Pow(A). Y eqpoll succ(k)});  \
@@ -470,8 +468,7 @@ qed "ex_next_set";
 (* ********************************************************************** *)
 
 
-Goal
-  "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
+Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
 \       fa : bij(a, {Y: Pow(A). Y eqpoll succ(k)});  \

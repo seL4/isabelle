@@ -8,8 +8,7 @@ open Dynamic ECR;
 
 (* Specialised co-induction rule *)
 
-Goal
- "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; \
+Goal "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; \
 \    <te, e_fn(x, e), t>:ElabRel; ve_dom(ve) = te_dom(te); \
 \    {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}: \
 \    Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |] ==>  \

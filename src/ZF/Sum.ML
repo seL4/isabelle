@@ -151,8 +151,7 @@ by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_type";
 
-Goal
-  "u: A+B ==>   \
+Goal "u: A+B ==>   \
 \       R(case(c,d,u)) <-> \
 \       ((ALL x:A. u = Inl(x) --> R(c(x))) & \
 \       (ALL y:B. u = Inr(y) --> R(d(y))))";

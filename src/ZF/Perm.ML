@@ -167,13 +167,11 @@ qed "inj_converse_fun";
 (** Equations for converse(f) **)
 
 (*The premises are equivalent to saying that f is injective...*) 
-Goal
-    "[| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a";
+Goal "[| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a";
 by (blast_tac (claset() addIs [apply_Pair, apply_equality, converseI]) 1);
 qed "left_inverse_lemma";
 
-Goal
-    "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
+Goal "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
 by (blast_tac (claset() addIs [left_inverse_lemma, inj_converse_fun,
 			      inj_is_fun]) 1);
 qed "left_inverse";
@@ -390,8 +388,7 @@ Goalw [surj_def]
 by (blast_tac (claset() addSIs [comp_fun_apply RS sym, apply_funtype]) 1);
 qed "comp_mem_surjD1";
 
-Goal
-    "[| (f O g)`a = c;  g: A->B;  f: B->C;  a:A |] ==> f`(g`a) = c";
+Goal "[| (f O g)`a = c;  g: A->B;  f: B->C;  a:A |] ==> f`(g`a) = c";
 by (REPEAT (ares_tac [comp_fun_apply RS sym RS trans] 1));
 qed "comp_fun_applyD";
 
@@ -459,8 +456,7 @@ qed "invertible_imp_bijective";
 (** Unions of functions -- cf similar theorems on func.ML **)
 
 (*Theorem by KG, proof by LCP*)
-Goal
-    "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] ==> \
+Goal "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] ==> \
 \           (lam a: A Un C. if(a:A, f`a, g`a)) : inj(A Un C, B Un D)";
 by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
         lam_injective 1);
@@ -479,8 +475,7 @@ qed "surj_disjoint_Un";
 
 (*A simple, high-level proof; the version for injections follows from it,
   using  f:inj(A,B) <-> f:bij(A,range(f))  *)
-Goal
-    "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
+Goal "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
 \           (f Un g) : bij(A Un C, B Un D)";
 by (rtac invertible_imp_bijective 1);
 by (stac converse_Un 1);

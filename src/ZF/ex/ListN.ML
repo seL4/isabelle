@@ -35,8 +35,7 @@ by (REPEAT (rtac listn.bnd_mono 1));
 by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));
 qed "listn_mono";
 
-Goal
-  "[| <n,l> : listn(A);  <n',l'> : listn(A) |] ==> <n#+n', l@l'> : listn(A)";
+Goal "[| <n,l> : listn(A); <n',l'> : listn(A) |] ==> <n#+n', l@l'> : listn(A)";
 by (etac listn.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps listn.intrs)));
 qed "listn_append";

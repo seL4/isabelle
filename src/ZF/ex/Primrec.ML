@@ -257,8 +257,7 @@ val PROJ_case = PROJ_case_lemma RS bspec;
 
 (** COMP case **)
 
-Goal
- "fs : list({f: primrec .                                 \
+Goal "fs : list({f: primrec .                                 \
 \                  EX kf:nat. ALL l:list(nat).                  \
 \                             f`l < ack(kf, list_add(l))})      \
 \      ==> EX k:nat. ALL l: list(nat).                          \

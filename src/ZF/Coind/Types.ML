@@ -18,8 +18,7 @@ by (rtac (te_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (simpset() addsimps (rank_te_owr1::TyEnv.case_eqns)) 1);
 qed "te_rec_emp";
 
-Goal 
-  " te_rec(te_owr(te,x,t),c_te_emp,f_te_owr) = \
+Goal " te_rec(te_owr(te,x,t),c_te_emp,f_te_owr) = \
 \   f_te_owr(te,x,t,te_rec(te,c_te_emp,f_te_owr))";
 by (rtac (te_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (rank_ss addsimps (rank_te_owr1::TyEnv.case_eqns)) 1);

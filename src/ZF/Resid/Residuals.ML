@@ -93,8 +93,7 @@ Goalw [res_func_def]
 by (fast_tac resfunc_cs 1);
 qed "res_redex";
 
-Goal
-    "[|s~t; regular(t)|]==> regular(t) --> s |> t:redexes";
+Goal "[|s~t; regular(t)|]==> regular(t) --> s |> t:redexes";
 by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac 
              (simpset() addsimps [res_Var,res_Fun,res_App,res_redex] 

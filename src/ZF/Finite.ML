@@ -26,7 +26,7 @@ val FinD = Fin.dom_subset RS subsetD RS PowD;
 (** Induction on finite sets **)
 
 (*Discharging x~:y entails extra work*)
-val major::prems = goal Finite.thy 
+val major::prems = Goal
     "[| b: Fin(A);  \
 \       P(0);        \
 \       !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y)) \
@@ -41,8 +41,7 @@ qed "Fin_induct";
 Addsimps Fin.intrs;
 
 (*The union of two finite sets is finite.*)
-Goal
-    "!!b c. [| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)";
+Goal "[| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)";
 by (etac Fin_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_cons])));
 qed "Fin_UnI";
@@ -69,7 +68,7 @@ Goal "[| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
 by (REPEAT (ares_tac [Fin_subset_lemma RS spec RS mp] 1));
 qed "Fin_subset";
 
-val major::prems = goal Finite.thy 
+val major::prems = Goal
     "[| c: Fin(A);  b: Fin(A);                                  \
 \       P(b);                                                   \
 \       !!x y. [| x: A;  y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
@@ -80,7 +79,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps (prems@[cons_subset_iff,
                                 Diff_subset RS Fin_subset]))));
 qed "Fin_0_induct_lemma";
 
-val prems = goal Finite.thy 
+val prems = Goal
     "[| b: Fin(A);                                              \
 \       P(b);                                                   \
 \       !!x y. [| x: A;  y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
@@ -91,10 +90,11 @@ by (REPEAT (ares_tac (subset_refl::prems) 1));
 qed "Fin_0_induct";
 
 (*Functions from a finite ordinal*)
-val prems = goal Finite.thy "n: nat ==> n->A <= Fin(nat*A)";
-by (nat_ind_tac "n" prems 1);
+Goal "n: nat ==> n->A <= Fin(nat*A)";
+by (nat_ind_tac "n" [] 1);
 by (simp_tac (simpset() addsimps [Pi_empty1, subset_iff, cons_iff]) 1);
-by (asm_simp_tac (simpset() addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
+by (asm_simp_tac 
+    (simpset() addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
 by (fast_tac (claset() addSIs [Fin.consI]) 1);
 qed "nat_fun_subset_Fin";
 

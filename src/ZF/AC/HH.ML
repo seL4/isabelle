@@ -177,8 +177,7 @@ by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]) 1);
 qed "HH_values2";
 
-Goal
-     "HH(f,x,i): Pow(x)-{0} ==> HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j)))";
+Goal "HH(f,x,i): Pow(x)-{0} ==> HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j)))";
 by (resolve_tac [HH_values2 RS disjE] 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [equalityE, mem_irrefl]
         addSDs [singleton_subsetD]) 1);

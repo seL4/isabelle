@@ -4,8 +4,7 @@
     Copyright   1994 TUM
 *)
 
-val prems = goal Equiv.thy
-   "!!a. [| a: aexp; sigma: loc -> nat |] ==> \
+Goal "[| a: aexp; sigma: loc -> nat |] ==> \
 \        <a,sigma> -a-> n <-> A(a,sigma) = n";
 by (res_inst_tac [("x","n")] spec 1);                       (* quantify n *)
 by (etac aexp.induct 1);
@@ -30,8 +29,7 @@ val bexp_elim_cases =
    ];
 
 
-val prems = goal Equiv.thy
-   "!!b. [| b: bexp; sigma: loc -> nat |] ==> \
+Goal "[| b: bexp; sigma: loc -> nat |] ==> \
 \        <b,sigma> -b-> w <-> B(b,sigma) = w";
 by (res_inst_tac [("x","w")] spec 1);
 by (etac bexp.induct 1);
@@ -93,8 +91,7 @@ val com2 = result();
 
 (**** Proof of Equivalence ****)
 
-Goal
-    "ALL c:com. C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
+Goal "ALL c:com. C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
 by (fast_tac (claset() addIs [C_subset RS subsetD]
 		       addEs [com2 RS bspec]
 		       addDs [com1]

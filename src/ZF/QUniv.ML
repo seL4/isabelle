@@ -221,9 +221,7 @@ qed "QPair_Int_Vfrom_subset";
 bind_thm ("QPair_Int_Vset_subset_trans", 
           [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
 
-Goal 
- "[| Ord(i) \
-\      |] ==> <a;b> Int Vset(i)  <=  (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
+Goal "Ord(i) ==> <a;b> Int Vset(i) <= (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
 by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
 (*0 case*)
 by (stac Vfrom_0 1);
@@ -232,6 +230,7 @@ by (Fast_tac 1);
 by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
 by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
-by (asm_simp_tac (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
-                                  UN_mono, QPair_Int_Vset_subset_trans]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
+			 UN_mono, QPair_Int_Vset_subset_trans]) 1);
 qed "QPair_Int_Vset_subset_UN";

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-For EquivClass.thy.  Equivalence relations in Zermelo-Fraenkel Set Theory 
+Equivalence relations in Zermelo-Fraenkel Set Theory 
 *)
 
 val RSLIST = curry (op MRS);
@@ -63,9 +63,8 @@ Goalw [equiv_def,refl_def]
 by (Blast_tac 1);
 qed "subset_equiv_class";
 
-val prems = goal EquivClass.thy
-    "[| r``{a} = r``{b};  equiv(A,r);  b: A |] ==> <a,b>: r";
-by (REPEAT (resolve_tac (prems @ [equalityD2, subset_equiv_class]) 1));
+Goal "[| r``{a} = r``{b};  equiv(A,r);  b: A |] ==> <a,b>: r";
+by (REPEAT (ares_tac[equalityD2, subset_equiv_class] 1));
 qed "eq_equiv_class";
 
 (*thus r``{a} = r``{b} as well*)
@@ -78,14 +77,12 @@ Goalw [equiv_def] "equiv(A,r) ==> r <= A*A";
 by (safe_tac subset_cs);
 qed "equiv_type";
 
-Goal
-    "equiv(A,r) ==> <x,y>: r <-> r``{x} = r``{y} & x:A & y:A";
+Goal "equiv(A,r) ==> <x,y>: r <-> r``{x} = r``{y} & x:A & y:A";
 by (blast_tac (claset() addIs [eq_equiv_class, equiv_class_eq]
                       addDs [equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
-Goal
-    "[| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} <-> <x,y>: r";
+Goal "[| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} <-> <x,y>: r";
 by (blast_tac (claset() addIs [eq_equiv_class, equiv_class_eq]
                       addDs [equiv_type]) 1);
 qed "eq_equiv_class_iff";
@@ -94,12 +91,11 @@ qed "eq_equiv_class_iff";
 
 (** Introduction/elimination rules -- needed? **)
 
-val prems = goalw EquivClass.thy [quotient_def] "x:A ==> r``{x}: A/r";
-by (rtac RepFunI 1);
-by (resolve_tac prems 1);
+Goalw [quotient_def] "x:A ==> r``{x}: A/r";
+by (etac RepFunI 1);
 qed "quotientI";
 
-val major::prems = goalw EquivClass.thy [quotient_def]
+val major::prems = Goalw [quotient_def]
     "[| X: A/r;  !!x. [| X = r``{x};  x:A |] ==> P |]   \
 \    ==> P";
 by (rtac (major RS RepFunE) 1);
@@ -138,7 +134,7 @@ by (Blast_tac 1);
 qed "UN_equiv_class";
 
 (*type checking of  UN x:r``{a}. b(x) *)
-val prems = goalw EquivClass.thy [quotient_def]
+val prems = Goalw [quotient_def]
     "[| equiv(A,r);  congruent(r,b);  X: A/r;   \
 \       !!x.  x : A ==> b(x) : B |]     \
 \    ==> (UN x:X. b(x)) : B";
@@ -150,7 +146,7 @@ qed "UN_equiv_class_type";
 (*Sufficient conditions for injectiveness.  Could weaken premises!
   major premise could be an inclusion; bcong could be !!y. y:A ==> b(y):B
 *)
-val prems = goalw EquivClass.thy [quotient_def]
+val prems = Goalw [quotient_def]
     "[| equiv(A,r);   congruent(r,b);  \
 \       (UN x:X. b(x))=(UN y:Y. b(y));  X: A/r;  Y: A/r;  \
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]         \
@@ -195,7 +191,7 @@ by (asm_simp_tac (simpset() addsimps [equivA RS UN_equiv_class,
 qed "UN_equiv_class2";
 
 (*type checking*)
-val prems = goalw EquivClass.thy [quotient_def]
+val prems = Goalw [quotient_def]
     "[| equiv(A,r);  congruent2(r,b);                   \
 \       X1: A/r;  X2: A/r;                              \
 \       !!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B   \
@@ -210,7 +206,7 @@ qed "UN_equiv_class_type2";
 
 (*Suggested by John Harrison -- the two subproofs may be MUCH simpler
   than the direct proof*)
-val prems = goalw EquivClass.thy [congruent2_def,equiv_def,refl_def]
+val prems = Goalw [congruent2_def,equiv_def,refl_def]
     "[| equiv(A,r);     \
 \       !! y z w. [| w: A;  <y,z> : r |] ==> b(y,w) = b(z,w);      \
 \       !! y z w. [| w: A;  <y,z> : r |] ==> b(w,y) = b(w,z)       \
@@ -222,7 +218,7 @@ by (REPEAT (ares_tac prems 1
      ORELSE etac (subsetD RS SigmaE2) 1 THEN assume_tac 2 THEN assume_tac 1));
 qed "congruent2I";
 
-val [equivA,commute,congt] = goal EquivClass.thy
+val [equivA,commute,congt] = Goal
     "[| equiv(A,r);     \
 \       !! y z. [| y: A;  z: A |] ==> b(y,z) = b(z,y);        \
 \       !! y z w. [| w: A;  <y,z>: r |] ==> b(w,y) = b(w,z)     \
@@ -236,7 +232,7 @@ by (REPEAT (ares_tac [congt] 1
 qed "congruent2_commuteI";
 
 (*Obsolete?*)
-val [equivA,ZinA,congt,commute] = goalw EquivClass.thy [quotient_def]
+val [equivA,ZinA,congt,commute] = Goalw [quotient_def]
     "[| equiv(A,r);  Z: A/r;  \
 \       !!w. [| w: A |] ==> congruent(r, %z. b(w,z));    \
 \       !!x y. [| x: A;  y: A |] ==> b(y,x) = b(x,y)    \

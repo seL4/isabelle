@@ -207,8 +207,7 @@ by (Blast_tac 1);
 qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
-Goal
- "[| c: TFin(S,next);                              \
+Goal " [| c: TFin(S,next);                              \
 \         ch: (PROD X: Pow(chain(S))-{0}. X);           \
 \         next: increasing(S);                          \
 \         ALL X: Pow(S). next`X =       \

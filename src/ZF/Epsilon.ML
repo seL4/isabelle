@@ -104,8 +104,7 @@ by (REPEAT (assume_tac 1));
 qed "mem_eclose_trans";
 
 (*Variant of the previous lemma in a useable form for the sequel*)
-Goal
-    "[| A: eclose({B});  B: eclose({C}) |] ==> A: eclose({C})";
+Goal "[| A: eclose({B});  B: eclose({C}) |] ==> A: eclose({C})";
 by (rtac ([Transset_eclose, singleton_subsetI] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_sing_trans";
