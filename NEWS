@@ -17,6 +17,9 @@ Isabelle NEWS -- history user-relevant changes
   (rare) case use   delSWrapper "split_all_tac" addSbefore 
                     ("unsafe_split_all_tac", unsafe_split_all_tac)
 
+* HOL/GroupTheory: group theory examples including Sylow's theorem, by Florian
+  Kammueller;
+
 * ZF: the integer library now covers quotients and remainders, with many laws
 relating division to addition, multiplication, etc.;
 
