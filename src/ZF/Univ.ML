@@ -287,6 +287,18 @@ by (etac Transset_Vfrom 1);
 by (REPEAT (ares_tac [Pair_in_VLimit] 1));
 qed "Transset_Pair_subset_VLimit";
 
+Goal "[| X: Vfrom(A,j);  Transset(A) |] ==> Union(X) : Vfrom(A, succ(j))";
+by (dtac Transset_Vfrom 1);
+by (rtac subset_mem_Vfrom 1);
+by (rewtac Transset_def);
+by (Blast_tac 1);
+qed "Union_in_Vfrom";
+
+Goal "[| X: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Union(X) : Vfrom(A,i)";
+by (rtac (Limit_VfromE) 1 THEN REPEAT (assume_tac 1));
+by (blast_tac (claset() addIs [Limit_has_succ, Limit_VfromI, Union_in_Vfrom]) 1); 
+qed "Union_in_VLimit";
+
 
 (*** Closure under product/sum applied to elements -- thus Vfrom(A,i) 
      is a model of simple type theory provided A is a transitive set
@@ -583,6 +595,11 @@ Goalw [univ_def]
     "[| a: univ(A);  b: univ(A) |] ==> <a,b> : univ(A)";
 by (REPEAT (ares_tac [Pair_in_VLimit, Limit_nat] 1));
 qed "Pair_in_univ";
+
+Goalw [univ_def]
+     "[| X: univ(A);  Transset(A) |] ==> Union(X) : univ(A)";
+by (REPEAT (ares_tac [Union_in_VLimit, Limit_nat] 1));
+qed "Union_in_univ";
 
 Goalw [univ_def] "univ(A)*univ(A) <= univ(A)";
 by (rtac (Limit_nat RS product_VLimit) 1);
