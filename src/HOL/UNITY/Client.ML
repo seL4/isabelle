@@ -149,26 +149,13 @@ by (Clarify_tac 1);
 by (blast_tac (claset() addIs [client_progress_lemma]) 1);
 qed "client_progress";
 
+(*This shows that the Client won't alter other variables in any state
+  that it is combined with*)
 Goal "Client : preserves extra";
 by (rewtac preserves_def);
 by Auto_tac;
 by (constrains_tac 1);
 by Auto_tac;
-qed "client_preserves_extra";
-
-Goal "bij client_map";
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [client_map_def, non_extra_def, bij_def, 
-				  inj_on_def, surj_def]));
-by (res_inst_tac 
-    [("x", "(|giv=?a, ask=?b, rel=?c, tok=?d, extra=?e|)")] exI 1);
-by (Force_tac 1);
-qed "bij_client_map";
-
-Goal "rename client_map Client : preserves snd";
-by (asm_simp_tac (simpset() addsimps [bij_client_map RS rename_preserves]) 1);
-by (asm_simp_tac (simpset() addsimps [client_map_def]) 1);
-by (rtac client_preserves_extra 1);
 qed "client_preserves_extra";
 
 

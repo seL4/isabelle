@@ -10,6 +10,9 @@ From Misra, "A Logic for Concurrent Programming", 1994
 
 set proof_timing;
 
+(*Perhaps equalities.ML shouldn't add this in the first place!*)
+Delsimps [image_Collect];
+
 
 (*** General lemmas ***)
 

@@ -85,6 +85,19 @@ by (rtac drop_map_lift_map_eq 1);
 qed "inv_lift_map_eq";
 Addsimps [inv_lift_map_eq];
 
+Goal "inv (drop_map i) = lift_map i";
+by (rtac inv_equality 1);
+by (rtac drop_map_lift_map_eq 2);
+by (rtac lift_map_drop_map_eq 1);
+qed "inv_drop_map_eq";
+Addsimps [inv_drop_map_eq];
+
+Goal "bij (drop_map i)";
+by (simp_tac (simpset() delsimps [inv_lift_map_eq]
+                        addsimps [inv_lift_map_eq RS sym, bij_imp_bij_inv]) 1);
+qed "bij_drop_map";
+AddIffs [bij_drop_map];
+
 (*** sub ***)
 
 Goal "sub i f = f i";
@@ -108,11 +121,12 @@ by (rtac (inj_lift_map RS inj_image_mem_iff) 1);
 qed "lift_set_iff";
 AddIffs [lift_set_iff];
 
+(*Do we really need both this one and its predecessor?*)
 Goal "((f,uu) : lift_set i A) = ((f i, (delete_map i f, uu)) : A)";
 by (asm_simp_tac (simpset() addsimps [lift_set_def, 
 				      mem_rename_set_iff, drop_map_def]) 1);
-qed "lift_set_iff";
-AddIffs [lift_set_iff];
+qed "lift_set_iff2";
+AddIffs [lift_set_iff2];
 
 Goalw [lift_set_def] "A<=B ==> lift_set i A <= lift_set i B";
 by (etac image_mono 1);

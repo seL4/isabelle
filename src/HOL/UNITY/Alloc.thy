@@ -43,9 +43,17 @@ record 'a clientState_u =
   clientState +
   extra :: 'a       (*dummy field for new variables*)
 
-consts
-  rClient  :: "(clientState * 'a) program"  (*DUMMY CONSTANT*)
+constdefs
+  (*DUPLICATED FROM Client.thy, but with "tok" removed*)
+  (*Maybe want a special theory section to declare such maps*)
+  non_extra :: 'a clientState_u => clientState
+    "non_extra s == (|giv = giv s, ask = ask s, rel = rel s|)"
 
+  (*Renaming map to put a Client into the standard form*)
+  client_map :: "'a clientState_u => clientState*'a"
+    "client_map == funPair non_extra extra"
+
+  
 record allocState =
   allocGiv :: nat => nat list   (*OUTPUT history: source of "giv" for i*)
   allocAsk :: nat => nat list   (*INPUT: allocator's copy of "ask" for i*)
@@ -105,7 +113,7 @@ constdefs
 
   (*spec: preserves part*)
     client_preserves :: 'a clientState_u program set
-    "client_preserves == preserves giv"
+    "client_preserves == preserves (funPair giv clientState_u.extra)"
 
   client_spec :: 'a clientState_u program set
     "client_spec == client_increasing Int client_bounded Int client_progress
@@ -149,7 +157,8 @@ constdefs
 
   (*spec: preserves part*)
     alloc_preserves :: 'a allocState_u program set
-    "alloc_preserves == preserves (funPair allocRel allocAsk)"
+    "alloc_preserves == preserves (funPair allocRel
+				   (funPair allocAsk allocState_u.extra))"
   
   alloc_spec :: 'a allocState_u program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
@@ -206,14 +215,32 @@ constdefs
 			         client   = cl,
 			         systemState.extra = allocState_u.extra al|)"
 
-
-locale System =
-  fixes 
-    Alloc   :: 'a allocState program
-    Client  :: clientState program
+consts 
+    Alloc   :: 'a allocState_u program
+    Client  :: 'a clientState_u program
     Network :: 'a systemState program
     System  :: 'a systemState program
   
+rules
+    Alloc   "Alloc   : alloc_spec"
+    Client  "Client  : client_spec"
+    Network "Network : network_spec"
+
+defs
+    System_def
+      "System == rename sysOfAlloc Alloc Join Network Join
+                 (rename sysOfClient
+		  (plam x: lessThan Nclients. rename client_map Client))"
+
+
+(**
+locale System =
+  fixes 
+    Alloc   :: 'a allocState_u program
+    Client  :: 'a clientState_u program
+    Network :: 'a systemState program
+    System  :: 'a systemState program
+
   assumes
     Alloc   "Alloc   : alloc_spec"
     Client  "Client  : client_spec"
@@ -221,9 +248,13 @@ locale System =
 
   defines
     System_def
-      "System == rename sysOfAlloc Alloc Join Network Join
-                 (rename sysOfClient (plam x: lessThan Nclients. Client))"
-
+      "System == rename sysOfAlloc Alloc
+                 Join
+                 Network
+                 Join
+                 (rename sysOfClient
+		  (plam x: lessThan Nclients. rename client_map Client))"
+**)
 
 
 end

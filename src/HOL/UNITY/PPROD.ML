@@ -111,8 +111,24 @@ Goal "ALL j. F j : preserves snd \
 \         (if j: I then F j : preserves (v o fst) else True)";
 by (asm_simp_tac (simpset() addsimps [PLam_def, lift_preserves_sub]) 1);
 by (Blast_tac 1);
-qed "PLam_preserves";
-Addsimps [PLam_preserves];
+qed "PLam_preserves_fst";
+Addsimps [PLam_preserves_fst];
+
+Goal "ALL j. F j : preserves snd ==> PLam I F : preserves snd";
+by (asm_simp_tac (simpset() addsimps [PLam_def, lift_preserves_snd_I]) 1);
+qed "PLam_preserves_snd";
+Addsimps [PLam_preserves_snd];
+AddIs [PLam_preserves_snd];
+
+
+(*** guarantees properties ***)
+
+Goalw [PLam_def]
+    "[| lift i (F i): X guarantees[v] Y;  i : I;  \
+\        ALL j:I. i~=j --> lift j (F j) : preserves v |]  \
+\    ==> (PLam I F) : X guarantees[v] Y";
+by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
+qed "guarantees_PLam_I";
 
 
 (**UNUSED
@@ -256,15 +272,5 @@ Addsimps [PLam_preserves];
     by (asm_full_simp_tac
 	(simpset() addsimps [finite_lessThan, const_PLam_Stable]) 1);
     qed "const_PLam_Increasing";
-
-
-    (*** guarantees properties ***)
-
-    Goalw [PLam_def]
-	"[| lift i (F i): X guarantees[v] Y;  i : I;  \
-    \        ALL j:I. i~=j --> lift j (F j) : preserves v |]  \
-    \    ==> (PLam I F) : X guarantees[v] Y";
-    by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
-    qed "guarantees_PLam_I";
 **)
 
