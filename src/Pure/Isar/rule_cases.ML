@@ -12,9 +12,9 @@ sig
   val consumes_default: int -> 'a attribute
   val name: string list -> thm -> thm
   val case_names: string list -> 'a attribute
+  val save: thm -> thm -> thm
   val get: thm -> string list * int
   val add: thm -> thm * (string list * int)
-  val save: thm -> thm -> thm
   type T
   val empty: T
   val make: bool -> thm -> string list -> (string * T) list
@@ -34,43 +34,54 @@ val case_conclN = "case";
 
 (* number of consumed facts *)
 
-fun lookup_consumes thm = Library.assoc (Thm.tags_of_thm thm, consumes_tagN);
-
-fun get_consumes thm =
+fun lookup_consumes thm =
   let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [thm]) in
-    (case lookup_consumes thm of
-      None => 0
-    | Some [s] => (case Syntax.read_nat s of Some n => n | _ => err ())
+    (case Library.assoc (Thm.tags_of_thm thm, consumes_tagN) of
+      None => None
+    | Some [s] => (case Syntax.read_nat s of Some n => Some n | _ => err ())
     | _ => err ())
   end;
 
-fun put_consumes n =
-  Drule.tag_rule (consumes_tagN, [Library.string_of_int n]) o Drule.untag_rule consumes_tagN;
-val save_consumes = put_consumes o get_consumes;
+fun put_consumes None th = th
+  | put_consumes (Some n) th = th
+      |> Drule.untag_rule consumes_tagN
+      |> Drule.tag_rule (consumes_tagN, [Library.string_of_int n]);
 
-fun consumes n x = Drule.rule_attribute (K (put_consumes n)) x;
+val save_consumes = put_consumes o lookup_consumes;
+
+fun consumes n x = Drule.rule_attribute (K (put_consumes (Some n))) x;
 fun consumes_default n x = if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 (* case names *)
 
-fun name names thm =
-  thm
-  |> Drule.untag_rule cases_tagN
-  |> Drule.tag_rule (cases_tagN, names);
+fun put_case_names None thm = thm
+  | put_case_names (Some names) thm =
+      thm
+      |> Drule.untag_rule cases_tagN
+      |> Drule.tag_rule (cases_tagN, names);
 
-fun get_case_names thm = Library.assocs (Thm.tags_of_thm thm) cases_tagN;
-val save_case_names = name o get_case_names;
+fun lookup_case_names thm = Library.assoc (Thm.tags_of_thm thm, cases_tagN);
 
+val save_case_names = put_case_names o lookup_case_names;
+val name = put_case_names o Some;
 fun case_names ss = Drule.rule_attribute (K (name ss));
 
 
 (* access hints *)
 
-fun get thm = (get_case_names thm, get_consumes thm);
-fun add thm = (thm, get thm);
-
 fun save thm = save_case_names thm o save_consumes thm;
+
+fun get thm =
+  let
+    val n = if_none (lookup_consumes thm) 0;
+    val ss =
+      (case lookup_case_names thm of
+        None => map Library.string_of_int (1 upto (Thm.nprems_of thm - n))
+      | Some ss => ss);
+  in (ss, n) end;
+
+fun add thm = (thm, get thm);
 
 
 (* prepare cases *)
@@ -102,6 +113,5 @@ fun rename_params xss thm = foldln Thm.rename_params_rule xss thm
   |> save thm;
 
 fun params xss = Drule.rule_attribute (K (rename_params xss));
-
 
 end;
