@@ -368,9 +368,11 @@ fun zero_var_indexes th =
     in Thm.instantiate (ctye, varpairs(vars,rev bs)) th end;
 
 
-(*Standard form of object-rule: no hypotheses, Frees, or outer quantifiers;
-    all generality expressed by Vars having index 0.*)
+(** Standard form of object-rule: no hypotheses, flexflex constraints,
+    Frees, or outer quantifiers; all generality expressed by Vars of index 0.**)
 
+(*Squash a theorem's flexflex constraints provided it can be done uniquely.
+  This step can lose information.*)
 fun flexflex_unique th =
     case Seq.chop (2, flexflex_rule th) of
       ([th],_) => th
