@@ -21,9 +21,14 @@ unset BASH_ENV
 . $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
-#append ML system to paths
-ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_SYSTEM"
-ISABELLE_PATH=$(for DIR in $(echo $ISABELLE_PATH | tr : " "); do echo $DIR/$ML_SYSTEM; done)
+#append ML system identifier to paths
+if [ -z "$ML_PLATFORM" ]; then
+  ML_IDENTIFIER="$ML_SYSTEM"
+else
+  ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
+fi
+ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
+ISABELLE_PATH=$(for DIR in $(echo $ISABELLE_PATH | tr : " "); do echo $DIR/$ML_IDENTIFIER; done)
 ISABELLE_PATH=$(echo $ISABELLE_PATH | tr " " :)
 
 set +o allexport

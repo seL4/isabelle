@@ -45,6 +45,8 @@ long arrows);
 * new flag show_tags controls display of tags of theorems (which are
 basically just comments that may be attached by some tools);
 
+* added ML_PLATFORM setting (useful for cross-platform installations);
+
 
 *** HOL ***
 
