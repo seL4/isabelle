@@ -148,7 +148,7 @@ result();
 
 writeln"Axiom of choice.  Proof without fst, snd.  Harder still!"; 
 val prems = goal CTT.thy   
-    "[| A type;  !!x.x:A ==> B(x) type;                         \
+    "[| A type;  !!x. x:A ==> B(x) type;                         \
 \       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type                \
 \    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).        \
 \                        (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";

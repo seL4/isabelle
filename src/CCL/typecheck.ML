@@ -35,9 +35,9 @@ val Subtype_canTs =
            fun solve s = prove_goal Type.thy s (fn prems => [tac prems])
        in map solve
            ["a : {x:A. b:{y:B(a).P(<x,y>)}} ==> <a,b> : {x:Sigma(A,B).P(x)}",
-            "a : {x:A.P(inl(x))} ==> inl(a) : {x:A+B.P(x)}",
-            "b : {x:B.P(inr(x))} ==> inr(b) : {x:A+B.P(x)}",
-            "a : {x:Nat.P(succ(x))} ==> succ(a) : {x:Nat.P(x)}",
+            "a : {x:A. P(inl(x))} ==> inl(a) : {x:A+B. P(x)}",
+            "b : {x:B. P(inr(x))} ==> inr(b) : {x:A+B. P(x)}",
+            "a : {x:Nat. P(succ(x))} ==> succ(a) : {x:Nat. P(x)}",
             "h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
         ] end;
 
@@ -54,12 +54,12 @@ by (REPEAT (ares_tac (applyT::prems) 1));
 qed "applyT2";
 
 val prems = goal Type.thy 
-    "[| a:A;  a:A ==> P(a) |] ==> a : {x:A.P(x)}";
+    "[| a:A;  a:A ==> P(a) |] ==> a : {x:A. P(x)}";
 by (fast_tac (type_cs addSIs prems) 1);
 qed "rcall_lemma1";
 
 val prems = goal Type.thy 
-    "[| a:{x:A.Q(x)};  [| a:A; Q(a) |] ==> P(a) |] ==> a : {x:A.P(x)}";
+    "[| a:{x:A. Q(x)};  [| a:A; Q(a) |] ==> P(a) |] ==> a : {x:A. P(x)}";
 by (cut_facts_tac prems 1);
 by (fast_tac (type_cs addSIs prems) 1);
 qed "rcall_lemma2";

@@ -22,7 +22,7 @@ end;
 structure Fix:FIX =
 struct
 
-val adm_eq = prove_goal LCF.thy "adm(%x.t(x)=(u(x)::'a::cpo))"
+val adm_eq = prove_goal LCF.thy "adm(%x. t(x)=(u(x)::'a::cpo))"
         (fn _ => [rewtac eq_def,
                   REPEAT(rstac[adm_conj,adm_less]1)]);
 
@@ -41,7 +41,7 @@ val not_eq_FF = prove_goal LCF.thy "ALL p. ~p=FF <-> (p=TT | p=UU)"
 val not_eq_UU = prove_goal LCF.thy "ALL p. ~p=UU <-> (p=TT | p=FF)"
     (fn _ => [tac]) RS spec;
 
-val adm_not_eq_tr = prove_goal LCF.thy "ALL p::tr.adm(%x. ~t(x)=p)"
+val adm_not_eq_tr = prove_goal LCF.thy "ALL p::tr. adm(%x. ~t(x)=p)"
     (fn _ => [rtac tr_induct 1,
     REPEAT(simp_tac (LCF_ss addsimps [not_eq_TT,not_eq_FF,not_eq_UU]) 1 THEN
            REPEAT(rstac [adm_disj,adm_eq] 1))]) RS spec;
@@ -80,7 +80,7 @@ val FIX1 = FIX_pair_conj RS conjunct1;
 val FIX2 = FIX_pair_conj RS conjunct2;
 
 val induct2 = prove_goal LCF.thy
-         "[| adm(%p.P(FST(p),SND(p))); P(UU::'a,UU::'b);\
+         "[| adm(%p. P(FST(p),SND(p))); P(UU::'a,UU::'b);\
 \            ALL x y. P(x,y) --> P(f(x),g(y)) |] ==> P(FIX(f),FIX(g))"
         (fn prems => [EVERY1
         [res_inst_tac [("f","f"),("g","g")] (standard(FIX1 RS ssubst)),

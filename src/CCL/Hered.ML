@@ -12,20 +12,20 @@ fun type_of_terms (Const("Trueprop",_) $ (Const("op =",(Type ("fun", [t,_])))$_$
 
 (*** Hereditary Termination ***)
 
-goalw Hered.thy [HTTgen_def]  "mono(%X.HTTgen(X))";
+goalw Hered.thy [HTTgen_def]  "mono(%X. HTTgen(X))";
 by (rtac monoI 1);
 by (fast_tac set_cs 1);
 qed "HTTgen_mono";
 
 goalw Hered.thy [HTTgen_def]
-  "t : HTTgen(A) <-> t=true | t=false | (EX a b.t=<a,b> & a : A & b : A) | \
-\                                       (EX f.t=lam x.f(x) & (ALL x.f(x) : A))";
+  "t : HTTgen(A) <-> t=true | t=false | (EX a b. t=<a,b> & a : A & b : A) | \
+\                                       (EX f. t=lam x. f(x) & (ALL x. f(x) : A))";
 by (fast_tac set_cs 1);
 qed "HTTgenXH";
 
 goal Hered.thy
-  "t : HTT <-> t=true | t=false | (EX a b.t=<a,b> & a : HTT & b : HTT) | \
-\                                  (EX f.t=lam x.f(x) & (ALL x.f(x) : HTT))";
+  "t : HTT <-> t=true | t=false | (EX a b. t=<a,b> & a : HTT & b : HTT) | \
+\                                  (EX f. t=lam x. f(x) & (ALL x. f(x) : HTT))";
 br (rewrite_rule [HTTgen_def] 
                  (HTTgen_mono RS (HTT_def RS def_gfp_Tarski) RS XHlemma1)) 1;
 by (fast_tac set_cs 1);
@@ -50,7 +50,7 @@ by (rtac (HTTXH RS iff_trans) 1);
 by (fast_tac term_cs 1);
 qed "HTT_pair";
 
-goal Hered.thy "lam x.f(x) : HTT <-> (ALL x. f(x) : HTT)";
+goal Hered.thy "lam x. f(x) : HTT <-> (ALL x. f(x) : HTT)";
 by (rtac (HTTXH RS iff_trans) 1);
 by (simp_tac term_ss 1);
 by (safe_tac term_cs);
@@ -97,7 +97,7 @@ val HTTgenIs = map (mk_genIs Hered.thy data_defs HTTgenXH HTTgen_mono)
        ["true : HTTgen(R)",
         "false : HTTgen(R)",
         "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)",
-        "[| !!x. b(x) : R |] ==> lam x.b(x) : HTTgen(R)",
+        "[| !!x. b(x) : R |] ==> lam x. b(x) : HTTgen(R)",
         "one : HTTgen(R)",
         "a : lfp(%x. HTTgen(x) Un R Un HTT) ==> \
 \                         inl(a) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
@@ -127,7 +127,7 @@ by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 qed "PlusF";
 
 val prems = goal Hered.thy 
-     "[| A <= HTT;  !!x.x:A ==> B(x) <= HTT |] ==> SUM x:A.B(x) <= HTT";
+     "[| A <= HTT;  !!x. x:A ==> B(x) <= HTT |] ==> SUM x:A. B(x) <= HTT";
 by (simp_tac (CCL_ss addsimps ([subsetXH,SgXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 qed "SigmaF";
@@ -178,7 +178,7 @@ qed "IListsF";
 (*** but it seems as easy (and more general) to do this directly by coinduction ***)
 (*
 val prems = goal Hered.thy "[| t : HTT;  t [= u |] ==> u [= t";
-by (po_coinduct_tac "{p. EX a b.p=<a,b> & b : HTT & b [= a}" 1);
+by (po_coinduct_tac "{p. EX a b. p=<a,b> & b : HTT & b [= a}" 1);
 by (fast_tac (ccl_cs addIs prems) 1);
 by (safe_tac ccl_cs);
 by (dtac (poXH RS iffD1) 1);

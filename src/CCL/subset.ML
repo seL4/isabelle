@@ -115,7 +115,7 @@ val mem_rews = [trivial_set,empty_eq] @ (map prover
    "(a : Compl(B)) <->  (~a:B)",
    "(a : {b})      <->  (a=b)",
    "(a : {})       <->   False",
-   "(a : {x.P(x)}) <->  P(a)" ]);
+   "(a : {x. P(x)}) <->  P(a)" ]);
 
 val set_congs = [ball_cong, bex_cong, INT_cong, UN_cong];
 

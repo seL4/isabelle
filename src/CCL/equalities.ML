@@ -64,11 +64,11 @@ qed "subset_Un_eq";
 
 (** Simple properties of Compl -- complement of a set **)
 
-goal Set.thy "A Int Compl(A) = {x.False}";
+goal Set.thy "A Int Compl(A) = {x. False}";
 by (fast_tac eq_cs 1);
 qed "Compl_disjoint";
 
-goal Set.thy "A Un Compl(A) = {x.True}";
+goal Set.thy "A Un Compl(A) = {x. True}";
 by (fast_tac eq_cs 1);
 qed "Compl_partition";
 
@@ -106,7 +106,7 @@ by (fast_tac eq_cs 1);
 qed "Union_Un_distrib";
 
 val prems = goal Set.thy
-   "(Union(C) Int A = {x.False}) <-> (ALL B:C. B Int A = {x.False})";
+   "(Union(C) Int A = {x. False}) <-> (ALL B:C. B Int A = {x. False})";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "Union_disjoint";
 

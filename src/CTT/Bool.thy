@@ -15,5 +15,5 @@ rules
   Bool_def      "Bool == T+T"
   true_def      "true == inl(tt)"
   false_def     "false == inr(tt)"
-  cond_def      "cond(a,b,c) == when(a, %u.b, %u.c)"
+  cond_def      "cond(a,b,c) == when(a, %u. b, %u. c)"
 end

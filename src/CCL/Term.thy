@@ -54,36 +54,36 @@ consts
 rules
 
   one_def                    "one == true"
-  if_def     "if b then t else u  == case(b,t,u,% x y.bot,%v.bot)"
+  if_def     "if b then t else u  == case(b,t,u,% x y. bot,%v. bot)"
   inl_def                 "inl(a) == <true,a>"
   inr_def                 "inr(b) == <false,b>"
-  when_def           "when(t,f,g) == split(t,%b x.if b then f(x) else g(x))"
-  split_def           "split(t,f) == case(t,bot,bot,f,%u.bot)"
-  fst_def                 "fst(t) == split(t,%x y.x)"
-  snd_def                 "snd(t) == split(t,%x y.y)"
-  thd_def                 "thd(t) == split(t,%x p.split(p,%y z.z))"
+  when_def           "when(t,f,g) == split(t,%b x. if b then f(x) else g(x))"
+  split_def           "split(t,f) == case(t,bot,bot,f,%u. bot)"
+  fst_def                 "fst(t) == split(t,%x y. x)"
+  snd_def                 "snd(t) == split(t,%x y. y)"
+  thd_def                 "thd(t) == split(t,%x p. split(p,%y z. z))"
   zero_def                  "zero == inl(one)"
   succ_def               "succ(n) == inr(n)"
-  ncase_def         "ncase(n,b,c) == when(n,%x.b,%y.c(y))"
-  nrec_def          " nrec(n,b,c) == letrec g x be ncase(x,b,%y.c(y,g(y))) in g(n)"
+  ncase_def         "ncase(n,b,c) == when(n,%x. b,%y. c(y))"
+  nrec_def          " nrec(n,b,c) == letrec g x be ncase(x,b,%y. c(y,g(y))) in g(n)"
   nil_def                     "[] == inl(one)"
   cons_def                   "h$t == inr(<h,t>)"
-  lcase_def         "lcase(l,b,c) == when(l,%x.b,%y.split(y,c))"
-  lrec_def           "lrec(l,b,c) == letrec g x be lcase(x,b,%h t.c(h,t,g(t))) in g(l)"
+  lcase_def         "lcase(l,b,c) == when(l,%x. b,%y. split(y,c))"
+  lrec_def           "lrec(l,b,c) == letrec g x be lcase(x,b,%h t. c(h,t,g(t))) in g(l)"
 
-  let_def  "let x be t in f(x) == case(t,f(true),f(false),%x y.f(<x,y>),%u.f(lam x.u(x)))"
+  let_def  "let x be t in f(x) == case(t,f(true),f(false),%x y. f(<x,y>),%u. f(lam x. u(x)))"
   letrec_def    
-  "letrec g x be h(x,g) in b(g) == b(%x.fix(%f.lam x.h(x,%y.f`y))`x)"
+  "letrec g x be h(x,g) in b(g) == b(%x. fix(%f. lam x. h(x,%y. f`y))`x)"
 
   letrec2_def  "letrec g x y be h(x,y,g) in f(g)== 
-               letrec g' p be split(p,%x y.h(x,y,%u v.g'(<u,v>))) 
-                          in f(%x y.g'(<x,y>))"
+               letrec g' p be split(p,%x y. h(x,y,%u v. g'(<u,v>))) 
+                          in f(%x y. g'(<x,y>))"
 
   letrec3_def  "letrec g x y z be h(x,y,z,g) in f(g) == 
-             letrec g' p be split(p,%x xs.split(xs,%y z.h(x,y,z,%u v w.g'(<u,<v,w>>)))) 
-                          in f(%x y z.g'(<x,<y,z>>))"
+             letrec g' p be split(p,%x xs. split(xs,%y z. h(x,y,z,%u v w. g'(<u,<v,w>>)))) 
+                          in f(%x y z. g'(<x,<y,z>>))"
 
-  napply_def "f ^n` a == nrec(n,a,%x g.f(g))"
+  napply_def "f ^n` a == nrec(n,a,%x g. f(g))"
 
 end
 

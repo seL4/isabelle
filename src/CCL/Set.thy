@@ -50,17 +50,17 @@ translations
 
 
 rules
-  mem_Collect_iff       "(a : {x.P(x)}) <-> P(a)"
-  set_extension         "A=B <-> (ALL x.x:A <-> x:B)"
+  mem_Collect_iff       "(a : {x. P(x)}) <-> P(a)"
+  set_extension         "A=B <-> (ALL x. x:A <-> x:B)"
 
   Ball_def      "Ball(A, P)  == ALL x. x:A --> P(x)"
   Bex_def       "Bex(A, P)   == EX x. x:A & P(x)"
   mono_def      "mono(f)     == (ALL A B. A <= B --> f(A) <= f(B))"
   subset_def    "A <= B      == ALL x:A. x:B"
-  singleton_def "{a}         == {x.x=a}"
-  empty_def     "{}          == {x.False}"
-  Un_def        "A Un B      == {x.x:A | x:B}"
-  Int_def       "A Int B     == {x.x:A & x:B}"
+  singleton_def "{a}         == {x. x=a}"
+  empty_def     "{}          == {x. False}"
+  Un_def        "A Un B      == {x. x:A | x:B}"
+  Int_def       "A Int B     == {x. x:A & x:B}"
   Compl_def     "Compl(A)    == {x. ~x:A}"
   INTER_def     "INTER(A, B) == {y. ALL x:A. y: B(x)}"
   UNION_def     "UNION(A, B) == {y. EX x:A. y: B(x)}"

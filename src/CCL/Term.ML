@@ -35,7 +35,7 @@ by (resolve_tac ([caseBbot] RL [term_case]) 1);
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 qed "letBbbot";
 
-goalw Term.thy [apply_def] "(lam x.b(x)) ` a = b(a)";
+goalw Term.thy [apply_def] "(lam x. b(x)) ` a = b(a)";
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 qed "applyB";
 
@@ -48,7 +48,7 @@ by (resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
 qed "fixB";
 
 goalw Term.thy [letrec_def]
-      "letrec g x be h(x,g) in g(a) = h(a,%y.letrec g x be h(x,g) in g(y))";
+      "letrec g x be h(x,g) in g(a) = h(a,%y. letrec g x be h(x,g) in g(y))";
 by (resolve_tac [fixB RS ssubst] 1 THEN 
     resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
 qed "letrecB";
@@ -98,10 +98,10 @@ val lrecBbot   = mk_beta_rl "lrec(bot,t,u) = bot";
 
 val letrec2B = raw_mk_beta_rl (data_defs @ [letrec2_def])
        "letrec g x y be h(x,y,g) in g(p,q) = \
-\                     h(p,q,%u v.letrec g x y be h(x,y,g) in g(u,v))";
+\                     h(p,q,%u v. letrec g x y be h(x,y,g) in g(u,v))";
 val letrec3B = raw_mk_beta_rl (data_defs @ [letrec3_def])
        "letrec g x y z be h(x,y,z,g) in g(p,q,r) = \
-\                     h(p,q,r,%u v w.letrec g x y z be h(x,y,z,g) in g(u,v,w))";
+\                     h(p,q,r,%u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))";
 
 val napplyBzero   = mk_beta_rl "f^zero`a = a";
 val napplyBsucc   = mk_beta_rl "f^succ(n)`a = f(f^n`a)";

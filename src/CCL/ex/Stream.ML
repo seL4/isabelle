@@ -16,7 +16,7 @@ open Stream;
 
 val prems = goal Stream.thy "l:Lists(A) ==> map(f o g,l) = map(f,map(g,l))";
 by (eq_coinduct3_tac 
-       "{p. EX x y.p=<x,y> & (EX l:Lists(A).x=map(f o g,l) & y=map(f,map(g,l)))}"  1);
+       "{p. EX x y. p=<x,y> & (EX l:Lists(A).x=map(f o g,l) & y=map(f,map(g,l)))}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
 by (etac (XH_to_E ListsXH) 1);
@@ -27,9 +27,9 @@ qed "map_comp";
 
 (*** Mapping the identity function leaves a list unchanged ***)
 
-val prems = goal Stream.thy "l:Lists(A) ==> map(%x.x,l) = l";
+val prems = goal Stream.thy "l:Lists(A) ==> map(%x. x,l) = l";
 by (eq_coinduct3_tac 
-       "{p. EX x y.p=<x,y> & (EX l:Lists(A).x=map(%x.x,l) & y=l)}"  1);
+       "{p. EX x y. p=<x,y> & (EX l:Lists(A).x=map(%x. x,l) & y=l)}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
 by (etac (XH_to_E ListsXH) 1);
@@ -41,7 +41,7 @@ qed "map_id";
 
 val prems = goal Stream.thy 
         "[| l:Lists(A); m:Lists(A) |] ==> map(f,l@m) = map(f,l) @ map(f,m)";
-by (eq_coinduct3_tac "{p. EX x y.p=<x,y> & (EX l:Lists(A).EX m:Lists(A). \
+by (eq_coinduct3_tac "{p. EX x y. p=<x,y> & (EX l:Lists(A).EX m:Lists(A). \
 \                                           x=map(f,l@m) & y=map(f,l) @ map(f,m))}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
@@ -57,7 +57,7 @@ qed "map_append";
 val prems = goal Stream.thy 
         "[| k:Lists(A); l:Lists(A); m:Lists(A) |] ==> k @ l @ m = (k @ l) @ m";
 by (eq_coinduct3_tac 
-    "{p. EX x y.p=<x,y> & (EX k:Lists(A).EX l:Lists(A).EX m:Lists(A). \
+    "{p. EX x y. p=<x,y> & (EX k:Lists(A).EX l:Lists(A).EX m:Lists(A). \
 \                          x=k @ l @ m & y=(k @ l) @ m)}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
@@ -71,7 +71,7 @@ qed "append_assoc";
 
 val prems = goal Stream.thy "l:ILists(A) ==> l @ m = l";
 by (eq_coinduct3_tac
-    "{p. EX x y.p=<x,y> & (EX l:ILists(A).EX m.x=l@m & y=l)}" 1);
+    "{p. EX x y. p=<x,y> & (EX l:ILists(A).EX m. x=l@m & y=l)}" 1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac set_cs);
 by (etac (XH_to_E IListsXH) 1);
@@ -103,7 +103,7 @@ qed "iter2Blemma";
 
 goal Stream.thy "iter1(f,a) = iter2(f,a)";
 by (eq_coinduct3_tac 
-    "{p. EX x y.p=<x,y> & (EX n:Nat.x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}"
+    "{p. EX x y. p=<x,y> & (EX n:Nat. x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}"
     1);
 by (fast_tac (type_cs addSIs [napplyBzero RS sym,
                               napplyBzero RS sym RS arg_cong]) 1);

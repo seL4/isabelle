@@ -48,7 +48,7 @@ val POgenIs = map (mk_genIs Term.thy data_defs POgenXH POgen_mono)
       ["<true,true> : POgen(R)",
        "<false,false> : POgen(R)",
        "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : POgen(R)",
-       "[|!!x. <b(x),b'(x)> : R |] ==><lam x.b(x),lam x.b'(x)> : POgen(R)",
+       "[|!!x. <b(x),b'(x)> : R |] ==><lam x. b(x),lam x. b'(x)> : POgen(R)",
        "<one,one> : POgen(R)",
        "<a,a'> : lfp(%x. POgen(x) Un R Un PO) ==> \
 \                         <inl(a),inl(a')> : POgen(lfp(%x. POgen(x) Un R Un PO))",
@@ -78,7 +78,7 @@ val EQgenIs = map (mk_genIs Term.thy data_defs EQgenXH EQgen_mono)
 ["<true,true> : EQgen(R)",
  "<false,false> : EQgen(R)",
  "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)",
- "[|!!x. <b(x),b'(x)> : R |] ==> <lam x.b(x),lam x.b'(x)> : EQgen(R)",
+ "[|!!x. <b(x),b'(x)> : R |] ==> <lam x. b(x),lam x. b'(x)> : EQgen(R)",
  "<one,one> : EQgen(R)",
  "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==> \
 \                   <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",

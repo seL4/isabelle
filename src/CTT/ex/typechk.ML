@@ -45,17 +45,17 @@ by (typechk_tac[]);
 result(); 
 
 writeln"typechecking an application of fst";
-goal CTT.thy "(lam u. split(u, %v w.v)) ` <0, succ(0)> : ?A";
+goal CTT.thy "(lam u. split(u, %v w. v)) ` <0, succ(0)> : ?A";
 by (typechk_tac[]);
 result(); 
 
 writeln"typechecking the predecessor function";
-goal CTT.thy "lam n. rec(n, 0, %x y.x) : ?A";
+goal CTT.thy "lam n. rec(n, 0, %x y. x) : ?A";
 by (typechk_tac[]);
 result(); 
 
 writeln"typechecking the addition function";
-goal CTT.thy "lam n. lam m. rec(n, m, %x y.succ(y)) : ?A";
+goal CTT.thy "lam n. lam m. rec(n, m, %x y. succ(y)) : ?A";
 by (typechk_tac[]);
 result(); 
 
@@ -74,7 +74,7 @@ by N_tac;
 result(); 
 
 writeln"typechecking fst (as a function object) ";
-goal CTT.thy "lam i. split(i, %j k.j) : ?A";
+goal CTT.thy "lam i. split(i, %j k. j) : ?A";
 by (typechk_tac[]);
 by N_tac;
 result(); 

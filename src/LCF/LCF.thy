@@ -99,12 +99,12 @@ rules
      Note that "easiness" of types is not taken into account
      because it cannot be expressed schematically; flatness could be. *)
 
-  adm_less      "adm(%x.t(x) << u(x))"
+  adm_less      "adm(%x. t(x) << u(x))"
   adm_not_less  "adm(%x.~ t(x) << u)"
-  adm_not_free  "adm(%x.A)"
-  adm_subst     "adm(P) ==> adm(%x.P(t(x)))"
-  adm_conj      "[| adm(P); adm(Q) |] ==> adm(%x.P(x)&Q(x))"
-  adm_disj      "[| adm(P); adm(Q) |] ==> adm(%x.P(x)|Q(x))"
-  adm_imp       "[| adm(%x.~P(x)); adm(Q) |] ==> adm(%x.P(x)-->Q(x))"
-  adm_all       "(!!y.adm(P(y))) ==> adm(%x.ALL y.P(y,x))"
+  adm_not_free  "adm(%x. A)"
+  adm_subst     "adm(P) ==> adm(%x. P(t(x)))"
+  adm_conj      "[| adm(P); adm(Q) |] ==> adm(%x. P(x)&Q(x))"
+  adm_disj      "[| adm(P); adm(Q) |] ==> adm(%x. P(x)|Q(x))"
+  adm_imp       "[| adm(%x.~P(x)); adm(Q) |] ==> adm(%x. P(x)-->Q(x))"
+  adm_all       "(!!y. adm(P(y))) ==> adm(%x. ALL y. P(y,x))"
 end

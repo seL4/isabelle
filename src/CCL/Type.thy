@@ -46,23 +46,23 @@ translations
 
 rules
 
-  Subtype_def "{x:A.P(x)} == {x.x:A & P(x)}"
-  Unit_def          "Unit == {x.x=one}"
-  Bool_def          "Bool == {x.x=true | x=false}"
-  Plus_def           "A+B == {x. (EX a:A.x=inl(a)) | (EX b:B.x=inr(b))}"
-  Pi_def         "Pi(A,B) == {x.EX b.x=lam x.b(x) & (ALL x:A.b(x):B(x))}"
-  Sigma_def   "Sigma(A,B) == {x.EX a:A.EX b:B(a).x=<a,b>}"
-  Nat_def            "Nat == lfp(% X.Unit + X)"
-  List_def       "List(A) == lfp(% X.Unit + A*X)"
+  Subtype_def "{x:A. P(x)} == {x. x:A & P(x)}"
+  Unit_def          "Unit == {x. x=one}"
+  Bool_def          "Bool == {x. x=true | x=false}"
+  Plus_def           "A+B == {x. (EX a:A. x=inl(a)) | (EX b:B. x=inr(b))}"
+  Pi_def         "Pi(A,B) == {x. EX b. x=lam x. b(x) & (ALL x:A. b(x):B(x))}"
+  Sigma_def   "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
+  Nat_def            "Nat == lfp(% X. Unit + X)"
+  List_def       "List(A) == lfp(% X. Unit + A*X)"
 
-  Lists_def     "Lists(A) == gfp(% X.Unit + A*X)"
+  Lists_def     "Lists(A) == gfp(% X. Unit + A*X)"
   ILists_def   "ILists(A) == gfp(% X.{} + A*X)"
 
-  Tall_def   "TALL X.B(X) == Inter({X.EX Y.X=B(Y)})"
-  Tex_def     "TEX X.B(X) == Union({X.EX Y.X=B(Y)})"
+  Tall_def   "TALL X. B(X) == Inter({X. EX Y. X=B(Y)})"
+  Tex_def     "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
   Lift_def           "[A] == A Un {bot}"
 
-  SPLIT_def   "SPLIT(p,B) == Union({A.EX x y.p=<x,y> & A=B(x,y)})"
+  SPLIT_def   "SPLIT(p,B) == Union({A. EX x y. p=<x,y> & A=B(x,y)})"
 
 end
 

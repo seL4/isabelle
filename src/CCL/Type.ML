@@ -15,7 +15,7 @@ val ind_type_defs = [Nat_def,List_def];
 val simp_data_defs = [one_def,inl_def,inr_def];
 val ind_data_defs = [zero_def,succ_def,nil_def,cons_def];
 
-goal Set.thy "A <= B <-> (ALL x.x:A --> x:B)";
+goal Set.thy "A <= B <-> (ALL x. x:A --> x:B)";
 by (fast_tac set_cs 1);
 qed "subsetXH";
 
@@ -25,18 +25,18 @@ fun mk_XH_tac thy defs rls s = prove_goalw thy defs s (fn _ => [cfast_tac rls 1]
 val XH_tac = mk_XH_tac Type.thy simp_type_defs [];
 
 val EmptyXH = XH_tac "a : {} <-> False";
-val SubtypeXH = XH_tac "a : {x:A.P(x)} <-> (a:A & P(a))";
+val SubtypeXH = XH_tac "a : {x:A. P(x)} <-> (a:A & P(a))";
 val UnitXH = XH_tac "a : Unit          <-> a=one";
 val BoolXH = XH_tac "a : Bool          <-> a=true | a=false";
-val PlusXH = XH_tac "a : A+B           <-> (EX x:A.a=inl(x)) | (EX x:B.a=inr(x))";
-val PiXH   = XH_tac "a : PROD x:A.B(x) <-> (EX b.a=lam x.b(x) & (ALL x:A.b(x):B(x)))";
-val SgXH   = XH_tac "a : SUM x:A.B(x)  <-> (EX x:A.EX y:B(x).a=<x,y>)";
+val PlusXH = XH_tac "a : A+B           <-> (EX x:A. a=inl(x)) | (EX x:B. a=inr(x))";
+val PiXH   = XH_tac "a : PROD x:A. B(x) <-> (EX b. a=lam x. b(x) & (ALL x:A. b(x):B(x)))";
+val SgXH   = XH_tac "a : SUM x:A. B(x)  <-> (EX x:A. EX y:B(x).a=<x,y>)";
 
 val XHs = [EmptyXH,SubtypeXH,UnitXH,BoolXH,PlusXH,PiXH,SgXH];
 
 val LiftXH = XH_tac "a : [A] <-> (a=bot | a:A)";
-val TallXH = XH_tac "a : TALL X.B(X) <-> (ALL X. a:B(X))";
-val TexXH  = XH_tac "a : TEX X.B(X) <-> (EX X. a:B(X))";
+val TallXH = XH_tac "a : TALL X. B(X) <-> (ALL X. a:B(X))";
+val TexXH  = XH_tac "a : TEX X. B(X) <-> (EX X. a:B(X))";
 
 val case_rls = XH_to_Es XHs;
 
@@ -49,7 +49,7 @@ val canT_tac = mk_canT_tac Type.thy XHs;
 val oneT   = canT_tac "one : Unit";
 val trueT  = canT_tac "true : Bool";
 val falseT = canT_tac "false : Bool";
-val lamT   = canT_tac "[| !!x.x:A ==> b(x):B(x) |] ==> lam x.b(x) : Pi(A,B)";
+val lamT   = canT_tac "[| !!x. x:A ==> b(x):B(x) |] ==> lam x. b(x) : Pi(A,B)";
 val pairT  = canT_tac "[| a:A; b:B(a) |] ==> <a,b>:Sigma(A,B)";
 val inlT   = canT_tac "a:A ==> inl(a) : A+B";
 val inrT   = canT_tac "b:B ==> inr(b) : A+B";
@@ -108,16 +108,16 @@ qed "SubtypeE";
 
 (*** Monotonicity ***)
 
-goal Type.thy "mono (%X.X)";
+goal Type.thy "mono (%X. X)";
 by (REPEAT (ares_tac [monoI] 1));
 qed "idM";
 
-goal Type.thy "mono(%X.A)";
+goal Type.thy "mono(%X. A)";
 by (REPEAT (ares_tac [monoI,subset_refl] 1));
 qed "constM";
 
 val major::prems = goal Type.thy
-    "mono(%X.A(X)) ==> mono(%X.[A(X)])";
+    "mono(%X. A(X)) ==> mono(%X.[A(X)])";
 by (rtac (subsetI RS monoI) 1);
 by (dtac (LiftXH RS iffD1) 1);
 by (etac disjE 1);
@@ -128,8 +128,8 @@ by (assume_tac 1);
 qed "LiftM";
 
 val prems = goal Type.thy
-    "[| mono(%X.A(X)); !!x X. x:A(X) ==> mono(%X.B(X,x)) |] ==> \
-\    mono(%X.Sigma(A(X),B(X)))";
+    "[| mono(%X. A(X)); !!x X. x:A(X) ==> mono(%X. B(X,x)) |] ==> \
+\    mono(%X. Sigma(A(X),B(X)))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
@@ -137,7 +137,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
 qed "SgM";
 
 val prems = goal Type.thy
-    "[| !!x. x:A ==> mono(%X.B(X,x)) |] ==> mono(%X.Pi(A,B(X)))";
+    "[| !!x. x:A ==> mono(%X. B(X,x)) |] ==> mono(%X. Pi(A,B(X)))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
@@ -145,7 +145,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
 qed "PiM";
 
 val prems = goal Type.thy
-     "[| mono(%X.A(X));  mono(%X.B(X)) |] ==> mono(%X.A(X)+B(X))";
+     "[| mono(%X. A(X));  mono(%X. B(X)) |] ==> mono(%X. A(X)+B(X))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
@@ -156,18 +156,18 @@ qed "PlusM";
 
 (*** Conversion Rules for Fixed Points via monotonicity and Tarski ***)
 
-goal Type.thy "mono(%X.Unit+X)";
+goal Type.thy "mono(%X. Unit+X)";
 by (REPEAT (ares_tac [PlusM,constM,idM] 1));
 qed "NatM";
 bind_thm("def_NatB", result() RS (Nat_def RS def_lfp_Tarski));
 
-goal Type.thy "mono(%X.(Unit+Sigma(A,%y.X)))";
+goal Type.thy "mono(%X.(Unit+Sigma(A,%y. X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "ListM";
 bind_thm("def_ListB", result() RS (List_def RS def_lfp_Tarski));
 bind_thm("def_ListsB", result() RS (Lists_def RS def_gfp_Tarski));
 
-goal Type.thy "mono(%X.({} + Sigma(A,%y.X)))";
+goal Type.thy "mono(%X.({} + Sigma(A,%y. X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "IListsM";
 bind_thm("def_IListsB", result() RS (ILists_def RS def_gfp_Tarski));
@@ -182,10 +182,10 @@ fun mk_iXH_tac teqs ddefs rls s = prove_goalw Type.thy ddefs s
 
 val iXH_tac = mk_iXH_tac ind_type_eqs ind_data_defs [];
 
-val NatXH  = iXH_tac "a : Nat <-> (a=zero | (EX x:Nat.a=succ(x)))";
-val ListXH = iXH_tac "a : List(A) <-> (a=[] | (EX x:A.EX xs:List(A).a=x$xs))";
-val ListsXH = iXH_tac "a : Lists(A) <-> (a=[] | (EX x:A.EX xs:Lists(A).a=x$xs))";
-val IListsXH = iXH_tac "a : ILists(A) <-> (EX x:A.EX xs:ILists(A).a=x$xs)";
+val NatXH  = iXH_tac "a : Nat <-> (a=zero | (EX x:Nat. a=succ(x)))";
+val ListXH = iXH_tac "a : List(A) <-> (a=[] | (EX x:A. EX xs:List(A).a=x$xs))";
+val ListsXH = iXH_tac "a : Lists(A) <-> (a=[] | (EX x:A. EX xs:Lists(A).a=x$xs))";
+val IListsXH = iXH_tac "a : ILists(A) <-> (EX x:A. EX xs:ILists(A).a=x$xs)";
 
 val iXHs = [NatXH,ListXH];
 val icase_rls = XH_to_Es iXHs;
@@ -283,15 +283,15 @@ by (rtac subset_refl 1);
 qed "lfp_subset_gfp";
 
 val prems = goal Type.thy
-    "[| a:A;  !!x X.[| x:A;  ALL y:A.t(y):X |] ==> t(x) : B(X) |] ==> \
+    "[| a:A;  !!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : gfp(B)";
 by (rtac coinduct 1);
-by (res_inst_tac [("P","%x.EX y:A.x=t(y)")] CollectI 1);
+by (res_inst_tac [("P","%x. EX y:A. x=t(y)")] CollectI 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
 qed "gfpI";
 
 val rew::prem::prems = goal Type.thy
-    "[| C==gfp(B);  a:A;  !!x X.[| x:A;  ALL y:A.t(y):X |] ==> t(x) : B(X) |] ==> \
+    "[| C==gfp(B);  a:A;  !!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : C";
 by (rewtac rew);
 by (REPEAT (ares_tac ((prem RS gfpI)::prems) 1));

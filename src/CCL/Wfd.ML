@@ -25,7 +25,7 @@ qed "wfd_induct";
 val [p1,p2,p3] = goal Wfd.thy
     "[| !!x y.<x,y> : R ==> Q(x); \
 \       ALL x. (ALL y. <y,x> : R --> y : P) --> x : P; \
-\       !!x.Q(x) ==> x:P |] ==> a:P";
+\       !!x. Q(x) ==> x:P |] ==> a:P";
 by (rtac (p2 RS  spec  RS mp) 1);
 by (fast_tac (set_cs addSIs [p1 RS p3]) 1);
 qed "wfd_strengthen_lemma";
@@ -64,7 +64,7 @@ qed "trancl_wf";
 (*** Lexicographic Ordering ***)
 
 goalw Wfd.thy [lex_def] 
- "p : ra**rb <-> (EX a a' b b'.p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb))";
+ "p : ra**rb <-> (EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb))";
 by (fast_tac ccl_cs 1);
 qed "lexXH";
 
@@ -98,7 +98,7 @@ val [wfa,wfb] = goal Wfd.thy
  "[| Wfd(R); Wfd(S) |] ==> Wfd(R**S)";
 by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
-by (wfd_strengthen_tac "%x.EX a b.x=<a,b>" 1);
+by (wfd_strengthen_tac "%x. EX a b. x=<a,b>" 1);
 by (fast_tac (term_cs addSEs [lex_pair]) 1);
 by (subgoal_tac "ALL a b.<a,b>:P" 1);
 by (fast_tac ccl_cs 1);
@@ -130,7 +130,7 @@ val [wf] = goal Wfd.thy
  "Wfd(r) ==> Wfd(wmap(f,r))";
 by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
-by (subgoal_tac "ALL b.ALL a.f(a)=b-->a:P" 1);
+by (subgoal_tac "ALL b. ALL a. f(a)=b-->a:P" 1);
 by (fast_tac ccl_cs 1);
 by (rtac (wf RS wfd_induct RS allI) 1);
 by (safe_tac ccl_cs);
@@ -175,11 +175,11 @@ by (ALLGOALS (asm_simp_tac CCL_ss));
 by (rtac Empty_wf 1);
 qed "wf_wf";
 
-goalw Wfd.thy [NatPR_def]  "p : NatPR <-> (EX x:Nat.p=<x,succ(x)>)";
+goalw Wfd.thy [NatPR_def]  "p : NatPR <-> (EX x:Nat. p=<x,succ(x)>)";
 by (fast_tac set_cs 1);
 qed "NatPRXH";
 
-goalw Wfd.thy [ListPR_def]  "p : ListPR(A) <-> (EX h:A.EX t:List(A).p=<t,h$t>)";
+goalw Wfd.thy [ListPR_def]  "p : ListPR(A) <-> (EX h:A. EX t:List(A).p=<t,h$t>)";
 by (fast_tac set_cs 1);
 qed "ListPRXH";
 
@@ -188,7 +188,7 @@ val ListPRI = refl RS (bexI RS (bexI RS (ListPRXH RS iffD2)));
 
 goalw Wfd.thy [Wfd_def]  "Wfd(NatPR)";
 by (safe_tac set_cs);
-by (wfd_strengthen_tac "%x.x:Nat" 1);
+by (wfd_strengthen_tac "%x. x:Nat" 1);
 by (fast_tac (type_cs addSEs [XH_to_E NatPRXH]) 1);
 by (etac Nat_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E NatPRXH])));
@@ -196,7 +196,7 @@ qed "NatPR_wf";
 
 goalw Wfd.thy [Wfd_def]  "Wfd(ListPR(A))";
 by (safe_tac set_cs);
-by (wfd_strengthen_tac "%x.x:List(A)" 1);
+by (wfd_strengthen_tac "%x. x:List(A)" 1);
 by (fast_tac (type_cs addSEs [XH_to_E ListPRXH]) 1);
 by (etac List_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E ListPRXH])));

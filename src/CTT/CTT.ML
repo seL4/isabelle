@@ -109,7 +109,7 @@ qed_goal "replace_type" CTT.thy
 
 (*Simplify the parameter of a unary type operator.*)
 qed_goal "subst_eqtyparg" CTT.thy
-    "a=c : A ==> (!!z.z:A ==> B(z) type) ==> B(a)=B(c)"
+    "a=c : A ==> (!!z. z:A ==> B(z) type) ==> B(a)=B(c)"
  (fn prems=>
   [ (rtac subst_typeL 1),
     (rtac refl_type 2),

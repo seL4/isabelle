@@ -385,7 +385,7 @@ qed_goalw "modC0" Arith.thy [mod_def] "b:N ==> 0 mod b = 0 : N"
   [ (rew_tac(absdiff_typing::prems)) ]);
 
 qed_goalw "modC_succ" Arith.thy [mod_def] 
-"[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y.succ(a mod b)) : N"
+"[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y. succ(a mod b)) : N"
  (fn prems=>
   [ (rew_tac(absdiff_typing::prems)) ]);
 
@@ -429,7 +429,7 @@ qed_goal "divC_succ2" Arith.thy
 
 (*for case analysis on whether a number is 0 or a successor*)
 qed_goal "iszero_decidable" Arith.thy
-    "a:N ==> rec(a, inl(eq), %ka kb.inr(<ka, eq>)) : \
+    "a:N ==> rec(a, inl(eq), %ka kb. inr(<ka, eq>)) : \
 \                     Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
  (fn prems=>
   [ (NE_tac "a" 1),

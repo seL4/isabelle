@@ -65,7 +65,7 @@ val less_anti_sym = prove_goal thy "[| x << y; y << x |] ==> x=y"
                       REPEAT(rstac(conjI::prems)1)]);
 
 val ext = prove_goal thy
-        "(!!x::'a::cpo. f(x)=(g(x)::'b::cpo)) ==> (%x.f(x))=(%x.g(x))"
+        "(!!x::'a::cpo. f(x)=(g(x)::'b::cpo)) ==> (%x. f(x))=(%x. g(x))"
         (fn [prem] => [REPEAT(rstac[less_anti_sym, less_ext, allI,
                                     prem RS eq_imp_less1,
                                     prem RS eq_imp_less2]1)]);
@@ -79,7 +79,7 @@ val less_ap_thm = less_refl RSN (2,mono);
 val ap_term = refl RS cong;
 val ap_thm = refl RSN (2,cong);
 
-val UU_abs = prove_goal thy "(%x::'a::cpo.UU) = UU"
+val UU_abs = prove_goal thy "(%x::'a::cpo. UU) = UU"
         (fn _ => [rtac less_anti_sym 1, rtac minimal 2,
                   rtac less_ext 1, rtac allI 1, rtac minimal 1]);
 
@@ -89,7 +89,7 @@ val less_UU = prove_goal thy "x << UU ==> x=UU"
         (fn prems=> [rtac less_anti_sym 1,rstac prems 1,rtac minimal 1]);
 
 
-val tr_induct = prove_goal thy "[| P(UU); P(TT); P(FF) |] ==> ALL b.P(b)"
+val tr_induct = prove_goal thy "[| P(UU); P(TT); P(FF) |] ==> ALL b. P(b)"
         (fn prems => [rtac allI 1, rtac mp 1,
                       res_inst_tac[("p","b")]tr_cases 2,
                       fast_tac (FOL_cs addIs prems) 1]);

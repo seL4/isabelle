@@ -14,7 +14,7 @@ val list_defs = [map_def,comp_def,append_def,filter_def,flat_def,
 (****)
 
 val listBs = map (fn s=>prove_goalw List.thy list_defs s (fn _ => [simp_tac term_ss 1]))
-     ["(f o g) = (%a.f(g(a)))",
+     ["(f o g) = (%a. f(g(a)))",
       "(f o g)(a) = f(g(a))",
       "map(f,[]) = []",
       "map(f,x$xs) = f(x)$map(f,xs)",
@@ -44,7 +44,7 @@ qed "nmapBcons";
 (***)
 
 val prems = goalw List.thy [map_def]
-  "[| !!x.x:A==>f(x):B;  l : List(A) |] ==> map(f,l) : List(B)";
+  "[| !!x. x:A==>f(x):B;  l : List(A) |] ==> map(f,l) : List(B)";
 by (typechk_tac prems 1);
 qed "mapT";
 

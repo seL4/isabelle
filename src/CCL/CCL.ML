@@ -22,7 +22,7 @@ qed_goal "fun_cong" CCL.thy "(f::'a=>'b) = g ==> f(x)=g(x)"
 qed_goal "arg_cong" CCL.thy "x=y ==> f(x)=f(y)"
  (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
 
-goal CCL.thy  "(ALL x. f(x) = g(x)) --> (%x.f(x)) = (%x.g(x))";
+goal CCL.thy  "(ALL x. f(x) = g(x)) --> (%x. f(x)) = (%x. g(x))";
 by (simp_tac (CCL_ss addsimps [eq_iff]) 1);
 by (fast_tac (set_cs addIs [po_abstractn]) 1);
 bind_thm("abstractn", standard (allI RS (result() RS mp)));
@@ -68,7 +68,7 @@ fun mk_inj_rl thy rews s =
 
 val ccl_injs = map (mk_inj_rl CCL.thy caseBs)
                ["<a,b> = <a',b'> <-> (a=a' & b=b')",
-                "(lam x.b(x) = lam x.b'(x)) <-> ((ALL z.b(z)=b'(z)))"];
+                "(lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"];
 
 val pair_inject = ((hd ccl_injs) RS iffD1) RS conjE;
 
@@ -140,13 +140,13 @@ val major::prems = goal Set.thy "[| A=B;  a:B <-> P |] ==> a:A <-> P";
 by (resolve_tac (prems RL [major RS ssubst]) 1);
 qed "XHlemma1";
 
-goal CCL.thy "(P(t,t') <-> Q) --> (<t,t'> : {p.EX t t'.p=<t,t'> &  P(t,t')} <-> Q)";
+goal CCL.thy "(P(t,t') <-> Q) --> (<t,t'> : {p. EX t t'. p=<t,t'> &  P(t,t')} <-> Q)";
 by (fast_tac ccl_cs 1);
 bind_thm("XHlemma2", result() RS mp);
 
 (*** Pre-Order ***)
 
-goalw CCL.thy [POgen_def,SIM_def]  "mono(%X.POgen(X))";
+goalw CCL.thy [POgen_def,SIM_def]  "mono(%X. POgen(X))";
 by (rtac monoI 1);
 by (safe_tac ccl_cs);
 by (REPEAT_SOME (resolve_tac [exI,conjI,refl]));
@@ -156,15 +156,15 @@ qed "POgen_mono";
 
 goalw CCL.thy [POgen_def,SIM_def]
   "<t,t'> : POgen(R) <-> t= bot | (t=true & t'=true)  | (t=false & t'=false) | \
-\                    (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
-\                    (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : R))";
+\                    (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
+\                    (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : R))";
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "POgenXH";
 
 goal CCL.thy
   "t [= t' <-> t=bot | (t=true & t'=true) | (t=false & t'=false) | \
-\                    (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
-\                    (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.f(x) [= f'(x)))";
+\                    (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
+\                    (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))";
 by (simp_tac (ccl_ss addsimps [PO_iff]) 1);
 br (rewrite_rule [POgen_def,SIM_def] 
                  (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1;
@@ -189,7 +189,7 @@ by (simp_tac ccl_ss 1);
 by (fast_tac ccl_cs 1);
 qed "po_pair";
 
-goal CCL.thy "lam x.f(x) [= lam x.f'(x) <-> (ALL x. f(x) [= f'(x))";
+goal CCL.thy "lam x. f(x) [= lam x. f'(x) <-> (ALL x. f(x) [= f'(x))";
 by (rtac (poXH RS iff_trans) 1);
 by (simp_tac ccl_ss 1);
 by (REPEAT (ares_tac [iffI,allI] 1 ORELSE eresolve_tac [exE,conjE] 1));
@@ -200,13 +200,13 @@ qed "po_lam";
 val ccl_porews = [po_bot,po_pair,po_lam];
 
 val [p1,p2,p3,p4,p5] = goal CCL.thy
-    "[| t [= t';  a [= a';  b [= b';  !!x y.c(x,y) [= c'(x,y); \
-\       !!u.d(u) [= d'(u) |] ==> case(t,a,b,c,d) [= case(t',a',b',c',d')";
+    "[| t [= t';  a [= a';  b [= b';  !!x y. c(x,y) [= c'(x,y); \
+\       !!u. d(u) [= d'(u) |] ==> case(t,a,b,c,d) [= case(t',a',b',c',d')";
 by (rtac (p1 RS po_cong RS po_trans) 1);
 by (rtac (p2 RS po_cong RS po_trans) 1);
 by (rtac (p3 RS po_cong RS po_trans) 1);
 by (rtac (p4 RS po_abstractn RS po_abstractn RS po_cong RS po_trans) 1);
-by (res_inst_tac [("f1","%d.case(t',a',b',c',d)")] 
+by (res_inst_tac [("f1","%d. case(t',a',b',c',d)")] 
                (p5 RS po_abstractn RS po_cong RS po_trans) 1);
 by (rtac po_refl 1);
 qed "case_pocong";
@@ -217,7 +217,7 @@ by (REPEAT (ares_tac [po_refl,case_pocong,p1,p2 RS po_cong] 1));
 qed "apply_pocong";
 
 
-val prems = goal CCL.thy "~ lam x.b(x) [= bot";
+val prems = goal CCL.thy "~ lam x. b(x) [= bot";
 by (rtac notI 1);
 by (dtac bot_poleast 1);
 by (etac (distinctness RS notE) 1);
@@ -230,14 +230,14 @@ by (rtac (eq2 RS subst) 1);
 by (resolve_tac prems 1);
 qed "po_lemma";
 
-goal CCL.thy "~ <a,b> [= lam x.f(x)";
+goal CCL.thy "~ <a,b> [= lam x. f(x)";
 by (rtac notI 1);
 by (rtac (npo_lam_bot RS notE) 1);
 by (etac (case_pocong RS (caseBlam RS (caseBpair RS po_lemma))) 1);
 by (REPEAT (resolve_tac [po_refl,npo_lam_bot] 1));
 qed "npo_pair_lam";
 
-goal CCL.thy "~ lam x.f(x) [= <a,b>";
+goal CCL.thy "~ lam x. f(x) [= <a,b>";
 by (rtac notI 1);
 by (rtac (npo_lam_bot RS notE) 1);
 by (etac (case_pocong RS (caseBpair RS (caseBlam RS po_lemma))) 1);
@@ -252,9 +252,9 @@ fun mk_thm s = prove_goal CCL.thy s (fn _ =>
 val npo_rls = [npo_pair_lam,npo_lam_pair] @ map mk_thm
             ["~ true [= false",          "~ false [= true",
              "~ true [= <a,b>",          "~ <a,b> [= true",
-             "~ true [= lam x.f(x)","~ lam x.f(x) [= true",
+             "~ true [= lam x. f(x)","~ lam x. f(x) [= true",
             "~ false [= <a,b>",          "~ <a,b> [= false",
-            "~ false [= lam x.f(x)","~ lam x.f(x) [= false"];
+            "~ false [= lam x. f(x)","~ lam x. f(x) [= false"];
 
 (* Coinduction for [= *)
 
@@ -267,7 +267,7 @@ fun po_coinduct_tac s i = res_inst_tac [("R",s)] po_coinduct i;
 
 (*************** EQUALITY *******************)
 
-goalw CCL.thy [EQgen_def,SIM_def]  "mono(%X.EQgen(X))";
+goalw CCL.thy [EQgen_def,SIM_def]  "mono(%X. EQgen(X))";
 by (rtac monoI 1);
 by (safe_tac set_cs);
 by (REPEAT_SOME (resolve_tac [exI,conjI,refl]));
@@ -278,19 +278,19 @@ qed "EQgen_mono";
 goalw CCL.thy [EQgen_def,SIM_def]
   "<t,t'> : EQgen(R) <-> (t=bot & t'=bot)  | (t=true & t'=true)  | \
 \                                            (t=false & t'=false) | \
-\                (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
-\                (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : R))";
+\                (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) | \
+\                (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))";
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "EQgenXH";
 
 goal CCL.thy
   "t=t' <-> (t=bot & t'=bot)  | (t=true & t'=true)  | (t=false & t'=false) | \
-\                    (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & a=a' & b=b') | \
-\                    (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.f(x)=f'(x)))";
+\                    (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a=a' & b=b') | \
+\                    (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x)=f'(x)))";
 by (subgoal_tac
   "<t,t'> : EQ <-> (t=bot & t'=bot)  | (t=true & t'=true) | (t=false & t'=false) | \
-\             (EX a a' b b'.t=<a,b> &  t'=<a',b'>  & <a,a'> : EQ & <b,b'> : EQ) | \
-\             (EX f f'.t=lam x.f(x) &  t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : EQ))" 1);
+\             (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : EQ & <b,b'> : EQ) | \
+\             (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : EQ))" 1);
 by (etac rev_mp 1);
 by (simp_tac (CCL_ss addsimps [EQ_iff RS iff_sym]) 1);
 br (rewrite_rule [EQgen_def,SIM_def]
@@ -304,7 +304,7 @@ by (REPEAT (ares_tac prems 1));
 qed "eq_coinduct";
 
 val prems = goal CCL.thy 
-    "[|  <t,u> : R;  R <= EQgen(lfp(%x.EQgen(x) Un R Un EQ)) |] ==> t = u";
+    "[|  <t,u> : R;  R <= EQgen(lfp(%x. EQgen(x) Un R Un EQ)) |] ==> t = u";
 by (rtac (EQ_def RS def_coinduct3 RS (EQ_iff RS iffD2)) 1);
 by (REPEAT (ares_tac (EQgen_mono::prems) 1));
 qed "eq_coinduct3";
@@ -314,18 +314,18 @@ fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] eq_coinduct3 i;
 
 (*** Untyped Case Analysis and Other Facts ***)
 
-goalw CCL.thy [apply_def]  "(EX f.t=lam x.f(x)) --> t = lam x.(t ` x)";
+goalw CCL.thy [apply_def]  "(EX f. t=lam x. f(x)) --> t = lam x.(t ` x)";
 by (safe_tac ccl_cs);
 by (simp_tac ccl_ss 1);
 bind_thm("cond_eta", result() RS mp);
 
-goal CCL.thy "(t=bot) | (t=true) | (t=false) | (EX a b.t=<a,b>) | (EX f.t=lam x.f(x))";
+goal CCL.thy "(t=bot) | (t=true) | (t=false) | (EX a b. t=<a,b>) | (EX f. t=lam x. f(x))";
 by (cut_facts_tac [refl RS (eqXH RS iffD1)] 1);
 by (fast_tac set_cs 1);
 qed "exhaustion";
 
 val prems = goal CCL.thy 
-    "[| P(bot);  P(true);  P(false);  !!x y.P(<x,y>);  !!b.P(lam x.b(x)) |] ==> P(t)";
+    "[| P(bot);  P(true);  P(false);  !!x y. P(<x,y>);  !!b. P(lam x. b(x)) |] ==> P(t)";
 by (cut_facts_tac [exhaustion] 1);
 by (REPEAT_SOME (ares_tac prems ORELSE' eresolve_tac [disjE,exE,ssubst]));
 qed "term_case";

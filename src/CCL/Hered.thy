@@ -23,8 +23,8 @@ rules
   (*** Definitions of Hereditary Termination ***)
 
   HTTgen_def 
-  "HTTgen(R) == {t. t=true | t=false | (EX a b.t=<a,b>      & a : R & b : R) | 
-                                      (EX f.  t=lam x.f(x) & (ALL x.f(x) : R))}"
+  "HTTgen(R) == {t. t=true | t=false | (EX a b. t=<a,b>      & a : R & b : R) | 
+                                      (EX f.  t=lam x. f(x) & (ALL x. f(x) : R))}"
   HTT_def       "HTT == gfp(HTTgen)"
 
 end

@@ -14,7 +14,7 @@ val eval_tac = DEPTH_SOLVE_1 (resolve_tac (!EVal_rls) 1);
 fun ceval_tac rls = DEPTH_SOLVE_1 (resolve_tac (!EVal_rls@rls) 1);
 
 val prems = goalw thy [apply_def]
-   "[| f ---> lam x.b(x);  b(a) ---> c |] ==> f ` a ---> c";
+   "[| f ---> lam x. b(x);  b(a) ---> c |] ==> f ` a ---> c";
 by (ceval_tac prems);
 qed "applyV";
 
@@ -35,7 +35,7 @@ by (resolve_tac prems 1);
 qed "fixV";
 
 val prems = goalw thy [letrec_def]
-    "h(t,%y.letrec g x be h(x,g) in g(y)) ---> c ==> \
+    "h(t,%y. letrec g x be h(x,g) in g(y)) ---> c ==> \
 \                  letrec g x be h(x,g) in g(t) ---> c";
 by (REPEAT (resolve_tac (prems @ [fixV,applyV,lamV]) 1));
 qed "letrecV";
@@ -69,19 +69,19 @@ EVal_rls := !EVal_rls @ V_rls;
 (* Factorial *)
 
 val prems = goal thy
-    "letrec f n be ncase(n,succ(zero),%x.nrec(n,zero,%y g.nrec(f(x),g,%z h.succ(h)))) \
+    "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h)))) \
 \              in f(succ(succ(zero))) ---> ?a";
 by (ceval_tac []);
 
 val prems = goal thy
-    "letrec f n be ncase(n,succ(zero),%x.nrec(n,zero,%y g.nrec(f(x),g,%z h.succ(h)))) \
+    "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h)))) \
 \              in f(succ(succ(succ(zero)))) ---> ?a";
 by (ceval_tac []);
 
 (* Less Than Or Equal *)
 
 fun isle x y = prove_goal thy 
-    ("letrec f p be split(p,%m n.ncase(m,true,%x.ncase(n,false,%y.f(<x,y>)))) \
+    ("letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>)))) \
 \              in f(<"^x^","^y^">) ---> ?a")
     (fn prems => [ceval_tac []]);
 
@@ -93,12 +93,12 @@ isle "succ(succ(succ(succ(succ(zero)))))" "succ(succ(succ(succ(zero))))";
 (* Reverse *)
 
 val prems = goal thy
-    "letrec id l be lcase(l,[],%x xs.x$id(xs)) \
+    "letrec id l be lcase(l,[],%x xs. x$id(xs)) \
 \              in id(zero$succ(zero)$[]) ---> ?a";
 by (ceval_tac []);
 
 val prems = goal thy
-    "letrec rev l be lcase(l,[],%x xs.lrec(rev(xs),x$[],%y ys g.y$g)) \
-\              in rev(zero$succ(zero)$(succ((lam x.x)`succ(zero)))$([])) ---> ?a";
+    "letrec rev l be lcase(l,[],%x xs. lrec(rev(xs),x$[],%y ys g. y$g)) \
+\              in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) ---> ?a";
 by (ceval_tac []);
 

@@ -56,18 +56,18 @@ rules
   trueV       "true ---> true"
   falseV      "false ---> false"
   pairV       "<a,b> ---> <a,b>"
-  lamV        "lam x.b(x) ---> lam x.b(x)"
+  lamV        "lam x. b(x) ---> lam x. b(x)"
   caseVtrue   "[| t ---> true;  d ---> c |] ==> case(t,d,e,f,g) ---> c"
   caseVfalse  "[| t ---> false;  e ---> c |] ==> case(t,d,e,f,g) ---> c"
   caseVpair   "[| t ---> <a,b>;  f(a,b) ---> c |] ==> case(t,d,e,f,g) ---> c"
-  caseVlam    "[| t ---> lam x.b(x);  g(b) ---> c |] ==> case(t,d,e,f,g) ---> c"
+  caseVlam    "[| t ---> lam x. b(x);  g(b) ---> c |] ==> case(t,d,e,f,g) ---> c"
 
   (*** Properties of evaluation: note that "t ---> c" impies that c is canonical ***)
 
   canonical  "[| t ---> c; c==true ==> u--->v; 
                           c==false ==> u--->v; 
-                    !!a b.c==<a,b> ==> u--->v; 
-                      !!f.c==lam x.f(x) ==> u--->v |] ==> 
+                    !!a b. c==<a,b> ==> u--->v; 
+                      !!f. c==lam x. f(x) ==> u--->v |] ==> 
              u--->v"
 
   (* Should be derivable - but probably a bitch! *)
@@ -77,9 +77,9 @@ rules
 
   (*** Definitions used in the following rules ***)
 
-  apply_def     "f ` t == case(f,bot,bot,%x y.bot,%u.u(t))"
-  bot_def         "bot == (lam x.x`x)`(lam x.x`x)"
-  fix_def      "fix(f) == (lam x.f(x`x))`(lam x.f(x`x))"
+  apply_def     "f ` t == case(f,bot,bot,%x y. bot,%u. u(t))"
+  bot_def         "bot == (lam x. x`x)`(lam x. x`x)"
+  fix_def      "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
 
   (*  The pre-order ([=) is defined as a simulation, and behavioural equivalence (=) *)
   (*  as a bisimulation.  They can both be expressed as (bi)simulations up to        *)
@@ -87,8 +87,8 @@ rules
 
   SIM_def
   "SIM(t,t',R) ==  (t=true & t'=true) | (t=false & t'=false) | 
-                  (EX a a' b b'.t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) | 
-                  (EX f f'.t=lam x.f(x) & t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : R))"
+                  (EX a a' b b'. t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) | 
+                  (EX f f'. t=lam x. f(x) & t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))"
 
   POgen_def  "POgen(R) == {p. EX t t'. p=<t,t'> & (t = bot | SIM(t,t',R))}"
   EQgen_def  "EQgen(R) == {p. EX t t'. p=<t,t'> & (t = bot & t' = bot | SIM(t,t',R))}"
@@ -105,7 +105,7 @@ rules
   po_cong        "a [= b ==> f(a) [= f(b)"
 
   (* Extend definition of [= to program fragments of higher type *)
-  po_abstractn   "(!!x. f(x) [= g(x)) ==> (%x.f(x)) [= (%x.g(x))"
+  po_abstractn   "(!!x. f(x) [= g(x)) ==> (%x. f(x)) [= (%x. g(x))"
 
   (** Equality - equivalence axioms inherited from FOL.thy   **)
   (**          - congruence of "=" is axiomatised implicitly **)
@@ -122,11 +122,11 @@ rules
   caseBtrue            "case(true,d,e,f,g) = d"
   caseBfalse          "case(false,d,e,f,g) = e"
   caseBpair           "case(<a,b>,d,e,f,g) = f(a,b)"
-  caseBlam       "case(lam x.b(x),d,e,f,g) = g(b)"
+  caseBlam       "case(lam x. b(x),d,e,f,g) = g(b)"
   caseBbot              "case(bot,d,e,f,g) = bot"            (* strictness *)
 
   (** The theory is non-trivial **)
-  distinctness   "~ lam x.b(x) = bot"
+  distinctness   "~ lam x. b(x) = bot"
 
   (*** Definitions of Termination and Divergence ***)
 

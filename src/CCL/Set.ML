@@ -13,12 +13,12 @@ For set.thy.  Set theory for higher-order logic.  A set is simply a predicate.
 
 open Set;
 
-val [prem] = goal Set.thy "[| P(a) |] ==> a : {x.P(x)}";
+val [prem] = goal Set.thy "[| P(a) |] ==> a : {x. P(x)}";
 by (rtac (mem_Collect_iff RS iffD2) 1);
 by (rtac prem 1);
 qed "CollectI";
 
-val prems = goal Set.thy "[| a : {x.P(x)} |] ==> P(a)";
+val prems = goal Set.thy "[| a : {x. P(x)} |] ==> P(a)";
 by (resolve_tac (prems RL [mem_Collect_iff  RS iffD1]) 1);
 qed "CollectD";
 
@@ -56,7 +56,7 @@ by (REPEAT (ares_tac (prems @ [exI,conjI]) 1));
 qed "bexI";
 
 qed_goal "bexCI" Set.thy 
-   "[| EX x:A. ~P(x) ==> P(a);  a:A |] ==> EX x:A.P(x)"
+   "[| EX x:A. ~P(x) ==> P(a);  a:A |] ==> EX x:A. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ]);
@@ -93,7 +93,7 @@ qed "bex_cong";
 
 (*** Rules for subsets ***)
 
-val prems = goalw Set.thy [subset_def] "(!!x.x:A ==> x:B) ==> A <= B";
+val prems = goalw Set.thy [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
@@ -163,7 +163,7 @@ by (rtac mp 1);
 by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
-goal Set.thy "{x.x:A} = A";
+goal Set.thy "{x. x:A} = A";
 by (REPEAT (ares_tac [equalityI,subsetI,CollectI] 1  ORELSE etac CollectD 1));
 qed "trivial_set";
 
@@ -234,7 +234,7 @@ val ComplE = make_elim ComplD;
 
 (*** Empty sets ***)
 
-goalw Set.thy [empty_def] "{x.False} = {}";
+goalw Set.thy [empty_def] "{x. False} = {}";
 by (rtac refl 1);
 qed "empty_eq";
 
@@ -244,7 +244,7 @@ qed "emptyD";
 
 val emptyE = make_elim emptyD;
 
-val [prem] = goal Set.thy "~ A={} ==> (EX x.x:A)";
+val [prem] = goal Set.thy "~ A={} ==> (EX x. x:A)";
 by (rtac (prem RS swap) 1);
 by (rtac equalityI 1);
 by (ALLGOALS (fast_tac (FOL_cs addSIs [subsetI] addSEs [emptyD])));
