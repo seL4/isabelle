@@ -17,6 +17,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -D PATH      dump generated document sources into PATH"
+  echo "    -H BOOL      hide proofs and some other commands in document (default false)"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
@@ -64,6 +65,7 @@ RPATH=""
 BUILD=""
 COMPRESS=true
 DOCUMENT=false
+HIDE=false
 ROOT_FILE=ROOT.ML
 DOCUMENT_GRAPH=false
 INFO=false
@@ -76,11 +78,15 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "D:H:P:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       D)
         DUMP="$OPTARG"
+        ;;
+      H)
+        check_bool "$OPTARG"
+        HIDE="$OPTARG"
         ;;
       P)
         RPATH="$OPTARG"
@@ -194,7 +200,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE $HIDE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -203,7 +209,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE $HIDE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
