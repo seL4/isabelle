@@ -614,20 +614,10 @@ by (dtac prat_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [prat_less_trans]) 1);
 qed "prat_le_less_trans";
 
-Goal "!! (i::prat). [| i < j; j <= k |] ==> i < k";
-by (dtac prat_le_imp_less_or_eq 1);
-by (fast_tac (claset() addIs [prat_less_trans]) 1);
-qed "prat_less_le_trans";
-
 Goal "[| i <= j; j <= k |] ==> i <= (k::prat)";
 by (EVERY1 [dtac prat_le_imp_less_or_eq, dtac prat_le_imp_less_or_eq,
             rtac prat_less_or_eq_imp_le, fast_tac (claset() addIs [prat_less_trans])]);
 qed "prat_le_trans";
-
-Goal "[| z <= w; w <= z |] ==> z = (w::prat)";
-by (EVERY1 [dtac prat_le_imp_less_or_eq, dtac prat_le_imp_less_or_eq,
-            fast_tac (claset() addEs [prat_less_irrefl,prat_less_asym])]);
-qed "prat_le_anti_sym";
 
 Goal "[| ~ y < x; y ~= x |] ==> x < (y::prat)";
 by (rtac not_prat_leE 1);

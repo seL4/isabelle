@@ -49,11 +49,11 @@ Goalw [real_abs_def] "(#0::real)<=x ==> abs x = x";
 by (Asm_simp_tac 1);
 qed "abs_eqI1";
 
-Goalw [real_abs_def] "(#0::real)<x ==> abs x = x";
+Goalw [real_abs_def] "(#0::real) < x ==> abs x = x";
 by (Asm_simp_tac 1);
 qed "abs_eqI2";
 
-Goalw [real_abs_def,real_le_def] "x<(#0::real) ==> abs x = -x";
+Goalw [real_abs_def,real_le_def] "x < (#0::real) ==> abs x = -x";
 by (Asm_simp_tac 1);
 qed "abs_minus_eqI2";
 
@@ -130,61 +130,40 @@ by (Simp_tac 1);
 qed "abs_add_minus_less";
 
 (* lemmas manipulating terms *)
-Goal "((#0::real)*x<r)=(#0<r)";
+Goal "((#0::real)*x < r)=(#0 < r)";
 by (Simp_tac 1);
 qed "real_mult_0_less";
 
-Goal "[| (#0::real)<y; x<r; y*r<t*s |] ==> y*x<t*s";
+Goal "[| (#0::real) < y; x < r; y*r < t*s |] ==> y*x < t*s";
 by (blast_tac (claset() addSIs [rename_numerals real_mult_less_mono2] 
-                        addIs  [real_less_trans]) 1);
+                        addIs  [order_less_trans]) 1);
 qed "real_mult_less_trans";
 
-Goal "[| (#0::real)<=y; x<r; y*r<t*s; #0<t*s|] ==> y*x<t*s";
-by (dtac real_le_imp_less_or_eq 1);
+Goal "[| (#0::real)<=y; x < r; y*r < t*s; #0 < t*s|] ==> y*x < t*s";
+by (dtac order_le_imp_less_or_eq 1);
 by (fast_tac (HOL_cs addEs [real_mult_0_less RS iffD2,
 			    real_mult_less_trans]) 1);
 qed "real_mult_le_less_trans";
 
-Goal "[| abs x<r; abs y<s |] ==> abs(x*y)<r*(s::real)";
+Goal "[| abs x < r; abs y < s |] ==> abs(x*y) < r*(s::real)";
 by (simp_tac (simpset() addsimps [abs_mult]) 1);
 by (rtac real_mult_le_less_trans 1);
 by (rtac abs_ge_zero 1);
 by (assume_tac 1);
 by (rtac (rename_numerals real_mult_order) 2);
-by (auto_tac (claset() addSIs [real_mult_less_mono1,
-    abs_ge_zero] addIs [real_le_less_trans],simpset()));
+by (auto_tac (claset() addSIs [real_mult_less_mono1, abs_ge_zero] 
+                       addIs [order_le_less_trans],
+              simpset()));
 qed "abs_mult_less";
 
-Goal "[| abs x < r; abs y < s |] ==> abs(x)*abs(y)<r*(s::real)";
+Goal "[| abs x < r; abs y < s |] ==> abs(x)*abs(y) < r*(s::real)";
 by (auto_tac (claset() addIs [abs_mult_less],
               simpset() addsimps [abs_mult RS sym]));
 qed "abs_mult_less2";
 
-Goal "(#1::real) < abs x ==> abs y <= abs(x*y)";
-by (cut_inst_tac [("x1","y")] (abs_ge_zero RS real_le_imp_less_or_eq) 1);
-by (EVERY1[etac disjE,rtac real_less_imp_le]);
-by (dres_inst_tac [("W","#1")]  real_less_sum_gt_zero 1);
-by (forw_inst_tac [("y","abs x + (-#1)")] 
-    (rename_numerals real_mult_order) 1);
-by (rtac real_sum_gt_zero_less 2);
-by (asm_full_simp_tac (simpset() 
-    addsimps [real_add_mult_distrib2,
-    real_mult_commute, abs_mult]) 2);
-by (dtac sym 2);
-by (auto_tac (claset(),simpset() addsimps [abs_mult]));
-qed "abs_mult_le";
-
-Goal "[| (#1::real) < abs x; r < abs y|] ==> r < abs(x*y)";
-by (blast_tac (HOL_cs addIs [abs_mult_le, real_less_le_trans]) 1);
-qed "abs_mult_gt";
-
-Goal "abs(x)<r ==> (#0::real)<r";
-by (blast_tac (claset() addSIs [real_le_less_trans,abs_ge_zero]) 1);
+Goal "abs(x) < r ==> (#0::real) < r";
+by (blast_tac (claset() addSIs [order_le_less_trans,abs_ge_zero]) 1);
 qed "abs_less_gt_zero";
-
-Goalw [real_abs_def] "abs #1 = (#1::real)";
-by (Simp_tac 1);
-qed "abs_one";
 
 Goalw [real_abs_def] "abs (-#1) = (#1::real)";
 by (Simp_tac 1);
@@ -195,7 +174,7 @@ Goalw [real_abs_def] "abs x =x | abs x = -(x::real)";
 by Auto_tac;
 qed "abs_disj";
 
-Goalw [real_abs_def] "(abs x < r) = (-r<x & x<(r::real))";
+Goalw [real_abs_def] "(abs x < r) = (-r < x & x < (r::real))";
 by Auto_tac;
 qed "abs_interval_iff";
 
@@ -219,7 +198,7 @@ qed "abs_not_less_zero";
 Addsimps [abs_not_less_zero];
 
 Goal "abs h < abs y - abs x ==> abs (x + h) < abs (y::real)";
-by (auto_tac (claset() addIs [abs_triangle_ineq RS real_le_less_trans], 
+by (auto_tac (claset() addIs [abs_triangle_ineq RS order_le_less_trans], 
     simpset()));
 qed "abs_circle";
 
@@ -242,13 +221,13 @@ Addsimps [abs_real_of_nat_cancel];
 
 Goal "~ abs(x) + (#1::real) < x";
 by (rtac real_leD 1);
-by (auto_tac (claset() addIs [abs_ge_self RS real_le_trans], simpset()));
+by (auto_tac (claset() addIs [abs_ge_self RS order_trans], simpset()));
 qed "abs_add_one_not_less_self";
 Addsimps [abs_add_one_not_less_self];
  
 (* used in vector theory *)
 Goal "abs(w + x + (y::real)) <= abs(w) + abs(x) + abs(y)";
-by (auto_tac (claset() addSIs [abs_triangle_ineq RS real_le_trans,
+by (auto_tac (claset() addSIs [abs_triangle_ineq RS order_trans,
                                real_add_left_le_mono1],
               simpset() addsimps [real_add_assoc]));
 qed "abs_triangle_ineq_three";

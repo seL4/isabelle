@@ -82,7 +82,7 @@ Goal "((number_of v :: real) = number_of v') = \
 \     iszero (number_of (bin_add v (bin_minus v')))";
 by (simp_tac
     (HOL_ss addsimps [real_number_of_def, 
-				  real_of_int_eq_iff, eq_number_of_eq]) 1);
+	              real_of_int_eq_iff, eq_number_of_eq]) 1);
 qed "eq_real_number_of";
 
 Addsimps [eq_real_number_of];
@@ -147,6 +147,11 @@ bind_thm ("real_mult_less_0_iff",
 	  rename_numerals real_mult_less_zero_iff);
 bind_thm ("real_mult_le_0_iff", 
 	  rename_numerals real_mult_le_zero_iff);
+
+bind_thm ("real_inverse_less_0", rename_numerals real_inverse_less_zero);
+bind_thm ("real_inverse_gt_0", rename_numerals real_inverse_gt_zero);
+
+Addsimps [rename_numerals real_le_square];
 
 
 (*Perhaps add some theorems that aren't in the default simpset, as

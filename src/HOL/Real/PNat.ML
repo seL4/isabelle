@@ -232,18 +232,6 @@ qed "pnat_no_add_ident";
 
   (*** pnat_less ***)
 
-Goalw [pnat_less_def] 
-      "[| x < (y::pnat); y < z |] ==> x < z";
-by ((etac less_trans 1) THEN assume_tac 1);
-qed "pnat_less_trans";
-
-Goalw [pnat_less_def] "x < (y::pnat) ==> ~ y < x";
-by (etac less_not_sym 1);
-qed "pnat_less_not_sym";
-
-(* [| x < y;  ~P ==> y < x |] ==> P *)
-bind_thm ("pnat_less_asym", pnat_less_not_sym RS contrapos_np);
-
 Goalw [pnat_less_def] "~ y < (y::pnat)";
 by Auto_tac;
 qed "pnat_less_not_refl";
@@ -296,77 +284,6 @@ qed "lemma_less_ex_sum_Rep_pnat";
 
    (*** pnat_le ***)
 
-Goalw [pnat_le_def] "~ (x::pnat) < y ==> y <= x";
-by (assume_tac 1);
-qed "pnat_leI";
-
-Goalw [pnat_le_def] "(x::pnat) <= y ==> ~ y < x";
-by (assume_tac 1);
-qed "pnat_leD";
-
-bind_thm ("pnat_leE", make_elim pnat_leD);
-
-Goal "(~ (x::pnat) < y) = (y <= x)";
-by (blast_tac (claset() addIs [pnat_leI] addEs [pnat_leE]) 1);
-qed "pnat_not_less_iff_le";
-
-Goalw [pnat_le_def] "~(x::pnat) <= y ==> y < x";
-by (Blast_tac 1);
-qed "pnat_not_leE";
-
-Goalw [pnat_le_def] "(x::pnat) < y ==> x <= y";
-by (blast_tac (claset() addEs [pnat_less_asym]) 1);
-qed "pnat_less_imp_le";
-
-(** Equivalence of m<=n and  m<n | m=n **)
-
-Goalw [pnat_le_def] "m <= n ==> m < n | m=(n::pnat)";
-by (cut_facts_tac [pnat_less_linear] 1);
-by (blast_tac (claset() addEs [pnat_less_irrefl,pnat_less_asym]) 1);
-qed "pnat_le_imp_less_or_eq";
-
-Goalw [pnat_le_def] "m<n | m=n ==> m <=(n::pnat)";
-by (cut_facts_tac [pnat_less_linear] 1);
-by (blast_tac (claset() addSEs [pnat_less_irrefl] addEs [pnat_less_asym]) 1);
-qed "pnat_less_or_eq_imp_le";
-
-Goal "(m <= (n::pnat)) = (m < n | m=n)";
-by (REPEAT(ares_tac [iffI,pnat_less_or_eq_imp_le,pnat_le_imp_less_or_eq] 1));
-qed "pnat_le_eq_less_or_eq";
-
-Goal "n <= (n::pnat)";
-by (simp_tac (simpset() addsimps [pnat_le_eq_less_or_eq]) 1);
-qed "pnat_le_refl";
-
-Goal "[| i < j; j <= k |] ==> i < (k::pnat)";
-by (dtac pnat_le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [pnat_less_trans]) 1);
-qed "pnat_less_le_trans";
-
-Goal "[| i <= j; j <= k |] ==> i <= (k::pnat)";
-by (EVERY1[dtac pnat_le_imp_less_or_eq, 
-           dtac pnat_le_imp_less_or_eq,
-           rtac pnat_less_or_eq_imp_le, 
-           blast_tac (claset() addIs [pnat_less_trans])]);
-qed "pnat_le_trans";
-
-Goal "[| m <= n; n <= m |] ==> m = (n::pnat)";
-by (EVERY1[dtac pnat_le_imp_less_or_eq, 
-           dtac pnat_le_imp_less_or_eq,
-           blast_tac (claset() addIs [pnat_less_asym])]);
-qed "pnat_le_anti_sym";
-
-Goal "(m::pnat) < n = (m <= n & m ~= n)";
-by (rtac iffI 1);
-by (rtac conjI 1);
-by (etac pnat_less_imp_le 1);
-by (etac pnat_less_not_refl2 1);
-by (blast_tac (claset() addSDs [pnat_le_imp_less_or_eq]) 1);
-qed "pnat_less_le";
-
-
-(***) (***) (***) (***) (***) (***) (***) (***)
-
 (*** alternative definition for pnat_le ***)
 Goalw [pnat_le_def,pnat_less_def] 
       "((m::pnat) <= n) = (Rep_pnat m <= Rep_pnat n)";
@@ -403,7 +320,7 @@ AddIffs [pnat_not_add_less1, pnat_not_add_less2];
 
 Goal "m + k <= n --> m <= (n::pnat)";
 by (simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-    sum_Rep_pnat_sum RS sym]) 1);
+                                  sum_Rep_pnat_sum RS sym]) 1);
 qed_spec_mp "pnat_add_leD1";
 
 Goal "!!n::pnat. m + k <= n ==> k <= n";
@@ -448,39 +365,6 @@ qed "pnat_eq_lessI";
 
 (*** Monotonicity of Addition ***)
 
-(*strict, in 1st argument*)
-Goalw [pnat_less_def] "!!i j k::pnat. i < j ==> i + k < j + k";
-by (auto_tac (claset() addIs [add_less_mono1],
-       simpset() addsimps [sum_Rep_pnat_sum RS sym]));
-qed "pnat_add_less_mono1";
-
-Goalw [pnat_less_def] "!!i j k::pnat. [|i < j; k < l|] ==> i + k < j + l";
-by (auto_tac (claset() addIs [add_less_mono],
-       simpset() addsimps [sum_Rep_pnat_sum RS sym]));
-qed "pnat_add_less_mono";
-
-Goalw [pnat_less_def]
-"!!f. [| !!i j::pnat. i<j ==> f(i) < f(j);       \
-\        i <= j                                 \
-\     |] ==> f(i) <= (f(j)::pnat)";
-by (auto_tac (claset() addSDs [inj_Rep_pnat RS injD],
-             simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-				 order_le_less]));
-qed "pnat_less_mono_imp_le_mono";
-
-Goal "!!i j k::pnat. i<=j ==> i + k <= j + k";
-by (res_inst_tac [("f", "%j. j+k")] pnat_less_mono_imp_le_mono 1);
-by (etac pnat_add_less_mono1 1);
-by (assume_tac 1);
-qed "pnat_add_le_mono1";
-
-Goal "!!k l::pnat. [|i<=j;  k<=l |] ==> i + k <= j + l";
-by (etac (pnat_add_le_mono1 RS pnat_le_trans) 1);
-by (simp_tac (simpset() addsimps [pnat_add_commute]) 1);
-(*j moves to the end because it is free while k, l are bound*)
-by (etac pnat_add_le_mono1 1);
-qed "pnad_add_le_mono";
-
 Goal "1 * Rep_pnat n = Rep_pnat n";
 by (Asm_simp_tac 1);
 qed "Rep_pnat_mult_1";
@@ -489,8 +373,7 @@ Goal "Rep_pnat n * 1 = Rep_pnat n";
 by (Asm_simp_tac 1);
 qed "Rep_pnat_mult_1_right";
 
-Goal
-      "(Rep_pnat x * Rep_pnat y): pnat";
+Goal "(Rep_pnat x * Rep_pnat y): pnat";
 by (cut_facts_tac [[Rep_pnat_gt_zero,
     Rep_pnat_gt_zero] MRS mult_less_mono1,Collect_pnat_gt_0] 1);
 by (etac ssubst 1);
@@ -499,8 +382,7 @@ qed "mult_Rep_pnat";
 
 Goalw [pnat_mult_def] 
       "Rep_pnat x * Rep_pnat y = Rep_pnat (x * y)";
-by (simp_tac (simpset() addsimps [mult_Rep_pnat RS 
-                          Abs_pnat_inverse]) 1);
+by (simp_tac (simpset() addsimps [mult_Rep_pnat RS Abs_pnat_inverse]) 1);
 qed "mult_Rep_pnat_mult";
 
 Goalw [pnat_mult_def] "m * n = n * (m::pnat)";

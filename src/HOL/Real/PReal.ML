@@ -158,7 +158,7 @@ by (simp_tac (simpset() addsimps [psubset_def]) 1);
 qed "preal_less_not_refl";
 
 (*** y < y ==> P ***)
-bind_thm("preal_less_irrefl",preal_less_not_refl RS notE);
+bind_thm("preal_less_irrefl", preal_less_not_refl RS notE);
 
 Goal "!!(x::preal). x < y ==> x ~= y";
 by (auto_tac (claset(),simpset() addsimps [preal_less_not_refl]));
@@ -750,17 +750,17 @@ by (fast_tac (claset() addSIs [preal_leI,preal_leD]) 1);
 qed "preal_less_le_iff";
 
 Goalw [preal_le_def,preal_less_def,psubset_def] 
-                  "z < w ==> z <= (w::preal)";
+     "z < w ==> z <= (w::preal)";
 by (Fast_tac 1);
 qed "preal_less_imp_le";
 
 Goalw [preal_le_def,preal_less_def,psubset_def] 
-                      "!!(x::preal). x <= y ==> x < y | x = y";
+     "!!(x::preal). x <= y ==> x < y | x = y";
 by (auto_tac (claset() addIs [inj_Rep_preal RS injD],simpset()));
 qed "preal_le_imp_less_or_eq";
 
 Goalw [preal_le_def,preal_less_def,psubset_def] 
-                       "!!(x::preal). x < y | x = y ==> x <=y";
+     "!!(x::preal). x < y | x = y ==> x <=y";
 by Auto_tac;
 qed "preal_less_or_eq_imp_le";
 
@@ -768,19 +768,10 @@ Goalw [preal_le_def] "w <= (w::preal)";
 by (Simp_tac 1);
 qed "preal_le_refl";
 
-Goal "[| i <= j; j < k |] ==> i < (k::preal)";
-by (dtac preal_le_imp_less_or_eq 1);
-by (fast_tac (claset() addIs [preal_less_trans]) 1);
-qed "preal_le_less_trans";
-
-Goal "[| i < j; j <= k |] ==> i < (k::preal)";
-by (dtac preal_le_imp_less_or_eq 1);
-by (fast_tac (claset() addIs [preal_less_trans]) 1);
-qed "preal_less_le_trans";
-
 Goal "[| i <= j; j <= k |] ==> i <= (k::preal)";
 by (EVERY1 [dtac preal_le_imp_less_or_eq, dtac preal_le_imp_less_or_eq,
-            rtac preal_less_or_eq_imp_le, fast_tac (claset() addIs [preal_less_trans])]);
+          rtac preal_less_or_eq_imp_le, 
+                 fast_tac (claset() addIs [preal_less_trans])]);
 qed "preal_le_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::preal)";
@@ -788,10 +779,17 @@ by (EVERY1 [dtac preal_le_imp_less_or_eq, dtac preal_le_imp_less_or_eq,
             fast_tac (claset() addEs [preal_less_irrefl,preal_less_asym])]);
 qed "preal_le_anti_sym";
 
-Goal "[| ~ y < x; y ~= x |] ==> x < (y::preal)";
-by (rtac not_preal_leE 1);
-by (fast_tac (claset() addDs [preal_le_imp_less_or_eq]) 1);
-qed "not_less_not_eq_preal_less";
+Goal "!!w::preal. (w ~= z) = (w<z | z<w)";
+by (cut_inst_tac [("r1.0","w"),("r2.0","z")] preal_linear 1);
+by (auto_tac (claset() addEs [preal_less_irrefl], simpset()));
+qed "preal_neq_iff";
+
+(* Axiom 'order_less_le' of class 'order': *)
+Goal "(w::preal) < z = (w <= z & w ~= z)";
+by (simp_tac (simpset() addsimps [preal_less_le_iff RS sym, preal_neq_iff]) 1);
+by (blast_tac (claset() addSEs [preal_less_asym]) 1);
+qed "preal_less_le";
+
 
 (****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)
 
@@ -833,9 +831,7 @@ by (dres_inst_tac [("x1","B")] (Rep_preal RS prealE_lemma4a) 1);
 by (auto_tac (claset(),simpset() addsimps [prat_less_def]));
 qed "lemma_ex_mem_less_left_add1";
 
-Goal
-     "A < B ==> \
-\       {} < {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
+Goal "A < B ==> {} < {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
 by (dtac lemma_ex_mem_less_left_add1 1);
 by (auto_tac (claset() addSIs [psubsetI] addEs [equalityCE],simpset()));
 qed "preal_less_set_not_empty";
@@ -860,7 +856,7 @@ qed "preal_less_set_not_prat_set";
 
 (** Part 3 of Dedekind sections def **)
 Goal "A < B ==> ALL y: {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}. \
- \      ALL z. z < y --> z : {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
+ \   ALL z. z < y --> z : {d. EX n. n ~: Rep_preal(A) & n + d : Rep_preal(B)}";
 by Auto_tac;
 by (dres_inst_tac [("x","n")] prat_add_less2_mono2 1);
 by (dtac (Rep_preal RS prealE_lemma3b) 1);
@@ -979,8 +975,8 @@ Goal "!!(q1::preal). q1 <= q2  ==> x + q1 <= x + q2";
 by (dtac preal_le_imp_less_or_eq 1);
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [preal_le_refl,
-    preal_less_imp_le,preal_add_less2_mono1],
-    simpset() addsimps [preal_add_commute]));
+                               preal_less_imp_le,preal_add_less2_mono1],
+              simpset() addsimps [preal_add_commute]));
 qed "preal_add_left_le_mono1";
 
 Goal "!!(q1::preal). q1 <= q2  ==> q1 + x <= q2 + x";

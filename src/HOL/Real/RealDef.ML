@@ -543,8 +543,6 @@ by (dres_inst_tac [("f","%z. inverse x*z")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
 qed "real_mult_not_zero";
 
-bind_thm ("real_mult_not_zeroE",real_mult_not_zero RS notE);
-
 Goal "inverse(inverse (x::real)) = x";
 by (real_div_undefined_case_tac "x=0" 1);
 by (res_inst_tac [("c1","inverse x")] (real_mult_right_cancel RS iffD1) 1);
@@ -656,8 +654,8 @@ Goal "~ (R::real) < R";
 by (res_inst_tac [("z","R")] eq_Abs_real 1);
 by (auto_tac (claset(),simpset() addsimps [real_less_def]));
 by (dtac preal_lemma_for_not_refl 1);
-by (assume_tac 1 THEN rotate_tac 2 1);
-by (auto_tac (claset(),simpset() addsimps [preal_less_not_refl]));
+by (assume_tac 1);
+by Auto_tac;
 qed "real_less_not_refl";
 
 (*** y < y ==> P ***)
@@ -936,10 +934,6 @@ Goalw [real_le_def] "~ z <= w ==> w<(z::real)";
 by (Blast_tac 1);
 qed "not_real_leE";
 
-Goalw [real_le_def] "z < w ==> z <= (w::real)";
-by (blast_tac (claset() addEs [real_less_asym]) 1);
-qed "real_less_imp_le";
-
 Goalw [real_le_def] "!!(x::real). x <= y ==> x < y | x = y";
 by (cut_facts_tac [real_linear] 1);
 by (blast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
@@ -958,8 +952,6 @@ Goal "w <= (w::real)";
 by (simp_tac (simpset() addsimps [real_le_less]) 1);
 qed "real_le_refl";
 
-AddIffs [real_le_refl];
-
 (* Axiom 'linorder_linear' of class 'linorder': *)
 Goal "(z::real) <= w | w <= z";
 by (simp_tac (simpset() addsimps [real_le_less]) 1);
@@ -967,19 +959,10 @@ by (cut_facts_tac [real_linear] 1);
 by (Blast_tac 1);
 qed "real_le_linear";
 
-Goal "[| i <= j; j < k |] ==> i < (k::real)";
-by (dtac real_le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [real_less_trans]) 1);
-qed "real_le_less_trans";
-
-Goal "!! (i::real). [| i < j; j <= k |] ==> i < k";
-by (dtac real_le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [real_less_trans]) 1);
-qed "real_less_le_trans";
-
 Goal "[| i <= j; j <= k |] ==> i <= (k::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
-            rtac real_less_or_eq_imp_le, blast_tac (claset() addIs [real_less_trans])]);
+            rtac real_less_or_eq_imp_le, 
+            blast_tac (claset() addIs [real_less_trans])]);
 qed "real_le_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::real)";

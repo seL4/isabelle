@@ -22,7 +22,7 @@ by (auto_tac (claset() addDs [rename_numerals real_inverse_less_zero],
               simpset() addsimps [linorder_neq_iff, 
                                   rename_numerals real_inverse_gt_zero]));  
 qed "real_0_less_inverse_iff";
-AddIffs [real_0_less_inverse_iff];
+Addsimps [real_0_less_inverse_iff];
 
 Goal "(inverse x < (#0::real)) = (x < #0)";
 by (case_tac "x=#0" 1);
@@ -31,33 +31,22 @@ by (auto_tac (claset() addDs [rename_numerals real_inverse_less_zero],
               simpset() addsimps [linorder_neq_iff, 
                                   rename_numerals real_inverse_gt_zero]));  
 qed "real_inverse_less_0_iff";
-AddIffs [real_inverse_less_0_iff];
+Addsimps [real_inverse_less_0_iff];
 
 Goal "((#0::real) <= inverse x) = (#0 <= x)";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
 qed "real_0_le_inverse_iff";
-AddIffs [real_0_le_inverse_iff];
+Addsimps [real_0_le_inverse_iff];
 
 Goal "(inverse x <= (#0::real)) = (x <= #0)";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
 qed "real_inverse_le_0_iff";
-AddIffs [real_inverse_le_0_iff];
+Addsimps [real_inverse_le_0_iff];
 
 Goalw [real_divide_def] "x/(#0::real) = #0";
 by (stac (rename_numerals INVERSE_ZERO) 1); 
 by (Simp_tac 1); 
 qed "REAL_DIVIDE_ZERO";
-
-(*generalize?*)
-Goal "((#0::real) < #1/x) = (#0 < x)";
-by (simp_tac (simpset() addsimps [real_divide_def]) 1);
-qed "real_0_less_recip_iff";
-AddIffs [real_0_less_recip_iff];
-
-Goal "(#1/x < (#0::real)) = (x < #0)";
-by (simp_tac (simpset() addsimps [real_divide_def]) 1);
-qed "real_recip_less_0_iff";
-AddIffs [real_recip_less_0_iff];
 
 Goal "inverse (x::real) = #1/x";
 by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
@@ -90,12 +79,12 @@ by (auto_tac (claset(), simpset() addsimps [rename_numerals INVERSE_ZERO]));
 by (rtac ccontr 1); 
 by (blast_tac (claset() addDs [rename_numerals real_inverse_not_zero]) 1); 
 qed "real_inverse_zero_iff";
-AddIffs [real_inverse_zero_iff];
+Addsimps [real_inverse_zero_iff];
 
 Goal "(x/y = #0) = (x=#0 | y=(#0::real))";
 by (auto_tac (claset(), simpset() addsimps [real_divide_def]));  
 qed "real_divide_eq_0_iff";
-AddIffs [real_divide_eq_0_iff];
+Addsimps [real_divide_eq_0_iff];
 
 
 (**** Factor cancellation theorems for "real" ****)
@@ -259,7 +248,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-val real_cancel_numeral_factors = 
+val real_cancel_numeral_factors_relations = 
   map prep_simproc
    [("realeq_cancel_numeral_factor",
      prep_pats ["(l::real) * m = n", "(l::real) = m * n"], 
@@ -269,10 +258,16 @@ val real_cancel_numeral_factors =
      LessCancelNumeralFactor.proc),
     ("realle_cancel_numeral_factor", 
      prep_pats ["(l::real) * m <= n", "(l::real) <= m * n"], 
-     LeCancelNumeralFactor.proc),
-    ("realdiv_cancel_numeral_factor", 
-     prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)"], 
-     DivCancelNumeralFactor.proc)];
+     LeCancelNumeralFactor.proc)];
+
+val real_cancel_numeral_factors_divide = prep_simproc
+	("realdiv_cancel_numeral_factor", 
+	 prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)"], 
+	 DivCancelNumeralFactor.proc);
+
+val real_cancel_numeral_factors = 
+    real_cancel_numeral_factors_relations @ 
+    [real_cancel_numeral_factors_divide];
 
 end;
 
@@ -624,7 +619,8 @@ qed "real_0_le_diff_iff";
 AddIffs [real_0_le_diff_iff];
 
 (*
-?? still needed ??
+FIXME: we should have this, as for type int, but many proofs would break.
+It replaces x+-y by x-y.
 Addsimps [symmetric real_diff_def];
 *)
 

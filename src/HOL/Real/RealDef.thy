@@ -7,6 +7,9 @@
 
 RealDef = PReal +
 
+instance preal :: order (preal_le_refl,preal_le_trans,preal_le_anti_sym,
+                         preal_less_le)
+
 constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"
   "realrel == {p. ? x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}" 
@@ -18,8 +21,11 @@ instance
    real  :: {ord, zero, plus, times, minus, inverse}
 
 consts 
+  "1r"   :: real               ("1r")  
 
-  "1r"       :: real               ("1r")  
+   (*Overloaded constant: denotes the Real subset of enclosing types such as
+     hypreal and complex*)
+   SReal :: "'a set"
 
 defs
 
@@ -58,18 +64,21 @@ constdefs
 defs
 
   real_add_def  
-  "P + Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                (%(x1,y1). (%(x2,y2). realrel^^{(x1+x2, y1+y2)}) p2) p1)"
+  "P+Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
+                   (%(x1,y1). (%(x2,y2). realrel^^{(x1+x2, y1+y2)}) p2) p1)"
   
   real_mult_def  
-  "P * Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                (%(x1,y1). (%(x2,y2). realrel^^{(x1*x2+y1*y2,x1*y2+x2*y1)}) p2) p1)"
+  "P*Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
+                   (%(x1,y1). (%(x2,y2). realrel^^{(x1*x2+y1*y2,x1*y2+x2*y1)})
+		   p2) p1)"
 
   real_less_def
-  "P < Q == EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & 
-                                   (x1,y1):Rep_real(P) &
-                                   (x2,y2):Rep_real(Q)" 
+  "P<Q == EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & 
+                            (x1,y1):Rep_real(P) & (x2,y2):Rep_real(Q)" 
   real_le_def
   "P <= (Q::real) == ~(Q < P)"
+
+syntax (symbols)
+  SReal     :: "'a set"                   ("\\<real>")
 
 end

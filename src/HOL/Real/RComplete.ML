@@ -8,6 +8,10 @@ Completeness theorems for positive reals and reals.
 
 claset_ref() := claset() delWrapper "bspec";
 
+Goal "x/#2 + x/#2 = (x::real)";
+by (Simp_tac 1);
+qed "real_sum_of_halves";
+
 (*---------------------------------------------------------
        Completeness of reals: use supremum property of 
        preal and theorems about real_preal. Theorems 
@@ -30,7 +34,7 @@ by (blast_tac (claset() addDs [bspec,
 by Auto_tac;
 by (dtac bspec 1 THEN assume_tac 1);
 by (ftac bspec 1  THEN assume_tac 1);
-by (dtac real_less_trans 1 THEN assume_tac 1);
+by (dtac order_less_trans 1 THEN assume_tac 1);
 by (dtac ((rename_numerals real_gt_zero_preal_Ex) RS iffD1) 1
     THEN etac exE 1);    
 by (res_inst_tac [("x","ya")] exI 1);
@@ -137,14 +141,6 @@ Goal "(xa <= S + X + (-Z)) = (xa + (-X) + Z <= (S::real))";
 by (Auto_tac);
 qed "lemma_le_swap2";
 
-Goal "[| (x::real) + (-X) + #1 <= S; xa < x |] ==> xa + (-X) + #1 <= S";
-by (Auto_tac);
-qed "lemma_real_complete2";
-
-Goal "[| (x::real) + (-X) + #1 <= S; xa < x |] ==> xa <= S + X + (-#1)"; (**)
-by (Auto_tac);
-qed "lemma_real_complete2a";
-
 Goal "[| (x::real) + (-X) + #1 <= S; xa <= x |] ==> xa <= S + X + (-#1)";
 by (Auto_tac);
 qed "lemma_real_complete2b";
@@ -184,7 +180,7 @@ by (stac lemma_le_swap2 1);
 by (ftac isLubD2 1 THEN assume_tac 2);
 by (Blast_tac 1);
 by (rtac lemma_real_complete2b 1);
-by (etac real_less_imp_le 2);
+by (etac order_less_imp_le 2);
 by (blast_tac (claset() addSIs [isLubD2]) 1 THEN Step_tac 1);
 by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
 by (blast_tac (claset() addDs [isUbD] addSIs [setleI RS isUbI]
@@ -218,16 +214,16 @@ by (subgoal_tac "isUb (UNIV::real set) \
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);
 by (dres_inst_tac [("y","t+(-x)")] isLub_le_isUb 1);
 by (dres_inst_tac [("x","-t")] real_add_left_le_mono1 2);
-by (auto_tac (claset() addDs [real_le_less_trans,
-			      (real_minus_zero_less_iff2 RS iffD2)], 
-	      simpset() addsimps [real_less_not_refl,real_add_assoc RS sym]));
+by (auto_tac (claset() addDs [order_le_less_trans,
+			      real_minus_zero_less_iff2 RS iffD2], 
+	      simpset() addsimps [real_add_assoc RS sym]));
 qed "reals_Archimedean";
 
 Goal "EX n. (x::real) < real_of_posnat n";
 by (res_inst_tac [("R1.0","x"),("R2.0","#0")] real_linear_less2 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","0")] exI 2);
-by (auto_tac (claset() addEs [real_less_trans],
+by (auto_tac (claset() addEs [order_less_trans],
 	      simpset() addsimps [real_of_posnat_one,real_zero_less_one]));
 by (ftac ((rename_numerals real_inverse_gt_zero) RS reals_Archimedean) 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
