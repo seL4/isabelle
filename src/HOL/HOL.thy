@@ -253,6 +253,64 @@ setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
 
+subsubsection {* Generic cases and induction *}
+
+constdefs
+  inductive_forall :: "('a => bool) => bool"
+  "inductive_forall P == \<forall>x. P x"
+  inductive_implies :: "bool => bool => bool"
+  "inductive_implies A B == A --> B"
+  inductive_equal :: "'a => 'a => bool"
+  "inductive_equal x y == x = y"
+  inductive_conj :: "bool => bool => bool"
+  "inductive_conj A B == A & B"
+
+lemma inductive_forall_eq: "(!!x. P x) == Trueprop (inductive_forall (\<lambda>x. P x))"
+  by (simp only: atomize_all inductive_forall_def)
+
+lemma inductive_implies_eq: "(A ==> B) == Trueprop (inductive_implies A B)"
+  by (simp only: atomize_imp inductive_implies_def)
+
+lemma inductive_equal_eq: "(x == y) == Trueprop (inductive_equal x y)"
+  by (simp only: atomize_eq inductive_equal_def)
+
+lemma inductive_forall_conj: "inductive_forall (\<lambda>x. inductive_conj (A x) (B x)) =
+    inductive_conj (inductive_forall A) (inductive_forall B)"
+  by (unfold inductive_forall_def inductive_conj_def) blast
+
+lemma inductive_implies_conj: "inductive_implies C (inductive_conj A B) =
+    inductive_conj (inductive_implies C A) (inductive_implies C B)"
+  by (unfold inductive_implies_def inductive_conj_def) blast
+
+lemma inductive_conj_curry: "(inductive_conj A B ==> C) == (A ==> B ==> C)"
+  by (simp only: atomize_imp atomize_eq inductive_conj_def) (rule equal_intr_rule, blast+)
+
+lemmas inductive_atomize = inductive_forall_eq inductive_implies_eq inductive_equal_eq
+lemmas inductive_rulify1 = inductive_atomize [symmetric, standard]
+lemmas inductive_rulify2 =
+  inductive_forall_def inductive_implies_def inductive_equal_def inductive_conj_def
+lemmas inductive_conj = inductive_forall_conj inductive_implies_conj inductive_conj_curry
+
+hide const inductive_forall inductive_implies inductive_equal inductive_conj
+
+
+text {* Method setup. *}
+
+ML {*
+  structure InductMethod = InductMethodFun
+  (struct
+    val dest_concls = HOLogic.dest_concls;
+    val cases_default = thm "case_split";
+    val conjI = thm "conjI";
+    val atomize = thms "inductive_atomize";
+    val rulify1 = thms "inductive_rulify1";
+    val rulify2 = thms "inductive_rulify2";
+  end);
+*}
+
+setup InductMethod.setup
+
+
 subsection {* Order signatures and orders *}
 
 axclass
