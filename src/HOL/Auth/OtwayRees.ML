@@ -75,7 +75,7 @@ val OR2_OR4_tac =
 
 (*Enemy never sees another agent's shared key! (unless it is leaked at start)*)
 goal thy 
- "!!evs. [| evs : otway; A ~= Enemy; A ~: Friend``leaked |] ==> \
+ "!!evs. [| evs : otway;  A ~: bad |] ==> \
 \        Key (shrK A) ~: parts (sees Enemy evs)";
 be otway.induct 1;
 by OR2_OR4_tac;
@@ -88,31 +88,24 @@ qed "Enemy_not_see_shrK";
 bind_thm ("Enemy_not_analz_shrK",
 	  [analz_subset_parts, Enemy_not_see_shrK] MRS contra_subsetD);
 
-Addsimps [Enemy_not_see_shrK, 
-	  not_sym RSN (2, Enemy_not_see_shrK), 
-	  Enemy_not_analz_shrK, 
-	  not_sym RSN (2, Enemy_not_analz_shrK)];
+Addsimps [Enemy_not_see_shrK, Enemy_not_analz_shrK];
 
 (*We go to some trouble to preserve R in the 3rd and 4th subgoals
   As usual fast_tac cannot be used because it uses the equalities too soon*)
 val major::prems = 
 goal thy  "[| Key (shrK A) : parts (sees Enemy evs);       \
 \             evs : otway;                                 \
-\             A=Enemy ==> R;                               \
-\             !!i. [| A = Friend i; i: leaked |] ==> R     \
+\             A:bad ==> R                                  \
 \           |] ==> R";
 br ccontr 1;
 br ([major, Enemy_not_see_shrK] MRS rev_notE) 1;
-br notI 3;
-be imageE 3;
 by (swap_res_tac prems 2);
-by (swap_res_tac prems 3 THEN ALLGOALS (fast_tac (!claset addIs prems)));
+by (ALLGOALS (fast_tac (!claset addIs prems)));
 qed "Enemy_see_shrK_E";
 
 bind_thm ("Enemy_analz_shrK_E", 
 	  analz_subset_parts RS subsetD RS Enemy_see_shrK_E);
 
-(*Classical reasoner doesn't need the not_sym versions (with swapped ~=) *)
 AddSEs [Enemy_see_shrK_E, Enemy_analz_shrK_E];
 
 
@@ -348,10 +341,10 @@ qed "Says_Server_message_form";
 
 (*Crucial secrecy property: Enemy does not see the keys sent in msg OR3*)
 goal thy 
- "!!evs. [| Says Server (Friend j) \
-\            {|Ni, Crypt {|Ni, K|} (shrK (Friend i)),                      \
-\                  Crypt {|Nj, K|} (shrK (Friend j))|} : set_of_list evs;  \
-\           i ~: leaked;  j ~: leaked;  evs : otway |] ==>                 \
+ "!!evs. [| Says Server A \
+\            {|NA, Crypt {|NA, K|} (shrK B),                      \
+\                  Crypt {|NB, K|} (shrK A)|} : set_of_list evs;  \
+\           A ~: bad;  B ~: bad;  evs : otway |] ==>              \
 \     K ~: analz (sees Enemy evs)";
 be rev_mp 1;
 be otway.induct 1;
@@ -392,7 +385,7 @@ qed "Enemy_not_see_encrypted_key";
 goal thy 
  "!!evs. [| X : synth (analz (sees Enemy evs));                \
 \           Crypt X' (shrK C) : parts{X};                      \
-\           C ~= Enemy;  C ~: Friend``leaked;  evs : otway |]  \
+\           C ~: bad;  evs : otway |]  \
 \        ==> Crypt X' (shrK C) : parts (sees Enemy evs)";
 by (best_tac (!claset addSEs [impOfSubs analz_subset_parts]
 	              addDs [impOfSubs parts_insert_subset_Un]
@@ -414,7 +407,7 @@ fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
 goal thy 
  "!!evs. evs : otway ==>                                     \
 \      EX A B. ALL C.                                        \
-\         C ~= Enemy & C ~: Friend``leaked -->               \
+\         C ~: bad -->                                       \
 \         (ALL S S' X. Says S S' X : set_of_list evs -->     \
 \           (EX NA. Crypt {|NA, Key K|} (shrK C) : parts{X}) --> C=A | C=B)";
 by (Simp_tac 1);

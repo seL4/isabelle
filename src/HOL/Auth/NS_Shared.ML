@@ -54,7 +54,7 @@ qed "NS3_msg_in_parts_sees_Enemy";
 
 (*Enemy never sees another agent's shared key!*)
 goal thy 
- "!!evs. [| evs : ns_shared; A ~= Enemy; A ~: Friend``leaked |] ==> \
+ "!!evs. [| evs : ns_shared; A ~: bad |] ==> \
 \        Key (shrK A) ~: parts (sees Enemy evs)";
 be ns_shared.induct 1;
 bd NS3_msg_in_parts_sees_Enemy 5;
@@ -67,44 +67,36 @@ qed "Enemy_not_see_shrK";
 bind_thm ("Enemy_not_analz_shrK",
 	  [analz_subset_parts, Enemy_not_see_shrK] MRS contra_subsetD);
 
-Addsimps [Enemy_not_see_shrK, 
-	  not_sym RSN (2, Enemy_not_see_shrK), 
-	  Enemy_not_analz_shrK, 
-	  not_sym RSN (2, Enemy_not_analz_shrK)];
+Addsimps [Enemy_not_see_shrK, Enemy_not_analz_shrK];
 
 (*We go to some trouble to preserve R in the 3rd and 4th subgoals
-  As usual fast_tac cannot be used because it uses the equalities too soon
-  REDO USING 'BAD' SET TO AVOID CASE SPLIT!*)
+  As usual fast_tac cannot be used because it uses the equalities too soon*)
 val major::prems = 
 goal thy  "[| Key (shrK A) : parts (sees Enemy evs);       \
 \             evs : ns_shared;                             \
-\             A=Enemy ==> R;                               \
-\             !!i. [| A = Friend i; i: leaked |] ==> R     \
+\             A:bad ==> R                                  \
 \           |] ==> R";
 br ccontr 1;
 br ([major, Enemy_not_see_shrK] MRS rev_notE) 1;
-br notI 3;
-be imageE 3;
 by (swap_res_tac prems 2);
-by (swap_res_tac prems 3 THEN ALLGOALS (fast_tac (!claset addIs prems)));
+by (ALLGOALS (fast_tac (!claset addIs prems)));
 qed "Enemy_see_shrK_E";
 
 bind_thm ("Enemy_analz_shrK_E", 
 	  analz_subset_parts RS subsetD RS Enemy_see_shrK_E);
 
-(*Classical reasoner doesn't need the not_sym versions (with swapped ~=) *)
 AddSEs [Enemy_see_shrK_E, Enemy_analz_shrK_E];
 
 
-(*Not for Addsimps -- it can cause goals to blow up!*)
 goal thy  
  "!!evs. evs : ns_shared ==>                              \
-\        (Key (shrK A) : analz (sees Enemy evs)) =        \
-\          (A=Enemy | A : Friend``leaked)";
+\        (Key (shrK A) : analz (sees Enemy evs)) = (A : bad)";
 by (best_tac (!claset addDs [impOfSubs analz_subset_parts]
 		      addIs [impOfSubs (subset_insertI RS analz_mono)]
 	              addss (!simpset)) 1);
 qed "shrK_mem_analz";
+
+Addsimps [shrK_mem_analz];
 
 
 (*** Future keys can't be seen or used! ***)
@@ -210,9 +202,9 @@ qed "Says_Server_message_form";
 goal thy
  "!!evs. evs : ns_shared ==>                                              \
 \        ALL A NA B K X.                                                  \
-\            (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))             \
+\            Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)               \
 \               : parts (sees Enemy evs) &                                \
-\            A ~= Enemy & A ~: Friend``leaked --> \
+\            A ~: bad --> \
 \          (EX evt:ns_shared. K = newK evt & \
 \                             X = (Crypt {|Key K, Agent A|} (shrK B)))";
 be ns_shared.induct 1;
@@ -223,18 +215,17 @@ by (fast_tac (!claset addss (!simpset)) 1);
 (*Remaining cases are Fake and NS2*)
 by (fast_tac (!claset addSDs [spec]) 2);
 (*Now for the Fake case*)
-by (best_tac (!claset addSDs  [impOfSubs Fake_parts_insert]
-	              addDs [impOfSubs analz_subset_parts]
-	              addss (!simpset)) 1);
+by (best_tac (!claset addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts]
+	              addss  (!simpset)) 1);
 qed_spec_mp "encrypted_form";
 
 
 (*If such a message is sent with a bad key then the Enemy sees it (even if
   he didn't send it in the first place).*)
 goal thy
- "!!evs. [| Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))     \
-\             : set_of_list evs;                                          \
-\           A = Enemy | A : Friend``leaked |]                             \
+ "!!evs. [| Says S A (Crypt {|N, B, K, X|} (shrK A)) : set_of_list evs;   \
+\           A : bad |]                                                    \
 \        ==> X : analz (sees Enemy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Enemy RS analz.Inj]
 	              addss (!simpset)) 1);
@@ -251,7 +242,7 @@ goal thy
 \        ==> (EX evt:ns_shared. K = newK evt & length evt < length evs & \
 \                               X = (Crypt {|Key K, Agent A|} (shrK B))) | \
 \            X : analz (sees Enemy evs)";
-by (excluded_middle_tac "A = Enemy | A : Friend``leaked" 1);
+by (excluded_middle_tac "A : bad" 1);
 by (fast_tac (!claset addIs [bad_encrypted_form]) 2);
 by (forward_tac [encrypted_form] 1);
 br (parts.Inj RS conjI) 1;
@@ -373,7 +364,7 @@ qed "analz_insert_Key_newK";
 goal thy 
  "!!evs. [| X : synth (analz (sees Enemy evs));                \
 \           Crypt X' (shrK C) : parts{X};                      \
-\           C ~= Enemy;  C ~: Friend``leaked;  evs : ns_shared |]  \
+\           C ~: bad;  evs : ns_shared |]  \
 \        ==> Crypt X' (shrK C) : parts (sees Enemy evs)";
 by (best_tac (!claset addSEs [impOfSubs analz_subset_parts]
 	              addDs [impOfSubs parts_insert_subset_Un]
@@ -394,8 +385,8 @@ fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
     But if Enemy knows C's key then he could send all sorts of nonsense.*)
 goal thy 
  "!!evs. evs : ns_shared ==>                      \
-\      EX X'. ALL C.               \
-\       C ~= Enemy & C ~: Friend``leaked -->                       \
+\      EX X'. ALL C.                              \
+\       C ~: bad -->                              \
 \        (ALL S A Y. Says S A Y : set_of_list evs -->     \
 \         (ALL N B X. Crypt {|N, Agent B, Key K, X|} (shrK C) : parts{Y} --> \
 \          X=X'))";
@@ -433,7 +424,7 @@ goal thy
 \           Says S' A'                                         \
 \             (Crypt {|N', Agent B', Key K, X'|} (shrK C')) \
 \                  : set_of_list evs;                         \
-\           evs : ns_shared;  C ~= Enemy;  C ~: Friend``leaked;  C' ~= Enemy;  C' ~: Friend``leaked |] ==> X = X'";
+\           evs : ns_shared;  C ~= Enemy;  C ~: bad;  C' ~: bad |] ==> X = X'";
 bd lemma 1;
 be exE 1;
 (*Duplicate the assumption*)
@@ -448,9 +439,9 @@ qed "unique_session_keys";
 
 (*Crucial secrecy property: Enemy does not see the keys sent in msg NS2*)
 goal thy 
- "!!evs. [| Says Server (Friend i)                                       \
-\            (Crypt {|N, Agent(Friend j), K, X|} K') : set_of_list evs;  \
-\           i ~: leaked;  j ~: leaked;  evs : ns_shared                  \
+ "!!evs. [| Says Server A                                       \
+\            (Crypt {|N, Agent B, K, X|} K') : set_of_list evs;  \
+\           A ~: bad;  B ~: bad;  evs : ns_shared                  \
 \        |] ==>                                                          \
 \     K ~: analz (sees Enemy evs)";
 be rev_mp 1;
@@ -472,23 +463,21 @@ by (enemy_analz_tac 1);
 (*NS3: that message from the Server was sent earlier*)
 by (mp_tac 1);
 by (forward_tac [Says_S_message_form] 1 THEN assume_tac 1);
-by (REPEAT_FIRST (eresolve_tac [bexE, conjE, disjE] ORELSE' hyp_subst_tac));
+by (Step_tac 1);
 by (enemy_analz_tac 2);		(*Prove the Fake subcase*)
 by (asm_full_simp_tac
     (!simpset addsimps (mem_if::analz_insert_Key_newK::pushes)) 1);
-(**************** by (Step_tac 1); ****************)
-by (step_tac HOL_cs 1);
+by (Step_tac 1);
 (**LEVEL 15 **)
-by (excluded_middle_tac "ia : leaked" 1);
+by (excluded_middle_tac "Friend i : bad" 1);
+(*But this contradicts Key (newK evta) ~: analz (sees Enemy evsa) *)
 bd (Says_imp_sees_Enemy RS analz.Inj) 2;
 bd analz.Decrypt 2;
-by (asm_full_simp_tac (!simpset addsimps [shrK_mem_analz]) 2);
+by (Asm_full_simp_tac 2);
 by (Fast_tac 2);
-(*So now we know that Friend ia is a good agent*)
+(*So now we know that (Friend i) is a good agent*)
 bd unique_session_keys 1;
 by (REPEAT_FIRST assume_tac);
-by (ALLGOALS Full_simp_tac);
-by (Step_tac 1);
-by (auto_tac (!claset, !simpset addsimps [shrK_mem_analz]));
+by (Auto_tac ());
 qed "Enemy_not_see_encrypted_key";
 

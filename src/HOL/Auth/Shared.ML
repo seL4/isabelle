@@ -60,7 +60,7 @@ by (subgoal_tac "newK evs = shrK B --> \
 \                Key (newK evs) : parts (initState B)" 1);
 by (Fast_tac 1);
 by (agent.induct_tac "B" 1);
-by (auto_tac (!claset addIs [range_eqI], !simpset));
+by (auto_tac (!claset addIs [range_eqI], !simpset addsimps [bad_def]));
 qed "newK_neq_shrK";
 
 Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
@@ -101,21 +101,20 @@ by (Auto_tac ());
 qed "shrK_notin_image_newK";
 Addsimps [shrK_notin_image_newK];
 
-
 (*Agents see their own shared keys!*)
 goal thy "Key (shrK A) : sees A evs";
 by (list.induct_tac "evs" 1);
 by (agent.induct_tac "A" 1);
-by (Auto_tac ());
+by (auto_tac (!claset, !simpset addsimps [bad_def]));
 qed "sees_own_shrK";
 
-(*Enemy sees leaked shrKs!*)
-goal thy "!!i. i: leaked ==> Key (shrK (Friend i)) : sees Enemy evs";
+(*Enemy sees shared keys of bad agents!*)
+goal thy "!!i. A: bad ==> Key (shrK A) : sees Enemy evs";
 by (list.induct_tac "evs" 1);
-by (Auto_tac ());
-qed "Enemy_sees_leaked";
+by (auto_tac (!claset, !simpset addsimps [bad_def]));
+qed "Enemy_sees_bad";
 
-AddSIs [sees_own_shrK, Enemy_sees_leaked];
+AddSIs [sees_own_shrK, Enemy_sees_bad];
 
 
 (** Specialized rewrite rules for (sees A (Says...#evs)) **)
