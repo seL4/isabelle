@@ -5,12 +5,18 @@
 Root of Isabelle's syntax module.
 *)
 
+infix |-> <-| <->;
+
 signature BASIC_SYNTAX =
 sig
   include AST0
-  include SEXTENSION0
-(*  include MIXFIX0   *)   (* FIXME *)
+  include SYN_TRANS0
+  include MIXFIX0
   include PRINTER0
+  datatype xrule =
+    op |-> of (string * string) * (string * string) |
+    op <-| of (string * string) * (string * string) |
+    op <-> of (string * string) * (string * string)
 end;
 
 signature SYNTAX =
@@ -19,54 +25,52 @@ sig
   include LEXICON0
   include SYN_EXT0
   include TYPE_EXT0
-  include SEXTENSION1
+  include SYN_TRANS1
+  include MIXFIX1
   include PRINTER0
   sharing type ast = Parser.SynExt.Ast.ast
-  structure Mixfix: MIXFIX
-  local open Mixfix in    (* FIXME *)
-    type syntax
-    val extend_log_types: syntax -> string list -> syntax
-    val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
-    val extend_const_gram: syntax -> (string * typ * mixfix) list -> syntax
-    val extend_consts: syntax -> string list -> syntax
-    val extend_trfuns: syntax ->
-      (string * (ast list -> ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list *
-      (string * (ast list -> ast)) list -> syntax
-    val extend_trrules: syntax -> xrule list -> syntax
-  end  (* FIXME *)
-    val extend: syntax -> (string -> typ) -> string list * string list * sext
-      -> syntax     (* FIXME *)
-    val merge_syntaxes: syntax -> syntax -> syntax
-    val type_syn: syntax
-    val print_gram: syntax -> unit
-    val print_trans: syntax -> unit
-    val print_syntax: syntax -> unit
-    val test_read: syntax -> string -> string -> unit
-    val read: syntax -> typ -> string -> term
-    val read_typ: syntax -> (indexname -> sort) -> string -> typ
-    val simple_read_typ: string -> typ
-    val pretty_term: syntax -> term -> Pretty.T
-    val pretty_typ: syntax -> typ -> Pretty.T
-    val string_of_term: syntax -> term -> string
-    val string_of_typ: syntax -> typ -> string
-    val simple_string_of_typ: typ -> string
-    val simple_pprint_typ: typ -> pprint_args -> unit
-
+  datatype xrule =
+    op |-> of (string * string) * (string * string) |
+    op <-| of (string * string) * (string * string) |
+    op <-> of (string * string) * (string * string)
+  type syntax
+  val extend_log_types: syntax -> string list -> syntax
+  val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
+  val extend_const_gram: syntax -> (string * typ * mixfix) list -> syntax
+  val extend_consts: syntax -> string list -> syntax
+  val extend_trfuns: syntax ->
+    (string * (ast list -> ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (ast list -> ast)) list -> syntax
+  val extend_trrules: syntax -> xrule list -> syntax
+  val merge_syntaxes: syntax -> syntax -> syntax
+  val type_syn: syntax
+  val print_gram: syntax -> unit
+  val print_trans: syntax -> unit
+  val print_syntax: syntax -> unit
+  val test_read: syntax -> string -> string -> unit
+  val read: syntax -> typ -> string -> term
+  val read_typ: syntax -> (indexname -> sort) -> string -> typ
+  val simple_read_typ: string -> typ
+  val pretty_term: syntax -> term -> Pretty.T
+  val pretty_typ: syntax -> typ -> Pretty.T
+  val string_of_term: syntax -> term -> string
+  val string_of_typ: syntax -> typ -> string
+  val simple_string_of_typ: typ -> string
+  val simple_pprint_typ: typ -> pprint_args -> unit
 end;
 
 functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
-  and SExtension: SEXTENSION and Mixfix: MIXFIX and Printer: PRINTER
-  sharing Mixfix.SynExt = SExtension.Parser.SynExt = TypeExt.SynExt = Printer.SynExt)
+  and SynTrans: SYN_TRANS and Mixfix: MIXFIX and Printer: PRINTER
+  sharing Mixfix.SynExt = SynTrans.Parser.SynExt = TypeExt.SynExt = Printer.SynExt)
   : SYNTAX =
 struct
 
 structure SynExt = TypeExt.SynExt;
-structure Parser = SExtension.Parser;
+structure Parser = SynTrans.Parser;
 structure Lexicon = Parser.Lexicon;
-structure Mixfix = Mixfix;
-open Lexicon SynExt SynExt.Ast Parser TypeExt SExtension Printer;
+open Lexicon SynExt SynExt.Ast Parser TypeExt SynTrans Mixfix Printer;
 
 
 (** tables of translation functions **)
@@ -172,7 +176,7 @@ fun extend_syntax (Syntax tabs) syn_ext =
     Syntax {
       lexicon = extend_lexicon lexicon (delims_of xprods),
       roots = extend_list roots1 roots2,
-      gram = extend_gram gram roots2 xprods,
+      gram = extend_gram gram xprods,
       consts = consts2 union consts1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
@@ -309,8 +313,8 @@ fun read_ast (Syntax tabs) xids root str =
       [pt] => pt_to_ast (lookup_trtab parse_ast_trtab) pt
     | _ =>
       (writeln ("Ambiguous input " ^ quote str);
-       writeln "produces the following parse trees:"; seq show_pt pts;
-       error "Please disambiguate the grammar or your input."))
+        writeln "produces the following parse trees:"; seq show_pt pts;
+        error "Please disambiguate the grammar or your input."))
   end;
 
 
@@ -329,7 +333,12 @@ fun read (syn as Syntax tabs) ty str =
 (* read types *)
 
 fun read_typ syn def_sort str =
-  typ_of_term def_sort (read syn typeT str);
+  let
+    val t = read syn typeT str;
+    val sort_env = raw_term_sorts t;
+  in
+    typ_of_term sort_env def_sort t
+  end;
 
 fun simple_read_typ str = read_typ type_syn (K []) str;
 
@@ -358,6 +367,12 @@ fun read_rule syn (xrule as ((_, lhs_src), (_, rhs_src))) =
           "\ninternal: " ^ str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
     | None => rule)
   end;
+
+
+datatype xrule =
+  op |-> of (string * string) * (string * string) |
+  op <-| of (string * string) * (string * string) |
+  op <-> of (string * string) * (string * string);
 
 fun read_xrules syn xrules =
   let
@@ -399,15 +414,6 @@ val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 (** extend syntax (external interfaces) **)
 
-(* FIXME -> syn_ext.ML *)
-fun syn_ext_const_names roots cs =
-  syn_ext roots [] [] cs ([], [], [], []) ([], []);
-
-(* FIXME -> syn_ext.ML *)
-fun syn_ext_trfuns roots trfuns =
-  syn_ext roots [] [] [] trfuns ([], []);
-
-
 fun ext_syntax mk_syn_ext (syn as Syntax {roots, ...}) decls =
   extend_syntax syn (mk_syn_ext roots decls);
 
@@ -415,9 +421,9 @@ fun ext_syntax mk_syn_ext (syn as Syntax {roots, ...}) decls =
 fun extend_log_types (syn as Syntax {roots, ...}) all_roots =
   extend_syntax syn (syn_ext_roots all_roots (all_roots \\ roots));
 
-val extend_type_gram = ext_syntax Mixfix.syn_ext_types;
+val extend_type_gram = ext_syntax syn_ext_types;
 
-val extend_const_gram = ext_syntax Mixfix.syn_ext_consts;
+val extend_const_gram = ext_syntax syn_ext_consts;
 
 val extend_consts = ext_syntax syn_ext_const_names;
 
@@ -425,20 +431,6 @@ val extend_trfuns = ext_syntax syn_ext_trfuns;
 
 fun extend_trrules syn xrules =
   ext_syntax syn_ext_rules syn (read_xrules syn xrules);
-
-
-(* extend *)    (* FIXME remove *)
-
-fun extend syn0 read_ty (all_roots, xconsts, sext) =
-  let
-    val Syntax {roots, ...} = syn0;
-
-    val syn1 = extend_syntax syn0
-      (syn_ext_of_sext all_roots (all_roots \\ roots) xconsts read_ty sext);
-
-    val syn2 = extend_syntax syn1
-      (syn_ext_rules all_roots (read_xrules syn1 (xrules_of sext)));
-  in syn2 end;
 
 
 end;
