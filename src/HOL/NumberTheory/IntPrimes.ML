@@ -140,15 +140,10 @@ Goalw [dvd_def] "[| #0<m; m<n |] ==> ~n dvd (m::int)";
 by Auto_tac;
 by (subgoal_tac "#0<n" 1);
 by (blast_tac (claset() addIs [zless_trans]) 2);
-by (case_tac "k<#0" 1);
-by (rotate_tac ~2 1);
-by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 1);
-by (case_tac "k=#0" 1);
-by (subgoal_tac "n*k < n*#1" 2);
-by (asm_full_simp_tac (simpset() delsimps [zmult_1_right]) 2);
-by (subgoal_tac "#0<k" 2);
-by (rtac lemma 3);
-by (ALLGOALS Asm_full_simp_tac);
+by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 1); 
+by (subgoal_tac "n*k < n*#1" 1);
+by (dtac (zmult_zless_cancel1 RS iffD1) 1); 
+by Auto_tac;  
 qed "zdvd_not_zless";
 
 
@@ -512,15 +507,16 @@ qed "zcong_zgcd_zmult_zmod";
 
 Goalw [zcong_def,dvd_def] 
       "[| #0<=a; a<m; #0<=b; b<m; [a = b] (mod m) |] ==> a = b";
-by (rtac (eq_iff_zdiff_eq_0 RS iffD2) 1);
+by Auto_tac;  
+by (dres_inst_tac [("f", "%z. z mod m")] arg_cong 1);  
+by (cut_inst_tac [("z","a"),("w","b")] zless_linear 1);
+by Auto_tac;  
+by (subgoal_tac "(a - b) mod m = a-b" 2);
+by (rtac mod_pos_pos_trivial 3); 
 by Auto_tac;
-by (subgoal_tac "k=#0" 1);
-by (subgoal_tac "#-1<k & k<#1" 2);
-by Auto_tac;
-by (ALLGOALS (rtac iffD1));
-by (res_inst_tac [("k","m")] zmult_zless_cancel1 3);
-by (res_inst_tac [("k","m")] zmult_zless_cancel1 1);
-by Auto_tac;
+by (subgoal_tac "(m + (a - b)) mod m = m + (a - b)" 1);
+by (rtac mod_pos_pos_trivial 2); 
+by Auto_tac;  
 qed "zcong_zless_imp_eq";
 
 Goal "[| p:zprime; #0<a; a<p; [a*a = #1](mod p) |] ==> a = #1 | a = p-#1";
@@ -544,8 +540,8 @@ by (subgoal_tac "#0<m" 1);
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [int_0_le_mult_iff]) 1);
 by (subgoal_tac "m*k<m*#1" 1);
-by (asm_full_simp_tac (simpset() delsimps [zmult_1_right]) 1);
-by (ALLGOALS Asm_full_simp_tac);
+by (dtac (zmult_zless_cancel1 RS iffD1) 1);
+by Auto_tac;  
 qed "zcong_zless_0";
 
 Goal "#0<m ==> (EX! b. #0<=b & b<m & [a = b] (mod m))";
@@ -680,7 +676,6 @@ by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
                   ("y","s'"),("z","s"),("aa","t'"),("ab","t")] 
                   xzgcda.induct 1);
 by (stac xzgcda_eq 1);
-by (rewtac Let_def);
 by (Simp_tac 1);
 by (REPEAT (rtac impI 1));
 by (case_tac "r' mod r = #0" 1);

@@ -130,12 +130,8 @@ Goalw [norRRset_def,noXRRset_def]
       "[| #0<m; zgcd(x,m) = #1 |] \
 \     ==> card (noXRRset m x) = card (norRRset m)";
 by (rtac card_image 1);
-by (rewtac inj_on_def);
-by (auto_tac (claset(),simpset() addsimps [Bnor_fin]));
-by (case_tac "x=#0" 1);
+by (auto_tac (claset(),simpset() addsimps [inj_on_def, Bnor_fin]));
 by (asm_full_simp_tac (simpset() addsimps [BnorRset_eq]) 1);
-by (stac (zmult_cancel2 RS sym) 1);
-by (ALLGOALS Asm_simp_tac);
 qed "card_nor_eq_noX";
 
 Goalw [is_RRset_def,phi_def]
