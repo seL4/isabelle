@@ -16,7 +16,7 @@
 ###
 
 # Note: ML system and platform info is appended automatically!
-#ISABELLE_PATH=other-places-where-heaps-reside:$ISABELLE_PATH
+#ISABELLE_PATH=other-places-where-heaps-may-reside:$ISABELLE_PATH
 
 #DEFAULT_LOGIC=ZF
 #DEFAULT_LOGIC=HOL
@@ -27,12 +27,10 @@
 ### Interfaces
 ###
 
-# Xterm with symbol font.
+# XTerm
 #ISABELLE_INTERFACE=xterm
-#ISABELLE_INTERFACE_OPTIONS="-geometry 80x60"
-#ISABELLE_SYMBOLS=true
+#ISABELLE_INTERFACE_OPTIONS="-g 80x50 -s false"
 
 # GNU Emacs running Isamode.
 #ISABELLE_INTERFACE=emacs
 #ISABELLE_INTERFACE_OPTIONS=""
-#ISABELLE_SYMBOLS=true
