@@ -43,8 +43,8 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
                        addSEs [conjE,disjE,impCE,FalseE,iffE];
 
 (*Quantifier rules*)
-val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
-                     addSEs [exE,ex1E] addEs [allE];
+val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
+                     addSEs [exE] addEs [allE];
 
 exception CS_DATA of claset;
 
@@ -61,6 +61,18 @@ end;
 
 claset := HOL_cs;
 
+(*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
+qed_goal "alt_ex1E" thy
+    "[| ?! x.P(x);                                              \
+\       !!x. [| P(x);  ALL y y'. P(y) & P(y') --> y=y' |] ==> R  \
+\    |] ==> R"
+ (fn major::prems =>
+  [ (rtac (major RS ex1E) 1),
+    (REPEAT (ares_tac (allI::prems) 1)),
+    (etac (dup_elim allE) 1),
+    (Fast_tac 1)]);
+
+AddSEs [alt_ex1E];
 
 (*** Applying BlastFun to create Blast_tac ***)
 structure Blast_Data = 
