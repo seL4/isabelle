@@ -26,9 +26,6 @@ structure Hypsubst_Data =
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
 open Hypsubst;
 
-val thin_refl = prove_goal HOL.thy 
-	"!!X. [|x=x; PROP W|] ==> PROP W" (K [atac 1]);
-
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
@@ -36,8 +33,7 @@ structure Classical_Data =
   val mp        = mp
   val not_elim  = notE
   val classical = classical
-  val thin_refl = thin_refl
-  val hyp_subst_tacs= [REPEAT_DETERM o ematch_tac [thin_refl] THEN' hyp_subst_tac]
+  val hyp_subst_tacs=[hyp_subst_tac]
   end;
 
 structure Classical = ClassicalFun(Classical_Data);
