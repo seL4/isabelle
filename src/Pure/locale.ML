@@ -21,7 +21,7 @@ signature BASIC_LOCALE =
 sig
   val print_locales: theory -> unit
   val pretty_goals_marker: string -> int -> thm -> Pretty.T list
-  val pretty_goals: int -> thm -> Pretty.T list
+  val pretty_sub_goals: bool -> int -> thm -> Pretty.T list
   val print_goals_marker: string -> int -> thm -> unit
   val print_goals: int -> thm -> unit
   val thm: xstring -> thm
@@ -590,7 +590,7 @@ local
 
 in
 
-  fun pretty_goals_marker begin_goal maxgoals state =
+  fun pretty_goals_marker_aux begin_goal print_msg print_goal maxgoals state =
     let
       val {sign, ...} = rep_thm state;
 
@@ -632,11 +632,13 @@ in
       val ngoals = length As;
 
       fun pretty_gs (types, sorts) =
-        [prt_term B] @
+        (if print_goal then [prt_term B] else []) @
          (if ngoals = 0 then [Pretty.str "No subgoals!"]
           else if ngoals > maxgoals then
             pretty_subgoals (take (maxgoals, As)) @
-              [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
+            (if print_msg then
+                [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
+             else [])
           else pretty_subgoals As) @
         pretty_ffpairs tpairs @
         (if ! show_consts then pretty_consts prop else []) @
@@ -649,9 +651,10 @@ in
      (! show_types orelse ! show_sorts, ! show_sorts)
   end;
 
+  fun pretty_goals_marker bg = pretty_goals_marker_aux bg true true;
   val print_goals_marker = (Pretty.writeln o Pretty.chunks) ooo pretty_goals_marker;
 
-  val pretty_goals = pretty_goals_marker "";
+  val pretty_sub_goals = pretty_goals_marker_aux "" false;
   val print_goals = print_goals_marker "";
 
 end;
