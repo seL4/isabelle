@@ -6,15 +6,18 @@ Syntax translation functions.
 *)
 
 signature SYN_TRANS0 =
-  sig
+sig
   val eta_contract: bool ref
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
-  end;
+  val mark_bound: string -> term
+  val mark_boundT: string * typ -> term
+  val variant_abs': string * typ * term -> string * term
+end;
 
 signature SYN_TRANS1 =
-  sig
+sig
   include SYN_TRANS0
   val constrainAbsC: string
   val pure_trfuns:
@@ -22,10 +25,11 @@ signature SYN_TRANS1 =
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
       (string * (Ast.ast list -> Ast.ast)) list
-  end;
+  val pure_trfunsT: (string * (typ -> term list -> term)) list
+end;
 
 signature SYN_TRANS =
-  sig
+sig
   include SYN_TRANS1
   val abs_tr': term -> term
   val prop_tr': bool -> term -> term
@@ -33,11 +37,13 @@ signature SYN_TRANS =
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val pt_to_ast: (string -> (Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
   val ast_to_term: (string -> (term list -> term) option) -> Ast.ast -> term
-  end;
+end;
 
-structure SynTrans : SYN_TRANS =
+structure SynTrans: SYN_TRANS =
 struct
+
 open TypeExt Lexicon Ast SynExt Parser;
+
 
 (** parse (ast) translations **)
 
@@ -126,14 +132,17 @@ fun applC_ast_tr' (f, []) = raise_ast "applC_ast_tr'" [f]
 
 (* abstraction *)
 
+fun mark_boundT x_T = const "_bound" $ Free x_T;
+fun mark_bound x = mark_boundT (x, dummyT);
+
 fun strip_abss vars_of body_of tm =
   let
     val vars = vars_of tm;
     val body = body_of tm;
     val rev_new_vars = rename_wrt_term body vars;
   in
-    (map Free (rev rev_new_vars),
-      subst_bounds (map (free o #1) rev_new_vars, body))
+    (map mark_boundT (rev rev_new_vars),
+      subst_bounds (map (mark_bound o #1) rev_new_vars, body))
   end;
 
 (*do (partial) eta-contraction before printing*)
@@ -205,28 +214,37 @@ fun idts_ast_tr' (*"_idts"*) [Appl [Constant c, x, ty], xs] =
 fun prop_tr' show_sorts tm =
   let
     fun aprop t = const "_aprop" $ t;
+    val mk_ofclass = if show_sorts then "_mk_ofclassS" else "_mk_ofclass";
 
-    fun is_prop tys t =
-      fastype_of1 (tys, t) = propT handle TERM _ => false;
+    fun is_prop Ts t =
+      fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
     fun tr' _ (t as Const _) = t
-      | tr' _ (t as Free (x, ty)) =
-          if ty = propT then aprop (free x) else t
-      | tr' _ (t as Var (xi, ty)) =
-          if ty = propT then aprop (var xi) else t
-      | tr' tys (t as Bound _) =
-          if is_prop tys t then aprop t else t
-      | tr' tys (Abs (x, ty, t)) = Abs (x, ty, tr' (ty :: tys) t)
-      | tr' tys (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [ty])))) =
-          if is_prop tys t then
-            const "_ofclass" $ term_of_typ show_sorts ty $ tr' tys t1
-          else tr' tys t1 $ tr' tys t2
-      | tr' tys (t as t1 $ t2) =
-          (if is_Const (head_of t) orelse not (is_prop tys t)
-            then I else aprop) (tr' tys t1 $ tr' tys t2);
+      | tr' _ (t as Free (x, T)) =
+          if T = propT then aprop (free x) else t
+      | tr' _ (t as Var (xi, T)) =
+          if T = propT then aprop (var xi) else t
+      | tr' Ts (t as Bound _) =
+          if is_prop Ts t then aprop t else t
+      | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
+      | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
+          if is_prop Ts t then Const (mk_ofclass, T) $ tr' Ts t1
+          else tr' Ts t1 $ tr' Ts t2
+      | tr' Ts (t as t1 $ t2) =
+          (if is_Const (head_of t) orelse not (is_prop Ts t)
+            then I else aprop) (tr' Ts t1 $ tr' Ts t2);
   in
     tr' [] tm
   end;
+
+
+fun mk_ofclass_tr' (*"_mk_ofclass"*) T [t] =
+      const "_ofclass" $ term_of_typ false T $ t
+  | mk_ofclass_tr' (*"_mk_ofclass"*) T ts = raise_type "mk_ofclass_tr'" [T] ts;
+
+fun mk_ofclassS_tr' (*"_mk_ofclassS"*) T [t] =
+      const "_ofclass" $ term_of_typ true T $ t
+  | mk_ofclassS_tr' (*"_mk_ofclassS"*) T ts = raise_type "mk_ofclassS_tr'" [T] ts;
 
 
 (* meta implication *)
@@ -240,10 +258,15 @@ fun impl_ast_tr' (*"==>"*) asts =
 
 (* dependent / nondependent quantifiers *)
 
+fun variant_abs' (x, T, B) =
+  let val x' = variant (add_term_names (B, [])) x in
+    (x', subst_bound (mark_boundT (x', T), B))
+  end;
+
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
-        let val (x', B') = variant_abs (x, dummyT, B);
-        in list_comb (const q $ Free (x', T) $ A $ B', ts) end
+        let val (x', B') = variant_abs' (x, dummyT, B);
+        in list_comb (const q $ mark_boundT (x', T) $ A $ B', ts) end
       else list_comb (const r $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 
@@ -259,6 +282,9 @@ val pure_trfuns =
    ("_K", k_tr)],
   [],
   [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr')]);
+
+val pure_trfunsT =
+  [("_mk_ofclass", mk_ofclass_tr'), ("_mk_ofclassS", mk_ofclassS_tr')];
 
 
 
