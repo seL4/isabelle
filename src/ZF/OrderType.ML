@@ -217,3 +217,34 @@ by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold,
 				  ordermap_pred_eq_ordermap]) 1);
 qed "ordertype_subset";
 
+
+(*Kunen's Theorem 7.3 (i), page 16;  see also Ordinal/Ord_in_Ord
+  The smaller ordinal is an initial segment of the larger *)
+goalw OrderType.thy [pred_def, lt_def]
+    "!!i j. j<i ==> j = pred(i, j, Memrel(i))";
+by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
+by (fast_tac (eq_cs addEs [Ord_trans]) 1);
+val lt_eq_pred = result();
+
+goal OrderType.thy
+    "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j))	\
+\         |] ==> R";
+by (forward_tac [lt_eq_pred] 1);
+be ltE 1;
+by (rtac (well_ord_Memrel RS not_well_ord_iso_pred RS notE) 1 THEN
+    assume_tac 1 THEN assume_tac 1);
+be subst 1;
+by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
+(*Combining the two simplifications causes looping*)
+by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
+by (fast_tac (ZF_cs addSEs [bij_is_fun RS apply_type]  
+                    addEs  [Ord_trans]) 1);
+val Ord_iso_implies_eq_lemma = result();
+
+(*Kunen's Theorem 7.3 (ii), page 16.  Isomorphic ordinals are equal*)
+goal OrderType.thy
+    "!!i. [| Ord(i);  Ord(j);  f:  ord_iso(i,Memrel(i),j,Memrel(j))	\
+\         |] ==> i=j";
+by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
+by (REPEAT (eresolve_tac [asm_rl, ord_iso_sym, Ord_iso_implies_eq_lemma] 1));
+val Ord_iso_implies_eq = result();
