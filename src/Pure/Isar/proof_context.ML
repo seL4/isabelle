@@ -48,7 +48,7 @@ sig
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
-  val export_single: context -> context -> thm -> thm
+  val export_standard: context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -752,10 +752,13 @@ fun export is_goal inner outer =
       end)
   end;
 
-fun export_single inner outer th =
-  (case Seq.pull (export false inner outer th) of
-    Some (th', _) => th'
-  | None => raise CONTEXT ("Internal failure while exporting theorem", inner));
+fun export_standard inner outer =
+  let val exp = export false inner outer in
+    fn th =>
+      (case Seq.pull (exp th) of
+        Some (th', _) => th' |> Drule.local_standard
+      | None => raise CONTEXT ("Internal failure while exporting theorem", inner))
+  end;
 
 
 
@@ -1397,7 +1400,7 @@ fun print_thms_containing ctxt opt_limit ss =
     val empty_idx = Library.null cs andalso Library.null xs;
 
     val header =
-      if empty_idx then [Pretty.block [Pretty.str "All known facts:", Pretty.fbrk]]
+      if empty_idx then [Pretty.block [Pretty.str "Known facts:", Pretty.fbrk]]
       else [Pretty.block (Pretty.breaks (Pretty.str "Facts containing" ::
         separate (Pretty.str "and") (prt_consts cs @ prt_frees xs)) @
           [Pretty.str ":", Pretty.fbrk])]
