@@ -7,7 +7,7 @@
 
 ## global settings
 
-LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL Tools ZF"
+LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
 CVSROOT=/usr/proj/isabelle-repository/archive
 DISTBASE=~/tmp/isadist
