@@ -2430,7 +2430,7 @@ subgoal to the last or first position
 Explain the use of \isa? and \isa+ in this proof.
 \begin{isabelle}
 \isacommand{lemma}\ "\isasymlbrakk P\isasymand Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ P\isasymrbrakk \ \isasymLongrightarrow \ R"\isanewline
-\isacommand{by}\ (drule\ mp,\ intro?,\ assumption+)+
+\isacommand{by}\ (drule\ mp,\ (intro conjI)?,\ assumption+)+
 \end{isabelle}
 \end{exercise}
 
