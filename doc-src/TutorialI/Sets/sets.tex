@@ -841,13 +841,11 @@ rtrancl_converseD)\isanewline
 \isacommand{done}
 \end{isabelle}
 
-Note one detail. The {\isa{auto}} method can prove this but
-{\isa{blast}} cannot. \REMARK{move to a later section?}
-This is because the
-lemmas we have proved only apply  to ordered pairs. {\isa{Auto}} can
-convert a bound variable of  a product type into a pair of bound variables,
-allowing the lemmas  to be applied.  A toy example demonstrates this
-point:
+Note one detail. The {\isa{auto}} method can prove this theorem, but
+{\isa{blast}} cannot. 
+The lemmas we have proved apply only to ordered pairs, but {\isa{Auto}}
+replaces a bound variable of product type by a pair of bound variables,
+allowing the lemmas  to be applied.  A toy example demonstrates this point:
 \begin{isabelle}
 \isacommand{lemma}\ "A\ \isasymsubseteq\ Id"\isanewline
 \isacommand{apply}\ (rule\ subsetI)\isanewline
@@ -861,15 +859,15 @@ A\ \isasymsubseteq\ Id\isanewline
 \end{isabelle}
 The \isa{simp} and \isa{blast} methods can do nothing here.  However,
 \isa{x} is of product type and therefore denotes an ordered pair.  The
-\isa{auto} method (and some others, including \isa{clarify})
-can replace
+\isa{auto} method (and some others, including \isa{clarify}) replace
 \isa{x} by a pair, which then allows the further simplification from
 \isa{(a,b)\ \isasymin\ A} to \isa{a\ =\ b}.
 \begin{isabelle}
 A\ \isasymsubseteq\ Id\isanewline
 \ 1.\ {\isasymAnd}a\ b.\ (a,b)\ \isasymin\ A\ \isasymLongrightarrow\ a\ =\ b
 \end{isabelle}
-
+Section~\ref{sec:products} will discuss proof techniques for ordered pairs
+in more detail.
 
 
 \section{Well-founded relations and induction}
