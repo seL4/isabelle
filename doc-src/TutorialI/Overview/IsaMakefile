@@ -14,7 +14,7 @@ USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
 
 LNCS: $(LOG)/HOL-LNCS.gz
 
-$(LOG)/HOL-LNCS.gz: LNCS/ROOT.ML LNCS/document/root.tex LNCS/*.thy
+$(LOG)/HOL-LNCS.gz: LNCS/ROOT.ML LNCS/document/root.tex LNCS/document/root.bib LNCS/*.thy
 	@$(USEDIR) HOL LNCS
 
 

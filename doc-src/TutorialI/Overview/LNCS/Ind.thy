@@ -61,11 +61,11 @@ subsection{*The Reflexive Transitive Closure*}
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
 inductive "r*"
 intros
-rtc_refl[iff]:  "(x,x) \<in> r*"
-rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
+refl[iff]:  "(x,x) \<in> r*"
+step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 lemma [intro]: "(x,y) : r \<Longrightarrow> (x,y) \<in> r*"
-by(blast intro: rtc_step);
+by(blast intro: rtc.step);
 
 lemma rtc_trans: "\<lbrakk> (x,y) \<in> r*; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 apply(erule rtc.induct)
@@ -75,12 +75,12 @@ lemma rtc_trans[rule_format]:
   "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r* \<longrightarrow> (x,z) \<in> r*"
 apply(erule rtc.induct)
  apply(blast);
-apply(blast intro: rtc_step);
+apply(blast intro: rtc.step);
 done
 
 text{*
 \begin{exercise}
-Show that the converse of @{thm[source]rtc_step} also holds:
+Show that the converse of @{thm[source]rtc.step} also holds:
 @{prop[display]"[| (x,y) : r*; (y,z) : r |] ==> (x,z) : r*"}
 \end{exercise}*}
 

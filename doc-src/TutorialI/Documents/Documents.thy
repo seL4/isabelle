@@ -118,7 +118,7 @@ text {*
   output as @{text "A\<^sup>\<star>"}.
 
   \medskip Replacing our definition of @{text xor} by the following
-  specifies a Isabelle symbol for the new operator:
+  specifies an Isabelle symbol for the new operator:
 *}
 
 (*<*)

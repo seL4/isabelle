@@ -11,7 +11,8 @@
 \begin{document}
 
 \title{A Compact Overview of Isabelle/HOL}
-\author{Tobias Nipkow}
+\author{Tobias Nipkow\\Institut f{\"u}r Informatik, TU M{\"u}nchen\\
+ \small\url{http://www.in.tum.de/~nipkow/}}
 \date{}
 \maketitle
 
@@ -27,6 +28,16 @@ corresponding theories using Isabelle/HOL to follow the proofs.
 
 \subsection{An Introductory Theory}
 \input{FP0.tex}
+
+\begin{exercise}
+Define a datatype of binary trees and a function \isa{mirror}
+that mirrors a binary tree by swapping subtrees recursively. Prove
+\isa{mirror(mirror t) = t}.
+
+Define a function \isa{flatten} that flattens a tree into a list
+by traversing it in infix order. Prove
+\isa{flatten(mirror t) = rev(flatten t)}.
+\end{exercise}
 
 \subsection{More Constructs}
 \input{FP1.tex}

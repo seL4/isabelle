@@ -11,7 +11,7 @@ HOL, but many of their properties concern sets: the range of a
 function is a set, and the inverse image of a function maps sets to sets.
 
 This chapter will be useful to anybody who plans to develop a substantial
-proof.  sets are convenient for formalizing  computer science concepts such
+proof.  Sets are convenient for formalizing  computer science concepts such
 as grammars, logical calculi and state transition systems.  Isabelle can
 prove many statements involving sets automatically.
 
@@ -610,7 +610,7 @@ are two examples, illustrating connections with indexed union and with the
 general syntax for comprehension:
 \begin{isabelle}
 \isacommand{lemma}\ "f`A\ \isasymunion\ g`A\ =\ ({\isasymUnion}x{\isasymin}A.\ \isacharbraceleft f\ x,\ g\
-x\isacharbraceright)
+x\isacharbraceright)"
 \par\smallskip
 \isacommand{lemma}\ "f\ `\ \isacharbraceleft(x,y){.}\ P\ x\ y\isacharbraceright\ =\ \isacharbraceleft f(x,y)\ \isacharbar\ x\ y.\ P\ x\
 y\isacharbraceright"

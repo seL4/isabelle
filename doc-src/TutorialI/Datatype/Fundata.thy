@@ -40,8 +40,7 @@ done
 (*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac T, rename_tac[2] F)(*>*)
 txt{*\noindent
-Because of the function type, the 
-the proof state after induction looks unusual.
+Because of the function type, the proof state after induction looks unusual.
 Notice the quantified induction hypothesis:
 @{subgoals[display,indent=0]}
 *}
