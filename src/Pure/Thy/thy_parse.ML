@@ -415,7 +415,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \|> add_thyname " ^ quote thy_name ^ ";\n\
         \\n\
-        \val () = store_theory (thy, " ^ quote thy_name ^ ");\n\
+        \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
         \\n\
         \\n"
         ^ postxt ^ "\n\
@@ -430,7 +430,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \val thy = thy\n\
         \\n\
-        \val () = store_theory (thy, " ^ quote thy_name ^ ");\n\
+        \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
         \\n\
         \end;\n");
 
