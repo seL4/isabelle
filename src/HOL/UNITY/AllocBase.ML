@@ -106,18 +106,16 @@ by (subgoal_tac "x < Suc (length zs) & ~ x < length zs --> length zs = x" 1);
 by Auto_tac;
 qed "bag_of_sublist_lemma";
 
-
 Goal "finite A \
 \     ==> bag_of (sublist l A) = \
 \         setsum (%i. if i < length l then {# nth l i #} else {#}) A";
 by (res_inst_tac [("xs","l")] rev_induct 1);
 by (Simp_tac 1);
 by (stac (symmetric Zero_def) 1);
-by (etac (setsum_0 RS sym) 1);
+by (rtac (setsum_0 RS sym) 1);
 by (asm_simp_tac (simpset() addsimps [sublist_append, 
 				      bag_of_sublist_lemma]) 1);
 qed "bag_of_sublist";
-
 
 Goal "[| finite A; finite B |] \
 \     ==> bag_of (sublist l (A Un B)) + bag_of (sublist l (A Int B)) = \
