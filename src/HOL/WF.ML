@@ -260,7 +260,7 @@ fun indhyp_tac hyps =
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
                         eresolve_tac [transD, mp, allE]));
-val wf_super_ss = HOL_ss addSolver indhyp_tac;
+val wf_super_ss = HOL_ss addSolver (mk_solver "WF" indhyp_tac);
 
 Goalw [is_recfun_def,cut_def]
     "[| wf(r);  trans(r);  is_recfun r H a f;  is_recfun r H b g |] ==> \

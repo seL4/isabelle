@@ -242,9 +242,9 @@ qed "ord_iso_apply";
 
 (*Rewriting with bijections and converse (function inverse)*)
 val bij_inverse_ss = 
-    simpset() setSolver 
-      type_solver_tac (tcset() addTCs [ord_iso_is_bij, bij_is_inj, 
-				       inj_is_fun, comp_fun, comp_bij])
+    simpset() setSolver (mk_solver ""
+      (type_solver_tac (tcset() addTCs [ord_iso_is_bij, bij_is_inj, 
+				        inj_is_fun, comp_fun, comp_bij])))
           addsimps [right_inverse_bij];
 
 Goalw [ord_iso_def] 

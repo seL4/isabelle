@@ -344,8 +344,8 @@ by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
 by (typecheck_tac (tcset() addTCs [prem]));
 by (asm_simp_tac (simpset() 
-                   setSolver 
-                   type_solver_tac (tcset() addTCs [prem, lam_funtype])) 1);
+                   setSolver (mk_solver ""
+                   (type_solver_tac (tcset() addTCs [prem, lam_funtype])))) 1);
 qed "comp_lam";
 
 Goal "[| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
@@ -353,8 +353,8 @@ by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
 by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
 by (asm_simp_tac (simpset()  
-		  setSolver
-		  type_solver_tac (tcset() addTCs [inj_is_fun])) 1);
+		  setSolver (mk_solver ""
+		  (type_solver_tac (tcset() addTCs [inj_is_fun])))) 1);
 qed "comp_inj";
 
 Goalw [surj_def]

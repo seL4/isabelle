@@ -804,6 +804,7 @@ by (exhaust_tac "xs" 1);
 by (exhaust_tac "na" 1);
  by Auto_tac;
 qed_spec_mp "take_take";
+Addsimps [take_take];
 
 Goal "!xs. drop n (drop m xs) = drop (n + m) xs"; 
 by (induct_tac "m" 1);
@@ -811,6 +812,7 @@ by (induct_tac "m" 1);
 by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "drop_drop";
+Addsimps [drop_drop];
 
 Goal "!xs n. take n (drop m xs) = drop m (take (n + m) xs)"; 
 by (induct_tac "m" 1);

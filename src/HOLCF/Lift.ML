@@ -71,7 +71,8 @@ fun cont_tacRs i = simp_tac (simpset() addsimps [flift1_def,flift2_def]) i THEN
                   REPEAT (cont_tac i);
 
 
-simpset_ref() := simpset() addSolver (K (DEPTH_SOLVE_1 o cont_tac));
+simpset_ref() := simpset() addSolver
+  (mk_solver "cont_tac" (K (DEPTH_SOLVE_1 o cont_tac)));
 
 
 

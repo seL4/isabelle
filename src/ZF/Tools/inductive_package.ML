@@ -335,9 +335,10 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
        If the premises get simplified, then the proofs could fail.*)
      val min_ss = empty_ss
 	   setmksimps (map mk_eq o ZF_atomize o gen_all)
-	   setSolver  (fn prems => resolve_tac (triv_rls@prems) 
+	   setSolver (mk_solver "minimal"
+                      (fn prems => resolve_tac (triv_rls@prems) 
 				   ORELSE' assume_tac
-				   ORELSE' etac FalseE);
+				   ORELSE' etac FalseE));
 
      val quant_induct = 
 	 prove_goalw_cterm part_rec_defs 

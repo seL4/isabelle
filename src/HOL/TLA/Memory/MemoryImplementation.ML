@@ -28,7 +28,7 @@ val MI_fast_css =
   let 
     val (cs,ss) = MI_css
   in
-    (cs addSEs [squareE], ss addSSolver (fn thms => assume_tac ORELSE' (etac notE)))
+    (cs addSEs [squareE], ss addSSolver (mk_solver "" (fn thms => assume_tac ORELSE' (etac notE))))
 end;
 
 val temp_elim = make_elim o temp_use;

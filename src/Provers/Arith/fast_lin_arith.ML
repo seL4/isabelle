@@ -277,7 +277,7 @@ fun mkthm sg asms just =
         | mk(NotLeD(j)) = ((*writeln"NLe";prth*)(mk j RS LA_Logic.not_leD))
         | mk(NotLeDD(j)) = ((*writeln"NLeD";prth*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
         | mk(NotLessD(j)) = ((*writeln"NL";prth*)(mk j RS LA_Logic.not_lessD))
-        | mk(Added(j1,j2)) = ((*writeln"+";prth*)(simp(prth(addthms (mk j1) (mk j2)))))
+        | mk(Added(j1,j2)) = ((*writeln"+";prth*)(simp((*prth*)(addthms (mk j1) (mk j2)))))
         | mk(Multiplied(n,j)) = ((*writeln"*";*)multn(n,mk j))
 
   in (*writeln"mkthm";*)!LA_Data.simp(mk just) handle FalseE thm => thm end

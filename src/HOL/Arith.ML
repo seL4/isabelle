@@ -1000,7 +1000,8 @@ useful to detect inconsistencies among the premises for subgoals which are
 fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
 solver all the time rather than add the additional check. *)
 
-simpset_ref () := (simpset() addSolver Fast_Arith.cut_lin_arith_tac);
+simpset_ref () := (simpset() addSolver
+   (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac));
 
 (* Elimination of `-' on nat due to John Harrison *)
 Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";

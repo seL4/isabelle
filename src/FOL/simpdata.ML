@@ -325,8 +325,8 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
                             addsimprocs [defALL_regroup,defEX_regroup]
-			    setSSolver   safe_solver
-			    setSolver  unsafe_solver
+			    setSSolver  (mk_solver "FOL safe" safe_solver)
+			    setSolver  (mk_solver "FOL unsafe" unsafe_solver)
 			    setmksimps (mksimps mksimps_pairs);
 
 

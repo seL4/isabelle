@@ -229,7 +229,7 @@ fun indhyp_tac hyps =
                         eresolve_tac [underD, transD, spec RS mp]));
 
 (*** NOTE! some simplifications need a different solver!! ***)
-val wf_super_ss = simpset() setSolver indhyp_tac;
+val wf_super_ss = simpset() setSolver (mk_solver "WF" indhyp_tac);
 
 Goalw [is_recfun_def]
     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
