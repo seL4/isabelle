@@ -96,21 +96,15 @@ defs
 
 (** unit **)
 
-global
-
 typedef unit = "{True}"
 proof
   show "True : ?unit"
     by blast
 qed
 
-consts
-  "()"          :: unit                           ("'(')")
-
-local
-
-defs
-  Unity_def:    "() == Abs_unit True"
+constdefs
+  Unity :: unit    ("'(')")
+  "() == Abs_unit True"
 
 
 
