@@ -23,10 +23,10 @@ introduction rules specified in the declaration, an elimination rule for case
 analysis and an induction rule.  We can refer to these theorems by
 automatically-generated names:
 
-@{thm[display] even.step}
+@{thm[display] even.step[no_vars]}
 \rulename{even.step}
 
-@{thm[display] even.induct}
+@{thm[display] even.induct[no_vars]}
 \rulename{even.induct}
 
 Attributes can be given to the introduction rules.  Here both rules are
@@ -83,6 +83,12 @@ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd
 \ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isacharhash}{\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}
 
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{3}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k
+
 proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{4}}\isanewline
 \isanewline
 goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}{\isacharcolon}\isanewline
@@ -116,13 +122,23 @@ apply (erule even.induct)
 apply auto
 done
 
+text{*
+proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
+\isanewline
+goal\ {\isacharparenleft}lemma\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharparenright}{\isacharcolon}\isanewline
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even
+*}
+
+
 text{*...and prove it in a separate step*}
 lemma Suc_Suc_even_imp_even: "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"
 apply (drule even_imp_even_minus_2)
 apply simp
 done
 
-lemma Suc_Suc_even_iff [iff]: "((Suc (Suc n)) \<in> even) = (n \<in> even)"
+lemma [iff]: "((Suc (Suc n)) \<in> even) = (n \<in> even)"
 apply (blast dest: Suc_Suc_even_imp_even)
 done
 
