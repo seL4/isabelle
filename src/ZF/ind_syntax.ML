@@ -101,8 +101,9 @@ fun mk_intr_tms sg (rec_tm, constructs) =
 
 fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
 
-val Un          = Const("op Un", [iT,iT]--->iT)
-and empty       = Const("0", iT)
+fun mk_Un (t1, t2) = Const("op Un", [iT,iT]--->iT) $ t1 $ t2;
+
+val empty       = Const("0", iT)
 and univ        = Const("Univ.univ", iT-->iT)
 and quniv       = Const("QUniv.quniv", iT-->iT);
 
@@ -112,7 +113,7 @@ fun union_params (rec_tm, cs) =
       fun is_ind arg = (type_of arg = iT)
   in  case filter is_ind (args @ cs) of
          []     => empty
-       | u_args => fold_bal (app Un) u_args
+       | u_args => fold_bal mk_Un u_args
   end;
 
 (*univ or quniv constitutes the sum domain for mutual recursion;
@@ -151,8 +152,17 @@ val elim_rls = [asm_rl, FalseE, succ_neq_0, sym RS succ_neq_0,
                 make_elim succ_inject, 
                 refl_thin, conjE, exE, disjE];
 
+
+(*From HOL/ex/meson.ML: raises exception if no rules apply -- unlike RL*)
+fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
+  | tryres (th, []) = raise THM("tryres", 0, [th]);
+
+fun gen_make_elim elim_rls rl = 
+      standard (tryres (rl, elim_rls @ [revcut_rl]));
+
 (*Turns iff rules into safe elimination rules*)
 fun mk_free_SEs iffs = map (gen_make_elim [conjE,FalseE]) (iffs RL [iffD1]);
+
 
 end;
 
