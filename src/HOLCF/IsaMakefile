@@ -8,7 +8,7 @@
 
 default: HOLCF
 images: HOLCF IOA
-test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP
+test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP IOA-Storage
 all: images test
 
 
@@ -119,9 +119,20 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 
 
+## IOA-Storage
+
+IOA-Storage: IOA $(LOG)/IOA-Storage.gz
+
+$(LOG)/IOA-Storage.gz: IOA/Storage/Action.ML IOA/Storage/Action.thy \
+  IOA/Storage/Correctness.ML IOA/Storage/Correctness.thy \
+  IOA/Storage/Impl.ML IOA/Storage/Impl.thy IOA/Storage/ROOT.ML \
+  IOA/Storage/Spec.thy
+	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
+
+
 ## clean
 
 clean:
 	@rm -f $(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz \
 	  $(LOG)/HOLCF-ex.gz $(OUT)/IOA $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz \
-	  $(LOG)/IOA-NTP.gz
+	  $(LOG)/IOA-NTP.gz $(LOG)/IOA-Storage.gz
