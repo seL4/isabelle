@@ -10,6 +10,8 @@ infix 0 RS RSN RL RLN MRS MRL OF COMP;
 
 signature BASIC_DRULE =
 sig
+  val mk_implies        : cterm * cterm -> cterm
+  val list_implies      : cterm list * cterm -> cterm
   val dest_implies      : cterm -> cterm * cterm
   val skip_flexpairs    : cterm -> cterm
   val strip_imp_prems   : cterm -> cterm list
@@ -150,6 +152,17 @@ fun strip_imp_concl ct =
 
 (*The premises of a theorem, as a cterm list*)
 val cprems_of = strip_imp_prems o skip_flexpairs o cprop_of;
+
+val proto_sign = Theory.sign_of ProtoPure.thy;
+
+val implies = cterm_of proto_sign Term.implies;
+
+(*cterm version of mk_implies*)
+fun mk_implies(A,B) = capply (capply implies A) B;
+
+(*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
+fun list_implies([], B) = B
+  | list_implies(A::AS, B) = mk_implies (A, list_implies(AS,B));
 
 
 (** reading of instantiations **)
@@ -435,8 +448,6 @@ fun weak_eq_thm (tha,thb) =
 
 (*** Meta-Rewriting Rules ***)
 
-val proto_sign = Theory.sign_of ProtoPure.thy;
-
 fun read_prop s = read_cterm proto_sign (s, propT);
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
@@ -460,7 +471,7 @@ fun symmetric_fun thm = thm RS symmetric_thm;
 
 (** Below, a "conversion" has type cterm -> thm **)
 
-val refl_implies = reflexive (cterm_of proto_sign implies);
+val refl_implies = reflexive implies;
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
