@@ -35,5 +35,6 @@ syntax (xsymbols)
   "op eqpoll"      :: [i,i] => o     (infixl "\\<approx>" 50)
   "op lepoll"      :: [i,i] => o     (infixl "\\<lesssim>" 50)
   "op lesspoll"    :: [i,i] => o     (infixl "\\<prec>" 50)
+  "LEAST "         :: [pttrn, o] => i        ("(3\\<mu>_./ _)" [0, 10] 10)
 
 end
