@@ -17,14 +17,27 @@ consts
 
 defs
   pred_def  "pred(m) == case m of 0 => 0 | Suc n => n"
-  add_def   "m+n == nat_rec n (%u v. Suc(v)) m"
-  diff_def  "m-n == nat_rec m (%u v. pred(v)) n"
-  mult_def  "m*n == nat_rec 0 (%u v. n + v) m"
 
   mod_def   "m mod n == wfrec (trancl pred_nat)
                           (%f j. if j<n then j else f (j-n)) m"
   div_def   "m div n == wfrec (trancl pred_nat) 
                           (%f j. if j<n then 0 else Suc (f (j-n))) m"
+
+
+primrec "op +" nat 
+"0 + n = n"
+"Suc m + n = Suc(m + n)"
+
+
+primrec "op -" nat 
+"m - 0 = m"
+"m - Suc n = pred(m - n)"
+
+primrec "op *"  nat 
+"0 * n = 0"
+"Suc m * n = n + (m * n)"
+
+
 end
 
 (*"Difference" is subtraction of natural numbers.
