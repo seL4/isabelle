@@ -167,7 +167,7 @@ val clasimp_method' = clasimp_args o clasimp_meth';
 
 val setup =
  [Method.add_methods
-   [("clarsimp", clasimp_method' clarsimp_tac, "clarsimp (improper!)"),
+   [("clarsimp_tac", clasimp_method' clarsimp_tac, "clarsimp (improper!)"),
     ("auto", clasimp_method (CHANGED o auto_tac), "auto"),
     ("force", clasimp_method' force_tac, "force")]];
     
