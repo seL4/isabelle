@@ -66,11 +66,13 @@ sig
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
   val          full_simp_tac: simpset -> int -> tactic
+  val        asm_lr_simp_tac: simpset -> int -> tactic
   val      asm_full_simp_tac: simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
   val               Simp_tac:            int -> tactic
   val           Asm_simp_tac:            int -> tactic
   val          Full_simp_tac:            int -> tactic
+  val        Asm_lr_simp_tac:            int -> tactic
   val      Asm_full_simp_tac:            int -> tactic
   val          simplify: simpset -> thm -> thm
   val      asm_simplify: simpset -> thm -> thm
@@ -326,7 +328,8 @@ fun gen_simp_tac mode (ss as Simpset {unsafe_finish_tac, ...}) =
 val          simp_tac = gen_simp_tac (false, false, false);
 val      asm_simp_tac = gen_simp_tac (false, true, false);
 val     full_simp_tac = gen_simp_tac (true,  false, false);
-val asm_full_simp_tac = gen_simp_tac (true,  true, false);
+val   asm_lr_simp_tac = gen_simp_tac (true,  true, false);
+val asm_full_simp_tac = gen_simp_tac (true,  true, true);
 
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true, false);
@@ -336,6 +339,7 @@ val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true, false);
 fun          Simp_tac i st =          simp_tac (simpset ()) i st;
 fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
 fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
+fun   Asm_lr_simp_tac i st =   asm_lr_simp_tac (simpset ()) i st;
 fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 
