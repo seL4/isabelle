@@ -19,11 +19,11 @@ qed_goalw "SprodI" Sprod0.thy [Sprod_def]
         (EVERY1 [rtac CollectI, rtac exI,rtac exI, rtac refl])
         ]);
 
-qed_goal "inj_onto_Abs_Sprod" Sprod0.thy 
-        "inj_onto Abs_Sprod Sprod"
+qed_goal "inj_on_Abs_Sprod" Sprod0.thy 
+        "inj_on Abs_Sprod Sprod"
 (fn prems =>
         [
-        (rtac inj_onto_inverseI 1),
+        (rtac inj_on_inverseI 1),
         (etac Abs_Sprod_inverse 1)
         ]);
 
@@ -80,7 +80,7 @@ qed_goalw "inject_Ispair" Sprod0.thy [Ispair_def]
         (cut_facts_tac prems 1),
         (etac inject_Spair_Rep 1),
         (atac 1),
-        (etac (inj_onto_Abs_Sprod  RS inj_ontoD) 1),
+        (etac (inj_on_Abs_Sprod  RS inj_onD) 1),
         (rtac SprodI 1),
         (rtac SprodI 1)
         ]);
@@ -132,7 +132,7 @@ qed_goalw "defined_Ispair_rev" Sprod0.thy [Ispair_def]
         [
         (cut_facts_tac prems 1),
         (rtac defined_Spair_Rep_rev 1),
-        (rtac (inj_onto_Abs_Sprod  RS inj_ontoD) 1),
+        (rtac (inj_on_Abs_Sprod  RS inj_onD) 1),
         (atac 1),
         (rtac SprodI 1),
         (rtac SprodI 1)

@@ -393,8 +393,7 @@ goal thy
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
 
   by (simp_tac (simpset() addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq,Let_def]@
-                            ioa_projections)
-                  setloop (split_tac [expand_if])) 1);
+                            ioa_projections)) 1);
 qed "trans_of_par4";
 
 

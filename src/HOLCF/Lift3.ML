@@ -94,12 +94,6 @@ by (cut_facts_tac [Lift_exhaust] 1);
 by (fast_tac (HOL_cs addSEs prems) 1);
 qed"Lift_cases";
 
-goal thy
-  "P(lift_case a b x) = ((x=UU --> P a) & (!y. x = Def y --> P(b y)))";
-by (lift.induct_tac "x" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "expand_lift_case";
-
 goal thy "(x~=UU)=(? y. x=Def y)";
 by (rtac iffI 1);
 by (rtac Lift_cases 1);

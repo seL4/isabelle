@@ -16,7 +16,7 @@ by (Fast_tac 1);
 val and_de_morgan_and_absorbe = result();
 
 goal HOL.thy "(if C then A else B) --> (A|B)";
-by (stac expand_if 1);
+by (stac split_if 1);
 by (Fast_tac 1);
 val bool_if_impl_or = result();
 

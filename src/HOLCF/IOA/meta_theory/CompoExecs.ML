@@ -132,8 +132,7 @@ qed"stutter_nil";
 
 goal thy "stutter sig (s, (a,t)>>ex) = \
 \     ((a~:actions sig --> (s=t)) & stutter sig (t,ex))";
-by (simp_tac (simpset() addsimps [stutter_def] 
-                       setloop (split_tac [expand_if]) ) 1);
+by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_cons";
 
 (* ----------------------------------------------------------------------------------- *)
@@ -167,8 +166,7 @@ by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* main case *)
 ren "ss a t" 1;
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2
-                       setloop (split_tac [expand_if])) 1));
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2) 1));
 qed"lemma_1_1a";
 
 
@@ -183,8 +181,7 @@ goal thy "!s. is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [stutter_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2
-                 setloop (split_tac [expand_if])) 1));
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2) 1));
 qed"lemma_1_1b";
 
 

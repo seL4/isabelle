@@ -209,7 +209,7 @@ goal thy "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 by (etac Seq_Finite_ind  1);
 by (Asm_full_simp_tac 1);
 (* main case *)
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
 
 (* a: act A; a: act B *)
@@ -479,7 +479,7 @@ by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 
 (* main case *) 
 (* splitting into 4 cases according to a:A, a:B *)
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
 
 (* Case a:A, a:B *)

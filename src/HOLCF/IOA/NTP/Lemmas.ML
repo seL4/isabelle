@@ -36,7 +36,7 @@ val set_lemmas =
 (* Arithmetic *)
 
 goal Arith.thy "!!x. 0<x ==> (x-1 = y) = (x = Suc(y))";
-by (asm_simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
+by (asm_simp_tac (simpset() addsimps [diff_Suc] addsplits [split_nat_case]) 1);
 by (Blast_tac 1);
 qed "pred_suc";
 

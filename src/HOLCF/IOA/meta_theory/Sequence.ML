@@ -120,7 +120,7 @@ qed"Last_nil";
 goal thy "Last`(x>>xs)= (if xs=nil then Def x else Last`xs)"; 
 by (simp_tac (simpset() addsimps [Last_def, Cons_def]) 1);
 by (res_inst_tac [("x","xs")] seq.casedist 1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_simp_tac 1);
 by (REPEAT (Asm_simp_tac 1));
 qed"Last_cons";
 
@@ -699,7 +699,7 @@ by (rtac adm_all 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 (* main case *)
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if] ) 1);
+by (Asm_full_simp_tac 1);
 qed"FilternPnilForallP1";
 
 bind_thm ("FilternPnilForallP",FilternPnilForallP1 RS mp);
@@ -1158,8 +1158,7 @@ by (res_inst_tac [("A1","%x. True")
 (* FIX: better support for A = %x. True *)
 by (Fast_tac 3);
 by (asm_full_simp_tac (simpset() addsimps [Filter_lemma1]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Filter_lemma2,Filter_lemma3] 
-                                setloop split_tac [expand_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Filter_lemma2,Filter_lemma3]) 1);
 qed"FilterPQ_takelemma";
 
 Addsimps [FilterPQ];

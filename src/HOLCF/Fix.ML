@@ -697,7 +697,7 @@ local
   "!!Q. chain(Y) ==> chain(%m. if m < Suc i then Y(Suc i) else Y m)"
  (fn _ =>
         [
-        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
+        Asm_simp_tac 1,
         safe_tac HOL_cs,
         subgoal_tac "ia = i" 1,
         Asm_simp_tac 1,
@@ -708,7 +708,7 @@ local
   "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn _ =>
         [
-        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
+        Asm_simp_tac 1,
         strip_tac 1,
         etac allE 1,
         etac mp 1,
@@ -722,7 +722,7 @@ local
         [
         safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
         atac 2,
-        asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
+        Asm_simp_tac 1,
         res_inst_tac [("x","i")] exI 1,
         strip_tac 1,
         trans_tac 1

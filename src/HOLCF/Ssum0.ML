@@ -30,10 +30,10 @@ qed_goalw "SsumIr" Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
         (rtac refl 1)
         ]);
 
-qed_goal "inj_onto_Abs_Ssum" Ssum0.thy "inj_onto Abs_Ssum Ssum"
+qed_goal "inj_on_Abs_Ssum" Ssum0.thy "inj_on Abs_Ssum Ssum"
 (fn prems =>
         [
-        (rtac inj_onto_inverseI 1),
+        (rtac inj_on_inverseI 1),
         (etac Abs_Ssum_inverse 1)
         ]);
 
@@ -89,7 +89,7 @@ qed_goalw "noteq_IsinlIsinr" Ssum0.thy [Isinl_def,Isinr_def]
         [
         (cut_facts_tac prems 1),
         (rtac noteq_SinlSinr_Rep 1),
-        (etac (inj_onto_Abs_Ssum  RS inj_ontoD) 1),
+        (etac (inj_on_Abs_Ssum  RS inj_onD) 1),
         (rtac SsumIl 1),
         (rtac SsumIr 1)
         ]);
@@ -184,7 +184,7 @@ qed_goalw "inject_Isinl" Ssum0.thy [Isinl_def]
         [
         (cut_facts_tac prems 1),
         (rtac inject_Sinl_Rep 1),
-        (etac (inj_onto_Abs_Ssum  RS inj_ontoD) 1),
+        (etac (inj_on_Abs_Ssum  RS inj_onD) 1),
         (rtac SsumIl 1),
         (rtac SsumIl 1)
         ]);
@@ -195,7 +195,7 @@ qed_goalw "inject_Isinr" Ssum0.thy [Isinr_def]
         [
         (cut_facts_tac prems 1),
         (rtac inject_Sinr_Rep 1),
-        (etac (inj_onto_Abs_Ssum  RS inj_ontoD) 1),
+        (etac (inj_on_Abs_Ssum  RS inj_onD) 1),
         (rtac SsumIr 1),
         (rtac SsumIr 1)
         ]);

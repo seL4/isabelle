@@ -84,7 +84,7 @@ goalw thy [Init_def,Next_def,temp_sat_def,satisfies_def,IMPLIES_def,AND_def]
 \  ==> ex |== (Init (%(s,a,t). P s) .& Init (%(s,a,t). s -a--A-> t) \
 \             .--> (Next (Init (%(s,a,t).Q s))))";
 
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_full_simp_tac 1);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 

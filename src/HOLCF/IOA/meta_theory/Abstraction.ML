@@ -511,7 +511,7 @@ goalw thy [temp_strengthening_def,state_strengthening_def,
 temp_sat_def, satisfies_def,Next_def]
 "!! h. [| temp_strengthening P Q h |]\
 \      ==> temp_strengthening (Next P) (Next Q) h";
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
 by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
 by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);

@@ -50,7 +50,7 @@ qed"scheds_input_enabled";
     Needs compositionality on schedule level, input-enabledness, compatibility
                     and distributivity of is_exec_frag over @@
 **********************************************************************************)
-Delsplits [expand_if];
+Delsplits [split_if];
 goal thy "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
 \            Filter (%x. x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |] \
 \          ==> (sch @@ a>>nil) : schedules (A||B)";
@@ -83,7 +83,7 @@ by (Asm_full_simp_tac 1);
 by (REPEAT (atac 1));
 qed"IOA_deadlock_free";
 
-Addsplits [expand_if];
+Addsplits [split_if];
 
 
 

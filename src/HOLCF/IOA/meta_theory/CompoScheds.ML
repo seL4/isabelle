@@ -112,8 +112,7 @@ qed"mkex_nil";
 goal thy "!!x.[| x:act A; x~:act B |] \
 \   ==> mkex A B (x>>sch) (s,a>>exA) (t,exB)  =  \
 \       ((s,t), (x,snd a,t) >> snd (mkex A B sch (snd a,exA) (t,exB)))";
-by (simp_tac (simpset() addsimps [mkex_def] 
-                       setloop (split_tac [expand_if]) ) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (cut_inst_tac [("exA","a>>exA")] mkex2_cons_1 1);
 by Auto_tac;
 qed"mkex_cons_1";
@@ -121,8 +120,7 @@ qed"mkex_cons_1";
 goal thy "!!x.[| x~:act A; x:act B |] \
 \   ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =  \ 
 \       ((s,t), (x,s,snd b) >> snd (mkex A B sch (s,exA) (snd b,exB)))";
-by (simp_tac (simpset() addsimps [mkex_def] 
-                       setloop (split_tac [expand_if]) ) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
 by Auto_tac;
 qed"mkex_cons_2";
@@ -130,8 +128,7 @@ qed"mkex_cons_2";
 goal thy "!!x.[| x:act A; x:act B |]  \
 \   ==>  mkex A B (x>>sch) (s,a>>exA) (t,b>>exB) = \
 \        ((s,t), (x,snd a,snd b) >> snd (mkex A B sch (snd a,exA) (snd b,exB)))";
-by (simp_tac (simpset() addsimps [mkex_def] 
-                       setloop (split_tac [expand_if]) ) 1);
+by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (cut_inst_tac [("exB","b>>exB"),("exA","a>>exA")] mkex2_cons_3 1);
 by Auto_tac;
 qed"mkex_cons_3";
@@ -216,7 +213,7 @@ by (Seq_induct_tac "sch" [Filter_def,Forall_def,sforall_def,mkex_def] 1);
 
 (* main case *) 
 (* splitting into 4 cases according to a:A, a:B *)
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
 
 (* Case y:A, y:B *)
@@ -249,7 +246,7 @@ qed"Mapfst_mkex_is_sch";
 
 fun mkex_induct_tac sch exA exB = 
     EVERY1[Seq_induct_tac sch [Filter_def,Forall_def,sforall_def,mkex_def,stutter_def], 
-           asm_full_simp_tac (simpset() setloop split_tac [expand_if]),
+           Asm_full_simp_tac,
            SELECT_GOAL (safe_tac set_cs),
            Seq_case_simp_tac exA,
            Seq_case_simp_tac exB,

@@ -68,7 +68,7 @@ val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
   by (fast_tac (claset() addDs prems) 1);
 val lemma = result();
 
-Delsplits [expand_if];
+Delsplits [split_if];
 goal thy "!!f.[| is_weak_ref_map f C A |]\
 \                      ==> (is_weak_ref_map f (rename C g) (rename A g))";
 by (asm_full_simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
@@ -82,7 +82,7 @@ by (simp_tac (simpset() addsimps [rename_def,rename_set_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_inputs_def,
 asig_outputs_def,asig_of_def,trans_of_def]) 1);
 by Safe_tac;
-by (stac expand_if 1);
+by (stac split_if 1);
  by (rtac conjI 1);
  by (rtac impI 1);
  by (etac disjE 1);
@@ -111,6 +111,6 @@ by (etac conjE 1);
 by (forward_tac  [reachable_rename] 1);
 by Auto_tac;
 qed"rename_through_pmap";
-Addsplits [expand_if];
+Addsplits [split_if];
 
 

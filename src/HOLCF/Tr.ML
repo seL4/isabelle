@@ -99,10 +99,10 @@ goalw thy [If2_def]
   "P (If2 Q x y ) = ((Q=UU --> P UU) & (Q=TT --> P x) & (Q=FF --> P y))";
 by (res_inst_tac [("p","Q")] trE 1);
 by (REPEAT (Asm_full_simp_tac 1));
-qed"expand_If2";
+qed"split_If2";
 
 val split_If_tac =
-  simp_tac (HOL_basic_ss addsimps [symmetric If2_def]) THEN' (split_tac [expand_If2]);
+  simp_tac (HOL_basic_ss addsimps [symmetric If2_def]) THEN' (split_tac [split_If2]);
 
  
 
