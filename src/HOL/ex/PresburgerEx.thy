@@ -39,18 +39,18 @@ theorem "~ (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
   by presburger
 
 theorem "\<forall>(x::int). b < x --> a \<le> x"
-  apply (presburger no_quantify)
+  apply (presburger (no_quantify))
   oops
 
 theorem "\<forall>(x::int). b < x --> a \<le> x"
-  apply (presburger no_quantify)
+  apply (presburger (no_quantify))
   oops
 
 theorem "~ (\<exists>(x::int). False)"
   by presburger
 
 theorem "\<forall>(x::int). (a::int) < 3 * x --> b < 3 * x"
-  apply (presburger no_quantify)
+  apply (presburger (no_quantify))
   oops
 
 theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)" by presburger 

@@ -29,10 +29,16 @@ sig
   val aset : term -> term -> term list
   val linrep : string list -> term -> term -> term -> term
   val list_disj : term list -> term
+  val list_conj : term list -> term
   val simpl : term -> term
   val fv : term -> string list
   val negate : term -> term
   val operations : (string * (int * int -> bool)) list
+  val conjuncts : term -> term list
+  val disjuncts : term -> term list
+  val has_bound : term -> bool
+  val minusinf : term -> term -> term
+  val plusinf : term -> term -> term
 end;
 
 structure  CooperDec : COOPER_DEC =
@@ -183,7 +189,7 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
  
          else (warning "lint: apparent nonlinearity"; raise COOPER)
          end 
-  |_ =>   error "lint: unknown term"; 
+  |_ =>   (error "COOPER:lint: unknown term  ")
    
  
  

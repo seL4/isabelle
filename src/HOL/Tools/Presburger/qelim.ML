@@ -8,34 +8,17 @@ and proof generation for multiple quantified formulae.
 *)
 
 signature QELIM =
-sig
- val proof_of_mlift_qelim: Sign.sg -> (term -> bool) ->
+ sig
+ val tproof_of_mlift_qelim: Sign.sg -> (term -> bool) ->
    (string list -> term -> thm) -> (term -> thm) ->
-   (string list -> term -> thm) -> term -> thm
+   (term -> thm) -> term -> thm
+
 end;
 
 structure Qelim : QELIM =
 struct
 open CooperDec;
 open CooperProof;
-
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*---         Protocoling part                                  ---*)
-(*---                                                           ---*)
-(*---           includes the protocolling datastructure         ---*)
-(*---                                                           ---*)
-(*---          and the protocolling fuctions                    ---*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-
 
 val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 
@@ -46,131 +29,35 @@ val qe_ex_nconj = thm "qe_ex_nconj";
 val qe_ALL = thm "qe_ALL";
 
 
-(*Datatype declaration for the protocoling procedure.*)
+(*============= Compact version =====*)
 
 
-datatype QeLog = AFN of term*(string list)
-                |QFN of term*(string list)
-                |ExConj of term*QeLog
-                |ExDisj of (string*typ*term)*term*QeLog*QeLog
-                |QeConst of string*QeLog*QeLog
-                |QeNot of QeLog
-                |QeAll of QeLog
-                |Lift_Qelim of term*QeLog
-		|QeUnk of term;
-
-datatype mQeLog = mQeProof of (string list)*mQeLog
-		|mAFN of term
-                |mNFN of mQeLog
-                |mQeConst of string*mQeLog*mQeLog
-                |mQeNot of mQeLog
-		|mQelim of term*(string list)*mQeLog
-		|mQeAll of mQeLog
-		|mQefm of term;
-
-(* This is the protokoling my function for the quantifier elimination*)
-fun mlift_qelim_wp isat vars = 
-  let fun mqelift_wp vars fm = if (isat fm) then mAFN(fm)
-    else  
-    (case fm of 
-     ( Const ("Not",_) $ p) => mQeNot(mqelift_wp vars p)
-    |( Const ("op &",_) $ p $q) => mQeConst("CJ", mqelift_wp vars p,mqelift_wp vars q) 
-
-    |( Const ("op |",_) $ p $q) => mQeConst("DJ", mqelift_wp vars p,mqelift_wp vars q) 
-
-    |( Const ("op -->",_) $ p $q) => mQeConst("IM", mqelift_wp vars p,mqelift_wp vars q) 
-
-    |( Const ("op =",Type ("fun",[Type ("bool", []),_])) $ p $q) =>mQeConst("EQ", mqelift_wp vars p,mqelift_wp vars q) 
-
-    				
-    |( Const ("All",QT) $ Abs(x,T,p)) =>mQeAll (mqelift_wp vars (Const("Ex",QT) $ Abs(x,T,(HOLogic.Not $ p))))
-
-    |(Const ("Ex",_) $ Abs (x,T,p))  => 
-      let val (x1,p1) = variant_abs (x,T,p)
-          val prt = mqelift_wp (x1::vars) p1
-      in mQelim(Free(x1,T),vars,mNFN(prt))
+fun decomp_qe is_at afnp nfnp qfnp sg P = 
+   if is_at P then ([], fn [] => afnp [] P) else 
+   case P of
+   (Const("op &",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_conjI)
+   |(Const("op |",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_disjI)
+   |(Const("op -->",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_impI)
+   |(Const("op =", Type ("fun",[Type ("bool", []),_]))$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_eqI)
+   |(Const("Not",_)$p) => ([p],fn [th] => th RS qe_Not)
+   |(Const("Ex",_)$Abs(xn,xT,p)) => 
+      let val (xn1,p1) = variant_abs(xn,xT,p) 
+      in ([p1],
+        fn [th1_1] => 
+          let val th2 = [th1_1,nfnp (snd (qe_get_terms th1_1))] MRS trans
+              val eth1 = (forall_intr (cterm_of sg (Free(xn1,xT))) th2) COMP  qe_exI
+              val th3 = qfnp (snd(qe_get_terms eth1))
+          in [eth1,th3] MRS trans
+          end )
       end
-    | _ => mQefm(fm)
-   ) 
-     
-  in (fn fm => mQeProof(vars,mNFN(mqelift_wp vars fm )))
-  end;  
 
+   |(Const("All",_)$Abs(xn,xT,p)) => ([(HOLogic.exists_const xT)$Abs(xn,xT,HOLogic.Not $ p)], fn [th] => th RS qe_ALL)
+   | _ => ([],fn [] => instantiate' [Some (ctyp_of sg (type_of P))] [Some (cterm_of sg P)] refl);
+ 
 
-
-
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*---      Interpretation and Proofgeneration Part              ---*)
-(*---                                                           ---*)
-(*---      Protocole interpretation functions                   ---*)
-(*---                                                           ---*)
-(*---      and proofgeneration functions                        ---*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*---                                                           ---*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-(*function that interpretates the protokol generated by the _wp function*)
-
-
-(* proof_of_lift_qelim interpretates a protokol for the quantifier elimination one some quantified formula. It uses the functions afnp nfnp and qfnp as proof functions to generate a prove for the hole quantifier elimination.*)
-(* afnp : must retun a proof for the transformations on the atomic formalae*)
-(* nfnp : must return a proof for the post one-quatifiers elimination process*)
-(* qfnp mus return a proof for the one quantifier elimination (existential) *)
-(* All these function are independent of the theory on whitch we are trying to prove quantifier elimination*)
-(* But the following invariants mus be respected : *)
-(* afnp : term -> string list -> thm*)
-(*   nfnp : term -> thm*)
-(*   qfnp : term -> string list -> thm*)
-(*For all theorms generated by these function must hold :*)
-(*    All of them are logical equivalences.*)
-(*    on left side of the equivalence must appear the term exactely as ist was given as a parameter (or eventually modulo Gamma, where Gamma are the rules whitch are allowed to be used during unification ex. beta reduction.....)*)
-(* qfnp must take as an argument for the term an existential quantified formula*)
-(*-----------------------------------------------------------------*)
-(*-----------------------------------------------------------------*)
-
-fun proof_of_mlift_qelim sg isat afnp nfnp qfnp =
- let fun h_proof_of_mlift_qelim isat afnp nfnp qfnp prtkl vrl = 
-   (case prtkl of 
-   mAFN (fm) => afnp vrl fm 
-   |mNFN (prt) => let val th1 = h_proof_of_mlift_qelim isat  afnp nfnp qfnp prt vrl 
-                  val th2 = nfnp (snd (qe_get_terms th1)) 
-                    in [th1,th2] MRS trans 
-                 end 
-   |mQeConst (s,pr1,pr2) =>  
-     let val th1 =  h_proof_of_mlift_qelim isat afnp nfnp qfnp pr1 vrl  
-         val th2 =  h_proof_of_mlift_qelim isat afnp nfnp qfnp pr2 vrl  
-     in (case s of 
-        "CJ" => [th1,th2] MRS (qe_conjI)  
-       |"DJ" => [th1,th2] MRS (qe_disjI)  
-       |"IM" => [th1,th2] MRS (qe_impI)  
-       |"EQ" => [th1,th2] MRS (qe_eqI)  
-       )  
-    end  
-   |mQeNot (pr) =>(h_proof_of_mlift_qelim isat afnp nfnp qfnp pr vrl ) RS (qe_Not)  
-   |mQeAll(pr) => (h_proof_of_mlift_qelim isat afnp nfnp qfnp pr vrl ) RS (qe_ALL) 
-   |mQelim (x as (Free(xn,xT)),vl,pr) => 
-     let val th_1 = h_proof_of_mlift_qelim isat afnp nfnp qfnp pr vl
-         val mQeProof(l2,pr2) = mlift_qelim_wp isat (xn::vrl) (snd(qe_get_terms th_1))
-         val th_2 = [th_1,(h_proof_of_mlift_qelim isat afnp nfnp qfnp pr2 l2)] MRS trans
-         val th1 = (forall_intr (cterm_of sg x) th_2) COMP (qe_exI)
-	 val th2 = qfnp vl (snd (qe_get_terms th1)) 
-       in [th1,th2] MRS trans 
-       end
-   |mQefm (fm) => instantiate' [Some cboolT] [Some (cterm_of sg fm)] refl
-)
-in (fn fm => let val mQeProof(vars,prt) = (mlift_qelim_wp isat (fv fm) fm)
-                 in (h_proof_of_mlift_qelim isat afnp nfnp qfnp prt vars)
-                 end)
-end;
-
+fun tproof_of_mlift_qelim sg isat afnp nfnp qfnp p = 
+   let val th1 = thm_of sg (decomp_qe isat afnp nfnp qfnp sg) p
+       val th2 = nfnp (snd (qe_get_terms th1))
+    in [th1,th2] MRS trans
+    end;
 end;

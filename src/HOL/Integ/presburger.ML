@@ -6,10 +6,13 @@
 Tactic for solving arithmetical Goals in Presburger Arithmetic
 *)
 
+(* This version of presburger deals with occurences of functional symbols in the subgoal and abstract over them to try to prove the more general formula. It then resolves with the subgoal. To disable this feature call the procedure with the parameter no_abs
+*)
+
 signature PRESBURGER = 
 sig
- val presburger_tac : bool -> int -> tactic
- val presburger_method : bool -> int -> Proof.method
+ val presburger_tac : bool -> bool -> int -> tactic
+ val presburger_method : bool -> bool -> int -> Proof.method
  val setup : (theory -> theory) list
  val trace : bool ref
 end;
@@ -25,18 +28,17 @@ fun trace_msg s = if !trace then tracing s else ();
 (* Here still only one problem : The proof for the arithmetical transformations done on the dvd atomic formulae*)
 (*-----------------------------------------------------------------*)
 
-val presburger_ss = simpset_of (theory "Presburger");
-
-fun cooper_pp sg vrl (fm as e$Abs(xn,xT,p)) = 
+fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
   let val (xn1,p1) = variant_abs (xn,xT,p)
-  in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1 vrl) end;
+  in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1) end;
 
 fun mnnf_pp sg fm = CooperProof.proof_of_cnnf sg fm
   (CooperProof.proof_of_evalc sg);
 
-fun mproof_of_int_qelim sg fm =
-  Qelim.proof_of_mlift_qelim sg CooperDec.is_arith_rel
+fun tmproof_of_int_qelim sg fm =
+  Qelim.tproof_of_mlift_qelim sg CooperDec.is_arith_rel
     (CooperProof.proof_of_linform sg) (mnnf_pp sg) (cooper_pp sg) fm;
+
 
 (* Theorems to be used in this tactic*)
 
@@ -62,6 +64,19 @@ fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
   | add_term_typed_consts (_, cs) = cs;
 
 fun term_typed_consts t = add_term_typed_consts(t,[]);
+
+(* put a term into eta long beta normal form *)
+fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
+  | eta_long Ts t = (case strip_comb t of
+      (Abs _, _) => eta_long Ts (Envir.beta_norm t)
+    | (u, ts) => 
+      let
+        val Us = binder_types (fastype_of1 (Ts, t));
+        val i = length Us
+      in list_abs (map (pair "x") Us,
+        list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
+          (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
+      end);
 
 (* Some Types*)
 val bT = HOLogic.boolT;
@@ -94,8 +109,6 @@ val allowed_consts =
    ("op *", iT --> iT --> iT), 
    ("HOL.abs", iT --> iT),
    ("uminus", iT --> iT),
-   ("HOL.max", iT --> iT --> iT),
-   ("HOL.min", iT --> iT --> iT),
 
    ("op <=", nT --> nT --> bT),
    ("op =", nT --> nT --> bT),
@@ -107,8 +120,6 @@ val allowed_consts =
    ("op -", nT --> nT --> nT),
    ("op *", nT --> nT --> nT), 
    ("Suc", nT --> nT),
-   ("HOL.max", nT --> nT --> nT),
-   ("HOL.min", nT --> nT --> nT),
 
    ("Numeral.bin.Bit", binT --> bT --> binT),
    ("Numeral.bin.Pls", binT),
@@ -119,27 +130,89 @@ val allowed_consts =
    ("0", iT),
    ("1", nT),
    ("1", iT),
-
    ("False", bT),
    ("True", bT)];
-
-(*returns true if the formula is relevant for presburger arithmetic tactic*)
-fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso
-  map (fn i => snd (nth_elem (i, ps))) (loose_bnos t) @
-  map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
-  subset [iT, nT];
 
 (* Preparation of the formula to be sent to the Integer quantifier *)
 (* elimination procedure                                           *)
 (* Transforms meta implications and meta quantifiers to object     *)
 (* implications and object quantifiers                             *)
 
-fun prepare_for_presburger q fm = 
+
+(*==================================*)
+(* Abstracting on subterms  ========*)
+(*==================================*)
+(* Returns occurences of terms that are function application of type int or nat*)
+
+fun getfuncs fm = case strip_comb fm of
+    (Free (_, T), ts as _ :: _) =>
+      if body_type T mem [iT, nT] 
+         andalso not (ts = []) andalso forall (null o loose_bnos) ts 
+      then [fm]
+      else foldl op union ([], map getfuncs ts)
+  | (Var (_, T), ts as _ :: _) =>
+      if body_type T mem [iT, nT] 
+         andalso not (ts = []) andalso forall (null o loose_bnos) ts then [fm]
+      else foldl op union ([], map getfuncs ts)
+  | (Const (s, T), ts) =>
+      if (s, T) mem allowed_consts orelse not (body_type T mem [iT, nT])
+      then foldl op union ([], map getfuncs ts)
+      else [fm]
+  | (Abs (s, T, t), _) => getfuncs t
+  | _ => [];
+
+
+fun abstract_pres sg fm = 
+  foldr (fn (t, u) =>
+      let val T = fastype_of t
+      in all T $ Abs ("x", T, abstract_over (t, u)) end)
+         (getfuncs fm, fm);
+
+
+
+(* hasfuncs_on_bounds dont care of the type of the functions applied!
+ It returns true if there is a subterm coresponding to the application of
+ a function on a bounded variable.
+
+ Function applications are allowed only for well predefined functions a 
+ consts*)
+
+fun has_free_funcs fm  = case strip_comb fm of
+    (Free (_, T), ts as _ :: _) => 
+      if (body_type T mem [iT,nT]) andalso (not (T mem [iT,nT]))
+      then true
+      else exists (fn x => x) (map has_free_funcs ts)
+  | (Var (_, T), ts as _ :: _) =>
+      if (body_type T mem [iT,nT]) andalso not (T mem [iT,nT])
+      then true
+      else exists (fn x => x) (map has_free_funcs ts)
+  | (Const (s, T), ts) =>  exists (fn x => x) (map has_free_funcs ts)
+  | (Abs (s, T, t), _) => has_free_funcs t
+  |_ => false;
+
+
+(*returns true if the formula is relevant for presburger arithmetic tactic
+The constants occuring in term t should be a subset of the allowed_consts
+ There also should be no occurences of application of functions on bounded 
+ variables. Whenever this function will be used, it will be ensured that t 
+ will not contain subterms with function symbols that could have been 
+ abstracted over.*)
+ 
+fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso 
+  map (fn i => snd (nth_elem (i, ps))) (loose_bnos t) @
+  map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
+  subset [iT, nT]
+  andalso not (has_free_funcs t);
+
+
+fun prepare_for_presburger sg q fm = 
   let
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
     val c = HOLogic.dest_Trueprop (Logic.strip_assums_concl fm)
-    val _ = if relevant (rev ps) c then () else raise CooperDec.COOPER
+    val _ = if relevant (rev ps) c then () 
+               else  (trace_msg ("Conclusion is not a presburger term:\n" ^
+             Sign.string_of_term sg c); raise CooperDec.COOPER)
     fun mk_all ((s, T), (P,n)) =
       if 0 mem loose_bnos P then
         (HOLogic.all_const T $ Abs (s, T, P), n)
@@ -161,14 +234,20 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 (* the presburger tactic*)
-fun presburger_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
-  let
-    val g = BasisLibrary.List.nth (prems_of st, i - 1);
-    val sg = sign_of_thm st;
-    (* Transform the term*)
-    val (t,np,nh) = prepare_for_presburger q g
-    (* Some simpsets for dealing with mod div abs and nat*)
 
+(* Parameters : q = flag for quantify ofer free variables ; 
+                a = flag for abstracting over function occurences
+                i = subgoal  *)
+
+fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
+  let
+    val g = BasisLibrary.List.nth (prems_of st, i - 1)
+    val sg = sign_of_thm st
+    (* The Abstraction step *)
+    val g' = if a then abstract_pres sg g else g
+    (* Transform the term*)
+    val (t,np,nh) = prepare_for_presburger sg q g'
+    (* Some simpsets for dealing with mod div abs and nat*)
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
       addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]
@@ -183,37 +262,40 @@ fun presburger_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
       addsimps [nat_0_le, all_nat, ex_nat, number_of1, number_of2, int_0, int_1]
       addcongs [conj_le_cong, imp_le_cong]
     (* simp rules for elimination of abs *)
-
     val simpset3 = HOL_basic_ss addsplits [abs_split]
-	      
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
-
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
-      [simp_tac simpset0 i,
-       TRY (simp_tac simpset1 i), TRY (simp_tac simpset2 i),
-       TRY (simp_tac simpset3 i), TRY (simp_tac presburger_ss i)]
+      [simp_tac simpset0 1,
+       TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
+       TRY (simp_tac simpset3 1)]
       (trivial ct))
-
-    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i);
-
+    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
           (trace_msg ("calling procedure with term:\n" ^
              Sign.string_of_term sg t1);
-           ((mproof_of_int_qelim sg (Pattern.eta_long [] t1) RS iffD2) RS pre_thm,
+           ((tmproof_of_int_qelim sg (Pattern.eta_long [] t1) RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i THEN tac) st
+  in (rtac (((mp_step nh) o (spec_step np)) th) i 
+      THEN tac) st
   end handle Subscript => no_tac st | CooperDec.COOPER => no_tac st);
 
 fun presburger_args meth =
-  Method.simple_args (Scan.optional (Args.$$$ "no_quantify" >> K false) true)
-    (fn q => fn _ => meth q 1);
+ let val parse_flag = 
+         Args.$$$ "no_quantify" >> K (apfst (K false))
+      || Args.$$$ "no_abs" >> K (apsnd (K false));
+ in
+   Method.simple_args 
+  (Scan.optional (Args.$$$ "(" |-- Args.list1 parse_flag --| Args.$$$ ")") [] >>
+    curry (foldl op |>) (true, true))
+    (fn (q,a) => fn _ => meth q a 1)
+  end;
 
-fun presburger_method q i = Method.METHOD (fn facts =>
-  Method.insert_tac facts 1 THEN presburger_tac q i)
+fun presburger_method q a i = Method.METHOD (fn facts =>
+  Method.insert_tac facts 1 THEN presburger_tac q a i)
 
 val setup =
   [Method.add_method ("presburger",
@@ -221,8 +303,8 @@ val setup =
      "decision procedure for Presburger arithmetic"),
    ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
      {splits = splits, inj_consts = inj_consts, discrete = discrete,
-      presburger = Some (presburger_tac true)})];
+      presburger = Some (presburger_tac true true)})];
 
 end;
 
-val presburger_tac = Presburger.presburger_tac true;
+val presburger_tac = Presburger.presburger_tac true true;

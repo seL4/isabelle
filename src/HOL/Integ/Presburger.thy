@@ -978,11 +978,11 @@ text {*
   \medskip Specific instances of congruence rules, to prevent
   simplifier from looping. *}
 
-theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::nat) \<longrightarrow> P) = (0 <= x \<longrightarrow> P')"
+theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<longrightarrow> P) = (0 <= x \<longrightarrow> P')"
   by simp
 
-theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::nat) \<and> P) = (0 <= x \<and> P')"
-  by simp
+theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')"
+  by (simp cong: conj_cong)
 
 use "cooper_dec.ML"
 use "cooper_proof.ML"
