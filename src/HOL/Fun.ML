@@ -169,6 +169,11 @@ Goalw [inj_on_def] "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
 by (Blast_tac 1);
 qed "inj_on_contraD";
 
+Goal "inj (%s. {s})";
+br injI 1;
+be singleton_inject 1;
+qed "inj_singleton";
+
 Goalw [inj_on_def] "[| A<=B; inj_on f B |] ==> inj_on f A";
 by (Blast_tac 1);
 qed "subset_inj_on";
