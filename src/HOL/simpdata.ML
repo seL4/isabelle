@@ -389,6 +389,11 @@ val HOL_ss =
      addcongs [imp_cong]
      addsplits [split_if];
 
+fun hol_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);
+fun hol_rewrite_cterm rews =
+  #2 o Thm.dest_comb o #prop o Thm.crep_thm o Simplifier.full_rewrite (HOL_basic_ss addsimps rews);
+
+
 (*Simplifies x assuming c and y assuming ~c*)
 val prems = Goalw [if_def]
   "[| b=c; c ==> x=u; ~c ==> y=v |] ==> \
