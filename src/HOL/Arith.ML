@@ -610,8 +610,7 @@ by (Simp_tac 1);
 qed "Suc_mult_cancel1";
 
 
-(** Lemma for gcd **)
-
+(*Lemma for gcd*)
 Goal "m = m*n ==> n=1 | m=0";
 by (dtac sym 1);
 by (rtac disjCI 1);
@@ -1158,3 +1157,20 @@ qed "diff_less_mono2";
 Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
 by (asm_full_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diffs0_imp_equal";
+
+(** Lemmas for ex/Factorization **)
+
+Goal "[| 1<n; 1<m |] ==> 1<m*n";
+by (exhaust_tac "m" 1);
+by Auto_tac;
+qed "one_less_mult"; 
+
+Goal "[| 1<n; 1<m |] ==> n<m*n";
+by (exhaust_tac "m" 1);
+by Auto_tac;
+qed "n_less_m_mult_n"; 
+
+Goal "[| 1<n; 1<m |] ==> n<n*m";
+by (exhaust_tac "m" 1);
+by Auto_tac;
+qed "n_less_n_mult_m"; 
