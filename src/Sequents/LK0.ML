@@ -50,18 +50,34 @@ fun cutL_tac (sP: string) i =
 
 
 (** If-and-only-if rules **)
-qed_goalw "iffR" thy [iff_def]
-    "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[conjR,impR]) 1)) ]);
+Goalw [iff_def] 
+    "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F";
+by (REPEAT (ares_tac [conjR,impR] 1));
+qed "iffR";
 
-qed_goalw "iffL" thy [iff_def]
-   "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[conjL,impL,basic]) 1)) ]);
+Goalw [iff_def] 
+    "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E";
+by (REPEAT (ares_tac [conjL,impL,basic] 1));
+qed "iffL";
 
-qed_goalw "TrueR" thy [True_def]
-    "$H |- $E, True, $F"
- (fn _=> [ rtac impR 1, rtac basic 1 ]);
+Goal "$H |- $E, (P <-> P), $F";
+by (REPEAT (resolve_tac [iffR,basic] 1));
+qed "iff_refl";
 
+Goalw [True_def] "$H |- $E, True, $F";
+by (rtac impR 1);
+by (rtac basic 1);
+qed "TrueR";
+
+(*Descriptions*)
+val [p1,p2] = Goal
+    "[| $H |- $E, P(a), $F;  !!x. $H, P(x) |- $E, x=a, $F |] \
+\    ==> $H |- $E, (THE x. P(x)) = a, $F";
+by (rtac cut 1);
+by (rtac p2 2);
+by (rtac The 1 THEN rtac thinR 1 THEN rtac exchRS 1 THEN rtac p1 1);
+by (rtac thinR 1 THEN rtac exchRS 1 THEN rtac p2 1);
+qed "the_equality";
 
 (** Weakened quantifier rules.  Incomplete, they let the search terminate.**)
 
@@ -83,17 +99,13 @@ val prop_pack = empty_pack add_safes
                  notL, notR, iffL, iffR];
 
 val LK_pack = prop_pack add_safes   [allR, exL] 
-                        add_unsafes [allL_thin, exR_thin];
+                        add_unsafes [allL_thin, exR_thin, the_equality];
 
 val LK_dup_pack = prop_pack add_safes   [allR, exL] 
-                            add_unsafes [allL, exR];
+                            add_unsafes [allL, exR, the_equality];
 
 
-thm_pack_ref() := LK_pack;
-
-fun Fast_tac st = fast_tac (thm_pack()) st;
-fun Step_tac st = step_tac (thm_pack()) st;
-fun Safe_tac st = safe_tac (thm_pack()) st;
+pack_ref() := LK_pack;
 
 fun lemma_tac th i = 
     rtac (thinR RS cut) i THEN REPEAT (rtac thinL i) THEN rtac th i;
@@ -167,3 +179,17 @@ Goal "[| $H|- $E, $F, a=b;  $H|- $E, $F, b=c |] ==> $H|- $E, a=c, $F";
 by (rtac (trans RS R_of_imp RS mp_R) 1);
 by (ALLGOALS assume_tac);
 qed "transR";
+
+
+(* Two theorms for rewriting only one instance of a definition:
+   the first for definitions of formulae and the second for terms *)
+
+val prems = goal thy "(A == B) ==> |- A <-> B";
+by (rewrite_goals_tac prems);
+by (rtac iff_refl 1);
+qed "def_imp_iff";
+
+val prems = goal thy "(A == B) ==> |- A = B";
+by (rewrite_goals_tac prems);
+by (rtac refl 1);
+qed "meta_eq_to_obj_eq";

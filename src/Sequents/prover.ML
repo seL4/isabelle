@@ -1,4 +1,4 @@
-(*  Title:      LK/LK.ML
+(*  Title:      Sequents/prover
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -7,11 +7,16 @@ Simple classical reasoner for the sequent calculus, based on "theorem packs"
 *)
 
 
-
 (*Higher precedence than := facilitates use of references*)
 infix 4 add_safes add_unsafes;
 
+structure Cla =
+
+struct
+
 datatype pack = Pack of thm list * thm list;
+
+val trace = ref false;
 
 (*A theorem pack has the form  (safe rules, unsafe rules)
   An unsafe rule is incomplete or introduces variables in subgoals,
@@ -129,7 +134,9 @@ fun repeat_goal_tac (Pack(safes,unsafes)) =
   let val restac  =    RESOLVE_THEN safes
       and lastrestac = RESOLVE_THEN unsafes;
       fun gtac i = restac gtac i  
-	           ORELSE  (print_tac "" THEN lastrestac gtac i)
+	           ORELSE  (if !trace then
+				(print_tac "" THEN lastrestac gtac i)
+			    else lastrestac gtac i)
   in  gtac  end; 
 
 
@@ -139,8 +146,8 @@ fun safe_tac (Pack(safes,unsafes)) = reresolve_tac safes;
 val safe_goal_tac = safe_tac;   (*backwards compatibility*)
 
 (*Tries a safe rule or else a unsafe rule.  Single-step for tracing. *)
-fun step_tac (thm_pack as Pack(safes,unsafes)) =
-    safe_tac thm_pack  ORELSE'
+fun step_tac (pack as Pack(safes,unsafes)) =
+    safe_tac pack  ORELSE'
     filseq_resolve_tac unsafes 9999;
 
 
@@ -148,17 +155,17 @@ fun step_tac (thm_pack as Pack(safes,unsafes)) =
    A decision procedure for Propositional Calculus, it is incomplete
    for Predicate-Calculus because of allL_thin and exR_thin.  
    Fails if it can do nothing.      *)
-fun pc_tac thm_pack = SELECT_GOAL (DEPTH_SOLVE (repeat_goal_tac thm_pack 1));
+fun pc_tac pack = SELECT_GOAL (DEPTH_SOLVE (repeat_goal_tac pack 1));
 
 
 (*The following two tactics are analogous to those provided by 
   Provers/classical.  In fact, pc_tac is usually FASTER than fast_tac!*)
-fun fast_tac thm_pack =
-  SELECT_GOAL (DEPTH_SOLVE (step_tac thm_pack 1));
+fun fast_tac pack =
+  SELECT_GOAL (DEPTH_SOLVE (step_tac pack 1));
 
-fun best_tac thm_pack  = 
+fun best_tac pack  = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) 
-	       (step_tac thm_pack 1));
+	       (step_tac pack 1));
 
 
 
@@ -177,23 +184,33 @@ structure ProverData = TheoryDataFun(ProverArgs);
 
 val prover_setup = [ProverData.init];
 
-val print_thm_pack = ProverData.print;
-val thm_pack_ref_of_sg = ProverData.get_sg;
-val thm_pack_ref_of = ProverData.get;
+val print_pack = ProverData.print;
+val pack_ref_of_sg = ProverData.get_sg;
+val pack_ref_of = ProverData.get;
 
-(* access global thm_pack *)
+(* access global pack *)
 
-val thm_pack_of_sg = ! o thm_pack_ref_of_sg;
-val thm_pack_of = thm_pack_of_sg o sign_of;
+val pack_of_sg = ! o pack_ref_of_sg;
+val pack_of = pack_of_sg o sign_of;
 
-val thm_pack = thm_pack_of o Context.the_context;
-val thm_pack_ref = thm_pack_ref_of_sg o sign_of o Context.the_context;
+val pack = pack_of o Context.the_context;
+val pack_ref = pack_ref_of_sg o sign_of o Context.the_context;
 
 
-(* change global thm_pack *)
+(* change global pack *)
 
-fun change_thm_pack f x = thm_pack_ref () := (f (thm_pack (), x));
+fun change_pack f x = pack_ref () := (f (pack (), x));
 
-val Add_safes = change_thm_pack (op add_safes);
-val Add_unsafes = change_thm_pack (op add_unsafes);
+val Add_safes = change_pack (op add_safes);
+val Add_unsafes = change_pack (op add_unsafes);
 
+
+fun Fast_tac st = fast_tac (pack()) st;
+fun Step_tac st = step_tac (pack()) st;
+fun Safe_tac st = safe_tac (pack()) st;
+fun Pc_tac st   = pc_tac (pack()) st;
+
+end;
+
+
+open Cla;
