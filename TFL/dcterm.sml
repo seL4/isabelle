@@ -118,7 +118,7 @@ fun dest_triop expected tm =
 *)
 
 fun dest_binder expected tm = 
-  dest_abs(dest_monop expected tm)
+  dest_abs None (dest_monop expected tm)
   handle e => raise ERR "dest_binder" ("Not a(n) "^quote expected);
 
 
@@ -171,7 +171,7 @@ fun rev2swap (x,l) = (rev l, x);
 
 val strip_comb   = strip (swap o dest_comb)  (* Goes to the "left" *)
 val strip_imp    = rev2swap o strip dest_imp
-val strip_abs    = rev2swap o strip dest_abs
+val strip_abs    = rev2swap o strip (dest_abs None)
 val strip_forall = rev2swap o strip dest_forall
 val strip_exists = rev2swap o strip dest_exists
 
