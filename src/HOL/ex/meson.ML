@@ -203,12 +203,15 @@ fun literals (Const("Trueprop",_) $ P) = literals P
 (*number of literals in a term*)
 val nliterals = length o literals;
 
-(*to delete tautologous clauses*)
+(*to detect, and remove, tautologous clauses*)
 fun taut_lits [] = false
   | taut_lits ((flg,t)::ts) = (not flg,t) mem ts orelse taut_lits ts;
 
-val is_taut = taut_lits o literals o prop_of;
+val term_False = term_of (read_cterm (sign_of HOL.thy) 
+			  ("False", Type("bool",[])));
 
+(*Include False as a literal: an occurrence of ~False is a tautology*)
+fun is_taut th = taut_lits ((true,term_False) :: literals (prop_of th));
 
 (*Generation of unique names -- maxidx cannot be relied upon to increase!
   Cannot rely on "variant", since variables might coincide when literals
@@ -293,6 +296,8 @@ fun assoc_right th = assoc_right (th RS disj_assoc)
 
 (*Must check for negative literal first!*)
 val clause_rules = [disj_assoc, make_neg_rule, make_pos_rule];
+
+(*For Plaisted's postive refinement.  [currently unused] *)
 val refined_clause_rules = [disj_assoc, make_refined_neg_rule, make_pos_rule];
 
 (*Create a goal or support clause, conclusing False*)
@@ -328,7 +333,8 @@ fun add_contras crules (th,hcs) =
   end;
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
-fun make_horns ths = foldr (add_contras clause_rules) (ths,[]);
+fun make_horns ths = 
+    gen_distinct eq_thm (foldr (add_contras clause_rules) (ths,[]));
 
 (*Find an all-negative support clause*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
@@ -354,16 +360,22 @@ fun has_reps [] = false
   | has_reps ts = (foldl ins_term (Net.empty, ts);  false)
                   handle INSERT => true; 
 
+(*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
+fun TRYALL_eq_assume_tac 0 st = Sequence.single st
+  | TRYALL_eq_assume_tac i st = TRYALL_eq_assume_tac (i-1) (eq_assumption i st)
+                                handle THM _ => TRYALL_eq_assume_tac (i-1) st;
+
 (*Loop checking: FAIL if trying to prove the same thing twice
-  -- repeated literals*)
-val check_tac = SUBGOAL (fn (prem,_) =>
-  if has_reps (rhyps(prem,[]))  then  no_tac  else  all_tac); 
+  -- if *ANY* subgoal has repeated literals*)
+fun check_tac st = 
+  if exists (fn prem => has_reps (rhyps(prem,[]))) (prems_of st)
+  then  Sequence.null  else  Sequence.single st;
+
 
 (* net_resolve_tac actually made it slower... *)
 fun prolog_step_tac horns i = 
-    (assume_tac i APPEND resolve_tac horns i) THEN
-    (ALLGOALS check_tac) THEN
-    (TRYALL eq_assume_tac);
+    (assume_tac i APPEND resolve_tac horns i) THEN check_tac THEN
+    TRYALL eq_assume_tac;
 
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
@@ -395,20 +407,52 @@ fun MESON sko_tac = SELECT_GOAL
                     EVERY1 [skolemize_tac negs,
                             METAHYPS (sko_tac o make_clauses)])]);
 
+(** Best-first search versions **)
+
 fun best_meson_tac sizef = 
   MESON (fn cls => 
-         resolve_tac (gocls cls) 1
-         THEN_BEST_FIRST 
-         (has_fewer_prems 1, sizef,
-          prolog_step_tac (make_horns cls) 1));
+         THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
+                         (has_fewer_prems 1, sizef)
+			 (prolog_step_tac (make_horns cls) 1));
 
 (*First, breaks the goal into independent units*)
-val safe_meson_tac =
+val safe_best_meson_tac =
      SELECT_GOAL (TRY (safe_tac HOL_cs) THEN 
                   TRYALL (best_meson_tac size_of_subgoals));
+
+(** Depth-first search version **)
 
 val depth_meson_tac =
      MESON (fn cls => EVERY [resolve_tac (gocls cls) 1, 
                              depth_prolog_tac (make_horns cls)]);
+
+
+
+(** Iterative deepening version **)
+
+(*This version does only one inference per call;
+  having only one eq_assume_tac speeds it up!*)
+fun prolog_step_tac' horns = 
+    let val (horn0s, hornps) = (*0 subgoals vs 1 or more*)
+            take_prefix (fn rl => nprems_of rl=0) horns
+        val nrtac = net_resolve_tac horns
+    in  fn i => eq_assume_tac i ORELSE
+                match_tac horn0s i ORELSE  (*no backtracking if unit MATCHES*)
+	        ((assume_tac i APPEND nrtac i) THEN check_tac)
+    end;
+
+fun iter_deepen_prolog_tac horns = 
+    ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
+
+val iter_deepen_meson_tac = 
+  MESON (fn cls => 
+         (THEN_ITER_DEEPEN (resolve_tac (gocls cls) 1)
+	                   (has_fewer_prems 1)
+	                   (prolog_step_tac' (make_horns cls))));
+
+val safe_meson_tac =
+     SELECT_GOAL (TRY (safe_tac HOL_cs) THEN 
+                  TRYALL (iter_deepen_meson_tac));
+
 
 writeln"Reached end of file.";
