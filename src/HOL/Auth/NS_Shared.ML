@@ -252,7 +252,7 @@ by (forward_tac [Says_imp_spies RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
 			       Crypt_Spy_analz_bad]) 1);
-by (blast_tac (claset() addDs [unique_session_keys]) 1);
+by (blast_tac (claset() addSDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 
