@@ -69,7 +69,12 @@ fun find_common (terms1,terms2) =
 
 (*the simplification procedure*)
 fun proc sg _ t =
-  let val (t1,t2) = Data.dest_bal t 
+  let (*first freeze any Vars in the term to prevent flex-flex problems*)
+      val rand_s = gensym"_"
+      fun mk_inst (var as Var((a,i),T))  = 
+	    (var,  Free((a ^ rand_s ^ string_of_int i), T))
+      val t' = subst_atomic (map mk_inst (term_vars t)) t
+      val (t1,t2) = Data.dest_bal t' 
       val terms1 = Data.dest_sum t1
       and terms2 = Data.dest_sum t2
       val u = find_common (terms1,terms2)
@@ -81,22 +86,23 @@ fun proc sg _ t =
 	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
 		raise TERM("cancel_numerals", []) 
 	    else Data.prove_conv [Data.norm_tac] sg 
-			(t, 
+			(t', 
 			 Data.mk_bal (newshape(n1,terms1'), 
 				      newshape(n2,terms2')))
   in
-
       apsome Data.simplify_meta_eq
        (if n2<=n1 then 
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add1 1,
 		Data.numeral_simp_tac] sg
-	       (t, Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum terms2'))
+	       (t', Data.mk_bal (newshape(n1-n2,terms1'), 
+				 Data.mk_sum terms2'))
 	else
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add2 1,
 		Data.numeral_simp_tac] sg
-	       (t, Data.mk_bal (Data.mk_sum terms1', newshape(n2-n1,terms2'))))
+	       (t', Data.mk_bal (Data.mk_sum terms1', 
+				 newshape(n2-n1,terms2'))))
   end
   handle TERM _ => None
        | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
