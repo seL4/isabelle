@@ -246,7 +246,9 @@ val oracleP =
 
 (* statements *)
 
-fun statement f = opt_thm_name ":" -- prop >> (fn ((x, y), z) => f x y z);
+val is_props = $$$ "(" |-- !!! (Scan.repeat1 ($$$ "is" |-- prop) --| $$$ ")");
+val propp = prop -- Scan.optional is_props [];
+fun statement f = opt_thm_name ":" -- propp >> (fn ((x, y), z) => f x y z);
 
 val theoremP =
   OuterSyntax.parser false "theorem" "state theorem"
@@ -284,7 +286,7 @@ val factsP =
 
 val assumeP =
   OuterSyntax.parser false "assume" "assume propositions"
-    (opt_thm_name ":" -- Scan.repeat1 prop >>
+    (opt_thm_name ":" -- Scan.repeat1 propp >>
       (fn ((x, y), z) => Toplevel.print o Toplevel.proof (IsarThy.assume x y z)));
 
 val fixP =
@@ -294,7 +296,7 @@ val fixP =
 
 val letP =
   OuterSyntax.parser false "let" "bind text variables"
-    (enum1 "and" (term -- ($$$ "=" |-- term))
+    (enum1 "and" (enum1 "as" term -- ($$$ "=" |-- term))
       >> (fn bs => Toplevel.print o Toplevel.proof (IsarThy.match_bind bs)));
 
 
@@ -482,8 +484,8 @@ val breakP =
 
 val keywords =
  ["(", ")", "*", "+", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
-  "?", "[", "]", "and", "binder", "infixl", "infixr", "mixfix", "output",
-  "{", "|", "}"];
+  "?", "[", "]", "and", "as", "binder", "infixl", "infixr", "is",
+  "mixfix", "output", "{", "|", "}"];
 
 val parsers = [
   (*theory structure*)
