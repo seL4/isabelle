@@ -27,6 +27,8 @@ time_use_thy "ex/BinFn";
 time_use_thy "ex/BT_Fn";	(*binary trees*)
 time_use_thy "ex/TermFn";	(*terms: recursion over the list functor*)
 time_use_thy "ex/TF_Fn";	(*trees/forests: mutual recursion*)
+time_use_thy "ex/Ntree";	(*variable-branching trees; function demo*)
+time_use_thy "ex/Brouwer";	(*Brouwer ordinals: infinite-branching trees*)
 time_use_thy "ex/Data";		(*Sample datatype*)
 time_use_thy "ex/Enum";		(*Enormous enumeration type*)
 
