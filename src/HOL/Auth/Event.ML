@@ -9,10 +9,15 @@ inductive relation "traces" for Needham-Schroeder (shared keys)
 Rewrites should not refer to	 initState (Friend i)    -- not in normal form
 *)
 
+Addsimps [parts_cut_eq];
+
+
+(*INSTALLED ON NAT.ML*)
+goalw Nat.thy [le_def] "(m <= n) = (m < Suc n)";
+by (rtac not_less_eq 1);
+qed "le_eq_less_Suc";
 
 proof_timing:=true;
-
-Delrules [less_SucE];	(*Perhaps avoid inserting this in Arith.ML????*)
 
 (*FOR LIST.ML??*)
 goal List.thy "x : set_of_list (x#xs)";
@@ -98,7 +103,7 @@ Addsimps [parts_image_Key, analz_image_Key];
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (agent.induct_tac "C" 1);
-by (auto_tac (!claset addIs [range_eqI], !simpset));
+by (auto_tac (!claset addIs [range_eqI] delrules partsEs, !simpset));
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
@@ -228,8 +233,6 @@ goal thy
  "!!evs. evs : traces ==> \
 \     sees A evs <= initState A Un sees Enemy evs";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server... as irrelevant!*)
-be subst 5;	(*NS3: discard evsa = Says S Aa... as irrelevant!*)
 by (ALLGOALS (fast_tac (!claset addDs [sees_Says_subset_insert RS subsetD] 
 			        addss (!simpset))));
 qed "sees_agent_subset_sees_Enemy";
@@ -251,6 +254,13 @@ Addsimps [not_Notes];
 AddSEs   [not_Notes RSN (2, rev_notE)];
 
 
+goal thy "!!evs. (Says S A (Crypt {|N, B, K, X|} KA)) : set_of_list evs ==> \
+\                X : parts (sees Enemy evs)";
+by (fast_tac (!claset addSEs partsEs
+	              addSDs [Says_imp_sees_Enemy RS parts.Inj]) 1);
+qed "NS3_msg_in_parts_sees_Enemy";
+			      
+
 (*** Server keys are not betrayed ***)
 
 (*Enemy never sees another agent's server key!*)
@@ -258,12 +268,11 @@ goal thy
  "!!evs. [| evs : traces; A ~= Enemy |] ==> \
 \        Key (serverKey A) ~: parts (sees Enemy evs)";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
-by (auto_tac(!claset, !simpset addsimps [parts_insert2]));
-(*Deals with Faked messages*)
+bd NS3_msg_in_parts_sees_Enemy 5;
+by (Auto_tac());
+(*Deals with Fake message*)
 by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs parts_insert_subset_Un]
-	              addss (!simpset)) 1);
+			     impOfSubs synth_analz_parts_insert_subset_Un]) 1);
 qed "Enemy_not_see_serverKey";
 
 bind_thm ("Enemy_not_analz_serverKey",
@@ -330,21 +339,13 @@ goal thy "!!evs. evs : traces ==> \
 \                length evs <= length evs' --> \
 \                          Key (newK evs') ~: (UN C. parts (sees C evs))";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Suc_le_eq])));
-(*Initial state?  New keys cannot clash*)
-by (Fast_tac 1);
-(*Rule NS1 in protocol*)
-by (fast_tac (!claset addDs [less_imp_le]) 2);
-(*Rule NS2 in protocol*)
-by (fast_tac (!claset addIs [less_imp_le] addss (!simpset)) 2);
-(*Rule NS3 in protocol*)
-by (fast_tac (!claset addIs [less_imp_le] addss (!simpset)) 2);
-(*Rule Fake: where an Enemy agent can say practically anything*)
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs parts_insert_subset_Un,
-			     less_imp_le]
-	              addss (!simpset)) 1);
+bd NS3_msg_in_parts_sees_Enemy 5;
+(*auto_tac does not work here, as it performs safe_tac first*)
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+				       impOfSubs parts_insert_subset_Un,
+				       Suc_leD]
+			        addss (!simpset))));
 val lemma = result();
 
 (*Variant needed for the main theorem below*)
@@ -381,31 +382,16 @@ goal thy "!!evs. evs : traces ==> \
 \                length evs <= length evs' --> \
 \                newK evs' ~: keysFor (UN C. parts (sees C evs))";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
-by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [Suc_le_eq])));
-(*Rule NS1 in protocol*)
-by (fast_tac (!claset addDs [less_imp_le]) 2);
-(*Rule NS2 in protocol*)
-by (fast_tac (!claset addDs [less_imp_le]) 2);
-(*Rule Fake: where an Enemy agent can say practically anything*)
-by (best_tac 
-    (!claset addSDs [newK_invKey]
-	     addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-		    impOfSubs (parts_insert_subset_Un RS keysFor_mono),
-		    less_imp_le]
-             addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
-	     addss (!simpset)) 1);
-(*Rule NS3: quite messy...*)
-by (hyp_subst_tac 1);
-by (full_simp_tac (!simpset addcongs [conj_cong]) 1);
-br impI 1;
-bd mp 1;
-by (fast_tac (!claset addDs [less_imp_le]) 1);
-by (best_tac (!claset addIs 
-	      [impOfSubs (sees_subset_sees_Says RS keysFor_parts_mono),
-	       impOfSubs (sees_own RS equalityD2 RS keysFor_parts_mono),
-	       impOfSubs (empty_subsetI RS insert_mono RS keysFor_parts_mono)]
-              addss (!simpset)) 1);
+bd NS3_msg_in_parts_sees_Enemy 5;
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS
+    (best_tac 
+     (!claset addSDs [newK_invKey]
+	      addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
+		     impOfSubs (parts_insert_subset_Un RS keysFor_mono),
+		     Suc_leD]
+	      addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
+	      addss (!simpset))));
 val lemma = result();
 
 goal thy 
@@ -453,7 +439,6 @@ goal thy
 \                         length evt < length evs)";
 be rev_mp 1;
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs' as irrelevant!*)
 by (ALLGOALS (fast_tac (!claset addIs [less_SucI] addss (!simpset))));
 qed "Says_Server_message_form";
 
@@ -472,7 +457,6 @@ goal thy
 \     K ~: analz (insert (Key (serverKey (Friend k))) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server... as irrelevant!*)
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps pushes)));
 by (Step_tac 1);
 by (asm_full_simp_tac (!simpset addsimps[analz_subset_parts RS contra_subsetD]) 1);
@@ -489,33 +473,16 @@ goal thy
 \          (EX evt:traces. K = newK evt & \
 \                          X = (Crypt {|Key K, Agent A|} (serverKey B)))";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
+bd NS3_msg_in_parts_sees_Enemy 5;
 by (Step_tac 1);
 by (ALLGOALS Asm_full_simp_tac);
-(*Remaining cases are Fake, NS2 and NS3*)
+(*Remaining cases are Fake and NS2*)
 by (fast_tac (!claset addSDs [spec]) 2);
-(*The NS3 case needs the induction hypothesis twice!
-    One application is to the X component of the most recent message.*)
-by (full_simp_tac (!simpset addsimps [conj_disj_distribR, 
-				      all_conj_distrib]) 2);
-be conjE 2;
-by (subgoal_tac "? evs':traces. K = newK evs' & \
-\                     X = Crypt {|Key K, Agent (Friend i)|} (serverKey B)" 2);
-(*DELETE the second quantified formula for speed*)
-by (eres_inst_tac [("V","ALL A NA B K Xa. ?f A NA B K Xa : ?H X & ?P(A) --> \
-\                                         ?Q K Xa A B")] thin_rl 3);
-by (fast_tac (!claset addSEs [allE, mp] addss (!simpset)) 3);
-(*DELETE the first quantified formula: it's now useless*)
-by (eres_inst_tac [("V","ALL S.?P(S)")] thin_rl 2);
-by (fast_tac (!claset addss (!simpset)) 2);
 (*Now for the Fake case*)
-by (subgoal_tac 
-    "Crypt {|Nonce NA, Agent Ba, Key K, Xa|} (serverKey A) : \
-\    parts (synth (analz (sees Enemy evsa)) Un (sees Enemy evsa))" 1);
-by (fast_tac (!claset addSEs [impOfSubs parts_mono]) 2);
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts]
+by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+			     impOfSubs synth_analz_parts_insert_subset_Un]
 	              addss (!simpset)) 1);
-val encrypted_form = result();
+qed_spec_mp "encrypted_form";
 
 
 (*For eliminating the A ~= Enemy condition from the previous result*)
@@ -526,18 +493,17 @@ goal thy
 \            : set_of_list evs  -->   \
 \        S = Server | S = Enemy";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
 by (ALLGOALS Asm_simp_tac);
 (*We are left with NS3*)
 by (subgoal_tac "S = Server | S = Enemy" 1);
 (*First justify this assumption!*)
 by (fast_tac (!claset addSEs [allE, mp] addss (!simpset)) 2);
 by (Step_tac 1);
-bd (set_of_list_I1 RS Says_Server_message_form) 1;
+bd Says_Server_message_form 1;
 by (ALLGOALS Full_simp_tac);
 (*Final case.  Clear out needless quantifiers to speed the following step*)
 by (eres_inst_tac [("V","ALL x. ?P(x)")] thin_rl 1);
-bd (normalize_thm [RSspec,RSmp] encrypted_form) 1;
+bd encrypted_form 1;
 br (parts.Inj RS conjI) 1;
 auto();
 qed_spec_mp "Server_or_Enemy";
@@ -555,7 +521,7 @@ by (forward_tac [Server_or_Enemy] 1);
 ba 1;
 by (Step_tac 1);
 by (fast_tac (!claset addSDs [Says_Server_message_form] addss (!simpset)) 1);
-by (forward_tac [normalize_thm [RSspec,RSmp] encrypted_form] 1);
+by (forward_tac [encrypted_form] 1);
 br (parts.Inj RS conjI) 1;
 by (auto_tac (!claset addIs [Says_imp_old_keys], !simpset));
 qed "Says_S_message_form";
@@ -595,16 +561,13 @@ goal thy
 \        (Crypt X (newK evt)) : parts (sees Enemy evs) & \
 \        Key K : parts {X} --> Key K : parts (sees Enemy evs)";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
-by (hyp_subst_tac 5);	(*NS3: apply evsa = Says S A (Crypt ...) # ... *)
+bd NS3_msg_in_parts_sees_Enemy 5;
 by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
-(*Case NS3*)
-by (res_inst_tac [("x1","Xa")] (insert_commute RS ssubst) 2);
-by (Asm_full_simp_tac 2);
 (*Deals with Faked messages*)
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs parts_insert_subset_Un]
-	              addss (!simpset)) 1);
+by (best_tac (!claset addSEs partsEs
+		      addDs [impOfSubs analz_subset_parts,
+                             impOfSubs parts_insert_subset_Un]
+                      addss (!simpset)) 1);
 result();
 
 
@@ -634,8 +597,7 @@ goal thy
 \            Key K : analz (insert (Key (serverKey C)) \
 \                             (sees Enemy evs)))";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
-by (dtac Says_S_message_form_eq 5 THEN assume_tac 5);	
+by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);	
 by (REPEAT ((eresolve_tac [bexE, conjE] ORELSE' hyp_subst_tac) 5));
 by (ALLGOALS 
     (asm_simp_tac 
@@ -649,14 +611,14 @@ by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
 (** LEVEL 7 **)
 (*Fake case*)
 by (REPEAT (Safe_step_tac 1));
-by (fast_tac (!claset addSEs [impOfSubs (analz_mono)]) 2);
+by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 2);
 by (subgoal_tac 
     "Key K : analz \
 \             (synth \
 \              (analz (insert (Key (serverKey C)) \
 \                        (Key``(newK``E) Un (sees Enemy evsa)))))" 1);
 (*First, justify this subgoal*)
-(*Discard the quantified formula for better speed*)
+(*Discard formulae for better speed*)
 by (eres_inst_tac [("V","ALL S.?P(S)")] thin_rl 2);
 by (eres_inst_tac [("V","?Q ~: ?QQ")] thin_rl 2);
 by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
@@ -668,11 +630,11 @@ qed_spec_mp "analz_image_newK";
 
 goal thy  
  "!!evs. evs : traces ==>                                  \
-\        Key K : analz (insert (Key (newK evt))          \
+\        Key K : analz (insert (Key (newK evt))            \
 \                         (insert (Key (serverKey C))      \
 \                          (sees Enemy evs))) =            \
 \             (K = newK evt |                              \
-\              Key K : analz (insert (Key (serverKey C)) \
+\              Key K : analz (insert (Key (serverKey C))   \
 \                               (sees Enemy evs)))";
 by (asm_simp_tac (HOL_ss addsimps [pushKey_newK, analz_image_newK, 
 				   insert_Key_singleton]) 1);
@@ -681,17 +643,17 @@ qed "analz_insert_Key_newK";
 
 
 
-(*If C=Enemy then of course he could make up all sorts of nonsense.*)
+(*This says that the Key, K, uniquely identifies the message.
+    But if C=Enemy then he could send all sorts of nonsense.*)
 goal thy 
  "!!evs. evs : traces ==>                      \
 \      EX X'. ALL C S A Y N B X.               \
 \         C ~= Enemy -->                       \
-\         Says S A Y : set_of_list evs -->       \
+\         Says S A Y : set_of_list evs -->     \
 \         ((Crypt {|N, Agent B, Key K, X|} (serverKey C)) : parts{Y} --> \
 \       (X = X'))";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server... as irrelevant!*)
-by (dtac Says_S_message_form_eq 5 THEN assume_tac 5);	
+by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);	
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [all_conj_distrib, imp_conj_distrib])));
 (*NS2: Case split propagates some context to other subgoal...*)
@@ -699,6 +661,7 @@ by (excluded_middle_tac "K = newK evsa" 2);
 by (Asm_simp_tac 2);
 (*...we assume X is a very new message, and handle this case by contradiction*)
 by (fast_tac (!claset addIs [impOfSubs (subset_insertI RS parts_mono)]
+		      addSEs partsEs
 		      addEs [Says_imp_old_keys RS less_irrefl]
 	              addss (!simpset)) 2);
 (*NS3: No relevant messages*)
@@ -709,7 +672,7 @@ br exI 1;
 br conjI 1;
 ba 2;
 by (Step_tac 1);
-(** LEVEL 13 **)
+(** LEVEL 12 **)
 by (subgoal_tac "Crypt {|N, Agent Ba, Key K, Xa|} (serverKey C) \
 \                  : parts (sees Enemy evsa)" 1);
 by (eres_inst_tac [("V","ALL S.?P(S)")] thin_rl 2);
@@ -729,11 +692,12 @@ val lemma = result();
 (*In messages of this form, the session key uniquely identifies the rest*)
 goal thy 
  "!!evs. [| Says S A          \
-\         (Crypt {|N, Agent B, Key K, X|} (serverKey C)) : set_of_list evs; \
- \      Says S' A'                                         \
-\         (Crypt {|N', Agent B', Key K, X'|} (serverKey C')) : set_of_list evs;                         \
-\     \
-\   evs : traces;  C ~= Enemy;  C' ~= Enemy    |] ==> X = X'";
+\             (Crypt {|N, Agent B, Key K, X|} (serverKey C))     \
+\                  : set_of_list evs; \
+ \          Says S' A'                                         \
+\             (Crypt {|N', Agent B', Key K, X'|} (serverKey C')) \
+\                  : set_of_list evs;                         \
+\           evs : traces;  C ~= Enemy;  C' ~= Enemy    |] ==> X = X'";
 bd lemma 1;
 be exE 1;
 by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
@@ -752,7 +716,6 @@ goal thy
 \     K ~: analz (insert (Key (serverKey C)) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server... as irrelevant!*)
 by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
 (*Next 3 steps infer that K has the form "Key (newK evs'" ... *)
 by (REPEAT_FIRST (resolve_tac [conjI, impI]));
@@ -765,7 +728,7 @@ by (ALLGOALS
                setloop split_tac [expand_if])));
 (*NS2*)
 by (fast_tac (!claset addSEs [less_irrefl]) 2);
-(** LEVEL 9 **)
+(** LEVEL 8 **)
 (*Now for the Fake case*)
 br notI 1;
 by (subgoal_tac 
@@ -773,49 +736,25 @@ by (subgoal_tac
 \    analz (synth (analz (insert (Key (serverKey C)) \
 \                                  (sees Enemy evsa))))" 1);
 be (impOfSubs analz_mono) 2;
-by (deepen_tac (!claset addIs [analz_mono RS synth_mono RSN 
-			     (2,rev_subsetD),
-			     impOfSubs synth_increasing,
-			     impOfSubs analz_increasing]) 0 2);
+by (deepen_tac (!claset addIs [analz_mono RS synth_mono RSN (2,rev_subsetD),
+			       impOfSubs synth_increasing,
+			       impOfSubs analz_increasing]) 0 2);
 (*Proves the Fake goal*)
 by (fast_tac (!claset addss (!simpset)) 1);
 
-(**LEVEL 14**)
-(*Now for NS3*)
-(*NS3, case 1: that message from the Server was just sent*)
-by (ALLGOALS (forward_tac [traces_ConsE]));
-by (forward_tac [set_of_list_I1 RS Says_Server_message_form] 1);
-by (Full_simp_tac 1);
-by (REPEAT_FIRST (eresolve_tac [bexE, conjE] ORELSE' hyp_subst_tac));
-(*Can simplify the Crypt messages: their key is secure*)
-by (dres_inst_tac [("psi", "?X ~: ?H")] asm_rl 1);
-by (asm_full_simp_tac
-    (!simpset addsimps (pushes @ [analz_insert_Crypt,
-				  analz_subset_parts RS contra_subsetD])) 1);
-
-(**LEVEL 20, one subgoal left! **)
-(*NS3, case 2: that message from the Server was sent earlier*)
-
-(*simplify the good implication*)
-by (Asm_full_simp_tac 1);       
-(*delete the bad implication*)
-by (eres_inst_tac [("V","?P-->?Q")] thin_rl 1); 
-by ((forward_tac [Says_Server_message_form] THEN' assume_tac) 1);
-by (REPEAT_FIRST (eresolve_tac [bexE, conjE] ORELSE' hyp_subst_tac));
-
-(**LEVEL 24 **)
-
-by ((forward_tac [set_of_list_I1 RS Says_S_message_form]) 1);
+(**LEVEL 13**)
+(*NS3: that message from the Server was sent earlier*)
+by (mp_tac 1);
+by (forward_tac [Says_S_message_form] 1 THEN assume_tac 1);
 by (REPEAT_FIRST (eresolve_tac [bexE, conjE] ORELSE' hyp_subst_tac));
 by (asm_full_simp_tac
     (!simpset addsimps (mem_if::analz_insert_Key_newK::pushes)) 1);
-by (step_tac (!claset delrules [impCE]) 1);
-
-(**LEVEL 28 **)
-bd ([impOfSubs set_of_list_subset_Cons, set_of_list_I1] MRS unique_session_keys) 1;
-ba 1;
+by (Step_tac 1);
+(**LEVEL 18 **)
+bd unique_session_keys 1;
+by (REPEAT_FIRST assume_tac);
 by (ALLGOALS Full_simp_tac);
-by (REPEAT_FIRST (eresolve_tac [conjE] ORELSE' hyp_subst_tac));
+by (Step_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [serverKey_mem_analz]) 1);
 qed "Enemy_not_see_encrypted_key";
 
@@ -882,7 +821,6 @@ goal thy
 \     K ~: analz (insert (Key (serverKey (Friend k))) (sees Enemy evs))";
 be rev_mp 1;
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server... as irrelevant!*)
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps pushes)));
 by (Step_tac 1);
 by (asm_full_simp_tac (!simpset addsimps[analz_subset_parts RS contra_subsetD]) 1);
@@ -926,7 +864,6 @@ goal thy
 \    (EX B'. Says Server B' (Crypt X (serverKey (Friend i))) : set_of_list evs | \
 \            Says (Friend i) B' (Crypt X (serverKey (Friend i))) : set_of_list evs)";
 be traces.induct 1;
-be subst 4;	(*NS2: discard evsa = Says A Server...#evs'a as irrelevant!*)
 by (Step_tac 1);
 by (ALLGOALS Asm_full_simp_tac);
 (*Remaining cases are Fake, NS2 and NS3*)

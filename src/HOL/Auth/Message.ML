@@ -81,8 +81,13 @@ by (REPEAT (eresolve_tac [asm_rl, parts.Fst, parts.Snd] 1));
 qed "MPair_parts";
 
 AddIs  [parts.Inj];
-AddSEs [MPair_parts];
-AddDs  [parts.Body];
+
+val partsEs = [MPair_parts, make_elim parts.Body];
+
+AddSEs partsEs;
+(*NB These two rules are UNSAFE in the formal sense, as they discard the
+     compound message.  They work well on THIS FILE, perhaps because its
+     proofs concern only atomic messages.*)
 
 goal thy "H <= parts(H)";
 by (Fast_tac 1);
@@ -161,12 +166,6 @@ goal thy "insert X (parts H) <= parts(insert X H)";
 by (fast_tac (!claset addEs [impOfSubs parts_mono]) 1);
 qed "parts_insert_subset";
 
-(*Especially for reasoning about the Fake rule in traces*)
-goal thy "!!Y. X: G ==> parts(insert X H) <= parts G Un parts H";
-br ([parts_mono, parts_Un_subset2] MRS subset_trans) 1;
-by (Fast_tac 1);
-qed "parts_insert_subset_Un";
-
 (** Idempotence and transitivity **)
 
 goal thy "!!H. X: parts (parts H) ==> X: parts H";
@@ -190,6 +189,11 @@ goal thy "!!H. [| X: parts H;  Y: parts (insert X H) |] ==> Y: parts H";
 be parts_trans 1;
 by (Fast_tac 1);
 qed "parts_cut";
+
+goal thy "!!H. X: parts H ==> parts (insert X H) = parts H";
+by (fast_tac (!claset addSEs [parts_cut]
+                      addIs [impOfSubs (subset_insertI RS parts_mono)]) 1);
+qed "parts_cut_eq";
 
 
 (** Rewrite rules for pulling out atomic messages **)
@@ -598,3 +602,23 @@ by (deepen_tac (!claset addSEs [analz.Decrypt]
 			addIs  [analz.Decrypt]) 0 1);
 qed "analz_UN1_synth";
 Addsimps [analz_UN1_synth];
+
+(*Especially for reasoning about the Fake rule in traces*)
+goal thy "!!Y. X: G ==> parts(insert X H) <= parts G Un parts H";
+br ([parts_mono, parts_Un_subset2] MRS subset_trans) 1;
+by (Fast_tac 1);
+qed "parts_insert_subset_Un";
+
+(*Also for the Fake rule, but more specific*)
+goal thy "!!H. X: synth (analz H) ==> \
+\              parts (insert X H) <= synth (analz H) Un parts H";
+bd parts_insert_subset_Un 1;
+by (Full_simp_tac 1);
+by (Fast_tac 1);
+qed "synth_analz_parts_insert_subset_Un";
+
+
+
+(*We do NOT want Crypt... messages broken up in protocols!!*)
+Delrules partsEs;
+

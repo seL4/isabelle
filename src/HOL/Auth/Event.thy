@@ -82,10 +82,8 @@ rules
   isSym_newK "isSymKey (newK evs)"
 
 
-(*NS1 AND NS2 DON'T ALLOW INTERLEAVING -- that is, they only respond to the
-  MOST RECENT message.  Does this mean we can't model middleperson attacks?
-  We don't need the most recent restriction in order to handle interception
-  by the Enemy, as agents are not forced to respond anyway.*)
+(*NS3 DOESN'T ALLOW INTERLEAVING -- that is, it only responds to the
+  MOST RECENT message.*)
 
 consts  traces   :: "event list set"
 inductive traces
@@ -102,9 +100,11 @@ inductive traces
           |] ==> (Says A Server {|Agent A, Agent B, Nonce (newN evs)|}) 
                  # evs : traces"
 
-          (*We can't trust the sender field, hence the A' in it  *)
+          (*We can't trust the sender field, hence the A' in it.
+            This allows the Server to respond more than once to A's
+            request...*)
     NS2  "[| evs: traces;  A ~= B;  A ~= Server;
-             evs = (Says A' Server {|Agent A, Agent B, Nonce NA|}) # evs'
+             (Says A' Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says Server A 
                   (Crypt {|Nonce NA, Agent B, Key (newK evs),   
                            (Crypt {|Key (newK evs), Agent A|} (serverKey B))|}
@@ -114,11 +114,10 @@ inductive traces
              May assume WLOG that she is NOT the Enemy: the Fake rule
              covers this case.  Can inductively show A ~= Server*)
     NS3  "[| evs: traces;  A ~= B;
-             evs = (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|}
-                              (serverKey A))) 
-                   # evs';
+             (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A))) 
+               : set_of_list evs;
              A = Friend i;
-             (Says A Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs'
+             (Says A Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says A B X) # evs : traces"
 
 (*Initial version of NS2 had 
