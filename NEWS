@@ -215,6 +215,9 @@ New in this Isabelle release
   INCOMPATIBILITY: old proofs break occasionally as simplification may
   now solve more goals than previously.
 
+* HOL: new 'isatool dimacs2hol' to convert files in DIMACS CNF format
+  (containing Boolean satisfiability problems) into Isabelle/HOL theories.
+
 
 *** HOLCF ***
 
@@ -605,7 +608,7 @@ assignment, exceptions.
 
 *** ZF ***
 
-* ZF/Constructible: consistency proof for AC (Gödel's constructible
+* ZF/Constructible: consistency proof for AC (Gdel's constructible
 universe, etc.);
 
 * Main ZF: virtually all theories converted to new-style format;
@@ -722,7 +725,7 @@ better use "obtain" in situations as above; alternative refer to
 multi-step methods like 'auto', 'simp_all', 'blast+' etc.;
 
 * Pure: proper integration with ``locales''; unlike the original
-version by Florian Kammüller, Isar locales package high-level proof
+version by Florian Kammller, Isar locales package high-level proof
 contexts rather than raw logical ones (e.g. we admit to include
 attributes everywhere); operations on locales include merge and
 rename; support for implicit arguments (``structures''); simultaneous
@@ -931,7 +934,7 @@ renamed "Product_Type.unit";
 the "cases" method);
 
 * HOL/GroupTheory: group theory examples including Sylow's theorem (by
-Florian Kammüller);
+Florian Kammller);
 
 * HOL/IMP: updated and converted to new-style theory format; several
 parts turned into readable document, with proper Isar proof texts and
