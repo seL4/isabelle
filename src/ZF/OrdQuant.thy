@@ -62,6 +62,33 @@ declare Ord_Un [intro,simp,TC]
 declare Ord_UN [intro,simp,TC]
 declare Ord_Union [intro,simp,TC]
 
+(** Now some very basic ZF theorems **)
+
+lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
+by blast
+
+lemma [simp]: "cons(a,cons(a,B)) = cons(a,B)"
+by blast
+
+lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
+by (unfold trans_def trans_on_def, blast)
+
+lemma image_is_UN: "\<lbrakk>function(g); x <= domain(g)\<rbrakk> \<Longrightarrow> g``x = (UN k:x. {g`k})"
+by (blast intro: function_apply_equality [THEN sym] function_apply_Pair) 
+
+lemma functionI: 
+     "\<lbrakk>!!x y y'. \<lbrakk><x,y>:r; <x,y'>:r\<rbrakk> \<Longrightarrow> y=y'\<rbrakk> \<Longrightarrow> function(r)"
+by (simp add: function_def, blast) 
+
+lemma function_lam: "function (lam x:A. b(x))"
+by (simp add: function_def lam_def) 
+
+lemma relation_lam: "relation (lam x:A. b(x))"  
+by (simp add: relation_def lam_def, blast) 
+
+lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
+by (simp add: restrict_def) 
+
 (** These mostly belong to theory Ordinal **)
 
 lemma Union_upper_le:

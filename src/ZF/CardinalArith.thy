@@ -40,6 +40,42 @@ syntax (xsymbols)
   "op |*|"     :: "[i,i] => i"          (infixl "\<otimes>" 70)
 
 
+(*** The following really belong early in the development ***)
+
+lemma relation_converse_converse [simp]:
+     "relation(r) ==> converse(converse(r)) = r"
+by (simp add: relation_def, blast) 
+
+lemma relation_restrict [simp]:  "relation(restrict(r,A))"
+by (simp add: restrict_def relation_def, blast) 
+
+(*** The following really belong in Order ***)
+
+lemma subset_ord_iso_Memrel:
+     "\<lbrakk>f: ord_iso(A,Memrel(B),C,r); A<=B\<rbrakk> \<Longrightarrow> f: ord_iso(A,Memrel(A),C,r)"
+apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN fun_is_rel]) 
+apply (frule ord_iso_trans [OF id_ord_iso_Memrel], assumption) 
+apply (simp add: right_comp_id) 
+done
+
+lemma restrict_ord_iso:
+     "\<lbrakk>f \<in> ord_iso(i, Memrel(i), Order.pred(A,a,r), r);  a \<in> A; j < i; 
+       trans[A](r)\<rbrakk>
+      \<Longrightarrow> restrict(f,j) \<in> ord_iso(j, Memrel(j), Order.pred(A,f`j,r), r)"
+apply (frule ltD) 
+apply (frule ord_iso_is_bij [THEN bij_is_fun, THEN apply_type], assumption) 
+apply (frule ord_iso_restrict_pred, assumption) 
+apply (simp add: pred_iff trans_pred_pred_eq lt_pred_Memrel)
+apply (blast intro!: subset_ord_iso_Memrel le_imp_subset [OF leI]) 
+done
+
+lemma restrict_ord_iso2:
+     "\<lbrakk>f \<in> ord_iso(Order.pred(A,a,r), r, i, Memrel(i));  a \<in> A; 
+       j < i; trans[A](r)\<rbrakk>
+      \<Longrightarrow> converse(restrict(converse(f), j)) 
+          \<in> ord_iso(Order.pred(A, converse(f)`j, r), r, j, Memrel(j))"
+by (blast intro: restrict_ord_iso ord_iso_sym ltI)
+
 (*** The following really belong in OrderType ***)
 
 lemma oadd_eq_0_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> (i ++ j) = 0 <-> i=0 & j=0"
