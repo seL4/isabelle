@@ -2328,7 +2328,8 @@ apply(auto simp:max_def)
 done
 
 lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply (rule Lattice.intro, simp)
+apply(rule Lattice.intro)
+apply simp
 apply(erule (1) order_trans)
 apply(erule (1) order_antisym)
 apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
@@ -2338,21 +2339,17 @@ apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
 apply(rule_tac x=x and y=y in linorder_le_cases)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
 apply(simp add:min_def max_def)
 apply(simp add:min_def max_def)
 apply(rule_tac x=y and y=z in linorder_le_cases)
 apply(simp add:min_def max_def)
 apply(simp add:min_def max_def)
-apply(rule_tac x=x and y=z in linorder_le_cases)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
+done
 
+lemma DistribLattice_min_max: "DistribLattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
+apply(rule DistribLattice.intro)
+apply(rule Lattice_min_max)
+apply(rule DistribLattice_axioms.intro)
 apply(rule_tac x=x and y=y in linorder_le_cases)
 apply(rule_tac x=x and y=z in linorder_le_cases)
 apply(rule_tac x=y and y=z in linorder_le_cases)
@@ -2417,11 +2414,9 @@ lemma Min_le_Max:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> Max A"
 by(simp add: Min_def Max_def Lattice.Inf_le_Sup[OF Lattice_min_max])
 
-(* FIXME
 lemma max_Min2_distrib:
   "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow>
   max (Min A) (Min B) = Min{ max a b |a b. a \<in> A \<and> b \<in> B}"
-by(simp add: Min_def Max_def Lattice.sup_Inf2_distrib[OF Lattice_min_max])
-*)
+by(simp add: Min_def DistribLattice.sup_Inf2_distrib[OF DistribLattice_min_max])
 
 end
