@@ -373,7 +373,7 @@ fun clearTo n =
   "vars" is a list of variables local to the rule and NOT to be put
 	on the trail (no point in doing so)
 *)
-fun unify(vars,t,u) =
+fun unify(allowClash,vars,t,u) =
     let val n = !ntrail 
 	fun update (t as Var v, u) =
 	    if t aconv u then ()
@@ -388,6 +388,10 @@ fun unify(vars,t,u) =
 	    case (wkNorm t,  wkNorm u) of
 		(nt as Var v,  nu) => update(nt,nu)
 	      | (nu,  nt as Var v) => update(nt,nu)
+	      | (Const a, OConst(b,_))  => if allowClash andalso a=b then ()
+		                           else raise UNIFY
+	      | (OConst(a,_), Const b)  => if allowClash andalso a=b then ()
+		                           else raise UNIFY
 	      | (Abs(_,t'),  Abs(_,u')) => unifyAux(t',u')
 		    (*NB: can yield unifiers having dangling Bound vars!*)
 	      | (f$t',  g$u') => (unifyAux(f,g); unifyAux(t',u'))
@@ -469,7 +473,7 @@ fun rot_subgoals_tac [] i st      = Sequence.single st
       rot_subgoals_tac ks (i+1) (Sequence.hd (rotate_tac (~k) i st))
       handle OPTION _ => Sequence.null;
 
-fun TRACE rl tac st = if !trace then (prth rl; tac st) else tac st;
+fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
 (*Tableau rule from elimination rule.  Flag "dup" requests duplication of the
   affected formula.*)
@@ -477,8 +481,7 @@ fun fromRule vars rl =
   let val {tsig,...} = Sign.rep_sg (#sign (rep_thm rl))
       val trl = rl |> rep_thm |> #prop |> fromTerm tsig |> convertRule vars
       fun tac dup i = 
-	  TRACE rl
-	  (etac (if dup then rev_dup_elim rl else rl) i)
+	  TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
 	  
   in General.SOME (trl, tac) end
@@ -506,7 +509,7 @@ fun fromIntrRule vars rl =
   let val {tsig,...} = Sign.rep_sg (#sign (rep_thm rl))
       val trl = rl |> rep_thm |> #prop |> fromTerm tsig |> convertIntrRule vars
       fun tac dup i = 
-	  TRACE rl (DETERM (rtac (if dup then Data.dup_intr rl else rl) i))
+	  TRACE rl (DETERM o (rtac (if dup then Data.dup_intr rl else rl))) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
   in (trl, tac) end;
 
@@ -660,10 +663,10 @@ val eContr_tac  = TRACE Data.notE (eq_contr_tac ORELSE' Data.contr_tac);
 val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
-fun tryClose (Const"*Goal*" $ G,  L) = (unify([],G,L); eAssume_tac)
-  | tryClose (G,  Const"*Goal*" $ L) = (unify([],G,L); eAssume_tac)
-  | tryClose (Const"Not" $ G,  L)    = (unify([],G,L); eContr_tac)
-  | tryClose (G,  Const"Not" $ L)    = (unify([],G,L); eContr_tac)
+fun tryClose (Const"*Goal*" $ G,  L) = (unify(true,[],G,L); eAssume_tac)
+  | tryClose (G,  Const"*Goal*" $ L) = (unify(true,[],G,L); eAssume_tac)
+  | tryClose (Const"Not" $ G,  L)    = (unify(true,[],G,L); eContr_tac)
+  | tryClose (G,  Const"Not" $ L)    = (unify(true,[],G,L); eContr_tac)
   | tryClose _                       = raise UNIFY;
 
 
@@ -760,7 +763,7 @@ fun addLit (Const "*Goal*" $ G, lits) =
 
 (*For calculating the "penalty" to assess on a branching factor of n
   log2 seems a little too severe*)
-fun log3 n = if n<3 then 0 else 1 + log3(n div 3);
+fun log4 n = if n<4 then 0 else 1 + log4(n div 4);
 
 
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
@@ -795,11 +798,11 @@ fun prove (cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    let val dummy = unify(add_term_vars(P,[]), P, G)
+		    let val dummy = unify(false, add_term_vars(P,[]), P, G)
 			    (*P comes from the rule; G comes from the branch.*)
                         val ntrl' = !ntrail
 			val lim' = if ntrl < !ntrail 
-				   then lim - (1+log3(length rules))
+				   then lim - (1+log4(length rules))
 				   else lim   (*discourage branching updates*)
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
@@ -819,9 +822,9 @@ fun prove (cs, brs, cont) =
 			  prv(tacs',  brs0::trs, choices',
 			      newBr (vars',lim') prems)
 			  handle PRV => 
-			      if ntrl < ntrl' then
-				   (*Vars have been updated: must backtrack
-				     even if not mentioned in other goals!
+			      if ntrl < ntrl' (*Vars have been updated*)
+                                 then
+				   (*Backtrack at this level.
 				     Reset Vars and try another rule*)
 				   (clearTo ntrl;  deeper grls)
 			      else (*backtrack to previous level*)
@@ -890,14 +893,14 @@ fun prove (cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    let val dummy = unify(add_term_vars(P,[]), P, H)
+		    let val dummy = unify(false, add_term_vars(P,[]), P, H)
 			val ntrl' = !ntrail
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
                         val dup = md andalso vars' <> vars
 			(*duplicate H only if md and the premise has new vars*)
 			val lim' = (*Decrement "lim" extra if updates occur*)
-			    if ntrl < !ntrail then lim - (1+log3(length rules))
+			    if ntrl < !ntrail then lim - (1+log4(length rules))
 			    else lim-1
 			    (*NB: if the formula is duplicated, 
 			      then it seems plausible to leave lim alone.  
