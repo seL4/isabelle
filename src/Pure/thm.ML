@@ -1459,21 +1459,20 @@ fun biresolution match brules i state =
 
 exception SIMPLIFIER of string * thm;
 
-fun prtm a sign t = (writeln a; writeln (Sign.string_of_term sign t));
-fun prtm_warning a sign t = (warning a; warning (Sign.string_of_term sign t));
+fun prnt warn a = if warn then warning a else writeln a;
+
+fun prtm warn a sign t =
+  (prnt warn a; prnt warn (Sign.string_of_term sign t));
 
 val trace_simp = ref false;
 
-fun trace a = if ! trace_simp then writeln a else ();
-fun trace_warning a = if ! trace_simp then warning a else ();
-fun trace_term a sign t = if ! trace_simp then prtm a sign t else ();
-fun trace_term_warning a sign t = if ! trace_simp then prtm_warning a sign t else ();
+fun trace warn a = if !trace_simp then prnt warn a else ();
 
-fun trace_thm a (Thm {sign_ref, prop, ...}) =
-  trace_term a (Sign.deref sign_ref) prop;
+fun trace_term warn a sign t =
+  if !trace_simp then prtm warn a sign t else ();
 
-fun trace_thm_warning a (Thm {sign_ref, prop, ...}) =
-  trace_term_warning a (Sign.deref sign_ref) prop;
+fun trace_thm warn a (thm as Thm{sign_ref, prop, ...}) =
+  (trace_term warn a (Sign.deref sign_ref) prop);
 
 
 
@@ -1575,7 +1574,7 @@ fun mk_rrule (thm as Thm {sign_ref, prop, ...}) =
   in case Logic.loops sign prems lhs rhs of
      (None,perm) => Some {thm = thm, lhs = lhs, perm = perm}
    | (Some msg,_) =>
-        (prtm_warning("ignoring rewrite rule ("^msg^")") sign prop; None)
+        (prtm true ("ignoring rewrite rule ("^msg^")") sign prop; None)
   end;
 
 
@@ -1587,9 +1586,9 @@ fun add_simp
   (case mk_rrule thm of
     None => mss
   | Some (rrule as {lhs, ...}) =>
-      (trace_thm "Adding rewrite rule:" thm;
+      (trace_thm false "Adding rewrite rule:" thm;
         mk_mss (Net.insert_term ((lhs, rrule), rules, eq_rrule) handle Net.INSERT =>
-          (prtm_warning "ignoring duplicate rewrite rule" (Sign.deref sign_ref) prop; rules),
+          (prtm true "ignoring duplicate rewrite rule" (Sign.deref sign_ref) prop; rules),
             congs, procs, bounds, prems, mk_rews, termless)));
 
 val add_simps = foldl add_simp;
@@ -1606,7 +1605,7 @@ fun del_simp
     None => mss
   | Some (rrule as {lhs, ...}) =>
       mk_mss (Net.delete_term ((lhs, rrule), rules, eq_rrule) handle Net.DELETE =>
-        (prtm_warning "rewrite rule not in simpset" (Sign.deref sign_ref) prop; rules),
+        (prtm true "rewrite rule not in simpset" (Sign.deref sign_ref) prop; rules),
           congs, procs, bounds, prems, mk_rews, termless));
 
 val del_simps = foldl del_simp;
@@ -1650,11 +1649,11 @@ val (op del_congs) = foldl del_cong;
 
 fun add_proc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
     (name, lhs as Cterm {sign_ref, t, ...}, proc, id)) =
-  (trace_term ("Adding simplification procedure " ^ quote name ^ " for:")
+  (trace_term false ("Adding simplification procedure " ^ quote name ^ " for:")
       (Sign.deref sign_ref) t;
     mk_mss (rules, congs,
       Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-        handle Net.INSERT => (trace_warning "ignored duplicate"; procs),
+        handle Net.INSERT => (trace true "ignored duplicate"; procs),
         bounds, prems, mk_rews, termless));
 
 fun add_simproc (mss, (name, lhss, proc, id)) =
@@ -1669,7 +1668,7 @@ fun del_proc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless}
     (name, lhs as Cterm {t, ...}, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-      handle Net.DELETE => (trace_warning "simplification procedure not in simpset"; procs),
+      handle Net.DELETE => (trace true "simplification procedure not in simpset"; procs),
       bounds, prems, mk_rews, termless);
 
 fun del_simproc (mss, (name, lhss, proc, id)) =
@@ -1716,15 +1715,15 @@ type termrec = (Sign.sg_ref * term list) * term;
 type conv = meta_simpset -> termrec -> termrec;
 
 fun check_conv (thm as Thm{shyps,hyps,prop,sign_ref,der,maxidx,...}, prop0, ders) =
-  let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm;
-                   trace_term "Should have proved" (Sign.deref sign_ref) prop0;
+  let fun err() = (trace_thm false "Proved wrong thm (Check subgoaler?)" thm;
+                   trace_term false "Should have proved" (Sign.deref sign_ref) prop0;
                    None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
   in case prop of
        Const("==",_) $ lhs $ rhs =>
          if (lhs = lhs0) orelse
             (lhs aconv Envir.norm_term (Envir.empty 0) lhs0)
-         then (trace_thm "SUCCEEDED" thm; 
+         then (trace_thm false "SUCCEEDED" thm; 
                Some(shyps, hyps, maxidx, rhs, der::ders))
          else err()
      | _ => err()
@@ -1756,7 +1755,7 @@ fun mk_procrule (thm as Thm {sign_ref, prop, ...}) =
   in
     if not ((term_vars erhs) subset
         (union_term (term_vars elhs, List.concat(map term_vars prems)))) 
-    then (prtm_warning "extra Var(s) on rhs" sign prop; [])
+    then (prtm true "extra Var(s) on rhs" sign prop; [])
     else [{thm = thm, lhs = lhs, perm = false}]
   end;
 
@@ -1780,7 +1779,7 @@ fun rewritec (prover,sign_reft) (mss as Mss{rules, procs, mk_rews, termless, pre
         let
             val _ =
               if Sign.subsig (Sign.deref sign_ref, signt) then ()
-              else (trace_thm_warning "rewrite rule from different theory" thm;
+              else (trace_thm true "rewrite rule from different theory" thm;
                 raise Pattern.MATCH);
             val rprop = if maxt = ~1 then prop
                         else Logic.incr_indexes([],maxt+1) prop;
@@ -1805,11 +1804,11 @@ fun rewritec (prover,sign_reft) (mss as Mss{rules, procs, mk_rews, termless, pre
             val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
         in if perm andalso not(termless(rhs',lhs')) then None else
            if Logic.count_prems(prop',0) = 0
-           then (trace_thm "Rewriting:" thm'; 
+           then (trace_thm false "Rewriting:" thm'; 
                  Some(shyps', hyps', maxidx', rhs', der'::ders))
-           else (trace_thm "Trying to rewrite:" thm';
+           else (trace_thm false "Trying to rewrite:" thm';
                  case prover mss thm' of
-                   None       => (trace_thm "FAILED" thm'; None)
+                   None       => (trace_thm false "FAILED" thm'; None)
                  | Some(thm2) => check_conv(thm2,prop',ders))
         end
 
@@ -1832,13 +1831,13 @@ fun rewritec (prover,sign_reft) (mss as Mss{rules, procs, mk_rews, termless, pre
       fun proc_rews _ ([]:simproc list) = None
         | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
             if Pattern.matches tsigt (plhs, t) then
-             (trace_term ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
+             (trace_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
               case proc signt prems eta_t of
-                None => (trace "FAILED"; proc_rews eta_t ps)
+                None => (trace false "FAILED"; proc_rews eta_t ps)
               | Some raw_thm =>
-                 (trace_thm ("Procedure " ^ quote name ^ " proved rewrite rule:") raw_thm;
+                 (trace_thm false ("Procedure " ^ quote name ^ " proved rewrite rule:") raw_thm;
                    (case rews (mk_procrule raw_thm) of
-                     None => (trace "IGNORED"; proc_rews eta_t ps)
+                     None => (trace false "IGNORED"; proc_rews eta_t ps)
                    | some => some)))
             else proc_rews eta_t ps;
   in
@@ -1880,7 +1879,7 @@ fun congc (prover,sign_reft) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
                      hyps = union_term(hyps,hypst),
                      prop = prop',
                      maxidx = maxidx'};
-      val unit = trace_thm "Applying congruence rule" thm';
+      val unit = trace_thm false "Applying congruence rule" thm';
       fun err() = error("Failed congruence proof!")
 
   in case prover thm' of
@@ -1965,7 +1964,7 @@ fun bottomc ((simprem,useprem),prover,sign_ref) =
            val maxidx1 = maxidx_of_term s1
            val mss1 =
              if not useprem then mss else
-             if maxidx1 <> ~1 then (trace_term_warning
+             if maxidx1 <> ~1 then (trace_term true
 "Cannot add premise as rewrite rule because it contains (type) unknowns:"
                                                   (Sign.deref sign_ref) s1; mss)
              else let val thm = assume (Cterm{sign_ref=sign_ref, t=s1, 
