@@ -2,6 +2,9 @@
     ID:         $Id$
     Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
+
+Changes by Jeremy Avigad, 2003/02/21:
+   repaired proof of Bnor_prime (removed use of zprime_def)
 *)
 
 header {* Fermat's Little Theorem extended to Euler's Totient function *}
@@ -57,8 +60,7 @@ constdefs
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
   -- {* LCP: not sure why this lemma is needed now *}
-  apply (auto simp add: zabs_def)
-  done
+by (auto simp add: zabs_def)
 
 
 text {* \medskip @{text norRRset} *}
@@ -73,11 +75,9 @@ lemma BnorRset_induct:
 proof -
   case rule_context
   show ?thesis
-    apply (rule BnorRset.induct)
-    apply safe
+    apply (rule BnorRset.induct, safe)
      apply (case_tac [2] "0 < a")
-      apply (rule_tac [2] rule_context)
-       apply simp_all
+      apply (rule_tac [2] rule_context, simp_all)
      apply (simp_all add: BnorRset.simps rule_context)
   done
 qed
@@ -86,26 +86,22 @@ lemma Bnor_mem_zle [rule_format]: "b \<in> BnorRset (a, m) --> b \<le> a"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   done
 
 lemma Bnor_mem_zle_swap: "a < b ==> b \<notin> BnorRset (a, m)"
-  apply (auto dest: Bnor_mem_zle)
-  done
+by (auto dest: Bnor_mem_zle)
 
 lemma Bnor_mem_zg [rule_format]: "b \<in> BnorRset (a, m) --> 0 < b"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   done
 
 lemma Bnor_mem_if [rule_format]:
     "zgcd (b, m) = 1 --> 0 < b --> b \<le> a --> b \<in> BnorRset (a, m)"
-  apply (induct a m rule: BnorRset.induct)
-  apply auto
+  apply (induct a m rule: BnorRset.induct, auto)
    apply (case_tac "a = b")
     prefer 2
     apply (simp add: order_less_le)
@@ -114,32 +110,27 @@ lemma Bnor_mem_if [rule_format]:
    apply (subst BnorRset.simps)
    defer
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   done
 
 lemma Bnor_in_RsetR [rule_format]: "a < m --> BnorRset (a, m) \<in> RsetR m"
-  apply (induct a m rule: BnorRset_induct)
-   apply simp
+  apply (induct a m rule: BnorRset_induct, simp)
   apply (subst BnorRset.simps)
-  apply (unfold Let_def)
-  apply auto
+  apply (unfold Let_def, auto)
   apply (rule RsetR.insert)
     apply (rule_tac [3] allI)
     apply (rule_tac [3] impI)
     apply (rule_tac [3] zcong_not)
        apply (subgoal_tac [6] "a' \<le> a - 1")
         apply (rule_tac [7] Bnor_mem_zle)
-        apply (rule_tac [5] Bnor_mem_zg)
-        apply auto
+        apply (rule_tac [5] Bnor_mem_zg, auto)
   done
 
 lemma Bnor_fin: "finite (BnorRset (a, m))"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   done
 
 lemma norR_mem_unique_aux: "a \<le> b - 1 ==> a < (b::int)"
@@ -150,13 +141,11 @@ lemma norR_mem_unique:
   "1 < m ==>
     zgcd (a, m) = 1 ==> \<exists>!b. [a = b] (mod m) \<and> b \<in> norRRset m"
   apply (unfold norRRset_def)
-  apply (cut_tac a = a and m = m in zcong_zless_unique)
-   apply auto
+  apply (cut_tac a = a and m = m in zcong_zless_unique, auto)
    apply (rule_tac [2] m = m in zcong_zless_imp_eq)
        apply (auto intro: Bnor_mem_zle Bnor_mem_zg zcong_trans
 	 order_less_imp_le norR_mem_unique_aux simp add: zcong_sym)
-  apply (rule_tac "x" = "b" in exI)
-  apply safe
+  apply (rule_tac "x" = b in exI, safe)
   apply (rule Bnor_mem_if)
     apply (case_tac [2] "b = 0")
      apply (auto intro: order_less_le [THEN iffD2])
@@ -175,17 +164,14 @@ text {* \medskip @{term noXRRset} *}
 lemma RRset_gcd [rule_format]:
     "is_RRset A m ==> a \<in> A --> zgcd (a, m) = 1"
   apply (unfold is_RRset_def)
-  apply (rule RsetR.induct)
-    apply auto
+  apply (rule RsetR.induct, auto)
   done
 
 lemma RsetR_zmult_mono:
   "A \<in> RsetR m ==>
     0 < m ==> zgcd (x, m) = 1 ==> (\<lambda>a. a * x) ` A \<in> RsetR m"
-  apply (erule RsetR.induct)
-   apply simp_all
-  apply (rule RsetR.insert)
-    apply auto
+  apply (erule RsetR.induct, simp_all)
+  apply (rule RsetR.insert, auto)
    apply (blast intro: zgcd_zgcd_zmult)
   apply (simp add: zcong_cancel)
   done
@@ -205,8 +191,7 @@ lemma noX_is_RRset:
   apply (auto simp add: card_nor_eq_noX)
   apply (unfold noXRRset_def norRRset_def)
   apply (rule RsetR_zmult_mono)
-    apply (rule Bnor_in_RsetR)
-    apply simp_all
+    apply (rule Bnor_in_RsetR, simp_all)
   done
 
 lemma aux_some:
@@ -214,17 +199,14 @@ lemma aux_some:
     ==> zcong a (SOME b. [a = b] (mod m) \<and> b \<in> norRRset m) m \<and>
       (SOME b. [a = b] (mod m) \<and> b \<in> norRRset m) \<in> norRRset m"
   apply (rule norR_mem_unique [THEN ex1_implies_ex, THEN someI_ex])
-   apply (rule_tac [2] RRset_gcd)
-    apply simp_all
+   apply (rule_tac [2] RRset_gcd, simp_all)
   done
 
 lemma RRset2norRR_correct:
   "1 < m ==> is_RRset A m ==> a \<in> A ==>
     [a = RRset2norRR A m a] (mod m) \<and> RRset2norRR A m a \<in> norRRset m"
-  apply (unfold RRset2norRR_def)
-  apply simp
-  apply (rule aux_some)
-    apply simp_all
+  apply (unfold RRset2norRR_def, simp)
+  apply (rule aux_some, simp_all)
   done
 
 lemmas RRset2norRR_correct1 =
@@ -233,9 +215,7 @@ lemmas RRset2norRR_correct2 =
   RRset2norRR_correct [THEN conjunct2, standard]
 
 lemma RsetR_fin: "A \<in> RsetR m ==> finite A"
-  apply (erule RsetR.induct)
-   apply auto
-  done
+by (erule RsetR.induct, auto)
 
 lemma RRset_zcong_eq [rule_format]:
   "1 < m ==>
@@ -253,15 +233,13 @@ lemma aux:
 
 lemma RRset2norRR_inj:
     "1 < m ==> is_RRset A m ==> inj_on (RRset2norRR A m) A"
-  apply (unfold RRset2norRR_def inj_on_def)
-  apply auto
+  apply (unfold RRset2norRR_def inj_on_def, auto)
   apply (subgoal_tac "\<exists>b. ([x = b] (mod m) \<and> b \<in> norRRset m) \<and>
       ([y = b] (mod m) \<and> b \<in> norRRset m)")
    apply (rule_tac [2] aux)
      apply (rule_tac [3] aux_some)
        apply (rule_tac [2] aux_some)
-         apply (rule RRset_zcong_eq)
-             apply auto
+         apply (rule RRset_zcong_eq, auto)
   apply (rule_tac b = b in zcong_trans)
    apply (simp_all add: zcong_sym)
   done
@@ -271,19 +249,15 @@ lemma RRset2norRR_eq_norR:
   apply (rule card_seteq)
     prefer 3
     apply (subst card_image)
-      apply (rule_tac [2] RRset2norRR_inj)
-       apply auto
-     apply (rule_tac [4] RRset2norRR_correct2)
-       apply auto
+      apply (rule_tac [2] RRset2norRR_inj, auto)
+     apply (rule_tac [4] RRset2norRR_correct2, auto)
     apply (unfold is_RRset_def phi_def norRRset_def)
     apply (auto simp add: RsetR_fin Bnor_fin)
   done
 
 
 lemma Bnor_prod_power_aux: "a \<notin> A ==> inj f ==> f a \<notin> f ` A"
-  apply (unfold inj_on_def)
-  apply auto
-  done
+by (unfold inj_on_def, auto)
 
 lemma Bnor_prod_power [rule_format]:
   "x \<noteq> 0 ==> a < m --> setprod ((\<lambda>a. a * x) ` BnorRset (a, m)) =
@@ -291,8 +265,7 @@ lemma Bnor_prod_power [rule_format]:
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (subst setprod_insert)
     apply (rule_tac [2] Bnor_prod_power_aux)
@@ -317,8 +290,7 @@ lemma Bnor_prod_zgcd [rule_format]:
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
-   apply (unfold Let_def)
-   apply auto
+   apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (blast intro: zgcd_zgcd_zmult)
   done
@@ -333,13 +305,11 @@ theorem Euler_Fermat:
        in zcong_cancel2)
       prefer 5
       apply (subst Bnor_prod_power [symmetric])
-        apply (rule_tac [7] Bnor_prod_zgcd)
-        apply simp_all
+        apply (rule_tac [7] Bnor_prod_zgcd, simp_all)
   apply (rule bijzcong_zcong_prod)
   apply (fold norRRset_def noXRRset_def)
   apply (subst RRset2norRR_eq_norR [symmetric])
-    apply (rule_tac [3] inj_func_bijR)
-      apply auto
+    apply (rule_tac [3] inj_func_bijR, auto)
      apply (unfold zcongm_def)
      apply (rule_tac [2] RRset2norRR_correct1)
        apply (rule_tac [5] RRset2norRR_inj)
@@ -354,19 +324,21 @@ lemma Bnor_prime [rule_format (no_asm)]:
   "p \<in> zprime ==>
     a < p --> (\<forall>b. 0 < b \<and> b \<le> a --> zgcd (b, p) = 1)
     --> card (BnorRset (a, p)) = nat a"
-  apply (unfold zprime_def)
+  apply (auto simp add: zless_zprime_imp_zrelprime)
   apply (induct a p rule: BnorRset.induct)
   apply (subst BnorRset.simps)
-  apply (unfold Let_def)
-  apply auto
+  apply (unfold Let_def, auto)
+  apply (subgoal_tac "finite (BnorRset (a - 1,m))")
+   apply (subgoal_tac "a ~: BnorRset (a - 1,m)")
+    apply (auto simp add: card_insert_disjoint Suc_nat_eq_nat_zadd1)
+   apply (frule Bnor_mem_zle, arith)
+  apply (frule Bnor_fin)
   done
 
 lemma phi_prime: "p \<in> zprime ==> phi p = nat (p - 1)"
   apply (unfold phi_def norRRset_def)
-  apply (rule Bnor_prime)
-    apply auto
-  apply (erule zless_zprime_imp_zrelprime)
-   apply simp_all
+  apply (rule Bnor_prime, auto)
+  apply (erule zless_zprime_imp_zrelprime, simp_all)
   done
 
 theorem Little_Fermat:
@@ -374,8 +346,7 @@ theorem Little_Fermat:
   apply (subst phi_prime [symmetric])
    apply (rule_tac [2] Euler_Fermat)
     apply (erule_tac [3] zprime_imp_zrelprime)
-    apply (unfold zprime_def)
-    apply auto
+    apply (unfold zprime_def, auto)
   done
 
 end
