@@ -285,15 +285,17 @@ val goal_arity = mk_goal mk_arity;
 
 (** add proved subclass relations and arities **)
 
-fun add_inst_subclass (c1, c2) axms thms usr_tac thy =
+fun add_inst_subclass c1_c2 axms thms usr_tac thy =
+ (writeln ("Proving class inclusion " ^ quote (Sorts.str_of_classrel c1_c2) ^ " ...");
   add_classrel_thms
-  [prove_subclass thy (c1, c2) (witnesses thy axms thms) usr_tac] thy;
+    [prove_subclass thy c1_c2 (witnesses thy axms thms) usr_tac] thy);
 
 fun add_inst_arity (t, ss, cs) axms thms usr_tac thy =
   let
     val wthms = witnesses thy axms thms;
     fun prove c =
-      prove_arity thy (t, ss, c) wthms usr_tac;
+     (writeln ("Proving type arity " ^ quote (Sorts.str_of_arity (t, ss, [c])) ^ " ...");
+      prove_arity thy (t, ss, c) wthms usr_tac);
   in
     add_arity_thms (map prove cs) thy
   end;
