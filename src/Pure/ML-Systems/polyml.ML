@@ -49,6 +49,16 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (* ML command execution -- 'eval' *)
 
+local
+
+fun drop_last [] = []
+  | drop_last [x] = []
+  | drop_last (x :: xs) = x :: drop_last xs;
+
+val drop_last_char = implode o drop_last o explode;
+
+in
+
 fun use_text print verbose txt =
   let
     val in_buffer = ref (explode txt);
@@ -65,7 +75,7 @@ fun use_text print verbose txt =
         [] => ()
       | _ => (PolyML.compiler (get, put) (); exec ()));
 
-    fun show_output () = print (implode (rev (! out_buffer)));
+    fun show_output () = print (drop_last_char (implode (rev (! out_buffer))));
   in
     exec () handle exn => (show_output (); raise exn);
     if verbose then show_output () else ()
@@ -82,17 +92,6 @@ fun exhibit_interrupt f x = f x;
 
 
 (** OS related **)
-
-local
-
-fun drop_last [] = []
-  | drop_last [x] = []
-  | drop_last (x :: xs) = x :: drop_last xs;
-
-val drop_last_char = implode o drop_last o explode;
-
-in
-
 
 (* system command execution *)
 

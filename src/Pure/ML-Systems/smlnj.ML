@@ -87,7 +87,9 @@ fun use_text print verbose txt =
     val out_buffer = ref ([]: string list);
     val out = {say = (fn s => out_buffer := s :: ! out_buffer), flush = (fn () => ())};
 
-    fun show_output () = print (implode (rev (! out_buffer)));
+    fun show_output () =
+      let val str = implode (rev (! out_buffer))
+      in print (String.substring (str, 0, Int.max (0, size str - 1))) end;
   in
     Compiler.Control.Print.out := out;
     Compiler.Interact.useStream (TextIO.openString txt) handle exn =>
