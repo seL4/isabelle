@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Scanner combinators and Isabelle's main lexer (used for terms and typs).
+Scanner combinators and Isabelle's main lexer (used for terms and types).
 *)
 
 infix 5 -- ^^;
@@ -25,6 +25,18 @@ sig
   val optional: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
   val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val max_of: ('a -> ('b * string) * 'a) -> ('a -> ('b * string) * 'a)
+    -> 'a -> ('b * string) option * 'a
+  val scan_id: string list -> string * string list
+  val scan_tid: string list -> string * string list
+  val scan_nat: string list -> string * string list
+  type lexicon
+  val dest_lexicon: lexicon -> string list
+  val empty_lexicon: lexicon
+  val extend_lexicon: lexicon -> string list -> lexicon
+  val make_lexicon: string list -> lexicon
+  val merge_lexicons: lexicon -> lexicon -> lexicon
+  val scan_literal: lexicon -> string list -> string * string list
 end;
 
 signature LEXICON0 =
@@ -41,7 +53,6 @@ sig
   include LEXICON0
   val is_xid: string -> bool
   val is_tid: string -> bool
-  type lexicon
   datatype token =
     Token of string |
     IdentSy of string |
@@ -61,10 +72,6 @@ sig
   val token_assoc: (token option * 'a list) list * token -> 'a list
   val valued_token: token -> bool
   val predef_term: string -> token option
-  val dest_lexicon: lexicon -> string list
-  val empty_lexicon: lexicon
-  val extend_lexicon: lexicon -> string list -> lexicon
-  val merge_lexicons: lexicon -> lexicon -> lexicon
   val tokenize: lexicon -> bool -> string -> token list
 end;
 
@@ -134,7 +141,7 @@ fun str_of_token (Token s) = s
   | str_of_token (VarSy s) = s
   | str_of_token (TFreeSy s) = s
   | str_of_token (TVarSy s) = s
-  | str_of_token EndToken = "";
+  | str_of_token EndToken = "EOF";
 
 
 (* display_token *)
@@ -158,14 +165,15 @@ fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens _ = false;
 
 
-(* this function is needed in parser.ML but is placed here 
-   for better performance *)
+(* token_assoc *)
+
 fun token_assoc (list, key) =
-  let fun assoc [] = []
-        | assoc ((keyi, xi) :: pairs) =
-            if is_none keyi orelse matching_tokens (the keyi, key) then 
-              (assoc pairs) @ xi
-            else assoc pairs;
+  let
+    fun assoc [] = []
+      | assoc ((keyi, xi) :: pairs) =
+          if is_none keyi orelse matching_tokens (the keyi, key) then
+            assoc pairs @ xi
+          else assoc pairs;
   in assoc list end;
 
 
@@ -208,7 +216,7 @@ fun dest_lexicon Empty = []
       str :: (dest_lexicon eq @ dest_lexicon lt @ dest_lexicon gt);
 
 
-(* empty, extend, merge lexicons *)
+(* empty, extend, make, merge lexicons *)
 
 val empty_lexicon = Empty;
 
@@ -235,6 +243,8 @@ fun extend_lexicon lexicon strs =
   in
     foldl ext (lexicon, strs \\ dest_lexicon lexicon)
   end;
+
+val make_lexicon = extend_lexicon empty_lexicon;
 
 fun merge_lexicons lex1 lex2 =
   let
@@ -300,6 +310,13 @@ fun repeat scan cs = (scan -- repeat scan >> op :: || scan_empty) cs;
 
 fun repeat1 scan = scan -- repeat scan >> op ::;
 
+fun max_of scan1 scan2 cs =
+  (case (optional scan1 cs, optional scan2 cs) of
+    (tok1, (None, _)) => tok1
+  | ((None, _), tok2) => tok2
+  | (tok1 as (Some (_, s1), _), tok2 as (Some (_, s2), _)) =>
+      if size s1 >= size s2 then tok1 else tok2);
+
 
 (* other scanners *)
 
@@ -311,6 +328,10 @@ val scan_id = scan_letter_letdigs >> implode;
 
 val scan_id_nat =
   scan_id ^^ ($$ "." ^^ (scan_digits1 >> implode) || scan_empty >> K "");
+
+val scan_tid = $$ "'" ^^ scan_id;
+
+val scan_nat = scan_digits1 >> implode;
 
 
 (* scan_literal *)
@@ -347,18 +368,11 @@ fun tokenize lex xids str =
       $$ "'" ^^ scan_id >> pair TFreeSy ||
       scan_xid >> pair IdentSy;
 
-    fun scan_max_token cs =
-      (case (optional scan_lit cs, optional scan_ident cs) of
-        (tok1, (None, _)) => tok1
-      | ((None, _), tok2) => tok2
-      | (tok1 as (Some (_, s1), _), tok2 as (Some (_, s2), _)) =>
-          if size s1 >= size s2 then tok1 else tok2);
-
     fun scan_tokens [] rev_toks = rev (EndToken :: rev_toks)
       | scan_tokens (chs as c :: cs) rev_toks =
           if is_blank c then scan_tokens cs rev_toks
           else
-            (case scan_max_token chs of
+            (case max_of scan_lit scan_ident chs of
               (None, _) => error ("Lexical error at: " ^ quote (implode chs))
             | (Some (tk, s), chs') => scan_tokens chs' (tk s :: rev_toks));
   in
