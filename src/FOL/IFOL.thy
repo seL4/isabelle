@@ -114,4 +114,4 @@ rules
 end
 
 
-ML val thy_data = [Simplifier.simpset_thy_data];
+ML val thy_setup = [Simplifier.setup];

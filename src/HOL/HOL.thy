@@ -191,6 +191,12 @@ end
 
 ML
 
+
+(** initial HOL theory setup **)
+
+val thy_setup = [Simplifier.setup, ClasetThyData.setup, ThyData.setup];
+
+
 (** Choice between the HOL and Isabelle style of quantifiers **)
 
 val HOL_quantifiers = ref true;
@@ -207,8 +213,3 @@ fun alt_ast_tr' (name, alt_name) =
 
 val print_ast_translation =
   map alt_ast_tr' [("! ", "*All"), ("? ", "*Ex"), ("?! ", "*Ex1")];
-
-
-(** HOL theory data **)
-
-val thy_data = ThyData.hol_data;

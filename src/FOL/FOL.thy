@@ -6,4 +6,4 @@ rules
 
 end
 
-ML val thy_data = [ClasetThyData.thy_data];
+ML val thy_setup = [ClasetThyData.setup];
