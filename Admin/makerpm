@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# $Id$
+#
+# makerpm -- make Isabelle rpm packages for Linux/x86 from the distribution.
+
+
+## global settings
+
+LOGICS="HOL ZF"
+DISTBASE=~/tmp/isadist
+ROOT=/usr/local
+BIN=/usr/local/bin
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG ARCHIVE"
+  echo
+  echo "Make Isabelle rpm packages for Linux/x86 from distribution ARCHIVE."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ $# -ne 1 ] && usage
+
+ARCHIVE="$1"
+shift
+
+
+## main
+
+[ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
+ARCHIVE_BASE=$(basename "$ARCHIVE")
+ARCHIVE_FULL=$(cd $(dirname "$ARCHIVE"); echo $PWD)/$ARCHIVE_BASE
+
+ISABELLE_NAME=$(basename "$ARCHIVE_BASE" .tar.gz)
+ISABELLE_HOME="$ROOT/$ISABELLE_NAME"
+
+
+# prep
+
+TMP="/tmp/isabelle-makerpm$$"
+for D in "BUILD$ROOT" RPMS/i386 SOURCES SPECS SRPMS; do mkdir -p "$TMP/$D"; done
+
+cd "$TMP/BUILD$ROOT"
+tar -xpzf "$ARCHIVE_FULL"
+
+
+# build
+
+cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
+./configure
+./build -b $LOGICS
+./bin/isatool install -d "$ISABELLE_HOME" -p "$TMP/BUILD$BIN"
+COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
+
+
+# rpm spec
+
+RPMVERSION=$(echo "$ISABELLE_NAME" | perl -w \
+  -e '$name = <STDIN>;' \
+  -e 'if ($name =~ m/^Isabelle(\d+)$/) {' \
+  -e '  $rpmversion = "$1";' \
+  -e '} elsif ($name =~ m/^Isabelle(\d+)-(\d+)$/) {' \
+  -e '  $rpmversion = "$1p$2";' \
+  -e '} elsif ($name =~ m/^Isabelle_(\d+)-(\w+)-(\d+)$/) {' \
+  -e '  $rpmversion = "$1$2$3";' \
+  -e '} else {' \
+  -e '  $rpmversion = "";' \
+  -e '};' \
+  -e 'print $rpmversion;')
+
+[ -z "$RPMVERSION" ] && fail "Unable to derive package version from $ISABELLE_NAME"
+
+cat >$TMP/SPECS/isabelle.spec <<EOF
+Summary:	Isabelle Theorem Proving Environment
+Name:		isabelle
+Version:	$RPMVERSION
+Release:	1
+Group:		Applications/Math
+Copyright:	University of Cambridge Computer Laboratory
+Url:		http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
+Packager:	Markus Wenzel <wenzelm@in.tum.de>
+BuildRoot:	$TMP/BUILD
+
+%description
+
+This package contains the full source distribution of Isabelle
+together with documentation.  To make it actually run you still need
+the SML/NJ 110 compiler and any of the precompiled Isabelle
+object-logics (e.g. package isabelle-HOL).
+
+
+Isabelle is a popular generic theorem proving environment developed at
+Cambridge University (Larry Paulson) and TU Munich (Tobias Nipkow).
+The system can be viewed from two main perspectives.  On the one hand
+it may serve as a generic framework for rapid prototyping of deductive
+systems.  On the other hand, major existing logics like Isabelle/HOL
+provide a theorem proving environment ready to use for sizable
+applications.
+
+The Isabelle distribution includes a large body of object logics and
+other examples (see also the Isabelle theory library at
+http://www.cl.cam.ac.uk/Research/HVG/Isabelle/library/).  Isabelle/HOL
+is a version of classical higher-order logic resembling that of the
+HOL System.  Isabelle/HOLCF adds Scott's Logic for Computable
+Functions (domain theory) to HOL.  Isabelle/FOL provides basic
+classical and intuitionistic first-order logic.  It is polymorphic.
+Isabelle/ZF offers a formulation of Zermelo-Fraenkel set theory on top
+of FOL.
+
+Isabelle/HOL is currently the best developed object logic, including
+an extensive library of (concrete) mathematics, and various packages
+for advanced definitional concepts (like (co-)inductive sets and
+types, well-founded recursion etc.).  The distribution also includes
+some large applications, for example correctness proofs of
+cryptographic protocols (HOL/Auth) or communication protocols
+(HOLCF/IOA).
+
+Isabelle/ZF provides another starting point for applications, with a
+slightly less developed library.  Its definitional packages are
+similar to those of Isabelle/HOL.  Untyped ZF provides more advanced
+constructions for sets than simply-typed HOL.
+
+Logics are not hard-wired into Isabelle, but formulated within
+Isabelle's meta logic: Isabelle/Pure.  There are quite a lot of
+syntactic and deductive tools available in generic Isabelle.  Isabelle
+proof tools provide a high degree of automation.
+
+%package	HOL
+Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
+Group:		Applications/Math
+Requires:       %{name} = %{version}
+%description HOL
+This package contains a binary image of the HOL object-logic for Isabelle.
+
+%package	ZF
+Summary:	Isabelle Theorem Proving Environment -- Zermelo-Fraenkel set theory
+Group:		Applications/Math
+Requires:       %{name} = %{version}
+%description ZF
+This package contains a binary image of the ZF object-logic for Isabelle.
+
+%prep
+
+%build
+
+%install
+
+%files HOL
+$ISABELLE_HOME/heaps/${COMPILER}/HOL
+
+%files ZF
+$ISABELLE_HOME/heaps/${COMPILER}/ZF
+
+%files
+$BIN/Isabelle
+$BIN/isabelle
+$BIN/isatool
+%dir $ISABELLE_HOME
+EOF
+
+for F in $(ls -1 | grep -v heaps | grep -v browser_info)
+do
+  echo "$ISABELLE_HOME/$F" >>$TMP/SPECS/isabelle.spec
+done
+
+
+# invoke rpm
+
+echo "topdir: $TMP" >"$TMP/rpmrc"
+rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
+
+mkdir -p "$DISTBASE/rpm"
+cd "$TMP/RPMS/i386"
+cp "isabelle-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
+cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
+cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
+
+# clean up
+cd /
+rm -rf "$TMP"
