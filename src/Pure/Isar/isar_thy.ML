@@ -174,24 +174,8 @@ val default_proof = ProofHistory.applys_close Method.default_proof;
 
 (* use ML text *)
 
-fun use_mltext txt opt_thy =
-  let
-    val save_context = Context.get_context ();
-    val _ = Context.set_context opt_thy;
-    val opt_exn = (transform_error (use_text false) txt; None) handle exn => Some exn;
-    val opt_thy' = Context.get_context ();
-  in
-    Context.set_context save_context;
-    (case opt_exn of
-      None => opt_thy'
-    | Some exn => raise exn)
-  end;
-
-fun use_mltext_theory txt thy =
-  (case use_mltext txt (Some thy) of
-    Some thy' => thy'
-  | None => error "Missing result ML theory context");
-
+fun use_mltext txt opt_thy = #2 (Context.fetch opt_thy (use_text false) txt);
+fun use_mltext_theory txt thy = #2 (Context.fetch_theory thy (use_text false) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");");
 
@@ -241,8 +225,10 @@ fun add_oracle (name, txt) =
 (* theory init and exit *)
 
 fun begin_theory (name, parents, files) () =
-  let val thy = ThyInfo.begin_theory name parents
-  in seq ThyInfo.use (mapfilter (fn (x, true) => Some x | _ => None) files); thy end;
+  let
+    val thy = ThyInfo.begin_theory name parents;
+    val names = mapfilter (fn (x, true) => Some x | _ => None) files;
+  in Context.setmp (Some thy) (seq ThyInfo.use) names; thy end;
 
 fun end_theory thy =
   let val thy' = PureThy.end_theory thy in
