@@ -9,6 +9,11 @@ Composition of homomorphisms, Pastre's examples, ...
 
 writeln"ZF/ex/misc";
 
+(*trivial example of term synthesis: apparently hard for some provers!*)
+Goal "a ~= b ==> a:?X & b ~: ?X";
+by (Blast_tac 1);
+result();
+
 (*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!*)
 Goal "ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (Blast_tac 1);
