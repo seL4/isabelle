@@ -859,8 +859,8 @@ fun produce prods chains stateset i indata prev_token =
        end));
 
 
-val get_trees = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None);
-
+fun get_trees l = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None) 
+                            l;
 
 fun earley prods tags chains startsymbol indata =
   let

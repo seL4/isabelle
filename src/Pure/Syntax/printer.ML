@@ -131,7 +131,7 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-val prmodes_of = filter_out (equal "") o map fst;
+fun prmodes_of l = filter_out (equal "") (map fst l);
 
 (*find tab for mode*)
 fun get_tab prtabs mode =

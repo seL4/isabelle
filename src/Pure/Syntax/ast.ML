@@ -173,7 +173,7 @@ structure Env =
 struct
   val empty = [];
   val add = op ::;
-  val get = the o assoc;
+  fun get (alist,x) = the (assoc (alist,x));
 end;
 
 
