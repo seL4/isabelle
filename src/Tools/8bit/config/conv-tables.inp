@@ -409,6 +409,7 @@ BEGIN_SEQ_TABLE
 #>  "\^-1"	"@\^-1"		"^-1"		"\mbox{$^{\tt -1}$}" 
 
 #Isabelle
+>  "^and"	"^@and"		"and"		"\mbox{\bf and}"
 >  "^arities"	"^@arities"	"arities"	"\mbox{\bf arities}"
 >  "^axclass"	"^@axclass"	"axclass"	"\mbox{\bf axclass}"
 >  "^constdefs"	"^@constdefs"	"constdefs"	"\mbox{\bf constdefs}"

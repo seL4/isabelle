@@ -248,6 +248,7 @@ char *translationTableSeq[SEQ_TABLE][2] = {
    {"<=>"                                         ,"\\mbox{$\\Leftrightarrow$}"},
    {"<--"                                         ,"\\mbox{$\\longleftarrow$}"},
    {"<->"                                         ,"\\mbox{$\\leftrightarrow$}"},
+   {"and"                                         ,"\\mbox{\\bf and}"},
    {"arities"                                     ,"\\mbox{\\bf arities}"},
    {"axclass"                                     ,"\\mbox{\\bf axclass}"},
    {"constdefs"                                   ,"\\mbox{\\bf constdefs}"},
