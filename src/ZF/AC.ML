@@ -14,8 +14,7 @@ val [nonempty] = goal AC.thy
 by (excluded_middle_tac "A=0" 1);
 by (asm_simp_tac (ZF_ss addsimps [Pi_empty1]) 2 THEN fast_tac ZF_cs 2);
 (*The non-trivial case*)
-by (safe_tac eq_cs);
-by (fast_tac (ZF_cs addSIs [AC, nonempty]) 1);
+by (fast_tac (eq_cs addSIs [AC, nonempty]) 1);
 val AC_Pi = result();
 
 (*Using dtac, this has the advantage of DELETING the universal quantifier*)
@@ -39,11 +38,9 @@ by (etac nonempty 1);
 by (fast_tac (ZF_cs addDs [apply_type] addIs [Pi_type]) 1);
 val AC_func = result();
 
-goal AC.thy "!!x A. [| 0 ~: A;  x: A |] ==> EX y. y:x";
-by (resolve_tac [exCI] 1);
-by (eresolve_tac [notE] 1);
-by (resolve_tac [equals0I RS subst] 1);
-by (eresolve_tac [spec RS notE] 1 THEN REPEAT (assume_tac 1));
+goal ZF.thy "!!x A. [| 0 ~: A;  x: A |] ==> EX y. y:x";
+by (subgoal_tac "x ~= 0" 1);
+by (ALLGOALS (fast_tac eq_cs));
 val non_empty_family = result();
 
 goal AC.thy "!!A. 0 ~: A ==> EX f: A->Union(A). ALL x:A. f`x : x";
