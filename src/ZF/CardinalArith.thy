@@ -9,25 +9,26 @@ Cardinal Arithmetic
 CardinalArith = Cardinal + OrderArith + Arith + Finite + 
 consts
 
-  InfCard     :: "i=>o"
-  "|*|"       :: "[i,i]=>i"       (infixl 70)
-  "|+|"       :: "[i,i]=>i"       (infixl 65)
-  csquare_rel :: "i=>i"
+  InfCard       :: "i=>o"
+  "|*|"         :: "[i,i]=>i"       (infixl 70)
+  "|+|"         :: "[i,i]=>i"       (infixl 65)
+  csquare_rel   :: "i=>i"
   jump_cardinal :: "i=>i"
-  csucc       :: "i=>i"
+  csucc         :: "i=>i"
 
 defs
 
   InfCard_def  "InfCard(i) == Card(i) & nat le i"
 
-  cadd_def     "i |+| j == | i+j |"
+  cadd_def     "i |+| j == |i+j|"
 
-  cmult_def    "i |*| j == | i*j |"
+  cmult_def    "i |*| j == |i*j|"
 
   csquare_rel_def
-  "csquare_rel(k) == rvimage(k*k, lam z:k*k. split(%x y. <x Un y, <x,y>>, z), \
-\                            rmult(k,Memrel(k), k*k, 	\
-\                                  rmult(k,Memrel(k), k,Memrel(k))))"
+  "csquare_rel(K) ==   \
+\        rvimage(K*K,   \
+\                lam z:K*K. split(%x y. <x Un y, <x,y>>, z), \
+\                rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
   (*This def is more complex than Kunen's but it more easily proved to
     be a cardinal*)
