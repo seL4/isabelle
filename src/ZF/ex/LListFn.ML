@@ -43,7 +43,7 @@ val lconst_type = result();
 val flip_ss = ZF_ss addsimps [flip_LNil, flip_LCons, not_type];
 
 goal QUniv.thy "!!b. b:bool ==> b Int X : quniv(A)";
-be boolE 1;
+by (etac boolE 1);
 by (REPEAT (resolve_tac [one_Int_in_quniv, zero_Int_in_quniv] 1
      ORELSE etac ssubst 1));
 val bool_Int_into_quniv = result();
@@ -86,16 +86,16 @@ by (fast_tac flip_cs 1);
 val flip_llist_quniv_lemma = result();
 
 goal LListFn.thy "!!l. l: llist(bool) ==> flip(l) : quniv(bool)";
-br (flip_llist_quniv_lemma RS bspec RS Int_Vset_in_quniv) 1;
+by (rtac (flip_llist_quniv_lemma RS bspec RS Int_Vset_in_quniv) 1);
 by (REPEAT (assume_tac 1));
 val flip_in_quniv = result();
 
 val [prem] = goal LListFn.thy "l : llist(bool) ==> flip(l): llist(bool)";
 by (res_inst_tac [("X", "{flip(l) . l:llist(bool)}")]
        LList.coinduct 1);
-br (prem RS RepFunI) 1;
+by (rtac (prem RS RepFunI) 1);
 by (fast_tac (ZF_cs addSIs [flip_in_quniv]) 1);
-be RepFunE 1;
+by (etac RepFunE 1);
 by (etac LList.elim 1);
 by (asm_simp_tac flip_ss 1);
 by (asm_simp_tac flip_ss 1);
@@ -106,9 +106,9 @@ val [prem] = goal LListFn.thy
     "l : llist(bool) ==> flip(flip(l)) = l";
 by (res_inst_tac [("X1", "{<flip(flip(l)),l> . l:llist(bool)}")]
        (LList_Eq.coinduct RS lleq_implies_equal) 1);
-br (prem RS RepFunI) 1;
+by (rtac (prem RS RepFunI) 1);
 by (fast_tac (ZF_cs addSIs [flip_type]) 1);
-be RepFunE 1;
+by (etac RepFunE 1);
 by (etac LList.elim 1);
 by (asm_simp_tac flip_ss 1);
 by (asm_simp_tac (flip_ss addsimps [flip_type, not_not]) 1);

@@ -337,7 +337,7 @@ goalw Primrec.thy [PREC_def]
 by (etac List.elim 1);
 by (asm_simp_tac (ack2_ss addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
 by (asm_simp_tac ack2_ss 1);
-be ssubst 1;  (*get rid of the needless assumption*)
+by (etac ssubst 1);  (*get rid of the needless assumption*)
 by (eres_inst_tac [("n","a")] nat_induct 1);
 (*base case*)
 by (DO_GOAL [asm_simp_tac ack2_ss, rtac lt_trans, etac bspec,
