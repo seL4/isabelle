@@ -58,28 +58,62 @@ termination of your function definition, i.e.\ that the arguments
 decrease with every recursive call, may still require you to provide
 additional lemmas.
 
-It is also possible to use your own well-founded relations with \isacommand{recdef}.
-Here is a simplistic example:%
+It is also possible to use your own well-founded relations with
+\isacommand{recdef}.  For example, the greater-than relation can be made
+well-founded by cutting it off at a certain point.  Here is an example
+of a recursive function that calls itself with increasing values up to ten:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ f\ {\isachardoublequote}id{\isacharparenleft}less{\isacharunderscore}than{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}f\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}\isanewline
-{\isachardoublequote}f\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ f\ n{\isachardoublequote}%
+\isacommand{recdef}\ f\ {\isachardoublequote}{\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}{\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
+{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-Since \isacommand{recdef} is not prepared for \isa{id}, the identity
-function, this leads to the complaint that it could not prove
-\isa{wf\ {\isacharparenleft}id\ less{\isacharunderscore}than{\isacharparenright}}.
-We should first have proved that \isa{id} preserves well-foundedness%
+Since \isacommand{recdef} is not prepared for the relation supplied above,
+Isabelle rejects the definition.  We should first have proved that
+our relation was well-founded:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ wf{\isacharunderscore}id{\isacharcolon}\ {\isachardoublequote}wf\ r\ {\isasymLongrightarrow}\ wf{\isacharparenleft}id\ r{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}\ simp%
+\isacommand{lemma}\ wf{\isacharunderscore}greater{\isacharcolon}\ {\isachardoublequote}wf\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}N{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+The proof is by showing that our relation is a subset of another well-founded
+relation: one given by a measure function.%
+\end{isamarkuptxt}%
+\isacommand{apply}\ {\isacharparenleft}rule\ wf{\isacharunderscore}subset\ {\isacharbrackleft}of\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ N{\isacharminus}k{\isacharparenright}{\isachardoublequote}{\isacharbrackright}{\isacharcomma}\ blast{\isacharparenright}%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}\ j{\isacharparenright}{\isachardot}\ j\ {\isacharless}\ i\ {\isasymand}\ i\ {\isasymle}\ N{\isacharbraceright}\ {\isasymsubseteq}\ measure\ {\isacharparenleft}op\ {\isacharminus}\ N{\isacharparenright}%
+\end{isabelle}
+
+\noindent
+The inclusion remains to be proved. After unfolding some definitions, 
+we are left with simple arithmetic:%
+\end{isamarkuptxt}%
+\isacommand{apply}\ {\isacharparenleft}clarify{\isacharcomma}\ simp\ add{\isacharcolon}\ measure{\isacharunderscore}def\ inv{\isacharunderscore}image{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymlbrakk}y\ {\isacharless}\ x{\isacharsemicolon}\ x\ {\isasymle}\ N{\isasymrbrakk}\ {\isasymLongrightarrow}\ N\ {\isacharminus}\ x\ {\isacharless}\ N\ {\isacharminus}\ y%
+\end{isabelle}
+
+\noindent
+And that is dispatched automatically:%
+\end{isamarkuptxt}%
+\isacommand{by}\ arith%
 \begin{isamarkuptext}%
 \noindent
-and should have appended the following hint to our definition above:
+
+Armed with this lemma, we can append a crucial hint to our definition:
 \indexbold{*recdef_wf}%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}id{\isacharparenright}\end{isabellebody}%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}greater{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+Alternatively, we could have given \isa{measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharminus}k{\isacharparenright}} for the
+well-founded relation in our \isacommand{recdef}.  However, the arithmetic
+goal in the lemma above would have arisen instead in the \isacommand{recdef}
+termination proof, where we have less control.  A tailor-made termination
+relation makes even more sense when it can be used in several function
+declarations.%
+\end{isamarkuptext}%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"
