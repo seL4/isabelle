@@ -64,7 +64,7 @@ fun thm_deps thms =
       map (#der o rep_thm) thms))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
     val _ = put_graph gra path;
-    val _ = execute ("isatool browser -d " ^ Path.pack (Path.expand path) ^ " &");
+    val _ = execute ("$ISATOOL browser -d " ^ Path.pack (Path.expand path) ^ " &");
   in () end;
 
 end;
