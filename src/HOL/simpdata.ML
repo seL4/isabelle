@@ -41,7 +41,7 @@ local
               | (con $ _ $ _) =>
                     if con=iff_const
                     then Delrules [zero_var_indexes (th RS iffD2),
-                                   zero_var_indexes (th RS iffD1)]
+                                   make_elim (zero_var_indexes (th RS iffD1))]
                     else Delrules [th]
               | _ => Delrules [th];
        Delsimps [th])
