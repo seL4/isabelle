@@ -267,7 +267,7 @@ and args1 is_symid blk x =
 
 (* theorem specifications *)
 
-val attrib = position ((xname || keyword_sid) -- !!! (args OuterLex.is_sid false)) >> Args.src;
+val attrib = position ((keyword_sid || xname) -- !!! (args OuterLex.is_sid false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
