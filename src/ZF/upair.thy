@@ -13,7 +13,7 @@ Observe the order of dependence:
 header{*Unordered Pairs*}
 
 theory upair = ZF
-files "Tools/typechk":
+files "Tools/typechk.ML":
 
 setup TypeCheck.setup
 
