@@ -67,6 +67,7 @@ sig
   val Addcongs: thm list -> unit
   val Delcongs: thm list -> unit
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
+  val safe_asm_full_simp_tac: simpset -> int -> tactic
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
   val          full_simp_tac: simpset -> int -> tactic
@@ -414,11 +415,12 @@ fun generic_simp_tac safe mode =
               TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
     in simp_loop_tac end;
 
-val          simp_tac = generic_simp_tac false (false, false, false);
-val      asm_simp_tac = generic_simp_tac false (false, true, false);
-val     full_simp_tac = generic_simp_tac false (true,  false, false);
-val   asm_lr_simp_tac = generic_simp_tac false (true,  true, false);
-val asm_full_simp_tac = generic_simp_tac false (true,  true, true);
+val simp_tac = generic_simp_tac false (false, false, false);
+val asm_simp_tac = generic_simp_tac false (false, true, false);
+val full_simp_tac = generic_simp_tac false (true, false, false);
+val asm_lr_simp_tac = generic_simp_tac false (true, true, false);
+val asm_full_simp_tac = generic_simp_tac false (true, true, true);
+val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
 
 
 (*the abstraction over the proof state delays the dereferencing*)
