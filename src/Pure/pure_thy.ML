@@ -195,10 +195,10 @@ fun thms_containing thy idx =
 
 (* hiding -- affects current theory node only! *)
 
-fun hide_thms b names thy =
+fun hide_thms fully names thy =
   let
     val r as ref {space, thms_tab, index} = get_theorems thy;
-    val space' = NameSpace.hide b (space, names);
+    val space' = NameSpace.hide fully (space, names);
   in r := {space = space', thms_tab = thms_tab, index = index}; thy end;
 
 
