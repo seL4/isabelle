@@ -152,6 +152,14 @@ qed "Int_assoc";
 (*Intersection is an AC-operator*)
 val Int_ac = [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute];
 
+goal thy "!!A B. B<=A ==> A Int B = B";
+by (Blast_tac 1);
+qed "Int_absorb1";
+
+goal thy "!!A B. A<=B ==> A Int B = A";
+by (Blast_tac 1);
+qed "Int_absorb2";
+
 goal thy "{} Int B = {}";
 by (Blast_tac 1);
 qed "Int_empty_left";
@@ -222,6 +230,14 @@ qed "Un_assoc";
 
 (*Union is an AC-operator*)
 val Un_ac = [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute];
+
+goal thy "!!A B. A<=B ==> A Un B = B";
+by (Blast_tac 1);
+qed "Un_absorb1";
+
+goal thy "!!A B. B<=A ==> A Un B = A";
+by (Blast_tac 1);
+qed "Un_absorb2";
 
 goal thy "{} Un B = B";
 by (Blast_tac 1);
@@ -550,7 +566,7 @@ section "-";
 
 goal thy "A-B = A Int Compl B";
 by (Blast_tac 1);
-qed "Diff_eq_Int_Compl";
+qed "Diff_eq";
 
 goal thy "A-A = {}";
 by (Blast_tac 1);
@@ -636,7 +652,7 @@ goal thy "(A Un B) - C = (A - C) Un (B - C)";
 by (Blast_tac 1);
 qed "Un_Diff";
 
-goal thy "(A Int B) - C = (A - C) Int (B - C)";
+goal thy "(A Int B) - C = A Int (B - C)";
 by (Blast_tac 1);
 qed "Int_Diff";
 
