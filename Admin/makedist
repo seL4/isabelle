@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# makedist -- make Isabelle distribution.
+# makedist -- make Isabelle source distribution.
 
 
 ## global settings
@@ -187,6 +187,9 @@ perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
 lynx -dump README.html >README
 
 ( cd src; ../Admin/maketags; )
+
+( env BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
+
 rm -rf Admin
 
 
@@ -202,21 +205,22 @@ rm -f Isabelle
 ln -s "$DISTNAME" Isabelle
 
 chown -R "$LOGNAME" "$DISTNAME"
-chgrp -R isabelle "$DISTNAME"
 chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
+chgrp -R isabelle "$DISTNAME" Isabelle
 
 mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
-"$TAR" cf "$DISTNAME.tar" "$DISTNAME"
-( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
+echo "$DISTNAME.tar"
+"$TAR" cf "$DISTNAME.tar" Isabelle "$DISTNAME"
+( cd pdf; echo "${DISTNAME}_pdf.tar"; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 
 mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
 rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 
-gzip "$DISTNAME.tar"
-gzip "${DISTNAME}_pdf.tar"
+echo "$DISTNAME.tar.gz" && gzip "$DISTNAME.tar"
+echo "${DISTNAME}_pdf.tar.gz" && gzip "${DISTNAME}_pdf.tar"
 
 
 # cleanup dist

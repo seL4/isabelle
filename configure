@@ -8,11 +8,11 @@
 
 ## patch scripts
 
-THIS=`dirname "$0"`
+cd `dirname "$0"`
 
 if bash -c :
 then
-  bash "$THIS/lib/scripts/patch-scripts.bash"
+  bash lib/scripts/patch-scripts.bash
 else
   echo "FATAL ERROR: bash not found!"
   exit 2
