@@ -78,6 +78,8 @@ sig
     -> state -> state
   val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
+  val def: string -> context attribute list -> string *  (string * string list) -> state -> state
+  val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
   val theorem: string -> bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
@@ -319,7 +321,7 @@ fun pretty_facts _ None = []
 
 fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
-    val ref (_, _, begin_goal) = Goals.current_goals_markers;
+    val ref (_, _, begin_goal) = Display.current_goals_markers;
 
     fun levels_up 0 = ""
       | levels_up 1 = ", 1 level up"
@@ -335,7 +337,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       [Pretty.str ("goal (" ^ kind_name kind ^
           (if name = "" then "" else " " ^ name) ^
             levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
-      Locale.pretty_goals_marker begin_goal (! goals_limit) thm;
+      Display.pretty_goals_marker begin_goal (! goals_limit) thm;
 
     val ctxt_prts =
       if ! verbose orelse mode = Forward then ProofContext.pretty_context context
@@ -355,7 +357,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
 
 fun pretty_goals main_goal state =
   let val (_, (_, ((_, (_, thm)), _))) = find_goal state
-  in Locale.pretty_sub_goals main_goal (! goals_limit) thm end;
+  in Display.pretty_sub_goals main_goal (! goals_limit) thm end;
 
 
 
@@ -457,7 +459,7 @@ fun prep_result state t raw_thm =
     val ngoals = Thm.nprems_of raw_thm;
     val _ =
       if ngoals = 0 then ()
-      else (Locale.print_goals ngoals raw_thm; err (string_of_int ngoals ^ " unsolved goal(s)!"));
+      else (Display.print_goals ngoals raw_thm; err (string_of_int ngoals ^ " unsolved goal(s)!"));
 
     val thm = raw_thm RS Drule.rev_triv_goal;
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
@@ -520,7 +522,7 @@ val fix = gen_fix ProofContext.fix;
 val fix_i = gen_fix ProofContext.fix_i;
 
 
-(* assume *)
+(* assume and presume *)
 
 local
 
@@ -545,6 +547,51 @@ val assume = assm export_assume;
 val assume_i = assm_i export_assume;
 val presume = assm export_presume;
 val presume_i = assm_i export_presume;
+
+end;
+
+
+(** local definitions **)
+
+local
+
+fun dest_lhs cprop =
+  let val x = #1 (Logic.dest_equals (Thm.term_of cprop))
+  in Term.dest_Free x; Thm.cterm_of (Thm.sign_of_cterm cprop) x end
+  handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
+      quote (Display.string_of_cterm cprop), []);
+
+fun export_def _ cprops thm =
+  thm
+  |> Drule.implies_intr_list cprops
+  |> Drule.forall_intr_list (map dest_lhs cprops)
+  |> Drule.forall_elim_vars 0
+  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
+
+fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state =
+  let
+    val _ = assert_forward state;
+    val ctxt = context_of state;
+
+    (*rhs*)
+    val name = if raw_name = "" then Thm.def_name x else raw_name;
+    val rhs = prep_term ctxt raw_rhs;
+    val T = Term.fastype_of rhs;
+    val pats = prep_pats T (ProofContext.declare_term rhs ctxt) raw_pats;
+
+    (*lhs*)
+    val lhs = ProofContext.bind_skolem ctxt [x] (Free (x, T));
+  in
+    state
+    |> fix [([x], None)]
+    |> match_bind_i [(pats, rhs)]
+    |> assm_i export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
+  end;
+
+in
+
+val def = gen_def fix ProofContext.read_term ProofContext.read_term_pats;
+val def_i = gen_def fix_i ProofContext.cert_term ProofContext.cert_term_pats;
 
 end;
 
