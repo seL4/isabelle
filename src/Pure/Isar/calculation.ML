@@ -36,7 +36,7 @@ struct
   val name = "Isar/calculation";
   type T = thm NetRules.T
 
-  val empty = NetRules.init_elim;
+  val empty = NetRules.elim;
   val copy = I;
   val prep_ext = I;
   val merge = NetRules.merge;
@@ -131,7 +131,7 @@ fun calculate final opt_rules print state =
       (case opt_rules of Some rules => rules
       | None =>
           (case ths of [] => NetRules.rules (get_local_rules state)
-          | th :: _ => NetRules.may_unify (get_local_rules state) (strip_assums_concl th)))
+          | th :: _ => NetRules.retrieve (get_local_rules state) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.map (Method.multi_resolve ths) |> Seq.flat
       |> Seq.filter (not o projection ths);
 

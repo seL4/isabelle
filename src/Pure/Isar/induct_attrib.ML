@@ -84,7 +84,7 @@ end;
 type rules = (string * thm) NetRules.T;
 
 val init_rules = NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2
-  andalso Thm.eq_thm (th1, th2));
+  andalso Thm.eq_thm (th1, th2)) (K 0);
 
 fun lookup_rule (rs: rules) name = Library.assoc (NetRules.rules rs, name);
 
@@ -153,7 +153,7 @@ val lookup_inductS = lookup_rule o #2 o #2 o LocalInduct.get;
 
 
 fun find_rules which how ctxt x =
-  map snd (NetRules.may_unify (which (LocalInduct.get ctxt)) (how x));
+  map snd (NetRules.retrieve (which (LocalInduct.get ctxt)) (how x));
 
 val find_casesT = find_rules (#1 o #1) encode_type;
 val find_casesS = find_rules (#2 o #1) Thm.concl_of;
