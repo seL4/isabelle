@@ -8,8 +8,8 @@
 
 (* ---------------------------- Data lemmas ---------------------------- *)
 
-context List.thy;
-goal List.thy "xs ~= [] --> tl xs ~= xs";
+(*FIXME: move to List.thy? Maybe as (tl xs = xs) = (xs = [])"?*)
+Goal "xs ~= [] --> tl xs ~= xs";
 by (auto_tac (claset(), simpset() addsimps [neq_Nil_conv]));
 qed_spec_mp "tl_not_self";
 context Buffer.thy;
