@@ -37,6 +37,7 @@ sig
     PrintRule of 'a * 'a |
     ParsePrintRule of 'a * 'a
   type syntax
+  val is_keyword: syntax -> string -> bool
   val extend_log_types: string list -> syntax -> syntax
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val extend_const_gram: string * bool -> (string * typ * mixfix) list -> syntax -> syntax
@@ -177,6 +178,8 @@ datatype syntax =
     print_ast_trtab: ((Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     tokentrtab: (string * (string * ((string -> string * real) * stamp)) list) list,
     prtabs: Printer.prtabs}
+
+fun is_keyword (Syntax {lexicon, ...}) = Scan.is_literal lexicon o Symbol.explode;
 
 
 (* empty_syntax *)
@@ -359,12 +362,12 @@ fun read_asts (Syntax tabs) xids root str =
       warning (Pretty.string_of (Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
   in
     if length pts > ! ambiguity_level then
-	if ! ambiguity_is_error then
-	    error ("Ambiguous input " ^ quote str)
-	else
-	    (warning ("Ambiguous input " ^ quote str);
-	     warning "produces the following parse trees:";
-	     seq show_pt pts)
+        if ! ambiguity_is_error then
+            error ("Ambiguous input " ^ quote str)
+        else
+            (warning ("Ambiguous input " ^ quote str);
+             warning "produces the following parse trees:";
+             seq show_pt pts)
     else ();
     map (SynTrans.pt_to_ast (lookup_tr parse_ast_trtab)) pts
   end;

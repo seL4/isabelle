@@ -51,6 +51,7 @@ sig
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val is_keyword: string -> bool
   val dest_keywords: unit -> string list
   val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
@@ -204,6 +205,7 @@ end;
 
 (* print syntax *)
 
+fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
 fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
 
 fun dest_parsers () =
