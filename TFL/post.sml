@@ -140,7 +140,7 @@ fun mk_meta_eq r = case concl_of r of
   |   _$(Const("op =",_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True
 fun rewrite L = rewrite_rule (map mk_meta_eq (filter(not o id_thm) L))
-fun reducer thl = rewrite (map standard thl @ #simps(rep_ss HOL_ss))
+fun reducer thl = rewrite (map standard thl @ #simps(rep_ss (!simpset)))
 
 fun join_assums th = 
   let val {sign,...} = rep_thm th
@@ -158,20 +158,20 @@ fun join_assums th =
 in
 (*---------------------------------------------------------------------------
  * The "reducer" argument is 
- *  (fn thl => rewrite (map standard thl @ #simps(rep_ss HOL_ss))); 
+ *  (fn thl => rewrite (map standard thl @ #simps(rep_ss (!simpset)))); 
  *---------------------------------------------------------------------------*)
 fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
-  let val dummy = output(std_out, "Proving induction theorem..  ")
+  let val dummy = prs "Proving induction theorem..  "
       val ind = Prim.mk_induction theory f R full_pats_TCs
-      val dummy = output(std_out, "Proved induction theorem.\n")
+      val dummy = writeln "Proved induction theorem."
       val pp = std_postprocessor theory
-      val dummy = output(std_out, "Postprocessing..  ")
+      val dummy = prs "Postprocessing..  "
       val {rules,induction,nested_tcs} = pp{rules=rules,induction=ind,TCs=TCs}
   in
   case nested_tcs
-  of [] => (output(std_out, "Postprocessing done.\n");
+  of [] => (writeln "Postprocessing done.";
             {induction=induction, rules=rules,tcs=[]})
-  | L  => let val dummy = output(std_out, "Simplifying nested TCs..  ")
+  | L  => let val dummy = prs "Simplifying nested TCs..  "
               val (solved,simplified,stubborn) =
                U.itlist (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -180,7 +180,7 @@ fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
               val simplified' = map join_assums simplified
               val induction' = reducer (solved@simplified') induction
               val rules' = reducer (solved@simplified') rules
-              val dummy = output(std_out, "Postprocessing done.\n")
+              val dummy = writeln "Postprocessing done."
           in
           {induction = induction',
                rules = rules',
@@ -191,10 +191,16 @@ fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
           |   e                 => print_exn e;
 
 
+(*lcp: uncurry the predicate of the induction rule*)
+fun uncurry_rule rl = Prod_Syntax.split_rule_var
+                        (head_of (HOLogic.dest_Trueprop (concl_of rl)), 
+			 rl);
+
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer = 
-    standard o rule_by_tactic (REPEAT_FIRST (resolve_tac [allI, impI, conjI]));
-
+    uncurry_rule o standard o 
+    rule_by_tactic (REPEAT_FIRST (resolve_tac [allI, impI, conjI]
+				  ORELSE' etac conjE));
 
 (*Strip off the outer !P*)
 val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
