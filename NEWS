@@ -49,6 +49,12 @@ New in this Isabelle release
 * Pure: tuned internal renaming of symbolic identifiers -- attach
   primes instead of base 26 numbers.
 
+* Document preparation: antiquotations now provide the option
+  'locale=NAME' to specify an alternative context used for evaluating
+  and printing the subsequent argument, as in @{thm [locale=LC]
+  fold_commute}, for example.  Note that a proof context is escaped to
+  the enclosing theory context first.
+
 * ML: all output via channels of writeln/warning/error etc. is now
   passed through Output.output.  This gives interface builders a
   chance to adapt text encodings in arbitrary manners (say as XML
