@@ -160,18 +160,11 @@ by (simp_tac
 			inv_image_def, less_eq]) 1);
 (** LEVEL 7 **)
 (*Comb-Comb case*)
-by (option_case_tac "unify(M1a, M2a)" 1);
-by (rename_tac "theta" 1);
-by (option_case_tac "unify(N1 <| theta, N2 <| theta)" 1);
-by (rename_tac "sigma" 1);
-by (REPEAT (rtac allI 1));
-by (rename_tac "P Q" 1); 
+by (asm_simp_tac (!simpset setloop split_tac [expand_option_case]) 1);
+by (strip_tac 1);
 by (rtac (trans_unifyRel RS transD) 1);
 by (Blast_tac 1);
 by (simp_tac (HOL_ss addsimps [subst_Comb RS sym]) 1);
-by (subgoal_tac "((Comb N1 P <| theta, Comb N2 Q <| theta), \
-                \ (Comb M1a (Comb N1 P), Comb M2a (Comb N2 Q))) :unifyRel" 1);
-by (asm_simp_tac HOL_ss 2);
 by (rtac Rassoc 1);
 by (Blast_tac 1);
 qed_spec_mp "unify_TC";
@@ -189,9 +182,8 @@ goal Unify.thy
 \         | Some theta => (case unify(N1 <| theta, N2 <| theta)        \
 \                            of None => None    \
 \                             | Some sigma => Some (theta <> sigma)))";
-by (asm_simp_tac (!simpset addsimps unifyRules0) 1);
-by (option_case_tac "unify(M1, M2)" 1);
-by (asm_simp_tac (!simpset addsimps [unify_TC]) 1);
+by (asm_simp_tac (!simpset addsimps (unify_TC::unifyRules0)
+			   setloop split_tac [expand_option_case]) 1);
 qed "unifyCombComb";
 
 
@@ -225,21 +217,16 @@ by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
 (*Comb-Var case*)
 by (stac mgu_sym 1);
 by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
+(** LEVEL 8 **)
 (*Comb-Comb case*)
-by (safe_tac (!claset));
-by (option_case_tac "unify(M1, M2)" 1);
-by (option_case_tac "unify(N1 <| a, N2 <| a)" 1);
-by (hyp_subst_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [MGUnifier_def, Unifier_def])1);
-(** LEVEL 13 **)
-by (safe_tac (!claset));
-by (rename_tac "theta sigma gamma" 1);
-by (rewrite_goals_tac [MoreGeneral_def]);
-by (rotate_tac ~3 1);
-by (eres_inst_tac [("x","gamma")] allE 1);
-by (Asm_full_simp_tac 1);
-by (etac exE 1);
-by (rename_tac "delta" 1);
+by (asm_simp_tac (!simpset setloop split_tac [expand_option_case]) 1);
+by (strip_tac 1);
+by (rotate_tac ~2 1);
+by (asm_full_simp_tac 
+    (!simpset addsimps [MGUnifier_def, Unifier_def, MoreGeneral_def]) 1);
+by (safe_tac (!claset) THEN rename_tac "theta sigma gamma" 1);
+by (eres_inst_tac [("x","gamma")] allE 1 THEN mp_tac 1);
+by (etac exE 1 THEN rename_tac "delta" 1);
 by (eres_inst_tac [("x","delta")] allE 1);
 by (subgoal_tac "N1 <| theta <| delta = N2 <| theta <| delta" 1);
 (*Proving the subgoal*)
@@ -255,12 +242,13 @@ qed_spec_mp "unify_gives_MGU";
  *---------------------------------------------------------------------------*)
 goal Unify.thy "!theta. unify(M,N) = Some theta --> Idem theta";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Var_Idem] 
-			             setloop split_tac[expand_if])));
+by (ALLGOALS 
+    (asm_simp_tac 
+       (!simpset addsimps [Var_Idem] 
+	         setloop split_tac[expand_if, expand_option_case])));
 (*Comb-Comb case*)
 by (safe_tac (!claset));
-by (option_case_tac "unify(M1, M2)" 1);
-by (option_case_tac "unify(N1 <| a, N2 <| a)" 1);
+by (REPEAT (dtac spec 1 THEN mp_tac 1));
 by (safe_tac (!claset addSDs [rewrite_rule [MGUnifier_def] unify_gives_MGU]));
 by (rtac Idem_comp 1);
 by (atac 1);
