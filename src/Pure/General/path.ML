@@ -19,10 +19,12 @@ sig
   val is_basic: T -> bool
   val append: T -> T -> T
   val appends: T list -> T
+  val make: string list -> T
   val pack: T -> string
   val unpack: string -> T
   val base: T -> T
   val ext: string -> T -> T
+  val dir: T -> T
   val expand: T -> T
 end;
 
@@ -36,7 +38,8 @@ datatype elem = Root | Parent | Basic of string | Variable of string;
 
 fun err_elem msg chs = error (msg ^ " path element specification: " ^ quote (implode chs));
 
-fun check_elem (chs as ["~"]) = err_elem "Illegal" chs
+fun check_elem (chs as []) = err_elem "Illegal" chs
+  | check_elem (chs as ["~"]) = err_elem "Illegal" chs
   | check_elem (chs as ["~", "~"]) = err_elem "Illegal" chs
   | check_elem chs =
       (case ["/", "\\", "$", ":"] inter_string chs of
@@ -82,6 +85,7 @@ fun rev_app xs [] = rev xs
 
 fun append (Path xs) (Path ys) = Path (rev_app (rev xs) ys);
 fun appends paths = foldl (uncurry append) (current, paths);
+val make = appends o map basic;
 fun norm path = rev_app [] path;
 
 
@@ -130,6 +134,11 @@ fun ext e (path as Path xs) =
   (case try split_last xs of
     Some (prfx, Basic s) => if e = "" then path else Path (prfx @ [Basic (s ^ "." ^ e)])
   | _ => err_no_base path);
+
+fun dir (path as Path xs) =
+  (case try split_last xs of
+    Some (prfx, _) => Path prfx
+  | _ => error ("Cannot split path " ^ quote (pack path)));
 
 
 (* evaluate variables *)
