@@ -718,7 +718,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     val _ = message (coind_prefix coind ^ "inductive set(s) " ^ commas_quote cnames);
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
-    val (thy', _, _, _, _, _) =
+    val (thy', _, fp_def, rec_sets_defs, _, _) =
       mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
         params paramTs cTs cnames;
     val (elim_ts, elim_cases) = Library.split_list (mk_elims cs cTs params intr_ts intr_names);
@@ -747,7 +747,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
       |>> Theory.parent_path;
     val induct' = if coind then raw_induct else PureThy.get_thm thy''' "induct";
   in (thy''',
-    {defs = [],
+    {defs = fp_def :: rec_sets_defs,
      mono = Drule.asm_rl,
      unfold = Drule.asm_rl,
      intrs = intrs',
