@@ -1111,17 +1111,8 @@ fun make_ord rel (x, y) =
   else if rel (y, x) then GREATER
   else EQUAL;
 
-(*Better to use Int.compare*)
-fun int_ord (i, j: int) =
-  if i < j then LESS
-  else if i = j then EQUAL
-  else GREATER;
-
-(*Better to use String.compare*)
-fun string_ord (a, b: string) =
-  if a < b then LESS
-  else if a = b then EQUAL
-  else GREATER;
+val int_ord = Int.compare;
+val string_ord = String.compare;
 
 (*lexicographic product*)
 fun prod_ord a_ord b_ord ((x, y), (x', y')) =
