@@ -111,6 +111,12 @@ val set_mp_tac = dtac subsetD THEN' assume_tac;
 qed_goal "rev_subsetD" ZF.thy "!!A B c. [| c:A; A<=B |] ==> c:B"
  (fn _=> [REPEAT (ares_tac [subsetD] 1)]);
 
+qed_goal "contra_subsetD" ZF.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
+ (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+
+qed_goal "rev_contra_subsetD" ZF.thy "!!c. [| c ~: B;  A <= B |] ==> c ~: A"
+ (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+
 qed_goal "subset_refl" ZF.thy "A <= A"
  (fn _=> [ (rtac subsetI 1), atac 1 ]);
 
