@@ -13,18 +13,17 @@
 
 <h2>Version information</h2>
 
-This is <strong>Isabelle-94 revision 8</strong> as of May
-1997. Basically, it should be backwards compatible to earlier
-Isabelle-94 releases. Older versions (like Isabelle-93) are quite
-different, though. See also the <tt>NEWS</tt> file in the distribution
-for a more detailed list of new features and changes.
+This is <strong>Isabelle98</strong> as of January 1998.  Compared to
+the Isabelle94 line it introduces many new features, but also some
+imcompatibilities.  See the <tt>NEWS</tt> file in the distribution for
+more details.
 
 
 <h2>System requirements</h2>
 
 Isabelle requires a real Unix box with sufficient resources. Fun
 starts at about 32MB of memory (somewhat depending on your ML system),
-several tens of MB disk space and with a relatively fast CPU.
+with several tens of MB disk space and a relatively fast CPU.
 
 <p>
 
@@ -44,7 +43,8 @@ quite well:
 <li> Poly/ML versions 2.x and 3.1 on Suns.
 <li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
 problems with Linux and HP-UX.
-<li> SML/NJ 1.09.27 or later on Suns, Linux, etc.
+<li> SML/NJ versions 109.27 to 109.33 on Suns, Linux, etc.
+<li> SML/NJ 110 on Suns, Linux, etc.
 </ul>
 
 <p>
@@ -58,15 +58,12 @@ space (about 40MB for all distributed object logics).
 
 SML/NJ needs lots of store and disk space, but it is <a
 href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">free</a>.
-The last official release is 0.93.  Recent working versions may be
-better suited, under normal circumstances.  Beware of the many
-incompatibilities among SML/NJ versions! From the 1.09.x family, we
-now only support 1.09.27, or later.  An unofficial pre-built binary
-distribution of at least SML/NJ 1.09.27 for Linux is also <a
-href="http://www4.informatik.tu-muenchen.de/~wenzelm/resources.html">available.</a>
-If you have to re-build SML/NJ 1.09.x yourself from the sources, just
-comment out all targets except "sml" (cf. the installation
-instructions of the SML/NJ distribution).
+The current official release is 110.  We also still support the old
+0.93 release and working versions 109.27 to 109.33.  Support for the
+109 line of SML/NJ will be dropped next time!  There is an unofficial
+pre-built binary distribution of <a
+href="http://www4.informatik.tu-muenchen.de/~isabelle/dist/smlnj-110/">SML/NJ
+110 for Linux.</a>
 
 
 <h2>Installation</h2>
