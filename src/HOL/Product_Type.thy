@@ -91,6 +91,7 @@ consts
   fst      :: "'a * 'b => 'a"
   snd      :: "'a * 'b => 'b"
   split    :: "[['a, 'b] => 'c, 'a * 'b] => 'c"
+  curry    :: "['a * 'b => 'c, 'a, 'b] => 'c"
   prod_fun :: "['a => 'b, 'c => 'd, 'a * 'c] => 'b * 'd"
   Pair     :: "['a, 'b] => 'a * 'b"
   Sigma    :: "['a set, 'a => 'b set] => ('a * 'b) set"
@@ -141,6 +142,7 @@ defs
   fst_def:      "fst p == THE a. EX b. p = (a, b)"
   snd_def:      "snd p == THE b. EX a. p = (a, b)"
   split_def:    "split == (%c p. c (fst p) (snd p))"
+  curry_def:    "curry == (%c x y. c (x,y))"
   prod_fun_def: "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 
@@ -264,6 +266,24 @@ claset_ref() := claset() addSbefore (\"split_all_tac\", split_all_tac);
 lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
   -- {* @{text "[iff]"} is not a good idea because it makes @{text blast} loop *}
   by fast
+
+lemma curry_split [simp]: "curry (split f) = f"
+  by (simp add: curry_def split_def)
+
+lemma split_curry [simp]: "split (curry f) = f"
+  by (simp add: curry_def split_def)
+
+lemma curryI [intro!]: "f (a,b) ==> curry f a b"
+  by (simp add: curry_def)
+
+lemma curryD [dest]: "curry f a b ==> f (a,b)"
+  by (simp add: curry_def)
+
+lemma curryE [elim!]: "[| curry f a b ; f (a,b) ==> Q |] ==> Q"
+  by (simp add: curry_def)
+
+lemma curry_conv [simp]: "curry f a b = f (a,b)"
+  by (simp add: curry_def)
 
 lemma prod_induct [induct type: *]: "!!x. (!!a b. P (a, b)) ==> P x"
   by fast
