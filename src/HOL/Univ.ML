@@ -425,7 +425,7 @@ qed "Funs_inv";
 
 val [p1, p2] = Goalw [o_def]
      "[| f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
-by (res_inst_tac [("h", "%x. @y. f x = g y")] p2 1);
+by (res_inst_tac [("h", "%x. @y. (f::'a=>'b) x = g y")] p2 1);
 by (rtac ext 1);
 by (rtac (p1 RS FunsD RS rangeE) 1);
 by (etac (exI RS (select_eq_Ex RS iffD2)) 1);
