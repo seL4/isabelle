@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Ordered pairs in Zermelo-Fraenkel Set Theory 
 *)
+
+header{*Ordered Pairs*}
 
 theory pair = upair
 files "simpdata.ML":
@@ -49,8 +50,9 @@ apply (rule consI1 [THEN consI2])
 done
 
 
-(*** Sigma: Disjoint union of a family of sets
-     Generalizes Cartesian product ***)
+subsection{*Sigma: Disjoint Union of a Family of Sets*}
+
+text{*Generalizes Cartesian product*}
 
 lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) <-> a:A & b:B(a)"
 by (simp add: Sigma_def)
@@ -66,15 +68,13 @@ lemma SigmaE [elim!]:
     "[| c: Sigma(A,B);   
         !!x y.[| x:A;  y:B(x);  c=<x,y> |] ==> P  
      |] ==> P"
-apply (unfold Sigma_def, blast) 
-done
+by (unfold Sigma_def, blast) 
 
 lemma SigmaE2 [elim!]:
     "[| <a,b> : Sigma(A,B);     
         [| a:A;  b:B(a) |] ==> P    
      |] ==> P"
-apply (unfold Sigma_def, blast) 
-done
+by (unfold Sigma_def, blast) 
 
 lemma Sigma_cong:
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==>  
@@ -95,7 +95,7 @@ lemma Sigma_empty_iff: "A*B=0 <-> A=0 | B=0"
 by blast
 
 
-(*** Projections: fst, snd ***)
+subsection{*Projections @{term fst} and @{term snd}*}
 
 lemma fst_conv [simp]: "fst(<a,b>) = a"
 by (simp add: fst_def, blast)
@@ -113,7 +113,7 @@ lemma Pair_fst_snd_eq: "a: Sigma(A,B) ==> <fst(a),snd(a)> = a"
 by auto
 
 
-(*** Eliminator - split ***)
+subsection{*The Eliminator, @{term split}*}
 
 (*A META-equality, so that it applies to higher types as well...*)
 lemma split [simp]: "split(%x y. c(x,y), <a,b>) == c(a,b)"
@@ -133,7 +133,7 @@ apply (simp add: split_def, auto)
 done
 
 
-(*** split for predicates: result type o ***)
+subsection{*A version of @{term split} for Formulae: Result Type @{typ o}*}
 
 lemma splitI: "R(a,b) ==> split(R, <a,b>)"
 by (simp add: split_def)

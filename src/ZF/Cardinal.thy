@@ -9,11 +9,6 @@ header{*Cardinal Numbers Without the Axiom of Choice*}
 
 theory Cardinal = OrderType + Finite + Nat + Sum:
 
-(*** The following really belong in upair ***)
-
-lemma eq_imp_not_mem: "a=A ==> a ~: A"
-by (blast intro: elim: mem_irrefl)
-
 constdefs
 
   (*least ordinal operator*)
@@ -44,7 +39,8 @@ syntax (xsymbols)
   "lesspoll"    :: "[i,i] => o"       (infixl "\<prec>" 50)
   "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
 
-subsection{*The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 *}
+subsection{*The Schroeder-Bernstein Theorem*}
+text{*See Davey and Priestly, page 106*}
 
 (** Lemma: Banach's Decomposition Theorem **)
 

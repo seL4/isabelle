@@ -17,7 +17,7 @@ a mess.
 
 header{*Well-Founded Recursion*}
 
-theory WF = Trancl + mono + equalities:
+theory WF = Trancl:
 
 constdefs
   wf           :: "i=>o"

@@ -3,14 +3,14 @@
     Author:     Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1993  University of Cambridge
 
-UNORDERED pairs in Zermelo-Fraenkel Set Theory 
-
 Observe the order of dependence:
     Upair is defined in terms of Replace
     Un is defined in terms of Upair and Union (similarly for Int)
     cons is defined in terms of Upair and Un
     Ordered pairs and descriptions are defined using cons ("set notation")
 *)
+
+header{*Unordered Pairs*}
 
 theory upair = ZF
 files "Tools/typechk":
@@ -21,13 +21,11 @@ declare atomize_ball [symmetric, rulify]
 (*belongs to theory ZF*)
 declare bspec [dest?]
 
-(*** Lemmas about power sets  ***)
-
 lemmas Pow_bottom = empty_subsetI [THEN PowI] (* 0 : Pow(B) *)
 lemmas Pow_top = subset_refl [THEN PowI] (* A : Pow(A) *)
 
 
-(*** Unordered pairs - Upair ***)
+subsection{*Unordered Pairs: constant @{term Upair}*}
 
 lemma Upair_iff [simp]: "c : Upair(a,b) <-> (c=a | c=b)"
 by (unfold Upair_def, blast)
@@ -44,7 +42,7 @@ apply simp
 apply blast 
 done
 
-(*** Rules for binary union -- Un -- defined via Upair ***)
+subsection{*Rules for Binary Union, Defined via @{term Upair}*}
 
 lemma Un_iff [simp]: "c : A Un B <-> (c:A | c:B)"
 apply (simp add: Un_def)
@@ -57,7 +55,6 @@ by simp
 lemma UnI2: "c : B ==> c : A Un B"
 by simp
 
-(*belongs to theory upair*)
 declare UnI1 [elim?]  UnI2 [elim?]
 
 lemma UnE [elim!]: "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P"
@@ -78,7 +75,7 @@ apply blast
 done
 
 
-(*** Rules for small intersection -- Int -- defined via Upair ***)
+subsection{*Rules for Binary Intersection, Defined via @{term Upair}*}
 
 lemma Int_iff [simp]: "c : A Int B <-> (c:A & c:B)"
 apply (unfold Int_def)
@@ -98,7 +95,7 @@ lemma IntE [elim!]: "[| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P"
 by simp
 
 
-(*** Rules for set difference -- defined via Upair ***)
+subsection{*Rules for Set Difference, Defined via @{term Upair}*}
 
 lemma Diff_iff [simp]: "c : A-B <-> (c:A & c~:B)"
 by (unfold Diff_def, blast)
@@ -116,7 +113,7 @@ lemma DiffE [elim!]: "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
 by simp
 
 
-(*** Rules for cons -- defined via Un and Upair ***)
+subsection{*Rules for @{term cons}*}
 
 lemma cons_iff [simp]: "a : cons(b,A) <-> (a=b | a:A)"
 apply (unfold cons_def)
@@ -159,7 +156,7 @@ lemmas cons_neq_0 = cons_not_0 [THEN notE, standard]
 declare cons_not_0 [THEN not_sym, simp]
 
 
-(*** Singletons - using cons ***)
+subsection{*Singletons*}
 
 lemma singleton_iff: "a : {b} <-> a=b"
 by simp
@@ -170,7 +167,7 @@ by (rule consI1)
 lemmas singletonE = singleton_iff [THEN iffD1, elim_format, standard, elim!]
 
 
-(*** Rules for Descriptions ***)
+subsection{*Rules for Descriptions*}
 
 lemma the_equality [intro]:
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
@@ -210,7 +207,10 @@ apply (rule p1)
 apply (erule the_0 [THEN subst], assumption)
 done
 
-(*** if -- a conditional expression for formulae ***)
+lemma the_eq_trivial [simp]: "(THE x. x = a) = a"
+by blast
+
+subsection{*Conditional Terms: @{text "if-then-else"}*}
 
 lemma if_true [simp]: "(if True then a else b) = a"
 by (unfold if_def, blast)
@@ -263,7 +263,7 @@ lemma if_type [TC]:
 by (simp split add: split_if)
 
 
-(*** Foundation lemmas ***)
+subsection{*Consequences of Foundation*}
 
 (*was called mem_anti_sym*)
 lemma mem_asym: "[| a:b;  ~P ==> b:a |] ==> P"
@@ -288,7 +288,10 @@ done
 lemma mem_imp_not_eq: "a:A ==> a ~= A"
 by (blast elim!: mem_irrefl)
 
-(*** Rules for succ ***)
+lemma eq_imp_not_mem: "a=A ==> a ~: A"
+by (blast intro: elim: mem_irrefl)
+
+subsection{*Rules for Successor*}
 
 lemma succ_iff: "i : succ(j) <-> i=j | i:j"
 by (unfold succ_def, blast)

@@ -7,7 +7,7 @@
 
 header{*Inductive and Coinductive Definitions*}
 
-theory Inductive = Fixedpt + mono + QPair
+theory Inductive = Fixedpt + QPair
   files
     "ind_syntax.ML"
     "Tools/cartprod.ML"

@@ -7,7 +7,7 @@
 
 header{*A Small Universe for Lazy Recursive Types*}
 
-theory QUniv = Univ + QPair + mono + equalities:
+theory QUniv = Univ + QPair:
 
 (*Disjoint sums as a datatype*)
 rep_datatype 

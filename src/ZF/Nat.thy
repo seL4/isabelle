@@ -7,7 +7,7 @@
 
 header{*The Natural numbers As a Least Fixed Point*}
 
-theory Nat = OrdQuant + Bool + mono:
+theory Nat = OrdQuant + Bool:
 
 constdefs
   nat :: i

@@ -20,10 +20,6 @@ by blast
 lemma not_disj_iff_imp: "~P | Q <-> (P-->Q)"
 by blast
 
-(*FIXME: move to upair once it's Isar format*)
-lemma the_eq_trivial [simp]: "(THE x. x = a) = a"
-by blast
-
 (** Monotonicity of implications -- some could go to FOL **)
 
 lemma in_mono: "A<=B ==> x:A --> x:B"

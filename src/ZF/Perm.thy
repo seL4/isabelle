@@ -11,7 +11,7 @@ The theory underlying permutation groups
 
 header{*Injections, Surjections, Bijections, Composition*}
 
-theory Perm = mono + func:
+theory Perm = func:
 
 constdefs
 

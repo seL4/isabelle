@@ -7,7 +7,7 @@
 
 header{*Relations: Their General Properties and Transitive Closure*}
 
-theory Trancl = Fixedpt + Perm + mono:
+theory Trancl = Fixedpt + Perm:
 
 constdefs
   refl     :: "[i,i]=>o"

@@ -7,7 +7,7 @@
 
 header{*Epsilon Induction and Recursion*}
 
-theory Epsilon = Nat + mono:
+theory Epsilon = Nat:
 
 constdefs
   eclose    :: "i=>i"
