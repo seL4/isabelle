@@ -36,8 +36,9 @@ val typedef_decl =
 (** record **)
 
 val record_decl =
-  name --$$ "=" -- optional (name --$$ "+" >> (parens o cat "Some")) "None" --
-  repeat1 ((name --$$ "::" -- typ) >> mk_pair)
+  (type_args -- name >> (mk_pair o apfst mk_list)) --$$ "="
+    -- optional (typ --$$ "+" >> cat "Some") "None"
+    -- repeat1 ((name --$$ "::" -- typ) >> mk_pair)
   >> (fn ((x, y), zs) => cat_lines [x, y, mk_big_list zs]);
 
 
