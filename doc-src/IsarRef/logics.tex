@@ -541,18 +541,17 @@ the following attributes.
 \end{matharray}
 
 \begin{rail}
-'specification' '(' (decl +) ')' thmdecl? prop
+'specification' '(' (decl +) ')' (thmdecl? prop +)
 ;
 decl: ((name ':')? term '(overloaded)'?)
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{specification}~decls~\phi$] sets up a
-  goal stating the existence of terms with the property specified to
-  hold for the constants given in $\mathit{decls}$.  After finishing
-  the proof, the theory will be augmented with definitions for the
-  given constants, and a theorem stating the property for these
-  constants is returned.
+\item [$\isarkeyword{specification}~decls~\phi$] sets up a goal stating
+  the existence of terms with the properties specified to hold for the
+  constants given in $\mathit{decls}$.  After finishing the proof, the
+  theory will be augmented with definitions for the given constants,
+  as well as with theorems stating the properties for these constants.
 \item[$decl$] declares a constant to be defined by the specification
   given.  The definition for the constant $c$ is bound to the name
   $c$\_def unless a theorem name is given in the declaration.
@@ -728,7 +727,7 @@ actually covers the new-style theory format as well).
   \isarcmd{constdefs} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
-HOLCF provides a separate type for continuous functions $\alpha \rightarrow
+HOLCF provides a separate type for continuous functions $\alpha \to
 \beta$, with an explicit application operator $f \cdot x$.  Isabelle mixfix
 syntax normally refers directly to the pure meta-level function type $\alpha
 \To \beta$, with application $f\,x$.
