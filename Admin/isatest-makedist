@@ -23,9 +23,6 @@ MAKEDIST=~/bin/makedist
 MAKEALL=~/bin/isatest-makeall
 TAR=gtar
 
-SUN=sunbroy2
-AT=atbroy51
-
 SSH="ssh -f"
 
 ## diagnostics
@@ -99,8 +96,8 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 
 ## spawn test runs
 
-$SSH sunbroy1 "$MAKEALL $DISTPREFIX ~/settings/sun1-poly ~/settings/sun1-sml"
-$SSH $SUN "$MAKEALL $DISTPREFIX ~/settings/sun-poly ~/settings/sun-sml"
-$SSH $AT "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
+$SSH sunbroy2 "$MAKEALL $DISTPREFIX ~/settings/sun-poly ~/settings/sun-sml"
+$SSH atbroy51 "$MAKEALL $DISTPREFIX ~/settings/at-poly ~/settings/at-sml"
+$SSH macbroy33 "$MAKEALL $DISTPREFIX ~/settings/mac-poly"
 
 ## end
