@@ -19,7 +19,10 @@ datatype 'a uterm = Var 'a
 consts
   vars_of  ::  "'a uterm => 'a set"
   "<:"     ::  "'a uterm => 'a uterm => bool"   (infixl 54) 
-uterm_size ::  "'a uterm => nat"
+  uterm_size ::  "'a uterm => nat"
+
+syntax (xsymbols)
+  "op <:"     ::  "'a uterm => 'a uterm => bool"   (infixl "\<prec>" 54) 
 
 
 primrec
@@ -27,11 +30,10 @@ primrec
   vars_of_Const: "vars_of (Const c) = {}"
   vars_of_Comb:  "vars_of (Comb M N) = (vars_of(M) Un vars_of(N))"
 
-
 primrec
-  occs_Var:   "u <: (Var v) = False"
-  occs_Const: "u <: (Const c) = False"
-  occs_Comb:  "u <: (Comb M N) = (u=M | u=N | u <: M | u <: N)"
+  occs_Var:   "u \<prec> (Var v) = False"
+  occs_Const: "u \<prec> (Const c) = False"
+  occs_Comb:  "u \<prec> (Comb M N) = (u=M | u=N | u \<prec> M | u \<prec> N)"
 
 primrec
   uterm_size_Var:   "uterm_size (Var v) = 0"
@@ -39,19 +41,20 @@ primrec
   uterm_size_Comb:  "uterm_size (Comb M N) = Suc(uterm_size M + uterm_size N)"
 
 
-lemma vars_var_iff: "(v : vars_of(Var(w))) = (w=v)"
+lemma vars_var_iff: "(v \<in> vars_of(Var(w))) = (w=v)"
 by auto
 
-lemma vars_iff_occseq: "(x : vars_of(t)) = (Var(x) <: t | Var(x) = t)"
+lemma vars_iff_occseq: "(x \<in> vars_of(t)) = (Var(x) \<prec> t | Var(x) = t)"
 by (induct_tac "t", auto)
 
 
-(* Not used, but perhaps useful in other proofs *)
-lemma occs_vars_subset: "M<:N --> vars_of(M) <= vars_of(N)"
+text{* Not used, but perhaps useful in other proofs *}
+lemma occs_vars_subset [rule_format]: "M\<prec>N --> vars_of(M) \<subseteq> vars_of(N)"
 by (induct_tac "N", auto)
 
 
-lemma monotone_vars_of: "vars_of M Un vars_of N <= (vars_of M Un A) Un (vars_of N Un B)"
+lemma monotone_vars_of:
+     "vars_of M Un vars_of N \<subseteq> (vars_of M Un A) Un (vars_of N Un B)"
 by blast
 
 lemma finite_vars_of: "finite(vars_of M)"
