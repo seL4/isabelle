@@ -11,6 +11,7 @@ and different types cannot occur.
 signature ENVIR =
 sig
   datatype env = Envir of {asol: term Vartab.table, iTs: typ Vartab.table, maxidx: int}
+  exception SAME
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
   val lookup: env * indexname -> term option
@@ -21,6 +22,10 @@ sig
   val vupdate: (indexname * term) * env -> env
   val alist_of: env -> (indexname * term) list
   val norm_term: env -> term -> term
+  val norm_term_same: env -> term -> term
+  val norm_type: env -> typ -> typ
+  val norm_type_same: env -> typ -> typ
+  val norm_types_same: env -> typ list -> typ list
   val beta_norm: term -> term
 end;
 
@@ -93,7 +98,7 @@ fun alist_of (Envir{asol,...}) = Vartab.dest asol;
 (*raised when norm has no effect on a term, to do sharing instead of copying*)
 exception SAME;
 
-fun norm_term1 (asol,t) : term =
+fun norm_term1 same (asol,t) : term =
   let fun norm (Var (w,T)) =
             (case Vartab.lookup (asol, w) of
                 Some u => (norm u handle SAME => u)
@@ -107,39 +112,53 @@ fun norm_term1 (asol,t) : term =
             handle SAME => f $ norm t)
         | norm _ =  raise SAME
       and normh t = norm t handle SAME => t
-  in normh t end
+  in (if same then norm else normh) t end
 
-and norm_term2(asol,iTs,t) : term =
-  let fun normT(Type(a,Ts)) = Type(a, normTs Ts)
-        | normT(TFree _) = raise SAME
-        | normT(TVar(v,_)) = (case Vartab.lookup (iTs, v) of
-                Some(U) => normTh U
-              | None => raise SAME)
-      and normTh T = ((normT T) handle SAME => T)
-      and normTs([]) = raise SAME
-        | normTs(T::Ts) = ((normT T :: (normTs Ts handle SAME => Ts))
-                           handle SAME => T :: normTs Ts)
-      and norm(Const(a,T)) = Const(a, normT T)
-        | norm(Free(a,T)) = Free(a, normT T)
-        | norm(Var (w,T)) =
+fun normT iTs (Type (a, Ts)) = Type (a, normTs iTs Ts)
+  | normT iTs (TFree _) = raise SAME
+  | normT iTs (TVar(v, _)) = (case Vartab.lookup (iTs, v) of
+          Some U => normTh iTs U
+        | None => raise SAME)
+and normTh iTs T = ((normT iTs T) handle SAME => T)
+and normTs iTs [] = raise SAME
+  | normTs iTs (T :: Ts) =
+      ((normT iTs T :: (normTs iTs Ts handle SAME => Ts))
+       handle SAME => T :: normTs iTs Ts);
+
+fun norm_term2 same (asol, iTs, t) : term =
+  let fun norm (Const (a, T)) = Const(a, normT iTs T)
+        | norm (Free (a, T)) = Free(a, normT iTs T)
+        | norm (Var (w, T)) =
             (case Vartab.lookup (asol, w) of
                 Some u => normh u
-              | None   => Var(w,normT T))
-        | norm(Abs(a,T,body)) =
-              (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
-        | norm(Abs(_,_,body) $ t) = normh(subst_bound (t, body))
-        | norm(f $ t) =
+              | None   => Var(w, normT iTs T))
+        | norm (Abs (a, T, body)) =
+               (Abs (a, normT iTs T, normh body) handle SAME => Abs (a, T, norm body))
+        | norm (Abs(_, _, body) $ t) = normh (subst_bound (t, body))
+        | norm (f $ t) =
             ((case norm f of
-               Abs(_,_,body) => normh(subst_bound (t, body))
+               Abs(_, _, body) => normh (subst_bound (t, body))
              | nf => nf $ normh t)
             handle SAME => f $ norm t)
         | norm _ =  raise SAME
       and normh t = (norm t) handle SAME => t
-  in normh t end;
+  in (if same then norm else normh) t end;
 
-fun norm_term (env as Envir{asol,iTs,...}) t : term =
-  if Vartab.is_empty iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
+fun gen_norm_term same (env as Envir{asol,iTs,...}) t : term =
+  if Vartab.is_empty iTs then norm_term1 same (asol, t)
+  else norm_term2 same (asol, iTs, t);
+
+val norm_term = gen_norm_term false;
+val norm_term_same = gen_norm_term true;
 
 val beta_norm = norm_term (empty 0);
+
+fun norm_type (Envir {iTs, ...}) = normTh iTs;
+fun norm_type_same (Envir {iTs, ...}) =
+  if Vartab.is_empty iTs then raise SAME else normT iTs;
+
+fun norm_types_same (Envir {iTs, ...}) =
+  if Vartab.is_empty iTs then raise SAME else normTs iTs;
+
 
 end;
