@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/AC16_WO4.thy
+(*  Title:      ZF/AC/AC16_WO4.thy
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 *)
 
 AC16_WO4 = OrderType + AC16_lemmas + Cardinal_aux +
@@ -24,6 +24,6 @@ defs
   LL_def  "LL(t_n, k, y) == {v Int y. v:MM(t_n, k, y)}"
 
   GG_def  "GG(t_n, k, y) == lam v:LL(t_n, k, y). 
-	                    (THE w. w:MM(t_n, k, y) & v <= w) - v"
+                            (THE w. w:MM(t_n, k, y) & v <= w) - v"
 
 end

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/arith.thy
+(*  Title:      ZF/arith.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Arithmetic operators and their definitions
@@ -9,11 +9,11 @@ Arithmetic operators and their definitions
 Arith = Epsilon + "simpdata" +
 consts
     rec  :: [i, i, [i,i]=>i]=>i
-    "#*" :: [i,i]=>i      		(infixl 70)
-    div  :: [i,i]=>i      		(infixl 70) 
-    mod  :: [i,i]=>i      		(infixl 70)
-    "#+" :: [i,i]=>i      		(infixl 65)
-    "#-" :: [i,i]=>i      		(infixl 65)
+    "#*" :: [i,i]=>i                    (infixl 70)
+    div  :: [i,i]=>i                    (infixl 70) 
+    mod  :: [i,i]=>i                    (infixl 70)
+    "#+" :: [i,i]=>i                    (infixl 65)
+    "#-" :: [i,i]=>i                    (infixl 65)
 
 defs
     rec_def  "rec(k,a,b) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"

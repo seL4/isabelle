@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/PropLog.thy
+(*  Title:      ZF/ex/PropLog.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow & Lawrence C Paulson
+    Author:     Tobias Nipkow & Lawrence C Paulson
     Copyright   1993  University of Cambridge
 
 Datatype definition of propositional logic formulae and inductive definition
@@ -15,13 +15,13 @@ consts
 
 datatype
   "prop" = Fls
-         | Var ("n: nat")	                ("#_" [100] 100)
-         | "=>" ("p: prop", "q: prop")		(infixr 90)
+         | Var ("n: nat")                       ("#_" [100] 100)
+         | "=>" ("p: prop", "q: prop")          (infixr 90)
 
 (** The proof system **)
 consts
   thms     :: i => i
-  "|-"     :: [i,i] => o    			(infixl 50)
+  "|-"     :: [i,i] => o                        (infixl 50)
 
 translations
   "H |- p" == "p : thms(H)"
@@ -41,7 +41,7 @@ inductive
 consts
   prop_rec :: [i, i, i=>i, [i,i,i,i]=>i] => i
   is_true  :: [i,i] => o
-  "|="     :: [i,i] => o    			(infixl 50)
+  "|="     :: [i,i] => o                        (infixl 50)
   hyps     :: [i,i] => i
 
 defs

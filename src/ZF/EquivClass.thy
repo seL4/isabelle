@@ -1,6 +1,6 @@
-(*  Title: 	ZF/EquivClass.thy
+(*  Title:      ZF/EquivClass.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Equivalence relations in Zermelo-Fraenkel Set Theory 
@@ -9,7 +9,7 @@ Equivalence relations in Zermelo-Fraenkel Set Theory
 EquivClass = Rel + Perm + 
 consts
     "'/"        ::      [i,i]=>i  (infixl 90)  (*set of equiv classes*)
-    congruent	::	[i,i=>i]=>o
+    congruent   ::      [i,i=>i]=>o
     congruent2  ::      [i,[i,i]=>i]=>o
 
 defs

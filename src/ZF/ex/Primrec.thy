@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Primrec.thy
+(*  Title:      ZF/ex/Primrec.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Primitive Recursive Functions
@@ -22,8 +22,8 @@ consts
     PROJ    :: i=>i
     COMP    :: [i,i]=>i
     PREC    :: [i,i]=>i
-    ACK	    :: i=>i
-    ack	    :: [i,i]=>i
+    ACK     :: i=>i
+    ack     :: [i,i]=>i
 
 translations
   "ack(x,y)"  == "ACK(x) ` [y]"
@@ -57,8 +57,8 @@ inductive
     PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
   monos      "[list_mono]"
   con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
-  type_intrs "nat_typechecks @ list.intrs @   		        
-	      [lam_type, list_case_type, drop_type, map_type,   
-	      apply_type, rec_type]"
+  type_intrs "nat_typechecks @ list.intrs @                     
+              [lam_type, list_case_type, drop_type, map_type,   
+              apply_type, rec_type]"
 
 end

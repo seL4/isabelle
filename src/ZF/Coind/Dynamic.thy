@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Coind/Dynamic.thy
+(*  Title:      ZF/Coind/Dynamic.thy
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
 

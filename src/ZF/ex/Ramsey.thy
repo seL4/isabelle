@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/ramsey.thy
+(*  Title:      ZF/ex/ramsey.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Ramsey's Theorem (finite exponent 2 version)
@@ -20,9 +20,9 @@ See also
 
 Ramsey = Arith +
 consts
-  Symmetric   		:: i=>o
-  Atleast     		:: [i,i]=>o
-  Clique,Indept,Ramsey	:: [i,i,i]=>o
+  Symmetric             :: i=>o
+  Atleast               :: [i,i]=>o
+  Clique,Indept,Ramsey  :: [i,i,i]=>o
 
 defs
 

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/TF.thy
+(*  Title:      ZF/ex/TF.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Trees & forests, a mutually recursive type definition.
@@ -24,14 +24,14 @@ and
 
 defs
   TF_rec_def
-    "TF_rec(z,b,c,d) == Vrec(z,  			
-      %z r. tree_forest_case(%x f. b(x, f, r`f), 	
-                             c, 			
-		              %t f. d(t, f, r`t, r`f), z))"
+    "TF_rec(z,b,c,d) == Vrec(z,                         
+      %z r. tree_forest_case(%x f. b(x, f, r`f),        
+                             c,                         
+                              %t f. d(t, f, r`t, r`f), z))"
 
   list_of_TF_def
     "list_of_TF(z) == TF_rec(z, %x f r. [Tcons(x,f)], [], 
-		             %t f r1 r2. Cons(t, r2))"
+                             %t f r1 r2. Cons(t, r2))"
 
   TF_of_list_def
     "TF_of_list(f) == list_rec(f, Fnil,  %t f r. Fcons(t,r))"

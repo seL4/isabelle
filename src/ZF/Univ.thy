@@ -1,6 +1,6 @@
-(*  Title: 	ZF/univ.thy
+(*  Title:      ZF/univ.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 The cumulative hierarchy and a small universe for recursive types
@@ -19,13 +19,13 @@ consts
     univ        :: i=>i
 
 translations
-    "Vset(x)"   == 	"Vfrom(0,x)"
+    "Vset(x)"   ==      "Vfrom(0,x)"
 
 defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"
 
     Vrec_def
-   	"Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      
+        "Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      
                              H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
 
     univ_def    "univ(A) == Vfrom(A,nat)"

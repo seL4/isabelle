@@ -1,6 +1,6 @@
-(*  Title: 	ZF/sum.thy
+(*  Title:      ZF/sum.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Disjoint sums in Zermelo-Fraenkel Set Theory 
@@ -9,7 +9,7 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 
 Sum = Bool + "simpdata" +
 consts
-    "+"    	:: [i,i]=>i      		(infixr 65)
+    "+"         :: [i,i]=>i                     (infixr 65)
     Inl,Inr     :: i=>i
     case        :: [i=>i, i=>i, i]=>i
     Part        :: [i,i=>i] => i
@@ -21,5 +21,5 @@ defs
     case_def    "case(c,d) == (%<y,z>. cond(y, d(z), c(z)))"
 
   (*operator for selecting out the various summands*)
-    Part_def	"Part(A,h) == {x: A. EX z. x = h(z)}"
+    Part_def    "Part(A,h) == {x: A. EX z. x = h(z)}"
 end

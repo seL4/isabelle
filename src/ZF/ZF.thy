@@ -61,7 +61,7 @@ consts
   range       :: i => i
   field       :: i => i
   converse    :: i => i
-  function    :: i => o	    	(*is a relation a function?*)
+  function    :: i => o         (*is a relation a function?*)
   Lambda      :: [i, i => i] => i
   restrict    :: [i, i] => i
 
@@ -214,8 +214,8 @@ defs
   domain_def    "domain(r) == {x. w:r, EX y. w=<x,y>}"
   range_def     "range(r) == domain(converse(r))"
   field_def     "field(r) == domain(r) Un range(r)"
-  function_def	"function(r) == ALL x y. <x,y>:r -->   
-		                (ALL y'. <x,y'>:r --> y=y')"
+  function_def  "function(r) == ALL x y. <x,y>:r -->   
+                                (ALL y'. <x,y'>:r --> y=y')"
   image_def     "r `` A  == {y : range(r) . EX x:A. <x,y> : r}"
   vimage_def    "r -`` A == converse(r)``A"
 

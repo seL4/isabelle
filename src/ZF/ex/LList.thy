@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/LList.thy
+(*  Title:      ZF/ex/LList.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Codatatype definition of Lazy Lists

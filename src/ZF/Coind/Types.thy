@@ -1,14 +1,14 @@
-(*  Title: 	ZF/Coind/Types.thy
+(*  Title:      ZF/Coind/Types.thy
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
 
 Types = Language +
 
 consts
-  Ty :: i			(* Datatype of types *)
-  TyConst :: i		(* Abstract type of type constants *)
+  Ty :: i                       (* Datatype of types *)
+  TyConst :: i          (* Abstract type of type constants *)
 datatype <= "univ(TyConst)"
   "Ty" = t_const("tc:TyConst")
        | t_fun("t1:Ty","t2:Ty")

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Let
+(*  Title:      ZF/Let
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Let expressions, and tuple pattern-matching (borrowed from HOL)

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Comb.thy
+(*  Title:      ZF/ex/Comb.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson
+    Author:     Lawrence C Paulson
     Copyright   1994  University of Cambridge
 
 Combinatory Logic example: the Church-Rosser Theorem
@@ -27,8 +27,8 @@ datatype (* <= "univ(0)" *)
 **)
 consts
   contract  :: i
-  "-1->"    :: [i,i] => o    			(infixl 50)
-  "--->"    :: [i,i] => o    			(infixl 50)
+  "-1->"    :: [i,i] => o                       (infixl 50)
+  "--->"    :: [i,i] => o                       (infixl 50)
 
 translations
   "p -1-> q" == "<p,q> : contract"
@@ -49,8 +49,8 @@ inductive
 **)
 consts
   parcontract :: i
-  "=1=>"    :: [i,i] => o    			(infixl 50)
-  "===>"    :: [i,i] => o    			(infixl 50)
+  "=1=>"    :: [i,i] => o                       (infixl 50)
+  "===>"    :: [i,i] => o                       (infixl 50)
 
 translations
   "p =1=> q" == "<p,q> : parcontract"

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/Hartog.thy
+(*  Title:      ZF/AC/Hartog.thy
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 Hartog's function.
 *)

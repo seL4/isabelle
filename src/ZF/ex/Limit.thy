@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Limit
+(*  Title:      ZF/ex/Limit
     ID:         $Id$
-    Author: 	Sten Agerholm
+    Author:     Sten Agerholm
 
     A formalization of the inverse limit construction of domain theory.
 

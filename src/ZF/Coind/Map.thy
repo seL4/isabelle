@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Coind/Map.thy
+(*  Title:      ZF/Coind/Map.thy
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
 

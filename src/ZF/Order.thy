@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Order.thy
+(*  Title:      ZF/Order.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Orders in Zermelo-Fraenkel Set Theory 
@@ -8,13 +8,13 @@ Orders in Zermelo-Fraenkel Set Theory
 
 Order = WF + Perm + 
 consts
-  part_ord        :: [i,i]=>o		(*Strict partial ordering*)
-  linear, tot_ord :: [i,i]=>o		(*Strict total ordering*)
-  well_ord        :: [i,i]=>o		(*Well-ordering*)
-  mono_map        :: [i,i,i,i]=>i	(*Order-preserving maps*)
-  ord_iso         :: [i,i,i,i]=>i	(*Order isomorphisms*)
-  pred            :: [i,i,i]=>i	(*Set of predecessors*)
-  ord_iso_map     :: [i,i,i,i]=>i	(*Construction for linearity theorem*)
+  part_ord        :: [i,i]=>o           (*Strict partial ordering*)
+  linear, tot_ord :: [i,i]=>o           (*Strict total ordering*)
+  well_ord        :: [i,i]=>o           (*Well-ordering*)
+  mono_map        :: [i,i,i,i]=>i       (*Order-preserving maps*)
+  ord_iso         :: [i,i,i,i]=>i       (*Order isomorphisms*)
+  pred            :: [i,i,i]=>i (*Set of predecessors*)
+  ord_iso_map     :: [i,i,i,i]=>i       (*Construction for linearity theorem*)
 
 defs
   part_ord_def "part_ord(A,r) == irrefl(A,r) & trans[A](r)"

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Zorn.thy
+(*  Title:      ZF/Zorn.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Based upon the article
@@ -39,10 +39,10 @@ consts
 inductive
   domains       "TFin(S,next)" <= "Pow(S)"
   intrs
-    nextI	"[| x : TFin(S,next);  next: increasing(S) 
+    nextI       "[| x : TFin(S,next);  next: increasing(S) 
                 |] ==> next`x : TFin(S,next)"
 
-    Pow_UnionI	"Y : Pow(TFin(S,next)) ==> Union(Y) : TFin(S,next)"
+    Pow_UnionI  "Y : Pow(TFin(S,next)) ==> Union(Y) : TFin(S,next)"
 
   monos         "[Pow_mono]"
   con_defs      "[increasing_def]"

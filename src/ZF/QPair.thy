@@ -1,6 +1,6 @@
-(*  Title: 	ZF/qpair.thy
+(*  Title:      ZF/qpair.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Quine-inspired ordered pairs and disjoint sums, for non-well-founded data
@@ -13,19 +13,19 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 
 QPair = Sum + "simpdata" +
 consts
-  QPair     :: [i, i] => i               	("<(_;/ _)>")
+  QPair     :: [i, i] => i                      ("<(_;/ _)>")
   qfst,qsnd :: i => i
   qsplit    :: [[i, i] => 'a, i] => 'a::logic  (*for pattern-matching*)
   qconverse :: i => i
   QSigma    :: [i, i => i] => i
 
-  "<+>"     :: [i,i]=>i      			(infixr 65)
+  "<+>"     :: [i,i]=>i                         (infixr 65)
   QInl,QInr :: i=>i
   qcase     :: [i=>i, i=>i, i]=>i
 
 syntax
   "@QSUM"   :: [idt, i, i] => i               ("(3QSUM _:_./ _)" 10)
-  "<*>"     :: [i, i] => i         		(infixr 80)
+  "<*>"     :: [i, i] => i                      (infixr 80)
 
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"

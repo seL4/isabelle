@@ -1,6 +1,6 @@
-(*  Title: 	Redex.thy
+(*  Title:      Redex.thy
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -10,14 +10,14 @@ consts
   redexes     :: i
 
 datatype
-  "redexes" = Var ("n: nat")	        
+  "redexes" = Var ("n: nat")            
             | Fun ("t: redexes")
             | App ("b:bool" ,"f:redexes" , "a:redexes")
   type_intrs "[bool_into_univ]"
   
 
 consts
-  redex_rec   	:: [i, i=>i, [i,i]=>i, [i,i,i,i,i]=>i]=>i
+  redex_rec     :: [i, i=>i, [i,i]=>i, [i,i,i,i,i]=>i]=>i
  
 defs
   redex_rec_def

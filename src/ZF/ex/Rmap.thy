@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Rmap
+(*  Title:      ZF/ex/Rmap
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Inductive definition of an operator to "map" a relation over a list

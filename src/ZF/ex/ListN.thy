@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/ListN
+(*  Title:      ZF/ex/ListN
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Inductive definition of lists of n elements
@@ -10,7 +10,7 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
 ListN = List +
-consts	listn ::i=>i
+consts  listn ::i=>i
 inductive
   domains   "listn(A)" <= "nat*list(A)"
   intrs

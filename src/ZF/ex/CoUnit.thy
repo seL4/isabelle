@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/CoUnit.ML
+(*  Title:      ZF/ex/CoUnit.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Trivial codatatype definitions, one of which goes wrong!

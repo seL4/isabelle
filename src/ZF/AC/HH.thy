@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/HH.thy
+(*  Title:      ZF/AC/HH.thy
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 The theory file for the proofs of
   AC17 ==> AC1
