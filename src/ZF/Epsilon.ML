@@ -64,8 +64,8 @@ goalw Epsilon.thy [Transset_def]
     "!!X A n. [| Transset(X);  A<=X;  n: nat |] ==> \
 \             nat_rec(n, A, %m r. Union(r)) <= X";
 by (etac nat_induct 1);
-by (asm_simp_tac (!simpset addsimps [nat_rec_0]) 1);
-by (asm_simp_tac (!simpset addsimps [nat_rec_succ]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_rec_0]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_rec_succ]) 1);
 by (Blast_tac 1);
 qed "eclose_least_lemma";
 
@@ -86,7 +86,7 @@ by (rtac (CollectI RS subsetI) 2);
 by (etac (arg_subset_eclose RS subsetD) 2);
 by (etac base 2);
 by (rewtac Transset_def);
-by (blast_tac (!claset addIs [step,ecloseD]) 1);
+by (blast_tac (claset() addIs [step,ecloseD]) 1);
 qed "eclose_induct_down";
 
 goal Epsilon.thy "!!X. Transset(X) ==> eclose(X) = X";
@@ -112,7 +112,7 @@ qed "mem_eclose_sing_trans";
 
 goalw Epsilon.thy [Transset_def]
     "!!i j. [| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
-by (blast_tac (!claset addSIs [MemrelI] addSEs [MemrelE]) 1);
+by (blast_tac (claset() addSIs [MemrelI] addSEs [MemrelE]) 1);
 qed "under_Memrel";
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
@@ -126,7 +126,7 @@ val [kmemj,jmemi] = goal Epsilon.thy
 by (rtac (kmemj RS eclose_induct) 1);
 by (rtac wfrec_ssubst 1);
 by (rtac wfrec_ssubst 1);
-by (asm_simp_tac (!simpset addsimps [under_Memrel_eclose,
+by (asm_simp_tac (simpset() addsimps [under_Memrel_eclose,
                                   jmemi RSN (2,mem_eclose_sing_trans)]) 1);
 qed "wfrec_eclose_eq";
 
@@ -139,7 +139,7 @@ qed "wfrec_eclose_eq2";
 goalw Epsilon.thy [transrec_def]
     "transrec(a,H) = H(a, lam x:a. transrec(x,H))";
 by (rtac wfrec_ssubst 1);
-by (simp_tac (!simpset addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
+by (simp_tac (simpset() addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
                               under_Memrel_eclose]) 1);
 qed "transrec";
 
@@ -192,7 +192,7 @@ qed "Ord_rank";
 val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
 by (rtac (major RS trans_induct) 1);
 by (stac rank 1);
-by (asm_simp_tac (!simpset addsimps [Ord_equality]) 1);
+by (asm_simp_tac (simpset() addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
 
 goal Epsilon.thy "!!a b. a:b ==> rank(a) < rank(b)";
@@ -299,20 +299,20 @@ by (Simp_tac 1);
 qed "transrec2_0";
 
 goal thy "(THE j. i=j) = i";
-by (blast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "THE_eq";
 
 goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (!simpset addsimps [succ_not_0, THE_eq, if_P]
+by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]
                     setloop split_tac [expand_if]) 1);
 by (Blast_tac 1);
 qed "transrec2_succ";
 
 goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (blast_tac (!claset addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
+by (simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (blast_tac (claset() addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
 qed "transrec2_Limit";
 
 Addsimps [transrec2_0, transrec2_succ];

@@ -39,7 +39,7 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (induct_tac "C" 1);
-by (auto_tac (!claset addIs [range_eqI], !simpset));
+by (auto_tac (claset() addIs [range_eqI], simpset()));
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
@@ -57,7 +57,7 @@ AddIffs [priK_in_initState];
 goal thy "Key (pubK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, spies_Cons]
 	                addsplits [expand_event_case, expand_if])));
 qed_spec_mp "spies_pubK";
 
@@ -65,7 +65,7 @@ qed_spec_mp "spies_pubK";
 goal thy "!!A. A: bad ==> Key (priK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, spies_Cons]
 	                addsplits [expand_event_case, expand_if])));
 qed "Spy_spies_bad";
 
@@ -76,7 +76,7 @@ AddSIs  [Spy_spies_bad];
 (*For not_bad_tac*)
 goal thy "!!A. [| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
 \              ==> X : analz (spies evs)";
-by (blast_tac (!claset addSDs [analz.Decrypt]) 1);
+by (blast_tac (claset() addSDs [analz.Decrypt]) 1);
 qed "Crypt_Spy_analz_bad";
 
 (*Prove that the agent is uncompromised by the confidentiality of 
@@ -101,7 +101,7 @@ qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
 goal thy "Nonce N ~: used []";
-by (simp_tac (!simpset addsimps [used_Nil]) 1);
+by (simp_tac (simpset() addsimps [used_Nil]) 1);
 qed "Nonce_notin_used_empty";
 Addsimps [Nonce_notin_used_empty];
 
@@ -113,11 +113,11 @@ goal thy "EX N. ALL n. N<=n --> Nonce n ~: used evs";
 by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [used_Cons]
+	      (simpset() addsimps [used_Cons]
 			addsplits [expand_event_case, expand_if])));
 by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
-by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
+by (ALLGOALS (blast_tac (claset() addSEs [add_leE])));
 val lemma = result();
 
 goal thy "EX N. Nonce N ~: used evs";
@@ -134,7 +134,7 @@ qed "Nonce_supply";
 (*Tactic for possibility theorems*)
 fun possibility_tac st = st |>
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
+    (ALLGOALS (simp_tac (simpset() delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply]));
@@ -153,7 +153,7 @@ qed "insert_Key_image";
 (*Reverse the normal simplification of "image" to build up (not break down)
   the set of keys.  Based on analz_image_freshK_ss, but simpler.*)
 val analz_image_keys_ss = 
-     !simpset addcongs [if_weak_cong]
+     simpset() addcongs [if_weak_cong]
 	      delsimps [image_insert, image_Un]
               delsimps [imp_disjL]    (*reduces blow-up*)
               addsimps [image_insert RS sym, image_Un RS sym,

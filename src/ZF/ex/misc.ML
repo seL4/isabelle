@@ -45,7 +45,7 @@ goal Perm.thy
 \                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
-by (asm_simp_tac (!simpset setloop (K (safe_tac (!claset)))) 1);
+by (asm_simp_tac (simpset() setloop (K (safe_tac (claset())))) 1);
 val comp_homs = result();
 
 (*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
@@ -56,7 +56,7 @@ val [hom_def] = goal Perm.thy
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
 by (rewtac hom_def);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 qed "comp_homs";

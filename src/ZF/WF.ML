@@ -33,7 +33,7 @@ by (Fast_tac 1);
 qed "wf_on_field_imp_wf";
 
 goal WF.thy "wf(r) <-> wf[field(r)](r)";
-by (blast_tac (!claset addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
+by (blast_tac (claset() addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
 goalw WF.thy [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
@@ -79,9 +79,9 @@ val [major,minor] = goalw WF.thy [wf_def]
 \    |]  ==>  P(a)";
 by (res_inst_tac [ ("x", "{z:domain(r) Un {a}. ~P(z)}") ]  (major RS allE) 1);
 by (etac disjE 1);
-by (blast_tac (!claset addEs [equalityE]) 1);
-by (asm_full_simp_tac (!simpset addsimps [domainI]) 1);
-by (blast_tac (!claset addSDs [minor]) 1);
+by (blast_tac (claset() addEs [equalityE]) 1);
+by (asm_full_simp_tac (simpset() addsimps [domainI]) 1);
+by (blast_tac (claset() addSDs [minor]) 1);
 qed "wf_induct";
 
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
@@ -99,7 +99,7 @@ by (rtac (amem RS rev_mp) 1);
 by (wf_ind_tac "a" [wfr] 1);
 by (rtac impI 1);
 by (eresolve_tac prems 1);
-by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "wf_induct2";
 
 goal domrange.thy "!!r A. field(r Int A*A) <= A";
@@ -179,11 +179,11 @@ by (rtac wf_onI2 1);
 by (bchain_tac 1);
 by (eres_inst_tac [("a","y")] (wfr RS wf_on_induct) 1);
 by (cut_facts_tac [subs] 1);
-by (blast_tac (!claset addEs [tranclE]) 1);
+by (blast_tac (claset() addEs [tranclE]) 1);
 qed "wf_on_trancl";
 
 goal WF.thy "!!r. wf(r) ==> wf(r^+)";
-by (asm_full_simp_tac (!simpset addsimps [wf_iff_wf_on_field]) 1);
+by (asm_full_simp_tac (simpset() addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1);
 by (etac wf_on_trancl 1);
 by (Blast_tac 1);
@@ -220,7 +220,7 @@ fun indhyp_tac hyps =
                         eresolve_tac [underD, transD, spec RS mp]));
 
 (*** NOTE! some simplifications need a different solver!! ***)
-val wf_super_ss = !simpset setSolver indhyp_tac;
+val wf_super_ss = simpset() setSolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def]
     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
@@ -295,7 +295,7 @@ goalw WF.thy [wftrec_def]
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (stac (rewrite_rule [is_recfun_def] unfold_the_recfun) 1);
 by (ALLGOALS (asm_simp_tac
-        (!simpset addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
+        (simpset() addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
 qed "wftrec";
 
 (** Removal of the premise trans(r) **)
@@ -333,6 +333,6 @@ goalw WF.thy [wf_on_def, wfrec_on_def]
  "!!A r. [| wf[A](r);  a: A |] ==> \
 \        wfrec[A](r,a,H) = H(a, lam x: (r-``{a}) Int A. wfrec[A](r,x,H))";
 by (etac (wfrec RS trans) 1);
-by (asm_simp_tac (!simpset addsimps [vimage_Int_square, cons_subset_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [vimage_Int_square, cons_subset_iff]) 1);
 qed "wfrec_on";
 

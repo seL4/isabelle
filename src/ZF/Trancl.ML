@@ -51,11 +51,11 @@ qed "r_into_rtrancl";
 (*The premise ensures that r consists entirely of pairs*)
 val prems = goal Trancl.thy "r <= Sigma(A,B) ==> r <= r^*";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addIs [r_into_rtrancl]) 1);
+by (blast_tac (claset() addIs [r_into_rtrancl]) 1);
 qed "r_subset_rtrancl";
 
 goal Trancl.thy "field(r^*) = field(r)";
-by (blast_tac (!claset addIs [r_into_rtrancl] 
+by (blast_tac (claset() addIs [r_into_rtrancl] 
                     addSDs [rtrancl_type RS subsetD]) 1);
 qed "rtrancl_field";
 
@@ -68,7 +68,7 @@ val major::prems = goal Trancl.thy
 \     !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |] \
 \  ==>  P(<a,b>)";
 by (rtac ([rtrancl_def, rtrancl_bnd_mono, major] MRS def_induct) 1);
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule.
@@ -85,7 +85,7 @@ by (subgoal_tac "ALL y. <a,b> = <a,y> --> P(y)" 1);
 by (EVERY1 [etac (spec RS mp), rtac refl]);
 (*now do the induction*)
 by (resolve_tac [major RS rtrancl_full_induct] 1);
-by (ALLGOALS (blast_tac (!claset addIs prems)));
+by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
@@ -103,7 +103,7 @@ val major::prems = goal Trancl.thy
 by (subgoal_tac "a = b  | (EX y. <a,y> : r^* & <y,b> : r)" 1);
 (*see HOL/trancl*)
 by (rtac (major RS rtrancl_induct) 2);
-by (ALLGOALS (fast_tac (!claset addSEs prems)));
+by (ALLGOALS (fast_tac (claset() addSEs prems)));
 qed "rtranclE";
 
 
@@ -111,24 +111,24 @@ qed "rtranclE";
 
 (*Transitivity of r^+ is proved by transitivity of r^*  *)
 goalw Trancl.thy [trans_def,trancl_def] "trans(r^+)";
-by (blast_tac (!claset addIs [rtrancl_into_rtrancl RS 
+by (blast_tac (claset() addIs [rtrancl_into_rtrancl RS 
 			      (trans_rtrancl RS transD RS compI)]) 1);
 qed "trans_trancl";
 
 (** Conversions between trancl and rtrancl **)
 
 goalw Trancl.thy [trancl_def] "!!r. <a,b> : r^+ ==> <a,b> : r^*";
-by (blast_tac (!claset addIs [rtrancl_into_rtrancl]) 1);
+by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "trancl_into_rtrancl";
 
 (*r^+ contains all pairs in r  *)
 goalw Trancl.thy [trancl_def] "!!r. <a,b> : r ==> <a,b> : r^+";
-by (blast_tac (!claset addSIs [rtrancl_refl]) 1);
+by (blast_tac (claset() addSIs [rtrancl_refl]) 1);
 qed "r_into_trancl";
 
 (*The premise ensures that r consists entirely of pairs*)
 goal Trancl.thy "!!r. r <= Sigma(A,B) ==> r <= r^+";
-by (blast_tac (!claset addIs [r_into_trancl]) 1);
+by (blast_tac (claset() addIs [r_into_trancl]) 1);
 qed "r_subset_trancl";
 
 (*intro rule by definition: from r^* and r  *)
@@ -158,7 +158,7 @@ by (subgoal_tac "ALL z. <y,z> : r --> P(z)" 1);
 (*now solve first subgoal: this formula is sufficient*)
 by (Blast_tac 1);
 by (etac rtrancl_induct 1);
-by (ALLGOALS (fast_tac (!claset addIs (rtrancl_into_trancl1::prems))));
+by (ALLGOALS (fast_tac (claset() addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
 
 (*elimination of r^+ -- NOT an induction rule*)
@@ -168,14 +168,14 @@ val major::prems = goal Trancl.thy
 \       !!y.[| <a,y> : r^+; <y,b> : r |] ==> P  \
 \    |] ==> P";
 by (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+  &  <y,b> : r)" 1);
-by (fast_tac (!claset addIs prems) 1);
+by (fast_tac (claset() addIs prems) 1);
 by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
 by (etac rtranclE 1);
-by (ALLGOALS (blast_tac (!claset addIs [rtrancl_into_trancl1])));
+by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_trancl1])));
 qed "tranclE";
 
 goalw Trancl.thy [trancl_def] "r^+ <= field(r)*field(r)";
-by (blast_tac (!claset addEs [rtrancl_type RS subsetD RS SigmaE2]) 1);
+by (blast_tac (claset() addEs [rtrancl_type RS subsetD RS SigmaE2]) 1);
 qed "trancl_type";
 
 val [prem] = goalw Trancl.thy [trancl_def] "r<=s ==> r^+ <= s^+";

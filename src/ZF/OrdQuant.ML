@@ -38,7 +38,7 @@ qed_goal "oall_simp" thy "(ALL x<a. True) <-> True"
 (*Congruence rule for rewriting*)
 qed_goalw "oall_cong" thy [oall_def]
     "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 
 (*** existential quantifier for ordinals ***)
@@ -64,14 +64,14 @@ qed_goalw "oexE" thy [oex_def]
 qed_goalw "oex_cong" thy [oex_def]
     "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) \
 \    |] ==> oex(a,P) <-> oex(a',P')"
- (fn prems=> [ (simp_tac (!simpset addsimps prems addcongs [conj_cong]) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1) ]);
 
 
 (*** Rules for Ordinal-Indexed Unions ***)
 
 qed_goalw "OUN_I" thy [OUnion_def]
         "!!i. [| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
- (fn _=> [ fast_tac (!claset addSEs [ltE]) 1 ]);
+ (fn _=> [ fast_tac (claset() addSEs [ltE]) 1 ]);
 
 qed_goalw "OUN_E" thy [OUnion_def]
     "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
@@ -82,13 +82,13 @@ qed_goalw "OUN_E" thy [OUnion_def]
 
 qed_goalw "OUN_iff" thy [oex_def]
     "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
- (fn _=> [ (fast_tac (!claset addIs [OUN_I] addSEs [OUN_E]) 1) ]);
+ (fn _=> [ (fast_tac (claset() addIs [OUN_I] addSEs [OUN_E]) 1) ]);
 
 qed_goal "OUN_cong" thy
     "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
  (fn prems=>
       [ rtac equality_iffI 1,
-        simp_tac (!simpset addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);
+        simp_tac (simpset() addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);
 
 AddSIs [oallI];
 AddIs  [oexI, OUN_I];
@@ -98,7 +98,7 @@ AddEs  [rev_oallE];
 val Ord_atomize = atomize (("oall", [ospec])::ZF_conn_pairs, 
                            ZF_mem_pairs);
 
-simpset := !simpset setmksimps (map mk_meta_eq o Ord_atomize o gen_all)
+simpset_ref() := simpset() setmksimps (map mk_meta_eq o Ord_atomize o gen_all)
                         addsimps [oall_simp, ltD RS beta]
                         addcongs [oall_cong, oex_cong, OUN_cong];
 
@@ -107,6 +107,6 @@ val major::prems = goalw thy [lt_def, oall_def]
 \    |]  ==>  P(i)";
 by (rtac (major RS conjE) 1);
 by (etac Ord_induct 1 THEN assume_tac 1);
-by (fast_tac (!claset addIs prems) 1);
+by (fast_tac (claset() addIs prems) 1);
 qed "lt_induct";
 

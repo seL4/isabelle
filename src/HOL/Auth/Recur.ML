@@ -99,8 +99,8 @@ goal thy
 \        ==> Key K ~: used evs";
 by (etac rev_mp 1);
 by (etac respond.induct 1);
-by (auto_tac(!claset addDs [Key_not_used, respond_imp_not_used],
-             !simpset));
+by (auto_tac(claset() addDs [Key_not_used, respond_imp_not_used],
+             simpset()));
 qed_spec_mp "Key_in_parts_respond";
 
 (*Simple inductive reasoning about responses*)
@@ -116,7 +116,7 @@ val RA2_analz_spies = Says_imp_spies RS analz.Inj |> standard;
 
 goal thy "!!evs. Says C' B {|Crypt K X, X', RA|} : set evs \
 \                ==> RA : analz (spies evs)";
-by (blast_tac (!claset addSDs [Says_imp_spies RS analz.Inj]) 1);
+by (blast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]) 1);
 qed "RA4_analz_spies";
 
 (*RA2_analz... and RA4_analz... let us treat those cases using the same 
@@ -150,22 +150,22 @@ goal thy
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [parts_insert2, parts_insert_spies])));
+    (asm_simp_tac (simpset() addsimps [parts_insert2, parts_insert_spies])));
 (*RA3*)
-by (blast_tac (!claset addDs [Key_in_parts_respond]) 2);
+by (blast_tac (claset() addDs [Key_in_parts_respond]) 2);
 (*RA2*)
-by (blast_tac (!claset addSEs partsEs  addDs [parts_cut]) 1);
+by (blast_tac (claset() addSEs partsEs  addDs [parts_cut]) 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : recur ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (spies evs); evs : recur |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -188,14 +188,14 @@ goal thy "!!evs. evs : recur ==>          \
 \                Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*RA3*)
-by (best_tac (!claset addDs  [Key_in_keysFor_parts]
-	      addss  (!simpset addsimps [parts_insert_spies])) 2);
+by (best_tac (claset() addDs  [Key_in_keysFor_parts]
+	      addss  (simpset() addsimps [parts_insert_spies])) 2);
 (*Fake*)
 by (best_tac
-      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                addIs  [impOfSubs analz_subset_parts]
                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (!simpset)) 1);
+               addss  (simpset())) 1);
 qed_spec_mp "new_keys_not_used";
 
 
@@ -283,7 +283,7 @@ by (parts_induct_tac 1);
 by (etac responses.induct 2);
 by (ALLGOALS Asm_simp_tac);
 (*Fake*)
-by (simp_tac (!simpset addsimps [parts_insert_spies]) 1);
+by (simp_tac (simpset() addsimps [parts_insert_spies]) 1);
 by (Fake_parts_insert_tac 1);
 qed "Hash_imp_body";
 
@@ -302,12 +302,12 @@ goal thy
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (etac responses.induct 3);
-by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
-by (clarify_tac (!claset addSEs partsEs) 1);
+by (ALLGOALS (simp_tac (simpset() addsimps [all_conj_distrib]))); 
+by (clarify_tac (claset() addSEs partsEs) 1);
 (*RA1,2: creation of new Nonce.  Move assertion into global context*)
 by (ALLGOALS (expand_case_tac "NA = ?y"));
 by (REPEAT_FIRST (ares_tac [exI]));
-by (REPEAT (blast_tac (!claset addSDs [Hash_imp_body]
+by (REPEAT (blast_tac (claset() addSDs [Hash_imp_body]
                                addSEs spies_partsEs) 1));
 val lemma = result();
 
@@ -349,8 +349,8 @@ by (ALLGOALS
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps [resp_analz_image_freshK_lemma])));
 (*Simplification using two distinct treatments of "image"*)
-by (simp_tac (!simpset addsimps [parts_insert2]) 1);
-by (blast_tac (!claset delrules [allE]) 1);
+by (simp_tac (simpset() addsimps [parts_insert2]) 1);
+by (blast_tac (claset() delrules [allE]) 1);
 qed "resp_analz_insert_lemma";
 
 bind_thm ("resp_analz_insert",
@@ -385,13 +385,13 @@ goal thy
 \        Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB} \
 \          -->   (A'=A & B'=B) | (A'=B & B'=A)";
 by (etac respond.induct 1);
-by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [all_conj_distrib]))); 
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [all_conj_distrib]))); 
 (*Base case*)
 by (Blast_tac 1);
 by Safe_tac;
 by (expand_case_tac "K = KBC" 1);
 by (dtac respond_Key_in_parts 1);
-by (blast_tac (!claset addSIs [exI]
+by (blast_tac (claset() addSIs [exI]
                        addSEs partsEs
                        addDs [Key_in_parts_respond]) 1);
 by (expand_case_tac "K = KAB" 1);
@@ -428,18 +428,18 @@ by (ALLGOALS (*6 seconds*)
         addsimps expand_ifs
 	addsimps 
           [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
-by (ALLGOALS (simp_tac (!simpset addsimps [ex_disj_distrib])));
+by (ALLGOALS (simp_tac (simpset() addsimps [ex_disj_distrib])));
 (** LEVEL 5 **)
-by (blast_tac (!claset addIs [impOfSubs analz_subset_parts]) 1);
+by (blast_tac (claset() addIs [impOfSubs analz_subset_parts]) 1);
 by (REPEAT_FIRST (resolve_tac [allI, conjI, impI]));
 by (ALLGOALS Clarify_tac);
-by (blast_tac (!claset addSDs  [resp_analz_insert]
+by (blast_tac (claset() addSDs  [resp_analz_insert]
 		       addIs  [impOfSubs analz_subset_parts]) 2);
-by (blast_tac (!claset addSDs [respond_certificate]) 1);
+by (blast_tac (claset() addSDs [respond_certificate]) 1);
 by (Asm_full_simp_tac 1);
 (*by unicity, either B=Aa or B=A', a contradiction if B: bad*)
 by (blast_tac
-    (!claset addSEs [MPair_parts]
+    (claset() addSEs [MPair_parts]
 	     addDs [parts.Body,
 		    respond_certificate RSN (2, unique_session_keys)]) 1);
 qed_spec_mp "respond_Spy_not_see_session_key";
@@ -454,7 +454,7 @@ by (etac recur.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps (expand_ifs @
+     (simpset() addsimps (expand_ifs @
 			 [analz_insert_eq, parts_insert_spies, 
 			  analz_insert_freshK]))));
 (*RA4*)
@@ -466,13 +466,13 @@ by (spy_analz_tac 2);
 (*Base*)
 by (Blast_tac 1);
 (*RA3 remains*)
-by (safe_tac (!claset delrules [impCE]));
+by (safe_tac (claset() delrules [impCE]));
 (*RA3, case 2: K is an old key*)
-by (blast_tac (!claset addSDs [resp_analz_insert]
+by (blast_tac (claset() addSDs [resp_analz_insert]
                        addSEs partsEs
                        addDs  [Key_in_parts_respond]) 2);
 (*RA3, case 1: use lemma previously proved by induction*)
-by (blast_tac (!claset addSEs [respond_Spy_not_see_session_key RSN
+by (blast_tac (claset() addSEs [respond_Spy_not_see_session_key RSN
 			       (2,rev_notE)]) 1);
 qed "Spy_not_see_session_key";
 
@@ -501,7 +501,7 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*RA3*)
-by (blast_tac (!claset addSDs [Hash_in_parts_respond]) 1);
+by (blast_tac (claset() addSDs [Hash_in_parts_respond]) 1);
 qed_spec_mp "Hash_auth_sender";
 
 (** These two results subsume (for all agents) the guarantees proved
@@ -521,7 +521,7 @@ by (Fake_parts_insert_tac 1);
 (*RA4*)
 by (Blast_tac 4);
 (*RA3*)
-by (full_simp_tac (!simpset addsimps [parts_insert_spies]) 3
+by (full_simp_tac (simpset() addsimps [parts_insert_spies]) 3
     THEN Blast_tac 3);
 (*RA1*)
 by (Blast_tac 1);

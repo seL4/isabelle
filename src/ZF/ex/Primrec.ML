@@ -22,7 +22,7 @@ val pr_typechecks =
 
 (** Useful special cases of evaluation ***)
 
-simpset := !simpset setSolver (type_auto_tac pr_typechecks);
+simpset_ref() := simpset() setSolver (type_auto_tac pr_typechecks);
 
 goalw Primrec.thy [SC_def]
     "!!x l. [| x:nat;  l: list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)";
@@ -61,7 +61,7 @@ qed "PREC_succ";
 (* c: primrec ==> c: list(nat) -> nat *)
 val primrec_into_fun = primrec.dom_subset RS subsetD;
 
-simpset := !simpset setSolver (type_auto_tac ([primrec_into_fun] @ 
+simpset_ref() := simpset() setSolver (type_auto_tac ([primrec_into_fun] @ 
 					      pr_typechecks @ primrec.intrs));
 
 goalw Primrec.thy [ACK_def] "!!i. i:nat ==> ACK(i): primrec";
@@ -87,12 +87,12 @@ qed "ack_type";
 
 (*PROPERTY A 1*)
 goalw Primrec.thy [ACK_def] "!!j. j:nat ==> ack(0,j) = succ(j)";
-by (asm_simp_tac (!simpset addsimps [SC]) 1);
+by (asm_simp_tac (simpset() addsimps [SC]) 1);
 qed "ack_0";
 
 (*PROPERTY A 2*)
 goalw Primrec.thy [ACK_def] "ack(succ(i), 0) = ack(i,1)";
-by (asm_simp_tac (!simpset addsimps [CONST,PREC_0]) 1);
+by (asm_simp_tac (simpset() addsimps [CONST,PREC_0]) 1);
 qed "ack_succ_0";
 
 (*PROPERTY A 3*)
@@ -101,7 +101,7 @@ qed "ack_succ_0";
 goalw Primrec.thy [ACK_def]
     "!!i j. [| i:nat;  j:nat |] ==> \
 \           ack(succ(i), succ(j)) = ack(i, ack(succ(i), j))";
-by (asm_simp_tac (!simpset addsimps [CONST,PREC_succ,COMP_1,PROJ_0]) 1);
+by (asm_simp_tac (simpset() addsimps [CONST,PREC_succ,COMP_1,PROJ_0]) 1);
 qed "ack_succ_succ";
 
 Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type, nat_into_Ord];
@@ -122,7 +122,7 @@ bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
 (*PROPERTY A 5-, the single-step lemma*)
 goal Primrec.thy "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
 by (etac nat_induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [lt_ack2])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_ack2])));
 qed "ack_lt_ack_succ2";
 
 (*PROPERTY A 5, monotonicity for < *)
@@ -183,7 +183,7 @@ qed "ack_1";
 (*PROPERTY A 9*)
 goal Primrec.thy "!!j. j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
 by (etac nat_induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [ack_1, add_succ_right])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [ack_1, add_succ_right])));
 qed "ack_2";
 
 (*PROPERTY A 10*)
@@ -202,7 +202,7 @@ goal Primrec.thy
     "!!i1 i2 j. [| i1:nat; i2:nat; j:nat |] ==> \
 \          ack(i1,j) #+ ack(i2,j) < ack(succ(succ(succ(succ(i1#+i2)))), j)";
 by (res_inst_tac [("j", "ack(succ(1), ack(i1 #+ i2, j))")] lt_trans 1);
-by (asm_simp_tac (!simpset addsimps [ack_2]) 1);
+by (asm_simp_tac (simpset() addsimps [ack_2]) 1);
 by (rtac (ack_nest_bound RS lt_trans2) 2);
 by (Asm_simp_tac 5);
 by (rtac (add_le_mono RS leI RS leI) 1);
@@ -217,7 +217,7 @@ goal Primrec.thy
 \             i#+j < ack(succ(succ(succ(succ(k)))), j)";
 by (res_inst_tac [("j", "ack(k,j) #+ ack(0,j)")] lt_trans 1);
 by (rtac (ack_add_bound RS lt_trans2) 2);
-by (asm_simp_tac (!simpset addsimps [add_0_right]) 5);
+by (asm_simp_tac (simpset() addsimps [add_0_right]) 5);
 by (REPEAT (ares_tac ([add_lt_mono, lt_ack2] @ ack_typechecks) 1));
 qed "ack_add_bound2";
 
@@ -228,32 +228,32 @@ Addsimps [list_add_type, nat_into_Ord];
 goalw Primrec.thy [SC_def]
     "!!l. l: list(nat) ==> SC ` l < ack(1, list_add(l))";
 by (etac list.elim 1);
-by (asm_simp_tac (!simpset addsimps [succ_iff]) 1);
-by (asm_simp_tac (!simpset addsimps [ack_1, add_le_self]) 1);
+by (asm_simp_tac (simpset() addsimps [succ_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [ack_1, add_le_self]) 1);
 qed "SC_case";
 
 (*PROPERTY A 4'? Extra lemma needed for CONST case, constant functions*)
 goal Primrec.thy "!!j. [| i:nat; j:nat |] ==> i < ack(i,j)";
 by (etac nat_induct 1);
-by (asm_simp_tac (!simpset addsimps [nat_0_le]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_0_le]) 1);
 by (etac ([succ_leI, ack_lt_ack_succ1] MRS lt_trans1) 1);
 by (tc_tac []);
 qed "lt_ack1";
 
 goalw Primrec.thy [CONST_def]
     "!!l. [| l: list(nat);  k: nat |] ==> CONST(k) ` l < ack(k, list_add(l))";
-by (asm_simp_tac (!simpset addsimps [lt_ack1]) 1);
+by (asm_simp_tac (simpset() addsimps [lt_ack1]) 1);
 qed "CONST_case";
 
 goalw Primrec.thy [PROJ_def]
     "!!l. l: list(nat) ==> ALL i:nat. PROJ(i) ` l < ack(0, list_add(l))";
 by (Asm_simp_tac 1);
 by (etac list.induct 1);
-by (asm_simp_tac (!simpset addsimps [nat_0_le]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_0_le]) 1);
 by (Asm_simp_tac 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","x")] natE 1);
-by (asm_simp_tac (!simpset addsimps [add_le_self]) 1);
+by (asm_simp_tac (simpset() addsimps [add_le_self]) 1);
 by (Asm_simp_tac 1);
 by (etac (bspec RS lt_trans2) 1);
 by (rtac (add_le_self2 RS succ_leI) 2);
@@ -271,9 +271,9 @@ goal Primrec.thy
 \                list_add(map(%f. f ` l, fs)) < ack(k, list_add(l))";
 by (etac list.induct 1);
 by (DO_GOAL [res_inst_tac [("x","0")] bexI,
-             asm_simp_tac (!simpset addsimps [lt_ack1, nat_0_le]),
+             asm_simp_tac (simpset() addsimps [lt_ack1, nat_0_le]),
              resolve_tac nat_typechecks] 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (Asm_simp_tac 1);
 by (rtac (ballI RS bexI) 1);
 by (rtac (add_lt_mono RS lt_trans) 1);
@@ -310,7 +310,7 @@ goalw Primrec.thy [PREC_def]
 \           l: list(nat)                                                \
 \        |] ==> PREC(f,g)`l #+ list_add(l) < ack(succ(kf#+kg), list_add(l))";
 by (etac list.elim 1);
-by (asm_simp_tac (!simpset addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
+by (asm_simp_tac (simpset() addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
 by (Asm_simp_tac 1);
 by (etac ssubst 1);  (*get rid of the needless assumption*)
 by (eres_inst_tac [("n","a")] nat_induct 1);
@@ -325,7 +325,7 @@ by (res_inst_tac [("j", "g ` ?ll #+ ?mm")] lt_trans1 1);
 by (etac bspec 2);
 by (rtac (nat_le_refl RS add_le_mono) 1);
 by (tc_tac []);
-by (asm_simp_tac (!simpset addsimps [add_le_self2]) 1);
+by (asm_simp_tac (simpset() addsimps [add_le_self2]) 1);
 (*final part of the simplification*)
 by (Asm_simp_tac 1);
 by (rtac (add_le_self2 RS ack_le_mono1 RS lt_trans1) 1);
@@ -352,7 +352,7 @@ qed "PREC_case";
 goal Primrec.thy
     "!!f. f:primrec ==> EX k:nat. ALL l:list(nat). f`l < ack(k, list_add(l))";
 by (etac primrec.induct 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (DEPTH_SOLVE
     (ares_tac ([SC_case, CONST_case, PROJ_case, COMP_case, PREC_case,
                        bexI, ballI] @ nat_typechecks) 1));
@@ -365,6 +365,6 @@ by (etac (ack_bounds_primrec RS bexE) 1);
 by (rtac lt_irrefl 1);
 by (dres_inst_tac [("x", "[x]")] bspec 1);
 by (Asm_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps [add_0_right]) 1);
+by (asm_full_simp_tac (simpset() addsimps [add_0_right]) 1);
 qed "ack_not_primrec";
 

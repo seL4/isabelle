@@ -23,7 +23,7 @@ val Pow_neq_0 = Pow_top RSN (2,equals0D);       (* Pow(a)=0 ==> P *)
 
 qed_goalw "Upair_iff" ZF.thy [Upair_def]
     "c : Upair(a,b) <-> (c=a | c=b)"
- (fn _ => [ (blast_tac (!claset addEs [Pow_neq_0, sym RS Pow_neq_0]) 1) ]);
+ (fn _ => [ (blast_tac (claset() addEs [Pow_neq_0, sym RS Pow_neq_0]) 1) ]);
 
 Addsimps [Upair_iff];
 
@@ -75,7 +75,7 @@ qed_goal "UnE'" ZF.thy
 (*Classical introduction rule: no commitment to A vs B*)
 qed_goal "UnCI" ZF.thy "(c ~: B ==> c : A) ==> c : A Un B"
  (fn prems=>
-  [ Simp_tac 1, blast_tac (!claset addSIs prems) 1 ]);
+  [ Simp_tac 1, blast_tac (claset() addSIs prems) 1 ]);
 
 AddSIs [UnCI];
 AddSEs [UnE];
@@ -166,13 +166,13 @@ qed_goal "consE'" ZF.thy
 (*Classical introduction rule*)
 qed_goal "consCI" ZF.thy "(a~:B ==> a=b) ==> a: cons(b,B)"
  (fn prems=>
-  [ Simp_tac 1, blast_tac (!claset addSIs prems) 1 ]);
+  [ Simp_tac 1, blast_tac (claset() addSIs prems) 1 ]);
 
 AddSIs [consCI];
 AddSEs [consE];
 
 qed_goal "cons_not_0" ZF.thy "cons(a,B) ~= 0"
- (fn _ => [ (blast_tac (!claset addEs [equalityE]) 1) ]);
+ (fn _ => [ (blast_tac (claset() addEs [equalityE]) 1) ]);
 
 bind_thm ("cons_neq_0", cons_not_0 RS notE);
 
@@ -197,13 +197,13 @@ AddSEs [singletonE];
 qed_goalw "the_equality" ZF.thy [the_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
  (fn [pa,eq] =>
-  [ (fast_tac (!claset addSIs [pa] addEs [eq RS subst]) 1) ]);
+  [ (fast_tac (claset() addSIs [pa] addEs [eq RS subst]) 1) ]);
 
 (* Only use this if you already know EX!x. P(x) *)
 qed_goal "the_equality2" ZF.thy
     "!!P. [| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
  (fn _ =>
-  [ (deepen_tac (!claset addSIs [the_equality]) 1 1) ]);
+  [ (deepen_tac (claset() addSIs [the_equality]) 1 1) ]);
 
 qed_goal "theI" ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
  (fn [major]=>
@@ -224,33 +224,33 @@ qed_goal "theI2" ZF.thy
 (*If it's "undefined", it's zero!*)
 qed_goalw "the_0" ZF.thy [the_def]
     "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
- (fn _ => [ (deepen_tac (!claset addSEs [ReplaceE]) 0 1) ]);
+ (fn _ => [ (deepen_tac (claset() addSEs [ReplaceE]) 0 1) ]);
 
 
 (*** if -- a conditional expression for formulae ***)
 
 goalw ZF.thy [if_def] "if(True,a,b) = a";
-by (blast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "if_true";
 
 goalw ZF.thy [if_def] "if(False,a,b) = b";
-by (blast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "if_false";
 
 (*Never use with case splitting, or if P is known to be true or false*)
 val prems = goalw ZF.thy [if_def]
     "[| P<->Q;  Q ==> a=c;  ~Q ==> b=d |] ==> if(P,a,b) = if(Q,c,d)";
-by (simp_tac (!simpset addsimps prems addcongs [conj_cong]) 1);
+by (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1);
 qed "if_cong";
 
 (*Not needed for rewriting, since P would rewrite to True anyway*)
 goalw ZF.thy [if_def] "!!P. P ==> if(P,a,b) = a";
-by (blast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "if_P";
 
 (*Not needed for rewriting, since P would rewrite to False anyway*)
 goalw ZF.thy [if_def] "!!P. ~P ==> if(P,a,b) = b";
-by (blast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (claset() addSIs [the_equality]) 1);
 qed "if_not_P";
 
 Addsimps [if_true, if_false];
@@ -276,12 +276,12 @@ val expand_ifs = [expand_if_eq1, expand_if_eq2,
 
 (*Logically equivalent to expand_if_mem2*)
 qed_goal "if_iff" ZF.thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
- (fn _=> [ (simp_tac (!simpset setloop split_tac [expand_if]) 1) ]);
+ (fn _=> [ (simp_tac (simpset() setloop split_tac [expand_if]) 1) ]);
 
 qed_goal "if_type" ZF.thy
     "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A"
  (fn prems=> [ (simp_tac 
-                (!simpset addsimps prems setloop split_tac [expand_if]) 1) ]);
+                (simpset() addsimps prems setloop split_tac [expand_if]) 1) ]);
 
 
 (*** Foundation lemmas ***)
@@ -291,7 +291,7 @@ qed_goal "mem_asym" ZF.thy "[| a:b;  ~P ==> b:a |] ==> P"
  (fn prems=>
   [ (rtac classical 1),
     (res_inst_tac [("A1","{a,b}")] (foundation RS disjE) 1),
-    REPEAT (blast_tac (!claset addIs prems addSEs [equalityE]) 1) ]);
+    REPEAT (blast_tac (claset() addIs prems addSEs [equalityE]) 1) ]);
 
 (*was called mem_anti_refl*)
 qed_goal "mem_irrefl" ZF.thy "a:a ==> P"
@@ -305,7 +305,7 @@ qed_goal "mem_not_refl" ZF.thy "a ~: a"
 
 (*Good for proving inequalities by rewriting*)
 qed_goal "mem_imp_not_eq" ZF.thy "!!a A. a:A ==> a ~= A"
- (fn _=> [ blast_tac (!claset addSEs [mem_irrefl]) 1 ]);
+ (fn _=> [ blast_tac (claset() addSEs [mem_irrefl]) 1 ]);
 
 (*** Rules for succ ***)
 
@@ -337,7 +337,7 @@ AddSIs [succCI];
 AddSEs [succE];
 
 qed_goal "succ_not_0" ZF.thy "succ(n) ~= 0"
- (fn _=> [ (blast_tac (!claset addSEs [equalityE]) 1) ]);
+ (fn _=> [ (blast_tac (claset() addSEs [equalityE]) 1) ]);
 
 bind_thm ("succ_neq_0", succ_not_0 RS notE);
 
@@ -353,7 +353,7 @@ bind_thm ("succ_neq_self", succI1 RS mem_imp_not_eq RS not_sym);
 
 
 qed_goal "succ_inject_iff" ZF.thy "succ(m) = succ(n) <-> m=n"
- (fn _=> [ (blast_tac (!claset addEs [mem_asym] addSEs [equalityE]) 1) ]);
+ (fn _=> [ (blast_tac (claset() addEs [mem_asym] addSEs [equalityE]) 1) ]);
 
 bind_thm ("succ_inject", succ_inject_iff RS iffD1);
 

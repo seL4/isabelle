@@ -35,7 +35,7 @@ Addsimps [keysFor_parts_initState];
 goal thy "!!A. A: bad ==> Key (shrK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [imageI, spies_Cons]
+	      (simpset() addsimps [imageI, spies_Cons]
 	                addsplits [expand_event_case, expand_if])));
 qed "Spy_spies_bad";
 
@@ -44,7 +44,7 @@ AddSIs [Spy_spies_bad];
 (*For not_bad_tac*)
 goal thy "!!A. [| Crypt (shrK A) X : analz (spies evs);  A: bad |] \
 \              ==> X : analz (spies evs)";
-by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
+by (fast_tac (claset() addSDs [analz.Decrypt] addss (simpset())) 1);
 qed "Crypt_Spy_analz_bad";
 
 (*Prove that the agent is uncompromised by the confidentiality of 
@@ -97,7 +97,7 @@ qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
 goal thy "Nonce N ~: used []";
-by (simp_tac (!simpset addsimps [used_Nil]) 1);
+by (simp_tac (simpset() addsimps [used_Nil]) 1);
 qed "Nonce_notin_used_empty";
 Addsimps [Nonce_notin_used_empty];
 
@@ -109,11 +109,11 @@ goal thy "EX N. ALL n. N<=n --> Nonce n ~: used evs";
 by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [used_Cons]
+	      (simpset() addsimps [used_Cons]
 			addsplits [expand_event_case, expand_if])));
 by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
-by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
+by (ALLGOALS (blast_tac (claset() addSEs [add_leE])));
 val lemma = result();
 
 goal thy "EX N. Nonce N ~: used evs";
@@ -127,7 +127,7 @@ by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
-by (asm_simp_tac (!simpset addsimps [less_not_refl2 RS not_sym, 
+by (asm_simp_tac (simpset() addsimps [less_not_refl2 RS not_sym, 
 				     le_add2, le_add1, 
 				     le_eq_less_Suc RS sym]) 1);
 qed "Nonce_supply2";
@@ -141,12 +141,12 @@ by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
 by (res_inst_tac [("x","Suc (Suc (N+Na+Nb))")] exI 1);
-by (asm_simp_tac (!simpset addsimps [less_not_refl2 RS not_sym, 
+by (asm_simp_tac (simpset() addsimps [less_not_refl2 RS not_sym, 
 				     le_add2, le_add1, 
 				     le_eq_less_Suc RS sym]) 1);
 by (rtac (less_trans RS less_not_refl2 RS not_sym) 1);
 by (stac (le_eq_less_Suc RS sym) 1);
-by (asm_simp_tac (!simpset addsimps [le_eq_less_Suc RS sym]) 2);
+by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 2);
 by (REPEAT (rtac le_add1 1));
 qed "Nonce_supply3";
 
@@ -182,7 +182,7 @@ by (cut_inst_tac [("evs","evs''")]
     (Finites.emptyI RS Finites.insertI RS Finites.insertI RS Key_supply_ax) 1);
 by (Clarify_tac 1);
 by (Full_simp_tac 1);
-by (fast_tac (!claset addSEs [allE]) 1);
+by (fast_tac (claset() addSEs [allE]) 1);
 qed "Key_supply3";
 
 goal thy "Key (@ K. Key K ~: used evs) ~: used evs";
@@ -197,7 +197,7 @@ qed "Key_supply";
     such as  Nonce ?N ~: used evs that match Nonce_supply*)
 fun possibility_tac st = st |>
    (REPEAT 
-    (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
+    (ALLGOALS (simp_tac (simpset() delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply, Key_supply])));
@@ -206,7 +206,7 @@ fun possibility_tac st = st |>
   nonces and keys initially*)
 fun basic_possibility_tac st = st |>
     REPEAT 
-    (ALLGOALS (asm_simp_tac (!simpset setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (simpset() setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]));
 
@@ -229,7 +229,7 @@ qed "insert_Key_image";
   the set of keys.  Use analz_insert_eq with (Un_upper2 RS analz_mono) to
   erase occurrences of forwarded message components (X).*)
 val analz_image_freshK_ss = 
-     !simpset addcongs [if_weak_cong]
+     simpset() addcongs [if_weak_cong]
 	      delsimps [image_insert, image_Un]
               delsimps [imp_disjL]    (*reduces blow-up*)
               addsimps ([image_insert RS sym, image_Un RS sym,
@@ -243,5 +243,5 @@ val analz_image_freshK_ss =
 goal thy  
  "!!evs. (Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
 \        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
-by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
+by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 qed "analz_image_freshK_lemma";

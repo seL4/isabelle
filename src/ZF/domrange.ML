@@ -101,7 +101,7 @@ qed_goalw "fieldI2" ZF.thy [field_def] "!!r. <a,b>: r ==> b : field(r)"
 
 qed_goalw "fieldCI" ZF.thy [field_def]
     "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)"
- (fn [prem]=> [ (blast_tac (!claset addIs [prem]) 1) ]);
+ (fn [prem]=> [ (blast_tac (claset() addIs [prem]) 1) ]);
 
 qed_goalw "fieldE" ZF.thy [field_def]
      "[| a : field(r);  \
@@ -191,7 +191,7 @@ qed_goalw "vimage_subset" ZF.thy [vimage_def]
 AddIs  [vimageI];
 AddSEs [vimageE];
 
-val ZF_cs = !claset delrules [equalityI];
+val ZF_cs = claset() delrules [equalityI];
 
 (** The Union of a set of relations is a relation -- Lemma for fun_Union **)
 goal ZF.thy "!!S. (ALL x:S. EX A B. x <= A*B) ==>  \

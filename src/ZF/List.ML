@@ -28,7 +28,7 @@ fun list_ind_tac a prems i =
 
 goal List.thy "list(A) = {0} + (A * list(A))";
 let open list;  val rew = rewrite_rule con_defs in  
-by (blast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (blast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "list_unfold";
 
@@ -44,7 +44,7 @@ qed "list_mono";
 goalw List.thy (list.defs@list.con_defs) "list(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (blast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (blast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "list_univ";
 
@@ -61,7 +61,7 @@ val major::prems = goal List.thy
 \       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))  \
 \    |] ==> list_case(c,h,l) : C(l)";
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps (list.case_eqns @ prems))));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps (list.case_eqns @ prems))));
 qed "list_case_type";
 
 
@@ -96,7 +96,7 @@ Addsimps [hd_Cons, tl_Nil, tl_Cons];
 
 goal List.thy "!!l. l: list(A) ==> tl(l) : list(A)";
 by (etac list.elim 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps list.intrs)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps list.intrs)));
 qed "tl_type";
 
 (** drop **)
@@ -123,14 +123,14 @@ Addsimps [drop_0, drop_Nil, drop_succ_Cons];
 goalw List.thy [drop_def] 
     "!!i l. [| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
 by (etac nat_induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [tl_type])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [tl_type])));
 qed "drop_type";
 
 (** list_rec -- by Vset recursion **)
 
 goal List.thy "list_rec(Nil,c,h) = c";
 by (rtac (list_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (!simpset addsimps list.case_eqns) 1);
+by (simp_tac (simpset() addsimps list.case_eqns) 1);
 qed "list_rec_Nil";
 
 goal List.thy "list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))";
@@ -148,7 +148,7 @@ val prems = goal List.thy
 \       !!x y r. [| x:A;  y: list(A);  r: C(y) |] ==> h(x,y,r): C(Cons(x,y))  \
 \    |] ==> list_rec(l,c,h) : C(l)";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "list_rec_type";
 
 (** Versions for use with definitions **)
@@ -240,7 +240,7 @@ goal List.thy
     "!!l. xs: list(A) ==> \
 \         set_of_list (xs@ys) = set_of_list(xs) Un set_of_list(ys)";
 by (etac list.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [Un_cons])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_cons])));
 qed "set_of_list_append";
 
 
@@ -259,7 +259,7 @@ val list_typechecks =
     [list_rec_type, map_type, map_type2, app_type, length_type, 
      rev_type, flat_type, list_add_type];
 
-simpset := !simpset setSolver (type_auto_tac list_typechecks);
+simpset_ref() := simpset() setSolver (type_auto_tac list_typechecks);
 
 
 (*** theorems about map ***)
@@ -285,7 +285,7 @@ qed "map_app_distrib";
 val prems = goal List.thy
     "ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))";
 by (list_ind_tac "ls" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [map_app_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "map_flat";
 
 val prems = goal List.thy
@@ -328,13 +328,13 @@ val add_commute_succ = nat_succI RSN (2,add_commute);
 val prems = goal List.thy
     "xs: list(A) ==> length(rev(xs)) = length(xs)";
 by (list_ind_tac "xs" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [length_app, add_commute_succ])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app, add_commute_succ])));
 qed "length_rev";
 
 val prems = goal List.thy
     "ls: list(list(A)) ==> length(flat(ls)) = list_add(map(length,ls))";
 by (list_ind_tac "ls" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [length_app])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "length_flat";
 
 (** Length and drop **)
@@ -360,7 +360,7 @@ by (rtac natE 1);
 by (etac ([asm_rl, length_type, Ord_nat] MRS Ord_trans) 1);
 by (assume_tac 1);
 by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS (blast_tac (!claset addIs [succ_in_naturalD, length_type])));
+by (ALLGOALS (blast_tac (claset() addIs [succ_in_naturalD, length_type])));
 qed "drop_length_lemma";
 bind_thm ("drop_length", (drop_length_lemma RS bspec));
 
@@ -380,14 +380,14 @@ qed "app_assoc";
 val prems = goal List.thy
     "ls: list(list(A)) ==> flat(ls@ms) = flat(ls)@flat(ms)";
 by (list_ind_tac "ls" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [app_assoc])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_assoc])));
 qed "flat_app_distrib";
 
 (*** theorems about rev ***)
 
 val prems = goal List.thy "l: list(A) ==> rev(map(h,l)) = map(h,rev(l))";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [map_app_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "rev_map_distrib";
 
 (*Simplifier needs the premises as assumptions because rewriting will not
@@ -397,18 +397,18 @@ qed "rev_map_distrib";
 goal List.thy
     "!!xs. [| xs: list(A);  ys: list(A) |] ==> rev(xs@ys) = rev(ys)@rev(xs)";
 by (etac list.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [app_right_Nil,app_assoc])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_right_Nil,app_assoc])));
 qed "rev_app_distrib";
 
 val prems = goal List.thy "l: list(A) ==> rev(rev(l))=l";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [rev_app_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [rev_app_distrib])));
 qed "rev_rev_ident";
 
 val prems = goal List.thy
     "ls: list(list(A)) ==> rev(flat(ls)) = flat(map(rev,rev(ls)))";
 by (list_ind_tac "ls" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps 
+by (ALLGOALS (asm_simp_tac (simpset() addsimps 
        [map_app_distrib, flat_app_distrib, rev_app_distrib, app_right_Nil])));
 qed "rev_flat";
 
@@ -421,7 +421,7 @@ val prems = goal List.thy
 by (cut_facts_tac prems 1);
 by (list_ind_tac "xs" prems 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [add_0_right, add_assoc RS sym])));
+    (asm_simp_tac (simpset() addsimps [add_0_right, add_assoc RS sym])));
 by (rtac (add_commute RS subst_context) 1);
 by (REPEAT (ares_tac [refl, list_add_type] 1));
 qed "list_add_app";
@@ -430,13 +430,13 @@ val prems = goal List.thy
     "l: list(nat) ==> list_add(rev(l)) = list_add(l)";
 by (list_ind_tac "l" prems 1);
 by (ALLGOALS
-    (asm_simp_tac (!simpset addsimps [list_add_app, add_0_right])));
+    (asm_simp_tac (simpset() addsimps [list_add_app, add_0_right])));
 qed "list_add_rev";
 
 val prems = goal List.thy
     "ls: list(list(nat)) ==> list_add(flat(ls)) = list_add(map(list_add,ls))";
 by (list_ind_tac "ls" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [list_add_app])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [list_add_app])));
 by (REPEAT (ares_tac [refl, list_add_type, map_type, add_commute] 1));
 qed "list_add_flat";
 
@@ -449,6 +449,6 @@ val major::prems = goal List.thy
 \    |] ==> P(l)";
 by (rtac (major RS rev_rev_ident RS subst) 1);
 by (rtac (major RS rev_type RS list.induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "list_append_induct";
 

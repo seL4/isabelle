@@ -11,7 +11,7 @@ by (Fast_tac 1);
 qed "subset_Pow_Union";
 
 goal thy "!!f. [| f:(PROD X:A. X); D<=A |] ==> EX g. g:(PROD X:D. X)";
-by (fast_tac (!claset addSIs [restrict_type, apply_type]) 1);
+by (fast_tac (claset() addSIs [restrict_type, apply_type]) 1);
 val lemma1 = result();
 
 goalw thy AC_defs "!!Z. AC0 ==> AC1"; 
@@ -21,6 +21,6 @@ qed "AC0_AC1";
 goalw thy AC_defs "!!Z. AC1 ==> AC0";
 by (Deepen_tac 0 1);
 (*Large search space.  Faster proof by
-  by (fast_tac (!claset addSIs [notI, singletonI] addSEs [notE, DiffE]) 1);
+  by (fast_tac (claset() addSIs [notI, singletonI] addSEs [notE, DiffE]) 1);
 *)
 qed "AC1_AC0";

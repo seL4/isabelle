@@ -11,7 +11,7 @@ open Data;
 
 goal Data.thy "data(A,B) = ({0} + A) + (A*B + A*B*data(A,B))";
 let open data;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "data_unfold";
 
@@ -26,7 +26,7 @@ qed "data_mono";
 goalw Data.thy (data.defs@data.con_defs) "data(univ(A),univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac ([A_subset_univ, Un_upper1] MRS subset_trans RS univ_mono) 2);
-by (fast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (fast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "data_univ";
 

@@ -30,7 +30,7 @@ by (rtac (major RS CollectD1 RS PowD) 1);
 qed "fun_is_rel";
 
 goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
-by (blast_tac (!claset addSDs [Pi_iff_old RS iffD1]) 1);
+by (blast_tac (claset() addSDs [Pi_iff_old RS iffD1]) 1);
 qed "fun_unique_Pair";
 
 val prems = goalw ZF.thy [Pi_def]
@@ -90,7 +90,7 @@ qed "apply_0";
 
 goal ZF.thy "!!f. [| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
 by (forward_tac [fun_is_rel] 1);
-by (blast_tac (!claset addDs [apply_equality]) 1);
+by (blast_tac (claset() addDs [apply_equality]) 1);
 qed "Pi_memberD";
 
 goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
@@ -113,7 +113,7 @@ qed "apply_funtype";
 val [major] = goal ZF.thy
     "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
 by (cut_facts_tac [major RS fun_is_rel] 1);
-by (blast_tac (!claset addSIs [major RS apply_Pair, 
+by (blast_tac (claset() addSIs [major RS apply_Pair, 
 			      major RSN (2,apply_equality)]) 1);
 qed "apply_iff";
 
@@ -122,7 +122,7 @@ val pi_prem::prems = goal ZF.thy
     "[| f: Pi(A,C);  !!x. x:A ==> f`x : B(x) |] ==> f : Pi(A,B)";
 by (cut_facts_tac [pi_prem] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
-by (blast_tac (!claset addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
+by (blast_tac (claset() addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
 qed "Pi_type";
 
 
@@ -165,7 +165,7 @@ qed "lamD";
 
 val prems = goalw ZF.thy [lam_def, Pi_def, function_def]
     "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)";  
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "lam_type";
 
 goal ZF.thy "(lam x:A. b(x)) : A -> {b(x). x:A}";
@@ -255,7 +255,7 @@ qed "image_fun";
 
 goalw ZF.thy [restrict_def,lam_def]
     "!!f A. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A) <= f";
-by (blast_tac (!claset addIs [apply_Pair]) 1);
+by (blast_tac (claset() addIs [apply_Pair]) 1);
 qed "restrict_subset";
 
 val prems = goalw ZF.thy [restrict_def]
@@ -327,9 +327,9 @@ val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2,
 goal ZF.thy "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |]  \
 \                 ==> (f Un g) : (A Un C) -> (B Un D)";
 (*Prove the product and domain subgoals using distributive laws*)
-by (asm_full_simp_tac (!simpset addsimps [Pi_iff,extension]@Un_rls) 1);
+by (asm_full_simp_tac (simpset() addsimps [Pi_iff,extension]@Un_rls) 1);
 by (rewtac function_def);
-by (Blast.depth_tac (!claset) 12 1);	(*9 secs*)
+by (Blast.depth_tac (claset()) 12 1);	(*9 secs*)
 qed "fun_disjoint_Un";
 
 goal ZF.thy
@@ -373,7 +373,7 @@ qed "fun_extend";
 
 goal ZF.thy
     "!!f A B. [| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B";
-by (blast_tac (!claset addIs [fun_extend RS fun_weaken_type]) 1);
+by (blast_tac (claset() addIs [fun_extend RS fun_weaken_type]) 1);
 qed "fun_extend3";
 
 goal ZF.thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
@@ -395,17 +395,17 @@ Addsimps [singleton_apply];
 goal ZF.thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
 by (rtac equalityI 1);
-by (safe_tac (!claset addSEs [fun_extend3]));
+by (safe_tac (claset() addSEs [fun_extend3]));
 (*Inclusion of left into right*)
 by (subgoal_tac "restrict(x, A) : A -> B" 1);
-by (blast_tac (!claset addIs [restrict_type2]) 2);
+by (blast_tac (claset() addIs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
 by (rtac (apply_funtype RS UN_I) 1 THEN REPEAT (ares_tac [consI1] 1));
 by (Simp_tac 1);
 by (rtac fun_extension 1 THEN REPEAT (ares_tac [fun_extend] 1));
 by (etac consE 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [restrict, fun_extend_apply1, 
+    (asm_simp_tac (simpset() addsimps [restrict, fun_extend_apply1, 
                                       fun_extend_apply2])));
 qed "cons_fun_eq";
 

@@ -61,5 +61,5 @@ qed "add_Suc_right";
 val prems = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);
 by (Simp_tac 1);
-by (asm_simp_tac (!simpset addsimps prems) 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
 result();

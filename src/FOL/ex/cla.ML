@@ -470,7 +470,7 @@ result();
 
 writeln"Problem 58  NOT PROVED AUTOMATICALLY";
 goal FOL.thy "(ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))";
-by (slow_tac (!claset addEs [subst_context]) 1);
+by (slow_tac (claset() addEs [subst_context]) 1);
 result();
 
 writeln"Problem 59";
@@ -512,7 +512,7 @@ goal FOL.thy
 \                 ((C(y) & Q(w,y,y)) & OO(w,b) --> P(v,y) & OO(v,b))))) \
 \  -->                  \
 \  ~ (EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z))))";
-by (Blast.depth_tac (!claset) 12 1);
+by (Blast.depth_tac (claset()) 12 1);
 result();
 
 
@@ -539,7 +539,7 @@ goal FOL.thy
 \                        (C(y) & ~P(y,y) --> P(u,y) & OO(u,b))))) \
 \  -->                                                            \
 \  ~ (EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z))))";
-by (Blast.depth_tac(!claset) 7 1);
+by (Blast.depth_tac(claset()) 7 1);
 result();
 
 (* Challenge found on info-hol *)

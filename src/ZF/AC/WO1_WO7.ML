@@ -12,7 +12,7 @@ LEMMA is the sentence denoted by (**)
 
 goalw thy [WO7_def] "WO7 <-> (ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R))))";
-by (fast_tac (!claset addSEs [Finite_well_ord_converse]) 1);
+by (fast_tac (claset() addSEs [Finite_well_ord_converse]) 1);
 qed "WO7_iff_LEMMA";
 
 (* ********************************************************************** *)
@@ -26,7 +26,7 @@ by (etac allE 1);
 by (excluded_middle_tac "Finite(A)" 1);
 by (Fast_tac 1);
 by (rewrite_goals_tac [Finite_def, eqpoll_def]);
-by (fast_tac (!claset addSIs [[bij_is_inj, nat_implies_well_ord] MRS
+by (fast_tac (claset() addSIs [[bij_is_inj, nat_implies_well_ord] MRS
                                  well_ord_rvimage]) 1);
 qed "LEMMA_imp_WO1";
 
@@ -50,16 +50,16 @@ by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1
 by (rtac notI 1);
 by (eres_inst_tac [("x","nat")] allE 1);
 by (etac disjE 1);
-by (fast_tac (!claset addSDs [nat_0I RSN (2,equals0D)]) 1);
+by (fast_tac (claset() addSDs [nat_0I RSN (2,equals0D)]) 1);
 by (etac bexE 1);
 by (eres_inst_tac [("x","succ(x)")] allE 1);
-by (fast_tac (!claset addSIs [nat_succI, converseI, MemrelI, 
+by (fast_tac (claset() addSIs [nat_succI, converseI, MemrelI, 
                             nat_succI RSN (2, subsetD)]) 1);
 qed "converse_Memrel_not_wf_on";
 
 goalw thy [well_ord_def] 
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~well_ord(a,converse(Memrel(a)))";
-by (fast_tac (!claset addSDs [converse_Memrel_not_wf_on]) 1);
+by (fast_tac (claset() addSDs [converse_Memrel_not_wf_on]) 1);
 qed "converse_Memrel_not_well_ord";
 
 goal thy "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \

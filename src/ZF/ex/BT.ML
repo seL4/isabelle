@@ -28,7 +28,7 @@ qed "bt_mono";
 goalw BT.thy (bt.defs@bt.con_defs) "bt(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (fast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (fast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "bt_univ";
 
@@ -66,7 +66,7 @@ val prems = goal BT.thy
 \                    h(x,y,z,r,s): C(Br(x,y,z))  \
 \    |] ==> bt_rec(t,c,h) : C(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "bt_rec_type";
 
 (** Versions for use with definitions **)
@@ -129,13 +129,13 @@ Addsimps bt_typechecks;
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_commute, n_leaves_type])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_commute, n_leaves_type])));
 qed "n_leaves_reflect";
 
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(t) = succ(n_nodes(t))";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_succ_right])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_succ_right])));
 qed "n_leaves_nodes";
 
 (*** theorems about bt_reflect ***)

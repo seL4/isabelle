@@ -13,7 +13,7 @@ open mono;
 (*Not easy to express monotonicity in P, since any "bigger" predicate
   would have to be single-valued*)
 goal thy "!!A B. A<=B ==> Replace(A,P) <= Replace(B,P)";
-by (blast_tac (!claset addSEs [ReplaceE]) 1);
+by (blast_tac (claset() addSEs [ReplaceE]) 1);
 qed "Replace_mono";
 
 goal thy "!!A B. A<=B ==> {f(x). x:A} <= {f(x). x:B}";
@@ -31,7 +31,7 @@ qed "Union_mono";
 val prems = goal thy
     "[| A<=C;  !!x. x:A ==> B(x)<=D(x) \
 \    |] ==> (UN x:A. B(x)) <= (UN x:C. D(x))";
-by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "UN_mono";
 
 (*Intersection is ANTI-monotonic.  There are TWO premises! *)
@@ -69,7 +69,7 @@ qed "sum_mono";
 
 (*Note that B->A and C->A are typically disjoint!*)
 goal thy "!!A B C. B<=C ==> A->B <= A->C";
-by (blast_tac (!claset addIs [lam_type] addEs [Pi_lamE]) 1);
+by (blast_tac (claset() addIs [lam_type] addEs [Pi_lamE]) 1);
 qed "Pi_mono";
 
 goalw thy [lam_def] "!!A B. A<=B ==> Lambda(A,c) <= Lambda(B,c)";
@@ -133,12 +133,12 @@ qed "field_rel_subset";
 
 val [prem1,prem2] = goal thy
     "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r``A <= s``B";
-by (blast_tac (!claset addIs [prem1, prem2 RS subsetD]) 1);
+by (blast_tac (claset() addIs [prem1, prem2 RS subsetD]) 1);
 qed "image_pair_mono";
 
 val [prem1,prem2] = goal thy
     "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r-``A <= s-``B";
-by (blast_tac (!claset addIs [prem1, prem2 RS subsetD]) 1);
+by (blast_tac (claset() addIs [prem1, prem2 RS subsetD]) 1);
 qed "vimage_pair_mono";
 
 goal thy "!!r s. [| r<=s;  A<=B |] ==> r``A <= s``B";
@@ -151,7 +151,7 @@ qed "vimage_mono";
 
 val [sub,PQimp] = goal thy
     "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) |] ==> Collect(A,P) <= Collect(B,Q)";
-by (blast_tac (!claset addIs [sub RS subsetD, PQimp RS mp]) 1);
+by (blast_tac (claset() addIs [sub RS subsetD, PQimp RS mp]) 1);
 qed "Collect_mono";
 
 (** Monotonicity of implications -- some could go to FOL **)

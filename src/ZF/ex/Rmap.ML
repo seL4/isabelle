@@ -45,11 +45,11 @@ qed "rmap_functional";
 
 goal Rmap.thy "!!f. f: A->B ==> rmap(f): list(A)->list(B)";
 by (asm_full_simp_tac 
-    (!simpset addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
+    (simpset() addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
 qed "rmap_fun_type";
 
 goalw Rmap.thy [apply_def] "rmap(f)`Nil = Nil";
-by (fast_tac (!claset addIs [the_equality]) 1);
+by (fast_tac (claset() addIs [the_equality]) 1);
 qed "rmap_Nil";
 
 goal Rmap.thy "!!f. [| f: A->B;  x: A;  xs: list(A) |] ==> \

@@ -45,7 +45,7 @@ qed "is_sup_commut";
 (* associativity *)
 
 goalw thy [is_inf_def] "is_inf x y xy & is_inf y z yz & is_inf xy z xyz --> is_inf x yz xyz";
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   (*level 1*)
     br (le_trans RS mp) 1;
     be conjI 1;
@@ -79,7 +79,7 @@ qed "is_inf_assoc";
 
 
 goalw thy [is_sup_def] "is_sup x y xy & is_sup y z yz & is_sup xy z xyz --> is_sup x yz xyz";
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   (*level 1*)
     br (le_trans RS mp) 1;
     be conjI 1;
@@ -155,7 +155,7 @@ goalw thy [is_inf_def, is_Inf_def] "is_Inf {x, y} inf = is_inf x y inf";
   (*==>*)
     by (Fast_tac 1);
   (*<==*)
-    by (safe_tac (!claset));
+    by (safe_tac (claset()));
     by (Step_tac 1);
     be mp 1;
     by (Fast_tac 1);
@@ -166,7 +166,7 @@ goalw thy [is_sup_def, is_Sup_def] "is_Sup {x, y} sup = is_sup x y sup";
   (*==>*)
     by (Fast_tac 1);
   (*<==*)
-    by (safe_tac (!claset));
+    by (safe_tac (claset()));
     by (Step_tac 1);
     be mp 1;
     by (Fast_tac 1);

@@ -51,7 +51,7 @@ val prems = goalw MT.thy [hastyenv_def]
 \  <cl,t>:HasTyRel";
 by (cut_facts_tac prems 1);
 by (etac elab_fixE 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (EVERY [forward_tac [subst] 1,atac 2,rtac htr_closCI 1]);
 by clean_tac;
 by (rtac ve_owrI 1);
@@ -129,7 +129,7 @@ by (assume_tac 1);
 by (etac htr_closE 1);
 by (etac elab_fnE 1);
 by (rewrite_tac Ty.con_defs);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (dtac (spec RS spec RS mp RS mp) 1);
 by (assume_tac 3);
 by (assume_tac 2);
@@ -167,7 +167,7 @@ val prems = goal MT.thy
 by (cut_facts_tac prems 1);
 by (rtac (htr_constE) 1);
 by (dtac consistency 1);
-by (fast_tac (!claset addSIs [basic_consistency_lem]) 1);
+by (fast_tac (claset() addSIs [basic_consistency_lem]) 1);
 by (assume_tac 1);
 qed "basic_consistency";
 

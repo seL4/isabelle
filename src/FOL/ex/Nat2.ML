@@ -82,13 +82,13 @@ by (Fast_tac 1);
 result();
 
 goal Nat2.thy "m <= n --> m <= n+k";
-by (IND_TAC nat_ind (simp_tac (!simpset addsimps [le_imp_le_succ]))
+by (IND_TAC nat_ind (simp_tac (simpset() addsimps [le_imp_le_succ]))
      "k" 1);
 qed "le_plus";
 
 goal Nat2.thy "succ(m) <= n --> m <= n";
 by (res_inst_tac [("x","n")]spec 1);
-by (ALL_IND_TAC nat_exh (simp_tac (!simpset addsimps [le_imp_le_succ])) 1);
+by (ALL_IND_TAC nat_exh (simp_tac (simpset() addsimps [le_imp_le_succ])) 1);
 qed "succ_le";
 
 goal Nat2.thy "~m<n <-> n<=m";
@@ -98,7 +98,7 @@ by (ALL_IND_TAC nat_ind Asm_simp_tac 1);
 qed "not_less";
 
 goal Nat2.thy "n<=m --> ~m<n";
-by (simp_tac (!simpset addsimps [not_less]) 1);
+by (simp_tac (simpset() addsimps [not_less]) 1);
 qed "le_imp_not_less";
 
 goal Nat2.thy "m<n --> ~n<=m";
@@ -123,7 +123,7 @@ by (ALL_IND_TAC nat_exh Simp_tac 1);
 qed "not0";
 
 goal Nat2.thy "a<=a' & b<=b' --> a+b<=a'+b'";
-by (IND_TAC nat_ind (simp_tac (!simpset addsimps [le_plus])) "b" 1);
+by (IND_TAC nat_ind (simp_tac (simpset() addsimps [le_plus])) "b" 1);
 by (resolve_tac [impI RS allI] 1);
 by (resolve_tac [allI RS allI] 1);
 by (ALL_IND_TAC nat_exh Asm_simp_tac 1);

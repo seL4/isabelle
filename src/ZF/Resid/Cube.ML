@@ -53,11 +53,11 @@ by (rtac (preservation RS ssubst) 1
 by (rtac (preservation RS ssubst) 1 
     THEN etac comp_sym 1 THEN assume_tac 1);
 by (stac (prism RS sym) 1);
-by (asm_full_simp_tac (!simpset addsimps 
+by (asm_full_simp_tac (simpset() addsimps 
 		       [prism RS sym,union_l,union_preserve_regular,
 			comp_sym_iff, union_sym]) 4);
-by (asm_full_simp_tac (!simpset addsimps [union_r, comp_sym_iff]) 1);
-by (asm_full_simp_tac (!simpset addsimps 
+by (asm_full_simp_tac (simpset() addsimps [union_r, comp_sym_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps 
 		       [union_preserve_regular, comp_sym_iff]) 1);
 by (etac comp_trans 1);
 by (atac 1);
@@ -73,10 +73,10 @@ goal Cube.thy
 \          EX uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
 \            regular(vu) & (w|>v)~uv & regular(uv) ";
 by (subgoal_tac "u~v" 1);
-by (safe_tac (!claset addSIs [exI]));
+by (safe_tac (claset() addSIs [exI]));
 by (rtac cube 1);
 by (ALLGOALS (asm_simp_tac (prism_ss addsimps [comp_sym_iff])));
-by (ALLGOALS (blast_tac (!claset addIs [residuals_preserve_comp, 
+by (ALLGOALS (blast_tac (claset() addIs [residuals_preserve_comp, 
 					comp_trans, comp_sym])));
 qed "paving";
 

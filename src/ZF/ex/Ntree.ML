@@ -15,7 +15,7 @@ open Ntree;
 
 goal Ntree.thy "ntree(A) = A * (UN n: nat. n -> ntree(A))";
 let open ntree;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "ntree_unfold";
 
@@ -28,8 +28,8 @@ val major::prems = goal Ntree.thy
 by (rtac (major RS ntree.induct) 1);
 by (etac UN_E 1);
 by (REPEAT_SOME (ares_tac prems));
-by (fast_tac (!claset addEs [fun_weaken_type]) 1);
-by (fast_tac (!claset addDs [apply_type]) 1);
+by (fast_tac (claset() addEs [fun_weaken_type]) 1);
+by (fast_tac (claset() addDs [apply_type]) 1);
 qed "ntree_induct";
 
 (*Induction on ntree(A) to prove an equation*)
@@ -43,7 +43,7 @@ by (REPEAT_SOME (ares_tac prems));
 by (cut_facts_tac prems 1);
 by (rtac fun_extension 1);
 by (REPEAT_SOME (ares_tac [comp_fun]));
-by (asm_simp_tac (!simpset addsimps [comp_fun_apply]) 1);
+by (asm_simp_tac (simpset() addsimps [comp_fun_apply]) 1);
 qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
@@ -58,7 +58,7 @@ qed "ntree_mono";
 goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (REPEAT (ares_tac [Pair_in_univ, nat_fun_univ RS subsetD] 1));
 qed "ntree_univ";
 
@@ -69,7 +69,7 @@ val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 
 goal Ntree.thy "maptree(A) = A * (maptree(A) -||> maptree(A))";
 let open maptree;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "maptree_unfold";
 
@@ -93,7 +93,7 @@ qed "maptree_induct";
 
 goal Ntree.thy "maptree2(A,B) = A * (B -||> maptree2(A,B))";
 let open maptree2;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "maptree2_unfold";
 

@@ -38,7 +38,7 @@ by (rtac Pow_mono 1);
 by (rtac ([Sigma_mono, product_univ] MRS subset_trans) 1);
 by (etac subset_trans 1);
 by (rtac (arg_subset_eclose RS univ_mono) 1);
-by (simp_tac (!simpset addsimps [Union_Pow_eq]) 1);
+by (simp_tac (simpset() addsimps [Union_Pow_eq]) 1);
 qed "MapQU_lemma";
 
 (* Theorems *)
@@ -69,7 +69,7 @@ qed "map_mono";
 (** map_emp **)
 
 goalw Map.thy [map_emp_def,PMap_def,TMap_def] "map_emp:PMap(A,B)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (rtac image_02 1);
 qed "pmap_empI";
 
@@ -79,7 +79,7 @@ qed "pmap_empI";
 goalw Map.thy [map_owr_def,PMap_def,TMap_def] 
   "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
 by Safe_tac;
-by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [if_iff])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [if_iff])));
 by (Fast_tac 1);
 by (Fast_tac 1);
 by (Deepen_tac 2 1);
@@ -88,8 +88,8 @@ by (rtac (excluded_middle RS disjE) 1);
 by (etac image_Sigma1 1);
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
 by (asm_full_simp_tac
-    (!simpset addsimps [qbeta] setloop split_tac [expand_if]) 1);
-by (safe_tac (!claset));
+    (simpset() addsimps [qbeta] setloop split_tac [expand_if]) 1);
+by (safe_tac (claset()));
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 3);
 by (ALLGOALS Asm_full_simp_tac);
 by (Fast_tac 1);
@@ -144,7 +144,7 @@ by (Fast_tac 1);
 qed "domain_UN";
 
 goal Map.thy  "domain(Sigma(A,B)) = {x:A. EX y. y:B(x)}";
-by (simp_tac (!simpset addsimps [domain_UN,domain_0,domain_cons]) 1);
+by (simp_tac (simpset() addsimps [domain_UN,domain_0,domain_cons]) 1);
 by (Fast_tac 1);
 qed "domain_Sigma";
 
@@ -156,7 +156,7 @@ qed "map_domain_emp";
 
 goalw Map.thy [map_owr_def] 
   "!!a. b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
-by (simp_tac (!simpset addsimps [domain_Sigma]) 1);
+by (simp_tac (simpset() addsimps [domain_Sigma]) 1);
 by (rtac equalityI 1);
 by (Fast_tac 1);
 by (rtac subsetI 1);
@@ -166,7 +166,7 @@ by (etac UnE' 1);
 by (etac singletonE 1);
 by (Asm_simp_tac 1);
 by (Fast_tac 1);
-by (fast_tac (!claset addss (!simpset)) 1);
+by (fast_tac (claset() addss (simpset())) 1);
 qed "map_domain_owr";
 
 (** Application **)

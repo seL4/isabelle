@@ -19,7 +19,7 @@ goal thy "is_inf x y inf --> x && y = inf";
 qed "inf_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   by (Step_tac 1);
   by (Step_tac 1);
   br inf_is_inf 1;
@@ -41,7 +41,7 @@ goal thy "is_sup x y sup --> x || y = sup";
 qed "sup_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! sup::'a::lattice. is_sup x y sup";
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   by (Step_tac 1);
   by (Step_tac 1);
   br sup_is_sup 1;

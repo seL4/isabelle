@@ -47,7 +47,7 @@ goal CoUnit.thy "lfp(univ(0), %x. Con2(x,x)) : counit2";
 by (rtac (singletonI RS counit2.coinduct) 1);
 by (rtac (qunivI RS singleton_subsetI) 1);
 by (rtac ([lfp_subset, empty_subsetI RS univ_mono] MRS subset_trans) 1);
-by (fast_tac (!claset addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);
+by (fast_tac (claset() addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);
 qed "lfp_Con2_in_counit2";
 
 (*Lemma for proving finality.  Borrowed from ex/llist_eq.ML!*)

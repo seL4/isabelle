@@ -120,7 +120,7 @@ by (Blast_tac 1);
 qed "sum_subset_iff";
 
 goal Sum.thy "A+B = C+D <-> A=C & B=D";
-by (simp_tac (!simpset addsimps [extension,sum_subset_iff]) 1);
+by (simp_tac (simpset() addsimps [extension,sum_subset_iff]) 1);
 by (Blast_tac 1);
 qed "sum_equal_iff";
 
@@ -132,11 +132,11 @@ qed "sum_eq_2_times";
 (*** Eliminator -- case ***)
 
 goalw Sum.thy sum_defs "case(c, d, Inl(a)) = c(a)";
-by (simp_tac (!simpset addsimps [cond_0]) 1);
+by (simp_tac (simpset() addsimps [cond_0]) 1);
 qed "case_Inl";
 
 goalw Sum.thy sum_defs "case(c, d, Inr(b)) = d(b)";
-by (simp_tac (!simpset addsimps [cond_1]) 1);
+by (simp_tac (simpset() addsimps [cond_1]) 1);
 qed "case_Inr";
 
 Addsimps [case_Inl, case_Inr];
@@ -148,7 +148,7 @@ val major::prems = goal Sum.thy
 \    |] ==> case(c,d,u) : C(u)";
 by (rtac (major RS sumE) 1);
 by (ALLGOALS (etac ssubst));
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_type";
 
 goal Sum.thy
@@ -165,7 +165,7 @@ val major::prems = goal Sum.thy
 \     !!y. y:B ==> d(y)=d'(y)   \
 \  |] ==> case(c,d,z) = case(c',d',z)";
 by (resolve_tac [major RS sumE] 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_cong";
 
 goal Sum.thy

@@ -21,7 +21,7 @@ qed "bin_Sup_eq";
 goal thy "Inf (A Un B) = Inf A && Inf B";
   br (Inf_uniq RS mp) 1;
   by (rewtac is_Inf_def);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
 
   br (conjI RS (le_trans RS mp)) 1;
   br inf_lb1 1;
@@ -42,7 +42,7 @@ qed "Inf_Un_eq";
 goal thy "Inf (UN i:A. B i) = Inf {Inf (B i) |i. i:A}";
   br (Inf_uniq RS mp) 1;
   by (rewtac is_Inf_def);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   (*level 3*)
   br (conjI RS (le_trans RS mp)) 1;
   be Inf_lb 2;
@@ -51,7 +51,7 @@ goal thy "Inf (UN i:A. B i) = Inf {Inf (B i) |i. i:A}";
   by (Fast_tac 1);
   (*level 8*)
   by (stac le_Inf_eq 1);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   by (stac le_Inf_eq 1);
   by (Fast_tac 1);
 qed "Inf_UN_eq";
@@ -61,7 +61,7 @@ qed "Inf_UN_eq";
 goal thy "Sup (A Un B) = Sup A || Sup B";
   br (Sup_uniq RS mp) 1;
   by (rewtac is_Sup_def);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
 
   br (conjI RS (le_trans RS mp)) 1;
   be Sup_ub 1;
@@ -82,7 +82,7 @@ qed "Sup_Un_eq";
 goal thy "Sup (UN i:A. B i) = Sup {Sup (B i) |i. i:A}";
   br (Sup_uniq RS mp) 1;
   by (rewtac is_Sup_def);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   (*level 3*)
   br (conjI RS (le_trans RS mp)) 1;
   be Sup_ub 1;
@@ -92,7 +92,7 @@ goal thy "Sup (UN i:A. B i) = Sup {Sup (B i) |i. i:A}";
   by (Fast_tac 1);
   (*level 8*)
   by (stac ge_Sup_eq 1);
-  by (safe_tac (!claset));
+  by (safe_tac (claset()));
   by (stac ge_Sup_eq 1);
   by (Fast_tac 1);
 qed "Sup_UN_eq";

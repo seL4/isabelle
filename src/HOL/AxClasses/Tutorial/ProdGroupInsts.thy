@@ -15,6 +15,6 @@ defs
 
 instance
   "*" :: (semigroup, semigroup) semigroup
-    {| simp_tac (!simpset addsimps [assoc]) 1 |}
+    {| SIMPSET' (fn ss => simp_tac (ss addsimps [assoc])) 1 |}
 
 end

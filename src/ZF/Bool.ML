@@ -51,7 +51,7 @@ qed "cond_0";
 
 Addsimps [cond_1, cond_0];
 
-fun bool_tac i = fast_tac (!claset addSEs [boolE] addss (!simpset)) i;
+fun bool_tac i = fast_tac (claset() addSEs [boolE] addss (simpset())) i;
 
 
 goal Bool.thy 

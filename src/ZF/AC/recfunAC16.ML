@@ -41,7 +41,7 @@ by (Fast_tac 1);
 by (Asm_simp_tac 1);
 by (fast_tac (FOL_cs addSIs [succI1, prem1]
         addSEs [ballE, leE, prem1 RSN (2, subset_trans)]) 1);
-by (fast_tac (!claset addIs [OUN_I, ltI]
+by (fast_tac (claset() addIs [OUN_I, ltI]
         addSEs [Limit_has_succ RS ltE, succI1 RSN (2, Ord_in_Ord) RS le_refl,
                 transrec2_Limit RS ssubst]) 1);
 qed "transrec2_mono_lemma";
@@ -50,7 +50,7 @@ val [prem1, prem2] = goal thy "[| !!g r. r <= B(g,r); j le i |]  \
 \       ==> transrec2(j, 0, B) <= transrec2(i, 0, B)";
 by (resolve_tac [prem2 RS leE] 1);
 by (resolve_tac [transrec2_mono_lemma RS impE] 1);
-by (TRYALL (fast_tac (!claset addSIs [prem1, prem2, lt_Ord2])));
+by (TRYALL (fast_tac (claset() addSIs [prem1, prem2, lt_Ord2])));
 qed "transrec2_mono";
 
 (* ********************************************************************** *)
@@ -60,6 +60,6 @@ qed "transrec2_mono";
 goalw thy [recfunAC16_def]
         "!!i. i le j ==> recfunAC16(f, g, i, a) <= recfunAC16(f, g, j, a)";
 by (rtac transrec2_mono 1);
-by (REPEAT (fast_tac (!claset addIs [expand_if RS iffD2]) 1));
+by (REPEAT (fast_tac (claset() addIs [expand_if RS iffD2]) 1));
 qed "recfunAC16_mono";
 

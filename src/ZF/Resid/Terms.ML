@@ -61,14 +61,14 @@ qed "lambda_unmark";
 goal Terms.thy  
     "!!u.[|v:lambda|]==> ALL k:nat. lift_rec(v,k):lambda";
 by (eresolve_tac [lambda.induct] 1);
-by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset))));
+by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()))));
 qed "liftL_typea";
 val liftL_type =liftL_typea RS bspec ;
 
 goal Terms.thy  
     "!!n.[|v:lambda|]==>  ALL n:nat. ALL u:lambda. subst_rec(u,v,n):lambda";
 by (eresolve_tac [lambda.induct] 1);
-by (ALLGOALS(asm_full_simp_tac ((addsplit (!simpset)) addsimps [liftL_type])));
+by (ALLGOALS(asm_full_simp_tac ((addsplit (simpset())) addsimps [liftL_type])));
 qed "substL_typea";
 val substL_type = substL_typea RS bspec RS bspec ;
 

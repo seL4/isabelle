@@ -85,7 +85,7 @@ AddSEs [QSigmaE2, QSigmaE];
 qed_goalw "QSigma_cong" thy [QSigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    QSigma(A,B) = QSigma(A',B')"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 qed_goal "QSigma_empty1" thy "QSigma(0,B) = 0"
  (fn _ => [ (Blast_tac 1) ]);
@@ -100,11 +100,11 @@ Addsimps [QSigma_empty1, QSigma_empty2];
 
 qed_goalw "qfst_conv" thy [qfst_def] "qfst(<a;b>) = a"
  (fn _=> 
-  [ (blast_tac (!claset addIs [the_equality]) 1) ]);
+  [ (blast_tac (claset() addIs [the_equality]) 1) ]);
 
 qed_goalw "qsnd_conv" thy [qsnd_def] "qsnd(<a;b>) = b"
  (fn _=> 
-  [ (blast_tac (!claset addIs [the_equality]) 1) ]);
+  [ (blast_tac (claset() addIs [the_equality]) 1) ]);
 
 Addsimps [qfst_conv, qsnd_conv];
 
@@ -137,7 +137,7 @@ qed_goal "qsplit_type" thy
 \    |] ==> qsplit(%x y. c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS QSigmaE) 1),
-    (asm_simp_tac (!simpset addsimps prems) 1) ]);
+    (asm_simp_tac (simpset() addsimps prems) 1) ]);
 
 goalw thy [qsplit_def]
   "!!u. u: A<*>B ==>   \
@@ -286,7 +286,7 @@ by (Blast_tac 1);
 qed "qsum_subset_iff";
 
 goal thy "A <+> B = C <+> D <-> A=C & B=D";
-by (simp_tac (!simpset addsimps [extension,qsum_subset_iff]) 1);
+by (simp_tac (simpset() addsimps [extension,qsum_subset_iff]) 1);
 by (Blast_tac 1);
 qed "qsum_equal_iff";
 
@@ -309,7 +309,7 @@ val major::prems = goal thy
 \    |] ==> qcase(c,d,u) : C(u)";
 by (rtac (major RS qsumE) 1);
 by (ALLGOALS (etac ssubst));
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "qcase_type";
 
 (** Rules for the Part primitive **)

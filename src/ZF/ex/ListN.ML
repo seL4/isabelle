@@ -20,13 +20,13 @@ qed "list_into_listn";
 goal ListN.thy "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (etac listn.induct 1);
-by (safe_tac (!claset addSIs (list_typechecks @
+by (safe_tac (claset() addSIs (list_typechecks @
                             [length_Nil, length_Cons, list_into_listn])));
 qed "listn_iff";
 
 goal ListN.thy "listn(A)``{n} = {l:list(A). length(l)=n}";
 by (rtac equality_iffI 1);
-by (simp_tac (!simpset addsimps [listn_iff,separation,image_singleton_iff]) 1);
+by (simp_tac (simpset() addsimps [listn_iff,separation,image_singleton_iff]) 1);
 qed "listn_image_eq";
 
 goalw ListN.thy listn.defs "!!A B. A<=B ==> listn(A) <= listn(B)";
@@ -39,7 +39,7 @@ goal ListN.thy
     "!!n l. [| <n,l> : listn(A);  <n',l'> : listn(A) |] ==> \
 \           <n#+n', l@l'> : listn(A)";
 by (etac listn.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps listn.intrs)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps listn.intrs)));
 qed "listn_append";
 
 val Nil_listn_case = listn.mk_cases list.con_defs "<i,Nil> : listn(A)"

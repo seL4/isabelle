@@ -27,13 +27,13 @@ by (REPEAT_SOME assume_tac);
 qed "cardinal_eqE";
 
 goal Cardinal_AC.thy "|X| = |Y| <-> X eqpoll Y";
-by (blast_tac (!claset addIs [cardinal_cong, cardinal_eqE]) 1);
+by (blast_tac (claset() addIs [cardinal_cong, cardinal_eqE]) 1);
 qed "cardinal_eqpoll_iff";
 
 goal Cardinal_AC.thy
     "!!A. [| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
 \         |A Un C| = |B Un D|";
-by (asm_full_simp_tac (!simpset addsimps [cardinal_eqpoll_iff, 
+by (asm_full_simp_tac (simpset() addsimps [cardinal_eqpoll_iff, 
                                        eqpoll_disjoint_Un]) 1);
 qed "cardinal_disjoint_Un";
 
@@ -92,8 +92,8 @@ qed "le_Card_iff";
 goalw Cardinal_AC.thy [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
 by (etac CollectE 1);
 by (res_inst_tac [("A1", "Y"), ("B1", "%y. f-``{y}")] (AC_Pi RS exE) 1);
-by (fast_tac (!claset addSEs [apply_Pair]) 1);
-by (blast_tac (!claset addDs [apply_type, Pi_memberD] 
+by (fast_tac (claset() addSEs [apply_Pair]) 1);
+by (blast_tac (claset() addDs [apply_type, Pi_memberD] 
                        addIs [apply_equality, Pi_type, f_imp_injective]) 1);
 qed "surj_implies_inj";
 
@@ -108,10 +108,10 @@ qed "surj_implies_cardinal_le";
 (*Kunen's Lemma 10.21*)
 goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  ALL i:K. |X(i)| le K |] ==> |UN i:K. X(i)| le K";
-by (asm_full_simp_tac (!simpset addsimps [InfCard_is_Card, le_Card_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [InfCard_is_Card, le_Card_iff]) 1);
 by (rtac lepoll_trans 1);
 by (resolve_tac [InfCard_square_eq RS eqpoll_imp_lepoll] 2);
-by (asm_simp_tac (!simpset addsimps [InfCard_is_Card, Card_cardinal_eq]) 2);
+by (asm_simp_tac (simpset() addsimps [InfCard_is_Card, Card_cardinal_eq]) 2);
 by (rewtac lepoll_def);
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (etac (AC_ball_Pi RS exE) 1);
@@ -119,18 +119,18 @@ by (rtac exI 1);
 (*Lemma needed in both subgoals, for a fixed z*)
 by (subgoal_tac
     "ALL z: (UN i:K. X(i)). z: X(LEAST i. z:X(i)) & (LEAST i. z:X(i)) : K" 1);
-by (fast_tac (!claset addSIs [Least_le RS lt_trans1 RS ltD, ltI]
+by (fast_tac (claset() addSIs [Least_le RS lt_trans1 RS ltD, ltI]
                       addSEs [LeastI, Ord_in_Ord]) 2);
 by (res_inst_tac [("c", "%z. <LEAST i. z:X(i), f ` (LEAST i. z:X(i)) ` z>"),
                   ("d", "%<i,j>. converse(f`i) ` j")] 
         lam_injective 1);
 (*Instantiate the lemma proved above*)
 by (ALLGOALS ball_tac);
-by (blast_tac (!claset addIs [inj_is_fun RS apply_type]
+by (blast_tac (claset() addIs [inj_is_fun RS apply_type]
                        addDs [apply_type]) 1);
 by (dtac apply_type 1);
 by (etac conjunct2 1);
-by (asm_simp_tac (!simpset addsimps [left_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "cardinal_UN_le";
 
 (*The same again, using csucc*)
@@ -138,7 +138,7 @@ goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \
 \         |UN i:K. X(i)| < csucc(K)";
 by (asm_full_simp_tac 
-    (!simpset addsimps [Card_lt_csucc_iff, cardinal_UN_le, 
+    (simpset() addsimps [Card_lt_csucc_iff, cardinal_UN_le, 
                      InfCard_is_Card, Card_cardinal]) 1);
 qed "cardinal_UN_lt_csucc";
 
@@ -149,8 +149,8 @@ goal Cardinal_AC.thy
 \         (UN i:K. j(i)) < csucc(K)";
 by (resolve_tac [cardinal_UN_lt_csucc RS Card_lt_imp_lt] 1);
 by (assume_tac 1);
-by (blast_tac (!claset addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
-by (blast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 1);
+by (blast_tac (claset() addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
+by (blast_tac (claset() addSIs [Ord_UN] addEs [ltE]) 1);
 by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
 qed "cardinal_UN_Ord_lt_csucc";
 
@@ -173,7 +173,7 @@ by (rtac UN_least 1);
 by (res_inst_tac [("x1", "f`x")] (UN_upper RSN (2,subset_trans)) 1);
 by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
 by (asm_simp_tac 
-    (!simpset addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
+    (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
 val inj_UN_subset = result();
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
@@ -183,16 +183,16 @@ goal Cardinal_AC.thy
 \         (UN w:W. j(w)) < csucc(K)";
 by (excluded_middle_tac "W=0" 1);
 by (asm_simp_tac        (*solve the easy 0 case*)
-    (!simpset addsimps [UN_0, InfCard_is_Card, Card_is_Ord RS Card_csucc, 
+    (simpset() addsimps [UN_0, InfCard_is_Card, Card_is_Ord RS Card_csucc, 
                      Card_is_Ord, Ord_0_lt_csucc]) 2);
 by (asm_full_simp_tac
-    (!simpset addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
-by (safe_tac (!claset addSIs [equalityI]));
+    (simpset() addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
+by (safe_tac (claset() addSIs [equalityI]));
 by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc] 
                   MRS lt_subset_trans] 1);
 by (REPEAT (assume_tac 1));
-by (blast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 2);
-by (asm_simp_tac (!simpset addsimps [inj_converse_fun RS apply_type]
+by (blast_tac (claset() addSIs [Ord_UN] addEs [ltE]) 2);
+by (asm_simp_tac (simpset() addsimps [inj_converse_fun RS apply_type]
                         setloop split_tac [expand_if]) 1);
 qed "le_UN_Ord_lt_csucc";
 

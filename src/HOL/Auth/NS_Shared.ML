@@ -49,13 +49,13 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (*For reasoning about the encrypted portion of message NS3*)
 goal thy "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set evs \
 \                ==> X : parts (spies evs)";
-by (blast_tac (!claset addSEs spies_partsEs) 1);
+by (blast_tac (claset() addSEs spies_partsEs) 1);
 qed "NS3_msg_in_parts_spies";
                               
 goal thy
     "!!evs. Says Server A (Crypt (shrK A) {|NA, B, K, X|}) : set evs \
 \           ==> K : parts (spies evs)";
-by (blast_tac (!claset addSEs spies_partsEs) 1);
+by (blast_tac (claset() addSEs spies_partsEs) 1);
 qed "Oops_parts_spies";
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
@@ -80,13 +80,13 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
 \                  evs : ns_shared |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -99,12 +99,12 @@ goal thy "!!evs. evs : ns_shared ==>      \
 by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
-      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                addIs  [impOfSubs analz_subset_parts]
                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (!simpset)) 1);
+               addss  (simpset())) 1);
 (*NS2, NS4, NS5*)
-by (ALLGOALS (blast_tac (!claset addSEs spies_partsEs)));
+by (ALLGOALS (blast_tac (claset() addSEs spies_partsEs)));
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -151,10 +151,10 @@ goal thy
 \        ==> (K ~: range shrK & X = (Crypt (shrK B) {|Key K, Agent A|}))   \
 \            | X : analz (spies evs)";
 by (case_tac "A : bad" 1);
-by (fast_tac (!claset addSDs [Says_imp_spies RS analz.Inj]
-                      addss (!simpset)) 1);
+by (fast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]
+                      addss (simpset())) 1);
 by (forward_tac [Says_imp_spies RS parts.Inj] 1);
-by (blast_tac (!claset addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
+by (blast_tac (claset() addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
 qed "Says_S_message_form";
 
 
@@ -185,7 +185,7 @@ goal thy
 \           Key K : parts {X} --> Key K : parts (spies evs)";
 by (parts_induct_tac 1);
 (*Deals with Faked messages*)
-by (blast_tac (!claset addSEs partsEs
+by (blast_tac (claset() addSEs partsEs
                        addDs [impOfSubs parts_insert_subset_Un]) 1);
 (*Base, NS4 and NS5*)
 by (Auto_tac());
@@ -229,7 +229,7 @@ goal thy
 \       Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|}) : set evs \
 \       -->         A=A' & NA=NA' & B=B' & X=X'";
 by (etac ns_shared.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by Safe_tac;
 (*NS3*)
 by (ex_strip_tac 2);
@@ -237,7 +237,7 @@ by (Blast_tac 2);
 (*NS2: it can't be a new key*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-by (blast_tac (!claset delrules [conjI]    (*prevent split-up into 4 subgoals*)
+by (blast_tac (claset() delrules [conjI]    (*prevent split-up into 4 subgoals*)
                       addSEs spies_partsEs) 1);
 val lemma = result();
 
@@ -266,24 +266,24 @@ by (etac ns_shared.induct 1);
 by analz_spies_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ 
+     (simpset() addsimps ([analz_insert_eq, analz_insert_freshK] @ 
 			 pushes @ expand_ifs))));
 (*Oops*)
-by (blast_tac (!claset addDs [unique_session_keys]) 5);
+by (blast_tac (claset() addDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 
 by (Blast_tac 4);
 (*NS2*)
-by (blast_tac (!claset addSEs spies_partsEs
+by (blast_tac (claset() addSEs spies_partsEs
                        addIs [parts_insertI, impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 (*NS3, Server sub-case*) (**LEVEL 6 **)
-by (clarify_tac (!claset delrules [impCE]) 1);
+by (clarify_tac (claset() delrules [impCE]) 1);
 by (forward_tac [Says_imp_spies RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
-by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj RS
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
 			      Crypt_Spy_analz_bad]) 1);
-by (blast_tac (!claset addDs [unique_session_keys]) 1);
+by (blast_tac (claset() addDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 
@@ -295,7 +295,7 @@ goal thy
 \           A ~: bad;  B ~: bad;  evs : ns_shared                \
 \        |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (blast_tac (!claset addSDs [lemma]) 1);
+by (blast_tac (claset() addSDs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
@@ -334,9 +334,9 @@ by (forward_tac [Oops_parts_spies] 8);
 by (TRYALL (rtac impI));
 by (REPEAT_FIRST
     (dtac (spies_subset_spies_Says RS analz_mono RS contra_subsetD)));
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (**LEVEL 7**)
-by (blast_tac (!claset addSDs [Crypt_Fake_parts_insert]
+by (blast_tac (claset() addSDs [Crypt_Fake_parts_insert]
                        addDs [impOfSubs analz_subset_parts]) 1);
 by (Blast_tac 2);
 by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
@@ -348,9 +348,9 @@ by (Asm_full_simp_tac 1);
 by (rtac disjI1 1);
 by (thin_tac "?PP-->?QQ" 1);
 by (case_tac "Ba : bad" 1);
-by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj RS B_trusts_NS3, 
+by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS B_trusts_NS3, 
 			      unique_session_keys]) 2);
-by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj RS
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
 			      Crypt_Spy_analz_bad]) 1);
 val lemma = result();
 
@@ -361,6 +361,6 @@ goal thy
 \           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;          \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]           \
 \        ==> Says B A (Crypt K (Nonce NB)) : set evs";
-by (blast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
+by (blast_tac (claset() addSIs [lemma RS mp RS mp RS mp]
                        addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
 qed "A_trusts_NS4";

@@ -45,7 +45,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (*Lets us treat YM4 using a similar argument as for the Fake case.*)
 goal thy "!!evs. Says S A {|NB, Crypt (shrK A) Y, X|} : set evs ==> \
 \                X : analz (spies evs)";
-by (blast_tac (!claset addSDs [Says_imp_spies RS analz.Inj]) 1);
+by (blast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]) 1);
 qed "YM4_analz_spies";
 
 bind_thm ("YM4_parts_spies",
@@ -54,7 +54,7 @@ bind_thm ("YM4_parts_spies",
 (*Relates to both YM4 and Oops*)
 goal thy "!!evs. Says S A {|NB, Crypt (shrK A) {|B,K,NA|}, X|} : set evs ==> \
 \                K : parts (spies evs)";
-by (blast_tac (!claset addSEs partsEs
+by (blast_tac (claset() addSEs partsEs
                        addSDs [Says_imp_spies RS parts.Inj]) 1);
 qed "YM4_Key_parts_spies";
 
@@ -88,13 +88,13 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : yahalom ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
 \                  evs : yahalom |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -106,15 +106,15 @@ goal thy "!!evs. evs : yahalom ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*YM4: Key K is not fresh!*)
-by (blast_tac (!claset addSEs spies_partsEs) 3);
+by (blast_tac (claset() addSEs spies_partsEs) 3);
 (*YM3*)
-by (blast_tac (!claset addss (!simpset)) 2);
+by (blast_tac (claset() addss (simpset())) 2);
 (*Fake*)
 by (best_tac
-      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                addIs  [impOfSubs analz_subset_parts]
                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (!simpset)) 1);
+               addss  (simpset())) 1);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -189,15 +189,15 @@ goal thy
 \           {|nb, Crypt (shrK A) {|Agent B, Key K, na|}, X|}   \
 \          : set evs --> A=A' & B=B' & na=na' & nb=nb' & X=X'";
 by (etac yahalom.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (Clarify_tac 1);
 (*Remaining case: YM3*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
-by (blast_tac (!claset addSEs spies_partsEs
+by (blast_tac (claset() addSEs spies_partsEs
                        delrules [conjI]    (*prevent split-up into 4 subgoals*)
-                       addss (!simpset addsimps [parts_insertI])) 1);
+                       addss (simpset() addsimps [parts_insertI])) 1);
 val lemma = result();
 
 goal thy 
@@ -226,13 +226,13 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps expand_ifs
+     (simpset() addsimps expand_ifs
 	       addsimps [analz_insert_eq, analz_insert_freshK]
                addsplits [expand_if])));
 (*Oops*)
-by (blast_tac (!claset addDs [unique_session_keys]) 3);
+by (blast_tac (claset() addDs [unique_session_keys]) 3);
 (*YM3*)
-by (blast_tac (!claset delrules [impCE]
+by (blast_tac (claset() delrules [impCE]
                        addSEs spies_partsEs
                        addIs [impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
@@ -250,7 +250,7 @@ goal thy
 \           A ~: bad;  B ~: bad;  evs : yahalom |]         \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (blast_tac (!claset addSEs [lemma]) 1);
+by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
@@ -308,7 +308,7 @@ goal thy
 \                      Crypt (shrK B) {|Nonce NB, Key K, Agent A|}|}     \
 \                   : set evs";
 by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);
-by (blast_tac (!claset addSDs [B_trusts_YM4_shrK]) 1);
+by (blast_tac (claset() addSDs [B_trusts_YM4_shrK]) 1);
 qed "B_trusts_YM4";
 
 
@@ -341,7 +341,7 @@ goal thy
 by (etac yahalom.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*YM3*)
-by (blast_tac (!claset addSDs [B_Said_YM2]
+by (blast_tac (claset() addSDs [B_Said_YM2]
 		       addSEs [MPair_parts]
 		       addDs [Says_imp_spies RS parts.Inj]) 3);
 (*Fake, YM2*)
@@ -356,7 +356,7 @@ goal thy
 \   ==> EX nb'. Says B Server                                               \
 \                    {|Agent B, nb', Crypt (shrK B) {|Agent A, Nonce NA|}|} \
 \                 : set evs";
-by (blast_tac (!claset addSDs [A_trusts_YM3, lemma]
+by (blast_tac (claset() addSDs [A_trusts_YM3, lemma]
 		       addEs spies_partsEs) 1);
 qed "YM3_auth_B_to_A";
 
@@ -378,12 +378,12 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (Fake_parts_insert_tac 1);
 (*YM3: by new_keys_not_used we note that Crypt K (Nonce NB) could not exist*)
-by (fast_tac (!claset addSDs [Crypt_imp_invKey_keysFor] addss (!simpset)) 1); 
+by (fast_tac (claset() addSDs [Crypt_imp_invKey_keysFor] addss (simpset())) 1); 
 (*YM4: was Crypt K (Nonce NB) the very last message?  If not, use ind. hyp.*)
-by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: apply unicity of session keys*)
 by (not_bad_tac "Aa" 1);
-by (blast_tac (!claset addSEs [MPair_parts]
+by (blast_tac (claset() addSEs [MPair_parts]
                        addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
 		       addDs  [Says_imp_spies RS parts.Inj,
 			       unique_session_keys]) 1);
@@ -400,10 +400,10 @@ goal thy
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);
 by (dtac B_trusts_YM4_shrK 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
-by (ALLGOALS (blast_tac (!claset addSEs [MPair_parts]
+by (ALLGOALS (blast_tac (claset() addSEs [MPair_parts]
 			         addDs [Says_imp_spies RS parts.Inj])));
 qed_spec_mp "YM4_imp_A_Said_YM3";

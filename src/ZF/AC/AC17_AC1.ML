@@ -34,7 +34,7 @@ by (res_inst_tac [("x","Union(A)")] exI 1);
 by (rtac ballI 1);
 by (etac swap 1);
 by (rtac impI 1);
-by (fast_tac (!claset addSIs [restrict_type]) 1);
+by (fast_tac (claset() addSIs [restrict_type]) 1);
 qed "not_AC1_imp_ex";
 
 goal thy "!!x. [| ALL f:Pow(x) - {0} -> x. EX u: Pow(x) - {0}. f`u~:u;  \
@@ -56,13 +56,13 @@ val lemma1 = result();
 goal thy "!!x. ~ (EX f: Pow(x)-{0}->x. x - F(f) = 0)  \
 \       ==> (lam f: Pow(x)-{0}->x. x - F(f))  \
 \               : (Pow(x) -{0} -> x) -> Pow(x) - {0}";
-by (fast_tac (!claset addSIs [lam_type] addSDs [Diff_eq_0_iff RS iffD1]) 1);
+by (fast_tac (claset() addSIs [lam_type] addSDs [Diff_eq_0_iff RS iffD1]) 1);
 val lemma2 = result();
 
 goal thy "!!f. [| f`Z : Z; Z:Pow(x)-{0} |] ==>  \
 \       (lam X:Pow(x)-{0}. {f`X})`Z : Pow(Z)-{0}";
 by (Asm_full_simp_tac 1);
-by (fast_tac (!claset addSDs [equals0D]) 1);
+by (fast_tac (claset() addSDs [equals0D]) 1);
 val lemma3 = result();
 
 goal thy "!!z. EX f:F. f`((lam f:F. Q(f))`f) : (lam f:F. Q(f))`f  \
@@ -87,6 +87,6 @@ by (dtac apply_type 1 THEN (assume_tac 1));
 by (dresolve_tac [beta RS sym RSN (2, subst_elem)] 1);
 by (assume_tac 1);
 by (dtac lemma3 1 THEN (assume_tac 1));
-by (fast_tac (!claset addSDs [HH_Least_eq_x RS sym RSN (2, subst_elem),
+by (fast_tac (claset() addSDs [HH_Least_eq_x RS sym RSN (2, subst_elem),
                 f_subset_imp_HH_subset] addSEs [mem_irrefl]) 1);
 qed "AC17_AC1";

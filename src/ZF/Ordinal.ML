@@ -17,7 +17,7 @@ by (Blast_tac 1);
 qed "Transset_iff_Pow";
 
 goalw Ordinal.thy [Transset_def] "Transset(A) <-> Union(succ(A)) = A";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Transset_iff_Union_succ";
 
 (** Consequences of downwards closure **)
@@ -30,19 +30,19 @@ qed "Transset_doubleton_D";
 val [prem1,prem2] = goalw Ordinal.thy [Pair_def]
     "[| Transset(C); <a,b>: C |] ==> a:C & b: C";
 by (cut_facts_tac [prem2] 1);   
-by (blast_tac (!claset addSDs [prem1 RS Transset_doubleton_D]) 1);
+by (blast_tac (claset() addSDs [prem1 RS Transset_doubleton_D]) 1);
 qed "Transset_Pair_D";
 
 val prem1::prems = goal Ordinal.thy
     "[| Transset(C); A*B <= C; b: B |] ==> A <= C";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addSDs [prem1 RS Transset_Pair_D]) 1);
+by (blast_tac (claset() addSDs [prem1 RS Transset_Pair_D]) 1);
 qed "Transset_includes_domain";
 
 val prem1::prems = goal Ordinal.thy
     "[| Transset(C); A*B <= C; a: A |] ==> B <= C";
 by (cut_facts_tac prems 1);
-by (blast_tac (!claset addSDs [prem1 RS Transset_Pair_D]) 1);
+by (blast_tac (claset() addSDs [prem1 RS Transset_Pair_D]) 1);
 qed "Transset_includes_range";
 
 (** Closure properties **)
@@ -75,13 +75,13 @@ qed "Transset_Union";
 
 val [Transprem] = goalw Ordinal.thy [Transset_def]
     "[| !!i. i:A ==> Transset(i) |] ==> Transset(Union(A))";
-by (blast_tac (!claset addDs [Transprem RS bspec RS subsetD]) 1);
+by (blast_tac (claset() addDs [Transprem RS bspec RS subsetD]) 1);
 qed "Transset_Union_family";
 
 val [prem,Transprem] = goalw Ordinal.thy [Transset_def]
     "[| j:A;  !!i. i:A ==> Transset(i) |] ==> Transset(Inter(A))";
 by (cut_facts_tac [prem] 1);
-by (blast_tac (!claset addDs [Transprem RS bspec RS subsetD]) 1);
+by (blast_tac (claset() addDs [Transprem RS bspec RS subsetD]) 1);
 qed "Transset_Inter_family";
 
 (*** Natural Deduction rules for Ord ***)
@@ -145,18 +145,18 @@ qed "Ord_succ";
 bind_thm ("Ord_1", Ord_0 RS Ord_succ);
 
 goal Ordinal.thy "Ord(succ(i)) <-> Ord(i)";
-by (blast_tac (!claset addIs [Ord_succ] addDs [Ord_succD]) 1);
+by (blast_tac (claset() addIs [Ord_succ] addDs [Ord_succD]) 1);
 qed "Ord_succ_iff";
 
 Addsimps [Ord_0, Ord_succ_iff];
 AddSIs   [Ord_0, Ord_succ];
 
 goalw Ordinal.thy [Ord_def] "!!i j. [| Ord(i); Ord(j) |] ==> Ord(i Un j)";
-by (blast_tac (!claset addSIs [Transset_Un]) 1);
+by (blast_tac (claset() addSIs [Transset_Un]) 1);
 qed "Ord_Un";
 
 goalw Ordinal.thy [Ord_def] "!!i j. [| Ord(i); Ord(j) |] ==> Ord(i Int j)";
-by (blast_tac (!claset addSIs [Transset_Int]) 1);
+by (blast_tac (claset() addSIs [Transset_Int]) 1);
 qed "Ord_Int";
 
 val nonempty::prems = goal Ordinal.thy
@@ -179,11 +179,11 @@ qed "Ord_INT";
 goal Ordinal.thy "~ (ALL i. i:X <-> Ord(i))";
 by (rtac notI 1);
 by (forw_inst_tac [("x", "X")] spec 1);
-by (safe_tac (!claset addSEs [mem_irrefl]));
+by (safe_tac (claset() addSEs [mem_irrefl]));
 by (swap_res_tac [Ord_is_Transset RSN (2,OrdI)] 1);
 by (Blast_tac 2);
 by (rewtac Transset_def);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (Asm_full_simp_tac 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));
 qed "ON_class";
@@ -226,7 +226,7 @@ bind_thm ("le_Ord2", lt_Ord2 RS Ord_succD);
 bind_thm ("lt0E", not_lt0 RS notE);
 
 goal Ordinal.thy "!!i j k. [| i<j;  j<k |] ==> i<k";
-by (blast_tac (!claset addSIs [ltI] addSEs [ltE] addIs [Ord_trans]) 1);
+by (blast_tac (claset() addSIs [ltI] addSEs [ltE] addIs [Ord_trans]) 1);
 qed "lt_trans";
 
 goalw Ordinal.thy [lt_def] "!!i j. [| i<j;  j<i |] ==> P";
@@ -244,16 +244,16 @@ AddSEs [lt_irrefl, lt0E];
 (** le is less than or equals;  recall  i le j  abbrevs  i<succ(j) !! **)
 
 goalw Ordinal.thy [lt_def] "i le j <-> i<j | (i=j & Ord(j))";
-by (blast_tac (!claset addSIs [Ord_succ] addSDs [Ord_succD]) 1);
+by (blast_tac (claset() addSIs [Ord_succ] addSDs [Ord_succD]) 1);
 qed "le_iff";
 
 (*Equivalently, i<j ==> i < succ(j)*)
 goal Ordinal.thy "!!i j. i<j ==> i le j";
-by (asm_simp_tac (!simpset addsimps [le_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
 qed "leI";
 
 goal Ordinal.thy "!!i. [| i=j;  Ord(j) |] ==> i le j";
-by (asm_simp_tac (!simpset addsimps [le_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
 qed "le_eqI";
 
 val le_refl = refl RS le_eqI;
@@ -270,12 +270,12 @@ by (DEPTH_SOLVE (ares_tac prems 1 ORELSE etac conjE 1));
 qed "leE";
 
 goal Ordinal.thy "!!i j. [| i le j;  j le i |] ==> i=j";
-by (asm_full_simp_tac (!simpset addsimps [le_iff]) 1);
-by (blast_tac (!claset addEs [lt_asym]) 1);
+by (asm_full_simp_tac (simpset() addsimps [le_iff]) 1);
+by (blast_tac (claset() addEs [lt_asym]) 1);
 qed "le_anti_sym";
 
 goal Ordinal.thy "i le 0 <-> i=0";
-by (blast_tac (!claset addSIs [Ord_0 RS le_refl] addSEs [leE]) 1);
+by (blast_tac (claset() addSIs [Ord_0 RS le_refl] addSEs [leE]) 1);
 qed "le0_iff";
 
 bind_thm ("le0D", le0_iff RS iffD1);
@@ -285,7 +285,7 @@ AddSDs [le0D];
 Addsimps [le0_iff];
 
 (*blast_tac will NOT see lt_asym*)
-val le_cs = !claset addSIs [leCI] addSEs [leE] addEs [lt_asym];
+val le_cs = claset() addSIs [leCI] addSEs [leE] addEs [lt_asym];
 
 
 (*** Natural Deduction rules for Memrel ***)
@@ -446,7 +446,7 @@ by (REPEAT (ares_tac [iffI, le_imp_not_lt, not_lt_imp_le] 1));
 qed "not_lt_iff_le";
 
 goal Ordinal.thy "!!i j. [| Ord(i);  Ord(j) |] ==> ~ i le j <-> j<i";
-by (asm_simp_tac (!simpset addsimps [not_lt_iff_le RS iff_sym]) 1);
+by (asm_simp_tac (simpset() addsimps [not_lt_iff_le RS iff_sym]) 1);
 qed "not_le_iff_lt";
 
 (*This is identical to 0<succ(i) *)
@@ -469,7 +469,7 @@ goal Ordinal.thy "!!i j. [| j<=i;  Ord(i);  Ord(j) |] ==> j le i";
 by (rtac (not_lt_iff_le RS iffD1) 1);
 by (assume_tac 1);
 by (assume_tac 1);
-by (blast_tac (!claset addEs [ltE, mem_irrefl]) 1);
+by (blast_tac (claset() addEs [ltE, mem_irrefl]) 1);
 qed "subset_imp_le";
 
 goal Ordinal.thy "!!i j. i le j ==> i<=j";
@@ -479,13 +479,13 @@ by (blast_tac (subset_cs addIs [OrdmemD] addEs [ltE]) 1);
 qed "le_imp_subset";
 
 goal Ordinal.thy "j le i <-> j<=i & Ord(i) & Ord(j)";
-by (blast_tac (!claset addDs [Ord_succD, subset_imp_le, le_imp_subset]
+by (blast_tac (claset() addDs [Ord_succD, subset_imp_le, le_imp_subset]
                        addEs [ltE]) 1);
 qed "le_subset_iff";
 
 goal Ordinal.thy "i le succ(j) <-> i le j | i=succ(j) & Ord(i)";
-by (simp_tac (!simpset addsimps [le_iff]) 1);
-by (blast_tac (!claset addIs [Ord_succ] addDs [Ord_succD]) 1);
+by (simp_tac (simpset() addsimps [le_iff]) 1);
+by (blast_tac (claset() addIs [Ord_succ] addDs [Ord_succD]) 1);
 qed "le_succ_iff";
 
 (*Just a variant of subset_imp_le*)
@@ -498,11 +498,11 @@ qed "all_lt_imp_le";
 (** Transitive laws **)
 
 goal Ordinal.thy "!!i j. [| i le j;  j<k |] ==> i<k";
-by (blast_tac (!claset addSEs [leE] addIs [lt_trans]) 1);
+by (blast_tac (claset() addSEs [leE] addIs [lt_trans]) 1);
 qed "lt_trans1";
 
 goal Ordinal.thy "!!i j. [| i<j;  j le k |] ==> i<k";
-by (blast_tac (!claset addSEs [leE] addIs [lt_trans]) 1);
+by (blast_tac (claset() addSEs [leE] addIs [lt_trans]) 1);
 qed "lt_trans2";
 
 goal Ordinal.thy "!!i j. [| i le j;  j le k |] ==> i le k";
@@ -512,14 +512,14 @@ qed "le_trans";
 goal Ordinal.thy "!!i j. i<j ==> succ(i) le j";
 by (rtac (not_lt_iff_le RS iffD1) 1);
 by (blast_tac le_cs 3);
-by (ALLGOALS (blast_tac (!claset addEs [ltE])));
+by (ALLGOALS (blast_tac (claset() addEs [ltE])));
 qed "succ_leI";
 
 (*Identical to  succ(i) < succ(j) ==> i<j  *)
 goal Ordinal.thy "!!i j. succ(i) le j ==> i<j";
 by (rtac (not_le_iff_lt RS iffD1) 1);
 by (fast_tac le_cs 3);
-by (ALLGOALS (blast_tac (!claset addEs [ltE, make_elim Ord_succD])));
+by (ALLGOALS (blast_tac (claset() addEs [ltE, make_elim Ord_succD])));
 qed "succ_leE";
 
 goal Ordinal.thy "succ(i) le j <-> i<j";
@@ -529,7 +529,7 @@ qed "succ_le_iff";
 Addsimps [succ_le_iff];
 
 goal Ordinal.thy "!!i j. succ(i) le succ(j) ==> i le j";
-by (blast_tac (!claset addSDs [succ_leE]) 1);
+by (blast_tac (claset() addSDs [succ_leE]) 1);
 qed "succ_le_imp_le";
 
 (** Union and Intersection **)
@@ -548,13 +548,13 @@ qed "Un_upper2_le";
 goal Ordinal.thy "!!i j k. [| i<k;  j<k |] ==> i Un j < k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_le 1);
 by (stac Un_commute 4);
-by (asm_full_simp_tac (!simpset addsimps [le_subset_iff, subset_Un_iff]) 4);
-by (asm_full_simp_tac (!simpset addsimps [le_subset_iff, subset_Un_iff]) 3);
+by (asm_full_simp_tac (simpset() addsimps [le_subset_iff, subset_Un_iff]) 4);
+by (asm_full_simp_tac (simpset() addsimps [le_subset_iff, subset_Un_iff]) 3);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "Un_least_lt";
 
 goal Ordinal.thy "!!i j. [| Ord(i); Ord(j) |] ==> i Un j < k  <->  i<k & j<k";
-by (safe_tac (!claset addSIs [Un_least_lt]));
+by (safe_tac (claset() addSIs [Un_least_lt]));
 by (rtac (Un_upper2_le RS lt_trans1) 2);
 by (rtac (Un_upper1_le RS lt_trans1) 1);
 by (REPEAT_SOME assume_tac);
@@ -564,15 +564,15 @@ val [ordi,ordj,ordk] = goal Ordinal.thy
     "[| Ord(i); Ord(j); Ord(k) |] ==> i Un j : k  <->  i:k & j:k";
 by (cut_facts_tac [[ordi,ordj] MRS 
                    read_instantiate [("k","k")] Un_least_lt_iff] 1);
-by (asm_full_simp_tac (!simpset addsimps [lt_def,ordi,ordj,ordk]) 1);
+by (asm_full_simp_tac (simpset() addsimps [lt_def,ordi,ordj,ordk]) 1);
 qed "Un_least_mem_iff";
 
 (*Replacing k by succ(k') yields the similar rule for le!*)
 goal Ordinal.thy "!!i j k. [| i<k;  j<k |] ==> i Int j < k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_le 1);
 by (stac Int_commute 4);
-by (asm_full_simp_tac (!simpset addsimps [le_subset_iff, subset_Int_iff]) 4);
-by (asm_full_simp_tac (!simpset addsimps [le_subset_iff, subset_Int_iff]) 3);
+by (asm_full_simp_tac (simpset() addsimps [le_subset_iff, subset_Int_iff]) 4);
+by (asm_full_simp_tac (simpset() addsimps [le_subset_iff, subset_Int_iff]) 3);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "Int_greatest_lt";
 
@@ -626,19 +626,19 @@ by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
 qed "le_implies_UN_le_UN";
 
 goal Ordinal.thy "!!i. Ord(i) ==> (UN y:i. succ(y)) = i";
-by (blast_tac (!claset addIs [Ord_trans]) 1);
+by (blast_tac (claset() addIs [Ord_trans]) 1);
 qed "Ord_equality";
 
 (*Holds for all transitive sets, not just ordinals*)
 goal Ordinal.thy "!!i. Ord(i) ==> Union(i) <= i";
-by (blast_tac (!claset addIs [Ord_trans]) 1);
+by (blast_tac (claset() addIs [Ord_trans]) 1);
 qed "Ord_Union_subset";
 
 
 (*** Limit ordinals -- general properties ***)
 
 goalw Ordinal.thy [Limit_def] "!!i. Limit(i) ==> Union(i) = i";
-by (fast_tac (!claset addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
+by (fast_tac (claset() addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
 qed "Limit_Union_eq";
 
 goalw Ordinal.thy [Limit_def] "!!i. Limit(i) ==> Ord(i)";
@@ -669,13 +669,13 @@ by (etac (Limit_is_Ord RS Ord_succD RS le_refl) 1);
 qed "succ_LimitE";
 
 goal Ordinal.thy "!!i. [| Limit(i);  i le succ(j) |] ==> i le j";
-by (safe_tac (!claset addSEs [succ_LimitE, leE]));
+by (safe_tac (claset() addSEs [succ_LimitE, leE]));
 qed "Limit_le_succD";
 
 (** Traditional 3-way case analysis on ordinals **)
 
 goal Ordinal.thy "!!i. Ord(i) ==> i=0 | (EX j. Ord(j) & i=succ(j)) | Limit(i)";
-by (blast_tac (!claset addSIs [non_succ_LimitI, Ord_0_lt]
+by (blast_tac (claset() addSIs [non_succ_LimitI, Ord_0_lt]
                       addSDs [Ord_succD]) 1);
 qed "Ord_cases_disj";
 
@@ -697,5 +697,5 @@ val major::prems = goal Ordinal.thy
 \     |] ==> P(i)";
 by (resolve_tac [major RS trans_induct] 1);
 by (etac Ord_cases 1);
-by (ALLGOALS (blast_tac (!claset addIs prems)));
+by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "trans_induct3";

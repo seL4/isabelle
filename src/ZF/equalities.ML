@@ -56,11 +56,11 @@ by (Blast_tac 1);
 qed "Int_Un_distrib";
 
 goal ZF.thy "A<=B <-> A Int B = A";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Int_iff";
 
 goal ZF.thy "A<=B <-> B Int A = A";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Int_iff2";
 
 goal ZF.thy "!!A B C. C<=A ==> (A-B) Int C = C-B";
@@ -90,11 +90,11 @@ by (Blast_tac 1);
 qed "Un_Int_distrib";
 
 goal ZF.thy "A<=B <-> A Un B = B";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_iff";
 
 goal ZF.thy "A<=B <-> B Un A = B";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_iff2";
 
 (** Simple properties of Diff -- set difference **)
@@ -112,7 +112,7 @@ by (Blast_tac 1);
 qed "Diff_0";
 
 goal ZF.thy "A-B=0 <-> A<=B";
-by (blast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Diff_eq_0_iff";
 
 (*NOT SUITABLE FOR REWRITING since {a} == cons(a,0)*)
@@ -160,7 +160,7 @@ qed "Diff_Int";
 
 (*Halmos, Naive Set Theory, page 16.*)
 goal ZF.thy "(A Int B) Un C = A Int (B Un C)  <->  C<=A";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Un_Int_assoc_iff";
 
 
@@ -179,7 +179,7 @@ by (Blast_tac 1);
 qed "Union_Int_subset";
 
 goal ZF.thy "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
 goalw ZF.thy [Inter_def] "Inter(0) = 0";
@@ -533,7 +533,7 @@ Addsimps [Union_Pow_eq, Int_Pow_eq];
 
 goal ZF.thy "{f(x).x:A}=0 <-> A=0";
 	(*blast_tac takes too long to find a good depth*)
-by (Blast.depth_tac (!claset addSEs [equalityE]) 10 1);
+by (Blast.depth_tac (claset() addSEs [equalityE]) 10 1);
 qed "RepFun_eq_0_iff";
 
 (** Collect **)
@@ -551,7 +551,7 @@ by (Blast_tac 1);
 qed "Collect_Diff";
 
 goal ZF.thy "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (simp_tac (simpset() setloop split_tac [expand_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";
 

@@ -18,11 +18,11 @@ by (etac CollectD1 1);
 qed "surj_is_fun";
 
 goalw Perm.thy [surj_def] "!!f A B. f : Pi(A,B) ==> f: surj(A,range(f))";
-by (blast_tac (!claset addIs [apply_equality, range_of_fun, domain_type]) 1);
+by (blast_tac (claset() addIs [apply_equality, range_of_fun, domain_type]) 1);
 qed "fun_is_surj";
 
 goalw Perm.thy [surj_def] "!!f A B. f: surj(A,B) ==> range(f)=B";
-by (best_tac (!claset addIs [apply_Pair] addEs [range_type]) 1);
+by (best_tac (claset() addIs [apply_Pair] addEs [range_type]) 1);
 qed "surj_range";
 
 (** A function with a right inverse is a surjection **)
@@ -30,7 +30,7 @@ qed "surj_range";
 val prems = goalw Perm.thy [surj_def]
     "[| f: A->B;  !!y. y:B ==> d(y): A;  !!y. y:B ==> f`d(y) = y \
 \    |] ==> f: surj(A,B)";
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "f_imp_surjective";
 
 val prems = goal Perm.thy
@@ -39,12 +39,12 @@ val prems = goal Perm.thy
 \       !!y. y:B ==> c(d(y)) = y        \
 \    |] ==> (lam x:A. c(x)) : surj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_surjective 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps ([lam_type]@prems)) ));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps ([lam_type]@prems)) ));
 qed "lam_surjective";
 
 (*Cantor's theorem revisited*)
 goalw Perm.thy [surj_def] "f ~: surj(A,Pow(A))";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (cut_facts_tac [cantor] 1);
 by (fast_tac subset_cs 1);
 qed "cantor_surj";
@@ -70,8 +70,8 @@ val inj_apply_equality = result();
 (** A function with a left inverse is an injection **)
 
 goal Perm.thy "!!f. [| f: A->B;  ALL x:A. d(f`x)=x |] ==> f: inj(A,B)";
-by (asm_simp_tac (!simpset addsimps [inj_def]) 1);
-by (deepen_tac (!claset addEs [subst_context RS box_equals]) 0 1);
+by (asm_simp_tac (simpset() addsimps [inj_def]) 1);
+by (deepen_tac (claset() addEs [subst_context RS box_equals]) 0 1);
 bind_thm ("f_imp_injective", ballI RSN (2,result()));
 
 val prems = goal Perm.thy
@@ -79,7 +79,7 @@ val prems = goal Perm.thy
 \       !!x. x:A ==> d(c(x)) = x        \
 \    |] ==> (lam x:A. c(x)) : inj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_injective 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps ([lam_type]@prems)) ));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps ([lam_type]@prems)) ));
 qed "lam_injective";
 
 (** Bijections **)
@@ -142,26 +142,26 @@ qed "id_subset_inj";
 val id_inj = subset_refl RS id_subset_inj;
 
 goalw Perm.thy [id_def,surj_def] "id(A): surj(A,A)";
-by (blast_tac (!claset addIs [lam_type, beta]) 1);
+by (blast_tac (claset() addIs [lam_type, beta]) 1);
 qed "id_surj";
 
 goalw Perm.thy [bij_def] "id(A): bij(A,A)";
-by (blast_tac (!claset addIs [id_inj, id_surj]) 1);
+by (blast_tac (claset() addIs [id_inj, id_surj]) 1);
 qed "id_bij";
 
 goalw Perm.thy [id_def] "A <= B <-> id(A) : A->B";
-by (fast_tac (!claset addSIs [lam_type] addDs [apply_type] 
-                      addss (!simpset)) 1);
+by (fast_tac (claset() addSIs [lam_type] addDs [apply_type] 
+                      addss (simpset())) 1);
 qed "subset_iff_id";
 
 
 (*** Converse of a function ***)
 
 goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) : range(f)->A";
-by (asm_simp_tac (!simpset addsimps [Pi_iff, function_def]) 1);
+by (asm_simp_tac (simpset() addsimps [Pi_iff, function_def]) 1);
 by (etac CollectE 1);
-by (asm_simp_tac (!simpset addsimps [apply_iff]) 1);
-by (blast_tac (!claset addDs [fun_is_rel]) 1);
+by (asm_simp_tac (simpset() addsimps [apply_iff]) 1);
+by (blast_tac (claset() addDs [fun_is_rel]) 1);
 qed "inj_converse_fun";
 
 (** Equations for converse(f) **)
@@ -169,12 +169,12 @@ qed "inj_converse_fun";
 (*The premises are equivalent to saying that f is injective...*) 
 goal Perm.thy
     "!!f. [| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a";
-by (blast_tac (!claset addIs [apply_Pair, apply_equality, converseI]) 1);
+by (blast_tac (claset() addIs [apply_Pair, apply_equality, converseI]) 1);
 qed "left_inverse_lemma";
 
 goal Perm.thy
     "!!f. [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
-by (blast_tac (!claset addIs [left_inverse_lemma, inj_converse_fun,
+by (blast_tac (claset() addIs [left_inverse_lemma, inj_converse_fun,
 			      inj_is_fun]) 1);
 qed "left_inverse";
 
@@ -197,8 +197,8 @@ qed "right_inverse";
   many ways of expressing sufficient conditions.*)
 
 goal Perm.thy "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
-by (fast_tac (!claset addss
-	      (!simpset addsimps [bij_def, right_inverse, surj_range])) 1);
+by (fast_tac (claset() addss
+	      (simpset() addsimps [bij_def, right_inverse, surj_range])) 1);
 qed "right_inverse_bij";
 
 (** Converses of injections, surjections, bijections **)
@@ -211,12 +211,12 @@ by (REPEAT (assume_tac 1));
 qed "inj_converse_inj";
 
 goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): surj(range(f), A)";
-by (blast_tac (!claset addIs [f_imp_surjective, inj_converse_fun, left_inverse,
+by (blast_tac (claset() addIs [f_imp_surjective, inj_converse_fun, left_inverse,
 			      inj_is_fun, range_of_fun RS apply_type]) 1);
 qed "inj_converse_surj";
 
 goalw Perm.thy [bij_def] "!!f A B. f: bij(A,B) ==> converse(f): bij(B,A)";
-by (fast_tac (!claset addEs [surj_range RS subst, inj_converse_inj,
+by (fast_tac (claset() addEs [surj_range RS subst, inj_converse_inj,
 			      inj_converse_surj]) 1);
 qed "bij_converse_bij";
 (*Adding this as an SI seems to cause looping*)
@@ -313,7 +313,7 @@ qed "comp_function";
 
 goal Perm.thy "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
 by (asm_full_simp_tac
-    (!simpset addsimps [Pi_def, comp_function, Pow_iff, comp_rel]
+    (simpset() addsimps [Pi_def, comp_function, Pow_iff, comp_rel]
            setloop etac conjE) 1);
 by (stac (range_rel_subset RS domain_comp_eq) 1 THEN assume_tac 2);
 by (Blast_tac 1);
@@ -334,7 +334,7 @@ by (rtac fun_extension 1);
 by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
 by (typechk_tac (prem::ZF_typechecks));
-by (asm_simp_tac (!simpset 
+by (asm_simp_tac (simpset() 
              setSolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
 qed "comp_lam";
 
@@ -342,18 +342,18 @@ goal Perm.thy "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
 by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
 by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
-by (asm_simp_tac (!simpset  addsimps [left_inverse] 
+by (asm_simp_tac (simpset()  addsimps [left_inverse] 
                         setSolver type_auto_tac [inj_is_fun, apply_type]) 1);
 qed "comp_inj";
 
 goalw Perm.thy [surj_def]
     "!!f g. [| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)";
-by (blast_tac (!claset addSIs [comp_fun,comp_fun_apply]) 1);
+by (blast_tac (claset() addSIs [comp_fun,comp_fun_apply]) 1);
 qed "comp_surj";
 
 goalw Perm.thy [bij_def]
     "!!f g. [| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) : bij(A,C)";
-by (blast_tac (!claset addIs [comp_inj,comp_surj]) 1);
+by (blast_tac (claset() addIs [comp_inj,comp_surj]) 1);
 qed "comp_bij";
 
 
@@ -363,26 +363,26 @@ qed "comp_bij";
 
 goalw Perm.thy [inj_def]
     "!!f g. [| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (asm_simp_tac (!simpset ) 1);
+by (asm_simp_tac (simpset() ) 1);
 qed "comp_mem_injD1";
 
 goalw Perm.thy [inj_def,surj_def]
     "!!f g. [| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("x1", "x")] (bspec RS bexE) 1);
 by (eres_inst_tac [("x1", "w")] (bspec RS bexE) 3);
 by (REPEAT (assume_tac 1));
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (res_inst_tac [("t", "op `(g)")] subst_context 1);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (asm_simp_tac (!simpset ) 1);
+by (asm_simp_tac (simpset() ) 1);
 qed "comp_mem_injD2";
 
 goalw Perm.thy [surj_def]
     "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: B->C |] ==> f: surj(B,C)";
-by (blast_tac (!claset addSIs [comp_fun_apply RS sym, apply_funtype]) 1);
+by (blast_tac (claset() addSIs [comp_fun_apply RS sym, apply_funtype]) 1);
 qed "comp_mem_surjD1";
 
 goal Perm.thy
@@ -392,10 +392,10 @@ qed "comp_fun_applyD";
 
 goalw Perm.thy [inj_def,surj_def]
     "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: inj(B,C) |] ==> g: surj(A,B)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (eres_inst_tac [("x1", "f`y")] (bspec RS bexE) 1);
 by (REPEAT (ares_tac [apply_type] 1 ORELSE dtac comp_fun_applyD 1));
-by (blast_tac (!claset addSIs [apply_funtype]) 1);
+by (blast_tac (claset() addSIs [apply_funtype]) 1);
 qed "comp_mem_surjD2";
 
 
@@ -404,9 +404,9 @@ qed "comp_mem_surjD2";
 (*left inverse of composition; one inclusion is
         f: A->B ==> id(A) <= converse(f) O f *)
 goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) O f = id(A)";
-by (fast_tac (!claset addIs [apply_Pair] 
+by (fast_tac (claset() addIs [apply_Pair] 
                       addEs [domain_type]
-               addss (!simpset addsimps [apply_iff])) 1);
+               addss (simpset() addsimps [apply_iff])) 1);
 qed "left_comp_inverse";
 
 (*right inverse of composition; one inclusion is
@@ -417,8 +417,8 @@ val [prem] = goalw Perm.thy [surj_def]
 val appfD = (prem RS CollectD1) RSN (3,apply_equality2);
 by (cut_facts_tac [prem] 1);
 by (rtac equalityI 1);
-by (best_tac (!claset addEs [domain_type, range_type, make_elim appfD]) 1);
-by (blast_tac (!claset addIs [apply_Pair]) 1);
+by (best_tac (claset() addEs [domain_type, range_type, make_elim appfD]) 1);
+by (blast_tac (claset() addIs [apply_Pair]) 1);
 qed "right_comp_inverse";
 
 (** Proving that a function is a bijection **)
@@ -426,7 +426,7 @@ qed "right_comp_inverse";
 goalw Perm.thy [id_def]
     "!!f A B. [| f: A->B;  g: B->A |] ==> \
 \             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
 by (Asm_full_simp_tac 1);
 by (rtac fun_extension 1);
@@ -437,7 +437,7 @@ qed "comp_eq_id_iff";
 goalw Perm.thy [bij_def]
     "!!f A B. [| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
 \             |] ==> f : bij(A,B)";
-by (asm_full_simp_tac (!simpset addsimps [comp_eq_id_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [comp_eq_id_iff]) 1);
 by (REPEAT (ares_tac [conjI, f_imp_injective, f_imp_surjective] 1
        ORELSE eresolve_tac [bspec, apply_type] 1));
 qed "fg_imp_bijective";
@@ -447,7 +447,7 @@ by (REPEAT (ares_tac [fg_imp_bijective] 1));
 qed "nilpotent_imp_bijective";
 
 goal Perm.thy "!!f A B. [| converse(f): B->A;  f: A->B |] ==> f : bij(A,B)";
-by (asm_simp_tac (!simpset addsimps [fg_imp_bijective, comp_eq_id_iff, 
+by (asm_simp_tac (simpset() addsimps [fg_imp_bijective, comp_eq_id_iff, 
                                   left_inverse_lemma, right_inverse_lemma]) 1);
 qed "invertible_imp_bijective";
 
@@ -460,15 +460,15 @@ goal Perm.thy
 by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
         lam_injective 1);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [inj_is_fun RS apply_type, left_inverse] 
+    (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse] 
                          setloop (split_tac [expand_if] ORELSE' etac UnE))));
-by (blast_tac (!claset addIs [inj_is_fun RS apply_type] addDs [equals0D]) 1);
+by (blast_tac (claset() addIs [inj_is_fun RS apply_type] addDs [equals0D]) 1);
 qed "inj_disjoint_Un";
 
 goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
 \           (f Un g) : surj(A Un C, B Un D)";
-by (blast_tac (!claset addIs [fun_disjoint_apply1, fun_disjoint_apply2,
+by (blast_tac (claset() addIs [fun_disjoint_apply1, fun_disjoint_apply2,
 			      fun_disjoint_Un, trans]) 1);
 qed "surj_disjoint_Un";
 
@@ -488,7 +488,7 @@ qed "bij_disjoint_Un";
 val prems = goalw Perm.thy [surj_def]
     "f: Pi(A,B) ==> f: surj(A, f``A)";
 val rls = apply_equality :: (prems RL [apply_Pair,Pi_type]);
-by (fast_tac (!claset addIs rls) 1);
+by (fast_tac (claset() addIs rls) 1);
 qed "surj_image";
 
 goal Perm.thy "!!f. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A)``A = f``A";
@@ -501,7 +501,7 @@ qed "restrict_image";
 
 goalw Perm.thy [inj_def]
     "!!f. [| f: inj(A,B);  C<=A |] ==> restrict(f,C): inj(C,B)";
-by (safe_tac (!claset addSEs [restrict_type2]));
+by (safe_tac (claset() addSEs [restrict_type2]));
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp, subsetD,
                           box_equals, restrict] 1));
 qed "restrict_inj";
@@ -515,7 +515,7 @@ qed "restrict_surj";
 
 goalw Perm.thy [inj_def,bij_def]
     "!!f. [| f: inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)";
-by (blast_tac (!claset addSIs [restrict, restrict_surj]
+by (blast_tac (claset() addSIs [restrict, restrict_surj]
 		       addIs [box_equals, surj_is_fun]) 1);
 qed "restrict_bij";
 
@@ -523,7 +523,7 @@ qed "restrict_bij";
 (*** Lemmas for Ramsey's Theorem ***)
 
 goalw Perm.thy [inj_def] "!!f. [| f: inj(A,B);  B<=D |] ==> f: inj(A,D)";
-by (blast_tac (!claset addIs [fun_weaken_type]) 1);
+by (blast_tac (claset() addIs [fun_weaken_type]) 1);
 qed "inj_weaken_type";
 
 val [major] = goal Perm.thy  
@@ -532,15 +532,15 @@ by (rtac (major RS restrict_bij RS bij_is_inj RS inj_weaken_type) 1);
 by (Blast_tac 1);
 by (cut_facts_tac [major] 1);
 by (rewtac inj_def);
-by (fast_tac (!claset addEs [range_type, mem_irrefl] 
+by (fast_tac (claset() addEs [range_type, mem_irrefl] 
 	              addDs [apply_equality]) 1);
 qed "inj_succ_restrict";
 
 goalw Perm.thy [inj_def]
     "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
-by (fast_tac (!claset addIs [apply_type]
-               addss (!simpset addsimps [fun_extend, fun_extend_apply2,
+by (fast_tac (claset() addIs [apply_type]
+               addss (simpset() addsimps [fun_extend, fun_extend_apply2,
 						fun_extend_apply1])) 1);
 qed "inj_extend";
 

@@ -17,7 +17,7 @@ open Acc;
 (*The intended introduction rule*)
 val prems = goal Acc.thy
     "[| !!b. <b,a>:r ==> b: acc(r);  a: field(r) |] ==> a: acc(r)";
-by (fast_tac (!claset addIs (prems@acc.intrs)) 1);
+by (fast_tac (claset() addIs (prems@acc.intrs)) 1);
 qed "accI";
 
 goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";

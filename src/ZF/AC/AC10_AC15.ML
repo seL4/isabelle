@@ -30,7 +30,7 @@ Rubin & Rubin do.
 goalw thy [lepoll_def] "!!A. A~=0 ==> B lepoll A*B";
 by (etac not_emptyE 1);
 by (res_inst_tac [("x","lam z:B. <x,z>")] exI 1);
-by (fast_tac (!claset addSIs [snd_conv, lam_injective]) 1);
+by (fast_tac (claset() addSIs [snd_conv, lam_injective]) 1);
 qed "lepoll_Sigma";
 
 goal thy "!!A. 0~:A ==> ALL B:{cons(0,x*nat). x:A}. ~Finite(B)";
@@ -79,13 +79,13 @@ by (res_inst_tac
 by (res_inst_tac [("d", "%y. P(converse(f)`y)")] lam_injective 1);
 by (etac RepFunE 1);
 by (forward_tac [inj_is_fun RS apply_type] 1 THEN (assume_tac 1));
-by (fast_tac (!claset addIs [LeastI2]
+by (fast_tac (claset() addIs [LeastI2]
                 addSEs [Ord_in_Ord, inj_is_fun RS apply_type]) 1);
 by (etac RepFunE 1);
 by (rtac LeastI2 1);
 by (Fast_tac 1);
-by (fast_tac (!claset addSEs [Ord_in_Ord, inj_is_fun RS apply_type]) 1);
-by (fast_tac (!claset addEs [sym, left_inverse RS ssubst]) 1);
+by (fast_tac (claset() addSEs [Ord_in_Ord, inj_is_fun RS apply_type]) 1);
+by (fast_tac (claset() addEs [sym, left_inverse RS ssubst]) 1);
 val lemma4 = result();
 
 goal thy "!!A. [| n:nat; B:A; u(B) <= cons(0, B*nat); 0:u(B); 2 lepoll u(B);  \
@@ -100,8 +100,8 @@ by (fast_tac (empty_cs addSDs [RepFun_eq_0_iff RS iffD1]
                 addEs [lepoll_trans RS succ_lepoll_natE, ssubst]
                 addSIs [notI, lepoll_refl, nat_0I]) 1);
 by (rtac conjI 1);
-by (fast_tac (!claset addSIs [fst_type] addSEs [consE]) 1);
-by (fast_tac (!claset addSEs [equalityE,
+by (fast_tac (claset() addSIs [fst_type] addSEs [consE]) 1);
+by (fast_tac (claset() addSEs [equalityE,
                 Diff_lepoll RS (nat_into_Ord RSN (2, lemma4))]) 1);
 val lemma5 = result();
 
@@ -141,11 +141,11 @@ qed "AC11_AC12";
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!Z. AC12 ==> AC15";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac allE 1);
 by (etac impE 1);
 by (etac cons_times_nat_not_Finite 1);
-by (fast_tac (!claset addSIs [ex_fun_AC13_AC15]) 1);
+by (fast_tac (claset() addSIs [ex_fun_AC13_AC15]) 1);
 qed "AC12_AC15";
 
 (* ********************************************************************** *)
@@ -167,7 +167,7 @@ qed "AC12_AC15";
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!n. [| n:nat; 1 le n; AC10(n) |] ==> AC13(n)";
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (fast_tac (empty_cs addSEs [allE, cons_times_nat_not_Finite RSN (2, impE),
                                 ex_fun_AC13_AC15]) 1);
 qed "AC10_AC13";
@@ -187,10 +187,10 @@ by (rtac impI 1);
 by (mp_tac 1);
 by (etac exE 1);
 by (res_inst_tac [("x","lam x:A. {f`x}")] exI 1);
-by (asm_full_simp_tac (!simpset addsimps
+by (asm_full_simp_tac (simpset() addsimps
                 [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
                 singletonI RS not_emptyI]) 1);
-by (fast_tac (!claset addSEs [apply_type]) 1);
+by (fast_tac (claset() addSEs [apply_type]) 1);
 qed "AC1_AC13";
 
 (* ********************************************************************** *)
@@ -199,7 +199,7 @@ qed "AC1_AC13";
 
 goalw thy AC_defs "!!m n. [| m:nat; n:nat; m le n; AC13(m) |] ==> AC13(n)";
 by (dtac nat_le_imp_lepoll 1 THEN REPEAT (assume_tac 1));
-by (fast_tac (!claset addSEs [lepoll_trans]) 1);
+by (fast_tac (claset() addSEs [lepoll_trans]) 1);
 qed "AC13_mono";
 
 (* ********************************************************************** *)
@@ -231,7 +231,7 @@ qed "AC14_AC15";
 (* ********************************************************************** *)
 
 goal thy "!!A. [| A~=0; A lepoll 1 |] ==> EX a. A={a}";
-by (fast_tac (!claset addSEs [not_emptyE, lepoll_1_is_sing]) 1);
+by (fast_tac (claset() addSEs [not_emptyE, lepoll_1_is_sing]) 1);
 qed "lemma_aux";
 
 goal thy "!!f. ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
@@ -240,12 +240,12 @@ by (rtac lam_type 1);
 by (dtac bspec 1 THEN (assume_tac 1));
 by (REPEAT (etac conjE 1));
 by (eresolve_tac [lemma_aux RS exE] 1 THEN (assume_tac 1));
-by (asm_full_simp_tac (!simpset addsimps [the_element]) 1);
-by (fast_tac (!claset addEs [ssubst]) 1);
+by (asm_full_simp_tac (simpset() addsimps [the_element]) 1);
+by (fast_tac (claset() addEs [ssubst]) 1);
 val lemma = result();
 
 goalw thy AC_defs "!!Z. AC13(1) ==> AC1";
-by (fast_tac (!claset addSEs [lemma]) 1);
+by (fast_tac (claset() addSEs [lemma]) 1);
 qed "AC13_AC1";
 
 (* ********************************************************************** *)
@@ -253,5 +253,5 @@ qed "AC13_AC1";
 (* ********************************************************************** *)
 
 goalw thy [AC11_def, AC14_def] "!!Z. AC11 ==> AC14";
-by (fast_tac (!claset addSIs [AC10_AC13]) 1);
+by (fast_tac (claset() addSIs [AC10_AC13]) 1);
 qed "AC11_AC14";

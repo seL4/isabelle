@@ -12,9 +12,9 @@ open AC;
 val [nonempty] = goal AC.thy
      "[| !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)";
 by (excluded_middle_tac "A=0" 1);
-by (asm_simp_tac (!simpset addsimps [Pi_empty1]) 2 THEN Blast_tac 2);
+by (asm_simp_tac (simpset() addsimps [Pi_empty1]) 2 THEN Blast_tac 2);
 (*The non-trivial case*)
-by (blast_tac (!claset addIs [AC, nonempty]) 1);
+by (blast_tac (claset() addIs [AC, nonempty]) 1);
 qed "AC_Pi";
 
 (*Using dtac, this has the advantage of DELETING the universal quantifier*)
@@ -35,7 +35,7 @@ val [nonempty] = goal AC.thy
 \     |] ==> EX f: A->Union(A). ALL x:A. f`x : x";
 by (res_inst_tac [("B1", "%x. x")] (AC_Pi RS exE) 1);
 by (etac nonempty 1);
-by (blast_tac (!claset addDs [apply_type] addIs [Pi_type]) 1);
+by (blast_tac (claset() addDs [apply_type] addIs [Pi_type]) 1);
 qed "AC_func";
 
 goal ZF.thy "!!x A. [| 0 ~: A;  x: A |] ==> EX y. y:x";

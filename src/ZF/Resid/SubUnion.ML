@@ -78,7 +78,7 @@ qed "comp_sym";
 
 goal SubUnion.thy 
     "u ~ v <-> v ~ u";
-by (fast_tac (!claset addIs [comp_sym]) 1);
+by (fast_tac (claset() addIs [comp_sym]) 1);
 qed "comp_sym_iff";
 
 
@@ -109,7 +109,7 @@ qed "union_r";
 goal SubUnion.thy 
     "!!u. u ~ v ==> u un v = v un u";
 by (etac Scomp.induct 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsimps [or_commute])));
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [or_commute])));
 qed "union_sym";
 
 (* ------------------------------------------------------------------------- *)
@@ -120,7 +120,7 @@ goal SubUnion.thy
     "!!u. u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
 by (etac Scomp.induct 1);
 by (ALLGOALS(asm_full_simp_tac
-             (!simpset setloop(SELECT_GOAL (safe_tac (!claset))))));
+             (simpset() setloop(SELECT_GOAL (safe_tac (claset()))))));
 by (dres_inst_tac [("psi", "regular(Fun(?u) un ?v)")] asm_rl 1);
 by (Asm_full_simp_tac 1);
 qed_spec_mp "union_preserve_regular";

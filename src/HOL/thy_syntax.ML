@@ -276,7 +276,7 @@ fun mk_rec_decl ((((fname, rel), congs), ss), axms) =
 
 val rec_decl = (name -- string -- 
 		optional ("congs" $$-- string >> trim) "[]" -- 
-		optional ("simpset" $$-- string >> trim) "!simpset" -- 
+		optional ("simpset" $$-- string >> trim) "simpset()" -- 
 		repeat1 string >> mk_rec_decl) ;
 
 

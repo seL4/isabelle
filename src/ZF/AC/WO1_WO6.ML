@@ -20,28 +20,28 @@ qed "WO2_WO3";
 (* ********************************************************************** *)
 
 goalw thy (eqpoll_def::WO_defs) "!!Z. WO3 ==> WO1";
-by (fast_tac (!claset addSEs [bij_is_inj RS well_ord_rvimage, 
+by (fast_tac (claset() addSEs [bij_is_inj RS well_ord_rvimage, 
 			      well_ord_Memrel RS well_ord_subset]) 1);
 qed "WO3_WO1";
 
 (* ********************************************************************** *)
 
 goalw thy (eqpoll_def::WO_defs) "!!Z. WO1 ==> WO2";
-by (fast_tac (!claset addSIs [Ord_ordertype, ordermap_bij]) 1);
+by (fast_tac (claset() addSIs [Ord_ordertype, ordermap_bij]) 1);
 qed "WO1_WO2";
 
 (* ********************************************************************** *)
 
 goal thy "!!f. f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
-by (fast_tac (!claset addSIs [lam_type, apply_type]) 1);
+by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 qed "lam_sets";
 
 goalw thy [surj_def] "!!f. f:surj(A,B) ==> (UN a:A. {f`a}) = B";
-by (fast_tac (!claset addSEs [apply_type]) 1);
+by (fast_tac (claset() addSEs [apply_type]) 1);
 qed "surj_imp_eq_";
 
 goal thy "!!f. [| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
-by (fast_tac (!claset addSDs [surj_imp_eq_]
+by (fast_tac (claset() addSDs [surj_imp_eq_]
                 addSIs [ltI] addSEs [ltE]) 1);
 qed "surj_imp_eq";
 
@@ -54,7 +54,7 @@ by (etac Ord_ordertype 1);
 by (rtac conjI 1);
 by (eresolve_tac [ordermap_bij RS bij_converse_bij RS bij_is_fun RS
                 lam_sets RS domain_of_fun] 1);
-by (asm_simp_tac (!simpset addsimps [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
+by (asm_simp_tac (simpset() addsimps [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
                   Ord_ordertype RSN (2, ordermap_bij RS bij_converse_bij RS
                         bij_is_surj RS surj_imp_eq)]) 1);
 qed "WO1_WO4";
@@ -62,7 +62,7 @@ qed "WO1_WO4";
 (* ********************************************************************** *)
 
 goalw thy WO_defs "!!Z. [| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
-by (fast_tac (!claset addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
+by (fast_tac (claset() addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
 qed "WO4_mono";
 
 (* ********************************************************************** *)

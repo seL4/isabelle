@@ -21,5 +21,5 @@ by (etac exE 1);
 by (rtac bexI 1);
 by (etac lemma1 2);
 by (rtac apply_type 1 THEN (assume_tac 1));
-by (fast_tac (!claset addSDs [lemma1] addSEs [apply_type]) 1);
+by (fast_tac (claset() addSDs [lemma1] addSEs [apply_type]) 1);
 qed "AC1_AC17";

@@ -45,12 +45,12 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 goal thy "!!evs. Says S' B {|X, Crypt(shrK B) X'|} : set evs ==> \
 \                X : analz (spies evs)";
-by (blast_tac (!claset addSDs [Says_imp_spies RS analz.Inj]) 1);
+by (blast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]) 1);
 qed "OR4_analz_spies";
 
 goal thy "!!evs. Says Server B {|X, Crypt K' {|NB, a, Agent B, K|}|} \
 \                  : set evs ==> K : parts (spies evs)";
-by (blast_tac (!claset addSEs spies_partsEs) 1);
+by (blast_tac (claset() addSEs spies_partsEs) 1);
 qed "Oops_parts_spies";
 
 (*OR4_analz_spies lets us treat those cases using the same 
@@ -82,12 +82,12 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : otway ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (spies evs); evs : otway |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -100,10 +100,10 @@ goal thy "!!evs. evs : otway ==>          \
 by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
-      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                addIs  [impOfSubs analz_subset_parts]
                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (!simpset)) 1);
+               addss  (simpset())) 1);
 (*OR3*)
 by (Blast_tac 1);
 qed_spec_mp "new_keys_not_used";
@@ -189,7 +189,7 @@ goal thy
 \           Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set evs  \
 \       --> A=A' & B=B' & NA=NA' & NB=NB'";
 by (etac otway.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
@@ -197,7 +197,7 @@ by (Blast_tac 2);
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
-by (blast_tac (!claset addSEs spies_partsEs
+by (blast_tac (claset() addSEs spies_partsEs
                        delrules[conjI] (*prevent splitup into 4 subgoals*)) 1);
 val lemma = result();
 
@@ -230,7 +230,7 @@ goal thy
 \                  : set evs)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 (*OR3*)
 by (Blast_tac 1);
 qed_spec_mp "NA_Crypt_imp_Server_msg";
@@ -246,7 +246,7 @@ goal thy
 \                    {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},  \
 \                      Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \                   : set evs";
-by (blast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
+by (blast_tac (claset() addSIs [NA_Crypt_imp_Server_msg]
                       addEs  spies_partsEs) 1);
 qed "A_trusts_OR4";
 
@@ -266,15 +266,15 @@ goal thy
 by (etac otway.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
-    (asm_simp_tac (!simpset addcongs [conj_cong, if_weak_cong] 
+    (asm_simp_tac (simpset() addcongs [conj_cong, if_weak_cong] 
                             addsimps [analz_insert_eq, analz_insert_freshK]
                             addsimps (pushes@expand_ifs))));
 (*Oops*)
-by (blast_tac (!claset addSDs [unique_session_keys]) 4);
+by (blast_tac (claset() addSDs [unique_session_keys]) 4);
 (*OR4*) 
 by (Blast_tac 3);
 (*OR3*)
-by (blast_tac (!claset addSEs spies_partsEs
+by (blast_tac (claset() addSEs spies_partsEs
                        addIs [impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
@@ -289,7 +289,7 @@ goal thy
 \           A ~: bad;  B ~: bad;  evs : otway |]                  \
 \        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (blast_tac (!claset addSEs [lemma]) 1);
+by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
@@ -305,7 +305,7 @@ goal thy
 \                     : set evs)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 (*OR3*)
 by (Blast_tac 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
@@ -321,6 +321,6 @@ goal thy
 \                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
 \                       Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                     : set evs";
-by (blast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
+by (blast_tac (claset() addSIs [NB_Crypt_imp_Server_msg]
                        addEs  spies_partsEs) 1);
 qed "B_trusts_OR3";

@@ -29,7 +29,7 @@ qed "forest_subset_TF";
 
 goal TF.thy "tree(A) Un forest(A) = tree_forest(A)";
 by (safe_tac (subset_cs addSIs [equalityI, tree_subset_TF, forest_subset_TF]));
-by (fast_tac (!claset addSIs tree_forest.intrs addEs [tree_forest.elim]) 1);
+by (fast_tac (claset() addSIs tree_forest.intrs addEs [tree_forest.elim]) 1);
 qed "TF_equals_Un";
 
 (** NOT useful, but interesting... **)
@@ -38,7 +38,7 @@ goalw TF.thy [tree_def, forest_def]
     "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
 let open tree_forest;  
     val rew = rewrite_rule (con_defs @ tl defs) in  
-by (fast_tac (!claset addSIs (map rew intrs RL [PartD1]) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (map rew intrs RL [PartD1]) addEs [rew elim]) 1)
 end;
 qed "tree_forest_unfold";
 
@@ -94,7 +94,7 @@ val major::prems = goal TF.thy
 \                     |] ==> d(t,f,r1,r2): C(Fcons(t,f))        \
 \    |] ==> TF_rec(z,b,c,d) : C(z)";
 by (rtac (major RS tree_forest.induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "TF_rec_type";
 
 (*Mutually recursive version*)
@@ -108,7 +108,7 @@ val prems = goal TF.thy
 \           (ALL f: forest(A). TF_rec(f,b,c,d) : D(f))";
 by (rewtac Ball_def);
 by (rtac tree_forest.mutual_induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "tree_forest_rec_type";
 
 
@@ -202,7 +202,7 @@ val TF_typechecks =
     [TconsI, FnilI, FconsI, treeI, forestI,
      list_of_TF_type, TF_map_type, TF_size_type, TF_preorder_type];
 
-simpset := !simpset setSolver type_auto_tac (list_typechecks@TF_typechecks);
+simpset_ref() := simpset() setSolver type_auto_tac (list_typechecks@TF_typechecks);
 
 (** theorems about list_of_TF and TF_of_list **)
 
@@ -251,7 +251,7 @@ qed "TF_size_TF_map";
 goal TF.thy
     "!!z A. z: tree_forest(A) ==> TF_size(z) = length(TF_preorder(z))";
 by (etac tree_forest.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [length_app])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "TF_size_length";
 
 (** theorems about TF_preorder **)
@@ -259,5 +259,5 @@ qed "TF_size_length";
 goal TF.thy "!!z A. z: tree_forest(A) ==> \
 \                      TF_preorder(TF_map(h,z)) = map(h, TF_preorder(z))";
 by (etac tree_forest.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [map_app_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "TF_preorder_TF_map";

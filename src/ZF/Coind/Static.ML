@@ -22,7 +22,7 @@ val elab_appE =
   ElabRel.mk_cases Exp.con_defs "<te,e_app(e1,e2),t>:ElabRel";
 
 let open ElabRel in 
-claset := !claset addSIs [elab_constI,elab_varI,elab_fnI,elab_fixI]
+claset_ref() := claset() addSIs [elab_constI,elab_varI,elab_fnI,elab_fixI]
                   addSEs [elab_constE,elab_varE,elab_fixE]
 		  addIs [elab_appI]
 		  addEs [elab_appE,elab_fnE]

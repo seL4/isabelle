@@ -144,8 +144,8 @@ fun parts_induct_tac i =
     THEN 
     REPEAT (FIRSTGOAL analz_mono_contra_tac)
     THEN 
-    fast_tac (!claset addss (!simpset)) i THEN
-    ALLGOALS (asm_simp_tac (!simpset addsplits [expand_if]));
+    fast_tac (claset() addss (simpset())) i THEN
+    ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if]));
 
 
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
@@ -161,12 +161,12 @@ Addsimps [Spy_see_priK];
 
 goal thy 
  "!!evs. evs : tls ==> (Key (priK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 
 goal thy  "!!A. [| Key (priK A) : parts (spies evs);  evs : tls |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_priK]) 1);
+by (blast_tac (claset() addDs [Spy_see_priK]) 1);
 qed "Spy_see_priK_D";
 
 bind_thm ("Spy_analz_priK_D", analz_subset_parts RS subsetD RS Spy_see_priK_D);
@@ -196,13 +196,13 @@ fun analz_induct_tac i =
     etac tls.induct i   THEN
     ClientKeyExch_tac  (i+6)  THEN	(*ClientKeyExch*)
     ALLGOALS (asm_simp_tac 
-              (!simpset addcongs [if_weak_cong]
+              (simpset() addcongs [if_weak_cong]
                         addsimps (expand_ifs@pushes)
                         addsplits [expand_if]))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
     ALLGOALS (asm_simp_tac 
-              (!simpset addcongs [if_weak_cong]
+              (simpset() addcongs [if_weak_cong]
 			addsimps [insert_absorb]
                         addsplits [expand_if]));
 
@@ -213,7 +213,7 @@ goal thy "!!evs. [| Notes A {|Agent B, X|} : set evs;  evs : tls |]  \
 \                ==> Crypt (pubK B) X : parts (spies evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
-by (blast_tac (!claset addIs [parts_insertI]) 1);
+by (blast_tac (claset() addIs [parts_insertI]) 1);
 qed "Notes_Crypt_parts_spies";
 
 (*C may be either A or B*)
@@ -225,9 +225,9 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Clarify_tac);
 (*Fake*)
-by (blast_tac (!claset addIs [parts_insertI]) 1);
+by (blast_tac (claset() addIs [parts_insertI]) 1);
 (*Client, Server Accept*)
-by (REPEAT (blast_tac (!claset addSEs spies_partsEs
+by (REPEAT (blast_tac (claset() addSEs spies_partsEs
                                addSDs [Notes_Crypt_parts_spies]) 1));
 qed "Notes_master_imp_Crypt_PMS";
 
@@ -264,7 +264,7 @@ goal thy
 \           certificate A KA : parts (spies evs);             \
 \           evs : tls;  A ~: bad |]                           \
 \    ==> Says A B X : set evs";
-by (blast_tac (!claset addSDs [certificate_valid] addSIs [lemma]) 1);
+by (blast_tac (claset() addSDs [certificate_valid] addSIs [lemma]) 1);
 qed "TrustCertVerify";
 
 
@@ -286,7 +286,7 @@ goal thy
 \           certificate A KA : parts (spies evs);              \
 \           evs : tls;  A ~: bad |]                            \
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs";
-by (blast_tac (!claset addSDs [certificate_valid] addSIs [lemma]) 1);
+by (blast_tac (claset() addSDs [certificate_valid] addSIs [lemma]) 1);
 qed "UseCertVerify";
 
 
@@ -303,10 +303,10 @@ goal thy "!!evs. [| Nonce (PRF (PMS,NA,NB)) : parts (spies evs);  \
 \                ==> Nonce PMS : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_spies])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [parts_insert_spies])));
 by (Fake_parts_insert_tac 1);
 (*Six others, all trivial or by freshness*)
-by (REPEAT (blast_tac (!claset addSDs [Notes_Crypt_parts_spies]
+by (REPEAT (blast_tac (claset() addSDs [Notes_Crypt_parts_spies]
                                addSEs spies_partsEs) 1));
 qed "MS_imp_PMS";
 AddSDs [MS_imp_PMS];
@@ -325,9 +325,9 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*ClientKeyExch*)
 by (ClientKeyExch_tac 1);
-by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
 by (expand_case_tac "PMS = ?y" 1 THEN
-    blast_tac (!claset addSEs partsEs) 1);
+    blast_tac (claset() addSEs partsEs) 1);
 val lemma = result();
 
 goal thy 
@@ -351,10 +351,10 @@ goal thy "!!evs. evs : tls               \
 \                ==> EX A' B'. ALL A B.  \
 \                    Notes A {|Agent B, Nonce PMS|} : set evs --> A=A' & B=B'";
 by (parts_induct_tac 1);
-by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
 (*ClientKeyExch: if PMS is fresh, then it can't appear in Notes A X.*)
 by (expand_case_tac "PMS = ?y" 1 THEN
-    blast_tac (!claset addSDs [Notes_Crypt_parts_spies] addSEs partsEs) 1);
+    blast_tac (claset() addSDs [Notes_Crypt_parts_spies] addSEs partsEs) 1);
 val lemma = result();
 
 goal thy 
@@ -395,7 +395,7 @@ val range_sessionkeys_not_priK = result();
 goal thy  
  "!!evs. (X : analz (G Un H)) --> (X : analz H)  ==> \
 \        (X : analz (G Un H))  =  (X : analz H)";
-by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
+by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 val analz_image_keys_lemma = result();
 
 (** Strangely, the following version doesn't work:
@@ -417,7 +417,7 @@ by (ALLGOALS    (*15 seconds*)
 		   addsimps (expand_ifs@pushes)
 		   addsimps [range_sessionkeys_not_priK, 
                              analz_image_priK, certificate_def])));
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [insert_absorb])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb])));
 (*Fake*) 
 by (spy_analz_tac 2);
 (*Base*)
@@ -452,17 +452,17 @@ by (etac rev_mp 1);
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);
 (*SpyKeys*)
-by (blast_tac (!claset addSEs spies_partsEs) 3);
+by (blast_tac (claset() addSEs spies_partsEs) 3);
 (*Fake*)
-by (simp_tac (!simpset addsimps [parts_insert_spies]) 2);
+by (simp_tac (simpset() addsimps [parts_insert_spies]) 2);
 by (Fake_parts_insert_tac 2);
 (** LEVEL 6 **)
 (*Oops*)
-by (fast_tac (!claset addSEs [MPair_parts]
+by (fast_tac (claset() addSEs [MPair_parts]
 		       addDs  [Says_imp_spies RS parts.Inj]
-		       addss (!simpset)) 6);
+		       addss (simpset())) 6);
 by (REPEAT 
-    (blast_tac (!claset addSDs [Notes_Crypt_parts_spies, 
+    (blast_tac (claset() addSDs [Notes_Crypt_parts_spies, 
 				Notes_master_imp_Crypt_PMS]
                         addSEs spies_partsEs) 1));
 val lemma = result();
@@ -470,7 +470,7 @@ val lemma = result();
 goal thy 
  "!!evs. [| Nonce PMS ~: parts (spies evs);  evs : tls |]             \
 \  ==> Key (sessionK((Na, Nb, PRF(PMS,NA,NB)), b)) ~: parts (spies evs)";
-by (blast_tac (!claset addDs [lemma]) 1);
+by (blast_tac (claset() addDs [lemma]) 1);
 qed "PMS_sessionK_not_spied";
 bind_thm ("PMS_sessionK_spiedE", 
 	  PMS_sessionK_not_spied RSN (2,rev_notE));
@@ -478,7 +478,7 @@ bind_thm ("PMS_sessionK_spiedE",
 goal thy 
  "!!evs. [| Nonce PMS ~: parts (spies evs);  evs : tls |]             \
 \  ==> Crypt (sessionK((Na, Nb, PRF(PMS,NA,NB)), b)) Y ~: parts (spies evs)";
-by (blast_tac (!claset addDs [lemma]) 1);
+by (blast_tac (claset() addDs [lemma]) 1);
 qed "PMS_Crypt_sessionK_not_spied";
 bind_thm ("PMS_Crypt_sessionK_spiedE", 
 	  PMS_Crypt_sessionK_not_spied RSN (2,rev_notE));
@@ -497,7 +497,7 @@ by (analz_induct_tac 1);        (*17 seconds*)
 (*Oops*)
 by (Blast_tac 4);
 (*SpyKeys*)
-by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj]) 3);
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]) 3);
 (*Fake*) 
 by (spy_analz_tac 2);
 (*Base*)
@@ -513,15 +513,15 @@ goal thy
 \            Nonce PMS ~: analz (spies evs)";
 by (analz_induct_tac 1);   (*11 seconds*)
 (*ClientAccepts and ServerAccepts: because PMS ~: range PRF*)
-by (REPEAT (fast_tac (!claset addss (!simpset)) 6));
+by (REPEAT (fast_tac (claset() addss (simpset())) 6));
 (*ClientHello, ServerHello, ClientKeyExch, ServerResume: 
   mostly freshness reasoning*)
-by (REPEAT (blast_tac (!claset addSEs partsEs
+by (REPEAT (blast_tac (claset() addSEs partsEs
 			       addDs  [Notes_Crypt_parts_spies,
 				       impOfSubs analz_subset_parts,
 				       Says_imp_spies RS analz.Inj]) 3));
 (*SpyKeys*)
-by (fast_tac (!claset addss (!simpset)) 2);
+by (fast_tac (claset() addss (simpset())) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 bind_thm ("Spy_not_see_PMS", result() RSN (2, rev_mp));
@@ -535,18 +535,18 @@ goal thy
 \            Nonce (PRF(PMS,NA,NB)) ~: analz (spies evs)";
 by (analz_induct_tac 1);   (*13 seconds*)
 (*ClientAccepts and ServerAccepts: because PMS was already visible*)
-by (REPEAT (blast_tac (!claset addDs [Spy_not_see_PMS, 
+by (REPEAT (blast_tac (claset() addDs [Spy_not_see_PMS, 
 				      Says_imp_spies RS analz.Inj,
 				      Notes_imp_spies RS analz.Inj]) 6));
 (*ClientHello*)
 by (Blast_tac 3);
 (*SpyKeys: by secrecy of the PMS, Spy cannot make the MS*)
-by (blast_tac (!claset addSDs [Spy_not_see_PMS, 
+by (blast_tac (claset() addSDs [Spy_not_see_PMS, 
 			       Says_imp_spies RS analz.Inj]) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (*ServerHello and ClientKeyExch: mostly freshness reasoning*)
-by (REPEAT (blast_tac (!claset addSEs partsEs
+by (REPEAT (blast_tac (claset() addSEs partsEs
 			       addDs  [Notes_Crypt_parts_spies,
 				       impOfSubs analz_subset_parts,
 				       Says_imp_spies RS analz.Inj]) 1));
@@ -566,10 +566,10 @@ by (analz_induct_tac 1);	(*8 seconds*)
 by (ALLGOALS Clarify_tac);
 (*ClientFinished, ClientResume: by unicity of PMS*)
 by (REPEAT 
-    (blast_tac (!claset addSDs [Notes_master_imp_Notes_PMS]
+    (blast_tac (claset() addSDs [Notes_master_imp_Notes_PMS]
      	 	        addIs  [Notes_unique_PMS RS conjunct1]) 2));
 (*ClientKeyExch*)
-by (blast_tac (!claset addSEs [PMS_Crypt_sessionK_spiedE]
+by (blast_tac (claset() addSEs [PMS_Crypt_sessionK_spiedE]
 	               addSDs [Says_imp_spies RS parts.Inj]) 1);
 bind_thm ("Says_clientK_unique",
 	  result() RSN(2,rev_mp) RSN(2,rev_mp));
@@ -589,9 +589,9 @@ by (ALLGOALS Clarify_tac);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Asm_simp_tac);
 (*Oops*)
-by (blast_tac (!claset addIs [Says_clientK_unique]) 2);
+by (blast_tac (claset() addIs [Says_clientK_unique]) 2);
 (*ClientKeyExch*)
-by (blast_tac (!claset addSEs (PMS_sessionK_spiedE::spies_partsEs)) 1);
+by (blast_tac (claset() addSEs (PMS_sessionK_spiedE::spies_partsEs)) 1);
 qed_spec_mp "clientK_Oops_ALL";
 
 
@@ -609,14 +609,14 @@ by (analz_induct_tac 1);	(*9 seconds*)
 by (ALLGOALS Clarify_tac);
 (*ServerResume, ServerFinished: by unicity of PMS*)
 by (REPEAT
-    (blast_tac (!claset addSEs [MPair_parts]
+    (blast_tac (claset() addSEs [MPair_parts]
 		        addSDs [Notes_master_imp_Crypt_PMS, 
 				Says_imp_spies RS parts.Inj]
                         addDs  [Spy_not_see_PMS, 
 				Notes_Crypt_parts_spies,
 				Crypt_unique_PMS]) 2));
 (*ClientKeyExch*)
-by (blast_tac (!claset addSEs [PMS_Crypt_sessionK_spiedE]
+by (blast_tac (claset() addSEs [PMS_Crypt_sessionK_spiedE]
 	               addSDs [Says_imp_spies RS parts.Inj]) 1);
 bind_thm ("Says_serverK_unique",
 	  result() RSN(2,rev_mp) RSN(2,rev_mp));
@@ -635,9 +635,9 @@ by (ALLGOALS Clarify_tac);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Asm_simp_tac);
 (*Oops*)
-by (blast_tac (!claset addIs [Says_serverK_unique]) 2);
+by (blast_tac (claset() addIs [Says_serverK_unique]) 2);
 (*ClientKeyExch*)
-by (blast_tac (!claset addSEs (PMS_sessionK_spiedE::spies_partsEs)) 1);
+by (blast_tac (claset() addSEs (PMS_sessionK_spiedE::spies_partsEs)) 1);
 qed_spec_mp "serverK_Oops_ALL";
 
 
@@ -660,15 +660,15 @@ goal thy
 \            X : parts (spies evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);        (*22 seconds*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*proves ServerResume*)
 by (ALLGOALS Clarify_tac);
 (*ClientKeyExch*)
 by (fast_tac  (*blast_tac gives PROOF FAILED*)
-    (!claset addSEs [PMS_Crypt_sessionK_spiedE]) 2);
+    (claset() addSEs [PMS_Crypt_sessionK_spiedE]) 2);
 (*Fake: the Spy doesn't have the critical session key!*)
 by (subgoal_tac "Key (serverK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
-by (asm_simp_tac (!simpset addsimps [Spy_not_see_MS, 
+by (asm_simp_tac (simpset() addsimps [Spy_not_see_MS, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 val lemma = normalize_thm [RSmp] (result());
@@ -685,7 +685,7 @@ goal thy
 \           Says B Spy (Key (serverK(Na,Nb,M))) ~: set evs; \
 \           evs : tls;  A ~: bad;  B ~: bad |]          \
 \        ==> Says B A X : set evs";
-by (blast_tac (!claset addIs [lemma]
+by (blast_tac (claset() addIs [lemma]
                        addEs [serverK_Oops_ALL RSN(2, rev_notE)]) 1);
 qed_spec_mp "TrustServerFinished";
 
@@ -704,11 +704,11 @@ goal thy
 \            (EX A'. Says B A' (Crypt (serverK(Na,Nb,M)) Y) : set evs)";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);	(*20 seconds*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*ServerResume, ServerFinished: by unicity of PMS*)
 by (REPEAT
-    (blast_tac (!claset addSEs [MPair_parts]
+    (blast_tac (claset() addSEs [MPair_parts]
 		        addSDs [Notes_master_imp_Crypt_PMS, 
 				Says_imp_spies RS parts.Inj]
                         addDs  [Spy_not_see_PMS, 
@@ -716,10 +716,10 @@ by (REPEAT
 				Crypt_unique_PMS]) 3));
 (*ClientKeyExch*)
 by (blast_tac
-    (!claset addSEs [PMS_Crypt_sessionK_spiedE]) 2);
+    (claset() addSEs [PMS_Crypt_sessionK_spiedE]) 2);
 (*Fake: the Spy doesn't have the critical session key!*)
 by (subgoal_tac "Key (serverK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
-by (asm_simp_tac (!simpset addsimps [Spy_not_see_MS, 
+by (asm_simp_tac (simpset() addsimps [Spy_not_see_MS, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 val lemma = normalize_thm [RSmp] (result());
@@ -732,7 +732,7 @@ goal thy
 \           Says B Spy (Key (serverK(Na,Nb,M))) ~: set evs; \
 \           evs : tls;  A ~: bad;  B ~: bad |]          \
 \        ==> EX A'. Says B A' (Crypt (serverK(Na,Nb,M)) Y) : set evs";
-by (blast_tac (!claset addIs [lemma]
+by (blast_tac (claset() addIs [lemma]
                        addEs [serverK_Oops_ALL RSN(2, rev_notE)]) 1);
 qed_spec_mp "TrustServerMsg";
 
@@ -754,15 +754,15 @@ by (hyp_subst_tac 1);
 by (analz_induct_tac 1);	(*15 seconds*)
 by (ALLGOALS Clarify_tac);
 (*ClientFinished, ClientResume: by unicity of PMS*)
-by (REPEAT (blast_tac (!claset delrules [conjI]
+by (REPEAT (blast_tac (claset() delrules [conjI]
 		               addSDs [Notes_master_imp_Notes_PMS]
 	 	               addDs  [Notes_unique_PMS]) 3));
 (*ClientKeyExch*)
 by (fast_tac  (*blast_tac gives PROOF FAILED*)
-    (!claset addSEs [PMS_Crypt_sessionK_spiedE]) 2);
+    (claset() addSEs [PMS_Crypt_sessionK_spiedE]) 2);
 (*Fake: the Spy doesn't have the critical session key!*)
 by (subgoal_tac "Key (clientK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
-by (asm_simp_tac (!simpset addsimps [Spy_not_see_MS, 
+by (asm_simp_tac (simpset() addsimps [Spy_not_see_MS, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 val lemma = normalize_thm [RSmp] (result());
@@ -775,7 +775,7 @@ goal thy
 \           Says A Spy (Key(clientK(Na,Nb,M))) ~: set evs;  \
 \           evs : tls;  A ~: bad;  B ~: bad |]                         \
 \  ==> Says A B (Crypt (clientK(Na,Nb,M)) Y) : set evs";
-by (blast_tac (!claset addIs [lemma]
+by (blast_tac (claset() addIs [lemma]
                        addEs [clientK_Oops_ALL RSN(2, rev_notE)]) 1);
 qed "TrustClientMsg";
 
@@ -794,7 +794,7 @@ goal thy
 \             : set evs;                                                  \
 \        evs : tls;  A ~: bad;  B ~: bad |]                             \
 \     ==> Says A B (Crypt (clientK(Na,Nb,M)) Y) : set evs";
-by (blast_tac (!claset addSIs [TrustClientMsg, UseCertVerify]
+by (blast_tac (claset() addSIs [TrustClientMsg, UseCertVerify]
                        addDs  [Says_imp_spies RS parts.Inj]) 1);
 qed "AuthClientFinished";
 

@@ -54,7 +54,7 @@ val ball_tac = dtac bspec THEN' assume_tac;
 
 (*Trival rewrite rule;   (ALL x:A.P)<->P holds only if A is nonempty!*)
 qed_goal "ball_triv" ZF.thy "(ALL x:A. P) <-> ((EX x. x:A) --> P)"
- (fn _=> [ simp_tac (!simpset addsimps [Ball_def]) 1 ]);
+ (fn _=> [ simp_tac (simpset() addsimps [Ball_def]) 1 ]);
 Addsimps [ball_triv];
 
 (*Congruence rule for rewriting*)
@@ -87,7 +87,7 @@ AddSEs [bexE];
 
 (*We do not even have (EX x:A. True) <-> True unless A is nonempty!!*)
 qed_goal  "bex_triv" ZF.thy "(EX x:A. P) <-> ((EX x. x:A) & P)"
- (fn _=> [ simp_tac (!simpset addsimps [Bex_def]) 1 ]);
+ (fn _=> [ simp_tac (simpset() addsimps [Bex_def]) 1 ]);
 Addsimps [bex_triv];
 
 qed_goalw "bex_cong" ZF.thy [Bex_def]
@@ -263,7 +263,7 @@ AddSEs [RepFunE];
 
 qed_goalw "RepFun_cong" ZF.thy [RepFun_def]
     "[| A=B;  !!x. x:B ==> f(x)=g(x) |] ==> RepFun(A,f) = RepFun(B,g)"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 Addcongs [RepFun_cong];
 
@@ -304,7 +304,7 @@ qed_goal "CollectD2" ZF.thy "!!P. a : {x:A. P(x)} ==> P(a)"
 
 qed_goalw "Collect_cong" ZF.thy [Collect_def] 
     "[| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] ==> Collect(A,P) = Collect(B,Q)"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 AddSIs [CollectI];
 AddSEs [CollectE];
@@ -345,7 +345,7 @@ qed_goal "UN_E" ZF.thy
 
 qed_goal "UN_cong" ZF.thy
     "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (UN x:A. C(x)) = (UN x:B. D(x))"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 (*No "Addcongs [UN_cong]" because UN is a combination of constants*)
 
@@ -367,8 +367,8 @@ qed_goalw "Inter_iff" ZF.thy [Inter_def,Ball_def]
 (* Intersection is well-behaved only if the family is non-empty! *)
 qed_goal "InterI" ZF.thy
     "[| !!x. x: C ==> A: x;  EX c. c:C |] ==> A : Inter(C)"
- (fn prems=> [ (simp_tac (!simpset addsimps [Inter_iff]) 1), 
-	       blast_tac (!claset addIs prems) 1 ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps [Inter_iff]) 1), 
+	       blast_tac (claset() addIs prems) 1 ]);
 
 (*A "destruct" rule -- every B in C contains A as an element, but
   A:B can hold when B:C does not!  This rule is analogous to "spec". *)
@@ -395,7 +395,7 @@ qed_goalw "INT_iff" ZF.thy [Inter_def]
 
 qed_goal "INT_I" ZF.thy
     "[| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))"
- (fn prems=> [ blast_tac (!claset addIs prems) 1 ]);
+ (fn prems=> [ blast_tac (claset() addIs prems) 1 ]);
 
 qed_goal "INT_E" ZF.thy
     "[| b : (INT x:A. B(x));  a: A |] ==> b : B(a)"
@@ -405,7 +405,7 @@ qed_goal "INT_E" ZF.thy
 
 qed_goal "INT_cong" ZF.thy
     "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A. C(x)) = (INT x:B. D(x))"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 (*No "Addcongs [INT_cong]" because INT is a combination of constants*)
 
@@ -429,7 +429,7 @@ AddSDs [PowD];
 qed_goal "not_mem_empty" ZF.thy "a ~: 0"
  (fn _=>
   [ (cut_facts_tac [foundation] 1), 
-    (best_tac (!claset addDs [equalityD2]) 1) ]);
+    (best_tac (claset() addDs [equalityD2]) 1) ]);
 
 bind_thm ("emptyE", not_mem_empty RS notE);
 
@@ -442,7 +442,7 @@ qed_goal "empty_subsetI" ZF.thy "0 <= A"
 Addsimps [empty_subsetI];
 
 qed_goal "equals0I" ZF.thy "[| !!y. y:A ==> False |] ==> A=0"
- (fn prems=> [ blast_tac (!claset addDs prems) 1 ]);
+ (fn prems=> [ blast_tac (claset() addDs prems) 1 ]);
 
 qed_goal "equals0D" ZF.thy "!!P. [| A=0;  a:A |] ==> P"
  (fn _=> [ Full_simp_tac 1, Blast_tac 1 ]);

@@ -23,7 +23,7 @@ val LNil_LCons_iff = llist.mk_free "~ LNil=LCons(a,l)";
 
 goal LList.thy "llist(A) = {0} <+> (A <*> llist(A))";
 let open llist;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (subsetI ::map rew intrs) addEs [rew elim]) 1)
+by (fast_tac (claset() addSIs (subsetI ::map rew intrs) addEs [rew elim]) 1)
 end;
 qed "llist_unfold";
 
@@ -52,7 +52,7 @@ by (rewrite_goals_tac ([QInl_def,QInr_def]@llist.con_defs));
 (*LNil case*)
 by (Asm_simp_tac 1);
 (*LCons case*)
-by (deepen_tac (!claset addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
+by (deepen_tac (claset() addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "llist_quniv_lemma";
 
 goal LList.thy "llist(quniv(A)) <= quniv(A)";
@@ -77,7 +77,7 @@ by (etac trans_induct 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac lleq.elim 1);
 by (rewrite_goals_tac (QInr_def::llist.con_defs));
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
 qed "lleq_Int_Vset_subset_lemma";
 
@@ -89,7 +89,7 @@ bind_thm ("lleq_Int_Vset_subset",
 val [prem] = goal LList.thy "<l,l'> : lleq(A) ==> <l',l> : lleq(A)";
 by (rtac (prem RS converseI RS lleq.coinduct) 1);
 by (rtac (lleq.dom_subset RS converse_type) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac lleq.elim 1);
 by (ALLGOALS Fast_tac);
 qed "lleq_symmetric";
@@ -104,7 +104,7 @@ val [eqprem,lprem] = goal LList.thy
     "[| l=l';  l: llist(A) |] ==> <l,l'> : lleq(A)";
 by (res_inst_tac [("X", "{<l,l>. l: llist(A)}")] lleq.coinduct 1);
 by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
-by (safe_tac (!claset));
+by (safe_tac (claset()));
 by (etac llist.elim 1);
 by (ALLGOALS Fast_tac);
 qed "equal_llist_implies_leq";
@@ -139,7 +139,7 @@ qed "lconst_in_quniv";
 goal LList.thy "!!a A. a:A ==> lconst(a): llist(A)";
 by (rtac (singletonI RS llist.coinduct) 1);
 by (etac (lconst_in_quniv RS singleton_subsetI) 1);
-by (fast_tac (!claset addSIs [lconst]) 1);
+by (fast_tac (claset() addSIs [lconst]) 1);
 qed "lconst_type";
 
 (*** flip --- equations merely assumed; certain consequences proved ***)
@@ -147,7 +147,7 @@ qed "lconst_type";
 Addsimps [flip_LNil, flip_LCons, not_type];
 
 goal QUniv.thy "!!b. b:bool ==> b Int X <= univ(eclose(A))";
-by (fast_tac (!claset addIs [Int_lower1 RS subset_trans] addSEs [boolE]) 1);
+by (fast_tac (claset() addIs [Int_lower1 RS subset_trans] addSEs [boolE]) 1);
 qed "bool_Int_subset_univ";
 
 AddSIs [not_type];
@@ -163,9 +163,9 @@ by (rtac ballI 1);
 by (etac llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps ([QInl_def,QInr_def]@llist.con_defs))));
+    (asm_simp_tac (simpset() addsimps ([QInl_def,QInr_def]@llist.con_defs))));
 (*LCons case*)
-by (deepen_tac (!claset addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
+by (deepen_tac (claset() addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "flip_llist_quniv_lemma";
 
 goal LList.thy "!!l. l: llist(bool) ==> flip(l) : quniv(bool)";
@@ -177,7 +177,7 @@ val [prem] = goal LList.thy "l : llist(bool) ==> flip(l): llist(bool)";
 by (res_inst_tac [("X", "{flip(l) . l:llist(bool)}")]
        llist.coinduct 1);
 by (rtac (prem RS RepFunI) 1);
-by (fast_tac (!claset addSIs [flip_in_quniv]) 1);
+by (fast_tac (claset() addSIs [flip_in_quniv]) 1);
 by (etac RepFunE 1);
 by (etac llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
@@ -189,10 +189,10 @@ val [prem] = goal LList.thy
 by (res_inst_tac [("X1", "{<flip(flip(l)),l> . l:llist(bool)}")]
        (lleq.coinduct RS lleq_implies_equal) 1);
 by (rtac (prem RS RepFunI) 1);
-by (fast_tac (!claset addSIs [flip_type]) 1);
+by (fast_tac (claset() addSIs [flip_type]) 1);
 by (etac RepFunE 1);
 by (etac llist.elim 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (!simpset addsimps [flip_type, not_not]) 1);
-by (fast_tac (!claset addSIs [not_type]) 1);
+by (asm_simp_tac (simpset() addsimps [flip_type, not_not]) 1);
+by (fast_tac (claset() addSIs [not_type]) 1);
 qed "flip_flip";

@@ -20,7 +20,7 @@ qed_goal "doubleton_eq_iff" ZF.thy
 
 qed_goalw "Pair_iff" ZF.thy [Pair_def]
     "<a,b> = <c,d> <-> a=c & b=d"
- (fn _=> [ (simp_tac (!simpset addsimps [doubleton_eq_iff]) 1),
+ (fn _=> [ (simp_tac (simpset() addsimps [doubleton_eq_iff]) 1),
            (Blast_tac 1) ]);
 
 Addsimps [Pair_iff];
@@ -33,7 +33,7 @@ bind_thm ("Pair_inject1", Pair_iff RS iffD1 RS conjunct1);
 bind_thm ("Pair_inject2", Pair_iff RS iffD1 RS conjunct2);
 
 qed_goalw "Pair_not_0" ZF.thy [Pair_def] "<a,b> ~= 0"
- (fn _ => [ (blast_tac (!claset addEs [equalityE]) 1) ]);
+ (fn _ => [ (blast_tac (claset() addEs [equalityE]) 1) ]);
 
 bind_thm ("Pair_neq_0", Pair_not_0 RS notE);
 
@@ -88,7 +88,7 @@ qed_goal "SigmaE2" ZF.thy
 qed_goalw "Sigma_cong" ZF.thy [Sigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    Sigma(A,B) = Sigma(A',B')"
- (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
+ (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
 
 (*Sigma_cong, Pi_cong NOT given to Addcongs: they cause
@@ -110,10 +110,10 @@ Addsimps [Sigma_empty1, Sigma_empty2];
 (*** Projections: fst, snd ***)
 
 qed_goalw "fst_conv" ZF.thy [fst_def] "fst(<a,b>) = a"
- (fn _=> [ (blast_tac (!claset addIs [the_equality]) 1) ]);
+ (fn _=> [ (blast_tac (claset() addIs [the_equality]) 1) ]);
 
 qed_goalw "snd_conv" ZF.thy [snd_def] "snd(<a,b>) = b"
- (fn _=> [ (blast_tac (!claset addIs [the_equality]) 1) ]);
+ (fn _=> [ (blast_tac (claset() addIs [the_equality]) 1) ]);
 
 Addsimps [fst_conv,snd_conv];
 
@@ -143,7 +143,7 @@ qed_goal "split_type" ZF.thy
 \    |] ==> split(%x y. c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS SigmaE) 1),
-    (asm_simp_tac (!simpset addsimps prems) 1) ]);
+    (asm_simp_tac (simpset() addsimps prems) 1) ]);
 
 goalw ZF.thy [split_def]
   "!!u. u: A*B ==>   \

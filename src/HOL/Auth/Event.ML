@@ -42,11 +42,11 @@ by (Simp_tac 1);
 qed "spies_Notes";
 
 goal thy "spies evs <= spies (Says A B X # evs)";
-by (simp_tac (!simpset addsimps [subset_insertI]) 1);
+by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "spies_subset_spies_Says";
 
 goal thy "spies evs <= spies (Notes A X # evs)";
-by (simp_tac (!simpset addsplits [expand_if]) 1);
+by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Fast_tac 1);
 qed "spies_subset_spies_Notes";
 
@@ -54,14 +54,14 @@ qed "spies_subset_spies_Notes";
 goal thy "Says A B X : set evs --> X : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsplits [expand_event_case, expand_if])));
+	      (simpset() addsplits [expand_event_case, expand_if])));
 qed_spec_mp "Says_imp_spies";
 
 (*Spy sees Notes of bad agents*)
 goal thy "Notes A X : set evs --> A: bad --> X : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsplits [expand_event_case, expand_if])));
+	      (simpset() addsplits [expand_event_case, expand_if])));
 qed_spec_mp "Notes_imp_spies";
 
 (*Use with addSEs to derive contradictions from old Says events containing
@@ -79,7 +79,7 @@ Delsimps [spies_Cons];
 goal thy "parts (spies evs) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [parts_insert_spies]
+	      (simpset() addsimps [parts_insert_spies]
 	                addsplits [expand_event_case, expand_if])));
 by (ALLGOALS Blast_tac);
 qed "parts_spies_subset_used";
@@ -90,7 +90,7 @@ AddIs [usedI];
 goal thy "parts (initState B) <= used evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
-	      (!simpset addsimps [parts_insert_spies]
+	      (simpset() addsimps [parts_insert_spies]
 	                addsplits [expand_event_case, expand_if])));
 by (ALLGOALS Blast_tac);
 bind_thm ("initState_into_used", impOfSubs (result()));
@@ -107,7 +107,7 @@ Addsimps [used_Notes];
 
 goal thy "used [] <= used evs";
 by (Simp_tac 1);
-by (blast_tac (!claset addIs [initState_into_used]) 1);
+by (blast_tac (claset() addIs [initState_into_used]) 1);
 qed "used_nil_subset";
 
 (**** NOTE REMOVAL--laws above are cleaner, as they don't involve "case" ****)
@@ -117,7 +117,7 @@ Delsimps [used_Nil, used_Cons];
 (*currently unused*)
 goal thy "used evs <= used (evs@evs')";
 by (induct_tac "evs" 1);
-by (simp_tac (!simpset addsimps [used_nil_subset]) 1);
+by (simp_tac (simpset() addsimps [used_nil_subset]) 1);
 by (induct_tac "a" 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS Blast_tac);

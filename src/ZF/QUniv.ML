@@ -20,7 +20,7 @@ qed "Transset_includes_summands";
 val [prem] = goalw QUniv.thy [sum_def]
     "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
 by (stac Int_Un_distrib 1);
-by (blast_tac (!claset addSDs [prem RS Transset_Pair_D]) 1);
+by (blast_tac (claset() addSDs [prem RS Transset_Pair_D]) 1);
 qed "Transset_sum_Int_subset";
 
 (** Introduction and elimination rules avoid tiresome folding/unfolding **)
@@ -187,13 +187,13 @@ bind_thm ("Vfrom_doubleton_D", Transset_Vfrom RS Transset_doubleton_D);
 goalw Univ.thy [Pair_def]
     "!!X. [| <a,b> : Vfrom(X,succ(i));  Transset(X) |] ==> \
 \         a: Vfrom(X,i)  &  b: Vfrom(X,i)";
-by (blast_tac (!claset addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
+by (blast_tac (claset() addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
 qed "Pair_in_Vfrom_D";
 
 goal Univ.thy
  "!!X. Transset(X) ==>          \
 \      (a*b) Int Vfrom(X, succ(i)) <= (a Int Vfrom(X,i)) * (b Int Vfrom(X,i))";
-by (blast_tac (!claset addSDs [Pair_in_Vfrom_D]) 1);
+by (blast_tac (claset() addSDs [Pair_in_Vfrom_D]) 1);
 qed "product_Int_Vfrom_subset";
 
 (*** Intersecting <a;b> with Vfrom... ***)
@@ -232,6 +232,6 @@ by (Fast_tac 1);
 by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
 by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
-by (asm_simp_tac (!simpset addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
+by (asm_simp_tac (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
                                   UN_mono, QPair_Int_Vset_subset_trans]) 1);
 qed "QPair_Int_Vset_subset_UN";

@@ -68,13 +68,13 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : woolam ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
 \                  evs : woolam |] ==> A:bad";
-by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -104,7 +104,7 @@ goal thy
 \           Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
 \            : set evs |]                                  \
 \        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
-by (blast_tac (!claset addSIs [NB_Crypt_imp_Alice_msg]
+by (blast_tac (claset() addSIs [NB_Crypt_imp_Alice_msg]
                       addSEs [MPair_parts]
                       addDs  [Says_imp_spies RS parts.Inj]) 1);
 qed "Server_trusts_WL4";
@@ -139,7 +139,7 @@ goal thy
  "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, NB|}) : set evs;         \
 \           B ~: bad;  evs : woolam |]                                  \
 \        ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
-by (blast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
+by (blast_tac (claset() addSIs [NB_Crypt_imp_Server_msg]
                       addDs  [Says_imp_spies RS parts.Inj]) 1);
 qed "B_got_WL5";
 
@@ -151,7 +151,7 @@ goal thy
  "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs; \
 \           A ~: bad;  B ~: bad;  evs : woolam  |]                  \
 \        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
-by (blast_tac (!claset addIs  [Server_trusts_WL4]
+by (blast_tac (claset() addIs  [Server_trusts_WL4]
                       addSDs [B_got_WL5 RS Server_sent_WL5]) 1);
 qed "B_trusts_WL5";
 
@@ -176,5 +176,5 @@ goal thy
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by Safe_tac;
-by (blast_tac (!claset addSEs partsEs) 1);
+by (blast_tac (claset() addSEs partsEs) 1);
 **)

@@ -104,6 +104,6 @@ val ZF_mem_pairs =
 
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 
-simpset := !simpset setmksimps (map mk_meta_eq o ZF_atomize o gen_all);
+simpset_ref() := simpset() setmksimps (map mk_meta_eq o ZF_atomize o gen_all);
 
-val ZF_ss = !simpset;
+val ZF_ss = simpset();

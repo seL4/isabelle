@@ -26,7 +26,7 @@ qed "bool_commut";
 
 (* cartesian products *)
 
-val prod_ss = simpset_of "Prod";
+val prod_ss = simpset_of Prod.thy;
 
 goalw thy [times_prod_def]
   "(x * y) * z = x * (y * (z::'a::semigroup*'b::semigroup))";

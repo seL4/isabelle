@@ -73,7 +73,7 @@ qed_goal "Union_least" ZF.thy
 (*** Union of a family of sets  ***)
 
 goal ZF.thy "A <= (UN i:I. B(i)) <-> A = (UN i:I. A Int B(i))";
-by (blast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_UN_iff_eq";
 
 qed_goal "UN_subset_iff" ZF.thy
@@ -156,7 +156,7 @@ qed_goal "Diff_subset" ZF.thy "A-B <= A"
 
 qed_goal "Diff_contains" ZF.thy
     "!!C. [| C<=A;  C Int B = 0 |] ==> C <= A-B"
- (fn _ => [ (blast_tac (!claset addSEs [equalityE]) 1) ]);
+ (fn _ => [ (blast_tac (claset() addSEs [equalityE]) 1) ]);
 
 
 (** Collect **)
@@ -168,7 +168,7 @@ qed_goal "Collect_subset" ZF.thy "Collect(A,P) <= A"
 (** RepFun **)
 
 val prems = goal ZF.thy "[| !!x. x:A ==> f(x): B |] ==> {f(x). x:A} <= B";
-by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "RepFun_subset";
 
 val subset_SIs =
@@ -179,7 +179,7 @@ val subset_SIs =
 
 
 (*A claset for subset reasoning*)
-val subset_cs = !claset 
+val subset_cs = claset() 
     delrules [subsetI, subsetCE]
     addSIs subset_SIs
     addIs  [Union_upper, Inter_lower]

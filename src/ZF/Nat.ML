@@ -56,7 +56,7 @@ val bool_into_nat = bool_subset_nat RS subsetD;
 val major::prems = goal Nat.thy
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)";
 by (rtac ([nat_def, nat_bnd_mono, major] MRS def_induct) 1);
-by (fast_tac (!claset addIs prems) 1);
+by (fast_tac (claset() addIs prems) 1);
 qed "nat_induct";
 
 (*Perform induction on n, then prove the n:nat subgoal using prems. *)
@@ -93,7 +93,7 @@ by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 qed "Ord_nat";
 
 goalw Nat.thy [Limit_def] "Limit(nat)";
-by (safe_tac (!claset addSIs [ltI, nat_succI, Ord_nat]));
+by (safe_tac (claset() addSIs [ltI, nat_succI, Ord_nat]));
 by (etac ltD 1);
 qed "Limit_nat";
 
@@ -104,7 +104,7 @@ goal Nat.thy "!!i. Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
-by (blast_tac (!claset addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
+by (blast_tac (claset() addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
 by (REPEAT (ares_tac [Limit_has_0 RS ltD,
                       Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
@@ -134,7 +134,7 @@ val prems = goal Nat.thy
 by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps (prems@distrib_simps@[le0_iff, le_succ_iff]))));
+     (simpset() addsimps (prems@distrib_simps@[le0_iff, le_succ_iff]))));
 qed "nat_induct_from_lemma";
 
 (*Induction starting from m rather than 0*)
@@ -186,11 +186,11 @@ qed "succ_lt_induct";
 (** nat_case **)
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,0) = a";
-by (blast_tac (!claset addIs [the_equality]) 1);
+by (blast_tac (claset() addIs [the_equality]) 1);
 qed "nat_case_0";
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
-by (blast_tac (!claset addIs [the_equality]) 1);
+by (blast_tac (claset() addIs [the_equality]) 1);
 qed "nat_case_succ";
 
 Addsimps [nat_case_0, nat_case_succ];
@@ -199,7 +199,7 @@ val major::prems = goal Nat.thy
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  \
 \    |] ==> nat_case(a,b,n) : C(n)";
 by (rtac (major RS nat_induct) 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "nat_case_type";
 
 
@@ -216,7 +216,7 @@ qed "nat_rec_0";
 val [prem] = goal Nat.thy 
     "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
 by (rtac nat_rec_trans 1);
-by (simp_tac (!simpset addsimps [prem, Memrel_iff, vimage_singleton_iff]) 1);
+by (simp_tac (simpset() addsimps [prem, Memrel_iff, vimage_singleton_iff]) 1);
 qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)
