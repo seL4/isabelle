@@ -123,26 +123,23 @@ fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
 
 fun calculate final opt_rules print state =
   let
-    val facts = Proof.the_facts (Proof.assert_forward state);
-
     val strip_assums_concl = Logic.strip_assums_concl o #prop o Thm.rep_thm;
     val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
-    fun differ thms thms' = not (Library.equal_lists eq_prop (thms, thms'));
+    fun projection ths th = Library.exists (Library.curry eq_prop th) ths;
 
-    fun combine thms =
-      let
-        val ths = thms @ facts;
-        val rs = get_local_rules state;
-        val rules =
-          (case ths of [] => NetRules.rules rs
-          | th :: _ => NetRules.may_unify rs (strip_assums_concl th));
-        val ruleq = Seq.of_list (if_none opt_rules [] @ rules);
-      in Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve ths) ruleq)) end;
+    fun combine ths =
+      (case opt_rules of Some rules => rules
+      | None =>
+          (case ths of [] => NetRules.rules (get_local_rules state)
+          | th :: _ => NetRules.may_unify (get_local_rules state) (strip_assums_concl th)))
+      |> Seq.of_list |> Seq.map (Method.multi_resolve ths) |> Seq.flat
+      |> Seq.filter (not o projection ths);
 
+    val facts = Proof.the_facts (Proof.assert_forward state);
     val (initial, calculations) =
       (case get_calculation state of
         None => (true, Seq.single facts)
-      | Some thms => (false, Seq.filter (differ thms) (combine thms)))
+      | Some calc => (false, Seq.map single (combine (calc @ facts))));
   in
     err_if state (initial andalso final) "No calculation yet";
     err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";

@@ -90,6 +90,8 @@ instance proofs may be performed by "..";
 * Pure: ?thesis / ?this / "..." now work for pure meta-level
 statements as well;
 
+* Pure: more robust selection of calculational rules;
+
 * Pure: the builtin notion of 'finished' goal now includes the ==-refl
 rule (as well as the assumption rule);
 
