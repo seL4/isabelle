@@ -1125,8 +1125,7 @@ fun prove (sign, start, cs, brs, cont) =
 			     not(null grls)   (*other rules to try?*)
 			     orelse updated
 			     orelse vars=vars'   (*no new Vars?*)
-			 val tac' = if mayUndo then tac(updated, dup, true)
-				    else   DETERM o tac(updated, dup, true) 
+			 val tac' = tac(updated, dup, true)
 		       (*if recur then perhaps shouldn't call rotate_tac: new
                          formulae should be last, but that's WRONG if the new
                          formulae are Goals, since they remain in the first
