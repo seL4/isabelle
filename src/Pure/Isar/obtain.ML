@@ -101,7 +101,7 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
 
     (*that_prop*)
     fun find_free x t =
-      (case Proof.find_free t x of Some (Free a) => Some a | _ => None);
+      (case ProofContext.find_free t x of Some (Free a) => Some a | _ => None);
     fun occs_var x = Library.get_first (find_free x) asm_props;
     val that_prop =
       Term.list_all_free (mapfilter occs_var xs, Logic.list_implies (asm_props, atomic_thesis));
