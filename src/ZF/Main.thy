@@ -46,4 +46,14 @@ lemmas list_append_induct = list_append_induct [case_names Nil snoc, consumes 1]
 lemmas posDivAlg_induct = posDivAlg_induct [consumes 2]
   and negDivAlg_induct = negDivAlg_induct [consumes 2]
 
+
+(* belongs to theory Epsilon *)
+
+lemma def_transrec2:
+     "(!!x. f(x)==transrec2(x,a,b))
+      ==> f(0) = a & 
+          f(succ(i)) = b(i, f(i)) & 
+          (Limit(K) --> f(K) = (UN j<K. f(j)))"
+by (simp add: transrec2_Limit)
+
 end

@@ -5,6 +5,10 @@
 Quantifiers and union operator for ordinals. 
 *)
 
+val oall_def = thm "oall_def";
+val oex_def = thm "oex_def"; 
+val OUnion_def = thm "OUnion_def";
+
 (*** universal quantifier for ordinals ***)
 
 val prems = Goalw [oall_def] 
