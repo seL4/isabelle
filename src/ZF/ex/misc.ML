@@ -145,7 +145,7 @@ qed "pastre6";
 goal (merge_theories(Sum.thy,Perm.thy))
     "(lam Z:Pow(A+B). <{x:A. Inl(x):Z}, {y:B. Inr(y):Z}>) \
 \    : bij(Pow(A+B), Pow(A)*Pow(B))";
-by (res_inst_tac [("d", "split(%X Y.{Inl(x).x:X} Un {Inr(y).y:Y})")] 
+by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
     lam_bijective 1);
 by (TRYALL (etac SigmaE));
 by (ALLGOALS (asm_simp_tac ZF_ss));

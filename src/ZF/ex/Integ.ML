@@ -203,11 +203,12 @@ qed "zmagnitude_zminus_znat";
 (** Congruence property for addition **)
 
 goalw Integ.thy [congruent2_def]
-    "congruent2(intrel, %p1 p2.                  \
-\         split(%x1 y1. split(%x2 y2. intrel `` {<x1#+x2, y1#+y2>}, p2), p1))";
+    "congruent2(intrel, %z1 z2.     	             \
+\         let <x1,y1>=z1; <x2,y2>=z2                 \
+\                           in intrel``{<x1#+x2, y1#+y2>})";
 (*Proof via congruent2_commuteI seems longer*)
 by (safe_tac intrel_cs);
-by (asm_simp_tac (intrel_ss addsimps [add_assoc]) 1);
+by (asm_simp_tac (intrel_ss addsimps [add_assoc, Let_def]) 1);
 (*The rest should be trivial, but rearranging terms is hard;
   add_ac does not help rewriting with the assumptions.*)
 by (res_inst_tac [("m1","x1a")] (add_left_commute RS ssubst) 1);
@@ -216,14 +217,14 @@ by (typechk_tac [add_type]);
 by (asm_simp_tac (arith_ss addsimps [add_assoc RS sym]) 1);
 qed "zadd_congruent2";
 
-
 (*Resolve th against the corresponding facts for zadd*)
 val zadd_ize = RSLIST [equiv_intrel, zadd_congruent2];
 
 goalw Integ.thy [integ_def,zadd_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $+ w : integ";
-by (REPEAT (ares_tac [zadd_ize UN_equiv_class_type2,
-		      split_type, add_type, quotientI, SigmaI] 1));
+by (rtac (zadd_ize UN_equiv_class_type2) 1);
+by (simp_tac (ZF_ss addsimps [Let_def]) 3);
+by (REPEAT (ares_tac [split_type, add_type, quotientI, SigmaI] 1));
 qed "zadd_type";
 
 goalw Integ.thy [zadd_def]
@@ -231,6 +232,7 @@ goalw Integ.thy [zadd_def]
 \           (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =	\
 \	    intrel `` {<x1#+x2, y1#+y2>}";
 by (asm_simp_tac (ZF_ss addsimps [zadd_ize UN_equiv_class2, SigmaI]) 1);
+by (simp_tac (ZF_ss addsimps [Let_def]) 1);
 qed "zadd";
 
 goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> $#0 $+ z = z";
