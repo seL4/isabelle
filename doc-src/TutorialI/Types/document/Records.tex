@@ -1,0 +1,448 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Records}%
+%
+\isamarkupheader{Records \label{sec:records}%
+}
+\isamarkuptrue%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\index{records|(}%
+  Records are familiar from programming languages.  A record of $n$
+  fields is essentially an $n$-tuple, but the record's components have
+  names, which can make expressions easier to read and reduces the
+  risk of confusing one field for another.
+
+  A basic Isabelle record covers a certain set of fields, with select
+  and update operations.  Each field has a specified type, which may
+  be polymorphic.  The field names are part of the record type, and
+  the order of the fields is significant --- as it is in Pascal but
+  not in Standard ML.  If two different record types have field names
+  in common, then the ambiguity is resolved in the usual way, by
+  qualified names.
+
+  Record types can also be defined by extending other record types.
+  Extensible records make use of the reserved pseudo-field \cdx{more},
+  which is present in every record type.  Generic record operations
+  work on all possible extensions of a given type scheme; naive
+  polymorphism takes care of structural sub-typing behind the scenes.
+  There are also explicit coercion functions between fixed record
+  types.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Record Basics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Record types are not primitive in Isabelle and have a subtle
+  internal representation based on nested copies of the primitive
+  product type.  A \commdx{record} declaration introduces a new record
+  type scheme by specifying its fields, which are packaged internally
+  to hold up the perception of records as a separate concept.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{record}\ point\ {\isacharequal}\isanewline
+\ \ Xcoord\ {\isacharcolon}{\isacharcolon}\ int\isanewline
+\ \ Ycoord\ {\isacharcolon}{\isacharcolon}\ int\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Records of type \isa{point} have two fields named \isa{Xcoord}
+  and \isa{Ycoord}, both of type~\isa{int}.  We now define a
+  constant of type \isa{point}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ pt{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ point\isanewline
+\ \ {\isachardoublequote}pt{\isadigit{1}}\ {\isasymequiv}\ {\isacharparenleft}{\isacharbar}\ Xcoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}\ {\isacharbar}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+We see above the ASCII notation for record brackets.  You can also
+  use the symbolic brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}}.  Record type
+  expressions can be written directly as well, without referring to
+  previously declared names (which happen to be mere type
+  abbreviations):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ pt{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}pt{\isadigit{2}}\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isacharminus}{\isadigit{4}}{\isadigit{5}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{7}}{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+For each field, there is a \emph{selector} function of the same
+  name.  For example, if \isa{p} has type \isa{point} then \isa{Xcoord\ p} denotes the value of the \isa{Xcoord} field of~\isa{p}.  Expressions involving field selection of explicit records are
+  simplified automatically:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The \emph{update} operation is functional.  For example, \isa{p{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}} is a record whose \isa{Xcoord} value is zero
+  and whose \isa{Ycoord} value is copied from~\isa{p}.  Updates
+  are also simplified automatically:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}\ {\isacharequal}\isanewline
+\ \ \ \ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isadigit{0}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\begin{warn}
+  Field names are declared as constants and can no longer be used as
+  variables.  It would be unwise, for example, to call the fields of
+  type \isa{point} simply \isa{x} and~\isa{y}.  Each record
+  declaration introduces a constant \cdx{more}.
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Extensible Records and Generic Operations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{records!extensible|(}%
+
+  Now, let us define coloured points (type \isa{cpoint}) to be
+  points extended with a field \isa{col} of type \isa{colour}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ colour\ {\isacharequal}\ Red\ {\isacharbar}\ Green\ {\isacharbar}\ Blue\isanewline
+\isanewline
+\isamarkupfalse%
+\isacommand{record}\ cpoint\ {\isacharequal}\ point\ {\isacharplus}\isanewline
+\ \ col\ {\isacharcolon}{\isacharcolon}\ colour\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and
+  \isa{col}, in that order:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ cpt{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ cpoint\isanewline
+\ \ {\isachardoublequote}cpt{\isadigit{1}}\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}{\isacharcomma}\ col\ {\isacharequal}\ Green{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+We can define generic operations that work on arbitrary instances of
+  a record scheme, e.g.\ covering \isa{point}, \isa{cpoint} and any
+  further extensions.  Every record structure has an implicit
+  pseudo-field, \cdx{more}, that keeps the extension as an explicit
+  value.  Its type is declared as completely polymorphic:~\isa{{\isacharprime}a}.
+  When a fixed record value is expressed using just its standard
+  fields, the value of \isa{more} is implicitly set to \isa{{\isacharparenleft}{\isacharparenright}},
+  the empty tuple, which has type \isa{unit}.  Within the record
+  brackets, you can refer to the \isa{more} field by writing \isa{{\isasymdots}} (three dots):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ p{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}} is actually the same as \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}}.
+
+  The pseudo-field \isa{more} can be selected in the usual way, but
+  the identifier must be qualified:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}point{\isachardot}more\ cpt{\isadigit{1}}\ {\isacharequal}\ {\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+We see that the colour attached to this \isa{point} is a
+  (rudimentary) record in its own right, namely \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}}.  In order to select or update \isa{col} in the above
+  fragment, \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}} needs to be put back into the
+  context of its parent type scheme, say as \isa{more} part of a
+  \isa{point}.
+
+  To define generic operations, we need to know a bit more about
+  records.  Our declaration of \isa{point} above generated two type
+  abbreviations:
+
+  \smallskip
+  \begin{tabular}{l}
+  \isa{point}~\isa{{\isacharequal}}~\isa{{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isasymrparr}} \\
+  \isa{{\isacharprime}a\ point{\isacharunderscore}scheme}~\isa{{\isacharequal}}~\isa{{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a{\isasymrparr}} \\
+  \end{tabular}
+  \smallskip
+
+  Type \isa{point} is for rigid records having exactly the two fields
+  \isa{Xcoord} and~\isa{Ycoord}, while the polymorphic type \isa{{\isacharprime}a\ point{\isacharunderscore}scheme} comprises all possible extensions to those two
+  fields, recall that \isa{unit\ point{\isacharunderscore}scheme} coincides with \isa{point}.  For example, let us define two operations --- methods, if
+  we regard records as objects --- to get and set any point's \isa{Xcoord} field.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ getX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ int{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}getX\ r\ {\isasymequiv}\ Xcoord\ r{\isachardoublequote}\isanewline
+\ \ setX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ {\isacharprime}a\ point{\isacharunderscore}scheme{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}setX\ r\ a\ {\isasymequiv}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Here is a generic method that modifies a point, incrementing its
+  \isa{Xcoord} field.  The \isa{Ycoord} and \isa{more} fields
+  are copied across.  It works for any record type scheme derived from
+  \isa{point}, such as \isa{cpoint}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ incX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ {\isacharprime}a\ point{\isacharunderscore}scheme{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}incX\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharcomma}\isanewline
+\ \ \ \ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Generic theorems can be proved about generic methods.  This trivial
+  lemma relates \isa{incX} to \isa{getX} and \isa{setX}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}incX\ r\ {\isacharequal}\ setX\ r\ {\isacharparenleft}getX\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ getX{\isacharunderscore}def\ setX{\isacharunderscore}def\ incX{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\begin{warn}
+  If you use the symbolic record brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}},
+  then you must also use the symbolic ellipsis, ``\isa{{\isasymdots}}'', rather
+  than three consecutive periods, ``\isa{{\isachardot}{\isachardot}{\isachardot}}''.  Mixing the ASCII
+  and symbolic versions causes a syntax error.  (The two versions are
+  more distinct on screen than they are on paper.)
+  \end{warn}%\index{records!extensible|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Record Equality%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Two records are equal\index{equality!of records} if all pairs of
+  corresponding fields are equal.  Record equalities are simplified
+  automatically:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharprime}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ {\isacharparenleft}a\ {\isacharequal}\ a{\isacharprime}\ {\isasymand}\ b\ {\isacharequal}\ b{\isacharprime}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The following equality is similar, but generic, in that \isa{r}
+  can be any instance of \isa{point{\isacharunderscore}scheme}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isacharcomma}\ Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+We see above the syntax for iterated updates.  We could equivalently
+  have written the left-hand side as \isa{r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}}.
+
+  Record equality is \emph{extensional}: \index{extensionality!for
+  records} a record is determined entirely by the values of its
+  fields.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The generic version of this equality includes the field \isa{more}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Note that the \isa{r} is of a different (more general) type than
+  the previous one.
+
+  \medskip The simplifier can prove many record equalities
+  automatically, but general equality reasoning can be tricky.
+  Consider proving this obvious fact:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{apply}\ simp{\isacharquery}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{oops}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The simplifier can do nothing, since general record equality is not
+  eliminated automatically.  One way to proceed is by an explicit
+  forward step that applies the selector \isa{Xcoord} to both sides
+  of the assumed record equality:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}drule{\isacharunderscore}tac\ f\ {\isacharequal}\ Xcoord\ \isakeyword{in}\ arg{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isacharparenright}\ {\isacharequal}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\end{isabelle}
+    Now, \isa{simp} will reduce the assumption to the desired
+    conclusion.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ simp\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The \isa{cases} method is preferable to such a forward proof.
+  State the desired lemma again:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+The \methdx{cases} method adds an equality to replace the named
+    record variable by an explicit record, listing all fields.  It
+    even includes the pseudo-field \isa{more}, since the record
+    equality stated above is generic.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}cases\ r{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}Xcoord\ Ycoord\ more{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\end{isabelle}
+    Again, \isa{simp} finishes the proof.  Because \isa{r} has
+    become an explicit record expression, the updates can be applied
+    and the record equality can be replaced by equality of the
+    corresponding fields (due to injectivity).%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ simp\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
+\isamarkupsubsection{Extending and Truncating Records%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each record declaration introduces functions to refer collectively
+  to a record's fields and to convert between related record types.
+  They can, for instance, convert between types \isa{point} and \isa{cpoint}.  We can add a colour to a point or to convert a \isa{cpoint} to a \isa{point} by forgetting its colour.
+
+  \begin{itemize}
+
+  \item Function \cdx{make} takes as arguments all of the record's
+  fields.  It returns the corresponding record.
+
+  \item Function \cdx{fields} takes the record's new fields and
+  returns a record fragment consisting of just those fields.  This may
+  be filled into the \isa{more} part of the parent record scheme.
+
+  \item Function \cdx{extend} takes two arguments: a record to be
+  extended and a record containing the new fields.
+
+  \item Function \cdx{truncate} takes a record (possibly an extension
+  of the original record type) and returns a fixed record, removing
+  any additional fields.
+
+  \end{itemize}
+
+  These functions merely provide handsome abbreviations for standard
+  record expressions involving constructors and selectors.  The
+  definitions, which are \emph{not} unfolded by default, are made
+  available by the collective name of \isa{defs} (e.g.\ \isa{point{\isachardot}defs} or \isa{cpoint{\isachardot}defs}).
+
+  For example, here are the versions of those functions generated for
+  record \isa{point}.  We omit \isa{point{\isachardot}fields}, which happens to
+  be the same as \isa{point{\isachardot}make}.
+
+  \begin{isabelle}%
+point{\isachardot}make\ {\isacharquery}Xcoord\ {\isacharquery}Ycoord\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isacharquery}Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isacharquery}Ycoord{\isasymrparr}\isanewline
+point{\isachardot}extend\ {\isacharquery}r\ {\isacharquery}more\ {\isasymequiv}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ {\isacharquery}r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ {\isacharquery}r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharquery}more{\isasymrparr}\isanewline
+point{\isachardot}truncate\ {\isacharquery}r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ {\isacharquery}r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ {\isacharquery}r{\isasymrparr}%
+\end{isabelle}
+
+  Contrast those with the corresponding functions for record \isa{cpoint}.  Observe \isa{cpoint{\isachardot}fields} in particular.
+
+  \begin{isabelle}%
+cpoint{\isachardot}make\ {\isacharquery}Xcoord\ {\isacharquery}Ycoord\ {\isacharquery}col\ {\isasymequiv}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ {\isacharquery}Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isacharquery}Ycoord{\isacharcomma}\ col\ {\isacharequal}\ {\isacharquery}col{\isasymrparr}\isanewline
+cpoint{\isachardot}extend\ {\isacharquery}r\ {\isacharquery}more\ {\isasymequiv}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ {\isacharquery}r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ {\isacharquery}r{\isacharcomma}\ col\ {\isacharequal}\ col\ {\isacharquery}r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharquery}more{\isasymrparr}\isanewline
+cpoint{\isachardot}truncate\ {\isacharquery}r\ {\isasymequiv}\isanewline
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ {\isacharquery}r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ {\isacharquery}r{\isacharcomma}\ col\ {\isacharequal}\ col\ {\isacharquery}r{\isasymrparr}%
+\end{isabelle}
+
+  To demonstrate these functions, we declare a new coloured point by
+  extending an ordinary point.  Function \isa{point{\isachardot}extend} augments
+  \isa{pt{\isadigit{1}}} with a colour, which is converted into an appropriate
+  record fragment by \isa{cpoint{\isachardot}fields}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ cpt{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ cpoint\isanewline
+\ \ {\isachardoublequote}cpt{\isadigit{2}}\ {\isasymequiv}\ point{\isachardot}extend\ pt{\isadigit{1}}\ {\isacharparenleft}cpoint{\isachardot}fields\ Green{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The coloured points \isa{cpt{\isadigit{1}}} and \isa{cpt{\isadigit{2}}} are equal.  The
+  proof is trivial, by unfolding all the definitions.  We deliberately
+  omit the definition of~\isa{pt{\isadigit{1}}} in order to reveal the underlying
+  comparison on type \isa{point}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}cpt{\isadigit{1}}\ {\isacharequal}\ cpt{\isadigit{2}}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs\ cpoint{\isachardot}defs{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ Xcoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}\ {\isasymand}\ Ycoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}%
+\end{isabelle}%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+In the example below, a coloured point is truncated to leave a
+  point.  We must use the \isa{truncate} function of the shorter
+  record.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}point{\isachardot}truncate\ cpt{\isadigit{2}}\ {\isacharequal}\ pt{\isadigit{1}}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\begin{exercise}
+  Extend record \isa{cpoint} to have a further field, \isa{intensity}, of type~\isa{nat}.  Experiment with coercions among the
+  three record types.
+  \end{exercise}
+
+  \begin{exercise}
+  (For Java programmers.)
+  Model a small class hierarchy using records.
+  \end{exercise}
+  \index{records|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
