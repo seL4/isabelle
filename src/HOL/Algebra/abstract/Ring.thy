@@ -129,7 +129,7 @@ lemma natsum_Suc2:
 proof (induct n)
   case 0 show ?case by simp
 next
-  case Suc thus ?case by (simp add: assoc) 
+  case Suc thus ?case by (simp add: plus_ac0.assoc) 
 qed
 
 lemma natsum_cong [cong]:
