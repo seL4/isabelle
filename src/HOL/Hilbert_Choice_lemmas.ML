@@ -1,5 +1,5 @@
 (*  Title:      HOL/Hilbert_Choice_lemmas
-    ID:         $Id$
+    ID: $Id$
     Author:     Lawrence C Paulson
     Copyright   2001  University of Cambridge
 
@@ -263,3 +263,36 @@ Goal "(@(x',y'). x = x' & y = y') = (x,y)";
 by (Blast_tac 1);
 qed "Eps_split_eq";
 Addsimps [Eps_split_eq];
+
+
+(*---------------------------------------------------------------------------
+ * A relation is wellfounded iff it has no infinite descending chain
+ * Cannot go into WF because it needs type nat.
+ *---------------------------------------------------------------------------*)
+
+Goalw [wf_eq_minimal RS eq_reflection]
+  "wf r = (~(EX f. ALL i. (f(Suc i),f i) : r))";
+by (rtac iffI 1);
+ by (rtac notI 1);
+ by (etac exE 1);
+ by (eres_inst_tac [("x","{w. EX i. w=f i}")] allE 1);
+ by (Blast_tac 1);
+by (etac contrapos_np 1);
+by (Asm_full_simp_tac 1);
+by (Clarify_tac 1);
+by (subgoal_tac "ALL n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
+ by (res_inst_tac[("x","nat_rec x (%i y. @z. z:Q & (z,y):r)")]exI 1);
+ by (rtac allI 1);
+ by (Simp_tac 1);
+ by (rtac someI2_ex 1);
+  by (Blast_tac 1);
+ by (Blast_tac 1);
+by (rtac allI 1);
+by (induct_tac "n" 1);
+ by (Asm_simp_tac 1);
+by (Simp_tac 1);
+by (rtac someI2_ex 1);
+ by (Blast_tac 1);
+by (Blast_tac 1);
+qed "wf_iff_no_infinite_down_chain";
+

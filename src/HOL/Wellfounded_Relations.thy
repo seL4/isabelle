@@ -10,7 +10,7 @@ subset of the lexicographic product, and therefore does not need to be defined
 separately.
 *)
 
-Wellfounded_Relations = Finite + Hilbert_Choice + 
+Wellfounded_Relations = Finite + 
 
 (* logically belongs in Finite.thy, but the theorems are proved in Finite.ML *)
 instance unit :: finite                  (finite_unit)

@@ -17,9 +17,6 @@ files
   ("../TFL/post.ML")
   ("Tools/recdef_package.ML"):
 
-lemma tfl_some: "\\<forall>P x. P x --> P (Eps P)"
-  by (blast intro: someI)
-
 lemma tfl_eq_True: "(x = True) --> x"
   by blast
 

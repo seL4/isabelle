@@ -9,6 +9,11 @@ files "arith_data.ML":
 
 setup arith_setup
 
+lemma pred_nat_trancl_eq_le: "(m, n) : pred_nat^* = (m <= n)"
+apply (simp add: less_eq reflcl_trancl [THEN sym] 
+            del: reflcl_trancl)
+by arith
+
 (*elimination of `-' on nat*)
 lemma nat_diff_split:
     "P(a - b::nat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"

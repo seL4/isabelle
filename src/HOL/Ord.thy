@@ -173,13 +173,22 @@ constdefs
   Least    :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
     "Least P == THE x. P x & (ALL y. P y --> x <= y)"
 
+lemma LeastI2:
+  "[| P (x::'a::order); 
+      !!y. P y ==> x <= y;
+      !!x. [| P x; \\<forall>y. P y --> x \\<le> y |] ==> Q x |]
+   ==> Q (Least P)";
+apply (unfold Least_def)
+apply (rule theI2)
+  apply (blast intro: order_antisym)+
+done
+
 lemma Least_equality:
   "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k";
 apply (simp add: Least_def)
 apply (rule the_equality)
 apply (auto intro!: order_antisym) 
 done
-
 
 section "Linear/Total Orders"
 

@@ -123,37 +123,6 @@ by (blast_tac (claset() addIs [finite_acyclic_wf,wf_acyclic]) 1);
 qed "wf_iff_acyclic_if_finite";
 
 
-(*---------------------------------------------------------------------------
- * A relation is wellfounded iff it has no infinite descending chain
- * Cannot go into WF because it needs type nat.
- *---------------------------------------------------------------------------*)
-
-Goalw [wf_eq_minimal RS eq_reflection]
-  "wf r = (~(EX f. ALL i. (f(Suc i),f i) : r))";
-by (rtac iffI 1);
- by (rtac notI 1);
- by (etac exE 1);
- by (eres_inst_tac [("x","{w. EX i. w=f i}")] allE 1);
- by (Blast_tac 1);
-by (etac contrapos_np 1);
-by (Asm_full_simp_tac 1);
-by (Clarify_tac 1);
-by (subgoal_tac "ALL n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
- by (res_inst_tac[("x","nat_rec x (%i y. @z. z:Q & (z,y):r)")]exI 1);
- by (rtac allI 1);
- by (Simp_tac 1);
- by (rtac someI2_ex 1);
-  by (Blast_tac 1);
- by (Blast_tac 1);
-by (rtac allI 1);
-by (induct_tac "n" 1);
- by (Asm_simp_tac 1);
-by (Simp_tac 1);
-by (rtac someI2_ex 1);
- by (Blast_tac 1);
-by (Blast_tac 1);
-qed "wf_iff_no_infinite_down_chain";
-
 (*----------------------------------------------------------------------------
  * Weakly decreasing sequences (w.r.t. some well-founded order) stabilize.
  *---------------------------------------------------------------------------*)
@@ -187,17 +156,10 @@ by (dres_inst_tac [("x","0")] (lemma RS spec) 1);
 by Auto_tac;
 qed "wf_weak_decr_stable";
 
-(* special case: <= *)
-
-Goal "(m, n) : pred_nat^* = (m <= n)";
-by (simp_tac (simpset() addsimps [less_eq, thm"reflcl_trancl" RS sym] 
-                        delsimps [thm"reflcl_trancl"]) 1);
-by (arith_tac 1);
-qed "le_eq";
-
+(* special case of the theorem above: <= *)
 Goal "ALL i. f (Suc i) <= ((f i)::nat) ==> EX i. ALL k. f (i+k) = f i";
 by (res_inst_tac [("r","pred_nat")] wf_weak_decr_stable 1);
-by (asm_simp_tac (simpset() addsimps [le_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [thm "pred_nat_trancl_eq_le"]) 1);
 by (REPEAT (resolve_tac [wf_trancl,wf_pred_nat] 1));
 qed "weak_decr_stable";
 
@@ -221,37 +183,3 @@ by(case_tac "wf(R a)" 1);
  by(Blast_tac 1);
 by(blast_tac (claset() addIs prems) 1);
 qed "wf_same_fst";
-
-
-
-(* ### see also LEAST and wellorderings in Wellfounded_Recursion.ML *)
-
-Goal "wf r ==> !x y. ((x,y):r^+) = ((y,x)~:r^*) ==> \
-\ P k ==> ? x. P x & (!y. P y --> (m x,m y):r^*)";
-by (dtac (wf_trancl RS (wf_eq_minimal RS iffD1)) 1);
-by (dres_inst_tac [("x","m`Collect P")] spec 1);
-by (Force_tac 1);
-qed "wf_linord_ex_has_least";
-
-(* successor of obsolete nonempty_has_least *)
-Goal "P k ==> ? x. P x & (!y. P y --> m x <= (m y::nat))";
-by (simp_tac (HOL_basic_ss addsimps [le_eq RS sym]) 1);
-by (rtac (wf_pred_nat RS wf_linord_ex_has_least) 1);
-by (simp_tac (simpset() addsimps [less_eq,not_le_iff_less,le_eq]) 1);
-by (atac 1);
-qed "ex_has_least_nat";
-
-Goalw [thm "LeastM_def"] 
-  "P k ==> P (LeastM m P) & (!y. P y --> m (LeastM m P) <= (m y::nat))";
-by (rtac someI_ex 1);
-by (etac ex_has_least_nat 1);
-qed "LeastM_nat_lemma";
-
-bind_thm ("LeastM_natI", LeastM_nat_lemma RS conjunct1);
-
-Goal "P x ==> m (LeastM m P) <= (m x::nat)";
-by (rtac (LeastM_nat_lemma RS conjunct2 RS spec RS mp) 1);
-by (atac 1);
-by (atac 1);
-qed "LeastM_nat_le";
-

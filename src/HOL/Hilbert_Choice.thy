@@ -29,6 +29,11 @@ axioms
   someI:        "P (x::'a) ==> P (SOME x. P x)"
 
 
+(*used in TFL*)
+lemma tfl_some: "\\<forall>P x. P x --> P (Eps P)"
+  by (blast intro: someI)
+
+
 constdefs  
   inv :: "('a => 'b) => ('b => 'a)"
     "inv(f::'a=>'b) == % y. @x. f(x)=y"
@@ -69,6 +74,38 @@ apply (rule LeastMI2)
 apply   assumption
 apply  blast
 apply (blast intro!: order_antisym) 
+done
+
+lemma wf_linord_ex_has_least:
+     "[|wf r;  ALL x y. ((x,y):r^+) = ((y,x)~:r^*);  P k|]  \
+\     ==> EX x. P x & (!y. P y --> (m x,m y):r^*)" 
+apply (drule wf_trancl [THEN wf_eq_minimal [THEN iffD1]])
+apply (drule_tac x = "m`Collect P" in spec)
+apply force
+done
+
+(* successor of obsolete nonempty_has_least *)
+lemma ex_has_least_nat:
+     "P k ==> EX x. P x & (ALL y. P y --> m x <= (m y::nat))"
+apply (simp only: pred_nat_trancl_eq_le [symmetric])
+apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
+apply (simp (no_asm) add: less_eq not_le_iff_less pred_nat_trancl_eq_le)
+apply assumption
+done
+
+lemma LeastM_nat_lemma: 
+  "P k ==> P (LeastM m P) & (ALL y. P y --> m (LeastM m P) <= (m y::nat))"
+apply (unfold LeastM_def)
+apply (rule someI_ex)
+apply (erule ex_has_least_nat)
+done
+
+lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1, standard]
+
+lemma LeastM_nat_le: "P x ==> m (LeastM m P) <= (m x::nat)"
+apply (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp])
+apply assumption
+apply assumption
 done
 
 
