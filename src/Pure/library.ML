@@ -159,6 +159,7 @@ sig
   val space_explode: string -> string -> string list
   val std_output: string -> unit
   val std_error: string -> unit
+  val writeln_default: string -> unit
   val prefix_lines: string -> string -> string
   val split_lines: string -> string list
   val untabify: string list -> string list
@@ -1139,11 +1140,13 @@ val pwd = OS.FileSys.getDir;
 fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
-fun prefix_lines prfx txt =
-  txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
+fun prefix_lines "" txt = txt
+  | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
 
-(*hooks for output channels: normal, warning, error*)
-val writeln_fn = ref (std_output o suffix "\n");
+val writeln_default = std_output o suffix "\n";
+
+(*hooks for various output channels*)
+val writeln_fn = ref writeln_default;
 val priority_fn = ref (fn s => ! writeln_fn s);
 val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
