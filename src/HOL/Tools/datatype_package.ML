@@ -3,11 +3,24 @@
     Author:     Stefan Berghofer
     Copyright   1998  TU Muenchen
 
-Datatype package for Isabelle/HOL
+Datatype package for Isabelle/HOL.
+
+TODO:
+  - streamline internal interfaces (!??);
+  - rep_datatype outer syntax ('and' vs. ',' (!?));
+  - methods: induct, exhaust;
 *)
+
+signature BASIC_DATATYPE_PACKAGE =
+sig
+  val mutual_induct_tac : string list -> int -> tactic
+  val induct_tac : string -> int -> tactic
+  val exhaust_tac : string -> int -> tactic
+end;
 
 signature DATATYPE_PACKAGE =
 sig
+  include BASIC_DATATYPE_PACKAGE
   val quiet_mode : bool ref
   val add_datatype : bool -> string list -> (string list * bstring * mixfix *
     (bstring * string list * mixfix) list) list -> theory -> theory *
@@ -42,15 +55,12 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val setup: (theory -> theory) list
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
   val datatype_info_sg : Sign.sg -> string -> DatatypeAux.datatype_info
   val datatype_info : theory -> string -> DatatypeAux.datatype_info
   val constrs_of : theory -> string -> term list option
   val case_const_of : theory -> string -> term option
-  val mutual_induct_tac : string list -> int -> tactic
-  val induct_tac : string -> int -> tactic
-  val exhaust_tac : string -> int -> tactic
+  val setup: (theory -> theory) list
 end;
 
 structure DatatypePackage : DATATYPE_PACKAGE =
@@ -59,6 +69,7 @@ struct
 open DatatypeAux;
 
 val quiet_mode = quiet_mode;
+
 
 (* data kind 'HOL/datatypes' *)
 
@@ -81,9 +92,6 @@ val get_datatypes_sg = DatatypesData.get_sg;
 val get_datatypes = DatatypesData.get;
 val put_datatypes = DatatypesData.put;
 
-(* setup *)
-
-val setup = [DatatypesData.init];
 
 (** theory information about datatypes **)
 
@@ -258,7 +266,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
-    val _ = message ("Adding axioms for datatype(s) " ^ commas new_type_names);
+    val _ = message ("Adding axioms for datatype(s) " ^ commas_quote new_type_names);
 
     (**** declare new types and constants ****)
 
@@ -422,7 +430,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
 fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_syntax dt_info thy =
   let
-    val _ = message ("Proofs for datatype(s) " ^ commas new_type_names);
+    val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val (thy2, inject, dist_rewrites, induct) = thy |>
       DatatypeRepProofs.representation_proofs flat_names dt_info new_type_names descr sorts
@@ -633,8 +641,37 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
 val add_datatype_i = gen_add_datatype cert_typ;
 val add_datatype = gen_add_datatype read_typ;
 
+
+(** package setup **)
+
+(* setup theory *)
+
+val setup = [DatatypesData.init];
+
+
+(* outer syntax *)
+
+open OuterParse;
+
+val datatype_decl =
+  Scan.option ($$$ "(" |-- name --| $$$ ")") -- type_args -- name -- opt_infix --
+    ($$$ "=" |-- enum1 "|" (name -- Scan.repeat typ -- opt_mixfix));
+
+fun mk_datatype args =
+  let
+    val names = map (fn ((((None, _), t), _), _) => t | ((((Some t, _), _), _), _) => t) args;
+    val specs = map (fn ((((_, vs), t), mx), cons) => (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
+  in #1 o add_datatype false names specs end;
+
+val datatypeP =
+  OuterSyntax.parser false "datatype" "define inductive datatypes"
+    (enum1 "and" datatype_decl >> (Toplevel.theory o mk_datatype));
+
+val _ = OuterSyntax.add_keywords ["distinct", "inject", "induct"];
+(* FIXME val _ = OuterSyntax.add_parsers [datatypeP, rep_datatypeP]; *)
+val _ = OuterSyntax.add_parsers [datatypeP];
+
 end;
 
-val induct_tac = DatatypePackage.induct_tac;
-val mutual_induct_tac = DatatypePackage.mutual_induct_tac;
-val exhaust_tac = DatatypePackage.exhaust_tac;
+structure BasicDatatypePackage: BASIC_DATATYPE_PACKAGE = DatatypePackage;
+open BasicDatatypePackage;
