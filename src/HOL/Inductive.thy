@@ -56,6 +56,38 @@ lemmas inductive_conj = forall_conj implies_conj conj_curry
 hide const forall implies equal conj
 
 
+(* inversion of injective functions *)
+
+constdefs
+  myinv :: "('a => 'b) => ('b => 'a)"
+  "myinv (f :: 'a => 'b) == \<lambda>y. THE x. f x = y"
+
+lemma myinv_f_f: "inj f ==> myinv f (f x) = x"
+proof -
+  assume "inj f"
+  hence "(THE x'. f x' = f x) = (THE x'. x' = x)"
+    by (simp only: inj_eq)
+  also have "... = x" by (rule the_eq_trivial)
+  finally (trans) show ?thesis by (unfold myinv_def)
+qed
+
+lemma f_myinv_f: "inj f ==> y \<in> range f ==> f (myinv f y) = y"
+proof (unfold myinv_def)
+  assume inj: "inj f"
+  assume "y \<in> range f"
+  then obtain x where "y = f x" ..
+  hence x: "f x = y" ..
+  thus "f (THE x. f x = y) = y"
+  proof (rule theI)
+    fix x' assume "f x' = y"
+    with x have "f x' = f x" by simp
+    with inj show "x' = x" by (rule injD)
+  qed
+qed
+
+hide const myinv
+
+
 (* setup packages *)
 
 use "Tools/induct_method.ML"
