@@ -23,13 +23,14 @@ time_use_thy "Reach";
 time_use_thy "Handshake";
 time_use_thy "Lift";
 time_use_thy "Comp";
+time_use_thy "Reachability";
 (*Allocator example*)
-time_use_thy "Client";
-time_use_thy "ELT";  (*obsolete*)
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
-time_use_thy "Alloc";
-time_use_thy "Reachability";
+with_path "../Induct" time_use_thy "Alloc";
+time_use_thy "Client";
+
+time_use_thy "ELT";  (*obsolete*)
 
 add_path "../Auth";	(*to find Public.thy*)
 use_thy"NSP_Bad";
