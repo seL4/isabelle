@@ -129,7 +129,7 @@ section "A Proof Without -n->";
 
 goal Transition.thy
  "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
-\ (c2,s2) -*-> (c3,s3) --> (c1;c2,s1) -*-> (c3,s3)";
+\ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
 be converse_rtrancl_induct2 1;
 by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
 by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
