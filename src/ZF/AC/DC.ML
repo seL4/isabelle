@@ -293,16 +293,16 @@ goal thy
 \       (ALL Y:Pow(XX). Y lesspoll nat --> (EX x:XX. <Y,x>:RR))";
 by (rtac conjI 1);
 by (deepen_tac (!claset addSEs [FinD RS PowI]) 0 1);
-by (rtac ballI 1);
-by (rtac impI 1);
+by (rtac (impI RS ballI) 1);
 by (dresolve_tac [[lesspoll_nat_is_Finite, PowD] MRS Finite_Fin] 1
         THEN (assume_tac 1));
 by (excluded_middle_tac "EX g:XX. domain(g)=succ(UN f:Y. domain(f))  \
 \       & (ALL f:Y. restrict(g, domain(f)) = f)" 1);
-by (fast_tac (!claset addss (!simpset)) 2);
+by (etac subst 2 THEN (*elimination equation for greater speed*)
+    fast_tac (!claset addss (!simpset)) 2);
 by (step_tac (!claset delrules [domainE]) 1);
-by(swap_res_tac [bexI] 1 THEN etac singleton_in_funs 2);
-by (asm_simp_tac (!simpset addsimps [nat_0I  RSN (2, bexI), 
+by (swap_res_tac [bexI] 1 THEN etac singleton_in_funs 2);
+by (asm_full_simp_tac (!simpset addsimps [nat_0I  RSN (2, bexI), 
 				     cons_fun_type2, empty_fun]) 1);
 val lemma1 = result();
 
@@ -411,15 +411,15 @@ by (etac domainE 1);
 by (etac domainE 1);
 
 by (forward_tac [f_n_type] 1 THEN REPEAT (assume_tac 1));
+br bexI 1;
+by (etac nat_succI 2);
 by (res_inst_tac [("x","cons(<succ(xa), ya>, f`xa)")] bexI 1);
+br conjI 1;
 by (fast_tac (FOL_cs
         addEs [subst_context RSN (2, trans) RS domain_cons_eq_succ,
-        subst_context, all_in_image_restrict_eq, trans, equalityD1]) 1);
-by (rtac UN_I 1);
-by (etac nat_succI 1);
-by (rtac CollectI 1);
-by (eresolve_tac [rangeI RSN (2, subsetD) RSN (2, cons_fun_type2)] 1
-        THEN REPEAT (assume_tac 1));
+        subst_context, all_in_image_restrict_eq, trans, equalityD1]) 2);
+by (eresolve_tac [rangeI RSN (2, subsetD) RSN (2, cons_fun_type2)] 2
+        THEN REPEAT (assume_tac 2));
 by (rtac ballI 1);
 by (etac succE 1);
 (** LEVEL 25 **)
@@ -431,7 +431,7 @@ by (asm_full_simp_tac (!simpset
 by (asm_full_simp_tac (!simpset addsimps [cons_val_n, cons_val_k]) 1);
 val simplify_recursion = result();
 
- 
+
 goal thy "!!X. [| XX = (UN n:nat.  \
 \               {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       ALL b<nat. <f``b, f`b> :  \

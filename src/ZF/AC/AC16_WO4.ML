@@ -398,8 +398,9 @@ by (rtac lam_type 1);
 by (rtac CollectI 1);
 by (Fast_tac 1);
 by (rtac w_Int_eqpoll_m 1 THEN REPEAT (assume_tac 1));
-by (Simp_tac 1);
+by (simp_tac (!simpset delsimps ball_simps) 1);
 by (REPEAT (resolve_tac [ballI, impI] 1));
+(** LEVEL 9 **)
 by (eresolve_tac [w_Int_eqpoll_m RSN (2, eqpoll_m_not_empty) RS not_emptyE] 1
         THEN REPEAT (assume_tac 1));
 by (dresolve_tac [equalityD1 RS subsetD] 1 THEN (assume_tac 1));
@@ -416,12 +417,12 @@ by (fast_tac (empty_cs addSIs [refl, bexI]) 1);
 val ex_eq_succ = result();
 
 goal thy
-        "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(k)}.  \
-\       EX! w. w:t_n & z <= w; \
-\       well_ord(y,R); ~Finite(y); u:x; x Int y = 0;  \
-\       t_n <= {v:Pow(x Un y). v eqpoll succ(k #+ m)};  \
-\       ~ y lepoll {v:Pow(x). v eqpoll m}; 0<k; 0<m; k:nat; m:nat  \
-\       |] ==> EX v : s_u(u, t_n, k, y). succ(k) lepoll v Int y";
+ "!!x. [| ALL z:{z: Pow(x Un y) . z eqpoll succ(k)}.  \
+\                  EX! w. w:t_n & z <= w; \
+\         well_ord(y,R); ~Finite(y); u:x; x Int y = 0;  \
+\         t_n <= {v:Pow(x Un y). v eqpoll succ(k #+ m)};  \
+\         ~ y lepoll {v:Pow(x). v eqpoll m}; 0<k; 0<m; k:nat; m:nat  \
+\      |] ==> EX v : s_u(u, t_n, k, y). succ(k) lepoll v Int y";
 by (rtac suppose_not 1);
 by (eresolve_tac [ex_eq_succ RS bexE] 1 THEN (assume_tac 1));
 by (hyp_subst_tac 1);
@@ -579,7 +580,7 @@ by (etac bexE 1);
 by (res_inst_tac [("x","w Int y")] bexI 1);
 by (etac Int_in_LL 2);
 by (rewtac GG_def);
-by (asm_full_simp_tac (!simpset addsimps [Int_in_LL]) 1);
+by (asm_full_simp_tac (!simpset delsimps ball_simps addsimps [Int_in_LL]) 1);
 by (eresolve_tac [unique_superset_in_MM RS the_equality2 RS ssubst] 1
         THEN (assume_tac 1));
 by (REPEAT (fast_tac (!claset addEs [equals0D] addSEs [Int_in_LL]) 1));
@@ -608,9 +609,9 @@ goalw thy [GG_def]
 \       t_n <= {v:Pow(x Un y). v eqpoll n};  \
 \       v : LL(t_n, k, y) |]  \
 \       ==> GG(t_n, k, y) ` v <= x";
-by (Asm_full_simp_tac 1);
 by (forward_tac [the_in_MM_subset] 1 THEN REPEAT (assume_tac 1));
 by (dtac in_LL_eq_Int 1 THEN REPEAT (assume_tac 1));
+by (Asm_full_simp_tac 1);
 by (rtac subsetI 1);
 by (etac DiffE 1);
 by (etac swap 1);
@@ -666,8 +667,11 @@ goalw thy [GG_def]
 \       (GG(t_n, succ(k), y)) `  \
 \       (converse(ordermap(LL(t_n, succ(k), y), S)) ` b) lepoll m";
 by (rtac oallI 1);
-by (asm_full_simp_tac (!simpset addsimps [ltD,
-        ordermap_bij RS bij_converse_bij RS bij_is_fun RS apply_type]) 1);
+by (asm_full_simp_tac 
+    (!simpset delsimps ball_simps
+              addsimps [ltD,
+			ordermap_bij RS bij_converse_bij RS
+			bij_is_fun RS apply_type]) 1);
 by (rtac eqpoll_sum_imp_Diff_lepoll 1);
 by (REPEAT (fast_tac 
 	    (FOL_cs addSDs [ltD]
