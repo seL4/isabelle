@@ -79,6 +79,22 @@ qed
 lemma diff_self [simp]: "a - (a::'a::ring) = 0"
   by (simp add: diff_minus)
 
+lemma add_left_cancel [simp]:
+     "(a + b = a + c) = (b = (c::'a::ring))"
+proof
+  assume eq: "a + b = a + c"
+  then have "(-a + a) + b = (-a + a) + c"
+    by (simp only: eq add_assoc)
+  then show "b = c" by (simp add: )
+next
+  assume eq: "b = c"
+  then show "a + b = a + c" by simp
+qed
+
+lemma add_right_cancel [simp]:
+     "(b + a = c + a) = (b = (c::'a::ring))"
+  by (simp add: add_commute)
+
 
 subsubsection {* Derived rules for multiplication *}
 
@@ -117,6 +133,18 @@ qed
 
 lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
+
+lemma mult_left_zero [simp]:
+     "0 * a = (0::'a::ring)"
+proof -
+  have "0*a + 0*a = 0*a + 0"
+    by (simp add: left_distrib [symmetric])
+  then show ?thesis by (simp only: add_left_cancel)
+qed
+
+lemma mult_right_zero [simp]:
+     "a * 0 = (0::'a::ring)"
+  by (simp add: mult_commute)
 
 
 subsubsection {* Distribution rules *}
