@@ -13,7 +13,7 @@
   $\SHOW{a}{\phi}$ & prove local result, establishing some goal \\
   $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
   $\BG~\dots~\EN$ & declare explicit blocks \\
-  $\isarcmd{next}$ & switch implicit blocks \\
+  $\NEXT$ & switch implicit blocks \\
   $\NOTE{a}{a@1\;\dots\;a@n}$ & reconsider facts \\
   $\LET{p = t}$ & \text{abbreviate terms by higher-order matching} \\
 \end{tabular}
@@ -24,7 +24,7 @@
   & \Or & \TYPES~\dots \Or \CONSTS~\dots \Or \DEFS~\dots \Or \dots \\[1ex]
   proof & = & \PROOF{method}~stmt^*~\QED{method} \\[1ex]
   stmt & = & \BG~stmt^*~\EN \\
-  & \Or & \isarcmd{next} \\
+  & \Or & \NEXT \\
   & \Or & \NOTE{name}{name^+} \\
   & \Or & \LET{term = term} \\[0.5ex]
   & \Or & \FIX{var^+} \\
@@ -60,17 +60,21 @@
   \FINALLY & \approx & \ALSO~\FROM{calculation} \\
   \PRESUME{a}{\phi} & \approx & \ASSUME{a}{\phi} \\
   \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t} \\
-  \isarcmd{sorry} & \approx & \BY{cheating} \\
+  \CASE{c} & & \text{invoke named context} \\
+  \SORRY &  & \text{fake proof} \\
 \end{matharray}
 
 
 \subsection{Diagnostic commands}
 
 \begin{matharray}{ll}
-  \isarcmd{thm}~a@1\;\dots\;a@n & \text{print theorems} \\
-  \isarcmd{term}~t & \text{print term} \\
-  \isarcmd{prop}~\phi & \text{print meta-level proposition} \\
-  \isarcmd{typ}~\tau & \text{print meta-level type} \\
+  \isarkeyword{thm}~a@1\;\dots\;a@n & \text{print theorems} \\
+  \isarkeyword{term}~t & \text{print term} \\
+  \isarkeyword{prop}~\phi & \text{print meta-level proposition} \\
+  \isarkeyword{typ}~\tau & \text{print meta-level type} \\
+  \isarkeyword{print_facts} & \text{print named facts} \\
+  \isarkeyword{print_binds} & \text{print term abbreviations} \\
+  \isarkeyword{print_cases} & \text{print named cases} \\
 \end{matharray}
 
 
@@ -82,8 +86,9 @@
   $this$ & apply current facts \\
   $rule~a@1\;\dots\;a@n$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
-  $induct~x$ & apply induction rule \\
-  $contradiction$ & apply $\neg{}$ elimination rule (any order) \\[2ex]
+  $contradiction$ & apply $\neg{}$ elimination rule (any order) \\
+  $cases~x$ & case analysis (emits named cases) \\
+  $induct~x$ & proof by induction (emits named cases) \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
   $-$ & \text{no rules} \\
