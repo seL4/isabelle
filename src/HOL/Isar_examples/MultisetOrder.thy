@@ -36,10 +36,10 @@ proof;
 	hence "M + {#a#} : ??W"; ..;
 	thus "N : ??W"; by (simp only: N);
       next;
-	fix K; assume "ALL b. elem K b --> (b, a) : r" (is "??A K")
-	  and N: "N = M0 + K";
-
-	have "??A K --> M0 + K : ??W" (is "??P K");
+	fix K;
+	assume N: "N = M0 + K";
+	assume "ALL b. elem K b --> (b, a) : r";
+	have "??this --> M0 + K : ??W" (is "??P K");
 	proof (rule multiset_induct [of _ K]);
 	  from M0; have "M0 + {#} : ??W"; by simp;
 	  thus "??P {#}"; ..;
@@ -47,7 +47,7 @@ proof;
 	  fix K x; assume hyp: "??P K";
 	  show "??P (K + {#x#})";
 	  proof;
-	    assume a: "??A (K + {#x#})";
+	    assume a: "ALL b. elem (K + {#x#}) b --> (b, a) : r";
 	    hence "(x, a) : r"; by simp;
 	    with wf_hyp [RS spec]; have b: "ALL M:??W. M + {#x#} : ??W"; ..;
 
