@@ -22,7 +22,6 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
   echo
   echo "  Options are:"
-  echo "    -c           force copying of heap file (for Poly/ML)"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
@@ -48,19 +47,14 @@ function fail()
 
 # options
 
-COPYDB=""
 MLTEXT=""
-COPYDB=""
 MODES=""
 TERMINATE=""
 READONLY=""
 
-while getopts "ce:m:qru" OPT
+while getopts "e:m:qru" OPT
 do
   case "$OPT" in
-    c)
-      COPYDB=true
-      ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
       ;;
@@ -166,6 +160,6 @@ ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
-export INFILE OUTFILE COPYDB MLTEXT TERMINATE
+export INFILE OUTFILE MLTEXT TERMINATE
 [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ] && exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
 exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE

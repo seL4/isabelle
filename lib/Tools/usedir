@@ -16,7 +16,6 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -b           build mode (output heap image, use dir \".\")"
-  echo "    -c           force copying of heap file (for Poly/ML)"
   echo "    -g BOOL      generate theory graph data (default false)"
   echo "    -h BOOL      generate theory HTML data (default false)"
   echo "    -s NAME      override session NAME"
@@ -33,7 +32,6 @@ function usage()
 # options
 
 BUILD=""
-COPYDB=""
 GRAPH=false
 HTML=false
 SESSION=""
@@ -46,9 +44,6 @@ function getoptions()
     case "$OPT" in
       b)
         BUILD=true
-        ;;
-      c)
-        COPYDB="-c"
         ;;
       g)
         GRAPH="$OPTARG"
@@ -90,7 +85,7 @@ if [ -n "$BUILD" ]; then
     -e "make_html := $HTML;" \
     -e "set_session\"$SESSION\";" \
     -e "exit_use_dir\".\";" \
-    -q $COPYDB $LOGIC $NAME
+    -q $LOGIC $NAME
 else
   exec $ISABELLE \
     -e "make_html := $HTML;" \
