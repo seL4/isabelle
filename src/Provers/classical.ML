@@ -954,7 +954,7 @@ fun single_tac cs facts =
   let
     val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
     val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
-    val erules = find_erules facts nets;
+    val erules = Data.not_elim :: imp_elim :: find_erules facts nets;
 
     val tac = SUBGOAL (fn (goal, i) =>
       let
