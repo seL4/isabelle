@@ -78,6 +78,9 @@ $(OUT)/HOL-Real: $(OUT)/HOL \
   Real/RComplete.ML Real/RComplete.thy Real/Real.ML Real/Real.thy \
   Real/RealDef.ML Real/RealDef.thy Real/simproc.ML \
   Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML \
+  Real/RealBin.ML Real/RealBin.thy \
+  Real/RealInt.ML Real/RealInt.thy \
+  Real/RealPow.ML Real/RealPow.thy \
   Real/Hyperreal/Filter.ML Real/Hyperreal/Filter.thy \
   Real/Hyperreal/fuf.ML \
   Real/Hyperreal/HyperDef.ML Real/Hyperreal/HyperDef.thy \
