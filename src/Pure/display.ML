@@ -49,29 +49,23 @@ local
 fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun is_oracle (Thm.Oracle _) = true
-  | is_oracle _ = false;
-
-fun ex_oracle (Join (der, ders)) = is_oracle der orelse exists ex_oracle ders;
-
 fun pretty_thm_aux quote th =
   let
-    val {sign, hyps, prop, der, ...} = rep_thm th;
+    val {sign, hyps, prop, der = (ora, _), ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
     val prt_term = (if quote then Pretty.quote else I) o Sign.pretty_term sign;
 
     val hlen = length xshyps + length hyps;
-    val ex_ora = ex_oracle der;
     val hsymbs =
-      if hlen = 0 andalso not ex_ora then []
+      if hlen = 0 andalso not ora then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
           (map prt_term hyps @ map (Sign.pretty_sort sign) xshyps @
-            (if ex_ora then [Pretty.str "!"] else []))]
+            (if ora then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
-        (if ex_ora then "!" else "") ^ "]")];
+        (if ora then "!" else "") ^ "]")];
     val tsymbs =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];
