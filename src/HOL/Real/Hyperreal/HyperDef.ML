@@ -964,7 +964,7 @@ qed "hypreal_not_eq_minus_iff";
 
 (*** linearity ***)
 Goal "(x::hypreal) < y | x = y | y < x";
-by (rtac (hypreal_eq_minus_iff2 RS ssubst) 1);
+by (stac hypreal_eq_minus_iff2 1);
 by (res_inst_tac [("x1","x")] (hypreal_less_minus_iff RS ssubst) 1);
 by (res_inst_tac [("x1","y")] (hypreal_less_minus_iff2 RS ssubst) 1);
 by (rtac hypreal_trichotomyE 1);
@@ -1083,7 +1083,7 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_minus_zero_less_iff2";
 
 Goal "((x::hypreal) < y) = (-y < -x)";
-by (rtac (hypreal_less_minus_iff RS ssubst) 1);
+by (stac hypreal_less_minus_iff 1);
 by (res_inst_tac [("x1","x")] (hypreal_less_minus_iff RS ssubst) 1);
 by (simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_less_swap_iff";
@@ -1103,7 +1103,7 @@ qed "hypreal_gt_zero_iff";
 
 Goal "(x < 0hr) = (x < -x)";
 by (rtac (hypreal_minus_zero_less_iff RS subst) 1);
-by (rtac (hypreal_gt_zero_iff RS ssubst) 1);
+by (stac hypreal_gt_zero_iff 1);
 by (Full_simp_tac 1);
 qed "hypreal_lt_zero_iff";
 
@@ -1378,7 +1378,7 @@ qed "hypreal_two_not_zero";
 Addsimps [hypreal_two_not_zero];
 
 Goal "x*hrinv(1hr + 1hr) + x*hrinv(1hr + 1hr) = x";
-by (rtac (hypreal_add_self RS ssubst) 1);
+by (stac hypreal_add_self 1);
 by (full_simp_tac (simpset() addsimps [hypreal_mult_assoc]) 1);
 qed "hypreal_sum_of_halves";
 
@@ -1495,7 +1495,7 @@ Goal "[|x ~= 0hr; y ~= 0hr |] ==> \
 \                   hrinv(x) + hrinv(y) = (x + y)*hrinv(x*y)";
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv_distrib,
              hypreal_add_mult_distrib,hypreal_mult_assoc RS sym]) 1);
-by (rtac (hypreal_mult_assoc RS ssubst) 1);
+by (stac hypreal_mult_assoc 1);
 by (rtac (hypreal_mult_left_commute RS subst) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_hrinv_add";

@@ -84,7 +84,7 @@ Goal "|- VARS x r. \
 \ DO r := r+1 OD \
 \ {r*r <= x & x < (r+1)*(r+1)}";
 by (hoare_tac Asm_full_simp_tac 1);
-by(arith_tac 1);
+by (arith_tac 1);
 qed "sqrt";
 
 (* without multiplication *)
@@ -96,8 +96,8 @@ Goal "|- VARS x u w r. \
 \ DO r := r+1; w := w+u+2; u := u+2 OD \
 \ {r*r <= x & x < (r+1)*(r+1)}";
 by (hoare_tac Asm_full_simp_tac 1);
-by(arith_tac 1);
-by(arith_tac 1);
+by (arith_tac 1);
+by (arith_tac 1);
 qed "sqrt_without_multiplication";
 
 

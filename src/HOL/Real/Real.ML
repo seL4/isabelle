@@ -715,7 +715,7 @@ Goal "[|x ~= 0r; y ~= 0r |] ==> rinv(x) + rinv(y) = (x + y)*rinv(x*y)";
 by (asm_full_simp_tac (simpset() addsimps 
 		       [real_rinv_distrib,real_add_mult_distrib,
 			real_mult_assoc RS sym]) 1);
-by (rtac (real_mult_assoc RS ssubst) 1);
+by (stac real_mult_assoc 1);
 by (rtac (real_mult_left_commute RS subst) 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_commute]) 1);
 qed "real_rinv_add";

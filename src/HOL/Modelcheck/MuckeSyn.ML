@@ -94,7 +94,7 @@ end;
 (* transforming fun-defs into lambda-defs *)
 
 val [eq] = goal CPure.thy "(!! x. f x == g x) ==> f == g";
- br (extensional eq) 1;
+ by (rtac (extensional eq) 1);
 qed "ext_rl";
 
 infix cc;
@@ -148,9 +148,9 @@ end;
 (* first simplification, then model checking *)
 
 goalw Prod.thy [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
-  br ext 1;
+  by (rtac ext 1);
   by (stac (surjective_pairing RS sym) 1);
-  br refl 1;
+  by (rtac refl 1);
 qed "pair_eta_expand";
 
 local

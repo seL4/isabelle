@@ -10,7 +10,7 @@ Goal
  "New : actions(impl_sig)       &   \
 \ Loc l : actions(impl_sig)       &   \
 \ Free l : actions(impl_sig) ";
-by(simp_tac (simpset() addsimps 
+by (simp_tac (simpset() addsimps 
              (Impl.sig_def :: actions_def :: 
               asig_projections)) 1);
 qed "in_impl_asig";

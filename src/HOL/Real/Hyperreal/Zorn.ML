@@ -190,7 +190,7 @@ by (asm_simp_tac (simpset() addsimps [succ_def,
                    setloop split_tac [expand_if]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1);
-by (safe_tac(claset()));
+by Safe_tac;
 by (dtac bspec 1 THEN assume_tac 1);
 by (res_inst_tac  [("m1","Xa"), ("n1","X")] (TFin_subset_linear RS disjE) 2);
 by (ALLGOALS(Blast_tac));
@@ -234,7 +234,7 @@ by (etac conjE 1);
 by (subgoal_tac "({u} Un c): super S c" 1);
 by (Asm_full_simp_tac 1);
 by (rewrite_tac [super_def,psubset_def]);
-by (safe_tac (claset()));
+by Safe_tac;
 by (fast_tac (claset() addEs [chain_extend]) 1);
 by (subgoal_tac "u ~: c" 1);
 by (blast_tac (claset() addEs [equalityE]) 1);

@@ -498,7 +498,7 @@ by (simp_tac (simpset() addsimps [subst_comp_scheme_list RS sym]) 1);
 by (res_inst_tac [("A2","($ Sa ($ S A))")]
        ((subst_comp_scheme_list RS sym) RSN (2,trans)) 1);
 by ( asm_full_simp_tac (simpset() addsimps [o_def,eq_sym_conv]) 1);
-by(dres_inst_tac [("s","Some ?X")] sym 1);
+by (dres_inst_tac [("s","Some ?X")] sym 1);
 by (rtac eq_free_eq_subst_scheme_list 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);

@@ -671,22 +671,22 @@ qed_goalw "flatdom2monofun" thy [monofun]
 
 
 Goal "monofun f ==> cont(f::'a::chfin=>'b::pcpo)";
-by(rtac monocontlub2cont 1);
-by( atac 1);
-by(rtac contlubI 1);
-by(strip_tac 1);
-by(forward_tac [chfin2finch] 1);
-by(rtac antisym_less 1);
-by( force_tac (HOL_cs addIs [is_ub_thelub,ch2ch_monofun],
+by (rtac monocontlub2cont 1);
+by ( atac 1);
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (forward_tac [chfin2finch] 1);
+by (rtac antisym_less 1);
+by ( force_tac (HOL_cs addIs [is_ub_thelub,ch2ch_monofun],
                HOL_ss addsimps [finite_chain_def,maxinch_is_thelub]) 1);
-by(dtac (monofun_finch2finch COMP swap_prems_rl) 1);
-by( atac 1);
-by(asm_full_simp_tac (HOL_ss addsimps [finite_chain_def]) 1);
-by(etac conjE 1);
-by(etac exE 1);
-by(asm_full_simp_tac (HOL_ss addsimps [maxinch_is_thelub]) 1);
-by(etac (monofunE RS spec RS spec RS mp) 1);
-by(etac is_ub_thelub 1);
+by (dtac (monofun_finch2finch COMP swap_prems_rl) 1);
+by ( atac 1);
+by (asm_full_simp_tac (HOL_ss addsimps [finite_chain_def]) 1);
+by (etac conjE 1);
+by (etac exE 1);
+by (asm_full_simp_tac (HOL_ss addsimps [maxinch_is_thelub]) 1);
+by (etac (monofunE RS spec RS spec RS mp) 1);
+by (etac is_ub_thelub 1);
 qed "chfindom_monofun2cont";
 
 bind_thm ("flatdom_strict2cont",flatdom2monofun RS chfindom_monofun2cont);

@@ -2,14 +2,14 @@
 (* tactic script -- single steps *)
 
 Goal "EX S. S ~: range(f :: 'a => 'a set)";
-  br exI 1;
-  br notI 1;
-  be rangeE 1;
-  be equalityCE 1;
-  bd CollectD 1;
+  by (rtac exI 1);
+  by (rtac notI 1);
+  by (etac rangeE 1);
+  by (etac equalityCE 1);
+  by (dtac CollectD 1);
   by (contr_tac 1);
   by (swap_res_tac [CollectI] 1);
-  ba 1;
+  by (assume_tac 1);
 qed "it";
 
 

@@ -327,7 +327,7 @@ by (simp_tac (simpset() addsimps [o_def,subst_comp_tel RS sym]) 1);
 (** LEVEL 80 **)
 by (rtac ((subst_comp_tel RS sym) RSN (2,trans)) 1);
 by ( asm_full_simp_tac (simpset() addsimps [o_def,eq_sym_conv]) 1);
-by(dres_inst_tac [("s","Ok ?X")] sym 1);
+by (dres_inst_tac [("s","Ok ?X")] sym 1);
 by (rtac eq_free_eq_subst_tel 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);
