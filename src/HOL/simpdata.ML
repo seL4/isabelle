@@ -31,7 +31,7 @@ local
                     else  cla addSIs [th]
               | _ => cla addSIs [th],
        simp addsimps [th])
-      handle _ => error ("AddIffs: theorem must be unconditional\n" ^ 
+      handle TERM _ => error ("AddIffs: theorem must be unconditional\n" ^ 
                          string_of_thm th);
 
   fun delIff ((cla, simp), th) = 
@@ -45,7 +45,7 @@ local
                     else cla delrules [th]
               | _ => cla delrules [th],
        simp delsimps [th])
-      handle _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
+      handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
                           string_of_thm th); (cla, simp));
 
   fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)

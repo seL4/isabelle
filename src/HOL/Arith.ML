@@ -865,7 +865,7 @@ val not_lessD = linorder_not_less RS iffD1;
 val not_leD = linorder_not_le RS iffD1;
 
 
-fun mk_Eq thm = (thm RS Eq_FalseI) handle _ => (thm RS Eq_TrueI);
+fun mk_Eq thm = (thm RS Eq_FalseI) handle THM _ => (thm RS Eq_TrueI);
 
 val mk_Trueprop = HOLogic.mk_Trueprop;
 

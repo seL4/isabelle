@@ -372,7 +372,7 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 (*Apply an equality or definition ONCE.
   Fails unless the substitution has an effect*)
 fun stac th = 
-  let val th' = th RS def_imp_eq handle _ => th
+  let val th' = th RS def_imp_eq handle THM _ => th
   in  CHANGED_GOAL (rtac (th' RS ssubst))
   end;
 
