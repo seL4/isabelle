@@ -107,7 +107,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
     |> Proof.enter_forward
     |> Proof.begin_block
     |> Proof.fix_i [([thesisN], None)]
-    |> Proof.assume_i [((thatN, [Method.intro_local]), [(that_prop, ([], []))])]
+    |> Proof.assume_i [((thatN, [RuleContext.intro_query_local None]), [(that_prop, ([], []))])]
     |> (fn state' =>
       state'
       |> Proof.from_facts chain_facts
