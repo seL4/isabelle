@@ -9,7 +9,9 @@ Conservative extension of theory Porder0 by constant definitions
 
 header {* Type class of partial orders *}
 
-theory Porder = Main:
+theory Porder
+imports Main
+begin
 
 	(* introduce a (syntactic) class for the constant << *)
 axclass sq_ord < type

@@ -6,7 +6,11 @@
 definitions for fixed point operator and admissibility
 *)
 
-theory Fix = Cfun:
+header {* Fixed point operator and admissibility *}
+
+theory Fix
+imports Cfun
+begin
 
 consts
 

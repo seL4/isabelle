@@ -8,7 +8,9 @@ Lifting.
 
 header {* The type of lifted values *}
 
-theory Up = Cfun + Sum_Type + Datatype:
+theory Up
+imports Cfun Sum_Type Datatype
+begin
 
 (* new type for lifting *)
 

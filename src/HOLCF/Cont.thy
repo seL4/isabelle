@@ -6,7 +6,11 @@
     Results about continuity and monotonicity
 *)
 
-theory Cont = FunCpo:
+header {* Continuity and monotonicity *}
+
+theory Cont
+imports FunCpo
+begin
 
 (* 
 

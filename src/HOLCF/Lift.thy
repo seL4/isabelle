@@ -5,7 +5,9 @@
 
 header {* Lifting types of class type to flat pcpo's *}
 
-theory Lift = Cprod:
+theory Lift
+imports Cprod
+begin
 
 defaultsort type
 

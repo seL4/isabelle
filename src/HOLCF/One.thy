@@ -4,7 +4,11 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-theory One = Lift:
+header {* The unit domain *}
+
+theory One
+imports Lift
+begin
 
 types one = "unit lift"
 

@@ -8,7 +8,9 @@ Strict product with typedef.
 
 header {* The type of strict products *}
 
-theory Sprod = Cfun:
+theory Sprod
+imports Cfun
+begin
 
 constdefs
   Spair_Rep     :: "['a,'b] => ['a,'b] => bool"

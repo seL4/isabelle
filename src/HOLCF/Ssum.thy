@@ -8,7 +8,9 @@ Strict sum with typedef
 
 header {* The type of strict sums *}
 
-theory Ssum = Cfun:
+theory Ssum
+imports Cfun
+begin
 
 constdefs
   Sinl_Rep      :: "['a,'a,'b,bool]=>bool"

@@ -12,7 +12,9 @@ Class instance of  => (fun) for class pcpo
 
 header {* Class instances for the type of all functions *}
 
-theory FunCpo = Pcpo:
+theory FunCpo
+imports Pcpo
+begin
 
 (* to make << defineable: *)
 

@@ -8,7 +8,9 @@ Partial ordering for cartesian product of HOL theory prod.thy
 
 header {* The cpo of cartesian products *}
 
-theory Cprod = Cfun:
+theory Cprod
+imports Cfun
+begin
 
 defaultsort cpo
 
@@ -231,7 +233,7 @@ translations
   "LAM <x,y>.b"           == "csplit$(LAM x y. b)"
 
 syntax (xsymbols)
-  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\\<Lambda>()<_>./ _)" [0, 10] 10)
+  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\<Lambda>()<_>./ _)" [0, 10] 10)
 
 (* for compatibility with old HOLCF-Version *)
 lemma inst_cprod_pcpo: "UU = (UU,UU)"

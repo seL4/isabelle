@@ -8,7 +8,9 @@ introduction of the classes cpo and pcpo
 
 header {* Classes cpo and pcpo *}
 
-theory Pcpo = Porder:
+theory Pcpo
+imports Porder
+begin
 
 (* The class cpo of chain complete partial orders *)
 (* ********************************************** *)

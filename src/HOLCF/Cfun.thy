@@ -9,7 +9,9 @@ Definition of the type ->  of continuous functions.
 
 header {* The type of continuous functions *}
 
-theory Cfun = Cont:
+theory Cfun
+imports Cont
+begin
 
 defaultsort cpo
 
