@@ -265,6 +265,198 @@ setup Blast.setup
 
 subsubsection {* Simplifier setup *}
 
+lemma meta_eq_to_obj_eq: "x == y ==> x = y"
+proof -
+  assume r: "x == y"
+  show "x = y" by (unfold r) (rule refl)
+qed
+
+lemma eta_contract_eq: "(%s. f s) = f" ..
+
+lemma simp_thms:
+  (not_not: "(~ ~ P) = P" and
+    "(x = x) = True"
+    "(~True) = False"  "(~False) = True"
+    "(~P) ~= P"  "P ~= (~P)"  "(P ~= Q) = (P = (~Q))"
+    "(True=P) = P"  "(P=True) = P"  "(False=P) = (~P)"  "(P=False) = (~P)"
+    "(True --> P) = P"  "(False --> P) = True"
+    "(P --> True) = True"  "(P --> P) = True"
+    "(P --> False) = (~P)"  "(P --> ~P) = (~P)"
+    "(P & True) = P"  "(True & P) = P"
+    "(P & False) = False"  "(False & P) = False"
+    "(P & P) = P"  "(P & (P & Q)) = (P & Q)"
+    "(P & ~P) = False"    "(~P & P) = False"
+    "(P | True) = True"  "(True | P) = True"
+    "(P | False) = P"  "(False | P) = P"
+    "(P | P) = P"  "(P | (P | Q)) = (P | Q)"
+    "(P | ~P) = True"    "(~P | P) = True"
+    "((~P) = (~Q)) = (P=Q)" and
+    "(ALL x. P) = P"  "(EX x. P) = P"  "EX x. x=t"  "EX x. t=x"
+    -- {* needed for the one-point-rule quantifier simplification procs *}
+    -- {* essential for termination!! *} and
+    "!!P. (EX x. x=t & P(x)) = P(t)"
+    "!!P. (EX x. t=x & P(x)) = P(t)"
+    "!!P. (ALL x. x=t --> P(x)) = P(t)"
+    "!!P. (ALL x. t=x --> P(x)) = P(t)")
+  by blast+
+
+lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
+  by blast
+
+lemma ex_simps:
+  "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
+  "!!P Q. (EX x. P & Q x)   = (P & (EX x. Q x))"
+  "!!P Q. (EX x. P x | Q)   = ((EX x. P x) | Q)"
+  "!!P Q. (EX x. P | Q x)   = (P | (EX x. Q x))"
+  "!!P Q. (EX x. P x --> Q) = ((ALL x. P x) --> Q)"
+  "!!P Q. (EX x. P --> Q x) = (P --> (EX x. Q x))"
+  -- {* Miniscoping: pushing in existential quantifiers. *}
+  by blast+
+
+lemma all_simps:
+  "!!P Q. (ALL x. P x & Q)   = ((ALL x. P x) & Q)"
+  "!!P Q. (ALL x. P & Q x)   = (P & (ALL x. Q x))"
+  "!!P Q. (ALL x. P x | Q)   = ((ALL x. P x) | Q)"
+  "!!P Q. (ALL x. P | Q x)   = (P | (ALL x. Q x))"
+  "!!P Q. (ALL x. P x --> Q) = ((EX x. P x) --> Q)"
+  "!!P Q. (ALL x. P --> Q x) = (P --> (ALL x. Q x))"
+  -- {* Miniscoping: pushing in universal quantifiers. *}
+  by blast+
+
+lemma eq_ac:
+ (eq_commute: "(a=b) = (b=a)" and
+  eq_left_commute: "(P=(Q=R)) = (Q=(P=R))" and
+  eq_assoc: "((P=Q)=R) = (P=(Q=R))") by blast+
+lemma neq_commute: "(a~=b) = (b~=a)" by blast
+
+lemma conj_comms:
+ (conj_commute: "(P&Q) = (Q&P)" and
+  conj_left_commute: "(P&(Q&R)) = (Q&(P&R))") by blast+
+lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by blast
+
+lemma disj_comms:
+ (disj_commute: "(P|Q) = (Q|P)" and
+  disj_left_commute: "(P|(Q|R)) = (Q|(P|R))") by blast+
+lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by blast
+
+lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by blast
+lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by blast
+
+lemma disj_conj_distribL: "(P|(Q&R)) = ((P|Q) & (P|R))" by blast
+lemma disj_conj_distribR: "((P&Q)|R) = ((P|R) & (Q|R))" by blast
+
+lemma imp_conjR: "(P --> (Q&R)) = ((P-->Q) & (P-->R))" by blast
+lemma imp_conjL: "((P&Q) -->R)  = (P --> (Q --> R))" by blast
+lemma imp_disjL: "((P|Q) --> R) = ((P-->R)&(Q-->R))" by blast
+
+text {* These two are specialized, but @{text imp_disj_not1} is useful in @{text "Auth/Yahalom"}. *}
+lemma imp_disj_not1: "(P --> Q | R) = (~Q --> P --> R)" by blast
+lemma imp_disj_not2: "(P --> Q | R) = (~R --> P --> Q)" by blast
+
+lemma imp_disj1: "((P-->Q)|R) = (P--> Q|R)" by blast
+lemma imp_disj2: "(Q|(P-->R)) = (P--> Q|R)" by blast
+
+lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by blast
+lemma de_Morgan_conj: "(~(P & Q)) = (~P | ~Q)" by blast
+lemma not_imp: "(~(P --> Q)) = (P & ~Q)" by blast
+lemma not_iff: "(P~=Q) = (P = (~Q))" by blast
+lemma disj_not1: "(~P | Q) = (P --> Q)" by blast
+lemma disj_not2: "(P | ~Q) = (Q --> P)"  -- {* changes orientation :-( *}
+  by blast
+lemma imp_conv_disj: "(P --> Q) = ((~P) | Q)" by blast
+
+lemma iff_conv_conj_imp: "(P = Q) = ((P --> Q) & (Q --> P))" by blast
+
+
+lemma cases_simp: "((P --> Q) & (~P --> Q)) = Q"
+  -- {* Avoids duplication of subgoals after @{text split_if}, when the true and false *}
+  -- {* cases boil down to the same thing. *}
+  by blast
+
+lemma not_all: "(~ (! x. P(x))) = (? x.~P(x))" by blast
+lemma imp_all: "((! x. P x) --> Q) = (? x. P x --> Q)" by blast
+lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by blast
+lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by blast
+
+lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by blast
+lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by blast
+
+text {*
+  \medskip The @{text "&"} congruence rule: not included by default!
+  May slow rewrite proofs down by as much as 50\% *}
+
+lemma conj_cong:
+    "(P = P') ==> (P' ==> (Q = Q')) ==> ((P & Q) = (P' & Q'))"
+  by blast
+
+lemma rev_conj_cong:
+    "(Q = Q') ==> (Q' ==> (P = P')) ==> ((P & Q) = (P' & Q'))"
+  by blast
+
+text {* The @{text "|"} congruence rule: not included by default! *}
+
+lemma disj_cong:
+    "(P = P') ==> (~P' ==> (Q = Q')) ==> ((P | Q) = (P' | Q'))"
+  by blast
+
+lemma eq_sym_conv: "(x = y) = (y = x)"
+  by blast
+
+
+text {* \medskip if-then-else rules *}
+
+lemma if_True: "(if True then x else y) = x"
+  by (unfold if_def) blast
+
+lemma if_False: "(if False then x else y) = y"
+  by (unfold if_def) blast
+
+lemma if_P: "P ==> (if P then x else y) = x"
+  by (unfold if_def) blast
+
+lemma if_not_P: "~P ==> (if P then x else y) = y"
+  by (unfold if_def) blast
+
+lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
+  apply (rule case_split [of Q])
+   apply (subst if_P)
+    prefer 3 apply (subst if_not_P)
+     apply blast+
+  done
+
+lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
+  apply (subst split_if)
+  apply blast
+  done
+
+lemmas if_splits = split_if split_if_asm
+
+lemma if_def2: "(if Q then x else y) = ((Q --> x) & (~ Q --> y))"
+  by (rule split_if)
+
+lemma if_cancel: "(if c then x else x) = x"
+  apply (subst split_if)
+  apply blast
+  done
+
+lemma if_eq_cancel: "(if x = y then y else x) = x"
+  apply (subst split_if)
+  apply blast
+  done
+
+lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
+  -- {* This form is useful for expanding @{text if}s on the RIGHT of the @{text "==>"} symbol. *}
+  by (rule split_if)
+
+lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
+  -- {* And this form is useful for expanding @{text if}s on the LEFT. *}
+  apply (subst split_if)
+  apply blast
+  done
+
+lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) blast
+lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) blast
+
 use "simpdata.ML"
 setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
@@ -496,14 +688,14 @@ lemma LeastI2:
   "[| P (x::'a::order);
       !!y. P y ==> x <= y;
       !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
-   ==> Q (Least P)";
+   ==> Q (Least P)"
   apply (unfold Least_def)
   apply (rule theI2)
     apply (blast intro: order_antisym)+
   done
 
 lemma Least_equality:
-    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k";
+    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
   apply (simp add: Least_def)
   apply (rule the_equality)
   apply (auto intro!: order_antisym)

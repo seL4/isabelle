@@ -6,206 +6,73 @@
 Instantiation of the generic simplifier for HOL.
 *)
 
-section "Simplifier";
+(* legacy ML bindings *)
 
-val [prem] = goal (the_context ()) "x==y ==> x=y";
-by (rewtac prem);
-by (rtac refl 1);
-qed "meta_eq_to_obj_eq";
+val Eq_FalseI = thm "Eq_FalseI";
+val Eq_TrueI = thm "Eq_TrueI";
+val all_conj_distrib = thm "all_conj_distrib";
+val all_simps = thms "all_simps";
+val cases_simp = thm "cases_simp";
+val conj_assoc = thm "conj_assoc";
+val conj_comms = thms "conj_comms";
+val conj_commute = thm "conj_commute";
+val conj_cong = thm "conj_cong";
+val conj_disj_distribL = thm "conj_disj_distribL";
+val conj_disj_distribR = thm "conj_disj_distribR";
+val conj_left_commute = thm "conj_left_commute";
+val de_Morgan_conj = thm "de_Morgan_conj";
+val de_Morgan_disj = thm "de_Morgan_disj";
+val disj_assoc = thm "disj_assoc";
+val disj_comms = thms "disj_comms";
+val disj_commute = thm "disj_commute";
+val disj_cong = thm "disj_cong";
+val disj_conj_distribL = thm "disj_conj_distribL";
+val disj_conj_distribR = thm "disj_conj_distribR";
+val disj_left_commute = thm "disj_left_commute";
+val disj_not1 = thm "disj_not1";
+val disj_not2 = thm "disj_not2";
+val eq_ac = thms "eq_ac";
+val eq_assoc = thm "eq_assoc";
+val eq_commute = thm "eq_commute";
+val eq_left_commute = thm "eq_left_commute";
+val eq_sym_conv = thm "eq_sym_conv";
+val eta_contract_eq = thm "eta_contract_eq";
+val ex_disj_distrib = thm "ex_disj_distrib";
+val ex_simps = thms "ex_simps";
+val if_False = thm "if_False";
+val if_P = thm "if_P";
+val if_True = thm "if_True";
+val if_bool_eq_conj = thm "if_bool_eq_conj";
+val if_bool_eq_disj = thm "if_bool_eq_disj";
+val if_cancel = thm "if_cancel";
+val if_def2 = thm "if_def2";
+val if_eq_cancel = thm "if_eq_cancel";
+val if_not_P = thm "if_not_P";
+val if_splits = thms "if_splits";
+val iff_conv_conj_imp = thm "iff_conv_conj_imp";
+val imp_all = thm "imp_all";
+val imp_cong = thm "imp_cong";
+val imp_conjL = thm "imp_conjL";
+val imp_conjR = thm "imp_conjR";
+val imp_conv_disj = thm "imp_conv_disj";
+val imp_disj1 = thm "imp_disj1";
+val imp_disj2 = thm "imp_disj2";
+val imp_disjL = thm "imp_disjL";
+val imp_disj_not1 = thm "imp_disj_not1";
+val imp_disj_not2 = thm "imp_disj_not2";
+val imp_ex = thm "imp_ex";
+val meta_eq_to_obj_eq = thm "meta_eq_to_obj_eq";
+val neq_commute = thm "neq_commute";
+val not_all = thm "not_all";
+val not_ex = thm "not_ex";
+val not_iff = thm "not_iff";
+val not_imp = thm "not_imp";
+val not_not = thm "not_not";
+val rev_conj_cong = thm "rev_conj_cong";
+val simp_thms = thms "simp_thms";
+val split_if = thm "split_if";
+val split_if_asm = thm "split_if_asm";
 
-Goal "(%s. f s) = f";
-br refl 1;
-qed "eta_contract_eq";
-
-
-fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
-
-bind_thm ("not_not", prover "(~ ~ P) = P");
-
-bind_thms ("simp_thms", [not_not] @ map prover
- ["(x=x) = True",
-  "(~True) = False", "(~False) = True",
-  "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
-  "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
-  "(True --> P) = P", "(False --> P) = True",
-  "(P --> True) = True", "(P --> P) = True",
-  "(P --> False) = (~P)", "(P --> ~P) = (~P)",
-  "(P & True) = P", "(True & P) = P",
-  "(P & False) = False", "(False & P) = False",
-  "(P & P) = P", "(P & (P & Q)) = (P & Q)",
-  "(P & ~P) = False",    "(~P & P) = False",
-  "(P | True) = True", "(True | P) = True",
-  "(P | False) = P", "(False | P) = P",
-  "(P | P) = P", "(P | (P | Q)) = (P | Q)",
-  "(P | ~P) = True",    "(~P | P) = True",
-  "((~P) = (~Q)) = (P=Q)",
-  "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x",
-(* needed for the one-point-rule quantifier simplification procs*)
-(*essential for termination!!*)
-  "(? x. x=t & P(x)) = P(t)",
-  "(? x. t=x & P(x)) = P(t)",
-  "(! x. x=t --> P(x)) = P(t)",
-  "(! x. t=x --> P(x)) = P(t)"]);
-
-bind_thm ("imp_cong", standard (impI RSN
-    (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-        (fn _=> [(Blast_tac 1)]) RS mp RS mp)));
-
-(*Miniscoping: pushing in existential quantifiers*)
-bind_thms ("ex_simps", map prover
- ["(EX x. P x & Q)   = ((EX x. P x) & Q)",
-  "(EX x. P & Q x)   = (P & (EX x. Q x))",
-  "(EX x. P x | Q)   = ((EX x. P x) | Q)",
-  "(EX x. P | Q x)   = (P | (EX x. Q x))",
-  "(EX x. P x --> Q) = ((ALL x. P x) --> Q)",
-  "(EX x. P --> Q x) = (P --> (EX x. Q x))"]);
-
-(*Miniscoping: pushing in universal quantifiers*)
-bind_thms ("all_simps", map prover
- ["(ALL x. P x & Q)   = ((ALL x. P x) & Q)",
-  "(ALL x. P & Q x)   = (P & (ALL x. Q x))",
-  "(ALL x. P x | Q)   = ((ALL x. P x) | Q)",
-  "(ALL x. P | Q x)   = (P | (ALL x. Q x))",
-  "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
-  "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"]);
-
-
-fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
-
-prove "eq_commute" "(a=b) = (b=a)";
-prove "eq_left_commute" "(P=(Q=R)) = (Q=(P=R))";
-prove "eq_assoc" "((P=Q)=R) = (P=(Q=R))";
-bind_thms ("eq_ac", [eq_commute, eq_left_commute, eq_assoc]);
-
-prove "neq_commute" "(a~=b) = (b~=a)";
-
-prove "conj_commute" "(P&Q) = (Q&P)";
-prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
-bind_thms ("conj_comms", [conj_commute, conj_left_commute]);
-prove "conj_assoc" "((P&Q)&R) = (P&(Q&R))";
-
-prove "disj_commute" "(P|Q) = (Q|P)";
-prove "disj_left_commute" "(P|(Q|R)) = (Q|(P|R))";
-bind_thms ("disj_comms", [disj_commute, disj_left_commute]);
-prove "disj_assoc" "((P|Q)|R) = (P|(Q|R))";
-
-prove "conj_disj_distribL" "(P&(Q|R)) = (P&Q | P&R)";
-prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
-
-prove "disj_conj_distribL" "(P|(Q&R)) = ((P|Q) & (P|R))";
-prove "disj_conj_distribR" "((P&Q)|R) = ((P|R) & (Q|R))";
-
-prove "imp_conjR" "(P --> (Q&R)) = ((P-->Q) & (P-->R))";
-prove "imp_conjL" "((P&Q) -->R)  = (P --> (Q --> R))";
-prove "imp_disjL" "((P|Q) --> R) = ((P-->R)&(Q-->R))";
-
-(*These two are specialized, but imp_disj_not1 is useful in Auth/Yahalom.ML*)
-prove "imp_disj_not1" "(P --> Q | R) = (~Q --> P --> R)";
-prove "imp_disj_not2" "(P --> Q | R) = (~R --> P --> Q)";
-
-prove "imp_disj1" "((P-->Q)|R) = (P--> Q|R)";
-prove "imp_disj2" "(Q|(P-->R)) = (P--> Q|R)";
-
-prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
-prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
-prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
-prove "not_iff" "(P~=Q) = (P = (~Q))";
-prove "disj_not1" "(~P | Q) = (P --> Q)";
-prove "disj_not2" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
-prove "imp_conv_disj" "(P --> Q) = ((~P) | Q)";
-
-prove "iff_conv_conj_imp" "(P = Q) = ((P --> Q) & (Q --> P))";
-
-
-(*Avoids duplication of subgoals after split_if, when the true and false
-  cases boil down to the same thing.*)
-prove "cases_simp" "((P --> Q) & (~P --> Q)) = Q";
-
-prove "not_all" "(~ (! x. P(x))) = (? x.~P(x))";
-prove "imp_all" "((! x. P x) --> Q) = (? x. P x --> Q)";
-prove "not_ex"  "(~ (? x. P(x))) = (! x.~P(x))";
-prove "imp_ex" "((? x. P x) --> Q) = (! x. P x --> Q)";
-
-prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
-prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
-
-(* '&' congruence rule: not included by default!
-   May slow rewrite proofs down by as much as 50% *)
-
-let val th = prove_goal (the_context ())
-                "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [(Blast_tac 1)])
-in  bind_thm("conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
-
-let val th = prove_goal (the_context ())
-                "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [(Blast_tac 1)])
-in  bind_thm("rev_conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
-
-(* '|' congruence rule: not included by default! *)
-
-let val th = prove_goal (the_context ())
-                "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
-                (fn _=> [(Blast_tac 1)])
-in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
-
-prove "eq_sym_conv" "(x=y) = (y=x)";
-
-
-(** if-then-else rules **)
-
-Goalw [if_def] "(if True then x else y) = x";
-by (Blast_tac 1);
-qed "if_True";
-
-Goalw [if_def] "(if False then x else y) = y";
-by (Blast_tac 1);
-qed "if_False";
-
-Goalw [if_def] "P ==> (if P then x else y) = x";
-by (Blast_tac 1);
-qed "if_P";
-
-Goalw [if_def] "~P ==> (if P then x else y) = y";
-by (Blast_tac 1);
-qed "if_not_P";
-
-Goal "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))";
-by (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1);
-by (stac if_P 2);
-by (stac if_not_P 1);
-by (ALLGOALS (Blast_tac));
-qed "split_if";
-
-Goal "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))";
-by (stac split_if 1);
-by (Blast_tac 1);
-qed "split_if_asm";
-
-bind_thms ("if_splits", [split_if, split_if_asm]);
-
-bind_thm ("if_def2", read_instantiate [("P","\\<lambda>x. x")] split_if);
-
-Goal "(if c then x else x) = x";
-by (stac split_if 1);
-by (Blast_tac 1);
-qed "if_cancel";
-
-Goal "(if x = y then y else x) = x";
-by (stac split_if 1);
-by (Blast_tac 1);
-qed "if_eq_cancel";
-
-(*This form is useful for expanding IFs on the RIGHT of the ==> symbol*)
-Goal "(if P then Q else R) = ((P-->Q) & (~P-->R))";
-by (rtac split_if 1);
-qed "if_bool_eq_conj";
-
-(*And this form is useful for expanding IFs on the LEFT*)
-Goal "(if P then Q else R) = ((P&Q) | (~P&R))";
-by (stac split_if 1);
-by (Blast_tac 1);
-qed "if_bool_eq_disj";
 
 local
 val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
@@ -263,9 +130,6 @@ end;
 
 fun mk_meta_eq r = r RS eq_reflection;
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
-
-bind_thm ("Eq_TrueI", mk_meta_eq (prover  "P --> (P = True)"  RS mp));
-bind_thm ("Eq_FalseI", mk_meta_eq(prover "~P --> (P = False)" RS mp));
 
 fun mk_eq th = case concl_of th of
         Const("==",_)$_$_       => th
