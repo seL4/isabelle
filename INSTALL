@@ -1,158 +1,110 @@
 
-Isabelle installation and compilation notes
-===========================================
+Isabelle installation notes
+===========================
 
-1) User installation
---------------------
-
-Here we assume that Isabelle has already been installed at your site.
-Otherwise see 2) below of how to get the Isabelle system installed in
-the first place.
-
-
-1a) Running the Isabelle binaries
----------------------------------
-
-The Isabelle binaries (isatool, isabelle, Isabelle) may be invoked
-directly from their location within the distribution directory
-[ISABELLE_HOME] like this:
-
-  [ISABELLE_HOME]/bin/isabelle HOL
-
-This starts an interactive Isabelle session within your current text
-terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
-search PATH, but this is not strictly necessary.
-
-
-Please do *not* copy (or link) the Isabelle scripts anywhere else ---
-they just won't work!  If you really want to install independent
-Isabelle binaries somewhere else then do it like this:
-
-  [ISABELLE_HOME]/bin/isatool install -p ~/bin
-
-Your site-wide Isabelle installation may already provide Isabelle
-executables in some global bin directory (such as /usr/bin).
-
-
-1b) Isabelle as KDE application
--------------------------------
-
-Isabelle may be installed as application icon on the KDE desktop like
-this:
-
-  [ISABELLE_HOME]/bin/isatool install -k
-
-You may have to refresh the KDE desktop in order to see the new icon.
-Clicking on Isabelle will invoke the interface wrapper script (capital
-Isabelle), which is usually configured to run Proof General (see also
-the ISABELLE_INTERFACE setting).  Additional options may be passed to
-Isabelle by editing the application's command line using the standard
-KDE desktop functionality.
-
-
-2) System installation
+1) System installation
 ----------------------
 
-The Isabelle distribution is available both as traditional source-only
-tar.gz archives, and as binary packages (currently only RPM for
-Linux/x86).  In any case, the resulting Isabelle installation always
-contains the full sources, thus any part of the system be recompiled
-later, too.
+The Isabelle distribution includes both complete sources and
+precompiled binary packages for common Unix platforms.
 
 
-2a) Binary installation
-----------------------
+Quick installation
+------------------
 
-Ready-to-go RPM packages are provided for the ML compiler and runtime
-system, the Isabelle sources, and some major object-logics.  These
-packages should work on any major Linux/x86 platform based on RPM
-package management.
+Ready-to-go packages are provided for the ML compiler and runtime
+system, the Isabelle sources, and some major object-logics.  A minimal
+site installation of Isabelle on Linux/x86 works like this:
 
-A minimal installation would work like this (executed as root):
+  tar -C /usr/local -xzf Isabelle.tar.gz
+  tar -C /usr/local -xzf polyml_base.tar.gz
+  tar -C /usr/local -xzf polyml_x86-linux.tar.gz
+  tar -C /usr/local -xzf HOL_x86-linux.tar.gz
 
-  rpm -i --prefix /usr/share polyml.i386.rpm
-  rpm -i --prefix /usr/share isabelle.rpm
-  rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
-
-Note that installed RPMs may be removed like this:
-
-  rpm -e isabelle-HOL isabelle polyml
-
-The install prefix given above may be changed.  By default the ML
-system (and other contributed packages) are expected in either of the
-following three locations:
+The install prefix given above may be changed as appropriate.  By
+default the ML system (and other contributed packages) are expected in
+any of the following locations:
 
   1) [ISABELLE_HOME]/contrib
   2) [ISABELLE_HOME]/..
   3) /usr/share
   4) /usr/local
+  5) /opt
 
-This may be changed further by editing [ISABELLE_HOME]/etc/settings
-manually.
+This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
 
-Note that isabelle.rpm and isabelle-pdfdocs.rpm already contain all of
-Isabelle as platform independent sources.  Precompiled object-logics
-are provided for convenience.
-
-
-Recompiling logics
-------------------
-
-Some people prefer to be able to reconstruct the full system from the
-sources, rather than installing precompiled packages blindly.  We do
-not provide source RPMs, yet any parts of Isabelle may be recompiled
-after installation of the main isabelle.rpm package (which contains
-only sources anyway).
-
-Assuming proper configuration of the underlying ML system, Isabelle
-object-logics may be recompiled like this:
-
-  [ISABELLE_HOME]/build HOL FOL
-
-
-Source installation
--------------------
-
-Traditional tar.gz archives are provided for the full Isabelle sources
-and documentation as well.  Make sure your ML system (e.g. Poly/ML
-etc.) has already been installed properly; then proceed as follows.
-
-* Unpacking the archives.  After unpacking the Isabelle distribution
-archives (using tar and gzip) you are left with some directory
-IsabelleYY-X.
-
-* Auto configuration.  There are some minor adaptions to be made of
-the Isabelle distribution to your system environment (locations of
-bash and perl).  Simply do it like this:
+The installation may be finished as follows:
 
   cd [ISABELLE_HOME]
   ./configure
+  ./bin/isatool install -p /usr/local/bin
 
-Note that this does not store any references to [ISABELLE_HOME].  You
-may safely move the system later, without having to run ./configure
-again.
+Note that the configure script is only required for systems that do
+not have bash and perl in the canonical places (/bin/bash and
+/usr/bin/perl).
 
-* ML system settings and compilation.  Before actual compilation you
-have to tell Isabelle about your Standard ML system.  These settings
-reside in ./etc/settings, which may be also overridden by
-~/isabelle/etc/settings. There are already various sample
-configurations in ./etc/settings commented out.
+The install utility creates global references to the present Isabelle
+installation, enabling users to invoke the Isabelle executables
+without explicit path names.  Incidently, this is the only place where
+a static reference to [ISABELLE_HOME] is created; thus isatool install
+has to be run again whenever the Isabelle distribution is moved later.
 
-To build the core Isabelle/Pure and the default object-logic, just
-type
 
-  ./build
+Compiling logics
+----------------
 
-More object-logics can be made in a similar fashion:
+The Isabelle.tar.gz archive already contains all Isabelle sources (and
+documentation). Precompiled object-logics are provided for
+convenience.
 
-  ./build FOL HOL
+Assuming proper configuration of the underlying ML system
+(cf. Isabelle's etc/settings), further object-logics may be compiled
+like this:
 
-Explicit make targets may be given as follows:
+  [ISABELLE_HOME]/build FOL
 
-  ./build -m HOL-Real HOL
+Special object-logic targets may be specified as follows:
 
-After successful compilation you are ready to run the system, see 1)
-above for more information.
+  [ISABELLE_HOME]/build -m HOL-Real HOL
+
+
+2) User installation
+--------------------
+
+Running the Isabelle binaries
+-----------------------------
+
+Users may invoke the Isabelle binaries (isatool, isabelle, Isabelle)
+directly from their location within the distribution directory
+[ISABELLE_HOME] like this:
+
+  [ISABELLE_HOME]/bin/isabelle HOL
+
+This starts an interactive Isabelle session within the current text
+terminal.  [ISABELLE_HOME]/bin may be put into the shell's search
+PATH.  An alternative is to create global references to the Isabelle
+executables as follows:
+
+  [ISABELLE_HOME]/bin/isatool install -p ~/bin
+
+Note that the site-wide Isabelle installation may already provide
+Isabelle executables in some global bin directory (such as
+/usr/local/bin).
+
+
+Isabelle as KDE application
+---------------------------
+
+Users may install an Isabelle application icon on the KDE desktop as
+follows:
+
+  [ISABELLE_HOME]/bin/isatool install -k
+
+Clicking on Isabelle will invoke the interface wrapper script (capital
+Isabelle), which is usually configured to run Proof General (cf. the
+ISABELLE_INTERFACE setting).  Additional options may be passed to
+Isabelle by editing the application's command line using the standard
+KDE properties editing facilities.
 
 
 $Id$
