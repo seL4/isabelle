@@ -201,7 +201,7 @@ val succeed = METHOD (K all_tac);
 
 (* shuffle *)
 
-fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 1)));
+fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
 fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
 
 
