@@ -109,7 +109,6 @@ sig
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
-  val show_hyps: bool ref
   val pretty_term: context -> term -> Pretty.T
   val pretty_typ: context -> typ -> Pretty.T
   val pretty_sort: context -> sort -> Pretty.T
@@ -650,11 +649,9 @@ val pretty_sort = Sign.pretty_sort o sign_of;
 
 val string_of_term = Pretty.string_of oo pretty_term;
 
-val show_hyps = ref false;
-
 fun pretty_thm ctxt thm =
-  if ! show_hyps then setmp Display.show_hyps true (fn () =>
-    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm) ()
+  if ! Display.show_hyps then
+    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm
   else pretty_term ctxt (#prop (Thm.rep_thm thm));
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
