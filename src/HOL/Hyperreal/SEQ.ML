@@ -4,6 +4,8 @@
     Description : Theory of sequence and series of real numbers
 *) 
 
+val Nats_1 = thm"Nats_1";
+
 fun CLAIM_SIMP str thms =
                prove_goal (the_context()) str
                (fn prems => [cut_facts_tac prems 1,
@@ -92,7 +94,7 @@ Goal "!!(f::nat=>nat). ALL n. n <= f n \
 by (induct_tac "u" 1);
 by (auto_tac (claset(),simpset() addsimps [lemma_NSLIMSEQ2]));
 by (auto_tac (claset() addIs [(lemma_NSLIMSEQ3 RS finite_subset),
-    finite_nat_le_segment], simpset()));
+    rewrite_rule [atMost_def] finite_atMost], simpset()));
 by (dtac lemma_NSLIMSEQ1 1 THEN Step_tac 1);
 by (ALLGOALS(Asm_simp_tac));
 qed "NSLIMSEQ_finite_set";
@@ -1050,7 +1052,7 @@ by (auto_tac (claset(),
      simpset() addsimps [NSCauchy_def, NSLIMSEQ_def,starfunNat_shift_one]));
 by (dtac bspec 1 THEN assume_tac 1);
 by (dtac bspec 1 THEN assume_tac 1);
-by (dtac (SHNat_one RSN (2,HNatInfinite_SHNat_add)) 1);
+by (dtac (Nats_1 RSN (2,HNatInfinite_SHNat_add)) 1);
 by (blast_tac (claset() addIs [approx_trans3]) 1);
 qed "NSLIMSEQ_Suc";
 
@@ -1067,7 +1069,7 @@ by (auto_tac (claset(),
       simpset() addsimps [NSCauchy_def, NSLIMSEQ_def,starfunNat_shift_one]));
 by (dtac bspec 1 THEN assume_tac 1);
 by (dtac bspec 1 THEN assume_tac 1);
-by (ftac (SHNat_one RSN (2,HNatInfinite_SHNat_diff)) 1);
+by (ftac (Nats_1 RSN (2,HNatInfinite_SHNat_diff)) 1);
 by (rotate_tac 2 1);
 by (auto_tac (claset() addSDs [bspec] addIs [approx_trans3],
     simpset()));

@@ -6,6 +6,9 @@
                   nat=>nat functions
 *) 
 
+val hypnat_of_nat_eq = thm"hypnat_of_nat_eq";
+val SHNat_eq = thm"SHNat_eq";
+
 Goalw [starsetNat_def] 
       "*sNat*(UNIV::nat set) = (UNIV::hypnat set)";
 by (auto_tac (claset(), simpset() addsimps [FreeUltrafilterNat_Nat_set]));
@@ -111,28 +114,26 @@ Goalw [starsetNat_def] "A <= B ==> *sNat* A <= *sNat* B";
 by (REPEAT(blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1));
 qed "NatStar_subset";
 
-Goalw [starsetNat_def,hypnat_of_nat_def] 
-          "a : A ==> hypnat_of_nat a : *sNat* A";
+Goal "a : A ==> hypnat_of_nat a : *sNat* A";
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset],
-         simpset()));
+         simpset() addsimps [starsetNat_def,hypnat_of_nat_eq]));
 qed "NatStar_mem";
 
 Goalw [starsetNat_def] "hypnat_of_nat ` A <= *sNat* A";
-by (auto_tac (claset(), simpset() addsimps [hypnat_of_nat_def]));
+by (auto_tac (claset(), simpset() addsimps [hypnat_of_nat_eq]));
 by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1);
 qed "NatStar_hypreal_of_real_image_subset";
 
 Goal "Nats <= *sNat* (UNIV:: nat set)";
-by (simp_tac (simpset() addsimps [SHNat_hypnat_of_nat_iff,
-                          NatStar_hypreal_of_real_image_subset]) 1);
+by (auto_tac (claset(), simpset() addsimps [starsetNat_def,SHNat_eq,hypnat_of_nat_eq]));
 qed "NatStar_SHNat_subset";
 
 Goalw [starsetNat_def] 
      "*sNat* X Int Nats = hypnat_of_nat ` X";
 by (auto_tac (claset(),
          simpset() addsimps 
-           [hypnat_of_nat_def,SHNat_def]));
-by (fold_tac [hypnat_of_nat_def]);
+           [hypnat_of_nat_eq,SHNat_eq]));
+by (simp_tac (simpset() addsimps [hypnat_of_nat_eq RS sym]) 1);
 by (rtac imageI 1 THEN rtac ccontr 1);
 by (dtac bspec 1);
 by (rtac lemma_hypnatrel_refl 1);
@@ -289,7 +290,7 @@ Addsimps [starfunNat_const_fun];
 
 Goal "( *fNat2* (%x. k)) z = hypnat_of_nat  k";
 by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
-by (auto_tac (claset(), simpset() addsimps [starfunNat2, hypnat_of_nat_def]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat2, hypnat_of_nat_eq]));
 qed "starfunNat2_const_fun";
 
 Addsimps [starfunNat2_const_fun];
@@ -312,13 +313,13 @@ qed "starfunNat_inverse";
 
 Goal "( *fNat* f) (hypnat_of_nat a) = hypreal_of_real (f a)";
 by (auto_tac (claset(),
-      simpset() addsimps [starfunNat,hypnat_of_nat_def,hypreal_of_real_def]));
+      simpset() addsimps [starfunNat,hypnat_of_nat_eq,hypreal_of_real_def]));
 qed "starfunNat_eq";
 
 Addsimps [starfunNat_eq];
 
 Goal "( *fNat2* f) (hypnat_of_nat a) = hypnat_of_nat (f a)";
-by (auto_tac (claset(), simpset() addsimps [starfunNat2,hypnat_of_nat_def]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat2,hypnat_of_nat_eq]));
 qed "starfunNat2_eq";
 
 Addsimps [starfunNat2_eq];
@@ -337,7 +338,7 @@ Goal "ALL n. N <= n --> f n <= g n \
 by (Step_tac 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-         simpset() addsimps [starfunNat, hypnat_of_nat_def,hypreal_le,
+         simpset() addsimps [starfunNat, hypnat_of_nat_eq,hypreal_le,
                              hypreal_less, hypnat_le,hypnat_less]));
 by (Ultra_tac 1);
 by Auto_tac;
@@ -349,7 +350,7 @@ Goal "ALL n. N <= n --> f n < g n \
 by (Step_tac 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-         simpset() addsimps [starfunNat, hypnat_of_nat_def,hypreal_le,
+         simpset() addsimps [starfunNat, hypnat_of_nat_eq,hypreal_le,
                              hypreal_less, hypnat_le,hypnat_less]));
 by (Ultra_tac 1);
 by Auto_tac;
@@ -384,12 +385,12 @@ qed "starfunNat_pow";
 Goal "( *fNat* (%n. (X n) ^ m)) N = ( *fNat* X) N pow hypnat_of_nat m";
 by (res_inst_tac [("z","N")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-         simpset() addsimps [hyperpow, hypnat_of_nat_def,starfunNat]));
+         simpset() addsimps [hyperpow, hypnat_of_nat_eq,starfunNat]));
 qed "starfunNat_pow2";
 
-Goalw [hypnat_of_nat_def] "( *f* (%r. r ^ n)) R = (R) pow hypnat_of_nat n";
+Goal "( *f* (%r. r ^ n)) R = (R) pow hypnat_of_nat n";
 by (res_inst_tac [("z","R")] eq_Abs_hypreal 1);
-by (auto_tac (claset(), simpset() addsimps [hyperpow,starfun]));
+by (auto_tac (claset(), simpset() addsimps [hyperpow,starfun,hypnat_of_nat_eq]));
 qed "starfun_pow";
 
 (*----------------------------------------------------- 
@@ -469,7 +470,7 @@ by (auto_tac (claset(), simpset() addsimps [starfunNat_n, hypreal_minus]));
 qed "starfunNat_n_minus";
 
 Goal "( *fNatn* f) (hypnat_of_nat n) = Abs_hypreal(hyprel `` {%i. f i n})";
-by (auto_tac (claset(), simpset() addsimps [starfunNat_n,hypnat_of_nat_def]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat_n,hypnat_of_nat_eq]));
 qed "starfunNat_n_eq";
 Addsimps [starfunNat_n_eq];
 
@@ -477,7 +478,7 @@ Goal "(( *fNat* f) = ( *fNat* g)) = (f = g)";
 by Auto_tac;
 by (rtac ext 1 THEN rtac ccontr 1);
 by (dres_inst_tac [("x","hypnat_of_nat(x)")] fun_cong 1);
-by (auto_tac (claset(), simpset() addsimps [starfunNat,hypnat_of_nat_def]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat,hypnat_of_nat_eq]));
 qed "starfun_eq_iff";
 
 

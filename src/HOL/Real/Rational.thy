@@ -465,11 +465,11 @@ qed
 
 theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
     (Fract a b < Fract c d) = ((a * d) * (b * d) < (c * b) * (b * d))"
-  by (simp add: less_rat_def le_rat eq_rat int_less_le)
+  by (simp add: less_rat_def le_rat eq_rat order_less_le)
 
 theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (simp add: abs_rat_def minus_rat zero_rat less_rat eq_rat)
-     (auto simp add: mult_less_0_iff zero_less_mult_iff int_le_less 
+     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less 
                 split: abs_split)
 
 
@@ -619,7 +619,7 @@ proof
     proof -
       let ?E = "e * f" and ?F = "f * f"
       from neq gt have "0 < ?E"
-        by (auto simp add: zero_rat less_rat le_rat int_less_le eq_rat)
+        by (auto simp add: zero_rat less_rat le_rat order_less_le eq_rat)
       moreover from neq have "0 < ?F"
         by (auto simp add: zero_less_mult_iff)
       moreover from neq le have "(a * d) * (b * d) < (c * b) * (b * d)"
@@ -640,72 +640,6 @@ proof
   show "inverse 0 = (0::rat)"  by (simp add: inverse_rat_def)
   show "x/0 = 0"   by (simp add: divide_rat_def inverse_rat_def)
 qed
-
-
-subsection {* Embedding integers: The Injection @{term rat} *}
-
-constdefs
-  rat :: "int => rat"    (* FIXME generalize int to any numeric subtype (?) *)
-  "rat z == Fract z 1"
-  int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype (?) *)
-  "\<int> == range rat"
-
-lemma int_set_cases [case_names rat, cases set: int_set]:
-  "q \<in> \<int> ==> (!!z. q = rat z ==> C) ==> C"
-proof (unfold int_set_def)
-  assume "!!z. q = rat z ==> C"
-  assume "q \<in> range rat" thus C ..
-qed
-
-lemma int_set_induct [case_names rat, induct set: int_set]:
-  "q \<in> \<int> ==> (!!z. P (rat z)) ==> P q"
-  by (rule int_set_cases) auto
-
-lemma rat_of_int_zero [simp]: "rat (0::int) = (0::rat)"
-by (simp add: rat_def zero_rat [symmetric])
-
-lemma rat_of_int_one [simp]: "rat (1::int) = (1::rat)"
-by (simp add: rat_def one_rat [symmetric])
-
-lemma rat_of_int_add_distrib [simp]: "rat (x + y) = rat (x::int) + rat y"
-by (simp add: rat_def add_rat)
-
-lemma rat_of_int_minus_distrib [simp]: "rat (-x) = -rat (x::int)"
-by (simp add: rat_def minus_rat)
-
-lemma rat_of_int_diff_distrib [simp]: "rat (x - y) = rat (x::int) - rat y"
-by (simp add: rat_def diff_rat)
-
-lemma rat_of_int_mult_distrib [simp]: "rat (x * y) = rat (x::int) * rat y"
-by (simp add: rat_def mult_rat)
-
-lemma rat_inject [simp]: "(rat z = rat w) = (z = w)"
-proof
-  assume "rat z = rat w"
-  hence "Fract z 1 = Fract w 1" by (unfold rat_def)
-  hence "\<lfloor>fract z 1\<rfloor> = \<lfloor>fract w 1\<rfloor>" ..
-  thus "z = w" by auto
-next
-  assume "z = w"
-  thus "rat z = rat w" by simp
-qed
-
-
-lemma rat_of_int_zero_cancel [simp]: "(rat x = 0) = (x = 0)"
-proof -
-  have "(rat x = 0) = (rat x = rat 0)" by simp
-  also have "... = (x = 0)" by (rule rat_inject)
-  finally show ?thesis .
-qed
-
-lemma rat_of_int_less_iff [simp]: "rat (x::int) < rat y = (x < y)"
-by (simp add: rat_def less_rat) 
-
-lemma rat_of_int_le_iff [simp]: "(rat (x::int) \<le> rat y) = (x \<le> y)"
-by (simp add: linorder_not_less [symmetric])
-
-lemma zero_less_rat_of_int_iff [simp]: "(0 < rat y) = (0 < y)"
-by (insert rat_of_int_less_iff [of 0 y], simp)
 
 
 subsection {* Various Other Results *}
@@ -732,5 +666,31 @@ qed
 lemma zero_less_Fract_iff:
      "0 < b ==> (0 < Fract a b) = (0 < a)"
 by (simp add: zero_rat less_rat order_less_imp_not_eq2 zero_less_mult_iff) 
+
+lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
+apply (insert add_rat [of concl: m n 1 1])
+apply (simp add: one_rat  [symmetric]) 
+done
+
+lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
+apply (induct k) 
+apply (simp add: zero_rat) 
+apply (simp add: Fract_add_one) 
+done
+
+lemma Fract_of_int_eq: "Fract k 1 = of_int k"
+proof (cases k rule: int_cases) 
+  case (nonneg n)
+    thus ?thesis by (simp add: int_eq_of_nat Fract_of_nat_eq)
+next 
+  case (neg n)
+    hence "Fract k 1 = - (Fract (of_nat (Suc n)) 1)"
+      by (simp only: minus_rat int_eq_of_nat) 
+    also have "... =  - (of_nat (Suc n))"
+      by (simp only: Fract_of_nat_eq)
+    finally show ?thesis 
+      by (simp add: only: prems int_eq_of_nat of_int_minus of_int_of_nat_eq) 
+qed 
+
 
 end

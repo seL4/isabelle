@@ -62,13 +62,13 @@ subsection{*Comparisons On Numerals*}
 
 lemma eq_real_number_of [simp]:
      "((number_of v :: real) = number_of v') =  
-      iszero (number_of (bin_add v (bin_minus v')))"
+      iszero (number_of (bin_add v (bin_minus v')) :: int)"
 by (simp only: real_number_of_def real_of_int_inject eq_number_of_eq)
 
 text{*@{term neg} is used in rewrite rules for binary comparisons*}
 lemma less_real_number_of [simp]:
      "((number_of v :: real) < number_of v') =  
-      neg (number_of (bin_add v (bin_minus v')))"
+      neg (number_of (bin_add v (bin_minus v')) :: int)"
 by (simp only: real_number_of_def real_of_int_less_iff less_number_of_eq_neg)
 
 
@@ -134,12 +134,12 @@ number_of} are polymorphic, so that it's difficult to know what types subterms
 have. *}
 lemma real_of_nat_number_of [simp]:
      "real (number_of v :: nat) =  
-        (if neg (number_of v) then 0  
+        (if neg (number_of v :: int) then 0  
          else (number_of v :: real))"
 proof cases
-  assume "neg (number_of v)" thus ?thesis by simp
+  assume "neg (number_of v :: int)" thus ?thesis by simp
 next
-  assume neg: "~ neg (number_of v)"
+  assume neg: "~ neg (number_of v :: int)"
   thus ?thesis
     by (simp only: nat_number_of_def real_of_nat_real_of_int [OF neg], simp) 
 qed
@@ -222,7 +222,7 @@ subsection{*Absolute Value Function for the Reals*}
 
 lemma abs_nat_number_of [simp]: 
      "abs (number_of v :: real) =  
-        (if neg (number_of v) then number_of (bin_minus v)  
+        (if neg (number_of v :: int) then number_of (bin_minus v)  
          else number_of v)"
 by (simp add: real_abs_def bin_arith_simps minus_real_number_of
        less_real_number_of real_of_int_le_iff)

@@ -20,7 +20,7 @@ by (simp add: numeral_0_eq_0 numeral_1_eq_1 split add: nat_diff_split)
 (*Now just instantiating n to (number_of v) does the right simplification,
   but with some redundant inequality tests.*)
 lemma neg_number_of_bin_pred_iff_0:
-     "neg (number_of (bin_pred v)) = (number_of v = (0::nat))"
+     "neg (number_of (bin_pred v)::int) = (number_of v = (0::nat))"
 apply (subgoal_tac "neg (number_of (bin_pred v)) = (number_of v < Suc 0) ")
 apply (simp only: less_Suc_eq_le le_0_eq)
 apply (subst less_number_of_Suc, simp)
@@ -29,7 +29,7 @@ done
 text{*No longer required as a simprule because of the @{text inverse_fold}
    simproc*}
 lemma Suc_diff_number_of:
-     "neg (number_of (bin_minus v)) ==>  
+     "neg (number_of (bin_minus v)::int) ==>  
       Suc m - (number_of v) = m - (number_of (bin_pred v))"
 apply (subst Suc_diff_eq_diff_pred, simp, simp)
 apply (force simp only: diff_nat_number_of less_0_number_of [symmetric] 

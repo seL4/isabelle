@@ -338,7 +338,7 @@ lemma zcong_zless_imp_eq:
     a < m ==> 0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
   apply (unfold zcong_def dvd_def, auto)
   apply (drule_tac f = "\<lambda>z. z mod m" in arg_cong)
-  apply (cut_tac z = a and w = b in zless_linear, auto)
+  apply (cut_tac x = a and y = b in linorder_less_linear, auto)
    apply (subgoal_tac [2] "(a - b) mod m = a - b")
     apply (rule_tac [3] mod_pos_pos_trivial, auto)
   apply (subgoal_tac "(m + (a - b)) mod m = m + (a - b)")

@@ -80,7 +80,7 @@ subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma int_nat_number_of:
      "int (number_of v :: nat) =  
-         (if neg (number_of v) then 0  
+         (if neg (number_of v :: int) then 0  
           else (number_of v :: int))"
 by (simp del: nat_number_of
 	 add: neg_nat nat_number_of_def not_neg_nat add_assoc)
@@ -96,14 +96,14 @@ done
 
 lemma Suc_nat_number_of_add:
      "Suc (number_of v + n) =  
-        (if neg (number_of v) then 1+n else number_of (bin_succ v) + n)" 
+        (if neg (number_of v :: int) then 1+n else number_of (bin_succ v) + n)" 
 by (simp del: nat_number_of 
          add: nat_number_of_def neg_nat
               Suc_nat_eq_nat_zadd1 number_of_succ) 
 
 lemma Suc_nat_number_of:
      "Suc (number_of v) =  
-        (if neg (number_of v) then 1 else number_of (bin_succ v))"
+        (if neg (number_of v :: int) then 1 else number_of (bin_succ v))"
 apply (cut_tac n = 0 in Suc_nat_number_of_add)
 apply (simp cong del: if_weak_cong)
 done
@@ -115,8 +115,8 @@ declare Suc_nat_number_of [simp]
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma add_nat_number_of:
      "(number_of v :: nat) + number_of v' =  
-         (if neg (number_of v) then number_of v'  
-          else if neg (number_of v') then number_of v  
+         (if neg (number_of v :: int) then number_of v'  
+          else if neg (number_of v' :: int) then number_of v  
           else number_of (bin_add v v'))"
 by (force dest!: neg_nat
           simp del: nat_number_of
@@ -138,7 +138,7 @@ done
 
 lemma diff_nat_number_of: 
      "(number_of v :: nat) - number_of v' =  
-        (if neg (number_of v') then number_of v  
+        (if neg (number_of v' :: int) then number_of v  
          else let d = number_of (bin_add v (bin_minus v')) in     
               if neg d then 0 else nat d)"
 by (simp del: nat_number_of add: diff_nat_eq_if nat_number_of_def) 
@@ -150,7 +150,7 @@ declare diff_nat_number_of [simp]
 
 lemma mult_nat_number_of:
      "(number_of v :: nat) * number_of v' =  
-       (if neg (number_of v) then 0 else number_of (bin_mult v v'))"
+       (if neg (number_of v :: int) then 0 else number_of (bin_mult v v'))"
 by (force dest!: neg_nat
           simp del: nat_number_of
           simp add: nat_number_of_def nat_mult_distrib [symmetric]) 
@@ -162,7 +162,7 @@ declare mult_nat_number_of [simp]
 
 lemma div_nat_number_of:
      "(number_of v :: nat)  div  number_of v' =  
-          (if neg (number_of v) then 0  
+          (if neg (number_of v :: int) then 0  
            else nat (number_of v div number_of v'))"
 by (force dest!: neg_nat
           simp del: nat_number_of
@@ -175,8 +175,8 @@ declare div_nat_number_of [simp]
 
 lemma mod_nat_number_of:
      "(number_of v :: nat)  mod  number_of v' =  
-        (if neg (number_of v) then 0  
-         else if neg (number_of v') then number_of v  
+        (if neg (number_of v :: int) then 0  
+         else if neg (number_of v' :: int) then number_of v  
          else nat (number_of v mod number_of v'))"
 by (force dest!: neg_nat
           simp del: nat_number_of
@@ -242,9 +242,9 @@ by (auto elim!: nonneg_eq_int)
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma eq_nat_number_of:
      "((number_of v :: nat) = number_of v') =  
-      (if neg (number_of v) then (iszero (number_of v') | neg (number_of v'))  
-       else if neg (number_of v') then iszero (number_of v)  
-       else iszero (number_of (bin_add v (bin_minus v'))))"
+      (if neg (number_of v :: int) then (iszero (number_of v' :: int) | neg (number_of v' :: int))  
+       else if neg (number_of v' :: int) then iszero (number_of v :: int)  
+       else iszero (number_of (bin_add v (bin_minus v')) :: int))"
 apply (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
                   eq_nat_nat_iff eq_number_of_eq nat_0 iszero_def
             split add: split_if cong add: imp_cong)
@@ -259,8 +259,8 @@ declare eq_nat_number_of [simp]
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma less_nat_number_of:
      "((number_of v :: nat) < number_of v') =  
-         (if neg (number_of v) then neg (number_of (bin_minus v'))  
-          else neg (number_of (bin_add v (bin_minus v'))))"
+         (if neg (number_of v :: int) then neg (number_of (bin_minus v') :: int)  
+          else neg (number_of (bin_add v (bin_minus v')) :: int))"
 apply (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
                 nat_less_eq_zless less_number_of_eq_neg zless_nat_eq_int_zless
             cong add: imp_cong, simp) 
@@ -397,24 +397,24 @@ declare diff_less' [of "number_of v", standard, simp]
 
 lemma eq_number_of_0:
      "(number_of v = (0::nat)) =  
-      (if neg (number_of v) then True else iszero (number_of v))"
+      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
 apply (simp add: numeral_0_eq_0 [symmetric] iszero_0)
 done
 
 lemma eq_0_number_of:
      "((0::nat) = number_of v) =  
-      (if neg (number_of v) then True else iszero (number_of v))"
+      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
 apply (rule trans [OF eq_sym_conv eq_number_of_0])
 done
 
 lemma less_0_number_of:
-     "((0::nat) < number_of v) = neg (number_of (bin_minus v))"
+     "((0::nat) < number_of v) = neg (number_of (bin_minus v) :: int)"
 by (simp add: numeral_0_eq_0 [symmetric])
 
 (*Simplification already handles n<0, n<=0 and 0<=n.*)
 declare eq_number_of_0 [simp] eq_0_number_of [simp] less_0_number_of [simp]
 
-lemma neg_imp_number_of_eq_0: "neg (number_of v) ==> number_of v = (0::nat)"
+lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
 by (simp add: numeral_0_eq_0 [symmetric] iszero_0)
 
 
@@ -530,7 +530,7 @@ done
 
 lemma power_nat_number_of:
      "(number_of v :: nat) ^ n =  
-       (if neg (number_of v) then 0^n else nat ((number_of v :: int) ^ n))"
+       (if neg (number_of v :: int) then 0^n else nat ((number_of v :: int) ^ n))"
 by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def nat_power_eq
          split add: split_if cong: imp_cong)
 
@@ -605,7 +605,7 @@ lemma nat_number_of_Min: "number_of bin.Min = (0::nat)"
 
 lemma nat_number_of_BIT_True:
   "number_of (w BIT True) =
-    (if neg (number_of w) then 0
+    (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
   apply (simp only: nat_number_of_def Let_def split: split_if)
   apply (intro conjI impI)
@@ -618,7 +618,7 @@ lemma nat_number_of_BIT_True:
 lemma nat_number_of_BIT_False:
     "number_of (w BIT False) = (let n::nat = number_of w in n + n)"
   apply (simp only: nat_number_of_def Let_def)
-  apply (cases "neg (number_of w)")
+  apply (cases "neg (number_of w :: int)")
    apply (simp add: neg_nat neg_number_of_BIT)
   apply (rule int_int_eq [THEN iffD1])
   apply (simp only: not_neg_nat neg_number_of_BIT int_Suc zadd_int [symmetric] simp_thms)
@@ -637,8 +637,8 @@ subsection {*Lemmas for the Combination and Cancellation Simprocs*}
 
 lemma nat_number_of_add_left:
      "number_of v + (number_of v' + (k::nat)) =  
-         (if neg (number_of v) then number_of v' + k  
-          else if neg (number_of v') then number_of v + k  
+         (if neg (number_of v :: int) then number_of v' + k  
+          else if neg (number_of v' :: int) then number_of v + k  
           else number_of (bin_add v v') + k)"
 apply simp
 done
@@ -831,6 +831,8 @@ consts_code
   "uminus" :: "int => int"      ("`~")
   "op +" :: "int => int => int" ("(_ `+/ _)")
   "op *" :: "int => int => int" ("(_ `*/ _)")
+  "op <" :: "int => int => bool" ("(_ </ _)")
+  "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")
 
 end

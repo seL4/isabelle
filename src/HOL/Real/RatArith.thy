@@ -13,15 +13,11 @@ files ("rat_arith.ML"):
 
 instance rat :: number ..
 
-defs
+defs (overloaded)
   rat_number_of_def:
-    "number_of v == Fract (number_of v) 1"
+    "(number_of v :: rat) == of_int (number_of v)"
      (*::bin=>rat         ::bin=>int*)
 
-theorem number_of_rat: "number_of b = rat (number_of b)"
-  by (simp add: rat_number_of_def rat_def)
-
-declare number_of_rat [symmetric, simp]
 
 lemma rat_numeral_0_eq_0: "Numeral0 = (0::rat)"
 by (simp add: rat_number_of_def zero_rat [symmetric])
@@ -33,25 +29,26 @@ by (simp add: rat_number_of_def one_rat [symmetric])
 subsection{*Arithmetic Operations On Numerals*}
 
 lemma add_rat_number_of [simp]:
-     "(number_of v :: rat) + number_of v' = number_of (bin_add v v')"
-by (simp add: rat_number_of_def add_rat)
+     "(number_of v :: rat) + number_of v' = number_of (bin_add v v')" 
+by (simp only: rat_number_of_def of_int_add number_of_add)
 
 lemma minus_rat_number_of [simp]:
      "- (number_of w :: rat) = number_of (bin_minus w)"
-by (simp add: rat_number_of_def minus_rat)
+by (simp only: rat_number_of_def of_int_minus number_of_minus)
 
 lemma diff_rat_number_of [simp]: 
    "(number_of v :: rat) - number_of w = number_of (bin_add v (bin_minus w))"
-by (simp add: rat_number_of_def diff_rat)
+by (simp only: add_rat_number_of minus_rat_number_of diff_minus)
 
 lemma mult_rat_number_of [simp]:
      "(number_of v :: rat) * number_of v' = number_of (bin_mult v v')"
-by (simp add: rat_number_of_def mult_rat)
+by (simp only: rat_number_of_def of_int_mult number_of_mult)
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma rat_mult_2: "2 * z = (z+z::rat)"
 proof -
-  have eq: "(2::rat) = 1 + 1" by (simp add: rat_numeral_1_eq_1 [symmetric])
+  have eq: "(2::rat) = 1 + 1"
+    by (simp del: rat_number_of_def add: rat_numeral_1_eq_1 [symmetric])
   thus ?thesis by (simp add: eq left_distrib)
 qed
 
@@ -63,20 +60,20 @@ subsection{*Comparisons On Numerals*}
 
 lemma eq_rat_number_of [simp]:
      "((number_of v :: rat) = number_of v') =  
-      iszero (number_of (bin_add v (bin_minus v')))"
-by (simp add: rat_number_of_def eq_rat)
+      iszero (number_of (bin_add v (bin_minus v')) :: int)"
+by (simp add: rat_number_of_def)
 
 text{*@{term neg} is used in rewrite rules for binary comparisons*}
 lemma less_rat_number_of [simp]:
      "((number_of v :: rat) < number_of v') =  
-      neg (number_of (bin_add v (bin_minus v')))"
-by (simp add: rat_number_of_def less_rat)
+      neg (number_of (bin_add v (bin_minus v')) :: int)"
+by (simp add: rat_number_of_def)
 
 
 text{*New versions of existing theorems involving 0, 1*}
 
 lemma rat_minus_1_eq_m1 [simp]: "- 1 = (-1::rat)"
-by (simp add: rat_numeral_1_eq_1 [symmetric])
+by (simp del: rat_number_of_def add: rat_numeral_1_eq_1 [symmetric])
 
 lemma rat_mult_minus1 [simp]: "-1 * z = -(z::rat)"
 proof -
@@ -143,12 +140,14 @@ subsection{*Absolute Value Function for the Rats*}
 
 lemma abs_nat_number_of [simp]: 
      "abs (number_of v :: rat) =  
-        (if neg (number_of v) then number_of (bin_minus v)  
+        (if neg (number_of v :: int)  then number_of (bin_minus v)  
          else number_of v)"
-by (simp add: abs_if)
+by (simp add: abs_if) 
 
 lemma abs_minus_one [simp]: "abs (-1) = (1::rat)"
 by (simp add: abs_if)
+
+declare rat_number_of_def [simp]
 
 
 ML

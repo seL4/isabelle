@@ -961,7 +961,7 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply (case_tac "0 \<le> k")
   apply rules
   apply (simp add: linorder_not_le)
-  apply (drule zmult_zless_mono2_neg [OF iffD2 [OF zero_less_int_conv]])
+  apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
   apply assumption
   apply (simp add: mult_ac)
   done

@@ -456,14 +456,15 @@ done
    In this theory since hypreal_hrabs proved here. (To Check:) Maybe
    move both if possible?
  -------------------------------------------------------------------*)
-lemma Infinitesimal_FreeUltrafilterNat_iff2: "(x:Infinitesimal) =
+lemma Infinitesimal_FreeUltrafilterNat_iff2:
+     "(x:Infinitesimal) =
       (EX X:Rep_hypreal(x).
         ALL m. {n. abs(X n) < inverse(real(Suc m))}
                : FreeUltrafilterNat)"
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (rule eq_Abs_hypreal [of x])
 apply (auto intro!: bexI lemma_hyprel_refl 
-            simp add: Infinitesimal_hypreal_of_nat_iff hypreal_of_real_def 
-     hypreal_inverse hypreal_hrabs hypreal_less hypreal_of_nat_def)
+            simp add: Infinitesimal_hypreal_of_nat_iff hypreal_of_real_def
+     hypreal_inverse hypreal_hrabs hypreal_less hypreal_of_nat_eq)
 apply (drule_tac x = n in spec, ultra)
 done
 

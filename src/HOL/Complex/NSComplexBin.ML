@@ -100,7 +100,7 @@ qed "hcomplex_mult_2_right";
 (** Equals (=) **)
 
 Goal "((number_of v :: hcomplex) = number_of v') = \
-\     iszero (number_of (bin_add v (bin_minus v')))";
+\     iszero (number_of (bin_add v (bin_minus v')) :: int)";
 by (simp_tac
     (HOL_ss addsimps [hcomplex_number_of_def, 
 	              hcomplex_of_complex_eq_iff, eq_complex_number_of]) 1);

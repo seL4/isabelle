@@ -11,8 +11,8 @@ by (Auto_tac);
 by (Ultra_tac 1);
 qed "starPNat";
 
-Goalw [hypnat_of_nat_def] "( *pNat* P) (hypnat_of_nat n) = P n";
-by (auto_tac (claset(),simpset() addsimps [starPNat]));
+Goal "( *pNat* P) (hypnat_of_nat n) = P n";
+by (auto_tac (claset(),simpset() addsimps [starPNat, hypnat_of_nat_eq]));
 qed "starPNat_hypnat_of_nat";
 Addsimps [starPNat_hypnat_of_nat];
 
@@ -27,7 +27,7 @@ by (etac nat_induct 1);
 by (dres_inst_tac [("x","hypnat_of_nat n")] spec 1);
 by (rtac ccontr 1);
 by (auto_tac (claset(),simpset() addsimps [starPNat,
-    hypnat_of_nat_def,hypnat_add]));
+    hypnat_of_nat_eq,hypnat_add]));
 qed "hypnat_induct_obj";
 
 Goal

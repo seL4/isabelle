@@ -5,6 +5,8 @@
                   for hyperreals
 *) 
 
+val hypreal_of_nat_eq = thm"hypreal_of_nat_eq";
+
 Goalw [sumhr_def]
      "sumhr(M,N,f) =  \
 \       Abs_hypreal(UN X:Rep_hypnat(M). UN Y: Rep_hypnat(N). \
@@ -125,12 +127,11 @@ by (auto_tac (claset(),
 qed "sumhr_hrabs";
 
 (* other general version also needed *)
-Goalw [hypnat_of_nat_def]
-     "(ALL r. m <= r & r < n --> f r = g r) --> \
+Goal "(ALL r. m <= r & r < n --> f r = g r) --> \
 \     sumhr(hypnat_of_nat m, hypnat_of_nat n, f) = \
 \     sumhr(hypnat_of_nat m, hypnat_of_nat n, g)";
 by (Step_tac 1 THEN dtac sumr_fun_eq 1);
-by (auto_tac (claset(), simpset() addsimps [sumhr]));
+by (auto_tac (claset(), simpset() addsimps [sumhr, hypnat_of_nat_eq]));
 qed "sumhr_fun_hypnat_eq";
 
 Goalw [hypnat_zero_def,hypreal_of_real_def]
@@ -163,12 +164,11 @@ by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [sumhr, hypreal_minus,sumr_minus]));
 qed "sumhr_minus";
 
-Goalw [hypnat_of_nat_def]
-     "sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) = sumhr(m,n,%i. f(i + k))";
+Goal "sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) = sumhr(m,n,%i. f(i + k))";
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-              simpset() addsimps [sumhr, hypnat_add,sumr_shift_bounds]));
+              simpset() addsimps [sumhr, hypnat_add,sumr_shift_bounds, hypnat_of_nat_eq]));
 qed "sumhr_shift_bounds";
 
 (*------------------------------------------------------------------
@@ -196,12 +196,11 @@ by (simp_tac (simpset() delsimps [realpow_Suc]
 qed "sumhr_minus_one_realpow_zero";
 Addsimps [sumhr_minus_one_realpow_zero];
 
-Goalw [hypnat_of_nat_def,hypreal_of_real_def]
-     "(ALL n. m <= Suc n --> f n = r) & m <= na \
+Goal "(ALL n. m <= Suc n --> f n = r) & m <= na \
 \          ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) = \
 \          (hypreal_of_nat (na - m) * hypreal_of_real r)";
 by (auto_tac (claset() addSDs [sumr_interval_const],
-              simpset() addsimps [sumhr,hypreal_of_nat_def,
+              simpset() addsimps [hypreal_of_real_def, sumhr,hypreal_of_nat_eq, hypnat_of_nat_eq,
                                   hypreal_of_real_def, hypreal_mult]));
 qed "sumhr_interval_const";
 

@@ -27,13 +27,6 @@ constdefs
 
   int :: "nat => int"
   "int m == Abs_Integ(intrel `` {(m,0)})"
-
-  neg   :: "int => bool"
-  "neg(Z) == \<exists>x y. x<y & (x,y::nat):Rep_Integ(Z)"
-
-  (*For simplifying equalities*)
-  iszero :: "int => bool"
-  "iszero z == z = (0::int)"
   
 defs (overloaded)
   
@@ -48,15 +41,16 @@ defs (overloaded)
 		 intrel``{(x1+x2, y1+y2)})"
 
   zdiff_def:  "z - (w::int) == z + (-w)"
-
-  zless_def:  "z<w == neg(z - w)"
-
-  zle_def:    "z <= (w::int) == ~(w < z)"
-
   zmult_def:
    "z * w == 
        Abs_Integ(\<Union>(x1,y1) \<in> Rep_Integ(z). \<Union>(x2,y2) \<in> Rep_Integ(w).   
 		 intrel``{(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
+
+  zless_def: "(z < (w::int)) == (z \<le> w & z \<noteq> w)"
+
+  zle_def:
+  "z \<le> (w::int) == \<exists>x1 y1 x2 y2. x1 + y2 \<le> x2 + y1 &
+                            (x1,y1) \<in> Rep_Integ z & (x2,y2) \<in> Rep_Integ w"
 
 lemma intrel_iff [simp]: "(((x1,y1),(x2,y2)) \<in>  intrel) = (x1+y2 = x2+y1)"
 by (unfold intrel_def, blast)
@@ -121,8 +115,8 @@ apply (simp add: Rep_Integ_inverse)
 done
 
 lemma zminus_zminus [simp]: "- (- z) = (z::int)"
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zminus)
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: zminus)
 done
 
 lemma inj_zminus: "inj(%z::int. -z)"
@@ -132,16 +126,6 @@ done
 
 lemma zminus_0 [simp]: "- 0 = (0::int)"
 by (simp add: int_def Zero_int_def zminus)
-
-
-subsection{*neg: the test for negative integers*}
-
-
-lemma not_neg_int [simp]: "~ neg(int n)"
-by (simp add: neg_def int_def)
-
-lemma neg_zminus_int [simp]: "neg(- (int (Suc n)))"
-by (simp add: neg_def int_def zminus)
 
 
 subsection{*zadd: addition on Integ*}
@@ -155,22 +139,22 @@ apply (auto simp add: congruent2_def)
 done
 
 lemma zminus_zadd_distrib [simp]: "- (z + w) = (- z) + (- w::int)"
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zminus zadd)
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: zminus zadd)
 done
 
 lemma zadd_commute: "(z::int) + w = w + z"
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: add_ac zadd)
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: add_ac zadd)
 done
 
 lemma zadd_assoc: "((z1::int) + z2) + z3 = z1 + (z2 + z3)"
-apply (rule_tac z = z1 in eq_Abs_Integ)
-apply (rule_tac z = z2 in eq_Abs_Integ)
-apply (rule_tac z = z3 in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zadd add_assoc)
+apply (rule eq_Abs_Integ [of z1])
+apply (rule eq_Abs_Integ [of z2])
+apply (rule eq_Abs_Integ [of z3])
+apply (simp add: zadd add_assoc)
 done
 
 (*For AC rewriting*)
@@ -197,8 +181,8 @@ by (simp add: One_int_def zadd_int)
 (*also for the instance declaration int :: plus_ac0*)
 lemma zadd_0 [simp]: "(0::int) + z = z"
 apply (unfold Zero_int_def int_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zadd)
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: zadd)
 done
 
 lemma zadd_0_right [simp]: "z + (0::int) = z"
@@ -206,8 +190,8 @@ by (rule trans [OF zadd_commute zadd_0])
 
 lemma zadd_zminus_inverse [simp]: "z + (- z) = (0::int)"
 apply (unfold int_def Zero_int_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zminus zadd add_commute)
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: zminus zadd add_commute)
 done
 
 lemma zadd_zminus_inverse2 [simp]: "(- z) + z = (0::int)"
@@ -236,57 +220,52 @@ by (simp add: zdiff_def Zero_int_def)
 lemma zadd_assoc_cong: "(z::int) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
 by (simp add: zadd_assoc [symmetric])
 
-lemma zadd_assoc_swap: "(z::int) + (v + w) = v + (z + w)"
-by (rule zadd_commute [THEN zadd_assoc_cong])
-
 
 subsection{*zmult: multiplication on Integ*}
 
-(*Congruence property for multiplication*)
+text{*Congruence property for multiplication*}
 lemma zmult_congruent2: "congruent2 intrel  
         (%p1 p2. (%(x1,y1). (%(x2,y2).    
                     intrel``{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
 apply (rule equiv_intrel [THEN congruent2_commuteI])
-apply (rule_tac [2] p=w in PairE)  
-apply (force simp add: add_ac mult_ac, clarify) 
-apply (simp (no_asm_simp) del: equiv_intrel_iff add: add_ac mult_ac)
+ apply (force simp add: add_ac mult_ac) 
+apply (clarify, simp del: equiv_intrel_iff add: add_ac mult_ac)
 apply (rename_tac x1 x2 y1 y2 z1 z2)
 apply (rule equiv_class_eq [OF equiv_intrel intrel_iff [THEN iffD2]])
-apply (simp add: intrel_def)
-apply (subgoal_tac "x1*z1 + y2*z1 = y1*z1 + x2*z1 & x1*z2 + y2*z2 = y1*z2 + x2*z2", arith)
+apply (subgoal_tac "x1*z1 + y2*z1 = y1*z1 + x2*z1 & x1*z2 + y2*z2 = y1*z2 + x2*z2")
+apply (simp add: mult_ac, arith) 
 apply (simp add: add_mult_distrib [symmetric])
 done
 
 lemma zmult: 
    "Abs_Integ((intrel``{(x1,y1)})) * Abs_Integ((intrel``{(x2,y2)})) =    
     Abs_Integ(intrel `` {(x1*x2 + y1*y2, x1*y2 + y1*x2)})"
-apply (unfold zmult_def)
-apply (simp (no_asm_simp) add: UN_UN_split_split_eq zmult_congruent2 equiv_intrel [THEN UN_equiv_class2])
-done
+by (simp add: zmult_def UN_UN_split_split_eq zmult_congruent2 
+              equiv_intrel [THEN UN_equiv_class2])
 
 lemma zmult_zminus: "(- z) * w = - (z * (w::int))"
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zminus zmult add_ac)
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: zminus zmult add_ac)
 done
 
 lemma zmult_commute: "(z::int) * w = w * z"
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zmult add_ac mult_ac)
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: zmult add_ac mult_ac)
 done
 
 lemma zmult_assoc: "((z1::int) * z2) * z3 = z1 * (z2 * z3)"
-apply (rule_tac z = z1 in eq_Abs_Integ)
-apply (rule_tac z = z2 in eq_Abs_Integ)
-apply (rule_tac z = z3 in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: add_mult_distrib2 zmult add_ac mult_ac)
+apply (rule eq_Abs_Integ [of z1])
+apply (rule eq_Abs_Integ [of z2])
+apply (rule eq_Abs_Integ [of z3])
+apply (simp add: add_mult_distrib2 zmult add_ac mult_ac)
 done
 
 lemma zadd_zmult_distrib: "((z1::int) + z2) * w = (z1 * w) + (z2 * w)"
-apply (rule_tac z = z1 in eq_Abs_Integ)
-apply (rule_tac z = z2 in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ)
+apply (rule eq_Abs_Integ [of z1])
+apply (rule eq_Abs_Integ [of z2])
+apply (rule eq_Abs_Integ [of w])
 apply (simp add: add_mult_distrib2 zadd zmult add_ac mult_ac)
 done
 
@@ -314,14 +293,14 @@ by (simp add: int_def zmult)
 
 lemma zmult_0 [simp]: "0 * z = (0::int)"
 apply (unfold Zero_int_def int_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zmult)
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: zmult)
 done
 
 lemma zmult_1 [simp]: "(1::int) * z = z"
 apply (unfold One_int_def int_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (simp (no_asm_simp) add: zmult)
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: zmult)
 done
 
 lemma zmult_0_right [simp]: "z * 0 = (0::int)"
@@ -352,63 +331,72 @@ proof
 qed
 
 
-subsection{*Theorems about the Ordering*}
+subsection{*The @{text "\<le>"} Ordering*}
+
+lemma zle: 
+  "(Abs_Integ(intrel``{(x1,y1)}) \<le> Abs_Integ(intrel``{(x2,y2)})) =  
+   (x1 + y2 \<le> x2 + y1)"
+by (force simp add: zle_def)
+
+lemma zle_refl: "w \<le> (w::int)"
+apply (rule eq_Abs_Integ [of w])
+apply (force simp add: zle)
+done
+
+lemma zle_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::int)"
+apply (rule eq_Abs_Integ [of i]) 
+apply (rule eq_Abs_Integ [of j]) 
+apply (rule eq_Abs_Integ [of k]) 
+apply (simp add: zle) 
+done
+
+lemma zle_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::int)"
+apply (rule eq_Abs_Integ [of w]) 
+apply (rule eq_Abs_Integ [of z]) 
+apply (simp add: zle) 
+done
+
+(* Axiom 'order_less_le' of class 'order': *)
+lemma zless_le: "((w::int) < z) = (w \<le> z & w \<noteq> z)"
+by (simp add: zless_def)
+
+instance int :: order
+proof qed
+ (assumption |
+  rule zle_refl zle_trans zle_anti_sym zless_le)+
+
+(* Axiom 'linorder_linear' of class 'linorder': *)
+lemma zle_linear: "(z::int) \<le> w | w \<le> z"
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: zle linorder_linear) 
+done
+
+instance int :: plus_ac0
+proof qed (rule zadd_commute zadd_assoc zadd_0)+
+
+instance int :: linorder
+proof qed (rule zle_linear)
+
+
+lemmas zless_linear = linorder_less_linear [where 'a = int]
+
+
+lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
+by (simp add: Zero_int_def)
 
 (*This lemma allows direct proofs of other <-properties*)
 lemma zless_iff_Suc_zadd: 
     "(w < z) = (\<exists>n. z = w + int(Suc n))"
-apply (unfold zless_def neg_def zdiff_def int_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ, clarify)
-apply (simp add: zadd zminus)
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: linorder_not_le [where 'a = int, symmetric] 
+                 linorder_not_le [where 'a = nat] 
+                 zle int_def zdiff_def zadd zminus) 
 apply (safe dest!: less_imp_Suc_add)
 apply (rule_tac x = k in exI)
 apply (simp_all add: add_ac)
 done
-
-lemma zless_zadd_Suc: "z < z + int (Suc n)"
-by (auto simp add: zless_iff_Suc_zadd zadd_assoc zadd_int)
-
-lemma zless_trans: "[| z1<z2; z2<z3 |] ==> z1 < (z3::int)"
-by (auto simp add: zless_iff_Suc_zadd zadd_assoc zadd_int)
-
-lemma zless_not_sym: "!!w::int. z<w ==> ~w<z"
-apply (safe dest!: zless_iff_Suc_zadd [THEN iffD1])
-apply (rule_tac z = z in eq_Abs_Integ, safe)
-apply (simp add: int_def zadd)
-done
-
-(* [| n<m;  ~P ==> m<n |] ==> P *)
-lemmas zless_asym = zless_not_sym [THEN swap, standard]
-
-lemma zless_not_refl: "!!z::int. ~ z<z"
-apply (rule zless_asym [THEN notI])
-apply (assumption+)
-done
-
-(* z<z ==> R *)
-lemmas zless_irrefl = zless_not_refl [THEN notE, standard, elim!]
-
-
-(*"Less than" is a linear ordering*)
-lemma zless_linear: 
-    "z<w | z=w | w<(z::int)"
-apply (unfold zless_def neg_def zdiff_def)
-apply (rule_tac z = z in eq_Abs_Integ)
-apply (rule_tac z = w in eq_Abs_Integ, safe)
-apply (simp add: zadd zminus Image_iff Bex_def)
-apply (rule_tac m1 = "x+ya" and n1 = "xa+y" in less_linear [THEN disjE])
-apply (force simp add: add_ac)+
-done
-
-lemma int_neq_iff: "!!w::int. (w ~= z) = (w<z | z<w)"
-by (cut_tac zless_linear, blast)
-
-(*** eliminates ~= in premises ***)
-lemmas int_neqE = int_neq_iff [THEN iffD1, THEN disjE, standard]
-
-lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
-by (simp add: Zero_int_def)
 
 lemma zless_int [simp]: "(int m < int n) = (m<n)"
 by (simp add: less_iff_Suc_add zless_iff_Suc_zadd zadd_int)
@@ -425,84 +413,553 @@ by (simp only: Zero_int_def One_int_def One_nat_def zless_int)
 lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
 by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
 
+lemma zle_int [simp]: "(int m \<le> int n) = (m\<le>n)"
+by (simp add: linorder_not_less [symmetric])
 
-subsection{*Properties of the @{text "\<le>"} Relation*}
-
-lemma zle_int [simp]: "(int m <= int n) = (m<=n)"
-by (simp add: zle_def le_def)
-
-lemma zero_zle_int [simp]: "(0 <= int n)"
+lemma zero_zle_int [simp]: "(0 \<le> int n)"
 by (simp add: Zero_int_def)
 
-lemma int_le_0_conv [simp]: "(int n <= 0) = (n = 0)"
+lemma int_le_0_conv [simp]: "(int n \<le> 0) = (n = 0)"
 by (simp add: Zero_int_def)
 
-lemma zle_imp_zless_or_eq: "z <= w ==> z < w | z=(w::int)"
-apply (unfold zle_def)
-apply (cut_tac zless_linear)
-apply (blast elim: zless_asym)
+lemma int_0 [simp]: "int 0 = (0::int)"
+by (simp add: Zero_int_def)
+
+lemma int_1 [simp]: "int 1 = 1"
+by (simp add: One_int_def)
+
+lemma int_Suc0_eq_1: "int (Suc 0) = 1"
+by (simp add: One_int_def One_nat_def)
+
+subsection{*Monotonicity results*}
+
+lemma zadd_left_mono: "i \<le> j ==> k + i \<le> k + (j::int)" 
+apply (rule eq_Abs_Integ [of i]) 
+apply (rule eq_Abs_Integ [of j]) 
+apply (rule eq_Abs_Integ [of k]) 
+apply (simp add: zle zadd) 
 done
 
-lemma zless_or_eq_imp_zle: "z<w | z=w ==> z <= (w::int)"
-apply (unfold zle_def)
-apply (cut_tac zless_linear)
-apply (blast elim: zless_asym)
+lemma zadd_strict_right_mono: "i < j ==> i + k < j + (k::int)" 
+apply (rule eq_Abs_Integ [of i]) 
+apply (rule eq_Abs_Integ [of j]) 
+apply (rule eq_Abs_Integ [of k]) 
+apply (simp add: linorder_not_le [where 'a = int, symmetric] 
+                 linorder_not_le [where 'a = nat]  zle zadd)
 done
 
-lemma int_le_less: "(x <= (y::int)) = (x < y | x=y)"
-apply (rule iffI) 
-apply (erule zle_imp_zless_or_eq) 
-apply (erule zless_or_eq_imp_zle) 
+lemma zadd_zless_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::int)"
+by (rule order_less_le_trans [OF zadd_strict_right_mono zadd_left_mono]) 
+
+
+subsection{*Strict Monotonicity of Multiplication*}
+
+text{*strict, in 1st argument; proof is by induction on k>0*}
+lemma zmult_zless_mono2_lemma [rule_format]:
+     "i<j ==> 0<k --> int k * i < int k * j"
+apply (induct_tac "k", simp) 
+apply (simp add: int_Suc)
+apply (case_tac "n=0")
+apply (simp_all add: zadd_zmult_distrib int_Suc0_eq_1 order_le_less)
+apply (simp add: zadd_zless_mono int_Suc0_eq_1 order_le_less)
 done
 
-lemma zle_refl: "w <= (w::int)"
-by (simp add: int_le_less)
-
-(* Axiom 'linorder_linear' of class 'linorder': *)
-lemma zle_linear: "(z::int) <= w | w <= z"
-apply (simp add: int_le_less)
-apply (cut_tac zless_linear, blast)
+lemma zero_le_imp_eq_int: "0 \<le> k ==> \<exists>n. k = int n"
+apply (rule eq_Abs_Integ [of k]) 
+apply (auto simp add: zle zadd int_def Zero_int_def)
+apply (rule_tac x="x-y" in exI, simp) 
 done
 
-(* Axiom 'order_trans of class 'order': *)
-lemma zle_trans: "[| i <= j; j <= k |] ==> i <= (k::int)"
-apply (drule zle_imp_zless_or_eq) 
-apply (drule zle_imp_zless_or_eq) 
-apply (rule zless_or_eq_imp_zle) 
-apply (blast intro: zless_trans) 
+lemma zmult_zless_mono2: "[| i<j;  (0::int) < k |] ==> k*i < k*j"
+apply (frule order_less_imp_le [THEN zero_le_imp_eq_int]) 
+apply (auto simp add: zmult_zless_mono2_lemma) 
 done
 
-lemma zle_anti_sym: "[| z <= w; w <= z |] ==> z = (w::int)"
-apply (drule zle_imp_zless_or_eq) 
-apply (drule zle_imp_zless_or_eq) 
-apply (blast elim: zless_asym) 
+
+defs (overloaded)
+    zabs_def:  "abs(i::int) == if i < 0 then -i else i"
+
+
+text{*The Integers Form an Ordered Ring*}
+instance int :: ordered_ring
+proof
+  fix i j k :: int
+  show "0 < (1::int)" by (rule int_0_less_1)
+  show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
+  show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
+  show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
+qed
+
+
+subsection{*Magnitide of an Integer, as a Natural Number: @{term nat}*}
+
+constdefs
+   nat  :: "int => nat"
+    "nat(Z) == if Z<0 then 0 else (THE m. Z = int m)"
+
+lemma nat_int [simp]: "nat(int n) = n"
+by (unfold nat_def, auto)
+
+lemma nat_zero [simp]: "nat 0 = 0"
+apply (unfold Zero_int_def)
+apply (rule nat_int)
 done
 
-(* Axiom 'order_less_le' of class 'order': *)
-lemma int_less_le: "((w::int) < z) = (w <= z & w ~= z)"
-apply (simp add: zle_def int_neq_iff)
-apply (blast elim!: zless_asym)
+lemma nat_0_le [simp]: "0 \<le> z ==> int (nat z) = z"
+apply (rule eq_Abs_Integ [of z]) 
+apply (simp add: nat_def linorder_not_le [symmetric] zle int_def Zero_int_def)
+apply (subgoal_tac "(THE m. x = m + y) = x-y")
+apply (auto simp add: the_equality) 
 done
 
-instance int :: order
-proof qed (assumption | rule zle_refl zle_trans zle_anti_sym int_less_le)+
+lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
+by (simp add: nat_def  order_less_le eq_commute [of 0])
 
-instance int :: plus_ac0
-proof qed (rule zadd_commute zadd_assoc zadd_0)+
+text{*An alternative condition is @{term "0 \<le> w"} *}
+lemma nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
+apply (subst zless_int [symmetric])
+apply (simp add: order_le_less)
+apply (case_tac "w < 0")
+ apply (simp add: order_less_imp_le)
+ apply (blast intro: order_less_trans)
+apply (simp add: linorder_not_less)
+done
 
-instance int :: linorder
-proof qed (rule zle_linear)
+lemma zless_nat_conj: "(nat w < nat z) = (0 < z & w < z)"
+apply (case_tac "0 < z")
+apply (auto simp add: nat_mono_iff linorder_not_less)
+done
 
 
-lemma zadd_left_cancel [simp]: "!!w::int. (z + w' = z + w) = (w' = w)"
-  by (rule add_left_cancel) 
+subsection{*Lemmas about the Function @{term int} and Orderings*}
+
+lemma negative_zless_0: "- (int (Suc n)) < 0"
+by (simp add: zless_def)
+
+lemma negative_zless [iff]: "- (int (Suc n)) < int m"
+by (rule negative_zless_0 [THEN order_less_le_trans], simp)
+
+lemma negative_zle_0: "- int n \<le> 0"
+by (simp add: minus_le_iff)
+
+lemma negative_zle [iff]: "- int n \<le> int m"
+by (rule order_trans [OF negative_zle_0 zero_zle_int])
+
+lemma not_zle_0_negative [simp]: "~ (0 \<le> - (int (Suc n)))"
+by (subst le_minus_iff, simp)
+
+lemma int_zle_neg: "(int n \<le> - int m) = (n = 0 & m = 0)"
+apply safe 
+apply (drule_tac [2] le_minus_iff [THEN iffD1])
+apply (auto dest: zle_trans [OF _ negative_zle_0]) 
+done
+
+lemma not_int_zless_negative [simp]: "~ (int n < - int m)"
+by (simp add: linorder_not_less)
+
+lemma negative_eq_positive [simp]: "(- int n = int m) = (n = 0 & m = 0)"
+by (force simp add: order_eq_iff [of "- int n"] int_zle_neg)
+
+lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int n)"
+by (force intro: exI [of _ "0::nat"] 
+            intro!: not_sym [THEN not0_implies_Suc]
+            simp add: zless_iff_Suc_zadd order_le_less)
 
 
+text{*This version is proved for all ordered rings, not just integers!
+      It is proved here because attribute @{text arith_split} is not available
+      in theory @{text Ring_and_Field}.
+      But is it really better than just rewriting with @{text abs_if}?*}
+lemma abs_split [arith_split]:
+     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
+
+lemma abs_int_eq [simp]: "abs (int m) = int m"
+by (simp add: zabs_def)
+
+
+subsection{*Misc Results*}
+
+lemma nat_zminus_int [simp]: "nat(- (int n)) = 0"
+by (auto simp add: nat_def zero_reorient minus_less_iff)
+
+lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
+apply (case_tac "0 \<le> z")
+apply (erule nat_0_le [THEN subst], simp) 
+apply (simp add: linorder_not_le)
+apply (auto dest: order_less_trans simp add: order_less_imp_le)
+done
+
+
+
+subsection{*Monotonicity of Multiplication*}
+
+lemma zmult_zle_mono2: "[| i \<le> j;  (0::int) \<le> k |] ==> k*i \<le> k*j"
+  by (rule Ring_and_Field.mult_left_mono)
+
+lemma zmult_zless_cancel2: "(m*k < n*k) = (((0::int) < k & m<n) | (k<0 & n<m))"
+  by (rule Ring_and_Field.mult_less_cancel_right)
+
+lemma zmult_zless_cancel1:
+     "(k*m < k*n) = (((0::int) < k & m<n) | (k < 0 & n<m))"
+  by (rule Ring_and_Field.mult_less_cancel_left)
+
+lemma zmult_zle_cancel1:
+     "(k*m \<le> k*n) = (((0::int) < k --> m\<le>n) & (k < 0 --> n\<le>m))"
+  by (rule Ring_and_Field.mult_le_cancel_left)
+
+
+
+text{*A case theorem distinguishing non-negative and negative int*}
+
+lemma negD: "x<0 ==> \<exists>n. x = - (int (Suc n))"
+by (auto simp add: zless_iff_Suc_zadd 
+                   diff_eq_eq [symmetric] zdiff_def)
+
+lemma int_cases [cases type: int, case_names nonneg neg]: 
+     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
+apply (case_tac "z < 0", blast dest!: negD)
+apply (simp add: linorder_not_less)
+apply (blast dest: nat_0_le [THEN sym])
+done
+
+lemma int_induct [induct type: int, case_names nonneg neg]: 
+     "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
+  by (cases z) auto
+
+
+subsection{*The Constants @{term neg} and @{term iszero}*}
+
+constdefs
+
+  neg   :: "'a::ordered_ring => bool"
+  "neg(Z) == Z < 0"
+
+  (*For simplifying equalities*)
+  iszero :: "'a::semiring => bool"
+  "iszero z == z = (0)"
+  
+
+lemma not_neg_int [simp]: "~ neg(int n)"
+by (simp add: neg_def)
+
+lemma neg_zminus_int [simp]: "neg(- (int (Suc n)))"
+by (simp add: neg_def neg_less_0_iff_less)
+
+lemmas neg_eq_less_0 = neg_def
+
+lemma not_neg_eq_ge_0: "(~neg x) = (0 \<le> x)"
+by (simp add: neg_def linorder_not_less)
+
+subsection{*To simplify inequalities when Numeral1 can get simplified to 1*}
+
+lemma not_neg_0: "~ neg 0"
+by (simp add: One_int_def neg_def)
+
+lemma not_neg_1: "~ neg 1"
+by (simp add: neg_def linorder_not_less zero_le_one) 
+
+lemma iszero_0: "iszero 0"
+by (simp add: iszero_def)
+
+lemma not_iszero_1: "~ iszero 1"
+by (simp add: iszero_def eq_commute) 
+
+lemma neg_nat: "neg z ==> nat z = 0"
+by (simp add: nat_def neg_def) 
+
+lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
+by (simp add: linorder_not_less neg_def)
+
+
+subsection{*Embedding of the Naturals into any Semiring: @{term of_nat}*}
+
+consts of_nat :: "nat => 'a::semiring"
+
+primrec
+  of_nat_0:   "of_nat 0 = 0"
+  of_nat_Suc: "of_nat (Suc m) = of_nat m + 1"
+
+lemma of_nat_1 [simp]: "of_nat 1 = 1"
+by simp
+
+lemma of_nat_add [simp]: "of_nat (m+n) = of_nat m + of_nat n"
+apply (induct m)
+apply (simp_all add: add_ac) 
+done
+
+lemma of_nat_mult [simp]: "of_nat (m*n) = of_nat m * of_nat n"
+apply (induct m) 
+apply (simp_all add: mult_ac add_ac right_distrib) 
+done
+
+lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semiring)"
+apply (induct m, simp_all) 
+apply (erule order_trans) 
+apply (rule less_add_one [THEN order_less_imp_le]) 
+done
+
+lemma less_imp_of_nat_less:
+     "m < n ==> of_nat m < (of_nat n::'a::ordered_semiring)"
+apply (induct m n rule: diff_induct, simp_all) 
+apply (insert add_le_less_mono [OF zero_le_imp_of_nat zero_less_one], force) 
+done
+
+lemma of_nat_less_imp_less:
+     "of_nat m < (of_nat n::'a::ordered_semiring) ==> m < n"
+apply (induct m n rule: diff_induct, simp_all) 
+apply (insert zero_le_imp_of_nat) 
+apply (force simp add: linorder_not_less [symmetric]) 
+done
+
+lemma of_nat_less_iff [simp]:
+     "(of_nat m < (of_nat n::'a::ordered_semiring)) = (m<n)"
+by (blast intro: of_nat_less_imp_less less_imp_of_nat_less ) 
+
+text{*Special cases where either operand is zero*}
+declare of_nat_less_iff [of 0, simplified, simp]
+declare of_nat_less_iff [of _ 0, simplified, simp]
+
+lemma of_nat_le_iff [simp]:
+     "(of_nat m \<le> (of_nat n::'a::ordered_semiring)) = (m \<le> n)"
+by (simp add: linorder_not_less [symmetric]) 
+
+text{*Special cases where either operand is zero*}
+declare of_nat_le_iff [of 0, simplified, simp]
+declare of_nat_le_iff [of _ 0, simplified, simp]
+
+lemma of_nat_eq_iff [simp]:
+     "(of_nat m = (of_nat n::'a::ordered_semiring)) = (m = n)"
+by (simp add: order_eq_iff) 
+
+text{*Special cases where either operand is zero*}
+declare of_nat_eq_iff [of 0, simplified, simp]
+declare of_nat_eq_iff [of _ 0, simplified, simp]
+
+lemma of_nat_diff [simp]:
+     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring)"
+by (simp del: of_nat_add
+	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split) 
+
+
+subsection{*The Set of Natural Numbers*}
+
+constdefs
+   Nats  :: "'a::semiring set"
+    "Nats == range of_nat"
+
+syntax (xsymbols)    Nats :: "'a set"   ("\<nat>")
+
+lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
+by (simp add: Nats_def) 
+
+lemma Nats_0 [simp]: "0 \<in> Nats"
+apply (simp add: Nats_def) 
+apply (rule range_eqI) 
+apply (rule of_nat_0 [symmetric])
+done
+
+lemma Nats_1 [simp]: "1 \<in> Nats"
+apply (simp add: Nats_def) 
+apply (rule range_eqI) 
+apply (rule of_nat_1 [symmetric])
+done
+
+lemma Nats_add [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a+b \<in> Nats"
+apply (auto simp add: Nats_def) 
+apply (rule range_eqI) 
+apply (rule of_nat_add [symmetric])
+done
+
+lemma Nats_mult [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a*b \<in> Nats"
+apply (auto simp add: Nats_def) 
+apply (rule range_eqI) 
+apply (rule of_nat_mult [symmetric])
+done
+
+text{*Agreement with the specific embedding for the integers*}
+lemma int_eq_of_nat: "int = (of_nat :: nat => int)"
+proof
+  fix n
+  show "int n = of_nat n"  by (induct n, simp_all add: int_Suc add_ac) 
+qed
+
+
+subsection{*Embedding of the Integers into any Ring: @{term of_int}*}
+
+constdefs
+   of_int :: "int => 'a::ring"
+   "of_int z ==
+      (THE a. \<exists>i j. (i,j) \<in> Rep_Integ z & a = (of_nat i) - (of_nat j))"
+
+
+lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
+apply (simp add: of_int_def)
+apply (rule the_equality, auto) 
+apply (simp add: compare_rls add_ac of_nat_add [symmetric]
+            del: of_nat_add) 
+done
+
+lemma of_int_0 [simp]: "of_int 0 = 0"
+by (simp add: of_int Zero_int_def int_def)
+
+lemma of_int_1 [simp]: "of_int 1 = 1"
+by (simp add: of_int One_int_def int_def)
+
+lemma of_int_add [simp]: "of_int (w+z) = of_int w + of_int z"
+apply (rule eq_Abs_Integ [of w])
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: compare_rls of_int zadd) 
+done
+
+lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: compare_rls of_int zminus) 
+done
+
+lemma of_int_diff [simp]: "of_int (w-z) = of_int w - of_int z"
+by (simp add: diff_minus)
+
+lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
+apply (rule eq_Abs_Integ [of w])
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: compare_rls of_int left_diff_distrib right_diff_distrib 
+                 zmult add_ac) 
+done
+
+lemma of_int_le_iff [simp]:
+     "(of_int w \<le> (of_int z::'a::ordered_ring)) = (w \<le> z)"
+apply (rule eq_Abs_Integ [of w])
+apply (rule eq_Abs_Integ [of z])
+apply (simp add: compare_rls of_int zle zdiff_def zadd zminus 
+                 of_nat_add [symmetric]   del: of_nat_add) 
+done
+
+text{*Special cases where either operand is zero*}
+declare of_int_le_iff [of 0, simplified, simp]
+declare of_int_le_iff [of _ 0, simplified, simp]
+
+lemma of_int_less_iff [simp]:
+     "(of_int w < (of_int z::'a::ordered_ring)) = (w < z)"
+by (simp add: linorder_not_le [symmetric])
+
+text{*Special cases where either operand is zero*}
+declare of_int_less_iff [of 0, simplified, simp]
+declare of_int_less_iff [of _ 0, simplified, simp]
+
+lemma of_int_eq_iff [simp]:
+     "(of_int w = (of_int z::'a::ordered_ring)) = (w = z)"
+by (simp add: order_eq_iff) 
+
+text{*Special cases where either operand is zero*}
+declare of_int_eq_iff [of 0, simplified, simp]
+declare of_int_eq_iff [of _ 0, simplified, simp]
+
+
+subsection{*The Set of Integers*}
+
+constdefs
+   Ints  :: "'a::ring set"
+    "Ints == range of_int"
+
+
+syntax (xsymbols)
+  Ints      :: "'a set"                   ("\<int>")
+
+lemma Ints_0 [simp]: "0 \<in> Ints"
+apply (simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_0 [symmetric])
+done
+
+lemma Ints_1 [simp]: "1 \<in> Ints"
+apply (simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_1 [symmetric])
+done
+
+lemma Ints_add [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a+b \<in> Ints"
+apply (auto simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_add [symmetric])
+done
+
+lemma Ints_minus [simp]: "a \<in> Ints ==> -a \<in> Ints"
+apply (auto simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_minus [symmetric])
+done
+
+lemma Ints_diff [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a-b \<in> Ints"
+apply (auto simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_diff [symmetric])
+done
+
+lemma Ints_mult [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a*b \<in> Ints"
+apply (auto simp add: Ints_def) 
+apply (rule range_eqI) 
+apply (rule of_int_mult [symmetric])
+done
+
+text{*Collapse nested embeddings*}
+lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
+by (induct n, auto) 
+
+lemma of_int_int_eq [simp]: "of_int (int n) = int n"
+by (simp add: int_eq_of_nat) 
+
+
+lemma Ints_cases [case_names of_int, cases set: Ints]:
+  "q \<in> \<int> ==> (!!z. q = of_int z ==> C) ==> C"
+proof (unfold Ints_def)
+  assume "!!z. q = of_int z ==> C"
+  assume "q \<in> range of_int" thus C ..
+qed
+
+lemma Ints_induct [case_names of_int, induct set: Ints]:
+  "q \<in> \<int> ==> (!!z. P (of_int z)) ==> P q"
+  by (rule Ints_cases) auto
+
+
+
+(*Legacy ML bindings, but no longer the structure Int.*)
 ML
 {*
+val zabs_def = thm "zabs_def"
+val nat_def  = thm "nat_def"
+
+val int_0 = thm "int_0";
+val int_1 = thm "int_1";
+val int_Suc0_eq_1 = thm "int_Suc0_eq_1";
+val neg_eq_less_0 = thm "neg_eq_less_0";
+val not_neg_eq_ge_0 = thm "not_neg_eq_ge_0";
+val not_neg_0 = thm "not_neg_0";
+val not_neg_1 = thm "not_neg_1";
+val iszero_0 = thm "iszero_0";
+val not_iszero_1 = thm "not_iszero_1";
+val int_0_less_1 = thm "int_0_less_1";
+val int_0_neq_1 = thm "int_0_neq_1";
+val negative_zless = thm "negative_zless";
+val negative_zle = thm "negative_zle";
+val not_zle_0_negative = thm "not_zle_0_negative";
+val not_int_zless_negative = thm "not_int_zless_negative";
+val negative_eq_positive = thm "negative_eq_positive";
+val zle_iff_zadd = thm "zle_iff_zadd";
+val abs_int_eq = thm "abs_int_eq";
+val abs_split = thm"abs_split";
+val nat_int = thm "nat_int";
+val nat_zminus_int = thm "nat_zminus_int";
+val nat_zero = thm "nat_zero";
+val not_neg_nat = thm "not_neg_nat";
+val neg_nat = thm "neg_nat";
+val zless_nat_eq_int_zless = thm "zless_nat_eq_int_zless";
+val nat_0_le = thm "nat_0_le";
+val nat_le_0 = thm "nat_le_0";
+val zless_nat_conj = thm "zless_nat_conj";
+val int_cases = thm "int_cases";
+
 val int_def = thm "int_def";
-val neg_def = thm "neg_def";
-val iszero_def = thm "iszero_def";
 val Zero_int_def = thm "Zero_int_def";
 val One_int_def = thm "One_int_def";
 val zadd_def = thm "zadd_def";
@@ -524,8 +981,6 @@ val eq_Abs_Integ = thm "eq_Abs_Integ";
 val zminus_zminus = thm "zminus_zminus";
 val inj_zminus = thm "inj_zminus";
 val zminus_0 = thm "zminus_0";
-val not_neg_int = thm "not_neg_int";
-val neg_zminus_int = thm "neg_zminus_int";
 val zadd = thm "zadd";
 val zminus_zadd_distrib = thm "zminus_zadd_distrib";
 val zadd_commute = thm "zadd_commute";
@@ -545,8 +1000,6 @@ val zminus_zadd_cancel = thm "zminus_zadd_cancel";
 val zdiff0 = thm "zdiff0";
 val zdiff0_right = thm "zdiff0_right";
 val zdiff_self = thm "zdiff_self";
-val zadd_assoc_cong = thm "zadd_assoc_cong";
-val zadd_assoc_swap = thm "zadd_assoc_swap";
 val zmult_congruent2 = thm "zmult_congruent2";
 val zmult = thm "zmult";
 val zmult_zminus = thm "zmult_zminus";
@@ -564,15 +1017,6 @@ val zmult_1 = thm "zmult_1";
 val zmult_0_right = thm "zmult_0_right";
 val zmult_1_right = thm "zmult_1_right";
 val zless_iff_Suc_zadd = thm "zless_iff_Suc_zadd";
-val zless_zadd_Suc = thm "zless_zadd_Suc";
-val zless_trans = thm "zless_trans";
-val zless_not_sym = thm "zless_not_sym";
-val zless_asym = thm "zless_asym";
-val zless_not_refl = thm "zless_not_refl";
-val zless_irrefl = thm "zless_irrefl";
-val zless_linear = thm "zless_linear";
-val int_neq_iff = thm "int_neq_iff";
-val int_neqE = thm "int_neqE";
 val int_int_eq = thm "int_int_eq";
 val int_eq_0_conv = thm "int_eq_0_conv";
 val zless_int = thm "zless_int";
@@ -581,15 +1025,48 @@ val zero_less_int_conv = thm "zero_less_int_conv";
 val zle_int = thm "zle_int";
 val zero_zle_int = thm "zero_zle_int";
 val int_le_0_conv = thm "int_le_0_conv";
-val zle_imp_zless_or_eq = thm "zle_imp_zless_or_eq";
-val zless_or_eq_imp_zle = thm "zless_or_eq_imp_zle";
-val int_le_less = thm "int_le_less";
 val zle_refl = thm "zle_refl";
 val zle_linear = thm "zle_linear";
 val zle_trans = thm "zle_trans";
 val zle_anti_sym = thm "zle_anti_sym";
-val int_less_le = thm "int_less_le";
-val zadd_left_cancel = thm "zadd_left_cancel";
+
+val Ints_def = thm "Ints_def";
+val Nats_def = thm "Nats_def";
+
+val of_nat_0 = thm "of_nat_0";
+val of_nat_Suc = thm "of_nat_Suc";
+val of_nat_1 = thm "of_nat_1";
+val of_nat_add = thm "of_nat_add";
+val of_nat_mult = thm "of_nat_mult";
+val zero_le_imp_of_nat = thm "zero_le_imp_of_nat";
+val less_imp_of_nat_less = thm "less_imp_of_nat_less";
+val of_nat_less_imp_less = thm "of_nat_less_imp_less";
+val of_nat_less_iff = thm "of_nat_less_iff";
+val of_nat_le_iff = thm "of_nat_le_iff";
+val of_nat_eq_iff = thm "of_nat_eq_iff";
+val Nats_0 = thm "Nats_0";
+val Nats_1 = thm "Nats_1";
+val Nats_add = thm "Nats_add";
+val Nats_mult = thm "Nats_mult";
+val of_int = thm "of_int";
+val of_int_0 = thm "of_int_0";
+val of_int_1 = thm "of_int_1";
+val of_int_add = thm "of_int_add";
+val of_int_minus = thm "of_int_minus";
+val of_int_diff = thm "of_int_diff";
+val of_int_mult = thm "of_int_mult";
+val of_int_le_iff = thm "of_int_le_iff";
+val of_int_less_iff = thm "of_int_less_iff";
+val of_int_eq_iff = thm "of_int_eq_iff";
+val Ints_0 = thm "Ints_0";
+val Ints_1 = thm "Ints_1";
+val Ints_add = thm "Ints_add";
+val Ints_minus = thm "Ints_minus";
+val Ints_diff = thm "Ints_diff";
+val Ints_mult = thm "Ints_mult";
+val of_int_of_nat_eq = thm"of_int_of_nat_eq";
+val Ints_cases = thm "Ints_cases";
+val Ints_induct = thm "Ints_induct";
 *}
 
 end

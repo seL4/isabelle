@@ -531,7 +531,7 @@ apply (subgoal_tac "b*q = r' - r + b'*q'")
  prefer 2 apply simp
 apply (simp (no_asm_simp) add: zadd_zmult_distrib2)
 apply (subst zadd_commute, rule zadd_zless_mono, arith)
-apply (rule zmult_zle_mono1, auto)
+apply (rule mult_right_mono, auto)
 done
 
 lemma zdiv_mono2:
@@ -561,7 +561,7 @@ apply (subgoal_tac "b*q' < b* (q + 1) ")
  apply (simp add: zmult_zless_cancel1)
 apply (simp add: zadd_zmult_distrib2)
 apply (subgoal_tac "b*q' \<le> b'*q'")
- prefer 2 apply (simp add: zmult_zle_mono1_neg)
+ prefer 2 apply (simp add: mult_right_mono_neg)
 apply (subgoal_tac "b'*q' < b + b*q")
  apply arith
 apply simp 
@@ -702,8 +702,8 @@ lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r \<le> 0 |] ==> b*c < b*(q 
 apply (subgoal_tac "b * (c - q mod c) < r * 1")
 apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_le_less_trans)
-apply (erule_tac [2] zmult_zless_mono1)
-apply (rule zmult_zle_mono2_neg)
+apply (erule_tac [2] mult_strict_right_mono)
+apply (rule mult_left_mono_neg)
 apply (auto simp add: compare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
 done
@@ -724,7 +724,7 @@ lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 \<le> r; r < b |] ==> b * (q mod c)
 apply (subgoal_tac "r * 1 < b * (c - q mod c) ")
 apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_less_le_trans)
-apply (erule zmult_zless_mono1)
+apply (erule mult_strict_right_mono)
 apply (rule_tac [2] zmult_zle_mono2)
 apply (auto simp add: compare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
@@ -1111,7 +1111,7 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
   apply (unfold dvd_def, auto)
   apply (subgoal_tac "0 < n")
    prefer 2
-   apply (blast intro: zless_trans)
+   apply (blast intro: order_less_trans)
   apply (simp add: zero_less_mult_iff)
   apply (subgoal_tac "n * k < n * 1")
    apply (drule zmult_zless_cancel1 [THEN iffD1], auto)
@@ -1150,7 +1150,7 @@ lemma zminus_dvd_iff [iff]: "(-z dvd w) = (z dvd (w::int))"
 
 lemma dvd_zminus_iff [iff]: "(z dvd -w) = (z dvd (w::int))"
   apply (auto simp add: dvd_def)
-   apply (drule zminus_equation [THEN iffD1])
+   apply (drule minus_equation_iff [THEN iffD1])
    apply (rule_tac [!] x = "-k" in exI, auto)
   done
 

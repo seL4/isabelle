@@ -24,35 +24,8 @@ instance hypnat :: minus ..
 
 consts whn :: hypnat
 
-constdefs
-
-  (* embedding the naturals in the hypernaturals *)
-  hypnat_of_nat   :: "nat => hypnat"
-  "hypnat_of_nat m  == Abs_hypnat(hypnatrel``{%n::nat. m})"
-
-  (* hypernaturals as members of the hyperreals; the set is defined as  *)
-  (* the nonstandard extension of set of naturals embedded in the reals *)
-  HNat         :: "hypreal set"
-  "HNat == *s* {n. \<exists>no::nat. n = real no}"
-
-  (* the set of infinite hypernatural numbers *)
-  HNatInfinite :: "hypnat set"
-  "HNatInfinite == {n. n \<notin> Nats}"
-
-  (* explicit embedding of the hypernaturals in the hyperreals *)
-  hypreal_of_hypnat :: "hypnat => hypreal"
-  "hypreal_of_hypnat N  == Abs_hypreal(\<Union>X \<in> Rep_hypnat(N).
-                                       hyprel``{%n::nat. real (X n)})"
 
 defs (overloaded)
-
-  (** the overloaded constant "Nats" **)
-
-  (* set of naturals embedded in the hyperreals*)
-  SNat_def:  "Nats == {n. \<exists>N. n = hypreal_of_nat N}"
-
-  (* set of naturals embedded in the hypernaturals*)
-  SHNat_def: "Nats == {n. \<exists>N. n = hypnat_of_nat N}"
 
   (** hypernatural arithmetic **)
 
@@ -151,18 +124,6 @@ by (cut_tac x = x in Rep_hypnat, auto)
 
 declare Rep_hypnat_nonempty [simp]
 
-subsection{*@{term hypnat_of_nat}:
-            the Injection from @{typ nat} to @{typ hypnat}*}
-
-lemma inj_hypnat_of_nat: "inj(hypnat_of_nat)"
-apply (rule inj_onI)
-apply (unfold hypnat_of_nat_def)
-apply (drule inj_on_Abs_hypnat [THEN inj_onD])
-apply (rule hypnatrel_in_hypnat)+
-apply (drule eq_equiv_class)
-apply (rule equiv_hypnatrel)
-apply (simp_all split: split_if_asm)
-done
 
 lemma eq_Abs_hypnat:
     "(!!x. z = Abs_hypnat(hypnatrel``{x}) ==> P) ==> P"
@@ -439,6 +400,13 @@ apply (rule eq_Abs_hypnat [of n])
 apply (auto simp add: hypnat_zero_def hypnat_mult, ultra+)
 done
 
+lemma hypnat_diff_is_0_eq [simp]: "((m::hypnat) - n = 0) = (m \<le> n)"
+apply (rule eq_Abs_hypnat [of m])
+apply (rule eq_Abs_hypnat [of n])
+apply (simp add: hypnat_le hypnat_minus hypnat_zero_def)
+done
+
+
 
 subsection{*Theorems for Ordering*}
 
@@ -496,42 +464,73 @@ apply safe
 apply (insert add_le_less_mono [OF _ zero_less_one, of 0], auto) 
 done
 
+lemma hypnat_add_self_not_less: "~ (x + y < (x::hypnat))"
+by (simp add: linorder_not_le [symmetric] add_commute [of x]) 
+
+lemma hypnat_diff_split:
+    "P(a - b::hypnat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
+    -- {* elimination of @{text -} on @{text hypnat} *}
+proof (cases "a<b" rule: case_split)
+  case True
+    thus ?thesis
+      by (auto simp add: hypnat_add_self_not_less order_less_imp_le 
+                         hypnat_diff_is_0_eq [THEN iffD2])
+next
+  case False
+    thus ?thesis
+      by (auto simp add: linorder_not_less dest: order_le_less_trans); 
+qed
+
+
 subsection{*The Embedding @{term hypnat_of_nat} Preserves Ring and 
       Order Properties*}
 
+constdefs
+
+  hypnat_of_nat   :: "nat => hypnat"
+  "hypnat_of_nat m  == of_nat m"
+
+  (* the set of infinite hypernatural numbers *)
+  HNatInfinite :: "hypnat set"
+  "HNatInfinite == {n. n \<notin> Nats}"
+
+
 lemma hypnat_of_nat_add:
       "hypnat_of_nat ((z::nat) + w) = hypnat_of_nat z + hypnat_of_nat w"
-by (simp add: hypnat_of_nat_def hypnat_add)
-
-lemma hypnat_of_nat_minus:
-      "hypnat_of_nat ((z::nat) - w) = hypnat_of_nat z - hypnat_of_nat w"
-by (simp add: hypnat_of_nat_def hypnat_minus)
+by (simp add: hypnat_of_nat_def)
 
 lemma hypnat_of_nat_mult:
       "hypnat_of_nat (z * w) = hypnat_of_nat z * hypnat_of_nat w"
-by (simp add: hypnat_of_nat_def hypnat_mult)
+by (simp add: hypnat_of_nat_def)
 
 lemma hypnat_of_nat_less_iff [simp]:
       "(hypnat_of_nat z < hypnat_of_nat w) = (z < w)"
-by (simp add: hypnat_less hypnat_of_nat_def)
+by (simp add: hypnat_of_nat_def)
 
 lemma hypnat_of_nat_le_iff [simp]:
       "(hypnat_of_nat z \<le> hypnat_of_nat w) = (z \<le> w)"
-by (simp add: linorder_not_less [symmetric])
+by (simp add: hypnat_of_nat_def)
 
-lemma hypnat_of_nat_one: "hypnat_of_nat (Suc 0) = (1::hypnat)"
-by (simp add: hypnat_of_nat_def hypnat_one_def)
+lemma hypnat_of_nat_eq_iff [simp]:
+      "(hypnat_of_nat z = hypnat_of_nat w) = (z = w)"
+by (simp add: hypnat_of_nat_def)
 
-lemma hypnat_of_nat_zero: "hypnat_of_nat 0 = 0"
-by (simp add: hypnat_of_nat_def hypnat_zero_def)
+lemma hypnat_of_nat_one [simp]: "hypnat_of_nat (Suc 0) = (1::hypnat)"
+by (simp add: hypnat_of_nat_def)
 
-lemma hypnat_of_nat_zero_iff: "(hypnat_of_nat n = 0) = (n = 0)"
-by (auto intro: FreeUltrafilterNat_P 
-         simp add: hypnat_of_nat_def hypnat_zero_def)
+lemma hypnat_of_nat_zero [simp]: "hypnat_of_nat 0 = 0"
+by (simp add: hypnat_of_nat_def)
 
-lemma hypnat_of_nat_Suc:
+lemma hypnat_of_nat_zero_iff [simp]: "(hypnat_of_nat n = 0) = (n = 0)"
+by (simp add: hypnat_of_nat_def)
+
+lemma hypnat_of_nat_Suc [simp]:
      "hypnat_of_nat (Suc n) = hypnat_of_nat n + (1::hypnat)"
-by (auto simp add: hypnat_add hypnat_of_nat_def hypnat_one_def)
+by (simp add: hypnat_of_nat_def)
+
+lemma hypnat_of_nat_minus:
+      "hypnat_of_nat ((j::nat) - k) = hypnat_of_nat j - hypnat_of_nat k"
+by (simp add: hypnat_of_nat_def split: nat_diff_split hypnat_diff_split)
 
 
 subsection{*Existence of an Infinite Hypernatural Number*}
@@ -546,111 +545,64 @@ text{*Existence of infinite number not corresponding to any natural number
 follows because member @{term FreeUltrafilterNat} is not finite.
 See @{text HyperDef.thy} for similar argument.*}
 
-lemma not_ex_hypnat_of_nat_eq_omega:
-      "~ (\<exists>x. hypnat_of_nat x = whn)"
-apply (simp add: hypnat_omega_def hypnat_of_nat_def)
-apply (auto dest: FreeUltrafilterNat_not_finite)
-done
-
-lemma hypnat_of_nat_not_eq_omega: "hypnat_of_nat x \<noteq> whn"
-by (cut_tac not_ex_hypnat_of_nat_eq_omega, auto)
-declare hypnat_of_nat_not_eq_omega [THEN not_sym, simp]
-
 
 subsection{*Properties of the set @{term Nats} of Embedded Natural Numbers*}
 
-(* Infinite hypernatural not in embedded Nats *)
-lemma SHNAT_omega_not_mem [simp]: "whn \<notin> Nats"
-by (simp add: SHNat_def)
-
-(*-----------------------------------------------------------------------
-     Closure laws for members of (embedded) set standard naturals Nats
- -----------------------------------------------------------------------*)
-lemma SHNat_add:
-     "!!x::hypnat. [| x \<in> Nats; y \<in> Nats |] ==> x + y \<in> Nats"
-apply (simp add: SHNat_def, safe)
-apply (rule_tac x = "N + Na" in exI)
-apply (simp add: hypnat_of_nat_add)
+lemma of_nat_eq_add [rule_format]:
+     "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
+apply (induct n) 
+apply (auto simp add: add_assoc) 
+apply (case_tac x) 
+apply (auto simp add: add_commute [of 1]) 
 done
 
-lemma SHNat_minus:
-     "!!x::hypnat. [| x \<in> Nats; y \<in> Nats |] ==> x - y \<in> Nats"
-apply (simp add: SHNat_def, safe)
-apply (rule_tac x = "N - Na" in exI)
-apply (simp add: hypnat_of_nat_minus)
-done
-
-lemma SHNat_mult:
-     "!!x::hypnat. [| x \<in> Nats; y \<in> Nats |] ==> x * y \<in> Nats"
-apply (simp add: SHNat_def, safe)
-apply (rule_tac x = "N * Na" in exI)
-apply (simp (no_asm) add: hypnat_of_nat_mult)
-done
-
-lemma SHNat_add_cancel: "!!x::hypnat. [| x + y \<in> Nats; y \<in> Nats |] ==> x \<in> Nats"
-by (drule_tac x = "x+y" in SHNat_minus, auto)
-
-lemma SHNat_hypnat_of_nat [simp]: "hypnat_of_nat x \<in> Nats"
-by (simp add: SHNat_def, blast)
-
-lemma SHNat_hypnat_of_nat_one [simp]: "hypnat_of_nat (Suc 0) \<in> Nats"
-by simp
-
-lemma SHNat_hypnat_of_nat_zero [simp]: "hypnat_of_nat 0 \<in> Nats"
-by simp
-
-lemma SHNat_one [simp]: "(1::hypnat) \<in> Nats"
-by (simp add: hypnat_of_nat_one [symmetric])
-
-lemma SHNat_zero [simp]: "(0::hypnat) \<in> Nats"
-by (simp add: hypnat_of_nat_zero [symmetric])
-
-lemma SHNat_iff: "(x \<in> Nats) = (\<exists>y. x = hypnat_of_nat  y)"
-by (simp add: SHNat_def)
-
-lemma SHNat_hypnat_of_nat_iff:
-      "Nats = hypnat_of_nat ` (UNIV::nat set)"
-by (auto simp add: SHNat_def)
-
-lemma leSuc_Un_eq: "{n. n \<le> Suc m} = {n. n \<le> m} Un {n. n = Suc m}"
-by (auto simp add: le_Suc_eq)
-
-lemma finite_nat_le_segment: "finite {n::nat. n \<le> m}"
-apply (induct_tac "m")
-apply (auto simp add: leSuc_Un_eq)
+lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in> Nats"
+apply (auto simp add: of_nat_eq_add Nats_def split: hypnat_diff_split)
 done
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
-by (insert finite_nat_le_segment
-                [THEN FreeUltrafilterNat_finite, 
-                 THEN FreeUltrafilterNat_Compl_mem, of m], ultra)
-
-(*????hyperdef*)
-lemma cofinite_mem_FreeUltrafilterNat: "finite (-X) ==> X \<in> FreeUltrafilterNat"
-apply (drule FreeUltrafilterNat_finite)  
-apply (simp add: FreeUltrafilterNat_Compl_iff2 [symmetric])
+apply (insert finite_atMost [of m]) 
+apply (simp add: atMost_def) 
+apply (drule FreeUltrafilterNat_finite) 
+apply (drule FreeUltrafilterNat_Compl_mem) 
+apply ultra
 done
 
 lemma Compl_Collect_le: "- {n::nat. N \<le> n} = {n. n < N}"
 by (simp add: Collect_neg_eq [symmetric] linorder_not_le) 
 
+
+lemma hypnat_of_nat_eq:
+     "hypnat_of_nat m  = Abs_hypnat(hypnatrel``{%n::nat. m})"
+apply (induct m) 
+apply (simp_all add: hypnat_zero_def hypnat_one_def hypnat_add); 
+done
+
+lemma SHNat_eq: "Nats = {n. \<exists>N. n = hypnat_of_nat N}"
+by (force simp add: hypnat_of_nat_def Nats_def) 
+
 lemma hypnat_omega_gt_SHNat:
      "n \<in> Nats ==> n < whn"
-apply (auto simp add: SHNat_def hypnat_of_nat_def hypnat_less_def 
-                      hypnat_le_def hypnat_omega_def)
+apply (auto simp add: hypnat_of_nat_eq hypnat_less_def hypnat_le_def
+                      hypnat_omega_def SHNat_eq)
  prefer 2 apply (force dest: FreeUltrafilterNat_not_finite)
 apply (auto intro!: exI)
 apply (rule cofinite_mem_FreeUltrafilterNat)
 apply (simp add: Compl_Collect_le finite_nat_segment) 
 done
 
-lemma hypnat_of_nat_less_whn: "hypnat_of_nat n < whn"
-by (insert hypnat_omega_gt_SHNat [of "hypnat_of_nat n"], auto)
-declare hypnat_of_nat_less_whn [simp]
+(* Infinite hypernatural not in embedded Nats *)
+lemma SHNAT_omega_not_mem [simp]: "whn \<notin> Nats"
+apply (blast dest: hypnat_omega_gt_SHNat) 
+done
 
-lemma hypnat_of_nat_le_whn: "hypnat_of_nat n \<le> whn"
+lemma hypnat_of_nat_less_whn [simp]: "hypnat_of_nat n < whn"
+apply (insert hypnat_omega_gt_SHNat [of "hypnat_of_nat n"])
+apply (simp add: hypnat_of_nat_def) 
+done
+
+lemma hypnat_of_nat_le_whn [simp]: "hypnat_of_nat n \<le> whn"
 by (rule hypnat_of_nat_less_whn [THEN order_less_imp_le])
-declare hypnat_of_nat_le_whn [simp]
 
 lemma hypnat_zero_less_hypnat_omega [simp]: "0 < whn"
 by (simp add: hypnat_omega_gt_SHNat)
@@ -661,37 +613,22 @@ by (simp add: hypnat_omega_gt_SHNat)
 
 subsection{*Infinite Hypernatural Numbers -- @{term HNatInfinite}*}
 
-lemma HNatInfinite_whn: "whn \<in> HNatInfinite"
-by (simp add: HNatInfinite_def SHNat_def)
-declare HNatInfinite_whn [simp]
-
-lemma SHNat_not_HNatInfinite: "x \<in> Nats ==> x \<notin> HNatInfinite"
+lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
 
-lemma not_HNatInfinite_SHNat: "x \<notin> HNatInfinite ==> x \<in> Nats"
+lemma Nats_not_HNatInfinite_iff: "(x \<in> Nats) = (x \<notin> HNatInfinite)"
 by (simp add: HNatInfinite_def)
 
-lemma not_SHNat_HNatInfinite: "x \<notin> Nats ==> x \<in> HNatInfinite"
+lemma HNatInfinite_not_Nats_iff: "(x \<in> HNatInfinite) = (x \<notin> Nats)"
 by (simp add: HNatInfinite_def)
-
-lemma HNatInfinite_not_SHNat: "x \<in> HNatInfinite ==> x \<notin> Nats"
-by (simp add: HNatInfinite_def)
-
-lemma SHNat_not_HNatInfinite_iff: "(x \<in> Nats) = (x \<notin> HNatInfinite)"
-by (blast intro!: SHNat_not_HNatInfinite not_HNatInfinite_SHNat)
-
-lemma not_SHNat_HNatInfinite_iff: "(x \<notin> Nats) = (x \<in> HNatInfinite)"
-by (blast intro!: not_SHNat_HNatInfinite HNatInfinite_not_SHNat)
-
-lemma SHNat_HNatInfinite_disj: "x \<in> Nats | x \<in> HNatInfinite"
-by (simp add: SHNat_not_HNatInfinite_iff)
 
 
 subsection{*Alternative Characterization of the Set of Infinite Hypernaturals:
 @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
-lemma HNatInfinite_FreeUltrafilterNat_lemma: "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat
+lemma HNatInfinite_FreeUltrafilterNat_lemma:
+     "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat
       ==> {n. N < f n} \<in> FreeUltrafilterNat"
 apply (induct_tac "N")
 apply (drule_tac x = 0 in spec)
@@ -700,14 +637,13 @@ apply (drule_tac x = "Suc n" in spec, ultra)
 done
 
 lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
-apply (unfold HNatInfinite_def SHNat_def hypnat_of_nat_def, safe)
-apply (drule_tac [2] x = "Abs_hypnat (hypnatrel `` {%n. N}) " in bspec)
+apply (auto simp add: HNatInfinite_def SHNat_eq hypnat_of_nat_eq)
 apply (rule_tac z = x in eq_Abs_hypnat)
-apply (rule_tac z = n in eq_Abs_hypnat)
-apply (auto simp add: hypnat_less)
-apply (auto  elim: HNatInfinite_FreeUltrafilterNat_lemma 
-           simp add: FreeUltrafilterNat_Compl_iff1 Collect_neg_eq [symmetric])
+apply (auto elim: HNatInfinite_FreeUltrafilterNat_lemma 
+            simp add: hypnat_less FreeUltrafilterNat_Compl_iff1 
+                      Collect_neg_eq [symmetric])
 done
+
 
 subsection{*Alternative Characterization of @{term HNatInfinite} using 
 Free Ultrafilter*}
@@ -716,9 +652,8 @@ lemma HNatInfinite_FreeUltrafilterNat:
      "x \<in> HNatInfinite 
       ==> \<exists>X \<in> Rep_hypnat x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
 apply (rule eq_Abs_hypnat [of x])
-apply (auto simp add: HNatInfinite_iff SHNat_iff hypnat_of_nat_def)
+apply (auto simp add: HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 apply (rule bexI [OF _ lemma_hypnatrel_refl], clarify) 
-apply (drule_tac x = "hypnat_of_nat u" in bspec, simp) 
 apply (auto simp add: hypnat_of_nat_def hypnat_less)
 done
 
@@ -726,26 +661,24 @@ lemma FreeUltrafilterNat_HNatInfinite:
      "\<exists>X \<in> Rep_hypnat x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat
       ==> x \<in> HNatInfinite"
 apply (rule eq_Abs_hypnat [of x])
-apply (auto simp add: hypnat_less HNatInfinite_iff SHNat_iff hypnat_of_nat_def)
+apply (auto simp add: hypnat_less HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 apply (drule spec, ultra, auto) 
 done
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
      "(x \<in> HNatInfinite) = 
       (\<exists>X \<in> Rep_hypnat x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat)"
-apply (blast intro: HNatInfinite_FreeUltrafilterNat FreeUltrafilterNat_HNatInfinite)
-done
+by (blast intro: HNatInfinite_FreeUltrafilterNat 
+                 FreeUltrafilterNat_HNatInfinite)
 
-lemma HNatInfinite_gt_one: "x \<in> HNatInfinite ==> (1::hypnat) < x"
+lemma HNatInfinite_gt_one [simp]: "x \<in> HNatInfinite ==> (1::hypnat) < x"
 by (auto simp add: HNatInfinite_iff)
-declare HNatInfinite_gt_one [simp]
 
-lemma zero_not_mem_HNatInfinite: "0 \<notin> HNatInfinite"
+lemma zero_not_mem_HNatInfinite [simp]: "0 \<notin> HNatInfinite"
 apply (auto simp add: HNatInfinite_iff)
 apply (drule_tac a = " (1::hypnat) " in equals0D)
 apply simp
 done
-declare zero_not_mem_HNatInfinite [simp]
 
 lemma HNatInfinite_not_eq_zero: "x \<in> HNatInfinite ==> 0 < x"
 apply (drule HNatInfinite_gt_one) 
@@ -758,36 +691,37 @@ by (blast intro: order_less_imp_le HNatInfinite_gt_one)
 
 subsection{*Closure Rules*}
 
-lemma HNatInfinite_add: "[| x \<in> HNatInfinite; y \<in> HNatInfinite |]
-            ==> x + y \<in> HNatInfinite"
+lemma HNatInfinite_add:
+     "[| x \<in> HNatInfinite; y \<in> HNatInfinite |] ==> x + y \<in> HNatInfinite"
 apply (auto simp add: HNatInfinite_iff)
 apply (drule bspec, assumption)
-apply (drule bspec [OF _ SHNat_zero])
+apply (drule bspec [OF _ Nats_0])
 apply (drule add_strict_mono, assumption, simp)
 done
 
-lemma HNatInfinite_SHNat_add: "[| x \<in> HNatInfinite; y \<in> Nats |] ==> x + y \<in> HNatInfinite"
-apply (rule ccontr, drule not_HNatInfinite_SHNat)
-apply (drule_tac x = "x + y" in SHNat_minus)
-apply (auto simp add: SHNat_not_HNatInfinite_iff)
+lemma HNatInfinite_SHNat_add:
+     "[| x \<in> HNatInfinite; y \<in> Nats |] ==> x + y \<in> HNatInfinite"
+apply (auto simp add: HNatInfinite_not_Nats_iff) 
+apply (drule_tac a = "x + y" in Nats_diff)
+apply (auto ); 
 done
 
-lemma HNatInfinite_SHNat_diff: "[| x \<in> HNatInfinite; y \<in> Nats |] ==> x - y \<in> HNatInfinite"
-apply (rule ccontr, drule not_HNatInfinite_SHNat)
-apply (drule_tac x = "x - y" in SHNat_add)
-apply (subgoal_tac [2] "y \<le> x")
-apply (auto dest!: hypnat_le_add_diff_inverse2 simp add: not_SHNat_HNatInfinite_iff [symmetric])
-apply (auto intro!: order_less_imp_le simp add: not_SHNat_HNatInfinite_iff HNatInfinite_iff)
-done
+lemma HNatInfinite_Nats_imp_less: "[| x \<in> HNatInfinite; y \<in> Nats |] ==> y < x"
+by (simp add: HNatInfinite_iff) 
+
+lemma HNatInfinite_SHNat_diff:
+  assumes x: "x \<in> HNatInfinite" and y: "y \<in> Nats" 
+  shows "x - y \<in> HNatInfinite"
+proof -
+  have "y < x" by (simp add: HNatInfinite_Nats_imp_less prems)
+  hence "x - y + y = x" by (simp add: order_less_imp_le)
+  with x show ?thesis
+    by (force simp add: HNatInfinite_not_Nats_iff 
+              dest: Nats_add [of "x-y", OF _ y]) 
+qed
 
 lemma HNatInfinite_add_one: "x \<in> HNatInfinite ==> x + (1::hypnat) \<in> HNatInfinite"
 by (auto intro: HNatInfinite_SHNat_add)
-
-lemma HNatInfinite_minus_one: "x \<in> HNatInfinite ==> x - (1::hypnat) \<in> HNatInfinite"
-apply (rule ccontr, drule not_HNatInfinite_SHNat)
-apply (drule_tac x = "x - (1::hypnat) " and y = " (1::hypnat) " in SHNat_add)
-apply (auto simp add: not_SHNat_HNatInfinite_iff [symmetric])
-done
 
 lemma HNatInfinite_is_Suc: "x \<in> HNatInfinite ==> \<exists>y. x = y + (1::hypnat)"
 apply (rule_tac x = "x - (1::hypnat) " in exI)
@@ -795,41 +729,22 @@ apply auto
 done
 
 
-subsection{*@{term HNat}: the Hypernaturals Embedded in the Hyperreals*}
-
+subsection{*Embedding of the Hypernaturals into the Hyperreals*}
 text{*Obtained using the nonstandard extension of the naturals*}
 
-lemma HNat_hypreal_of_nat: "hypreal_of_nat N \<in> HNat"
-apply (simp add: HNat_def starset_def hypreal_of_nat_def hypreal_of_real_def, auto, ultra)
-apply (rule_tac x = N in exI, auto)
-done
-declare HNat_hypreal_of_nat [simp]
-
-lemma HNat_add: "[| x \<in> HNat; y \<in> HNat |] ==> x + y \<in> HNat"
-apply (simp add: HNat_def starset_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto dest!: bspec intro: lemma_hyprel_refl simp add: hypreal_add, ultra)
-apply (rule_tac x = "no+noa" in exI, auto)
-done
-
-lemma HNat_mult:
-     "[| x \<in> HNat; y \<in> HNat |] ==> x * y \<in> HNat"
-apply (simp add: HNat_def starset_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto dest!: bspec intro: lemma_hyprel_refl simp add: hypreal_mult, ultra)
-apply (rule_tac x = "no*noa" in exI, auto)
-done
+constdefs
+  hypreal_of_hypnat :: "hypnat => hypreal"
+   "hypreal_of_hypnat N  == 
+      Abs_hypreal(\<Union>X \<in> Rep_hypnat(N). hyprel``{%n::nat. real (X n)})"
 
 
-subsection{*Embedding of the Hypernaturals into the Hyperreals*}
+lemma HNat_hypreal_of_nat [simp]: "hypreal_of_nat N \<in> Nats"
+by (simp add: hypreal_of_nat_def) 
 
 (*WARNING: FRAGILE!*)
-lemma lemma_hyprel_FUFN: "(Ya \<in> hyprel ``{%n. f(n)}) =
-      ({n. f n = Ya n} \<in> FreeUltrafilterNat)"
-apply auto
-done
+lemma lemma_hyprel_FUFN:
+     "(Ya \<in> hyprel ``{%n. f(n)}) = ({n. f n = Ya n} \<in> FreeUltrafilterNat)"
+by force
 
 lemma hypreal_of_hypnat:
       "hypreal_of_hypnat (Abs_hypnat(hypnatrel``{%n. X n})) =
@@ -840,15 +755,12 @@ apply (auto elim: FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset]
        simp add: lemma_hyprel_FUFN)
 done
 
-lemma inj_hypreal_of_hypnat: "inj(hypreal_of_hypnat)"
-apply (rule inj_onI)
-apply (rule_tac z = x in eq_Abs_hypnat)
-apply (rule_tac z = y in eq_Abs_hypnat)
+lemma hypreal_of_hypnat_inject [simp]:
+     "(hypreal_of_hypnat m = hypreal_of_hypnat n) = (m=n)"
+apply (rule eq_Abs_hypnat [of m])
+apply (rule eq_Abs_hypnat [of n])
 apply (auto simp add: hypreal_of_hypnat)
 done
-
-declare inj_hypreal_of_hypnat [THEN inj_eq, simp]
-declare inj_hypnat_of_nat [THEN inj_eq, simp]
 
 lemma hypreal_of_hypnat_zero: "hypreal_of_hypnat 0 = 0"
 by (simp add: hypnat_zero_def hypreal_zero_def hypreal_of_hypnat)
@@ -886,43 +798,21 @@ apply (rule eq_Abs_hypnat [of n])
 apply (simp add: hypreal_of_hypnat hypreal_zero_num hypreal_le)
 done
 
-(*????DELETE??*)
-lemma hypnat_eq_zero: "\<forall>n. N \<le> n ==> N = (0::hypnat)"
-apply (drule_tac x = 0 in spec)
-apply (rule_tac z = N in eq_Abs_hypnat)
-apply (auto simp add: hypnat_le hypnat_zero_def)
-done
-
-(*????DELETE??*)
-lemma hypnat_not_all_eq_zero: "~ (\<forall>n. n = (0::hypnat))"
-by auto
-
-(*????DELETE??*)
-lemma hypnat_le_one_eq_one: "n \<noteq> 0 ==> (n \<le> (1::hypnat)) = (n = (1::hypnat))"
-by (auto simp add: order_le_less)
-
-(*WHERE DO THESE BELONG???*)
-lemma HNatInfinite_inverse_Infinitesimal: "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
+lemma HNatInfinite_inverse_Infinitesimal [simp]:
+     "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
 apply (rule eq_Abs_hypnat [of n])
-apply (auto simp add: hypreal_of_hypnat hypreal_inverse HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
+apply (auto simp add: hypreal_of_hypnat hypreal_inverse 
+      HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl, auto)
 apply (drule_tac x = "m + 1" in spec, ultra)
 done
-declare HNatInfinite_inverse_Infinitesimal [simp]
-
-lemma HNatInfinite_inverse_not_zero: "n \<in> HNatInfinite ==> hypreal_of_hypnat n \<noteq> 0"
-by (simp add: HNatInfinite_not_eq_zero)
-
 
 
 ML
 {*
 val hypnat_of_nat_def = thm"hypnat_of_nat_def";
-val HNat_def = thm"HNat_def";
 val HNatInfinite_def = thm"HNatInfinite_def";
 val hypreal_of_hypnat_def = thm"hypreal_of_hypnat_def";
-val SNat_def = thm"SNat_def";
-val SHNat_def = thm"SHNat_def";
 val hypnat_zero_def = thm"hypnat_zero_def";
 val hypnat_one_def = thm"hypnat_one_def";
 val hypnat_omega_def = thm"hypnat_omega_def";
@@ -939,7 +829,6 @@ val inj_Rep_hypnat = thm "inj_Rep_hypnat";
 val lemma_hypnatrel_refl = thm "lemma_hypnatrel_refl";
 val hypnat_empty_not_mem = thm "hypnat_empty_not_mem";
 val Rep_hypnat_nonempty = thm "Rep_hypnat_nonempty";
-val inj_hypnat_of_nat = thm "inj_hypnat_of_nat";
 val eq_Abs_hypnat = thm "eq_Abs_hypnat";
 val hypnat_add_congruent2 = thm "hypnat_add_congruent2";
 val hypnat_add = thm "hypnat_add";
@@ -1000,39 +889,14 @@ val hypnat_of_nat_zero_iff = thm "hypnat_of_nat_zero_iff";
 val hypnat_of_nat_Suc = thm "hypnat_of_nat_Suc";
 val hypnat_omega = thm "hypnat_omega";
 val Rep_hypnat_omega = thm "Rep_hypnat_omega";
-val not_ex_hypnat_of_nat_eq_omega = thm "not_ex_hypnat_of_nat_eq_omega";
-val hypnat_of_nat_not_eq_omega = thm "hypnat_of_nat_not_eq_omega";
 val SHNAT_omega_not_mem = thm "SHNAT_omega_not_mem";
-val SHNat_add = thm "SHNat_add";
-val SHNat_minus = thm "SHNat_minus";
-val SHNat_mult = thm "SHNat_mult";
-val SHNat_add_cancel = thm "SHNat_add_cancel";
-val SHNat_hypnat_of_nat = thm "SHNat_hypnat_of_nat";
-val SHNat_hypnat_of_nat_one = thm "SHNat_hypnat_of_nat_one";
-val SHNat_hypnat_of_nat_zero = thm "SHNat_hypnat_of_nat_zero";
-val SHNat_one = thm "SHNat_one";
-val SHNat_zero = thm "SHNat_zero";
-val SHNat_iff = thm "SHNat_iff";
-val SHNat_hypnat_of_nat_iff = thm "SHNat_hypnat_of_nat_iff";
-val leSuc_Un_eq = thm "leSuc_Un_eq";
-val finite_nat_le_segment = thm "finite_nat_le_segment";
-val lemma_unbounded_set = thm "lemma_unbounded_set";
 val cofinite_mem_FreeUltrafilterNat = thm "cofinite_mem_FreeUltrafilterNat";
-val Compl_Collect_le = thm "Compl_Collect_le";
 val hypnat_omega_gt_SHNat = thm "hypnat_omega_gt_SHNat";
 val hypnat_of_nat_less_whn = thm "hypnat_of_nat_less_whn";
 val hypnat_of_nat_le_whn = thm "hypnat_of_nat_le_whn";
 val hypnat_zero_less_hypnat_omega = thm "hypnat_zero_less_hypnat_omega";
 val hypnat_one_less_hypnat_omega = thm "hypnat_one_less_hypnat_omega";
 val HNatInfinite_whn = thm "HNatInfinite_whn";
-val SHNat_not_HNatInfinite = thm "SHNat_not_HNatInfinite";
-val not_HNatInfinite_SHNat = thm "not_HNatInfinite_SHNat";
-val not_SHNat_HNatInfinite = thm "not_SHNat_HNatInfinite";
-val HNatInfinite_not_SHNat = thm "HNatInfinite_not_SHNat";
-val SHNat_not_HNatInfinite_iff = thm "SHNat_not_HNatInfinite_iff";
-val not_SHNat_HNatInfinite_iff = thm "not_SHNat_HNatInfinite_iff";
-val SHNat_HNatInfinite_disj = thm "SHNat_HNatInfinite_disj";
-val HNatInfinite_FreeUltrafilterNat_lemma = thm "HNatInfinite_FreeUltrafilterNat_lemma";
 val HNatInfinite_iff = thm "HNatInfinite_iff";
 val HNatInfinite_FreeUltrafilterNat = thm "HNatInfinite_FreeUltrafilterNat";
 val FreeUltrafilterNat_HNatInfinite = thm "FreeUltrafilterNat_HNatInfinite";
@@ -1045,26 +909,16 @@ val HNatInfinite_add = thm "HNatInfinite_add";
 val HNatInfinite_SHNat_add = thm "HNatInfinite_SHNat_add";
 val HNatInfinite_SHNat_diff = thm "HNatInfinite_SHNat_diff";
 val HNatInfinite_add_one = thm "HNatInfinite_add_one";
-val HNatInfinite_minus_one = thm "HNatInfinite_minus_one";
 val HNatInfinite_is_Suc = thm "HNatInfinite_is_Suc";
 val HNat_hypreal_of_nat = thm "HNat_hypreal_of_nat";
-val HNat_add = thm "HNat_add";
-val HNat_mult = thm "HNat_mult";
-val lemma_hyprel_FUFN = thm "lemma_hyprel_FUFN";
 val hypreal_of_hypnat = thm "hypreal_of_hypnat";
-val inj_hypreal_of_hypnat = thm "inj_hypreal_of_hypnat";
 val hypreal_of_hypnat_zero = thm "hypreal_of_hypnat_zero";
 val hypreal_of_hypnat_one = thm "hypreal_of_hypnat_one";
 val hypreal_of_hypnat_add = thm "hypreal_of_hypnat_add";
 val hypreal_of_hypnat_mult = thm "hypreal_of_hypnat_mult";
 val hypreal_of_hypnat_less_iff = thm "hypreal_of_hypnat_less_iff";
-val hypreal_of_hypnat_eq_zero_iff = thm "hypreal_of_hypnat_eq_zero_iff";
 val hypreal_of_hypnat_ge_zero = thm "hypreal_of_hypnat_ge_zero";
-val hypnat_eq_zero = thm "hypnat_eq_zero";
-val hypnat_not_all_eq_zero = thm "hypnat_not_all_eq_zero";
-val hypnat_le_one_eq_one = thm "hypnat_le_one_eq_one";
 val HNatInfinite_inverse_Infinitesimal = thm "HNatInfinite_inverse_Infinitesimal";
-val HNatInfinite_inverse_not_zero = thm "HNatInfinite_inverse_not_zero";
 *}
 
 end

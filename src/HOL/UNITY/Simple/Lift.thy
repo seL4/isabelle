@@ -215,13 +215,13 @@ done
 lemma moving_up: "Lift \<in> Always moving_up"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
-apply (auto dest: zle_imp_zless_or_eq simp add: add1_zle_eq)
+apply (auto dest: order_le_imp_less_or_eq simp add: add1_zle_eq)
 done
 
 lemma moving_down: "Lift \<in> Always moving_down"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
-apply (blast dest: zle_imp_zless_or_eq)
+apply (blast dest: order_le_imp_less_or_eq)
 done
 
 lemma bounded: "Lift \<in> Always bounded"
@@ -290,7 +290,7 @@ lemma (in Floor) E_thm05c:
     "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
              LeadsTo ((closed \<inter> goingup \<inter> Req n)  \<union> 
                       (closed \<inter> goingdown \<inter> Req n))"
-by (auto intro!: subset_imp_LeadsTo elim!: int_neqE)
+by (auto intro!: subset_imp_LeadsTo simp add: linorder_neq_iff)
 
 (*lift_2*)
 lemma (in Floor) lift_2: "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    

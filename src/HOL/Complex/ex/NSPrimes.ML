@@ -175,7 +175,7 @@ qed_spec_mp "hyperprime_factor_exists";
 (* behaves as expected! *)
 Goal "( *sNat* insert x A) = insert (hypnat_of_nat x) ( *sNat* A)";
 by (auto_tac (claset(),simpset() addsimps [starsetNat_def,
-    hypnat_of_nat_def]));
+    hypnat_of_nat_eq]));
 by (ALLGOALS(res_inst_tac [("z","xa")] eq_Abs_hypnat));
 by Auto_tac;
 by (TRYALL(dtac bspec));
@@ -251,9 +251,8 @@ by (subgoal_tac "ALL n. (f n = f x) = (x = n)" 1);
 by Auto_tac;
 qed "lemma_infinite_set_singleton";
 
-Goalw [SHNat_def,hypnat_of_nat_def] 
-   "inj f ==> Abs_hypnat(hypnatrel `` {f}) ~: Nats";
-by Auto_tac;
+Goal "inj f ==> Abs_hypnat(hypnatrel `` {f}) ~: Nats";
+by (auto_tac (claset(), simpset() addsimps [SHNat_eq,hypnat_of_nat_eq])); 
 by (subgoal_tac "ALL m n. m ~= n --> f n ~= f m" 1);
 by Auto_tac;
 by (dtac injD 2);
@@ -357,7 +356,7 @@ by (etac (not_finite_nat_set_iff2 RS iffD1) 1);
 by Auto_tac;
 by (dtac inj_fun_not_hypnat_in_SHNat 1);
 by (dtac range_subset_mem_starsetNat 1);
-by (auto_tac (claset(),simpset() addsimps [SHNat_def]));
+by (auto_tac (claset(),simpset() addsimps [SHNat_eq]));
 qed "hypnat_infinite_has_nonstandard";
 
 Goal "*sNat* A =  hypnat_of_nat ` A ==> finite A";
@@ -385,7 +384,7 @@ qed "hypnat_infinite_has_nonstandard_iff";
 Goal "~ (ALL n:- {0}. hypnat_of_nat n hdvd 1)";
 by Auto_tac;
 by (res_inst_tac [("x","2")] bexI 1);
-by (auto_tac (claset(),simpset() addsimps [hypnat_of_nat_def,
+by (auto_tac (claset(),simpset() addsimps [hypnat_of_nat_eq,
     hypnat_one_def,hdvd,dvd_def]));
 val lemma_not_dvd_hypnat_one = result();
 Addsimps [lemma_not_dvd_hypnat_one];
@@ -417,9 +416,9 @@ by Auto_tac;
 qed "zero_not_prime";
 Addsimps [zero_not_prime];
 
-Goalw [starprime_def,starsetNat_def,hypnat_of_nat_def]
-   "hypnat_of_nat 0 ~: starprime";
-by (auto_tac (claset() addSIs [bexI],simpset()));
+Goal "hypnat_of_nat 0 ~: starprime";
+by (auto_tac (claset() addSIs [bexI],
+      simpset() addsimps [starprime_def,starsetNat_def,hypnat_of_nat_eq]));
 qed "hypnat_of_nat_zero_not_prime";
 Addsimps [hypnat_of_nat_zero_not_prime];
 
@@ -443,9 +442,9 @@ by Auto_tac;
 qed "one_not_prime2";
 Addsimps [one_not_prime2];
 
-Goalw [starprime_def,starsetNat_def,hypnat_of_nat_def]
-   "hypnat_of_nat 1 ~: starprime";
-by (auto_tac (claset() addSIs [bexI],simpset()));
+Goal "hypnat_of_nat 1 ~: starprime";
+by (auto_tac (claset() addSIs [bexI],
+     simpset() addsimps [starprime_def,starsetNat_def,hypnat_of_nat_eq]));
 qed "hypnat_of_nat_one_not_prime";
 Addsimps [hypnat_of_nat_one_not_prime];
 

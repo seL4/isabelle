@@ -5,24 +5,10 @@
 
 Factor cancellation simprocs for the integers.
 
-This file can't be combined with int_arith1,2 because it requires IntDiv.thy.
+This file can't be combined with int_arith1 because it requires IntDiv.thy.
 *)
 
 (** Factor cancellation theorems for "int" **)
-
-Goal "!!k::int. (k*m <= k*n) = ((0 < k --> m<=n) & (k < 0 --> n<=m))";
-by (stac zmult_zle_cancel1 1);
-by Auto_tac;
-qed "int_mult_le_cancel1";
-
-Goal "!!k::int. (k*m < k*n) = ((0 < k & m<n) | (k < 0 & n<m))";
-by (stac zmult_zless_cancel1 1);
-by Auto_tac;
-qed "int_mult_less_cancel1";
-
-Goal "!!k::int. (k*m = k*n) = (k = 0 | m=n)";
-by Auto_tac;
-qed "int_mult_eq_cancel1";
 
 Goal "!!k::int. k~=0 ==> (k*m) div (k*n) = (m div n)";
 by (stac zdiv_zmult_zmult1 1);
@@ -33,6 +19,7 @@ qed "int_mult_div_cancel1";
 Goal "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)";
 by (simp_tac (simpset() addsimps [int_mult_div_cancel1]) 1);
 qed "int_mult_div_cancel_disj";
+
 
 local
   open Int_Numeral_Simprocs
@@ -65,7 +52,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
-  val cancel = int_mult_eq_cancel1 RS trans
+  val cancel = mult_cancel_left RS trans
   val neg_exchanges = false
 )
 
@@ -74,7 +61,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.intT
-  val cancel = int_mult_less_cancel1 RS trans
+  val cancel = mult_less_cancel_left RS trans
   val neg_exchanges = true
 )
 
@@ -83,7 +70,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.intT
-  val cancel = int_mult_le_cancel1 RS trans
+  val cancel = mult_le_cancel_left RS trans
   val neg_exchanges = true
 )
 
@@ -179,7 +166,7 @@ structure EqCancelFactor = ExtractCommonTermFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
-  val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_eq_cancel1
+  val simplify_meta_eq  = cancel_simplify_meta_eq mult_cancel_left
 );
 
 structure DivideCancelFactor = ExtractCommonTermFun

@@ -404,10 +404,9 @@ qed "starfunCR_approx";
 Goal "( *fcNat* (%n. z ^ n)) N = (hcomplex_of_complex z) hcpow N";
 *)
 
-Goalw [hypnat_of_nat_def] 
-   "( *fc* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n";
+Goal "( *fc* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n";
 by (res_inst_tac [("z","Z")] eq_Abs_hcomplex 1);
-by (auto_tac (claset(), simpset() addsimps [hcpow,starfunC]));
+by (auto_tac (claset(), simpset() addsimps [hcpow,starfunC,hypnat_of_nat_eq]));
 qed "starfunC_hcpow";
 
 Goal "( *fc* (%h. f (x + h))) xa  = ( *fc* f) (hcomplex_of_complex  x + xa)";

@@ -122,7 +122,7 @@ Addsimps [hypreal_sqrt_hrabs2];
 Goal "( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_hrabs,hypnat_of_nat_def,hyperpow]));
+    hypreal_hrabs,hypnat_of_nat_eq,hyperpow]));
 qed "hypreal_sqrt_hyperpow_hrabs";
 Addsimps [hypreal_sqrt_hyperpow_hrabs];
 

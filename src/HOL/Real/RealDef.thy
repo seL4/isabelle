@@ -23,9 +23,8 @@ instance real :: minus ..
 instance real :: inverse ..
 
 consts
-   (*Overloaded constants denoting the Nat and Real subsets of enclosing
+   (*Overloaded constant denoting the Real subset of enclosing
      types such as hypreal and complex*)
-   Nats  :: "'a set"
    Reals :: "'a set"
 
    (*overloaded constant for injecting other types into "real"*)
@@ -85,16 +84,6 @@ defs (overloaded)
 
 syntax (xsymbols)
   Reals     :: "'a set"                   ("\<real>")
-  Nats      :: "'a set"                   ("\<nat>")
-
-
-defs (overloaded)
-  real_of_int_def:
-   "real z == Abs_REAL(\<Union>(i,j) \<in> Rep_Integ z. realrel ``
-		       {(preal_of_rat(rat(int(Suc i))),
-			 preal_of_rat(rat(int(Suc j))))})"
-
-  real_of_nat_def:   "real n == real (int n)"
 
 
 subsection{*Proving that realrel is an equivalence relation*}
@@ -172,30 +161,6 @@ apply (case_tac "x")
 apply (simp add: Rep_REAL_inverse)
 done
 
-lemma real_eq_iff:
-     "[|(x1,y1) \<in> Rep_REAL w; (x2,y2) \<in> Rep_REAL z|] 
-      ==> (z = w) = (x1+y2 = x2+y1)"
-apply (insert quotient_eq_iff
-                [OF equiv_realrel, 
-                 of "Rep_REAL w" "Rep_REAL z" "(x1,y1)" "(x2,y2)"])
-apply (simp add: Rep_REAL [unfolded REAL_def] Rep_REAL_inject eq_commute) 
-done 
-
-lemma mem_REAL_imp_eq:
-     "[|R \<in> REAL; (x1,y1) \<in> R; (x2,y2) \<in> R|] ==> x1+y2 = x2+y1" 
-apply (auto simp add: REAL_def realrel_def quotient_def)
-apply (blast dest: preal_trans_lemma) 
-done
-
-lemma Rep_REAL_cancel_right:
-     "((x + z, y + z) \<in> Rep_REAL R) = ((x, y) \<in> Rep_REAL R)"
-apply (rule_tac z = R in eq_Abs_REAL, simp) 
-apply (rename_tac u v) 
-apply (subgoal_tac "(u + (y + z) = x + z + v) = ((u + y) + z = (x + v) + z)")
- prefer 2 apply (simp add: preal_add_ac) 
-apply (simp add: preal_add_right_cancel_iff) 
-done
-
 
 subsection{*Congruence property for addition*}
 
@@ -218,21 +183,21 @@ apply (blast intro: real_add_congruent2_lemma)
 done
 
 lemma real_add_commute: "(z::real) + w = w + z"
-apply (rule_tac z = z in eq_Abs_REAL)
-apply (rule_tac z = w in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z])
+apply (rule eq_Abs_REAL [of w])
 apply (simp add: preal_add_ac real_add)
 done
 
 lemma real_add_assoc: "((z1::real) + z2) + z3 = z1 + (z2 + z3)"
-apply (rule_tac z = z1 in eq_Abs_REAL)
-apply (rule_tac z = z2 in eq_Abs_REAL)
-apply (rule_tac z = z3 in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z1])
+apply (rule eq_Abs_REAL [of z2])
+apply (rule eq_Abs_REAL [of z3])
 apply (simp add: real_add preal_add_assoc)
 done
 
 lemma real_add_zero_left: "(0::real) + z = z"
 apply (unfold real_of_preal_def real_zero_def)
-apply (rule_tac z = z in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z])
 apply (simp add: real_add preal_add_ac)
 done
 
@@ -263,7 +228,7 @@ done
 
 lemma real_add_minus_left: "(-z) + z = (0::real)"
 apply (unfold real_zero_def)
-apply (rule_tac z = z in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z])
 apply (simp add: real_minus real_add preal_add_commute)
 done
 
@@ -283,7 +248,7 @@ done
 
 lemma real_mult_congruent2:
     "congruent2 realrel (%p1 p2.
-          (%(x1,y1). (%(x2,y2). realrel``{(x1*x2 + y1*y2, x1*y2+x2*y1)}) p2) p1)"
+        (%(x1,y1). (%(x2,y2). realrel``{(x1*x2 + y1*y2, x1*y2+x2*y1)}) p2) p1)"
 apply (rule equiv_realrel [THEN congruent2_commuteI], clarify)
 apply (unfold split_def)
 apply (simp add: preal_mult_commute preal_add_commute)
@@ -298,29 +263,29 @@ apply (simp add: equiv_realrel [THEN UN_equiv_class2] real_mult_congruent2)
 done
 
 lemma real_mult_commute: "(z::real) * w = w * z"
-apply (rule_tac z = z in eq_Abs_REAL)
-apply (rule_tac z = w in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z])
+apply (rule eq_Abs_REAL [of w])
 apply (simp add: real_mult preal_add_ac preal_mult_ac)
 done
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
-apply (rule_tac z = z1 in eq_Abs_REAL)
-apply (rule_tac z = z2 in eq_Abs_REAL)
-apply (rule_tac z = z3 in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z1])
+apply (rule eq_Abs_REAL [of z2])
+apply (rule eq_Abs_REAL [of z3])
 apply (simp add: preal_add_mult_distrib2 real_mult preal_add_ac preal_mult_ac)
 done
 
 lemma real_mult_1: "(1::real) * z = z"
 apply (unfold real_one_def)
-apply (rule_tac z = z in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z])
 apply (simp add: real_mult preal_add_mult_distrib2 preal_mult_1_right
                  preal_mult_ac preal_add_ac)
 done
 
 lemma real_add_mult_distrib: "((z1::real) + z2) * w = (z1 * w) + (z2 * w)"
-apply (rule_tac z = z1 in eq_Abs_REAL)
-apply (rule_tac z = z2 in eq_Abs_REAL)
-apply (rule_tac z = w in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of z1])
+apply (rule eq_Abs_REAL [of z2])
+apply (rule eq_Abs_REAL [of w])
 apply (simp add: preal_add_mult_distrib2 real_add real_mult preal_add_ac preal_mult_ac)
 done
 
@@ -344,7 +309,7 @@ within the proof, we could define the inverse explicitly.*}
 
 lemma real_mult_inverse_left_ex: "x \<noteq> 0 ==> \<exists>y. y*x = (1::real)"
 apply (unfold real_zero_def real_one_def)
-apply (rule_tac z = x in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of x])
 apply (cut_tac x = xa and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: real_zero_iff)
 apply (rule_tac
@@ -420,63 +385,69 @@ lemma real_mult_1_right: "z * (1::real) = z"
 subsection{*The @{text "\<le>"} Ordering*}
 
 lemma real_le_refl: "w \<le> (w::real)"
-apply (rule_tac z = w in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of w])
 apply (force simp add: real_le_def)
 done
 
-lemma real_le_trans_lemma:
-  assumes le1: "x1 + y2 \<le> x2 + y1"
-      and le2: "u1 + v2 \<le> u2 + v1"
-      and eq: "x2 + v1 = u1 + y2"
-  shows "x1 + v2 + u1 + y2 \<le> u2 + u1 + y2 + (y1::preal)"
+text{*The arithmetic decision procedure is not set up for type preal.
+  This lemma is currently unused, but it could simplify the proofs of the
+  following two lemmas.*}
+lemma preal_eq_le_imp_le:
+  assumes eq: "a+b = c+d" and le: "c \<le> a"
+  shows "b \<le> (d::preal)"
 proof -
-  have "x1 + v2 + u1 + y2 = (x1 + y2) + (u1 + v2)" by (simp add: preal_add_ac)
-  also have "... \<le> (x2 + y1) + (u1 + v2)"
-         by (simp add: prems preal_add_le_cancel_right)
-  also have "... \<le> (x2 + y1) + (u2 + v1)"
+  have "c+d \<le> a+d" by (simp add: prems preal_cancels)
+  hence "a+b \<le> a+d" by (simp add: prems)
+  thus "b \<le> d" by (simp add: preal_cancels)
+qed
+
+lemma real_le_lemma:
+  assumes l: "u1 + v2 \<le> u2 + v1"
+      and "x1 + v1 = u1 + y1"
+      and "x2 + v2 = u2 + y2"
+  shows "x1 + y2 \<le> x2 + (y1::preal)"
+proof -
+  have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: prems)
+  hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: preal_add_ac)
+  also have "... \<le> (x2+y1) + (u2+v1)"
          by (simp add: prems preal_add_le_cancel_left)
-  also have "... = (x2 + v1) + (u2 + y1)" by (simp add: preal_add_ac)
-  also have "... = (u1 + y2) + (u2 + y1)" by (simp add: prems)
-  also have "... = u2 + u1 + y2 + y1" by (simp add: preal_add_ac)
-  finally show ?thesis .
+  finally show ?thesis by (simp add: preal_add_le_cancel_right)
+qed						 
+
+lemma real_le: 
+  "(Abs_REAL(realrel``{(x1,y1)}) \<le> Abs_REAL(realrel``{(x2,y2)})) =  
+   (x1 + y2 \<le> x2 + y1)"
+apply (simp add: real_le_def) 
+apply (auto intro: real_le_lemma);
+done
+
+lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
+apply (rule eq_Abs_REAL [of z])
+apply (rule eq_Abs_REAL [of w])
+apply (simp add: real_le order_antisym) 
+done
+
+lemma real_trans_lemma:
+  assumes "x + v \<le> u + y"
+      and "u + v' \<le> u' + v"
+      and "x2 + v2 = u2 + y2"
+  shows "x + v' \<le> u' + (y::preal)"
+proof -
+  have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: preal_add_ac)
+  also have "... \<le> (u+y) + (u+v')" 
+    by (simp add: preal_add_le_cancel_right prems) 
+  also have "... \<le> (u+y) + (u'+v)" 
+    by (simp add: preal_add_le_cancel_left prems) 
+  also have "... = (u'+y) + (u+v)"  by (simp add: preal_add_ac)
+  finally show ?thesis by (simp add: preal_add_le_cancel_right)
 qed						 
 
 lemma real_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::real)"
-apply (simp add: real_le_def, clarify)
-apply (rename_tac x1 u1 y1 v1 x2 u2 y2 v2) 
-apply (drule mem_REAL_imp_eq [OF Rep_REAL], assumption)  
-apply (rule_tac x=x1 in exI) 
-apply (rule_tac x=y1 in exI) 
-apply (rule_tac x="u2 + (x2 + v1)" in exI) 
-apply (rule_tac x="v2 + (u1 + y2)" in exI) 
-apply (simp add: Rep_REAL_cancel_right preal_add_le_cancel_right 
-                 preal_add_assoc [symmetric] real_le_trans_lemma)
-done
-
-lemma real_le_anti_sym_lemma: 
-  assumes le1: "x1 + y2 \<le> x2 + y1"
-      and le2: "u1 + v2 \<le> u2 + v1"
-      and eq1: "x1 + v2 = u2 + y1"
-      and eq2: "x2 + v1 = u1 + y2"
-  shows "x2 + y1 = x1 + (y2::preal)"
-proof (rule order_antisym)
-  show "x1 + y2 \<le> x2 + y1" .
-  have "(x2 + y1) + (u1+u2) = x2 + u1 + (u2 + y1)" by (simp add: preal_add_ac)
-  also have "... = x2 + u1 + (x1 + v2)" by (simp add: prems)
-  also have "... = (x2 + x1) + (u1 + v2)" by (simp add: preal_add_ac)
-  also have "... \<le> (x2 + x1) + (u2 + v1)" 
-                                  by (simp add: preal_add_le_cancel_left)
-  also have "... = (x1 + u2) + (x2 + v1)" by (simp add: preal_add_ac)
-  also have "... = (x1 + u2) + (u1 + y2)" by (simp add: prems)
-  also have "... = (x1 + y2) + (u1 + u2)" by (simp add: preal_add_ac)
-  finally show "x2 + y1 \<le> x1 + y2" by (simp add: preal_add_le_cancel_right)
-qed  
-
-lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
-apply (simp add: real_le_def, clarify) 
-apply (rule real_eq_iff [THEN iffD2], assumption+)
-apply (drule mem_REAL_imp_eq [OF Rep_REAL], assumption)+
-apply (blast intro: real_le_anti_sym_lemma) 
+apply (rule eq_Abs_REAL [of i])
+apply (rule eq_Abs_REAL [of j])
+apply (rule eq_Abs_REAL [of k])
+apply (simp add: real_le) 
+apply (blast intro: real_trans_lemma) 
 done
 
 (* Axiom 'order_less_le' of class 'order': *)
@@ -488,67 +459,27 @@ proof qed
  (assumption |
   rule real_le_refl real_le_trans real_le_anti_sym real_less_le)+
 
-text{*Simplifies a strange formula that occurs quantified.*}
-lemma preal_strange_le_eq: "(x1 + x2 \<le> x2 + y1) = (x1 \<le> (y1::preal))"
-by (simp add: preal_add_commute [of x1] preal_add_le_cancel_left) 
-
-text{*This is the nicest way to prove linearity*}
-lemma real_le_linear_0: "(z::real) \<le> 0 | 0 \<le> z"
-apply (rule_tac z = z in eq_Abs_REAL)
-apply (auto simp add: real_le_def real_zero_def preal_add_ac 
-                      preal_cancels preal_strange_le_eq)
-apply (cut_tac x=x and y=y in linorder_linear, auto) 
-done
-
-lemma real_minus_zero_le_iff: "(0 \<le> -R) = (R \<le> (0::real))"
-apply (rule_tac z = R in eq_Abs_REAL)
-apply (force simp add: real_le_def real_zero_def real_minus preal_add_ac 
-                       preal_cancels preal_strange_le_eq)
-done
-
-lemma real_le_imp_diff_le_0: "x \<le> y ==> x-y \<le> (0::real)"
-apply (rule_tac z = x in eq_Abs_REAL)
-apply (rule_tac z = y in eq_Abs_REAL)
-apply (auto simp add: real_le_def real_zero_def real_diff_def real_minus 
-    real_add preal_add_ac preal_cancels preal_strange_le_eq)
-apply (rule exI)+
-apply (rule conjI, assumption)
-apply (subgoal_tac " x + (x2 + y1 + ya) = (x + y1) + (x2 + ya)")
- prefer 2 apply (simp (no_asm) only: preal_add_ac) 
-apply (subgoal_tac "x1 + y2 + (xa + y) = (x1 + y) + (xa + y2)")
- prefer 2 apply (simp (no_asm) only: preal_add_ac) 
-apply simp 
-done
-
-lemma real_diff_le_0_imp_le: "x-y \<le> (0::real) ==> x \<le> y"
-apply (rule_tac z = x in eq_Abs_REAL)
-apply (rule_tac z = y in eq_Abs_REAL)
-apply (auto simp add: real_le_def real_zero_def real_diff_def real_minus 
-    real_add preal_add_ac preal_cancels preal_strange_le_eq)
-apply (rule exI)+
-apply (rule conjI, rule_tac [2] conjI)
- apply (rule_tac [2] refl)+
-apply (subgoal_tac "(x + ya) + (x1 + y1) \<le> (xa + y) + (x1 + y1)") 
-apply (simp add: preal_cancels)
-apply (subgoal_tac "x1 + (x + (y1 + ya)) \<le> y1 + (x1 + (xa + y))")
- apply (simp add: preal_add_ac) 
-apply (simp add: preal_cancels)
-done
-
-lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
-by (blast intro!: real_diff_le_0_imp_le real_le_imp_diff_le_0)
-
-
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
-apply (insert real_le_linear_0 [of "z-w"])
-apply (auto simp add: real_le_eq_diff [of w] real_le_eq_diff [of z] 
-                      real_minus_zero_le_iff [symmetric])
+apply (rule eq_Abs_REAL [of z])
+apply (rule eq_Abs_REAL [of w]) 
+apply (auto simp add: real_le real_zero_def preal_add_ac preal_cancels)
+apply (cut_tac x="x+ya" and y="xa+y" in linorder_linear) 
+apply (auto ); 
 done
+
 
 instance real :: linorder
   by (intro_classes, rule real_le_linear)
 
+
+lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
+apply (rule eq_Abs_REAL [of x])
+apply (rule eq_Abs_REAL [of y]) 
+apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
+                      preal_add_ac)
+apply (simp_all add: preal_add_assoc [symmetric] preal_cancels)
+done 
 
 lemma real_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::real)"
 apply (auto simp add: real_le_eq_diff [of x] real_le_eq_diff [of "z+x"])
@@ -556,56 +487,22 @@ apply (subgoal_tac "z + x - (z + y) = (z + -z) + (x - y)")
  prefer 2 apply (simp add: diff_minus add_ac, simp) 
 done
 
-
-lemma real_minus_zero_le_iff2: "(-R \<le> 0) = (0 \<le> (R::real))"
-apply (rule_tac z = R in eq_Abs_REAL)
-apply (force simp add: real_le_def real_zero_def real_minus preal_add_ac 
-                       preal_cancels preal_strange_le_eq)
-done
-
-lemma real_minus_zero_less_iff: "(0 < -R) = (R < (0::real))"
-by (simp add: linorder_not_le [symmetric] real_minus_zero_le_iff2) 
-
-lemma real_minus_zero_less_iff2: "(-R < 0) = ((0::real) < R)"
-by (simp add: linorder_not_le [symmetric] real_minus_zero_le_iff) 
-
 lemma real_sum_gt_zero_less: "(0 < S + (-W::real)) ==> (W < S)"
 by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S] diff_minus)
 
-text{*Used a few times in Lim and Transcendental*}
 lemma real_less_sum_gt_zero: "(W < S) ==> (0 < S + (-W::real))"
 by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S] diff_minus)
 
-text{*Handles other strange cases that arise in these proofs.*}
-lemma forall_imp_less: "\<forall>u v. u \<le> v \<longrightarrow> x + v \<noteq> u + (y::preal) ==> y < x";
-apply (drule_tac x=x in spec) 
-apply (drule_tac x=y in spec) 
-apply (simp add: preal_add_commute linorder_not_le) 
-done
-
-text{*The arithmetic decision procedure is not set up for type preal.*}
-lemma preal_eq_le_imp_le:
-  assumes eq: "a+b = c+d" and le: "c \<le> a"
-  shows "b \<le> (d::preal)"
-proof -
-  have "c+d \<le> a+d" by (simp add: prems preal_cancels)
-  hence "a+b \<le> a+d" by (simp add: prems)
-  thus "b \<le> d" by (simp add: preal_cancels)
-qed
-
 lemma real_mult_order: "[| 0 < x; 0 < y |] ==> (0::real) < x * y"
-apply (simp add: linorder_not_le [symmetric])
+apply (rule eq_Abs_REAL [of x])
+apply (rule eq_Abs_REAL [of y])
+apply (simp add: linorder_not_le [where 'a = real, symmetric] 
+                 linorder_not_le [where 'a = preal] 
+                  real_zero_def real_le real_mult)
   --{*Reduce to the (simpler) @{text "\<le>"} relation *}
-apply (rule_tac z = x in eq_Abs_REAL)
-apply (rule_tac z = y in eq_Abs_REAL)
-apply (auto simp add: real_zero_def real_le_def real_mult preal_add_ac 
-                      preal_cancels preal_strange_le_eq)
-apply (drule preal_eq_le_imp_le, assumption)
-apply (auto  dest!: forall_imp_less less_add_left_Ex 
+apply (auto  dest!: less_add_left_Ex 
      simp add: preal_add_ac preal_mult_ac 
-         preal_add_mult_distrib preal_add_mult_distrib2)
-apply (insert preal_self_less_add_right)
-apply (simp add: linorder_not_le [symmetric])
+          preal_add_mult_distrib2 preal_cancels preal_self_less_add_right)
 done
 
 lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
@@ -617,12 +514,10 @@ done
 
 text{*lemma for proving @{term "0<(1::real)"}*}
 lemma real_zero_le_one: "0 \<le> (1::real)"
-apply (auto simp add: real_zero_def real_one_def real_le_def preal_add_ac 
-                      preal_cancels)
-apply (rule_tac x="preal_of_rat 1 + preal_of_rat 1" in exI) 
-apply (rule_tac x="preal_of_rat 1" in exI) 
-apply (auto simp add: preal_add_ac preal_self_less_add_left order_less_imp_le)
+apply (simp add: real_zero_def real_one_def real_le 
+                 preal_self_less_add_left order_less_imp_le)
 done
+
 
 subsection{*The Reals Form an Ordered Field*}
 
@@ -658,7 +553,7 @@ text{*Gleason prop 9-4.4 p 127*}
 lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (unfold real_of_preal_def real_zero_def)
-apply (rule_tac z = x in eq_Abs_REAL)
+apply (rule eq_Abs_REAL [of x])
 apply (auto simp add: real_minus preal_add_ac)
 apply (cut_tac x = x and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: preal_add_assoc [symmetric])
@@ -824,126 +719,43 @@ qed
 
 subsection{*Embedding the Integers into the Reals*}
 
-lemma real_of_int_congruent: 
-  "congruent intrel (%p. (%(i,j). realrel ``  
-   {(preal_of_rat (rat (int(Suc i))), preal_of_rat (rat (int(Suc j))))}) p)"
-apply (simp add: congruent_def add_ac del: int_Suc, clarify)
-(*OPTION raised if only is changed to add?????????*)  
-apply (simp only: add_Suc_right zero_less_rat_of_int_iff zadd_int
-          preal_of_rat_add [symmetric] rat_of_int_add_distrib [symmetric], simp) 
-done
-
-lemma real_of_int: 
-   "real (Abs_Integ (intrel `` {(i, j)})) =  
-      Abs_REAL(realrel ``  
-        {(preal_of_rat (rat (int(Suc i))),  
-          preal_of_rat (rat (int(Suc j))))})"
-apply (unfold real_of_int_def)
-apply (rule_tac f = Abs_REAL in arg_cong)
-apply (simp del: int_Suc
-            add: realrel_in_real [THEN Abs_REAL_inverse] 
-             UN_equiv_class [OF equiv_intrel real_of_int_congruent])
-done
-
-lemma inj_real_of_int: "inj(real :: int => real)"
-apply (rule inj_onI)
-apply (rule_tac z = x in eq_Abs_Integ)
-apply (rule_tac z = y in eq_Abs_Integ, clarify) 
-apply (simp del: int_Suc 
-            add: real_of_int zadd_int preal_of_rat_eq_iff
-               preal_of_rat_add [symmetric] rat_of_int_add_distrib [symmetric])
-done
-
-lemma real_of_int_int_zero: "real (int 0) = 0"  
-by (simp add: int_def real_zero_def real_of_int preal_add_commute)
+defs (overloaded)
+  real_of_nat_def: "real z == of_nat z"
+  real_of_int_def: "real z == of_int z"
 
 lemma real_of_int_zero [simp]: "real (0::int) = 0"  
-by (insert real_of_int_int_zero, simp)
+by (simp add: real_of_int_def) 
 
 lemma real_of_one [simp]: "real (1::int) = (1::real)"
-apply (subst int_1 [symmetric])
-apply (simp add: int_def real_one_def)
-apply (simp add: real_of_int preal_of_rat_add [symmetric])  
-done
+by (simp add: real_of_int_def) 
 
 lemma real_of_int_add: "real (x::int) + real y = real (x + y)"
-apply (rule_tac z = x in eq_Abs_Integ)
-apply (rule_tac z = y in eq_Abs_Integ, clarify) 
-apply (simp del: int_Suc
-            add: pos_add_strict real_of_int real_add zadd
-                 preal_of_rat_add [symmetric], simp) 
-done
+by (simp add: real_of_int_def) 
 declare real_of_int_add [symmetric, simp]
 
 lemma real_of_int_minus: "-real (x::int) = real (-x)"
-apply (rule_tac z = x in eq_Abs_Integ)
-apply (auto simp add: real_of_int real_minus zminus)
-done
+by (simp add: real_of_int_def) 
 declare real_of_int_minus [symmetric, simp]
 
 lemma real_of_int_diff: "real (x::int) - real y = real (x - y)"
-by (simp only: zdiff_def real_diff_def real_of_int_add real_of_int_minus)
+by (simp add: real_of_int_def) 
 declare real_of_int_diff [symmetric, simp]
 
 lemma real_of_int_mult: "real (x::int) * real y = real (x * y)"
-apply (rule_tac z = x in eq_Abs_Integ)
-apply (rule_tac z = y in eq_Abs_Integ)
-apply (rename_tac a b c d) 
-apply (simp del: int_Suc
-            add: pos_add_strict mult_pos real_of_int real_mult zmult
-                 preal_of_rat_add [symmetric] preal_of_rat_mult [symmetric])
-apply (rule_tac f=preal_of_rat in arg_cong) 
-apply (simp only: int_Suc right_distrib add_ac mult_ac zadd_int zmult_int
-        rat_of_int_add_distrib [symmetric] rat_of_int_mult_distrib [symmetric]
-        rat_inject)
-done
+by (simp add: real_of_int_def) 
 declare real_of_int_mult [symmetric, simp]
 
-lemma real_of_int_Suc: "real (int (Suc n)) = real (int n) + (1::real)"
-by (simp only: real_of_one [symmetric] zadd_int add_ac int_Suc real_of_int_add)
-
 lemma real_of_int_zero_cancel [simp]: "(real x = 0) = (x = (0::int))"
-by (auto intro: inj_real_of_int [THEN injD])
-
-lemma zero_le_real_of_int: "0 \<le> real y ==> 0 \<le> (y::int)"
-apply (rule_tac z = y in eq_Abs_Integ)
-apply (simp add: real_le_def, clarify)  
-apply (rename_tac a b c d) 
-apply (simp del: int_Suc zdiff_def [symmetric]
-            add: real_zero_def real_of_int zle_def zless_def zdiff_def zadd
-                 zminus neg_def preal_add_ac preal_cancels)
-apply (drule sym, drule preal_eq_le_imp_le, assumption) 
-apply (simp del: int_Suc add: preal_of_rat_le_iff)
-done
-
-lemma real_of_int_le_cancel:
-  assumes le: "real (x::int) \<le> real y"
-  shows "x \<le> y"
-proof -
-  have "real x - real x \<le> real y - real x" using le
-    by (simp only: diff_minus add_le_cancel_right) 
-  hence "0 \<le> real y - real x" by simp
-  hence "0 \<le> y - x" by (simp only: real_of_int_diff zero_le_real_of_int) 
-  hence "0 + x \<le> (y - x) + x" by (simp only: add_le_cancel_right) 
-  thus  "x \<le> y" by simp 
-qed
+by (simp add: real_of_int_def) 
 
 lemma real_of_int_inject [iff]: "(real (x::int) = real y) = (x = y)"
-by (blast dest!: inj_real_of_int [THEN injD])
-
-lemma real_of_int_less_cancel: "real (x::int) < real y ==> x < y"
-by (auto simp add: order_less_le real_of_int_le_cancel)
-
-lemma real_of_int_less_mono: "x < y ==> (real (x::int) < real y)"
-apply (simp add: linorder_not_le [symmetric])
-apply (auto dest!: real_of_int_less_cancel simp add: order_le_less)
-done
+by (simp add: real_of_int_def) 
 
 lemma real_of_int_less_iff [iff]: "(real (x::int) < real y) = (x < y)"
-by (blast dest: real_of_int_less_cancel intro: real_of_int_less_mono)
+by (simp add: real_of_int_def) 
 
 lemma real_of_int_le_iff [simp]: "(real (x::int) \<le> real y) = (x \<le> y)"
-by (simp add: linorder_not_less [symmetric])
+by (simp add: real_of_int_def) 
 
 
 subsection{*Embedding the Naturals into the Reals*}
@@ -955,73 +767,64 @@ lemma real_of_nat_one [simp]: "real (Suc 0) = (1::real)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_add [simp]: "real (m + n) = real (m::nat) + real n"
-by (simp add: real_of_nat_def add_ac)
+by (simp add: real_of_nat_def)
 
 (*Not for addsimps: often the LHS is used to represent a positive natural*)
 lemma real_of_nat_Suc: "real (Suc n) = real n + (1::real)"
-by (simp add: real_of_nat_def add_ac)
+by (simp add: real_of_nat_def)
 
 lemma real_of_nat_less_iff [iff]: 
      "(real (n::nat) < real m) = (n < m)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_le_iff [iff]: "(real (n::nat) \<le> real m) = (n \<le> m)"
-by (simp add: linorder_not_less [symmetric])
-
-lemma inj_real_of_nat: "inj (real :: nat => real)"
-apply (rule inj_onI)
-apply (simp add: real_of_nat_def)
-done
-
-lemma real_of_nat_ge_zero [iff]: "0 \<le> real (n::nat)"
-apply (insert real_of_int_le_iff [of 0 "int n"]) 
-apply (simp add: real_of_nat_def) 
-done
-
-lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
-by (insert real_of_nat_less_iff [of 0 "Suc n"], simp) 
-
-lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
-by (simp add: real_of_nat_def zmult_int [symmetric]) 
-
-lemma real_of_nat_inject [iff]: "(real (n::nat) = real m) = (n = m)"
-by (auto dest: inj_real_of_nat [THEN injD])
-
-lemma real_of_nat_zero_iff: "(real (n::nat) = 0) = (n = 0)"
-  proof 
-    assume "real n = 0"
-    have "real n = real (0::nat)" by simp
-    then show "n = 0" by (simp only: real_of_nat_inject)
-  next
-    show "n = 0 \<Longrightarrow> real n = 0" by simp
-  qed
-
-lemma real_of_nat_diff: "n \<le> m ==> real (m - n) = real (m::nat) - real n"
-by (simp add: real_of_nat_def zdiff_int [symmetric])
-
-lemma real_of_nat_neg_int [simp]: "neg z ==> real (nat z) = 0"
-by (simp add: neg_nat)
-
-lemma real_of_nat_gt_zero_cancel_iff [simp]: "(0 < real (n::nat)) = (0 < n)"
-by (rule real_of_nat_less_iff [THEN subst], auto)
-
-lemma real_of_nat_le_zero_cancel_iff [simp]: "(real (n::nat) \<le> 0) = (n = 0)"
-apply (rule real_of_nat_zero [THEN subst])
-apply (simp only: real_of_nat_le_iff, simp) 
-done
-
-
-lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
-by (simp add: linorder_not_less real_of_nat_ge_zero)
-
-lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat)) = (0 \<le> n)"
-by (simp add: linorder_not_less)
-
-lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def)
 
+lemma real_of_nat_ge_zero [iff]: "0 \<le> real (n::nat)"
+by (simp add: real_of_nat_def zero_le_imp_of_nat)
+
+lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
+by (simp add: real_of_nat_def del: of_nat_Suc)
+
+lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
+by (simp add: real_of_nat_def)
+
+lemma real_of_nat_inject [iff]: "(real (n::nat) = real m) = (n = m)"
+by (simp add: real_of_nat_def)
+
+lemma real_of_nat_zero_iff: "(real (n::nat) = 0) = (n = 0)"
+by (simp add: real_of_nat_def)
+
+lemma real_of_nat_diff: "n \<le> m ==> real (m - n) = real (m::nat) - real n"
+by (simp add: add: real_of_nat_def) 
+
+lemma real_of_nat_gt_zero_cancel_iff [simp]: "(0 < real (n::nat)) = (0 < n)"
+by (simp add: add: real_of_nat_def) 
+
+lemma real_of_nat_le_zero_cancel_iff [simp]: "(real (n::nat) \<le> 0) = (n = 0)"
+by (simp add: add: real_of_nat_def)
+
+lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
+by (simp add: add: real_of_nat_def)
+
+lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat)) = (0 \<le> n)"
+by (simp add: add: real_of_nat_def)
+
+lemma real_of_int_real_of_nat: "real (int n) = real n"
+by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)
+
+
+
+text{*Still needed for binary arith*}
 lemma real_of_nat_real_of_int: "~neg z ==> real (nat z) = real z"
-by (simp add: not_neg_eq_ge_0 real_of_nat_def)
+proof (simp add: not_neg_eq_ge_0 real_of_nat_def real_of_int_def)
+  assume "0 \<le> z"
+  hence eq: "of_nat (nat z) = z" 
+    by (simp add: nat_0_le int_eq_of_nat[symmetric]) 
+  have "of_nat (nat z) = of_int (of_nat (nat z))" by simp
+  also have "... = of_int z" by (simp add: eq)
+  finally show "of_nat (nat z) = of_int z" .
+qed
 
 ML
 {*
@@ -1031,7 +834,6 @@ val real_le_def = thm "real_le_def";
 val real_diff_def = thm "real_diff_def";
 val real_divide_def = thm "real_divide_def";
 
-val preal_trans_lemma = thm"preal_trans_lemma";
 val realrel_iff = thm"realrel_iff";
 val realrel_refl = thm"realrel_refl";
 val equiv_realrel = thm"equiv_realrel";
@@ -1099,20 +901,14 @@ val real_mult_right_cancel = thm"real_mult_right_cancel";
 val real_inverse_unique = thm "real_inverse_unique";
 val real_inverse_gt_one = thm "real_inverse_gt_one";
 
-val real_of_int = thm"real_of_int";
-val inj_real_of_int = thm"inj_real_of_int";
 val real_of_int_zero = thm"real_of_int_zero";
 val real_of_one = thm"real_of_one";
 val real_of_int_add = thm"real_of_int_add";
 val real_of_int_minus = thm"real_of_int_minus";
 val real_of_int_diff = thm"real_of_int_diff";
 val real_of_int_mult = thm"real_of_int_mult";
-val real_of_int_Suc = thm"real_of_int_Suc";
 val real_of_int_real_of_nat = thm"real_of_int_real_of_nat";
-val real_of_nat_real_of_int = thm"real_of_nat_real_of_int";
-val real_of_int_less_cancel = thm"real_of_int_less_cancel";
 val real_of_int_inject = thm"real_of_int_inject";
-val real_of_int_less_mono = thm"real_of_int_less_mono";
 val real_of_int_less_iff = thm"real_of_int_less_iff";
 val real_of_int_le_iff = thm"real_of_int_le_iff";
 val real_of_nat_zero = thm "real_of_nat_zero";
@@ -1121,14 +917,12 @@ val real_of_nat_add = thm "real_of_nat_add";
 val real_of_nat_Suc = thm "real_of_nat_Suc";
 val real_of_nat_less_iff = thm "real_of_nat_less_iff";
 val real_of_nat_le_iff = thm "real_of_nat_le_iff";
-val inj_real_of_nat = thm "inj_real_of_nat";
 val real_of_nat_ge_zero = thm "real_of_nat_ge_zero";
 val real_of_nat_Suc_gt_zero = thm "real_of_nat_Suc_gt_zero";
 val real_of_nat_mult = thm "real_of_nat_mult";
 val real_of_nat_inject = thm "real_of_nat_inject";
 val real_of_nat_diff = thm "real_of_nat_diff";
 val real_of_nat_zero_iff = thm "real_of_nat_zero_iff";
-val real_of_nat_neg_int = thm "real_of_nat_neg_int";
 val real_of_nat_gt_zero_cancel_iff = thm "real_of_nat_gt_zero_cancel_iff";
 val real_of_nat_le_zero_cancel_iff = thm "real_of_nat_le_zero_cancel_iff";
 val not_real_of_nat_less_zero = thm "not_real_of_nat_less_zero";

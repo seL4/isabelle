@@ -176,6 +176,11 @@ lemma FreeUltrafilterNat_Compl_iff2:
      "(X: FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
 by (auto simp add: FreeUltrafilterNat_Compl_iff1 [symmetric])
 
+lemma cofinite_mem_FreeUltrafilterNat: "finite (-X) ==> X \<in> FreeUltrafilterNat"
+apply (drule FreeUltrafilterNat_finite)  
+apply (simp add: FreeUltrafilterNat_Compl_iff2 [symmetric])
+done
+
 lemma FreeUltrafilterNat_UNIV [simp]: "(UNIV::nat set) \<in> FreeUltrafilterNat"
 by (rule FreeUltrafilterNat_mem [THEN FreeUltrafilter_Ultrafilter, THEN Ultrafilter_Filter, THEN mem_FiltersetD4])
 
@@ -768,7 +773,7 @@ text{*A few lemmas first*}
 
 lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
       (\<exists>y. {n::nat. x = real n} = {y})"
-by (force dest: inj_real_of_nat [THEN injD])
+by (force)
 
 lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
 by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
@@ -789,7 +794,7 @@ text{*Existence of infinitesimal number also not corresponding to any
 lemma lemma_epsilon_empty_singleton_disj:
      "{n::nat. x = inverse(real(Suc n))} = {} |  
       (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
-by (auto simp add: inj_real_of_nat [THEN inj_eq])
+by (auto)
 
 lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)

@@ -8,7 +8,7 @@
 
 header{*Arithmetic on Binary Integers*}
 
-theory Bin = Int + Numeral:
+theory Bin = IntDef + Numeral:
 
 text{*The sign @{term Pls} stands for an infinite string of leading Falses.*}
 text{*The sign @{term Min} stands for an infinite string of leading Trues.*}
@@ -258,7 +258,7 @@ by (cut_tac w = 0 in zless_nat_conj, auto)
 
 lemma eq_number_of_eq:
   "((number_of x::int) = number_of y) =
-   iszero (number_of (bin_add x (bin_minus y)))"
+   iszero (number_of (bin_add x (bin_minus y)) :: int)"
 apply (unfold iszero_def)
 apply (simp add: compare_rls number_of_add number_of_minus)
 done
@@ -272,14 +272,15 @@ apply (simp add: eq_commute)
 done
 
 lemma iszero_number_of_BIT:
-     "iszero (number_of (w BIT x)) = (~x & iszero (number_of w::int))"
+     "iszero (number_of (w BIT x)::int) = (~x & iszero (number_of w::int))"
 apply (unfold iszero_def)
 apply (cases "(number_of w)::int" rule: int_cases) 
 apply (simp_all (no_asm_simp) add: compare_rls zero_reorient
          zminus_zadd_distrib [symmetric] int_Suc0_eq_1 [symmetric] zadd_int)
 done
 
-lemma iszero_number_of_0: "iszero (number_of (w BIT False)) = iszero (number_of w::int)"
+lemma iszero_number_of_0:
+     "iszero (number_of (w BIT False)::int) = iszero (number_of w::int)"
 by (simp only: iszero_number_of_BIT simp_thms)
 
 lemma iszero_number_of_1: "~ iszero (number_of (w BIT True)::int)"
@@ -291,24 +292,23 @@ by (simp only: iszero_number_of_BIT simp_thms)
 
 lemma less_number_of_eq_neg:
     "((number_of x::int) < number_of y)
-     = neg (number_of (bin_add x (bin_minus y)))"
+     = neg (number_of (bin_add x (bin_minus y)) ::int )"
+by (simp add: neg_def number_of_add number_of_minus compare_rls) 
 
-apply (unfold zless_def zdiff_def)
-apply (simp add: bin_mult_simps)
-done
 
 (*But if Numeral0 is rewritten to 0 then this rule can't be applied:
   Numeral0 IS (number_of Pls) *)
-lemma not_neg_number_of_Pls: "~ neg (number_of bin.Pls)"
-by (simp add: neg_eq_less_0)
+lemma not_neg_number_of_Pls: "~ neg (number_of bin.Pls ::int)"
+by (simp add: neg_def)
 
-lemma neg_number_of_Min: "neg (number_of bin.Min)"
-by (simp add: neg_eq_less_0 int_0_less_1)
+lemma neg_number_of_Min: "neg (number_of bin.Min ::int)"
+by (simp add: neg_def int_0_less_1)
 
-lemma neg_number_of_BIT: "neg (number_of (w BIT x)) = neg (number_of w)"
+lemma neg_number_of_BIT:
+     "neg (number_of (w BIT x)::int) = neg (number_of w ::int)"
 apply simp
 apply (cases "(number_of w)::int" rule: int_cases) 
-apply (simp_all (no_asm_simp) add: int_Suc0_eq_1 [symmetric] zadd_int neg_eq_less_0 zdiff_def [symmetric] compare_rls)
+apply (simp_all (no_asm_simp) add: int_Suc0_eq_1 [symmetric] zadd_int neg_def zdiff_def [symmetric] compare_rls)
 done
 
 
@@ -326,9 +326,7 @@ declare le_number_of_eq_not_less [simp]
 lemma zabs_number_of:
  "abs(number_of x::int) =
   (if number_of x < (0::int) then -number_of x else number_of x)"
-apply (unfold zabs_def)
-apply (rule refl)
-done
+by (simp add: zabs_def)
 
 (*0 and 1 require special rewrites because they aren't numerals*)
 lemma zabs_0: "abs (0::int) = 0"

@@ -77,7 +77,7 @@ subsubsection{*Comparisons*}
 
 lemma eq_hypreal_number_of [simp]:
      "((number_of v :: hypreal) = number_of v') =
-      iszero (number_of (bin_add v (bin_minus v')))"
+      iszero (number_of (bin_add v (bin_minus v')) :: int)"
 apply (simp only: hypreal_number_of_def hypreal_of_real_eq_iff eq_real_number_of)
 done
 
@@ -87,7 +87,7 @@ done
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma less_hypreal_number_of [simp]:
      "((number_of v :: hypreal) < number_of v') =
-      neg (number_of (bin_add v (bin_minus v')))"
+      neg (number_of (bin_add v (bin_minus v')) :: int)"
 by (simp only: hypreal_number_of_def hypreal_of_real_less_iff less_real_number_of)
 
 
@@ -139,10 +139,6 @@ use "hypreal_arith.ML"
 
 setup hypreal_arith_setup
 
-text{*Used once in NSA*}
-lemma hypreal_add_minus_eq_minus: "x + y = (0::hypreal) ==> x = -y"
-by arith
-
 lemma hypreal_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::hypreal) \<le> x + y"
 by arith
 
@@ -192,7 +188,7 @@ subsection{*Absolute Value Function for the Hyperreals*}
 
 lemma hrabs_number_of [simp]:
      "abs (number_of v :: hypreal) =
-        (if neg (number_of v) then number_of (bin_minus v)
+        (if neg (number_of v :: int) then number_of (bin_minus v)
          else number_of v)"
 by (simp add: hrabs_def)
 
@@ -229,8 +225,11 @@ subsection{*Embedding the Naturals into the Hyperreals*}
 
 constdefs
 
-  hypreal_of_nat :: "nat => hypreal"
-  "hypreal_of_nat (n::nat) == hypreal_of_real (real n)"
+  hypreal_of_nat   :: "nat => hypreal"
+   "hypreal_of_nat m  == of_nat m"
+
+lemma SNat_eq: "Nats = {n. \<exists>N. n = hypreal_of_nat N}"
+by (force simp add: hypreal_of_nat_def Nats_def) 
 
 
 lemma hypreal_of_nat_add [simp]:
@@ -252,46 +251,42 @@ declare hypreal_of_nat_less_iff [symmetric, simp]
 (* is a hyperreal c.f. NS extension                           *)
 (*------------------------------------------------------------*)
 
-lemma hypreal_of_nat_iff:
-     "hypreal_of_nat  m = Abs_hypreal(hyprel``{%n. real m})"
-by (simp add: hypreal_of_nat_def hypreal_of_real_def real_of_nat_def)
+lemma hypreal_of_nat_eq:
+     "hypreal_of_nat (n::nat) = hypreal_of_real (real n)"
+apply (induct n) 
+apply (simp_all add: hypreal_of_nat_def real_of_nat_def)
+done
 
-lemma inj_hypreal_of_nat: "inj hypreal_of_nat"
-by (simp add: inj_on_def hypreal_of_nat_def)
+lemma hypreal_of_nat:
+     "hypreal_of_nat m = Abs_hypreal(hyprel``{%n. real m})"
+apply (induct m) 
+apply (simp_all add: hypreal_of_nat_def real_of_nat_def hypreal_zero_def 
+                     hypreal_one_def hypreal_add)
+done
 
 lemma hypreal_of_nat_Suc:
      "hypreal_of_nat (Suc n) = hypreal_of_nat n + (1::hypreal)"
-by (simp add: hypreal_of_nat_def real_of_nat_Suc)
+by (simp add: hypreal_of_nat_def)
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma hypreal_of_nat_number_of [simp]:
      "hypreal_of_nat (number_of v :: nat) =
-         (if neg (number_of v) then 0
+         (if neg (number_of v :: int) then 0
           else (number_of v :: hypreal))"
-by (simp add: hypreal_of_nat_def)
+by (simp add: hypreal_of_nat_eq)
 
 lemma hypreal_of_nat_zero [simp]: "hypreal_of_nat 0 = 0"
-by (simp del: numeral_0_eq_0 add: numeral_0_eq_0 [symmetric])
+by (simp add: hypreal_of_nat_def) 
 
 lemma hypreal_of_nat_one [simp]: "hypreal_of_nat 1 = 1"
-by (simp add: hypreal_of_nat_Suc)
+by (simp add: hypreal_of_nat_def) 
 
-lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
-apply (induct_tac "m")
-apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
-done
+lemma hypreal_of_nat_le_iff [simp]:
+     "(hypreal_of_nat n \<le> hypreal_of_nat m) = (n \<le> m)"
+by (simp add: hypreal_of_nat_def) 
 
-lemma hypreal_of_nat_le_iff:
-      "(hypreal_of_nat n \<le> hypreal_of_nat m) = (n \<le> m)"
-apply (auto simp add: linorder_not_less [symmetric])
-done
-declare hypreal_of_nat_le_iff [simp]
-
-lemma hypreal_of_nat_ge_zero: "0 \<le> hypreal_of_nat n"
-apply (simp (no_asm) add: hypreal_of_nat_zero [symmetric] 
-         del: hypreal_of_nat_zero)
-done
-declare hypreal_of_nat_ge_zero [simp]
+lemma hypreal_of_nat_ge_zero [simp]: "0 \<le> hypreal_of_nat n"
+by (simp add: hypreal_of_nat_def) 
 
 
 (*
@@ -302,7 +297,6 @@ Addsimps [symmetric hypreal_diff_def]
 
 ML
 {*
-val hypreal_add_minus_eq_minus = thm "hypreal_add_minus_eq_minus";
 val hypreal_le_add_order = thm"hypreal_le_add_order";
 
 val hypreal_of_nat_def = thm"hypreal_of_nat_def";
@@ -316,8 +310,6 @@ val hypreal_of_real_hrabs = thm "hypreal_of_real_hrabs";
 val hypreal_of_nat_add = thm "hypreal_of_nat_add";
 val hypreal_of_nat_mult = thm "hypreal_of_nat_mult";
 val hypreal_of_nat_less_iff = thm "hypreal_of_nat_less_iff";
-val hypreal_of_nat_iff = thm "hypreal_of_nat_iff";
-val inj_hypreal_of_nat = thm "inj_hypreal_of_nat";
 val hypreal_of_nat_Suc = thm "hypreal_of_nat_Suc";
 val hypreal_of_nat_number_of = thm "hypreal_of_nat_number_of";
 val hypreal_of_nat_zero = thm "hypreal_of_nat_zero";

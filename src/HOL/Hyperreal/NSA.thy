@@ -33,7 +33,7 @@ constdefs
    "x @= y       == (x + -y) \<in> Infinitesimal"
 
 
-defs
+defs (overloaded)
 
    (*standard real numbers as a subset of the hyperreals*)
    SReal_def:      "Reals == {x. \<exists>r. x = hypreal_of_real r}"
@@ -47,7 +47,8 @@ syntax (xsymbols)
      Closure laws for members of (embedded) set standard real Reals
  --------------------------------------------------------------------*)
 
-lemma SReal_add: "[| (x::hypreal) \<in> Reals; y \<in> Reals |] ==> x + y \<in> Reals"
+lemma SReal_add [simp]:
+     "[| (x::hypreal) \<in> Reals; y \<in> Reals |] ==> x + y \<in> Reals"
 apply (auto simp add: SReal_def)
 apply (rule_tac x = "r + ra" in exI, simp)
 done
@@ -1911,6 +1912,11 @@ apply (auto simp add: real_of_nat_Suc_gt_zero)
 apply (blast dest!: reals_Archimedean intro: order_less_trans)
 done
 
+lemma of_nat_in_Reals [simp]: "(of_nat n::hypreal) \<in> \<real>"
+apply (induct n)
+apply (simp_all add: SReal_add);
+done 
+ 
 lemma lemma_Infinitesimal2: "(\<forall>r \<in> Reals. 0 < r --> x < r) =
       (\<forall>n. x < inverse(hypreal_of_nat (Suc n)))"
 apply safe
@@ -1918,12 +1924,13 @@ apply (drule_tac x = "inverse (hypreal_of_real (real (Suc n))) " in bspec)
 apply (simp (no_asm_use) add: SReal_inverse)
 apply (rule real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive, THEN hypreal_of_real_less_iff [THEN iffD2], THEN [2] impE])
 prefer 2 apply assumption
-apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_def)
+apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_eq)
 apply (auto dest!: reals_Archimedean simp add: SReal_iff)
 apply (drule hypreal_of_real_less_iff [THEN iffD2])
-apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_def)
+apply (simp add: real_of_nat_Suc_gt_zero hypreal_of_nat_eq)
 apply (blast intro: order_less_trans)
 done
+
 
 lemma Infinitesimal_hypreal_of_nat_iff:
      "Infinitesimal = {x. \<forall>n. abs x < inverse (hypreal_of_nat (Suc n))}"

@@ -12,15 +12,11 @@ files ("int_arith1.ML"):
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
-  proof (auto simp add: zle_def zless_iff_Suc_zadd) 
-  fix m n
-  assume "w + 1 = w + (1 + int m) + (1 + int n)"
-  hence "(w + 1) + (1 + int (m + n)) = (w + 1) + 0" 
-    by (simp add: add_ac zadd_int [symmetric])
-  hence "int (Suc(m+n)) = 0" 
-    by (simp only: Ring_and_Field.add_left_cancel int_Suc)
-  thus False by (simp only: int_eq_0_conv)
-  qed
+apply (rule eq_Abs_Integ [of z])
+apply (rule eq_Abs_Integ [of w])
+apply (simp add: linorder_not_le [symmetric] zle int_def zadd One_int_def)
+done
+
 
 use "int_arith1.ML"
 setup int_arith_setup
@@ -86,10 +82,10 @@ lemma nat_2: "nat 2 = Suc (Suc 0)"
 by (subst nat_eq_iff, simp)
 
 lemma nat_less_eq_zless: "0 \<le> w ==> (nat w < nat z) = (w<z)"
-apply (case_tac "neg z")
+apply (case_tac "z < 0")
 apply (auto simp add: nat_less_iff)
-apply (auto intro: zless_trans simp add: neg_eq_less_0 zle_def)
 done
+
 
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 by (auto simp add: linorder_not_less [symmetric] zless_nat_conj)
@@ -229,12 +225,12 @@ subsection{*Products and 1, by T. M. Rasmussen*}
 lemma zmult_eq_self_iff: "(m = m*(n::int)) = (n = 1 | m = 0)"
 apply auto
 apply (subgoal_tac "m*1 = m*n")
-apply (drule zmult_cancel1 [THEN iffD1], auto)
+apply (drule mult_cancel_left [THEN iffD1], auto)
 done
 
 lemma zless_1_zmult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::int)"
 apply (rule_tac y = "1*n" in order_less_trans)
-apply (rule_tac [2] zmult_zless_mono1)
+apply (rule_tac [2] mult_strict_right_mono)
 apply (simp_all (no_asm_simp))
 done
 

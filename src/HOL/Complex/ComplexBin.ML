@@ -70,7 +70,7 @@ qed "complex_mult_2_right";
 (** Equals (=) **)
 
 Goal "((number_of v :: complex) = number_of v') = \
-\     iszero (number_of (bin_add v (bin_minus v')))";
+\     iszero (number_of (bin_add v (bin_minus v')) :: int)";
 by (simp_tac
     (HOL_ss addsimps [complex_number_of_def, 
 	              complex_of_real_eq_iff, eq_real_number_of]) 1);

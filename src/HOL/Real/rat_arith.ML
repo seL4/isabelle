@@ -19,18 +19,6 @@ val rat_mult_left_mono =
 val rat_number_of_def = thm "rat_number_of_def";
 val diff_rat_def = thm "diff_rat_def";
 
-val rat_of_int_zero = thm "rat_of_int_zero";
-val rat_of_int_one = thm "rat_of_int_one";
-val rat_of_int_add_distrib = thm "rat_of_int_add_distrib";
-val rat_of_int_minus_distrib = thm "rat_of_int_minus_distrib";
-val rat_of_int_diff_distrib = thm "rat_of_int_diff_distrib";
-val rat_of_int_mult_distrib = thm "rat_of_int_mult_distrib";
-val rat_inject = thm "rat_inject";
-val rat_of_int_zero_cancel = thm "rat_of_int_zero_cancel";
-val rat_of_int_less_iff = thm "rat_of_int_less_iff";
-val rat_of_int_le_iff = thm "rat_of_int_le_iff";
-
-val number_of_rat = thm "number_of_rat";
 val rat_numeral_0_eq_0 = thm "rat_numeral_0_eq_0";
 val rat_numeral_1_eq_1 = thm "rat_numeral_1_eq_1";
 val add_rat_number_of = thm "add_rat_number_of";
@@ -615,9 +603,8 @@ val rat_mult_mono_thms =
 val simps = [True_implies_equals,
              inst "a" "(number_of ?v)" right_distrib,
              divide_1, times_divide_eq_right, times_divide_eq_left,
-	     rat_of_int_zero, rat_of_int_one, rat_of_int_add_distrib,
-	     rat_of_int_minus_distrib, rat_of_int_diff_distrib,
-	     rat_of_int_mult_distrib, number_of_rat RS sym];
+	     of_int_0, of_int_1, of_int_add, of_int_minus, of_int_diff,
+	     of_int_mult, of_int_of_nat_eq, rat_number_of_def];
 
 in
 
@@ -625,8 +612,11 @@ val fast_rat_arith_simproc = Simplifier.simproc (Theory.sign_of(the_context()))
   "fast_rat_arith" ["(m::rat) < n","(m::rat) <= n", "(m::rat) = n"]
   Fast_Arith.lin_arith_prover;
 
-val int_inj_thms = [rat_of_int_le_iff RS iffD2, rat_of_int_less_iff RS iffD2,
-                    rat_inject RS iffD2];
+val nat_inj_thms = [of_nat_le_iff RS iffD2, of_nat_less_iff RS iffD2,
+                    of_nat_eq_iff RS iffD2];
+
+val int_inj_thms = [of_int_le_iff RS iffD2, of_int_less_iff RS iffD2,
+                    of_int_eq_iff RS iffD2];
 
 val rat_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
@@ -637,7 +627,8 @@ val rat_arith_setup =
     simpset = simpset addsimps add_rules
                       addsimps simps
                       addsimprocs simprocs}),
-  arith_inj_const ("Rational.rat", HOLogic.intT --> Rat_Numeral_Simprocs.ratT),
+  arith_inj_const("IntDef.of_nat", HOLogic.natT --> Rat_Numeral_Simprocs.ratT),
+  arith_inj_const("IntDef.of_int", HOLogic.intT --> Rat_Numeral_Simprocs.ratT),
   arith_discrete ("Rational.rat",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_rat_arith_simproc]];
 

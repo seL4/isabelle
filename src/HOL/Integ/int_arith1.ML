@@ -28,6 +28,11 @@ val bin_mult_Pls = thm"bin_mult_Pls";
 val bin_mult_Min = thm"bin_mult_Min";
 val bin_mult_BIT = thm"bin_mult_BIT";
 
+val neg_def = thm "neg_def";
+val iszero_def = thm "iszero_def";
+val not_neg_int = thm "not_neg_int";
+val neg_zminus_int = thm "neg_zminus_int";
+
 val zadd_ac = thms "Ring_and_Field.add_ac"
 val zmult_ac = thms "Ring_and_Field.mult_ac"
 val NCons_Pls_0 = thm"NCons_Pls_0";

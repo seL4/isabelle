@@ -700,7 +700,7 @@ lemma Gleason9_34_exists:
   assumes A: "A \<in> preal"
       and "\<forall>x\<in>A. x + u \<in> A"
       and "0 \<le> z"
-     shows "\<exists>b\<in>A. b + (rat z) * u \<in> A"
+     shows "\<exists>b\<in>A. b + (of_int z) * u \<in> A"
 proof (cases z rule: int_cases)
   case (nonneg n)
   show ?thesis
@@ -709,15 +709,14 @@ proof (cases z rule: int_cases)
       from preal_nonempty [OF A]
       show ?case  by force 
     case (Suc k)
-      from this obtain b where "b \<in> A" "b + rat (int k) * u \<in> A" ..
-      hence "b + rat (int k)*u + u \<in> A" by (simp add: prems)
+      from this obtain b where "b \<in> A" "b + of_int (int k) * u \<in> A" ..
+      hence "b + of_int (int k)*u + u \<in> A" by (simp add: prems)
       thus ?case by (force simp add: left_distrib add_ac prems) 
   qed
 next
   case (neg n)
   with prems show ?thesis by simp
 qed
-
 
 lemma Gleason9_34_contra:
   assumes A: "A \<in> preal"
@@ -736,10 +735,10 @@ proof (induct u, induct y)
   have apos [simp]: "0 < a" 
     by (simp add: zero_less_Fract_iff [OF bpos, symmetric] ypos) 
   let ?k = "a*d"
-  have frle: "Fract a b \<le> rat ?k * (Fract c d)" 
+  have frle: "Fract a b \<le> Fract ?k 1 * (Fract c d)" 
   proof -
     have "?thesis = ((a * d * b * d) \<le> c * b * (a * d * b * d))"
-      by (simp add: rat_def mult_rat le_rat order_less_imp_not_eq2 mult_ac) 
+      by (simp add: mult_rat le_rat order_less_imp_not_eq2 mult_ac) 
     moreover
     have "(1 * (a * d * b * d)) \<le> c * b * (a * d * b * d)"
       by (rule mult_mono, 
@@ -751,11 +750,11 @@ proof (induct u, induct y)
   have k: "0 \<le> ?k" by (simp add: order_less_imp_le zero_less_mult_iff)  
   from Gleason9_34_exists [OF A closed k]
   obtain z where z: "z \<in> A" 
-             and mem: "z + rat ?k * Fract c d \<in> A" ..
-  have less: "z + rat ?k * Fract c d < Fract a b"
+             and mem: "z + of_int ?k * Fract c d \<in> A" ..
+  have less: "z + of_int ?k * Fract c d < Fract a b"
     by (rule not_in_preal_ub [OF A notin mem ypos])
   have "0<z" by (rule preal_imp_pos [OF A z])
-  with frle and less show False by arith 
+  with frle and less show False by (simp add: Fract_of_int_eq) 
 qed
 
 
