@@ -812,10 +812,11 @@ apply (rule ltI)
  prefer 2
  apply (simp add: Ord_ordertype well_ord_rmult well_ord_Memrel lt_Ord2)
 apply (simp add: ordertype_pred_unfold well_ord_rmult well_ord_Memrel lt_Ord2)
-apply (rule bexI)
-prefer 2 apply (blast elim!: ltE)
+apply (rule bexI [of _ i']) 
+apply (rule bexI [of _ j']) 
 apply (simp add: ordertype_pred_Pair_lemma ltI omult_def [symmetric])
 apply (simp add: lt_Ord lt_Ord2 raw_oadd_eq_oadd)
+apply (simp_all add: lt_def) 
 done
 
 lemma omult_unfold:

@@ -293,7 +293,7 @@ lemma Memrel_1 [simp]: "Memrel(1) = 0"
 by (unfold Memrel_def, blast)
 
 lemma relation_Memrel: "relation(Memrel(A))"
-by (simp add: relation_def Memrel_def, blast)
+by (simp add: relation_def Memrel_def)
 
 (*The membership relation (as a set) is well-founded.
   Proof idea: show A<=B by applying the foundation axiom to A-B *)

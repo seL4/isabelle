@@ -149,6 +149,18 @@ done
 lemma splitD: "split(R,<a,b>) ==> R(a,b)"
 by (simp add: split_def)
 
+text {*
+  \bigskip Complex rules for Sigma.
+*}
+
+lemma split_paired_Bex_Sigma [simp]:
+     "(\<exists>z \<in> Sigma(A,B). P(z)) <-> (\<exists>x \<in> A. \<exists>y \<in> B(x). P(<x,y>))"
+by blast
+
+lemma split_paired_Ball_Sigma [simp]:
+     "(\<forall>z \<in> Sigma(A,B). P(z)) <-> (\<forall>x \<in> A. \<forall>y \<in> B(x). P(<x,y>))"
+by blast
+
 ML
 {*
 val singleton_eq_iff = thm "singleton_eq_iff";
