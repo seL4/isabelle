@@ -397,14 +397,14 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     val taglist = Symtab.dest tags;
 
-    fun pretty_symb (Terminal (Token s)) = Pretty.str (quote s)
+    fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
       | pretty_symb (Nonterminal (tag, p)) =
         let val name = fst (the (find_first (fn (n, t) => t = tag) taglist));
         in Pretty.str (name ^ "[" ^ string_of_int p ^ "]") end;
 
     fun pretty_const "" = []
-      | pretty_const c = [Pretty.str ("=> " ^ quote c)];
+      | pretty_const c = [Pretty.str ("=> " ^ Library.quote c)];
 
     fun pretty_pri p = [Pretty.str ("(" ^ string_of_int p ^ ")")];
 
