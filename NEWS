@@ -167,6 +167,12 @@ for ML tools): const "()" renamed "Product_Type.Unity", type "unit"
 renamed "Product_Type.unit";
 
 
+*** HOLCF ***
+
+* proper rep_datatype lift (see theory Lift); use plain induct_tac
+instead of lift.induct_tac, use UU instead of Undef in all cases;
+
+
 *** ZF ***
 
 * ZF: the integer library now covers quotients and remainders, with
