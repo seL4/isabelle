@@ -7,6 +7,8 @@ Isabelle NEWS -- history user-relevant changes
   It can solve simple goals like "0 < n ==> n div 2 < (n::nat)"
   but fails if divisibility plays a role like in
   "n div 2 + (n+1) div 2 = (n::nat)".
+* simp's arithmetic capabilities have been enhanced a bit:
+  it now takes ~= in premises into account (by performing a case split).
 
 New in Isabelle2002 (March 2002)
 --------------------------------
