@@ -1720,6 +1720,7 @@ qed "abs_add_one_not_less_self";
 Addsimps [abs_add_one_not_less_self];
 
 
+claset_ref() := claset() delSWrapper "split_conv_tac";
 Goal "[| a <= b; ALL x. a <= x & x <= b --> isCont f x |]\
 \     ==> EX M. ALL x. a <= x & x <= b --> f(x) <= M";
 by (cut_inst_tac [("P","%(u,v). a <= u & u <= v & v <= b --> \
@@ -1764,6 +1765,7 @@ by (auto_tac (claset() addIs [abs_triangle_ineq RSN (2, order_trans)],
 by (auto_tac (claset(),
               simpset() addsimps [real_abs_def] addsplits [split_if_asm]));
 qed "isCont_bounded";
+claset_ref() := claset() addSbefore ("split_conv_tac", split_conv_tac);
 
 (*----------------------------------------------------------------------------*)
 (* Refine the above to existence of least upper bound                         *)
