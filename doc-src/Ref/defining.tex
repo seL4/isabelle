@@ -227,9 +227,9 @@ Name tokens have a predefined syntax.  The lexer distinguishes six disjoint
 classes of names: \rmindex{identifiers}, \rmindex{unknowns}, type
 identifiers\index{type identifiers}, type unknowns\index{type unknowns},
 \rmindex{numerals}, \rmindex{strings}.  They are denoted by \ndxbold{id},
-\ndxbold{var}, \ndxbold{tid}, \ndxbold{tvar}, \ndxbold{xnum}, \ndxbold{xstr},
-respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt 'a}, {\tt ?'a3},
-{\tt \#42}, {\tt ''foo bar''}.  Here is the precise syntax:
+\ndxbold{var}, \ndxbold{tid}, \ndxbold{tvar}, \ndxbold{num}, \ndxbold{xnum},
+\ndxbold{xstr}, respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt
+  'a}, {\tt ?'a3}, {\tt \#42}, {\tt ''foo bar''}.  Here is the precise syntax:
 \begin{eqnarray*}
 id        & =   & letter~quasiletter^* \\
 longid    & =   & id\mbox{\tt .}id~\dots~id \\
@@ -237,22 +237,20 @@ var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
 tid       & =   & \mbox{\tt '}id \\
 tvar      & =   & \mbox{\tt ?}tid ~~|~~
                   \mbox{\tt ?}tid\mbox{\tt .}nat \\
+num       & =   & nat ~~|~~ \mbox{\tt-}nat \\
 xnum      & =   & \mbox{\tt \#}nat ~~|~~ \mbox{\tt \#-}nat \\
 xstr      & =   & \mbox{\tt ''\rm text\tt ''} \\[1ex]
-letter    & =   & sletter ~~|~~ xletter \\
-digit     & =   & \mbox{one of {\tt 0}\dots {\tt 9}} \\
-quasiletter & =  & letter ~~|~~ digit ~~|~~ \mbox{\tt _} ~~|~~ \mbox{\tt '} \\
-nat       & =   & digit^+\\[1ex]
-sletter & = & \mbox{one of {\tt a}\dots {\tt z} {\tt A}\dots {\tt Z}} \\
-xletter & = & {\tt \backslash<} ~ (sletter ~|~ dletter ~|~ gletter ~|~ cletter) ~ {\tt >}\\
-dletter & = & \mbox{one of {\tt aa}\dots {\tt zz} {\tt AA}\dots {\tt ZZ}} \\
-bletter & = & {\tt bool} ~|~ {\tt complex} ~|~ {\tt nat} ~|~ {\tt rat} ~|~ {\tt real} ~|~ {\tt int}\\
-gletter & = & {\tt alpha} ~|~ {\tt beta} ~|~ {\tt gamma} ~|~ {\tt delta} ~|~ {\tt epsilon} ~|~ {\tt zeta} ~|~ {\tt eta} ~|\\ 
-        &   & {\tt theta} ~|~ {\tt iota} ~|~ {\tt kappa} ~|~ {\tt mu} ~|~ {\tt nu} ~|~ {\tt xi} ~|~ {\tt pi} ~|~ {\tt rho} ~|\\
-        &   & {\tt sigma} ~|~ {\tt tau} ~|~ {\tt upsilon} ~|~ {\tt phi} ~|~ {\tt psi} ~|~ {\tt omega} ~|~ {\tt Gamma} ~|\\
-        &   & {\tt Delta} ~|~ {\tt Theta} ~|~ {\tt Lambda} ~|~ {\tt Xi} ~|~ {\tt Pi} ~|~ {\tt Sigma} ~|~ {\tt Upsilon} ~|\\
-        &   & {\tt Phi} ~|~ {\tt Psi} ~|~ {\tt Omega}\\
-cletter & = & {\tt \hat{}\, isup} ~~|~~ {\tt \hat{}\, isub}
+letter & = & latin ~|~ symletter \\
+latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
+digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
+nat & = & digit^+ \\
+quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', ~|~ \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
+symletter & = & \verb,\<, (latin ~|~ latin~latin ~|~ greek) \verb,>, \\
+greek & = & \verb,alpha, ~|~ \verb,beta, ~|~ \verb,gamma, ~|~ \verb,delta, ~|~ \verb,epsilon, ~|~ \verb,zeta, ~|~ \verb,eta, ~| \\
+        &   & \verb,theta, ~|~ \verb,iota, ~|~ \verb,kappa, ~|~ \verb,mu, ~|~ \verb,nu, ~|~ \verb,xi, ~|~ \verb,pi, ~|~ \verb,rho, ~| \\
+        &   & \verb,sigma, ~|~ \verb,tau, ~|~ \verb,upsilon, ~|~ \verb,phi, ~|~ \verb,psi, ~|~ \verb,omega, ~|~ \verb,Gamma, ~| \\
+        &   & \verb,Delta, ~|~ \verb,Theta, ~|~ \verb,Lambda, ~|~ \verb,Xi, ~|~ \verb,Pi, ~|~ \verb,Sigma, ~|~ \verb,Upsilon, ~| \\
+        &   & \verb,Phi, ~|~ \verb,Psi, ~|~ \verb,Omega,
 \end{eqnarray*}
 The lexer repeatedly takes the longest prefix of the input string that
 forms a valid token.  A maximal prefix that is both a delimiter and a
@@ -276,7 +274,7 @@ run together as in {\tt ?x1}.  The latter form is possible if the base name
 does not end with digits.  If the index is 0, it may be dropped altogether:
 {\tt ?x} abbreviates both {\tt ?x0} and {\tt ?x.0}.
 
-Tokens of class $xnum$ or $xstr$ are not used by the meta-logic.
+Tokens of class $num$, $xnum$ or $xstr$ are not used by the meta-logic.
 Object-logics may provide numerals and string constants by adding appropriate
 productions and translation functions.
 
