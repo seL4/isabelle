@@ -1,0 +1,268 @@
+\section{Records} 
+\label{sec:records}
+
+Records are familiar from programming languages.  A record of $n$
+fields is essentially an $n$-tuple, but the record's components have
+names, which can make expressions easier to read and reduces the risk
+of confusing one field for another.
+
+A basic Isabelle record has a fixed set of fields, with access
+and update operations.  Each field has a specified type, which may be
+polymorphic.  The field names are part of the record type, and the
+order of the fields is significant --- as it is in Pascal but not in
+Standard ML.  If two different record types have fields in common,
+then the ambiguity is resolved in the usual way, by qualified names.
+
+Record types can also be defined by extending other record types. 
+The effect resembles inheritance in object-oriented programming. 
+Extensible records make use of the reserved field \isa{more}, which is
+present in every record type.  Generic methods, or operations that
+work on all possible extensions of a given record, can be expressed by
+definitions involving \isa{more}, but the details are complicated.
+
+\subsection{Record Basics}
+
+Record types are not primitive in Isabelle and have a complex internal
+representation.  A \isacommand{record} declaration
+introduces a new record type:
+\begin{isabelle}
+\isacommand{record}\ point\ =\isanewline
+\ \ Xcoord\ ::\ int\isanewline
+\ \ Ycoord\ ::\ int
+\end{isabelle}
+
+Records of type \isa{point} have two fields named \isa{Xcoord} and \isa{Ycoord},
+both of type~\isa{int}.  We now declare a constant of type
+\isa{point}:
+\begin{isabelle}
+\isacommand{constdefs}\ \ \ pt1\ ::\ point\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ "pt1\ ==\ (|\ Xcoord\ =\ \#999,\ Ycoord\ =\ \#23\ |)"
+\end{isabelle}
+We see above the ASCII notation for record brackets.  You can also use
+the symbolic brackets \isa{\isasymlparr} and  \isa{\isasymrparr}.
+Record types can be written directly, rather than referring to
+previously declared names: 
+\begin{isabelle}
+\isacommand{constdefs}\ \ \ pt2\ ::\ "(|\ Xcoord\ ::\ int,\ Ycoord\ ::\ int\
+|)"\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ "pt2\ ==\ (|\ Xcoord\ =\ \#-45,\ Ycoord\ =\ \#97\ |)"
+\end{isabelle}
+
+For each field, there is a \emph{selector} function of the same name.  For
+example, if \isa{p} has type \isa{point} then \isa{Xcoord p} denotes the
+value of the \isa{Xcoord} field of~\isa{p}.  Expressions involving field
+selection are simplified automatically:
+\begin{isabelle}
+\isacommand{lemma}\ "Xcoord\ (|\ Xcoord\ =\ a,\ Ycoord\ =\ b\ |)\ =\ a"\isanewline
+\isacommand{by}\ simp
+\end{isabelle}
+The \emph{update} operation is functional.  For example,
+\isa{p\isasymlparr Xcoord:=\#0\isasymrparr} is a record whose \isa{Xcoord} value
+is zero and whose
+\isa{Ycoord} value is copied from~\isa{p}.  Updates are also simplified
+automatically:
+\begin{isabelle}
+\isacommand{lemma}\ "(|\ Xcoord\ =\ a,\ Ycoord\ =\ b\ |)\ (|\ Xcoord:=\ \#0\ |)\
+=\isanewline
+\ \ \ \ \ \ \ \ (|\ Xcoord\ =\ 0,\ Ycoord\ =\ b\ |)"\isanewline
+\isacommand{by}\ simp
+\end{isabelle}
+
+\begin{warn}
+Field names are declared as constants and can no longer be
+used as variables.  It would be unwise, for example, to call the fields
+of type \isa{point} simply \isa{x} and~\isa{y}.
+\end{warn}
+
+
+\subsection{Extensible Records and Generic Operations}
+
+Now, let us define coloured points
+(type \isa{cpoint}) to be points extended with a field \isa{col} of type
+\isa{colour}:
+\begin{isabelle}
+\isacommand{datatype}\ colour\ =\ Red\ |\ Green\ |\
+Blue\isanewline
+\isanewline
+\isacommand{record}\ cpoint\ =\ point\ +\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ col\ ::\ colour
+\end{isabelle}
+
+The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and \isa{col}, in that
+order:
+\begin{isabelle}
+\isacommand{constdefs}\ \ \ cpt1\ ::\ cpoint\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ "cpt1\ ==\ (|\ Xcoord\ =\ \#999,\ Ycoord\ =\ \#23,\ col\
+=\ Green\ |)"
+\end{isabelle}
+
+Unfortunately, there are no built-in conversions between types
+\isa{point} and \isa{cpoint}: to add a colour to
+a point,  or to convert a \isa{cpoint} to a \isa{point} by forgetting
+its colour, we must define operations that copy across the other
+fields.  However,  we can define generic operations
+that work on type
+\isa{point} and all extensions of it.
+
+Every record structure has an implicit field, \isa{more}, to allow
+extension.  Its type is completely polymorphic:~\isa{'a}.  When a
+record value is expressed using just its standard fields, the value of
+\isa{more} is implicitly set to \isa{()}, the empty tuple, which has
+type \isa{unit}.  Within the record brackets, you can refer to the
+\isa{more} field by writing \isa{...}:
+\begin{isabelle}
+\isacommand{lemma}\ "Xcoord\ (|\ Xcoord\ =\ a,\ Ycoord\ =\ b,\ ...\ =\ p\ |)\ =\ a"
+\end{isabelle}
+This lemma (trivially proved using \isa{simp}) applies to any
+record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Field
+\isa{more} can be selected in the usual way, but as all records share
+this field, the identifier must be qualified:
+\begin{isabelle}
+\isacommand{lemma}\ "point.more\ cpt1\ =\ \isasymlparr col\ =\ Green\isasymrparr "\isanewline
+\isacommand{by}\ (simp\ add:\ cpt1_def)
+\end{isabelle}
+%
+We see that the colour attached to this \isa{point} is a record in its
+own right, namely 
+\isa{\isasymlparr col\ =\ Green\isasymrparr}.
+
+To define generic operations, we need to know a bit more about records.
+Our declaration of \isa{point} above generated two type
+abbreviations:
+\begin{isabelle}
+\ \ \ \ point\ =\ (|\ Xcoord\ ::\ int,\ Ycoord\ ::\ int\ |)\isanewline
+\ \ \ \ 'a\ point_scheme\ =\ (|\ Xcoord\ ::\ int,\ Ycoord\ ::\ int,\ ...\ ::\ 'a\ |)
+\end{isabelle}
+%
+Type \isa{point} is for rigid records having the two fields
+\isa{Xcoord} and~\isa{Ycoord}, while the polymorphic type \isa{'a\ point_scheme}
+comprises all possible extensions to those two fields.  For example,
+let us define two operations (``methods'') to get and set any point's \isa{Xcoord}
+field.  The sort constraint in \isa{'a::more} is required, since
+all extensions must belong to the type class \isa{more}.%
+\REMARK{Why, and what does this imply in practice?}
+\begin{isabelle}
+\ \ getX\ ::\ "('a::more)\ point_scheme\ \isasymRightarrow \ int"\isanewline
+\ \ \ "getX\ r\ ==\ Xcoord\ r"\isanewline
+\ \ setX\ ::\ "[('a::more)\ point_scheme,\ int]\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
+\ \ \ "setX\ r\ a\ ==\ r\ (|\ Xcoord\ :=\ a\ |)"
+\end{isabelle}
+
+Here is a generic method that modifies a point, incrementing its
+\isa{Xcoord} field.  The \isa{Ycoord} and \isa{more} fields
+are copied across.  It works for type \isa{point} and any of its
+extensions, such as \isa{cpoint}:
+\begin{isabelle}
+\isacommand{constdefs}\isanewline
+\ \ incX\ ::\ "('a::more)\ point_scheme\ \isasymRightarrow \ 'a\ point_scheme"\isanewline
+\ \ "incX\ r\ ==\ \isasymlparr Xcoord\ =\ (Xcoord\ r)\ +\
+\#1,\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ycoord\ =\ Ycoord\ r,\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \isasymdots \ =\ point.more\
+r\isasymrparr"
+\end{isabelle}
+
+Generic theorems can be proved about generic methods.  This trivial
+lemma relates \isa{incX} to \isa{getX} and \isa{setX}:
+\begin{isabelle}
+\isacommand{lemma}\ "incX\ r\ =\ setX\ r\ ((getX\ r)\ +\ \#1)"\isanewline
+\isacommand{by}\ (simp\ add:\ getX_def\ setX_def\ incX_def)
+\end{isabelle}
+
+\begin{warn}
+If you use the symbolic record brackets \isa{\isasymlparr} and 
+\isa{\isasymrparr}, then you must also use the symbolic ellipsis,
+\isa{\isasymdots}, rather than three consecutive periods,
+\isa{...}.  Mixing the ASCII and symbolic versions
+causes a syntax error.  (The two versions are more
+distinct on screen than they are on paper.)
+\end{warn}
+
+
+\subsection{Record Equality}
+
+Two records are equal if all pairs of corresponding fields are equal. 
+Record equalities are simplified automatically:
+\begin{isabelle}
+\isacommand{lemma}\ "(\isasymlparr Xcoord\ =\ a,\ Ycoord\ =\ b\isasymrparr \ =\ \isasymlparr Xcoord\ =\ a',\ Ycoord\ =\ b'\isasymrparr )\
+=\isanewline
+\ \ \ \ \ \ \ \ (a\ =\ a'\ \&\ b\ =\ b')"\isanewline
+\isacommand{by}\ simp
+\end{isabelle}
+
+The following equality is similar, but generic, in that \isa{r} can
+be any instance of \isa{point_scheme}:
+\begin{isabelle}
+\isacommand{lemma}\ "r\ \isasymlparr Xcoord\ :=\ a,\ Ycoord\ :=\
+b\isasymrparr \ =\ r\ \isasymlparr Ycoord\ :=\ b,\ Xcoord\ :=\
+a\isasymrparr "\isanewline
+\isacommand{by}\ simp
+\end{isabelle}
+We see above the syntax for iterated updates.  We could equivalently
+have written the left-hand side as
+\isa{r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ \isasymlparr
+Ycoord\ :=\ b\isasymrparr}.
+
+Record equality is \emph{extensional}: a record is determined entirely
+by the values of its fields.
+\begin{isabelle}
+\isacommand{lemma}\ "r\ =\ \isasymlparr Xcoord\ =\ Xcoord\ r,\ Ycoord\ =\
+Ycoord\ r\isasymrparr "\isanewline
+\isacommand{by}\ simp
+\end{isabelle}
+The generic version of this equality includes the field \isa{more}:
+\begin{isabelle}
+\isacommand{lemma}\ "r\ =\ \isasymlparr Xcoord\ =\ Xcoord\ r,\ Ycoord\ =\ Ycoord\ r,\ \isasymdots \ =\ point.more\
+r\isasymrparr"
+\end{isabelle}
+
+\medskip
+The simplifier can prove many record equalities automatically,
+but general equality reasoning can be tricky.  Consider proving this
+obvious fact:
+\begin{isabelle}
+\isacommand{lemma}\ "r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\ \isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \ a\ =\
+a'"
+\end{isabelle}
+The simplifier can do nothing.  One way to proceed is by an explicit
+forward step that applies the selector \isa{Xcoord} to both sides
+of the assumed record equality:
+\begin{isabelle}
+\isacommand{apply}\ (drule_tac\ f=Xcoord\ \isakeyword{in}\ arg_cong)\isanewline
+\ 1.\ Xcoord\ (r\isasymlparr Xcoord\ :=\ a\isasymrparr )\ =\ Xcoord\
+(r\isasymlparr Xcoord\ :=\ a'\isasymrparr )\ \isasymLongrightarrow \
+a\ =\ a'
+\end{isabelle}
+Now, \isa{simp} will reduce the assumption to the desired
+conclusion.
+
+An alternative to such forward steps is record splitting.  A record
+variable can be split only if it is bound in the subgoal by the 
+meta-quantifier \isa{\isasymAnd}, or \isa{!!} in ASCII\@.  So,
+we enter the lemma again:
+\begin{isabelle}
+\isacommand{lemma}\ "!!r.\ r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\ \isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \ a\ =\
+a'"\isanewline
+\end{isabelle}
+The \isa{record_split} method replaces the record variable by an
+explicit record, listing all fields.  Even the field \isa{more} is
+included, since the record equality is generic.
+\begin{isabelle}
+\isacommand{apply}\ record_split\isanewline
+\ 1.\ \isasymAnd Xcoord\ Ycoord\ more.\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ =\ Xcoord,\ Ycoord\ =\ Ycoord,\ \isasymdots \ =\ more\isasymrparr \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ :=\ a\isasymrparr \ =\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ =\ Xcoord,\ Ycoord\ =\ Ycoord,\ \isasymdots \ =\ more\isasymrparr \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \isanewline
+\isaindent{\ 1.\ \ \ \ }a\ =\ a'
+\end{isabelle}
+Again, \isa{simp} finishes the proof.  Because the records have
+been split, the updates can be applied and the record equality can be
+replaced by equality of the corresponding fields.
+
+\begin{exercise}
+\REMARK{There should be some, but I can't think of any.} 
+\end{exercise}
+
+\endinput
+
