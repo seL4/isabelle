@@ -90,7 +90,7 @@ fun use_strings commands =
   but that function seems to be buggy in SML/NJ 0.93*)
 fun execute command =
   let
-    val tmp_name = getenv "$ISABELLE_TMP" ^ "/isabelle-execute";
+    val tmp_name = "/tmp/isabelle-execute";
     val is = (System.system (command ^ " > " ^ tmp_name); open_in tmp_name);
     val result = input (is, 999999);
   in
