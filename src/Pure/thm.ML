@@ -1846,7 +1846,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
            val maxidx1 = maxidx_of_term s1
            val mss1 =
              if not useprem then mss else
-             if maxidx1 <> ~1 then (prtm_warning
+             if maxidx1 <> ~1 then (trace_term_warning
 "Cannot add premise as rewrite rule because it contains (type) unknowns:"
                                                   sign s1; mss)
              else let val thm = assume (Cterm{sign=sign, t=s1, 
