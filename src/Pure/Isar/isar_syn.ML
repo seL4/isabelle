@@ -302,20 +302,14 @@ val in_locale_elems =
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment);
 
-val theoremP =
-  OuterSyntax.command "theorem" "state theorem" K.thy_goal
-    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.multi_theorem Drule.theoremK)));
+fun gen_theorem k =
+  OuterSyntax.command k ("state " ^ k) K.thy_goal
+    (P.opt_thm_name ":" -- in_locale_elems -- statement >> (fn ((x, y), z) =>
+      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.multi_theorem k x y z))));
 
-val lemmaP =
-  OuterSyntax.command "lemma" "state lemma" K.thy_goal
-    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.multi_theorem Drule.lemmaK)));
-
-val corollaryP =
-  OuterSyntax.command "corollary" "state corollary" K.thy_goal
-    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.multi_theorem Drule.corollaryK)));
+val theoremP = gen_theorem Drule.theoremK;
+val lemmaP = gen_theorem Drule.lemmaK;
+val corollaryP = gen_theorem Drule.corollaryK;
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation" K.prf_goal
