@@ -31,6 +31,9 @@ constdefs
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
 
+
+(*Datatype msg is (awkwardly) split into two parts to avoid having freeness
+  expressed using natural numbers.*)
 datatype  
   atomic = AGENT  agent	(*Agent names*)
          | NUMBER nat   (*Ordinary integers, timestamps, ...*)
@@ -38,26 +41,31 @@ datatype
          | KEY    key   (*Crypto keys*)
 
 datatype
-  msg = Atomic atomic
-      | Hash   msg       (*Hashing*)
-      | MPair  msg msg   (*Compound messages*)
-      | Crypt  key msg   (*Encryption, public- or shared-key*)
+     msg = Atomic atomic
+	 | Hash   msg       (*Hashing*)
+	 | MPair  msg msg   (*Compound messages*)
+	 | Crypt  key msg   (*Encryption, public- or shared-key*)
 
-(*Allows messages of the form {|A,B,NA|}, etc...*)
+(*These translations complete the illustion that "msg" has seven constructors*)
 syntax
-  Agent          :: agent => msg
-  Number         :: nat   => msg
-  Nonce          :: nat   => msg
-  Key            :: key   => msg
+  Agent       :: agent => msg
+  Number      :: nat   => msg
+  Nonce       :: nat   => msg
+  Key         :: key   => msg
+
+translations
+  "Agent x"   == "Atomic (AGENT x)"
+  "Number x"  == "Atomic (NUMBER x)"
+  "Nonce x"   == "Atomic (NONCE x)"
+  "Key x"     == "Atomic (KEY x)"
+  "Key``x"    == "Atomic `` (KEY `` x)"
+
+
+(*Concrete syntax: messages appear as {|A,B,NA|}, etc...*)
+syntax
   "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
 translations
-  "Agent x"       == "Atomic (AGENT x)"
-  "Number x"	  == "Atomic (NUMBER x)"
-  "Nonce x"	  == "Atomic (NONCE x)"
-  "Key x"	  == "Atomic (KEY x)"
-  "Key``x"	  == "Atomic `` (KEY `` x)"
-
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
   "{|x, y|}"      == "MPair x y"
 
