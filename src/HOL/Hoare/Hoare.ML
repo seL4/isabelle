@@ -12,15 +12,15 @@ open Hoare;
 
 val SkipRule = prove_goalw thy [Spec_def,Skip_def]
   "(!!s.p(s) ==> q(s)) ==> Spec p Skip q"
-  (fn prems => [fast_tac (HOL_cs addIs prems) 1]);
+  (fn prems => [fast_tac (!claset addIs prems) 1]);
 
 val AssignRule = prove_goalw thy [Spec_def,Assign_def]
   "(!!s. p s ==> q(%x.if x=v then e s else s x)) ==> Spec p (Assign v e) q"
-  (fn prems => [fast_tac (HOL_cs addIs prems) 1]);
+  (fn prems => [fast_tac (!claset addIs prems) 1]);
 
 val SeqRule = prove_goalw thy [Spec_def,Seq_def]
   "[| Spec p c (%s.q s); Spec (%s.q s) c' r |] ==> Spec p (Seq c c') r"
-  (fn prems => [cut_facts_tac prems 1, fast_tac HOL_cs 1]);
+  (fn prems => [cut_facts_tac prems 1, Fast_tac 1]);
 
 val IfRule = prove_goalw thy [Spec_def,Cond_def]
   "[| !!s. p s ==> (b s --> q s) & (~b s --> q' s); \
@@ -31,12 +31,12 @@ val IfRule = prove_goalw thy [Spec_def,Cond_def]
       REPEAT (rtac impI 1),
       dtac prem1 1,
       cut_facts_tac [prem2,prem3] 1,
-      fast_tac (HOL_cs addIs [prem1]) 1]);
+      fast_tac (!claset addIs [prem1]) 1]);
 
 val strenthen_pre = prove_goalw thy [Spec_def]
   "[| !!s. p s ==> p' s; Spec p' c q |] ==> Spec p c q"
   (fn [prem1,prem2] =>[cut_facts_tac [prem2] 1,
-                       fast_tac (HOL_cs addIs [prem1]) 1]);
+                       fast_tac (!claset addIs [prem1]) 1]);
 
 val [iter_0,iter_Suc] = nat_recs Iter_def;
 
@@ -48,9 +48,9 @@ val lemma = prove_goalw thy [Spec_def,While_def]
       etac thin_rl 1, res_inst_tac[("x","s")]spec 1,
       res_inst_tac[("x","s'")]spec 1, nat_ind_tac "n" 1,
       simp_tac (!simpset addsimps [iter_0]) 1,
-      fast_tac (HOL_cs addIs [prem2]) 1,
+      fast_tac (!claset addIs [prem2]) 1,
       simp_tac (!simpset addsimps [iter_Suc,Seq_def]) 1,
-      cut_facts_tac [prem1] 1, fast_tac (HOL_cs addIs [prem2]) 1]);
+      cut_facts_tac [prem1] 1, fast_tac (!claset addIs [prem2]) 1]);
 
 val WhileRule = lemma RSN (2,strenthen_pre);
 

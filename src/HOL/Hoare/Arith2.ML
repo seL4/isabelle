@@ -14,7 +14,7 @@ open Arith2;
 
 val [prem1,prem2]=goal HOL.thy "[|~P ==> ~Q; Q|] ==> P";
 by (cut_facts_tac [prem1 COMP impI,prem2] 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 val not_imp_swap=result();
 
 
@@ -40,8 +40,8 @@ by (nat_ind_tac "xa" 7);
 by (ALLGOALS (resolve_tac prems));
 ba 1;
 ba 1;
-by (fast_tac HOL_cs 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
+by (Fast_tac 1);
 qed "diff_induct3";
 
 (*** interaction of + and - ***)
@@ -161,7 +161,7 @@ val prems = goal thy "0<n ==> n mod n = 0";
 by (cut_inst_tac [("m","Suc(0)")] (mod_prod_nn_is_0 COMP impI) 1);
 by (cut_facts_tac prems 1);
 by (Asm_full_simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 *)
 
 val prems=goal thy "0<n ==> n mod n = 0";
@@ -291,7 +291,7 @@ by (Asm_simp_tac 1);
 qed "cd_le";
 
 val prems=goalw thy [cd_def] "cd x m n = cd x n m";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "cd_swap";
 
 val prems=goalw thy [cd_def] "n<m ==> cd x m n = cd x (m-n) n";

@@ -36,7 +36,7 @@ goal thy
 
 by (hoare_tac 1);
 
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 
 by (etac less_imp_diff_positive 1);
 by (etac gcd_diff_r 1);
@@ -48,7 +48,7 @@ by (rtac gcd_diff_l 2);
 
 by (dtac gcd_nnn 3);
 
-by (ALLGOALS (fast_tac HOL_cs));
+by (ALLGOALS (Fast_tac));
 
 qed "Euclid_GCD";
 
@@ -74,7 +74,7 @@ by (hoare_tac 1);
 
 by (simp_tac ((simpset_of "Arith") addsimps [pow_0]) 3);
 
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
@@ -110,11 +110,11 @@ goal thy
 \ {b = fac A}";
 
 by (hoare_tac 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (res_inst_tac [("n","a")] natE 1);
 by (ALLGOALS
     (asm_simp_tac
      (!simpset addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 
 qed"factorial";
