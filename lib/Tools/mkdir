@@ -17,6 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -b           setup build mode (session outputs heap image)"
   echo "    -d           setup document"
+  echo "    -p           include parent logic target"
   echo
   echo "  Prepare logic session directory, including IsaMakefile, document etc."
   echo
@@ -36,8 +37,9 @@ function fail()
 
 BUILD=""
 DOCUMENT=""
+PARENT=""
 
-while getopts "bd" OPT
+while getopts "bdp" OPT
 do
   case "$OPT" in
     b)
@@ -45,6 +47,9 @@ do
       ;;
     d)
       DOCUMENT=true
+      ;;
+    p)
+      PARENT=true
       ;;
     \?)
       usage
@@ -105,13 +110,20 @@ else
     echo
     echo "## $NAME"
     echo ""
-    echo "$NAME: $LOGIC $TARGET"
-    echo
-    echo "$LOGIC:"
-    echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
-    echo
-    echo "$TARGET: \$(OUT)/$LOGIC     ## add $NAME sources here"
-    echo -e "\t@\$(ISATOOL) $USEDIR \$(OUT)/$LOGIC $NAME"
+    if [ -n "$PARENT" ]; then
+      echo "$NAME: $LOGIC $TARGET"
+      echo
+      echo "$LOGIC:"
+      echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
+      echo
+      echo "$TARGET: \$(OUT)/$LOGIC     ## add $NAME sources here"
+      echo -e "\t@\$(ISATOOL) $USEDIR \$(OUT)/$LOGIC $NAME"
+    else
+      echo "$NAME: $TARGET"
+      echo
+      echo "$TARGET:                    ## add $NAME sources here"
+      echo -e "\t@\$(ISATOOL) $USEDIR $LOGIC $NAME"
+    fi
     echo
     echo
     echo "## clean"
