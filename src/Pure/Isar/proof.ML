@@ -8,7 +8,6 @@ Proof states and methods.
 
 signature BASIC_PROOF =
 sig
-  val RANGE: (int -> tactic) list -> int -> tactic
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
 end;
@@ -398,10 +397,7 @@ val refine_end = gen_refine false;
 end;
 
 
-(* tacticals *)
-
-fun RANGE [] _ = all_tac
-  | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
+(* goal addressing *)
 
 fun FINDGOAL tac st =
   let fun find (i, n) = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1, n))
@@ -515,8 +511,6 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume and presume *)
 
-local
-
 fun gen_assume f exp args state =
   state
   |> assert_forward
@@ -525,39 +519,16 @@ fun gen_assume f exp args state =
     these_factss (st, factss)
     |> put_thms ("prems", prems));
 
-fun export_assume true = Seq.single oo Drule.implies_intr_goals
-  | export_assume false = Seq.single oo Drule.implies_intr_list;
-
-fun export_presume _ = export_assume false;
-
-in
-
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
-val assume = assm export_assume;
-val assume_i = assm_i export_assume;
-val presume = assm export_presume;
-val presume_i = assm_i export_presume;
+val assume = assm ProofContext.export_assume;
+val assume_i = assm_i ProofContext.export_assume;
+val presume = assm ProofContext.export_presume;
+val presume_i = assm_i ProofContext.export_presume;
 
-end;
 
 
 (** local definitions **)
-
-local
-
-fun dest_lhs cprop =
-  let val x = #1 (Logic.dest_equals (Thm.term_of cprop))
-  in Term.dest_Free x; Thm.cterm_of (Thm.sign_of_cterm cprop) x end
-  handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
-      quote (Display.string_of_cterm cprop), []);
-
-fun export_def _ cprops thm =
-  thm
-  |> Drule.implies_intr_list cprops
-  |> Drule.forall_intr_list (map dest_lhs cprops)
-  |> Drule.forall_elim_vars 0
-  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
 
 fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state =
   let
@@ -576,15 +547,11 @@ fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state
     state
     |> fix [([x], None)]
     |> match_bind_i [(pats, rhs)]
-    |> assm_i export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
+    |> assm_i ProofContext.export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
-
-in
 
 val def = gen_def fix ProofContext.read_term ProofContext.read_term_pats;
 val def_i = gen_def fix_i ProofContext.cert_term ProofContext.cert_term_pats;
-
-end;
 
 
 (* invoke_case *)
@@ -800,7 +767,6 @@ fun next_block state =
 
 
 end;
-
 
 structure BasicProof: BASIC_PROOF = Proof;
 open BasicProof;
