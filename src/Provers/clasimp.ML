@@ -45,7 +45,9 @@ sig
   val force_tac   : clasimpset  -> int -> tactic
   val Force_tac   : int -> tactic
   val force       : int -> unit
-  val fast_simp_tac : clasimpset  -> int -> tactic
+  val fast_simp_tac : clasimpset -> int -> tactic
+  val slow_simp_tac : clasimpset -> int -> tactic
+  val best_simp_tac : clasimpset -> int -> tactic
   val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val get_local_clasimpset: Proof.context -> clasimpset
@@ -156,9 +158,13 @@ fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
 
 
-(* fast_simp_tac *)
+(* basic combinations *)
 
-fun fast_simp_tac (cs, ss) = let val cs' = cs addss ss in Classical.fast_tac cs' end;
+fun ADDSS tac (cs, ss) = let val cs' = cs addss ss in tac cs' end;
+
+val fast_simp_tac = ADDSS Classical.fast_tac;
+val slow_simp_tac = ADDSS Classical.slow_tac;
+val best_simp_tac = ADDSS Classical.best_tac;
 
 
 (* change clasimpset *)
@@ -212,6 +218,8 @@ fun auto_meth None = clasimp_meth (CHANGED o auto_tac)
 val setup =
  [Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
+    ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),
+    ("bestsimp", clasimp_method' best_simp_tac, "combined best and simp"),
     ("force", clasimp_method' force_tac, "force"),
     ("auto", auto_args auto_meth, "auto"),
     ("clarsimp", clasimp_method' (CHANGED oo clarsimp_tac), "clarify simplified goal")]];
