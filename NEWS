@@ -65,13 +65,13 @@ assumptions;
 setwrapper to setWrapper and compwrapper to compWrapper; added safe wrapper
 (and access functions for it);
 
-* improved combination of classical reasoner and simplifier: new
-addss, auto_tac, functions for handling clasimpsets, ...  Now, the
-simplification is safe (therefore moved to safe_step_tac) and thus
-more complete, as multiple instantiation of unknowns (with slow_tac).
-COULD MAKE EXISTING PROOFS FAIL; in case of problems with
-old proofs, use unsafe_addss and unsafe_auto_tac;
-
+* improved combination of classical reasoner and simplifier: 
+  + functions for handling clasimpsets
+  + improvement of addss: now the simplifier is called _after_ the
+    safe steps.
+  + safe variant of addss called addSss: uses safe simplifications
+    _during_ the safe steps. It is more complete as it allows multiple 
+    instantiations of unknowns (e.g. with slow_tac).
 
 *** Simplifier ***
 
