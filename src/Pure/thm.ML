@@ -1,4 +1,4 @@
-(*  Title: 	thm
+(*  Title: 	Pure/thm.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -106,7 +106,7 @@ signature THM =
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern:PATTERN
                       and Net:NET
                 sharing type Pattern.type_sig = Unify.Sign.Type.type_sig)
-        : THM =
+        (*: THM *) (* FIXME debug *) =
 struct
 structure Sequence = Unify.Sequence;
 structure Envir = Unify.Envir;
