@@ -2,7 +2,10 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Init 'theorems' data.  The Pure theories.
+The Pure theories.
+
+TODO:
+  - tagged axioms / defs;
 *)
 
 signature BASIC_PURE_THY =
@@ -15,9 +18,13 @@ end
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val get_tthm: theory -> xstring -> tthm
+  val get_tthms: theory -> xstring -> tthm list
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thms: (bstring * thm) list -> theory -> theory
   val store_thmss: (bstring * thm list) list -> theory -> theory
+  val store_tthms: (bstring * tthm) list -> theory -> theory
+  val store_tthmss: (bstring * tthm list) list -> theory -> theory
   val smart_store_thm: (bstring * thm) -> thm
   val add_store_axioms: (bstring * string) list -> theory -> theory
   val add_store_axioms_i: (bstring * term) list -> theory -> theory
@@ -34,14 +41,14 @@ struct
 
 (*** init theorems data ***)
 
-(** data kind theorems **)
+(** data kind 'theorems' **)
 
-val theoremsK = "theorems";
+val theoremsK = "Pure/theorems";
 
 exception Theorems of
  {space: NameSpace.T,
-  thms_tab: thm list Symtab.table,
-  const_idx: int * (int * thm) list Symtab.table} ref;
+  thms_tab: tthm list Symtab.table,
+  const_idx: int * (int * tthm) list Symtab.table} ref;
 
 
 (* methods *)
@@ -54,7 +61,7 @@ fun mk_empty _ =
 
 fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
   let
-    val prt_thm = Pretty.quote o Display.pretty_thm o Thm.transfer_sg sg;
+    val prt_thm = Attribute.pretty_tthm o apfst (Thm.transfer_sg sg);
     fun prt_thms (name, [th]) =
           Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
       | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
@@ -69,9 +76,7 @@ fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
 
 in
 
-val theorems_data: string * (object * (object -> object) *
-  (object * object -> object) * (Sign.sg -> object -> unit)) =
-    (theoremsK, (mk_empty (), mk_empty, mk_empty, print));
+val theorems_setup = Theory.init_data [(theoremsK, (mk_empty (), mk_empty, mk_empty, print))];
 
 end;
 
@@ -83,7 +88,7 @@ fun get_theorems_sg sg =
     Theorems r => r
   | _ => sys_error "get_theorems_sg");
 
-val get_theorems = get_theorems_sg o sign_of;
+val get_theorems = get_theorems_sg o Theory.sign_of;
 
 
 
@@ -102,22 +107,25 @@ fun all_local_thms [] _ = None
       | some => some);
 
 
-(* get_thm(s) *)
+(* get_thms etc. *)
 
-fun get_thms thy name =
+fun get_tthms thy name =
   (case all_local_thms (thy :: Theory.ancestors_of thy) name of
     None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
   | Some thms => thms);
 
-fun get_thm thy name =
-  (case get_thms thy name of
+fun get_tthm thy name =
+  (case get_tthms thy name of
     [thm] => thm
   | _ => raise THEORY ("Single theorem expected " ^ quote name, [thy]));
+
+fun get_thms thy = map Attribute.thm_of o get_tthms thy;
+fun get_thm thy = Attribute.thm_of o get_tthm thy;
 
 
 (* thms_of *)
 
-fun attach_name thm = (Thm.name_of_thm thm, thm);
+fun attach_name (thm, _) = (Thm.name_of_thm thm, thm);
 
 fun thms_of thy =
   let val ref {thms_tab, ...} = get_theorems thy in
@@ -132,14 +140,14 @@ fun thms_of thy =
 
 val ignore = ["Trueprop", "all", "==>", "=="];
 
-fun add_const_idx ((next, table), thm) =
+fun add_const_idx ((next, table), tthm as (thm, _)) =
   let
     val {hyps, prop, ...} = Thm.rep_thm thm;
     val consts =
       foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignore;
 
     fun add (tab, c) =
-      Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
+      Symtab.update ((c, (next, tthm) :: Symtab.lookup_multi (tab, c)), tab);
   in (next + 1, foldl add (table, consts)) end;
 
 fun make_const_idx thm_tab =
@@ -182,49 +190,52 @@ fun warn_overwrite name =
 fun warn_same name =
   warning ("Theorem database already contains a copy of " ^ quote name);
 
-fun enter_thms sg single (raw_name, thms) =
+fun enter_tthms sg single (raw_name, tthms) =
   let
-    val len = length thms;
+    val len = length tthms;
     val name = Sign.full_name sg raw_name;
     val names =
       if single then replicate len name
       else map (fn i => name ^ "_" ^ string_of_int i) (0 upto (len - 1));
-    val named_thms = ListPair.map Thm.name_thm (names, thms);
+    val named_tthms = map2 (fn (x, (th, tg)) => (Thm.name_thm (x, th), tg)) (names, tthms);
 
-    val eq_thms = ListPair.all Thm.eq_thm;
+    fun eq_tthm ((th1, _), (th2, _)) = Thm.eq_thm (th1, th2);
 
     val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
 
     val overwrite =
       (case Symtab.lookup (thms_tab, name) of
         None => false
-      | Some thms' =>
-          if length thms' = len andalso eq_thms (thms', named_thms) then
+      | Some tthms' =>
+          if length tthms' = len andalso forall2 eq_tthm (tthms', named_tthms) then
             (warn_same name; false)
           else (warn_overwrite name; true));
 
     val space' = NameSpace.extend (space, [name]);
-    val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
+    val thms_tab' = Symtab.update ((name, named_tthms), thms_tab);
     val const_idx' =
       if overwrite then make_const_idx thms_tab'
-      else foldl add_const_idx (const_idx, named_thms);
+      else foldl add_const_idx (const_idx, named_tthms);
   in
     r := {space = space', thms_tab = thms_tab', const_idx = const_idx'};
-    named_thms
+    named_tthms
   end;
 
-fun do_enter_thms sg single thms = (enter_thms sg single thms; ());
+fun do_enter_tthms sg single tthms = (enter_tthms sg single tthms; ());
 
 
-fun store_thmss thmss thy =
-  (seq (do_enter_thms (sign_of thy) false) thmss; thy);
+fun store_tthmss tthmss thy =
+  (seq (do_enter_tthms (Theory.sign_of thy) false) tthmss; thy);
 
-fun store_thms thms thy =
-  (seq (do_enter_thms (sign_of thy) true) (map (apsnd (fn th => [th])) thms); thy);
+fun store_tthms tthms thy =
+  (seq (do_enter_tthms (Theory.sign_of thy) true) (map (apsnd (fn th => [th])) tthms); thy);
+
+fun store_thmss thmss = store_tthmss (map (apsnd (map Attribute.tthm_of)) thmss);
+fun store_thms thms = store_tthms (map (apsnd Attribute.tthm_of) thms);
 
 fun smart_store_thm (name, thm) =
-  let val [named_thm] = enter_thms (Thm.sign_of_thm thm) true (name, [thm])
-  in named_thm end;
+  let val [(thm', _)] = enter_tthms (Thm.sign_of_thm thm) true (name, [Attribute.tthm_of thm])
+  in thm' end;
 
 
 (* store axioms as theorems *)
@@ -246,7 +257,8 @@ val add_store_defs_i = add_store Theory.add_defs_i;
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.init_data [theorems_data]
+  |> Attribute.setup
+  |> theorems_setup
   |> Theory.add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
