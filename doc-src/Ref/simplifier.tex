@@ -7,8 +7,122 @@ provides a suite of simplification tactics.  It performs conditional and
 unconditional rewriting and uses contextual information (`local
 assumptions').  It provides a few general hooks, which can provide
 automatic case splits during rewriting, for example.  The simplifier is set
-up for many of Isabelle's logics: {\tt FOL}, {\tt ZF}, {\tt LCF} and {\tt
-  HOL}.
+up for many of Isabelle's logics: \FOL, \ZF, \HOL\ and \HOLCF.
+
+The next section is a quick introduction to the simplifier, the later
+sections explain advanced features.
+
+\section{Simplification for dummies}
+\label{sec:simp-for-dummies}
+
+In some logics (e.g.\ \HOL), the simplifier is particularly easy to
+use because it supports the concept of a {\em current set of simplification
+  rules}, also called the {\em current simpset}\index{simpset!current}. All
+commands are interpreted relative to the current simpset. For example, in the
+theory of arithmetic the goal
+\begin{ttbox}
+{\out  1. 0 + (x + 0) = x + 0 + 0}
+\end{ttbox}
+can be solved by a single
+\begin{ttbox}
+by(Simp_tac 1);
+\end{ttbox}
+The simplifier uses the current simpset, which in the case of arithmetic
+contains the required theorems $\Var{n}+0 = \Var{n}$ and $0+\Var{n} =
+\Var{n}$.
+
+If assumptions of the subgoal are also needed in the simplification
+process, as in
+\begin{ttbox}
+{\out  1. x = 0 ==> x + x = 0}
+\end{ttbox}
+then there is the more powerful
+\begin{ttbox}
+by(Asm_simp_tac 1);
+\end{ttbox}
+which solves the above goal.
+
+There are four basic simplification tactics:
+\begin{ttdescription}
+\item[\ttindexbold{Simp_tac} $i$] simplifies subgoal~$i$ using the current
+  simpset.  It may solve the subgoal completely if it has become trivial,
+  using the solver.
+  
+\item[\ttindexbold{Asm_simp_tac}]\index{assumptions!in simplification}
+  is like \verb$Simp_tac$, but extracts additional rewrite rules from the
+  assumptions.
+
+\item[\ttindexbold{Full_simp_tac}] is like \verb$Simp_tac$, but also
+  simplifies the assumptions (but without using the assumptions to simplify
+  each other or the actual goal.)
+
+\item[\ttindexbold{Asm_full_simp_tac}]
+  is like \verb$Asm_simp_tac$, but also simplifies the assumptions one by
+  one.  {\em Working from left to right, it uses each assumption in the
+  simplification of those following.}
+\end{ttdescription}
+
+{\tt Asm_full_simp_tac} is the most powerful of this quartet but may also
+loop where some of the others terminate. For example,
+\begin{ttbox}
+{\out  1. ALL x. f(x) = g(f(g(x))) ==> f(0) = f(0)+0}
+\end{ttbox}
+is solved by {\tt Simp_tac}, but {\tt Asm_simp_tac} and {\tt Asm_simp_tac}
+loop because the rewrite rule $f(\Var{x}) = f(g(f(\Var{x})))$ extracted from
+the assumption does not terminate. Isabelle notices certain simple forms of
+nontermination, but not this one.
+ 
+\begin{warn}
+  Since \verb$Asm_full_simp_tac$ works from left to right, it sometimes
+misses opportunities for simplification: given the subgoal
+\begin{ttbox}
+{\out [| P(f(a)); f(a) = t |] ==> ...}
+\end{ttbox}
+\verb$Asm_full_simp_tac$ will not simplify the first assumption using the
+second but will leave the assumptions unchanged. See
+\S\ref{sec:reordering-asms} for ways around this problem.
+\end{warn}
+
+Using the simplifier effectively may take a bit of experimentation.  The
+tactics can be traced with the ML command \verb$trace_simp := true$.
+
+There is not just one global current simpset, but one associated with each
+theory as well. How are these simpset built up?
+\begin{enumerate}
+\item When loading {\tt T.thy}, the current simpset is initialized with the
+  union of the simpsets associated with all the ancestors of {\tt T}. In
+  addition, certain constructs in {\tt T} may add new rules to the simpset,
+  e.g.\ \ttindex{datatype} and \ttindex{primrec} in \HOL. Definitions are not
+  added automatically!
+\item The script in {\tt T.ML} may manipulate the current simpset further by
+  explicitly adding/deleting theorems to/from it (see below).
+\item After {\tt T.ML} has been read, the current simpset is associated with
+  theory {\tt T}.
+\end{enumerate}
+The current simpset is manipulated by
+\begin{ttbox}
+Addsimps, Delsimps: thm list -> unit
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{Addsimps} $thms$] adds $thms$ to the current simpset
+\item[\ttindexbold{Delsimps} $thms$] deletes $thms$ from the current simpset
+\end{ttdescription}
+
+Generally useful simplification rules $\Var{n}+0 = \Var{n}$ should be added
+to the current simpset right after they have been proved. Those of a more
+specific nature (e.g.\ the laws of de~Morgan, which alter the structure of a
+formula) should only be added for specific proofs and deleted again
+afterwards. Conversely, it may also happen that a generally useful rule needs
+to be removed for a certain proof and is added again afterwards.  Well
+designed simpsets need few temporary additions or deletions.
+
+\begin{warn}
+  If you execute proofs interactively, or load them from an ML file without
+  associated {\tt .thy} file, you must set the current simpset by calling
+  \ttindex{set_current_thy}~{\tt"}$T${\tt"}, where $T$ is the name of the
+  theory you want to work in. If you have just loaded $T$, this is not
+  necessary.
+\end{warn}
 
 
 \section{Simplification sets}\index{simplification sets} 
@@ -18,6 +132,10 @@ solver and the looper.  The simplifier should be set up with sensible
 defaults so that most simplifier calls specify only rewrite rules.
 Experienced users can exploit the other components to streamline proofs.
 
+Logics like \HOL, which support a current simpset\index{simpset!current},
+store its value in an ML reference variable usually called {\tt
+  simpset}\index{simpset@{\tt simpset} ML value}. It can be accessed via
+{\tt!simpset} and updated via {\tt simpset := \dots}.
 
 \subsection{Rewrite rules}
 \index{rewrite rules|(}
@@ -27,10 +145,8 @@ Rewrite rules are theorems expressing some form of equality:
   \Var{P}\conj\Var{P}    &\bimp&  \Var{P} \\
   \Var{A} \un \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
 \end{eqnarray*}
-{\bf Conditional} rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
-0$ are permitted; the conditions can be arbitrary terms.  The infix
-operation \ttindex{addsimps} adds new rewrite rules, while
-\ttindex{delsimps} deletes rewrite rules from a simpset.
+Conditional rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
+0$ are permitted; the conditions can be arbitrary terms.
 
 Internally, all rewrite rules are translated into meta-equalities, theorems
 with conclusion $lhs \equiv rhs$.  Each simpset contains a function for
@@ -212,6 +328,7 @@ sig
   type simpset
   val simp_tac:          simpset -> int -> tactic
   val asm_simp_tac:      simpset -> int -> tactic
+  val full_simp_tac:     simpset -> int -> tactic
   val asm_full_simp_tac: simpset -> int -> tactic\smallskip
   val addeqcongs:   simpset * thm list -> simpset
   val addsimps:     simpset * thm list -> simpset
@@ -230,43 +347,52 @@ end;
 \end{figure}
 
 
-\section{The simplification tactics} \label{simp-tactics}
+\section{The simplification tactics}
+\label{simp-tactics}
 \index{simplification!tactics}
 \index{tactics!simplification}
 
-The actual simplification work is performed by the following tactics.  The
-rewriting strategy is strictly bottom up, except for congruence rules, which
-are applied while descending into a term.  Conditions in conditional rewrite
-rules are solved recursively before the rewrite rule is applied.
-
-There are three basic simplification tactics:
-\begin{ttdescription}
-\item[\ttindexbold{simp_tac} $ss$ $i$] simplifies subgoal~$i$ using the rules
-  in~$ss$.  It may solve the subgoal completely if it has become trivial,
-  using the solver.
-  
-\item[\ttindexbold{asm_simp_tac}]\index{assumptions!in simplification}
-  is like \verb$simp_tac$, but extracts additional rewrite rules from the
-  assumptions.
-
-\item[\ttindexbold{asm_full_simp_tac}] 
-  is like \verb$asm_simp_tac$, but also simplifies the assumptions one by
-  one.  Working from left to right, it uses each assumption in the
-  simplification of those following.
-\end{ttdescription}
-\begin{warn}
-  Since \verb$asm_full_simp_tac$ works from left to right, it sometimes
-misses opportunities for simplification: given the subgoal
+The actual simplification work is performed by the following basic tactics:
+\ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
+\ttindexbold{full_simp_tac} and \ttindexbold{asm_full_simp_tac}. They work
+exactly like their namesakes in \S\ref{sec:simp-for-dummies}, except that
+they are explicitly supplied with a simpset. This is because the ones in
+\S\ref{sec:simp-for-dummies} are defined in terms of the ones above, e.g.
 \begin{ttbox}
-{\out [| P(f(a)); f(a) = t |] ==> ...}
+fun Simp_tac i = simp_tac (!simpset) i;
 \end{ttbox}
-\verb$asm_full_simp_tac$ will not simplify the first assumption using the
-second but will leave the assumptions unchanged. See
-\S\ref{sec:reordering-asms} for ways around this problem.
-\end{warn}
-Using the simplifier effectively may take a bit of experimentation.  The
-tactics can be traced with the ML command \verb$trace_simp := true$.  To
-remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
+where \ttindex{!simpset} is the current simpset\index{simpset!current}.
+
+The rewriting strategy of all four tactics is strictly bottom up, except for
+congruence rules, which are applied while descending into a term.  Conditions
+in conditional rewrite rules are solved recursively before the rewrite rule
+is applied.
+
+The infix operations \ttindex{addsimps}/\ttindex{delsimps} add/delete rewrite
+rules to/from a simpset. They are used to implement \ttindex{Addsimps} and
+\ttindex{Delsimps}, e.g.
+\begin{ttbox}
+fun Addsimps thms = (simpset := (!simpset addsimps thms));
+\end{ttbox}
+and can also be used directly, even in the presence of a current simpset. For
+example
+\begin{ttbox}
+Addsimps \(thms\);
+by(Simp_tac \(i\));
+Delsimps \(thms\);
+\end{ttbox}
+can be compressed into
+\begin{ttbox}
+by(simp_tac (!simpset addsimps \(thms\)) \(i\));
+\end{ttbox}
+
+The simpset associated with a particular theory can be retrieved via the name
+of the theory using the function
+\begin{ttbox}
+simpset_of: string -> simpset
+\end{ttbox}\index{*simpset_of}
+
+To remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
 return its simplification and congruence rules.
 
 \section{Examples using the simplifier}
