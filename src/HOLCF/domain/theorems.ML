@@ -18,7 +18,7 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
-fun inferT sg pre_tm = #2 (Sign.infer_types sg (K None) (K None) [] true 
+fun inferT sg pre_tm = #1 (Sign.infer_types sg (K None) (K None) [] true 
                            ([pre_tm],propT));
 
 fun pg'' thy defs t = let val sg = sign_of thy;
