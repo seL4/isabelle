@@ -182,11 +182,12 @@ as pairs of certified terms, not as strings to be read.
 \subsection{Miscellaneous forward rules}\label{MiscellaneousForwardRules}
 \index{theorems!standardizing}
 \begin{ttbox} 
-standard         :           thm -> thm
-zero_var_indexes :           thm -> thm
-make_elim        :           thm -> thm
-rule_by_tactic   : tactic -> thm -> thm
-rotate_prems     :    int -> thm -> thm
+standard         :               thm -> thm
+zero_var_indexes :               thm -> thm
+make_elim        :               thm -> thm
+rule_by_tactic   :     tactic -> thm -> thm
+rotate_prems     :        int -> thm -> thm
+permute_prems    : int -> int -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{standard} $thm$] puts $thm$ into the standard form
@@ -215,11 +216,17 @@ is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
   whatever is left.
   
 \item[\ttindexbold{rotate_prems} $k$ $thm$] rotates the premises of $thm$ to
-  the left by~$k$ positions.  It requires $0\leq k\leq n$, where $n$ is the
-  number of premises; the rotation has no effect if $k$ is at either extreme.
-  Used with \texttt{eresolve_tac}\index{*eresolve_tac!on other than first
-    premise}, it gives the effect of applying the tactic to some other premise
-  of $thm$ than the first.
+  the left by~$k$ positions (to the right if $k<0$).  It simply calls
+  \texttt{permute_prems}, below, with $j=0$.  Used with
+  \texttt{eresolve_tac}\index{*eresolve_tac!on other than first premise}, it
+  gives the effect of applying the tactic to some other premise of $thm$ than
+  the first.
+
+\item[\ttindexbold{permute_prems} $j$ $k$ $thm$] rotates the premises of $thm$
+  leaving the first $j$ premises unchanged.  It
+  requires $0\leq j\leq n$, where $n$ is the number of premises.  If $k$ is
+  positive then it rotates the remaining $n-j$ premises to the left; if $k$ is
+  negative then it rotates the premises to the right.
 \end{ttdescription}
 
 
