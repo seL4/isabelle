@@ -217,10 +217,11 @@ text {*
 *}
 
 syntax
-  "_quote"       :: "'b => ('a => 'b)"        ("(.'(_').)" [0] 1000)
-  "_antiquote"   :: "('a => 'b) => 'b"        ("\<acute>_" [1000] 1000)
-  "_Assert"      :: "'a => 'a set"            ("(.{_}.)" [0] 1000)
-  "_Assign"      :: "idt => 'b => 'a com"     ("(\<acute>_ :=/ _)" [70, 65] 61)
+  "_quote"       :: "'b => ('a => 'b)"                  ("(.'(_').)" [0] 1000)
+  "_antiquote"   :: "('a => 'b) => 'b"                  ("\<acute>_" [1000] 1000)
+  "_Subst"       :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"  ("_[_'/\<acute>_]" [1000] 999)
+  "_Assert"      :: "'a => 'a set"                      ("(.{_}.)" [0] 1000)
+  "_Assign"      :: "idt => 'b => 'a com"               ("(\<acute>_ :=/ _)" [70, 65] 61)
   "_Cond"        :: "'a bexp => 'a com => 'a com => 'a com"
         ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
   "_While_inv"   :: "'a bexp => 'a assn => 'a com => 'a com"
@@ -233,9 +234,10 @@ syntax (xsymbols)
 
 translations
   ".{b}."                   => "Collect .(b)."
+  "B [a/\<acute>x]"                => ".{\<acute>(_update_name x a) \<in> B}."
   "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x a))."
-  "IF b THEN c1 ELSE c2 FI" => "Cond (Collect .(b).) c1 c2"
-  "WHILE b INV i DO c OD"   => "While (Collect .(b).) i c"
+  "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
+  "WHILE b INV i DO c OD"   => "While .{b}. i c"
   "WHILE b DO c OD"         == "WHILE b INV arbitrary DO c OD"
 
 parse_translation {*
@@ -335,7 +337,7 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma assign: "|- .{\<acute>(x_update \<acute>a) : P}. \<acute>x := \<acute>a P"
+lemma assign: "|- P [\<acute>a/\<acute>x] \<acute>x := \<acute>a P"
   by (rule basic)
 
 text {*
