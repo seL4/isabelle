@@ -48,16 +48,16 @@ functor Intr_elim_Fun
 let
 
 val rec_names = map (#1 o dest_Const o head_of) Inductive.rec_tms;
-val big_rec_name = space_implode "_" rec_names;
+val big_rec_base_name = space_implode "_" (map NameSpace.base rec_names);
 
-val _ = deny (big_rec_name  mem  map ! (stamps_of_thy Inductive.thy))
-             ("Definition " ^ big_rec_name ^ 
+val _ = deny (big_rec_base_name  mem  map ! (stamps_of_thy Inductive.thy))
+             ("Definition " ^ big_rec_base_name ^ 
               " would clash with the theory of the same name!");
 
 (*fetch fp definitions from the theory*)
 val big_rec_def::part_rec_defs = 
   map (get_def Inductive.thy)
-      (case rec_names of [_] => rec_names | _ => big_rec_name::rec_names);
+      (case rec_names of [_] => rec_names | _ => big_rec_base_name::rec_names);
 
 
 val sign = sign_of Inductive.thy;

@@ -25,7 +25,9 @@ val sign = sign_of Inductive.thy;
 
 val (Const(_,recT),rec_params) = strip_comb (hd Inductive.rec_tms);
 
-val big_rec_name = space_implode "_" Intr_elim.rec_names;
+val big_rec_name =
+  Sign.intern_const sign (space_implode "_" (map NameSpace.base Intr_elim.rec_names));
+
 val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
 val _ = writeln "  Proving the induction rule...";
@@ -117,7 +119,7 @@ val elem_tuple = CP.mk_tuple Pr.pair elem_type elem_frees;
   mutual recursion to invariably be a disjoint sum.*)
 fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
-      val pfree = Free(pred_name ^ "_" ^ rec_name,
+      val pfree = Free(pred_name ^ "_" ^ NameSpace.base rec_name,
                        elem_factors ---> Ind_Syntax.oT)
       val qconcl = 
         foldr Ind_Syntax.mk_all 

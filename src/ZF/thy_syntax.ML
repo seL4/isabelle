@@ -97,7 +97,7 @@ fun datatype_decl co =
             \  val dom_sum\t= " ^ sdom_sum ^ "\n\
             \  and con_ty_lists\t= Ind_Syntax.read_constructs (sign_of thy)\n" 
                    ^ scons ^ "\n\
-            \  val intr_tms\t= Ind_Syntax.mk_all_intr_tms (rec_tms, con_ty_lists)\n\
+            \  val intr_tms\t= Ind_Syntax.mk_all_intr_tms (sign_of thy) (rec_tms, con_ty_lists)\n\
             \  end;\n\n\
             \val thy = thy |> " ^ co ^ "Ind.add_constructs_def(" ^ 
                  mk_list (map quote rec_names) ^ ", " ^ 
@@ -114,7 +114,7 @@ fun datatype_decl co =
             \  structure Result = " ^ co ^ "Data_section_Fun\n\
             \\t  (open " ^ stri_name ^ "\n\
             \\t   val thy\t\t= thy\n\
-            \\t   val big_rec_name\t= \"" ^ big_rec_name ^ "\"\n\
+            \\t   val big_rec_name\t= Sign.intern_const (sign_of thy) \"" ^ big_rec_name ^ "\"\n\
             \\t   val monos\t\t= " ^ monos ^ "\n\
             \\t   val type_intrs\t= " ^ type_intrs ^ "\n\
             \\t   val type_elims\t= " ^ type_elims ^ ");\n\

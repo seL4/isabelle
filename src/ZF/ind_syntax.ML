@@ -90,14 +90,15 @@ fun read_construct sign (id, sprems, syn) =
 val read_constructs = map o map o read_construct;
 
 (*convert constructor specifications into introduction rules*)
-fun mk_intr_tms (rec_tm, constructs) =
-  let fun mk_intr ((id,T,syn), name, args, prems) =
-          Logic.list_implies
-              (map mk_tprop prems,
-               mk_tprop (mem_const $ list_comb(Const(name,T), args) $ rec_tm)) 
+fun mk_intr_tms sg (rec_tm, constructs) =
+  let
+    fun mk_intr ((id,T,syn), name, args, prems) =
+      Logic.list_implies
+        (map mk_tprop prems,
+          mk_tprop (mem_const $ list_comb (Const (Sign.full_name sg name, T), args) $ rec_tm))
   in  map mk_intr constructs  end;
 
-fun mk_all_intr_tms arg = List.concat (ListPair.map mk_intr_tms arg);
+fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
 
 val Un          = Const("op Un", [iT,iT]--->iT)
 and empty       = Const("0", iT)
