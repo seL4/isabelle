@@ -39,7 +39,8 @@ sig
   val activate_locale_i: string -> context -> context
   val add_locale: bstring -> xstring list -> context attribute element list -> theory -> theory
   val add_locale_i: bstring -> xstring list -> context attribute element_i list -> theory -> theory
-  val store_thm: string -> (string * thm) * context attribute list -> theory -> theory
+  val add_thmss: string -> ((string * thm list) * context attribute list) list
+    -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
@@ -290,13 +291,15 @@ val add_locale_i = gen_add_locale (K I) (K I);
 
 (** store results **)
 
-fun store_thm name ((a, th), atts) thy =
+fun add_thmss name args thy =
   let
     val {imports, elements, closed} = the_locale thy name;
-    val note = Notes [((a, atts), [([Thm.name_thm (a, th)], [])])];
+    val _ = conditional closed (fn () =>
+      error ("Cannot store results in closed locale: " ^ quote name));
+    val note = Notes (map (fn ((a, ths), atts) =>
+      ((a, atts), [(map (curry Thm.name_thm a) ths, [])])) args);
   in
-    conditional closed (fn () => error ("Cannot store results in closed locale: " ^ quote name));
-    activate (ProofContext.init thy |> activate_locale_i name, note);    (*test attribute*)
+    activate (thy |> ProofContext.init |> activate_locale_i name, note);    (*test attributes!*)
     thy |> put_locale name (make_locale imports (elements @ [note]) closed)
   end;
 
