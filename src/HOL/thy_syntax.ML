@@ -45,7 +45,7 @@ fun inductive_decl coind =
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
       if Syntax.is_identifier s then "op " ^ s else "_";
     fun mk_params (((recs, ipairs), monos), con_defs) =
-      let val big_rec_name = space_implode "_" (map (scan_to_id o trim) recs)
+      let val big_rec_name = space_implode "_" (map (scan_to_id o strip_quotes) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (map snd ipairs)
       in
@@ -206,7 +206,7 @@ val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
 
 (*fname: name of function being defined; rel: well-founded relation*)
 fun mk_rec_decl ((((fname, rel), congs), ss), axms) =
-  let val fid = trim fname
+  let val fid = strip_quotes fname
       val intrnl_name = fid ^ "_Intrnl"
   in
 	 (";\n\n\
@@ -226,10 +226,11 @@ fun mk_rec_decl ((((fname, rel), congs), ss), axms) =
           \val pats_" ^ intrnl_name ^ " = ();\n")
   end;
 
-val rec_decl = (name -- string -- 
-		optional ("congs" $$-- string >> trim) "[]" -- 
-		optional ("simpset" $$-- string >> trim) "simpset()" -- 
-		repeat1 string >> mk_rec_decl) ;
+val rec_decl = 
+    (name -- string -- 
+     optional ("congs" $$-- string >> strip_quotes) "[]" -- 
+     optional ("simpset" $$-- string >> strip_quotes) "simpset()" -- 
+     repeat1 string >> mk_rec_decl) ;
 
 
 
