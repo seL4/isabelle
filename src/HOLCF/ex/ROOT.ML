@@ -15,4 +15,6 @@ time_use_thy "ex/Loop";
 time_use_thy "ex/Fix2";
 time_use "ex/loeckx.ML";
 
+make_chart ();   (*make HTML chart*)
+
 maketest     "END: Root file for HOLCF examples";
