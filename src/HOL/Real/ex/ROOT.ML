@@ -10,3 +10,4 @@ writeln "Root file for HOL/Real examples";
 
 set proof_timing;
 
+time_use     "BinEx.ML";

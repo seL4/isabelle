@@ -11,7 +11,7 @@ images: HOL HOL-Real TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
-  HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-Ex \
+  HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
   TLA-Inc TLA-Buffer TLA-Memory
 
 all: images test
@@ -85,11 +85,12 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Lubs.ML Real/Lubs.thy Real/PNat.ML \
   Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
-## HOL-Real-Ex
+## HOL-Real-ex
 
-HOL-Real-Ex: HOL-Real $(LOG)/HOL-Real-Ex.gz
+HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
-$(LOG)/HOL-Real-Ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML Real/ex/BinEx.ML
+$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML Real/ex/BinEx.ML
+	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
 
 ## HOL-Subst
 
