@@ -97,7 +97,8 @@ type goal =
 datatype mode = Forward | ForwardChain | Backward;
 
 val mode_name =
-  fn Forward => "state" | ForwardChain => "chain" | Backward => "prove";
+  enclose "`" "'" o
+    (fn Forward => "state" | ForwardChain => "chain" | Backward => "prove");
 
 
 (* type node *)
@@ -152,37 +153,9 @@ fun put_data kind f = map_context o ProofContext.put_data kind f;
 val declare_term = map_context o ProofContext.declare_term;
 val add_binds = map_context o ProofContext.add_binds_i;
 val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
-val auto_bind_facts = map_context o ProofContext.auto_bind_facts;
+val auto_bind_facts = map_context oo ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
 val put_thmss = map_context o ProofContext.put_thmss;
-
-
-(* bind statements *)
-
-(* FIXME
-fun bind_props bs state =
-  state |> add_binds (flat (map ObjectLogic.statement_bindings bs)) end;
-
-fun bind_thms (name, thms) state =
-  let
-    val props = map (#prop o Thm.rep_thm) thms;
-    val named_props =
-      (case props of
-        [prop] => [(name, prop)]
-      | props => map2 (fn (i, t) => (name ^ string_of_int i, t)) (1 upto length props, props));
-  in state |> bind_props named_props end;
-
-fun let_thms name_thms state =
-  state
-  |> put_thms name_thms
-  |> bind_thms name_thms;
-*)
-
-(* FIXME elim (!?) *)
-
-fun let_thms name_thms state =
-  state
-  |> put_thms name_thms;
 
 
 (* facts *)
@@ -198,14 +171,14 @@ fun the_fact state =
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> let_thms ("facts", if_none facts []);
+  |> put_thms ("facts", if_none facts []);
 
 val reset_facts = put_facts None;
 
 fun have_facts (name, facts) state =
   state
   |> put_facts (Some facts)
-  |> let_thms (name, facts);
+  |> put_thms (name, facts);
 
 fun these_facts (state, ths) = have_facts ths state;
 fun fetch_facts (State ({facts, ...}, _)) = put_facts facts;
@@ -296,7 +269,7 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
     writeln "";
-    writeln (enclose "`" "'" (mode_name mode) ^ " mode");
+    writeln (mode_name mode ^ " mode");
     writeln "";
     if ! verbose orelse mode = Forward then
       (ProofContext.print_context context;
@@ -482,8 +455,10 @@ fun gen_assume f name atts props state =
   state
   |> assert_forward
   |> map_context_result (f (PureThy.default_name name) atts props)
-  |> these_facts
-  |> (fn st => let_thms ("prems", ProofContext.assumptions (context_of st)) st);
+  |> (fn (st, (facts, prems)) =>
+    (st, facts)
+    |> these_facts
+    |> put_thms ("prems", prems));
 
 val assume = gen_assume ProofContext.assume;
 val assume_i = gen_assume ProofContext.assume_i;
@@ -517,7 +492,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
       |> map_context_result (fn c => prepp (c, raw_propp));
     val cterm_of = Thm.cterm_of (sign_of state);
 
-    val casms = map (#prop o Thm.crep_thm) (ProofContext.assumptions (context_of state'));
+    val casms = ProofContext.assumptions (context_of state');
     val cprems = map cterm_of (Logic.strip_imp_prems concl);
     val prop = Logic.list_implies (map Thm.term_of casms, concl);
     val cprop = cterm_of prop;
@@ -640,7 +615,7 @@ fun finish_local print_result state =
     print_result {kind = kind_name kind, name = name, thm = result};
     state
     |> close_block
-    |> auto_bind_facts [result_prop]
+    |> auto_bind_facts name [result_prop]
     |> have_thmss name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
