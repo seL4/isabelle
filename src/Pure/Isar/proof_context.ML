@@ -814,13 +814,13 @@ val bind_propp_i = gen_bind_propp cert_propp;
 
 fun get_thm (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
-    Some (Some [th]) => th
+    Some (Some [th]) => Thm.transfer thy th
   | Some (Some _) => raise CONTEXT ("Single theorem expected: " ^ quote name, ctxt)
   | _ => (PureThy.get_thm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
 fun get_thms (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
-    Some (Some ths) => ths
+    Some (Some ths) => map (Thm.transfer thy) ths
   | _ => (PureThy.get_thms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
 fun get_thmss ctxt names = flat (map (get_thms ctxt) names);

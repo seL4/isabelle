@@ -122,7 +122,7 @@ fun lookup_thms name thy =
 fun get_thms thy name =
   (case get_first (lookup_thms name) (thy :: Theory.ancestors_of thy) of
     None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
-  | Some thms => thms);
+  | Some thms => map (Thm.transfer thy) thms);
 
 fun get_thm thy name =
   (case get_thms thy name of
