@@ -351,10 +351,13 @@ fun find_first past u []         = raise TERM("find_first", [])
         else find_first (t::past) u terms
         handle TERM _ => find_first (t::past) u terms;
 
-(*Final simplification: cancel + and *  *)
+(** Final simplification for the CancelFactor simprocs **)
+val simplify_one = 
+    Int_Numeral_Simprocs.simplify_meta_eq  
+       [mult_1_left, mult_1_right, div_1, numeral_1_eq_Suc_0];
+
 fun cancel_simplify_meta_eq cancel_th th =
-    Int_Numeral_Simprocs.simplify_meta_eq  [zmult_1, zmult_1_right]
-        (([th, cancel_th]) MRS trans);
+    simplify_one (([th, cancel_th]) MRS trans);
 
 structure CancelFactorCommon =
   struct

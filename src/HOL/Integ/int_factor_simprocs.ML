@@ -230,11 +230,13 @@ fun find_first past u []         = raise TERM("find_first", [])
         else find_first (t::past) u terms
         handle TERM _ => find_first (t::past) u terms;
 
-(*Final simplification: cancel + and *  *)
+(** Final simplification for the CancelFactor simprocs **)
+val simplify_one = 
+    Int_Numeral_Simprocs.simplify_meta_eq  
+       [mult_1_left, mult_1_right, zdiv_1, numeral_1_eq_1];
+
 fun cancel_simplify_meta_eq cancel_th th =
-    Int_Numeral_Simprocs.simplify_meta_eq
-        [mult_1, mult_1_right]
-        (([th, cancel_th]) MRS trans);
+    simplify_one (([th, cancel_th]) MRS trans);
 
 (*At present, long_mk_prod creates Numeral1, so this requires the axclass
   number_ring*)
@@ -271,7 +273,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
 
 val int_cancel_factor =
   map Bin_Simprocs.prep_simproc
-   [("ring_eq_cancel_factor", ["(l::int) * m = n", "(l::int) = m * n"], 
+   [("ring_eq_cancel_factor", ["(l::int) * m = n", "(l::int) = m * n"],
     EqCancelFactor.proc),
     ("int_divide_cancel_factor", ["((l::int) * m) div n", "(l::int) div (m*n)"],
      DivideCancelFactor.proc)];
@@ -294,13 +296,13 @@ structure FieldDivideCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq mult_divide_cancel_eq_if
 );
 
-(*The number_ring class is necessary because the simprocs refer to the 
+(*The number_ring class is necessary because the simprocs refer to the
   binary number 1.  FIXME: probably they could use 1 instead.*)
 val field_cancel_factor =
   map Bin_Simprocs.prep_simproc
    [("field_eq_cancel_factor",
      ["(l::'a::{field,number_ring}) * m = n",
-      "(l::'a::{field,number_ring}) = m * n"], 
+      "(l::'a::{field,number_ring}) = m * n"],
      FieldEqCancelFactor.proc),
     ("field_divide_cancel_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
