@@ -10,7 +10,7 @@ New in this Isabelle release
   Replaces linorder.ML.
 
 * Pure: Greek letters (except small lambda, \<lambda>), as well as gothic
-  (\<aa>...\<zz>\<AA>...\<ZZ>), caligraphic (\<A>...\<Z>), and euler
+  (\<aa>...\<zz>\<AA>...\<ZZ>), calligraphic (\<A>...\<Z>), and euler
   (\<a>...\<z>), are now considered normal letters, and can therefore
   be used anywhere where an ASCII letter (a...zA...Z) has until
   now. COMPATIBILITY: This obviously changes the parsing of some
@@ -54,6 +54,7 @@ New in this Isabelle release
   (somewhat) independet of content. It is copied from lib/html/isabelle.css. 
   It can be changed to alter the colors/layout of generated pages.
 
+
 *** Isar ***
 
 * Tactic emulation methods rule_tac, erule_tac, drule_tac, frule_tac,
@@ -72,8 +73,9 @@ New in this Isabelle release
     theorems to have too special types in some circumstances.
   - "where" permits explicit instantiations of type variables.
 
-* Calculation commands "moreover" and "also":
-  Do not reset facts ("this") any more.
+* Calculation commands "moreover" and "also" no longer interfere with
+  current facts ("this"), admitting arbitrary combinations with "then"
+  and derived forms.
 
 * Locales:
   - Goal statements involving the context element "includes" no longer
@@ -99,6 +101,7 @@ New in this Isabelle release
 
 * HOL: Tactic emulation methods induct_tac and case_tac understand static
   (Isar) contexts.
+
 
 *** HOL ***
 
