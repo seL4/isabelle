@@ -40,7 +40,8 @@ signature TACTIC =
   val eq_assume_tac	: int -> tactic   
   val ematch_tac	: thm list -> int -> tactic
   val eresolve_tac	: thm list -> int -> tactic
-  val eres_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val eres_inst_tac	: (string*string)list -> thm -> int -> tactic
+  val filter_prems_tac  : (term -> bool) -> int -> tactic  
   val filter_thms	: (term*term->bool) -> int*term*thm list -> thm list
   val filt_resolve_tac	: thm list -> int -> int -> tactic
   val flexflex_tac	: tactic
@@ -562,6 +563,20 @@ val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
   right to left if n is positive, and from left to right if n is negative.*)
 fun rotate_tac 0 i = all_tac
   | rotate_tac k i = PRIMITIVE (rotate_rule k i);
+
+(* remove premises that do not satisfy p; fails if all prems satisfy p *)
+fun filter_prems_tac p =
+  let fun Then None tac = Some tac
+        | Then (Some tac) tac' = Some(tac THEN' tac');
+      fun thins ((tac,n),H) =
+        if p H then (tac,n+1)
+        else (Then tac (rotate_tac n THEN' etac thin_rl),0);
+  in SUBGOAL(fn (subg,n) =>
+       let val Hs = Logic.strip_assums_hyp subg
+       in case fst(foldl thins ((None,0),Hs)) of
+            None => no_tac | Some tac => tac n
+       end)
+  end;
 
 end;
 
