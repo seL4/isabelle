@@ -1,0 +1,945 @@
+%% edited by LCP!!  
+%%   Commented out the change to \newlinechar
+%%   Increased space in Contents
+%%   Changed \thebibliography to the defn in llncs.sty
+%%   Added ttbox
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   MATHSING.STY        Version 1.1
+%
+%   This LaTeX style option file contains necessary macros for writing
+%   camera ready English single author math book manuscripts.
+%
+%
+%   Usage:
+%
+%      \documentstyle[12pt,mathsing]{book}
+%        ...
+%
+%   Change log:
+%
+%      90/11/04  pagestyle empty for first page of chapter
+%      90/11/04  distinct figure and table captions
+%      90/11/04  \small for captions and headings
+%      90/11/04  improved definition of theorem-like environments
+%      90/12/01  separation after chapter title changed to 5.1cm
+%      90/12/01  page size changed to 45x14.4+10pt=23.05cm
+%      90/12/01  references
+%      90/12/01  common counter for theorem-like environments
+%      90/12/02  table of contents
+%      90/12/02  final improvements and corrections
+%      90/12/26  two styles for equation numbers
+%      91/02/05  \numberlikebook and \numberlikearticle replace
+%                \eqnbook and \eqnarticle
+%      91/10/07  \listoffigures, \listoftables made similar to
+%                \tableofcontents,
+%                running head of Index changed: Sachverzeichnis -> Index,
+%                \newthe now uses \thechapter instead of \arabic{chapter}
+%      91/02/05  binding: \tablebook, \tablearticle
+%                \figurebook, \figurearticle added
+%      91/10/07  holzwarth: \listoffigures, \listoftables
+%                according to \tableofcontents,
+%                \begin{theindex}
+%                \newthe to produce correct numbers
+%      91/12/03  \chapter, \section, and \subsection now do not
+%                hyphenate the headings any more
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  change the catcode of @ (allows names containing @ after \begin{document})
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     page layout and dimensions
+%
+% The following commands are redefined:
+%
+%   \ps@headings    (cf. BOOK.STY)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+%     Layout
+%
+%     Note: The following values do not apply for English Springer
+%     books on phsics; use \baselineskip=14pt, \textwidth=13.8cm,
+%     \textheight=640pt (=45x14pt+10pt=22.5cm) instead!
+%
+
+\baselineskip=14.4pt          % LaTeX default
+
+\topmargin=0cm
+\textwidth=14.2cm             % 1.2 x 11.833 cm
+\textheight=658pt             % 45x14.4pt+10pt = 658pt = 23.0554cm
+%\textheight=23.2502cm         % 1.2x19.3752cm=23.2502cm (first version)
+\oddsidemargin=0.7cm
+\evensidemargin=0.7cm
+\headsep=20pt                 % ?
+
+\parindent=7mm                % 1.2 x 5.833mm
+
+\hfuzz=2pt                    % supress "overfull box" messages below 2pt
+
+\frenchspacing                % no large blanks at the end of a sentence
+
+
+\tolerance=500
+
+\abovedisplayskip=3.6 mm plus7.2pt minus 4.8pt
+\belowdisplayskip=3.6 mm plus7.2pt minus 4.8pt
+\abovedisplayshortskip=0.0 mm plus7.2pt minus 2.4pt
+\belowdisplayshortskip=2.4 mm plus4.8pt minus 4.8pt
+
+\predisplaypenalty=0          % penalties for page break
+\clubpenalty=10000            %
+\widowpenalty=10000           %
+
+
+%
+%     running titles
+%
+
+% binding 5.2.91 \hspace changed to 1.0 cm    |           |
+% binding 5.2.91 dot deleted after \thesection                 |
+\def\ps@headings{
+    \let\@mkboth\markboth
+    \def\@oddfoot{}
+    \def\@evenfoot{}
+    \def\@evenhead{\rm\small\thepage\hspace{1.0cm}\leftmark\hfil\hbox{}}
+    \def\@oddhead{\hbox{}\hfil\rm\small\rightmark\hspace{1.0cm}\thepage}
+    \def\chaptermark##1{\markboth
+                        {\ifnum \c@secnumdepth >\m@ne \thechapter.\ \fi ##1}{}}
+%hier punkt raus. binding                                      |
+    \def\sectionmark##1{\markright
+                        {\ifnum \c@secnumdepth >\z@ \thesection\ \fi ##1}}
+    }
+
+\pagestyle{headings}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Chapters and Sections
+%
+% The following commands are redefined:
+%
+%  \@makechapterhead    (cf. BK12.STY)
+%  \@makeschapterhead   (cf. BK12.STY)
+%  \chapter             (cf. BK12.STY)
+%  \@sect               (cf. LATEX.TEX)
+%  \section             (cf. BK12.STY)
+%  \subsection          (cf. BK12.STY)
+%  \subsubsection       (cf. BK12.STY)
+%  \paragraph           (cf. BK12.STY)
+%  \subparagraph        (cf. BK12.STY)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+%     number of numbered section levels
+%
+
+\setcounter{secnumdepth}{3}
+
+
+%
+%     Adapt the font size for chapter titles and supress printing of
+%     the word "chapter"
+%
+
+\def\@makechapterhead#1{ { \parindent 0pt \raggedright
+% \pretolerance added 12/3/91 fuh
+{\pretolerance=10000\Large \bf \thechapter.\hspace{0.3cm}#1\par}%
+ \nobreak \vskip 4cm \vskip\baselineskip} }
+
+\def\@makeschapterhead#1{ { \parindent 0pt \raggedright
+% \pretolerance added 12/3/91 fuh
+ \pretolerance=10000\Large \bf #1\par
+ \nobreak \vskip 4cm \vskip\baselineskip} }
+
+%
+%     define pagestyle=empty for first page of a chapter
+%
+
+\def\chapter{\cleardoublepage \thispagestyle{empty} \global\@topnum\z@
+\@afterindentfalse \secdef\@chapter\@schapter}
+
+%
+%     Change the distance between section number and title from 1em to 2mm
+%     binding:  changed again to 1en=0.5em       |     5.2.91
+%
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else
+     \refstepcounter{#1}%
+     \edef\@svsec{\csname the#1\endcsname\hskip 0.5em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@
+        \begingroup #6\relax
+% changed by Binding :) 20.3.91
+% old:    \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}
+% \@hangfrom deleted to avoid hanging indentation \noindent added
+          {\noindent\hskip #3\relax\@svsec}%
+          {\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+
+
+%
+%     Font size for section titles;
+%     Increased vertical space before and after sections, subsections
+%     and subsubsections by 1ex; run-in headings starting with subsubsection
+%
+%     (\@startsection{NAME}{LEVEL}{INDENT}{BEFORESKIP}{AFTERSKIP}{STYLE})
+%
+
+%binding, 18.3.91:  \boldmath inserted
+\def\section{\@startsection{section}{1}{\z@}{
+             -4.50ex plus -1ex minus -.2ex}{3.3ex plus .2ex}
+             {\large\bf\boldmath\raggedright\pretolerance=10000}}
+% \raggedright and \pretolerance added 12/3/91 fuh
+\def\subsection{\@startsection{subsection}{2}{\z@}{
+             -4.25ex plus -1ex minus -.2ex}{2.5ex plus .2ex}
+             {\normalsize\bf\boldmath\raggedright\pretolerance=10000}}
+% \raggedright and \pretolerance added 12/3/91 fuh
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{
+             -3.25ex plus -1ex minus -.2ex}{-0.5em}
+             {\normalsize\bf\boldmath}}
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{
+             -3.25ex plus -1ex minus -.2ex}{-0.5em}{\normalsize\it}}
+\def\subparagraph{\@startsection{subparagraph}{5}{\@}{
+             -3.25ex plus -1ex minus -.2ex}{-0.5em}{\normalsize\it}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%20.3.91, binding: \labelitemi changed
+\renewcommand{\labelitemi}{$\bullet$}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Tables
+%
+% Change width of horizontal and vertical lines in arrays and tables
+%
+% The following commands are redefined:
+%
+%  \arrayrulewidth
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\arrayrulewidth0.15mm
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Figure and table captions (small)
+%
+% To meet the different requirements for table and figure captions
+% new macros \@makefigurecaption and \@maketablecaption are introduced
+% in addition to \@makecaption (cf. BOOK.STY). The \@caption macro is
+% changed to check for figures and tables.
+%
+% The following commands are redefined:
+%
+%  \@caption         (cf. LATEX.TEX)
+%  \fnum@figure      (cf. BOOK.STY)
+%  \fnum@table       (cf. BOOK.STY)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\long\def\@caption#1[#2]#3{\addcontentsline{\csname
+  ext@#1\endcsname}{#1}{\protect\numberline{\csname
+  the#1\endcsname}{\ignorespaces #2}}\par
+  \begingroup
+    \@parboxrestore
+    \normalsize
+    \csname @make#1caption\endcsname
+    {\csname fnum@#1\endcsname}{\ignorespaces #3}\par
+  \endgroup}
+
+\long\def\@makefigurecaption#1#2{
+ \vskip 10pt                     % skip between figure and caption
+ {\small                         % required here for correct \baselineskip !
+ \setbox\@tempboxa\hbox{\small{\bf#1}#2}
+ \ifdim \wd\@tempboxa >\hsize
+   \unhbox\@tempboxa\par
+ \else
+   \hbox to\hsize{\hfil\box\@tempboxa\hfil}       % centered short caption !
+ \fi}
+ \vskip 10pt}                    % additional space between caption and text
+
+\long\def\@maketablecaption#1#2{
+ \vskip 10pt                     % additional space between text and caption
+ {\small                         % required here for correct \baselineskip !
+ \setbox\@tempboxa\hbox{\small{\bf#1}#2}
+ \ifdim \wd\@tempboxa >\hsize
+   \unhbox\@tempboxa\par
+ \else \hbox  to\hsize{\box\@tempboxa\hfil}   % leftadjusted short caption !
+ \fi}
+ \vskip 10pt}                    % skip between caption and table
+
+\def\fnum@figure{Fig.$\,$\thefigure.$\;$}
+\def\fnum@table{Table$\,$\thetable.$\;$}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Distance between text and floatings (tables, figures)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\floatsep 14pt plus 2pt minus 4pt        % LaTeX defaults values
+\textfloatsep 20pt plus 2pt minus 4pt    %
+\intextsep 14pt plus 4pt minus 4pt       %
+\@maxsep 20pt                            %
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Table of contents
+%
+% The following commands are redefined:
+%
+%  \l@chapter        (cf. LATEX.STY)
+%  \tableofcontents
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+%     lowest level for table of contents entries
+%
+\setcounter{tocdepth}{3}
+
+%
+%     dotted line for chapters in table of contents
+%     (cf. definition of \@dottedline in LATEX.STY)
+%
+\def\l@chapter#1#2{\pagebreak[3]
+ \vskip 1.0em plus 1pt \@tempdima 1.5em \begingroup
+ \parindent \z@ \rightskip \@pnumwidth
+ \parfillskip -\@pnumwidth
+ \rm \leavevmode #1
+ \nobreak\leaders\hbox{$\m@th \mkern \@dotsep mu.\mkern \@dotsep mu$}\hfill
+ \nobreak
+ \hbox to\@pnumwidth{\hss \rm #2}\par
+ \endgroup}
+
+%copied from book.sty to leave room for 12.11, etc. -- Frank Holzwarth via LCP
+\def\l@section{\@dottedtocline{1}{1.5em}{2.8em}}
+
+%
+%     Adaption of \tableofcontents (title,headings,pagenumber)
+%
+
+\def\tableofcontents{
+     \@restonecolfalse
+     \if@twocolumn\@restonecoltrue\onecolumn\fi
+     \chapter*{Table of Contents}
+     \markboth{Table of Contents}{Table of Contents}  % headline
+     \renewcommand{\thepage}{\Roman{page}}            % roman page number
+     \@starttoc{toc}\if@restonecol\twocolumn\fi}
+
+%%%%%%%% added 91/10/07 fuh %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% List of figures
+%
+% The following commands are redefined:
+%
+%  \listoffigures
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\listoffigures{
+     \@restonecolfalse
+     \if@twocolumn\@restonecoltrue\onecolumn\fi
+     \chapter*{List of Figures}
+     \markboth{List of Figures}{List of Figures}      % headline
+     \renewcommand{\thepage}{\Roman{page}}            % roman page number
+     \@starttoc{lof}\if@restonecol\twocolumn\fi}
+
+%%%%%%%% added 91/10/07 fuh %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% List of tables
+%
+% The following commands are redefined:
+%
+%  \listoftables
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\listoftables{
+     \@restonecolfalse
+     \if@twocolumn\@restonecoltrue\onecolumn\fi
+     \chapter*{List of Tables}
+     \markboth{List of Tables}{List of Tables}        % headline
+     \renewcommand{\thepage}{\Roman{page}}            % roman page number
+     \@starttoc{lot}\if@restonecol\twocolumn\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Index (with table of contents entry)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\theindex{ \cleardoublepage
+               \small
+               \columnseprule \z@
+               \columnsep=0.84cm
+               \twocolumn[\@makeschapterhead{Index}]
+               \addcontentsline{toc}{chapter}{Index}
+               \@mkboth{Index}{Index}
+               \thispagestyle{plain}\parindent\z@
+               \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 15pt}
+\def\subitem{\par\hangindent 15pt -- }
+\def\endtheindex{\clearpage}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% References (Bibliography)
+%
+% Macros for creating a list of references in small print using LaTeX
+% defaults or some special Springer commands.
+%
+% Usage:
+%
+%   \begin{thebibliography}{wide-label}      % LaTeX standard macros
+%     \bibitem[label]{name} ... text ...
+%     \bibitem[label]{name} ... text ...
+%   \end{thebibliography}
+%
+%   or
+%
+%   \begin{references}{wide-label}           % Springer macros
+%     \refer            ... text ...
+%     \refno{no.}       ... text ...
+%     \refmark{[label]} ... text ...
+%   \end{references}
+%
+% New commands:
+%
+%   \refchapter      starts an unnumbered chapter "References"; small font
+%   \refer           unlabeled item with hanging indentation
+%   \refno           right adjusted label (for numbers)
+%   \refmark         left adjusted label (for text labels)
+%
+% Changed commands
+%
+%   \thebibliography       (BOOK.STY)   (further edit by LCP!)
+%   \endthebibliography    (BOOK.STY)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\refchapter{\chapter*{References}
+\parindent0pt\parskip0pt\small
+\addcontentsline{toc}{chapter}{References}
+\markboth{References}{References}}
+
+
+\def\thebibliography#1{\refchapter\small\list
+  {\arabic{enumi}.}{\settowidth\labelwidth{#1.}\leftmargin\labelwidth
+    \advance\leftmargin\labelsep
+    \usecounter{enumi}}
+    \def\newblock{\hskip .11em plus .33em minus -.07em}
+    \sloppy
+    \sfcode`\.=1000\relax}
+\let\endthebibliography=\endlist
+
+
+\newenvironment{references}[1]{\refchapter
+                               \settowidth\labelwidth{#1\enspace}
+                               \begingroup}{\endgraf\endgroup}
+%
+% The following macros are from REFER.TEX.
+% \refindent is replaced by the predefined dimension \labelwidth
+% that is also used by \thebibliography; \ref is replaced by \refer
+% since \ref is already used for referencing lables!
+
+%%%\newlinechar=`\|
+
+% \refer produces ordinary entries, successive line are indented 1em
+\def\refer{\goodbreak\hangindent1em\hangafter=1\noindent\ignorespaces}
+
+% \refno produces entries with right-aligned marks in the margin
+\def\refno#1{\goodbreak
+\setbox0=\hbox{#1\enspace}\ifdim\labelwidth<\wd0\relax
+\message{|Your reference `#1' is wider than you pretended in using
+\string\begref.}\fi
+\hangindent\labelwidth\hangafter=1\noindent
+\kern\labelwidth\llap{#1\enspace}\ignorespaces}
+
+% \refmark produces entries with left-aligned marks in the margin
+\def\refmark#1{\goodbreak
+\setbox0=\hbox{#1\enspace}\ifdim\labelwidth<\wd0\relax
+\message{|Your reference `#1' is wider than you pretended in using
+\string\begref.}\fi
+\hangindent\labelwidth\hangafter=1\noindent
+\hbox to\labelwidth{#1\hss}\ignorespaces}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  New environments
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+%  The following lines define a new environment 'listing'
+%
+%         \begin{listing}
+%               ...
+%         \end{listing}
+%
+%  that prints listings using \footnotesize and takes care to reset
+%  the \baselineskip. The macro definition is based on ALLTT.STY that
+%  allows various TEX commands to be given within the environment
+%  (e.g. '\input', '\index' or '\it'). '%' has been retained as a special
+%  character within 'listing', however, to avoid unwanted line breaks.
+%
+%
+
+\def\docspecials{\do\ \do\$\do\&%
+  \do\#\do\^\do\^^K\do\_\do\^^A\do\~}
+
+\newdimen\oldbaselineskip
+\def\listing{\par\noindent\oldbaselineskip=\baselineskip \footnotesize%
+\trivlist \item[]\if@minipage\else\vskip\parskip\fi
+\leftskip\@totalleftmargin\rightskip\z@
+\parindent\z@\parfillskip\@flushglue\parskip\z@
+\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+\obeylines \tt \catcode``=13 \@noligs \let\do\@makeother \docspecials
+ \frenchspacing\@vobeyspaces}
+
+\def\endlisting{\endtrivlist\baselineskip=\oldbaselineskip}
+
+%Add ttbox to Springer's macros!!  - LCP
+\newenvironment{ttbox}{\par\nobreak\vskip-2pt%
+           \vbox\bgroup\begin{listing}\leftskip\leftmargini}%
+        {\end{listing}\egroup\vskip-7pt\@endparenv}
+\newcommand\ttbreak{\end{ttbox}\goodbreak\vskip-8pt plus 3pt\begin{ttbox}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Acknowledgements ( = acknow.tex)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\ack#1{\vskip11pt\begingroup\noindent{\it Acknowledgements\/}.
+\ignorespaces#1\vskip6pt\endgroup}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Definition of versal greek letters ( = ucgreek.tex)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\mathchardef\Gamma="0100
+\mathchardef\Delta="0101
+\mathchardef\Theta="0102
+\mathchardef\Lambda="0103
+\mathchardef\Xi="0104
+\mathchardef\Pi="0105
+\mathchardef\Sigma="0106
+\mathchardef\Upsilon="0107
+\mathchardef\Phi="0108
+\mathchardef\Psi="0109
+\mathchardef\Omega="010A
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Vectors ( = vector.tex)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This is vector.tex
+% it redefines the plain TeX \vec command
+% to produce bold characters
+%
+\def\vec#1{\ifmmode
+\mathchoice{\mbox{\boldmath$\displaystyle\bf#1$}}
+{\mbox{\boldmath$\textstyle\bf#1$}}
+{\mbox{\boldmath$\scriptstyle\bf#1$}}
+{\mbox{\boldmath$\scriptscriptstyle\bf#1$}}\else
+{\mbox{\boldmath$\bf#1$}}\fi}
+%
+%\def\vec#1{{\textfont0=\tenbf\scriptfont0=\sevenbf
+%\scriptscriptfont0=\fivebf
+%\textfont1=\tenbf\scriptfont1=\sevenbf
+%\scriptscriptfont1=\fivebf
+%\ifmmode % supply all varieties of math sizes
+%   \mathchoice{\hbox{$\displaystyle#1$}}{\hbox{$\textstyle#1$}}
+%   {\hbox{$\scriptstyle#1$}}{\hbox{$\scriptscriptstyle#1$}}
+%\else\hbox{$#1$}\fi}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Symbols ( = symbols.tex )
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This is symbols.tex
+% the symbols not available in plain TeX are constructed
+% by overprinting some characters
+
+\def\sun{{\hbox{$\odot$}}}
+\def\la{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\noalign{\vskip1.5pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr<\cr
+\noalign{\vskip1.0pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr<\cr
+\noalign{\vskip0.5pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil
+\cr<\cr\noalign{\vskip0.5pt}\sim\cr}}}}}
+\def\ga{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip1.5pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr>\cr
+\noalign{\vskip1.0pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr>\cr
+\noalign{\vskip0.5pt}\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil
+\cr>\cr\noalign{\vskip0.5pt}\sim\cr}}}}}
+\def\sq{\hbox{\rlap{$\sqcap$}$\sqcup$}}
+\def\degr{\hbox{$^\circ$}}
+\def\arcmin{\hbox{$^\prime$}}
+\def\arcsec{\hbox{$^{\prime\prime}$}}
+\def\utw{\smash{\rlap{\lower5pt\hbox{$\sim$}}}}
+\def\udtw{\smash{\rlap{\lower6pt\hbox{$\approx$}}}}
+\def\fd{\hbox{$.\!\!^{\rm d}$}}
+\def\fh{\hbox{$.\!\!^{\rm h}$}}
+\def\fm{\hbox{$.\!\!^{\rm m}$}}
+\def\fs{\hbox{$.\!\!^{\rm s}$}}
+\def\fdg{\hbox{$.\!\!^\circ$}}
+\def\farcm{\hbox{$.\mkern-4mu^\prime$}}
+\def\farcs{\hbox{$.\!\!^{\prime\prime}$}}
+\def\fp{\hbox{$.\!\!^{\scriptscriptstyle\rm p}$}}
+\def\getsto{\mathrel{\mathchoice {\vcenter{\offinterlineskip
+\halign{\hfil$\displaystyle##$\hfil\cr\gets\cr\to\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+\gets\cr\to\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+\gets\cr\to\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+\gets\cr\to\cr}}}}}
+\def\cor{\mathrel{\mathchoice {\hbox{$\widehat=$}}{\hbox{$\widehat=$}}
+{\hbox{$\scriptstyle\hat=$}}
+{\hbox{$\scriptscriptstyle\hat=$}}}}
+\def\grole{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip-1.5pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+>\cr\noalign{\vskip-1.5pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+>\cr\noalign{\vskip-1pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\noalign{\vskip-0.5pt}<\cr}}}}}
+\def\lid{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\noalign{\vskip1.5pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr<\cr
+\noalign{\vskip1pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr<\cr
+\noalign{\vskip0.5pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+<\cr\noalign{\vskip0.5pt}=\cr}}}}}
+\def\gid{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip1.5pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr>\cr
+\noalign{\vskip1pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr>\cr
+\noalign{\vskip0.5pt}=\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\noalign{\vskip0.5pt}=\cr}}}}}
+\def\sol{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr\sim\cr\noalign{\vskip-0.2mm}<\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\textstyle##$\hfil\cr\sim\cr<\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptstyle##$\hfil\cr\sim\cr<\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptscriptstyle##$\hfil\cr\sim\cr<\cr}}}}}
+\def\sog{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr\sim\cr\noalign{\vskip-0.2mm}>\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\textstyle##$\hfil\cr\sim\cr>\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptstyle##$\hfil\cr\sim\cr>\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptscriptstyle##$\hfil\cr\sim\cr>\cr}}}}}
+\def\lse{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\noalign{\vskip1.5pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr<\cr
+\noalign{\vskip1pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr<\cr
+\noalign{\vskip0.5pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptscriptstyle##$\hfil\cr<\cr
+\noalign{\vskip0.5pt}\simeq\cr}}}}}
+\def\gse{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip1.5pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr>\cr
+\noalign{\vskip1.0pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr>\cr
+\noalign{\vskip0.5pt}\simeq\cr}}}
+{\vcenter{\offinterlineskip
+\halign{\hfil$\scriptscriptstyle##$\hfil\cr>\cr
+\noalign{\vskip0.5pt}\simeq\cr}}}}}
+\def\grole{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip-1.5pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+>\cr\noalign{\vskip-1.5pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+>\cr\noalign{\vskip-1pt}<\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\noalign{\vskip-0.5pt}<\cr}}}}}
+\def\leogr{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\noalign{\vskip-1.5pt}>\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+<\cr\noalign{\vskip-1.5pt}>\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+<\cr\noalign{\vskip-1pt}>\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+<\cr\noalign{\vskip-0.5pt}>\cr}}}}}
+\def\loa{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\noalign{\vskip1.5pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr<\cr
+\noalign{\vskip1.0pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr<\cr
+\noalign{\vskip0.5pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+<\cr\noalign{\vskip0.5pt}\approx\cr}}}}}
+\def\goa{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\noalign{\vskip1.5pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr>\cr
+\noalign{\vskip1.0pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr>\cr
+\noalign{\vskip0.5pt}\approx\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\noalign{\vskip0.5pt}\approx\cr}}}}}
+\def\bbbr{{\rm I\!R}} %reelle Zahlen
+\def\bbbn{{\rm I\!N}} %natuerliche Zahlen
+\def\bbbm{{\rm I\!M}}
+\def\bbbh{{\rm I\!H}}
+\def\bbbf{{\rm I\!F}}
+\def\bbbk{{\rm I\!K}}
+\def\bbbp{{\rm I\!P}}
+\def\bbbone{{\mathchoice {\rm 1\mskip-4mu l} {\rm 1\mskip-4mu l}
+{\rm 1\mskip-4.5mu l} {\rm 1\mskip-5mu l}}}
+\def\bbbc{{\mathchoice {\setbox0=\hbox{$\displaystyle\rm C$}\hbox{\hbox
+to0pt{\kern0.4\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\textstyle\rm C$}\hbox{\hbox
+to0pt{\kern0.4\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptstyle\rm C$}\hbox{\hbox
+to0pt{\kern0.4\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptscriptstyle\rm C$}\hbox{\hbox
+to0pt{\kern0.4\wd0\vrule height0.9\ht0\hss}\box0}}}}
+\def\bbbe{{\mathchoice {\setbox0=\hbox{\smalletextfont e}\hbox{\raise
+0.1\ht0\hbox to0pt{\kern0.4\wd0\vrule width0.3pt
+height0.7\ht0\hss}\box0}}
+{\setbox0=\hbox{\smalletextfont e}\hbox{\raise
+0.1\ht0\hbox to0pt{\kern0.4\wd0\vrule width0.3pt
+height0.7\ht0\hss}\box0}}
+{\setbox0=\hbox{\smallescriptfont e}\hbox{\raise
+0.1\ht0\hbox to0pt{\kern0.5\wd0\vrule width0.2pt
+height0.7\ht0\hss}\box0}}
+{\setbox0=\hbox{\smallescriptscriptfont e}\hbox{\raise
+0.1\ht0\hbox to0pt{\kern0.4\wd0\vrule width0.2pt
+height0.7\ht0\hss}\box0}}}}
+\def\bbbq{{\mathchoice {\setbox0=\hbox{$\displaystyle\rm Q$}\hbox{\raise
+0.15\ht0\hbox to0pt{\kern0.4\wd0\vrule height0.8\ht0\hss}\box0}}
+{\setbox0=\hbox{$\textstyle\rm Q$}\hbox{\raise
+0.15\ht0\hbox to0pt{\kern0.4\wd0\vrule height0.8\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptstyle\rm Q$}\hbox{\raise
+0.15\ht0\hbox to0pt{\kern0.4\wd0\vrule height0.7\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptscriptstyle\rm Q$}\hbox{\raise
+0.15\ht0\hbox to0pt{\kern0.4\wd0\vrule height0.7\ht0\hss}\box0}}}}
+\def\bbbt{{\mathchoice {\setbox0=\hbox{$\displaystyle\rm
+T$}\hbox{\hbox to0pt{\kern0.3\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\textstyle\rm T$}\hbox{\hbox
+to0pt{\kern0.3\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptstyle\rm T$}\hbox{\hbox
+to0pt{\kern0.3\wd0\vrule height0.9\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptscriptstyle\rm T$}\hbox{\hbox
+to0pt{\kern0.3\wd0\vrule height0.9\ht0\hss}\box0}}}}
+\def\bbbs{{\mathchoice
+{\setbox0=\hbox{$\displaystyle     \rm S$}\hbox{\raise0.5\ht0\hbox
+to0pt{\kern0.35\wd0\vrule height0.45\ht0\hss}\hbox
+to0pt{\kern0.55\wd0\vrule height0.5\ht0\hss}\box0}}
+{\setbox0=\hbox{$\textstyle        \rm S$}\hbox{\raise0.5\ht0\hbox
+to0pt{\kern0.35\wd0\vrule height0.45\ht0\hss}\hbox
+to0pt{\kern0.55\wd0\vrule height0.5\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptstyle      \rm S$}\hbox{\raise0.5\ht0\hbox
+to0pt{\kern0.35\wd0\vrule height0.45\ht0\hss}\raise0.05\ht0\hbox
+to0pt{\kern0.5\wd0\vrule height0.45\ht0\hss}\box0}}
+{\setbox0=\hbox{$\scriptscriptstyle\rm S$}\hbox{\raise0.5\ht0\hbox
+to0pt{\kern0.4\wd0\vrule height0.45\ht0\hss}\raise0.05\ht0\hbox
+to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
+
+%
+% note: changed \sans to \sf for LaTeX
+%
+
+\def\bbbz{{\mathchoice {\hbox{$\sf\textstyle Z\kern-0.4em Z$}}
+{\hbox{$\sf\textstyle Z\kern-0.4em Z$}}
+{\hbox{$\sf\scriptstyle Z\kern-0.3em Z$}}
+{\hbox{$\sf\scriptscriptstyle Z\kern-0.2em Z$}}}}
+
+\def\diameter{{\ifmmode\oslash\else$\oslash$\fi}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% petit  (substitute for petit.tex)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newenvironment{petit}{\vskip6pt\begingroup\small}{\endgroup\vskip6pt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% New environments
+%
+%   lemma, proposition, theorem, corollary  (\bf,\it)  (numbered)
+%   exercise, problem, solution, definition (\bf,\rm)
+% 27.3.91 binding: example, note and question changed to (\bf, \rm)
+%
+%   lemma*, proposition*, theorem*, corollary*  (\bf,\it)   (unnumbered)
+%   exercise*, problem*, solution*, definition* (\bf,\rm)
+%   example*, note*, question* (\it,\rm)
+%
+%   remark, proof (\it,\rm)  (unnumbered)
+%
+%   usage:   \begin{lemma}  or  \begin{lemma}[COMMENT]
+%              ...                ...
+%            \end{lemma}        \end{lemma}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% currently one counter is used for all theorem like environments
+
+\newcounter{lemmacount}[chapter]
+\renewcommand{\thelemmacount}{\thechapter.\arabic{lemmacount}}
+
+
+%
+% short form for defininng new theorem like environments:
+% \newthe{NAME}{NAME*}{TITLE}{COUNTER}{FONT1}{FONT2}
+%
+\def\@@begthe#1{\@ifnextchar[{\@optbegthe#1}{\@begthe#1}}
+%27.3.91 binding: dot deleted
+%def\@begthe#1{. #1}   old
+\def\@begthe#1{ #1}
+\def\@optbegthe#1[#2]{ {#2} #1}
+\newcommand{\newthe}[6]{
+ \def\nlni{\par\ifvmode\removelastskip\fi\vskip\baselineskip\noindent}
+ \def\xxxend{\endgroup\vskip\baselineskip}
+ \newenvironment{#1}{\nlni\begingroup\refstepcounter{#4}#5#3
+%changed 91/10/7 fuh:\arabic{chapter}.\arabic{#4}\@@begthe{#6}}{\xxxend}
+                     \thechapter.\arabic{#4}\@@begthe{#6}}{\xxxend}
+ \newenvironment{#2}{\nlni\begingroup#5#3\@@begthe{#6}}{\xxxend}}
+
+
+% Lemma, Proposition, Theorem, Corollary  (\bf,\it)
+
+\newthe{lemma}{lemma*}{Lemma}{lemmacount}{\bf}{\it}
+\newthe{proposition}{proposition*}{Proposition}{lemmacount}{\bf}{\it}
+\newthe{theorem}{theorem*}{Theorem}{lemmacount}{\bf}{\it}
+\newthe{corollary}{corollary*}{Corollary}{lemmacount}{\bf}{\it}
+
+
+% Exercise, Problem, Solution, Definition (\bf,\rm)
+
+\newthe{exercise}{exercise*}{exercise}{lemmacount}{\bf}{\it}
+\newthe{problem}{problem*}{Problem}{lemmacount}{\bf}{\it}
+\newthe{solution}{solution*}{Solution}{lemmacount}{\bf}{\it}
+\newthe{definition}{definition*}{Definition}{lemmacount}{\bf}{\it}
+
+
+% Example, Note, Question (\bf,\rm)
+
+\newthe{example}{example*}{Example}{lemmacount}{\bf}{\rm}
+\newthe{note}{note*}{Note}{lemmacount}{\bf}{\rm}
+\newthe{question}{question*}{Question}{lemmacount}{\bf}{\rm}
+
+
+% Remark, Proof
+
+\newenvironment{remark}{\nlni\begingroup\it Remark. \rm}{
+                        \endgroup\vskip\baselineskip}
+\newenvironment{proof}{\nlni\begingroup\it Proof. \rm}{
+                       \endgroup\vskip\baselineskip}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% qed
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\qed{\ifmmode\sq\else{\unskip\nobreak\hfil
+\penalty50\hskip1em\null\nobreak\hfil\sq
+\parfillskip=0pt\finalhyphendemerits=0\endgraf}\fi}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  \eqnarticle    simple equation numbers without chapter number
+%  \eqnbook       structured equation numbers (default)
+%   changed by binding 5.2.91: changed to \numberlikearticle and
+%                                \numberlikebook, changing numbering of
+%                              figures and tables also.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\numberlikearticle{\global\def\theequation{\arabic{equation}}
+\global\def\thetable{\arabic{table}}
+\global\def\thefigure{\arabic{figure}}}
+\def\numberlikebook{\global\def\theequation{\thechapter.\arabic{equation}}
+\global\def\thetable{\thechapter.\arabic{table}}
+\global\def\thefigure{\thechapter.\arabic{figure}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Redeclaration of \makeatletter; no @-expressions may be used from now on
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatother
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   End of MATHSING.STY
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+

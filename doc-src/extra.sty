@@ -1,0 +1,34 @@
+% extra.sty : Isabelle Manual extra macros for non-Springer version
+%
+\typeout{Document Style extra. Released 17 February 1994}
+
+%%Euro-style date: 20 September 1955
+\def\today{\number\day\space\ifcase\month\or
+January\or February\or March\or April\or May\or June\or
+July\or August\or September\or October\or November\or December\fi
+\space\number\year}
+
+\input{alltt.sty}
+%Indented, boxed alltt environment; uses \small\tt font
+%\leftmargini is LaTeX's first-level indentation for items (2.5em)
+%@endparenv is LaTeX's trick for preventing indentation of next paragraph
+\newenvironment{ttbox}{\par\nobreak\vskip-2pt
+           \vbox\bgroup\footnotesize\begin{alltt} \leftskip\leftmargini}%
+        {\end{alltt}\egroup\vskip-7pt\@endparenv}
+\newcommand\ttbreak{\end{ttbox}\vskip-10pt\begin{ttbox}}
+
+%%%Put first chapter on odd page, with arabic numbering; like \cleardoublepage
+\newcommand\clearfirst{\clearpage\ifodd\c@page\else
+    \hbox{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi
+    \pagenumbering{arabic}}
+
+%%%Ruled chapter headings 
+\def\@rulehead#1{\hrule height1pt \vskip 14pt \Huge \bf 
+   #1 \vskip 14pt\hrule height1pt}
+\def\@makechapterhead#1{ { \parindent 0pt 
+ \ifnum\c@secnumdepth >\m@ne \raggedleft\large\bf\@chapapp{} \thechapter \par 
+ \vskip 20pt \fi \raggedright \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
+\def\@makeschapterhead#1{ { \parindent 0pt \raggedright 
+ \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
