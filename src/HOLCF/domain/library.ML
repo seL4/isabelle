@@ -65,14 +65,15 @@ fun mk_var_names types : string list = let
     fun nonreserved id = let val cs = explode id in
 			 if not(hd cs mem ["x","f","P"]) then id
 			 else implode(chr(1+ord (hd cs))::tl cs) end;
-    fun index_vnames(vn::vns,tab) =
-          (case assoc(tab,vn) of
+    fun index_vnames(vn::vns,occupied) =
+          (case assoc(occupied,vn) of
              None => if vn mem vns
-                     then (vn^"1") :: index_vnames(vns,(vn,2)::tab)
-                     else  vn      :: index_vnames(vns,        tab)
-           | Some(i) => (vn^(string_of_int i)) :: index_vnames(vns,(vn,i+1)::tab))
-      | index_vnames([],tab) = [];
-in index_vnames(map (nonreserved o typid) types,[("o",1)]) end;
+                     then (vn^"1") :: index_vnames(vns,(vn,1)  ::occupied)
+                     else  vn      :: index_vnames(vns,          occupied)
+           | Some(i) => (vn^(string_of_int (i+1)))
+				   :: index_vnames(vns,(vn,i+1)::occupied))
+      | index_vnames([],occupied) = [];
+in index_vnames(map (nonreserved o typid) types,[("O",0),("o",0)]) end;
 
 fun type_name_vars (Type(name,typevars)) = (name,typevars)
 |   type_name_vars _                     = Imposs "library:type_name_vars";
