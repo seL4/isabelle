@@ -15,7 +15,7 @@ NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 PROVERS = hypsubst.ML classical.ML blast.ML \
 	simplifier.ML splitter.ML nat_transitive.ML 
 
-TFL   = dcterm.sml mask.sig mask.sml post.sml rules.new.sml rules.sig \
+TFL   = dcterm.sml post.sml rules.new.sml rules.sig \
 	sys.sml tfl.sig tfl.sml thms.sig thms.sml thry.sig thry.sml   \
 	usyntax.sig usyntax.sml utils.sig utils.sml
 
