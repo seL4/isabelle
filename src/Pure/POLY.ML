@@ -9,6 +9,13 @@ Compatibility file for Poly/ML (AHL release 1.88)
 open PolyML ExtendedIO;
 
 
+structure Int =
+  struct
+  fun max (x, y) = if x < y then y else x : int;
+  fun min (x, y) = if x < y then x else y : int;
+  end;
+
+
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime.*)
 

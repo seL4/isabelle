@@ -14,6 +14,8 @@ fun exit 0 = OS.Process.exit OS.Process.success
   | exit _ = OS.Process.exit OS.Process.failure;
 fun quit () = exit 0;
 
+structure Int = Integer;
+
 (*To change the current directory*)
 val cd = OS.FileSys.chDir;
 
