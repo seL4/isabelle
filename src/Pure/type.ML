@@ -830,6 +830,7 @@ fun param used (x, S) = TVar (("?" ^ variant used x, 0), S);
 fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
     fun get_type xi = if_none (def_type xi) dummyT;
+    fun is_free x = is_some (def_type (x, ~1));
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
@@ -845,7 +846,8 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
       | decode (t $ u) = decode t $ decode u
       | decode (Free (x, T)) =
           let val c = map_const x in
-            if is_const c orelse NameSpace.qualified c then Const (c, certT T)
+            if not (is_free x) andalso (is_const c orelse NameSpace.qualified c) then
+              Const (c, certT T)
             else if T = dummyT then Free (x, get_type (x, ~1))
             else constrain (Free (x, certT T)) (get_type (x, ~1))
           end
