@@ -42,6 +42,9 @@ datatype
 syntax
   "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
 
+syntax (xsymbols)
+  "@MTuple"      :: "['a, args] => 'a * 'b"       ("(2\\<lbrace>_,/ _\\<rbrace>)")
+
 translations
   "{|x, y, z|}"   == "{|x, {|y, z|}|}"
   "{|x, y|}"      == "MPair x y"
