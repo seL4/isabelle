@@ -7,6 +7,11 @@
 theory subset = Set
 files "Tools/typedef_package.ML":
 
-setup rulify_prems_attrib_setup
+(*belongs to theory Ord*)
+theorems linorder_cases [case_names less equal greater] =
+  linorder_less_split
+
+(*belongs to theory Set*)
+setup Rulify.setup
 
 end
