@@ -113,6 +113,7 @@
     "print_locale"
     "print_locales"
     "print_methods"
+    "print_registrations"
     "print_rules"
     "print_simpset"
     "print_syntax"
@@ -131,6 +132,7 @@
     "realizability"
     "realizers"
     "redo"
+    "registration"
     "remove_thy"
     "rep_datatype"
     "sect"
@@ -263,6 +265,7 @@
     "print_locale"
     "print_locales"
     "print_methods"
+    "print_registrations"
     "print_rules"
     "print_simpset"
     "print_syntax"
@@ -362,6 +365,7 @@
   '("corollary"
     "instance"
     "lemma"
+    "registration"
     "theorem"))
 
 (defconst isar-keywords-qed

@@ -18,6 +18,7 @@ sig
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
+  val multi_attribute: theory -> Args.src -> Locale.multi_attribute
   val local_attribute': Proof.context -> Args.src -> Proof.context attribute
   val undef_global_attribute: theory attribute
   val undef_local_attribute: Proof.context attribute
@@ -96,6 +97,8 @@ fun gen_attribute which thy =
 
 val global_attribute = gen_attribute fst;
 val local_attribute = gen_attribute snd;
+fun multi_attribute thy src =
+      (global_attribute thy src, local_attribute thy src);
 val local_attribute' = local_attribute o ProofContext.theory_of;
 
 val undef_global_attribute: theory attribute =

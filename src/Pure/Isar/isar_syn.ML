@@ -310,6 +310,17 @@ val localeP =
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
+val uterm = P.underscore >> K NONE || P.term >> SOME;
+
+val view_val =
+  Scan.optional (P.$$$ "[" |-- Scan.repeat1 uterm --| P.$$$ "]") [];
+
+val registrationP =
+  OuterSyntax.command "registration"
+  "prove and register instance of locale expression" K.thy_goal
+  ((P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
+     >> IsarThy.register_globally)
+   >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 
 (** proof commands **)
@@ -579,8 +590,13 @@ val print_localesP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_locales));
 
 val print_localeP =
-  OuterSyntax.improper_command "print_locale" "print named locale of this theory" K.diag
+  OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
     (locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
+
+val print_registrationsP =
+  OuterSyntax.improper_command "print_registrations"
+    "print registrations of named locale in this theory" K.diag
+    (P.xname >> (Toplevel.no_timing oo IsarCmd.print_registrations));
 
 val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
@@ -784,10 +800,11 @@ val parsers = [
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
-  redoP, undos_proofP, undoP, killP, instantiateP,
+  redoP, undos_proofP, undoP, killP, registrationP, instantiateP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
+  print_registrationsP,
   print_attributesP, print_rulesP, print_induct_rulesP,
   print_trans_rulesP, print_methodsP, print_antiquotationsP,
   thms_containingP, thm_depsP, print_bindsP, print_lthmsP,

@@ -407,7 +407,7 @@ val add_inst_arity_i = sane_inst_arity cert_arity;
 
 fun inst_proof mk_prop add_thms inst int theory =
   theory
-  |> IsarThy.multi_theorem_i Drule.internalK
+  |> IsarThy.multi_theorem_i Drule.internalK I
     ("", [fn (thy, th) => (add_thms [th] thy, th)]) []
     (map (fn t => (("", []), [(t, ([], []))])) (mk_prop (Theory.sign_of theory) inst)) int;
 

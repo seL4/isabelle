@@ -635,7 +635,10 @@ fun gen_read read app pattern dummies schematic ctxt =
 
 in
 
+(* CB: for attribute where.  See attrib.ML. *)
 val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false false;
+
+(* CB: for rule_tac etc.  See method.ML. *)
 val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false false true;
 
 fun read_term_pats T ctxt =

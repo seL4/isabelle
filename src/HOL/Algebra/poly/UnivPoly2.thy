@@ -249,7 +249,6 @@ qed
 instance up :: (ring) ring
 proof
   fix p q r :: "'a::ring up"
-  fix n
   show "(p + q) + r = p + (q + r)"
     by (rule up_eqI) simp
   show "0 + p = p"
@@ -318,6 +317,7 @@ proof
     by (simp add: up_inverse_def)
   show "p / q = p * inverse q"
     by (simp add: up_divide_def)
+  fix n
   show "p ^ n = nat_rec 1 (%u b. b * p) n"
     by (simp add: up_power_def)
   qed

@@ -1,4 +1,5 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory (06/01/05)
+    $Id$
     Copyright 2004 University of Cambridge
 
 Used for delta_simpset and delta_claset

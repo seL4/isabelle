@@ -49,6 +49,7 @@ sig
   val print_locales: Toplevel.transition -> Toplevel.transition
   val print_locale: Locale.expr * Args.src Locale.element list
     -> Toplevel.transition -> Toplevel.transition
+  val print_registrations: string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_rules: Toplevel.transition -> Toplevel.transition
   val print_induct_rules: Toplevel.transition -> Toplevel.transition
@@ -218,7 +219,12 @@ val print_locales = Toplevel.unknown_theory o
 
 fun print_locale (import, body) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let val thy = Toplevel.theory_of state in
-    Locale.print_locale thy import (map (Locale.map_attrib_element (Attrib.local_attribute thy)) body)
+    Locale.print_locale thy import (map (Locale.map_attrib_element (Attrib.multi_attribute thy)) body)
+  end);
+
+fun print_registrations name = Toplevel.unknown_theory o
+  Toplevel.keep (fn state => let val thy = Toplevel.theory_of state in
+    Locale.print_global_registrations thy name
   end);
 
 val print_attributes = Toplevel.unknown_theory o

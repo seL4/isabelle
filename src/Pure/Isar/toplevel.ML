@@ -425,6 +425,11 @@ fun msg_on_debug (THM (msg, i, thms)) =
      then raised_msg "THEORY" (cat_lines ("" :: msg ::
        map (Pretty.string_of o Display.pretty_theory) thys))
      else msg
+  | msg_on_debug (AST (msg, asts)) =
+     if !debug
+     then raised_msg "AST" (cat_lines ("" :: msg ::
+       map (Pretty.string_of o Syntax.pretty_ast) asts))
+     else msg
   | msg_on_debug (TERM (msg, ts)) =
      (case (!debug, Context.get_context ()) of
          (true, SOME thy) =>
@@ -445,21 +450,6 @@ fun msg_on_debug (THM (msg, i, thms)) =
            end
        | _ => raised_msg "TYPE" msg)
 
-(*
-	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-	  seq print_thm thms)
-   | THEORY (msg,thys) =>
-	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  seq (Pretty.writeln o Display.pretty_theory) thys)
-   | TERM (msg,ts) =>
-	 (writeln ("Exception TERM raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_term sign) ts)
-   | TYPE (msg,Ts,ts) =>
-	 (writeln ("Exception TYPE raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_typ sign) Ts;
-	  seq (writeln o Sign.string_of_term sign) ts)
-*)
-
 fun exn_message TERMINATE = "Exit."
   | exn_message RESTART = "Restart."
   | exn_message (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
@@ -475,7 +465,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
   | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
   | exn_message (Antiquote.ANTIQUOTE_FAIL info) = fail_message "antiquotation" info
-  | exn_message (Syntax.AST (msg, _)) = raised_msg "AST" msg
+  | exn_message (Syntax.AST (msg, asts)) = msg_on_debug (AST (msg, asts))
   | exn_message (TYPE (msg, Ts, ts)) = msg_on_debug (TYPE (msg, Ts, ts))
   | exn_message (TERM (msg, ts)) = msg_on_debug (TERM (msg, ts))
   | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))

@@ -336,6 +336,7 @@ fun varify (Const(a,T)) = Const(a, Type.varifyT T)
 
 (*Inverse of varify.  Converts axioms back to their original form.*)
 fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
+  | unvarify (Free(a,T))     = Free(a, Type.unvarifyT T)  (* CB: added *)
   | unvarify (Var((a,0), T)) = Free(a, Type.unvarifyT T)
   | unvarify (Var(ixn,T))    = Var(ixn, Type.unvarifyT T)  (*non-0 index!*)
   | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)

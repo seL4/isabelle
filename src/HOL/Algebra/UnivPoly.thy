@@ -369,6 +369,29 @@ proof (rule up_eqI)
     done
 qed (simp_all add: R)
 
+(*
+Strange phenomenon in Isar:
+
+theorem (in UP_cring) UP_cring:
+  "cring P"
+proof (rule cringI)
+  show "abelian_group P" proof (rule abelian_groupI)
+  fix x y z
+  assume "x \<in> carrier P" and "y \<in> carrier P" and "z \<in> carrier P"
+  {
+  show "x \<oplus>\<^bsub>P\<^esub> y \<in> carrier P" sorry
+  next
+  show "x \<oplus>\<^bsub>P\<^esub> y \<oplus>\<^bsub>P\<^esub> z = x \<oplus>\<^bsub>P\<^esub> (y \<oplus>\<^bsub>P\<^esub> z)" sorry
+  next
+  show "x \<oplus>\<^bsub>P\<^esub> y = y \<oplus>\<^bsub>P\<^esub> x" sorry
+  next
+  show "\<zero>\<^bsub>P\<^esub> \<oplus>\<^bsub>P\<^esub> x = x" sorry
+  next
+  show "\<exists>y\<in>carrier P. y \<oplus>\<^bsub>P\<^esub> x = \<zero>\<^bsub>P\<^esub>" sorry
+  next
+  show "\<zero>\<^bsub>P\<^esub> \<in> carrier P" sorry  last goal rejected!!!
+*)
+
 theorem (in UP_cring) UP_cring:
   "cring P"
   by (auto intro!: cringI abelian_groupI comm_monoidI UP_a_assoc UP_l_zero
