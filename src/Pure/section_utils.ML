@@ -67,4 +67,4 @@ val trim = implode o escape o rev o tl o rev o tl o explode;
 (*Check for some named theory*)
 fun require_thy thy name sect =
   if exists (equal name o !) (stamps_of_thy thy) then ()
-  else error ("Need at least theory " ^ quote name ^ " for " ^ sect);
+  else error ("Need theory " ^ quote name ^ " as an ancestor for " ^ sect);
