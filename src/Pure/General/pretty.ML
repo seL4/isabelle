@@ -147,7 +147,7 @@ fun raw_str (s, len) = String (s, Real.round len);
 val str = String o apsnd Real.round o Symbol.output_width;
 
 fun brk wd = Break (false, wd);
-val fbrk = Break (true, 0);
+val fbrk = Break (true, 2);
 
 fun blk (indent, es) =
   let
