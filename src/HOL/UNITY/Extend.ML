@@ -64,6 +64,11 @@ by Auto_tac;
 qed "extend_set_Int_distrib";
 
 Goalw [extend_set_def]
+    "extend_set h (INTER A B) = (INT x:A. extend_set h (B x))";
+by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
+qed "extend_set_INTER_distrib";
+
+Goalw [extend_set_def]
     "extend_set h (A - B) = extend_set h A - extend_set h B";
 by Auto_tac;
 qed "extend_set_Diff_distrib";
@@ -171,6 +176,13 @@ by (simp_tac (simpset() addsimps [extend_set_Int_distrib]) 1);
 qed "extend_Join";
 Addsimps [extend_Join];
 
+Goal "extend h (JOIN I F) = (JN i:I. extend h (F i))";
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [image_UNION, Acts_JN]) 2);
+by (simp_tac (simpset() addsimps [extend_set_INTER_distrib]) 1);
+qed "extend_JN";
+Addsimps [extend_JN];
+
 
 (*** Safety: co, stable ***)
 
@@ -222,6 +234,10 @@ qed "extend_Constrains";
 Goal "(extend h F : Stable (extend_set h A)) = (F : Stable A)";
 by (simp_tac (simpset() addsimps [Stable_def, extend_Constrains]) 1);
 qed "extend_Stable";
+
+Goal "(extend h F : Always (extend_set h A)) = (F : Always A)";
+by (asm_simp_tac (simpset() addsimps [Always_def, extend_Stable]) 1);
+qed "extend_Always";
 
 
 (*** Progress: transient, ensures ***)
@@ -313,13 +329,13 @@ by Safe_tac;
 by (etac leadsTo_imp_extend_leadsTo 2);
 by (dtac extend_leadsTo_slice 1);
 by (full_simp_tac (simpset() addsimps [slice_extend_set]) 1);
-qed "extend_leadsto_eq";
+qed "extend_leadsto";
 
 Goal "(extend h F : (extend_set h A) LeadsTo (extend_set h B)) =  \
 \     (F : A LeadsTo B)";
 by (simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_extend_eq, 
-			 extend_leadsto_eq, extend_set_Int_distrib RS sym]) 1);
+			 extend_leadsto, extend_set_Int_distrib RS sym]) 1);
 qed "extend_LeadsTo";
 
 
