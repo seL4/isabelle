@@ -27,6 +27,7 @@ sig
   val get_tthm: theory -> xstring -> tthm
   val get_tthms: theory -> xstring -> tthm list
   val thms_containing: theory -> string list -> (string * thm) list
+  val store_tthm: (bstring * tthm) * theory attribute list -> theory -> theory * tthm
   val smart_store_thm: (bstring * thm) -> thm
   val add_tthms: ((bstring * tthm) * theory attribute list) list -> theory -> theory
   val add_tthmss: ((bstring * tthm list) * theory attribute list) list -> theory -> theory
@@ -244,11 +245,22 @@ fun enter_tthmx sg app_name (bname, tthmx) =
 (* add_tthms(s) *)
 
 fun add_tthmx app_name app_att ((bname, tthmx), atts) thy =
-  let val (thy', tthmx') = app_att ((thy, tthmx), atts)
-  in enter_tthmx (Theory.sign_of thy') app_name (bname, tthmx'); thy' end;
+  let
+    val (thy', tthmx') = app_att ((thy, tthmx), atts);
+    val tthms'' = enter_tthmx (Theory.sign_of thy') app_name (bname, tthmx');
+  in (thy', tthms'') end;
 
-val add_tthms = Theory.apply o map (add_tthmx name_single Attribute.apply);
-val add_tthmss = Theory.apply o map (add_tthmx name_multi Attribute.applys);
+val add_tthms =
+  Theory.apply o map (fn th_atts => fst o add_tthmx name_single Attribute.apply th_atts);
+val add_tthmss =
+  Theory.apply o map (fn th_atts => fst o add_tthmx name_multi Attribute.applys th_atts);
+
+
+(* store_tthm *)
+
+fun store_tthm th_atts thy =
+  let val (thy', [th']) = add_tthmx name_single Attribute.apply th_atts thy
+  in (thy', th') end;
 
 
 (* smart_store_thm *)
