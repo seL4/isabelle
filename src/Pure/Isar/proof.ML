@@ -398,16 +398,13 @@ fun final_result state pre_thm =
 
 (* solve goal *)
 
-fun REV_RANGE _ [] = all_tac
-  | REV_RANGE k (tac :: tacs) = tac k THEN REV_RANGE (k - 1) tacs;
+fun RANGE [] _ = all_tac
+  | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
 fun solve_goal rule tacs state =
   let
-    val rev_tacs = rev tacs;
-    val n = length rev_tacs - 1;
-
     val (_, (result, (facts, thm))) = find_goal 0 state;
-    val thms' = FIRSTGOAL (rtac rule THEN' (fn i => REV_RANGE (i + n) rev_tacs)) thm;
+    val thms' = FIRSTGOAL (rtac rule THEN' RANGE tacs) thm;
   in Seq.map (fn thm' => map_goal (K (result, (facts, thm'))) state) thms' end;
 
 
