@@ -48,6 +48,9 @@ to auto_tac, but is aimed to solve the given subgoal totally;
 
 * added option_map_eq_Some to simpset() and claset()
 
+* New theory HOL/Update of function updates:
+  f[a:=b] == %x. if x=a then b else f x
+
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
 * split_all_tac is now much faster and fails if there is nothing to
