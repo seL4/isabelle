@@ -99,10 +99,8 @@ val Atom_neq_Scons = sym RS Scons_neq_Atom;
 
 (** Atomic nodes **)
 
-goalw Univ.thy [Atom_def] "inj(Atom)";
-by (rtac injI 1);
-by (etac (singleton_inject RS Abs_Node_inject RS Pair_inject) 1);
-by (REPEAT (ares_tac [Node_K0_I] 1));
+goalw Univ.thy [Atom_def, inj_def] "inj(Atom)";
+by (fast_tac (prod_cs addSIs [Node_K0_I] addSDs [Abs_Node_inject]) 1);
 qed "inj_Atom";
 val Atom_inject = inj_Atom RS injD;
 
