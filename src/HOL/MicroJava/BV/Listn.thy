@@ -180,7 +180,6 @@ done
 lemma Cons_in_list_Suc [iff]:
   "(x#xs : list (Suc n) A) = (x:A & xs : list n A)";
 apply (simp add: in_list_Suc_iff)
-apply blast
 done 
 
 lemma list_not_empty:
@@ -332,7 +331,6 @@ apply clarify
 apply (simp add: in_list_Suc_iff)
 apply clarify
 apply simp
-apply blast
 done 
 
 
@@ -457,7 +455,6 @@ apply clarify
 apply (simp add: in_list_Suc_iff)
 apply clarify
 apply (simp add: plussub_def closed_err_lift2_conv)
-apply blast
 done 
 
 lemma closed_lift2_sup:
