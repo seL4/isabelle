@@ -571,6 +571,18 @@ Goal "ALL x. EX v w. ALL y z. P(x) & Q(y) --> (P(v) | R(w)) & (R(z) --> Q(v))";
 by (Blast_tac 1);
 result();
 
+(*Attributed to Lewis Carroll by S. G. Pulman.  The first or last assumption
+can be deleted.*)
+Goal "(ALL x. honest(x) & industrious(x) --> healthy(x)) & \
+\     ~ (EX x. grocer(x) & healthy(x)) & \
+\     (ALL x. industrious(x) & grocer(x) --> honest(x)) & \
+\     (ALL x. cyclist(x) --> industrious(x)) & \
+\     (ALL x. ~healthy(x) & cyclist(x) --> ~honest(x))  \
+\     --> (ALL x. grocer(x) --> ~cyclist(x))";
+by (Blast_tac 1);
+result();
+
+
 writeln"Reached end of file.";
 
 (*Thu Jul 23 1992: loaded in 467s using iffE [on SPARC2] *)

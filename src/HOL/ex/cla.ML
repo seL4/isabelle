@@ -477,6 +477,17 @@ goal Prod.thy
 by (Fast_tac 1);
 result();
 
+(*Attributed to Lewis Carroll by S. G. Pulman.  The first or last assumption
+can be deleted.*)
+Goal "(ALL x. honest(x) & industrious(x) --> healthy(x)) & \
+\     ~ (EX x. grocer(x) & healthy(x)) & \
+\     (ALL x. industrious(x) & grocer(x) --> honest(x)) & \
+\     (ALL x. cyclist(x) --> industrious(x)) & \
+\     (ALL x. ~healthy(x) & cyclist(x) --> ~honest(x))  \
+\     --> (ALL x. grocer(x) --> ~cyclist(x))";
+by (Blast_tac 1);
+result();
+
 goal Prod.thy
     "(ALL x y. R(x,y) | R(y,x)) &                \
 \    (ALL x y. S(x,y) & S(y,x) --> x=y) &        \
