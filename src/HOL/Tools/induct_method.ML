@@ -10,7 +10,6 @@ signature INDUCT_METHOD =
 sig
   val vars_of: term -> term list
   val concls_of: thm -> term list
-  val rewrite_cterm: thm list -> cterm -> cterm
   val simp_case_tac: bool -> simpset -> int -> tactic
   val setup: (theory -> theory) list
 end;
@@ -74,8 +73,6 @@ fun prep_inst align cert f (tm, ts) =
     |> mapfilter prep_var
   end;
 
-fun rewrite_cterm rews =
-  #2 o Thm.dest_comb o #prop o Thm.crep_thm o Simplifier.full_rewrite (HOL_basic_ss addsimps rews);
 
 
 (* simplifying cases rules *)
@@ -206,9 +203,9 @@ end;
 
 local
 
-val atomize_cterm = Thm.cterm_fun AutoBind.drop_judgment o rewrite_cterm inductive_atomize;
+val atomize_cterm = Thm.cterm_fun AutoBind.drop_judgment o hol_rewrite_cterm inductive_atomize;
 val atomize_tac = Tactic.rewrite_goal_tac inductive_atomize;
-val rulify_cterm = rewrite_cterm inductive_rulify2 o rewrite_cterm inductive_rulify1;
+val rulify_cterm = hol_rewrite_cterm inductive_rulify2 o hol_rewrite_cterm inductive_rulify1;
 
 val rulify_tac =
   Tactic.rewrite_goal_tac inductive_rulify1 THEN'
