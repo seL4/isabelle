@@ -1650,7 +1650,7 @@ val (op del_congs) = foldl del_cong;
 
 fun add_proc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
     (name, lhs as Cterm {sign_ref, t, ...}, proc, id)) =
-  (trace_term ("Adding simplification procedure " ^ name ^ " for:")
+  (trace_term ("Adding simplification procedure " ^ quote name ^ " for:")
       (Sign.deref sign_ref) t;
     mk_mss (rules, congs,
       Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
@@ -1832,11 +1832,11 @@ fun rewritec (prover,sign_reft) (mss as Mss{rules, procs, mk_rews, termless, pre
       fun proc_rews _ ([]:simproc list) = None
         | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
             if Pattern.matches tsigt (plhs, t) then
-             (trace_term ("Trying procedure " ^ name ^ " on:") signt eta_t;
+             (trace_term ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
               case proc signt prems eta_t of
                 None => (trace "FAILED"; proc_rews eta_t ps)
               | Some raw_thm =>
-                 (trace_thm ("Procedure " ^ name ^ " proved rewrite rule:") raw_thm;
+                 (trace_thm ("Procedure " ^ quote name ^ " proved rewrite rule:") raw_thm;
                    (case rews (mk_procrule raw_thm) of
                      None => (trace "IGNORED"; proc_rews eta_t ps)
                    | some => some)))
