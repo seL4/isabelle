@@ -35,3 +35,9 @@ fun init_thy_reader () =
     "ThmDB.thm_db := !thm_db;",
     "open ThmDB ReadThy;",
     "read_thy_reader_files ();"];
+
+
+(* FIXME tmp *)
+
+fun set_session s =
+  writeln ("This is the " ^ quote s ^ " session.");
