@@ -8,6 +8,7 @@
 ## global settings
 
 LOGICS="HOL ZF"
+FAKE_BUILD=""
 DISTBASE=~/tmp/isadist
 ROOT=/usr/share
 BIN=/usr/bin
@@ -71,15 +72,17 @@ tar -xpzf "$ARCHIVE_FULL"
 
 cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
 ( env BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
-./build -bi $LOGICS
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
-rm -f heaps/${COMPILER}/Pure heaps/${COMPILER}/FOL heaps/${COMPILER}/TLA
 
-# fake build
-#mkdir -p heaps/${COMPILER}
-#touch heaps/${COMPILER}/HOL
-#touch heaps/${COMPILER}/HOL-Real
-#touch heaps/${COMPILER}/ZF
+if [ -n "$FAKE_BUILD" ]; then
+  mkdir -p heaps/${COMPILER}
+  touch heaps/${COMPILER}/HOL
+  touch heaps/${COMPILER}/HOL-Real
+  touch heaps/${COMPILER}/ZF
+else
+  ./build -bi $LOGICS
+  rm -f heaps/${COMPILER}/Pure heaps/${COMPILER}/FOL heaps/${COMPILER}/TLA
+fi
 
 
 # rpm spec
