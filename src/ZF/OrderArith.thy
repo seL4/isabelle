@@ -35,7 +35,7 @@ constdefs
 
 subsection{*Addition of Relations -- Disjoint Sum*}
 
-(** Rewrite rules.  Can be used to obtain introduction rules **)
+subsubsection{*Rewrite rules.  Can be used to obtain introduction rules*}
 
 lemma radd_Inl_Inr_iff [iff]: 
     "<Inl(a), Inr(b)> : radd(A,r,B,s)  <->  a:A & b:B"
@@ -53,7 +53,7 @@ lemma radd_Inr_Inl_iff [iff]:
     "<Inr(b), Inl(a)> : radd(A,r,B,s) <->  False"
 by (unfold radd_def, blast)
 
-(** Elimination Rule **)
+subsubsection{*Elimination Rule*}
 
 lemma raddE:
     "[| <p',p> : radd(A,r,B,s);                  
@@ -63,7 +63,7 @@ lemma raddE:
      |] ==> Q"
 by (unfold radd_def, blast) 
 
-(** Type checking **)
+subsubsection{*Type checking*}
 
 lemma radd_type: "radd(A,r,B,s) <= (A+B) * (A+B)"
 apply (unfold radd_def)
@@ -72,25 +72,25 @@ done
 
 lemmas field_radd = radd_type [THEN field_rel_subset]
 
-(** Linearity **)
+subsubsection{*Linearity*}
 
 lemma linear_radd: 
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))"
 by (unfold linear_def, blast) 
 
 
-(** Well-foundedness **)
+subsubsection{*Well-foundedness*}
 
 lemma wf_on_radd: "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))"
 apply (rule wf_onI2)
 apply (subgoal_tac "ALL x:A. Inl (x) : Ba")
-(*Proving the lemma, which is needed twice!*)
+ --{*Proving the lemma, which is needed twice!*}
  prefer 2
  apply (erule_tac V = "y : A + B" in thin_rl)
  apply (rule_tac ballI)
  apply (erule_tac r = "r" and a = "x" in wf_on_induct, assumption)
  apply blast 
-(*Returning to main part of proof*)
+txt{*Returning to main part of proof*}
 apply safe
 apply blast
 apply (erule_tac r = "s" and a = "ya" in wf_on_induct, assumption, blast) 
@@ -109,7 +109,7 @@ apply (simp add: well_ord_def wf_on_radd)
 apply (simp add: well_ord_def tot_ord_def linear_radd)
 done
 
-(** An ord_iso congruence law **)
+subsubsection{*An @{term ord_iso} congruence law*}
 
 lemma sum_bij:
      "[| f: bij(A,C);  g: bij(B,D) |]
@@ -138,7 +138,7 @@ apply (rule_tac d = "%z. if z:A then Inl (z) else Inr (z) " in lam_bijective)
 apply auto
 done
 
-(** Associativity **)
+subsubsection{*Associativity*}
 
 lemma sum_assoc_bij:
      "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z))  
@@ -157,7 +157,7 @@ by (rule sum_assoc_bij [THEN ord_isoI], auto)
 
 subsection{*Multiplication of Relations -- Lexicographic Product*}
 
-(** Rewrite rule.  Can be used to obtain introduction rules **)
+subsubsection{*Rewrite rule.  Can be used to obtain introduction rules*}
 
 lemma  rmult_iff [iff]: 
     "<<a',b'>, <a,b>> : rmult(A,r,B,s) <->        
@@ -173,20 +173,20 @@ lemma rmultE:
      |] ==> Q"
 by blast 
 
-(** Type checking **)
+subsubsection{*Type checking*}
 
 lemma rmult_type: "rmult(A,r,B,s) <= (A*B) * (A*B)"
 by (unfold rmult_def, rule Collect_subset)
 
 lemmas field_rmult = rmult_type [THEN field_rel_subset]
 
-(** Linearity **)
+subsubsection{*Linearity*}
 
 lemma linear_rmult:
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))"
 by (simp add: linear_def, blast) 
 
-(** Well-foundedness **)
+subsubsection{*Well-foundedness*}
 
 lemma wf_on_rmult: "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))"
 apply (rule wf_onI2)
@@ -214,7 +214,7 @@ apply (simp add: well_ord_def tot_ord_def linear_rmult)
 done
 
 
-(** An ord_iso congruence law **)
+subsubsection{*An @{term ord_iso} congruence law*}
 
 lemma prod_bij:
      "[| f: bij(A,C);  g: bij(B,D) |] 
@@ -274,7 +274,7 @@ apply (simp (no_asm_simp) add: pred_iff well_ord_is_wf [THEN wf_on_not_refl])
 apply (auto elim!: well_ord_is_wf [THEN wf_on_asym] predE)
 done
 
-(** Distributive law **)
+subsubsection{*Distributive law*}
 
 lemma sum_prod_distrib_bij:
      "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))  
@@ -288,7 +288,7 @@ lemma sum_prod_distrib_ord_iso:
             (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))"
 by (rule sum_prod_distrib_bij [THEN ord_isoI], auto)
 
-(** Associativity **)
+subsubsection{*Associativity*}
 
 lemma prod_assoc_bij:
      "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))"
@@ -302,12 +302,12 @@ by (rule prod_assoc_bij [THEN ord_isoI], auto)
 
 subsection{*Inverse Image of a Relation*}
 
-(** Rewrite rule **)
+subsubsection{*Rewrite rule*}
 
 lemma rvimage_iff: "<a,b> : rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A"
 by (unfold rvimage_def, blast)
 
-(** Type checking **)
+subsubsection{*Type checking*}
 
 lemma rvimage_type: "rvimage(A,f,r) <= A*A"
 apply (unfold rvimage_def, rule Collect_subset)
@@ -319,7 +319,7 @@ lemma rvimage_converse: "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))"
 by (unfold rvimage_def, blast)
 
 
-(** Partial Ordering Properties **)
+subsubsection{*Partial Ordering Properties*}
 
 lemma irrefl_rvimage: 
     "[| f: inj(A,B);  irrefl(B,r) |] ==> irrefl(A, rvimage(A,f,r))"
@@ -339,7 +339,7 @@ apply (unfold part_ord_def)
 apply (blast intro!: irrefl_rvimage trans_on_rvimage)
 done
 
-(** Linearity **)
+subsubsection{*Linearity*}
 
 lemma linear_rvimage:
     "[| f: inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))"
@@ -354,7 +354,7 @@ apply (blast intro!: part_ord_rvimage linear_rvimage)
 done
 
 
-(** Well-foundedness **)
+subsubsection{*Well-foundedness*}
 
 (*Not sure if wf_on_rvimage could be proved from this!*)
 lemma wf_rvimage [intro!]: "wf(r) ==> wf(rvimage(A,f,r))"
@@ -397,7 +397,9 @@ lemma ord_iso_rvimage_eq:
 by (unfold ord_iso_def rvimage_def, blast)
 
 
-(** The "measure" relation is useful with wfrec **)
+subsubsection{*Other Results*}
+
+subsubsection{*The "measure" relation is useful with wfrec*}
 
 lemma measure_eq_rvimage_Memrel:
      "measure(A,f) = rvimage(A,Lambda(A,f),Memrel(Collect(RepFun(A,f),Ord)))"
@@ -411,6 +413,28 @@ by (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
 
 lemma measure_iff [iff]: "<x,y> : measure(A,f) <-> x:A & y:A & f(x)<f(y)"
 by (simp (no_asm) add: measure_def)
+
+subsubsection{*Well-foundedness of Unions*}
+
+lemma wf_on_Union:
+ assumes wfA: "wf[A](r)"
+     and wfB: "!!a. a\<in>A ==> wf[B(a)](s)"
+     and ok: "!!a u v. [|<u,v> \<in> s; v \<in> B(a); a \<in> A|] 
+                       ==> (\<exists>a'\<in>A. <a',a> \<in> r & u \<in> B(a')) | u \<in> B(a)"
+ shows "wf[\<Union>a\<in>A. B(a)](s)"
+apply (rule wf_onI2)
+apply (erule UN_E)
+apply (subgoal_tac "\<forall>z \<in> B(a). z \<in> Ba", blast)
+apply (rule_tac a = a in wf_on_induct [OF wfA], assumption)
+apply (rule ballI)
+apply (rule_tac a = z in wf_on_induct [OF wfB], assumption, assumption)
+apply (rename_tac u) 
+apply (drule_tac x=u in bspec, blast) 
+apply (erule mp, clarify)
+apply (frule ok, assumption+); 
+apply blast 
+done
+
 
 ML {*
 val measure_def = thm "measure_def";
