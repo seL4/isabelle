@@ -291,7 +291,10 @@ fun no_repeat_vars thy pat =
 local fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
       fun single [Free(a,_)] = 
 	      mk_functional_err (a ^ " has not been declared as a constant")
-        | single [f] = f
+        | single [_$_] = 
+	      mk_functional_err "recdef does not allow currying"
+        | single [Const arg] = arg
+	| single [_] = mk_functional_err "recdef: bad function name"
         | single fs  = mk_functional_err (Int.toString (length fs) ^ 
                                           " distinct function names!")
 in
@@ -301,7 +304,7 @@ fun mk_functional thy clauses =
 		       {func = "mk_functional", 
 			mesg = "recursion equations must use the = relation"}
      val (funcs,pats) = ListPair.unzip (map (fn (t$u) =>(t,u)) L)
-     val fcon as Const (fname, ftype) = single (gen_distinct (op aconv) funcs)
+     val (fname, ftype) = single (gen_distinct (op aconv) funcs)
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([],[x])) pats,
                               map GIVEN (enumerate R))
@@ -324,8 +327,8 @@ fun mk_functional thy clauses =
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
  in {functional = Abs(Sign.base_name fname, ftype,
-		      abstract_over (fcon, 
-				     absfree(aname,atype, case_tm))),
+		      abstract_over (Const(fname,ftype), 
+				     absfree(aname, atype, case_tm))),
      pats = patts2}
 end end;
 
