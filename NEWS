@@ -251,6 +251,9 @@ lift.induct_tac, always use UU instead of Undef;
 
 *** ZF ***
 
+* Theory Main no longer includes AC; for the Axiom of Choice, base your 
+theory on Main_ZFC;
+
 * ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
 typeless version of the formalism;
 
