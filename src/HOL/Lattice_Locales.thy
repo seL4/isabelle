@@ -6,7 +6,7 @@
 header {* Lattices via Locales *}
 
 theory Lattice_Locales
-imports Set
+imports HOL
 begin
 
 subsection{* Lattices *}
@@ -64,6 +64,16 @@ by(blast intro: antisym inf_le1 inf_least refl)
 lemma (in upper_semilattice) sup_absorb: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
 by(blast intro: antisym sup_ge2 sup_greatest refl)
 
+
+lemma (in lower_semilattice) below_inf_conv[simp]:
+ "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
+by(blast intro: antisym inf_le1 inf_le2 inf_least refl trans)
+
+lemma (in upper_semilattice) above_sup_conv[simp]:
+ "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
+by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl trans)
+
+
 text{* Towards distributivity: if you have one of them, you have them all. *}
 
 lemma (in lattice) distrib_imp1:
@@ -97,7 +107,7 @@ proof -
   have "x \<sqinter> (y \<sqinter> z) = (y \<sqinter> z) \<sqinter> x" by (simp only: inf_commute)
   also have "... = y \<sqinter> (z \<sqinter> x)" by (simp only: inf_assoc)
   also have "z \<sqinter> x = x \<sqinter> z" by (simp only: inf_commute)
-  finally show ?thesis .
+  finally(back_subst) show ?thesis .
 qed
 
 lemma (in upper_semilattice) sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
@@ -105,7 +115,7 @@ proof -
   have "x \<squnion> (y \<squnion> z) = (y \<squnion> z) \<squnion> x" by (simp only: sup_commute)
   also have "... = y \<squnion> (z \<squnion> x)" by (simp only: sup_assoc)
   also have "z \<squnion> x = x \<squnion> z" by (simp only: sup_commute)
-  finally show ?thesis .
+  finally(back_subst) show ?thesis .
 qed
 
 lemma (in lower_semilattice) inf_left_idem: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"

@@ -6,7 +6,7 @@
 header {* Set theory for higher-order logic *}
 
 theory Set
-imports HOL
+imports Orderings
 begin
 
 text {* A set in HOL is simply a predicate. *}
@@ -2056,12 +2056,6 @@ by (simp add: contents_def)
 
 
 subsection {* Transitivity rules for calculational reasoning *}
-
-lemma forw_subst: "a = b ==> P b ==> P a"
-  by (rule ssubst)
-
-lemma back_subst: "P a ==> a = b ==> P b"
-  by (rule subst)
 
 lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
   by (rule subsetD)
