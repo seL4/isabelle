@@ -18,6 +18,7 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
+  echo "    -P PATH      set path for remote theory browsing information"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -36,11 +37,12 @@ BUILD=""
 INFO=false
 RESET=false
 SESSION=""
+RPATH=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "bi:rs:" OPT
+  while getopts "bi:rs:P:" OPT
   do
     case "$OPT" in
       b)
@@ -54,6 +56,9 @@ function getoptions()
         ;;
       s)
         SESSION="$OPTARG"
+        ;;
+      P)
+        RPATH="$OPTARG"
         ;;
       \?)
         usage
@@ -86,8 +91,6 @@ NAME="$1"; shift
 if [ "$INFO" = "true" -a ! -f $ISABELLE_BROWSER_INFO/index.html ]; then
 
   mkdir -p $ISABELLE_BROWSER_INFO/gif
-  cp $ISABELLE_HOME/lib/images/blue_arrow.gif $ISABELLE_BROWSER_INFO/gif
-  cp $ISABELLE_HOME/lib/images/red_arrow.gif $ISABELLE_BROWSER_INFO/gif
   cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/gif/isabelle.gif
   cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
 
@@ -119,7 +122,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\";" \
+    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\" \"$RPATH\";" \
     -q -w $LOGIC $NAME > $LOG 2>&1
   RC=$?
 else
@@ -129,7 +132,7 @@ else
 
   cd "$NAME"
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\"; quit();" \
+    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\" \"$RPATH\"; quit();" \
     -r -q $LOGIC > $LOG 2>&1
   RC=$?
   cd ..
