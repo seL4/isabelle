@@ -265,7 +265,8 @@ fun cnf_axiom thm =
 	rm_redundant_cls thm''
     end;
 
-fun meta_cnf_axiom thm = map (zero_var_indexes o make_meta_clause) (cnf_axiom thm);
+fun meta_cnf_axiom thm = 
+    map (zero_var_indexes o Meson.make_meta_clause) (cnf_axiom thm);
 
 
 (* changed: with one extra case added *)

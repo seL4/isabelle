@@ -107,7 +107,7 @@ fun paramod_rule ((cl1, lit1), (cl2, lit2)) =
          val eqsubst = eq_lit_th RSN (2,rev_subst)
          val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
          val newth' = Seq.hd (flexflex_rule newth)
-    in negated_asm_of_head newth' end;
+    in Meson.negated_asm_of_head newth' end;
 
 
 fun paramod_syntax ((i, B), j) (x, A) = (x, paramod_rule ((A,i), (B,j)));
@@ -128,7 +128,7 @@ fun demod_rule ((cl1, lit1), (cl2 , lit2)) =
          val newth = Seq.hd(biresolution false [(false, fmod_th)] 1 eqsubst)
          val offset = #maxidx(rep_thm newth) + 1
 	                  (*ensures "renaming apart" even when Vars are frozen*)
-    in negated_asm_of_head (thaw offset newth) end;
+    in Meson.negated_asm_of_head (thaw offset newth) end;
 
 fun demod_syntax ((i, B), j) (x, A) = (x, demod_rule ((A,i), (B,j)));
 
