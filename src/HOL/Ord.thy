@@ -8,6 +8,10 @@ Type classes for order signatures and orders.
 
 Ord = HOL +
 
+(*FIXME move to HOL.thy*)
+setup Classical.setup
+setup attrib_setup
+
 axclass
   ord < term
 
