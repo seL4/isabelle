@@ -462,7 +462,12 @@ Goal "(m-n = 0) = (m <= n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_is_0_eq";
-Addsimps [diff_is_0_eq RS iffD2];
+
+Goal "(0 = m-n) = (m <= n)";
+by (stac (diff_is_0_eq RS sym) 1);
+by (rtac eq_sym_conv 1);
+qed "zero_is_diff_eq";
+Addsimps [diff_is_0_eq, zero_is_diff_eq];
 
 Goal "(0<n-m) = (m<n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -1011,9 +1016,9 @@ simpset_ref () := (simpset() addSolver Fast_Arith.cut_lin_arith_tac);
 (* Elimination of `-' on nat due to John Harrison *)
 Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
 by (case_tac "a <= b" 1);
-by (Auto_tac);
+by Auto_tac;
 by (eres_inst_tac [("x","b-a")] allE 1);
-by (Auto_tac);
+by (asm_simp_tac (simpset() addsimps [diff_is_0_eq RS iffD2]) 1);
 qed "nat_diff_split";
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
@@ -1095,15 +1100,11 @@ Goal "0 < n ==> (m-1 < n) = (m<=n)";
 by (arith_tac 1);
 qed "less_pred_eq";
 
-(*In ordinary notation: if 0<n and n<=m then m-n < m *)
-Goal "[| 0<n; ~ m<n |] ==> m - n < m";
+(*Replaces the previous diff_less and le_diff_less, which had the stronger
+  second premise n<=m*)
+Goal "[| 0<n; 0<m |] ==> m - n < m";
 by (arith_tac 1);
 qed "diff_less";
-
-Goal "[| 0<n; n<=m |] ==> m - n < m";
-by (arith_tac 1);
-qed "le_diff_less";
-
 
 
 (** (Anti)Monotonicity of subtraction -- by Stefan Merz **)

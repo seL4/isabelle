@@ -287,7 +287,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, le_Suc_eq,
 					   mod_geq]) 1);
 by (etac disjE 1);
  by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_diff_less, 
+by (asm_simp_tac (simpset() addsimps [Suc_diff_le, diff_less, 
 				      le_mod_geq]) 1);
 qed "mod_Suc";
 
