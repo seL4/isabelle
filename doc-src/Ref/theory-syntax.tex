@@ -127,7 +127,7 @@ axclass : 'axclass' classDecl (() | ( id string ) +)
 instance : 'instance' ( name '<' name | name '::' arity) witness
          ;
 
-witness : (() | ((string | longident) + ',')) (() | verbatim)
+witness : (() | '(' ((string | longident) + ',') ')') (() | verbatim)
         ;
 
 oracle : 'oracle' name
