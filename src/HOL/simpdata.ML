@@ -108,8 +108,8 @@ val simp_thms = map prover
 
 (*Add congruence rules for = (instead of ==) *)
 infix 4 addcongs delcongs;
-fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
-fun ss delcongs congs = ss deleqcongs (congs RL [eq_reflection]);
+fun ss addcongs congs = ss addeqcongs (map standard (congs RL [eq_reflection]));
+fun ss delcongs congs = ss deleqcongs (map standard (congs RL [eq_reflection]));
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
 fun Delcongs congs = (simpset := !simpset delcongs congs);
