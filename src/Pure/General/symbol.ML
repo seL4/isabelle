@@ -336,8 +336,8 @@ local
     ("\\<Phi>", Letter),
     ("\\<Psi>", Letter),
     ("\\<Omega>", Letter),
-    ("\\<^isub>", Quasi),
-    ("\\<^isup>", Quasi),
+    ("\\<^isub>", Letter),
+    ("\\<^isup>", Letter),
     ("\\<spacespace>", Blank)];
 in
   fun kind s =
@@ -365,12 +365,13 @@ fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Q
 
 fun scanner msg scan chs =
   let
-    fun err_msg cs = msg ^ ": " ^ beginning 10 cs;
-    val fin_scan = Scan.error (Scan.finite stopper (!! (fn (cs, _) => err_msg cs) scan));
+    fun message (cs, None) = msg ^ ": " ^ quote (beginning 10 cs)
+      | message (cs, Some msg') = msg ^ ", " ^ msg' ^ ": " ^ quote (beginning 10 cs);
+    val fin_scan = Scan.error (Scan.finite stopper (!! message scan));
   in
     (case fin_scan chs of
       (result, []) => result
-    | (_, rest) => error (err_msg rest))
+    | (_, rest) => error (message (rest, None)))
   end;
 
 
@@ -394,7 +395,7 @@ in
 val scan =
   scan_encoded_newline ||
   (($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
-    !! (fn (cs, _) => malformed_symbol (beginning 10 ("\\" :: "<" :: cs)))
+    !! (fn (cs, _) => malformed_symbol (quote (beginning 10 ("\\" :: "<" :: cs))))
       (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
   Scan.one not_eof;
 
