@@ -179,7 +179,7 @@ fun occs_in_prems tacf vars =
 
 local
 
-fun prep_var (Var (ixn, _), Some x) = Some (implode (tl (explode (Syntax.string_of_vname ixn))), x)
+fun prep_var (Var (ixn, _), Some x) = Some (ixn, x)
   | prep_var _ = None;
 
 fun prep_inst (concl, xs) =	(*exception LIST*)
@@ -205,11 +205,11 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
   in occs_in_prems (inst_tac insts rule) (map #2 insts) i state end;
 
 fun induct_tac s =
-  gen_induct_tac Tactic.res_inst_tac
+  gen_induct_tac Tactic.res_inst_tac'
     (map (Library.single o Some) (Syntax.read_idents s), None);
 
 fun induct_thm_tac th s =
-  gen_induct_tac Tactic.res_inst_tac
+  gen_induct_tac Tactic.res_inst_tac'
     ([map Some (Syntax.read_idents s)], Some th);
 
 end;
@@ -221,20 +221,19 @@ fun case_inst_tac inst_tac t rule i state =
   let
     val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
       (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
-    val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)));
-  in inst_tac [(exh_vname, t)] rule i state end;
+  in inst_tac [(ixn, t)] rule i state end;
 
 fun gen_case_tac inst_tac (t, Some rule) i state =
       case_inst_tac inst_tac t rule i state
   | gen_case_tac inst_tac (t, None) i state =
       let val tn = infer_tname state i t in
-        if tn = HOLogic.boolN then inst_tac [("P", t)] case_split_thm i state
+        if tn = HOLogic.boolN then inst_tac [(("P", 0), t)] case_split_thm i state
         else case_inst_tac inst_tac t
                (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn))
                i state
       end handle THM _ => Seq.empty;
 
-fun case_tac t = gen_case_tac Tactic.res_inst_tac (t, None);
+fun case_tac t = gen_case_tac Tactic.res_inst_tac' (t, None);
 
 
 
@@ -247,10 +246,7 @@ val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
 
 val varss = Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift Args.name_dummy)));
 
-fun mk_ixn (vars, s) = (fst (Term.dest_Var (Syntax.read_var ("?" ^ vars))), s)
-  handle _ => error (vars ^ " not a variable name");
-fun inst_tac ctxt sinsts =
-  Method.bires_inst_tac false ctxt (map mk_ixn sinsts);
+val inst_tac = Method.bires_inst_tac false;
 
 fun induct_meth ctxt (varss, opt_rule) =
   gen_induct_tac (inst_tac ctxt) (varss, opt_rule);
