@@ -143,7 +143,7 @@ lemma lift_IT [rulify, intro!]:
     apply (rule conjI)
      apply
       (rule impI,
-       rule IT.VarI,
+       rule IT.Var,
        erule lists.induct,
        simp (no_asm),
        rule lists.Nil,
@@ -290,7 +290,7 @@ lemma subst_Var_IT [rulify]: "r : IT ==> \<forall>i j. r[Var i/j] : IT"
     apply (simp (no_asm) add: subst_Var)
     apply
     ((rule conjI impI)+,
-      rule IT.VarI,
+      rule IT.Var,
       erule lists.induct,
       simp (no_asm),
       rule lists.Nil,
@@ -303,35 +303,35 @@ lemma subst_Var_IT [rulify]: "r : IT ==> \<forall>i j. r[Var i/j] : IT"
    txt {* @{term Lambda} *}
    apply (intro strip)
    apply simp
-   apply (rule IT.LambdaI)
+   apply (rule IT.Lambda)
    apply fast
   txt {* @{term Beta} *}
   apply (intro strip)
   apply (simp (no_asm_use) add: subst_subst [symmetric])
-  apply (rule IT.BetaI)
+  apply (rule IT.Beta)
    apply auto
   done
 
 lemma Var_IT: "Var n \<in> IT"
   apply (subgoal_tac "Var n $$ [] \<in> IT")
    apply simp
-  apply (rule IT.VarI)
+  apply (rule IT.Var)
   apply (rule lists.Nil)
   done
 
 lemma app_Var_IT: "t : IT ==> t $ Var i : IT"
   apply (erule IT.induct)
     apply (subst app_last)
-    apply (rule IT.VarI)
+    apply (rule IT.Var)
     apply simp
     apply (rule lists.Cons)
      apply (rule Var_IT)
     apply (rule lists.Nil)
-   apply (rule IT.BetaI [where ?ss = "[]", unfold foldl_Nil [THEN eq_reflection]])
+   apply (rule IT.Beta [where ?ss = "[]", unfold foldl_Nil [THEN eq_reflection]])
     apply (erule subst_Var_IT)
    apply (rule Var_IT)
   apply (subst app_last)
-  apply (rule IT.BetaI)
+  apply (rule IT.Beta)
    apply (subst app_last [symmetric])
    apply assumption
   apply assumption
@@ -378,7 +378,7 @@ lemma subst_type_IT [rulify]:
       apply (erule_tac x = "Var 0 $$
         map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) list)" in allE)
       apply (erule impE)
-       apply (rule IT.VarI)
+       apply (rule IT.Var)
        apply (rule lifts_IT)
        apply (drule lists_types)
        apply
@@ -425,7 +425,7 @@ lemma subst_type_IT [rulify]:
   txt {* @{term Beta} *}
   apply (intro strip)
   apply (simp (no_asm))
-  apply (rule IT.BetaI)
+  apply (rule IT.Beta)
    apply (simp (no_asm) del: subst_map add: subst_subst subst_map [symmetric])
    apply (drule subject_reduction)
     apply (rule apps_preserves_beta)
@@ -441,11 +441,11 @@ text {* main theorem: well-typed terms are strongly normalizing *}
 lemma type_implies_IT: "e |- t : T ==> t : IT"
   apply (erule typing.induct)
     apply (rule Var_IT)
-   apply (erule IT.LambdaI)
+   apply (erule IT.Lambda)
   apply (subgoal_tac "(Var 0 $ lift t 0)[s/0] : IT")
    apply simp
   apply (rule subst_type_IT)
-  apply (rule lists.Nil [THEN 2 lists.Cons [THEN IT.VarI], unfold foldl_Nil [THEN eq_reflection]
+  apply (rule lists.Nil [THEN 2 lists.Cons [THEN IT.Var], unfold foldl_Nil [THEN eq_reflection]
     foldl_Cons [THEN eq_reflection]])
       apply (erule lift_IT)
      apply (rule typing.App)

@@ -8,10 +8,10 @@
 
 default: HOL
 images: HOL HOL-Real TLA
-test: HOL-Isar_examples HOL-Induct HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
+test: HOL-Isar_examples HOL-Induct HOL-Lambda HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
   HOL-NumberTheory HOL-Hoare HOL-Lex HOL-Algebra \
   HOL-Auth HOL-UNITY HOL-Modelcheck \
-  HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
+  HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Real-ex \
   HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
@@ -304,7 +304,7 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
 HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 
 $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
-  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy Lambda/InductTermi.ML \
+  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy \
   Lambda/InductTermi.thy Lambda/Lambda.ML Lambda/Lambda.thy \
   Lambda/ListApplication.ML Lambda/ListApplication.thy Lambda/ListBeta.ML \
   Lambda/ListBeta.thy Lambda/ListOrder.ML Lambda/ListOrder.thy \
