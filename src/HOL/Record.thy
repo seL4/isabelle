@@ -20,8 +20,8 @@ syntax
   "_field"	    :: "[ident, 'a] => field"		("(2_ =/ _)")
   ""	            :: "field => fields"		("_")
   "_fields"	    :: "[field, fields] => fields"	("_,/ _")
-  "_record"	    :: "fields => 'a"			("({: _ :})")
-  "_record_scheme"  :: "[fields, 'a] => 'b"		("({: _,/ (2... =/ _) :})")
+  "_record"	    :: "fields => 'a"			("('(| _ |'))")
+  "_record_scheme"  :: "[fields, 'a] => 'b"		("('(| _,/ (2... =/ _) |'))")
 
 
 (* type class for record extensions *)
