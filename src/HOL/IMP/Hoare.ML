@@ -7,14 +7,23 @@ Soundness (and part of) relative completeness of Hoare rules
 wrt denotational semantics
 *)
 
+Goal "[| !s. P' s --> P s; |- {P}c{Q} |] ==> |- {P'}c{Q}";
+by (etac hoare.conseq 1);
+by  (ALLGOALS Fast_tac);
+qed "hoare_conseq1";
+
+Goal "[| |- {P}c{Q}; !s. Q s --> Q' s |] ==> |- {P}c{Q'}";
+by (rtac hoare.conseq 1);
+by    (atac 2);
+by   (ALLGOALS Fast_tac);
+qed "hoare_conseq2";
+
 Goalw [hoare_valid_def] "|- {P}c{Q} ==> |= {P}c{Q}";
 by (etac hoare.induct 1);
-    by (ALLGOALS Asm_simp_tac);
+     by (ALLGOALS Asm_simp_tac);
   by (Fast_tac 1);
  by (Fast_tac 1);
-by (rtac allI 1);
-by (rtac allI 1);
-by (rtac impI 1);
+by (EVERY' [rtac allI, rtac allI, rtac impI] 1);
 by (etac induct2 1);
  by (rtac Gamma_mono 1);
 by (rewtac Gamma_def);  
@@ -88,30 +97,20 @@ AddSIs [hoare.skip, hoare.ass, hoare.semi, hoare.If];
 
 Goal "!Q. |- {wp c Q} c {Q}";
 by (induct_tac "c" 1);
-by (ALLGOALS Simp_tac);
-by (REPEAT_FIRST Fast_tac);
-by (blast_tac (claset() addIs [hoare.conseq]) 1);
+    by (ALLGOALS Simp_tac);
+    by (REPEAT_FIRST Fast_tac);
+ by (blast_tac (claset() addIs [hoare_conseq1]) 1);
 by Safe_tac;
-by (rtac hoare.conseq 1);
-  by (etac thin_rl 1);
-  by (Fast_tac 1);
+by (rtac hoare_conseq2 1);
  by (rtac hoare.While 1);
- by (rtac hoare.conseq 1);
-   by (etac thin_rl 3);
-   by (rtac allI 3);
-   by (rtac impI 3);
-   by (assume_tac 3);
+ by (rtac hoare_conseq1 1);
   by (Fast_tac 2);
  by (safe_tac HOL_cs);
- by (rotate_tac ~1 1);
- by (Asm_full_simp_tac 1);
-by (rotate_tac ~1 1);
-by (Asm_full_simp_tac 1);
+ by (ALLGOALS (EVERY'[rotate_tac ~1, Asm_full_simp_tac]));
 qed_spec_mp "wp_is_pre";
 
 Goal "|= {P}c{Q} ==> |- {P}c{Q}";
-by (rtac (wp_is_pre RSN (2,hoare.conseq)) 1);
- by (Fast_tac 2);
+by (rtac (wp_is_pre RSN (2,hoare_conseq1)) 1);
 by (rewrite_goals_tac [hoare_valid_def,wp_def]);
 by (Fast_tac 1);
 qed "hoare_relative_complete";
