@@ -773,7 +773,7 @@ Each theorem's derivation is stored as the {\tt der} field of its internal
 record: 
 \begin{ttbox} 
 #der (rep_thm conjI);
-{\out Join (Theorem "HOL.conjI", [Join (MinProof,[])]) : deriv}
+{\out Join (Theorem ("HOL.conjI", []), [Join (MinProof,[])]) : deriv}
 \end{ttbox}
 This proof object identifies a labelled theorem, {\tt conjI} of theory
 \texttt{HOL}, whose underlying proof has not been recorded; all we
