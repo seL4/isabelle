@@ -109,8 +109,7 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
   handle _ => l;
 
 
-(*** instantiation of adm_subst theorem (a bit tricky)
-     NOTE: maybe unnecessary (if "cont_thm RS adm_subst" works properly) ***)
+(*** instantiation of adm_subst theorem (a bit tricky) ***)
 
 fun inst_adm_subst_thm state i params s T subt t paths =
   let val {sign, maxidx, ...} = rep_thm state;
@@ -126,8 +125,8 @@ fun inst_adm_subst_thm state i params s T subt t paths =
       val tt = cterm_of sign (mk_abs (params @ [(s, T)]) subt);
       val Pt = cterm_of sign (mk_abs (params @ [(s, fastype_of1 (T::parTs, subt))])
                      (make_term t [] paths 0));
-      val tye = Type.typ_match tsig ([], (tT, #T (rep_cterm tt)));
-      val tye' = Type.typ_match tsig (tye, (PT, #T (rep_cterm Pt)));
+      val tye = Type.typ_match tsig (Vartab.empty, (tT, #T (rep_cterm tt)));
+      val tye' = Vartab.dest (Type.typ_match tsig (tye, (PT, #T (rep_cterm Pt))));
       val ctye = map (fn (x, y) => (x, ctyp_of sign y)) tye';
       val tv = cterm_of sign (Var (("t", j), typ_subst_TVars tye' tT));
       val Pv = cterm_of sign (Var (("P", j), typ_subst_TVars tye' PT));
@@ -140,13 +139,7 @@ fun inst_adm_subst_thm state i params s T subt t paths =
 fun nth_subgoal i thm = nth_elem (i-1, prems_of thm);
 
 
-(*** the admissibility tactic
-     NOTE:
-       (compose_tac (false, rule, 2) i) THEN
-       (rtac cont_thm i) THEN ...
-     could probably be replaced by
-       (rtac (cont_thm RS adm_subst) 1) THEN ...
-***)
+(*** the admissibility tactic ***)
 
 fun try_dest_adm (Const _ $ (Const (name, _) $ Abs abs)) =
       if name = adm_name then Some abs else None
