@@ -50,8 +50,8 @@ qed "fib_gr_0";
 (*Concrete Mathematics, page 278: Cassini's identity.
   It is much easier to prove using integers!*)
 Goal "int (fib (Suc (Suc n)) * fib n) = \
-\     (if n mod 2 = 0 then int (fib(Suc n) * fib(Suc n)) - #1 \
-\                     else int (fib(Suc n) * fib(Suc n)) + #1)";
+\     (if n mod #2 = 0 then int (fib(Suc n) * fib(Suc n)) - #1 \
+\                      else int (fib(Suc n) * fib(Suc n)) + #1)";
 by (induct_thm_tac fib.induct "n" 1);
 by (simp_tac (simpset() addsimps [fib_Suc_Suc, mod_Suc]) 2);
 by (simp_tac (simpset() addsimps [fib_Suc_Suc]) 1);
