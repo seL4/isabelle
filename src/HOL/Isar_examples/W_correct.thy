@@ -119,7 +119,7 @@ proof -
           and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"
           and W1_ok: "W e1 a n = Ok (s1, t1, n1)"
           and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)"
-	by (auto split: bind_splits)
+	by (auto split: bind_splits simp: that)
       show "$ s a |- App e1 e2 :: t"
       proof (rule has_type.App)
         from s have s': "$ u ($ s2 ($ s1 a)) = $s a"

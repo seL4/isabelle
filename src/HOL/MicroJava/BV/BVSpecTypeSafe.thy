@@ -307,7 +307,7 @@ proof -
     with oX_Ref
     obtain obj where
       loc: "hp ref = Some obj" "obj_ty obj = RefT T'"
-      by clarsimp
+      by auto
 
     then 
     obtain D where
@@ -330,7 +330,7 @@ proof -
     with mC' wfprog
     obtain D0 rT0 maxl0 ins0 where
       mX: "method (G, X') (mn, pTs) = Some (D0, rT0, maxl0, ins0)" "G\<turnstile>rT0\<preceq>rT"
-      by (auto dest: subtype_widen_methd)
+      by (auto dest: subtype_widen_methd intro: that)
 
     from X' D
     have "G \<turnstile> D \<preceq>C X'" 
@@ -340,7 +340,7 @@ proof -
     obtain D'' rT' mxl' ins' where
       mD: "method (G, D) (mn, pTs) = Some (D'', rT', mxl', ins')" 
           "G \<turnstile> rT' \<preceq> rT0"
-      by (auto dest: subtype_widen_methd)
+      by (auto dest: subtype_widen_methd intro: that)
 
     from mX mD
     have rT': "G \<turnstile> rT' \<preceq> rT"

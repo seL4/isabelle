@@ -223,7 +223,7 @@ proof -
       also obtain i j where "?e a b = {(i, j)}"
       proof -
 	have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
-	thus ?thesis by blast
+	thus ?thesis by (blast intro: that)
       qed
       also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
       also have "card ... = Suc (card (?e t b))"

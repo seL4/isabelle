@@ -138,7 +138,7 @@ proof -
         \<and> graph F f \<subseteq> graph H h
         \<and> (\<forall>x \<in> H. h x <= p x)" 
         by (simp! add: norm_pres_extension_D)
-      thus ?thesis by (elim exE conjE) rule
+      with that show ?thesis by blast
     qed
     have h: "is_vectorspace H" ..
     have "H = E"
@@ -157,7 +157,7 @@ proof -
             have "H \<subseteq> E" ..
             thus "H \<subset> E" ..
           qed
-          thus ?thesis by blast
+          with that show ?thesis by blast
         qed
         have x': "x' \<noteq> 0"
         proof (rule classical)
@@ -194,7 +194,7 @@ proof -
             thus "- p (u + x') - h u <= p (v + x') - h v" 
               by (rule real_diff_ineq_swap)
           qed
-          thus ?thesis by rule rule
+          thus ?thesis ..
         qed
 
         def h' == "\<lambda>x. let (y,a) = SOME (y,a). x = y + a \<cdot> x' \<and> y \<in> H
