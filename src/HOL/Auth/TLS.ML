@@ -13,7 +13,7 @@ Protocol goals:
 * A upon receiving ServerFinished knows that B is present
 
 * Each party who has received a FINISHED message can trust that the other
-  party agrees on all message components, including XA and XB (thus foiling
+  party agrees on all message components, including PA and PB (thus foiling
   rollback attacks).
 *)
 
@@ -102,7 +102,7 @@ result();
 (*And one for ServerAccepts.  Either FINISHED message may come first.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX SID NA XA NB XB M. EX evs: tls.    \
+\           A ~= B |] ==> EX SID NA PA NB PB M. EX evs: tls.    \
 \  Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
@@ -115,8 +115,7 @@ result();
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
 \           A ~= B |] ==> EX NB PMS. EX evs: tls.   \
-\  Says A B (Crypt (priK A)                 \
-\            (Hash{|Nonce NB, certificate B (pubK B), Nonce PMS|})) : set evs";
+\  Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
 	  RS tls.CertVerify) 2);
@@ -130,11 +129,11 @@ goal thy
 \           Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
 \           Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
 \           ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX NA XA NB XB. EX evs: tls.    \
+\           A ~= B |] ==> EX NA PA NB PB. EX evs: tls.    \
 \  Says A B (Crypt (clientK(NA,NB,M))                           \
 \            (Hash{|Nonce M, Number SID,             \
-\                   Nonce NA, Number XA, Agent A,      \
-\                   Nonce NB, Number XB, Agent B|})) : set evs";
+\                   Nonce NA, Number PA, Agent A,      \
+\                   Nonce NB, Number PB, Agent B|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (etac (tls.ClientHello RS tls.ServerResume RS tls.ClientResume) 2);
 by possibility_tac;
@@ -301,10 +300,9 @@ qed "Hash_Nonce_CV";
   message is Fake.  We don't need guarantees for the Spy anyway.  We must
   assume A~:bad; otherwise, the Spy can forge A's signature.*)
 goal thy
- "!!evs. [| X = Crypt (priK A)                                        \
-\                 (Hash{|Nonce NB, certificate B KB, Nonce PMS|});      \
+ "!!evs. [| X = Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|});      \
 \           evs : tls;  A ~: bad;  B ~= Spy |]                       \
-\    ==> Says B A {|Nonce NB, Number SID, Number XB, certificate B KB|}  \
+\    ==> Says B A {|Nonce NB, Number SID, Number PB, certificate B KB|}  \
 \          : set evs --> \
 \        X : parts (spies evs) --> Says A B X : set evs";
 by (hyp_subst_tac 1);
@@ -318,7 +316,7 @@ qed_spec_mp "TrustCertVerify";
 
 (*If CertVerify is present then A has chosen PMS.*)
 goal thy
- "!!evs. [| Crypt (priK A) (Hash{|Nonce NB, certificate B KB, Nonce PMS|})  \
+ "!!evs. [| Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|})  \
 \             : parts (spies evs);                                \
 \           evs : tls;  A ~: bad |]                                      \
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs";
@@ -692,8 +690,8 @@ qed_spec_mp "serverK_Oops_ALL";
 
 
 (*** Protocol goals: if A receives ServerFinished, then B is present 
-     and has used the quoted values XA, XB, etc.  Note that it is up to A
-     to compare XA with what she originally sent.
+     and has used the quoted values PA, PB, etc.  Note that it is up to A
+     to compare PA with what she originally sent.
 ***)
 
 (*The mention of her name (A) in X assures A that B knows who she is.*)
@@ -701,8 +699,8 @@ goal thy
  "!!evs. [| ALL A. Says A Spy (Key (serverK(Na,Nb,M))) ~: set evs; \
 \           X = Crypt (serverK(Na,Nb,M))                  \
 \                 (Hash{|Nonce M, Number SID,             \
-\                        Nonce NA, Number XA, Agent A,    \
-\                        Nonce NB, Number XB, Agent B|}); \
+\                        Nonce NA, Number PA, Agent A,    \
+\                        Nonce NB, Number PB, Agent B|}); \
 \           M = PRF(PMS,NA,NB);                           \
 \           evs : tls;  A ~: bad;  B ~: bad |]          \
 \        ==> Notes A {|Agent B, Nonce PMS|} : set evs --> \
@@ -727,8 +725,8 @@ val lemma = normalize_thm [RSspec, RSmp] (result());
 goal thy
  "!!evs. [| X = Crypt (serverK(Na,Nb,M))                  \
 \                 (Hash{|Nonce M, Number SID,             \
-\                        Nonce NA, Number XA, Agent A,    \
-\                        Nonce NB, Number XB, Agent B|}); \
+\                        Nonce NA, Number PA, Agent A,    \
+\                        Nonce NB, Number PB, Agent B|}); \
 \           M = PRF(PMS,NA,NB);                           \
 \           X : parts (spies evs);                        \
 \           Notes A {|Agent B, Nonce PMS|} : set evs;     \
@@ -794,7 +792,7 @@ qed_spec_mp "TrustServerMsg";
 (*** Protocol goal: if B receives any message encrypted with clientK
      then A has sent it, ASSUMING that A chose PMS.  Authentication is
      assumed here; B cannot verify it.  But if the message is
-     ClientFinished, then B can then check the quoted values XA, XB, etc.
+     ClientFinished, then B can then check the quoted values PA, PB, etc.
 ***)
 
 goal thy
@@ -834,15 +832,14 @@ qed_spec_mp "TrustClientMsg";
 
 (*** Protocol goal: if B receives ClientFinished, and if B is able to
      check a CertVerify from A, then A has used the quoted
-     values XA, XB, etc.  Even this one requires A to be uncompromised.
+     values PA, PB, etc.  Even this one requires A to be uncompromised.
  ***)
 goal thy
  "!!evs. [| Says A Spy (Key(clientK(Na,Nb,PRF(PMS,NA,NB)))) ~: set evs;\
 \           Says A' B (Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs; \
-\           Says B  A {|Nonce NB, Number SID, Number XB, certificate B KB|}  \
+\           Says B  A {|Nonce NB, Number SID, Number PB, certificate B KB|}  \
 \             : set evs;                                                  \
-\           Says A'' B (Crypt (priK A)                                    \
-\                       (Hash{|Nonce NB, certificate B KB, Nonce PMS|}))  \
+\           Says A'' B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|}))\
 \             : set evs;                                                  \
 \        evs : tls;  A ~: bad;  B ~: bad |]                             \
 \     ==> Says A B (Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs";

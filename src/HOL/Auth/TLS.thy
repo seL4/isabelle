@@ -93,25 +93,25 @@ inductive tls
 
     ClientHello
 	 (*(7.4.1.2)
-	   XA represents CLIENT_VERSION, CIPHER_SUITES and COMPRESSION_METHODS.
+	   PA represents CLIENT_VERSION, CIPHER_SUITES and COMPRESSION_METHODS.
 	   It is uninterpreted but will be confirmed in the FINISHED messages.
 	   NA is CLIENT RANDOM, while SID is SESSION_ID.
            UNIX TIME is omitted because the protocol doesn't use it.
            May assume NA ~: range PRF because CLIENT RANDOM is 28 bytes
 	   while MASTER SECRET is 48 byptes*)
          "[| evsCH: tls;  A ~= B;  Nonce NA ~: used evsCH;  NA ~: range PRF |]
-          ==> Says A B {|Agent A, Nonce NA, Number SID, Number XA|}
+          ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
 	        # evsCH  :  tls"
 
     ServerHello
          (*7.4.1.3 of the TLS Internet-Draft
-	   XB represents CLIENT_VERSION, CIPHER_SUITE and COMPRESSION_METHOD.
+	   PB represents CLIENT_VERSION, CIPHER_SUITE and COMPRESSION_METHOD.
            SERVER CERTIFICATE (7.4.2) is always present.
            CERTIFICATE_REQUEST (7.4.4) is implied.*)
          "[| evsSH: tls;  A ~= B;  Nonce NB ~: used evsSH;  NB ~: range PRF;
-             Says A' B {|Agent A, Nonce NA, Number SID, Number XA|}
+             Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSH |]
-          ==> Says B A {|Nonce NB, Number SID, Number XB,
+          ==> Says B A {|Nonce NB, Number SID, Number PB,
 			 certificate B (pubK B)|}
                 # evsSH  :  tls"
 
@@ -125,7 +125,7 @@ inductive tls
            The Note event records in the trace that she knows PMS
                (see REMARK at top). *)
          "[| evsCX: tls;  A ~= B;  Nonce PMS ~: used evsCX;  PMS ~: range PRF;
-             Says B' A {|Nonce NB, Number SID, Number XB, certificate B KB|}
+             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
 	       : set evsCX |]
           ==> Says A B {|certificate A (pubK A), Crypt KB (Nonce PMS)|}
 	      # Notes A {|Agent B, Nonce PMS|}
@@ -138,14 +138,13 @@ inductive tls
           Checking the signature, which is the only use of A's certificate,
           assures B of A's presence*)
          "[| evsCV: tls;  A ~= B;  
-             Says B' A {|Nonce NB, Number SID, Number XB, certificate B KB|}
+             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
 	       : set evsCV;
 	     Notes A {|Agent B, Nonce PMS|} : set evsCV |]
-          ==> Says A B (Crypt (priK A)
-			(Hash{|Nonce NB, certificate B KB, Nonce PMS|}))
+          ==> Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|}))
               # evsCV  :  tls"
 
-	(*Finally come the FINISHED messages (7.4.8), confirming XA and XB
+	(*Finally come the FINISHED messages (7.4.8), confirming PA and PB
           among other things.  The master-secret is PRF(PMS,NA,NB).
           Either party may sent its message first.*)
 
@@ -157,25 +156,25 @@ inductive tls
           could simply put A~=Spy into the rule, but one should not
           expect the spy to be well-behaved.*)
          "[| evsCF: tls;  
-	     Says A  B {|Agent A, Nonce NA, Number SID, Number XA|}
+	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsCF;
-             Says B' A {|Nonce NB, Number SID, Number XB, certificate B KB|}
+             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
 	       : set evsCF;
              Notes A {|Agent B, Nonce PMS|} : set evsCF;
 	     M = PRF(PMS,NA,NB) |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
-			       Nonce NA, Number XA, Agent A, 
-			       Nonce NB, Number XB, Agent B|}))
+			       Nonce NA, Number PA, Agent A, 
+			       Nonce NB, Number PB, Agent B|}))
               # evsCF  :  tls"
 
     ServerFinished
 	(*Keeping A' and A'' distinct means B cannot even check that the
           two messages originate from the same source. *)
          "[| evsSF: tls;
-	     Says A' B  {|Agent A, Nonce NA, Number SID, Number XA|}
+	     Says A' B  {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSF;
-	     Says B  A  {|Nonce NB, Number SID, Number XB,
+	     Says B  A  {|Nonce NB, Number SID, Number PB,
 		 	  certificate B (pubK B)|}
 	       : set evsSF;
 	     Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce PMS)|}
@@ -183,8 +182,8 @@ inductive tls
 	     M = PRF(PMS,NA,NB) |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
-			       Nonce NA, Number XA, Agent A, 
-			       Nonce NB, Number XB, Agent B|}))
+			       Nonce NA, Number PA, Agent A, 
+			       Nonce NB, Number PB, Agent B|}))
               # evsSF  :  tls"
 
     ClientAccepts
@@ -196,8 +195,8 @@ inductive tls
 	     Notes A {|Agent B, Nonce PMS|} : set evsCA;
 	     M = PRF(PMS,NA,NB);  
 	     X = Hash{|Nonce M, Number SID,
-	               Nonce NA, Number XA, Agent A, 
-		       Nonce NB, Number XB, Agent B|};
+	               Nonce NA, Number PA, Agent A, 
+		       Nonce NB, Number PB, Agent B|};
              Says A  B (Crypt (clientK(NA,NB,M)) X) : set evsCA;
              Says B' A (Crypt (serverK(NA,NB,M)) X) : set evsCA |]
           ==> 
@@ -213,8 +212,8 @@ inductive tls
 	       : set evsSA;
 	     M = PRF(PMS,NA,NB);  
 	     X = Hash{|Nonce M, Number SID,
-	               Nonce NA, Number XA, Agent A, 
-		       Nonce NB, Number XB, Agent B|};
+	               Nonce NA, Number PA, Agent A, 
+		       Nonce NB, Number PB, Agent B|};
              Says B  A (Crypt (serverK(NA,NB,M)) X) : set evsSA;
              Says A' B (Crypt (clientK(NA,NB,M)) X) : set evsSA |]
           ==> 
@@ -226,26 +225,26 @@ inductive tls
            previously stored MASTER SECRET*)
          "[| evsSR: tls;  A ~= B;  Nonce NB ~: used evsSR;  NB ~: range PRF;
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evsSR;
-	     Says A' B {|Agent A, Nonce NA, Number SID, Number XA|}
+	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSR |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
-			       Nonce NA, Number XA, Agent A, 
-			       Nonce NB, Number XB, Agent B|}))
-              # Says B A {|Nonce NB, Number SID, Number XB|} # evsSR  :  tls"
+			       Nonce NA, Number PA, Agent A, 
+			       Nonce NB, Number PB, Agent B|}))
+              # Says B A {|Nonce NB, Number SID, Number PB|} # evsSR  :  tls"
 
     ClientResume
          (*If the response to ClientHello is ServerResume then send
            a FINISHED message using the new nonces and stored MASTER SECRET.*)
          "[| evsCR: tls;  
-	     Says A  B {|Agent A, Nonce NA, Number SID, Number XA|}
+	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsCR;
-             Says B' A {|Nonce NB, Number SID, Number XB|} : set evsCR;
+             Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCR;
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evsCR |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
-			       Nonce NA, Number XA, Agent A, 
-			       Nonce NB, Number XB, Agent B|}))
+			       Nonce NA, Number PA, Agent A, 
+			       Nonce NB, Number PB, Agent B|}))
               # evsCR  :  tls"
 
     Oops 
