@@ -94,23 +94,13 @@ lemmas [code] = Suc_less_eq imp_conv_disj
 subsection {* Configuration of the 'refute' command *}
 
 text {*
-  The following are reasonable default parameters (for use with
-  ZChaff 2003.12.04).  For an explanation of these parameters,
-  see 'HOL/Refute.thy'.
-
-  \emph{Note}: If you want to use a different SAT solver (or
-  install ZChaff to a different location), you will need to
-  override at least the values for 'command' and (probably)
-  'success' in your own theory file.
+  The following are fairly reasonable default values.  For an
+  explanation of these parameters, see 'HOL/Refute.thy'.
 *}
 
 refute_params [minsize=1,
                maxsize=8,
-               maxvars=200,
-               satfile="refute.cnf",
-               satformat="defcnf",
-               resultfile="refute.out",
-               success="Verify Solution successful. Instance satisfiable",
-               command="$HOME/bin/zchaff refute.cnf 60 > refute.out"]
+               maxvars=100,
+               satsolver="auto"]
 
 end
