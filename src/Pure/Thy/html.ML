@@ -208,19 +208,21 @@ local
      | "\\<^sup>" => (0.0, "\\<^sup>")
      | "\\<^isub>" => (0.0, "\\<^isub>")
      | "\\<^isup>" => (0.0, "\\<^isup>")
-     | s => (real (size s), implode (map escape (explode s)));
+     | s =>
+         if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
+         else (real (size s), implode (map escape (explode s)));
 
   fun add_sym (width, (w: real, s)) = (width + w, s);
 
   fun script (0, "\\<^sub>") = (1, "<sub>")
     | script (0, "\\<^isub>") = (1, "<sub>")
-    | script (1, x) = (0, x ^ "</sub>")
     | script (0, "\\<^sup>") = (2, "<sup>")
     | script (0, "\\<^isup>") = (2, "<sup>")
-    | script (2, x) = (0, x ^ "</sup>")
-    | script (s, x) = (s, x);
+    | script (0, x) = (0, x)
+    | script (1, x) = (0, x ^ "</sub>")
+    | script (2, x) = (0, x ^ "</sup>");
 
-  fun scripts ss = #2 (foldl_map script (0, ss));
+  fun scripts ss = #2 (foldl_map script (0, ss @ [""]));
 in
 
 fun output_width str =
@@ -236,7 +238,7 @@ val output_symbols = scripts o map (#2 o output_sym);
 end;
 
 
-val _ = Symbol.add_mode htmlN (output_width, Symbol.default_indent);
+val _ = Output.add_mode htmlN (output_width, Symbol.default_indent, Symbol.default_raw);
 
 
 (* token translations *)
@@ -400,7 +402,7 @@ fun ml_file path str =
 local
 
 val string_of_thm =
-  Pretty.setmp_margin 80 Pretty.string_of o
+  Output.output o Pretty.setmp_margin 80 Pretty.string_of o
     Display.pretty_thm_no_quote o #1 o Drule.freeze_thaw;
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
