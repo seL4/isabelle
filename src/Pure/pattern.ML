@@ -228,15 +228,26 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 
 (*Eta-contract a term (fully)*)
 
-(* copying: *)
-fun eta_contract (Abs(a,T,body)) =
-      (case  eta_contract body  of
-        body' as (f $ Bound 0) =>
-          if loose_bvar1(f,0) then Abs(a,T,body')
-          else incr_boundvars ~1 f
-      | body' => Abs(a,T,body'))
-  | eta_contract(f$t) = eta_contract f $ eta_contract t
-  | eta_contract t = t;
+fun eta_contract t =
+  let
+    exception SAME;
+    fun eta (Abs (a, T, body)) = 
+      ((case eta body of
+          body' as (f $ Bound 0) => 
+	    if loose_bvar1 (f, 0) then Abs(a, T, body')
+	    else incr_boundvars ~1 f
+        | body' => Abs (a, T, body')) handle SAME =>
+       (case body of
+          (f $ Bound 0) => 
+	    if loose_bvar1 (f, 0) then raise SAME
+	    else incr_boundvars ~1 f
+        | _ => raise SAME))
+      | eta (f $ t) =
+          (let val f' = eta f
+           in f' $ etah t end handle SAME => f $ eta t)
+      | eta _ = raise SAME
+    and etah t = (eta t handle SAME => t)
+  in etah t end;
 
 val beta_eta_contract = eta_contract o Envir.beta_norm;
 
@@ -400,9 +411,16 @@ fun pattern(Abs(_,_,t)) = pattern t
 
 fun rewrite_term tsig rules tm =
   let
+    val rhs_names =
+      foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) (rules, []);
+    fun variant_absfree (x, T, t) =
+      let
+        val x' = variant (add_term_free_names (t, rhs_names)) x;
+        val t' = subst_bound (Free (x', T), t);
+      in (fn u => Abs (x, T, abstract_over (Free (x', T), u)), t') end;
+
     fun match_rew tm (tm1, tm2) =
       Some (subst_vars (match tsig (tm1, tm)) tm2) handle MATCH => None;
-
     fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body))
       | rew tm = get_first (match_rew tm) rules;
 
@@ -432,11 +450,14 @@ fun rewrite_term tsig rules tm =
             | None => (case rew1 tm2 of
                   Some tm2' => Some (tm1 $ tm2')
                 | None => None)))
-      | rew2 (Abs (x, T, tm)) = (case rew1 tm of
-            Some tm' => Some (Abs (x, T, tm'))
-          | None => None)
+      | rew2 (Abs (x, T, tm)) =
+          let val (abs, tm') = variant_absfree (x, T, tm) in
+            (case rew1 tm' of
+              Some tm'' => Some (abs tm'')
+            | None => None)
+          end
       | rew2 _ = None
 
-  in if_none (rew1 tm) tm end;
+  in if_none (timeap_msg "FIXME: rewrite_term" rew1 tm) tm end;
 
 end;
