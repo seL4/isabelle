@@ -388,13 +388,6 @@ fun sync_main () = gen_main true true;
 fun sync_loop () = gen_loop true true;
 
 
-(* help *)
-
-fun help () =
-  writeln ("This is Isabelle's underlying ML system (" ^ ml_system ^ ");\n\
-    \invoke 'Isar.loop();' to get back to the Isar read-eval-print loop.");
-
-
 (*final declarations of this structure!*)
 val command = parser false None;
 val markup_command = parser false o Some;
