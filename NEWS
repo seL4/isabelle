@@ -83,6 +83,12 @@ contexts rather than raw logical ones (e.g. we admit to include
 attributes everywhere); operations on locales include merge and
 rename; e.g. see HOL/ex/Locales.thy;
 
+* Pure: the following commands have been ``localized'', supporting a
+target locale specification "(in name)": 'lemma', 'theorem',
+'corollary', 'lemmas', 'theorems', 'declare'; the results will be
+stored both within the locale and at the theory level (exported and
+qualified by the locale name);
+
 * Pure: theory goals now support ad-hoc contexts, which are discharged
 in the result, as in ``lemma (assumes A and B) K: A .''; syntax
 coincides with that of a locale body;
