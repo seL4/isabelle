@@ -420,7 +420,7 @@ lemma decomp_H0_H:
   "[| is_vectorspace E; is_subspace H E; t:H; x0 ~: H; x0:E;
   x0 ~= 00 |] 
   ==> (SOME (y, a). t = y + a (*) x0 & y : H) = (t, (#0::real))"
-proof (rule, unfold split_paired_all)
+proof (rule, unfold split_tupled_all)
   assume "is_vectorspace E" "is_subspace H E" "t:H" "x0 ~: H" "x0:E"
     "x0 ~= 00"
   have h: "is_vectorspace H" ..
@@ -459,7 +459,7 @@ proof -
     show "xa = ya" 
     proof -
       show "fst xa = fst ya & snd xa = snd ya ==> xa = ya" 
-        by (rule Pair_fst_snd_eq [RS iffD2])
+        by (simp add: Pair_fst_snd_eq)
       have x: "x = fst xa + snd xa (*) x0 & fst xa : H" 
         by (force!)
       have y: "x = fst ya + snd ya (*) x0 & fst ya : H" 
