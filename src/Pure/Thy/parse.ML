@@ -3,6 +3,8 @@
     Author: 	Sonia Mahjoub / Tobias Nipkow
     Copyright   1992  TU Muenchen
 
+    modified    Dezember 1993 by Max Breitling (type-variables added)
+
 The parser combinators.
 Adapted from Larry Paulson's ML for the Working Programmer.
 *)
@@ -23,6 +25,7 @@ val id     : (token * int) list -> string * (token * int)list
 val nat    : (token * int) list -> string * (token * int)list 
 val stg    : (token * int) list -> string * (token * int)list 
 val txt    : (token * int) list -> string * (token * int)list 
+val typevar: (token * int) list -> string * (token * int)list
 val >>     : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
 val ||     : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b 
 val --     : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 
@@ -66,7 +69,8 @@ fun string_of_token (Lex.Key b) = b
   | string_of_token (Lex.Id b)  = b
   | string_of_token (Lex.Nat b) = b
   | string_of_token (Lex.Txt b) = b
-  | string_of_token (Lex.Stg b) = b;
+  | string_of_token (Lex.Stg b) = b
+  | string_of_token (Lex.TypVar b) = b;
 
 fun line_err x = raise SynError(Line x);
 fun eof_err s =  raise SynError(EOF s);
@@ -96,6 +100,10 @@ fun stg ((Lex.Stg b,n) :: toks) = (b, toks)
 fun txt ((Lex.Txt b,n) :: toks) = (b, toks)
   | txt ((t,n) :: toks) = line_err ("ML text", string_of_token t, n)
   | txt _ = eof_err "ML text";
+
+fun typevar ((Lex.TypVar b,n) :: toks) = (b, toks)
+  | typevar ((t,n)::toks) = line_err("type variable",string_of_token t,n)
+  | typevar _ = eof_err "type variable";
 
 
 fun ( ph >> f) toks = let val (x, toks2) = ph toks in (f x, toks2) end;

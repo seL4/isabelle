@@ -3,6 +3,8 @@
     Author: 	Sonia Mahjoub / Tobias Nipkow
     Copyright   1992  TU Muenchen
 
+    modified    December 1993 by Max Breitling (Type-variables added)
+
 The scanner. Adapted from Larry Paulson's ML for the Working Programmer.
 *)
 
@@ -15,6 +17,7 @@ datatype token = Id  of string
                | Nat of string
                | Stg of string
                | Txt of string
+               | TypVar of string
 
 val scan : string list -> (token * int) list
 end;
@@ -36,13 +39,14 @@ datatype token = Id  of string
                | Key of string
                | Nat of string
                | Stg of string
-               | Txt of string;
+               | Txt of string
+               | TypVar of string;
 
 
 fun lexerr(n,s) =
     error("Lexical error on line " ^ (string_of_int n) ^ ": " ^ s);
 
-val specials = explode"!{}@#$%^&*()+-=[]:\";',./?`_~<>|\\";
+val specials = explode"!{}@#$%^&*()+-=[]:\";,./?`_~<>|\\";
 
 fun is_symbol c = "_" = c orelse "'" = c;
 
@@ -70,7 +74,6 @@ fun symbolic (sy, c::cs) =
        then (sy, c::cs)
        else symbolic(sy^c, cs)
   | symbolic (sy, []) = (sy, []);
-
 
 fun stringerr(n) = lexerr(n, "No matching quote found on this line");
 
@@ -145,6 +148,11 @@ fun scanning (toks , [], n) = rev toks
        else if is_digit c 
             then let val (nat , cs2) = numeric(c , cs)
                  in scanning ((Nat nat,n) :: toks , cs2, n) end
+
+       else if c = "'" andalso is_letter(hd cs)
+            then let val (var, cs2) = alphanum (hd cs, tl cs)
+                 in scanning((TypVar (c^var),n) :: toks, cs2, n) end
+
        else if c mem specials
             then if c = "\""
                  then let val (toks', cs', n') = string (toks, cs, "", n)
