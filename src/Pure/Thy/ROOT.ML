@@ -6,6 +6,8 @@
 This file builds the theory parser and autoloading system.
 *)
 
+use "path.ML";
+
 use "thy_scan.ML";
 use "thy_parse.ML";
 use "thy_syn.ML";
