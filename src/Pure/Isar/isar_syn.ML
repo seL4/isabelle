@@ -559,7 +559,7 @@ val print_localesP =
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print named locale of this theory" K.diag
-    (P.xname >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (P.locale_expr >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag

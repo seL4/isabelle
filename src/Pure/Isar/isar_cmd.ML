@@ -47,7 +47,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: xstring -> Toplevel.transition -> Toplevel.transition
+  val print_locale: Locale.expr -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
