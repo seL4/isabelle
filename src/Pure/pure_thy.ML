@@ -31,6 +31,7 @@ sig
   val thms_containing: theory -> string list * string list -> (string * thm list) list
   val thms_containing_consts: theory -> string list -> (string * thm) list
   val find_intros: theory -> term -> (string * thm) list
+  val find_intros_goal : theory -> thm -> int -> (string * thm) list
   val find_elims : theory -> term -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
@@ -247,6 +248,9 @@ fun find_matching index extract thy prop =
    | Some c => select_match(prop,Theory.sign_of thy,index thy c,extract))
 
 val find_intros = find_matching index_intros (Some o Logic.strip_imp_concl)
+
+fun find_intros_goal thy st i =
+  find_intros thy (Logic.concl_of_goal (prop_of st) i);
 
 val find_elims = find_matching index_elims
   (fn prop => case Logic.strip_imp_prems prop of [] => None | p::_ => Some p)
