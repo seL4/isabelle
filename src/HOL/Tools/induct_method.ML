@@ -187,6 +187,26 @@ val cases_meth = Method.METHOD o (FINDGOAL oo cases_tac);
   ...   induct ... r   - explicit rule
 *)
 
+fun induct_rule ctxt t =
+  let val name = type_name t in
+    (case lookup_inductT ctxt name of
+      None => error ("No induct rule for type: " ^ quote name)
+    | Some thm => thm)
+  end;
+
+fun join_rules [thm] = thm
+  | join_rules raw_thms =
+      let
+        val (thms, thm) = Library.split_last (map Drule.freeze_all raw_thms);
+        val cprems = Drule.cprems_of thm;
+        val asms = map Thm.assume cprems;
+        fun strip th = Drule.implies_elim_list th asms;
+      in
+        foldr (fn (th, th') => [th, th'] MRS conjI) (map strip thms, strip thm)
+        |> Drule.implies_intr_list cprems
+        |> Drule.standard
+      end;
+
 fun induct_tac (ctxt, args) facts =
   let
     val sg = ProofContext.sign_of ctxt;
@@ -210,11 +230,7 @@ fun induct_tac (ctxt, args) facts =
             (Logic.strip_assums_concl (#prop (Thm.rep_thm th)))
           |> map #2
       | ((insts, None), _) =>
-          let val name = type_name (last_elem (hd insts)) in
-            (case lookup_inductT ctxt name of
-              None => error ("No induct rule for type: " ^ quote name)
-            | Some thm => [inst_rule insts thm])
-          end
+          [inst_rule insts (join_rules (map (induct_rule ctxt o last_elem) insts))]
       | (([], Some thm), _) => [thm]
       | ((insts, Some thm), _) => [inst_rule insts thm]);
   in Method.rule_tac thms facts end;
