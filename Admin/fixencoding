@@ -135,5 +135,5 @@ $perl_revtab = "  " . join(",\n  ", @perl_revtab) . "\n";
 
 # patch files
 
-&patch_file("src/Pure/Syntax/symbol_font.ML", $ml_tab);
+&patch_file("Pure/Syntax/symbol_font.ML", $ml_tab);
 &patch_file("Distribution/lib/scripts/symbolinput.pl", $perl_tab);
