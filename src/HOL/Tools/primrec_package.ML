@@ -225,7 +225,7 @@ fun add_primrec_i alt_name eqns thy =
       commas names1 ^ " ...");
     val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
-    val tsimps = map Attribute.tthm_of char_thms;
+    val tsimps = Attribute.tthms_of char_thms;
     val thy'' = thy' |>
       PureThy.add_tthmss [(("simps", tsimps), [Simplifier.simp_add_global])] |>
       PureThy.add_tthms (map (rpair [])

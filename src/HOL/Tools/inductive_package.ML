@@ -464,9 +464,9 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       else standard (raw_induct RSN (2, rev_mp));
 
     val thy'' = thy' |>
-      PureThy.add_tthmss [(("intrs", map Attribute.tthm_of intrs), [])] |>
+      PureThy.add_tthmss [(("intrs", Attribute.tthms_of intrs), [])] |>
       (if no_elim then I else PureThy.add_tthmss
-        [(("elims", map Attribute.tthm_of elims), [])]) |>
+        [(("elims", Attribute.tthms_of elims), [])]) |>
       (if no_ind then I else PureThy.add_tthms
         [(((if coind then "co" else "") ^ "induct",
           Attribute.tthm_of induct), [])]) |>
@@ -600,8 +600,8 @@ fun add_inductive verbose coind c_strings intr_strings monos con_defs thy =
     val intr_ts'' = map subst intr_ts';
 
   in add_inductive_i verbose false "" coind false false cs'' intr_ts''
-    (map (Attribute.thm_of) (PureThy.get_tthmss thy monos))
-    (map (Attribute.thm_of) (PureThy.get_tthmss thy con_defs)) thy
+    (Attribute.thms_of (PureThy.get_tthmss thy monos))
+    (Attribute.thms_of (PureThy.get_tthmss thy con_defs)) thy
   end;
 
 end;
