@@ -7,6 +7,26 @@ The Lift-Control Example
 *)
 
 
+Addsimps [integ_of_Pls RS sym];
+(*AND ALSO   int 1 = #1  ??*)
+
+
+(**INTDEF.ML**)
+Goal "(int m) + (int n + z) = int (m + n) + z";
+by (simp_tac (simpset() addsimps [zadd_int, zadd_assoc RS sym]) 1);
+qed "zadd_int_left";
+
+
+(**INT.ML**)
+
+
+(**BIN.ML**)
+
+    Goal "#0 <= int m";
+    by (simp_tac (simpset_of Bin.thy addsimps [integ_of_Pls]) 1);
+    qed "zero_zle_int";
+    AddIffs [zero_zle_int];
+
 Goal "~ z < w ==> (z < w + #1) = (z = w)";
 by (asm_simp_tac (simpset() addsimps [zless_add1_eq, integ_le_less]) 1);
 qed "not_zless_zless1_eq";
@@ -68,14 +88,8 @@ val always_defs = [above_def, below_def, queueing_def,
 
 Addsimps (map simp_of_set always_defs);
 
-Goalw [Lprg_def] "id : Acts Lprg";
-by (Simp_tac 1);
-qed "id_in_Acts";
-AddIffs [id_in_Acts];
 
-
-val LeadsTo_Un_post' = id_in_Acts RS LeadsTo_Un_post
-and LeadsTo_Trans_Un' = rotate_prems 1 (id_in_Acts RS LeadsTo_Trans_Un);
+val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
 (* [| LeadsTo Lprg B C; LeadsTo Lprg A B |] ==> LeadsTo Lprg (A Un B) C *)
 
 
@@ -231,8 +245,8 @@ by (etac (zleI RS zle_anti_sym RS sym) 1);
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
-by (ALLGOALS
-   (asm_simp_tac (simpset() addsimps [zle_def]@ metric_simps @ zcompare_rls)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps 
+			    [zle_def] @ metric_simps @ zcompare_rls)));
 qed "E_thm12a";
 
 
@@ -251,10 +265,9 @@ by (etac (zleI RS zle_anti_sym RS sym) 1);
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
-by (ALLGOALS
-   (asm_simp_tac (simpset() addsimps [zle_def] @
-				       metric_simps @ zcompare_rls)));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps 
+			    [zle_def] @ metric_simps @ zcompare_rls)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
 qed "E_thm12b";
 
 (*lift_4*)
@@ -262,9 +275,8 @@ Goal "#0<N ==> LeadsTo Lprg (moving Int Req n Int {s. metric n s = N} Int \
 \                           {s. floor s ~: req s})     \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (etac E_thm12b 4);
-by (etac E_thm12a 3);
-by (rtac id_in_Acts 2);
+by (etac E_thm12b 3);
+by (etac E_thm12a 2);
 by (Blast_tac 1);
 qed "lift_4";
 
@@ -284,8 +296,7 @@ by (ALLGOALS
 (** LEVEL 5 **)
 by (dres_inst_tac [("w1","Min")] (zle_iff_zadd RS iffD1) 1);
 by Auto_tac;
-by (asm_simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls) 1);
-by (full_simp_tac (no_neg_ss addsimps [add_nat, integ_of_Min]) 1);
+by (full_simp_tac (simpset() addsimps [zadd_int_left]) 1);
 qed "E_thm16a";
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
@@ -299,11 +310,11 @@ by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [zle_def]@metric_simps @ zcompare_rls)));
 (** LEVEL 5 **)
-by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 2);
-by (etac exE 2);  
-by (etac ssubst 2);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls)));
-by (auto_tac (claset(), no_neg_ss addsimps [add_nat, integ_of_Min]));
+by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
+by (etac exE 1);  
+by (etac ssubst 1);
+by Auto_tac;
+by (full_simp_tac (simpset() addsimps [zadd_int_left]) 1);
 qed "E_thm16b";
 
 
@@ -321,9 +332,8 @@ qed "E_thm16c";
 Goal "#0<N ==> LeadsTo Lprg (closed Int Req n Int {s. metric n s = N})   \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (etac E_thm16b 4);
-by (etac E_thm16a 3);
-by (rtac id_in_Acts 2);
+by (etac E_thm16b 3);
+by (etac E_thm16a 2);
 by (dtac E_thm16c 1);
 by (Blast_tac 1);
 qed "lift_5";
@@ -337,15 +347,14 @@ by (etac rev_mp 1);
 (*force simplification of "metric..." while in conclusion part*)
 by (asm_simp_tac (simpset() addsimps metric_simps) 1);
 by (auto_tac (claset() addIs [zleI, zle_anti_sym], 
-	      simpset() addsimps zcompare_rls@[add_nat, integ_of_Min]));
+	      simpset() addsimps zcompare_rls@[zadd_int, integ_of_Min]));
 (*trans_tac (or decision procedures) could do the rest*)
 by (dres_inst_tac [("w1","Min")] (zle_iff_zadd RS iffD1) 2);
 by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
 by (ALLGOALS (clarify_tac (claset() addSDs [zless_iff_Suc_zadd RS iffD1])));
 by (REPEAT_FIRST (eres_inst_tac [("P", "?x+?y = ?z")] rev_mp));
 by (REPEAT_FIRST (etac ssubst));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls)));
-by (auto_tac (claset(), no_neg_ss addsimps [add_nat]));
+by (auto_tac (claset(), simpset() addsimps [zadd_int]));
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
@@ -405,10 +414,7 @@ by (simp_tac (simpset() addsimps metric_simps @ zcompare_rls) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [zless_iff_Suc_zadd, zle_iff_zadd]));
 by (REPEAT_FIRST (etac ssubst));
-by (auto_tac (claset(),
-	      simpset() addsimps zadd_ac@zcompare_0_rls));
-by (auto_tac (claset(),
-	      no_neg_ss addsimps [add_nat]));
+by (auto_tac (claset(), simpset() addsimps [zadd_int]));
 qed "reach_nonneg";
 
 val R_thm11 = [reach_nonneg, E_thm11] MRS reachable_LeadsTo_weaken;
@@ -421,8 +427,8 @@ by (fold_tac [zle_def]);
 by (force_tac (claset() addIs [R_thm11, zle_anti_sym], simpset()) 2);
 by (rtac ([asm_rl, Un_upper1] MRS LeadsTo_weaken_R) 1);
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (rtac lift_3_Req 4);
-by (rtac lift_4 3);
+by (rtac lift_3_Req 3);
+by (rtac lift_4 2);
 by Auto_tac;
 qed "lift_3";
 
@@ -430,7 +436,7 @@ qed "lift_3";
 Goal "LeadsTo Lprg (Req n) (opened Int atFloor n)";
 by (rtac LeadsTo_Trans 1);
 by (rtac (E_thm04 RS LeadsTo_Un) 2);
-by (rtac LeadsTo_Un_post' 2);
+by (rtac LeadsTo_Un_post 2);
 by (rtac (E_thm01 RS LeadsTo_Trans_Un') 2);
 by (rtac (lift_3 RS LeadsTo_Trans_Un') 2);
 by (rtac (lift_2 RS LeadsTo_Trans_Un') 2);
@@ -439,7 +445,6 @@ by (rtac E_thm02 2);
 by (rtac (open_move RS Invariant_LeadsToI) 1);
 by (rtac (open_stop RS Invariant_LeadsToI) 1);
 by (rtac subset_imp_LeadsTo 1);
-by (rtac id_in_Acts 2);
 by (Clarify_tac 1);
 (*The case split is not essential but makes Blast_tac much faster.
   Must also be careful to prevent simplification from looping*)
@@ -449,4 +454,4 @@ by (ALLGOALS Asm_full_simp_tac);
 by (Blast_tac 1);
 qed "lift_1";
 
-Close_locale;
+Close_locale();
