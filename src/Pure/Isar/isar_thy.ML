@@ -11,12 +11,12 @@ TODO:
 
 signature ISAR_THY =
 sig
-  val add_text: string -> theory -> theory
-  val add_title: string -> string -> string -> theory -> theory
-  val add_chapter: string -> theory -> theory
-  val add_section: string -> theory -> theory
-  val add_subsection: string -> theory -> theory
-  val add_subsubsection: string -> theory -> theory
+  val add_text: Comment.text -> theory -> theory
+  val add_title: Comment.text -> Comment.text -> Comment.text -> theory -> theory
+  val add_chapter: Comment.text -> theory -> theory
+  val add_section: Comment.text -> theory -> theory
+  val add_subsection: Comment.text -> theory -> theory
+  val add_subsubsection: Comment.text -> theory -> theory
   val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defs: ((bstring * string) * Args.src list) list -> theory -> theory
@@ -105,7 +105,7 @@ struct
 
 (* formal comments *)   (* FIXME dummy *)
 
-fun add_text (txt:string) (thy:theory) = thy;
+fun add_text _ thy = thy;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
 val add_section = add_text;
