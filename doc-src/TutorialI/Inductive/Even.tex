@@ -1,0 +1,199 @@
+\section{The set of even numbers}
+
+The set of even numbers can be inductively defined as the least set
+containing 0 and closed under the operation ${\cdots}+2$.  Obviously,
+\emph{even} can also be expressed using the divides relation (\isa{dvd}). 
+We shall prove below that the two formulations coincide.  On the way we
+shall examine the primary means of reasoning about inductively defined
+sets: rule induction.
+
+\subsection{Making an inductive definition}
+
+Using \isacommand{consts}, we declare the constant \isa{even} to be a set
+of natural numbers. The \isacommand{inductive} declaration gives it the
+desired properties.
+\begin{isabelle}
+\isacommand{consts}\ even\ ::\ "nat\ set"\isanewline
+\isacommand{inductive}\ even\isanewline
+\isakeyword{intros}\isanewline
+zero[intro!]:\ "0\ \isasymin \ even"\isanewline
+step[intro!]:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ (Suc\ (Suc\
+n))\ \isasymin \ even"
+\end{isabelle}
+
+An inductive definition consists of introduction rules.  The first one
+above states that 0 is even; the second states that if $n$ is even, then so
+is
+$n+2$.  Given this declaration, Isabelle generates a fixed point definition
+for \isa{even} and proves theorems about it.  These theorems include the
+introduction rules specified in the declaration, an elimination rule for case
+analysis and an induction rule.  We can refer to these theorems by
+automatically-generated names.  Here are two examples:
+%
+\begin{isabelle}
+n\ \isasymin \ even\ \isasymLongrightarrow \ Suc\ (Suc\ n)\ \isasymin \
+even%
+\rulename{even.step}
+\par\medskip
+\isasymlbrakk xa\ \isasymin \ even;\isanewline
+\ P\ 0;\isanewline
+\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ P\ n\isasymrbrakk \
+\isasymLongrightarrow \ P\ (Suc\ (Suc\ n))\isasymrbrakk\isanewline
+\ \isasymLongrightarrow \ P\ xa%
+\rulename{even.induct}
+\end{isabelle}
+
+The introduction rules can be given attributes.  Here both rules are
+specified as \isa{intro!}, directing the classical reasoner to 
+apply them aggressively. Obviously, regarding 0 as even is safe.  The
+\isa{step} rule is also safe because $n+2$ is even if and only if $n$ is
+even.  We prove this equivalence later.
+
+\subsection{Using introduction rules}
+
+Our first lemma states that numbers of the form $2\times k$ are even.
+Introduction rules are used to show that specific values belong to the
+inductive set.  Such proofs typically involve 
+induction, perhaps over some other inductive set.
+\begin{isabelle}
+\isacommand{lemma}\ two_times_even[intro!]:\ "\#2*k\ \isasymin \ even"
+\isanewline
+\isacommand{apply}\ (induct\ "k")\isanewline
+\ \isacommand{apply}\ auto\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+The first step is induction on the natural number \isa{k}, which leaves
+two subgoals:
+\begin{isabelle}
+\ 1.\ \#2\ *\ 0\ \isasymin \ even\isanewline
+\ 2.\ \isasymAnd n.\ \#2\ *\ n\ \isasymin \ even\ \isasymLongrightarrow \ \#2\ *\ Suc\ n\ \isasymin \ even
+\end{isabelle}
+%
+Here \isa{auto} simplifies both subgoals so that they match the introduction
+rules, which are then applied automatically.
+
+Our ultimate goal is to prove the equivalence between the traditional
+definition of \isa{even} (using the divides relation) and our inductive
+definition.  One direction of this equivalence is immediate by the lemma
+just proved, whose \isa{intro!} attribute ensures it will be used.
+\begin{isabelle}
+\isacommand{lemma}\ dvd_imp_even:\ "\#2\ dvd\ n\ \isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
+\isacommand{apply}\ (auto\ simp\ add:\ dvd_def)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+\subsection{Rule induction}
+
+The other direction of this equivalence is proved by induction over the set
+\isa{even}.   This type of inductive argument is called \textbf{rule induction}. 
+It is the usual way of proving a property of the elements of an inductively
+defined set.
+\begin{isabelle}
+\isacommand{lemma}\ even_imp_dvd:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ \#2\ dvd\ n"\isanewline
+\isacommand{apply}\ (erule\ even.induct)\isanewline
+\ \isacommand{apply}\ simp\isanewline
+\isacommand{apply}\ (simp\ add:\ dvd_def)\isanewline
+\isacommand{apply}\ clarify\isanewline
+\isacommand{apply}\ (rule_tac\ x\ =\ "Suc\ k"\ \isakeyword{in}\ exI)\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+We begin by applying induction.  Note that \isa{even.induct} has the form
+of an elimination rule, so we use the method \isa{erule}.  We get two
+subgoals:
+\begin{isabelle}
+\ 1.\ \#2\ dvd\ 0\isanewline
+\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ \#2\ dvd\ n\isasymrbrakk \ \isasymLongrightarrow \ \#2\ dvd\ Suc\ (Suc\ n)
+\end{isabelle}
+%
+The first subgoal is trivial (by \isa{simp}).  For the second
+subgoal, we unfold the definition of \isa{dvd}:
+\begin{isabelle}
+\ 1.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ \isasymexists k.\
+n\ =\ \#2\ *\ k\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\
+Suc\ (Suc\ n)\ =\ \#2\ *\ k
+\end{isabelle}
+%
+Then we use
+\isa{clarify} to eliminate the existential quantifier from the assumption
+and replace \isa{n} by \isa{\#2\ *\ k}.
+\begin{isabelle}
+\ 1.\ \isasymAnd n\ k.\ \#2\ *\ k\ \isasymin \ even\ \isasymLongrightarrow \ \isasymexists ka.\ Suc\ (Suc\ (\#2\ *\ k))\ =\ \#2\ *\ ka%
+\end{isabelle}
+%
+The \isa{rule_tac\ldots exI} tells Isabelle that the desired
+\isa{ka} is
+\isa{Suc\ k}.  With this hint, the subgoal becomes trivial, and \isa{simp}
+concludes the proof.
+
+\medskip
+Combining the previous two results yields our objective, the
+equivalence relating \isa{even} and \isa{dvd}. 
+%
+%we don't want [iff]: discuss?
+\begin{isabelle}
+\isacommand{theorem}\ even_iff_dvd:\ "(n\ \isasymin \ even)\ =\ (\#2\ dvd\ n)"\isanewline
+\isacommand{apply}\ (blast\ intro:\ dvd_imp_even\ even_imp_dvd)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+\subsection{Generalization and rule induction}
+
+Everybody knows that when before applying induction we often must generalize
+the induction formula.  This step is just as important with rule induction,
+and the required generalizations can be complicated.  In this 
+example, the obvious statement of the result is not inductive:
+%
+\begin{isabelle}
+\isacommand{lemma}\ "Suc\ (Suc\ n)\ \isasymin \ even\
+\isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
+\isacommand{apply}\ (erule\ even.induct)\isanewline
+\isacommand{oops}
+\end{isabelle}
+%
+Rule induction finds no occurrences of \isa{Suc\ (Suc\ n)} in the
+conclusion, which it therefore leaves unchanged.  (Look at
+\isa{even.induct} to see why this happens.)  We get these subgoals:
+\begin{isabelle}
+\ 1.\ n\ \isasymin \ even\isanewline
+\ 2.\ \isasymAnd na.\ \isasymlbrakk na\ \isasymin \ even;\ n\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ n\ \isasymin \ even%
+\end{isabelle}
+The first one is hopeless.  In general, rule inductions involving
+non-trivial terms will probably go wrong.  The solution is easy provided
+we have the necessary inverses, here subtraction:
+\begin{isabelle}
+\isacommand{lemma}\ even_imp_even_minus_2:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ n-\#2\ \isasymin \ even"\isanewline
+\isacommand{apply}\ (erule\ even.induct)\isanewline
+\ \isacommand{apply}\ auto\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+This lemma is trivially inductive.  Here are the subgoals:
+\begin{isabelle}
+\ 1.\ 0\ -\ \#2\ \isasymin \ even\isanewline
+\ 2.\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ n\ -\ \#2\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ Suc\ (Suc\ n)\ -\ \#2\ \isasymin \ even%
+\end{isabelle}
+The first is trivial because \isa{0\ -\ \#2} simplifies to \isa{0}, which is
+even.  The second is trivial too: \isa{Suc\ (Suc\ n)\ -\ \#2} simplifies to
+\isa{n}, matching the assumption.
+
+\medskip
+Using our lemma, we can easily prove the result we originally wanted:
+\begin{isabelle}
+\isacommand{lemma}\ Suc_Suc_even_imp_even:\ "Suc\ (Suc\ n)\ \isasymin \ even\ \isasymLongrightarrow \ n\ \isasymin \ even"\isanewline
+\isacommand{apply}\ (drule\ even_imp_even_minus_2)\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}
+\end{isabelle}
+
+We have just proved the converse of the introduction rule \isa{even.step}. 
+This suggests proving the following equivalence.  We give it the \isa{iff}
+attribute because of its obvious value for simplification.
+\begin{isabelle}
+\isacommand{lemma}\ [iff]:\ "((Suc\ (Suc\ n))\ \isasymin \ even)\ =\ (n\
+\isasymin \ even)"\isanewline
+\isacommand{apply}\ (blast\ dest:\ Suc_Suc_even_imp_even)\isanewline
+\isacommand{done}\isanewline
+\end{isabelle}
