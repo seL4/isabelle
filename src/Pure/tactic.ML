@@ -6,8 +6,8 @@
 Tactics.
 *)
 
-signature TACTIC =
-  sig
+signature BASIC_TACTIC =
+sig
   val ares_tac          : thm list -> int -> tactic
   val asm_rewrite_goal_tac: bool*bool*bool ->
     (MetaSimplifier.meta_simpset -> tactic) -> MetaSimplifier.meta_simpset -> int -> tactic
@@ -73,7 +73,6 @@ signature TACTIC =
   val net_resolve_tac   : thm list -> int -> tactic
   val norm_hhf          : thm -> thm
   val norm_hhf_tac      : int -> tactic
-  val orderlist         : (int * 'a) list -> 'a list
   val PRIMITIVE         : (thm -> thm) -> tactic
   val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic
   val prune_params_tac  : tactic
@@ -83,9 +82,6 @@ signature TACTIC =
   val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
   val resolve_tac       : thm list -> int -> tactic
   val res_inst_tac      : (string*string)list -> thm -> int -> tactic
-  val rewrite           : bool -> thm list -> cterm -> thm
-  val rewrite_cterm     : bool -> thm list -> cterm -> cterm
-  val simplify          : bool -> thm list -> thm -> thm
   val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule      : thm list -> thm -> thm
@@ -105,10 +101,19 @@ signature TACTIC =
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
   val trace_goalno_tac  : (int -> tactic) -> int -> tactic
-  end;
+end;
 
+signature TACTIC =
+sig
+  include BASIC_TACTIC
+  val untaglist: (int * 'a) list -> 'a list
+  val orderlist: (int * 'a) list -> 'a list
+  val rewrite: bool -> thm list -> cterm -> thm
+  val rewrite_cterm: bool -> thm list -> cterm -> cterm
+  val simplify: bool -> thm list -> thm -> thm
+end;
 
-structure Tactic : TACTIC =
+structure Tactic: TACTIC =
 struct
 
 (*Discover which goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
@@ -598,4 +603,5 @@ fun filter_prems_tac p =
 
 end;
 
-open Tactic;
+structure BasicTactic: BASIC_TACTIC = Tactic;
+open BasicTactic;
