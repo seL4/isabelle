@@ -2660,22 +2660,12 @@ Addsimps [real_divide_square_eq];
 (*-------------------------------------------------------------------------------*)
 
 
-goal Real.thy "2 = Suc (Suc 0)";
-by (Simp_tac 1);
-qed "two_eq_Suc_Suc";
-
-val realpow_num_two = CLAIM "2 = Suc(Suc 0)";
-
-Goal "x ^ 2 = x * (x::real)";
-by (auto_tac (claset(),simpset() addsimps [CLAIM "2 = Suc(Suc 0)"]));
-qed "realpow_two_eq_mult";
-
 Goalw [real_divide_def]
     "0 < x ==> 0 <= x/(sqrt (x * x + y * y))";
 by (ftac ((real_sqrt_sum_squares_ge1 RSN (2,order_less_le_trans)) 
     RS (CLAIM "0 < x ==> 0 < inverse (x::real)")) 1);
 by (rtac (real_mult_order RS order_less_imp_le) 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_num_two]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "lemma_real_divide_sqrt";
 
 Goal "0 < x ==> -(1::real) <= x/(sqrt (x * x + y * y))";
@@ -2699,7 +2689,7 @@ qed "real_sqrt_sum_squares_gt_zero2";
 Goal "x ~= 0 ==> 0 < sqrt(x ^ 2 + y ^ 2)";
 by (cut_inst_tac [("x","x"),("y","0")] linorder_less_linear 1);
 by (auto_tac (claset() addIs [real_sqrt_sum_squares_gt_zero2,
-    real_sqrt_sum_squares_gt_zero1],simpset() addsimps [realpow_num_two]));
+    real_sqrt_sum_squares_gt_zero1],simpset() addsimps [numeral_2_eq_2]));
 qed "real_sqrt_sum_squares_gt_zero3";
 
 Goal "y ~= 0 ==> 0 < sqrt(x ^ 2 + y ^ 2)";
@@ -2748,7 +2738,7 @@ by (rtac (ARITH_PROVE "-x < y ==> -y < (x::real)") 1);
 by (cut_inst_tac [("x","-x"),("y","y")] real_sqrt_sum_squares_ge1 1);
 by (dtac real_le_imp_less_or_eq 1);
 by (Step_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [realpow_num_two]) 1);
+by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2]) 1);
 by (dtac (sym RS real_sqrt_sum_squares_eq_cancel) 1);
 by Auto_tac;
 qed "lemma_real_divide_sqrt_ge_minus_one2";
@@ -2855,7 +2845,7 @@ Goal "[| 0 < x * x + y * y; \
 \     |] ==> sin xa ^ 2 = (y / sqrt (x * x + y * y)) ^ 2";
 by (auto_tac (claset() addIs [lemma_divide_rearrange],simpset() 
     addsimps [realpow_divide,real_sqrt_gt_zero_pow2,
-    realpow_two_eq_mult RS sym]));
+    real_power_two RS sym]));
 qed "lemma_cos_sin_eq";
 
 Goal "[| 0 < x * x + y * y; \
@@ -2863,7 +2853,7 @@ Goal "[| 0 < x * x + y * y; \
 \     |] ==> cos xa ^ 2 = (x / sqrt (x * x + y * y)) ^ 2";
 by (auto_tac (claset(),
     simpset() addsimps [realpow_divide,
-          real_sqrt_gt_zero_pow2,realpow_two_eq_mult RS sym]));
+          real_sqrt_gt_zero_pow2,real_power_two RS sym]));
 by (rtac (real_add_commute RS subst) 1);
 by (rtac lemma_divide_rearrange 1); 
 by (asm_full_simp_tac (simpset() addsimps []) 1);
@@ -2881,7 +2871,7 @@ by (subgoal_tac "sin xa ^ 2 =  (y / sqrt (x * x + y * y)) ^ 2" 1);
 by (rtac lemma_cos_sin_eq 2);
 by (Force_tac 2);
 by (Asm_full_simp_tac 2);
-by (auto_tac (claset(),simpset() addsimps [realpow_two_disj,realpow_num_two] 
+by (auto_tac (claset(),simpset() addsimps [realpow_two_disj,numeral_2_eq_2] 
     delsimps [realpow_Suc]));
 qed "sin_x_y_disj";
 
@@ -2889,9 +2879,9 @@ Goal "y ~= 0 ==> x / sqrt (x * x + y * y) ~= -(1::real)";
 by Auto_tac;
 by (dres_inst_tac [("f","%x. x ^ 2")] arg_cong 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_divide,
-    realpow_two_eq_mult RS sym]));
+    real_power_two RS sym]));
 by (forw_inst_tac [("x","x")] real_sum_squares_not_zero2 1);
-by (asm_full_simp_tac (HOL_ss addsimps [realpow_two_eq_mult RS sym]) 1);
+by (asm_full_simp_tac (HOL_ss addsimps [real_power_two RS sym]) 1);
 by (forw_inst_tac [("c1","x ^ 2 + y ^ 2")]
     (real_mult_right_cancel RS iffD2) 1);
 by (assume_tac 1);
@@ -2912,7 +2902,7 @@ qed "arcos_eq_pi_cancel";
 Goalw [real_divide_def] "x ~= 0 ==> x / sqrt (x * x + y * y) ~= 0";
 by (forw_inst_tac [("y3","y")] (real_sqrt_sum_squares_gt_zero3 
     RS real_not_refl2 RS not_sym RS real_inverse_not_zero) 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_two_eq_mult]));
+by (auto_tac (claset(),simpset() addsimps [real_power_two]));
 qed "lemma_cos_not_eq_zero";
 
 Goal "[| x ~= 0; \
@@ -2928,7 +2918,7 @@ by (rtac lemma_sin_cos_eq 2);
 by (Force_tac 2);
 by (Asm_full_simp_tac 2);
 by (auto_tac (claset(),simpset() addsimps [realpow_two_disj,
-    realpow_num_two] delsimps [realpow_Suc]));
+    numeral_2_eq_2] delsimps [realpow_Suc]));
 qed "cos_x_y_disj";
 
 Goal "0 < y ==> - y / sqrt (x * x + y * y) < 0";
@@ -2936,7 +2926,7 @@ by (case_tac "x = 0" 1);
 by (auto_tac (claset(),simpset() addsimps [abs_eqI2]));
 by (dres_inst_tac [("y","y")] real_sqrt_sum_squares_gt_zero3 1);
 by (auto_tac (claset(),simpset() addsimps [real_0_less_mult_iff,
-    real_divide_def,realpow_two_eq_mult])); 
+    real_divide_def,real_power_two])); 
 qed "real_sqrt_divide_less_zero";
 
 Goal "[| x ~= 0; 0 < y |] ==> EX r a. x = r * cos a & y = r * sin a";
@@ -2945,7 +2935,7 @@ by (res_inst_tac [("x","arcos(x / sqrt (x * x + y * y))")] exI 1);
 by Auto_tac;
 by (dres_inst_tac [("y2","y")] (real_sqrt_sum_squares_gt_zero3 
     RS real_not_refl2 RS not_sym) 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_two_eq_mult]));
+by (auto_tac (claset(),simpset() addsimps [real_power_two]));
 by (rewtac arcos_def);
 by (cut_inst_tac [("x1","x"),("y1","y")] ([cos_x_y_ge_minus_one,cos_x_y_le_one] 
     MRS cos_total) 1);
@@ -2955,7 +2945,7 @@ by (thin_tac
 by (ftac sin_x_y_disj 1 THEN Blast_tac 1);
 by (dres_inst_tac [("y2","y")] (real_sqrt_sum_squares_gt_zero3 
     RS real_not_refl2 RS not_sym) 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_two_eq_mult]));
+by (auto_tac (claset(),simpset() addsimps [real_power_two]));
 by (dtac sin_ge_zero 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","x")] real_sqrt_divide_less_zero 1 THEN Auto_tac);
 qed "polar_ex1";
@@ -2970,7 +2960,7 @@ by Auto_tac;
 by (res_inst_tac [("x","sqrt(x ^ 2 + y ^ 2)")] exI 1);
 by (res_inst_tac [("x","arcsin(y / sqrt (x * x + y * y))")] exI 1);
 by (auto_tac (claset() addDs [real_sum_squares_cancel2a],
-    simpset() addsimps [realpow_two_eq_mult]));
+    simpset() addsimps [real_power_two]));
 by (rewtac arcsin_def);
 by (cut_inst_tac [("x1","x"),("y1","y")] ([cos_x_y_ge_minus_one1a,
     cos_x_y_le_one2] MRS sin_total) 1);
@@ -3004,8 +2994,8 @@ qed "polar_Ex";
 
 Goal "abs x <= sqrt (x ^ 2 + y ^ 2)";
 by (res_inst_tac [("n","1")] realpow_increasing 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc RS sym]));
-by (simp_tac (simpset() addsimps [two_eq_Suc_Suc]) 1);
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2 RS sym]));
+by (simp_tac (simpset() addsimps [numeral_2_eq_2]) 1);
 qed "real_sqrt_ge_abs1";
 
 Goal "abs y <= sqrt (x ^ 2 + y ^ 2)";
@@ -3027,9 +3017,9 @@ Addsimps [real_sqrt_two_ge_zero];
 Goal "1 < sqrt 2";
 by (res_inst_tac [("y","7/5")] order_less_le_trans 1);
 by (res_inst_tac [("n","1")] realpow_increasing 2);
-by (auto_tac (claset(),simpset() addsimps [real_sqrt_gt_zero_pow2,two_eq_Suc_Suc RS sym] 
+by (auto_tac (claset(),simpset() addsimps [real_sqrt_gt_zero_pow2,numeral_2_eq_2 RS sym] 
     delsimps [realpow_Suc]));
-by (simp_tac (simpset() addsimps [two_eq_Suc_Suc]) 1);
+by (simp_tac (simpset() addsimps [numeral_2_eq_2]) 1);
 qed "real_sqrt_two_gt_one";
 Addsimps [real_sqrt_two_gt_one];
 
@@ -3047,7 +3037,7 @@ by (etac lemma_real_divide_sqrt_less 2);
 by (res_inst_tac [("n","1")] realpow_increasing 1);
 by (auto_tac (claset(),
     simpset() addsimps [real_0_le_divide_iff,realpow_divide,
-    real_sqrt_gt_zero_pow2,two_eq_Suc_Suc RS sym] delsimps [realpow_Suc]));
+    real_sqrt_gt_zero_pow2,numeral_2_eq_2 RS sym] delsimps [realpow_Suc]));
 by (res_inst_tac [("t","u ^ 2")] (real_sum_of_halves RS subst) 1);
 by (rtac real_add_le_mono 1);
 by (auto_tac (claset(),simpset() delsimps [realpow_Suc]));

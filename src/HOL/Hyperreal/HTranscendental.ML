@@ -40,7 +40,7 @@ qed "hypreal_sqrt_pow2_gt_zero";
 
 Goal "0 < x ==> ( *f* sqrt) (x) ~= 0";
 by (forward_tac [hypreal_sqrt_pow2_gt_zero] 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "hypreal_sqrt_not_zero";
 
 Goal "0 < x ==> inverse (( *f* sqrt)(x)) ^ 2 = inverse x";
@@ -69,7 +69,7 @@ Goal "0 < x ==> (( *f* sqrt)(x) @= 0) = (x @= 0)";
 by (auto_tac (claset(),simpset() addsimps [mem_infmal_iff RS sym]));
 by (rtac (hypreal_sqrt_gt_zero_pow2 RS subst) 1);
 by (auto_tac (claset() addIs [Infinitesimal_mult] 
-    addSDs [(hypreal_sqrt_gt_zero_pow2 RS ssubst)],simpset() addsimps [two_eq_Suc_Suc]));
+    addSDs [(hypreal_sqrt_gt_zero_pow2 RS ssubst)],simpset() addsimps [numeral_2_eq_2]));
 qed "hypreal_sqrt_approx_zero";
 Addsimps [hypreal_sqrt_approx_zero];
 
@@ -108,13 +108,13 @@ qed "hypreal_sqrt_ge_zero";
 Goal "( *f* sqrt)(x ^ 2) = abs(x)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_hrabs,hypreal_mult,two_eq_Suc_Suc]));
+    hypreal_hrabs,hypreal_mult,numeral_2_eq_2]));
 qed "hypreal_sqrt_hrabs";
 Addsimps [hypreal_sqrt_hrabs];
 
 Goal "( *f* sqrt)(x*x) = abs(x)";
 by (rtac (hrealpow_two RS subst) 1);
-by (rtac (two_eq_Suc_Suc RS subst) 1);
+by (rtac (numeral_2_eq_2 RS subst) 1);
 by (rtac hypreal_sqrt_hrabs 1);
 qed "hypreal_sqrt_hrabs2";
 Addsimps [hypreal_sqrt_hrabs2];
@@ -151,14 +151,14 @@ Goal "[| 0 <= x; x : HFinite |] ==> ( *f* sqrt) x : HFinite";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (rtac (HFinite_square_iff RS iffD1) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "HFinite_hypreal_sqrt";
 
 Goal "[| 0 <= x; ( *f* sqrt) x : HFinite |] ==> x : HFinite";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (dtac (HFinite_square_iff RS iffD2) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc] delsimps [HFinite_square_iff]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2] delsimps [HFinite_square_iff]));
 qed "HFinite_hypreal_sqrt_imp_HFinite";
 
 Goal "0 <= x ==> (( *f* sqrt) x : HFinite) = (x : HFinite)";
@@ -178,14 +178,14 @@ Goal "[| 0 <= x; x : Infinitesimal |] ==> ( *f* sqrt) x : Infinitesimal";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (rtac (Infinitesimal_square_iff RS iffD2) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "Infinitesimal_hypreal_sqrt";
 
 Goal "[| 0 <= x; ( *f* sqrt) x : Infinitesimal |] ==> x : Infinitesimal";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (dtac (Infinitesimal_square_iff RS iffD1) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc] 
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2] 
     delsimps [Infinitesimal_square_iff RS sym]));
 qed "Infinitesimal_hypreal_sqrt_imp_Infinitesimal";
 
@@ -206,14 +206,14 @@ Goal "[| 0 <= x; x : HInfinite |] ==> ( *f* sqrt) x : HInfinite";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (rtac (HInfinite_square_iff RS iffD1) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "HInfinite_hypreal_sqrt";
 
 Goal "[| 0 <= x; ( *f* sqrt) x : HInfinite |] ==> x : HInfinite";
 by (auto_tac (claset(),simpset() addsimps [hypreal_le_eq_less_or_eq]));
 by (dtac (HInfinite_square_iff RS iffD2) 1);
 by (dtac hypreal_sqrt_gt_zero_pow2 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc] 
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2] 
     delsimps [HInfinite_square_iff]));
 qed "HInfinite_hypreal_sqrt_imp_HInfinite";
 
@@ -717,7 +717,7 @@ qed "NSLIMSEQ_sin_cos_pi";
 Goal "x : Infinitesimal ==> ( *f* cos) x @= 1 - x ^ 2";
 by (rtac (STAR_cos_Infinitesimal RS approx_trans) 1);
 by (auto_tac (claset(),simpset() addsimps [Infinitesimal_approx_minus RS sym,
-    hypreal_diff_def,hypreal_add_assoc RS sym,two_eq_Suc_Suc]));
+    hypreal_diff_def,hypreal_add_assoc RS sym,numeral_2_eq_2]));
 qed "STAR_cos_Infinitesimal_approx";
 
 (* move to NSA *)
@@ -731,7 +731,7 @@ Goal "x : Infinitesimal ==> ( *f* cos) x @= 1 - (x ^ 2)/2";
 by (rtac (STAR_cos_Infinitesimal RS approx_trans) 1);
 by (auto_tac (claset() addIs [Infinitesimal_SReal_divide],
     simpset() addsimps [Infinitesimal_approx_minus RS sym,
-    two_eq_Suc_Suc]));
+    numeral_2_eq_2]));
 qed "STAR_cos_Infinitesimal_approx2";
 
 
