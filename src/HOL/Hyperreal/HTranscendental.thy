@@ -458,17 +458,12 @@ done
 
 lemma starfun_ln_Infinitesimal_less_zero:
      "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* ln) x < 0"
-apply (auto intro!: starfun_ln_less_zero simp add: Infinitesimal_def)
-apply (drule bspec [where x = 1])
-apply (auto simp add: abs_if)
-done
+by (auto intro!: starfun_ln_less_zero simp add: Infinitesimal_def)
 
 lemma starfun_ln_HInfinite_gt_zero:
      "[| x \<in> HInfinite; 0 < x |] ==> 0 < ( *f* ln) x"
-apply (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
-apply (drule bspec [where x = 1])
-apply (auto simp add: abs_if)
-done
+by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
+
 
 (*
 Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) -- 0 --NS> ln x"

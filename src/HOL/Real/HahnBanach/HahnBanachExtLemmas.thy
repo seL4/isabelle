@@ -230,7 +230,7 @@ proof
 	by (simp add: right_diff_distrib)
       also from lz x0 y' have "- a * (p (inverse a \<cdot> y + x0)) =
           p (a \<cdot> (inverse a \<cdot> y + x0))"
-        by (simp add: abs_homogenous abs_minus_eqI2)
+        by (simp add: abs_homogenous)
       also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
         by (simp add: add_mult_distrib1 mult_assoc [symmetric])
       also from nz y have "a * (h (inverse a \<cdot> y)) =  h y"
@@ -250,7 +250,7 @@ proof
 	by (simp add: right_diff_distrib)
       also from gz x0 y'
       have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
-        by (simp add: abs_homogenous abs_eqI2)
+        by (simp add: abs_homogenous)
       also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
         by (simp add: add_mult_distrib1 mult_assoc [symmetric])
       also from nz y have "a * h (inverse a \<cdot> y) = h y"

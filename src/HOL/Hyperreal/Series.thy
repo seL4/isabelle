@@ -109,22 +109,14 @@ apply (induct_tac "n")
 apply (auto intro: add_mono simp add: le_def)
 done
 
-lemma sumr_ge_zero [rule_format (no_asm)]: "(\<forall>n. 0 \<le> f n) --> 0 \<le> sumr m n f"
-apply (induct_tac "n", auto)
-apply (drule_tac x = n in spec, arith)
-done
-
-lemma sumr_ge_zero2 [rule_format (no_asm)]:
-     "(\<forall>n. m \<le> n --> 0 \<le> f n) --> 0 \<le> sumr m n f"
+lemma sumr_ge_zero [rule_format]: "(\<forall>n. m \<le> n --> 0 \<le> f n) --> 0 \<le> sumr m n f"
 apply (induct_tac "n", auto)
 apply (drule_tac x = n in spec, arith)
 done
 
 lemma rabs_sumr_rabs_cancel [simp]:
-     "abs (sumr m n (%n. abs (f n))) = (sumr m n (%n. abs (f n)))"
-apply (induct_tac "n")
-apply (auto, arith)
-done
+     "abs (sumr m n (%k. abs (f k))) = (sumr m n (%k. abs (f k)))"
+by (induct_tac "n", simp_all add: add_increasing)
 
 lemma sumr_zero [rule_format]:
      "\<forall>n. N \<le> n --> f n = 0 ==> N \<le> m --> sumr m n f = 0"
@@ -480,9 +472,6 @@ val sumr_fun_eq = thm "sumr_fun_eq";
 val sumr_diff_mult_const = thm "sumr_diff_mult_const";
 val sumr_minus_one_realpow_zero = thm "sumr_minus_one_realpow_zero";
 val sumr_le2 = thm "sumr_le2";
-val sumr_ge_zero = thm "sumr_ge_zero";
-val sumr_ge_zero2 = thm "sumr_ge_zero2";
-val sumr_rabs_ge_zero = thm "sumr_rabs_ge_zero";
 val rabs_sumr_rabs_cancel = thm "rabs_sumr_rabs_cancel";
 val sumr_zero = thm "sumr_zero";
 val Suc_le_imp_diff_ge2 = thm "Suc_le_imp_diff_ge2";

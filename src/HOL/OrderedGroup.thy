@@ -669,6 +669,16 @@ proof -
   show ?thesis by (simp add: abs_lattice join_eq_if)
 qed
 
+lemma abs_eq [simp]:
+  fixes a :: "'a::{lordered_ab_group_abs, linorder}"
+  shows  "0 \<le> a ==> abs a = a"
+by (simp add: abs_if_lattice linorder_not_less [symmetric]) 
+
+lemma abs_minus_eq [simp]: 
+  fixes a :: "'a::{lordered_ab_group_abs, linorder}"
+  shows "a < 0 ==> abs a = -a"
+by (simp add: abs_if_lattice linorder_not_less [symmetric])
+
 lemma abs_ge_zero[simp]: "0 \<le> abs (a::'a::lordered_ab_group_abs)"
 proof -
   have a:"a <= abs a" and b:"-a <= abs a" by (auto simp add: abs_lattice meet_join_le)

@@ -673,7 +673,7 @@ apply (auto simp add: complex_minus complex_add complex_mod
            simp del: realpow_Suc)
 apply (rule_tac y="abs(Z x)" in order_le_less_trans)
 apply (drule_tac t = "Z x" in sym)
-apply (auto simp add: abs_eqI1 simp del: realpow_Suc)
+apply (auto simp del: realpow_Suc)
 done
 
 (* same proof *)
@@ -691,7 +691,7 @@ apply (case_tac "Y x")
 apply (auto simp add: complex_minus complex_add complex_mod simp del: realpow_Suc)
 apply (rule_tac y="abs(Z x)" in order_le_less_trans)
 apply (drule_tac t = "Z x" in sym)
-apply (auto simp add: abs_eqI1 simp del: realpow_Suc)
+apply (auto simp del: realpow_Suc)
 done
 
 lemma hcomplex_capproxI:

@@ -73,7 +73,7 @@ lemma SEQ_Infinitesimal:
       "( *fNat* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
 apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfunNat)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl)
-apply (simp add: real_of_nat_Suc_gt_zero abs_eqI2 FreeUltrafilterNat_inverse_real_of_posnat)
+apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done
 
 

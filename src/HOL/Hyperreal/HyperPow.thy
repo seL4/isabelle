@@ -216,6 +216,11 @@ by (simp add: abs_if hyperpow_two_le linorder_not_less)
 lemma hyperpow_two_hrabs [simp]: "abs(x) pow (1 + 1)  = x pow (1 + 1)"
 by (simp add: hyperpow_hrabs)
 
+text{*The precondition could be weakened to @{term "0\<le>x"}*}
+lemma hypreal_mult_less_mono:
+     "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
+ by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
+
 lemma hyperpow_two_gt_one: "1 < r ==> 1 < r pow (1 + 1)"
 apply (auto simp add: hyperpow_two)
 apply (rule_tac y = "1*1" in order_le_less_trans)

@@ -328,7 +328,7 @@ apply (rule_tac x = x and y = 0 in linorder_cases)
 prefer 2 apply blast
 apply (drule_tac [2] diff=diff in Maclaurin)
 apply (drule_tac diff=diff in Maclaurin_minus, simp_all, safe)
-apply (rule_tac [!] x = t in exI, auto, arith+)
+apply (rule_tac [!] x = t in exI, auto)
 done
 
 lemma Maclaurin_all_lt_objl:

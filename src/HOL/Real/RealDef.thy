@@ -810,16 +810,6 @@ lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
 
 subsection{*Absolute Value Function for the Reals*}
 
-text{*FIXME: these should go!*}
-lemma abs_eqI1: "(0::real)\<le>x ==> abs x = x"
-by (simp add: abs_if)
-
-lemma abs_eqI2: "(0::real) < x ==> abs x = x"
-by (simp add: abs_if)
-
-lemma abs_minus_eqI2: "x < (0::real) ==> abs x = -x"
-by (simp add: abs_if linorder_not_less [symmetric])
-
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (simp add: abs_if)
 
@@ -834,7 +824,7 @@ lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
 
 lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
-by (auto intro: abs_eqI1 simp add: real_of_nat_ge_zero)
+by (simp add: real_of_nat_ge_zero)
 
 lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
 apply (simp add: linorder_not_less)
@@ -857,27 +847,11 @@ val real_lbound_gt_zero = thm"real_lbound_gt_zero";
 val real_less_half_sum = thm"real_less_half_sum";
 val real_gt_half_sum = thm"real_gt_half_sum";
 
-val abs_eqI1 = thm"abs_eqI1";
-val abs_eqI2 = thm"abs_eqI2";
-val abs_minus_eqI2 = thm"abs_minus_eqI2";
-val abs_ge_zero = thm"abs_ge_zero";
-val abs_idempotent = thm"abs_idempotent";
-val abs_eq_0 = thm"abs_eq_0";
-val abs_ge_self = thm"abs_ge_self";
-val abs_ge_minus_self = thm"abs_ge_minus_self";
-val abs_mult = thm"abs_mult";
-val abs_inverse = thm"abs_inverse";
-val abs_triangle_ineq = thm"abs_triangle_ineq";
-val abs_minus_cancel = thm"abs_minus_cancel";
-val abs_minus_add_cancel = thm"abs_minus_add_cancel";
 val abs_interval_iff = thm"abs_interval_iff";
 val abs_le_interval_iff = thm"abs_le_interval_iff";
 val abs_add_one_gt_zero = thm"abs_add_one_gt_zero";
-val abs_le_zero_iff = thm"abs_le_zero_iff";
 val abs_add_one_not_less_self = thm"abs_add_one_not_less_self";
 val abs_sum_triangle_ineq = thm"abs_sum_triangle_ineq";
-
-val abs_mult_less = thm"abs_mult_less";
 *}
 
 

@@ -51,7 +51,7 @@ lemma abs_realpow_two [simp]: "abs((x::real)^Suc (Suc 0)) = x^Suc (Suc 0)"
 by (simp add: abs_mult)
 
 lemma realpow_two_abs [simp]: "abs(x::real)^Suc (Suc 0) = x^Suc (Suc 0)"
-by (simp add: power_abs [symmetric] abs_eqI1 del: realpow_Suc)
+by (simp add: power_abs [symmetric] del: realpow_Suc)
 
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::real"], simp)

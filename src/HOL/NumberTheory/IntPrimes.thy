@@ -465,7 +465,6 @@ lemma xzgcd_correct_aux1:
   apply (rule exI)
   apply (rule exI)
   apply (subst xzgcda.simps, auto)
-  apply (simp add: abs_if)
   done
 
 lemma xzgcd_correct_aux2:
@@ -481,7 +480,6 @@ lemma xzgcd_correct_aux2:
    apply (frule_tac a = "r'" in pos_mod_sign, auto)
   apply (erule_tac P = "xzgcda ?u = ?v" in rev_mp)
   apply (subst xzgcda.simps, auto)
-  apply (simp add: abs_if)
   done
 
 lemma xzgcd_correct:

@@ -623,18 +623,10 @@ lemma hypreal_hrabs:
      "abs (Abs_hypreal (hyprel `` {X})) = 
       Abs_hypreal(hyprel `` {%n. abs (X n)})"
 apply (auto simp add: hrabs_def hypreal_zero_def hypreal_le hypreal_minus)
-apply (ultra, arith)+
+apply ultra
+apply ultra
+apply arith
 done
-
-
-
-lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x+y"
-by (auto dest: add_less_le_mono)
-
-text{*The precondition could be weakened to @{term "0\<le>x"}*}
-lemma hypreal_mult_less_mono:
-     "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
- by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
 
 
 subsection{*Existence of Infinite Hyperreal Number*}
@@ -784,7 +776,6 @@ val hypreal_zero_num = thm "hypreal_zero_num";
 val hypreal_one_num = thm "hypreal_one_num";
 val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";
 
-val hypreal_add_zero_less_le_mono = thm"hypreal_add_zero_less_le_mono";
 val Rep_hypreal_omega = thm"Rep_hypreal_omega";
 val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
 val lemma_finite_omega_set = thm"lemma_finite_omega_set";

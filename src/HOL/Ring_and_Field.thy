@@ -5,7 +5,7 @@
 
 header {* (Ordered) Rings and Fields *}
 
-theory Ring_and_Field 
+theory Ring_and_Field
 imports OrderedGroup
 begin
 
@@ -1370,6 +1370,12 @@ subsection {* Absolute Value *}
 
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
   by (simp add: abs_if zero_less_one [THEN order_less_not_sym]) 
+
+lemma abs_eq [simp]: "(0::'a::ordered_idom) \<le> a ==> abs a = a"
+by (simp add: abs_if linorder_not_less [symmetric]) 
+
+lemma abs_minus_eq [simp]: "a < (0::'a::ordered_idom) ==> abs a = -a"
+by (simp add: abs_if linorder_not_less [symmetric])
 
 lemma abs_le_mult: "abs (a * b) \<le> (abs a) * (abs (b::'a::lordered_ring))" 
 proof -
