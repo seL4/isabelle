@@ -1432,6 +1432,7 @@ fun prtm_warning a sign t = (warning a; warning (Sign.string_of_term sign t));
 
 val trace_simp = ref false;
 
+fun trace a = if ! trace_simp then writeln a else ();
 fun trace_warning a = if ! trace_simp then warning a else ();
 fun trace_term a sign t = if ! trace_simp then prtm a sign t else ();
 fun trace_term_warning a sign t = if ! trace_simp then prtm_warning a sign t else ();
@@ -1817,12 +1818,13 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
       fun proc_rews _ ([]:simproc list) = None
         | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
             if Pattern.matches tsigt (plhs, t) then
-              (case proc signt eta_t of
-                None => proc_rews eta_t ps
+             (trace_term ("Trying procedure " ^ name ^ " on:") signt eta_t;
+              case proc signt eta_t of
+                None => (trace "FAILED"; proc_rews eta_t ps)
               | Some raw_thm =>
-                 (trace_thm ("Procedure" ^ name ^ " proved rewrite rule:") raw_thm;
+                 (trace_thm ("Procedure " ^ name ^ " proved rewrite rule:") raw_thm;
                    (case rews (mk_procrule raw_thm) of
-                     None => proc_rews eta_t ps
+                     None => (trace "IGNORED"; proc_rews eta_t ps)
                    | some => some)))
             else proc_rews eta_t ps;
   in
