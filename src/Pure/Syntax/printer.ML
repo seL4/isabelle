@@ -288,7 +288,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
-          in (Pretty.sym s :: Ts, args') end
+          in (Pretty.str s :: Ts, args') end
       | synT (Block (i, bsymbs) :: symbs, args) =
           let
             val (bTs, args') = synT (bsymbs, args);
@@ -305,7 +305,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
             then [Block (1, String "(" :: pr @ [String ")"])]
             else pr, args))
 
-    and prefixT (_, a, [], _) = [Pretty.sym a]
+    and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) =
           if c = Ast.Constant "_appl" orelse c = Ast.Constant "_applC" then
             error "Syntax insufficient for printing prefix applications!"
@@ -330,13 +330,13 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
               else prnt (prnps, tbs);
       in
         (case token_trans a args of     (*try token translation function*)
-          Some (s, len) => [Pretty.strlen_real s len]
+          Some s_len => [Pretty.raw_str s_len]
         | None =>			(*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
-      | astT (Ast.Variable x, _) = [Pretty.sym x]
+      | astT (Ast.Variable x, _) = [Pretty.str x]
       | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
