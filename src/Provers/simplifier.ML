@@ -26,6 +26,7 @@ sig
            finish_tac: thm list -> int -> tactic,
     unsafe_finish_tac: thm list -> int -> tactic};
   val print_ss: simpset -> unit
+  val print_simpset: theory -> unit
   val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
   val setloop:      simpset *             (int -> tactic) -> simpset
   val addloop:      simpset *             (int -> tactic) -> simpset
@@ -245,6 +246,8 @@ end;
 
 
 (* access simpset *)
+
+fun print_simpset thy = Display.print_data thy simpsetK;
 
 fun simpset_ref_of_sg sg =
   (case Sign.get_data sg simpsetK of
