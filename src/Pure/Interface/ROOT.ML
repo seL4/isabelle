@@ -1,8 +1,8 @@
 (*  Title:      Pure/Interface/ROOT.ML
     ID:         $Id$
 
-Miscellaneous interfaces.
+Specific support for user-interfaces.
 *)
 
-use "proof_general.ML";
 use "isamode.ML";
+use "proof_general.ML";
