@@ -18,9 +18,15 @@ sig
                        -> {functional:Preterm,
                            pats: pattern list}
 
-   val prim_wfrec_definition : Thry 
-                                -> {R:Preterm, functional:Preterm}
-                                -> {def:Thm, corollary:Thm, theory:Thry}
+   val wfrec_definition0 : Thry -> Preterm -> Preterm -> Thm * Thry
+
+   val post_definition : Thry * (Thm * pattern list)
+                              -> {theory : Thry,
+                                  rules  : Thm, 
+                                    TCs  : Preterm list list,
+                          full_pats_TCs  : (Preterm * Preterm list) list, 
+                               patterns  : pattern list}
+
 
    val wfrec_eqns : Thry -> Preterm
                      -> {WFR : Preterm, 
@@ -28,14 +34,6 @@ sig
                          extracta :(Thm * Preterm list) list,
                          pats  : pattern list}
 
-
-   val gen_wfrec_definition : Thry 
-                               -> {R:Preterm, eqs:Preterm}
-                               -> {theory:Thry,
-                                   rules :Thm, 
-                                     TCs : Preterm list list,
-                           full_pats_TCs :(Preterm * Preterm list) list, 
-                                   patterns : pattern list}
 
    val lazyR_def : Thry
                    -> Preterm
@@ -54,8 +52,6 @@ sig
                      -> Thry 
                       -> {rules:Thm, induction:Thm, TCs:Preterm list list}
                        -> {rules:Thm, induction:Thm, nested_tcs:Thm list}
-
-   val termination_goals : Thm -> Preterm list
 
    structure Context
      : sig

@@ -1,9 +1,9 @@
-structure Tfl
- :sig
+signature TFL = 
+  sig
    structure Prim : TFL_sig
 
-   val tgoalw : theory -> thm list -> thm -> thm list
-   val tgoal: theory -> thm -> thm list
+   val tgoalw : theory -> thm list -> thm list -> thm list
+   val tgoal: theory -> thm list -> thm list
 
    val WF_TAC : thm list -> tactic
 
@@ -12,27 +12,41 @@ structure Tfl
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val rfunction  : theory
-                     -> (thm list -> thm -> thm)
-                        -> term -> term  
-                          -> {induction:thm, rules:thm, 
-                              tcs:term list, theory:theory}
+   val define_i : theory -> term -> term -> theory * (thm * Prim.pattern list)
+   val define   : theory -> string -> string list -> theory * Prim.pattern list
 
-   val Rfunction : theory -> term -> term  
-                   -> {induction:thm, rules:thm, 
-                       theory:theory, tcs:term list}
+   val simplify_defn : theory * (string * Prim.pattern list)
+                        -> {rules:thm list, induct:thm, tcs:term list}
 
-   val function : theory -> term -> {theory:theory, eq_ind : thm}
-   val lazyR_def : theory -> term -> {theory:theory, eqns : thm}
+  (*-------------------------------------------------------------------------
+       val function : theory -> term -> {theory:theory, eq_ind : thm}
+       val lazyR_def: theory -> term -> {theory:theory, eqns : thm}
+   *-------------------------------------------------------------------------*)
 
    val tflcongs : theory -> thm list
 
-  end = 
+  end;
+
+
+structure Tfl: TFL =
 struct
  structure Prim = Prim
+ structure S = Prim.USyntax
 
- fun tgoalw thy defs thm = 
-    let val L = Prim.termination_goals thm
+(*---------------------------------------------------------------------------
+ * Extract termination goals so that they can be put it into a goalstack, or 
+ * have a tactic directly applied to them.
+ *--------------------------------------------------------------------------*)
+fun termination_goals rules = 
+    map (Logic.freeze_vars o S.drop_Trueprop)
+      (foldr (fn (th,A) => union_term (prems_of th, A)) (rules, []));
+
+ (*---------------------------------------------------------------------------
+  * Finds the termination conditions in (highly massaged) definition and 
+  * puts them into a goalstack.
+  *--------------------------------------------------------------------------*)
+ fun tgoalw thy defs rules = 
+    let val L = termination_goals rules
         open USyntax
         val g = cterm_of (sign_of thy) (mk_prop(list_mk_conj L))
     in goalw_cterm defs g
@@ -40,6 +54,9 @@ struct
 
  val tgoal = Utils.C tgoalw [];
 
+ (*---------------------------------------------------------------------------
+  * Simple wellfoundedness prover.
+  *--------------------------------------------------------------------------*)
  fun WF_TAC thms = REPEAT(FIRST1(map rtac thms))
  val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, 
                     wf_pred_nat, wf_pred_list, wf_trancl];
@@ -49,38 +66,62 @@ struct
                                            mem_Collect_eq,lessI]) 1
                   THEN TRY(fast_tac set_cs 1);
 
+val length_Cons = prove_goal List.thy "length(h#t) = Suc(length t)" 
+    (fn _ => [Simp_tac 1]);
+
  val simpls = [less_eq RS eq_reflection,
                lex_prod_def, measure_def, inv_image_def, 
                fst_conv RS eq_reflection, snd_conv RS eq_reflection,
-               mem_Collect_eq RS eq_reflection(*, length_Cons RS eq_reflection*)];
+               mem_Collect_eq RS eq_reflection, length_Cons RS eq_reflection];
 
+ (*---------------------------------------------------------------------------
+  * Does some standard things with the termination conditions of a definition:
+  * attempts to prove wellfoundedness of the given relation; simplifies the
+  * non-proven termination conditions; and finally attempts to prove the 
+  * simplified termination conditions.
+  *--------------------------------------------------------------------------*)
  val std_postprocessor = Prim.postprocess{WFtac = WFtac,
                                     terminator = terminator, 
                                     simplifier = Prim.Rules.simpl_conv simpls};
 
  val simplifier = rewrite_rule (simpls @ #simps(rep_ss HOL_ss) @ 
                                 [pred_nat_def,pred_list_def]);
+
  fun tflcongs thy = Prim.Context.read() @ (#case_congs(Thry.extract_info thy));
-
-
-local structure S = Prim.USyntax
-in
-fun func_of_cond_eqn tm =
-  #1(S.strip_comb(#lhs(S.dest_eq(#2(S.strip_forall(#2(S.strip_imp tm)))))))
-end;
 
 
 val concl = #2 o Prim.Rules.dest_thm;
 
 (*---------------------------------------------------------------------------
- * Defining a function with an associated termination relation. Lots of
- * postprocessing takes place.
+ * Defining a function with an associated termination relation. 
+ *---------------------------------------------------------------------------*)
+fun define_i thy R eqs = 
+  let val dummy = require_thy thy "WF_Rel" "recursive function definitions";
+      
+      val {functional,pats} = Prim.mk_functional thy eqs
+      val (thm,thry) = Prim.wfrec_definition0 thy  R functional
+  in (thry,(thm,pats))
+  end;
+
+(*lcp's version: takes strings; doesn't return "thm" 
+	(whose signature is a draft and therefore useless) *)
+fun define thy R eqs = 
+  let fun read thy = readtm (sign_of thy) (TVar(("DUMMY",0),[])) 
+      val (thy',(_,pats)) =
+	     define_i thy (read thy R) 
+	              (fold_bal (app Ind_Syntax.conj) (map (read thy) eqs))
+  in  (thy',pats)  end
+  handle Utils.ERR {mesg,...} => error mesg;
+
+(*---------------------------------------------------------------------------
+ * Postprocess a definition made by "define". This is a separate stage of 
+ * processing from the definition stage.
  *---------------------------------------------------------------------------*)
 local 
-structure S = Prim.USyntax
 structure R = Prim.Rules
 structure U = Utils
 
+(* The rest of these local definitions are for the tricky nested case *)
 val solved = not o U.can S.dest_eq o #2 o S.strip_forall o concl
 
 fun id_thm th = 
@@ -96,6 +137,7 @@ fun mk_meta_eq r = case concl_of r of
   |   _$(Const("op =",_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True
 fun rewrite L = rewrite_rule (map mk_meta_eq (Utils.filter(not o id_thm) L))
+fun reducer thl = rewrite (map standard thl @ #simps(rep_ss HOL_ss))
 
 fun join_assums th = 
   let val {sign,...} = rep_thm th
@@ -105,30 +147,28 @@ fun join_assums th =
       val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
       val cntxt = U.union S.aconv cntxtl cntxtr
   in 
-  R.GEN_ALL 
-  (R.DISCH_ALL 
-    (rewrite (map (R.ASSUME o tych) cntxt) (R.SPEC_ALL th)))
+    R.GEN_ALL 
+      (R.DISCH_ALL 
+         (rewrite (map (R.ASSUME o tych) cntxt) (R.SPEC_ALL th)))
   end
   val gen_all = S.gen_all
 in
-fun rfunction theory reducer R eqs = 
- let val _ = prs "Making definition..  "
-     val {rules,theory, full_pats_TCs,
-          TCs,...} = Prim.gen_wfrec_definition theory {R=R,eqs=eqs} 
-     val f = func_of_cond_eqn(concl(R.CONJUNCT1 rules handle _ => rules))
-     val _ = prs "Definition made.\n"
-     val _ = prs "Proving induction theorem..  "
-     val ind = Prim.mk_induction theory f R full_pats_TCs
-     val _ = prs "Proved induction theorem.\n"
-     val pp = std_postprocessor theory
-     val _ = prs "Postprocessing..  "
-     val {rules,induction,nested_tcs} = pp{rules=rules,induction=ind,TCs=TCs}
-     val normal_tcs = Prim.termination_goals rules
- in
- case nested_tcs
- of [] => (prs "Postprocessing done.\n";
-           {theory=theory, induction=induction, rules=rules,tcs=normal_tcs})
-  | L  => let val _ = prs "Simplifying nested TCs..  "
+(*---------------------------------------------------------------------------
+ * The "reducer" argument is 
+ *  (fn thl => rewrite (map standard thl @ #simps(rep_ss HOL_ss))); 
+ *---------------------------------------------------------------------------*)
+fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
+  let val dummy = output(std_out, "Proving induction theorem..  ")
+      val ind = Prim.mk_induction theory f R full_pats_TCs
+      val dummy = output(std_out, "Proved induction theorem.\n")
+      val pp = std_postprocessor theory
+      val dummy = output(std_out, "Postprocessing..  ")
+      val {rules,induction,nested_tcs} = pp{rules=rules,induction=ind,TCs=TCs}
+  in
+  case nested_tcs
+  of [] => (output(std_out, "Postprocessing done.\n");
+            {induction=induction, rules=rules,tcs=[]})
+  | L  => let val dummy = output(std_out, "Simplifying nested TCs..  ")
               val (solved,simplified,stubborn) =
                U.itlist (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -137,38 +177,65 @@ fun rfunction theory reducer R eqs =
               val simplified' = map join_assums simplified
               val induction' = reducer (solved@simplified') induction
               val rules' = reducer (solved@simplified') rules
-              val _ = prs "Postprocessing done.\n"
+              val dummy = output(std_out, "Postprocessing done.\n")
           in
           {induction = induction',
                rules = rules',
-                 tcs = normal_tcs @
-                      map (gen_all o S.rhs o #2 o S.strip_forall o concl)
-                           (simplified@stubborn),
-              theory = theory}
+                 tcs = map (gen_all o S.rhs o #2 o S.strip_forall o concl)
+                           (simplified@stubborn)}
           end
- end
- handle (e as Utils.ERR _) => Utils.Raise e
-     |     e               => print_exn e
+  end handle (e as Utils.ERR _) => Utils.Raise e
+          |   e                 => print_exn e;
 
 
-fun Rfunction thry = 
-     rfunction thry 
-       (fn thl => rewrite (map standard thl @ #simps(rep_ss HOL_ss)));
+(*lcp: put a theorem into Isabelle form, using meta-level connectives*)
+val meta_outer = 
+    standard o rule_by_tactic (REPEAT_FIRST (resolve_tac [allI, impI, conjI]));
 
 
+(*Strip off the outer !P*)
+val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
+
+
+fun simplify_defn (thy,(id,pats)) =
+   let val def = freezeT(get_def thy id  RS  meta_eq_to_obj_eq)
+       val {theory,rules,TCs,full_pats_TCs,patterns} = 
+		Prim.post_definition (thy,(def,pats))
+       val {lhs=f,rhs} = S.dest_eq(concl def)
+       val (_,[R,_]) = S.strip_comb rhs
+       val {induction, rules, tcs} = 
+             proof_stage theory reducer
+	       {f = f, R = R, rules = rules,
+		full_pats_TCs = full_pats_TCs,
+		TCs = TCs}
+       val rules' = map (standard o normalize_thm [RSmp]) (R.CONJUNCTS rules)
+   in  {induct = meta_outer
+	          (normalize_thm [RSspec,RSmp] (induction RS spec')), 
+	rules = rules', 
+	tcs = (termination_goals rules') @ tcs}
+   end
+  handle Utils.ERR {mesg,...} => error mesg
 end;
 
+(*---------------------------------------------------------------------------
+ *
+ *     Definitions with synthesized termination relation temporarily
+ *     deleted -- it's not clear how to integrate this facility with
+ *     the Isabelle theory file scheme, which restricts
+ *     inference at theory-construction time.
+ *
 
-local structure R = Prim.Rules
+local fun floutput s = (output(std_out,s); flush_out std_out)
+      structure R = Prim.Rules
 in
 fun function theory eqs = 
- let val _ = prs "Making definition..  "
+ let val dummy = floutput "Making definition..   "
      val {rules,R,theory,full_pats_TCs,...} = Prim.lazyR_def theory eqs
      val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-     val _ = prs "Definition made.\n"
-     val _ = prs "Proving induction theorem..  "
+     val dummy = floutput "Definition made.\n"
+     val dummy = floutput "Proving induction theorem..  "
      val induction = Prim.mk_induction theory f R full_pats_TCs
-     val _ = prs "Induction theorem proved.\n"
+     val dummy = floutput "Induction theorem proved.\n"
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end
@@ -183,8 +250,17 @@ fun lazyR_def theory eqs =
    end
    handle (e as Utils.ERR _) => Utils.Raise e
         |     e              => print_exn e;
+ *
+ *
+ *---------------------------------------------------------------------------*)
 
 
- val () = Prim.Context.write[Thms.LET_CONG, Thms.COND_CONG];
+
+
+(*---------------------------------------------------------------------------
+ * Install the basic context notions. Others (for nat and list and prod) 
+ * have already been added in thry.sml
+ *---------------------------------------------------------------------------*)
+val () = Prim.Context.write[Thms.LET_CONG, Thms.COND_CONG];
 
 end;

@@ -29,8 +29,7 @@ structure Utils = UTILS(val int_to_string = string_of_int);
  *      Supply implementations
  *---------------------------------------------------------------------------*)
 
-val _ = use_thy"WF1";          (* Wellfoundedness theory *)
-
+(* Ignore "Time" exception raised at end of building theory. *)
 use "usyntax.sml";
 use "thms.sml";
 use"dcterm.sml"; use"rules.new.sml";
@@ -45,4 +44,3 @@ structure Prim = TFL(structure Rules = FastRules
                      structure Thry  = Thry);
 
 use"post.sml";
-

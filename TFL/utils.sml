@@ -19,7 +19,7 @@ val ERR_string = info_string "Exception raised"
 val MESG_string = info_string "Message"
 end;
 
-fun Raise (e as ERR sss) = (prs (ERR_string sss); raise e)
+fun Raise (e as ERR sss) = (output(std_out, ERR_string sss);  raise e)
   | Raise e = raise e;
 
 

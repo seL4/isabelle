@@ -49,6 +49,14 @@ fun typecheck thry = cterm_of (sign_of thry);
  * refer to previous ones. The name for the new theory is automatically 
  * generated from the name of the argument theory.
  *---------------------------------------------------------------------------*)
+
+
+(*---------------------------------------------------------------------------
+ * TFL attempts to make definitions where the lhs is a variable. Isabelle
+ * wants it to be a constant, so here we map it to a constant. Moreover, the
+ * theory should already have the constant, so we refrain from adding the
+ * constant to the theory. We just add the axiom and return the theory.
+ *---------------------------------------------------------------------------*)
 local val (imp $ tprop $ (eeq $ _ $ _ )) = #prop(rep_thm(eq_reflection))
       val Const(eeq_name, ty) = eeq
       val prop = #2 (S.strip_type ty)
@@ -59,16 +67,13 @@ fun make_definition parent s tm =
        val lhs1 = S.mk_const{Name = Name, Ty = Ty}
        val eeq1 = S.mk_const{Name = eeq_name, Ty = Ty --> Ty --> prop}
        val dtm = S.list_mk_comb(eeq1,[lhs1,rhs])      (* Rename "=" to "==" *)
-       val thry1 = add_consts_i [(Name,Ty,NoSyn)] parent
-       val thry2 = add_defs_i [(s,dtm)] thry1
-       val parent_names = map ! (stamps_of_thy parent)
-       val newthy_name = variant parent_names (hd parent_names)
-       val new_thy = add_thyname newthy_name thry2
+       val (_, tm', _) = Sign.infer_types (sign_of parent)
+	             (K None) (K None) [] true ([dtm],propT)
+       val new_thy = add_defs_i [(s,tm')] parent
    in 
-   ((get_axiom new_thy s) RS meta_eq_to_obj_eq, new_thy)
-   end
+   (freezeT((get_axiom new_thy s) RS meta_eq_to_obj_eq), new_thy)
+   end;
 end;
-
 
 (*---------------------------------------------------------------------------
  * Utility routine. Insert into list ordered by the key (a string). If two 

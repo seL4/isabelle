@@ -2,9 +2,9 @@ structure Thms : Thms_sig =
 struct
    type Thm = Thm.thm
 
-   val WFREC_COROLLARY = get_thm WF1.thy "tfl_wfrec"
-   val WF_INDUCTION_THM = get_thm WF1.thy "tfl_wf_induct"
-   val CUT_LEMMA = get_thm WF1.thy "tfl_cut_apply"
+   val WFREC_COROLLARY = get_thm WF_Rel.thy "tfl_wfrec"
+   val WF_INDUCTION_THM = get_thm WF_Rel.thy "tfl_wf_induct"
+   val CUT_LEMMA = get_thm WF_Rel.thy "tfl_cut_apply"
    val CUT_DEF = cut_def
 
    local val _ = goal HOL.thy "!P x. P x --> P (Eps P)"

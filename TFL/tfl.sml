@@ -306,14 +306,17 @@ fun no_repeat_vars thy pat =
 local fun paired1{lhs,rhs} = (lhs,rhs) 
       and paired2{Rator,Rand} = (Rator,Rand)
       fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
+      fun single [f] = f
+	| single fs  = mk_functional_err (Int.toString (length fs) ^ 
+					  " distinct function names!")
 in
 fun mk_functional thy eqs =
  let val clauses = S.strip_conj eqs
      val (L,R) = U.unzip (map (paired1 o S.dest_eq o U.snd o S.strip_forall)
                               clauses)
      val (funcs,pats) = U.unzip(map (paired2 o S.dest_comb) L)
-     val [f] = U.mk_set (S.aconv) funcs 
-               handle _ => mk_functional_err "function name not unique"
+     val f = single (U.mk_set (S.aconv) funcs)
+     val fvar = if (S.is_var f) then f else S.mk_var(S.dest_const f)
      val _ = map (no_repeat_vars thy) pats
      val rows = U.zip (map (fn x => ([],[x])) pats) (map GIVEN (enumerate R))
      val fvs = S.free_varsl R
@@ -334,7 +337,8 @@ fun mk_functional thy eqs =
              of [] => ()
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
- in {functional = S.list_mk_abs ([f,a], case_tm),
+     val case_tm' = S.subst [f |-> fvar] case_tm
+ in {functional = S.list_mk_abs ([fvar,a], case_tm'),
      pats = patts2}
 end end;
 
@@ -346,39 +350,28 @@ end end;
  *---------------------------------------------------------------------------*)
 
 
-(*----------------------------------------------------------------------------
- * This basic principle of definition takes a functional M and a relation R
- * and specializes the following theorem
- *
- *    |- !M R f. (f = WFREC R M) ==> WF R ==> !x. f x = M (f%R,x) x
- *
- * to them (getting "th1", say). Then we make the definition "f = WFREC R M" 
- * and instantiate "th1" to the constant "f" (getting th2). Then we use the
- * definition to delete the first antecedent to th2. Hence the result in
- * the "corollary" field is 
- *
- *    |-  WF R ==> !x. f x = M (f%R,x) x
- *
+(*---------------------------------------------------------------------------
+ * R is already assumed to be type-copacetic with M
  *---------------------------------------------------------------------------*)
+local val f_eq_wfrec_R_M = 
+           #ant(S.dest_imp(#2(S.strip_forall (concl Thms.WFREC_COROLLARY))))
+      val {lhs=f, rhs} = S.dest_eq f_eq_wfrec_R_M
+      val fname = #Name(S.dest_var f)
+      val (wfrec,_) = S.strip_comb rhs
+in
+fun wfrec_definition0 thy R functional =
+ let val {Bvar,...} = S.dest_abs functional
+     val {Name, Ty} = S.dest_var Bvar  
+     val def_name = U.concat Name "_def"
+     val (_,ty_theta) = Thry.match_term thy f (S.mk_var{Name=fname,Ty=Ty})
+     val wfrec' = S.inst ty_theta wfrec
+     val wfrec_R_M' = S.list_mk_comb(wfrec',[R,functional])
+     val def_term = S.mk_eq{lhs=Bvar, rhs=wfrec_R_M'}
+  in 
+  Thry.make_definition thy def_name def_term
+  end
+end;
 
-fun prim_wfrec_definition thy {R, functional} =
- let val tych = Thry.typecheck thy
-     val {Bvar,...} = S.dest_abs functional
-     val {Name,...} = S.dest_var Bvar  (* Intended name of definition *)
-     val cor1 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
-     val cor2 = R.ISPEC (tych R) cor1
-     val f_eq_WFREC_R_M = (#ant o S.dest_imp o #Body 
-                           o S.dest_forall o concl) cor2
-     val {lhs,rhs} = S.dest_eq f_eq_WFREC_R_M
-     val {Ty, ...} = S.dest_var lhs
-     val def_term = S.mk_eq{lhs = S.mk_var{Name=Name,Ty=Ty}, rhs=rhs}
-     val (def_thm,thy1) = Thry.make_definition thy 
-                                  (U.concat Name "_def") def_term
-     val (_,[f,_]) = (S.strip_comb o concl) def_thm
-     val cor3 = R.ISPEC (Thry.typecheck thy1 f) cor2
- in 
- {theory = thy1, def=def_thm, corollary=R.MP cor3 def_thm}
- end;
 
 
 (*---------------------------------------------------------------------------
@@ -422,26 +415,16 @@ fun not_omitted (GIVEN(tm,_)) = tm
 val givens = U.mapfilter not_omitted;
 
 
-(*--------------------------------------------------------------------------
- * This is a wrapper for "prim_wfrec_definition": it builds a functional,
- * calls "prim_wfrec_definition", then specializes the result. This gives a
- * list of rewrite rules where the right hand sides are quite ugly, so we 
- * simplify to get rid of the case statements. In essence, this function
- * performs pre- and post-processing for patterns. As well, after
- * simplification, termination conditions are extracted.
- *-------------------------------------------------------------------------*)
-
-fun gen_wfrec_definition thy {R, eqs} =
- let val {functional,pats}  = mk_functional thy eqs
+fun post_definition (theory, (def, pats)) =
+ let val tych = Thry.typecheck theory 
+     val f = #lhs(S.dest_eq(concl def))
+     val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
      val given_pats = givens pats
-     val {def,corollary,theory} = prim_wfrec_definition thy
-                                        {R=R, functional=functional}
-     val tych = Thry.typecheck theory 
-     val {lhs=f,...} = S.dest_eq(concl def)
      val WFR = #ant(S.dest_imp(concl corollary))
+     val R = #Rand(S.dest_comb WFR)
      val corollary' = R.UNDISCH corollary  (* put WF R on assums *)
      val corollaries = map (U.C R.SPEC corollary' o tych) given_pats
-     val (case_rewrites,context_congs) = extraction_thms thy
+     val (case_rewrites,context_congs) = extraction_thms theory
      val corollaries' = map(R.simplify case_rewrites) corollaries
      fun xtract th = R.CONTEXT_REWRITE_RULE(f,R)
                          {thms = [(R.ISPECL o map tych)[f,R] Thms.CUT_LEMMA],
@@ -458,7 +441,6 @@ fun gen_wfrec_definition thy {R, eqs} =
   TCs = TCs, 
   patterns = pats}
  end;
-
 
 (*---------------------------------------------------------------------------
  * Perform the extraction without making the definition. Definition and
@@ -521,7 +503,7 @@ fun lazyR_def thy eqns =
                      def
      val body_th = R.LIST_CONJ (map (R.ASSUME o tych) full_rqt)
      val bar = R.MP (R.BETA_RULE(R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX))
-                     body_th
+                    body_th
  in {theory = theory, R=R1,
      rules = U.rev_itlist (U.C R.MP) (R.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (U.zip (givens pats) TCl),
@@ -904,19 +886,5 @@ in
   {induction = ind2, rules = R.LIST_CONJ rules2, nested_tcs = extras}
 end;
 
-
-(*---------------------------------------------------------------------------
- * Extract termination goals so that they can be put it into a goalstack, or 
- * have a tactic directly applied to them.
- *--------------------------------------------------------------------------*)
-local exception IS_NEG 
-      fun strip_imp tm = if S.is_neg tm then raise IS_NEG else S.strip_imp tm
-in
-fun termination_goals rules = 
-    U.itlist (fn th => fn A =>
-        let val tcl = (#1 o S.strip_imp o #2 o S.strip_forall o concl) th
-        in tcl@A
-        end handle _ => A) (R.CONJUNCTS rules) (hyp rules)
-end;
 
 end; (* TFL *)
