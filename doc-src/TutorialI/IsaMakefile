@@ -4,7 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive  HOL-Real-Types HOL-Misc styles
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive  HOL-Real-Types HOL-Misc HOL-Protocol styles
 images:
 test:
 all: default
@@ -170,7 +170,19 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
 	@rm -f tutorial.dvi
 
 
+## HOL-Protocol
+
+HOL-Protocol: HOL $(LOG)/HOL-Protocol.gz
+
+$(LOG)/HOL-Protocol.gz: $(OUT)/HOL Protocol/ROOT.ML  \
+  Protocol/Message.thy Protocol/Message_lemmas.ML  \
+  Protocol/Event.thy Protocol/Event_lemmas.ML  \
+  Protocol/Public.thy Protocol/Public_lemmas.ML \
+  Protocol/NS_Public.thy    
+	$(USEDIR) Protocol
+	@rm -f tutorial.dvi
+
 ## clean
 
 clean:
-	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz $(LOG)/HOL-Types.gz
+	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz $(LOG)/HOL-Types.gz $(LOG)/HOL-Protocol.gz
