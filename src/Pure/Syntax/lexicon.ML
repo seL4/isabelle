@@ -45,6 +45,9 @@ sig
   val string_of_vname: indexname -> string
   val scan_varname: string list -> indexname * string list
   val scan_var: string -> term
+  val const: string -> term
+  val free: string -> term
+  val var: indexname -> term
 end;
 
 signature LEXICON =
@@ -59,11 +62,13 @@ sig
     VarSy of string |
     TFreeSy of string |
     TVarSy of string |
+    NumSy of string |
+    StrSy of string |
     EndToken
-  val id: string
-  val var: string
-  val tid: string
-  val tvar: string
+  val idT: typ
+  val varT: typ
+  val tidT: typ
+  val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
   val str_of_token: token -> string
@@ -119,17 +124,19 @@ datatype token =
   VarSy of string |
   TFreeSy of string |
   TVarSy of string |
+  NumSy of string |
+  StrSy of string |
   EndToken;
 
 
 (* terminal arguments *)
 
-val id = "id";
-val var = "var";
-val tid = "tid";
-val tvar = "tvar";
+val idT = Type ("id", []);
+val varT = Type ("var", []);
+val tidT = Type ("tid", []);
+val tvarT = Type ("tvar", []);
 
-val terminals = [id, var, tid, tvar];
+val terminals = ["id", "var", "tid", "tvar", "xnum", "xstr"];
 
 fun is_terminal s = s mem terminals;
 
@@ -141,6 +148,8 @@ fun str_of_token (Token s) = s
   | str_of_token (VarSy s) = s
   | str_of_token (TFreeSy s) = s
   | str_of_token (TVarSy s) = s
+  | str_of_token (NumSy s) = s
+  | str_of_token (StrSy s) = s
   | str_of_token EndToken = "EOF";
 
 
@@ -151,6 +160,8 @@ fun display_token (Token s) = quote s
   | display_token (VarSy s) = "var(" ^ s ^ ")"
   | display_token (TFreeSy s) = "tid(" ^ s ^ ")"
   | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
+  | display_token (NumSy s) = "xnum(" ^ s ^ ")"
+  | display_token (StrSy s) = "xstr(" ^ s ^ ")"
   | display_token EndToken = "";
 
 
@@ -161,6 +172,8 @@ fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens (VarSy _, VarSy _) = true
   | matching_tokens (TFreeSy _, TFreeSy _) = true
   | matching_tokens (TVarSy _, TVarSy _) = true
+  | matching_tokens (NumSy _, NumSy _) = true
+  | matching_tokens (StrSy _, StrSy _) = true
   | matching_tokens (EndToken, EndToken) = true
   | matching_tokens _ = false;
 
@@ -184,17 +197,20 @@ fun valued_token (Token _) = false
   | valued_token (VarSy _) = true
   | valued_token (TFreeSy _) = true
   | valued_token (TVarSy _) = true
+  | valued_token (NumSy _) = true
+  | valued_token (StrSy _) = true
   | valued_token EndToken = false;
 
 
 (* predef_term *)
 
-fun predef_term name =
-  if name = id then Some (IdentSy name)
-  else if name = var then Some (VarSy name)
-  else if name = tid then Some (TFreeSy name)
-  else if name = tvar then Some (TVarSy name)
-  else None;
+fun predef_term "id" = Some (IdentSy "id")
+  | predef_term "var" = Some (VarSy "var")
+  | predef_term "tid" = Some (TFreeSy "tid")
+  | predef_term "tvar" = Some (TVarSy "tvar")
+  | predef_term "xnum" = Some (NumSy "xnum")
+  | predef_term "xstr" = Some (StrSy "xstr")
+  | predef_term _ = None;
 
 
 
@@ -333,6 +349,8 @@ val scan_tid = $$ "'" ^^ scan_id;
 
 val scan_nat = scan_digits1 >> implode;
 
+val scan_int = $$ "~" ^^ scan_nat || scan_nat;
+
 
 (* scan_literal *)
 
@@ -362,21 +380,36 @@ fun tokenize lex xids str =
 
     val scan_lit = scan_literal lex >> pair Token;
 
-    val scan_ident =
+    val scan_val =
       $$ "?" ^^ $$ "'" ^^ scan_id_nat >> pair TVarSy ||
       $$ "?" ^^ scan_id_nat >> pair VarSy ||
       $$ "'" ^^ scan_id >> pair TFreeSy ||
+      $$ "#" ^^ scan_int >> pair NumSy ||
       scan_xid >> pair IdentSy;
 
-    fun scan_tokens [] rev_toks = rev (EndToken :: rev_toks)
-      | scan_tokens (chs as c :: cs) rev_toks =
-          if is_blank c then scan_tokens cs rev_toks
+    fun scan_str ("'" :: "'" :: cs) = ([], cs)
+      | scan_str ("\\" :: c :: cs) = apfst (cons c) (scan_str cs)
+      | scan_str (c :: cs) = apfst (cons c) (scan_str cs)
+      | scan_str [] = raise ERROR;
+
+
+    fun scan (rev_toks, []) = rev (EndToken :: rev_toks)
+      | scan (rev_toks, chs as "'" :: "'" :: cs) =
+          let
+            val (cs', cs'') = scan_str cs handle ERROR =>
+              error ("Lexical error: missing quotes at end of string " ^
+                quote (implode chs));
+          in
+            scan (StrSy (implode cs') :: rev_toks, cs'')
+          end
+      | scan (rev_toks, chs as c :: cs) =
+          if is_blank c then scan (rev_toks, cs)
           else
-            (case max_of scan_lit scan_ident chs of
+            (case max_of scan_lit scan_val chs of
               (None, _) => error ("Lexical error at: " ^ quote (implode chs))
-            | (Some (tk, s), chs') => scan_tokens chs' (tk s :: rev_toks));
+            | (Some (tk, s), chs') => scan (tk s :: rev_toks, chs'));
   in
-    scan_tokens (explode str) []
+    scan ([], explode str)
   end;
 
 
@@ -415,11 +448,13 @@ fun scan_varname chs =
 
 (* scan_var *)
 
+fun const c = Const (c, dummyT);
+fun free x = Free (x, dummyT);
+fun var xi = Var (xi, dummyT);
+
 fun scan_var str =
   let
-    fun tvar (x, i) = Var (("'" ^ x, i), dummyT);
-    fun var x_i = Var (x_i, dummyT);
-    fun free x = Free (x, dummyT);
+    fun tvar (x, i) = var ("'" ^ x, i);
 
     val scan =
       $$ "?" -- $$ "'" -- scan_vname -- scan_end >> (tvar o #2 o #1) ||
