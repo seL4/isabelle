@@ -76,32 +76,6 @@ by (induct_tac "a" 1);
  by (Asm_full_simp_tac 1);
  by (pair_tac "s2" 1);
  by (Force_tac 1);
-(* ---- 
- by (exhaust_tac "cert!Suc pc" 1);
-  by (exhaust_tac "cert!pc" 1);
-   by (Force_tac 1);
- by (res_inst_tac [("x","fst aa")] exI 1);
- by (res_inst_tac [("x","snd aa")] exI 1);
-  by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
- by (exhaust_tac "cert!pc" 1);
-  by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
- by (Asm_full_simp_tac 1);
-  by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
- 
-
-  by (exhaust_tac "cert!pc" 1);
-   by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
-   by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
-   by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
-
-
- by (res_inst_tac [("x","x")] exI 1);
- by (res_inst_tac [("x","y")] exI 1);
- by (exhaust_tac "cert!pc" 1);
-  by (exhaust_tac "cert!Suc pc" 1);
-   by (Force_tac 1);
-  by (force_tac (claset(), simpset() addsimps [wtl_inst_option_def]) 1);
- ------- *)
 by (Clarify_tac 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
