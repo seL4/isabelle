@@ -23,7 +23,7 @@ consts
   acc :: "('a \<times> 'a) set => 'a set"
 inductive "acc r"
   intros
-    accI [rule_format]: "\<forall>y. (y, x) \<in> r --> y \<in> acc r ==> x \<in> acc r"
+    accI: "(!!y. (y, x) \<in> r ==> y \<in> acc r) ==> x \<in> acc r"
 
 syntax
   termi :: "('a \<times> 'a) set => 'a set"
@@ -33,7 +33,7 @@ translations
 
 subsection {* Induction rules *}
 
-theorem acc_induct [induct set: acc]:
+theorem acc_induct:
   "a \<in> acc r ==>
     (!!x. x \<in> acc r ==> \<forall>y. (y, x) \<in> r --> P y ==> P x) ==> P a"
 proof -
@@ -47,6 +47,8 @@ proof -
     apply fast
     done
 qed
+
+theorems acc_induct_rule = acc_induct [rule_format, induct set: acc]
 
 theorem acc_downward: "b \<in> acc r ==> (a, b) \<in> r ==> a \<in> acc r"
   apply (erule acc.elims)
