@@ -29,9 +29,9 @@ THYS = Porder.thy Porder0.thy Pcpo.thy \
        Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
        Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy \
        One.thy Tr.thy \
-       Lift1.thy Lift2.thy Lift3.thy HOLCF.thy 
+       Lift1.thy Lift2.thy Lift3.thy Lift.thy HOLCF.thy 
 
-ONLYTHYS = Lift.thy
+ONLYTHYS = 
 
 FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) \
         ax_ops/holcflogic.ML ax_ops/thy_axioms.ML \

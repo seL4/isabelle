@@ -57,7 +57,7 @@ val while_unfold2 = prove_goal Loop.thy
         (asm_simp_tac HOLCF_ss 1),
         (stac while_unfold 1),
         (res_inst_tac [("s","UU"),("t","b`UU")]ssubst 1),
-        (etac (flat_flat RS flat_codom RS disjE) 1),
+        (etac (flat_codom RS disjE) 1),
         (atac 1),
         (etac spec 1),
         (simp_tac HOLCF_ss 1),
@@ -92,7 +92,7 @@ val loop_lemma1 = prove_goal Loop.thy
         (rtac step_def2 1),
         (asm_simp_tac HOLCF_ss 1),
         (etac exE 1),
-        (etac (flat_flat RS flat_codom RS disjE) 1),
+        (etac (flat_codom RS disjE) 1),
         (asm_simp_tac HOLCF_ss 1),
         (asm_simp_tac HOLCF_ss 1)
         ]);

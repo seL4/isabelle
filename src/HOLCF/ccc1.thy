@@ -9,7 +9,7 @@ define constants for categorical reasoning
 
 ccc1 = Cprod3 + Sprod3 + Ssum3 + Up3 + Fix + 
 
-instance flat<chfin (flat_subclass_chfin)
+instance flat<chfin (flat_imp_chain_finite)
 
 consts
         ID      :: "('a::cpo) -> 'a"

@@ -47,7 +47,8 @@ qed_goal "iterator3" Dnat.thy
 val iterator_rews = 
 	[iterator1, iterator2, iterator3];
 
-val dnat_flat = prove_goalw Dnat.thy [flat_def] "flat(x::dnat)" (fn _ => [
+val dnat_flat = prove_goal Dnat.thy "!x y::dnat.x<<y --> x=UU | x=y" 
+(fn _ => [
 	(rtac allI 1),
 	(res_inst_tac [("x","x")] dnat.ind 1),
 	(fast_tac HOL_cs 1),

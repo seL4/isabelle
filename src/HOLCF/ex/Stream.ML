@@ -44,14 +44,15 @@ qed_goal "stream_prefix" thy
 	fast_tac (HOL_cs addDs stream.inverts) 1]);
 
 qed_goal "stream_flat_prefix" thy 
-"[| x && xs << y && ys; (x::'a) ~= UU; flat (z::'a) |] ==> x = y &  xs << ys"(fn prems=>[
+"[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
+(fn prems=>[
 	cut_facts_tac prems 1,
+	(cut_facts_tac [read_instantiate[("x1","x::'a::flat"),("x","y::'a::flat")]
+		(ax_flat RS spec RS spec)] 1),
 	(forward_tac stream.inverts 1),
 	(safe_tac HOL_cs),
 	(dtac (hd stream.con_rews RS subst) 1),
-	(fast_tac (HOL_cs addDs ((eq_UU_iff RS iffD2)::stream.con_rews)) 1),
-	(rewtac flat_def),
-	(fast_tac HOL_cs 1)]);
+	(fast_tac (HOL_cs addDs ((eq_UU_iff RS iffD2)::stream.con_rews)) 1)]);
 
 qed_goal "stream_prefix'" thy "b ~= UU ==> x << b && z = \
 \(x = UU |  (? a y. x = a && y &  a ~= UU &  a << b &  y << z))" (fn prems => [

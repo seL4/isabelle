@@ -550,114 +550,71 @@ qed_goalw "adm_max_in_chain"  thy  [adm_def]
         (etac spec 1)
         ]);
 
-qed_goalw "adm_chain_finite"  thy  [chain_finite_def]
-        "chain_finite(x::'a) ==> adm(P::'a=>bool)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac adm_max_in_chain 1)
-        ]);
+bind_thm ("adm_chain_finite" ,chfin RS adm_max_in_chain);
 
 (* ------------------------------------------------------------------------ *)
 (* flat types are chain_finite                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flat_imp_chain_finite"  thy  [flat_def,chain_finite_def]
-        "flat(x::'a)==>chain_finite(x::'a)"
- (fn prems =>
+qed_goalw "flat_imp_chain_finite" thy [max_in_chain_def]
+        "!Y::nat=>'a::flat.is_chain Y-->(? n.max_in_chain n Y)"
+ (fn _ =>
         [
-        (rewtac max_in_chain_def),
-        (cut_facts_tac prems 1),
         (strip_tac 1),
         (case_tac "!i.Y(i)=UU" 1),
         (res_inst_tac [("x","0")] exI 1),
+	(Asm_simp_tac 1),
+ 	(Asm_full_simp_tac 1),
+ 	(etac exE 1),
+        (res_inst_tac [("x","i")] exI 1),
         (strip_tac 1),
-        (rtac trans 1),
-        (etac spec 1),
-        (rtac sym 1),
-        (etac spec 1),
-        (rtac (chain_mono2 RS exE) 1),
-        (fast_tac HOL_cs 1),
-        (atac 1),
-        (res_inst_tac [("x","Suc(x)")] exI 1),
-        (strip_tac 1),
-        (rtac disjE 1),
-        (atac 3),
-        (rtac mp 1),
-        (dtac spec 1),
-        (etac spec 1),
+        (dres_inst_tac [("x","i"),("y","j")] chain_mono 1),
         (etac (le_imp_less_or_eq RS disjE) 1),
-        (etac (chain_mono RS mp) 1),
-        (atac 1),
-        (hyp_subst_tac 1),
-        (rtac refl_less 1),
-        (res_inst_tac [("P","Y(Suc(x)) = UU")] notE 1),
-        (atac 2),
-        (rtac mp 1),
-        (etac spec 1),
-        (Asm_simp_tac 1)
+	(safe_tac HOL_cs),
+	(dtac (ax_flat RS spec RS spec RS mp) 1),
+	(fast_tac HOL_cs 1)
         ]);
 
-
-bind_thm ("adm_flat", flat_imp_chain_finite RS adm_chain_finite);
-(* flat(?x::?'a) ==> adm(?P::?'a => bool) *)
+(* flat subclass of chfin --> adm_flat not needed *)
 
 (* ------------------------------------------------------------------------ *)
 (* some properties of flat			 			    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "flatI" thy [flat_def] "!x y::'a.x<<y-->x=UU|x=y==>flat(x::'a)"
-(fn prems => [rtac (hd(prems)) 1]);
-
-qed_goalw "flatE" thy [flat_def] "flat(x::'a)==>!x y::'a.x<<y-->x=UU|x=y"
-(fn prems => [rtac (hd(prems)) 1]);
-
-qed_goalw "flat_flat" thy [flat_def] "flat(x::'a::flat)"
-(fn prems => [rtac ax_flat 1]);
-
-qed_goalw "flatdom2monofun" thy [flat_def] 
-  "[| flat(x::'a::pcpo); f UU = UU |] ==> monofun (f::'a=>'b::pcpo)" 
+qed_goalw "flatdom2monofun" thy [monofun]
+  "f UU = UU ==> monofun (f::'a::flat=>'b::pcpo)" 
 (fn prems => 
 	[
 	cut_facts_tac prems 1,
-	fast_tac ((HOL_cs addss !simpset) addSIs [monofunI]) 1
+	strip_tac 1,
+	dtac (ax_flat RS spec RS spec RS mp) 1,
+	fast_tac ((HOL_cs addss !simpset)) 1
 	]);
 
-
-qed_goalw "flat_eq" thy [flat_def] 
-        "[| flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
-        (cut_facts_tac prems 1),
-        (fast_tac (HOL_cs addIs [refl_less]) 1)]);
+qed_goal "flat_eq" thy "(a::'a::flat) ~= UU ==> a << b = (a = b)" 
+(fn prems=>
+	[
+        cut_facts_tac prems 1,
+        safe_tac (HOL_cs addSIs [refl_less]),
+	dtac (ax_flat RS spec RS spec RS mp) 1,
+	fast_tac (HOL_cs addSIs [refl_less,ax_flat RS spec RS spec RS mp]) 1
+	]);
 
 
 (* ------------------------------------------------------------------------ *)
 (* some lemmata for functions with flat/chain_finite domain/range types	    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chfinI" thy [chain_finite_def] 
-  "!Y::nat=>'a.is_chain Y-->(? n.max_in_chain n Y)==>chain_finite(x::'a)"
-(fn prems => [rtac (hd(prems)) 1]);
-
-qed_goalw "chfinE" Fix.thy [chain_finite_def] 
-  "chain_finite(x::'a)==>!Y::nat=>'a.is_chain Y-->(? n.max_in_chain n Y)"
-(fn prems => [rtac (hd(prems)) 1]);
-
-qed_goalw "chfin_chfin" thy [chain_finite_def] "chain_finite(x::'a::chfin)"
-(fn prems => [rtac ax_chfin 1]);
-
 qed_goal "chfin2finch" thy 
-    "[| is_chain (Y::nat=>'a); chain_finite(x::'a) |] ==> finite_chain Y"
-(fn prems => 
+    "is_chain (Y::nat=>'a::chfin) ==> finite_chain Y"
+	(fn prems => 
 	[
 	cut_facts_tac prems 1,
 	fast_tac (HOL_cs addss 
-		 (!simpset addsimps [chain_finite_def,finite_chain_def])) 1
+		 (!simpset addsimps [chfin,finite_chain_def])) 1
 	]);
 
-bind_thm("flat_subclass_chfin",flat_flat RS flat_imp_chain_finite RS chfinE);
-
-qed_goal "chfindom_monofun2cont" thy 
-  "[| chain_finite(x::'a::pcpo); monofun f |] ==> cont (f::'a=>'b::pcpo)"
+qed_goal "chfindom_monofun2cont" thy  "monofun f ==> cont(f::'a::chfin=>'b::pcpo)"
 (fn prems => 
 	[
 	cut_facts_tac prems 1,
@@ -665,55 +622,42 @@ qed_goal "chfindom_monofun2cont" thy
 	 atac 1,
 	rtac contlubI 1,
 	strip_tac 1,
-	dtac (chfin2finch COMP swap_prems_rl) 1,
-	 atac 1,
+	forward_tac [chfin2finch] 1,
 	rtac antisym_less 1,
 	 fast_tac ((HOL_cs addIs [is_ub_thelub,ch2ch_monofun]) 
 	     addss (HOL_ss addsimps [finite_chain_def,maxinch_is_thelub])) 1,
 	dtac (monofun_finch2finch COMP swap_prems_rl) 1,
 	 atac 1,
-	fast_tac ((HOL_cs 
-	    addIs [is_ub_thelub,(monofunE RS spec RS spec RS mp)]) 
-	    addss (HOL_ss addsimps [finite_chain_def,maxinch_is_thelub])) 1
+	asm_full_simp_tac (HOL_ss addsimps [finite_chain_def]) 1,
+	etac conjE 1, etac exE 1,
+	asm_full_simp_tac (HOL_ss addsimps [maxinch_is_thelub]) 1,
+	etac (monofunE RS spec RS spec RS mp) 1,
+	etac is_ub_thelub 1
 	]);
 
-bind_thm("flatdom_monofun2cont",flat_imp_chain_finite RS chfindom_monofun2cont);
-(* [| flat ?x; monofun ?f |] ==> cont ?f *)
 
-qed_goal "flatdom_strict2cont" thy 
-  "[| flat(x::'a::pcpo); f UU = UU |] ==> cont (f::'a=>'b::pcpo)" 
-(fn prems =>
-	[
-	cut_facts_tac prems 1,
-	fast_tac ((HOL_cs addSIs [flatdom2monofun,
-			flat_imp_chain_finite RS chfindom_monofun2cont])) 1
-	]);
+bind_thm ("flatdom_strict2cont",flatdom2monofun RS chfindom_monofun2cont);
+(* f UU = UU ==> cont (f::'a=>'b::pcpo)" *)
 
 qed_goal "chfin_fappR" thy 
-    "[| is_chain (Y::nat => 'a::cpo->'b); chain_finite(x::'b) |] ==> \
-\    !s. ? n. lub(range(Y))`s = Y n`s" 
+    "is_chain (Y::nat => 'a::cpo->'b::chfin)==> !s. ? n. lub(range(Y))`s = Y n`s" 
 (fn prems => 
 	[
 	cut_facts_tac prems 1,
 	rtac allI 1,
 	rtac (contlub_cfun_fun RS ssubst) 1,
 	 atac 1,
-	fast_tac (HOL_cs addSIs [thelubI,lub_finch2,chfin2finch,ch2ch_fappL])1
+	fast_tac (HOL_cs addSIs [thelubI,chfin,lub_finch2,chfin2finch,ch2ch_fappL])1
 	]);
 
-qed_goalw "adm_chfindom" thy [adm_def]
-    "chain_finite (x::'b) ==> adm (%(u::'a::cpo->'b). P(u`s))"
-    (fn prems => [
-	cut_facts_tac prems 1,
+qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
+    (fn _ => [
 	strip_tac 1,
 	dtac chfin_fappR 1,
-	 atac 1,
 	eres_inst_tac [("x","s")] allE 1,
-	fast_tac (HOL_cs addss !simpset) 1]);
+	fast_tac (HOL_cs addss (!simpset addsimps [chfin])) 1]);
 
-bind_thm("adm_flatdom",flat_imp_chain_finite RS adm_chfindom);
-(* flat ?x ==> adm (%u. ?P (u`?s)) *)
-
+(* adm_flat not needed any more, since it is a special case of adm_chfindom *)
 
 (* ------------------------------------------------------------------------ *)
 (* lemmata for improved admissibility introdution rule                      *)
@@ -809,9 +753,9 @@ qed_goal "isoabs_defined" thy
 (* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chfin2chfin"  thy  [chain_finite_def]
-"!!f g.[|chain_finite(x::'a); !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
-\ ==> chain_finite(y::'b)"
+qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. is_chain Y --> (? n. max_in_chain n Y); \
+\ !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a::chfin) |] \
+\ ==> ! Y::nat=>'b. is_chain Y --> (? n. max_in_chain n Y)"
  (fn prems =>
         [
         (rewtac max_in_chain_def),
@@ -832,9 +776,9 @@ qed_goalw "chfin2chfin"  thy  [chain_finite_def]
         (atac 1)
         ]);
 
-qed_goalw "flat2flat"  thy  [flat_def]
-"!!f g.[|flat(x::'a); !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
-\ ==> flat(y::'b)"
+
+qed_goal "flat2flat" thy "!!f g.[|!x y::'a.x<<y --> x=UU | x=y; \
+\ !y.f`(g`y)=(y::'b); !x.g`(f`x)=(x::'a)|] ==> !x y::'b.x<<y --> x=UU | x=y"
  (fn prems =>
         [
         (strip_tac 1),
@@ -863,8 +807,8 @@ qed_goalw "flat2flat"  thy  [flat_def]
 (* a result about functions with flat codomain                               *)
 (* ------------------------------------------------------------------------- *)
 
-qed_goalw "flat_codom" thy [flat_def]
-"[|flat(y::'b);f`(x::'a)=(c::'b)|] ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
+qed_goal "flat_codom" thy 
+"f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -878,23 +822,15 @@ qed_goalw "flat_codom" thy [flat_def]
         (etac disjI1 1),
         (rtac disjI2 1),
         (rtac allI 1),
-        (res_inst_tac [("s","f`x"),("t","c")] subst 1),
-        (atac 1),
+        (hyp_subst_tac 1),
         (res_inst_tac [("a","f`(UU::'a)")] (refl RS box_equals) 1),
-        (etac allE 1),(etac allE 1),
-        (dtac mp 1),
-        (res_inst_tac [("fo","f")] (minimal RS monofun_cfun_arg) 1),
-        (etac disjE 1),
-        (contr_tac 1),
-        (atac 1),
-        (etac allE 1),
-        (etac allE 1),
-        (dtac mp 1),
-        (res_inst_tac [("fo","f")] (minimal RS monofun_cfun_arg) 1),
-        (etac disjE 1),
-        (contr_tac 1),
-        (atac 1)
-        ]);
+        (res_inst_tac [("fo5","f")] ((minimal RS monofun_cfun_arg) RS 
+		(ax_flat RS spec RS spec RS mp) RS disjE) 1),
+	(contr_tac 1),(atac 1),
+        (res_inst_tac [("fo5","f")] ((minimal RS monofun_cfun_arg) RS 
+		(ax_flat RS spec RS spec RS mp) RS disjE) 1),
+	(contr_tac 1),(atac 1)
+]);
 
 (* ------------------------------------------------------------------------ *)
 (* admissibility of special formulae and propagation                        *)
