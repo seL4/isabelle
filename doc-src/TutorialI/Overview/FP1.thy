@@ -141,11 +141,9 @@ by(arith)
 
 subsubsection{*Tracing*}
 
-ML "set trace_simp"
 lemma "rev [a] = []"
 apply(simp)
 oops
-ML "reset trace_simp"
 
 
 
@@ -193,22 +191,9 @@ primrec
 theorem "exec (comp e) s [] = [value e s]";
 oops
 
-theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
-oops
-
-lemma exec_app[simp]:
-  "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
-apply(induct_tac xs)
-apply(simp)
-apply(simp split: instr.split)
-done
-
-theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
-by(induct_tac e, auto)
 
 
-
-subsection{*Advanced Datatupes*}
+subsection{*Advanced Datatypes*}
 
 
 subsubsection{*Mutual Recursion*}
@@ -279,8 +264,11 @@ apply(induct_tac t and ts)
 apply simp_all
 oops
 
-lemma "mirrors ts = rev(map mirror ts)"
-by(induct ts, simp_all)
+text{*
+\begin{exercise}
+Complete the above proof.
+\end{exercise}
+*}
 
 
 subsubsection{*Datatypes Involving Functions*}
@@ -302,5 +290,11 @@ done
 (* This is NOT allowed:
 datatype lambda = C "lambda \<Rightarrow> lambda"
 *)
+
+text{*
+\begin{exercise}
+Define a datatype of ordinals and the ordinal Gamma0.
+\end{exercise}
+*}
 
 end

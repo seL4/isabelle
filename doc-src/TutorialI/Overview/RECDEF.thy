@@ -75,4 +75,11 @@ apply(induct_tac t rule: mirror.induct)
 apply(simp add:rev_map sym[OF map_compose] cong:map_cong)
 done
 
+text{*
+\begin{exercise}
+Define a function for merging two ordered lists (of natural numbers) and
+show that if the two input lists are ordered, so is the output.
+\end{exercise}
+*}
+
 end
