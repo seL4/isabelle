@@ -21,6 +21,7 @@ sig
   val parser: bool -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val print_outer_syntax: unit -> unit
+  val commands: unit -> string list
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val get_header: Position.T -> (string, 'a) Source.source -> (bstring * bstring list) option
@@ -70,6 +71,8 @@ fun command cmd =
 
 val global_lexicon = ref Scan.empty_lexicon;
 val global_parsers = ref (Symtab.empty: (string * (bool * parser_fn)) Symtab.table);
+
+fun commands () = Symtab.keys (! global_parsers);
 
 
 (* print syntax *)
@@ -194,7 +197,6 @@ fun help () =
 
 
 end;
-
 
 structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
 open BasicOuterSyntax;
