@@ -179,7 +179,7 @@ by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
 
-(*** The Key K uniquely identifies the Server's  message. **)
+(*** The Key K uniquely identifies the Server's message. **)
 
 goal thy 
  "!!evs. evs : otway ==>                                            \
