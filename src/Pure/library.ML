@@ -92,6 +92,7 @@ sig
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val length: 'a list -> int
@@ -486,6 +487,7 @@ fun foldr1 f l =
   in  itr l  end;
 
 fun fold f xs y = foldl (fn (y', x) => f x y') (y, xs);
+fun fold_rev f xs y = foldr (fn (x, y') => f x y') (xs, y);
 
 fun foldl_map _ (x, []) = (x, [])
   | foldl_map f (x, y :: ys) =
