@@ -73,7 +73,7 @@ fun args_of [] xs = ([], xs)
   | args_of (Ignore :: ms) (_ :: xs) = args_of ms xs
   | args_of (_ :: ms) xs = args_of ms xs;
 
-val num_args = length o filter is_arg;
+fun num_args x = length (filter is_arg x);
 
 
 (**** theory data ****)
