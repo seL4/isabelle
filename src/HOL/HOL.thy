@@ -51,7 +51,7 @@ consts
 
   (* Infixes *)
 
-  o             :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixr 50)
+  o             :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl 55)
   "="           :: "['a, 'a] => bool"                 (infixl 50)
   "&"           :: "[bool, bool] => bool"             (infixr 35)
   "|"           :: "[bool, bool] => bool"             (infixr 30)
