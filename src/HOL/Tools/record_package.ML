@@ -63,10 +63,9 @@ val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 
 
-(* fundamental syntax *)
+(* syntax *)
 
 fun prune n xs = Library.drop (n, xs);
-
 fun prefix_base s = NameSpace.map_base (fn bname => s ^ bname);
 
 val Trueprop = HOLogic.mk_Trueprop;
@@ -82,7 +81,14 @@ val (op ===) = Trueprop o HOLogic.mk_eq;
 val (op ==>) = Logic.mk_implies;
 
 
-(* proof tools *)
+(* attributes *)
+
+val case_names_fields = RuleCases.case_names ["fields"];
+fun induct_type_global name = [case_names_fields, InductAttrib.induct_type_global name];
+fun cases_type_global name = [case_names_fields, InductAttrib.cases_type_global name];
+
+
+(* tactics *)
 
 fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps simps));
 
@@ -106,7 +112,6 @@ val updateN = "_update";
 val makeN = "make";
 val extendN = "extend";
 val truncateN = "truncate";
-val fieldsN = "fields";
 
 
 (*see typedef_package.ML*)
@@ -462,23 +467,23 @@ fun add_parents thy None parents = parents
       let
         val sign = Theory.sign_of thy;
         fun err msg = error (msg ^ " parent record " ^ quote name);
-    
+
         val {args, parent, fields, field_inducts, field_cases, simps} =
           (case get_record thy name of Some info => info | None => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
-    
+
         fun bad_inst ((x, S), T) =
           if Sign.of_sort sign (T, S) then None else Some x
         val bads = mapfilter bad_inst (args ~~ types);
-    
+
         val inst = map fst args ~~ types;
         val subst = Term.map_type_tfree (fn (x, _) => the (assoc (inst, x)));
         val parent' = apsome (apfst (map subst)) parent;
         val fields' = map (apsnd subst) fields;
       in
-        if not (null bads) then
-          err ("Ill-sorted instantiation of " ^ commas bads ^ " in")
-        else add_parents thy parent'
+        conditional (not (null bads)) (fn () =>
+          err ("Ill-sorted instantiation of " ^ commas bads ^ " in"));
+        add_parents thy parent'
           (make_parent_info name fields' field_inducts field_cases simps :: parents)
       end;
 
@@ -545,6 +550,7 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 val record_split_method =
   ("record_split", Method.no_args (Method.SIMPLE_METHOD' HEADGOAL record_split_tac),
     "split record fields");
+
 
 
 (** internal theory extenders **)
@@ -694,7 +700,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     fun rec_schemeT n = mk_recordT (prune n all_fields, moreT);
     fun rec_scheme n = mk_record (prune n all_named_vars, more);
     fun recT n = mk_recordT (prune n all_fields, HOLogic.unitT);
-    fun rec_ n = mk_record (prune n all_named_vars, HOLogic.unit);    
+    fun rec_ n = mk_record (prune n all_named_vars, HOLogic.unit);
     fun r_scheme n = Free (rN, rec_schemeT n);
     fun r n = Free (rN, recT n);
 
@@ -794,8 +800,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     fun cases_scheme_prop n =
       All (prune n all_xs_more ~~ prune n all_types_more)
         ((r_scheme n === rec_scheme n) ==> C) ==> C;
-    fun cases_prop n =
-      All (prune n all_xs ~~ prune n all_types) ((r n === rec_ n) ==> C) ==> C;
+    fun cases_prop n = All (prune n all_xs ~~ prune n all_types) ((r n === rec_ n) ==> C) ==> C;
 
 
     (* 1st stage: fields_thy *)
@@ -817,7 +822,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       fields_thy
       |> add_record_splits named_splits
       |> Theory.parent_path
-      |> Theory.add_tyabbrs_i recordT_specs     (*not made part of record name space!*)
+      |> Theory.add_tyabbrs_i recordT_specs
       |> Theory.add_path bname
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
@@ -856,8 +861,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val more_induct_scheme = map induct_scheme ancestry;
     val more_cases_scheme = map cases_scheme ancestry;
 
-    val case_names = RuleCases.case_names [fieldsN];
-
     val (thms_thy, (([sel_convs', update_convs', sel_defs', update_defs', _],
         [induct_scheme', cases_scheme']), [more_induct_scheme', more_cases_scheme'])) =
       defs_thy
@@ -868,13 +871,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         ("update_defs", update_defs),
         ("derived_defs", derived_defs)]
       |>>> PureThy.add_thms
-       [(("induct_scheme", induct_scheme0),
-         [case_names, InductAttrib.induct_type_global (suffix schemeN name)]),
-        (("cases_scheme", cases_scheme0),
-         [case_names, InductAttrib.cases_type_global (suffix schemeN name)])]
-      |>>> (PureThy.add_thmss o map Thm.no_attributes)
-        [("more_induct_scheme", more_induct_scheme),
-         ("more_cases_scheme", more_cases_scheme)];
+       [(("induct_scheme", induct_scheme0), induct_type_global (suffix schemeN name)),
+        (("cases_scheme", cases_scheme0), cases_type_global (suffix schemeN name))]
+      |>>> PureThy.add_thmss
+        [(("more_induct_scheme", more_induct_scheme), induct_type_global ""),
+         (("more_cases_scheme", more_cases_scheme), cases_type_global "")];
 
 
     (* 4th stage: more_thms_thy *)
@@ -908,12 +909,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val (more_thms_thy, [_, _, equality']) =
       thms_thy |> PureThy.add_thms
-       [(("induct", induct0), [case_names, InductAttrib.induct_type_global name]),
-        (("cases", cases0), [case_names, InductAttrib.cases_type_global name]),
+       [(("induct", induct0), induct_type_global name),
+        (("cases", cases0), cases_type_global name),
         (("equality", equality), [Classical.xtra_intro_global])]
-      |>> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
-        [("more_induct", more_induct),
-         ("more_cases", more_cases)];
+      |>> (#1 oo PureThy.add_thmss)
+        [(("more_induct", more_induct), induct_type_global ""),
+         (("more_cases", more_cases), cases_type_global "")];
 
     val simps = sel_convs' @ update_convs' @ [equality'];
     val iffs = field_injects;
