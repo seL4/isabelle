@@ -55,6 +55,24 @@ bind_thm ("lfp_induct2",
   split_rule (read_instantiate [("a","(a,b)")] lfp_induct));
 
 
+val major::prems = Goal
+ "[| mono f; !!S. P S ==> P(f S); !!M. !S:M. P S ==> P(Union M) |] ==> \
+\ P(lfp f)";
+by(subgoal_tac "lfp f = Union{S. S <= lfp f & P S}" 1);
+ by(etac ssubst 1);
+ by(simp_tac (simpset() addsimps prems) 1);
+by(subgoal_tac "Union{S. S <= lfp f & P S} <= lfp f" 1);
+ by(Blast_tac 2);
+by(rtac equalityI 1);
+ by(atac 2);
+by(dtac (major RS monoD) 1);
+by(cut_facts_tac [major RS lfp_unfold] 1);
+by(Asm_full_simp_tac 1);
+by(rtac lfp_lowerbound 1);
+by(blast_tac (claset() addSIs prems) 1);
+qed "lfp_ordinal_induct";
+
+
 (** Definition forms of lfp_unfold and lfp_induct, to control unfolding **)
 
 Goal "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
