@@ -12,6 +12,7 @@ sig
   val rprocs : bool -> (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : Sign.sg -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
+  val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
   val setup : (theory -> theory) list
 end;
 
@@ -254,6 +255,20 @@ fun elim_defs sign r defs prf =
   in
     rewrite_terms (Pattern.rewrite_term tsig defs' [])
       (insert_refl defnames [] (f prf))
+  end;
+
+
+(**** eliminate all variables that don't occur in the proposition ****)
+
+fun elim_vars mk_default prf =
+  let
+    val prop = Reconstruct.prop_of prf;
+    val vars = fold_proof_terms add_term_vars snd ([], prf) \\ term_vars prop;
+    val inst = map (fn Var (ixn, T) => (ixn, list_abs
+      (apfst (map (pair "x")) (apsnd mk_default (strip_type T))))) vars
+  in
+    norm_proof (Envir.Envir {iTs = Vartab.empty, asol = Vartab.make inst,
+      maxidx = 0}) prf
   end;
 
 end;
