@@ -15,7 +15,6 @@ end
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  val ignored_consts: string list
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thms: (bstring * thm) list -> theory -> theory
   val store_thmss: (bstring * thm list) list -> theory -> theory
@@ -55,9 +54,9 @@ fun mk_empty _ =
 
 fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
   let
-    val prt_thm = Pretty.quote o pretty_thm;
+    val prt_thm = Pretty.quote o Display.pretty_thm;
     fun prt_thms (name, [th]) =
-          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, (prt_thm th)]
+          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
       | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
 
     fun extrn name =
@@ -88,8 +87,6 @@ val get_theorems = get_theorems_sg o sign_of;
 
 (** retrieve theorems **)
 
-(* get_thm(s) *)
-
 fun local_thms thy name =
   let
     val ref {space, thms_tab, ...} = get_theorems thy;
@@ -102,6 +99,8 @@ fun all_local_thms [] _ = None
         None => all_local_thms thys name
       | some => some);
 
+
+(* get_thm(s) *)
 
 fun get_thms thy name =
   (case all_local_thms (thy :: Theory.ancestors_of thy) name of
@@ -129,13 +128,13 @@ fun thms_of thy =
 
 (* make index *)
 
-val ignored_consts = ["Trueprop", "all", "==>", "=="];
+val ignore = ["Trueprop", "all", "==>", "=="];
 
 fun add_const_idx ((next, table), thm) =
   let
     val {hyps, prop, ...} = Thm.rep_thm thm;
     val consts =
-      foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignored_consts;
+      foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignore;
 
     fun add (tab, c) =
       Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
@@ -151,25 +150,25 @@ fun make_const_idx thm_tab =
 fun containing [] thy = thms_of thy
   | containing consts thy =
       let
-        fun intr ([], _) = []
-          | intr (_, []) = []
-          | intr (xxs as ((x as (i:int, _)) :: xs), yys as ((y as (j, _)) :: ys)) =
-              if i = j then x :: intr (xs, ys)
-              else if i > j then intr (xs, yys)
-              else intr (xxs, ys);
+        fun int ([], _) = []
+          | int (_, []) = []
+          | int (xxs as ((x as (i:int, _)) :: xs), yys as ((y as (j, _)) :: ys)) =
+              if i = j then x :: int (xs, ys)
+              else if i > j then int (xs, yys)
+              else int (xxs, ys);
 
-        fun intrs [xs] = xs
-          | intrs xss = if exists null xss then [] else foldl intr (hd xss, tl xss);
+        fun ints [xs] = xs
+          | ints xss = if exists null xss then [] else foldl int (hd xss, tl xss);
 
         val ref {const_idx = (_, ctab), ...} = get_theorems thy;
         val ithmss = map (fn c => Symtab.lookup_multi (ctab, c)) consts;
       in
-        map (attach_name o snd) (intrs ithmss)
+        map (attach_name o snd) (ints ithmss)
       end;
 
 (*search globally*)
 fun thms_containing thy consts =
-  flat (map (containing consts) (thy :: Theory.ancestors_of thy));
+  flat (map (containing (consts \\ ignore)) (thy :: Theory.ancestors_of thy));
 
 
 
@@ -180,7 +179,6 @@ fun warn_overwrite name =
 
 fun warn_same name =
   warning ("Theorem database already contains a copy of " ^ quote name);
-
 
 fun enter_thms sg single (raw_name, thms) =
   let
@@ -213,8 +211,7 @@ fun enter_thms sg single (raw_name, thms) =
     named_thms
   end;
 
-fun do_enter_thms sg single name_thms =
-  (enter_thms sg single name_thms; ());
+fun do_enter_thms sg single thms = (enter_thms sg single thms; ());
 
 
 fun store_thmss thmss thy =
@@ -233,7 +230,7 @@ fun smart_store_thm (name, thm) =
 fun add_store add named_axs thy =
   let
     val thy' = add named_axs thy;
-    val named_thms = map (fn name => (name, get_axiom thy' name)) (map fst named_axs);
+    val named_thms = map (fn (name, _) => (name, get_axiom thy' name)) named_axs;
   in store_thms named_thms thy' end;
 
 val add_store_axioms = add_store Theory.add_axioms;

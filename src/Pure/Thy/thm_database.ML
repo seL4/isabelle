@@ -63,17 +63,15 @@ fun qed_goalw name thy rews goal tacsf = ml_store_thm (name, prove_goalw thy rew
 
 
 
-(** retrieve theorems **)	(*peek at current proof state*)
+(** retrieve theorems **)
 
-(*get theorems that contain *all* of given constants*)
+(*get theorems that contain all of given constants*)
 fun thms_containing raw_consts =
   let
     val sign = sign_of_thm (topthm ());
     val consts = map (Sign.intern_const sign) raw_consts;
     val thy = ThyInfo.theory_of_sign sign;
-  in
-    PureThy.thms_containing thy (consts \\ PureThy.ignored_consts)
-  end;
+  in PureThy.thms_containing thy consts end;
 
 
 (*top_const: main constant, ignoring Trueprop*)
