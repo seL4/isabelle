@@ -373,26 +373,35 @@ by Auto_tac;
 qed "lift_preserves_sub";
 
 
+(*** Lemmas to handle function composition (o) more consistently ***)
 
-(*** guarantees corollaries [NOT USED]
+(*Lets us prove one version of a theorem and store others*)
+Goal "f o g = h ==> f' o f o g = f' o h";
+by (asm_full_simp_tac (simpset() addsimps [expand_fun_eq, o_def]) 1);
+qed "o_equiv_assoc";
 
-Goal "F : UNIV guarantees[v] increasing func \
-\   ==> lift i F : UNIV guarantees[v o sub i] increasing (func o sub i)";
-by (dtac (lift_export0 extend_guar_increasing) 1);
-by (asm_full_simp_tac (simpset() addsimps [lift_correct, o_def]) 1);
-qed "lift_guar_increasing";
+Goal "f o g = h ==> ALL x. f(g x) = h x";
+by (asm_full_simp_tac (simpset() addsimps [expand_fun_eq, o_def]) 1);
+qed "o_equiv_apply";
 
-Goal "F : UNIV guarantees[v] Increasing func \
-\   ==> lift i F : UNIV guarantees[v o sub i] Increasing (func o sub i)";
-by (dtac (lift_export0 extend_guar_Increasing) 1);
-by (asm_full_simp_tac (simpset() addsimps [lift_correct, o_def]) 1);
-qed "lift_guar_Increasing";
+fun make_o_equivs th = 
+    [th, 
+     th RS o_equiv_assoc |> simplify (HOL_ss addsimps [o_assoc]), 
+     th RS o_equiv_apply |> simplify (HOL_ss addsimps [o_def, sub_def])];
 
-Goal "F : Always A guarantees[v] Always B \
-\ ==> lift i F : \
-\       Always(lift_set i A) guarantees[v o sub i] Always (lift_set i B)";
-by (asm_simp_tac
-    (simpset() addsimps [lift_set_correct, lift_correct, 
-			 lift_export0 extend_guar_Always]) 1);
-qed "lift_guar_Always";
-***)
+Addsimps (make_o_equivs fst_o_funPair @ make_o_equivs snd_o_funPair);
+
+Goal "sub i o fst o lift_map i = fst";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsimps [o_def, lift_map_def, sub_def]));
+qed "fst_o_lift_map";
+
+Goal "snd o lift_map i = snd o snd";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsimps [o_def, lift_map_def]));
+qed "snd_o_lift_map";
+
+Addsimps (make_o_equivs fst_o_lift_map @ make_o_equivs snd_o_lift_map);
+
+
+

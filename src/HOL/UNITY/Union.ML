@@ -147,7 +147,8 @@ by (auto_tac (claset() addSIs [program_equalityI], simpset()));
 qed "JN_Un";
 
 Goal "(JN i:I. c) = (if I={} then SKIP else c)";
-by (auto_tac (claset() addSIs [program_equalityI], simpset()));
+by (rtac program_equalityI 1);
+by Auto_tac;
 qed "JN_constant";
 
 Goal "(JN i:I. F i Join G i) = (JN i:I. F i)  Join  (JN i:I. G i)";

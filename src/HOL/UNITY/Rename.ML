@@ -179,41 +179,6 @@ by (asm_simp_tac
   		 bij_image_Collect_eq, bij_is_surj RS surj_f_inv_f]) 1);
 qed "rename_increasing";
 
-Goal "bij h ==> rename h `` (A co B) = (h `` A) co (h``B)";
-by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [rename_constrains]) 1);
-by (rtac image_eqI 1);
-by (etac (surj_rename RS surj_f_inv_f RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [rename_constrains RS sym,
-				      surj_rename RS surj_f_inv_f]) 1);
-qed "rename_image_constrains";
-
-Goal "bij h ==> rename h `` stable A = stable (h `` A)";
-by (asm_simp_tac (simpset() addsimps [stable_def, rename_image_constrains]) 1);
-qed "rename_image_stable";
-
-Goal "bij h ==> rename h `` increasing func = increasing (func o inv h)";
-by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [rename_increasing,o_def,bij_is_inj]) 1);
-by (rtac image_eqI 1);
-by (etac (surj_rename RS surj_f_inv_f RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [rename_inv_eq RS sym, rename_increasing,
-				      bij_imp_bij_inv]) 1);
-qed "rename_image_increasing";
-
-Goal "bij h ==> rename h `` {F. Init F <= A} = {F. Init F <= h``A}";
-by (asm_simp_tac 
-    (simpset() addsimps [bij_rename, bij_image_Collect_eq,
-			 rename_inv_eq RS sym, vimage_subset_eq RS sym,
-			 bij_vimage_eq_inv_image]) 1);
-qed "rename_image_Init";
-
-Goal "bij h ==> rename h `` invariant A = invariant (h `` A)";
-by (asm_simp_tac (simpset() addsimps [invariant_def, rename_image_Init,
-				      rename_image_stable,
-				      inj_rename, image_Int]) 1);
-qed "rename_image_invariant";
-
 
 (*** Weak Safety: Co, Stable ***)
 
@@ -243,34 +208,6 @@ by (asm_simp_tac
     (simpset() addsimps [Increasing_def, rename_Stable RS sym,
   		 bij_image_Collect_eq, bij_is_surj RS surj_f_inv_f]) 1);
 qed "rename_Increasing";
-
-Goal "bij h ==> rename h `` (A Co B) = (h `` A) Co (h``B)";
-by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [rename_Constrains]) 1);
-by (rtac image_eqI 1);
-by (etac (surj_rename RS surj_f_inv_f RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [rename_Constrains RS sym,
-				      surj_rename RS surj_f_inv_f]) 1);
-qed "rename_image_Constrains";
-
-Goal "bij h ==> rename h `` Stable A = Stable (h `` A)";
-by (asm_simp_tac (simpset() addsimps [Stable_def, rename_image_Constrains]) 1);
-qed "rename_image_Stable";
-
-Goal "bij h ==> rename h `` Increasing func = Increasing (func o inv h)";
-by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [rename_Increasing,o_def,bij_is_inj]) 1);
-by (rtac image_eqI 1);
-by (etac (surj_rename RS surj_f_inv_f RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [rename_inv_eq RS sym, rename_Increasing,
-				      bij_imp_bij_inv]) 1);
-qed "rename_image_Increasing";
-
-Goal "bij h ==> rename h `` Always A = Always (h `` A)";
-by (asm_simp_tac (simpset() addsimps [Always_def, rename_image_Init,
-				      rename_image_Stable,
-				      inj_rename, image_Int]) 1);
-qed "rename_image_Always";
 
 
 (*** Progress: transient, ensures ***)
@@ -323,6 +260,62 @@ by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [o_def, fst_o_inv_eq_inv, rename_def,
 				      bij_is_surj RS surj_f_inv_f]) 1);
 qed "rename_preserves";
+
+
+(*** "image" versions of the rules, for lifting "guarantees" properties ***)
+
+
+(*Tactic used in all the proofs.  Better would have been to prove one 
+  meta-theorem, but how can we handle the polymorphism?  E.g. in 
+  rename_constrains the two appearances of "co" have different types!*)
+fun rename_image_tac ths =
+  EVERY [Auto_tac,
+	 (rename_tac "F" 2),
+	 (subgoal_tac "EX G. F = rename h G" 2),
+	 (auto_tac (claset() addSIs [surj_rename RS surj_f_inv_f RS sym],
+	      simpset() addsimps ths))];
+
+Goal "bij h ==> rename h `` (A co B) = (h `` A) co (h``B)";
+by (rename_image_tac [rename_constrains]);
+qed "rename_image_constrains";
+
+Goal "bij h ==> rename h `` stable A = stable (h `` A)";
+by (rename_image_tac [rename_stable]);
+qed "rename_image_stable";
+
+Goal "bij h ==> rename h `` increasing func = increasing (func o inv h)";
+by (rename_image_tac [rename_increasing, o_def, bij_is_inj]);
+qed "rename_image_increasing";
+
+Goal "bij h ==> rename h `` invariant A = invariant (h `` A)";
+by (rename_image_tac [rename_invariant]);
+qed "rename_image_invariant";
+
+Goal "bij h ==> rename h `` (A Co B) = (h `` A) Co (h``B)";
+by (rename_image_tac [rename_Constrains]);
+qed "rename_image_Constrains";
+
+Goal "bij h ==> rename h `` Stable A = Stable (h `` A)";
+by (rename_image_tac [rename_Stable]);
+qed "rename_image_Stable";
+
+Goal "bij h ==> rename h `` Increasing func = Increasing (func o inv h)";
+by (rename_image_tac [rename_Increasing, o_def, bij_is_inj]);
+qed "rename_image_Increasing";
+
+Goal "bij h ==> rename h `` Always A = Always (h `` A)";
+by (rename_image_tac [rename_Always]);
+qed "rename_image_Always";
+
+Goal "bij h ==> rename h `` (A leadsTo B) = (h `` A) leadsTo (h``B)";
+by (rename_image_tac [rename_leadsTo]);
+qed "rename_image_leadsTo";
+
+Goal "bij h ==> rename h `` (A LeadsTo B) = (h `` A) LeadsTo (h``B)";
+by (rename_image_tac [rename_LeadsTo]);
+qed "rename_image_LeadsTo";
+
+
 
 
 (** junk

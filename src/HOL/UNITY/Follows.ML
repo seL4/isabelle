@@ -139,3 +139,23 @@ by (blast_tac (claset() addIs [Follows_Un_lemma]) 1);
 by (blast_tac (claset() addIs [Follows_Un_lemma RS LeadsTo_weaken]) 1);
 qed "Follows_Un";
 
+
+(*Currently UNUSED, but possibly of interest*)
+Goal "F : Increasing func ==> F : Stable {s. h pfixGe (func s)}";
+by (asm_full_simp_tac
+    (simpset() addsimps [Increasing_def, Stable_def, Constrains_def, 
+			 constrains_def]) 1); 
+by (blast_tac (claset() addIs [trans_Ge RS trans_genPrefix RS transD,
+			       prefix_imp_pfixGe]) 1);
+qed "Increasing_imp_Stable_pfixGe";
+
+(*Currently UNUSED, but possibly of interest*)
+Goal "ALL z. F : {s. z <= f s} LeadsTo {s. z <= g s} \
+\     ==> F : {s. z pfixGe f s} LeadsTo {s. z pfixGe g s}";
+by (rtac single_LeadsTo_I 1);
+by (dres_inst_tac [("x", "f s")] spec 1);
+by (etac LeadsTo_weaken 1);
+by (blast_tac (claset() addIs [trans_Ge RS trans_genPrefix RS transD,
+			       prefix_imp_pfixGe]) 2);
+by (Blast_tac 1);
+qed "LeadsTo_le_imp_pfixGe";
