@@ -504,6 +504,11 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 val mem_simps = [ Un_iff, Int_iff, Compl_iff, Diff_iff, singleton_iff,
 		  mem_Collect_eq];
 
+(*Not for Addsimps -- it can cause goals to blow up!*)
+goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+qed "mem_if";
+
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
 simpset := !simpset addsimps mem_simps
