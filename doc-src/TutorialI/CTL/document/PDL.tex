@@ -25,7 +25,7 @@ called \isa{formula{\isachardot}Atom}.
 The meaning of these formulae is given by saying which formula is true in
 which state:%
 \end{isamarkuptext}%
-\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}\isadigit{8}\isadigit{0}{\isacharcomma}\isadigit{8}\isadigit{0}{\isacharbrackright}\ \isadigit{8}\isadigit{0}{\isacharparenright}%
+\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The concrete syntax annotation allows us to write \isa{s\ {\isasymTurnstile}\ f} instead of
@@ -57,14 +57,14 @@ too:%
 {\isachardoublequote}mc{\isacharparenleft}Neg\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Only the equation for \isa{EF} deserves some comments. Remember that the
-postfix \isa{{\isacharcircum}{\isacharminus}\isadigit{1}} and the infix \isa{{\isacharcircum}{\isacharcircum}} are predefined and denote the
+postfix \isa{{\isacharcircum}{\isacharminus}{\isadigit{1}}} and the infix \isa{{\isacharcircum}{\isacharcircum}} are predefined and denote the
 converse of a relation and the application of a relation to a set. Thus
-\isa{M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T} is the set of all predecessors of \isa{T} and the least
-fixpoint (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T} is the least set
+\isa{M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T} is the set of all predecessors of \isa{T} and the least
+fixpoint (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T} is the least set
 \isa{T} containing \isa{mc\ f} and all predecessors of \isa{T}. If you
 find it hard to see that \isa{mc\ {\isacharparenleft}EF\ f{\isacharparenright}} contains exactly those states from
 which there is a path to a state where \isa{f} is true, do not worry---that
@@ -72,7 +72,7 @@ will be proved in a moment.
 
 First we prove monotonicity of the function inside \isa{lfp}%
 \end{isamarkuptext}%
-\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
@@ -84,7 +84,7 @@ Now we can relate model checking and semantics. For the \isa{EF} case we need
 a separate lemma:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
+\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The equality is proved in the canonical fashion by proving that each set

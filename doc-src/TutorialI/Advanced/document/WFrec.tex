@@ -1,0 +1,54 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{WFrec}%
+%
+\begin{isamarkuptext}%
+\noindent
+So far, all recursive definitions where shown to terminate via measure
+functions. Sometimes this can be quite inconvenient or even
+impossible. Fortunately, \isacommand{recdef} supports much more
+general definitions. For example, termination of Ackermann's function
+can be shown by means of the lexicographic product \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
+\end{isamarkuptext}%
+\isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}{\isadigit{0}}{\isacharcomma}n{\isacharparenright}\ \ \ \ \ \ \ \ \ {\isacharequal}\ Suc\ n{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}Suc\ n{\isacharparenright}\ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}ack{\isacharparenleft}Suc\ m{\isacharcomma}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+The lexicographic product decreases if either its first component
+decreases (as in the second equation and in the outer call in the
+third equation) or its first component stays the same and the second
+component decreases (as in the inner call in the third equation).
+
+In general, \isacommand{recdef} supports termination proofs based on
+arbitrary \emph{wellfounded relations}, i.e.\ \emph{wellfounded
+recursion}\indexbold{recursion!wellfounded}\index{wellfounded
+recursion|see{recursion, wellfounded}}.  A relation $<$ is
+\bfindex{wellfounded} if it has no infinite descending chain $\cdots <
+a@2 < a@1 < a@0$. Clearly, a function definition is total iff the set
+of all pairs $(r,l)$, where $l$ is the argument on the left-hand side of an equation
+and $r$ the argument of some recursive call on the corresponding
+right-hand side, induces a wellfounded relation.  For a systematic
+account of termination proofs via wellfounded relations see, for
+example, \cite{Baader-Nipkow}.
+
+Each \isacommand{recdef} definition should be accompanied (after the
+name of the function) by a wellfounded relation on the argument type
+of the function. For example, \isa{measure} is defined by
+\begin{isabelle}%
+\ \ \ \ \ measure\ f\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ f\ y\ {\isacharless}\ f\ x{\isacharbraceright}%
+\end{isabelle}
+and it has been proved that \isa{measure\ f} is always wellfounded.
+
+In addition to \isa{measure}, the library provides
+a number of further constructions for obtaining wellfounded relations.
+
+wf proof auto if stndard constructions.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

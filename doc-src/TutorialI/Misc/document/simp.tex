@@ -325,12 +325,12 @@ The simplifier routinely solves a small class of linear arithmetic formulae
 assumptions and conclusions that are (possibly negated) (in)equalities
 (\isa{{\isacharequal}}, \isasymle, \isa{{\isacharless}}) and it only knows about addition. Thus%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}\isadigit{1}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is proved by simplification, whereas the only slightly more complex%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n{\isacharplus}\isadigit{1}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is not proved by simplification and requires \isa{arith}.%

@@ -9,7 +9,7 @@ examples are simple enough that Isabelle can prove automatically that the
 measure of the argument goes down in each recursive call. As a result,
 $f$\isa{{\isachardot}simps} will contain the defining equations (or variants derived
 from them) as theorems. For example, look (via \isacommand{thm}) at
-\isa{sep{\isachardot}simps} and \isa{sep\isadigit{1}{\isachardot}simps} to see that they define
+\isa{sep{\isachardot}simps} and \isa{sep{\isadigit{1}}{\isachardot}simps} to see that they define
 the same function. What is more, those equations are automatically declared as
 simplification rules.
 
@@ -19,7 +19,7 @@ termination of the following artificial function%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is not proved automatically (although maybe it should be). Isabelle prints a
@@ -43,7 +43,7 @@ a simplification rule:%
 \end{isamarkuptext}%
 \isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 {\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
@@ -51,7 +51,7 @@ This time everything works fine. Now \isa{g{\isachardot}simps} contains precisel
 the stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
-\isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{0}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%

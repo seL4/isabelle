@@ -12,7 +12,7 @@ theory that contains pretty much everything but lists, thus avoiding
 ambiguities caused by defining lists twice.%
 \end{isamarkuptext}%
 \isacommand{datatype}\ {\isacharprime}a\ list\ {\isacharequal}\ Nil\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ list{\isachardoublequote}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharhash}{\isachardoublequote}\ \isadigit{6}\isadigit{5}{\isacharparenright}%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ list{\isachardoublequote}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharhash}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The datatype\index{*datatype} \isaindexbold{list} introduces two
@@ -41,7 +41,7 @@ and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\i
 \end{warn}
 Next, two functions \isa{app} and \isaindexbold{rev} are declared:%
 \end{isamarkuptext}%
-\isacommand{consts}\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharat}{\isachardoublequote}\ \isadigit{6}\isadigit{5}{\isacharparenright}\isanewline
+\isacommand{consts}\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharat}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ rev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
@@ -156,7 +156,7 @@ $G$\isanewline
 where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
-establish $G$. At \isa{step\ \isadigit{0}} there is only one subgoal, which is
+establish $G$. At \isa{step\ {\isadigit{0}}} there is only one subgoal, which is
 identical with the overall goal.  Normally $G$ is constant and only serves as
 a reminder. Hence we rarely show it in this tutorial.
 
@@ -248,7 +248,7 @@ the proof of a lemma usually remains implicit.%
 \begin{isamarkuptext}%
 This time the canonical proof procedure%
 \end{isamarkuptext}%
-\isacommand{lemma}\ app{\isacharunderscore}Nil\isadigit{2}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isacommand{lemma}\ app{\isacharunderscore}Nil{\isadigit{2}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -270,7 +270,7 @@ if it is obvious from the context that the proof is finished.
 
 % Instead of \isacommand{apply} followed by a dot, you can simply write
 % \isacommand{by}\indexbold{by}, which we do most of the time.
-Notice that in lemma \isa{app{\isacharunderscore}Nil\isadigit{2}}
+Notice that in lemma \isa{app{\isacharunderscore}Nil{\isadigit{2}}}
 (as printed out after the final \isacommand{done}) the free variable \isa{xs} has been
 replaced by the unknown \isa{{\isacharquery}xs}, just as explained in
 \S\ref{sec:variables}.
@@ -290,7 +290,7 @@ induction step merely simplifies to
 ~~~~~~~(rev~ys~@~rev~list)~@~a~\#~[]~=~rev~ys~@~rev~list~@~a~\#~[]
 \end{isabelle}
 Now we need to remember that \isa{{\isacharat}} associates to the right, and that
-\isa{{\isacharhash}} and \isa{{\isacharat}} have the same priority (namely the \isa{\isadigit{6}\isadigit{5}}
+\isa{{\isacharhash}} and \isa{{\isacharat}} have the same priority (namely the \isa{{\isadigit{6}}{\isadigit{5}}}
 in their \isacommand{infixr} annotation). Thus the conclusion really is
 \begin{isabelle}
 ~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))

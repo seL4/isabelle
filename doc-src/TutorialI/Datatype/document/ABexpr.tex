@@ -42,15 +42,15 @@ operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}IF\ b\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a\isadigit{1}\ env\ else\ evala\ a\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Sum\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\isadigit{1}\ env\ {\isacharplus}\ evala\ a\isadigit{2}\ env{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Diff\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\isadigit{1}\ env\ {\isacharminus}\ evala\ a\isadigit{2}\ env{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\isanewline
+\ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharplus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharminus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}evala\ {\isacharparenleft}Var\ v{\isacharparenright}\ env\ {\isacharequal}\ env\ v{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}evala\ {\isacharparenleft}Num\ n{\isacharparenright}\ env\ {\isacharequal}\ n{\isachardoublequote}\isanewline
 \isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Less\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a\isadigit{1}\ env\ {\isacharless}\ evala\ a\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}And\ b\isadigit{1}\ b\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b\isadigit{1}\ env\ {\isasymand}\ evalb\ b\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a{\isadigit{1}}\ env\ {\isacharless}\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b{\isadigit{1}}\ env\ {\isasymand}\ evalb\ b{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
@@ -66,15 +66,15 @@ result, the type of variables in the expression may change from \isa{{\isacharpr
 to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean variables.%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Sum\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Diff\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Var\ v{\isacharparenright}\ {\isacharequal}\ s\ v{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Num\ n{\isacharparenright}\ {\isacharequal}\ Num\ n{\isachardoublequote}\isanewline
 \isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Less\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}And\ b\isadigit{1}\ b\isadigit{2}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 Now we can prove a fundamental theorem about the interaction between

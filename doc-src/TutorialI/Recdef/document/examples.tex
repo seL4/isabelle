@@ -7,8 +7,8 @@ Here is a simple example, the Fibonacci function:%
 \end{isamarkuptext}%
 \isacommand{consts}\ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ fib\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}fib\ \isadigit{0}\ {\isacharequal}\ \isadigit{0}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}fib\ \isadigit{1}\ {\isacharequal}\ \isadigit{1}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}fib\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}fib\ {\isacharparenleft}Suc{\isacharparenleft}Suc\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ x\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ x{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
@@ -44,14 +44,14 @@ Pattern matching need not be exhaustive:%
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:%
 \end{isamarkuptext}%
-\isacommand{consts}\ sep\isadigit{1}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
-\isacommand{recdef}\ sep\isadigit{1}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}a{\isacharcomma}xs{\isacharparenright}{\isachardot}\ length\ xs{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}\ x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}y{\isacharhash}zs{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}sep\isadigit{1}{\isacharparenleft}a{\isacharcomma}\ xs{\isacharparenright}\ \ \ \ \ {\isacharequal}\ xs{\isachardoublequote}%
+\isacommand{consts}\ sep{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isacommand{recdef}\ sep{\isadigit{1}}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}a{\isacharcomma}xs{\isacharparenright}{\isachardot}\ length\ xs{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}sep{\isadigit{1}}{\isacharparenleft}a{\isacharcomma}\ x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep{\isadigit{1}}{\isacharparenleft}a{\isacharcomma}y{\isacharhash}zs{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}sep{\isadigit{1}}{\isacharparenleft}a{\isacharcomma}\ xs{\isacharparenright}\ \ \ \ \ {\isacharequal}\ xs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 This defines exactly the same function as \isa{sep} above, i.e.\
-\isa{sep\isadigit{1}\ {\isacharequal}\ sep}.
+\isa{sep{\isadigit{1}}\ {\isacharequal}\ sep}.
 
 \begin{warn}
   \isacommand{recdef} only takes the first argument of a (curried)
@@ -62,18 +62,18 @@ This defines exactly the same function as \isa{sep} above, i.e.\
   arguments as in the following definition:
 \end{warn}%
 \end{isamarkuptext}%
-\isacommand{consts}\ sep\isadigit{2}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
-\isacommand{recdef}\ sep\isadigit{2}\ {\isachardoublequote}measure\ length{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}sep\isadigit{2}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}a{\isachardot}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\isadigit{2}\ zs\ a{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}sep\isadigit{2}\ xs\ \ \ \ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}a{\isachardot}\ xs{\isacharparenright}{\isachardoublequote}%
+\isacommand{consts}\ sep{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isacommand{recdef}\ sep{\isadigit{2}}\ {\isachardoublequote}measure\ length{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}sep{\isadigit{2}}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}a{\isachardot}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep{\isadigit{2}}\ zs\ a{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}sep{\isadigit{2}}\ xs\ \ \ \ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}a{\isachardot}\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
 for the definition of non-recursive functions:%
 \end{isamarkuptext}%
-\isacommand{consts}\ swap\isadigit{1}\isadigit{2}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
-\isacommand{recdef}\ swap\isadigit{1}\isadigit{2}\ {\isachardoublequote}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}swap\isadigit{1}\isadigit{2}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y{\isacharhash}x{\isacharhash}zs{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}swap\isadigit{1}\isadigit{2}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequote}%
+\isacommand{consts}\ swap{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isacommand{recdef}\ swap{\isadigit{1}}{\isadigit{2}}\ {\isachardoublequote}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}swap{\isadigit{1}}{\isadigit{2}}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y{\isacharhash}x{\isacharhash}zs{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}swap{\isadigit{1}}{\isadigit{2}}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 For non-recursive functions the termination measure degenerates to the empty

@@ -30,7 +30,7 @@ values is easily defined:%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}value\ {\isacharparenleft}Cex\ v{\isacharparenright}\ env\ {\isacharequal}\ v{\isachardoublequote}\isanewline
 {\isachardoublequote}value\ {\isacharparenleft}Vex\ a{\isacharparenright}\ env\ {\isacharequal}\ env\ a{\isachardoublequote}\isanewline
-{\isachardoublequote}value\ {\isacharparenleft}Bex\ f\ e\isadigit{1}\ e\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ f\ {\isacharparenleft}value\ e\isadigit{1}\ env{\isacharparenright}\ {\isacharparenleft}value\ e\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}value\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ f\ {\isacharparenleft}value\ e{\isadigit{1}}\ env{\isacharparenright}\ {\isacharparenleft}value\ e{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 The stack machine has three instructions: load a constant value onto the
 stack, load the contents of a certain address onto the stack, and apply a
@@ -72,7 +72,7 @@ definition is pretty much obvious:%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}comp\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequote}\isanewline
 {\isachardoublequote}comp\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequote}\isanewline
-{\isachardoublequote}comp\ {\isacharparenleft}Bex\ f\ e\isadigit{1}\ e\isadigit{2}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}comp\ e\isadigit{2}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}comp\ e\isadigit{1}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequote}%
+{\isachardoublequote}comp\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}comp\ e{\isadigit{2}}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}comp\ e{\isadigit{1}}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:%

@@ -94,7 +94,7 @@ completely unnecessary. The \isa{App}-case can be defined directly as
 \ \ \ \ \ subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}%
 \end{isabelle}
 where \isa{map} is the standard list function such that
-\isa{map\ f\ {\isacharbrackleft}x\isadigit{1}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}xn{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}f\ x\isadigit{1}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}f\ xn{\isacharbrackright}}. This is true, but Isabelle
+\isa{map\ f\ {\isacharbrackleft}x{\isadigit{1}}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}xn{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}f\ x{\isadigit{1}}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}f\ xn{\isacharbrackright}}. This is true, but Isabelle
 insists on the above fixed format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:%
 \end{isamarkuptext}%
