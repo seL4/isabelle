@@ -73,9 +73,9 @@ fun simplify th =
 	removeTrue th
     end
 
-fun float2real (x,y) = (Real.fromInt x) * (Math.pow (2.0, Real.fromInt y))
-
 end
+
+fun float2real (x,y) = (Real.fromInt x) * (Math.pow (2.0, Real.fromInt y))
 
 val result = ref ([]:thm list)
 
