@@ -1,0 +1,169 @@
+#
+# $Id$
+#
+# IsaMakefile for HOL
+#
+
+#### Base system
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
+	mono Lfp Gfp Nat intr_elim indrule Inductive Finite Arith \
+	Sexp Univ List RelPow Option
+
+FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
+	ind_syntax.ML cladata.ML simpdata.ML \
+	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML \
+	../Provers/hypsubst.ML ../Provers/classical.ML \
+	../Provers/simplifier.ML ../Provers/splitter.ML \
+	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
+
+$(OUT)/HOL: $(OUT)/Pure $(FILES)
+	@$(ISABELLE_HOME)/bin/isabelle -e "make_html := $(ISABELLE_HTML);" -qu Pure HOL
+	@chmod -w $@
+
+$(OUT)/Pure:
+	@cd ../Pure; $(ISABELLE_HOME)/bin/isatool make
+
+
+
+#### Tests and examples
+
+ISABELLE=$(ISABELLE_HOME)/bin/isabelle -e "make_html := $(ISABELLE_HTML);" -rq
+
+
+## TFL (requires integration into HOL proper)
+
+TFL_NAMES = mask tfl thms thry usyntax utils
+TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
+            $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
+
+TFL:	$(OUT)/HOL $(TFL_FILES)
+	$(ISABELLE) -e 'exit_use_dir"../TFL"; quit();' HOL
+
+
+## IMP-semantics example
+
+IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
+IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
+
+IMP:	$(OUT)/HOL $(IMP_FILES)
+	$(ISABELLE) -e 'exit_use_dir"IMP"; quit();' HOL
+
+
+## Hoare logic
+
+Hoare_NAMES = Hoare Arith2 Examples
+Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) \
+	      $(Hoare_NAMES:%=Hoare/%.ML)
+
+Hoare:	$(OUT)/HOL $(Hoare_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Hoare"; quit();' HOL
+
+
+## The integers in HOL
+
+INTEG_NAMES = Equiv Integ Group Ring Lagrange IntRingDefs IntRing
+
+INTEG_FILES = Integ/ROOT.ML \
+	      $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
+
+Integ:	$(OUT)/HOL $(INTEG_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Integ"; quit();' HOL
+
+
+## I/O Automata
+
+IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet \
+		Receiver Sender
+IOA_ABP_NAMES = Action Correctness Lemmas
+IOA_MT_NAMES = Asig IOA Solve
+
+IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy \
+ $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML) \
+ IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy \
+ IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy \
+ IOA/ABP/Receiver.thy IOA/ABP/Sender.thy IOA/ABP/Spec.thy \
+ $(IOA_ABP_NAMES:%=IOA/ABP/%.thy) $(IOA_ABP_NAMES:%=IOA/ABP/%.ML) \
+ $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
+
+IOA:	$(OUT)/HOL $(IOA_FILES)
+	$(ISABELLE) -e 'exit_use_dir"IOA/NTP"; quit();' HOL
+	$(ISABELLE) -e 'exit_use_dir"IOA/ABP"; quit();' HOL
+
+
+## Authentication & Security Protocols
+
+Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN OtwayRees_Bad \
+	     WooLam Yahalom Yahalom2 Public NS_Public_Bad NS_Public
+
+AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
+
+Auth:	$(OUT)/HOL $(AUTH_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Auth"; quit();' HOL
+
+
+## Properties of substitutions
+
+SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
+
+SUBST_FILES = Subst/ROOT.ML \
+	      $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
+
+Subst:	$(OUT)/HOL $(SUBST_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Subst"; quit();' HOL
+
+
+## Confluence of Lambda-calculus
+
+LAMBDA_NAMES = Lambda ParRed Commutation Eta
+
+LAMBDA_FILES = Lambda/ROOT.ML \
+	      $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
+
+Lambda:	 $(OUT)/HOL $(LAMBDA_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Lambda"; quit();' HOL
+
+
+## Type inference for MiniML
+
+MINIML_NAMES = I Maybe MiniML Type W
+
+MINIML_FILES = MiniML/ROOT.ML \
+	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
+
+MiniML: $(OUT)/HOL $(MINIML_FILES)
+	$(ISABELLE) -e 'exit_use_dir"MiniML"; quit();' HOL
+
+
+## Lexical analysis
+
+LEX_FILES = Auto AutoChopper Chopper Prefix
+
+LEX_FILES = Lex/ROOT.ML \
+	    $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
+
+Lex:	$(OUT)/HOL $(LEX_FILES)
+	$(ISABELLE) -e 'exit_use_dir"Lex"; quit();' HOL
+
+
+## Miscellaneous examples
+
+EX_NAMES = String BT Perm Comb InSort Qsort LexProd \
+	   Puzzle Mutil Primes NatSum SList LList Acc PropLog Term Simult MT
+
+EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
+	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
+
+ex:	$(OUT)/HOL $(EX_FILES)
+	$(ISABELLE) -e 'exit_use_dir"ex"; quit();' HOL
+
+
+## Full test
+
+test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
+	echo 'Test examples ran successfully' > test
+
+
+.PRECIOUS: $(OUT)/Pure $(OUT)/HOL
