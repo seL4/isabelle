@@ -33,7 +33,6 @@ consts
   UNION, INTER  :: ['a set, 'a => 'b set] => 'b set     (*general*)
   Union, Inter  :: (('a set) set) => 'a set             (*of a set*)
   Pow           :: 'a set => 'a set set                 (*powerset*)
-  range         :: ('a => 'b) => 'b set                 (*of function*)
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
   "image"       :: ['a => 'b, 'a set] => ('b set)   (infixr "``" 90)
   (*membership*)
@@ -43,6 +42,7 @@ consts
 (** Additional concrete syntax **)
 
 syntax
+  range         :: ('a => 'b) => 'b set                 (*of function*)
 
   (* Infix syntax for non-membership *)
 
