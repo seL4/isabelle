@@ -57,21 +57,23 @@ fun store_thm_db (named_thm as (name, thm)) =
 
       val tagged_thm = (num + 1, named_thm);
 
-      fun update_db [] result = result
-        | update_db (c :: cs) result =
+      fun update_db warned [] result = result
+        | update_db warned (c :: cs) result =
             let
               val old_thms = Symtab.lookup_multi (result, c);
 
-              val duplicate =
+              val (duplicate, warned') =
                 case find_first (fn (_, (n, _)) => n = name) old_thms of
                     Some (_, (_, t)) =>
-                      if same_thm (t, thm) then true
+                      if same_thm (t, thm) then (true, warned)
                       else
-                        (writeln ("Warning: Duplicate theorem name "
-                                  ^ quote name ^ " used in theorem database");
-                         false)
-                 | None => false;
-            in update_db cs
+                        (if not warned then
+                           writeln ("Warning: Duplicate theorem name " ^
+                                    quote name ^ " used in theorem database")
+                         else ();
+                         (false, true))
+                 | None => (false, warned);
+            in update_db warned' cs
                  (if duplicate then result
                   else (Symtab.update ((c, tagged_thm :: old_thms), result)))
             end;
@@ -79,7 +81,7 @@ fun store_thm_db (named_thm as (name, thm)) =
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
                     else ();
-     thm_db := (num+1, update_db consts db);
+     thm_db := (num+1, update_db false consts db);
      thm
   end;
 
