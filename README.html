@@ -13,16 +13,16 @@
 <h2>Version information</h2>
 
 This is the internal repository version of Isabelle.  The current line
-of development introduces many new features, while attempting to keep
-incompatibilities over Isabelle98-X at a minimum.  See the
-<tt>NEWS</tt> file in the distribution for more details.
+of Isabelle99 development introduces many new concepts, while
+attempting to keep incompatibilities over Isabelle98 at a minimum.
+See the <tt>NEWS</tt> file in the distribution for more details.
 
 
 <h2>System requirements</h2>
 
 Isabelle requires a real Unix box with sufficient resources. Fun
 starts at about 32-64 MB of free main memory (somewhat depending on
-your ML system), with several tens of MB disk space and a decent CPU.
+the ML system), with several tens of MB disk space and a decent CPU.
 Speaking by today's hardware standards, any moderate Linux box should
 give a very nice platform for Isabelle.
 
@@ -42,7 +42,7 @@ is <em>not</em> sufficient).
 The following ML system and platform combinations are known to work
 very well:
 <ul>
-<li> Poly/ML 3.x on Linux and Sparc/Solaris.
+<li> Poly/ML 3.x on Linux/x86 and Solaris/Sparc.
 <li> SML/NJ 110.x on any Unix platform (Linux, Suns, SGI etc.).
 </ul>
 
@@ -68,39 +68,33 @@ top-level pretty printing) are not supported, though.
 
 <h2>Installation</h2>
 
-RPM packages are available for Isabelle/HOL and ZF on the Linux/x86
+Binary packages are available for Isabelle/HOL and ZF on the Linux/x86
 platform.  The system may be easily built from scratch as well, taking
-the traditional tar.gz distribution.  See file <tt>INSTALL</tt> as
-distributed with Isabelle for more information.
+the traditional tar.gz source distribution.  See file <tt>INSTALL</tt>
+as distributed with Isabelle for more information.
 
 Further background information may be found in the <em>Isabelle System
 Manual</em>, distributed with the sources (directory <tt>doc</tt>).
 
 
-<h2>User interfaces</h2>
+<h2>User interface</h2>
 
-The distribution includes only a very primitive interface based on
-ordinary terminal sessions. Advanced interfaces are available from
-other sources:
-
-<ul>
-
-<li>
-<a href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a> by
-David Aspinall and others is a generic Emacs interface for proof
-assistants, including Isabelle (both for the classic and Isar
+The canonical Isabelle user interface is <a
+href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a> by
+David Aspinall and others.  It is a generic (X)Emacs interface for
+proof assistants, including Isabelle (both for the classic and Isar
 version).  Proof General is suitable for use by pacifists and Emacs
 militants alike. Its most prominent feature is script management,
 providing a metaphor of <em>live proof script editing</em>.  Proof
 General has recently gained a rather large following of both beginning
 and expert users of Isabelle.
 
-<li>
-<a href="http://www.dcs.ed.ac.uk/home/da/Isamode/">Isamode</a> by
-David Aspinall is an older and simpler Emacs interface for Isabelle.
-It runs under recent versions of XEmacs.
+<p>
 
-</ul>
+Proof~General may be used together with the Emacs
+<a href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">
+X-Symbol package</a>, which provides a nice way to get proper
+mathematical symbols displayed on screen.
 
 
 <h2>Other sources of information</h2>
@@ -145,9 +139,9 @@ or
 <p>
 
 <a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a><br>
-Institut fuer Informatik<br>
-T. U. Muenchen<br>
-D-80290 Muenchen<br>
+Institut für Informatik<br>
+T. U. München<br>
+D-80290 München<br>
 Germany<br>
 <br>
 E-mail: <A HREF="mailto:nipkow@in.tum.de">nipkow@in.tum.de</A><br>

@@ -68,15 +68,13 @@ packages should work on any major RPM-based Linux/x86 platform (such
 as SuSE, RedHat etc.).  A typical installation procedure would be like
 this (executed as root):
 
-  rpm -i smlnj-110.0-3.i386.rpm
+  rpm -i --prefix /usr/share polyml.i386.rpm
   rpm -i --prefix /usr/share isabelle.rpm
   rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
 
 The install prefix may be changed as indicated.  By default the ML
 system is expected to be at the same directory level as Isabelle
-itself; changing this arrangement requires
-[ISABELLE_HOME]/etc/settings to be adapted manually.
-
+itself; see [ISABELLE_HOME]/etc/settings of how to change this.
 
 Note that isabelle.rpm and isabelle-pdfdocs.rpm already contain all of
 Isabelle as platform independent sources.  Precompiled object-logics
@@ -105,14 +103,12 @@ Traditional tar.gz archives are provided for the full Isabelle sources
 and documentation as well.  Make sure your ML system (SML/NJ, Poly/ML
 etc.) has already been installed properly; then proceed as follows.
 
-
 * Unpacking the archives.  After unpacking the Isabelle distribution
 archives (using tar and gzip) you are left with some directory
 IsabelleYY-X.  Basically, this may be installed anywhere --- just note
 that ~/isabelle would be a really bad idea, though.  The place where
 you put the contents of IsabelleYY-X will be referred to as
 [ISABELLE_HOME] subsequently.
-
 
 * Auto configuration.  There are some minor adaptions to be made of
 the Isabelle distribution to your system environment (mostly locations
@@ -124,7 +120,6 @@ of bash and perl).  Simply do it like this:
 Note that this does not store any references to [ISABELLE_HOME].  You
 may safely move the system later, without having to run ./configure
 again.
-
 
 * ML system settings and compilation.  Before actual compilation you
 have to tell Isabelle about your Standard ML system.  These settings
@@ -140,6 +135,10 @@ type
 More object-logics can be made in a similar fashion:
 
   ./build FOL HOL
+
+Explicit make targets may be given as follows:
+
+  ./build -m HOL-Real HOL
 
 After successful compilation you are ready to run the system, see 1)
 above for more information.
