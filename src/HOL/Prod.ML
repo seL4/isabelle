@@ -141,6 +141,12 @@ val [prem] = goal Prod.thy
 by (rtac (prem RS arg_cong) 1);
 qed "split_weak_cong";
 
+Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P"; 
+br ext 1;
+by (Fast_tac 1);
+qed "split_eta_SetCompr";
+Addsimps [split_eta_SetCompr];
+
 Goal "(%(x,y). f(x,y)) = f";
 by (rtac ext 1);
 by (split_all_tac 1);
@@ -414,6 +420,9 @@ Goal "x:C ==> (A Times C = B Times C) = (A = B)";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Times_eq_cancel2";
 
+Goal "{(x,y) |x y. P x & Q x y} = (SIGMA x:Collect P. Collect (Q x))";
+by (Fast_tac 1);
+qed "SetCompr_Sigma_eq";
 
 (*** Complex rules for Sigma ***)
 
