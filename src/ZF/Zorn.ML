@@ -26,12 +26,12 @@ qed "Inter_lemma0";
 (*** Section 2.  The Transfinite Construction ***)
 
 Goalw [increasing_def]
-    "!!f A. f: increasing(A) ==> f: Pow(A)->Pow(A)";
+    "f: increasing(A) ==> f: Pow(A)->Pow(A)";
 by (etac CollectD1 1);
 qed "increasingD1";
 
 Goalw [increasing_def]
-    "!!f A. [| f: increasing(A); x<=A |] ==> x <= f`x";
+    "[| f: increasing(A); x<=A |] ==> x <= f`x";
 by (eresolve_tac [CollectD2 RS spec RS mp] 1);
 by (assume_tac 1);
 qed "increasingD2";
@@ -106,16 +106,14 @@ by (REPEAT (ares_tac [TFin_is_subset] 1));
 qed "TFin_linear_lemma2";
 
 (*a more convenient form for Lemma 2*)
-Goal
-    "!!m n. [| n<=m;  m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
+Goal "[| n<=m;  m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
 \           |] ==> n=m | next`n<=m";
 by (rtac (TFin_linear_lemma2 RS bspec RS mp) 1);
 by (REPEAT (assume_tac 1));
 qed "TFin_subsetD";
 
 (*Consequences from section 3.3 -- Property 3.2, the ordering is total*)
-Goal
-    "!!m n. [| m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
+Goal "[| m: TFin(S,next);  n: TFin(S,next);  next: increasing(S) \
 \           |] ==> n<=m | m<=n";
 by (rtac (TFin_linear_lemma2 RSN (3,TFin_linear_lemma1) RS disjE) 1);
 by (REPEAT (assume_tac 1) THEN etac disjI2 1);
@@ -136,8 +134,7 @@ by (blast_tac (subset_cs addIs [TFin_is_subset]) 1);
 qed "equal_next_upper";
 
 (*Property 3.3 of section 3.3*)
-Goal
-    "!!m. [| m: TFin(S,next);  next: increasing(S) \
+Goal "[| m: TFin(S,next);  next: increasing(S) \
 \         |] ==> m = next`m <-> m = Union(TFin(S,next))";
 by (rtac iffI 1);
 by (rtac (Union_upper RS equalityI) 1);
@@ -167,8 +164,7 @@ Goalw [maxchain_def] "maxchain(A) <= chain(A)";
 by (rtac Collect_subset 1);
 qed "maxchain_subset_chain";
 
-Goal
-    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
+Goal "[| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
 \            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) : super(S,X)";
 by (etac apply_type 1);
@@ -176,8 +172,7 @@ by (rewrite_goals_tac [super_def, maxchain_def]);
 by (Blast_tac 1);
 qed "choice_super";
 
-Goal
-    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
+Goal "[| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
 \            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) ~= X";
 by (rtac notI 1);
@@ -188,8 +183,7 @@ by (asm_full_simp_tac (simpset() addsimps [super_def]) 1);
 qed "choice_not_equals";
 
 (*This justifies Definition 4.4*)
-Goal
-    "!!S. ch: (PROD X: Pow(chain(S))-{0}. X) ==>        \
+Goal "ch: (PROD X: Pow(chain(S))-{0}. X) ==>        \
 \          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X: chain(S)-maxchain(S), ch`super(S,X), X)";
 by (rtac bexI 1);
@@ -214,7 +208,7 @@ qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
 Goal
- "!!S. [| c: TFin(S,next);                              \
+ "[| c: TFin(S,next);                              \
 \         ch: (PROD X: Pow(chain(S))-{0}. X);           \
 \         next: increasing(S);                          \
 \         ALL X: Pow(S). next`X =       \
@@ -258,12 +252,11 @@ qed "Hausdorff";
 
 (*Used in the proof of Zorn's Lemma*)
 Goalw [chain_def]
-    "!!c. [| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
+    "[| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
 by (Blast_tac 1);
 qed "chain_extend";
 
-Goal
-    "!!S. ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z";
+Goal "ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z";
 by (resolve_tac [Hausdorff RS exE] 1);
 by (asm_full_simp_tac (simpset() addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
@@ -310,8 +303,7 @@ by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 qed "well_ord_TFin_lemma";
 
 (*This theorem just packages the previous result*)
-Goal
-    "!!S. next: increasing(S) ==> \
+Goal "next: increasing(S) ==> \
 \         well_ord(TFin(S,next), Subset_rel(TFin(S,next)))";
 by (rtac well_ordI 1);
 by (rewrite_goals_tac [Subset_rel_def, linear_def]);
@@ -341,8 +333,7 @@ by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
-Goal
-    "!!S. ch: (PROD X: Pow(S)-{0}. X) ==>               \
+Goal "ch: (PROD X: Pow(S)-{0}. X) ==>               \
 \          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X=S, S, cons(ch`(S-X), X))";
 by (rtac bexI 1);
@@ -364,8 +355,7 @@ qed "Zermelo_next_exists";
 
 
 (*The construction of the injection*)
-Goal
-  "!!S. [| ch: (PROD X: Pow(S)-{0}. X);                 \
+Goal "[| ch: (PROD X: Pow(S)-{0}. X);                 \
 \          next: increasing(S);                         \
 \          ALL X: Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X))        \
 \       |] ==> (lam x:S. Union({y: TFin(S,next). x~: y}))       \

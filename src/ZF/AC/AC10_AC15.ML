@@ -49,14 +49,14 @@ by (Fast_tac 1);
 val lemma1 = result();
 
 Goalw [pairwise_disjoint_def]
-        "!!A. [| pairwise_disjoint(A); B:A; C:A; a:B; a:C |] ==> B=C";
+        "[| pairwise_disjoint(A); B:A; C:A; a:B; a:C |] ==> B=C";
 by (dtac IntI 1 THEN (assume_tac 1));
 by (dres_inst_tac [("A","B Int C")] not_emptyI 1);
 by (Fast_tac 1);
 val lemma2 = result();
 
 Goalw [sets_of_size_between_def]
-        "!!A. ALL B:{cons(0, x*nat). x:A}. pairwise_disjoint(f`B) &  \
+        "ALL B:{cons(0, x*nat). x:A}. pairwise_disjoint(f`B) &  \
 \               sets_of_size_between(f`B, 2, n) & Union(f`B)=B  \
 \       ==> ALL B:A. EX! u. u:f`cons(0, B*nat) & u <= cons(0, B*nat) &  \
 \               0:u & 2 lepoll u & u lepoll n";
@@ -252,6 +252,6 @@ qed "AC13_AC1";
 (* AC11 ==> AC14                                                          *)
 (* ********************************************************************** *)
 
-Goalw [AC11_def, AC14_def] "!!Z. AC11 ==> AC14";
+Goalw [AC11_def, AC14_def] "AC11 ==> AC14";
 by (fast_tac (claset() addSIs [AC10_AC13]) 1);
 qed "AC11_AC14";

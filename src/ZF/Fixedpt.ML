@@ -55,7 +55,7 @@ qed "bnd_mono_Int";
 
 (*lfp is contained in each pre-fixedpoint*)
 Goalw [lfp_def]
-    "!!A. [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
+    "[| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
 by (Blast_tac 1);
 (*or  by (rtac (PowI RS CollectI RS Inter_lower) 1); *)
 qed "lfp_lowerbound";
@@ -258,8 +258,7 @@ by (rtac ([mono, subs_D, gfp_subset] MRS bnd_mono_Un) 1);
 qed "coinduct_lemma";
 
 (*strong version*)
-Goal
-    "!!X D. [| bnd_mono(D,h);  a: X;  X <= h(X Un gfp(D,h));  X <= D |] ==> \
+Goal "[| bnd_mono(D,h);  a: X;  X <= h(X Un gfp(D,h));  X <= D |] ==> \
 \           a : gfp(D,h)";
 by (rtac weak_coinduct 1);
 by (etac coinduct_lemma 2);

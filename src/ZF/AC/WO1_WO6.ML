@@ -19,14 +19,14 @@ qed "WO2_WO3";
 
 (* ********************************************************************** *)
 
-Goalw (eqpoll_def::WO_defs) "!!Z. WO3 ==> WO1";
+Goalw (eqpoll_def::WO_defs) "WO3 ==> WO1";
 by (fast_tac (claset() addSEs [bij_is_inj RS well_ord_rvimage, 
 			      well_ord_Memrel RS well_ord_subset]) 1);
 qed "WO3_WO1";
 
 (* ********************************************************************** *)
 
-Goalw (eqpoll_def::WO_defs) "!!Z. WO1 ==> WO2";
+Goalw (eqpoll_def::WO_defs) "WO1 ==> WO2";
 by (fast_tac (claset() addSIs [Ord_ordertype, ordermap_bij]) 1);
 qed "WO1_WO2";
 

@@ -168,8 +168,7 @@ qed "diff_induct";
 
 (** Induction principle analogous to trancl_induct **)
 
-Goal
- "!!m. m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
+Goal "m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
 \                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
 by (ALLGOALS    (*blast_tac gives PROOF FAILED*)

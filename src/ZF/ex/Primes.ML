@@ -56,7 +56,7 @@ by (Asm_simp_tac 1);
 qed "egcd_0";
 
 Goalw [egcd_def]
-    "!!m. [| 0<n; m:nat; n:nat |] ==> egcd(m,n) = egcd(n, m mod n)";
+    "[| 0<n; m:nat; n:nat |] ==> egcd(m,n) = egcd(n, m mod n)";
 by (res_inst_tac [("P", "%z. ?left(z) = ?right")] (transrec RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [ltD RS mem_imp_not_eq RS not_sym,
                                      mod_less_divisor RS ltD]) 1);

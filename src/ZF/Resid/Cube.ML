@@ -17,8 +17,7 @@ val prism_ss = (res1L_ss addsimps
 (* ------------------------------------------------------------------------- *)
 
 (* Having more assumptions than needed -- removed below  *)
-Goal 
-    "!!u. v<==u ==> \
+Goal "v<==u ==> \
 \   regular(u)-->(ALL w. w~v-->w~u-->  \
 \             w |> u = (w|>v) |> (u|>v))";
 by (etac Ssub.induct 1);
@@ -31,8 +30,7 @@ by (dresolve_tac [spec RS mp RS mp] 1 THEN resolve_tac [Scomp.Comp_Fun] 1
 by (asm_full_simp_tac prism_ss 1);
 qed_spec_mp "prism_l";
 
-Goal 
-    "!!u.[|v <== u; regular(u); w~v|]==> \
+Goal "[|v <== u; regular(u); w~v|]==> \
 \       w |> u = (w|>v) |> (u|>v)";
 by (rtac prism_l 1);
 by (rtac comp_trans 4);
@@ -45,8 +43,7 @@ qed "prism";
 (*    Levy's Cube Lemma                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-Goal 
-    "!!u.[|u~v; regular(v); regular(u); w~u|]==>  \
+Goal "[|u~v; regular(v); regular(u); w~u|]==>  \
 \          (w|>u) |> (v|>u) = (w|>v) |> (u|>v)";
 by (stac preservation 1 
     THEN assume_tac 1 THEN assume_tac 1);
@@ -68,8 +65,7 @@ qed "cube";
 (*           paving theorem                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-Goal 
-    "!!u.[|w~u; w~v; regular(u); regular(v)|]==> \
+Goal "[|w~u; w~v; regular(u); regular(v)|]==> \
 \          EX uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
 \            regular(vu) & (w|>v)~uv & regular(uv) ";
 by (subgoal_tac "u~v" 1);

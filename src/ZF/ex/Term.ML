@@ -158,7 +158,7 @@ qed "reflect_type";
 bind_thm ("preorder", (preorder_def RS def_term_rec));
 
 Goalw [preorder_def]
-    "!!t A. t: term(A) ==> preorder(t) : list(A)";
+    "t: term(A) ==> preorder(t) : list(A)";
 by (REPEAT (ares_tac [term_rec_simple_type, list.Cons_I, flat_type] 1));
 qed "preorder_type";
 
@@ -182,14 +182,12 @@ by (etac term_induct_eqn 1);
 by (asm_simp_tac (simpset() addsimps [map_ident]) 1);
 qed "term_map_ident";
 
-Goal
-  "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u. f(g(u)), t)";
+Goal "t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u. f(g(u)), t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (simpset() addsimps [map_compose]) 1);
 qed "term_map_compose";
 
-Goal
-    "!!t A. t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
+Goal "t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (simpset() addsimps [rev_map_distrib RS sym, map_compose]) 1);
 qed "term_map_reflect";
@@ -197,8 +195,7 @@ qed "term_map_reflect";
 
 (** theorems about term_size **)
 
-Goal
-    "!!t A. t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
+Goal "t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (simpset() addsimps [map_compose]) 1);
 qed "term_size_term_map";
@@ -226,8 +223,7 @@ qed "reflect_reflect_ident";
 
 (** theorems about preorder **)
 
-Goal
-    "!!t A. t: term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))";
+Goal "t: term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (simpset() addsimps [map_compose, map_flat]) 1);
 qed "preorder_term_map";

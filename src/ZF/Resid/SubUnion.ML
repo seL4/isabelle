@@ -22,19 +22,19 @@ val regD =Sreg.dom_subset RS subsetD;
 (* ------------------------------------------------------------------------- *)
 
 Goalw [union_def]
-    "!!u. n:nat==>Var(n) un Var(n)=Var(n)";
+    "n:nat==>Var(n) un Var(n)=Var(n)";
 by (Asm_simp_tac 1);
 by (simp_tac (rank_ss addsimps redexes.con_defs)  1);
 qed "union_Var";
 
 Goalw [union_def]
-    "!!u.[|u:redexes; v:redexes|]==>Fun(u) un Fun(v)=Fun(u un v)";
+    "[|u:redexes; v:redexes|]==>Fun(u) un Fun(v)=Fun(u un v)";
 by (Asm_simp_tac 1);
 by (simp_tac (rank_ss addsimps redexes.con_defs)  1);
 qed "union_Fun";
  
 Goalw [union_def]
- "!!u.[|b1:bool; b2:bool; u1:redexes; v1:redexes; u2:redexes; v2:redexes|]==> \
+ "[|b1:bool; b2:bool; u1:redexes; v1:redexes; u2:redexes; v2:redexes|]==> \
 \     App(b1,u1,v1) un App(b2,u2,v2)=App(b1 or b2,u1 un u2,v1 un v2)";
 by (Asm_simp_tac 1);
 by (simp_tac (rank_ss addsimps redexes.con_defs)  1);
@@ -70,20 +70,17 @@ by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS Fast_tac);
 qed "comp_refl";
 
-Goal 
-    "!!u. u ~ v ==> v ~ u";
+Goal "u ~ v ==> v ~ u";
 by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed "comp_sym";
 
-Goal 
-    "u ~ v <-> v ~ u";
+Goal "u ~ v <-> v ~ u";
 by (fast_tac (claset() addIs [comp_sym]) 1);
 qed "comp_sym_iff";
 
 
-Goal 
-    "!!u. u ~ v ==> ALL w. v ~ w-->u ~ w";
+Goal "u ~ v ==> ALL w. v ~ w-->u ~ w";
 by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed_spec_mp "comp_trans";
@@ -92,22 +89,19 @@ qed_spec_mp "comp_trans";
 (*   union proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-Goal 
-    "!!u. u ~ v ==> u <== (u un v)";
+Goal "u ~ v ==> u <== (u un v)";
 by (etac Scomp.induct 1);
 by (etac boolE 3);
 by (ALLGOALS Asm_full_simp_tac);
 qed "union_l";
 
-Goal 
-    "!!u. u ~ v ==> v <== (u un v)";
+Goal "u ~ v ==> v <== (u un v)";
 by (etac Scomp.induct 1);
 by (eres_inst_tac [("c","b2")] boolE 3);
 by (ALLGOALS Asm_full_simp_tac);
 qed "union_r";
 
-Goal 
-    "!!u. u ~ v ==> u un v = v un u";
+Goal "u ~ v ==> u un v = v un u";
 by (etac Scomp.induct 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [or_commute])));
 qed "union_sym";
@@ -116,8 +110,7 @@ qed "union_sym";
 (*      regular proofs                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-Goal 
-    "!!u. u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
+Goal "u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
 by (etac Scomp.induct 1);
 by (ALLGOALS(asm_full_simp_tac
              (simpset() setloop(SELECT_GOAL Safe_tac))));

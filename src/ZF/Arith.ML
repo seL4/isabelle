@@ -354,7 +354,7 @@ Addsimps [mod_type, mod_less, mod_geq];
 
 (*Type checking depends upon termination!*)
 Goalw [div_def]
-    "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m div n : nat";
+    "[| 0<n;  m:nat;  n:nat |] ==> m div n : nat";
 by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
 qed "div_type";
 
@@ -573,7 +573,7 @@ qed "mult_eq_self_implies_10";
 
 (*Thanks to Sten Agerholm*)
 Goal  (* add_le_elim1 *)
-    "!!m n k. [|m#+n le m#+k; m:nat; n:nat; k:nat|] ==> n le k";
+    "[|m#+n le m#+k; m:nat; n:nat; k:nat|] ==> n le k";
 by (etac rev_mp 1);
 by (eres_inst_tac [("n","n")] nat_induct 1);
 by (Asm_simp_tac 1);

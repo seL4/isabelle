@@ -16,7 +16,7 @@ by (rtac separation 1);
 qed "Part_iff";
 
 Goalw [Part_def]
-    "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part(A,h)";
+    "[| a : A;  a=h(b) |] ==> a : Part(A,h)";
 by (Blast_tac 1);
 qed "Part_eqI";
 
@@ -152,7 +152,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_type";
 
 Goal
-  "!!u. u: A+B ==>   \
+  "u: A+B ==>   \
 \       R(case(c,d,u)) <-> \
 \       ((ALL x:A. u = Inl(x) --> R(c(x))) & \
 \       (ALL y:B. u = Inr(y) --> R(d(y))))";
@@ -168,8 +168,7 @@ by (resolve_tac [major RS sumE] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "case_cong";
 
-Goal
-  "!!z. z: A+B ==>   \
+Goal "z: A+B ==>   \
 \       case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) = \
 \       case(%x. c(c'(x)), %y. d(d'(y)), z)";
 by Auto_tac;

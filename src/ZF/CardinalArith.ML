@@ -38,7 +38,7 @@ qed "sum_assoc_eqpoll";
 
 (*Unconditional version requires AC*)
 Goalw [cadd_def]
-    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
+    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
 \             (i |+| j) |+| k = i |+| (j |+| k)";
 by (rtac cardinal_cong 1);
 by (rtac ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS sum_eqpoll_cong RS
@@ -70,7 +70,7 @@ qed "sum_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 Goalw [cadd_def]
-    "!!K. [| Card(K);  Ord(L) |] ==> K le (K |+| L)";
+    "[| Card(K);  Ord(L) |] ==> K le (K |+| L)";
 by (rtac ([Card_cardinal_le, well_ord_lepoll_imp_Card_le] MRS le_trans) 1);
 by (rtac sum_lepoll_self 3);
 by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel, Card_is_Ord] 1));
@@ -79,7 +79,7 @@ qed "cadd_le_self";
 (** Monotonicity of addition **)
 
 Goalw [lepoll_def]
-     "!!A B C D. [| A lepoll C;  B lepoll D |] ==> A + B  lepoll  C + D";
+     "[| A lepoll C;  B lepoll D |] ==> A + B  lepoll  C + D";
 by (REPEAT (etac exE 1));
 by (res_inst_tac [("x", "lam z:A+B. case(%w. Inl(f`w), %y. Inr(fa`y), z)")] 
     exI 1);
@@ -92,7 +92,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [left_inverse])));
 qed "sum_lepoll_mono";
 
 Goalw [cadd_def]
-    "!!K. [| K' le K;  L' le L |] ==> (K' |+| L') le (K |+| L)";
+    "[| K' le K;  L' le L |] ==> (K' |+| L') le (K |+| L)";
 by (safe_tac (claset() addSDs [le_subset_iff RS iffD1]));
 by (rtac well_ord_lepoll_imp_Card_le 1);
 by (REPEAT (ares_tac [sum_lepoll_mono, subset_imp_lepoll] 2));
@@ -114,7 +114,7 @@ qed "sum_succ_eqpoll";
 (*Pulling the  succ(...)  outside the |...| requires m, n: nat  *)
 (*Unconditional version requires AC*)
 Goalw [cadd_def]
-    "!!m n. [| Ord(m);  Ord(n) |] ==> succ(m) |+| n = |succ(m |+| n)|";
+    "[| Ord(m);  Ord(n) |] ==> succ(m) |+| n = |succ(m |+| n)|";
 by (rtac (sum_succ_eqpoll RS cardinal_cong RS trans) 1);
 by (rtac (succ_eqpoll_cong RS cardinal_cong) 1);
 by (rtac (well_ord_cardinal_eqpoll RS eqpoll_sym) 1);
@@ -157,7 +157,7 @@ qed "prod_assoc_eqpoll";
 
 (*Unconditional version requires AC*)
 Goalw [cmult_def]
-    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
+    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
 \             (i |*| j) |*| k = i |*| (j |*| k)";
 by (rtac cardinal_cong 1);
 by (rtac ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
@@ -176,7 +176,7 @@ by (rtac sum_prod_distrib_bij 1);
 qed "sum_prod_distrib_eqpoll";
 
 Goalw [cadd_def, cmult_def]
-    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
+    "[| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>  \
 \             (i |+| j) |*| k = (i |*| k) |+| (j |*| k)";
 by (rtac cardinal_cong 1);
 by (rtac ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
@@ -207,7 +207,7 @@ by (rtac exI 1);
 by (resolve_tac [singleton_prod_bij RS bij_converse_bij] 1);
 qed "prod_singleton_eqpoll";
 
-Goalw [cmult_def, succ_def] "!!K. Card(K) ==> 1 |*| K = K";
+Goalw [cmult_def, succ_def] "Card(K) ==> 1 |*| K = K";
 by (asm_simp_tac (simpset() addsimps [prod_singleton_eqpoll RS cardinal_cong, 
 				      Card_cardinal_eq]) 1);
 qed "cmult_1";
@@ -231,14 +231,14 @@ qed "cmult_square_le";
 
 (** Multiplication by a non-zero cardinal **)
 
-Goalw [lepoll_def, inj_def] "!!b. b: B ==> A lepoll A*B";
+Goalw [lepoll_def, inj_def] "b: B ==> A lepoll A*B";
 by (res_inst_tac [("x", "lam x:A. <x,b>")] exI 1);
 by (asm_simp_tac (simpset() addsimps [lam_type]) 1);
 qed "prod_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 Goalw [cmult_def]
-    "!!K. [| Card(K);  Ord(L);  0<L |] ==> K le (K |*| L)";
+    "[| Card(K);  Ord(L);  0<L |] ==> K le (K |*| L)";
 by (rtac ([Card_cardinal_le, well_ord_lepoll_imp_Card_le] MRS le_trans) 1);
 by (rtac prod_lepoll_self 3);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel, Card_is_Ord, ltD] 1));
@@ -247,7 +247,7 @@ qed "cmult_le_self";
 (** Monotonicity of multiplication **)
 
 Goalw [lepoll_def]
-     "!!A B C D. [| A lepoll C;  B lepoll D |] ==> A * B  lepoll  C * D";
+     "[| A lepoll C;  B lepoll D |] ==> A * B  lepoll  C * D";
 by (REPEAT (etac exE 1));
 by (res_inst_tac [("x", "lam <w,y>:A*B. <f`w, fa`y>")] exI 1);
 by (res_inst_tac [("d", "%<w,y>.<converse(f)`w, converse(fa)`y>")] 
@@ -258,7 +258,7 @@ by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "prod_lepoll_mono";
 
 Goalw [cmult_def]
-    "!!K. [| K' le K;  L' le L |] ==> (K' |*| L') le (K |*| L)";
+    "[| K' le K;  L' le L |] ==> (K' |*| L') le (K |*| L)";
 by (safe_tac (claset() addSDs [le_subset_iff RS iffD1]));
 by (rtac well_ord_lepoll_imp_Card_le 1);
 by (REPEAT (ares_tac [prod_lepoll_mono, subset_imp_lepoll] 2));
@@ -279,7 +279,7 @@ qed "prod_succ_eqpoll";
 
 (*Unconditional version requires AC*)
 Goalw [cmult_def, cadd_def]
-    "!!m n. [| Ord(m);  Ord(n) |] ==> succ(m) |*| n = n |+| (m |*| n)";
+    "[| Ord(m);  Ord(n) |] ==> succ(m) |*| n = n |+| (m |*| n)";
 by (rtac (prod_succ_eqpoll RS cardinal_cong RS trans) 1);
 by (rtac (cardinal_cong RS sym) 1);
 by (rtac ([eqpoll_refl, well_ord_cardinal_eqpoll] MRS sum_eqpoll_cong) 1);
@@ -310,7 +310,7 @@ qed "cmult_2";
   %y. if(y:nat, nat_case(u,%z.z,y), y).  If f: inj(nat,A) then
   range(f) behaves like the natural numbers.*)
 Goalw [lepoll_def]
-    "!!i. nat lepoll A ==> cons(u,A) lepoll A";
+    "nat lepoll A ==> cons(u,A) lepoll A";
 by (etac exE 1);
 by (res_inst_tac [("x",
     "lam z:cons(u,A). if(z=u, f`0,      \
@@ -347,7 +347,7 @@ by (etac conjunct1 1);
 qed "InfCard_is_Card";
 
 Goalw [InfCard_def]
-    "!!K L. [| InfCard(K);  Card(L) |] ==> InfCard(K Un L)";
+    "[| InfCard(K);  Card(L) |] ==> InfCard(K Un L)";
 by (asm_simp_tac (simpset() addsimps [Card_Un, Un_upper1_le RSN (2,le_trans), 
 				      Card_is_Ord]) 1);
 qed "InfCard_Un";
@@ -381,13 +381,13 @@ qed "ordermap_eqpoll_pred";
 (** Establishing the well-ordering **)
 
 Goalw [inj_def]
- "!!K. Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
+ "Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
 by (fast_tac (claset() addss (simpset())
                        addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
 qed "csquare_lam_inj";
 
 Goalw [csquare_rel_def]
- "!!K. Ord(K) ==> well_ord(K*K, csquare_rel(K))";
+ "Ord(K) ==> well_ord(K*K, csquare_rel(K))";
 by (rtac (csquare_lam_inj RS well_ord_rvimage) 1);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
 qed "well_ord_csquare";
@@ -395,7 +395,7 @@ qed "well_ord_csquare";
 (** Characterising initial segments of the well-ordering **)
 
 Goalw [csquare_rel_def]
- "!!K. [| x<K;  y<K;  z<K |] ==> \
+ "[| x<K;  y<K;  z<K |] ==> \
 \      <<x,y>, <z,z>> : csquare_rel(K) --> x le z & y le z";
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
@@ -406,7 +406,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2, Ord_succ])));
 qed_spec_mp "csquareD";
 
 Goalw [pred_def]
- "!!K. z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
+ "z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
 by (safe_tac (claset_of ZF.thy addSEs [SigmaE]));  (*avoids using succCI,...*)
 by (rtac (csquareD RS conjE) 1);
 by (rewtac lt_def);
@@ -415,7 +415,7 @@ by (ALLGOALS Blast_tac);
 qed "pred_csquare_subset";
 
 Goalw [csquare_rel_def]
- "!!K. [| x<z;  y<z;  z<K |] ==>  <<x,y>, <z,z>> : csquare_rel(K)";
+ "[| x<z;  y<z;  z<K |] ==>  <<x,y>, <z,z>> : csquare_rel(K)";
 by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans] 2));
 by (REPEAT (etac ltE 1));
@@ -425,7 +425,7 @@ qed "csquare_ltI";
 
 (*Part of the traditional proof.  UNUSED since it's harder to prove & apply *)
 Goalw [csquare_rel_def]
- "!!K. [| x le z;  y le z;  z<K |] ==> \
+ "[| x le z;  y le z;  z<K |] ==> \
 \      <<x,y>, <z,z>> : csquare_rel(K) | x=z & y=z";
 by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans1] 2));
@@ -440,8 +440,7 @@ qed "csquare_or_eqI";
 
 (** The cardinality of initial segments **)
 
-Goal
-    "!!K. [| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+Goal "[| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
 \         ordermap(K*K, csquare_rel(K)) ` <x,y> <               \
 \         ordermap(K*K, csquare_rel(K)) ` <z,z>";
 by (subgoals_tac ["z<K", "well_ord(K*K, csquare_rel(K))"] 1);
@@ -456,7 +455,7 @@ qed "ordermap_z_lt";
 
 (*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
 Goalw [cmult_def]
-  "!!K. [| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+  "[| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
 \       | ordermap(K*K, csquare_rel(K)) ` <x,y> | le  |succ(z)| |*| |succ(z)|";
 by (rtac (well_ord_rmult RS well_ord_lepoll_imp_Card_le) 1);
 by (REPEAT (ares_tac [Ord_cardinal, well_ord_Memrel] 1));
@@ -475,8 +474,7 @@ by (REPEAT_FIRST (etac (Ord_succ RS Ord_cardinal_eqpoll)));
 qed "ordermap_csquare_le";
 
 (*Kunen: "... so the order type <= K" *)
-Goal
-    "!!K. [| InfCard(K);  ALL y:K. InfCard(y) --> y |*| y = y |]  ==>  \
+Goal "[| InfCard(K);  ALL y:K. InfCard(y) --> y |*| y = y |]  ==>  \
 \         ordertype(K*K, csquare_rel(K)) le K";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (rtac all_lt_imp_le 1);
@@ -526,8 +524,7 @@ by (asm_simp_tac
 qed "InfCard_csquare_eq";
 
 (*Corollary for arbitrary well-ordered sets (all sets, assuming AC)*)
-Goal
-    "!!A. [| well_ord(A,r);  InfCard(|A|) |] ==> A*A eqpoll A";
+Goal "[| well_ord(A,r);  InfCard(|A|) |] ==> A*A eqpoll A";
 by (resolve_tac [prod_eqpoll_cong RS eqpoll_trans] 1);
 by (REPEAT (etac (well_ord_cardinal_eqpoll RS eqpoll_sym) 1));
 by (rtac well_ord_cardinal_eqE 1);
@@ -548,8 +545,7 @@ by (asm_simp_tac (simpset() addsimps [InfCard_csquare_eq]) 1);
 qed "InfCard_le_cmult_eq";
 
 (*Corollary 10.13 (1), for cardinal multiplication*)
-Goal
-    "!!K. [| InfCard(K);  InfCard(L) |] ==> K |*| L = K Un L";
+Goal "[| InfCard(K);  InfCard(L) |] ==> K |*| L = K Un L";
 by (res_inst_tac [("i","K"),("j","L")] Ord_linear_le 1);
 by (typechk_tac [InfCard_is_Card, Card_is_Ord]);
 by (resolve_tac [cmult_commute RS ssubst] 1);
@@ -579,8 +575,7 @@ by (resolve_tac [cadd_le_mono RS le_trans] 1 THEN REPEAT (assume_tac 1));
 by (asm_simp_tac (simpset() addsimps [InfCard_cdouble_eq]) 1);
 qed "InfCard_le_cadd_eq";
 
-Goal
-    "!!K. [| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L";
+Goal "[| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L";
 by (res_inst_tac [("i","K"),("j","L")] Ord_linear_le 1);
 by (typechk_tac [InfCard_is_Card, Card_is_Ord]);
 by (resolve_tac [cadd_commute RS ssubst] 1);
@@ -630,8 +625,7 @@ qed "K_lt_jump_cardinal";
 
 (*The proof by contradiction: the bijection f yields a wellordering of X
   whose ordertype is jump_cardinal(K).  *)
-Goal
-    "!!K. [| well_ord(X,r);  r <= K * K;  X <= K;       \
+Goal "[| well_ord(X,r);  r <= K * K;  X <= K;       \
 \            f : bij(ordertype(X,r), jump_cardinal(K))  \
 \         |] ==> jump_cardinal(K) : jump_cardinal(K)";
 by (subgoal_tac "f O ordermap(X,r): bij(X, jump_cardinal(K))" 1);
@@ -658,7 +652,7 @@ qed "Card_jump_cardinal";
 (*** Basic properties of successor cardinals ***)
 
 Goalw [csucc_def]
-    "!!K. Ord(K) ==> Card(csucc(K)) & K < csucc(K)";
+    "Ord(K) ==> Card(csucc(K)) & K < csucc(K)";
 by (rtac LeastI 1);
 by (REPEAT (ares_tac [conjI, Card_jump_cardinal, K_lt_jump_cardinal,
                       Ord_jump_cardinal] 1));
@@ -674,13 +668,12 @@ by (REPEAT (assume_tac 1));
 qed "Ord_0_lt_csucc";
 
 Goalw [csucc_def]
-    "!!K L. [| Card(L);  K<L |] ==> csucc(K) le L";
+    "[| Card(L);  K<L |] ==> csucc(K) le L";
 by (rtac Least_le 1);
 by (REPEAT (ares_tac [conjI, Card_is_Ord] 1));
 qed "csucc_le";
 
-Goal
-    "!!K. [| Ord(i); Card(K) |] ==> i < csucc(K) <-> |i| le K";
+Goal "[| Ord(i); Card(K) |] ==> i < csucc(K) <-> |i| le K";
 by (rtac iffI 1);
 by (rtac Card_lt_imp_lt 2);
 by (etac lt_trans1 2);
@@ -693,14 +686,13 @@ by (REPEAT (ares_tac [Ord_cardinal] 1
      ORELSE eresolve_tac [ltE, Card_is_Ord] 1));
 qed "lt_csucc_iff";
 
-Goal
-    "!!K' K. [| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' le K";
+Goal "!!K' K. [| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' le K";
 by (asm_simp_tac 
     (simpset() addsimps [lt_csucc_iff, Card_cardinal_eq, Card_is_Ord]) 1);
 qed "Card_lt_csucc_iff";
 
 Goalw [InfCard_def]
-    "!!K. InfCard(K) ==> InfCard(csucc(K))";
+    "InfCard(K) ==> InfCard(csucc(K))";
 by (asm_simp_tac (simpset() addsimps [Card_csucc, Card_is_Ord, 
 				      lt_csucc RS leI RSN (2,le_trans)]) 1);
 qed "InfCard_csucc";
@@ -708,8 +700,7 @@ qed "InfCard_csucc";
 
 (*** Finite sets ***)
 
-Goal
-    "!!n. n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
+Goal "n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
 by (etac nat_induct 1);
 by (simp_tac (simpset() addsimps (eqpoll_0_iff::Fin.intrs)) 1);
 by (Clarify_tac 1);
@@ -740,8 +731,7 @@ Goal "Finite(A) <-> A : Fin(A)";
 by (blast_tac (claset() addIs [Finite_into_Fin, Fin_into_Finite]) 1);
 qed "Finite_Fin_iff";
 
-Goal
-    "!!A. [| Finite(A); Finite(B) |] ==> Finite(A Un B)";
+Goal "[| Finite(A); Finite(B) |] ==> Finite(A Un B)";
 by (blast_tac (claset() addSIs [Fin_into_Finite, Fin_UnI] 
                         addSDs [Finite_into_Fin]
                         addIs  [Un_upper1 RS Fin_mono RS subsetD,
@@ -751,8 +741,7 @@ qed "Finite_Un";
 
 (** Removing elements from a finite set decreases its cardinality **)
 
-Goal
-    "!!A. A: Fin(U) ==> x~:A --> ~ cons(x,A) lepoll A";
+Goal "A: Fin(U) ==> x~:A --> ~ cons(x,A) lepoll A";
 by (etac Fin_induct 1);
 by (simp_tac (simpset() addsimps [lepoll_0_iff]) 1);
 by (subgoal_tac "cons(x,cons(xa,y)) = cons(xa,cons(x,y))" 1);
@@ -761,8 +750,7 @@ by (blast_tac (claset() addSDs [cons_lepoll_consD]) 1);
 by (Blast_tac 1);
 qed "Fin_imp_not_cons_lepoll";
 
-Goal
-    "!!a A. [| Finite(A);  a~:A |] ==> |cons(a,A)| = succ(|A|)";
+Goal "[| Finite(A);  a~:A |] ==> |cons(a,A)| = succ(|A|)";
 by (rewtac cardinal_def);
 by (rtac Least_equality 1);
 by (fold_tac [cardinal_def]);

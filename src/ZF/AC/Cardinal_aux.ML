@@ -196,7 +196,7 @@ by (fast_tac (claset() addDs [equals0D]) 1);
 qed "disj_Un_eqpoll_sum";
 
 Goalw [lepoll_def, eqpoll_def]
-        "!!X a. a lepoll X ==> EX Y. Y<=X & a eqpoll Y";
+        "a lepoll X ==> EX Y. Y<=X & a eqpoll Y";
 by (etac exE 1);
 by (forward_tac [subset_refl RSN (2, restrict_bij)] 1);
 by (res_inst_tac [("x","f``a")] exI 1);

@@ -38,12 +38,11 @@ by (simp_tac (simpset() addsimps [te_rec_owr]) 1);
 qed "te_app_owr1";
 
 Goalw [te_app_def]
-  "!!x y. x ~= y ==> te_app(te_owr(te,x,t),y) = te_app(te,y)";
+  "x ~= y ==> te_app(te_owr(te,x,t),y) = te_app(te,y)";
 by (asm_simp_tac (simpset() addsimps [te_rec_owr,(not_sym RS if_not_P)]) 1);
 qed "te_app_owr2";
 
-Goal
-    "!!te. [| te:TyEnv; x:ExVar; x:te_dom(te) |] ==> te_app(te,x):Ty";
+Goal "[| te:TyEnv; x:ExVar; x:te_dom(te) |] ==> te_app(te,x):Ty";
 by (res_inst_tac [("P","x:te_dom(te)")] impE 1);
 by (assume_tac 2);
 by (assume_tac 2);

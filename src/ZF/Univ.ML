@@ -96,14 +96,13 @@ by (rtac subset_mem_Vfrom 1);
 by Safe_tac;
 qed "singleton_in_Vfrom";
 
-Goal
-    "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> {a,b} : Vfrom(A,succ(i))";
+Goal "[| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> {a,b} : Vfrom(A,succ(i))";
 by (rtac subset_mem_Vfrom 1);
 by Safe_tac;
 qed "doubleton_in_Vfrom";
 
 Goalw [Pair_def]
-    "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> \
+    "[| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> \
 \         <a,b> : Vfrom(A,succ(succ(i)))";
 by (REPEAT (ares_tac [doubleton_in_Vfrom] 1));
 qed "Pair_in_Vfrom";
@@ -245,12 +244,12 @@ by (REPEAT (ares_tac [nat_into_VLimit, nat_0I, nat_succI] 1));
 qed "one_in_VLimit";
 
 Goalw [Inl_def]
-    "!!A a. [| a: Vfrom(A,i); Limit(i) |] ==> Inl(a) : Vfrom(A,i)";
+    "[| a: Vfrom(A,i); Limit(i) |] ==> Inl(a) : Vfrom(A,i)";
 by (REPEAT (ares_tac [zero_in_VLimit, Pair_in_VLimit] 1));
 qed "Inl_in_VLimit";
 
 Goalw [Inr_def]
-    "!!A b. [| b: Vfrom(A,i); Limit(i) |] ==> Inr(b) : Vfrom(A,i)";
+    "[| b: Vfrom(A,i); Limit(i) |] ==> Inr(b) : Vfrom(A,i)";
 by (REPEAT (ares_tac [one_in_VLimit, Pair_in_VLimit] 1));
 qed "Inr_in_VLimit";
 
@@ -284,8 +283,7 @@ goalw Ordinal.thy [Pair_def,Transset_def]
 by (Blast_tac 1);
 qed "Transset_Pair_subset";
 
-Goal
-    "!!a b.[| <a,b> <= Vfrom(A,i);  Transset(A);  Limit(i) |] ==> \
+Goal "[| <a,b> <= Vfrom(A,i);  Transset(A);  Limit(i) |] ==> \
 \          <a,b> : Vfrom(A,i)";
 by (etac (Transset_Pair_subset RS conjE) 1);
 by (etac Transset_Vfrom 1);
@@ -317,8 +315,7 @@ qed "in_VLimit";
 
 (** products **)
 
-Goal
-    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
+Goal "[| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
 \         a*b : Vfrom(A, succ(succ(succ(j))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
@@ -337,7 +334,7 @@ qed "prod_in_VLimit";
 (** Disjoint sums, aka Quine ordered pairs **)
 
 Goalw [sum_def]
-    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A);  1:j |] ==> \
+    "[| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A);  1:j |] ==> \
 \         a+b : Vfrom(A, succ(succ(succ(j))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
@@ -357,7 +354,7 @@ qed "sum_in_VLimit";
 (** function space! **)
 
 Goalw [Pi_def]
-    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
+    "[| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
 \         a->b : Vfrom(A, succ(succ(succ(succ(j)))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
@@ -380,7 +377,7 @@ by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
 qed "fun_in_VLimit";
 
 Goalw [Pi_def]
-    "!!A. [| a: Vfrom(A,j);  Transset(A) |] ==> \
+    "[| a: Vfrom(A,j);  Transset(A) |] ==> \
 \         Pow(a) : Vfrom(A, succ(succ(j)))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
@@ -390,7 +387,7 @@ by (Blast_tac 1);
 qed "Pow_in_Vfrom";
 
 Goal
-  "!!a. [| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
+  "[| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
 (*Blast_tac: PROOF FAILED*)
 by (fast_tac (claset() addEs [Limit_VfromE]
 		       addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
@@ -563,12 +560,12 @@ by (REPEAT (ares_tac [singleton_in_VLimit, Limit_nat] 1));
 qed "singleton_in_univ";
 
 Goalw [univ_def] 
-    "!!A a. [| a: univ(A);  b: univ(A) |] ==> {a,b} : univ(A)";
+    "[| a: univ(A);  b: univ(A) |] ==> {a,b} : univ(A)";
 by (REPEAT (ares_tac [doubleton_in_VLimit, Limit_nat] 1));
 qed "doubleton_in_univ";
 
 Goalw [univ_def]
-    "!!A a. [| a: univ(A);  b: univ(A) |] ==> <a,b> : univ(A)";
+    "[| a: univ(A);  b: univ(A) |] ==> <a,b> : univ(A)";
 by (REPEAT (ares_tac [Pair_in_VLimit, Limit_nat] 1));
 qed "Pair_in_univ";
 
@@ -630,8 +627,7 @@ bind_thm ("sum_subset_univ", [sum_mono, sum_univ] MRS subset_trans);
 
 (** Closure under finite powerset **)
 
-Goal
-   "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
+Goal "[| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
 by (etac Fin_induct 1);
 by (blast_tac (claset() addSDs [Limit_has_0]) 1);
 by Safe_tac;
@@ -656,8 +652,7 @@ val Fin_univ = result();
 
 (** Closure under finite powers (functions from a fixed natural number) **)
 
-Goal
-    "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
+Goal "[| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
 by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
 by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit,
                       nat_subset_VLimit, subset_refl] 1));
@@ -673,8 +668,7 @@ val nat_fun_univ = result();
 (** Closure under finite function space **)
 
 (*General but seldom-used version; normally the domain is fixed*)
-Goal
-    "!!i. Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) <= Vfrom(A,i)";
+Goal "Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) <= Vfrom(A,i)";
 by (resolve_tac [FiniteFun.dom_subset RS subset_trans] 1);
 by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit, subset_refl] 1));
 val FiniteFun_VLimit1 = result();
@@ -684,19 +678,17 @@ by (rtac (Limit_nat RS FiniteFun_VLimit1) 1);
 val FiniteFun_univ1 = result();
 
 (*Version for a fixed domain*)
-Goal
-   "!!i.  [| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
+Goal "[| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
 by (eresolve_tac [subset_refl RSN (2, FiniteFun_mono) RS subset_trans] 1);
 by (etac FiniteFun_VLimit1 1);
 val FiniteFun_VLimit = result();
 
 Goalw [univ_def]
-    "!!W. W <= univ(A) ==> W -||> univ(A) <= univ(A)";
+    "W <= univ(A) ==> W -||> univ(A) <= univ(A)";
 by (etac (Limit_nat RSN (2, FiniteFun_VLimit)) 1);
 val FiniteFun_univ = result();
 
-Goal
-    "!!W. [| f: W -||> univ(A);  W <= univ(A) |] ==> f : univ(A)";
+Goal "[| f: W -||> univ(A);  W <= univ(A) |] ==> f : univ(A)";
 by (eresolve_tac [FiniteFun_univ RS subsetD] 1);
 by (assume_tac 1);
 val FiniteFun_in_univ = result();

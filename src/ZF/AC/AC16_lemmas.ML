@@ -27,8 +27,7 @@ by (fast_tac (claset() addSIs [lepoll_1_is_sing]) 1);
 by (fast_tac (claset() addSIs [singleton_eqpoll_1]) 1);
 qed "eqpoll_1_iff_singleton";
 
-Goalw [succ_def] 
-      "!!x. [| x eqpoll n; y~:x |] ==> cons(y,x) eqpoll succ(n)";
+Goalw [succ_def] "[| x eqpoll n; y~:x |] ==> cons(y,x) eqpoll succ(n)";
 by (fast_tac (claset() addSEs [cons_eqpoll_cong, mem_irrefl]) 1);
 qed "cons_eqpoll_succ";
 

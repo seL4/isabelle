@@ -12,7 +12,7 @@ open Confluence;
 (* ------------------------------------------------------------------------- *)
 
 Goalw [confluence_def,strip_def] 
-    "!!u.[|confluence(Spar_red1)|]==> strip";
+    "[|confluence(Spar_red1)|]==> strip";
 by (resolve_tac [impI RS allI RS allI] 1);
 by (etac Spar_red.induct 1);
 by (Fast_tac  1);
@@ -21,16 +21,14 @@ qed "strip_lemma_r";
 
 
 Goalw [confluence_def,strip_def] 
-    "!!u. strip==> confluence(Spar_red)";
+    "strip==> confluence(Spar_red)";
 by (resolve_tac [impI RS allI RS allI] 1);
 by (etac Spar_red.induct 1);
-by (Fast_tac  1);
+by (Blast_tac 1);
 by (Clarify_tac 1);
 by (dres_inst_tac [("x1","z")] (spec RS mp) 1);
-by (REPEAT(eresolve_tac [exE,conjE] 2));
-by (dres_inst_tac [("x1","ua")] (spec RS mp) 2);
-by (fast_tac (claset() addIs [Spar_red.trans]) 3);
-by (TRYALL assume_tac );
+by (blast_tac (claset() addIs [Spar_red.trans]) 2);
+by (assume_tac 1);
 qed "strip_lemma_l";
 
 (* ------------------------------------------------------------------------- *)
@@ -52,7 +50,7 @@ bind_thm ("confluence_parallel_reduction",
 	  parallel_moves RS strip_lemma_r RS strip_lemma_l);
 
 Goalw [confluence_def] 
-    "!!u.[|confluence(Spar_red)|]==> confluence(Sred)";
+    "[|confluence(Spar_red)|]==> confluence(Sred)";
 by (blast_tac (claset() addIs [par_red_red, red_par_red]) 1);
 val lemma1 = result();
 

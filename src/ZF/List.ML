@@ -111,7 +111,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "drop_Nil";
 
 Goalw [drop_def]
-    "!!i. i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
+    "i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
 by (rtac sym 1);
 by (etac nat_induct 1);
 by (Simp_tac 1);
@@ -121,7 +121,7 @@ qed "drop_succ_Cons";
 Addsimps [drop_0, drop_Nil, drop_succ_Cons];
 
 Goalw [drop_def] 
-    "!!i l. [| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
+    "[| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [tl_type])));
 qed "drop_type";
@@ -189,7 +189,7 @@ val [length_Nil,length_Cons] = list_recs length_def;
 Addsimps [length_Nil,length_Cons];
 
 Goalw [length_def] 
-    "!!l. l: list(A) ==> length(l) : nat";
+    "l: list(A) ==> length(l) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, nat_succI] 1));
 qed "length_type";
 
@@ -199,7 +199,7 @@ val [app_Nil,app_Cons] = list_recs app_def;
 Addsimps [app_Nil, app_Cons];
 
 Goalw [app_def] 
-    "!!xs ys. [| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
+    "[| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
 by (REPEAT (ares_tac [list_rec_type, list.Cons_I] 1));
 qed "app_type";
 
@@ -209,7 +209,7 @@ val [rev_Nil,rev_Cons] = list_recs rev_def;
 Addsimps [rev_Nil,rev_Cons] ;
 
 Goalw [rev_def] 
-    "!!xs. xs: list(A) ==> rev(xs) : list(A)";
+    "xs: list(A) ==> rev(xs) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "rev_type";
 
@@ -220,7 +220,7 @@ val [flat_Nil,flat_Cons] = list_recs flat_def;
 Addsimps [flat_Nil,flat_Cons];
 
 Goalw [flat_def] 
-    "!!ls. ls: list(list(A)) ==> flat(ls) : list(A)";
+    "ls: list(list(A)) ==> flat(ls) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "flat_type";
 
@@ -231,13 +231,12 @@ val [set_of_list_Nil,set_of_list_Cons] = list_recs set_of_list_def;
 Addsimps [set_of_list_Nil,set_of_list_Cons];
 
 Goalw [set_of_list_def] 
-    "!!l. l: list(A) ==> set_of_list(l) : Pow(A)";
+    "l: list(A) ==> set_of_list(l) : Pow(A)";
 by (etac list_rec_type 1);
 by (ALLGOALS (Blast_tac));
 qed "set_of_list_type";
 
-Goal
-    "!!l. xs: list(A) ==> \
+Goal "xs: list(A) ==> \
 \         set_of_list (xs@ys) = set_of_list(xs) Un set_of_list(ys)";
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_cons])));
@@ -250,7 +249,7 @@ val [list_add_Nil,list_add_Cons] = list_recs list_add_def;
 Addsimps [list_add_Nil,list_add_Cons];
 
 Goalw [list_add_def] 
-    "!!xs. xs: list(nat) ==> list_add(xs) : nat";
+    "xs: list(nat) ==> list_add(xs) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, add_type] 1));
 qed "list_add_type";
 
@@ -340,8 +339,7 @@ qed "length_flat";
 (** Length and drop **)
 
 (*Lemma for the inductive step of drop_length*)
-Goal
-    "!!xs. xs: list(A) ==> \
+Goal "xs: list(A) ==> \
 \          ALL x.  EX z zs. drop(length(xs), Cons(x,xs)) = Cons(z,zs)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -349,8 +347,7 @@ by (Blast_tac 1);
 qed "drop_length_Cons_lemma";
 bind_thm ("drop_length_Cons", (drop_length_Cons_lemma RS spec));
 
-Goal
-    "!!l. l: list(A) ==> ALL i: length(l).  EX z zs. drop(i,l) = Cons(z,zs)";
+Goal "l: list(A) ==> ALL i: length(l).  EX z zs. drop(i,l) = Cons(z,zs)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac conjI 1);
@@ -394,8 +391,7 @@ qed "rev_map_distrib";
   instantiate the variable ?A in the rules' typing conditions; note that
   rev_type does not instantiate ?A.  Only the premises do.
 *)
-Goal
-    "!!xs. [| xs: list(A);  ys: list(A) |] ==> rev(xs@ys) = rev(ys)@rev(xs)";
+Goal "[| xs: list(A);  ys: list(A) |] ==> rev(xs@ys) = rev(ys)@rev(xs)";
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_right_Nil,app_assoc])));
 qed "rev_app_distrib";

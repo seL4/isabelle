@@ -24,12 +24,12 @@ open WF;
 
 (** Equivalences between wf and wf_on **)
 
-Goalw [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
+Goalw [wf_def, wf_on_def] "wf(r) ==> wf[A](r)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_imp_wf_on";
 
-Goalw [wf_def, wf_on_def] "!!r. wf[field(r)](r) ==> wf(r)";
+Goalw [wf_def, wf_on_def] "wf[field(r)](r) ==> wf(r)";
 by (Fast_tac 1);
 qed "wf_on_field_imp_wf";
 
@@ -37,12 +37,12 @@ Goal "wf(r) <-> wf[field(r)](r)";
 by (blast_tac (claset() addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
-Goalw [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
+Goalw [wf_on_def, wf_def] "[| wf[A](r);  B<=A |] ==> wf[B](r)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_on_subset_A";
 
-Goalw [wf_on_def, wf_def] "!!A r s. [| wf[A](r);  s<=r |] ==> wf[A](s)";
+Goalw [wf_on_def, wf_def] "[| wf[A](r);  s<=r |] ==> wf[A](s)";
 by (Clarify_tac 1);  (*essential for Blast_tac's efficiency*)
 by (Blast_tac 1);
 qed "wf_on_subset_r";
@@ -162,10 +162,8 @@ qed "wf_on_asym";
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
   wf(r Int A*A);  thus wf( (r Int A*A)^+ ) and use wf_not_refl *)
-Goal
-    "!!r. [| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P";
-by (subgoal_tac
-    "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P" 1);
+Goal "[| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P";
+by (subgoal_tac "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
 by (Blast_tac 2);
 by (Blast_tac 1);
@@ -225,11 +223,10 @@ fun indhyp_tac hyps =
 (*** NOTE! some simplifications need a different solver!! ***)
 val wf_super_ss = simpset() setSolver indhyp_tac;
 
-val prems = goalw WF.thy [is_recfun_def]
+Goalw [is_recfun_def]
     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
 \    <x,a>:r --> <x,b>:r --> f`x=g`x";
-by (cut_facts_tac prems 1);
-by (wf_ind_tac "x" prems 1);
+by (wf_ind_tac "x" [] 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (rewtac restrict_def);
 by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
@@ -286,15 +283,14 @@ qed "unfold_the_recfun";
 
 (*** Unfolding wftrec ***)
 
-val prems = goal WF.thy
-    "[| wf(r);  trans(r);  <b,a>:r |] ==> \
-\    restrict(the_recfun(r,a,H), r-``{b}) = the_recfun(r,b,H)";
-by (REPEAT (ares_tac (prems @ [is_recfun_cut, unfold_the_recfun]) 1));
+Goal "[| wf(r);  trans(r);  <b,a>:r |] ==> \
+\     restrict(the_recfun(r,a,H), r-``{b}) = the_recfun(r,b,H)";
+by (REPEAT (ares_tac [is_recfun_cut, unfold_the_recfun] 1));
 qed "the_recfun_cut";
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 Goalw [wftrec_def]
-    "!!r. [| wf(r);  trans(r) |] ==> \
+    "[| wf(r);  trans(r) |] ==> \
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (stac (rewrite_rule [is_recfun_def] unfold_the_recfun) 1);
 by (ALLGOALS 
@@ -334,7 +330,7 @@ qed "wfrec_type";
 
 
 Goalw [wf_on_def, wfrec_on_def]
- "!!A r. [| wf[A](r);  a: A |] ==> \
+ "[| wf[A](r);  a: A |] ==> \
 \        wfrec[A](r,a,H) = H(a, lam x: (r-``{a}) Int A. wfrec[A](r,x,H))";
 by (etac (wfrec RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [vimage_Int_square, cons_subset_iff]) 1);

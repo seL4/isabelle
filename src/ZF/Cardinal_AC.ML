@@ -30,8 +30,7 @@ Goal "|X| = |Y| <-> X eqpoll Y";
 by (blast_tac (claset() addIs [cardinal_cong, cardinal_eqE]) 1);
 qed "cardinal_eqpoll_iff";
 
-Goal
-    "!!A. [| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
+Goal "[| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==> \
 \         |A Un C| = |B Un D|";
 by (asm_full_simp_tac (simpset() addsimps [cardinal_eqpoll_iff, 
                                        eqpoll_disjoint_Un]) 1);
@@ -106,8 +105,7 @@ by (etac exI 1);
 qed "surj_implies_cardinal_le";
 
 (*Kunen's Lemma 10.21*)
-Goal
-    "!!K. [| InfCard(K);  ALL i:K. |X(i)| le K |] ==> |UN i:K. X(i)| le K";
+Goal "[| InfCard(K);  ALL i:K. |X(i)| le K |] ==> |UN i:K. X(i)| le K";
 by (asm_full_simp_tac (simpset() addsimps [InfCard_is_Card, le_Card_iff]) 1);
 by (rtac lepoll_trans 1);
 by (resolve_tac [InfCard_square_eq RS eqpoll_imp_lepoll] 2);
@@ -134,8 +132,7 @@ by (asm_simp_tac (simpset() addsimps [left_inverse]) 1);
 qed "cardinal_UN_le";
 
 (*The same again, using csucc*)
-Goal
-    "!!K. [| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \
+Goal "[| InfCard(K);  ALL i:K. |X(i)| < csucc(K) |] ==> \
 \         |UN i:K. X(i)| < csucc(K)";
 by (asm_full_simp_tac 
     (simpset() addsimps [Card_lt_csucc_iff, cardinal_UN_le, 
@@ -144,8 +141,7 @@ qed "cardinal_UN_lt_csucc";
 
 (*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
   the least ordinal j such that i:Vfrom(A,j). *)
-Goal
-    "!!K. [| InfCard(K);  ALL i:K. j(i) < csucc(K) |] ==> \
+Goal "[| InfCard(K);  ALL i:K. j(i) < csucc(K) |] ==> \
 \         (UN i:K. j(i)) < csucc(K)";
 by (resolve_tac [cardinal_UN_lt_csucc RS Card_lt_imp_lt] 1);
 by (assume_tac 1);
@@ -178,8 +174,7 @@ val inj_UN_subset = result();
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
   be weaker.*)
-Goal
-    "!!K. [| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
+Goal "[| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
 \         (UN w:W. j(w)) < csucc(K)";
 by (excluded_middle_tac "W=0" 1);
 by (asm_simp_tac        (*solve the easy 0 case*)

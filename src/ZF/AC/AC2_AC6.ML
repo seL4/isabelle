@@ -20,7 +20,7 @@ by (fast_tac (claset() addSEs [apply_type]) 1);
 val lemma1 = result();
 
 Goalw [pairwise_disjoint_def]
-        "!!A. [| pairwise_disjoint(A); B:A; C:A; D:B; D:C |] ==> f`B = f`C";
+        "[| pairwise_disjoint(A); B:A; C:A; D:B; D:C |] ==> f`B = f`C";
 by (fast_tac (claset() addSEs [equals0D]) 1);
 val lemma2 = result();
 
@@ -59,7 +59,7 @@ by (fast_tac (claset() addSEs [lemma2]
                 addSDs [bspec]) 1);
 val lemma3 = result();
 
-Goalw (AC_defs@AC_aux_defs) "!!Z. AC2 ==> AC1";
+Goalw (AC_defs@AC_aux_defs) "AC2 ==> AC1";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (fast_tac (claset() addSEs [lemma3]) 2);
@@ -127,7 +127,7 @@ qed "AC3_AC1";
 (* AC4 ==> AC5                                                            *)
 (* ********************************************************************** *)
 
-Goalw (range_def::AC_defs) "!!Z. AC4 ==> AC5";
+Goalw (range_def::AC_defs) "AC4 ==> AC5";
 by (REPEAT (resolve_tac [allI,ballI] 1));
 by (REPEAT (eresolve_tac [allE,impE] 1));
 by (eresolve_tac [fun_is_rel RS converse_type] 1);

@@ -56,7 +56,7 @@ qed "AC18_AC19";
 (* ********************************************************************** *)
 
 Goalw [u_def]
-        "!!A. [| A ~= 0; 0 ~: A |] ==> {u_(a). a:A} ~= 0 & 0 ~: {u_(a). a:A}";
+        "[| A ~= 0; 0 ~: A |] ==> {u_(a). a:A} ~= 0 & 0 ~: {u_(a). a:A}";
 by (fast_tac (claset() addSIs [not_emptyI, RepFunI]
                 addSEs [not_emptyE, RepFunE]
                 addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
@@ -74,7 +74,7 @@ by (fast_tac (claset() addEs [notE, subst_elem])  1);
 val lemma1_1 = result();
 
 Goalw [u_def]
-        "!!a. [| f`(u_(a)) ~: a; f: (PROD B:{u_(a). a:A}. B); a:A |]  \
+        "[| f`(u_(a)) ~: a; f: (PROD B:{u_(a). a:A}. B); a:A |]  \
 \               ==> f`(u_(a))-{0} : a";
 by (fast_tac (claset() addSEs [RepFunI, RepFunE, lemma1_1]
                 addSDs [apply_type]) 1);

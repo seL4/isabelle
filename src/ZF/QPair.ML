@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For QPair.thy.  
-
 Quine-inspired ordered pairs and disjoint sums, for non-well-founded data
 structures in ZF.  Does not precisely follow Quine's construction.  Thanks
 to Thomas Forster for suggesting this approach!
@@ -140,8 +138,7 @@ qed_goal "qsplit_type" thy
     (asm_simp_tac (simpset() addsimps prems) 1) ]);
 
 Goalw [qsplit_def]
-  "!!u. u: A<*>B ==>   \
-\       R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
+ "u: A<*>B ==> R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
 by Auto_tac;
 qed "expand_qsplit";
 

@@ -61,7 +61,7 @@ fun eps_ind_tac a =
 (** eclose(A) is the least transitive set including A as a subset. **)
 
 Goalw [Transset_def]
-    "!!X A n. [| Transset(X);  A<=X;  n: nat |] ==> \
+    "[| Transset(X);  A<=X;  n: nat |] ==> \
 \             nat_rec(n, A, %m r. Union(r)) <= X";
 by (etac nat_induct 1);
 by (asm_simp_tac (simpset() addsimps [nat_rec_0]) 1);
@@ -70,7 +70,7 @@ by (Blast_tac 1);
 qed "eclose_least_lemma";
 
 Goalw [eclose_def]
-     "!!X A. [| Transset(X);  A<=X |] ==> eclose(A) <= X";
+     "[| Transset(X);  A<=X |] ==> eclose(A) <= X";
 by (rtac (eclose_least_lemma RS UN_least) 1);
 by (REPEAT (assume_tac 1));
 qed "eclose_least";
@@ -105,13 +105,13 @@ qed "mem_eclose_trans";
 
 (*Variant of the previous lemma in a useable form for the sequel*)
 Goal
-    "!!A B C. [| A: eclose({B});  B: eclose({C}) |] ==> A: eclose({C})";
+    "[| A: eclose({B});  B: eclose({C}) |] ==> A: eclose({C})";
 by (rtac ([Transset_eclose, singleton_subsetI] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_sing_trans";
 
 Goalw [Transset_def]
-    "!!i j. [| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
+    "[| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
 by (blast_tac (claset() addSIs [MemrelI] addSEs [MemrelE]) 1);
 qed "under_Memrel";
 

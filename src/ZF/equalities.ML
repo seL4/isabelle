@@ -491,12 +491,12 @@ by (Blast_tac 1);
 qed "vimage_Int_subset";
 
 Goalw [function_def]
-    "!!f. function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
+    "function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Int";
 
 Goalw [function_def]
-    "!!f. function(f) ==> f-``(A-B) = (f-``A) - (f-``B)";
+    "function(f) ==> f-``(A-B) = (f-``A) - (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Diff";
 

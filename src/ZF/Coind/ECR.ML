@@ -9,7 +9,7 @@ open Dynamic ECR;
 (* Specialised co-induction rule *)
 
 Goal
- "!!x.[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; \
+ "[| x:ExVar; e:Exp; t:Ty; ve:ValEnv; te:TyEnv; \
 \    <te, e_fn(x, e), t>:ElabRel; ve_dom(ve) = te_dom(te); \
 \    {<ve_app(ve,y),te_app(te,y)>.y:ve_dom(ve)}: \
 \    Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |] ==>  \
@@ -47,7 +47,7 @@ claset_ref() := mk_htr_cs (claset());
 (* Properties of the pointwise extension to environments *)
 
 Goalw [hastyenv_def]
-  "!!ve.[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
+  "[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
 by Safe_tac;
 by (stac ve_dom_owr 1);
@@ -68,7 +68,7 @@ by (asm_simp_tac (simpset() addsimps [ve_app_owr1,te_app_owr1]) 1);
 qed "hastyenv_owr";
 
 Goalw  [isofenv_def,hastyenv_def]
-  "!!ve.[| ve:ValEnv; te:TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
+  "[| ve:ValEnv; te:TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
 by Safe_tac;
 by (dtac bspec 1);
 by (assume_tac 1);

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-For Rel.thy.  Relations in Zermelo-Fraenkel Set Theory 
+Relations in Zermelo-Fraenkel Set Theory 
 *)
 
 open Rel;
@@ -49,12 +49,12 @@ qed "antisymE";
 (* transitivity *)
 
 Goalw [trans_def]
-    "!!r. [| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
+    "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
 by (Blast_tac 1);
 qed "transD";
 
 Goalw [trans_on_def]
-    "!!r. [| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r";
+    "[| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r";
 by (Blast_tac 1);
 qed "trans_onD";
 

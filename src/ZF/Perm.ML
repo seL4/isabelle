@@ -58,7 +58,7 @@ qed "inj_is_fun";
 
 (*Good for dealing with sets of pairs, but a bit ugly in use [used in AC]*)
 Goalw [inj_def]
-    "!!f A B. [| <a,b>:f;  <c,b>:f;  f: inj(A,B) |] ==> a=c";
+    "[| <a,b>:f;  <c,b>:f;  f: inj(A,B) |] ==> a=c";
 by (REPEAT (eresolve_tac [asm_rl, Pair_mem_PiE, CollectE] 1));
 by (Blast_tac 1);
 qed "inj_equality";
@@ -168,12 +168,12 @@ qed "inj_converse_fun";
 
 (*The premises are equivalent to saying that f is injective...*) 
 Goal
-    "!!f. [| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a";
+    "[| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a";
 by (blast_tac (claset() addIs [apply_Pair, apply_equality, converseI]) 1);
 qed "left_inverse_lemma";
 
 Goal
-    "!!f. [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
+    "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
 by (blast_tac (claset() addIs [left_inverse_lemma, inj_converse_fun,
 			      inj_is_fun]) 1);
 qed "left_inverse";
@@ -307,7 +307,7 @@ qed "right_comp_id";
 (** Composition preserves functions, injections, and surjections **)
 
 Goalw [function_def]
-    "!!f g. [| function(g);  function(f) |] ==> function(f O g)";
+    "[| function(g);  function(f) |] ==> function(f O g)";
 by (Blast_tac 1);
 qed "comp_function";
 
@@ -347,12 +347,12 @@ by (asm_simp_tac (simpset()  addsimps [left_inverse]
 qed "comp_inj";
 
 Goalw [surj_def]
-    "!!f g. [| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)";
+    "[| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)";
 by (blast_tac (claset() addSIs [comp_fun,comp_fun_apply]) 1);
 qed "comp_surj";
 
 Goalw [bij_def]
-    "!!f g. [| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) : bij(A,C)";
+    "[| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) : bij(A,C)";
 by (blast_tac (claset() addIs [comp_inj,comp_surj]) 1);
 qed "comp_bij";
 
@@ -362,14 +362,14 @@ qed "comp_bij";
     Artificial Intelligence, 10:1--27, 1978. **)
 
 Goalw [inj_def]
-    "!!f g. [| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
+    "[| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
 by Safe_tac;
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
 by (asm_simp_tac (simpset() ) 1);
 qed "comp_mem_injD1";
 
 Goalw [inj_def,surj_def]
-    "!!f g. [| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)";
+    "[| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)";
 by Safe_tac;
 by (res_inst_tac [("x1", "x")] (bspec RS bexE) 1);
 by (eres_inst_tac [("x1", "w")] (bspec RS bexE) 3);
@@ -381,17 +381,17 @@ by (asm_simp_tac (simpset() ) 1);
 qed "comp_mem_injD2";
 
 Goalw [surj_def]
-    "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: B->C |] ==> f: surj(B,C)";
+    "[| (f O g): surj(A,C);  g: A->B;  f: B->C |] ==> f: surj(B,C)";
 by (blast_tac (claset() addSIs [comp_fun_apply RS sym, apply_funtype]) 1);
 qed "comp_mem_surjD1";
 
 Goal
-    "!!f g. [| (f O g)`a = c;  g: A->B;  f: B->C;  a:A |] ==> f`(g`a) = c";
+    "[| (f O g)`a = c;  g: A->B;  f: B->C;  a:A |] ==> f`(g`a) = c";
 by (REPEAT (ares_tac [comp_fun_apply RS sym RS trans] 1));
 qed "comp_fun_applyD";
 
 Goalw [inj_def,surj_def]
-    "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: inj(B,C) |] ==> g: surj(A,B)";
+    "[| (f O g): surj(A,C);  g: A->B;  f: inj(B,C) |] ==> g: surj(A,B)";
 by Safe_tac;
 by (eres_inst_tac [("x1", "f`y")] (bspec RS bexE) 1);
 by (REPEAT (ares_tac [apply_type] 1 ORELSE dtac comp_fun_applyD 1));
@@ -424,7 +424,7 @@ qed "right_comp_inverse";
 (** Proving that a function is a bijection **)
 
 Goalw [id_def]
-    "!!f A B. [| f: A->B;  g: B->A |] ==> \
+    "[| f: A->B;  g: B->A |] ==> \
 \             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
 by Safe_tac;
 by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
@@ -435,7 +435,7 @@ by Auto_tac;
 qed "comp_eq_id_iff";
 
 Goalw [bij_def]
-    "!!f A B. [| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
+    "[| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
 \             |] ==> f : bij(A,B)";
 by (asm_full_simp_tac (simpset() addsimps [comp_eq_id_iff]) 1);
 by (REPEAT (ares_tac [conjI, f_imp_injective, f_imp_surjective] 1
@@ -455,7 +455,7 @@ qed "invertible_imp_bijective";
 
 (*Theorem by KG, proof by LCP*)
 Goal
-    "!!f g. [| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] ==> \
+    "[| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] ==> \
 \           (lam a: A Un C. if(a:A, f`a, g`a)) : inj(A Un C, B Un D)";
 by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
         lam_injective 1);
@@ -466,7 +466,7 @@ by (blast_tac (claset() addIs [inj_is_fun RS apply_type] addDs [equals0D]) 1);
 qed "inj_disjoint_Un";
 
 Goalw [surj_def]
-    "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
+    "[| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
 \           (f Un g) : surj(A Un C, B Un D)";
 by (blast_tac (claset() addIs [fun_disjoint_apply1, fun_disjoint_apply2,
 			      fun_disjoint_Un, trans]) 1);
@@ -475,7 +475,7 @@ qed "surj_disjoint_Un";
 (*A simple, high-level proof; the version for injections follows from it,
   using  f:inj(A,B) <-> f:bij(A,range(f))  *)
 Goal
-    "!!f g. [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
+    "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
 \           (f Un g) : bij(A Un C, B Un D)";
 by (rtac invertible_imp_bijective 1);
 by (stac converse_Un 1);
@@ -500,7 +500,7 @@ by (REPEAT (ares_tac [image_mono,restrict_subset,subset_refl] 1));
 qed "restrict_image";
 
 Goalw [inj_def]
-    "!!f. [| f: inj(A,B);  C<=A |] ==> restrict(f,C): inj(C,B)";
+    "[| f: inj(A,B);  C<=A |] ==> restrict(f,C): inj(C,B)";
 by (safe_tac (claset() addSEs [restrict_type2]));
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp, subsetD,
                           box_equals, restrict] 1));
@@ -514,7 +514,7 @@ by (REPEAT (resolve_tac prems 1));
 qed "restrict_surj";
 
 Goalw [inj_def,bij_def]
-    "!!f. [| f: inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)";
+    "[| f: inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)";
 by (blast_tac (claset() addSIs [restrict, restrict_surj]
 		       addIs [box_equals, surj_is_fun]) 1);
 qed "restrict_bij";
@@ -537,7 +537,7 @@ by (fast_tac (claset() addEs [range_type, mem_irrefl]
 qed "inj_succ_restrict";
 
 Goalw [inj_def]
-    "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
+    "[| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
 by (fast_tac (claset() addIs [apply_type]
                addss (simpset() addsimps [fun_extend, fun_extend_apply2,

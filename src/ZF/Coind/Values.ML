@@ -60,7 +60,7 @@ by (Fast_tac 1);
 qed "v_closNE";
 
 Goalw (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
-  "!!c. c:Const ==> v_const(c) ~= 0";
+  "c:Const ==> v_const(c) ~= 0";
 by (dtac constNEE 1);
 by (etac not_emptyE 1);
 by (rtac not_emptyI 1);
@@ -95,14 +95,14 @@ by (rtac Un_commute 1);
 qed "ve_dom_owr";
 
 Goalw [ve_app_def,ve_owr_def]
-"!!ve. ve:ValEnv ==> ve_app(ve_owr(ve,x,v),x) = v"; 
+"ve:ValEnv ==> ve_app(ve_owr(ve,x,v),x) = v"; 
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
 by (rtac map_app_owr1 1);
 qed "ve_app_owr1";
 
 Goalw [ve_app_def,ve_owr_def]
- "!!ve. ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
+ "ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
 by (rtac map_app_owr2 1);
@@ -112,7 +112,7 @@ qed "ve_app_owr2";
 (* Introduction rules for operators on value environments *)
 
 Goalw [ve_app_def,ve_owr_def,ve_dom_def]
-  "!!ve.[| ve:ValEnv; x:ve_dom(ve) |] ==> ve_app(ve,x):Val";
+  "[| ve:ValEnv; x:ve_dom(ve) |] ==> ve_app(ve,x):Val";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
@@ -122,7 +122,7 @@ by (assume_tac 1);
 qed "ve_appI";
 
 Goalw [ve_dom_def]
-  "!!ve.[| ve:ValEnv; x:ve_dom(ve) |] ==> x:ExVar";
+  "[| ve:ValEnv; x:ve_dom(ve) |] ==> x:ExVar";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
@@ -136,8 +136,7 @@ by (rtac Val_ValEnv.ve_mk_I 1);
 by (rtac pmap_empI 1);
 qed "ve_empI";
 
-Goalw [ve_owr_def] 
-  "!!ve.[|ve:ValEnv; x:ExVar; v:Val |] ==> ve_owr(ve,x,v):ValEnv";
+Goalw [ve_owr_def] "[|ve:ValEnv; x:ExVar; v:Val |] ==> ve_owr(ve,x,v):ValEnv";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);

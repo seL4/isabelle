@@ -26,12 +26,12 @@ qed "Transset_sum_Int_subset";
 (** Introduction and elimination rules avoid tiresome folding/unfolding **)
 
 Goalw [quniv_def]
-    "!!X A. X <= univ(eclose(A)) ==> X : quniv(A)";
+    "X <= univ(eclose(A)) ==> X : quniv(A)";
 by (etac PowI 1);
 qed "qunivI";
 
 Goalw [quniv_def]
-    "!!X A. X : quniv(A) ==> X <= univ(eclose(A))";
+    "X : quniv(A) ==> X <= univ(eclose(A))";
 by (etac PowD 1);
 qed "qunivD";
 
@@ -74,7 +74,7 @@ val A_into_quniv = A_subset_quniv RS subsetD;
 
 (*Quine ordered pairs*)
 Goalw [QPair_def]
-    "!!A a. [| a <= univ(A);  b <= univ(A) |] ==> <a;b> <= univ(A)";
+    "[| a <= univ(A);  b <= univ(A) |] ==> <a;b> <= univ(A)";
 by (REPEAT (ares_tac [sum_subset_univ] 1));
 qed "QPair_subset_univ";
 
@@ -99,7 +99,7 @@ qed "QInr_subset_univ";
 
 (*Quine ordered pairs*)
 Goalw [quniv_def,QPair_def]
-    "!!A a. [| a: quniv(A);  b: quniv(A) |] ==> <a;b> : quniv(A)";
+    "[| a: quniv(A);  b: quniv(A) |] ==> <a;b> : quniv(A)";
 by (REPEAT (dtac PowD 1));
 by (REPEAT (ares_tac [PowI, sum_subset_univ] 1));
 qed "QPair_in_quniv";
@@ -114,7 +114,7 @@ bind_thm ("QSigma_subset_quniv",
 
 (*The opposite inclusion*)
 Goalw [quniv_def,QPair_def]
-    "!!A a b. <a;b> : quniv(A) ==> a: quniv(A) & b: quniv(A)";
+    "<a;b> : quniv(A) ==> a: quniv(A) & b: quniv(A)";
 by (etac ([Transset_eclose RS Transset_univ, PowD] MRS 
           Transset_includes_summands RS conjE) 1);
 by (REPEAT (ares_tac [conjI,PowI] 1));
@@ -199,7 +199,7 @@ qed "product_Int_Vfrom_subset";
 (*** Intersecting <a;b> with Vfrom... ***)
 
 Goalw [QPair_def,sum_def]
- "!!X. Transset(X) ==>          \
+ "Transset(X) ==>          \
 \      <a;b> Int Vfrom(X, succ(i))  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (stac Int_Un_distrib 1);
 by (rtac Un_mono 1);
@@ -212,7 +212,7 @@ qed "QPair_Int_Vfrom_succ_subset";
 (*Rule for level i -- preserving the level, not decreasing it*)
 
 Goalw [QPair_def]
- "!!X. Transset(X) ==>          \
+ "Transset(X) ==>          \
 \      <a;b> Int Vfrom(X,i)  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
 qed "QPair_Int_Vfrom_subset";
@@ -222,7 +222,7 @@ bind_thm ("QPair_Int_Vset_subset_trans",
           [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
 
 Goal 
- "!!i. [| Ord(i) \
+ "[| Ord(i) \
 \      |] ==> <a;b> Int Vset(i)  <=  (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
 by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
 (*0 case*)

@@ -59,7 +59,7 @@ qed "image_02";
 (* Lemmas *)
 
 Goalw [quniv_def]
-    "!!A. A <= univ(X) ==> Pow(A * Union(quniv(X))) <= quniv(X)";
+    "A <= univ(X) ==> Pow(A * Union(quniv(X))) <= quniv(X)";
 by (rtac Pow_mono 1);
 by (rtac ([Sigma_mono, product_univ] MRS subset_trans) 1);
 by (etac subset_trans 1);
@@ -103,7 +103,7 @@ qed "pmap_empI";
 
 
 Goalw [map_owr_def,PMap_def,TMap_def] 
-  "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
+  "[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
 by Safe_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [if_iff])));
 by (Fast_tac 1);
@@ -123,7 +123,7 @@ qed "pmap_owrI";
 (** map_app **)
 
 Goalw [TMap_def,map_app_def] 
-  "!!m.[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a) ~=0";
+  "[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a) ~=0";
 by (etac domainE 1);
 by (dtac imageI 1);
 by (Fast_tac 1);
@@ -131,12 +131,12 @@ by (etac not_emptyI 1);
 qed "tmap_app_notempty";
 
 Goalw [TMap_def,map_app_def,domain_def] 
-  "!!m.[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
+  "[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
 by (Fast_tac 1);
 qed "tmap_appI";
 
 Goalw [PMap_def]
-  "!!m.[| m:PMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
+  "[| m:PMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
 by (forward_tac [tmap_app_notempty] 1); 
 by (assume_tac 1);
 by (dtac tmap_appI 1); 
@@ -147,12 +147,12 @@ qed "pmap_appI";
 (** domain **)
 
 Goalw [TMap_def]
-  "!!m.[| m:TMap(A,B); a:domain(m) |] ==> a:A";
+  "[| m:TMap(A,B); a:domain(m) |] ==> a:A";
 by (Fast_tac 1);
 qed "tmap_domainD";
 
 Goalw [PMap_def,TMap_def]
-  "!!m.[| m:PMap(A,B); a:domain(m) |] ==> a:A";
+  "[| m:PMap(A,B); a:domain(m) |] ==> a:A";
 by (Fast_tac 1);
 qed "pmap_domainD";
 
@@ -180,7 +180,7 @@ by (Fast_tac 1);
 qed "map_domain_emp";
 
 Goalw [map_owr_def] 
-  "!!a. b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
+  "b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
 by (simp_tac (simpset() addsimps [domain_Sigma]) 1);
 by (rtac equalityI 1);
 by (Fast_tac 1);
@@ -204,7 +204,7 @@ by (Simp_tac 1);
 qed "map_app_owr1";
 
 Goalw [map_app_def,map_owr_def] 
-  "!!a. c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
+  "c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
 by (rtac (excluded_middle RS disjE) 1);
 by (stac qbeta_emp 1);
 by (assume_tac 1);

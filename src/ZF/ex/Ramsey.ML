@@ -27,7 +27,7 @@ by (Fast_tac 1);
 qed "Clique0";
 
 Goalw [Clique_def]
-    "!!C V E. [| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
+    "[| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
 by (Fast_tac 1);
 qed "Clique_superset";
 
@@ -35,8 +35,7 @@ Goalw [Indept_def] "Indept(0,V,E)";
 by (Fast_tac 1);
 qed "Indept0";
 
-val prems = goalw Ramsey.thy [Indept_def]
-    "!!I V E. [| Indept(I,V',E);  V'<=V |] ==> Indept(I,V,E)";
+Goalw [Indept_def] "[| Indept(I,V',E);  V'<=V |] ==> Indept(I,V,E)";
 by (Fast_tac 1);
 qed "Indept_superset";
 
@@ -47,17 +46,17 @@ by (Fast_tac 1);
 qed "Atleast0";
 
 Goalw [Atleast_def]
-    "!!m A. Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
+    "Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
 by (fast_tac (claset() addEs [inj_is_fun RS apply_type, inj_succ_restrict]) 1);
 qed "Atleast_succD";
 
 Goalw [Atleast_def]
-    "!!n A. [| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
+    "[| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
 by (fast_tac (claset() addEs [inj_weaken_type]) 1);
 qed "Atleast_superset";
 
 Goalw [Atleast_def,succ_def]
-    "!!m. [| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
+    "[| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
 by (etac exE 1);
 by (rtac exI 1);
 by (etac inj_extend 1);
@@ -65,8 +64,7 @@ by (rtac mem_not_refl 1);
 by (assume_tac 1);
 qed "Atleast_succI";
 
-Goal
-    "!!m. [| Atleast(m, B-{x});  x: B |] ==> Atleast(succ(m), B)";
+Goal "[| Atleast(m, B-{x});  x: B |] ==> Atleast(succ(m), B)";
 by (etac (Atleast_succI RS Atleast_superset) 1);
 by (Fast_tac 1);
 by (Fast_tac 1);

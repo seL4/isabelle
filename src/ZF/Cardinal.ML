@@ -109,7 +109,7 @@ Goal "X eqpoll Y <-> X lepoll Y & Y lepoll X";
 by (blast_tac (claset() addIs [eqpollI] addSEs [eqpollE]) 1);
 qed "eqpoll_iff";
 
-Goalw [lepoll_def, inj_def] "!!A. A lepoll 0 ==> A = 0";
+Goalw [lepoll_def, inj_def] "A lepoll 0 ==> A = 0";
 by (blast_tac (claset() addDs [apply_type]) 1);
 qed "lepoll_0_is_0";
 
@@ -303,7 +303,7 @@ by (stac Least_equality 1);
 by (REPEAT (ares_tac ([refl,eqpoll_refl]@prems) 1));
 qed "CardI";
 
-Goalw [Card_def, cardinal_def] "!!i. Card(i) ==> Ord(i)";
+Goalw [Card_def, cardinal_def] "Card(i) ==> Ord(i)";
 by (etac ssubst 1);
 by (rtac Ord_Least 1);
 qed "Card_is_Ord";

@@ -1105,12 +1105,12 @@ val Rp_comp = lemma RS Rp_unique;
 (*----------------------------------------------------------------------*)
 
 Goalw [set_def,iprod_def]  (* iprodI *)
-    "!!z. x:(PROD n:nat. set(DD`n)) ==> x:set(iprod(DD))";
+    "x:(PROD n:nat. set(DD`n)) ==> x:set(iprod(DD))";
 by (Asm_full_simp_tac 1);
 qed "iprodI";
 
 Goalw [set_def,iprod_def]  (* iprodE *)
-    "!!z. x:set(iprod(DD)) ==> x:(PROD n:nat. set(DD`n))";
+    "x:set(iprod(DD)) ==> x:(PROD n:nat. set(DD`n))";
 by (Asm_full_simp_tac 1);
 qed "iprodE";
 
@@ -1296,17 +1296,17 @@ brr[conjI,cpo_refl] 1;
 *)
 
 Goalw [set_def,mkcpo_def]  (* mkcpoD1 *)
-    "!!z. x:set(mkcpo(D,P))==> x:set(D)";
+    "x:set(mkcpo(D,P))==> x:set(D)";
 by (Asm_full_simp_tac 1);
 qed "mkcpoD1";
 
 Goalw [set_def,mkcpo_def]  (* mkcpoD2 *)
-    "!!z. x:set(mkcpo(D,P))==> P(x)";
+    "x:set(mkcpo(D,P))==> P(x)";
 by (Asm_full_simp_tac 1);
 qed "mkcpoD2";
 
 Goalw [rel_def,mkcpo_def]  (* rel_mkcpoE *)
-    "!!a. rel(mkcpo(D,P),x,y) ==> rel(D,x,y)";
+    "rel(mkcpo(D,P),x,y) ==> rel(D,x,y)";
 by (Asm_full_simp_tac 1);
 qed "rel_mkcpoE";
 

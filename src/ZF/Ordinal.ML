@@ -23,7 +23,7 @@ qed "Transset_iff_Union_succ";
 (** Consequences of downwards closure **)
 
 Goalw [Transset_def]
-    "!!C a b. [| Transset(C); {a,b}: C |] ==> a:C & b: C";
+    "[| Transset(C); {a,b}: C |] ==> a:C & b: C";
 by (Blast_tac 1);
 qed "Transset_doubleton_D";
 
@@ -52,12 +52,12 @@ by (Blast_tac 1);
 qed "Transset_0";
 
 Goalw [Transset_def]
-    "!!i j. [| Transset(i);  Transset(j) |] ==> Transset(i Un j)";
+    "[| Transset(i);  Transset(j) |] ==> Transset(i Un j)";
 by (Blast_tac 1);
 qed "Transset_Un";
 
 Goalw [Transset_def]
-    "!!i j. [| Transset(i);  Transset(j) |] ==> Transset(i Int j)";
+    "[| Transset(i);  Transset(j) |] ==> Transset(i Int j)";
 by (Blast_tac 1);
 qed "Transset_Int";
 
@@ -343,13 +343,13 @@ qed "wf_Memrel";
 
 (*Transset(i) does not suffice, though ALL j:i.Transset(j) does*)
 Goalw [Ord_def, Transset_def, trans_def]
-    "!!i. Ord(i) ==> trans(Memrel(i))";
+    "Ord(i) ==> trans(Memrel(i))";
 by (Blast_tac 1);
 qed "trans_Memrel";
 
 (*If Transset(A) then Memrel(A) internalizes the membership relation below A*)
 Goalw [Transset_def]
-    "!!A. Transset(A) ==> <a,b> : Memrel(A) <-> a:b & b:A";
+    "Transset(A) ==> <a,b> : Memrel(A) <-> a:b & b:A";
 by (Blast_tac 1);
 qed "Transset_Memrel_iff";
 
@@ -654,7 +654,7 @@ by (Blast_tac 1);
 qed "Limit_has_succ";
 
 Goalw [Limit_def]
-    "!!i. [| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)";
+    "[| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)";
 by (safe_tac subset_cs);
 by (rtac (not_le_iff_lt RS iffD1) 2);
 by (blast_tac le_cs 4);

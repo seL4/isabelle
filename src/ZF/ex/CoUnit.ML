@@ -51,8 +51,7 @@ by (fast_tac (claset() addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);
 qed "lfp_Con2_in_counit2";
 
 (*Lemma for proving finality.  Borrowed from ex/llist_eq.ML!*)
-Goal
-    "!!i. Ord(i) ==> ALL x y. x: counit2 & y: counit2 --> x Int Vset(i) <= y";
+Goal "Ord(i) ==> ALL x y. x: counit2 & y: counit2 --> x Int Vset(i) <= y";
 by (etac trans_induct 1);
 by (safe_tac subset_cs);
 by (etac counit2.elim 1);

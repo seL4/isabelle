@@ -27,8 +27,7 @@ by (REPEAT (ares_tac [domain_rel_subset, range_rel_subset,
                       Sigma_mono, list_mono] 1));
 qed "rmap_rel_type";
 
-Goal
-    "!!r. A <= domain(r) ==> list(A) <= domain(rmap(r))";
+Goal "A <= domain(r) ==> list(A) <= domain(rmap(r))";
 by (rtac subsetI 1);
 by (etac list.induct 1);
 by (ALLGOALS Fast_tac);

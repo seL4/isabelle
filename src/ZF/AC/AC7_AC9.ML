@@ -51,7 +51,7 @@ by (fast_tac (claset() addDs [subsetD]
 qed "lam_eqE";
 
 Goalw [inj_def]
-        "!!A. C:A ==> (lam g:(nat->Union(A))*C.  \
+        "C:A ==> (lam g:(nat->Union(A))*C.  \
 \               (lam n:nat. if(n=0, snd(g), fst(g)`(n #- 1))))  \
 \               : inj((nat->Union(A))*C, (nat->Union(A)) ) ";
 by (rtac CollectI 1);
@@ -132,7 +132,7 @@ qed "AC7_AC6";
 (* ********************************************************************** *)
 
 Goalw [eqpoll_def]
-        "!!A. ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
+        "ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
 \       ==> 0 ~: { bij(fst(B),snd(B)). B:A }";
 by (rtac notI 1);
 by (etac RepFunE 1);

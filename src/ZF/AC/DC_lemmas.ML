@@ -26,7 +26,7 @@ by (eresolve_tac [nat_succI RS (Ord_nat RSN (2, OrdmemD) RS
 qed "n_lesspoll_nat";
 
 Goalw [lepoll_def]
-        "!!f. [| f:X->Y; Ord(X) |] ==> f``X lepoll X";
+        "[| f:X->Y; Ord(X) |] ==> f``X lepoll X";
 by (res_inst_tac [("x","lam x:f``X. LEAST y. f`y = x")] exI 1);
 by (res_inst_tac [("d","%z. f`z")] lam_injective 1);
 by (fast_tac (claset() addSIs [Least_in_Ord, apply_equality]) 1);
@@ -91,7 +91,7 @@ by (REPEAT (fast_tac (claset() addSIs [Ord_succ]
 qed "succ_in_succ";
 
 Goalw [restrict_def]
-        "!!f. [| restrict(f, domain(g)) = g; x: domain(g) |] ==> f`x = g`x";
+        "[| restrict(f, domain(g)) = g; x: domain(g) |] ==> f`x = g`x";
 by (etac subst 1);
 by (Asm_full_simp_tac 1);
 qed "restrict_eq_imp_val_eq";

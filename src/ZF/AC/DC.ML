@@ -101,7 +101,7 @@ by (fast_tac (claset() addSIs [lemma1_1] addSEs [lemma1_2, lemma1_3]) 1);
 val lemma1 = result();
 
 Goal
-"!!X.[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
+"[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
 \       ALL n:nat. <f`n, f`succ(n)> :  \
 \       {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  \
 \                       & restrict(z2, domain(z1)) = z1};  \
@@ -137,7 +137,7 @@ by (deepen_tac (claset() addDs [domain_of_fun RS sym RS trans]) 0 1);
 val lemma2 = result();
 
 Goal 
-"!!X.[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
+"[| XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R});  \
 \       ALL n:nat. <f`n, f`succ(n)> :  \
 \       {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  \
 \       & restrict(z2, domain(z1)) = z1};  \
@@ -191,7 +191,7 @@ by (rtac Pi_type 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [apply_type]) 1);
 qed "fun_type_gen";
 
-Goalw [DC_def, DC0_def] "!!Z. DC0 ==> DC(nat)";
+Goalw [DC_def, DC0_def] "DC0 ==> DC(nat)";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [conjE, allE] 1));
 by (eresolve_tac [[refl, refl] MRS lemma1 RSN (2, impE)] 1
@@ -242,7 +242,7 @@ qed "DC0_DC_nat";
 ************************************************************************* *)
 
 Goalw [lesspoll_def, Finite_def]
-        "!!A. A lesspoll nat ==> Finite(A)";
+        "A lesspoll nat ==> Finite(A)";
 by (fast_tac (claset() addSDs [ltD, lepoll_imp_ex_le_eqpoll]
         addSIs [Ord_nat]) 1);
 qed "lesspoll_nat_is_Finite";
@@ -283,7 +283,7 @@ by (fast_tac (claset() addSIs [singleton_fun RS Pi_type]
 qed "singleton_in_funs";
 
 Goal
-        "!!X. [| XX = (UN n:nat.  \
+        "[| XX = (UN n:nat.  \
 \               {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       RR = {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
 \       & (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
@@ -351,7 +351,7 @@ by (Asm_full_simp_tac 1);
 qed "f_n_pairs_in_R";
 
 Goalw [restrict_def]
-        "!!f. [| restrict(f, domain(x))=x; f:n->X; domain(x) <= n  \
+        "[| restrict(f, domain(x))=x; f:n->X; domain(x) <= n  \
 \       |] ==> restrict(cons(<n, y>, f), domain(x)) = x";
 by (eresolve_tac [sym RS trans RS sym] 1);
 by (rtac fun_extension 1);
@@ -376,7 +376,7 @@ by (fast_tac (claset() addSEs [restrict_cons_eq_restrict]) 1);
 qed "all_in_image_restrict_eq";
 
 Goal
-"!!X.[| ALL b<nat. <f``b, f`b> :  \
+"[| ALL b<nat. <f``b, f`b> :  \
 \       {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  & \
 \                            (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
 \                    (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f)) & \
@@ -456,7 +456,7 @@ by (fast_tac (FOL_cs addSEs [conjE, f_n_pairs_in_R, trans, subst_context]) 1);
 val lemma2 = result();
 
 Goal 
-"!!n. [| XX = (UN n:nat.  \
+"[| XX = (UN n:nat.  \
 \                {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       ALL b<nat. <f``b, f`b> :  \
 \              {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
@@ -478,7 +478,7 @@ by (asm_full_simp_tac (simpset()
 val lemma3 = result();
 
 
-Goalw [DC_def, DC0_def] "!!Z. DC(nat) ==> DC0";
+Goalw [DC_def, DC0_def] "DC(nat) ==> DC0";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [asm_rl, conjE, ex_in_domain RS exE, allE] 1));
 by (eresolve_tac [[refl, refl] MRS lemma4 RSN (2, impE)] 1
@@ -502,7 +502,7 @@ qed "DC_nat_DC0";
 (* ********************************************************************** *)
 
 Goalw [lesspoll_def]
-        "!!A. [| ~ A lesspoll B; C lesspoll B |] ==> A - C ~= 0";
+        "[| ~ A lesspoll B; C lesspoll B |] ==> A - C ~= 0";
 by (fast_tac (claset() addSDs [Diff_eq_0_iff RS iffD1 RS subset_imp_lepoll]
         addSIs [eqpollI] addEs [notE] addSEs [eqpollE, lepoll_trans]) 1);
 val lesspoll_lemma = result();
@@ -523,7 +523,7 @@ by (fast_tac (claset() addSEs [image_fun RS ssubst]) 1);
 qed "value_in_image";
 
 Goalw [DC_def, WO3_def]
-        "!!Z. ALL K. Card(K) --> DC(K) ==> WO3";
+        "ALL K. Card(K) --> DC(K) ==> WO3";
 by (rtac allI 1);
 by (excluded_middle_tac "A lesspoll Hartog(A)" 1);
 by (fast_tac (claset() addSDs [lesspoll_imp_ex_lt_eqpoll]
@@ -552,7 +552,7 @@ qed "DC_WO3";
 (* ********************************************************************** *)
 
 Goal
-        "!!a. [| Ord(a); b:a |] ==> (lam x:a. P(x))``b = (lam x:b. P(x))``b";
+        "[| Ord(a); b:a |] ==> (lam x:a. P(x))``b = (lam x:b. P(x))``b";
 by (rtac images_eq 1);
 by (REPEAT (fast_tac (claset() addSEs [RepFunI, OrdmemD]
         addSIs [lam_type]) 2));
@@ -598,7 +598,7 @@ by (fast_tac (claset() addSEs [[in_Card_imp_lesspoll, RepFun_lepoll]
 val lemma = result();
 
 Goalw [DC_def, WO1_def]
-        "!!Z. WO1 ==> ALL K. Card(K) --> DC(K)";
+        "WO1 ==> ALL K. Card(K) --> DC(K)";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE,conjE] 1));
 by (res_inst_tac [("x","lam b:K. ff(b, X, Ra, R)")] bexI 1);
