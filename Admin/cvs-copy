@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# $Id$
+#
+# cvs-copy - make copy of CVS controlled directory hierarchy
+#
+
+## diagnostics
+
+PRG=$(basename "$0")
+THIS=$(cd $(dirname "$0"); echo "$PWD")
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG FROMDIR TODIR"
+  echo
+  echo "  Make copy of CVS controlled directory hierarchy"
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -ne 2 ] && usage
+
+FROMDIR="$1"; shift
+TODIR="$1"; shift
+
+
+## main
+
+function copy ()
+{
+  local PREFIX="$1"
+  local TYPE NAME REST
+
+  [ -d "$FROMDIR/${PREFIX}CVS" ] || fail "Bad CVS directory '$FROMDIR/${PREFIX}.'"
+
+  { cat "$FROMDIR/${PREFIX}CVS/Entries" || \
+    fail "Cannot read '$FROMDIR/${PREFIX}CVS/Entries'"; } | \
+  {
+    ORIG_IFS="$IFS"
+    IFS="/"
+    while read TYPE NAME REST
+    do
+      if [ -n "$NAME" ]; then
+        if [ "$TYPE" = D ]; then
+          echo "${PREFIX}$NAME"
+          mkdir -p "$TODIR/${PREFIX}$NAME" || fail "Bad directory '$TODIR/${PREFIX}$NAME'"
+          copy "${PREFIX}$NAME/" || return "$?"
+        else
+          { [ ! -d "$TODIR/${PREFIX}$NAME" ] && \
+            cp -af "$FROMDIR/${PREFIX}$NAME" "$TODIR/${PREFIX}$NAME"; } || \
+          fail "Cannot install '$TODIR/${PREFIX}$NAME'"
+        fi
+      fi
+    done
+    IFS="$ORIG_IFS"
+  }
+}
+
+mkdir -p "$TODIR" || fail "Bad directory '$TODIR'"
+copy ""
