@@ -54,8 +54,9 @@ local
 
 (* Overloaded Constants *)
 
-axclass zero  < "term"
-axclass plus  < "term"
+axclass zero < "term"
+axclass one < "term"
+axclass plus < "term"
 axclass minus < "term"
 axclass times < "term"
 axclass inverse < "term"
@@ -64,10 +65,19 @@ global
 
 consts
   "0"           :: "'a::zero"                       ("0")
+  "1"           :: "'a::one"                        ("1")
   "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
   -             :: "['a::minus, 'a] => 'a"          (infixl 65)
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
+
+typed_print_translation {*
+  let
+    fun tr' c = (c, fn show_sorts => fn T => fn ts =>
+      if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
+      else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
+  in [tr' "0", tr' "1"] end;
+*}
 
 local
 
