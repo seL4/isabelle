@@ -15,4 +15,4 @@ use_thy "Natural";
 make_html := old_make_html;
 loadpath := ["."];
 
-use_thy "Denotational";
+use_thy "HoareEx";
