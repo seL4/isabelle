@@ -42,7 +42,7 @@ inductive woolam
          (*Alice responds to Bob's challenge by encrypting NB with her key.
            B is *not* properly determined -- Alice essentially broadcasts
            her reply.*)
-    WL3  "[| evs: woolam;  A ~= B;
+    WL3  "[| evs: woolam;
              Says A  B (Agent A)  : set evs;
              Says B' A (Nonce NB) : set evs |]
           ==> Says A B (Crypt (shrK A) (Nonce NB)) # evs : woolam"

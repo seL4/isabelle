@@ -50,7 +50,7 @@ inductive "yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs: yahalom lost;  A ~= Server;  A ~= B;  
+    YM4  "[| evs: yahalom lost;  A ~= Server;  
              Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|},
                         X|}  : set evs;
              Says A B {|Agent A, Nonce NA|} : set evs |]
