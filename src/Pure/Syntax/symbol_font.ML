@@ -8,7 +8,7 @@ The Isabelle symbol font.
 signature SYMBOL_FONT =
 sig
   val char_names: string list
-  val char: string -> string
+  val char: string -> string option
 end;
 
 structure SymbolFont : SYMBOL_FONT =
@@ -16,12 +16,12 @@ struct
 
 (** the encoding vector **)
 
-val enc_start = 160;
+val enc_start = 161;
 val enc_end = 255;
 
 val enc_vector =
 [
-  "altspace", "Gamma", "Delta", "Theta", "Lambda", "Pi", "Sigma", "Phi",
+      "Gamma", "Delta", "Theta", "Lambda", "Pi", "Sigma", "Phi",
   "Psi", "Omega", "alpha", "beta", "gamma", "delta", "epsilon", "zeta",
   "eta", "theta", "kappa", "lambda", "mu", "nu", "xi", "pi",
   "rho", "sigma", "tau", "phi", "chi", "psi", "omega", "neg",
@@ -32,7 +32,7 @@ val enc_vector =
   "succ", "succeq", "sim", "simeq", "le", "ge", "leftarrow", "midarrow",
   "rightarrow", "Leftarrow", "Midarrow", "Rightarrow", "rrightarrow", "mapsto", "leadsto", "up",
   "down", "notin", "times", "oplus", "ominus", "otimes", "oslash", "natural",
-  "infty", "box", "diamond", "circ", "bullet", "parallel", "tick", "copyright"
+  "infinity", "box", "diamond", "circ", "bullet", "parallel", "tick", "copyright"
 ];
 
 val enc_tab = Symtab.make (enc_vector ~~ (enc_start upto enc_end));
@@ -42,10 +42,6 @@ val enc_tab = Symtab.make (enc_vector ~~ (enc_start upto enc_end));
 
 val char_names = enc_vector;
 
-fun char name =
- (case Symtab.lookup (enc_tab, name) of
-   None => error ("Unknown symbol name: " ^ quote name)
- | Some n => chr n);
-
+fun char name = apsome chr (Symtab.lookup (enc_tab, name));
 
 end;
