@@ -9,8 +9,8 @@ generalized version of de-Bruijn representation.
 theory Multiquote = Main:;
 
 syntax
-  "_quote" :: "'b => ('a => 'b)"	     ("{._.}" [0] 1000)
-  "_antiquote" :: "('a => 'b) => 'b"         ("`_" [1000] 999);
+  "_quote" :: "'b => ('a => 'b)"	     (".'(_')." [0] 1000)
+  "_antiquote" :: "('a => 'b) => 'b"         ("`_" [1000] 1000);
 
 parse_translation {*
   let
@@ -25,21 +25,21 @@ parse_translation {*
           c $ skip_antiquote_tr i t
       | skip_antiquote_tr i t = antiquote_tr i t;
 
-    fun quote_tr [t] = Abs ("state", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
+    fun quote_tr [t] = Abs ("s", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
       | quote_tr ts = raise TERM ("quote_tr", ts);
   in [("_quote", quote_tr)] end
 *};
 
 text {* basic examples *};
-term "{. a + b + c .}";
-term "{. a + b + c + `x + `y + 1 .}";
-term "{. `(f w) + `x .}";
-term "{. f (`x) (`y) z .}";
+term ".(a + b + c).";
+term ".(a + b + c + `x + `y + 1).";
+term ".(`(f w) + `x).";
+term ".(f `x `y z).";
 
 text {* advanced examples *};
-term "{. {. `(`x) + `y .} .}";
-term "{. {. `(`x) + `y .} o `f .}";
-term "{. `(f o `g) .}";
-term "{. {. `(`(f o `g)) .} .}";
+term ".(.(` `x + `y).).";
+term ".(.(` `x + `y). o `f).";
+term ".(`(f o `g)).";
+term ".(.(`(`(f o `g))).).";
 
 end;
