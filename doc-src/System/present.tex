@@ -11,9 +11,13 @@ root, further object-logics derived (e.g.\ \texttt{HOLCF} from \texttt{HOL},
 and \texttt{HOL} from \texttt{Pure}), and application sessions in leaf
 positions.  The latter usually do not have a separate {\ML} image.
 
-The \texttt{usedir} and \texttt{mkdir} utilities provide the prime means for
-managing Isabelle sessions, including proper setup for presentation (see
-\S\ref{sec:tool-usedir} and \S\ref{sec:tool-mkdir}).
+The \texttt{mkdir} (see \S\ref{sec:tool-mkdir}) and \texttt{make} (see
+\S\ref{sec:tool-make}) tools of Isabelle provide the primary means for
+managing Isabelle sessions, including proper setup for presentation.  Here the
+\texttt{usedir} (see \S\ref{sec:tool-usedir}) tool takes care to run any
+additional stages required for document preparation, notably the tools
+\texttt{document} (see \S\ref{sec:tool-document}) and \texttt{latex} (see
+\S\ref{sec:tool-latex}).
 
 
 \section{Generating theory browsing information} \label{sec:info}

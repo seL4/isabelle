@@ -58,8 +58,8 @@ program (Isabelle) and the display server are run on the same machine. In that
 case, most X11 display servers should be happy by being told about the
 Isabelle fonts directory as follows:
 \begin{ttbox}
-ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"%$
-\end{ttbox}
+ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
+\end{ttbox}%$
 The same also works for remote X11 sessions in a largely homogeneous network,
 where any X11 display machine also mounts the Isabelle distribution under the
 \emph{same} name as the client side.
