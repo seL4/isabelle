@@ -11,8 +11,8 @@ TODO:
 (*the kind of distinctiveness axioms depends on number of constructors*)
 val dtK = 7;  (* FIXME rename?, move? *)
 
-structure ThySynData: THY_SYN_DATA =
-struct
+
+local
 
 open ThyParse;
 
@@ -259,13 +259,12 @@ val rec_decl = (name -- string --
 
 
 
+(** augment thy syntax **)
 
+in
 
-(** sections **)
-
-val user_keywords = ["intrs", "monos", "con_defs", "congs", "simpset", "|"];
-
-val user_sections =
+val _ = ThySyn.add_syntax
+ ["intrs", "monos", "con_defs", "congs", "simpset", "|"]
  [axm_section "typedef" "|> Typedef.add_typedef" typedef_decl,
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
@@ -273,10 +272,4 @@ val user_sections =
   ("primrec", primrec_decl),
   ("recdef", rec_decl)];
 
-
 end;
-
-
-structure ThySyn = ThySynFun(ThySynData);
-set_parser ThySyn.parse;
-

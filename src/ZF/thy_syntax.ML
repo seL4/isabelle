@@ -3,11 +3,11 @@
     Author:     Lawrence C Paulson
     Copyright   1994  University of Cambridge
 
-Additional theory file sections for ZF
+Additional theory file sections for ZF.
 *)
 
-structure ThySynData: THY_SYN_DATA =
-struct
+
+local
 
 (*Inductive definitions theory section.   co is either "" or "Co"*)
 fun inductive_decl co =
@@ -137,18 +137,18 @@ fun datatype_decl co =
 end;
 
 
-(** Section specifications **)
 
-val user_keywords = ["inductive", "coinductive", "datatype", "codatatype", 
-                     "and", "|", "<=", "domains", "intrs", "monos", 
-                     "con_defs", "type_intrs", "type_elims"];
+(** augment thy syntax **)
 
-val user_sections = [("inductive",  inductive_decl ""),
-                     ("coinductive",  inductive_decl "Co"),
-                     ("datatype",  datatype_decl ""),
-                     ("codatatype",  datatype_decl "Co")];
+in
+
+val _ = ThySyn.add_syntax
+ ["inductive", "coinductive", "datatype", "codatatype", "and", "|",
+  "<=", "domains", "intrs", "monos", "con_defs", "type_intrs",
+  "type_elims"]
+ [("inductive", inductive_decl ""),
+  ("coinductive", inductive_decl "Co"),
+  ("datatype", datatype_decl ""),
+  ("codatatype", datatype_decl "Co")];
+
 end;
-
-
-structure ThySyn = ThySynFun(ThySynData);
-set_parser ThySyn.parse;

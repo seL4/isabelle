@@ -6,11 +6,6 @@
 parser for domain section
 *)
 
-
-structure ThySynData: THY_SYN_DATA = (* overwrites old version of ThySynData !!!!!! *)
-
-struct
-
 local 
   open ThyParse;
   open Domain_Library;
@@ -157,14 +152,9 @@ in
   val gen_by_decl = (optional ($$ "finite" >> K true) false) -- 
 		    (enum1 "," (name'   --$$ "by" -- !!
 			       (enum1 "|" name'))) >> mk_gen_by;
+
+  val _ = ThySyn.add_syntax
+    ["lazy", "by", "finite"]
+    [("domain", domain_decl), ("generated", gen_by_decl)]
+
 end; (* local *)
-
-val user_keywords = "lazy"::"by"::"finite"::
-		(**)filter_out (fn s=>s="lazy" orelse s="by" orelse s="finite")(**)
-		    ThySynData.user_keywords;
-val user_sections = ("domain", domain_decl)::("generated", gen_by_decl)::
-		(**)filter_out (fn (s,_)=>s="domain" orelse s="generated")(**)
-		    ThySynData.user_sections;
-end; (* struct *)
-
-structure ThySyn = ThySynFun(ThySynData); (* overwrites old version of ThySyn!!!!!! *)
