@@ -20,7 +20,7 @@ depend on the signature of the theory context being presently used for
 parsing/printing, see also isar-ref manual.
 
 * Pure: improved indexed syntax and implicit structures.  First of
-call, indexed syntax provides a notational device for subscripted
+all, indexed syntax provides a notational device for subscripted
 application, using the new syntax \<^bsub>term\<^esub> for arbitrary
 expressions.  Secondly, in a local context with structure
 declarations, number indexes \<^sub>n or the empty index (default
