@@ -295,7 +295,7 @@ val lemmaP =
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation" K.prf_goal
-    (statement IsarThy.show >> (fn f => Toplevel.print o Toplevel.proof f));
+    (statement IsarThy.show >> (fn f => Toplevel.print o Toplevel.proof' f));
 
 val haveP =
   OuterSyntax.command "have" "state local goal" K.prf_goal
@@ -303,7 +303,7 @@ val haveP =
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\"" K.prf_goal
-    (statement IsarThy.thus >> (fn f => Toplevel.print o Toplevel.proof f));
+    (statement IsarThy.thus >> (fn f => Toplevel.print o Toplevel.proof' f));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\"" K.prf_goal
