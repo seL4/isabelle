@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/args.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Concrete argument syntax (of attributes and methods).
 *)
@@ -19,6 +20,8 @@ sig
   val position: (T list -> 'a * 'b) -> T list -> ('a * Position.T) * 'b
   val !!! : (T list -> 'a) -> T list -> 'a
   val $$$ : string -> T list -> string * T list
+  val colon: T list -> string * T list
+  val parens: (T list -> 'a * T list) -> T list -> 'a * T list
   val name: T list -> string * T list
   val name_dummy: T list -> string option * T list
   val nat: T list -> int * T list
@@ -102,6 +105,9 @@ fun !!! scan =
 
 fun $$$$ x = Scan.one (fn Arg (k, (y, _)) => (k = Ident orelse k = Keyword) andalso x = y);
 fun $$$ x = $$$$ x >> val_of;
+
+val colon = $$$ ":";
+fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
 val name_dummy = $$$ "_" >> K None || name >> Some;
