@@ -13,6 +13,8 @@ sig
   val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
   val make_ind : DatatypeAux.descr list -> (string * sort) list -> term
   val make_casedists : DatatypeAux.descr list -> (string * sort) list -> term list
+  val make_primrec_Ts : DatatypeAux.descr list -> (string * sort) list ->
+    string list -> typ list * typ list
   val make_primrecs : string list -> DatatypeAux.descr list ->
     (string * sort) list -> theory -> term list
   val make_cases : string list -> DatatypeAux.descr list ->
@@ -152,13 +154,9 @@ fun make_casedists descr sorts =
 
 (*************** characteristic equations for primrec combinator **************)
 
-fun make_primrecs new_type_names descr sorts thy =
+fun make_primrec_Ts descr sorts used =
   let
-    val sign = Theory.sign_of thy;
-
     val descr' = flat descr;
-    val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names (recTs, []);
 
     val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
       replicate (length descr') HOLogic.typeS);
@@ -175,6 +173,18 @@ fun make_primrecs new_type_names descr sorts thy =
           val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
         end) constrs) descr');
+
+  in (rec_result_Ts, reccomb_fn_Ts) end;
+
+fun make_primrecs new_type_names descr sorts thy =
+  let
+    val sign = Theory.sign_of thy;
+
+    val descr' = flat descr;
+    val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
+
+    val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
     val rec_fns = map (uncurry (mk_Free "f"))
       (reccomb_fn_Ts ~~ (1 upto (length reccomb_fn_Ts)));

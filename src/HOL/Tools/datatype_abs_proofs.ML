@@ -108,21 +108,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         (map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
           (1 upto (length descr'))));
 
-    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
-      replicate (length descr') HOLogic.typeS);
-
-    val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
-      map (fn (_, cargs) =>
-        let
-          val Ts = map (typ_of_dtyp descr' sorts) cargs;
-          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
-
-          fun mk_argT (dt, T) =
-            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
-
-          val argTs = Ts @ map mk_argT recs
-        in argTs ---> nth_elem (i, rec_result_Ts)
-        end) constrs) descr');
+    val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
 
     val rec_set_Ts = map (fn (T1, T2) => reccomb_fn_Ts ---> HOLogic.mk_setT
       (HOLogic.mk_prodT (T1, T2))) (recTs ~~ rec_result_Ts);
