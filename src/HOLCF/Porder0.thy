@@ -7,11 +7,11 @@ Definition of class porder (partial order)
 
 *)
 
-Porder0 = Nat +
+Porder0 = Arith +
 
 (* first the global constant for HOLCF type classes *)
 consts
-  "less"        :: "['a,'a] => bool"
+  less        :: "['a,'a] => bool"
 
 axclass po < term
         (* class axioms: *)
