@@ -10,27 +10,6 @@ section "Simplifier";
 
 open Simplifier;
 
-(*** Integration of simplifier with classical reasoner ***)
-
-(*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
-
-fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
-
-(*Designed to be idempotent, except if best_tac instantiates variables
-  in some of the subgoals*)
-fun auto_tac (cs,ss) = 
-    ALLGOALS (asm_full_simp_tac ss) THEN
-    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
-    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
-    prune_params_tac;
-
-fun Auto_tac() = auto_tac (!claset, !simpset);
-
-fun auto() = by (Auto_tac());
-
-
 (*** Addition of rules to simpsets and clasets simultaneously ***)
 
 (*Takes UNCONDITIONAL theorems of the form A<->B to 
@@ -126,10 +105,12 @@ val simp_thms = map prover
    "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
 
 (*Add congruence rules for = (instead of ==) *)
-infix 4 addcongs;
+infix 4 addcongs delcongs;
 fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
+fun ss delcongs congs = ss deleqcongs (congs RL [eq_reflection]);
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
+fun Delcongs congs = (simpset := !simpset delcongs congs);
 
 fun mksimps pairs = map mk_meta_eq o atomize pairs o gen_all;
 
@@ -307,24 +288,24 @@ val mksimps_pairs =
    ("All", [spec]), ("True", []), ("False", []),
    ("If", [if_bool_eq RS iffD1])];
 
-val HOL_base_ss = empty_ss
-      setmksimps (mksimps mksimps_pairs)
-      setsubgoaler asm_simp_tac;
+fun unsafe_solver prems = FIRST'[resolve_tac (TrueI::refl::prems),
+				 atac, etac FalseE];
+(*No premature instantiation of variables during simplification*)
+fun   safe_solver prems = FIRST'[match_tac (TrueI::refl::prems),
+				 eq_assume_tac, ematch_tac [FalseE]];
 
-val HOL_min_ss = HOL_base_ss setsolver (fn ps => 
-	FIRST'[resolve_tac (TrueI::refl::ps), atac, etac FalseE]);
+val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
+			    setSSolver   safe_solver
+			    setSolver  unsafe_solver
+			    setmksimps (mksimps mksimps_pairs);
 
-val HOL_safe_min_ss = HOL_base_ss setsolver (fn ps => 
-	FIRST'[match_tac (TrueI::refl::ps), eq_assume_tac, ematch_tac[FalseE]]);
-
-val HOL_ss = HOL_min_ss
-      addsimps ([triv_forall_equality, (* prunes params *)
-                 if_True, if_False, if_cancel,
-		 o_apply, imp_disjL, conj_assoc, disj_assoc,
-                 de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
-        @ ex_simps @ all_simps @ simp_thms)
-      addcongs [imp_cong];
-
+val HOL_ss = HOL_basic_ss addsimps ([triv_forall_equality, (* prunes params *)
+				     if_True, if_False, if_cancel,
+				     o_apply, imp_disjL, conj_assoc, disj_assoc,
+				     de_Morgan_conj, de_Morgan_disj, 
+				     not_all, not_ex, cases_simp]
+				    @ ex_simps @ all_simps @ simp_thms)
+			  addcongs [imp_cong];
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
@@ -373,3 +354,78 @@ end;
 
 
 add_thy_reader_file "thy_data.ML";
+
+
+
+
+(*** Integration of simplifier with classical reasoner ***)
+
+(* rot_eq_tac rotates the first equality premise of subgoal i to the front,
+   fails if there is no equaliy or if an equality is already at the front *)
+fun rot_eq_tac i = let
+  fun is_eq (Const ("Trueprop", _) $ (Const("op =",_) $ _ $ _)) = true
+  |   is_eq _ = false;
+  fun find_eq n [] = None
+  |   find_eq n (t :: ts) = if (is_eq t) then Some n else find_eq (n + 1) ts;
+  fun rot_eq state = let val (_, _, Bi, _) = dest_state (state, i) in
+	    (case find_eq 0 (Logic.strip_assums_hyp Bi) of
+	      None   => no_tac
+	    | Some 0 => no_tac
+	    | Some n => rotate_tac n i) end;
+in STATE rot_eq end;
+
+(*an unsatisfactory fix for the incomplete asm_full_simp_tac!
+  better: asm_really_full_simp_tac, a yet to be implemented version of
+			asm_full_simp_tac that applies all equalities in the
+			premises to all the premises *)
+fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN' 
+				     safe_asm_full_simp_tac ss;
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
+(*old version, for compatibility with unstable old proofs*)
+infix 4 unsafe_addss;
+fun cs unsafe_addss ss = cs addbefore asm_full_simp_tac ss;
+
+fun Addss ss = (claset := !claset addss ss);
+(*old version, for compatibility with unstable old proofs*)
+fun Unsafe_Addss ss = (claset := !claset unsafe_addss ss);
+
+(*Designed to be idempotent, except if best_tac instantiates variables
+  in some of the subgoals*)
+(*old version, for compatibility with unstable old proofs*)
+fun unsafe_auto_tac (cs,ss) = 
+    ALLGOALS (asm_full_simp_tac ss) THEN
+    REPEAT   (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
+    REPEAT   (FIRSTGOAL (best_tac (cs addss ss))) THEN
+    prune_params_tac;
+
+type clasimpset = (claset * simpset);
+
+val HOL_css = (HOL_cs, HOL_ss);
+
+fun pair_upd1 f ((a,b),x) = (f(a,x), b);
+fun pair_upd2 f ((a,b),x) = (a, f(b,x));
+
+infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
+	addsimps2 delsimps2 addcongs2 delcongs2;
+val op addSIs2   = pair_upd1 (op addSIs);
+val op addSEs2   = pair_upd1 (op addSEs);
+val op addSDs2   = pair_upd1 (op addSDs);
+val op addIs2    = pair_upd1 (op addIs );
+val op addEs2    = pair_upd1 (op addEs );
+val op addDs2    = pair_upd1 (op addDs );
+val op addsimps2 = pair_upd2 (op addsimps);
+val op delsimps2 = pair_upd2 (op delsimps);
+val op addcongs2 = pair_upd2 (op addcongs);
+val op delcongs2 = pair_upd2 (op delcongs);
+
+fun auto_tac (cs,ss) = let val cs' = cs addss ss in
+EVERY [	TRY (safe_tac cs'),
+	REPEAT (FIRSTGOAL (fast_tac cs')),
+	prune_params_tac] end;
+
+fun Auto_tac () = auto_tac (!claset, !simpset);
+
+fun auto () = by (Auto_tac ());
