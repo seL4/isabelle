@@ -34,8 +34,8 @@ inductive "evala"
     N   "<N(n),s> -a-> n"
     X  	"<X(x),s> -a-> s(x)"
     Op1 "<e,s> -a-> n ==> <Op1 f e,s> -a-> f(n)"
-    Op2 "[| <e0,s> -a-> n0;  <e1,s>  -a-> n1 |] \
-\           ==> <Op2 f e0 e1,s> -a-> f n0 n1"
+    Op2 "[| <e0,s> -a-> n0;  <e1,s>  -a-> n1 |] 
+           ==> <Op2 f e0 e1,s> -a-> f n0 n1"
 
 types n2n2b = "[nat,nat] => bool"
 
@@ -60,13 +60,13 @@ inductive "evalb"
  intrs (*avoid clash with ML constructors true, false*)
     tru   "<true,s> -b-> True"
     fls   "<false,s> -b-> False"
-    ROp   "[| <a0,s> -a-> n0; <a1,s> -a-> n1 |] \
-\	   ==> <ROp f a0 a1,s> -b-> f n0 n1"
+    ROp   "[| <a0,s> -a-> n0; <a1,s> -a-> n1 |] 
+	   ==> <ROp f a0 a1,s> -b-> f n0 n1"
     noti  "<b,s> -b-> w ==> <noti(b),s> -b-> (~w)"
-    andi  "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] \
-\          ==> <b0 andi b1,s> -b-> (w0 & w1)"
-    ori   "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] \
-\	    ==> <b0 ori b1,s> -b-> (w0 | w1)"
+    andi  "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
+          ==> <b0 andi b1,s> -b-> (w0 & w1)"
+    ori   "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
+	    ==> <b0 ori b1,s> -b-> (w0 | w1)"
 
 (** Commands **)
 
@@ -94,19 +94,19 @@ inductive "evalc"
 
     assign  "<a,s> -a-> m ==> <x := a,s> -c-> s[m/x]"
 
-    semi    "[| <c0,s> -c-> s2; <c1,s2> -c-> s1 |] \
-\            ==> <c0 ; c1, s> -c-> s1"
+    semi    "[| <c0,s> -c-> s2; <c1,s2> -c-> s1 |] 
+            ==> <c0 ; c1, s> -c-> s1"
 
-    ifcTrue "[| <b,s> -b-> True; <c0,s> -c-> s1 |] \
-\            ==> <ifc b then c0 else c1, s> -c-> s1"
+    ifcTrue "[| <b,s> -b-> True; <c0,s> -c-> s1 |] 
+            ==> <ifc b then c0 else c1, s> -c-> s1"
 
-    ifcFalse "[| <b,s> -b-> False; <c1,s> -c-> s1 |] \
-\             ==> <ifc b then c0 else c1, s> -c-> s1"
+    ifcFalse "[| <b,s> -b-> False; <c1,s> -c-> s1 |] 
+             ==> <ifc b then c0 else c1, s> -c-> s1"
 
     whileFalse "<b, s> -b-> False ==> <while b do c,s> -c-> s"
 
-    whileTrue  "[| <b,s> -b-> True; <c,s> -c-> s2; \
-\                  <while b do c, s2> -c-> s1 |] \
-\               ==> <while b do c, s> -c-> s1 "
+    whileTrue  "[| <b,s> -b-> True; <c,s> -c-> s2; 
+                  <while b do c, s2> -c-> s1 |] 
+               ==> <while b do c, s> -c-> s1 "
  
 end

@@ -23,10 +23,10 @@ consts
   Var       :: "'a => 'a uterm"
   Const     :: "'a => 'a uterm"
   Comb      :: "['a uterm, 'a uterm] => 'a uterm"
-  UTerm_rec :: "['a item, 'a item => 'b, 'a item => 'b, \
-\                ['a item , 'a item, 'b, 'b]=>'b] => 'b"
-  uterm_rec :: "['a uterm, 'a => 'b, 'a => 'b, \
-\                ['a uterm, 'a uterm,'b,'b]=>'b] => 'b"
+  UTerm_rec :: "['a item, 'a item => 'b, 'a item => 'b, 
+                ['a item , 'a item, 'b, 'b]=>'b] => 'b"
+  uterm_rec :: "['a uterm, 'a => 'b, 'a => 'b, 
+                ['a uterm, 'a uterm,'b,'b]=>'b] => 'b"
 
 defs
      (*defining the concrete constructors*)
@@ -54,12 +54,12 @@ defs
 
      (*uterm recursion*)
   UTerm_rec_def	
-   "UTerm_rec M b c d == wfrec (trancl pred_sexp) M \
-\          (Case (%x g.b(x)) (Case (%y g. c(y)) (Split (%x y g. d x y (g x) (g y)))))"
+   "UTerm_rec M b c d == wfrec (trancl pred_sexp) M 
+          (Case (%x g.b(x)) (Case (%y g. c(y)) (Split (%x y g. d x y (g x) (g y)))))"
 
   uterm_rec_def
-   "uterm_rec t b c d == \
-\   UTerm_rec (Rep_uterm t) (%x.b(Inv Leaf x)) (%x.c(Inv Leaf x)) \
-\                           (%x y q r.d (Abs_uterm x) (Abs_uterm y) q r)"
+   "uterm_rec t b c d == 
+   UTerm_rec (Rep_uterm t) (%x.b(Inv Leaf x)) (%x.c(Inv Leaf x)) 
+                           (%x y q r.d (Abs_uterm x) (Abs_uterm y) q r)"
 
 end

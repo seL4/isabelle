@@ -40,12 +40,12 @@ defs
 
   (*list recursion*)
   Term_rec_def	
-   "Term_rec M d == wfrec (trancl pred_sexp) M \
-\           (Split(%x y g. d x y (Abs_map g y)))"
+   "Term_rec M d == wfrec (trancl pred_sexp) M 
+           (Split(%x y g. d x y (Abs_map g y)))"
 
   term_rec_def
-   "term_rec t d == \
-\   Term_rec (Rep_term t) (%x y r. d (Inv Leaf x) (Abs_Tlist(y)) r)"
+   "term_rec t d == 
+   Term_rec (Rep_term t) (%x y r. d (Inv Leaf x) (Abs_Tlist(y)) r)"
 
 rules
     (*faking a type definition for term...*)

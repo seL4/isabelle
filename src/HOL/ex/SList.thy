@@ -89,12 +89,12 @@ defs
   (* list Recursion -- the trancl is Essential; see list.ML *)
 
   List_rec_def
-   "List_rec M c d == wfrec (trancl pred_sexp) M \
-\                           (List_case (%g.c) (%x y g. d x y (g y)))"
+   "List_rec M c d == wfrec (trancl pred_sexp) M 
+                           (List_case (%g.c) (%x y g. d x y (g y)))"
 
   list_rec_def
-   "list_rec l c d == \
-\   List_rec (Rep_list l) c (%x y r. d (Inv Leaf x) (Abs_list y) r)"
+   "list_rec l c d == 
+   List_rec (Rep_list l) c (%x y r. d (Inv Leaf x) (Abs_list y) r)"
 
   (* Generalized Map Functionals *)
 
@@ -107,13 +107,13 @@ defs
   (* a total version of tl: *)
   ttl_def	"ttl(xs)             == list_rec xs [] (%x xs r.xs)"
 
-  mem_def	"x mem xs            == \
-\		   list_rec xs False (%y ys r. if y=x then True else r)"
+  mem_def	"x mem xs            == 
+		   list_rec xs False (%y ys r. if y=x then True else r)"
   list_all_def  "list_all P xs       == list_rec xs True (%x l r. P(x) & r)"
   map_def       "map f xs            == list_rec xs [] (%x l r. f(x)#r)"
   append_def	"xs@ys               == list_rec xs ys (%x l r. x#r)"
-  filter_def	"filter P xs         == \
-\                  list_rec xs [] (%x xs r. if P(x) then x#r else r)"
+  filter_def	"filter P xs         == 
+                  list_rec xs [] (%x xs r. if P(x) then x#r else r)"
 
   list_case_def "list_case a f xs == list_rec xs a (%x xs r.f x xs)"
 

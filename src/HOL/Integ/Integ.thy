@@ -46,9 +46,9 @@ defs
       "zmagnitude(Z) == Abs_Integ(UN p:Rep_Integ(Z).split (%x y. intrel^^{((y-x) + (x-y),0)}) p)"
 
   zadd_def
-   "Z1 + Z2 == \
-\       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2).   \
-\           split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
+   "Z1 + Z2 == 
+       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2).   
+           split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
 
   zdiff_def "Z1 - Z2 == Z1 + zminus(Z2)"
 
@@ -57,21 +57,21 @@ defs
   zle_def   "Z1 <= (Z2::int) == ~(Z2 < Z1)"
 
   zmult_def
-   "Z1 * Z2 == \
-\       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   \
-\           split (%x2 y2. intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
+   "Z1 * Z2 == 
+       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
+           split (%x2 y2. intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
 
   zdiv_def
-   "Z1 zdiv Z2 ==   \
-\       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   \
-\           split (%x2 y2. intrel^^{((x1-y1)div(x2-y2)+(y1-x1)div(y2-x2),   \
-\           (x1-y1)div(y2-x2)+(y1-x1)div(x2-y2))}) p2) p1)"
+   "Z1 zdiv Z2 ==   
+       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
+           split (%x2 y2. intrel^^{((x1-y1)div(x2-y2)+(y1-x1)div(y2-x2),   
+           (x1-y1)div(y2-x2)+(y1-x1)div(x2-y2))}) p2) p1)"
 
   zmod_def
-   "Z1 zmod Z2 ==   \
-\       Abs_Integ(UN p1:Rep_Integ(Z1).UN p2:Rep_Integ(Z2).split (%x1 y1.   \
-\           split (%x2 y2. intrel^^{((x1-y1)mod((x2-y2)+(y2-x2)),   \
-\           (x1-y1)mod((x2-y2)+(x2-y2)))}) p2) p1)"
+   "Z1 zmod Z2 ==   
+       Abs_Integ(UN p1:Rep_Integ(Z1).UN p2:Rep_Integ(Z2).split (%x1 y1.   
+           split (%x2 y2. intrel^^{((x1-y1)mod((x2-y2)+(y2-x2)),   
+           (x1-y1)mod((x2-y2)+(x2-y2)))}) p2) p1)"
 
   zsuc_def     "zsuc(Z) == Z + $# Suc(0)"
 

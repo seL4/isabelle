@@ -45,10 +45,10 @@ consts
   Case   :: "[['a item]=>'b, ['a item]=>'b, 'a item] => 'b"
 
   diag   :: "'a set => ('a * 'a)set"
-  "<**>" :: "[('a item * 'a item)set, ('a item * 'a item)set] \
-\           => ('a item * 'a item)set" (infixr 80)
-  "<++>" :: "[('a item * 'a item)set, ('a item * 'a item)set] \
-\           => ('a item * 'a item)set" (infixr 70)
+  "<**>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
+           => ('a item * 'a item)set" (infixr 80)
+  "<++>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
+           => ('a item * 'a item)set" (infixr 70)
 
 defs
 
@@ -86,8 +86,8 @@ defs
   (*the corresponding eliminators*)
   Split_def  "Split c M == @u. ? x y. M = x$y & u = c x y"
 
-  Case_def   "Case c d M == @u.  (? x . M = In0(x) & u = c(x)) \
-\                              | (? y . M = In1(y) & u = d(y))"
+  Case_def   "Case c d M == @u.  (? x . M = In0(x) & u = c(x)) 
+                              | (? y . M = In1(y) & u = d(y))"
 
 
   (** diagonal sets and equality for the "universe" **)
@@ -96,7 +96,7 @@ defs
 
   dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(x$y,x'$y')}"
 
-  dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un \
-\                       (UN (y,y'):s. {(In1(y),In1(y'))})"
+  dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un 
+                       (UN (y,y'):s. {(In1(y),In1(y'))})"
 
 end

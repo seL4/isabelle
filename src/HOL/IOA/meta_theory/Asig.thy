@@ -32,10 +32,10 @@ externals_def
    "externals(asig) == (inputs(asig) Un outputs(asig))"
 
 is_asig_def
-  "is_asig(triple) ==            \
-   \  ((inputs(triple) Int outputs(triple) = {})    & \
-   \   (outputs(triple) Int internals(triple) = {}) & \
-   \   (inputs(triple) Int internals(triple) = {}))"
+  "is_asig(triple) ==            
+      ((inputs(triple) Int outputs(triple) = {})    & 
+       (outputs(triple) Int internals(triple) = {}) & 
+       (inputs(triple) Int internals(triple) = {}))"
 
 
 mk_ext_asig_def

@@ -57,14 +57,14 @@ defs
   Suc_def       "Suc == (%n. Abs_Nat(Suc_Rep(Rep_Nat(n))))"
 
   (*nat operations and recursion*)
-  nat_case_def  "nat_case a f n == @z.  (n=0 --> z=a)  \
-\                                        & (!x. n=Suc(x) --> z=f(x))"
+  nat_case_def  "nat_case a f n == @z.  (n=0 --> z=a)  
+                                        & (!x. n=Suc(x) --> z=f(x))"
   pred_nat_def  "pred_nat == {p. ? n. p = (n, Suc(n))}"
 
   less_def "m<n == (m,n):trancl(pred_nat)"
 
   le_def   "m<=(n::nat) == ~(n<m)"
 
-  nat_rec_def   "nat_rec n c d == wfrec pred_nat n  \
-\                        (nat_case (%g.c) (%m g.(d m (g m))))"
+  nat_rec_def   "nat_rec n c d == wfrec pred_nat n  
+                        (nat_case (%g.c) (%m g.(d m (g m))))"
 end

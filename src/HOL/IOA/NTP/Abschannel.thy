@@ -45,42 +45,42 @@ rsch_ioa_def "rsch_ioa == rename ch_ioa rsch_actions"
 
 ch_asig_def "ch_asig == (UN b. {S(b)}, UN b. {R(b)}, {})"
 
-ch_trans_def "ch_trans ==                                       \
-\ {tr. let s = fst(tr);                                         \
-\          t = snd(snd(tr))                                     \
-\      in                                                       \
-\      case fst(snd(tr))                                        \
-\        of S(b) => t = addm s b |                            \
-\           R(b) => count s b ~= 0 & t = delm s b}"
+ch_trans_def "ch_trans ==                                       
+ {tr. let s = fst(tr);                                         
+          t = snd(snd(tr))                                     
+      in                                                       
+      case fst(snd(tr))                                        
+        of S(b) => t = addm s b |                            
+           R(b) => count s b ~= 0 & t = delm s b}"
 
 ch_ioa_def "ch_ioa == (ch_asig, {{|}}, ch_trans)"
 
 
-rsch_actions_def "rsch_actions (act) ==        \
-\	    case act of                \
-\           S_msg(m) => None |         \
-\	    R_msg(m) => None |         \
-\           S_pkt(packet) => None |    \
-\	    R_pkt(packet) => None |    \
-\	    S_ack(b) => Some(S(b)) |   \
-\	    R_ack(b) => Some(R(b)) |   \
-\           C_m_s =>  None  |          \
-\           C_m_r =>  None |           \
-\           C_r_s =>  None  |          \
-\           C_r_r(m) => None"
+rsch_actions_def "rsch_actions (act) ==        
+	    case act of                
+           S_msg(m) => None |         
+	    R_msg(m) => None |         
+           S_pkt(packet) => None |    
+	    R_pkt(packet) => None |    
+	    S_ack(b) => Some(S(b)) |   
+	    R_ack(b) => Some(R(b)) |   
+           C_m_s =>  None  |          
+           C_m_r =>  None |           
+           C_r_s =>  None  |          
+           C_r_r(m) => None"
 
-srch_actions_def "srch_actions (act) ==         \
-\	    case act of                \
-\           S_msg(m) => None |         \
-\	    R_msg(m) => None |         \
-\           S_pkt(p) => Some(S(p)) |   \
-\	    R_pkt(p) => Some(R(p)) |   \
-\	    S_ack(b) => None |         \
-\	    R_ack(b) => None |         \
-\           C_m_s => None |            \
-\           C_m_r => None |            \
-\           C_r_s => None |            \
-\           C_r_r(m) => None"
+srch_actions_def "srch_actions (act) ==         
+	    case act of                
+           S_msg(m) => None |         
+	    R_msg(m) => None |         
+           S_pkt(p) => Some(S(p)) |   
+	    R_pkt(p) => Some(R(p)) |   
+	    S_ack(b) => None |         
+	    R_ack(b) => None |         
+           C_m_s => None |            
+           C_m_r => None |            
+           C_r_s => None |            
+           C_r_r(m) => None"
 
 end  
 

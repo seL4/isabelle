@@ -21,13 +21,13 @@ rules  (*Definitions*)
   Idem_def         "Idem(s) == s <> s =s= s"
   Unifier_def      "Unifier s t u == t <| s = u <| s"
   MoreGeneral_def  "r >> s == ? q.s =s= r <> q"
-  MGUnifier_def    "MGUnifier s t u == Unifier s t u & \
-\		    (! r.Unifier r t u --> s >> r)"
+  MGUnifier_def    "MGUnifier s t u == Unifier s t u & 
+		    (! r.Unifier r t u --> s >> r)"
   MGIUnifier_def   "MGIUnifier s t u == MGUnifier s t u & Idem(s)"
 
   UWFD_def
-  "UWFD x y x' y' == \
-\    (vars_of(x) Un vars_of(y) < vars_of(x') Un vars_of(y')) |  \
-\    (vars_of(x) Un vars_of(y) = vars_of(x') Un vars_of(y') & x <: x')"
+  "UWFD x y x' y' == 
+    (vars_of(x) Un vars_of(y) < vars_of(x') Un vars_of(y')) |  
+    (vars_of(x) Un vars_of(y) = vars_of(x') Un vars_of(y') & x <: x')"
 
 end

@@ -13,15 +13,15 @@ consts
 rules
 
 qsort_Nil  "qsort le [] = []"
-qsort_Cons "qsort le (x#xs) = qsort le [y:xs . ~le x y] @ \
-\                            (x# qsort le [y:xs . le x y])"
+qsort_Cons "qsort le (x#xs) = qsort le [y:xs . ~le x y] @ 
+                            (x# qsort le [y:xs . le x y])"
 
 (* computational induction.
    The dependence of p on x but not xs is intentional.
 *)
 qsort_ind
- "[| P([]); \
-\    !!x xs. [| P([y:xs . ~p x y]); P([y:xs . p x y]) |] ==> \
-\            P(x#xs) |] \
-\ ==> P(xs)"
+ "[| P([]); 
+    !!x xs. [| P([y:xs . ~p x y]); P([y:xs . p x y]) |] ==> 
+            P(x#xs) |] 
+ ==> P(xs)"
 end

@@ -31,12 +31,12 @@ consts
   Tcons       :: "['a, 'a forest] => 'a tree"
   Fcons       :: "['a tree, 'a forest] => 'a forest"
   Fnil        :: "'a forest"
-  TF_rec      :: "['a item, ['a item , 'a item, 'b]=>'b,     \
-\                 'b, ['a item , 'a item, 'b, 'b]=>'b] => 'b"
-  tree_rec    :: "['a tree, ['a, 'a forest, 'b]=>'b,          \
-\                 'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
-  forest_rec  :: "['a forest, ['a, 'a forest, 'b]=>'b,        \
-\                  'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
+  TF_rec      :: "['a item, ['a item , 'a item, 'b]=>'b,     
+                 'b, ['a item , 'a item, 'b, 'b]=>'b] => 'b"
+  tree_rec    :: "['a tree, ['a, 'a forest, 'b]=>'b,          
+                 'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
+  forest_rec  :: "['a forest, ['a, 'a forest, 'b]=>'b,        
+                  'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
 
 defs
      (*the concrete constants*)
@@ -48,8 +48,8 @@ defs
   Fnil_def  	"Fnil       == Abs_Forest(FNIL)"
   Fcons_def 	"Fcons t ts == Abs_Forest(FCONS (Rep_Tree t) (Rep_Forest ts))"
 
-  TF_def	"TF(A) == lfp(%Z. A <*> Part Z In1 \
-\                           <+> ({Numb(0)} <+> Part Z In0 <*> Part Z In1))"
+  TF_def	"TF(A) == lfp(%Z. A <*> Part Z In1 
+                           <+> ({Numb(0)} <+> Part Z In0 <*> Part Z In1))"
 
 rules
   (*faking a type definition for tree...*)
@@ -66,17 +66,17 @@ rules
 defs
      (*recursion*)
   TF_rec_def	
-   "TF_rec M b c d == wfrec (trancl pred_sexp) M   \
-\               (Case (Split(%x y g. b x y (g y))) \
-\	              (List_case (%g.c) (%x y g. d x y (g x) (g y))))"
+   "TF_rec M b c d == wfrec (trancl pred_sexp) M   
+               (Case (Split(%x y g. b x y (g y))) 
+	              (List_case (%g.c) (%x y g. d x y (g x) (g y))))"
 
   tree_rec_def
-   "tree_rec t b c d == \
-\   TF_rec (Rep_Tree t) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) \
-\          c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
+   "tree_rec t b c d == 
+   TF_rec (Rep_Tree t) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) 
+          c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
 
   forest_rec_def
-   "forest_rec tf b c d == \
-\   TF_rec (Rep_Forest tf) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) \
-\          c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
+   "forest_rec tf b c d == 
+   TF_rec (Rep_Forest tf) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) 
+          c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
 end

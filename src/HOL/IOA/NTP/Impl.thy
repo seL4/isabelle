@@ -40,30 +40,30 @@ hdr_sum_def
 
 (* Lemma 5.1 *)
 inv1_def 
-  "inv1(s) ==                                                                 \
- \   (!b. count (rsent(rec s)) b = count (srcvd(sen s)) b + count (rsch s) b) \
- \ & (!b. count (ssent(sen s)) b                                              \
- \        = hdr_sum (rrcvd(rec s)) b + hdr_sum (srch s) b)"
+  "inv1(s) ==                                                                 
+     (!b. count (rsent(rec s)) b = count (srcvd(sen s)) b + count (rsch s) b) 
+   & (!b. count (ssent(sen s)) b                                              
+          = hdr_sum (rrcvd(rec s)) b + hdr_sum (srch s) b)"
 
 (* Lemma 5.2 *)
- inv2_def "inv2(s) ==                                                   \
-\  (rbit(rec(s)) = sbit(sen(s)) &                                       \
-\   ssending(sen(s)) &                                                  \
-\   count (rsent(rec s)) (~sbit(sen s)) <= count (ssent(sen s)) (~sbit(sen s)) &\
-\   count (ssent(sen s)) (~sbit(sen s)) <= count (rsent(rec s)) (sbit(sen s)))  \
-\   |                                                                   \
-\  (rbit(rec(s)) = (~sbit(sen(s))) &                                    \
-\   rsending(rec(s)) &                                                  \
-\   count (ssent(sen s)) (~sbit(sen s)) <= count (rsent(rec s)) (sbit(sen s)) &\
-\   count (rsent(rec s)) (sbit(sen s)) <= count (ssent(sen s)) (sbit(sen s)))"
+ inv2_def "inv2(s) ==                                                   
+  (rbit(rec(s)) = sbit(sen(s)) &                                       
+   ssending(sen(s)) &                                                  
+   count (rsent(rec s)) (~sbit(sen s)) <= count (ssent(sen s)) (~sbit(sen s)) &
+   count (ssent(sen s)) (~sbit(sen s)) <= count (rsent(rec s)) (sbit(sen s)))  
+   |                                                                   
+  (rbit(rec(s)) = (~sbit(sen(s))) &                                    
+   rsending(rec(s)) &                                                  
+   count (ssent(sen s)) (~sbit(sen s)) <= count (rsent(rec s)) (sbit(sen s)) &
+   count (rsent(rec s)) (sbit(sen s)) <= count (ssent(sen s)) (sbit(sen s)))"
 
 (* Lemma 5.3 *)
- inv3_def "inv3(s) ==                                                   \
-\   rbit(rec(s)) = sbit(sen(s))                                         \
-\   --> (!m. sq(sen(s))=[] | m ~= hd(sq(sen(s)))                        \
-\        -->  count (rrcvd(rec s)) (sbit(sen(s)),m)                     \
-\             + count (srch s) (sbit(sen(s)),m)                         \
-\            <= count (rsent(rec s)) (~sbit(sen s)))"
+ inv3_def "inv3(s) ==                                                   
+   rbit(rec(s)) = sbit(sen(s))                                         
+   --> (!m. sq(sen(s))=[] | m ~= hd(sq(sen(s)))                        
+        -->  count (rrcvd(rec s)) (sbit(sen(s)),m)                     
+             + count (srch s) (sbit(sen(s)),m)                         
+            <= count (rsent(rec s)) (~sbit(sen s)))"
 
 (* Lemma 5.4 *)
  inv4_def "inv4(s) == rbit(rec(s)) = (~sbit(sen(s))) --> sq(sen(s)) ~= []"

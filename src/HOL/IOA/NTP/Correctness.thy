@@ -15,7 +15,7 @@ hom :: "'m impl_state => 'm list"
 defs
 
 hom_def 
-"hom(s) == rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s) \
-\                        else ttl(sq(sen s)))"
+"hom(s) == rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s) 
+                        else ttl(sq(sen s)))"
 
 end

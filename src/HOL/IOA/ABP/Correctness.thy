@@ -19,12 +19,12 @@ system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
 primrec
   reduce List.list  
   reduce_Nil  "reduce [] = []"
-  reduce_Cons "reduce(x#xs) =   \
-\	         (case xs of   \
-\	             [] => [x]   \
-\	       |   y#ys => (if (x=y)   \
-\	                      then reduce xs   \
-\	                      else (x#(reduce xs))))"
+  reduce_Cons "reduce(x#xs) =   
+	         (case xs of   
+	             [] => [x]   
+	       |   y#ys => (if (x=y)   
+	                      then reduce xs   
+	                      else (x#(reduce xs))))"
 
   
 defs
@@ -35,9 +35,9 @@ system_def
 system_fin_def
   "system_fin_ioa == (env_ioa || impl_fin_ioa)"
   
-abs_def "abs  ==   \
-\	(%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),   \
-\	 (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p))))))))))"
+abs_def "abs  ==   
+	(%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),   
+	 (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p))))))))))"
 
 rules
 
@@ -47,4 +47,3 @@ rules
 end
 
 
-  
