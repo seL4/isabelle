@@ -537,7 +537,6 @@ qed_goalw "adm_max_in_chain"  Fix.thy  [adm_def]
         (etac spec 1)
         ]);
 
-
 qed_goalw "adm_chain_finite"  Fix.thy  [chain_finite_def]
         "chain_finite(x::'a) ==> adm(P::'a=>bool)"
  (fn prems =>
@@ -597,6 +596,51 @@ qed_goalw "flat_void" Fix.thy [is_flat_def] "is_flat(UU::void)"
         (rtac disjI1 1),
         (rtac unique_void2 1)
         ]);
+
+qed_goalw "flat_eq" Fix.thy [is_flat_def] 
+	"[| is_flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
+	(cut_facts_tac prems 1),
+	(fast_tac (HOL_cs addIs [refl_less]) 1)]);
+
+(* ------------------------------------------------------------------------ *)
+(* lemmata for improved admissibility introdution rule                      *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "infinite_chain_adm_lemma" Porder.thy 
+"[|is_chain Y; !i. P (Y i); \
+\  (!!Y. [| is_chain Y; !i. P (Y i); ~ finite_chain Y |] ==> P (lub (range Y)))\
+\ |] ==> P (lub (range Y))"
+ (fn prems => [
+	cut_facts_tac prems 1,
+	case_tac "finite_chain Y" 1,
+	 eresolve_tac prems 2, atac 2, atac 2,
+	rewtac finite_chain_def,
+	safe_tac HOL_cs,
+	etac (lub_finch1 RS thelubI RS ssubst) 1, atac 1, etac spec 1]);
+
+qed_goal "increasing_chain_adm_lemma" Porder.thy 
+"[|is_chain Y; !i. P (Y i); \
+\  (!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j|]\
+\ ==> P (lub (range Y))) |] ==> P (lub (range Y))"
+ (fn prems => [
+	cut_facts_tac prems 1,
+	etac infinite_chain_adm_lemma 1, atac 1, etac thin_rl 1,
+	rewtac finite_chain_def,
+	safe_tac HOL_cs,
+	etac swap 1,
+	rewtac max_in_chain_def,
+	resolve_tac prems 1, atac 1, atac 1,
+	fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
+			 addEs [chain_mono RS mp]) 1]);
+
+qed_goalw "admI" Fix.thy [adm_def]
+ "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
+\ ==> P(lub (range Y))) ==> adm P" 
+ (fn prems => [
+	strip_tac 1,
+	etac increasing_chain_adm_lemma 1, atac 1,
+	eresolve_tac prems 1, atac 1, atac 1]);
+
 
 (* ------------------------------------------------------------------------ *)
 (* continuous isomorphisms are strict                                       *)
@@ -900,18 +944,20 @@ qed_goal "adm_eq"  Fix.thy
 (* admissibility for disjunction is hard to prove. It takes 10 Lemmas       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "adm_disj_lemma1"  Pcpo.thy 
-"[| is_chain Y; !n.P (Y n) | Q(Y n)|]\
-\ ==> (? i.!j. i<j --> Q(Y(j))) | (!i.? j.i<j & P(Y(j)))"
+local
+
+  val adm_disj_lemma1 = prove_goal Pcpo.thy 
+  "[| is_chain Y; !n.P (Y n) | Q(Y n)|]\
+  \ ==> (? i.!j. i<j --> Q(Y(j))) | (!i.? j.i<j & P(Y(j)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "adm_disj_lemma2"  Fix.thy  
-"[| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
-\   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
+  val adm_disj_lemma2 = prove_goal Fix.thy  
+  "[| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
+  \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -926,9 +972,9 @@ qed_goal "adm_disj_lemma2"  Fix.thy
         (atac 1)
         ]);
 
-qed_goal "adm_disj_lemma3"  Fix.thy
-"[| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
-\         is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
+  val adm_disj_lemma3 = prove_goal Fix.thy
+  "[| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
+  \         is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -957,28 +1003,31 @@ qed_goal "adm_disj_lemma3"  Fix.thy
 	(asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1)
         ]);
 
-qed_goal "adm_disj_lemma4"  Fix.thy
-"[| ! j. i < j --> Q(Y(j)) |] ==>\
-\        ! n. Q( if n < Suc i then Y(Suc i) else Y n)"
+  val adm_disj_lemma4 = prove_goal Fix.thy
+  "[| ! j. i < j --> Q(Y(j)) |] ==>\
+  \        ! n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
         (rtac allI 1),
         (res_inst_tac [("m","n"),("n","Suc(i)")] nat_less_cases 1),
-        (res_inst_tac[("s","Y(Suc(i))"),("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
+        (res_inst_tac[("s","Y(Suc(i))"),
+		      ("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
         (Asm_simp_tac 1),
         (etac allE 1),
         (rtac mp 1),
         (atac 1),
         (Asm_simp_tac 1),
-        (res_inst_tac[("s","Y(n)"),("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
+        (res_inst_tac[("s","Y(n)"),
+		      ("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
         (Asm_simp_tac 1),
         (hyp_subst_tac 1),
         (dtac spec 1),
         (rtac mp 1),
         (atac 1),
         (Asm_simp_tac 1),
-        (res_inst_tac [("s","Y(n)"),("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
+        (res_inst_tac [("s","Y(n)"),
+		       ("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")]ssubst 1),
         (res_inst_tac [("s","False"),("t","n < Suc(i)")] ssubst 1),
         (rtac iffI 1),
         (etac FalseE 2),
@@ -992,9 +1041,9 @@ qed_goal "adm_disj_lemma4"  Fix.thy
         (etac Suc_lessD 1)
         ]);
 
-qed_goal "adm_disj_lemma5"  Fix.thy
-"[| is_chain(Y::nat=>'a); ! j. i < j --> Q(Y(j)) |] ==>\
-\         lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
+  val adm_disj_lemma5 = prove_goal Fix.thy
+  "[| is_chain(Y::nat=>'a); ! j. i < j --> Q(Y(j)) |] ==>\
+  \       lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1016,9 +1065,9 @@ qed_goal "adm_disj_lemma5"  Fix.thy
         (rtac refl 1)
         ]);
 
-qed_goal "adm_disj_lemma6"  Fix.thy
-"[| is_chain(Y::nat=>'a); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
-\         ? X. is_chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
+  val adm_disj_lemma6 = prove_goal Fix.thy
+  "[| is_chain(Y::nat=>'a); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
+  \         ? X. is_chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1036,10 +1085,9 @@ qed_goal "adm_disj_lemma6"  Fix.thy
         (atac 1)
         ]);
 
-
-qed_goal "adm_disj_lemma7"  Fix.thy 
-"[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j))  |] ==>\
-\         is_chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
+  val adm_disj_lemma7 = prove_goal Fix.thy 
+  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j))  |] ==>\
+  \         is_chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1060,8 +1108,8 @@ qed_goal "adm_disj_lemma7"  Fix.thy
         (atac 1)
         ]);
 
-qed_goal "adm_disj_lemma8"  Fix.thy 
-"[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(Least(%j. m<j & P(Y(j)))))"
+  val adm_disj_lemma8 = prove_goal Fix.thy 
+  "[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(Least(%j. m<j & P(Y(j)))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1071,9 +1119,9 @@ qed_goal "adm_disj_lemma8"  Fix.thy
         (etac (LeastI RS conjunct2) 1)
         ]);
 
-qed_goal "adm_disj_lemma9"  Fix.thy
-"[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
-\         lub(range(Y)) = lub(range(%m. Y(Least(%j. m<j & P(Y(j))))))"
+  val adm_disj_lemma9 = prove_goal Fix.thy
+  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  \         lub(range(Y)) = lub(range(%m. Y(Least(%j. m<j & P(Y(j))))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1102,9 +1150,9 @@ qed_goal "adm_disj_lemma9"  Fix.thy
         (rtac lessI 1)
         ]);
 
-qed_goal "adm_disj_lemma10"  Fix.thy
-"[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
-\         ? X. is_chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
+  val adm_disj_lemma10 = prove_goal Fix.thy
+  "[| is_chain(Y::nat=>'a); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  \         ? X. is_chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1121,8 +1169,19 @@ qed_goal "adm_disj_lemma10"  Fix.thy
         (atac 1)
         ]);
 
+  val adm_disj_lemma12 = prove_goal Fix.thy
+  "[| adm(P); is_chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
+ (fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (etac adm_disj_lemma2 1),
+        (etac adm_disj_lemma6 1),
+        (atac 1)
+        ]);
 
-qed_goal "adm_disj_lemma11" Fix.thy
+in
+
+val adm_lemma11 = prove_goal Fix.thy
 "[| adm(P); is_chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
  (fn prems =>
         [
@@ -1132,17 +1191,7 @@ qed_goal "adm_disj_lemma11" Fix.thy
         (atac 1)
         ]);
 
-qed_goal "adm_disj_lemma12" Fix.thy
-"[| adm(P); is_chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac adm_disj_lemma2 1),
-        (etac adm_disj_lemma6 1),
-        (atac 1)
-        ]);
-
-qed_goal "adm_disj"  Fix.thy  
+val adm_disj = prove_goal Fix.thy  
         "[| adm P; adm Q |] ==> adm(%x.P x | Q x)"
  (fn prems =>
         [
@@ -1157,11 +1206,15 @@ qed_goal "adm_disj"  Fix.thy
         (atac 1),
         (atac 1),
         (rtac disjI1 1),
-        (etac adm_disj_lemma11 1),
+        (etac adm_lemma11 1),
         (atac 1),
         (atac 1)
         ]);
 
+end;
+
+bind_thm("adm_lemma11",adm_lemma11);
+bind_thm("adm_disj",adm_disj);
 
 qed_goal "adm_imp"  Fix.thy  
         "[| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
@@ -1175,7 +1228,6 @@ qed_goal "adm_imp"  Fix.thy
         (atac 1)
         ]);
 
-
 qed_goal "adm_not_conj"  Fix.thy  
 "[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"(fn prems=>[
 	cut_facts_tac prems 1,
@@ -1187,26 +1239,6 @@ qed_goal "adm_not_conj"  Fix.thy
 	etac adm_disj 1,
 	atac 1]);
 
-qed_goalw "admI" Fix.thy [adm_def]
- "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
-\ ==> P(lub (range Y))) ==> adm P" 
- (fn prems => [
-	strip_tac 1,
-	case_tac "finite_chain Y" 1,
-	rewtac finite_chain_def,
-	safe_tac HOL_cs,
-	dtac lub_finch1 1,
-	atac 1,
-	dtac thelubI 1,
-	etac ssubst 1,
-	etac spec 1,
-	etac swap 1,
-	rewtac max_in_chain_def,
-	resolve_tac prems 1, atac 1, atac 1,
-	fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
-			 addEs [chain_mono RS mp]) 1]);
-
 val adm_thms = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
-        adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less
-        ];
+        adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less];
 
