@@ -26,13 +26,18 @@ primrec
 "path h x [] y = (x = y)"
 "path h x (a#as) y = (x = Some a \<and> path h (h a) as y)"
 
-(* useful?
-lemma [simp]: "!x. reach h x (as @ [a]) (h a) = reach h x as (Some a)"
-apply(induct_tac as)
-apply(clarsimp)
-apply(clarsimp)
+lemma [iff]: "path h None xs y = (xs = [] \<and> y = None)"
+apply(case_tac xs)
+apply fastsimp
+apply fastsimp
 done
-*)
+
+lemma [simp]: "path h (Some a) as z =
+ (as = [] \<and> z = Some a \<or>  (\<exists>bs. as = a#bs \<and> path h (h a) bs z))"
+apply(case_tac as)
+apply fastsimp
+apply fastsimp
+done
 
 subsection "Lists on the heap"
 
@@ -123,6 +128,98 @@ apply(rule_tac x = As'' in exI)
 apply simp
 apply(rule_tac x = "b#Bs'" in exI)
 apply simp
+done
+
+subsection{*Searching in a list*}
+
+text{*What follows is a sequence of successively more intelligent proofs that
+a simple loop finds an element in a linked list.
+
+We start with a proof based on the @{term list} predicate. This means it only
+works for acyclic lists. *}
+
+lemma "|- VARS tl p. 
+  {list tl p As \<and> X \<in> set As}
+  WHILE p ~= None & p ~= Some X
+  INV {p ~= None & (\<exists>As'. list tl p As' \<and> X \<in> set As')}
+  DO p := tl(the p) OD
+  {p = Some X}"
+apply vcg_simp_tac
+  apply(case_tac p)
+   apply clarsimp
+  apply fastsimp
+ apply clarsimp
+ apply fastsimp
+apply clarsimp
+done
+
+text{*Using @{term path} instead of @{term list} generalizes the correctness
+statement to cyclic lists as well: *}
+
+lemma "|- VARS tl p. 
+  {path tl p As (Some X)}
+  WHILE p ~= None & p ~= Some X
+  INV {p ~= None & (\<exists>As'. path tl p As' (Some X))}
+  DO p := tl(the p) OD
+  {p = Some X}"
+apply vcg_simp_tac
+  apply(case_tac p)
+   apply clarsimp
+  apply(rule conjI)
+   apply simp
+  apply blast
+ apply clarsimp
+ apply(erule disjE)
+  apply clarsimp
+ apply(erule disjE)
+  apply clarsimp
+ apply clarsimp
+apply clarsimp
+done
+
+text{*Now it dawns on us that we do not need the list witness at all --- it
+suffices to talk about reachability, i.e.\ we can use relations directly. The
+first version uses a relation on @{typ"'a option"} and needs a lemma: *}
+
+lemma lem1: "(\<forall>(x,y) \<in>r. a \<noteq> x) \<Longrightarrow> ((a,b) \<in> r^* = (a=b))"
+apply(rule iffI)
+ apply(erule converse_rtranclE)
+  apply assumption
+ apply blast
+apply simp
+done
+
+lemma "|- VARS tl p. 
+  {Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
+  WHILE p ~= None & p ~= Some X
+  INV {p ~= None & Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
+  DO p := tl(the p) OD
+  {p = Some X}"
+apply vcg_simp_tac
+  apply(case_tac p)
+   apply(simp add:lem1 eq_sym_conv)
+  apply simp
+ apply clarsimp
+ apply(erule converse_rtranclE)
+  apply simp
+ apply(clarsimp simp add:lem1 eq_sym_conv)
+apply clarsimp
+done
+
+text{*Finally, the simplest version, based on a relation on type @{typ 'a}:*}
+
+lemma "|- VARS tl p. 
+  {p ~= None & X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
+  WHILE p ~= None & p ~= Some X
+  INV {p ~= None & X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
+  DO p := tl(the p) OD
+  {p = Some X}"
+apply vcg_simp_tac
+ apply clarsimp
+ apply(erule converse_rtranclE)
+  apply simp
+ apply clarsimp
+apply clarsimp
 done
 
 end
