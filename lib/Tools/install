@@ -125,5 +125,5 @@ if [ "$KDE" = true ]; then
   echo "Terminal=0" >> "$KDEAPP"
   echo "Name=Isabelle" >> "$KDEAPP"
 
-  echo "Please refresh your KDE now!"
+  echo "Please refresh your KDE desktop now!"
 fi
