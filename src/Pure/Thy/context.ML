@@ -5,7 +5,7 @@
 Global contexts: session and theory.
 *)
 
-signature CONTEXT =
+signature BASIC_CONTEXT =
 sig
   val get_session: unit -> string list
   val add_session: string -> unit
@@ -13,6 +13,12 @@ sig
   val get_context: unit -> theory
   val context: theory -> unit
   val reset_context: unit -> unit
+end;
+
+signature CONTEXT =
+sig
+  include BASIC_CONTEXT
+  val >> : (theory -> theory) -> unit
 end;
 
 structure Context: CONTEXT =
@@ -41,6 +47,12 @@ fun context thy = current_theory := Some thy;
 fun reset_context () = current_theory := None;
 
 
+nonfix >>;
+fun >> f = current_theory := Some (f (get_context ()));
+
+
 end;
 
-open Context;
+
+structure BasicContext: BASIC_CONTEXT = Context;
+open BasicContext;
