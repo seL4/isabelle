@@ -114,9 +114,9 @@ constdefs
 		        & Min <= n & n <= Max}"
 
 
-  Lprg :: state program
+  Lift :: state program
     (*for the moment, we OMIT button_press*)
-    "Lprg == mk_program ({s. floor s = Min & ~ up s & move s & stop s &
+    "Lift == mk_program ({s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
 			 {request_act, open_act, close_act,
 			  req_up, req_down, move_up, move_down})"

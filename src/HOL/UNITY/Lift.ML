@@ -38,8 +38,8 @@ val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4];
 val metric_simps = [metric_def, vimage_def];
 
 
-Addsimps [Lprg_def RS def_prg_Init];
-program_defs_ref := [Lprg_def];
+Addsimps [Lift_def RS def_prg_Init];
+program_defs_ref := [Lift_def];
 
 Addsimps (map simp_of_act
 	  [request_act_def, open_act_def, close_act_def,
@@ -53,7 +53,7 @@ Addsimps (map simp_of_set always_defs);
 
 
 val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
-(* [| Lprg: B LeadsTo C; Lprg: A LeadsTo B |] ==> Lprg: (A Un B) LeadsTo C *)
+(* [| Lift: B LeadsTo C; Lift: A LeadsTo B |] ==> Lift: (A Un B) LeadsTo C *)
 
 
 (*Simplification for records*)
@@ -65,41 +65,41 @@ Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
 AddIffs [Min_le_Max];
 
 
-Goal "Lprg : Always open_stop";
+Goal "Lift : Always open_stop";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "open_stop";
 
-Goal "Lprg : Always stop_floor";
+Goal "Lift : Always stop_floor";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "stop_floor";
 
 (*This one needs open_stop, which was proved above*)
-Goal "Lprg : Always open_move";
+Goal "Lift : Always open_move";
 by (rtac AlwaysI 1);
 by (rtac (open_stop RS Always_ConstrainsI RS StableI) 2);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "open_move";
 
-Goal "Lprg : Always moving_up";
+Goal "Lift : Always moving_up";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_up";
 
-Goal "Lprg : Always moving_down";
+Goal "Lift : Always moving_down";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_down";
 
-Goal "Lprg : Always bounded";
+Goal "Lift : Always bounded";
 by (rtac AlwaysI 1);
 by (rtac (Always_Int_rule [moving_up, moving_down] RS Always_StableI) 2);
 by (Force_tac 1);
@@ -124,23 +124,23 @@ Addsimps (map simp_of_set abbrev_defs);
 
 (** Lift_1 **)
 
-Goal "Lprg : (stopped Int atFloor n) LeadsTo (opened Int atFloor n)";
+Goal "Lift : (stopped Int atFloor n) LeadsTo (opened Int atFloor n)";
 by (cut_facts_tac [stop_floor] 1);
 by (ensures_tac "open_act" 1);
 qed "E_thm01";  (*lem_lift_1_5*)
 
-Goal "Lprg : (Req n Int stopped - atFloor n) LeadsTo \
+Goal "Lift : (Req n Int stopped - atFloor n) LeadsTo \
 \                    (Req n Int opened - atFloor n)";
 by (cut_facts_tac [stop_floor] 1);
 by (ensures_tac "open_act" 1);
 qed "E_thm02";  (*lem_lift_1_1*)
 
-Goal "Lprg : (Req n Int opened - atFloor n) LeadsTo \
+Goal "Lift : (Req n Int opened - atFloor n) LeadsTo \
 \                    (Req n Int closed - (atFloor n - queueing))";
 by (ensures_tac "close_act" 1);
 qed "E_thm03";  (*lem_lift_1_2*)
 
-Goal "Lprg : (Req n Int closed Int (atFloor n - queueing))  \
+Goal "Lift : (Req n Int closed Int (atFloor n - queueing))  \
 \            LeadsTo (opened Int atFloor n)";
 by (ensures_tac "open_act" 1);
 qed "E_thm04";  (*lem_lift_1_7*)
@@ -166,7 +166,7 @@ AddSDs [le_MinD, linorder_leI RS le_MinD,
 (*lem_lift_2_0 
   NOT an ensures property, but a mere inclusion;
   don't know why script lift_2.uni says ENSURES*)
-Goal "Lprg : (Req n Int closed - (atFloor n - queueing))   \
+Goal "Lift : (Req n Int closed - (atFloor n - queueing))   \
 \            LeadsTo ((closed Int goingup Int Req n)  Un \
 \                     (closed Int goingdown Int Req n))";
 by (rtac subset_imp_LeadsTo 1);
@@ -174,7 +174,7 @@ by (auto_tac (claset() addSEs [int_neqE], simpset()));
 qed "E_thm05c";
 
 (*lift_2*)
-Goal "Lprg : (Req n Int closed - (atFloor n - queueing))   \
+Goal "Lift : (Req n Int closed - (atFloor n - queueing))   \
 \            LeadsTo (moving Int Req n)";
 by (rtac ([E_thm05c, LeadsTo_Un] MRS LeadsTo_Trans) 1);
 by (ensures_tac "req_down" 2);
@@ -188,7 +188,7 @@ qed "lift_2";
 
 (*lem_lift_4_1 *)
 Goal "#0 < N ==> \
-\     Lprg : (moving Int Req n Int {s. metric n s = N} Int \
+\     Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \             {s. floor s ~: req s} Int {s. up s})   \
 \            LeadsTo \
 \              (moving Int Req n Int {s. metric n s < N})";
@@ -208,7 +208,7 @@ qed "E_thm12a";
 
 (*lem_lift_4_3 *)
 Goal "#0 < N ==> \
-\     Lprg : (moving Int Req n Int {s. metric n s = N} Int \
+\     Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \             {s. floor s ~: req s} - {s. up s})   \
 \            LeadsTo (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [moving_down] 1);
@@ -223,7 +223,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
 qed "E_thm12b";
 
 (*lift_4*)
-Goal "#0<N ==> Lprg : (moving Int Req n Int {s. metric n s = N} Int \
+Goal "#0<N ==> Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \                           {s. floor s ~: req s}) LeadsTo     \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
@@ -237,7 +237,7 @@ qed "lift_4";
 
 (*lem_lift_5_3*)
 Goal "#0<N   \
-\     ==> Lprg : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo \
+\     ==> Lift : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo \
 \                      (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "req_up" 1);
@@ -249,7 +249,7 @@ qed "E_thm16a";
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
 Goal "#0<N ==>   \
-\     Lprg : (closed Int Req n Int {s. metric n s = N} Int goingdown) LeadsTo \
+\     Lift : (closed Int Req n Int {s. metric n s = N} Int goingdown) LeadsTo \
 \                  (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "req_down" 1);
@@ -271,7 +271,7 @@ qed "E_thm16c";
 
 
 (*lift_5*)
-Goal "#0<N ==> Lprg : (closed Int Req n Int {s. metric n s = N}) LeadsTo   \
+Goal "#0<N ==> Lift : (closed Int Req n Int {s. metric n s = N}) LeadsTo   \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
 by (etac E_thm16b 3);
@@ -294,7 +294,7 @@ AddDs [metric_eq_0D];
 
 
 (*lem_lift_3_1*)
-Goal "Lprg : (moving Int Req n Int {s. metric n s = #0}) LeadsTo   \
+Goal "Lift : (moving Int Req n Int {s. metric n s = #0}) LeadsTo   \
 \                  (stopped Int atFloor n)";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "request_act" 1);
@@ -303,7 +303,7 @@ qed "E_thm11";
 
 (*lem_lift_3_5*)
 Goal
-  "Lprg : (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
+  "Lift : (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \ LeadsTo (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s})";
 by (ensures_tac "request_act" 1);
 by (auto_tac (claset(), simpset() addsimps metric_simps));
@@ -311,7 +311,7 @@ qed "E_thm13";
 
 (*lem_lift_3_6*)
 Goal "#0 < N ==> \
-\     Lprg : \
+\     Lift : \
 \       (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \       LeadsTo (opened Int Req n Int {s. metric n s = N})";
 by (ensures_tac "open_act" 1);
@@ -320,7 +320,7 @@ by (auto_tac (claset(), simpset() addsimps metric_simps));
 qed "E_thm14";
 
 (*lem_lift_3_7*)
-Goal "Lprg : (opened Int Req n Int {s. metric n s = N})  \
+Goal "Lift : (opened Int Req n Int {s. metric n s = N})  \
 \            LeadsTo (closed Int Req n Int {s. metric n s = N})";
 by (ensures_tac "close_act" 1);
 by (auto_tac (claset(), simpset() addsimps metric_simps));
@@ -330,7 +330,7 @@ qed "E_thm15";
 (** the final steps **)
 
 Goal "#0 < N ==> \
-\     Lprg : \
+\     Lift : \
 \       (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s})   \
 \       LeadsTo (moving Int Req n Int {s. metric n s < N})";
 by (blast_tac (claset() addSIs [E_thm13, E_thm14, E_thm15, lift_5]
@@ -340,18 +340,14 @@ qed "lift_3_Req";
 
 
 (*Now we observe that our integer metric is really a natural number*)
-Goal "Lprg : Always {s. #0 <= metric n s}";
+Goal "Lift : Always {s. #0 <= metric n s}";
 by (rtac (bounded RS Always_weaken) 1);
-by (simp_tac (simpset() addsimps metric_simps @ zcompare_rls) 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [zless_iff_Suc_zadd, zle_iff_zadd]));
-by (REPEAT_FIRST (etac ssubst));
-by (auto_tac (claset(), simpset() addsimps [zadd_int]));
+by (auto_tac (claset(), simpset() addsimps metric_simps));
 qed "Always_nonneg";
 
 val R_thm11 = [Always_nonneg, E_thm11] MRS Always_LeadsTo_weaken;
 
-Goal "Lprg : (moving Int Req n) LeadsTo (stopped Int atFloor n)";
+Goal "Lift : (moving Int Req n) LeadsTo (stopped Int atFloor n)";
 by (rtac (Always_nonneg RS integ_0_le_induct) 1);
 by (case_tac "#0 < z" 1);
 (*If z <= #0 then actually z = #0*)
@@ -365,7 +361,7 @@ by Auto_tac;
 qed "lift_3";
 
 
-Goal "Lprg : (Req n) LeadsTo (opened Int atFloor n)";
+Goal "Lift : (Req n) LeadsTo (opened Int atFloor n)";
 by (rtac LeadsTo_Trans 1);
 by (rtac (E_thm04 RS LeadsTo_Un) 2);
 by (rtac LeadsTo_Un_post 2);
