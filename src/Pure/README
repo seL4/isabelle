@@ -3,16 +3,10 @@
 This directory contains the ML source files for Pure Isabelle, which is the
 basis for all object-logics.  Important files include:
 
-Makefile -- compiles the files under Poly/ML or SML of New Jersey
+IsaMakefile -- compiles the files
 
-Syntax/  -- subdirectory containing the syntax module
+Syntax/     -- the syntax module
 
-Thy/     -- subdirectory containing the thy file parser and loader
+Thy/        -- the theory file parser and loader
 
-ROOT.ML  -- loads all source files.  Enter ML and type:  use "ROOT.ML";
-
-NJ.ML    -- compatibility file for Standard ML of New Jersey.  You may wish to
-            alter the parameter settings.
-
-POLY.ML  -- compatibility file for Poly/ML
-
+ML-Systems/ -- compatibility files for various ML systems

@@ -10,6 +10,5 @@ following structures are supposed to be exported:
   Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)
 
-There is no Makefile to compile these files separately; they are compiled as
-part of Pure Isabelle.
-
+There is no IsaMakefile to compile these files separately; they are
+compiled as part of Pure Isabelle.
