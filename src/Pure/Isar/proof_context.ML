@@ -169,7 +169,8 @@ fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
 fun syntax_of (Context {syntax, ...}) = syntax;
 
-fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
+fun vars_of (Context {asms = (_, vars), ...}) = vars;
+val fixes_of = #1 o vars_of;
 val fixed_names_of = map #2 o fixes_of;
 fun is_fixed (Context {asms = (_, (fixes, _)), ...}) x = exists (equal x o #2) fixes;
 fun used_table (Context {defs = (_, _, (_, tab)), ...}) = tab;
@@ -621,7 +622,7 @@ in
 
 fun declare_term t ctxt = declare_occ (ctxt, t);
 fun declare_terms ts ctxt = foldl declare_occ (ctxt, ts);
-fun predeclare_terms ts ctxt = foldl declare_syn (ctxt, ts);
+fun declare_terms_syntax ts ctxt = foldl declare_syn (ctxt, ts);
 
 end;
 
@@ -651,34 +652,28 @@ fun pretty_thms ctxt [th] = pretty_thm ctxt th
 
 (* warn_extra_tfrees *)
 
-local
+fun warn_extra_tfrees
+    (ctxt1 as Context {defs = (_, _, (names1, tab1)), ...})
+    (ctxt2 as Context {defs = (_, _, (names2, tab2)), ...}) =
+  let
+    fun known_tfree a (Type (_, Ts)) = exists (known_tfree a) Ts
+      | known_tfree a (TFree (a', _)) = a = a'
+      | known_tfree _ _ = false;
 
-fun used_free (a, ts) =
-  (case mapfilter (fn Free (x, _) => Some x | _ => None) ts of
-    [] => None
-  | xs => Some (a, xs));
-
-fun warn_extra (names1: string list, tab1) (names2, tab2) =
-  if names1 = names2 then ()
-  else
-    let
-      val extra =
-        Library.gen_rems Library.eq_fst (Symtab.dest tab2, Symtab.dest tab1)
-        |> mapfilter used_free;
-      val tfrees = map #1 extra;
-      val frees = Library.sort_strings (Library.distinct (flat (map #2 extra)));
-    in
-      if null extra then ()
-      else warning ("Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
-          space_implode " or " frees)
-    end;
-
-in
-
-fun warn_extra_tfrees (ctxt1 as Context {defs = (_, _, used1), ...})
-    (ctxt2 as Context {defs = (_, _, used2), ...}) = (warn_extra used1 used2; ctxt2);
-
-end;
+    val extras =
+      Library.gen_rems Library.eq_fst (Symtab.dest tab2, Symtab.dest tab1)
+      |> map (fn (a, ts) => map (pair a) (mapfilter (try (#1 o Term.dest_Free)) ts)) |> flat
+      |> mapfilter (fn (a, x) =>
+          (case def_type ctxt1 false (x, ~1) of None => Some (a, x)
+          | Some T => if known_tfree a T then None else Some (a, x)));
+    val tfrees = map #1 extras |> Library.sort_strings |> Library.unique_strings;
+    val frees = map #2 extras |> Library.sort_strings |> Library.unique_strings;
+  in
+    if null extras then ()
+    else warning ("Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
+      space_implode " or " frees);
+    ctxt2
+  end;
 
 
 (* generalize type variables *)
@@ -1056,7 +1051,7 @@ fun prep_vars prep_typ no_internal (ctxt, (xs, raw_T)) =
 
     val opt_T = apsome (prep_typ ctxt) raw_T;
     val T = if_none opt_T TypeInfer.logicT;
-    val ctxt' = ctxt |> predeclare_terms (map (fn x => Free (x, T)) xs);
+    val ctxt' = ctxt |> declare_terms_syntax (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
 in
@@ -1076,25 +1071,35 @@ fun map_vars f = map_context (fn (thy, syntax, data, (assumes, vars), binds, thm
 
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
-fun add_vars _ xs (fixes, used) =
-  let
-    val xs' = variantlist (xs, used);
-    val fixes' = (xs ~~ map Syntax.skolem xs') @ fixes;
-    val used' = xs' @ used;
-  in (fixes', used') end;
+val declare =
+  declare_terms_syntax o mapfilter (fn (_, None) => None | (x, Some T) => Some (Free (x, T)));
 
-fun add_vars_direct ctxt xs (fixes, used) =
-  (case xs inter_string map #1 fixes of
-    [] => ((xs ~~ xs) @ fixes, xs @ used)
-  | dups => err_dups ctxt dups);
+fun add_vars xs Ts ctxt =
+  let
+    val xs' = variantlist (xs, #2 (vars_of ctxt));
+    val xs'' = map Syntax.skolem xs';
+  in
+    ctxt |> declare (xs'' ~~ Ts)
+    |> map_vars (fn (fixes, used) => ((xs ~~ xs'') @ fixes, xs' @ used))
+  end;
+
+fun add_vars_direct xs Ts ctxt =
+  ctxt |> declare (xs ~~ Ts)
+  |> map_vars (fn (fixes, used) =>
+    (case xs inter_string map #1 fixes of
+      [] => ((xs ~~ xs) @ fixes, xs @ used)
+    | dups => err_dups ctxt dups));
+
 
 fun gen_fix prep add raw_vars ctxt =
   let
     val (ctxt', varss) = foldl_map prep (ctxt, raw_vars);
-    val xs = flat (map fst varss);
+    val vars = rev (flat (map (fn (xs, T) => map (rpair T) xs) varss));
+    val xs = map #1 vars;
+    val Ts = map #2 vars;
   in
     (case Library.duplicates xs of [] => () | dups => err_dups ctxt dups);
-    ctxt' |> map_vars (add ctxt (rev xs))
+    ctxt' |> add xs Ts
   end;
 
 in
