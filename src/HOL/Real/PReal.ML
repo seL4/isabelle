@@ -145,7 +145,7 @@ qed "inj_preal_of_prat";
 
 Goal "x ~: Rep_preal(R) ==> ALL y: Rep_preal(R). y < x";
 by (cut_inst_tac [("x1","R")] (Rep_preal RS prealE_lemma) 1);
-by (auto_tac (claset() addIs [not_less_not_eq_prat_less],simpset()));
+by (fast_tac (claset() addIs [not_less_not_eq_prat_less] addss simpset()) 1);
 qed "not_in_preal_ub";
 
 (* preal_less is a strong order i.e nonreflexive and transitive *)

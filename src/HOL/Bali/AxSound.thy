@@ -102,8 +102,9 @@ apply (clarify, tactic {* pair_tac "xa" 1 *}, simp (no_asm))
 apply (drule triples_valid2_Suc)
 apply (erule (1) notE impE)
 apply (drule_tac x = na in spec)
-apply (tactic {* auto_tac (claset() addSIs [thm "Methd_triple_valid2_SucI"],
-   simpset() addsimps [ball_Un] addloop ("split_all_tac", split_all_tac)) *})
+apply (rule Methd_triple_valid2_SucI)
+apply (simp (no_asm_use) add: ball_Un)
+apply auto
 done
 
 
@@ -351,7 +352,7 @@ apply (tactic {* ALLGOALS (asm_simp_tac (noAll_simpset()
 apply (frule wf_ws_prog) 
 apply (frule ty_expr_is_type [THEN type_is_class, 
                               THEN accfield_declC_is_class])
-apply (simp,simp,simp) 
+apply (simp (no_asm_use), simp (no_asm_use), simp (no_asm_use))
 apply (frule_tac [4] wt_init_comp_ty) (* for NewA*)
 apply (tactic "ALLGOALS sound_valid2_tac")
 apply (tactic "TRYALL sound_forw_hyp_tac") (* UnOp, Cast, Inst, Acc, Expr *)

@@ -136,10 +136,7 @@ lemma (in semilat) merges_same_conv [rule_format]:
        apply (blast dest: boundedD)
       apply blast
    apply clarify
-   apply (rotate_tac -2)
    apply (erule allE)
-   apply (erule impE)
-    apply assumption
    apply (erule impE)
     apply assumption
    apply (drule bspec)
@@ -435,7 +432,6 @@ apply assumption+
 defer
 apply assumption
 apply clarsimp
-apply (blast dest!: boundedD)
 done
 
 

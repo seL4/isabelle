@@ -481,7 +481,6 @@ apply (simp add: in_list_Suc_iff)
 apply clarify
 apply (simp split: err.split_asm add: lem Err.sup_def lift2_def)
  apply (blast dest: lift2_eq_ErrD)
-apply blast
 done 
 
 lemma closed_err_lift2_conv:

@@ -365,10 +365,10 @@ done
 
 lemma self_quotient: "[| quorem((a,a),(q,r));  a ~= (0::int) |] ==> q = 1"
 apply (simp add: split_ifs quorem_def linorder_neq_iff)
-apply (rule order_antisym, auto)
+apply (rule order_antisym, safe, simp_all (no_asm_use))
 apply (rule_tac [3] a = "-a" and r = "-r" in self_quotient_aux1)
 apply (rule_tac a = "-a" and r = "-r" in self_quotient_aux2)
-apply (force intro: self_quotient_aux1 self_quotient_aux2 simp add: zadd_commute zmult_zminus)+
+apply (force intro: self_quotient_aux1 self_quotient_aux2 simp only: zadd_commute zmult_zminus)+
 done
 
 lemma self_remainder: "[| quorem((a,a),(q,r));  a ~= (0::int) |] ==> r = 0"

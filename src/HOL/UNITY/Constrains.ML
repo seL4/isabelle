@@ -399,7 +399,7 @@ fun constrains_tac i =
 	      full_simp_tac (simpset() addsimps !program_defs_ref) 1,
 	      REPEAT (FIRSTGOAL (etac disjE)),
 	      ALLGOALS Clarify_tac,
-	      ALLGOALS Asm_full_simp_tac]) i;
+	      ALLGOALS Asm_lr_simp_tac]) i;
 
 
 (*For proving invariants*)

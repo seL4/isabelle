@@ -160,6 +160,7 @@ apply (case_tac "T")
 defer 
 apply (case_tac "a' = Null")
 apply  simp_all
+apply rules
 done
 
 constdefs
@@ -1203,8 +1204,7 @@ by (auto elim: eval.Body)
 lemma unique_eval [rule_format (no_asm)]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws \<Longrightarrow> (\<forall>ws'. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws' \<longrightarrow> ws' = ws)"
 apply (case_tac "ws")
-apply (simp only:)
-apply (erule thin_rl)
+apply hypsubst
 apply (erule eval_induct)
 apply (tactic {* ALLGOALS (EVERY'
       [strip_tac, rotate_tac ~1, eresolve_tac (thms "eval_elim_cases")]) *})

@@ -697,7 +697,7 @@ lemma W_complete_aux: "!!s' a t' n. $s' a |- e :: t' \<Longrightarrow> new_tv n 
      apply (frule not_free_impl_id)
      apply simp
     txt {* @{text "na \<in> free_tv sa"} *}
-    apply (drule_tac ts1 = "$s a" in subst_comp_tel [THEN [2] trans])
+    apply (drule_tac ts1 = "$s a" and r = "$ r ($ s a)" in subst_comp_tel [THEN [2] trans])
     apply (drule_tac eq_subst_tel_eq_free)
      apply (fast intro: free_tv_W free_tv_le_new_tv dest: new_tv_W)
     apply simp
@@ -733,7 +733,7 @@ lemma W_complete_aux: "!!s' a t' n. $s' a |- e :: t' \<Longrightarrow> new_tv n 
     defer
     txt {* case @{text "na \<in> free_tv t - free_tv sa"} *}
     apply simp
-    apply (drule_tac ts1 = "$s a" in subst_comp_tel [THEN [2] trans])
+    apply (drule_tac ts1 = "$s a" and r = "$ r ($ s a)" in subst_comp_tel [THEN [2] trans])
     apply (drule eq_subst_tel_eq_free)
      apply (fast intro: free_tv_W free_tv_le_new_tv dest: new_tv_W)
     apply (simp add: free_tv_subst dom_def)
@@ -881,7 +881,7 @@ lemma I_correct_wrt_W: "!!a m s s' t n.
    apply (fastsimp dest: sym [THEN W_var_geD] new_tv_subst_le new_tv_list_le)
   apply (erule (1) notE impE)
   apply (erule exE conjE)+
-  apply (simp add: subst_comp_tel subst_comp_te o_def, (erule conjE)+, hypsubst)+
+  apply (simp (asm_lr) add: subst_comp_tel subst_comp_te o_def, (erule conjE)+, hypsubst)+
   apply (subgoal_tac "new_tv n2 s \<and> new_tv n2 r \<and> new_tv n2 ra")
    apply (simp add: new_tv_subst)
   apply (frule new_tv_subst_tel, assumption)

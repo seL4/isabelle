@@ -205,7 +205,7 @@ qed "E_thm16b";
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
 Goal "0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown";
 by (Clarify_tac 1);
-by (auto_tac (claset(), metric_ss));
+by (force_tac (claset(), metric_ss) 1);
 qed "E_thm16c";
 
 

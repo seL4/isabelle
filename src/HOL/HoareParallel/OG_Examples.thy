@@ -194,13 +194,13 @@ apply force
 --{* 6 subgoals left *}
 prefer 6
 apply(erule_tac x=i in allE)
-apply force
+apply fastsimp
 --{* 5 subgoals left *}
 prefer 5
 apply(tactic {* ALLGOALS (case_tac "j=k") *})
 --{* 10 subgoals left *}
 apply simp_all
-apply(erule_tac x=i in allE)
+apply(erule_tac x=k in allE)
 apply force
 --{* 9 subgoals left *}
 apply(case_tac "j=l")
@@ -438,15 +438,15 @@ apply(tactic {* ALLGOALS Clarify_tac *})
 --{* 112 subgoals left *}
 apply(simp_all (no_asm))
 apply(tactic {*ALLGOALS (conjI_Tac (K all_tac)) *})
---{* 860 subgoals left *}
+--{* 930 subgoals left *}
 apply(tactic {* ALLGOALS Clarify_tac *})
-apply(simp_all only:length_0_conv [THEN sym])
---{* 36 subgoals left *}
-apply (simp_all del:length_0_conv add: nth_list_update mod_less_divisor mod_lemma)
---{* 32 subgoals left *}
+apply(simp_all (asm_lr) only:length_0_conv [THEN sym])
+--{* 44 subgoals left *}
+apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor mod_lemma)
+--{* 33 subgoals left *}
 apply(tactic {* ALLGOALS Clarify_tac *})
 apply(tactic {* TRYALL arith_tac *})
---{* 9 subgoals left *}
+--{* 10 subgoals left *}
 apply (force simp add:less_Suc_eq)
 apply(drule sym)
 apply (force simp add:less_Suc_eq)+

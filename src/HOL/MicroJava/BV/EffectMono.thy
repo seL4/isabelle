@@ -353,18 +353,18 @@ proof (cases s1, cases s2)
     obtain a X ST where
       s1: "s1 = (a @ X # ST, b1)" and
       l:  "length a = length list"
-      by (simp, elim exE conjE, simp)
+      by (simp, elim exE conjE, simp (no_asm_simp))
 
     from Invoke s app2
     obtain a' X' ST' where
       s2: "s2 = (a' @ X' # ST', b2)" and
       l': "length a' = length list"
-      by (simp, elim exE conjE, simp)
+      by (simp, elim exE conjE, simp (no_asm_simp))
 
     from l l'
     have lr: "length a = length a'" by simp
       
-    from lr G s s1 s2 
+    from lr G s1 s2 
     have "G \<turnstile> (ST, b1) <=s (ST', b2)"
       by (simp add: sup_state_append_fst sup_state_Cons1)
     

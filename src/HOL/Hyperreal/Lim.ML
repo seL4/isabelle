@@ -1644,7 +1644,6 @@ by (cut_inst_tac
     lemma_BOLZANO2 1);
 by Safe_tac;
 by (ALLGOALS(Asm_full_simp_tac));
-by (Blast_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [isCont_iff,LIM_def]) 1);
 by (rtac ccontr 1);
 by (subgoal_tac "a \\<le> x & x \\<le> b" 1);
@@ -1899,7 +1898,8 @@ by (asm_full_simp_tac
     (simpset() addsimps [real_abs_def, real_inverse_eq_divide, 
                          pos_real_less_divide_eq,
                          symmetric real_diff_def]
-               addsplits [split_if_asm]) 1);
+               addsplits [split_if_asm]
+               delsimprocs [fast_real_arith_simproc]) 1);
 by (subgoal_tac "0 < (f (x - h) - f x)/h" 1);
 by (arith_tac 2);
 by (asm_full_simp_tac
@@ -2020,7 +2020,7 @@ by (assume_tac 5);
 by (dres_inst_tac [("z","xa"),("w","b")] real_le_anti_sym 5);
 by (REPEAT(Asm_full_simp_tac 2));
 by (dtac real_dense 1 THEN etac exE 1);
-by (res_inst_tac [("x","r")] exI 1 THEN Asm_full_simp_tac 1);
+by (res_inst_tac [("x","r")] exI 1 THEN Asm_simp_tac 1);
 by (etac conjE 1);
 by (forw_inst_tac [("a","a"),("x","r")] lemma_interval 1);
 by (EVERY1[assume_tac, etac exE]);
@@ -2157,7 +2157,7 @@ Addsimps [real_average_minus_second];
 Goal "[|a \\<noteq> (b::real); \\<forall>x. DERIV v x :> k|] \
 \     ==> v((a + b)/2) = (v a + v b)/2";
 by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
-by Auto_tac;
+by Safe_tac;
 by (ftac DERIV_const_ratio_const2 1 THEN assume_tac 1);
 by (ftac DERIV_const_ratio_const2 2 THEN assume_tac 2);
 by (dtac real_less_half_sum 1);

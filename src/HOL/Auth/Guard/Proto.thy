@@ -196,8 +196,7 @@ apply (clarify, erule ok_is_Says, simp+)
 apply (clarify, rule_tac x=k in exI, simp add: newn_def)
 apply (clarify, drule_tac Y="msg x" and s=s in apm_parts)
 apply (drule ok_not_used, simp+)
-apply (clarify, erule ok_is_Says, simp+)
-by blast
+by (clarify, erule ok_is_Says, simp+)
 
 lemma fresh_rule: "[| evs' @ ev # evs:tr p; wdef p; Nonce n ~:used evs;
 Nonce n:parts {msg ev} |] ==> EX R s. R:p & ap' s R = ev"

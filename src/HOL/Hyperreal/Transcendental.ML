@@ -1132,7 +1132,7 @@ by (auto_tac (claset(),simpset() addsimps [exp_add,exp_ln_iff RS sym]
 qed "ln_mult";
 
 Goal "[| 0 < x; 0 < y |] ==> (ln x = ln y) = (x = y)";
-by (auto_tac (claset() addSDs [(exp_ln_iff RS iffD2)],simpset()));
+by (auto_tac (claset() addSDs [(exp_ln_iff RS iffD2 RS sym)],simpset()));
 qed "ln_inj_iff";
 Addsimps [ln_inj_iff];
 

@@ -473,7 +473,7 @@ by (Asm_full_simp_tac 3);
 by (Fast_tac 3);
 (* case na : free_tv t - free_tv Sa *)
 by (Asm_full_simp_tac 2);
-by (dres_inst_tac [("A1","$ S A")] (subst_comp_scheme_list RSN (2,trans)) 2);
+by (dres_inst_tac [("A1", "$ S A"), ("r", "$ R ($ S A)")] (subst_comp_scheme_list RSN (2,trans)) 2);
 by (dtac eq_subst_scheme_list_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 (** LEVEL 73 **)

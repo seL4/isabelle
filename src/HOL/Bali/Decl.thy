@@ -81,7 +81,7 @@ proof
     have "\<forall> x y. x < (y::acc_modi) \<and> y < x \<longrightarrow> False"
       by (auto simp add: less_acc_def split add: acc_modi.split)
     with prems show ?thesis
-      by  (auto simp add: le_acc_def)
+      by (unfold le_acc_def) rules
   qed
   next
   show "(x < y) = (x \<le> y \<and> x \<noteq> y)"

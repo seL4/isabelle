@@ -203,7 +203,7 @@ apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
  apply (rotate_tac -1)
- apply simp
+ apply (simp (asm_lr))
  apply(drule Graph1)
    apply simp
   apply clarify  
@@ -320,7 +320,7 @@ apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
  apply (rotate_tac -1)
- apply simp
+ apply (simp (asm_lr))
  apply(drule Graph1)
    apply simp
   apply clarify  
@@ -555,12 +555,6 @@ apply(rule conjI)
  apply (force simp add:BtoW_def)
 apply(erule Graph4)
    apply simp+
-  apply (simp add:BtoW_def)
-  apply force
- apply (simp add:BtoW_def)
- apply force
-apply (simp add:BtoW_def)
-apply force
 --{* 7 subgoals left *}
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(erule conjE)+
@@ -573,12 +567,6 @@ apply(rule conjI)
  apply (force simp add:BtoW_def)
 apply(erule Graph4)
    apply simp+
-  apply (simp add:BtoW_def)
-  apply force
- apply (simp add:BtoW_def)
- apply force
-apply (simp add:BtoW_def)
-apply force
 --{* 6 subgoals left *}
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(erule conjE)+
@@ -592,12 +580,6 @@ apply(rule conjI)
   apply (force simp add:BtoW_def)
  apply(erule Graph4)
     apply simp+
-   apply (simp add:BtoW_def)
-   apply force
-  apply (simp add:BtoW_def)
-  apply force
- apply (simp add:BtoW_def)
- apply force
 apply(simp add:BtoW_def nth_list_update) 
 apply force
 --{* 5 subgoals left *}
@@ -614,12 +596,6 @@ apply(rule conjI)
   apply (force simp add:BtoW_def)
  apply(erule Graph4)
     apply simp+
-   apply (simp add:BtoW_def)
-   apply force
-  apply (simp add:BtoW_def)
-  apply force
- apply (simp add:BtoW_def)
- apply force
 apply(rule conjI)
  apply(simp add:nth_list_update)
  apply force
@@ -646,14 +622,6 @@ apply(rule conjI)
  apply (force simp add:BtoW_def)
 apply(erule Graph4)
    apply simp+
-  apply (simp add:BtoW_def)
-  apply force
- apply (simp add:BtoW_def)
- apply force
-apply (simp add:BtoW_def)
-apply force
---{* 1 subgoal left *}
-apply(simp add:abbrev)
 done
 
 lemma interfree_Redirect_Edge_Propagate_Black: 

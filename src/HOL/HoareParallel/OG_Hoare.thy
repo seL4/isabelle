@@ -385,7 +385,6 @@ apply simp_all
    apply(simp add:interfree_aux_def)
    apply clarify
    apply simp
-   apply clarify
    apply(erule_tac x="pre y" in ballE)
     apply(force intro: converse_rtrancl_into_rtrancl 
           simp add: com_validity_def SEM_def sem_def All_None_def)
@@ -408,7 +407,6 @@ apply(case_tac "com(Ts ! j)=None")
 apply(simp add:interfree_aux_def)
 apply clarify
 apply simp
-apply clarify
 apply(erule_tac x="pre y" in ballE)
  apply(force intro: converse_rtrancl_into_rtrancl 
        simp add: com_validity_def SEM_def sem_def All_None_def Help)

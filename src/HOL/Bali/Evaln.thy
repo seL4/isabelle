@@ -600,7 +600,7 @@ proof -
                  mode: "mode = invmode statM e" and
                     T: "T =Inl (resTy statM)" and
         eq_accC_accC': "accC=accC'"
-      by (rule wt_elim_cases) auto
+      by (rule wt_elim_cases) fastsimp+
     from conf_s0 wt_e hyp_e
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1"
       by blast
@@ -1558,7 +1558,7 @@ proof -
                  mode: "mode = invmode statM e" and
                     T: "T =Inl (resTy statM)" and
         eq_accC_accC': "accC=accC'"
-      by (rule wt_elim_cases) auto
+      by (rule wt_elim_cases) fastsimp+
     from conf_s0 wt_e
     obtain n1 where
       evaln_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<midarrow>n1\<rightarrow> s1"
@@ -1793,7 +1793,7 @@ proof -
                 stat: "stat=is_static f" and
                accC': "accC'=accC" and
 	           T: "T=(Inl (type f))"
-       by (rule wt_elim_cases) (auto simp add: member_is_static_simp)
+       by (rule wt_elim_cases) (fastsimp simp add: member_is_static_simp)
     from wf wt_e 
     have iscls_statC: "is_class G statC"
       by (auto dest: ty_expr_is_type type_is_class)

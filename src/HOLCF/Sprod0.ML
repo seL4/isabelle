@@ -298,6 +298,6 @@ qed "surjective_pairing_Sprod";
 Goal "[|Isfst x = Isfst y; Issnd x = Issnd y|] ==> x = y";
 by (subgoal_tac "Ispair(Isfst x)(Issnd x)=Ispair(Isfst y)(Issnd y)" 1);
 by (rotate_tac ~1 1);
-by (asm_full_simp_tac(HOL_ss addsimps[surjective_pairing_Sprod RS sym])1);
+by (asm_lr_simp_tac(HOL_ss addsimps[surjective_pairing_Sprod RS sym])1);
 by (Asm_simp_tac 1);
 qed "Sel_injective_Sprod";

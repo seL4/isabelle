@@ -40,6 +40,7 @@ Goal "!!i::nat. 1 < i ==> !m. (i^n = i^m) = (n=m)";
 by (induct_tac "n" 1);
 by Auto_tac;
 by (ALLGOALS (case_tac "m"));
+by (Simp_tac 1);
 by Auto_tac;
 qed_spec_mp "power_inject";
 Addsimps [power_inject];

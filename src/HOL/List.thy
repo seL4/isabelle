@@ -1268,10 +1268,9 @@ apply (induct_tac n)
  apply simp
  apply blast
 apply (simp add: image_Collect lex_prod_def)
-apply auto
+apply safe
 apply blast
- apply (rename_tac a xys x xs' y ys')
- apply (rule_tac x = "a # xys" in exI)
+ apply (rule_tac x = "ab # xys" in exI)
  apply simp
 apply (case_tac xys)
  apply simp_all

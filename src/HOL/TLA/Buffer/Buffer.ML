@@ -19,8 +19,8 @@ Addsimps [tl_not_self];
 (* ---------------------------- Action lemmas ---------------------------- *)
 
 (* Dequeue is visible *)
-Goal "|- <Deq ic q oc>_(ic,q,oc) = Deq ic q oc";
-by (auto_tac (claset(), simpset() addsimps [angle_def,Deq_def]));
+Goalw [angle_def,Deq_def] "|- <Deq ic q oc>_(ic,q,oc) = Deq ic q oc";
+by (REPEAT (Safe_tac THEN Asm_lr_simp_tac 1));
 qed "Deq_visible";
 
 (* Enabling condition for dequeue -- NOT NEEDED *)

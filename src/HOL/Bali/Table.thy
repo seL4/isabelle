@@ -171,7 +171,7 @@ lemma filter_tab_weaken:
 "\<lbrakk>\<forall> a \<in> t k: \<exists> b \<in> s k: P a b; 
   \<And> k x y. \<lbrakk>t k = Some x;s k = Some y\<rbrakk> \<Longrightarrow> cond k x \<longrightarrow> cond k y
  \<rbrakk> \<Longrightarrow> \<forall> a \<in> filter_tab cond t k: \<exists> b \<in> filter_tab cond s k: P a b"
-apply (auto simp add: filter_tab_def)
+apply (force simp add: filter_tab_def)
 done
 
 lemma cond_override_filter: 

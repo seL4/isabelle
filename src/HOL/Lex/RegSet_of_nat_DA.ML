@@ -26,7 +26,6 @@ by (rtac conjI 1);
   by (Blast_tac 1);
  by (Clarify_tac 1);
  by (subgoal_tac "xs=[]" 1);
-  by (rotate_tac ~1 1);
   by (Asm_full_simp_tac 1);
  by (Blast_tac 1);
 by (blast_tac (claset() addDs [in_set_butlastD]) 1);

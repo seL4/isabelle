@@ -269,8 +269,7 @@ qed "unique_quotient_lemma";
 Goal "[| quorem ((a,b), (q,r));  quorem ((a,b), (q',r'));  0 < b |] \
 \     ==> q = q'";
 by (asm_full_simp_tac 
-    (simpset() addsimps split_ifs @ [Divides.quorem_def]) 1);
-by Auto_tac;  
+    (simpset() addsimps split_ifs @ [Divides.quorem_def]) 1);  
 by (REPEAT 
     (blast_tac (claset() addIs [order_antisym]
 			 addDs [order_eq_refl RS unique_quotient_lemma, 

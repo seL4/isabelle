@@ -738,7 +738,7 @@ Goal "[| sigma |= ~S1 rmhist p ~> S6 rmhist p; \
 \        sigma |= []<>S6 rmhist p --> []<>S1 rmhist p |] \
 \     ==> sigma |= []<>S1 rmhist p";
 by (rtac classical 1);
-by (asm_full_simp_tac (simpset() addsimps [temp_use NotBox, NotDmd]) 1);
+by (asm_lr_simp_tac (simpset() addsimps [temp_use NotBox, NotDmd]) 1);
 by (auto_tac (MI_css addSEs2 [mp,leadsto_infinite] addSDs2 [DBImplBD]));
 qed "S1Infinite";
 

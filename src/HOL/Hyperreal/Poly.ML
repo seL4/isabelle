@@ -1041,8 +1041,6 @@ by (res_inst_tac [("s","order a (q *** d)")] trans 2);
 by (blast_tac (claset() addIs [order_poly]) 2);
 by (rtac order_mult 2);
 by (rtac notI 2 THEN Asm_full_simp_tac 2);
-by (dres_inst_tac [("p","p")] pderiv_zero 2);
-by (Asm_full_simp_tac 2);
 by (case_tac "order a p = 0" 1);
 by (Asm_full_simp_tac 1);
 by (subgoal_tac "order a (pderiv p) = order a e + order a d" 1);

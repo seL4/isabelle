@@ -544,7 +544,6 @@ lemma zcong_zgcd_zmult_zmod:
      apply (simp add: zgcd_commute)
     apply (simp add: zmult_commute)
    apply (auto simp add: dvd_def)
-  apply (blast intro: sym)
   done
 
 lemma zcong_zless_imp_eq:

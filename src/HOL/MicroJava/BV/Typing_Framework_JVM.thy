@@ -122,20 +122,14 @@ theorem exec_pres_type:
   apply clarsimp
   apply (rule_tac x="n'+2" in exI)  
   apply simp
-  apply (drule listE_length)+
-  apply fastsimp
 
   apply clarsimp
   apply (rule_tac x="Suc (Suc (Suc (length ST)))" in exI)  
   apply simp
-  apply (drule listE_length)+
-  apply fastsimp
 
   apply clarsimp
   apply (rule_tac x="Suc (Suc (Suc (Suc (length ST))))" in exI)  
   apply simp
-  apply (drule listE_length)+
-  apply fastsimp
 
   apply fastsimp
   apply fastsimp

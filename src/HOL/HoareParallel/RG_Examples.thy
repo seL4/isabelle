@@ -149,7 +149,7 @@ apply(rule Parallel)
    apply simp
    apply(subgoal_tac "j=0")
     apply (rotate_tac -1)
-    apply simp
+    apply (simp (asm_lr))
    apply arith
   apply clarify
   apply(case_tac i,simp,simp)
@@ -340,8 +340,6 @@ apply(rule While)
        apply(drule_tac j=j and n=n and i="j mod n" and a="X x (j mod n)" in mod_aux)
         apply assumption+
        apply simp+
-     apply(erule_tac x=j in allE)
-     apply force
     apply clarsimp
     apply fastsimp
 apply force+

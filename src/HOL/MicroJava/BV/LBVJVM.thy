@@ -215,7 +215,7 @@ proof -
     ck_types:   "check_types G mxs ?mxr ?phi" and
     wt_start:   "wt_start G C pTs mxl phi" and
     app_eff:    "wt_app_eff (sup_state_opt G) ?app ?eff phi"
-    by (simp add: wt_method_def2)
+    by (simp (asm_lr) add: wt_method_def2)
   
   have "semilat (JVMType.sl G mxs ?mxr)" by (rule semilat_JVM_slI)
   hence "semilat (?A, ?r, ?f)" by (unfold sl_triple_conv)

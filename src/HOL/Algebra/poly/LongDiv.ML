@@ -172,7 +172,7 @@ by (etac notE 1 THEN rtac (deg_add RS le_less_trans) 1);
 by (Asm_simp_tac 1);
 (* proof of 1 *)
 by (rtac diff_zero_imp_eq 1);
-by (Asm_full_simp_tac 1);
+by (hyp_subst_tac 1);
 by (dres_inst_tac [("a", "?x+?y")] eq_imp_diff_zero 1);
 by (asm_full_simp_tac (simpset() addsimps (l_distr::minus_add::l_minus::a_ac)) 1);
 qed "long_div_quo_unique";

@@ -423,7 +423,6 @@ by (stream_case_tac "x" 1);
 by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
                 [thm "iSuc_Fin" RS sym, thm "iSuc_mono"]));
 by  (dtac sym 1);
-by  (rotate_tac 2 2);
 by  Auto_tac;
 qed "slen_scons_eq";
 

@@ -31,8 +31,8 @@ qed "DB_step_simulation";
 (*** Simulation of fairness ***)
 
 (* Compute enabledness predicates for DBDeq and DBPass actions *)
-Goal "|- <DBDeq>_(inp,mid,out,q1,q2) = DBDeq";
-by (auto_tac (db_css addsimps2 [angle_def,DBDeq_def,Deq_def]));
+Goalw [angle_def,DBDeq_def,Deq_def] "|- <DBDeq>_(inp,mid,out,q1,q2) = DBDeq";
+by (REPEAT (Safe_tac THEN Asm_lr_simp_tac 1));
 qed "DBDeq_visible";
 
 Goalw [action_rewrite DBDeq_visible]

@@ -274,7 +274,8 @@ theorem add_eq_conv_diff:
   apply (rule conjI)
    apply force
   apply safe
-  apply (simp_all add: eq_sym_conv)
+  apply simp_all
+  apply (simp add: eq_sym_conv)
   done
 
 (*

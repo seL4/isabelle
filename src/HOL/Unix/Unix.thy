@@ -464,7 +464,7 @@ proof -
     with root show ?thesis by cases auto
   next
     case readdir
-    with root show ?thesis by cases auto
+    with root show ?thesis by cases (simp (asm_lr))+
   qed
 qed
 
@@ -1082,7 +1082,7 @@ proof -
             also have "\<dots> \<noteq> None"
             proof -
               from ys obtain us u where rev_ys: "ys = us @ [u]"
-                by (cases ys rule: rev_cases) auto
+                by (cases ys rule: rev_cases) fastsimp+
               with tr path
               have "lookup root ((path @ [y]) @ (us @ [u])) \<noteq> None \<or>
                   lookup root ((path @ [y]) @ us) \<noteq> None"

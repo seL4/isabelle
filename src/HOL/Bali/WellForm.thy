@@ -1420,10 +1420,10 @@ proof -
   show "?Class C \<Longrightarrow> ?Method C \<Longrightarrow> ?MemberOf C"
   proof (induct rule: ws_class_induct')  
     case Object
-    with wf have declC: "declclass m = Object"
-      by (blast intro: declclass_methd_Object)
-    with Object wf have "G\<turnstile>Methd sig m declared_in Object"
-      by (auto dest: methd_declaredD simp del: methd_Object)
+    with wf have declC: "Object = declclass m"
+      by (simp add: declclass_methd_Object)
+    from Object wf have "G\<turnstile>Methd sig m declared_in Object"
+      by (auto intro: methd_declaredD simp add: declC)
     with declC 
     show "?MemberOf Object"
       by (auto intro!: members.Immediate
@@ -2794,7 +2794,7 @@ proof -
       proof -
 	from im statM statT isT_statT wf not_Private_statM 
 	have "is_static im = is_static statM"
-	  by (auto dest: wf_imethds_hiding_objmethdsD)
+	  by (fastsimp dest: wf_imethds_hiding_objmethdsD)
 	with wf isT_statT statT im 
 	have "\<not> is_static statM"
 	  by (auto dest: wf_prog_idecl imethds_wf_mhead)

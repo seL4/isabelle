@@ -831,7 +831,7 @@ apply (rule conjI)
 apply(rule conjI)
  apply(simp add:same_state_def)
  apply clarify
- apply(case_tac j,simp,simp)
+ apply(case_tac j, simp, simp (no_asm_simp))
  apply(case_tac "i=ia",simp,simp)
 apply(rule conjI)
  apply(simp add:same_program_def)
@@ -862,7 +862,6 @@ apply(erule disjE)
  apply(rule_tac x=ia in exI,simp)
  apply(rule conjI)
   apply(case_tac "i=ia",simp,simp)
-  apply(rotate_tac -1,simp)
  apply clarify
  apply(case_tac "i=l",simp)
   apply(case_tac "l=ia",simp,simp)
@@ -871,8 +870,7 @@ apply(erule disjE)
  apply(erule_tac x=l in allE,erule impE,assumption,erule impE, assumption,simp)
 apply clarify
 apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (?P j)\<in>etran" in allE, erule impE, assumption)
-apply(case_tac "i=ia",simp)
-apply(rotate_tac -1,simp)
+apply(case_tac "i=ia",simp,simp)
 done
 
 lemma one_iff_aux: "xs\<noteq>[] \<Longrightarrow> (\<forall>ys. ((xs, s)#ys \<in> par_cptn) = 

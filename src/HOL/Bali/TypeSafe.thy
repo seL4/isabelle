@@ -1895,7 +1895,7 @@ proof -
                  mode: "mode = invmode statM e" and
                     T: "T =Inl (resTy statM)" and
         eq_accC_accC': "accC=accC'"
-      by (rule wt_elim_cases) auto
+      by (rule wt_elim_cases) fastsimp+
     from conf_s0 wt_e hyp_e 
     obtain conf_s1: "s1\<Colon>\<preceq>(G, L)" and
            conf_a': "normal s1 \<Longrightarrow> G, store s1\<turnstile>a'\<Colon>\<preceq>RefT statT" and
@@ -1947,7 +1947,7 @@ proof -
 	by auto
       ultimately have
 	"set_lvars (locals (store s2)) s4 = s2"
-	by (cases s2,cases s4) (simp add: init_lvars_def2)
+	by (cases s2) (cases s4, fastsimp simp add: init_lvars_def2)
       with False conf_s2 error_free_s2
       show ?thesis
 	by auto
@@ -1981,7 +1981,7 @@ proof -
 	ultimately have
 	  "set_lvars (locals (store s2)) s4 
            = (Some (Xcpt (Std NullPointer)),store s2)"
-	  by (cases s2,cases s4) (simp add: init_lvars_def2)
+	  by (cases s2) (cases s4, fastsimp simp add: init_lvars_def2)
 	with conf_s2 error_free_s2
 	show ?thesis
 	  by (cases s2) (auto dest: conforms_NormI)

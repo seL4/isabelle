@@ -56,7 +56,7 @@ apply simp
 apply(case_tac "list")
  apply force
 apply simp
-apply(rotate_tac -1)
+apply(rotate_tac -2)
 apply(erule_tac x = "0" in all_dupE)
 apply simp
 apply clarify
@@ -170,7 +170,6 @@ apply simp
 apply(case_tac " length path - Suc 0 < m")
  apply(subgoal_tac "(length path - Suc m)=0")
   prefer 2 apply arith
- apply(rotate_tac -1)
  apply(simp del: diff_is_0_eq)
  apply(subgoal_tac "Suc nata\<le>nat")
  prefer 2 apply arith
@@ -188,7 +187,8 @@ apply(subgoal_tac "Suc (length path - Suc m + nata)=(length path - Suc 0) - (m -
  apply simp
  apply(case_tac "length path")
   apply force
- apply simp
+apply (erule_tac V = "Suc natb \<le> length path - Suc 0" in thin_rl)
+apply simp
 apply(frule_tac i1 = "length path" and j1 = "length path - Suc 0" and k1 = "m" in diff_diff_right [THEN mp])
 apply(erule_tac V = "length path - Suc m + nat = length path - Suc 0" in thin_rl)
 apply simp
@@ -303,11 +303,10 @@ apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(case_tac "length path")
   apply force
  apply simp
- apply(rotate_tac -5)
- apply(erule_tac x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> ?P i" and x = "nat" in allE)
  apply simp
  apply clarify
- apply(erule_tac x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> ?P i" and x = "nat" in allE)
  apply simp
  apply(case_tac "j<I")
   apply(erule_tac x = "j" in allE)
@@ -344,11 +343,10 @@ apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(case_tac "length path")
   apply force
  apply simp
- apply(rotate_tac -5)
- apply(erule_tac x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < nata \<longrightarrow> ?P i" and x = "nat" in allE)
  apply simp
  apply clarify
- apply(erule_tac x = "nat" in allE)
+ apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> ?P i" and x = "nat" in allE)
  apply simp
  apply(case_tac "j\<le>R")
   apply(drule le_imp_less_or_eq)

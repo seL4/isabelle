@@ -90,7 +90,7 @@ lemma nyinitcls_le_SucD:
 apply (subgoal_tac 
         "nyinitcls G (x,s) = insert C (nyinitcls G (x,init_class_obj G C s))")
 apply  clarsimp
-apply  (erule thin_rl)
+apply  (erule_tac V="nyinitcls G (x, s) = ?rhs" in thin_rl)
 apply  (rule card_Suc_lemma [OF _ _ finite_nyinitcls])
 apply   (auto dest!: not_initedD elim!: 
               simp add: nyinitcls_def inited_def split add: split_if_asm)
@@ -386,8 +386,6 @@ apply (auto del: conjI elim!: conseq12)
 apply (case_tac "\<exists>w s. G\<turnstile>Norm sa \<midarrow>t\<succ>\<rightarrow> (w,s) ")
 apply  (fast dest: unique_eval)
 apply clarsimp
-apply (erule thin_rl)
-apply (erule thin_rl)
 apply (drule split_paired_All [THEN subst])
 apply (clarsimp elim!: state_not_single)
 done
@@ -678,10 +676,8 @@ proof -
     apply  (fast intro: ax_derivs_asm)
     apply (rule MGF_nested_Methd)
     apply (rule ballI)
-    apply (drule spec, erule impE, erule_tac [2] impE, erule_tac [3] impE, 
-           erule_tac [4] spec)
+    apply (drule spec, erule impE, erule_tac [2] impE, erule_tac [3] spec)
     apply   fast
-    apply  (erule Suc_leD)
     apply (drule finite_subset)
     apply (erule finite_imageI)
     apply auto

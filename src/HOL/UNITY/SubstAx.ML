@@ -436,4 +436,4 @@ fun ensures_tac sact =
 	      simp_tac (simpset() addsimps [Domain_def]) 3,
 	      constrains_tac 1,
 	      ALLGOALS Clarify_tac,
-	      ALLGOALS Asm_full_simp_tac]);
+	      ALLGOALS Asm_lr_simp_tac]);
