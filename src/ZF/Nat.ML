@@ -128,7 +128,7 @@ val prems = goal Nat.thy
 by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
     (asm_simp_tac
-     (ZF_ss addsimps (prems@distrib_rews@[le0_iff, le_succ_iff]))));
+     (ZF_ss addsimps (prems@distrib_simps@[le0_iff, le_succ_iff]))));
 qed "nat_induct_from_lemma";
 
 (*Induction starting from m rather than 0*)

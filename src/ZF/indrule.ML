@@ -192,7 +192,8 @@ fun mutual_ind_tac [] 0 = all_tac
               (*some risk of excessive simplification here -- might have
 	        to identify the bare minimum set of rewrites*)
               full_simp_tac 
-	         (mut_ss addsimps (conj_rews @ imp_rews @ quant_rews)) 1  THEN
+	         (mut_ss addsimps (conj_simps @ imp_simps @ quant_simps)) 1
+	      THEN
               (*unpackage and use "prem" in the corresponding place*)
               REPEAT (rtac impI 1)  THEN
               rtac (rewrite_rule all_defs prem) 1  THEN
