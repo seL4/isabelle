@@ -62,6 +62,9 @@ constdefs
   "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
   not :: "o \<Rightarrow> o"    ("\<not> _" [40] 40)
   "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
+  iff :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<longleftrightarrow>" 25)
+  "A \<longleftrightarrow> B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+
 
 theorem trueI [intro]: \<top>
 proof (unfold true_def)
@@ -78,6 +81,27 @@ theorem notE [elim]: "\<not> A \<Longrightarrow> A \<Longrightarrow> B"
 proof (unfold not_def)
   assume "A \<longrightarrow> \<bottom>" and A
   hence \<bottom> .. thus B ..
+qed
+
+theorem iffI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<longleftrightarrow> B"
+proof (unfold iff_def)
+  assume "A \<Longrightarrow> B" hence "A \<longrightarrow> B" ..
+  moreover assume "B \<Longrightarrow> A" hence "B \<longrightarrow> A" ..
+  ultimately show "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)" ..
+qed
+
+theorem iff1 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> A \<Longrightarrow> B"
+proof (unfold iff_def)
+  assume "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+  hence "A \<longrightarrow> B" ..
+  thus "A \<Longrightarrow> B" ..
+qed
+
+theorem iff2 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> B \<Longrightarrow> A"
+proof (unfold iff_def)
+  assume "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+  hence "B \<longrightarrow> A" ..
+  thus "B \<Longrightarrow> A" ..
 qed
 
 
