@@ -6,9 +6,6 @@
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
-(*record_split_name causes a BIG blow-up (doubles the run-time)*)
-claset_ref() := claset() delSWrapper record_split_name;
-
 Addsimps [Mutex_def RS def_prg_Init];
 program_defs_ref := [Mutex_def];
 

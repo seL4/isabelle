@@ -6,9 +6,6 @@
 The Lift-Control Example
 *)
 
-(*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper record_split_name;
-
 Goal "[| x ~: A;  y : A |] ==> x ~= y";
 by (Blast_tac 1);
 qed "not_mem_distinct";
