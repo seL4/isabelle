@@ -251,6 +251,9 @@ val local_with = gen_with I;
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
 fun elimify x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 
+fun global_export x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
+fun local_export x = no_args (Drule.rule_attribute Proof.export_thm) x;
+
 
 
 (** theory setup **)
@@ -267,7 +270,8 @@ val pure_attributes =
   ("of", (global_with, local_with), "positional instantiation of theorem -- apply rule to terms"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
-  ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory")];
+  ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory"),
+  ("export", (global_export, local_export), "export theorem from context")];
 
 
 (* setup *)
