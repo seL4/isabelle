@@ -6,7 +6,7 @@ Mixfix declarations, infixes, binders. Part of the Pure syntax.
 *)
 
 signature MIXFIX0 =
-sig
+  sig
   datatype mixfix =
     NoSyn |
     Mixfix of string * int list * int |
@@ -15,10 +15,10 @@ sig
     Infixr of int |
     Binder of string * int * int
   val max_pri: int
-end;
+  end;
 
 signature MIXFIX1 =
-sig
+  sig
   include MIXFIX0
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
@@ -26,25 +26,19 @@ sig
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
-end;
+  end;
 
 signature MIXFIX =
-sig
+  sig
   include MIXFIX1
-  structure SynExt: SYN_EXT
-  local open SynExt in
-    val syn_ext_types: string list -> (string * int * mixfix) list -> syn_ext
-    val syn_ext_consts: string list -> (string * typ * mixfix) list -> syn_ext
-  end
-end;
+  val syn_ext_types: string list -> (string * int * mixfix) list -> SynExt.syn_ext
+  val syn_ext_consts: string list -> (string * typ * mixfix) list -> SynExt.syn_ext
+  end;
 
-functor MixfixFun(structure Lexicon: LEXICON and SynExt: SYN_EXT
-  and SynTrans: SYN_TRANS): MIXFIX =
+structure Mixfix : MIXFIX =
 struct
 
-structure SynExt = SynExt;
-open Lexicon SynExt SynExt.Ast SynTrans;
-
+open Lexicon SynExt Ast SynTrans;
 
 (** mixfix declarations **)
 

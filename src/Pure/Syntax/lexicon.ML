@@ -10,7 +10,7 @@ infix 3 >>;
 infix 0 ||;
 
 signature SCANNER =
-sig
+  sig
   exception LEXICAL_ERROR
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
@@ -37,10 +37,10 @@ sig
   val make_lexicon: string list -> lexicon
   val merge_lexicons: lexicon -> lexicon -> lexicon
   val scan_literal: lexicon -> string list -> string * string list
-end;
+  end;
 
 signature LEXICON0 =
-sig
+  sig
   val is_identifier: string -> bool
   val string_of_vname: indexname -> string
   val scan_varname: string list -> indexname * string list
@@ -48,10 +48,10 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
-end;
+  end;
 
 signature LEXICON =
-sig
+  sig
   include SCANNER
   include LEXICON0
   val is_xid: string -> bool
@@ -78,11 +78,10 @@ sig
   val valued_token: token -> bool
   val predef_term: string -> token option
   val tokenize: lexicon -> bool -> string -> token list
-end;
+  end;
 
-functor LexiconFun(): LEXICON =
+structure Lexicon : LEXICON =
 struct
-
 
 (** is_identifier etc. **)
 
@@ -464,7 +463,6 @@ fun scan_var str =
   in
     #1 (scan (explode str))
   end;
-
 
 end;
 

@@ -6,32 +6,23 @@ Isabelle's main parser (used for terms and types).
 *)
 
 signature PARSER =
-sig
-  structure Lexicon: LEXICON
-  structure SynExt: SYN_EXT
-  local open Lexicon SynExt SynExt.Ast in
-    type gram
-    val empty_gram: gram
-    val extend_gram: gram -> xprod list -> gram
-    val merge_grams: gram -> gram -> gram
-    val pretty_gram: gram -> Pretty.T list
-    datatype parsetree =
-      Node of string * parsetree list |
-      Tip of token
-    val parse: gram -> string -> token list -> parsetree list
-  end
-  val branching_level: int ref;
-end;
+  sig
+  type gram
+  val empty_gram: gram
+  val extend_gram: gram -> SynExt.xprod list -> gram
+  val merge_grams: gram -> gram -> gram
+  val pretty_gram: gram -> Pretty.T list
+  datatype parsetree =
+    Node of string * parsetree list |
+    Tip of Lexicon.token
+  val parse: gram -> string -> Lexicon.token list -> parsetree list
+  val branching_level: int ref
+  end;
 
-functor ParserFun(structure Symtab: SYMTAB and Lexicon: LEXICON
-  and SynExt: SYN_EXT): PARSER =
+
+structure Parser : PARSER =
 struct
-
-structure Pretty = SynExt.Ast.Pretty;
-structure Lexicon = Lexicon;
-structure SynExt = SynExt;
 open Lexicon SynExt;
-
 
 (** datatype gram **)
 
