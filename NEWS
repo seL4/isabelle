@@ -10,7 +10,8 @@ New in this Isabelle version
 * HOL: The THEN and ELSE parts of conditional expressions (if P then x else y)
 are no longer simplified.  (This allows the simplifier to unfold recursive
 functional programs.)  To restore the old behaviour, declare
-	Delcongs [if_weak_cong];
+
+    Delcongs [if_weak_cong];
 
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set
 complement;
@@ -27,6 +28,8 @@ to constants declared in the same theory;
 definition package, has lost an argument.  To simplify its result, it
 uses the default simpset instead of a supplied list of theorems.
 
+* HOL/List: the constructors of type list are now Nil and Cons;
+
 
 *** Proof tools ***
 
@@ -37,6 +40,17 @@ instantiated for other types and logics as well.
 
 
 *** General ***
+
+* new Isabelle/Isar subsystem provides an alternative to traditional
+tactical theorem proving; together with the ProofGeneral/isar user
+interface it offers an interactive environment for developing human
+readable proof documents (Isar == Intelligible semi-automated
+reasoning); see isatool doc isar-ref and
+http://isabelle.in.tum.de/Isar/ for more information;
+
+* native support for ProofGeneral, both for classic Isabelle and
+Isabelle/Isar (the latter is slightly better supported and more
+robust);
 
 * Isabelle manuals now also available as PDF;
 
@@ -49,6 +63,14 @@ bug-compatible); old loadpath variable has been replaced by show_path,
 add_path, del_path, reset_path functions; new operations such as
 update_thy, touch_thy, remove_thy (see also isatool doc ref);
 
+* improved isatool install: option -k creates KDE application icon,
+option -p DIR installs standalone binaries;
+
+* added ML_PLATFORM setting (useful for cross-platform installations);
+more robust handling of platform specific ML images for SML/NJ;
+
+* path element specification '~~' refers to '$ISABELLE_HOME';
+
 * in locales, the "assumes" and "defines" parts may be omitted if
 empty;
 
@@ -57,16 +79,8 @@ long arrows);
 
 * new print_mode "HTML";
 
-* path element specification '~~' refers to '$ISABELLE_HOME';
-
 * new flag show_tags controls display of tags of theorems (which are
 basically just comments that may be attached by some tools);
-
-* improved isatool install: option -k creates KDE application icon,
-option -p DIR installs standalone binaries;
-
-* added ML_PLATFORM setting (useful for cross-platform installations);
-more robust handling of platform specific ML images for SML/NJ;
 
 * Isamode 2.6 requires patch to accomodate change of Isabelle font
 mode and goal output format:
@@ -84,6 +98,8 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 
 
 *** HOL ***
+
+** HOL arithmetic **
 
 * There are now decision procedures for linear arithmetic over nat and
 int:
@@ -107,31 +123,42 @@ NB: At the moment, these decision procedures do not cope with mixed
 nat/int formulae where the two parts interact, such as `m < n ==>
 int(m) < int(n)'.
 
-* An interface to the Stanford Validity Checker (SVC) is available through 
-  the tactic svc_tac.  Propositional tautologies and theorems of linear
-  arithmetic are proved automatically.  Numeric variables may have types nat, 
-  int or real.  SVC must be installed separately, and 
-  its results must be TAKEN ON TRUST (Isabelle does not check the proofs).
+* HOL/Numeral provides a generic theory of numerals (encoded
+efficiently as bit strings); setup for types nat and int is in place;
+INCOMPATIBILITY: since numeral syntax is now polymorphic, rather than
+int, existing theories and proof scripts may require a few additional
+type constraints;
 
-* Integer division and remainder can now be performed on constant arguments.  
+* integer division and remainder can now be performed on constant
+arguments;
 
-* Many properties of integer multiplication, division and remainder are now
-available.
+* many properties of integer multiplication, division and remainder
+are now available;
+
+* An interface to the Stanford Validity Checker (SVC) is available
+through the tactic svc_tac.  Propositional tautologies and theorems of
+linear arithmetic are proved automatically.  Numeric variables may
+have types nat, int or real.  SVC must be installed separately, and
+its results must be TAKEN ON TRUST (Isabelle does not check the
+proofs, but tags any invocation of the underlying oracle).
 
 * IsaMakefile: the HOL-Real target now builds an actual image;
 
-* New bounded quantifier syntax (input only):
-  ! x < y. P, ! x <= y. P, ? x < y. P, ? x <= y. P
+
+** HOL misc **
+
+* HOL/datatype: Now also handles arbitrarily branching datatypes
+  (using function types) such as
+
+  datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 
 * HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
 -- avoids syntactic ambiguities and treats state, transition, and
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
 
-* HOL/datatype: Now also handles arbitrarily branching datatypes
-  (using function types) such as
-
-  datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
+* New bounded quantifier syntax (input only):
+  ! x < y. P, ! x <= y. P, ? x < y. P, ? x <= y. P
 
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
@@ -139,10 +166,16 @@ arguments now have to occur explicitly on the rhs as type constraints;
 * HOL/recdef (TFL): requires theory Recdef; 'congs' syntax now expects
 comma separated list of theorem names rather than an ML expression;
 
+* HOL/List: the constructors of type list are now Nil and Cons;
+INCOMPATIBILITY: while [] and infix # syntax is still there, of
+course, ML tools referring to List.list.op # etc. have to be adapted;
+
+
 
 *** LK ***
 
-* the notation <<...>> is now available as a notation for sequences of formulas
+* the notation <<...>> is now available as a notation for sequences of
+formulas;
 
 * the simplifier is now installed
 
