@@ -13,9 +13,10 @@ working environment on common Unix platforms.
 
 A <em>minimal</em> Isabelle installation requires only <tt>bash</tt>
 and <tt>perl</tt> (usually provided by the operating system), and a
-suitable implementation of Standard ML (e.g. Poly/ML as provided
-below).  A <em>comfortable</em> Isabelle working environment demands
-further user interface support, as provided by <a
+suitable implementation of Standard ML (e.g. <a
+href="http://www.polyml.org">Poly/ML</a> as provided below).  A
+<em>comfortable</em> Isabelle working environment demands further user
+interface support, as provided by <a
 href="http://www.proofgeneral.org">Proof General</a> together with the
 (optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
@@ -81,8 +82,10 @@ the default settings of Isabelle.
 
 <p>
 
-A typical Linux/x86 site installation of Isabelle/HOL works as follows
-(the location <tt>/usr/local</tt> may be changed):
+A typical Linux/x86 site installation of Isabelle/HOL works as
+follows.  Using GNU <tt>tar</tt> we uncompress and unpack the archives
+into the <tt>/usr/local</tt> directory; this location may be changed
+to anything appropriate.
 
 <p>
 
