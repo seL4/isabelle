@@ -63,6 +63,11 @@ by (Blast_tac 1);
 qed "wf_trancl";
 
 
+val wf_converse_trancl = prove_goal thy 
+"!!X. wf (r^-1) ==> wf ((r^+)^-1)" (K [
+	stac (trancl_converse RS sym) 1,
+	etac wf_trancl 1]);
+
 (*----------------------------------------------------------------------------
  * Minimal-element characterization of well-foundedness
  *---------------------------------------------------------------------------*)
@@ -285,10 +290,10 @@ by (atac 1);
 by (rtac trans_trancl 1);
 by (rtac transD 1);
 by (rtac trans_trancl 1);
-by (forw_inst_tac [("a","ya")] r_into_trancl 1);
+by (forw_inst_tac [("p","(ya,y)")] r_into_trancl 1);
 by (atac 1);
 by (atac 1);
-by (forw_inst_tac [("a","ya")] r_into_trancl 1);
+by (forw_inst_tac [("p","(ya,y)")] r_into_trancl 1);
 by (atac 1);
 qed "wfrec";
 
