@@ -1479,6 +1479,13 @@ done
 lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
 by (induct xs) auto
 
+lemma distinct_map_filterI:
+ "distinct(map f xs) \<Longrightarrow> distinct(map f (filter P xs))"
+apply(induct xs)
+ apply simp
+apply force
+done
+
 text {*
 It is best to avoid this indexed version of distinct, but sometimes
 it is useful. *}

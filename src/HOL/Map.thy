@@ -178,6 +178,35 @@ by (auto simp: chg_map_def split add: option.split)
 
 subsection {* @{term map_of} *}
 
+lemma map_of_eq_None_iff:
+ "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
+by (induct xys) simp_all
+
+lemma map_of_is_SomeD:
+ "map_of xys x = Some y \<Longrightarrow> (x,y) \<in> set xys"
+apply(induct xys)
+ apply simp
+apply(clarsimp split:if_splits)
+done
+
+lemma map_of_eq_Some_iff[simp]:
+ "distinct(map fst xys) \<Longrightarrow> (map_of xys x = Some y) = ((x,y) \<in> set xys)"
+apply(induct xys)
+ apply(simp)
+apply(auto simp:map_of_eq_None_iff[symmetric])
+done
+
+lemma Some_eq_map_of_iff[simp]:
+ "distinct(map fst xys) \<Longrightarrow> (Some y = map_of xys x) = ((x,y) \<in> set xys)"
+by(auto simp del:map_of_eq_Some_iff simp add:map_of_eq_Some_iff[symmetric])
+
+lemma [simp]: "\<lbrakk> distinct(map fst xys); (x,y) \<in> set xys \<rbrakk>
+  \<Longrightarrow> map_of xys x = Some y"
+apply (induct xys)
+ apply simp
+apply force
+done
+
 lemma map_of_zip_is_None[simp]:
   "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
 by (induct rule:list_induct2, simp_all)
@@ -286,6 +315,10 @@ apply (induct "l", auto)
 apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
+
+lemma inj_on_map_add_dom[iff]:
+ "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
+by(fastsimp simp add:map_add_def dom_def inj_on_def split:option.splits)
 
 subsection {* @{term restrict_map} *}
 
@@ -442,6 +475,10 @@ apply(induct xys)
 apply(auto simp del:fun_upd_apply)
 done
 
+lemma dom_map_of_conv_image_fst:
+  "dom(map_of xys) = fst ` (set xys)"
+by(force simp: dom_map_of)
+
 lemma dom_map_of_zip[simp]: "[| length xs = length ys; distinct xs |] ==>
   dom(map_of(zip xs ys)) = set xs"
 by(induct rule: list_induct2, simp_all)
@@ -525,6 +562,9 @@ done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
   by (fastsimp simp add: map_le_def)
+
+lemma map_le_iff_map_add_commute: "(f \<subseteq>\<^sub>m f ++ g) = (f++g = g++f)"
+by(fastsimp simp add:map_add_def map_le_def expand_fun_eq split:option.splits)
 
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
 by (fastsimp simp add: map_le_def map_add_def dom_def)
