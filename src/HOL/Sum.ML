@@ -19,10 +19,10 @@ goalw Sum.thy [Sum_def] "Inr_Rep(b) : Sum";
 by (EVERY1 [rtac CollectI, rtac disjI2, rtac exI, rtac refl]);
 qed "Inr_RepI";
 
-goal Sum.thy "inj_onto Abs_Sum Sum";
-by (rtac inj_onto_inverseI 1);
+goal Sum.thy "inj_on Abs_Sum Sum";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Sum_inverse 1);
-qed "inj_onto_Abs_Sum";
+qed "inj_on_Abs_Sum";
 
 (** Distinctness of Inl and Inr **)
 
@@ -34,7 +34,7 @@ by (EVERY1 [rtac notI,
 qed "Inl_Rep_not_Inr_Rep";
 
 goalw Sum.thy [Inl_def,Inr_def] "Inl(a) ~= Inr(b)";
-by (rtac (inj_onto_Abs_Sum RS inj_onto_contraD) 1);
+by (rtac (inj_on_Abs_Sum RS inj_on_contraD) 1);
 by (rtac Inl_Rep_not_Inr_Rep 1);
 by (rtac Inl_RepI 1);
 by (rtac Inr_RepI 1);
@@ -63,7 +63,7 @@ qed "Inr_Rep_inject";
 
 goalw Sum.thy [Inl_def] "inj(Inl)";
 by (rtac injI 1);
-by (etac (inj_onto_Abs_Sum RS inj_ontoD RS Inl_Rep_inject) 1);
+by (etac (inj_on_Abs_Sum RS inj_onD RS Inl_Rep_inject) 1);
 by (rtac Inl_RepI 1);
 by (rtac Inl_RepI 1);
 qed "inj_Inl";
@@ -71,7 +71,7 @@ val Inl_inject = inj_Inl RS injD;
 
 goalw Sum.thy [Inr_def] "inj(Inr)";
 by (rtac injI 1);
-by (etac (inj_onto_Abs_Sum RS inj_ontoD RS Inr_Rep_inject) 1);
+by (etac (inj_on_Abs_Sum RS inj_onD RS Inr_Rep_inject) 1);
 by (rtac Inr_RepI 1);
 by (rtac Inr_RepI 1);
 qed "inj_Inr";
@@ -150,7 +150,7 @@ goal Sum.thy "R(sum_case f g s) = \
 \             ((! x. s = Inl(x) --> R(f(x))) & (! y. s = Inr(y) --> R(g(y))))";
 by (res_inst_tac [("s","s")] sumE 1);
 by Auto_tac;
-qed "expand_sum_case";
+qed "split_sum_case";
 
 (*Prevents simplification of f and g: much faster*)
 qed_goal "sum_case_weak_cong" Sum.thy

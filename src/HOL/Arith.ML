@@ -29,7 +29,7 @@ Addsimps [diff_0_eq_0, diff_Suc_Suc];
    However, none of the generalizations are currently in the simpset,
    and I dread to think what happens if I put them in *)
 goal thy "!!n. 0 < n ==> Suc(n-1) = n";
-by (asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
+by (asm_simp_tac (simpset() addsplits [split_nat_case]) 1);
 qed "Suc_pred";
 Addsimps [Suc_pred];
 
@@ -114,7 +114,7 @@ Addsimps [pred_add_is_0];
 goal thy "!!n. 0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
-                                      addsplits [expand_nat_case])));
+                                      addsplits [split_nat_case])));
 qed "add_pred";
 Addsimps [add_pred];
 

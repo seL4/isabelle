@@ -19,6 +19,15 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "neq_Nil_conv";
 
+(* Induction over the length of a list: *)
+val prems = goal thy
+ "(!!xs::'a list. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P xs";
+by (res_inst_tac [("P","P"),("r","measure length::('a list * 'a list)set")]
+     wf_induct 1);
+by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [measure_def,inv_image_def]) 1);
+by (eresolve_tac prems 1);
+qed "list_length_induct";
 
 (** "lists": the list-forming operator over sets **)
 
@@ -218,6 +227,40 @@ by (asm_simp_tac (simpset() addsimps [tl_append]
                            addsplits [split_list_case]) 1);
 qed "tl_append2";
 Addsimps [tl_append2];
+
+
+(** Snoc exhaustion and induction **)
+section "Snoc exhaustion and induction";
+
+goal thy "xs ~= [] --> (? ys y. xs = ys@[y])";
+by(induct_tac "xs" 1);
+by(Simp_tac 1);
+by(exhaust_tac "list" 1);
+ by(Asm_simp_tac 1);
+ by(res_inst_tac [("x","[]")] exI 1);
+ by(Simp_tac 1);
+by(Asm_full_simp_tac 1);
+by(Clarify_tac 1);
+by(res_inst_tac [("x","a#ys")] exI 1);
+by(Asm_simp_tac 1);
+val lemma = result();
+
+goal thy  "(xs = [] --> P) -->  (!ys y. xs = ys@[y] --> P) --> P";
+by(cut_facts_tac [lemma] 1);
+by(Blast_tac 1);
+bind_thm ("snoc_exhaust",
+  impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
+
+val prems = goal thy "[| P []; !!x xs. P xs ==> P(xs@[x]) |] ==> P xs";
+by(res_inst_tac [("xs","xs")] list_length_induct 1);
+by(res_inst_tac [("xs","xs")] snoc_exhaust 1);
+ by(Clarify_tac 1);
+ brs prems 1;
+by(Clarify_tac 1);
+brs prems 1;
+auto();
+qed "snoc_induct";
+
 
 (** map **)
 

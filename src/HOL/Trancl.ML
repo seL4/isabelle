@@ -115,6 +115,13 @@ by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
+goal thy "R^* O R^* = R^*";
+br set_ext 1;
+by(split_all_tac 1);
+by(blast_tac (claset() addIs [rtrancl_trans]) 1);
+qed "rtrancl_idemp_self_comp";
+Addsimps [rtrancl_idemp_self_comp];
+
 goal Trancl.thy "!!r s. r <= s^* ==> r^* <= s^*";
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);

@@ -58,12 +58,12 @@ by (rtac inj_inverseI 1);       (*cannot combine by RS: multiple unifiers*)
 by (rtac Rep_Node_inverse 1);
 qed "inj_Rep_Node";
 
-goal Univ.thy "inj_onto Abs_Node Node";
-by (rtac inj_onto_inverseI 1);
+goal Univ.thy "inj_on Abs_Node Node";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Node_inverse 1);
-qed "inj_onto_Abs_Node";
+qed "inj_on_Abs_Node";
 
-val Abs_Node_inject = inj_onto_Abs_Node RS inj_ontoD;
+val Abs_Node_inject = inj_on_Abs_Node RS inj_onD;
 
 
 (*** Introduction rules for Node ***)

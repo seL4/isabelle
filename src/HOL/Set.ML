@@ -643,19 +643,19 @@ qed "rangeE";
 
 
 (** Rewrite rules for boolean case-splitting: faster than 
-	addsplits[expand_if]
+	addsplits[split_if]
 **)
 
-bind_thm ("expand_if_eq1", read_instantiate [("P", "%x. x = ?b")] expand_if);
-bind_thm ("expand_if_eq2", read_instantiate [("P", "%x. ?a = x")] expand_if);
+bind_thm ("split_if_eq1", read_instantiate [("P", "%x. x = ?b")] split_if);
+bind_thm ("split_if_eq2", read_instantiate [("P", "%x. ?a = x")] split_if);
 
-bind_thm ("expand_if_mem1", 
-    read_instantiate_sg (sign_of Set.thy) [("P", "%x. x : ?b")] expand_if);
-bind_thm ("expand_if_mem2", 
-    read_instantiate_sg (sign_of Set.thy) [("P", "%x. ?a : x")] expand_if);
+bind_thm ("split_if_mem1", 
+    read_instantiate_sg (sign_of Set.thy) [("P", "%x. x : ?b")] split_if);
+bind_thm ("split_if_mem2", 
+    read_instantiate_sg (sign_of Set.thy) [("P", "%x. ?a : x")] split_if);
 
-val expand_ifs = [if_bool_eq_conj, expand_if_eq1, expand_if_eq2,
-		  expand_if_mem1, expand_if_mem2];
+val split_ifs = [if_bool_eq_conj, split_if_eq1, split_if_eq2,
+		  split_if_mem1, split_if_mem2];
 
 
 (*Each of these has ALREADY been added to simpset() above.*)

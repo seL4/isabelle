@@ -209,7 +209,7 @@ prove "not_iff" "(P~=Q) = (P = (~Q))";
 prove "disj_not1" "(~P | Q) = (P --> Q)";
 prove "disj_not2" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
 
-(*Avoids duplication of subgoals after expand_if, when the true and false 
+(*Avoids duplication of subgoals after split_if, when the true and false 
   cases boil down to the same thing.*) 
 prove "cases_simp" "((P --> Q) & (~P --> Q)) = Q";
 
@@ -261,27 +261,29 @@ qed_goal "if_not_P" HOL.thy "~P ==> (if P then x else y) = y"
 qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
  (K [Blast_tac 1]);
 
-qed_goal "expand_if" HOL.thy
+qed_goal "split_if" HOL.thy
     "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))" (K [
 	res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1,
          stac if_P 2,
          stac if_not_P 1,
          ALLGOALS (Blast_tac)]);
+(* for backwards compatibility: *)
+val expand_if = split_if;
 
 qed_goal "split_if_asm" HOL.thy
     "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
-    (K [stac expand_if 1,
+    (K [stac split_if 1,
 	Blast_tac 1]);
 
 (*This form is useful for expanding IFs on the RIGHT of the ==> symbol*)
 qed_goal "if_bool_eq_conj" HOL.thy
     "(if P then Q else R) = ((P-->Q) & (~P-->R))"
-    (K [rtac expand_if 1]);
+    (K [rtac split_if 1]);
 
 (*And this form is useful for expanding IFs on the LEFT*)
 qed_goal "if_bool_eq_disj" HOL.thy
     "(if P then Q else R) = ((P&Q) | (~P&R))"
-    (K [stac expand_if 1,
+    (K [stac split_if 1,
 	Blast_tac 1]);
 
 
@@ -359,10 +361,10 @@ fun Addsplits splits = (simpset_ref() := simpset() addsplits splits);
 fun Delsplits splits = (simpset_ref() := simpset() delsplits splits);
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
-  (K [split_tac [expand_if] 1, Blast_tac 1]);
+  (K [split_tac [split_if] 1, Blast_tac 1]);
 
 qed_goal "if_eq_cancel" HOL.thy "(if x = y then y else x) = x"
-  (K [split_tac [expand_if] 1, Blast_tac 1]);
+  (K [split_tac [split_if] 1, Blast_tac 1]);
 
 (** 'if' congruence rules: neither included by default! *)
 
@@ -371,7 +373,7 @@ qed_goal "if_cong" HOL.thy
   "[| b=c; c ==> x=u; ~c ==> y=v |] ==>\
 \  (if b then x else y) = (if c then u else v)"
   (fn rew::prems =>
-   [stac rew 1, stac expand_if 1, stac expand_if 1,
+   [stac rew 1, stac split_if 1, stac split_if 1,
     blast_tac (HOL_cs addDs prems) 1]);
 
 (*Prevents simplification of x and y: much faster*)
@@ -418,11 +420,11 @@ val HOL_ss =
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong]
-     addsplits [expand_if];
+     addsplits [split_if];
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
-  (K [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
+  (K [simp_tac (HOL_ss setloop (split_tac [split_if])) 1]);
 
 qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
   (K [rtac ext 1, rtac refl 1]);

@@ -85,15 +85,15 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_Nat_inverse 1);
 qed "inj_Rep_Nat";
 
-goal thy "inj_onto Abs_Nat Nat";
-by (rtac inj_onto_inverseI 1);
+goal thy "inj_on Abs_Nat Nat";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Nat_inverse 1);
-qed "inj_onto_Abs_Nat";
+qed "inj_on_Abs_Nat";
 
 (*** Distinctness of constructors ***)
 
 goalw thy [Zero_def,Suc_def] "Suc(m) ~= 0";
-by (rtac (inj_onto_Abs_Nat RS inj_onto_contraD) 1);
+by (rtac (inj_on_Abs_Nat RS inj_on_contraD) 1);
 by (rtac Suc_Rep_not_Zero_Rep 1);
 by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI, Zero_RepI] 1));
 qed "Suc_not_Zero";
@@ -109,7 +109,7 @@ val Zero_neq_Suc = sym RS Suc_neq_Zero;
 
 goalw thy [Suc_def] "inj(Suc)";
 by (rtac injI 1);
-by (dtac (inj_onto_Abs_Nat RS inj_ontoD) 1);
+by (dtac (inj_on_Abs_Nat RS inj_onD) 1);
 by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI] 1));
 by (dtac (inj_Suc_Rep RS injD) 1);
 by (etac (inj_Rep_Nat RS injD) 1);
@@ -483,7 +483,7 @@ qed_goal "nat_rec_weak_cong" thy
   "m=n ==> nat_rec a f m = nat_rec a f n"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
-qed_goal "expand_nat_case" thy
+qed_goal "split_nat_case" thy
   "P(nat_case z s n) = ((n=0 --> P z) & (!m. n = Suc m --> P(s m)))"
   (fn _ => [nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
 

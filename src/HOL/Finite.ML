@@ -111,23 +111,23 @@ qed "finite_Diff_singleton";
 AddIffs [finite_Diff_singleton];
 
 (*Lemma for proving finite_imageD*)
-goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_onto f A --> finite A";
+goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_on f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
- by (full_simp_tac (simpset() addsimps [inj_onto_def]) 1);
+ by (full_simp_tac (simpset() addsimps [inj_on_def]) 1);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","xa")] bexI 1);
 by (ALLGOALS 
-    (asm_full_simp_tac (simpset() addsimps [inj_onto_image_set_diff])));
+    (asm_full_simp_tac (simpset() addsimps [inj_on_image_set_diff])));
 val lemma = result();
 
-goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";
+goal Finite.thy "!!A. [| finite(f``A);  inj_on f A |] ==> finite A";
 by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_imageD";
@@ -156,7 +156,7 @@ by (subgoal_tac "finite ((%x.{x})``A)" 1);
 by (rtac finite_subset 2);
 by (assume_tac 3);
 by (ALLGOALS
-    (fast_tac (claset() addSDs [rewrite_rule [inj_onto_def] finite_imageD])));
+    (fast_tac (claset() addSDs [rewrite_rule [inj_on_def] finite_imageD])));
 val lemma = result();
 
 goal Finite.thy "finite(Pow A) = finite A";
@@ -174,8 +174,8 @@ goal Finite.thy "finite(r^-1) = finite r";
 by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
  by (Asm_simp_tac 1);
  by (rtac iffI 1);
-  by (etac (rewrite_rule [inj_onto_def] finite_imageD) 1);
-  by (simp_tac (simpset() addsplits [expand_split]) 1);
+  by (etac (rewrite_rule [inj_on_def] finite_imageD) 1);
+  by (simp_tac (simpset() addsplits [split_split]) 1);
  by (etac finite_imageI 1);
 by (simp_tac (simpset() addsimps [converse_def,image_def]) 1);
 by Auto_tac;
@@ -370,11 +370,11 @@ by (ALLGOALS
 qed "card_insert";
 Addsimps [card_insert];
 
-goal Finite.thy "!!A. finite(A) ==> inj_onto f A --> card (f `` A) = card A";
+goal Finite.thy "!!A. finite(A) ==> inj_on f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by Safe_tac;
-by (rewtac inj_onto_def);
+by (rewtac inj_on_def);
 by (Blast_tac 1);
 by (stac card_insert_disjoint 1);
 by (etac finite_imageI 1);
@@ -387,9 +387,9 @@ by (etac finite_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
 by (stac card_Un_disjoint 1);
 by (EVERY (map (blast_tac (claset() addIs [finite_imageI])) [3,2,1]));
-by (subgoal_tac "inj_onto (insert x) (Pow F)" 1);
+by (subgoal_tac "inj_on (insert x) (Pow F)" 1);
 by (asm_simp_tac (simpset() addsimps [card_image, Pow_insert]) 1);
-by (rewtac inj_onto_def);
+by (rewtac inj_on_def);
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "card_Pow";
 Addsimps [card_Pow];

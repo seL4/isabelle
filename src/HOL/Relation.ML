@@ -64,6 +64,10 @@ qed "id_O_R";
 
 Addsimps [R_O_id,id_O_R];
 
+goal thy "(R O S) O T = R O (S O T)";
+by (Blast_tac 1);
+qed "O_assoc";
+
 goal thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";

@@ -77,52 +77,52 @@ by (rtac (rangeI RS minor) 1);
 qed "inj_transfer";
 
 
-(*** inj_onto f A: f is one-to-one over A ***)
+(*** inj_on f A: f is one-to-one over A ***)
 
-val prems = goalw thy [inj_onto_def]
-    "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_onto f A";
+val prems = goalw thy [inj_on_def]
+    "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_on f A";
 by (blast_tac (claset() addIs prems) 1);
-qed "inj_ontoI";
+qed "inj_onI";
 
 val [major] = goal thy 
-    "(!!x. x:A ==> g(f(x)) = x) ==> inj_onto f A";
-by (rtac inj_ontoI 1);
+    "(!!x. x:A ==> g(f(x)) = x) ==> inj_on f A";
+by (rtac inj_onI 1);
 by (etac (apply_inverse RS trans) 1);
 by (REPEAT (eresolve_tac [asm_rl,major] 1));
-qed "inj_onto_inverseI";
+qed "inj_on_inverseI";
 
-val major::prems = goalw thy [inj_onto_def]
-    "[| inj_onto f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
+val major::prems = goalw thy [inj_on_def]
+    "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
 by (rtac (major RS bspec RS bspec RS mp) 1);
 by (REPEAT (resolve_tac prems 1));
-qed "inj_ontoD";
+qed "inj_onD";
 
-goal thy "!!x y.[| inj_onto f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
-by (blast_tac (claset() addSDs [inj_ontoD]) 1);
-qed "inj_onto_iff";
+goal thy "!!x y.[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
+by (blast_tac (claset() addSDs [inj_onD]) 1);
+qed "inj_on_iff";
 
 val major::prems = goal thy
-    "[| inj_onto f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
+    "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
 by (rtac contrapos 1);
-by (etac (major RS inj_ontoD) 2);
+by (etac (major RS inj_onD) 2);
 by (REPEAT (resolve_tac prems 1));
-qed "inj_onto_contraD";
+qed "inj_on_contraD";
 
-goalw thy [inj_onto_def]
-    "!!A B. [| A<=B; inj_onto f B |] ==> inj_onto f A";
+goalw thy [inj_on_def]
+    "!!A B. [| A<=B; inj_on f B |] ==> inj_on f A";
 by (Blast_tac 1);
-qed "subset_inj_onto";
+qed "subset_inj_on";
 
 
 (*** Lemmas about inj ***)
 
 goalw thy [o_def]
-    "!!f g. [| inj(f);  inj_onto g (range f) |] ==> inj(g o f)";
-by (fast_tac (claset() addIs [injI] addEs [injD, inj_ontoD]) 1);
+    "!!f g. [| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
+by (fast_tac (claset() addIs [injI] addEs [injD, inj_onD]) 1);
 qed "comp_inj";
 
-val [prem] = goal thy "inj(f) ==> inj_onto f A";
-by (blast_tac (claset() addIs [prem RS injD, inj_ontoI]) 1);
+val [prem] = goal thy "inj(f) ==> inj_on f A";
+by (blast_tac (claset() addIs [prem RS injD, inj_onI]) 1);
 qed "inj_imp";
 
 val [prem] = goalw thy [inv_def] "y : range(f) ==> f(inv f y) = y";
@@ -135,20 +135,20 @@ by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
 qed "inv_injective";
 
-goal thy "!!f. [| inj(f);  A<=range(f) |] ==> inj_onto (inv f) A";
-by (fast_tac (claset() addIs [inj_ontoI] 
+goal thy "!!f. [| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
+by (fast_tac (claset() addIs [inj_onI] 
                       addEs [inv_injective,injD]) 1);
-qed "inj_onto_inv";
+qed "inj_on_inv";
 
-goalw thy [inj_onto_def]
-   "!!f. [| inj_onto f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
+goalw thy [inj_on_def]
+   "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
-qed "inj_onto_image_Int";
+qed "inj_on_image_Int";
 
-goalw thy [inj_onto_def]
-   "!!f. [| inj_onto f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
+goalw thy [inj_on_def]
+   "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
-qed "inj_onto_image_set_diff";
+qed "inj_on_image_set_diff";
 
 goalw thy [inj_def] "!!f. inj f ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);

@@ -19,14 +19,14 @@ by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst),
             rtac conjI, rtac refl, rtac refl]);
 qed "Pair_Rep_inject";
 
-goal Prod.thy "inj_onto Abs_Prod Prod";
-by (rtac inj_onto_inverseI 1);
+goal Prod.thy "inj_on Abs_Prod Prod";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Prod_inverse 1);
-qed "inj_onto_Abs_Prod";
+qed "inj_on_Abs_Prod";
 
 val prems = goalw Prod.thy [Pair_def]
     "[| (a, b) = (a',b');  [| a=a';  b=b' |] ==> R |] ==> R";
-by (rtac (inj_onto_Abs_Prod RS inj_ontoD RS Pair_Rep_inject RS conjE) 1);
+by (rtac (inj_on_Abs_Prod RS inj_onD RS Pair_Rep_inject RS conjE) 1);
 by (REPEAT (ares_tac (prems@[ProdI]) 1));
 qed "Pair_inject";
 
@@ -150,16 +150,16 @@ goal Prod.thy "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
 by (stac surjective_pairing 1);
 by (stac split 1);
 by (Blast_tac 1);
-qed "expand_split";
+qed "split_split";
 
 (* could be done after split_tac has been speeded up significantly:
-simpset_ref() := simpset() addsplits [expand_split];
+simpset_ref() := simpset() addsplits [split_split];
    precompute the constants involved and don't do anything unless
    the current goal contains one of those constants
 *)
 
 goal Prod.thy "R (split c p) = (~(? x y. p = (x,y) & (~R (c x y))))";
-by (stac expand_split 1);
+by (stac split_split 1);
 by (Simp_tac 1);
 qed "expand_split_asm";
 
