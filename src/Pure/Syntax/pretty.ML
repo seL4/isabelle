@@ -96,7 +96,10 @@ fun string s len {tx,nl,pos:int} =
 
 (*** Formatting ***)
 
-val margin      = ref 76        (*right margin, or page width*)
+(* margin *)
+
+(*example values*)
+val margin      = ref 80        (*right margin, or page width*)
 and breakgain   = ref 4         (*minimum added space required of a break*)
 and emergencypos = ref 40;      (*position too far to right*)
 
@@ -104,6 +107,9 @@ fun setmargin m =
     (margin     := m;
      breakgain  := !margin div 20;
      emergencypos := !margin div 2);
+
+val () = setmargin 76;
+
 
 (*Search for the next break (at this or higher levels) and force it to occur*)
 fun forcenext [] = []
@@ -234,9 +240,5 @@ fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
     pp (prune (! depth) prt)
   end;
 
-
-(*** Initialization ***)
-
-val () = setmargin 80;
 
 end;
