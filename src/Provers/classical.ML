@@ -1125,7 +1125,7 @@ local
 fun intro_elim_tac netpair_of res_tac rules cs facts =
   let
     val tac =
-      if null rules then FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs))
+      if null rules then FIRST' (map (bimatch_from_nets_tac o netpair_of) (get_nets cs))
       else res_tac rules;
   in Method.insert_tac facts THEN' REPEAT_ALL_NEW tac end;
 
