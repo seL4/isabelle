@@ -33,6 +33,10 @@ by Auto_tac;
 qed "Collect_empty_eq";
 Addsimps[Collect_empty_eq];
 
+Goal "{x. ~ (P x)} = - {x. P x}";
+by (Blast_tac 1);
+qed "Collect_neg_eq";
+
 Goal "{x. P x | Q x} = {x. P x} Un {x. Q x}";
 by (Blast_tac 1);
 qed "Collect_disj_eq";
