@@ -77,17 +77,6 @@ LOGIC=`case \`basename "$(ISABELLECOMP)"\` in \
 			$(ISABELLECOMP) is not poly or sml; exit 1" ;;\
 	esac`
 
-##TFL (requires integration into HOL proper)
-TFL_NAMES = mask tfl thms thry usyntax utils
-TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
-            $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
-
-TFL:	$(BIN)/HOL  $(TFL_FILES)
-	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-	then echo 'make_html:= true; exit_use_dir"../TFL";quit();' | $(LOGIC);\
-	else echo 'exit_use_dir"../TFL";quit();' | $(LOGIC); \
-	fi
-
 
 ## Inductive definitions: simple examples
 
@@ -229,7 +218,7 @@ ex:	$(BIN)/HOL  $(EX_FILES)
 
 #Full test.
 test:	$(BIN)/HOL \
-		TFL Induct IMP Hoare Lex Integ Auth Subst Lambda  \
+		Induct IMP Hoare Lex Integ Auth Subst Lambda  \
 		W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
