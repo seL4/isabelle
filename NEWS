@@ -23,6 +23,9 @@ including proper document sources;
 (isatool document -c); may retain a copy somewhere else via -D option
 of isatool usedir;
 
+* isatool usedir -D now lets isatool latex -o sty update the Isabelle
+style files, achieving self-contained LaTeX sources;
+
 * old-style theories now produce (crude) LaTeX output as well;
 
 
