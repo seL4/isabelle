@@ -347,8 +347,9 @@ by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps 
     [hypreal_hrinv,hypreal_zero_def] setloop (split_tac [expand_if])) 1);
-by (ultra_tac (claset() addDs (map (full_rename_numerals thy)
-    [rinv_not_zero,real_rinv_rinv]),simpset()) 1);
+by (ultra_tac (claset() addDs (map (rename_numerals thy)
+			       [rinv_not_zero,real_rinv_rinv]),
+	       simpset()) 1);
 qed "hypreal_hrinv_hrinv";
 
 Addsimps [hypreal_hrinv_hrinv];
@@ -713,8 +714,9 @@ by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv,
     hypreal_mult] setloop (split_tac [expand_if])) 1);
 by (dtac FreeUltrafilterNat_Compl_mem 1 THEN Clarify_tac 1);
-by (ultra_tac (claset() addIs [ccontr] addDs 
-    [full_rename_numerals thy rinv_not_zero],simpset()) 1);
+by (ultra_tac (claset() addIs [ccontr]
+                        addDs [rename_numerals thy rinv_not_zero],
+	       simpset()) 1);
 qed "hrinv_not_zero";
 
 Addsimps [hypreal_mult_hrinv,hypreal_mult_hrinv_left];
@@ -858,8 +860,8 @@ by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps
     [hypreal_less_def,hypreal_mult]));
-by (ultra_tac (claset() addIs [rename_numerals thy 
-    real_mult_order],simpset()) 1);
+by (ultra_tac (claset() addIs [rename_numerals thy real_mult_order],
+	       simpset()) 1);
 qed "hypreal_mult_order";
 
 (*---------------------------------------------------------------------------------
@@ -1269,14 +1271,14 @@ qed "hypreal_mult_le_mono";
   hypreal_of_real preserves field and order properties
  -----------------------------------------------------------*)
 Goalw [hypreal_of_real_def] 
-      "hypreal_of_real ((z1::real) + z2) = \
-\      hypreal_of_real z1 + hypreal_of_real z2";
+     "hypreal_of_real (z1 + z2) = \
+\     hypreal_of_real z1 + hypreal_of_real z2";
 by (asm_simp_tac (simpset() addsimps [hypreal_add,
        hypreal_add_mult_distrib]) 1);
 qed "hypreal_of_real_add";
 
 Goalw [hypreal_of_real_def] 
-            "hypreal_of_real ((z1::real) * z2) = hypreal_of_real z1 * hypreal_of_real z2";
+     "hypreal_of_real (z1 * z2) = hypreal_of_real z1 * hypreal_of_real z2";
 by (full_simp_tac (simpset() addsimps [hypreal_mult,
         hypreal_add_mult_distrib2]) 1);
 qed "hypreal_of_real_mult";
@@ -1674,9 +1676,9 @@ Goal "(x::hypreal)*x <= x*x + y*y + z*z";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps 
-    [hypreal_mult,hypreal_add,hypreal_le,
-    rename_numerals thy real_le_add_order]));
+by (auto_tac (claset(),
+	      simpset() addsimps [hypreal_mult, hypreal_add, hypreal_le,
+				  rename_numerals thy real_le_add_order]));
 qed "hypreal_self_le_add_pos2";
 Addsimps [hypreal_self_le_add_pos2];
 
@@ -1691,11 +1693,13 @@ by (simp_tac (simpset() addsimps [hypreal_of_real_one]) 1);
 qed "hypreal_of_posnat_one";
 
 Goalw [hypreal_of_posnat_def] "hypreal_of_posnat 1 = 1hr + 1hr";
-by (full_simp_tac (simpset() addsimps [real_of_preal_def,
-    rename_numerals thy (real_one_def RS meta_eq_to_obj_eq),
-     hypreal_add,hypreal_of_real_def,pnat_two_eq,hypreal_one_def,
-    real_add,prat_of_pnat_add RS sym,preal_of_prat_add RS sym] @ 
-    pnat_add_ac) 1);
+by (full_simp_tac (simpset() addsimps 
+		   [real_of_preal_def,
+		    rename_numerals thy (real_one_def RS meta_eq_to_obj_eq),
+		    hypreal_add,hypreal_of_real_def,pnat_two_eq,
+		    hypreal_one_def, real_add,
+		    prat_of_pnat_add RS sym, preal_of_prat_add RS sym] @ 
+		    pnat_add_ac) 1);
 qed "hypreal_of_posnat_two";
 
 Goalw [hypreal_of_posnat_def]
@@ -1786,8 +1790,8 @@ by Auto_tac;
 qed "hypreal_of_real_not_eq_epsilon";
 
 Goalw [epsilon_def,hypreal_zero_def] "ehr ~= 0";
-by (auto_tac (claset(),simpset() addsimps 
-    [rename_numerals thy real_of_posnat_rinv_not_zero]));
+by (auto_tac (claset(),
+     simpset() addsimps [rename_numerals thy real_of_posnat_rinv_not_zero]));
 qed "hypreal_epsilon_not_zero";
 
 Addsimps [rename_numerals thy real_of_posnat_not_eq_zero];
