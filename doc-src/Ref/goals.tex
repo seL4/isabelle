@@ -87,11 +87,10 @@ is like \texttt{goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
 \index{meta-rewriting}
 
-\item[\ttindexbold{goalw_cterm} {\it theory} {\it defs} {\it ct};] is
-  a version of \texttt{goalw} for programming applications.  The main
-  goal is supplied as a cterm, not as a string.  Typically, the cterm
-  is created from a term~$t$ by \texttt{cterm_of (sign_of thy) $t$}.
-  \index{*cterm_of}\index{*sign_of}
+\item[\ttindexbold{goalw_cterm} {\it defs} {\it ct};] is
+  a version of \texttt{goalw} intended for programming.  The main
+  goal is supplied as a cterm, not as a string.  See also
+  \texttt{prove_goalw_cterm}, \S\ref{sec:executing-batch}. 
 
 \item[\ttindexbold{premises}()] 
 returns the list of meta-hypotheses associated with the current proof (in
@@ -482,7 +481,7 @@ parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
 \end{ttdescription}
 
 
-\section{Executing batch proofs}
+\section{Executing batch proofs}\label{sec:executing-batch}
 \index{batch execution}%
 To save space below, let type \texttt{tacfn} abbreviate \texttt{thm list ->
   tactic list}, which is the type of a tactical proof.
@@ -496,8 +495,9 @@ prove_goalw_cterm:               thm list -> cterm  -> tacfn -> thm
 These batch functions create an initial proof state, then apply a tactic to
 it, yielding a sequence of final proof states.  The head of the sequence is
 returned, provided it is an instance of the theorem originally proposed.
-The forms \texttt{prove_goal}, \texttt{prove_goalw} and \texttt{prove_goalw_cterm}
-are analogous to \texttt{goal}, \texttt{goalw} and \texttt{goalw_cterm}.
+The forms \texttt{prove_goal}, \texttt{prove_goalw} and
+\texttt{prove_goalw_cterm} are analogous to \texttt{goal}, \texttt{goalw} and
+\texttt{goalw_cterm}.  
 
 The tactic is specified by a function from theorem lists to tactic lists.
 The function is applied to the list of meta-assumptions taken from
@@ -536,15 +536,15 @@ meta-rewrite rules to the first subgoal and the premises.
 \item[\ttindexbold{qed_goalw} $name$ $theory$ $defs$ $formula$ $tacsf$;]
 is analogous to \texttt{qed_goal}.
 
-\item[\ttindexbold{prove_goalw_cterm} {\it theory} {\it defs} {\it ct}
+\item[\ttindexbold{prove_goalw_cterm} {\it defs} {\it ct}
       {\it tacsf};] 
-is a version of \texttt{prove_goalw} for programming applications.  The main
-goal is supplied as a cterm, not as a string.  Typically, the cterm is
-created from a term~$t$ as follows:
+is a version of \texttt{prove_goalw} intended for programming.  The main
+goal is supplied as a cterm, not as a string.  A cterm carries a theory with
+      it, and can be created from a term~$t$ by
 \begin{ttbox}
-cterm_of (sign_of thy) \(t\)
+cterm_of (sign_of thy) \(t\)        
 \end{ttbox}
-\index{*cterm_of}\index{*sign_of}
+  \index{*cterm_of}\index{*sign_of}
 \end{ttdescription}
 
 
