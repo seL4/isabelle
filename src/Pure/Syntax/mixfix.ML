@@ -17,6 +17,7 @@ sig
     Infixr of int |
     Binder of string * int * int
   val max_pri: int
+  val mixfix_args: mixfix -> int
 end;
 
 signature MIXFIX1 =
@@ -80,6 +81,14 @@ fun const_name c (InfixlName _) = c
   | const_name c (Infixl _) = "op " ^ strip_esc c
   | const_name c (Infixr _) = "op " ^ strip_esc c
   | const_name c _ = c;
+
+
+(* mixfix_args *)
+
+fun mixfix_args NoSyn = 0
+  | mixfix_args (Mixfix (sy, _, _)) = mfix_args sy
+  | mixfix_args (Delimfix sy) = mfix_args sy
+  | mixfix_args _ = 2 		(*infix or binder*);
 
 
 (* syn_ext_types *)
