@@ -17,6 +17,10 @@ fun uncurry f (x, y) = f x y;
 fun I x = x;
 fun K x y = x;
 
+(*reverse apply*)
+infix also;
+fun (x also f) = f x;
+
 (*combine two functions forming the union of their domains*)
 infix orelf;
 fun f orelf g = fn x => f x handle Match => g x;
@@ -116,6 +120,13 @@ fun forall (pred: 'a -> bool) : 'a list -> bool =
   let fun boolf [] = true
         | boolf (x :: xs) = pred x andalso boolf xs
   in boolf end;
+
+
+(* flags *)
+
+fun set flag = (flag := true; true);
+fun reset flag = (flag := false; false);
+fun toggle flag = (flag := not (! flag); ! flag);
 
 
 
@@ -240,7 +251,24 @@ fun mapfilter (f: 'a -> 'b option) ([]: 'a list) = [] : 'b list
       | Some y => y :: mapfilter f xs);
 
 
+fun find_first _ [] = None
+  | find_first pred (x :: xs) =
+      if pred x then Some x else find_first pred xs;
+
+
 (* lists of pairs *)
+
+fun map2 _ ([], []) = []
+  | map2 f (x :: xs, y :: ys) = (f (x, y) :: map2 f (xs, ys))
+  | map2 _ _ = raise LIST "map2";
+
+fun exists2 _ ([], []) = false
+  | exists2 pred (x :: xs, y :: ys) = pred (x, y) orelse exists2 pred (xs, ys)
+  | exists2 _ _ = raise LIST "exists2";
+
+fun forall2 _ ([], []) = true
+  | forall2 pred (x :: xs, y :: ys) = pred (x, y) andalso forall2 pred (xs, ys)
+  | forall2 _ _ = raise LIST "forall2";
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
@@ -249,10 +277,6 @@ fun [] ~~ [] = []
   | (x :: xs) ~~ (y :: ys) = (x, y) :: (xs ~~ ys)
   | _ ~~ _ = raise LIST "~~";
 
-(*combine two lists*)
-fun map2 _ ([], []) = []
-  | map2 f (x :: xs, y :: ys) = (f (x, y) :: map2 f (xs, ys))
-  | map2 _ _ = raise LIST "map2";
 
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
@@ -386,6 +410,7 @@ val quote = parents "\"" "\"";
 fun space_implode a bs = implode (separate a bs);
 
 val commas = space_implode ", ";
+val commas_quote = commas o map quote;
 
 (*concatenate messages, one per line, into a string*)
 val cat_lines = space_implode "\n";
@@ -566,6 +591,11 @@ fun generic_merge eq dest_tab mk_tab tab1 tab2 =
 val extend_list = generic_extend (op =) I I;
 val merge_lists = generic_merge (op =) I I;
 
+fun merge_rev_lists xs [] = xs
+  | merge_rev_lists [] ys = ys
+  | merge_rev_lists xs (y :: ys) =
+      (if y mem xs then I else cons y) (merge_rev_lists xs ys);
+
 
 
 (** balanced trees **)
@@ -612,7 +642,7 @@ fun writeln s = prs (s ^ "\n");
 (*print error message and abort to top level*)
 exception ERROR;
 fun error msg = (writeln msg; raise ERROR);
-fun sys_error msg = (writeln "*** System Error ***"; error msg);
+fun sys_error msg = (writeln "*** SYSTEM ERROR ***"; error msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
