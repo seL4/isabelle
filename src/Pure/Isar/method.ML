@@ -24,6 +24,7 @@ sig
   val forward_chain: thm list -> thm list -> thm Seq.seq
   val rule_tac: tthm list -> tthm list -> int -> tactic
   val rule: tthm list -> Proof.method
+  exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
@@ -153,6 +154,8 @@ val print_methods = MethodsData.print;
 
 (* get methods *)
 
+exception METHOD_FAIL of (string * Position.T) * exn;
+
 fun method thy =
   let
     val {space, meths} = MethodsData.get thy;
@@ -164,7 +167,7 @@ fun method thy =
       in
         (case Symtab.lookup (meths, name) of
           None => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | Some ((mth, _), _) => mth src)
+        | Some ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
       end;
   in meth end;
 
