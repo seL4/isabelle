@@ -51,7 +51,7 @@ val action_cs = op addss action_css;
 
 AddSIs [actionI,intI];
 AddDs  [actionD,intD];
-claset_ref() := claset() addss (simpset());
+
 
 
 
