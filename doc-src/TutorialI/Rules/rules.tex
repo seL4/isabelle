@@ -304,7 +304,7 @@ in Isabelle:
 (?P\ \isasymLongrightarrow\ ?Q)\ \isasymLongrightarrow\ ?P\
 \isasymlongrightarrow\ ?Q\rulenamedx{impI}
 \end{isabelle}
-And this is \emph{modus ponens}\index{modus ponens@\emph{modus ponens}} :
+And this is \emph{modus ponens}\index{modus ponens@\emph{modus ponens}}:
 \begin{isabelle}
 \isasymlbrakk?P\ \isasymlongrightarrow\ ?Q;\ ?P\isasymrbrakk\
 \isasymLongrightarrow\ ?Q
@@ -1691,7 +1691,7 @@ xa\isasymrbrakk\ \isasymLongrightarrow\ P\ x\ \isasymand\ Q\ x
 The proof must fail because the assumption \isa{Q\ xa} and conclusion \isa{Q\ x}
 refer to distinct bound variables.  To reach this state, \isa{clarify} applied
 the introduction rules for \isa{\isasymlongrightarrow} and \isa{\isasymforall}
-and the elimination rule for ~\isa{\isasymand}.  It did not apply the introduction
+and the elimination rule for \isa{\isasymand}.  It did not apply the introduction
 rule for  \isa{\isasymand} because of its policy never to split goals.
 
 Also available is \methdx{clarsimp}, a method
@@ -1925,7 +1925,7 @@ is the Isabelle version:\index{*gcd (constant)|)}
 \end{isabelle}
 
 \begin{warn}
-To give~\isa{of} a nonvariable term, enclose it in quotation marks, as in
+To give~\isa{of} a nonatomic term, enclose it in quotation marks, as in
 \isa{[of "k*m"]}.  The term must not contain unknowns: an
 attribute such as 
 \isa{[of "?k*m"]} will be rejected.
@@ -2438,7 +2438,7 @@ The conditional induction hypothesis suggests doing a case
 analysis on \isa{n=0}.  We apply \methdx{case_tac} with type
 \isa{bool} --- and not with a datatype, as we have done until now.  Since
 \isa{nat} is a datatype, we could have written
-\isa{case_tac~"n"} instead of \isa{case_tac~"n=0"}.  However, the definition
+\isa{case_tac~n} instead of \isa{case_tac~"n=0"}.  However, the definition
 of \isa{gcd} makes a Boolean decision:
 \begin{isabelle}
 \ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
