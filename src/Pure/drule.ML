@@ -433,8 +433,8 @@ fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
 val size_of_thm = size_of_term o #prop o rep_thm;
 
 (*maintain lists of theorems --- preserving canonical order*)
-val add_rules = Library.generic_extend Thm.eq_thm I I;
 fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
+fun add_rules rs rules = rs @ del_rules rs rules;
 fun merge_rules (rules1, rules2) = Library.generic_merge Thm.eq_thm I I rules1 rules2;
 
 
