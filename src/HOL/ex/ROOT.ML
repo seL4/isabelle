@@ -27,7 +27,7 @@ time_use_thy "Primes";
 time_use_thy "NatSum";
 time_use     "set.ML";
 time_use_thy "SList";
-time_use_thy "LList";
+time_use_thy "LFilter";
 time_use_thy "Acc";
 time_use_thy "PropLog";
 time_use_thy "Term";
