@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -5,6 +6,14 @@ New in this Isabelle release
 ----------------------------
 
 *** General ***
+
+* Pure: locale specifications now produce predicate definitions
+according to the body of text (covering assumptions modulo local
+definitions); predicate "loc_axioms" covers newly introduced text,
+while "loc" is cumulative wrt. all included locale expressions; the
+latter view is presented only on export into the global theory
+context; potential INCOMPATIBILITY, use "(open)" option to fall back
+on the old view without predicates;
 
 * improved thms_containing: proper indexing of facts instead of raw
 theorems; check validity of results wrt. current name space; include
