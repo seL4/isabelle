@@ -24,7 +24,6 @@ signature THM =
   val cterm_of          : Sign.sg -> term -> cterm
   val ctyp_of_term      : cterm -> ctyp
   val read_cterm        : Sign.sg -> string * typ -> cterm
-  val read_cterms       : Sign.sg -> string list * typ list -> cterm list
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
   val dest_comb         : cterm -> cterm * cterm
   val dest_abs          : cterm -> cterm * cterm
@@ -34,6 +33,10 @@ signature THM =
   val read_def_cterm    :
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
+  val read_def_cterms   :
+    Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
+    string list -> bool -> (string * typ)list
+    -> cterm list * (indexname * typ)list
 
   (*proof terms [must DUPLICATE declaration as a specification]*)
   datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
@@ -258,23 +261,34 @@ fun cabs (Cterm {t=Free(a,ty), sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
 
 (** read cterms **)   (*exception ERROR*)
 
-(*read term, infer types, certify term*)
-fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
+(*read terms, infer types, certify terms*)
+fun read_def_cterms (sign, types, sorts) used freeze sTs =
   let
-    val T' = Sign.certify_typ sign T
-      handle TYPE (msg, _, _) => error msg;
-    val ts = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
-    val (t', tye) = Sign.infer_types sign types sorts used freeze (ts, T');
-    val ct = cterm_of sign t'
+    val syn = #syn (Sign.rep_sg sign)
+    fun read(s,T) =
+      let val T' = Sign.certify_typ sign T
+                   handle TYPE (msg, _, _) => error msg
+      in (Syntax.read syn T' s, T') end
+    val tsTs = map read sTs
+    val (ts',tye) = Sign.infer_types_simult sign types sorts used freeze tsTs;
+    val cts = map (cterm_of sign) ts'
       handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
-  in (ct, tye) end;
+  in (cts, tye) end;
+
+(*read term, infer types, certify term*)
+fun read_def_cterm args used freeze aT =
+  let val ([ct],tye) = read_def_cterms args used freeze [aT]
+  in (ct,tye) end;
 
 fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
 
 (*read a list of terms, matching them against a list of expected types.
   NO disambiguation of alternative parses via type-checking -- it is just
-  not practical.*)
+  not practical.
+
+Why not? In any case, this function is not used at all.
+
 fun read_cterms sg (bs, Ts) =
   let
     val {tsig, syn, ...} = Sign.rep_sg sg;
@@ -293,7 +307,7 @@ fun read_cterms sg (bs, Ts) =
   in map (cterm_of sg) us end
   handle TYPE (msg, _, _) => error msg
        | TERM (msg, _) => error msg;
-
+*)
 
 
 (*** Derivations ***)

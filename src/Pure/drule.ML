@@ -123,7 +123,7 @@ fun inst_failure ixn =
    simultaneous instantiations were read or at least type checked
    simultaneously rather than one after the other. This would make the tricky
    composition of implicit type instantiations (parameter tye) superfluous.
-*)
+
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let val {tsig,...} = Sign.rep_sg sign
     fun split([],tvs,vs) = (tvs,vs)
@@ -151,6 +151,37 @@ let val {tsig,...} = Sign.rep_sg sign
     val (cterms,tye',_) = foldl add_cterm (([],tye,used), vs);
 in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye',
     map (fn (ixn,T,ct) => (cterm_of sign (Var(ixn,T)), ct)) cterms)
+end;
+*)
+
+fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
+let val {tsig,...} = Sign.rep_sg sign
+    fun split([],tvs,vs) = (tvs,vs)
+      | split((sv,st)::l,tvs,vs) = (case explode sv of
+                  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
+                | cs => split(l,tvs,(indexname cs,st)::vs));
+    val (tvs,vs) = split(insts,[],[]);
+    fun readT((a,i),st) =
+        let val ixn = ("'" ^ a,i);
+            val S = case rsorts ixn of Some S => S | None => absent ixn;
+            val T = Sign.read_typ (sign,sorts) st;
+        in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
+           else inst_failure ixn
+        end
+    val tye = map readT tvs;
+    fun mkty(ixn,st) = (case rtypes ixn of
+                          Some T => (ixn,(st,typ_subst_TVars tye T))
+                        | None => absent ixn);
+    val ixnsTs = map mkty vs;
+    val ixns = map fst ixnsTs
+    and sTs  = map snd ixnsTs
+    val (cts,tye2) = read_def_cterms(sign,types,sorts) used false sTs;
+    fun mkcVar(ixn,T) =
+        let val U = typ_subst_TVars tye2 T
+        in cterm_of sign (Var(ixn,U)) end
+    val ixnTs = ListPair.zip(ixns, map snd sTs)
+in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) (tye2 @ tye),
+    ListPair.zip(map mkcVar ixnTs,cts))
 end;
 
 
