@@ -120,7 +120,7 @@ by (Blast_tac 1);
 qed "guarantees_UN_left";
 
 Goalw [guar_def]
-    "(X Un Y) guarantees[v] Z = (X guarantees[v] Z) Int (Y guarantees[v] Z)";
+     "(X Un Y) guarantees[v] Z = (X guarantees[v] Z) Int (Y guarantees[v] Z)";
 by (Blast_tac 1);
 qed "guarantees_Un_left";
 
@@ -130,9 +130,14 @@ by (Blast_tac 1);
 qed "guarantees_INT_right";
 
 Goalw [guar_def]
-    "Z guarantees[v] (X Int Y) = (Z guarantees[v] X) Int (Z guarantees[v] Y)";
+     "Z guarantees[v] (X Int Y) = (Z guarantees[v] X) Int (Z guarantees[v] Y)";
 by (Blast_tac 1);
 qed "guarantees_Int_right";
+
+Goal "[| F : Z guarantees[v] X;  F : Z guarantees[v] Y |] \
+\    ==> F : Z guarantees[v] (X Int Y)";
+by (asm_simp_tac (simpset() addsimps [guarantees_Int_right]) 1);
+qed "guarantees_Int_right_I";
 
 Goal "(F : X guarantees[v] (INTER I Y)) = \
 \     (ALL i:I. F : X guarantees[v] (Y i))";

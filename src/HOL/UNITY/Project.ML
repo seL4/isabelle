@@ -10,65 +10,13 @@ Inheritance of GUARANTEES properties under extension
 
 Open_locale "Extend";
 
-(** projection: monotonicity for safety **)
-
-Goal "D <= C ==> \
-\     project_act h (Restrict D act) <= project_act h (Restrict C act)";
-by (auto_tac (claset(), simpset() addsimps [project_act_def]));
-qed "project_act_mono";
-
-Goal "[| D <= C; project h C F : A co B |] ==> project h D F : A co B";
-by (auto_tac (claset(), simpset() addsimps [constrains_def]));
-by (dtac project_act_mono 1);
-by (Blast_tac 1);
-qed "project_constrains_mono";
-
-Goal "[| D <= C;  project h C F : stable A |] ==> project h D F : stable A";
-by (asm_full_simp_tac
-    (simpset() addsimps [stable_def, project_constrains_mono]) 1);
-qed "project_stable_mono";
-
 Goal "F : A co B ==> project h C (extend h F) : A co B";
 by (auto_tac (claset(), 
       simpset() addsimps [extend_act_def, project_act_def, constrains_def]));
 qed "project_extend_constrains_I";
 
-Goal "UNIV <= project_set h C \
-\     ==> project h C ((extend h F) Join G) = F Join (project h C G)";
-by (rtac program_equalityI 1);
-by (asm_simp_tac (simpset() addsimps [image_eq_UN, UN_Un,
-			subset_UNIV RS subset_trans RS Restrict_triv]) 2);
-by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
-qed "project_extend_Join";
-
-Goal "UNIV <= project_set h C \
-\     ==> (extend h F) Join G = extend h H ==> H = F Join (project h C G)";
-by (dres_inst_tac [("f", "project h C")] arg_cong 1);
-by (asm_full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
-qed "extend_Join_eq_extend_D";
-
 
 (** Safety **)
-
-Goalw [constrains_def]
-     "(project h C F : A co B)  =  \
-\     (F : (C Int extend_set h A) co (extend_set h B) & A <= B)";
-by (auto_tac (claset() addSIs [project_act_I], simpset() addsimps [ball_Un]));
-by (force_tac (claset() addSIs [project_act_I] addSDs [subsetD], simpset()) 1);
-(*the <== direction*)
-by (rewtac project_act_def);
-by (force_tac (claset() addSDs [subsetD], simpset()) 1);
-qed "project_constrains";
-
-Goalw [stable_def]
-     "(project h UNIV F : stable A) = (F : stable (extend_set h A))";
-by (simp_tac (simpset() addsimps [project_constrains]) 1);
-qed "project_stable";
-
-Goal "F : stable (extend_set h A) ==> project h C F : stable A";
-by (dtac (project_stable RS iffD2) 1);
-by (blast_tac (claset() addIs [project_stable_mono]) 1);
-qed "project_stable_I";
 
 (*used below to prove Join_project_ensures*)
 Goal "[| G : stable C;  project h C G : A unless B |] \
@@ -113,7 +61,7 @@ Goalw [increasing_def, stable_def]
      "extend h F Join G : increasing (func o f) \
 \     ==> F Join project h C G : increasing func";
 by (asm_full_simp_tac (simpset() addsimps [project_constrains_I, 
-					   Collect_eq_extend_set RS sym]) 1);
+					   extend_set_eq_Collect]) 1);
 qed "project_increasing_I";
 
 Goal "(F Join project h UNIV G : increasing func)  =  \
@@ -123,7 +71,7 @@ by (etac project_increasing_I 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [increasing_def, Join_project_stable]) 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [Join_stable, Collect_eq_extend_set RS sym,
+	      simpset() addsimps [Join_stable, extend_set_eq_Collect,
 				  extend_stable RS iffD1]));
 qed "Join_project_increasing";
 
@@ -134,32 +82,6 @@ by (asm_full_simp_tac
     (simpset() addsimps [project_constrains, Join_constrains, 
 			 extend_constrains]) 1);
 qed "project_constrains_D";
-
-
-(*** preserves ***)
-
-Goal "G : preserves (v o f) ==> project h C G : preserves v";
-by (auto_tac (claset(),
-	      simpset() addsimps [preserves_def, project_stable_I,
-				  Collect_eq_extend_set RS sym]));
-qed "project_preserves_I";
-
-(*to preserve f is to preserve the whole original state*)
-Goal "G : preserves f ==> project h C G : preserves id";
-by (asm_simp_tac (simpset() addsimps [project_preserves_I]) 1);
-qed "project_preserves_id_I";
-
-Goal "(extend h G : preserves (v o f)) = (G : preserves v)";
-by (auto_tac (claset(),
-	      simpset() addsimps [preserves_def, extend_stable RS sym,
-				  Collect_eq_extend_set RS sym]));
-qed "extend_preserves";
-
-Goal "inj h ==> (extend h G : preserves g)";
-by (auto_tac (claset(),
-	      simpset() addsimps [preserves_def, extend_def, extend_act_def, 
-				  stable_def, constrains_def, g_def]));
-qed "inj_extend_preserves";
 
 
 (*** "projecting" and union/intersection (no converses) ***)
@@ -315,7 +237,7 @@ Goalw [Increasing_def]
      "F Join project h (reachable (extend h F Join G)) G : Increasing func  \
 \     ==> extend h F Join G : Increasing (func o f)";
 by Auto_tac;
-by (stac Collect_eq_extend_set 1);
+by (stac (extend_set_eq_Collect RS sym) 1);
 by (asm_simp_tac (simpset() addsimps [project_Stable_D]) 1); 
 qed "project_Increasing_D";
 
@@ -381,7 +303,7 @@ Goalw [Increasing_def]
     "extend h F Join G : Increasing (func o f)  \
 \    ==> F Join project h (reachable (extend h F Join G)) G : Increasing func";
 by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [Collect_eq_extend_set RS sym,
+by (asm_simp_tac (simpset() addsimps [extend_set_eq_Collect,
 				      project_Stable_I]) 1); 
 qed "project_Increasing_I";
 
@@ -400,7 +322,7 @@ Goal
    "(F Join project h (reachable (extend h F Join G)) G : Increasing func)  = \
 \   (extend h F Join G : Increasing (func o f))";
 by (asm_simp_tac (simpset() addsimps [Increasing_def, project_Stable,
-				      Collect_eq_extend_set RS sym]) 1);
+				      extend_set_eq_Collect]) 1);
 qed "project_Increasing";
 
 (** A lot of redundant theorems: all are proved to facilitate reasoning
@@ -662,38 +584,9 @@ by (auto_tac (claset(),
 qed "project_Ensures_D";
 
 
-(*** GUARANTEES and EXTEND ***)
+(*** Guarantees ***)
 
-(** Strong precondition and postcondition; doesn't seem very useful. **)
-
-Goal "F : X guarantees[v] Y ==> \
-\     extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)";
-by (rtac guaranteesI 1);
-by Auto_tac;
-by (blast_tac (claset() addIs [project_preserves_I]
-			addDs [project_set_UNIV RS equalityD2 RS 
-			       extend_Join_eq_extend_D, 
-			       guaranteesD]) 1);
-qed "guarantees_imp_extend_guarantees";
-
-Goal "extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y) \
-\     ==> F : X guarantees[v] Y";
-by (auto_tac (claset(), simpset() addsimps [guar_def]));
-by (dres_inst_tac [("x", "extend h G")] spec 1);
-by (asm_full_simp_tac 
-    (simpset() delsimps [extend_Join] 
-           addsimps [extend_Join RS sym, extend_preserves,
-		     inj_extend RS inj_image_mem_iff]) 1);
-qed "extend_guarantees_imp_guarantees";
-
-Goal "(extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)) = \
-\    (F : X guarantees[v] Y)";
-by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
-			       extend_guarantees_imp_guarantees]) 1);
-qed "extend_guarantees_eq";
-
-
-(*Weak precondition and postcondition; this is the good one!
+(*Weak precondition and postcondition
   Not clear that it has a converse [or that we want one!]*)
 
 (*The raw version*)

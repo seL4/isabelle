@@ -8,11 +8,16 @@ A trivial example of reasoning about an array of processes
 
 TimerArray = PPROD +
 
+types 'a state = "nat * 'a"   (*second component allows new variables*)
+
 constdefs
-  decr  :: "(nat*nat) set"
-    "decr == UN n. {(Suc n, n)}"
+  count  :: "'a state => nat"
+    "count s == fst s"
   
-  Timer :: nat program
+  decr  :: "('a state * 'a state) set"
+    "decr == UN n uu. {((Suc n, uu), (n,uu))}"
+  
+  Timer :: 'a state program
     "Timer == mk_program (UNIV, {decr})"
 
 end

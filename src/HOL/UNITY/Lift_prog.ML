@@ -3,67 +3,87 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Arrays of processes.  Many results are instances of those in Extend & Project.
+Arrays of processes. 
 *)
 
+Addsimps [insert_map_def, delete_map_def];
 
-(*** Basic properties ***)
+Goal "delete_map i (insert_map i x f) = f";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "insert_map_inverse";
 
-(** lift_set and drop_set **)
+Goal "(insert_map i x (delete_map i g)) = g(i:=x)";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
+by (exhaust_tac "d" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "insert_map_delete_map_eq";
 
-Goalw [lift_set_def] "(f : lift_set i A) = (f i : A)";
+(*** Injectiveness proof ***)
+
+Goal "(insert_map i x f) = (insert_map i y g) ==> x=y";
+by (dres_inst_tac [("x","i")] fun_cong 1);
+by (Full_simp_tac 1);
+qed "insert_map_inject1";
+
+Goal "(insert_map i x f) = (insert_map i y g) ==> f=g";
+by (dres_inst_tac [("f", "delete_map i")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [insert_map_inverse]) 1);
+qed "insert_map_inject2";
+
+Goal "(insert_map i x f) = (insert_map i y g) ==> x=y & f=g";
+by (blast_tac (claset() addDs [insert_map_inject1, insert_map_inject2]) 1);
+bind_thm ("insert_map_inject", result() RS conjE);
+AddSEs [insert_map_inject];
+
+(*The general case: we don't assume i=i'*)
+Goalw [lift_map_def]
+     "(lift_map i (s,(f,uu)) = lift_map i' (s',(f',uu'))) \
+\     = (uu = uu' & insert_map i s f = insert_map i' s' f')"; 
 by Auto_tac;
-qed "lift_set_iff";
-AddIffs [lift_set_iff];
+qed "lift_map_eq_iff";
+AddIffs [lift_map_eq_iff];
 
-Goalw [lift_set_def] "lift_set i A Int lift_set i B = lift_set i (A Int B)";
+Goalw [lift_map_def, drop_map_def] "!!s. drop_map i (lift_map i s) = s";
+by (force_tac (claset() addIs [insert_map_inverse], simpset()) 1);
+qed "drop_map_lift_map_eq";
+
+Goalw [lift_map_def] "inj (lift_map i)";
+by (rtac injI 1);
 by Auto_tac;
-qed "Int_lift_set";
+qed "inj_lift_map";
 
-Goalw [lift_set_def] "lift_set i A Un lift_set i B = lift_set i (A Un B)";
-by Auto_tac;
-qed "Un_lift_set";
+(*** Surjectiveness proof ***)
 
-Goalw [lift_set_def] "lift_set i A - lift_set i B = lift_set i (A-B)";
-by Auto_tac;
-qed "Diff_lift_set";
+Goalw [lift_map_def, drop_map_def] "!!s. lift_map i (drop_map i s) = s";
+by (force_tac (claset(), simpset() addsimps [insert_map_delete_map_eq]) 1);
+qed "lift_map_drop_map_eq";
 
-Addsimps [Int_lift_set, Un_lift_set, Diff_lift_set];
+Goal "(drop_map i s) = (drop_map i s') ==> s=s'";
+by (dres_inst_tac [("f", "lift_map i")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [lift_map_drop_map_eq]) 1);
+qed "drop_map_inject";
+AddSDs [drop_map_inject];
 
-(** lift_act and drop_act **)
+Goal "surj (lift_map i)";
+by (rtac surjI 1);
+by (rtac lift_map_drop_map_eq 1);
+qed "surj_lift_map";
 
-(*For compatibility with the original definition and perhaps simpler proofs*)
-Goalw [lift_act_def]
-    "((f,f') : lift_act i act) = (EX s'. f' = f(i := s') & (f i, s') : act)";
-by Auto_tac;
-by (rtac exI 1);
-by Auto_tac;
-qed "lift_act_eq";
-AddIffs [lift_act_eq];
+Goal "bij (lift_map i)";
+by (simp_tac (simpset() addsimps [bij_def, inj_lift_map, surj_lift_map]) 1);
+qed "bij_lift_map";
+AddIffs [bij_lift_map];
 
-(** lift_prog and drop_prog **)
+AddIffs [bij_lift_map RS mem_rename_act_iff];
 
-Goalw [lift_prog_def] "Init (lift_prog i F) = lift_set i (Init F)";
-by Auto_tac;
-qed "Init_lift_prog";
-Addsimps [Init_lift_prog];
-
-Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
-by (auto_tac (claset() addIs [rev_image_eqI], simpset()));
-qed "Acts_lift_prog";
-Addsimps [Acts_lift_prog];
-
-Goalw [drop_prog_def] "Init (drop_prog i C F) = drop_set i (Init F)";
-by Auto_tac;
-qed "Init_drop_prog";
-Addsimps [Init_drop_prog];
-
-Goal "Acts (drop_prog i C F) = insert Id (drop_act i `` Restrict C `` Acts F)";
-by (auto_tac (claset() addIs [image_eqI], 
-	      simpset() addsimps [drop_prog_def]));
-qed "Acts_drop_prog";
-Addsimps [Acts_drop_prog];
-
+Goal "inv (lift_map i) = drop_map i";
+by (rtac inv_equality 1);
+by (rtac lift_map_drop_map_eq 2);
+by (rtac drop_map_lift_map_eq 1);
+qed "inv_lift_map_eq";
+Addsimps [inv_lift_map_eq];
 
 (*** sub ***)
 
@@ -72,374 +92,293 @@ by (simp_tac (simpset() addsimps [sub_def]) 1);
 qed "sub_apply";
 Addsimps [sub_apply];
 
-Goal "lift_set i {s. P s} = {s. P (sub i s)}";
-by (asm_simp_tac (simpset() addsimps [lift_set_def]) 1);
-qed "lift_set_sub";
+Goal "lift_set i {s. P s} = {s. P (drop_map i s)}";
+by (rtac set_ext 1);
+by (asm_simp_tac (simpset() delsimps [image_Collect]
+			    addsimps [lift_set_def, rename_set_eq_Collect]) 1);
+qed "lift_set_eq_Collect";
 
-Goal "{s. P (s i)} = lift_set i {s. P s}";
-by (asm_simp_tac (simpset() addsimps [lift_set_def]) 1);
-qed "Collect_eq_lift_set";
-
-Goal "sub i -`` A = lift_set i A";
-by (Force_tac 1);
-qed "sub_vimage";
-Addsimps [sub_vimage];
-
-(*For tidying the result of "export"*)
-Goal "v o (%z. z i) = v o sub i";
-by (simp_tac (simpset() addsimps [sub_def]) 1);
-qed "fold_o_sub";
-
-
-
-(*** lift_prog and the lattice operations ***)
-
-Goal "lift_prog i SKIP = SKIP";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [SKIP_def, lift_prog_def]));
-qed "lift_prog_SKIP";
-
-Goal "lift_prog i (F Join G) = (lift_prog i F) Join (lift_prog i G)";
-by (rtac program_equalityI 1);
+Goalw [lift_set_def] "lift_set i {} = {}";
 by Auto_tac;
-qed "lift_prog_Join";
+qed "lift_set_empty";
+Addsimps [lift_set_empty];
 
-Goal "lift_prog i (JOIN J F) = (JN j:J. lift_prog i (F j))";
-by (rtac program_equalityI 1);
-by Auto_tac;
-qed "lift_prog_JN";
+Goalw [lift_set_def] "(lift_map i x : lift_set i A) = (x : A)";
+by (rtac (inj_lift_map RS inj_image_mem_iff) 1);
+qed "lift_set_iff";
+AddIffs [lift_set_iff];
 
+Goal "((f,uu) : lift_set i A) = ((f i, (delete_map i f, uu)) : A)";
+by (asm_simp_tac (simpset() addsimps [lift_set_def, 
+				      mem_rename_set_iff, drop_map_def]) 1);
+qed "lift_set_iff";
+AddIffs [lift_set_iff];
 
-(*** Equivalence with "extend" version ***)
+Goalw [lift_set_def] "A<=B ==> lift_set i A <= lift_set i B";
+by (etac image_mono 1);
+qed "lift_set_mono";
 
-Goalw [lift_map_def] "good_map (lift_map i)";
-by (rtac good_mapI 1);
-by (res_inst_tac [("f", "%f. (f i, f)")] surjI 1);
-by Auto_tac;
-by (dres_inst_tac [("f", "%f. f i")] arg_cong 1);
-by Auto_tac;
-qed "good_map_lift_map";
+Goalw [lift_set_def] "lift_set i (A Un B) = lift_set i A Un lift_set i B";
+by (asm_simp_tac (simpset() addsimps [image_Un]) 1);
+qed "lift_set_Un_distrib";
 
-fun lift_export0 th = 
-    good_map_lift_map RS export th 
-       |> simplify (simpset() addsimps [fold_o_sub]);
-
-Goal "fst (inv (lift_map i) g) = g i";
-by (rtac (good_map_lift_map RS good_map_is_surj RS fst_inv_equalityI) 1);
-by (auto_tac (claset(), simpset() addsimps [lift_map_def]));
-qed "fst_inv_lift_map";
-Addsimps [fst_inv_lift_map];
+Goalw [lift_set_def] "lift_set i (A-B) = lift_set i A - lift_set i B";
+by (rtac (inj_lift_map RS image_set_diff) 1);
+qed "lift_set_Diff_distrib";
 
 
-Goal "lift_set i A = extend_set (lift_map i) A";
-by (auto_tac (claset(), 
-     simpset() addsimps [lift_export0 mem_extend_set_iff]));
-qed "lift_set_correct";
+(*** the lattice operations ***)
 
-Goalw [drop_set_def, project_set_def, lift_map_def]
-     "drop_set i A = project_set (lift_map i) A";
-by Auto_tac;
-by (rtac image_eqI 2);
-by (rtac exI 1);
-by (stac (refl RS fun_upd_idem) 1);
-by Auto_tac;
-qed "drop_set_correct";
+Goalw [lift_def] "lift i SKIP = SKIP";
+by (Asm_simp_tac 1);
+qed "lift_SKIP";
+Addsimps [lift_SKIP];
 
-Goal "lift_act i = extend_act (lift_map i)";
-by (rtac ext 1);
-by Auto_tac;
-by (forward_tac [lift_export0 extend_act_D] 2);
-by (auto_tac (claset(), simpset() addsimps [extend_act_def]));
-by (auto_tac (claset(), simpset() addsimps [extend_act_def, lift_map_def]));
-by (rtac bexI 1);
-by (auto_tac (claset() addSIs [exI], simpset()));
-qed "lift_act_correct";
+Goalw [lift_def] "lift i (F Join G) = lift i F Join lift i G";
+by (Asm_simp_tac 1);
+qed "lift_Join";
+Addsimps [lift_Join];
 
-Goal "drop_act i = project_act (lift_map i)";
-by (rtac ext 1);
-by (rewrite_goals_tac [project_act_def, drop_act_def, lift_map_def]);
-by Auto_tac;
-by (REPEAT_FIRST (ares_tac [exI, conjI]));
-by Auto_tac;
-by (REPEAT_FIRST (assume_tac ORELSE' stac (refl RS fun_upd_idem)));
-qed "drop_act_correct";
-
-Goal "lift_prog i = extend (lift_map i)";
-by (rtac (program_equalityI RS ext) 1);
-by (simp_tac (simpset() addsimps [lift_set_correct]) 1);
-by (simp_tac (simpset() 
-	      addsimps [lift_export0 Acts_extend, 
-			lift_act_correct]) 1);
-qed "lift_prog_correct";
-
-Goal "drop_prog i C = project (lift_map i) C";
-by (rtac (program_equalityI RS ext) 1);
-by (simp_tac (simpset() addsimps [drop_set_correct]) 1);
-by (simp_tac (simpset() 
-	      addsimps [Acts_project, drop_act_correct]) 1);
-qed "drop_prog_correct";
-
-
-(** Injectivity of lift_set, lift_act, lift_prog **)
-
-Goalw [lift_set_def, drop_set_def] "drop_set i (lift_set i F) = F";
-by Auto_tac;
-qed "lift_set_inverse";
-Addsimps [lift_set_inverse];
-
-Goal "inj (lift_set i)";
-by (rtac inj_on_inverseI 1);
-by (rtac lift_set_inverse 1);
-qed "inj_lift_set";
-
-(*Because A and B could differ outside i, cannot generalize result to 
-   drop_set i (A Int B) = drop_set i A Int drop_set i B
-*)
-Goalw [lift_set_def, drop_set_def]
-     "drop_set i ((lift_set i A) Int B) = A Int (drop_set i B)";
-by Auto_tac;
-qed "drop_set_Int_lift_set";
-
-Goalw [lift_set_def, drop_set_def]
-     "drop_set i (B Int (lift_set i A)) = (drop_set i B) Int A";
-by Auto_tac;
-qed "drop_set_Int_lift_set2";
-
-Goalw [drop_set_def]
-     "i : I ==> drop_set i (INT j:I. lift_set j A) = A";
-by Auto_tac;
-qed "drop_set_INT";
-
-Goal "lift_set i UNIV = UNIV";
-by (simp_tac (simpset() addsimps [lift_set_correct, 
-				  lift_export0 extend_set_UNIV_eq]) 1);
-qed "lift_set_UNIV_eq";
-Addsimps [lift_set_UNIV_eq];
-
-Goal "inj (lift_prog i)";
-by (simp_tac
-    (simpset() addsimps [lift_prog_correct, lift_export0 inj_extend]) 1);
-qed "inj_lift_prog";
-
-
-(*** More Lemmas ***)
-
-Goal "lift_act i act ^^ lift_set i A = lift_set i (act^^A)";
-by (asm_simp_tac (simpset() addsimps [lift_set_correct, lift_act_correct,
-				      lift_export0 extend_act_Image]) 1);
-qed "lift_act_Image";
-Addsimps [lift_act_Image];
-
-
+Goalw [lift_def] "lift j (JOIN I F) = (JN i:I. lift j (F i))";
+by (Asm_simp_tac 1);
+qed "lift_JN";
+Addsimps [lift_JN];
 
 (*** Safety: co, stable, invariant ***)
 
-(** Safety and lift_prog **)
+Goalw [lift_def, lift_set_def]
+     "(lift i F : (lift_set i A) co (lift_set i B)) = (F : A co B)";
+by (asm_simp_tac (simpset() addsimps [rename_constrains]) 1);
+qed "lift_constrains";
 
-Goal "(lift_prog i F : (lift_set i A) co (lift_set i B))  =  \
-\     (F : A co B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def]));
-by (Force_tac 1);
-qed "lift_prog_constrains";
+Goalw [lift_def, lift_set_def]
+     "(lift i F : stable (lift_set i A)) = (F : stable A)";
+by (asm_simp_tac (simpset() addsimps [rename_stable]) 1);
+qed "lift_stable";
 
-Goal "(lift_prog i F : stable (lift_set i A)) = (F : stable A)";
-by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains]) 1);
-qed "lift_prog_stable";
+Goalw [lift_def, lift_set_def]
+     "(lift i F : invariant (lift_set i A)) = (F : invariant A)";
+by (asm_simp_tac (simpset() addsimps [rename_invariant]) 1);
+qed "lift_invariant";
 
-Goal "(lift_prog i F : invariant (lift_set i A)) = (F : invariant A)";
-by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, lift_prog_stable]));
-qed "lift_prog_invariant";
+Goalw [lift_def, lift_set_def]
+     "(lift i F : (lift_set i A) Co (lift_set i B)) = (F : A Co B)";
+by (asm_simp_tac (simpset() addsimps [rename_Constrains]) 1);
+qed "lift_Constrains";
 
-Goal "[| lift_prog i F : A co B |] \
-\     ==> F : (drop_set i A) co (drop_set i B)";
-by (asm_full_simp_tac
-    (simpset() addsimps [drop_set_correct, lift_prog_correct, 
-			 lift_export0 extend_constrains_project_set]) 1);
-qed "lift_prog_constrains_drop_set";
+Goalw [lift_def, lift_set_def]
+     "(lift i F : Stable (lift_set i A)) = (F : Stable A)";
+by (asm_simp_tac (simpset() addsimps [rename_Stable]) 1);
+qed "lift_Stable";
 
-(*This one looks strange!  Proof probably is by case analysis on i=j.
-  If i~=j then lift_prog j (F j) does nothing to lift_set i, and the 
-  premise ensures A<=B.*)
-Goal "F i : A co B  \
-\     ==> lift_prog j (F j) : (lift_set i A) co (lift_set i B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def]));
-by (REPEAT (Blast_tac 1));
-qed "constrains_imp_lift_prog_constrains";
-
-
-(** Safety and drop_prog **)
-
-Goal "(drop_prog i C F : A co B)  =  \
-\     (F : (C Int lift_set i A) co (lift_set i B) & A <= B)";
-by (simp_tac
-    (simpset() addsimps [drop_prog_correct, lift_set_correct, 
-			 lift_export0 project_constrains]) 1);
-qed "drop_prog_constrains";
-
-Goal "(drop_prog i UNIV F : stable A)  =  (F : stable (lift_set i A))";
-by (simp_tac (simpset() addsimps [stable_def, drop_prog_constrains]) 1);
-qed "drop_prog_stable";
-
-
-(*** Weak safety primitives: Co, Stable ***)
-
-(** Reachability **)
-
-Goal "reachable (lift_prog i F) = lift_set i (reachable F)";
-by (simp_tac
-    (simpset() addsimps [lift_prog_correct, lift_set_correct, 
-			 lift_export0 reachable_extend_eq]) 1);
-qed "reachable_lift_prog";
-
-Goal "(lift_prog i F : (lift_set i A) Co (lift_set i B))  =  \
-\     (F : A Co B)";
-by (simp_tac
-    (simpset() addsimps [lift_prog_correct, lift_set_correct, 
-			 lift_export0 extend_Constrains]) 1);
-qed "lift_prog_Constrains";
-
-Goal "(lift_prog i F : Stable (lift_set i A)) = (F : Stable A)";
-by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains]) 1);
-qed "lift_prog_Stable";
-
-Goal "F Join drop_prog i (reachable (lift_prog i F Join G)) G : A Co B  \
-\     ==> lift_prog i F Join G : (lift_set i A) Co (lift_set i B)";
-by (asm_full_simp_tac
-    (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
-		     lift_set_correct, lift_export0 project_Constrains_D]) 1);
-qed "drop_prog_Constrains_D";
-
-Goalw [Stable_def]
-     "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Stable A  \
-\     ==> lift_prog i F Join G : Stable (lift_set i A)";
-by (asm_simp_tac (simpset() addsimps [drop_prog_Constrains_D]) 1);
-qed "drop_prog_Stable_D";
-
-Goal "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Always A  \
-\     ==> lift_prog i F Join G : Always (lift_set i A)";
-by (asm_full_simp_tac
-    (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
-		     lift_set_correct, lift_export0 project_Always_D]) 1);
-qed "drop_prog_Always_D";
-
-Goalw [Increasing_def]
- "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Increasing func \
-\ ==> lift_prog i F Join G : Increasing (func o (sub i))";
-by Auto_tac;
-by (stac Collect_eq_lift_set 1);
-by (asm_simp_tac (simpset() addsimps [drop_prog_Stable_D]) 1); 
-qed "project_Increasing_D";
-
+Goalw [lift_def, lift_set_def]
+     "(lift i F : Always (lift_set i A)) = (F : Always A)";
+by (asm_simp_tac (simpset() addsimps [rename_Always]) 1);
+qed "lift_Always";
 
 (*** Progress: transient, ensures ***)
 
-Goal "(lift_prog i F : transient (lift_set i A)) = (F : transient A)";
-by (simp_tac (simpset() addsimps [lift_set_correct, lift_prog_correct,
-			  lift_export0 extend_transient]) 1);
-qed "lift_prog_transient";
+Goalw [lift_def, lift_set_def]
+     "(lift i F : transient (lift_set i A)) = (F : transient A)";
+by (asm_simp_tac (simpset() addsimps [rename_transient]) 1);
+qed "lift_transient";
 
-Goal "(lift_prog i F : transient (lift_set j A)) = \
-\     (i=j & F : transient A | A={})";
-by (case_tac "i=j" 1);
-by (auto_tac (claset(), simpset() addsimps [lift_prog_transient]));
-by (auto_tac (claset(), simpset() addsimps [lift_prog_def, transient_def]));
+Goalw [lift_def, lift_set_def]
+     "(lift i F : (lift_set i A) ensures (lift_set i B)) = \
+\     (F : A ensures B)";
+by (asm_simp_tac (simpset() addsimps [rename_ensures]) 1);
+qed "lift_ensures";
+
+Goalw [lift_def, lift_set_def]
+     "(lift i F : (lift_set i A) leadsTo (lift_set i B)) = \
+\     (F : A leadsTo B)";
+by (asm_simp_tac (simpset() addsimps [rename_leadsTo]) 1);
+qed "lift_leadsTo";
+
+Goalw [lift_def, lift_set_def]
+     "(lift i F : (lift_set i A) LeadsTo (lift_set i B)) =  \
+\     (F : A LeadsTo B)";
+by (asm_simp_tac (simpset() addsimps [rename_LeadsTo]) 1);
+qed "lift_LeadsTo";
+
+
+(** guarantees **)
+
+Goalw [lift_def]
+     "(lift i F : (lift i `` X) guarantees[v o drop_map i] (lift i `` Y)) = \
+\     (F : X guarantees[v] Y)";
+by (stac (bij_lift_map RS rename_rename_guarantees_eq RS sym) 1);
+by (asm_simp_tac (simpset() addsimps [o_def]) 1);
+qed "lift_lift_guarantees_eq";
+
+Goal "(lift i F : X guarantees[v] Y) = \
+\     (F : (rename (drop_map i) `` X) guarantees[v o lift_map i] \
+\          (rename (drop_map i) `` Y))";
+by (asm_simp_tac 
+    (simpset() addsimps [bij_lift_map RS rename_guarantees_eq_rename_inv,
+			 lift_def]) 1);
+qed "lift_guarantees_eq_lift_inv";
+
+
+(*To preserve snd means that the second component is there just to allow
+  guarantees properties to be stated.  Converse fails, for lift i F can 
+  change function components other than i*)
+Goal "F : preserves snd ==> lift i F : preserves snd";
+by (dres_inst_tac [("w1", "snd")] (impOfSubs subset_preserves_o) 1);
+by (asm_simp_tac (simpset() addsimps [lift_def, rename_preserves]) 1);
+by (full_simp_tac (simpset() addsimps [lift_map_def, o_def, split_def]) 1);
+qed "lift_preserves_snd_I";
+
+Goal "(delete_map i g) = (delete_map i g') ==> EX x. g = g'(i:=x)";
+by (dres_inst_tac [("f", "insert_map i (g i)")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [insert_map_delete_map_eq]) 1);
+by (etac exI 1);
+bind_thm ("delete_map_eqE", result() RS exE);
+AddSEs [delete_map_eqE];
+
+Goal "[| delete_map j g = delete_map j g';  i~=j |] ==> g i = g' i";
 by (Force_tac 1);
-qed "lift_prog_transient_eq_disj";
+qed "delete_map_neq_apply";
 
+(*A set of the form (A Times UNIV) ignores the second (dummy) state component*)
 
-(*** guarantees properties ***)
+Goal "(f o fst) -`` A = (f-``A) Times UNIV";
+by Auto_tac;
+qed "vimage_o_fst_eq";
 
-Goal "lift_prog i F : preserves (v o sub j) = \
-\     (if i=j then F : preserves v else True)";
-by (simp_tac (simpset() addsimps [lift_prog_correct,
-				  lift_export0 extend_preserves]) 1);
+Goal "(sub i -``A) Times UNIV = lift_set i (A Times UNIV)";
+by Auto_tac;
+qed "vimage_sub_eq_lift_set";
+
+Addsimps [vimage_o_fst_eq, vimage_sub_eq_lift_set];
+
+Goal "[| F : preserves snd;  i~=j |] \
+\     ==> lift j F : stable (lift_set i (A Times UNIV))";
 by (auto_tac (claset(),
-	      simpset() addsimps [preserves_def, extend_def, extend_act_def, 
-				  stable_def, constrains_def, lift_map_def]));
-qed "lift_prog_preserves_sub";
-
-Addsimps [lift_prog_preserves_sub];
-
-Goal "G : preserves (v o sub i) ==> drop_prog i C G : preserves v";
-by (asm_simp_tac
-    (simpset() addsimps [drop_prog_correct, fold_o_sub,
-			 lift_export0 project_preserves_I]) 1);
-qed "drop_prog_preserves_I";
-
-(*The raw version*)
-val [xguary,drop_prog,lift_prog] =
-Goal "[| F : X guarantees[v] Y;  \
-\        !!G. lift_prog i F Join G : X' ==> F Join drop_prog i (C G) G : X;  \
-\        !!G. [| F Join drop_prog i (C G) G : Y; lift_prog i F Join G : X'; \
-\                G : preserves (v o sub i) |] \
-\             ==> lift_prog i F Join G : Y' |] \
-\     ==> lift_prog i F : X' guarantees[v o sub i] Y'";
-by (rtac (xguary RS guaranteesD RS lift_prog RS guaranteesI) 1);
-by (etac drop_prog_preserves_I 1);
-by (etac drop_prog 1);
+	      simpset() addsimps [lift_def, lift_set_def, 
+				  stable_def, constrains_def, 
+				  mem_rename_act_iff, mem_rename_set_iff]));
+by (auto_tac (claset() addSDs [preserves_imp_eq],
+	      simpset() addsimps [lift_map_def, drop_map_def]));
+by (dres_inst_tac [("x", "i")] fun_cong 1);
 by Auto_tac;
-qed "drop_prog_guarantees_raw";
+qed "preserves_snd_lift_stable";
 
-Goal "[| F : X guarantees[v] Y;  \
-\        projecting  C (lift_map i) F X' X;  \
-\        extending w C (lift_map i) F Y' Y; \
-\        preserves w <= preserves (v o sub i) |] \
-\     ==> lift_prog i F : X' guarantees[w] Y'";
-by (asm_simp_tac
-    (simpset() addsimps [lift_prog_correct, fold_o_sub,
-			 lift_export0 project_guarantees]) 1);
-qed "drop_prog_guarantees";
+(*If i~=j then lift j F  does nothing to lift_set i, and the 
+  premise ensures A<=B.*)
+Goal "[| F i : (A Times UNIV) co (B Times UNIV);  \
+\        F j : preserves snd |]  \
+\  ==> lift j (F j) : (lift_set i (A Times UNIV)) co (lift_set i (B Times UNIV))";
+by (case_tac "i=j" 1);
+by (asm_full_simp_tac (simpset() addsimps [lift_def, lift_set_def, 
+					   rename_constrains]) 1);
+by (etac (preserves_snd_lift_stable RS stableD RS constrains_weaken_R) 1);
+by (assume_tac 1);
+by (etac (constrains_imp_subset RS lift_set_mono) 1);
+qed "constrains_imp_lift_constrains";
 
+(** Lemmas for the transient theorem **)
 
-(** Are these two useful?? **)
-
-(*The other direction fails: having FF : Stable {s. z <= f (s i)} does not
-  ensure that F has the form lift_prog i F for some F.*)
-Goal "lift_prog i `` Stable {s. P (f s)} <= Stable {s. P (f (s i))}";
+Goal "(insert_map i t f)(i := s) = insert_map i s f";
+by (rtac ext 1);
 by Auto_tac;
-by (stac Collect_eq_lift_set 1); 
-by (asm_simp_tac (simpset() addsimps [lift_prog_Stable]) 1);
-qed "image_lift_prog_Stable";
+qed "insert_map_upd_same";
 
-Goal "lift_prog i `` Increasing f <= Increasing (f o sub i)";
-by (simp_tac (simpset() addsimps [Increasing_def,
-				  inj_lift_prog RS image_INT]) 1);
-by (blast_tac (claset() addIs [impOfSubs image_lift_prog_Stable]) 1);
-qed "image_lift_prog_Increasing";
+Goal "(insert_map j t f)(i := s) = \
+\     (if i=j then insert_map i s f \
+\      else if i<j then insert_map j t (f(i:=s)) \
+\      else insert_map j t (f(i-1:=s)))";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+by (ALLGOALS arith_tac);
+qed "insert_map_upd";
+
+Goal "[| insert_map i s f = insert_map j t g;  i~=j |] \
+\     ==> EX g'. insert_map i s' f = insert_map j t g'";
+by (stac (insert_map_upd_same RS sym) 1);
+by (etac ssubst 1);
+by (asm_simp_tac (HOL_ss addsimps [insert_map_upd]) 1);
+by (Blast_tac 1);
+qed "insert_map_eq_diff";
+
+Goalw [lift_map_def]
+     "[| lift_map i (s,(f,uu)) = lift_map j (t,(g,vv));  i~=j |] \
+\     ==> EX g'. lift_map i (s',(f,uu)) = lift_map j (t,(g',vv))";
+by Auto_tac;
+by (blast_tac (claset() addDs [insert_map_eq_diff]) 1);
+qed "lift_map_eq_diff";
+
+Goal "F : preserves snd \
+\     ==> (lift i F : transient (lift_set j (A Times UNIV))) = \
+\         (i=j & F : transient (A Times UNIV) | A={})";
+by (case_tac "i=j" 1);
+by (auto_tac (claset(), simpset() addsimps [lift_transient]));
+by (auto_tac (claset(),
+	      simpset() addsimps [lift_def, transient_def,
+				  Domain_rename_act]));
+by (dtac subsetD 1);
+by (Blast_tac 1);
+by Auto_tac;
+ren "s f uu s' f' uu'" 1;
+by (subgoal_tac "f'=f & uu'=uu" 1);
+by (force_tac (claset() addSDs [preserves_imp_eq], simpset()) 2);
+by Auto_tac;
+by (dtac sym 1);
+by (dtac subsetD 1);
+by (rtac ImageI 1);
+by (etac rename_actI 1);
+by (force_tac (claset(), simpset() addsimps [lift_set_def]) 1);
+by (etac (lift_map_eq_diff RS exE) 1);
+by (assume_tac 1);
+by (dtac ComplD 1);
+by (etac notE 1 THEN etac ssubst 1 THEN Fast_tac 1);
+qed "lift_transient_eq_disj";
+
+(*USELESS??*)
+Goal "lift_map i `` (A Times UNIV) = \
+\     (UN s:A. UN f. {insert_map i s f}) Times UNIV";
+by (auto_tac (claset() addSIs [bexI, image_eqI],
+              simpset() addsimps [lift_map_def]));
+by (rtac (split RS sym) 1);
+qed "lift_map_image_Times";
+
+Goal "(lift i F : preserves v) = (F : preserves (v o lift_map i))";
+by (simp_tac (simpset() addsimps [lift_def, rename_preserves]) 1);
+qed "lift_preserves_eq";
+
+Goal "F : preserves snd \
+\     ==> lift i F : preserves (v o sub j o fst) = \
+\         (if i=j then F : preserves (v o fst) else True)";
+by (dtac (impOfSubs subset_preserves_o) 1);
+by (full_simp_tac (simpset() addsimps [lift_preserves_eq, o_def,
+				       drop_map_lift_map_eq]) 1);
+by (asm_simp_tac (simpset() delcongs [if_weak_cong]
+			    addsimps [lift_map_def, 
+				      eq_commute, split_def, o_def]) 1);
+by Auto_tac;
+qed "lift_preserves_sub";
 
 
-(*** guarantees corollaries ***)
+
+(*** guarantees corollaries [NOT USED]
 
 Goal "F : UNIV guarantees[v] increasing func \
-\   ==> lift_prog i F : UNIV guarantees[v o sub i] increasing (func o sub i)";
+\   ==> lift i F : UNIV guarantees[v o sub i] increasing (func o sub i)";
 by (dtac (lift_export0 extend_guar_increasing) 1);
-by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
-qed "lift_prog_guar_increasing";
+by (asm_full_simp_tac (simpset() addsimps [lift_correct, o_def]) 1);
+qed "lift_guar_increasing";
 
 Goal "F : UNIV guarantees[v] Increasing func \
-\   ==> lift_prog i F : UNIV guarantees[v o sub i] Increasing (func o sub i)";
+\   ==> lift i F : UNIV guarantees[v o sub i] Increasing (func o sub i)";
 by (dtac (lift_export0 extend_guar_Increasing) 1);
-by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
-qed "lift_prog_guar_Increasing";
+by (asm_full_simp_tac (simpset() addsimps [lift_correct, o_def]) 1);
+qed "lift_guar_Increasing";
 
 Goal "F : Always A guarantees[v] Always B \
-\ ==> lift_prog i F : \
+\ ==> lift i F : \
 \       Always(lift_set i A) guarantees[v o sub i] Always (lift_set i B)";
 by (asm_simp_tac
-    (simpset() addsimps [lift_set_correct, lift_prog_correct, 
+    (simpset() addsimps [lift_set_correct, lift_correct, 
 			 lift_export0 extend_guar_Always]) 1);
-qed "lift_prog_guar_Always";
-
-(*version for outside use*)
-fun lift_export th = 
-    good_map_lift_map RS export th 
-       |> simplify
-             (simpset() addsimps [fold_o_sub, 
-				  drop_set_correct RS sym, 
-				  lift_set_correct RS sym, 
-				  drop_prog_correct RS sym, 
-				  lift_prog_correct RS sym]);;
-
+qed "lift_guar_Always";
+***)

@@ -46,10 +46,12 @@ by (rtac (invariantI RS stable_Join_Always2) 1);
 by (fast_tac (claset() addSEs [impOfSubs preserves_subset_stable]
 		       addSIs [stable_Int]) 3);
 by (constrains_tac 2);
+by (cut_inst_tac [("m", "tok s")] (NbT_pos RS mod_less_divisor) 2);
 by Auto_tac;
 qed "ask_bounded_lemma";
 
-(*export version, with no mention of tok*)
+(*export version, with no mention of tok in the postcondition, but
+  unfortunately tok must be declared local.*)
 Goal "Client: UNIV guarantees[funPair ask tok] \
 \             Always {s. ALL elt : set (ask s). elt <= NbT}";
 by (rtac guaranteesI 1);
@@ -88,7 +90,6 @@ by (auto_tac (claset(),
 	      simpset() addsimps [prefix_def, genPrefix_iff_nth, Ge_def]));
 by (blast_tac (claset() addIs [strict_prefix_length_less]) 1);
 qed "transient_lemma";
-
 
 
 Goal "[| Client Join G : Increasing giv;  G : preserves (funPair rel ask) |] \
@@ -139,6 +140,7 @@ by (blast_tac (claset() addIs [order_less_le RS iffD2]
 			addDs [common_prefix_linear]) 1);
 qed "client_progress_lemma";
 
+(*Progress property: all tokens that are given will be released*)
 Goal "Client : \
 \      Increasing giv  guarantees[funPair rel ask]  \
 \      (INT h. {s. h <= giv s & h pfixGe ask s} LeadsTo {s. h <= rel s})";
@@ -146,6 +148,28 @@ by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (blast_tac (claset() addIs [client_progress_lemma]) 1);
 qed "client_progress";
+
+Goal "Client : preserves extra";
+by (rewtac preserves_def);
+by Auto_tac;
+by (constrains_tac 1);
+by Auto_tac;
+qed "client_preserves_extra";
+
+Goal "bij client_map";
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset() addsimps [client_map_def, non_extra_def, bij_def, 
+				  inj_on_def, surj_def]));
+by (res_inst_tac 
+    [("x", "(|giv=?a, ask=?b, rel=?c, tok=?d, extra=?e|)")] exI 1);
+by (Force_tac 1);
+qed "bij_client_map";
+
+Goal "rename client_map Client : preserves snd";
+by (asm_simp_tac (simpset() addsimps [bij_client_map RS rename_preserves]) 1);
+by (asm_simp_tac (simpset() addsimps [client_map_def]) 1);
+by (rtac client_preserves_extra 1);
+qed "client_preserves_extra";
 
 
 (** Obsolete lemmas from first version of the Client **)

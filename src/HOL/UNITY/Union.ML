@@ -168,7 +168,9 @@ qed "JN_Join_diff";
 
 (*** Safety: co, stable, FP ***)
 
-(*Fails if I={} because it collapses to SKIP : A co B*)
+(*Fails if I={} because it collapses to SKIP : A co B, i.e. to A<=B.  So an
+  alternative precondition is A<=B, but most proofs using this rule require
+  I to be nonempty for other reasons anyway.*)
 Goalw [constrains_def, JOIN_def]
     "i : I ==> (JN i:I. F i) : A co B = (ALL i:I. F i : A co B)";
 by (Simp_tac 1);
@@ -196,6 +198,7 @@ by (simp_tac (simpset() addsimps [Join_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "Join_constrains_weaken";
 
+(*If I={}, it degenerates to SKIP : UNIV co {}, which is false.*)
 Goal "[| ALL i:I. F i : A i co A' i;  i: I |] \
 \     ==> (JN i:I. F i) : (INT i:I. A i) co (UN i:I. A' i)";
 by (asm_simp_tac (simpset() addsimps [JN_constrains]) 1);
@@ -258,10 +261,10 @@ Goal "G : transient A ==> F Join G : transient A";
 by (asm_simp_tac (simpset() addsimps [Join_transient]) 1);
 qed "Join_transient_I2";
 
+(*If I={} it degenerates to (SKIP : A ensures B) = False, i.e. to ~(A<=B) *)
 Goal "i : I ==> \
 \     (JN i:I. F i) : A ensures B = \
-\     ((ALL i:I. F i : (A-B) co (A Un B)) & \
-\      (EX i:I. F i : A ensures B))";
+\     ((ALL i:I. F i : (A-B) co (A Un B)) & (EX i:I. F i : A ensures B))";
 by (auto_tac (claset(),
 	      simpset() addsimps [ensures_def, JN_constrains, JN_transient]));
 qed "JN_ensures";

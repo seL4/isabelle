@@ -90,6 +90,16 @@ bind_thm ("program_less_le", strict_component_def RS meta_eq_to_obj_eq);
 
 (*** preserves ***)
 
+val prems = 
+Goalw [preserves_def] "(!!z. F : stable {s. v s = z}) ==> F : preserves v";
+by (blast_tac (claset() addIs prems) 1);
+qed "preservesI";
+
+Goalw [preserves_def, stable_def, constrains_def]
+     "[| F : preserves v;  act : Acts F;  (s,s') : act |] ==> v s = v s'";
+by (Force_tac 1);
+qed "preserves_imp_eq";
+
 Goal "(F Join G : preserves v) = (F : preserves v & G : preserves v)";
 by (simp_tac (simpset() addsimps [Join_stable, preserves_def]) 1);
 by (Blast_tac 1);
@@ -102,10 +112,14 @@ qed "JN_preserves";
 
 AddIffs [Join_preserves, JN_preserves];
 
+Goalw [funPair_def] "(funPair f g) x = (f x, g x)";
+by (Simp_tac 1);
+qed "funPair_apply";
+Addsimps [funPair_apply];
+
 Goal "preserves (funPair v w) = preserves v Int preserves w";
 by (auto_tac (claset(),
-	      simpset() addsimps [funPair_def, preserves_def, 
-				  stable_def, constrains_def]));
+	      simpset() addsimps [preserves_def, stable_def, constrains_def]));
 by (Blast_tac 1);
 qed "preserves_funPair";
 
@@ -117,6 +131,17 @@ Goal "(funPair f g) o h = funPair (f o h) (g o h)";
 by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
 qed "funPair_o_distrib";
 
+
+Goal "fst o (funPair f g) = f";
+by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
+qed "fst_o_funPair";
+
+Goal "snd o (funPair f g) = g";
+by (simp_tac (simpset() addsimps [funPair_def, o_def]) 1);
+qed "snd_o_funPair";
+Addsimps [fst_o_funPair, snd_o_funPair];
+
+
 Goal "preserves v <= preserves (w o v)";
 by (force_tac (claset(),
 	       simpset() addsimps [preserves_def, 
@@ -125,8 +150,7 @@ qed "subset_preserves_o";
 
 Goal "preserves v <= stable {s. P (v s)}";
 by (auto_tac (claset(),
-	      simpset() addsimps [preserves_def, 
-				  stable_def, constrains_def]));
+	      simpset() addsimps [preserves_def, stable_def, constrains_def]));
 by (rename_tac "s' s" 1);
 by (subgoal_tac "v s = v s'" 1);
 by (ALLGOALS Force_tac);
@@ -154,7 +178,7 @@ by (subgoal_tac "G: preserves (funPair v w)" 1);
 by (Asm_simp_tac 2);
 by (dres_inst_tac [("P1", "split ?Q")]  
     (impOfSubs preserves_subset_stable) 1);
-by (auto_tac (claset(), simpset() addsimps [funPair_def]));
+by Auto_tac;
 qed "stable_localTo_stable2";
 
 Goal "[| F : stable {s. v s <= w s};  G : preserves v;       \

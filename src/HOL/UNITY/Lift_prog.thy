@@ -6,35 +6,29 @@
 lift_prog, etc: replication of components
 *)
 
-Lift_prog = Project +
+Lift_prog = Rename +
 
 constdefs
 
-  lift_map :: "['a, 'b * ('a => 'b)] => ('a => 'b)"
-    "lift_map i == %(s,f). f(i := s)"
+  insert_map :: "[nat, 'b, nat=>'b] => (nat=>'b)"
+    "insert_map i z f k == if k<i then f k
+                           else if k=i then z
+                           else f(k-1)"
 
-  lift_set :: "['a, 'b set] => ('a => 'b) set"
-    "lift_set i A == {f. f i : A}"
+  delete_map :: "[nat, nat=>'b] => (nat=>'b)"
+    "delete_map i g k == if k<i then g k else g (Suc k)"
 
-  drop_set :: "['a, ('a=>'b) set] => 'b set"
-    "drop_set i A == (%f. f i) `` A"
+  lift_map :: "[nat, 'b * ((nat=>'b) * 'c)] => (nat=>'b) * 'c"
+    "lift_map i == %(s,(f,uu)). (insert_map i s f, uu)"
 
-  lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
-    "lift_act i act == {(f,f'). f(i:= f' i) = f' & (f i, f' i) : act}"
+  drop_map :: "[nat, (nat=>'b) * 'c] => 'b * ((nat=>'b) * 'c)"
+    "drop_map i == %(g, uu). (g i, (delete_map i g, uu))"
 
-  drop_act :: "['a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
-    "drop_act i act == {(f i, f' i) | f f'. (f,f'): act}"
+  lift_set :: "[nat, ('b * ((nat=>'b) * 'c)) set] => ((nat=>'b) * 'c) set"
+    "lift_set i A == lift_map i `` A"
 
-  lift_prog :: "['a, 'b program] => ('a => 'b) program"
-    "lift_prog i F ==
-       mk_program (lift_set i (Init F),
-		   lift_act i `` Acts F)"
-
-  (*Argument C allows weak safety laws to be projected*)
-  drop_prog :: "['a, ('a=>'b) set, ('a=>'b) program] => 'b program"
-    "drop_prog i C F ==
-       mk_program (drop_set i (Init F),
-		   drop_act i `` Restrict C `` (Acts F))"
+  lift :: "[nat, ('b * ((nat=>'b) * 'c)) program] => ((nat=>'b) * 'c) program"
+    "lift i == rename (lift_map i)"
 
   (*simplifies the expression of specifications*)
   constdefs

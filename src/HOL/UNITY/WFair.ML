@@ -401,11 +401,12 @@ qed "bounded_induct";
 
 
 (*Alternative proof is via the lemma F : (A Int f-``(lessThan m)) leadsTo B*)
-Goal "[| ALL m. F : (A Int f-``{m}) leadsTo                     \
-\                   ((A Int f-``(lessThan m)) Un B) |] \
+val prems = 
+Goal "[| !!m. F : (A Int f-``{m}) leadsTo ((A Int f-``(lessThan m)) Un B) |] \
 \     ==> F : A leadsTo B";
 by (rtac (wf_less_than RS leadsTo_wf_induct) 1);
 by (Asm_simp_tac 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "lessThan_induct";
 
 Goal "[| ALL m:(greaterThan l).    \

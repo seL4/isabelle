@@ -10,6 +10,10 @@ Extending of state sets
 
 (** These we prove OUTSIDE the locale. **)
 
+Goal "f Id = Id ==> insert Id (f``Acts F) = f `` Acts F";
+by (blast_tac (claset() addIs [sym RS image_eqI]) 1);
+qed "insert_Id_image_Acts";
+
 (*Possibly easier than reasoning about "inv h"*)
 val [surj_h,prem] = 
 Goalw [good_map_def]
@@ -115,22 +119,25 @@ by (Force_tac 1);
 qed "extend_set_strict_mono";
 AddIffs [extend_set_strict_mono];
 
-Goal "{s. P (f s)} = extend_set h {s. P s}";
+Goalw [extend_set_def] "extend_set h {} = {}";
 by Auto_tac;
-qed "Collect_eq_extend_set";
+qed "extend_set_empty";
+Addsimps [extend_set_empty];
+
+Goal "extend_set h {s. P s} = {s. P (f s)}";
+by Auto_tac;
+qed "extend_set_eq_Collect";
 
 Goal "extend_set h {x} = {s. f s = x}";
 by Auto_tac;
 qed "extend_set_sing";
 
-Goalw [extend_set_def]
-     "project_set h (extend_set h C) = C";
+Goalw [extend_set_def] "project_set h (extend_set h C) = C";
 by Auto_tac;
 qed "extend_set_inverse";
 Addsimps [extend_set_inverse];
 
-Goalw [extend_set_def]
-     "C <= extend_set h (project_set h C)";
+Goalw [extend_set_def] "C <= extend_set h (project_set h C)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [split_extended_all]));
 by (Blast_tac 1);
@@ -277,8 +284,7 @@ by (force_tac (claset(),
               simpset() addsimps [split_extended_all]) 1);
 qed "project_act_I";
 
-Goalw [project_act_def]
-    "UNIV <= project_set h C ==> project_act h (Restrict C Id) = Id";
+Goalw [project_act_def] "project_act h Id = Id";
 by (Force_tac 1);
 qed "project_act_Id";
 
@@ -288,18 +294,7 @@ by (force_tac (claset(),
               simpset() addsimps [split_extended_all]) 1);
 qed "Domain_project_act";
 
-Addsimps [extend_act_Id, project_act_Id];
-
-Goal "(extend_act h act = Id) = (act = Id)";
-by Auto_tac;
-by (rewtac extend_act_def);
-by (ALLGOALS (blast_tac (claset() addEs [equalityE])));
-qed "extend_act_Id_iff";
-
-Goal "Id : extend_act h `` Acts F";
-by (auto_tac (claset() addSIs [extend_act_Id RS sym], 
-	      simpset() addsimps [image_iff]));
-qed "Id_mem_extend_act";
+Addsimps [extend_act_Id];
 
 
 (**** extend ****)
@@ -315,11 +310,10 @@ by Auto_tac;
 qed "Init_project";
 
 Goal "Acts (extend h F) = (extend_act h `` Acts F)";
-by (auto_tac (claset() addSIs [extend_act_Id RS sym], 
-	      simpset() addsimps [extend_def, image_iff]));
+by (simp_tac (simpset() addsimps [extend_def, insert_Id_image_Acts]) 1);
 qed "Acts_extend";
 
-Goal "Acts (project h C F) = insert Id (project_act h `` Restrict C `` Acts F)";
+Goal "Acts(project h C F) = insert Id (project_act h `` Restrict C `` Acts F)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [project_def, image_iff]));
 qed "Acts_project";
@@ -340,7 +334,6 @@ Addsimps [project_set_UNIV];
 Goal "project_set h (Union A) = (UN X:A. project_set h X)";
 by (Blast_tac 1);
 qed "project_set_Union";
-
 
 Goal "project h C (extend h F) = \
 \     mk_program (Init F, Restrict (project_set h C) `` Acts F)";
@@ -377,7 +370,6 @@ by (simp_tac (simpset() addsimps [image_UN]) 2);
 by (simp_tac (simpset() addsimps [extend_set_INT_distrib]) 1);
 qed "extend_JN";
 Addsimps [extend_JN];
-
 
 (** These monotonicity results look natural but are UNUSED **)
 
@@ -460,7 +452,45 @@ by (asm_simp_tac (simpset() addsimps [Always_def, extend_Stable]) 1);
 qed "extend_Always";
 
 
-(** Further lemmas **)
+(** Safety and "project" **)
+
+(** projection: monotonicity for safety **)
+
+Goal "D <= C ==> \
+\     project_act h (Restrict D act) <= project_act h (Restrict C act)";
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));
+qed "project_act_mono";
+
+Goal "[| D <= C; project h C F : A co B |] ==> project h D F : A co B";
+by (auto_tac (claset(), simpset() addsimps [constrains_def]));
+by (dtac project_act_mono 1);
+by (Blast_tac 1);
+qed "project_constrains_mono";
+
+Goal "[| D <= C;  project h C F : stable A |] ==> project h D F : stable A";
+by (asm_full_simp_tac
+    (simpset() addsimps [stable_def, project_constrains_mono]) 1);
+qed "project_stable_mono";
+
+Goalw [constrains_def]
+     "(project h C F : A co B)  =  \
+\     (F : (C Int extend_set h A) co (extend_set h B) & A <= B)";
+by (auto_tac (claset() addSIs [project_act_I], simpset() addsimps [ball_Un]));
+by (force_tac (claset() addSIs [project_act_I] addSDs [subsetD], simpset()) 1);
+(*the <== direction*)
+by (rewtac project_act_def);
+by (force_tac (claset() addSDs [subsetD], simpset()) 1);
+qed "project_constrains";
+
+Goalw [stable_def]
+     "(project h UNIV F : stable A) = (F : stable (extend_set h A))";
+by (simp_tac (simpset() addsimps [project_constrains]) 1);
+qed "project_stable";
+
+Goal "F : stable (extend_set h A) ==> project h C F : stable A";
+by (dtac (project_stable RS iffD2) 1);
+by (blast_tac (claset() addIs [project_stable_mono]) 1);
+qed "project_stable_I";
 
 Goal "A Int extend_set h ((project_set h A) Int B) = A Int extend_set h B";
 by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
@@ -562,14 +592,82 @@ by Safe_tac;
 by (etac leadsTo_imp_extend_leadsTo 2);
 by (dtac extend_leadsTo_slice 1);
 by (full_simp_tac (simpset() addsimps [slice_extend_set]) 1);
-qed "extend_leadsto";
+qed "extend_leadsTo";
 
 Goal "(extend h F : (extend_set h A) LeadsTo (extend_set h B)) =  \
 \     (F : A LeadsTo B)";
 by (simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_extend_eq, 
-			 extend_leadsto, extend_set_Int_distrib RS sym]) 1);
+			 extend_leadsTo, extend_set_Int_distrib RS sym]) 1);
 qed "extend_LeadsTo";
+
+
+(*** preserves ***)
+
+Goal "G : preserves (v o f) ==> project h C G : preserves v";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, project_stable_I,
+				  extend_set_eq_Collect]));
+qed "project_preserves_I";
+
+(*to preserve f is to preserve the whole original state*)
+Goal "G : preserves f ==> project h C G : preserves id";
+by (asm_simp_tac (simpset() addsimps [project_preserves_I]) 1);
+qed "project_preserves_id_I";
+
+Goal "(extend h G : preserves (v o f)) = (G : preserves v)";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, extend_stable RS sym,
+				  extend_set_eq_Collect]));
+qed "extend_preserves";
+
+Goal "inj h ==> (extend h G : preserves g)";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, extend_def, extend_act_def, 
+				  stable_def, constrains_def, g_def]));
+qed "inj_extend_preserves";
+
+
+(*** Guarantees ***)
+
+Goal "project h UNIV ((extend h F) Join G) = F Join (project h UNIV G)";
+by (rtac program_equalityI 1);
+by (asm_simp_tac
+    (simpset() addsimps [image_eq_UN, UN_Un, project_act_extend_act]) 2);
+by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
+qed "project_extend_Join";
+
+Goal "(extend h F) Join G = extend h H ==> H = F Join (project h UNIV G)";
+by (dres_inst_tac [("f", "project h UNIV")] arg_cong 1);
+by (asm_full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
+qed "extend_Join_eq_extend_D";
+
+(** Strong precondition and postcondition; only useful when
+    the old and new state sets are in bijection **)
+
+Goal "F : X guarantees[v] Y ==> \
+\     extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)";
+by (rtac guaranteesI 1);
+by Auto_tac;
+by (blast_tac (claset() addIs [project_preserves_I]
+			addDs [extend_Join_eq_extend_D, guaranteesD]) 1);
+qed "guarantees_imp_extend_guarantees";
+
+Goal "extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y) \
+\     ==> F : X guarantees[v] Y";
+by (auto_tac (claset(), simpset() addsimps [guar_def]));
+by (dres_inst_tac [("x", "extend h G")] spec 1);
+by (asm_full_simp_tac 
+    (simpset() delsimps [extend_Join] 
+           addsimps [extend_Join RS sym, extend_preserves,
+		     inj_extend RS inj_image_mem_iff]) 1);
+qed "extend_guarantees_imp_guarantees";
+
+Goal "(extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)) = \
+\    (F : X guarantees[v] Y)";
+by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
+			       extend_guarantees_imp_guarantees]) 1);
+qed "extend_guarantees_eq";
 
 
 Close_locale "Extend";

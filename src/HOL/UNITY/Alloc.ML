@@ -425,8 +425,8 @@ by (rtac ([guarantees_PLam_I RS client_export UNIV_guar_Always,
 	   Client_component_System] MRS component_guaranteesD) 1);
 by (rtac Client_i_Bounded 1);
 by (auto_tac(claset(),
-	 simpset() addsimps [o_apply, lift_export Collect_eq_extend_set RS sym,
-			     client_export Collect_eq_extend_set RS sym]));
+	 simpset() addsimps [o_apply, lift_export extend_set_eq_Collect,
+			     client_export extend_set_eq_Collect]));
 qed "System_Bounded_ask";
 
 (*progress (2), step 4*)
@@ -479,7 +479,7 @@ by (rtac (lift_export project_Increasing_I) 1);
 by (full_simp_tac (simpset() addsimps [fold_o_sub, lift_prog_correct]) 1);
 by (rtac INT_I 1);
 by (simp_tac (simpset() addsimps [o_apply]) 1);
-by (REPEAT (stac (lift_export Collect_eq_extend_set) 1));
+by (REPEAT (stac (lift_export extend_set_eq_Collect RS sym) 1));
 by (rtac (lift_export project_Ensures_D) 1);
 by (asm_full_simp_tac (simpset() addsimps [o_apply, lift_prog_correct, 
 					   drop_prog_correct]) 1);
@@ -541,18 +541,17 @@ by (rtac (client_export project_Increasing_I) 1);
 by (Simp_tac 1);
 by (rtac INT_I 1);
 by (simp_tac (simpset() addsimps [o_apply]) 1);
-by (REPEAT (stac (client_export Collect_eq_extend_set) 1));
+by (REPEAT (stac (client_export extend_set_eq_Collect RS sym) 1));
 by (rtac (client_export project_Ensures_D) 1);
 by (asm_full_simp_tac (simpset() addsimps [o_apply]) 1);
 by (asm_full_simp_tac
     (simpset() addsimps [all_conj_distrib,
 			 Increasing_def, Stable_eq_stable, Join_stable,
-			 Collect_eq_extend_set RS sym]) 1);
+			 extend_set_eq_Collect]) 1);
 by (Clarify_tac 1);
 by (dtac G_stable_sysOfClient 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [o_apply,
-				client_export Collect_eq_extend_set RS sym]));
+     simpset() addsimps [o_apply, client_export extend_set_eq_Collect]));
 qed "sysOfClient_i_Progress";
 
 
