@@ -4,7 +4,7 @@
     License:    2004 Technische Universität München
 *)
 
-theory Matrix=MatrixGeneral:
+theory Matrix = MatrixGeneral:
 
 axclass almost_matrix_element < zero, plus, times
 matrix_add_assoc: "(a+b)+c = a + (b+c)"
@@ -77,8 +77,8 @@ proof -
   have mult_right_zero: "!! A. A * (0::('a::matrix_element) matrix) = 0" by (simp add: times_matrix_def)
   note l_distributive_matrix2 = l_distributive_matrix[simplified l_distributive_def matrix_left_distrib, THEN spec, THEN spec, THEN spec]
   {
-    fix A::"('a::matrix_element) matrix" 
-    fix B 
+    fix A::"('a::matrix_element) matrix"
+    fix B
     fix C
     have "(A + B) * C = A * C + B * C"
       apply (simp add: plus_matrix_def)
@@ -86,15 +86,15 @@ proof -
       apply (rule l_distributive_matrix2)
       apply (simp_all add: associative_def commutative_def l_distributive_def)
       apply (auto)
-      apply (simp_all add: matrix_add_assoc) 
+      apply (simp_all add: matrix_add_assoc)
       apply (simp_all add: matrix_add_commute)
       by (simp_all add: matrix_left_distrib)
   }
   note left_distrib = this
   note r_distributive_matrix2 = r_distributive_matrix[simplified r_distributive_def matrix_right_distrib, THEN spec, THEN spec, THEN spec]
   {
-    fix A::"('a::matrix_element) matrix" 
-    fix B 
+    fix A::"('a::matrix_element) matrix"
+    fix B
     fix C
     have "C * (A + B) = C * A + C * B"
       apply (simp add: plus_matrix_def)
@@ -102,7 +102,7 @@ proof -
       apply (rule r_distributive_matrix2)
       apply (simp_all add: associative_def commutative_def r_distributive_def)
       apply (auto)
-      apply (simp_all add: matrix_add_assoc) 
+      apply (simp_all add: matrix_add_assoc)
       apply (simp_all add: matrix_add_commute)
       by (simp_all add: matrix_right_distrib)
   }
@@ -175,12 +175,12 @@ lemma pordered_add: "(a::'a::pordered_matrix_element) <= b \<Longrightarrow> (c:
 proof -
   assume p1:"a <= b"
   assume p2:"c <= d"
-  have "a+c <= b+c" by (rule pordered_add_right_mono) 
+  have "a+c <= b+c" by (rule pordered_add_right_mono)
   also have "\<dots> <= b+d" by (rule pordered_add_left_mono)
   ultimately show "a+c <= b+d" by simp
 qed
 
-instance matrix :: (pordered_matrix_element) pordered_matrix_element 
+instance matrix :: (pordered_matrix_element) pordered_matrix_element
 apply (intro_classes)
 apply (simp_all add: plus_matrix_def times_matrix_def)
 apply (rule le_combine_matrix)
@@ -246,9 +246,9 @@ apply (rule_tac j1="x" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
 by (simp add: max_def nrows)
 
-constdefs 
+constdefs
   right_inverse_matrix :: "('a::semiring) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
-  "right_inverse_matrix A X == (A * X = one_matrix (max (nrows A) (ncols X)))" 
+  "right_inverse_matrix A X == (A * X = one_matrix (max (nrows A) (ncols X)))"
   inverse_matrix :: "('a::semiring) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "inverse_matrix A X == (right_inverse_matrix A X) \<and> (right_inverse_matrix X A)"
 
@@ -256,28 +256,6 @@ lemma right_inverse_matrix_dim: "right_inverse_matrix A X \<Longrightarrow> nrow
 apply (insert ncols_mult[of A X], insert nrows_mult[of A X])
 by (simp add: right_inverse_matrix_def)
 
-(* to be continued \<dots> *)
+text {* to be continued \dots *}
 
 end
-
-
-
-
-
-
-
-
-
-
-  
-  
-
-
-
-
-
-
-
-
-
- 

@@ -11,9 +11,9 @@ lemma linprog_by_duality_approx_general:
   fmuladdprops:
   "! a b c d. a <= b & c <= d \<longrightarrow> fadd a c <= fadd b d"
   "! c a b. 0 <= c & a <= b \<longrightarrow> fmul c a <= fmul c b"
-  "! a. fmul 0 a = 0"  
+  "! a. fmul 0 a = 0"
   "! a. fmul a 0 = 0"
-  "fadd 0 0 = 0" 
+  "fadd 0 0 = 0"
   "associative fadd"
   "commutative fadd"
   "associative fmul"
@@ -23,7 +23,7 @@ lemma linprog_by_duality_approx_general:
   "mult_matrix fmul fadd y A = c"
   "0 <= y"
   shows
-  "combine_matrix fadd (mult_matrix fmul fadd c x) (mult_matrix fmul fadd (mult_matrix fmul fadd y dA) x) 
+  "combine_matrix fadd (mult_matrix fmul fadd c x) (mult_matrix fmul fadd (mult_matrix fmul fadd y dA) x)
   <= mult_matrix fmul fadd y b"
 proof -
   let ?mul = "mult_matrix fmul fadd"
@@ -32,7 +32,7 @@ proof -
   have a: "?t1 <= ?mul y b" by (rule le_left_mult, simp_all!)
   have b: "?t1 = ?mul (?mul y (?add A dA)) x" by (simp! add: mult_matrix_assoc_simple[THEN sym])
   have assoc: "associative ?add" by (simp! add: combine_matrix_assoc)
-  have r_distr: "r_distributive ?mul ?add" 
+  have r_distr: "r_distributive ?mul ?add"
     apply (rule r_distributive_matrix)
     by (simp! add: distributive_def)+
   have l_distr: "l_distributive ?mul ?add"
@@ -73,12 +73,8 @@ lemma linprog_by_duality:
   "c * x  <= y * b"
 proof -
   have a:"(A + 0) * x <= b" by (simp!)
-  have b:"c * x + (y*0)*x <= y * b" by (rule linprog_by_duality_approx, simp_all!) 
+  have b:"c * x + (y*0)*x <= y * b" by (rule linprog_by_duality_approx, simp_all!)
   show "c * x <= y*b" by (insert b, simp)
 qed
 
 end
-
-
-  
-  
