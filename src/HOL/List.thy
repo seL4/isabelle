@@ -32,7 +32,7 @@ consts
   zip	      :: "'a list => 'b list => ('a * 'b) list"
   upt         :: nat => nat => nat list                   ("(1[_../_'(])")
   remdups     :: 'a list => 'a list
-  nodups      :: "'a list => bool"
+  null, nodups :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
 
 nonterminals
@@ -85,15 +85,18 @@ translations  "length"  =>  "size:: _ list => nat"
 primrec
   "hd(x#xs) = x"
 primrec
-  "tl([]) = []"
+  "tl([])   = []"
   "tl(x#xs) = xs"
+primrec
+  "null([])   = True"
+  "null(x#xs) = False"
 primrec
   "last(x#xs) = (if xs=[] then x else last xs)"
 primrec
-  "butlast [] = []"
+  "butlast []    = []"
   "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
 primrec
-  "x mem [] = False"
+  "x mem []     = False"
   "x mem (y#ys) = (if y=x then True else x mem ys)"
 primrec
   "set [] = {}"
@@ -102,25 +105,25 @@ primrec
   list_all_Nil  "list_all P [] = True"
   list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"
 primrec
-  "map f [] = []"
+  "map f []     = []"
   "map f (x#xs) = f(x)#map f xs"
 primrec
   append_Nil  "[]    @ys = ys"
   append_Cons "(x#xs)@ys = x#(xs@ys)"
 primrec
-  "rev([]) = []"
+  "rev([])   = []"
   "rev(x#xs) = rev(xs) @ [x]"
 primrec
-  "filter P [] = []"
+  "filter P []     = []"
   "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
 primrec
   foldl_Nil  "foldl f a [] = a"
   foldl_Cons "foldl f a (x#xs) = foldl f (f a x) xs"
 primrec
-  "foldr f [] a = a"
+  "foldr f [] a     = a"
   "foldr f (x#xs) a = f x (foldr f xs a)"
 primrec
-  "concat([]) = []"
+  "concat([])   = []"
   "concat(x#xs) = x @ concat(xs)"
 primrec
   drop_Nil  "drop n [] = []"
@@ -141,10 +144,10 @@ primrec
  "(x#xs)[i:=v] = (case i of 0     => v # xs 
 			  | Suc j => x # xs[j:=v])"
 primrec
-  "takeWhile P [] = []"
+  "takeWhile P []     = []"
   "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
 primrec
-  "dropWhile P [] = []"
+  "dropWhile P []     = []"
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
 primrec
   "zip xs []     = []"
