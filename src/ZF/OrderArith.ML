@@ -237,3 +237,8 @@ by (rewrite_goals_tac [well_ord_def, tot_ord_def]);
 by (fast_tac (ZF_cs addSIs [wf_on_rvimage, inj_is_fun]) 1);
 by (fast_tac (ZF_cs addSIs [linear_rvimage]) 1);
 qed "well_ord_rvimage";
+
+goalw OrderArith.thy [ord_iso_def]
+    "!!A B. f: bij(A,B) ==> f: ord_iso(A, rvimage(A,f,s), B, s)";
+by (asm_full_simp_tac (ZF_ss addsimps [rvimage_iff]) 1);
+qed "ord_iso_rvimage";
