@@ -11,7 +11,7 @@ sig
   val set_prompt: string -> ('a, 'b) source -> ('a, 'b) source
   val get: ('a, 'b) source -> 'a list * ('a, 'b) source
   val unget: 'a list * ('a, 'b) source -> ('a, 'b) source
-  val get_single: ('a, 'b) source -> 'a option * ('a, 'b) source
+  val get_single: ('a, 'b) source -> ('a * ('a, 'b) source) option
   val exhaust: ('a, 'b) source -> 'a list
   val mapfilter: ('a -> 'b option) -> ('a, 'c) source -> ('b, ('a, 'c) source) source
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
@@ -70,8 +70,8 @@ fun get_prompt prompt src = get (set_prompt prompt src);
 
 fun get_single src =
   (case get src of
-    ([], src') => (None, src')
-  | (x :: xs, src') => (Some x, unget (xs, src')));
+    ([], _) => None
+  | (x :: xs, src') => Some (x, unget (xs, src')));
 
 fun exhaust src =
   (case get src of
