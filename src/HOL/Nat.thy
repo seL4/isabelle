@@ -8,7 +8,7 @@ and * (for div, mod and dvd, see theory Divides).
 
 Nat = NatDef + Inductive +
 
-(* type "nat" is a linear order, and a datatype *)
+(* type "nat" is a wellfounded linear order, and a datatype *)
 
 rep_datatype nat
   distinct Suc_not_Zero, Zero_not_Suc
@@ -17,6 +17,7 @@ rep_datatype nat
 
 instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
 instance nat :: linorder (nat_le_linear)
+instance nat :: wellorder (wf_less)
 
 axclass power < term
 
