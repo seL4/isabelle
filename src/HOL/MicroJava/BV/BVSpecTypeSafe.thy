@@ -17,7 +17,7 @@ lemmas defs1 = sup_state_def correct_state_def correct_frame_def
 lemmas [simp del] = split_paired_All
 
 lemma wt_jvm_prog_impl_wt_instr_cor:
-  "[| wt_jvm_prog G phi;is_class G C; method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
+  "[| wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
       G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
   ==> wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc"
 apply (unfold correct_state_def Let_def correct_frame_def)
@@ -214,8 +214,8 @@ done
 
 lemmas [simp del] = split_paired_Ex
 
-lemma Invoke_correct: (* DvO: is_class G C' eingefügt *)
-"[| wt_jvm_prog G phi; is_class G C';
+lemma Invoke_correct: 
+"[| wt_jvm_prog G phi; 
   method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Invoke C' mn pTs; 
   wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
@@ -224,7 +224,6 @@ lemma Invoke_correct: (* DvO: is_class G C' eingefügt *)
 ==> G,phi \<turnstile>JVM state'\<surd>" 
 proof -
   assume wtprog: "wt_jvm_prog G phi"
-  assume is_class: "is_class G C'"
   assume method: "method (G,C) sig = Some (C,rT,maxs,maxl,ins)"
   assume ins:    "ins ! pc = Invoke C' mn pTs"
   assume wti:    "wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc"
@@ -235,25 +234,27 @@ proof -
   obtain wfmb where
     wfprog: "wf_prog wfmb G" 
     by (simp add: wt_jvm_prog_def)
-
+      
   from ins method approx
   obtain s where
     heap_ok: "G\<turnstile>h hp\<surd>" and
     phi_pc:  "phi C sig!pc = Some s" and
+    is_class_C: "is_class G C" and
     frame:   "correct_frame G hp s maxl ins (stk, loc, C, sig, pc)" and
     frames:  "correct_frames G hp phi rT sig frs"
-    by (clarsimp simp add: correct_state_def)
+    by (clarsimp simp add: correct_state_def iff del: not_None_eq)
 
   from ins wti phi_pc
   obtain apTs X ST LT D' rT body where 
     s: "s = (rev apTs @ X # ST, LT)" and
     l: "length apTs = length pTs" and
+    is_class: "is_class G C'" and
     X: "G\<turnstile> X \<preceq> Class C'" and
     w: "\<forall>x\<in>set (zip apTs pTs). x \<in> widen G" and
     mC': "method (G, C') (mn, pTs) = Some (D', rT, body)" and
     pc:  "Suc pc < length ins" and
     step: "G \<turnstile> step (Invoke C' mn pTs) G (Some s) <=' phi C sig!Suc pc"
-    by (simp add: wt_instr_def) (elim exE conjE, rule that)
+    by (simp add: wt_instr_def del: not_None_eq) (elim exE conjE, rule that)
 
   from step
   obtain ST' LT' where
@@ -443,7 +444,7 @@ proof -
     qed
 
     with state'_val heap_ok mD'' ins method phi_pc s X' l 
-         frames s' LT0 c_f c_f'
+         frames s' LT0 c_f c_f' is_class_C
     have ?thesis
       by (simp add: correct_state_def) (intro exI conjI, force+)
   }
@@ -456,18 +457,16 @@ qed
 lemmas [simp del] = map_append
 
 lemma Return_correct:
-"[| wt_jvm_prog G phi;  
+"[| wt_jvm_prog G phi; 
   method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   ins ! pc = Return; 
   wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: neq_Nil_conv defs1 split: split_if_asm)
+apply (clarsimp simp add: neq_Nil_conv defs1 split: split_if_asm iff del: not_None_eq)
 apply (frule wt_jvm_prog_impl_wt_instr)
-sorry
-(*
-apply (assumption, erule Suc_lessD)
+apply (assumption, assumption, erule Suc_lessD)
 apply (unfold wt_jvm_prog_def)
 apply (fastsimp
   dest: subcls_widen_methd
@@ -475,7 +474,6 @@ apply (fastsimp
   intro: conf_widen
   simp: approx_val_def append_eq_conv_conj map_eq_Cons defs1)
 done
-*)
 
 lemmas [simp] = map_append
 
@@ -597,29 +595,39 @@ done
 (** instr correct **)
 
 lemma instr_correct:
-"[| wt_jvm_prog G phi; 
+"[| wt_jvm_prog G phi;
   method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (frule wt_jvm_prog_impl_wt_instr_cor)
-sorry
-(*
 apply assumption+
 apply (cases "ins!pc")
 prefer 9
-
-apply (blast intro: Invoke_correct)
+apply (rule Invoke_correct, assumption+)
 prefer 9
-apply (blast intro: Return_correct)
+apply (rule Return_correct, assumption+)
+
 apply (unfold wt_jvm_prog_def)
-apply (fast intro: 
-  Load_correct Store_correct Bipush_correct Aconst_null_correct 
-  Checkcast_correct Getfield_correct Putfield_correct New_correct 
-  Goto_correct Ifcmpeq_correct Pop_correct Dup_correct 
-  Dup_x1_correct Dup_x2_correct Swap_correct IAdd_correct)+
+apply (rule Load_correct, assumption+)
+apply (rule Store_correct, assumption+)
+apply (rule Bipush_correct, assumption+)
+apply (rule Aconst_null_correct, assumption+)
+apply (rule New_correct, assumption+)
+apply (rule Getfield_correct, assumption+)
+apply (rule Putfield_correct, assumption+)
+apply (rule Checkcast_correct, assumption+)
+apply (rule Pop_correct, assumption+)
+apply (rule Dup_correct, assumption+)
+apply (rule Dup_x1_correct, assumption+)
+apply (rule Dup_x2_correct, assumption+)
+apply (rule Swap_correct, assumption+)
+apply (rule IAdd_correct, assumption+)
+apply (rule Goto_correct, assumption+)
+apply (rule Ifcmpeq_correct, assumption+)
 done
-*)
+
+
 
 (** Main **)
 
