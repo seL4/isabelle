@@ -10,16 +10,21 @@ numeric literals; default simprules; can re-orient
 *}
 
 lemma "#2 * m = m + m"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
 oops
 
+consts h :: "nat \<Rightarrow> nat"
+recdef h "{}"
+"h i = (if i = #3 then #2 else i)"
+
 text{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{0}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isacharparenleft}{\isacharhash}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m
+@{term"h #3 = #2"}
+@{term"h i  = i"}
+*}
 
-
+text{*
 @{thm[display] numeral_0_eq_0[no_vars]}
 \rulename{numeral_0_eq_0}
 
@@ -45,26 +50,16 @@ these form add_ac; similarly there is mult_ac
 *}
 
 lemma "Suc(i + j*l*k + m*n) = f (n*m + i + k*j*l)"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
 apply (simp add: add_ac mult_ac)
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
 oops
 
 text{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{0}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharasterisk}\ k\ {\isacharplus}\ m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}n\ {\isacharasterisk}\ m\ {\isacharplus}\ i\ {\isacharplus}\ k\ {\isacharasterisk}\ j\ {\isacharasterisk}\ l{\isacharparenright}\isanewline
-\ {\isadigit{1}}{\isachardot}\ Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharasterisk}\ k\ {\isacharplus}\ m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}n\ {\isacharasterisk}\ m\ {\isacharplus}\ i\ {\isacharplus}\ k\ {\isacharasterisk}\ j\ {\isacharasterisk}\ l{\isacharparenright}
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharasterisk}\ k\ {\isacharplus}\ m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}n\ {\isacharasterisk}\ m\ {\isacharplus}\ i\ {\isacharplus}\ k\ {\isacharasterisk}\ j\ {\isacharasterisk}\ l{\isacharparenright}\isanewline
-\ {\isadigit{1}}{\isachardot}\ Suc\ {\isacharparenleft}i\ {\isacharplus}\ {\isacharparenleft}m\ {\isacharasterisk}\ n\ {\isacharplus}\ j\ {\isacharasterisk}\ {\isacharparenleft}k\ {\isacharasterisk}\ l{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ f\ {\isacharparenleft}i\ {\isacharplus}\ {\isacharparenleft}m\ {\isacharasterisk}\ n\ {\isacharplus}\ j\ {\isacharasterisk}\ {\isacharparenleft}k\ {\isacharasterisk}\ l{\isacharparenright}{\isacharparenright}{\isacharparenright}
-*}
-
-text{*
-
 @{thm[display] mult_le_mono[no_vars]}
 \rulename{mult_le_mono}
 
@@ -166,6 +161,9 @@ Division, remainder of negatives
 @{thm[display] abs_mult[no_vars]}
 \rulename{abs_mult}
 *}  
+
+lemma "\<lbrakk>abs x < a; abs y < b\<rbrakk> \<Longrightarrow> abs x + abs y < (a + b :: int)"
+by arith
 
 text {*REALS
 
