@@ -347,10 +347,7 @@ fun tac text state =
   |> Proof.goal_facts (K [])
   |> refine text;
 
-fun then_tac text state =
-  state
-  |> Proof.goal_facts Proof.the_facts
-  |> refine text;
+val then_tac = refine;
 
 
 (* structured proof steps *)
