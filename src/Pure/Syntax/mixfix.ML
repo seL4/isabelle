@@ -126,8 +126,6 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Delimfix sy) = SynExt.mfix_args sy
   | mixfix_args (*infix or binder*) _ = 2;
 
-fun maxpris sy = replicate (SynExt.mfix_args sy) 0;
-
 
 (* syn_ext_types *)
 
@@ -137,7 +135,7 @@ fun syn_ext_types logtypes type_decls =
 
     fun mk_infix sy t p1 p2 p3 =
       SynExt.Mfix ("(_ " ^ sy ^ "/ _)",
-        [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, p1 :: maxpris sy @ [p2], p3);
+        [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, [p1, p2], p3);
 
     fun mfix_of decl =
       let val t = name_of decl in
@@ -165,7 +163,7 @@ fun syn_ext_consts logtypes const_decls =
 
     fun mk_infix sy ty c p1 p2 p3 =
       [SynExt.Mfix ("op " ^ sy, ty, c, [], SynExt.max_pri),
-       SynExt.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, p1 :: maxpris sy @ [p2], p3)];
+       SynExt.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
           [Type ("idts", []), ty2] ---> ty3
@@ -237,7 +235,7 @@ val pure_syntax =
   ("_DDDOT",       "logic",                         Delimfix "..."),
   ("_constify",    "num => num_const",              Delimfix "_"),
   ("_index",       "num_const => index",            Delimfix "\\<^sub>_"),
-  ("_indexvar",    "index",                         Delimfix "\\<index>"),
+  ("_indexvar",    "index",                         Delimfix "'\\<index>"),
   ("_noindex",     "index",                         Delimfix ""),
   ("_struct",      "index => logic",                Delimfix "\\<struct>_")];
 
