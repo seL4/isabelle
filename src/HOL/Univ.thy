@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Move LEAST to Nat.thy???  Could it be defined for all types 'a::ord?
-
 Declares the type 'a node, a subtype of (nat=>nat) * ('a+nat)
 
 Defines "Cartesian Product" and "Disjoint Sum" as set operations.
