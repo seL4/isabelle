@@ -136,7 +136,11 @@ setup
 
 end
 
-  ML
+ML
 
-val parse_translation = [("@Trueprop",Sequents.two_seq_tr "Trueprop")];
+fun side_tr [s1] = Sequents.seq_tr s1;
+
+val parse_translation = [("@Trueprop",Sequents.two_seq_tr "Trueprop"),
+			 ("@Side", side_tr)];
 val print_translation = [("Trueprop",Sequents.two_seq_tr' "@Trueprop")];
+
