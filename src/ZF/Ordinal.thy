@@ -456,6 +456,17 @@ apply (rule subset_imp_le [THEN lt_trans1])
 apply (blast intro: elim: ltE) +
 done
 
+lemma succ_lt_iff: "succ(i) < j \<longleftrightarrow> i<j & succ(i) \<noteq> j"
+apply auto 
+apply (blast intro: lt_trans le_refl dest: lt_Ord) 
+apply (frule lt_Ord) 
+apply (rule not_le_iff_lt [THEN iffD1]) 
+  apply (blast intro: lt_Ord2)
+ apply blast  
+apply (simp add: lt_Ord lt_Ord2 le_iff) 
+apply (blast dest: lt_asym) 
+done
+
 (** Union and Intersection **)
 
 lemma Un_upper1_le: "[| Ord(i); Ord(j) |] ==> i le i Un j"
@@ -487,6 +498,26 @@ lemma Int_greatest_lt: "[| i<k;  j<k |] ==> i Int j < k"
 apply (rule_tac i = "i" and j = "j" in Ord_linear_le)
 apply (auto simp add: Int_commute le_subset_iff subset_Int_iff lt_Ord) 
 done
+
+lemma Ord_Un_if:
+     "[| Ord(i); Ord(j) |] ==> i \<union> j = (if j<i then i else j)"
+by (simp add: not_lt_iff_le le_imp_subset leI
+              subset_Un_iff [symmetric]  subset_Un_iff2 [symmetric]) 
+
+lemma succ_Un_distrib:
+     "[| Ord(i); Ord(j) |] ==> succ(i \<union> j) = succ(i) \<union> succ(j)"
+by (simp add: Ord_Un_if lt_Ord le_Ord2) 
+
+lemma lt_Un_iff:
+     "[| Ord(i); Ord(j) |] ==> k < i \<union> j <-> k < i | k < j";
+apply (simp add: Ord_Un_if not_lt_iff_le) 
+apply (blast intro: leI lt_trans2)+ 
+done
+
+lemma le_Un_iff:
+     "[| Ord(i); Ord(j) |] ==> k \<le> i \<union> j <-> k \<le> i | k \<le> j";
+by (simp add: succ_Un_distrib lt_Un_iff [symmetric]) 
+
 
 (*FIXME: the Intersection duals are missing!*)
 
@@ -599,6 +630,14 @@ lemma trans_induct3:
 apply (erule trans_induct)
 apply (erule Ord_cases, blast+)
 done
+
+(*special induction rules for the "induct" method*)
+lemmas Ord_induct = Ord_induct [consumes 2]
+  and Ord_induct_rule = Ord_induct [rule_format, consumes 2]
+  and trans_induct = trans_induct [consumes 1]
+  and trans_induct_rule = trans_induct [rule_format, consumes 1]
+  and trans_induct3 = trans_induct3 [case_names 0 succ limit, consumes 1]
+  and trans_induct3_rule = trans_induct3 [rule_format, case_names 0 succ limit, consumes 1]
 
 ML 
 {*

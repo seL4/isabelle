@@ -73,11 +73,11 @@ by blast
 lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
 by (unfold trans_def trans_on_def, blast)
 
-lemma image_is_UN: "\<lbrakk>function(g); x <= domain(g)\<rbrakk> \<Longrightarrow> g``x = (UN k:x. {g`k})"
+lemma image_is_UN: "[| function(g); x <= domain(g) |] ==> g``x = (UN k:x. {g`k})"
 by (blast intro: function_apply_equality [THEN sym] function_apply_Pair) 
 
 lemma functionI: 
-     "\<lbrakk>!!x y y'. \<lbrakk><x,y>:r; <x,y'>:r\<rbrakk> \<Longrightarrow> y=y'\<rbrakk> \<Longrightarrow> function(r)"
+     "[| !!x y y'. [| <x,y>:r; <x,y'>:r |] ==> y=y' |] ==> function(r)"
 by (simp add: function_def, blast) 
 
 lemma function_lam: "function (lam x:A. b(x))"
@@ -92,7 +92,7 @@ by (simp add: restrict_def)
 (** These mostly belong to theory Ordinal **)
 
 lemma Union_upper_le:
-     "\<lbrakk>j: J;  i\<le>j;  Ord(\<Union>(J))\<rbrakk> \<Longrightarrow> i \<le> \<Union>J"
+     "[| j: J;  i\<le>j;  Ord(\<Union>(J)) |] ==> i \<le> \<Union>J"
 apply (subst Union_eq_UN)  
 apply (rule UN_upper_le, auto)
 done
@@ -100,29 +100,29 @@ done
 lemma zero_not_Limit [iff]: "~ Limit(0)"
 by (simp add: Limit_def)
 
-lemma Limit_has_1: "Limit(i) \<Longrightarrow> 1 < i"
+lemma Limit_has_1: "Limit(i) ==> 1 < i"
 by (blast intro: Limit_has_0 Limit_has_succ)
 
-lemma Limit_Union [rule_format]: "\<lbrakk>I \<noteq> 0;  \<forall>i\<in>I. Limit(i)\<rbrakk> \<Longrightarrow> Limit(\<Union>I)"
+lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |] ==> Limit(\<Union>I)"
 apply (simp add: Limit_def lt_def)
 apply (blast intro!: equalityI)
 done
 
-lemma increasing_LimitI: "\<lbrakk>0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y\<rbrakk> \<Longrightarrow> Limit(l)"
+lemma increasing_LimitI: "[| 0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y |] ==> Limit(l)"
 apply (simp add: Limit_def lt_Ord2, clarify)
 apply (drule_tac i=y in ltD) 
 apply (blast intro: lt_trans1 [OF _ ltI] lt_Ord2)
 done
 
 lemma UN_upper_lt:
-     "\<lbrakk>a\<in>A;  i < b(a);  Ord(\<Union>x\<in>A. b(x))\<rbrakk> \<Longrightarrow> i < (\<Union>x\<in>A. b(x))"
+     "[| a\<in>A;  i < b(a);  Ord(\<Union>x\<in>A. b(x)) |] ==> i < (\<Union>x\<in>A. b(x))"
 by (unfold lt_def, blast) 
 
-lemma lt_imp_0_lt: "j<i \<Longrightarrow> 0<i"
+lemma lt_imp_0_lt: "j<i ==> 0<i"
 by (blast intro: lt_trans1 Ord_0_le [OF lt_Ord]) 
 
 lemma Ord_set_cases:
-   "\<forall>i\<in>I. Ord(i) \<Longrightarrow> I=0 \<or> \<Union>(I) \<in> I \<or> (\<Union>(I) \<notin> I \<and> Limit(\<Union>(I)))"
+   "\<forall>i\<in>I. Ord(i) ==> I=0 \<or> \<Union>(I) \<in> I \<or> (\<Union>(I) \<notin> I \<and> Limit(\<Union>(I)))"
 apply (clarify elim!: not_emptyE) 
 apply (cases "\<Union>(I)" rule: Ord_cases) 
    apply (blast intro: Ord_Union)
@@ -140,10 +140,10 @@ lemma Ord_Union_eq_succD: "[|\<forall>x\<in>X. Ord(x);  \<Union>X = succ(j)|] ==
 by (drule Ord_set_cases, auto)
 
 (*See also Transset_iff_Union_succ*)
-lemma Ord_Union_succ_eq: "Ord(i) \<Longrightarrow> \<Union>(succ(i)) = i"
+lemma Ord_Union_succ_eq: "Ord(i) ==> \<Union>(succ(i)) = i"
 by (blast intro: Ord_trans)
 
-lemma lt_Union_iff: "\<forall>i\<in>A. Ord(i) \<Longrightarrow> (j < \<Union>(A)) <-> (\<exists>i\<in>A. j<i)"
+lemma lt_Union_iff: "\<forall>i\<in>A. Ord(i) ==> (j < \<Union>(A)) <-> (\<exists>i\<in>A. j<i)"
 by (auto simp: lt_def Ord_Union)
 
 lemma Un_upper1_lt: "[|k < i; Ord(j)|] ==> k < i Un j"
@@ -153,15 +153,15 @@ lemma Un_upper2_lt: "[|k < j; Ord(i)|] ==> k < i Un j"
 by (simp add: lt_def) 
 
 lemma Ord_OUN [intro,simp]:
-     "\<lbrakk>!!x. x<A \<Longrightarrow> Ord(B(x))\<rbrakk> \<Longrightarrow> Ord(\<Union>x<A. B(x))"
+     "[| !!x. x<A ==> Ord(B(x)) |] ==> Ord(\<Union>x<A. B(x))"
 by (simp add: OUnion_def ltI Ord_UN) 
 
 lemma OUN_upper_lt:
-     "\<lbrakk>a<A;  i < b(a);  Ord(\<Union>x<A. b(x))\<rbrakk> \<Longrightarrow> i < (\<Union>x<A. b(x))"
+     "[| a<A;  i < b(a);  Ord(\<Union>x<A. b(x)) |] ==> i < (\<Union>x<A. b(x))"
 by (unfold OUnion_def lt_def, blast )
 
 lemma OUN_upper_le:
-     "\<lbrakk>a<A;  i\<le>b(a);  Ord(\<Union>x<A. b(x))\<rbrakk> \<Longrightarrow> i \<le> (\<Union>x<A. b(x))"
+     "[| a<A;  i\<le>b(a);  Ord(\<Union>x<A. b(x)) |] ==> i \<le> (\<Union>x<A. b(x))"
 apply (unfold OUnion_def, auto)
 apply (rule UN_upper_le )
 apply (auto simp add: lt_def) 
