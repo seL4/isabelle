@@ -8,7 +8,7 @@ Arithmetic expressions, Boolean expressions, Commands
 And their Operational semantics
 *)
 
-Com = Datatype +
+Com = Main +
 
 (** Arithmetic expressions **)
 consts  loc  :: i
@@ -80,7 +80,7 @@ consts  com :: i
 
 datatype <= "univ(loc Un aexp Un bexp)"
   "com" = skip
-        | ":="  ("x:loc", "a:aexp")             (infixl 60)
+        | asgt  ("x:loc", "a:aexp")             (infixl 60)
         | semic ("c0:com", "c1:com")            ("_; _"  [60, 60] 10)
         | while ("b:bexp", "c:com")             ("while _ do _"  60)
         | ifc   ("b:bexp", "c0:com", "c1:com")  ("ifc _ then _ else _"  60)
@@ -91,13 +91,10 @@ datatype <= "univ(loc Un aexp Un bexp)"
 (** Execution of commands **)
 consts  evalc    :: i
         "-c->"   :: [i,i] => o                   (infixl 50)
-        "assign" :: [i,i,i] => i                 ("_[_'/_]"       [95,0,0] 95)
 
 translations
        "p -c-> s" == "<p,s> : evalc"
 
-defs 
-        assign_def      "sigma[m/x] == lam y:loc. if(y=x,m,sigma`y)"
 
 inductive
   domains "evalc" <= "(com * (loc -> nat)) * (loc -> nat)"
@@ -105,7 +102,7 @@ inductive
     skip    "[| sigma: loc -> nat |] ==> <skip,sigma> -c-> sigma"
 
     assign  "[| m: nat; x: loc; <a,sigma> -a-> m |] ==> 
-            <x := a,sigma> -c-> sigma[m/x]"
+            <x asgt a,sigma> -c-> sigma(x:=m)"
 
     semi    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> 
             <c0 ; c1, sigma> -c-> sigma1"
@@ -125,9 +122,8 @@ inductive
                 <while b do c, sigma2> -c-> sigma1 |] ==> 
              <while b do c, sigma> -c-> sigma1 "
 
-  con_defs   "[assign_def]"
-  type_intrs "bexp.intrs @ com.intrs @ [if_type,lam_type,apply_type]"
+  type_intrs "com.intrs @ [update_type]"
   type_elims "[make_elim(evala.dom_subset RS subsetD),   
-              make_elim(evalb.dom_subset RS subsetD) ]"
+               make_elim(evalb.dom_subset RS subsetD) ]"
 
 end

@@ -49,7 +49,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [bexp1])));
 by (Fast_tac 1);
 (* assign *)
 by (asm_full_simp_tac (simpset() addsimps 
-		       [aexp1, assign_type] @ op_type_intrs) 1);
+		       [aexp1, update_type] @ op_type_intrs) 1);
 (* comp *)
 by (Fast_tac 1);
 (* while *)
