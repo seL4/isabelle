@@ -46,6 +46,8 @@ internally;
 * HOL, ZF: syntax for quotienting wrt an equivalence relation changed from
   A/r to A//r;
 
+* ZF: new treatment of arithmetic (nat & int) may break some old proofs;
+
 * Isar/Provers: intro/elim/dest attributes: changed
 intro/intro!/intro!!  flags to intro!/intro/intro? (in most cases, one
 should have to change intro!! to intro? only);
@@ -194,13 +196,8 @@ print_methods etc.);
 
 *** HOL ***
 
-* HOL/Prolog: a (bare-bones) implementation of Lambda-Prolog;
-
 * HOL/Algebra: new theory of rings and univariate polynomials, by
 Clemens Ballarin;
-
-* HOL/record: fixed select-update simplification procedure to handle
-extended records as well; admit "r" as field name;
 
 * HOL/ex: new theory Factorization proving the Fundamental Theorem of
 Arithmetic, by Thomas M Rasmussen;
@@ -209,7 +206,15 @@ Arithmetic, by Thomas M Rasmussen;
 basically a generalized version of de-Bruijn representation; very
 useful in avoiding lifting of operations;
 
+* HOL/NumberTheory: Chinese Remainder Theorem, Fermat/Euler Theorem, Wilson's
+Theorem, by Thomas M Rasmussen;
+
+* HOL/Prolog: a (bare-bones) implementation of Lambda-Prolog;
+
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
+
+* HOL/record: fixed select-update simplification procedure to handle
+extended records as well; admit "r" as field name;
 
 * HOL: 0 is now overloaded over the new sort "zero", allowing its use with
 other numeric types and also as the identity of groups, rings, etc.;
@@ -260,6 +265,20 @@ instead of "lfp" internally; affects ML packages only);
 
 * tuned AST representation of nested pairs, avoiding bogus output in
 case of overlap with user translations (e.g. judgements over tuples);
+
+
+*** ZF ***
+
+* simplification automatically cancels common terms in arithmetic expressions over nat;
+
+* new treatment of nat to minimize type-checking: all operators coerce their 
+operands to a natural number using the function natify, making the algebraic
+laws unconditional;
+
+* as above, for int;
+
+* the integer library now contains many of the usual laws for the orderings, 
+including $<=; 
 
 
 *** FOL & ZF ***
