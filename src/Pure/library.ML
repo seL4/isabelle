@@ -270,6 +270,7 @@ sig
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
+  val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
 
   (*misc*)
@@ -1235,6 +1236,7 @@ fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
+fun timeap_msg s f x = (warning s; timeap f x);
 
 (*global timing mode*)
 val timing = ref false;
