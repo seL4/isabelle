@@ -911,7 +911,7 @@ local
     | "proof-chain"    => markup "proofstep"
     | "proof-decl"     => markup "proofstep"
     | "proof-asm"      => markup "proofstep"
-    | "proof-asm-goal" => markup "proofstep"
+    | "proof-asm-goal" => (markup "opengoal") @ (empty "openblock")  (* nested proof: obtain *)
     | "qed"            => xmls_of_qed (name,markup)
     | "qed-block"      => xmls_of_qed (name,markup)
     | "qed-global"     => xmls_of_qed (name,markup)
