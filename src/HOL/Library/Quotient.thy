@@ -18,8 +18,8 @@ text {*
 subsection {* Equivalence relations and quotient types *}
 
 text {*
- \medskip Type class @{text equiv} models equivalence relations using
- the polymorphic @{text "\<sim> :: 'a => 'a => bool"} relation.
+ \medskip Type class @{text equiv} models equivalence relations @{text
+ "\<sim> :: 'a => 'a => bool"}.
 *}
 
 axclass eqv < "term"
