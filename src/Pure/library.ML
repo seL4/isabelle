@@ -45,6 +45,9 @@ exception OPTION of string;
 fun the (Some x) = x
   | the None = raise OPTION "the";
 
+fun if_none None y = y
+  | if_none (Some x) _ = x;
+
 fun is_some (Some _) = true
   | is_some None = false;
 
@@ -256,7 +259,6 @@ fun map2 _ ([], []) = []
 fun split_list (l: ('a * 'b) list) = (map #1 l, map #2 l);
 
 
-
 (* prefixes, suffixes *)
 
 infix prefix;
@@ -268,8 +270,8 @@ fun [] prefix _ = true
    where xi is the first element that does not satisfy the predicate*)
 fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
   let fun take (rxs, []) = (rev rxs, [])
-        | take (rxs, x::xs) =
-            if  pred x  then  take(x::rxs, xs)  else  (rev rxs, x::xs)
+        | take (rxs, x :: xs) =
+            if  pred x  then  take(x :: rxs, xs)  else  (rev rxs, x :: xs)
   in  take([], xs)  end;
 
 (* [x1, ..., xi, ..., xn]  --->  ([x1, ..., xi], [x(i+1), ..., xn])
@@ -374,14 +376,19 @@ val to_lower =
   in implode o (map lower) o explode end;
 
 
+(*parentesize*)
+fun parents lpar rpar str = lpar ^ str ^ rpar;
+
 (*simple quoting (does not escape special chars)*)
-fun quote s = "\"" ^ s ^ "\"";
+val quote = parents "\"" "\"";
 
 (*space_implode "..." (explode "hello"); gives "h...e...l...l...o"*)
 fun space_implode a bs = implode (separate a bs);
 
+val commas = space_implode ", ";
+
 (*concatenate messages, one per line, into a string*)
-val cat_lines = implode o (map (apr (op ^, "\n")));
+val cat_lines = space_implode "\n";
 
 
 
@@ -468,6 +475,24 @@ fun findrep [] = []
   | findrep (x :: xs) = if x mem xs then x :: xs else findrep xs;
 
 
+(*returns a list containing all repeated elements exactly once; preserves
+  order, takes first of equal elements*)
+fun gen_duplicates eq lst =
+  let
+    val memb = gen_mem eq;
+
+    fun dups (rev_dups, []) = rev rev_dups
+      | dups (rev_dups, x :: xs) =
+          if memb (x, rev_dups) orelse not (memb (x, xs)) then
+            dups (rev_dups, xs)
+          else dups (x :: rev_dups, xs);
+  in
+    dups ([], lst)
+  end;
+
+val duplicates = gen_duplicates (op =);
+
+
 
 (** association lists **)
 
@@ -480,6 +505,12 @@ fun assocs ps x =
   (case assoc (ps, x) of
     None => []
   | Some ys => ys);
+
+(*two-fold association list lookup*)
+fun assoc2 (aal, (key1, key2)) =
+  (case assoc (aal, key1) of
+    Some al => assoc (al, key2)
+  | None => None);
 
 (*generalized association list lookup*)
 fun gen_assoc eq ([], key) = None
