@@ -15,7 +15,7 @@ Goalw [inv_def]
       "[| p:zprime; #0<a; a<p |] \ 
 \     ==> #0 <= (inv p a) & (inv p a)<p & [a*(inv p a) = #1](mod p)";
 by (Asm_simp_tac 1);
-by (rtac (zcong_lineq_unique RS ex1_implies_ex RS ex_someI) 1);
+by (rtac (zcong_lineq_unique RS ex1_implies_ex RS someI_ex) 1);
 by (etac zless_zprime_imp_zrelprime 2);
 by (rewtac zprime_def);
 by Auto_tac;

@@ -152,7 +152,7 @@ qed "noX_is_RRset";
 Goal "[| #1<m; is_RRset A m; a:A |] \
 \     ==> zcong a (@ b. [a = b](mod m) & b : norRRset m) m & \
 \         (@ b. [a = b](mod m) & b : norRRset m) : norRRset m";
-by (rtac (norR_mem_unique RS ex1_implies_ex RS ex_someI) 1);
+by (rtac (norR_mem_unique RS ex1_implies_ex RS someI_ex) 1);
 by (rtac RRset_gcd 2);
 by (ALLGOALS Asm_simp_tac);
 val lemma_some = result();

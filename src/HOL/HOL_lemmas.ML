@@ -349,7 +349,7 @@ section "SOME: Hilbert's Epsilon-operator";
 Goal "EX x. P x ==> P (SOME x. P x)";
 by (etac exE 1);
 by (etac someI 1);
-qed "ex_someI";
+qed "someI_ex";
 
 (*Easier to apply than someI: conclusion has only one occurrence of P*)
 val prems = Goal
@@ -366,12 +366,12 @@ by (etac someI2 1 THEN etac minor 1);
 qed "someI2_ex";
 
 val prems = Goal
-    "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a";
+    "[| P a;  !!x. P x ==> x=a |] ==> (SOME x. P x) = a";
 by (rtac someI2 1);
 by (REPEAT (ares_tac prems 1)) ;
 qed "some_equality";
 
-Goalw [Ex1_def] "[| EX!x. P x; P a |] ==> (@x. P x) = a";
+Goalw [Ex1_def] "[| EX!x. P x; P a |] ==> (SOME x. P x) = a";
 by (rtac some_equality 1);
 by (atac 1);
 by (etac exE 1);
@@ -386,20 +386,20 @@ by (etac mp 1);
 by (atac 1);
 qed "some1_equality";
 
-Goal "P (@ x. P x) =  (EX x. P x)";
+Goal "P (SOME x. P x) =  (EX x. P x)";
 by (rtac iffI 1);
 by (etac exI 1);
 by (etac exE 1);
 by (etac someI 1);
 qed "some_eq_ex";
 
-Goal "(@y. y=x) = x";
+Goal "(SOME y. y=x) = x";
 by (rtac some_equality 1);
 by (rtac refl 1);
 by (atac 1);
 qed "some_eq_trivial";
 
-Goal "(@y. x=y) = x";
+Goal "(SOME y. x=y) = x";
 by (rtac some_equality 1);
 by (rtac refl 1);
 by (etac sym 1);

@@ -70,7 +70,7 @@ text {*
 lemma is_inf_meet [intro?]: "is_inf x y (x \<sqinter> y)"
 proof (unfold meet_def)
   from ex_inf show "is_inf x y (SOME inf. is_inf x y inf)"
-    by (rule ex_someI)
+    by (rule someI_ex)
 qed
 
 lemma meet_greatest [intro?]: "z \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> y \<Longrightarrow> z \<sqsubseteq> x \<sqinter> y"
@@ -86,7 +86,7 @@ lemma meet_lower2 [intro?]: "x \<sqinter> y \<sqsubseteq> y"
 lemma is_sup_join [intro?]: "is_sup x y (x \<squnion> y)"
 proof (unfold join_def)
   from ex_sup show "is_sup x y (SOME sup. is_sup x y sup)"
-    by (rule ex_someI)
+    by (rule someI_ex)
 qed
 
 lemma join_least [intro?]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"

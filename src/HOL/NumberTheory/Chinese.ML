@@ -210,7 +210,7 @@ by (subgoal_tac "#0<=(xilin_sol i n kf bf mf) & \
 by (asm_full_simp_tac (simpset() addsimps zmult_ac) 7);
 by (rewtac xilin_sol_def);
 by (Asm_simp_tac 7);
-by (rtac (ex1_implies_ex RS ex_someI) 7);
+by (rtac (ex1_implies_ex RS someI_ex) 7);
 by (rtac unique_xi_sol 7);
 by (rtac funprod_zdvd 4);
 by (rewtac m_cond_def);
