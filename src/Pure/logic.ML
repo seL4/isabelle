@@ -364,7 +364,7 @@ fun var_perm (t, u) =
 fun looptest sign prems lhs rhs =
    is_Var (head_of lhs)
   orelse
-   (exists (apl (lhs,occs)) (rhs :: prems))
+   (exists (apl (lhs, op occs)) (rhs :: prems))
   orelse
    (null prems andalso
     Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs));
