@@ -20,7 +20,7 @@ sig
   val repeat_undo: int -> unit
   val isa_restart: unit -> unit
   val init: bool -> unit
-  val write_keywords: unit -> unit
+  val write_keywords: string -> unit
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -308,13 +308,11 @@ fun make_elisp_syntax (keywords, commands) =
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
-val keywords_file = "isar-keywords.el";
-
 in
 
-fun write_keywords () =
+fun write_keywords s =
   (init_outer_syntax ();
-    File.write (Path.unpack keywords_file)
+    File.write (Path.unpack ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
       (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;
