@@ -136,9 +136,10 @@ primrec
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
-	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>  ts = ts' \\<and>
+	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>  (G \\<turnstile> ts \\<preceq> ts' \\<or> G \\<turnstile> ts' \\<preceq> ts) \\<and>
 		       G \\<turnstile> (ST' , LT) <=s phi ! (pc+1) \\<and>
 		       G \\<turnstile> (ST' , LT) <=s phi ! (nat(int pc+branch))))"
+
 "wt_BR (Goto branch) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
