@@ -378,14 +378,15 @@ val smart_store_thms_open = gen_smart_store_thms (K (K I));
 
 (* forall_elim_vars (belongs to drule.ML) *)
 
-(*Replace outermost quantified variable by Var of given index.
-    Could clash with Vars already present.*)
+(*Replace outermost quantified variable by Var of given index.*)
 fun forall_elim_var i th =
     let val {prop,sign,...} = rep_thm th
     in case prop of
-          Const("all",_) $ Abs(a,T,_) =>
-              forall_elim (cterm_of sign (Var((a,i), T)))  th
-        | _ => raise THM("forall_elim_var", i, [th])
+        Const ("all", _) $ Abs (a, T, _) =>
+          let val used = map (fst o fst)
+            (filter (equal i o snd o fst) (Term.add_vars ([], prop)))
+          in forall_elim (cterm_of sign (Var ((variant used a, i), T))) th end
+      | _ => raise THM ("forall_elim_var", i, [th])
     end;
 
 (*Repeat forall_elim_var until all outer quantifiers are removed*)
