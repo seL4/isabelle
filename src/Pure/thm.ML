@@ -653,15 +653,15 @@ fun nodup_Vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, prop}) s =
 val disch = gen_rem (op aconv);
 
 (*The assumption rule A|-A in a theory*)
-fun assume ct : thm =
-  let val Cterm {sign_ref, t=prop, T, maxidx} = ct
+fun assume raw_ct : thm =
+  let val ct as Cterm {sign_ref, t=prop, T, maxidx} = adjust_maxidx raw_ct
   in  if T<>propT then
         raise THM("assume: assumptions must have type prop", 0, [])
       else if maxidx <> ~1 then
         raise THM("assume: assumptions may not contain scheme variables",
                   maxidx, [])
       else Thm{sign_ref   = sign_ref,
-               der    = infer_derivs (Assume ct, []), 
+               der    = infer_derivs (Assume ct, []),
                maxidx = ~1, 
                shyps  = add_term_sorts(prop,[]), 
                hyps   = [prop], 
