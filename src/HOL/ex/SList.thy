@@ -37,7 +37,8 @@ consts
   null      :: 'a list => bool
   hd        :: 'a list => 'a
   tl,ttl    :: 'a list => 'a list
-  mem           :: ['a, 'a list] => bool                        (infixl 55)
+  setOfList :: ('a list => 'a set)
+  mem       :: ['a, 'a list] => bool                            (infixl 55)
   map       :: ('a=>'b) => ('a list => 'b list)
   "@"       :: ['a list, 'a list] => 'a list                    (infixr 65)
   filter    :: ['a => bool, 'a list] => 'a list
@@ -103,6 +104,8 @@ defs
   tl_def        "tl(xs)              == list_rec xs (@xs.True) (%x xs r.xs)"
   (* a total version of tl: *)
   ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r.xs)"
+
+  setOfList_def "setOfList xs == list_rec xs {} (%x l r. insert x r)"
 
   mem_def       "x mem xs            == 
                    list_rec xs False (%y ys r. if y=x then True else r)"

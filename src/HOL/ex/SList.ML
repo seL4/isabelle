@@ -283,6 +283,7 @@ val [_,tl_Cons] = list_recs tl_def;
 val [ttl_Nil,ttl_Cons] = list_recs ttl_def;
 val [append_Nil3,append_Cons] = list_recs append_def;
 val [mem_Nil, mem_Cons] = list_recs mem_def;
+val [setOfList_Nil,setOfList_Cons] = list_recs setOfList_def;
 val [map_Nil,map_Cons] = list_recs map_def;
 val [list_case_Nil,list_case_Cons] = list_recs list_case_def;
 val [filter_Nil,filter_Cons] = list_recs filter_def;
@@ -292,6 +293,7 @@ Addsimps
    mem_Nil, mem_Cons,
    list_case_Nil, list_case_Cons,
    append_Nil3, append_Cons,
+   setOfList_Nil, setOfList_Cons, 
    map_Nil, map_Cons,
    filter_Nil, filter_Cons];
 
