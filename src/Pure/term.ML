@@ -715,6 +715,7 @@ fun type_tag (Type("fun",[S,T])) = atomic_tag S ^ type_tag T
 
 val memo_types = ref (Symtab.null : typ list Symtab.table);
 
+(* special case of library/find_first *)
 fun find_type (T, []: typ list) = None
   | find_type (T, T'::Ts) =
        if T=T' then Some T'
@@ -744,6 +745,7 @@ fun compress_type T =
 
 val memo_terms = ref (Symtab.null : term list Symtab.table);
 
+(* special case of library/find_first *)
 fun find_term (t, []: term list) = None
   | find_term (t, t'::ts) =
        if t=t' then Some t'

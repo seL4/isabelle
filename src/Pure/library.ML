@@ -245,10 +245,11 @@ fun split_last [] = raise LIST "split_last"
 
 
 (*find the position of an element in a list*)
-fun find (x, ys) =
-  let fun f (y :: ys, i) = if x = y then i else f (ys, i + 1)
-        | f (_, _) = raise LIST "find"
-  in f (ys, 0) end;
+fun find_index (pred: 'a->bool) : 'a list -> int =
+  let fun find _ []      = ~1
+        | find n (x::xs) = if pred x then n else find (n+1) xs
+  in find 0 end;
+fun find_index_eq x = find_index (fn y => y = x);
 
 (*flatten a list of lists to a list*)
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
@@ -294,10 +295,10 @@ fun mapfilter (f: 'a -> 'b option) ([]: 'a list) = [] : 'b list
       | Some y => y :: mapfilter f xs);
 
 
-fun find_first _ [] = None
-  | find_first pred (x :: xs) =
-      if pred x then Some x else find_first pred xs;
-
+fun find_first pred = let
+  fun f [] = None
+  |   f (x :: xs) = if pred x then Some x else f  xs
+  in f end;
 
 (* lists of pairs *)
 

@@ -168,7 +168,7 @@ fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
 fun cpair (S,T) = %%"cpair"`S`T;
 fun lift_defined f = lift (fn x => defined (f x));
-fun bound_arg vns v = Bound(length vns-find(v,vns)-1);
+fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
 fun cont_eta_contract (Const("fabs",TT) $ Abs(a,T,body)) = 
       (case cont_eta_contract body  of

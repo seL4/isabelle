@@ -84,14 +84,14 @@ in
     val eqs' = check_and_sort_domain (dtnvs,cons'') sg'';
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
-    fun strip ss = drop (find ("'", ss)+1, ss);
+    fun strip ss = drop (find_index_eq "'" ss +1, ss);
     fun typid (Type  (id,_)   ) = hd     (explode (Sign.base_name id))
       | typid (TFree (id,_)   ) = hd (strip (tl (explode (Sign.base_name id))))
       | typid (TVar ((id,_),_)) = hd (tl (explode (Sign.base_name id)));
     fun cons cons' = (map (fn (con,syn,args) =>
 	((Syntax.const_name con syn),
 	 ListPair.map (fn ((lazy,sel,tp),vn) => ((lazy,
-					find (tp,dts) handle LIST "find" => ~1),
+					find_index_eq tp dts),
 					sel,vn))
 	     (args,(mk_var_names(map (typid o third) args)))
 	 )) cons') : cons list;

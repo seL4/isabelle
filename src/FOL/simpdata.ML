@@ -247,16 +247,11 @@ local
   fun is_eq (Const ("Trueprop", _) $ (Const("op ="  ,_) $ _ $ _)) = true
     | is_eq (Const ("Trueprop", _) $ (Const("op <->",_) $ _ $ _)) = true
     | is_eq _ = false;
-  fun find_eq n [] = None
-    | find_eq n (t :: ts) = if (is_eq t) then Some n 
-			    else find_eq (n + 1) ts;
+  val find_eq = find_index is_eq;
 in
 val rot_eq_tac = 
-     SUBGOAL (fn (Bi,i) => 
-	      case find_eq 0 (Logic.strip_assums_hyp Bi) of
-		  None   => no_tac
-		| Some 0 => no_tac
-		| Some n => rotate_tac n i)
+     SUBGOAL (fn (Bi,i) => let val n = find_eq (Logic.strip_assums_hyp Bi) in
+		if n>0 then rotate_tac n i else no_tac end)
 end;
 
 

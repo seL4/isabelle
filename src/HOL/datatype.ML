@@ -194,7 +194,7 @@ fun trans_recs _ _ [] = error("No primrec equations.")
         | trans_recs' cis (eq::eqs) = 
           let val (name,rpos,ls,c,cargs,rs,rhs) = dest_rec eq; 
             val tc = assoc(tcs,c);
-            val i = (1 + find (c,cs))  handle LIST "find" => 0; 
+            val i = 1 + find_index_eq c cs;
           in
           if name <> name1 then 
             raise RecError "function names inconsistent"
