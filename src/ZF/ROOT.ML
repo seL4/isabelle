@@ -18,9 +18,6 @@ print_depth 1;
 (*syntax for old-style theory sections*)
 use "thy_syntax";
 
-use "~~/src/Provers/Arith/cancel_numerals.ML";
-use "~~/src/Provers/Arith/combine_numerals.ML";
-
 with_path "Integ" use_thy "Main_ZFC";
 
 print_depth 8;

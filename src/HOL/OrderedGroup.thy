@@ -435,14 +435,14 @@ proof -
 qed
 
 lemma diff_less_eq: "(a-b < c) = (a < c + (b::'a::pordered_ab_group_add))"
-apply (subst less_iff_diff_less_0)
+apply (subst less_iff_diff_less_0 [of a])
 apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
 apply (simp add: diff_minus add_ac)
 done
 
 lemma less_diff_eq: "(a < c-b) = (a + (b::'a::pordered_ab_group_add) < c)"
-apply (subst less_iff_diff_less_0)
-apply (rule less_iff_diff_less_0 [of _ "c-b", THEN ssubst])
+apply (subst less_iff_diff_less_0 [of "a+b"])
+apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: diff_minus add_ac)
 done
 
@@ -608,8 +608,8 @@ qed
 lemma meet_0_imp_0: "meet a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
 apply (simp add: meet_eq_neg_join)
 apply (simp add: join_comm)
-apply (subst join_0_imp_0)
-by auto
+apply (erule join_0_imp_0)
+done
 
 lemma join_0_eq_0[simp]: "(join a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
 by (auto, erule join_0_imp_0)

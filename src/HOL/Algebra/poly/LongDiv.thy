@@ -18,12 +18,10 @@ lemma SUM_shrink_below_lemma:
   "!! f::(nat=>'a::ring). (ALL i. i < m --> f i = 0) --> 
   setsum (%i. f (i+m)) {..d} = setsum f {..m+d}"
   apply (induct_tac d)
-  apply (induct_tac m)
-  apply (simp)
-  apply (force)
-  apply (simp)
-  apply (subst ab_semigroup_add.add_commute[of m])
-  apply (simp)
+   apply (induct_tac m)
+    apply (simp)
+   apply (force)
+  apply (simp add: ab_semigroup_add.add_commute[of m]) 
   done
 
 end

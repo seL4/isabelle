@@ -215,8 +215,7 @@ apply (frule genPrefix_length_le [THEN le_imp_less_or_eq])
 apply (erule disjE)
 apply (simp_all (no_asm_simp) add: neq_Nil_conv nth_append)
 apply (blast intro: genPrefix.append, auto)
-apply (subst append_cons_eq)
-apply (blast intro: genPrefix_append_both genPrefix.append)
+apply (subst append_cons_eq, fast intro: genPrefix_append_both genPrefix.append)
 done
 
 lemma append_one_genPrefix:

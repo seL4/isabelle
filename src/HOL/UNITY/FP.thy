@@ -19,20 +19,19 @@ constdefs
     "FP F == {s. F : stable {s}}"
 
 lemma stable_FP_Orig_Int: "F : stable (FP_Orig F Int B)"
-apply (unfold FP_Orig_def stable_def)
-apply (subst Int_Union2)
+apply (simp only: FP_Orig_def stable_def Int_Union2)
 apply (blast intro: constrains_UN)
 done
 
 lemma FP_Orig_weakest:
     "(!!B. F : stable (A Int B)) ==> A <= FP_Orig F"
-by (unfold FP_Orig_def stable_def, blast)
+by (simp add: FP_Orig_def stable_def, blast)
 
 lemma stable_FP_Int: "F : stable (FP F Int B)"
 apply (subgoal_tac "FP F Int B = (UN x:B. FP F Int {x}) ")
 prefer 2 apply blast
 apply (simp (no_asm_simp) add: Int_insert_right)
-apply (unfold FP_def stable_def)
+apply (simp add: FP_def stable_def)
 apply (rule constrains_UN)
 apply (simp (no_asm))
 done
@@ -40,7 +39,7 @@ done
 lemma FP_equivalence: "FP F = FP_Orig F"
 apply (rule equalityI) 
  apply (rule stable_FP_Int [THEN FP_Orig_weakest])
-apply (unfold FP_Orig_def FP_def, clarify)
+apply (simp add: FP_Orig_def FP_def, clarify)
 apply (drule_tac x = "{x}" in spec)
 apply (simp add: Int_insert_right)
 done

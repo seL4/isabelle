@@ -451,9 +451,7 @@ lemma split_beta: "(%(x, y). P x y) z = P (fst z) (snd z)"
 
 lemma split_split: "R (split c p) = (ALL x y. p = (x, y) --> R (c x y))"
   -- {* For use with @{text split} and the Simplifier. *}
-  apply (subst surjective_pairing)
-  apply (subst split_conv, blast)
-  done
+  by (insert surj_pair [of p], clarify, simp)
 
 text {*
   @{thm [source] split_split} could be declared as @{text "[split]"}

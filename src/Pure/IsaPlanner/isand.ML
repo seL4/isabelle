@@ -20,17 +20,62 @@
     ordering of proof, thus allowing proof attempts in parrelle, but
     recording the order to apply things in.
 
-debugging tools:
-fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t)); 
-fun asm_read s =  
-    (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT))); 
+    debugging tools:
+
+    fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t)); 
+    fun asm_read s =  
+      (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT))); 
 
     THINK: are we really ok with our varify name w.r.t the prop - do
-    we alos need to avoid named in the hidden hyps?
-
+    we alos need to avoid names in the hidden hyps?
 *)
 
-structure IsaND =
+signature ISA_ND =
+sig
+  datatype export = export of
+           {gth: Thm.thm, (* initial goal theorem *)
+            sgid: int, (* subgoal id which has been fixed etc *)
+            fixes: Thm.cterm list, (* frees *)
+            assumes: Thm.cterm list} (* assumptions *)
+
+  val fixes_of_exp : export -> Thm.cterm list
+
+  val export_back : export -> Thm.thm -> Thm.thm Seq.seq
+  val export_solution : export -> Thm.thm -> Thm.thm
+  val export_solutions : export list * Thm.thm -> Thm.thm
+
+  val allify_conditions :
+      (Term.term -> Thm.cterm) ->
+      (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
+  val allify_conditions' :
+      (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
+
+  val assume_prems :
+      int -> Thm.thm -> Thm.thm list * Thm.thm * Thm.cterm list
+
+  val fix_alls_term : int -> Term.term -> Term.term * Term.term list
+  val fix_alls_cterm : int -> Thm.thm -> Thm.cterm * Thm.cterm list
+  val fix_alls' : int -> Thm.thm -> Thm.thm * Thm.cterm list
+  val fix_alls : int -> Thm.thm -> Thm.thm * export
+
+  val fix_vars_to_frees : Thm.thm -> (Thm.cterm * Thm.cterm) list * Thm.thm
+  val schemify_frees_to_vars : Thm.cterm list -> Thm.thm -> Thm.thm
+
+  val fixed_subgoal_thms : Thm.thm -> Thm.thm list * (Thm.thm list -> Thm.thm)
+  val fixes_and_assumes : int -> Thm.thm -> Thm.thm list * Thm.thm * export
+
+  val hide_other_goals : Thm.thm -> Thm.thm * Thm.cterm list
+  val hide_prems : Thm.thm -> Thm.thm * Thm.cterm list
+
+  (* abstracts cterms (vars) to locally meta-all bounds *)
+  val prepare_goal_export : string list * Thm.cterm list -> Thm.thm 
+                            -> int * Thm.thm
+  val solve_with : Thm.thm -> Thm.thm -> Thm.thm Seq.seq
+  val subgoal_thms : Thm.thm -> Thm.thm list * (Thm.thm list -> Thm.thm)
+end
+
+
+structure IsaND : ISA_ND =
 struct
 
 (* Solve *some* subgoal of "th" directly by "sol" *)
@@ -53,12 +98,12 @@ assumptions possibly containing the free vars, then we give back the
 assumptions allified as hidden hyps. *)
 (* 
 Given: vs 
-th: A vs ==> B vs
+th: A vs ==> B vs 
 Results in: "B vs" [!!x. A x]
 *)
 fun allify_conditions ctermify Ts th = 
     let 
-      val premts = Thm.prems_of th
+      val premts = Thm.prems_of th;
     
       fun allify_prem_var (vt as (n,ty),t)  = 
           (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
@@ -68,8 +113,8 @@ fun allify_conditions ctermify Ts th =
       val cTs = map (ctermify o Free) Ts
       val cterm_asms = map (ctermify o allify_prem Ts) premts
       val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms
-    in
-      (foldl (fn (x,y) => y RS x) (th, allifyied_asm_thms), cterm_asms)
+    in 
+      (foldl (fn (x,y) => y COMP x) (th, allifyied_asm_thms), cterm_asms)
     end;
 
 fun allify_conditions' Ts th = 
@@ -95,13 +140,10 @@ fun fix_vars_to_frees th =
                 (([],names), vars)
     in (insts, Thm.instantiate ([], insts) th) end;
 
-(* *)
-(*
-val th = Thm.freezeT (topthm());
-val (insts, th') = fix_vars_to_frees th;
-val Ts = map (Term.dest_Free o Thm.term_of o snd) insts;
-allify_conditions' Ts th';
-*)
+(* make free vars into schematic vars with index zero *)
+ fun schemify_frees_to_vars frees = 
+     apply (map (K (Drule.forall_elim_var 0)) frees) 
+     o Drule.forall_intr_list frees;
 
 
 (* datatype to capture an exported result, ie a fix or assume. *)
@@ -111,12 +153,14 @@ datatype export =
                     sgid : int,
                     gth :  Thm.thm}; (* subgoal/goalthm *)
 
-
+fun fixes_of_exp (export rep) = #fixes rep;
 
 (* export the result of the new goal thm, ie if we reduced teh
 subgoal, then we get a new reduced subtgoal with the old
 all-quantified variables *)
 local 
+
+(* allify puts in a meta level univ quantifier for a free variavble *)
 fun allify_term (v, t) = 
     let val vt = #t (Thm.rep_cterm v)
       val (n,ty) = Term.dest_Free vt
@@ -128,7 +172,7 @@ fun allify_for_sg_term ctermify vs t =
     in 
       (ct_alls, Drule.forall_elim_list vs (Thm.assume ct_alls))
     end;
-
+(* lookup type of a free var name from a list *)
 fun lookupfree vs vn  = 
     case Library.find_first (fn (n,ty) => n = vn) vs of 
       None => raise ERROR_MESSAGE ("prepare_goal_export:lookupfree: " 
@@ -158,17 +202,19 @@ fun export_back (export {fixes = vs, assumes = hprems,
       bicompose false (false, newth', (length sgallcts)) i gth
     end;
 
-(* given a thm of the form: 
+(* 
+Given "vs" : names of free variables to abstract over,
+Given cterms : premices to abstract over (P1... Pn) in terms of vs,
+Given a thm of the form: 
 P1 vs; ...; Pn vs ==> Goal(C vs)
 
 Gives back: 
-n,
-[| !! vs. P1 vs; !! vs. Pn vs |] 
-  ==> !! C vs
+(n, length of given cterms which have been allified
+ [| !! vs. P1 vs; !! vs. Pn vs |] ==> !! C vs) the allified thm
 *)
 (* note: C may contain further premices etc 
 Note that cterms is the assumed facts, ie prems of "P1" that are
-reintroduced.
+reintroduced in allified form.
 *)
 fun prepare_goal_export (vs, cterms) th = 
     let 
@@ -199,45 +245,6 @@ fun prepare_goal_export (vs, cterms) th =
 
 end;
 
-(* val exports_back = foldr (uncurry export_to_sg); *)
-
-(* test with:
-
-fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t)); 
-fun asm_read s =  
-    (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT))); 
-use_thy "theories/dbg2";
-Goal "!! x :: nat. [| A x; B x; C x; D x |] ==> ((P1 x & P2 x) & P3 x)";
-by (rtac conjI 1);
-by (rtac conjI 1);
-val th = topthm();
-val i = 1;
-val (gthi, exp) = IsaND.fix_alls i th;
-val [th'] = Seq.list_of (rtac (thm "p321") 1 gthi);
-val oldthewth = Seq.list_of (IsaND.export_back exp th');
- or 
-val [th'] = Seq.list_of (RWStepTac.rwstep_tac (thms "aa2") 1 gthi);
-val oldthewth = Seq.list_of (IsaND.export_back exp th');
-
-
-val th = topthm();
-val i = 1;
-val (goalth, exp1) = IsaND.fix_alls' i th;
-val (newth, exp2) = IsaND.hide_other_goals 2 goalth;
-val oldthewth = Seq.list_of (IsaND.export_back exp2 newth);
-val (export {fixes = vs, assumes = hprems, 
-                            sgid = i, gth = gth}) = exp2;
-
-
-Goal "!! x y. P (x + (Suc y)) ==> Z x y ==> Q ((Suc x) + y)"; 
-val th = topthm();
-val i = 1;
-val (gthi, exp) = IsaND.fix_alls i th;
-val newth = Seq.hd (Asm_full_simp_tac 1 gthi);
-Seq.list_of (IsaND.export_back exp newth);
-*)
-
-
 
 (* exporting function that takes a solution to the fixed/assumed goal,
 and uses this to solve the subgoal in the main theorem *)
@@ -249,9 +256,7 @@ fun export_solution (export {fixes = cfvs, assumes = hcprems,
                 |> Drule.forall_intr_list cfvs
     in Drule.compose_single (solth', i, gth) end;
 
-val exports_solution = foldr (uncurry export_solution);
-
-
+val export_solutions = foldr (uncurry export_solution);
 
 
 (* fix parameters of a subgoal "i", as free variables, and create an
@@ -269,9 +274,8 @@ Result:
      ("As ==> SGi x'" : thm) -> 
      ("[| SG0; ... SGi-1; SGi+1; ... SGm |] ==> G") : thm)
 *)
-fun fix_alls' i th = 
+fun fix_alls_term i t = 
     let 
-      val t = (prop_of th); 
       val names = Term.add_term_names (t,[]);
       val gt = Logic.get_goal t i;
       val body = Term.strip_all_body gt;
@@ -279,33 +283,20 @@ fun fix_alls' i th =
       val fvs = map Free 
                     ((Term.variantlist (map fst alls, names)) 
                        ~~ (map snd alls));
-      val sgn = Thm.sign_of_thm th;
-      val ctermify = Thm.cterm_of sgn;
+    in ((subst_bounds (fvs,body)), fvs) end;
+
+fun fix_alls_cterm i th = 
+    let
+      val ctermify = Thm.cterm_of (Thm.sign_of_thm th);
+      val (fixedbody, fvs) = fix_alls_term i (Thm.prop_of th);
       val cfvs = rev (map ctermify fvs);
+      val ct_body = ctermify fixedbody
+    in
+      (ct_body, cfvs)
+    end;
 
-      val body' = (subst_bounds (fvs,body));
-      val gthi0 = Thm.trivial (ctermify body');
-      
-      (* Given a thm justifying subgoal i, solve subgoal i *)
-      (* Note: fails if there are choices! *)
-      (* fun exportf thi = 
-          Drule.compose_single (Drule.forall_intr_list cfvs thi, 
-                                i, th) *)
-    in (gthi0, cfvs) end;
-
-(* small example: 
-Goal "!! x. [| False; C x |] ==> P x";
-val th = topthm();
-val i = 1;
-val (goalth, fixes) = fix_alls' i (topthm());
-
-Goal "!! x. P (x + (Suc y)) ==> Q ((Suc x) + y)";
-Goal "!! x. P x y = Q y x ==> P x y";
-val th = topthm();
-val i = 1;
-val (prems, gthi, expf) = IsaND.fixes_and_assumes i th;
-val gth2 = Seq.hd (RWStepTac.rwstep_tac prems 1 gthi);
-*)
+fun fix_alls' i = 
+     (apfst Thm.trivial) o (fix_alls_cterm i);
 
 
 (* hide other goals *) 
@@ -320,13 +311,6 @@ fun hide_other_goals th =
       (Drule.implies_elim_list (Drule.rotate_prems 1 th) aprems, 
        cprems)
     end;
-(* test with: 
-Goal "!! x. [| False; C x |] ==> P x";
-val th = topthm();
-val i = 1;
-val (goalth, fixedvars) = IsaND.fix_alls' i th;
-val (newth, hiddenprems) = IsaND.hide_other_goals goalth;
-*)
 
 (* a nicer version of the above that leaves only a single subgoal (the
 other subgoals are hidden hyps, that the exporter suffles about)
@@ -348,21 +332,6 @@ fun fix_alls i th =
                         assumes = othergoals, 
                         sgid = i, gth = th})
     end;
-
-(* small example: 
-Goal "!! x. [| False; C x |] ==> P x";
-val th = topthm();
-val i = 1;
-val (goalth, exp) = IsaND.fix_alls i th;
-val oldthewth = Seq.list_of (IsaND.export_back exp goalth);
-
-val (premths, goalth2, expf2) = IsaND.assume_prems 1 goalth;
-val False_th = nth_elem (0,premths);
-val anything = False_th RS (thm "FalseE");
-val th2 = anything RS goalth2;
-val th1 = expf2 th2;
-val final_th = flat (map expf th1);
-*)
 
 
 (* assume the premises of subgoal "i", this gives back a list of
@@ -406,17 +375,6 @@ fun assume_prems i th =
     in
       (aprems, gthi, cprems)
     end;
-(* small example: 
-Goal "False ==> b";
-val th = topthm();
-val i = 1;
-val (prems, goalth, cprems) = IsaND.assume_prems i (topthm());
-val F = hd prems;
-val FalseE = thm "FalseE";
-val anything = F RS FalseE;
-val thi = anything RS goalth;
-val res' = expf thi;
-*)
 
 
 (* first fix the variables, then assume the assumptions *)
@@ -441,24 +399,7 @@ fun fixes_and_assumes i th =
     in 
       (assumps, goalth, exp1)
     end;
-(* test with: 
-Goal "!! x. [| False; C x |] ==> P x";
-val th = topthm();
-val i = 1;
-val (fixgth, exp) = IsaND.fix_alls i th;
-val (assumps, goalth, _) = assume_prems 1 fixgth;
 
-val oldthewth = Seq.list_of (IsaND.export_back exp fixgth);
-val oldthewth = Seq.list_of (IsaND.export_back exp goalth);
-
-
-val (prems, goalth, expf) = IsaND.fixes_and_assumes i th;
-val F = hd prems;
-val FalseE = thm "FalseE";
-val anything = F RS FalseE;
-val thi = anything RS goalth;
-val res' = expf thi;
-*)
 
 (* Fixme: allow different order of subgoals given to expf *)
 (* make each subgoal into a separate thm that needs to be proved *)
@@ -486,12 +427,7 @@ fun subgoal_thms th =
     in
       (aprems, explortf)
     end;
-(* small example: 
-Goal "A & B";
-by (rtac conjI 1);
-val th = topthm();
-val (subgoals, expf) = subgoal_thms (topthm());
-*)
+
 
 (* make all the premices of a theorem hidden, and provide an unhide
 function, that will bring them back out at a later point. This is
@@ -546,13 +482,5 @@ fun fixed_subgoal_thms th =
       apsnd export_sgs (Library.split_list (map (apsnd export_solution o 
                                                  fix_alls 1) subgoals))
     end;
-
-
-(* small example: 
-Goal "(!! x. ((C x) ==> (A x)))";
-val th = topthm();
-val i = 1;
-val (subgoals, expf) = fixed_subgoal_thms (topthm());
-*)
 
 end;

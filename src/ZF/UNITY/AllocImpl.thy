@@ -284,8 +284,10 @@ apply (drule_tac [2] a = k and g1 = length in imp_Increasing_comp [THEN Increasi
 apply (rule_tac [2] mono_length)
     prefer 3 apply simp
 apply (simp_all add: refl_prefix Le_def comp_def length_type)
-apply (subst Int_commute)
-apply (rule_tac A = " ({s \<in> state . k \<le> length (s ` rel) } \<inter> {s\<in>state . s ` NbR = n}) \<inter> {s\<in>state. k \<le> length (s`rel) }" in LeadsTo_weaken_L)
+apply (subst Int_commute [of _ "{x \<in> state . n < x ` NbR}"])
+apply (rule_tac A = "({s \<in> state . k \<le> length (s ` rel) } \<inter>
+                      {s\<in>state . s ` NbR = n}) \<inter> {s\<in>state. k \<le> length(s`rel)}"
+       in LeadsTo_weaken_L)
 apply (rule PSP_Stable, safe)
 apply (rule_tac B = "{x \<in> state . n < length (x ` rel) } \<inter> {s\<in>state . s ` NbR = n}" in LeadsTo_Trans)
 apply (rule_tac [2] LeadsTo_weaken)

@@ -310,6 +310,8 @@ subsection{*Bounded universal quantifier*}
 lemma ballI [intro!]: "[| !!x. x\<in>A ==> P(x) |] ==> \<forall>x\<in>A. P(x)"
 by (simp add: Ball_def)
 
+lemmas strip = impI allI ballI
+
 lemma bspec [dest?]: "[| \<forall>x\<in>A. P(x);  x: A |] ==> P(x)"
 by (simp add: Ball_def)
 

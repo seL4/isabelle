@@ -41,16 +41,8 @@ into \isa{ordrel} we need to declare a type to be an \bfindex{instance} of
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ ordrel\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Command \isacommand{instance} actually starts a proof, namely that
-\isa{bool} satisfies all axioms of \isa{ordrel}.
-There are none, but we still need to finish that proof, which we do
-by invoking the \methdx{intro_classes} method:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{by}\ intro{\isacharunderscore}classes\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -72,7 +64,7 @@ Now \isa{False\ {\isacharless}{\isacharless}{\isacharequal}\ P} is provable:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}False\ {\isacharless}{\isacharless}{\isacharequal}\ P{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent

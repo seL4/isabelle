@@ -66,6 +66,9 @@ use "Proof/extraction.ML";
 (*old-style goal package*)
 use "goals.ML";
 
+(*the IsaPlanner subsystem*)
+cd "IsaPlanner"; use "ROOT.ML"; cd "..";
+
 (*configuration for Proof General*)
 use "proof_general.ML";
 

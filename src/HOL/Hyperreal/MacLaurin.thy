@@ -579,7 +579,7 @@ proof -
       in Maclaurin_all_le_objl)
     apply safe
     apply simp
-    apply (subst mod_Suc_eq_Suc_mod)
+    apply (simplesubst mod_Suc_eq_Suc_mod)  --{*simultaneous substitution*}
     apply (cut_tac m=m in mod_exhaust_less_4, safe, simp+)
     apply (rule DERIV_minus, simp+)
     apply (rule lemma_DERIV_subst, rule DERIV_minus, rule DERIV_cos, simp)

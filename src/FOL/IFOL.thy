@@ -5,8 +5,10 @@
 
 header {* Intuitionistic first-order logic *}
 
-theory IFOL = Pure
-files ("IFOL_lemmas.ML") ("fologic.ML") ("hypsubstdata.ML") ("intprover.ML"):
+theory IFOL
+imports Pure
+files ("IFOL_lemmas.ML") ("fologic.ML") ("hypsubstdata.ML") ("intprover.ML")
+begin
 
 
 subsection {* Syntax and axiomatic basis *}
@@ -267,8 +269,6 @@ lemmas basic_trans_rules [trans] =
   rev_mp
   mp
   trans
-
-
 
 subsection {* ``Let'' declarations *}
 

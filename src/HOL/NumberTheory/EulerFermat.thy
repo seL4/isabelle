@@ -259,7 +259,7 @@ lemma Bnor_prod_power [rule_format]:
       \<Prod>(BnorRset(a, m)) * x^card (BnorRset (a, m))"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
-   apply (subst BnorRset.simps)
+   apply (simplesubst BnorRset.simps)  --{*multiple redexes*}
    apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (subst setprod_insert)

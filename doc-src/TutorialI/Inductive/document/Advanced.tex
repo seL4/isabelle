@@ -22,21 +22,11 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 \isamarkupfalse%
 \isacommand{lemma}\ gterms{\isacharunderscore}mono{\isacharcolon}\ {\isachardoublequote}F{\isasymsubseteq}G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ gterms\ G{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ clarify\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
-\end{isabelle}%
-\end{isamarkuptxt}%
+\isamarkupfalse%
 \isamarkuptrue%
-\isacommand{apply}\ blast\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
@@ -67,9 +57,8 @@ and now the one for local usage:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{oops}\isanewline
+\isanewline
 \isanewline
 \isamarkupfalse%
 \isacommand{inductive{\isacharunderscore}cases}\ gterm{\isacharunderscore}Apply{\isacharunderscore}elim\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isachardoublequote}\isamarkupfalse%
@@ -86,22 +75,10 @@ this is what we get:
 \isacommand{lemma}\ gterms{\isacharunderscore}IntI\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ \ \ \ {\isachardoublequote}t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ blast\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
@@ -113,7 +90,7 @@ this is what we get:
 \isacommand{lemma}\ gterms{\isacharunderscore}Int{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ \ \ \ {\isachardoublequote}gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ mono{\isacharunderscore}Int\ monoI\ gterms{\isacharunderscore}mono{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 the following declaration isn't actually used%
@@ -149,67 +126,24 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ clarify\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{done}\isanewline
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isanewline
 \isanewline
 \isanewline
 \isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ clarify\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}args\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
@@ -258,24 +192,18 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ clarify\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{done}\isanewline
+\isanewline
 \isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ clarify\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{done}\isanewline
+\isanewline
 \isanewline
 \isanewline
 \isamarkupfalse%

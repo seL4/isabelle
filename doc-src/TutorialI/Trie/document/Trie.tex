@@ -63,9 +63,8 @@ distinguishes the two cases whether the search string is empty or not:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}lookup\ {\isacharparenleft}Trie\ None\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ as\ {\isacharequal}\ None{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ as{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Things begin to get interesting with the definition of an update function
@@ -110,36 +109,11 @@ Our main goal is to prove the correct interaction of \isa{update} and
 \isamarkuptrue%
 \isacommand{theorem}\ {\isachardoublequote}{\isasymforall}t\ v\ bs{\isachardot}\ lookup\ {\isacharparenleft}update\ t\ as\ v{\isacharparenright}\ bs\ {\isacharequal}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}if\ as{\isacharequal}bs\ then\ Some\ v\ else\ lookup\ t\ bs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Our plan is to induct on \isa{as}; hence the remaining variables are
-quantified. From the definitions it is clear that induction on either
-\isa{as} or \isa{bs} is required. The choice of \isa{as} is 
-guided by the intuition that simplification of \isa{lookup} might be easier
-if \isa{update} has already been simplified, which can only happen if
-\isa{as} is instantiated.
-The start of the proof is conventional:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ as{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Unfortunately, this time we are left with three intimidating looking subgoals:
-\begin{isabelle}
-~1.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
-~2.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
-~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs
-\end{isabelle}
-Clearly, if we want to make headway we have to instantiate \isa{bs} as
-well now. It turns out that instead of induction, case distinction
-suffices:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac{\isacharbrackleft}{\isacharbang}{\isacharbrackright}\ bs{\isacharcomma}\ auto{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent

@@ -110,9 +110,9 @@ theorem Schroeder_Bernstein:
     apply (rule_tac [2] inj_on_inv)
     apply (erule subset_inj_on [OF _ subset_UNIV])
    txt {* Tricky variable instantiations! *}
-   apply (erule ssubst, subst double_complement)
+   apply (erule ssubst, simplesubst double_complement)
    apply (rule subsetI, erule imageE, erule ssubst, rule rangeI)
-  apply (erule ssubst, subst double_complement, erule inv_image_comp [symmetric])
+  apply (erule ssubst, simplesubst double_complement, erule inv_image_comp [symmetric])
   done
 
 

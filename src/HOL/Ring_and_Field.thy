@@ -1546,7 +1546,9 @@ proof -
     by (simp only: abs_prts[of a] abs_prts[of b] ring_eq_simps)
   {
     fix u v :: 'a
-    have bh: "\<lbrakk>u = a; v = b\<rbrakk> \<Longrightarrow> u * v = ?y"
+    have bh: "\<lbrakk>u = a; v = b\<rbrakk> \<Longrightarrow> 
+              u * v = pprt a * pprt b + pprt a * nprt b + 
+                      nprt a * pprt b + nprt a * nprt b"
       apply (subst prts[of u], subst prts[of v])
       apply (simp add: left_distrib right_distrib add_ac) 
       done

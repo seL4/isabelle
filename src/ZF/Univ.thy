@@ -47,8 +47,8 @@ lemma Vfrom_mono [rule_format]:
      "A<=B ==> \<forall>j. i<=j --> Vfrom(A,i) <= Vfrom(B,j)"
 apply (rule_tac a=i in eps_induct)
 apply (rule impI [THEN allI])
-apply (subst Vfrom)
-apply (subst Vfrom)
+apply (subst Vfrom [of A])
+apply (subst Vfrom [of B])
 apply (erule Un_mono)
 apply (erule UN_mono, blast) 
 done
@@ -59,18 +59,21 @@ by (blast dest: Vfrom_mono [OF subset_refl le_imp_subset [OF leI]])
 
 subsubsection{* A fundamental equality: Vfrom does not require ordinals! *}
 
+
+
 lemma Vfrom_rank_subset1: "Vfrom(A,x) <= Vfrom(A,rank(x))"
-apply (rule_tac a=x in eps_induct)
-apply (subst Vfrom)
-apply (subst Vfrom)
-apply (blast intro!: rank_lt [THEN ltD])
-done
+proof (induct x rule: eps_induct)
+  fix x
+  assume "\<forall>y\<in>x. Vfrom(A,y) \<subseteq> Vfrom(A,rank(y))"
+  thus "Vfrom(A, x) \<subseteq> Vfrom(A, rank(x))"
+    by (simp add: Vfrom [of _ x] Vfrom [of _ "rank(x)"],
+        blast intro!: rank_lt [THEN ltD])
+qed
 
 lemma Vfrom_rank_subset2: "Vfrom(A,rank(x)) <= Vfrom(A,x)"
 apply (rule_tac a=x in eps_induct)
 apply (subst Vfrom)
-apply (subst Vfrom)
-apply (rule subset_refl [THEN Un_mono])
+apply (subst Vfrom, rule subset_refl [THEN Un_mono])
 apply (rule UN_least)
 txt{*expand @{text "rank(x1) = (\<Union>y\<in>x1. succ(rank(y)))"} in assumptions*}
 apply (erule rank [THEN equalityD1, THEN subsetD, THEN UN_E])

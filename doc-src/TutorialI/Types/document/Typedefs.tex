@@ -87,21 +87,9 @@ It is easily represented by the first three natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{typedef}\ three\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-In order to enforce that the representing set on the right-hand side is
-non-empty, this definition actually starts a proof to that effect:
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymexists}x{\isachardot}\ x\ {\isasymin}\ {\isacharbraceleft}{\isadigit{0}}{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}%
-\end{isabelle}
-Fortunately, this is easy enough to show, even \isa{auto} could do it.
-In general, one has to provide a witness, in our case 0:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isadigit{0}}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ simp\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 This type definition introduces the new type \isa{three} and asserts
@@ -200,7 +188,7 @@ of \isa{Abs{\isacharunderscore}three}:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}A\ {\isasymnoteq}\ B\ {\isasymand}\ B\ {\isasymnoteq}\ A\ {\isasymand}\ A\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ A\ {\isasymand}\ B\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ B{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}inject\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -213,24 +201,11 @@ best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent Again this follows easily from a pre-proved general theorem:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ rule{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}y{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%
-\end{isabelle}
-Simplification with \isa{three{\isacharunderscore}def} leads to the disjunction \isa{y\ {\isacharequal}\ {\isadigit{0}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{1}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{2}}} which \isa{auto} separates into three
-subgoals, each of which is easily solved by simplification:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent

@@ -699,16 +699,16 @@ proof -
       let ?mx = "max (ncols a) (max (nrows u) (nrows v))"
       from prems show "mult_matrix_n (max (ncols a) (nrows (combine_matrix fadd u v))) fmul fadd a (combine_matrix fadd u v) =
         combine_matrix fadd (mult_matrix_n (max (ncols a) (nrows u)) fmul fadd a u) (mult_matrix_n (max (ncols a) (nrows v)) fmul fadd a v)"
-        apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
+        apply (simplesubst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
-        apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
+        apply (simplesubst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
-        apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
+        apply (simplesubst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
         apply (simp add: mult_matrix_n_def r_distributive_def foldseq_distr[of fadd])
         apply (simp add: combine_matrix_def combine_infmatrix_def)
         apply (rule comb[of "Abs_matrix" "Abs_matrix"], simp, (rule ext)+)
-        apply (subst RepAbs_matrix)
+        apply (simplesubst RepAbs_matrix)
         apply (simp, auto)
         apply (rule exI[of _ "nrows a"], simp add: nrows_le foldseq_zero)
         apply (rule exI[of _ "ncols v"], simp add: ncols_le foldseq_zero)
@@ -739,16 +739,16 @@ proof -
       let ?mx = "max (nrows a) (max (ncols u) (ncols v))"
       from prems show "mult_matrix_n (max (ncols (combine_matrix fadd u v)) (nrows a)) fmul fadd (combine_matrix fadd u v) a =
                combine_matrix fadd (mult_matrix_n (max (ncols u) (nrows a)) fmul fadd u a) (mult_matrix_n (max (ncols v) (nrows a)) fmul fadd v a)"
-        apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
+        apply (simplesubst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
-        apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
+        apply (simplesubst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
         apply (subst mult_matrix_nm[of _ _ _ ?mx fadd fmul])
         apply (simp add: max1 max2 combine_nrows combine_ncols)+
         apply (simp add: mult_matrix_n_def l_distributive_def foldseq_distr[of fadd])
         apply (simp add: combine_matrix_def combine_infmatrix_def)
         apply (rule comb[of "Abs_matrix" "Abs_matrix"], simp, (rule ext)+)
-        apply (subst RepAbs_matrix)
+        apply (simplesubst RepAbs_matrix)
         apply (simp, auto)
         apply (rule exI[of _ "nrows v"], simp add: nrows_le foldseq_zero)
         apply (rule exI[of _ "ncols a"], simp add: ncols_le foldseq_zero)
@@ -792,18 +792,19 @@ lemma combine_matrix_zero_r_neutral: "zero_r_neutral f \<Longrightarrow> zero_r_
 
 lemma mult_matrix_zero_closed: "\<lbrakk>fadd 0 0 = 0; zero_closed fmul\<rbrakk> \<Longrightarrow> zero_closed (mult_matrix fmul fadd)"
   apply (simp add: zero_closed_def mult_matrix_def mult_matrix_n_def)
-  apply (auto)
-  by (subst foldseq_zero, (simp add: zero_matrix_def)+)+
+  apply (simp add: foldseq_zero zero_matrix_def) 
+  done
+
 
 lemma mult_matrix_n_zero_right[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul a 0 = 0\<rbrakk> \<Longrightarrow> mult_matrix_n n fmul fadd A 0 = 0"
   apply (simp add: mult_matrix_n_def)
-  apply (subst foldseq_zero)
-  by (simp_all add: zero_matrix_def)
+  apply (simp add: foldseq_zero zero_matrix_def)
+  done
 
 lemma mult_matrix_n_zero_left[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul 0 a = 0\<rbrakk> \<Longrightarrow> mult_matrix_n n fmul fadd 0 A = 0"
   apply (simp add: mult_matrix_n_def)
-  apply (subst foldseq_zero)
-  by (simp_all add: zero_matrix_def)
+  apply (simp add: foldseq_zero zero_matrix_def)
+  done
 
 lemma mult_matrix_zero_left[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul 0 a = 0\<rbrakk> \<Longrightarrow> mult_matrix fmul fadd 0 A = 0"
 by (simp add: mult_matrix_def)
@@ -851,7 +852,7 @@ apply (auto)
 apply (subst RepAbs_matrix)
 apply (rule exI[of _ "Suc m"], simp)
 apply (rule exI[of _ "Suc n"], simp+)
-by (subst RepAbs_matrix, rule exI[of _ "Suc j"], simp, rule exI[of _ "Suc i"], simp+)+
+by (simplesubst RepAbs_matrix, rule exI[of _ "Suc j"], simp, rule exI[of _ "Suc i"], simp+)+
 
 lemma apply_singleton_matrix[simp]: "f 0 = 0 \<Longrightarrow> apply_matrix f (singleton_matrix j i x) = (singleton_matrix j i (f x))"
 apply (subst Rep_matrix_inject[symmetric])
@@ -892,7 +893,7 @@ by simp
 
 lemma combine_singleton: "f 0 0 = 0 \<Longrightarrow> combine_matrix f (singleton_matrix j i a) (singleton_matrix j i b) = singleton_matrix j i (f a b)"
 apply (simp add: singleton_matrix_def combine_matrix_def combine_infmatrix_def)
-apply (subst RepAbs_matrix)
+apply (simplesubst RepAbs_matrix)
 apply (rule exI[of _ "Suc j"], simp)
 apply (rule exI[of _ "Suc i"], simp)
 apply (rule comb[of "Abs_matrix" "Abs_matrix"], simp, (rule ext)+)
@@ -911,7 +912,7 @@ lemma Rep_move_matrix[simp]:
   (if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat((int j)-y)) (nat((int i)-x)))"
 apply (simp add: move_matrix_def)
 apply (auto)
-by (subst RepAbs_matrix,
+by (simplesubst RepAbs_matrix,
   rule exI[of _ "(nrows A)+(nat (abs y))"], auto, rule nrows, arith,
   rule exI[of _ "(ncols A)+(nat (abs x))"], auto, rule ncols, arith)+
 
@@ -946,7 +947,7 @@ lemma Rep_take_columns[simp]:
   "Rep_matrix (take_columns A c) j i =
   (if i < c then (Rep_matrix A j i) else 0)"
 apply (simp add: take_columns_def)
-apply (subst RepAbs_matrix)
+apply (simplesubst RepAbs_matrix)
 apply (rule exI[of _ "nrows A"], auto, simp add: nrows_le)
 apply (rule exI[of _ "ncols A"], auto, simp add: ncols_le)
 done
@@ -955,7 +956,7 @@ lemma Rep_take_rows[simp]:
   "Rep_matrix (take_rows A r) j i =
   (if j < r then (Rep_matrix A j i) else 0)"
 apply (simp add: take_rows_def)
-apply (subst RepAbs_matrix)
+apply (simplesubst RepAbs_matrix)
 apply (rule exI[of _ "nrows A"], auto, simp add: nrows_le)
 apply (rule exI[of _ "ncols A"], auto, simp add: ncols_le)
 done
@@ -1163,21 +1164,21 @@ proof -
     apply (simp add: Rep_matrix_inject[THEN sym])
     apply (rule ext)+
     apply (simp add: mult_matrix_def)
-    apply (subst mult_matrix_nm[of _ "max (ncols (mult_matrix_n (max (ncols A) (nrows B)) fmul1 fadd1 A B)) (nrows C)" _ "max (ncols B) (nrows C)"])
+    apply (simplesubst mult_matrix_nm[of _ "max (ncols (mult_matrix_n (max (ncols A) (nrows B)) fmul1 fadd1 A B)) (nrows C)" _ "max (ncols B) (nrows C)"])
     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (subst mult_matrix_nm[of _ "max (ncols A) (nrows (mult_matrix_n (max (ncols B) (nrows C)) fmul2 fadd2 B C))" _ "max (ncols A) (nrows B)"])     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (subst mult_matrix_nm[of _ _ _ "?N"])
+    apply (simplesubst mult_matrix_nm[of _ "max (ncols A) (nrows (mult_matrix_n (max (ncols B) (nrows C)) fmul2 fadd2 B C))" _ "max (ncols A) (nrows B)"])     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
+    apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (subst mult_matrix_nm[of _ _ _ "?N"])
+    apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (subst mult_matrix_nm[of _ _ _ "?N"])
+    apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
-    apply (subst mult_matrix_nm[of _ _ _ "?N"])
+    apply (simplesubst mult_matrix_nm[of _ _ _ "?N"])
     apply (simp add: max1 max2 mult_n_ncols mult_n_nrows prems)+
     apply (simp add: mult_matrix_n_def)
     apply (rule comb_left)
     apply ((rule ext)+, simp)
-    apply (subst RepAbs_matrix)
+    apply (simplesubst RepAbs_matrix)
     apply (rule exI[of _ "nrows B"])
     apply (simp add: nrows prems foldseq_zero)
     apply (rule exI[of _ "ncols C"])
@@ -1227,7 +1228,7 @@ proof -
   have "!! a b c d. fadd (fadd a b) (fadd c d) = fadd (fadd a c) (fadd b d)"
     by (simp! add: associative_def commutative_def)
   then show ?concl
-    apply (subst mult_matrix_assoc)
+    apply (simplesubst mult_matrix_assoc)
     apply (simp_all!)
     by (simp add: associative_def distributive_def l_distributive_def r_distributive_def)+
 qed
@@ -1361,7 +1362,7 @@ lemma le_left_mult:
   "mult_matrix fmul fadd C A <= mult_matrix fmul fadd C B"
   apply (simp! add: le_matrix_def Rep_mult_matrix)
   apply (auto)
-  apply (subst foldseq_zerotail[of _ _ _ "max (ncols C) (max (nrows A) (nrows B))"], simp_all add: nrows ncols max1 max2)+
+  apply (simplesubst foldseq_zerotail[of _ _ _ "max (ncols C) (max (nrows A) (nrows B))"], simp_all add: nrows ncols max1 max2)+
   apply (rule le_foldseq)
   by (auto)
 
@@ -1378,7 +1379,7 @@ lemma le_right_mult:
   "mult_matrix fmul fadd A C <= mult_matrix fmul fadd B C"
   apply (simp! add: le_matrix_def Rep_mult_matrix)
   apply (auto)
-  apply (subst foldseq_zerotail[of _ _ _ "max (nrows C) (max (ncols A) (ncols B))"], simp_all add: nrows ncols max1 max2)+
+  apply (simplesubst foldseq_zerotail[of _ _ _ "max (nrows C) (max (ncols A) (ncols B))"], simp_all add: nrows ncols max1 max2)+
   apply (rule le_foldseq)
   by (auto)
 

@@ -295,7 +295,7 @@ apply (frule_tac C=Object in method_wf_mdecl)
  apply simp
  apply assumption apply simp apply assumption apply simp
 
-apply (subst method_rec) apply simp
+apply (simplesubst method_rec) apply simp
 apply force
 apply simp
 apply (simp only: map_add_def)

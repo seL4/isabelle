@@ -51,11 +51,11 @@ passes the data back to the Merchant.
 consts
 
     CardSecret :: "nat => nat"
-     (*Maps Cardholders to CardSecrets.
-       A CardSecret of 0 means no cerificate, must use unsigned format.*)
+     --{*Maps Cardholders to CardSecrets.
+         A CardSecret of 0 means no cerificate, must use unsigned format.*}
 
     PANSecret :: "nat => nat"
-     (*Maps Cardholders to PANSecrets.*)
+     --{*Maps Cardholders to PANSecrets.*}
 
     set_pur  :: "event list set"
 
@@ -372,7 +372,7 @@ apply (tactic "basic_possibility_tac")
 apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
 
-(*General facts about message reception*)
+text{*General facts about message reception*}
 lemma Gets_imp_Says:
      "[| Gets B X \<in> set evs; evs \<in> set_pur |]
    ==> \<exists>A. Says A B X \<in> set evs"
@@ -425,12 +425,14 @@ lemma parts_image_priEK:
         evs \<in> set_pur|] ==> priEK C \<in> KK | C \<in> bad"
 by auto
 
-text{*trivial proof because (priEK C) never appears even in (parts evs)*}
+text{*trivial proof because @{term"priEK C"} never appears even in
+  @{term "parts evs"}. *}
 lemma analz_image_priEK:
      "evs \<in> set_pur ==>
           (Key (priEK C) \<in> analz (Key`KK Un (knows Spy evs))) =
           (priEK C \<in> KK | C \<in> bad)"
 by (blast dest!: parts_image_priEK intro: analz_mono [THEN [2] rev_subsetD])
+
 
 subsection{*Public Keys in Certificates are Correct*}
 
@@ -438,17 +440,13 @@ lemma Crypt_valid_pubEK [dest!]:
      "[| Crypt (priSK RCA) {|Agent C, Key EKi, onlyEnc|}
            \<in> parts (knows Spy evs);
          evs \<in> set_pur |] ==> EKi = pubEK C"
-apply (erule rev_mp)
-apply (erule set_pur.induct, auto)
-done
+by (erule rev_mp, erule set_pur.induct, auto)
 
 lemma Crypt_valid_pubSK [dest!]:
      "[| Crypt (priSK RCA) {|Agent C, Key SKi, onlySig|}
            \<in> parts (knows Spy evs);
          evs \<in> set_pur |] ==> SKi = pubSK C"
-apply (erule rev_mp)
-apply (erule set_pur.induct, auto)
-done
+by (erule rev_mp, erule set_pur.induct, auto)
 
 lemma certificate_valid_pubEK:
     "[| cert C EKi onlyEnc (priSK RCA) \<in> parts (knows Spy evs);
@@ -730,9 +728,7 @@ subsection{*Proofs Common to Signed and Unsigned Versions*}
 lemma M_Notes_PG:
      "[|Notes M {|Number LID_M, Agent P, Agent M, Agent C, etc|} \<in> set evs;
         evs \<in> set_pur|] ==> \<exists>j. P = PG j"
-apply (erule rev_mp)
-apply (erule set_pur.induct, simp_all)
-done
+by (erule rev_mp, erule set_pur.induct, simp_all)
 
 text{*If we trust M, then @{term LID_M} determines his choice of P
       (Payment Gateway)*}
@@ -816,7 +812,7 @@ apply (frule_tac [4] M_Notes_PG, auto)
 done
 
 text{*When M receives AuthRes, he knows that P signed it, including
-  the identifying tages and the purchase amount, which he can verify.
+  the identifying tags and the purchase amount, which he can verify.
   (Although the spec has SIGNED and UNSIGNED forms of AuthRes, they
    send the same message to M.)*}
 theorem M_verifies_AuthRes:
@@ -1015,9 +1011,7 @@ lemma Notes_Cardholder_self_False:
      "[|Notes (Cardholder k)
           {|Number n, Agent P, Agent (Cardholder k), Agent C, etc|} \<in> set evs;
         evs \<in> set_pur|] ==> False"
-apply (erule rev_mp)
-apply (erule set_pur.induct, auto)
-done
+by (erule rev_mp, erule set_pur.induct, auto)
 
 text{*When M sees a dual signature, he knows that it originated with C.
   Using XID he knows it was intended for him.
@@ -1166,5 +1160,3 @@ apply (blast elim: EncB_partsE dest: refl [THEN M_Says_AuthReq] unique_LID_M2)
 done
 
 end
-
-

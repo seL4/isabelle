@@ -8,7 +8,6 @@ header {* TFL: recursive function definitions *}
 theory Recdef
 imports Wellfounded_Relations Datatype
 files
-  ("../TFL/isand.ML")
   ("../TFL/casesplit.ML")
   ("../TFL/utils.ML")
   ("../TFL/usyntax.ML")
@@ -45,7 +44,6 @@ lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
 lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
-use "../TFL/isand.ML"
 use "../TFL/casesplit.ML"
 use "../TFL/utils.ML"
 use "../TFL/usyntax.ML"

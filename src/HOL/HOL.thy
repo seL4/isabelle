@@ -8,6 +8,8 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports CPure
 files ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("antisym_setup.ML")
+      ("eqrule_HOL_data.ML")
+      ("~~/src/Provers/eqsubst.ML")
 begin
 
 subsection {* Primitive logic *}
@@ -898,7 +900,7 @@ use "blastdata.ML"
 setup Blast.setup
 
 
-subsubsection {* Simplifier setup *}
+subsection {* Simplifier setup *}
 
 lemma meta_eq_to_obj_eq: "x == y ==> x = y"
 proof -
@@ -1068,12 +1070,12 @@ lemma if_not_P: "~P ==> (if P then x else y) = y"
 
 lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
   apply (rule case_split [of Q])
-   apply (subst if_P)
-    prefer 3 apply (subst if_not_P, blast+)
+   apply (simplesubst if_P)
+    prefer 3 apply (simplesubst if_not_P, blast+)
   done
 
 lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
-by (subst split_if, blast)
+by (simplesubst split_if, blast)
 
 lemmas if_splits = split_if split_if_asm
 
@@ -1081,10 +1083,10 @@ lemma if_def2: "(if Q then x else y) = ((Q --> x) & (~ Q --> y))"
   by (rule split_if)
 
 lemma if_cancel: "(if c then x else x) = x"
-by (subst split_if, blast)
+by (simplesubst split_if, blast)
 
 lemma if_eq_cancel: "(if x = y then y else x) = x"
-by (subst split_if, blast)
+by (simplesubst split_if, blast)
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
   -- {* This form is useful for expanding @{text if}s on the RIGHT of the @{text "==>"} symbol. *}
@@ -1092,7 +1094,7 @@ lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
   -- {* And this form is useful for expanding @{text if}s on the LEFT. *}
-  apply (subst split_if, blast)
+  apply (simplesubst split_if, blast)
   done
 
 lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
@@ -1113,10 +1115,22 @@ setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
+
+subsubsection {* Lucas Dixon's eqstep tactic *}
+
+use "~~/src/Provers/eqsubst.ML";
+use "eqrule_HOL_data.ML";
+
+setup EQSubstTac.setup
+
+
+subsection {* Other simple lemmas *}
+
 declare disj_absorb [simp] conj_absorb [simp]
 
 lemma ex1_eq[iff]: "EX! x. x = t" "EX! x. t = x"
 by blast+
+
 
 theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (rule iffI)
@@ -1142,7 +1156,7 @@ lemma mk_left_commute:
 by(rule trans[OF trans[OF c a] arg_cong[OF c, of "f y"]])
 
 
-subsubsection {* Generic cases and induction *}
+subsection {* Generic cases and induction *}
 
 constdefs
   induct_forall :: "('a => bool) => bool"

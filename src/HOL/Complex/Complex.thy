@@ -865,9 +865,7 @@ by (simp only: complex_of_real_zero_iff complex_number_of [symmetric]
                iszero_def)  
 
 lemma complex_number_of_cnj [simp]: "cnj(number_of v :: complex) = number_of v"
-apply (subst complex_number_of [symmetric])
-apply (rule complex_cnj_complex_of_real)
-done
+by (simp only: complex_number_of [symmetric] complex_cnj_complex_of_real)
 
 lemma complex_number_of_cmod: 
       "cmod(number_of v :: complex) = abs (number_of v :: real)"

@@ -263,11 +263,13 @@ defer 1
  apply (drule partition_lhs, auto)
 apply (simp split: nat_diff_split)
 apply (subst partition)
-apply (subst lemma_partition_append2, assumption+)
+apply (simplesubst lemma_partition_append2, assumption+)
+   --{*Need to substitute the last occurrence*}
 apply (rule conjI)
 apply (drule_tac [2] lemma_partition_append1)
 apply (auto simp add: partition_lhs partition_rhs)
 done
+
 
 text{*We can always find a division that is fine wrt any gauge*}
 

@@ -542,17 +542,13 @@ apply (erule (1) subcls1_induct_struct)
  apply hypsubst
  apply simp
 apply (erule conjE)
-apply (subst method_rec)
-  apply (assumption)
- apply (assumption)
+apply (simplesubst method_rec, assumption+)
 apply (clarify)
 apply (erule_tac x = "Da" in allE)
 apply (clarsimp)
  apply (simp add: map_of_map)
  apply (clarify)
- apply (subst method_rec)
-   apply (assumption)
-  apply (assumption)
+ apply (subst method_rec, assumption+)
  apply (simp add: map_add_def map_of_map split add: option.split)
 done
 
@@ -566,17 +562,13 @@ apply (erule (1) subcls1_induct_struct)
  apply hypsubst
  apply simp
 apply (erule conjE)
-apply (subst method_rec)
-  apply (assumption)
- apply (assumption)
+apply (simplesubst method_rec, assumption+)
 apply (clarify)
 apply (erule_tac x = "Da" in allE)
 apply (clarsimp)
  apply (simp add: map_of_map)
  apply (clarify)
- apply (subst method_rec)
-   apply (assumption)
-  apply (assumption)
+ apply (subst method_rec, assumption+)
  apply (simp add: map_add_def map_of_map split add: option.split)
 done
 

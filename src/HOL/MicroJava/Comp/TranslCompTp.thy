@@ -3,7 +3,10 @@
     Author:     Martin Strecker
 *)
 
-theory TranslCompTp =  JVMType + Index:
+theory TranslCompTp
+imports Index "../BV/JVMType"
+begin
+
 
 
 (**********************************************************************)

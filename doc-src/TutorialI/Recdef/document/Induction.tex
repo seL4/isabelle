@@ -21,33 +21,11 @@ involving the predefined \isa{map} functional on lists:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-Note that \isa{map\ f\ xs}
-is the result of applying \isa{f} to all elements of \isa{xs}. We prove
-this lemma by recursion induction over \isa{sep}:%
-\end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ xs\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-The resulting proof state has three subgoals corresponding to the three
-clauses for \isa{sep}:
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a{\isachardot}\ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ x{\isachardot}\ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}a\ x\ y\ zs{\isachardot}\isanewline
-\isaindent{\ {\isadigit{3}}{\isachardot}\ \ \ \ }map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{3}}{\isachardot}\ \ \ \ }map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}%
-\end{isabelle}
-The rest is pure simplification:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ simp{\isacharunderscore}all\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Try proving the above lemma by structural induction, and you find that you

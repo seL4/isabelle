@@ -271,7 +271,7 @@ proof -
     apply (intro strip)
     apply (frule_tac as=brr in sorted_spvec_cons1)
     apply (simp add: ring_eq_simps sparse_row_matrix_cons)
-    apply (subst Rep_matrix_zero_imp_mult_zero) 
+    apply (simplesubst Rep_matrix_zero_imp_mult_zero) 
     apply (simp)
     apply (intro strip)
     apply (rule disjI2)
@@ -805,9 +805,9 @@ lemma sparse_row_matrix_abs:
   apply auto
   apply (case_tac "x=a")
   apply (simp)
-  apply (subst sorted_sparse_row_matrix_zero)
+  apply (simplesubst sorted_sparse_row_matrix_zero)
   apply auto
-  apply (subst Rep_sparse_row_vector_zero)
+  apply (simplesubst Rep_sparse_row_vector_zero)
   apply (simp_all add: neg_def)
   done
 

@@ -357,7 +357,7 @@ proof (rule up_eqI)
       case 0 then show ?case by (simp add: Pi_def)
     next
       case (Suc k) then show ?case
-        by (subst finsum_Suc2) (simp add: Pi_def a_comm)+
+        by (simplesubst finsum_Suc2) (simp add: Pi_def a_comm)+
     qed
   }
   note l = this

@@ -16,10 +16,7 @@ constdefs
     "HH(f,x,a) == transrec(a, %b r. let z = x - (\<Union>c \<in> b. r`c)
                                     in  if f`z \<in> Pow(z)-{0} then f`z else {x})"
 
-
-(* ********************************************************************** *)
-(* Lemmas useful in each of the three proofs                              *)
-(* ********************************************************************** *)
+subsection{*Lemmas useful in each of the three proofs*}
 
 lemma HH_def_satisfies_eq:
      "HH(f,x,a) = (let z = x - (\<Union>b \<in> a. HH(f,x,b))   
@@ -42,14 +39,12 @@ apply (fast elim: Ord_in_Ord)
 apply (fast intro!: ltI intro: Ord_in_Ord)
 done
 
-lemma Diff_UN_eq_self:
-     "(!!y. y \<in> A ==> P(y) = {x}) ==> x - (\<Union>y \<in> A. P(y)) = x" 
-apply (simp, fast elim!: mem_irrefl)
-done
+lemma Diff_UN_eq_self: "(!!y. y\<in>A ==> P(y) = {x}) ==> x - (\<Union>y \<in> A. P(y)) = x" 
+by (simp, fast elim!: mem_irrefl)
 
 lemma HH_eq: "x - (\<Union>b \<in> a. HH(f,x,b)) = x - (\<Union>b \<in> a1. HH(f,x,b))   
               ==> HH(f,x,a) = HH(f,x,a1)"
-apply (subst HH_def_satisfies_eq) 
+apply (subst HH_def_satisfies_eq [of _ _ a1]) 
 apply (rule HH_def_satisfies_eq [THEN trans], simp) 
 done
 
@@ -131,9 +126,7 @@ apply (rule less_LeastE)
 apply (erule_tac [2] ltI [OF _ Ord_Least], assumption)
 done
 
-(* ********************************************************************** *)
-(* Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1              *)
-(* ********************************************************************** *)
+subsection{*Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1*}
 
 lemma lam_Least_HH_inj_Pow: 
         "(\<lambda>a \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,a))   
@@ -220,9 +213,7 @@ lemmas bij_Least_HH_x =
               lam_sing_bij [THEN bij_converse_bij], standard]
 
 
-(* ********************************************************************** *)
-(*                     The proof of AC1 ==> WO2                           *)
-(* ********************************************************************** *)
+subsection{*The proof of AC1 ==> WO2*}
 
 (*Establishing the existence of a bijection, namely
 converse

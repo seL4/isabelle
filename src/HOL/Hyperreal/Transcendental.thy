@@ -138,8 +138,7 @@ by (rule real_sqrt_pow2_iff [THEN iffD2], arith)
 lemma real_pow_sqrt_eq_sqrt_pow: 
       "0 \<le> x ==> (sqrt x)\<twosuperior> = sqrt(x\<twosuperior>)"
 apply (simp add: sqrt_def)
-apply (subst numeral_2_eq_2)
-apply (auto intro: real_root_pow_pos2 [THEN ssubst] real_root_pos2 [THEN ssubst] simp del: realpow_Suc)
+apply (simp only: numeral_2_eq_2 real_root_pow_pos2 real_root_pos2)
 done
 
 lemma real_pow_sqrt_eq_sqrt_abs_pow2:
@@ -1424,7 +1423,9 @@ apply (cut_tac x = 2 in cos_paired)
 apply (drule sums_minus)
 apply (rule neg_less_iff_less [THEN iffD1]) 
 apply (frule sums_unique, auto simp add: times_divide_eq)
-apply (rule_tac y = "sumr 0 (Suc (Suc (Suc 0))) (%n. - ((- 1) ^ n / (real (fact (2 * n))) * 2 ^ (2 * n)))" in order_less_trans)
+apply (rule_tac y = "sumr 0 (Suc (Suc (Suc 0))) 
+                      (%n. - ((- 1) ^ n / (real(fact (2*n))) * 2 ^ (2*n)))" 
+       in order_less_trans)
 apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
 apply (simp (no_asm) add: mult_assoc times_divide_eq del: sumr_Suc)
 apply (rule sumr_pos_lt_pair)
@@ -1435,12 +1436,11 @@ apply (rule real_mult_inverse_cancel2)
 apply (rule real_of_nat_fact_gt_zero)+
 apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc)
 apply (subst fact_lemma) 
-apply (subst fact_Suc)
-apply (subst real_of_nat_mult)
-apply (erule ssubst, subst real_of_nat_mult)
+apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
+apply (simp only: real_of_nat_mult)
 apply (rule real_mult_less_mono, force)
-prefer 2 apply force
-apply (rule_tac [2] real_of_nat_fact_gt_zero)
+  apply (rule_tac [3] real_of_nat_fact_gt_zero)
+ prefer 2 apply force
 apply (rule real_of_nat_less_iff [THEN iffD2])
 apply (rule fact_less_mono, auto)
 done

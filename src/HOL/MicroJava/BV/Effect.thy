@@ -6,7 +6,10 @@
 
 header {* \isaheader{Effect of Instructions on the State Type} *}
 
-theory Effect = JVMType + JVMExceptions:
+theory Effect 
+imports JVMType "../JVM/JVMExceptions"
+begin
+
 
 types
   succ_type = "(p_count \<times> state_type option) list"

@@ -5,8 +5,9 @@
 
 (* Definitions for accessing parts of methods, states etc. *)
 
-theory DefsComp = JVMExec:
-
+theory DefsComp
+imports "../JVM/JVMExec"
+begin
 
 
 constdefs

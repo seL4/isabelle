@@ -34,15 +34,13 @@ lemma Gamma_mono: "mono (Gamma b c)"
 
 lemma C_While_If: "C(\<WHILE> b \<DO> c) = C(\<IF> b \<THEN> c;\<WHILE> b \<DO> c \<ELSE> \<SKIP>)"
 apply (simp (no_asm)) 
-apply (subst lfp_unfold [OF Gamma_mono]) back back
-apply (subst Gamma_def [THEN meta_eq_to_obj_eq, THEN fun_cong]) 
-apply simp
+apply (subst lfp_unfold [OF Gamma_mono])  --{*lhs only*}
+apply (simp add: Gamma_def)
 done
 
 (* Operational Semantics implies Denotational Semantics *)
 
 lemma com1: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> (s,t) \<in> C(c)"
-
 (* start with rule induction *)
 apply (erule evalc.induct)
 apply auto

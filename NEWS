@@ -37,6 +37,12 @@ New in this Isabelle release
 * Provers/blast.ML:  new reference depth_limit to make blast's depth
   limit (previously hard-coded with a value of 20) user-definable.
 
+* Provers: new version of the subst method, for single-step rewriting: it now
+  works in bound variable contexts. New is subst (asm), for rewriting an
+  assumption. Thanks to Lucas Dixon! INCOMPATIBILITY: may rewrite a different
+  subterm than the original subst method, which is still available under the
+  name simplesubst.
+
 * Pure: thin_tac now works even if the assumption being deleted contains !! or ==>. 
   More generally, erule now works even if the major premise of the elimination rule
   contains !! or ==>.

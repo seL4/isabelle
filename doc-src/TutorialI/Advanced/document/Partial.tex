@@ -150,7 +150,7 @@ the recursion equation:%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ simp\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent Then you should disable the original recursion equation:%
@@ -165,11 +165,9 @@ recursive functions.  Here is a simple example of recursion induction:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymlongrightarrow}\ f{\isacharparenleft}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}\ find{\isachardot}induct{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ simp\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \isamarkupsubsubsection{The {\tt\slshape while} Combinator%
 }
@@ -231,14 +229,10 @@ by \isa{auto} but falls to \isa{simp}:%
 \ \ {\isasymexists}y{\isachardot}\ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharparenright}\ {\isasymand}\isanewline
 \ \ \ \ \ \ \ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequote}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequote}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The theorem itself is a simple consequence of this lemma:%
@@ -246,11 +240,9 @@ The theorem itself is a simple consequence of this lemma:%
 \isamarkuptrue%
 \isacommand{theorem}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ f{\isacharparenleft}find{\isadigit{2}}\ f\ x{\isacharparenright}\ {\isacharequal}\ find{\isadigit{2}}\ f\ x{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ lem{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Let us conclude this section on partial functions by a

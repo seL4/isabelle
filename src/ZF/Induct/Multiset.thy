@@ -787,7 +787,7 @@ lemma lemma1: "[| \<forall>b \<in> A. <b,a> \<in> r -->
     M0 \<in> acc(multirel1(A, r)); a \<in> A;
     \<forall>M. <M,M0> \<in> multirel1(A, r) --> M +# {#a#} \<in> acc(multirel1(A, r)) |]
   ==> M0 +# {#a#} \<in> acc(multirel1(A, r))"
-apply (subgoal_tac "M0 \<in> Mult (A) ")
+apply (subgoal_tac "M0 \<in> Mult(A) ")
  prefer 2
  apply (erule acc.cases)
  apply (erule fieldE)
@@ -1000,7 +1000,7 @@ apply (frule_tac M = K and P = "%x. <x,a> \<in> r" in multiset_partition)
 apply (erule_tac P = "\<forall>k \<in> mset_of (K) . ?P (k) " in rev_mp)
 apply (erule ssubst)
 apply (simp add: Ball_def, auto)
-apply (subgoal_tac "< (I +# {# x \<in> K. <x, a> \<in> r#}) +# {# x \<in> K. <x, a> \<notin> r#}, (I +# {# x \<in> K. <x, a> \<in> r#}) +# J'> \<in> multirel (A, r) ")
+apply (subgoal_tac "< (I +# {# x \<in> K. <x, a> \<in> r#}) +# {# x \<in> K. <x, a> \<notin> r#}, (I +# {# x \<in> K. <x, a> \<in> r#}) +# J'> \<in> multirel(A, r) ")
  prefer 2
  apply (drule_tac x = "I +# {# x \<in> K. <x, a> \<in> r#}" in spec)
  apply (rotate_tac -1)
@@ -1100,7 +1100,7 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule trancl_induct, clarify)
 apply (blast intro: munion_multirel1_mono r_into_trancl, clarify)
-apply (subgoal_tac "y \<in> Mult (A) ")
+apply (subgoal_tac "y \<in> Mult(A) ")
  prefer 2
  apply (blast dest: multirel_type [unfolded multirel_def, THEN subsetD])
 apply (subgoal_tac "<K +# y, K +# z> \<in> multirel1 (A, r) ")
@@ -1111,8 +1111,8 @@ done
 lemma munion_multirel_mono1:
      "[|<M, N> \<in> multirel(A, r); K \<in> Mult(A)|] ==> <M +# K, N +# K> \<in> multirel(A, r)"
 apply (frule multirel_type [THEN subsetD])
-apply (rule_tac P = "%x. <x,?u> \<in> multirel (A, r) " in munion_commute [THEN subst])
-apply (subst munion_commute [symmetric])
+apply (rule_tac P = "%x. <x,?u> \<in> multirel(A, r) " in munion_commute [THEN subst])
+apply (subst munion_commute [of N])
 apply (rule munion_multirel_mono2)
 apply (auto simp add: Mult_iff_multiset)
 done
@@ -1120,7 +1120,7 @@ done
 lemma munion_multirel_mono:
      "[|<M,K> \<in> multirel(A, r); <N,L> \<in> multirel(A, r)|]
       ==> <M +# N, K +# L> \<in> multirel(A, r)"
-apply (subgoal_tac "M \<in> Mult (A) & N \<in> Mult (A) & K \<in> Mult (A) & L \<in> Mult (A) ")
+apply (subgoal_tac "M \<in> Mult(A) & N \<in> Mult(A) & K \<in> Mult(A) & L \<in> Mult(A) ")
 prefer 2 apply (blast dest: multirel_type [THEN subsetD])
 apply (blast intro: munion_multirel_mono1 multirel_trans munion_multirel_mono2)
 done
@@ -1272,10 +1272,10 @@ by (auto simp add: omultiset_def Mult_iff_multiset)
 
 lemma empty_leI [simp]: "omultiset(M) ==> 0 <#= M"
 apply (simp add: mle_def mless_def)
-apply (subgoal_tac "\<exists>i. Ord (i) & M \<in> Mult (field (Memrel (i))) ")
+apply (subgoal_tac "\<exists>i. Ord (i) & M \<in> Mult(field(Memrel(i))) ")
  prefer 2 apply (simp add: omultiset_def)
 apply (case_tac "M=0", simp_all, clarify)
-apply (subgoal_tac "<0 +# 0, 0 +# M> \<in> multirel (field (Memrel (i)), Memrel (i))")
+apply (subgoal_tac "<0 +# 0, 0 +# M> \<in> multirel(field (Memrel(i)), Memrel(i))")
 apply (rule_tac [2] one_step_implies_multirel)
 apply (auto simp add: Mult_iff_multiset)
 done

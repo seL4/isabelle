@@ -673,12 +673,9 @@ subsection{* Proofs about type @{text "'a llist"} functions *}
 subsection{* Deriving @{text llist_equalityI} -- @{text llist} equality is a bisimulation *}
 
 lemma LListD_Fun_subset_Times_llist: 
-    "r <= (llist A) <*> (llist A) ==>  
-            LListD_Fun (diag A) r <= (llist A) <*> (llist A)"
-apply (unfold LListD_Fun_def)
-apply (subst llist_unfold)
-apply (simp add: NIL_def CONS_def, fast)
-done
+    "r <= (llist A) <*> (llist A) 
+     ==> LListD_Fun (diag A) r <= (llist A) <*> (llist A)"
+by (auto simp add: LListD_Fun_def)
 
 lemma subset_Times_llist:
      "prod_fun Rep_LList Rep_LList ` r <=  
@@ -866,8 +863,9 @@ text{*The infinite first argument blocks the second*}
 lemma lappend_iterates [simp]: "lappend (iterates f x) N = iterates f x"
 apply (rule_tac r = "range (%u. (lappend (iterates f u) N,iterates f u))" 
        in llist_equalityI)
-apply (rule rangeI, safe)
-apply (subst iterates, simp)
+ apply (rule rangeI)
+apply (safe)
+apply (simplesubst iterates, simp)  --{*two redexes*}
 done
 
 subsubsection{* Two proofs that @{text lmap} distributes over lappend *}

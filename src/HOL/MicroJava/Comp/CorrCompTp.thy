@@ -3,7 +3,9 @@
     Author:     Martin Strecker
 *)
 
-theory CorrCompTp =  LemmasComp + JVM + TypeInf + Altern:
+theory CorrCompTp
+imports LemmasComp TypeInf "../BV/JVM" "../BV/Altern"
+begin
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]

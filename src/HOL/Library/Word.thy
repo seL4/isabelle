@@ -455,7 +455,7 @@ proof -
 	proof (rule n_div_2_cases [of n])
 	  assume [simp]: "n = 0"
 	  show ?thesis
-	    apply (subst nat_to_bv_helper.simps [of n])
+	    apply (simp only: nat_to_bv_helper.simps [of n])
 	    apply simp
 	    done
 	next
@@ -467,7 +467,7 @@ proof -
 	  have ind': "\<forall>l. nat_to_bv_helper (n div 2) l = nat_to_bv_helper (n div 2) [] @ l"
 	    by blast
 	  show ?thesis
-	    apply (subst nat_to_bv_helper.simps [of n])
+	    apply (simp only: nat_to_bv_helper.simps [of n])
 	    apply (cases "n=0")
 	    apply simp
 	    apply (simp only: if_False)
@@ -491,7 +491,7 @@ proof -
   assume [simp]: "0 < n"
   show ?thesis
     apply (subst nat_to_bv_def [of n])
-    apply (subst nat_to_bv_helper.simps [of n])
+    apply (simp only: nat_to_bv_helper.simps [of n])
     apply (subst unfold_nat_to_bv_helper)
     using prems
     apply simp
@@ -545,7 +545,7 @@ proof (induct n rule: less_induct)
       by simp
     show ?thesis
       apply (subst nat_to_bv_def)
-      apply (subst nat_to_bv_helper.simps [of n])
+      apply (simp only: nat_to_bv_helper.simps [of n])
       apply (simp only: n0' if_False)
       apply (subst unfold_nat_to_bv_helper)
       apply (subst bv_to_nat_dist_append)
@@ -2425,7 +2425,7 @@ proof -
 
   from ki ij jl lw
   show ?thesis
-    apply (subst bv_sliceI [where ?j = i and ?i = j and ?w = w and ?w1.0 = "w1 @ w2" and ?w2.0 = w3 and ?w3.0 = "w4 @ w5"])
+    apply (simplesubst bv_sliceI [where ?j = i and ?i = j and ?w = w and ?w1.0 = "w1 @ w2" and ?w2.0 = w3 and ?w3.0 = "w4 @ w5"])
     apply simp_all
     apply (rule w_def)
     apply (simp add: w_defs min_def)
@@ -2566,7 +2566,7 @@ proof -
       apply (subst indq [symmetric])
       apply (subst indq [symmetric])
       apply auto
-      apply (subst nat_to_bv_helper.simps [of "2 * qq + 1"])
+      apply (simp only: nat_to_bv_helper.simps [of "2 * qq + 1"])
       apply simp
       apply safe
       apply (subgoal_tac "2 * qq + 1 ~= 2 * q")
@@ -2575,7 +2575,7 @@ proof -
       apply (subgoal_tac "(2 * qq + 1) div 2 = qq")
       apply simp
       apply (subst zdiv_zadd1_eq,simp)
-      apply (subst nat_to_bv_helper.simps [of "2 * qq"])
+      apply (simp only: nat_to_bv_helper.simps [of "2 * qq"])
       apply simp
       done
   qed

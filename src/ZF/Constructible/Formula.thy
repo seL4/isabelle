@@ -633,21 +633,26 @@ subsubsection{* Monotonicity *}
 text{*Kunen's VI 1.6 (b)*}
 lemma Lset_mono [rule_format]:
      "ALL j. i<=j --> Lset(i) <= Lset(j)"
-apply (rule_tac a=i in eps_induct)
-apply (rule impI [THEN allI])
-apply (subst Lset)
-apply (subst Lset, blast) 
-done
+proof (induct i rule: eps_induct, intro allI impI)
+  fix x j
+  assume "\<forall>y\<in>x. \<forall>j. y \<subseteq> j \<longrightarrow> Lset(y) \<subseteq> Lset(j)"
+     and "x \<subseteq> j"
+  thus "Lset(x) \<subseteq> Lset(j)"
+    by (force simp add: Lset [of x] Lset [of j]) 
+qed
 
 text{*This version lets us remove the premise @{term "Ord(i)"} sometimes.*}
 lemma Lset_mono_mem [rule_format]:
      "ALL j. i:j --> Lset(i) <= Lset(j)"
-apply (rule_tac a=i in eps_induct)
-apply (rule impI [THEN allI])
-apply (subst Lset, auto) 
-apply (rule rev_bexI, assumption)
-apply (blast intro: elem_subset_in_DPow dest: LsetD DPowD) 
-done
+proof (induct i rule: eps_induct, intro allI impI)
+  fix x j
+  assume "\<forall>y\<in>x. \<forall>j. y \<in> j \<longrightarrow> Lset(y) \<subseteq> Lset(j)"
+     and "x \<in> j"
+  thus "Lset(x) \<subseteq> Lset(j)"
+    by (force simp add: Lset [of j] 
+              intro!: bexI intro: elem_subset_in_DPow dest: LsetD DPowD) 
+qed
+
 
 text{*Useful with Reflection to bump up the ordinal*}
 lemma subset_Lset_ltD: "[|A \<subseteq> Lset(i); i < j|] ==> A \<subseteq> Lset(j)"

@@ -1242,13 +1242,13 @@ apply (simp add: Dinf_def)
 apply (erule chain_mkcpo)
 done
 
-lemma subcpo_Dinf:
-    "emb_chain(DD,ee) ==> subcpo(Dinf(DD,ee),iprod(DD))"
+lemma subcpo_Dinf: "emb_chain(DD,ee) ==> subcpo(Dinf(DD,ee),iprod(DD))"
 apply (simp add: Dinf_def)
 apply (rule subcpo_mkcpo)
 apply (simp add: Dinf_def [symmetric])
 apply (rule ballI)
-apply (subst lub_iprod)
+apply (simplesubst lub_iprod)
+  --{*Subst would rewrite the lhs. We want to change the rhs.*}
 apply (assumption | rule chain_Dinf emb_chain_cpo)+
 apply simp
 apply (subst Rp_cont [THEN cont_lub])
@@ -1688,7 +1688,8 @@ apply simp
 apply (rule_tac i = "succ (na) " and j = n in nat_linear_le)
    apply blast
   apply assumption
- apply (subst eps_split_right_le)
+ apply (simplesubst eps_split_right_le)
+    --{*Subst would rewrite the lhs. We want to change the rhs.*}
        prefer 2 apply assumption
       apply simp
      apply (assumption | rule add_le_self nat_0I nat_succI)+

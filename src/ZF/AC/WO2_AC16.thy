@@ -440,8 +440,8 @@ lemma ex_next_Ord:
 		(\<forall>T \<in> recfunAC16(f, h, y, a). ~ h`b \<subseteq> T))"
 apply (drule ex_next_set, assumption+)
 apply (erule bexE)
-apply (rule oexI)
-apply (subst right_inverse_bij, blast, assumption+)
+apply (rule_tac x="converse(f)`X" in oexI)
+apply (simp add: right_inverse_bij)
 apply (blast intro: bij_converse_bij bij_is_fun [THEN apply_type] ltI
                     Card_is_Ord)
 done

@@ -246,8 +246,7 @@ done
 
 lemma rank_mono: "a<=b ==> rank(a) le rank(b)"
 apply (rule subset_imp_le)
-apply (subst rank)
-apply (subst rank, auto)
+apply (auto simp add: rank [of a] rank [of b]) 
 done
 
 lemma rank_Pow: "rank(Pow(a)) = succ(rank(a))"

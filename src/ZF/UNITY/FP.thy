@@ -37,15 +37,13 @@ apply (rule FP_type)
 done
 
 lemma stable_FP_Orig_Int: "F \<in> program ==> F \<in> stable(FP_Orig(F) Int B)"
-apply (unfold FP_Orig_def stable_def)
-apply (subst Int_Union2)
+apply (simp only: FP_Orig_def stable_def Int_Union2)
 apply (blast intro: constrains_UN)
 done
 
 lemma FP_Orig_weakest2: 
     "[| \<forall>B. F \<in> stable (A Int B); st_set(A) |]  ==> A \<subseteq> FP_Orig(F)"
-apply (unfold FP_Orig_def stable_def st_set_def, blast)
-done
+by (unfold FP_Orig_def stable_def st_set_def, blast)
 
 lemmas FP_Orig_weakest = allI [THEN FP_Orig_weakest2, standard]
 

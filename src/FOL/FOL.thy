@@ -5,9 +5,12 @@
 
 header {* Classical first-order logic *}
 
-theory FOL = IFOL
-files
-  ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML"):
+theory FOL 
+imports IFOL
+files ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+      ("eqrule_FOL_data.ML")
+      ("~~/src/Provers/eqsubst.ML")
+begin  
 
 
 subsection {* The classical axiom *}
@@ -42,6 +45,15 @@ setup simpsetup
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup Clasimp.setup
+
+
+subsection {* Lucas Dixon's eqstep tactic *}
+
+use "~~/src/Provers/eqsubst.ML";
+use "eqrule_FOL_data.ML";
+
+setup EQSubstTac.setup
+
 
 subsection {* Other simple lemmas *}
 

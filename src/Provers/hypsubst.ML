@@ -247,6 +247,6 @@ val hyp_subst_meth =
 val hypsubst_setup =
  [Method.add_methods
   [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
-   ("subst", subst_meth, "substitution")]];
+   ("simplesubst", subst_meth, "simple substitution")]];
 
 end;
