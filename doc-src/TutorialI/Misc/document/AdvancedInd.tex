@@ -144,7 +144,7 @@ usually known as mathematical induction. There is also \textbf{complete}
 induction, where you prove $P(n)$ under the assumption that $P(m)$
 holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n%
+\ \ \ \ \ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n%
 \end{isabelle}
 As an application, we prove a property of the following
 function:%
@@ -184,8 +184,7 @@ the same general induction method as for recursion induction (see
 \noindent
 We get the following proof state:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ }{\isasymforall}i{\isachardot}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ {\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i\ {\isasymLongrightarrow}\ {\isasymforall}i{\isachardot}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}
 After stripping the \isa{{\isasymforall}i}, the proof continues with a case
 distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ {\isadigit{0}}} is trivial and we focus on
@@ -201,8 +200,7 @@ the other case:%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}m{\isacharless}n{\isachardot}\ {\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%

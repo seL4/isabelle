@@ -122,9 +122,9 @@ page 256,258: list_case now takes the list as its last argument, not the
 first.
 
 page 259: HOL theory files may now include datatype declarations, primitive
-recursive function definitions, and (co)inductive definitions.  (These new
-sections are available separately as the file ml/HOL-extensions.dvi.gz,
-host ftp.cl.cam.ac.uk.)
+recursive function definitions, and (co)inductive definitions.  These new
+sections are available separately at
+    http://www.cl.cam.ac.uk/users/lcp/archive/ml/HOL-extensions.dvi.gz
 
 page 259: now there is another examples directory, IMP (a semantics
 equivalence proof for an imperative language)

@@ -212,8 +212,8 @@ again. Here is \tdx{while_rule}, the well known proof rule for total
 correctness of loops expressed with \isa{while}:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}c\ s{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymnot}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\ s{\isacharsemicolon}\ wf\ r{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}c\ s{\isacharcomma}\ s{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\isanewline
+\isaindent{\ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymnot}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\ s{\isacharsemicolon}\ wf\ r{\isacharsemicolon}\isanewline
+\isaindent{\ \ \ \ \ \ }{\isasymAnd}s{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ b\ s{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}c\ s{\isacharcomma}\ s{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ Q\ {\isacharparenleft}while\ b\ c\ s{\isacharparenright}%
 \end{isabelle} \isa{P} needs to be true of
 the initial state \isa{s} and invariant under \isa{c} (premises 1

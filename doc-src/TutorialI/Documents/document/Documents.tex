@@ -307,8 +307,8 @@ The following datatype definition of \isa{{\isacharprime}a\ bintree} models
 \noindent The datatype induction rule generated here is of the form
   \begin{isabelle}%
 \ {\isasymlbrakk}P\ Leaf{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ \ }{\isasymAnd}a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isachardot}\isanewline
-\isaindent{\ \ \ \ \ \ \ }{\isasymlbrakk}P\ bintree{\isadigit{1}}{\isacharsemicolon}\ P\ bintree{\isadigit{2}}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Branch\ a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isacharparenright}{\isasymrbrakk}\isanewline
+\isaindent{\ \ }{\isasymAnd}a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isachardot}\isanewline
+\isaindent{\ \ \ \ \ }{\isasymlbrakk}P\ bintree{\isadigit{1}}{\isacharsemicolon}\ P\ bintree{\isadigit{2}}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Branch\ a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ }{\isasymLongrightarrow}\ P\ bintree%
 \end{isabelle}%
 \end{isamarkuptext}%

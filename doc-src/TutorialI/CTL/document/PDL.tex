@@ -167,7 +167,7 @@ forward direction. Fortunately the converse induction theorem
 \isa{converse{\isacharunderscore}rtrancl{\isacharunderscore}induct} already exists:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ b{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ \ \ \ \ \ }{\isasymAnd}y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}z{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ y{\isasymrbrakk}\isanewline
+\isaindent{\ \ \ \ \ \ }{\isasymAnd}y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}z{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}{\isacharsemicolon}\ P\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ y{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ P\ a%
 \end{isabelle}
 It says that if \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\isactrlsup {\isacharasterisk}} and we know \isa{P\ b} then we can infer

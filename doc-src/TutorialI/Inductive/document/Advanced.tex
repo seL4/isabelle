@@ -92,7 +92,7 @@ this is what we get:
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
 \end{isabelle}%
@@ -167,7 +167,7 @@ note the induction hypothesis!
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
 \end{isabelle}%
 \end{isamarkuptxt}%
@@ -201,7 +201,7 @@ note the induction hypothesis!
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
 \end{isabelle}%
 \end{isamarkuptxt}%
