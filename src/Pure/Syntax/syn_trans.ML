@@ -6,47 +6,38 @@ Syntax translation functions.
 *)
 
 signature SYN_TRANS0 =
-sig
+  sig
   val eta_contract: bool ref
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
-end;
+  end;
 
 signature SYN_TRANS1 =
-sig
+  sig
   include SYN_TRANS0
-  structure Parser: PARSER
-  local open Parser.SynExt.Ast in
-    val constrainAbsC: string
-    val pure_trfuns:
-      (string * (ast list -> ast)) list *
+  val constrainAbsC: string
+  val pure_trfuns:
+      (string * (Ast.ast list -> Ast.ast)) list *
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
-      (string * (ast list -> ast)) list
-  end
-end;
+      (string * (Ast.ast list -> Ast.ast)) list
+  end;
 
 signature SYN_TRANS =
-sig
+  sig
   include SYN_TRANS1
-  local open Parser Parser.SynExt Parser.SynExt.Ast in
-    val abs_tr': term -> term
-    val prop_tr': bool -> term -> term
-    val appl_ast_tr': ast * ast list -> ast
-    val applC_ast_tr': ast * ast list -> ast
-    val pt_to_ast: (string -> (ast list -> ast) option) -> parsetree -> ast
-    val ast_to_term: (string -> (term list -> term) option) -> ast -> term
-  end
-end;
+  val abs_tr': term -> term
+  val prop_tr': bool -> term -> term
+  val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val pt_to_ast: (string -> (Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
+  val ast_to_term: (string -> (term list -> term) option) -> Ast.ast -> term
+  end;
 
-functor SynTransFun(structure TypeExt: TYPE_EXT and Parser: PARSER
-  sharing TypeExt.SynExt = Parser.SynExt): SYN_TRANS =
+structure SynTrans : SYN_TRANS =
 struct
-
-structure Parser = Parser;
-open TypeExt Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
-
+open TypeExt Lexicon Ast SynExt Parser;
 
 (** parse (ast) translations **)
 
@@ -312,6 +303,5 @@ fun ast_to_term trf ast =
   in
     term_of ast
   end;
-
 
 end;

@@ -8,7 +8,7 @@ Root of Isabelle's syntax module.
 infix |-> <-| <->;
 
 signature BASIC_SYNTAX =
-sig
+  sig
   include AST0
   include SYN_TRANS0
   include MIXFIX0
@@ -17,10 +17,10 @@ sig
     op |-> of 'a * 'a |
     op <-| of 'a * 'a |
     op <-> of 'a * 'a
-end;
+  end;
 
 signature SYNTAX =
-sig
+  sig
   include AST1
   include LEXICON0
   include SYN_EXT0
@@ -28,7 +28,6 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
-  sharing type ast = Parser.SynExt.Ast.ast
   datatype 'a trrule =
     op |-> of 'a * 'a |
     op <-| of 'a * 'a |
@@ -62,18 +61,12 @@ sig
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
-end;
+  end;
 
-functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
-  and SynTrans: SYN_TRANS and Mixfix: MIXFIX and Printer: PRINTER
-  sharing Mixfix.SynExt = SynTrans.Parser.SynExt = TypeExt.SynExt = Printer.SynExt)
-  : SYNTAX =
+structure Syntax : SYNTAX =
 struct
 
-structure SynExt = TypeExt.SynExt;
-structure Parser = SynTrans.Parser;
-structure Lexicon = Parser.Lexicon;
-open Lexicon SynExt SynExt.Ast Parser TypeExt SynTrans Mixfix Printer;
+open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 
 (** tables of translation functions **)

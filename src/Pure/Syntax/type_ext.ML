@@ -6,28 +6,22 @@ The concrete syntax of types (used to bootstrap Pure).
 *)
 
 signature TYPE_EXT0 =
-sig
+  sig
   val raw_term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname * sort) list -> (indexname -> sort) -> term -> typ
-end;
+  end;
 
 signature TYPE_EXT =
-sig
+  sig
   include TYPE_EXT0
-  structure SynExt: SYN_EXT
-  local open SynExt SynExt.Ast in
-    val term_of_typ: bool -> typ -> term
-    val tappl_ast_tr': ast * ast list -> ast
-    val type_ext: syn_ext
-  end
-end;
+  val term_of_typ: bool -> typ -> term
+  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val type_ext: SynExt.syn_ext
+  end;
 
-functor TypeExtFun(structure Lexicon: LEXICON and SynExt: SYN_EXT): TYPE_EXT =
+structure TypeExt : TYPE_EXT =
 struct
-
-structure SynExt = SynExt;
-open Lexicon SynExt SynExt.Ast;
-
+open Lexicon SynExt Ast;
 
 (** raw_term_sorts **)
 
@@ -181,6 +175,5 @@ val type_ext = mk_syn_ext false []
    [],
    [("fun", fun_ast_tr')])
   ([], []);
-
 
 end;
