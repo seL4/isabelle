@@ -102,60 +102,31 @@ fun unifyT sg env T U =
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
     Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);
 
-fun decompose sg env Ts
-    (Const ("all", _) $ t) (Const ("all", _) $ u) = decompose sg env Ts t u
-  | decompose sg env Ts
-    (Const ("==>", _) $ t1 $ t2) (Const ("==>", _) $ u1 $ u2) =
+fun decompose sg env Ts t u = case (Envir.head_norm env t, Envir.head_norm env u) of
+    (Const ("all", _) $ t, Const ("all", _) $ u) => decompose sg env Ts t u
+  | (Const ("==>", _) $ t1 $ t2, Const ("==>", _) $ u1 $ u2) =>
       let val (env', cs) = decompose sg env Ts t1 u1
       in apsnd (curry op @ cs) (decompose sg env' Ts t2 u2) end
-  | decompose sg env Ts (Abs (_, T, t)) (Abs (_, U, u)) =
+  | (Abs (_, T, t), Abs (_, U, u)) =>
       decompose sg (unifyT sg env T U) (T::Ts) t u
-  | decompose sg env Ts t u = (env, [(mk_abs Ts t, mk_abs Ts u)]);
+  | (t, u) => (env, [(mk_abs Ts t, mk_abs Ts u)]);
 
 fun cantunify sg t u = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
-
-(*finds type of term without checking that combinations are consistent
-  rbinder holds types of bound variables*)
-fun fastype (Envir.Envir {iTs, ...}) =
-  let
-    fun devar (T as TVar (ixn, _)) = (case Vartab.lookup (iTs, ixn) of
-          None => T | Some U => devar U)
-      | devar T = T;
-    fun fast Ts (f $ u) = (case devar (fast Ts f) of
-           Type("fun",[_,T]) => T
-         | _ => raise TERM ("fastype: expected function type", [f $ u]))
-      | fast Ts (Const (_, T)) = T
-      | fast Ts (Free (_, T)) = T
-      | fast Ts (Bound i) =
-        (nth_elem (i, Ts)
-         handle LIST _=> raise TERM("fastype: Bound", [Bound i]))
-      | fast Ts (Var (_, T)) = T 
-      | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u
-  in fast end;
 
 fun make_constraints_cprf sg env ts cprf =
   let
     fun add_cnstrt Ts prop prf cs env ts (t, u) =
       let
         val t' = mk_abs Ts t;
-        val u' = mk_abs Ts u;
-        val nt = Envir.beta_norm t';
-        val nu = Envir.beta_norm u'
-
+        val u' = mk_abs Ts u
       in
-        ((prop, prf, cs, Pattern.unify (sg, env, [(nt, nu)]), ts)
-         handle Pattern.Pattern =>
-           let
-             val nt' = Envir.norm_term env nt;
-             val nu' = Envir.norm_term env nu
-           in
-             (prop, prf, cs, Pattern.unify (sg, env, [(nt', nu')]), ts)
-             handle Pattern.Pattern =>
-               let val (env', cs') = decompose sg env [] nt' nu'
-               in (prop, prf, cs @ cs', env', ts) end
-           end) handle Pattern.Unif =>
-        cantunify sg (Envir.norm_term env t') (Envir.norm_term env u')
+        (prop, prf, cs, Pattern.unify (sg, env, [(t', u')]), ts)
+        handle Pattern.Pattern =>
+            let val (env', cs') = decompose sg env [] t' u'
+            in (prop, prf, cs @ cs', env', ts) end
+        | Pattern.Unif =>
+            cantunify sg (Envir.norm_term env t') (Envir.norm_term env u')
       end;
 
     fun mk_cnstrts_atom env ts prop opTs mk_prf =
@@ -202,12 +173,12 @@ fun make_constraints_cprf sg env ts cprf =
           in (case mk_cnstrts env Ts Hs ts cprf of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', ts') =>
-               let val env'' = unifyT sg env' T (fastype env' Ts t')
+               let val env'' = unifyT sg env' T (Envir.fastype env' Ts t')
                in (betapply (f, t'), prf % Some t', cnstrts, env'', ts')
                end
            | (u, prf, cnstrts, env', ts') =>
                let
-                 val T = fastype env' Ts t';
+                 val T = Envir.fastype env' Ts t';
                  val (env'', v) = mk_var env' Ts (T --> propT);
                in
                  add_cnstrt Ts (v $ t') (prf % Some t') cnstrts env'' ts'
