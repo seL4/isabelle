@@ -71,12 +71,15 @@ open Logic Ind_Syntax;
 (*internal version*)
 fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy = 
   let
+    val dummy = (*has essential ancestors?*)
+	require_thy thy "Inductive" "(co)inductive definitions" 
+
     val sign = sign_of thy;
 
     (*recT and rec_params should agree for all mutually recursive components*)
     val rec_hds = map head_of rec_tms;
 
-    val _ = assert_all is_Const rec_hds
+    val dummy = assert_all is_Const rec_hds
             (fn t => "Recursive set not previously declared as constant: " ^ 
                      Sign.string_of_term sign t);
 
@@ -84,7 +87,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     val rec_names = map (#1 o dest_Const) rec_hds
     and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
-    val _ = assert_all Syntax.is_identifier rec_names
+    val dummy = assert_all Syntax.is_identifier rec_names
        (fn a => "Name of recursive set not an identifier: " ^ a);
 
     local (*Checking the introduction rules*)
@@ -92,12 +95,12 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
       fun intr_ok set =
           case head_of set of Const(a,recT) => a mem rec_names | _ => false;
     in
-      val _ =  assert_all intr_ok intr_sets
+      val dummy =  assert_all intr_ok intr_sets
          (fn t => "Conclusion of rule does not name a recursive set: " ^ 
                   Sign.string_of_term sign t);
     end;
 
-    val _ = assert_all is_Free rec_params
+    val dummy = assert_all is_Free rec_params
         (fn t => "Param in recursion term not a free variable: " ^
                  Sign.string_of_term sign t);
 
@@ -113,7 +116,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     (*Makes a disjunct from an introduction rule*)
     fun lfp_part intr = (*quantify over rule's free vars except parameters*)
       let val prems = map dest_tprop (strip_imp_prems intr)
-          val _ = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
+          val dummy = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
           val exfrees = term_frees intr \\ rec_params
           val zeq = eq_const $ (Free(z',iT)) $ (#1 (rule_concl intr))
       in foldr mk_exists (exfrees, fold_bal (app conj) (zeq::prems)) end;
@@ -135,7 +138,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
 
     val lfp_rhs = Fp.oper $ dom_sum $ lfp_abs
 
-    val _ = seq (fn rec_hd => deny (rec_hd occs lfp_rhs) 
+    val dummy = seq (fn rec_hd => deny (rec_hd occs lfp_rhs) 
                                "Illegal occurrence of recursion operator")
              rec_hds;
 
@@ -157,7 +160,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
              | _ => rec_tms ~~          (*define the sets as Parts*)
                     map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
 
-    val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
+    val dummy = seq (writeln o Sign.string_of_term sign o #2) axpairs
   
   in  thy |> add_defs_i axpairs  end
 
@@ -166,7 +169,10 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
   con_ty_lists specifies the constructors in the form (name,prems,mixfix) *)
 fun add_constructs_def (rec_names, con_ty_lists) thy = 
   let
-    val _ = writeln"  Defining the constructor functions...";
+    val dummy = (*has essential ancestors?*)
+	require_thy thy "Datatype" "(co)datatype definitions" 
+
+    val dummy = writeln"  Defining the constructor functions...";
     val case_name = "f";                (*name for case variables*)
 
     (** Define the constructors **)
