@@ -391,4 +391,4 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (* use cont_tac as autotac.                                                *)
 (* ------------------------------------------------------------------------ *)
 
-simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac i));
+simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));
