@@ -262,7 +262,7 @@ fun cnf_axiom thm =
     let val thm' = transfer_to_Reconstruction thm
 	val thm'' = if (is_elimR thm') then (cnf_elim thm')  else cnf_rule thm'
     in
-	rm_redundant_cls thm''
+	map Thm.varifyT (rm_redundant_cls thm'')
     end;
 
 fun meta_cnf_axiom thm = 

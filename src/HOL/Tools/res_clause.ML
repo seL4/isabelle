@@ -33,6 +33,8 @@ signature RES_CLAUSE =
     val tptp_clauses2str : string list -> string
     val typed : unit -> unit
     val untyped : unit -> unit
+    val clause2tptp : clause -> string * string list
+    val tfree_clause : string -> string
   end;
 
 structure ResClause : RES_CLAUSE =
@@ -612,7 +614,7 @@ fun tptp_clause_aux (Clause cls) =
 	(tvar_lits_strs @ lits,tfree_lits)
     end; 
 
-    
+
 fun tptp_clause cls =
     let val (lits,tfree_lits) = tptp_clause_aux cls (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = string_of_clauseID cls
@@ -626,6 +628,20 @@ fun tptp_clause cls =
 	cls_str :: (typ_clss 0 tfree_lits)
     end;
 
+
+fun clause2tptp cls =
+    let val (lits,tfree_lits) = tptp_clause_aux cls (*"lits" includes the typing assumptions (TVars)*)
+	val cls_id = string_of_clauseID cls
+	val ax_name = string_of_axiomName cls
+	val knd = string_of_kind cls
+	val lits_str = ResLib.list_to_string' lits
+	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 
+    in
+	(cls_str,tfree_lits) 
+    end;
+
+
+fun tfree_clause tfree_lit = "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).";
 
 val delim = "\n";
 val tptp_clauses2str = ResLib.list2str_sep delim; 
