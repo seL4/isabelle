@@ -103,12 +103,12 @@ sig
   val add_modesyntax: (string * bool) * (bstring * string * mixfix) list -> sg -> sg
   val add_modesyntax_i: (string * bool) * (bstring * typ * mixfix) list -> sg -> sg
   val add_trfuns:
-    (bstring * (ast list -> ast)) list *
-    (bstring * (term list -> term)) list *
-    (bstring * (term list -> term)) list *
-    (bstring * (ast list -> ast)) list -> sg -> sg
+    (string * (ast list -> ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (ast list -> ast)) list -> sg -> sg
   val add_trfunsT:
-    (bstring * (bool -> typ -> term list -> term)) list -> sg -> sg
+    (string * (bool -> typ -> term list -> term)) list -> sg -> sg
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg

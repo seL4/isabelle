@@ -55,12 +55,12 @@ sig
   val add_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
   val add_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
   val add_trfuns:
-    (bstring * (Syntax.ast list -> Syntax.ast)) list *
-    (bstring * (term list -> term)) list *
-    (bstring * (term list -> term)) list *
-    (bstring * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
+    (string * (Syntax.ast list -> Syntax.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
   val add_trfunsT:
-    (bstring * (bool -> typ -> term list -> term)) list -> theory -> theory
+    (string * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> theory -> theory
   val add_trrules: (string * string) Syntax.trrule list -> theory -> theory
