@@ -10,6 +10,7 @@ sig
   val thm_num: int ref
   val store_thm_db: string * thm -> thm
   val thms_containing: string list -> (string * thm) list
+  val thms_resolving_with: term * Sign.sg -> (string * thm) list
 end;
 
 
@@ -23,23 +24,23 @@ val thm_db =
       ref (Symtab.make ([] : (string * ((int * (string * thm)) list)) list));
 val thm_num = ref 0;                                 (*number of next theorem*)
 
-(*list all relevant constants a theorem contains*)
+(*list all relevant constants a term contains*)
 fun list_consts t =
-  let val {prop, hyps, ...} = rep_thm t;
-
-      fun consts (Const (c, _)) = if c mem ignore then [] else [c]
+  let fun consts (Const (c, _)) = if c mem ignore then [] else [c]
         | consts (Free _) = []
         | consts (Var _) = []
         | consts (Bound _) = []
         | consts (Abs (_, _, t)) = consts t
         | consts (t1$t2) = (consts t1) union (consts t2);
-  in distinct (flat (map consts (prop :: hyps))) end;
+  in distinct (consts t) end;
 
 (*store a theorem in database*)
-fun store_thm_db (thm as (name, t)) =
-  let val consts = list_consts t;
+fun store_thm_db (named_thm as (name, t)) =
+  let val {prop, hyps, ...} = rep_thm t;
 
-      val tagged_thm = (!thm_num + 1, thm);
+      val consts = distinct (flat (map list_consts (prop :: hyps)));
+
+      val tagged_thm = (!thm_num + 1, named_thm);
 
       fun update_db [] = ()
         | update_db (c :: cs) =
@@ -48,8 +49,8 @@ fun store_thm_db (thm as (name, t)) =
                update_db cs
             end;
   in if consts = [] then writeln ("Warning: Theorem " ^ name ^
-                                  " cannot be stored in ThmDB because it \
-                                  \contains no constants.")
+                                  " cannot be stored in ThmDB\n\t because it \
+                                  \contains no or only ignored constants.")
                     else ();
      update_db consts;
      thm_num := !thm_num+1;
@@ -76,8 +77,32 @@ fun thms_containing constants =
 
       val look_for = constants \\ ignore;
   in if null look_for then
-       error ("Only ignored constants specified for theorem database search:\n"
-              ^ commas (map quote ignored))
+       error ("No or only ignored constants were specified for theorem \
+              \database search:\n  " ^ commas (map quote ignore))
      else ();
      collect look_for true [] end;
+
+
+(*get all theorems which can be unified with term t*)
+fun thms_unifying_with(t:term, signt:Sign.sg, thms:(string*thm) list) =
+  let val maxt = maxidx_of_term t
+      fun select((named_thm as (name,thm))::thms,sels) =
+            let val {prop,maxidx,sign,...} = rep_thm thm
+                val u = Logic.incr_indexes([],maxidx+1) t
+                val env = Envir.empty(max[maxt,maxidx]+1)
+                val seq = Unify.unifiers(sign,env,[(u,prop)])
+            in select(thms,
+                 if Sign.subsig(signt,sign)
+                 then case Sequence.pull(seq) of
+                        None => sels
+                      | Some _ => named_thm::sels
+                 else sels)
+            end
+        | select([],sels) = sels
+  in select(thms,[]) end;
+
+(*get all theorems which resolve to a given term*)
+fun thms_resolving_with (t, sg) =
+  let val thms = thms_containing (list_consts t);
+  in thms_unifying_with (t, sg, thms) end;
 end;
