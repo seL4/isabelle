@@ -8,9 +8,6 @@ val aut_simps = [Greater_def,one_leader_def,
 (* property to prove: at most one (of 3) members of the ring will
 	declare itself to leader *)
 Goal "ring =<| one_leader";
-(*
-FIXME
 by (is_sim_tac aut_simps 1); 
 by Auto_tac;
 qed"at_most_one_leader";
-*)
