@@ -194,7 +194,7 @@ end;
 
 bind_thms ("ex_simps", ex_simps);
 bind_thms ("all_simps", all_simps);
-
+bind_thm ("not_not", not_not);
 
 (* Elimination of True from asumptions: *)
 
