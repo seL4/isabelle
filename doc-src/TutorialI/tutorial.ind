@@ -37,9 +37,8 @@
 
   \indexspace
 
-  \item \isa {0} (constant), 22, 23, 141
-  \item \isa {1} (symbol), 141
-  \item \isa {2} (symbol), 141
+  \item \isa {0} (constant), 22, 23, 140
+  \item \isa {1} (constant), 140, 141
 
   \indexspace
 
@@ -290,11 +289,11 @@
   \item instance, \bold{153}
   \item \texttt {INT}, \bold{195}
   \item \texttt {Int}, \bold{195}
-  \item \isa {int} (type), 143
+  \item \isa {int} (type), 143--144
   \item \isa {INT_iff} (theorem), \bold{98}
   \item \isa {IntD1} (theorem), \bold{95}
   \item \isa {IntD2} (theorem), \bold{95}
-  \item integers, 143
+  \item integers, 143--144
   \item \isa {INTER} (constant), 99
   \item \texttt {Inter}, \bold{195}
   \item \isa {Inter_iff} (theorem), \bold{98}
@@ -362,7 +361,7 @@
   \item \isa {mono_def} (theorem), \bold{106}
   \item monotone functions, \bold{106}, 129
     \subitem and inductive definitions, 127--128
-  \item \isa {more} (constant), 148, 149
+  \item \isa {more} (constant), 148--150
   \item \isa {mp} (theorem), \bold{62}
   \item \isa {mult_ac} (theorems), 142
   \item multiple inheritance, \bold{157}
@@ -370,10 +369,10 @@
 
   \indexspace
 
-  \item \isa {nat} (type), 4, 22, 141--142
+  \item \isa {nat} (type), 4, 22, 141--143
   \item \isa {nat_less_induct} (theorem), 176
   \item natural deduction, 57--58
-  \item natural numbers, 22, 141--142
+  \item natural numbers, 22, 141--143
   \item Needham-Schroeder protocol, 183--185
   \item negation, 63--65
   \item \isa {Nil} (constant), 9
@@ -387,7 +386,7 @@
   \item numbers, 139--145
   \item numeric literals, 140
     \subitem for type \protect\isa{nat}, 141
-    \subitem for type \protect\isa{real}, 144
+    \subitem for type \protect\isa{real}, 145
 
   \indexspace
 
@@ -400,7 +399,7 @@
   \item \isacommand {oops} (command), 13
   \item \isa {option} (type), \bold{24}
   \item ordered rewriting, \bold{164}
-  \item overloading, 23, 152--154
+  \item overloading, 23, 152--155
     \subitem and arithmetic, 140
 
   \indexspace
@@ -452,9 +451,9 @@
   \item \isa {recdef_simp} (attribute), 48
   \item \isa {recdef_wf} (attribute), 168
   \item \isacommand {record} (command), 148
-  \item \isa {record_split} (method), 151
+  \item \isa {record_split} (method), 152
   \item records, 148--152
-    \subitem extensible, 149--150
+    \subitem extensible, 149--151
   \item recursion
     \subitem guarded, 171
     \subitem primitive, 18
@@ -514,10 +513,10 @@
   \item \isa {someI} (theorem), \bold{76}
   \item \isa {someI2} (theorem), \bold{76}
   \item \isa {someI_ex} (theorem), \bold{77}
-  \item sorts, 157
+  \item sorts, 158
   \item \isa {spec} (theorem), \bold{70}
   \item \isa {split} (attribute), 32
-  \item \isa {split} (constant), 145
+  \item \isa {split} (constant), 146
   \item \isa {split} (method), 31, 146
   \item \isa {split} (modifier), 32
   \item split rule, \bold{32}
