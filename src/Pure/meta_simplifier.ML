@@ -285,9 +285,9 @@ fun print_ss ss =
     [Pretty.big_list "simplification rules:" (pretty_thms smps),
       Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
       Pretty.big_list "congruences:" (map pretty_cong cngs),
-      Pretty.strs ("loopers:" :: map #1 loop_tacs),
-      Pretty.strs ("unsafe solvers:" :: map solver_name (#1 solvers)),
-      Pretty.strs ("safe solvers:" :: map solver_name (#2 solvers))]
+      Pretty.strs ("loopers:" :: map (quote o #1) loop_tacs),
+      Pretty.strs ("unsafe solvers:" :: map (quote o solver_name) (#1 solvers)),
+      Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
