@@ -267,6 +267,8 @@ fun number_of_Sucs (Const("Suc",_) $ n) = number_of_Sucs n + 1
 fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
         Const("Numeral.number_of",_)$n
         => demult(t,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
+      | Const("uminus",_)$(Const("Numeral.number_of",_)$n)
+        => demult(t,ratmul(m,rat_of_int(~(HOLogic.dest_binum n))))
       | Const("Suc",_) $ _
         => demult(t,ratmul(m,rat_of_int(number_of_Sucs s)))
       | Const("op *",_) $ s1 $ s2 => demult(mC $ s1 $ (mC $ s2 $ t),m)
@@ -284,6 +286,7 @@ fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
   | demult(t as Const("Numeral.number_of",_)$n,m) =
       ((None,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
        handle TERM _ => (Some t,m))
+  | demult(Const("uminus",_)$t, m) = demult(t,ratmul(m,rat_of_int(~1)))
   | demult(atom,m) = (Some atom,m)
 
 and atomult(mC,atom,t,m) = (case demult(t,m) of (None,m') => (Some atom,m')
