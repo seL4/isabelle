@@ -32,22 +32,19 @@ lemma powhr:
 by (simp add: powhr_def starfun hypreal_mult powr_def)
 
 lemma powhr_one_eq_one [simp]: "1 powhr a = 1"
-apply (rule eq_Abs_hypreal [of a])
+apply (cases a)
 apply (simp add: powhr hypreal_one_num)
 done
 
 lemma powhr_mult:
      "[| 0 < x; 0 < y |] ==> (x * y) powhr a = (x powhr a) * (y powhr a)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases y, cases a)
 apply (simp add: powhr hypreal_zero_num hypreal_mult hypreal_less, ultra)
 apply (simp add: powr_mult) 
 done
 
 lemma powhr_gt_zero [simp]: "0 < x powhr a"
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of x])
+apply (cases a, cases x)
 apply (simp add: hypreal_zero_def powhr hypreal_less hypreal_zero_num)
 done
 
@@ -61,37 +58,28 @@ by (simp add: divide_inverse hypreal_zero_num hypreal_inverse hypreal_mult)
 
 lemma powhr_divide:
      "[| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases y, cases a)
 apply (simp add: powhr hypreal_divide hypreal_zero_num hypreal_less, ultra)
 apply (simp add: powr_divide)
 done
 
 lemma powhr_add: "x powhr (a + b) = (x powhr a) * (x powhr b)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of b])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases b, cases a)
 apply (simp add: powhr hypreal_add hypreal_mult powr_add)
 done
 
 lemma powhr_powhr: "(x powhr a) powhr b = x powhr (a * b)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of b])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases b, cases a)
 apply (simp add: powhr hypreal_mult powr_powr)
 done
 
 lemma powhr_powhr_swap: "(x powhr a) powhr b = (x powhr b) powhr a"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of b])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases b, cases a)
 apply (simp add: powhr powr_powr_swap)
 done
 
 lemma powhr_minus: "x powhr (-a) = inverse (x powhr a)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases a)
 apply (simp add: powhr hypreal_minus hypreal_inverse hypreal_less powr_minus)
 done
 
@@ -99,16 +87,12 @@ lemma powhr_minus_divide: "x powhr (-a) = 1/(x powhr a)"
 by (simp add: divide_inverse powhr_minus)
 
 lemma powhr_less_mono: "[| a < b; 1 < x |] ==> x powhr a < x powhr b"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of b])
+apply (cases x, cases a, cases b)
 apply (simp add: powhr hypreal_one_num hypreal_less, ultra)
 done
 
 lemma powhr_less_cancel: "[| x powhr a < x powhr b; 1 < x |] ==> a < b"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of b])
+apply (cases x, cases a, cases b)
 apply (simp add: powhr hypreal_one_num hypreal_less, ultra)
 done
 
@@ -128,21 +112,19 @@ apply (rule arg_cong [where f=Abs_hypreal], auto, ultra)
 done
 
 lemma hlog_starfun_ln: "( *f* ln) x = hlog (( *f* exp) 1) x"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (simp add: starfun hlog log_ln hypreal_one_num)
 done
 
 lemma powhr_hlog_cancel [simp]:
      "[| 0 < a; a \<noteq> 1; 0 < x |] ==> a powhr (hlog a x) = x"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases a)
 apply (simp add: hlog powhr hypreal_zero_num hypreal_less hypreal_one_num, ultra)
 done
 
 lemma hlog_powhr_cancel [simp]:
      "[| 0 < a; a \<noteq> 1 |] ==> hlog a (a powhr y) = y"
-apply (rule eq_Abs_hypreal [of y])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases y, cases a)
 apply (simp add: hlog powhr hypreal_zero_num hypreal_less hypreal_one_num, ultra)
 apply (auto intro: log_powr_cancel) 
 done
@@ -150,33 +132,27 @@ done
 lemma hlog_mult:
      "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y  |]  
       ==> hlog a (x * y) = hlog a x + hlog a y"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases y, cases a)
 apply (simp add: hlog powhr hypreal_zero_num hypreal_one_num hypreal_less hypreal_add hypreal_mult, ultra)
 apply (simp add: log_mult)
 done
 
 lemma hlog_as_starfun:
      "[| 0 < a; a \<noteq> 1 |] ==> hlog a x = ( *f* ln) x / ( *f* ln) a"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
+apply (cases x, cases a)
 apply (simp add: hlog starfun hypreal_zero_num hypreal_one_num hypreal_divide log_def)
 done
 
 lemma hlog_eq_div_starfun_ln_mult_hlog:
      "[| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  
       ==> hlog a x = (( *f* ln) b/( *f*ln) a) * hlog b x"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of b])
+apply (cases x, cases a, cases b)
 apply (simp add: hlog starfun hypreal_zero_num hypreal_one_num hypreal_less hypreal_divide hypreal_mult, ultra)
 apply (auto dest: log_eq_div_ln_mult_log) 
 done
 
 lemma powhr_as_starfun: "x powhr a = ( *f* exp) (a * ( *f* ln) x)"
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of x])
+apply (cases a, cases x)
 apply (simp add: powhr starfun hypreal_mult powr_def)
 done
 
@@ -202,12 +178,12 @@ lemma hlog_HInfinite_as_starfun:
 by (rule hlog_as_starfun, auto)
 
 lemma hlog_one [simp]: "hlog a 1 = 0"
-apply (rule eq_Abs_hypreal [of a])
+apply (cases a)
 apply (simp add: hypreal_one_num hypreal_zero_num hlog)
 done
 
 lemma hlog_eq_one [simp]: "[| 0 < a; a \<noteq> 1 |] ==> hlog a a = 1"
-apply (rule eq_Abs_hypreal [of a])
+apply (cases a)
 apply (simp add: hypreal_one_num hypreal_zero_num hlog hypreal_less, ultra)
 apply (auto intro: log_eq_one) 
 done
@@ -224,9 +200,7 @@ by (simp add: hlog_mult hlog_inverse divide_inverse)
 
 lemma hlog_less_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x < hlog a y) = (x < y)"
-apply (rule eq_Abs_hypreal [of a])
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
+apply (cases a, cases x, cases y)
 apply (auto simp add: hlog hypreal_less hypreal_zero_num hypreal_one_num, ultra+)
 done
 

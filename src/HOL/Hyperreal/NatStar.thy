@@ -213,13 +213,13 @@ subsubsection{*Multiplication: @{text "( *f) x ( *g) = *(f x g)"}*}
 
 lemma starfunNat_mult:
      "( *fNat* f) z * ( *fNat* g) z = ( *fNat* (%x. f x * g x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat hypreal_mult)
 done
 
 lemma starfunNat2_mult:
      "( *fNat2* f) z * ( *fNat2* g) z = ( *fNat2* (%x. f x * g x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat2 hypnat_mult)
 done
 
@@ -227,19 +227,19 @@ subsubsection{*Addition: @{text "( *f) + ( *g) = *(f + g)"}*}
 
 lemma starfunNat_add:
      "( *fNat* f) z + ( *fNat* g) z = ( *fNat* (%x. f x + g x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat hypreal_add)
 done
 
 lemma starfunNat2_add:
      "( *fNat2* f) z + ( *fNat2* g) z = ( *fNat2* (%x. f x + g x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat2 hypnat_add)
 done
 
 lemma starfunNat2_minus:
      "( *fNat2* f) z - ( *fNat2* g) z = ( *fNat2* (%x. f x - g x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat2 hypnat_minus)
 done
 
@@ -285,23 +285,23 @@ done
 text{*NS extension of constant function*}
 
 lemma starfunNat_const_fun [simp]: "( *fNat* (%x. k)) z = hypreal_of_real k"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat hypreal_of_real_def)
 done
 
 lemma starfunNat2_const_fun [simp]: "( *fNat2* (%x. k)) z = hypnat_of_nat  k"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat2 hypnat_of_nat_eq)
 done
 
 lemma starfunNat_minus: "- ( *fNat* f) x = ( *fNat* (%x. - f x)) x"
-apply (rule eq_Abs_hypnat [of x])
+apply (cases x)
 apply (simp add: starfunNat hypreal_minus)
 done
 
 lemma starfunNat_inverse:
      "inverse (( *fNat* f) x) = ( *fNat* (%x. inverse (f x))) x"
-apply (rule eq_Abs_hypnat [of x])
+apply (cases x)
 apply (simp add: starfunNat hypreal_inverse)
 done
 
@@ -346,27 +346,27 @@ text{*Nonstandard extension when we increment the argument by one*}
 
 lemma starfunNat_shift_one:
      "( *fNat* (%n. f (Suc n))) N = ( *fNat* f) (N + (1::hypnat))"
-apply (rule eq_Abs_hypnat [of N])
+apply (cases N)
 apply (simp add: starfunNat hypnat_one_def hypnat_add)
 done
 
 text{*Nonstandard extension with absolute value*}
 
 lemma starfunNat_rabs: "( *fNat* (%n. abs (f n))) N = abs(( *fNat* f) N)"
-apply (rule eq_Abs_hypnat [of N])
+apply (cases N)
 apply (simp add: starfunNat hypreal_hrabs)
 done
 
 text{*The hyperpow function as a nonstandard extension of realpow*}
 
 lemma starfunNat_pow: "( *fNat* (%n. r ^ n)) N = (hypreal_of_real r) pow N"
-apply (rule eq_Abs_hypnat [of N])
+apply (cases N)
 apply (simp add: hyperpow hypreal_of_real_def starfunNat)
 done
 
 lemma starfunNat_pow2:
      "( *fNat* (%n. (X n) ^ m)) N = ( *fNat* X) N pow hypnat_of_nat m"
-apply (rule eq_Abs_hypnat [of N])
+apply (cases N)
 apply (simp add: hyperpow hypnat_of_nat_eq starfunNat)
 done
 
@@ -411,7 +411,7 @@ text{*Multiplication: @{text "( *fn) x ( *gn) = *(fn x gn)"}*}
 
 lemma starfunNat_n_mult:
      "( *fNatn* f) z * ( *fNatn* g) z = ( *fNatn* (% i x. f i x * g i x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat_n hypreal_mult)
 done
 
@@ -419,7 +419,7 @@ text{*Addition: @{text "( *fn) + ( *gn) = *(fn + gn)"}*}
 
 lemma starfunNat_n_add:
      "( *fNatn* f) z + ( *fNatn* g) z = ( *fNatn* (%i x. f i x + g i x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat_n hypreal_add)
 done
 
@@ -427,7 +427,7 @@ text{*Subtraction: @{text "( *fn) - ( *gn) = *(fn + - gn)"}*}
 
 lemma starfunNat_n_add_minus:
      "( *fNatn* f) z + -( *fNatn* g) z = ( *fNatn* (%i x. f i x + -g i x)) z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat_n hypreal_minus hypreal_add)
 done
 
@@ -436,12 +436,12 @@ text{*Composition: @{text "( *fn) o ( *gn) = *(fn o gn)"}*}
 
 lemma starfunNat_n_const_fun [simp]:
      "( *fNatn* (%i x. k)) z = hypreal_of_real  k"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: starfunNat_n hypreal_of_real_def)
 done
 
 lemma starfunNat_n_minus: "- ( *fNatn* f) x = ( *fNatn* (%i x. - (f i) x)) x"
-apply (rule eq_Abs_hypnat [of x])
+apply (cases x)
 apply (simp add: starfunNat_n hypreal_minus)
 done
 

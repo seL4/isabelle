@@ -63,19 +63,18 @@ text{*Proving that @{term hypnatrel} is an equivalence relation*}
 
 lemma hypnatrel_iff:
      "((X,Y) \<in> hypnatrel) = ({n. X n = Y n}: FreeUltrafilterNat)"
-apply (unfold hypnatrel_def, fast)
+apply (simp add: hypnatrel_def)
 done
 
 lemma hypnatrel_refl: "(x,x) \<in> hypnatrel"
-by (unfold hypnatrel_def, auto)
+by (simp add: hypnatrel_def)
 
 lemma hypnatrel_sym: "(x,y) \<in> hypnatrel ==> (y,x) \<in> hypnatrel"
 by (auto simp add: hypnatrel_def eq_commute)
 
 lemma hypnatrel_trans [rule_format (no_asm)]:
      "(x,y) \<in> hypnatrel --> (y,z) \<in> hypnatrel --> (x,z) \<in> hypnatrel"
-apply (unfold hypnatrel_def, auto, ultra)
-done
+by (auto simp add: hypnatrel_def, ultra)
 
 lemma equiv_hypnatrel:
      "equiv UNIV hypnatrel"
@@ -88,7 +87,7 @@ lemmas equiv_hypnatrel_iff =
     eq_equiv_class_iff [OF equiv_hypnatrel UNIV_I UNIV_I, simp]
 
 lemma hypnatrel_in_hypnat [simp]: "hypnatrel``{x}:hypnat"
-by (unfold hypnat_def hypnatrel_def quotient_def, blast)
+by (simp add: hypnat_def hypnatrel_def quotient_def, blast)
 
 lemma inj_on_Abs_hypnat: "inj_on Abs_hypnat hypnat"
 apply (rule inj_on_inverseI)
@@ -114,7 +113,7 @@ by (simp add: hypnatrel_def)
 declare lemma_hypnatrel_refl [simp]
 
 lemma hypnat_empty_not_mem: "{} \<notin> hypnat"
-apply (unfold hypnat_def)
+apply (simp add: hypnat_def)
 apply (auto elim!: quotientE equalityCE)
 done
 
@@ -133,11 +132,15 @@ apply (drule_tac f = Abs_hypnat in arg_cong)
 apply (force simp add: Rep_hypnat_inverse)
 done
 
+theorem hypnat_cases [case_names Abs_hypnat, cases type: hypnat]:
+    "(!!x. z = Abs_hypnat(hypnatrel``{x}) ==> P) ==> P"
+by (rule eq_Abs_hypnat [of z], blast)
+
 subsection{*Hypernat Addition*}
 
 lemma hypnat_add_congruent2:
      "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n + Y n})"
-apply (unfold congruent2_def, auto, ultra)
+apply (simp add: congruent2_def, auto, ultra)
 done
 
 lemma hypnat_add:
@@ -146,20 +149,17 @@ lemma hypnat_add:
 by (simp add: hypnat_add_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_add_congruent2])
 
 lemma hypnat_add_commute: "(z::hypnat) + w = w + z"
-apply (rule eq_Abs_hypnat [of z])
-apply (rule eq_Abs_hypnat [of w])
+apply (cases z, cases w)
 apply (simp add: add_ac hypnat_add)
 done
 
 lemma hypnat_add_assoc: "((z1::hypnat) + z2) + z3 = z1 + (z2 + z3)"
-apply (rule eq_Abs_hypnat [of z1])
-apply (rule eq_Abs_hypnat [of z2])
-apply (rule eq_Abs_hypnat [of z3])
+apply (cases z1, cases z2, cases z3)
 apply (simp add: hypnat_add nat_add_assoc)
 done
 
 lemma hypnat_add_zero_left: "(0::hypnat) + z = z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: hypnat_zero_def hypnat_add)
 done
 
@@ -174,7 +174,7 @@ subsection{*Subtraction inverse on @{typ hypreal}*}
 
 lemma hypnat_minus_congruent2:
     "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n - Y n})"
-apply (unfold congruent2_def, auto, ultra)
+apply (simp add: congruent2_def, auto, ultra)
 done
 
 lemma hypnat_minus:
@@ -183,29 +183,26 @@ lemma hypnat_minus:
 by (simp add: hypnat_minus_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_minus_congruent2])
 
 lemma hypnat_minus_zero: "z - z = (0::hypnat)"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: hypnat_zero_def hypnat_minus)
 done
 
 lemma hypnat_diff_0_eq_0: "(0::hypnat) - n = 0"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (simp add: hypnat_minus hypnat_zero_def)
 done
 
 declare hypnat_minus_zero [simp] hypnat_diff_0_eq_0 [simp]
 
 lemma hypnat_add_is_0: "(m+n = (0::hypnat)) = (m=0 & n=0)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (auto intro: FreeUltrafilterNat_subset dest: FreeUltrafilterNat_Int simp add: hypnat_zero_def hypnat_add)
 done
 
 declare hypnat_add_is_0 [iff]
 
 lemma hypnat_diff_diff_left: "(i::hypnat) - j - k = i - (j+k)"
-apply (rule eq_Abs_hypnat [of i])
-apply (rule eq_Abs_hypnat [of j])
-apply (rule eq_Abs_hypnat [of k])
+apply (cases i, cases j, cases k)
 apply (simp add: hypnat_minus hypnat_add diff_diff_left)
 done
 
@@ -213,23 +210,19 @@ lemma hypnat_diff_commute: "(i::hypnat) - j - k = i-k-j"
 by (simp add: hypnat_diff_diff_left hypnat_add_commute)
 
 lemma hypnat_diff_add_inverse: "((n::hypnat) + m) - n = m"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypnat_minus hypnat_add)
 done
 declare hypnat_diff_add_inverse [simp]
 
 lemma hypnat_diff_add_inverse2:  "((m::hypnat) + n) - n = m"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypnat_minus hypnat_add)
 done
 declare hypnat_diff_add_inverse2 [simp]
 
 lemma hypnat_diff_cancel: "((k::hypnat) + m) - (k+n) = m - n"
-apply (rule eq_Abs_hypnat [of k])
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases k, cases m, cases n)
 apply (simp add: hypnat_minus hypnat_add)
 done
 declare hypnat_diff_cancel [simp]
@@ -239,8 +232,7 @@ by (simp add: hypnat_add_commute [of _ k])
 declare hypnat_diff_cancel2 [simp]
 
 lemma hypnat_diff_add_0: "(n::hypnat) - (n+m) = (0::hypnat)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypnat_zero_def hypnat_minus hypnat_add)
 done
 declare hypnat_diff_add_0 [simp]
@@ -250,7 +242,7 @@ subsection{*Hyperreal Multiplication*}
 
 lemma hypnat_mult_congruent2:
     "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n * Y n})"
-by (unfold congruent2_def, auto, ultra)
+by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_mult:
   "Abs_hypnat(hypnatrel``{%n. X n}) * Abs_hypnat(hypnatrel``{%n. Y n}) =
@@ -258,27 +250,22 @@ lemma hypnat_mult:
 by (simp add: hypnat_mult_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_mult_congruent2])
 
 lemma hypnat_mult_commute: "(z::hypnat) * w = w * z"
-apply (rule eq_Abs_hypnat [of z])
-apply (rule eq_Abs_hypnat [of w])
+apply (cases z, cases w)
 apply (simp add: hypnat_mult mult_ac)
 done
 
 lemma hypnat_mult_assoc: "((z1::hypnat) * z2) * z3 = z1 * (z2 * z3)"
-apply (rule eq_Abs_hypnat [of z1])
-apply (rule eq_Abs_hypnat [of z2])
-apply (rule eq_Abs_hypnat [of z3])
+apply (cases z1, cases z2, cases z3)
 apply (simp add: hypnat_mult mult_assoc)
 done
 
 lemma hypnat_mult_1: "(1::hypnat) * z = z"
-apply (rule eq_Abs_hypnat [of z])
+apply (cases z)
 apply (simp add: hypnat_mult hypnat_one_def)
 done
 
 lemma hypnat_diff_mult_distrib: "((m::hypnat) - n) * k = (m * k) - (n * k)"
-apply (rule eq_Abs_hypnat [of k])
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases k, cases m, cases n)
 apply (simp add: hypnat_mult hypnat_minus diff_mult_distrib)
 done
 
@@ -286,9 +273,7 @@ lemma hypnat_diff_mult_distrib2: "(k::hypnat) * (m - n) = (k * m) - (k * n)"
 by (simp add: hypnat_diff_mult_distrib hypnat_mult_commute [of k])
 
 lemma hypnat_add_mult_distrib: "((z1::hypnat) + z2) * w = (z1 * w) + (z2 * w)"
-apply (rule eq_Abs_hypnat [of z1])
-apply (rule eq_Abs_hypnat [of z2])
-apply (rule eq_Abs_hypnat [of w])
+apply (cases z1, cases z2, cases w)
 apply (simp add: hypnat_mult hypnat_add add_mult_distrib)
 done
 
@@ -324,25 +309,22 @@ subsection{*Properties of The @{text "\<le>"} Relation*}
 lemma hypnat_le:
       "(Abs_hypnat(hypnatrel``{%n. X n}) \<le> Abs_hypnat(hypnatrel``{%n. Y n})) =
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
-apply (unfold hypnat_le_def)
+apply (simp add: hypnat_le_def)
 apply (auto intro!: lemma_hypnatrel_refl, ultra)
 done
 
 lemma hypnat_le_refl: "w \<le> (w::hypnat)"
-apply (rule eq_Abs_hypnat [of w])
+apply (cases w)
 apply (simp add: hypnat_le)
 done
 
 lemma hypnat_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypnat)"
-apply (rule eq_Abs_hypnat [of i])
-apply (rule eq_Abs_hypnat [of j])
-apply (rule eq_Abs_hypnat [of k])
+apply (cases i, cases j, cases k)
 apply (simp add: hypnat_le, ultra)
 done
 
 lemma hypnat_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypnat)"
-apply (rule eq_Abs_hypnat [of z])
-apply (rule eq_Abs_hypnat [of w])
+apply (cases z, cases w)
 apply (simp add: hypnat_le, ultra)
 done
 
@@ -357,8 +339,7 @@ proof qed
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma hypnat_le_linear: "(z::hypnat) \<le> w | w \<le> z"
-apply (rule eq_Abs_hypnat [of z])
-apply (rule eq_Abs_hypnat [of w])
+apply (cases z, cases w)
 apply (auto simp add: hypnat_le, ultra)
 done
 
@@ -366,16 +347,12 @@ instance hypnat :: linorder
   by (intro_classes, rule hypnat_le_linear)
 
 lemma hypnat_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::hypnat)"
-apply (rule eq_Abs_hypnat [of x])
-apply (rule eq_Abs_hypnat [of y])
-apply (rule eq_Abs_hypnat [of z])
+apply (cases x, cases y, cases z)
 apply (auto simp add: hypnat_le hypnat_add)
 done
 
 lemma hypnat_mult_less_mono2: "[| (0::hypnat)<z; x<y |] ==> z*x<z*y"
-apply (rule eq_Abs_hypnat [of x])
-apply (rule eq_Abs_hypnat [of y])
-apply (rule eq_Abs_hypnat [of z])
+apply (cases x, cases y, cases z)
 apply (simp add: hypnat_zero_def  hypnat_mult linorder_not_le [symmetric])
 apply (auto simp add: hypnat_le, ultra)
 done
@@ -396,19 +373,17 @@ proof
 qed
 
 lemma hypnat_le_zero_cancel [iff]: "(n \<le> (0::hypnat)) = (n = 0)"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (simp add: hypnat_zero_def hypnat_le)
 done
 
 lemma hypnat_mult_is_0 [simp]: "(m*n = (0::hypnat)) = (m=0 | n=0)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (auto simp add: hypnat_zero_def hypnat_mult, ultra+)
 done
 
 lemma hypnat_diff_is_0_eq [simp]: "((m::hypnat) - n = 0) = (m \<le> n)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypnat_le hypnat_minus hypnat_zero_def)
 done
 
@@ -424,19 +399,18 @@ apply (ultra+)
 done
 
 lemma hypnat_not_less0 [iff]: "~ n < (0::hypnat)"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (auto simp add: hypnat_zero_def hypnat_less)
 done
 
 lemma hypnat_less_one [iff]:
       "(n < (1::hypnat)) = (n=0)"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (auto simp add: hypnat_zero_def hypnat_one_def hypnat_less)
 done
 
 lemma hypnat_add_diff_inverse: "~ m<n ==> n+(m-n) = (m::hypnat)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypnat_minus hypnat_add hypnat_less split: nat_diff_split, ultra)
 done
 
@@ -484,7 +458,7 @@ proof (cases "a<b" rule: case_split)
 next
   case False
     thus ?thesis
-      by (auto simp add: linorder_not_less dest: order_le_less_trans); 
+      by (auto simp add: linorder_not_less dest: order_le_less_trans) 
 qed
 
 
@@ -563,15 +537,13 @@ apply (auto simp add: add_commute [of 1])
 done
 
 lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in> Nats"
-apply (auto simp add: of_nat_eq_add Nats_def split: hypnat_diff_split)
-done
+by (auto simp add: of_nat_eq_add Nats_def split: hypnat_diff_split)
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
 apply (insert finite_atMost [of m]) 
 apply (simp add: atMost_def) 
 apply (drule FreeUltrafilterNat_finite) 
-apply (drule FreeUltrafilterNat_Compl_mem) 
-apply ultra
+apply (drule FreeUltrafilterNat_Compl_mem, ultra)
 done
 
 lemma Compl_Collect_le: "- {n::nat. N \<le> n} = {n. n < N}"
@@ -581,7 +553,7 @@ by (simp add: Collect_neg_eq [symmetric] linorder_not_le)
 lemma hypnat_of_nat_eq:
      "hypnat_of_nat m  = Abs_hypnat(hypnatrel``{%n::nat. m})"
 apply (induct m) 
-apply (simp_all add: hypnat_zero_def hypnat_one_def hypnat_add); 
+apply (simp_all add: hypnat_zero_def hypnat_one_def hypnat_add) 
 done
 
 lemma SHNat_eq: "Nats = {n. \<exists>N. n = hypnat_of_nat N}"
@@ -599,8 +571,7 @@ done
 
 (* Infinite hypernatural not in embedded Nats *)
 lemma SHNAT_omega_not_mem [simp]: "whn \<notin> Nats"
-apply (blast dest: hypnat_omega_gt_SHNat) 
-done
+by (blast dest: hypnat_omega_gt_SHNat)
 
 lemma hypnat_of_nat_less_whn [simp]: "hypnat_of_nat n < whn"
 apply (insert hypnat_omega_gt_SHNat [of "hypnat_of_nat n"])
@@ -657,7 +628,7 @@ Free Ultrafilter*}
 lemma HNatInfinite_FreeUltrafilterNat:
      "x \<in> HNatInfinite 
       ==> \<exists>X \<in> Rep_hypnat x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat"
-apply (rule eq_Abs_hypnat [of x])
+apply (cases x)
 apply (auto simp add: HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 apply (rule bexI [OF _ lemma_hypnatrel_refl], clarify) 
 apply (auto simp add: hypnat_of_nat_def hypnat_less)
@@ -666,7 +637,7 @@ done
 lemma FreeUltrafilterNat_HNatInfinite:
      "\<exists>X \<in> Rep_hypnat x. \<forall>u. {n. u < X n}:  FreeUltrafilterNat
       ==> x \<in> HNatInfinite"
-apply (rule eq_Abs_hypnat [of x])
+apply (cases x)
 apply (auto simp add: hypnat_less HNatInfinite_iff SHNat_eq hypnat_of_nat_eq)
 apply (drule spec, ultra, auto) 
 done
@@ -708,8 +679,7 @@ done
 lemma HNatInfinite_SHNat_add:
      "[| x \<in> HNatInfinite; y \<in> Nats |] ==> x + y \<in> HNatInfinite"
 apply (auto simp add: HNatInfinite_not_Nats_iff) 
-apply (drule_tac a = "x + y" in Nats_diff)
-apply (auto ); 
+apply (drule_tac a = "x + y" in Nats_diff, auto) 
 done
 
 lemma HNatInfinite_Nats_imp_less: "[| x \<in> HNatInfinite; y \<in> Nats |] ==> y < x"
@@ -764,8 +734,7 @@ done
 
 lemma hypreal_of_hypnat_inject [simp]:
      "(hypreal_of_hypnat m = hypreal_of_hypnat n) = (m=n)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (auto simp add: hypreal_of_hypnat)
 done
 
@@ -777,22 +746,19 @@ by (simp add: hypnat_one_def hypreal_one_def hypreal_of_hypnat)
 
 lemma hypreal_of_hypnat_add [simp]:
      "hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypreal_of_hypnat hypreal_add hypnat_add real_of_nat_add)
 done
 
 lemma hypreal_of_hypnat_mult [simp]:
      "hypreal_of_hypnat (m * n) = hypreal_of_hypnat m * hypreal_of_hypnat n"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypreal_of_hypnat hypreal_mult hypnat_mult real_of_nat_mult)
 done
 
 lemma hypreal_of_hypnat_less_iff [simp]:
      "(hypreal_of_hypnat n < hypreal_of_hypnat m) = (n < m)"
-apply (rule eq_Abs_hypnat [of m])
-apply (rule eq_Abs_hypnat [of n])
+apply (cases m, cases n)
 apply (simp add: hypreal_of_hypnat hypreal_less hypnat_less)
 done
 
@@ -801,13 +767,13 @@ by (simp add: hypreal_of_hypnat_zero [symmetric])
 declare hypreal_of_hypnat_eq_zero_iff [simp]
 
 lemma hypreal_of_hypnat_ge_zero [simp]: "0 \<le> hypreal_of_hypnat n"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (simp add: hypreal_of_hypnat hypreal_zero_num hypreal_le)
 done
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (auto simp add: hypreal_of_hypnat hypreal_inverse 
       HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl, auto)

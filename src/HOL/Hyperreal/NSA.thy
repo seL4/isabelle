@@ -1848,7 +1848,7 @@ by (rule_tac z = x in eq_Abs_hypreal, auto, ultra)
 lemma HFinite_FreeUltrafilterNat:
     "x \<in> HFinite 
      ==> \<exists>X \<in> Rep_hypreal x. \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x] 
               hypreal_less SReal_iff hypreal_minus hypreal_of_real_def)
 apply (rule_tac x=x in bexI) 
@@ -1859,7 +1859,7 @@ lemma FreeUltrafilterNat_HFinite:
      "\<exists>X \<in> Rep_hypreal x.
        \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat
        ==>  x \<in> HFinite"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x])
 apply (rule_tac x = "hypreal_of_real u" in bexI)
 apply (auto simp add: hypreal_less SReal_iff hypreal_minus hypreal_of_real_def, ultra+)
@@ -1954,7 +1954,7 @@ lemma Infinitesimal_FreeUltrafilterNat:
            \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat"
 apply (simp add: Infinitesimal_def)
 apply (auto simp add: abs_less_iff minus_less_iff [of x])
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (auto, rule bexI [OF _ lemma_hyprel_refl], safe)
 apply (drule hypreal_of_real_less_iff [THEN iffD2])
 apply (drule_tac x = "hypreal_of_real u" in bspec, auto)
@@ -1966,7 +1966,7 @@ lemma FreeUltrafilterNat_Infinitesimal:
             \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat
       ==> x \<in> Infinitesimal"
 apply (simp add: Infinitesimal_def)
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (auto simp add: abs_less_iff abs_interval_iff minus_less_iff [of x])
 apply (auto simp add: SReal_iff)
 apply (drule_tac [!] x=y in spec) 
