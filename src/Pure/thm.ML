@@ -144,10 +144,15 @@ signature THM =
   val del_simps         : meta_simpset * thm list -> meta_simpset
   val mss_of            : thm list -> meta_simpset
   val add_congs         : meta_simpset * thm list -> meta_simpset
+  val add_simprocs	: meta_simpset *
+    (Sign.sg * term * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
+  val del_simprocs	: meta_simpset *
+    (Sign.sg * term * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
   val add_prems         : meta_simpset * thm list -> meta_simpset
   val prems_of_mss      : meta_simpset -> thm list
   val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
   val mk_rews_of_mss    : meta_simpset -> thm -> thm list
+  val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val trace_simp        : bool ref
   val rewrite_cterm     : bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
@@ -236,6 +241,8 @@ fun cabs (Cterm {t=Free(a,ty), sign=sign1, T=T1, maxidx=maxidx1})
              T = ty --> T2, maxidx=Int.max(maxidx1, maxidx2)}
   | cabs _ _ = raise CTERM "cabs: first arg is not a free variable";
 
+
+
 (** read cterms **)   (*exception ERROR*)
 
 (*read term, infer types, certify term*)
@@ -311,7 +318,7 @@ datatype rule =
   | Bicompose           of bool * bool * int * int * Envir.env
   | Flexflex_rule       of Envir.env            (*identifies unifier chosen*)
 (*other derived rules*)
-  | Class_triv          of theory * class       (*derived rule????*)
+  | Class_triv          of theory * class
   | VarifyT
   | FreezeT
 (*for the simplifier*)
@@ -357,6 +364,7 @@ fun infer_derivs (rl, [])   = Join (rl, [])
   | infer_derivs (rl, ders) =
     if !keep_derivs=FullDeriv then Join (rl, ders)
     else make_min_infer (squash_derivs ders);
+
 
 
 (*** Meta theorems ***)
@@ -570,6 +578,7 @@ fun compress (Thm {sign, der, maxidx, shyps, hyps, prop}) =
          shyps = shyps, 
          hyps = map Term.compress_term hyps, 
          prop = Term.compress_term prop};
+
 
 
 (*** Meta rules ***)
@@ -1372,193 +1381,229 @@ fun biresolution match brules i state =
 
 
 
-(*** Meta simp sets ***)
+(*** Meta Simplification ***)
 
-type rrule = {thm:thm, lhs:term, perm:bool};
-type cong = {thm:thm, lhs:term};
-datatype meta_simpset =
-  Mss of {net:rrule Net.net, congs:(string * cong)list, bounds:string list,
-          prems: thm list, mk_rews: thm -> thm list};
-
-(*A "mss" contains data needed during conversion:
-  net: discrimination net of rewrite rules
-  congs: association list of congruence rules
-  bounds: names of bound variables already used;
-          for generating new names when rewriting under lambda abstractions
-  mk_rews: used when local assumptions are added
-*)
-
-val empty_mss = Mss{net = Net.empty, congs = [], bounds=[], prems = [],
-                    mk_rews = K[]};
+(** diagnostics **)
 
 exception SIMPLIFIER of string * thm;
 
-fun prtm a sign t = (writeln a; writeln(Sign.string_of_term sign t));
-
+fun prtm a sign t = (writeln a; writeln (Sign.string_of_term sign t));
 fun prtm_warning a sign t = warning (a ^ "\n" ^ (Sign.string_of_term sign t));
 
 val trace_simp = ref false;
 
-fun trace_term a sign t = if !trace_simp then prtm a sign t else ();
+fun trace_warning a = if ! trace_simp then warning a else ();
+fun trace_term a sign t = if ! trace_simp then prtm a sign t else ();
+fun trace_term_warning a sign t = if ! trace_simp then prtm_warning a sign t else ();
+fun trace_thm a (Thm {sign, prop, ...}) = trace_term a sign prop;
+fun trace_thm_warning a (Thm {sign, prop, ...}) = trace_term_warning a sign prop;
 
-fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
-fun trace_term_warning a sign t = if !trace_simp then prtm_warning a sign t else ();
 
-fun trace_thm_warning a (Thm{sign,prop,...}) = trace_term_warning a sign prop;
+(** meta simp sets **)
 
-fun vperm(Var _, Var _) = true
-  | vperm(Abs(_,_,s), Abs(_,_,t)) = vperm(s,t)
-  | vperm(t1$t2, u1$u2) = vperm(t1,u1) andalso vperm(t2,u2)
-  | vperm(t,u) = (t=u);
+(* basic components *)
 
-fun var_perm(t,u) = vperm(t,u) andalso
-                    eq_set_term (term_vars t, term_vars u)
+type rrule = {thm: thm, lhs: term, perm: bool};
+type cong = {thm: thm, lhs: term};
+type simproc = (Sign.sg -> term -> thm option) * stamp;
 
-(*simple test for looping rewrite*)
-fun loops sign prems (lhs,rhs) =
-   is_Var(lhs)
-  orelse
-   (exists (apl(lhs, Logic.occs)) (rhs::prems))
-  orelse
-   (null(prems) andalso
-    Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
-(* the condition "null(prems)" in the last case is necessary because
-   conditional rewrites with extra variables in the conditions may terminate
-   although the rhs is an instance of the lhs. Example:
-   ?m < ?n ==> f(?n) == f(?m)
+fun eq_rrule ({thm = Thm{prop = p1, ...}, ...}: rrule,
+  {thm = Thm {prop = p2, ...}, ...}: rrule) = p1 aconv p2;
+
+val eq_simproc = eq_snd;
+
+
+(* datatype mss *)
+
+(*
+  A "mss" contains data needed during conversion:
+    rules: discrimination net of rewrite rules;
+    congs: association list of congruence rules;
+    procs: discrimination net of simplification procedures
+      (functions that prove rewrite rules on the fly);
+    bounds: names of bound variables already used
+      (for generating new names when rewriting under lambda abstractions);
+    prems: current premises;
+    mk_rews: turns simplification thms into rewrite rules;
+    termless: relation for ordered rewriting;
 *)
 
-fun mk_rrule raw_thm =
+datatype meta_simpset =
+  Mss of {
+    rules: rrule Net.net,
+    congs: (string * cong) list,
+    procs: simproc Net.net,
+    bounds: string list,
+    prems: thm list,
+    mk_rews: thm -> thm list,
+    termless: term * term -> bool};
+
+fun mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless) =
+  Mss {rules = rules, congs = congs, procs = procs, bounds = bounds,
+    prems = prems, mk_rews = mk_rews, termless = termless};
+
+val empty_mss =
+  mk_mss (Net.empty, [], Net.empty, [], [], K [], Logic.termless);
+
+
+
+(** simpset operations **)
+
+(* mk_rrule *)
+
+fun vperm (Var _, Var _) = true
+  | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
+  | vperm (t1 $ t2, u1 $ u2) = vperm (t1, u1) andalso vperm (t2, u2)
+  | vperm (t, u) = (t = u);
+
+fun var_perm (t, u) =
+  vperm (t, u) andalso eq_set_term (term_vars t, term_vars u);
+
+(*simple test for looping rewrite*)
+fun loops sign prems (lhs, rhs) =
+   is_Var lhs
+  orelse
+   (exists (apl (lhs, Logic.occs)) (rhs :: prems))
+  orelse
+   (null prems andalso
+    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs));
+(*the condition "null prems" in the last case is necessary because
+  conditional rewrites with extra variables in the conditions may terminate
+  although the rhs is an instance of the lhs. Example:
+  ?m < ?n ==> f(?n) == f(?m)*)
+
+fun mk_rrule (thm as Thm {sign, prop, ...}) =
   let
-      val thm = strip_shyps raw_thm;
-      val Thm{sign,prop,maxidx,...} = thm;
-      val prems = Logic.strip_imp_prems prop
-      val concl = Logic.strip_imp_concl prop
-      val (lhs,_) = Logic.dest_equals concl handle TERM _ =>
-                      raise SIMPLIFIER("Rewrite rule not a meta-equality",thm)
-      val econcl = Pattern.eta_contract concl
-      val (elhs,erhs) = Logic.dest_equals econcl
-      val perm = var_perm(elhs,erhs) andalso not(elhs aconv erhs)
-                                     andalso not(is_Var(elhs))
-  in if not((term_vars erhs) subset
-            (union_term (term_vars elhs, flat(map term_vars prems))))
-     then (prtm_warning "extra Var(s) on rhs" sign prop; None) else
-     if not perm andalso loops sign prems (elhs,erhs)
-     then (prtm_warning "ignoring looping rewrite rule" sign prop; None)
-     else Some{thm=thm,lhs=lhs,perm=perm}
+    val prems = Logic.strip_imp_prems prop;
+    val concl = Logic.strip_imp_concl prop;
+    val (lhs, _) = Logic.dest_equals concl handle TERM _ =>
+      raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
+    val econcl = Pattern.eta_contract concl;
+    val (elhs, erhs) = Logic.dest_equals econcl;
+    val perm = var_perm (elhs, erhs) andalso not (elhs aconv erhs)
+      andalso not (is_Var elhs);
+  in
+    if not ((term_vars erhs) subset
+        (union_term (term_vars elhs, flat(map term_vars prems)))) then
+      (prtm_warning "extra Var(s) on rhs" sign prop; None)
+    else if not perm andalso loops sign prems (elhs, erhs) then
+      (prtm_warning "ignoring looping rewrite rule" sign prop; None)
+    else Some {thm = thm, lhs = lhs, perm = perm}
   end;
 
-local
- fun eq({thm=Thm{prop=p1,...},...}:rrule,
-        {thm=Thm{prop=p2,...},...}:rrule) = p1 aconv p2
-in
 
-fun add_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
-             thm as Thm{sign,prop,...}) =
-  case mk_rrule thm of
+(* add_simps *)
+
+fun add_simp
+  (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    thm as Thm {sign, prop, ...}) =
+  (case mk_rrule thm of
     None => mss
-  | Some(rrule as {lhs,...}) =>
+  | Some (rrule as {lhs, ...}) =>
       (trace_thm "Adding rewrite rule:" thm;
-       Mss{net = (Net.insert_term((lhs,rrule),net,eq)
-                 handle Net.INSERT =>
-                  (prtm_warning "ignoring duplicate rewrite rule" sign prop;
-                   net)),
-           congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews});
-
-fun del_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
-             thm as Thm{sign,prop,...}) =
-  case mk_rrule thm of
-    None => mss
-  | Some(rrule as {lhs,...}) =>
-      Mss{net = (Net.delete_term((lhs,rrule),net,eq)
-                handle Net.DELETE =>
-                 (prtm_warning "rewrite rule not in simpset" sign prop;
-                  net)),
-             congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews}
-
-end;
+        mk_mss (Net.insert_term ((lhs, rrule), rules, eq_rrule) handle Net.INSERT =>
+          (prtm_warning "ignoring duplicate rewrite rule" sign prop; rules),
+            congs, procs, bounds, prems, mk_rews, termless)));
 
 val add_simps = foldl add_simp;
+
+fun mss_of thms = add_simps (empty_mss, thms);
+
+
+(* del_simps *)
+
+fun del_simp
+  (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    thm as Thm {sign, prop, ...}) =
+  (case mk_rrule thm of
+    None => mss
+  | Some (rrule as {lhs, ...}) =>
+      mk_mss (Net.delete_term ((lhs, rrule), rules, eq_rrule) handle Net.DELETE =>
+        (prtm_warning "rewrite rule not in simpset" sign prop; rules),
+          congs, procs, bounds, prems, mk_rews, termless));
+
 val del_simps = foldl del_simp;
 
-fun mss_of thms = add_simps(empty_mss,thms);
 
-fun add_cong(Mss{net,congs,bounds,prems,mk_rews},thm) =
-  let val (lhs,_) = Logic.dest_equals(concl_of thm) handle TERM _ =>
-                    raise SIMPLIFIER("Congruence not a meta-equality",thm)
-(*      val lhs = Pattern.eta_contract lhs*)
-      val (a,_) = dest_Const (head_of lhs) handle TERM _ =>
-                  raise SIMPLIFIER("Congruence must start with a constant",thm)
-  in Mss{net=net, congs=(a,{lhs=lhs,thm=thm})::congs, bounds=bounds,
-         prems=prems, mk_rews=mk_rews}
+(* congs *)
+
+fun add_cong (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, thm) =
+  let
+    val (lhs, _) = Logic.dest_equals (concl_of thm) handle TERM _ =>
+      raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+(*   val lhs = Pattern.eta_contract lhs; *)
+    val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
+      raise SIMPLIFIER ("Congruence must start with a constant", thm);
+  in
+    mk_mss (rules, (a, {lhs = lhs, thm = thm}) :: congs, procs, bounds,
+      prems, mk_rews, termless)
   end;
 
 val (op add_congs) = foldl add_cong;
 
-fun add_prems(Mss{net,congs,bounds,prems,mk_rews},thms) =
-  Mss{net=net, congs=congs, bounds=bounds, prems=thms@prems, mk_rews=mk_rews};
 
-fun prems_of_mss(Mss{prems,...}) = prems;
+(* add_simprocs *)
 
-fun set_mk_rews(Mss{net,congs,bounds,prems,...},mk_rews) =
-  Mss{net=net, congs=congs, bounds=bounds, prems=prems, mk_rews=mk_rews};
-fun mk_rews_of_mss(Mss{mk_rews,...}) = mk_rews;
+fun add_simproc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    (sign, lhs, proc, id)) =
+  (trace_term "Adding simplification procedure for:" sign lhs;
+    mk_mss (rules, congs,
+      Net.insert_term ((lhs, (proc, id)), procs, eq_simproc) handle Net.INSERT =>
+        (trace_warning "ignored duplicate"; procs),
+        bounds, prems, mk_rews, termless));
+
+val add_simprocs = foldl add_simproc;
 
 
-(*** Meta-level rewriting
-     uses conversions, omitting proofs for efficiency.  See
-        L C Paulson, A higher-order implementation of rewriting,
-        Science of Computer Programming 3 (1983), pages 119-149. ***)
+(* del_simprocs *)
+
+fun del_simproc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    (sign, lhs, proc, id)) =
+  mk_mss (rules, congs,
+    Net.delete_term ((lhs, (proc, id)), procs, eq_simproc) handle Net.DELETE =>
+      (trace_warning "simplification procedure not in simpset"; procs),
+          bounds, prems, mk_rews, termless);
+
+val del_simprocs = foldl del_simproc;
+
+
+(* prems *)
+
+fun add_prems (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, thms) =
+  mk_mss (rules, congs, procs, bounds, thms @ prems, mk_rews, termless);
+
+fun prems_of_mss (Mss {prems, ...}) = prems;
+
+
+(* mk_rews *)
+
+fun set_mk_rews
+  (Mss {rules, congs, procs, bounds, prems, mk_rews = _, termless}, mk_rews) =
+    mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless);
+
+fun mk_rews_of_mss (Mss {mk_rews, ...}) = mk_rews;
+
+
+(* termless *)
+
+fun set_termless
+  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless = _}, termless) =
+    mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless);
+
+
+
+(** rewriting **)
+
+(*
+  Uses conversions, omitting proofs for efficiency.  See:
+    L C Paulson, A higher-order implementation of rewriting,
+    Science of Computer Programming 3 (1983), pages 119-149.
+*)
 
 type prover = meta_simpset -> thm -> thm option;
 type termrec = (Sign.sg * term list) * term;
 type conv = meta_simpset -> termrec -> termrec;
-
-datatype order = LESS | EQUAL | GREATER;
-
-fun stringord(a,b:string) = if a<b then LESS  else
-                            if a=b then EQUAL else GREATER;
-
-fun intord(i,j:int) = if i<j then LESS  else
-                      if i=j then EQUAL else GREATER;
-
-(* NB: non-linearity of the ordering is not a soundness problem *)
-
-(* FIXME: "***ABSTRACTION***" is a hack and makes the ordering non-linear *)
-fun string_of_hd(Const(a,_)) = a
-  | string_of_hd(Free(a,_))  = a
-  | string_of_hd(Var(v,_))   = Syntax.string_of_vname v
-  | string_of_hd(Bound i)    = string_of_int i
-  | string_of_hd(Abs _)      = "***ABSTRACTION***";
-
-(* a strict (not reflexive) linear well-founded AC-compatible ordering
- * for terms:
- * s < t <=> 1. size(s) < size(t) or
-             2. size(s) = size(t) and s=f(...) and t = g(...) and f<g or
-             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
-                (s1..sn) < (t1..tn) (lexicographically)
- *)
-
-(* FIXME: should really take types into account as well.
- * Otherwise non-linear *)
-fun termord(Abs(_,_,t),Abs(_,_,u)) = termord(t,u)
-  | termord(t,u) =
-      (case intord(size_of_term t,size_of_term u) of
-         EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
-                  in case stringord(string_of_hd f, string_of_hd g) of
-                       EQUAL => lextermord(ts,us)
-                     | ord   => ord
-                  end
-       | ord => ord)
-and lextermord(t::ts,u::us) =
-      (case termord(t,u) of
-         EQUAL => lextermord(ts,us)
-       | ord   => ord)
-  | lextermord([],[]) = EQUAL
-  | lextermord _ = error("lextermord");
-
-fun termless tu = (termord tu = LESS);
 
 fun check_conv (thm as Thm{shyps,hyps,prop,sign,der,maxidx,...}, prop0, ders) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm;
@@ -1587,8 +1632,35 @@ fun add_insts_sorts ((iTs, is), Ss) =
   add_typs_sorts (map snd iTs, add_terms_sorts (map snd is, Ss));
 
 
-(*Conversion to apply the meta simpset to a term*)
-fun rewritec (prover,signt) (mss as Mss{net,...}) 
+(* mk_procrule *)
+
+fun mk_procrule (thm as Thm {sign, prop, ...}) =
+  let
+    val prems = Logic.strip_imp_prems prop;
+    val concl = Logic.strip_imp_concl prop;
+    val (lhs, _) = Logic.dest_equals concl handle TERM _ =>
+      raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
+    val econcl = Pattern.eta_contract concl;
+    val (elhs, erhs) = Logic.dest_equals econcl;
+  in
+    if not ((term_vars erhs) subset
+        (union_term (term_vars elhs, flat(map term_vars prems)))) then
+      (prtm_warning "extra Var(s) on rhs" sign prop; [])
+    else [{thm = thm, lhs = lhs, perm = false}]
+  end;
+
+
+(* conversion to apply the meta simpset to a term *)
+
+(*
+  we try in order:
+    (1) beta reduction
+    (2) unconditional rewrite rules
+    (3) conditional rewrite rules
+    (4) simplification procedures		(* FIXME (un-)conditional !! *)
+*)
+
+fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...}) 
              (shypst,hypst,maxt,t,ders) =
   let val etat = Pattern.eta_contract t;
       fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
@@ -1609,7 +1681,7 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
                             t = prop',
                             T = propT,
                             maxidx = maxidx'}
-            val der' = infer_derivs (RewriteC ct', [der])
+            val der' = infer_derivs (RewriteC ct', [der])	(* FIXME fix!? *)
             val thm' = Thm{sign = signt, 
                            der = der',
                            shyps = shyps',
@@ -1628,7 +1700,7 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
         end
 
       fun rews [] = None
-        | rews (rrule::rrules) =
+        | rews (rrule :: rrules) =
             let val opt = rew rrule handle Pattern.MATCH => None
             in case opt of None => rews rrules | some => some end;
       fun sort_rrules rrs = let
@@ -1641,14 +1713,29 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
                                        else sort rrs (re1,rr::re2)
       in sort rrs ([],[]) 
       end
-  in case etat of
-       Abs(_,_,body) $ u => Some(shypst, hypst, maxt, 
-                                 subst_bound (u, body),
-                                 ders)
-     | _                 => rews (sort_rrules (Net.match_term net etat))
+
+      fun proc_rews [] = None
+        | proc_rews ((f, _) :: fs) =
+            (case f signt etat of
+              None => proc_rews fs
+            | Some raw_thm =>
+                (trace_thm "Proved rewrite rule: " raw_thm;
+                 (case rews (mk_procrule raw_thm) of
+                   None => proc_rews fs
+                 | some => some)));
+  in
+    (case etat of
+      Abs (_, _, body) $ u =>		(* FIXME bug!? (because of beta/eta overlap) *)
+        Some (shypst, hypst, maxt, subst_bound (u, body), ders)
+     | _ =>
+      (case rews (sort_rrules (Net.match_term rules etat)) of
+        None => proc_rews (Net.match_term procs etat)
+      | some => some))
   end;
 
-(*Conversion to apply a congruence rule to a term*)
+
+(* conversion to apply a congruence rule to a term *)
+
 fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
   let val Thm{sign,der,shyps,hyps,maxidx,prop,...} = cong
       val unit = if Sign.subsig(sign,signt) then ()
@@ -1669,7 +1756,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
                       T = propT,
                       maxidx = maxidx'}
       val thm' = Thm{sign = signt, 
-                     der = infer_derivs (CongC ct', [der]),
+                     der = infer_derivs (CongC ct', [der]),	(* FIXME fix!? *)
                      shyps = shyps',
                      hyps = union_term(hyps,hypst),
                      prop = prop',
@@ -1701,14 +1788,13 @@ fun bottomc ((simprem,useprem),prover,sign) =
                                 Some(trec1) => trec1
                               | None => trec)
 
-     and subc (mss as Mss{net,congs,bounds,prems,mk_rews})
+     and subc (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless})
               (trec as (shyps,hyps,maxidx,t0,ders)) =
        (case t0 of
            Abs(a,T,t) =>
              let val b = variant bounds a
                  val v = Free("." ^ b,T)
-                 val mss' = Mss{net=net, congs=congs, bounds=b::bounds,
-                                prems=prems,mk_rews=mk_rews}
+                 val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless)
              in case botc true mss' 
                        (shyps,hyps,maxidx,subst_bound (v,t),ders) of
                   Some(shyps',hyps',maxidx',t',ders') =>
@@ -1775,12 +1861,16 @@ fun bottomc ((simprem,useprem),prover,sign) =
 
 
 (*** Meta-rewriting: rewrites t to u and returns the theorem t==u ***)
-(* Parameters:
-   mode = (simplify A, use A in simplifying B) when simplifying A ==> B
-   mss: contains equality theorems of the form [|p1,...|] ==> t==u
-   prover: how to solve premises in conditional rewrites and congruences
+
+(*
+  Parameters:
+    mode = (simplify A, use A in simplifying B) when simplifying A ==> B
+    mss: contains equality theorems of the form [|p1,...|] ==> t==u
+    prover: how to solve premises in conditional rewrites and congruences
 *)
-(*** FIXME: check that #bounds(mss) does not "occur" in ct alread ***)
+
+(* FIXME: check that #bounds(mss) does not "occur" in ct alread *)
+
 fun rewrite_cterm mode mss prover ct =
   let val {sign, t, T, maxidx} = rep_cterm ct;
       val (shyps,hyps,maxu,u,ders) =
@@ -1796,6 +1886,9 @@ fun rewrite_cterm mode mss prover ct =
           prop = prop}
   end
 
+
+
+(*** Oracles ***)
 
 fun invoke_oracle (thy, sign, exn) =
     case #oraopt(rep_theory thy) of
