@@ -36,6 +36,9 @@ fun prf_subst_vars inst =
 
 fun is_unit t = snd (strip_type (fastype_of t)) = HOLogic.unitT;
 
+fun tname_of (Type (s, _)) = s
+  | tname_of _ = "";
+
 fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
 fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_info) (is, thy) =
@@ -135,19 +138,15 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
         ((space_implode "_" (ind_name :: vs @ ["correctness"]), thm), [])
       |>> Theory.add_path (NameSpace.pack (if_none path []));
 
-    val inst = map (fn ((((i, _), s), T), U) => ((s, 0), if i mem is then
-        Abs ("r", U, Abs ("x", T, mk_realizes U $ Bound 1 $
-          (Var ((s, 0), T --> HOLogic.boolT) $ Bound 0)))
-      else Abs ("x", T, mk_realizes Extraction.nullT $ Extraction.nullt $
-        (Var ((s, 0), T --> HOLogic.boolT) $
-          Bound 0)))) (descr ~~ pnames ~~ map Type.varifyT recTs ~~
-            map Type.varifyT rec_result_Ts);
+    val ivs = Drule.vars_of_terms
+      [Logic.varify (DatatypeProp.make_ind [descr] sorts)];
+    val rvs = Drule.vars_of_terms [prop_of thm'];
+    val ivs1 = map Var (filter_out (fn (_, T) =>
+      tname_of (body_type T) mem ["set", "bool"]) ivs);
+    val ivs2 = map (fn (ixn, _) => Var (ixn, the (assoc (rvs, ixn)))) ivs;
 
-    val ivs = map Var (Drule.vars_of_terms
-      [Logic.varify (DatatypeProp.make_ind [descr] sorts)]);
-
-    val prf = foldr forall_intr_prf (ivs,
-      prf_subst_vars inst (foldr (fn ((f, p), prf) =>
+    val prf = foldr forall_intr_prf (ivs2,
+      foldr (fn ((f, p), prf) =>
         (case head_of (strip_abs_body f) of
            Free (s, T) =>
              let val T' = Type.varifyT T
@@ -156,10 +155,10 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
              end
          | _ => AbsP ("H", Some p, prf)))
            (rec_fns ~~ prems_of thm, Proofterm.proof_combP
-             (prf_of thm', map PBound (length prems - 1 downto 0)))));
+             (prf_of thm', map PBound (length prems - 1 downto 0))));
 
     val r' = if null is then r else Logic.varify (foldr (uncurry lambda)
-      (map Logic.unvarify ivs @ filter_out is_unit
+      (map Logic.unvarify ivs1 @ filter_out is_unit
         (map (head_of o strip_abs_body) rec_fns), r));
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
@@ -211,24 +210,19 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
       |> PureThy.store_thm ((exh_name ^ "_P_correctness", thm), [])
       |>> Theory.add_path (NameSpace.pack (if_none path []));
 
-    val P = Var (("P", 0), HOLogic.boolT);
+    val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
-      prf_subst_vars [(("P", 0), Abs ("r", rT',
-        mk_realizes rT' $ Bound 0 $ P))] (foldr (fn ((p, r), prf) =>
-          forall_intr_prf (Logic.varify r, AbsP ("H", Some (Logic.varify p),
-            prf))) (prems ~~ rs, Proofterm.proof_combP (prf_of thm',
-              map PBound (length prems - 1 downto 0))))));
+      foldr (fn ((p, r), prf) =>
+        forall_intr_prf (Logic.varify r, AbsP ("H", Some (Logic.varify p),
+          prf))) (prems ~~ rs, Proofterm.proof_combP (prf_of thm',
+            map PBound (length prems - 1 downto 0)))));
     val r' = Logic.varify (Abs ("y", Type.varifyT T,
-      Abs ("P", HOLogic.boolT, list_abs (map dest_Free rs, list_comb (r,
-        map Bound ((length rs - 1 downto 0) @ [length rs + 1]))))));
-
-    val prf' = forall_intr_prf (y, forall_intr_prf (P, prf_subst_vars
-      [(("P", 0), mk_realizes Extraction.nullT $ Extraction.nullt $ P)]
-        (prf_of exhaustion)));
+      list_abs (map dest_Free rs, list_comb (r,
+        map Bound ((length rs - 1 downto 0) @ [length rs])))));
 
   in Extraction.add_realizers_i
     [(exh_name, (["P"], r', prf)),
-     (exh_name, ([], Extraction.nullt, prf'))] thy'
+     (exh_name, ([], Extraction.nullt, prf_of exhaustion))] thy'
   end;
 
 

@@ -69,22 +69,7 @@ fun dt_of_intrs thy vs intrs =
     map constr_of_intr intrs)
   end;
 
-fun gen_realizes (Const ("realizes", Type ("fun", [T, _])) $ t $
-      (Const ("op :", Type ("fun", [U, _])) $ x $ Var (ixn, _))) =
-        Var (ixn, [T, U] ---> HOLogic.boolT) $ t $ x
-  | gen_realizes (Const ("op :", Type ("fun", [U, _])) $ x $ Var (ixn, _)) =
-      Var (ixn, U --> HOLogic.boolT) $ x
-  | gen_realizes (bla as Const ("realizes", Type ("fun", [T, _])) $ t $ P) =
-      if T = Extraction.nullT then P
-      else (case strip_comb P of
-          (Var (ixn, U), ts) => list_comb (Var (ixn, T --> U), t :: ts)
-        | _ => error "gen_realizes: variable expected")
-  | gen_realizes (t $ u) = gen_realizes t $ gen_realizes u
-  | gen_realizes (Abs (s, T, t)) = Abs (s, T, gen_realizes t)
-  | gen_realizes t = t;
-
 fun mk_rlz T = Const ("realizes", [T, HOLogic.boolT] ---> HOLogic.boolT);
-fun mk_rlz' T = Const ("realizes", [T, propT] ---> propT);
 
 (** turn "P" into "%r x. realizes r (P x)" or "%r x. realizes r (x : P)" **)
 
@@ -268,30 +253,26 @@ fun add_dummies f dts used thy =
 
 fun mk_realizer thy vs params ((rule, rrule), rt) =
   let
-    val prems = prems_of rule;
+    val prems = prems_of rule ~~ prems_of rrule;
+    val rvs = map fst (relevant_vars (prop_of rule));
     val xs = rev (Term.add_vars ([], prop_of rule));
-    val rs = gen_rems (op = o pairself fst)
-      (rev (Term.add_vars ([], prop_of rrule)), xs);
+    val vs1 = map Var (filter_out (fn ((a, _), _) => a mem rvs) xs);
+    val rlzvs = rev (Term.add_vars ([], prop_of rrule));
+    val vs2 = map (fn (ixn, _) => Var (ixn, the (assoc (rlzvs, ixn)))) xs;
+    val rs = gen_rems (op = o pairself fst) (rlzvs, xs);
 
     fun mk_prf _ [] prf = prf
-      | mk_prf rs (prem :: prems) prf =
-          let val T = Extraction.etype_of thy vs [] prem
-          in if T = Extraction.nullT
-            then AbsP ("H", Some (mk_rlz' T $ Extraction.nullt $ prem),
-              mk_prf rs prems prf)
-            else forall_intr_prf (Var (hd rs), AbsP ("H", Some (mk_rlz' T $
-              Var (hd rs) $ prem), mk_prf (tl rs) prems prf))
-          end;
-
-    val subst = map (fn v as (ixn, _) => (ixn, gen_rvar vs (Var v))) xs;
-    val prf = Proofterm.map_proof_terms
-      (subst_vars ([], subst)) I (prf_of rrule);
+      | mk_prf rs ((prem, rprem) :: prems) prf =
+          if Extraction.etype_of thy vs [] prem = Extraction.nullT
+          then AbsP ("H", Some rprem, mk_prf rs prems prf)
+          else forall_intr_prf (Var (hd rs), AbsP ("H", Some rprem,
+            mk_prf (tl rs) prems prf));
 
   in (Thm.name_of_thm rule, (vs,
     if rt = Extraction.nullt then rt else
-      foldr (uncurry lambda) (map Var xs, rt),
-    foldr forall_intr_prf (map Var xs, mk_prf rs prems (Proofterm.proof_combP
-      (prf, map PBound (length prems - 1 downto 0))))))
+      foldr (uncurry lambda) (vs1, rt),
+    foldr forall_intr_prf (vs2, mk_prf rs prems (Proofterm.proof_combP
+      (prf_of rrule, map PBound (length prems - 1 downto 0))))))
   end;
 
 fun add_rule (rss, r) =
@@ -348,10 +329,10 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         end
       else ((recs, dummies), replicate (length rs) Extraction.nullt))
         ((get #rec_thms dt_info, dummies), rss);
-    val rintrs = map (fn (intr, c) => Pattern.eta_contract (gen_realizes
+    val rintrs = map (fn (intr, c) => Pattern.eta_contract
       (Extraction.realizes_of thy2 vs
         c (prop_of (forall_intr_list (map (cterm_of (sign_of thy2) o Var)
-          (rev (Term.add_vars ([], prop_of intr)) \\ params')) intr)))))
+          (rev (Term.add_vars ([], prop_of intr)) \\ params')) intr))))
             (intrs ~~ flat constrss);
     val rlzsets = distinct (map (fn rintr => snd (HOLogic.dest_mem
       (HOLogic.dest_Trueprop (Logic.strip_assums_concl rintr)))) rintrs);
@@ -377,8 +358,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       let
         val r = indrule_realizer thy induct raw_induct rsets params'
           (vs @ Ps) rec_names rss intrs dummies;
-        val rlz = strip_all (Logic.unvarify (gen_realizes
-          (Extraction.realizes_of thy (vs @ Ps) r (prop_of induct))));
+        val rlz = strip_all (Logic.unvarify
+          (Extraction.realizes_of thy (vs @ Ps) r (prop_of induct)));
         val rews = map mk_meta_eq
           (fst_conv :: snd_conv :: get #rec_thms dt_info);
         val thm = simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
@@ -416,8 +397,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
                [Abs ("x", HOLogic.unitT, Const ("arbitrary", body_type T))]
              else []) @
             map Bound ((length prems - 1 downto 0) @ [length prems])));
-        val rlz = strip_all (Logic.unvarify (gen_realizes
-          (Extraction.realizes_of thy (vs @ Ps) r (prop_of elim))));
+        val rlz = strip_all (Logic.unvarify
+          (Extraction.realizes_of thy (vs @ Ps) r (prop_of elim)));
         val rews = map mk_meta_eq case_thms;
         val thm = simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
           [cut_facts_tac [hd prems] 1,
