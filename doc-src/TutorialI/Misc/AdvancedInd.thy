@@ -94,10 +94,10 @@ lemmas myrule = simple[THEN spec, THEN mp, THEN mp];
 
 text{*\noindent
 or the wholesale stripping of @{text"\<forall>"} and
-@{text"\<longrightarrow>"} in the conclusion via @{text"rulify"} 
+@{text"\<longrightarrow>"} in the conclusion via @{text"rulified"} 
 *};
 
-lemmas myrule = simple[rulify];
+lemmas myrule = simple[rulified];
 
 text{*\noindent
 yielding @{thm"myrule"[no_vars]}.
@@ -105,7 +105,7 @@ You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:
 *};
 
-lemma myrule[rulify]:  "\\<forall>y. A y \\<longrightarrow> B y \<longrightarrow> B y & A y";
+lemma myrule[rulified]:  "\\<forall>y. A y \\<longrightarrow> B y \<longrightarrow> B y & A y";
 (*<*)
 by blast;
 (*>*)
@@ -134,8 +134,8 @@ be helpful. We show how to apply such induction schemas by an example.
 Structural induction on @{typ"nat"} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
-holds for all $m<n$. In Isabelle, this is the theorem @{thm[source]less_induct}:
-@{thm[display]"less_induct"[no_vars]}
+holds for all $m<n$. In Isabelle, this is the theorem @{thm [source] nat_less_induct}:
+@{thm[display] nat_less_induct [no_vars]}
 Here is an example of its application.
 *};
 
@@ -155,12 +155,12 @@ above, we have to phrase the proposition as follows to allow induction:
 lemma f_incr_lem: "\\<forall>i. k = f i \\<longrightarrow> i \\<le> f i";
 
 txt{*\noindent
-To perform induction on @{term"k"} using @{thm[source]less_induct}, we use the same
+To perform induction on @{term"k"} using @{thm [source] nat_less_induct}, we use the same
 general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):
 *};
 
-apply(induct_tac k rule:less_induct);
+apply(induct_tac k rule: nat_less_induct);
 (*<*)
 apply(rule allI);
 apply(case_tac i);
@@ -182,7 +182,7 @@ the other case:
 \end{isabelle}
 *};
 
-by(blast intro!: f_ax Suc_leI intro:le_less_trans);
+by(blast intro!: f_ax Suc_leI intro: le_less_trans);
 
 text{*\noindent
 It is not surprising if you find the last step puzzling.
@@ -206,14 +206,14 @@ proofs.
 We can now derive the desired @{prop"i <= f i"} from @{text"f_incr"}:
 *};
 
-lemmas f_incr = f_incr_lem[rulify, OF refl];
+lemmas f_incr = f_incr_lem[rulified, OF refl];
 
 text{*\noindent
 The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. Again,
 we could have included this derivation in the original statement of the lemma:
 *};
 
-lemma f_incr[rulify, OF refl]: "\\<forall>i. k = f i \\<longrightarrow> i \\<le> f i";
+lemma f_incr[rulified, OF refl]: "\\<forall>i. k = f i \\<longrightarrow> i \\<le> f i";
 (*<*)oops;(*>*)
 
 text{*
@@ -242,7 +242,7 @@ subsection{*Derivation of new induction schemas*};
 text{*\label{sec:derive-ind}
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how to, using the example
-of @{thm[source]less_induct}. Assume we only have structural induction
+of @{thm [source] nat_less_induct}. Assume we only have structural induction
 available for @{typ"nat"} and want to derive complete induction. This
 requires us to generalize the statement first:
 *};
@@ -268,14 +268,14 @@ The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 @{thm[display]"less_SucE"[no_vars]}
 
 Now it is straightforward to derive the original version of
-@{thm[source]less_induct} by manipulting the conclusion of the above lemma:
+@{thm [source] nat_less_induct} by manipulting the conclusion of the above lemma:
 instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"} and
 remove the trivial condition @{prop"n < Sc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
 *};
 
-theorem less_induct: "(\\<And>n::nat. \\<forall>m<n. P m \\<Longrightarrow> P n) \\<Longrightarrow> P n";
+theorem nat_less_induct: "(\\<And>n::nat. \\<forall>m<n. P m \\<Longrightarrow> P n) \\<Longrightarrow> P n";
 by(insert induct_lem, blast);
 
 text{*\noindent
@@ -283,7 +283,7 @@ Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (@{thm[source]wf_induct}):
 @{thm[display]"wf_induct"[no_vars]}
 where @{term"wf r"} means that the relation @{term"r"} is wellfounded.
-For example @{thm[source]less_induct} is the special case where @{term"r"} is
+For example @{thm [source] nat_less_induct} is the special case where @{term"r"} is
 @{text"<"} on @{typ"nat"}. For details see the library.
 *};
 
