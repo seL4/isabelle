@@ -179,6 +179,18 @@ fun shorter((_,ps,pos,_,_),(_,qs,qos,_,_)) =
    call split_posns with appropriate parameters
 *************************************************************)
 
+(* FIXME *)
+(*insertion sort; stable (does not reorder equal elements)
+  'less' is less-than test on type 'a*)
+fun sort (less: 'a*'a -> bool) =
+  let fun insert (x, []) = [x]
+        | insert (x, y::ys) =
+              if less(y, x) then y :: insert (x, ys) else x::y::ys;
+      fun sort1 [] = []
+        | sort1 (x::xs) = insert (x, sort1 xs)
+  in  sort1  end;
+
+
 fun select cmap state i =
   let val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
