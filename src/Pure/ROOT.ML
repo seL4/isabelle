@@ -26,7 +26,7 @@ use "term.ML";
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
 
-(*main system*)
+(*core system*)
 use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
@@ -58,11 +58,13 @@ cd "Thy"; use "ROOT.ML"; cd "..";
 (*the Isar subsystem*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 
-use "goals.ML";
 use "axclass.ML";
 use "codegen.ML";
 
-(*external interfaces*)
+(*old-style goal package*)
+use "goals.ML";
+
+(*specific support for user-interfaces*)
 cd "Interface"; use "ROOT.ML"; cd "..";
 
 (*final Pure theory setup*)

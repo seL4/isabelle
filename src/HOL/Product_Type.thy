@@ -147,7 +147,7 @@ defs
   Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 
 
-subsubsection {* Lemmas and tool setup *}
+subsubsection {* Lemmas and proof tool setup *}
 
 lemma ProdI: "Pair_Rep a b : Prod"
   by (unfold Prod_def) blast
