@@ -39,7 +39,7 @@ sig
 end;
 
 
-structure RecordPackage :RECORD_PACKAGE =    
+structure RecordPackage :RECORD_PACKAGE =     
 struct
 
 val rec_UNIV_I = thm "rec_UNIV_I";
@@ -60,7 +60,7 @@ val moreN = "more";
 val schemeN = "_scheme";
 val ext_typeN = "_ext_type"; 
 val extN ="_ext";
-val ext_dest = "_val";
+val ext_dest = "_sel";
 val updateN = "_update";
 val schemeN = "_scheme";
 val makeN = "make";
@@ -74,19 +74,7 @@ val AbsN = "Abs_";
 
 (*** utilities ***)
 
-
-fun last [] = error "RecordPackage.last: empty list"
-  | last [x] = x
-  | last (x::xs) = last xs;
-
-fun but_last [] = error "RecordPackage.but_last: empty list"
-  | but_last [x] = []
-  | but_last (x::xs) = x::but_last xs;
-
-fun remdups [] = []
-  | remdups (x::xs) = x::remdups (filter_out (fn y => y=x) xs);
-
-fun is_suffix sfx s = is_some (try (unsuffix sfx) s);
+fun but_last xs = fst (split_last xs);
 
 (* messages *)
 
@@ -151,7 +139,7 @@ fun mk_upd c v s =
 fun dest_recT (typ as Type (c_ext_type, Ts as (T::_))) =
       (case try (unsuffix ext_typeN) c_ext_type of
         None => raise TYPE ("RecordPackage.dest_recT", [typ], [])
-      | Some c => ((c, Ts), last Ts))
+      | Some c => ((c, Ts), last_elem Ts))
   | dest_recT typ = raise TYPE ("RecordPackage.dest_recT", [typ], []);
 
 fun is_recT T =
@@ -221,7 +209,7 @@ fun make_record_data records sel_upd equalities splits extfields fieldext =
 
 structure RecordsArgs =
 struct
-  val name = "HOL/records";    
+  val name = "HOL/structures"; (* FIXME *)    
   type T = record_data;
 
   val empty =
@@ -439,15 +427,15 @@ fun dest_ext_fields sep mark (trm as (Const (c,_) $ t $ u)) =
 
 fun gen_ext_fields_tr sep mark sfx more sg t =
   let 
+    val msg = "error in record input: ";
     val fieldargs = dest_ext_fields sep mark t; 
     fun splitargs (field::fields) ((name,arg)::fargs) =
-          if is_suffix name field
+          if can (unsuffix name) field
           then let val (args,rest) = splitargs fields fargs
                in (arg::args,rest) end
-          else raise TERM ("gen_ext_fields_tr: expecting field " ^ field ^ 
-                           " but got " ^ name, [t])
+          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
       | splitargs [] (fargs as (_::_)) = ([],fargs)
-      | splitargs (_::_) [] = raise TERM ("gen_ext_fields_tr: expecting more fields", [t])
+      | splitargs (_::_) [] = raise TERM (msg ^ "expecting more fields", [t])
       | splitargs _ _ = ([],[]);
 
     fun mk_ext (fargs as (name,arg)::_) =
@@ -459,24 +447,24 @@ fun gen_ext_fields_tr sep mark sfx more sg t =
                                         val more' = mk_ext rest;  
                                     in list_comb (Syntax.const (suffix sfx ext),args@[more'])
                                     end
-                             | None => raise TERM("gen_ext_fields_tr: no fields defined for "
+                             | None => raise TERM(msg ^ "no fields defined for "
                                                    ^ ext,[t]))
-          | None => raise TERM ("gen_ext_fields_tr: "^ name ^" is no proper field",[t]))
+          | None => raise TERM (msg ^ name ^" is no proper field",[t]))
       | mk_ext [] = more
 
   in mk_ext fieldargs end;   
 
 fun gen_ext_type_tr sep mark sfx more sg t =
   let 
+    val msg = "error in record-type input: ";
     val fieldargs = dest_ext_fields sep mark t; 
     fun splitargs (field::fields) ((name,arg)::fargs) =
-          if is_suffix name field
+          if can (unsuffix name) field
           then let val (args,rest) = splitargs fields fargs
                in (arg::args,rest) end
-          else raise TERM ("gen_ext_type_tr: expecting field " ^ field ^ 
-                           " but got " ^ name, [t])
+          else raise TERM (msg ^ "expecting field " ^ field ^ " but got " ^ name, [t])
       | splitargs [] (fargs as (_::_)) = ([],fargs)
-      | splitargs (_::_) [] = raise TERM ("gen_ext_type_tr: expecting more fields", [t])
+      | splitargs (_::_) [] = raise TERM (msg ^ "expecting more fields", [t])
       | splitargs _ _ = ([],[]);
 
     fun get_sort xs n = (case assoc (xs,n) of 
@@ -507,9 +495,9 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                        val more' = mk_ext rest;   
                      in list_comb (Syntax.const (suffix sfx ext),alphas'@[more']) 
                      end handle TUNIFY => raise 
-                           TERM ("gen_ext_type_tr: type is no proper record (extension)", [t]))
-               | None => raise TERM ("gen_ext_fields_tr: no fields defined for " ^ ext,[t]))
-          | None => raise TERM ("gen_ext_fields_tr: "^ name ^" is no proper field",[t]))
+                           TERM (msg ^ "type is no proper record (extension)", [t]))
+               | None => raise TERM (msg ^ "no fields defined for " ^ ext,[t]))
+          | None => raise TERM (msg ^ name ^" is no proper field",[t]))
       | mk_ext [] = more
 
   in mk_ext fieldargs end;   
@@ -1125,8 +1113,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     (* code generator data *)
         (* Representation as nested pairs is revealed for codegeneration *)
-    val [rep_code,abs_code] = map (Codegen.parse_mixfix (K (Bound 0))) ["I","I"];
-    val ext_type_code = Codegen.parse_mixfix (K dummyT) "_";
+    val [rep_code,abs_code] = map (Codegen.parse_mixfix (K (Bound 0))) ["(_)","(_)"];
+    val ext_type_code = Codegen.parse_mixfix (K dummyT) "(_)";
     
     (* 1st stage: defs_thy *)
     val (defs_thy, ([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs)) =
@@ -1695,9 +1683,9 @@ val add_record_i = gen_add_record cert_typ (K I);
 val setup =
  [RecordsData.init,
   Theory.add_trfuns ([], parse_translation, [], []),
-  Theory.add_advanced_trfuns ([], adv_parse_translation, [], []),  
+  Theory.add_advanced_trfuns ([], adv_parse_translation, [], []),   
   Simplifier.change_simpset_of Simplifier.addsimprocs
-    [record_simproc, record_eq_simproc]];
+    [record_simproc, record_upd_simproc, record_eq_simproc]];
 
 (* outer syntax *)
 
@@ -1708,7 +1696,7 @@ val record_decl =
     (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const);
 
 val recordP =
-  OuterSyntax.command "record" "define extensible record" K.thy_decl   
+  OuterSyntax.command "record" "define extensible record" K.thy_decl  
     (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));  
 
 val _ = OuterSyntax.add_parsers [recordP];

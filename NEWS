@@ -34,15 +34,22 @@ primes instead of base 26 numbers.
 
 *** HOL ***
 
-* HOL/record: reimplementation of records to avoid performance
-problems for type inference. Records are no longer composed of nested
-field types, but of nested extension types. Therefore the record type
-only grows linear in the number of extensions and not in the number of
-fields.  The top-level (users) view on records is preserved.
-Potential INCOMPATIBILITY only in strange cases, where the theory
-depends on the old record representation. The type generated for a
-record is called <record_name>_ext_type.
 
+* HOL/record: reimplementation of records. Improved scalability for records with
+many fields, avoiding performance problems for type inference. Records are no 
+longer composed of nested field types,
+but of nested extension types. Therefore the record type only grows
+linear in the number of extensions and not in the number of fields.
+The top-level (users) view on records is preserved. 
+Potential INCOMPATIBILITY only in strange cases, where the theory
+depends on the old record representation. The type generated for
+a record is called <record_name>_ext_type.    
+
+
+* Simplifier: "record_upd_simproc" for simplification of multiple record 
+updates enabled by default. 
+INCOMPATIBILITY: old proofs break occasionally, since simplification
+is more powerful by default.
 
 *** HOLCF ***
 

@@ -163,7 +163,7 @@ instance member_ext_type :: ("type") has_static ..
 
 defs (overloaded)
 static_field_type_is_static_def: 
- "is_static (m::('b::type) member_ext_type) \<equiv> static_val m"
+ "is_static (m::('b::type) member_ext_type) \<equiv> static_sel m"
 
 lemma member_is_static_simp: "is_static (m::'a member_scheme) = static m"
 apply (cases m)
@@ -412,14 +412,14 @@ instance member_ext_type :: ("has_resTy") has_resTy ..
 defs (overloaded)
 member_ext_type_resTy_def: 
  "resTy (m::('b::has_resTy) member_ext_type) 
-  \<equiv> resTy (member.more_val m)" 
+  \<equiv> resTy (member.more_sel m)" 
 
 instance mhead_ext_type :: ("type") has_resTy ..
 
 defs (overloaded)
 mhead_ext_type_resTy_def: 
  "resTy (m::('b mhead_ext_type)) 
-  \<equiv> resT_val m" 
+  \<equiv> resT_sel m" 
 
 lemma mhead_resTy_simp: "resTy (m::'a mhead_scheme) = resT m"
 apply (cases m)
