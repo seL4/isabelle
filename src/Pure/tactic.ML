@@ -114,6 +114,7 @@ sig
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
+  val eres_inst_tac'    : (indexname * string) list -> thm -> int -> tactic
   val res_inst_tac'     : (indexname * string) list -> thm -> int -> tactic
 end;
 
@@ -314,6 +315,9 @@ fun res_inst_tac' sinsts rule i =
 (*eresolve elimination version*)
 fun eres_inst_tac sinsts rule i =
     compose_inst_tac sinsts (true, rule, nprems_of rule) i;
+
+fun eres_inst_tac' sinsts rule i =
+    compose_inst_tac' sinsts (true, rule, nprems_of rule) i;
 
 (*For forw_inst_tac and dres_inst_tac.  Preserve Var indexes of rl;
   increment revcut_rl instead.*)
