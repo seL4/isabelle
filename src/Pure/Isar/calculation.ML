@@ -14,6 +14,12 @@ sig
   val trans_del_global: theory attribute
   val trans_add_local: Proof.context attribute
   val trans_del_local: Proof.context attribute
+  val sym_add_global: theory attribute
+  val sym_del_global: theory attribute
+  val sym_add_local: Proof.context attribute
+  val sym_del_local: Proof.context attribute
+  val symmetric_global: theory attribute
+  val symmetric_local: Proof.context attribute
   val also: thm list option -> (Proof.context -> thm list -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val finally: thm list option -> (Proof.context -> thm list -> unit)
@@ -30,18 +36,21 @@ struct
 
 (* theory data kind 'Isar/calculation' *)
 
-fun print_rules prt x rs =
-  Pretty.writeln (Pretty.big_list "transitivity rules:" (map (prt x) (NetRules.rules rs)));
+fun print_rules prt x (trans, sym) =
+  [Pretty.big_list "transitivity rules:" (map (prt x) (NetRules.rules trans)),
+    Pretty.big_list "symmetry rules:" (map (prt x) sym)]
+  |> Pretty.chunks |> Pretty.writeln;
 
 structure GlobalCalculationArgs =
 struct
   val name = "Isar/calculation";
-  type T = thm NetRules.T
+  type T = thm NetRules.T * thm list
 
-  val empty = NetRules.elim;
+  val empty = (NetRules.elim, []);
   val copy = I;
   val prep_ext = I;
-  val merge = NetRules.merge;
+  fun merge ((trans1, sym1), (trans2, sym2)) =
+    (NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2));
   val print = print_rules Display.pretty_thm_sg;
 end;
 
@@ -54,7 +63,7 @@ val print_global_rules = GlobalCalculation.print;
 structure LocalCalculationArgs =
 struct
   val name = "Isar/calculation";
-  type T = thm NetRules.T * (thm list * int) option;
+  type T = (thm NetRules.T * thm list) * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, None);
   fun print ctxt (rs, _) = print_rules ProofContext.pretty_thm ctxt rs;
@@ -82,14 +91,32 @@ fun reset_calculation state =
 
 (** attributes **)
 
-(* trans add/del *)
+(* add/del rules *)
 
-fun mk_att f g (x, thm) = (f (g thm) x, thm);
+fun global_att f (x, thm) = (GlobalCalculation.map (f thm) x, thm);
+fun local_att f (x, thm) = (LocalCalculation.map (apfst (f thm)) x, thm);
 
-val trans_add_global = mk_att GlobalCalculation.map NetRules.insert;
-val trans_del_global = mk_att GlobalCalculation.map NetRules.delete;
-val trans_add_local = mk_att LocalCalculation.map (Library.apfst o NetRules.insert);
-val trans_del_local = mk_att LocalCalculation.map (Library.apfst o NetRules.delete);
+val trans_add_global = global_att (apfst o NetRules.insert);
+val trans_del_global = global_att (apfst o NetRules.delete);
+val trans_add_local = local_att (apfst o NetRules.insert);
+val trans_del_local = local_att (apfst o NetRules.delete);
+
+val sym_add_global = global_att (apsnd o Drule.add_rule) o ContextRules.elim_query_global None;
+val sym_del_global = global_att (apsnd o Drule.del_rule);
+val sym_add_local = local_att (apsnd o Drule.add_rule) o ContextRules.elim_query_local None;
+val sym_del_local = local_att (apsnd o Drule.del_rule);
+
+
+(* symmetry *)
+
+fun gen_symmetric get_sym = Drule.rule_attribute (fn x => fn th =>
+  (case Seq.chop (2, Method.multi_resolves [th] (get_sym x)) of
+    ([th'], _) => th'
+  | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
+  | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
+
+val symmetric_global = gen_symmetric (#2 o GlobalCalculation.get);
+val symmetric_local = gen_symmetric (#2 o #1 o LocalCalculation.get);
 
 
 (* concrete syntax *)
@@ -97,6 +124,10 @@ val trans_del_local = mk_att LocalCalculation.map (Library.apfst o NetRules.dele
 val trans_attr =
  (Attrib.add_del_args trans_add_global trans_del_global,
   Attrib.add_del_args trans_add_local trans_del_local);
+
+val sym_attr =
+ (Attrib.add_del_args sym_add_global sym_del_global,
+  Attrib.add_del_args sym_add_local sym_del_local);
 
 
 
@@ -132,8 +163,8 @@ fun calculate final opt_rules print state =
     fun combine ths =
       (case opt_rules of Some rules => rules
       | None =>
-          (case ths of [] => NetRules.rules (get_local_rules state)
-          | th :: _ => NetRules.retrieve (get_local_rules state) (strip_assums_concl th)))
+          (case ths of [] => NetRules.rules (#1 (get_local_rules state))
+          | th :: _ => NetRules.retrieve (#1 (get_local_rules state)) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.map (Method.multi_resolve ths) |> Seq.flat
       |> Seq.filter (not o projection ths);
 
@@ -176,9 +207,15 @@ fun ultimately print = collect true print;
 
 (** theory setup **)
 
-val setup = [GlobalCalculation.init, LocalCalculation.init,
-  Attrib.add_attributes [("trans", trans_attr, "declaration of transitivity rule")],
-  #1 o PureThy.add_thms [(("", transitive_thm), [trans_add_global])]];
-
+val setup =
+ [GlobalCalculation.init, LocalCalculation.init,
+  Attrib.add_attributes
+   [("trans", trans_attr, "declaration of transitivity rule"),
+    ("sym", sym_attr, "declaration of symmetry rule"),
+    ("symmetric", (Attrib.no_args symmetric_global, Attrib.no_args symmetric_local),
+      "resolution with symmetry rule")],
+  #1 o PureThy.add_thms
+   [(("", transitive_thm), [trans_add_global]),
+    (("", symmetric_thm), [sym_add_global])]];
 
 end;
