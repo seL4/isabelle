@@ -88,9 +88,9 @@ intros
 
   (*\<Union>z instead of \<forall>z in the conclusion and
       z restricted to type state due to limitations of the inductive package *)
-  Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>M. (P z M, Impl M, Q z M))`Ms) ||- 
-                            (\<lambda>M. (P z M, body M, Q z M))`Ms ==>
-                      A ||- (\<lambda>M. (P z M, Impl M, Q z M))`Ms"
+  Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms) ||- 
+                            (\<lambda>Cm. (P z Cm, body Cm, Q z Cm))`Ms ==>
+                      A ||- (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms"
 
 (* structural rules *)
 
@@ -148,10 +148,10 @@ lemma Union: "A |\<turnstile> (\<Union>z. C z) = (\<forall>z. A |\<turnstile> C 
 by (auto intro: hoare_ehoare.ConjI hoare_ehoare.ConjE)
 
 lemma Impl1: 
-   "\<lbrakk>\<forall>z::state. A\<union> (\<Union>z. (\<lambda>M. (P z M, Impl M, Q z M))`Ms) |\<turnstile> 
-                        (\<lambda>M. (P z M, body M, Q z M))`Ms; 
-    M \<in> Ms\<rbrakk> \<Longrightarrow> 
-                A         \<turnstile>  {P z M} Impl M {Q z M}"
+   "\<lbrakk>\<forall>z::state. A\<union> (\<Union>z. (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms) |\<turnstile> 
+                        (\<lambda>Cm. (P z Cm, body Cm, Q z Cm))`Ms; 
+    Cm \<in> Ms\<rbrakk> \<Longrightarrow> 
+                A         \<turnstile>  {P z Cm} Impl Cm {Q z Cm}"
 apply (drule hoare_ehoare.Impl)
 apply (erule Weaken)
 apply (auto del: image_eqI intro: rev_image_eqI)

@@ -12,11 +12,11 @@ consts
  exec :: "(state \<times> stmt       \<times> nat \<times> state) set"
  eval :: "(state \<times> expr \<times> val \<times> nat \<times> state) set"
 syntax (xsymbols)
- exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_\<rightarrow> _"  [98,90,   99,98] 89)
- eval :: "[state,expr,val,nat,state] => bool" ("_ -_\<succ>_-_\<rightarrow> _"[98,95,99,99,98] 89)
+ exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_\<rightarrow> _"  [98,90,   65,98] 89)
+ eval :: "[state,expr,val,nat,state] => bool" ("_ -_\<succ>_-_\<rightarrow> _"[98,95,99,65,98] 89)
 syntax
- exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_-> _"  [98,90,   99,98]89)
- eval :: "[state,expr,val,nat,state] => bool" ("_ -_>_-_-> _"[98,95,99,99,98]89)
+ exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_-> _"  [98,90,   65,98]89)
+ eval :: "[state,expr,val,nat,state] => bool" ("_ -_>_-_-> _"[98,95,99,65,98]89)
 translations
  "s -c  -n-> s'" == "(s, c,    n, s') \<in> exec"
  "s -e>v-n-> s'" == "(s, e, v, n, s') \<in> eval"
@@ -61,8 +61,8 @@ inductive exec eval intros
             init_locs D m s -Impl (D,m)-n-> s' |] ==>
             s -Meth (C,m)-n-> s'"
 
-  Impl: "   s -body M-n-> s' ==>
-            s -Impl M-Suc n-> s'"
+  Impl: "   s -body Cm-    n-> s' ==>
+            s -Impl Cm-Suc n-> s'"
 
 
 inductive_cases exec_elim_cases':
@@ -72,8 +72,8 @@ inductive_cases exec_elim_cases':
 				  "s -While(x) c      -n\<rightarrow> t"
 				  "s -x:==e           -n\<rightarrow> t"
 				  "s -e1..f:==e2      -n\<rightarrow> t"
-inductive_cases Meth_elim_cases:  "s -Meth Cm-n\<rightarrow> t"
-inductive_cases Impl_elim_cases:  "s -Impl Cm-n\<rightarrow> t"
+inductive_cases Meth_elim_cases:  "s -Meth Cm         -n\<rightarrow> t"
+inductive_cases Impl_elim_cases:  "s -Impl Cm         -n\<rightarrow> t"
 lemmas exec_elim_cases = exec_elim_cases' Meth_elim_cases Impl_elim_cases
 inductive_cases eval_elim_cases:
 				  "s -new C         \<succ>v-n\<rightarrow> t"
@@ -90,7 +90,7 @@ prefer 14 (* Impl *)
 apply clarify
 apply (rename_tac n)
 apply (case_tac n)
-apply  (blast intro:exec_eval.intros)+
+apply (blast intro:exec_eval.intros)+
 done
 lemmas exec_mono = exec_eval_mono [THEN conjunct1, rule_format]
 lemmas eval_mono = exec_eval_mono [THEN conjunct2, rule_format]
