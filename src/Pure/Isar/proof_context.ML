@@ -17,6 +17,7 @@ sig
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
+  val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_binds: context -> unit
   val print_thms: context -> unit
   val print_cases: context -> unit
@@ -151,6 +152,8 @@ val verbose = ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
 fun verb_single x = verb Library.single x;
 
+fun setmp_verbose f x = Library.setmp verbose true f x;
+
 fun pretty_items prt name items =
   let
     fun prt_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
@@ -232,8 +235,9 @@ fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
     fun prt_fix (x, x') = Pretty.block
       [prt_term (Syntax.free x), Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
 
-    fun prt_fixes xs = Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
-      Pretty.commas (map prt_fix xs));
+    fun prt_fixes [] = []
+      | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
+          Pretty.commas (map prt_fix xs))];
 
     (*defaults*)
     fun prt_atom prt prtT (x, X) = Pretty.block
@@ -249,7 +253,7 @@ fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
     val prt_defS = prt_atom prt_varT prt_sort;
   in
     verb_single (K pretty_thy) @
-    (if null fixes then [] else [prt_fixes (rev fixes)]) @
+    prt_fixes (rev (filter_out (can Syntax.dest_internal o #1) fixes)) @
     pretty_prems ctxt @
     verb pretty_binds (K ctxt) @
     verb pretty_thms (K ctxt) @
