@@ -145,15 +145,15 @@ constdefs
 
   MPair :: "[msg,msg] \<Rightarrow> msg"
    "MPair X Y ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg(X). \<Union>V \<in> Rep_Msg(Y). msgrel``{MPAIR U V})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. \<Union>V \<in> Rep_Msg Y. msgrel``{MPAIR U V})"
 
   Crypt :: "[nat,msg] \<Rightarrow> msg"
    "Crypt K X ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg(X). msgrel``{CRYPT K U})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{CRYPT K U})"
 
   Decrypt :: "[nat,msg] \<Rightarrow> msg"
    "Decrypt K X ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg(X). msgrel``{DECRYPT K U})"
+       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
 
 
 text{*Reduces equality of equivalence classes to the @{term msgrel} relation:
@@ -215,10 +215,10 @@ apply (auto simp add: Rep_Msg_inverse intro: msgrel_refl)
 done
 
 text{*Establishing these two equations is the point of the whole exercise*}
-theorem CD_eq: "Crypt K (Decrypt K X) = X"
+theorem CD_eq [simp]: "Crypt K (Decrypt K X) = X"
 by (cases X, simp add: Crypt Decrypt CD)
 
-theorem DC_eq: "Decrypt K (Crypt K X) = X"
+theorem DC_eq [simp]: "Decrypt K (Crypt K X) = X"
 by (cases X, simp add: Crypt Decrypt DC)
 
 
@@ -226,9 +226,9 @@ subsection{*The Abstract Function to Return the Set of Nonces*}
 
 constdefs
   nonces :: "msg \<Rightarrow> nat set"
-   "nonces X == \<Union>U \<in> Rep_Msg(X). freenonces U"
+   "nonces X == \<Union>U \<in> Rep_Msg X. freenonces U"
 
-lemma nonces_congruent: "congruent msgrel (\<lambda>x. freenonces x)"
+lemma nonces_congruent: "congruent msgrel freenonces"
 by (simp add: congruent_def msgrel_imp_eq_freenonces) 
 
 
@@ -261,7 +261,7 @@ subsection{*The Abstract Function to Return the Left Part*}
 
 constdefs
   left :: "msg \<Rightarrow> msg"
-   "left X == Abs_Msg (\<Union>U \<in> Rep_Msg(X). msgrel``{free_left U})"
+   "left X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{free_left U})"
 
 lemma left_congruent: "congruent msgrel (\<lambda>U. msgrel `` {free_left U})"
 by (simp add: congruent_def msgrel_imp_eqv_free_left) 
@@ -295,7 +295,7 @@ subsection{*The Abstract Function to Return the Right Part*}
 
 constdefs
   right :: "msg \<Rightarrow> msg"
-   "right X == Abs_Msg (\<Union>U \<in> Rep_Msg(X). msgrel``{free_right U})"
+   "right X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{free_right U})"
 
 lemma right_congruent: "congruent msgrel (\<lambda>U. msgrel `` {free_right U})"
 by (simp add: congruent_def msgrel_imp_eqv_free_right) 
@@ -335,9 +335,7 @@ lemma Nonce_Nonce_eq [iff]: "(Nonce m = Nonce n) = (m = n)"
 by (auto simp add: Nonce_def msgrel_refl dest: NONCE_imp_eq)
 
 lemma MPAIR_imp_eqv_left: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> X \<sim> X'"
-apply (drule msgrel_imp_eqv_free_left)
-apply (simp add: ); 
-done
+by (drule msgrel_imp_eqv_free_left, simp)
 
 lemma MPair_imp_eq_left: 
   assumes eq: "MPair X Y = MPair X' Y'" shows "X = X'"
@@ -348,9 +346,7 @@ proof -
 qed
 
 lemma MPAIR_imp_eqv_right: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> Y \<sim> Y'"
-apply (drule msgrel_imp_eqv_free_right)
-apply (simp add: ); 
-done
+by (drule msgrel_imp_eqv_free_right, simp)
 
 lemma MPair_imp_eq_right: "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'" 
 apply (cases X, cases X', cases Y, cases Y') 
@@ -359,8 +355,7 @@ apply (erule MPAIR_imp_eqv_right)
 done
 
 theorem MPair_MPair_eq [iff]: "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')" 
-apply (blast dest: MPair_imp_eq_left MPair_imp_eq_right) 
-done
+by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
 
 lemma NONCE_neqv_MPAIR: "NONCE m \<sim> MPAIR X Y \<Longrightarrow> False"
 by (drule msgrel_imp_eq_isNONCE, simp)
@@ -370,6 +365,53 @@ apply (cases X, cases Y)
 apply (simp add: Nonce_def MPair) 
 apply (blast dest: NONCE_neqv_MPAIR) 
 done
+
+theorem Crypt_Crypt_eq [iff]: "(Crypt K X = Crypt K X') = (X=X')" 
+proof
+  assume "Crypt K X = Crypt K X'"
+  hence "Decrypt K (Crypt K X) = Decrypt K (Crypt K X')" by simp
+  thus "X = X'" by simp
+next
+  assume "X = X'"
+  thus "Crypt K X = Crypt K X'" by simp
+qed
+
+theorem Decrypt_Decrypt_eq [iff]: "(Decrypt K X = Decrypt K X') = (X=X')" 
+proof
+  assume "Decrypt K X = Decrypt K X'"
+  hence "Crypt K (Decrypt K X) = Crypt K (Decrypt K X')" by simp
+  thus "X = X'" by simp
+next
+  assume "X = X'"
+  thus "Decrypt K X = Decrypt K X'" by simp
+qed
+
+lemma msg_induct [case_names Nonce MPair Crypt Decrypt, cases type: msg]:
+  assumes N: "\<And>N. P (Nonce N)"
+      and M: "\<And>X Y. \<lbrakk>P X; P Y\<rbrakk> \<Longrightarrow> P (MPair X Y)"
+      and C: "\<And>K X. P X \<Longrightarrow> P (Crypt K X)"
+      and D: "\<And>K X. P X \<Longrightarrow> P (Decrypt K X)"
+  shows "P msg"
+proof (cases msg, erule ssubst)  
+  fix U::freemsg
+  show "P (Abs_Msg (msgrel `` {U}))"
+  proof (induct U)
+    case (NONCE N) 
+    with N show ?case by (simp add: Nonce_def) 
+  next
+    case (MPAIR X Y)
+    with M [of "Abs_Msg (msgrel `` {X})" "Abs_Msg (msgrel `` {Y})"]
+    show ?case by (simp add: MPair) 
+  next
+    case (CRYPT K X)
+    with C [of "Abs_Msg (msgrel `` {X})"]
+    show ?case by (simp add: Crypt) 
+  next
+    case (DECRYPT K X)
+    with D [of "Abs_Msg (msgrel `` {X})"]
+    show ?case by (simp add: Decrypt)
+  qed
+qed
 
 end
 
