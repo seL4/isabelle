@@ -70,21 +70,10 @@ val unifyInduct0 = [wfr,tc] MRS unify.induct
  * Termination proof.
  *---------------------------------------------------------------------------*)
 
-goalw Unify.thy [trans_def,inv_image_def]
-    "!!r. trans r ==> trans (inv_image r f)";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "trans_inv_image";
-
-goalw Unify.thy [finite_psubset_def, trans_def] "trans finite_psubset";
-by (simp_tac (!simpset addsimps [psubset_def]) 1);
-by (Blast_tac 1);
-qed "trans_finite_psubset";
-
 goalw Unify.thy [unifyRel_def,uterm_less_def,measure_def] "trans unifyRel";
-by (REPEAT (resolve_tac [trans_inv_image,trans_lex_prod,conjI, 
-			 trans_finite_psubset,
-			 trans_rprod, trans_inv_image, trans_trancl] 1));
+by (REPEAT (resolve_tac [trans_inv_image, trans_lex_prod, 
+			 trans_finite_psubset, trans_less_than,
+			 trans_rprod, trans_inv_image] 1));
 qed "trans_unifyRel";
 
 
@@ -169,7 +158,7 @@ fun subst_case_tac t =
  * The nested TC. Proved by recursion induction.
  *---------------------------------------------------------------------------*)
 val [tc1,tc2,tc3] = unify.tcs;
-goalw_cterm [] (cterm_of (sign_of Unify.thy) (USyntax.mk_prop tc3));
+goalw_cterm [] (cterm_of (sign_of Unify.thy) (HOLogic.mk_Trueprop tc3));
 (*---------------------------------------------------------------------------
  * The extracted TC needs the scope of its quantifiers adjusted, so our 
  * first step is to restrict the scopes of N1 and N2.
