@@ -183,8 +183,7 @@ ALL x<=y. P, EX x<y. P, EX x<=y. P;
 All/Ex now support plain / symbolic / HOL notation; plain syntax for
 Eps operator is provided as well: "SOME x. P[x]";
 
-* HOL/Sum.thy: sum_case renamed to basic_sum_case; hardly an
-INCOMPATIBILITY, users should refer to the version of HOL/Datatype;
+* HOL/Sum.thy: sum_case has been moved to HOL/Datatype;
 
 * HOL/Univ.thy: infix syntax <*>, <+>, <**>, <+> eliminated and made
 thus available for user theories;
