@@ -14,6 +14,8 @@ Addsimps [funPair_o_distrib];
 Addsimps [Always_INT_distrib];
 Delsimps [o_apply];
 
+(*Make a locale for M: merge_spec and G: preserves (funPair merge.Out iOut)?*)
+
 Goalw [merge_spec_def,merge_eqOut_def]
      "[| M: merge_spec; G: preserves merge.Out; G: preserves merge.iOut |] \
 \ ==> M Join G : Always {s. length (merge.Out s) = length (merge.iOut s)}";  
@@ -60,10 +62,6 @@ by (auto_tac (claset(),
 by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
                        addDs [guaranteesD]) 1);
 qed "Merge_Bag_Follows";
-
-(*Declare a locale for M : merge_spec and 
-  G : preserves (funPair merge.Out iOut)? *)
-
 
 
 (** Distributor **)
@@ -119,25 +117,44 @@ by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
                        addDs [guaranteesD]) 1);
 qed "Distr_Bag_Follows";
 
-(*
-(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
-	                             Increasing (sub i o allocRel))
-         Int
-         Always {s. ALL i. i<Nclients -->
-		     (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}
-         Int
-         (INT i : lessThan Nclients. 
-	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
-		 LeadsTo
-	         {s. tokens h <= (tokens o sub i o allocRel)s})
-<=
-(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
-	                             Increasing (sub i o allocRel))
-         Int
-         Always {s. ALL i. i<Nclients -->
-		     (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}
-         Int
-         (INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
-		 LeadsTo
-	         {s. tokens h <= (tokens o sub i o allocRel)s})
-*)
+
+Goal "!!f::nat=>nat. (INT i:(lessThan n). {s. f i <= g i s})  \
+\     <= {s. setsum f (lessThan n) <= setsum (%i. g i s) (lessThan n)}";
+by (induct_tac "n" 1);
+by (auto_tac (claset(), simpset() addsimps [lessThan_Suc]));
+qed "alloc_refinement_lemma";
+
+Goal
+"(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int  \
+\                            Increasing (sub i o allocRel))     \
+\ Int   \
+\ Always {s. ALL i. i<Nclients -->      \
+\             (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}       \
+\ Int   \
+\ (INT i : lessThan Nclients.   \
+\  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}  \
+\          LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})        \
+\<=     \
+\(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int  \
+\                            Increasing (sub i o allocRel))     \
+\ Int   \
+\ Always {s. ALL i. i<Nclients -->      \
+\             (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}       \
+\ Int   \
+\ (INT hf. (INT i : lessThan Nclients.  \
+\        {s. hf i <= (sub i o allocGiv)s & hf i pfixGe (sub i o allocAsk)s}) \
+\ LeadsTo {s. setsum (%i. tokens (hf i)) (lessThan Nclients) <=         \
+\   setsum (%i. (tokens o sub i o allocRel)s) (lessThan Nclients) })";
+by (auto_tac (claset(), simpset() addsimps [ball_conj_distrib]));  
+by (rename_tac "F hf" 1);
+by (rtac ([Finite_stable_completion, alloc_refinement_lemma]
+          MRS LeadsTo_weaken_R) 1);
+  by (Blast_tac 1); 
+ by (Blast_tac 1); 
+by (subgoal_tac "F : Increasing (tokens o (sub i o allocRel))" 1);
+ by (blast_tac
+     (claset() addIs [impOfSubs (mono_tokens RS mono_Increasing_o)]) 2);
+by (asm_full_simp_tac (simpset() addsimps [Increasing_def, o_assoc]) 1);
+qed "alloc_refinement";
+
+
