@@ -14,7 +14,9 @@ local
     Method.setup @
     Attrib.setup @
     AxClass.setup @
-    BrowserInfo.setup;
+    BrowserInfo.setup @
+    Isamode.setup @
+    ProofGeneral.setup;
 in
   structure Pure =
   struct
