@@ -17,6 +17,7 @@ signature RECORD_PACKAGE =
 sig
   include BASIC_RECORD_PACKAGE
   val quiet_mode: bool ref
+  val updateN: string
   val moreS: sort
   val mk_fieldT: (string * typ) * typ -> typ
   val dest_fieldT: typ -> (string * typ) * typ
