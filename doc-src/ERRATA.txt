@@ -54,12 +54,16 @@ page 157 display: Union operator is too big
 page 158, "!": Isabelle now permits more general left-hand sides, so called
 higher-order patterns.
 
+Classical reasoner
+
+page 176: The package also provides tactics slow_tac, slow_best_tac, depth_tac
+and deepen_tac. 
 
 ISABELLE'S OBJECT-LOGICS
 
 First-Order Logic
 
-page 191: FOL_dup_cs is now deleted (use deepen_tac FOL_cs instead)
+pages 191, 196: FOL_dup_cs is now deleted (use deepen_tac FOL_cs instead)
 
 Zermelo-Fraenkel Set Theory
 
