@@ -1,6 +1,7 @@
 % $Id$
 \section{The Set of Even Numbers}
 
+\index{even numbers!defining inductively|(}%
 The set of even numbers can be inductively defined as the least set
 containing 0 and closed under the operation $+2$.  Obviously,
 \emph{even} can also be expressed using the divides relation (\isa{dvd}). 
@@ -11,7 +12,7 @@ sets: rule induction.
 \subsection{Making an Inductive Definition}
 
 Using \isacommand{consts}, we declare the constant \isa{even} to be a set
-of natural numbers. The \isacommand{inductive} declaration gives it the
+of natural numbers. The \commdx{inductive} declaration gives it the
 desired properties.
 \begin{isabelle}
 \isacommand{consts}\ even\ ::\ "nat\ set"\isanewline
@@ -41,8 +42,10 @@ even%
 \rulename{even.step}
 \end{isabelle}
 
-The introduction rules can be given attributes.  Here both rules are
-specified as \isa{intro!}, directing the classical reasoner to 
+The introduction rules can be given attributes.  Here
+both rules are specified as \isa{intro!},%
+\index{intro"!@\isa {intro"!} (attribute)}
+directing the classical reasoner to 
 apply them aggressively. Obviously, regarding 0 as even is safe.  The
 \isa{step} rule is also safe because $n+2$ is even if and only if $n$ is
 even.  We prove this equivalence later.
@@ -83,6 +86,7 @@ just proved, whose \isa{intro!} attribute ensures it is applied automatically.
 \subsection{Rule Induction}
 \label{sec:rule-induction}
 
+\index{rule induction|(}%
 From the definition of the set
 \isa{even}, Isabelle has
 generated an induction rule:
@@ -161,6 +165,7 @@ equivalence relating \isa{even} and \isa{dvd}.
 \subsection{Generalization and Rule Induction}
 \label{sec:gen-rule-induction}
 
+\index{generalizing for induction}%
 Before applying induction, we typically must generalize
 the induction formula.  With rule induction, the required generalization
 can be hard to find and sometimes requires a complete reformulation of the
@@ -200,7 +205,8 @@ This lemma is trivially inductive.  Here are the subgoals:
 \end{isabelle}
 The first is trivial because \isa{0\ -\ \#2} simplifies to \isa{0}, which is
 even.  The second is trivial too: \isa{Suc\ (Suc\ n)\ -\ \#2} simplifies to
-\isa{n}, matching the assumption.
+\isa{n}, matching the assumption.%
+\index{rule induction|)}  %the sequel isn't really about induction
 
 \medskip
 Using our lemma, we can easily prove the result we originally wanted:
@@ -210,8 +216,8 @@ Using our lemma, we can easily prove the result we originally wanted:
 \end{isabelle}
 
 We have just proved the converse of the introduction rule \isa{even.step}. 
-This suggests proving the following equivalence.  We give it the \isa{iff}
-attribute because of its obvious value for simplification.
+This suggests proving the following equivalence.  We give it the
+\attrdx{iff} attribute because of its obvious value for simplification.
 \begin{isabelle}
 \isacommand{lemma}\ [iff]:\ "((Suc\ (Suc\ n))\ \isasymin \ even)\ =\ (n\
 \isasymin \ even)"\isanewline
@@ -221,10 +227,12 @@ attribute because of its obvious value for simplification.
 
 \subsection{Rule Inversion}\label{sec:rule-inversion}
 
-Case analysis on an inductive definition is called \textbf{rule inversion}. 
-It is frequently used in proofs about operational semantics.  It can be
-highly effective when it is applied automatically.  Let us look at how rule
-inversion is done in Isabelle/HOL\@.
+\index{rule inversion|(}%
+Case analysis on an inductive definition is called \textbf{rule
+inversion}.  It is frequently used in proofs about operational
+semantics.  It can be highly effective when it is applied
+automatically.  Let us look at how rule inversion is done in
+Isabelle/HOL\@.
 
 Recall that \isa{even} is the minimal set closed under these two rules:
 \begin{isabelle}
@@ -258,7 +266,8 @@ this instance for us:
 \isacommand{inductive\_cases}\ Suc_Suc_cases\ [elim!]:
 \ "Suc(Suc\ n)\ \isasymin \ even"
 \end{isabelle}
-The \isacommand{inductive\_cases} command generates an instance of the
+The \commdx{inductive\protect\_cases} command generates an instance of
+the
 \isa{cases} rule for the supplied pattern and gives it the supplied name:
 %
 \begin{isabelle}
@@ -273,8 +282,10 @@ introduction rules involve datatype constructors like \isa{Suc} and \isa{\#}
 (list ``cons''); freeness reasoning discards all but one or two cases.
 
 In the \isacommand{inductive\_cases} command we supplied an
-attribute, \isa{elim!}, indicating that this elimination rule can be applied
-aggressively.  The original
+attribute, \isa{elim!},
+\index{elim"!@\isa {elim"!} (attribute)}%
+indicating that this elimination rule can be
+applied aggressively.  The original
 \isa{cases} rule would loop if used in that manner because the
 pattern~\isa{a} matches everything.
 
@@ -300,10 +311,12 @@ The specified instance of the \isa{cases} rule is generated, then applied
 as an elimination rule.
 
 To summarize, every inductive definition produces a \isa{cases} rule.  The
-\isacommand{inductive\_cases} command stores an instance of the \isa{cases}
-rule for a given pattern.  Within a proof, the \isa{ind_cases} method
-applies an instance of the \isa{cases}
+\commdx{inductive\protect\_cases} command stores an instance of the
+\isa{cases} rule for a given pattern.  Within a proof, the
+\isa{ind_cases} method applies an instance of the \isa{cases}
 rule.
 
 The even numbers example has shown how inductive definitions can be
-used.  Later examples will show that they are actually worth using.
+used.  Later examples will show that they are actually worth using.%
+\index{rule inversion|)}%
+\index{even numbers!defining inductively|)}

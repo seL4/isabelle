@@ -10,6 +10,8 @@ and how to reason from the resulting definitions.
 \subsection{Universal Quantifiers in Introduction Rules}
 \label{sec:gterm-datatype}
 
+\index{ground terms example|(}%
+\index{quantifiers!and inductive definitions|(}%
 As a running example, this section develops the theory of \textbf{ground
 terms}: terms constructed from constant and function 
 symbols but not variables. To simplify matters further, we regard a
@@ -111,14 +113,16 @@ arity"
 %
 The inductive definition neatly captures the reasoning above.
 The universal quantification over the
-\isa{set} of arguments expresses that all of them are well-formed.
+\isa{set} of arguments expresses that all of them are well-formed.%
+\index{quantifiers!and inductive definitions|)}
 
 
 \subsection{Alternative Definition Using a Monotone Function}
 
-An inductive definition may refer to the inductively defined 
-set through an arbitrary monotone function.  To demonstrate this
-powerful feature, let us
+\index{monotone functions!and inductive definitions|(}% 
+An inductive definition may refer to the
+inductively defined  set through an arbitrary monotone function.  To
+demonstrate this powerful feature, let us
 change the  inductive definition above, replacing the
 quantifier by a use of the function \isa{lists}. This
 function, from the Isabelle theory of lists, is analogous to the
@@ -182,7 +186,8 @@ constructed well-formed terms.  We obtain a
 new term, \isa{Apply\ f\ args}.  Because \isa{lists} is monotone,
 applications of the rule remain valid as new terms are constructed.
 Further lists of well-formed
-terms become available and none are taken away.
+terms become available and none are taken away.%
+\index{monotone functions!and inductive definitions|)} 
 
 
 \subsection{A Proof of Equivalence}
@@ -248,9 +253,10 @@ Invoking the rule \isa{well_formed_gterm.step} completes the proof.  The
 call to
 \isa{auto} does all this work.
 
-This example is typical of how monotone functions can be used.  In
-particular, many of them distribute over intersection.  Monotonicity
-implies one direction of this set equality; we have this theorem:
+This example is typical of how monotone functions
+\index{monotone functions} can be used.  In particular, many of them
+distribute over intersection.  Monotonicity implies one direction of
+this set equality; we have this theorem:
 \begin{isabelle}
 mono\ f\ \isasymLongrightarrow \ f\ (A\ \isasyminter \ B)\ \isasymsubseteq \
 f\ A\ \isasyminter \ f\ B%
@@ -260,6 +266,7 @@ f\ A\ \isasyminter \ f\ B%
 
 \subsection{Another Example of Rule Inversion}
 
+\index{rule inversion|(}%
 Does \isa{gterms} distribute over intersection?  We have proved that this
 function is monotone, so \isa{mono_Int} gives one of the inclusions.  The
 opposite inclusion asserts that if \isa{t} is a ground term over both of the
@@ -275,7 +282,7 @@ Attempting this proof, we get the assumption
 \isa{Apply\ f\ args\ \isasymin\ gterms\ G}, which cannot be broken down. 
 It looks like a job for rule inversion:
 \begin{isabelle}
-\isacommand{inductive\_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\
+\commdx{inductive\protect\_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\
 \isasymin\ gterms\ F"
 \end{isabelle}
 %
@@ -330,6 +337,8 @@ Our distributive law is a trivial consequence of previously-proved results:
 \ \ \ \ \ "gterms\ (F\isasyminter G)\ =\ gterms\ F\ \isasyminter \ gterms\ G"\isanewline
 \isacommand{by}\ (blast\ intro!:\ mono_Int\ monoI\ gterms_mono)
 \end{isabelle}
+\index{rule inversion|)}%
+\index{ground terms example|)}
 
 
 \begin{exercise}
