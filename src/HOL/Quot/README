@@ -1,0 +1,14 @@
+This directorty contains the higher order quotients in Isabelle HOL
+
+higher order quotients use partial equivalence relations/classes (PERs) 
+instead of euivalence relations/classes
+We have two classes er<per
+
+Quotients are a specialization of higher order quotients.
+The use the same constructor quot with the subclass er.
+
+An Example for the application of quotients are the fractional numbers.
+The example shows how to define an equivalence relation and how to use
+the quotients.
+
+For a more detailed description see [Slo97].
