@@ -272,7 +272,7 @@ lemma (in QRTEMP) Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
 
 lemma (in QRTEMP) S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
   apply (insert P_set_card Q_set_card P_set_finite Q_set_finite)
-  apply (auto simp add: S_def zmult_int setsum_constant_nat) 
+  apply (auto simp add: S_def zmult_int setsum_constant)
 done
 
 lemma (in QRTEMP) S1_Int_S2_prop: "S1 \<inter> S2 = {}"
