@@ -1,4 +1,4 @@
-# Title:	Distribution/lib/scripts/symbol_input.pl
+# Title:	Distribution/lib/scripts/symbolinput.pl
 # ID:		$Id$
 # Author:	Markus Wenzel, David von Oheimb
 # Copyright	1996 Technische Universitaet Muenchen
