@@ -18,7 +18,7 @@ sig
   val cd: string -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
-  val load: string -> Toplevel.transition -> Toplevel.transition
+  val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
@@ -51,7 +51,7 @@ val quit = Toplevel.imperative quit;
 
 (* use ML text *)
 
-fun use name = Toplevel.imperative (fn () => Use.use name);
+fun use name = Toplevel.imperative (fn () => ThyInfo.load_file (Path.unpack name));
 
 (*passes changes of theory context*)
 val use_mltext_theory = Toplevel.theory o IsarThy.use_mltext_theory;
@@ -74,10 +74,8 @@ val pwd = Toplevel.imperative print_cd;
 
 (* load theory files *)
 
-fun use_thy name = Toplevel.imperative (fn () => ThyRead.use_thy name);
-
-fun load name =
-  Toplevel.imperative (fn () => Toplevel.excursion (OuterSyntax.read_file (name ^ ".thy")));
+fun use_thy name = Toplevel.imperative (fn () => ThyInfo.use_thy name);
+fun update_thy name = Toplevel.imperative (fn () => ThyInfo.update_thy name);
 
 
 (* print theory contents *)
