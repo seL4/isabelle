@@ -6,6 +6,11 @@
 Composition
 
 From Chandy and Sanders, "Reasoning About Program Composition"
+
+QUESTIONS:
+  refines_def: needs the States F = States G?
+
+  uv_prop, component: should be States F = States (F Join G)
 *)
 
 Comp = Union +
