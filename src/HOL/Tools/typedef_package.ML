@@ -193,7 +193,7 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 (* typedef_proof interface *)
 
 fun typedef_attribute cset do_typedef (thy, thm) =
-  (check_nonempty cset (thm RS (select_eq_Ex RS iffD2)); (thy |> do_typedef, thm));
+  (check_nonempty cset (thm RS (some_eq_ex RS iffD2)); (thy |> do_typedef, thm));
 
 fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
   let

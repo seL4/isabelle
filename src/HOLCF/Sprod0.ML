@@ -158,7 +158,7 @@ qed "IsprodE";
 (* ------------------------------------------------------------------------ *)
 
 Goalw [Isfst_def] "p=Ispair UU UU ==> Isfst p = UU";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (fast_tac HOL_cs  1);
 by (strip_tac 1);
@@ -187,7 +187,7 @@ Addsimps [strict_Isfst2];
 
 
 Goalw [Issnd_def] "p=Ispair UU UU ==>Issnd p=UU";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (fast_tac HOL_cs  1);
 by (strip_tac 1);
@@ -214,7 +214,7 @@ qed "strict_Issnd2";
 Addsimps [strict_Issnd2];
 
 Goalw [Isfst_def] "[|x~=UU ;y~=UU |] ==> Isfst(Ispair x y) = x";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (strip_tac 1);
 by (res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1);
@@ -230,7 +230,7 @@ by (fast_tac HOL_cs  1);
 qed "Isfst";
 
 Goalw [Issnd_def] "[|x~=UU ;y~=UU |] ==> Issnd(Ispair x y) = y";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (strip_tac 1);
 by (res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1);

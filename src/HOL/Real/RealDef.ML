@@ -35,7 +35,7 @@ Goalw [realrel_def]
 by (Blast_tac 1);
 qed "realrelE_lemma";
 
-val [major,minor] = goal (the_context ())
+val [major,minor] = Goal
   "[| p: realrel;  \
 \     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1+y2 = x2+y1 \
 \                    |] ==> Q |] ==> Q";
@@ -94,7 +94,7 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_real_of_preal";
 
-val [prem] = goal (the_context ())
+val [prem] = Goal
     "(!!x y. z = Abs_real(realrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [real_def] Rep_real RS quotientE) 1);
@@ -500,7 +500,7 @@ qed "real_mult_inv_left_ex";
 Goalw [rinv_def] "x ~= 0 ==> rinv(x)*x = 1r";
 by (ftac real_mult_inv_left_ex 1);
 by (Step_tac 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by Auto_tac;
 qed "real_mult_inv_left";
 
@@ -533,7 +533,7 @@ qed "real_mult_right_cancel_ccontr";
 Goalw [rinv_def] "x ~= 0 ==> rinv(x) ~= 0";
 by (ftac real_mult_inv_left_ex 1);
 by (etac exE 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_mult_0,
     real_zero_not_eq_one]));

@@ -254,7 +254,7 @@ by (ALLGOALS (blast_tac (claset() addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
 
 (*Another induction rule for trancl, incorporating transitivity.*)
-val major::prems = goal (the_context ())
+val major::prems = Goal
  "[| (x,y) : r^+; \
 \    !!x y. (x,y) : r ==> P x y; \
 \    !!x y z. [| (x,y) : r^+; P x y; (y,z) : r^+; P y z |] ==> P x z \

@@ -290,7 +290,7 @@ else\dots})$.
 \tdx{impI}          (P ==> Q) ==> P-->Q
 \tdx{mp}            [| P-->Q;  P |] ==> Q
 \tdx{iff}           (P-->Q) --> (Q-->P) --> (P=Q)
-\tdx{selectI}       P(x::'a) ==> P(@x. P x)
+\tdx{someI}         P(x::'a) ==> P(@x. P x)
 \tdx{True_or_False} (P=True) | (P=False)
 \end{ttbox}
 \caption{The \texttt{HOL} rules} \label{hol-rules}
@@ -302,9 +302,9 @@ their~{\ML} names.  Some of the rules deserve additional comments:
 \item[\tdx{ext}] expresses extensionality of functions.
 \item[\tdx{iff}] asserts that logically equivalent formulae are
   equal.
-\item[\tdx{selectI}] gives the defining property of the Hilbert
+\item[\tdx{someI}] gives the defining property of the Hilbert
   $\varepsilon$-operator.  It is a form of the Axiom of Choice.  The derived rule
-  \tdx{select_equality} (see below) is often easier to use.
+  \tdx{some_equality} (see below) is often easier to use.
 \item[\tdx{True_or_False}] makes the logic classical.\footnote{In
     fact, the $\varepsilon$-operator already makes the logic classical, as
     shown by Diaconescu; see Paulson~\cite{paulson-COLOG} for details.}
@@ -409,7 +409,7 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 \tdx{ex1E}      [| ?! x. P x;  !!x. [| P x;  ! y. P y --> y=x |] ==> R 
           |] ==> R
 
-\tdx{select_equality} [| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a
+\tdx{some_equality}   [| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a
 \subcaption{Quantifiers and descriptions}
 
 \tdx{ccontr}          (~P ==> False) ==> P

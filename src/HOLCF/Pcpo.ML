@@ -12,7 +12,7 @@ introduction of the classes cpo and pcpo
 (* ------------------------------------------------------------------------ *)
  
 Goalw [UU_def] "ALL z. UU << z";
-by (rtac (select_eq_Ex RS iffD2) 1);
+by (rtac (some_eq_ex RS iffD2) 1);
 by (rtac least 1);
 qed "UU_least";
 

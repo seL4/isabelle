@@ -38,7 +38,7 @@ Goalw [ratrel_def]
 by (Fast_tac 1);
 qed "ratrelE_lemma";
 
-val [major,minor] = goal (the_context ())
+val [major,minor] = Goal
   "[| p: ratrel;  \
 \     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1*y2 = x2*y1 \
 \                    |] ==> Q |] ==> Q";
@@ -96,7 +96,7 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_prat_of_pnat";
 
-val [prem] = goal (the_context ())
+val [prem] = Goal
     "(!!x y. z = Abs_prat(ratrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [prat_def] Rep_prat RS quotientE) 1);
@@ -611,7 +611,7 @@ Goal "w <= (w::prat)";
 by (simp_tac (simpset() addsimps [prat_le_eq_less_or_eq]) 1);
 qed "prat_le_refl";
 
-val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::prat)";
+Goal "[| i <= j; j < k |] ==> i < (k::prat)";
 by (dtac prat_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [prat_less_trans]) 1);
 qed "prat_le_less_trans";

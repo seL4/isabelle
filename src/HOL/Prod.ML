@@ -55,10 +55,9 @@ Goalw [Prod_def] "Pair_Rep a b : Prod";
 by (EVERY1 [rtac CollectI, rtac exI, rtac exI, rtac refl]);
 qed "ProdI";
 
-val [major] = goalw (the_context ()) [Pair_Rep_def]
-    "Pair_Rep a b = Pair_Rep a' b' ==> a=a' & b=b'";
-by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst),
-            rtac conjI, rtac refl, rtac refl]);
+Goalw [Pair_Rep_def] "Pair_Rep a b = Pair_Rep a' b' ==> a=a' & b=b'";
+by (dtac (fun_cong RS fun_cong) 1);
+by (Blast_tac 1);
 qed "Pair_Rep_inject";
 
 Goal "inj_on Abs_Prod Prod";
@@ -185,9 +184,8 @@ by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
 (*Prevents simplification of c: much faster*)
-val [prem] = goal (the_context ())
-  "p=q ==> split c p = split c q";
-by (rtac (prem RS arg_cong) 1);
+Goal "p=q ==> split c p = split c q";
+by (etac arg_cong 1);
 qed "split_weak_cong";
 
 Goal "(%(x,y). f(x,y)) = f";
@@ -303,7 +301,7 @@ val prems = Goalw [split_def]
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "splitE'";
 
-val major::prems = goal (the_context ())
+val major::prems = Goal
     "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R  \
 \    |] ==> R";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
@@ -360,7 +358,7 @@ but cannot be used as rewrite rule:
 ### Cannot add premise as rewrite rule because it contains (type) unknowns:
 ### ?y = .x
 Goal "[| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by ( Simp_tac 1);
 by (split_all_tac 1);
 by (Asm_full_simp_tac 1);
@@ -436,7 +434,7 @@ by (etac SigmaE 1);
 by (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ;
 qed "SigmaD2";
 
-val [major,minor]= goal (the_context ())
+val [major,minor]= Goal
     "[| (a,b) : Sigma A B;    \
 \       [| a:A;  b:B(a) |] ==> P   \
 \    |] ==> P";

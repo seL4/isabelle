@@ -32,7 +32,7 @@ by (rtac (split_if RS iffD2) 1);
 by (auto_tac (claset(),simpset() addsimps [super_def,
                maxchain_def,psubset_def]));
 by (rtac swap 1 THEN assume_tac 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by (ALLGOALS(Blast_tac));
 qed "Abrial_axiom1";
 
@@ -167,7 +167,7 @@ qed "mem_super_Ex";
 Goal "c: chain S - maxchain S ==> \
 \                         (@c'. c': super S c): super S c";
 by (etac (mem_super_Ex RS exE) 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by (Auto_tac);
 qed "select_super";
 

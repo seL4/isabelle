@@ -6,5 +6,5 @@
 
 Goalw [newref_def]
  "hp x = None \\<longrightarrow> hp (newref hp) = None";
-by (fast_tac (claset() addIs [selectI2EX] addss (simpset())) 1);
+by (fast_tac (claset() addIs [someI2EX] addss (simpset())) 1);
 qed_spec_mp "newref_None";

@@ -323,7 +323,7 @@ val lemma = result();
 Goalw [card_def]
      "[| finite A; x ~: A |] ==> card (insert x A) = Suc(card A)";
 by (asm_simp_tac (simpset() addsimps [lemma]) 1);
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (auto_tac (claset() addIs [finite_imp_cardR],
 	      simpset() addcongs [conj_cong]
 		        addsimps [symmetric card_def,
@@ -596,7 +596,7 @@ val lemma = result();
 Goalw [fold_def]
      "[| finite A; x ~: A |] ==> fold f e (insert x A) = f x (fold f e A)";
 by (asm_simp_tac (simpset() addsimps [lemma]) 1);
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (auto_tac (claset() addIs [finite_imp_foldSet],
 	      simpset() addcongs [conj_cong]
 		        addsimps [symmetric fold_def,

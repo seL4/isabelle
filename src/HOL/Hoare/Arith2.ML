@@ -37,7 +37,7 @@ qed "cd_diff_r";
 
 Goalw [gcd_def] "0<n ==> n = gcd n n";
 by (ftac cd_nnn 1);
-by (rtac (select_equality RS sym) 1);
+by (rtac (some_equality RS sym) 1);
 by (blast_tac (claset() addDs [cd_le]) 1);
 by (blast_tac (claset() addIs [le_anti_sym] addDs [cd_le]) 1);
 qed "gcd_nnn";

@@ -476,7 +476,7 @@ qed "Least_nat_def";
 
 val [prem1,prem2] = Goalw [Least_nat_def]
     "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (blast_tac (claset() addSIs [prem1,prem2]) 1);
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addSIs [prem1] addSDs [prem2]) 1);

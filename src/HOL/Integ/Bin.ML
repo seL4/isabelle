@@ -281,7 +281,7 @@ by (stac eq_commute 1 THEN stac zmult_eq_0_iff 1);
 by Auto_tac;
 qed "zmult_0_eq_iff";
 
-Addsimps [zmult_eq_0_iff, zmult_0_eq_iff];
+AddIffs [zmult_eq_0_iff, zmult_0_eq_iff];
 
 Goal "(w < z + (#1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);

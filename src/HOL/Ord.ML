@@ -120,10 +120,9 @@ by (cut_facts_tac [linorder_linear] 1);
 by (Blast_tac 1);
 qed "linorder_less_linear";
 
-val prems = goal (the_context ())
- "[| (x::'a::linorder)<y ==> P; x=y ==> P; y<x ==> P |] ==> P";
-by(cut_facts_tac [linorder_less_linear] 1);
-by(REPEAT(eresolve_tac (prems@[disjE]) 1));
+val prems = Goal "[| (x::'a::linorder)<y ==> P; x=y ==> P; y<x ==> P |] ==> P";
+by (cut_facts_tac [linorder_less_linear] 1);
+by (REPEAT(eresolve_tac (prems@[disjE]) 1));
 qed "linorder_less_split";
 
 Goal "!!x::'a::linorder. (~ x < y) = (y <= x)";

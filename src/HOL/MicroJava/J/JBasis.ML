@@ -43,10 +43,10 @@ Addsimps [Let_def];
 
 (* To HOL.ML *)
 
-val ex1_Eps_eq = prove_goal HOL.thy "\\<lbrakk> \\<exists>!x. P x; P y \\<rbrakk> \\<Longrightarrow> Eps P = y" 
+val ex1_some_eq_trivial = prove_goal HOL.thy "\\<lbrakk> \\<exists>!x. P x; P y \\<rbrakk> \\<Longrightarrow> Eps P = y" 
 	(fn prems => [
 	cut_facts_tac prems 1,
-	rtac select_equality 1,
+	rtac some_equality 1,
 	 atac 1,
 	etac ex1E 1,
 	etac all_dupE 1,

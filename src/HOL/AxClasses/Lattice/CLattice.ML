@@ -51,14 +51,14 @@ qed "ex1_Sup";
 
 val prems = goalw thy [Inf_def] "x:A ==> Inf A [= x";
   by (cut_facts_tac prems 1);
-  by (rtac selectI2 1);
+  by (rtac someI2 1);
   by (rtac Inf_is_Inf 1);
   by (rewtac is_Inf_def);
   by (Fast_tac 1);
 qed "Inf_lb";
 
 val [prem] = goalw thy [Inf_def] "(!!x. x:A ==> z [= x) ==> z [= Inf A";
-  by (rtac selectI2 1);
+  by (rtac someI2 1);
   by (rtac Inf_is_Inf 1);
   by (rewtac is_Inf_def);
   by (Step_tac 1);
@@ -71,14 +71,14 @@ qed "Inf_ub_lbs";
 
 val prems = goalw thy [Sup_def] "x:A ==> x [= Sup A";
   by (cut_facts_tac prems 1);
-  by (rtac selectI2 1);
+  by (rtac someI2 1);
   by (rtac Sup_is_Sup 1);
   by (rewtac is_Sup_def);
   by (Fast_tac 1);
 qed "Sup_ub";
 
 val [prem] = goalw thy [Sup_def] "(!!x. x:A ==> x [= z) ==> Sup A [= z";
-  by (rtac selectI2 1);
+  by (rtac someI2 1);
   by (rtac Sup_is_Sup 1);
   by (rewtac is_Sup_def);
   by (Step_tac 1);

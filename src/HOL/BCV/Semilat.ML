@@ -162,7 +162,7 @@ qed_spec_mp "univalent_has_lubs";
 
 Goalw [some_lub_def,is_lub_def]
  "[| acyclic r; is_lub (r^*) x y u |] ==> some_lub (r^*) x y = u";
-br selectI2 1;
+br someI2 1;
  ba 1;
 by(blast_tac (claset() addIs [antisymD]
                        addSDs [acyclic_impl_antisym_rtrancl]) 1);

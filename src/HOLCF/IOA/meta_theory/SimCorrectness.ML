@@ -249,7 +249,7 @@ Goal
   by (etac ballE 1);
   by (Blast_tac 2);
   by (etac exE 1);
-  by (rtac selectI2 1);
+  by (rtac someI2 1);
   by (assume_tac 1);
   by (Blast_tac 1);
 qed"simulation_starts";

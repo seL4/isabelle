@@ -97,7 +97,7 @@ lemma ex_fnorm [intro?]:
   "[| is_normed_vectorspace V norm; is_continuous V norm f|]
      ==> is_function_norm f V norm \<parallel>f\<parallel>V,norm" 
 proof (unfold function_norm_def is_function_norm_def 
-  is_continuous_def Sup_def, elim conjE, rule selectI2EX)
+  is_continuous_def Sup_def, elim conjE, rule someI2EX)
   assume "is_normed_vectorspace V norm"
   assume "is_linearform V f" 
   and e: "\<exists>c. \<forall>x \<in> V. |f x| <= c * norm x"

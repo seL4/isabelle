@@ -49,7 +49,7 @@ Goal "[| r=s; s=t |] ==> r=t";
 by (etac subst 1 THEN assume_tac 1);
 qed "trans";
 
-val prems = goal (the_context ()) "(A == B) ==> A = B";
+val prems = goal (the_context()) "(A == B) ==> A = B";
 by (rewrite_goals_tac prems);
 by (rtac refl 1);
 qed "def_imp_eq";
@@ -140,11 +140,11 @@ by (rtac eqTrueE 1);
 by (etac fun_cong 1);
 qed "spec";
 
-val major::prems= goal (the_context ()) "[| ALL x. P(x);  P(x) ==> R |] ==> R";
+val major::prems = Goal "[| ALL x. P(x);  P(x) ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ;
 qed "allE";
 
-val prems = goal (the_context ())
+val prems = Goal
     "[| ALL x. P(x);  [| P(x); ALL x. P(x) |] ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ;
 qed "all_dupE";
@@ -356,7 +356,7 @@ qed "ex1_implies_ex";
 section "@";
 
 (*Easier to apply than selectI if witness ?a comes from an EX-formula*)
-Goal "EX a. P a ==> P (SOME x. P x)";
+Goal "EX x. P x ==> P (SOME x. P x)";
 by (etac exE 1);
 by (etac selectI 1);
 qed "ex_someI";
@@ -367,22 +367,22 @@ val prems = Goal
 by (resolve_tac prems 1);
 by (rtac selectI 1);
 by (resolve_tac prems 1) ;
-qed "selectI2";
+qed "someI2";
 
-(*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
+(*Easier to apply than someI2 if witness ?a comes from an EX-formula*)
 val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
 by (rtac (major RS exE) 1);
-by (etac selectI2 1 THEN etac minor 1);
-qed "selectI2EX";
+by (etac someI2 1 THEN etac minor 1);
+qed "someI2EX";
 
 val prems = Goal
     "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a";
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by (REPEAT (ares_tac prems 1)) ;
-qed "select_equality";
+qed "some_equality";
 
 Goalw [Ex1_def] "[| EX!x. P x; P a |] ==> (@x. P x) = a";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (atac 1);
 by (etac exE 1);
 by (etac conjE 1);
@@ -394,31 +394,31 @@ by (etac ssubst 1);
 by (etac allE 1);
 by (etac mp 1);
 by (atac 1);
-qed "select1_equality";
+qed "some1_equality";
 
 Goal "P (@ x. P x) =  (EX x. P x)";
 by (rtac iffI 1);
 by (etac exI 1);
 by (etac exE 1);
 by (etac selectI 1);
-qed "select_eq_Ex";
+qed "some_eq_ex";
 
 Goal "(@y. y=x) = x";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac refl 1);
 by (atac 1);
-qed "Eps_eq";
+qed "some_eq_trivial";
 
-Goal "(Eps (op = x)) = x";
-by (rtac select_equality 1);
+Goal "(@y. x=y) = x";
+by (rtac some_equality 1);
 by (rtac refl 1);
 by (etac sym 1);
-qed "Eps_sym_eq";
+qed "some_sym_eq_trivial";
 
 (** Classical intro rules for disjunction and existential quantifiers *)
 section "classical intro rules";
 
-val prems= Goal "(~Q ==> P) ==> P|Q";
+val prems = Goal "(~Q ==> P) ==> P|Q";
 by (rtac classical 1);
 by (REPEAT (ares_tac (prems@[disjI1,notI]) 1));
 by (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ;

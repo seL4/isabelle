@@ -76,7 +76,7 @@ qed "less_Suc_eq_0_disj";
 
 Goalw [Least_nat_def]
  "[| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (fold_goals_tac [Least_nat_def]);
 by (safe_tac (claset() addSEs [LeastI]));
 by (rename_tac "j" 1);
@@ -88,7 +88,7 @@ by (case_tac "k" 1);
 by (Blast_tac 1);
 by (hyp_subst_tac 1);
 by (rewtac Least_nat_def);
-by (rtac (select_equality RS arg_cong RS sym) 1);
+by (rtac (some_equality RS arg_cong RS sym) 1);
 by (blast_tac (claset() addDs [Suc_mono]) 1);
 by (cut_inst_tac [("m","m")] less_linear 1);
 by (blast_tac (claset() addIs [Suc_mono]) 1);

@@ -569,7 +569,7 @@ by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [int_0_le_mult_iff]) 1);
 by (subgoal_tac "m*k<m*#1" 1);
 by (dtac (zmult_zless_cancel1 RS iffD1) 1);
-by Auto_tac;  
+by (auto_tac (claset(), simpset() addsimps [linorder_neq_iff]));
 qed "zcong_zless_0";
 
 Goal "#0<m ==> (EX! b. #0<=b & b<m & [a = b] (mod m))";

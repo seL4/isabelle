@@ -223,7 +223,7 @@ qed "IssumE2";
 
 Goalw [Iwhen_def]
         "Iwhen f g (Isinl UU) = UU";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (fast_tac HOL_cs  1);
 by (rtac conjI 1);
@@ -246,7 +246,7 @@ qed "Iwhen1";
 
 Goalw [Iwhen_def]
         "x~=UU ==> Iwhen f g (Isinl x) = f`x";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (fast_tac HOL_cs  2);
 by (rtac conjI 1);
 by (strip_tac 1);
@@ -269,7 +269,7 @@ qed "Iwhen2";
 
 Goalw [Iwhen_def]
         "y~=UU ==> Iwhen f g (Isinr y) = g`y";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (fast_tac HOL_cs  2);
 by (rtac conjI 1);
 by (strip_tac 1);

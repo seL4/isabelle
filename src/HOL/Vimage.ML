@@ -77,11 +77,9 @@ qed "vimage_Collect_eq";
 Addsimps [vimage_Collect_eq];
 
 (*A strange result used in Tools/inductive_package*)
-bind_thm ("vimage_Collect", 
-	  allI RS 
-	  prove_goalw (the_context ()) [vimage_def]
-	  "! x. P (f x) = Q x ==> f -`` (Collect P) = Collect Q"
-	      (fn prems => [cut_facts_tac prems 1, Fast_tac 1]));
+val prems = Goal "(!!x. P (f x) = Q x) ==> f -`` (Collect P) = Collect Q";
+by (force_tac (claset(), simpset() addsimps prems) 1);
+qed "vimage_Collect";
 
 Addsimps [vimage_empty, vimage_Un, vimage_Int];
 

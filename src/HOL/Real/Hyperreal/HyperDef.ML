@@ -43,13 +43,13 @@ qed "FreeUltrafilterNat_Ex";
 Goalw [FreeUltrafilterNat_def] 
      "FreeUltrafilterNat: FreeUltrafilter(UNIV:: nat set)";
 by (rtac (FreeUltrafilterNat_Ex RS exE) 1);
-by (rtac selectI2 1 THEN ALLGOALS(assume_tac));
+by (rtac someI2 1 THEN ALLGOALS(assume_tac));
 qed "FreeUltrafilterNat_mem";
 Addsimps [FreeUltrafilterNat_mem];
 
 Goalw [FreeUltrafilterNat_def] "finite x ==> x ~: FreeUltrafilterNat";
 by (rtac (FreeUltrafilterNat_Ex RS exE) 1);
-by (rtac selectI2 1 THEN assume_tac 1);
+by (rtac someI2 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [mem_FreeUltrafiltersetD1]) 1);
 qed "FreeUltrafilterNat_finite";
 
@@ -59,7 +59,7 @@ qed "FreeUltrafilterNat_not_finite";
 
 Goalw [FreeUltrafilterNat_def] "{} ~: FreeUltrafilterNat";
 by (rtac (FreeUltrafilterNat_Ex RS exE) 1);
-by (rtac selectI2 1 THEN assume_tac 1);
+by (rtac someI2 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [FreeUltrafilter_Ultrafilter,
 			       Ultrafilter_Filter,Filter_empty_not_mem]) 1);
 qed "FreeUltrafilterNat_empty";

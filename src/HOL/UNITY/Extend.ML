@@ -88,7 +88,7 @@ qed "good_map_is_surj";
 val [surj,prem] = Goalw [inv_def]
      "[| surj h;  !! x y. g (h(x,y)) = x |] ==> fst (inv h z) = g z";
 by (res_inst_tac [("y1", "z")] (surj RS surjD RS exE) 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by (dres_inst_tac [("f", "g")] arg_cong 2);
 by (auto_tac (claset(), simpset() addsimps [prem]));
 qed "fst_inv_equalityI";

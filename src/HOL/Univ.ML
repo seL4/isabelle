@@ -387,12 +387,8 @@ Goalw [Funs_def] "S <= T ==> Funs S <= Funs T";
 by (Blast_tac 1);
 qed "Funs_mono";
 
-val [p] = goalw (the_context ()) [Funs_def] "(!!x. f x : S) ==> f : Funs S";
-by (rtac CollectI 1);
-by (rtac subsetI 1);
-by (etac rangeE 1);
-by (etac ssubst 1);
-by (rtac p 1);
+val [prem] = Goalw [Funs_def] "(!!x. f x : S) ==> f : Funs S";
+by (blast_tac (claset() addIs [prem]) 1);
 qed "FunsI";
 
 Goalw [Funs_def] "f : Funs S ==> f x : S";
@@ -401,8 +397,8 @@ by (etac subsetD 1);
 by (rtac rangeI 1);
 qed "FunsD";
 
-val [p1, p2] = goalw (the_context ()) [o_def]
-  "[| f : Funs R; !!x. x : R ==> r (a x) = x |] ==> r o (a o f) = f";
+val [p1, p2] = Goalw [o_def]
+   "[| f : Funs R; !!x. x : R ==> r (a x) = x |] ==> r o (a o f) = f";
 by (rtac (p2 RS ext) 1);
 by (rtac (p1 RS FunsD) 1);
 qed "Funs_inv";
@@ -412,7 +408,7 @@ val [p1, p2] = Goalw [o_def]
 by (res_inst_tac [("h", "%x. @y. (f::'a=>'b) x = g y")] p2 1);
 by (rtac ext 1);
 by (rtac (p1 RS FunsD RS rangeE) 1);
-by (etac (exI RS (select_eq_Ex RS iffD2)) 1);
+by (etac (exI RS (some_eq_ex RS iffD2)) 1);
 qed "Funs_rangeE";
 
 Goal "a : S ==> (%x. a) : Funs S";

@@ -12,7 +12,7 @@ AddIffs [refl_less];
 (* minimal fixes least element                                              *)
 (* ------------------------------------------------------------------------ *)
 Goal "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)";
-by (blast_tac (claset() addIs [selectI2,antisym_less]) 1);
+by (blast_tac (claset() addIs [someI2,antisym_less]) 1);
 bind_thm ("minimal2UU", allI RS result());
 
 (* ------------------------------------------------------------------------ *)

@@ -469,7 +469,7 @@ proof -
     qed
   qed
   hence eq: "(SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H) = (y, a)" 
-    by (rule select1_equality) (force!)
+    by (rule some1_equality) (force!)
   thus "h' x = h y + a * xi" by (simp! add: Let_def)
 qed
 

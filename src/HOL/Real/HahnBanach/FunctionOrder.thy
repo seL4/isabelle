@@ -75,11 +75,11 @@ lemma graph_domain_funct:
   ==> graph (domain g) (funct g) = g"
 proof (unfold domain_def funct_def graph_def, auto)
   fix a b assume "(a, b) \<in> g"
-  show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule selectI2)
+  show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule someI2)
   show "\<exists>y. (a, y) \<in> g" ..
   assume uniq: "!!x y z. (x, y) \<in> g ==> (x, z) \<in> g ==> z = y"
   show "b = (SOME y. (a, y) \<in> g)"
-  proof (rule select_equality [symmetric])
+  proof (rule some_equality [symmetric])
     fix y assume "(a, y) \<in> g" show "y = b" by (rule uniq)
   qed
 qed

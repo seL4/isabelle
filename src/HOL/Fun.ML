@@ -584,7 +584,7 @@ qed "surj_image";
 
 Goalw [Inv_def] "[| f `` A = B; f : A funcset B |] \
 \                ==> (lam x: B. (Inv A f) x) : B funcset A";
-by (fast_tac (claset() addIs [restrict_in_funcset, selectI2]) 1);
+by (fast_tac (claset() addIs [restrict_in_funcset, someI2]) 1);
 qed "Inv_funcset";
 
 
@@ -592,14 +592,14 @@ Goal "[| f: A funcset B;  inj_on f A;  f `` A = B;  x: A |] \
 \     ==> (lam y: B. (Inv A f) y) (f x) = x";
 by (asm_simp_tac (simpset() addsimps [restrict_apply1, funcset_mem]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]) 1);
-by (rtac selectI2 1);
+by (rtac someI2 1);
 by Auto_tac;
 qed "Inv_f_f";
 
 Goal "[| f: A funcset B;  f `` A = B;  x: B |] \
 \     ==> f ((lam y: B. (Inv A f y)) x) = x";
 by (asm_simp_tac (simpset() addsimps [Inv_def, restrict_apply1]) 1);
-by (fast_tac (claset() addIs [selectI2]) 1);
+by (fast_tac (claset() addIs [someI2]) 1);
 qed "f_Inv_f";
 
 Goal "[| f: A funcset B;  inj_on f A;  f `` A = B |]\

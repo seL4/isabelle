@@ -48,7 +48,7 @@ by (res_inst_tac [("x","lam a: A. @ y. (a, y): x")] bexI 1);
  by (res_inst_tac [("P", "%xa. (a, xa) : x")] ex1E 2);
   by (force_tac (claset(), simpset() addsimps [Graph_def]) 2);
  by (full_simp_tac (simpset() addsimps [Graph_def]) 2);
-  by (stac select_equality 2);
+  by (stac some_equality 2);
    by (assume_tac 2);
   by (Blast_tac 2);
  by (Blast_tac 2);
@@ -56,7 +56,7 @@ by (res_inst_tac [("x","lam a: A. @ y. (a, y): x")] bexI 1);
 by (full_simp_tac (simpset() addsimps [PiBij_def,Graph_def]) 1);
 by (stac restrict_apply1 1);
  by (rtac restrictI 1);
- by (blast_tac (claset() addSDs [[select_eq_Ex, ex1_implies_ex] MRS iffD2]) 1);
+ by (blast_tac (claset() addSDs [[some_eq_ex, ex1_implies_ex] MRS iffD2]) 1);
 (** LEVEL 17 **)
 by (rtac equalityI 1);
 by (rtac subsetI 1);
@@ -65,11 +65,11 @@ by (subgoal_tac "a: A" 1);
 by (Blast_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [restrict_apply1]) 1);
 (*Blast_tac: PROOF FAILED for depth 5*)
-by (fast_tac (claset() addSIs [select1_equality RS sym]) 1);
+by (fast_tac (claset() addSIs [some1_equality RS sym]) 1);
 (* {(xa,y). xa : A & y = (lam a:A. @ y. (a, y) : x) xa} <= x   *)
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [restrict_apply1]) 1);
-by (fast_tac (claset() addIs [selectI2]) 1);
+by (fast_tac (claset() addIs [someI2]) 1);
 qed "surj_PiBij";
 
 Goal "f: Pi A B ==> \

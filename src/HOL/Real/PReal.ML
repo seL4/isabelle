@@ -698,7 +698,7 @@ by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_inv 1);
 qed "preal_mult_inv_right";
 
-val [prem] = goal (the_context ())
+val [prem] = Goal
     "(!!u. z = Abs_preal(u) ==> P) ==> P";
 by (cut_inst_tac [("x1","z")] 
     (rewrite_rule [preal_def] (Rep_preal RS Abs_preal_inverse)) 1);
@@ -779,12 +779,12 @@ Goalw [preal_le_def] "w <= (w::preal)";
 by (Simp_tac 1);
 qed "preal_le_refl";
 
-val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::preal)";
+Goal "[| i <= j; j < k |] ==> i < (k::preal)";
 by (dtac preal_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [preal_less_trans]) 1);
 qed "preal_le_less_trans";
 
-val prems = goal (the_context ()) "!!i. [| i < j; j <= k |] ==> i < (k::preal)";
+Goal "[| i < j; j <= k |] ==> i < (k::preal)";
 by (dtac preal_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [preal_less_trans]) 1);
 qed "preal_less_le_trans";
@@ -804,7 +804,7 @@ by (rtac not_preal_leE 1);
 by (fast_tac (claset() addDs [preal_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_preal_less";
 
-(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)
+(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)(****)
 
 (**** Set up all lemmas for proving A < B ==> ?D. A + D = B ****)
 (**** Gleason prop. 9-3.5(iv) p. 123 ****)

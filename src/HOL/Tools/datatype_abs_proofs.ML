@@ -245,7 +245,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       end;
 
     val rec_total_thms = map (fn r =>
-      r RS ex1_implies_ex RS (select_eq_Ex RS iffD2)) rec_unique_thms;
+      r RS ex1_implies_ex RS (some_eq_ex RS iffD2)) rec_unique_thms;
 
     (* define primrec combinators *)
 
@@ -276,7 +276,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val rec_thms = map (fn t => prove_goalw_cterm reccomb_defs
       (cterm_of (Theory.sign_of thy2) t) (fn _ =>
-        [rtac select1_equality 1,
+        [rtac some1_equality 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
          rewrite_goals_tac [o_def, fun_rel_comp_def],

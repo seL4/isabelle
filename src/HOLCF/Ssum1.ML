@@ -36,7 +36,7 @@ fun UU_right s1 =
 
 Goalw [less_ssum_def]
 "[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> s1 << s2 = (x << y)";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (dtac conjunct1 2);
 by (dtac spec 2);
 by (dtac spec 2);
@@ -74,7 +74,7 @@ qed "less_ssum1a";
 
 Goalw [less_ssum_def]
 "[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> s1 << s2 = (x << y)";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (dtac conjunct2 2);
 by (dtac conjunct1 2);
 by (dtac spec 2);
@@ -113,7 +113,7 @@ qed "less_ssum1b";
 
 Goalw [less_ssum_def]
 "[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> s1 << s2 = ((x::'a) = UU)";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (rtac conjI 1);
 by (strip_tac 1);
 by (etac conjE 1);
@@ -152,7 +152,7 @@ qed "less_ssum1c";
 
 Goalw [less_ssum_def]
 "[|s1=Isinr(x); s2=Isinl(y)|] ==> s1 << s2 = (x = UU)";
-by (rtac select_equality 1);
+by (rtac some_equality 1);
 by (dtac conjunct2 2);
 by (dtac conjunct2 2);
 by (dtac conjunct2 2);
