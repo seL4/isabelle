@@ -313,7 +313,6 @@ goal FOL.thy "(ALL z. EX w. ALL x. EX y. \
 \       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> (ALL x. EX y. R(x,y))";
 by (fast_tac FOL_cs 1);
-(*slow...Poly/ML: 9.7 secs*)
 result();
 
 writeln"Problem 38";
