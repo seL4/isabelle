@@ -22,6 +22,7 @@ sig
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
+  val context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   type transition
   exception TERMINATE
@@ -140,6 +141,7 @@ fun node_case f g state =
   | Proof prf => g (ProofHistory.current prf));
 
 val theory_of = node_case I Proof.theory_of;
+val context_of = node_case ProofContext.init Proof.context_of;
 val sign_of = Theory.sign_of o theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
