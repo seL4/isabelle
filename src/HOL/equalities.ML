@@ -103,9 +103,6 @@ goal thy "f``(g``A) = (%x. f (g x)) `` A";
 by (Blast_tac 1);
 qed "image_image";
 
-qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
- (fn _ => [Blast_tac 1]);
-
 goal thy "!!x. x:A ==> insert (f x) (f``A) = f``A";
 by (Blast_tac 1);
 qed "insert_image";
@@ -123,6 +120,11 @@ by (split_tac [expand_if] 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
+
+val prems= goal thy "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
+by (rtac set_ext 1);
+by (simp_tac (simpset() addsimps image_def::prems) 1);
+qed "image_cong";
 
 
 section "Int";
@@ -371,6 +373,9 @@ qed "Inter_Un_distrib";
 section "UN and INT";
 
 (*Basic identities*)
+
+val not_empty = prove_goal Set.thy "A Û {} = (Ãx. xÎA)" (K [Blast_tac 1]);
+(*Addsimps[not_empty];*)
 
 goal thy "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
@@ -680,6 +685,7 @@ val ball_simps = map prover
      "(ALL x:A. P --> Q x) = (P --> (ALL x:A. Q x))",
      "(ALL x:A. P x --> Q) = ((EX x:A. P x) --> Q)",
      "(ALL x:{}. P x) = True",
+     "(ALL x:UNIV. P x) = (ALL x. P x)",
      "(ALL x:insert a B. P x) = (P(a) & (ALL x:B. P x))",
      "(ALL x:Union(A). P x) = (ALL y:A. ALL x:y. P x)",
      "(ALL x:Collect Q. P x) = (ALL x. Q x --> P x)",
@@ -693,6 +699,7 @@ val bex_simps = map prover
     ["(EX x:A. P x & Q) = ((EX x:A. P x) & Q)",
      "(EX x:A. P & Q x) = (P & (EX x:A. Q x))",
      "(EX x:{}. P x) = False",
+     "(EX x:UNIV. P x) = (EX x. P x)",
      "(EX x:insert a B. P x) = (P(a) | (EX x:B. P x))",
      "(EX x:Union(A). P x) = (EX y:A. EX x:y.  P x)",
      "(EX x:Collect Q. P x) = (EX x. Q x & P x)",
