@@ -41,7 +41,8 @@ consts
 
 (* patterns -- extends pre-defined type "pttrn" used in abstractions *)
 
-types patterns
+nonterminals
+  patterns
 
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"       ("(1'(_,/ _'))")
