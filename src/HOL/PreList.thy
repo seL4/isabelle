@@ -9,7 +9,7 @@ basis for theory ToyList in the documentation.
 
 theory PreList =
   Option + Wellfounded_Relations + NatSimprocs + Recdef + Record +
-  Relation_Power + SVC_Oracle:
+  Relation_Power:
 
 (*belongs to theory Divides*)
 declare dvdI [intro?]  dvdE [elim?]  dvd_trans [trans]

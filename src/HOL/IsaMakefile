@@ -92,15 +92,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Option.ML Option.thy Power.ML Power.thy PreList.thy \
   Product_Type.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
   Relation.ML Relation.thy Relation_Power.ML Relation_Power.thy \
-  SVC_Oracle.ML SVC_Oracle.thy Set.ML Set.thy SetInterval.ML \
-  SetInterval.thy Sum_Type.ML Sum_Type.thy \
+  Set.ML Set.thy SetInterval.ML SetInterval.thy Sum_Type.ML Sum_Type.thy \
   Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
   Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
-  Tools/record_package.ML Tools/split_rule.ML \
-  Tools/svc_funcs.ML Tools/typedef_package.ML \
+  Tools/record_package.ML Tools/split_rule.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
   Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
@@ -553,10 +551,10 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy \
   ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
-  ex/Ring.ML ex/Ring.thy ex/StringEx.thy ex/Tarski.ML \
-  ex/Tarski.thy ex/Tuple.thy ex/cla.ML ex/mesontest.ML ex/mesontest2.ML \
-  ex/mesontest2.thy ex/set.ML ex/set.thy ex/svc_test.ML ex/svc_test.thy \
-  ex/document/root.bib ex/document/root.tex
+  ex/Ring.ML ex/Ring.thy ex/StringEx.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy \
+  ex/Tarski.ML ex/Tarski.thy ex/Tuple.thy ex/cla.ML ex/mesontest.ML \
+  ex/mesontest2.ML ex/mesontest2.thy ex/set.ML ex/set.thy ex/svc_funcs.ML \
+  ex/svc_test.ML ex/svc_test.thy ex/document/root.bib ex/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 

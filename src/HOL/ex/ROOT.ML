@@ -35,4 +35,5 @@ time_use_thy "set";
 time_use_thy "MT";
 time_use_thy "Tarski";
 
+time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
