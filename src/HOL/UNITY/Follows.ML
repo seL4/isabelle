@@ -98,7 +98,19 @@ by Auto_tac;
 by (dtac Always_Int_I 1);
 by (assume_tac 1);
 by (force_tac (claset() addIs [Always_weaken], simpset()) 1);
-qed "Always_Follows";
+qed "Always_Follows1";
+
+Goalw [Follows_def, Increasing_def, Stable_def]
+     "[| F : Always {s. g s = g' s}; F : f Fols g |] ==> F : f Fols g'"; 
+by Auto_tac;
+by (etac Always_LeadsTo_weaken 3);
+by (eres_inst_tac [("A", "{s. z <= g s}"), ("A'", "{s. z <= g s}")] 
+                  Always_Constrains_weaken 1);
+by Auto_tac;
+by (dtac Always_Int_I 1);
+by (assume_tac 1);
+by (force_tac (claset() addIs [Always_weaken], simpset()) 1);
+qed "Always_Follows2";
 
 
 (** Union properties (with the subset ordering) **)
