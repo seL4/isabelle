@@ -163,7 +163,9 @@ fun activate (ctxt, Fixes fixes) =
       ctxt |> ProofContext.fix_frees (flat (map (map #1 o #2) asms))
       |> ProofContext.assume_i ProofContext.export_assume asms |> #1
   | activate (ctxt, Defines defs) = #1 (ProofContext.assume_i ProofContext.export_def
-      (map (fn (a, (t, ps)) => (a, [(ProofContext.cert_def ctxt t, (ps, []))])) defs) ctxt)
+      (map (fn ((name, atts), (t, ps)) =>
+        let val (c, t') = ProofContext.cert_def ctxt t
+        in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs) ctxt)
   | activate (ctxt, Notes facts) = #1 (ProofContext.have_thmss facts ctxt)
   | activate (ctxt, Uses name) = activate_locale_i name ctxt
 
@@ -233,8 +235,8 @@ fun pretty_locale thy xname =
 
     val prt_header = Pretty.block (Pretty.str ("locale " ^ cond_extern sg name ^ " =") ::
        (if null imports then [] else
-       (flat (separate [Pretty.str "+", Pretty.brk 1] (map (single o Pretty.str) imports)) @
-         [Pretty.str "+"])));
+       (Pretty.str " " :: flat (separate [Pretty.str " +", Pretty.brk 1]
+           (map (single o Pretty.str o cond_extern sg) imports)) @ [Pretty.str " +"])));
   in Pretty.block (Pretty.fbreaks (prt_header :: map prt_elem elements)) end;
 
 val print_locale = Pretty.writeln oo pretty_locale;
@@ -254,7 +256,7 @@ fun closeup ctxt (Assumes asms) = Assumes (asms |> map (fn (a, propps) =>
         let val close = close_frees_wrt ctxt t in (close t, (map close ps1, map close ps2)) end))))
   | closeup ctxt (Defines defs) = Defines (defs |> map (fn (a, (t, ps)) =>
       let
-        val t' = ProofContext.cert_def ctxt t;
+        val (_, t') = ProofContext.cert_def ctxt t;
         val close = close_frees_wrt ctxt t';
       in (a, (close t', map close ps)) end))
   | closeup ctxt elem = elem;
@@ -292,10 +294,9 @@ val add_locale_i = gen_add_locale (K I) (K I);
 fun store_thm name ((a, th), atts) thy =
   let
     val {imports, elements, closed} = the_locale thy name;
-    val _ = conditional closed
-      (fn () => error ("Cannot store results in closed locale: " ^ quote name));
     val note = Notes [((a, atts), [([Thm.name_thm (a, th)], [])])];
   in
+    conditional closed (fn () => error ("Cannot store results in closed locale: " ^ quote name));
     activate (ProofContext.init thy |> activate_locale_i name, note);    (*test attribute*)
     thy |> put_locale name (make_locale imports (elements @ [note]) closed)
   end;
