@@ -172,7 +172,7 @@ $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
   Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
   Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib \
   Real/HahnBanach/document/root.tex
-	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real HahnBanach
+	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Real HahnBanach
 
 
 ## HOL-Library
@@ -248,7 +248,7 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
   NumberTheory/IntFact.thy NumberTheory/IntPrimes.thy \
   NumberTheory/WilsonBij.thy NumberTheory/WilsonRuss.thy \
   NumberTheory/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/HOL NumberTheory
+	@$(ISATOOL) usedir -g true $(OUT)/HOL NumberTheory
 
 
 ## HOL-GroupTheory
@@ -411,7 +411,7 @@ $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Lambda/Commutation.thy Lambda/Eta.thy Lambda/InductTermi.thy Lambda/Lambda.thy \
   Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy \
   Lambda/ParRed.thy Lambda/Type.thy Lambda/ROOT.ML Lambda/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL Lambda
+	@$(ISATOOL) usedir -g true $(OUT)/HOL Lambda
 
 
 ## HOL-Prolog
@@ -466,7 +466,8 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/BV/Step.thy MicroJava/BV/StepMono.thy \
   MicroJava/BV/Typing_Framework.thy MicroJava/BV/Typing_Framework_err.thy \
   MicroJava/document/root.bib MicroJava/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
+	@$(ISATOOL) usedir -g true $(OUT)/HOL MicroJava
+
 
 ## HOL-NanoJava
 
@@ -476,7 +477,8 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML \
   NanoJava/Term.thy NanoJava/Decl.thy NanoJava/TypeRel.thy NanoJava/State.thy \
   NanoJava/OpSem.thy NanoJava/AxSem.thy NanoJava/AxSem.thy \
   NanoJava/document/root.bib NanoJava/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL NanoJava
+	@$(ISATOOL) usedir -g true $(OUT)/HOL NanoJava
+
 
 ## HOL-CTL
 
