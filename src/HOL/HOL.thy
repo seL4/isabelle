@@ -53,12 +53,14 @@ consts
 
 (* Overloaded Constants *)
 
-axclass plus < "term"
+axclass zero  < "term" 
+axclass plus  < "term"
 axclass minus < "term"
 axclass times < "term"
 axclass power < "term"
 
 consts
+  "0"           :: "('a::zero)"                     ("0")
   "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
   -             :: "['a::minus, 'a] => 'a"          (infixl 65)
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
