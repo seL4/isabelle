@@ -999,7 +999,7 @@ struct
 
 
 (* ------------------------------------------------------------------------- *)
-(* INTERPRETERS                                                              *)
+(* INTERPRETERS: Auxiliary Functions                                         *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
@@ -1125,6 +1125,24 @@ struct
 		Leaf [equal (i1, i2), not_equal (i1, i2)]
 	end;
 
+(* ------------------------------------------------------------------------- *)
+(* eta_expand: eta-expands a term 't' by adding 'i' lambda abstractions      *)
+(* ------------------------------------------------------------------------- *)
+
+	(* Term.term -> int -> Term.term *)
+
+	fun eta_expand t i =
+	let
+		val Ts = binder_types (fastype_of t)
+	in
+		foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
+			(take (i, Ts), list_comb (t, map Bound (i-1 downto 0)))
+	end;
+
+
+(* ------------------------------------------------------------------------- *)
+(* INTERPRETERS: Actual Interpreters                                         *)
+(* ------------------------------------------------------------------------- *)
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
@@ -1315,16 +1333,6 @@ struct
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
 	fun HOLogic_interpreter thy model args t =
-	let
-		(* Term.term -> int -> Term.term *)
-		fun eta_expand t i =
-		let
-			val Ts = binder_types (fastype_of t)
-		in
-			foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
-				(take (i, Ts), list_comb (t, map Bound (i-1 downto 0)))
-		end
-	in
 	(* ------------------------------------------------------------------------- *)
 	(* Providing interpretations directly is more efficient than unfolding the   *)
 	(* logical constants.  In HOL however, logical constants can themselves be   *)
@@ -1340,7 +1348,11 @@ struct
 			Some (TT, model, args)
 		| Const ("False", _) =>  (* redundant, since 'False' is also an IDT constructor *)
 			Some (FF, model, args)
-		| Const ("All", _) $ t1 =>
+		| Const ("All", _) $ t1 =>  (* if 'All' occurs without an argument (i.e.   *)
+		                            (* as argument to a higher-order function or   *)
+		                            (* predicate), it is handled by the            *)
+		                            (* 'stlc_interpreter' (i.e. by unfolding its   *)
+		                            (* definition)                                 *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
@@ -1353,9 +1365,13 @@ struct
 						Some (Leaf [fmTrue, fmFalse], m, a)
 					end
 				| _ =>
-					raise REFUTE ("HOLogic_interpreter", "\"All\" is not followed by a function")
+					raise REFUTE ("HOLogic_interpreter", "\"All\" is followed by a non-function")
 			end
-		| Const ("Ex", _) $ t1 =>
+		| Const ("Ex", _) $ t1 =>  (* if 'Ex' occurs without an argument (i.e. as  *)
+		                           (* argument to a higher-order function or       *)
+		                           (* predicate), it is handled by the             *)
+		                           (* 'stlc_interpreter' (i.e. by unfolding its    *)
+		                           (* definition)                                  *)
 			let
 				val (i, m, a) = interpret thy model args t1
 			in
@@ -1368,7 +1384,7 @@ struct
 						Some (Leaf [fmTrue, fmFalse], m, a)
 					end
 				| _ =>
-					raise REFUTE ("HOLogic_interpreter", "\"Ex\" is not followed by a function")
+					raise REFUTE ("HOLogic_interpreter", "\"Ex\" is followed by a non-function")
 			end
 		| Const ("op =", _) $ t1 $ t2 =>
 			let
@@ -1387,8 +1403,7 @@ struct
 			Some (Node [Node [TT, TT], Node [TT, FF]], model, args)
 		| Const ("op -->", _) =>
 			Some (Node [Node [TT, FF], Node [TT, TT]], model, args)
-		| _ => None
-	end;
+		| _ => None;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
@@ -1396,14 +1411,6 @@ struct
 	(* "T set" is isomorphic to "T --> bool" *)
 	let
 		val (typs, terms) = model
-		(* Term.term -> int -> Term.term *)
-		fun eta_expand t i =
-		let
-			val Ts = binder_types (fastype_of t)
-		in
-			foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
-				(take (i, Ts), list_comb (t, map Bound (i-1 downto 0)))
-		end
 	in
 		case assoc (terms, t) of
 		  Some intr =>
