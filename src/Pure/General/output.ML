@@ -17,6 +17,7 @@ sig
   val tracing_fn: (string -> unit) ref
   val warning_fn: (string -> unit) ref
   val error_fn: (string -> unit) ref
+  val panic_fn: (string -> unit) ref
   val writeln: string -> unit
   val priority: string -> unit
   val tracing: string -> unit
@@ -24,6 +25,7 @@ sig
   val error_msg: string -> unit
   val error: string -> 'a
   val sys_error: string -> 'a
+  val panic: string -> unit
   val assert: bool -> string -> unit
   val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
@@ -99,13 +101,14 @@ val priority_fn = ref (fn s => ! writeln_fn s);
 val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
+val panic_fn = ref (std_output o suffix "\n" o prefix_lines "!!! ");
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
 fun error_msg s = ! error_fn (output s);
-
+fun panic_msg s = ! panic_fn (output s);
 
 (* add_mode *)
 
@@ -115,10 +118,11 @@ fun add_mode name m =
   modes := Symtab.update ((name, m), ! modes));
 
 
-(* error/warning forms *)
+(* output error message and abort to top level, or panic & exit *)
 
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
+fun panic s = (panic_msg ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
