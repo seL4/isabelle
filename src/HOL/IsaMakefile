@@ -21,6 +21,7 @@ test: \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
   HOL-Hoare \
+  HOL-HoareParallel \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
@@ -295,6 +296,7 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
   HoareParallel/OG_Com.thy HoareParallel/OG_Examples.thy	   \
   HoareParallel/OG_Hoare.thy HoareParallel/OG_Syntax.thy	   \
   HoareParallel/OG_Tactics.thy HoareParallel/OG_Tran.thy	   \
+  HoareParallel/Quote_Antiquote.thy                                \
   HoareParallel/RG_Com.thy HoareParallel/RG_Examples.thy	   \
   HoareParallel/RG_Hoare.thy HoareParallel/RG_Syntax.thy	   \
   HoareParallel/RG_Tran.thy HoareParallel/ROOT.ML		   \
