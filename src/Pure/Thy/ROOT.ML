@@ -22,5 +22,5 @@ use "latex.ML";
 use "present.ML";
 use "thm_deps.ML";
 
-(*theorem database -- user-level interface*)
+(*theorem database interface*)
 use "thm_database.ML";
