@@ -652,14 +652,14 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propss state =
 fun global_goal prepp prep_locale activate kind a raw_locale elems args thy =
   let
     val st = thy |> init_state |> open_block;
-    val (activate_locale, activate_elems) = activate (context_of st)
+    val (locale_ctxt, elems_ctxt) = context_of st |> activate
       ((case raw_locale of None => Locale.empty | Some (name, _) => Locale.Locale name), elems);
     val locale = apsome (apfst (prep_locale (Theory.sign_of thy))) raw_locale;
   in
     st
-    |> map_context activate_locale
+    |> map_context (K locale_ctxt)
     |> open_block
-    |> map_context activate_elems
+    |> map_context (K elems_ctxt)
     |> setup_goal I prepp ProofContext.fix_frees (Theorem (kind, a, locale, map (snd o fst) args))
       Seq.single (map (fst o fst) args) (map snd args)
   end;
