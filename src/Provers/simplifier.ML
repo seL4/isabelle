@@ -465,7 +465,7 @@ val simp_args = Method.only_sectioned_args simp_modifiers';
 fun simp_meth thin cut tac ctxt = Method.METHOD (fn facts =>
   FIRSTGOAL
     ((if thin then REPEAT_DETERM o etac Drule.thin_rl else K all_tac)
-      THEN' (if cut then metacuts_tac facts else K all_tac)
+      THEN' (if cut then Method.same_tac facts else K all_tac)
       THEN' tac (get_local_simpset ctxt)));
 
 val simp_method = simp_args ooo simp_meth;
