@@ -150,20 +150,20 @@ sig
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
-  val dest_global: theory attribute
-  val elim_global: theory attribute
-  val intro_global: theory attribute
+  val haz_dest_global: theory attribute
+  val haz_elim_global: theory attribute
+  val haz_intro_global: theory attribute
   val safe_dest_global: theory attribute
   val safe_elim_global: theory attribute
   val safe_intro_global: theory attribute
-  val delrules_global: theory attribute
-  val dest_local: Proof.context attribute
-  val elim_local: Proof.context attribute
-  val intro_local: Proof.context attribute
+  val delrule_global: theory attribute
+  val haz_dest_local: Proof.context attribute
+  val haz_elim_local: Proof.context attribute
+  val haz_intro_local: Proof.context attribute
   val safe_dest_local: Proof.context attribute
   val safe_elim_local: Proof.context attribute
   val safe_intro_local: Proof.context attribute
-  val delrules_local: Proof.context attribute
+  val delrule_local: Proof.context attribute
   val trace_rules: bool ref
   val single_tac: claset -> tthm list -> int -> tactic
   val setup: (theory -> theory) list
@@ -845,6 +845,33 @@ val get_local_claset = LocalClaset.get;
 val put_local_claset = LocalClaset.put;
 
 
+(* attributes *)
+
+fun change_global_cs f (thy, th) =
+  let val r = claset_ref_of thy
+  in r := f (! r, [Attribute.thm_of th]); (thy, th) end;
+
+fun change_local_cs f (ctxt, th) =
+  let val cs = f (get_local_claset ctxt, [Attribute.thm_of th])
+  in (put_local_claset cs ctxt, th) end;
+
+val haz_dest_global = change_global_cs (op addDs);
+val haz_elim_global = change_global_cs (op addEs);
+val haz_intro_global = change_global_cs (op addIs);
+val safe_dest_global = change_global_cs (op addSDs);
+val safe_elim_global = change_global_cs (op addSEs);
+val safe_intro_global = change_global_cs (op addSIs);
+val delrule_global = change_global_cs (op delrules);
+
+val haz_dest_local = change_local_cs (op addDs);
+val haz_elim_local = change_local_cs (op addEs);
+val haz_intro_local = change_local_cs (op addIs);
+val safe_dest_local = change_local_cs (op addSDs);
+val safe_elim_local = change_local_cs (op addSEs);
+val safe_intro_local = change_local_cs (op addSIs);
+val delrule_local = change_local_cs (op delrules);
+
+
 (* tactics referring to the implicit claset *)
 
 (*the abstraction over the proof state delays the dereferencing*)
@@ -864,7 +891,7 @@ end;
 
 
 
-(** attributes **)
+(** concrete syntax of attributes **)
 
 (* add / del rules *)
 
@@ -872,58 +899,28 @@ val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
 val delN = "del";
+val delruleN = "delrule";
 
-val addDs' = Attribute.lift_modifier (op addDs);
-val addEs' = Attribute.lift_modifier (op addEs);
-val addIs' = Attribute.lift_modifier (op addIs);
-val addSDs' = Attribute.lift_modifier (op addSDs);
-val addSEs' = Attribute.lift_modifier (op addSEs);
-val addSIs' = Attribute.lift_modifier (op addSIs);
-val delrules' = Attribute.lift_modifier (op delrules);
+val bang = Args.$$$ "!";
 
-local
-  fun change_global_cs f (thy, tth) =
-    let val r = claset_ref_of thy
-    in r := f (! r, [tth]); (thy, tth) end;
+fun cla_att change haz safe =
+  Attrib.syntax (Scan.lift ((bang >> K haz || Scan.succeed safe) >> change));
 
-  fun change_local_cs f (ctxt, tth) =
-    let val cs = f (get_local_claset ctxt, [tth])
-    in (put_local_claset cs ctxt, tth) end;
-
-  fun cla_att change f g = Attrib.syntax (Args.$$$ "!" >> K f || Scan.succeed g) change;
-in
-  val dest_global = change_global_cs addDs';
-  val elim_global = change_global_cs addEs';
-  val intro_global = change_global_cs addIs';
-  val safe_dest_global = change_global_cs addDs';
-  val safe_elim_global = change_global_cs addEs';
-  val safe_intro_global = change_global_cs addIs';
-  val delrules_global = change_global_cs delrules';
-
-  val dest_local = change_local_cs addDs';
-  val elim_local = change_local_cs addEs';
-  val intro_local = change_local_cs addIs';
-  val safe_dest_local = change_local_cs addDs';
-  val safe_elim_local = change_local_cs addEs';
-  val safe_intro_local = change_local_cs addIs';
-  val delrules_local = change_local_cs delrules';
-
-  fun cla_attr f g = (cla_att change_global_cs f g, cla_att change_local_cs f g);
-  val del_attr = (Attrib.no_args delrules_global, Attrib.no_args delrules_local);
-end;
+fun cla_attr f g = (cla_att change_global_cs f g, cla_att change_local_cs f g);
+val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
 
 
 (* setup_attrs *)
 
 val setup_attrs = Attrib.add_attributes
- [("dest", cla_attr addDs' addSDs', "destruction rule"),
-  ("elim", cla_attr addEs' addSEs', "elimination rule"),
-  ("intro", cla_attr addIs' addSIs', "introduction rule"),
-  ("del", del_attr, "delete rule")];
+ [(destN, cla_attr (op addDs) (op addSDs), "destruction rule"),
+  (elimN, cla_attr (op addEs) (op addSEs), "elimination rule"),
+  (introN, cla_attr (op addIs) (op addSIs), "introduction rule"),
+  (delruleN, del_attr, "delete rule")];
 
 
 
-(** standard rule proof method **)
+(** single rule proof method **)
 
 (* utils *)
 
@@ -958,7 +955,7 @@ fun print_rules rules i =
 fun single_tac cs tfacts =
   let
     val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
-    val facts = map Attribute.thm_of tfacts;
+    val facts = Attribute.thms_of tfacts;
     val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
     val erules = find_erules facts nets;
 
@@ -978,18 +975,21 @@ val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_ta
 
 (** automatic methods **)
 
-(* FIXME handle "!" *)
+val cla_args =
+  Method.only_sectioned_args
+   [Args.$$$ destN -- bang >> K haz_dest_local,
+    Args.$$$ destN >> K safe_dest_local,
+    Args.$$$ elimN -- bang >> K haz_elim_local,
+    Args.$$$ elimN >> K safe_elim_local,
+    Args.$$$ introN -- bang >> K haz_intro_local,
+    Args.$$$ introN >> K safe_intro_local,
+    Args.$$$ delN >> K delrule_local];
 
-fun cla_args meth =
-  Method.sectioned_args get_local_claset addIs'
-    [(destN, addSDs'), ("unsafe_dest", addDs'),
-      (elimN, addSEs'), ("unsafe_elim", addEs'),
-      (introN, addSIs'), ("unsafe_intro", addIs'),
-      (delN, delrules')] meth;
+fun cla_meth tac ctxt = Method.METHOD0 (tac (get_local_claset ctxt));
+fun cla_meth' tac ctxt = Method.METHOD0 (FIRSTGOAL (tac (get_local_claset ctxt)));
 
-(* FIXME facts!? (e.g. apply trivial first) *)
-fun gen_cla tac = cla_args (fn cs => Method.METHOD0 (tac cs));
-fun gen_cla' tac = cla_args (fn cs => Method.METHOD0 (FIRSTGOAL (tac cs)));
+val cla_method = cla_args o cla_meth;
+val cla_method' = cla_args o cla_meth';
 
 
 
@@ -998,12 +998,12 @@ fun gen_cla' tac = cla_args (fn cs => Method.METHOD0 (FIRSTGOAL (tac cs)));
 val setup_methods = Method.add_methods
  [("single", Method.no_args single, "apply standard rule (single step)"),
   ("default", Method.no_args single, "apply standard rule (single step)"),
-  ("safe_tac", gen_cla safe_tac, "safe_tac"),
-  ("safe_step", gen_cla' safe_step_tac, "step_tac"),
-  ("fast", gen_cla' fast_tac, "fast_tac"),
-  ("best", gen_cla' best_tac, "best_tac"),
-  ("slow", gen_cla' slow_tac, "slow_tac"),
-  ("slow_best", gen_cla' slow_best_tac, "slow_best_tac")];
+  ("safe_tac", cla_method safe_tac, "safe_tac"),
+  ("safe_step", cla_method' safe_step_tac, "step_tac"),
+  ("fast", cla_method' fast_tac, "fast_tac"),
+  ("best", cla_method' best_tac, "best_tac"),
+  ("slow", cla_method' slow_tac, "slow_tac"),
+  ("slow_best", cla_method' slow_best_tac, "slow_best_tac")];
 
 
 
