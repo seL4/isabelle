@@ -43,12 +43,6 @@ sig
   val sort: token list -> string * token list
   val opt_infix: token list -> string * token list
   val opt_mixfix: token list -> string * token list
-  val parens: string -> string
-  val brackets: string -> string
-  val mk_list: string list -> string
-  val mk_big_list: string list -> string
-  val mk_pair: string * string -> string
-  val mk_triple: string * string * string -> string
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
@@ -61,6 +55,13 @@ sig
   val pure_keywords: string list
   val pure_sections:
     (string * (token list -> (string * string) * token list)) list
+  (*items for building strings*)
+  val parens	: string -> string   
+  val brackets	: string -> string   
+  val mk_list	: string list -> string   
+  val mk_big_list : string list -> string   
+  val mk_pair	: string * string -> string   
+  val mk_triple	: string * string * string -> string   
 end;
 
 functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE =
@@ -82,8 +83,8 @@ fun syn_err s1 s2 n = raise SYNTAX_ERROR (s1, s2, n);
 
 fun eof_err () = error "Unexpected end-of-file";
 
-(*similar to Prolog's cut: reports any syntax error instead of
-  backtracking through a superior ||*)
+(*Similar to Prolog's cut: reports any syntax error instead of backtracking
+  through a superior || *)
 fun !! parse toks = parse toks
   handle SYNTAX_ERROR (s1, s2, n) => error ("Syntax error on line " ^
     string_of_int n ^ ": " ^ s1 ^ " expected and " ^ s2 ^ " was found");
