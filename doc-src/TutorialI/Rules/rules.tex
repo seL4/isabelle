@@ -2,16 +2,21 @@
 \chapter{The Rules of the Game}
 \label{chap:rules}
  
-Until now, we have proved everything using only induction and simplification.
-Substantial proofs require more elaborate forms of inference.  This chapter
-outlines the concepts and techniques that underlie reasoning in Isabelle. The examples
-are mainly drawn from predicate logic.  The first examples in this
-chapter will consist of detailed, low-level proof steps.  Later, we shall
-see how to automate such reasoning using the methods \isa{blast},
-\isa{auto} and others. 
+This chapter outlines the concepts and techniques that underlie reasoning
+in Isabelle.  Until now, we have proved everything using only induction and
+simplification, but any serious verification project require more elaborate
+forms of inference.  The chapter also introduces the fundamentals of
+predicate logic.  The first examples in this chapter will consist of
+detailed, low-level proof steps.  Later, we shall see how to automate such
+reasoning using the methods
+\isa{blast},
+\isa{auto} and others.  Backward or goal-directed proof is our usual style,
+but the chapter also introduces forward reasoning, where one theorem is
+transformed to yield another.
 
 \section{Natural Deduction}
 
+\index{natural deduction|(}%
 In Isabelle, proofs are constructed using inference rules. The 
 most familiar inference rule is probably \emph{modus ponens}: 
 \[ \infer{Q}{P\imp Q & P} \]
@@ -31,7 +36,7 @@ we may infer~$Q$.
 %Try proving the trivial fact $P\imp P$ using these axioms and \emph{modus
 %ponens}!
 
-\textbf{Natural deduction} is an attempt to formalize logic in a way 
+\emph{Natural deduction} is an attempt to formalize logic in a way 
 that mirrors human reasoning patterns. 
 %
 %Instead of having a few 
@@ -39,7 +44,7 @@ that mirrors human reasoning patterns.
 %and few axioms. 
 %
 For each logical symbol (say, $\conj$), there 
-are two kinds of rules: \textbf{introduction} and \textbf{elimination} rules. 
+are two kinds of rules: \emph{introduction} and \emph{elimination} rules. 
 The introduction rules allow us to infer this symbol (say, to 
 infer conjunctions). The elimination rules allow us to deduce 
 consequences from this symbol. Ideally each rule should mention 
@@ -56,15 +61,17 @@ deduction rules for such constants lets us reason in terms of their key
 properties, which might otherwise be obscured by the technicalities of its
 definition.  Natural deduction rules also lend themselves to automation.
 Isabelle's
-\textbf{classical  reasoner} accepts any suitable  collection of natural deduction
+\emph{classical  reasoner} accepts any suitable  collection of natural deduction
 rules and uses them to search for proofs automatically.  Isabelle is designed around
-natural deduction and many of its  tools use the terminology of introduction and
-elimination rules.
+natural deduction and many of its tools use the terminology of introduction
+and elimination rules.%
+\index{natural deduction|)}
 
 
 \section{Introduction Rules}
 
-An \textbf{introduction} rule tells us when we can infer a formula 
+\index{introduction rules|(}%
+An introduction rule tells us when we can infer a formula 
 containing a specific logical symbol. For example, the conjunction 
 introduction rule says that if we have $P$ and if we have $Q$ then 
 we have $P\conj Q$. In a mathematics text, it is typically shown 
@@ -132,12 +139,14 @@ We are left with the subgoal of proving
 \ 2.\ \isasymlbrakk P;\ Q\isasymrbrakk\ \isasymLongrightarrow\ P
 \end{isabelle}
 We are left with two new subgoals, \isa{Q} and~\isa{P}, each of which can be proved
-using the \isa{assumption} method. 
+using the \isa{assumption} method.%
+\index{introduction rules|)}
 
 
 \section{Elimination Rules}
 
-\textbf{Elimination} rules work in the opposite direction from introduction 
+\index{elimination rules|(}%
+Elimination rules work in the opposite direction from introduction 
 rules. In the case of conjunction, there are two such rules. 
 From $P\conj Q$ we infer $P$. also, from $P\conj Q$  
 we infer $Q$:
@@ -155,7 +164,7 @@ there is an elimination  rule that works indirectly.  If we are trying  to prove
 something else, say $R$, and we know that $P\disj Q$ holds,  then we have to consider
 two cases.  We can assume that $P$ is true  and prove $R$ and then assume that $Q$ is
 true and prove $R$ a second  time.  Here we see a fundamental concept used in natural
-deduction:  that of the \textbf{assumptions}. We have to prove $R$ twice, under
+deduction:  that of the \emph{assumptions}. We have to prove $R$ twice, under
 different assumptions.  The assumptions are local to these subproofs and are visible 
 nowhere else. 
 
@@ -183,22 +192,29 @@ illustrates the use of disjunction elimination.
 \end{isabelle}
 We assume \isa{P\ \isasymor\ Q} and
 must prove \isa{Q\ \isasymor\ P}\@.  Our first step uses the disjunction
-elimination rule, \isa{disjE}.  The method {\isa{erule}}  applies an
-elimination rule, searching for an assumption that matches the
-rule's first premise.  Deleting that assumption, it
-return the subgoals for the remaining premises.  Most of the
-time, this is  the best way to use elimination rules; only rarely is there
-any  point in keeping the assumption.
+elimination rule, \isa{disjE}.  We invoke it using \isa{erule}, a method
+designed to work with elimination rules.  It looks for an assumption that
+matches the rule's first premise.  It deletes the matching assumption,
+regards the first premise as proved and returns subgoals corresponding to
+the remaining premises.  When we apply \isa{erule} to \isa{disjE}, only two
+subgoals result.  This is better than applying it using \isa{rule}
+to get three subgoals, then proving the first by assumption: the other
+subgoals would have the redundant assumption 
+\hbox{\isa{P\ \isasymor\ Q}}.
+Most of the
+time, \isa{erule} is  the best way to use elimination rules.  Only rarely
+can an assumption be used more than once.
 
 \begin{isabelle}
 %P\ \isasymor\ Q\ \isasymLongrightarrow\ Q\ \isasymor\ P\isanewline
 \ 1.\ P\ \isasymLongrightarrow\ Q\ \isasymor\ P\isanewline
 \ 2.\ Q\ \isasymLongrightarrow\ Q\ \isasymor\ P
 \end{isabelle}
-Here it leaves us with two subgoals.  The first assumes \isa{P} and the 
-second assumes \isa{Q}.  Tackling the first subgoal, we need to 
-show \isa{Q\ \isasymor\ P}\@.  The second introduction rule (\isa{disjI2})
-can reduce this  to \isa{P}, which matches the assumption. So, we apply the
+These are the two subgoals returned by \isa{erule}.  The first assumes
+\isa{P} and the  second assumes \isa{Q}.  Tackling the first subgoal, we
+need to  show \isa{Q\ \isasymor\ P}\@.  The second introduction rule
+(\isa{disjI2}) can reduce this  to \isa{P}, which matches the assumption.
+So, we apply the
 \isa{rule}  method with \isa{disjI2} \ldots
 \begin{isabelle}
 \ 1.\ P\ \isasymLongrightarrow\ P\isanewline
@@ -216,12 +232,13 @@ rule \isa{disjI1}.
 The result of this proof is a new inference rule \isa{disj_swap}, which is neither 
 an introduction nor an elimination rule, but which might 
 be useful.  We can use it to replace any goal of the form $Q\disj P$
-by a one of the form $P\disj Q$.
-
+by a one of the form $P\disj Q$.%
+\index{elimination rules|)}
 
 
 \section{Destruction Rules: Some Examples}
 
+\index{destruction rules|(}%
 Now let us examine the analogous proof for conjunction. 
 \begin{isabelle}
 \isacommand{lemma}\ conj_swap:\ "P\ \isasymand\ Q\ \isasymLongrightarrow\ Q\ \isasymand\ P"\isanewline
@@ -234,7 +251,7 @@ Now let us examine the analogous proof for conjunction.
 Recall that the conjunction elimination rules --- whose Isabelle names are 
 \isa{conjunct1} and \isa{conjunct2} --- simply return the first or second half
 of a conjunction.  Rules of this sort (where the conclusion is a subformula of a
-premise) are called \textbf{destruction} rules because they take apart and destroy
+premise) are called \emph{destruction} rules because they take apart and destroy
 a premise.%
 \footnote{This Isabelle terminology has no counterpart in standard logic texts, 
 although the distinction between the two forms of elimination rule is well known. 
@@ -252,7 +269,7 @@ two subgoals:
 \end{isabelle}
 
 To invoke the elimination rule, we apply a new method, \isa{drule}. 
-Think of the \isa{d} as standing for \textbf{destruction} (or \textbf{direct}, if
+Think of the \isa{d} as standing for \emph{destruction} (or \emph{direct}, if
 you prefer).   Applying the 
 second conjunction rule using \isa{drule} replaces the assumption 
 \isa{P\ \isasymand\ Q} by \isa{Q}. 
@@ -282,14 +299,16 @@ seldom, if ever, seen in logic books.  In Isabelle syntax it looks like this:
 \begin{isabelle}
 \isasymlbrakk?P\ \isasymand\ ?Q;\ \isasymlbrakk?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulename{conjE}
 \end{isabelle}
+\index{destruction rules|)}
 
 \begin{exercise}
-Use the rule {\isa{conjE}} to shorten the proof above. 
+Use the rule \isa{conjE} to shorten the proof above. 
 \end{exercise}
 
 
 \section{Implication}
 
+\index{implication|(}%
 At the start of this chapter, we saw the rule \textit{modus ponens}.  It is, in fact,
 a destruction rule. The matching introduction rule looks like this 
 in Isabelle: 
@@ -304,9 +323,13 @@ And this is \textit{modus ponens}:
 \rulename{mp}
 \end{isabelle}
 
-Here is a proof using the rules for implication.  This 
+Here is a proof using the implication rules.  This 
 lemma performs a sort of uncurrying, replacing the two antecedents 
-of a nested implication by a conjunction. 
+of a nested implication by a conjunction.  The proof illustrates
+how assumptions work.  At each proof step, the subgoals inherit the previous
+assumptions, perhaps with additions or deletions.  Rules such as
+\isa{impI} and \isa{disjE} add assumptions, while applying \isa{erule} or
+\isa{drule} deletes the matching assumption.
 \begin{isabelle}
 \isacommand{lemma}\ imp_uncurry:\
 "P\ \isasymlongrightarrow\ (Q\
@@ -362,10 +385,10 @@ such as \isa{impI} and \isa{mp}, just as we reason about the other
 connectives.  You will have to use \isa{\isasymlongrightarrow} in any
 context that requires a formula of higher-order logic.  Use
 \isa{\isasymLongrightarrow} to separate a theorem's preconditions from its
-conclusion.  
+conclusion.%
+\index{implication|)}
 
 \medskip
-\indexbold{*by}
 The \isacommand{by} command is useful for proofs like these that use
 \isa{assumption} heavily.  It executes an
 \isacommand{apply} command, then tries to prove all remaining subgoals using
@@ -389,205 +412,14 @@ to eliminate calls to \isa{assumption}.  It is also a nice way of expressing a
 one-line proof.
 
 
-\section{Unification and Substitution}\label{sec:unification}
-
-As we have seen, Isabelle rules involve variables that begin  with a
-question mark. These are called \textbf{schematic} variables  and act as
-placeholders for terms. \textbf{Unification} refers to  the process of
-making two terms identical, possibly by replacing their schematic variables by
-terms. The simplest case is when the two terms  are already the same. Next
-simplest is when the variables in only one of the term
- are replaced; this is called \textbf{pattern-matching}.  The
-\isa{rule} method typically  matches the rule's conclusion
-against the current subgoal.  In the most complex case,  variables in both
-terms are replaced; the \isa{rule} method can do this if the goal
-itself contains schematic variables.  Other occurrences of the variables in
-the rule or proof state are updated at the same time.
-
-Schematic variables in goals are sometimes called \textbf{unknowns}.  They
-are useful because they let us proceed with a proof even  when we do not
-know what certain terms should be --- as when the goal is $\exists x.\,P$. 
-They can be  filled in later, often automatically. 
-
- Unification is well known to Prolog programmers. Isabelle uses \textbf{higher-order} 
-unification, which is unification in the
-typed $\lambda$-calculus.  The general case is
-undecidable, but for our purposes, the differences from ordinary
-unification are straightforward.  It handles bound  variables
-correctly, avoiding capture.  The two terms \isa{{\isasymlambda}x.\ ?P} and
-\isa{{\isasymlambda}x.\ t x}  are not unifiable; replacing \isa{?P} by
-\isa{t x} is forbidden because the free occurrence of~\isa{x} would become
-bound.  The two terms
-\isa{{\isasymlambda}x.\ f(x,z)} and \isa{{\isasymlambda}y.\ f(y,z)} are
-trivially unifiable because they differ only by a bound variable renaming.
-
-Higher-order unification sometimes must invent
-$\lambda$-terms to replace function  variables,
-which can lead to a combinatorial explosion. However,  Isabelle proofs tend
-to involve easy cases where there are few possibilities for the
-$\lambda$-term being constructed. In the easiest case, the
-function variable is applied only to bound variables, 
-as when we try to unify \isa{{\isasymlambda}x\ y.\ f(?h x y)} and
-\isa{{\isasymlambda}x\ y.\ f(x+y+a)}.  The only solution is to replace
-\isa{?h} by \isa{{\isasymlambda}x\ y.\ x+y+a}.  Such cases admit at most
-one unifier, like ordinary unification.  A harder case is
-unifying \isa{?h a} with~\isa{a+b}; it admits two solutions for \isa{?h},
-namely \isa{{\isasymlambda}x.~a+b} and \isa{{\isasymlambda}x.~x+b}. 
-Unifying \isa{?h a} with~\isa{a+a+b} admits four solutions; their number is
-exponential in the number of occurrences of~\isa{a} in the second term.
-
-Isabelle also uses function variables to express \textbf{substitution}. 
-A typical substitution rule allows us to replace one term by 
-another if we know that two terms are equal. 
-\[ \infer{P[t/x]}{s=t & P[s/x]} \]
-The rule uses a notation for substitution: $P[t/x]$ is the result of
-replacing $x$ by~$t$ in~$P$.  The rule only substitutes in the positions
-designated by~$x$.  For example, it can
-derive symmetry of equality from reflexivity.  Using $x=s$ for~$P$
-replaces just the first $s$ in $s=s$ by~$t$:
-\[ \infer{t=s}{s=t & \infer{s=s}{}} \]
-
-The Isabelle version of the substitution rule looks like this: 
-\begin{isabelle}
-\isasymlbrakk?t\ =\ ?s;\ ?P\ ?s\isasymrbrakk\ \isasymLongrightarrow\ ?P\
-?t
-\rulename{ssubst}
-\end{isabelle}
-Crucially, \isa{?P} is a function 
-variable: it can be replaced by a $\lambda$-expression 
-involving one bound variable whose occurrences identify the places 
-in which $s$ will be replaced by~$t$.  The proof above requires
-\isa{{\isasymlambda}x.~x=s}.
-
-The \isa{simp} method replaces equals by equals, but using the substitution
-rule gives us more control. Consider this proof: 
-\begin{isabelle}
-\isacommand{lemma}\
-"\isasymlbrakk \ x\ =\ f\ x;\ odd(f\ x)\ \isasymrbrakk\ \isasymLongrightarrow\
-odd\ x"\isanewline
-\isacommand{by}\ (erule\ ssubst)
-\end{isabelle}
-%
-The simplifier might loop, replacing \isa{x} by \isa{f x} and then by
-\isa{f(f x)} and so forth. (Here \isa{simp} 
-can see the danger and would re-orient the equality, but in more complicated
-cases it can be fooled.) When we apply substitution,  Isabelle replaces every
-\isa{x} in the subgoal by \isa{f x} just once: it cannot loop.  The
-resulting subgoal is trivial by assumption, so the \isacommand{by} command
-proves it implicitly. 
-
-We are using the \isa{erule} method it in a novel way. Hitherto, 
-the conclusion of the rule was just a variable such as~\isa{?R}, but it may
-be any term. The conclusion is unified with the subgoal just as 
-it would be with the \isa{rule} method. At the same time \isa{erule} looks 
-for an assumption that matches the rule's first premise, as usual.  With
-\isa{ssubst} the effect is to find, use and delete an equality 
-assumption.
-
-
-Higher-order unification can be tricky, as this example indicates: 
-\begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\
-f\ x;\ triple\ (f\ x)\
-(f\ x)\ x\ \isasymrbrakk\
-\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{apply}\ (erule\ ssubst)\isanewline
-\isacommand{back}\isanewline
-\isacommand{back}\isanewline
-\isacommand{back}\isanewline
-\isacommand{back}\isanewline
-\isacommand{apply}\ assumption\isanewline
-\isacommand{done}
-\end{isabelle}
-%
-By default, Isabelle tries to substitute for all the 
-occurrences.  Applying \isa{erule\ ssubst} yields this subgoal:
-\begin{isabelle}
-\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ (f\ x)\ (f\ x)
-\end{isabelle}
-The substitution should have been done in the first two occurrences 
-of~\isa{x} only. Isabelle has gone too far. The \isa{back} 
-method allows us to reject this possibility and get a new one: 
-\begin{isabelle}
-\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ x\ (f\ x)\ (f\ x)
-\end{isabelle}
-%
-Now Isabelle has left the first occurrence of~\isa{x} alone. That is 
-promising but it is not the desired combination. So we use \isa{back} 
-again:
-\begin{isabelle}
-\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ x\ (f\ x)
-\end{isabelle}
-%
-This also is wrong, so we use \isa{back} again: 
-\begin{isabelle}
-\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ x\ x\ (f\ x)
-\end{isabelle}
-%
-And this one is wrong too. Looking carefully at the series 
-of alternatives, we see a binary countdown with reversed bits: 111,
-011, 101, 001.  Invoke \isa{back} again: 
-\begin{isabelle}
-\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ (f\ x)\ x%
-\end{isabelle}
-At last, we have the right combination!  This goal follows by assumption.
-
-Never use {\isa{back}} in the final version of a proof. 
-It should only be used for exploration. One way to get rid of {\isa{back}} 
-to combine two methods in a single \textbf{apply} command. Isabelle 
-applies the first method and then the second. If the second method 
-fails then Isabelle automatically backtracks. This process continues until 
-the first method produces an output that the second method can 
-use. We get a one-line proof of our example: 
-\begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
-\isasymrbrakk\
-\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{apply}\ (erule\ ssubst,\ assumption)\isanewline
-\isacommand{done}
-\end{isabelle}
-
-\noindent
-The \isacommand{by} command works too, since it backtracks when
-proving subgoals by assumption:
-\begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
-\isasymrbrakk\
-\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{by}\ (erule\ ssubst)
-\end{isabelle}
-
-
-The most general way to get rid of the {\isa{back}} command is 
-to instantiate variables in the rule.  The method \isa{rule_tac} is
-similar to \isa{rule}, but it
-makes some of the rule's variables  denote specified terms.  
-Also available are {\isa{drule_tac}}  and \isa{erule_tac}.  Here we need
-\isa{erule_tac} since above we used \isa{erule}.
-\begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\ \isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{by}\ (erule_tac\ P = "\isasymlambda u.\ P\ u\ u\ x"\ 
-\isakeyword{in}\ ssubst)
-\end{isabelle}
-%
-To specify a desired substitution 
-requires instantiating the variable \isa{?P} with a $\lambda$-expression. 
-The bound variable occurrences in \isa{{\isasymlambda}u.\ P\ u\
-u\ x} indicate that the first two arguments have to be substituted, leaving
-the third unchanged.  With this instantiation, backtracking is neither necessary
-nor possible.
-
-An alternative to \isa{rule_tac} is to use \isa{rule} with the
-\isa{of} directive, described in \S\ref{sec:forward} below.   An
-advantage  of \isa{rule_tac} is that the instantiations may refer to 
-\isasymAnd-bound variables in the current subgoal.
-
-
 \section{Negation}
  
+\index{negation|(}%
 Negation causes surprising complexity in proofs.  Its natural 
 deduction rules are straightforward, but additional rules seem 
-necessary in order to handle negated assumptions gracefully. 
+necessary in order to handle negated assumptions gracefully.  This section
+also illustrates the \isa{intro} method: a convenient way of
+applying introduction rules.
 
 Negation introduction deduces $\neg P$ if assuming $P$ leads to a 
 contradiction. Negation elimination deduces any formula in the 
@@ -605,9 +437,12 @@ when attempting to prove~$P$:
 (\isasymnot\ ?P\ \isasymLongrightarrow\ ?P)\ \isasymLongrightarrow\ ?P%
 \rulename{classical}
 \end{isabelle}
-%
-Three further rules are variations on the theme of contrapositive. 
-They differ in the placement of the negation symbols: 
+
+The implications $P\imp Q$ and $\neg Q\imp\neg P$ are logically
+equivalent, and each is called the
+\bfindex{contrapositive} of the other.  Three further rules support
+reasoning about contrapositives.  They differ in the placement of the
+negation symbols: 
 \begin{isabelle}
 \isasymlbrakk?Q;\ \isasymnot\ ?P\ \isasymLongrightarrow\ \isasymnot\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P%
 \rulename{contrapos_pp}\isanewline
@@ -617,7 +452,7 @@ They differ in the placement of the negation symbols:
 \rulename{contrapos_nn}
 \end{isabelle}
 %
-These rules are typically applied using the {\isa{erule}} method, where 
+These rules are typically applied using the \isa{erule} method, where 
 their effect is to form a contrapositive from an 
 assumption and the goal's conclusion.  
 
@@ -669,7 +504,18 @@ concludes the proof.
 
 \medskip
 
-Here is another example. 
+The following example may be skipped on a first reading.  It involves a
+peculiar but important rule, a form of disjunction introduction:
+\begin{isabelle}
+(\isasymnot \ ?Q\ \isasymLongrightarrow \ ?P)\ \isasymLongrightarrow \ ?P\ \isasymor \ ?Q%
+\rulename{disjCI}
+\end{isabelle}
+This rule combines the effects of \isa{disjI1} and \isa{disjI2}.  Its great
+advantage is that we can remove the disjunction symbol without deciding
+which disjunction to prove.%
+\footnote{This type of reasoning is standard in sequent and tableau
+calculi.}
+
 \begin{isabelle}
 \isacommand{lemma}\ "(P\ \isasymor\ Q)\ \isasymand\ R\
 \isasymLongrightarrow\ P\ \isasymor\ (Q\ \isasymand\ R)"\isanewline
@@ -680,16 +526,16 @@ Here is another example.
 \isacommand{by}\ (erule\ contrapos_np,\ rule\ conjI)
 \end{isabelle}
 %
-The first proof step applies the {\isa{intro}} method, which repeatedly  uses
-built-in introduction rules.  Here it creates the negative assumption 
-\hbox{\isa{\isasymnot(Q\ \isasymand\ R)}}.  That comes from \isa{disjCI},  a
-disjunction introduction rule that combines the effects of 
-\isa{disjI1} and \isa{disjI2}.
+The first proof step applies the \isa{intro} method, which repeatedly  uses
+built-in introduction rules.  Among these are \isa{disjCI}, which creates
+the negative assumption 
+\hbox{\isa{\isasymnot(Q\ \isasymand\ R)}}.  
+
 \begin{isabelle}
 \ 1.\ \isasymlbrakk(P\ \isasymor\ Q)\ \isasymand\ R;\ \isasymnot\ (Q\ \isasymand\
 R)\isasymrbrakk\ \isasymLongrightarrow\ P%
 \end{isabelle}
-Next we apply the {\isa{elim}} method, which repeatedly applies 
+Next we apply the \isa{elim} method, which repeatedly applies 
 elimination rules; here, the elimination rules given 
 in the command.  One of the subgoals is trivial (\isa{\isacommand{apply} assumption}),
 leaving us with one other:
@@ -711,20 +557,234 @@ conjunction introduction to
 Q\isanewline
 \ 2.\ \isasymlbrakk R;\ Q;\ \isasymnot\ P\isasymrbrakk\ \isasymLongrightarrow\ R%
 \end{isabelle}
-They are proved by assumption, which is implicit in the \isacommand{by} command.
+They are proved by assumption, which is implicit in the \isacommand{by}
+command.%
+\index{negation|)}
+
+
+\section{Unification and Substitution}\label{sec:unification}
+
+\index{unification|(}%
+As we have seen, Isabelle rules involve schematic variables that begin with
+a question mark and act as
+placeholders for terms.  \emph{Unification} refers to  the process of
+making two terms identical, possibly by replacing their schematic variables by
+terms.  The simplest case is when the two terms  are already the same. Next
+simplest is when the variables in only one of the term
+ are replaced; this is called pattern-matching.  The
+\isa{rule} method typically  matches the rule's conclusion
+against the current subgoal.  In the most complex case,  variables in both
+terms are replaced; the \isa{rule} method can do this if the goal
+itself contains schematic variables.  Other occurrences of the variables in
+the rule or proof state are updated at the same time.
+
+Schematic variables in goals represent unknown terms.  Given a goal such
+as $\exists x.\,P$, they let us proceed with a proof.  They can be 
+filled in later, sometimes in stages and often automatically. 
+
+Unification is well known to Prolog programmers. Isabelle uses
+\emph{higher-order} unification, which works in the
+typed $\lambda$-calculus.  The general case is
+undecidable, but for our purposes, the differences from ordinary
+unification are straightforward.  It handles bound  variables
+correctly, avoiding capture.  The two terms \isa{{\isasymlambda}x.\ ?P} and
+\isa{{\isasymlambda}x.\ t x}  are not unifiable; replacing \isa{?P} by
+\isa{t x} is forbidden because the free occurrence of~\isa{x} would become
+bound.  The two terms
+\isa{{\isasymlambda}x.\ f(x,z)} and \isa{{\isasymlambda}y.\ f(y,z)} are
+trivially unifiable because they differ only by a bound variable renaming.
+
+\begin{warn}
+Higher-order unification sometimes must invent
+$\lambda$-terms to replace function  variables,
+which can lead to a combinatorial explosion. However,  Isabelle proofs tend
+to involve easy cases where there are few possibilities for the
+$\lambda$-term being constructed. In the easiest case, the
+function variable is applied only to bound variables, 
+as when we try to unify \isa{{\isasymlambda}x\ y.\ f(?h x y)} and
+\isa{{\isasymlambda}x\ y.\ f(x+y+a)}.  The only solution is to replace
+\isa{?h} by \isa{{\isasymlambda}x\ y.\ x+y+a}.  Such cases admit at most
+one unifier, like ordinary unification.  A harder case is
+unifying \isa{?h a} with~\isa{a+b}; it admits two solutions for \isa{?h},
+namely \isa{{\isasymlambda}x.~a+b} and \isa{{\isasymlambda}x.~x+b}. 
+Unifying \isa{?h a} with~\isa{a+a+b} admits four solutions; their number is
+exponential in the number of occurrences of~\isa{a} in the second term.
+\end{warn}
+
+
+\subsection{Substitution}
+
+\index{substitution|(}%
+Isabelle also uses function variables to express \emph{substitution}. 
+A typical substitution rule allows us to replace one term by 
+another if we know that two terms are equal. 
+\[ \infer{P[t/x]}{s=t & P[s/x]} \]
+The rule uses a notation for substitution: $P[t/x]$ is the result of
+replacing $x$ by~$t$ in~$P$.  The rule only substitutes in the positions
+designated by~$x$.  For example, it can
+derive symmetry of equality from reflexivity.  Using $x=s$ for~$P$
+replaces just the first $s$ in $s=s$ by~$t$:
+\[ \infer{t=s}{s=t & \infer{s=s}{}} \]
+
+The Isabelle version of the substitution rule looks like this: 
+\begin{isabelle}
+\isasymlbrakk?t\ =\ ?s;\ ?P\ ?s\isasymrbrakk\ \isasymLongrightarrow\ ?P\
+?t
+\rulename{ssubst}
+\end{isabelle}
+Crucially, \isa{?P} is a function 
+variable: it can be replaced by a $\lambda$-expression 
+involving one bound variable whose occurrences identify the places 
+in which $s$ will be replaced by~$t$.  The proof above requires
+\isa{{\isasymlambda}x.~x=s}.
+
+The \isa{simp} method replaces equals by equals, but using the substitution
+rule gives us more control. Consider this proof: 
+\begin{isabelle}
+\isacommand{lemma}\
+"\isasymlbrakk \ x\ =\ f\ x;\ odd(f\ x)\ \isasymrbrakk\ \isasymLongrightarrow\
+odd\ x"\isanewline
+\isacommand{by}\ (erule\ ssubst)
+\end{isabelle}
+%
+The simplifier might loop, replacing \isa{x} by \isa{f x} and then by
+\isa{f(f x)} and so forth. (Here \isa{simp} 
+can see the danger and would re-orient the equality, but in more complicated
+cases it can be fooled.) When we apply substitution,  Isabelle replaces every
+\isa{x} in the subgoal by \isa{f x} just once: it cannot loop.  The
+resulting subgoal is trivial by assumption, so the \isacommand{by} command
+proves it implicitly. 
+
+We are using the \isa{erule} method it in a novel way. Hitherto, 
+the conclusion of the rule was just a variable such as~\isa{?R}, but it may
+be any term. The conclusion is unified with the subgoal just as 
+it would be with the \isa{rule} method. At the same time \isa{erule} looks 
+for an assumption that matches the rule's first premise, as usual.  With
+\isa{ssubst} the effect is to find, use and delete an equality 
+assumption.
+
+
+\subsection{Unification and Its Pitfalls}
+
+Higher-order unification can be tricky.  Here is an example, which you may
+want to skip on your first reading:
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk \ x\ =\
+f\ x;\ triple\ (f\ x)\
+(f\ x)\ x\ \isasymrbrakk\
+\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
+\isacommand{apply}\ (erule\ ssubst)\isanewline
+\isacommand{back}\isanewline
+\isacommand{back}\isanewline
+\isacommand{back}\isanewline
+\isacommand{back}\isanewline
+\isacommand{apply}\ assumption\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+By default, Isabelle tries to substitute for all the 
+occurrences.  Applying \isa{erule\ ssubst} yields this subgoal:
+\begin{isabelle}
+\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ (f\ x)\ (f\ x)
+\end{isabelle}
+The substitution should have been done in the first two occurrences 
+of~\isa{x} only. Isabelle has gone too far. The \isa{back} 
+method allows us to reject this possibility and get a new one: 
+\begin{isabelle}
+\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ x\ (f\ x)\ (f\ x)
+\end{isabelle}
+%
+Now Isabelle has left the first occurrence of~\isa{x} alone. That is 
+promising but it is not the desired combination. So we use \isa{back} 
+again:
+\begin{isabelle}
+\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ x\ (f\ x)
+\end{isabelle}
+%
+This also is wrong, so we use \isa{back} again: 
+\begin{isabelle}
+\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ x\ x\ (f\ x)
+\end{isabelle}
+%
+And this one is wrong too. Looking carefully at the series 
+of alternatives, we see a binary countdown with reversed bits: 111,
+011, 101, 001.  Invoke \isa{back} again: 
+\begin{isabelle}
+\ 1.\ triple\ (f\ x)\ (f\ x)\ x\ \isasymLongrightarrow\ triple\ (f\ x)\ (f\ x)\ x%
+\end{isabelle}
+At last, we have the right combination!  This goal follows by assumption.%
+\index{unification|)}
+
+\subsection{Keeping Unification under Control}
+
+The previous example showed that unification can do strange things with
+function variables.  We were forced to select the right unifier using the
+\isa{back} command.  That is all right during exploration, but \isa{back}
+should never appear in the final version of a proof.  You can eliminate the
+need for \isa{back} by giving Isabelle less freedom when you apply a rule.
+
+One way to constrain the inference is by joining two methods in a 
+\isacommand{apply} command. Isabelle  applies the first method and then the
+second. If the second method  fails then Isabelle automatically backtracks.
+This process continues until  the first method produces an output that the
+second method can  use. We get a one-line proof of our example: 
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
+\isasymrbrakk\
+\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
+\isacommand{apply}\ (erule\ ssubst,\ assumption)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+\noindent
+The \isacommand{by} command works too, since it backtracks when
+proving subgoals by assumption:
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
+\isasymrbrakk\
+\isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
+\isacommand{by}\ (erule\ ssubst)
+\end{isabelle}
+
+
+The most general way to constrain unification is 
+by instantiating variables in the rule.  The method \isa{rule_tac} is
+similar to \isa{rule}, but it
+makes some of the rule's variables  denote specified terms.  
+Also available are {\isa{drule_tac}}  and \isa{erule_tac}.  Here we need
+\isa{erule_tac} since above we used \isa{erule}.
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\ \isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
+\isacommand{by}\ (erule_tac\ P = "\isasymlambda u.\ P\ u\ u\ x"\ 
+\isakeyword{in}\ ssubst)
+\end{isabelle}
+%
+To specify a desired substitution 
+requires instantiating the variable \isa{?P} with a $\lambda$-expression. 
+The bound variable occurrences in \isa{{\isasymlambda}u.\ P\ u\
+u\ x} indicate that the first two arguments have to be substituted, leaving
+the third unchanged.  With this instantiation, backtracking is neither necessary
+nor possible.
+
+An alternative to \isa{rule_tac} is to use \isa{rule} with the
+\isa{of} directive, described in \S\ref{sec:forward} below.   An
+advantage  of \isa{rule_tac} is that the instantiations may refer to 
+\isasymAnd-bound variables in the current subgoal.%
+\index{substitution|)}
 
 
 \section{Quantifiers}
 
-Quantifiers require formalizing syntactic substitution and the notion of \textbf{arbitrary
-value}.  Consider the universal quantifier.  In a logic book, its
-introduction  rule looks like this: 
+\index{quantifiers|(}\index{quantifiers!universal|(}%
+Quantifiers require formalizing syntactic substitution and the notion of 
+\emph{arbitrary value}.  Consider the universal quantifier.  In a logic
+book, its introduction  rule looks like this: 
 \[ \infer{\forall x.\,P}{P} \]
 Typically, a proviso written in English says that $x$ must not
 occur in the assumptions.  This proviso guarantees that $x$ can be regarded as
 arbitrary, since it has not been assumed to satisfy any special conditions. 
 Isabelle's  underlying formalism, called the
-\textbf{meta-logic}, eliminates the  need for English.  It provides its own universal
+\emph{meta-logic}, eliminates the  need for English.  It provides its own universal
 quantifier (\isasymAnd) to express the notion of an arbitrary value.  We have
 already seen  another symbol of the meta-logic, namely
 \isa\isasymLongrightarrow, which expresses  inference rules and the treatment of
@@ -752,7 +812,7 @@ The first step invokes the rule by applying the method \isa{rule allI}.
 \ 1.\ \isasymAnd x.\ P\ x\ \isasymlongrightarrow\ P\ x
 \end{isabelle}
 Note  that the resulting proof state has a bound variable,
-namely~\bigisa{x}.  The rule has replaced the universal quantifier of
+namely~\isa{x}.  The rule has replaced the universal quantifier of
 higher-order  logic by Isabelle's meta-level quantifier.  Our goal is to
 prove
 \isa{P\ x\ \isasymlongrightarrow\ P\ x} for arbitrary~\isa{x}; it is 
@@ -774,11 +834,21 @@ Isabelle expresses substitution using a function variable:
 \end{isabelle}
 This destruction rule takes a 
 universally quantified formula and removes the quantifier, replacing 
-the bound variable \bigisa{x} by the schematic variable \bigisa{?x}.  Recall that a
+the bound variable \isa{x} by the schematic variable \isa{?x}.  Recall that a
 schematic variable starts with a question mark and acts as a
-placeholder: it can be replaced by any term. 
+placeholder: it can be replaced by any term.  
 
-To see how this works, let us derive a rule about reducing 
+The universal elimination rule is also
+available in the standard elimination format.  Like \isa{conjE}, it never
+appears in logic books:
+\begin{isabelle}
+\isasymlbrakk \isasymforall x.\ ?P\ x;\ ?P\ ?x\ \isasymLongrightarrow \ ?R\isasymrbrakk \ \isasymLongrightarrow \ ?R%
+\rulename{allE}
+\end{isabelle}
+The methods \isa{drule~spec} and \isa{erule~allE} do precisely the
+same inference.
+
+To see how $\forall$-elimination works, let us derive a rule about reducing 
 the scope of a universal quantifier.  In mathematical notation we write
 \[ \infer{P\imp\forall x.\,Q}{\forall x.\,P\imp Q} \]
 with the proviso ``$x$ not free in~$P$.''  Isabelle's treatment of
@@ -786,37 +856,35 @@ substitution makes the proviso unnecessary.  The conclusion is expressed as
 \isa{P\
 \isasymlongrightarrow\ ({\isasymforall}x.\ Q\ x)}. No substitution for the
 variable \isa{P} can introduce a dependence upon~\isa{x}: that would be a
-bound variable capture.  Here is the Isabelle proof in full:
+bound variable capture.  Let us walk through the proof.
 \begin{isabelle}
 \isacommand{lemma}\ "(\isasymforall x.\ P\ \isasymlongrightarrow \ Q\ x)\
 \isasymLongrightarrow \ P\ \isasymlongrightarrow \ (\isasymforall x.\ Q\
-x)"\isanewline
-\isacommand{apply}\ (rule\ impI,\ rule\ allI)\isanewline
-\isacommand{apply}\ (drule\ spec)\isanewline
-\isacommand{by}\ (drule\ mp)
+x)"
 \end{isabelle}
 First we apply implies introduction (\isa{impI}), 
 which moves the \isa{P} from the conclusion to the assumptions. Then 
 we apply universal introduction (\isa{allI}).  
 \begin{isabelle}
+\isacommand{apply}\ (rule\ impI,\ rule\ allI)\isanewline
 \ 1.\ \isasymAnd x.\ \isasymlbrakk{\isasymforall}x.\ P\ \isasymlongrightarrow\ Q\
 x;\ P\isasymrbrakk\ \isasymLongrightarrow\ Q\ x
 \end{isabelle}
 As before, it replaces the HOL 
 quantifier by a meta-level quantifier, producing a subgoal that 
-binds the variable~\bigisa{x}.  The leading bound variables
+binds the variable~\isa{x}.  The leading bound variables
 (here \isa{x}) and the assumptions (here \isa{{\isasymforall}x.\ P\
-\isasymlongrightarrow\ Q\ x} and \isa{P}) form the \textbf{context} for the
-conclusion, here \isa{Q\ x}.  At each proof step, the subgoals inherit the
-previous context, though some context elements may be added or deleted. 
-Applying \isa{erule} deletes an assumption, while many natural deduction
-rules add bound variables or assumptions.
+\isasymlongrightarrow\ Q\ x} and \isa{P}) form the \emph{context} for the
+conclusion, here \isa{Q\ x}.  Subgoals inherit the context,
+although assumptions can be added or deleted (as we saw
+earlier), while rules such as \isa{allI} add bound variables.
 
 Now, to reason from the universally quantified 
 assumption, we apply the elimination rule using the \isa{drule} 
 method.  This rule is called \isa{spec} because it specializes a universal formula
 to a particular term.
 \begin{isabelle}
+\isacommand{apply}\ (drule\ spec)\isanewline
 \ 1.\ \isasymAnd x.\ \isasymlbrakk P;\ P\ \isasymlongrightarrow\ Q\ (?x2\
 x)\isasymrbrakk\ \isasymLongrightarrow\ Q\ x
 \end{isabelle}
@@ -824,28 +892,40 @@ Observe how the context has changed.  The quantified formula is gone,
 replaced by a new assumption derived from its body.  Informally, we have
 removed the quantifier.  The quantified variable
 has been replaced by the curious term 
-\bigisa{?x2~x}; it acts as a placeholder that may be replaced 
-by any term that can be built from~\bigisa{x}.  (Formally, \bigisa{?x2} is an
-unknown of function type, applied to the argument~\bigisa{x}.)  This new assumption is
-an implication, so we can  use \emph{modus ponens} on it. As before, it requires
-proving the  antecedent (in this case \isa{P}) and leaves us with the consequent. 
+\isa{?x2~x}; it acts as a placeholder that may be replaced 
+by any term that can be built from~\isa{x}.  (Formally, \isa{?x2} is an
+unknown of function type, applied to the argument~\isa{x}.)  This new assumption is
+an implication, so we can  use \emph{modus ponens} on it, which concludes
+the proof. 
+\begin{isabelle}
+\isacommand{by}\ (drule\ mp)
+\end{isabelle}
+Let us take a closer look at this last step.  \emph{Modus ponens} yields
+two subgoals: one where we prove the antecedent (in this case \isa{P}) and
+one where we may assume the consequent.  Both of these subgoals are proved
+by the
+\isa{assumption} method, which is implicit in the
+\isacommand{by} command.  Replacing the \isacommand{by} command by 
+\isa{\isacommand{apply} (drule\ mp, assumption)} would have left one last
+subgoal:
 \begin{isabelle}
 \ 1.\ \isasymAnd x.\ \isasymlbrakk P;\ Q\ (?x2\ x)\isasymrbrakk\
 \isasymLongrightarrow\ Q\ x
 \end{isabelle}
 The consequent is \isa{Q} applied to that placeholder.  It may be replaced by any
-term built from~\bigisa{x}, and here 
-it should simply be~\bigisa{x}.  The \isa{assumption} method, implicit in the
-\isacommand{by} command, proves this subgoal.  The assumption need not
-be identical to the conclusion, provided the two formulas are unifiable.  
+term built from~\isa{x}, and here 
+it should simply be~\isa{x}.  The assumption need not
+be identical to the conclusion, provided the two formulas are unifiable.%
+\index{quantifiers!universal|)}  
 
 
 \subsection{Renaming an Assumption: {\tt\slshape rename_tac}}
 
-When you apply a rule such as \isa{allI}, the quantified variable becomes a new
-bound variable of the new subgoal.  Isabelle tries to avoid changing its name, but
-sometimes it has to choose a new name in order to avoid a clash.  Here is a
-contrived example:
+\index{assumptions!renaming|(}\index{*rename_tac|(}%
+When you apply a rule such as \isa{allI}, the quantified variable
+becomes a new bound variable of the new subgoal.  Isabelle tries to avoid
+changing its name, but sometimes it has to choose a new name in order to
+avoid a clash.  Here is a contrived example:
 \begin{isabelle}
 \isacommand{lemma}\ "x\ <\ y\ \isasymLongrightarrow \ \isasymforall x\ y.\ P\ x\
 (f\ y)"\isanewline
@@ -868,11 +948,13 @@ produced at top level, so that \isa{xa} changes to~\isa{xb} or reverts to~\isa{x
 It is safer to rename automatically-generated variables before mentioning them.
 
 If the subgoal has more bound variables than there are names given to
-\isa{rename_tac}, the rightmost ones are renamed.
+\isa{rename_tac}, the rightmost ones are renamed.%
+\index{assumptions!renaming|)}\index{*rename_tac|)}
 
 
 \subsection{Reusing an Assumption: {\tt\slshape frule}}
 
+\index{assumptions!reusing|(}\index{*frule|(}%
 Note that \isa{drule spec} removes the universal quantifier and --- as
 usual with elimination rules --- discards the original formula.  Sometimes, a
 universal formula has to be kept so that it can be used again.  Then we use a new
@@ -884,43 +966,57 @@ requires two uses of the quantified assumption, one for each~\isa{h} being
 affixed to the term~\isa{a}.
 \begin{isabelle}
 \isacommand{lemma}\ "\isasymlbrakk{\isasymforall}x.\ P\ x\ \isasymlongrightarrow\ P\ (h\ x);
-\ P\ a\isasymrbrakk\ \isasymLongrightarrow\ P(h\ (h\ a))"\isanewline
-\isacommand{apply}\ (frule\ spec)\isanewline
-\isacommand{apply}\ (drule\ mp,\ assumption)\isanewline
-\isacommand{apply}\ (drule\ spec)\isanewline
-\isacommand{by}\ (drule\ mp)
+\ P\ a\isasymrbrakk\ \isasymLongrightarrow\ P(h\ (h\ a))"
 \end{isabelle}
 %
-Applying \isa{frule\ spec} leaves this subgoal:
+Examine the subgoal left by \isa{frule}:
 \begin{isabelle}
+\isacommand{apply}\ (frule\ spec)\isanewline
 \ 1.\ \isasymlbrakk{\isasymforall}x.\ P\ x\ \isasymlongrightarrow\ P\ (h\ x);\ P\ a;\ P\ ?x\ \isasymlongrightarrow\ P\ (h\ ?x)\isasymrbrakk\ \isasymLongrightarrow\ P\ (h\ (h\ a))
 \end{isabelle}
-It is just what  \isa{drule} would have left except that the quantified
-assumption is still present.  The next step is to apply \isa{mp} to the
-implication and the assumption \isa{P\ a}, which leaves this subgoal:
+It is what \isa{drule} would have left except that the quantified
+assumption is still present.  Next we apply \isa{mp} to the
+implication and the assumption~\isa{P\ a}:
 \begin{isabelle}
+\isacommand{apply}\ (drule\ mp,\ assumption)\isanewline
 \ 1.\ \isasymlbrakk{\isasymforall}x.\ P\ x\ \isasymlongrightarrow\ P\ (h\ x);\ P\ a;\ P\ (h\ a)\isasymrbrakk\ \isasymLongrightarrow\ P\ (h\ (h\ a))
 \end{isabelle}
 %
-We have created the assumption \isa{P(h\ a)}, which is progress.  To finish the
-proof, we apply \isa{spec} one last time, using \isa{drule}.
+We have created the assumption \isa{P(h\ a)}, which is progress.  To
+continue the proof, we apply \isa{spec} again.  We shall not need it
+again, so we can use
+\isa{drule}.
+\begin{isabelle}
+\isacommand{apply}\ (drule\ spec)\isanewline
+\ 1.\ \isasymlbrakk P\ a;\ P\ (h\ a);\ P\ ?x2\ 
+\isasymlongrightarrow \ P\ (h\ ?x2)\isasymrbrakk \ \isasymLongrightarrow \
+P\ (h\ (h\ a))
+\end{isabelle}
+%
+The new assumption bridges the gap between \isa{P(h\ a)} and \isa{P(h(h\ a))}.
+\begin{isabelle}
+\isacommand{by}\ (drule\ mp)
+\end{isabelle}
 
 \medskip
-\emph{A final remark}.  Applying \isa{spec} by the command
+\emph{A final remark}.  Replacing this \isacommand{by} command with
 \begin{isabelle}
 \isacommand{apply}\ (drule\ mp,\ assumption)
 \end{isabelle}
-would not work a second time: it would add a second copy of \isa{P(h~a)} instead
+would not work: it would add a second copy of \isa{P(h~a)} instead
 of the desired assumption, \isa{P(h(h~a))}.  The \isacommand{by}
 command forces Isabelle to backtrack until it finds the correct one.
 Alternatively, we could have used the \isacommand{apply} command and bundled the
-\isa{drule mp} with \emph{two} calls of \isa{assumption}.
+\isa{drule mp} with \emph{two} calls of \isa{assumption}.%
+\index{assumptions!reusing|)}\index{*frule|)}
 
 
 \subsection{The Existential Quantifier}
 
-The concepts just presented also apply to the existential quantifier,
-whose introduction rule looks like this in Isabelle: 
+\index{quantifiers!existential|(}%
+The concepts just presented also apply
+to the existential quantifier, whose introduction rule looks like this in
+Isabelle: 
 \begin{isabelle}
 ?P\ ?x\ \isasymLongrightarrow\ {\isasymexists}x.\ ?P\ x\rulename{exI}
 \end{isabelle}
@@ -952,22 +1048,26 @@ Prove the lemma
 \emph{Hint}: the proof is similar 
 to the one just above for the universal quantifier. 
 \end{exercise}
+\index{quantifiers|)}\index{quantifiers!existential|)}
 
 
 \section{Hilbert's Epsilon-Operator}
 \label{sec:SOME}
 
-HOL provides Hilbert's
-$\varepsilon$-operator.  The term $\varepsilon x. P(x)$ denotes some $x$ such that $P(x)$ is
-true, provided such a value exists.  Using this operator, we can express an
-existential destruction rule:
-\[ \infer{P[(\varepsilon x. P) / \, x]}{\exists x.\,P} \]
-This rule is seldom used, for it can cause exponential blow-up.  
+\index{Hilbert's epsilon-operator|(}%
+HOL provides Hilbert's $\varepsilon$-operator.  The term $\varepsilon x.
+P(x)$ denotes some $x$ such that $P(x)$ is true, provided such a value
+exists.  In \textsc{ascii}, we write \isa{SOME} for the Greek
+letter~$\varepsilon$.
+
+\begin{warn}
+Hilbert's $\varepsilon$-operator can be hard to reason about.  New users
+should try to avoid it.  Fortunately, situations that require it are rare.
+\end{warn}
 
 \subsection{Definite Descriptions}
 
-In \textsc{ascii}, we write \isa{SOME} for $\varepsilon$.
-\REMARK{the internal constant is \isa{Eps}}
+\index{descriptions!definite}%
 The main use of \hbox{\isa{SOME\ x.\ P\ x}} is as a \textbf{definite
 description}: when \isa{P} is satisfied by a unique value,~\isa{a}. 
 We reason using this rule:
@@ -981,27 +1081,6 @@ cardinality of a finite set~$A$ to be that
 $n$ such that $A$ is in one-to-one correspondence with $\{1,\ldots,n\}$.  We can then
 prove that the cardinality of the empty set is zero (since $n=0$ satisfies the
 description) and proceed to prove other facts.
-
-Here is another example.  Isabelle/HOL defines \isa{inv},\indexbold{*inv (constant)}
-which expresses inverses of functions, as a definite
-description:
-\begin{isabelle}
-inv\ f\ \isasymequiv \ \isasymlambda y.\ SOME\ x.\ f\ x\ =\ y%
-\rulename{inv_def}
-\end{isabelle}
-The inverse of \isa{f}, when applied to \isa{y}, returns some {x} such that
-\isa{f~x~=~y}.  For example, we can prove \isa{inv~Suc} really is the inverse
-of the \isa{Suc} function 
-\begin{isabelle}
-\isacommand{lemma}\ "inv\ Suc\ (Suc\ x)\ =\ x"\isanewline
-\isacommand{by}\ (simp\ add:\ inv_def)
-\end{isabelle}
-
-\noindent
-The proof is a one-liner: the subgoal simplifies to a degenerate application of
-\isa{SOME}, which is then erased.  The definition says nothing about what
-\isa{inv~Suc} returns when applied to zero.
-
 
 A more challenging example illustrates how Isabelle/HOL defines the least-number
 operator, which denotes the least \isa{x} satisfying~\isa{P}:
@@ -1044,9 +1123,34 @@ to \isa{auto} does it all:
 
 \subsection{Indefinite Descriptions}
 
-Occasionally, \hbox{\isa{SOME\ x.\ P\ x}} serves as an \textbf{indefinite
+\index{descriptions!indefinite}%
+Occasionally, \hbox{\isa{SOME\ x.\ P\ x}} serves as an \emph{indefinite
 description}, when it makes an arbitrary selection from the values
-satisfying~\isa{P}\@.  
+satisfying~\isa{P}\@.  Here is the definition
+of~\isa{inv},\index{*inv (constant)} which expresses inverses of functions:
+\begin{isabelle}
+inv\ f\ \isasymequiv \ \isasymlambda y.\ SOME\ x.\ f\ x\ =\ y%
+\rulename{inv_def}
+\end{isabelle}
+The inverse of \isa{f}, when applied to \isa{y}, returns some {x} such that
+\isa{f~x~=~y}.  For example, we can prove \isa{inv~Suc} really is the inverse
+of the \isa{Suc} function 
+\begin{isabelle}
+\isacommand{lemma}\ "inv\ Suc\ (Suc\ n)\ =\ n"\isanewline
+\isacommand{by}\ (simp\ add:\ inv_def)
+\end{isabelle}
+
+\noindent
+The proof is a one-liner: the subgoal simplifies to a degenerate application of
+\isa{SOME}, which is then erased.  In detail, the left-hand side simplifies
+to \isa{SOME\ x.\ Suc\ x\ =\ Suc\ n}, then to \isa{SOME\ x.\ x\ =\ n} and
+finally to~\isa{n}.  
+
+We know nothing about what
+\isa{inv~Suc} returns when applied to zero.  The proof above still treats
+\isa{SOME} as a definite description, since it only reasons about
+situations in which the value is  described uniquely.  To go further is
+tricky and requires rules such as these:
 \begin{isabelle}
 P\ x\ \isasymLongrightarrow \ P\ (SOME\ x.\ P\ x)
 \rulename{someI}\isanewline
@@ -1062,7 +1166,7 @@ proof.
 For example, let us prove the Axiom of Choice:
 \begin{isabelle}
 \isacommand{theorem}\ axiom_of_choice:
-\ "(\isasymforall x.\ \isasymexists \ y.\ P\ x\ y)\ \isasymLongrightarrow \
+\ "(\isasymforall x.\ \isasymexists y.\ P\ x\ y)\ \isasymLongrightarrow \
 \isasymexists f.\ \isasymforall x.\ P\ x\ (f\ x)"\isanewline
 \isacommand{apply}\ (rule\ exI,\ rule\ allI)\isanewline
 
@@ -1087,36 +1191,42 @@ function.  It also instantiates \isa{?x2\ x} to \isa{x}.
 \isacommand{by}\ (rule\ someI)\isanewline
 \end{isabelle}
 
+\subsubsection{Historical Note}
+The original purpose of Hilbert's $\varepsilon$-operator was to express an
+existential destruction rule:
+\[ \infer{P[(\varepsilon x. P) / \, x]}{\exists x.\,P} \]
+This rule is seldom used for that purpose --- it can cause exponential
+blow-up --- but it is occasionally used as an introduction rule
+for~$\varepsilon$-operator.  Its name is HOL is \isa{someI_ex}.
+
+
+\index{Hilbert's epsilon-operator|)}
 
 \section{Some Proofs That Fail}
 
+\index{proofs!examples of failing|(}%
 Most of the examples in this tutorial involve proving theorems.  But not every 
 conjecture is true, and it can be instructive to see how  
 proofs fail. Here we attempt to prove a distributive law involving 
 the existential quantifier and conjunction. 
 \begin{isabelle}
-\isacommand{lemma}\ "({\isasymexists}x.\ P\ x)\ \isasymand\ ({\isasymexists}x.\ Q\ x)\ \isasymLongrightarrow\ {\isasymexists}x.\ P\ x\ \isasymand\ Q\ x"\isanewline
+\isacommand{lemma}\ "({\isasymexists}x.\ P\ x)\ \isasymand\ 
+({\isasymexists}x.\ Q\ x)\ \isasymLongrightarrow\ {\isasymexists}x.\ P\ x\
+\isasymand\ Q\ x"
+\end{isabelle}
+The first steps are  routine.  We apply conjunction elimination to break
+the assumption into two existentially quantified assumptions. 
+Applying existential elimination removes one of the quantifiers. 
+\begin{isabelle}
 \isacommand{apply}\ (erule\ conjE)\isanewline
 \isacommand{apply}\ (erule\ exE)\isanewline
-\isacommand{apply}\ (erule\ exE)\isanewline
-\isacommand{apply}\ (rule\ exI)\isanewline
-\isacommand{apply}\ (rule\ conjI)\isanewline
-\ \isacommand{apply}\ assumption\isanewline
-\isacommand{oops}
-\end{isabelle}
-The first steps are  routine.  We apply conjunction elimination (\isa{erule
-conjE}) to split the assumption  in two, leaving two existentially quantified
-assumptions.  Applying existential elimination  (\isa{erule exE}) removes one of
-the quantifiers. 
-\begin{isabelle}
-%({\isasymexists}x.\ P\ x)\ \isasymand\ ({\isasymexists}x.\ Q\ x)\
-%\isasymLongrightarrow\ {\isasymexists}x.\ P\ x\ \isasymand\ Q\ x\isanewline
 \ 1.\ \isasymAnd x.\ \isasymlbrakk{\isasymexists}x.\ Q\ x;\ P\ x\isasymrbrakk\ \isasymLongrightarrow\ {\isasymexists}x.\ P\ x\ \isasymand\ Q\ x
 \end{isabelle}
 %
 When we remove the other quantifier, we get a different bound 
 variable in the subgoal.  (The name \isa{xa} is generated automatically.)
 \begin{isabelle}
+\isacommand{apply}\ (erule\ exE)\isanewline
 \ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P\ x;\ Q\ xa\isasymrbrakk\
 \isasymLongrightarrow\ {\isasymexists}x.\ P\ x\ \isasymand\ Q\ x
 \end{isabelle}
@@ -1129,14 +1239,17 @@ and~\isa{xa}.  We need one to become \isa{x}
 and the other to become~\isa{xa}, but Isabelle requires all instances of a
 placeholder to be identical. 
 \begin{isabelle}
+\isacommand{apply}\ (rule\ exI)\isanewline
+\isacommand{apply}\ (rule\ conjI)\isanewline
 \ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P\ x;\ Q\ xa\isasymrbrakk\
 \isasymLongrightarrow\ P\ (?x3\ x\ xa)\isanewline
 \ 2.\ \isasymAnd x\ xa.\ \isasymlbrakk P\ x;\ Q\ xa\isasymrbrakk\ \isasymLongrightarrow\ Q\ (?x3\ x\ xa)
 \end{isabelle}
 We can prove either subgoal 
 using the \isa{assumption} method.  If we prove the first one, the placeholder
-changes  into~\isa{x}. 
+changes into~\isa{x}. 
 \begin{isabelle}
+\ \isacommand{apply}\ assumption\isanewline
 \ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P\ x;\ Q\ xa\isasymrbrakk\
 \isasymLongrightarrow\ Q\ x
 \end{isabelle}
@@ -1145,8 +1258,8 @@ method results in an error message:
 \begin{isabelle}
 *** empty result sequence -- proof command failed
 \end{isabelle}
-If we interact with Isabelle via the shell interface,
-we abandon a failed proof with the \isacommand{oops} command.
+When interacting with Isabelle via the shell interface,
+you can abandon a proof using the \isacommand{oops} command.
 
 \medskip 
 
@@ -1156,52 +1269,50 @@ If $R$ is a reflexive relation,
 is there an $x$ such that $R\,x\,y$ holds for all $y$?  Let us see what happens when
 we attempt to prove it. 
 \begin{isabelle}
-\isacommand{lemma}\ "{\isasymforall}z.\ R\ z\ z\ \isasymLongrightarrow\
-{\isasymexists}x.\ {\isasymforall}y.\ R\ x\ y"\isanewline
+\isacommand{lemma}\ "\isasymforall \ y.\ R\ y\ y\ \isasymLongrightarrow 
+\ \isasymexists x.\ \isasymforall \ y.\ R\ x\ y"
+\end{isabelle}
+First,  we remove the existential quantifier. The new proof state has  an
+unknown, namely~\isa{?x}. 
+\begin{isabelle}
 \isacommand{apply}\ (rule\ exI)\isanewline
+\ 1.\ \isasymforall y.\ R\ y\ y\ \isasymLongrightarrow \ \isasymforall y.\ R\ ?x\ y%
+\end{isabelle}
+It looks like we can just apply \isa{assumption}, but it fails.  Isabelle
+refuses to substitute \isa{y}, a bound variable, for~\isa{?x}; that would be
+a bound variable capture.  We can still try to finish the proof in some
+other way. We remove the universal quantifier  from the conclusion, moving
+the bound variable~\isa{y} into the subgoal.  But note that it is still
+bound!
+\begin{isabelle}
 \isacommand{apply}\ (rule\ allI)\isanewline
-\isacommand{apply}\ (drule\ spec)\isanewline
-\isacommand{oops}
-\end{isabelle}
-First, 
-we remove the existential quantifier. The new proof state has 
-an unknown, namely~\isa{?x}. 
-\begin{isabelle}
-%{\isasymforall}z.\ R\ z\ z\ \isasymLongrightarrow\ {\isasymexists}x.\
-%{\isasymforall}y.\ R\ x\ y\isanewline
-\ 1.\ {\isasymforall}z.\ R\ z\ z\ \isasymLongrightarrow\ {\isasymforall}y.\ R\ ?x\ y
-\end{isabelle}
-Next, we remove the universal quantifier 
-from the conclusion, putting the bound variable~\isa{y} into the subgoal. 
-\begin{isabelle}
-\ 1.\ \isasymAnd y.\ {\isasymforall}z.\ R\ z\ z\ \isasymLongrightarrow\ R\ ?x\ y
+\ 1.\ \isasymAnd y.\ \isasymforall y.\ R\ y\ y\ \isasymLongrightarrow \ R\ ?x\ y%
 \end{isabelle}
 Finally, we try to apply our reflexivity assumption.  We obtain a 
 new assumption whose identical placeholders may be replaced by 
 any term involving~\isa{y}. 
 \begin{isabelle}
+\isacommand{apply}\ (drule\ spec)\isanewline
 \ 1.\ \isasymAnd y.\ R\ (?z2\ y)\ (?z2\ y)\ \isasymLongrightarrow\ R\ ?x\ y
 \end{isabelle}
 This subgoal can only be proved by putting \isa{y} for all the placeholders,
-making the assumption and conclusion become \isa{R\ y\ y}. 
-But Isabelle refuses to substitute \isa{y}, a bound variable, for
-\isa{?x}; that would be a bound variable capture.  The proof fails.
-Note that Isabelle can replace \isa{?z2~y} by \isa{y}; this involves
-instantiating
-\isa{?z2} to the identity function.
-
+making the assumption and conclusion become \isa{R\ y\ y}.  Isabelle can
+replace \isa{?z2~y} by \isa{y}; this involves instantiating
+\isa{?z2} to the identity function.  But, just as two steps earlier,
+Isabelle refuses to substitute~\isa{y} for~\isa{?x}.
 This example is typical of how Isabelle enforces sound quantifier reasoning. 
-
+\index{proofs!examples of failing|)}
 
 \section{Proving Theorems Using the {\tt\slshape blast} Method}
 
+\index{*blast (method)|(}%
 It is hard to prove substantial theorems using the methods 
 described above. A proof may be dozens or hundreds of steps long.  You 
 may need to search among different ways of proving certain 
 subgoals. Often a choice that proves one subgoal renders another 
 impossible to prove.  There are further complications that we have not
 discussed, concerning negation and disjunction.  Isabelle's
-\textbf{classical reasoner} is a family of tools that perform such
+\emph{classical reasoner} is a family of tools that perform such
 proofs automatically.  The most important of these is the 
 \isa{blast} method. 
 
@@ -1212,11 +1323,12 @@ rules, enabling it to work in new problem domains.
  We begin with examples from pure predicate logic. The following 
 example is known as Andrew's challenge. Peter Andrews designed 
 it to be hard to prove by automatic means.%
-\footnote{Pelletier~\cite{pelletier86} describes it and many other
-problems for automatic theorem provers.}
-The nested biconditionals cause an exponential explosion: the formal
-proof is  enormous.  However, the \isa{blast} method proves it in
-a fraction  of a second. 
+\footnote{It is particularly hard for a resolution prover.  The
+nested biconditionals cause a combinatorial explosion in the conversion to
+clause form.  Pelletier~\cite{pelletier86} describes it and many other
+problems for automatic theorem provers.} 
+However, the
+\isa{blast} method proves it in a fraction  of a second. 
 \begin{isabelle}
 \isacommand{lemma}\
 "(({\isasymexists}x.\
@@ -1282,10 +1394,11 @@ Few subgoals are couched purely in predicate logic and set theory.
 We can extend the scope of the classical reasoner by giving it new rules. 
 Extending it effectively requires understanding the notions of
 introduction, elimination and destruction rules.  Moreover, there is a
-distinction between  safe and unsafe rules. A \textbf{safe} rule is one
-that can be applied  backwards without losing information; an
-\textbf{unsafe} rule loses  information, perhaps transforming the subgoal
-into one that cannot be proved.  The safe/unsafe
+distinction between  safe and unsafe rules. A 
+\textbf{safe}\indexbold{safe rules} rule is one that can be applied 
+backwards without losing information; an
+\textbf{unsafe}\indexbold{unsafe rules} rule loses  information, perhaps
+transforming the subgoal into one that cannot be proved.  The safe/unsafe
 distinction affects the proof search: if a proof attempt fails, the
 classical reasoner backtracks to the most recent unsafe rule application
 and makes another choice. 
@@ -1332,12 +1445,15 @@ replacement, since \isa{iff} gives $P=Q$ to the
 simplifier.  But classical reasoning is different from
 simplification.  Simplification is deterministic: it applies rewrite rules
 repeatedly, as long as possible, in order to \emph{transform} a goal.  Classical
-reasoning uses search and backtracking in order to \emph{prove} a goal. 
+reasoning uses search and backtracking in order to \emph{prove} a goal.%
+\index{*blast (method)|)}%
+
 
 
 \section{Proving the Correctness of Euclid's Algorithm}
 \label{sec:proving-euclid}
 
+\index{Euclid's algorithm|(}\index{*gcd (function)|(}%
 A brief development will illustrate the advanced use of  
 \isa{blast}.  We shall also see \isa{case_tac} used to perform a Boolean
 case split.
@@ -1346,14 +1462,13 @@ In \S\ref{sec:recdef-simplification}, we declared the
 recursive function \isa{gcd}:
 \begin{isabelle}
 \isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
-\isacommand{recdef}\ gcd\ "measure\ ((\isasymlambda(m,n).n)\
-::nat*nat\ \isasymRightarrow\ nat)"\isanewline
+\isacommand{recdef}\ gcd\ "measure\ ((\isasymlambda(m,n).n))"\isanewline
 \ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
 \end{isabelle}
 Let us prove that it computes the greatest common
 divisor of its two arguments.  
 The theorem is expressed in terms of the familiar
-\textbf{divides} relation from number theory: 
+\emph{divides} relation from number theory: 
 \begin{isabelle}
 ?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
 \rulename{dvd_def}
@@ -1417,7 +1532,8 @@ Several things are happening here. The keyword \isacommand{lemmas}
 tells Isabelle to transform a theorem in some way and to
 give a name to the resulting theorem.  Attributes can be given,
 here \isa{iff}, which supplies the new theorems to the classical reasoner
-and the simplifier.  The directive \isa{THEN}, described in
+and the simplifier.  The directive \isa{THEN},\indexbold{*THEN (directive)}
+described in
 \S\ref{sec:forward} below, supplies the lemma 
 \isa{gcd_dvd_both} to the
 destruction rule \isa{conjunct1}.  The effect is to extract the first part:
@@ -1512,7 +1628,8 @@ occurrences of the divides symbol. However, this proof relies
 on transitivity reasoning.  The rule {\isa{gcd\_greatest}} is safe to apply 
 aggressively because it yields simpler subgoals.  The proof implicitly
 uses \isa{gcd_dvd1} and \isa{gcd_dvd2} as safe rules, because they were
-declared using \isa{iff}.
+declared using \isa{iff}.%
+\index{Euclid's algorithm|)}\index{*gcd (function)|)}
 
 
 \section{Other Classical Reasoning Methods}
@@ -1522,11 +1639,13 @@ automatically. Other components of the classical reasoner interact
 with the simplifier. Still others perform classical reasoning 
 to a limited extent, giving the user fine control over the proof. 
 
-Of the latter methods, the most useful is {\isa{clarify}}. It performs 
+Of the latter methods, the most useful is 
+\isa{clarify}.\indexbold{*clarify (method)}
+It performs 
 all obvious reasoning steps without splitting the goal into multiple 
 parts. It does not apply unsafe rules that could render the 
 goal unprovable. By performing the obvious 
-steps, {\isa{clarify}} lays bare the difficult parts of the problem, 
+steps, \isa{clarify} lays bare the difficult parts of the problem, 
 where human intervention is necessary. 
 
 For example, the following conjecture is false:
@@ -1536,7 +1655,7 @@ For example, the following conjecture is false:
 \isasymand\ Q\ x)"\isanewline
 \isacommand{apply}\ clarify
 \end{isabelle}
-The \isa{blast} method would simply fail, but {\isa{clarify}} presents 
+The \isa{blast} method would simply fail, but \isa{clarify} presents 
 a subgoal that helps us see why we cannot continue the proof. 
 \begin{isabelle}
 \ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk{\isasymforall}x.\ P\ x;\ Q\
@@ -1548,13 +1667,16 @@ the introduction rules for \isa{\isasymlongrightarrow} and \isa{\isasymforall}
 and the elimination rule for ~\isa{\isasymand}.  It did not apply the introduction
 rule for  \isa{\isasymand} because of its policy never to split goals.
 
-Also available is {\isa{clarsimp}}, a method that interleaves {\isa{clarify}}
-and {\isa{simp}}.  Also there is \isa{safe}, which like \isa{clarify} performs
-obvious steps and even applies those that split goals.
+Also available is \isa{clarsimp},\indexbold{*clarsimp (method)} 
+a method
+that interleaves \isa{clarify} and \isa{simp}.  Also there is 
+\isa{safe},\indexbold{*safe (method)}
+which like \isa{clarify} performs obvious steps and even applies those that
+split goals.
 
-The \isa{force} method applies the classical reasoner and simplifier 
-to one goal. 
-%% \REMARK{example needed of \isa{force}?}
+\indexbold{*force (method)}%
+The \isa{force} method applies the classical
+reasoner and simplifier  to one goal. 
 Unless it can prove the goal, it fails. Contrast 
 that with the \isa{auto} method, which also combines classical reasoning 
 with simplification. The latter's purpose is to prove all the 
@@ -1597,23 +1719,26 @@ following subgoal:
 The proof from this point is trivial.  Could we have
 proved the theorem with a single command? Not using \isa{blast}: it
 cannot perform  the higher-order unification needed here.  The
-\isa{fast} method succeeds: 
+\isa{fast}\indexbold{*fast (method)} method succeeds: 
 \begin{isabelle}
 \isacommand{apply}\ (fast\ intro!:\ someI)
 \end{isabelle}
 
-The \isa{best} method is similar to \isa{fast} but it uses a 
-best-first search instead of depth-first search. Accordingly, 
-it is slower but is less susceptible to divergence. Transitivity 
-rules usually cause \isa{fast} to loop where often \isa{best} 
+The \isa{best}\indexbold{*best (method)} method is similar to
+\isa{fast} but it uses a  best-first search instead of depth-first search.
+Accordingly,  it is slower but is less susceptible to divergence.
+Transitivity  rules usually cause \isa{fast} to loop where often \isa{best} 
 can manage.
 
 Here is a summary of the classical reasoning methods:
 \begin{itemize}
 \item \isa{blast} works automatically and is the fastest
-\item \isa{clarify} and \isa{clarsimp} perform obvious steps without splitting the
-goal; \isa{safe} even splits goals
-\item \isa{force} uses classical reasoning and simplification to prove a goal;
+\item \isa{clarify}\indexbold{*clarify (method)} and 
+\isa{clarsimp}\indexbold{*clarsimp (method)}
+perform obvious steps without splitting the goal; 
+\isa{safe}\indexbold{*safe (method)} even splits goals
+\item \isa{force}\indexbold{*force (method)} uses classical reasoning
+and simplification to prove a goal;
  \isa{auto} is similar but leaves what it cannot prove
 \item \isa{fast} and \isa{best} are legacy methods that work well with rules involving
 unusual features
@@ -1630,6 +1755,7 @@ A table illustrates the relationships among four of these methods.
 
 \section{Directives for Forward Proof}\label{sec:forward}
 
+\index{forward proof|(}%
 Forward proof means deriving new facts from old ones.  It is  the
 most fundamental type of proof.  Backward proof, by working  from goals to
 subgoals, can help us find a difficult proof.  But it is
@@ -1654,11 +1780,13 @@ an equation, so it too is a forward step.
 
 Now let us reproduce our examples in Isabelle.  Here is the distributive
 law:
-\begin{isabelle}%
+\begin{isabelle}
 ?k\ *\ gcd\ (?m,\ ?n)\ =\ gcd\ (?k\ *\ ?m,\ ?k\ *\ ?n)
 \rulename{gcd_mult_distrib2}
 \end{isabelle}%
-The first step is to replace \isa{?m} by~1 in this law.  The \isa{of} directive
+The first step is to replace \isa{?m} by~1 in this law.  
+The \isa{of}\indexbold{*of (directive)}
+directive
 refers to variables not by name but by their order of occurrence in the theorem. 
 In this case, the variables  are \isa{?k}, \isa{?m} and~\isa{?n}. So, the
 expression
@@ -1710,18 +1838,17 @@ To re-orient the equation requires the symmetry rule:
 \end{isabelle}
 The following declaration gives our equation to \isa{sym}:
 \begin{isabelle}
-\ \ \ \isacommand{lemmas}\ gcd_mult\ =\ gcd_mult_1\
-[THEN\ sym]
+\ \ \ \isacommand{lemmas}\ gcd_mult\ =\ gcd_mult_1\ [THEN\ sym]
 \end{isabelle}
 %
 Here is the result:
 \begin{isabelle}
 \ \ \ \ \ gcd\ (k,\ k\ *\ ?n)\ =\ k%
 \end{isabelle}
-\isa{THEN~sym} gives the current theorem to the rule \isa{sym} and returns the
-resulting conclusion.  The effect is to exchange the
-two operands of the equality. Typically \isa{THEN} is used with destruction
-rules.  Above we have used
+\isa{THEN~sym}\indexbold{*THEN (directive)} gives the current theorem to the
+rule \isa{sym} and returns the resulting conclusion.  The effect is to
+exchange the two operands of the equality. Typically \isa{THEN} is used
+with destruction rules.  Above we have used
 \isa{THEN~conjunct1} to extract the first part of the theorem
 \isa{gcd_dvd_both}.  Also useful is \isa{THEN~spec}, which removes the quantifier
 from a theorem of the form $\forall x.\,P$, and \isa{THEN~mp}, which converts the
@@ -1796,10 +1923,11 @@ with the rules \isa{mp} and \isa{spec}, eliminating the outermost occurrences of
 
 \subsection{The {\tt\slshape OF} Directive}
 
-Recall that \isa{of} generates an instance of a rule by specifying
-values for its variables.  Analogous is \isa{OF}, which generates an
-instance of a rule by specifying facts for its premises.  Let us try
-it with this rule:
+\index{*OF (directive)|(}%
+Recall that \isa{of} generates an instance of a
+rule by specifying values for its variables.  Analogous is \isa{OF}, which
+generates an instance of a rule by specifying facts for its premises.  Let
+us try it with this rule:
 \begin{isabelle}
 \isasymlbrakk gcd(?k,?n){=}1;\ ?k\ dvd\ ?m * ?n\isasymrbrakk\
 \isasymLongrightarrow\ ?k\ dvd\ ?m
@@ -1812,11 +1940,12 @@ prove an instance of its first premise:
 \isacommand{by}\ (simp\ add:\ gcd.simps)
 \end{isabelle}
 We have evaluated an application of the \isa{gcd} function by
-simplification.  Expression evaluation  is not guaranteed to terminate, and
-certainly is not  efficient; Isabelle performs arithmetic operations by 
-rewriting symbolic bit strings.  Here, however, the simplification above takes
-less than one second.  We can specify this new lemma to \isa{OF},
-generating an instance of \isa{relprime_dvd_mult}.  The expression
+simplification.  Expression evaluation involving recursive functions is not
+guaranteed to terminate, and it certainly is not efficient; Isabelle
+performs arithmetic operations by  rewriting symbolic bit strings.  Here,
+however, the simplification above takes less than one second.  We can
+specify this new lemma to \isa{OF}, generating an instance of
+\isa{relprime_dvd_mult}.  The expression
 \begin{isabelle}
 \ \ \ \ \ relprime_dvd_mult [OF relprime_20_81]
 \end{isabelle}
@@ -1859,7 +1988,8 @@ the same idea, namely to combine two rules.  They differ in the
 order of the combination and thus in their effect.  We use \isa{THEN}
 typically with a destruction rule to extract a subformula of the current
 theorem.  We use \isa{OF} with a list of facts to generate an instance of
-the current theorem.
+the current theorem.%
+\index{*OF (directive)|)}
 
 Here is a summary of some primitives for forward reasoning:
 \begin{itemize}
@@ -1876,8 +2006,9 @@ conclusion
 \section{Methods for Forward Proof}
 
 We have seen that the forward proof directives work well within a backward 
-proof.  There are many ways to achieve a forward style, using our existing
-proof methods and some additional ones that we introduce below.  
+proof.  There are many ways to achieve a forward style using our existing
+proof methods.  We shall also meet some new methods that perform forward
+reasoning.  
 
 The methods \isa{drule}, \isa{frule}, \isa{drule_tac}, etc.,
 reason forward from a subgoal.  We have seen them already, using rules such as
@@ -1901,8 +2032,7 @@ For example, let us prove a fact about divisibility in the natural numbers:
 %
 The key step is to apply the function \ldots\isa{mod\ u} to both sides of the
 equation
-\isa{u*m\ =\ Suc(u*n)}:
-
+\isa{u*m\ =\ Suc(u*n)}:\index{*drule_tac (method)}
 \begin{isabelle}
 \isacommand{apply}\ (drule_tac\ f="\isasymlambda x.\ x\ mod\ u"\ \isakeyword{in}\
 arg_cong)\isanewline
@@ -1925,10 +2055,12 @@ Suc\ m\ mod\ n\ =\isanewline
 \end{isabelle}
 
 \medskip
-The methods designed for supporting forward reasoning are \isa{insert} and
-\isa{subgoal_tac}.  The \isa{insert} method inserts a
-given theorem as a new assumption of the current subgoal.  This already
-is a forward step; moreover, we may (as always when using a theorem) apply
+\index{*insert(method)|(}%
+The methods designed for supporting forward reasoning are 
+\isa{insert} and \isa{subgoal_tac}.  The \isa{insert} method
+inserts a given theorem as a new assumption of the current subgoal.  This
+already is a forward step; moreover, we may (as always when using a
+theorem) apply
 \isa{of}, \isa{THEN} and other directives.  The new assumption can then
 be used to help prove the subgoal.
 
@@ -1996,11 +2128,13 @@ n;\ \ (m\ *\ n)\ div\ n\ *\ n\ +\ (m\ *\ n)\ mod\ n\
 \end{isabelle}
 Simplification reduces \isa{(m\ *\ n)\ mod\ n} to zero.
 Then it cancels the factor~\isa{n} on both
-sides of the equation, proving the theorem. 
+sides of the equation, proving the theorem.%
+\index{*insert(method)|)}
 
 \medskip
-A similar method is {\isa{subgoal_tac}}. Instead of inserting 
-a theorem as an assumption, it inserts an arbitrary formula. 
+A similar method is \isa{subgoal_tac}.\index{*subgoal_tac (method)}
+Instead
+of inserting  a theorem as an assumption, it inserts an arbitrary formula. 
 This formula must be proved later as a separate subgoal. The 
 idea is to claim that the formula holds on the basis of the current 
 assumptions, to use this claim to complete the proof, and finally 
@@ -2064,6 +2198,7 @@ Summary of these methods:
 \item {\isa{subgoal_tac}} adds a formula as a new assumption and leaves the
 subgoal of proving that formula
 \end{itemize}
+\index{forward proof|)}
 
 
 \section{Managing Large Proofs}
@@ -2076,7 +2211,7 @@ and you are forced to cope with a long proof involving many subgoals.
 \subsection{Tacticals, or Control Structures}
 
 If the proof is long, perhaps it at least has some regularity.  Then you can
-express it more concisely using \textbf{tacticals}, which provide control
+express it more concisely using \bfindex{tacticals}, which provide control
 structures.  Here is a proof (it would be a one-liner using
 \isa{blast}, but forget that) that contains a series of repeated
 commands:
