@@ -33,7 +33,7 @@ read
 
 ## build it
 
-# FIXME isatool makelogics
+export THIS_IS_ISABELLE_BUILD=true
 
 for DIR in $LOGICS
 do
