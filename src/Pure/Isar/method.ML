@@ -29,8 +29,6 @@ sig
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
   val assumption: Proof.method
-  val FINISHED: tactic -> tactic
-  val finish: Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val help_methods: theory -> unit
   val method: theory -> Args.src -> Proof.context -> Proof.method
@@ -170,12 +168,6 @@ fun assumption_tac [] = assume_tac
   | assumption_tac _ = K no_tac;
 
 val assumption = METHOD (FIRSTGOAL o assumption_tac);
-
-
-(* finish *)
-
-val FINISHED = FILTER (equal 0 o Thm.nprems_of);
-val finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
 
 
 
@@ -332,6 +324,22 @@ fun refine text state =
 fun named_method name = Source (Args.src ((name, []), Position.none));
 
 
+(* finish *)
+
+local
+
+val FINISHED = FILTER (equal 0 o Thm.nprems_of);
+val finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
+val basic_finish = Basic (K finish);
+
+in
+
+fun finish_text None = basic_finish
+  | finish_text (Some txt) = Then [txt, basic_finish];
+
+end;
+
+
 (* unstructured steps *)
 
 fun tac text state =
@@ -348,8 +356,7 @@ fun then_tac text state =
 (* structured proof steps *)
 
 val default_text = named_method "default";
-val finish_text = named_method "finish";
-
+val assumption_text = Basic (K assumption);
 
 fun proof opt_text state =
   state
@@ -357,13 +364,13 @@ fun proof opt_text state =
   |> refine (if_none opt_text default_text)
   |> Seq.map Proof.enter_forward;
 
-fun local_qed opt_text = Proof.local_qed (refine (if_none opt_text finish_text));
+fun local_qed opt_text = Proof.local_qed (refine (finish_text opt_text));
 fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
-val local_immediate_proof = local_terminal_proof (Basic (K assumption), None);
+val local_immediate_proof = local_terminal_proof (assumption_text, None);
 val local_default_proof = local_terminal_proof (default_text, None);
 
 
-fun global_qeds opt_text = Proof.global_qed (refine (if_none opt_text finish_text));
+fun global_qeds opt_text = Proof.global_qed (refine (finish_text opt_text));
 
 fun global_qed opt_text state =
   state
@@ -379,7 +386,7 @@ fun global_terminal_proof (text, opt_text) state =
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (Basic (K assumption), None);
+val global_immediate_proof = global_terminal_proof (assumption_text, None);
 val global_default_proof = global_terminal_proof (default_text, None);
 
 
@@ -396,8 +403,7 @@ val pure_methods =
   ("unfold", thms_args unfold, "unfold definitions"),
   ("rule", thms_args rule, "apply some rule"),
   ("erule", thms_args erule, "apply some erule (improper!)"),
-  ("assumption", no_args assumption, "proof by assumption"),
-  ("finish", no_args finish, "finish proof by assumption")];
+  ("assumption", no_args assumption, "proof by assumption")];
 
 
 (* setup *)
