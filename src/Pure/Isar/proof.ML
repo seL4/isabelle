@@ -11,6 +11,7 @@ sig
   type state
   exception STATE of string * state
   val check_result: string -> state -> 'a Seq.seq -> 'a Seq.seq
+  val init_state: theory -> state
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
@@ -643,7 +644,8 @@ fun end_proof bot state =
   |> assert_forward
   |> close_block
   |> assert_bottom bot
-  |> assert_current_goal true;
+  |> assert_current_goal true
+  |> goal_facts (K []);
 
 
 (* local_qed *)
