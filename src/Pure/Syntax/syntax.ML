@@ -31,7 +31,7 @@ signature SYNTAX =
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
-  val extend_const_gram: syntax -> (string * typ * mixfix) list -> syntax
+  val extend_const_gram: syntax -> string -> (string * typ * mixfix) list -> syntax
   val extend_consts: syntax -> string list -> syntax
   val extend_trfuns: syntax ->
     (string * (ast list -> ast)) list *
@@ -134,7 +134,7 @@ datatype syntax =
     print_trtab: term trtab,
     print_ruletab: ruletab,
     print_ast_trtab: ast trtab,
-    prtab: prtab};
+    prtabs: prtabs};
 
 
 (* empty_syntax *)
@@ -151,24 +151,24 @@ val empty_syntax =
     print_trtab = empty_trtab,
     print_ruletab = empty_ruletab,
     print_ast_trtab = empty_trtab,
-    prtab = empty_prtab};
+    prtabs = empty_prtabs};
 
 
 (* extend_syntax *)
 
-fun extend_syntax (Syntax tabs) syn_ext =
+fun extend_syntax prmode (Syntax tabs) syn_ext =
   let
     val {lexicon, logtypes = logtypes1, gram, consts = consts1, parse_ast_trtab,
       parse_ruletab, parse_trtab, print_trtab, print_ruletab, print_ast_trtab,
-      prtab} = tabs;
+      prtabs} = tabs;
     val SynExt {logtypes = logtypes2, xprods, consts = consts2, parse_ast_translation,
       parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation} = syn_ext;
   in
     Syntax {
-      lexicon = extend_lexicon lexicon (delims_of xprods),
+      lexicon = if prmode = "" then extend_lexicon lexicon (delims_of xprods) else lexicon,
       logtypes = extend_list logtypes1 logtypes2,
-      gram = extend_gram gram xprods,
+      gram = if prmode = "" then extend_gram gram xprods else gram,
       consts = consts2 union consts1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
@@ -178,7 +178,7 @@ fun extend_syntax (Syntax tabs) syn_ext =
       print_ruletab = extend_ruletab print_ruletab print_rules,
       print_ast_trtab =
         extend_trtab print_ast_trtab print_ast_translation "print ast translation",
-      prtab = extend_prtab prtab xprods}
+      prtabs = extend_prtabs prtabs prmode xprods}
   end;
 
 
@@ -190,13 +190,13 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
       parse_trtab = parse_trtab1, print_trtab = print_trtab1,
       print_ruletab = print_ruletab1, print_ast_trtab = print_ast_trtab1,
-      prtab = prtab1} = tabs1;
+      prtabs = prtabs1} = tabs1;
 
     val {lexicon = lexicon2, logtypes = logtypes2, gram = gram2, consts = consts2,
       parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2,
       print_ruletab = print_ruletab2, print_ast_trtab = print_ast_trtab2,
-      prtab = prtab2} = tabs2;
+      prtabs = prtabs2} = tabs2;
   in
     Syntax {
       lexicon = merge_lexicons lexicon1 lexicon2,
@@ -211,14 +211,14 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       print_ruletab = merge_ruletabs print_ruletab1 print_ruletab2,
       print_ast_trtab =
         merge_trtabs print_ast_trtab1 print_ast_trtab2 "print ast translation",
-      prtab = merge_prtabs prtab1 prtab2}
+      prtabs = merge_prtabs prtabs1 prtabs2}
   end;
 
 
 (* type_syn *)
 
-val type_syn = extend_syntax empty_syntax type_ext;
-val pure_syn = extend_syntax type_syn pure_ext;
+val type_syn = extend_syntax "" empty_syntax type_ext;
+val pure_syn = extend_syntax "" type_syn pure_ext;
 
 
 (** inspect syntax **)
@@ -231,11 +231,12 @@ fun pretty_strs_qs name strs =
 
 fun print_gram (Syntax tabs) =
   let
-    val {lexicon, logtypes, gram, ...} = tabs;
+    val {lexicon, logtypes, gram, prtabs, ...} = tabs;
   in
     Pretty.writeln (pretty_strs_qs "lexicon:" (dest_lexicon lexicon));
     Pretty.writeln (Pretty.strs ("logtypes:" :: logtypes));
-    Pretty.writeln (Pretty.big_list "prods:" (pretty_gram gram))
+    Pretty.writeln (Pretty.big_list "prods:" (pretty_gram gram));
+    Pretty.writeln (pretty_strs_qs "printer modes:" (prmodes_of prtabs))
   end;
 
 
@@ -390,12 +391,12 @@ fun prep_rules rd_pat raw_rules =
 
 (** pretty terms or typs **)
 
-fun pretty_t t_to_ast pretty_t curried (syn as Syntax tabs) t =
+fun pretty_t t_to_ast prt_t curried (syn as Syntax tabs) t =
   let
-    val {print_trtab, print_ruletab, print_ast_trtab, prtab, ...} = tabs;
+    val {print_trtab, print_ruletab, print_ast_trtab, prtabs, ...} = tabs;
     val ast = t_to_ast (lookup_trtab print_trtab) t;
   in
-    pretty_t curried prtab (lookup_trtab print_ast_trtab)
+    prt_t curried prtabs (lookup_trtab print_ast_trtab)
       (normalize_ast (lookup_ruletab print_ruletab) ast)
   end;
 
@@ -413,25 +414,25 @@ val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 (** extend syntax (external interfaces) **)
 
-fun ext_syntax mk_syn_ext (syn as Syntax {logtypes, ...}) decls =
-  extend_syntax syn (mk_syn_ext logtypes decls);
+fun ext_syntax mk_syn_ext prmode (syn as Syntax {logtypes, ...}) decls =
+  extend_syntax prmode syn (mk_syn_ext logtypes decls);
 
 
 fun extend_log_types syn logtypes =
-  extend_syntax syn (syn_ext_logtypes logtypes);
+  extend_syntax "" syn (syn_ext_logtypes logtypes);
 
-val extend_type_gram = ext_syntax syn_ext_types;
+val extend_type_gram = ext_syntax syn_ext_types "";
 
-val extend_const_gram = ext_syntax syn_ext_consts;
+fun extend_const_gram syn prmode = ext_syntax syn_ext_consts prmode syn;
 
-val extend_consts = ext_syntax syn_ext_const_names;
+val extend_consts = ext_syntax syn_ext_const_names "";
 
-val extend_trfuns = ext_syntax syn_ext_trfuns;
+val extend_trfuns = ext_syntax syn_ext_trfuns "";
 
 fun extend_trrules syn rules =
-  ext_syntax syn_ext_rules syn (prep_rules (read_pattern syn) rules);
+  ext_syntax syn_ext_rules "" syn (prep_rules (read_pattern syn) rules);
 
 fun extend_trrules_i syn rules =
-  ext_syntax syn_ext_rules syn (prep_rules I rules);
+  ext_syntax syn_ext_rules "" syn (prep_rules I rules);
 
 end;
