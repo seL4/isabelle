@@ -44,12 +44,11 @@ sig
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
-  val erule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
-  val erule: thm list -> Proof.method
-  val drule: thm list -> Proof.method
-  val frule: thm list -> Proof.method
+  val erule: int -> thm list -> Proof.method
+  val drule: int -> thm list -> Proof.method
+  val frule: int -> thm list -> Proof.method
   val this: Proof.method
   val assumption: Proof.context -> Proof.method
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
@@ -304,13 +303,16 @@ fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of
 end;
 
 
-(* simple rule *)
+(* basic rules *)
 
 local
 
 fun gen_rule_tac tac rules [] i st = tac rules i st
   | gen_rule_tac tac erules facts i st =
       Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts erules));
+
+fun gen_arule_tac tac j rules facts =
+  EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
 
 fun gen_some_rule_tac tac arg_rules ctxt facts =
   let val rules =
@@ -319,20 +321,19 @@ fun gen_some_rule_tac tac arg_rules ctxt facts =
     else op @ (LocalRules.get ctxt);
   in tac rules facts end;
 
-fun gen_rule tac rules = METHOD (HEADGOAL o tac rules);
-fun gen_rule' tac arg_rules ctxt = METHOD (HEADGOAL o gen_some_rule_tac tac arg_rules ctxt);
-
-fun setup raw_tac =
-  let val tac = gen_rule_tac raw_tac
-  in (tac, gen_rule tac, gen_rule' tac) end;
+fun meth tac x = METHOD (HEADGOAL o tac x);
+fun meth' tac x y = METHOD (HEADGOAL o tac x y);
 
 in
 
-val some_rule_tac = gen_some_rule_tac (gen_rule_tac Tactic.resolve_tac);
-val (rule_tac, rule, some_rule) = setup Tactic.resolve_tac;
-val (erule_tac, erule, some_erule) = setup Tactic.eresolve_tac;
-val (drule_tac, drule, some_drule) = setup Tactic.dresolve_tac;
-val (frule_tac, frule, some_frule) = setup Tactic.forward_tac;
+val rule_tac = gen_rule_tac Tactic.resolve_tac;
+val rule = meth rule_tac;
+val some_rule_tac = gen_some_rule_tac rule_tac;
+val some_rule = meth' some_rule_tac;
+
+val erule = meth' (gen_arule_tac Tactic.eresolve_tac);
+val drule = meth' (gen_arule_tac Tactic.dresolve_tac);
+val frule = meth' (gen_arule_tac Tactic.forward_tac);
 
 end;
 
@@ -530,6 +531,9 @@ end;
 
 (* tactic syntax *)
 
+fun nat_thms_args f = uncurry f oo
+  (#2 oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.local_thmss));
+
 val insts =
   Scan.optional
     (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
@@ -645,9 +649,9 @@ val pure_methods =
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
-  ("erule", thms_ctxt_args some_erule, "apply some rule in elimination manner (improper)"),
-  ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper)"),
-  ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper)"),
+  ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
+  ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
+  ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
   ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
   ("rule_tac", inst_args res_inst, "apply rule (dynamic instantiation!)"),
