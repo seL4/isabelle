@@ -96,6 +96,22 @@ sig
     -> bool -> theory -> ProofHistory.T
   val theorem_i: string -> ((bstring * theory attribute list) *
     (term * (term list * term list))) * Comment.text -> bool -> theory -> ProofHistory.T
+  val multi_theorem: string -> bstring * Args.src list ->
+    Args.src Locale.element list ->
+    (((bstring * Args.src list) * (string * (string list * string list)) list)
+      * Comment.text) list -> bool -> theory -> ProofHistory.T
+  val multi_theorem_i: string -> bstring * theory attribute list ->
+    Proof.context attribute Locale.element_i list ->
+    (((bstring * theory attribute list) * (term * (term list * term list)) list)
+      * Comment.text) list -> bool -> theory -> ProofHistory.T
+  val locale_multi_theorem: string -> bstring * Args.src list ->
+    xstring -> Args.src Locale.element list ->
+    (((bstring * Args.src list) * (string * (string list * string list)) list)
+      * Comment.text) list -> bool -> theory -> ProofHistory.T
+  val locale_multi_theorem_i: string -> bstring * theory attribute list ->
+    string -> Proof.context attribute Locale.element_i list ->
+    (((bstring * Proof.context attribute list) * (term * (term list * term list)) list)
+      * Comment.text) list -> bool -> theory -> ProofHistory.T
   val smart_multi_theorem: string -> bstring * Args.src list ->
     xstring Library.option * Args.src Locale.element list ->
     (((bstring * Args.src list) * (string * (string list * string list)) list)
@@ -440,6 +456,8 @@ fun local_statement_i' f g args int = ProofHistory.apply (f args int o g);
 fun local_statement f g args = local_statement' (K o f) g args ();
 fun local_statement_i f g args = local_statement_i' (K o f) g args ();
 
+in
+
 fun multi_theorem k a elems args int thy =
   global_statement (Proof.multi_theorem k (apsnd (map (Attrib.global_attribute thy)) a) None
     (map (Locale.attribute (Attrib.local_attribute thy)) elems)) (map Comment.ignore args) int thy;
@@ -457,8 +475,6 @@ fun locale_multi_theorem_i k a locale elems args =
   global_statement_i (Proof.multi_theorem_i k a
       (Some (locale, map (snd o fst o Comment.ignore) args)) elems)
     (map (apfst (apsnd (K [])) o Comment.ignore) args);
-
-in
 
 fun theorem k ((a, t), cmt) = multi_theorem k a [] [((("", []), [t]), cmt)];
 fun theorem_i k ((a, t), cmt) = multi_theorem_i k a [] [((("", []), [t]), cmt)];
