@@ -42,7 +42,7 @@ constdefs
                  --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
   wellordered :: "[i=>o,i,i]=>o"
-    --{*every non-empty subset of @{text A} has an @{text r}-minimal element*}
+    --{*linear and wellfounded on @{text A}*}
     "wellordered(M,A,r) == 
 	transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
 

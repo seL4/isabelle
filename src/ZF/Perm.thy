@@ -97,8 +97,9 @@ apply (unfold inj_def)
 apply (blast dest: Pair_mem_PiD)
 done
 
-lemma inj_apply_equality: "[| f:inj(A,B);  a:A;  b:A;  f`a=f`b |] ==> a=b"
+lemma inj_apply_equality: "[| f:inj(A,B);  f`a=f`b;  a:A;  b:A |] ==> a=b"
 by (unfold inj_def, blast)
+
 
 (** A function with a left inverse is an injection **)
 
