@@ -7,7 +7,7 @@
 
 header{*Nonstandard Complex Numbers*}
 
-theory NSComplex = NSInduct:
+theory NSComplex = Complex:
 
 constdefs
     hcomplexrel :: "((nat=>complex)*(nat=>complex)) set"

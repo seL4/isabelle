@@ -7,7 +7,7 @@ Converted to Isar and polished by lcp
 
 header{*Nonstandard Extensions of Transcendental Functions*}
 
-theory HTranscendental = Transcendental + IntFloor:
+theory HTranscendental = Transcendental + Integration:
 
 constdefs
 
