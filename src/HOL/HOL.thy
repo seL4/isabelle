@@ -163,6 +163,11 @@ consts
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
 
+syntax
+  "_index1"  :: index    ("\<^sub>1")
+translations
+  (index) "\<^sub>1" == "_index 1"
+
 local
 
 typed_print_translation {*
