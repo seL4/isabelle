@@ -77,7 +77,7 @@ text {*
 (*Maximality: for all m,n,k naturals, 
                 if k divides m and k divides n then k divides gcd(m,n)*)
 lemma gcd_greatest [rule_format]:
-      "(k dvd m) \<longrightarrow> (k dvd n) \<longrightarrow> k dvd gcd(m,n)"
+      "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
   apply (induct_tac m n rule: gcd.induct)
   apply (case_tac "n=0")
   apply (simp_all add: dvd_mod);
@@ -266,7 +266,7 @@ lemma gcd_self [simp]: "gcd(k,k) = k"
   done
 
 lemma relprime_dvd_mult: 
-      "\<lbrakk> gcd(k,n)=1; k dvd (m*n) \<rbrakk> \<Longrightarrow> k dvd m";
+      "\<lbrakk> gcd(k,n)=1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m";
   apply (insert gcd_mult_distrib2 [of m k n])
   apply (simp)
   apply (erule_tac t="m" in ssubst);
@@ -287,7 +287,7 @@ lemma div_mult_self_is_m:
   apply (simp)
   done
 
-lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> k dvd (m*n) = k dvd m";
+lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
   apply (blast intro: relprime_dvd_mult dvd_trans)
   done
 

@@ -2,12 +2,13 @@
 \begin{isabellebody}%
 \def\isabellecontext{Mutual}%
 %
-\isamarkupsubsection{Mutual inductive definitions%
+\isamarkupsubsection{Mutually inductive definitions%
 }
 %
 \begin{isamarkuptext}%
 Just as there are datatypes defined by mutual recursion, there are sets defined
-by mutual induction. As a trivial example we consider the even and odd natural numbers:%
+by mutual induction. As a trivial example we consider the even and odd
+natural numbers:%
 \end{isamarkuptext}%
 \isacommand{consts}\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
@@ -19,23 +20,24 @@ evenI{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ odd\ {\isasymLongrigh
 oddI{\isacharcolon}\ \ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ odd{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The simultaneous inductive definition of multiple sets is no different from that
-of a single set, except for induction: just as for mutually recursive datatypes,
-induction needs to involve all the simultaneously defined sets. In the above case,
-the induction rule is called \isa{even{\isacharunderscore}odd{\isachardot}induct} (simply concenate the names
-of the sets involved) and has the conclusion
+The mutually inductive definition of multiple sets is no different from
+that of a single set, except for induction: just as for mutually recursive
+datatypes, induction needs to involve all the simultaneously defined sets. In
+the above case, the induction rule is called \isa{even{\isacharunderscore}odd{\isachardot}induct}
+(simply concatenate the names of the sets involved) and has the conclusion
 \begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isacharquery}P\ {\isacharquery}x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isacharquery}y\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isacharquery}Q\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}
 
-If we want to prove that all even numbers are divisible by 2, we have to generalize
-the statement as follows:%
+If we want to prove that all even numbers are divisible by 2, we have to
+generalize the statement as follows:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}m\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-The proof is by rule induction. Because of the form of the induction theorem, it is
-applied by \isa{rule} rather than \isa{erule} as for ordinary inductive definitions:%
+The proof is by rule induction. Because of the form of the induction theorem,
+it is applied by \isa{rule} rather than \isa{erule} as for ordinary
+inductive definitions:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%

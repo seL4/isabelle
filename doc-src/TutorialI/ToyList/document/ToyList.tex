@@ -48,8 +48,8 @@ Next, two functions \isa{app} and \isaindexbold{rev} are declared:%
 In contrast to ML, Isabelle insists on explicit declarations of all functions
 (keyword \isacommand{consts}).  (Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained.) Function
-\isa{op\ {\isacharat}} is annotated with concrete syntax too. Instead of the prefix
-syntax \isa{app xs ys} the infix
+\isa{app} is annotated with concrete syntax too. Instead of the
+prefix syntax \isa{app\ xs\ ys} the infix
 \isa{xs\ {\isacharat}\ ys}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:%
 \end{isamarkuptext}%
@@ -62,10 +62,10 @@ form. Both functions are defined recursively:%
 {\isachardoublequote}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ \ {\isacharequal}\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}x\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The equations for \isa{op\ {\isacharat}} and \isa{rev} hardly need comments:
-\isa{op\ {\isacharat}} appends two lists and \isa{rev} reverses a list.  The keyword
-\isacommand{primrec}\index{*primrec} indicates that the recursion is of a
-particularly primitive kind where each recursive call peels off a datatype
+The equations for \isa{app} and \isa{rev} hardly need comments:
+\isa{app} appends two lists and \isa{rev} reverses a list.  The
+keyword \isacommand{primrec}\index{*primrec} indicates that the recursion is
+of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
 recursion always terminates, i.e.\ the function is \textbf{total}.
 \index{total function}

@@ -4,7 +4,8 @@
 \isanewline
 \isacommand{theory}\ Numbers\ {\isacharequal}\ Real{\isacharcolon}\isanewline
 \isanewline
-\isacommand{ML}\ {\isachardoublequote}Pretty{\isachardot}setmargin\ {\isadigit{6}}{\isadigit{4}}{\isachardoublequote}%
+\isacommand{ML}\ {\isachardoublequote}Pretty{\isachardot}setmargin\ {\isadigit{6}}{\isadigit{4}}{\isachardoublequote}\isanewline
+\isacommand{ML}\ {\isachardoublequote}IsarOutput{\isachardot}indent\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isachardoublequote}%
 \begin{isamarkuptext}%
 numeric literals; default simprules; can re-orient%
 \end{isamarkuptext}%
@@ -19,37 +20,37 @@ goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
 
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
+{\isacharhash}{\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
 \end{isabelle}
 \rulename{numeral_0_eq_0}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}%
+{\isacharhash}{\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}%
 \end{isabelle}
 \rulename{numeral_1_eq_1}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{2}}\ {\isacharplus}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+{\isacharhash}{\isadigit{2}}\ {\isacharplus}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{add_2_eq_Suc}
 
 \begin{isabelle}%
-\ \ \ \ \ n\ {\isacharplus}\ {\isacharhash}{\isadigit{2}}\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+n\ {\isacharplus}\ {\isacharhash}{\isadigit{2}}\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{add_2_eq_Suc'}
 
 \begin{isabelle}%
-\ \ \ \ \ m\ {\isacharplus}\ n\ {\isacharplus}\ k\ {\isacharequal}\ m\ {\isacharplus}\ {\isacharparenleft}n\ {\isacharplus}\ k{\isacharparenright}%
+m\ {\isacharplus}\ n\ {\isacharplus}\ k\ {\isacharequal}\ m\ {\isacharplus}\ {\isacharparenleft}n\ {\isacharplus}\ k{\isacharparenright}%
 \end{isabelle}
 \rulename{add_assoc}
 
 \begin{isabelle}%
-\ \ \ \ \ m\ {\isacharplus}\ n\ {\isacharequal}\ n\ {\isacharplus}\ m%
+m\ {\isacharplus}\ n\ {\isacharequal}\ n\ {\isacharplus}\ m%
 \end{isabelle}
 \rulename{add_commute}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharplus}\ {\isacharparenleft}y\ {\isacharplus}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isacharplus}\ {\isacharparenleft}x\ {\isacharplus}\ z{\isacharparenright}%
+x\ {\isacharplus}\ {\isacharparenleft}y\ {\isacharplus}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isacharplus}\ {\isacharparenleft}x\ {\isacharplus}\ z{\isacharparenright}%
 \end{isabelle}
 \rulename{add_left_commute}
 
@@ -75,37 +76,37 @@ Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharas
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ k\ {\isasymle}\ l{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isasymle}\ j\ {\isacharasterisk}\ l%
+{\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ k\ {\isasymle}\ l{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isasymle}\ j\ {\isacharasterisk}\ l%
 \end{isabelle}
 \rulename{mult_le_mono}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}i\ {\isacharless}\ j{\isacharsemicolon}\ {\isadigit{0}}\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isacharless}\ j\ {\isacharasterisk}\ k%
+{\isasymlbrakk}i\ {\isacharless}\ j{\isacharsemicolon}\ {\isadigit{0}}\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharasterisk}\ k\ {\isacharless}\ j\ {\isacharasterisk}\ k%
 \end{isabelle}
 \rulename{mult_less_mono1}
 
 \begin{isabelle}%
-\ \ \ \ \ m\ {\isasymle}\ n\ {\isasymLongrightarrow}\ m\ div\ k\ {\isasymle}\ n\ div\ k%
+m\ {\isasymle}\ n\ {\isasymLongrightarrow}\ m\ div\ k\ {\isasymle}\ n\ div\ k%
 \end{isabelle}
 \rulename{div_le_mono}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharplus}\ n\ {\isacharasterisk}\ k%
+{\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharplus}\ n\ {\isacharasterisk}\ k%
 \end{isabelle}
 \rulename{add_mult_distrib}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}m\ {\isacharminus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharminus}\ n\ {\isacharasterisk}\ k%
+{\isacharparenleft}m\ {\isacharminus}\ n{\isacharparenright}\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ {\isacharminus}\ n\ {\isacharasterisk}\ k%
 \end{isabelle}
 \rulename{diff_mult_distrib}
 
 \begin{isabelle}%
-\ \ \ \ \ m\ mod\ n\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ mod\ {\isacharparenleft}n\ {\isacharasterisk}\ k{\isacharparenright}%
+m\ mod\ n\ {\isacharasterisk}\ k\ {\isacharequal}\ m\ {\isacharasterisk}\ k\ mod\ {\isacharparenleft}n\ {\isacharasterisk}\ k{\isacharparenright}%
 \end{isabelle}
 \rulename{mod_mult_distrib}
 
 \begin{isabelle}%
-\ \ \ \ \ P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}a\ {\isacharless}\ b\ {\isasymlongrightarrow}\ P\ {\isadigit{0}}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}d{\isachardot}\ a\ {\isacharequal}\ b\ {\isacharplus}\ d\ {\isasymlongrightarrow}\ P\ d{\isacharparenright}{\isacharparenright}%
+P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}a\ {\isacharless}\ b\ {\isasymlongrightarrow}\ P\ {\isadigit{0}}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}d{\isachardot}\ a\ {\isacharequal}\ b\ {\isacharplus}\ d\ {\isasymlongrightarrow}\ P\ d{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 \rulename{nat_diff_split}%
 \end{isamarkuptext}%
@@ -114,58 +115,58 @@ Suc\ {\isacharparenleft}i\ {\isacharplus}\ j\ {\isacharasterisk}\ l\ {\isacharas
 \isacommand{done}%
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ m\ mod\ n\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ m\ else\ {\isacharparenleft}m\ {\isacharminus}\ n{\isacharparenright}\ mod\ n{\isacharparenright}%
+m\ mod\ n\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ m\ else\ {\isacharparenleft}m\ {\isacharminus}\ n{\isacharparenright}\ mod\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{mod_if}
 
 \begin{isabelle}%
-\ \ \ \ \ m\ div\ n\ {\isacharasterisk}\ n\ {\isacharplus}\ m\ mod\ n\ {\isacharequal}\ m%
+m\ div\ n\ {\isacharasterisk}\ n\ {\isacharplus}\ m\ mod\ n\ {\isacharequal}\ m%
 \end{isabelle}
 \rulename{mod_div_equality}
 
 
 \begin{isabelle}%
-\ \ \ \ \ a\ {\isacharasterisk}\ b\ div\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ div\ c{\isacharparenright}\ {\isacharplus}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ div\ c%
+a\ {\isacharasterisk}\ b\ div\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ div\ c{\isacharparenright}\ {\isacharplus}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ div\ c%
 \end{isabelle}
 \rulename{div_mult1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ mod\ c%
+a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ mod\ c%
 \end{isabelle}
 \rulename{mod_mult1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
+a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
 \end{isabelle}
 \rulename{div_mult2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
+a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
 \end{isabelle}
 \rulename{mod_mult2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ c\ {\isacharasterisk}\ a\ div\ {\isacharparenleft}c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ a\ div\ b%
+{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ c\ {\isacharasterisk}\ a\ div\ {\isacharparenleft}c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ a\ div\ b%
 \end{isabelle}
 \rulename{div_mult_mult1}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ div\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
+a\ div\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
 \end{isabelle}
 \rulename{DIVISION_BY_ZERO_DIV}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ mod\ {\isadigit{0}}\ {\isacharequal}\ a%
+a\ mod\ {\isadigit{0}}\ {\isacharequal}\ a%
 \end{isabelle}
 \rulename{DIVISION_BY_ZERO_MOD}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}m\ dvd\ n{\isacharsemicolon}\ n\ dvd\ m{\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n%
+{\isasymlbrakk}m\ dvd\ n{\isacharsemicolon}\ n\ dvd\ m{\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n%
 \end{isabelle}
 \rulename{dvd_anti_sym}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}k\ dvd\ m{\isacharsemicolon}\ k\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ k\ dvd\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}%
+{\isasymlbrakk}k\ dvd\ m{\isacharsemicolon}\ k\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ k\ dvd\ m\ {\isacharplus}\ n%
 \end{isabelle}
 \rulename{dvd_add}
 
@@ -176,58 +177,57 @@ Division, remainder of negatives
 
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
+{\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
 \end{isabelle}
 \rulename{pos_mod_sign}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
+{\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
 \end{isabelle}
 \rulename{pos_mod_bound}
 
 \begin{isabelle}%
-\ \ \ \ \ b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ {\isacharhash}{\isadigit{0}}%
+b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ {\isacharhash}{\isadigit{0}}%
 \end{isabelle}
 \rulename{neg_mod_sign}
 
 \begin{isabelle}%
-\ \ \ \ \ b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
+b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
 \end{isabelle}
 \rulename{neg_mod_bound}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ div\ c\ {\isacharequal}\isanewline
-\ \ \ \ \ a\ div\ c\ {\isacharplus}\ b\ div\ c\ {\isacharplus}\ {\isacharparenleft}a\ mod\ c\ {\isacharplus}\ b\ mod\ c{\isacharparenright}\ div\ c%
+{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ div\ c\ {\isacharequal}\ a\ div\ c\ {\isacharplus}\ b\ div\ c\ {\isacharplus}\ {\isacharparenleft}a\ mod\ c\ {\isacharplus}\ b\ mod\ c{\isacharparenright}\ div\ c%
 \end{isabelle}
 \rulename{zdiv_zadd1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ mod\ c\ {\isacharequal}\ {\isacharparenleft}a\ mod\ c\ {\isacharplus}\ b\ mod\ c{\isacharparenright}\ mod\ c%
+{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ mod\ c\ {\isacharequal}\ {\isacharparenleft}a\ mod\ c\ {\isacharplus}\ b\ mod\ c{\isacharparenright}\ mod\ c%
 \end{isabelle}
 \rulename{zmod_zadd1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ {\isacharasterisk}\ b\ div\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ div\ c{\isacharparenright}\ {\isacharplus}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ div\ c%
+a\ {\isacharasterisk}\ b\ div\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ div\ c{\isacharparenright}\ {\isacharplus}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ div\ c%
 \end{isabelle}
 \rulename{zdiv_zmult1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ mod\ c%
+a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isacharparenleft}b\ mod\ c{\isacharparenright}\ mod\ c%
 \end{isabelle}
 \rulename{zmod_zmult1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
+{\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
 \end{isabelle}
 \rulename{zdiv_zmult2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
+{\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
 \end{isabelle}
 \rulename{zmod_zmult2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymbar}x\ {\isacharasterisk}\ y{\isasymbar}\ {\isacharequal}\ {\isasymbar}x{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}y{\isasymbar}%
+{\isasymbar}x\ {\isacharasterisk}\ y{\isasymbar}\ {\isacharequal}\ {\isasymbar}x{\isasymbar}\ {\isacharasterisk}\ {\isasymbar}y{\isasymbar}%
 \end{isabelle}
 \rulename{abs_mult}%
 \end{isamarkuptext}%
@@ -236,53 +236,56 @@ Division, remainder of negatives
 REALS
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymbar}r{\isasymbar}\ {\isacharcircum}\ n\ {\isacharequal}\ {\isasymbar}r\ {\isacharcircum}\ n{\isasymbar}%
+{\isasymbar}r{\isasymbar}\ {\isacharcircum}\ n\ {\isacharequal}\ {\isasymbar}r\ {\isacharcircum}\ n{\isasymbar}%
 \end{isabelle}
 \rulename{realpow_abs}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ {\isasymexists}r{\isachardot}\ x\ {\isacharless}\ r\ {\isasymand}\ r\ {\isacharless}\ y%
+x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ {\isasymexists}r{\isachardot}\ x\ {\isacharless}\ r\ {\isasymand}\ r\ {\isacharless}\ y%
 \end{isabelle}
 \rulename{real_dense}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymbar}r{\isasymbar}\ {\isacharcircum}\ n\ {\isacharequal}\ {\isasymbar}r\ {\isacharcircum}\ n{\isasymbar}%
+{\isasymbar}r{\isasymbar}\ {\isacharcircum}\ n\ {\isacharequal}\ {\isasymbar}r\ {\isacharcircum}\ n{\isasymbar}%
 \end{isabelle}
 \rulename{realpow_abs}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharasterisk}\ {\isacharparenleft}y\ {\isacharslash}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isacharasterisk}\ y\ {\isacharslash}\ z%
+x\ {\isacharasterisk}\ {\isacharparenleft}y\ {\isacharslash}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isacharasterisk}\ y\ {\isacharslash}\ z%
 \end{isabelle}
 \rulename{real_times_divide1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ y\ {\isacharslash}\ z\ {\isacharasterisk}\ x\ {\isacharequal}\ y\ {\isacharasterisk}\ x\ {\isacharslash}\ z%
+y\ {\isacharslash}\ z\ {\isacharasterisk}\ x\ {\isacharequal}\ y\ {\isacharasterisk}\ x\ {\isacharslash}\ z%
 \end{isabelle}
 \rulename{real_times_divide2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharslash}\ {\isacharparenleft}y\ {\isacharslash}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isacharasterisk}\ z\ {\isacharslash}\ y%
+x\ {\isacharslash}\ {\isacharparenleft}y\ {\isacharslash}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isacharasterisk}\ z\ {\isacharslash}\ y%
 \end{isabelle}
 \rulename{real_divide_divide1_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharslash}\ y\ {\isacharslash}\ z\ {\isacharequal}\ x\ {\isacharslash}\ {\isacharparenleft}y\ {\isacharasterisk}\ z{\isacharparenright}%
+x\ {\isacharslash}\ y\ {\isacharslash}\ z\ {\isacharequal}\ x\ {\isacharslash}\ {\isacharparenleft}y\ {\isacharasterisk}\ z{\isacharparenright}%
 \end{isabelle}
 \rulename{real_divide_divide2_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isacharminus}\ x\ {\isacharslash}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
+{\isacharminus}\ x\ {\isacharslash}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
 \end{isabelle}
 \rulename{real_minus_divide_eq}
 
 \begin{isabelle}%
-\ \ \ \ \ x\ {\isacharslash}\ {\isacharminus}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
+x\ {\isacharslash}\ {\isacharminus}\ y\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}x\ {\isacharslash}\ y{\isacharparenright}%
 \end{isabelle}
 \rulename{real_divide_minus_eq}
 
 This last NOT a simprule
 
-real_add_divide_distrib%
+\begin{isabelle}%
+{\isacharparenleft}x\ {\isacharplus}\ y{\isacharparenright}\ {\isacharslash}\ z\ {\isacharequal}\ x\ {\isacharslash}\ z\ {\isacharplus}\ y\ {\isacharslash}\ z%
+\end{isabelle}
+\rulename{real_add_divide_distrib}%
 \end{isamarkuptext}%
 \isacommand{end}\isanewline
 \end{isabellebody}%

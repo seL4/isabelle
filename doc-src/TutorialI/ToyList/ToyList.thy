@@ -48,8 +48,8 @@ text{*
 In contrast to ML, Isabelle insists on explicit declarations of all functions
 (keyword \isacommand{consts}).  (Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained.) Function
-@{term"app"} is annotated with concrete syntax too. Instead of the prefix
-syntax \isa{app xs ys} the infix
+@{text"app"} is annotated with concrete syntax too. Instead of the
+prefix syntax @{text"app xs ys"} the infix
 @{term"xs @ ys"}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:
 *}
@@ -64,10 +64,10 @@ primrec
 
 text{*
 \noindent
-The equations for @{term"app"} and @{term"rev"} hardly need comments:
-@{term"app"} appends two lists and @{term"rev"} reverses a list.  The keyword
-\isacommand{primrec}\index{*primrec} indicates that the recursion is of a
-particularly primitive kind where each recursive call peels off a datatype
+The equations for @{text"app"} and @{term"rev"} hardly need comments:
+@{text"app"} appends two lists and @{term"rev"} reverses a list.  The
+keyword \isacommand{primrec}\index{*primrec} indicates that the recursion is
+of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
 recursion always terminates, i.e.\ the function is \textbf{total}.
 \index{total function}

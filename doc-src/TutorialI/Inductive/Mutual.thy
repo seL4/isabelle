@@ -1,10 +1,11 @@
 (*<*)theory Mutual = Main:(*>*)
 
-subsection{*Mutual inductive definitions*}
+subsection{*Mutually inductive definitions*}
 
 text{*
 Just as there are datatypes defined by mutual recursion, there are sets defined
-by mutual induction. As a trivial example we consider the even and odd natural numbers:
+by mutual induction. As a trivial example we consider the even and odd
+natural numbers:
 *}
 
 consts even :: "nat set"
@@ -17,22 +18,23 @@ evenI: "n \<in> odd \<Longrightarrow> Suc n \<in> even"
 oddI:  "n \<in> even \<Longrightarrow> Suc n \<in> odd"
 
 text{*\noindent
-The simultaneous inductive definition of multiple sets is no different from that
-of a single set, except for induction: just as for mutually recursive datatypes,
-induction needs to involve all the simultaneously defined sets. In the above case,
-the induction rule is called @{thm[source]even_odd.induct} (simply concenate the names
-of the sets involved) and has the conclusion
+The mutually inductive definition of multiple sets is no different from
+that of a single set, except for induction: just as for mutually recursive
+datatypes, induction needs to involve all the simultaneously defined sets. In
+the above case, the induction rule is called @{thm[source]even_odd.induct}
+(simply concatenate the names of the sets involved) and has the conclusion
 @{text[display]"(?x \<in> even \<longrightarrow> ?P ?x) \<and> (?y \<in> odd \<longrightarrow> ?Q ?y)"}
 
-If we want to prove that all even numbers are divisible by 2, we have to generalize
-the statement as follows:
+If we want to prove that all even numbers are divisible by 2, we have to
+generalize the statement as follows:
 *}
 
 lemma "(m \<in> even \<longrightarrow> 2 dvd m) \<and> (n \<in> odd \<longrightarrow> 2 dvd (Suc n))"
 
 txt{*\noindent
-The proof is by rule induction. Because of the form of the induction theorem, it is
-applied by @{text rule} rather than @{text erule} as for ordinary inductive definitions:
+The proof is by rule induction. Because of the form of the induction theorem,
+it is applied by @{text rule} rather than @{text erule} as for ordinary
+inductive definitions:
 *}
 
 apply(rule even_odd.induct)
