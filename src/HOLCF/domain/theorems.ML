@@ -56,10 +56,11 @@ val chain_tac = REPEAT_DETERM o resolve_tac
 (* ----- general proofs ----------------------------------------------------- *)
 
 val quant_ss = HOL_ss addsimps (map (fn s => prove_goal HOL.thy s (fn _ =>[
-		fast_tac HOL_cs 1]))["(Вx. P x А Q)=((Вx. P x) А Q)",
-			    	     "(Вx. P А Q x) = (P А (Вx. Q x))"]);
+		fast_tac HOL_cs 1]))["(!x. P x & Q)=((!x. P x) & Q)",
+			    	     "(!x. P & Q x) = (P & (!x. Q x))"]);
 
-val all2E = prove_goal HOL.thy "Л Вx y . P x y; P x y кл R М кл R" (fn prems =>[
+val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
+ (fn prems =>[
 				resolve_tac prems 1,
 				cut_facts_tac prems 1,
 				fast_tac HOL_cs 1]);
@@ -70,13 +71,13 @@ val swap3 = prove_goal HOL.thy "[| Q ==> P; ~P |] ==> ~Q" (fn prems => [
                                 dtac notnotD 1,
 				etac (hd prems) 1]);
 
-val dist_eqI = prove_goal Porder.thy "ї x Э y кл x Ы y" (fn prems => [
+val dist_eqI = prove_goal Porder.thy "~ x << y ==> x ~= y" (fn prems => [
                                 rtac swap3 1,
 				etac (antisym_less_inverse RS conjunct1) 1,
 				resolve_tac prems 1]);
-val cfst_strict  = prove_goal Cprod3.thy "cfst`Ш = Ш" (fn _ => [
+val cfst_strict  = prove_goal Cprod3.thy "cfst`UU = UU" (fn _ => [
 			(simp_tac (HOLCF_ss addsimps [inst_cprod_pcpo2]) 1)]);
-val csnd_strict  = prove_goal Cprod3.thy "csnd`Ш = Ш" (fn _ => [
+val csnd_strict  = prove_goal Cprod3.thy "csnd`UU = UU" (fn _ => [
 			(simp_tac (HOLCF_ss addsimps [inst_cprod_pcpo2]) 1)]);
 
 in
