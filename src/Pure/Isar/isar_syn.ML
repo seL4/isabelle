@@ -495,8 +495,8 @@ val pretty_setmarginP =
     K.diag (P.nat >> (Toplevel.no_timing oo IsarCmd.pretty_setmargin));
 
 val print_commandsP =
-  OuterSyntax.improper_command "help" "print outer syntax (global)" K.diag
-    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_help));
+  OuterSyntax.improper_command "print_commands" "print outer syntax (global)" K.diag
+    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
 val print_contextP =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
@@ -518,9 +518,17 @@ val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes known in this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
+val print_trans_rulesP =
+  OuterSyntax.improper_command "print_trans_rules" "print transitivity rules in this theory" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_trans_rules));
+
 val print_methodsP =
   OuterSyntax.improper_command "print_methods" "print methods known in this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_methods));
+
+val print_antiquotationsP =
+  OuterSyntax.improper_command "print_antiquotations" "print antiquotations (global)" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
 val thms_containingP =
   OuterSyntax.improper_command "thms_containing" "print theorems containing all given constants"
@@ -669,7 +677,8 @@ val parsers = [
   cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
+  print_syntaxP, print_theoremsP, print_attributesP,
+  print_trans_rulesP, print_methodsP, print_antiquotationsP,
   thms_containingP, print_bindsP, print_lthmsP, print_casesP,
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
