@@ -109,7 +109,7 @@ text {*
   In order to model the general tree structure of a Unix file-system
   we use the arbitrarily branching datatype @{typ "('a, 'b, 'c) env"}
   from the standard library of Isabelle/HOL
-  \cite{Bauer-et-al:2001:HOL-Library}.  This type provides
+  \cite{Bauer-et-al:2002:HOL-Library}.  This type provides
   constructors @{term Val} and @{term Env} as follows:
 
   \medskip
@@ -149,7 +149,7 @@ text {*
   @{thm [display, indent = 2, eta_contract = false] update_eq [no_vars]}
 
   Several further properties of these operations are proven in
-  \cite{Bauer-et-al:2001:HOL-Library}.  These will be routinely used
+  \cite{Bauer-et-al:2002:HOL-Library}.  These will be routinely used
   later on without further notice.
 
   \bigskip Apparently, the elements of type @{typ file} contain an
@@ -334,11 +334,11 @@ text {*
   Close} operations, pretending that @{term Read} and @{term Write}
   would already take care of this behind the scenes.  Thus we have
   basically treated actual sequences of real system-calls @{text
-  open}--@{text read}/@{text write}--@{text close} as atomic.
+  "open"}--@{text read}/@{text write}--@{text close} as atomic.
 
   In principle, this could make big a difference in a model with
   explicit concurrent processes.  On the other hand, even on a real
-  Unix system the exact scheduling of concurrent @{text open} and
+  Unix system the exact scheduling of concurrent @{text "open"} and
   @{text close} operations does \emph{not} directly affect the success
   of corresponding @{text read} or @{text write}.  Unix allows several
   processes to have files opened at the same time, even for writing!
@@ -1118,14 +1118,20 @@ text {*
   overall procedure (see \secref{sec:unix-inv-procedure}).
 *}
 
-corollary (in invariant)  (* FIXME in situation!? *)
-  "init users =bogus\<Rightarrow> root \<Longrightarrow>
-    \<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
-      can_exec root (xs @ [Rmdir user1 [user1, name1]]))"
+corollary result:
+  includes invariant
+  assumes bogus: "init users =bogus\<Rightarrow> root"
+  shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
+    can_exec root (xs @ [Rmdir user1 [user1, name1]]))"
 proof -
-  case rule_context
-  with cannot_rmdir init_invariant preserve_invariant
-  show ?thesis by (rule general_procedure)
+  from cannot_rmdir init_invariant preserve_invariant
+    and bogus show ?thesis by (rule general_procedure)
 qed
+
+text {*
+  So this is our final result:
+
+  @{thm [display] result [OF situation_axioms.intro, no_vars]}
+*}
 
 end
