@@ -6,7 +6,7 @@
 Distributed Resource Management System: the Client
 *)
 
-Client = Comp + Prefix + 
+Client = Comp + 
 
 consts
   Max :: nat       (*Maximum number of tokens*)
