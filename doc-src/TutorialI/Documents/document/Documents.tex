@@ -58,22 +58,23 @@ Syntax annotations may be included wherever constants are declared
   as \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}}; together with plain prefix application this
   turns \isa{xor\ A} into \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ A}.
 
-  \medskip The keyword \isakeyword{infixl} specifies an infix operator
-  that is nested to the \emph{left}: in iterated applications the more
-  complex expression appears on the left-hand side: \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} stands for \isa{{\isacharparenleft}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B{\isacharparenright}\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C}.  Similarly,
-  \isakeyword{infixr} specifies to nesting to the \emph{right},
-  reading \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} as \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}}.  In
-  contrast, a \emph{non-oriented} declaration via \isakeyword{infix}
-  would render \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} illegal, but demand explicit
-  parentheses to indicate the intended grouping.
+  \medskip The keyword \isakeyword{infixl} seen above specifies an
+  infix operator that is nested to the \emph{left}: in iterated
+  applications the more complex expression appears on the left-hand
+  side, \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} stands for \isa{{\isacharparenleft}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B{\isacharparenright}\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C}.
+  Similarly, \isakeyword{infixr} specifies nesting to the
+  \emph{right}, reading \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} as \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}}.  In contrast, a \emph{non-oriented} declaration via
+  \isakeyword{infix} would render \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} illegal, but
+  demand explicit parentheses to indicate the intended grouping.
 
-  The string \isa{{\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}} in the above annotation refers to
-  the concrete syntax to represent the operator (a literal token),
-  while the number \isa{{\isadigit{6}}{\isadigit{0}}} determines the precedence of the
-  construct (i.e.\ the syntactic priorities of the arguments and
-  result).  As it happens, Isabelle/HOL already uses up many popular
-  combinations of ASCII symbols for its own use, including both \isa{{\isacharplus}} and \isa{{\isacharplus}{\isacharplus}}.  Slightly more awkward combinations like the
-  present \isa{{\isacharbrackleft}{\isacharplus}{\isacharbrackright}} tend to be available for user extensions.
+  The string \isa{{\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}} in our annotation refers to the
+  concrete syntax to represent the operator (a literal token), while
+  the number \isa{{\isadigit{6}}{\isadigit{0}}} determines the precedence of the construct
+  (i.e.\ the syntactic priorities of the arguments and result).  As it
+  happens, Isabelle/HOL already uses up many popular combinations of
+  ASCII symbols for its own use, including both \isa{{\isacharplus}} and \isa{{\isacharplus}{\isacharplus}}.  As a rule of thumb, more awkward character combinations are
+  more likely to be still available for user extensions, just as our
+  present \isa{{\isacharbrackleft}{\isacharplus}{\isacharbrackright}}.
 
   Operator precedence also needs some special considerations.  The
   admissible range is 0--1000.  Very low or high priorities are
@@ -143,11 +144,12 @@ Concrete syntax based on plain ASCII characters has its inherent
   just type a named entity \verb,\,\verb,<oplus>, by hand; the display
   will be adapted immediately after continuing input.
 
-  \medskip A slightly more refined scheme is to provide alternative
-  syntax via the \bfindex{print mode} concept of Isabelle (see also
-  \cite{isabelle-ref}).  By convention, the mode of ``$xsymbols$'' is
-  enabled whenever Proof~General's X-Symbol mode (or {\LaTeX} output)
-  is active.  Now consider the following hybrid declaration of \isa{xor}.%
+  \medskip A slightly more refined scheme of providing alternative
+  syntax forms uses the \bfindex{print mode} concept of Isabelle (see
+  also \cite{isabelle-ref}).  By convention, the mode of
+  ``$xsymbols$'' is enabled whenever Proof~General's X-Symbol mode or
+  {\LaTeX} output is active.  Now consider the following hybrid
+  declaration of \isa{xor}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -164,12 +166,9 @@ Concrete syntax based on plain ASCII characters has its inherent
 \begin{isamarkuptext}%
 The \commdx{syntax} command introduced here acts like
   \isakeyword{consts}, but without declaring a logical constant.  The
-  print mode specification (here \isa{{\isacharparenleft}xsymbols{\isacharparenright}}) limits the
-  effect of the syntax annotation concerning output; that alternative
-  production available for input invariably.  Also note that the type
-  declaration in \isakeyword{syntax} merely serves for syntactic
-  purposes, and is \emph{not} checked for consistency with the real
-  constant.
+  print mode specification of \isakeyword{syntax}, here \isa{{\isacharparenleft}xsymbols{\isacharparenright}}, is optional.  Also note that its type merely serves
+  for syntactic purposes, and is \emph{not} checked for consistency
+  with the real constant.
 
   \medskip We may now write \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} or \isa{A\ {\isasymoplus}\ B} in
   input, while output uses the nicer syntax of $xsymbols$, provided
@@ -201,7 +200,7 @@ Prefix syntax annotations\index{prefix annotation} are another
 \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
   \verb,\,\verb,<pounds>,, \verb,\,\verb,<yen>,, and \verb,$,.  Recall
-  that a constructor like \isa{Euro} actually is a function \isa{nat\ {\isasymRightarrow}\ currency}.  An expression like \isa{Euro\ {\isadigit{1}}{\isadigit{0}}} will be
+  that a constructor like \isa{Euro} actually is a function \isa{nat\ {\isasymRightarrow}\ currency}.  The expression \isa{Euro\ {\isadigit{1}}{\isadigit{0}}} will be
   printed as \isa{{\isasymeuro}\ {\isadigit{1}}{\isadigit{0}}}; only the head of the application is
   subject to our concrete syntax.  This rather simple form already
   achieves conformance with notational standards of the European
@@ -232,8 +231,8 @@ Mixfix syntax annotations work well in those situations where
   \cite{isabelle-ref}.
 
   \medskip A typical example of syntax translations is to decorate
-  relational expressions (i.e.\ set-membership of tuples) with nice
-  symbolic notation, such as \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim} versus \isa{x\ {\isasymapprox}\ y}.%
+  relational expressions (set-membership of tuples) with symbolic
+  notation, e.g.\ \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim} versus \isa{x\ {\isasymapprox}\ y}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isanewline
@@ -296,19 +295,23 @@ Isabelle/Isar is centered around the concept of \bfindex{formal
   as a front-end to {\LaTeX}.  After checking specifications and
   proofs formally, the theory sources are turned into typesetting
   instructions in a schematic manner.  This enables users to write
-  authentic reports on theory developments with little effort, where
-  most consistency checks are handled by the system.
+  authentic reports on theory developments with little effort --- many
+  technical consistency checks are handled by the system.
 
   Here is an example to illustrate the idea of Isabelle document
-  preparation.
-
-  \bigskip The following datatype definition of \isa{{\isacharprime}a\ bintree}
-  models binary trees with nodes being decorated by elements of type
-  \isa{{\isacharprime}a}.%
+  preparation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{quotation}
+%
+\begin{isamarkuptext}%
+The following datatype definition of \isa{{\isacharprime}a\ bintree} models
+  binary trees with nodes being decorated by elements of type \isa{{\isacharprime}a}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\ {\isacharprime}a\ bintree\ {\isacharequal}\isanewline
-\ \ Leaf\ {\isacharbar}\ Branch\ {\isacharprime}a\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ Leaf\ {\isacharbar}\ Branch\ {\isacharprime}a\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent The datatype induction rule generated here is of the form
@@ -317,10 +320,15 @@ Isabelle/Isar is centered around the concept of \bfindex{formal
 \isaindent{\ \ \ }{\isasymAnd}a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isachardot}\isanewline
 \isaindent{\ \ \ \ \ \ }{\isasymlbrakk}P\ bintree{\isadigit{1}}{\isacharsemicolon}\ P\ bintree{\isadigit{2}}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Branch\ a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isacharparenright}{\isasymrbrakk}\isanewline
 {\isasymLongrightarrow}\ P\ bintree%
-\end{isabelle}
-
-  \bigskip The above document output has been produced by the
-  following theory specification:
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\end{quotation}
+%
+\begin{isamarkuptext}%
+The above document output has been produced by the following theory
+  specification:
 
   \begin{ttbox}
   text {\ttlbrace}*
@@ -338,11 +346,11 @@ Isabelle/Isar is centered around the concept of \bfindex{formal
   *{\ttrbrace}
   \end{ttbox}
 
-  Here we have augmented the theory by formal comments (via
-  \isakeyword{text} blocks).  The informal parts may again refer to
-  formal entities by means of ``antiquotations'' (such as
+  \noindent Here we have augmented the theory by formal comments
+  (using \isakeyword{text} blocks).  The informal parts may again
+  refer to formal entities by means of ``antiquotations'' (such as
   \texttt{\at}\verb,{text "'a bintree"}, or
-  \texttt{\at}\verb,{typ 'a},; see also \S\ref{sec:doc-prep-text}.%
+  \texttt{\at}\verb,{typ 'a},), see also \S\ref{sec:doc-prep-text}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -382,8 +390,7 @@ In contrast to the highly interactive mode of Isabelle/Isar theory
   \texttt{IsaMakefile} \cite{isabelle-sys}.}
 
   \medskip The detailed arrangement of the session sources is as
-  follows.  This may be ignored in the beginning, but some of these
-  files need to be edited in realistic applications.
+  follows.
 
   \begin{itemize}
 
@@ -403,13 +410,13 @@ In contrast to the highly interactive mode of Isabelle/Isar theory
   document (\verb,\documentclass, etc.), and to include the generated
   files $T@i$\texttt{.tex} for each theory.  Isabelle will generate a
   file \texttt{session.tex} holding {\LaTeX} commands to include all
-  generated theory output files in topologically sorted order.  So
-  \verb,\input{session}, in \texttt{root.tex} does the job in most
-  situations.
+  generated theory output files in topologically sorted order, so
+  \verb,\input{session}, in the body of \texttt{root.tex} does the job
+  in most situations.
 
   \item \texttt{IsaMakefile} holds appropriate dependencies and
   invocations of Isabelle tools to control the batch job.  In fact,
-  several sessions may be controlled by the same \texttt{IsaMakefile}.
+  several sessions may be managed by the same \texttt{IsaMakefile}.
   See also \cite{isabelle-sys} for further details, especially on
   \texttt{isatool usedir} and \texttt{isatool make}.
 
@@ -430,16 +437,16 @@ In contrast to the highly interactive mode of Isabelle/Isar theory
   distributed with Isabelle. Further packages may be required in
   particular applications, e.g.\ for unusual mathematical symbols.
 
-  \medskip Additional files for the {\LaTeX} stage may be put into the
-  \texttt{MySession/document} directory, too.  In particular, adding
-  \texttt{root.bib} here (with that specific name) causes an automatic
-  run of \texttt{bibtex} to process a bibliographic database; see also
-  \texttt{isatool document} covered in \cite{isabelle-sys}.
+  \medskip Any additional files for the {\LaTeX} stage go into the
+  \texttt{MySession/document} directory as well.  In particular,
+  adding \texttt{root.bib} (with that specific name) causes an
+  automatic run of \texttt{bibtex} to process a bibliographic
+  database; see also \texttt{isatool document} in \cite{isabelle-sys}.
 
   \medskip Any failure of the document preparation phase in an
   Isabelle batch session leaves the generated sources in their target
   location (as pointed out by the accompanied error message).  This
-  enables users to trace {\LaTeX} problems with the target files at
+  enables users to trace {\LaTeX} problems with the generated files at
   hand.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -474,8 +481,8 @@ The large-scale structure of Isabelle documents follows existing
   \medskip
 
   From the Isabelle perspective, each markup command takes a single
-  $text$ argument (delimited by \verb,",\dots\verb,", or
-  \verb,{,\verb,*,~\dots~\verb,*,\verb,},).  After stripping any
+  $text$ argument (delimited by \verb,",~\isa{{\isasymdots}}~\verb,", or
+  \verb,{,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,},).  After stripping any
   surrounding white space, the argument is passed to a {\LaTeX} macro
   \verb,\isamarkupXYZ, for any command \isakeyword{XYZ}.  These macros
   are defined in \verb,isabelle.sty, according to the meaning given in
@@ -545,18 +552,18 @@ The large-scale structure of Isabelle documents follows existing
 %
 \begin{isamarkuptext}%
 Isabelle \bfindex{source comments}, which are of the form
-  \verb,(,\verb,*,~\dots~\verb,*,\verb,),, essentially act like white
-  space and do not really contribute to the content.  They mainly
-  serve technical purposes to mark certain oddities in the raw input
-  text.  In contrast, \bfindex{formal comments} are portions of text
-  that are associated with formal Isabelle/Isar commands
+  \verb,(,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,),, essentially act like
+  white space and do not really contribute to the content.  They
+  mainly serve technical purposes to mark certain oddities in the raw
+  input text.  In contrast, \bfindex{formal comments} are portions of
+  text that are associated with formal Isabelle/Isar commands
   (\bfindex{marginal comments}), or as standalone paragraphs within a
   theory or proof context (\bfindex{text blocks}).
 
   \medskip Marginal comments are part of each command's concrete
   syntax \cite{isabelle-ref}; the common form is ``\verb,--,~$text$''
-  where $text$ is delimited by \verb,",\dots\verb,", or
-  \verb,{,\verb,*,~\dots~\verb,*,\verb,}, as before.  Multiple
+  where $text$ is delimited by \verb,",\isa{{\isasymdots}}\verb,", or
+  \verb,{,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
   example:%
 \end{isamarkuptext}%
@@ -599,7 +606,11 @@ Isabelle \bfindex{source comments}, which are of the form
   \verb,isamarkuptxt,, respectively (via \verb,\renewenvironment,) The
   text style of the body is determined by \verb,\isastyletext, and
   \verb,\isastyletxt,; the default setup uses a smaller font within
-  proofs.
+  proofs.  This may be changed as follows:
+
+\begin{verbatim}
+  \renewcommand{\isastyletxt}{\isastyletext}
+\end{verbatim}
 
   \medskip The $text$ part of each of the various markup commands
   considered so far essentially inserts \emph{quoted material} into a
@@ -607,10 +618,10 @@ Isabelle \bfindex{source comments}, which are of the form
   \bfindex{antiquotation} is again a formal object embedded into such
   an informal portion.  The interpretation of antiquotations is
   limited to some well-formedness checks, with the result being pretty
-  printed to the resulting document.  So quoted text blocks together
-  with antiquotations provide very useful means to reference formal
-  entities with good confidence in getting the technical details right
-  (especially syntax and types).
+  printed to the resulting document.  Quoted text blocks together with
+  antiquotations provide very useful means to reference formal
+  entities, with good confidence in getting the technical details
+  right (especially syntax and types).
 
   The general syntax of antiquotations is as follows:
   \texttt{{\at}{\ttlbrace}$name$ $arguments${\ttrbrace}}, or
@@ -658,7 +669,7 @@ text {\ttlbrace}*
   \texttt{\at}\verb,{prop [source],~$\phi$\verb,}, & check proposition $\phi$, print its input \\
   \texttt{\at}\verb,{thm,~$a$\verb,}, & print fact $a$ \\
   \texttt{\at}\verb,{thm,~$a$~\verb,[no_vars]}, & print fact $a$, fixing schematic variables \\
-  \texttt{\at}\verb,{thm [source],~$a$\verb,}, & check availability of fact, print name $a$ \\
+  \texttt{\at}\verb,{thm [source],~$a$\verb,}, & check availability of fact $a$, print its name \\
   \texttt{\at}\verb,{text,~$s$\verb,}, & print uninterpreted text $s$ \\
   \end{tabular}
 
@@ -702,25 +713,25 @@ As has been pointed out before (\S\ref{sec:syntax-symbols}),
   \begin{enumerate}
 
   \item 7-bit ASCII characters: letters \texttt{A\dots Z} and
-  \texttt{a\dots z} are output verbatim, digits are passed as an
+  \texttt{a\dots z} are output directly, digits are passed as an
   argument to the \verb,\isadigit, macro, other characters are
   replaced by specifically named macros of the form
   \verb,\isacharXYZ,.
 
-  \item Named symbols: \verb,\,\verb,<,$XYZ$\verb,>, become
-  \verb,{\isasym,$XYZ$\verb,}, each (note the additional braces).
+  \item Named symbols: \verb,\,\verb,<,$XYZ$\verb,>, is turned into
+  \verb,{\isasym,$XYZ$\verb,},; note the additional braces.
 
-  \item Named control symbols: \verb,{\isasym,$XYZ$\verb,}, become
-  \verb,\isactrl,$XYZ$ each; subsequent symbols may act as arguments
-  if the corresponding macro is defined accordingly.
+  \item Named control symbols: \verb,\,\verb,<^,$XYZ$\verb,>, is
+  turned into \verb,\isactrl,$XYZ$; subsequent symbols may act as
+  arguments if the corresponding macro is defined accordingly.
 
   \end{enumerate}
 
   Users may occasionally wish to give new {\LaTeX} interpretations of
   named symbols; this merely requires an appropriate definition of
-  \verb,\,\verb,<,$XYZ$\verb,>, (see \texttt{isabelle.sty} for working
-  examples).  Control symbols are slightly more difficult to get
-  right, though.
+  \verb,\isasym,$XYZ$\verb,, for \verb,\,\verb,<,$XYZ$\verb,>, (see
+  \texttt{isabelle.sty} for working examples).  Control symbols are
+  slightly more difficult to get right, though.
 
   \medskip The \verb,\isabellestyle, macro provides a high-level
   interface to tune the general appearance of individual symbols.  For
@@ -742,10 +753,10 @@ By default, Isabelle's document system generates a {\LaTeX} source
   The generated \texttt{session.tex} will include all of these in
   order of appearance, which in turn gets included by the standard
   \texttt{root.tex}.  Certainly one may change the order or suppress
-  unwanted theories by ignoring \texttt{session.tex} and include
-  individual files in \texttt{root.tex} by hand.  On the other hand,
-  such an arrangement requires additional maintenance chores whenever
-  the collection of theories changes.
+  unwanted theories by ignoring \texttt{session.tex} and load
+  individual files directly in \texttt{root.tex}.  On the other hand,
+  such an arrangement requires additional maintenance whenever the
+  collection of theories changes.
 
   Alternatively, one may tune the theory loading process in
   \texttt{ROOT.ML} itself: traversal of the theory dependency graph
@@ -765,9 +776,9 @@ By default, Isabelle's document system generates a {\LaTeX} source
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), and
   \verb,(,\verb,*,\verb,>,\verb,*,\verb,), may be included in the
   text.  Only the document preparation system is affected, the formal
-  checking the theory is performed unchanged.
+  checking of the theory is performed unchanged.
 
-  In the following example we suppress the slightly formalistic
+  In the subsequent example we suppress the slightly formalistic
   \isakeyword{theory} + \isakeyword{end} surroundings a theory.
 
   \medskip
@@ -785,9 +796,9 @@ By default, Isabelle's document system generates a {\LaTeX} source
   \medskip
 
   Text may be suppressed in a fine-grained manner.  We may even drop
-  vital parts of a formal proof, pretending that things have been
-  simpler than in reality.  For example, the following ``fully
-  automatic'' proof is actually a fake:%
+  vital parts of a proof, pretending that things have been simpler
+  than in reality.  For example, this ``fully automatic'' proof is
+  actually a fake:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}x\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isacharless}\ x\ {\isacharasterisk}\ x{\isachardoublequote}\isanewline
@@ -803,18 +814,18 @@ By default, Isabelle's document system generates a {\LaTeX} source
 %(*
 
   \medskip Ignoring portions of printed text does demand some care by
-  the writer.  First of all, the writer is responsible not to
-  obfuscate the underlying formal development in an unduly manner.  It
-  is fairly easy to invalidate the remaining visible text, e.g.\ by
-  referencing questionable formal items (strange definitions,
-  arbitrary axioms etc.) that have been hidden from sight beforehand.
+  the writer.  First of all, the user is responsible not to obfuscate
+  the underlying theory development in an unduly manner.  It is fairly
+  easy to invalidate the visible text, e.g.\ by referencing
+  questionable formal items (strange definitions, arbitrary axioms
+  etc.) that have been hidden from sight beforehand.
 
-  Authentic reports of formal theories, say as part of a library,
-  should refrain from suppressing parts of the text at all.  Other
-  users may need the full information for their own derivative work.
-  If a particular formalization appears inadequate for general public
-  coverage, it is often more appropriate to think of a better way in
-  the first place.
+  Authentic reports of Isabelle/Isar theories, say as part of a
+  library, should refrain from suppressing parts of the text at all.
+  Other users may need the full information for their own derivative
+  work.  If a particular formalization appears inadequate for general
+  public coverage, it is often more appropriate to think of a better
+  way in the first place.
 
   \medskip Some technical subtleties of the
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
