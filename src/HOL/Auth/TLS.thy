@@ -18,6 +18,13 @@ assume that some private keys are lost to the spy.
 Abstracted from "The TLS Protocol, Version 1.0" by Tim Dierks and Christopher
 Allen, Transport Layer Security Working Group, 21 May 1997,
 INTERNET-DRAFT draft-ietf-tls-protocol-03.txt
+
+
+FOR CertVerify
+;
+	     Says A B {|certificate A (pubK A),
+			 Crypt KB (Nonce M)|} : set evs
+
 *)
 
 TLS = Public + 
@@ -25,6 +32,11 @@ TLS = Public +
 consts
   (*Client, server write keys.  They implicitly include the MAC secrets.*)
   clientK, serverK :: "nat*nat*nat => key"
+  certificate      :: "[agent,key] => msg"
+
+defs
+  certificate_def
+    "certificate A KA == Crypt (priK Server) {|Agent A, Key KA|}"
 
 rules
   (*clientK is collision-free and makes symmetric keys*)
@@ -77,7 +89,7 @@ inductive tls
          "[| evs: tls;  A ~= B;  Nonce NB ~: used evs;
              Says A' B {|Agent A, Nonce NA, Agent XA|} : set evs |]
           ==> Says B A {|Nonce NA, Nonce NB, Agent XB,
-			 Crypt (priK Server) {|Agent B, Key (pubK B)|}|}
+			 certificate B (pubK B)|}
                 # evs  :  tls"
 
     ClientCertKeyEx
@@ -85,8 +97,8 @@ inductive tls
            Note that A encrypts using the supplied KB, not pubK B.*)
          "[| evs: tls;  A ~= B;  Nonce M ~: used evs;
              Says B' A {|Nonce NA, Nonce NB, Agent XB,
-			 Crypt (priK Server) {|Agent B, Key KB|}|} : set evs |]
-          ==> Says A B {|Crypt (priK Server) {|Agent A, Key (pubK A)|},
+			 certificate B KB|} : set evs |]
+          ==> Says A B {|certificate A (pubK A),
 			 Crypt KB (Nonce M)|}
                 # evs  :  tls"
 
@@ -97,10 +109,10 @@ inductive tls
           the only use of A's certificate.*)
          "[| evs: tls;  A ~= B;  
              Says B' A {|Nonce NA, Nonce NB, Agent XB,
-			 Crypt (priK Server) {|Agent B, Key KB|}|} : set evs |]
+			 certificate B KB|} : set evs |]
           ==> Says A B (Crypt (priK A)
 			(Hash{|Nonce NB,
-	 		       Crypt (priK Server) {|Agent B, Key KB|}|}))
+	 		       certificate B KB|}))
                 # evs  :  tls"
 
 	(*Finally come the FINISHED messages, confirming XA and XB among
@@ -111,13 +123,13 @@ inductive tls
          "[| evs: tls;  A ~= B;
 	     Says A  B {|Agent A, Nonce NA, Agent XA|} : set evs;
              Says B' A {|Nonce NA, Nonce NB, Agent XB, 
-			 Crypt (priK Server) {|Agent B, Key KB|}|} : set evs;
-             Says A  B {|Crypt (priK Server) {|Agent A, Key (pubK A)|},
+			 certificate B KB|} : set evs;
+             Says A  B {|certificate A (pubK A),
 		         Crypt KB (Nonce M)|} : set evs |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
 			(Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},
 			       Nonce NA, Agent XA,
-			       Crypt (priK Server) {|Agent A, Key(pubK A)|}, 
+			       certificate A (pubK A), 
 			       Nonce NB, Agent XB, Agent B|}))
                 # evs  :  tls"
 
@@ -128,14 +140,14 @@ inductive tls
          "[| evs: tls;  A ~= B;
 	     Says A' B  {|Agent A, Nonce NA, Agent XA|} : set evs;
 	     Says B  A  {|Nonce NA, Nonce NB, Agent XB,
-		 	  Crypt (priK Server) {|Agent B, Key (pubK B)|}|}
+		 	  certificate B (pubK B)|}
 	       : set evs;
 	     Says A'' B {|CERTA, Crypt (pubK B) (Nonce M)|} : set evs |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},
 			       Nonce NA, Agent XA, Agent A, 
 			       Nonce NB, Agent XB,
-			       Crypt (priK Server) {|Agent B, Key(pubK B)|}|}))
+			       certificate B (pubK B)|}))
                 # evs  :  tls"
 
   (**Oops message??**)
