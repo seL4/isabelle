@@ -482,58 +482,55 @@ qed "leadsTo_imp_extend_leadsTo";
 
 (*** Proving the converse takes some doing! ***)
 
-Goalw [slice_def] "slice (Union S) y = (UN x:S. slice x y)";
+Goal "(x : slice C y) = (h(x,y) : C)";
+by (simp_tac (simpset() addsimps [slice_def]) 1);
+qed "slice_iff";
+
+AddIffs [slice_iff];
+
+Goal "slice (Union S) y = (UN x:S. slice x y)";
 by Auto_tac;
 qed "slice_Union";
 
-Goalw [slice_def] "slice (extend_set h A) y = A";
+Goal "slice (extend_set h A) y = A";
 by Auto_tac;
 qed "slice_extend_set";
 
-Goalw [slice_def] "project_set h A = (UN y. slice A y)";
+Goal "project_set h A = (UN y. slice A y)";
 by Auto_tac;
 qed "project_set_is_UN_slice";
 
-Goalw [slice_def, transient_def]
-    "extend h F : transient A ==> F : transient (slice A y)";
+Goalw [transient_def] "extend h F : transient A ==> F : transient (slice A y)";
 by Auto_tac;
 by (rtac bexI 1);
 by Auto_tac;
 by (force_tac (claset(), simpset() addsimps [extend_act_def]) 1);
 qed "extend_transient_slice";
 
+(*Converse?*)
+Goal "extend h F : A co B ==> F : (slice A y) co (slice B y)";
+by (auto_tac (claset(), simpset() addsimps [constrains_def]));
+qed "extend_constrains_slice";
+
 Goal "extend h F : A ensures B ==> F : (slice A y) ensures (project_set h B)";
-by (full_simp_tac
-    (simpset() addsimps [ensures_def, extend_constrains, extend_transient, 
-			 project_set_eq, image_Un RS sym,
-			 extend_set_Un_distrib RS sym, 
-			 extend_set_Diff_distrib RS sym]) 1);
-by Safe_tac;
-by (full_simp_tac (simpset() addsimps [constrains_def, extend_act_def, 
-				       extend_set_def]) 1);
-by (Clarify_tac 1);
-by (ball_tac 1); 
-by (full_simp_tac (simpset() addsimps [slice_def, image_iff, Image_iff]) 1);
-by (force_tac (claset() addSIs [h_f_g_eq RS sym], simpset()) 1);
-(*transient*)
-by (dtac extend_transient_slice 1);
-by (etac transient_strengthen 1);
-by (force_tac (claset() addIs [f_h_eq RS sym], 
-	       simpset() addsimps [slice_def]) 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [ensures_def, extend_constrains, 
+				  extend_transient]));
+by (etac (extend_transient_slice RS transient_strengthen) 2);
+by (etac (extend_constrains_slice RS constrains_weaken) 1);
+by Auto_tac;
 qed "extend_ensures_slice";
 
 Goal "ALL y. F : (slice B y) leadsTo CU ==> F : (project_set h B) leadsTo CU";
 by (simp_tac (simpset() addsimps [project_set_is_UN_slice]) 1);
 by (blast_tac (claset() addIs [leadsTo_UN]) 1);
-qed "leadsTo_slice_image";
-
+qed "leadsTo_slice_project_set";
 
 Goal "extend h F : AU leadsTo BU \
 \     ==> ALL y. F : (slice AU y) leadsTo (project_set h BU)";
 by (etac leadsTo_induct 1);
-by (full_simp_tac (simpset() addsimps [slice_Union]) 3);
-by (blast_tac (claset() addIs [leadsTo_UN]) 3);
-by (blast_tac (claset() addIs [leadsTo_slice_image, leadsTo_Trans]) 2);
+by (asm_simp_tac (simpset() addsimps [leadsTo_UN, slice_Union]) 3);
+by (blast_tac (claset() addIs [leadsTo_slice_project_set, leadsTo_Trans]) 2);
 by (blast_tac (claset() addIs [extend_ensures_slice, leadsTo_Basis]) 1);
 qed_spec_mp "extend_leadsTo_slice";
 
