@@ -17,7 +17,6 @@ function usage()
   echo "  Options are:"
   echo "    -B           build mode with THIS_IS_ISABELLE_BUILD indication"
   echo "    -P PATH      set path for remote theory browsing information"
-  echo "    -c BOOL      clean document source after build (default true)"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
   echo "    -i BOOL      generate theory browsing information,"
@@ -39,7 +38,6 @@ function usage()
 # options
 
 BUILD=""
-CLEANDOC=true
 DOCUMENT=false
 INFO=false
 RESET=false
@@ -59,9 +57,6 @@ function getoptions()
         ;;
       b)
         BUILD=true
-        ;;
-      c)
-        CLEANDOC="$OPTARG"
         ;;
       d)
         DOCUMENT="$OPTARG"
@@ -134,9 +129,8 @@ PARENT=$(basename "$LOGIC")
 
 [ -z "$BUILD" ] && cd "$NAME"
 
-if [ "$DOCUMENT" != false -a -d document -a -f document/root.tex ]
-then DOC="$DOCUMENT"
-else DOC=""; fi
+DOC=""
+[ "$DOCUMENT" != false -a -d document ] && DOC="$DOCUMENT"
 
 
 SECONDS=0
