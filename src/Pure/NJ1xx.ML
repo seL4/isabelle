@@ -65,15 +65,15 @@ val CPUtimer = Timer.totalCPUTimer();
   prints its runtime. *)
 fun cond_timeit flag f =
   if flag then
-    let open Time;
-        open Timer;
-        val {gc=gct1,sys=syst1,usr=usrt1} = checkCPUTimer(CPUtimer);
+    let open Time  (*...for Time.toString, Time.+ and Time.- *)
+	val {gc=gct1,sys=syst1,usr=usrt1} = Timer.checkCPUTimer(CPUtimer);
         val result = f();
-        val {gc=gct2,sys=syst2,usr=usrt2} = checkCPUTimer(CPUtimer)
-    in  print("Non GC " ^ toString (usrt2-usrt1) ^
-              "   GC " ^ toString (gct2-gct1) ^
-              "  both+sys "^ toString (syst2-syst1 + usrt2-usrt1 + gct2-gct1) ^
-              " secs\n");
+        val {gc=gct2,sys=syst2,usr=usrt2} = Timer.checkCPUTimer(CPUtimer)
+    in  print("User " ^ toString (usrt2-usrt1) ^
+              "  GC " ^ toString (gct2-gct1) ^
+              "  All "^ toString (syst2-syst1 + usrt2-usrt1 + gct2-gct1) ^
+              " secs\n")
+	  handle Time => ();
         result
     end
   else f();
