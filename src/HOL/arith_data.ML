@@ -212,3 +212,6 @@ val nat_cancel = nat_cancel_factor @ nat_cancel_sums;
 
 
 end;
+
+
+open ArithData;
