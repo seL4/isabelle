@@ -8,7 +8,7 @@ A formulation of Hoare logic suitable for Isar.
 header {* Hoare Logic *}
 
 theory Hoare = Main
-files ("~~/src/HOL/Hoare/Hoare.ML"):
+files ("~~/src/HOL/Hoare/hoare.ML"):
 
 subsection {* Abstract syntax and semantics *}
 
@@ -411,7 +411,7 @@ text {*
 *}
 
 ML {* val Valid_def = thm "Valid_def" *}
-use "~~/src/HOL/Hoare/Hoare.ML"
+use "~~/src/HOL/Hoare/hoare.ML"
 
 method_setup hoare = {*
   Method.no_args
