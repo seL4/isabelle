@@ -23,11 +23,11 @@ translations
   "x <~~> y" == "(x, y) \<in> perm"
 
 inductive perm
-  intros [intro]
-    Nil: "[] <~~> []"
-    swap: "y # x # l <~~> x # y # l"
-    Cons: "xs <~~> ys ==> z # xs <~~> z # ys"
-    trans: "xs <~~> ys ==> ys <~~> zs ==> xs <~~> zs"
+  intros
+    Nil  [intro!]: "[] <~~> []"
+    swap [intro!]: "y # x # l <~~> x # y # l"
+    Cons [intro!]: "xs <~~> ys ==> z # xs <~~> z # ys"
+    trans [intro]: "xs <~~> ys ==> ys <~~> zs ==> xs <~~> zs"
 
 lemma perm_refl [iff]: "l <~~> l"
   apply (induct l)
@@ -101,7 +101,7 @@ lemma perm_append_single: "a # xs <~~> xs @ [a]"
 lemma perm_rev: "rev xs <~~> xs"
   apply (induct xs)
    apply simp_all
-  apply (blast intro: perm_sym perm_append_single)
+  apply (blast intro!: perm_append_single intro: perm_sym)
   done
 
 lemma perm_append1: "xs <~~> ys ==> l @ xs <~~> l @ ys"
