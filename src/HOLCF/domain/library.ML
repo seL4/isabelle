@@ -153,11 +153,17 @@ fun con_app2 con f args = mk_cfapp(%%con,map f args);
 fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
 fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) Id (%# arg);
-fun prj _  _  y 1 _ = y
-|   prj f1 _  y _ 0 = f1 y
-|   prj f1 f2 y i j = prj f1 f2 (f2 y) (i-1) (j-1);
-val cproj    = prj (fn S => %%"cfst"`S) (fn S => %%"csnd"`S);
-val  proj    = prj (fn S => %%"fst" $S) (fn S => %%"snd" $S);
+fun prj _  _  x (   _::[]) _ = x
+|   prj f1 _  x (_::y::ys) 0 = f1 x y
+|   prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
+fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
+						    avoid type varaibles *)
+val  proj        = prj (fn S => K(%%"fst" $S)) (fn S => K(%%"snd" $S));
+val cproj        = prj (fn S => K(%%"cfst"`S)) (fn S => K(%%"csnd"`S));
+fun cproj' T eqs = prj 
+	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S) 
+	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
+		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
 fun /\ v T = %%"fabs" $ mk_lam(v,T);
