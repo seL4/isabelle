@@ -78,9 +78,9 @@ proof
 qed
 
 syntax (xsymbols)
-  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 syntax (HTML output)
-  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
 local
 
@@ -157,12 +157,40 @@ in [("split", split_tr')]
 end
 *}
 
-text{*Deleted x-symbol and html support using @{text"\\<Sigma>"} (Sigma) because of the danger of confusion with Sum.*}
+
+(* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
+typed_print_translation {*
+let
+  fun split_guess_names_tr' _ T [Abs (x,_,Abs _)] = raise Match
+    | split_guess_names_tr' _ T  [Abs (x,xT,t)] =
+        (case (head_of t) of
+           Const ("split",_) => raise Match
+         | _ => let 
+                  val (_::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
+                  val (y,t') = atomic_abs_tr' ("y",yT,(incr_boundvars 1 t)$Bound 0); 
+                  val (x',t'') = atomic_abs_tr' (x,xT,t');
+                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+    | split_guess_names_tr' _ T [t] =
+       (case (head_of t) of
+           Const ("split",_) => raise Match 
+         | _ => let 
+                  val (xT::yT::_) = binder_types (domain_type T) handle Bind => raise Match;
+                  val (y,t') = 
+                        atomic_abs_tr' ("y",yT,(incr_boundvars 2 t)$Bound 1$Bound 0); 
+                  val (x',t'') = atomic_abs_tr' ("x",xT,t');
+                in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end)
+    | split_guess_names_tr' _ _ _ = raise Match;
+in [("split", split_guess_names_tr')]
+end 
+*}
+
+text{*Deleted x-symbol and html support using @{text"\<Sigma>"} (Sigma) because of the danger of confusion with Sum.*}
+
 syntax (xsymbols)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \\<times> _" [81, 80] 80)
+  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
 syntax (HTML output)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \\<times> _" [81, 80] 80)
+  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
 print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
 
@@ -612,7 +640,7 @@ lemma SigmaE [elim!]:
   by (unfold Sigma_def) blast
 
 text {*
-  Elimination of @{term "(a, b) : A \\<times> B"} -- introduces no
+  Elimination of @{term "(a, b) : A \<times> B"} -- introduces no
   eigenvariables.
 *}
 
@@ -629,8 +657,8 @@ lemma SigmaE2:
   by blast
 
 lemma Sigma_cong:
-     "\\<lbrakk>A = B; !!x. x \\<in> B \\<Longrightarrow> C x = D x\\<rbrakk>
-      \\<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
+     "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
+      \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
 by auto
 
 lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
