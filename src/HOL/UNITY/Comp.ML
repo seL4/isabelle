@@ -138,6 +138,26 @@ Goalw [guarantees_def]
 by (Blast_tac 1);
 qed "combining2";
 
+Goalw [guarantees_def]
+     "ALL z:I. F : A guarantees (B z) ==> F : A guarantees (INT z:I. B z)";
+by (Blast_tac 1);
+qed "all_guarantees";
+
+Goalw [guarantees_def]
+     "EX z:I. F : A guarantees (B z) ==> F : A guarantees (UN z:I. B z)";
+by (Blast_tac 1);
+qed "ex_guarantees";
+
+Goalw [guarantees_def, component_def]
+      "(F : A guarantees B) = (ALL G. F Join G : A --> F Join G : B)";
+by (Blast_tac 1);
+qed "guarantees_eq";
+
+val prems = Goalw [guarantees_def, component_def]
+      "(!!G. F Join G : A ==> F Join G : B) ==> F : A guarantees B";
+by (blast_tac (claset() addIs prems) 1);
+qed "guaranteesI";
+
 
 (*** well-definedness ***)
 
