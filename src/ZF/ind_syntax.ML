@@ -11,22 +11,11 @@ Abstract Syntax functions for Inductive Definitions
 *)
 structure Ind_Syntax =
 struct
-(*Make a definition lhs==rhs, checking that vars on lhs contain those of rhs*)
-fun mk_defpair (lhs, rhs) = 
-  let val Const(name, _) = head_of lhs
-  in (name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
-
-fun get_def thy s = get_axiom thy (s^"_def");
-
-fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
 
 (** Abstract syntax definitions for FOL and ZF **)
 
 val iT = Type("i",[])
 and oT = Type("o",[]);
-
-fun ap t u = t$u;
-fun app t (u1,u2) = t $ u1 $ u2;
 
 (*Given u expecting arguments of types [T1,...,Tn], create term of 
   type T1*...*Tn => i using split*)
@@ -62,38 +51,6 @@ fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
 val Trueprop = Const("Trueprop",oT-->propT);
 fun mk_tprop P = Trueprop $ P;
 
-(*Read an assumption in the given theory*)
-fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
-
-fun readtm sign T a = 
-    read_cterm sign (a,T) |> term_of
-    handle ERROR => error ("The error above occurred for " ^ a);
-
-(*Skipping initial blanks, find the first identifier*)
-fun scan_to_id s = 
-    s |> explode |> take_prefix is_blank |> #2 |> Scanner.scan_id |> #1
-    handle LEXICAL_ERROR => error ("Expected to find an identifier in " ^ s);
-
-fun is_backslash c = c = "\\";
-
-(*Apply string escapes to a quoted string; see Def of Standard ML, page 3
-  Does not handle the \ddd form;  no error checking*)
-fun escape [] = []
-  | escape cs = (case take_prefix (not o is_backslash) cs of
-	 (front, []) => front
-       | (front, _::"n"::rest) => front @ ("\n" :: escape rest)
-       | (front, _::"t"::rest) => front @ ("\t" :: escape rest)
-       | (front, _::"^"::c::rest) => front @ (chr(ord(c)-64) :: escape rest)
-       | (front, _::"\""::rest) => front @ ("\"" :: escape rest)
-       | (front, _::"\\"::rest) => front @ ("\\" :: escape rest)
-       | (front, b::c::rest) => 
-	   if is_blank c   (*remove any further blanks and the following \ *)
-	   then front @ escape (tl (snd (take_prefix is_blank rest)))
-	   else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
-
-(*Remove the first and last charaters -- presumed to be quotes*)
-val trim = implode o escape o rev o tl o rev o tl o explode;
-
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
 	error"Premises may not be conjuctive"
@@ -101,10 +58,6 @@ fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
 	deny (Logic.occs(rec_hd,t)) "Recursion term on left of member symbol"
   | chk_prem rec_hd t = 
 	deny (Logic.occs(rec_hd,t)) "Recursion term in side formula";
-
-(*Make distinct individual variables a1, a2, a3, ..., an. *)
-fun mk_frees a [] = []
-  | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
@@ -123,13 +76,6 @@ val equals_CollectD =
     read_instantiate [("W","?Q")]
         (make_elim (equalityD1 RS subsetD RS CollectD2));
 
-
-(*From HOL/ex/meson.ML: raises exception if no rules apply -- unlike RL*)
-fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
-  | tryres (th, []) = raise THM("tryres", 0, [th]);
-
-fun gen_make_elim elim_rls rl = 
-      standard (tryres (rl, elim_rls @ [revcut_rl]));
 
 (** For datatype definitions **)
 

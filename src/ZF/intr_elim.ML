@@ -1,4 +1,4 @@
-(*  Title: 	ZF/intr-elim.ML
+(*  Title: 	ZF/intr_elim.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -48,6 +48,10 @@ open Logic Inductive Ind_Syntax;
 val rec_names = map (#1 o dest_Const o head_of) rec_tms;
 val big_rec_name = space_implode "_" rec_names;
 
+val _ = deny (big_rec_name  mem  map ! (stamps_of_thy thy))
+             ("Definition " ^ big_rec_name ^ 
+	      " would clash with the theory of the same name!");
+
 (*fetch fp definitions from the theory*)
 val big_rec_def::part_rec_defs = 
   map (get_def thy)
@@ -89,9 +93,10 @@ fun intro_tacsf disjIn prems =
    (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
    rtac disjIn 2,
    REPEAT (ares_tac [refl,exI,conjI] 2),
+   (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
    rewrite_goals_tac con_defs,
-   (*Now can solve the trivial equation*)
    REPEAT (rtac refl 2),
+   (*Typechecking; this can fail*)
    REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
 		      ORELSE' eresolve_tac (asm_rl::PartE::SigmaE2::type_elims)
 		      ORELSE' hyp_subst_tac)),

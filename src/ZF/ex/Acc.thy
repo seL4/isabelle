@@ -9,10 +9,10 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-Acc = WF + "inductive" +
+Acc = WF + "Inductive" +
 
 consts
-  "acc" :: "i=>i"
+  acc :: "i=>i"
 
 inductive
   domains "acc(r)" <= "field(r)"

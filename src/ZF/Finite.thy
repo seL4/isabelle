@@ -6,7 +6,7 @@
 Finite powerset operator
 *)
 
-Finite = Arith + 
+Finite = Arith + "Inductive" +
 consts
   Fin 	    :: "i=>i"
   FiniteFun :: "[i,i]=>i"		("(_ -||>/ _)" [61, 60] 60)

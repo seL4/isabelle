@@ -14,7 +14,7 @@ consts
   ord_iso         :: "[i,i,i,i]=>i"	(*Order isomorphisms*)
   pred            :: "[i,i,i]=>i"	(*Set of predecessors*)
 
-rules
+defs
   part_ord_def "part_ord(A,r) == irrefl(A,r) & trans[A](r)"
 
   linear_def   "linear(A,r) == (ALL x:A. ALL y:A. <x,y>:r | x=y | <y,x>:r)"

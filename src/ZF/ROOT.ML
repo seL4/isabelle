@@ -29,6 +29,7 @@ fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 print_depth 1;
 
 (*Add user sections for inductive/datatype definitions*)
+use     "../Pure/section_utils.ML";
 use_thy "Datatype";
 structure ThySyn = ThySynFun
  (val user_keywords = ["inductive", "coinductive", "datatype", "codatatype", 

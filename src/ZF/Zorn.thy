@@ -11,7 +11,7 @@ Based upon the article
 Union_in_Pow is proved in ZF.ML
 *)
 
-Zorn = OrderArith + AC + "inductive" +
+Zorn = OrderArith + AC + "Inductive" +
 
 consts
   Subset_rel      :: "i=>i"
