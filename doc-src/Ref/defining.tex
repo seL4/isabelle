@@ -308,34 +308,9 @@ functions:
   parse/print translations.
 \end{ttdescription}
 
-Let us demonstrate these functions by inspecting Pure's syntax.  Even that
-is too verbose to display in full.
-\begin{ttbox}\index{*Pure theory}
-Syntax.print_syntax (syn_of Pure.thy);
-{\out lexicon: "!!" "\%" "(" ")" "," "." "::" ";" "==" "==>" \dots}
-{\out logtypes: fun itself}
-{\out prods:}
-{\out   type = tid  (1000)}
-{\out   type = tvar  (1000)}
-{\out   type = id  (1000)}
-{\out   type = tid "::" sort[0]  => "_ofsort" (1000)}
-{\out   type = tvar "::" sort[0]  => "_ofsort" (1000)}
-{\out   \vdots}
-\ttbreak
-{\out print modes: "symbols" "xterm"}
-{\out consts: "_K" "_appl" "_aprop" "_args" "_asms" "_bigimpl" \dots}
-{\out parse_ast_translation: "_appl" "_bigimpl" "_bracket"}
-{\out   "_idtyp" "_lambda" "_tapp" "_tappl"}
-{\out parse_rules:}
-{\out parse_translation: "!!" "_K" "_abs" "_aprop"}
-{\out print_translation: "all"}
-{\out print_rules:}
-{\out print_ast_translation: "==>" "_abs" "_idts" "fun"}
-\end{ttbox}
-
-As you can see, the output is divided into labelled sections.  The grammar
-is represented by {\tt lexicon}, {\tt logtypes} and {\tt prods}.  The rest
-refers to syntactic translations and macro expansion.  Here is an
+The output of the above print functions is divided into labelled sections.
+The grammar is represented by {\tt lexicon}, {\tt logtypes} and {\tt prods}.
+The rest refers to syntactic translations and macro expansion.  Here is an
 explanation of the various sections.
 \begin{description}
   \item[{\tt lexicon}] lists the delimiters used for lexical
@@ -684,10 +659,10 @@ depending on how Isabelle has been invoked (e.g.\ by some user
 interface).  So changes should be incremental --- adding or deleting
 modes relative to the current value.
 
-Any \ML{} string is a legal print mode identifier, without any
-predeclaration required.  The following names should be considered
-reserved, though: \texttt{""} (yes, the empty string),
-\texttt{symbols}, \texttt{latex}, \texttt{xterm}.
+Any \ML{} string is a legal print mode identifier, without any predeclaration
+required.  The following names should be considered reserved, though:
+\texttt{""} (the empty string), \texttt{symbols}, \texttt{xsymbols}, and
+\texttt{latex}.
 
 There is a separate table of mixfix productions for pretty printing
 associated with each print mode.  The currently active ones are
