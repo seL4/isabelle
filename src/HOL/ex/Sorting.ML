@@ -6,14 +6,10 @@
 Some general lemmas
 *)
 
-Addsimps [Sorting.mset_Nil,Sorting.mset_Cons,
-          Sorting.sorted_Nil,Sorting.sorted_Cons,
-          Sorting.sorted1_Nil,Sorting.sorted1_One,Sorting.sorted1_Cons];
-
 goal Sorting.thy "!x.mset (xs@ys) x = mset xs x + mset ys x";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-qed "mset_app_distr";
+qed "mset_append";
 
 goal Sorting.thy "!x. mset [x:xs. ~p(x)] x + mset [x:xs.p(x)] x = \
 \                     mset xs x";
@@ -21,4 +17,20 @@ by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mset_compl_add";
 
-Addsimps [mset_app_distr, mset_compl_add];
+Addsimps [mset_append, mset_compl_add];
+
+goal Sorting.thy "set_of_list xs = {x.mset xs x ~= 0}";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (Fast_tac 1);
+qed "set_of_list_via_mset";
+
+(* Equivalence of two definitions of `sorted' *)
+
+val prems = goalw Sorting.thy [transf_def]
+  "transf(le) ==> sorted1 le xs = sorted le xs";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_list_case]))));
+by (cut_facts_tac prems 1);
+by (Fast_tac 1);
+qed "sorted1_is_sorted";

@@ -14,18 +14,20 @@ consts
   total  :: (['a,'a] => bool) => bool
   transf :: (['a,'a] => bool) => bool
 
-rules
+primrec sorted1 list
+  "sorted1 le [] = True"
+  "sorted1 le (x#xs) = ((case xs of [] => True | y#ys => le x y) &
+                        sorted1 le xs)"
 
-sorted1_Nil  "sorted1 f []"
-sorted1_One  "sorted1 f [x]"
-sorted1_Cons "sorted1 f (Cons x (y#zs)) = (f x y & sorted1 f (y#zs))"
+primrec sorted list
+  "sorted le [] = True"
+  "sorted le (x#xs) = ((!y:set_of_list xs. le x y) & sorted le xs)"
 
-sorted_Nil "sorted le []"
-sorted_Cons "sorted le (x#xs) = ((!y:set_of_list xs. le x y) & sorted le xs)"
+primrec mset list
+  "mset [] y = 0"
+  "mset (x#xs) y = (if x=y then Suc(mset xs y) else mset xs y)"
 
-mset_Nil "mset [] y = 0"
-mset_Cons "mset (x#xs) y = (if x=y then Suc(mset xs y) else mset xs y)"
-
+defs
 total_def  "total r == (!x y. r x y | r y x)"
 transf_def "transf f == (!x y z. f x y & f y z --> f x z)"
 end
