@@ -1,10 +1,9 @@
-# Title:	Distribution/lib/scripts/symbolinput.pl
+# Title:	lib/scripts/symbolinput.pl
 # ID:		$Id$
-# Author:	Markus Wenzel, David von Oheimb
-# Copyright	1996 Technische Universitaet Muenchen
+# Author:	Markus Wenzel and David von Oheimb, TU Muenchen
 #
-# translate symbols into \<...> sequences.
-# table must be consistent with Pure/Syntax/symbol_font.ML
+# Translate symbols into \<...> sequences.  Please keep consistent
+# with Pure/Syntax/symbol_font.ML!
 
 %tab = (
   "\xa1", "\\\\<Gamma>",
@@ -93,7 +92,7 @@
   "\xf4", "\\\\<ominus>",
   "\xf5", "\\\\<otimes>",
   "\xf6", "\\\\<oslash>",
-  "\xf7", "\\\\<natural>",
+  "\xf7", "\\\\<subset>",
   "\xf8", "\\\\<infinity>",
   "\xf9", "\\\\<box>",
   "\xfa", "\\\\<diamond>",

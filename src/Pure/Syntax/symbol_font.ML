@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The Isabelle symbol font.
-enc_vector must be consistent with Distribution/lib/scripts/symbolinput.pl
+The Isabelle symbol font.  Please keep enc_vector consistent with
+lib/scripts/symbolinput.pl!
 *)
 
 signature SYMBOL_FONT =
@@ -39,7 +39,7 @@ val enc_vector =
   "bottom", "doteq", "equiv", "noteq", "sqsubset", "sqsubseteq", "prec", "preceq",
   "succ", "succeq", "sim", "simeq", "le", "ge", "leftarrow", "midarrow",
   "rightarrow", "Leftarrow", "Midarrow", "Rightarrow", "rrightarrow", "mapsto", "leadsto", "up",
-  "down", "notin", "times", "oplus", "ominus", "otimes", "oslash", "natural",
+  "down", "notin", "times", "oplus", "ominus", "otimes", "oslash", "subset",
   "infinity", "box", "diamond", "circ", "bullet", "parallel", "tick", "copyright"
 ];
 
