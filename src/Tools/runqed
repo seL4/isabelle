@@ -1,0 +1,5 @@
+foreach n (*ML)
+qed $n $n:r.MLL
+mv $n $n:r.bak
+mv $n:r.MLL $n
+end

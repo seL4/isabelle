@@ -1,0 +1,97 @@
+			Documentation for qed
+
+qed is a utility that's able to (almost) automatically insert calls to
+Isabelle's functions qed, qed_goal, qed_goalw and bind_thm into ML
+files.  It does this by looking for certain patterns and changing the
+line so that the theorems are added to Isabelle's theorem database.
+The intent of including it into the distribution is to enable you to
+convert existing theory files.
+
+
+Compilation
+-----------
+
+qed was written in C++ and compiled using g++ 2.5.8. Executing "make qed"
+should create the executable.
+
+
+Usage
+-----
+
+To start qed type:
+
+qed <infile> <outfile>
+
+<infile> is the ML file you want to convert and <outfile> is the file
+to which the output should be sent. If you want to convert a whole
+directory of ML files and keep the original files as <name>.bak you
+can use the script 'runqed'.
+
+During its execution qed will output the names of all theorems that it has
+found.
+
+
+Recognized Theorems
+-------------------
+
+Because qed knows nothing about ML's syntax it has to rely on certain
+assumptions about how typical definitions of theorems look. These
+assumptions were made based on the files contained in the distribution
+and therefore it's possible that they do not fit for the files you
+want to convert. So if qed does not do what you expect it to do have a
+look at the following list.
+
+
+-    val mono_Int = result();
+  -> qed "mono_Int";
+
+  This kind of line is recognized if it contains "val ", "=" and the word
+  "result();" and if the distance between "=" and "result()" is less
+  than 5 characters.
+
+
+-    val XHlemma2 = result() RS mp;
+  -> bind_thm("XHlemma2", result() RS mp);
+
+  If the first case cannot be applied because the "=" and "result()" are too
+  far apart or "result()" is not followed by a ";" this one is
+  used.
+
+  
+-    val sym = prove_goal HOL.thy "s=t ==> t=s"
+  -> qed_goal "sym" HOL.thy "s=t ==> t=s"
+
+  Lines containing the word "prove_goal" or "prove_goalw" and the strings
+  "val " and "=" with a distance between "prove_goal" and "=" of less
+  than 5 characters are matched by this case. Note that the ML command
+  continues in the next line but is not changed further.
+
+
+-    val ssubst = standard (sym RS subst);
+  -> bind_thm ("ssubst", (sym RS subst));
+
+  A line in which the word "standard" and the strings "val " and "=" can be
+  found (with the usual distance limitation) and which ends with ";" is
+  converted this way.
+
+
+At least for the standard theories these rules only match the desired
+kind of lines. It is possible though that not all places for insertion
+of the theorem database functions are found. Also qed has no way to
+recognize ML commands such as "local ... in ... end" or "let ... in
+... end". Processing files where theorems are defined inside these
+commands leads to syntax errors during compilation of the generated
+files like e.g. "end expected but bind_thm was found". One can avoid
+this by changing the affected lines to "val _ = bind_thm ..." after the
+conversion or by manually editing the original file.
+
+
+Problems?
+--------
+
+If qed does not do what you want it to do you could change the
+sourcecode (qed.cc) yourself which should be fairly easy.  If qed does
+not handle a case that you regard as a 'typical' way of defining a
+theorem (i.e. one that occurs very often in your files) send an email
+containg some examples to clasohm@informatik.tu-muenchen.de.
+
