@@ -188,8 +188,8 @@ fun unify_consts sign cs intr_ts =
       in foldl (fn ((env', j'), Tp) => (Type.unify tsig j' env' Tp))
           (env, (replicate (length consts) cT) ~~ consts)
       end;
-    val (env, _) = foldl unify (([], i'), rec_consts);
-    fun typ_subst_TVars_2 env T = let val T' = typ_subst_TVars env T
+    val (env, _) = foldl unify ((Vartab.empty, i'), rec_consts);
+    fun typ_subst_TVars_2 env T = let val T' = typ_subst_TVars_Vartab env T
       in if T = T' then T else typ_subst_TVars_2 env T' end;
     val subst = fst o Type.freeze_thaw o
       (map_term_types (typ_subst_TVars_2 env))
