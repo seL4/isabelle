@@ -618,14 +618,15 @@ number~$i$:
 \index{unification|(}%
 As we have seen, Isabelle rules involve schematic variables, which begin with
 a question mark and act as
-placeholders for terms.  \textbf{Unification} refers to  the process of
-making two terms identical, possibly by replacing their schematic variables by
+placeholders for terms.  \textbf{Unification} --- well known to Prolog programmers --- is the act of
+making two terms identical, possibly replacing their schematic variables by
 terms.  The simplest case is when the two terms are already the same. Next
 simplest is \textbf{pattern-matching}, which replaces variables in only one of the
 terms.  The
 \isa{rule} method typically  matches the rule's conclusion
-against the current subgoal.  In the most complex case,  variables in both
-terms are replaced; the \isa{rule} method can do this if the goal
+against the current subgoal.  The
+\isa{assumption} method matches the current subgoal's conclusion
+against each of its assumptions.   Unification can instantiate variables in both terms; the \isa{rule} method can do this if the goal
 itself contains schematic variables.  Other occurrences of the variables in
 the rule or proof state are updated at the same time.
 
@@ -633,18 +634,33 @@ Schematic variables in goals represent unknown terms.  Given a goal such
 as $\exists x.\,P$, they let us proceed with a proof.  They can be 
 filled in later, sometimes in stages and often automatically. 
 
-Unification is well known to Prolog programmers. Isabelle uses
+If unification fails when you think it should succeed, try setting the flag \index{flags}\isa{trace_unify_fail}\index{* trace_unify_fail (flag)},
+which makes Isabelle show the cause of unification failures.  For example, suppose we are trying to prove this subgoal by assumption:
+\begin{isabelle}
+\ 1.\ P\ (a,\ f\ (b,\ g\ (e,\ a),\ b),\ a)\ \isasymLongrightarrow \ P\ (a,\ f\ (b,\ g\ (c,\ a),\ b),\ a)
+\end{isabelle}
+The \isa{assumption} method having failed, we try again with the flag set:
+\begin{isabelle}
+\isacommand{ML}\ "set\ trace\_unify\_fail"\isanewline
+\isacommand{apply} assumption
+\end{isabelle}
+Even in this trivial case, the output is unexpectedly verbose, but it yields the necessary information:
+\begin{isabelle}
+Clash: e =/= c\isanewline
+Clash: == =/= Trueprop
+\end{isabelle}
+
+Isabelle uses
 \textbf{higher-order} unification, which works in the
-typed $\lambda$-calculus.  The general case is
-undecidable, but for our purposes, the differences from ordinary
-unification are straightforward.  It handles bound  variables
-correctly, avoiding capture.  The two terms \isa{{\isasymlambda}x.\ ?P} and
+typed $\lambda$-calculus.  The procedure requires search and is potentially
+undecidable.  For our purposes, however, the differences from ordinary
+unification are straightforward.  It handles bound variables
+correctly, avoiding capture.  The two terms
+\isa{{\isasymlambda}x.\ f(x,z)} and \isa{{\isasymlambda}y.\ f(y,z)} are
+trivially unifiable because they differ only by a bound variable renaming.  The two terms \isa{{\isasymlambda}x.\ ?P} and
 \isa{{\isasymlambda}x.\ t x}  are not unifiable; replacing \isa{?P} by
 \isa{t x} is forbidden because the free occurrence of~\isa{x} would become
-bound.  The two terms
-\isa{{\isasymlambda}x.\ f(x,z)} and \isa{{\isasymlambda}y.\ f(y,z)} are
-trivially unifiable because they differ only by a bound variable renaming.
-
+bound.  Unfortunately, even if \isa{trace_unify_fail} is set, Isabelle displays no information about this type of failure.
 
 \begin{warn}
 Higher-order unification sometimes must invent
