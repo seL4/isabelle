@@ -41,6 +41,7 @@ use "attribute.ML";
 use "pure_thy.ML";
 use "deriv.ML";
 use "drule.ML";
+use "locale.ML";
 use "tctical.ML";
 use "search.ML";
 use "tactic.ML";
