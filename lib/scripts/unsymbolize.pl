@@ -32,6 +32,10 @@ sub unsymbolize {
     s/\\?\\<midarrow>\\?\\<rightarrow>/-->/g;
     s/\\?\\<rightarrow>/->/g;
     s/\\?\\<epsilon> ?/SOME /g;
+    # outer syntax
+    s/\\?\\<rightleftharpoons>/==/g;
+    s/\\?\\<rightharpoonup>/=>/g;
+    s/\\?\\<leftharpoondown>/<=/g;
 
     $result = $_;
 
