@@ -354,8 +354,8 @@ fun prefer i = ProofHistory.applys (shuffle Method.prefer i);
 
 (* backward steps *)
 
-val tac = ProofHistory.applys o Method.refine_no_facts;
-val then_tac = ProofHistory.applys o Method.refine;
+fun tac m = ProofHistory.applys (Method.refine_no_facts m o Proof.assert_backward);
+fun then_tac m = ProofHistory.applys (Method.refine m o Proof.assert_backward);
 
 val proof = ProofHistory.applys o Method.proof o
   apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;
