@@ -343,8 +343,30 @@ In contrast to the highly interactive mode of Isabelle/Isar theory
   tree structure, which is reflected by the output location in the
   file system (usually rooted at \verb,~/isabelle/browser_info,).
 
-  \medskip Here is the canonical arrangement of sources of a session
-  called \texttt{MySession}:
+  \medskip The easiest way to manage Isabelle sessions is via
+  \texttt{isatool mkdir} (generates an initial source setup) and
+  \texttt{isatool make} (runs a session controlled by
+  \texttt{IsaMakefile}).  For example, a new session
+  \texttt{MySession} derived from \texttt{HOL} may be produced as
+  follows:
+
+\begin{verbatim}
+  isatool mkdir HOL MySession
+  isatool make
+\end{verbatim}
+
+  The \texttt{isatool make} job tells about the file-system location
+  of the ultimate results.  The above dry run should be able to
+  produce some \texttt{document.pdf} of a single page (with dummy
+  title, empty table of contents etc.).  Any failure at that stage
+  usually indicates technical problems of the {\LaTeX}
+  installation.\footnote{Especially make sure that \texttt{pdflatex}
+  is present; if all fails one may fall back on DVI output by changing
+  \texttt{usedir} options in \texttt{IsaMakefile}
+  \cite{isabelle-sys}.}
+
+  \medskip The detailed arrangement of the session sources is as
+  follows:
 
   \begin{itemize}
 
@@ -379,26 +401,6 @@ In contrast to the highly interactive mode of Isabelle/Isar theory
   With everything put in its proper place, \texttt{isatool make}
   should be sufficient to process the Isabelle session completely,
   with the generated document appearing in its proper place.
-
-  \medskip In reality, users may want to have \texttt{isatool mkdir}
-  generate an initial working setup without further ado.  For example,
-  a new session \texttt{MySession} derived from \texttt{HOL} may be
-  produced as follows:
-
-\begin{verbatim}
-  isatool mkdir HOL MySession
-  isatool make
-\end{verbatim}
-
-  This processes the session with sensible default options, including
-  verbose mode to tell the user where the ultimate results will
-  appear.  The above dry run should already be able to produce a
-  single page of output (with a dummy title, empty table of contents
-  etc.).  Any failure at that stage is likely to indicate technical
-  problems with the user's {\LaTeX} installation.\footnote{Especially
-  make sure that \texttt{pdflatex} is present; if all fails one may
-  fall back on DVI output by changing \texttt{usedir} options in
-  \texttt{IsaMakefile} \cite{isabelle-sys}.}
 
   \medskip One may now start to populate the directory
   \texttt{MySession}, and the file \texttt{MySession/ROOT.ML}
