@@ -85,6 +85,8 @@ structure Thm = Thm;
 structure Sign = Thm.Sign;
 structure Type = Sign.Type;
 structure Pretty = Sign.Syntax.Pretty
+structure Symtab = Sign.Symtab;
+
 local open Thm
 in
 
@@ -188,8 +190,8 @@ val print_sign = Sign.print_sg o sign_of;
 
 fun print_axioms thy =
   let
-    val {sign, ext_axtab, ...} = rep_theory thy;
-    val axioms = Symtab.dest ext_axtab;
+    val {sign, new_axioms, ...} = rep_theory thy;
+    val axioms = Symtab.dest new_axioms;
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
       Pretty.quote (Sign.pretty_term sign t)];
