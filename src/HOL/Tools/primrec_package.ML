@@ -24,7 +24,7 @@ exception RecError of string;
 
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 fun primrec_eq_err sign s eq =
-  primrec_err (s ^ "\nin equation\n" ^ quote (Sign.string_of_term sign eq));
+  primrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term sign eq));
 
 
 (* messages *)
@@ -259,11 +259,12 @@ fun add_primrec_i alt_name eqns_atts thy =
 
 fun add_primrec alt_name eqns thy =
   let
+    val sign = Theory.sign_of thy;
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
     val atts = map (map (Attrib.global_attribute thy)) srcss;
-    val eqn_ts = map (readtm (Theory.sign_of thy) propT) strings;
+    val eqn_ts = map (readtm sign propT) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))
-      handle TERM _ => raise RecError "not a proper equation") eqn_ts;
+      handle TERM _ => primrec_eq_err sign "not a proper equation" eq) eqn_ts;
     val (_, eqn_ts') = InductivePackage.unify_consts (sign_of thy) rec_ts eqn_ts
   in
     add_primrec_i alt_name (names ~~ eqn_ts' ~~ atts) thy
