@@ -267,10 +267,18 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
+    let val pth = 
+          (* If quick_and_dirty then run without proof generation as oracle*)
+             if !quick_and_dirty 
+             then assume (cterm_of sg 
+	       (HOLogic.mk_Trueprop(HOLogic.mk_eq(t1,CooperDec.integer_qelim (Pattern.eta_long [] t1)))))
+	     else tmproof_of_int_qelim sg (Pattern.eta_long [] t1)
+    in 
           (trace_msg ("calling procedure with term:\n" ^
              Sign.string_of_term sg t1);
-           ((tmproof_of_int_qelim sg (Pattern.eta_long [] t1) RS iffD2) RS pre_thm,
+           ((pth RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
+    end
       | _ => (pre_thm, assm_tac i)
   in (rtac (((mp_step nh) o (spec_step np)) th) i 
       THEN tac) st
@@ -300,4 +308,4 @@ val setup =
 
 end;
 
-val presburger_tac = Presburger.presburger_tac true true;
+val presburger_tac = Presburger.presburger_tac true false;

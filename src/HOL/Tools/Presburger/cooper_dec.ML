@@ -6,7 +6,8 @@
 File containing the implementation of Cooper Algorithm
 decision procedure (intensively inspired from J.Harrison)
 *)
- 
+
+
 signature COOPER_DEC = 
 sig
   exception COOPER
@@ -41,6 +42,7 @@ sig
   val plusinf : term -> term -> term
   val onatoms : (term -> term) -> term -> term
   val evalc : term -> term
+  val integer_qelim : Term.term -> Term.term
 end;
 
 structure  CooperDec : COOPER_DEC =
@@ -59,7 +61,6 @@ exception COOPER;
 relation operations of Type : [int,int]---> bool *) 
  
 (* ------------------------------------------------------------------------- *) 
- 
  
 (*Function is_arith_rel returns true if and only if the term is an atomar presburger 
 formula *) 
@@ -560,10 +561,11 @@ fun simpl fm = case fm of
   | Const ("op -->",_) $ p $ q => simpl1 (HOLogic.mk_imp(simpl p ,simpl q ))  
   | Const("op =", Type ("fun",[Type ("bool", []),_]))$ p $ q => simpl1 
   (HOLogic.mk_eq(simpl p ,simpl q ))  
-  | Const ("All",Ta) $ Abs(Vn,VT,p) => simpl1(Const("All",Ta) $ 
+(*  | Const ("All",Ta) $ Abs(Vn,VT,p) => simpl1(Const("All",Ta) $ 
   Abs(Vn,VT,simpl p ))  
   | Const ("Ex",Ta)  $ Abs(Vn,VT,p) => simpl1(Const("Ex",Ta)  $ 
   Abs(Vn,VT,simpl p ))  
+*)
   | _ => fm; 
  
 (* ------------------------------------------------------------------------- *) 
@@ -655,7 +657,8 @@ fun cooper vars1 fm =
     val (xn,p1) = variant_abs (x0,T,p0)
     val x = Free (xn,T)
     val vars = (xn::vars1)
-    val p = unitycoeff x  (posineq (simpl p1))
+(*     val p = unitycoeff x  (posineq (simpl p1)) *)
+    val p = unitycoeff x  p1 
     val ast = aset x p
     val bst = bset x p
     val js = 1 upto divlcm x p
@@ -708,7 +711,26 @@ fun conjuncts fm = case fm of
  
 (* ------------------------------------------------------------------------- *) 
 (* Lift procedure given literal modifier, formula normalizer & basic quelim. *) 
-(* ------------------------------------------------------------------------- *) 
+(* ------------------------------------------------------------------------- *)
+(*
+fun lift_qelim afn nfn qfn isat = 
+let 
+fun qelift vars fm = if (isat fm) then afn vars fm 
+else  
+case fm of 
+  Const ("Not",_) $ p => HOLogic.Not $ (qelift vars p) 
+  | Const ("op &",_) $ p $q => HOLogic.conj $ (qelift vars p) $ (qelift vars q) 
+  | Const ("op |",_) $ p $ q => HOLogic.disj $ (qelift vars p) $ (qelift vars q) 
+  | Const ("op -->",_) $ p $ q => HOLogic.imp $ (qelift vars p) $ (qelift vars q) 
+  | Const ("op =",Type ("fun",[Type ("bool", []),_])) $ p $ q => HOLogic.mk_eq ((qelift vars p),(qelift vars q)) 
+  | Const ("All",QT) $ Abs(x,T,p) => HOLogic.Not $(qelift vars (Const ("Ex",QT) $ Abs(x,T,(HOLogic.Not $ p)))) 
+  | (e as Const ("Ex",_)) $ Abs (x,T,p)  =>  qfn vars (e$Abs (x,T,(nfn(qelift (x::vars) p))))
+  | _ => fm 
+ 
+in (fn fm => qelift (fv fm) fm)
+end; 
+*)
+ 
    
 fun lift_qelim afn nfn qfn isat = 
  let   fun qelim x vars p = 
@@ -736,7 +758,7 @@ fun lift_qelim afn nfn qfn isat =
  
   in (fn fm => simpl(qelift (fv fm) fm)) 
   end; 
- 
+
  
 (* ------------------------------------------------------------------------- *) 
 (* Cleverer (proposisional) NNF with conditional and literal modification.   *) 
@@ -771,11 +793,17 @@ fun cnnf lfn =
     | (Const ("Not",_) $ (Const ("op -->",_) $ p $q)) => HOLogic.mk_conj(cnnfh p,cnnfh(HOLogic.Not $ q)) 
     | (Const ("Not",_) $ (Const ("op =",Type ("fun",[Type ("bool", []),_]))  $ p $ q)) => HOLogic.mk_disj(HOLogic.mk_conj(cnnfh p,cnnfh(HOLogic.Not $ q)),HOLogic.mk_conj(cnnfh(HOLogic.Not $ p),cnnfh q)) 
     | _ => lfn fm  
-  in cnnfh o simpl
-  end; 
+in cnnfh
+ end; 
  
 (*End- function the quantifierelimination an decion procedure of presburger formulas.*)   
+
+(*
 val integer_qelim = simpl o evalc o (lift_qelim linform (simpl o (cnnf posineq o evalc)) cooper is_arith_rel) ; 
+*)
+val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) cooper is_arith_rel) ; 
+
 
 end;
- 
+
+

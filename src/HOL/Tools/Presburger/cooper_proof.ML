@@ -7,6 +7,7 @@ File containing the implementation of the proof
 generation for Cooper Algorithm
 *)
 
+
 signature COOPER_PROOF =
 sig
   val qe_Not : thm
@@ -957,3 +958,4 @@ fun proof_of_cnnf sg p lfnp =
   end;
 
 end;
+
