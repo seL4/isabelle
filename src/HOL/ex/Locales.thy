@@ -4,20 +4,20 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {* Locales and simple mathematical structures *}
+header {* Basic use of locales *}
 
 theory Locales = Main:
+
+text {*
+  The inevitable group theory examples formulated with locales.
+*}
+
+
+subsection {* Local contexts as mathematical structures *}
 
 text_raw {*
   \newcommand{\isasyminv}{\isasyminverse}
   \newcommand{\isasymone}{\isamath{1}}
-*}
-
-
-subsection {* Groups *}
-
-text {*
-  Locales version of the inevitable group example.
 *}
 
 locale group =
@@ -118,5 +118,38 @@ proof -
   also have "\<dots> = y" by (simp only: left_one)
   finally show ?thesis .
 qed
+
+
+subsection {* Referencing structures implicitly *}
+
+record 'a semigroup =
+  prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+
+syntax
+  "_prod1" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
+  "_prod2" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>\<^sub>2" 70)
+  "_prod3" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>\<^sub>3" 70)
+translations
+  "x \<odot> y" \<rightleftharpoons> "(\<struct>prod) x y"
+  "x \<odot>\<^sub>2 y" \<rightleftharpoons> "(\<struct>\<struct>prod) x y"
+  "x \<odot>\<^sub>3 y" \<rightleftharpoons> "(\<struct>\<struct>\<struct>prod) x y"
+
+lemma
+  (fixes S :: "'a semigroup" (structure)
+    and T :: "'a semigroup" (structure)
+    and U :: "'a semigroup" (structure))
+  "prod S a b = a \<odot> b" ..
+
+lemma
+  (fixes S :: "'a semigroup" (structure)
+    and T :: "'a semigroup" (structure)
+    and U :: "'a semigroup" (structure))
+  "prod T a b = a \<odot>\<^sub>2 b" ..
+
+lemma
+  (fixes S :: "'a semigroup" (structure)
+    and T :: "'a semigroup" (structure)
+    and U :: "'a semigroup" (structure))
+  "prod U a b = a \<odot>\<^sub>3 b" ..
 
 end
