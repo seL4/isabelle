@@ -25,7 +25,6 @@ signature PURE_THY =
 sig
   include BASIC_PURE_THY
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
-  val thms_closure: theory -> xstring -> thm list option
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
@@ -108,23 +107,11 @@ fun print_theory thy =
 
 (** retrieve theorems **)
 
-(* thms_closure *)
-
-(*note: we avoid life references to the theory, so users may safely
-  keep thms_closure with moderate space consumption*)
-
-fun thms_closure_aux thy =
-  let val ref {space, thms_tab, ...} = get_theorems thy
-  in fn name => Symtab.lookup (thms_tab, NameSpace.intern space name) end;
-
-fun thms_closure thy =
-  let val closures = map thms_closure_aux (thy :: Theory.ancestors_of thy)
-  in fn name => get_first (fn f => f name) closures end;
-
-
 (* get_thms etc. *)
 
-fun lookup_thms name thy = thms_closure_aux thy name;
+fun lookup_thms name thy =
+  let val ref {space, thms_tab, ...} = get_theorems thy
+  in Symtab.lookup (thms_tab, NameSpace.intern space name) end;
 
 fun get_thms thy name =
   (case get_first (lookup_thms name) (thy :: Theory.ancestors_of thy) of
