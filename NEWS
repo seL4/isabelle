@@ -50,6 +50,12 @@ logics (again);
 
 *** Syntax ***
 
+* Pure: hierachically structured name spaces (for consts, types, thms,
+...), use 'begin' or 'path' section in theory files; new lexical class
+'longid' (e.g. Foo.bar.x) renders many old input syntactically
+incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
+("%x. x");
+
 * Pure: fixed idt/idts vs. pttrn/pttrns syntactic categories;
 
 
