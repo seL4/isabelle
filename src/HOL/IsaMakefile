@@ -442,10 +442,9 @@ $(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
 
 HOL-MiniML: HOL $(LOG)/HOL-MiniML.gz
 
-$(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
-  MiniML/Generalize.thy MiniML/Instance.ML MiniML/Instance.thy \
-  MiniML/Maybe.ML MiniML/Maybe.thy MiniML/MiniML.ML MiniML/MiniML.thy \
-  MiniML/ROOT.ML MiniML/Type.ML MiniML/Type.thy MiniML/W.ML MiniML/W.thy
+$(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.thy\
+  MiniML/Instance.thy MiniML/Maybe.thy MiniML/MiniML.thy \
+  MiniML/ROOT.ML MiniML/Type.thy MiniML/W.thy
 	@$(ISATOOL) usedir $(OUT)/HOL MiniML
 
 
