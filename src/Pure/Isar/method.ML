@@ -14,6 +14,16 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  val print_global_rules: theory -> unit
+  val print_local_rules: Proof.context -> unit
+  val dest_global: theory attribute
+  val elim_global: theory attribute
+  val intro_global: theory attribute
+  val delrule_global: theory attribute
+  val dest_local: Proof.context attribute
+  val elim_local: Proof.context attribute
+  val intro_local: Proof.context attribute
+  val delrule_local: Proof.context attribute
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
@@ -82,6 +92,93 @@ end;
 
 structure Method: METHOD =
 struct
+
+
+(** global and local rule data **)
+
+fun prt_rules kind ths =
+  Pretty.writeln (Pretty.big_list ("standard " ^ kind ^ " rules:") (map Display.pretty_thm ths));
+
+fun print_rules (intro, elim) =
+  (prt_rules "introduction" intro; prt_rules "elimination" elim);
+
+fun merge_rules (ths1, ths2) = Library.generic_merge Thm.eq_thm I I ths1 ths2;
+
+
+(* theory data kind 'Isar/rules' *)
+
+structure GlobalRulesArgs =
+struct
+  val name = "Isar/rules";
+  type T = thm list * thm list;
+
+  val empty = ([], []);
+  val copy = I;
+  val prep_ext = I;
+  fun merge ((intro1, elim1), (intro2, elim2)) =
+    (merge_rules (intro1, intro2), merge_rules (elim1, elim2));
+  fun print _ = print_rules;
+end;
+
+structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
+val print_global_rules = GlobalRules.print;
+
+
+(* proof data kind 'Isar/rules' *)
+
+structure LocalRulesArgs =
+struct
+  val name = "Isar/rules";
+  type T = thm list * thm list;
+
+  val init = GlobalRules.get;
+  fun print _ = print_rules;
+end;
+
+structure LocalRules = ProofDataFun(LocalRulesArgs);
+val print_local_rules = LocalRules.print;
+
+
+
+(** attributes **)
+
+(* add rules *)
+
+local
+
+fun add_rule thm rules = Library.gen_ins Thm.eq_thm (thm, rules);
+fun del_rule thm rules = Library.gen_rem Thm.eq_thm (rules, thm);
+
+fun add_dest thm (intro, elim) = (intro, add_rule (Tactic.make_elim thm) elim);
+fun add_elim thm (intro, elim) = (intro, add_rule thm elim);
+fun add_intro thm (intro, elim) = (add_rule thm intro, elim);
+fun delrule thm (intro, elim) = (del_rule thm intro, del_rule thm elim);
+
+fun mk_att f g (x, thm) = (f (g thm) x, thm);
+
+in
+
+val dest_global = mk_att GlobalRules.map add_dest;
+val elim_global = mk_att GlobalRules.map add_elim;
+val intro_global = mk_att GlobalRules.map add_intro;
+val delrule_global = mk_att GlobalRules.map delrule;
+
+val dest_local = mk_att LocalRules.map add_dest;
+val elim_local = mk_att LocalRules.map add_elim;
+val intro_local = mk_att LocalRules.map add_intro;
+val delrule_local = mk_att LocalRules.map delrule;
+
+end;
+
+
+(* concrete syntax *)
+
+val rule_atts =
+ [("dest", (Attrib.no_args dest_global, Attrib.no_args dest_local), "destruction rule"),
+  ("elim", (Attrib.no_args elim_global, Attrib.no_args elim_local), "elimination rule"),
+  ("intro", (Attrib.no_args intro_global, Attrib.no_args intro_local), "introduction rule"),
+  ("delrule", (Attrib.no_args delrule_global, Attrib.no_args delrule_local), "delete rule")];
+
 
 
 (** proof methods **)
@@ -154,13 +251,24 @@ fun gen_rule_tac tac rules [] = tac rules
         fun tactic i state = Seq.flat (Seq.map (fn rule => tac [rule] i state) rules);
       in tactic end;
 
+fun gen_rule tac rules = METHOD (FINDGOAL o tac rules);
+
+fun gen_rule' tac arg_rules ctxt = METHOD (fn facts =>
+  let val rules =
+    if not (null arg_rules) then arg_rules
+    else if null facts then #1 (LocalRules.get ctxt)
+    else op @ (LocalRules.get ctxt);
+  in FINDGOAL (tac rules facts) end);
+
 in
 
 val rule_tac = gen_rule_tac Tactic.resolve_tac;
-val erule_tac = gen_rule_tac Tactic.eresolve_tac;
+val rule = gen_rule rule_tac;
+val some_rule = gen_rule' rule_tac;
 
-fun rule rules = METHOD (FIRSTGOAL o rule_tac rules);
-fun erule rules = METHOD (FIRSTGOAL o erule_tac rules);
+val erule_tac = gen_rule_tac Tactic.eresolve_tac;
+val erule = gen_rule erule_tac;
+val some_erule = gen_rule' erule_tac;
 
 end;
 
@@ -174,8 +282,8 @@ fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ [fact] = resolve_tac [fact]
   | assumption_tac _ _ = K no_tac;
 
-fun assumption ctxt = METHOD (FIRSTGOAL o assumption_tac ctxt);
-fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt))));
+fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
+fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt) THEN flexflex_tac)));
 
 
 
@@ -390,14 +498,17 @@ val pure_methods =
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper!)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
-  ("rule", thms_args rule, "apply some rule"),
-  ("erule", thms_args erule, "apply some erule (improper!)"),
+  ("default", thms_ctxt_args some_rule, "apply some rule"),
+  ("rule", thms_ctxt_args some_rule, "apply some rule"),
+  ("erule", thms_ctxt_args some_erule, "apply some erule (improper!)"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
 
 
 (* setup *)
 
-val setup = [MethodsData.init, add_methods pure_methods];
+val setup =
+ [GlobalRules.init, LocalRules.init, Attrib.add_attributes rule_atts,
+  MethodsData.init, add_methods pure_methods];
 
 
 end;
