@@ -117,8 +117,6 @@ fun strings_of_items prt name items =
     else [Pretty.string_of (Pretty.big_list name (map pretty_itms items))]
   end;
 
-val print_items = seq writeln ooo strings_of_items;
-
 
 (* term bindings *)
 
