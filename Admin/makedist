@@ -10,7 +10,7 @@
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
 CVSROOT=/usr/proj/isabelle-repository/archive
-DISTBASE=~/tmp/isadist
+DISTPREFIX=~/tmp/isadist
 
 
 ## diagnostics
@@ -89,6 +89,7 @@ else
   UNOFFICIAL=""
 fi
 
+DISTBASE=$DISTPREFIX/dist-$DISTNAME
 mkdir -p $DISTBASE || fail "Unable to create distribution base dir $DISTBASE!"
 [ -e $DISTBASE/$DISTNAME ] && fail "$DISTBASE/$DISTNAME already exists!"
 [ -e $DISTBASE/pdf/$DISTNAME ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
@@ -120,7 +121,8 @@ do
   cd ..
 done
 
-# make web pages
+
+# make WWW pages
 
 export DISTNAME
 (cd $DISTBASE/$DISTNAME/Admin/page; make clean; make dist; cd dist; cp * $DISTBASE)
@@ -133,7 +135,7 @@ cd $DISTBASE/$DISTNAME
 MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
-rm -rf Admin Doc Tools
+rm -rf Doc Tools
 
 mkdir src contrib
 mv $LOGICS src
@@ -161,6 +163,9 @@ perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index.html
 perl -pi -e "s/Isabelle repository/$DISTVERSION/" src/Pure/ROOT.ML
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README.html
 lynx -dump README.html >README
+
+( cd src; ../Admin/maketags; )
+rm -rf Admin
 
 
 # create archive
