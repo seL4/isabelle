@@ -53,6 +53,7 @@ sig
   val pretty_term: syntax -> bool -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
   val pretty_sort: syntax -> sort -> Pretty.T
+  val simple_str_of_sort: sort -> string
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
@@ -458,6 +459,7 @@ val pretty_term = pretty_t term_to_ast pretty_term_ast;
 fun pretty_typ syn = pretty_t typ_to_ast pretty_typ_ast syn false;
 fun pretty_sort syn = pretty_t sort_to_ast pretty_typ_ast syn false;
 
+val simple_str_of_sort = Pretty.str_of o pretty_sort type_syn;
 val simple_string_of_typ = Pretty.string_of o (pretty_typ type_syn);
 val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
