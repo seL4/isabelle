@@ -31,8 +31,8 @@ qed "drop_set_I";
 
 Goalw [lift_act_def] "lift_act i Id = Id";
 by Auto_tac;
-be rev_mp 1;
-bd sym 1;
+by (etac rev_mp 1);
+by (dtac sym 1);
 by (asm_simp_tac (simpset() addsimps [fun_upd_idem_iff]) 1);
 qed "lift_act_Id";
 Addsimps [lift_act_Id];
@@ -137,7 +137,7 @@ by (res_inst_tac [("x", "f(i:=a)")] exI 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("x", "f(i:=b)")] exI 1);
 by (Asm_simp_tac 1);
-br ext 1;
+by (rtac ext 1);
 by (Asm_simp_tac 1);
 qed "lift_act_inverse";
 Addsimps [lift_act_inverse];
@@ -172,7 +172,7 @@ Addsimps [Init_PLam];
 Goalw [lift_act_def]
     "((f,f') : lift_act i act) = (EX s'. f' = f(i := s') & (f i, s') : act)";
 by Auto_tac;
-br exI 1;
+by (rtac exI 1);
 by Auto_tac;
 qed "lift_act_eq";
 AddIffs [lift_act_eq];
@@ -369,7 +369,7 @@ qed "reachable_PLam";
 
 (*Result to justify a re-organization of this file*)
 Goal "{f. ALL i:I. f i : R i} = (INT i:I. lift_set i (R i))";
-auto();
+by Auto_tac;
 result();
 
 Goal "reachable (PLam I F) <= (INT i:I. lift_set i (reachable (F i)))";

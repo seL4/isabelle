@@ -165,7 +165,7 @@ qed "stable_Idle";
 Goalw [drop_act_def, lift_act_def]
      "i~=j ==> drop_act i (lift_act j act) <= Id";
 by Auto_tac;
-be subst 1;
+by (etac subst 1);
 by (Asm_simp_tac 1);
 qed "neq_drop_act_lift_act";
 
@@ -185,7 +185,7 @@ qed "component_Idle";
 Goal "G component (JN j: I-{i}. JN H: UNIV. lift_prog j H) \
 \     ==> drop_prog i G : Idle";
 by (dtac drop_prog_mono 1);
-be component_Idle 1;
+by (etac component_Idle 1);
 by (simp_tac (simpset() addsimps [drop_prog_JN_other_Idle, 
 				  lift_prog_JN RS sym]) 1);
 qed "component_JN_neq_imp_Idle";
@@ -197,8 +197,8 @@ qed "Idle_imp_stable_lift_set";
 
 (*like neq_drop_act_lift_act but stronger premises and conclusion*)
 Goal "[| i~=j;  act ~= {} |] ==> drop_act i (lift_act j act) = Id";
-br equalityI 1;
-be neq_drop_act_lift_act 1;
+by (rtac equalityI 1);
+by (etac neq_drop_act_lift_act 1);
 by (asm_simp_tac (simpset() addsimps [drop_act_def, lift_act_def]) 1);
 by Auto_tac;
 ren "s s'" 1;
@@ -233,8 +233,8 @@ ren "act" 1;
 by (subgoal_tac "act ~= {}" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [drop_act_lift_act_eq]) 1);
-br image_eqI 1;
-br (lift_act_inverse RS sym) 1;
+by (rtac image_eqI 1);
+by (rtac (lift_act_inverse RS sym) 1);
 by Auto_tac;
 qed "drop_prog_plam_eq";
 
@@ -258,8 +258,8 @@ Goal "{F. F = (plam j:UNIV. drop_prog j F)} Int stable (lift_set i A) \
 \     <= lift_prog i `` stable A";
 by Auto_tac;
 fr image_eqI;
-be (drop_prog_stable_eq RS iffD2) 2;
-be ssubst 1;
+by (etac (drop_prog_stable_eq RS iffD2) 2);
+by (etac ssubst 1);
 by (stac drop_prog_plam_eq 1);
 by Auto_tac;
 
@@ -795,7 +795,7 @@ qed "drop_prog_guarantees";
    drop_set i (A Int B) = drop_set i A Int drop_set i B
 *)
 Goal "[| ALL j. j = i; f i = g i |] ==> f = g";
-br ext 1;
+by (rtac ext 1);
 by (dres_inst_tac [("x", "x")] spec 1);
 by Auto_tac;
 qed "singleton_ext";
@@ -814,8 +814,8 @@ Goalw [lift_act_def, drop_act_def]
      "ALL j. j = i ==> lift_act i (drop_act i act) = act";
 by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [singleton_update_eq]) 1);
-bd singleton_ext 1;
-ba 1;
+by (dtac singleton_ext 1);
+by (assume_tac 1);
 by (auto_tac (claset() addSIs [exI, image_eqI], 
 	      simpset() addsimps [singleton_update_eq]));
 qed "singleton_drop_act_inverse";
