@@ -62,7 +62,7 @@ constdefs
                    ("_ \<turnstile> _ <=' _"  [71,71] 70)
   "sup_state_opt G == lift_bottom (\<lambda>t t'. G \<turnstile> t <=s t')"
 
-syntax (HTML output) 
+syntax (HTML) 
   sup_ty_opt    :: "['code prog,ty err,ty err] => bool" 
                    ("_ |- _ <=o _")
   sup_loc       :: "['code prog,locvars_type,locvars_type] => bool" 

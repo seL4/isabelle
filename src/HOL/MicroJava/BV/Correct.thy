@@ -55,7 +55,7 @@ primrec
 
 constdefs
  correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
-                  ("_,_\<turnstile>JVM _\<surd>"  [51,51] 50)
+                  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
      None => (case frs of
@@ -69,6 +69,11 @@ constdefs
 			 correct_frame G hp s maxl ins f \<and> 
 		         correct_frames G hp phi rT sig fs))
    | Some x => True" 
+
+
+syntax (HTML)
+ correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
+                  ("_,_ |-JVM _ [ok]"  [51,51] 50)
 
 
 lemma sup_heap_newref:

@@ -32,7 +32,7 @@ constdefs
   "G \<turnstile> s -jvm-> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
 
 
-syntax (HTML output)
+syntax (HTML)
   exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"  
               ("_ |- _ -jvm-> _" [61,61,61]60)
 
