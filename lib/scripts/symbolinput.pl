@@ -6,21 +6,6 @@
 
 %tab = (
 #GENERATED TEXT FOLLOWS - Do not edit!
-  "\x91", "\\<lless>",
-  "\x92", "\\<unlhd>",
-  "\x93", "\\<lhd>",
-  "\x94", "\\<rhd>",
-  "\x95", "\\<tturnstile>",
-  "\x96", "\\<langle>",
-  "\x97", "\\<rangle>",
-  "\x98", "\\<orelse>",
-  "\x99", "\\<top>",
-  "\x9a", "\\<Or>",
-  "\x9b", "\\<ocdot>",
-  "\x9c", "\\<iota>",
-  "\x9d", "\\<upsilon>",
-  "\x9e", "\\<Upsilon>",
-  "\x9f", "\\<Xi>",
   "\xa0", "\\<space2>",
   "\xa1", "\\<Gamma>",
   "\xa2", "\\<Delta>",

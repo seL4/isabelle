@@ -4,23 +4,26 @@
 # The isabelle-0 encoding table.
 #
 
-145:
+#145:
+#
+#lless
+#unlhd
+#lhd
+#rhd
+#tturnstile
+#langle
+#rangle
+#orelse
+#top
+#Or
+#ocdot
+#iota
+#upsilon
+#Upsilon
+#Xi
 
-lless
-unlhd
-lhd
-rhd
-tturnstile
-langle
-rangle
-orelse
-top
-Or
-ocdot
-iota
-upsilon
-Upsilon
-Xi
+160:
+
 space2
 Gamma
 Delta

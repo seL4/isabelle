@@ -26,27 +26,12 @@ struct
 
 (* tables *)
 
-val enc_start = 145;
+val enc_start = 161;
 val enc_end = 255;
 
 val enc_vector =
 [
 (* GENERATED TEXT FOLLOWS - Do not edit! *)
-  "lless",
-  "unlhd",
-  "lhd",
-  "rhd",
-  "tturnstile",
-  "langle",
-  "rangle",
-  "orelse",
-  "top",
-  "Or",
-  "ocdot",
-  "iota",
-  "upsilon",
-  "Upsilon",
-  "Xi",
   "space2",
   "Gamma",
   "Delta",
