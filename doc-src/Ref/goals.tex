@@ -190,13 +190,15 @@ cancel a series of commands.
   find no alternative proof state.
 \end{itemize}
 
-\subsection{Printing the proof state}
+\subsection{Printing the proof state}\label{sec:goals-printing}
 \index{proof state!printing of}
 \begin{ttbox} 
 pr    : unit -> unit
 prlev : int -> unit
 goals_limit: int ref \hfill{\bf initially 10}
 \end{ttbox}
+See also the printing control options described in
+\S\ref{sec:printing-control}. 
 \begin{ttdescription}
 \item[\ttindexbold{pr}();] 
 prints the current proof state.
