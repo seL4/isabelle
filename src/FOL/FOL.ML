@@ -12,6 +12,7 @@ signature FOL_LEMMAS =
   sig
   val disjCI : thm
   val excluded_middle : thm
+  val excluded_middle_tac : string -> int -> tactic
   val exCI : thm
   val ex_classical : thm
   val iffCE : thm
@@ -52,6 +53,9 @@ val exCI = prove_goal FOL.thy
 val excluded_middle = prove_goal FOL.thy "~P | P"
  (fn _=> [ rtac disjCI 1, assume_tac 1 ]);
 
+(*For disjunctive case analysis*)
+fun excluded_middle_tac sP =
+    res_inst_tac [("Q",sP)] (excluded_middle RS disjE);
 
 (*** Special elimination rules *)
 
