@@ -20,8 +20,10 @@ sig
   val print: Proof.context -> unit
   val get: Proof.context -> T
   val put: T -> Proof.context -> Proof.context
+  val map: (T -> T) -> Proof.context -> Proof.context
   val get_st: Proof.state -> T
   val put_st: T -> Proof.state -> Proof.state
+  val map_st: (T -> T) -> Proof.state -> Proof.state
 end;
 
 functor ProofDataFun(Args: PROOF_DATA_ARGS): PROOF_DATA =
@@ -40,8 +42,11 @@ val init =
 val print = ProofContext.print_data kind;
 val get = ProofContext.get_data kind (fn Data x => x);
 val put = ProofContext.put_data kind Data;
+fun map f ctxt = put (f (get ctxt)) ctxt;
+
 val get_st = get o Proof.context_of;
 val put_st = Proof.put_data kind Data;
+fun map_st f st = put_st (f (get_st st)) st;
 
 end;
 
