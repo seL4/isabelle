@@ -132,7 +132,7 @@ use "intprover.ML"
 subsection {* Atomizing meta-level rules *}
 
 lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
-proof (rule equal_intr_rule)
+proof
   assume "!!x. P(x)"
   show "ALL x. P(x)" by (rule allI)
 next
@@ -141,7 +141,7 @@ next
 qed
 
 lemma atomize_imp [atomize]: "(A ==> B) == Trueprop (A --> B)"
-proof (rule equal_intr_rule)
+proof
   assume r: "A ==> B"
   show "A --> B" by (rule impI) (rule r)
 next
@@ -150,7 +150,7 @@ next
 qed
 
 lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
-proof (rule equal_intr_rule)
+proof
   assume "x == y"
   show "x = y" by (unfold prems) (rule refl)
 next
@@ -159,7 +159,7 @@ next
 qed
 
 lemma atomize_conj [atomize]: "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
-proof (rule equal_intr_rule)
+proof
   assume "!!C. (A ==> B ==> PROP C) ==> PROP C"
   show "A & B" by (rule conjI)
 next
