@@ -35,8 +35,8 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML $(THYS) $(THYS:.thy=.ML)
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/ZF ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/ZF ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml; exit 1;;\
 	esac
@@ -59,7 +59,7 @@ IMP_THYS = IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy
 IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
 
 IMP:   $(BIN)/ZF  $(IMP_FILES)
-	echo 'use"IMP/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
 ##Coinduction example
 COIND_THYS = Coind/ECR.thy Coind/Language.thy\
@@ -70,7 +70,7 @@ COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
               $(COIND_THYS) $(COIND_THYS:.thy=.ML)
 
 Coind:  $(BIN)/ZF  $(COIND_FILES)
-	echo 'use"Coind/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"Coind/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
 EX_THYS = ex/Ramsey.thy ex/Integ.thy ex/twos_compl.thy ex/Bin.thy \
@@ -82,7 +82,7 @@ EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 #Test ZF by loading the examples in directory ex
 ex:     $(BIN)/ZF  $(EX_FILES)
-	echo 'use"ex/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
 test:   $(BIN)/ZF IMP Coind ex
