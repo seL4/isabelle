@@ -12,6 +12,7 @@ local
     ProofContext.setup @
     Attrib.setup @
     Method.setup @
+    InductAttrib.setup @
     Calculation.setup @
     SkipProof.setup @
     AxClass.setup @

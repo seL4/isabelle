@@ -30,7 +30,7 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   General/symbol.ML General/table.ML General/url.ML Interface/ROOT.ML	\
   Interface/isamode.ML Interface/proof_general.ML Isar/ROOT.ML Isar/antiquote.ML \
   Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML	\
-  Isar/comment.ML Isar/isar.ML Isar/isar_cmd.ML Isar/isar_output.ML     \
+  Isar/comment.ML Isar/induct_attrib.ML Isar/isar.ML Isar/isar_cmd.ML Isar/isar_output.ML     \
   Isar/isar_syn.ML Isar/isar_thy.ML Isar/local_defs.ML Isar/method.ML   \
   Isar/net_rules.ML Isar/obtain.ML Isar/outer_lex.ML Isar/outer_parse.ML \
   Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML		\

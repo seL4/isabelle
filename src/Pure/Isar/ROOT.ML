@@ -16,6 +16,7 @@ use "proof_history.ML";
 use "args.ML";
 use "attrib.ML";
 use "net_rules.ML";
+use "induct_attrib.ML";
 use "method.ML";
 
 (*derived proof elements*)

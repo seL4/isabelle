@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/induct_attrib.ML
+(*  Title:      Pure/Isar/induct_attrib.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
@@ -59,11 +59,11 @@ fun print_rules kind sg rs =
   in Pretty.writeln (Pretty.big_list kind (map (Display.pretty_thm_sg sg) thms)) end;
 
 
-(* theory data kind 'HOL/induction' *)
+(* theory data kind 'Isar/induction' *)
 
 structure GlobalInductArgs =
 struct
-  val name = "HOL/induction";
+  val name = "Isar/induction";
   type T = (rules * rules) * (rules * rules);
 
   val empty = ((type_rules, set_rules), (type_rules, set_rules));
@@ -92,11 +92,11 @@ val print_global_rules = GlobalInduct.print;
 val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
 
 
-(* proof data kind 'HOL/induction' *)
+(* proof data kind 'Isar/induction' *)
 
 structure LocalInductArgs =
 struct
-  val name = "HOL/induction";
+  val name = "Isar/induction";
   type T = GlobalInductArgs.T;
 
   fun init thy = GlobalInduct.get thy;
