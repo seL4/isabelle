@@ -140,18 +140,21 @@ signature THM =
     int -> thm -> thm Sequence.seq
 
   (*meta simplification*)
-  type meta_simpset
   exception SIMPLIFIER of string * thm
+  type meta_simpset
+  val dest_mss		: meta_simpset ->
+    {simps: thm list, congs: thm list, procs: (string * cterm list) list}
   val empty_mss         : meta_simpset
+  val merge_mss		: meta_simpset * meta_simpset -> meta_simpset
   val add_simps         : meta_simpset * thm list -> meta_simpset
   val del_simps         : meta_simpset * thm list -> meta_simpset
   val mss_of            : thm list -> meta_simpset
   val add_congs         : meta_simpset * thm list -> meta_simpset
   val del_congs         : meta_simpset * thm list -> meta_simpset
   val add_simprocs	: meta_simpset *
-    (Sign.sg * term * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
+    (string * cterm list * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
   val del_simprocs	: meta_simpset *
-    (Sign.sg * term * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
+    (string * cterm list * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
   val add_prems         : meta_simpset * thm list -> meta_simpset
   val prems_of_mss      : meta_simpset -> thm list
   val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
@@ -164,7 +167,7 @@ signature THM =
   val invoke_oracle     : theory * Sign.sg * exn -> thm
 end;
 
-structure Thm : THM =
+structure Thm: THM =
 struct
 
 (*** Certified terms and types ***)
@@ -1443,12 +1446,20 @@ fun trace_thm_warning a (Thm {sign, prop, ...}) = trace_term_warning a sign prop
 
 type rrule = {thm: thm, lhs: term, perm: bool};
 type cong = {thm: thm, lhs: term};
-type simproc = (Sign.sg -> term -> thm option) * stamp;
+type simproc = {name: string, proc: Sign.sg -> term -> thm option, lhs: cterm, id: stamp};
 
-fun eq_rrule ({thm = Thm{prop = p1, ...}, ...}: rrule,
+fun eq_rrule ({thm = Thm {prop = p1, ...}, ...}: rrule,
   {thm = Thm {prop = p2, ...}, ...}: rrule) = p1 aconv p2;
 
-val eq_simproc = eq_snd;
+fun eq_cong ({thm = Thm {prop = p1, ...}, ...}: cong,
+  {thm = Thm {prop = p2, ...}, ...}: cong) = p1 aconv p2;
+
+fun eq_prem (Thm {prop = p1, ...}, Thm {prop = p2, ...}) = p1 aconv p2;
+
+fun eq_simproc ({id = s1, ...}:simproc, {id = s2, ...}:simproc) = (s1 = s2);
+
+fun mk_simproc (name, proc, lhs, id) =
+  {name = name, proc = proc, lhs = lhs, id = id};
 
 
 (* datatype mss *)
@@ -1486,6 +1497,33 @@ val empty_mss =
 
 
 (** simpset operations **)
+
+(* dest_mss *)
+
+fun dest_mss (Mss {rules, congs, procs, ...}) =
+  {simps = map (fn (_, {thm, ...}) => thm) (Net.dest rules),
+   congs = map (fn (_, {thm, ...}) => thm) congs,
+   procs =
+     map (fn (_, {name, lhs, id, ...}) => ((name, lhs), id)) (Net.dest procs)
+     |> partition_eq eq_snd
+     |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))};
+
+
+(* merge_mss *)		(*NOTE: ignores mk_rews and termless of 2nd mss*)
+
+fun merge_mss
+ (Mss {rules = rules1, congs = congs1, procs = procs1, bounds = bounds1,
+    prems = prems1, mk_rews, termless},
+  Mss {rules = rules2, congs = congs2, procs = procs2, bounds = bounds2,
+    prems = prems2, ...}) =
+      mk_mss
+       (Net.merge (rules1, rules2, eq_rrule),
+        generic_merge (eq_cong o pairself snd) I I congs1 congs2,
+        Net.merge (procs1, procs2, eq_simproc),
+        merge_lists bounds1 bounds2,
+        generic_merge eq_prem I I prems1 prems2,
+        mk_rews, termless);
+
 
 (* mk_rrule *)
 
@@ -1599,25 +1637,31 @@ val (op del_congs) = foldl del_cong;
 
 (* add_simprocs *)
 
-fun add_simproc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
-    (sign, lhs, proc, id)) =
-  (trace_term "Adding simplification procedure for:" sign lhs;
+fun add_proc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    (name, lhs as Cterm {sign, t, ...}, proc, id)) =
+  (trace_term ("Adding simplification procedure " ^ name ^ " for:") sign t;
     mk_mss (rules, congs,
-      Net.insert_term ((lhs, (proc, id)), procs, eq_simproc) handle Net.INSERT =>
-        (trace_warning "ignored duplicate"; procs),
+      Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
+        handle Net.INSERT => (trace_warning "ignored duplicate"; procs),
         bounds, prems, mk_rews, termless));
+
+fun add_simproc (mss, (name, lhss, proc, id)) =
+  foldl add_proc (mss, map (fn lhs => (name, lhs, proc, id)) lhss);
 
 val add_simprocs = foldl add_simproc;
 
 
 (* del_simprocs *)
 
-fun del_simproc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
-    (sign:Sign.sg, lhs, proc, id)) =
+fun del_proc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
+    (name, lhs as Cterm {t, ...}, proc, id)) =
   mk_mss (rules, congs,
-    Net.delete_term ((lhs, (proc, id)), procs, eq_simproc) handle Net.DELETE =>
-      (trace_warning "simplification procedure not in simpset"; procs),
-          bounds, prems, mk_rews, termless);
+    Net.delete_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
+      handle Net.DELETE => (trace_warning "simplification procedure not in simpset"; procs),
+      bounds, prems, mk_rews, termless);
+
+fun del_simproc (mss, (name, lhss, proc, id)) =
+  foldl del_proc (mss, map (fn lhs => (name, lhs, proc, id)) lhss);
 
 val del_simprocs = foldl del_simproc;
 
@@ -1711,12 +1755,14 @@ fun mk_procrule (thm as Thm {sign, prop, ...}) =
     (1) beta reduction
     (2) unconditional rewrite rules
     (3) conditional rewrite rules
-    (4) simplification procedures		(* FIXME (un-)conditional !! *)
+    (4) simplification procedures
 *)
 
 fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...}) 
              (shypst,hypst,maxt,t,ders) =
-  let fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
+  let
+      val tsigt = #tsig(Sign.rep_sg signt);
+      fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (trace_thm_warning "rewrite rule from different theory"
                           thm;
@@ -1725,7 +1771,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
                         else Logic.incr_indexes([],maxt+1) prop;
             val rlhs = if maxt = ~1 then lhs
                        else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
-            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,t)
+            val insts = Pattern.match tsigt (rlhs,t);
             val prop' = ren_inst(insts,rprop,rlhs,t);
             val hyps' = union_term(hyps,hypst);
             val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
@@ -1734,7 +1780,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
                             t = prop',
                             T = propT,
                             maxidx = maxidx'}
-            val der' = infer_derivs (RewriteC ct', [der])	(* FIXME fix!? *)
+            val der' = infer_derivs (RewriteC ct', [der]);
             val thm' = Thm{sign = signt, 
                            der = der',
                            shyps = shyps',
@@ -1756,6 +1802,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
         | rews (rrule :: rrules) =
             let val opt = rew rrule handle Pattern.MATCH => None
             in case opt of None => rews rrules | some => some end;
+
       fun sort_rrules rrs = let
         fun is_simple {thm as Thm{prop,...}, lhs, perm} = case prop of 
                                         Const("==",_) $ _ $ _ => true
@@ -1767,18 +1814,20 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
       in sort rrs ([],[]) 
       end
 
-      fun proc_rews _ [] = None
-        | proc_rews eta_t ((f, _) :: fs) =
-            (case f signt eta_t of
-              None => proc_rews eta_t fs
-            | Some raw_thm =>
-                (trace_thm "Proved rewrite rule: " raw_thm;
-                 (case rews (mk_procrule raw_thm) of
-                   None => proc_rews eta_t fs
-                 | some => some)));
+      fun proc_rews _ ([]:simproc list) = None
+        | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
+            if Pattern.matches tsigt (plhs, t) then
+              (case proc signt eta_t of
+                None => proc_rews eta_t ps
+              | Some raw_thm =>
+                 (trace_thm ("Procedure" ^ name ^ " proved rewrite rule:") raw_thm;
+                   (case rews (mk_procrule raw_thm) of
+                     None => proc_rews eta_t ps
+                   | some => some)))
+            else proc_rews eta_t ps;
   in
     (case t of
-      Abs (_, _, body) $ u =>		(* FIXME bug!? (because of beta/eta overlap) *)
+      Abs (_, _, body) $ u =>
         Some (shypst, hypst, maxt, subst_bound (u, body), ders)
      | _ =>
       (case rews (sort_rrules (Net.match_term rules t)) of
@@ -1809,7 +1858,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
                       T = propT,
                       maxidx = maxidx'}
       val thm' = Thm{sign = signt, 
-                     der = infer_derivs (CongC ct', [der]),	(* FIXME fix!? *)
+                     der = infer_derivs (CongC ct', [der]),
                      shyps = shyps',
                      hyps = union_term(hyps,hypst),
                      prop = prop',
