@@ -144,6 +144,8 @@ by (resolve_tac [subset_imp_le RS lt_trans1] 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 val lt_subset_trans = result();
 
+(*The same yet again, but the index set need not be a cardinal.  
+  Surprisingly complicated proof!*)
 goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
 \         (UN w:W. j(w)) < csucc(K)";
