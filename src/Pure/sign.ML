@@ -37,6 +37,7 @@ sig
   val eq_sg: sg * sg -> bool
   val same_sg: sg * sg -> bool
   val is_draft: sg -> bool
+  val is_stale: sg -> bool
   val const_type: sg -> string -> typ option
   val classes: sg -> class list
   val defaultS: sg -> sort
@@ -192,6 +193,8 @@ fun check_stale (sg as Sg ({id, ...},
       if id = id' then sg
       else raise TERM ("Stale signature: " ^ str_of_sg sg, [])
   | check_stale _ = sys_error "Sign.check_stale";
+
+fun is_stale sg = (check_stale sg; false) handle TERM _ => true;
 
 fun self_ref (sg as Sg (_, {self, ...})) = (check_stale sg; self);
 
