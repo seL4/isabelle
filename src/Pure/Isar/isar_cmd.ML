@@ -7,7 +7,6 @@ Non-logical toplevel commands.
 
 signature ISAR_CMD =
 sig
-  val break: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val restart: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
@@ -46,8 +45,6 @@ struct
 
 
 (* variations on exit *)
-
-val break = Toplevel.keep (fn state => raise Toplevel.BREAK state);
 
 val exit = Toplevel.keep (fn state =>
   (Context.set_context (try Toplevel.theory_of state);

@@ -524,10 +524,6 @@ val restartP =
   OuterSyntax.improper_command "restart" "restart Isar loop" K.control
     (Scan.succeed IsarCmd.restart);
 
-val breakP =
-  OuterSyntax.improper_command "break" "discontinue excursion (keep current state)" K.control
-    (Scan.succeed IsarCmd.break);
-
 
 
 (** the Pure outer syntax **)
@@ -564,7 +560,7 @@ val parsers = [
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, prP, commitP,
-  quitP, exitP, restartP, breakP];
+  quitP, exitP, restartP];
 
 
 end;
