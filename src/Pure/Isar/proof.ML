@@ -15,6 +15,7 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
+  val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val get_goal: state -> thm list * thm
   val goal_facts: (state -> thm list) -> state -> state
@@ -183,6 +184,7 @@ val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
 val auto_bind_facts = map_context oo ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
 val put_thmss = map_context o ProofContext.put_thmss;
+val reset_thms = map_context o ProofContext.reset_thms;
 val assumptions = ProofContext.assumptions o context_of;
 
 
@@ -194,10 +196,13 @@ fun the_facts (State (Node {facts = Some facts, ...}, _)) = facts
 fun assert_facts state = (the_facts state; state);
 fun get_facts (State (Node {facts, ...}, _)) = facts;
 
+
+val thisN = "this";
+
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> put_thms ("this", if_none facts []);
+  |> (case facts of None => reset_thms thisN | Some ths => put_thms (thisN, ths));
 
 val reset_facts = put_facts None;
 
@@ -456,8 +461,8 @@ fun prep_result state t raw_thm =
   in
     if not (null bad_hyps) then
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
-(* FIXME    else if not (Pattern.matches tsig (t, Logic.skip_flexpairs prop)) then
-      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop) *)
+    else if not (t aconv prop) then
+      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
     else Drule.forall_elim_vars (maxidx + 1) thm
   end;
 
@@ -497,8 +502,8 @@ fun gen_bind f x state =
   |> map_context (f x)
   |> reset_facts;
 
-val bind = gen_bind ProofContext.add_binds;
-val bind_i = gen_bind ProofContext.add_binds_i;
+val bind = gen_bind (ProofContext.add_binds o map (apsnd Some))
+val bind_i = gen_bind (ProofContext.add_binds_i o map (apsnd Some))
 
 val match_bind = gen_bind ProofContext.match_binds;
 val match_bind_i = gen_bind ProofContext.match_binds_i;
@@ -588,14 +593,6 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
       |> enter_forward
       |> map_context_result (fn c => prepp (c, raw_propp));
     val cprop = Thm.cterm_of (sign_of state') prop;
-(* FIXME
-    val casms = map #1 (assumptions state');
-
-    val revcut_rl = Drule.incr_indexes_wrt [] [] (cprop :: casms) [] Drule.revcut_rl;
-    fun cut_asm (casm, thm) = Thm.rotate_rule ~1 1 ((Drule.assume_goal casm COMP revcut_rl) RS thm);
-
-    val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
-*)
     val goal = Drule.mk_triv_goal cprop;
   in
     state'
