@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Cantor's theorem -- Isar'ized version of the final section of the HOL
-chapter of 'Isabelle's Object-Logics' (by Larry Paulson).
+chapter of "Isabelle's Object-Logics" (Larry Paulson).
 *)
 
 theory Cantor = Main:;
@@ -108,7 +108,7 @@ text {|
   any idea of how the proof actually works.  There is currently no way
   to transform internal system-level representations of Isabelle
   proofs back into Isar documents.  Writing Isabelle/Isar proof
-  documents actually \emph{is} an creative process.
+  documents actually \emph{is} a creative process.
 |}
 
 
