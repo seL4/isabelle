@@ -9,15 +9,20 @@ Charpentier and Chandy, section 7 (page 17).
 
 (*LOCALE NEEDED FOR PROOF OF GUARANTEES THEOREM*)
 
-theory AllocImpl = ClientImpl:
+(*????FIXME: sort out this mess
+FoldSet.cons_Int_right_lemma1:
+  ?x \<in> ?D \<Longrightarrow> cons(?x, ?C) \<inter> ?D = cons(?x, ?C \<inter> ?D)
+FoldSet.cons_Int_right_lemma2: ?x \<notin> ?D \<Longrightarrow> cons(?x, ?C) \<inter> ?D = ?C \<inter> ?D
+Multiset.cons_Int_right_cases:
+  cons(?x, ?A) \<inter> ?B = (if ?x \<in> ?B then cons(?x, ?A \<inter> ?B) else ?A \<inter> ?B)
+UNITYMisc.Int_cons_right:
+  ?A \<inter> cons(?a, ?B) = (if ?a \<in> ?A then cons(?a, ?A \<inter> ?B) else ?A \<inter> ?B)
+UNITYMisc.Int_succ_right:
+  ?A \<inter> succ(?k) = (if ?k \<in> ?A then cons(?k, ?A \<inter> ?k) else ?A \<inter> ?k)
+*)
 
-(*????MOVE UP*)
-method_setup constrains = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_constrains_tac (Classical.get_local_claset ctxt,
-                               Simplifier.get_local_simpset ctxt) 1)) *}
-    "for proving safety properties"
+
+theory AllocImpl = ClientImpl:
 
 consts
 
@@ -60,21 +65,6 @@ constdefs
 		  \<Union>G \<in> preserves(lift(available_tok)) \<inter>
 		        preserves(lift(NbR)) \<inter>
 		        preserves(lift(giv)). Acts(G))"
-
-
-
-
-(*????FIXME: sort out this mess
-FoldSet.cons_Int_right_lemma1:
-  ?x \<in> ?D \<Longrightarrow> cons(?x, ?C) \<inter> ?D = cons(?x, ?C \<inter> ?D)
-FoldSet.cons_Int_right_lemma2: ?x \<notin> ?D \<Longrightarrow> cons(?x, ?C) \<inter> ?D = ?C \<inter> ?D
-Multiset.cons_Int_right_cases:
-  cons(?x, ?A) \<inter> ?B = (if ?x \<in> ?B then cons(?x, ?A \<inter> ?B) else ?A \<inter> ?B)
-UNITYMisc.Int_cons_right:
-  ?A \<inter> cons(?a, ?B) = (if ?a \<in> ?A then cons(?a, ?A \<inter> ?B) else ?A \<inter> ?B)
-UNITYMisc.Int_succ_right:
-  ?A \<inter> succ(?k) = (if ?k \<in> ?A then cons(?k, ?A \<inter> ?k) else ?A \<inter> ?k)
-*)
 
 
 declare alloc_type_assumes [simp] alloc_default_val_assumes [simp]
@@ -590,14 +580,6 @@ apply (rule LeadsTo_weaken_R)
 apply (rule Always_LeadsToD [OF alloc_prog_Always_lemma alloc_prog_LeadsTo_length_giv_disj])
 apply auto
 done
-
-(*For using "disjunction" (union over an index set) to eliminate a variable.
-  ????move way up*)
-lemma UN_conj_eq: "\<forall>s\<in>state. f(s) \<in> A
-      ==> (\<Union>k\<in>A. {s\<in>state. P(s) & f(s) = k}) = {s\<in>state. P(s)}"
-apply blast
-done
-
 
 (*Fifth step in proof of (31): from the fourth step, taking the union over all
   k\<in>nat *)

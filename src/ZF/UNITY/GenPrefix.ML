@@ -523,7 +523,13 @@ Goal "[| zs \\<in> list(A); xs \\<in> list(A); ys \\<in> list(A) |] \
 \ --><xs,ys> \\<in> prefix(A) | <ys,xs> \\<in> prefix(A)";
 by (etac list_append_induct 1);
 by Auto_tac;
-qed_spec_mp "common_prefix_linear";
+qed_spec_mp "common_prefix_linear_lemma";
+
+Goal "[|<xs, zs> \\<in> prefix(A); <ys,zs> \\<in> prefix(A) |]   \
+\     ==> <xs,ys> \\<in> prefix(A) | <ys,xs> \\<in> prefix(A)";
+by (cut_facts_tac [prefix_type] 1);
+by (blast_tac (claset() delrules [disjCI] addIs [common_prefix_linear_lemma]) 1);
+qed "common_prefix_linear";
 
 
 (*** pfixLe, pfixGe: properties inherited from the translations ***)
