@@ -2,8 +2,8 @@
     ID:         $Id$
     Author: 	Krzysztof Gr`abczewski
 
-The proofs needed to state that each of AC2, AC3, ..., AC6 is equivallent
-to AC0 and AC1. Namely:
+The proofs needed to show that each of AC2, AC3, ..., AC6 is equivalent
+to AC0 and AC1:
 AC1 ==> AC2 ==> AC1
 AC1 ==> AC4 ==> AC3 ==> AC1
 AC4 ==> AC5 ==> AC4
@@ -29,9 +29,9 @@ by (resolve_tac [allI] 1);
 by (resolve_tac [impI] 1);
 by (REPEAT (eresolve_tac [asm_rl,conjE,allE,exE,impE] 1));
 by (REPEAT (resolve_tac [exI,ballI,equalityI] 1));
-by (resolve_tac [lemma1] 2 THEN (REPEAT (atac 2)));
+by (resolve_tac [lemma1] 2 THEN (REPEAT (assume_tac 2)));
 by (fast_tac (AC_cs addSEs [RepFunE, lemma2] addEs [apply_type]) 1);
-result();
+qed "AC1_AC2";
 
 
 (* ********************************************************************** *)
@@ -64,7 +64,7 @@ by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (fast_tac (AC_cs addSEs [lemma3]) 2);
 by (fast_tac (AC_cs addSIs [lemma1, equals0I]) 1);
-result();
+qed "AC2_AC1";
 
 
 (* ********************************************************************** *)
@@ -79,7 +79,7 @@ goalw thy AC_defs "!!Z. AC1 ==> AC4";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, lemma RSN (2, impE), exE] 1));
 by (fast_tac (AC_cs addSIs [lam_type, RepFunI] addSEs [apply_type]) 1);
-result();
+qed "AC1_AC4";
 
 
 (* ********************************************************************** *)
@@ -107,7 +107,7 @@ by (REPEAT (eresolve_tac [allE,impE] 1));
 by (eresolve_tac [lemma1] 1);
 by (asm_full_simp_tac (AC_ss addsimps [lemma2, lemma3]
 			addcongs [Pi_cong]) 1);
-result();
+qed "AC4_AC3";
 
 (* ********************************************************************** *)
 (* AC3 ==> AC1								  *)
@@ -124,7 +124,7 @@ by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, ballE] 1));
 by (fast_tac (AC_cs addSIs [id_type]) 2);
 by (fast_tac (AC_cs addEs [lemma RS subst]) 1);
-result();
+qed "AC3_AC1";
 
 (* ********************************************************************** *)
 (* AC4 ==> AC5								  *)
@@ -136,15 +136,15 @@ by (REPEAT (eresolve_tac [allE,impE] 1));
 by (eresolve_tac [fun_is_rel RS converse_type] 1);
 by (eresolve_tac [exE] 1);
 by (resolve_tac [bexI] 1);
-by (resolve_tac [Pi_type] 2 THEN (atac 2));
+by (resolve_tac [Pi_type] 2 THEN (assume_tac 2));
 by (fast_tac (ZF_cs addSDs [apply_type]
 	addSEs [fun_is_rel RS converse_type RS subsetD RS SigmaD2]) 2);
 by (resolve_tac [ballI] 1);
-by (resolve_tac [apply_equality] 1 THEN (atac 2));
+by (resolve_tac [apply_equality] 1 THEN (assume_tac 2));
 by (eresolve_tac [domainE] 1);
-by (forward_tac [range_type] 1 THEN (atac 1));
+by (forward_tac [range_type] 1 THEN (assume_tac 1));
 by (fast_tac (ZF_cs addSEs [singletonE, converseD] addDs [apply_equality]) 1);
-result();
+qed "AC4_AC5";
 
 
 (* ********************************************************************** *)
@@ -175,21 +175,21 @@ val lemma3 = result();
 goal thy "!!g. [| R <= A*B; g: C->R; ALL x:C. (lam z:R. fst(z))` (g`x) = x |] \
 \		==> (lam x:C. snd(g`x)): (PROD x:C. R``{x})";
 by (resolve_tac [lam_type] 1);
-by (dresolve_tac [apply_type] 1 THEN (atac 1));
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [apply_type] 1 THEN (assume_tac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (resolve_tac [imageI] 1);
 by (resolve_tac [subsetD RS Pair_fst_snd_eq RSN (2, subst_elem)] 1
-	THEN (REPEAT (atac 1)));
+	THEN (REPEAT (assume_tac 1)));
 by (asm_full_simp_tac AC_ss 1);
 val lemma4 = result();
 
 goalw thy AC_defs "!!Z. AC5 ==> AC4";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,ballE] 1));
-by (eresolve_tac [lemma1 RSN (2, notE)] 2 THEN (atac 2));
-by (dresolve_tac [lemma2 RSN (2, lemma3)] 1 THEN (atac 1));
+by (eresolve_tac [lemma1 RSN (2, notE)] 2 THEN (assume_tac 2));
+by (dresolve_tac [lemma2 RSN (2, lemma3)] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [lemma4]) 1);
-result();
+qed "AC5_AC4";
 
 
 (* ********************************************************************** *)
@@ -198,4 +198,5 @@ result();
 
 goalw thy AC_defs "AC1 <-> AC6";
 by (fast_tac (ZF_cs addDs [equals0D] addSEs [not_emptyE]) 1);
-result();
+qed "AC1_iff_AC6";
+

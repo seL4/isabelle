@@ -15,15 +15,15 @@ open HH;
 (* ********************************************************************** *)
 
 goal thy "HH(f,x,a) =  \
-\	(lam y:Pow(x). if(f`y : Pow(y)-{0},f`y,{x}))`  \
-\	(x - (UN b:a. HH(f,x,b)))";
+\	(let z = x - (UN b:a. HH(f,x,b))  \
+\	in  if(f`z:Pow(z)-{0}, f`z, {x}))";
 by (resolve_tac [HH_def RS def_transrec RS trans] 1);
 by (asm_full_simp_tac ZF_ss 1);
 val HH_def_satisfies_eq = result();
 
 goal thy "HH(f,x,a) : Pow(x)-{0} | HH(f,x,a)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [Diff_subset RS PowI]) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (split_tac [expand_if] 1);
 by (fast_tac ZF_cs 1);
 val HH_values = result();
@@ -76,7 +76,7 @@ goal thy "!!a. HH(f,x,a) : Pow(x)-{0}   \
 \		==> HH(f,x,a) : Pow(x - (UN b:a. HH(f,x,b)))-{0}";
 by (dresolve_tac [HH_def_satisfies_eq RS subst] 1);
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (AC_ss addsimps [Diff_subset RS PowI]) 1);
+by (asm_full_simp_tac (AC_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (dresolve_tac [expand_if RS iffD1] 1);
 by (split_tac [expand_if] 1);
 by (fast_tac (AC_cs addSEs [mem_irrefl]) 1);
@@ -173,7 +173,7 @@ val not_emptyI2 = result();
 goal thy "!!f. f`(x - (UN j:i. HH(f,x,j))): Pow(x - (UN j:i. HH(f,x,j)))-{0}  \
 \	==> HH(f, x, i) : Pow(x) - {0}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (AC_ss addsimps [Diff_subset RS PowI,
+by (asm_full_simp_tac (AC_ss addsimps [Let_def, Diff_subset RS PowI,
 		not_emptyI2 RS if_P]) 1);
 by (fast_tac AC_cs 1);
 val f_subset_imp_HH_subset = result();
@@ -190,7 +190,7 @@ val f_subsets_imp_UN_HH_eq_x = result();
 
 goal thy "HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j))) | HH(f,x,i)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [Diff_subset RS PowI]) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (split_tac [expand_if] 1);
 by (fast_tac ZF_cs 1);
 val HH_values2 = result();

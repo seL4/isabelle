@@ -22,4 +22,4 @@ by (resolve_tac [bexI] 1);
 by (eresolve_tac [lemma1] 2);
 by (resolve_tac [apply_type] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSDs [lemma1] addSEs [apply_type]) 1);
-result();
+qed "AC1_AC17";

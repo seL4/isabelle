@@ -15,9 +15,9 @@ goal thy "!!f. [| f: (PROD b:{P(a). a:A}. b); ALL a:A. P(a)<=Q(a) |]  \
 \		==> (lam a:A. f`P(a)):(PROD a:A. Q(a))";
 by (resolve_tac [lam_type] 1);
 by (dresolve_tac [apply_type] 1);
-by (resolve_tac [RepFunI] 1 THEN (atac 1));
-by (dresolve_tac [bspec] 1 THEN (atac 1));
-by (eresolve_tac [subsetD] 1 THEN (atac 1));
+by (resolve_tac [RepFunI] 1 THEN (assume_tac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
+by (eresolve_tac [subsetD] 1 THEN (assume_tac 1));
 val PROD_subsets = result();
 
 goal thy "!!X. [| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
@@ -39,7 +39,7 @@ val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";
 by (resolve_tac [prem RS revcut_rl] 1);
 by (fast_tac (AC_cs addSEs [lemma_AC18, UN_E, not_emptyE, apply_type]
 		addSIs [equalityI, INT_I, UN_I]) 1);
-result();
+qed "AC1_AC18";
 
 (* ********************************************************************** *)
 (* AC18 ==> AC19 							  *)
@@ -49,7 +49,7 @@ val [prem] = goalw thy [AC18_def, AC19_def] "AC18 ==> AC19";
 by (resolve_tac [allI] 1);
 by (res_inst_tac [("B1","%x.x")] (forall_elim_vars 0 prem RS revcut_rl) 1);
 by (fast_tac AC_cs 1);
-result();
+qed "AC18_AC19";
 
 (* ********************************************************************** *)
 (* AC19 ==> AC1								  *)
@@ -64,7 +64,7 @@ val RepRep_conj = result();
 
 goal thy "!!c. [|c : a; x = c Un {0}; x ~: a |] ==> x - {0} : a";
 by (hyp_subst_tac 1);
-by (resolve_tac [subst_elem] 1 THEN (atac 1));
+by (resolve_tac [subst_elem] 1 THEN (assume_tac 1));
 by (resolve_tac [equalityI] 1);
 by (fast_tac AC_cs 1);
 by (resolve_tac [subsetI] 1);
@@ -116,6 +116,6 @@ by (resolve_tac [lemma1] 1);
 by (dresolve_tac [lemma2] 1 THEN (assume_tac 1));
 by (dres_inst_tac [("P","%x. x~=0")] subst 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [lemma3 RS not_emptyE]) 1);
-result();
+qed "AC19_AC1";
 
 

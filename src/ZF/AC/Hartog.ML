@@ -21,16 +21,16 @@ by (resolve_tac [exI] 1);
 by (resolve_tac [conjI] 1);
 by (eresolve_tac [well_ord_Memrel RSN (2, subset_refl RSN (2, 
 	restrict_bij RS bij_converse_bij) RS bij_is_inj RS well_ord_rvimage)] 1
-	THEN (atac 1));
+	THEN (assume_tac 1));
 by (resolve_tac [subset_refl RSN (2, restrict_bij RS bij_converse_bij) RS
 	(well_ord_Memrel RSN (2, bij_ordertype_vimage)) RS 
 	(ordertype_Memrel RSN (2, trans))] 1
-	THEN (REPEAT (atac 1)));
+	THEN (REPEAT (assume_tac 1)));
 val Ord_lepoll_imp_ex_well_ord = result();
 
 goal thy "!!X. [| Ord(a); a lepoll X |] ==>  \
 \		EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
-by (dresolve_tac [Ord_lepoll_imp_ex_well_ord] 1 THEN (atac 1));
+by (dresolve_tac [Ord_lepoll_imp_ex_well_ord] 1 THEN (assume_tac 1));
 by (step_tac AC_cs 1);
 by (REPEAT (ares_tac [exI, conjI] 1));
 by (eresolve_tac [ordertype_Int] 2);
@@ -42,8 +42,8 @@ goal thy "!!X. ALL a. Ord(a) --> a lepoll X ==>  \
 \	a:{a. Z:Pow(X)*Pow(X*X), EX Y R. Z=<Y,R> & ordertype(Y,R)=a}";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE, impE] 1));
-by (atac 1);
-by (dresolve_tac [Ord_lepoll_imp_eq_ordertype] 1 THEN (atac 1));
+by (assume_tac 1);
+by (dresolve_tac [Ord_lepoll_imp_eq_ordertype] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSIs [ReplaceI] addEs [sym]) 1);
 val Ords_lepoll_set_lemma = result();
 

@@ -1,3 +1,4 @@
 (*Dummy theory to document dependencies *)
 
-WO_AC = Order + first
+DC_lemmas = AC_Equiv + first
+

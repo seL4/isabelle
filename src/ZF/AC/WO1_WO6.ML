@@ -15,20 +15,20 @@
 
 goalw thy WO_defs "!!Z. WO2 ==> WO3";
 by (fast_tac ZF_cs 1);
-result();
+qed "WO2_WO3";
 
 (* ********************************************************************** *)
 
 goalw thy (eqpoll_def::WO_defs) "!!Z. WO3 ==> WO1";
 by (fast_tac (ZF_cs addSEs [bij_is_inj RS well_ord_rvimage, 
 			well_ord_Memrel RS well_ord_subset]) 1);
-result();
+qed "WO3_WO1";
 
 (* ********************************************************************** *)
 
 goalw thy (eqpoll_def::WO_defs) "!!Z. WO1 ==> WO2";
 by (fast_tac (ZF_cs addSIs [Ord_ordertype, ordermap_bij]) 1);
-result();
+qed "WO1_WO2";
 
 (* ********************************************************************** *)
 
@@ -57,23 +57,23 @@ by (eresolve_tac [ordermap_bij RS bij_converse_bij RS bij_is_fun RS
 by (asm_simp_tac (AC_ss addsimps [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
                   Ord_ordertype RSN (2, ordermap_bij RS bij_converse_bij RS
 			bij_is_surj RS surj_imp_eq)]) 1);
-result();
+qed "WO1_WO4";
 
 (* ********************************************************************** *)
 
 goalw thy WO_defs "!!Z. [| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
 by (fast_tac (AC_cs addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
-result();
+qed "WO4_mono";
 
 (* ********************************************************************** *)
 
-val prems = goalw thy WO_defs "!!Z. [| m:nat; 1 le m; WO4(m) |] ==> WO5";
+goalw thy WO_defs "!!Z. [| m:nat; 1 le m; WO4(m) |] ==> WO5";
 by (fast_tac ZF_cs 1);
-result();
+qed "WO4_WO5";
 
 (* ********************************************************************** *)
 
-val prems = goalw thy WO_defs "!!Z. WO5 ==> WO6";
+goalw thy WO_defs "!!Z. WO5 ==> WO6";
 by (fast_tac ZF_cs 1);
-result();
+qed "WO5_WO6";
 

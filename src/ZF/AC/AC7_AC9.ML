@@ -27,12 +27,12 @@ val Sigma_fun_space_not0 = result();
 goal thy "!!A C. (ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";
 by (REPEAT (resolve_tac [ballI] 1));
 by (resolve_tac [bspec RS (bspec RSN (2, eqpoll_sym RSN (2, eqpoll_trans)))] 1
-	THEN REPEAT (atac 1));
+	THEN REPEAT (assume_tac 1));
 val all_eqpoll_imp_pair_eqpoll = result();
 
 goal thy "!!A. [| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A   \
 \	|] ==> P(b)=R(b)";
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac ZF_ss 1);
 val if_eqE1 = result();
 
@@ -40,7 +40,7 @@ goal thy "!!A. ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a))  \
 \	==> ALL a:A. a~=b --> Q(a)=S(a)";
 by (resolve_tac [ballI] 1);
 by (resolve_tac [impI] 1);
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac ZF_ss 1);
 val if_eqE2 = result();
 
@@ -65,8 +65,8 @@ by (asm_full_simp_tac ZF_ss 1);
 by (resolve_tac [conjI] 1);
 by (dresolve_tac [nat_0I RSN (2, lam_eqE)] 2);
 by (asm_full_simp_tac AC_ss 2);
-by (resolve_tac [fun_extension] 1 THEN  REPEAT (atac 1));
-by (dresolve_tac [nat_succI RSN (2, lam_eqE)] 1 THEN (atac 1));
+by (resolve_tac [fun_extension] 1 THEN  REPEAT (assume_tac 1));
+by (dresolve_tac [nat_succI RSN (2, lam_eqE)] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (AC_ss addsimps [succ_not_0 RS if_not_P]) 1);
 by (fast_tac (AC_cs addSEs [diff_succ_succ RS (diff_0 RSN (2, trans)) RS subst]
 		addSIs [nat_0I]) 1);
@@ -87,7 +87,7 @@ val Sigma_fun_space_eqpoll = result();
 
 goalw thy AC_defs "!!Z. AC6 ==> AC7";
 by (fast_tac ZF_cs 1);
-result();
+qed "AC6_AC7";
 
 (* ********************************************************************** *)
 (* AC7 ==> AC6, Rubin & Rubin p. 12, Theorem 2.8			  *)
@@ -122,11 +122,11 @@ by (excluded_middle_tac "A=0" 1);
 by (fast_tac (ZF_cs addSIs [not_emptyI, empty_fun]) 2);
 by (resolve_tac [lemma1] 1);
 by (eresolve_tac [allE] 1);
-by (eresolve_tac [impE] 1 THEN (atac 2));
+by (eresolve_tac [impE] 1 THEN (assume_tac 2));
 by (fast_tac (AC_cs addSEs [RepFunE]
 	addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
 		Sigma_fun_space_eqpoll]) 1);
-result();
+qed "AC7_AC6";
 
 
 (* ********************************************************************** *)
@@ -138,7 +138,7 @@ goalw thy [eqpoll_def]
 \	==> 0 ~: { bij(fst(B),snd(B)). B:A }";
 by (resolve_tac [notI] 1);
 by (eresolve_tac [RepFunE] 1);
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [exE,conjE] 1));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac AC_ss 1);
@@ -147,7 +147,7 @@ val lemma1 = result();
 
 goal thy "!!A. [| f: (PROD X:RepFun(A,p). X); D:A |]  \
 \		==> (lam x:A. f`p(x))`D : p(D)";
-by (resolve_tac [beta RS ssubst] 1 THEN (atac 1));
+by (resolve_tac [beta RS ssubst] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [apply_type]) 1);
 val lemma2 = result();
 
@@ -158,7 +158,7 @@ by (resolve_tac [impI] 1);
 by (eresolve_tac [impE] 1);
 by (eresolve_tac [lemma1] 1);
 by (fast_tac (AC_cs addSEs [lemma2]) 1);
-result();
+qed "AC1_AC8";
 
 
 (* ********************************************************************** *)
@@ -183,7 +183,7 @@ by (eresolve_tac [allE] 1);
 by (eresolve_tac [impE] 1);
 by (eresolve_tac [lemma1] 1);
 by (fast_tac (AC_cs addSEs [lemma2]) 1);
-result();
+qed "AC8_AC9";
 
 
 (* ********************************************************************** *)
@@ -225,13 +225,13 @@ by (resolve_tac [consI1 RSN (2, apply_type)] 1);
 by (fast_tac (ZF_cs addSIs [fun_weaken_type, bij_is_fun]) 1);
 val lemma2 = result();
 
-val prems = goalw thy AC_defs "!!Z. AC9 ==> AC1";
+goalw thy AC_defs "!!Z. AC9 ==> AC1";
 by (resolve_tac [allI] 1);
 by (resolve_tac [impI] 1);
 by (eresolve_tac [allE] 1);
 by (excluded_middle_tac "A=0" 1);
 by (fast_tac (FOL_cs addSIs [empty_fun]) 2);
 by (eresolve_tac [impE] 1);
-by (resolve_tac [lemma1] 1 THEN (REPEAT (atac 1)));
+by (resolve_tac [lemma1] 1 THEN (REPEAT (assume_tac 1)));
 by (fast_tac (AC_cs addSEs [lemma2]) 1);
-result();
+qed "AC9_AC1";

@@ -13,10 +13,10 @@ AC10(succ(n)) ==> AC13(n) ==> AC14 ==> AC15
 
 or
 
-AC1 ==> AC13(1); AC13(m) ==> AC13(n); AC13(n) ==> AC14 ==> AC15
+AC1 ==> AC13(1);  AC13(m) ==> AC13(n) ==> AC14 ==> AC15    (m le n)
 
-So we don't have to prove all impllications of both cases.
-Moreover we don't need to prove that AC13(1) ==> AC1, AC11 ==> AC14 as
+So we don't have to prove all implications of both cases.
+Moreover we don't need to prove AC13(1) ==> AC1 and AC11 ==> AC14 as
 Rubin & Rubin do.
 *)
 
@@ -26,22 +26,6 @@ Rubin & Rubin do.
 (*  - cons_times_nat_not_Finite						  *)
 (*  - ex_fun_AC13_AC15							  *)
 (* ********************************************************************** *)
-
-(* Change to ZF/Cardinal.ML *)
-
-goalw Cardinal.thy [succ_def]
-      "!!A. succ(n) lepoll A ==> n lepoll A - {a}";
-by (rtac cons_lepoll_consD 1);
-by (rtac mem_not_refl 2);
-by (fast_tac AC_cs 2);
-by (fast_tac (AC_cs addSEs [subset_imp_lepoll RSN (2, lepoll_trans)]) 1);
-val lepoll_diff_sing = result();
-(* qed "lepoll_diff_sing"; *)
-
-goalw thy [Finite_def] "~Finite(nat)";
-by (fast_tac (AC_cs addSDs [eqpoll_imp_lepoll]
-		addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
-val nat_not_Finite = result();
 
 goalw thy [lepoll_def] "!!A. A~=0 ==> B lepoll A*B";
 by (eresolve_tac [not_emptyE] 1);
@@ -56,7 +40,7 @@ by (hyp_subst_tac 1);
 by (resolve_tac [notI] 1);
 by (dresolve_tac [subset_consI RS subset_imp_lepoll RS lepoll_Finite] 1);
 by (resolve_tac [lepoll_Sigma RS lepoll_Finite RS (nat_not_Finite RS notE)] 1
-	THEN (atac 2));
+	THEN (assume_tac 2));
 by (fast_tac AC_cs 1);
 val cons_times_nat_not_Finite = result();
 
@@ -66,7 +50,7 @@ val lemma1 = result();
 
 goalw thy [pairwise_disjoint_def]
 	"!!A. [| pairwise_disjoint(A); B:A; C:A; a:B; a:C |] ==> B=C";
-by (dresolve_tac [IntI] 1 THEN (atac 1));
+by (dresolve_tac [IntI] 1 THEN (assume_tac 1));
 by (dres_inst_tac [("A","B Int C")] not_emptyI 1);
 by (fast_tac ZF_cs 1);
 val lemma2 = result();
@@ -85,7 +69,7 @@ by (eresolve_tac [bexE] 1);
 by (resolve_tac [ex1I] 1);
 by (fast_tac ZF_cs 1);
 by (REPEAT (eresolve_tac [conjE] 1));
-by (resolve_tac [lemma2] 1 THEN (REPEAT (atac 1)));
+by (resolve_tac [lemma2] 1 THEN (REPEAT (assume_tac 1)));
 val lemma3 = result();
 
 goalw thy [lepoll_def] "!!A. [| A lepoll i; Ord(i) |] ==> {P(a). a:A} lepoll i";
@@ -94,7 +78,7 @@ by (res_inst_tac
 	[("x", "lam x:RepFun(A, P). LEAST j. EX a:A. x=P(a) & f`a=j")] exI 1);
 by (res_inst_tac [("d", "%y. P(converse(f)`y)")] lam_injective 1);
 by (eresolve_tac [RepFunE] 1);
-by (forward_tac [inj_is_fun RS apply_type] 1 THEN (atac 1));
+by (forward_tac [inj_is_fun RS apply_type] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addIs [LeastI2]
 		addSEs [Ord_in_Ord, inj_is_fun RS apply_type]) 1);
 by (eresolve_tac [RepFunE] 1);
@@ -112,7 +96,7 @@ goal thy "!!A. [| n:nat; B:A; u(B) <= cons(0, B*nat); 0:u(B); 2 lepoll u(B);  \
 by (asm_simp_tac AC_ss 1);
 by (resolve_tac [conjI] 1);
 by (fast_tac (empty_cs addSDs [RepFun_eq_0_iff RS iffD1]
-		addDs [lepoll_diff_sing]
+		addDs [lepoll_Diff_sing]
 		addEs [lepoll_trans RS succ_lepoll_natE, ssubst]
 		addSIs [notI, lepoll_refl, nat_0I]) 1);
 by (resolve_tac [conjI] 1);
@@ -126,10 +110,8 @@ goal thy "!!A. [| EX f. ALL B:{cons(0, x*nat). x:A}.  \
 \		sets_of_size_between(f`B, 2, succ(n)) &  \
 \		Union(f`B)=B; n:nat |]  \
 \	==> EX f. ALL B:A. f`B ~= 0 & f`B <= B & f`B lepoll n";
-by (etac exE 1);
-by (dtac lemma3 1);
-by (fast_tac (empty_cs addSDs [bspec, theI]
-		addSEs [conjE]
+by (fast_tac (empty_cs addSDs [lemma3, bspec, theI]
+		addSEs [exE, conjE]
 		addSIs [exI, ballI, lemma5]) 1);
 val ex_fun_AC13_AC15 = result();
 
@@ -144,7 +126,7 @@ val ex_fun_AC13_AC15 = result();
 goalw thy AC_defs "!!Z. [| n:nat; 1 le n; AC10(n) |] ==> AC11";
 by (resolve_tac [bexI] 1 THEN (assume_tac 2));
 by (fast_tac ZF_cs 1);
-result();
+qed "AC10_AC11";
 
 (* ********************************************************************** *)
 (* AC11 ==> AC12							  *)
@@ -152,7 +134,7 @@ result();
 
 goalw thy AC_defs "!! Z. AC11 ==> AC12";
 by (fast_tac (FOL_cs addSEs [bexE] addIs [bexI]) 1);
-result();
+qed "AC11_AC12";
 
 (* ********************************************************************** *)
 (* AC12 ==> AC15							  *)
@@ -164,7 +146,7 @@ by (eresolve_tac [allE] 1);
 by (eresolve_tac [impE] 1);
 by (eresolve_tac [cons_times_nat_not_Finite] 1);
 by (fast_tac (ZF_cs addSIs [ex_fun_AC13_AC15]) 1);
-result();
+qed "AC12_AC15";
 
 (* ********************************************************************** *)
 (* AC15 ==> WO6								  *)
@@ -209,16 +191,16 @@ by (asm_full_simp_tac (AC_ss addsimps
 		[singleton_eqpoll_1 RS eqpoll_imp_lepoll,
 		singletonI RS not_emptyI]) 1);
 by (fast_tac (AC_cs addSEs [singletonE, apply_type]) 1);
-result();
+qed "AC1_AC13";
 
 (* ********************************************************************** *)
 (* AC13(m) ==> AC13(n) for m <= n					  *)
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!m n. [| m:nat; n:nat; m le n; AC13(m) |] ==> AC13(n)";
-by (dresolve_tac [nat_le_imp_lepoll] 1 THEN REPEAT (atac 1));
+by (dresolve_tac [nat_le_imp_lepoll] 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (ZF_cs addSEs [lepoll_trans]) 1);
-result();
+qed "AC13_mono";
 
 (* ********************************************************************** *)
 (* The proofs necessary for both cases					  *)
@@ -230,7 +212,7 @@ result();
 
 goalw thy AC_defs "!!n. [| n:nat; 1 le n; AC13(n) |] ==> AC14";
 by (fast_tac (FOL_cs addIs [bexI]) 1);
-result();
+qed "AC13_AC14";
 
 (* ********************************************************************** *)
 (* AC14 ==> AC15							  *)
@@ -238,7 +220,7 @@ result();
 
 goalw thy AC_defs "!!Z. AC14 ==> AC15";
 by (fast_tac ZF_cs 1);
-result();
+qed "AC14_AC15";
 
 (* ********************************************************************** *)
 (* The redundant proofs; however cited by Rubin & Rubin			  *)
@@ -255,16 +237,16 @@ val lemma_aux = result();
 goal thy "!!f. ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
 \		==> (lam x:A. THE y. f(x)={y}) : (PROD X:A. X)";
 by (resolve_tac [lam_type] 1);
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [conjE] 1));
-by (eresolve_tac [lemma_aux RS exE] 1 THEN (atac 1));
+by (eresolve_tac [lemma_aux RS exE] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (AC_ss addsimps [the_element]) 1);
 by (fast_tac (AC_cs addEs [ssubst]) 1);
 val lemma = result();
 
 goalw thy AC_defs "!!Z. AC13(1) ==> AC1";
 by (fast_tac (AC_cs addSEs [lemma]) 1);
-result();
+qed "AC13(1)_AC1";
 
 (* ********************************************************************** *)
 (* AC11 ==> AC14							  *)
@@ -272,4 +254,4 @@ result();
 
 goalw thy [AC11_def, AC14_def] "!!Z. AC11 ==> AC14";
 by (fast_tac (ZF_cs addSIs [AC10_imp_AC13]) 1);
-result();
+qed "AC11_AC14";

@@ -11,7 +11,7 @@ The proof of WO8 <-> WO1 (Rubin & Rubin p. 6)
 
 goalw thy WO_defs "!!Z. WO1 ==> WO8";
 by (fast_tac ZF_cs 1);
-result();
+qed "WO1_WO8";
 
 (* ********************************************************************** *)
 (* The proof of "WO8 ==> WO1" - faithful image of Rubin & Rubin's proof	  *)
@@ -27,4 +27,4 @@ by (res_inst_tac [("x","lam a:{{x}. x:A}. THE x. a={x}")] exI 1);
 by (fast_tac (ZF_cs addSEs [RepFunE, singleton_eq_iff RS iffD1 RS sym]
 		addSIs [lam_type, singletonI]
 		addIs [the_equality RS ssubst]) 1);
-result();
+qed "WO8_WO1";

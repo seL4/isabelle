@@ -20,4 +20,4 @@ goalw thy [AC1_def, WO2_def, eqpoll_def] "!!Z. AC1 ==> WO2";
 by (resolve_tac [allI] 1);
 by (eres_inst_tac [("x","Pow(A)-{0}")] allE 1);
 by (fast_tac (AC_cs addSDs [lemma1] addSIs [Ord_Least]) 1);
-result();
+qed "AC1_WO2";

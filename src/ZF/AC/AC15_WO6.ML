@@ -43,4 +43,4 @@ by (res_inst_tac [("x","lam j: (LEAST i. HH(f,A,i)={A}). HH(f,A,j)")] exI 1);
 by (asm_full_simp_tac AC_ss 1);
 by (fast_tac (AC_cs addSIs [Ord_Least, lam_type RS domain_of_fun]
 		addSEs [less_Least_subset_x, lemma1, lemma2]) 1);
-result();
+qed "AC15_WO6";

@@ -69,12 +69,12 @@ val images_eq = result();
 (*I don't know where to put this one.*)
 goal Cardinal.thy
      "!!m A B. [| A lepoll succ(m); B<=A; B~=0 |] ==> A-B lepoll m";
-by (resolve_tac [not_emptyE] 1 THEN (atac 1));
+by (resolve_tac [not_emptyE] 1 THEN (assume_tac 1));
 by (forward_tac [singleton_subsetI] 1);
-by (forward_tac [subsetD] 1 THEN (atac 1));
+by (forward_tac [subsetD] 1 THEN (assume_tac 1));
 by (res_inst_tac [("A2","A")] 
      (Diff_sing_lepoll RSN (2, subset_imp_lepoll RS lepoll_trans)) 1 
-    THEN (REPEAT (atac 2)));
+    THEN (REPEAT (assume_tac 2)));
 by (fast_tac ZF_cs 1);
 val Diff_lepoll = result();
 
@@ -91,9 +91,9 @@ goalw Cardinal.thy [rvimage_def] "rvimage(A,id(A),r) = r Int A*A";
 by (resolve_tac [equalityI] 1);
 by (step_tac ZF_cs 1);
 by (dres_inst_tac [("P","%a. <id(A)`xb,a>:r")] (id_conv RS subst) 1
-    THEN (atac 1));
+    THEN (assume_tac 1));
 by (dres_inst_tac [("P","%a. <a,ya>:r")] (id_conv RS subst) 1
-    THEN (REPEAT (atac 1)));
+    THEN (REPEAT (assume_tac 1)));
 by (fast_tac (ZF_cs addIs [id_conv RS ssubst]) 1);
 val rvimage_id = result();
 
@@ -137,4 +137,46 @@ val inj_strengthen_type = result();
 goal thy "A*B=0 <-> A=0 | B=0";
 by (fast_tac (ZF_cs addSIs [equals0I] addEs [equals0D]) 1);
 val Sigma_empty_iff = result();
+
+goalw thy [Finite_def] "!!n. n:nat ==> Finite(n)";
+by (fast_tac (AC_cs addSIs [eqpoll_refl]) 1);
+val nat_into_Finite = result();
+
+goalw thy [Finite_def] "~Finite(nat)";
+by (fast_tac (AC_cs addSDs [eqpoll_imp_lepoll]
+		addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
+val nat_not_Finite = result();
+
+val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
+
+(* ********************************************************************** *)
+(* Another elimination rule for EX!					  *)
+(* ********************************************************************** *)
+
+goal thy "!!x. [| EX! x. P(x); P(x); P(y) |] ==> x=y";
+by (eresolve_tac [ex1E] 1);
+by (res_inst_tac [("b","xa")] (sym RSN (2, trans)) 1);
+by (fast_tac AC_cs 1);
+by (fast_tac AC_cs 1);
+val ex1_two_eq = result();
+
+(* ********************************************************************** *)
+(* image of a surjection						  *)
+(* ********************************************************************** *)
+
+goalw thy [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
+by (eresolve_tac [CollectE] 1);
+by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 THEN (assume_tac 1));
+by (fast_tac (AC_cs addSEs [RepFunE, apply_type]
+		addSIs [RepFunI] addIs [equalityI]) 1);
+val surj_image_eq = result();
+
+
+goal thy "!!y. succ(x) lepoll y ==> y ~= 0";
+by (fast_tac (ZF_cs addSDs [lepoll_0_is_0]) 1);
+val succ_lepoll_imp_not_empty = result();
+
+goal thy "!!x. x eqpoll succ(n) ==> x ~= 0";
+by (fast_tac (AC_cs addSEs [eqpoll_sym RS eqpoll_0_is_0 RS succ_neq_0]) 1);
+val eqpoll_succ_imp_not_empty = result();
 

@@ -71,7 +71,8 @@ goal thy "!!z. EX f:F. f`((lam f:F. Q(f))`f) : (lam f:F. Q(f))`f  \
 by (asm_full_simp_tac AC_ss 1);
 val lemma4 = result();
 
-goalw thy [AC17_def] "!!Z. [| AC17; ~ AC1 |] ==> False";
+goalw thy [AC17_def] "!!Z. AC17 ==> AC1";
+by (resolve_tac [classical] 1);
 by (eresolve_tac [not_AC1_imp_ex RS exE] 1);
 by (excluded_middle_tac
 	"EX f: Pow(x)-{0}->x. \
@@ -80,7 +81,7 @@ by (excluded_middle_tac
 by (eresolve_tac [lemma1] 2 THEN (assume_tac 2));
 by (dresolve_tac [lemma2] 1);
 by (eresolve_tac [allE] 1);
-by (dresolve_tac [bspec] 1 THEN (atac 1));
+by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
 by (dresolve_tac [lemma4] 1);
 by (eresolve_tac [bexE] 1);
 by (dresolve_tac [apply_type] 1 THEN (assume_tac 1));
@@ -89,7 +90,4 @@ by (assume_tac 1);
 by (dresolve_tac [lemma3] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSDs [HH_Least_eq_x RS sym RSN (2, subst_elem),
 		f_subset_imp_HH_subset] addSEs [mem_irrefl]) 1);
-result();
-
-
-
+qed "AC17_AC1";

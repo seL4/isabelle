@@ -14,10 +14,10 @@ goal thy "!!f. [| f:(PROD X:A. X); D<=A |] ==> EX g. g:(PROD X:D. X)";
 by (fast_tac (AC_cs addSIs [restrict_type, apply_type]) 1);
 val lemma1 = result();
 
-val prems = goalw thy AC_defs "!!Z. AC0 ==> AC1"; 
+goalw thy AC_defs "!!Z. AC0 ==> AC1"; 
 by (fast_tac (FOL_cs addSEs [lemma1, subset_Pow_Union]) 1);
-result();
+qed "AC0_AC1";
 
-val prems = goalw thy AC_defs "!!Z. AC1 ==> AC0";
+goalw thy AC_defs "!!Z. AC1 ==> AC0";
 by (fast_tac (FOL_cs addSIs [notI, singletonI] addSEs [notE, DiffE]) 1);
-result();
+qed "AC1_AC0";

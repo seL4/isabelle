@@ -24,17 +24,20 @@ time_use     "AC/AC0_AC1.ML";
 time_use     "AC/AC2_AC6.ML";
 time_use     "AC/AC7_AC9.ML";
 
-time_use_thy "AC/WO1_AC1";
+time_use_thy "AC/WO1_AC";
 time_use_thy "AC/AC1_WO2";
 
 time_use     "AC/AC10_AC15.ML";
 time_use_thy "AC/AC15_WO6";
 
-(* AC16 to add *)
+time_use_thy "AC/WO2_AC16";
+time_use_thy "AC/AC16_WO4";
 
 time_use     "AC/AC1_AC17.ML";
 time_use_thy "AC/AC17_AC1";
 
 time_use_thy "AC/AC18_AC19";
+
+time_use_thy "AC/DC";
 
 writeln"END: Root file for ZF/AC";

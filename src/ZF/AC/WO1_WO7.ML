@@ -46,7 +46,7 @@ val LEMMA_imp_WO1 = result();
 goalw thy [wf_on_def, wf_def] 
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~wf[a](converse(Memrel(a)))";
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1 
-    THEN (atac 1));
+    THEN (assume_tac 1));
 by (resolve_tac [notI] 1);
 by (eres_inst_tac [("x","nat")] allE 1);
 by (eresolve_tac [disjE] 1);
@@ -67,11 +67,11 @@ goal thy "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
 by (rtac ([ordertype_ord_iso RS ord_iso_sym RS ord_iso_rvimage_eq, 
 		Memrel_type RS (subset_Int_iff RS iffD1)] 
 		MRS trans RS subst) 1
-	THEN (atac 1));
+	THEN (assume_tac 1));
 by (rtac (rvimage_converse RS subst) 1);
 by (etac (ordertype_ord_iso RS ord_iso_sym RS ord_iso_is_bij RS
 		bij_is_inj RS well_ord_rvimage) 1
-	THEN (atac 1));
+	THEN (assume_tac 1));
 val well_ord_converse_Memrel = result();
 
 goalw thy [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
@@ -79,7 +79,7 @@ goalw thy [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE] 1));
 by (REPEAT (ares_tac [exI,conjI,notI] 1));
-by (forward_tac [well_ord_converse_Memrel] 1 THEN (atac 1));
+by (forward_tac [well_ord_converse_Memrel] 1 THEN (assume_tac 1));
 by (forward_tac [Ord_ordertype RS converse_Memrel_not_well_ord] 1);
 by (contr_tac 2);
 by (fast_tac (empty_cs addSEs [ordertype_ord_iso RS ord_iso_is_bij RS 
