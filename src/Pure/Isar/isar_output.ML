@@ -324,6 +324,22 @@ fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skole
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 
+fun lhs_of (Const ("==",_) $ t $ _) = t
+  | lhs_of (Const ("Trueprop",_) $ t) = lhs_of t
+  | lhs_of (Const ("==>",_) $ _ $ t) = lhs_of t
+  | lhs_of (_ $ t $ _) = t
+  | lhs_of _ = error ("Binary operator expected")
+
+fun pretty_lhs ctxt = pretty_term ctxt o lhs_of o Thm.prop_of;
+
+fun rhs_of (Const ("==",_) $ _ $ t) = t
+  | rhs_of (Const ("Trueprop",_) $ t) = rhs_of t
+  | rhs_of (Const ("==>",_) $ _ $ t) = rhs_of t
+  | rhs_of (_ $ _ $ t) = t
+  | rhs_of _ = error ("Binary operator expected")
+
+fun pretty_rhs ctxt = pretty_term ctxt o rhs_of o Thm.prop_of;
+
 fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
 
@@ -345,6 +361,8 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
 
 val _ = add_commands
  [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
+  ("lhs", args Attrib.local_thmss (output_seq_with pretty_lhs)),
+  ("rhs", args Attrib.local_thmss (output_seq_with pretty_rhs)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("typ", args Args.local_typ_raw (output_with ProofContext.pretty_typ)),
