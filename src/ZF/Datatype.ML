@@ -17,7 +17,7 @@ structure Data_Arg =
 
 
   val elims = [make_elim InlD, make_elim InrD,   (*for mutual recursion*)
-	       SigmaE, sumE];			 (*allows * and + in spec*)
+               SigmaE, sumE];                    (*allows * and + in spec*)
   end;
 
 
@@ -38,35 +38,32 @@ structure CoData_Arg =
        zero_in_quniv, A_into_quniv, nat_into_quniv, UnCI];
 
   val elims = [make_elim QInlD, make_elim QInrD,   (*for mutual recursion*)
-	       QSigmaE, qsumE];			   (*allows * and + in spec*)
+               QSigmaE, qsumE];                    (*allows * and + in spec*)
   end;
 
 structure CoData_Package = 
     Add_datatype_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
                           and Su=Quine_Sum
-			  and Ind_Package = CoInd_Package
-			  and Datatype_Arg = CoData_Arg);
+                          and Ind_Package = CoInd_Package
+                          and Datatype_Arg = CoData_Arg);
 
 
 
 (*Simproc for freeness reasoning: compare datatype constructors for equality*)
 structure DataFree =
 struct
-  (*prove while suppressing timing information*)
-  fun prove ct = setmp Library.timing false (prove_goalw_cterm [] ct);
-
   val trace = ref false;
 
   fun mk_new ([],[]) = Const("True",FOLogic.oT)
     | mk_new (largs,rargs) =
-	fold_bal FOLogic.mk_conj
-		 (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
+        fold_bal FOLogic.mk_conj
+                 (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
 
  fun proc sg _ old =
    let val _ = if !trace then writeln ("data_free: OLD = " ^ 
-				       string_of_cterm (cterm_of sg old))
-	       else ()
+                                       string_of_cterm (cterm_of sg old))
+               else ()
        val (lhs,rhs) = FOLogic.dest_eq old
        val (lhead, largs) = strip_comb lhs
        and (rhead, rargs) = strip_comb rhs
@@ -75,22 +72,19 @@ struct
        val lcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, lname))
        and rcon_info = the (Symtab.lookup (ConstructorsData.get_sg sg, rname))
        val new = 
-	   if #big_rec_name lcon_info = #big_rec_name rcon_info 
-	       andalso not (null (#free_iffs lcon_info)) then
-	       if lname = rname then mk_new (largs, rargs)
-	       else Const("False",FOLogic.oT)
-	   else raise Match
+           if #big_rec_name lcon_info = #big_rec_name rcon_info 
+               andalso not (null (#free_iffs lcon_info)) then
+               if lname = rname then mk_new (largs, rargs)
+               else Const("False",FOLogic.oT)
+           else raise Match
        val _ = if !trace then 
-		 writeln ("NEW = " ^ string_of_cterm (Thm.cterm_of sg new))
-	       else ()
-       val ct = Thm.cterm_of sg (Logic.mk_equals (old, new))
-       val thm = prove ct 
-		   (fn _ => [rtac iff_reflection 1,
-			     simp_tac (simpset_of Datatype.thy
-  				          addsimps #free_iffs lcon_info) 1])
-	 handle ERROR =>
-	 error("data_free simproc:\nfailed to prove " ^
-	       string_of_cterm ct)
+                 writeln ("NEW = " ^ string_of_cterm (Thm.cterm_of sg new))
+               else ();
+       val goal = Logic.mk_equals (old, new)
+       val thm = Tactic.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
+           simp_tac (simpset_of Datatype.thy addsimps #free_iffs lcon_info) 1)
+         handle ERROR =>
+         error ("data_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal)
    in Some thm end
    handle _ => None;
 

@@ -72,16 +72,11 @@ fun prove_conv name tacs sg hyps (t,u) =
   if t aconv u then None
   else
   let val hyps' = filter (not o is_eq_thm) hyps
-      val ct = add_chyps hyps'
-                  (cterm_of sg (FOLogic.mk_Trueprop (mk_eq_iff(t, u))))
-  in Some
-      (hyps' MRS 
-       (prove_goalw_cterm [] ct 
-	(fn prems => cut_facts_tac prems 1 :: tacs)))
+      val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
+        FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
+  in Some (hyps' MRS Tactic.prove sg [] [] goal (K (EVERY tacs)))
       handle ERROR => 
-	(warning 
-	 ("Cancellation failed: no typing information? (" ^ name ^ ")"); 
-	 None)
+	(warning ("Cancellation failed: no typing information? (" ^ name ^ ")"); None)
   end;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
