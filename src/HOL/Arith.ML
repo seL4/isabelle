@@ -189,7 +189,7 @@ by (subgoal_tac "0<n --> ~ m<n --> m - n < m" 1);
 by (fast_tac HOL_cs 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS(asm_simp_tac(!simpset addsimps [diff_less_Suc])));
-qed "div_termination";
+qed "diff_less";
 
 val wf_less_trans = wf_pred_nat RS wf_trancl RSN (2, def_wfrec RS trans);
 
@@ -204,7 +204,7 @@ qed "mod_less";
 
 goal Arith.thy "!!m. [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
 by (rtac (mod_def RS wf_less_trans) 1);
-by(asm_simp_tac (!simpset addsimps [div_termination, cut_apply, less_eq]) 1);
+by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
 
 
@@ -217,7 +217,7 @@ qed "div_less";
 
 goal Arith.thy "!!M. [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
 by (rtac (div_def RS wf_less_trans) 1);
-by(asm_simp_tac (!simpset addsimps [div_termination, cut_apply, less_eq]) 1);
+by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "div_geq";
 
 (*Main Result about quotient and remainder.*)
@@ -227,7 +227,7 @@ by (rename_tac "k" 1);    (*Variable name used in line below*)
 by (case_tac "k<n" 1);
 by (ALLGOALS (asm_simp_tac(!simpset addsimps (add_ac @
                        [mod_less, mod_geq, div_less, div_geq,
-	                add_diff_inverse, div_termination]))));
+	                add_diff_inverse, diff_less]))));
 qed "mod_div_equality";
 
 
@@ -259,7 +259,7 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_n";
 
-goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc m-n)";
+goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
 by(simp_tac (!simpset addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
                     setloop (split_tac [expand_if])) 1);
 qed "if_Suc_diff_n";
