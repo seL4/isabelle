@@ -45,7 +45,7 @@ constdefs
   divAlg :: "int*int => int*int"
     "divAlg ==
        %(a,b). if #0<=a then
-                  if #0<b then posDivAlg (a,b)
+                  if #0<=b then posDivAlg (a,b)
                   else if a=#0 then (#0,#0)
                        else negateSnd (negDivAlg (-a,-b))
                else 
