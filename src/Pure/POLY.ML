@@ -85,3 +85,13 @@ fun pwd () =
 
 end;
 
+
+(*** ML command execution ***)
+
+fun use_string commands =
+  let val firstLine = ref true;
+      fun getLine () =
+        if !firstLine
+        then (firstLine := false; commands ^ ";\n")
+        else raise Io "execML: buffer exhausted"
+  in PolyML.compiler (getLine, fn s => output (std_out, s)) () end;
