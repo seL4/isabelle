@@ -371,53 +371,16 @@ fun REPEAT_ALL_NEW tac =
 
 (*Tactical for restricting the effect of a tactic to subgoal i.
   Works by making a new state from subgoal i, applying tac to it, and
-  composing the resulting metathm with the original state.
-  The "main goal" of the new state will not be atomic, some tactics may fail!
-  DOES NOT work if tactic affects the main goal other than by instantiation.*)
-
-(*SELECT_GOAL optimization: replace the conclusion by a variable X,
-  to avoid copying.  Proof states have X==concl as an assuption.*)
-
-val prop_equals = cterm_of (Theory.sign_of ProtoPure.thy) 
-                    (Const("==", propT-->propT-->propT));
-
-fun mk_prop_equals(t,u) = Thm.capply (Thm.capply prop_equals t) u;
-
-(*Like trivial but returns [ct==X] ct==>X instead of ct==>ct, if possible.
-  It is paired with a function to undo the transformation.  If ct contains
-  Vars then it returns ct==>ct.*)
-
-fun eq_trivial ct =
-  let val xfree = cterm_of (Theory.sign_of ProtoPure.thy)
-                           (Free (gensym"EQ_TRIVIAL_", propT))
-      val ct_eq_x = mk_prop_equals (ct, xfree)
-      and refl_ct = reflexive ct
-      fun restore th = 
-          implies_elim 
-            (forall_elim ct (forall_intr xfree (implies_intr ct_eq_x th)))
-            refl_ct
-  in  (equal_elim
-         (combination (combination refl_implies refl_ct) (assume ct_eq_x))
-         (Drule.mk_triv_goal ct),
-       restore)
-  end  (*Fails if there are Vars or TVars*)
-    handle THM _ => (Drule.mk_triv_goal ct, I);
-
+  composing the resulting metathm with the original state.*)
 
 (*Does the work of SELECT_GOAL. *)
 fun select tac st i =
-  let val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
-	  eq_trivial (adjust_maxidx (List.nth(cprems_of st, i-1)))
-      fun next st' = 
-	  let val np' = nprems_of st'
-              (*rename the ?A in rev_triv_goal*)
-	      val {maxidx,...} = rep_thm st'
-              val ct = cterm_of (Theory.sign_of ProtoPure.thy)
-		                (Var(("A",maxidx+1), propT))
-	      val rev_triv_goal' = instantiate' [] [Some ct] Drule.rev_triv_goal
-              fun bic th = bicompose false (false, th, np')
-          in  bic (Seq.hd (bic (restore st') 1 rev_triv_goal')) i st  end 
-  in  Seq.flat (Seq.map next (tac eq_cprem))
+  let
+    val thm = Drule.mk_triv_goal (adjust_maxidx (List.nth (cprems_of st, i-1)));
+    fun restore th = Seq.hd (bicompose false (false, th, nprems_of th) 1
+      (Thm.incr_indexes (#maxidx (rep_thm th) + 1) Drule.rev_triv_goal));
+    fun next st' = bicompose false (false, restore st', nprems_of st') i st;
+  in  Seq.flat (Seq.map next (tac thm))
   end;
 
 fun SELECT_GOAL tac i st = 
