@@ -14,16 +14,6 @@ sig
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
   val prems_of: context -> thm list
-  val show_hyps: bool ref
-  val pretty_thm: thm -> Pretty.T
-  val verbose: bool ref
-  val setmp_verbose: ('a -> 'b) -> 'a -> 'b
-  val print_binds: context -> unit
-  val print_thms: context -> unit
-  val print_cases: context -> unit
-  val prems_limit: int ref
-  val pretty_prems: context -> Pretty.T list
-  val pretty_context: context -> Pretty.T list
   val print_proof_data: theory -> unit
   val init: theory -> context
   val assumptions: context -> (cterm list * exporter) list
@@ -52,8 +42,10 @@ sig
   val generalizeT: context -> context -> typ -> typ
   val generalize: context -> context -> term -> term
   val find_free: term -> string -> term option
-  val norm_hhf: thm -> thm
   val export_wrt: bool -> context -> context option -> (thm -> thm Seq.seq) * (int -> tactic) list
+  val drop_schematic: indexname * term option -> indexname * term option
+  val add_binds: (indexname * string option) list -> context -> context
+  val add_binds_i: (indexname * term option) list -> context -> context
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
   val match_bind: bool -> (string list * string) list -> context -> context
@@ -98,6 +90,18 @@ sig
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
+  val apply_case: context -> RuleCases.T
+    -> (string * typ) list * (indexname * term option) list * term list
+  val show_hyps: bool ref
+  val pretty_thm: thm -> Pretty.T
+  val verbose: bool ref
+  val setmp_verbose: ('a -> 'b) -> 'a -> 'b
+  val print_binds: context -> unit
+  val print_thms: context -> unit
+  val print_cases: context -> unit
+  val prems_limit: int ref
+  val pretty_prems: context -> Pretty.T list
+  val pretty_context: context -> Pretty.T list
   val setup: (theory -> theory) list
 end;
 
@@ -150,141 +154,6 @@ fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
 
 fun prems_of (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
-
-
-
-(** print context information **)
-
-val show_hyps = ref false;
-
-fun pretty_thm thm =
-  if ! show_hyps then setmp Display.show_hyps true Display.pretty_thm_no_quote thm
-  else Display.pretty_cterm (#prop (Thm.crep_thm thm));
-
-val verbose = ref false;
-fun verb f x = if ! verbose then f (x ()) else [];
-fun verb_single x = verb Library.single x;
-
-fun setmp_verbose f x = Library.setmp verbose true f x;
-
-fun pretty_items prt name items =
-  let
-    fun prt_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
-      | prt_itms (name, xs) = Pretty.big_list (name ^ ":") (map prt xs);
-  in
-    if null items andalso not (! verbose) then []
-    else [Pretty.big_list name (map prt_itms items)]
-  end;
-
-
-(* term bindings *)
-
-val smash_option = fn (_, None) => None | (xi, Some b) => Some (xi, b);
-
-fun pretty_binds (ctxt as Context {binds, ...}) =
-  let
-    val prt_term = Sign.pretty_term (sign_of ctxt);
-    fun prt_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
-    val bs = mapfilter smash_option (Vartab.dest binds);
-  in
-    if null bs andalso not (! verbose) then []
-    else [Pretty.big_list "term bindings:" (map prt_bind bs)]
-  end;
-
-val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
-
-
-(* local theorems *)
-
-fun pretty_thms (Context {thms, ...}) =
-  pretty_items pretty_thm "facts:" (mapfilter smash_option (Symtab.dest thms));
-
-val print_thms = Pretty.writeln o Pretty.chunks o pretty_thms;
-
-
-(* local contexts *)
-
-fun pretty_cases (ctxt as Context {cases, ...}) =
-  let
-    val prt_term = Sign.pretty_term (sign_of ctxt);
-
-    fun prt_sect _ _ [] = []
-      | prt_sect s prt xs = [Pretty.block (Pretty.breaks (Pretty.str s :: map prt xs))];
-
-    fun prt_case (name, (xs, ts)) = Pretty.block (Pretty.breaks
-      (Pretty.str (name ^ ":") ::
-        prt_sect "fix" (prt_term o Free) xs @
-        prt_sect "assume" (Pretty.quote o prt_term) ts));
-
-    val cases' = rev (Library.gen_distinct Library.eq_fst cases);
-  in
-    if null cases andalso not (! verbose) then []
-    else [Pretty.big_list "cases:" (map prt_case cases')]
-  end;
-
-val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
-
-
-(* prems *)
-
-val prems_limit = ref 10;
-
-fun pretty_prems ctxt =
-  let
-    val limit = ! prems_limit;
-    val prems = prems_of ctxt;
-    val len = length prems;
-    val prt_prems =
-      (if len <= limit then [] else [Pretty.str "..."]) @
-      map pretty_thm (Library.drop (len - limit, prems));
-  in if null prems then [] else [Pretty.big_list "prems:" prt_prems] end;
-
-
-(* main context *)
-
-fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
-    defs = (types, sorts, (used, _)), ...}) =
-  let
-    val sign = sign_of ctxt;
-
-    val prt_term = Sign.pretty_term sign;
-    val prt_typ = Sign.pretty_typ sign;
-    val prt_sort = Sign.pretty_sort sign;
-
-    (*theory*)
-    val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
-
-    (*fixes*)
-    fun prt_fix (x, x') = Pretty.block
-      [prt_term (Syntax.free x), Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
-
-    fun prt_fixes [] = []
-      | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
-          Pretty.commas (map prt_fix xs))];
-
-    (*defaults*)
-    fun prt_atom prt prtT (x, X) = Pretty.block
-      [prt x, Pretty.str " ::", Pretty.brk 1, prtT X];
-
-    fun prt_var (x, ~1) = prt_term (Syntax.free x)
-      | prt_var xi = prt_term (Syntax.var xi);
-
-    fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
-      | prt_varT xi = prt_typ (TVar (xi, []));
-
-    val prt_defT = prt_atom prt_var prt_typ;
-    val prt_defS = prt_atom prt_varT prt_sort;
-  in
-    verb_single (K pretty_thy) @
-    prt_fixes (rev (filter_out (can Syntax.dest_internal o #1) fixes)) @
-    pretty_prems ctxt @
-    verb pretty_binds (K ctxt) @
-    verb pretty_thms (K ctxt) @
-    verb pretty_cases (K ctxt) @
-    verb_single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
-    verb_single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb_single (fn () => Pretty.strs ("used type variable names:" :: used))
-  end;
 
 
 
@@ -710,15 +579,12 @@ fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-val norm_hhf =
-  Drule.forall_elim_vars_safe o Tactic.rewrite_rule [Drule.norm_hhf_eq];
-
 
 local
 
 fun export tfrees fixes goal_asms thm =
   thm
-  |> norm_hhf
+  |> Tactic.norm_hhf
   |> Seq.EVERY (rev (map op |> goal_asms))
   |> Seq.map (fn rule =>
     let
@@ -727,7 +593,7 @@ fun export tfrees fixes goal_asms thm =
     in
       rule
       |> Drule.forall_intr_list frees
-      |> norm_hhf
+      |> Tactic.norm_hhf
       |> Drule.tvars_intr_list tfrees
     end);
 
@@ -820,10 +686,10 @@ fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
 
 fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
+in
+
 fun drop_schematic (b as (xi, Some t)) = if null (Term.term_vars t) then b else (xi, None)
   | drop_schematic b = b;
-
-in
 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
@@ -981,7 +847,7 @@ local
 fun add_assm (ctxt, ((name, attrs), props)) =
   let
     val cprops = map (Thm.cterm_of (sign_of ctxt)) props;
-    val asms = map (norm_hhf o Drule.assume_goal) cprops;
+    val asms = map (Tactic.norm_hhf o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt', [(_, thms)]) =
@@ -1085,19 +951,167 @@ fun bind_skolem ctxt xs =
 
 (** cases **)
 
-fun check_case ctxt name (xs, ts) =
-  if null (foldr Term.add_typ_tvars (map snd xs, [])) andalso
-    null (foldr Term.add_term_vars (ts, [])) then ()
+fun check_case ctxt name {fixes, assumes, binds} =
+  if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
+    null (foldr Term.add_term_vars (assumes, [])) then
+      {fixes = fixes, assumes = assumes, binds = map drop_schematic binds}
   else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt);
 
 fun get_case (ctxt as Context {cases, ...}) name =
   (case assoc (cases, name) of
     None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | Some c => (check_case ctxt name c; c));
+  | Some c => check_case ctxt name c);
 
 
 fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
   (thy, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
+
+
+
+(** print context information **)
+
+val show_hyps = ref false;
+
+fun pretty_thm thm =
+  if ! show_hyps then setmp Display.show_hyps true Display.pretty_thm_no_quote thm
+  else Display.pretty_cterm (#prop (Thm.crep_thm thm));
+
+val verbose = ref false;
+fun verb f x = if ! verbose then f (x ()) else [];
+fun verb_single x = verb Library.single x;
+
+fun setmp_verbose f x = Library.setmp verbose true f x;
+
+fun pretty_items prt name items =
+  let
+    fun prt_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
+      | prt_itms (name, xs) = Pretty.big_list (name ^ ":") (map prt xs);
+  in
+    if null items andalso not (! verbose) then []
+    else [Pretty.big_list name (map prt_itms items)]
+  end;
+
+
+(* term bindings *)
+
+val smash_option = fn (_, None) => None | (xi, Some b) => Some (xi, b);
+
+fun pretty_binds (ctxt as Context {binds, ...}) =
+  let
+    val prt_term = Sign.pretty_term (sign_of ctxt);
+    fun prt_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
+    val bs = mapfilter smash_option (Vartab.dest binds);
+  in
+    if null bs andalso not (! verbose) then []
+    else [Pretty.big_list "term bindings:" (map prt_bind bs)]
+  end;
+
+val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
+
+
+(* local theorems *)
+
+fun pretty_thms (Context {thms, ...}) =
+  pretty_items pretty_thm "facts:" (mapfilter smash_option (Symtab.dest thms));
+
+val print_thms = Pretty.writeln o Pretty.chunks o pretty_thms;
+
+
+(* local contexts *)
+
+fun apply_case ctxt ({fixes, assumes, binds}: RuleCases.T) =
+  let
+    val xs = map (bind_skolem ctxt (map #1 fixes) o Free) fixes;
+    fun app t = foldl Term.betapply (t, xs);
+  in (fixes, map (apsnd (apsome app)) binds, map app assumes) end;
+
+fun pretty_cases (ctxt as Context {cases, ...}) =
+  let
+    val prt_term = Sign.pretty_term (sign_of ctxt);
+    fun prt_let (xi, t) = Pretty.block
+      [prt_term (Var (xi, Term.fastype_of t)), Pretty.str " =", Pretty.brk 1,
+        Pretty.quote (prt_term t)];
+
+    fun prt_sect _ _ _ [] = []
+      | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
+            flat (Library.separate sep (map (Library.single o prt) xs))))];
+
+    fun prt_case (name, (xs, lets, asms)) = Pretty.block (Pretty.fbreaks
+      (Pretty.str (name ^ ":") ::
+        prt_sect "fix" [] (prt_term o Free) xs @
+        prt_sect "let" [Pretty.str "and"] prt_let
+          (mapfilter (fn (xi, Some t) => Some (xi, t) | _ => None) lets) @
+        prt_sect "assume" [] (Pretty.quote o prt_term) asms));
+
+    val cases' = rev (Library.gen_distinct Library.eq_fst cases);
+  in
+    if null cases andalso not (! verbose) then []
+    else [Pretty.big_list "cases:" (map (prt_case o apsnd (apply_case ctxt)) cases')]
+  end;
+
+val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
+
+
+(* prems *)
+
+val prems_limit = ref 10;
+
+fun pretty_prems ctxt =
+  let
+    val limit = ! prems_limit;
+    val prems = prems_of ctxt;
+    val len = length prems;
+    val prt_prems =
+      (if len <= limit then [] else [Pretty.str "..."]) @
+      map pretty_thm (Library.drop (len - limit, prems));
+  in if null prems then [] else [Pretty.big_list "prems:" prt_prems] end;
+
+
+(* main context *)
+
+fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
+    defs = (types, sorts, (used, _)), ...}) =
+  let
+    val sign = sign_of ctxt;
+
+    val prt_term = Sign.pretty_term sign;
+    val prt_typ = Sign.pretty_typ sign;
+    val prt_sort = Sign.pretty_sort sign;
+
+    (*theory*)
+    val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
+
+    (*fixes*)
+    fun prt_fix (x, x') = Pretty.block
+      [prt_term (Syntax.free x), Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
+
+    fun prt_fixes [] = []
+      | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
+          Pretty.commas (map prt_fix xs))];
+
+    (*defaults*)
+    fun prt_atom prt prtT (x, X) = Pretty.block
+      [prt x, Pretty.str " ::", Pretty.brk 1, prtT X];
+
+    fun prt_var (x, ~1) = prt_term (Syntax.free x)
+      | prt_var xi = prt_term (Syntax.var xi);
+
+    fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
+      | prt_varT xi = prt_typ (TVar (xi, []));
+
+    val prt_defT = prt_atom prt_var prt_typ;
+    val prt_defS = prt_atom prt_varT prt_sort;
+  in
+    verb_single (K pretty_thy) @
+    prt_fixes (rev (filter_out (can Syntax.dest_internal o #1) fixes)) @
+    pretty_prems ctxt @
+    verb pretty_binds (K ctxt) @
+    verb pretty_thms (K ctxt) @
+    verb pretty_cases (K ctxt) @
+    verb_single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
+    verb_single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
+    verb_single (fn () => Pretty.strs ("used type variable names:" :: used))
+  end;
 
 
 
