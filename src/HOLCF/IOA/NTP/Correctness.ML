@@ -28,7 +28,7 @@ val ss' = (simpset() addsimps hom_ioas);
  * to that of the specification.
  ****************************)
 Goal
- "a:externals(asig_of(restrict impl_ioa (externals spec_sig))) = \
+ "a:externals(asig_of(Automata.restrict impl_ioa (externals spec_sig))) = \
 \ (case a of                  \
 \     S_msg(m) => True        \
 \   | R_msg(m) => True        \
@@ -67,7 +67,8 @@ val sels = [Sender.sbit_def, Sender.sq_def, Sender.ssending_def,
 
 (* Proof of correctness *)
 Goalw [Spec.ioa_def, is_weak_ref_map_def]
-  "is_weak_ref_map hom (restrict impl_ioa (externals spec_sig)) spec_ioa";
+  "is_weak_ref_map hom (Automata.restrict impl_ioa (externals spec_sig))  \
+\                  spec_ioa";
 by (simp_tac (simpset() delsplits [split_if] addsimps 
     [Correctness.hom_def, cancel_restrict, externals_lemma]) 1);
 by (rtac conjI 1);
