@@ -5,10 +5,6 @@
 
 Generic tableau prover with proof reconstruction
 
-  "can we kill all the alternatives??" -- DELETE
-
-  Why does Abs take a string argument?
-
   SKOLEMIZES ReplaceI WRONGLY: allow new vars in prems, or forbid such rules??
   Needs explicit instantiation of assumptions?
 
@@ -87,7 +83,7 @@ signature BLAST =
     | Var   of term option ref
     | Bound of int
     | Abs   of string*term
-    | op $  of term*term;
+    | $  of term*term;
   type branch
   val depth_tac 	: claset -> int -> int -> tactic
   val blast_tac 	: claset -> int -> tactic
@@ -520,7 +516,7 @@ fun fromIntrRule vars rl =
   in (trl, tac) end;
 
 
-val dummyVar = Term.Var (("Doom",666), dummyT);
+val dummyVar = Term.Var (("etc",0), dummyT);
 
 (*Convert from prototerms to ordinary terms with dummy types
   Ignore abstractions; identify all Vars; STOP at given depth*)
@@ -656,8 +652,33 @@ in
 fun normBr (br, lits, vars, lim) =
      (map normLev br, map norm lits, vars, lim);
 
-fun tracing brs = if !trace then fullTrace := map normBr brs :: !fullTrace 
-	 	  else ()
+
+(*Convert from prototerms to ordinary terms with dummy types for tracing*)
+fun showTerm 0 _             = dummyVar
+  | showTerm d (Const a)     = Term.Const (a,dummyT)
+  | showTerm d (OConst(a,_)) = Term.Const (a,dummyT)
+  | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
+  | showTerm d (Free a)      = Term.Free  (a,dummyT)
+  | showTerm d (Bound i)     = Term.Bound i
+  | showTerm d (Var _)       = dummyVar
+  | showTerm d (Abs(a,t))    = Term.Abs(a, dummyT, showTerm (d-1) t)
+  | showTerm d (f $ u)       = Term.$ (showTerm d f, showTerm (d-1) u);
+
+
+fun tracing sign brs = 
+  let fun pr t = prs (Sign.string_of_term sign (showTerm 5 t))
+      fun printPairs (((G,_)::_,_)::_) = pr G
+	| printPairs (([],(H,_)::_)::_) = (prs"Haz: "; pr H)
+	| printPairs _                 = ()
+      fun printBrs (brs0 as (pairs, lits, _, lim) :: brs) =
+	    (fullTrace := brs0 :: !fullTrace;
+	     seq (fn _ => prs "+") brs;
+	     prs (" [" ^ Int.toString lim ^ "] ");
+	     printPairs pairs;
+	     writeln"")
+  in if !trace then printBrs (map normBr brs) else ()
+  end;
+
 end;
 
 
@@ -789,7 +810,7 @@ fun match (Var _) u   = true
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
   bound on unsafe expansions.*)
-fun prove (cs, brs, cont) =
+fun prove (sign, cs, brs, cont) =
  let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
@@ -836,8 +857,9 @@ fun prove (cs, brs, cont) =
 			      brs)
 			  handle PRV => (*reset Vars and try another rule*)
 			      (clearTo ntrl;  deeper grls)
-		        else (*can we kill all the alternatives??*)
-			if lim'<0 then raise NEWBRANCHES
+		        else
+			if lim'<0 (*it's faster to kill ALL the alternatives*)
+			then raise NEWBRANCHES
 			else
 			  prv(tacs',  brs0::trs, choices',
 			      newBr (vars',lim') prems)
@@ -869,7 +891,7 @@ fun prove (cs, brs, cont) =
 		    closeF (map fst br)
 		      handle CLOSEF => closeF (map fst haz)
 			handle CLOSEF => closeFl pairs
-	  in tracing brs0;
+	  in tracing sign brs0;
 	     if lim<0 then backtrack choices
 	     else
 	     prv (Data.vars_gen_hyp_subst_tac false :: tacs, 
@@ -937,9 +959,9 @@ fun prove (cs, brs, cont) =
                         val tac' = if mayUndo then tac dup
                                    else DETERM o (tac dup) 
 		    in
-		      (*can we kill all the alternatives??*)
 		      if lim'<0 andalso not (null prems)
-		      then raise NEWBRANCHES
+		      then (*it's faster to kill ALL the alternatives*)
+			  raise NEWBRANCHES
 		      else 
 			prv(tac dup :: tacs, 
 			    brs0::trs, 
@@ -953,10 +975,8 @@ fun prove (cs, brs, cont) =
 				  backtrack choices
 		    end
 		    handle UNIFY => deeper grls
-	  in tracing brs0;
+	  in tracing sign brs0;
 	     if lim<1 then backtrack choices
-	     else if mem_term (H, map #1 Hs) then
-		 prv (tacs, trs, choices, ([([],Hs)],lits,vars,lim) :: brs)
 	     else deeper rules
 	     handle NEWBRANCHES => 
 		 (*cannot close branch: move H to literals*)
@@ -1037,7 +1057,8 @@ fun fromSubgoal tsig t =
  "lim" is depth limit.*)
 fun depth_tac cs lim i st = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
-     let val {tsig,...} = Sign.rep_sg (#sign (rep_thm st))
+     let val {sign,...} = rep_thm st
+	 val {tsig,...} = Sign.rep_sg sign
 	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
@@ -1047,7 +1068,7 @@ fun depth_tac cs lim i st =
 				    Int.toString lim);
 			   backtrack choices)
 		| cell => Sequence.seqof(fn()=> cell))
-     in prove (cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
+     in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
      end
      handle Subscript => Sequence.null
 	  | PROVE     => Sequence.null);
@@ -1064,12 +1085,13 @@ fun Blast_tac i = blast_tac (!Data.claset) i;
 fun trygl cs lim i = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
      let val st = topthm()
-         val {tsig,...} = Sign.rep_sg (#sign (rep_thm st))
+         val {sign,...} = rep_thm st
+	 val {tsig,...} = Sign.rep_sg sign
 	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
      in timeap prove
-	 (cs, [initBranch (mkGoal concl :: hyps, lim)], I)
+	 (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I)
      end
      handle Subscript => error("There is no subgoal " ^ Int.toString i));
 
@@ -1082,7 +1104,8 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
 
 fun tryInThy thy lim s = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
-     timeap prove (!Data.claset, 
+     timeap prove (sign_of thy, 
+		   !Data.claset, 
 		   [initBranch ([readGoal (sign_of thy) s], lim)], 
 		   I));
 
