@@ -210,7 +210,6 @@ if [ -n "$DOCUMENT" ]; then
 %\bibliography{root}
 
 \end{document}
-
 EOF
   fi
 fi
