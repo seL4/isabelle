@@ -68,9 +68,12 @@ fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
   | eta_long Ts t = (case strip_comb t of
       (Abs _, _) => eta_long Ts (Envir.beta_norm t)
     | (u, ts) => 
-      let val Us = binder_types (fastype_of1 (Ts, t))
-      in list_abs (map (pair "x") Us, Unify.combound
-        (list_comb (u, map (eta_long Ts) ts), 0, length Us))
+      let
+        val Us = binder_types (fastype_of1 (Ts, t));
+        val i = length Us
+      in list_abs (map (pair "x") Us,
+        list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
+          (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
       end);
 
 (* Some Types*)
