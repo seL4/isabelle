@@ -12,7 +12,7 @@ FILES =  ref.tex introduction.tex goals.tex tactic.tex tctical.tex\
 	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
 ref.dvi.gz:   $(FILES) 
-	@ln -sf ../isabelle.eps .
+	@ln -sf ../gfx/isabelle.eps .
 	-rm ref.dvi*
 	latex ref
 	rail ref
@@ -24,7 +24,7 @@ ref.dvi.gz:   $(FILES)
 	gzip -f ref.dvi
 
 dist:   $(FILES) 
-	@ln -sf ../isabelle.eps .
+	@ln -sf ../gfx/isabelle.eps .
 	-rm ref.dvi*
 	latex ref
 	latex ref

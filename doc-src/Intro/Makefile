@@ -10,7 +10,7 @@ FILES =  intro.tex foundations.tex getting.tex advanced.tex \
 	 ../proof.sty ../iman.sty ../extra.sty
 
 intro.dvi.gz:   $(FILES)
-	@ln -sf ../isabelle.eps .
+	@ln -sf ../gfx/isabelle.eps .
 	-rm intro.dvi*
 	latex intro
 	bibtex intro
@@ -21,7 +21,7 @@ intro.dvi.gz:   $(FILES)
 	gzip -f intro.dvi
 
 dist:   $(FILES)
-	@ln -sf ../isabelle.eps .
+	@ln -sf ../gfx/isabelle.eps .
 	-rm intro.dvi*
 	latex intro
 	latex intro
