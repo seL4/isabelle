@@ -524,8 +524,8 @@ http://www4.informatik.tu-muenchen.de/~nipkow/isabelle
 
 \subsection*{Manual HTML generation}
 
-To manually activate and deactivate the generation of HTML files the
-following commands and reference variables are used:
+To manually control the generation of HTML files the following
+commands and reference variables are used:
 
 \begin{ttbox}
 init_html   : unit -> unit
@@ -616,6 +616,17 @@ The generated HTML files contain all theorems that were proved in the
 theory's \ML{} file with {\tt qed}, {\tt qed_goal} and {\tt qed_goalw},
 or stored with {\tt bind_thm} and {\tt store_thm}. Additionally there
 is a hypertext link to the whole \ML{} file.
+
+You can add section headings to the list of theorems by using
+
+\begin{ttbox}\index{use_dir}
+section: string -> unit
+\end{ttbox}
+
+in a theory's ML file, which converts a plain string to a HTML
+heading and inserts it before the next theorem proved or stored with
+one of the above functions. If {\tt make_html} is {\tt false} nothing
+is done.
 
 
 \subsection*{Using someone else's database}
