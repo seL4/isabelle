@@ -372,7 +372,7 @@ val markup_token = Latex.Markup;
 val verbatim_token = Latex.Verbatim;
 
 fun old_symbol_source name mk_text =
-  with_session () (fn _ => add_tex_source name (Latex.old_symbol_source (mk_text ())));
+  with_session () (fn _ => add_tex_source name (Latex.old_symbol_source name (mk_text ())));
 
 fun token_source name mk_toks =
   with_session () (fn _ => add_tex_source name (Latex.token_source (mk_toks ())));

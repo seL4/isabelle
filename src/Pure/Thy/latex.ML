@@ -8,7 +8,7 @@ LaTeX presentation primitives (based on outer lexical syntax).
 signature LATEX =
 sig
   datatype token = Basic of OuterLex.token | Markup of string * string | Verbatim of string
-  val old_symbol_source: Symbol.symbol list -> string
+  val old_symbol_source: string -> Symbol.symbol list -> string
   val token_source: token list -> string
   val theory_entry: string -> string
 end;
@@ -90,7 +90,9 @@ val output_tokens = implode o map output_tok;
 
 val isabelle_env = enclose "\\begin{isabelle}%\n" "\\end{isabelle}%\n";
 
-val old_symbol_source = isabelle_env o output_symbols;
+fun old_symbol_source name syms =
+  isabelle_env ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
+
 val token_source = isabelle_env o output_tokens;
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n";
