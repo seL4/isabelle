@@ -569,7 +569,7 @@ qed "InterD";
 
 (*"Classical" elimination rule -- does not require proving X:C *)
 val major::prems = goalw Set.thy [Inter_def]
-    "[| A : Inter(C);  A:X ==> R;  X~:C ==> R |] ==> R";
+    "[| A : Inter(C);  X~:C ==> R;  A:X ==> R |] ==> R";
 by (rtac (major RS INT_E) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "InterE";
