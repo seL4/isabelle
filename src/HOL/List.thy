@@ -16,7 +16,6 @@ consts
   concat      :: 'a list list => 'a list
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
   hd          :: 'a list => 'a
-  length      :: 'a list => nat
   set_of_list :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
@@ -53,6 +52,11 @@ consts
     Cons "[| a: A;  l: lists A |] ==> a#l : lists A"
 
 
+(*Function "size" is overloaded for all datatypes.  Users may refer to the
+  list version as "length".*)
+syntax   length :: 'a list => nat
+translations  "length"  =>  "size"
+
 primrec hd list
   "hd([]) = arbitrary"
   "hd(x#xs) = x"
@@ -87,9 +91,6 @@ primrec filter list
 primrec foldl list
   "foldl f a [] = a"
   "foldl f a (x#xs) = foldl f (f a x) xs"
-primrec length list
-  "length([]) = 0"
-  "length(x#xs) = Suc(length(xs))"
 primrec concat list
   "concat([]) = []"
   "concat(x#xs) = x @ concat(xs)"
