@@ -27,7 +27,6 @@ FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 
 $(OUT)/HOL: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
-	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make

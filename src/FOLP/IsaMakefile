@@ -15,7 +15,6 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML \
 
 $(OUT)/FOLP: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOLP
-	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make

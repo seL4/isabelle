@@ -18,7 +18,6 @@ EX_FILES = ex/ROOT.ML \
 
 $(OUT)/Sequents: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
-	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make

@@ -19,7 +19,6 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML ex/intro.ML \
 
 $(OUT)/FOL: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
-	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make

@@ -22,7 +22,6 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML simpdata.ML typechk.ML \
 
 $(OUT)/ZF: $(OUT)/FOL $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
-	@chmod -w $@
 
 $(OUT)/FOL:
 	@cd ../FOL; $(ISATOOL) make

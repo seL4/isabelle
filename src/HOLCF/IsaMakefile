@@ -29,7 +29,6 @@ FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) \
 
 $(OUT)/HOLCF: $(OUT)/HOL $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/HOL HOLCF
-	@chmod -w $@
 
 $(OUT)/HOL:
 	@cd ../HOL; $(ISATOOL) make

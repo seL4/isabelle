@@ -30,6 +30,4 @@ COMPAT=""
 $ISABELLE \
   -e "val ml_system = \"$ML_SYSTEM\";" \
   -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
-  -q RAW_ML_SYSTEM Pure
-
-chmod -w $ISABELLE_OUTPUT/Pure
+  -q -w RAW_ML_SYSTEM Pure
