@@ -402,7 +402,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_tthmss [(("simps", map Attribute.tthm_of simps), [])] |>
+      PureThy.add_tthmss [(("simps", Attribute.tthms_of simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       Theory.parent_path;
 
@@ -459,7 +459,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_tthmss [(("simps", map Attribute.tthm_of simps), [])] |>
+      PureThy.add_tthmss [(("simps", Attribute.tthms_of simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       Theory.parent_path;
 
@@ -550,7 +550,7 @@ fun gen_rep_datatype get get' alt_names distinct_names inject_names induction_na
 
     val thy9 = thy8 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_tthmss [(("simps", map Attribute.tthm_of simps), [])] |>
+      PureThy.add_tthmss [(("simps", Attribute.tthms_of simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       Theory.parent_path;
 
@@ -572,7 +572,7 @@ fun gen_rep_datatype get get' alt_names distinct_names inject_names induction_na
   end;
 
 val rep_datatype = gen_rep_datatype
-  (fn thy => map Attribute.thm_of o PureThy.get_tthmss thy) get_thm;
+  (fn thy => Attribute.thms_of o PureThy.get_tthmss thy) get_thm;
 val rep_datatype_i = gen_rep_datatype (K I) (K I);
 
 (******************************** add datatype ********************************)
@@ -584,7 +584,7 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
     (* this theory is used just for parsing *)
 
     val tmp_thy = thy |>
-      Theory.prep_ext |>
+      Theory.copy |>
       Theory.add_types (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
