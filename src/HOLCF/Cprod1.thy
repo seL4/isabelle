@@ -16,8 +16,8 @@ consts
 
 rules
 
-  less_cprod_def "less_cprod(p1,p2) == ( fst(p1) << fst(p2) &\
-\					snd(p1) << snd(p2))"
+  less_cprod_def "less_cprod(p1,p2) == ( fst(p1) << fst(p2) &
+					snd(p1) << snd(p2))"
 
 end
 

@@ -20,11 +20,11 @@ rules
 (* Rules for [] and <> *)
 
   boxR
-   "[| $E |L> $E';  $F |R> $F';  $G |R> $G';  \
-\               $E'        |- $F', P, $G'|] ==> $E          |- $F, []P, $G"
+   "[| $E |L> $E';  $F |R> $F';  $G |R> $G';  
+               $E'        |- $F', P, $G'|] ==> $E          |- $F, []P, $G"
   boxL     "$E, P, $F  |-         $G    ==> $E, []P, $F |-          $G"
   diaR     "$E         |- $F, P,  $G    ==> $E          |- $F, <>P, $G"
   diaL
-   "[| $E |L> $E';  $F |L> $F';  $G |R> $G';  \
-\               $E', P, $F'|-         $G'|] ==> $E, <>P, $F |-          $G"
+   "[| $E |L> $E';  $F |L> $F';  $G |R> $G';  
+               $E', P, $F'|-         $G'|] ==> $E, <>P, $F |-          $G"
 end

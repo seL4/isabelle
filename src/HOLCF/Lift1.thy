@@ -39,15 +39,15 @@ rules
   UU_lift_def   "UU_lift == Abs_Lift(Inl(UU))"
   Iup_def       "Iup(x)  == Abs_Lift(Inr(x))"
 
-  Ilift_def     "Ilift(f)(x)== \
-\                case Rep_Lift(x) of Inl(y) => UU | Inr(z) => f[z]"
+  Ilift_def     "Ilift(f)(x)== 
+                case Rep_Lift(x) of Inl(y) => UU | Inr(z) => f[z]"
  
-  less_lift_def "less_lift(x1)(x2) == 		\
-\          (case Rep_Lift(x1) of 		\
-\               Inl(y1) => True 		\
-\             | Inr(y2) => 			\
-\                   (case Rep_Lift(x2) of Inl(z1) => False	\
-\                                       | Inr(z2) => y2<<z2))"
+  less_lift_def "less_lift(x1)(x2) == 		
+          (case Rep_Lift(x1) of 		
+               Inl(y1) => True 		
+             | Inr(y2) => 			
+                   (case Rep_Lift(x2) of Inl(z1) => False	
+                                       | Inr(z2) => y2<<z2))"
 
 end
 

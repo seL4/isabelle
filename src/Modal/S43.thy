@@ -9,10 +9,10 @@ This implements Rajeev Gore's sequent calculus for S43.
 S43 = Modal0 +
 
 consts
-  S43pi	:: "[sobj=>sobj, sobj=>sobj, sobj=>sobj,\
-\	     sobj=>sobj, sobj=>sobj, sobj=>sobj] => prop"
-  "@S43pi" :: "[sequence, sequence, sequence, sequence, sequence,\
-\		sequence] => prop" ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
+  S43pi	:: "[sobj=>sobj, sobj=>sobj, sobj=>sobj,
+	     sobj=>sobj, sobj=>sobj, sobj=>sobj] => prop"
+  "@S43pi" :: "[sequence, sequence, sequence, sequence, sequence,
+		sequence] => prop" ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 
 rules
 (* Definition of the star operation using a set of Horn clauses  *)
@@ -38,24 +38,24 @@ rules
 
   S43pi0         "S43pi $L;; $R;; $Lbox; $Rdia"
   S43pi1
-   "[| (S43pi <>P,$L';     $L;; $R; $Lbox;$Rdia);   $L',P,$L,$Lbox |- $R,$Rdia |] ==> \
-\       S43pi     $L'; <>P,$L;; $R; $Lbox;$Rdia"
+   "[| (S43pi <>P,$L';     $L;; $R; $Lbox;$Rdia);   $L',P,$L,$Lbox |- $R,$Rdia |] ==> 
+       S43pi     $L'; <>P,$L;; $R; $Lbox;$Rdia"
   S43pi2
-   "[| (S43pi $L';; []P,$R';     $R; $Lbox;$Rdia);  $L',$Lbox |- $R',P,$R,$Rdia |] ==> \
-\       S43pi $L';;     $R'; []P,$R; $Lbox;$Rdia"
+   "[| (S43pi $L';; []P,$R';     $R; $Lbox;$Rdia);  $L',$Lbox |- $R',P,$R,$Rdia |] ==> 
+       S43pi $L';;     $R'; []P,$R; $Lbox;$Rdia"
 
 (* Rules for [] and <> for S43 *)
 
   boxL           "$E, P, $F, []P |- $G ==> $E, []P, $F |- $G"
   diaR           "$E |- $F, P, $G, <>P ==> $E |- $F, <>P, $G"
   pi1
-   "[| $L1,<>P,$L2 |L> $Lbox;  $L1,<>P,$L2 |R> $Ldia;  $R |L> $Rbox;  $R |R> $Rdia;  \
-\      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==> \
-\   $L1, <>P, $L2 |- $R"
+   "[| $L1,<>P,$L2 |L> $Lbox;  $L1,<>P,$L2 |R> $Ldia;  $R |L> $Rbox;  $R |R> $Rdia;  
+      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==> 
+   $L1, <>P, $L2 |- $R"
   pi2
-   "[| $L |L> $Lbox;  $L |R> $Ldia;  $R1,[]P,$R2 |L> $Rbox;  $R1,[]P,$R2 |R> $Rdia;  \
-\      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==> \
-\   $L |- $R1, []P, $R2"
+   "[| $L |L> $Lbox;  $L |R> $Ldia;  $R1,[]P,$R2 |L> $Rbox;  $R1,[]P,$R2 |R> $Rdia;  
+      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==> 
+   $L |- $R1, []P, $R2"
 end
 
 ML

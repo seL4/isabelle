@@ -63,8 +63,8 @@ rules
 
 dnat_abs_iso	"dnat_rep[dnat_abs[x]] = x"
 dnat_rep_iso	"dnat_abs[dnat_rep[x]] = x"
-dnat_copy_def	"dnat_copy == (LAM f. dnat_abs oo \
-\		 (when[sinl][sinr oo f]) oo dnat_rep )"
+dnat_copy_def	"dnat_copy == (LAM f. dnat_abs oo 
+		 (when[sinl][sinr oo f]) oo dnat_rep )"
 dnat_reach	"(fix[dnat_copy])[x]=x"
 
 (* ----------------------------------------------------------------------- *)
@@ -98,12 +98,12 @@ dnat_take_def "dnat_take == (%n.iterate(n,dnat_copy,UU))"
 (* definition of bisimulation is determined by domain equation             *)
 (* simplification and rewriting for abstract constants yields def below    *)
 
-dnat_bisim_def "dnat_bisim ==\
-\(%R.!s1 s2.\
-\ 	R(s1,s2) -->\
-\  ((s1=UU & s2=UU) |(s1=dzero & s2=dzero) |\
-\  (? s11 s21. s11~=UU & s21~=UU & s1=dsucc[s11] &\
-\		 s2 = dsucc[s21] & R(s11,s21))))"
+dnat_bisim_def "dnat_bisim ==
+(%R.!s1 s2.
+ 	R(s1,s2) -->
+  ((s1=UU & s2=UU) |(s1=dzero & s2=dzero) |
+  (? s11 s21. s11~=UU & s21~=UU & s1=dsucc[s11] &
+		 s2 = dsucc[s21] & R(s11,s21))))"
 
 end
 

@@ -26,11 +26,11 @@ consts
 
 rules
 
-  Sinl_Rep_def		"Sinl_Rep == (%a.%x y p.\
-\				(~a=UU --> x=a  & p))"
+  Sinl_Rep_def		"Sinl_Rep == (%a.%x y p.
+				(~a=UU --> x=a  & p))"
 
-  Sinr_Rep_def		"Sinr_Rep == (%b.%x y p.\
-\				(~b=UU --> y=b  & ~p))"
+  Sinr_Rep_def		"Sinr_Rep == (%b.%x y p.
+				(~b=UU --> y=b  & ~p))"
 
   Ssum_def		"Ssum =={f.(? a.f=Sinl_Rep(a))|(? b.f=Sinr_Rep(b))}"
 
@@ -45,10 +45,10 @@ rules
   Isinl_def	"Isinl(a) == Abs_Ssum(Sinl_Rep(a))"
   Isinr_def	"Isinr(b) == Abs_Ssum(Sinr_Rep(b))"
 
-  Iwhen_def	"Iwhen(f)(g)(s) == @z.\
-\				    (s=Isinl(UU) --> z=UU)\
-\			&(!a. ~a=UU & s=Isinl(a) --> z=f[a])\  
-\			&(!b. ~b=UU & s=Isinr(b) --> z=g[b])"  
+  Iwhen_def	"Iwhen(f)(g)(s) == @z.
+				    (s=Isinl(UU) --> z=UU)
+			&(!a. ~a=UU & s=Isinl(a) --> z=f[a])
+			&(!b. ~b=UU & s=Isinr(b) --> z=g[b])"  
 
 end
 

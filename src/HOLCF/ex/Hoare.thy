@@ -32,11 +32,11 @@ consts
 
 rules
 
-  p_def  "p == fix[LAM f. LAM x.\
-\                 If b1[x] then f[g[x]] else x fi]"
+  p_def  "p == fix[LAM f. LAM x.
+                 If b1[x] then f[g[x]] else x fi]"
 
-  q_def  "q == fix[LAM f. LAM x.\
-\                 If b1[x] orelse b2[x] then f[g[x]] else x fi]"
+  q_def  "q == fix[LAM f. LAM x.
+                 If b1[x] orelse b2[x] then f[g[x]] else x fi]"
 
 
 end

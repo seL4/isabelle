@@ -64,8 +64,8 @@ rules
 
 stream_abs_iso	"stream_rep[stream_abs[x]] = x"
 stream_rep_iso	"stream_abs[stream_rep[x]] = x"
-stream_copy_def	"stream_copy == (LAM f. stream_abs oo \
-\ 		(ssplit[LAM x y. x ## (lift[up oo f])[y]] oo stream_rep))"
+stream_copy_def	"stream_copy == (LAM f. stream_abs oo 
+ 		(ssplit[LAM x y. x ## (lift[up oo f])[y]] oo stream_rep))"
 stream_reach	"(fix[stream_copy])[x]=x"
 
 (* ----------------------------------------------------------------------- *)
@@ -101,11 +101,11 @@ stream_finite_def	"stream_finite == (%s.? n.stream_take(n)[s]=s)"
 (* definition of bisimulation is determined by domain equation             *)
 (* simplification and rewriting for abstract constants yields def below    *)
 
-stream_bisim_def "stream_bisim ==\
-\(%R.!s1 s2.\
-\ 	R(s1,s2) -->\
-\  ((s1=UU & s2=UU) |\
-\  (? x s11 s21. x~=UU & s1=scons[x][s11] & s2 = scons[x][s21] & R(s11,s21))))"
+stream_bisim_def "stream_bisim ==
+(%R.!s1 s2.
+ 	R(s1,s2) -->
+  ((s1=UU & s2=UU) |
+  (? x s11 s21. x~=UU & s1=scons[x][s11] & s2 = scons[x][s21] & R(s11,s21))))"
 
 end
 

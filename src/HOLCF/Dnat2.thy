@@ -16,8 +16,8 @@ iterator	:: "dnat -> ('a -> 'a) -> 'a -> 'a"
 
 rules
 
-iterator_def	"iterator = fix[LAM h n f x.\
-\	dnat_when[x][LAM m.f[h[m][f][x]]][n]]"
+iterator_def	"iterator = fix[LAM h n f x.
+	dnat_when[x][LAM m.f[h[m][f][x]]][n]]"
 
 
 end

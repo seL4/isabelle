@@ -13,10 +13,10 @@ consts
 
 rules
 
-  less_sprod_def "less_sprod(p1,p2) == @z.\
-\	 ( p1=Ispair(UU,UU) --> z = True)\
-\	&(~p1=Ispair(UU,UU) --> z = (   Isfst(p1) << Isfst(p2) &\
-\					Issnd(p1) << Issnd(p2)))"
+  less_sprod_def "less_sprod(p1,p2) == @z.
+	 ( p1=Ispair(UU,UU) --> z = True)
+	&(~p1=Ispair(UU,UU) --> z = (   Isfst(p1) << Isfst(p2) &
+					Issnd(p1) << Issnd(p2)))"
 
 end
 

@@ -25,8 +25,8 @@ consts
 
 rules
 
-  Spair_Rep_def		"Spair_Rep == (%a b. %x y.\
-\				(~a=UU & ~b=UU --> x=a  & y=b ))"
+  Spair_Rep_def		"Spair_Rep == (%a b. %x y.
+				(~a=UU & ~b=UU --> x=a  & y=b ))"
 
   Sprod_def		"Sprod == {f. ? a b. f = Spair_Rep(a,b)}"
 
@@ -41,13 +41,13 @@ rules
 
   Ispair_def	"Ispair(a,b) == Abs_Sprod(Spair_Rep(a,b))"
 
-  Isfst_def	"Isfst(p) == @z.\
-\					(p=Ispair(UU,UU) --> z=UU)\
-\		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=a)"  
+  Isfst_def	"Isfst(p) == @z.
+					(p=Ispair(UU,UU) --> z=UU)
+		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=a)"  
 
-  Issnd_def	"Issnd(p) == @z.\
-\					(p=Ispair(UU,UU) --> z=UU)\
-\		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=b)"  
+  Issnd_def	"Issnd(p) == @z.
+					(p=Ispair(UU,UU) --> z=UU)
+		&(! a b. ~a=UU & ~b=UU & p=Ispair(a,b)   --> z=b)"  
 
 end
 

@@ -87,8 +87,8 @@ rules
 
   (*Descriptions*)
 
-  The "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==> \
-\          $H |- $E, P(THE x.P(x)), $F"
+  The "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==> 
+          $H |- $E, P(THE x.P(x)), $F"
 end
 
 ML

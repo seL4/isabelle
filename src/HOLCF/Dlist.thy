@@ -68,9 +68,9 @@ rules
 
 dlist_abs_iso	"dlist_rep[dlist_abs[x]] = x"
 dlist_rep_iso	"dlist_abs[dlist_rep[x]] = x"
-dlist_copy_def	"dlist_copy == (LAM f. dlist_abs oo \
-\ 		(when[sinl][sinr oo (ssplit[LAM x y. x ## f[y]])])\
-\                                oo dlist_rep)"
+dlist_copy_def	"dlist_copy == (LAM f. dlist_abs oo 
+ 		(when[sinl][sinr oo (ssplit[LAM x y. x ## f[y]])])
+                                oo dlist_rep)"
 dlist_reach	"(fix[dlist_copy])[x]=x"
 
 (* ----------------------------------------------------------------------- *)
@@ -85,8 +85,8 @@ dcons_def	"dcons == (LAM x l. dlist_abs[sinr[x##l]])"
 (* discriminator functional                                                *)
 
 dlist_when_def 
-"dlist_when == (LAM f1 f2 l.\
-\   when[LAM x.f1][ssplit[LAM x l.f2[x][l]]][dlist_rep[l]])"
+"dlist_when == (LAM f1 f2 l.
+   when[LAM x.f1][ssplit[LAM x l.f2[x][l]]][dlist_rep[l]])"
 
 (* ----------------------------------------------------------------------- *)
 (* discriminators and selectors                                            *)
@@ -109,13 +109,13 @@ dlist_finite_def	"dlist_finite == (%s.? n.dlist_take(n)[s]=s)"
 (* definition of bisimulation is determined by domain equation             *)
 (* simplification and rewriting for abstract constants yields def below    *)
 
-dlist_bisim_def "dlist_bisim ==\
-\ ( %R.!l1 l2.\
-\ 	R(l1,l2) -->\
-\  ((l1=UU & l2=UU) |\
-\   (l1=dnil & l2=dnil) |\
-\   (? x l11 l21. x~=UU & l11~=UU & l21~=UU & \
-\               l1=dcons[x][l11] & l2 = dcons[x][l21] & R(l11,l21))))"
+dlist_bisim_def "dlist_bisim ==
+ ( %R.!l1 l2.
+ 	R(l1,l2) -->
+  ((l1=UU & l2=UU) |
+   (l1=dnil & l2=dnil) |
+   (? x l11 l21. x~=UU & l11~=UU & l21~=UU & 
+               l1=dcons[x][l11] & l2 = dcons[x][l21] & R(l11,l21))))"
 
 end
 

@@ -14,11 +14,11 @@ consts
 
 rules
 
-  less_ssum_def "less_ssum(s1,s2) == (@z.\
-\	 (! u x.s1=Isinl(u) & s2=Isinl(x) --> z = (u << x))\
-\	&(! v y.s1=Isinr(v) & s2=Isinr(y) --> z = (v << y))\
-\	&(! u y.s1=Isinl(u) & s2=Isinr(y) --> z = (u = UU))\
-\	&(! v x.s1=Isinr(v) & s2=Isinl(x) --> z = (v = UU)))"
+  less_ssum_def "less_ssum(s1,s2) == (@z.
+	 (! u x.s1=Isinl(u) & s2=Isinl(x) --> z = (u << x))
+	&(! v y.s1=Isinr(v) & s2=Isinr(y) --> z = (v << y))
+	&(! u y.s1=Isinl(u) & s2=Isinr(y) --> z = (u = UU))
+	&(! v x.s1=Isinr(v) & s2=Isinl(x) --> z = (v = UU)))"
 
 end
 
