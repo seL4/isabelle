@@ -469,20 +469,30 @@ AddSDs [in_listsD];
 bind_thm("in_listsI",in_lists_conv_set RS iffD2);
 AddSIs [in_listsI];
 
+(** mem **)
+ 
+section "mem";
+
+Goal "(x mem xs) = (x: set xs)";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed "set_mem_eq";
+
+
 (** list_all **)
 
 section "list_all";
+
+Goal "list_all P xs = (!x:set xs. P x)";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed "list_all_conv";
 
 Goal "list_all P (xs@ys) = (list_all P xs & list_all P ys)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "list_all_append";
 Addsimps [list_all_append];
-
-Goal "list_all P xs = (!x. x mem xs --> P x)";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "list_all_conv";
 
 
 (** filter **)
@@ -583,7 +593,7 @@ by Auto_tac;
 qed_spec_mp "nth_map";
 Addsimps [nth_map];
 
-Goal "!n. n < length xs --> list_all P xs --> P(xs!n)";
+Goal "!n. n < length xs --> Ball (set xs) P --> P(xs!n)";
 by (induct_tac "xs" 1);
 (* case [] *)
 by (Simp_tac 1);
@@ -591,9 +601,9 @@ by (Simp_tac 1);
 by (rtac allI 1);
 by (induct_tac "n" 1);
 by Auto_tac;
-qed_spec_mp "list_all_nth";
+qed_spec_mp "list_ball_nth";
 
-Goal "!n. n < length xs --> xs!n mem xs";
+Goal "!n. n < length xs --> xs!n : set xs";
 by (induct_tac "xs" 1);
 (* case [] *)
 by (Simp_tac 1);
@@ -606,6 +616,7 @@ by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 qed_spec_mp "nth_mem";
 Addsimps [nth_mem];
+
 
 (** list update **)
 

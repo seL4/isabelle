@@ -26,7 +26,7 @@ consts
   gen_ML_aux :: [nat list, typ] => type_scheme
 
 primrec
-  "gen_ML_aux A (TVar n) = (if (n mem A) then (FVar n) else (BVar n))"
+  "gen_ML_aux A (TVar n) = (if (n: set A) then (FVar n) else (BVar n))"
   "gen_ML_aux A (t1 -> t2) = (gen_ML_aux A t1) =-> (gen_ML_aux A t2)"
 
 consts

@@ -146,7 +146,7 @@ by (cut_inst_tac [("m","ma"),("n","n")] less_linear 1);
 by (fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
 qed "new_tv_subst";
 
-Goal "new_tv n x = list_all (new_tv n) x";
+Goal "new_tv n x = (!y:set x. new_tv n y)";
 by (induct_tac "x" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "new_tv_list";
@@ -248,7 +248,7 @@ qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
 
 Goal
-  "(t::typ) mem ts --> free_tv t <= free_tv ts";
+  "(t::typ): set ts --> free_tv t <= free_tv ts";
 by (induct_tac "ts" 1);
 (* case [] *)
 by (Simp_tac 1);
