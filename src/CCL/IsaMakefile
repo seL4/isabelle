@@ -1,0 +1,30 @@
+#
+# $Id$
+#
+# IsaMakefile for CCL
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+SET_FILES = ROOT.ML Set.thy Set.ML subset.ML equalities.ML mono.ML \
+	    Gfp.thy Gfp.ML Lfp.thy Lfp.ML
+
+CCL_FILES = CCL.thy CCL.ML Term.thy Term.ML Type.thy Type.ML \
+	    coinduction.ML Hered.thy Hered.ML Trancl.thy Trancl.ML \
+	    Wfd.thy Wfd.ML genrec.ML typecheck.ML eval.ML Fix.thy Fix.ML
+
+EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy \
+	   ex/Nat.ML ex/Nat.thy ex/Stream.ML ex/Stream.thy
+
+
+$(OUT)/CCL: $(OUT)/FOL $(SET_FILES) $(CCL_FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/FOL CCL
+	@chmod -w $@
+
+$(OUT)/FOL:
+	@cd ../FOL; $(ISATOOL) make
+
+test: ex/ROOT.ML $(OUT)/CCL $(EX_FILES)
+	@$(ISATOOL) testdir $(OUT)/CCL ex
+
+.PRECIOUS: $(OUT)/FOL $(OUT)/CCL
