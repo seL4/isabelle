@@ -125,7 +125,8 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Hyperreal/Filter.ML \
   Real/Lubs.thy Real/PNat.ML Real/PNat.thy Real/PRat.ML Real/PRat.thy \
   Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy Real/RealAbs.ML Real/RealAbs.thy \
-  Real/RealArith.ML Real/RealArith.thy Real/RealBin.ML \
+  Real/RealArith0.ML Real/RealArith0.thy Real/real_arith0.ML \
+  Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
   Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML \
   Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
   Real/RealPow.thy Real/real_arith.ML
