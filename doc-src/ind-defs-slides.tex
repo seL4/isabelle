@@ -1,11 +1,11 @@
-%process by     nlatex cade; dvips -o s.ps -Ppreview cade
-%               ghostview -magstep -2 -landscape s.ps
-\documentstyle[fancybox,newlfont,lcp,proof,semhelv,sem-a4,%
-%  article,%
-  slidesonly,%Try notes or notesonly instead
-  semlayer%     This must be included, but you need the semcolor option to
-  ]{seminar}                                  % actually see the overlays.
+%process by     latex ind-defs-slides; dvips -Plime ind-defs-slides
+%               ghostview -magstep -2 -landscape ind-defs-slides.ps
+%  $Id$
+\documentclass[a4,slidesonly,semlayer]{seminar}
 
+\usepackage{fancybox}
+\usepackage{semhelv}
+\usepackage{epsf}
 \def\printlandscape{\special{landscape}}    % Works with dvips.
 
 \slidesmag{5}\articlemag{2}    %the difference is 3 instead of 4!
