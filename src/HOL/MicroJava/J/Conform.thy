@@ -165,14 +165,13 @@ apply (drule conf_RefTD)
 apply auto
 done
 
-lemma non_np_objD: "!!G. [|a' \<noteq> Null; G,h\<turnstile>a'::\<preceq> Class C; C \<noteq> Object|] ==>  
+lemma non_np_objD: "!!G. [|a' \<noteq> Null; G,h\<turnstile>a'::\<preceq> Class C|] ==>  
   (\<exists>a C' fs. a' = Addr a \<and>  h a = Some (C',fs) \<and>  G\<turnstile>C'\<preceq>C C)"
 apply (fast dest: non_npD)
 done
 
 lemma non_np_objD' [rule_format (no_asm)]: 
   "a' \<noteq> Null ==> wf_prog wf_mb G ==> G,h\<turnstile>a'::\<preceq>RefT t --> 
-  (\<forall>C. t = ClassT C --> C \<noteq> Object) -->  
   (\<exists>a C fs. a' = Addr a \<and>  h a = Some (C,fs) \<and>  G\<turnstile>Class C\<preceq>RefT t)"
 apply(rule_tac "y" = "t" in ref_ty.exhaust)
  apply (fast dest: conf_NullTD)

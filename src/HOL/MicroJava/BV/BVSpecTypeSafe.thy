@@ -114,6 +114,14 @@ proof (induct et)
   qed
 qed
 
+lemma match_et_imp_match:
+  "match_exception_table G X pc et = Some handler
+  \<Longrightarrow> match G X pc et = [X]"
+  apply (simp add: match_some_entry)
+  apply (induct et)
+  apply (auto split: split_if_asm)
+  done
+
 text {*
   We can prove separately that the recursive search for exception
   handlers (@{text find_handler}) in the frame stack results in 
@@ -356,7 +364,7 @@ proof -
         phi': "phi C sig ! handler = Some (ST', LT')" and
         less: "G \<turnstile> ([Class (Xcpt OutOfMemory)], LT) <=s (ST', LT')" and
         pc':  "handler < length ins"
-        by (simp add: xcpt_eff_def) blast
+        by (simp add: xcpt_eff_def match_et_imp_match) blast
       note phi'
       moreover
       { from xcp prehp
@@ -386,7 +394,7 @@ proof -
         phi': "phi C sig ! handler = Some (ST', LT')" and
         less: "G \<turnstile> ([Class (Xcpt NullPointer)], LT) <=s (ST', LT')" and
         pc':  "handler < length ins"
-        by (simp add: xcpt_eff_def) blast
+        by (simp add: xcpt_eff_def match_et_imp_match) blast
       note phi'
       moreover
       { from xcp prehp
@@ -416,7 +424,7 @@ proof -
         phi': "phi C sig ! handler = Some (ST', LT')" and
         less: "G \<turnstile> ([Class (Xcpt NullPointer)], LT) <=s (ST', LT')" and
         pc':  "handler < length ins"
-        by (simp add: xcpt_eff_def) blast
+        by (simp add: xcpt_eff_def match_et_imp_match) blast
       note phi'
       moreover
       { from xcp prehp
@@ -446,7 +454,7 @@ proof -
         phi': "phi C sig ! handler = Some (ST', LT')" and
         less: "G \<turnstile> ([Class (Xcpt ClassCast)], LT) <=s (ST', LT')" and
         pc':  "handler < length ins"
-        by (simp add: xcpt_eff_def) blast
+        by (simp add: xcpt_eff_def match_et_imp_match) blast
       note phi'
       moreover
       { from xcp prehp

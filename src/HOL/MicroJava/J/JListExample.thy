@@ -1,11 +1,11 @@
-(*  Title:      HOL/MicroJava/JVM/JVMListExample.thy
+(*  Title:      HOL/MicroJava/J/JListExample.thy
     ID:         $Id$
     Author:     Stefan Berghofer
 *)
 
 header {* \isaheader{Example for generating executable code from Java semantics} *}
 
-theory JListExample = Eval:
+theory JListExample = Eval + SystemClasses:
 
 ML {* Syntax.ambiguity_level := 100000 *}
 

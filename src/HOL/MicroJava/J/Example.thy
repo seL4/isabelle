@@ -6,7 +6,7 @@
 
 header {* \isaheader{Example MicroJava Program} *}
 
-theory Example = Eval:
+theory Example = SystemClasses + Eval:
 
 text {* 
 The following example MicroJava program includes:
@@ -72,12 +72,17 @@ translations
 axioms
   Base_not_Object: "Base \<noteq> Object"
   Ext_not_Object:  "Ext  \<noteq> Object"
-  e_not_This:      "e \<noteq> This"
+  Base_not_Xcpt:   "Base \<noteq> Xcpt z"
+  Ext_not_Xcpt:    "Ext  \<noteq> Xcpt z"
+  e_not_This:      "e \<noteq> This"  
 
 declare Base_not_Object [simp] Ext_not_Object [simp]
+declare Base_not_Xcpt [simp] Ext_not_Xcpt [simp]
 declare e_not_This [simp]
-declare Base_not_Object [THEN not_sym, simp]
-declare Ext_not_Object  [THEN not_sym, simp]
+declare Base_not_Object [symmetric, simp]
+declare Ext_not_Object  [symmetric, simp]
+declare Base_not_Xcpt [symmetric, simp]
+declare Ext_not_Xcpt  [symmetric, simp]
 
 consts
   foo_Base::  java_mb
@@ -119,7 +124,7 @@ syntax
 
 translations
   "NP"   == "NullPointer"
-  "tprg" == "[ObjectC, BaseC, ExtC]"
+  "tprg" == "[ObjectC, BaseC, ExtC, ClassCastC, NullPointerC, OutOfMemoryC]"
   "obj1"    <= "(Ext, empty((vee, Base)\<mapsto>Bool False)
          ((vee, Ext )\<mapsto>Intg 0))"
   "s0" == " Norm    (empty, empty)"
@@ -142,11 +147,26 @@ apply (unfold ObjectC_def class_def)
 apply (simp (no_asm))
 done
 
+lemma class_tprg_NP [simp]: "class tprg (Xcpt NP) = Some (Object, [], [])"
+apply (unfold ObjectC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
+apply (simp (no_asm))
+done
+
+lemma class_tprg_OM [simp]: "class tprg (Xcpt OutOfMemory) = Some (Object, [], [])"
+apply (unfold ObjectC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
+apply (simp (no_asm))
+done
+
+lemma class_tprg_CC [simp]: "class tprg (Xcpt ClassCast) = Some (Object, [], [])"
+apply (unfold ObjectC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
+apply (simp (no_asm))
+done
+
 lemma class_tprg_Base [simp]: 
 "class tprg Base = Some (Object,  
     [(vee, PrimT Boolean)],  
           [((foo, [Class Base]), Class Base, foo_Base)])"
-apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
+apply (unfold ObjectC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
 apply (simp (no_asm))
 done
 
@@ -174,8 +194,8 @@ apply (auto dest!: tranclD subcls1D)
 done
 
 lemma class_tprgD: 
-"class tprg C = Some z ==> C=Object \<or> C=Base \<or> C=Ext"
-apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
+"class tprg C = Some z ==> C=Object \<or> C=Base \<or> C=Ext \<or> C=Xcpt NP \<or> C=Xcpt ClassCast \<or> C=Xcpt OutOfMemory"
+apply (unfold ObjectC_def ClassCastC_def NullPointerC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
 apply (auto split add: split_if_asm simp add: map_of_Cons)
 done
 
@@ -188,7 +208,7 @@ apply auto
 done
 
 lemma unique_classes: "unique tprg"
-apply (simp (no_asm) add: ObjectC_def BaseC_def ExtC_def)
+apply (simp (no_asm) add: ObjectC_def BaseC_def ExtC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def)
 done
 
 lemmas subcls_direct = subcls1I [THEN r_into_rtrancl]
@@ -278,6 +298,30 @@ apply (unfold wf_cdecl_def wf_fdecl_def ObjectC_def)
 apply (simp (no_asm))
 done
 
+lemma wf_NP:
+"wf_cdecl wf_java_mdecl tprg NullPointerC"
+apply (unfold wf_cdecl_def wf_fdecl_def NullPointerC_def)
+apply (simp add: class_def)
+apply (fold NullPointerC_def class_def)
+apply auto
+done
+
+lemma wf_OM:
+"wf_cdecl wf_java_mdecl tprg OutOfMemoryC"
+apply (unfold wf_cdecl_def wf_fdecl_def OutOfMemoryC_def)
+apply (simp add: class_def)
+apply (fold OutOfMemoryC_def class_def)
+apply auto
+done
+
+lemma wf_CC:
+"wf_cdecl wf_java_mdecl tprg ClassCastC"
+apply (unfold wf_cdecl_def wf_fdecl_def ClassCastC_def)
+apply (simp add: class_def)
+apply (fold ClassCastC_def class_def)
+apply auto
+done
+
 lemma wf_BaseC: 
 "wf_cdecl wf_java_mdecl tprg BaseC"
 apply (unfold wf_cdecl_def wf_fdecl_def BaseC_def)
@@ -298,10 +342,14 @@ apply (drule rtranclD)
 apply auto
 done
 
+lemma [simp]: "fst ObjectC = Object" by (simp add: ObjectC_def)
+
 lemma wf_tprg: 
 "wf_prog wf_java_mdecl tprg"
 apply (unfold wf_prog_def Let_def)
-apply(simp add: wf_ObjectC wf_BaseC wf_ExtC unique_classes)
+apply (simp add: wf_ObjectC wf_BaseC wf_ExtC wf_NP wf_OM wf_CC unique_classes)
+apply (rule wf_syscls)
+apply (simp add: SystemClasses_def)
 done
 
 lemma appl_methds_foo_Base: 

@@ -23,11 +23,6 @@ types
   'c prog  = "'c cdecl list"     -- "program"
 
 
-constdefs
-  ObjectC :: "'c cdecl" -- "decl of root class"
-  "ObjectC \<equiv> (Object, (arbitrary, [], []))"
-
-
 translations
   "fdecl"   <= (type) "vname \<times> ty"
   "sig"     <= (type) "mname \<times> ty list"

@@ -21,7 +21,7 @@ datatype
 datatype cname  
   = Object 
   | Xcpt xcpt 
-  | Cname cname 
+  | Cname cnam 
 
 typedecl vnam   -- "variable or field name"
 typedecl mname  -- "method name"

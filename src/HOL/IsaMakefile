@@ -468,7 +468,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/BV/Product.thy MicroJava/BV/Semilat.thy \
   MicroJava/BV/Effect.thy MicroJava/BV/EffectMono.thy \
   MicroJava/BV/Typing_Framework.thy MicroJava/BV/Typing_Framework_err.thy \
-  MicroJava/BV/Kildall_Lift.thy \
+  MicroJava/BV/Kildall_Lift.thy MicroJava/BV/BVExample.thy \
   MicroJava/document/root.bib MicroJava/document/root.tex \
   MicroJava/document/introduction.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL MicroJava

@@ -6,7 +6,7 @@
 
 header {* \isaheader{Well-formedness of Java programs} *}
 
-theory WellForm = TypeRel:
+theory WellForm = TypeRel + SystemClasses:
 
 text {*
 for static checks on expressions and statements, see WellType.
@@ -45,9 +45,12 @@ constdefs
                    (\<forall>(sig,rT,b)\<in>set ms. \<forall>D' rT' b'.
                       method(G,D) sig = Some(D',rT',b') --> G\<turnstile>rT\<preceq>rT'))"
 
+ wf_syscls :: "'c prog => bool"
+"wf_syscls G == let cs = set G in Object \<in> fst ` cs \<and> (\<forall>x. Xcpt x \<in> fst ` cs)"
+
  wf_prog :: "'c wf_mb => 'c prog => bool"
-"wf_prog wf_mb G ==
-   let cs = set G in ObjectC \<in> cs \<and> (\<forall>c\<in>cs. wf_cdecl wf_mb G c) \<and> unique G"
+"wf_prog wf_mb G == 
+   let cs = set G in wf_syscls G \<and> (\<forall>c\<in>cs. wf_cdecl wf_mb G c) \<and> unique G"
 
 lemma class_wf: 
  "[|class G C = Some c; wf_prog wf_mb G|] ==> wf_cdecl wf_mb G (C,c)"
@@ -57,9 +60,9 @@ apply (fast dest: map_of_SomeD)
 done
 
 lemma class_Object [simp]: 
-  "wf_prog wf_mb G ==> class G Object = Some (arbitrary, [], [])"
-apply (unfold wf_prog_def ObjectC_def class_def)
-apply (auto intro: map_of_SomeI)
+  "wf_prog wf_mb G ==> \<exists>X fs ms. class G Object = Some (X,fs,ms)"
+apply (unfold wf_prog_def wf_syscls_def class_def)
+apply (auto simp: map_of_SomeI)
 done
 
 lemma is_class_Object [simp]: "wf_prog wf_mb G ==> is_class G Object"
@@ -158,20 +161,12 @@ lemmas method_rec = wf_subcls1 [THEN [2] method_rec_lemma];
 
 lemmas fields_rec = wf_subcls1 [THEN [2] fields_rec_lemma];
 
-lemma method_Object [simp]: "wf_prog wf_mb G ==> method (G,Object) = empty"
-apply(subst method_rec)
-apply auto
-done
-
-lemma fields_Object [simp]: "wf_prog wf_mb G ==> fields (G,Object) = []"
-apply(subst fields_rec)
-apply auto
-done
-
-lemma field_Object [simp]: "wf_prog wf_mb G ==> field (G,Object) = empty"
-apply (unfold field_def)
-apply(simp (no_asm_simp))
-done
+lemma method_Object [simp]:
+  "method (G, Object) sig = Some (D, mh, code) \<Longrightarrow> wf_prog wf_mb G \<Longrightarrow> D = Object"  
+  apply (frule class_Object, clarify)
+  apply (drule method_rec, assumption)
+  apply (auto dest: map_of_SomeD)
+  done
 
 lemma subcls_C_Object: "[|is_class G C; wf_prog wf_mb G|] ==> G\<turnstile>C\<preceq>C Object"
 apply(erule subcls1_induct)
@@ -190,7 +185,10 @@ lemma widen_fields_defpl': "[|is_class G C; wf_prog wf_mb G|] ==>
   \<forall>((fn,fd),fT)\<in>set (fields (G,C)). G\<turnstile>C\<preceq>C fd"
 apply( erule subcls1_induct)
 apply(   assumption)
-apply(  simp (no_asm_simp))
+apply(  frule class_Object)
+apply(  clarify)
+apply(  frule fields_rec, assumption)
+apply(  fastsimp)
 apply( tactic "safe_tac HOL_cs")
 apply( subst fields_rec)
 apply(   assumption)
@@ -216,8 +214,16 @@ lemma unique_fields:
   "[|is_class G C; wf_prog wf_mb G|] ==> unique (fields (G,C))"
 apply( erule subcls1_induct)
 apply(   assumption)
-apply(  safe dest!: wf_cdecl_supD)
-apply(  simp (no_asm_simp))
+apply(  frule class_Object)
+apply(  clarify)
+apply(  frule fields_rec, assumption)
+apply(  drule class_wf, assumption)
+apply(  simp add: wf_cdecl_def)
+apply(  rule unique_map_inj)
+apply(   simp)
+apply(  rule injI)
+apply(  simp)
+apply( safe dest!: wf_cdecl_supD)
 apply( drule subcls1_wfD)
 apply(  assumption)
 apply( subst fields_rec)
@@ -269,7 +275,16 @@ lemma method_wf_mdecl [rule_format (no_asm)]:
    --> G\<turnstile>C\<preceq>C md \<and> wf_mdecl wf_mb G md (sig,(mh,m))"
 apply( erule subcls1_induct)
 apply(   assumption)
-apply(  force)
+apply(  clarify) 
+apply(  frule class_Object)
+apply(  clarify)
+apply(  frule method_rec, assumption)
+apply(  drule class_wf, assumption)
+apply(  simp add: wf_cdecl_def)
+apply(  drule map_of_SomeD)
+apply(  subgoal_tac "md = Object")
+apply(   fastsimp)
+apply(  fastsimp)
 apply( clarify)
 apply( frule_tac C = C in method_rec)
 apply(  assumption)
@@ -334,7 +349,10 @@ lemma method_in_md [rule_format (no_asm)]:
   "wf_prog wf_mb G ==> is_class G C \<Longrightarrow> \<forall>D. method (G,C) sig = Some(D,mh,code) 
   --> is_class G D \<and> method (G,D) sig = Some(D,mh,code)"
 apply (erule (1) subcls1_induct)
- apply (simp)
+ apply clarify
+ apply (frule method_Object, assumption)
+ apply hypsubst
+ apply simp
 apply (erule conjE)
 apply (subst method_rec)
   apply (assumption)
@@ -377,7 +395,12 @@ lemma fields_is_type_lemma [rule_format (no_asm)]:
   "[|is_class G C; wf_prog wf_mb G|] ==>  
   \<forall>f\<in>set (fields (G,C)). is_type G (snd f)"
 apply( erule (1) subcls1_induct)
-apply(  simp (no_asm_simp))
+apply(  frule class_Object)
+apply(  clarify)
+apply(  frule fields_rec, assumption)
+apply(  drule class_wf, assumption)
+apply(  simp add: wf_cdecl_def wf_fdecl_def)
+apply(  fastsimp)
 apply( subst fields_rec)
 apply(   fast)
 apply(  assumption)
@@ -405,24 +428,52 @@ lemma methd:
   "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls |]
   ==> method (G,C) sig = Some(C,rT,code) \<and> is_class G C"
 proof -
-  assume wf: "wf_prog wf_mb G" 
-  assume C:  "(C,S,fs,mdecls) \<in> set G"
-
-  assume m: "(sig,rT,code) \<in> set mdecls"
+  assume wf: "wf_prog wf_mb G" and C:  "(C,S,fs,mdecls) \<in> set G" and
+         m: "(sig,rT,code) \<in> set mdecls"
   moreover
-  from wf have "class G Object = Some (arbitrary, [], [])" by simp 
-  moreover
-  from wf C have c: "class G C = Some (S,fs,mdecls)"
+  from wf C have "class G C = Some (S,fs,mdecls)"
     by (auto simp add: wf_prog_def class_def is_class_def intro: map_of_SomeI)
-  ultimately
-  have O: "C \<noteq> Object" by auto      
-
-  from wf C have "unique mdecls" by (unfold wf_prog_def wf_cdecl_def) auto
-  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)" by (induct mdecls, auto)
-  with m have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
+  moreover
+  from wf C 
+  have "unique mdecls" by (unfold wf_prog_def wf_cdecl_def) auto
+  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)" by (induct mdecls, auto)  
+  with m 
+  have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
     by (force intro: map_of_SomeI)
-  with wf C m c O
+  ultimately
   show ?thesis by (auto simp add: is_class_def dest: method_rec)
 qed
+
+
+lemma wf_mb'E:
+  "\<lbrakk> wf_prog wf_mb G; \<And>C S fs ms m.\<lbrakk>(C,S,fs,ms) \<in> set G; m \<in> set ms\<rbrakk> \<Longrightarrow> wf_mb' G C m \<rbrakk>
+  \<Longrightarrow> wf_prog wf_mb' G"
+  apply (simp add: wf_prog_def)
+  apply auto
+  apply (simp add: wf_cdecl_def wf_mdecl_def)
+  apply safe
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply clarify apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply (drule bspec, assumption) apply simp
+  apply clarify apply (drule bspec, assumption)+ apply simp
+  done
+
+
+lemma fst_mono: "A \<subseteq> B \<Longrightarrow> fst ` A \<subseteq> fst ` B" by fast
+
+lemma wf_syscls:
+  "set SystemClasses \<subseteq> set G \<Longrightarrow> wf_syscls G"
+  apply (drule fst_mono)
+  apply (simp add: SystemClasses_def wf_syscls_def)
+  apply (simp add: ObjectC_def) 
+  apply (rule allI, case_tac x)
+  apply (auto simp add: NullPointerC_def ClassCastC_def OutOfMemoryC_def)
+  done
 
 end
