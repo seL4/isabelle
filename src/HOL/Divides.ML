@@ -86,12 +86,13 @@ Goal "(n+m) mod n = m mod (n::nat)";
 by (asm_simp_tac (simpset() addsimps [add_commute, mod_add_self2]) 1);
 qed "mod_add_self1";
 
+Addsimps [mod_add_self1, mod_add_self2];
+
 Goal "(m + k*n) mod n = m mod (n::nat)";
 by (induct_tac "k" 1);
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps [read_instantiate [("y","n")] add_left_commute, 
-			  mod_add_self1])));
+     (simpset() addsimps [read_instantiate [("y","n")] add_left_commute])));
 qed "mod_mult_self1";
 
 Goal "(m + n*k) mod n = m mod (n::nat)";
@@ -306,48 +307,6 @@ by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
 by (Asm_simp_tac 1);
 qed "mod_less_divisor";
 Addsimps [mod_less_divisor];
-
-(** Evens and Odds **)
-
-(*With less_zeroE, causes case analysis on b<2*)
-AddSEs [less_SucE];
-
-Goal "b<2 ==> (k mod 2 = b) | (k mod 2 = (if b=1 then 0 else 1))";
-by (subgoal_tac "k mod 2 < 2" 1);
-by (Asm_simp_tac 2);
-by (Asm_simp_tac 1);
-by Safe_tac;
-qed "mod2_cases";
-
-Goal "Suc(Suc(m)) mod 2 = m mod 2";
-by (subgoal_tac "m mod 2 < 2" 1);
-by (Asm_simp_tac 2);
-by Safe_tac;
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
-qed "mod2_Suc_Suc";
-Addsimps [mod2_Suc_Suc];
-
-Goal "(0 < m mod 2) = (m mod 2 = 1)";
-by (subgoal_tac "m mod 2 < 2" 1);
-by (Asm_simp_tac 2);
-by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
-qed "mod2_gr_0";
-Addsimps [mod2_gr_0];
-
-Goal "(m+m) mod 2 = 0";
-by (induct_tac "m" 1);
-by Auto_tac;
-qed "mod2_add_self_eq_0";
-Addsimps [mod2_add_self_eq_0];
-
-Goal "((m+m)+n) mod 2 = n mod 2";
-by (induct_tac "m" 1);
-by Auto_tac;
-qed "mod2_add_self";
-Addsimps [mod2_add_self];
-
-(*Restore the default*)
-Delrules [less_SucE];
 
 (*** More division laws ***)
 
