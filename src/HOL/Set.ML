@@ -137,6 +137,8 @@ by (REPEAT (ares_tac (prems RL [subsetD]) 1));
 qed "subset_antisym";
 val equalityI = subset_antisym;
 
+AddSIs [equalityI];
+
 (* Equality rules from ZF set theory -- are they appropriate here? *)
 val prems = goal Set.thy "A = B ==> A<=(B::'a set)";
 by (resolve_tac (prems RL [subst]) 1);
