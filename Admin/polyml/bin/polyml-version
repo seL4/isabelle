@@ -5,4 +5,4 @@
 # NOTE: version identifiers should be kept as generic as possible,
 # i.e. shared by compatible environments.
 
-echo polyml-4.0
+echo polyml-4.1
