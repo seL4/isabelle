@@ -167,9 +167,9 @@ val local_transfer = gen_transfer ProofContext.theory_of;
 
 (* COMP *)
 
-fun comp B (x, A) = (x, A COMP B);
+fun comp (i, B) (x, A) = (x, Drule.compose_single (A, i, B));
 
-fun gen_COMP thm = syntax (thm >> comp);
+fun gen_COMP thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> comp);
 val global_COMP = gen_COMP global_thm;
 val local_COMP = gen_COMP local_thm;
 
