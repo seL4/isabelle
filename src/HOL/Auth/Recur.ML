@@ -423,19 +423,21 @@ goal thy
 by (etac respond.induct 1);
 by (forward_tac [respond_imp_responses] 2);
 by (forward_tac [respond_imp_not_used] 2);
-by (ALLGOALS (*23 seconds*)
+by (ALLGOALS (*12 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps 
        [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
-by (ALLGOALS Simp_tac);
+by (ALLGOALS (simp_tac (!simpset addsimps [ex_disj_distrib])));
+(** LEVEL 5 **)
 by (blast_tac (!claset addIs [impOfSubs analz_subset_parts]) 1);
 by (step_tac (!claset addSEs [MPair_parts]) 1);
-(** LEVEL 7 **)
-by (blast_tac (!claset addSDs [resp_analz_insert, Key_in_parts_respond]
-                      addDs  [impOfSubs analz_subset_parts]) 4);
-by (blast_tac (!claset addSDs [respond_certificate]) 3);
+by (REPEAT (blast_tac (!claset addSDs [respond_certificate]
+		               addDs [resp_analz_insert]
+			       addIs  [impOfSubs analz_subset_parts]) 4));
+by (Blast_tac 3);
 by (blast_tac (!claset addSEs partsEs
                        addDs [Key_in_parts_respond]) 2);
+(*by unicity, either B=Aa or B=A', a contradiction since B: lost*)
 by (dtac unique_session_keys 1);
 by (etac respond_certificate 1);
 by (assume_tac 1);
