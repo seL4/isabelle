@@ -323,13 +323,13 @@ fun write_tex_index tex_index path =
   write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
 
 
-fun isatool_document doc_format path =
+fun isatool_document verbose doc_format path =
   let
     val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
-      File.quote_sysify_path path ^ " 2>&1";
+      File.quote_sysify_path path ^ " 2>&1" ^ (if verbose then "" else " >/dev/null");
   in
-    writeln s;
-    writeln (Output.raw (execute s));
+    if verbose then writeln s else ();
+    system s;
     if File.exists (Path.ext doc_format path) then ()
     else error "Failed to build document"
   end;
@@ -398,7 +398,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
 
     (case doc_prefix1 of None => () | Some path =>
      (prepare_sources path;
-      isatool_document doc_format path;
+      isatool_document true doc_format path;
       conditional verbose (fn () =>
         std_error ("Document at " ^ show_path (Path.ext doc_format path) ^ "\n"))));
 
@@ -527,7 +527,7 @@ fun drafts doc_format src_paths =
       |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
-    val _ = isatool_document doc_format doc_path;
+    val _ = isatool_document false doc_format doc_path;
   in Path.ext doc_format doc_path end;
 
 
