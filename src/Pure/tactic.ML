@@ -528,14 +528,14 @@ fun fold_goals_tac defs = EVERY
 (*Calling this will generate the warning "Same as previous level" since
   it affects nothing but the names of bound variables!*)
 fun rename_tac str i = 
-  let val cs = explode str 
+  let val cs = Symbol.explode str 
   in  
   if !Logic.auto_rename 
   then (warning "Resetting Logic.auto_rename"; 
 	Logic.auto_rename := false)
   else ();
-  case #2 (take_prefix (is_letdig orf is_blank) cs) of
-      [] => PRIMITIVE (rename_params_rule (scanwords is_letdig cs, i))
+  case #2 (take_prefix (Symbol.is_letdig orf Symbol.is_blank) cs) of
+      [] => PRIMITIVE (rename_params_rule (scanwords Symbol.is_letdig cs, i))
     | c::_ => error ("Illegal character: " ^ c)
   end;
 

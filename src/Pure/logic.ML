@@ -231,7 +231,7 @@ and rename_prefix = ref "ka";
 
 (*rename_prefix is not exported; it is set by this function.*)
 fun set_rename_prefix a =
-    if a<>"" andalso forall is_letter (explode a)
+    if a<>"" andalso forall Symbol.is_letter (Symbol.explode a)
     then  (rename_prefix := a;  auto_rename := true)
     else  error"rename prefix must be nonempty and consist of letters";
 
