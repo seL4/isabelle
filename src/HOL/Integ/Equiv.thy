@@ -58,7 +58,7 @@ lemma equiv_class_subset:
   -- {* lemma for the next result *}
   by (unfold equiv_def trans_def sym_def) blast
 
-lemma equiv_class_eq: "equiv A r ==> (a, b) \<in> r ==> r``{a} = r``{b}"
+theorem equiv_class_eq: "equiv A r ==> (a, b) \<in> r ==> r``{a} = r``{b}"
   apply (assumption | rule equalityI equiv_class_subset)+
   apply (unfold equiv_def sym_def)
   apply blast
@@ -83,11 +83,11 @@ lemma equiv_class_nondisjoint:
 lemma equiv_type: "equiv A r ==> r \<subseteq> A \<times> A"
   by (unfold equiv_def refl_def) blast
 
-lemma equiv_class_eq_iff:
+theorem equiv_class_eq_iff:
   "equiv A r ==> ((x, y) \<in> r) = (r``{x} = r``{y} & x \<in> A & y \<in> A)"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
-lemma eq_equiv_class_iff:
+corollary eq_equiv_class_iff:
   "equiv A r ==> x \<in> A ==> y \<in> A ==> (r``{x} = r``{y}) = ((x, y) \<in> r)"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
@@ -311,7 +311,6 @@ val equiv_class_eq = thm "equiv_class_eq";
 val equiv_class_eq_iff = thm "equiv_class_eq_iff";
 val equiv_class_nondisjoint = thm "equiv_class_nondisjoint";
 val equiv_class_self = thm "equiv_class_self";
-val equiv_class_subset = thm "equiv_class_subset";
 val equiv_comp_eq = thm "equiv_comp_eq";
 val equiv_def = thm "equiv_def";
 val equiv_imp_dvd_card = thm "equiv_imp_dvd_card";

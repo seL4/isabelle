@@ -12,7 +12,7 @@ theory IntDef = Equiv + NatArith:
 constdefs
   intrel :: "((nat * nat) * (nat * nat)) set"
     --{*the equivalence relation underlying the integers*}
-    "intrel == {p. \<exists>x y u v. p = ((x,y),(u,v)) & x+v = u+y}"
+    "intrel == {((x,y),(u,v)) | x y u v. x+v = u+y}"
 
 typedef (Integ)
   int = "UNIV//intrel"
@@ -62,25 +62,34 @@ subsection{*Construction of the Integers*}
 
 subsubsection{*Preliminary Lemmas about the Equivalence Relation*}
 
-lemma intrel_iff [simp]: "(((x,y),(u,v)) \<in>  intrel) = (x+v = u+y)"
+lemma intrel_iff [simp]: "(((x,y),(u,v)) \<in> intrel) = (x+v = u+y)"
 by (simp add: intrel_def)
 
 lemma equiv_intrel: "equiv UNIV intrel"
 by (simp add: intrel_def equiv_def refl_def sym_def trans_def)
 
-lemmas equiv_intrel_iff =
-       eq_equiv_class_iff [OF equiv_intrel UNIV_I UNIV_I, simp]
+text{*Reduces equality of equivalence classes to the @{term intrel} relation:
+  @{term "(intrel `` {x} = intrel `` {y}) = ((x,y) \<in> intrel)"} *}
+lemmas equiv_intrel_iff = eq_equiv_class_iff [OF equiv_intrel UNIV_I UNIV_I]
 
+declare equiv_intrel_iff [simp]
+
+
+text{*All equivalence classes belong to set of representatives*}
 lemma intrel_in_integ [simp]: "intrel``{(x,y)} \<in> Integ"
-by (simp add: Integ_def intrel_def quotient_def, fast)
+by (auto simp add: Integ_def intrel_def quotient_def)
 
 lemma inj_on_Abs_Integ: "inj_on Abs_Integ Integ"
 apply (rule inj_on_inverseI)
 apply (erule Abs_Integ_inverse)
 done
 
+text{*This theorem reduces equality on abstractions to equality on 
+      representatives:
+  @{term "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
 declare inj_on_Abs_Integ [THEN inj_on_iff, simp]
-        Abs_Integ_inverse [simp]
+
+declare Abs_Integ_inverse [simp]
 
 text{*Case analysis on the representation of an integer as an equivalence
       class of pairs of naturals.*}
@@ -211,10 +220,7 @@ lemma zadd_zmult_distrib2: "(w::int) * (z1 + z2) = (w * z1) + (w * z2)"
 by (simp add: zmult_commute [of w] zadd_zmult_distrib)
 
 lemma zdiff_zmult_distrib: "((z1::int) - z2) * w = (z1 * w) - (z2 * w)"
-apply (simp add: diff_int_def)
-apply (subst zadd_zmult_distrib)
-apply (simp add: zmult_zminus)
-done
+by (simp add: diff_int_def zadd_zmult_distrib zmult_zminus)
 
 lemma zdiff_zmult_distrib2: "(w::int) * (z1 - z2) = (w * z1) - (w * z2)"
 by (simp add: zmult_commute [of w] zdiff_zmult_distrib)
@@ -672,21 +678,28 @@ proof
   show "int n = of_nat n"  by (induct n, simp_all add: int_Suc add_ac)
 qed
 
+lemma of_nat_eq_id [simp]: "of_nat = (id :: nat => nat)"
+proof
+  fix n
+  show "of_nat n = id n"  by (induct n, simp_all)
+qed
+
 
 subsection{*Embedding of the Integers into any Ring: @{term of_int}*}
 
 constdefs
    of_int :: "int => 'a::ring"
-   "of_int z ==
-      (THE a. \<exists>i j. (i,j) \<in> Rep_Integ z & a = (of_nat i) - (of_nat j))"
+   "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ(z). { of_nat i - of_nat j })"
 
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
-apply (simp add: of_int_def)
-apply (rule the_equality, auto)
-apply (simp add: compare_rls add_ac of_nat_add [symmetric]
-            del: of_nat_add)
-done
+proof -
+  have "congruent intrel (\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) })"
+    by (simp add: congruent_def compare_rls of_nat_add [symmetric]
+            del: of_nat_add) 
+  thus ?thesis
+    by (simp add: of_int_def UN_equiv_class [OF equiv_intrel])
+qed
 
 lemma of_int_0 [simp]: "of_int 0 = 0"
 by (simp add: of_int Zero_int_def int_def)
@@ -737,6 +750,14 @@ by (simp add: order_eq_iff)
 text{*Special cases where either operand is zero*}
 declare of_int_eq_iff [of 0, simplified, simp]
 declare of_int_eq_iff [of _ 0, simplified, simp]
+
+lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
+proof
+ fix z
+ show "of_int z = id z"  
+  by (cases z,
+      simp add: of_int add minus int_eq_of_nat [symmetric] int_def diff_minus)
+qed
 
 
 subsection{*The Set of Integers*}
@@ -886,8 +907,7 @@ done
 lemma negD: "x<0 ==> \<exists>n. x = - (int (Suc n))"
 apply (cases x)
 apply (auto simp add: le minus Zero_int_def int_def order_less_le) 
-apply (rule_tac x="y - Suc x" in exI) 
-apply arith
+apply (rule_tac x="y - Suc x" in exI, arith)
 done
 
 theorem int_cases [cases type: int, case_names nonneg neg]:
@@ -942,11 +962,6 @@ val Zero_int_def = thm "Zero_int_def";
 val One_int_def = thm "One_int_def";
 val diff_int_def = thm "diff_int_def";
 
-val intrel_iff = thm "intrel_iff";
-val equiv_intrel = thm "equiv_intrel";
-val equiv_intrel_iff = thm "equiv_intrel_iff";
-val intrel_in_integ = thm "intrel_in_integ";
-val inj_on_Abs_Integ = thm "inj_on_Abs_Integ";
 val inj_int = thm "inj_int";
 val zminus_zminus = thm "zminus_zminus";
 val zminus_0 = thm "zminus_0";
