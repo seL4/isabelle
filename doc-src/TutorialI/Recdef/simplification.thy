@@ -60,7 +60,7 @@ Note that the order of equations is important and hides the side condition
 may not be expressible by pattern matching.
 
 A very simple alternative is to replace @{text if} by @{text case}, which
-is also available for @{typ"bool"} but is not split automatically:
+is also available for @{typ bool} but is not split automatically:
 *}
 
 consts gcd2 :: "nat\<times>nat \<Rightarrow> nat";

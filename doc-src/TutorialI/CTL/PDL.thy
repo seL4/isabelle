@@ -1,8 +1,8 @@
 (*<*)theory PDL = Base:(*>*)
 
-subsection{*Propositional dynmic logic---PDL*}
+subsection{*Propositional dynamic logic---PDL*}
 
-text{*
+text{*\index{PDL|(}
 The formulae of PDL are built up from atomic propositions via the customary
 propositional connectives of negation and conjunction and the two temporal
 connectives @{text AX} and @{text EF}. Since formulae are essentially
@@ -59,7 +59,6 @@ primrec
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
 "mc(EF f)    = lfp(\<lambda>T. mc f \<union> M^-1 ^^ T)"
-
 
 text{*\noindent
 Only the equation for @{term EF} deserves some comments. Remember that the
@@ -199,6 +198,7 @@ Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
 Show that the semantics for @{term EF} satisfies the following recursion equation:
 @{prop[display]"(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> EN(EF f))"}
 \end{exercise}
+\index{PDL|)}
 *}
 (*<*)
 theorem main: "mc f = {s. s \<Turnstile> f}";

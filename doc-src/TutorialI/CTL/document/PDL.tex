@@ -2,9 +2,10 @@
 \begin{isabellebody}%
 \def\isabellecontext{PDL}%
 %
-\isamarkupsubsection{Propositional dynmic logic---PDL}
+\isamarkupsubsection{Propositional dynamic logic---PDL}
 %
 \begin{isamarkuptext}%
+\index{PDL|(}
 The formulae of PDL are built up from atomic propositions via the customary
 propositional connectives of negation and conjunction and the two temporal
 connectives \isa{AX} and \isa{EF}. Since formulae are essentially
@@ -188,7 +189,8 @@ Show that the semantics for \isa{EF} satisfies the following recursion equation:
 \begin{isabelle}%
 \ \ \ \ \ s\ {\isasymTurnstile}\ EF\ f\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymor}\ s\ {\isasymTurnstile}\ EN\ {\isacharparenleft}EF\ f{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
-\end{exercise}%
+\end{exercise}
+\index{PDL|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

@@ -78,9 +78,9 @@ because the two halves of the goal would be unrelated.
 \begin{exercise}
 The fact that substitution distributes over composition can be expressed
 roughly as follows:
-@{text[display]"subst (f o g) t = subst f (subst g t)"}
+@{text[display]"subst (f \<circ> g) t = subst f (subst g t)"}
 Correct this statement (you will find that it does not type-check),
-strengthen it, and prove it. (Note: \isaindexbold{o} is function composition;
+strengthen it, and prove it. (Note: @{text"\<circ>"} is function composition;
 its definition is found in theorem @{thm[source]o_def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}

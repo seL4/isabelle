@@ -117,8 +117,6 @@ apply(clarsimp simp add: af_def Paths_def);
 (*ML"Pretty.setmargin 70";
 pr(latex xsymbols symbols);*)
 txt{*\noindent
-FIXME OF/of with undescore?
-
 leads to the following somewhat involved proof state
 \begin{isabelle}
 \ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ \isadigit{0}\ {\isasymin}\ A\ {\isasymor}\isanewline
@@ -374,15 +372,19 @@ done
 
 text{*
 The above language is not quite CTL. The latter also includes an
-until-operator, usually written as an infix @{text U}. The formula
-@{term"f U g"} means ``@{term f} until @{term g}''.
+until-operator, which is the subject of the following exercise.
 It is not definable in terms of the other operators!
 \begin{exercise}
-Extend the datatype of formulae by the until operator with semantics
-@{text[display]"s \<Turnstile> f U g = (............)"}
+Extend the datatype of formulae by the binary until operator @{term"EU f g"} with semantics
+``there exist a path where @{term f} is true until @{term g} becomes true''
+@{text[display]"s \<Turnstile> EU f g = (\<exists>p\<in>Paths s. \<exists>j. p j \<Turnstile> g \<and> (\<exists>i < j. p i \<Turnstile> f))"}
 and model checking algorithm
-@{text[display]"mc(f U g) = (............)"}
-Prove that the equivalence between semantics and model checking still holds.
+@{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M^-1 ^^ T))"}
+Prove the equivalence between semantics and model checking, i.e.\
+@{prop"mc(EU f g) = {s. s \<Turnstile> EU f g}"}.
+
+For readability you may want to equip @{term EU} with the following customary syntax:
+@{text"E[f U g]"}.
 \end{exercise}
 
 Let us close this section with a few words about the executability of @{term mc}.

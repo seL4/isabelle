@@ -66,8 +66,6 @@ by simplification and clarification%
 \isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-FIXME OF/of with undescore?
-
 leads to the following somewhat involved proof state
 \begin{isabelle}
 \ \isadigit{1}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ \isadigit{0}\ {\isasymin}\ A\ {\isasymor}\isanewline
@@ -273,19 +271,23 @@ on the spot:%
 \isacommand{done}%
 \begin{isamarkuptext}%
 The above language is not quite CTL. The latter also includes an
-until-operator, usually written as an infix \isa{U}. The formula
-\isa{f\ U\ g} means ``\isa{f} until \isa{g}''.
+until-operator, which is the subject of the following exercise.
 It is not definable in terms of the other operators!
 \begin{exercise}
-Extend the datatype of formulae by the until operator with semantics
+Extend the datatype of formulae by the binary until operator \isa{EU\ f\ g} with semantics
+``there exist a path where \isa{f} is true until \isa{g} becomes true''
 \begin{isabelle}%
-\ \ \ \ \ s\ {\isasymTurnstile}\ f\ U\ g\ {\isacharequal}\ {\isacharparenleft}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isacharparenright}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}j{\isachardot}\ p\ j\ {\isasymTurnstile}\ g\ {\isasymand}\ {\isacharparenleft}{\isasymexists}i\ {\isacharless}\ j{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 and model checking algorithm
 \begin{isabelle}%
-\ \ \ \ \ mc{\isacharparenleft}f\ U\ g{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isacharparenright}%
+\ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
-Prove that the equivalence between semantics and model checking still holds.
+Prove the equivalence between semantics and model checking, i.e.\
+\isa{mc\ {\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ EU\ f\ g{\isacharbraceright}}.
+
+For readability you may want to equip \isa{EU} with the following customary syntax:
+\isa{E{\isacharbrackleft}f\ U\ g{\isacharbrackright}}.
 \end{exercise}
 
 Let us close this section with a few words about the executability of \isa{mc}.
