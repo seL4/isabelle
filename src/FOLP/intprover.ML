@@ -5,12 +5,12 @@
 
 A naive prover for intuitionistic logic
 
-BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use Int.fast_tac ...
+BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use IntPr.fast_tac ...
 
 Completeness (for propositional logic) is proved in 
 
 Roy Dyckhoff.
-Contraction-Free Sequent Calculi for Intuitionistic Logic.
+Contraction-Free Sequent Calculi for IntPruitionistic Logic.
 J. Symbolic Logic (in press)
 *)
 
@@ -27,7 +27,7 @@ signature INT_PROVER =
   end;
 
 
-structure Int : INT_PROVER   = 
+structure IntPr : INT_PROVER   = 
 struct
 
 (*Negation is treated as a primitive symbol, with rules notI (introduction),

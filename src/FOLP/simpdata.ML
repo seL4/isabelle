@@ -10,7 +10,7 @@ Simplification data for FOLP
 
 fun int_prove_fun_raw s = 
     (writeln s;  prove_goal IFOLP.thy s
-       (fn prems => [ (cut_facts_tac prems 1), (Int.fast_tac 1) ]));
+       (fn prems => [ (cut_facts_tac prems 1), (IntPr.fast_tac 1) ]));
 
 fun int_prove_fun s = int_prove_fun_raw ("?p : "^s);
 
