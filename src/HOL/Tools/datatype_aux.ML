@@ -40,6 +40,7 @@ sig
   type datatype_info
 
   exception Datatype
+  val name_of_typ : typ -> string
   val dtyp_of_typ : (string * string list) list -> typ -> dtyp
   val mk_Free : string -> typ -> int -> term
   val is_rec_type : dtyp -> bool
@@ -197,6 +198,10 @@ fun is_rec_type (DtType (_, dts)) = exists is_rec_type dts
   | is_rec_type _ = false;
 
 fun dest_TFree (TFree (n, _)) = n;
+
+fun name_of_typ (Type (s, Ts)) = space_implode "_"
+      (filter (not o equal "") (map name_of_typ Ts) @ [Sign.base_name s])
+  | name_of_typ _ = "";
 
 fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
   | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
