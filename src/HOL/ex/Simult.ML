@@ -74,8 +74,11 @@ val prems = goalw Simult.thy TF_Rep_defs
 by (rtac (ballI RS TF_induct_lemma) 1);
 by (etac TF_induct 1);
 by (rewrite_goals_tac TF_Rep_defs);
-by (ALLGOALS (fast_tac (!claset addIs prems)));
-(*29 secs??*)
+	(*Blast_tac needs this type instantiation in order to preserve the
+          right overloading of equality.  The injectiveness properties for
+          type 'a item hold only for set types.*)
+val PartE' = read_instantiate [("'a", "?'c set")] PartE;
+by (ALLGOALS (blast_tac (!claset addSEs [PartE'] addIs prems)));
 qed "Tree_Forest_induct";
 
 (*Induction for the abstract types 'a tree, 'a forest*)
