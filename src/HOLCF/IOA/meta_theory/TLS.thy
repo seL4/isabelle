@@ -30,12 +30,17 @@ xt2        :: "'a option predicate => ('a,'s)step_pred"
 validTE    :: "('a,'s)ioa_temp => bool"
 validIOA   :: "('a,'s)ioa => ('a,'s)ioa_temp => bool"
 
+mkfin      :: "'a Seq => 'a Seq"
 
 ex2seq     :: "('a,'s)execution => ('a option,'s)transition Seq"
 ex2seqC    :: "('a,'s)pairs -> ('s => ('a option,'s)transition Seq)" 
 
 
 defs
+
+mkfin_def
+  "mkfin s == if Partial s then @t. Finite t & s = t @@ UU
+                           else s"
 
 (* should be in Option as option_lift1, and option_map should be renamed to 
    option_lift2 *)
@@ -56,10 +61,8 @@ xt1_def
 xt2_def
   "xt2 P tr == P (fst (snd tr))"
 
-
-(* FIX: Clarify type and Herkunft of a !! *)
 ex2seq_def
-  "ex2seq ex == ((ex2seqC `(snd ex)) (fst ex))"
+  "ex2seq ex == ((ex2seqC `(mkfin (snd ex))) (fst ex))"
 
 ex2seqC_def
   "ex2seqC == (fix`(LAM h ex. (%s. case ex of 
@@ -77,8 +80,15 @@ validIOA_def
 
 rules
 
-ex2seq_UUAlt
-  "ex2seq (s,UU) = (s,None,s)>>UU"
+mkfin_UU
+  "mkfin UU = nil"
+
+mkfin_nil
+  "mkfin nil =nil"
+
+mkfin_cons
+  "(mkfin (a>>s)) = (a>>(mkfin s))"
+
 
 
 end

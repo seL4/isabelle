@@ -51,7 +51,10 @@ qed"ex2seqC_cons";
 Addsimps [ex2seqC_UU,ex2seqC_nil,ex2seqC_cons];
 
 
-Goal "ex2seq (s, UU) = UU";
+
+Addsimps [mkfin_UU,mkfin_nil,mkfin_cons];
+
+Goal "ex2seq (s, UU) = (s,None,s)>>nil";
 by (simp_tac (simpset() addsimps [ex2seq_def]) 1);
 qed"ex2seq_UU";
 
@@ -64,12 +67,16 @@ by (simp_tac (simpset() addsimps [ex2seq_def]) 1);
 qed"ex2seq_cons";
 
 Delsimps [ex2seqC_UU,ex2seqC_nil,ex2seqC_cons]; 
-Addsimps [ex2seq_UUAlt,ex2seq_nil, ex2seq_cons];  
+Addsimps [ex2seq_UU,ex2seq_nil, ex2seq_cons];  
 
 
 
-(* FIX: Not true for UU, as ex2seq is defined continously !!!!! *)
+
 Goal "ex2seq exec ~= UU & ex2seq exec ~= nil";
+by (pair_tac "exec" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+qed"ex2seq_nUUnnil";
 
 
 Goal "ex |== [] P .--> P";
@@ -79,15 +86,45 @@ Goal "ex |== [] P .--> P";
 (*           Interface TL -- TLS                               *)
 (* ---------------------------------------------------------- *)
 
+
+(* uses the fact that in executions states overlap, which is lost in 
+   after the translation via ex2seq !! *)
+
 Goalw [Init_def,Next_def,temp_sat_def,satisfies_def,IMPLIES_def,AND_def]
- "!! s. (P s) & s-a--A-> t --> (Q t) \
+ "!! A. [| ! s a t. (P s) & s-a--A-> t --> (Q t) |]\
 \  ==> ex |== (Init (%(s,a,t). P s) .& Init (%(s,a,t). s -a--A-> t) \
 \             .--> (Next (Init (%(s,a,t).Q s))))";
 
-by (Asm_full_simp_tac 1);
+by (clarify_tac set_cs 1);
+by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+(* TL = UU *)
+br conjI 1;
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+(* TL = nil *)
+br conjI 1;
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (asm_full_simp_tac (simpset() addsimps [unlift_def])1);
+by (Fast_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [unlift_def])1);
+by (Fast_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [unlift_def])1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+(* TL =cons *)
+by (asm_full_simp_tac (simpset() addsimps [unlift_def])1);
 
-
-
-
+by (pair_tac "ex" 1);
+by (Seq_case_simp_tac "y" 1);
+by (pair_tac "a" 1);
+by (Seq_case_simp_tac "s" 1);
+ by (Fast_tac 1);
+ by (Fast_tac 1);
+by (pair_tac "a" 1);
+ by (Fast_tac 1);
+qed"TL_TLS";

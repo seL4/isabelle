@@ -492,15 +492,8 @@ by (pair_tac "a" 1);
 by Auto_tac;
 qed"TLex2seq";
 
-Goal "(TL`(ex2seq ex)~=UU) = ((snd ex)~=UU)";
-by (pair_tac "ex" 1);
-by (Seq_case_simp_tac "y" 1);
-by (pair_tac "a" 1);
-by (Seq_case_simp_tac "s" 1);
-by (pair_tac "a" 1);
-qed"ex2seqUUTL";
  
-Goal "(TL`(ex2seq ex)~=nil) = ((snd ex)~=nil)";
+Goal "(TL`(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
@@ -521,7 +514,8 @@ by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
 by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
 (* cons case *)
 by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU,
-        ex2seq_abs_cex,cex_absSeq_TL RS sym, ex2seqUUTL,ex2seqnilTL])1);
+        ex2seq_abs_cex,cex_absSeq_TL RS sym, ex2seqnilTL])1);
+be conjE 1;
 by (dtac TLex2seq 1);
 by (assume_tac 1);
 by Auto_tac;
