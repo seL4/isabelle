@@ -118,6 +118,8 @@ The installation may be finished as follows:
 
 <p>
 
-Users can now invoke the Isabelle executables without further ado.
+Users can now invoke the Isabelle executables without further ado,
+e.g. just start the main <tt>Isabelle</tt> executable to lauch the
+Isabelle Proof General interface.
 
 <p>

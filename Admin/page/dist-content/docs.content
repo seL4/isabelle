@@ -4,15 +4,25 @@ Isabelle Documentation
 %body%
 <!-- _GP_ distname --> documentation is included here as browsable PDF
 for convenience.  These documents are also part of the standard
-Isabelle distribution.
+Isabelle distribution.  For getting started with Isabelle quickly, we
+recommend the <a href="tutorial.pdf">Tutorial on Isabelle/HOL</a>.
 
 <!-- _GP_ include("$pwd/docu-contents.dist") -->
 
-The following text files of the Isabelle distribution may be also of
-some interest:
+The Isabelle distribution also includes a few text files with further
+information about the present release and additional installation
+instructions.
 <ul>
 <li> <!-- _GP_ href(distname . "/ANNOUNCE", "ANNOUNCE") -->
 <li> <!-- _GP_ href(distname . "/README.html", "README") -->
 <li> <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
 <li> <!-- _GP_ href(distname . "/NEWS", "NEWS") -->
 </ul>
+
+<p>
+
+Use the mailing list <a href="mailto:
+isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> and its
+<a href="ftp://ftp.cl.cam.ac.uk/ml/index.html">archive</a> to discuss
+problems and results.  Why not <a
+href="mailto:lcp@cl.cam.ac.uk">subscribe</a>?

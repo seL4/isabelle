@@ -30,6 +30,10 @@ The most prominent highlights of Isabelle99-1 are as follows.
     virtual machine and a specification of its bytecode verifier and a
     lightweight bytecode verifier, including proofs of type-safety.
 
+  * HOL/BCV (Tobias Nipkow)
+    Generic model of bytecode verification, i.e. data-flow
+    analysis for assembly languages with subtypes.
+
   * HOL/Real (Jacques Fleuriot)
     More on nonstandard real analysis.
 
