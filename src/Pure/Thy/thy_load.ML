@@ -70,7 +70,7 @@ fun check_file src_path =
     val path = Path.expand src_path;
 
     fun find_ext rel_path ext =
-      let val ext_path = Path.ext ext rel_path
+      let val ext_path = Path.expand (Path.ext ext rel_path)
       in apsome (fn info => (File.full_path ext_path, info)) (File.info ext_path) end;
 
     fun find_dir dir =
