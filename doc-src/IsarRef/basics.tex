@@ -4,23 +4,36 @@
 Isabelle/Isar offers two main improvements over classic Isabelle:
 \begin{enumerate}
 \item A new \emph{theory format}, often referred to as ``new-style theories'',
-  supporting interactive development with unlimited undo operation.
-\item A formal \emph{proof language} language designed to support
-  \emph{intelligible} semi-automated reasoning.  Rather than putting together
-  tactic scripts, the author is enabled to express the reasoning in way that
-  is close to mathematical practice.
+  supporting interactive development and unlimited undo operation.
+\item A \emph{formal proof language} designed to support intelligible
+  semi-automated reasoning.  Rather than putting together tactic scripts, the
+  author is enabled to express the reasoning in way that is close to
+  mathematical practice.
 \end{enumerate}
 
 The Isar proof language is embedded into the new theory format as a proper
 sub-language.  Proof mode is entered by stating some $\THEOREMNAME$ or
-$\LEMMANAME$ at the theory levels, and left with the final end of proof.  Some
-theory extension mechanisms require proof as well, such as the HOL
-$\isarkeyword{typedef}$.
+$\LEMMANAME$ at the theory levels, and left with the final end of proof (e.g.\ 
+via $\QEDNAME$).  Some theory extension mechanisms require proof as well, such
+as the HOL $\isarkeyword{typedef}$ mechanism that only works for non-empty
+representing sets.
 
 New-style theory files may still be associated with an ML file consisting of
-plain old tactic scripts.  Generally, migration between the two formats is
-made relatively easy, and users may start to benefit from interactive theory
-development even before they have any idea of the Isar proof language.
+plain old tactic scripts.  There is no longer any ML binding generated for the
+theory and theorems, though.  Functions \texttt{theory}, \texttt{thm}, and
+\texttt{thms} may be used to retrieve this information from ML (see also
+\cite{isabelle-ref}).  Nevertheless, migration between classic Isabelle and
+Isabelle/Isar is relatively easy.  Thus users may start to benefit from
+interactive theory development even before they have any idea of the Isar
+proof language.
+
+\begin{warn}
+  Proof~General does \emph{not} support mixed interactive development of
+  classic Isabelle theory files and tactic scripts together with Isar
+  documents at the same time.  The \texttt{isa} and \texttt{isar} versions of
+  Proof~General appear as two different theorem proving systems; only one
+  prover may be active at any time.
+\end{warn}
 
 
 \section{The Isar proof language}

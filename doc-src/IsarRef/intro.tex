@@ -15,7 +15,7 @@ constdefs foo :: nat  "foo == 1";
 lemma "0 < foo" by (simp add: foo_def);
 end
 \end{ttbox}
-Note that \emph{any} Isabelle/Isar command may be retracted by \texttt{undo}.
+Note that any Isabelle/Isar command may be retracted by \texttt{undo}.
 
 Plain TTY-based interaction like this used to be quite feasible with
 traditional tactic based theorem proving, but developing Isar documents
@@ -30,7 +30,7 @@ canonical working environment for Isabelle/Isar, both for getting acquainted
 
 \medskip
 
-The easiest way to use ProofGeneral is to make it the default Isabelle user
+The easiest way to use Proof~General is to make it the default Isabelle user
 interface.  Just say something like this in your Isabelle settings file (cf.\ 
 \cite{isabelle-sys}):
 \begin{ttbox}
@@ -39,8 +39,8 @@ PROOFGENERAL_OPTIONS=""
 \end{ttbox}
 You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
 actual installation directory of Proof~General.  Now the capital
-\texttt{Isabelle} binary refers to the \texttt{ProofGeneral/isar} interface.
-It's usage is as follows:
+\texttt{Isabelle} executable refers to the \texttt{ProofGeneral/isar}
+interface.  It's usage is as follows:
 \begin{ttbox}
 Usage: interface [OPTIONS] [FILES ...]
 
@@ -53,12 +53,12 @@ Options are:
 Starts Proof General for Isabelle/Isar with proof documents FILES
 (default Scratch.thy).
 \end{ttbox}
-The defaults for these options may be changed via the
-\texttt{PROOFGENERAL_OPTIONS} setting.  For example, GNU Emacs\footnote{GNU
-  Emacs version 20.x required.} with loading of the startup file enabled may
-be configured as follows:\footnote{The interface disables \texttt{.emacs} by
-  default to ensure successful startup despite any strange commands that tend
-  to occur there.}
+Note that the defaults for these options may be overridden via the
+\texttt{PROOFGENERAL_OPTIONS} setting.  For example, GNU
+Emacs\footnote{Version 20.x required.} with loading of the startup file
+enabled may be configured as follows:\footnote{The interface disables
+  \texttt{.emacs} by default to ensure successful startup despite any strange
+  commands that tend to occur there.}
 \begin{ttbox}
 PROOFGENERAL_OPTIONS="-p emacs -u true"
 \end{ttbox}
@@ -68,7 +68,7 @@ visiting appropriate theory files, e.g.\
 \begin{ttbox}
 Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 \end{ttbox}
-Users of XEmacs may note the toolbar for navigating forward and backward
+Users of XEmacs may note the tool bar for navigating forward and backward
 through the text.  Consult the Proof~General documentation \cite{proofgeneral}
 for further basic commands, such as \texttt{c-c return} or \texttt{c-c u}.
 

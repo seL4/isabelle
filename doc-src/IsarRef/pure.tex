@@ -1,12 +1,12 @@
 
-\chapter{Basic Isar elements}
+\chapter{Basic Isar elements}\label{ch:pure-syntax}
 
-Subsequently, we introduce most of the basic Isar theory and proof commands as
-provided by Isabelle/Pure.  Chapter~\ref{ch:gen-tools} describes further Isar
-elements as provided by generic tools and packages that are either part of
-Pure Isabelle, or preloaded by most object logics (such as the Simplifier).
-See chapter~\ref{ch:hol-tools} for actual object-logic specific elements (for
-Isabelle/HOL).
+Subsequently, we introduce the main part of the basic Isar theory and proof
+commands as provided by Isabelle/Pure.  Chapter~\ref{ch:gen-tools} describes
+further Isar elements as provided by generic tools and packages that are
+either part of Pure Isabelle, or pre-loaded by most object logics (such as the
+Simplifier).  See chapter~\ref{ch:hol-tools} for actual object-logic specific
+elements (for Isabelle/HOL).
 
 \medskip
 
@@ -114,10 +114,11 @@ terms.\footnote{The current version of Isabelle/Isar does not process formal
   just as in typical {\LaTeX} documents.
 \item [$\isarkeyword{chapter}~text$, $\isarkeyword{section}~text$,
   $\isarkeyword{subsection}~text$, and $\isarkeyword{subsubsection}~text$]
-  specify chapter and section headings.
+  mark chapter and section headings.
 \item [$\TEXT~text$] specifies an actual body of prose text, including
-  references to formal entities (the latter feature is not yet exploited in
-  any way).
+  references to formal entities.\footnote{The latter feature is not yet
+    exploited.  Nevertheless, any text of the form \texttt{\at\{\dots\}}
+    should be considered as reserved for future use.}
 \end{descr}
 
 
@@ -153,7 +154,7 @@ terms.\footnote{The current version of Isabelle/Isar does not process formal
 \end{descr}
 
 
-\subsection{Types}\label{sec:types-pure}
+\subsection{Primitive types and type abbreviations}\label{sec:types-pure}
 
 \indexisarcmd{typedecl}\indexisarcmd{types}\indexisarcmd{nonterminals}\indexisarcmd{arities}
 \begin{matharray}{rcl}
@@ -300,9 +301,9 @@ terms.\footnote{The current version of Isabelle/Isar does not process formal
   \isarcmd{local} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
-Isabelle organizes any kind of names (of types, constants, theorems etc.)  by
+Isabelle organises any kind of names (of types, constants, theorems etc.)  by
 hierarchically structured name spaces.  Normally the user never has to control
-the behavior of name space entry by hand, yet the following commands provide
+the behaviour of name space entry by hand, yet the following commands provide
 some way to do so.
 
 \begin{descr}
@@ -343,7 +344,7 @@ some way to do so.
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
   applying setup functions $text$, which has to be an ML expression of type
   $(theory \to theory)~list$.  The $\isarkeyword{setup}$ command is the usual
-  way to initialize object-logic specific tools and packages written in ML.
+  way to initialise object-logic specific tools and packages written in ML.
 \end{descr}
 
 
@@ -386,15 +387,18 @@ oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
 
 \begin{descr}
 \item [$\isarkeyword{oracle}~name=text$] declares oracle $name$ to be ML
-  function $text$, which has to be of type $Sign\mathord.sg \times object \to
-  term)$.
+  function $text$, which has to be of type $Sign\mathord.sg \times
+  Object\mathord.T \to term)$.
 \end{descr}
 
 
 \section{Proof commands}
 
-Proof commands provide transitions of Isar/VM machine configurations.  There
-are three different modes of operation.
+Proof commands provide transitions of Isar/VM machine configurations, which
+are block-structured, consisting of a stack of nodes with three main
+components: logical \emph{proof context}, local \emph{facts}, and open
+\emph{goals}.  Isar/VM transitions are \emph{typed} according to the following
+three three different modes of operation:
 \begin{descr}
 \item [$proof(prove)$] means that a new goal has just been stated that is now
   to be \emph{proven}; the next command may refine it by some proof method
@@ -402,8 +406,8 @@ are three different modes of operation.
 \item [$proof(state)$] is like an internal theory mode: the context may be
   augmented by \emph{stating} additional assumptions, intermediate result etc.
 \item [$proof(chain)$] is an intermediate mode between $proof(state)$ and
-  $proof(prove)$: some existing facts have been just picked up in order to use
-  them when refining the goal to be claimed next.
+  $proof(prove)$: existing facts have been just picked up in order to use them
+  when refining the goal to be claimed next.
 \end{descr}
 
 
@@ -426,39 +430,71 @@ mode (see \S\ref{sec:formal-cmt-thy}).
 \end{rail}
 
 
-\subsection{Proof context}
+\subsection{Proof context}\label{sec:proof-context}
 
-\indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}\indexisarcmd{let}
+\indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}
 \begin{matharray}{rcl}
   \isarcmd{fix} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{assume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{presume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{def} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{let} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
-FIXME
+The logical proof context consists of fixed variables and assumptions.  The
+former closely correspond to Skolem constants, or meta-level universal
+quantification as provided by the Isabelle/Pure logical framework.
+Introducing some \emph{arbitrary, but fixed} variable via $\FIX x$ results in
+a local entity that may be used in the subsequent proof as any other variable
+or constant.  Furthermore, any result $\phi[x]$ exported from the current
+context will be universally closed wrt.\ $x$ at the outermost level (this is
+expressed using Isabelle's meta-variables).
+
+Similarly, introducing some assumption $\chi$ has two effects.  On the one
+hand, a local theorem is created that may be used as a fact in subsequent
+proof steps.  On the other hand, any result $\phi$ exported from the context
+becomes conditional wrt.\ the assumption.  Thus, solving an enclosing goal
+using this result would basically introduce a new subgoal stemming from the
+assumption.  How this situation is handled depends on the actual version of
+assumption command used: while $\ASSUMENAME$ solves the subgoal by unifying
+with some premise of the goal, $\PRESUMENAME$ leaves the subgoal unchanged to
+be proved later by the user.
+
+Local definitions, introduced by $\DEF{a}{x \equiv t}$, are achieved by
+combining $\FIX x$ with another version of assumption that causes any
+hypothetical equation $x = t$ to be eliminated by reflexivity.  Thus,
+exporting some result $\phi[x]$ simply yields $\phi[t]$.
 
 \begin{rail}
   'fix' (var +) comment?
   ;
-  ('assume' | 'presume') thmdecl? \\ (prop proppat? +) comment?
+  ('assume' | 'presume') (assm comment? + 'and')
   ;
   'def' thmdecl? \\ var '==' term termpat? comment?
-  ;
-  'let' ((term + 'as') '=' term comment? + 'and')
   ;
 
   var: name ('::' type)?
   ;
+  assm: thmdecl? (prop proppat? +)
+  ;
 \end{rail}
 
 \begin{descr}
-\item [$\FIX{x}$] FIXME
-\item [$\ASSUME{a}{\Phi}$ and $\PRESUME{a}{\Phi}$] FIXME
-\item [$\DEF{a}{x \equiv t}$] FIXME
-\item [$\LET{\vec p = \vec t}$] FIXME
+\item [$\FIX{x}$] introduces a local \emph{arbitrary, but fixed} variable $x$.
+\item [$\ASSUME{a}{\Phi}$ and $\PRESUME{a}{\Phi}$] introduce local theorems
+  $\Phi$.  Subsequent results used to solve some enclosing goal (e.g.\ via
+  $\SHOWNAME$) are handled as follows: $\ASSUMENAME$ expects to be able to
+  unify with existing premises in the goal, while $\PRESUMENAME$ leaves $\Phi$
+  as new subgoals.  Note that several lists of assumptions may be given
+  (separated by \railterm{and}); the resulting list of current facts consists
+  of all of these.
+\item [$\DEF{a}{x \equiv t}$] introduces a local (non-polymorphic) definition.
+  In results exported from the context, $x$ is replaced by $t$.  Basically,
+  $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\PRESUME{}{x \equiv t}$ (the
+  resulting hypothetical equation is solved by reflexivity, though).
 \end{descr}
+
+The internal register $prems$\indexisarreg{prems} refers to all current
+assumptions as a list of theorems.
 
 
 \subsection{Facts and forward chaining}
@@ -471,7 +507,10 @@ FIXME
   \isarcmd{with} & : & \isartrans{proof(state)}{proof(chain)} \\
 \end{matharray}
 
-FIXME
+New facts are established either by assumption or proof of local statements
+(via $\HAVENAME$ or $\SHOWNAME$).  Any facts will usually be involved in
+proofs of further results: either as explicit arguments of proof methods or
+when forward chaining towards the next goal via $\THEN$ (and variants).
 
 \begin{rail}
   'note' thmdef? thmrefs comment?
@@ -496,6 +535,9 @@ FIXME
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
   chaining is from earlier facts together with the current ones.
 \end{descr}
+
+Note that the internal register of \emph{current facts} may be referred as
+theorem list $facts$.\indexisarreg{facts}
 
 
 \subsection{Goal statements}
@@ -629,6 +671,92 @@ terminal method is ``$finish$''; it solves all goals by assumption.
 \end{descr}
 
 
+\subsection{Improper proof steps}
+
+The following commands emulate unstructured tactic scripts to some extent.
+While these are anathema for writing proper Isar proof documents, they might
+come in handy for exploring and debugging.
+
+\indexisarcmd{apply}\indexisarcmd{then-apply}\indexisarcmd{back}
+\begin{matharray}{rcl}
+  \isarcmd{apply}^* & : & \isartrans{proof}{proof} \\
+  \isarcmd{then_apply}^* & : & \isartrans{proof}{proof} \\
+  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
+\end{matharray}
+
+\railalias{thenapply}{then\_apply}
+\railterm{thenapply}
+
+\begin{rail}
+  'apply' method
+  ;
+  thenapply method
+  ;
+  'back'
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\isarkeyword{apply}~m$] applies proof method $m$ in the
+  plain-old-tactic sense.  Facts for forward chaining are ignored.
+\item [$\isarkeyword{then_apply}~m$] is similar to $\isarkeyword{apply}$, but
+  observes the goal's facts.
+\item [$\isarkeyword{back}$] does back-tracking over the result sequence of
+  the last proof command.  Basically, any proof command may return multiple
+  results.
+\end{descr}
+
+
+\subsection{Term abbreviations}\label{sec:term-abbrev}
+
+\indexisarcmd{let}
+\begin{matharray}{rcl}
+  \isarcmd{let} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarkeyword{is} & : & syntax \\
+\end{matharray}
+
+Abbreviations may be either bound by explicit $\LET{p \equiv t}$ statements,
+or by annotating assumptions or goal statements ($\ASSUMENAME$, $\SHOWNAME$
+etc.) with a list of patterns $\IS{p@1 \dots p@n}$.  In both cases,
+higher-order matching is applied to bind extra-logical text
+variables\index{text variables}, which may be either of the form $\VVar{x}$
+(token class \railtoken{textvar}, see \S\ref{sec:lex-syntax}) or nameless
+dummies ``\verb,_,'' (underscore).\index{dummy variables} Note that in the
+$\LETNAME$ form the patterns occur on the left-hand side, while the $\ISNAME$
+patterns are in postfix position.
+
+Note that term abbreviations are quite different from actual local definitions
+as introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
+visible within the logic as actual equations, while abbreviations disappear
+during the input process just after type checking.
+
+\begin{rail}
+  'let' ((term + 'as') '=' term comment? + 'and')
+  ;  
+\end{rail}
+
+The syntax of $\ISNAME$ patterns follows \railnonterm{termpat} or
+\railnonterm{proppat} (see \S\ref{sec:term-pats}).
+
+\begin{descr}
+\item [$\LET{\vec p = \vec t}$] binds any text variables in patters $\vec p$
+  by simultaneous higher-order matching against terms $\vec t$.
+\item [$\IS{\vec p}$] resembles $\LETNAME$, but matches $\vec p$ against the
+  preceding statement.  Also note that $\ISNAME$ is not a separate command,
+  but part of others (such as $\ASSUMENAME$, $\HAVENAME$ etc.).
+\end{descr}
+
+Furthermore, a few automatic term abbreviations\index{automatic abbreviation}
+for goals and facts are available.  For any open goal, $\VVar{thesis}$ refers
+to its object-logic statement, $\VVar{thesis_prop}$ to the full proposition
+(which may be a rule), and $\VVar{thesis_concl}$ to its (atomic) conclusion.
+
+Facts (i.e.\ assumptions and finished goals) that have an application $f(x)$
+as object-logic statement get $x$ bound to the special text variable
+``$\dots$'' (three dots).  The canonical application of this feature are
+calculational proofs, see \S\ref{sec:calculation}.
+
+
 \subsection{Block structure}
 
 While Isar is inherently block-structured, opening and closing blocks is
@@ -657,66 +785,17 @@ as well.  These typically achieve a strong forward style of reasoning.
 \item [$\isarkeyword{\{\{}$ and $\isarkeyword{\}\}}$] explicitly open and
   close blocks.  Any current facts pass through $\isarkeyword{\{\{}$
   unchanged, while $\isarkeyword{\}\}}$ causes them to be \emph{exported} into
-  the enclosing context.  Thus fixed variables are generalized, assumptions
+  the enclosing context.  Thus fixed variables are generalised, assumptions
   discharged, and local definitions eliminated.
-\end{descr}
-
-\subsection{Calculational proof}
-
-\indexisarcmd{also}\indexisarcmd{finally}
-\begin{matharray}{rcl}
-  \isarcmd{also} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
-\end{matharray}
-
-FIXME
-
-\begin{rail}
-  ('also' | 'finally') transrules? comment?
-  ;
-
-  transrules: '(' thmrefs ')' interest?
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$\ALSO~(thms)$] FIXME
-\item [$\FINALLY~(thms)$] FIXME
-\end{descr}
-
-
-
-\subsection{Improper proof steps}
-
-The following commands emulate unstructured tactic scripts to some extent.
-While these are anathema for writing proper Isar proof documents, they might
-come in handy for exploring and debugging.
-
-\indexisarcmd{apply}\indexisarcmd{then-apply}\indexisarcmd{back}
-\begin{matharray}{rcl}
-  \isarcmd{apply}^* & : & \isartrans{proof}{proof} \\
-  \isarcmd{then_apply}^* & : & \isartrans{proof}{proof} \\
-  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
-\end{matharray}
-
-\railalias{thenapply}{then\_apply}
-\railterm{thenapply}
-
-\begin{rail}
-  'apply' method
-  ;
-  thenapply method
-  ;
-  'back'
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$ $] FIXME
 \end{descr}
 
 
 \section{Other commands}
+
+The following commands are not part of the actual proper or improper
+Isabelle/Isar syntax, but assist interactive development, for example.  Also
+note that $undo$ does not apply here, since the theory or proof configuration
+is not changed.
 
 \subsection{Diagnostics}
 

@@ -1,7 +1,7 @@
 
 \chapter{Generic Tools and Packages}\label{ch:gen-tools}
 
-\section{Basic proof methods and attributes}\label{sec:pure-meth}
+\section{Basic proof methods}\label{sec:pure-meth}
 
 \indexisarmeth{fail}\indexisarmeth{succeed}\indexisarmeth{$-$}\indexisarmeth{assumption}
 \indexisarmeth{finish}\indexisarmeth{fold}\indexisarmeth{unfold}
@@ -32,6 +32,9 @@ FIXME
 %FIXME sort
 %FIXME thmref (single)
 %FIXME var vs. term
+
+
+\section{Miscellaneous attributes}
 
 \indexisaratt{tag}\indexisaratt{untag}\indexisaratt{COMP}\indexisaratt{RS}
 \indexisaratt{OF}\indexisaratt{where}\indexisaratt{of}\indexisaratt{standard}
@@ -78,6 +81,73 @@ FIXME
 
 FIXME
 
+
+\section{Calculational proof}\label{sec:calculation}
+
+\indexisarcmd{also}\indexisarcmd{finally}\indexisaratt{trans}
+\begin{matharray}{rcl}
+  \isarcmd{also} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
+  trans & : & \isaratt \\
+\end{matharray}
+
+Calculational proof is forward reasoning with implicit application of
+transitivity rules (such those of $=$, $\le$, $<$).  Isabelle/Isar maintains
+an auxiliary register $calculation$\indexisarreg{calculation} for accumulating
+results obtained by transitivity obtained together with the current facts.
+Command $\ALSO$ updates $calculation$ from the most recent result, while
+$\FINALLY$ exhibits the final result by forward chaining towards the next goal
+statement.  Both commands require valid current facts, i.e.\ may occur only
+after commands that produce theorems such as $\ASSUMENAME$, $\NOTENAME$, or
+some finished $\HAVENAME$ or $\SHOWNAME$.
+
+Also note that the automatic term abbreviation ``$\dots$'' has its canonical
+application with calculational proofs.  It automatically refers to the
+argument\footnote{The argument of a curried infix expression is its right-hand
+  side.} of the preceding statement.
+
+Isabelle/Isar calculations are implicitly subject to block structure in the
+sense that new threads of calculational reasoning are commenced for any new
+block (as opened by a local goal, for example).  This means that, apart from
+being able to nest calculations, there is no separate \emph{begin-calculation}
+command required.
+
+\begin{rail}
+  ('also' | 'finally') transrules? comment?
+  ;
+  'trans' (() | 'add' ':' | 'del' ':') thmrefs
+  ;
+
+  transrules: '(' thmrefs ')' interest?
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\ALSO~(thms)$] maintains the auxiliary $calculation$ register as
+  follows.  The first occurrence of $\ALSO$ in some calculational thread
+  initialises $calculation$ by $facts$. Any subsequent $\ALSO$ on the
+  \emph{same} level of block-structure updates $calculation$ by some
+  transitivity rule applied to $calculation$ and $facts$ (in that order).
+  Transitivity rules are picked from the current context plus those given as
+  $thms$ (the latter have precedence).
+  
+\item [$\FINALLY~(thms)$] maintaining $calculation$ in the same way as
+  $\ALSO$, and concludes the current calculational thread.  The final result
+  is exhibited as fact for forward chaining towards the next goal. Basically,
+  $\FINALLY$ just abbreviates $\ALSO~\FROM{calculation}$.  A typical proof
+  idiom is $\FINALLY~\SHOW~\VVar{thesis}~\DOT$.
+  
+\item [Attribute $trans$] maintains the set of transitivity rules of the
+  theory or proof context, by adding or deleting the theorems provided as
+  arguments.  The default is adding of rules.
+\end{descr}
+
+See theory \texttt{HOL/Isar_examples/Group} for a simple applications of
+calculations for basic equational reasoning.
+\texttt{HOL/Isar_examples/KnasterTarski} involves a few more advanced
+calculational steps in combination with natural deduction.
+
+
 \section{Axiomatic Type Classes}\label{sec:axclass}
 
 \indexisarcmd{axclass}\indexisarcmd{instance}
@@ -114,7 +184,47 @@ the standard Isabelle documentation.
 
 \section{The Simplifier}
 
+\subsection{Simplification methods}
+
+\indexisarmeth{simp}\indexisarmeth{asm_simp}\indexisaratt{simp}
+\begin{matharray}{rcl}
+  simp & : & \isarmeth \\
+  asm_simp & : & \isarmeth \\
+  simp & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'simp' (simpmod+)?
+  ;
+
+  simpmod: ('add' | 'del' | 'only' | 'other') ':' thmrefs
+  ;
+\end{rail}
+
+
+\subsection{Forward simplification}
+
+\indexisaratt{simplify}\indexisaratt{asm_simplify}\indexisaratt{full_simplify}\indexisaratt{asm_full_simplify}
+\begin{matharray}{rcl}
+  simplify & : & \isaratt \\
+  asm_simplify & : & \isaratt \\
+  full_simplify & : & \isaratt \\
+  asm_full_simplify & : & \isaratt \\
+\end{matharray}
+
+FIXME
+
+
 \section{The Classical Reasoner}
+
+\subsection{Single step methods}
+
+\subsection{Automatic methods}
+
+\subsection{Combined automatic methods}
+
+\subsection{Modifying the context}
+
 
 
 %\indexisarcmd{}
