@@ -3,16 +3,172 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
-Simply typed lambda-calculus: types, terms, and basic operations
+Simply typed lambda-calculus: types, terms, and basic operations.
 *)
 
 infix 9  $;
 infixr 5 -->;
-infixr   --->;
-infix    aconv;
+infixr --->;
+infix aconv;
 
+signature BASIC_TERM =
+sig
+  type indexname
+  type class
+  type sort
+  datatype typ =
+    Type  of string * typ list |
+    TFree of string * sort |
+    TVar  of indexname * sort
+  val --> : typ * typ -> typ
+  val ---> : typ list * typ -> typ
+  val is_TVar: typ -> bool
+  val domain_type: typ -> typ
+  val binder_types: typ -> typ list
+  val body_type: typ -> typ
+  val strip_type: typ -> typ list * typ
+  datatype term =
+    Const of string * typ |
+    Free of string * typ |
+    Var of indexname * typ |
+    Bound of int |
+    Abs of string * typ * term |
+    op $ of term * term
+  exception TYPE of string * typ list * term list
+  exception TERM of string * term list
+  val is_Const: term -> bool
+  val is_Free: term -> bool
+  val is_Var: term -> bool
+  val dest_Const: term -> string * typ
+  val dest_Free: term -> string * typ
+  val dest_Var: term -> indexname * typ
+  val type_of: term -> typ
+  val type_of1: typ list * term -> typ
+  val fastype_of: term -> typ
+  val fastype_of1: typ list * term -> typ
+  val strip_abs_body: term -> term
+  val strip_abs_vars: term -> (string * typ) list
+  val strip_qnt_body: string -> term -> term
+  val strip_qnt_vars: string -> term -> (string * typ) list
+  val list_comb: term * term list -> term
+  val strip_comb: term -> term * term list
+  val head_of: term -> term
+  val size_of_term: term -> int
+  val map_type_tvar: (indexname * sort -> typ) -> typ -> typ
+  val map_type_tfree: (string * sort -> typ) -> typ -> typ
+  val map_term_types: (typ -> typ) -> term -> term
+  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
+  val map_typ: (class -> class) -> (string -> string) -> typ -> typ
+  val map_term:
+     (class -> class) ->
+     (string -> string) -> (string -> string) -> term -> term
+  val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
+  val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
+  val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
+  val dummyT: typ
+  val logicC: class
+  val logicS: sort
+  val itselfT: typ -> typ
+  val a_itselfT: typ
+  val propT: typ
+  val implies: term
+  val all: typ -> term
+  val equals: typ -> term
+  val flexpair: typ -> term
+  val strip_all_body: term -> term
+  val strip_all_vars: term -> (string * typ) list
+  val incr_bv: int * int * term -> term
+  val incr_boundvars: int -> term -> term
+  val add_loose_bnos: term * int * int list -> int list
+  val loose_bnos: term -> int list
+  val loose_bvar: term * int -> bool
+  val loose_bvar1: term * int -> bool
+  val subst_bounds: term list * term -> term
+  val subst_bound: term * term -> term
+  val subst_TVars: (indexname * typ) list -> term -> term
+  val betapply: term * term -> term
+  val eq_ix: indexname * indexname -> bool
+  val ins_ix: indexname * indexname list -> indexname list
+  val mem_ix: indexname * indexname list -> bool
+  val eq_sort: sort * class list -> bool
+  val mem_sort: sort * class list list -> bool
+  val subset_sort: sort list * class list list -> bool
+  val eq_set_sort: sort list * sort list -> bool
+  val ins_sort: sort * class list list -> class list list
+  val union_sort: sort list * sort list -> sort list
+  val aconv: term * term -> bool
+  val aconvs: term list * term list -> bool
+  val mem_term: term * term list -> bool
+  val subset_term: term list * term list -> bool
+  val eq_set_term: term list * term list -> bool
+  val ins_term: term * term list -> term list
+  val union_term: term list * term list -> term list
+  val could_unify: term * term -> bool
+  val subst_free: (term * term) list -> term -> term
+  val subst_atomic: (term * term) list -> term -> term
+  val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
+  val typ_subst_TVars: (indexname * typ) list -> typ -> typ
+  val subst_Vars: (indexname * term) list -> term -> term
+  val incr_tvar: int -> typ -> typ
+  val xless: (string * int) * indexname -> bool
+  val atless: term * term -> bool
+  val insert_aterm: term * term list -> term list
+  val abstract_over: term * term -> term
+  val absfree: string * typ * term -> term
+  val list_abs_free: (string * typ) list * term -> term
+  val list_all_free: (string * typ) list * term -> term
+  val list_all: (string * typ) list * term -> term
+  val maxidx_of_typ: typ -> int
+  val maxidx_of_typs: typ list -> int
+  val maxidx_of_term: term -> int
+  val scan_radixint: int * string list -> int * string list
+  val scan_int: string list -> int * string list
+  val variant: string list -> string -> string
+  val variantlist: string list * string list -> string list
+  val variant_abs: string * typ * term -> string * term
+  val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
+  val add_new_id: string list * string -> string list
+  val add_typ_classes: typ * class list -> class list
+  val add_typ_ixns: indexname list * typ -> indexname list
+  val add_typ_tfree_names: typ * string list -> string list
+  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
+  val typ_tfrees: typ -> (string * sort) list
+  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
+  val typ_tvars: typ -> (indexname * sort) list
+  val add_typ_tycons: typ * string list -> string list
+  val add_typ_varnames: typ * string list -> string list
+  val add_term_classes: term * class list -> class list
+  val add_term_consts: term * string list -> string list
+  val add_term_frees: term * term list -> term list
+  val term_frees: term -> term list
+  val add_term_names: term * string list -> string list
+  val add_term_tfree_names: term * string list -> string list
+  val add_term_tfrees: term * (string * sort) list -> (string * sort) list
+  val term_tfrees: term -> (string * sort) list
+  val add_term_tvar_ixns: term * indexname list -> indexname list
+  val add_term_tvarnames: term * string list -> string list
+  val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
+  val term_tvars: term -> (indexname * sort) list
+  val add_term_tycons: term * string list -> string list
+  val add_term_vars: term * term list -> term list
+  val term_vars: term -> term list
+  val exists_Const: (string * typ -> bool) -> term -> bool
+  val compress_type: typ -> typ
+  val compress_term: term -> term
+end;
 
-structure Term =
+signature TERM =
+sig
+  include BASIC_TERM
+  val indexname_ord: indexname * indexname -> order
+  val typ_ord: typ * typ -> order
+  val typs_ord: typ list * typ list -> order
+  val term_ord: term * term -> order
+  val terms_ord: term list * term list -> order
+  val termless: term * term -> bool
+end;
+
+structure Term: TERM =
 struct
 
 (*Indexnames can be quickly renamed by adding an offset to the integer part,
@@ -720,6 +876,58 @@ fun foldl_types f (x, Const (_, T)) = f (x, T)
 
 
 
+(** type and term orders **)
+
+fun indexname_ord ((x, i), (y, j)) =
+  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+
+
+(* typ_ord *)
+
+(*assumes that TFrees / TVars with the same name have same sorts*)
+fun typ_ord (Type (a, Ts), Type (b, Us)) =
+      (case string_ord (a, b) of EQUAL => typs_ord (Ts, Us) | ord => ord)
+  | typ_ord (Type _, _) = GREATER
+  | typ_ord (TFree _, Type _) = LESS
+  | typ_ord (TFree (a, _), TFree (b, _)) = string_ord (a, b)
+  | typ_ord (TFree _, TVar _) = GREATER
+  | typ_ord (TVar _, Type _) = LESS
+  | typ_ord (TVar _, TFree _) = LESS
+  | typ_ord (TVar (xi, _), TVar (yj, _)) = indexname_ord (xi, yj)
+and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
+
+
+(* term_ord *)
+
+(*a linear well-founded AC-compatible ordering for terms:
+  s < t <=> 1. size(s) < size(t) or
+            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
+            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
+               (s1..sn) < (t1..tn) (lexicographically)*)
+
+fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
+  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
+  | dest_hd (Var v) = (v, 2)
+  | dest_hd (Bound i) = ((("", i), dummyT), 3)
+  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
+
+fun term_ord (Abs (_, T, t), Abs(_, U, u)) =
+      (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+  | term_ord (t, u) =
+      (case int_ord (size_of_term t, size_of_term u) of
+        EQUAL =>
+          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
+            (case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord)
+          end
+      | ord => ord)
+and hd_ord (f, g) =
+  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
+and terms_ord (ts, us) = list_ord term_ord (ts, us);
+
+fun termless tu = (term_ord tu = LESS);
+
+
+
 (*** Compression of terms and types by sharing common subtrees.  
      Saves 50-75% on storage requirements.  As it is fairly slow, 
      it is called only for axioms, stored theorems, etc. ***)
@@ -791,6 +999,9 @@ fun share_term (t $ u) = share_term t $ share_term u
 
 val compress_term = share_term o map_term_types compress_type;
 
+
 end;
 
-open Term;
+
+structure BasicTerm: BASIC_TERM = Term;
+open BasicTerm;
