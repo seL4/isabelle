@@ -185,7 +185,7 @@ end;
         cases         - classical case split
         cases t       - datatype exhaustion
   <x:A> cases ...     - set elimination
-  ...   cases ... r   - explicit rule
+  ...   cases ... R   - explicit rule
 *)
 
 local
@@ -248,7 +248,7 @@ end;
         induct         - mathematical induction
         induct x       - datatype induction
   <x:A> induct ...     - set induction
-  ...   induct ... r   - explicit rule
+  ...   induct ... R   - explicit rule
 *)
 
 local
