@@ -12,8 +12,10 @@ sig
   type theory
   exception THEORY of string * theory list
   val rep_theory        : theory ->
-    {sign: Sign.sg, oraopt: (Sign.sg * exn -> term) option,
-     new_axioms: term Symtab.table, parents: theory list}
+    {sign: Sign.sg,
+      new_axioms: term Symtab.table,
+      oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
+      parents: theory list}
   val sign_of           : theory -> Sign.sg
   val syn_of            : theory -> Syntax.syntax
   val stamps_of_thy     : theory -> string ref list
@@ -32,6 +34,8 @@ end
 signature THEORY =
 sig
   include BASIC_THEORY
+  val thmK		: string
+  val oracleK		: string
   (*theory extendsion primitives*)
   val add_classes	: (xclass * xclass list) list -> theory -> theory
   val add_classes_i	: (xclass * class list) list -> theory -> theory
@@ -65,14 +69,12 @@ sig
   val add_trrules_i	: Syntax.ast Syntax.trrule list -> theory -> theory
   val add_axioms	: (xstring * string) list -> theory -> theory
   val add_axioms_i	: (xstring * term) list -> theory -> theory
+  val add_oracle	: string * (Sign.sg * exn -> term) -> theory -> theory
   val add_defs		: (xstring * string) list -> theory -> theory
   val add_defs_i	: (xstring * term) list -> theory -> theory
   val add_path		: string -> theory -> theory
-  val add_space		: string * xstring list -> theory -> theory
+  val add_space		: string * string list -> theory -> theory
   val add_name		: string -> theory -> theory
-
-  val set_oracle	: (Sign.sg * exn -> term) -> theory -> theory
-
   val merge_thy_list    : bool -> theory list -> theory
 end;
 
@@ -85,8 +87,8 @@ struct
 datatype theory =
   Theory of {
     sign: Sign.sg,
-    oraopt: (Sign.sg * exn -> term) option,
     new_axioms: term Symtab.table,
+    oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
     parents: theory list};
 
 fun rep_theory (Theory args) = args;
@@ -112,43 +114,53 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (* the Pure theories *)
 
-val proto_pure_thy =
-  Theory {sign = Sign.proto_pure, oraopt = None, 
-	  new_axioms = Symtab.null, parents = []};
+fun make_thy sign parents =
+  Theory {sign = sign, new_axioms = Symtab.null,
+    oracles = Symtab.null, parents = parents};
 
-val pure_thy =
-  Theory {sign = Sign.pure, oraopt = None, 
-	  new_axioms = Symtab.null, parents = []};
-
-val cpure_thy =
-  Theory {sign = Sign.cpure, oraopt = None, 
-	  new_axioms = Symtab.null, parents = []};
+val proto_pure_thy = make_thy Sign.proto_pure [];
+val pure_thy = make_thy Sign.pure [proto_pure_thy];
+val cpure_thy = make_thy Sign.cpure [proto_pure_thy];
 
 
 
 (** extend theory **)
 
+(*name space kinds*)
+val thmK = "thm";
+val oracleK = "oracle";
+
+
+(* extend logical part of a theory *)
+
 fun err_dup_axms names =
   error ("Duplicate axiom name(s) " ^ commas_quote names);
 
-fun ext_thy (thy as Theory {sign, oraopt, new_axioms, parents}) 
-            sign1 new_axms =
+fun err_dup_oras names =
+  error ("Duplicate oracles " ^ commas_quote names);
+
+
+fun ext_thy thy sign' new_axms new_oras =
   let
+    val Theory {sign, new_axioms, oracles, parents} = thy;
     val draft = Sign.is_draft sign;
-    val new_axioms1 =
+    val new_axioms' =
       Symtab.extend_new (if draft then new_axioms else Symtab.null, new_axms)
         handle Symtab.DUPS names => err_dup_axms names;
-    val parents1 = if draft then parents else [thy];
+    val oracles' =
+      Symtab.extend_new (oracles, new_oras)
+        handle Symtab.DUPS names => err_dup_oras names;
+    val parents' = if draft then parents else [thy];
   in
-    Theory {sign = sign1, oraopt = oraopt, 
-	    new_axioms = new_axioms1, parents = parents1}
+    Theory {sign = sign', new_axioms = new_axioms',
+      oracles = oracles', parents = parents'}
   end;
 
 
 (* extend signature of a theory *)
 
 fun ext_sg extfun decls (thy as Theory {sign, ...}) =
-  ext_thy thy (extfun decls sign) [];
+  ext_thy thy (extfun decls sign) [] [];
 
 val add_classes      = ext_sg Sign.add_classes;
 val add_classes_i    = ext_sg Sign.add_classes_i;
@@ -177,6 +189,9 @@ val add_space        = ext_sg Sign.add_space;
 val add_name         = ext_sg Sign.add_name;
 
 
+
+(** add axioms **)
+
 (* prepare axioms *)
 
 fun err_in_axm name =
@@ -199,33 +214,46 @@ fun cert_axm sg (name, raw_tm) =
 
 (*Some duplication of code with read_def_cterm*)
 fun read_axm sg (name, str) = 
-  let val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
-      val (_, t, _) =
-          Sign.infer_types sg (K None) (K None) [] true (ts,propT);
+  let
+    val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
+    val (_, t, _) =
+          Sign.infer_types sg (K None) (K None) [] true (ts, propT);
   in cert_axm sg (name,t) end
   handle ERROR => err_in_axm name;
 
 fun inferT_axm sg (name, pre_tm) =
-  let val t = #2(Sign.infer_types sg (K None) (K None) [] true
-                                     ([pre_tm], propT))
-  in  (name, no_vars t) end
+  let
+    val (_, t, _) =
+      Sign.infer_types sg (K None) (K None) [] true ([pre_tm], propT);
+  in (name, no_vars t) end
   handle ERROR => err_in_axm name;
 
 
 (* extend axioms of a theory *)
 
-fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
+fun ext_axms prep_axm raw_axms (thy as Theory {sign, ...}) =
   let
-    val sign1 = Sign.make_draft sign;
-    val axioms = map (apsnd (Term.compress_term o Logic.varify) o 
-		      prep_axm sign) 
-	         axms;
+    val raw_axms' = map (apfst (Sign.full_name sign)) raw_axms;
+    val axioms =
+      map (apsnd (Term.compress_term o Logic.varify) o prep_axm sign) raw_axms';
+    val sign' = Sign.add_space (thmK, map fst axioms) sign;
   in
-    ext_thy thy sign1 axioms
+    ext_thy thy sign' axioms []
   end;
 
 val add_axioms = ext_axms read_axm;
 val add_axioms_i = ext_axms cert_axm;
+
+
+(* add oracle **)
+
+fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
+  let
+    val name = Sign.full_name sign raw_name;
+    val sign' = Sign.add_space (oracleK, [name]) sign;
+  in
+    ext_thy thy sign' [] [(name, (oracle, stamp ()))]
+  end;
 
 
 
@@ -309,8 +337,9 @@ fun dest_defn tm =
 
 (* check_defn *)
 
-fun err_in_defn name msg =
-  (writeln msg; error ("The error(s) above occurred in definition " ^ quote name));
+fun err_in_defn sg name msg =
+  (writeln msg; error ("The error(s) above occurred in definition " ^
+    quote (Sign.full_name sg name)));
 
 fun check_defn sign (axms, (name, tm)) =
   let
@@ -321,11 +350,11 @@ fun check_defn sign (axms, (name, tm)) =
     fun show_defns c = cat_lines o map (show_defn c);
 
     val (c, ty) = dest_defn tm
-      handle TERM (msg, _) => err_in_defn name msg;
+      handle TERM (msg, _) => err_in_defn sign name msg;
     val defns = clash_defns (c, ty) axms;
   in
     if not (null defns) then
-      err_in_defn name ("Definition of " ^ show_const (c, ty) ^
+      err_in_defn sign name ("Definition of " ^ show_const (c, ty) ^
         "\nclashes with " ^ show_defns c defns)
     else (name, tm) :: axms
   end;
@@ -347,22 +376,6 @@ val add_defs = ext_defns read_axm;
 
 
 
-(** Set oracle of theory **)
-
-(* FIXME support more than one oracle (!?) *)
-
-fun set_oracle oracle
-               (thy as Theory {sign, oraopt = None, new_axioms, parents}) =
-      if Sign.is_draft sign then
-	Theory {sign = sign, 
-		oraopt = Some oracle, 
-		new_axioms = new_axioms, 
-		parents = parents}
-      else raise THEORY ("Can only set oracle of a draft", [thy])
-  | set_oracle _ thy = raise THEORY ("Oracle already set", [thy]);
-
-
-
 (** merge theories **)
 
 fun merge_thy_list mk_draft thys =
@@ -372,17 +385,23 @@ fun merge_thy_list mk_draft thys =
 
     fun add_sign (sg, Theory {sign, ...}) =
       Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
+
+    fun oracles_of (Theory {oracles, ...}) = Symtab.dest oracles;
+    fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
+    val all_oracles =
+      Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
+        handle Symtab.DUPS names => err_dup_oras names;
   in
-    case (find_first is_union thys, exists is_draft thys) of
+    (case (find_first is_union thys, exists is_draft thys) of
       (Some thy, _) => thy
     | (None, true) => raise THEORY ("Illegal merge of draft theories", thys)
     | (None, false) => Theory {
         sign =
           (if mk_draft then Sign.make_draft else I)
           (foldl add_sign (Sign.proto_pure, thys)),
-	oraopt = None,
         new_axioms = Symtab.null,
-        parents = thys}
+        oracles = all_oracles,
+        parents = thys})
   end;
 
 fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
