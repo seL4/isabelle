@@ -85,12 +85,14 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Lubs.ML Real/Lubs.thy Real/PNat.ML \
   Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
+
 ## HOL-Real-ex
 
 HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
 $(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML Real/ex/BinEx.ML
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
+
 
 ## HOL-Subst
 
@@ -401,4 +403,4 @@ clean:
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
 	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
 	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
-	  $(LOG)/TLA-Memory.gz
+	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real-ex.gz
