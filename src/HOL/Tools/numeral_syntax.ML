@@ -69,6 +69,9 @@ fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
         if not (! show_types) andalso can Term.dest_Type T then t'
         else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T
       end
+  | numeral_tr' _ (*"number_of"*) T (t :: ts) =
+      if T = dummyT then Syntax.const "_Numeral" $ Syntax.free (dest_bin_str t)
+      else raise Match
   | numeral_tr' _ (*"number_of"*) _ _ = raise Match;
 
 
