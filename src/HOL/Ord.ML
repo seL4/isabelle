@@ -6,6 +6,11 @@
 The type class for ordered types
 *)
 
+(*Tell Blast_tac about overloading of < and <= to reduce the risk of
+  its applying a rule for the wrong type*)
+Blast.overloaded ("op <", domain_type); 
+Blast.overloaded ("op <=", domain_type);
+
 (** mono **)
 
 val [prem] = Goalw [mono_def]
@@ -20,7 +25,7 @@ qed "monoD";
 
 section "Orders";
 
-AddIffs [order_refl];
+Addsimps [order_refl];
 
 (*This form is useful with the classical reasoner*)
 Goal "!!x::'a::order. x = y ==> x <= y";
@@ -31,11 +36,12 @@ qed "order_eq_refl";
 Goal "~ x < (x::'a::order)";
 by (simp_tac (simpset() addsimps [order_less_le]) 1);
 qed "order_less_irrefl";
-AddIffs [order_less_irrefl];
+Addsimps [order_less_irrefl];
 
 Goal "(x::'a::order) <= y = (x < y | x = y)";
 by (simp_tac (simpset() addsimps [order_less_le]) 1);
-by (Blast_tac 1);
+   (*NOT suitable for AddIffs, since it can cause PROOF FAILED*)
+by (blast_tac (claset() addSIs [order_refl]) 1);
 qed "order_le_less";
 
 (** min **)
