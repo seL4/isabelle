@@ -1,4 +1,4 @@
 
-theory Hyperreal = Transcendental:
+theory Hyperreal = Poly + MacLaurin:
 
 end

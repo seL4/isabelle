@@ -52,6 +52,17 @@ by (dres_inst_tac [("f1","f")] (sumr_split_add RS sym) 1);
 by (asm_simp_tac (simpset() addsimps real_add_ac) 1);
 qed "sumr_split_add_minus";
 
+Goal "0 < n --> n < p --> sumr (Suc 0) n f + sumr n p f = sumr (Suc 0) p f";
+by (induct_tac "p" 1);
+by (auto_tac (claset() addSDs [CLAIM "[| m < Suc n; n <= m |] ==> m = n"],
+    simpset()));
+qed_spec_mp "sumr_split_add2";
+
+Goal "[| 0<n; n <= p |] ==> sumr (Suc 0) n f + sumr n p f = sumr (Suc 0) p f";
+by (dtac le_imp_less_or_eq 1 THEN Auto_tac);
+by (blast_tac (claset() addIs [sumr_split_add2]) 1);
+qed "sumr_split_add3";
+
 Goal "abs(sumr m n f) <= sumr m n (%i. abs(f i))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [abs_triangle_ineq RS order_trans,
@@ -588,4 +599,4 @@ Goal "(ALL r. m <= r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x)) \
 \     --> DERIV (%x. sumr m n (%n. f n x)) x :> sumr m n (%r. f' r x)";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [DERIV_add], simpset()));
-qed "DERIV_sumr";
+qed_spec_mp "DERIV_sumr";
