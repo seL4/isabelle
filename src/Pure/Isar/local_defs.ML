@@ -21,23 +21,22 @@ val refl_tac = Tactic.rtac (Drule.standard (Drule.reflexive_thm RS Drule.triv_go
 
 fun gen_def fix prep_term prep_pats raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
   let
-    fun err msg = raise Proof.STATE ("Bad local def: " ^ msg, state);
+    val _ = Proof.assert_forward state;
 
-    val state' = fix [([x], raw_T)] state;
-    val ctxt' = Proof.context_of state';
-
+    (*rhs*)
+    val ctxt = Proof.context_of state;
     val name = if raw_name = "" then Thm.def_name x else raw_name;
-    val rhs = prep_term ctxt' raw_rhs;
+    val rhs = prep_term ctxt raw_rhs;
     val T = Term.fastype_of rhs;
-    val lhs = ProofContext.cert_term ctxt' (Free (x, T));
-    val eq = Logic.mk_equals (lhs, rhs);
-    val pats = prep_pats T (ProofContext.declare_term rhs ctxt') raw_pats;
+    val pats = prep_pats T (ProofContext.declare_term rhs ctxt) raw_pats;
+
+    (*lhs*)
+    val state' = fix [([x], raw_T)] state;
+    val lhs = ProofContext.intern_skolem (Proof.context_of state') (Free (x, T));
   in
-    if lhs mem Term.add_term_frees (rhs, []) then err "lhs occurs on rhs"
-    else ();
     state'
     |> Proof.match_bind_i [(pats, rhs)]
-    |> Proof.assm_i (refl_tac, refl_tac) [(name, atts, [(eq, ([], []))])]
+    |> Proof.assm_i (refl_tac, refl_tac) [(name, atts, [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
 
 val def = gen_def Proof.fix ProofContext.read_term ProofContext.read_term_pats;
