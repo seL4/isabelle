@@ -1171,18 +1171,14 @@ val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("default", Method.thms_ctxt_args rule, "apply some rule"),
-  ("rule", Method.thms_ctxt_args rule, "apply some rule"),
+ [("default", Method.thms_ctxt_args rule, "apply some rule (classical)"),
+  ("rule", Method.thms_ctxt_args rule, "apply some rule (classical)"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("intro", Method.thms_ctxt_args intro, "repeatedly apply introduction rules"),
   ("elim", Method.thms_ctxt_args elim, "repeatedly apply elimination rules"),
-  ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
-  ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
-  ("step_tac", cla_method' step_tac, "step_tac (improper!)"),
+  ("clarify", cla_method' clarify_tac, "repeatedly apply safe steps"),
   ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
-  ("best", cla_method' best_tac, "classical prover (best-first)"),
-  ("slow", cla_method' slow_tac, "classical prover (depth-first, more backtracking)"),
-  ("slow_best", cla_method' slow_best_tac, "classical prover (best-first, more backtracking)")];
+  ("best", cla_method' best_tac, "classical prover (best-first)")];
 
 
 
