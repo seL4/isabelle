@@ -50,8 +50,6 @@ sig
   val print_help: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
-  val token_source: (string, 'a) Source.source * Position.T -> (OuterLex.token,
-    Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source) Source.source
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
@@ -289,11 +287,12 @@ end;
 
 fun deps_thy name path =
   let
-    val src = File.source path;
+    val src = Source.of_string (File.read path);
+    val pos = Path.position path;
     val (name', parents, files) =
       (*Note: old style headers dynamically depend on the current lexicon :-( *)
-      if is_old_theory src then scan_header ThySyn.get_lexicon (Scan.error old_header) src
-      else scan_header (K header_lexicon) (Scan.error new_header) src;
+      if is_old_theory (src, pos) then scan_header ThySyn.get_lexicon (Scan.error old_header) (src, pos)
+      else scan_header (K header_lexicon) (Scan.error new_header) (src, pos);
 
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
@@ -336,12 +335,19 @@ fun parse_thy src_pos =
 
 fun run_thy name path =
   let
-    val (src, pos) = File.source path;
-    val is_old = is_old_theory (src, pos);
+    val text = explode (File.read path);
+    val src = Source.of_list text;
+    val pos = Path.position path;
+
+    fun present_toks () =
+      Source.exhaust (token_source (Source.of_list (Library.untabify text), pos));
+    fun present_text () =
+      Source.exhaust (Symbol.source false (Source.of_list (Library.untabify text)));
   in
-    Present.theory_source is_old name (src, pos);
-    if is_old then ThySyn.load_thy name (Source.exhaust src)
-    else Toplevel.excursion_error (parse_thy (src, pos))
+    Present.init_theory name;
+    if is_old_theory (src, pos) then ThySyn.load_thy name text
+    else (Toplevel.excursion_error (parse_thy (src, pos)); Present.token_source name present_toks);
+    Present.verbatim_source name present_text
   end;
 
 fun load_thy name ml time path =
