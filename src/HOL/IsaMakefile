@@ -156,6 +156,33 @@ Lex:	$(OUT)/HOL $(LEX_FILES)
 	@$(ISATOOL) testdir $(OUT)/HOL Lex
 
 
+## Axiomatic type classes examples
+
+AXC_GROUP_FILES = Group.ML Group.thy GroupDefs.ML GroupDefs.thy \
+	GroupInsts.thy Monoid.thy MonoidGroupInsts.thy ROOT.ML Sigs.thy
+
+AXC_LATTICE_FILES = CLattice.ML CLattice.thy LatInsts.ML LatInsts.thy \
+	LatMorph.ML LatMorph.thy LatPreInsts.ML LatPreInsts.thy \
+	Lattice.ML Lattice.thy OrdDefs.ML OrdDefs.thy OrdInsts.thy \
+	Order.ML Order.thy ROOT.ML tools.ML
+
+AXC_TUTORIAL_FILES = BoolGroupInsts.thy Group.ML Group.thy Monoid.thy \
+	MonoidGroupInsts.thy ProdGroupInsts.thy Product.thy \
+	ProductInsts.thy ROOT.ML Semigroup.thy Semigroups.thy Sigs.thy \
+	Xor.ML Xor.thy
+
+AXCLASSES_FILES = AxClasses/ROOT.ML \
+	$(AXC_GROUP_FILES:%=AxClasses/Group/%) \
+	$(AXC_LATTICE_FILES:%=AxClasses/Lattice/%) \
+	$(AXC_TUTORIAL_FILES:%=AxClasses/Tutorial/%)
+
+AxClasses: $(OUT)/HOL $(AXCLASSES_FILES)
+	@$(ISATOOL) testdir $(OUT)/HOL AxClasses
+	@$(ISATOOL) testdir $(OUT)/HOL AxClasses/Group
+	@$(ISATOOL) testdir $(OUT)/HOL AxClasses/Lattice
+	@$(ISATOOL) testdir $(OUT)/HOL AxClasses/Tutorial
+
+
 ## Miscellaneous examples
 
 EX_NAMES = String BT Perm Comb InSort Qsort LexProd \
@@ -170,7 +197,8 @@ ex:	$(OUT)/HOL $(EX_FILES)
 
 ## Full test
 
-test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA ex
+test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML \
+	IOA AxClasses ex
 	echo 'Test examples ran successfully' > test
 
 
