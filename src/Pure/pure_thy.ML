@@ -27,12 +27,10 @@ sig
   val add_tthmss: ((bstring * tthm list) * theory attribute list) list -> theory -> theory
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_axioms_x: ((bstring * string) * tag list) list -> theory -> theory
   val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory
   val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
   val add_defs: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_defs_x: ((bstring * string) * tag list) list -> theory -> theory
   val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory
   val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
   val get_name: theory -> string
@@ -281,9 +279,6 @@ in
   val add_defss_i   = add_axs name_multi Theory.add_defs_i;
 end;
 
-fun add_axioms_x axms thy = add_axioms (map (apsnd (map (Attribute.global_attr thy))) axms) thy;
-fun add_defs_x defs thy = add_defs (map (apsnd (map (Attribute.global_attr thy))) defs) thy;
-
 
 
 (*** derived theory operations ***)
@@ -382,7 +377,7 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.apply (Attribute.setup @ [TheoremsData.init, TheoryManagementData.init])
+  |> Theory.apply [TheoremsData.init, TheoryManagementData.init]
   |> put_name "ProtoPure"
   |> global_path
   |> Theory.add_types
