@@ -77,7 +77,7 @@ sig
   val get_thms: context -> string -> thm list
   val get_thms_closure: context -> string -> thm list
   val cond_extern: context -> string -> xstring
-  val qualified: (context -> context) -> context -> context
+  val qualified_result: (context -> context * 'a) -> context -> context * 'a
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -94,10 +94,10 @@ sig
   val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
-    -> context -> context * (string * thm list) list
+    -> context -> context * (bstring * thm list) list
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> context -> context * (string * thm list) list
+    -> context -> context * (bstring * thm list) list
   val read_vars: context * (string list * string option) -> context * (string list * typ option)
   val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
   val fix: (string list * string option) list -> context -> context
@@ -933,8 +933,8 @@ fun cond_extern (Context {thms = (_, space, _), ...}) = NameSpace.cond_extern sp
 fun set_qual q = map_context (fn (thy, syntax, data, asms, binds, (_, space, tab), cases, defs) =>
   (thy, syntax, data, asms, binds, (q, space, tab), cases, defs));
 
-fun qualified f (ctxt as Context {thms, ...}) =
-  ctxt |> set_qual true |> f |> set_qual (#1 thms);
+fun qualified_result f (ctxt as Context {thms, ...}) =
+  ctxt |> set_qual true |> f |>> set_qual (#1 thms);
 
 
 (* put_thm(s) *)
