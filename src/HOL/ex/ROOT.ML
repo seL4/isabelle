@@ -34,8 +34,7 @@ time_use_thy "Tarski";
 time_use_thy "StringEx";
 time_use_thy "BinEx";
 
-if svc_enabled() then time_use_thy "svc_test" 
-                 else ();
+if_svc_enabled time_use_thy "svc_test";
 
 (*basic use of extensible records*)
 time_use_thy "MonoidGroup";

@@ -102,5 +102,6 @@ fun svc_tac i st =
 end;
 
 
-(*True if SVC appears to exist*)
-fun svc_enabled() = getenv "SVC_HOME" <> "";
+(*check if user has SVC installed*)
+fun svc_enabled () = getenv "SVC_HOME" <> "";
+fun if_svc_enabled f x = if svc_enabled () then f x else ();
