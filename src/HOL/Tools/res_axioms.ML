@@ -458,7 +458,27 @@ fun clausify_simpset_rules_thy thy =
 	clausify_simpset_rules thms []
     end;
 
+(* lcp-modified code *)
+(*
+fun retr_thms ([]:MetaSimplifier.rrule list) = []
+	  | retr_thms (r::rs) = (#name r, #thm r)::(retr_thms rs);
+
+fun snds [] = []
+   | snds ((x,y)::l) = y::(snds l);
+
+fun simpset_rules_of_thy thy =
+     let val simpset = simpset_of thy
+	val rules = #rules(fst (rep_ss simpset))
+	val thms = retr_thms (snds(Net.dest rules))
+     in	thms  end;
+
+print_depth 200;
+simpset_rules_of_thy Main.thy;
 
 
+
+
+
+*)
 
 end; 

@@ -6,17 +6,17 @@ ATPs with TPTP format input.
 *)
 
 (*Jia: changed: isar_atp now processes entire proof context.  fetch thms from delta simpset/claset*)
+(*Claire: changed: added actual watcher calls *)
 
 signature RES_ATP = 
 sig
-
 val trace_res : bool ref
 val axiom_file : Path.T
 val hyps_file : Path.T
 val isar_atp : ProofContext.context * Thm.thm -> unit
-val prob_file : Path.T
-val atp_ax_tac : Thm.thm list -> int -> Tactical.tactic
-val atp_tac : int -> Tactical.tactic
+(*val prob_file : Path.T*)
+(*val atp_ax_tac : Thm.thm list -> int -> Tactical.tactic*)
+(*val atp_tac : int -> Tactical.tactic*)
 val debug: bool ref
 
 end;
@@ -24,6 +24,8 @@ end;
 structure ResAtp : RES_ATP =
 
 struct
+
+
 
 (* used for debug *)
 val debug = ref false;
@@ -34,6 +36,9 @@ fun debug_tac tac = (warning "testing";tac);
 val trace_res = ref false;
 
 val skolem_tac = skolemize_tac;
+
+val num_of_clauses = ref 0;
+val clause_arr = Array.array(3500, ("empty", 0));
 
 
 val atomize_tac =
@@ -47,52 +52,39 @@ val atomize_tac =
      end);
 
 (* temporarily use these files, which will be loaded by Vampire *)
-val prob_file = File.tmp_path (Path.basic "prob");
+val file_id_num =ref 0;
+
+fun new_prob_file () =  (file_id_num := (!file_id_num) + 1;"prob"^(string_of_int (!file_id_num)));
+
+
 val axiom_file = File.tmp_path (Path.basic "axioms");
+val clasimp_file = File.tmp_path (Path.basic "clasimp");
 val hyps_file = File.tmp_path (Path.basic "hyps");
+val prob_file = File.tmp_path (Path.basic "prob");
 val dummy_tac = PRIMITIVE(fn thm => thm );
 
+ 
+fun concat_with_and [] str = str
+|   concat_with_and (x::[]) str = str^" ("^x^")"
+|   concat_with_and (x::xs) str = (concat_with_and xs (str^"("^x^")"^" & "))
 
-
-fun tptp_inputs thms n = 
-    let val clss = map (ResClause.make_conjecture_clause_thm) thms
-	val tptp_clss = ResLib.flat_noDup(map ResClause.tptp_clause clss) 
-        val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
-	val out = TextIO.openOut(probfile)
-    in
-	(ResLib.writeln_strs out tptp_clss; TextIO.closeOut out; (if !trace_res then (warning probfile) else ()))
-    end;
 
 
 (**** for Isabelle/ML interface  ****)
 
-fun call_atp_tac thms n = (tptp_inputs thms n; dummy_tac);
+fun is_proof_char ch = ((33 <= (ord ch)) andalso ((ord ch ) <= 126) andalso (not ((ord ch ) = 63))) orelse (ch = " ")
+
+fun proofstring x = let val exp = explode x 
+                    in
+                        List.filter (is_proof_char ) exp
+                    end
 
 
 
+(*
+fun call_atp_tac thms n = (tptp_inputs thms ; dummy_tac);
 
-fun atp_tac n = SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (call_atp_tac (make_clauses negs) n))]) n ;
-
-
-fun atp_ax_tac axioms n = 
-    let val axcls = ResLib.flat_noDup(map ResAxioms.clausify_axiom axioms)
-	val axcls_str = ResClause.tptp_clauses2str (ResLib.flat_noDup(map ResClause.tptp_clause axcls))
-	val axiomfile = File.sysify_path axiom_file
-	val out = TextIO.openOut (axiomfile)
-    in
-	(TextIO.output(out,axcls_str);TextIO.closeOut out; if !trace_res then (warning axiomfile) else (); atp_tac n)
-    end;
-
-
-fun atp thm =
-    let val prems = prems_of thm
-    in
-	case prems of [] => () 
-		    | _ => (atp_tac 1 thm; ())
-    end;
-
+*)
 
 (**** For running in Isar ****)
 
@@ -106,14 +98,18 @@ fun repeat_RS thm1 thm2 =
 (* a special version of repeat_RS *)
 fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 
-
+(*********************************************************************)
 (* convert clauses from "assume" to conjecture. write to file "hyps" *)
+(* hypotheses of the goal currently being proved                     *)
+(*********************************************************************)
+
 fun isar_atp_h thms =
+        
     let val prems = map (skolemize o make_nnf o ObjectLogic.atomize_thm) thms
-	val prems' = map repeat_someI_ex prems
-	val prems'' = make_clauses prems'
-	val prems''' = ResAxioms.rm_Eps [] prems''
-	val clss = map ResClause.make_conjecture_clause prems'''
+        val prems' = map repeat_someI_ex prems
+        val prems'' = make_clauses prems'
+        val prems''' = ResAxioms.rm_Eps [] prems''
+        val clss = map ResClause.make_conjecture_clause prems'''
 	val (tptp_clss,tfree_litss) = ResLib.unzip (map ResClause.clause2tptp clss) 
 	val tfree_lits = ResLib.flat_noDup tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
@@ -122,6 +118,12 @@ fun isar_atp_h thms =
     in
 	((ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out; if !trace_res then (warning hypsfile) else ());tfree_lits) 
     end;
+
+
+(*********************************************************************)
+(* write out a subgoal as tptp clauses to the file "probN"           *)
+(* where N is the number of this subgoal                             *)
+(*********************************************************************)
 
 fun tptp_inputs_tfrees thms n tfrees = 
     let val clss = map (ResClause.make_conjecture_clause_thm) thms
@@ -134,36 +136,168 @@ fun tptp_inputs_tfrees thms n tfrees =
     end;
 
 
-fun call_atp_tac_tfrees thms n tfrees = (tptp_inputs_tfrees thms n tfrees; dummy_tac);
+
+(*********************************************************************)
+(* call SPASS with settings and problem file for the current subgoal *)
+(* should be modified to allow other provers to be called            *)
+(*********************************************************************)
+
+fun call_resolve_tac thms sg_term (childin, childout,pid)  = let
+                            val newprobfile = new_prob_file ()
+                             val thmstring = concat_with_and (map string_of_thm thms) ""
+                           val _ = warning ("thmstring in call_res is: "^thmstring)
+                            val goalstr = Sign.string_of_term Mainsign sg_term 
+                            val goalproofstring = proofstring goalstr
+                               val no_returns =List.filter not_newline ( goalproofstring)
+                            val goalstring = implode no_returns
+                            val _ = warning ("goalstring in call_res is: "^goalstring)
+        
+                            val prob_file =File.tmp_path (Path.basic newprobfile); 
+                             val clauses = make_clauses thms
+                            (*val _ = tptp_inputs clauses prob_file*)
+                            val thmstring = concat_with_and (map string_of_thm thms) ""
+                           
+                            val goalstr = Sign.string_of_term Mainsign sg_term 
+                            val goalproofstring = proofstring goalstr
+                             val no_returns =List.filter not_newline ( goalproofstring)
+                            val goalstring = implode no_returns
+
+                            val thmproofstring = proofstring ( thmstring)
+                            val no_returns =List.filter   not_newline ( thmproofstring)
+                            val thmstr = implode no_returns
+                            
+                            val prob_path = File.sysify_path prob_file
+                            val outfile = TextIO.openOut("/home/clq20/Jia_Code/hellofile")
+                            val _ = TextIO.output(outfile, "prob file path is "^prob_path^" thmstring is "^thmstr^" goalstring is "^goalstring);
+                            val _ = TextIO.flushOut outfile;
+                            val _ =  TextIO.closeOut outfile
+                          in
+                           (* without paramodulation *)
+                           (*(warning ("goalstring in call_res_tac is: "^goalstring));
+                           (warning ("prob path in cal_res_tac is: "^prob_path));
+                            Watcher.callResProvers(childout,
+                            [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",  
+                             "-FullRed=0%-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
+                             prob_path)]);*)
+                           (* with paramodulation *)
+                           (*Watcher.callResProvers(childout,
+                                  [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",
+                                  "-FullRed=0%-ISPm=1%-Split=0%-PObv=0%-DocProof", 
+                                    prob_path)]); *)
+                           Watcher.callResProvers(childout,
+                           [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS", 
+                           "-DocProof",  prob_path)]);
+                           dummy_tac
+                         end
+
+(************************************************)
+(* pass in subgoal as a term and watcher info   *)
+(* process subgoal into skolemized, negated form*)
+(* then call call_resolve_tac to send to ATP    *)
+(************************************************)
+
+fun resolve_tac sg_term  (childin, childout,pid) = 
+   let val _ = warning ("in resolve_tac ")
+   in
+   SELECT_GOAL
+  (EVERY1 [rtac ccontr,atomize_tac,skolemize_tac,  METAHYPS(fn negs => (warning ("calling call_resolve_tac next ");call_resolve_tac negs sg_term (childin, childout,pid)))])
+   end;
 
 
-fun atp_tac_tfrees tfrees n  = SELECT_GOAL
+
+
+(* Need to replace call_atp_tac_tfrees with call res_provers as it's the dummy one *)
+
+(**********************************************************)
+(* write out the current subgoal as a tptp file, probN,   *)
+(* then call dummy_tac - should be call_res_tac           *)
+(**********************************************************)
+
+fun call_atp_tac_tfrees thms n tfrees sg_term (childin, childout,pid) = 
+                                         (tptp_inputs_tfrees (make_clauses thms) n tfrees; 
+                                          resolve_tac sg_term (childin, childout, pid);
+  					  dummy_tac);
+
+fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n  = 
+let val _ = (warning ("in atp_tac_tfrees "))
+   in
+SELECT_GOAL
   (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (call_atp_tac_tfrees (make_clauses negs) n tfrees))]) n;
+  METAHYPS(fn negs => (call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid)))]) n
+end;
 
 
-fun isar_atp_g tfrees = atp_tac_tfrees tfrees;
-
-fun isar_atp_goal' thm k n tfree_lits = 
-    if (k > n) then () else (isar_atp_g tfree_lits k thm; isar_atp_goal' thm (k+1) n tfree_lits);
-
-
-fun isar_atp_goal thm n_subgoals tfree_lits = (if (!debug) then warning (string_of_thm thm) else (isar_atp_goal' thm 1 n_subgoals tfree_lits));
+fun isar_atp_g tfrees sg_term (childin, childout, pid)  = 
+                                        
+(	(warning("in isar_atp_g"));atp_tac_tfrees tfrees sg_term (childin, childout, pid));
 
 
 
-fun isar_atp_aux thms thm n_subgoals = 
+(**********************************************)
+(* recursively call atp_tac_g on all subgoals *)
+(* sg_term is the nth subgoal as a term - used*)
+(* in proof reconstruction                    *)
+(**********************************************)
+
+fun isar_atp_goal' thm k n tfree_lits  (childin, childout, pid) = 
+                  	if (k > n) 
+                        then () 
+	  		else 
+                           (let val  prems = prems_of thm 
+                                val sg_term = get_nth n prems
+                            in   
+                                 
+                		(warning("in isar_atp_goal'"));
+ 				 isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; 
+                                 isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) 
+                            end);
+
+
+fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = (if (!debug) then warning (string_of_thm thm) else (isar_atp_goal' thm 1 n_subgoals tfree_lits  (childin, childout, pid) ));
+
+(**************************************************)
+(* convert clauses from "assume" to conjecture.   *)
+(* i.e. apply make_clauses and then get tptp for  *)
+(* any hypotheses in the goal                     *)
+(* write to file "hyps"                           *)
+(**************************************************)
+
+
+fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) = 
     let val tfree_lits = isar_atp_h thms 
     in
-	isar_atp_goal thm n_subgoals tfree_lits
+	(warning("in isar_atp_aux"));isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid)
     end;
-   
+
+(******************************************************************)
+(* called in Isar automatically                                   *)
+(* writes out the current clasimpset to a tptp file               *)
+(* passes all subgoals on to isar_atp_aux for further processing  *)
+(* turns off xsymbol at start of function, restoring it at end    *)
+(******************************************************************)
 
 fun isar_atp' (thms, thm) =
-    let val prems = prems_of thm
+    let val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+        val _= (warning ("in isar_atp'"))
+        val prems = prems_of thm
+        val thms_string =concat_with_and (map  string_of_thm thms) ""
+        val thmstring = string_of_thm thm
+        val prems_string = concat_with_and (map (Sign.string_of_term Mainsign) prems) ""
+        (* set up variables for writing out the clasimps to a tptp file *)
+        (* val _ = write_out_clasimp (File.sysify_path axiom_file)*)
+        (* cq: add write out clasimps to file *)
+        (* cq:create watcher and pass to isar_atp_aux *)                    
+        val (childin,childout,pid) = Watcher.createWatcher(thm)
+        val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
     in
-	case prems of [] => (if (!debug) then warning "entering forward, no goal" else ())
-		    | _ => (isar_atp_aux thms thm (length prems))
+	case prems of [] => () 
+		    | _ => ((warning ("initial thms: "^thms_string)); 
+                           (warning ("initial thm: "^thmstring));
+                           (warning ("subgoals: "^prems_string));
+                           (warning ("pid: "^ pidstring))); 
+                            isar_atp_aux thms thm (length prems) (childin, childout, pid) ;
+                           
+                           print_mode := (["xsymbols", "symbols"] @ ! print_mode)
     end;
 
 
@@ -210,6 +344,9 @@ in
 
 (* convert locally declared rules to axiom clauses *)
 (* write axiom clauses to ax_file *)
+(* what about clasimpset - it should already be in the ax file - perhaps append to ax file rather than just *)
+(* write out ? Or keep as a separate file and then cat them all together in the watcher, like we do with the *)
+(*claset file and prob file*)
 fun isar_local_thms (delta_cs, delta_ss_thms) =
     let val thms_cs = get_thms_cs delta_cs
 	val thms_ss = get_thms_ss delta_ss_thms
@@ -218,7 +355,7 @@ fun isar_local_thms (delta_cs, delta_ss_thms) =
 	val ax_file = File.sysify_path axiom_file
 	val out = TextIO.openOut ax_file
     in
-	(ResLib.writeln_strs out clauses_strs; TextIO.closeOut out)
+	(ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
     end;
 
 
@@ -228,10 +365,18 @@ fun isar_local_thms (delta_cs, delta_ss_thms) =
 (* called in Isar automatically *)
 fun isar_atp (ctxt,thm) =
     let val prems = ProofContext.prems_of ctxt
-      val d_cs = Classical.get_delta_claset ctxt
-      val d_ss_thms = Simplifier.get_delta_simpset ctxt
+        val d_cs = Classical.get_delta_claset ctxt 
+        val d_ss_thms = Simplifier.get_delta_simpset ctxt
+        val thmstring = string_of_thm thm
+        val prem_no = length prems
+        val prems_string = concat_with_and (map string_of_thm prems) ""
     in
-	(isar_local_thms (d_cs,d_ss_thms); isar_atp' (prems, thm))
+         
+          (warning ("initial thm in isar_atp: "^thmstring));
+          (warning ("subgoals in isar_atp: "^prems_string));
+    	   (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
+          (isar_local_thms (d_cs,d_ss_thms); (warning("about to call isar_atp'"));
+           isar_atp' (prems, thm))
     end;
 
 end
@@ -242,5 +387,3 @@ end
 end;
 
 Proof.atp_hook := ResAtp.isar_atp;
-
-
