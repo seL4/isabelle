@@ -37,7 +37,7 @@ fun mk_rules eq index rules next net =
   Rules {eq = eq, index = index, rules = rules, next = next, net = net};
 
 fun rules (Rules {rules = rs, ...}) = rs;
-fun may_unify (Rules {net, ...}) tm = Tactic.orderlist (Net.unify_term net tm);
+fun may_unify (Rules {rules, net, ...}) tm = Tactic.orderlist (Net.unify_term net tm);
 
 
 (* build rules *)
@@ -68,7 +68,7 @@ fun inserts rules rs = foldr (uncurry insert) (rules, rs);
 (* intro/elim rules *)
 
 val init_intro = init Thm.eq_thm Thm.concl_of;
-val init_elim = init Thm.eq_thm Thm.major_prem_of;
+val init_elim = init Thm.eq_thm (Logic.strip_assums_concl o Thm.major_prem_of);
 
 
 end;
