@@ -160,7 +160,7 @@ fun this ys xs =
           if y = x then drop_prefix ys xs else raise FAIL None;
   in (ys, drop_prefix ys xs) end;
 
-fun this_string s = this (explode s) >> (K s);
+fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols yet!*)
 
 fun any _ [] = raise MORE None
   | any pred (lst as x :: xs) =
@@ -377,9 +377,7 @@ fun literal lex chrs =
     | Some res => res)
   end;
 
-
 end;
-
 
 structure BasicScan: BASIC_SCAN = Scan;
 open BasicScan;

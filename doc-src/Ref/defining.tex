@@ -231,26 +231,28 @@ identifiers\index{type identifiers}, type unknowns\index{type unknowns},
 \ndxbold{xstr}, respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt
   'a}, {\tt ?'a3}, {\tt \#42}, {\tt ''foo bar''}.  Here is the precise syntax:
 \begin{eqnarray*}
-id        & =   & letter~quasiletter^* \\
-longid    & =   & id\mbox{\tt .}id~\dots~id \\
+id        & =   & letter\,quasiletter^* \\
+longid    & =   & id (\mbox{\tt .}id)^+ \\
 var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
 tid       & =   & \mbox{\tt '}id \\
 tvar      & =   & \mbox{\tt ?}tid ~~|~~
                   \mbox{\tt ?}tid\mbox{\tt .}nat \\
 num       & =   & nat ~~|~~ \mbox{\tt-}nat \\
 xnum      & =   & \mbox{\tt \#}nat ~~|~~ \mbox{\tt \#-}nat \\
-xstr      & =   & \mbox{\tt ''\rm text\tt ''} \\[1ex]
-letter & = & latin ~|~ symletter \\
+xstr      & =   & \mbox{\tt ''~\dots~\tt ''} \\[1ex]
+letter & = & latin ~|~ \verb,\<,latin\verb,>, ~|~ \verb,\<,latin\,latin\verb,>, ~|~ greek \\
+quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', ~|~ \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
 latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
 digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
 nat & = & digit^+ \\
-quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', ~|~ \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
-symletter & = & \verb,\<, (latin ~|~ latin~latin ~|~ greek) \verb,>, \\
-greek & = & \verb,alpha, ~|~ \verb,beta, ~|~ \verb,gamma, ~|~ \verb,delta, ~|~ \verb,epsilon, ~|~ \verb,zeta, ~|~ \verb,eta, ~| \\
-        &   & \verb,theta, ~|~ \verb,iota, ~|~ \verb,kappa, ~|~ \verb,mu, ~|~ \verb,nu, ~|~ \verb,xi, ~|~ \verb,pi, ~|~ \verb,rho, ~| \\
-        &   & \verb,sigma, ~|~ \verb,tau, ~|~ \verb,upsilon, ~|~ \verb,phi, ~|~ \verb,psi, ~|~ \verb,omega, ~|~ \verb,Gamma, ~| \\
-        &   & \verb,Delta, ~|~ \verb,Theta, ~|~ \verb,Lambda, ~|~ \verb,Xi, ~|~ \verb,Pi, ~|~ \verb,Sigma, ~|~ \verb,Upsilon, ~| \\
-        &   & \verb,Phi, ~|~ \verb,Psi, ~|~ \verb,Omega,
+greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<delta>, ~| \\
+      &   & \verb,\<epsilon>, ~|~ \verb,\<zeta>, ~|~ \verb,\<eta>, ~|~ \verb,\<theta>, ~| \\
+      &   & \verb,\<iota>, ~|~ \verb,\<kappa>, ~|~ \verb,\<mu>, ~|~ \verb,\<nu>, ~| \\
+      &   & \verb,\<xi>, ~|~ \verb,\<pi>, ~|~ \verb,\<rho>, ~|~ \verb,\<sigma>, ~| \\
+      &   & \verb,\<tau>, ~|~ \verb,\<upsilon>, ~|~ \verb,\<phi>, ~|~ \verb,\<psi>, ~| \\
+      &   & \verb,\<omega>, ~|~ \verb,\<Gamma>, ~|~ \verb,\<Delta>, ~|~ \verb,\<Theta>, ~| \\
+      &   & \verb,\<Lambda>, ~|~ \verb,\<Xi>, ~|~ \verb,\<Pi>, ~|~ \verb,\<Sigma>, ~| \\
+      &   & \verb,\<Upsilon>, ~|~ \verb,\<Phi>, ~|~ \verb,\<Psi>, ~|~ \verb,\<Omega>, \\
 \end{eqnarray*}
 The lexer repeatedly takes the longest prefix of the input string that
 forms a valid token.  A maximal prefix that is both a delimiter and a

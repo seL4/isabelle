@@ -1520,8 +1520,28 @@ undo-able.
   \isarcmd{print_drafts}^* & : & \isarkeep{\cdot} \\
 \end{matharray}
 
+\railalias{usethy}{use\_thy}
+\railterm{usethy}
+\railalias{usethyonly}{use\_thy\_only}
+\railterm{usethyonly}
+\railalias{updatethy}{update\_thy}
+\railterm{updatethy}
+\railalias{updatethyonly}{update\_thy\_only}
+\railterm{updatethyonly}
+\railalias{displaydrafts}{display\_drafts}
+\railterm{displaydrafts}
+\railalias{printdrafts}{print\_drafts}
+\railterm{printdrafts}
+
+\begin{rail}
+  ('cd' | usethy | usethyonly | updatethy | updatethyonly) name
+  ;
+  (displaydrafts | printdrafts) (name +)
+  ;
+\end{rail}
+
 \begin{descr}
-\item [$\isarkeyword{cd}~name$] changes the current directory of the Isabelle
+\item [$\isarkeyword{cd}~path$] changes the current directory of the Isabelle
   process.
 \item [$\isarkeyword{pwd}~$] prints the current working directory.
 \item [$\isarkeyword{use_thy}$, $\isarkeyword{use_thy_only}$,
@@ -1531,10 +1551,10 @@ undo-able.
     implicit theory context to that of the theory loaded.}  (see also
   \cite[\S1,\S6]{isabelle-ref}).  Note that both the ML and Isar versions may
   load new- and old-style theories alike.
-\item [$\isarkeyword{display_drafts} and \isarkeyword{print_drafts}$] perform
-  simple output of a given list of raw source files (specified as repeated
-  $name$ arguments).  Only those symbols that do not require additional LaTeX
-  packages are displayed properly, everything else is left verbatim.
+\item [$\isarkeyword{display_drafts}~paths$ and
+  $\isarkeyword{print_drafts}~paths$] perform simple output of a given list of
+  raw source files.  Only those symbols that do not require additional
+  {\LaTeX} packages are displayed properly, everything else is left verbatim.
 \end{descr}
 
 These system commands are scarcely used when working with the Proof~General

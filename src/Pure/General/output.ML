@@ -66,9 +66,12 @@ val print_mode = ref ([]: string list);
 
 fun has_mode s = s mem_string ! print_mode;
 
-val modes = ref (Symtab.empty:
-  ((string -> string * real) * (string * int -> string) * (string -> string))
-    Symtab.table);
+type mode_fns =
+ {output_width: string -> string * real,
+  indent: string * int -> string,
+  raw: string -> string};
+
+val modes = ref (Symtab.empty: mode_fns Symtab.table);
 
 exception MISSING_DEFAULT_OUTPUT;
 
@@ -78,18 +81,18 @@ fun get_mode () =
   (case Library.get_first lookup_mode (! print_mode) of Some p => p
   | None =>
       (case lookup_mode "" of Some p => p
-      | None => raise MISSING_DEFAULT_OUTPUT));
+      | None => raise MISSING_DEFAULT_OUTPUT));  (*sys_error would require output again!*)
 
-fun output_width x = #1 (get_mode ()) x;
+fun output_width x = #output_width (get_mode ()) x;
 val output = #1 o output_width;
-fun indent x = #2 (get_mode ()) x;
-fun raw x = #3 (get_mode ()) x;
+fun indent x = #indent (get_mode ()) x;
+fun raw x = #raw (get_mode ()) x;
 
 
 
 (** output channels **)
 
-(*process channels -- normally NOT used directly!*)
+(*primitive process channels -- normally NOT used directly!*)
 fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
@@ -113,10 +116,10 @@ fun panic_msg s = ! panic_fn (output s);
 
 (* add_mode *)
 
-fun add_mode name m =
+fun add_mode name (f, g, h) =
  (if is_none (lookup_mode name) then ()
   else warning ("Redeclaration of symbol print mode: " ^ quote name);
-  modes := Symtab.update ((name, m), ! modes));
+  modes := Symtab.update ((name, {output_width = f, indent = g, raw = h}), ! modes));
 
 
 (* produce errors *)
