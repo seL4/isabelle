@@ -173,7 +173,7 @@ lemma Says_S_message_form:
           \<or> X \<in> analz (spies evs)"
 apply (frule Says_imp_knows_Spy)
 (*mystery: why is this frule needed?*)
-apply (blast dest: cert_A_form  analz.Inj)
+apply (blast dest: cert_A_form analz.Inj)
 done
 
 (*Alternative version also provable
@@ -224,8 +224,8 @@ lemma analz_image_freshK [rule_format]:
 apply (erule ns_shared.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (erule_tac [4] Says_S_message_form [THEN disjE])
-apply (analz_freshK)
-apply (spy_analz)
+apply analz_freshK
+apply spy_analz
 done
 
 
