@@ -187,10 +187,11 @@ by (rtac conjI 1);
 by (Asm_simp_tac 1);
 
 by (rtac conjI 1);
-by (fast_tac (claset() addss (simpset() addsplits [list.split])) 1);
+by (force_tac (claset(), simpset() addsplits [list.split]) 1);
 
 by (rtac conjI 1);
-by (fast_tac (claset() addDs [rtrancl_trans]
+by (fast_tac (claset() delrules [r_into_rtrancl]
+		       addDs [rtrancl_trans]
        addss (simpset() addsplits [list.split])) 1);
 
 by (rtac conjI 1);
