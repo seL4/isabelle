@@ -21,7 +21,7 @@ defs
   diamond_def "diamond R   == commute R R"
 
   Church_Rosser_def "Church_Rosser(R) ==   
-  !x y. (x,y) : (R Un converse(R))^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
+  !x y. (x,y) : (R Un R^-1)^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
 
 translations
   "confluent R" == "diamond(R^*)"

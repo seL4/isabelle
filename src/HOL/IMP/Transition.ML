@@ -128,7 +128,7 @@ section "A Proof Without -n->";
 goal Transition.thy
  "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
-by (etac converse_rtrancl_induct2 1);
+by (etac inverse_rtrancl_induct2 1);
 by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";

@@ -141,9 +141,9 @@ by(blast_tac (!claset addEs [make_elim rtrancl_trans]) 1);
 qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
-goalw WF.thy [acyclic_def] "acyclic(converse r) = acyclic r";
-by(simp_tac (!simpset addsimps [trancl_converse]) 1);
-qed "acyclic_converse";
+goalw WF.thy [acyclic_def] "acyclic(r^-1) = acyclic r";
+by(simp_tac (!simpset addsimps [trancl_inverse]) 1);
+qed "acyclic_inverse";
 
 (** cut **)
 

@@ -12,22 +12,22 @@ open Equiv;
 
 Delrules [equalityI];
 
-(*** Suppes, Theorem 70: r is an equiv relation iff converse(r) O r = r ***)
+(*** Suppes, Theorem 70: r is an equiv relation iff r^-1 O r = r ***)
 
-(** first half: equiv A r ==> converse(r) O r = r **)
+(** first half: equiv A r ==> r^-1 O r = r **)
 
-goalw Equiv.thy [trans_def,sym_def,converse_def]
-    "!!r. [| sym(r); trans(r) |] ==> converse(r) O r <= r";
-by (fast_tac (!claset addSEs [converseD]) 1);
+goalw Equiv.thy [trans_def,sym_def,inverse_def]
+    "!!r. [| sym(r); trans(r) |] ==> r^-1 O r <= r";
+by (fast_tac (!claset addSEs [inverseD]) 1);
 qed "sym_trans_comp_subset";
 
 goalw Equiv.thy [refl_def]
-    "!!A r. refl A r ==> r <= converse(r) O r";
+    "!!A r. refl A r ==> r <= r^-1 O r";
 by (fast_tac (!claset addIs [compI]) 1);
 qed "refl_comp_subset";
 
 goalw Equiv.thy [equiv_def]
-    "!!A r. equiv A r ==> converse(r) O r = r";
+    "!!A r. equiv A r ==> r^-1 O r = r";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [sym_trans_comp_subset, refl_comp_subset] 1
      ORELSE etac conjE 1));
@@ -35,7 +35,7 @@ qed "equiv_comp_eq";
 
 (*second half*)
 goalw Equiv.thy [equiv_def,refl_def,sym_def,trans_def]
-    "!!A r. [| converse(r) O r = r;  Domain(r) = A |] ==> equiv A r";
+    "!!A r. [| r^-1 O r = r;  Domain(r) = A |] ==> equiv A r";
 by (etac equalityE 1);
 by (subgoal_tac "ALL x y. (x,y) : r --> (y,x) : r" 1);
 by (Step_tac 1);

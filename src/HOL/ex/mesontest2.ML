@@ -2986,9 +2986,9 @@ val SET025_4 = prove
 \  (! Y Z X. member(Z::'a,cross_product(X::'a,Y)) --> member(first(Z),X)) &     \
 \  (! X Z Y. member(Z::'a,cross_product(X::'a,Y)) --> member(second(Z),Y)) &    \
 \  (! X Z Y. little_set(Z) & ordered_pair_predicate(Z) & member(first(Z),X) & member(second(Z),Y) --> member(Z::'a,cross_product(X::'a,Y))) &   \
-\  (! X Z. member(Z::'a,converse(X)) --> ordered_pair_predicate(Z)) &       \
-\  (! Z X. member(Z::'a,converse(X)) --> member(ordered_pair(second(Z),first(Z)),X)) &      \
-\  (! Z X. little_set(Z) & ordered_pair_predicate(Z) & member(ordered_pair(second(Z),first(Z)),X) --> member(Z::'a,converse(X))) &  \
+\  (! X Z. member(Z::'a,X^-1) --> ordered_pair_predicate(Z)) &       \
+\  (! Z X. member(Z::'a,X^-1) --> member(ordered_pair(second(Z),first(Z)),X)) &      \
+\  (! Z X. little_set(Z) & ordered_pair_predicate(Z) & member(ordered_pair(second(Z),first(Z)),X) --> member(Z::'a,X^-1)) &  \
 \  (! Z X. member(Z::'a,rotate_right(X)) --> little_set(f9(Z::'a,X))) & \
 \  (! Z X. member(Z::'a,rotate_right(X)) --> little_set(f10(Z::'a,X))) &        \
 \  (! Z X. member(Z::'a,rotate_right(X)) --> little_set(f11(Z::'a,X))) &        \
@@ -3056,8 +3056,8 @@ val SET025_4 = prove
 \  (! Z. little_set(Z) & ordered_pair_predicate(Z) & equal(first(Z),second(Z)) --> member(Z::'a,identity_relation)) &       \
 \  (! X Y. equal(restrict(X::'a,Y),intersection(X::'a,cross_product(Y::'a,universal_set)))) &       \
 \  (! Xf. one_to_one_function(Xf) --> function(Xf)) &   \
-\  (! Xf. one_to_one_function(Xf) --> function(converse(Xf))) & \
-\  (! Xf. function(Xf) & function(converse(Xf)) --> one_to_one_function(Xf)) &  \
+\  (! Xf. one_to_one_function(Xf) --> function(Xf^-1)) & \
+\  (! Xf. function(Xf) & function(Xf^-1) --> one_to_one_function(Xf)) &  \
 \  (! Z Xf Y. member(Z::'a,apply(Xf::'a,Y)) --> ordered_pair_predicate(f28(Z::'a,Xf,Y))) &  \
 \  (! Z Y Xf. member(Z::'a,apply(Xf::'a,Y)) --> member(f28(Z::'a,Xf,Y),Xf)) &       \
 \  (! Z Xf Y. member(Z::'a,apply(Xf::'a,Y)) --> equal(first(f28(Z::'a,Xf,Y)),Y)) &  \
@@ -3159,7 +3159,7 @@ val SET025_4 = prove
 \  (! S' T'. equal(S'::'a,T') --> equal(complement(S'),complement(T'))) &   \
 \  (! U V W. equal(U::'a,V) --> equal(composition(U::'a,W),composition(V::'a,W))) & \
 \  (! X Z Y. equal(X::'a,Y) --> equal(composition(Z::'a,X),composition(Z::'a,Y))) & \
-\  (! A1 B1. equal(A1::'a,B1) --> equal(converse(A1),converse(B1))) &       \
+\  (! A1 B1. equal(A1::'a,B1) --> equal(A1^-1,B1^-1)) &       \
 \  (! C1 D1 E1. equal(C1::'a,D1) --> equal(cross_product(C1::'a,E1),cross_product(D1::'a,E1))) &    \
 \  (! F1 H1 G1. equal(F1::'a,G1) --> equal(cross_product(H1::'a,F1),cross_product(H1::'a,G1))) &    \
 \  (! I1 J1. equal(I1::'a,J1) --> equal(domain_of(I1),domain_of(J1))) &     \

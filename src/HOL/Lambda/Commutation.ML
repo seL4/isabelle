@@ -91,7 +91,7 @@ goalw Commutation.thy [square_def,commute_def,diamond_def,Church_Rosser_def]
 by (safe_tac HOL_cs);
  by (blast_tac (HOL_cs addIs
       [Un_upper2 RS rtrancl_mono RS subsetD RS rtrancl_trans,
-       rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
+       rtrancl_inverseI, inverseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
 by (Blast.depth_tac (!claset delrules [rtrancl_refl] 
