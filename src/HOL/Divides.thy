@@ -88,7 +88,7 @@ lemma mod_if: "m mod (n::nat) = (if m<n then m else (m-n) mod n)"
 by (simp add: mod_geq)
 
 lemma mod_1 [simp]: "m mod Suc 0 = 0"
-apply (induct_tac "m")
+apply (induct "m")
 apply (simp_all (no_asm_simp) add: mod_geq)
 done
 
@@ -98,7 +98,7 @@ apply (simp_all add: mod_geq)
 done
 
 lemma mod_add_self2 [simp]: "(m+n) mod n = m mod (n::nat)"
-apply (subgoal_tac " (n + m) mod n = (n+m-n) mod n") 
+apply (subgoal_tac "(n + m) mod n = (n+m-n) mod n") 
 apply (simp add: add_commute)
 apply (subst mod_geq [symmetric], simp_all)
 done
@@ -107,7 +107,7 @@ lemma mod_add_self1 [simp]: "(n+m) mod n = m mod (n::nat)"
 by (simp add: add_commute mod_add_self2)
 
 lemma mod_mult_self1 [simp]: "(m + k*n) mod n = m mod (n::nat)"
-apply (induct_tac "k")
+apply (induct "k")
 apply (simp_all add: add_left_commute [of _ n])
 done
 
@@ -117,7 +117,7 @@ by (simp add: mult_commute mod_mult_self1)
 lemma mod_mult_distrib: "(m mod n) * (k::nat) = (m*k) mod (n*k)"
 apply (case_tac "n=0", simp)
 apply (case_tac "k=0", simp)
-apply (induct_tac "m" rule: nat_less_induct)
+apply (induct "m" rule: nat_less_induct)
 apply (subst mod_if, simp)
 apply (simp add: mod_geq diff_less diff_mult_distrib)
 done
@@ -127,7 +127,7 @@ by (simp add: mult_commute [of k] mod_mult_distrib)
 
 lemma mod_mult_self_is_0 [simp]: "(m*n) mod n = (0::nat)"
 apply (case_tac "n=0", simp)
-apply (induct_tac "m", simp)
+apply (induct "m", simp)
 apply (rename_tac "k")
 apply (cut_tac m = "k*n" and n = n in mod_add_self2)
 apply (simp add: add_commute)
@@ -158,7 +158,7 @@ by (simp add: div_geq)
 (*Main Result about quotient and remainder.*)
 lemma mod_div_equality: "(m div n)*n + m mod n = (m::nat)"
 apply (case_tac "n=0", simp)
-apply (induct_tac "m" rule: nat_less_induct)
+apply (induct "m" rule: nat_less_induct)
 apply (subst mod_if)
 apply (simp_all (no_asm_simp) add: add_assoc div_geq add_diff_inverse diff_less)
 done
@@ -219,7 +219,7 @@ lemma mult_div_cancel: "(n::nat) * (m div n) = m - (m mod n)"
 by (cut_tac m = m and n = n in mod_div_equality2, arith)
 
 lemma mod_less_divisor [simp]: "0<n ==> m mod n < (n::nat)"
-apply (induct_tac "m" rule: nat_less_induct)
+apply (induct "m" rule: nat_less_induct)
 apply (case_tac "na<n", simp) 
 txt{*case @{term "n \<le> na"}*}
 apply (simp add: mod_geq diff_less)
@@ -389,7 +389,7 @@ qed "mod_mult_mult2";
 subsection{*Further Facts about Quotient and Remainder*}
 
 lemma div_1 [simp]: "m div Suc 0 = m"
-apply (induct_tac "m")
+apply (induct "m")
 apply (simp_all (no_asm_simp) add: div_geq)
 done
 
@@ -397,7 +397,7 @@ lemma div_self [simp]: "0<n ==> n div n = (1::nat)"
 by (simp add: div_geq)
 
 lemma div_add_self2: "0<n ==> (m+n) div n = Suc (m div n)"
-apply (subgoal_tac " (n + m) div n = Suc ((n+m-n) div n) ")
+apply (subgoal_tac "(n + m) div n = Suc ((n+m-n) div n) ")
 apply (simp add: add_commute)
 apply (subst div_geq [symmetric], simp_all)
 done
@@ -418,7 +418,7 @@ by (simp add: mult_commute div_mult_self1)
 lemma div_le_mono [rule_format (no_asm)]:
      "\<forall>m::nat. m \<le> n --> (m div k) \<le> (n div k)"
 apply (case_tac "k=0", simp)
-apply (induct_tac "n" rule: nat_less_induct, clarify)
+apply (induct "n" rule: nat_less_induct, clarify)
 apply (case_tac "n<k")
 (* 1  case n<k *)
 apply simp
@@ -434,13 +434,13 @@ done
 lemma div_le_mono2: "!!m::nat. [| 0<m; m\<le>n |] ==> (k div n) \<le> (k div m)"
 apply (subgoal_tac "0<n")
  prefer 2 apply simp 
-apply (induct_tac "k" rule: nat_less_induct)
+apply (induct_tac k rule: nat_less_induct)
 apply (rename_tac "k")
 apply (case_tac "k<n", simp)
 apply (subgoal_tac "~ (k<m) ")
  prefer 2 apply simp 
 apply (simp add: div_geq)
-apply (subgoal_tac " (k-n) div n \<le> (k-m) div n")
+apply (subgoal_tac "(k-n) div n \<le> (k-m) div n")
  prefer 2
  apply (blast intro: div_le_mono diff_le_mono2)
 apply (rule le_trans, simp)
@@ -457,14 +457,14 @@ done
 (* Similar for "less than" *) 
 lemma div_less_dividend [rule_format, simp]:
      "!!n::nat. 1<n ==> 0 < m --> m div n < m"
-apply (induct_tac "m" rule: nat_less_induct)
+apply (induct_tac m rule: nat_less_induct)
 apply (rename_tac "m")
 apply (case_tac "m<n", simp)
 apply (subgoal_tac "0<n")
  prefer 2 apply simp 
 apply (simp add: div_geq)
 apply (case_tac "n<m")
- apply (subgoal_tac " (m-n) div n < (m-n) ")
+ apply (subgoal_tac "(m-n) div n < (m-n) ")
   apply (rule impI less_trans_Suc)+
 apply assumption
   apply (simp_all add: diff_less)
@@ -473,7 +473,7 @@ done
 text{*A fact for the mutilated chess board*}
 lemma mod_Suc: "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))"
 apply (case_tac "n=0", simp)
-apply (induct_tac "m" rule: nat_less_induct)
+apply (induct "m" rule: nat_less_induct)
 apply (case_tac "Suc (na) <n")
 (* case Suc(na) < n *)
 apply (frule lessI [THEN less_trans], simp add: less_not_refl3)

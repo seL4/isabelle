@@ -108,7 +108,7 @@ constdefs
 
 
 lemma padd_Nil2: "p +++ [] = p"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 declare padd_Nil2 [simp]
 
 lemma padd_Cons_Cons: "(h1 # p1) +++ (h2 # p2) = (h1 + h2) # (p1 +++ p2)"
@@ -122,7 +122,7 @@ lemma pmult_singleton: "[h1] *** p1 = h1 %* p1"
 by simp
 
 lemma poly_ident_mult: "1 %* t = t"
-by (induct_tac "t", auto)
+by (induct "t", auto)
 declare poly_ident_mult [simp]
 
 lemma poly_simple_add_Cons: "[a] +++ ((0)#t) = (a#t)"
@@ -139,23 +139,20 @@ apply (case_tac "aa", auto)
 done
 
 lemma padd_assoc [rule_format]: "\<forall>b c. (a +++ b) +++ c = a +++ (b +++ c)"
-apply (induct_tac "a", simp, clarify)
+apply (induct "a", simp, clarify)
 apply (case_tac b, simp_all)
 done
 
 lemma poly_cmult_distr [rule_format]:
      "\<forall>q. a %* ( p +++ q) = (a %* p +++ a %* q)"
-apply (induct_tac "p", simp, clarify)
+apply (induct "p", simp, clarify) 
 apply (case_tac "q")
 apply (simp_all add: right_distrib)
 done
 
 lemma pmult_by_x: "[0, 1] *** t = ((0)#t)"
-apply (induct_tac "t", simp)
-apply (simp add: poly_ident_mult padd_commut)
-apply (case_tac "list")
-apply (simp (no_asm_simp))
-apply (simp add: poly_ident_mult padd_commut)
+apply (induct "t", simp)
+apply (auto simp add: poly_ident_mult padd_commut)
 done
 declare pmult_by_x [simp]
 
@@ -170,7 +167,7 @@ apply (auto simp add: right_distrib)
 done
 
 lemma poly_cmult: "poly (c %* p) x = c * poly p x"
-apply (induct_tac "p")
+apply (induct "p") 
 apply (case_tac [2] "x=0")
 apply (auto simp add: right_distrib mult_ac)
 done
@@ -183,14 +180,14 @@ done
 lemma poly_mult: "poly (p1 *** p2) x = poly p1 x * poly p2 x"
 apply (subgoal_tac "\<forall>p2. poly (p1 *** p2) x = poly p1 x * poly p2 x")
 apply (simp (no_asm_simp))
-apply (induct_tac "p1")
+apply (induct "p1")
 apply (auto simp add: poly_cmult)
-apply (case_tac "list")
+apply (case_tac p1)
 apply (auto simp add: poly_cmult poly_add left_distrib right_distrib mult_ac)
 done
 
 lemma poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: poly_cmult poly_mult)
 done
 
@@ -204,11 +201,11 @@ lemma poly_mult_assoc: "poly ((a *** b) *** c) x = poly (a *** (b *** c)) x"
 by (simp add: poly_mult real_mult_assoc)
 
 lemma poly_mult_Nil2: "poly (p *** []) x = 0"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 declare poly_mult_Nil2 [simp]
 
 lemma poly_exp_add: "poly (p %^ (n + d)) x = poly( p %^ n *** p %^ d) x"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: poly_mult real_mult_assoc)
 done
 
@@ -236,7 +233,7 @@ declare DERIV_pow2 [simp] DERIV_pow [simp]
 
 lemma lemma_DERIV_poly1: "\<forall>n. DERIV (%x. (x ^ (Suc n) * poly p x)) x :>
         x ^ n * poly (pderiv_aux (Suc n) p) x "
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto intro!: DERIV_add DERIV_cmult2 
             simp add: pderiv_def right_distrib real_mult_assoc [symmetric] 
             simp del: realpow_Suc)
@@ -253,7 +250,7 @@ lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x) x :> D"
 by (rule lemma_DERIV_subst, rule DERIV_add, auto)
 
 lemma poly_DERIV: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: pderiv_Cons)
 apply (rule DERIV_add_const)
 apply (rule lemma_DERIV_subst)
@@ -299,7 +296,7 @@ text{*Lemmas for Derivatives*}
 
 lemma lemma_poly_pderiv_aux_add: "\<forall>p2 n. poly (pderiv_aux n (p1 +++ p2)) x =
                 poly (pderiv_aux n p1 +++ pderiv_aux n p2) x"
-apply (induct_tac "p1", simp, clarify) 
+apply (induct "p1", simp, clarify) 
 apply (case_tac "p2")
 apply (auto simp add: right_distrib)
 done
@@ -310,7 +307,7 @@ apply (simp add: lemma_poly_pderiv_aux_add)
 done
 
 lemma lemma_poly_pderiv_aux_cmult: "\<forall>n. poly (pderiv_aux n (c %* p)) x = poly (c %* pderiv_aux n p) x"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: poly_cmult mult_ac)
 done
 
@@ -323,7 +320,7 @@ apply (simp add: poly_minus_def poly_pderiv_aux_cmult)
 done
 
 lemma lemma_poly_pderiv_aux_mult1: "\<forall>n. poly (pderiv_aux (Suc n) p) x = poly ((pderiv_aux n p) +++ p) x"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: real_of_nat_Suc left_distrib)
 done
 
@@ -331,7 +328,7 @@ lemma lemma_poly_pderiv_aux_mult: "poly (pderiv_aux (Suc n) p) x = poly ((pderiv
 by (simp add: lemma_poly_pderiv_aux_mult1)
 
 lemma lemma_poly_pderiv_add: "\<forall>q. poly (pderiv (p +++ q)) x = poly (pderiv p +++ pderiv q) x"
-apply (induct_tac "p", simp, clarify) 
+apply (induct "p", simp, clarify) 
 apply (case_tac "q")
 apply (auto simp add: poly_pderiv_aux_add poly_add pderiv_def)
 done
@@ -340,7 +337,7 @@ lemma poly_pderiv_add: "poly (pderiv (p +++ q)) x = poly (pderiv p +++ pderiv q)
 by (simp add: lemma_poly_pderiv_add)
 
 lemma poly_pderiv_cmult: "poly (pderiv (c %* p)) x = poly (c %* (pderiv p)) x"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: poly_pderiv_aux_cmult poly_cmult pderiv_def)
 done
 
@@ -350,13 +347,13 @@ by (simp add: poly_minus_def poly_pderiv_cmult)
 lemma lemma_poly_mult_pderiv:
    "poly (pderiv (h#t)) x = poly ((0 # (pderiv t)) +++ t) x"
 apply (simp add: pderiv_def)
-apply (induct_tac "t")
+apply (induct "t")
 apply (auto simp add: poly_add lemma_poly_pderiv_aux_mult)
 done
 
 lemma poly_pderiv_mult: "\<forall>q. poly (pderiv (p *** q)) x =
       poly (p *** (pderiv q) +++ q *** (pderiv p)) x"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: poly_add poly_cmult poly_pderiv_cmult poly_pderiv_add poly_mult)
 apply (rule lemma_poly_mult_pderiv [THEN ssubst])
 apply (rule lemma_poly_mult_pderiv [THEN ssubst])
@@ -367,7 +364,7 @@ done
 
 lemma poly_pderiv_exp: "poly (pderiv (p %^ (Suc n))) x =
          poly ((real (Suc n)) %* (p %^ n) *** pderiv p) x"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: poly_add poly_pderiv_cmult poly_cmult poly_pderiv_mult
                       real_of_nat_zero poly_mult real_of_nat_Suc 
                       right_distrib left_distrib mult_ac)
@@ -383,7 +380,7 @@ subsection{*Key Property: if @{term "f(a) = 0"} then @{term "(x - a)"} divides
  @{term "p(x)"} *}
 
 lemma lemma_poly_linear_rem: "\<forall>h. \<exists>q r. h#t = [r] +++ [-a, 1] *** q"
-apply (induct_tac "t", safe)
+apply (induct "t", safe)
 apply (rule_tac x = "[]" in exI)
 apply (rule_tac x = h in exI, simp)
 apply (drule_tac x = aa in spec, safe)
@@ -407,11 +404,11 @@ apply (drule_tac x = "aa#lista" in spec, auto)
 done
 
 lemma lemma_poly_length_mult: "\<forall>h k a. length (k %* p +++  (h # (a %* p))) = Suc (length p)"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 declare lemma_poly_length_mult [simp]
 
 lemma lemma_poly_length_mult2: "\<forall>h k. length (k %* p +++  (h # p)) = Suc (length p)"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 declare lemma_poly_length_mult2 [simp]
 
 lemma poly_length_mult: "length([-a,1] *** q) = Suc (length q)"
@@ -422,13 +419,13 @@ declare poly_length_mult [simp]
 subsection{*Polynomial length*}
 
 lemma poly_cmult_length: "length (a %* p) = length p"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 declare poly_cmult_length [simp]
 
 lemma poly_add_length [rule_format]:
      "\<forall>p2. length (p1 +++ p2) =
              (if (length p1 < length p2) then length p2 else length p1)"
-apply (induct_tac "p1", simp_all, arith)
+apply (induct "p1", simp_all, arith)
 done
 
 lemma poly_root_mult_length: "length([a,b] *** p) = Suc (length p)"
@@ -447,14 +444,14 @@ by (auto simp add: poly_mult)
 text{*Normalisation Properties*}
 
 lemma poly_normalized_nil: "(pnormalize p = []) --> (poly p x = 0)"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 
 text{*A nontrivial polynomial of degree n has no more than n roots*}
 
 lemma poly_roots_index_lemma [rule_format]:
    "\<forall>p x. poly p x \<noteq> poly [] x & length p = n
     --> (\<exists>i. \<forall>x. (poly p x = (0::real)) --> (\<exists>m. (m \<le> n & x = i m)))"
-apply (induct_tac "n", safe)
+apply (induct "n", safe)
 apply (rule ccontr)
 apply (subgoal_tac "\<exists>a. poly p a = 0", safe)
 apply (drule poly_linear_divides [THEN iffD1], safe)
@@ -464,7 +461,7 @@ apply (simp del: poly_Nil pmult_Cons)
 apply (erule exE)
 apply (drule_tac x = "%m. if m = Suc n then a else i m" in spec, safe)
 apply (drule poly_mult_eq_zero_disj [THEN iffD1], safe)
-apply (drule_tac x = "Suc (length q) " in spec)
+apply (drule_tac x = "Suc (length q)" in spec)
 apply simp
 apply (drule_tac x = xa in spec, safe)
 apply (drule_tac x = m in spec, simp, blast)
@@ -478,25 +475,23 @@ by (blast intro: poly_roots_index_lemma2)
 lemma poly_roots_finite_lemma: "poly p x \<noteq> poly [] x ==>
       \<exists>N i. \<forall>x. (poly p x = 0) --> (\<exists>n. (n::nat) < N & x = i n)"
 apply (drule poly_roots_index_length, safe)
-apply (rule_tac x = "Suc (length p) " in exI)
+apply (rule_tac x = "Suc (length p)" in exI)
 apply (rule_tac x = i in exI) 
 apply (simp add: less_Suc_eq_le)
 done
 
 (* annoying proof *)
 lemma real_finite_lemma [rule_format (no_asm)]:
-     "\<forall>P. (\<forall>x. P x --> (\<exists>n. (n::nat) < N & x = (j::nat=>real) n))
+     "\<forall>P. (\<forall>x. P x --> (\<exists>n. n < N & x = (j::nat=>real) n))
       --> (\<exists>a. \<forall>x. P x --> x < a)"
-apply (induct_tac "N", simp, safe)
-apply (drule_tac x = "%z. P z & (z \<noteq> (j::nat=>real) n) " in spec)
-apply auto
-apply (drule_tac x = x in spec, safe)
-apply (rule_tac x = na in exI)
-apply (auto simp add: less_Suc_eq) 
-apply (rule_tac x = "abs a + abs (j n) + 1" in exI)
+apply (induct "N", simp, safe)
+apply (drule_tac x = "%z. P z & (z \<noteq> j N)" in spec)
+apply (auto simp add: less_Suc_eq)
+apply (rename_tac N P a) 
+apply (rule_tac x = "abs a + abs (j N) + 1" in exI)
 apply safe
-apply (drule_tac x = x in spec, safe)
-apply (drule_tac x = "j na" in spec, arith+)
+apply (drule_tac x = x in spec, safe) 
+apply (drule_tac x = "j n" in spec, arith+)
 done
 
 lemma poly_roots_finite: "(poly p \<noteq> poly []) =
@@ -515,7 +510,7 @@ lemma poly_entire_lemma: "[| poly p \<noteq> poly [] ; poly q \<noteq> poly [] |
       ==>  poly (p *** q) \<noteq> poly []"
 apply (auto simp add: poly_roots_finite)
 apply (rule_tac x = "N + Na" in exI)
-apply (rule_tac x = "%n. if n < N then j n else ja (n - N) " in exI)
+apply (rule_tac x = "%n. if n < N then j n else ja (n - N)" in exI)
 apply (auto simp add: poly_mult_eq_zero_disj, force) 
 done
 
@@ -579,7 +574,7 @@ done
 
 
 lemma poly_zero: "(poly p = poly []) = list_all (%c. c = 0) p"
-apply (induct_tac "p", simp)
+apply (induct "p", simp)
 apply (rule iffI)
 apply (drule poly_zero_lemma, auto)
 done
@@ -588,7 +583,7 @@ declare real_mult_zero_disj_iff [simp]
 
 lemma pderiv_aux_iszero [rule_format, simp]:
     "\<forall>n. list_all (%c. c = 0) (pderiv_aux (Suc n) p) = list_all (%c. c = 0) p"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 
 lemma pderiv_aux_iszero_num: "(number_of n :: nat) \<noteq> 0
       ==> (list_all (%c. c = 0) (pderiv_aux (number_of n) p) =
@@ -601,14 +596,14 @@ done
 lemma pderiv_iszero [rule_format]:
      "poly (pderiv p) = poly [] --> (\<exists>h. poly p = poly [h])"
 apply (simp add: poly_zero)
-apply (induct_tac "p", force)
+apply (induct "p", force)
 apply (simp add: pderiv_Cons pderiv_aux_iszero_num del: poly_Cons)
 apply (auto simp add: poly_zero [symmetric])
 done
 
 lemma pderiv_zero_obj: "poly p = poly [] --> (poly (pderiv p) = poly [])"
 apply (simp add: poly_zero)
-apply (induct_tac "p", force)
+apply (induct "p", force)
 apply (simp add: pderiv_Cons pderiv_aux_iszero_num del: poly_Cons)
 done
 
@@ -697,13 +692,13 @@ text{*At last, we can consider the order of a root.*}
 lemma poly_order_exists_lemma [rule_format]:
      "\<forall>p. length p = d --> poly p \<noteq> poly [] 
              --> (\<exists>n q. p = mulexp n [-a, 1] q & poly q a \<noteq> 0)"
-apply (induct_tac "d")
+apply (induct "d")
 apply (simp add: fun_eq, safe)
 apply (case_tac "poly p a = 0")
 apply (drule_tac poly_linear_divides [THEN iffD1], safe)
 apply (drule_tac x = q in spec)
 apply (drule_tac poly_entire_neg [THEN iffD1], safe, force, blast) 
-apply (rule_tac x = "Suc na" in exI)
+apply (rule_tac x = "Suc n" in exI)
 apply (rule_tac x = qa in exI)
 apply (simp del: pmult_Cons)
 apply (rule_tac x = 0 in exI, force) 
@@ -780,7 +775,7 @@ lemma order_poly: "poly p = poly q ==> order a p = order a q"
 by (auto simp add: fun_eq divides_def poly_mult order_def)
 
 lemma pexp_one: "p %^ (Suc 0) = p"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: numeral_1_eq_1)
 done
 declare pexp_one [simp]
@@ -788,7 +783,7 @@ declare pexp_one [simp]
 lemma lemma_order_root [rule_format]:
      "\<forall>p a. 0 < n & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
              --> poly p a = 0"
-apply (induct_tac "n", blast)
+apply (induct "n", blast)
 apply (auto simp add: divides_def poly_mult simp del: pmult_Cons)
 done
 
@@ -851,7 +846,7 @@ lemma lemma_order_pderiv [rule_format]:
        poly (pderiv p) \<noteq> poly [] &
        poly p = poly ([- a, 1] %^ n *** q) & ~ [- a, 1] divides q
        --> n = Suc (order a (pderiv p))"
-apply (induct_tac "n", safe)
+apply (induct "n", safe)
 apply (rule order_unique_lemma, rule conjI, assumption)
 apply (subgoal_tac "\<forall>r. r divides (pderiv p) = r divides (pderiv ([-a, 1] %^ Suc n *** q))")
 apply (drule_tac [2] poly_pderiv_welldef)
@@ -862,7 +857,7 @@ apply (simp add: divides_def fun_eq del: pmult_Cons pexp_Suc)
 apply (rule_tac x = "[-a, 1] *** (pderiv q) +++ real (Suc n) %* q" in exI)
 apply (simp add: poly_pderiv_mult poly_pderiv_exp_prime poly_add poly_mult poly_cmult right_distrib mult_ac del: pmult_Cons pexp_Suc)
 apply (simp add: poly_mult right_distrib left_distrib mult_ac del: pmult_Cons)
-apply (erule_tac V = "\<forall>r. r divides pderiv p = r divides pderiv ([- a, 1] %^ Suc n *** q) " in thin_rl)
+apply (erule_tac V = "\<forall>r. r divides pderiv p = r divides pderiv ([- a, 1] %^ Suc n *** q)" in thin_rl)
 apply (unfold divides_def)
 apply (simp (no_asm) add: poly_pderiv_mult poly_pderiv_exp_prime fun_eq poly_add poly_mult del: pmult_Cons pexp_Suc)
 apply (rule swap, assumption)
@@ -872,7 +867,7 @@ apply (rule_tac x = "inverse (real (Suc n)) %* (qa +++ -- (pderiv q))" in exI)
 apply (subgoal_tac "poly ([-a, 1] %^ n *** q) = poly ([-a, 1] %^ n *** ([-a, 1] *** (inverse (real (Suc n)) %* (qa +++ -- (pderiv q))))) ")
 apply (drule poly_mult_left_cancel [THEN iffD1], simp)
 apply (simp add: fun_eq poly_mult poly_add poly_cmult poly_minus del: pmult_Cons mult_cancel_left field_mult_cancel_left, safe)
-apply (rule_tac c1 = "real (Suc n) " in real_mult_left_cancel [THEN iffD1])
+apply (rule_tac c1 = "real (Suc n)" in real_mult_left_cancel [THEN iffD1])
 apply (simp (no_asm))
 apply (subgoal_tac "real (Suc n) * (poly ([- a, 1] %^ n) xa * poly q xa) =
           (poly qa xa + - poly (pderiv q) xa) *
@@ -901,13 +896,13 @@ lemma poly_squarefree_decomp_order: "[| poly (pderiv p) \<noteq> poly [];
          poly d = poly (r *** p +++ s *** pderiv p)
       |] ==> order a q = (if order a p = 0 then 0 else 1)"
 apply (subgoal_tac "order a p = order a q + order a d")
-apply (rule_tac [2] s = "order a (q *** d) " in trans)
+apply (rule_tac [2] s = "order a (q *** d)" in trans)
 prefer 2 apply (blast intro: order_poly)
 apply (rule_tac [2] order_mult)
  prefer 2 apply force
 apply (case_tac "order a p = 0", simp)
 apply (subgoal_tac "order a (pderiv p) = order a e + order a d")
-apply (rule_tac [2] s = "order a (e *** d) " in trans)
+apply (rule_tac [2] s = "order a (e *** d)" in trans)
 prefer 2 apply (blast intro: order_poly)
 apply (rule_tac [2] order_mult)
  prefer 2 apply force
@@ -997,7 +992,7 @@ done
 text{*Normalization of a polynomial.*}
 
 lemma poly_normalize: "poly (pnormalize p) = poly p"
-apply (induct_tac "p")
+apply (induct "p")
 apply (auto simp add: fun_eq)
 done
 declare poly_normalize [simp]
@@ -1007,7 +1002,7 @@ text{*The degree of a polynomial.*}
 
 lemma lemma_degree_zero [rule_format]:
      "list_all (%c. c = 0) p -->  pnormalize p = []"
-by (induct_tac "p", auto)
+by (induct "p", auto)
 
 lemma degree_zero: "poly p = poly [] ==> degree p = 0"
 apply (simp add: degree_def)
@@ -1028,8 +1023,8 @@ done
 text{*bound for polynomial.*}
 
 lemma poly_mono: "abs(x) \<le> k ==> abs(poly p x) \<le> poly (map abs p) k"
-apply (induct_tac "p", auto)
-apply (rule_tac j = "abs a + abs (x * poly list x) " in real_le_trans)
+apply (induct "p", auto)
+apply (rule_tac j = "abs a + abs (x * poly p x)" in real_le_trans)
 apply (rule abs_triangle_ineq)
 apply (auto intro!: mult_mono simp add: abs_mult, arith)
 done

@@ -392,7 +392,7 @@ lemma Greatest_equality:
 lemma ex_has_greatest_nat_lemma:
   "P k ==> \<forall>x. P x --> (\<exists>y. P y & ~ ((m y::nat) <= m x))
     ==> \<exists>y. P y & ~ (m y < m k + n)"
-  apply (induct_tac n, force)
+  apply (induct n, force)
   apply (force simp add: le_Suc_eq)
   done
 

@@ -10,10 +10,10 @@ imports Log
 begin
 
 lemma sumr_offset: "sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumr_offset2: "\<forall>f. sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumr_offset3: "sumr 0 (n+k) f = sumr 0 n (%m. f (m+k)) + sumr 0 k f"
 by (simp  add: sumr_offset)
@@ -292,7 +292,7 @@ lemma Maclaurin_bi_le_lemma [rule_format]:
        diff 0 0 =
        (\<Sum>m = 0..<n. diff m 0 * 0 ^ m / real (fact m)) +
        diff n 0 * 0 ^ n / real (fact n)"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma Maclaurin_bi_le:
    "[| diff 0 = f;
@@ -405,15 +405,15 @@ by (case_tac "m mod 4", auto, arith)
 
 lemma Suc_Suc_mult_two_diff_two [rule_format, simp]:
      "0 < n --> Suc (Suc (2 * n - 2)) = 2*n"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma lemma_Suc_Suc_4n_diff_2 [rule_format, simp]:
      "0 < n --> Suc (Suc (4*n - 2)) = 4*n"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma Suc_mult_two_diff_one [rule_format, simp]:
       "0 < n --> Suc (2 * n - 1) = 2*n"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 
 text{*It is unclear why so many variant results are needed.*}
@@ -496,7 +496,7 @@ lemma sumr_cos_zero_one [simp]:
                then (- 1) ^ (m div 2)/(real  (fact m))
                else 0) *
               0 ^ m) = 1"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &

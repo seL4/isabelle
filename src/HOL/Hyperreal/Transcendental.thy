@@ -309,24 +309,24 @@ done
 lemma lemma_STAR_sin [simp]:
      "(if even n then 0  
        else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma lemma_STAR_cos [simp]:
      "0 < n -->  
       (- 1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma lemma_STAR_cos1 [simp]:
      "0 < n -->  
       (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma lemma_STAR_cos2 [simp]:
      "sumr 1 n (%n. if even n  
                     then (- 1) ^ (n div 2)/(real (fact n)) *  
                           0 ^ n  
                     else 0) = 0"
-apply (induct_tac "n")
+apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
 
@@ -353,7 +353,7 @@ done
 
 lemma lemma_realpow_diff [rule_format (no_asm)]:
      "p \<le> n --> y ^ (Suc n - p) = ((y::real) ^ (n - p)) * y"
-apply (induct_tac "n", auto)
+apply (induct "n", auto)
 apply (subgoal_tac "p = Suc n")
 apply (simp (no_asm_simp), auto)
 apply (drule sym)
@@ -377,7 +377,7 @@ done
 lemma lemma_realpow_diff_sumr2:
      "x ^ (Suc n) - y ^ (Suc n) =  
       (x - y) * sumr 0 (Suc n) (%p. (x ^ p) * (y ^(n - p)))"
-apply (induct_tac "n", simp)
+apply (induct "n", simp)
 apply (auto simp del: sumr_Suc)
 apply (subst sumr_Suc)
 apply (drule sym)
@@ -447,7 +447,7 @@ lemma lemma_diffs:
      "sumr 0 n (%n. (diffs c)(n) * (x ^ n)) =  
       sumr 0 n (%n. real n * c(n) * (x ^ (n - Suc 0))) +  
       (real n * c(n) * x ^ (n - Suc 0))"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: mult_assoc add_assoc [symmetric] diffs_def)
 done
 
@@ -893,7 +893,7 @@ lemma abs_exp_cancel [simp]: "\<bar>exp x\<bar> = exp x"
 by auto
 
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
 done
 
@@ -1552,12 +1552,12 @@ lemma cos_periodic [simp]: "cos (x + 2*pi) = cos x"
 by (simp add: cos_add cos_double)
 
 lemma cos_npi [simp]: "cos (real n * pi) = -1 ^ n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_Suc left_distrib)
 done
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_Suc left_distrib)
 done
 

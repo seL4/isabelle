@@ -344,11 +344,11 @@ by (rule order_less_le_trans [OF zadd_strict_right_mono zadd_left_mono])
 subsection{*Strict Monotonicity of Multiplication*}
 
 text{*strict, in 1st argument; proof is by induction on k>0*}
-lemma zmult_zless_mono2_lemma [rule_format]:
-     "i<j ==> 0<k --> int k * i < int k * j"
-apply (induct_tac "k", simp)
+lemma zmult_zless_mono2_lemma:
+     "i<j ==> 0<k ==> int k * i < int k * j"
+apply (induct "k", simp)
 apply (simp add: int_Suc)
-apply (case_tac "n=0")
+apply (case_tac "k=0")
 apply (simp_all add: zadd_zmult_distrib int_Suc0_eq_1 order_le_less)
 apply (simp add: zadd_zless_mono int_Suc0_eq_1 order_le_less)
 done

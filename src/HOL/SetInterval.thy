@@ -335,7 +335,7 @@ lemma bounded_nat_set_is_finite:
 subsubsection {* Cardinality *}
 
 lemma card_lessThan [simp]: "card {..<u} = u"
-  by (induct_tac u, simp_all add: lessThan_Suc)
+  by (induct u, simp_all add: lessThan_Suc)
 
 lemma card_atMost [simp]: "card {..u} = Suc u"
   by (simp add: lessThan_Suc_atMost [THEN sym])

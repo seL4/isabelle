@@ -180,7 +180,7 @@ lemma map_of_zip_is_None[simp]:
 by (induct rule:list_induct2, simp_all)
 
 lemma finite_range_map_of: "finite (range (map_of xys))"
-apply (induct_tac xys)
+apply (induct xys)
 apply  (simp_all (no_asm) add: image_constant)
 apply (rule finite_subset)
 prefer 2 apply assumption
@@ -188,27 +188,27 @@ apply auto
 done
 
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
-by (induct_tac "xs", auto)
+by (induct "xs", auto)
 
 lemma map_of_mapk_SomeI [rule_format (no_asm)]: "inj f ==> map_of t k = Some x -->  
    map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
-apply (induct_tac "t")
+apply (induct "t")
 apply  (auto simp add: inj_eq)
 done
 
 lemma weak_map_of_SomeI [rule_format (no_asm)]: "(k, x) : set l --> (? x. map_of l k = Some x)"
-by (induct_tac "l", auto)
+by (induct "l", auto)
 
 lemma map_of_filter_in: 
 "[| map_of xs k = Some z; P k z |] ==> map_of (filter (split P) xs) k = Some z"
 apply (rule mp)
 prefer 2 apply assumption
 apply (erule thin_rl)
-apply (induct_tac "xs", auto)
+apply (induct "xs", auto)
 done
 
 lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)"
-by (induct_tac "xs", auto)
+by (induct "xs", auto)
 
 
 subsection {* @{term option_map} related *}
@@ -270,7 +270,7 @@ by(simp add:map_upds_def)
 
 lemma map_of_append[simp]: "map_of (xs@ys) = map_of ys ++ map_of xs"
 apply (unfold map_add_def)
-apply (induct_tac "xs")
+apply (induct "xs")
 apply (simp (no_asm))
 apply (rule ext)
 apply (simp (no_asm_simp) split add: option.split)
@@ -279,7 +279,7 @@ done
 declare fun_upd_apply [simp del]
 lemma finite_range_map_of_map_add:
  "finite (range f) ==> finite (range (f ++ map_of l))"
-apply (induct_tac "l", auto)
+apply (induct "l", auto)
 apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
@@ -445,7 +445,7 @@ by(induct rule: list_induct2, simp_all)
 
 lemma finite_dom_map_of: "finite (dom (map_of l))"
 apply (unfold dom_def)
-apply (induct_tac "l")
+apply (induct "l")
 apply (auto simp add: insert_Collect [symmetric])
 done
 

@@ -57,7 +57,7 @@ lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::real"], simp)
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_Suc)
 apply (subst mult_2)
 apply (rule real_add_less_le_mono)
@@ -97,12 +97,12 @@ apply (auto simp del: realpow_Suc)
 done
 
 lemma realpow_real_of_nat: "real (m::nat) ^ n = real (m ^ n)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_one real_of_nat_mult)
 done
 
 lemma realpow_real_of_nat_two_pos [simp] : "0 < real (Suc (Suc 0) ^ n)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: real_of_nat_mult zero_less_mult_iff)
 done
 
@@ -113,12 +113,12 @@ lemma realpow_increasing:
 
 lemma zero_less_realpow_abs_iff [simp]:
      "(0 < (abs x)^n) = (x \<noteq> (0::real) | n=0)" 
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: zero_less_mult_iff)
 done
 
 lemma zero_le_realpow_abs [simp]: "(0::real) \<le> (abs x)^n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: zero_le_mult_iff)
 done
 
@@ -126,7 +126,7 @@ done
 subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}
 
 lemma real_of_int_power: "real (x::int) ^ n = real (x ^ n)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (simp_all add: nat_mult_distrib)
 done
 declare real_of_int_power [symmetric, simp]
@@ -235,7 +235,7 @@ lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
 
 lemma real_num_zero_less_two_pow [simp]: "0 < (2::real) ^ (4*d)"
-apply (induct_tac "d")
+apply (induct "d")
 apply (auto simp add: realpow_num_eq_if)
 done
 

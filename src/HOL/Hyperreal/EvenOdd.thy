@@ -13,7 +13,7 @@ begin
 subsection{*General Lemmas About Division*}
 
 lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
-apply (induct_tac "m")
+apply (induct "m")
 apply (simp_all add: mod_Suc)
 done
 

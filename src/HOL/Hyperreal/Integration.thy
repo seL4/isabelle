@@ -96,7 +96,7 @@ by (simp add: partition)
 
 lemma lemma_partition_lt_gen [rule_format]:
  "partition(a,b) D & m + Suc d \<le> n & n \<le> (psize D) --> D(m) < D(m + Suc d)"
-apply (induct_tac "d", auto simp add: partition)
+apply (induct "d", auto simp add: partition)
 apply (blast dest: Suc_le_lessD  intro: less_le_trans order_less_trans)
 done
 
@@ -133,11 +133,11 @@ done
 
 lemma partition_lb: "partition(a,b) D ==> a \<le> D(r)"
 apply (frule partition [THEN iffD1], safe)
-apply (induct_tac "r")
-apply (cut_tac [2] y = "Suc n" and x = "psize D" in linorder_le_less_linear, safe)
- apply (blast intro: order_trans partition_le)
-apply (drule_tac x = n in spec)
-apply (best intro: order_less_trans order_trans order_less_imp_le)
+apply (induct "r")
+apply (cut_tac [2] y = "Suc r" and x = "psize D" in linorder_le_less_linear)
+apply (auto intro: partition_le)
+apply (drule_tac x = r in spec)
+apply arith; 
 done
 
 lemma partition_lb_lt: "[| partition(a,b) D; psize D ~= 0 |] ==> a < D(Suc n)"
@@ -332,7 +332,7 @@ done
 
 lemma sumr_partition_eq_diff_bounds [simp]:
      "sumr 0 m (%n. D (Suc n) - D n) = D(m) - D 0"
-by (induct_tac "m", auto)
+by (induct "m", auto)
 
 lemma Integral_eq_diff_bounds: "a \<le> b ==> Integral(a,b) (%x. 1) (b - a)"
 apply (auto simp add: order_le_less rsum_def Integral_def)

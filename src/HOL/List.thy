@@ -838,7 +838,7 @@ apply (case_tac n, auto)
 done
 
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
-apply (induct_tac xs, simp, simp)
+apply (induct xs, simp, simp)
 apply safe
 apply (rule_tac x = 0 in exI, simp)
  apply (rule_tac x = "Suc i" in exI, simp)
@@ -1503,10 +1503,10 @@ lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
-  by (induct_tac x, auto) 
+  by (induct x, auto) 
 
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
-  by (induct_tac x, auto)
+  by (induct x, auto)
 
 lemma length_remdups_leq[iff]: "length(remdups xs) <= length xs"
 by (induct xs) auto
@@ -1528,7 +1528,7 @@ It is best to avoid this indexed version of distinct, but sometimes
 it is useful. *}
 lemma distinct_conv_nth:
 "distinct xs = (\<forall>i j. i < size xs \<and> j < size xs \<and> i \<noteq> j --> xs!i \<noteq> xs!j)"
-apply (induct_tac xs, simp, simp)
+apply (induct xs, simp, simp)
 apply (rule iffI, clarsimp)
  apply (case_tac i)
 apply (case_tac j, simp)
@@ -1653,7 +1653,7 @@ by (simp add: set_replicate_conv_if split: split_if_asm)
 subsection {* Lexicographic orderings on lists *}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
-apply (induct_tac n, simp, simp)
+apply (induct n, simp, simp)
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
 apply(rule wf_prod_fun_image)
@@ -1678,7 +1678,7 @@ lemma lexn_conv:
 "lexn r n =
 {(xs,ys). length xs = n \<and> length ys = n \<and>
 (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
-apply (induct_tac n, simp, blast)
+apply (induct n, simp, blast)
 apply (simp add: image_Collect lex_prod_def, safe, blast)
  apply (rule_tac x = "ab # xys" in exI, simp)
 apply (case_tac xys, simp_all, blast)

@@ -30,30 +30,30 @@ constdefs
 *)
 
 lemma sumc_Suc_zero [simp]: "sumc (Suc n) n f = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_eq_bounds [simp]: "sumc m m f = 0"
-by (induct_tac "m", auto)
+by (induct "m", auto)
 
 lemma sumc_Suc_eq [simp]: "sumc m (Suc m) f = f(m)"
 by auto
 
 lemma sumc_add_lbound_zero [simp]: "sumc (m+k) k f = 0"
-by (induct_tac "k", auto)
+by (induct "k", auto)
 
 lemma sumc_add: "sumc m n f + sumc m n g = sumc m n (%n. f n + g n)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: add_ac)
 done
 
 lemma sumc_mult: "r * sumc m n f = sumc m n (%n. r * f n)"
-apply (induct_tac "n", auto)
+apply (induct "n", auto)
 apply (auto simp add: right_distrib)
 done
 
 lemma sumc_split_add [rule_format]:
      "n < p --> sumc 0 n f + sumc n p f = sumc 0 p f"
-apply (induct_tac "p") 
+apply (induct "p") 
 apply (auto dest!: leI dest: le_anti_sym)
 done
 
@@ -64,16 +64,16 @@ apply (simp add: add_ac)
 done
 
 lemma sumc_cmod: "cmod(sumc m n f) \<le> sumr m n (%i. cmod(f i))"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto intro: complex_mod_triangle_ineq [THEN order_trans])
 done
 
 lemma sumc_fun_eq [rule_format (no_asm)]:
      "(\<forall>r. m \<le> r & r < n --> f r = g r) --> sumc m n f = sumc m n g"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_const [simp]: "sumc 0 n (%i. r) = complex_of_real (real n) * r"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: left_distrib real_of_nat_Suc)
 done
 
@@ -86,29 +86,29 @@ lemma sumc_diff_mult_const:
 by (simp add: diff_minus sumc_add_mult_const)
 
 lemma sumc_less_bounds_zero [rule_format]: "n < m --> sumc m n f = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_minus: "sumc m n (%i. - f i) = - sumc m n f"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_shift_bounds: "sumc (m+k) (n+k) f = sumc m n (%i. f(i + k))"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_minus_one_complexpow_zero [simp]:
      "sumc 0 (2*n) (%i. (-1) ^ Suc i) = 0"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_interval_const [rule_format (no_asm)]:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
       --> sumc m na f = (complex_of_real(real (na - m)) * r)"
-apply (induct_tac "na")
+apply (induct "na")
 apply (auto simp add: Suc_diff_le real_of_nat_Suc left_distrib)
 done
 
 lemma sumc_interval_const2 [rule_format (no_asm)]:
      "(\<forall>n. m \<le> n --> f n = r) & m \<le> na  
       --> sumc m na f = (complex_of_real(real (na - m)) * r)"
-apply (induct_tac "na")
+apply (induct "na")
 apply (auto simp add: left_distrib Suc_diff_le real_of_nat_Suc)
 done
 
@@ -148,14 +148,14 @@ qed_spec_mp "sumc_ge_zero2";
 ***)
 
 lemma sumr_cmod_ge_zero [iff]: "0 \<le> sumr m n (%n. cmod (f n))"
-by (induct_tac "n", auto simp add: add_increasing) 
+by (induct "n", auto simp add: add_increasing) 
 
 lemma rabs_sumc_cmod_cancel [simp]:
      "abs (sumr m n (%n. cmod (f n))) = (sumr m n (%n. cmod (f n)))"
 by (simp add: abs_if linorder_not_less)
 
 lemma sumc_one_lb_complexpow_zero [simp]: "sumc 1 n (%n. f(n) * 0 ^ n) = 0"
-apply (induct_tac "n")
+apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
 
@@ -164,12 +164,12 @@ by (simp add: diff_minus sumc_add [symmetric] sumc_minus)
 
 lemma sumc_subst [rule_format (no_asm)]:
      "(\<forall>p. (m \<le> p & p < m + n --> (f p = g p))) --> sumc m n f = sumc m n g"
-by (induct_tac "n", auto)
+by (induct "n", auto)
 
 lemma sumc_group [simp]:
      "sumc 0 n (%m. sumc (m * k) (m*k + k) f) = sumc 0 (n * k) f"
 apply (subgoal_tac "k = 0 | 0 < k", auto)
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: sumc_split_add add_commute)
 done
 

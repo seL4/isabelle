@@ -1172,7 +1172,7 @@ qed
 
 
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
-apply (induct_tac "y", auto)
+apply (induct "y", auto)
 apply (rule zmod_zmult1_eq [THEN trans])
 apply (simp (no_asm_simp))
 apply (rule zmod_zmult_distrib [symmetric])
@@ -1186,12 +1186,12 @@ lemma zpower_zpower: "(x^y)^z = (x^(y*z)::int)"
 
 lemma zero_less_zpower_abs_iff [simp]:
      "(0 < (abs x)^n) = (x \<noteq> (0::int) | n=0)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: zero_less_mult_iff)
 done
 
 lemma zero_le_zpower_abs [simp]: "(0::int) <= (abs x)^n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: zero_le_mult_iff)
 done
 

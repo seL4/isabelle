@@ -1114,7 +1114,7 @@ lemma NSDERIV_cmult_Id [simp]: "NSDERIV (op * c) x :> c"
 by (simp add: NSDERIV_DERIV_iff)
 
 lemma DERIV_pow: "DERIV (%x. x ^ n) x :> real n * (x ^ (n - Suc 0))"
-apply (induct_tac "n")
+apply (induct "n")
 apply (drule_tac [2] DERIV_Id [THEN DERIV_mult])
 apply (auto simp add: real_of_nat_Suc left_distrib)
 apply (case_tac "0 < n")
@@ -1238,7 +1238,7 @@ text{*Lemmas about nested intervals and proof by bisection (cf.Harrison).
      All considerably tidied by lcp.*}
 
 lemma lemma_f_mono_add [rule_format (no_asm)]: "(\<forall>n. (f::nat=>real) n \<le> f (Suc n)) --> f m \<le> f(m + no)"
-apply (induct_tac "no")
+apply (induct "no")
 apply (auto intro: order_trans)
 done
 
@@ -1349,9 +1349,8 @@ lemma Bolzano_bisect_diff:
      "a \<le> b ==>
       snd(Bolzano_bisect P a b n) - fst(Bolzano_bisect P a b n) =
       (b-a) / (2 ^ n)"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: eq_divide_2_times_iff add_divide_distrib Let_def split_def)
-apply (auto simp add: add_ac Bolzano_bisect_le diff_minus)
 done
 
 lemmas Bolzano_nest_unique =

@@ -149,7 +149,7 @@ text {* A special form of induction for reasoning
 theorem diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
     (!!x y. P x y ==> P (Suc x) (Suc y)) ==> P m n"
   apply (rule_tac x = m in spec)
-  apply (induct_tac n)
+  apply (induct n)
   prefer 2
   apply (rule allI)
   apply (induct_tac x, rules+)
@@ -261,8 +261,8 @@ lemma Suc_mono: "m < n ==> Suc m < Suc n"
 
 text {* "Less than" is a linear ordering *}
 lemma less_linear: "m < n | m = n | n < (m::nat)"
-  apply (induct_tac m)
-  apply (induct_tac n)
+  apply (induct m)
+  apply (induct n)
   apply (rule refl [THEN disjI1, THEN disjI2])
   apply (rule zero_less_Suc [THEN disjI1])
   apply (blast intro: Suc_mono less_SucI elim: lessE)
@@ -614,10 +614,10 @@ subsection {* Basic rewrite rules for the arithmetic operators *}
 text {* Difference *}
 
 lemma diff_0_eq_0 [simp, code]: "0 - n = (0::nat)"
-  by (induct_tac n) simp_all
+  by (induct n) simp_all
 
 lemma diff_Suc_Suc [simp, code]: "Suc(m) - Suc(n) = m - n"
-  by (induct_tac n) simp_all
+  by (induct n) simp_all
 
 
 text {*
@@ -730,7 +730,7 @@ proof
 qed
 
 lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
-  apply (induct_tac m)
+  apply (induct m)
   apply (induct_tac [2] n, simp_all)
   done
 
@@ -743,7 +743,7 @@ lemma add_less_mono1: "i < j ==> i + k < j + (k::nat)"
 text {* strict, in both arguments *}
 lemma add_less_mono: "[|i < j; k < l|] ==> i + k < j + (l::nat)"
   apply (rule add_less_mono1 [THEN less_trans], assumption+)
-  apply (induct_tac j, simp_all)
+  apply (induct j, simp_all)
   done
 
 text {* Deleted @{text less_natE}; use @{text "less_imp_Suc_add RS exE"} *}
@@ -999,8 +999,8 @@ lemma one_le_mult_iff [simp]: "(Suc 0 \<le> m * n) = (1 \<le> m & 1 \<le> n)"
   done
 
 lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = 1 & n = 1)"
-  apply (induct_tac m, simp)
-  apply (induct_tac n, simp, fastsimp)
+  apply (induct m, simp)
+  apply (induct n, simp, fastsimp)
   done
 
 lemma one_eq_mult_iff [simp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"

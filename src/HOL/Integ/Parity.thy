@@ -31,7 +31,7 @@ defs (overloaded)
 subsection {* Casting a nat power to an integer *}
 
 lemma zpow_int: "int (x^y) = (int x)^y"
-  apply (induct_tac y)
+  apply (induct y)
   apply (simp, simp add: zmult_int [THEN sym])
   done
 
@@ -90,12 +90,12 @@ lemma even_difference:
 
 lemma even_pow_gt_zero [rule_format]: 
     "even (x::int) ==> 0 < n --> even (x^n)"
-  apply (induct_tac n)
+  apply (induct n)
   apply (auto simp add: even_product)
   done
 
 lemma odd_pow: "odd x ==> odd((x::int)^n)"
-  apply (induct_tac n)
+  apply (induct n)
   apply (simp add: even_def)
   apply (simp add: even_product)
   done
@@ -237,7 +237,7 @@ subsection {* Powers of negative one *}
 lemma neg_one_even_odd_power:
      "(even x --> (-1::'a::{number_ring,recpower})^x = 1) & 
       (odd x --> (-1::'a)^x = -1)"
-  apply (induct_tac x)
+  apply (induct x)
   apply (simp, simp add: power_Suc)
   done
 

@@ -601,7 +601,7 @@ text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
      "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat
       ==> {n. N < f n} \<in> FreeUltrafilterNat"
-apply (induct_tac "N")
+apply (induct_tac N)
 apply (drule_tac x = 0 in spec)
 apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem, drule FreeUltrafilterNat_Int, assumption, simp)
 apply (drule_tac x = "Suc n" in spec, ultra)

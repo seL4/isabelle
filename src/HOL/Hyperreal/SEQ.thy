@@ -462,7 +462,7 @@ by (auto dest!: le_imp_less_or_eq)
 
 lemma lemma_finite_NSBseq2:
      "finite {n. f n \<le> (u::nat) &  real(Suc n) < \<bar>X(f n)\<bar>}"
-apply (induct_tac "u")
+apply (induct "u")
 apply (rule_tac [2] lemma_finite_NSBseq [THEN finite_subset])
 apply (rule_tac B = "{n. real (Suc n) < \<bar>X 0\<bar> }" in finite_subset)
 apply (auto intro: finite_real_of_nat_less_real 
@@ -995,7 +995,7 @@ text{* Real Powers*}
 
 lemma NSLIMSEQ_pow [rule_format]:
      "(X ----NS> a) --> ((%n. (X n) ^ m) ----NS> a ^ m)"
-apply (induct_tac "m")
+apply (induct "m")
 apply (auto intro: NSLIMSEQ_mult NSLIMSEQ_const)
 done
 

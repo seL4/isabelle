@@ -299,7 +299,7 @@ lemma power2_minus [simp]:
   by (simp add: power2_eq_square)
 
 lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
-apply (induct_tac "n")
+apply (induct "n")
 apply (auto simp add: power_Suc power_add)
 done
 
@@ -520,7 +520,7 @@ by auto
 subsection{*Literal arithmetic involving powers*}
 
 lemma nat_power_eq: "(0::int) <= z ==> nat (z^n) = nat z ^ n"
-apply (induct_tac "n")
+apply (induct "n")
 apply (simp_all (no_asm_simp) add: nat_mult_distrib)
 done
 

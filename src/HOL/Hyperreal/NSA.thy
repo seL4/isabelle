@@ -1961,7 +1961,7 @@ by (auto simp add: less_Suc_eq)
   hence cannot belong to FreeUltrafilterNat
  -------------------------------------------*)
 lemma finite_nat_segment: "finite {n::nat. n < m}"
-apply (induct_tac "m")
+apply (induct "m")
 apply (auto simp add: Suc_Un_eq)
 done
 
