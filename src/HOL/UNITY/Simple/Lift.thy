@@ -21,26 +21,26 @@ consts
   Max :: "int"       (*least and greatest floors*)
 
 axioms
-  Min_le_Max [iff]: "Min <= Max"
+  Min_le_Max [iff]: "Min \<le> Max"
   
 constdefs
   
   (** Abbreviations: the "always" part **)
   
   above :: "state set"
-    "above == {s. EX i. floor s < i & i <= Max & i : req s}"
+    "above == {s. \<exists>i. floor s < i & i \<le> Max & i \<in> req s}"
 
   below :: "state set"
-    "below == {s. EX i. Min <= i & i < floor s & i : req s}"
+    "below == {s. \<exists>i. Min \<le> i & i < floor s & i \<in> req s}"
 
   queueing :: "state set"
-    "queueing == above Un below"
+    "queueing == above \<union> below"
 
   goingup :: "state set"
-    "goingup   == above Int  ({s. up s}  Un -below)"
+    "goingup   == above \<inter> ({s. up s}  \<union> -below)"
 
   goingdown :: "state set"
-    "goingdown == below Int ({s. ~ up s} Un -above)"
+    "goingdown == below \<inter> ({s. ~ up s} \<union> -above)"
 
   ready :: "state set"
     "ready == {s. stop s & ~ open s & move s}"
@@ -63,7 +63,7 @@ constdefs
     "atFloor n ==  {s. floor s = n}"
 
   Req :: "int => state set"
-    "Req n ==  {s. n : req s}"
+    "Req n ==  {s. n \<in> req s}"
 
 
   
@@ -71,15 +71,15 @@ constdefs
   
   request_act :: "(state*state) set"
     "request_act == {(s,s'). s' = s (|stop:=True, move:=False|)
-		                  & ~ stop s & floor s : req s}"
+		                  & ~ stop s & floor s \<in> req s}"
 
   open_act :: "(state*state) set"
     "open_act ==
          {(s,s'). s' = s (|open :=True,
 			   req  := req s - {floor s},
 			   move := True|)
-		       & stop s & ~ open s & floor s : req s
-	               & ~(move s & s: queueing)}"
+		       & stop s & ~ open s & floor s \<in> req s
+	               & ~(move s & s \<in> queueing)}"
 
   close_act :: "(state*state) set"
     "close_act == {(s,s'). s' = s (|open := False|) & open s}"
@@ -89,24 +89,24 @@ constdefs
          {(s,s'). s' = s (|stop  :=False,
 			   floor := floor s + 1,
 			   up    := True|)
-		       & s : (ready Int goingup)}"
+		       & s \<in> (ready \<inter> goingup)}"
 
   req_down :: "(state*state) set"
     "req_down ==
          {(s,s'). s' = s (|stop  :=False,
 			   floor := floor s - 1,
 			   up    := False|)
-		       & s : (ready Int goingdown)}"
+		       & s \<in> (ready \<inter> goingdown)}"
 
   move_up :: "(state*state) set"
     "move_up ==
          {(s,s'). s' = s (|floor := floor s + 1|)
-		       & ~ stop s & up s & floor s ~: req s}"
+		       & ~ stop s & up s & floor s \<notin> req s}"
 
   move_down :: "(state*state) set"
     "move_down ==
          {(s,s'). s' = s (|floor := floor s - 1|)
-		       & ~ stop s & ~ up s & floor s ~: req s}"
+		       & ~ stop s & ~ up s & floor s \<notin> req s}"
 
   (*This action is omitted from prior treatments, which therefore are
     unrealistic: nobody asks the lift to do anything!  But adding this
@@ -114,8 +114,8 @@ constdefs
     "ensures" properties fail.*)
   button_press  :: "(state*state) set"
     "button_press ==
-         {(s,s'). EX n. s' = s (|req := insert n (req s)|)
-		        & Min <= n & n <= Max}"
+         {(s,s'). \<exists>n. s' = s (|req := insert n (req s)|)
+		        & Min \<le> n & n \<le> Max}"
 
 
   Lift :: "state program"
@@ -130,7 +130,7 @@ constdefs
   (** Invariants **)
 
   bounded :: "state set"
-    "bounded == {s. Min <= floor s & floor s <= Max}"
+    "bounded == {s. Min \<le> floor s & floor s \<le> Max}"
 
   open_stop :: "state set"
     "open_stop == {s. open s --> stop s}"
@@ -139,15 +139,15 @@ constdefs
     "open_move == {s. open s --> move s}"
   
   stop_floor :: "state set"
-    "stop_floor == {s. stop s & ~ move s --> floor s : req s}"
+    "stop_floor == {s. stop s & ~ move s --> floor s \<in> req s}"
   
   moving_up :: "state set"
     "moving_up == {s. ~ stop s & up s -->
-                   (EX f. floor s <= f & f <= Max & f : req s)}"
+                   (\<exists>f. floor s \<le> f & f \<le> Max & f \<in> req s)}"
   
   moving_down :: "state set"
     "moving_down == {s. ~ stop s & ~ up s -->
-                     (EX f. Min <= f & f <= floor s & f : req s)}"
+                     (\<exists>f. Min \<le> f & f \<le> floor s & f \<in> req s)}"
   
   metric :: "[int,state] => int"
     "metric ==
@@ -160,10 +160,10 @@ constdefs
 
 locale Floor =
   fixes n
-  assumes Min_le_n [iff]: "Min <= n"
-      and n_le_Max [iff]: "n <= Max"
+  assumes Min_le_n [iff]: "Min \<le> n"
+      and n_le_Max [iff]: "n \<le> Max"
 
-lemma not_mem_distinct: "[| x ~: A;  y : A |] ==> x ~= y"
+lemma not_mem_distinct: "[| x \<notin> A;  y \<in> A |] ==> x \<noteq> y"
 by blast
 
 
@@ -194,36 +194,36 @@ declare bounded_def [simp]
         moving_up_def [simp]
         moving_down_def [simp]
 
-lemma open_stop: "Lift : Always open_stop"
+lemma open_stop: "Lift \<in> Always open_stop"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains) 
 done
 
-lemma stop_floor: "Lift : Always stop_floor"
+lemma stop_floor: "Lift \<in> Always stop_floor"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
 done
 
 (*This one needs open_stop, which was proved above*)
-lemma open_move: "Lift : Always open_move"
+lemma open_move: "Lift \<in> Always open_move"
 apply (cut_tac open_stop)
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
 done
 
-lemma moving_up: "Lift : Always moving_up"
+lemma moving_up: "Lift \<in> Always moving_up"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
 apply (auto dest: zle_imp_zless_or_eq simp add: add1_zle_eq)
 done
 
-lemma moving_down: "Lift : Always moving_down"
+lemma moving_down: "Lift \<in> Always moving_down"
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains)
 apply (blast dest: zle_imp_zless_or_eq)
 done
 
-lemma bounded: "Lift : Always bounded"
+lemma bounded: "Lift \<in> Always bounded"
 apply (cut_tac moving_up moving_down)
 apply (rule AlwaysI, force) 
 apply (unfold Lift_def, constrains, auto)
@@ -244,24 +244,24 @@ declare Req_def [THEN def_set_simp, simp]
 (** The HUG'93 paper mistakenly omits the Req n from these! **)
 
 (** Lift_1 **)
-lemma E_thm01: "Lift : (stopped Int atFloor n) LeadsTo (opened Int atFloor n)"
+lemma E_thm01: "Lift \<in> (stopped \<inter> atFloor n) LeadsTo (opened \<inter> atFloor n)"
 apply (cut_tac stop_floor)
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_5*)
 
-lemma E_thm02: "Lift : (Req n Int stopped - atFloor n) LeadsTo  
-                     (Req n Int opened - atFloor n)"
+lemma E_thm02: "Lift \<in> (Req n \<inter> stopped - atFloor n) LeadsTo  
+                     (Req n \<inter> opened - atFloor n)"
 apply (cut_tac stop_floor)
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_1*)
 
-lemma E_thm03: "Lift : (Req n Int opened - atFloor n) LeadsTo  
-                     (Req n Int closed - (atFloor n - queueing))"
+lemma E_thm03: "Lift \<in> (Req n \<inter> opened - atFloor n) LeadsTo  
+                     (Req n \<inter> closed - (atFloor n - queueing))"
 apply (unfold Lift_def, ensures_tac "close_act")
 done  (*lem_lift_1_2*)
 
-lemma E_thm04: "Lift : (Req n Int closed Int (atFloor n - queueing))   
-             LeadsTo (opened Int atFloor n)"
+lemma E_thm04: "Lift \<in> (Req n \<inter> closed \<inter> (atFloor n - queueing))   
+             LeadsTo (opened \<inter> atFloor n)"
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_7*)
 
@@ -283,14 +283,14 @@ declare (in Floor) le_MinD [dest!]
   NOT an ensures_tac property, but a mere inclusion
   don't know why script lift_2.uni says ENSURES*)
 lemma (in Floor) E_thm05c: 
-    "Lift : (Req n Int closed - (atFloor n - queueing))    
-             LeadsTo ((closed Int goingup Int Req n)  Un  
-                      (closed Int goingdown Int Req n))"
+    "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
+             LeadsTo ((closed \<inter> goingup \<inter> Req n)  \<union> 
+                      (closed \<inter> goingdown \<inter> Req n))"
 by (auto intro!: subset_imp_LeadsTo elim!: int_neqE)
 
 (*lift_2*)
-lemma (in Floor) lift_2: "Lift : (Req n Int closed - (atFloor n - queueing))    
-             LeadsTo (moving Int Req n)"
+lemma (in Floor) lift_2: "Lift \<in> (Req n \<inter> closed - (atFloor n - queueing))    
+             LeadsTo (moving \<inter> Req n)"
 apply (rule LeadsTo_Trans [OF E_thm05c LeadsTo_Un])
 apply (unfold Lift_def) 
 apply (ensures_tac [2] "req_down")
@@ -306,13 +306,13 @@ declare split_if_asm [split]
 (*lem_lift_4_1 *)
 lemma (in Floor) E_thm12a:
      "0 < N ==>  
-      Lift : (moving Int Req n Int {s. metric n s = N} Int  
-              {s. floor s ~: req s} Int {s. up s})    
+      Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
+              {s. floor s \<notin> req s} \<inter> {s. up s})    
              LeadsTo  
-               (moving Int Req n Int {s. metric n s < N})"
+               (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac moving_up)
 apply (unfold Lift_def, ensures_tac "move_up", safe)
-(*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
+(*this step consolidates two formulae to the goal  metric n s' \<le> metric n s*)
 apply (erule linorder_leI [THEN order_antisym, symmetric])
 apply (auto simp add: metric_def)
 done
@@ -320,21 +320,21 @@ done
 
 (*lem_lift_4_3 *)
 lemma (in Floor) E_thm12b: "0 < N ==>  
-      Lift : (moving Int Req n Int {s. metric n s = N} Int  
-              {s. floor s ~: req s} - {s. up s})    
-             LeadsTo (moving Int Req n Int {s. metric n s < N})"
+      Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
+              {s. floor s \<notin> req s} - {s. up s})    
+             LeadsTo (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac moving_down)
 apply (unfold Lift_def, ensures_tac "move_down", safe)
-(*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
+(*this step consolidates two formulae to the goal  metric n s' \<le> metric n s*)
 apply (erule linorder_leI [THEN order_antisym, symmetric])
 apply (auto simp add: metric_def)
 done
 
 (*lift_4*)
 lemma (in Floor) lift_4:
-     "0<N ==> Lift : (moving Int Req n Int {s. metric n s = N} Int  
-                            {s. floor s ~: req s}) LeadsTo      
-                           (moving Int Req n Int {s. metric n s < N})"
+     "0<N ==> Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> 
+                            {s. floor s \<notin> req s}) LeadsTo      
+                           (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
                               LeadsTo_Un [OF E_thm12a E_thm12b]], auto)
 done
@@ -344,8 +344,8 @@ done
 
 (*lem_lift_5_3*)
 lemma (in Floor) E_thm16a: "0<N    
-  ==> Lift : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo  
-             (moving Int Req n Int {s. metric n s < N})"
+  ==> Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N} \<inter> goingup) LeadsTo  
+             (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac bounded)
 apply (unfold Lift_def, ensures_tac "req_up")
 apply (auto simp add: metric_def)
@@ -354,8 +354,8 @@ done
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
 lemma (in Floor) E_thm16b: "0<N ==>    
-      Lift : (closed Int Req n Int {s. metric n s = N} Int goingdown) LeadsTo  
-                   (moving Int Req n Int {s. metric n s < N})"
+      Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N} \<inter> goingdown) LeadsTo  
+                   (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (cut_tac bounded)
 apply (unfold Lift_def, ensures_tac "req_down")
 apply (auto simp add: metric_def)
@@ -365,14 +365,14 @@ done
 (*lem_lift_5_0 proves an intersection involving ~goingup and goingup,
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
 lemma (in Floor) E_thm16c:
-     "0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown"
+     "0<N ==> Req n \<inter> {s. metric n s = N} \<subseteq> goingup \<union> goingdown"
 by (force simp add: metric_def)
 
 
 (*lift_5*)
 lemma (in Floor) lift_5:
-     "0<N ==> Lift : (closed Int Req n Int {s. metric n s = N}) LeadsTo    
-                     (moving Int Req n Int {s. metric n s < N})"
+     "0<N ==> Lift \<in> (closed \<inter> Req n \<inter> {s. metric n s = N}) LeadsTo    
+                     (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
                               LeadsTo_Un [OF E_thm16a E_thm16b]])
 apply (drule E_thm16c, auto)
@@ -383,37 +383,37 @@ done
 
 (*lemma used to prove lem_lift_3_1*)
 lemma (in Floor) metric_eq_0D [dest]:
-     "[| metric n s = 0;  Min <= floor s;  floor s <= Max |] ==> floor s = n"
+     "[| metric n s = 0;  Min \<le> floor s;  floor s \<le> Max |] ==> floor s = n"
 by (force simp add: metric_def)
 
 
 (*lem_lift_3_1*)
-lemma (in Floor) E_thm11: "Lift : (moving Int Req n Int {s. metric n s = 0}) LeadsTo    
-                       (stopped Int atFloor n)"
+lemma (in Floor) E_thm11: "Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = 0}) LeadsTo    
+                       (stopped \<inter> atFloor n)"
 apply (cut_tac bounded)
 apply (unfold Lift_def, ensures_tac "request_act", auto)
 done
 
 (*lem_lift_3_5*)
 lemma (in Floor) E_thm13: 
-  "Lift : (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s})  
-  LeadsTo (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s})"
+  "Lift \<in> (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})  
+  LeadsTo (stopped \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})"
 apply (unfold Lift_def, ensures_tac "request_act")
 apply (auto simp add: metric_def)
 done
 
 (*lem_lift_3_6*)
 lemma (in Floor) E_thm14: "0 < N ==>  
-      Lift :  
-        (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s})  
-        LeadsTo (opened Int Req n Int {s. metric n s = N})"
+      Lift \<in>  
+        (stopped \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})  
+        LeadsTo (opened \<inter> Req n \<inter> {s. metric n s = N})"
 apply (unfold Lift_def, ensures_tac "open_act")
 apply (auto simp add: metric_def)
 done
 
 (*lem_lift_3_7*)
-lemma (in Floor) E_thm15: "Lift : (opened Int Req n Int {s. metric n s = N})   
-             LeadsTo (closed Int Req n Int {s. metric n s = N})"
+lemma (in Floor) E_thm15: "Lift \<in> (opened \<inter> Req n \<inter> {s. metric n s = N})   
+             LeadsTo (closed \<inter> Req n \<inter> {s. metric n s = N})"
 apply (unfold Lift_def, ensures_tac "close_act")
 apply (auto simp add: metric_def)
 done
@@ -422,15 +422,15 @@ done
 (** the final steps **)
 
 lemma (in Floor) lift_3_Req: "0 < N ==>  
-      Lift :  
-        (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s})    
-        LeadsTo (moving Int Req n Int {s. metric n s < N})"
+      Lift \<in>  
+        (moving \<inter> Req n \<inter> {s. metric n s = N} \<inter> {s. floor s \<in> req s})    
+        LeadsTo (moving \<inter> Req n \<inter> {s. metric n s < N})"
 apply (blast intro!: E_thm13 E_thm14 E_thm15 lift_5 intro: LeadsTo_Trans)
 done
 
 
 (*Now we observe that our integer metric is really a natural number*)
-lemma (in Floor) Always_nonneg: "Lift : Always {s. 0 <= metric n s}"
+lemma (in Floor) Always_nonneg: "Lift \<in> Always {s. 0 \<le> metric n s}"
 apply (rule bounded [THEN Always_weaken])
 apply (auto simp add: metric_def)
 done
@@ -438,10 +438,10 @@ done
 lemmas (in Floor) R_thm11 = Always_LeadsTo_weaken [OF Always_nonneg E_thm11]
 
 lemma (in Floor) lift_3:
-     "Lift : (moving Int Req n) LeadsTo (stopped Int atFloor n)"
+     "Lift \<in> (moving \<inter> Req n) LeadsTo (stopped \<inter> atFloor n)"
 apply (rule Always_nonneg [THEN integ_0_le_induct])
 apply (case_tac "0 < z")
-(*If z <= 0 then actually z = 0*)
+(*If z \<le> 0 then actually z = 0*)
 prefer 2 apply (force intro: R_thm11 order_antisym simp add: linorder_not_less)
 apply (rule LeadsTo_weaken_R [OF asm_rl Un_upper1])
 apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
@@ -449,7 +449,7 @@ apply (rule LeadsTo_Trans [OF subset_imp_LeadsTo
 done
 
 
-lemma (in Floor) lift_1: "Lift : (Req n) LeadsTo (opened Int atFloor n)"
+lemma (in Floor) lift_1: "Lift \<in> (Req n) LeadsTo (opened \<inter> atFloor n)"
 apply (rule LeadsTo_Trans)
  prefer 2
  apply (rule LeadsTo_Un [OF E_thm04 LeadsTo_Un_post])

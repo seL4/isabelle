@@ -41,23 +41,23 @@ locale Token =
       and next_def:
        "next i == (Suc i) mod N"
   assumes N_positive [iff]: "0<N"
-      and TR2:  "F : (T i) co (T i Un H i)"
-      and TR3:  "F : (H i) co (H i Un E i)"
-      and TR4:  "F : (H i - HasTok i) co (H i)"
-      and TR5:  "F : (HasTok i) co (HasTok i Un -(E i))"
-      and TR6:  "F : (H i Int HasTok i) leadsTo (E i)"
-      and TR7:  "F : (HasTok i) leadsTo (HasTok (next i))"
+      and TR2:  "F \<in> (T i) co (T i \<union> H i)"
+      and TR3:  "F \<in> (H i) co (H i \<union> E i)"
+      and TR4:  "F \<in> (H i - HasTok i) co (H i)"
+      and TR5:  "F \<in> (HasTok i) co (HasTok i \<union> -(E i))"
+      and TR6:  "F \<in> (H i \<inter> HasTok i) leadsTo (E i)"
+      and TR7:  "F \<in> (HasTok i) leadsTo (HasTok (next i))"
 
 
-lemma HasToK_partition: "[| s: HasTok i; s: HasTok j |] ==> i=j"
+lemma HasToK_partition: "[| s \<in> HasTok i; s \<in> HasTok j |] ==> i=j"
 by (unfold HasTok_def, auto)
 
-lemma not_E_eq: "(s ~: E i) = (s : H i | s : T i)"
+lemma not_E_eq: "(s \<notin> E i) = (s \<in> H i | s \<in> T i)"
 apply (simp add: H_def E_def T_def)
 apply (case_tac "proc s i", auto)
 done
 
-lemma (in Token) token_stable: "F : stable (-(E i) Un (HasTok i))"
+lemma (in Token) token_stable: "F \<in> stable (-(E i) \<union> (HasTok i))"
 apply (unfold stable_def)
 apply (rule constrains_weaken)
 apply (rule constrains_Un [OF constrains_Un [OF TR2 TR4] TR5])
@@ -74,7 +74,7 @@ apply (rule wf_less_than [THEN wf_inv_image, THEN wf_subset], blast)
 done
 
 lemma (in Token) nodeOrder_eq: 
-     "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)"
+     "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
 apply (unfold nodeOrder_def next_def inv_image_def)
 apply (auto simp add: mod_Suc mod_geq)
 apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
@@ -84,7 +84,7 @@ done
   Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
 lemma (in Token) TR7_nodeOrder:
      "[| i<N; j<N |] ==>    
-      F : (HasTok i) leadsTo ({s. (token s, i) : nodeOrder j} Un HasTok j)"
+      F \<in> (HasTok i) leadsTo ({s. (token s, i) \<in> nodeOrder j} \<union> HasTok j)"
 apply (case_tac "i=j")
 apply (blast intro: subset_imp_leadsTo)
 apply (rule TR7 [THEN leadsTo_weaken_R])
@@ -93,19 +93,19 @@ done
 
 
 (*Chapter 4 variant, the one actually used below.*)
-lemma (in Token) TR7_aux: "[| i<N; j<N; i~=j |]     
-      ==> F : (HasTok i) leadsTo {s. (token s, i) : nodeOrder j}"
+lemma (in Token) TR7_aux: "[| i<N; j<N; i\<noteq>j |]     
+      ==> F \<in> (HasTok i) leadsTo {s. (token s, i) \<in> nodeOrder j}"
 apply (rule TR7 [THEN leadsTo_weaken_R])
 apply (auto simp add: HasTok_def nodeOrder_eq)
 done
 
 lemma (in Token) token_lemma:
-     "({s. token s < N} Int token -` {m}) = (if m<N then token -` {m} else {})"
+     "({s. token s < N} \<inter> token -` {m}) = (if m<N then token -` {m} else {})"
 by auto
 
 
 (*Misra's TR9: the token reaches an arbitrary node*)
-lemma  (in Token) leadsTo_j: "j<N ==> F : {s. token s < N} leadsTo (HasTok j)"
+lemma  (in Token) leadsTo_j: "j<N ==> F \<in> {s. token s < N} leadsTo (HasTok j)"
 apply (rule leadsTo_weaken_R)
 apply (rule_tac I = "-{j}" and f = token and B = "{}" 
        in wf_nodeOrder [THEN bounded_induct])
@@ -118,7 +118,7 @@ done
 
 (*Misra's TR8: a hungry process eventually eats*)
 lemma (in Token) token_progress:
-     "j<N ==> F : ({s. token s < N} Int H j) leadsTo (E j)"
+     "j<N ==> F \<in> ({s. token s < N} \<inter> H j) leadsTo (E j)"
 apply (rule leadsTo_cancel1 [THEN leadsTo_Un_duplicate])
 apply (rule_tac [2] TR6)
 apply (rule psp [OF leadsTo_j TR3, THEN leadsTo_weaken], blast+)

@@ -20,13 +20,13 @@ types state = "pname * pvar => nat"
 
 locale F_props =
   fixes F 
-  assumes rsA: "F : stable {s. s(Bproc,Rcvd) <= s(Aproc,Sent)}"
-      and rsB: "F : stable {s. s(Aproc,Rcvd) <= s(Bproc,Sent)}"
-    and sent_nondec: "F : stable {s. m <= s(proc,Sent)}"
-    and rcvd_nondec: "F : stable {s. n <= s(proc,Rcvd)}"
-    and rcvd_idle: "F : {s. s(proc,Idle) = Suc 0 & s(proc,Rcvd) = m}
+  assumes rsA: "F \<in> stable {s. s(Bproc,Rcvd) \<le> s(Aproc,Sent)}"
+      and rsB: "F \<in> stable {s. s(Aproc,Rcvd) \<le> s(Bproc,Sent)}"
+    and sent_nondec: "F \<in> stable {s. m \<le> s(proc,Sent)}"
+    and rcvd_nondec: "F \<in> stable {s. n \<le> s(proc,Rcvd)}"
+    and rcvd_idle: "F \<in> {s. s(proc,Idle) = Suc 0 & s(proc,Rcvd) = m}
                         co {s. s(proc,Rcvd) = m --> s(proc,Idle) = Suc 0}"
-    and sent_idle: "F : {s. s(proc,Idle) = Suc 0 & s(proc,Sent) = n}
+    and sent_idle: "F \<in> {s. s(proc,Idle) = Suc 0 & s(proc,Sent) = n}
                         co {s. s(proc,Sent) = n}"
   
 
@@ -51,7 +51,7 @@ lemmas (in F_props)
                                          idle_AB]
 
 lemma (in F_props)
-  shows "F : stable {s. s(Aproc,Idle) = Suc 0 & s(Bproc,Idle) = Suc 0 &  
+  shows "F \<in> stable {s. s(Aproc,Idle) = Suc 0 & s(Bproc,Idle) = Suc 0 &  
 			s(Aproc,Sent) = s(Bproc,Rcvd) &  
 			s(Bproc,Sent) = s(Aproc,Rcvd) &  
 			s(Aproc,Rcvd) = m & s(Bproc,Rcvd) = n}"
@@ -60,7 +60,7 @@ apply (rule constrainsI)
 apply (drule constrains_Int [OF rs_AB [unfolded stable_def] nondec_idle, 
                              THEN constrainsD], assumption)
 apply simp_all
-apply (blast intro!: order_refl del: le0, clarify) 
+apply (blast del: le0, clarify) 
 apply (subgoal_tac "s' (Aproc, Rcvd) = s (Aproc, Rcvd)")
 apply (subgoal_tac "s' (Bproc, Rcvd) = s (Bproc, Rcvd)") 
 apply simp 

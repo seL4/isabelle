@@ -17,56 +17,56 @@ consts
   gtime :: "nat=>nat"
 
 axioms
-  fmono: "m <= n ==> ftime m <= ftime n"
-  gmono: "m <= n ==> gtime m <= gtime n"
+  fmono: "m \<le> n ==> ftime m \<le> ftime n"
+  gmono: "m \<le> n ==> gtime m \<le> gtime n"
 
-  fasc:  "m <= ftime n"
-  gasc:  "m <= gtime n"
+  fasc:  "m \<le> ftime n"
+  gasc:  "m \<le> gtime n"
 
 constdefs
   common :: "nat set"
     "common == {n. ftime n = n & gtime n = n}"
 
   maxfg :: "nat => nat set"
-    "maxfg m == {t. t <= max (ftime m) (gtime m)}"
+    "maxfg m == {t. t \<le> max (ftime m) (gtime m)}"
 
 
 (*Misra's property CMT4: t exceeds no common meeting time*)
 lemma common_stable:
-     "[| ALL m. F : {m} Co (maxfg m); n: common |]  
-      ==> F : Stable (atMost n)"
-apply (drule_tac M = "{t. t<=n}" in Elimination_sing)
+     "[| \<forall>m. F \<in> {m} Co (maxfg m); n \<in> common |]  
+      ==> F \<in> Stable (atMost n)"
+apply (drule_tac M = "{t. t \<le> n}" in Elimination_sing)
 apply (simp add: atMost_def Stable_def common_def maxfg_def le_max_iff_disj)
 apply (erule Constrains_weaken_R)
 apply (blast intro: order_eq_refl fmono gmono le_trans)
 done
 
 lemma common_safety:
-     "[| Init F <= atMost n;   
-         ALL m. F : {m} Co (maxfg m); n: common |]  
-      ==> F : Always (atMost n)"
+     "[| Init F \<subseteq> atMost n;   
+         \<forall>m. F \<in> {m} Co (maxfg m); n \<in> common |]  
+      ==> F \<in> Always (atMost n)"
 by (simp add: AlwaysI common_stable)
 
 
 (*** Some programs that implement the safety property above ***)
 
-lemma "SKIP : {m} co (maxfg m)"
+lemma "SKIP \<in> {m} co (maxfg m)"
 by (simp add: constrains_def maxfg_def le_max_iff_disj fasc)
 
 (*This one is  t := ftime t || t := gtime t*)
 lemma "mk_program (UNIV, {range(%t.(t,ftime t)), range(%t.(t,gtime t))}, UNIV)
-       : {m} co (maxfg m)"
+       \<in> {m} co (maxfg m)"
 by (simp add: constrains_def maxfg_def le_max_iff_disj fasc)
 
 (*This one is  t := max (ftime t) (gtime t)*)
 lemma  "mk_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)  
-       : {m} co (maxfg m)"
+       \<in> {m} co (maxfg m)"
 by (simp add: constrains_def maxfg_def max_def gasc)
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
 lemma  "mk_program   
           (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)   
-       : {m} co (maxfg m)"
+       \<in> {m} co (maxfg m)"
 by (simp add: constrains_def maxfg_def max_def gasc)
 
 
@@ -79,10 +79,10 @@ by (simp add: constrains_def maxfg_def max_def gasc)
 declare atMost_Int_atLeast [simp]
 
 lemma leadsTo_common_lemma:
-     "[| ALL m. F : {m} Co (maxfg m);  
-         ALL m: lessThan n. F : {m} LeadsTo (greaterThan m);  
-         n: common |]   
-      ==> F : (atMost n) LeadsTo common"
+     "[| \<forall>m. F \<in> {m} Co (maxfg m);  
+         \<forall>m \<in> lessThan n. F \<in> {m} LeadsTo (greaterThan m);  
+         n \<in> common |]   
+      ==> F \<in> (atMost n) LeadsTo common"
 apply (rule LeadsTo_weaken_R)
 apply (rule_tac f = id and l = n in GreaterThan_bounded_induct)
 apply (simp_all (no_asm_simp))
@@ -90,12 +90,12 @@ apply (rule_tac [2] subset_refl)
 apply (blast dest: PSP_Stable2 intro: common_stable LeadsTo_weaken_R)
 done
 
-(*The "ALL m: -common" form echoes CMT6.*)
+(*The "\<forall>m \<in> -common" form echoes CMT6.*)
 lemma leadsTo_common:
-     "[| ALL m. F : {m} Co (maxfg m);  
-         ALL m: -common. F : {m} LeadsTo (greaterThan m);  
-         n: common |]   
-      ==> F : (atMost (LEAST n. n: common)) LeadsTo common"
+     "[| \<forall>m. F \<in> {m} Co (maxfg m);  
+         \<forall>m \<in> -common. F \<in> {m} LeadsTo (greaterThan m);  
+         n \<in> common |]   
+      ==> F \<in> (atMost (LEAST n. n \<in> common)) LeadsTo common"
 apply (rule leadsTo_common_lemma)
 apply (simp_all (no_asm_simp))
 apply (erule_tac [2] LeastI)

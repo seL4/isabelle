@@ -10,66 +10,61 @@ Deadlock examples from section 5.6 of
 theory Deadlock = UNITY:
 
 (*Trivial, two-process case*)
-lemma "[| F : (A Int B) co A;  F : (B Int A) co B |] ==> F : stable (A Int B)"
+lemma "[| F \<in> (A \<inter> B) co A;  F \<in> (B \<inter> A) co B |] ==> F \<in> stable (A \<inter> B)"
 by (unfold constrains_def stable_def, blast)
 
 
 (*a simplification step*)
 lemma Collect_le_Int_equals:
-     "(INT i: atMost n. A(Suc i) Int A i) = (INT i: atMost (Suc n). A i)"
+     "(\<Inter>i \<in> atMost n. A(Suc i) \<inter> A i) = (\<Inter>i \<in> atMost (Suc n). A i)"
 apply (induct_tac "n")
-apply (simp_all (no_asm_simp) add: atMost_Suc)
-apply auto
+apply (auto simp add: atMost_Suc)
 done
 
 (*Dual of the required property.  Converse inclusion fails.*)
 lemma UN_Int_Compl_subset:
-     "(UN i: lessThan n. A i) Int (- A n) <=   
-      (UN i: lessThan n. (A i) Int (- A (Suc i)))"
-apply (induct_tac "n")
-apply (simp (no_asm_simp))
-apply (simp (no_asm) add: lessThan_Suc)
-apply blast
+     "(\<Union>i \<in> lessThan n. A i) \<inter> (- A n) \<subseteq>   
+      (\<Union>i \<in> lessThan n. (A i) \<inter> (- A (Suc i)))"
+apply (induct_tac "n", simp)
+apply (simp add: lessThan_Suc, blast)
 done
 
 
 (*Converse inclusion fails.*)
 lemma INT_Un_Compl_subset:
-     "(INT i: lessThan n. -A i Un A (Suc i))  <=  
-      (INT i: lessThan n. -A i) Un A n"
-apply (induct_tac "n")
-apply (simp (no_asm_simp))
-apply (simp (no_asm_simp) add: lessThan_Suc)
-apply blast
+     "(\<Inter>i \<in> lessThan n. -A i \<union> A (Suc i))  \<subseteq>  
+      (\<Inter>i \<in> lessThan n. -A i) \<union> A n"
+apply (induct_tac "n", simp)
+apply (simp add: lessThan_Suc, blast)
 done
 
 
 (*Specialized rewriting*)
 lemma INT_le_equals_Int_lemma:
-     "A 0 Int (-(A n) Int (INT i: lessThan n. -A i Un A (Suc i))) = {}"
+     "A 0 \<inter> (-(A n) \<inter> (\<Inter>i \<in> lessThan n. -A i \<union> A (Suc i))) = {}"
 by (blast intro: gr0I dest: INT_Un_Compl_subset [THEN subsetD])
 
 (*Reverse direction makes it harder to invoke the ind hyp*)
 lemma INT_le_equals_Int:
-     "(INT i: atMost n. A i) =  
-      A 0 Int (INT i: lessThan n. -A i Un A(Suc i))"
+     "(\<Inter>i \<in> atMost n. A i) =  
+      A 0 \<inter> (\<Inter>i \<in> lessThan n. -A i \<union> A(Suc i))"
 apply (induct_tac "n", simp)
 apply (simp add: Int_ac Int_Un_distrib Int_Un_distrib2
                  INT_le_equals_Int_lemma lessThan_Suc atMost_Suc)
 done
 
 lemma INT_le_Suc_equals_Int:
-     "(INT i: atMost (Suc n). A i) =  
-      A 0 Int (INT i: atMost n. -A i Un A(Suc i))"
+     "(\<Inter>i \<in> atMost (Suc n). A i) =  
+      A 0 \<inter> (\<Inter>i \<in> atMost n. -A i \<union> A(Suc i))"
 by (simp add: lessThan_Suc_atMost INT_le_equals_Int)
 
 
 (*The final deadlock example*)
 lemma
-  assumes zeroprem: "F : (A 0 Int A (Suc n)) co (A 0)"
+  assumes zeroprem: "F \<in> (A 0 \<inter> A (Suc n)) co (A 0)"
       and allprem:
-	    "!!i. i: atMost n ==> F : (A(Suc i) Int A i) co (-A i Un A(Suc i))"
-  shows "F : stable (INT i: atMost (Suc n). A i)"
+	    "!!i. i \<in> atMost n ==> F \<in> (A(Suc i) \<inter> A i) co (-A i \<union> A(Suc i))"
+  shows "F \<in> stable (\<Inter>i \<in> atMost (Suc n). A i)"
 apply (unfold stable_def) 
 apply (rule constrains_Int [THEN constrains_weaken])
    apply (rule zeroprem) 

@@ -24,13 +24,13 @@ constdefs
     "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
 
   Rprg :: "state program"
-    "Rprg == mk_program ({%v. v=init}, UN (u,v): edges. {asgt u v}, UNIV)"
+    "Rprg == mk_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
 
   reach_invariant :: "state set"
-    "reach_invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"
+    "reach_invariant == {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
 
   fixedpoint :: "state set"
-    "fixedpoint == {s. ALL (u,v): edges. s u --> s v}"
+    "fixedpoint == {s. \<forall>(u,v)\<in>edges. s u --> s v}"
 
   metric :: "state => nat"
     "metric s == card {v. ~ s v}"
@@ -60,7 +60,7 @@ declare finite_subset [OF subset_UNIV finite_graph, iff]
 
 declare reach_invariant_def [THEN def_set_simp, simp]
 
-lemma reach_invariant: "Rprg : Always reach_invariant"
+lemma reach_invariant: "Rprg \<in> Always reach_invariant"
 apply (rule AlwaysI, force) 
 apply (unfold Rprg_def, constrains) 
 apply (blast intro: rtrancl_trans)
@@ -71,7 +71,7 @@ done
 
 (*If it reaches a fixedpoint, it has found a solution*)
 lemma fixedpoint_invariant_correct: 
-     "fixedpoint Int reach_invariant = { %v. (init, v) : edges^* }"
+     "fixedpoint \<inter> reach_invariant = { %v. (init, v) \<in> edges^* }"
 apply (unfold fixedpoint_def)
 apply (rule equalityI)
 apply (auto intro!: ext)
@@ -80,7 +80,7 @@ apply (erule rtrancl_induct, auto)
 done
 
 lemma lemma1: 
-     "FP Rprg <= fixedpoint"
+     "FP Rprg \<subseteq> fixedpoint"
 apply (unfold FP_def fixedpoint_def stable_def constrains_def Rprg_def, auto)
 apply (drule bspec, assumption)
 apply (simp add: Image_singleton image_iff)
@@ -88,7 +88,7 @@ apply (drule fun_cong, auto)
 done
 
 lemma lemma2: 
-     "fixedpoint <= FP Rprg"
+     "fixedpoint \<subseteq> FP Rprg"
 apply (unfold FP_def fixedpoint_def stable_def constrains_def Rprg_def)
 apply (auto intro!: ext)
 done
@@ -103,16 +103,15 @@ by (rule equalityI [OF lemma1 lemma2])
   a LEADSTO assertion that the metric decreases if we are not at a fixedpoint.
   *)
 
-lemma Compl_fixedpoint: "- fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})"
-apply (simp add: Compl_FP UN_UN_flatten FP_fixedpoint [symmetric] Rprg_def, auto)
+lemma Compl_fixedpoint: "- fixedpoint = (\<Union>(u,v)\<in>edges. {s. s u & ~ s v})"
+apply (auto simp add: Compl_FP UN_UN_flatten FP_fixedpoint [symmetric] Rprg_def)
  apply (rule fun_upd_idem, force)
 apply (force intro!: rev_bexI simp add: fun_upd_idem_iff)
 done
 
 lemma Diff_fixedpoint:
-     "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})"
-apply (simp add: Diff_eq Compl_fixedpoint, blast)
-done
+     "A - fixedpoint = (\<Union>(u,v)\<in>edges. A \<inter> {s. s u & ~ s v})"
+by (simp add: Diff_eq Compl_fixedpoint, blast)
 
 
 (*** Progress ***)
@@ -127,13 +126,13 @@ done
 lemma metric_less [intro!]: "~ s x ==> metric (s(x:=True)) < metric s"
 by (erule Suc_metric [THEN subst], blast)
 
-lemma metric_le: "metric (s(y:=s x | s y)) <= metric s"
+lemma metric_le: "metric (s(y:=s x | s y)) \<le> metric s"
 apply (case_tac "s x --> s y")
 apply (auto intro: less_imp_le simp add: fun_upd_idem)
 done
 
 lemma LeadsTo_Diff_fixedpoint:
-     "Rprg : ((metric-`{m}) - fixedpoint) LeadsTo (metric-`(lessThan m))"
+     "Rprg \<in> ((metric-`{m}) - fixedpoint) LeadsTo (metric-`(lessThan m))"
 apply (simp (no_asm) add: Diff_fixedpoint Rprg_def)
 apply (rule LeadsTo_UN, auto)
 apply (ensures_tac "asgt a b")
@@ -144,19 +143,19 @@ apply (auto elim: less_not_refl3 [THEN [2] rev_notE])
 done
 
 lemma LeadsTo_Un_fixedpoint:
-     "Rprg : (metric-`{m}) LeadsTo (metric-`(lessThan m) Un fixedpoint)"
+     "Rprg \<in> (metric-`{m}) LeadsTo (metric-`(lessThan m) \<union> fixedpoint)"
 apply (rule LeadsTo_Diff [OF LeadsTo_Diff_fixedpoint [THEN LeadsTo_weaken_R]
                              subset_imp_LeadsTo], auto)
 done
 
 
 (*Execution in any state leads to a fixedpoint (i.e. can terminate)*)
-lemma LeadsTo_fixedpoint: "Rprg : UNIV LeadsTo fixedpoint"
+lemma LeadsTo_fixedpoint: "Rprg \<in> UNIV LeadsTo fixedpoint"
 apply (rule LessThan_induct, auto)
 apply (rule LeadsTo_Un_fixedpoint)
 done
 
-lemma LeadsTo_correct: "Rprg : UNIV LeadsTo { %v. (init, v) : edges^* }"
+lemma LeadsTo_correct: "Rprg \<in> UNIV LeadsTo { %v. (init, v) \<in> edges^* }"
 apply (subst fixedpoint_invariant_correct [symmetric])
 apply (rule Always_LeadsTo_weaken [OF reach_invariant LeadsTo_fixedpoint], auto)
 done
