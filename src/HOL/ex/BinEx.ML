@@ -11,6 +11,8 @@ yields normalized results.
 
 set proof_timing;
 
+(**** The Integers ****)
+
 (*** Addition ***)
 
 Goal "(#13::int)  +  #19 = #32";
@@ -83,7 +85,7 @@ by (Simp_tac 1);
 result();
 
 
-(*** Division and Remainder ***)
+(*** Quotient and Remainder ***)
 
 Goal "(#10::int) div #3 = #3";
 by (Simp_tac 1);
@@ -137,6 +139,114 @@ by (Simp_tac 1);
 result();
 
 Goal "(#1000006::int) mod #10 = #6";
+by (Simp_tac 1);
+result();
+
+
+(** division by shifting **)
+
+Goal "#10000000 div #2 = (#5000000::int)";
+by (Simp_tac 1);
+result();
+
+Goal "#10000001 mod #2 = (#1::int)";
+by (Simp_tac 1);
+result();
+
+Goal "#10000055 div #32 = (#312501::int)";
+by (Simp_tac 1);
+
+Goal "#10000055 mod #32 = (#23::int)";
+by (Simp_tac 1);
+
+Goal "#100094 div #144 = (#695::int)";
+by (Simp_tac 1);
+result();
+
+Goal "#100094 mod #144 = (#14::int)";
+by (Simp_tac 1);
+result();
+
+
+
+(**** The Natural Numbers ****)
+
+(** Successor **)
+
+Goal "Suc #99999 = #100000";
+by (asm_simp_tac (simpset() addsimps [Suc_nat_number_of]) 1);
+	(*not a default rewrite since sometimes we want to have Suc(#nnn)*)
+result();
+
+
+(** Addition **)
+
+Goal "(#13::nat)  +  #19 = #32";
+by (Simp_tac 1);
+result();
+
+Goal "(#1234::nat)  +  #5678 = #6912";
+by (Simp_tac 1);
+result();
+
+Goal "(#973646::nat) +  #6475 = #980121";
+by (Simp_tac 1);
+result();
+
+
+(** Subtraction **)
+
+Goal "(#32::nat)  -  #14 = #18";
+by (Simp_tac 1);
+result();
+
+Goal "(#14::nat)  -  #15 = #0";
+by (Simp_tac 1);
+result();
+
+Goal "(#14::nat)  -  #1576644 = #0";
+by (Simp_tac 1);
+result();
+
+Goal "(#48273776::nat)  -  #3873737 = #44400039";
+by (Simp_tac 1);
+result();
+
+
+(** Multiplication **)
+
+Goal "(#12::nat) * #11 = #132";
+by (Simp_tac 1);
+result();
+
+Goal "(#647::nat) * #3643 = #2357021";
+by (Simp_tac 1);
+result();
+
+
+(** Quotient and Remainder **)
+
+Goal "(#10::nat) div #3 = #3";
+by (Simp_tac 1);
+result();
+
+Goal "(#10::nat) mod #3 = #1";
+by (Simp_tac 1);
+result();
+
+Goal "(#10000::nat) div #9 = #1111";
+by (Simp_tac 1);
+result();
+
+Goal "(#10000::nat) mod #9 = #1";
+by (Simp_tac 1);
+result();
+
+Goal "(#10000::nat) div #16 = #625";
+by (Simp_tac 1);
+result();
+
+Goal "(#10000::nat) mod #16 = #0";
 by (Simp_tac 1);
 result();
 
