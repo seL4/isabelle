@@ -2,7 +2,7 @@ header{*Some Instances of Separation and Strong Replacement*}
 
 (*This theory proves all instances needed for locale M_axioms*)
 
-theory Separation = L_axioms + WFrec:
+theory Separation = L_axioms + WF_absolute:
 
 text{*Helps us solve for de Bruijn indices!*}
 lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
@@ -633,56 +633,80 @@ declare finite_funspace_closed [intro,simp]
 
 subsection{*Separation for Reflexive/Transitive Closure*}
 
-lemma rtrancl_reflects:
-  "REFLECTS[\<lambda>p. 
-    \<exists>nnat[L]. \<exists>n[L]. \<exists>n'[L]. omega(L,nnat) & n\<in>nnat & successor(L,n,n') &
-     (\<exists>f[L]. 
-      typed_function(L,n',A,f) &
-      (\<exists>x[L]. \<exists>y[L]. \<exists>zero[L]. pair(L,x,y,p) & empty(L,zero) &
-	fun_apply(L,f,zero,x) & fun_apply(L,f,n,y)) &
-	(\<forall>j[L]. j\<in>n --> 
-	  (\<exists>fj[L]. \<exists>sj[L]. \<exists>fsj[L]. \<exists>ffp[L]. 
-	    fun_apply(L,f,j,fj) & successor(L,j,sj) &
-	    fun_apply(L,f,sj,fsj) & pair(L,fj,fsj,ffp) & ffp \<in> r))),
-\<lambda>i p. 
-    \<exists>nnat \<in> Lset(i). \<exists>n \<in> Lset(i). \<exists>n' \<in> Lset(i). 
-     omega(**Lset(i),nnat) & n\<in>nnat & successor(**Lset(i),n,n') &
-     (\<exists>f \<in> Lset(i). 
-      typed_function(**Lset(i),n',A,f) &
-      (\<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). \<exists>zero \<in> Lset(i). pair(**Lset(i),x,y,p) & empty(**Lset(i),zero) &
-	fun_apply(**Lset(i),f,zero,x) & fun_apply(**Lset(i),f,n,y)) &
-	(\<forall>j \<in> Lset(i). j\<in>n --> 
-	  (\<exists>fj \<in> Lset(i). \<exists>sj \<in> Lset(i). \<exists>fsj \<in> Lset(i). \<exists>ffp \<in> Lset(i). 
-	    fun_apply(**Lset(i),f,j,fj) & successor(**Lset(i),j,sj) &
-	    fun_apply(**Lset(i),f,sj,fsj) & pair(**Lset(i),fj,fsj,ffp) & ffp \<in> r)))]"
-by (intro FOL_reflections function_reflections fun_plus_reflections)
+subsubsection{*First, The Defining Formula*}
+
+(* "rtran_closure_mem(M,A,r,p) ==
+      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
+       omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
+       (\<exists>f[M]. typed_function(M,n',A,f) &
+	(\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
+	  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
+	(\<forall>j[M]. j\<in>n --> 
+	  (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
+	    fun_apply(M,f,j,fj) & successor(M,j,sj) &
+	    fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"*)
+constdefs rtran_closure_mem_fm :: "[i,i,i]=>i"
+ "rtran_closure_mem_fm(A,r,p) == 
+   Exists(Exists(Exists(
+    And(omega_fm(2),
+     And(Member(1,2),
+      And(succ_fm(1,0),
+       Exists(And(typed_function_fm(1, A#+4, 0),
+	And(Exists(Exists(Exists(
+	      And(pair_fm(2,1,p#+7), 
+	       And(empty_fm(0),
+		And(fun_apply_fm(3,0,2), fun_apply_fm(3,5,1))))))),
+	    Forall(Implies(Member(0,3),
+	     Exists(Exists(Exists(Exists(
+	      And(fun_apply_fm(5,4,3),
+	       And(succ_fm(4,2),
+		And(fun_apply_fm(5,2,1),
+		 And(pair_fm(3,1,0), Member(0,r#+9))))))))))))))))))))"
+
+
+lemma rtran_closure_mem_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> rtran_closure_mem_fm(x,y,z) \<in> formula"
+by (simp add: rtran_closure_mem_fm_def) 
+
+lemma arity_rtran_closure_mem_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(rtran_closure_mem_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: rtran_closure_mem_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_rtran_closure_mem_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, rtran_closure_mem_fm(x,y,z), env) <-> 
+        rtran_closure_mem(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: rtran_closure_mem_fm_def rtran_closure_mem_def)
+
+lemma rtran_closure_mem_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> rtran_closure_mem(**A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
+by (simp add: sats_rtran_closure_mem_fm)
+
+theorem rtran_closure_mem_reflection:
+     "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)), 
+               \<lambda>i x. rtran_closure_mem(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: rtran_closure_mem_def setclass_simps)
+apply (intro FOL_reflections function_reflections fun_plus_reflections)  
+done
+
+subsubsection{*Then, the Instance of Separation*}
 
 
 text{*This formula describes @{term "rtrancl(r)"}.*}
 lemma rtrancl_separation:
-     "[| L(r); L(A) |] ==>
-      separation (L, \<lambda>p. 
-	  \<exists>nnat[L]. \<exists>n[L]. \<exists>n'[L]. 
-           omega(L,nnat) & n\<in>nnat & successor(L,n,n') &
-	   (\<exists>f[L]. 
-	    typed_function(L,n',A,f) &
-	    (\<exists>x[L]. \<exists>y[L]. \<exists>zero[L]. pair(L,x,y,p) & empty(L,zero) &
-	      fun_apply(L,f,zero,x) & fun_apply(L,f,n,y)) &
-	      (\<forall>j[L]. j\<in>n --> 
-		(\<exists>fj[L]. \<exists>sj[L]. \<exists>fsj[L]. \<exists>ffp[L]. 
-		  fun_apply(L,f,j,fj) & successor(L,j,sj) &
-		  fun_apply(L,f,sj,fsj) & pair(L,fj,fsj,ffp) & ffp \<in> r))))"
+     "[| L(r); L(A) |] ==> separation (L, rtran_closure_mem(L,A,r))"
 apply (rule separation_CollectI) 
 apply (rule_tac A="{r,A,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF rtrancl_reflects], assumption)
+apply (rule ReflectsE [OF rtran_closure_mem_reflection], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
 apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,u,r,A]" in omega_iff_sats)
-txt{*SLOW, maybe just due to the formula's size*}
+apply (rename_tac u)
+apply (rule_tac env = "[u,r,A]" in rtran_closure_mem_iff_sats)
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done

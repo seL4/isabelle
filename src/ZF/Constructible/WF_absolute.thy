@@ -111,41 +111,43 @@ by (blast del: subsetI
 
 constdefs
 
-  rtran_closure :: "[i=>o,i,i] => o"
-    "rtran_closure(M,r,s) ==
-        \<forall>A. M(A) --> is_field(M,r,A) -->
- 	 (\<forall>p. M(p) -->
-          (p \<in> s <->
-           (\<exists>n\<in>nat. M(n) &
-            (\<exists>n'. M(n') & successor(M,n,n') &
-             (\<exists>f. M(f) & typed_function(M,n',A,f) &
-              (\<exists>x\<in>A. M(x) & (\<exists>y\<in>A. M(y) & pair(M,x,y,p) &
-                   fun_apply(M,f,0,x) & fun_apply(M,f,n,y))) &
-              (\<forall>i\<in>n. M(i) -->
-                (\<forall>i'. M(i') --> successor(M,i,i') -->
-                 (\<forall>fi. M(fi) --> fun_apply(M,f,i,fi) -->
-                  (\<forall>fi'. M(fi') --> fun_apply(M,f,i',fi') -->
-                   (\<forall>q. M(q) --> pair(M,fi,fi',q) --> q \<in> r))))))))))"
-
-  tran_closure :: "[i=>o,i,i] => o"
-    "tran_closure(M,r,t) ==
-         \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
-
-
-locale M_trancl = M_axioms +
-  assumes rtrancl_separation:
-	 "[| M(r); M(A) |] ==>
-	  separation (M, \<lambda>p. 
+  rtran_closure_mem :: "[i=>o,i,i,i] => o"
+    --{*The property of belonging to @{text "rtran_closure(r)"}*}
+    "rtran_closure_mem(M,A,r,p) ==
 	      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
                omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
-	       (\<exists>f[M]. 
-		typed_function(M,n',A,f) &
+	       (\<exists>f[M]. typed_function(M,n',A,f) &
 		(\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
 		  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
 		  (\<forall>j[M]. j\<in>n --> 
 		    (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
 		      fun_apply(M,f,j,fj) & successor(M,j,sj) &
-		      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r))))"
+		      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"
+
+  rtran_closure :: "[i=>o,i,i] => o"
+    "rtran_closure(M,r,s) == 
+        \<forall>A[M]. is_field(M,r,A) -->
+ 	 (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))"
+
+  tran_closure :: "[i=>o,i,i] => o"
+    "tran_closure(M,r,t) ==
+         \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
+
+lemma (in M_axioms) rtran_closure_mem_iff:
+     "[|M(A); M(r); M(p)|]
+      ==> rtran_closure_mem(M,A,r,p) <->
+          (\<exists>n[M]. n\<in>nat & 
+           (\<exists>f[M]. f \<in> succ(n) -> A &
+            (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
+                           (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
+apply (simp add: rtran_closure_mem_def typed_apply_abs
+                 Ord_succ_mem_iff nat_0_le [THEN ltD])
+apply (blast intro: elim:); 
+done
+
+locale M_trancl = M_axioms +
+  assumes rtrancl_separation:
+	 "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:
 	 "[| M(r); M(Z) |] ==> 
 	  separation (M, \<lambda>x. 
@@ -155,29 +157,16 @@ locale M_trancl = M_axioms +
 
 lemma (in M_trancl) rtran_closure_rtrancl:
      "M(r) ==> rtran_closure(M,r,rtrancl(r))"
-apply (simp add: rtran_closure_def rtrancl_alt_eq_rtrancl [symmetric]
-                 rtrancl_alt_def field_closed typed_apply_abs apply_closed
-                 Ord_succ_mem_iff M_nat  nat_0_le [THEN ltD], clarify)
-apply (rule iffI)
- apply clarify
- apply simp
- apply (rename_tac n f)
- apply (rule_tac x=n in bexI)
-  apply (rule_tac x=f in exI)
-  apply simp
-  apply (blast dest: finite_fun_closed dest: transM)
- apply assumption
-apply clarify
-apply (simp add: nat_0_le [THEN ltD] apply_funtype, blast)
+apply (simp add: rtran_closure_def rtran_closure_mem_iff 
+                 rtrancl_alt_eq_rtrancl [symmetric] rtrancl_alt_def)
+apply (auto simp add: nat_0_le [THEN ltD] apply_funtype); 
 done
 
 lemma (in M_trancl) rtrancl_closed [intro,simp]:
      "M(r) ==> M(rtrancl(r))"
 apply (insert rtrancl_separation [of r "field(r)"])
 apply (simp add: rtrancl_alt_eq_rtrancl [symmetric]
-                 rtrancl_alt_def field_closed typed_apply_abs apply_closed
-                 Ord_succ_mem_iff M_nat nat_into_M
-                 nat_0_le [THEN ltD] leI [THEN ltD] ltI apply_funtype)
+                 rtrancl_alt_def rtran_closure_mem_iff)
 done
 
 lemma (in M_trancl) rtrancl_abs [simp]:
@@ -187,19 +176,9 @@ apply (rule iffI)
  prefer 2 apply (blast intro: rtran_closure_rtrancl)
 apply (rule M_equalityI)
 apply (simp add: rtran_closure_def rtrancl_alt_eq_rtrancl [symmetric]
-                 rtrancl_alt_def field_closed typed_apply_abs apply_closed
-                 Ord_succ_mem_iff M_nat
-                 nat_0_le [THEN ltD] leI [THEN ltD] ltI apply_funtype)
- prefer 2 apply assumption
- prefer 2 apply blast
-apply (rule iffI, clarify)
-apply (simp add: nat_0_le [THEN ltD]  apply_funtype, blast, clarify, simp)
- apply (rename_tac n f)
- apply (rule_tac x=n in bexI)
-  apply (rule_tac x=f in exI)
-  apply (blast dest!: finite_fun_closed, assumption)
+                 rtrancl_alt_def rtran_closure_mem_iff)
+apply (auto simp add: nat_0_le [THEN ltD] apply_funtype); 
 done
-
 
 lemma (in M_trancl) trancl_closed [intro,simp]:
      "M(r) ==> M(trancl(r))"
