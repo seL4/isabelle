@@ -1086,7 +1086,7 @@ fun prep_ext sg       = extend_sign false K "#" () sg;
 (* merge_stamps *)
 
 fun merge_stamps stamps1 stamps2 =
-  let val stamps = merge_lists' stamps2 stamps1 in
+  let val stamps = merge_lists' stamps1 stamps2 in
     (case duplicates (map ! stamps) of
       [] => stamps
     | dups => raise TERM ("Attempt to merge different versions of theories "
