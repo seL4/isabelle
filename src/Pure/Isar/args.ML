@@ -2,26 +2,44 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Concrete argument syntax (for attributes, methods etc.).
-
-TODO:
-  - sectioned: generalize sname to attributed thms;
+Concrete argument syntax (of attributes and methods).
 *)
 
 signature ARGS =
 sig
   type T
   val val_of: T -> string
-  val ident: string -> T
-  val string: string -> T
-  val keyword: string -> T
+  val pos_of: T -> Position.T
+  val str_of: T -> string
+  val ident: string * Position.T -> T
+  val string: string * Position.T -> T
+  val keyword: string * Position.T -> T
   val stopper: T * (T -> bool)
   val not_eof: T -> bool
+  val position: (T list -> 'a * 'b) -> T list -> ('a * Position.T) * 'b
+  val !!! : (T list -> 'a) -> T list -> 'a
   val $$$ : string -> T list -> string * T list
   val name: T list -> string * T list
-  val sectioned: string list -> T list -> (string list * (string * string list) list) * T list
+  val nat: T list -> int * T list
+  val var: T list -> indexname * T list
+  val enum1: string -> (T list -> 'a * T list) -> T list -> 'a list * T list
+  val enum: string -> (T list -> 'a * T list) -> T list -> 'a list * T list
+  val list1: (T list -> 'a * T list) -> T list -> 'a list * T list
+  val list: (T list -> 'a * T list) -> T list -> 'a list * T list
+  val global_typ: theory * T list -> typ * (theory * T list)
+  val global_term: theory * T list -> term * (theory * T list)
+  val global_prop: theory * T list -> term * (theory * T list)
+  val global_pat: theory * T list -> term * (theory * T list)
+  val local_typ: Proof.context * T list -> typ * (Proof.context * T list)
+  val local_term: Proof.context * T list -> term * (Proof.context * T list)
+  val local_prop: Proof.context * T list -> term * (Proof.context * T list)
+  val local_pat: Proof.context * T list -> term * (Proof.context * T list)
   type src
-  val syntax: string -> (T list -> 'a * T list) -> ('a -> 'b) -> src -> 'b
+  val src: (string * T list) * Position.T -> src
+  val dest_src: src -> (string * T list) * Position.T
+  val attribs: T list -> src list * T list
+  val opt_attribs: T list -> src list * T list
+  val syntax: string -> ('a * T list -> 'b * ('a * T list)) -> 'a -> src -> 'a * 'b
 end;
 
 structure Args: ARGS =
@@ -31,15 +49,17 @@ struct
 (** datatype T **)
 
 datatype kind = Ident | String | Keyword | EOF;
-datatype T = Arg of kind * string;
+datatype T = Arg of kind * (string * Position.T);
 
-fun val_of (Arg (_, x)) = x;
+fun val_of (Arg (_, (x, _))) = x;
+fun pos_of (Arg (_, (_, pos))) = pos;
 
-fun str_of (Arg (Ident, x)) = enclose "'" "'" x
-  | str_of (Arg (String, x)) = quote x
-  | str_of (Arg (Keyword, x)) = x;
+fun str_of (Arg (Ident, (x, _))) = enclose "'" "'" x
+  | str_of (Arg (String, (x, _))) = quote x
+  | str_of (Arg (Keyword, (x, _))) = x
+  | str_of (Arg (EOF, _)) = "end-of-text";
 
-fun arg kind x = Arg (kind, x);
+fun arg kind x_pos = Arg (kind, x_pos);
 val ident = arg Ident;
 val string = arg String;
 val keyword = arg Keyword;
@@ -47,7 +67,7 @@ val keyword = arg Keyword;
 
 (* eof *)
 
-val eof = arg EOF "";
+val eof = arg EOF ("", Position.none);
 
 fun is_eof (Arg (EOF, _)) = true
   | is_eof _ = false;
@@ -59,42 +79,114 @@ val not_eof = not o is_eof;
 
 (** scanners **)
 
+(* position *)
+
+fun position scan = (Scan.ahead (Scan.one not_eof) >> pos_of) -- scan >> Library.swap;
+
+
+(* cut *)
+
+fun !!! scan =
+  let
+    fun get_pos [] = " (past end-of-text!)"
+      | get_pos (Arg (_, (_, pos)) :: _) = Position.str_of pos;
+
+    fun err (args, None) = "Argument syntax error" ^ get_pos args
+      | err (args, Some msg) = "Argument syntax error" ^ get_pos args ^ ": " ^ msg;
+  in Scan.!! err scan end;
+
+
 (* basic *)
 
-fun $$$ x = Scan.one (fn Arg (k, y) => (k = Ident orelse k = Keyword) andalso x = y) >> val_of;
-val name = Scan.one (fn (Arg (k, x)) => k = Ident orelse k = String) >> val_of;
+fun $$$$ x = Scan.one (fn Arg (k, (y, _)) => (k = Ident orelse k = Keyword) andalso x = y);
+fun $$$ x = $$$$ x >> val_of;
+
+val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
+
+fun kind f = Scan.one (K true) :--
+  (fn Arg (Ident, (x, _)) =>
+    (case f x of Some y => Scan.succeed y | _ => Scan.fail)
+  | _ => Scan.fail) >> #2;
+
+val nat = kind Syntax.read_nat;
+val var = kind (apsome #1 o try Term.dest_Var o Syntax.read_var);
 
 
-(* sections *)
+(* enumerations *)
 
-val no_colon = Scan.one (fn Arg (k, x) => k = String orelse x <> ":");
-val sname = name --| Scan.ahead no_colon;
+fun enum1 sep scan = scan -- Scan.repeat ($$$ sep |-- scan) >> op ::;
+fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
-fun sect s = ($$$ s --| $$$ ":") -- Scan.repeat sname;
+fun list1 scan = enum1 "," scan;
+fun list scan = enum "," scan;
 
-fun any_sect [] = Scan.fail
-  | any_sect (s :: ss) = sect s || any_sect ss;
 
-fun sectioned ss =
-  Scan.repeat sname -- Scan.repeat (any_sect ss);
+(* terms and types *)
+
+fun gen_item read = Scan.depend (fn st => name >> (pair st o read st));
+
+val global_typ = gen_item (ProofContext.read_typ o ProofContext.init);
+val global_term = gen_item (ProofContext.read_term o ProofContext.init);
+val global_prop = gen_item (ProofContext.read_prop o ProofContext.init);
+val global_pat = gen_item (ProofContext.read_pat o ProofContext.init);
+
+val local_typ = gen_item ProofContext.read_typ;
+val local_term = gen_item ProofContext.read_term;
+val local_prop = gen_item ProofContext.read_prop;
+val local_pat = gen_item ProofContext.read_pat;
+
+
+(* args *)
+
+val exclude = explode "(){}[],";
+
+fun atom_arg blk = Scan.one (fn Arg (k, (x, _)) =>
+  k <> Keyword orelse not (x mem exclude) orelse blk andalso x = ",");
+
+fun paren_args l r scan = $$$$ l -- !!! (scan true -- $$$$ r)
+  >> (fn (x, (ys, z)) => x :: ys @ [z]);
+
+fun args blk x = Scan.optional (args1 blk) [] x
+and args1 blk x =
+  ((Scan.repeat1
+    (Scan.repeat1 (atom_arg blk) ||
+      paren_args "(" ")" args ||
+      paren_args "{" "}" args ||
+      paren_args "[" "]" args)) >> flat) x;
 
 
 
 (** type src **)
 
-type src = (string * T list) * Position.T;
+datatype src = Src of (string * T list) * Position.T;
 
-fun err_in_src kind msg ((s, args), pos) =
-  error (space_implode " " (kind :: s :: map str_of args) ^ Position.str_of pos ^ ": " ^ msg);
+val src = Src;
+fun dest_src (Src src) = src;
+
+fun err_in_src kind msg (Src ((s, args), pos)) =
+  error (kind ^ " " ^ s ^ Position.str_of pos ^ ": " ^ msg ^ "\n  " ^
+    space_implode " " (map str_of args));
 
 
 (* argument syntax *)
 
-fun syntax kind scan f (src as ((s, args), pos)) =
-  (case handle_error (Scan.error (Scan.finite stopper scan)) args of
-    OK (x, []) => f x
-  | OK (_, args') => err_in_src kind "bad arguments" ((s, args'), pos)
-  | Error msg => err_in_src kind ("\n" ^ msg) src);
+(* FIXME *)
+fun trace_src kind (Src ((s, args), pos)) =
+  warning ("TRACE: " ^ space_implode " " (kind :: s :: map str_of args) ^ Position.str_of pos);
+
+fun syntax kind scan st (src as Src ((s, args), pos)) =
+  (trace_src kind src;
+  (case handle_error (Scan.error (Scan.finite' stopper (Scan.option scan))) (st, args) of
+    OK (Some x, (st', [])) => (st', x)
+  | OK (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos))
+  | Error msg => err_in_src kind ("\n" ^ msg) src));
+
+
+(* attribs *)
+
+val attrib = position (name -- !!! (args false)) >> src;
+val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
+val opt_attribs = Scan.optional attribs [];
 
 
 end;
