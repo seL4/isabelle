@@ -6,80 +6,102 @@
 
 header {* \isaheader{Completeness of the LBV} *}
 
-(* This theory is currently broken. The port to exceptions
-  didn't make it into the Isabelle 2001 release. It is included for 
-  documentation only. See Isabelle 99-2 for a working copy of this
-  theory. *)
-
-theory LBVComplete = BVSpec + LBVSpec + EffectMono:
+theory LBVComplete = LBVSpec + Typing_Framework:
 
 constdefs
-  contains_targets :: "[instr list, certificate, method_type, p_count] \<Rightarrow> bool"
-  "contains_targets ins cert phi pc == 
-     \<forall>pc' \<in> set (succs (ins!pc) pc). 
-      pc' \<noteq> pc+1 \<and> pc' < length ins \<longrightarrow> cert!pc' = phi!pc'"
+  contains_targets :: "['s steptype, 's certificate, 's option list, nat, nat] \<Rightarrow> bool"
+  "contains_targets step cert phi pc n \<equiv>
+  \<forall>(pc',s') \<in> set (step pc (OK (phi!pc))). pc' \<noteq> pc+1 \<and> pc' < n \<longrightarrow> cert!pc' = phi!pc'"
 
-  fits :: "[instr list, certificate, method_type] \<Rightarrow> bool"
-  "fits ins cert phi == \<forall>pc. pc < length ins \<longrightarrow> 
-                       contains_targets ins cert phi pc \<and>
-                       (cert!pc = None \<or> cert!pc = phi!pc)"
+  fits :: "['s steptype, 's certificate, 's option list, nat] \<Rightarrow> bool"
+  "fits step cert phi n \<equiv> \<forall>pc. pc < n \<longrightarrow> 
+                               contains_targets step cert phi pc n \<and>
+                               (cert!pc = None \<or> cert!pc = phi!pc)"
 
-  is_target :: "[instr list, p_count] \<Rightarrow> bool" 
-  "is_target ins pc == 
-     \<exists>pc'. pc \<noteq> pc'+1 \<and> pc' < length ins \<and> pc \<in> set (succs (ins!pc') pc')"
+  is_target :: "['s steptype, 's option list, nat, nat] \<Rightarrow> bool" 
+  "is_target step phi pc' n \<equiv>
+     \<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < n \<and> (pc',s') \<in> set (step pc (OK (phi!pc)))"
 
+  make_cert :: "['s steptype, 's option list, nat] \<Rightarrow> 's certificate"
+  "make_cert step phi n \<equiv> 
+     map (\<lambda>pc. if is_target step phi pc n then phi!pc else None) [0..n(]"
 
-constdefs 
-  make_cert :: "[instr list, method_type] \<Rightarrow> certificate"
-  "make_cert ins phi == 
-     map (\<lambda>pc. if is_target ins pc then phi!pc else None) [0..length ins(]"
-
-  make_Cert :: "[jvm_prog, prog_type] \<Rightarrow> prog_certificate"
-  "make_Cert G Phi ==  \<lambda> C sig. let (C,rT,(maxs,maxl,b)) = the (method (G,C) sig)
-                                in make_cert b (Phi C sig)"
   
 lemmas [simp del] = split_paired_Ex
 
 lemma make_cert_target:
-  "\<lbrakk> pc < length ins; is_target ins pc \<rbrakk> \<Longrightarrow> make_cert ins phi ! pc = phi!pc"
+  "\<lbrakk> pc < n; is_target step phi pc n \<rbrakk> \<Longrightarrow> make_cert step phi n ! pc = phi!pc"
   by (simp add: make_cert_def)
 
 lemma make_cert_approx:
-  "\<lbrakk> pc < length ins; make_cert ins phi ! pc \<noteq> phi ! pc \<rbrakk> \<Longrightarrow> 
-   make_cert ins phi ! pc = None"
+  "\<lbrakk> pc < n; make_cert step phi n ! pc \<noteq> phi!pc \<rbrakk> \<Longrightarrow> 
+   make_cert step phi n ! pc = None"
   by (auto simp add: make_cert_def)
 
 lemma make_cert_contains_targets:
-  "pc < length ins \<Longrightarrow> contains_targets ins (make_cert ins phi) phi pc"
-proof (unfold contains_targets_def, intro strip, elim conjE) 
-  fix pc'
-  assume "pc < length ins" 
-         "pc' \<in> set (succs (ins ! pc) pc)" 
+  "pc < n \<Longrightarrow> contains_targets step (make_cert step phi n) phi pc n"
+proof (unfold contains_targets_def, clarify)
+  fix pc' s'
+  assume "pc < n"
+         "(pc',s') \<in> set (step pc (OK (phi ! pc)))"
          "pc' \<noteq> pc+1" and
-    pc': "pc' < length ins"
-
-  hence "is_target ins pc'" 
-    by (auto simp add: is_target_def)
-
-  with pc'
-  show "make_cert ins phi ! pc' = phi ! pc'" 
+    pc': "pc' < n"
+  hence "is_target step phi pc' n"  by (auto simp add: is_target_def)
+  with pc' show "make_cert step phi n ! pc' = phi ! pc'" 
     by (auto intro: make_cert_target)
 qed
 
 theorem fits_make_cert:
-  "fits ins (make_cert ins phi) phi"
+  "fits step (make_cert step phi n) phi n"
   by (auto dest: make_cert_approx simp add: fits_def make_cert_contains_targets)
 
 lemma fitsD: 
-  "\<lbrakk> fits ins cert phi; pc' \<in> set (succs (ins!pc) pc); 
-      pc' \<noteq> Suc pc; pc < length ins; pc' < length ins \<rbrakk>
+  "\<lbrakk> fits step cert phi n; (pc',s') \<in> set (step pc (OK (phi ! pc)));
+      pc' \<noteq> Suc pc; pc < n; pc' < n \<rbrakk>
   \<Longrightarrow> cert!pc' = phi!pc'"
-  by (clarsimp simp add: fits_def contains_targets_def)
+  by (auto simp add: fits_def contains_targets_def)
 
 lemma fitsD2:
-   "\<lbrakk> fits ins cert phi; pc < length ins; cert!pc = Some s \<rbrakk>
+   "\<lbrakk> fits step cert phi n; pc < n; cert!pc = Some s \<rbrakk>
   \<Longrightarrow> cert!pc = phi!pc"
   by (auto simp add: fits_def)
+
+
+lemma merge_mono:
+  assumes merge: "merge cert f r pc ss1 x = OK s1"
+  assumes less:  "ss2 <=|Err.le (Opt.le r)| ss1"
+  shows "\<exists>s2. merge cert f r pc ss2 x = s2 \<and> s2 \<le>|r (OK s1)"
+proof-
+  from merge
+  obtain "\<forall>(pc',s')\<in>set ss1. pc' \<noteq> pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))" and
+         "(map snd [(p',t')\<in>ss1 . p' = pc+1] ++|f x) = OK s1"
+    sorry
+  show ?thesis sorry
+qed
+  
+  
+lemma stable_wtl:
+  assumes stable: "stable (Err.le (Opt.le r)) step (map OK phi) pc"
+  assumes fits:   "fits step cert phi n"
+  assumes pc:     "pc < length phi"
+  shows "wtl_inst cert f r step pc (phi!pc) \<noteq> Err"
+proof -
+  from pc have [simp]: "map OK phi ! pc = OK (phi!pc)" by simp
+  from stable 
+  have "\<forall>(q,s')\<in>set (step pc (OK (phi!pc))). s' \<le>|r (map OK phi!q)"
+    by (simp add: stable_def)
+  
+
+
+
+lemma wtl_inst_mono:
+  assumes wtl:  "wtl_inst cert f r step pc s1 = OK s1'"
+  assumes fits: "fits step cert phi n"
+  assumes pc:   "pc < n" 
+  assumes less: "OK s2 \<le>|r (OK s1)"
+  shows "\<exists>s2'. wtl_inst cert f r step pc s2 = OK s2' \<and> OK s2' \<le>|r (OK s1')"
+apply (simp add: wtl_inst_def)
+
                            
 lemma wtl_inst_mono:
   "\<lbrakk> wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
