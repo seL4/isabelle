@@ -21,6 +21,7 @@ sig
 		   -> term * (indexname*typ)list
   val inst_term_tvars: type_sig * (indexname * typ)list -> term -> term
   val logical_type: type_sig -> string -> bool
+   val logical_types: type_sig -> string list
   val merge: type_sig * type_sig -> type_sig
   val thaw_vars: typ -> typ
   val tsig0: type_sig
@@ -118,6 +119,9 @@ fun logical_type(tsig as TySg{subclass,coreg,...}) t =
       Some(ars) => exists (is_log o #1) ars
     | None => undcl_type_err(t)
   end;
+
+fun logical_types (tsig as TySg {args, ...}) =
+  filter (logical_type tsig) (map #1 args);
 
 
 (* 'sortorder' checks the ordering on sets of classes,i.e. on sorts:
