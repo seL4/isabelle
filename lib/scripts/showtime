@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# $Id$
+#
+# showtime - print time.
+
+TIME=$1
+
+SECS=$[ $TIME % 60 ]
+MINUTES=$[ ($TIME / 60) % 60 ]
+HOURS=$[ $TIME / 3600 ]
+
+echo "${HOURS}:${MINUTES}:${SECS}"
