@@ -134,7 +134,7 @@ fun select_match(obj, signobj, named_thms, extract) =
             end
 
       fun thm_less ((p0:int,s0:int,_),(p1,s1,_)) =
-            (((p0=0 andalso p1=0) orelse (p0<>0 andalso p1<>0)) andalso s0<=s1)
+            (((p0=0 andalso p1=0) orelse (p0<>0 andalso p1<>0)) andalso s0<s1)
             orelse (p0=0 andalso p1<>0)
 
       fun select((p as (_,thm))::named_thms, sels) =
