@@ -60,16 +60,7 @@ in
 (*Get a string containing the time of last modification, attributes, owner
   and size of file (but not the path) *)
 fun file_info "" = ""
-  | file_info name =
-      let
-          val (is, os) = ExtendedIO.execute ("ls -l " ^ name)
-          val (result, _) = take_suffix (apr(op<>," ")) 
-                              (explode (ExtendedIO.input_line is))
-             (*Remove the part after the last " " (i.e. the path/filename) *)
-        in close_in is;
-           close_out os;
-           implode result
-        end;
+  | file_info name = string_of_int (System.filedate name);
 
 (*Delete a file *)
 fun delete_file name =
