@@ -33,13 +33,13 @@ It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.
 Text starting with ``--'' is a comment.
 
 Note that propositions in \isakeyword{assume} may but need not be
-separated by \isakeyword{and} whose purpose is to structure the
-assumptions into possibly named blocks, for example
+separated by \isakeyword{and}, whose purpose is to structure the
+assumptions into possibly named blocks. For example in
 \begin{center}
 \isakeyword{assume} @{text"A:"} $A_1$ $A_2$ \isakeyword{and} @{text"B:"} $A_3$
 \isakeyword{and} $A_4$
 \end{center}
-Here label @{text A} refers to the list of propositions $A_1$ $A_2$ and
+label @{text A} refers to the list of propositions $A_1$ $A_2$ and
 label @{text B} to $A_3$.
 *}
 
@@ -246,13 +246,15 @@ proof
   qed
 qed
 text{*\noindent Apart from demonstrating the strangeness of classical
-arguments by contradiction, this example also introduces three new constructs:
-\begin{itemize}
-\item \isakeyword{next} deals with multiple subgoals.  When showing
-@{term"A \<and> B"} we need to show both @{term A} and @{term B}.  Each subgoal
-is proved separately, in \emph{any} order. The individual proofs are
-separated by \isakeyword{next}.
-\end{itemize}
+arguments by contradiction, this example also introduces two new
+abbrebviations:
+\begin{center}
+\begin{tabular}{lcl}
+\isakeyword{hence} &=& \isakeyword{then} \isakeyword{have} \\
+\isakeyword{with}~\emph{facts} &=&
+\isakeyword{from}~\emph{facts} \isakeyword{and} @{text this}
+\end{tabular}
+\end{center}
 *}
 
 subsection{*Avoiding duplication*}
@@ -269,7 +271,13 @@ qed
 text{*\noindent The \isakeyword{proof} always works on the conclusion,
 @{prop"B \<and> A"} in our case, thus selecting $\land$-introduction. Hence
 we must show @{prop B} and @{prop A}; both are proved by
-$\land$-elimination.
+$\land$-elimination and the proofs are separated by \isakeyword{next}:
+\begin{description}
+\item[\isakeyword{next}] deals with multiple subgoals. For example,
+when showing @{term"A \<and> B"} we need to show both @{term A} and @{term
+B}.  Each subgoal is proved separately, in \emph{any} order. The
+individual proofs are separated by \isakeyword{next}.
+\end{description}
 
 This is all very well as long as formulae are small. Let us now look at some
 devices to avoid repeating (possibly large) formulae. A very general method
@@ -384,9 +392,8 @@ as a new local variable.  Technically, \isakeyword{obtain} is similar to
 \isakeyword{fix} and \isakeyword{assume} together with a soundness proof of
 the elimination involved.
 
-Here is a proof of a well known tautology which employs another useful
-abbreviation: \isakeyword{hence} abbreviates \isakeyword{from}~@{text
-this}~\isakeyword{have}.  Figure out which rule is used where!  *}
+Here is a proof of a well known tautology.
+Figure out which rule is used where!  *}
 
 lemma assumes ex: "\<exists>x. \<forall>y. P x y" shows "\<forall>y. \<exists>x. P x y"
 proof
@@ -418,7 +425,7 @@ proof
   qed
 qed
 text{*\noindent
-For a start, the example demonstrates three new language elements:
+For a start, the example demonstrates two new constructs:
 \begin{itemize}
 \item \isakeyword{let} introduces an abbreviation for a term, in our case
 the witness for the claim, because the term occurs multiple times in the proof.
@@ -426,11 +433,6 @@ the witness for the claim, because the term occurs multiple times in the proof.
 implicit what the two cases are: it is merely expected that the two subproofs
 prove @{prop"P \<Longrightarrow> Q"} and @{prop"\<not>P \<Longrightarrow> Q"} for suitable @{term P} and
 @{term Q}.
-\item \isakeyword{with} is an abbreviation:
-\begin{center}
-\isakeyword{with}~\emph{facts} \quad = \quad
-\isakeyword{from}~\emph{facts} \isakeyword{and} @{text this}
-\end{center}
 \end{itemize}
 If you wonder how to \isakeyword{obtain} @{term y}:
 via the predefined elimination rule @{thm rangeE[no_vars]}.
@@ -698,5 +700,21 @@ Since @{text B} is left over we don't just prove @{text
 base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
 obvious forward step @{text"IH[OF B]"}. *}
+
+consts rot :: "'a list \<Rightarrow> 'a list"
+recdef rot "measure length"
+"rot [] = []"
+"rot [x] = [x]"
+"rot (x#y#zs) = y # rot(x#zs)"
+
+lemma "length(rot xs) = length xs" (is "?P xs")
+proof (induct xs rule: rot.induct)
+  show "?P []" by simp
+next
+  fix x show "?P [x]" by simp
+next
+  fix x y zs assume "?P (x#zs)"
+  thus "?P (x#y#zs)" by simp
+qed
 
 (*<*)end(*>*)
