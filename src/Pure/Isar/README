@@ -11,7 +11,6 @@ Semi-Automated Reasoning for Isabelle.  Interesting modules include:
   Method	(proof methods)
   Attrib	(attributes)
 
-  LocalDefs	(local definitions)
   Calculation	(calculational proofs)
   Obtain        (generalized existence reasoning)
 

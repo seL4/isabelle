@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/record_package.ML
     ID:         $Id$
-    Author:     Wolfgang Naraschewski and Markus Wenzel, TU Muenchen
+    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Extensible records with structural subtyping in HOL.
