@@ -20,6 +20,8 @@ called `inj_on';
   less_imp_add_less  should be replaced by  trans_less_add1
   le_imp_add_le      should be replaced by  trans_le_add1
 
+* Pure: ML function 'theory_of' replaced by 'theory';
+
 
 *** Proof tools ***
 
