@@ -49,11 +49,10 @@ val least_FIX = prove_goal LCF.thy "f(p) = p ==> FIX(f) << p"
 	(fn [prem] => [induct_tac "f" 1, rtac minimal 1, strip_tac 1,
 			stac (prem RS sym) 1, etac less_ap_term 1]);
 
-(*Generates unification messages for some reason*)
 val lfp_is_FIX = prove_goal LCF.thy
 	"[| f(p) = p; ALL q. f(q)=q --> p << q |] ==> p = FIX(f)"
 	(fn [prem1,prem2] => [rtac less_anti_sym 1,
-			      rtac (FIX_eq RS (prem2 RS spec RS mp)) 1,
+			      rtac (prem2 RS spec RS mp) 1, rtac FIX_eq 1,
 			      rtac least_FIX 1, rtac prem1 1]);
 
 val ffix = read_instantiate [("f","f::?'a=>?'a")] FIX_eq;
