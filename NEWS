@@ -109,8 +109,17 @@ especially important for locales);
 * Pure: "sorry" no longer requires quick_and_dirty in interactive
 mode;
 
-* Provers: 'simplified' attribute may refer to explicit rules instead
-of full simplifier context; 'iff' attribute handles conditional rules;
+* Pure/Provers/classical: simplified integration with pure rule
+attributes and methods; the classical "intro?/elim?/dest?"
+declarations coincide with the pure ones; the "rule" method no longer
+includes classically swapped intros; "intro" and "elim" methods no
+longer pick rules from the context; also got rid of ML declarations
+AddXIs/AddXEs/AddXDs; all of this has some potential for
+INCOMPATIBILITY;
+
+* Provers/simplifier: 'simplified' attribute may refer to explicit
+rules instead of full simplifier context; 'iff' attribute handles
+conditional rules;
 
 * HOL: 'typedef' now allows alternative names for Rep/Abs morphisms;
 
@@ -144,8 +153,8 @@ follows:
   - type nat has special constructor Suc, and generally prefers Suc 0
   over 1::nat and Suc (Suc 0) over 2::nat;
 
-This change may cause significant INCOMPATIBILITIES; here are some
-hints on converting existing sources:
+This change may cause significant problems of INCOMPATIBILITY; here
+are some hints on converting existing sources:
 
   - due to the new "num" token, "-0" and "-1" etc. are now atomic
   entities, so expressions involving "-" (unary or binary minus) need
