@@ -7,7 +7,7 @@ We have two classes er<per
 Quotients are a specialization of higher order quotients.
 The use the same constructor quot with the subclass er.
 
-An Example for the application of quotients are the fractional numbers.
+An Example for the application of quotients are the fractions.
 The example shows how to define an equivalence relation and how to use
 the quotients.
 

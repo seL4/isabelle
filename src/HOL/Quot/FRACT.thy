@@ -3,7 +3,7 @@
     Author:     Oscar Slotosch
     Copyright   1997 Technische Universitaet Muenchen
 
-Example for higher order quotients: fractionals
+Example for higher order quotients: fractions
 *)
 
 FRACT = NPAIR + HQUOT +
