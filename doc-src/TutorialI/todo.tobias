@@ -50,9 +50,6 @@ Explain typographic conventions?
 
 an example of induction: !y. A --> B --> C ??
 
-Advanced Ind expects rule_format incl (no_asm) (which it currently explains!
-Where explained?
-
 Appendix: Lexical: long ids.
 
 Warning: infixes automatically become reserved words!
@@ -83,7 +80,8 @@ print_simpset (-> print_simps?)
 
 Mention that simp etc (big step tactics) insist on change?
 
-Explain what "by" and "." really do, and introduce "done".
+Rules: Introduce "by" (as a kind of shorthand for apply+done, except that it
+does more.)
 
 A list of further useful commands (rules? tricks?)
 prefer, defer
@@ -91,7 +89,11 @@ prefer, defer
 An overview of the automatic methods: simp, auto, fast, blast, force,
 clarify, clarsimp (intro, elim?)
 
-explain rulify before induction section?
+Advanced Ind expects rule_format incl (no_asm) (which it currently explains!)
+Where explained?
+Inductive also needs rule_format!
+
+Where is "simplified" explained? Needed by Inductive/AB.thy
 
 demonstrate x : set xs in Sets. Or Tricks chapter?
 

@@ -63,12 +63,12 @@ induction, so is this proof: we show at the same time that all words in
 \end{isamarkuptext}%
 \isacommand{lemma}\ correctness{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}w\ {\isasymin}\ S\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isasymand}\isanewline
-\ \ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
+\ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{filter\ P\ xs}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
-holds. The length of a list is usually written \isa{size}, and \isa{size} is merely a shorthand.
+holds. Remember that on lists \isa{size} and \isa{size} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:%
 \end{isamarkuptxt}%
@@ -177,8 +177,8 @@ simultaneously for \isa{A} and \isa{B}:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ completeness{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}%
+\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The proof is by induction on \isa{w}. Structural induction would fail here

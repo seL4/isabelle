@@ -181,9 +181,9 @@ apply(simp add:af_def);
 done;
 
 text{*\noindent
-is proved by a variant of contraposition (@{thm[source]contrapos_np}:
-@{thm contrapos_np[no_vars]}), i.e.\ assuming the negation of the conclusion
-and proving @{term"s : lfp(af A)"}. Unfolding @{term lfp} once and
+is proved by a variant of contraposition:
+assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
+Unfolding @{term lfp} once and
 simplifying with the definition of @{term af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
@@ -333,8 +333,7 @@ theorem AF_lemma2:
 "{s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
 
 txt{*\noindent
-The proof is again pointwise and then by contraposition (@{thm[source]contrapos_pp} is the rule
-@{thm contrapos_pp}):
+The proof is again pointwise and then by contraposition:
 *};
 
 apply(rule subsetI);

@@ -188,11 +188,12 @@ primitive recursive function definitions.
 Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
 the natural numbers (see~\S\ref{sec:nat} below). For lists, \isa{size} is
 just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
-  1}.  In general, \isa{size} returns \isa{0} for all constructors that do
-not have an argument of type $t$, and for all other constructors \isa{1 +}
-the sum of the sizes of all arguments of type $t$. Note that because
+  1}.  In general, \isaindexbold{size} returns \isa{0} for all constructors
+that do not have an argument of type $t$, and for all other constructors
+\isa{1 +} the sum of the sizes of all arguments of type $t$. Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
-\isa{size} is also called \isa{length}, which is not overloaded.
+\isa{size} is also called \isaindexbold{length}, which is not overloaded.
+Isbelle will always show \isa{size} on lists as \isa{length}.
 
 
 \subsection{Primitive recursion}

@@ -2,56 +2,60 @@
 \begin{isabellebody}%
 \def\isabellecontext{Star}%
 %
-\isamarkupsection{The transitive and reflexive closure}
+\isamarkupsection{The reflexive transitive closure}
 %
 \begin{isamarkuptext}%
-A perfect example of an inductive definition is the transitive, reflexive
+A perfect example of an inductive definition is the reflexive transitive
 closure of a relation. This concept was already introduced in
 \S\ref{sec:rtrancl}, but it was not shown how it is defined. In fact,
 the operator \isa{{\isacharcircum}{\isacharasterisk}} is not defined inductively but via a least
 fixpoint because at that point in the theory hierarchy
 inductive definitions are not yet available. But now they are:%
 \end{isamarkuptext}%
-\isacommand{consts}\ trc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
 \isacommand{inductive}\ {\isachardoublequote}r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isakeyword{intros}\isanewline
-trc{\isacharunderscore}refl{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-trc{\isacharunderscore}step{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+rtc{\isacharunderscore}refl{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+rtc{\isacharunderscore}step{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{lemma}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharcolon}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ trc{\isacharunderscore}step{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isanewline
 \isanewline
 \isacommand{lemma}\ step{\isadigit{2}}{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ \ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ trc{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trc{\isacharunderscore}step{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isanewline
 \isacommand{done}\isanewline
 \isanewline
-\isacommand{lemma}\ trc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
+\isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ \ {\isasymLongrightarrow}\ {\isasymforall}z{\isachardot}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ trc{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
 \ \isacommand{apply}\ blast\isanewline
 \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ step{\isadigit{2}}{\isacharparenright}\isanewline
 \isacommand{done}\isanewline
 \isanewline
-\isacommand{consts}\ trc{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}trc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
+\isacommand{consts}\ rtc{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ {\isachardoublequote}rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
 \isakeyword{intros}\isanewline
-{\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
-\isanewline
-\isanewline
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ trc{\isadigit{2}}\ r{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ iffI{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ trc{\isadigit{2}}{\isachardot}induct{\isacharparenright}\isanewline
-\ \ \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+{\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
+{\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
+{\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}%
+\begin{isamarkuptext}%
+The equivalence of the two definitions is easily shown by the obvious rule
+inductions:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isadigit{2}}{\isachardot}induct{\isacharparenright}\isanewline
 \ \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trc{\isacharunderscore}trans{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ trc{\isachardot}induct{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}trans{\isacharparenright}\isanewline
+\isacommand{done}\isanewline
+\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
 \isacommand{done}\isanewline
 \end{isabellebody}%
 %%% Local Variables:

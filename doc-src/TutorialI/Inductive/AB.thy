@@ -68,15 +68,14 @@ B} contains one more @{term b} than @{term a}.
 
 lemma correctness:
   "(w \<in> S \<longrightarrow> size[x\<in>w. x=a] = size[x\<in>w. x=b])     \<and>
-    (w \<in> A \<longrightarrow> size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1) \<and>
-    (w \<in> B \<longrightarrow> size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1)"
+   (w \<in> A \<longrightarrow> size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1) \<and>
+   (w \<in> B \<longrightarrow> size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1)"
 
 txt{*\noindent
 These propositions are expressed with the help of the predefined @{term
 filter} function on lists, which has the convenient syntax @{term"[x\<in>xs. P
 x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
-holds. The length of a list is usually written @{term length}, and @{term
-size} is merely a shorthand.
+holds. Remember that on lists @{term size} and @{term length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:
 *}
@@ -193,8 +192,8 @@ simultaneously for @{term A} and @{term B}:
 
 theorem completeness:
   "(size[x\<in>w. x=a] = size[x\<in>w. x=b]     \<longrightarrow> w \<in> S) \<and>
-    (size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
-    (size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1 \<longrightarrow> w \<in> B)";
+   (size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
+   (size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1 \<longrightarrow> w \<in> B)";
 
 txt{*\noindent
 The proof is by induction on @{term w}. Structural induction would fail here

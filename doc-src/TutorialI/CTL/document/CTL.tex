@@ -117,15 +117,15 @@ The one-step argument in the above sketch%
 \end{isamarkuptext}%
 \isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
 \ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ swap{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}np{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-is proved by a variant of contraposition (\isa{swap}:
-\isa{{\isasymlbrakk}{\isasymnot}\ Q{\isacharsemicolon}\ {\isasymnot}\ P\ {\isasymLongrightarrow}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ P}), i.e.\ assuming the negation of the conclusion
-and proving \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Unfolding \isa{lfp} once and
+is proved by a variant of contraposition:
+assume the negation of the conclusion and prove \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
+Unfolding \isa{lfp} once and
 simplifying with the definition of \isa{af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
@@ -244,11 +244,10 @@ At last we can prove the opposite direction of \isa{AF{\isacharunderscore}lemma{
 {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-The proof is again pointwise and then by contraposition (\isa{contrapos{\isadigit{2}}} is the rule
-\isa{{\isasymlbrakk}{\isacharquery}Q{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}P\ {\isasymLongrightarrow}\ {\isasymnot}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P}):%
+The proof is again pointwise and then by contraposition:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ contrapos{\isadigit{2}}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
 \isacommand{apply}\ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}
