@@ -298,6 +298,7 @@ fun then_tac text state =
 val default_text = named_method "default";
 val finish_text = named_method "finish";
 
+
 fun proof opt_text state =
   state
   |> Proof.assert_backward
@@ -309,10 +310,24 @@ fun local_terminal_proof text pr = Seq.THEN (proof (Some text), local_qed None p
 val local_immediate_proof = local_terminal_proof (Basic (K same));
 val local_default_proof = local_terminal_proof default_text;
 
-fun global_qed alt_name alt_atts opt_text =
+
+fun global_qeds alt_name alt_atts opt_text =
   Proof.global_qed (refine (if_none opt_text finish_text)) alt_name alt_atts;
 
-fun global_terminal_proof text = Seq.hd o Seq.map (global_qed None None None) o proof (Some text);
+fun global_qed alt_name alt_atts opt_text state =
+  state
+  |> global_qeds alt_name alt_atts opt_text
+  |> Proof.check_result "Failed to finish proof" state
+  |> Seq.hd;
+
+fun global_terminal_proof text state =
+  state
+  |> proof (Some text)
+  |> Proof.check_result "Terminal proof method failed" state
+  |> (Seq.flat o Seq.map (global_qeds None None None))
+  |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
+  |> Seq.hd;
+
 val global_immediate_proof = global_terminal_proof (Basic (K same));
 val global_default_proof = global_terminal_proof default_text;
 
