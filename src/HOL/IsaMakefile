@@ -309,8 +309,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL \
   MicroJava/J/WellType.ML MicroJava/J/WellType.thy \
   MicroJava/JVM/Control.thy MicroJava/JVM/JVMExec.thy \
   MicroJava/JVM/JVMState.thy MicroJava/JVM/LoadAndStore.thy \
-  MicroJava/JVM/Method.thy MicroJava/JVM/Method.ML \
-  MicroJava/JVM/Object.thy MicroJava/JVM/Opstack.thy \
+  MicroJava/JVM/Method.thy MicroJava/JVM/Object.thy MicroJava/JVM/Opstack.thy \
   MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
   MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpec.ML \
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
