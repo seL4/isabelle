@@ -171,6 +171,9 @@ done
 lemma real_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> sqrt(x)"
 by (auto intro: real_sqrt_gt_zero simp add: order_le_less)
 
+lemma real_sqrt_mult_self_sum_ge_zero [simp]: "0 \<le> sqrt(x*x + y*y)"
+by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero]) 
+
 
 (*we need to prove something like this:
 lemma "[|r ^ n = a; 0<n; 0 < a \<longrightarrow> 0 < r|] ==> root n a = r"
@@ -920,13 +923,13 @@ proof -
   hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
     by (auto simp add: exp_add exp_minus)
   thus ?thesis
-    by (simp add: divide_inverse [symmetric] pos_less_divide_eq)
+    by (simp add: divide_inverse [symmetric] pos_less_divide_eq 
+             del: divide_self_if)
 qed
 
 lemma exp_less_cancel: "exp x < exp y ==> x < y"
-apply (rule ccontr) 
-apply (simp add: linorder_not_less order_le_less) 
-apply (auto dest: exp_less_mono)
+apply (simp add: linorder_not_le [symmetric]) 
+apply (auto simp add: order_le_less exp_less_mono) 
 done
 
 lemma exp_less_cancel_iff [iff]: "(exp(x) < exp(y)) = (x < y)"
@@ -2183,20 +2186,23 @@ done
 
 subsection{*Theorems About Sqrt, Transcendental Functions for Complex*}
 
-lemma lemma_real_divide_sqrt: 
-    "0 < x ==> 0 \<le> x/(sqrt (x * x + y * y))"
-apply (unfold real_divide_def)
-apply (rule real_mult_order [THEN order_less_imp_le], assumption)
-apply (subgoal_tac "0 < inverse (sqrt (x\<twosuperior> + y\<twosuperior>))") 
- apply (simp add: numeral_2_eq_2)
-apply (simp add: real_sqrt_sum_squares_ge1 [THEN [2] order_less_le_trans]) 
-done
+lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
+proof (rule order_trans)
+  show "x \<le> sqrt(x*x)" by (simp add: abs_if) 
+  show "sqrt (x * x) \<le> sqrt (x * x + y * y)"
+    by (rule real_sqrt_le_mono, auto) 
+qed
+
+lemma minus_le_real_sqrt_sumsq [simp]: "-x \<le> sqrt (x * x + y * y)"
+proof (rule order_trans)
+  show "-x \<le> sqrt(x*x)" by (simp add: abs_if) 
+  show "sqrt (x * x) \<le> sqrt (x * x + y * y)"
+    by (rule real_sqrt_le_mono, auto) 
+qed
 
 lemma lemma_real_divide_sqrt_ge_minus_one:
-     "0 < x ==> -1 \<le> x/(sqrt (x * x + y * y))"
-apply (rule real_le_trans)
-apply (rule_tac [2] lemma_real_divide_sqrt, auto)
-done
+     "0 < x ==> -1 \<le> x/(sqrt (x * x + y * y))" 
+by (simp add: divide_const_simps linorder_not_le [symmetric])
 
 lemma real_sqrt_sum_squares_gt_zero1: "x < 0 ==> 0 < sqrt (x * x + y * y)"
 apply (rule real_sqrt_gt_zero)
@@ -2233,36 +2239,32 @@ by (insert lemma_real_divide_sqrt_ge_minus_one [of "-x" y], simp)
 
 lemma lemma_real_divide_sqrt_ge_minus_one2:
      "x < 0 ==> -1 \<le> x/(sqrt (x * x + y * y))"
-apply (case_tac "y = 0", auto)
-apply (frule abs_minus_eqI2)
-apply (auto simp add: inverse_minus_eq)
-apply (rule order_less_imp_le)
-apply (rule_tac z1 = "sqrt (x * x + y * y) " in real_mult_less_iff1 [THEN iffD1])
-apply (frule_tac [2] y2 = y in
-       real_sqrt_sum_squares_gt_zero1 [THEN real_not_refl2, THEN not_sym])
-apply (auto intro: real_sqrt_sum_squares_gt_zero1 simp add: mult_ac)
-apply (cut_tac x = "-x" and y = y in real_sqrt_sum_squares_ge1)
-apply (drule order_le_less [THEN iffD1], safe) 
-apply (simp add: numeral_2_eq_2)
-apply (drule sym [THEN real_sqrt_sum_squares_eq_cancel], simp)
+apply (simp add: divide_const_simps); 
+apply (insert minus_le_real_sqrt_sumsq [of x y])
+apply arith;
 done
 
 lemma lemma_real_divide_sqrt_le_one2: "0 < x ==> x/(sqrt (x * x + y * y)) \<le> 1"
 by (cut_tac x = "-x" and y = y in lemma_real_divide_sqrt_ge_minus_one2, auto)
 
+lemma minus_sqrt_le: "- sqrt (x * x + y * y) \<le> x"
+by (insert minus_le_real_sqrt_sumsq [of x y], arith) 
+
+lemma minus_sqrt_le2: "- sqrt (x * x + y * y) \<le> y"
+by (subst add_commute, simp add: minus_sqrt_le) 
+
+lemma not_neg_sqrt_sumsq: "~ sqrt (x * x + y * y) < 0"
+by (simp add: linorder_not_less)
 
 lemma cos_x_y_ge_minus_one: "-1 \<le> x / sqrt (x * x + y * y)"
-apply (cut_tac x = x and y = 0 in linorder_less_linear, safe)
-apply (rule lemma_real_divide_sqrt_ge_minus_one2)
-apply (rule_tac [3] lemma_real_divide_sqrt_ge_minus_one, auto)
+apply (simp add: minus_sqrt_le not_neg_sqrt_sumsq divide_const_simps); 
 done
 
 lemma cos_x_y_ge_minus_one1a [simp]: "-1 \<le> y / sqrt (x * x + y * y)"
-apply (cut_tac x = y and y = x in cos_x_y_ge_minus_one)
-apply (simp add: real_add_commute)
+apply (subst add_commute, simp add: cos_x_y_ge_minus_one); 
 done
 
-lemma cos_x_y_le_one [simp]: "x / sqrt (x * x + y * y) \<le> 1"
+lemma cos_x_y_le_one [simp]: "x / sqrt (x * x + y * y) \<le> 1" 
 apply (cut_tac x = x and y = 0 in linorder_less_linear, safe)
 apply (rule lemma_real_divide_sqrt_le_one)
 apply (rule_tac [3] lemma_real_divide_sqrt_le_one2, auto)
@@ -2281,23 +2283,19 @@ declare arcos_bounded [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp]
 
 lemma cos_abs_x_y_ge_minus_one [simp]:
      "-1 \<le> \<bar>x\<bar> / sqrt (x * x + y * y)"
-apply (cut_tac x = x and y = 0 in linorder_less_linear)
-apply (auto simp add: abs_minus_eqI2 abs_eqI2)
-apply (drule lemma_real_divide_sqrt_ge_minus_one, force)
-done
+by (auto simp add: divide_const_simps abs_if linorder_not_le [symmetric]) 
 
 lemma cos_abs_x_y_le_one [simp]: "\<bar>x\<bar> / sqrt (x * x + y * y) \<le> 1"
-apply (cut_tac x = x and y = 0 in linorder_less_linear)
-apply (auto simp add: abs_minus_eqI2 abs_eqI2)
-apply (drule lemma_real_divide_sqrt_ge_minus_one2, force)
+apply (insert minus_le_real_sqrt_sumsq [of x y] le_real_sqrt_sumsq [of x y]) 
+apply (auto simp add: divide_const_simps abs_if linorder_neq_iff) 
 done
 
 declare cos_arcos [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
 declare arcos_bounded [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
 
 lemma minus_pi_less_zero: "-pi < 0"
-apply (simp (no_asm))
-done
+by simp
+
 declare minus_pi_less_zero [simp]
 declare minus_pi_less_zero [THEN order_less_imp_le, simp]
 
@@ -2404,15 +2402,15 @@ by (auto intro: real_sum_squares_cancel iff: real_add_eq_0_iff)
 
 lemma polar_ex2: "[| x \<noteq> 0; y < 0 |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (cut_tac x = 0 and y = x in linorder_less_linear, auto)
-apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>) " in exI)
-apply (rule_tac x = "arcsin (y / sqrt (x * x + y * y))" in exI)
+apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
+apply (rule_tac x = "arcsin (y / sqrt (x * x + y * y))" in exI) 
 apply (auto dest: real_sum_squares_cancel2a 
             simp add: power2_eq_square real_0_le_add_iff real_add_eq_0_iff)
 apply (unfold arcsin_def)
 apply (cut_tac x1 = x and y1 = y 
        in sin_total [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2])
 apply (rule someI2_ex, blast)
-apply (erule_tac V = "EX! xa. - (pi/2) \<le> xa & xa \<le> pi/2 & sin xa = y / sqrt (x * x + y * y) " in thin_rl)
+apply (erule_tac V = "EX! v. ?P v" in thin_rl)
 apply (cut_tac x=x and y=y in cos_x_y_disj, simp, blast)
 apply (auto simp add: real_0_le_add_iff real_add_eq_0_iff)
 apply (drule cos_ge_zero, force)
@@ -2459,7 +2457,6 @@ done
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
 apply (rule_tac z1 = "inverse u" in real_mult_less_iff1 [THEN iffD1], auto)
-apply (rule_tac z1 = "sqrt 2" in real_mult_less_iff1 [THEN iffD1], auto)
 done
 
 lemma four_x_squared: 

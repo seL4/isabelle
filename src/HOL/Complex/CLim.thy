@@ -883,7 +883,7 @@ by (auto dest: CDERIV_chain simp add: o_def)
 subsection{* Differentiation of Natural Number Powers*}
 
 lemma NSCDERIV_Id [simp]: "NSCDERIV (%x. x) x :> 1"
-by (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def)
+by (simp add: NSCDERIV_NSCLIM_iff NSCLIM_def divide_self del: divide_self_if)
 
 lemma CDERIV_Id [simp]: "CDERIV (%x. x) x :> 1"
 by (simp add: NSCDERIV_CDERIV_iff [symmetric])

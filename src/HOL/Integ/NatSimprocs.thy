@@ -215,6 +215,95 @@ declare eq_divide_eq [of _ _ "number_of w", standard, simp]
 declare divide_eq_eq [of _ "number_of w", standard, simp]
 
 
+subsection{*Optional Simplification Rules Involving Constants*}
+
+text{*Simplify quotients that are compared with a literal constant.*}
+
+lemmas le_divide_eq_number_of = le_divide_eq [of "number_of w", standard]
+lemmas divide_le_eq_number_of = divide_le_eq [of _ _ "number_of w", standard]
+lemmas less_divide_eq_number_of = less_divide_eq [of "number_of w", standard]
+lemmas divide_less_eq_number_of = divide_less_eq [of _ _ "number_of w", standard]
+lemmas eq_divide_eq_number_of = eq_divide_eq [of "number_of w", standard]
+lemmas divide_eq_eq_number_of = divide_eq_eq [of _ _ "number_of w", standard]
+
+text{*Simplify quotients that are compared with the value 1.*}
+
+lemma le_divide_eq_1:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(1 \<le> b / a) = ((0 < a & a \<le> b) | (a < 0 & b \<le> a))"
+by (auto simp add: le_divide_eq)
+
+lemma divide_le_eq_1:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(b / a \<le> 1) = ((0 < a & b \<le> a) | (a < 0 & a \<le> b) | a=0)"
+by (auto simp add: divide_le_eq)
+
+lemma less_divide_eq_1:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(1 < b / a) = ((0 < a & a < b) | (a < 0 & b < a))"
+by (auto simp add: less_divide_eq)
+
+lemma divide_less_eq_1:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(b / a < 1) = ((0 < a & b < a) | (a < 0 & a < b) | a=0)"
+by (auto simp add: divide_less_eq)
+
+
+text{*Not good as automatic simprules because they cause case splits.*}
+lemmas divide_const_simps =
+  le_divide_eq_number_of divide_le_eq_number_of less_divide_eq_number_of
+  divide_less_eq_number_of eq_divide_eq_number_of divide_eq_eq_number_of
+  le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
+
+
+subsection{*Conditional Simplification Rules: No Case Splits*}
+
+lemma le_divide_eq_1_pos [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "0 < a \<Longrightarrow> (1 \<le> b / a) = (a \<le> b)"
+by (auto simp add: le_divide_eq)
+
+lemma le_divide_eq_1_neg [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "a < 0 \<Longrightarrow> (1 \<le> b / a) = (b \<le> a)"
+by (auto simp add: le_divide_eq)
+
+lemma divide_le_eq_1_pos [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "0 < a \<Longrightarrow> (b / a \<le> 1) = (b \<le> a)"
+by (auto simp add: divide_le_eq)
+
+lemma divide_le_eq_1_neg [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "a < 0 \<Longrightarrow> (b / a \<le> 1) = (a \<le> b)"
+by (auto simp add: divide_le_eq)
+
+lemma less_divide_eq_1_pos [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "0 < a \<Longrightarrow> (1 < b / a) = (a < b)"
+by (auto simp add: less_divide_eq)
+
+lemma less_divide_eq_1_neg [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "a < 0 \<Longrightarrow> (1 < b / a) = (b < a)"
+by (auto simp add: less_divide_eq)
+
+lemma divide_less_eq_1_pos [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "0 < a \<Longrightarrow> (b / a < 1) = (b < a)"
+by (auto simp add: divide_less_eq)
+
+lemma eq_divide_eq_1 [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(1 = b / a) = ((a \<noteq> 0 & a = b))"
+by (auto simp add: eq_divide_eq)
+
+lemma divide_eq_eq_1 [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "(b / a = 1) = ((a \<noteq> 0 & a = b))"
+by (auto simp add: divide_eq_eq)
+
+
 subsubsection{*Division By @{term "-1"}*}
 
 lemma divide_minus1 [simp]:

@@ -580,11 +580,15 @@ qed
 lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
 by (simp add: divide_inverse)
 
-lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
+lemma divide_self: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
 
 lemma divide_zero [simp]: "a / 0 = (0::'a::{field,division_by_zero})"
 by (simp add: divide_inverse)
+
+lemma divide_self_if [simp]:
+     "a / (a::'a::{field,division_by_zero}) = (if a=0 then 0 else 1)"
+  by (simp add: divide_self)
 
 lemma divide_zero_left [simp]: "0/a = (0::'a::field)"
 by (simp add: divide_inverse)
