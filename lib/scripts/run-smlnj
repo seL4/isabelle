@@ -21,7 +21,7 @@ function fail_out()
 
 EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
 COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
-COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
+COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\\n"); false);'
 eval $($ML_HOME/.arch-n-opsys)
 SUFFIX=".$ARCH-$OPSYS"
 
