@@ -184,13 +184,13 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 (** pretty printing of terms and types **)
 
 fun pretty_term (Sg {syn, stamps, ...}) =
-  let val curried = "CPure" mem (map ! stamps);
+  let val curried = "CPure" mem_string (map ! stamps);
   in Syntax.pretty_term curried syn end;
 
 fun pretty_typ (Sg {syn, ...}) = Syntax.pretty_typ syn;
 
 fun string_of_term (Sg {syn, stamps, ...}) =
-  let val curried = "CPure" mem (map ! stamps);
+  let val curried = "CPure" mem_string (map ! stamps);
   in Syntax.string_of_term curried syn end;
 
 fun string_of_typ (Sg {syn, ...}) = Syntax.string_of_typ syn;
