@@ -48,9 +48,10 @@ sig
   val opt_witness: token list -> string * token list
   val const_decls: token list -> string * token list
   type syntax
+  val get_lexicon: syntax -> Scan.lexicon;
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
-  val parse_thy: syntax -> string -> string -> string
+  val parse_thy: syntax -> string list -> string
   val section: string -> string -> (token list -> string * token list)
     -> (string * (token list -> (string * string) * token list))
   val axm_section: string -> string
@@ -446,6 +447,8 @@ val locale_decl =
 type syntax =
   Scan.lexicon * (token list -> (string * string) * token list) Symtab.table;
 
+fun get_lexicon (lex, _) = lex;
+
 fun make_syntax keywords sects =
   let
     val dups = duplicates (map fst sects);
@@ -460,14 +463,10 @@ fun make_syntax keywords sects =
 
 (* header *)
 
-fun mk_header (thy_name, bases) =
-  (thy_name, "mk_base " ^ mk_list bases ^ " " ^ quote thy_name);
+fun mk_header (thy_name, parents) =
+  (thy_name, "ThyInfo.begin_theory " ^ cat (quote thy_name) (mk_list parents));
 
-val base =
-  ident >> (cat "Thy" o quote) ||
-  string >> cat "File";
-
-val header = ident --$$ "=" -- enum1 "+" base >> mk_header;
+val header = ident --$$ "=" -- enum1 "+" name >> mk_header;
 
 
 (* extension *)
@@ -496,50 +495,41 @@ fun opt_extension sectab = optional (extension sectab) ("", "", "");
 
 (* theory definition *)
 
-fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
-  if thy_name <> tname then
-    error ("Filename \"" ^ tname ^ ".thy\" and theory name "
-      ^ quote thy_name ^ " are different")
-  else
-    "val thy = " ^ old_thys ^ ";\n\n\
-    \structure " ^ thy_name ^ " =\n\
-    \struct\n\
-    \\n\
-    \local\n"
-    ^ local_defs ^ "\n\
-    \in\n\
-    \\n"
-    ^ mltxt ^ "\n\
-    \\n\
-    \val thy = thy\n\
-    \|> PureThy.put_name " ^ quote thy_name ^ "\n\
-    \|> PureThy.local_path\n\
-    \|> Theory.add_trfuns\n"
-    ^ trfun_args ^ "\n\
-    \|> Theory.add_trfunsT typed_print_translation\n\
-    \|> Theory.add_tokentrfuns token_translation\n\
-    \\n"
-    ^ extxt ^ "\n\
-    \\n\
-    \|> PureThy.end_theory\n\
-    \\n\
-    \val _ = store_theory thy;\n\
-    \val _ = context thy;\n\
-    \\n\
-    \\n"
-    ^ postxt ^ "\n\
-    \\n\
-    \end;\n\
-    \end;\n\
-    \\n\
-    \open " ^ thy_name ^ ";\n\
-    \\n";
+fun mk_structure ((thy_name, bg_theory), (extxt, postxt, mltxt)) =
+  "structure " ^ thy_name ^ " =\n\
+  \struct\n\
+  \\n\
+  \local\n"
+  ^ local_defs ^ "\n\
+  \in\n\
+  \\n"
+  ^ mltxt ^ "\n\
+  \\n\
+  \val thy = " ^ bg_theory ^ "\n\
+  \\n\
+  \|> Theory.add_trfuns\n"
+  ^ trfun_args ^ "\n\
+  \|> Theory.add_trfunsT typed_print_translation\n\
+  \|> Theory.add_tokentrfuns token_translation\n\
+  \\n"
+  ^ extxt ^ "\n\
+  \\n\
+  \|> ThyInfo.end_theory;\n\
+  \\n\
+  \val _ = context thy;\n\
+  \\n\
+  \\n"
+  ^ postxt ^ "\n\
+  \\n\
+  \end;\n\
+  \end;\n\
+  \\n\
+  \open " ^ thy_name ^ ";\n";
 
-fun theory_defn sectab tname =
-  header -- opt_extension sectab -- eof >> (mk_structure tname o #1);
+fun theory_defn sectab =
+  header -- opt_extension sectab -- eof >> (mk_structure o #1);
 
-fun parse_thy (lex, sectab) tname str =
-  #1 (!! (theory_defn sectab tname) (tokenize lex str));
+fun parse_thy (lex, sectab) chs = #1 (!! (theory_defn sectab) (tokenize lex chs));
 
 
 (* standard sections *)
