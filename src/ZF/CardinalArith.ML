@@ -412,10 +412,8 @@ qed "ordermap_eqpoll_pred";
 goalw CardinalArith.thy [inj_def]
  "!!K. Ord(K) ==>	\
 \ (lam z:K*K. split(%x y. <x Un y, <x, y>>, z)) : inj(K*K, K*K*K)";
-by (safe_tac ZF_cs);
-by (fast_tac (ZF_cs addIs [lam_type, Un_least_lt RS ltD, ltI]
-                    addSEs [split_type]) 1);
-by (asm_full_simp_tac ZF_ss 1);
+by (fast_tac (ZF_cs addss ZF_ss
+		    addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
 qed "csquare_lam_inj";
 
 goalw CardinalArith.thy [csquare_rel_def]
