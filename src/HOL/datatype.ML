@@ -10,7 +10,7 @@
 
 (* Retrieve information for a specific datatype *)
 fun datatype_info thy tname =
-  case get_thydata (thyname_of_sign (sign_of thy)) "datatypes" of
+  case get_thydata (Sign.name_of (sign_of thy)) "datatypes" of
       None => None
     | Some (DT_DATA ds) => assoc (ds, tname);
 
@@ -31,7 +31,7 @@ fun induct_info thy tname =
    ancestors *)
 fun extract_info thy =
   let val (congs, rewrites) =
-        case get_thydata (thyname_of_sign (sign_of thy)) "datatypes" of
+        case get_thydata (Sign.name_of (sign_of thy)) "datatypes" of
             None => ([], [])
           | Some (DT_DATA ds) =>
               let val info = map snd ds
@@ -50,7 +50,7 @@ fun find_tname var Bi =
   end;
 
 fun get_dt_info sign tn =
-      case get_thydata (thyname_of_sign sign) "datatypes" of
+      case get_thydata (Sign.name_of sign) "datatypes" of
         None => error ("No such datatype: " ^ quote tn)
       | Some (DT_DATA ds) =>
           case assoc (ds, tn) of
