@@ -4,30 +4,86 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {* Basic use of locales in Isabelle/Isar *}
+header {* Using locales in Isabelle/Isar *}
 
 theory Locales = Main:
-
-text {*
-  Locales provide a mechanism for encapsulating local contexts.  The
-  original version due to Florian Kamm\"uller \cite{Kamm-et-al:1999}
-  refers directly to the raw meta-logic of Isabelle.  The present
-  version for Isabelle/Isar
-  \cite{Wenzel:1999,Wenzel:2001:isar-ref,Wenzel:2001:Thesis} builds on
-  top of the rich infrastructure of proof contexts instead; this also
-  covers essential extra-logical concepts like term abbreviations or
-  local theorem attributes (e.g.\ declarations of simplification
-  rules).
-
-  Subsequently, we demonstrate basic use of locales to model
-  mathematical structures (by the inevitable group theory example).
-*}
 
 text_raw {*
   \newcommand{\isasyminv}{\isasyminverse}
   \newcommand{\isasymIN}{\isatext{\isakeyword{in}}}
+  \newcommand{\isasymUSES}{\isatext{\isakeyword{uses}}}
 *}
 
+subsection {* Overview *}
+
+text {*
+  Locales provide a mechanism for encapsulating local contexts.  The
+  original version due to Florian Kamm\"uller \cite{Kamm-et-al:1999}
+  refers directly to the raw meta-logic of Isabelle.  Semantically, a
+  locale is just a (curried) predicate of the pure meta-logic
+  \cite{Paulson:1989}.
+
+  The present version for Isabelle/Isar builds on top of the rich
+  infrastructure of proof contexts
+  \cite{Wenzel:1999,Wenzel:2001:isar-ref,Wenzel:2001:Thesis},
+  achieving a tight integration with Isar proof texts, and a slightly
+  more abstract view of the underlying concepts.  An Isar proof
+  context encapsulates certain language elements that correspond to
+  @{text \<And>} (universal quantification), @{text \<Longrightarrow>} (implication), and
+  @{text "\<equiv>"} (definitions) of the pure Isabelle framework.  Moreover,
+  there are extra-logical concepts like term abbreviations or local
+  theorem attributes (declarations of simplification rules etc.) that
+  are indispensable in realistic applications.
+
+  Locales support concrete syntax, providing a localized version of
+  the existing concept of mixfix annotations of Isabelle
+  \cite{Paulson:1994:Isabelle}.  Furthermore, there is a separate
+  concept of ``implicit structures'' that admits to refer to
+  particular locale parameters in a casual manner (essentially derived
+  from the basic idea of ``anti-quotations'' or generalized de-Bruijn
+  indexes demonstrated in \cite[\S13--14]{Wenzel:2001:Isar-examples}).
+
+  Implicit structures work particular well together with extensible
+  records in HOL \cite{Naraschewski-Wenzel:1998} (the
+  ``object-oriented'' features discussed there are not required here).
+  Thus we shall essentially use record types to represent polymorphic
+  signatures of mathematical structures, while locales describe their
+  logical properties as a predicate.  Due to type inference of
+  simply-typed records we are able to give succinct specifications,
+  without caring about signature morphisms ourselves.  Further
+  eye-candy is provided by the independent concept of ``indexed
+  concrete syntax'' for record selectors.
+
+  Operations for building up locale contexts from existing definitions
+  cover common operations of \emph{merge} (disjunctive union in
+  canonical order) and \emph{rename} (of term parameters; types are
+  always inferred automatically).
+
+  \medskip Note that the following further concepts are still
+  \emph{absent}:
+  \begin{itemize}
+
+  \item Specific language elements for \emph{instantiation} of
+  locales.
+
+  Currently users may simulate this to some extend by having primitive
+  Isabelle/Isar operations (@{text of} for substitution and @{text OF}
+  for composition, \cite{Wenzel:2001:isar-ref}) act on the
+  automatically exported results stemming from different contexts.
+
+  \item Interpretation of locales, analogous to ``functors'' in
+  abstract algebra.
+
+  In principle one could directly work with functions over structures
+  (extensible records), and predicates being derived from locale
+  definitions.
+
+  \end{itemize}
+
+  \medskip Subsequently, we demonstrate some readily available
+  concepts of Isabelle/Isar locales by some simple examples of
+  abstract algebraic reasoning.
+*}
 
 subsection {* Local contexts as mathematical structures *}
 
@@ -139,8 +195,16 @@ proof -
 qed
 
 text {*
-  \medskip Some further properties of inversion in general group
-  theory follow.
+  We see that the initial import of @{text group} within the
+  definition of @{text abelian_group} is actually evaluated
+  dynamically.  Thus any results in @{text group} are made available
+  to the derived context of @{text abelian_group} as well.  Note that
+  the alternative context element @{text \<USES>} would import
+  existing locales in a static fashion, without participating in
+  further facts emerging later on.
+
+  \medskip Some more properties of inversion in general group theory
+  follow.
 *}
 
 theorem (in group)
@@ -173,69 +237,67 @@ text {*
   meta-theoretical studies (involving functors from groups to groups,
   for example).
 
-  Another drawback of the naive approach above is that concrete syntax
-  will get lost on any kind of operation on the locale itself (such as
-  renaming, copying, or instantiation).  Whenever the particular
-  terminology of local parameters is affected the associated syntax
-  would have to be changed as well, which is hard to achieve formally.
+  Another minor drawback of the naive approach above is that concrete
+  syntax will get lost on any kind of operation on the locale itself
+  (such as renaming, copying, or instantiation).  Whenever the
+  particular terminology of local parameters is affected the
+  associated syntax would have to be changed as well, which is hard to
+  achieve formally.
 *}
 
 
 subsection {* Explicit structures referenced implicitly *}
 
 text {*
-  The issue of multiple parameters raised above may be easily
-  addressed by stating properties over a record of group operations,
-  instead of the individual constituents.  See
-  \cite{Naraschewski-Wenzel:1998,Nipkow-et-al:2001:HOL} on
-  (extensible) record types in Isabelle/HOL.
+  We introduce the same hierarchy of basic group structures as above,
+  this time using extensible record types for the signature part,
+  together with concrete syntax for selector functions.
 *}
 
-record 'a group =
-  prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  inv :: "'a \<Rightarrow> 'a"
-  one :: 'a
+record 'a semigroup =
+  prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<cdot>\<index>" 70)
+
+record 'a group = "'a semigroup" +
+  inv :: "'a \<Rightarrow> 'a"    ("(_\<inv>\<index>)" [1000] 999)
+  one :: 'a    ("\<one>\<index>")
 
 text {*
-  Now concrete syntax essentially needs refer to record selections;
-  this is possible by giving defined operations with private syntax
-  within the locale (e.g.\ see appropriate examples by Kamm\"uller).
+  The mixfix annotations above include a special ``structure index
+  indicator'' @{text \<index>} that makes grammer productions dependent on
+  certain parameters that have been declared as ``structure'' in a
+  locale context later on.  Thus we achieve casual notation as
+  encountered in informal mathematics, e.g.\ @{text "x \<cdot> y"} for
+  @{text "prod G x y"}.
 
-  In the subsequent formulation of group structures we go one step
-  further by using \emph{implicit} references to the underlying
-  abstract entity.  To this end we define global syntax, which is
-  translated to refer to the ``current'' structure at hand, denoted by
-  the dummy item ``@{text \<struct>}'' (according to the builtin syntax
-  mechanism for locales).
+  \medskip The following locale definitions introduce operate on a
+  single parameter declared as ``\isakeyword{structure}''.  Type
+  inference takes care to fill in the appropriate record type schemes
+  internally.
 *}
 
-syntax
-  "_prod" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<cdot>" 70)
-  "_inv" :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
-  "_one" :: 'a    ("\<one>")
-translations
-  "x \<cdot> y"  \<rightleftharpoons>  "prod \<struct> x y"
-  "x\<inv>"  \<rightleftharpoons>  "inv \<struct> x"
-  "\<one>"  \<rightleftharpoons>  "one \<struct>"
-
-text {*
-  The following locale definition introduces a single parameter, which
-  is declared as a ``\isakeyword{structure}''. In its context the
-  dummy ``@{text \<struct>}'' refers to this very parameter, independently of
-  the present naming.
-*}
-
-locale group_struct =
-  fixes G :: "'a group"    (structure)
+locale semigroup_struct =
+  fixes S :: "'a group"    (structure)
   assumes assoc: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
-    and left_inv: "x\<inv> \<cdot> x = \<one>"
+
+locale group_struct = semigroup_struct G +
+  assumes left_inv: "x\<inv> \<cdot> x = \<one>"
     and left_one: "\<one> \<cdot> x = x"
 
 text {*
-  We may now proceed to prove results within @{text group_struct} just
-  as before for @{text group}.  Proper treatment of ``@{text \<struct>}'' is
-  hidden in concrete syntax, so the proof text is exactly the same as
-  before.
+  Note that we prefer to call the @{text group} record structure
+  @{text G} rather than @{text S} inherited from @{text semigroup}.
+  This does not affect our concrete syntax, which is only dependent on
+  the \emph{positional} arrangements of currently active structures
+  (actually only one above), rather than names.  In fact, these
+  parameter names rarely occur in the term language at all (due to the
+  ``indexed syntax'' facility of Isabelle).  On the other hand, names
+  of locale facts will get qualified accordingly, e.g. @{text S.assoc}
+  versus @{text G.assoc}.
+
+  \medskip We may now proceed to prove results within @{text
+  group_struct} just as before for @{text group}.  The subsequent
+  proof texts are exactly the same as despite the more advanced
+  internal arrangement.
 *}
 
 theorem (in group_struct)
@@ -263,27 +325,14 @@ proof -
 qed
 
 text {*
+  FIXME
   \medskip Several implicit structures may be active at the same time
   (say up to 3 in practice).  The concrete syntax facility for locales
   actually maintains indexed dummies @{text "\<struct>\<^sub>1"}, @{text
   "\<struct>\<^sub>2"}, @{text "\<struct>\<^sub>3"}, \dots (@{text \<struct>} is the same as
   @{text "\<struct>\<^sub>1"}).  So we are able to provide concrete syntax to
   cover the 2nd and 3rd group structure as well.
-*}
 
-syntax
-  "_prod'" :: "'a \<Rightarrow> index \<Rightarrow> 'a \<Rightarrow> 'a"    ("(_ \<cdot>_/ _)" [70, 1000, 71] 70)
-  "_inv'" :: "'a \<Rightarrow> index \<Rightarrow> 'a"    ("(_\<inv>_)" [1000] 999)
-  "_one'" :: "index \<Rightarrow> 'a"    ("\<one>_")
-translations
-  "x \<cdot>\<^sub>2 y"  \<rightleftharpoons>  "prod \<struct>\<^sub>2 x y"
-  "x \<cdot>\<^sub>3 y"  \<rightleftharpoons>  "prod \<struct>\<^sub>3 x y"
-  "x\<inv>\<^sub>2"  \<rightleftharpoons>  "inv \<struct>\<^sub>2 x"
-  "x\<inv>\<^sub>3"  \<rightleftharpoons>  "inv \<struct>\<^sub>3 x"
-  "\<one>\<^sub>2"  \<rightleftharpoons>  "one \<struct>\<^sub>2"
-  "\<one>\<^sub>3"  \<rightleftharpoons>  "one \<struct>\<^sub>3"
-
-text {*
   \medskip The following synthetic example demonstrates how to refer
   to several structures of type @{text group} succinctly; one might
   also think of working with several renamed versions of the @{text
@@ -292,21 +341,12 @@ text {*
 
 lemma
   (fixes G :: "'a group" (structure)
-    and H :: "'a group" (structure))
+    and H :: "'a group" (structure))  (* FIXME (uses group_struct G + group_struct H) *)
   True
 proof
   have "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" ..
   have "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" ..
   have "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" ..
 qed
-
-text {*
-  \medskip As a minor drawback of this advanced technique we require
-  slightly more work to setup abstract and concrete syntax properly
-  (but only once in the beginning).  The resulting casual mode of
-  writing @{text "x \<cdot> y"} for @{text "prod G x y"} etc.\ mimics common
-  practice of informal mathematics quite nicely, while using a simple
-  and robust formal representation.
-*}
 
 end
