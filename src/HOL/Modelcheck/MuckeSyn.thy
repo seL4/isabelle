@@ -14,9 +14,8 @@ types
   mutype 
   decl decls
   cases_syn case_syn 
+
 syntax (Mucke output)
-
-
   True		:: bool					("true")
   False		:: bool					("false")
   Not		:: bool => bool				("! _" [40] 40)
