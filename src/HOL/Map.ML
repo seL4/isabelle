@@ -16,6 +16,14 @@ by (Simp_tac 1);
 qed "update_def2";
 Addsimps [update_def2];
 
+qed_goal "update_same" thy "(t[k|->x]) k = Some x" 
+	(K [Simp_tac 1]);
+qed_goal "update_other" thy "!!X. l~=k ==> (t[k|->x]) l = t l"
+	(K [Asm_simp_tac 1]);
+qed_goal "update_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
+	(K [rtac ext 1, asm_simp_tac (simpset() addsplits [expand_if]) 1]);
+(*Addsimps [update_same, update_other, update_triv];*)
+
 section "++";
 
 goalw thy [override_def] "m ++ empty = m";
@@ -51,6 +59,14 @@ by (rtac ext 1);
 by (asm_simp_tac (simpset() addsplits [expand_if,split_option_case]) 1);
 qed "map_of_append";
 Addsimps [map_of_append];
+
+goal thy "map_of xs k = Some y --> (k,y):set xs";
+by (list.induct_tac "xs" 1);
+by  (Simp_tac 1);
+by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by (split_all_tac 1);
+by (Simp_tac 1);
+qed_spec_mp "map_of_SomeD";
 
 section "dom";
 
