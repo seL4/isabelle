@@ -33,6 +33,7 @@ sig
   val local_term: Proof.context * T list -> term * (Proof.context * T list)
   val local_prop: Proof.context * T list -> term * (Proof.context * T list)
   val bang_facts: Proof.context * T list -> thm list * (Proof.context * T list)
+  val goal_spec: T list -> ((int -> tactic) -> tactic) * T list
   type src
   val src: (string * T list) * Position.T -> src
   val dest_src: src -> (string * T list) * Position.T
@@ -102,6 +103,9 @@ fun $$$ x = $$$$ x >> val_of;
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
 
+val keyword_symid =
+  Scan.one (fn Arg (k, (x, _)) => k = Keyword andalso OuterLex.is_sid x) >> val_of;
+
 fun kind f = Scan.one (K true) :--
   (fn Arg (Ident, (x, _)) =>
     (case f x of Some y => Scan.succeed y | _ => Scan.fail)
@@ -137,6 +141,12 @@ val local_prop = gen_item ProofContext.read_prop;
 
 val bang_facts = Scan.depend (fn ctxt =>
   ($$$ "!" >> K (ProofContext.prems_of ctxt) || Scan.succeed []) >> pair ctxt);
+
+
+(* goal specifier *)
+
+val tactical = $$$$ "!" >> K ALLGOALS || $$$$ "?" >> K FINDGOAL || nat >> curry op |>;
+val goal_spec = $$$$ "(" |-- tactical --| $$$$ ")";
 
 
 (* args *)
@@ -185,7 +195,7 @@ fun syntax kind scan st (src as Src ((s, args), pos)) =
 fun list1 scan = scan -- Scan.repeat ($$$ "," |-- scan) >> op ::;
 fun list scan = list1 scan || Scan.succeed [];
 
-val attrib = position (name -- !!! (args false)) >> src;
+val attrib = position ((keyword_symid || name) -- !!! (args false)) >> src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
