@@ -2,18 +2,19 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-User interfaces for axiomatic type classes.
+Axiomatic type class package.
 *)
 
 signature AX_CLASS =
 sig
   val quiet_mode: bool ref
+  val print_axclasses: theory -> unit
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
-  val add_axclass: bclass * xclass list -> (string * string) list
-    -> theory -> theory
-  val add_axclass_i: bclass * class list -> (string * term) list
-    -> theory -> theory
+  val add_axclass: bclass * xclass list -> ((bstring * string) * Args.src list) list
+    -> theory -> theory * {intro: thm, axioms: thm list}
+  val add_axclass_i: bclass * class list -> ((bstring * term) * theory attribute list) list
+    -> theory -> theory * {intro: thm, axioms: thm list}
   val add_inst_subclass: xclass * xclass -> string list -> thm list
     -> tactic option -> theory -> theory
   val add_inst_subclass_i: class * class -> string list -> thm list
@@ -22,13 +23,18 @@ sig
     -> thm list -> tactic option -> theory -> theory
   val add_inst_arity_i: string * sort list * class list -> string list
     -> thm list -> tactic option -> theory -> theory
-  val axclass_tac: theory -> thm list -> tactic
+  val axclass_tac: thm list -> tactic
   val prove_subclass: theory -> class * class -> thm list
     -> tactic option -> thm
   val prove_arity: theory -> string * sort list * class -> thm list
     -> tactic option -> thm
   val goal_subclass: theory -> xclass * xclass -> thm list
   val goal_arity: theory -> xstring * xsort list * xclass -> thm list
+  val instance_subclass_proof: xclass * xclass -> theory -> ProofHistory.T
+  val instance_subclass_proof_i: class * class -> theory -> ProofHistory.T
+  val instance_arity_proof: xstring * xsort list * xclass -> theory -> ProofHistory.T
+  val instance_arity_proof_i: string * sort list * class -> theory -> ProofHistory.T
+  val setup: (theory -> theory) list
 end;
 
 structure AxClass : AX_CLASS =
@@ -60,19 +66,21 @@ fun dest_varT (TFree (x, S)) = ((x, ~1), S)
 
 (* get axioms and theorems *)
 
-fun get_ax thy name =
-  Some (get_axiom thy name) handle THEORY _ => None;
-
-val get_axioms = mapfilter o get_ax;
-
 val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun witnesses thy names thms =
-  flat (map (PureThy.get_thms thy) names) @ thms @ filter is_def (map snd (axioms_of thy));
+  PureThy.get_thmss thy names @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 
 (** abstract syntax operations **)
+
+(* names *)
+
+fun intro_name c = c ^ "I";
+val introN = "intro";
+val axiomsN = "axioms";
+
 
 (* subclass relations as terms *)
 
@@ -85,9 +93,7 @@ fun dest_classrel tm =
     val (ty, c2) = Logic.dest_inclass tm handle TERM _ => err ();
     val c1 = (case dest_varT ty of (_, [c]) => c | _ => err ())
       handle TYPE _ => err ();
-  in
-    (c1, c2)
-  end;
+  in (c1, c2) end;
 
 
 (* arities as terms *)
@@ -96,9 +102,7 @@ fun mk_arity (t, ss, c) =
   let
     val names = tl (variantlist (replicate (length ss + 1) "'", []));
     val tfrees = ListPair.map TFree (names, ss);
-  in
-    Logic.mk_inclass (Type (t, tfrees), c)
-  end;
+  in Logic.mk_inclass (Type (t, tfrees), c) end;
 
 fun dest_arity tm =
   let
@@ -112,9 +116,7 @@ fun dest_arity tm =
     val ss =
       if null (gen_duplicates eq_fst tvars)
       then map snd tvars else err ();
-  in
-    (t, ss, c)
-  end;
+  in (t, ss, c) end;
 
 
 
@@ -142,9 +144,7 @@ fun add_classrel_thms thms thy =
         val (c1, c2) = dest_classrel prop handle TERM _ =>
           raise THM ("add_classrel_thms: theorem is not a class relation", 0, [thm]);
       in (c1, c2) end;
-  in
-    Theory.add_classrel (map prep_thm thms) thy
-  end;
+  in Theory.add_classrel (map prep_thm thms) thy end;
 
 (*theorems expressing arities*)
 fun add_arity_thms thms thy =
@@ -155,9 +155,59 @@ fun add_arity_thms thms thy =
         val (t, ss, c) = dest_arity prop handle TERM _ =>
           raise THM ("add_arity_thms: theorem is not an arity", 0, [thm]);
       in (t, ss, [c]) end;
-  in
-    Theory.add_arities (map prep_thm thms) thy
-  end;
+  in Theory.add_arities (map prep_thm thms) thy end;
+
+
+
+(** axclass info **)
+
+(* data kind 'Pure/axclasses' *)
+
+type axclass_info =
+  {super_classes: class list,
+    intro: thm,
+    axioms: thm list};
+
+structure AxclassesArgs =
+struct
+  val name = "Pure/axclasses";
+  type T = axclass_info Symtab.table;
+
+  val empty = Symtab.empty;
+  val prep_ext = I;
+  fun merge (tab1, tab2) = Symtab.merge (K true) (tab1, tab2);
+
+  fun print sg tab =
+    let
+      val ext_class = Sign.cond_extern sg Sign.classK;
+      val ext_thm = PureThy.cond_extern_thm_sg sg;
+
+      fun pretty_class c cs = Pretty.block
+        (Pretty.str (ext_class c) :: Pretty.str " <" :: Pretty.brk 1 ::
+          Pretty.breaks (map (Pretty.str o ext_class) cs));
+
+      fun pretty_thms name thms = Pretty.big_list (name ^ ":") (map Display.pretty_thm thms);
+
+      fun pretty_axclass (name, {super_classes, intro, axioms}) = Pretty.block (Pretty.fbreaks
+        [pretty_class name super_classes, pretty_thms introN [intro], pretty_thms axiomsN axioms]);
+    in seq (Pretty.writeln o pretty_axclass) (Symtab.dest tab) end;
+end;
+
+structure AxclassesData = TheoryDataFun(AxclassesArgs);
+val print_axclasses = AxclassesData.print;
+
+
+(* get and put data *)
+
+fun lookup_axclass_info_sg sg c = Symtab.lookup (AxclassesData.get_sg sg, c);
+
+fun get_axclass_info thy c =
+  (case lookup_axclass_info_sg (Theory.sign_of thy) c of
+    None => error ("Unknown axclass " ^ quote c)
+  | Some info => info);
+
+fun put_axclass_info c info thy =
+  thy |> AxclassesData.put (Symtab.update ((c, info), AxclassesData.get thy));
 
 
 
@@ -177,62 +227,68 @@ fun err_bad_tfrees ax =
 
 (* ext_axclass *)
 
-fun ext_axclass int prep_axm (raw_class, raw_super_classes) raw_axioms old_thy =
+fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axioms_atts thy =
   let
-    val old_sign = sign_of old_thy;
-    val axioms = map (prep_axm old_sign) raw_axioms;
-    val class = Sign.full_name old_sign raw_class;
+    val sign = Theory.sign_of thy;
 
-    val thy =
-      (if int then Theory.add_classes else Theory.add_classes_i)
-        [(raw_class, raw_super_classes)] old_thy;
-    val sign = sign_of thy;
-    val super_classes =
-      if int then map (Sign.intern_class sign) raw_super_classes
-      else raw_super_classes;
+    val class = Sign.full_name sign bclass;
+    val super_classes = map (prep_class sign) raw_super_classes;
+    val axms = map (prep_axm sign o fst) raw_axioms_atts;
+    val atts = map (map (prep_att thy) o snd) raw_axioms_atts;
 
+    (*declare class*)
+    val class_thy =
+      thy |> Theory.add_classes_i [(bclass, super_classes)];
+    val class_sign = Theory.sign_of class_thy;
 
-    (* prepare abstract axioms *)
-
+    (*prepare abstract axioms*)
     fun abs_axm ax =
       if null (term_tfrees ax) then
         Logic.mk_implies (Logic.mk_inclass (aT logicS, class), ax)
       else map_term_tfrees (K (aT [class])) ax;
+    val abs_axms = map (abs_axm o #2) axms;
 
-    val abs_axioms = map (apsnd abs_axm) axioms;
-
-
-    (* prepare introduction orule *)
-
-    val _ =
-      if Sign.subsort sign ([class], logicS) then ()
-      else err_not_logic class;
+    (*prepare introduction rule*)
+    val _ = if Sign.subsort class_sign ([class], logicS) then () else err_not_logic class;
 
     fun axm_sort (name, ax) =
       (case term_tfrees ax of
         [] => []
-      | [(_, S)] =>
-          if Sign.subsort sign ([class], S) then S
-          else err_bad_axsort name class
+      | [(_, S)] => if Sign.subsort class_sign ([class], S) then S else err_bad_axsort name class
       | _ => err_bad_tfrees name);
-
-    val axS = Sign.norm_sort sign (logicC :: flat (map axm_sort axioms))
+    val axS = Sign.norm_sort class_sign (logicC :: flat (map axm_sort axms));
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);
 
     val intro_axm = Logic.list_implies
-      (map inclass super_classes @ map (int_axm o snd) axioms, inclass class);
-  in
-    thy
-    |> PureThy.add_axioms_i (map Thm.no_attributes ((raw_class ^ "I", intro_axm) :: abs_axioms))
-  end;
+      (map inclass super_classes @ map (int_axm o #2) axms, inclass class);
+
+    (*declare axioms and rule*)
+    val axms_thy =
+      class_thy
+      |> Theory.add_path bclass
+      |> PureThy.add_axioms_i [Thm.no_attributes (introN, intro_axm)]
+      |> PureThy.add_axiomss_i [Thm.no_attributes (axiomsN, abs_axms)];
+
+    val intro = PureThy.get_thm axms_thy introN;
+    val axioms = PureThy.get_thms axms_thy axiomsN;
+    val info = {super_classes = super_classes, intro = intro, axioms = axioms};
+
+    (*store info*)
+    val final_thy =
+      axms_thy
+      |> PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts)
+      |> Theory.parent_path
+      |> PureThy.add_thms [Thm.no_attributes (intro_name bclass, intro)]
+      |> put_axclass_info class info;
+  in (final_thy, {intro = intro, axioms = axioms}) end;
 
 
 (* external interfaces *)
 
-val add_axclass = ext_axclass true read_axm;
-val add_axclass_i = ext_axclass false cert_axm;
+val add_axclass = ext_axclass Sign.intern_class read_axm Attrib.global_attribute;
+val add_axclass_i = ext_axclass (K I) cert_axm (K I);
 
 
 
@@ -240,14 +296,21 @@ val add_axclass_i = ext_axclass false cert_axm;
 
 (* class_axms *)
 
-fun class_axms thy =
-  let
-    val classes = Sign.classes (sign_of thy);
-    val intros = map (fn c => c ^ "I") classes;
-  in
-    map (class_triv thy) classes @
-    get_axioms thy intros
+fun class_axms sign =
+  let val classes = Sign.classes sign in
+    map (Thm.class_triv sign) classes @
+    mapfilter (apsome #intro o lookup_axclass_info_sg sign) classes
   end;
+
+
+(* expand classes *)
+
+fun expand_classes_tac st =
+  TRY (REPEAT_FIRST (resolve_tac (class_axms (Thm.sign_of_thm st)))) st;
+
+val expand_classes_method =
+  ("expand_classes", Method.no_args (Method.METHOD0 expand_classes_tac),
+    "expand axiomatic type classes");
 
 
 (* axclass_tac *)
@@ -257,12 +320,12 @@ fun class_axms thy =
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
 
-fun axclass_tac thy thms =
+fun axclass_tac thms =
   let
     val defs = filter is_def thms;
     val non_defs = filter_out is_def thms;
   in
-    TRY (REPEAT_FIRST (resolve_tac (class_axms thy))) THEN
+    expand_classes_tac THEN
     TRY (rewrite_goals_tac defs) THEN
     TRY (REPEAT_FIRST (fn i => assume_tac i ORELSE resolve_tac non_defs i))
   end;
@@ -270,11 +333,11 @@ fun axclass_tac thy thms =
 
 (* provers *)
 
-fun prove term_of str_of thy sig_prop thms usr_tac =
+fun prove mk_prop str_of thy sig_prop thms usr_tac =
   let
     val sign = sign_of thy;
-    val goal = cterm_of sign (term_of sig_prop);
-    val tac = axclass_tac thy thms THEN (if_none usr_tac all_tac);
+    val goal = Thm.cterm_of sign (mk_prop sig_prop);
+    val tac = axclass_tac thms THEN (if_none usr_tac all_tac);
   in
     prove_goalw_cterm [] goal (K [tac])
   end
@@ -294,53 +357,88 @@ val prove_arity =
 fun intrn_classrel sg c1_c2 =
   pairself (Sign.intern_class sg) c1_c2;
 
-fun ext_inst_subclass int raw_c1_c2 names thms usr_tac thy =
-  let
-    val c1_c2 =
-      if int then intrn_classrel (sign_of thy) raw_c1_c2
-      else raw_c1_c2;
-  in
-    message ("Proving class inclusion " ^
-      quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
-    add_classrel_thms
-      [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac] thy
-  end;
-
-
-fun intrn_arity sg intrn (t, Ss, x) =
+fun intrn_arity intrn sg (t, Ss, x) =
   (Sign.intern_tycon sg t, map (Sign.intern_sort sg) Ss, intrn sg x);
 
-fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
+
+fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
+  let val c1_c2 = prep_classrel (Theory.sign_of thy) raw_c1_c2 in
+    message ("Proving class inclusion " ^
+      quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
+    thy |> add_classrel_thms [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac]
+  end;
+
+fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
   let
-    val sign = sign_of thy;
-    val (t, Ss, cs) =
-      if int then intrn_arity sign Sign.intern_sort (raw_t, raw_Ss, raw_cs)
-      else (raw_t, raw_Ss, raw_cs);
+    val sign = Theory.sign_of thy;
+    val (t, Ss, cs) = prep_arity sign (raw_t, raw_Ss, raw_cs);
     val wthms = witnesses thy names thms;
     fun prove c =
      (message ("Proving type arity " ^
         quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
         prove_arity thy (t, Ss, c) wthms usr_tac);
-  in
-    add_arity_thms (map prove cs) thy
-  end;
-
-val add_inst_subclass = ext_inst_subclass true;
-val add_inst_subclass_i = ext_inst_subclass false;
-val add_inst_arity = ext_inst_arity true;
-val add_inst_arity_i = ext_inst_arity false;
+  in add_arity_thms (map prove cs) thy end;
 
 
-(* make goals (for interactive use) *)
+val add_inst_subclass = ext_inst_subclass intrn_classrel;
+val add_inst_subclass_i = ext_inst_subclass (K I);
+val add_inst_arity = ext_inst_arity (intrn_arity Sign.intern_sort);
+val add_inst_arity_i = ext_inst_arity (K I);
 
-fun mk_goal term_of thy sig_prop =
-  goalw_cterm [] (cterm_of (sign_of thy) (term_of sig_prop));
 
-fun goal_subclass thy =
-  mk_goal (mk_classrel o intrn_classrel (sign_of thy)) thy;
+(* make old-style interactive goals *)
 
-fun goal_arity thy =
-  mk_goal (mk_arity o intrn_arity (sign_of thy) Sign.intern_class) thy;
+fun mk_goal mk_prop thy sig_prop =
+  Goals.goalw_cterm [] (Thm.cterm_of (Theory.sign_of thy) (mk_prop (Theory.sign_of thy) sig_prop));
+
+val goal_subclass = mk_goal (mk_classrel oo intrn_classrel);
+val goal_arity = mk_goal (mk_arity oo intrn_arity Sign.intern_class);
+
+
+
+(** instance proof interfaces **)
+
+fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
+
+fun inst_proof mk_prop add_thms sig_prop thy =
+  thy
+  |> IsarThy.theorem_i "" [inst_attribute add_thms]
+    (mk_prop (Theory.sign_of thy) sig_prop, []);
+
+val instance_subclass_proof = inst_proof (mk_classrel oo intrn_classrel) add_classrel_thms;
+val instance_subclass_proof_i = inst_proof (K mk_classrel) add_classrel_thms;
+val instance_arity_proof = inst_proof (mk_arity oo intrn_arity Sign.intern_class) add_arity_thms;
+val instance_arity_proof_i = inst_proof (K mk_arity) add_arity_thms;
+
+
+
+(** package setup **)
+
+(* setup theory *)
+
+val setup =
+ [AxclassesData.init,
+  Method.add_methods [expand_classes_method]];
+
+
+(* outer syntax *)
+
+local open OuterParse in
+
+val axclassP =
+  OuterSyntax.command "axclass" "define axiomatic type class"
+    (name -- Scan.optional ($$$ "<" |-- !!! (list1 xname)) [] -- Scan.repeat spec_name
+      >> (fn (cls, axs) => Toplevel.theory (#1 o add_axclass cls axs)));
+
+val instanceP =
+  OuterSyntax.command "instance" "prove type arity or subclass relation"
+    ((xname -- ($$$ "<" |-- xname) >> instance_subclass_proof ||
+      xname -- ($$$ "::" |-- simple_arity) >> (instance_arity_proof o triple2))
+      >> (Toplevel.print oo Toplevel.theory_to_proof));
+
+val _ = OuterSyntax.add_parsers [axclassP, instanceP];
+
+end;
 
 
 end;
