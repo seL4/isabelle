@@ -21,9 +21,9 @@ Server, who is in charge of all public keys.
 The model assumes that no fraudulent certificates are present, but it does
 assume that some private keys are to the spy.
 
-REMARK.  The event "Notes A {|Agent B, Nonce PMS|}" appears in ClientCertKeyEx,
+REMARK.  The event "Notes A {|Agent B, Nonce PMS|}" appears in ClientKeyExch,
 CertVerify, ClientFinished to record that A knows M.  It is a note from A to
-herself.  Nobody else can see it.  In ClientCertKeyEx, the Spy can substitute
+herself.  Nobody else can see it.  In ClientKeyExch, the Spy can substitute
 his own certificate for A's, but he cannot replace A's note by one for himself.
 
 The Note event avoids a weakness in the public-key model.  Each
@@ -33,7 +33,7 @@ does not distinguish the original occurrence of such a message from a replay.
 In the shared-key model, the ability to encrypt implies the ability to
 decrypt, so the problem does not arise.
 
-Proofs would be simpler if ClientCertKeyEx included A's name within
+Proofs would be simpler if ClientKeyExch included A's name within
 Crypt KB (Nonce PMS).  As things stand, there is much overlap between proofs
 about that message (which B receives) and the stronger event
 	Notes A {|Agent B, Nonce PMS|}.
@@ -61,17 +61,18 @@ syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK (x)"	== "sessionK(x,0)"
-  "serverK (x)"	== "sessionK(x,1)"
+  "clientK (nonces)"	== "sessionK(nonces,0)"
+  "serverK (nonces)"	== "sessionK(nonces,1)"
 
 rules
+  (*the pseudo-random function is collision-free*)
   inj_PRF       "inj PRF"	
 
-  (*sessionK is collision-free and makes symmetric keys.  Also, no clientK
-    clashes with any serverK.*)
+  (*sessionK is collision-free; also, no clientK clashes with any serverK.*)
   inj_sessionK  "inj sessionK"	
 
-  isSym_sessionK "isSymKey (sessionK x)"
+  (*sessionK makes symmetric keys*)
+  isSym_sessionK "isSymKey (sessionK nonces)"
 
 
 consts    tls :: event list set
@@ -111,12 +112,15 @@ inductive tls
          "[| evsSH: tls;  A ~= B;  Nonce NB ~: used evsSH;  NB ~: range PRF;
              Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSH |]
-          ==> Says B A {|Nonce NB, Number SID, Number PB,
-			 certificate B (pubK B)|}
-                # evsSH  :  tls"
+          ==> Says B A {|Nonce NB, Number SID, Number PB|} # evsSH  :  tls"
 
-    ClientCertKeyEx
-         (*CLIENT CERTIFICATE (7.4.6) and KEY EXCHANGE (7.4.7).
+    Certificate
+         (*SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.*)
+         "[| evsC: tls;  A ~= B |]
+          ==> Says B A (certificate B (pubK B)) # evsC  :  tls"
+
+    ClientKeyExch
+         (*CLIENT KEY EXCHANGE (7.4.7).
            The client, A, chooses PMS, the PREMASTER SECRET.
            She encrypts PMS using the supplied KB, which ought to be pubK B.
            We assume PMS ~: range PRF because a clash betweem the PMS
@@ -125,9 +129,9 @@ inductive tls
            The Note event records in the trace that she knows PMS
                (see REMARK at top). *)
          "[| evsCX: tls;  A ~= B;  Nonce PMS ~: used evsCX;  PMS ~: range PRF;
-             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
-	       : set evsCX |]
-          ==> Says A B {|certificate A (pubK A), Crypt KB (Nonce PMS)|}
+             Says B'  A {|Nonce NB, Number SID, Number PB|} : set evsCX;
+             Says B'' A (certificate B KB) : set evsCX |]
+          ==> Says A B (Crypt KB (Nonce PMS))
 	      # Notes A {|Agent B, Nonce PMS|}
 	      # evsCX  :  tls"
 
@@ -138,8 +142,7 @@ inductive tls
           Checking the signature, which is the only use of A's certificate,
           assures B of A's presence*)
          "[| evsCV: tls;  A ~= B;  
-             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
-	       : set evsCV;
+             Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCV;
 	     Notes A {|Agent B, Nonce PMS|} : set evsCV |]
           ==> Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|}))
               # evsCV  :  tls"
@@ -158,8 +161,7 @@ inductive tls
          "[| evsCF: tls;  
 	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsCF;
-             Says B' A {|Nonce NB, Number SID, Number PB, certificate B KB|}
-	       : set evsCF;
+             Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCF;
              Notes A {|Agent B, Nonce PMS|} : set evsCF;
 	     M = PRF(PMS,NA,NB) |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
@@ -174,11 +176,8 @@ inductive tls
          "[| evsSF: tls;
 	     Says A' B  {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSF;
-	     Says B  A  {|Nonce NB, Number SID, Number PB,
-		 	  certificate B (pubK B)|}
-	       : set evsSF;
-	     Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce PMS)|}
-	       : set evsSF;
+	     Says B  A  {|Nonce NB, Number SID, Number PB|} : set evsSF;
+	     Says A'' B (Crypt (pubK B) (Nonce PMS)) : set evsSF;
 	     M = PRF(PMS,NA,NB) |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
@@ -208,8 +207,7 @@ inductive tls
           needed to resume this session.  The "Says A'' B ..." premise is
           used to prove Notes_master_imp_Crypt_PMS.*)
          "[| evsSA: tls;
-             Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce PMS)|}
-	       : set evsSA;
+             Says A'' B (Crypt (pubK B) (Nonce PMS)) : set evsSA;
 	     M = PRF(PMS,NA,NB);  
 	     X = Hash{|Nonce M, Number SID,
 	               Nonce NA, Number PA, Agent A, 
@@ -220,9 +218,8 @@ inductive tls
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} # evsSA  :  tls"
 
     ServerResume
-         (*Resumption is described in 7.3.  If B finds the SESSION_ID
-           then he sends HELLO and FINISHED messages, using the
-           previously stored MASTER SECRET*)
+         (*Resumption (7.3):  If B finds the SESSION_ID then he can send
+           a FINISHED message using the recovered MASTER SECRET*)
          "[| evsSR: tls;  A ~= B;  Nonce NB ~: used evsSR;  NB ~: range PRF;
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evsSR;
 	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
@@ -230,12 +227,12 @@ inductive tls
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Nonce M, Number SID,
 			       Nonce NA, Number PA, Agent A, 
-			       Nonce NB, Number PB, Agent B|}))
-              # Says B A {|Nonce NB, Number SID, Number PB|} # evsSR  :  tls"
+			       Nonce NB, Number PB, Agent B|})) # evsSR
+	        :  tls"
 
     ClientResume
-         (*If the response to ClientHello is ServerResume then send
-           a FINISHED message using the new nonces and stored MASTER SECRET.*)
+         (*If A recalls the SESSION_ID, then she sends a FINISHED message
+           using the new nonces and stored MASTER SECRET.*)
          "[| evsCR: tls;  
 	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsCR;
