@@ -41,6 +41,9 @@ sig
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val rewrite_cterm: bool * bool * bool ->
     (meta_simpset -> thm -> thm option) -> meta_simpset -> cterm -> thm
+  val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
+  val forall_conv       : (cterm -> thm) -> cterm -> thm
+  val fconv_rule        : (cterm -> thm) -> thm -> thm
   val full_rewrite_cterm_aux: (meta_simpset -> thm -> thm option) -> thm list -> cterm -> cterm
   val rewrite_rule_aux  : (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_thm       : bool * bool * bool
@@ -930,6 +933,18 @@ fun goals_conv pred cv =
         in  combination (combination refl_implies thA) (gconv j B) end
         handle TERM _ => reflexive ct
   in gconv 1 end;
+
+(* Rewrite A in !!x1,...x1. A *)
+fun forall_conv cv ct =
+  let val p as (ct1, ct2) = Thm.dest_comb ct
+  in (case pairself term_of p of
+      (Const ("all", _), Abs (s, _, _)) =>
+         let val (v, ct') = Thm.dest_abs (Some "@") ct2;
+         in Thm.combination (Thm.reflexive ct1)
+           (Thm.abstract_rule s v (forall_conv cv ct'))
+         end
+    | _ => cv ct)
+  end handle TERM _ => cv ct;
 
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
