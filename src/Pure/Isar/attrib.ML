@@ -285,7 +285,7 @@ val pure_attributes =
  [("tag", (gen_tag, gen_tag), "tag theorem"),
   ("untag", (gen_untag, gen_untag), "untag theorem"),
   ("COMP", (global_COMP, local_COMP), "compose rules (no lifting)"),
-  ("RS", (global_RS, local_RS), "resolve with rule"),
+  ("THEN", (global_RS, local_RS), "resolve with rule"),
   ("OF", (global_APP, local_APP), "resolve with rule -- apply rule to rules"),
   ("where", (global_where, local_where), "named instantiation of theorem"),
   ("of", (global_with, local_with), "positional instantiation of theorem -- apply rule to terms"),
