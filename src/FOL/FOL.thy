@@ -58,6 +58,9 @@ lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
 lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
   by (simp only: atomize_eq induct_equal_def)
 
+lemma induct_impliesI: "(A ==> B) ==> induct_implies(A, B)"
+  by (simp add: induct_implies_def)
+
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq
 lemmas induct_rulify1 = induct_atomize [symmetric, standard]
 lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def
@@ -72,6 +75,7 @@ ML {*
   (struct
     val dest_concls = FOLogic.dest_concls;
     val cases_default = thm "case_split";
+    val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
     val atomize = thms "induct_atomize";
     val rulify1 = thms "induct_rulify1";
