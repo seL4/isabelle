@@ -83,7 +83,7 @@ esac
 function pre_latex ()
 {
   local FMT="$1"
-  [ -n "$CLEAN" ] && rm -f *.aux *.out *.ind
+  [ -n "$CLEAN" ] && rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log
   "$ISATOOL" latex -o sty && \
   "$ISATOOL" latex -o "$FMT" && \
   { [ ! -f root.bib ] || "$ISATOOL" latex -o bbl; } && \
