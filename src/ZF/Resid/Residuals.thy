@@ -82,8 +82,7 @@ by (erule Scomp.induct, force+)
 
 lemma comp_resfuncD:
      "[| u~v;  regular(v) |] ==> residuals(u, v, THE w. residuals(u, v, w))"
-apply (frule residuals_intro, assumption)
-apply clarify
+apply (frule residuals_intro, assumption, clarify)
 apply (subst the_equality)
 apply (blast intro: residuals_function)+
 done
@@ -119,8 +118,7 @@ done
 
 lemma resfunc_type [simp]:
      "[|s~t; regular(t)|]==> regular(t) --> s |> t \<in> redexes"
-apply (erule Scomp.induct)
-apply auto
+apply (erule Scomp.induct, auto)
 apply (drule_tac psi = "Fun (?u) |> ?v \<in> redexes" in asm_rl)
 apply auto
 done
@@ -138,19 +136,16 @@ by (erule Ssub.induct, auto)
 
 lemma residuals_lift_rec: "[|u~v; k \<in> nat|]==> regular(v)--> (\<forall>n \<in> nat.   
          lift_rec(u,n) |> lift_rec(v,n) = lift_rec(u |> v,n))"
-apply (erule Scomp.induct)
-apply safe
+apply (erule Scomp.induct, safe)
 apply (simp_all add: lift_rec_Var subst_Var lift_subst)
-apply (rotate_tac -2)
-apply simp
+apply (rotate_tac -2, simp)
 done
 
 lemma residuals_subst_rec:
      "u1~u2 ==>  \<forall>v1 v2. v1~v2 --> regular(v2) --> regular(u2) --> 
                   (\<forall>n \<in> nat. subst_rec(v1,u1,n) |> subst_rec(v2,u2,n) =  
                     subst_rec(v1 |> v2, u1 |> u2,n))"
-apply (erule Scomp.induct)
-apply safe
+apply (erule Scomp.induct, safe)
 apply (simp_all add: lift_rec_Var subst_Var residuals_lift_rec)
 apply (drule_tac psi = "\<forall>x.?P (x) " in asm_rl)
 apply (simp add: substitution)
@@ -173,8 +168,7 @@ by (erule Scomp.induct, force+)
 
 lemma residuals_preserve_reg [rule_format, simp]:
      "u~v ==> regular(u) --> regular(v) --> regular(u|>v)"
-apply (erule Scomp.induct)
-apply auto
+apply (erule Scomp.induct, auto)
 apply (drule_tac psi = "regular (Fun (?u) |> ?v)" in asm_rl, force)+
 done
 
@@ -187,8 +181,7 @@ by (erule Scomp.induct, simp_all)
 
 lemma preservation [rule_format]:
      "u ~ v ==> regular(v) --> u|>v = (u un v)|>v"
-apply (erule Scomp.induct)
-apply safe
+apply (erule Scomp.induct, safe)
 apply (drule_tac [3] psi = "Fun (?u) |> ?v = ?w" in asm_rl)
 apply (auto simp add: union_preserve_comp comp_sym_iff)
 done
@@ -208,15 +201,13 @@ lemma prism_l [rule_format]:
      "v<==u ==>  
        regular(u) --> (\<forall>w. w~v --> w~u -->   
                             w |> u = (w|>v) |> (u|>v))"
-apply (erule Ssub.induct)
-apply force+
+apply (erule Ssub.induct, force+)
 done
 
 lemma prism:
      "[|v <== u; regular(u); w~v|] ==> w |> u = (w|>v) |> (u|>v)"
 apply (rule prism_l)
-apply (rule_tac [4] comp_trans)
-apply auto
+apply (rule_tac [4] comp_trans, auto)
 done
 
 
@@ -226,13 +217,12 @@ done
 
 lemma cube: "[|u~v; regular(v); regular(u); w~u|]==>   
            (w|>u) |> (v|>u) = (w|>v) |> (u|>v)"
-apply (subst preservation , assumption , assumption)
-apply (subst preservation , erule comp_sym , assumption)
+apply (subst preservation, assumption, assumption)
+apply (subst preservation, erule comp_sym, assumption)
 apply (subst prism [symmetric])
 apply (simp add: union_r comp_sym_iff)
 apply (simp add: union_preserve_regular comp_sym_iff)
-apply (erule comp_trans)
-apply assumption
+apply (erule comp_trans, assumption)
 apply (simp add: prism [symmetric] union_l union_preserve_regular 
                  comp_sym_iff union_sym)
 done

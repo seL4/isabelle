@@ -277,7 +277,7 @@ Goalw [guar_def]
 by (Simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
-by (subgoal_tac "F Join G Join x = G Join (F Join x)" 1);
+by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
 by (asm_full_simp_tac (simpset() addsimps [ok_commute]) 1); 
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
 qed "guarantees_Join_Int";
@@ -288,9 +288,9 @@ Goalw [guar_def]
 by (Simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [Join_assoc]) 1);
-by (subgoal_tac "F Join G Join x = G Join (F Join x)" 1);
+by (subgoal_tac "F Join G Join Ga = G Join (F Join Ga)" 1);
 by (rotate_tac 4 1);
-by (dres_inst_tac [("x", "F Join x")] bspec 1);
+by (dres_inst_tac [("x", "F Join Ga")] bspec 1);
 by (Simp_tac 1);
 by (force_tac (claset(), simpset() addsimps [ok_commute]) 1);
 by (asm_simp_tac (simpset() addsimps Join_ac) 1);
@@ -315,11 +315,12 @@ Goalw [guar_def]
     "[| ALL i:I. F(i) : X(i) guarantees Y(i);  OK(I,F) |] \
 \    ==> JOIN(I,F) : (UN i:I. X(i)) guarantees (UN i:I. Y(i))";
 by Auto_tac;
-by (dres_inst_tac [("x", "xa")] bspec 1);
+by (dres_inst_tac [("x", "y")] bspec 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by Safe_tac;
 by (rotate_tac ~1 1);
-by (dres_inst_tac [("x", "JOIN(I-{xa}, F) Join x")] bspec 1);
+by (rename_tac "G y" 1);
+by (dres_inst_tac [("x", "JOIN(I-{y}, F) Join G")] bspec 1);
 by (auto_tac
     (claset() addIs [OK_imp_ok],
      simpset() addsimps [Join_assoc RS sym, JN_Join_diff, JN_absorb]));
@@ -441,18 +442,15 @@ Goalw [wx_def] "wx(X)<=X";
 by Auto_tac;
 qed "wx_subset";
 
-Goal
-"ex_prop(wx(X))";
-by (full_simp_tac (simpset() 
-        addsimps [ex_prop_def, wx_def]) 1);
+Goal "ex_prop(wx(X))";
+by (full_simp_tac (simpset() addsimps [ex_prop_def, wx_def]) 1);
 by Safe_tac;
 by (Blast_tac 1);
-by (ALLGOALS(res_inst_tac [("x", "xb")] bexI));
+by (ALLGOALS(res_inst_tac [("x", "x")] bexI));
 by (REPEAT(Force_tac 1));
 qed "wx_ex_prop";
 
-Goalw [wx_def]
-"ALL Z. Z<=program --> Z<= X --> ex_prop(Z) --> Z <= wx(X)";
+Goalw [wx_def] "ALL Z. Z<=program --> Z<= X --> ex_prop(Z) --> Z <= wx(X)";
 by Auto_tac;
 qed "wx_weakest";
 

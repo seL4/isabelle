@@ -57,7 +57,8 @@ Addsimps [ball_triv];
 
 (*Congruence rule for rewriting*)
 val prems= Goalw [Ball_def] 
-    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> Ball(A,P) <-> Ball(A',P')";
+    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] \
+\    ==> (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))";
 by (simp_tac (FOL_ss addsimps prems) 1) ;
 qed "ball_cong";
 
@@ -95,8 +96,8 @@ qed "bex_triv";
 Addsimps [bex_triv];
 
 val prems= Goalw [Bex_def] 
-    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) \
-\    |] ==> Bex(A,P) <-> Bex(A',P')";
+    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] \
+\    ==> (EX x:A. P(x)) <-> (EX x:A'. P'(x))";
 by (simp_tac (FOL_ss addsimps prems addcongs [conj_cong]) 1) ;
 qed "bex_cong";
 

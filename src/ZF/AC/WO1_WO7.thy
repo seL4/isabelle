@@ -52,7 +52,7 @@ lemma converse_Memrel_not_wf_on:
 apply (unfold wf_on_def wf_def)
 apply (drule nat_le_infinite_Ord [THEN le_imp_subset], assumption)
 apply (rule notI)
-apply (erule_tac x = "nat" in allE, blast)
+apply (erule_tac x = nat in allE, blast)
 done
 
 lemma converse_Memrel_not_well_ord: 

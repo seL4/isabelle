@@ -31,9 +31,7 @@ constdefs
 (************************************************)
 
 lemma dvdD: "m dvd n ==> m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
-apply (unfold divides_def)
-apply assumption
-done
+by (unfold divides_def, assumption)
 
 lemma dvdE:
      "[|m dvd n;  !!k. [|m \<in> nat; n \<in> nat; k \<in> nat; n = m#*k|] ==> P|] ==> P"
@@ -69,13 +67,11 @@ done
 
 lemma dvd_mult_left: "[|(i#*j) dvd k; i \<in> nat|] ==> i dvd k"
 apply (unfold divides_def)
-apply (simp add: mult_assoc)
-apply blast
+apply (simp add: mult_assoc, blast)
 done
 
 lemma dvd_mult_right: "[|(i#*j) dvd k; j \<in> nat|] ==> j dvd k"
-apply (unfold divides_def)
-apply clarify
+apply (unfold divides_def, clarify)
 apply (rule_tac x = "i#*k" in bexI)
 apply (simp add: mult_ac)
 apply (rule mult_type)
@@ -90,8 +86,7 @@ done
 
 lemma gcd_0 [simp]: "gcd(m,0) = natify(m)"
 apply (unfold gcd_def)
-apply (subst transrec)
-apply simp
+apply (subst transrec, simp)
 done
 
 lemma gcd_natify1 [simp]: "gcd(natify(m),n) = gcd(m,n)"
@@ -109,7 +104,7 @@ apply (simp add: ltD [THEN mem_imp_not_eq, THEN not_sym]
 done
 
 lemma gcd_non_0: "0 < natify(n) ==> gcd(m,n) = gcd(n, m mod n)"
-apply (cut_tac m = "m" and n = "natify (n) " in gcd_non_0_raw)
+apply (cut_tac m = m and n = "natify (n) " in gcd_non_0_raw)
 apply auto
 done
 
@@ -155,11 +150,11 @@ lemma gcd_induct_lemma [rule_format (no_asm)]: "[| n \<in> nat;
          \<forall>m \<in> nat. P(m,0);  
          \<forall>m \<in> nat. \<forall>n \<in> nat. 0<n --> P(n, m mod n) --> P(m,n) |]  
       ==> \<forall>m \<in> nat. P (m,n)"
-apply (erule_tac i = "n" in complete_induct)
+apply (erule_tac i = n in complete_induct)
 apply (case_tac "x=0")
 apply (simp (no_asm_simp))
 apply clarify
-apply (drule_tac x1 = "m" and x = "x" in bspec [THEN bspec])
+apply (drule_tac x1 = m and x = x in bspec [THEN bspec])
 apply (simp_all add: Ord_0_lt_iff)
 apply (blast intro: mod_less_divisor [THEN ltD])
 done
@@ -175,7 +170,7 @@ by (blast intro: gcd_induct_lemma)
 (* gcd type *)
 
 lemma gcd_type [simp,TC]: "gcd(m, n) \<in> nat"
-apply (subgoal_tac "gcd (natify (m) , natify (n)) \<in> nat")
+apply (subgoal_tac "gcd (natify (m), natify (n)) \<in> nat")
 apply simp
 apply (rule_tac m = "natify (m)" and n = "natify (n)" in gcd_induct)
 apply auto
@@ -187,7 +182,7 @@ done
 
 lemma gcd_dvd_both:
      "[| m \<in> nat; n \<in> nat |] ==> gcd (m, n) dvd m & gcd (m, n) dvd n"
-apply (rule_tac m = "m" and n = "n" in gcd_induct)
+apply (rule_tac m = m and n = n in gcd_induct)
 apply (simp_all add: gcd_non_0)
 apply (blast intro: dvd_mod_imp_dvd_raw nat_into_Ord [THEN Ord_0_lt])
 done
@@ -207,8 +202,7 @@ done
 lemma dvd_mod: "[| f dvd a; f dvd b |] ==> f dvd (a mod b)"
 apply (unfold divides_def)
 apply (case_tac "b=0")
- apply (simp add: DIVISION_BY_ZERO_MOD)
-apply auto
+ apply (simp add: DIVISION_BY_ZERO_MOD, auto)
 apply (blast intro: mod_mult_distrib2 [symmetric])
 done
 
@@ -218,7 +212,7 @@ done
 lemma gcd_greatest_raw [rule_format]:
      "[| m \<in> nat; n \<in> nat; f \<in> nat |]    
       ==> (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
-apply (rule_tac m = "m" and n = "n" in gcd_induct)
+apply (rule_tac m = m and n = n in gcd_induct)
 apply (simp_all add: gcd_non_0 dvd_mod)
 done
 
@@ -251,8 +245,7 @@ lemma gcd_commute_raw: "[| m \<in> nat; n \<in> nat |] ==> gcd(m,n) = gcd(n,m)"
 apply (rule is_gcd_unique)
 apply (rule is_gcd)
 apply (rule_tac [3] is_gcd_commute [THEN iffD1])
-apply (rule_tac [3] is_gcd)
-apply auto
+apply (rule_tac [3] is_gcd, auto)
 done
 
 lemma gcd_commute: "gcd(m,n) = gcd(n,m)"
@@ -286,11 +279,9 @@ by (simp add: gcd_commute [of 1])
 lemma gcd_mult_distrib2_raw:
      "[| k \<in> nat; m \<in> nat; n \<in> nat |]  
       ==> k #* gcd (m, n) = gcd (k #* m, k #* n)"
-apply (erule_tac m = "m" and n = "n" in gcd_induct)
-apply assumption
-apply (simp)
-apply (case_tac "k = 0")
+apply (erule_tac m = m and n = n in gcd_induct, assumption)
 apply simp
+apply (case_tac "k = 0", simp)
 apply (simp add: mod_geq gcd_non_0 mod_mult_distrib2 Ord_0_lt_iff)
 done
 
@@ -301,20 +292,15 @@ apply auto
 done
 
 lemma gcd_mult [simp]: "gcd (k, k #* n) = natify(k)"
-apply (cut_tac k = "k" and m = "1" and n = "n" in gcd_mult_distrib2)
-apply auto
-done
+by (cut_tac k = k and m = 1 and n = n in gcd_mult_distrib2, auto)
 
 lemma gcd_self [simp]: "gcd (k, k) = natify(k)"
-apply (cut_tac k = "k" and n = "1" in gcd_mult)
-apply auto
-done
+by (cut_tac k = k and n = 1 in gcd_mult, auto)
 
 lemma relprime_dvd_mult:
      "[| gcd (k,n) = 1;  k dvd (m #* n);  m \<in> nat |] ==> k dvd m"
-apply (cut_tac k = "m" and m = "k" and n = "n" in gcd_mult_distrib2)
-apply auto
-apply (erule_tac b = "m" in ssubst)
+apply (cut_tac k = m and m = k and n = n in gcd_mult_distrib2, auto)
+apply (erule_tac b = m in ssubst)
 apply (simp add: dvd_imp_nat1)
 done
 
@@ -324,12 +310,10 @@ by (blast intro: dvdI2 relprime_dvd_mult dvd_trans)
 
 lemma prime_imp_relprime: 
      "[| p \<in> prime;  ~ (p dvd n);  n \<in> nat |] ==> gcd (p, n) = 1"
-apply (unfold prime_def)
-apply clarify
+apply (unfold prime_def, clarify)
 apply (drule_tac x = "gcd (p,n)" in bspec)
 apply auto
-apply (cut_tac m = "p" and n = "n" in gcd_dvd2)
-apply auto
+apply (cut_tac m = p and n = n in gcd_dvd2, auto)
 done
 
 lemma prime_into_nat: "p \<in> prime ==> p \<in> nat"
@@ -351,7 +335,7 @@ by (blast intro: relprime_dvd_mult prime_imp_relprime prime_into_nat)
 (** Addition laws **)
 
 lemma gcd_add1 [simp]: "gcd (m #+ n, n) = gcd (m, n)"
-apply (subgoal_tac "gcd (m #+ natify (n) , natify (n)) = gcd (m, natify (n))")
+apply (subgoal_tac "gcd (m #+ natify (n), natify (n)) = gcd (m, natify (n))")
 apply simp
 apply (case_tac "natify (n) = 0")
 apply (auto simp add: Ord_0_lt_iff gcd_non_0)
@@ -359,8 +343,7 @@ done
 
 lemma gcd_add2 [simp]: "gcd (m, m #+ n) = gcd (m, n)"
 apply (rule gcd_commute [THEN trans])
-apply (subst add_commute)
-apply simp
+apply (subst add_commute, simp)
 apply (rule gcd_commute)
 done
 
@@ -426,10 +409,8 @@ by (simp add: mult_ac)
 
 lemma prime_not_square:
      "\<lbrakk>m \<in> nat; p \<in> prime\<rbrakk> \<Longrightarrow> \<forall>k \<in> nat. 0<k \<longrightarrow> m#*m \<noteq> p#*(k#*k)"
-apply (erule complete_induct)
-apply clarify
-apply (frule prime_dvd_other_side)
-apply assumption
+apply (erule complete_induct, clarify)
+apply (frule prime_dvd_other_side, assumption)
 apply assumption
 apply (erule dvdE)
 apply (simp add: mult_assoc mult_cancel1 prime_nonzero prime_into_nat)

@@ -18,7 +18,7 @@ translations
   "Apl(n,m)" == "App(0,n,m)"
   
 inductive
-  domains       "lambda" <= "redexes"
+  domains       "lambda" <= redexes
   intros
     Lambda_Var:  "               n \<in> nat ==>     Var(n) \<in> lambda"
     Lambda_Fun:  "            u \<in> lambda ==>     Fun(u) \<in> lambda"
@@ -156,20 +156,17 @@ inductive_cases  [elim!]: "Fun(t) =1=> Fun(u)"
 
 lemma red_Fun: "m--->n ==> Fun(m) ---> Fun(n)"
 apply (erule Sred.induct)
-apply (rule_tac [3] Sred.trans)
-apply simp_all
+apply (rule_tac [3] Sred.trans, simp_all)
 done
 
 lemma red_Apll: "[|n \<in> lambda; m ---> m'|] ==> Apl(m,n)--->Apl(m',n)"
 apply (erule Sred.induct)
-apply (rule_tac [3] Sred.trans)
-apply simp_all
+apply (rule_tac [3] Sred.trans, simp_all)
 done
 
 lemma red_Aplr: "[|n \<in> lambda; m ---> m'|] ==> Apl(n,m)--->Apl(n,m')"
 apply (erule Sred.induct)
-apply (rule_tac [3] Sred.trans)
-apply simp_all
+apply (rule_tac [3] Sred.trans, simp_all)
 done
 
 lemma red_Apl: "[|m ---> m'; n--->n'|] ==> Apl(m,n)--->Apl(m',n')"
@@ -179,7 +176,7 @@ done
 
 lemma red_beta: "[|m \<in> lambda; m':lambda; n \<in> lambda; n':lambda; m ---> m'; n--->n'|] ==>  
                Apl(Fun(m),n)---> n'/m'"
-apply (rule_tac n = "Apl (Fun (m') ,n') " in Sred.trans)
+apply (rule_tac n = "Apl (Fun (m'),n') " in Sred.trans)
 apply (simp_all add: red_Apl red_Fun)
 done
 

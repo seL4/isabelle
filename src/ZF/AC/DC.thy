@@ -175,7 +175,7 @@ apply (drule apply_type [OF _ nat_1I])
 apply (drule bspec [OF _ nat_0I])
 apply (simp add: XX_def, safe)
 apply (rule rev_bexI, assumption)
-apply (subgoal_tac "0 \<in> x", force)
+apply (subgoal_tac "0 \<in> y", force)
 apply (force simp add: RR_def
 	     intro: ltD elim!: nat_0_le [THEN leE])
 (** LEVEL 7, other subgoal **)
@@ -186,7 +186,7 @@ apply (simp (no_asm_use) add: XX_def RR_def)
 apply safe
 apply (frule_tac a="succ(k)" in domain_of_fun [symmetric, THEN trans], 
        assumption)
-apply (frule_tac a="xa" in domain_of_fun [symmetric, THEN trans], 
+apply (frule_tac a=y in domain_of_fun [symmetric, THEN trans], 
        assumption)
 apply (fast elim!: nat_into_Ord [THEN succ_in_succ] 
             dest!: bspec [OF _ nat_into_Ord [THEN succ_in_succ]])
@@ -208,7 +208,7 @@ apply (erule succE)
   apply (simp add: RR_def)
  apply (drule lemma2, assumption+)
  apply (fast dest!: domain_of_fun)
-apply (drule_tac x = "xa" in bspec, assumption)
+apply (drule_tac x = xa in bspec, assumption)
 apply (erule sym [THEN trans, symmetric])
 apply (rule restrict_eq_imp_val_eq [symmetric])
  apply (drule bspec [OF _ nat_succI], assumption)
@@ -392,7 +392,7 @@ lemma (in imp_DC0) simplify_recursion:
 apply (unfold RR_def allRR_def)
 apply (rule oallI, drule ltD)
 apply (erule nat_induct)
-apply (drule_tac x="0" in ospec, blast intro: Limit_has_0) 
+apply (drule_tac x=0 in ospec, blast intro: Limit_has_0) 
 apply (force simp add: singleton_fun [THEN domain_of_fun] singleton_in_funs) 
 (*induction step*) (** LEVEL 5 **)
 (*prevent simplification of ~\<exists> to \<forall>~ *)
@@ -409,7 +409,8 @@ apply (erule domainE)+
 apply (frule f_n_type)
 apply (simp add: XX_def, assumption+)
 apply (rule rev_bexI, erule nat_succI)
-apply (rule_tac x = "cons (<succ (xa), ya>, f`xa) " in bexI)
+apply (rename_tac m i j y z) 
+apply (rule_tac x = "cons(<succ(m), z>, f`m)" in bexI)
 prefer 2 apply (blast intro: cons_fun_type2) 
 apply (rule conjI)
 prefer 2 apply (fast del: ballI subsetI
@@ -497,7 +498,7 @@ apply (fast dest!: lesspoll_imp_ex_lt_eqpoll
             intro!: Ord_Hartog leI [THEN le_imp_subset])
 apply (erule allE impE)+
 apply (rule Card_Hartog)
-apply (erule_tac x = "A" in allE)
+apply (erule_tac x = A in allE)
 apply (erule_tac x = "{<z1,z2> \<in> Pow (A) *A . z1 \<prec> Hartog (A) & z2 \<notin> z1}" 
                  in allE)
 apply simp

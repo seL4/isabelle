@@ -25,8 +25,7 @@ lemma strip_lemma_r:
     "[|confluence(Spar_red1)|]==> strip"
 apply (unfold confluence_def strip_def)
 apply (rule impI [THEN allI, THEN allI])
-apply (erule Spar_red.induct)
-apply fast
+apply (erule Spar_red.induct, fast)
 apply (fast intro: Spar_red.trans)
 done
 
@@ -35,8 +34,7 @@ lemma strip_lemma_l:
     "strip==> confluence(Spar_red)"
 apply (unfold confluence_def strip_def)
 apply (rule impI [THEN allI, THEN allI])
-apply (erule Spar_red.induct)
-apply blast
+apply (erule Spar_red.induct, blast)
 apply clarify
 apply (blast intro: Spar_red.trans)
 done
@@ -47,12 +45,10 @@ done
 
 
 lemma parallel_moves: "confluence(Spar_red1)"
-apply (unfold confluence_def)
-apply clarify
+apply (unfold confluence_def, clarify)
 apply (frule simulation)
-apply (frule_tac n = "z" in simulation)
-apply clarify
-apply (frule_tac v = "va" in paving)
+apply (frule_tac n = z in simulation, clarify)
+apply (frule_tac v = va in paving)
 apply (force intro: completeness)+
 done
 
@@ -60,8 +56,7 @@ lemmas confluence_parallel_reduction =
       parallel_moves [THEN strip_lemma_r, THEN strip_lemma_l, standard]
 
 lemma lemma1: "[|confluence(Spar_red)|]==> confluence(Sred)"
-apply (unfold confluence_def, blast intro: par_red_red red_par_red)
-done
+by (unfold confluence_def, blast intro: par_red_red red_par_red)
 
 lemmas confluence_beta_reduction =
        confluence_parallel_reduction [THEN lemma1, standard]
@@ -100,8 +95,7 @@ declare Sconv.intros [intro]
 
 lemma conv_sym: "m<--->n ==> n<--->m"
 apply (erule Sconv.induct)
-apply (erule Sconv1.induct)
-apply blast+
+apply (erule Sconv1.induct, blast+)
 done
 
 (* ------------------------------------------------------------------------- *)

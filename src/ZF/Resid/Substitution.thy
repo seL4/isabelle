@@ -151,8 +151,7 @@ lemma lift_lift_rec [rule_format]:
      "u \<in> redexes 
       ==> \<forall>n \<in> nat. \<forall>i \<in> nat. i\<le>n -->    
            (lift_rec(lift_rec(u,i),succ(n)) = lift_rec(lift_rec(u,n),i))"
-apply (erule redexes.induct)
-apply auto
+apply (erule redexes.induct, auto)
 apply (case_tac "n < i")
 apply (frule lt_trans2, assumption)
 apply (simp_all add: lift_rec_Var leI)
@@ -173,11 +172,11 @@ lemma lift_rec_subst_rec [rule_format]:
                subst_rec(lift_rec(u,m),lift_rec(v,succ(m)),n)"
 apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
 apply safe
-apply (case_tac "n < x")
- apply (frule_tac j = "x" in lt_trans2, assumption)
- apply (simp add: leI)
-apply simp
-apply (erule_tac j = "n" in leE)
+apply (rename_tac n n' m u) 
+apply (case_tac "n < n'")
+ apply (frule_tac j = n' in lt_trans2, assumption)
+ apply (simp add: leI, simp)
+apply (erule_tac j=n in leE)
 apply (auto simp add: lift_rec_Var subst_Var leI lt_not_m1_lt)
 done
 
@@ -193,12 +192,13 @@ lemma lift_rec_subst_rec_lt [rule_format]:
        \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. m\<le>n--> 
           lift_rec(subst_rec(u,v,n),m) =  
                subst_rec(lift_rec(u,m),lift_rec(v,m),succ(n))"
-apply (erule redexes.induct , simp_all (no_asm_simp) add: lift_lift)
+apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
 apply safe
-apply (case_tac "n < x")
-apply (case_tac "n < xa")
+apply (rename_tac n n' m u) 
+apply (case_tac "n < n'")
+apply (case_tac "n < m")
 apply (simp_all add: leI)
-apply (erule_tac i = "x" in leE)
+apply (erule_tac i=n' in leE)
 apply (frule lt_trans1, assumption)
 apply (simp_all add: succ_pred leI gt_pred)
 done
@@ -207,10 +207,8 @@ done
 lemma subst_rec_lift_rec [rule_format]:
      "u \<in> redexes ==>   
         \<forall>n \<in> nat. \<forall>v \<in> redexes. subst_rec(v,lift_rec(u,n),n) = u"
-apply (erule redexes.induct)
-apply auto
-apply (case_tac "n < na")
-apply auto
+apply (erule redexes.induct, auto)
+apply (case_tac "n < na", auto)
 done
 
 lemma subst_rec_subst_rec [rule_format]:
@@ -219,21 +217,21 @@ lemma subst_rec_subst_rec [rule_format]:
 	  subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) = 
 	  subst_rec(w,subst_rec(u,v,m),n)"
 apply (erule redexes.induct)
-apply (simp_all add: lift_lift [symmetric] lift_rec_subst_rec_lt)
-apply safe
-apply (case_tac "n\<le>succ (xa) ")
- apply (erule_tac i = "n" in leE)
+apply (simp_all add: lift_lift [symmetric] lift_rec_subst_rec_lt, safe)
+apply (rename_tac n' u w) 
+apply (case_tac "n \<le> succ(n') ")
+ apply (erule_tac i = n in leE)
  apply (simp_all add: succ_pred subst_rec_lift_rec leI)
- apply (case_tac "n < x")
-  apply (frule lt_trans2 , assumption, simp add: gt_pred)
+ apply (case_tac "n < m")
+  apply (frule lt_trans2, assumption, simp add: gt_pred)
  apply simp
- apply (erule_tac j = "n" in leE, simp add: gt_pred)
+ apply (erule_tac j = n in leE, simp add: gt_pred)
  apply (simp add: subst_rec_lift_rec)
 (*final case*)
-apply (frule nat_into_Ord [THEN le_refl, THEN lt_trans] , assumption)
+apply (frule nat_into_Ord [THEN le_refl, THEN lt_trans], assumption)
 apply (erule leE)
- apply (frule succ_leI [THEN lt_trans] , assumption)
- apply (frule_tac i = "x" in nat_into_Ord [THEN le_refl, THEN lt_trans], 
+ apply (frule succ_leI [THEN lt_trans], assumption)
+ apply (frule_tac i = m in nat_into_Ord [THEN le_refl, THEN lt_trans], 
         assumption)
  apply (simp_all add: succ_pred lt_pred)
 done

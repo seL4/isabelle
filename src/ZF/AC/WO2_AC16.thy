@@ -45,7 +45,7 @@ done
 
 lemma recfunAC16_Limit: "Limit(i)   
         ==> recfunAC16(f,h,i,a) = (\<Union>j<i. recfunAC16(f,h,j,a))"
-by (simp add: recfunAC16_def transrec2_Limit);
+by (simp add: recfunAC16_def transrec2_Limit)
 
 (* ********************************************************************** *)
 (* Monotonicity of transrec2                                              *)
@@ -135,7 +135,7 @@ apply (rule oallI)
 apply (rule impI)
 apply (erule disjE)
 apply (frule ospec, erule Limit_has_succ, assumption) 
-apply (drule_tac A = "a" and x = "xa" in ospec, assumption)
+apply (drule_tac A = a and x = xa in ospec, assumption)
 apply (erule impE, rule le_refl [THEN disjI1], erule lt_Ord) 
 apply (blast intro: lemma3 Limit_has_succ) 
 apply (blast intro: lemma3) 
@@ -234,7 +234,7 @@ done
 lemma in_Least_Diff:
      "[| z \<in> F(x); Ord(x) |]   
       ==> z \<in> F(LEAST i. z \<in> F(i)) - (\<Union>j<(LEAST i. z \<in> F(i)). F(j))"
-by (fast elim: less_LeastE elim!: LeastI);
+by (fast elim: less_LeastE elim!: LeastI)
 
 lemma Least_eq_imp_ex:
      "[| (LEAST i. w \<in> F(i)) = (LEAST i. z \<in> F(i));   
@@ -291,7 +291,7 @@ lemma Union_recfunAC16_lesspoll:
          A\<approx>a;  y<a;  ~Finite(a);  Card(a);  n \<in> nat |]   
       ==> Union(recfunAC16(f,g,y,a))\<prec>a"
 apply (erule eqpoll_def [THEN def_imp_iff, THEN iffD1, THEN exE])
-apply (rule_tac T="A" in Union_lesspoll, simp_all)
+apply (rule_tac T=A in Union_lesspoll, simp_all)
 apply (blast intro!: eqpoll_imp_lepoll)
 apply (blast intro: bij_is_inj Card_is_Ord [THEN well_ord_Memrel]
                     well_ord_rvimage)
@@ -334,7 +334,7 @@ by (blast intro: disj_Un_eqpoll_nat_sum
 lemma lemma6:
      "[| \<forall>y<succ(j). F(y)<=X & (\<forall>x<a. x<y | P(x,y) --> Q(x,y)); succ(j)<a |]
       ==> F(j)<=X & (\<forall>x<a. x<j | P(x,j) --> Q(x,j))"
-by (blast intro!: lt_Ord succI1 [THEN ltI, THEN lt_Ord, THEN le_refl]); 
+by (blast intro!: lt_Ord succI1 [THEN ltI, THEN lt_Ord, THEN le_refl]) 
 
 
 lemma lemma7:
@@ -539,7 +539,7 @@ apply (erule_tac i="succ(xa)" and j=aa
 prefer 2 
 apply (drule spec [THEN spec, THEN mp, THEN subsetD], assumption+, blast) 
 (** LEVEL 20 **)
-apply (drule_tac x1="aa" in spec [THEN mp], assumption)
+apply (drule_tac x1=aa in spec [THEN mp], assumption)
 apply (frule succ_leE)
 apply (drule spec [THEN spec, THEN mp, THEN subsetD], assumption+, blast) 
 done

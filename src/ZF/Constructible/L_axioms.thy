@@ -1,9 +1,8 @@
-header {*The Class L Satisfies the ZF Axioms*}
+header {*The ZF Axioms (Except Separation) in L*}
 
 theory L_axioms = Formula + Relative + Reflection + MetaExists:
 
-
-text {* The class L satisfies the premises of locale @{text M_axioms} *}
+text {* The class L satisfies the premises of locale @{text M_triv_axioms} *}
 
 lemma transL: "[| y\<in>x; L(x) |] ==> L(y)"
 apply (insert Transset_Lset) 
@@ -47,7 +46,7 @@ apply (rule_tac x="\<Union>y \<in> Replace(X, %x y. Q(x,y) & L(y)). succ(lrank(y
        in exI)
 apply simp
 apply clarify 
-apply (rule_tac a="x" in UN_I)  
+apply (rule_tac a=x in UN_I)  
  apply (simp_all add: Replace_iff univalent_def) 
 apply (blast dest: transL L_I) 
 done
@@ -316,7 +315,7 @@ lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B";
 by blast
 
 
-subsection{*Internalized formulas for some relativized ones*}
+subsection{*Internalized Formulas for some Set-Theoretic Concepts*}
 
 lemmas setclass_simps = rall_setclass_is_ball rex_setclass_is_bex
 
@@ -341,7 +340,7 @@ translations
    "9"  == "succ(8)"
 
 
-subsubsection{*The Empty Set*}
+subsubsection{*The Empty Set, Internalized*}
 
 constdefs empty_fm :: "i=>i"
     "empty_fm(x) == Forall(Neg(Member(0,succ(x))))"
@@ -373,7 +372,7 @@ apply (intro FOL_reflections)
 done
 
 
-subsubsection{*Unordered pairs*}
+subsubsection{*Unordered Pairs, Internalized*}
 
 constdefs upair_fm :: "[i,i,i]=>i"
     "upair_fm(x,y,z) == 
@@ -420,7 +419,7 @@ apply (simp add: upair_def)
 apply (intro FOL_reflections)  
 done
 
-subsubsection{*Ordered pairs*}
+subsubsection{*Ordered pairs, Internalized*}
 
 constdefs pair_fm :: "[i,i,i]=>i"
     "pair_fm(x,y,z) == 
@@ -457,7 +456,7 @@ apply (intro FOL_reflections upair_reflection)
 done
 
 
-subsubsection{*Binary Unions*}
+subsubsection{*Binary Unions, Internalized*}
 
 constdefs union_fm :: "[i,i,i]=>i"
     "union_fm(x,y,z) == 
@@ -493,7 +492,7 @@ apply (intro FOL_reflections)
 done
 
 
-subsubsection{*`Cons' for sets*}
+subsubsection{*Set ``Cons,'' Internalized*}
 
 constdefs cons_fm :: "[i,i,i]=>i"
     "cons_fm(x,y,z) == 
@@ -530,7 +529,7 @@ apply (intro FOL_reflections upair_reflection union_reflection)
 done
 
 
-subsubsection{*Successor Function*}
+subsubsection{*Successor Function, Internalized*}
 
 constdefs succ_fm :: "[i,i]=>i"
     "succ_fm(x,y) == cons_fm(x,x,y)"
@@ -564,7 +563,7 @@ apply (intro cons_reflection)
 done
 
 
-subsubsection{*Function Applications*}
+subsubsection{*Function Application, Internalized*}
 
 constdefs fun_apply_fm :: "[i,i,i]=>i"
     "fun_apply_fm(f,x,y) == 
@@ -647,7 +646,7 @@ apply (intro FOL_reflections transitive_set_reflection)
 done
 
 
-subsubsection{*Membership Relation*}
+subsubsection{*Membership Relation, Internalized*}
 
 constdefs Memrel_fm :: "[i,i]=>i"
     "Memrel_fm(A,r) == 
@@ -685,7 +684,7 @@ apply (simp only: membership_def setclass_simps)
 apply (intro FOL_reflections pair_reflection)  
 done
 
-subsubsection{*Predecessor Set*}
+subsubsection{*Predecessor Set, Internalized*}
 
 constdefs pred_set_fm :: "[i,i,i,i]=>i"
     "pred_set_fm(A,x,r,B) == 
@@ -726,7 +725,7 @@ done
 
 
 
-subsubsection{*Domain*}
+subsubsection{*Domain of a Relation, Internalized*}
 
 (* "is_domain(M,r,z) == 
 	\<forall>x[M]. (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
@@ -765,7 +764,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Range*}
+subsubsection{*Range of a Relation, Internalized*}
 
 (* "is_range(M,r,z) == 
 	\<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
@@ -804,7 +803,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
  
-subsubsection{*Field*}
+subsubsection{*Field of a Relation, Internalized*}
 
 (* "is_field(M,r,z) == 
 	\<exists>dr[M]. is_domain(M,r,dr) & 
@@ -845,7 +844,7 @@ apply (intro FOL_reflections domain_reflection range_reflection
 done
 
 
-subsubsection{*Image*}
+subsubsection{*Image under a Relation, Internalized*}
 
 (* "image(M,r,A,z) == 
         \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
@@ -885,7 +884,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*The Concept of Relation*}
+subsubsection{*The Concept of Relation, Internalized*}
 
 (* "is_relation(M,r) == 
         (\<forall>z[M]. z\<in>r --> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
@@ -920,7 +919,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*The Concept of Function*}
+subsubsection{*The Concept of Function, Internalized*}
 
 (* "is_function(M,r) == 
 	\<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M]. 
@@ -960,7 +959,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Typed Functions*}
+subsubsection{*Typed Functions, Internalized*}
 
 (* "typed_function(M,A,B,r) == 
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
@@ -1021,7 +1020,7 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection{*Composition of Relations*}
+subsubsection{*Composition of Relations, Internalized*}
 
 (* "composition(M,r,s,t) == 
         \<forall>p[M]. p \<in> t <-> 
@@ -1066,7 +1065,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Injections*}
+subsubsection{*Injections, Internalized*}
 
 (* "injection(M,A,B,f) == 
 	typed_function(M,A,B,f) &
@@ -1111,7 +1110,7 @@ apply (intro FOL_reflections function_reflections typed_function_reflection)
 done
 
 
-subsubsection{*Surjections*}
+subsubsection{*Surjections, Internalized*}
 
 (*  surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) == 
@@ -1154,7 +1153,7 @@ done
 
 
 
-subsubsection{*Bijections*}
+subsubsection{*Bijections, Internalized*}
 
 (*   bijection :: "[i=>o,i,i,i] => o"
     "bijection(M,A,B,f) == injection(M,A,B,f) & surjection(M,A,B,f)" *)
@@ -1190,7 +1189,7 @@ apply (intro And_reflection injection_reflection surjection_reflection)
 done
 
 
-subsubsection{*Order-Isomorphisms*}
+subsubsection{*Order-Isomorphisms, Internalized*}
 
 (*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
    "order_isomorphism(M,A,r,B,s,f) == 
@@ -1246,7 +1245,7 @@ apply (simp only: order_isomorphism_def setclass_simps)
 apply (intro FOL_reflections function_reflections bijection_reflection)  
 done
 
-subsubsection{*Limit Ordinals*}
+subsubsection{*Limit Ordinals, Internalized*}
 
 text{*A limit ordinal is a non-empty, successor-closed ordinal*}
 

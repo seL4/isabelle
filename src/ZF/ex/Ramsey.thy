@@ -93,29 +93,27 @@ lemma pigeon2 [rule_format]:
           \<forall>n \<in> nat. \<forall>A B. Atleast((m#+n) #- succ(0), A Un B) -->    
                            Atleast(m,A) | Atleast(n,B)"
 apply (induct_tac "m")
-apply (blast intro!: Atleast0)
-apply (simp)
+apply (blast intro!: Atleast0, simp)
 apply (rule ballI)
 apply (rename_tac m' n) (*simplifier does NOT preserve bound names!*)
-apply (induct_tac "n")
-apply auto
+apply (induct_tac "n", auto)
 apply (erule Atleast_succD [THEN bexE])
 apply (rename_tac n' A B z)
 apply (erule UnE)
 (**case z \<in> B.  Instantiate the '\<forall>A B' induction hypothesis. **)
-apply (drule_tac [2] x1 = "A" and x = "B-{z}" in spec [THEN spec])
+apply (drule_tac [2] x1 = A and x = "B-{z}" in spec [THEN spec])
 apply (erule_tac [2] mp [THEN disjE])
 (*cases Atleast(succ(m1),A) and Atleast(succ(k),B)*)
 apply (erule_tac [3] asm_rl notE Atleast_Diff_succI)+
 (*proving the condition*)
 prefer 2 apply (blast intro: Atleast_superset)
 (**case z \<in> A.  Instantiate the '\<forall>n \<in> nat. \<forall>A B' induction hypothesis. **)
-apply (drule_tac x2="succ(n')" and x1="A-{z}" and x="B"
+apply (drule_tac x2="succ(n')" and x1="A-{z}" and x=B
        in bspec [THEN spec, THEN spec])
 apply (erule nat_succI)
 apply (erule mp [THEN disjE])
 (*cases Atleast(succ(m1),A) and Atleast(succ(k),B)*)
-apply (erule_tac [2] asm_rl Atleast_Diff_succI notE)+;
+apply (erule_tac [2] asm_rl Atleast_Diff_succI notE)+
 (*proving the condition*)
 apply simp
 apply (blast intro: Atleast_superset)
@@ -138,10 +136,8 @@ by (unfold Ramsey_def, blast)
   Ramsey_step_lemma.*)
 lemma Atleast_partition: "[| Atleast(m #+ n, A);  m \<in> nat;  n \<in> nat |]   
       ==> Atleast(succ(m), {x \<in> A. ~P(x)}) | Atleast(n, {x \<in> A. P(x)})"
-apply (rule nat_succI [THEN pigeon2])
-apply assumption+
-apply (rule Atleast_superset)
-apply auto
+apply (rule nat_succI [THEN pigeon2], assumption+)
+apply (rule Atleast_superset, auto)
 done
 
 (*For the Atleast part, proves ~(a \<in> I) from the second premise!*)
@@ -168,8 +164,7 @@ done
 lemma Ramsey_step_lemma:
    "[| Ramsey(succ(m), succ(i), j);  Ramsey(n, i, succ(j));   
        m \<in> nat;  n \<in> nat |] ==> Ramsey(succ(m#+n), succ(i), succ(j))"
-apply (unfold Ramsey_def)
-apply clarify
+apply (unfold Ramsey_def, clarify)
 apply (erule Atleast_succD [THEN bexE])
 apply (erule_tac P1 = "%z.<x,z>:E" in Atleast_partition [THEN disjE],
        assumption+)

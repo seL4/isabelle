@@ -42,8 +42,7 @@ constdefs
 
 lemma ValEnvE:
   "[| ve \<in> ValEnv; !!m.[| ve=ve_mk(m); m \<in> PMap(ExVar,Val) |] ==> Q |] ==> Q"
-apply (unfold Part_def Val_def ValEnv_def)
-apply (clarify ); 
+apply (unfold Part_def Val_def ValEnv_def, clarify) 
 apply (erule Val_ValEnv.cases) 
 apply (auto simp add: Val_def Part_def Val_ValEnv.con_defs)
 done
@@ -55,26 +54,22 @@ lemma ValE:
         [| v = v_clos(x,e,ve); x \<in> ExVar; e \<in> Exp; ve \<in> ValEnv |] ==> Q  
    |] ==>  
    Q"
-apply (unfold Part_def Val_def ValEnv_def)
-apply (clarify ); 
+apply (unfold Part_def Val_def ValEnv_def, clarify) 
 apply (erule Val_ValEnv.cases) 
-apply (auto simp add: ValEnv_def Part_def Val_ValEnv.con_defs);
+apply (auto simp add: ValEnv_def Part_def Val_ValEnv.con_defs)
 done
 
 (* Nonempty sets *)
 
 lemma v_closNE [simp]: "v_clos(x,e,ve) \<noteq> 0"
-apply (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs)
-apply blast
-done
+by (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs, blast)
 
 declare v_closNE [THEN notE, elim!]
 
 
 lemma v_constNE [simp]: "c \<in> Const ==> v_const(c) \<noteq> 0"
 apply (unfold QPair_def QInl_def QInr_def Val_ValEnv.con_defs)
-apply (drule constNEE)
-apply auto
+apply (drule constNEE, auto)
 done
 
 
@@ -102,8 +97,7 @@ lemma ve_appI: "[| ve \<in> ValEnv; x \<in> ve_dom(ve) |] ==> ve_app(ve,x):Val"
 by (erule ValEnvE, simp add: pmap_appI) 
 
 lemma ve_domI: "[| ve \<in> ValEnv; x \<in> ve_dom(ve) |] ==> x \<in> ExVar"
-apply (erule ValEnvE)
-apply (simp ); 
+apply (erule ValEnvE, simp) 
 apply (blast dest: pmap_domainD)
 done
 
@@ -115,8 +109,7 @@ done
 
 lemma ve_owrI:
      "[|ve \<in> ValEnv; x \<in> ExVar; v \<in> Val |] ==> ve_owr(ve,x,v):ValEnv"
-apply (erule ValEnvE)
-apply simp
+apply (erule ValEnvE, simp)
 apply (blast intro: pmap_owrI Val_ValEnv.intros)
 done
 

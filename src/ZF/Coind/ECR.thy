@@ -40,8 +40,7 @@ lemma htr_closCI [intro]:
          {<ve_app(ve,y),te_app(te,y)>.y \<in> ve_dom(ve)} \<in>
            Pow({<v_clos(x,e,ve),t>} Un HasTyRel) |]     
       ==> <v_clos(x, e, ve),t> \<in> HasTyRel"
-apply (rule singletonI [THEN HasTyRel.coinduct])
-apply auto
+apply (rule singletonI [THEN HasTyRel.coinduct], auto)
 done
 
 (* Specialised elimination rules *)
@@ -101,15 +100,13 @@ lemma consistency_fix:
       hastyenv(ve,te); <te,e_fix(f,x,e),t> \<in> ElabRel |] ==>        
    <cl,t> \<in> HasTyRel"
 apply (unfold hastyenv_def)
-apply (erule elab_fixE)
-apply safe
+apply (erule elab_fixE, safe)
 apply (rule subst, assumption) 
 apply (rule_tac te="te_owr(te, f, t_fun(t1, t2))" in htr_closCI)
 apply simp_all
 apply (blast intro: ve_owrI) 
 apply (rule ElabRel.fnI)
-apply (simp_all add: ValNEE)
-apply force
+apply (simp_all add: ValNEE, force)
 done
 
 
@@ -143,16 +140,13 @@ apply (erule elab_appE)
 apply (drule spec [THEN spec, THEN mp, THEN mp], assumption+)
 apply (drule spec [THEN spec, THEN mp, THEN mp], assumption+)
 apply (erule htr_closE)
-apply (erule elab_fnE)
-apply simp
+apply (erule elab_fnE, simp)
 apply clarify
 apply (drule spec [THEN spec, THEN mp, THEN mp])
 prefer 2 apply assumption+
-apply (rule hastyenv_owr)
-apply assumption
+apply (rule hastyenv_owr, assumption)
 apply assumption 
-apply (simp add: hastyenv_def)
-apply blast+
+apply (simp add: hastyenv_def, blast+)
 done
 
 lemma consistency [rule_format]:

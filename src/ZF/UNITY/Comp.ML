@@ -71,7 +71,9 @@ by (case_tac "I=0" 1);
 by (Force_tac 1);
 by (asm_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by Auto_tac;
-by (dres_inst_tac [("c", "xb"), ("A", "AllowedActs(H)")] subsetD 2);
+by (Blast_tac 1); 
+by (rename_tac "y" 1);
+by (dres_inst_tac [("c", "y"), ("A", "AllowedActs(H)")] subsetD 1);
 by (REPEAT(blast_tac (claset() addSEs [not_emptyE]) 1));
 qed "JN_component_iff";
 

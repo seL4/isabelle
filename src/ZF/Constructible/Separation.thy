@@ -1,8 +1,8 @@
-header{*Some Instances of Separation and Strong Replacement*}
-
-(*This theory proves all instances needed for locale M_axioms*)
+header{*Early Instances of Separation and Strong Replacement*}
 
 theory Separation = L_axioms + WF_absolute:
+
+text{*This theory proves all instances needed for locale @{text "M_axioms"}*}
 
 text{*Helps us solve for de Bruijn indices!*}
 lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
@@ -141,7 +141,7 @@ apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
-apply (rule_tac i=0 and j="2" and env="[p,u,r]" in mem_iff_sats, simp_all)
+apply (rule_tac i=0 and j=2 and env="[p,u,r]" in mem_iff_sats, simp_all)
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
@@ -166,7 +166,7 @@ apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
-apply (rule_tac i=0 and j="2" and env="[x,u,A]" in mem_iff_sats, simp_all)
+apply (rule_tac i=0 and j=2 and env="[x,u,A]" in mem_iff_sats, simp_all)
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
@@ -282,7 +282,7 @@ apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
-apply (rule_tac env = "[x,u,n,A]" in mem_iff_sats) 
+apply (rule_tac env = "[p,u,n,A]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
@@ -415,7 +415,7 @@ apply (erule reflection_imp_L_separation)
 apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,u,A,B,r]" in mem_iff_sats) 
+apply (rule_tac env = "[a,u,A,B,r]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
@@ -451,7 +451,7 @@ apply (erule reflection_imp_L_separation)
 apply (rule DPowI2)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,u,r,f,g,a,b]" in pair_iff_sats) 
+apply (rule_tac env = "[xa,u,r,f,g,a,b]" in pair_iff_sats) 
 apply (rule sep_rules | simp)+
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
@@ -627,89 +627,5 @@ declare Int_closed [intro,simp]
 declare finite_fun_closed [rule_format]
 declare is_funspace_abs [simp]
 declare finite_funspace_closed [intro,simp]
-
-
-(***NOW FOR THE LOCALE M_TRANCL***)
-
-subsection{*Separation for Reflexive/Transitive Closure*}
-
-subsubsection{*First, The Defining Formula*}
-
-(* "rtran_closure_mem(M,A,r,p) ==
-      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
-       omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
-       (\<exists>f[M]. typed_function(M,n',A,f) &
-	(\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
-	  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
-	(\<forall>j[M]. j\<in>n --> 
-	  (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
-	    fun_apply(M,f,j,fj) & successor(M,j,sj) &
-	    fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"*)
-constdefs rtran_closure_mem_fm :: "[i,i,i]=>i"
- "rtran_closure_mem_fm(A,r,p) == 
-   Exists(Exists(Exists(
-    And(omega_fm(2),
-     And(Member(1,2),
-      And(succ_fm(1,0),
-       Exists(And(typed_function_fm(1, A#+4, 0),
-	And(Exists(Exists(Exists(
-	      And(pair_fm(2,1,p#+7), 
-	       And(empty_fm(0),
-		And(fun_apply_fm(3,0,2), fun_apply_fm(3,5,1))))))),
-	    Forall(Implies(Member(0,3),
-	     Exists(Exists(Exists(Exists(
-	      And(fun_apply_fm(5,4,3),
-	       And(succ_fm(4,2),
-		And(fun_apply_fm(5,2,1),
-		 And(pair_fm(3,1,0), Member(0,r#+9))))))))))))))))))))"
-
-
-lemma rtran_closure_mem_type [TC]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> rtran_closure_mem_fm(x,y,z) \<in> formula"
-by (simp add: rtran_closure_mem_fm_def) 
-
-lemma arity_rtran_closure_mem_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
-      ==> arity(rtran_closure_mem_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: rtran_closure_mem_fm_def succ_Un_distrib [symmetric] Un_ac) 
-
-lemma sats_rtran_closure_mem_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, rtran_closure_mem_fm(x,y,z), env) <-> 
-        rtran_closure_mem(**A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: rtran_closure_mem_fm_def rtran_closure_mem_def)
-
-lemma rtran_closure_mem_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
-          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> rtran_closure_mem(**A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
-by (simp add: sats_rtran_closure_mem_fm)
-
-theorem rtran_closure_mem_reflection:
-     "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)), 
-               \<lambda>i x. rtran_closure_mem(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: rtran_closure_mem_def setclass_simps)
-apply (intro FOL_reflections function_reflections fun_plus_reflections)  
-done
-
-subsubsection{*Then, the Instance of Separation*}
-
-
-text{*This formula describes @{term "rtrancl(r)"}.*}
-lemma rtrancl_separation:
-     "[| L(r); L(A) |] ==> separation (L, rtran_closure_mem(L,A,r))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{r,A,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF rtran_closure_mem_reflection], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
-apply (rename_tac u)
-apply (rule_tac env = "[u,r,A]" in rtran_closure_mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
-
 
 end

@@ -235,7 +235,7 @@ done
 lemma AC3_AC1_lemma:
      "b\<notin>A ==> (\<Pi>x \<in> {a \<in> A. id(A)`a\<noteq>b}. id(A)`x) = (\<Pi>x \<in> A. x)"
 apply (simp add: id_def cong add: Pi_cong)
-apply (rule_tac b = "A" in subst_context, fast)
+apply (rule_tac b = A in subst_context, fast)
 done
 
 lemma AC3_AC1: "AC3 ==> AC1"

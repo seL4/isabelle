@@ -89,7 +89,7 @@ by (unfold uu_def, auto)
 
 lemma lemma2: "[| A\<noteq>0; 0\<notin>A |] ==> (\<Inter>x \<in> {uu(a). a \<in> A}. \<Union>b \<in> x. b) \<noteq> 0"
 apply (erule not_emptyE) 
-apply (rule_tac a = "0" in not_emptyI)
+apply (rule_tac a = 0 in not_emptyI)
 apply (fast intro!: lemma2_1)
 done
 

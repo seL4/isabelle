@@ -143,18 +143,15 @@ lemma lleq_Int_Vset_subset [rule_format]:
 apply (erule trans_induct)
 apply (intro allI impI)
 apply (erule lleq.cases)
-apply (unfold QInr_def llist.con_defs)
-apply safe
+apply (unfold QInr_def llist.con_defs, safe)
 apply (fast elim!: Ord_trans bspec [elim_format])
 done
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
 lemma lleq_symmetric: "<l,l'> \<in> lleq(A) ==> <l',l> \<in> lleq(A)"
 apply (erule lleq.coinduct [OF converseI]) 
-apply (rule lleq.dom_subset [THEN converse_type])
-apply safe
-apply (erule lleq.cases)
-apply blast+
+apply (rule lleq.dom_subset [THEN converse_type], safe)
+apply (erule lleq.cases, blast+)
 done
 
 lemma lleq_implies_equal: "<l,l'> \<in> lleq(A) ==> l=l'"
@@ -168,8 +165,7 @@ lemma equal_llist_implies_leq:
 apply (rule_tac X = "{<l,l>. l \<in> llist (A) }" in lleq.coinduct)
 apply blast
 apply safe
-apply (erule_tac a="l" in llist.cases)
-apply fast+
+apply (erule_tac a=l in llist.cases, fast+)
 done
 
 
@@ -220,25 +216,21 @@ lemma flip_llist_quniv_lemma [rule_format]:
      "Ord(i) ==> \<forall>l \<in> llist(bool). flip(l) Int Vset(i) \<subseteq> univ(eclose(bool))"
 apply (erule trans_induct)
 apply (rule ballI)
-apply (erule llist.cases)
-apply (simp_all)
+apply (erule llist.cases, simp_all)
 apply (simp_all add: QInl_def QInr_def llist.con_defs)
 (*LCons case: I simply can't get rid of the deepen_tac*)
 apply (tactic "deepen_tac (claset() addIs [Ord_trans] addIs [Int_lower1 RS subset_trans]) 2 1")
 done
 
 lemma flip_in_quniv: "l \<in> llist(bool) ==> flip(l) \<in> quniv(bool)"
-apply (rule flip_llist_quniv_lemma [THEN Int_Vset_subset, THEN qunivI])
-apply assumption+
-done
+by (rule flip_llist_quniv_lemma [THEN Int_Vset_subset, THEN qunivI], assumption+)
 
 lemma flip_type: "l \<in> llist(bool) ==> flip(l): llist(bool)"
 apply (rule_tac X = "{flip (l) . l \<in> llist (bool) }" in llist.coinduct)
 apply blast
 apply (fast intro!: flip_in_quniv)
 apply (erule RepFunE)
-apply (erule_tac a="la" in llist.cases)
-apply auto
+apply (erule_tac a=la in llist.cases, auto)
 done
 
 lemma flip_flip: "l \<in> llist(bool) ==> flip(flip(l)) = l"
@@ -247,7 +239,7 @@ apply (rule_tac X1 = "{<flip (flip (l)),l> . l \<in> llist (bool) }" in
 apply blast
 apply (fast intro!: flip_type)
 apply (erule RepFunE)
-apply (erule_tac a="la" in llist.cases)
+apply (erule_tac a=la in llist.cases)
 apply (simp_all add: flip_type not_not)
 done
 

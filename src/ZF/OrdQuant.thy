@@ -232,8 +232,7 @@ by (simp add: rall_def)
 
 (*Congruence rule for rewriting*)
 lemma rall_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x))
-     ==> rall(M, %x. P(x)) <-> rall(M, %x. P'(x))"
+    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> (ALL x[M]. P(x)) <-> (ALL x[M]. P'(x))"
 by (simp add: rall_def)
 
 
@@ -258,8 +257,7 @@ lemma rex_triv [simp]: "(EX x[M]. P) <-> ((EX x. M(x)) & P)"
 by (simp add: rex_def)
 
 lemma rex_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x))
-     ==> rex(M, %x. P(x)) <-> rex(M, %x. P'(x))"
+    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> (EX x[M]. P(x)) <-> (EX x[M]. P'(x))"
 by (simp add: rex_def cong: conj_cong)
 
 lemma rall_is_ball [simp]: "(\<forall>x[%z. z\<in>A]. P(x)) <-> (\<forall>x\<in>A. P(x))"

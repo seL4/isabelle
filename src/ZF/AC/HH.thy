@@ -88,14 +88,14 @@ done
 lemma HH_eq_arg_lt:
      "[| HH(f,x,v)=HH(f,x,w); HH(f,x,v) \<in> Pow(x)-{0}; v \<in> w |] ==> P"
 apply (frule_tac P = "%y. y \<in> Pow (x) -{0}" in subst, assumption)
-apply (drule_tac a = "w" in HH_subset_x_imp_subset_Diff_UN)
+apply (drule_tac a = w in HH_subset_x_imp_subset_Diff_UN)
 apply (drule subst_elem, assumption)
 apply (fast intro!: singleton_iff [THEN iffD2] equals0I)
 done
 
 lemma HH_eq_imp_arg_eq:
   "[| HH(f,x,v)=HH(f,x,w); HH(f,x,w) \<in> Pow(x)-{0}; Ord(v); Ord(w) |] ==> v=w"
-apply (rule_tac j = "w" in Ord_linear_lt)
+apply (rule_tac j = w in Ord_linear_lt)
 apply (simp_all (no_asm_simp))
  apply (drule subst_elem, assumption) 
  apply (blast dest: ltD HH_eq_arg_lt)

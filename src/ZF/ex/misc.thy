@@ -60,7 +60,7 @@ lemma "(\<forall>A f B g. hom(A,f,B,g) =
        (K O J) \<in> hom(A,f,C,h)"
 by force
 
-(*Another version , with meta-level rewriting*)
+(*Another version, with meta-level rewriting*)
 lemma "(!! A f B g. hom(A,f,B,g) ==  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
@@ -72,9 +72,7 @@ by force
 (** A characterization of functions suggested by Tobias Nipkow **)
 
 lemma "r \<in> domain(r)->B  <->  r \<subseteq> domain(r)*B & (\<forall>X. r `` (r -`` X) \<subseteq> X)"
-apply (unfold Pi_def function_def)
-apply best
-done
+by (unfold Pi_def function_def, best)
 
 (**** From D Pastre.  Automatic theorem proving in set theory. 
          Artificial Intelligence, 10:1--27, 1978.
@@ -138,11 +136,9 @@ lemma Pow_Sigma_bij:
      \<in> bij(Pow(Sigma(A,B)), \<Pi>x \<in> A. Pow(B(x)))"
 apply (rule_tac d = "%f. \<Union>x \<in> A. \<Union>y \<in> f`x. {<x,y>}" in lam_bijective)
 apply (blast intro: lam_type)
-apply (blast dest: apply_type)
-apply simp_all
+apply (blast dest: apply_type, simp_all)
 apply fast (*strange, but blast can't do it*)
-apply (rule fun_extension)
-apply auto
+apply (rule fun_extension, auto)
 by blast
 
 end

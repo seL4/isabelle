@@ -227,18 +227,20 @@ by (blast intro: univ0_downwards_mem)
 
 text{*Congruence rule for separation: can assume the variable is in @{text M}*}
 lemma separation_cong [cong]:
-     "(!!x. M(x) ==> P(x) <-> P'(x)) ==> separation(M,P) <-> separation(M,P')"
+     "(!!x. M(x) ==> P(x) <-> P'(x)) 
+      ==> separation(M, %x. P(x)) <-> separation(M, %x. P'(x))"
 by (simp add: separation_def) 
 
 text{*Congruence rules for replacement*}
 lemma univalent_cong [cong]:
      "[| A=A'; !!x y. [| x\<in>A; M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
-      ==> univalent(M,A,P) <-> univalent(M,A',P')"
+      ==> univalent(M, A, %x y. P(x,y)) <-> univalent(M, A', %x y. P'(x,y))"
 by (simp add: univalent_def) 
 
 lemma strong_replacement_cong [cong]:
      "[| !!x y. [| M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
-      ==> strong_replacement(M,P) <-> strong_replacement(M,P')" 
+      ==> strong_replacement(M, %x y. P(x,y)) <-> 
+          strong_replacement(M, %x y. P'(x,y))" 
 by (simp add: strong_replacement_def) 
 
 text{*The extensionality axiom*}
@@ -268,7 +270,7 @@ by (simp add: univ_def Collect_in_VLimit Limit_nat)
 
 lemma "separation(\<lambda>x. x \<in> univ(0), P)"
 apply (simp add: separation_def, clarify) 
-apply (rule_tac x = "Collect(x,P)" in bexI) 
+apply (rule_tac x = "Collect(z,P)" in bexI) 
 apply (blast intro: Collect_in_univ Transset_0)+
 done
 

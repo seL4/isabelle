@@ -39,7 +39,7 @@ lemma Union_subset_lfp:
      "bnd_mono(D,h) ==> (\<Union>n\<in>nat. h^n(0)) <= lfp(D,h)"
 apply (simp add: UN_subset_iff)
 apply (rule ballI)  
-apply (induct_tac x, simp_all) 
+apply (induct_tac n, simp_all) 
 apply (rule subset_trans [of _ "h(lfp(D,h))"])
  apply (blast dest: bnd_monoD2 [OF _ _ lfp_subset] )  
 apply (erule lfp_lemma2) 

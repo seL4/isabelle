@@ -74,7 +74,7 @@ by (unfold Hartog_def, fast elim: less_LeastE)
 
 lemma less_HartogE: "[| i < Hartog(A); i \<approx> Hartog(A) |] ==> P"
 by (blast intro: less_HartogE1 eqpoll_sym eqpoll_imp_lepoll 
-                 lepoll_trans [THEN Hartog_lepoll_selfE]);
+                 lepoll_trans [THEN Hartog_lepoll_selfE])
 
 lemma Card_Hartog: "Card(Hartog(A))"
 by (fast intro!: CardI Ord_Hartog elim: less_HartogE)

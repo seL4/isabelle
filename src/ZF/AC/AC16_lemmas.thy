@@ -82,7 +82,7 @@ lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) ==> z \<subseteq> suc
 apply (rule subsetI)
 apply (case_tac "\<forall>y \<in> z. y \<subseteq> x", blast )
 apply (simp, erule bexE) 
-apply (rule_tac i=xa and j=x in Ord_linear_le)
+apply (rule_tac i=y and j=x in Ord_linear_le)
 apply (blast dest: le_imp_subset elim: leE ltE)+
 done
 

@@ -619,7 +619,7 @@ apply (rule increasing_LimitI)
   apply (blast intro: Ord_in_Ord [OF Limit_is_Ord])
  apply (force simp add: Union_empty_iff oadd_eq_0_iff
                         Limit_is_Ord [of j, THEN Ord_in_Ord], auto)
-apply (rule_tac x="succ(x)" in bexI)
+apply (rule_tac x="succ(y)" in bexI)
  apply (simp add: ltI Limit_is_Ord [of j, THEN Ord_in_Ord])
 apply (simp add: Limit_def lt_def) 
 done

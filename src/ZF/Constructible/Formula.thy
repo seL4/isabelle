@@ -441,7 +441,7 @@ by (simp add: DPow_def, blast)
 
 lemma empty_in_DPow: "0 \<in> DPow(A)"
 apply (simp add: DPow_def)
-apply (rule_tac x="Nil" in bexI) 
+apply (rule_tac x=Nil in bexI) 
  apply (rule_tac x="Neg(Equal(0,0))" in bexI) 
   apply (auto simp add: Un_least_lt_iff) 
 done
@@ -729,7 +729,7 @@ subsection{*Constructible Ordinals: Kunen's VI, 1.9 (b)*}
 text{*The subset consisting of the ordinals is definable.*}
 lemma Ords_in_DPow: "Transset(A) ==> {x \<in> A. Ord(x)} \<in> DPow(A)"
 apply (simp add: DPow_def Collect_subset) 
-apply (rule_tac x="Nil" in bexI) 
+apply (rule_tac x=Nil in bexI) 
  apply (rule_tac x="ordinal_fm(0)" in bexI) 
 apply (simp_all add: sats_ordinal_fm)
 done 
@@ -927,7 +927,7 @@ declare Ord_lrank [THEN lrank_of_Ord, simp]
 text{*Kunen's VI, 1.10 *}
 lemma Lset_in_Lset_succ: "Lset(i) \<in> Lset(succ(i))";
 apply (simp add: Lset_succ DPow_def) 
-apply (rule_tac x="Nil" in bexI) 
+apply (rule_tac x=Nil in bexI) 
  apply (rule_tac x="Equal(0,0)" in bexI) 
 apply auto 
 done
@@ -998,7 +998,7 @@ apply simp
 apply (rule LsetI [OF succI1])
 apply (simp add: DPow_def) 
 apply (intro conjI, clarify) 
-apply (rule_tac a="x" in UN_I, simp+)  
+apply (rule_tac a=x in UN_I, simp+)  
 txt{*Now to create the formula @{term "y \<subseteq> X"} *}
 apply (rule_tac x="Cons(X,Nil)" in bexI) 
  apply (rule_tac x="subset_fm(0,1)" in bexI) 

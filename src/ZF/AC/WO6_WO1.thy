@@ -86,7 +86,7 @@ by (fast dest!: surj_imp_eq_ intro!: ltI elim!: ltE)
 lemma WO1_WO4: "WO1 ==> WO4(1)"
 apply (unfold WO1_def WO4_def)
 apply (rule allI)
-apply (erule_tac x = "A" in allE)
+apply (erule_tac x = A in allE)
 apply (erule exE)
 apply (intro exI conjI)
 apply (erule Ord_ordertype)
@@ -124,7 +124,7 @@ by (unfold WO4_def WO5_def WO6_def, blast)
 lemma lt_oadd_odiff_disj:
       "[| k < i++j;  Ord(i);  Ord(j) |] 
        ==> k < i  |  (~ k<i & k = i ++ (k--i) & (k--i)<j)"
-apply (rule_tac i = "k" and j = "i" in Ord_linear2)
+apply (rule_tac i = k and j = i in Ord_linear2)
 prefer 4 
    apply (drule odiff_lt_mono2, assumption)
    apply (simp add: oadd_odiff_inverse odiff_oadd_inverse)
@@ -467,7 +467,7 @@ done
 lemma NN_imp_ex_inj: "1 \<in> NN(y) ==> \<exists>a f. Ord(a) & f \<in> inj(y, a)"
 apply (unfold NN_def)
 apply (elim CollectE exE conjE)
-apply (rule_tac x = "a" in exI)
+apply (rule_tac x = a in exI)
 apply (rule_tac x = "\<lambda>x \<in> y. LEAST i. f`i = {x}" in exI)
 apply (rule conjI, assumption)
 apply (rule_tac d = "%i. THE x. x \<in> f`i" in lam_injective)
@@ -519,7 +519,7 @@ apply (unfold WO1_def)
 apply (rule allI)
 apply (case_tac "A=0")
 apply (fast intro!: well_ord_Memrel nat_0I [THEN nat_into_Ord])
-apply (rule_tac x1 = "A" in lemma_iv [THEN revcut_rl])
+apply (rule_tac x1 = A in lemma_iv [THEN revcut_rl])
 apply (erule exE)
 apply (drule WO6_imp_NN_not_empty)
 apply (erule Un_subset_iff [THEN iffD1, THEN conjE])

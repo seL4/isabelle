@@ -141,13 +141,13 @@ by (unfold transitive_rel_def trans_on_def, blast)
 lemma (in M_axioms) wf_on_imp_relativized: 
      "wf[A](r) ==> wellfounded_on(M,A,r)" 
 apply (simp add: wellfounded_on_def wf_def wf_on_def, clarify) 
-apply (drule_tac x="x" in spec, blast) 
+apply (drule_tac x=x in spec, blast) 
 done
 
 lemma (in M_axioms) wf_imp_relativized: 
      "wf(r) ==> wellfounded(M,r)" 
 apply (simp add: wellfounded_def wf_def, clarify) 
-apply (drule_tac x="x" in spec, blast) 
+apply (drule_tac x=x in spec, blast) 
 done
 
 lemma (in M_axioms) well_ord_imp_relativized: 
@@ -480,8 +480,8 @@ lemma (in M_axioms) wellordered_omap_bij:
 apply (insert omap_funtype [of A r f B i]) 
 apply (auto simp add: bij_def inj_def) 
 prefer 2  apply (blast intro: fun_is_surj dest: otype_eq_range) 
-apply (frule_tac a="w" in apply_Pair, assumption) 
-apply (frule_tac a="x" in apply_Pair, assumption) 
+apply (frule_tac a=w in apply_Pair, assumption) 
+apply (frule_tac a=x in apply_Pair, assumption) 
 apply (simp add: omap_iff) 
 apply (blast intro: wellordered_iso_pred_eq ord_iso_sym ord_iso_trans) 
 done
@@ -494,8 +494,8 @@ lemma (in M_axioms) omap_ord_iso:
 apply (rule ord_isoI)
  apply (erule wellordered_omap_bij, assumption+) 
 apply (insert omap_funtype [of A r f B i], simp) 
-apply (frule_tac a="x" in apply_Pair, assumption) 
-apply (frule_tac a="y" in apply_Pair, assumption) 
+apply (frule_tac a=x in apply_Pair, assumption) 
+apply (frule_tac a=y in apply_Pair, assumption) 
 apply (auto simp add: omap_iff)
  txt{*direction 1: assuming @{term "\<langle>x,y\<rangle> \<in> r"}*}
  apply (blast intro: ltD ord_iso_pred_imp_lt)

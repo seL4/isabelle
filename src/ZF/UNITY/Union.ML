@@ -251,15 +251,15 @@ qed "JN_Join_diff";
 Goalw [constrains_def, JOIN_def,st_set_def]
  "i:I==>(JN i:I. F(i)):A co B <-> (ALL i:I. programify(F(i)):A co B)";
 by Auto_tac;
-by (cut_inst_tac [("F","F(xa)")] Acts_type 1);
 by (Blast_tac 2);
-by (dres_inst_tac [("x", "xb")] bspec 1);
+by (rename_tac "j act y z" 1);
+by (cut_inst_tac [("F","F(j)")] Acts_type 1);
+by (dres_inst_tac [("x", "act")] bspec 1);
 by Auto_tac;
 qed "JN_constrains";
 
 Goal "(F Join G : A co B) <-> (programify(F):A co B & programify(G):A co B)";
-by (auto_tac
-    (claset(), simpset() addsimps [constrains_def]));
+by (auto_tac (claset(), simpset() addsimps [constrains_def]));
 qed "Join_constrains";
 
 Goal "(F Join G : A unless B) <-> \
@@ -288,7 +288,8 @@ val [major, minor] = Goal
 by (cut_facts_tac [minor] 1);
 by (asm_simp_tac (simpset() addsimps [JN_constrains]) 1);
 by (Clarify_tac 1);
-by (forw_inst_tac [("i", "x")] major 1);
+by (rename_tac "j" 1);
+by (forw_inst_tac [("i", "j")] major 1);
 by (ftac constrainsD2 1);
 by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
@@ -298,8 +299,8 @@ Goal "(JN i:I. F(i)): stable(A) <-> ((ALL i:I. programify(F(i)):stable(A)) & st_
 by (asm_simp_tac 
     (simpset() addsimps [stable_def, constrains_def, JOIN_def]) 1);
 by Auto_tac;
-by (cut_inst_tac [("F", "F(xa)")] Acts_type 1);
-by (dres_inst_tac [("x","xb")] bspec 1);
+by (cut_inst_tac [("F", "F(i)")] Acts_type 1);
+by (dres_inst_tac [("x","act")] bspec 1);
 by Auto_tac;
 qed "JN_stable";
 
@@ -366,7 +367,7 @@ Goal "i:I==>(JN i:I. F(i)) : transient(A) <-> \
 by (auto_tac (claset(),
               simpset() addsimps [transient_def, JOIN_def]));
 by (rewtac st_set_def);
-by (dres_inst_tac [("x", "xb")] bspec 2);
+by (dres_inst_tac [("x", "act")] bspec 2);
 by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "JN_transient";
 

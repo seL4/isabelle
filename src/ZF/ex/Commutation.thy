@@ -39,8 +39,7 @@ by (unfold square_def, blast)
 
 lemma square_rtrancl [rule_format]: 
      "square(r,s,s,t) --> field(s)<=field(t) --> square(r^*,s,s,t^*)"
-apply (unfold square_def)
-apply clarify
+apply (unfold square_def, clarify)
 apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_refl)
 apply (blast intro: rtrancl_into_rtrancl)
@@ -50,8 +49,7 @@ done
 lemma diamond_strip: 
  "diamond(r) ==> strip(r)"
 apply (unfold diamond_def commute_def strip_def)
-apply (rule square_rtrancl)
-apply simp_all
+apply (rule square_rtrancl, simp_all)
 done
 
 (*** commute ***)
@@ -62,8 +60,7 @@ by (unfold commute_def, blast intro: square_sym)
 
 lemma commute_rtrancl [rule_format]: 
     "commute(r,s) ==> field(r)=field(s) --> commute(r^*,s^*)"
-apply (unfold commute_def)
-apply clarify
+apply (unfold commute_def, clarify)
 apply (rule square_rtrancl)
 apply (rule square_sym [THEN square_rtrancl, THEN square_sym]) 
 apply (simp_all add: rtrancl_field)
@@ -89,24 +86,21 @@ by (unfold diamond_def, blast intro: commute_Un commute_sym)
 lemma diamond_confluent: 
     "diamond(r) ==> confluent(r)"
 apply (unfold diamond_def confluent_def)
-apply (erule commute_rtrancl)
-apply simp
+apply (erule commute_rtrancl, simp)
 done
 
 lemma confluent_Un: 
  "[| confluent(r); confluent(s); commute(r^*, s^*); 
      relation(r); relation(s) |] ==> confluent(r Un s)"
 apply (unfold confluent_def)
-apply (rule rtrancl_Un_rtrancl [THEN subst])
-apply auto
+apply (rule rtrancl_Un_rtrancl [THEN subst], auto)
 apply (blast dest: diamond_Un intro: diamond_confluent [THEN confluentD])
 done
 
 
 lemma diamond_to_confluence: 
      "[| diamond(r); s \<subseteq> r; r<= s^* |] ==> confluent(s)"
-apply (drule rtrancl_subset [symmetric])
-apply assumption
+apply (drule rtrancl_subset [symmetric], assumption)
 apply (simp_all add: confluent_def)
 apply (blast intro: diamond_confluent [THEN confluentD])
 done
@@ -117,13 +111,12 @@ done
 lemma Church_Rosser1: 
      "Church_Rosser(r) ==> confluent(r)"
 apply (unfold confluent_def Church_Rosser_def square_def 
-              commute_def diamond_def)
-apply auto
+              commute_def diamond_def, auto)
 apply (drule converseI)
 apply (simp (no_asm_use) add: rtrancl_converse [symmetric])
-apply (drule_tac x = "b" in spec)
-apply (drule_tac x1 = "c" in spec [THEN mp])
-apply (rule_tac b = "a" in rtrancl_trans)
+apply (drule_tac x = b in spec)
+apply (drule_tac x1 = c in spec [THEN mp])
+apply (rule_tac b = a in rtrancl_trans)
 apply (blast intro: rtrancl_mono [THEN subsetD])+
 done
 
@@ -131,12 +124,10 @@ done
 lemma Church_Rosser2: 
      "confluent(r) ==> Church_Rosser(r)"
 apply (unfold confluent_def Church_Rosser_def square_def 
-              commute_def diamond_def)
-apply auto
+              commute_def diamond_def, auto)
 apply (frule fieldI1)
 apply (simp add: rtrancl_field)
-apply (erule rtrancl_induct)
-apply auto
+apply (erule rtrancl_induct, auto)
 apply (blast intro: rtrancl_refl)
 apply (blast del: rtrancl_refl intro: r_into_rtrancl rtrancl_trans)+
 done

@@ -105,10 +105,8 @@ by (unfold map_emp_def PMap_def TMap_def, auto)
 
 lemma pmap_owrI: 
   "[| m \<in> PMap(A,B); a \<in> A; b \<in> B |]  ==> map_owr(m,a,b):PMap(A,B)"
-apply (unfold map_owr_def PMap_def TMap_def)
-apply safe
-apply (simp_all add: if_iff)
-apply auto
+apply (unfold map_owr_def PMap_def TMap_def, safe)
+apply (simp_all add: if_iff, auto)
 (*Remaining subgoal*)
 apply (rule excluded_middle [THEN disjE])
 apply (erule image_Sigma1)
@@ -130,8 +128,7 @@ lemma pmap_appI:
   "[| m \<in> PMap(A,B); a \<in> domain(m) |] ==> map_app(m,a):B"
 apply (unfold PMap_def)
 apply (frule tmap_app_notempty, assumption)
-apply (drule tmap_appI)
-apply auto
+apply (drule tmap_appI, auto)
 done
 
 (** domain **)

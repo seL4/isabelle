@@ -84,8 +84,8 @@ lemma (in M_axioms) is_recfun_equal [rule_format]:
        wellfounded(M,r);  trans(r);
        M(f); M(g); M(r); M(x); M(a); M(b) |] 
      ==> <x,a> \<in> r --> <x,b> \<in> r --> f`x=g`x"
-apply (frule_tac f="f" in is_recfun_type) 
-apply (frule_tac f="g" in is_recfun_type) 
+apply (frule_tac f=f in is_recfun_type) 
+apply (frule_tac f=g in is_recfun_type) 
 apply (simp add: is_recfun_def)
 apply (erule_tac a=x in wellfounded_induct, assumption+)
 txt{*Separation to justify the induction*}
@@ -107,7 +107,7 @@ lemma (in M_axioms) is_recfun_cut:
        wellfounded(M,r); trans(r); 
        M(f); M(g); M(r); <b,a> \<in> r |]   
       ==> restrict(f, r-``{b}) = g"
-apply (frule_tac f="f" in is_recfun_type) 
+apply (frule_tac f=f in is_recfun_type) 
 apply (rule fun_extension) 
 apply (blast intro: transD restrict_type2) 
 apply (erule is_recfun_type, simp) 

@@ -12,7 +12,7 @@ consts
 datatype
   "redexes" = Var ("n \<in> nat")            
             | Fun ("t \<in> redexes")
-            | App ("b \<in> bool" ,"f \<in> redexes" , "a \<in> redexes")
+            | App ("b \<in> bool","f \<in> redexes", "a \<in> redexes")
 
 
 consts
@@ -75,7 +75,7 @@ inductive
   type_intros    redexes.intros bool_typechecks
 
 inductive
-  domains       "Sreg" <= "redexes"
+  domains       "Sreg" <= redexes
   intros
     Reg_Var:     "n \<in> nat ==> regular(Var(n))"
     Reg_Fun:     "[|regular(u)|]==> regular(Fun(u))"
@@ -161,14 +161,12 @@ by (erule Scomp.induct, blast+)
 
 lemma union_l: "u ~ v ==> u <== (u un v)"
 apply (erule Scomp.induct)
-apply (erule_tac [3] boolE)
-apply simp_all
+apply (erule_tac [3] boolE, simp_all)
 done
 
 lemma union_r: "u ~ v ==> v <== (u un v)"
 apply (erule Scomp.induct)
-apply (erule_tac [3] c = "b2" in boolE)
-apply simp_all
+apply (erule_tac [3] c = b2 in boolE, simp_all)
 done
 
 lemma union_sym: "u ~ v ==> u un v = v un u"
@@ -180,8 +178,7 @@ by (erule Scomp.induct, simp_all add: or_commute)
 
 lemma union_preserve_regular [rule_format]:
      "u ~ v ==> regular(u)-->regular(v)-->regular(u un v)"
-apply (erule Scomp.induct)
-apply auto
+apply (erule Scomp.induct, auto)
 (*select the given assumption for simplification*)
 apply (erule_tac P = "regular (Fun (?u) un ?v) " in rev_mp)
 apply simp

@@ -54,8 +54,7 @@ by auto
 lemma te_appI:
      "[| te \<in> TyEnv; x \<in> ExVar; x \<in> te_dom(te) |] ==> te_app(te,x) \<in> Ty"
 apply (erule_tac P = "x \<in> te_dom (te) " in rev_mp)
-apply (erule TyEnv.induct)
-apply auto
+apply (erule TyEnv.induct, auto)
 done
 
 

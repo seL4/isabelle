@@ -21,7 +21,7 @@ apply (unfold Finite_def)
 apply (erule bexE)
 apply (drule eqpoll_sym [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]])
 apply (erule exE)
-apply (rule_tac x = "n" in exI)
+apply (rule_tac x = n in exI)
 apply (rule_tac x = "\<lambda>i \<in> n. {f`i}" in exI)
 apply (simp add: ltD bij_def surj_def)
 apply (fast intro!: ltI nat_into_Ord lam_funtype [THEN domain_of_fun] 
@@ -267,7 +267,7 @@ lemma (in AC16) ex1_superset_a:
       ==> \<exists>! c. c \<in> s(u) & a \<subseteq> c & b \<in> c"
 apply (rule all_ex [simplified k_def, THEN ballE])
  apply (erule ex1E)
- apply (rule_tac a = "w" in ex1I, blast intro: sI)
+ apply (rule_tac a = w in ex1I, blast intro: sI)
  apply (blast dest: s_subset [THEN subsetD] in_s_imp_u_in)
 apply (blast del: PowI 
              intro!: cons_cons_subset eqpoll_sym [THEN cons_cons_eqpoll])
@@ -295,7 +295,7 @@ apply (rule conjI)
 apply (rule lam_type)
 apply (frule ex1_superset_a [THEN theI], fast+, clarify)
 apply (rule cons_eqE [of _ a])
-apply (drule_tac A = "THE c. ?P (c) " and C = "y" in eq_imp_Int_eq)
+apply (drule_tac A = "THE c. ?P (c) " and C = y in eq_imp_Int_eq)
 apply (simp_all add: the_eq_cons)
 done
 
@@ -412,7 +412,7 @@ lemma (in AC16) unique_superset_in_MM:
      "v \<in> LL ==> \<exists>! w. w \<in> MM & v \<subseteq> w"
 apply (unfold MM_def LL_def, safe, fast)
 apply (rule lepoll_imp_eqpoll_subset [THEN exE], assumption)
-apply (rule_tac x = "x" in all_ex [THEN ballE]) 
+apply (rule_tac x = x in all_ex [THEN ballE]) 
 apply (blast intro: eqpoll_sym)+
 done
 
@@ -436,7 +436,7 @@ apply (auto simp add: Int_in_LL)
 done
 
 lemma (in AC16) unique_superset1: "a \<in> LL \<Longrightarrow> (THE x. x \<in> MM \<and> a \<subseteq> x) \<in> MM"
-by (erule unique_superset_in_MM [THEN theI, THEN conjunct1]); 
+by (erule unique_superset_in_MM [THEN theI, THEN conjunct1]) 
 
 lemma (in AC16) the_in_MM_subset:
      "v \<in> LL ==> (THE x. x \<in> MM & v \<subseteq> x) \<subseteq> x Un y"

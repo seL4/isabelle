@@ -597,7 +597,7 @@ apply (erule list.induct)
  apply simp_all
 txt{*Inductive step*}  
 apply clarify 
-apply (erule_tac a = xa in list.cases, simp_all)  
+apply (erule_tac a=ys in list.cases, simp_all)  
 done
 
 
@@ -761,8 +761,8 @@ apply (induct_tac "k")
 apply (simp_all (no_asm_simp) add: lt_succ_eq_0_disj all_conj_distrib)
 apply clarify
 (*Both lists are non-empty*)
-apply (erule_tac a="xa" in list.cases, simp) 
-apply (erule_tac a="xb" in list.cases, clarify) 
+apply (erule_tac a="xs" in list.cases, simp) 
+apply (erule_tac a="ys" in list.cases, clarify) 
 apply (simp (no_asm_use) )
 apply clarify
 apply (simp (no_asm_simp))
@@ -847,7 +847,7 @@ lemma zip_aux_unique [rule_format]:
 apply (induct_tac xs) 
  apply simp_all 
  apply (blast intro: list_mono [THEN subsetD], clarify) 
-apply (erule_tac a=x in list.cases , auto) 
+apply (erule_tac a=ys in list.cases , auto) 
 apply (blast intro: list_mono [THEN subsetD]) 
 done
 
@@ -875,7 +875,7 @@ lemma length_zip [rule_format,simp]:
 apply (unfold min_def)
 apply (induct_tac "xs", simp_all) 
 apply clarify 
-apply (erule_tac a = "x" in list.cases, auto)
+apply (erule_tac a = ys in list.cases, auto)
 done
 
 lemma zip_append1 [rule_format]:
@@ -1011,13 +1011,13 @@ lemma update_zip [rule_format]:
                                           list_update(ys, i, snd(xy)))"
 apply (induct_tac "ys")
  apply auto
-apply (erule_tac a = "xc" in list.cases)
+apply (erule_tac a = "xs" in list.cases)
 apply (auto elim: natE)
 done
 
 lemma set_update_subset_cons [rule_format]:
-     "xs:list(A) ==> \<forall>i \<in> nat. set_of_list(list_update(xs, i, x))
-   <= cons(x, set_of_list(xs))"
+  "xs:list(A) ==> 
+   \<forall>i \<in> nat. set_of_list(list_update(xs, i, x)) <= cons(x, set_of_list(xs))"
 apply (induct_tac "xs")
  apply simp
 apply (rule ballI)
@@ -1121,13 +1121,13 @@ apply simp
 apply simp 
 apply (subst map_succ_upt [symmetric], simp_all)
 apply clarify 
-apply (subgoal_tac "xa < length (upt (0, x))")
+apply (subgoal_tac "i < length (upt (0, x))")
  prefer 2 
  apply (simp add: less_diff_conv) 
- apply (rule_tac j = "succ (xa #+ y) " in lt_trans2)
+ apply (rule_tac j = "succ (i #+ y) " in lt_trans2)
   apply simp 
  apply simp 
-apply (subgoal_tac "xa < length (upt (y, x))")
+apply (subgoal_tac "i < length (upt (y, x))")
  apply (simp_all add: add_commute less_diff_conv)
 done
 

@@ -24,7 +24,7 @@ lemma lepoll_imp_ex_le_eqpoll:
      "[| A \<lesssim> i; Ord(i) |] ==> \<exists>j. j le i & A \<approx> j"
 by (blast intro!: lepoll_cardinal_le well_ord_Memrel 
                   well_ord_cardinal_eqpoll [THEN eqpoll_sym]
-          dest: lepoll_well_ord);
+          dest: lepoll_well_ord)
 
 (* j=|A| *)
 lemma lesspoll_imp_ex_lt_eqpoll: 
@@ -87,7 +87,7 @@ by (fast intro!: paired_eqpoll equals0I elim: mem_asym)
   above?*)
 lemma Un_lepoll_Inf_Ord:
      "[| A \<lesssim> i; B \<lesssim> i; ~Finite(i); Ord(i) |] ==> A Un B \<lesssim> i"
-apply (rule_tac A1 = "i" and C1 = "i" in ex_eqpoll_disjoint [THEN exE])
+apply (rule_tac A1 = i and C1 = i in ex_eqpoll_disjoint [THEN exE])
 apply (erule conjE)
 apply (drule lepoll_trans) 
 apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll])
@@ -144,7 +144,7 @@ done
 lemma UN_fun_lepoll:
      "[| \<forall>b \<in> a. f`b \<lesssim> n & f`b \<subseteq> T; well_ord(T, R);   
          ~Finite(a); Ord(a); n \<in> nat |] ==> (\<Union>b \<in> a. f`b) \<lesssim> a"
-by (blast intro: UN_fun_lepoll_lemma); 
+by (blast intro: UN_fun_lepoll_lemma) 
 
 lemma UN_lepoll:
      "[| \<forall>b \<in> a. F(b) \<lesssim> n & F(b) \<subseteq> T; well_ord(T, R);   
@@ -164,7 +164,7 @@ apply (erule UN_E)
 apply (rule UN_I)
  apply (rule_tac P = "%z. x \<in> F (z) " in Least_in_Ord, (assumption+))
 apply (rule DiffI, best intro: Ord_in_Ord LeastI, clarify)
-apply (erule_tac P = "%z. x \<in> F (z) " and i = "c" in less_LeastE)
+apply (erule_tac P = "%z. x \<in> F (z) " and i = c in less_LeastE)
 apply (blast intro: Ord_Least ltI)
 done
 

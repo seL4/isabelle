@@ -748,8 +748,7 @@ done
 
 lemma cf_least:
     "[|cpo(D); pcpo(E); y \<in> cont(D,E)|]==>rel(cf(D,E),(\<lambda>x \<in> set(D).bot(E)),y)"
-apply (rule rel_cfI, simp)
-apply typecheck
+apply (rule rel_cfI, simp, typecheck)
 done
 
 lemma pcpo_cf:

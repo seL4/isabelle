@@ -317,12 +317,15 @@ Goal "xs:list(A) ==> \
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_succ_eq_0_disj]))); 
 by (Clarify_tac 1);
-by (case_tac "x=[]" 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [neq_Nil_iff])));
+by (eres_inst_tac [("a","ys")] list.elim 1); 
+by (ALLGOALS Asm_full_simp_tac);
 by (Clarify_tac 1);
-by (dres_inst_tac [("x", "ys")] bspec 1);
+by (rename_tac "zs" 1);
+by (dres_inst_tac [("x", "zs")] bspec 1);
 by (ALLGOALS(Clarify_tac));
-by Auto_tac;
+(*Faster than Auto_tac*)
+by (rtac conjI 1); 
+by (REPEAT (Force_tac 1));
 qed_spec_mp "nth_imp_gen_prefix";
 
 Goal "(<xs,ys>: gen_prefix(A,r)) <-> \
@@ -484,7 +487,7 @@ by (dres_inst_tac [("i", "length(zs)")] leI 1);
 by (force_tac (claset(), simpset() addsimps [le_subset_iff]) 1);
 by Safe_tac;
 by (Blast_tac 1);
-by (subgoal_tac "length(xs) #+ (x #- length(xs)) = x" 1);
+by (subgoal_tac "length(xs) #+ (i #- length(xs)) = i" 1);
 by (stac nth_drop 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [leI])));
 by (rtac (nat_diff_split RS iffD2) 1);
@@ -501,8 +504,7 @@ by (eres_inst_tac [("xs", "ysa")] rev_list_elim 1);
 by (Asm_full_simp_tac 1);
 by (dres_inst_tac [("psi", "ya:list(A)")] asm_rl 1);
 by (rotate_tac ~1 1);
-by (asm_full_simp_tac (simpset() addsimps
-           [app_type, app_assoc RS sym] delsimps [app_assoc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [app_type, app_assoc RS sym]) 1);
 by (auto_tac (claset(), simpset() addsimps [app_assoc, app_type]));
 qed "prefix_snoc";
 Addsimps [prefix_snoc];
@@ -514,13 +516,11 @@ Goal "zs:list(A) ==> ALL xs:list(A). ALL ys:list(A). \
 by (etac list_append_induct 1);
 by (Clarify_tac 2);
 by (rtac iffI 2);
-by (asm_full_simp_tac (simpset()  delsimps [app_assoc]
-                                 addsimps [app_assoc RS sym]) 2);
+by (asm_full_simp_tac (simpset() addsimps [app_assoc RS sym]) 2);
 by (etac disjE 2 THEN etac disjE 3);
 by (rtac disjI2 2);
 by (res_inst_tac [("x", "y @ [x]")] exI 2);
-by (asm_full_simp_tac (simpset()  delsimps [app_assoc]
-                                 addsimps [app_assoc RS sym]) 2);
+by (asm_full_simp_tac (simpset() addsimps [app_assoc RS sym]) 2);
 by (REPEAT(Force_tac 1));
 qed_spec_mp "prefix_append_iff";
 

@@ -10,5 +10,5 @@ Build using	isatool usedir  -d pdf ZF Constructible
 
 use_thy "Reflection";
 use_thy "WF_absolute";
-use_thy "Separation";
+use_thy "Rec_Separation";
 use_thy "Datatype_absolute";

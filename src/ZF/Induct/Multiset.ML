@@ -831,8 +831,8 @@ Goalw [multirel1_def]  "A<=B ==> multirel1(A, r)<=multirel1(B, r)";
 by (auto_tac (claset(), simpset() addsimps []));
 by (ALLGOALS(asm_full_simp_tac(simpset() 
     addsimps [Un_subset_iff, Mult_iff_multiset])));
-by (res_inst_tac [("x", "x")] bexI 3);
-by (res_inst_tac [("x", "xb")] bexI 3);
+by (res_inst_tac [("x", "a")] bexI 3);
+by (res_inst_tac [("x", "M0")] bexI 3);
 by (Asm_simp_tac 3);
 by (res_inst_tac [("x", "K")] bexI 3);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [Mult_iff_multiset])));
@@ -841,8 +841,8 @@ qed "multirel1_mono1";
 
 Goalw [multirel1_def] "r<=s ==> multirel1(A,r)<=multirel1(A, s)";
 by (auto_tac (claset(), simpset() addsimps []));
-by (res_inst_tac [("x", "x")] bexI 1);
-by (res_inst_tac [("x", "xb")] bexI 1);
+by (res_inst_tac [("x", "a")] bexI 1);
+by (res_inst_tac [("x", "M0")] bexI 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [Mult_iff_multiset])));
 by (res_inst_tac [("x", "K")] bexI 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [Mult_iff_multiset])));

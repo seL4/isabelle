@@ -214,7 +214,7 @@ lemma ack_add_bound:
   "[| i1 \<in> nat; i2 \<in> nat; j \<in> nat |]
     ==> ack(i1,j) #+ ack(i2,j) < ack(succ(succ(succ(succ(i1#+i2)))), j)"
   -- {* PROPERTY A 11 *}
-  apply (rule_tac j = "ack (succ (1) , ack (i1 #+ i2, j))" in lt_trans)
+  apply (rule_tac j = "ack (succ (1), ack (i1 #+ i2, j))" in lt_trans)
    apply (simp add: ack_2)
    apply (rule_tac [2] ack_nest_bound [THEN lt_trans2])
       apply (rule add_le_mono [THEN leI, THEN leI])
@@ -265,7 +265,7 @@ lemma PROJ_case [rule_format]:
    apply (simp add: nat_0_le)
   apply simp
   apply (rule ballI)
-  apply (erule_tac n = "x" in natE)
+  apply (erule_tac n = i in natE)
    apply (simp add: add_le_self)
   apply simp
   apply (erule bspec [THEN lt_trans2])

@@ -21,13 +21,13 @@ lemma wfrank: "wf(r) ==> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y
 by (subst wfrank_def [THEN def_wfrec], simp_all)
 
 lemma Ord_wfrank: "wf(r) ==> Ord(wfrank(r,a))"
-apply (rule_tac a="a" in wf_induct, assumption)
+apply (rule_tac a=a in wf_induct, assumption)
 apply (subst wfrank, assumption)
 apply (rule Ord_succ [THEN Ord_UN], blast)
 done
 
 lemma wfrank_lt: "[|wf(r); <a,b> \<in> r|] ==> wfrank(r,a) < wfrank(r,b)"
-apply (rule_tac a1 = "b" in wfrank [THEN ssubst], assumption)
+apply (rule_tac a1 = b in wfrank [THEN ssubst], assumption)
 apply (rule UN_I [THEN ltI])
 apply (simp add: Ord_wfrank vimage_iff)+
 done
@@ -141,8 +141,7 @@ lemma (in M_axioms) rtran_closure_mem_iff:
             (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
                            (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
 apply (simp add: rtran_closure_mem_def typed_apply_abs
-                 Ord_succ_mem_iff nat_0_le [THEN ltD])
-apply (blast intro: elim:); 
+                 Ord_succ_mem_iff nat_0_le [THEN ltD], blast) 
 done
 
 locale M_trancl = M_axioms +
@@ -159,7 +158,7 @@ lemma (in M_trancl) rtran_closure_rtrancl:
      "M(r) ==> rtran_closure(M,r,rtrancl(r))"
 apply (simp add: rtran_closure_def rtran_closure_mem_iff 
                  rtrancl_alt_eq_rtrancl [symmetric] rtrancl_alt_def)
-apply (auto simp add: nat_0_le [THEN ltD] apply_funtype); 
+apply (auto simp add: nat_0_le [THEN ltD] apply_funtype) 
 done
 
 lemma (in M_trancl) rtrancl_closed [intro,simp]:
@@ -177,7 +176,7 @@ apply (rule iffI)
 apply (rule M_equalityI)
 apply (simp add: rtran_closure_def rtrancl_alt_eq_rtrancl [symmetric]
                  rtrancl_alt_def rtran_closure_mem_iff)
-apply (auto simp add: nat_0_le [THEN ltD] apply_funtype); 
+apply (auto simp add: nat_0_le [THEN ltD] apply_funtype) 
 done
 
 lemma (in M_trancl) trancl_closed [intro,simp]:
@@ -235,10 +234,10 @@ rank function.*}
 
 (*NEEDS RELATIVIZATION*)
 locale M_wfrank = M_trancl +
-  assumes wfrank_separation':
+  assumes wfrank_separation:
      "M(r) ==>
-	separation
-	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
+      separation (M, \<lambda>x. 
+         ~ (\<exists>f[M]. M_is_recfun(M, r^+, x, %mm x f y. y = range(f), f)))"
  and wfrank_strong_replacement':
      "M(r) ==>
       strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>f[M]. 
@@ -247,7 +246,15 @@ locale M_wfrank = M_trancl +
  and Ord_wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x. ~ (\<forall>f. M(f) \<longrightarrow>
-                       is_recfun(r^+, x, \<lambda>x. range, f) \<longrightarrow> Ord(range(f))))"
+                       is_recfun(r^+, x, \<lambda>x. range, f) \<longrightarrow> Ord(range(f))))" 
+
+lemma (in M_wfrank) wfrank_separation':
+     "M(r) ==>
+      separation
+	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
+apply (insert wfrank_separation [of r])
+apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+done
 
 text{*This function, defined using replacement, is a rank function for
 well-founded relations within the class M.*}
