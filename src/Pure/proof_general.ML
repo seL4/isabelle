@@ -1159,16 +1159,19 @@ fun process_pgip_element pgipxml = (case pgipxml of
 						(op =) 
 						(! print_mode, ["xsymbols", "symbols"])))
      (* properproofcmd: proper commands which belong in script *)
+     (* FIXME: next ten are by Eclipse interface, can be removed in favour of dostep *)
      | "opengoal"       => isarscript data
      | "proofstep"      => isarscript data
      | "closegoal"      => isarscript data
      | "giveupgoal"     => isarscript data
      | "postponegoal"   => isarscript data
      | "comment"	=> isarscript data  (* NB: should be ignored, but process anyway *)
+     | "whitespace"	=> isarscript data  (* NB: should be ignored, but process anyway *)
      | "litcomment"     => isarscript data
      | "spuriouscmd"    => isarscript data
      | "badcmd"		=> isarscript data
      (* improperproofcmd: improper commands which *do not* belong in script *)
+     | "dostep"         => isarscript data
      | "undostep"       => isarcmd "undos_proof 1"
      | "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
      | "forget"         => error "Not implemented" 
@@ -1183,6 +1186,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "setlinewidth"   => isarcmd ("pretty_setmargin " ^ (xmltext data))
      | "viewdoc"	=> isarcmd ("print_" ^ (xmltext data)) (* FIXME: isatool doc? *)
      (* properfilecmd: proper theory-level script commands *)
+     (* FIXME: next three are sent by Eclipse, can be removed in favour of doitem *)
      | "opentheory"     => isarscript data
      | "theoryitem"     => isarscript data
      | "closetheory"    => let 
@@ -1191,6 +1195,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
 			       writeln ("Theory \""^thyname^"\" completed."))
 			   end
      (* improperfilecmd: theory-level commands not in script *)
+     | "doitem"         => isarscript data
      | "undoitem"       => isarcmd "ProofGeneral.undo"
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
