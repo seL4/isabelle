@@ -65,6 +65,13 @@ sig
     (string * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
   val add_trfunsT:
     (string * (bool -> typ -> term list -> term)) list -> theory -> theory
+  val add_advanced_trfuns:
+    (string * (Sign.sg -> Syntax.ast list -> Syntax.ast)) list *
+    (string * (Sign.sg -> term list -> term)) list *
+    (string * (Sign.sg -> term list -> term)) list *
+    (string * (Sign.sg -> Syntax.ast list -> Syntax.ast)) list -> theory -> theory
+  val add_advanced_trfunsT:
+    (string * (Sign.sg -> bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * real)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (string -> string * real)) list
@@ -133,7 +140,7 @@ fun rep_theory (Theory args) = args;
 
 val sign_of = #sign o rep_theory;
 val is_draft = Sign.is_draft o sign_of;
-val syn_of = #syn o Sign.rep_sg o sign_of;
+val syn_of = Sign.syn_of o sign_of;
 val parents_of = #parents o rep_theory;
 val ancestors_of = #ancestors o rep_theory;
 
@@ -195,43 +202,45 @@ fun ext_theory thy ext_sg ext_deps new_axms new_oras =
 
 fun ext_sign extfun decls thy = ext_theory thy (extfun decls) I [] [];
 
-val add_classes      = ext_sign Sign.add_classes;
-val add_classes_i    = ext_sign Sign.add_classes_i;
-val add_classrel     = ext_sign Sign.add_classrel;
-val add_classrel_i   = ext_sign Sign.add_classrel_i;
-val add_defsort      = ext_sign Sign.add_defsort;
-val add_defsort_i    = ext_sign Sign.add_defsort_i;
-val add_types        = ext_sign Sign.add_types;
-val add_nonterminals = ext_sign Sign.add_nonterminals;
-val add_tyabbrs      = ext_sign Sign.add_tyabbrs;
-val add_tyabbrs_i    = ext_sign Sign.add_tyabbrs_i;
-val add_arities      = ext_sign Sign.add_arities;
-val add_arities_i    = ext_sign Sign.add_arities_i;
-val add_consts       = ext_sign Sign.add_consts;
-val add_consts_i     = ext_sign Sign.add_consts_i;
-val add_syntax       = ext_sign Sign.add_syntax;
-val add_syntax_i     = ext_sign Sign.add_syntax_i;
-val add_modesyntax   = curry (ext_sign Sign.add_modesyntax);
-val add_modesyntax_i = curry (ext_sign Sign.add_modesyntax_i);
-val add_trfuns       = ext_sign Sign.add_trfuns;
-val add_trfunsT      = ext_sign Sign.add_trfunsT;
-val add_tokentrfuns  = ext_sign Sign.add_tokentrfuns;
+val add_classes            = ext_sign Sign.add_classes;
+val add_classes_i          = ext_sign Sign.add_classes_i;
+val add_classrel           = ext_sign Sign.add_classrel;
+val add_classrel_i         = ext_sign Sign.add_classrel_i;
+val add_defsort            = ext_sign Sign.add_defsort;
+val add_defsort_i          = ext_sign Sign.add_defsort_i;
+val add_types              = ext_sign Sign.add_types;
+val add_nonterminals       = ext_sign Sign.add_nonterminals;
+val add_tyabbrs            = ext_sign Sign.add_tyabbrs;
+val add_tyabbrs_i          = ext_sign Sign.add_tyabbrs_i;
+val add_arities            = ext_sign Sign.add_arities;
+val add_arities_i          = ext_sign Sign.add_arities_i;
+val add_consts             = ext_sign Sign.add_consts;
+val add_consts_i           = ext_sign Sign.add_consts_i;
+val add_syntax             = ext_sign Sign.add_syntax;
+val add_syntax_i           = ext_sign Sign.add_syntax_i;
+val add_modesyntax         = curry (ext_sign Sign.add_modesyntax);
+val add_modesyntax_i       = curry (ext_sign Sign.add_modesyntax_i);
+val add_trfuns             = ext_sign Sign.add_trfuns;
+val add_trfunsT            = ext_sign Sign.add_trfunsT;
+val add_advanced_trfuns    = ext_sign Sign.add_advanced_trfuns;
+val add_advanced_trfunsT   = ext_sign Sign.add_advanced_trfunsT;
+val add_tokentrfuns        = ext_sign Sign.add_tokentrfuns;
 fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
-val add_trrules      = ext_sign Sign.add_trrules;
-val add_trrules_i    = ext_sign Sign.add_trrules_i;
-val add_path         = ext_sign Sign.add_path;
-val parent_path      = add_path "..";
-val root_path        = add_path "/";
-val absolute_path    = add_path "//";
-val add_space        = ext_sign Sign.add_space;
-val hide_space       = ext_sign o Sign.hide_space;
-val hide_space_i     = ext_sign o Sign.hide_space_i;
-fun hide_classes b   = curry (hide_space_i b) Sign.classK;
-fun hide_types b     = curry (hide_space_i b) Sign.typeK;
-fun hide_consts b    = curry (hide_space_i b) Sign.constK;
-val add_name         = ext_sign Sign.add_name;
-val copy             = ext_sign (K Sign.copy) ();
-val prep_ext         = ext_sign (K Sign.prep_ext) ();
+val add_trrules            = ext_sign Sign.add_trrules;
+val add_trrules_i          = ext_sign Sign.add_trrules_i;
+val add_path               = ext_sign Sign.add_path;
+val parent_path            = add_path "..";
+val root_path              = add_path "/";
+val absolute_path          = add_path "//";
+val add_space              = ext_sign Sign.add_space;
+val hide_space             = ext_sign o Sign.hide_space;
+val hide_space_i           = ext_sign o Sign.hide_space_i;
+fun hide_classes b         = curry (hide_space_i b) Sign.classK;
+fun hide_types b           = curry (hide_space_i b) Sign.typeK;
+fun hide_consts b          = curry (hide_space_i b) Sign.constK;
+val add_name               = ext_sign Sign.add_name;
+val copy                   = ext_sign (K Sign.copy) ();
+val prep_ext               = ext_sign (K Sign.prep_ext) ();
 
 
 
@@ -263,7 +272,7 @@ fun cert_axm sg (name, raw_tm) =
 (*some duplication of code with read_def_cterm*)
 fun read_def_axm (sg, types, sorts) used (name, str) =
   let
-    val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
+    val ts = Syntax.read (Sign.syn_of sg) propT str;
     val (t, _) = Sign.infer_types sg types sorts used true (ts, propT);
   in cert_axm sg (name, t) end
   handle ERROR => err_in_axm name;
