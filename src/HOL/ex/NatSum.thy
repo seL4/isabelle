@@ -37,11 +37,10 @@ text {*
 *}
 
 lemma sum_of_odd_squares:
-  "3 * (\<Sum>i \<in> {..n(}. Suc (i + i) * Suc (i + i)) =
+  "3 * (\<Sum>i \<in> {..n(}. Suc (2*i) * Suc (2*i)) =
     n * (4 * n * n - 1)"
   apply (induct n)
-   apply (case_tac [2] n)  -- {* eliminates the subtraction *}
-    apply auto
+   apply (auto split: nat_diff_split) (*eliminate the subtraction*)
   done
 
 
@@ -49,12 +48,13 @@ text {*
   \medskip The sum of the first @{text n} odd cubes
 *}
 
+lemma numeral_2_eq_2: "2 = Suc (Suc 0)" by (auto ); 
+
 lemma sum_of_odd_cubes:
-  "(\<Sum>i \<in> {..n(}. Suc (i + i) * Suc (i + i) * Suc (i + i)) =
+  "(\<Sum>i \<in> {..n(}. Suc (2*i) * Suc (2*i) * Suc (2*i)) =
     n * n * (2 * n * n - 1)"
   apply (induct n)
-   apply (case_tac [2] n)  -- {* eliminates the subtraction *}
-    apply auto
+   apply (auto split: nat_diff_split) (*eliminate the subtraction*)
   done
 
 text {*
@@ -88,9 +88,9 @@ lemma sum_of_fourth_powers:
   "30 * (\<Sum>i \<in> {..n}. i * i * i * i) =
     n * Suc n * Suc (2 * n) * (3 * n * n + 3 * n - 1)"
   apply (induct n)
-   apply auto
-  apply (case_tac n)  -- {* eliminates the subtraction *}
    apply simp_all
+  apply (case_tac n)  -- {* eliminates the subtraction *} 
+   apply (simp_all (no_asm_simp))
   done
 
 text {*

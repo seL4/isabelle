@@ -73,7 +73,8 @@ qed "card_M1";
 
 Goal "\\<exists>x. x\\<in>M1";
 by (rtac (card_nonempty RS NotEmpty_ExEl) 1);
-by (simp_tac (simpset() addsimps [card_M1, zero_less_prime_power, prime_p]) 1);
+by (cut_facts_tac [prime_p RS prime_imp_one_less] 1);
+by (asm_simp_tac (simpset() addsimps [card_M1]) 1);
 qed "exists_x_in_M1";
 
 Goal "M1 <= carrier G";

@@ -27,7 +27,6 @@ by Auto_tac;
 qed "prime_iff";
 
 Goal "p\\<in>prime ==> 0 < p^a";
-by (rtac zero_less_power 1);
 by (force_tac (claset(), simpset() addsimps [prime_iff]) 1);
 qed "zero_less_prime_power";
 
@@ -443,9 +442,8 @@ qed "const_p_fac_right";
 Goal "0 < m ==> exponent p (((p^a) * m) choose p^a) = exponent p m";
 by (case_tac "p \\<in> prime" 1);
 by (Asm_simp_tac 2);
-by (forw_inst_tac [("a","a")] zero_less_prime_power 1);
 by (subgoal_tac "0 < p^a * m & p^a <= p^a * m" 1);
-by (Asm_full_simp_tac 2);
+by (force_tac (claset(), simpset() addsimps [prime_iff]) 2);
 (*A similar trick to the one used in p_not_div_choose_lemma:
   insert an equation; use exponent_mult_add on the LHS; on the RHS, first
   transform the binomial coefficient, then use exponent_mult_add.*)
@@ -461,6 +459,6 @@ by (stac exponent_mult_add 1);
 by (Asm_full_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [zero_less_binomial_iff]) 1);
 by (arith_tac 1);
-by (asm_simp_tac (simpset() delsimps bad_Sucs
+by (asm_full_simp_tac (simpset() delsimps bad_Sucs
                          addsimps [exponent_mult_add, const_p_fac_right]) 1);
 qed "const_p_fac";  

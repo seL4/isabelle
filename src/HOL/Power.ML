@@ -81,8 +81,28 @@ by (Asm_full_simp_tac 1);
 qed "power_dvd_imp_le";
 
 
+(*** Logical equivalences for inequalities ***)
 
-(*** Binomial Coefficients, following Andy Gordon and Florian Kammueller ***)
+Goal "(x^n = 0) = (x = (0::nat) & 0<n)";
+by (induct_tac "n" 1);
+by Auto_tac; 
+qed "power_eq_0_iff";
+Addsimps [power_eq_0_iff];
+
+Goal "(0 < x^n) = (x ~= (0::nat) | n=0)";
+by (induct_tac "n" 1);
+by Auto_tac; 
+qed "zero_less_power_iff";
+Addsimps [zero_less_power_iff];
+
+Goal "(0::nat) <= x^n";
+by (induct_tac "n" 1);
+by Auto_tac; 
+qed "zero_le_power";
+Addsimps [zero_le_power];
+
+
+(**** Binomial Coefficients, following Andy Gordon and Florian Kammueller ****)
 
 Goal "(n choose 0) = 1";
 by (case_tac "n" 1);

@@ -1,0 +1,1 @@
+ExtraThms2 = HSeries 

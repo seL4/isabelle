@@ -39,3 +39,23 @@ by (stac zpower_zadd_distrib 1);
 by (Asm_simp_tac 1);
 qed "zpower_zpower";
 
+
+(*** Logical equivalences for inequalities ***)
+
+Goal "(x^n = 0) = (x = (0::int) & 0<n)";
+by (induct_tac "n" 1);
+by Auto_tac; 
+qed "zpower_eq_0_iff";
+Addsimps [zpower_eq_0_iff];
+
+Goal "(0 < (abs x)^n) = (x ~= (0::int) | n=0)";
+by (induct_tac "n" 1);
+by (auto_tac (claset(), simpset() addsimps [int_0_less_mult_iff]));  
+qed "zero_less_zpower_abs_iff";
+Addsimps [zero_less_zpower_abs_iff];
+
+Goal "(0::int) <= (abs x)^n";
+by (induct_tac "n" 1);
+by (auto_tac (claset(), simpset() addsimps [int_0_le_mult_iff]));  
+qed "zero_le_zpower_abs";
+Addsimps [zero_le_zpower_abs];

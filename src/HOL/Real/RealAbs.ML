@@ -65,6 +65,7 @@ qed "abs_minus_eqI1";
 Goalw [real_abs_def] "(0::real)<= abs x";
 by (Simp_tac 1);
 qed "abs_ge_zero";
+Addsimps [abs_ge_zero];
 
 Goalw [real_abs_def] "abs(abs x)=abs (x::real)";
 by (Simp_tac 1);

@@ -227,16 +227,18 @@ val simplify_meta_eq =
     numeral in a coefficient position.
 **)
 
+fun ignore_Sucs (Const ("Suc", _) $ t) = ignore_Sucs t
+  | ignore_Sucs t = t;
+
 fun is_numeral (Const("Numeral.number_of", _) $ w) = true
   | is_numeral _ = false;
 
 fun prod_has_numeral t = exists is_numeral (dest_prod t);
 
 fun restricted_dest_Sucs_sum t = 
-  let val ts = dest_Sucs_sum t
-  in  if exists prod_has_numeral ts then ts
-      else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", ts)
-  end;
+    if exists prod_has_numeral (dest_sum (ignore_Sucs t))
+    then dest_Sucs_sum t
+    else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", [t]);
 
 
 (*** Applying CancelNumeralsFun ***)

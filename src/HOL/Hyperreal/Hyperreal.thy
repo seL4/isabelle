@@ -1,4 +1,4 @@
 
-theory Hyperreal = HSeries:
+theory Hyperreal = Transcendental:
 
 end

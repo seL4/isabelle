@@ -3,6 +3,8 @@
     Author      : Jacques D. Fleuriot  
     Copyright   : 1998  University of Cambridge
     Description : Natural Powers of reals theory
+
+FIXME: most of the theorems for Suc (Suc 0) are redundant!
 *)
 
 bind_thm ("realpow_Suc", thm "realpow_Suc");
@@ -349,3 +351,24 @@ Goal "[| (0::real) <= x; 0 <= y; x ^ Suc n = y ^ Suc n |] ==> x = y";
 by (blast_tac (claset() addIs [realpow_increasing, order_antisym, 
 			       order_eq_refl, sym]) 1);
 qed_spec_mp "realpow_Suc_cancel_eq";
+
+
+(*** Logical equivalences for inequalities ***)
+
+Goal "(x^n = 0) = (x = (0::real) & 0<n)";
+by (induct_tac "n" 1);
+by Auto_tac; 
+qed "realpow_eq_0_iff";
+Addsimps [realpow_eq_0_iff];
+
+Goal "(0 < (abs x)^n) = (x ~= (0::real) | n=0)";
+by (induct_tac "n" 1);
+by (auto_tac (claset(), simpset() addsimps [real_0_less_mult_iff]));  
+qed "zero_less_realpow_abs_iff";
+Addsimps [zero_less_realpow_abs_iff];
+
+Goal "(0::real) <= (abs x)^n";
+by (induct_tac "n" 1);
+by (auto_tac (claset(), simpset() addsimps [real_0_le_mult_iff]));  
+qed "zero_le_realpow_abs";
+Addsimps [zero_le_realpow_abs];

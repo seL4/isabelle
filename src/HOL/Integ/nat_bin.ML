@@ -27,7 +27,7 @@ Goal "Numeral1 = Suc 0";
 by (simp_tac (simpset() addsimps [numeral_1_eq_1]) 1); 
 qed "numeral_1_eq_Suc_0";
 
-Goalw [nat_number_of_def, One_nat_def] "2 = Suc 1";
+Goalw [nat_number_of_def] "2 = Suc (Suc 0)";
 by (rtac nat_2 1); 
 qed "numeral_2_eq_2";
 
