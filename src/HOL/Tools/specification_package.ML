@@ -80,8 +80,12 @@ fun unvarify t fmap =
 
 (* The syntactic meddling needed to setup add_specification for work *)
 
-fun process_spec cos alt_name sprop int thy =
+fun process_spec cos alt_props int thy =
     let
+	fun myfoldr f [] = error "SpecificationPackage.process_spec internal error"
+	  | myfoldr f [x] = x
+	  | myfoldr f (x::xs) = f (x,myfoldr f xs)
+
 	val sg = sign_of thy
 	fun typ_equiv t u =
 	    let
@@ -90,8 +94,14 @@ fun process_spec cos alt_name sprop int thy =
 		Type.typ_instance(tsig,t,u) andalso
 		Type.typ_instance(tsig,u,t)
 	    end
-	val cprop = Thm.read_cterm sg (sprop,Term.propT)
-	val prop = term_of cprop
+
+	val cprops = map (Thm.read_cterm sg o rpair Term.propT o snd) alt_props
+	val ss = empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]
+	val rew_imps = map (Simplifier.full_rewrite ss) cprops
+	val props' = map (HOLogic.dest_Trueprop o term_of o snd o dest_equals o cprop_of) rew_imps
+	val prop  = myfoldr HOLogic.mk_conj props'
+	val cprop = cterm_of sg (HOLogic.mk_Trueprop prop)
+
 	val (prop_thawed,vmap) = Type.varify (prop,[])
 	val thawed_prop_consts = collect_consts (prop_thawed,[])
 	val (altcos,overloaded) = Library.split_list cos
@@ -111,14 +121,11 @@ fun process_spec cos alt_name sprop int thy =
 		  | [cf] => unvarify cf vmap
 		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
 	    end
-	val rew_imp = Simplifier.full_rewrite (empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]) cprop
-	val cprop' = snd (dest_equals (cprop_of rew_imp))
-	val prop' = HOLogic.dest_Trueprop (term_of cprop')
-	val frees = Term.term_frees prop'
+	val frees = Term.term_frees prop
 	val tsig = Sign.tsig_of (sign_of thy)
 	val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
 		"Only free variables of sort 'type' allowed in specifications"
-	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop')
+	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
 	val proc_consts = map proc_const consts
 	fun mk_exist (c,prop) =
 	    let
@@ -131,12 +138,6 @@ fun process_spec cos alt_name sprop int thy =
 	fun zip3 [] [] [] = []
 	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
 	  | zip3 _ _ _ = error "Internal error: Bad specification syntax"
-	val (name,atts) = alt_name
-	fun add_final (arg as (thy,thm)) =
-	    if name = ""
-	    then arg
-	    else (writeln ("specification " ^ name ^ ": " ^ (string_of_thm thm));
-		  PureThy.store_thm((name,thm),[]) thy)
 	fun post_process (arg as (thy,thm)) =
 	    let
 		fun inst_all sg (thm,v) =
@@ -148,16 +149,43 @@ fun process_spec cos alt_name sprop int thy =
 			thm RS spec'
 		    end
 		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
-		fun apply_atts arg = Thm.apply_attributes (arg,map (Attrib.global_attribute thy) atts)
-		fun undo_imps thm =
-		    equal_elim (symmetric rew_imp) thm
+		fun process_single (name,atts) rew_imp args =
+		    let
+			fun undo_imps thm =
+			    equal_elim (symmetric rew_imp) thm
+
+			fun apply_atts arg = Thm.apply_attributes (arg,map (Attrib.global_attribute thy) atts)
+			fun add_final (arg as (thy,thm)) =
+			    if name = ""
+			    then arg
+			    else (writeln ("  " ^ name ^ ": " ^ (string_of_thm thm));
+				  PureThy.store_thm((name,thm),[]) thy)
+		    in
+			args |> apsnd (undo_imps)
+			     |> apsnd standard
+			     |> apply_atts
+			     |> add_final
+		    end
+
+		fun process_all [alt_name] [rew_imp] args =
+		    process_single alt_name rew_imp args
+		  | process_all (alt_name::rest_alt) (rew_imp::rest_imp) (thy,thm) = 
+		    let
+			val single_th = thm RS conjunct1
+			val rest_th   = thm RS conjunct2
+			val (thy',_)  = process_single alt_name rew_imp (thy,single_th)
+		    in
+			process_all rest_alt rest_imp (thy',rest_th)
+		    end
+		  | process_all _ _ _ = error "SpecificationPackage.process_spec internal error"
+		val alt_names = map fst alt_props
+		val _ = if exists (fn(name,_) => not (name = "")) alt_names
+			then writeln "specification"
+			else ()
 	    in
 		arg |> apsnd freezeT
 		    |> apsnd (remove_alls frees)
-		    |> apsnd (undo_imps)
-		    |> apsnd standard
-		    |> apply_atts
-		    |> add_final
+		    |> process_all alt_names rew_imps
 	    end
     in
 	IsarThy.theorem_i Drule.internalK
@@ -177,12 +205,12 @@ val opt_name = Scan.optional (P.name --| P.$$$ ":") ""
 
 val specification_decl =
     P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-	  P.opt_thm_name ":" -- P.prop
+	  Scan.repeat1 (P.opt_thm_name ":" -- P.prop)
 
 val specificationP =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
-    (specification_decl >> (fn ((cos,alt_name), prop) =>
-			       Toplevel.print o (Toplevel.theory_to_proof (process_spec cos alt_name prop))))
+    (specification_decl >> (fn (cos,alt_props) =>
+			       Toplevel.print o (Toplevel.theory_to_proof (process_spec cos alt_props))))
 
 val _ = OuterSyntax.add_parsers [specificationP]
 
