@@ -23,23 +23,23 @@ Goalw [is_bcv_def,welltyping_def,stables_def]
  "[| order r; top r T; \
 \    wti_is_stable_topless r T step wti succs n A; \
 \    is_dfa r dfa step succs n A |] ==> is_bcv r T wti n A dfa";
-by(Clarify_tac 1);
+by (Clarify_tac 1);
 by (dtac is_dfaD 1);
 by (assume_tac 1);
-by(Clarify_tac 1);
-br iffI 1;
- br bexI 1;
-  br conjI 1;
-   ba 1;
+by (Clarify_tac 1);
+by (rtac iffI 1);
+ by (rtac bexI 1);
+  by (rtac conjI 1);
+   by (assume_tac 1);
   by (asm_full_simp_tac
         (simpset() addsimps[wti_is_stable_toplessD,stables_def]) 1);
- ba 1;
-by(Clarify_tac 1);
-by(asm_full_simp_tac
+ by (assume_tac 1);
+by (Clarify_tac 1);
+by (asm_full_simp_tac
     (simpset() addsimps [imp_conjR,all_conj_distrib,wti_is_stable_toplessD,
                          stables_def] addcongs [conj_cong]) 1);
-by(dres_inst_tac [("x","ts")] bspec 1);
- ba 1;
+by (dres_inst_tac [("x","ts")] bspec 1);
+ by (assume_tac 1);
 by (force_tac (claset()addDs [le_listD],simpset()) 1);
 qed "is_bcv_dfa";
 

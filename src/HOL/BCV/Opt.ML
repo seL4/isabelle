@@ -8,7 +8,7 @@ Goalw [lesub_def,le_def]
  "o1 <=_(le r) o2 = \
 \ (case o2 of None => o1=None | \
 \             Some y => (case o1 of None => True | Some x => x <=_r y))";
-br refl 1;
+by (rtac refl 1);
 qed "unfold_le_opt";
 
 Goal "order r ==> o1 <=_(le r) o1";
@@ -27,32 +27,32 @@ by (blast_tac (claset() addIs [order_antisym]) 1);
 qed_spec_mp "le_opt_antisym";
 
 Goal "order r ==> order(le r)";
-by(stac order_def 1);
-by(blast_tac (claset() addIs [le_opt_refl,le_opt_trans,le_opt_antisym]) 1);
+by (stac order_def 1);
+by (blast_tac (claset() addIs [le_opt_refl,le_opt_trans,le_opt_antisym]) 1);
 qed "order_le_opt";
 AddSIs [order_le_opt];
 Addsimps [order_le_opt];
 
 Goalw [lesub_def,le_def] "None <=_(le r) ox";
-by(simp_tac (simpset() addsplits [option.split]) 1);
+by (simp_tac (simpset() addsplits [option.split]) 1);
 qed "None_bot";
 AddIffs [None_bot];
 
 Goalw [lesub_def,le_def]
  "(Some x <=_(le r) ox) = (? y. ox = Some y & x <=_r y)";
-by(simp_tac (simpset() addsplits [option.split]) 1);
+by (simp_tac (simpset() addsplits [option.split]) 1);
 qed "Some_le";
 AddIffs [Some_le];
 
 Goalw [lesub_def,le_def] "(ox <=_(le r) None) = (ox = None)";
-by(simp_tac (simpset() addsplits [option.split]) 1);
+by (simp_tac (simpset() addsplits [option.split]) 1);
 qed "le_None";
 AddIffs [le_None];
 
 
 Goalw [Opt.sl_def,semilat_def,closed_def,split RS eq_reflection]
  "!!L. semilat L ==> semilat (Opt.sl L)";
-by(split_all_tac 1);
+by (split_all_tac 1);
 by (asm_full_simp_tac (simpset() addsplits [option.split]
  addsimps [lesub_def,Opt.le_def,plussub_def,Opt.sup_def,opt_def,Bex_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [order_def,lesub_def]) 1);
@@ -60,16 +60,16 @@ qed "semilat_opt";
 
 
 Goalw [top_def] "top (le r) (Some T) = top r T";
-br iffI 1;
- by(Blast_tac 1);
-br allI 1;
-by(case_tac "x" 1);
-by(ALLGOALS Asm_simp_tac);
+by (rtac iffI 1);
+ by (Blast_tac 1);
+by (rtac allI 1);
+by (case_tac "x" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "top_le_opt_Some";
 AddIffs [top_le_opt_Some];
 
 Goalw [top_def] "[| order r; top r T |] ==> (T <=_r x) = (x = T)";
-by(blast_tac (claset() addIs [order_antisym]) 1);
+by (blast_tac (claset() addIs [order_antisym]) 1);
 qed "Top_le_conv";
 
 
@@ -100,6 +100,6 @@ Goalw [option_map_def]
  "[| ox : opt S; !x:S. ox = Some x --> f x : S |] \
 \ ==> option_map f ox : opt S";
 by (asm_simp_tac (simpset() addsplits [option.split]) 1);
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "option_map_in_optionI";
 

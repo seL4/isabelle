@@ -32,12 +32,12 @@ qed "OK_le_err_OK";
 
 
 Goal "order(le r) = order r";
-br iffI 1;
- by(stac order_def 1);
- by(blast_tac (claset() addDs [order_antisym,OK_le_err_OK RS iffD2]
+by (rtac iffI 1);
+ by (stac order_def 1);
+ by (blast_tac (claset() addDs [order_antisym,OK_le_err_OK RS iffD2]
                         addIs [order_trans,OK_le_err_OK RS iffD1]) 1);
-by(stac order_def 1);
-by(blast_tac (claset() addIs [le_err_refl,le_err_trans,le_err_antisym]
+by (stac order_def 1);
+by (blast_tac (claset() addIs [le_err_refl,le_err_trans,le_err_antisym]
                        addDs [order_refl]) 1);
 qed "order_le_err";
 AddIffs [order_le_err];
@@ -92,8 +92,8 @@ qed "semilat_errI";
 
 Goalw [sl_def,esl_def]
   "!!L. semilat L ==> err_semilat(esl L)";
-by(split_all_tac 1);
-by(asm_full_simp_tac (simpset() addsimps [semilat_errI]) 1);
+by (split_all_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [semilat_errI]) 1);
 qed "err_semilat_eslI";
 
 Goalw [acc_def,lesub_def,le_def,lesssub_def]
@@ -126,21 +126,21 @@ AddIffs [OK_in_err];
 Goalw [lift_def]
  "[| e : err S; !x:S. e = OK x --> f x : err S |] ==> lift f e : err S";
 by (asm_simp_tac (simpset() addsplits [err.split]) 1);
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "lift_in_errI";
 
 (** lift2 **)
 
 Goalw [lift2_def,plussub_def] "Err +_(lift2 f) x = Err";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "Err_lift2";
 
 Goalw [lift2_def,plussub_def] "x +_(lift2 f) Err = Err";
-by(simp_tac (simpset() addsplits [err.split]) 1);
+by (simp_tac (simpset() addsplits [err.split]) 1);
 qed "lift2_Err";
 
 Goalw [lift2_def,plussub_def] "OK x +_(lift2 f) OK y = x +_f y";
-by(simp_tac (simpset() addsplits [err.split]) 1);
+by (simp_tac (simpset() addsplits [err.split]) 1);
 qed "OK_lift2_OK";
 
 Addsimps [Err_lift2,lift2_Err,OK_lift2_OK];
@@ -164,16 +164,16 @@ Addsimps [Err_sup_Err,Err_sup_Err2,Err_sup_OK];
 
 Goalw [Err.sup_def,lift2_def,plussub_def]
  "(Err.sup f ex ey = OK z) = (? x y. ex = OK x & ey = OK y & f x y = z)";
-br iffI 1;
- by(Clarify_tac 2);
+by (rtac iffI 1);
+ by (Clarify_tac 2);
  by (Asm_simp_tac 2);
-by(asm_full_simp_tac (simpset() addsplits [err.split_asm]) 1);
+by (asm_full_simp_tac (simpset() addsplits [err.split_asm]) 1);
 qed "Err_sup_eq_OK_conv";
 AddIffs [Err_sup_eq_OK_conv];
 
 Goalw [Err.sup_def,lift2_def,plussub_def]
  "(Err.sup f ex ey = Err) = (ex=Err | ey=Err)";
-by(simp_tac (simpset() addsplits [err.split]) 1);
+by (simp_tac (simpset() addsplits [err.split]) 1);
 qed "Err_sup_eq_Err";
 AddIffs [Err_sup_eq_Err];
 
@@ -181,56 +181,56 @@ AddIffs [Err_sup_eq_Err];
 (*** semilat (err A) (le r) f ***)
 
 Goal "[| x: err A; semilat(err A, le r, f) |] ==> Err +_f x = Err";
-by(blast_tac (claset() addIs [le_iff_plus_unchanged RS iffD1,le_iff_plus_unchanged2 RS iffD1]) 1);
+by (blast_tac (claset() addIs [le_iff_plus_unchanged RS iffD1,le_iff_plus_unchanged2 RS iffD1]) 1);
 qed "semilat_le_err_Err_plus";
 
 Goal "[| x: err A; semilat(err A, le r, f) |] ==> x +_f Err = Err";
-by(blast_tac (claset() addIs [le_iff_plus_unchanged RS iffD1,le_iff_plus_unchanged2 RS iffD1]) 1);
+by (blast_tac (claset() addIs [le_iff_plus_unchanged RS iffD1,le_iff_plus_unchanged2 RS iffD1]) 1);
 qed "semilat_le_err_plus_Err";
 
 Addsimps [semilat_le_err_Err_plus,semilat_le_err_plus_Err];
 
 Goal "[| x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z |] \
 \     ==> x <=_r z";
-br (OK_le_err_OK RS iffD1) 1;
-by(etac subst 1);
-by(Asm_simp_tac 1);
+by (rtac (OK_le_err_OK RS iffD1) 1);
+by (etac subst 1);
+by (Asm_simp_tac 1);
 qed "semilat_le_err_OK1";
 
 Goal "[| x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z |] \
 \     ==> y <=_r z";
-br (OK_le_err_OK RS iffD1) 1;
-by(etac subst 1);
-by(Asm_simp_tac 1);
+by (rtac (OK_le_err_OK RS iffD1) 1);
+by (etac subst 1);
+by (Asm_simp_tac 1);
 qed "semilat_le_err_OK2";
 
 Goalw [order_def] "[| x=y; order r |] ==> x <=_r y";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "eq_order_le";
 
 Goal
  "[| x:A; y:A; semilat(err A, le r, fe) |] ==> \
 \ ((OK x) +_fe (OK y) = Err) = (~(? z:A. x <=_r z & y <=_r z))";
-br iffI 1;
+by (rtac iffI 1);
  by (Clarify_tac 1);
- bd (OK_le_err_OK RS iffD2) 1;
- bd (OK_le_err_OK RS iffD2) 1;
- bd semilat_lub 1;
-      ba 1;
-     ba 1;
-    by(Asm_simp_tac 1); 
-   by(Asm_simp_tac 1); 
-  by(Asm_simp_tac 1); 
- by(Asm_full_simp_tac 1);
-by(case_tac "(OK x) +_fe (OK y)" 1);
- ba 1;
-by(rename_tac "z" 1);
-by(subgoal_tac "OK z: err A" 1);
-bd eq_order_le 1;
-  by(Blast_tac 1);
- by(blast_tac (claset() addDs [rotate_prems 3 (plus_le_conv RS iffD1)]) 1);
-by(etac subst 1);
-by(blast_tac (claset() addIs [closedD]) 1);
+ by (dtac (OK_le_err_OK RS iffD2) 1);
+ by (dtac (OK_le_err_OK RS iffD2) 1);
+ by (dtac semilat_lub 1);
+      by (assume_tac 1);
+     by (assume_tac 1);
+    by (Asm_simp_tac 1); 
+   by (Asm_simp_tac 1); 
+  by (Asm_simp_tac 1); 
+ by (Asm_full_simp_tac 1);
+by (case_tac "(OK x) +_fe (OK y)" 1);
+ by (assume_tac 1);
+by (rename_tac "z" 1);
+by (subgoal_tac "OK z: err A" 1);
+by (dtac eq_order_le 1);
+  by (Blast_tac 1);
+ by (blast_tac (claset() addDs [rotate_prems 3 (plus_le_conv RS iffD1)]) 1);
+by (etac subst 1);
+by (blast_tac (claset() addIs [closedD]) 1);
 qed "OK_plus_OK_eq_Err_conv";
 Addsimps [OK_plus_OK_eq_Err_conv];
 
@@ -238,7 +238,7 @@ Addsimps [OK_plus_OK_eq_Err_conv];
 
 (* FIXME? *)
 Goal "(!x. (? y:A. x = f y) --> P x) = (!y:A. P(f y))";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "all_bex_swap_lemma";
 AddIffs [all_bex_swap_lemma];
 
@@ -246,10 +246,10 @@ Goalw [closed_def,err_def]
  "[| !A:AS. closed (err A) (lift2 f); AS ~= {}; \
 \    !A:AS.!B:AS. A~=B --> (!a:A.!b:B. a +_f b = Err) |] \
 \ ==> closed (err(Union AS)) (lift2 f)";
-by(Asm_full_simp_tac 1);
-by(Clarify_tac 1);
-by(Asm_full_simp_tac 1);
-by(Fast_tac 1);
+by (Asm_full_simp_tac 1);
+by (Clarify_tac 1);
+by (Asm_full_simp_tac 1);
+by (Fast_tac 1);
 qed "closed_err_Union_lift2I";
 
 (* If AS = {} the thm collapses to
@@ -259,32 +259,32 @@ Goalw [semilat_def,sl_def]
  "[| !A:AS. err_semilat(A, r, f); AS ~= {}; \
 \    !A:AS.!B:AS. A~=B --> (!a:A.!b:B. ~ a <=_r b & a +_f b = Err) |] \
 \ ==> err_semilat(Union AS, r, f)";
-by(asm_full_simp_tac (simpset() addsimps [closed_err_Union_lift2I]) 1);
-br conjI 1;
- by(Blast_tac 1);
-by(asm_full_simp_tac (simpset() addsimps [err_def]) 1);
-br conjI 1;
- by(Clarify_tac 1);
- by(rename_tac "A a u B b" 1);
- by(case_tac "A = B" 1);
-  by(Asm_full_simp_tac 1);
- by(Asm_full_simp_tac 1);
-br conjI 1;
- by(Clarify_tac 1);
- by(rename_tac "A a u B b" 1);
- by(case_tac "A = B" 1);
-  by(Asm_full_simp_tac 1);
- by(Asm_full_simp_tac 1);
-by(Clarify_tac 1);
-by(rename_tac "A ya yb B yd z C c a b" 1);
-by(case_tac "A = B" 1);
- by(case_tac "A = C" 1);
-  by(Asm_full_simp_tac 1);
- by(rotate_tac ~1 1);
- by(Asm_full_simp_tac 1);
-by(rotate_tac ~1 1);
-by(case_tac "B = C" 1);
- by(Asm_full_simp_tac 1);
-by(rotate_tac ~1 1);
-by(Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [closed_err_Union_lift2I]) 1);
+by (rtac conjI 1);
+ by (Blast_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [err_def]) 1);
+by (rtac conjI 1);
+ by (Clarify_tac 1);
+ by (rename_tac "A a u B b" 1);
+ by (case_tac "A = B" 1);
+  by (Asm_full_simp_tac 1);
+ by (Asm_full_simp_tac 1);
+by (rtac conjI 1);
+ by (Clarify_tac 1);
+ by (rename_tac "A a u B b" 1);
+ by (case_tac "A = B" 1);
+  by (Asm_full_simp_tac 1);
+ by (Asm_full_simp_tac 1);
+by (Clarify_tac 1);
+by (rename_tac "A ya yb B yd z C c a b" 1);
+by (case_tac "A = B" 1);
+ by (case_tac "A = C" 1);
+  by (Asm_full_simp_tac 1);
+ by (rotate_tac ~1 1);
+ by (Asm_full_simp_tac 1);
+by (rotate_tac ~1 1);
+by (case_tac "B = C" 1);
+ by (Asm_full_simp_tac 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
 qed "err_semilat_UnionI";
