@@ -556,7 +556,7 @@ val ioa_decl =
     >> mk_hiding_decl ||
   (P.name -- (P.$$$ "=" |-- (P.$$$ "restrict" |-- P.name -- (P.$$$ "to" |-- P.list1 P.term))))
     >> mk_restriction_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- P.name -- (P.$$$ "with" |-- P.term))))
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- P.name -- (P.$$$ "using" |-- P.term))))
     >> mk_rename_decl;
 
 val automatonP =
@@ -571,7 +571,7 @@ end;
 val _ = OuterSyntax.add_keywords ["signature", "actions", "inputs",
   "outputs", "internals", "states", "initially", "transitions", "pre",
   "post", "transrel", ":=", "compose", "hide", "in", "restrict", "to",
-  "rename", "with"];
+  "rename", "using"];
 
 val _ = OuterSyntax.add_parsers [automatonP];
 
