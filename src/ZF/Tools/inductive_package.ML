@@ -51,6 +51,19 @@ functor Add_inductive_def_Fun
 struct
 open Logic Ind_Syntax;
 
+
+(* utils *)
+
+(*make distinct individual variables a1, a2, a3, ..., an. *)
+fun mk_frees a [] = []
+  | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
+
+(*read an assumption in the given theory*)
+fun assume_read thy a = Thm.assume (read_cterm (Theory.sign_of thy) (a,propT));
+
+
+(* add_inductive(_i) *)
+
 (*internal version, accepting terms*)
 fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms, 
 			     monos, con_defs, type_intrs, type_elims) thy = 
@@ -105,7 +118,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 	val exfrees = term_frees intr \\ rec_params
 	val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
     in foldr FOLogic.mk_exists
-	     (exfrees, fold_bal (app FOLogic.conj) (zeq::prems)) 
+	     (exfrees, fold_bal FOLogic.mk_conj (zeq::prems)) 
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
@@ -114,7 +127,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
   (*Access to balanced disjoint sums via injections*)
   val parts = 
-      map mk_Part (accesses_bal (ap Su.inl, ap Su.inr, Bound 0) 
+      map mk_Part (accesses_bal (fn t => Su.inl $ t, fn t => Su.inr $ t, Bound 0) 
 				(length rec_tms));
 
   (*replace each set by the corresponding Part(A,h)*)
@@ -122,7 +135,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
   val fp_abs = absfree(X', iT, 
 		   mk_Collect(z', dom_sum, 
-			      fold_bal (app FOLogic.disj) part_intrs));
+			      fold_bal FOLogic.mk_disj part_intrs));
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
@@ -406,10 +419,10 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 	   (Ind_Syntax.mk_all_imp
 	    (big_rec_tm,
 	     Abs("z", Ind_Syntax.iT, 
-		 fold_bal (app FOLogic.conj) 
+		 fold_bal FOLogic.mk_conj
 		 (ListPair.map mk_rec_imp (rec_tms, preds)))))
      and mutual_induct_concl =
-      FOLogic.mk_Trueprop(fold_bal (app FOLogic.conj) qconcls);
+      FOLogic.mk_Trueprop(fold_bal FOLogic.mk_conj qconcls);
 
      val dummy = if !Ind_Syntax.trace then 
 		 (writeln ("induct_concl = " ^
