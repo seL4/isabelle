@@ -65,15 +65,7 @@ by (REPEAT ((dtac mp 1) THEN (Fast_tac 1)));
 by Safe_tac;
 by (rename_tac "S1 S2" 1);
 by (res_inst_tac [("x","%x. if x:bound_tv type_scheme1 then (S1 x) else (S2 x)")] exI 1);
-by Safe_tac;
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
-by (strip_tac 1);
-by (dres_inst_tac [("x","x")] bspec 1);
-by (assume_tac 1);
-by (dres_inst_tac [("x","x")] bspec 1);
-by (Asm_simp_tac 1);
-by (Asm_full_simp_tac 1);
+by (Auto_tac);
 qed_spec_mp "bound_scheme_inst_type";
 
 

@@ -434,8 +434,7 @@ Goalw [constrains_def]
 \      constrains acts (A1 - B) (A1 Un B); \
 \      constrains acts (A2 - C) (A2 Un C) |] \
 \   ==> constrains acts (A1 Un A2 - C) (A1 Un A2 Un C)";
-by (Clarify_tac 1);
-by (blast_tac (claset() addSDs [bspec]) 1);
+by(Blast_tac 1);
 val lemma1 = result();
 
 

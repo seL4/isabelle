@@ -8,6 +8,8 @@
 
 open RComplete;
 
+claset_ref() := claset() delWrapper "bspec";
+
 Goal "!!(x::real). [| isLub R S x; isLub R S y |] ==> x = y";
 by (forward_tac [isLub_isUb] 1);
 by (forw_inst_tac [("x","y")] isLub_isUb 1);

@@ -59,14 +59,16 @@ fun ball_tac i = etac ballE i THEN contr_tac (i+1);
 
 AddSIs [ballI];
 AddEs  [ballE];
+(* gives better instantiation for bound: *)
+claset_ref() := claset() addWrapper ("bspec", fn tac2 =>
+			 (dtac bspec THEN' atac) APPEND' tac2);
 
 Goalw [Bex_def] "[| P(x);  x:A |] ==> ? x:A. P(x)";
 by (Blast_tac 1);
 qed "bexI";
 
 qed_goal "bexCI" Set.thy 
-   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)"
- (fn prems=>
+   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)" (fn prems =>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ]);
 

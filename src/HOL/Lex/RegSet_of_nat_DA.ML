@@ -135,7 +135,6 @@ by (etac nat_neqE 1);
 by (ALLGOALS trans_tac);
 val lemma = result();
 
-
 Goal
  "!i j xs. xs : regset d i j k = \
 \          ((!n:set(butlast(trace d i xs)). n < k) & deltas d xs i = j)";
@@ -181,9 +180,7 @@ by (rtac conjI 1);
  by (asm_simp_tac (simpset() addsimps [image_eqI,in_set_butlast_concatI]) 1);
 by (rtac ballI 1);
 by (rtac lemma 1);
- by (Asm_simp_tac 2);
-by (EVERY[dtac bspec 1, atac 2]);
-by (Asm_simp_tac 1);
+ by (Auto_tac);
 qed_spec_mp "regset_spec";
 
 Goalw [bounded_def]

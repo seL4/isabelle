@@ -6,6 +6,8 @@
                   [Gleason- p. 121] provides some of the definitions.
 *)
 
+claset_ref() := claset() delWrapper "bspec";
+
 open PReal;
 
 Goal "inj_on Abs_preal preal";

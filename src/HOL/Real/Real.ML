@@ -686,7 +686,7 @@ qed "real_preal_minus_less_zero";
 
 Goal "~ 0r < %~ %#m";
 by (cut_facts_tac [real_preal_minus_less_zero] 1);
-by (blast_tac (claset() addDs [real_less_trans] 
+by (fast_tac (claset() addDs [real_less_trans] 
                         addEs [real_less_irrefl]) 1);
 qed "real_preal_not_minus_gt_zero";
 
@@ -815,7 +815,7 @@ qed "real_le_imp_less_or_eq";
 
 Goalw [real_le_def] "z<w | z=w ==> z <=(w::real)";
 by (cut_facts_tac [real_linear] 1);
-by (blast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
+by (fast_tac (claset() addEs [real_less_irrefl,real_less_asym]) 1);
 qed "real_less_or_eq_imp_le";
 
 Goal "(x <= (y::real)) = (x < y | x=y)";
@@ -843,7 +843,7 @@ qed "real_le_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::real)";
 by (EVERY1 [dtac real_le_imp_less_or_eq, dtac real_le_imp_less_or_eq,
-            blast_tac (claset() addEs [real_less_irrefl,real_less_asym])]);
+            fast_tac (claset() addEs [real_less_irrefl,real_less_asym])]);
 qed "real_le_anti_sym";
 
 Goal "[| ~ y < x; y ~= x |] ==> x < (y::real)";

@@ -51,7 +51,6 @@ qed "fixedpoint_invariant_correct";
 Goalw [FP_def, fixedpoint_def, stable_def, constrains_def]
      "FP (Acts Rprg) <= fixedpoint";
 by Auto_tac;
-by (dtac bspec 1 THEN Blast_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Image_singleton, image_iff]) 1);
 by (dtac fun_cong 1);
 by Auto_tac;
@@ -78,12 +77,7 @@ by (simp_tac (simpset() addsimps
 	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym])) 1);
 by Auto_tac;
 by (rtac fun_upd_idem 1);
-by (Blast_tac 1);
-by (Full_simp_tac 1);
-by (REPEAT (dtac bspec 1 THEN Simp_tac 1));
-by (dtac subsetD 1);
-by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [fun_upd_idem_iff]) 1);
+ by (auto_tac (claset(),simpset() addsimps [fun_upd_idem_iff]));
 qed "Compl_fixedpoint";
 
 Goal "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})";
