@@ -94,6 +94,21 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "add_left_cancel_less";
 
+Addsimps [add_left_cancel, add_right_cancel,
+          add_left_cancel_le, add_left_cancel_less];
+
+goal Arith.thy "(m+n = 0) = (m=0 & n=0)";
+by (nat_ind_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_is_0";
+Addsimps [add_is_0];
+
+goal Arith.thy "!!n. n ~= 0 ==> m + pred n = pred(m+n)";
+by (nat_ind_tac "m" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "add_pred";
+Addsimps [add_pred];
+
 (*** Multiplication ***)
 
 (*right annihilation in product*)
@@ -156,8 +171,6 @@ qed "diff_less_Suc";
 goal Arith.thy "!!m::nat. m - n <= m";
 by (res_inst_tac [("m","m"), ("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (etac le_trans 1);
-by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "diff_le_self";
 
 goal Arith.thy "!!n::nat. (n+m) - n = m";

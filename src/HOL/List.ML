@@ -50,6 +50,10 @@ by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "same_append_eq";
 
+goal List.thy "hd(xs@ys) = (if xs=[] then hd ys else hd xs)";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "hd_append";
 
 (** rev **)
 
@@ -181,6 +185,39 @@ by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 bind_thm ("nth_mem",result() RS spec RS mp);
 Addsimps [nth_mem];
 
+(** drop **)
+
+goalw thy [drop_def] "drop 0 xs = xs";
+by(Simp_tac 1);
+qed "drop_0";
+
+goalw thy [drop_def] "drop (Suc n) (x#xs) = drop n xs";
+by(Simp_tac 1);
+qed "drop_Suc";
+
+goalw thy [drop_def] "drop n [] = []";
+by (nat_ind_tac "n" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "drop_Nil";
+
+Addsimps [drop_0,drop_Suc,drop_Nil];
+
+(** take **)
+
+goalw thy [take_def] "take 0 xs = []";
+by(Simp_tac 1);
+qed "take_0";
+
+goalw thy [take_def] "take (Suc n) (x#xs) = x # take n xs";
+by(Simp_tac 1);
+qed "take_Suc";
+
+goalw thy [take_def] "take n [] = []";
+by (nat_ind_tac "n" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "take_Nil";
+
+Addsimps [take_0,take_Suc,take_Nil];
 
 (** Additional mapping lemmas **)
 

@@ -412,6 +412,11 @@ by(Asm_full_simp_tac 1);
 by(fast_tac HOL_cs 1);
 qed "Suc_leD";
 
+goalw Nat.thy [le_def] "!!m. m <= n ==> m <= Suc n";
+by (fast_tac (HOL_cs addDs [Suc_lessD]) 1);
+qed "le_SucI";
+Addsimps[le_SucI];
+
 goalw Nat.thy [le_def] "!!m. m < n ==> m <= (n::nat)";
 by (fast_tac (HOL_cs addEs [less_asym]) 1);
 qed "less_imp_le";

@@ -13,19 +13,20 @@ datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
 consts
 
-  null      :: "'a list => bool"
+  "@"	    :: "['a list, 'a list] => 'a list"		(infixr 65)
+  drop      :: "[nat, 'a list] => 'a list"
+  filter    :: "['a => bool, 'a list] => 'a list"
+  flat      :: "'a list list => 'a list"
+  foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b"
   hd        :: "'a list => 'a"
-  tl,ttl    :: "'a list => 'a list"
-  mem       :: "['a, 'a list] => bool"			(infixl 55)
+  length    :: "'a list => nat"
   list_all  :: "('a => bool) => ('a list => bool)"
   map       :: "('a=>'b) => ('a list => 'b list)"
-  "@"	    :: "['a list, 'a list] => 'a list"		(infixr 65)
-  rev       :: "'a list => 'a list"
-  filter    :: "['a => bool, 'a list] => 'a list"
-  foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b"
-  length    :: "'a list => nat"
-  flat      :: "'a list list => 'a list"
+  mem       :: "['a, 'a list] => bool"			(infixl 55)
   nth       :: "[nat, 'a list] => 'a"
+  take      :: "[nat, 'a list] => 'a list"
+  tl,ttl    :: "'a list => 'a list"
+  rev       :: "'a list => 'a list"
 
 syntax
   (* list Enumeration *)
@@ -42,9 +43,6 @@ translations
   "[x:xs . P]"	== "filter (%x.P) xs"
   "Alls x:xs.P"	== "list_all (%x.P) xs"
 
-primrec null list
-  null_Nil "null([]) = True"
-  null_Cons "null(x#xs) = False"
 primrec hd list
   hd_Nil  "hd([]) = (@x.False)"
   hd_Cons "hd(x#xs) = x"
@@ -83,5 +81,9 @@ primrec flat list
   flat_Nil  "flat([]) = []"
   flat_Cons "flat(x#xs) = x @ flat(xs)"
 defs
-  nth_def "nth(n) == nat_rec n hd (%m r xs. r(tl(xs)))"
+  drop_def "drop n == nat_rec n (%xs.xs)   \
+\	                (%m r xs. case xs of [] => [] | y#ys => r ys)"
+  take_def "take n == nat_rec n (%xs.[])   \
+\	                (%m r xs. case xs of [] => [] | y#ys => y # r ys)"
+  nth_def  "nth(n) == nat_rec n hd (%m r xs. r(tl(xs)))"
 end
