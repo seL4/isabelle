@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Co-algebraic data sources.
+Coalgebraic data sources.
 *)
 
 signature SOURCE =
