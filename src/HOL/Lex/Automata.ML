@@ -9,8 +9,7 @@
 Goalw [na2da_def]
  "!Q. DA.delta (na2da A) w Q = Union(NA.delta A w `` Q)";
 by (induct_tac "w" 1);
- by (ALLGOALS Asm_simp_tac);
- by (ALLGOALS Blast_tac);
+ by Auto_tac;
 qed_spec_mp "DA_delta_is_lift_NA_delta";
 
 Goalw [DA.accepts_def,NA.accepts_def]
