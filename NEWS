@@ -8,7 +8,7 @@ New in this Isabelle version
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
 * HOL/inductive requires Inductive.thy as an ancestor;
-
+* `inj_onto' is now called `inj_on' (which makes more sense)
 
 *** Proof tools ***
 
