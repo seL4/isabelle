@@ -406,6 +406,8 @@ bind_thm ("Hash_new_nonces_not_seen",
 
 (** The Nonce NA uniquely identifies A's message. 
     This theorem applies to rounds RA1 and RA2!
+
+  Unicity is not used in other proofs but is desirable in its own right.
 **)
 
 goal thy 
@@ -464,6 +466,7 @@ qed "unique_NA";
 ***)
 
 (*The response never contains Hashes*)
+(*NEEDED????????????????*)
 goal thy
  "!!evs. (j,PB,RB) : respond i \
 \        ==> Hash {|Key (shrK B), M|} : parts (insert RB H) --> \
@@ -607,9 +610,8 @@ qed_spec_mp "respond_Spy_not_see_encrypted_key";
 
 
 goal thy
- "!!evs. [| A ~: lost;  A' ~: lost;  \
-\           evs : recur lost |]       \
-\        ==> Says Server B RB : set_of_list evs -->   \
+ "!!evs. [| A ~: lost;  A' ~: lost;  evs : recur lost |]            \
+\        ==> Says Server B RB : set_of_list evs -->                 \
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac recur.induct 1);
@@ -638,10 +640,10 @@ bind_thm ("Spy_not_see_encrypted_key", result() RS mp RSN (2, rev_mp));
 
 
 goal thy 
- "!!evs. [| Says Server B RB : set_of_list evs;   \
+ "!!evs. [| Says Server B RB : set_of_list evs;                 \
 \           Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB};  \
-\            C ~: {A,A',Server};                                           \
-\           A ~: lost;  A' ~: lost;  evs : recur lost |]                 \
+\           C ~: {A,A',Server};                                 \
+\           A ~: lost;  A' ~: lost;  evs : recur lost |]        \
 \        ==> Key K ~: analz (sees lost C evs)";
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
 by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
@@ -652,6 +654,7 @@ qed "Agent_not_see_encrypted_key";
 
 (**** Authenticity properties for Agents ****)
 
+(*NEEDED????????????????*)
 (*Only RA1 or RA2 can have caused such a part of a message to appear.*)
 goal thy 
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|}         \
@@ -665,7 +668,7 @@ by (parts_induct_tac 1);
 (*RA3*)
 by (fast_tac (!claset addSDs [Hash_in_parts_respond]) 2);
 (*RA2*)
-by ((REPEAT o CHANGED)     (*Push in XA*)
+by ((REPEAT o CHANGED)     (*Push in XA--for more simplification*)
     (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
 by (best_tac (!claset addSEs partsEs 
                       addDs [parts_cut]
@@ -673,6 +676,7 @@ by (best_tac (!claset addSEs partsEs
 qed_spec_mp "Hash_auth_sender";
 
 
+(*NEEDED????????????????*)
 goal thy "!!i. {|Hash {|Key (shrK Server), M|}, M|} : responses i ==> R";
 be setup_induction 1;
 be responses.induct 1;
@@ -688,51 +692,37 @@ val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
 **)
 
 
-(*Crucial property: If the encrypted message appears, and A has used NA
-  in a run, then it originated with the Server!*)
+(*Encrypted messages can only originate with the Server.*)
 goal thy 
- "!!evs. [| A ~: lost;  A ~= Spy;  evs : recur lost |]                 \
-\    ==> Crypt (shrK A) {|Key K, Agent A', NA|} : parts (sees lost Spy evs) \
-\        --> Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
-\                       Agent A, Agent B, NA, P|}      \
-\             : set_of_list evs                                    \
-\         --> (EX C RC. Says Server C RC : set_of_list evs &  \
-\                       Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RC})";
+ "!!evs. [| A ~: lost;  A ~= Spy;  evs : recur lost |]       \
+\    ==> Crypt (shrK A) Y : parts (sees lost Spy evs)        \
+\        --> (EX C RC. Says Server C RC : set_of_list evs &  \
+\                      Crypt (shrK A) Y : parts {RC})";
 by (parts_induct_tac 1);
 (*RA4*)
-by (best_tac (!claset addSEs [MPair_parts]
-	              addSDs [Hash_auth_sender]
-		      addSIs [disjI2]) 4);
-(*RA1: it cannot be a new Nonce, contradiction.*)
-by (fast_tac (!claset delrules [impCE]
-	              addSEs [nonce_not_seen_now, MPair_parts]
-                      addDs  [parts.Body]) 1);
+by (Fast_tac 4);
+(*RA3*)
+by (full_simp_tac (!simpset addsimps [parts_insert_sees]) 3
+    THEN Fast_tac 3);
+(*RA1*)
+by (Fast_tac 1);
 (*RA2: it cannot be a new Nonce, contradiction.*)
-by ((REPEAT o CHANGED)     (*Push in XA*)
+by ((REPEAT o CHANGED)     (*Push in XA--for more simplification*)
     (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
 by (deepen_tac (!claset delrules [impCE]
                       addSIs [disjI2]
-	              addSEs [MPair_parts]
+                      addSEs [MPair_parts]
                       addDs  [parts_cut, parts.Body]
                       addss  (!simpset)) 0 1);
-(*RA3*)  (** LEVEL 5 **)
-by (REPEAT (safe_step_tac (!claset addSEs [responses_no_Hash_Server]
-	                           delrules [impCE]) 1));
-by (full_simp_tac (!simpset addsimps [parts_insert_sees]) 1);
-by (Fast_tac 1);
 qed_spec_mp "Crypt_imp_Server_msg";
 
 
-(*Corollary: if A receives B's message and the nonce NA agrees
-  then the key really did come from the Server!*)
+(*Corollary: if A receives B's message then the key came from the Server*)
 goal thy 
  "!!evs. [| Says B' A RA : set_of_list evs;                        \
-\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};    \
-\           Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
-\                       Agent A, Agent B, NA, P|}   \
-\            : set_of_list evs;                                    \
+\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};   \
 \           A ~: lost;  A ~= Spy;  evs : recur lost |]             \
-\        ==> EX C RC. Says Server C RC : set_of_list evs &  \
+\        ==> EX C RC. Says Server C RC : set_of_list evs &         \
 \                       Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RC}";
 by (best_tac (!claset addSIs [Crypt_imp_Server_msg]
                       addDs  [Says_imp_sees_Spy RS parts.Inj RSN (2,parts_cut)]
@@ -740,14 +730,11 @@ by (best_tac (!claset addSIs [Crypt_imp_Server_msg]
 qed "Agent_trust";
 
 
-(*Overall guarantee: if A receives B's message and the nonce NA agrees
-  then the only other agent who knows the key is B.*)
+(*Overall guarantee: if A receives a certificant mentioning A'
+  then the only other agent who knows the key is A'.*)
 goal thy 
  "!!evs. [| Says B' A RA : set_of_list evs;                           \
 \           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};      \
-\           Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
-\                      Agent A, Agent B, NA, P|}                      \
-\            : set_of_list evs;                                       \
 \           C ~: {A,A',Server};                                       \
 \           A ~: lost;  A' ~: lost;  A ~= Spy;  evs : recur lost |]   \
 \        ==> Key K ~: analz (sees lost C evs)";
