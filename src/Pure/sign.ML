@@ -497,7 +497,10 @@ fun full _ "" = error "Attempt to declare empty name \"\""
   | full (Some path) name =
       if NameSpace.is_qualified name then
         error ("Attempt to declare qualified name " ^ quote name)
-      else NameSpace.pack (path @ [name]);
+      else
+       (if not (Syntax.is_identifier name)
+        then warning ("Declared non-identifier name " ^ quote name) else ();
+        NameSpace.pack (path @ [name]));
 
 (*base name*)
 val base_name = NameSpace.base;
