@@ -12,8 +12,7 @@ TODO:
   - result (interactive): print current result (?);
   - check evaluation of transformers (exns!);
   - 'result' command;
-  - '--' (comment) option everywhere;
-  - 'chapter', 'section' etc.;
+  - '--' (comment) option almost everywhere:
   - 'thm': xthms1;
 *)
 
@@ -53,7 +52,19 @@ val endP =
 (* formal comments *)
 
 val textP = OuterSyntax.parser false "text" "formal comments"
-  (text >> K (Toplevel.keep (K ())));
+  (text >> (Toplevel.theory o IsarThy.add_text));
+
+val chapterP = OuterSyntax.parser false "chapter" "chapter heading"
+  (text >> (Toplevel.theory o IsarThy.add_chapter));
+
+val sectionP = OuterSyntax.parser false "section" "section heading"
+  (text >> (Toplevel.theory o IsarThy.add_section));
+
+val subsectionP = OuterSyntax.parser false "subsection" "subsection heading"
+  (text >> (Toplevel.theory o IsarThy.add_subsection));
+
+val subsubsectionP = OuterSyntax.parser false "subsubsection" "subsubsection heading"
+  (text >> (Toplevel.theory o IsarThy.add_subsubsection));
 
 
 (* classes and sorts *)
@@ -196,7 +207,7 @@ val pathP =
 
 val useP =
   OuterSyntax.parser true "use" "eval ML text from file"
-    (string >> IsarCmd.use);
+    (name >> IsarCmd.use);
 
 val mlP =
   OuterSyntax.parser false "ML" "eval ML text"
@@ -446,7 +457,7 @@ val print_typeP =
 
 val cdP =
   OuterSyntax.parser true "cd" "change current working directory"
-    (string >> IsarCmd.cd);
+    (name >> IsarCmd.cd);
 
 val pwdP =
   OuterSyntax.parser true "pwd" "print current working directory"
@@ -454,7 +465,7 @@ val pwdP =
 
 val use_thyP =
   OuterSyntax.parser true "use_thy" "use_thy theory file"
-    (string >> IsarCmd.use_thy);
+    (name >> IsarCmd.use_thy);
 
 val loadP =
   OuterSyntax.parser true "load" "load theory file"
@@ -491,7 +502,7 @@ val breakP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["(", ")", "*", "+", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
+ ["(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
   "?", "[", "]", "and", "as", "binder", "infixl", "infixr", "is",
   "mixfix", "output", "{", "|", "}"];
 
@@ -499,12 +510,13 @@ val parsers = [
   (*theory structure*)
   contextP, theoryP, endP,
   (*theory sections*)
-  textP, classesP, classrelP, defaultsortP, typedeclP, typeabbrP,
-  nontermP, aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
-  theoremsP, lemmasP, axclassP, instanceP, globalP, localP, pathP,
-  useP, mlP, setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP,
+  textP, chapterP, sectionP, subsectionP, subsubsectionP, classesP,
+  classrelP, defaultsortP, typedeclP, typeabbrP, nontermP, aritiesP,
+  constsP, syntaxP, translationsP, axiomsP, defsP, theoremsP, lemmasP,
+  axclassP, instanceP, globalP, localP, pathP, useP, mlP, setupP,
+  parse_ast_translationP, parse_translationP, print_translationP,
+  typed_print_translationP, print_ast_translationP,
+  token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
   factsP, beginP, nextP, qedP, qed_withP, kill_proofP, refineP,
