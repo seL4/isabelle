@@ -11,6 +11,8 @@ sig
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
+  val show_hyps: bool ref
+  val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
   val print_binds: context -> unit
   val print_thms: context -> unit
@@ -108,6 +110,9 @@ val sign_of = Theory.sign_of o theory_of;
 
 (** print context information **)
 
+val show_hyps = ref false;
+fun pretty_thm th = setmp Display.show_hyps (! show_hyps) Display.pretty_thm th;
+
 val verbose = ref false;
 fun verb f x = if ! verbose then f x else [];
 val verb_string = verb (Library.single o Pretty.string_of);
@@ -145,7 +150,7 @@ val print_binds = seq writeln o strings_of_binds;
 (* local theorems *)
 
 fun strings_of_thms (Context {thms, ...}) =
-  strings_of_items Display.pretty_thm_no_hyps "Local theorems:" (Symtab.dest thms);
+  strings_of_items pretty_thm "Local theorems:" (Symtab.dest thms);
 
 val print_thms = seq writeln o strings_of_thms;
 
