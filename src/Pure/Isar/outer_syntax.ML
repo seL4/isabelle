@@ -7,9 +7,8 @@ The global Isabelle/Isar outer syntax.
 
 signature BASIC_OUTER_SYNTAX =
 sig
-  val print_outer_syntax: unit -> unit
   val main: unit -> unit
-  val main_loop: unit -> unit
+  val loop: unit -> unit
   val help: unit -> unit
 end;
 
@@ -20,6 +19,7 @@ sig
   type parser
   val parser: bool -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val print_outer_syntax: unit -> unit
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val get_header: Position.T -> (string, 'a) Source.source -> (bstring * bstring list) option
@@ -168,20 +168,20 @@ val isar =
 
 (** the read-eval-print loop **)
 
-fun main_loop () = (Context.reset_context (); Toplevel.loop isar);
+fun loop () = (Context.reset_context (); Toplevel.loop isar);
 
 fun main () =
  (Toplevel.set_state Toplevel.toplevel;
   ml_prompts "ML> " "ML# ";
   writeln ("\n\n" ^ Context.welcome ());
-  main_loop ());
+  loop ());
 
 
 (* help *)
 
 fun help () =
   writeln ("This is Isabelle's underlying ML system (" ^ ml_system ^ ");\n\
-    \invoke 'main_loop();' to enter the Isar loop.");
+    \invoke 'loop();' to enter the Isar loop.");
 
 
 end;
