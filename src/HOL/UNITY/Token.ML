@@ -71,8 +71,7 @@ Goal "[| i<N; j<N |] ==>   \
 by (case_tac "i=j" 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [HasTok_def, nodeOrder_eq]) 1);
+by (auto_tac (claset(), simpset() addsimps [HasTok_def, nodeOrder_eq]));
 qed "TR7_nodeOrder";
 
 
@@ -80,8 +79,7 @@ qed "TR7_nodeOrder";
 Goal "[| i<N; j<N; i~=j |]    \
 \     ==> F : (HasTok i) leadsTo {s. (token s, i) : nodeOrder j}";
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [HasTok_def, nodeOrder_eq]) 1);
+by (auto_tac (claset(), simpset() addsimps [HasTok_def, nodeOrder_eq]));
 qed "TR7_aux";
 
 Goal "({s. token s < N} Int token -`` {m}) = \
@@ -100,15 +98,13 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [token_lemma, vimage_Diff,
 by (Blast_tac 2);
 by (Clarify_tac 1);
 by (rtac (TR7_aux RS leadsTo_weaken) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [nodeOrder_def, HasTok_def])));
-by (ALLGOALS Blast_tac);
+by (auto_tac (claset(), simpset() addsimps [HasTok_def, nodeOrder_def]));
 qed "leadsTo_j";
 
 (*Misra's TR8: a hungry process eventually eats*)
 Goal "j<N ==> F : ({s. token s < N} Int H j) leadsTo (E j)";
 by (rtac (leadsTo_cancel1 RS leadsTo_Un_duplicate) 1);
 by (rtac TR6 2);
-by (rtac leadsTo_weaken 1);
-by (rtac ([leadsTo_j, TR3] MRS psp) 1);
+by (rtac ([leadsTo_j, TR3] MRS psp RS leadsTo_weaken) 1);
 by (ALLGOALS Blast_tac);
 qed "token_progress";

@@ -30,9 +30,7 @@ AddIffs [[subset_UNIV, finite_graph] MRS finite_subset];
 Addsimps [simp_of_set reach_invariant_def];
 
 Goal "Rprg : Always reach_invariant";
-by (rtac AlwaysI 1);
-by Auto_tac;  (*for the initial state; proof of stability remains*)
-by (constrains_tac 1);
+by (always_tac 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "reach_invariant";
 

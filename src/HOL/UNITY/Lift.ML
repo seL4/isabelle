@@ -47,14 +47,9 @@ Addsimps (map simp_of_act
 	   req_up_def, req_down_def, move_up_def, move_down_def,
 	   button_press_def]);
 
-val always_defs = [above_def, below_def, queueing_def, 
-		   goingup_def, goingdown_def, ready_def];
-
-Addsimps (map simp_of_set always_defs);
-
-
-val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
-(* [| Lift: B LeadsTo C; Lift: A LeadsTo B |] ==> Lift: (A Un B) LeadsTo C *)
+(*The ALWAYS properties*)
+Addsimps (map simp_of_set [above_def, below_def, queueing_def, 
+			   goingup_def, goingdown_def, ready_def]);
 
 
 Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
@@ -64,47 +59,33 @@ AddIffs [Min_le_Max];
 
 
 Goal "Lift : Always open_stop";
-by (rtac AlwaysI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
+by (always_tac 1);
 qed "open_stop";
 
 Goal "Lift : Always stop_floor";
-by (rtac AlwaysI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
+by (always_tac 1);
 qed "stop_floor";
 
 (*This one needs open_stop, which was proved above*)
 Goal "Lift : Always open_move";
-by (rtac AlwaysI 1);
-by (rtac (open_stop RS Always_ConstrainsI RS StableI) 2);
-by (Force_tac 1);
-by (constrains_tac 1);
+by (cut_facts_tac [open_stop] 1);
+by (always_tac 1);
 qed "open_move";
 
 Goal "Lift : Always moving_up";
-by (rtac AlwaysI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
-by (auto_tac (claset(),
+by (always_tac 1);
+by (auto_tac (claset() addDs [zle_imp_zless_or_eq],
 	      simpset() addsimps [add1_zle_eq]));
-by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_up";
 
 Goal "Lift : Always moving_down";
-by (rtac AlwaysI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
+by (always_tac 1);
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_down";
 
 Goal "Lift : Always bounded";
-by (rtac AlwaysI 1);
-by (rtac (Always_Int_rule [moving_up, moving_down] RS 
-	  Always_ConstrainsI RS StableI) 2);
-by (Force_tac 1);
-by (constrains_tac 1);
+by (cut_facts_tac [moving_up, moving_down] 1);
+by (always_tac 1);
 by (ALLGOALS Clarify_tac);
 by (REPEAT_FIRST distinct_tac);
 by Auto_tac;
@@ -170,8 +151,8 @@ AddSDs [le_MinD, linorder_leI RS le_MinD,
 Goal "Lift : (Req n Int closed - (atFloor n - queueing))   \
 \            LeadsTo ((closed Int goingup Int Req n)  Un \
 \                     (closed Int goingdown Int Req n))";
-by (rtac subset_imp_LeadsTo 1);
-by (auto_tac (claset() addSEs [int_neqE], simpset()));
+by (auto_tac (claset() addSIs [subset_imp_LeadsTo] addSEs [int_neqE], 
+		       simpset()));
 qed "E_thm05c";
 
 (*lift_2*)
@@ -198,13 +179,10 @@ by (ensures_tac "move_up" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
 by (etac (linorder_leI RS order_antisym RS sym) 1);
-by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (REPEAT_FIRST distinct_tac);
+by (REPEAT_FIRST (eresolve_tac mov_metrics ORELSE' distinct_tac));
 (** LEVEL 6 **)
-by (ALLGOALS (asm_simp_tac (simpset() addsimps 
-			    [zle_def] @ metric_simps @ zcompare_rls)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
 qed "E_thm12a";
-
 
 
 (*lem_lift_4_3 *)
@@ -217,8 +195,7 @@ by (ensures_tac "move_down" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
 by (etac (linorder_leI RS order_antisym RS sym) 1);
-by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (REPEAT_FIRST distinct_tac);
+by (REPEAT_FIRST (eresolve_tac mov_metrics ORELSE' distinct_tac));
 (** LEVEL 6 **)
 by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
 qed "E_thm12b";
@@ -227,10 +204,9 @@ qed "E_thm12b";
 Goal "#0<N ==> Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \                           {s. floor s ~: req s}) LeadsTo     \
 \                          (moving Int Req n Int {s. metric n s < N})";
-by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (etac E_thm12b 3);
-by (etac E_thm12a 2);
-by (Blast_tac 1);
+by (rtac ([subset_imp_LeadsTo, [E_thm12a, E_thm12b] MRS LeadsTo_Un] 
+	  MRS LeadsTo_Trans) 1);
+by Auto_tac;
 qed "lift_4";
 
 
@@ -278,11 +254,10 @@ qed "E_thm16c";
 (*lift_5*)
 Goal "#0<N ==> Lift : (closed Int Req n Int {s. metric n s = N}) LeadsTo   \
 \                          (moving Int Req n Int {s. metric n s < N})";
-by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (etac E_thm16b 3);
-by (etac E_thm16a 2);
+by (rtac ([subset_imp_LeadsTo, [E_thm16a, E_thm16b] MRS LeadsTo_Un] 
+	  MRS LeadsTo_Trans) 1);
 by (dtac E_thm16c 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "lift_5";
 
 
@@ -357,35 +332,33 @@ Goal "Lift : (moving Int Req n) LeadsTo (stopped Int atFloor n)";
 by (rtac (Always_nonneg RS integ_0_le_induct) 1);
 by (case_tac "#0 < z" 1);
 (*If z <= #0 then actually z = #0*)
-by (fold_tac [zle_def]);
-by (force_tac (claset() addIs [R_thm11, order_antisym], simpset()) 2);
+by (force_tac (claset() addIs [R_thm11, order_antisym], 
+	       simpset() addsimps [linorder_not_less]) 2);
 by (rtac ([asm_rl, Un_upper1] MRS LeadsTo_weaken_R) 1);
-by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
-by (rtac lift_3_Req 3);
-by (rtac lift_4 2);
+by (rtac ([subset_imp_LeadsTo, [lift_4, lift_3_Req] MRS LeadsTo_Un] 
+	  MRS LeadsTo_Trans) 1);
 by Auto_tac;
 qed "lift_3";
 
 
+val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
+(* [| Lift: B LeadsTo C; Lift: A LeadsTo B |] ==> Lift: (A Un B) LeadsTo C *)
+
 Goal "Lift : (Req n) LeadsTo (opened Int atFloor n)";
 by (rtac LeadsTo_Trans 1);
-by (rtac (E_thm04 RS LeadsTo_Un) 2);
-by (rtac LeadsTo_Un_post 2);
+by (rtac ([E_thm04, LeadsTo_Un_post] MRS LeadsTo_Un) 2);
 by (rtac (E_thm01 RS LeadsTo_Trans_Un') 2);
 by (rtac (lift_3 RS LeadsTo_Trans_Un') 2);
 by (rtac (lift_2 RS LeadsTo_Trans_Un') 2);
-by (rtac (E_thm03 RS LeadsTo_Trans_Un') 2);
-by (rtac E_thm02 2);
+by (rtac ([E_thm03,E_thm02] MRS LeadsTo_Trans_Un') 2);
 by (rtac (open_move RS Always_LeadsToI) 1);
-by (rtac (open_stop RS Always_LeadsToI) 1);
-by (rtac subset_imp_LeadsTo 1);
+by (rtac ([open_stop, subset_imp_LeadsTo] MRS Always_LeadsToI) 1);
 by (Clarify_tac 1);
 (*The case split is not essential but makes Blast_tac much faster.
-  Must also be careful to prevent simplification from looping*)
+  Calling rotate_tac prevents simplification from looping*)
 by (case_tac "open x" 1);
 by (ALLGOALS (rotate_tac ~1));
-by (ALLGOALS Asm_full_simp_tac);
-by (Blast_tac 1);
+by Auto_tac;
 qed "lift_1";
 
 Close_locale "floor";

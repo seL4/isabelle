@@ -30,14 +30,12 @@ Goal "(F Join G) : ({s. NF s = k} - {s. BB s}) LeadsTo \
 by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (ensures_tac "cmdG" 2);
 by (constrains_tac 1);
-by Auto_tac;
 qed "lemma2_1";
 
 Goal "(F Join G) : ({s. NF s = k} Int {s. BB s}) LeadsTo {s. k < NF s}";
 by (rtac (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (constrains_tac 2);
 by (ensures_tac "cmdF" 1);
-by Auto_tac;
 qed "lemma2_2";
 
 
@@ -45,11 +43,8 @@ Goal "(F Join G) : UNIV LeadsTo {s. m < NF s}";
 by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f", "NF"), ("l","Suc m"), ("B","{}")] 
     GreaterThan_bounded_induct 1);
-by (auto_tac (claset(), simpset() addsimps [vimage_def]));
-(*The inductive step: (F Join G) : {x. NF x = ma} LeadsTo {x. ma < NF x}*)
-by (rtac LeadsTo_Diff 1);
-by (rtac lemma2_2 2);
-by (rtac LeadsTo_Trans 1);
-by (rtac lemma2_2 2);
-by (rtac lemma2_1 1);
+(*The inductive step is (F Join G) : {x. NF x = ma} LeadsTo {x. ma < NF x}*)
+by (auto_tac (claset() addSIs [lemma2_1, lemma2_2] 
+	               addIs[LeadsTo_Trans, LeadsTo_Diff], 
+	      simpset() addsimps [vimage_def]));
 qed "progress";

@@ -17,15 +17,11 @@ Addsimps (map simp_of_set [IU_def, IV_def, bad_IU_def]);
 
 
 Goal "Mutex : Always IU";
-by (rtac AlwaysI 1);
-by (constrains_tac 2);
-by Auto_tac;
+by (always_tac 1);
 qed "IU";
 
 Goal "Mutex : Always IV";
-by (rtac AlwaysI 1);
-by (constrains_tac 2);
-by Auto_tac;
+by (always_tac 1);
 qed "IV";
 
 (*The safety property: mutual exclusion*)
@@ -38,8 +34,7 @@ qed "mutual_exclusion";
 
 (*The bad invariant FAILS in V1*)
 Goal "Mutex : Always bad_IU";
-by (rtac AlwaysI 1);
-by (constrains_tac 2);
+by (always_tac 1);
 by Auto_tac;
 (*Resulting state: n=1, p=false, m=4, u=false.  
   Execution of V1 (the command of process v guarded by n=1) sets p:=true,

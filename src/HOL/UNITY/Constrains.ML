@@ -43,7 +43,8 @@ qed "invariant_includes_reachable";
 
 (*** Co ***)
 
-overload_1st_set "Constrains.op Co";
+(*Needed because its operands are sets*)
+overload_1st_set "Constrains.Constrains";
 
 (*F : B co B' ==> F : (reachable F Int B) co (reachable F Int B')*)
 bind_thm ("constrains_reachable_Int",
@@ -341,11 +342,18 @@ val program_defs_ref = ref ([] : thm list);
 (*proves "co" properties when the program is specified*)
 fun constrains_tac i = 
    SELECT_GOAL
-      (EVERY [simp_tac (simpset() addsimps !program_defs_ref) 1,
-	      REPEAT (resolve_tac [StableI, stableI,
+      (EVERY [REPEAT (Always_Int_tac 1),
+	      REPEAT (etac Always_ConstrainsI 1
+		      ORELSE
+		      resolve_tac [StableI, stableI,
 				   constrains_imp_Constrains] 1),
 	      rtac constrainsI 1,
-	      Full_simp_tac 1,
+	      full_simp_tac (simpset() addsimps !program_defs_ref) 1,
 	      REPEAT (FIRSTGOAL (etac disjE)),
 	      ALLGOALS Clarify_tac,
 	      ALLGOALS Asm_full_simp_tac]) i;
+
+
+(*For proving invariants*)
+fun always_tac i = 
+    rtac AlwaysI i THEN Force_tac i THEN constrains_tac i;

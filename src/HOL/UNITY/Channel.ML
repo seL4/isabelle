@@ -20,8 +20,7 @@ qed_spec_mp "minSet_empty";
 Addsimps [minSet_empty];
 
 Goalw [minSet_def] "x:A ==> minSet A = Some (LEAST x. x: A)";
-by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
+by Auto_tac;
 qed_spec_mp "minSet_nonempty";
 
 Goal "F : (minSet -`` {Some x}) leadsTo (minSet -`` (Some``greaterThan x))";
@@ -53,6 +52,6 @@ Goal "!!y::nat. F : (UNIV-{{}}) leadsTo {s. y ~: s}";
 by (rtac (lemma RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
 by (forward_tac [minSet_nonempty] 1);
-by (asm_full_simp_tac (simpset() addsimps [Suc_le_eq]) 1);
-by (blast_tac (claset() addDs [Suc_le_lessD, not_less_Least]) 1);
+by (auto_tac (claset() addDs [Suc_le_lessD, not_less_Least], 
+	      simpset()));
 qed "Channel_progress";
