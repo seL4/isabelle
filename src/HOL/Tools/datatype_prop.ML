@@ -22,8 +22,6 @@ sig
     (string * sort) list -> theory -> term list list
   val make_splits : string list -> DatatypeAux.descr list ->
     (string * sort) list -> theory -> (term * term) list
-  val make_case_trrules : string list -> DatatypeAux.descr list ->
-    ast Syntax.trrule list
   val make_size : DatatypeAux.descr list -> (string * sort) list ->
     theory -> term list
   val make_weak_case_congs : string list -> DatatypeAux.descr list ->
@@ -344,39 +342,6 @@ fun make_splits new_type_names descr sorts thy =
     (make_case_combs new_type_names descr sorts thy "f"))
   end;
 
-(************************ translation rules for case **************************)
-
-fun make_case_trrules new_type_names descr =
-  let
-    fun mk_asts i j ((cname, cargs)::constrs) =
-      let
-        val k = length cargs;
-        val xs = map (fn i => Variable ("x" ^ string_of_int i)) (i upto i + k - 1);
-        val t = Variable ("t" ^ string_of_int j);
-        val ast = Syntax.mk_appl (Constant "_case1")
-          [Syntax.mk_appl (Constant (Sign.base_name cname)) xs, t];
-        val ast' = foldr (fn (x, y) =>
-          Syntax.mk_appl (Constant "_abs") [x, y]) (xs, t)
-      in
-        (case constrs of
-            [] => (ast, [ast'])
-          | cs => let val (ast'', asts) = mk_asts (i + k) (j + 1) cs
-              in (Syntax.mk_appl (Constant "_case2") [ast, ast''],
-                  ast'::asts)
-              end)
-      end;
-
-    fun mk_trrule ((_, (_, _, constrs)), tname) =
-      let val (ast, asts) = mk_asts 1 1 constrs
-      in Syntax.ParsePrintRule
-        (Syntax.mk_appl (Constant "_case_syntax") [Variable "t", ast],
-         Syntax.mk_appl (Constant (tname ^ "_case"))
-           (asts @ [Variable "t"]))
-      end
-
-  in
-    map mk_trrule (hd descr ~~ new_type_names)
-  end;
 
 (******************************* size functions *******************************)
 

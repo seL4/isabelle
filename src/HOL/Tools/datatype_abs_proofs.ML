@@ -339,8 +339,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
 
   in
-    thy2 |> Theory.add_trrules_i
-      (DatatypeProp.make_case_trrules new_type_names descr) |>
+    thy2 |>
     parent_path flat_names |>
     store_thmss "cases" new_type_names case_thms |>
     apsnd (rpair case_names)
