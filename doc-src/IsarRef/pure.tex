@@ -339,10 +339,12 @@ the following commands provide some way to do so.
 
 \subsection{Incorporating ML code}\label{sec:ML}
 
-\indexisarcmd{use}\indexisarcmd{ML}\indexisarcmd{ML-setup}\indexisarcmd{setup}
+\indexisarcmd{use}\indexisarcmd{ML}\indexisarcmd{ML-command}
+\indexisarcmd{ML-setup}\indexisarcmd{setup}
 \begin{matharray}{rcl}
   \isarcmd{use} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML} & : & \isartrans{\cdot}{\cdot} \\
+  \isarcmd{ML_command} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML_setup} & : & \isartrans{theory}{theory} \\
   \isarcmd{setup} & : & \isartrans{theory}{theory} \\
 \end{matharray}
@@ -350,10 +352,13 @@ the following commands provide some way to do so.
 \railalias{MLsetup}{ML\_setup}
 \railterm{MLsetup}
 
+\railalias{MLcommand}{ML\_command}
+\railterm{MLcommand}
+
 \begin{rail}
   'use' name
   ;
-  ('ML' | MLsetup | 'setup') text
+  ('ML' | MLcommand | MLsetup | 'setup') text
   ;
 \end{rail}
 
@@ -364,8 +369,10 @@ the following commands provide some way to do so.
   $\isarkeyword{files}$ dependency declaration given in the theory header (see
   also \S\ref{sec:begin-thy}).
   
-\item [$\isarkeyword{ML}~text$] executes ML commands from $text$.  The theory
-  context is passed in the same way as for $\isarkeyword{use}$.
+\item [$\isarkeyword{ML}~text$ and $\isarkeyword{ML_command}~text$] execute ML
+  commands from $text$.  The theory context is passed in the same way as for
+  $\isarkeyword{use}$, but may not be changed.  Note that
+  $\isarkeyword{ML_command}$ is less verbose than plain $\isarkeyword{ML}$.
   
 \item [$\isarkeyword{ML_setup}~text$] executes ML commands from $text$.  The
   theory context is passed down to the ML session, and fetched back
@@ -965,13 +972,13 @@ preparation, for example).
 \railterm{subgoaltac}
 
 \begin{rail}
-  'apply' method
+  'apply' method comment?
   ;
-  applyend method
+  applyend method comment?
   ;
-  'defer' nat?
+  'defer' nat? comment?
   ;
-  'prefer' nat
+  'prefer' nat comment?
   ;
   'tactic' text
   ;
