@@ -82,7 +82,7 @@ sig
       context -> context * (string * thm list) list
   val export_assume: exporter
   val export_presume: exporter
-  val cert_def: context -> term -> term
+  val cert_def: context -> term -> string * term
   val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
@@ -601,7 +601,7 @@ val show_hyps = ref false;
 
 fun pretty_thm ctxt thm =
   if ! show_hyps then setmp Display.show_hyps true (fn () =>
-    Display.pretty_thm_aux (pretty_sort ctxt) (pretty_term ctxt) false thm) ()
+    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm) ()
   else pretty_term ctxt (#prop (Thm.rep_thm thm));
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
@@ -631,7 +631,7 @@ fun warn_extra (names1: string list, tab1) (names2, tab2) =
       val frees = Library.sort_strings (Library.distinct (flat (map #2 extra)));
     in
       if null extra then ()
-      else warning ("Danger! Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
+      else warning ("Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
           space_implode " or " frees)
     end;
 
@@ -939,21 +939,22 @@ fun cert_def ctxt eq =
       "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
     val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
       handle TERM _ => err "Not a meta-equality (==)";
-    val (head, args) = Term.strip_comb lhs;
+    val (f, xs) = Term.strip_comb lhs;
+    val (c, _) = Term.dest_Free f handle TERM _ =>
+      err "Head of lhs must be free or fixed variable";
 
-    fun fixed_free (Free (x, _)) = is_fixed ctxt x
-      | fixed_free _ = false;
+    fun is_free (Free (x, _)) = not (is_fixed ctxt x)
+      | is_free _ = false;
+    val extra_frees = filter is_free (term_frees rhs) \\ xs;
   in
-    Term.dest_Free head handle TERM _ =>
-      err "Head of lhs must be a free or fixed variable";
-    conditional (not (forall (fixed_free orf is_Bound) args andalso null (duplicates args)))
-      (fn () => err "Arguments of lhs must be distinct variables (free or fixed)");
-    conditional (head mem Term.term_frees rhs)
-      (fn () => err "Element to be defined occurs on rhs");
-    conditional (not (null (filter_out fixed_free (term_frees rhs) \\ args)))
-      (fn () => err "Extra free variables on rhs");    (* FIXME show extras *)
-    Term.list_all_free (mapfilter (try Term.dest_Free) args, eq)
+    conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
+      err "Arguments of lhs must be distinct free or fixed variables");
+    conditional (f mem Term.term_frees rhs) (fn () =>
+      err "Element to be defined occurs on rhs");
+    conditional (not (null extra_frees)) (fn () =>
+      err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
     (* FIXME check for extra type variables on rhs *)
+    (c, Term.list_all_free (mapfilter (try Term.dest_Free) xs, eq))
   end;
 
 fun head_of_def cprop =
