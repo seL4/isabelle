@@ -54,8 +54,10 @@ Minor fixes in the tutorial
 ===========================
 
 recdef: failed tcs no longer shown!
+say something about how conditions are proved?
+No, better show failed proof attempts.
 
-Advanced recdef: explain recdef_tc?
+Advanced recdef: explain recdef_tc? No. Adjust recdef!
 
 Adjust FP textbook refs: new Bird, Hudak
 Discrete math textbook: Rosen?

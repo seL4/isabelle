@@ -5,7 +5,9 @@ theory Nested = ABexpr:
 text{*
 So far, all datatypes had the property that on the right-hand side of their
 definition they occurred only at the top-level, i.e.\ directly below a
-constructor. This is not the case any longer for the following model of terms
+constructor. Now we consider \emph{nested recursion}, where the recursive
+datatupe occurs nested in some other datatype (but not inside itself!).
+Consider the following model of terms
 where function symbols can be applied to a list of arguments:
 *}
 (*<*)hide const Var(*>*)

@@ -124,7 +124,16 @@ Here is an example of its application.
 consts f :: "nat \<Rightarrow> nat";
 axioms f_ax: "f(f(n)) < f(Suc(n))";
 
-text{*\noindent
+text{*
+\begin{warn}
+We discourage the use of axioms because of the danger of
+inconsistencies.  Axiom @{text f_ax} does
+not introduce an inconsistency because, for example, the identity function
+satisfies it.  Axioms can be useful in exploratory developments, say when 
+you assume some well-known theorems so that you can quickly demonstrate some
+point about methodology.  If your example turns into a substantial proof
+development, you should replace axioms by theorems.
+\end{warn}\noindent
 The axiom for @{term"f"} implies @{prop"n <= f n"}, which can
 be proved by induction on \mbox{@{term"f n"}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
@@ -197,40 +206,31 @@ lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<l
 (*<*)oops;(*>*)
 
 text{*
-\begin{warn}
-We discourage the use of axioms because of the danger of
-inconsistencies.  Axiom @{text f_ax} does
-not introduce an inconsistency because, for example, the identity function
-satisfies it.  Axioms can be useful in exploratory developments, say when 
-you assume some well-known theorems so that you can quickly demonstrate some
-point about methodology.  If your example turns into a substantial proof
-development, you should replace the axioms by proofs.
-\end{warn}
+\begin{exercise}
+From the axiom and lemma for @{term"f"}, show that @{term"f"} is the
+identity function.
+\end{exercise}
 
-\bigskip
-In general, @{text induct_tac} can be applied with any rule $r$
+Method @{text induct_tac} can be applied with any rule $r$
 whose conclusion is of the form ${?}P~?x@1 \dots ?x@n$, in which case the
 format is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"rule:"} $r$@{text")"}
 \end{quote}\index{*induct_tac}%
 where $y@1, \dots, y@n$ are variables in the first subgoal.
-A further example of a useful induction rule is @{thm[source]length_induct},
-induction on the length of a list:\indexbold{*length_induct}
-@{thm[display]length_induct[no_vars]}
-
-In fact, @{text"induct_tac"} even allows the conclusion of
-$r$ to be an (iterated) conjunction of formulae of the above form, in
-which case the application is
+The conclusion of $r$ can even be an (iterated) conjunction of formulae of
+the above form in which case the application is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"and"} \dots\ @{text"and"} $z@1 \dots z@m$ @{text"rule:"} $r$@{text")"}
 \end{quote}
 
-\begin{exercise}
-From the axiom and lemma for @{term"f"}, show that @{term"f"} is the
-identity function.
-\end{exercise}
-*};
+A further useful induction rule is @{thm[source]length_induct},
+induction on the length of a list\indexbold{*length_induct}
+@{thm[display]length_induct[no_vars]}
+which is a special case of @{thm[source]measure_induct}
+@{thm[display]measure_induct[no_vars]}
+where @{term f} may be any function into type @{typ nat}.
+*}
 
 subsection{*Derivation of New Induction Schemas*};
 
@@ -259,9 +259,9 @@ The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 @{thm[display]"less_SucE"[no_vars]}
 
 Now it is straightforward to derive the original version of
-@{thm[source]nat_less_induct} by manipulting the conclusion of the above lemma:
-instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"} and
-remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
+@{thm[source]nat_less_induct} by manipulating the conclusion of the above
+lemma: instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"}
+and remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
 *};

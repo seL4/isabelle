@@ -29,7 +29,7 @@ constdefs minus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 
 text{*
 The rest of this section is devoted to the question of how to define
-partial recursive functions by other means that non-exhaustive pattern
+partial recursive functions by other means than non-exhaustive pattern
 matching.
 *}
 
