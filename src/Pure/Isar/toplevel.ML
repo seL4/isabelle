@@ -214,15 +214,14 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
       let
         fun mk_state nd = State (SOME (nd, term));
 
-        val cont_node = History.map (checkpoint_node int) node;
-        val back_node = History.map (copy_node int) cont_node;
+        val f' = checkpoint_node int o f int o copy_node int;
 
-        val trans = if hist then History.apply_copy (copy_node int) else History.map;
+        val trans = if hist then History.apply else History.map;
         val (result, opt_exn) =
-          (mk_state (transform_error (interruptible (trans (f int))) cont_node), NONE)
-            handle exn => (mk_state cont_node, SOME exn);
+          (mk_state (transform_error (interruptible (trans f')) node), NONE)
+            handle exn => (mk_state node, SOME exn);
       in
-        if is_stale result then return (mk_state back_node, SOME (if_none opt_exn rollback))
+        if is_stale result then return (mk_state node, SOME (if_none opt_exn rollback))
         else return (result, opt_exn)
       end;
 
