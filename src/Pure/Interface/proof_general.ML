@@ -118,11 +118,27 @@ fun setup_state () =
   Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
 
 
+(* theory loader actions *)
+
+local
+
+fun tell_pg msg name = writeln ("Proof General, " ^ msg ^ " " ^ quote name);
+
+fun trace_action ThyInfo.Update name = tell_pg "this theory is loaded:" name
+  | trace_action ThyInfo.Outdate name = tell_pg "you can unlock the theory" name
+  | trace_action ThyInfo.Remove name = tell_pg "you can unlock the theory" name;
+
+in
+  fun setup_thy_loader () = ThyInfo.add_hook trace_action;
+end;
+
+
 (* init *)
 
 fun init isar =
  (setup_messages ();
   setup_state ();
+  setup_thy_loader ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
   if isar then Isar.sync_main () else ());
