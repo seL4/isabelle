@@ -15,7 +15,7 @@ See also:
 
 [1] Clemens Ballarin. Locales and Locale Expressions in Isabelle/Isar.
     In Stefano Berardi et al., Types for Proofs and Programs: International
-    Workshop, TYPES 2003, Torino, Italy, pages ??-??, in press.
+    Workshop, TYPES 2003, Torino, Italy, LNCS 3085, pages 34-50, 2004.
 *)
 
 signature LOCALE =

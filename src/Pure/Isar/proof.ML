@@ -134,6 +134,13 @@ type context = ProofContext.context;
 
 (* type goal *)
 
+(* CB: three kinds of Isar goals are distinguished:
+   - Theorem: global goal in a theory, corresponds to Isar commands theorem,
+     lemma and corollary,
+   - Have: local goal in a proof, Isar command have
+   - Show: local goal in a proof, Isar command show
+*)
+
 datatype kind =
   Theorem of {kind: string,
     theory_spec: (bstring * theory attribute list) * theory attribute list list,
@@ -141,6 +148,9 @@ datatype kind =
     view: cterm list} |
   Show of context attribute list list |
   Have of context attribute list list;
+
+(* CB: this function prints the goal kind (Isar command), name and target in
+   the proof state *)
 
 fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = None, view = _}) = s ^ (if a = "" then "" else " " ^ a)
