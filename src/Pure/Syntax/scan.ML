@@ -47,9 +47,12 @@ sig
     -> 'b * 'a list -> 'c * ('d * 'a list)
   val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
   val error: ('a -> 'b) -> 'a -> 'b
-  val source: string -> (string -> 'a -> 'b list * 'a) ->
+  val source': string -> (string -> 'a -> 'b list * 'a) ->
     ('b list * 'a -> 'c) -> 'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
       'd * 'a -> 'e list * ('d * 'c)
+  val source: string -> (string -> 'a -> 'b list * 'a) ->
+    ('b list * 'a -> 'c) -> 'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
+      'a -> 'd list * 'c
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
@@ -176,7 +179,7 @@ fun finite stopper scan xs =
 
 (* infinite scans -- draining state-based source *)
 
-fun source def_prmpt get unget stopper scan (state, src) =
+fun source' def_prmpt get unget stopper scan (state, src) =
   let
     fun drain (xs, s) =
       (scan (state, xs), s) handle MORE prmpt =>
@@ -191,6 +194,10 @@ fun source def_prmpt get unget stopper scan (state, src) =
   in
     (ys, (state', unget (rest, src')))
   end;
+
+fun source def_prmpt get unget stopper scan src =
+  let val (ys, ((), src')) = source' def_prmpt get unget stopper (lift scan) ((), src)
+  in (ys, src') end;
 
 fun single scan = scan >> (fn x => [x]);
 fun bulk scan = scan -- repeat (try scan) >> (op ::);
