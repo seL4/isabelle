@@ -427,13 +427,13 @@ fun strip_blanks s =
 
 (* bump string -- treat as base 26 or base 1 numbers *)
 
-fun ends_symbolic (_ :: "\\<^isup>" :: _) = true
-  | ends_symbolic (_ :: "\\<^isub>" :: _) = true
-  | ends_symbolic (s :: _) = is_symbolic s
-  | ends_symbolic [] = false;
+fun symbolic_end (_ :: "\\<^isup>" :: _) = true
+  | symbolic_end (_ :: "\\<^isub>" :: _) = true
+  | symbolic_end (s :: _) = is_symbolic s
+  | symbolic_end [] = false;
 
 fun bump_init str =
-  if ends_symbolic (rev (sym_explode str)) then str ^ "'"
+  if symbolic_end (rev (sym_explode str)) then str ^ "'"
   else str ^ "a";
 
 fun bump_string str =
@@ -446,7 +446,7 @@ fun bump_string str =
           else "a" :: s :: ss;
 
     val (ss, qs) = apfst rev (Library.take_suffix is_quasi (sym_explode str));
-    val ss' = if ends_symbolic ss then "'" :: ss else bump ss;
+    val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
 
 
