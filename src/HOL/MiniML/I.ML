@@ -116,11 +116,11 @@ We actually want the corollary
 
 goal I.thy
   "I e [] m id_subst = Ok(s,t,n) --> W e [] m = Ok(s, $s t, n)";
-by(cut_facts_tac [(read_instantiate[("x","id_subst")]
+by (cut_facts_tac [(read_instantiate[("x","id_subst")]
  (read_instantiate[("x","[]")](thm RS spec)
   RS spec RS spec))] 1);
-by(Full_simp_tac 1);
-by(fast_tac HOL_cs 1);
+by (Full_simp_tac 1);
+by (fast_tac HOL_cs 1);
 qed;
 
 assuming that thm is the undischarged version of I_correct_wrt_W.
@@ -149,23 +149,23 @@ by (expr.induct_tac "e" 1);
  be exE 1;
  by(split_all_tac 1);
  by(Full_simp_tac 1);
-by(Asm_simp_tac 1);
-by(strip_tac 1);
-be exE 1;
-by(REPEAT(etac conjE 1));
-by(split_all_tac 1);
-by(Full_simp_tac 1);
-bd lemma 1;
+by (Asm_simp_tac 1);
+by (strip_tac 1);
+by (etac exE 1);
+by (REPEAT(etac conjE 1));
+by (split_all_tac 1);
+by (Full_simp_tac 1);
+by (dtac lemma 1);
  by(fast_tac HOL_cs 1);
-be exE 1;
-be conjE 1;
-by(hyp_subst_tac 1);
-by(Asm_simp_tac 1);
-br exI 1;
-br conjI 1;
+by (etac exE 1);
+by (etac conjE 1);
+by (hyp_subst_tac 1);
+by (Asm_simp_tac 1);
+by (rtac exI 1);
+by (rtac conjI 1);
  br refl 1;
-by(Simp_tac 1);
-be disjE 1;
+by (Simp_tac 1);
+by (etac disjE 1);
  br disjI1 1;
  by(full_simp_tac (!simpset addsimps [o_def,subst_comp_tel]) 1);
  by(EVERY[etac allE 1, etac allE 1, etac allE 1,
@@ -175,23 +175,23 @@ be disjE 1;
  br new_tv_subst_comp_2 1;
   by(fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
  by(fast_tac (HOL_cs addSIs [new_tv_subst_tel]addIs[new_tv_W RS conjunct1])1);
-br disjI2 1;
-be exE 1;
-by(split_all_tac 1);
-be conjE 1;
-by(Full_simp_tac 1);
-bd lemma 1;
+by (rtac disjI2 1);
+by (etac exE 1);
+by (split_all_tac 1);
+by (etac conjE 1);
+by (Full_simp_tac 1);
+by (dtac lemma 1);
  br conjI 1;
   by(fast_tac (HOL_cs addIs [W_var_ge RS new_tv_list_le]) 1);
  br new_tv_subst_comp_1 1;
    by(fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
  by(fast_tac (HOL_cs addSIs [new_tv_subst_tel]addIs[new_tv_W RS conjunct1])1);
-be exE 1;
-be conjE 1;
-by(hyp_subst_tac 1);
-by(asm_full_simp_tac (!simpset addsimps
+by (etac exE 1);
+by (etac conjE 1);
+by (hyp_subst_tac 1);
+by (asm_full_simp_tac (!simpset addsimps
      [o_def,subst_comp_te RS sym,subst_comp_tel RS sym]) 1);
-by(asm_simp_tac (!simpset addcongs [conj_cong] addsimps
+by (asm_simp_tac (!simpset addcongs [conj_cong] addsimps
            [eq_sym_conv,subst_comp_te RS sym,subst_comp_tel RS sym]) 1);
 qed_spec_mp "I_complete_wrt_W";
 

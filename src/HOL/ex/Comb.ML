@@ -167,13 +167,13 @@ qed "parcontract_subset_reduce";
 goal Comb.thy "contract^* = parcontract^*";
 by (REPEAT 
     (resolve_tac [equalityI, 
-		  contract_subset_parcontract RS rtrancl_mono, 
-		  parcontract_subset_reduce RS rtrancl_subset_rtrancl] 1));
+                  contract_subset_parcontract RS rtrancl_mono, 
+                  parcontract_subset_reduce RS rtrancl_subset_rtrancl] 1));
 qed "reduce_eq_parreduce";
 
 goal Comb.thy "diamond(contract^*)";
 by (simp_tac (!simpset addsimps [reduce_eq_parreduce, diamond_rtrancl, 
-			         diamond_parcontract]) 1);
+                                 diamond_parcontract]) 1);
 qed "diamond_reduce";
 
 

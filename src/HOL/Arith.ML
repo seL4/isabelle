@@ -164,7 +164,7 @@ qed_goal "add_mult_distrib2" Arith.thy "k*(m + n) = (k*m) + ((k*n)::nat)"
 (*Associative law for multiplication*)
 qed_goal "mult_assoc" Arith.thy "(m * n) * k = m * ((n * k)::nat)"
   (fn _ => [nat_ind_tac "m" 1, 
-	    ALLGOALS (asm_simp_tac (!simpset addsimps [add_mult_distrib]))]);
+            ALLGOALS (asm_simp_tac (!simpset addsimps [add_mult_distrib]))]);
 
 qed_goal "mult_left_commute" Arith.thy "x*(y*z) = y*((x*z)::nat)"
  (fn _ => [rtac trans 1, rtac mult_commute 1, rtac trans 1,
@@ -539,7 +539,7 @@ qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
 goal Arith.thy "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
-be zero_less_natE 1;
+by (etac zero_less_natE 1);
 by (Asm_simp_tac 1);
 by (nat_ind_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_less_mono])));
@@ -564,26 +564,26 @@ goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) div (k*n) = m div n";
 by (res_inst_tac [("n","m")] less_induct 1);
 by (case_tac "na<n" 1);
 by (asm_simp_tac (!simpset addsimps [div_less, zero_less_mult_iff, 
-				     mult_less_mono2]) 1);
+                                     mult_less_mono2]) 1);
 by (subgoal_tac "~ k*na < k*n" 1);
 by (asm_simp_tac
      (!simpset addsimps [zero_less_mult_iff, div_geq,
-			 diff_mult_distrib2 RS sym, diff_less]) 1);
+                         diff_mult_distrib2 RS sym, diff_less]) 1);
 by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
-					  le_refl RS mult_le_mono]) 1);
+                                          le_refl RS mult_le_mono]) 1);
 qed "div_cancel";
 
 goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) mod (k*n) = k * (m mod n)";
 by (res_inst_tac [("n","m")] less_induct 1);
 by (case_tac "na<n" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less, zero_less_mult_iff, 
-				     mult_less_mono2]) 1);
+                                     mult_less_mono2]) 1);
 by (subgoal_tac "~ k*na < k*n" 1);
 by (asm_simp_tac
      (!simpset addsimps [zero_less_mult_iff, mod_geq,
-			 diff_mult_distrib2 RS sym, diff_less]) 1);
+                         diff_mult_distrib2 RS sym, diff_less]) 1);
 by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
-					  le_refl RS mult_le_mono]) 1);
+                                          le_refl RS mult_le_mono]) 1);
 qed "mult_mod_distrib";
 
 

@@ -326,7 +326,7 @@ goal HOL.thy "((? x. p x) = (? x. q x)) &     \
 by (safe_meson_tac 1); 
 result();
 
-writeln"Problem 27";	(*13 Horn clauses*)
+writeln"Problem 27";    (*13 Horn clauses*)
 goal HOL.thy "(? x. P x & ~Q x) &   \
 \             (! x. P x --> R x) &   \
 \             (! x. M x & L x --> P x) &   \
@@ -335,7 +335,7 @@ goal HOL.thy "(? x. P x & ~Q x) &   \
 by (safe_meson_tac 1); 
 result();
 
-writeln"Problem 28.  AMENDED";	(*14 Horn clauses*)
+writeln"Problem 28.  AMENDED";  (*14 Horn clauses*)
 goal HOL.thy "(! x. P x --> (! x. Q x)) &   \
 \       ((! x. Q x | R x) --> (? x. Q x & S x)) &  \
 \       ((? x.S x) --> (! x. L x --> M x))  \
@@ -344,7 +344,7 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
-	(*62 Horn clauses*)
+        (*62 Horn clauses*)
 goal HOL.thy "(? x. F x) & (? y. G y)  \
 \   --> ( ((! x. F x --> H x) & (! y. G y --> J y))  =   \
 \         (! x y. F x & G y --> H x & J y))";
@@ -447,7 +447,7 @@ result();
 writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";
 goal HOL.thy "(! x. ! y. q x y = (! z. p z x = (p z y::bool)))  \
 \         --> (! x. (! y. q x y = (q y x::bool)))";
-by (safe_best_meson_tac 1);	
+by (safe_best_meson_tac 1);     
 (*1.6 secs; iter. deepening is slightly slower*)
 result();
 
@@ -466,7 +466,7 @@ goal HOL.thy "(! x. f x & (! y. g y & h x y --> j x y)        \
 \     (? x. f x & (! y. h x y --> l y)                        \
 \                  & (! y. g y & h x y --> j x y))             \
 \     --> (? x. f x & ~ (? y. g y & h x y))";
-by (safe_best_meson_tac 1);	
+by (safe_best_meson_tac 1);     
 (*1.6 secs; iter. deepening is slightly slower*)
 result();
 
@@ -477,12 +477,12 @@ goal HOL.thy
 \     (? x. f x & ~g x & (! y. f y & ~g y --> j x y))) &    \
 \    (! x y. f x & f y & h x y --> ~j y x)                    \
 \     --> (! x. f x --> g x)";
-by (safe_best_meson_tac 1);	
+by (safe_best_meson_tac 1);     
 (*1.7 secs; iter. deepening is slightly slower*)
 result();
 
 writeln"Problem 47.  Schubert's Steamroller";
-	(*26 clauses; 63 Horn clauses*)
+        (*26 clauses; 63 Horn clauses*)
 goal HOL.thy
     "(! x. P1 x --> P0 x) & (? x.P1 x) &     \
 \    (! x. P2 x --> P0 x) & (? x.P2 x) &     \
@@ -501,7 +501,7 @@ goal HOL.thy
 \    (! x y. P3 x & P5 y --> ~R x y) &       \
 \    (! x. (P4 x|P5 x) --> (? y.Q0 y & R x y))      \
 \    --> (? x y. P0 x & P0 y & (? z. Q1 z & R y z & R x y))";
-by (safe_meson_tac 1);	 (*119 secs*)
+by (safe_meson_tac 1);   (*119 secs*)
 result();
 
 (*The Los problem?  Circulated by John Harrison*)
@@ -510,7 +510,7 @@ goal HOL.thy "(! x y z. P x y & P y z --> P x z) &      \
 \      (! x y. P x y --> P y x) &       \
 \      (! (x::'a) y. P x y | Q x y)     \
 \      --> (! x y. P x y) | (! x y. Q x y)";
-by (safe_best_meson_tac 1);	(*3 secs; iter. deepening is VERY slow*)
+by (safe_best_meson_tac 1);     (*3 secs; iter. deepening is VERY slow*)
 result();
 
 (*A similar example, suggested by Johannes Schumann and credited to Pelletier*)

@@ -16,12 +16,12 @@ val Nat_unfold = Nat_fun_mono RS (Nat_def RS def_lfp_Tarski);
 
 (* Zero is a natural number -- this also justifies the type definition*)
 goal Nat.thy "Zero_Rep: Nat";
-by (rtac (Nat_unfold RS ssubst) 1);
+by (stac Nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "Zero_RepI";
 
 val prems = goal Nat.thy "i: Nat ==> Suc_Rep(i) : Nat";
-by (rtac (Nat_unfold RS ssubst) 1);
+by (stac Nat_unfold 1);
 by (rtac (imageI RS UnI2) 1);
 by (resolve_tac prems 1);
 qed "Suc_RepI";
@@ -293,12 +293,12 @@ qed "gr_implies_not0";
 Addsimps [gr_implies_not0];
 
 qed_goal "zero_less_eq" Nat.thy "0 < n = (n ~= 0)" (fn _ => [
-	rtac iffI 1,
-	etac gr_implies_not0 1,
-	rtac natE 1,
-	contr_tac 1,
-	etac ssubst 1,
-	rtac zero_less_Suc 1]);
+        rtac iffI 1,
+        etac gr_implies_not0 1,
+        rtac natE 1,
+        contr_tac 1,
+        etac ssubst 1,
+        rtac zero_less_Suc 1]);
 
 (** Inductive (?) properties **)
 
@@ -408,8 +408,8 @@ Addsimps [less_not_refl,
 
 (*
 goal Nat.thy "(Suc m < n | Suc m = n) = (m < n)";
-by(stac (less_Suc_eq RS sym) 1);
-by(rtac Suc_less_eq 1);
+by (stac (less_Suc_eq RS sym) 1);
+by (rtac Suc_less_eq 1);
 qed "Suc_le_eq";
 
 this could make the simpset (with less_Suc_eq added again) more confluent,
@@ -562,23 +562,23 @@ qed "not_less_Least";
 qed_goalw "Least_Suc" Nat.thy [Least_def]
  "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
  (fn _ => [
-	rtac select_equality 1,
-	fold_goals_tac [Least_def],
-	safe_tac (!claset addSEs [LeastI]),
-	res_inst_tac [("n","j")] natE 1,
-	Fast_tac 1,
-	fast_tac (!claset addDs [Suc_less_SucD, not_less_Least]) 1,
-	res_inst_tac [("n","k")] natE 1,
-	Fast_tac 1,
-	hyp_subst_tac 1,
-	rewtac Least_def,
-	rtac (select_equality RS arg_cong RS sym) 1,
-	safe_tac (!claset),
-	dtac Suc_mono 1,
-	Fast_tac 1,
-	cut_facts_tac [less_linear] 1,
-	safe_tac (!claset),
-	atac 2,
-	Fast_tac 2,
-	dtac Suc_mono 1,
-	Fast_tac 1]);
+        rtac select_equality 1,
+        fold_goals_tac [Least_def],
+        safe_tac (!claset addSEs [LeastI]),
+        res_inst_tac [("n","j")] natE 1,
+        Fast_tac 1,
+        fast_tac (!claset addDs [Suc_less_SucD, not_less_Least]) 1,
+        res_inst_tac [("n","k")] natE 1,
+        Fast_tac 1,
+        hyp_subst_tac 1,
+        rewtac Least_def,
+        rtac (select_equality RS arg_cong RS sym) 1,
+        safe_tac (!claset),
+        dtac Suc_mono 1,
+        Fast_tac 1,
+        cut_facts_tac [less_linear] 1,
+        safe_tac (!claset),
+        atac 2,
+        Fast_tac 2,
+        dtac Suc_mono 1,
+        Fast_tac 1]);

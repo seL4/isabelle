@@ -129,7 +129,7 @@ val prems = goal WF.thy
   by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
                    is_the_recfun 1);
   by (rewtac is_recfun_def);
-  by (rtac (cuts_eq RS ssubst) 1);
+  by (stac cuts_eq 1);
   by (rtac allI 1);
   by (rtac impI 1);
   by (res_inst_tac [("f1","H"),("x","y")](arg_cong RS fun_cong) 1);
@@ -159,7 +159,7 @@ by (cut_facts_tac prems 1);
 by (wf_ind_tac "a" prems 1);
 by (res_inst_tac [("f", "cut (%y. wftrec r H y) r a1")] is_the_recfun 1); 
 by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
-by (rtac (cuts_eq RS ssubst) 1);
+by (stac cuts_eq 1);
 (*Applying the substitution: must keep the quantified assumption!!*)
 by (EVERY1 [strip_tac, rtac H_cong1, rtac allE, atac,
             etac (mp RS ssubst), atac]); 

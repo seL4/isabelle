@@ -214,22 +214,22 @@ qed_goal "notnotD" HOL.thy "~~P ==> P"
   [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
 
 qed_goal "contrapos2" HOL.thy "[| Q; ~ P ==> ~ Q |] ==> P" (fn [p1,p2] => [
-	rtac classical 1,
-	dtac p2 1,
-	etac notE 1,
-	rtac p1 1]);
+        rtac classical 1,
+        dtac p2 1,
+        etac notE 1,
+        rtac p1 1]);
 
 qed_goal "swap2" HOL.thy "[| P;  Q ==> ~ P |] ==> ~ Q" (fn [p1,p2] => [
-	rtac notI 1,
-	dtac p2 1,
-	etac notE 1,
-	rtac p1 1]);
+        rtac notI 1,
+        dtac p2 1,
+        etac notE 1,
+        rtac p1 1]);
 
 (** Unique existence **)
 section "?!";
 
 qed_goalw "ex1I" HOL.thy [Ex1_def]
-	    "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)"
+            "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)"
  (fn prems =>
   [REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)]);
 

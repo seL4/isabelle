@@ -74,7 +74,7 @@ by (rtac (major RS Fin_induct) 1);
 by (Simp_tac 1);
 by (asm_simp_tac
     (!simpset addsimps [image_eqI RS Fin.insertI, image_insert]
-	      delsimps [insert_Fin]) 1);
+              delsimps [insert_Fin]) 1);
 qed "Fin_imageI";
 
 val major::prems = goal Finite.thy 
@@ -83,7 +83,7 @@ val major::prems = goal Finite.thy
 \       !!(x::'a) y. [| x:A; y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> c<=b --> P(b-c)";
 by (rtac (major RS Fin_induct) 1);
-by (rtac (Diff_insert RS ssubst) 2);
+by (stac Diff_insert 2);
 by (ALLGOALS (asm_simp_tac
                 (!simpset addsimps (prems@[Diff_subset RS Fin_subset]))));
 val lemma = result();
@@ -259,7 +259,7 @@ by (rtac Least_equality 1);
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
  by (simp_tac
     (!simpset addsimps [Collect_conv_insert, less_Suc_eq] 
-	      addcongs [rev_conj_cong]) 1);
+              addcongs [rev_conj_cong]) 1);
  be subst 1;
  br refl 1;
 by (rtac notI 1);
@@ -290,7 +290,7 @@ by (asm_simp_tac (!simpset addsimps [card_insert_disjoint]) 1);
 qed "card_Suc_Diff";
 
 goal Finite.thy "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
-by (resolve_tac [Suc_less_SucD] 1);
+by (rtac Suc_less_SucD 1);
 by (asm_simp_tac (!simpset addsimps [card_Suc_Diff]) 1);
 qed "card_Diff";
 

@@ -120,7 +120,7 @@ val elem_tuple = Prod_Syntax.mk_tuple elem_type elem_frees;
 fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
       val pfree = Free(pred_name ^ "_" ^ rec_name, 
-		       elem_factors ---> Ind_Syntax.boolT)
+                       elem_factors ---> Ind_Syntax.boolT)
       val qconcl = 
         foldr Ind_Syntax.mk_all 
           (elem_frees, 
@@ -148,8 +148,8 @@ and mutual_induct_concl =
     Ind_Syntax.mk_Trueprop (fold_bal (app Ind_Syntax.conj) qconcls);
 
 val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
-			resolve_tac [allI, impI, conjI, Part_eqI, refl],
-			dresolve_tac [spec, mp, splitD]];
+                        resolve_tac [allI, impI, conjI, Part_eqI, refl],
+                        dresolve_tac [spec, mp, splitD]];
 
 val lemma = (*makes the link between the two induction rules*)
     prove_goalw_cterm part_rec_defs 
@@ -158,7 +158,7 @@ val lemma = (*makes the link between the two induction rules*)
           (fn prems =>
            [cut_facts_tac prems 1,
             REPEAT (rewrite_goals_tac [split RS eq_reflection] THEN
-		    lemma_tac 1)])
+                    lemma_tac 1)])
     handle e => print_sign_exn sign e;
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
@@ -223,8 +223,8 @@ in
   struct
   val induct = standard 
                   (Prod_Syntax.split_rule_var
-		    (Var((pred_name,2), elem_type --> Ind_Syntax.boolT),
-		     induct0));
+                    (Var((pred_name,2), elem_type --> Ind_Syntax.boolT),
+                     induct0));
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = 

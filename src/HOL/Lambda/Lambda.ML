@@ -14,22 +14,22 @@ some compatibility lemmas.
 goal Nat.thy "!!i. [| i < Suc j; j < k |] ==> i < k";
 by (rtac le_less_trans 1);
 by (assume_tac 2);
-by(asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
-by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
+by (asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
+by (fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans1";
 
 goal Nat.thy "!!i. [| i < j; j < Suc(k) |] ==> i < k";
 by (etac less_le_trans 1);
-by(asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
-by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
+by (asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
+by (fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans2";
 
 val major::prems = goal Nat.thy
   "[| i < Suc j; i < j ==> P; i = j ==> P |] ==> P";
 by (rtac (major RS lessE) 1);
-by(ALLGOALS Asm_full_simp_tac);
-by(resolve_tac prems 1 THEN etac sym 1);
-by(fast_tac (HOL_cs addIs prems) 1);
+by (ALLGOALS Asm_full_simp_tac);
+by (resolve_tac prems 1 THEN etac sym 1);
+by (fast_tac (HOL_cs addIs prems) 1);
 qed "leqE";
 
 goal Arith.thy "!!i. Suc i < j ==> i < pred j ";
@@ -101,9 +101,9 @@ Addsimps [subst_eq,subst_gt,subst_lt];
 
 goal Lambda.thy
   "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
-by(db.induct_tac "t" 1);
-by(ALLGOALS Asm_simp_tac);
-by(strip_tac 1);
+by (db.induct_tac "t" 1);
+by (ALLGOALS Asm_simp_tac);
+by (strip_tac 1);
 by (excluded_middle_tac "nat < i" 1);
 by ((forward_tac [lt_trans2] 2) THEN (assume_tac 2));
 by (ALLGOALS(asm_full_simp_tac (addsplit(!simpset) addsimps [less_SucI])));
@@ -111,9 +111,9 @@ qed_spec_mp "lift_lift";
 
 goal Lambda.thy "!i j s. j < Suc i --> \
 \         lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac (!simpset addsimps [lift_lift])));
-by(strip_tac 1);
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac (!simpset addsimps [lift_lift])));
+by (strip_tac 1);
 by (excluded_middle_tac "nat < j" 1);
 by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("j","nat")] leqE 1);
@@ -130,9 +130,9 @@ Addsimps [lift_subst];
 goal Lambda.thy
   "!i j s. i < Suc j -->\
 \         lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac (!simpset addsimps [lift_lift])));
-by(strip_tac 1);
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac (!simpset addsimps [lift_lift])));
+by (strip_tac 1);
 by (excluded_middle_tac "nat < j" 1);
 by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("i","j")] leqE 1);
@@ -141,26 +141,26 @@ by (ALLGOALS(asm_full_simp_tac
                (!simpset addsimps [less_SucI,gt_pred])));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [less_SucI]) 1);
-by(split_tac [expand_if] 1);
+by (split_tac [expand_if] 1);
 by (asm_full_simp_tac (!simpset addsimps [less_SucI]) 1);
 qed "lift_subst_lt";
 
 goal Lambda.thy "!k s. (lift t k)[s/k] = t";
-by(db.induct_tac "t" 1);
-by(ALLGOALS Asm_simp_tac);
-by(split_tac [expand_if] 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (db.induct_tac "t" 1);
+by (ALLGOALS Asm_simp_tac);
+by (split_tac [expand_if] 1);
+by (ALLGOALS Asm_full_simp_tac);
 qed "subst_lift";
 Addsimps [subst_lift];
 
 
 goal Lambda.thy "!i j u v. i < Suc j --> \
 \ t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac(!simpset addsimps [lift_lift RS sym,lift_subst_lt])));
-by(strip_tac 1);
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac(!simpset addsimps [lift_lift RS sym,lift_subst_lt])));
+by (strip_tac 1);
 by (excluded_middle_tac "nat < Suc(Suc j)" 1);
-by(Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
 by (forward_tac [lessI RS less_trans] 1);
 by (etac leqE 1);
 by (asm_simp_tac (!simpset addsimps [lt_pred]) 2);
@@ -182,24 +182,24 @@ qed_spec_mp "subst_subst";
 (*** Equivalence proof for optimized substitution ***)
 
 goal Lambda.thy "!k. liftn 0 t k = t";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac(addsplit(!simpset))));
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac(addsplit(!simpset))));
 qed "liftn_0";
 Addsimps [liftn_0];
 
 goal Lambda.thy "!k. liftn (Suc n) t k = lift (liftn n t k) k";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac(addsplit(!simpset))));
-by(fast_tac (HOL_cs addDs [add_lessD1]) 1);
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac(addsplit(!simpset))));
+by (fast_tac (HOL_cs addDs [add_lessD1]) 1);
 qed "liftn_lift";
 Addsimps [liftn_lift];
 
 goal Lambda.thy "!n. substn t s n = t[liftn n s 0 / n]";
-by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac(addsplit(!simpset))));
+by (db.induct_tac "t" 1);
+by (ALLGOALS(asm_simp_tac(addsplit(!simpset))));
 qed "substn_subst_n";
 Addsimps [substn_subst_n];
 
 goal Lambda.thy "substn t s 0 = t[s/0]";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "substn_subst_0";

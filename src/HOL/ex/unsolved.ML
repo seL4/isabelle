@@ -7,7 +7,7 @@ Problems that currently defeat the MESON procedure as well as best_tac
 *)
 
 (*from Vladimir Lifschitz, What Is the Inverse Method?, JAR 5  1989.  1--23*)
-	(*27 clauses; 81 Horn clauses*)
+        (*27 clauses; 81 Horn clauses*)
 goal HOL.thy "? x x'. ! y. ? z z'. (~P y y | P x x | ~S z x) & \
 \                                  (S x y | ~S y z | Q z' z')  & \
 \                                  (Q x' y | ~Q y z' | S x' x')";
@@ -32,7 +32,7 @@ goal HOL.thy
 \  killed agatha agatha";
 
 (*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
-	author U. Egly;  46 clauses; 264 Horn clauses*)
+        author U. Egly;  46 clauses; 264 Horn clauses*)
 goal HOL.thy
  "((EX X. (a X) & (ALL Y. (c Y) --> (ALL Z. (d X Y Z)))) -->  \
 \  (EX W. (c W) & (ALL Y. (c Y) --> (ALL Z. (d W Y Z)))))     \

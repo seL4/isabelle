@@ -11,17 +11,17 @@ open Sexp;
 (** sexp_case **)
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (Fast_tac));
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (Fast_tac));
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
-by (resolve_tac [select_equality] 1);
+by (rtac select_equality 1);
 by (ALLGOALS (Fast_tac));
 qed "sexp_case_Scons";
 

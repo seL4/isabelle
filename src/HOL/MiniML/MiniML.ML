@@ -16,7 +16,7 @@ by (etac has_type.induct 1);
 (* case VarI *)
 by (asm_full_simp_tac (!simpset addsimps [app_subst_list]) 1);
 by (forw_inst_tac [("f1","$ s")] (nth_map RS sym) 1);
-by( fast_tac (HOL_cs addIs [has_type.VarI] addss (!simpset delsimps [nth_map])) 1);
+by ( fast_tac (HOL_cs addIs [has_type.VarI] addss (!simpset delsimps [nth_map])) 1);
 (* case AbsI *)
 by (asm_full_simp_tac (!simpset addsimps [app_subst_list]) 1);
 (* case AppI *)

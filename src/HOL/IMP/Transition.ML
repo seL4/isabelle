@@ -23,30 +23,30 @@ AddSEs evalc1_SEs;
 AddIs evalc1.intrs;
 
 goal Transition.thy "!!s. (SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
-be rel_pow_E2 1;
+by (etac rel_pow_E2 1);
 by (Asm_full_simp_tac 1);
-by(Fast_tac 1);
+by (Fast_tac 1);
 val hlemma = result();
 
 
 goal Transition.thy
   "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
-by(nat_ind_tac "n" 1);
+by (nat_ind_tac "n" 1);
  (* case n = 0 *)
  by(fast_tac (!claset addIs [rtrancl_into_rtrancl2])1);
 (* induction step *)
 by (safe_tac (!claset addSDs [rel_pow_Suc_D2]));
-by(split_all_tac 1);
-by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (split_all_tac 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma1";
 
 
 goal Transition.thy "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
-be evalc.induct 1;
+by (etac evalc.induct 1);
 
 (* SKIP *)
-br rtrancl_refl 1;
+by (rtac rtrancl_refl 1);
 
 (* ASSIGN *)
 by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
@@ -69,7 +69,7 @@ qed "evalc_impl_evalc1";
 goal Transition.thy
   "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
-by(nat_ind_tac "n" 1);
+by (nat_ind_tac "n" 1);
  (* case n = 0 *)
  by (fast_tac (!claset addss !simpset) 1);
 (* induction step *)
@@ -93,17 +93,17 @@ by (fast_tac (!claset addSDs [hlemma]  addSEs [rel_pow_E2]
 by (fast_tac (!claset addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
 
 (* IF *)
-be rel_pow_E2 1;
+by (etac rel_pow_E2 1);
 by (Asm_full_simp_tac 1);
 by (fast_tac (!claset addSDs [rel_pow_imp_rtrancl]) 1);
 
 (* WHILE, induction on the length of the computation *)
-by(rotate_tac 1 1);
+by (rotate_tac 1 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("x","s")] spec 1);
-by(res_inst_tac [("n","n")] less_induct 1);
+by (res_inst_tac [("n","n")] less_induct 1);
 by (strip_tac 1);
-be rel_pow_E2 1;
+by (etac rel_pow_E2 1);
  by (Asm_full_simp_tac 1);
 by (eresolve_tac evalc1_Es 1);
 
@@ -111,7 +111,7 @@ by (eresolve_tac evalc1_Es 1);
  by (fast_tac (!claset addSDs [hlemma]) 1);
 
 (* WhileTrue *)
-by(fast_tac(!claset addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
+by (fast_tac(!claset addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
 
 qed_spec_mp "evalc1_impl_evalc";
 
@@ -128,17 +128,17 @@ section "A Proof Without -n->";
 goal Transition.thy
  "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
-be converse_rtrancl_induct2 1;
-by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
-by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (etac converse_rtrancl_induct2 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";
 
 
 goal Transition.thy "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
-be evalc.induct 1;
+by (etac evalc.induct 1);
 
 (* SKIP *)
-br rtrancl_refl 1;
+by (rtac rtrancl_refl 1);
 
 (* ASSIGN *)
 by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
@@ -193,15 +193,15 @@ of Lemma 1.
 
 goal Transition.thy 
   "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
-be evalc1.induct 1;
+by (etac evalc1.induct 1);
 auto();
 qed_spec_mp "FB_lemma3";
 
 val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
-br (major RS rtrancl_induct2) 1;
-by(Fast_tac 1);
-by(fast_tac (!claset addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
+by (rtac (major RS rtrancl_induct2) 1);
+by (Fast_tac 1);
+by (fast_tac (!claset addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
 qed_spec_mp "FB_lemma2";
 
 goal Transition.thy "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";

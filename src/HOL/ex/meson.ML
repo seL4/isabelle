@@ -189,10 +189,10 @@ fun has_consts bs =
 fun skolemize th = 
   if not (has_consts ["Ex"] (prop_of th)) then th
   else skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
-			      disj_exD, disj_exD1, disj_exD2]))
+                              disj_exD, disj_exD1, disj_exD2]))
     handle THM _ => 
         skolemize (forward_res skolemize
-		   (tryres (th, [conj_forward, disj_forward, all_forward])))
+                   (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM _ => forward_res skolemize (th RS ex_forward);
 
 
@@ -211,7 +211,7 @@ fun taut_lits [] = false
   | taut_lits ((flg,t)::ts) = (not flg,t) mem ts orelse taut_lits ts;
 
 val term_False = term_of (read_cterm (sign_of HOL.thy) 
-			  ("False", Type("bool",[])));
+                          ("False", Type("bool",[])));
 
 (*Include False as a literal: an occurrence of ~False is a tautology*)
 fun is_taut th = taut_lits ((true,term_False) :: literals (prop_of th));
@@ -272,8 +272,8 @@ qed "disj_forward2";
 fun forward_res2 nf hyps st =
   case Sequence.pull
         (REPEAT 
-	 (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1) 
-	 st)
+         (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1) 
+         st)
   of Some(th,_) => th
    | None => raise THM("forward_res2", 0, [st]);
 
@@ -426,7 +426,7 @@ fun best_meson_tac sizef =
   MESON (fn cls => 
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
-			 (prolog_step_tac (make_horns cls) 1));
+                         (prolog_step_tac (make_horns cls) 1));
 
 (*First, breaks the goal into independent units*)
 val safe_best_meson_tac =
@@ -451,7 +451,7 @@ fun prolog_step_tac' horns =
         val nrtac = net_resolve_tac horns
     in  fn i => eq_assume_tac i ORELSE
                 match_tac horn0s i ORELSE  (*no backtracking if unit MATCHES*)
-	        ((assume_tac i APPEND nrtac i) THEN check_tac)
+                ((assume_tac i APPEND nrtac i) THEN check_tac)
     end;
 
 fun iter_deepen_prolog_tac horns = 
@@ -460,8 +460,8 @@ fun iter_deepen_prolog_tac horns =
 val iter_deepen_meson_tac = 
   MESON (fn cls => 
          (THEN_ITER_DEEPEN (resolve_tac (gocls cls) 1)
-	                   (has_fewer_prems 1)
-	                   (prolog_step_tac' (make_horns cls))));
+                           (has_fewer_prems 1)
+                           (prolog_step_tac' (make_horns cls))));
 
 val safe_meson_tac =
      SELECT_GOAL (TRY (safe_tac (!claset)) THEN 

@@ -13,7 +13,7 @@ AddIs hoare.intrs;
 val lemma = prove_goal HOL.thy "!s.P s --> P s" (K[Fast_tac 1]);
 
 goal VC.thy "!Q. (!s. vc c Q s) --> |- {wp c Q} astrip c {Q}";
-by(acom.induct_tac "c" 1);
+by (acom.induct_tac "c" 1);
     by(ALLGOALS Simp_tac);
     by(Fast_tac 1);
    by(Fast_tac 1);
@@ -21,7 +21,7 @@ by(acom.induct_tac "c" 1);
  (* if *)
  by(Deepen_tac 4 1);
 (* while *)
-by(safe_tac HOL_cs);
+by (safe_tac HOL_cs);
 by (resolve_tac hoare.intrs 1);
   br lemma 1;
  brs hoare.intrs 1;
@@ -30,19 +30,19 @@ by (resolve_tac hoare.intrs 1);
 qed "vc_sound";
 
 goal VC.thy "!P Q. (!s. P s --> Q s) --> (!s. wp c P s --> wp c Q s)";
-by(acom.induct_tac "c" 1);
+by (acom.induct_tac "c" 1);
     by(ALLGOALS Asm_simp_tac);
-by(EVERY1[rtac allI, rtac allI, rtac impI]);
-by(EVERY1[etac allE, etac allE, etac mp]);
-by(EVERY1[etac allE, etac allE, etac mp, atac]);
+by (EVERY1[rtac allI, rtac allI, rtac impI]);
+by (EVERY1[etac allE, etac allE, etac mp]);
+by (EVERY1[etac allE, etac allE, etac mp, atac]);
 qed_spec_mp "wp_mono";
 
 goal VC.thy "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)";
-by(acom.induct_tac "c" 1);
+by (acom.induct_tac "c" 1);
     by(ALLGOALS Asm_simp_tac);
-by(safe_tac HOL_cs);
-by(EVERY[etac allE 1,etac allE 1,etac impE 1,etac allE 2,etac mp 2,atac 2]);
-by(fast_tac (HOL_cs addEs [wp_mono]) 1);
+by (safe_tac HOL_cs);
+by (EVERY[etac allE 1,etac allE 1,etac impE 1,etac allE 2,etac mp 2,atac 2]);
+by (fast_tac (HOL_cs addEs [wp_mono]) 1);
 qed_spec_mp "vc_mono";
 
 goal VC.thy
@@ -64,12 +64,12 @@ by (etac hoare.induct 1);
  by(res_inst_tac [("x","Awhile b Pa ac")] exI 1);
  by(Asm_simp_tac 1);
 by (safe_tac HOL_cs);
-by(res_inst_tac [("x","ac")] exI 1);
-by(Asm_simp_tac 1);
-by(fast_tac (HOL_cs addSEs [wp_mono,vc_mono]) 1);
+by (res_inst_tac [("x","ac")] exI 1);
+by (Asm_simp_tac 1);
+by (fast_tac (HOL_cs addSEs [wp_mono,vc_mono]) 1);
 qed "vc_complete";
 
 goal VC.thy "!Q. vcwp c Q = (vc c Q, wp c Q)";
-by(acom.induct_tac "c" 1);
-by(ALLGOALS (asm_simp_tac (!simpset addsimps [Let_def])));
+by (acom.induct_tac "c" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [Let_def])));
 qed "vcwp_vc_wp";

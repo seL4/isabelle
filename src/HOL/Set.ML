@@ -11,7 +11,7 @@ open Set;
 section "Relating predicates and sets";
 
 val [prem] = goal Set.thy "P(a) ==> a : {x.P(x)}";
-by (rtac (mem_Collect_eq RS ssubst) 1);
+by (stac mem_Collect_eq 1);
 by (rtac prem 1);
 qed "CollectI";
 
@@ -350,10 +350,10 @@ qed "singletonD";
 bind_thm ("singletonE", make_elim singletonD);
 
 qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" (fn _ => [
-	rtac iffI 1,
-	etac singletonD 1,
-	hyp_subst_tac 1,
-	rtac singletonI 1]);
+        rtac iffI 1,
+        etac singletonD 1,
+        hyp_subst_tac 1,
+        rtac singletonI 1]);
 
 val [major] = goal Set.thy "{a}={b} ==> a=b";
 by (rtac (major RS equalityD1 RS subsetD RS singletonD) 1);
@@ -502,7 +502,7 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 
 
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
-		 mem_Collect_eq];
+                 mem_Collect_eq];
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";

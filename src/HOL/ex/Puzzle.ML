@@ -22,7 +22,7 @@ by (rtac classical 1);
 by (dtac not_leE 1);
 by (subgoal_tac "f(na) <= f(f(na))" 1);
 by (fast_tac (!claset addIs [Puzzle.f_ax]) 2);
-br lessD 1;
+by (rtac lessD 1);
 by (best_tac (!claset delrules [le_refl] 
                       addIs [Puzzle.f_ax, le_less_trans]) 1);
 val lemma = result() RS spec RS mp;

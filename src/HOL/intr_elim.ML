@@ -82,7 +82,7 @@ val _ = writeln "  Proving the introduction rules...";
 fun intro_tacsf disjIn prems = 
   [(*insert prems and underlying sets*)
    cut_facts_tac prems 1,
-   rtac (unfold RS ssubst) 1,
+   stac unfold 1,
    REPEAT (resolve_tac [Part_eqI,CollectI] 1),
    (*Now 1-2 subgoals: the disjunction, perhaps equality.*)
    rtac disjIn 1,

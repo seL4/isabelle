@@ -104,7 +104,7 @@ qed_goalw "converseE" Relation.thy [converse_def]
 AddSEs [converseE];
 
 goalw Relation.thy [converse_def] "converse(converse R) = R";
-by(Fast_tac 1);
+by (Fast_tac 1);
 qed "converse_converse";
 
 (** Domain **)

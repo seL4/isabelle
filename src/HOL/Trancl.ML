@@ -116,7 +116,7 @@ qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
 goal Trancl.thy "!!r s. r <= s^* ==> r^* <= s^*";
-bd rtrancl_mono 1;
+by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
 qed "rtrancl_subset_rtrancl";
 
@@ -163,23 +163,23 @@ val major::prems = goal Trancl.thy
     "[| (a,b) : r^*; P(b); \
 \       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
 \     ==> P(a)";
-br ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1;
-brs prems 1;
-by(fast_tac (!claset addIs prems addSEs[converseD]addSDs[rtrancl_converseD])1);
+by (rtac ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1);
+by (resolve_tac prems 1);
+by (fast_tac (!claset addIs prems addSEs[converseD]addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
 val prems = goal Trancl.thy
  "[| ((a,b),(c,d)) : r^*; P c d; \
 \    !!x y z u.[| ((x,y),(z,u)) : r;  ((z,u),(c,d)) : r^*;  P z u |] ==> P x y\
 \ |] ==> P a b";
-by(res_inst_tac[("R","P")]splitD 1);
-by(res_inst_tac[("P","split P")]converse_rtrancl_induct 1);
-brs prems 1;
-by(Simp_tac 1);
-brs prems 1;
-by(split_all_tac 1);
-by(Asm_full_simp_tac 1);
-by(REPEAT(ares_tac prems 1));
+by (res_inst_tac[("R","P")]splitD 1);
+by (res_inst_tac[("P","split P")]converse_rtrancl_induct 1);
+by (resolve_tac prems 1);
+by (Simp_tac 1);
+by (resolve_tac prems 1);
+by (split_all_tac 1);
+by (Asm_full_simp_tac 1);
+by (REPEAT(ares_tac prems 1));
 qed "converse_rtrancl_induct2";
 
 

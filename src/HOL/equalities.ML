@@ -93,8 +93,8 @@ Addsimps [insert_image];
 goalw Set.thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
-by(split_tac [expand_if] 1);
-by(Fast_tac 1);
+by (split_tac [expand_if] 1);
+by (Fast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
@@ -535,22 +535,22 @@ local
   fun prover s = prove_goal Set.thy s (fn _ => [Fast_tac 1])
 in
 val UN1_simps = map prover 
-		["(UN x. insert a (B x)) = insert a (UN x. B x)",
-		 "(UN x. A x Int B)  = ((UN x.A x) Int B)",
-		 "(UN x. A Int B x)  = (A Int (UN x.B x))",
-		 "(UN x. A x Un B)   = ((UN x.A x) Un B)",
-		 "(UN x. A Un B x)   = (A Un (UN x.B x))",
-		 "(UN x. A x - B)    = ((UN x.A x) - B)",
-		 "(UN x. A - B x)    = (A - (INT x.B x))"];
+                ["(UN x. insert a (B x)) = insert a (UN x. B x)",
+                 "(UN x. A x Int B)  = ((UN x.A x) Int B)",
+                 "(UN x. A Int B x)  = (A Int (UN x.B x))",
+                 "(UN x. A x Un B)   = ((UN x.A x) Un B)",
+                 "(UN x. A Un B x)   = (A Un (UN x.B x))",
+                 "(UN x. A x - B)    = ((UN x.A x) - B)",
+                 "(UN x. A - B x)    = (A - (INT x.B x))"];
 
 val INT1_simps = map prover
-		["(INT x. insert a (B x)) = insert a (INT x. B x)",
-		 "(INT x. A x Int B) = ((INT x.A x) Int B)",
-		 "(INT x. A Int B x) = (A Int (INT x.B x))",
-		 "(INT x. A x Un B)  = ((INT x.A x) Un B)",
-		 "(INT x. A Un B x)  = (A Un (INT x.B x))",
-		 "(INT x. A x - B)   = ((INT x.A x) - B)",
-		 "(INT x. A - B x)   = (A - (UN x.B x))"];
+                ["(INT x. insert a (B x)) = insert a (INT x. B x)",
+                 "(INT x. A x Int B) = ((INT x.A x) Int B)",
+                 "(INT x. A Int B x) = (A Int (INT x.B x))",
+                 "(INT x. A x Un B)  = ((INT x.A x) Un B)",
+                 "(INT x. A Un B x)  = (A Un (INT x.B x))",
+                 "(INT x. A x - B)   = ((INT x.A x) - B)",
+                 "(INT x. A - B x)   = (A - (UN x.B x))"];
 
 (*Analogous laws for bounded Unions and Intersections are conditional
   on the index set's being non-empty.  Thus they are probably NOT worth 

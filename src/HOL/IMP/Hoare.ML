@@ -24,38 +24,38 @@ by (Fast_tac 1);
 qed "hoare_sound";
 
 goalw Hoare.thy [swp_def] "swp SKIP Q = Q";
-by(Simp_tac 1);
-br ext 1;
+by (Simp_tac 1);
+by (rtac ext 1);
 by (Fast_tac 1);
 qed "swp_SKIP";
 
 goalw Hoare.thy [swp_def] "swp (x:=a) Q = (%s.Q(s[a s/x]))";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "swp_Ass";
 
 goalw Hoare.thy [swp_def] "swp (c;d) Q = swp c (swp d Q)";
-by(Simp_tac 1);
-br ext 1;
+by (Simp_tac 1);
+by (rtac ext 1);
 by (Fast_tac 1);
 qed "swp_Semi";
 
 goalw Hoare.thy [swp_def]
   "swp (IF b THEN c ELSE d) Q = (%s. (b s --> swp c Q s) & \
 \                                    (~b s --> swp d Q s))";
-by(Simp_tac 1);
-br ext 1;
+by (Simp_tac 1);
+by (rtac ext 1);
 by (Fast_tac 1);
 qed "swp_If";
 
 goalw Hoare.thy [swp_def]
   "!!s. b s ==> swp (WHILE b DO c) Q s = swp (c;WHILE b DO c) Q s";
-by(stac C_While_If 1);
-by(Asm_simp_tac 1);
+by (stac C_While_If 1);
+by (Asm_simp_tac 1);
 qed "swp_While_True";
 
 goalw Hoare.thy [swp_def] "!!s. ~b s ==> swp (WHILE b DO c) Q s = Q s";
-by(stac C_While_If 1);
-by(Asm_simp_tac 1);
+by (stac C_While_If 1);
+by (Asm_simp_tac 1);
 by (Fast_tac 1);
 qed "swp_While_False";
 
@@ -73,12 +73,12 @@ Delsimps [C_while];
 AddSIs [hoare.skip, hoare.ass, hoare.semi, hoare.If];
 
 goal Hoare.thy "!Q. |- {swp c Q} c {Q}";
-by(com.induct_tac "c" 1);
-by(ALLGOALS Simp_tac);
+by (com.induct_tac "c" 1);
+by (ALLGOALS Simp_tac);
 by (REPEAT_FIRST Fast_tac);
 by (deepen_tac (!claset addIs [hoare.conseq]) 0 1);
 by (Step_tac 1);
-br hoare.conseq 1;
+by (rtac hoare.conseq 1);
   be thin_rl 1;
   by (Fast_tac 1);
  br hoare.While 1;
@@ -91,13 +91,13 @@ br hoare.conseq 1;
  by(safe_tac HOL_cs);
  by(rotate_tac ~1 1);
  by(Asm_full_simp_tac 1);
-by(rotate_tac ~1 1);
-by(Asm_full_simp_tac 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
 qed_spec_mp "swp_is_pre";
 
 goal Hoare.thy "!!c. |= {P}c{Q} ==> |- {P}c{Q}";
-br (swp_is_pre RSN (2,hoare.conseq)) 1;
+by (rtac (swp_is_pre RSN (2,hoare.conseq)) 1);
  by (Fast_tac 2);
-by(rewrite_goals_tac [hoare_valid_def,swp_def]);
+by (rewrite_goals_tac [hoare_valid_def,swp_def]);
 by (Fast_tac 1);
 qed "hoare_relative_complete";

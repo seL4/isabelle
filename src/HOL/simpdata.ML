@@ -33,8 +33,8 @@ fun auto() = by (Auto_tac());
 (*** Addition of rules to simpsets and clasets simultaneously ***)
 
 (*Takes UNCONDITIONAL theorems of the form A<->B to 
-	the Safe Intr     rule B==>A and 
-	the Safe Destruct rule A==>B.
+        the Safe Intr     rule B==>A and 
+        the Safe Destruct rule A==>B.
   Also ~A goes to the Safe Elim rule A ==> ?R
   Failing other cases, A is added as a Safe Intr rule*)
 local
@@ -42,31 +42,31 @@ local
 
   fun addIff th = 
       (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-		(Const("not",_) $ A) =>
-		    AddSEs [zero_var_indexes (th RS notE)]
-	      | (con $ _ $ _) =>
-		    if con=iff_const
-		    then (AddSIs [zero_var_indexes (th RS iffD2)];  
-			  AddSDs [zero_var_indexes (th RS iffD1)])
-		    else  AddSIs [th]
-	      | _ => AddSIs [th];
+                (Const("not",_) $ A) =>
+                    AddSEs [zero_var_indexes (th RS notE)]
+              | (con $ _ $ _) =>
+                    if con=iff_const
+                    then (AddSIs [zero_var_indexes (th RS iffD2)];  
+                          AddSDs [zero_var_indexes (th RS iffD1)])
+                    else  AddSIs [th]
+              | _ => AddSIs [th];
        Addsimps [th])
       handle _ => error ("AddIffs: theorem must be unconditional\n" ^ 
-			 string_of_thm th)
+                         string_of_thm th)
 
   fun delIff th = 
       (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-		(Const("not",_) $ A) =>
-		    Delrules [zero_var_indexes (th RS notE)]
-	      | (con $ _ $ _) =>
-		    if con=iff_const
-		    then Delrules [zero_var_indexes (th RS iffD2),
-				   zero_var_indexes (th RS iffD1)]
-		    else Delrules [th]
-	      | _ => Delrules [th];
+                (Const("not",_) $ A) =>
+                    Delrules [zero_var_indexes (th RS notE)]
+              | (con $ _ $ _) =>
+                    if con=iff_const
+                    then Delrules [zero_var_indexes (th RS iffD2),
+                                   zero_var_indexes (th RS iffD1)]
+                    else Delrules [th]
+              | _ => Delrules [th];
        Delsimps [th])
       handle _ => warning("DelIffs: ignoring conditional theorem\n" ^ 
-			  string_of_thm th)
+                          string_of_thm th)
 in
 val AddIffs = seq addIff
 val DelIffs = seq delIff
@@ -85,19 +85,19 @@ local
 
   fun atomize pairs =
     let fun atoms th =
-	  (case concl_of th of
-	     Const("Trueprop",_) $ p =>
-	       (case head_of p of
-		  Const(a,_) =>
-		    (case assoc(pairs,a) of
-		       Some(rls) => flat (map atoms ([th] RL rls))
-		     | None => [th])
-		| _ => [th])
-	   | _ => [th])
+          (case concl_of th of
+             Const("Trueprop",_) $ p =>
+               (case head_of p of
+                  Const(a,_) =>
+                    (case assoc(pairs,a) of
+                       Some(rls) => flat (map atoms ([th] RL rls))
+                     | None => [th])
+                | _ => [th])
+           | _ => [th])
     in atoms end;
 
   fun mk_meta_eq r = case concl_of r of
-	  Const("==",_)$_$_ => r
+          Const("==",_)$_$_ => r
       |   _$(Const("op =",_)$_$_) => r RS eq_reflection
       |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
       |   _ => r RS P_imp_P_eq_True;
@@ -153,8 +153,8 @@ val if_not_P = prove_goal HOL.thy "~P ==> (if P then x else y) = y"
 val expand_if = prove_goal HOL.thy
     "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
-         rtac (if_P RS ssubst) 2,
-         rtac (if_not_P RS ssubst) 1,
+         stac if_P 2,
+         stac if_not_P 1,
          REPEAT(fast_tac HOL_cs 1) ]);
 
 val if_bool_eq = prove_goal HOL.thy
@@ -183,21 +183,21 @@ val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prover 
-		["(EX x. P x & Q)   = ((EX x.P x) & Q)",
-		 "(EX x. P & Q x)   = (P & (EX x.Q x))",
-		 "(EX x. P x | Q)   = ((EX x.P x) | Q)",
-		 "(EX x. P | Q x)   = (P | (EX x.Q x))",
-		 "(EX x. P x --> Q) = ((ALL x.P x) --> Q)",
-		 "(EX x. P --> Q x) = (P --> (EX x.Q x))"];
+                ["(EX x. P x & Q)   = ((EX x.P x) & Q)",
+                 "(EX x. P & Q x)   = (P & (EX x.Q x))",
+                 "(EX x. P x | Q)   = ((EX x.P x) | Q)",
+                 "(EX x. P | Q x)   = (P | (EX x.Q x))",
+                 "(EX x. P x --> Q) = ((ALL x.P x) --> Q)",
+                 "(EX x. P --> Q x) = (P --> (EX x.Q x))"];
 
 (*Miniscoping: pushing in universal quantifiers*)
 val all_simps = map prover
-		["(ALL x. P x & Q)   = ((ALL x.P x) & Q)",
-		 "(ALL x. P & Q x)   = (P & (ALL x.Q x))",
-		 "(ALL x. P x | Q)   = ((ALL x.P x) | Q)",
-		 "(ALL x. P | Q x)   = (P | (ALL x.Q x))",
-		 "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
-		 "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
+                ["(ALL x. P x & Q)   = ((ALL x.P x) & Q)",
+                 "(ALL x. P & Q x)   = (P & (ALL x.Q x))",
+                 "(ALL x. P x | Q)   = ((ALL x.P x) | Q)",
+                 "(ALL x. P | Q x)   = (P | (ALL x.Q x))",
+                 "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
+                 "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
 
 val HOL_ss = empty_ss
       setmksimps (mksimps mksimps_pairs)
@@ -205,7 +205,7 @@ val HOL_ss = empty_ss
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
       addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc,
-		 cases_simp]
+                 cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
 
@@ -245,13 +245,13 @@ val ex_all_equiv =
 val conj_cong = 
   let val th = prove_goal HOL.thy 
                 "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-		(fn _=> [fast_tac HOL_cs 1])
+                (fn _=> [fast_tac HOL_cs 1])
   in  standard (impI RSN (2, th RS mp RS mp))  end;
 
 val rev_conj_cong =
   let val th = prove_goal HOL.thy 
                 "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
-		(fn _=> [fast_tac HOL_cs 1])
+                (fn _=> [fast_tac HOL_cs 1])
   in  standard (impI RSN (2, th RS mp RS mp))  end;
 
 (* '|' congruence rule: not included by default! *)
@@ -259,7 +259,7 @@ val rev_conj_cong =
 val disj_cong = 
   let val th = prove_goal HOL.thy 
                 "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
-		(fn _=> [fast_tac HOL_cs 1])
+                (fn _=> [fast_tac HOL_cs 1])
   in  standard (impI RSN (2, th RS mp RS mp))  end;
 
 (** 'if' congruence rules: neither included by default! *)

@@ -331,28 +331,28 @@ fun split_const(Ta,Tb,Tc) =
 fun ap_split (Type("*", [T1,T2])) T3 u = 
       split_const(T1,T2,T3) $ 
       Abs("v", T1, 
-	  ap_split T2 T3
-	     ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
-	      Bound 0))
+          ap_split T2 T3
+             ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
+              Bound 0))
   | ap_split T T3 u = u;
 
 (*Makes a nested tuple from a list, following the product type structure*)
 fun mk_tuple (Type("*", [T1,T2])) tms = 
         mk_Pair (mk_tuple T1 tms, 
-		 mk_tuple T2 (drop (length (factors T1), tms)))
+                 mk_tuple T2 (drop (length (factors T1), tms)))
   | mk_tuple T (t::_) = t;
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
 val remove_split = rewrite_rule [split RS eq_reflection]  o  
-	           rule_by_tactic (ALLGOALS split_all_tac);
+                   rule_by_tactic (ALLGOALS split_all_tac);
 
 (*Uncurries any Var of function type in the rule*)
 fun split_rule_var (t as Var(v, Type("fun",[T1,T2])), rl) =
       let val T' = factors T1 ---> T2
-	  val newt = ap_split T1 T2 (Var(v,T'))
-	  val cterm = Thm.cterm_of (#sign(rep_thm rl))
+          val newt = ap_split T1 T2 (Var(v,T'))
+          val cterm = Thm.cterm_of (#sign(rep_thm rl))
       in
-	  remove_split (instantiate ([], [(cterm t, cterm newt)]) rl)
+          remove_split (instantiate ([], [(cterm t, cterm newt)]) rl)
       end
   | split_rule_var (t,rl) = rl;
 

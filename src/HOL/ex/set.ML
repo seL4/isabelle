@@ -12,7 +12,7 @@ writeln"File HOL/ex/set.";
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
 val [prem] = goal HOL.thy "?!x.f(g(x))=x ==> ?!y.g(f(y))=y";
-by(EVERY1[rtac (prem RS ex1E), rtac ex1I, etac arg_cong,
+by (EVERY1[rtac (prem RS ex1E), rtac ex1I, etac arg_cong,
           rtac subst, atac, etac allE, rtac arg_cong, etac mp, etac arg_cong]);
 result();
 
@@ -92,7 +92,7 @@ val [injf,injg,compl,bij] = goal Lfp.thy
 \       bij = (%z. if z:X then f(z) else g(z)) |] ==> \
 \       inj(bij) & surj(bij)";
 val f_eq_gE = make_elim (compl RS disj_lemma);
-by (rtac (bij RS ssubst) 1);
+by (stac bij 1);
 by (rtac conjI 1);
 by (rtac (compl RS surj_if_then_else) 2);
 by (rewtac inj_def);

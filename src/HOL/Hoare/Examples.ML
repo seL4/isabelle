@@ -14,8 +14,8 @@ goal thy
  "{m=0 & s=0} \
 \ WHILE m ~= a DO {s = m*b} s := s+b; m := Suc(m) END\
 \ {s = a*b}";
-by(hoare_tac 1);
-by(ALLGOALS (asm_full_simp_tac (!simpset addsimps add_ac)));
+by (hoare_tac 1);
+by (ALLGOALS (asm_full_simp_tac (!simpset addsimps add_ac)));
 qed "multiply_by_add";
 
 
@@ -78,7 +78,7 @@ by (safe_tac (!claset));
 
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
-by (rtac (pow_pow_reduce RS ssubst) 1);
+by (stac pow_pow_reduce 1);
 
 by (subgoal_tac "(b div 2)*2=b" 1);
 by (subgoal_tac "0<2" 2);

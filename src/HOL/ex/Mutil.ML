@@ -17,8 +17,8 @@ goal thy "!!t. t: tiling A ==> \
 by (etac tiling.induct 1);
 by (Simp_tac 1);
 by (fast_tac (!claset addIs tiling.intrs
-	              addss (HOL_ss addsimps [Un_assoc,
-					      subset_empty_iff RS sym])) 1);
+                      addss (HOL_ss addsimps [Un_assoc,
+                                              subset_empty_iff RS sym])) 1);
 qed_spec_mp "tiling_UnI";
 
 

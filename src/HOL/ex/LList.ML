@@ -393,7 +393,7 @@ bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
 
 AddIs ([Rep_llist]@llist.intrs);
 AddSDs [inj_onto_Abs_llist RS inj_ontoD,
-	inj_Rep_llist RS injD, Leaf_inject];
+        inj_Rep_llist RS injD, Leaf_inject];
 
 goalw LList.thy [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
 by (Fast_tac 1);
@@ -648,7 +648,7 @@ by (rtac (prem1 RS prod_fun_imageI) 1);
 by (rtac (prem2 RS image_mono RS subset_trans) 1);
 by (rtac (image_compose RS subst) 1);
 by (rtac (prod_fun_compose RS subst) 1);
-by (rtac (image_Un RS ssubst) 1);
+by (stac image_Un 1);
 by (stac prod_fun_range_eq_diag 1);
 by (rtac (LListD_Fun_subset_Sigma_llist RS prod_fun_lemma) 1);
 by (rtac (subset_Sigma_llist RS Un_least) 1);
@@ -671,7 +671,7 @@ goalw LList.thy [llistD_Fun_def]
      "!!l. (l,l) : llistD_Fun(r Un range(%x.(x,x)))";
 by (rtac (Rep_llist_inverse RS subst) 1);
 by (rtac prod_fun_imageI 1);
-by (rtac (image_Un RS ssubst) 1);
+by (stac image_Un 1);
 by (stac prod_fun_range_eq_diag 1);
 by (rtac (Rep_llist RS LListD_Fun_diag_I) 1);
 qed "llistD_Fun_range_I";
@@ -744,7 +744,7 @@ by (simp_tac (!simpset addsimps [lmap_LCons]) 1);
 qed "lmap_iterates";
 
 goal LList.thy "iterates f x = LCons x (lmap f (iterates f x))";
-by (rtac (lmap_iterates RS ssubst) 1);
+by (stac lmap_iterates 1);
 by (rtac iterates 1);
 qed "iterates_lmap";
 

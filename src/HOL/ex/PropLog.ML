@@ -18,7 +18,7 @@ qed "thms_mono";
 
 (*Rule is called I for Identity Combinator, not for Introduction*)
 goal PropLog.thy "H |- p->p";
-by(best_tac (!claset addIs [thms.K,thms.S,thms.MP]) 1);
+by (best_tac (!claset addIs [thms.K,thms.S,thms.MP]) 1);
 qed "thms_I";
 
 (** Weakening, left and right **)
@@ -35,7 +35,7 @@ val weaken_left_Un1  =    Un_upper1 RS weaken_left;
 val weaken_left_Un2  =    Un_upper2 RS weaken_left;
 
 goal PropLog.thy "!!H. H |- q ==> H |- p->q";
-by(fast_tac (!claset addIs [thms.K,thms.MP]) 1);
+by (fast_tac (!claset addIs [thms.K,thms.MP]) 1);
 qed "weaken_right";
 
 (*The deduction theorem*)
@@ -43,7 +43,7 @@ goal PropLog.thy "!!H. insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
 by (ALLGOALS 
     (fast_tac (!claset addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
-			     thms.S RS thms.MP RS thms.MP, weaken_right])));
+                             thms.S RS thms.MP RS thms.MP, weaken_right])));
 qed "deduction";
 
 
@@ -102,7 +102,7 @@ qed "imp_false";
 (*This formulation is required for strong induction hypotheses*)
 goal PropLog.thy "hyps p tt |- (if tt[p] then p else p->false)";
 by (rtac (expand_if RS iffD2) 1);
-by(PropLog.pl.induct_tac "p" 1);
+by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (!simpset addsimps [thms_I, thms.H])));
 by (fast_tac (!claset addIs [weaken_left_Un1, weaken_left_Un2, 
                            weaken_right, imp_false]

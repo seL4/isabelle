@@ -125,10 +125,10 @@ qed "not_Cons_self2";
 
 
 goal SList.thy "(xs ~= []) = (? y ys. xs = y#ys)";
-by(list_ind_tac "xs" 1);
-by(Simp_tac 1);
-by(Asm_simp_tac 1);
-by(REPEAT(resolve_tac [exI,refl,conjI] 1));
+by (list_ind_tac "xs" 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
+by (REPEAT(resolve_tac [exI,refl,conjI] 1));
 qed "neq_Nil_conv2";
 
 (** Conversion rules for List_case: case analysis operator **)
@@ -243,7 +243,7 @@ qed "Rep_map_Cons";
 
 goalw SList.thy [Rep_map_def] "!!f. (!!x. f(x): A) ==> Rep_map f xs: list(A)";
 by (rtac list_induct2 1);
-by(ALLGOALS Asm_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "Rep_map_type";
 
 goalw SList.thy [Abs_map_def] "Abs_map g NIL = Nil";
@@ -275,16 +275,16 @@ fun list_recs def =
 
 (*** Unfolding the basic combinators ***)
 
-val [null_Nil, null_Cons] 		= list_recs null_def;
-val [_, hd_Cons]			= list_recs hd_def;
-val [_, tl_Cons]			= list_recs tl_def;
-val [ttl_Nil, ttl_Cons]			= list_recs ttl_def;
-val [append_Nil3, append_Cons] 		= list_recs append_def;
-val [mem_Nil, mem_Cons] 		= list_recs mem_def;
-val [set_of_list_Nil, set_of_list_Cons]	= list_recs set_of_list_def;
-val [map_Nil, map_Cons]			= list_recs map_def;
-val [list_case_Nil, list_case_Cons] 	= list_recs list_case_def;
-val [filter_Nil, filter_Cons]		= list_recs filter_def;
+val [null_Nil, null_Cons]               = list_recs null_def;
+val [_, hd_Cons]                        = list_recs hd_def;
+val [_, tl_Cons]                        = list_recs tl_def;
+val [ttl_Nil, ttl_Cons]                 = list_recs ttl_def;
+val [append_Nil3, append_Cons]          = list_recs append_def;
+val [mem_Nil, mem_Cons]                 = list_recs mem_def;
+val [set_of_list_Nil, set_of_list_Cons] = list_recs set_of_list_def;
+val [map_Nil, map_Cons]                 = list_recs map_def;
+val [list_case_Nil, list_case_Cons]     = list_recs list_case_def;
+val [filter_Nil, filter_Cons]           = list_recs filter_def;
 
 Addsimps
   [null_Nil, ttl_Nil,
@@ -299,25 +299,25 @@ Addsimps
 (** @ - append **)
 
 goal SList.thy "(xs@ys)@zs = xs@(ys@zs)";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (list_ind_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "append_assoc2";
 
 goal SList.thy "xs @ [] = xs";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
+by (list_ind_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "append_Nil4";
 
 (** mem **)
 
 goal SList.thy "x mem (xs@ys) = (x mem xs | x mem ys)";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (list_ind_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_append2";
 
 goal SList.thy "x mem [x:xs.P(x)] = (x mem xs & P(x))";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (list_ind_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter2";
 
 
@@ -339,9 +339,9 @@ qed "Abs_map_inverse";
 goal SList.thy
  "P(list_case a f xs) = ((xs=[] --> P(a)) & \
 \                        (!y ys. xs=y#ys --> P(f y ys)))";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
-by(Fast_tac 1);
+by (list_ind_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+by (Fast_tac 1);
 qed "expand_list_case2";
 
 
@@ -365,7 +365,7 @@ qed "map_compose2";
 goal SList.thy "!!f. (!!x. f(x): sexp) ==> \
 \       Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs";
 by (list_ind_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac(!simpset addsimps
+by (ALLGOALS(asm_simp_tac(!simpset addsimps
        [Rep_map_type,list_sexp RS subsetD])));
 qed "Abs_Rep_map";
 
