@@ -624,9 +624,10 @@ fun scanwords is_let cs =
 
 (*Convert Unix filename of the form path/file to "path/" and "file" ;
   if filename contains no slash, then it returns "" and "file" *)
-fun split_filename name =
-  let val (file,path) = take_prefix (apr(op<>,"/")) (rev (explode name))
-  in  (implode(rev path), implode(rev file)) end;
+val split_filename =
+  (pairself implode) o take_suffix (not_equal "/") o explode;
+
+val base_name = #2 o split_filename;
 
 (*Merge splitted filename (path and file);
   if path does not end with one a slash is appended *)
@@ -636,7 +637,4 @@ fun tack_on "" name = name
       else path ^ "/" ^ name;
 
 (*Remove the extension of a filename, i.e. the part after the last '.' *)
-fun remove_ext name =
-  let val (file,_) = take_prefix (apr(op<>,".")) (rev (explode name))
-  in implode (rev file) end;
-
+val remove_ext = implode o #1 o take_suffix (not_equal ".") o explode;
