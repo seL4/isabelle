@@ -5,46 +5,46 @@
 
 This manual describes Isabelle together with related tools and user interfaces
 as seen from an outside (system oriented) view.  See also the \emph{Isabelle
-  Reference Manual}~\cite{isabelle-ref} and the \emph{Isabelle Isar Reference
-  Manual}~\cite{isabelle-isar-ref} for the actual Isabelle commands and
+  Isar Reference Manual}~\cite{isabelle-isar-ref} and the \emph{Isabelle
+  Reference Manual}~\cite{isabelle-ref} for the actual Isabelle commands and
 related functions.
 
-\medskip The Isabelle system environment is based on a few general elements:
+\medskip The Isabelle system environment emerges from a few general concepts.
 \begin{itemize}
-\item The \emph{Isabelle settings mechanism}, which provides environment
-  variables to all Isabelle programs (including tools and user interfaces).
-\item \emph{Isabelle proper} (\ttindex{isabelle}), which invokes logic
-  sessions, both interactively or in batch mode. In particular,
-  \texttt{isabelle} abstracts over the invocation of the actual {\ML} system
-  to be used.
-\item The \emph{Isabelle tools wrapper} (\ttindex{isatool}), which provides a
-  generic startup platform for Isabelle related utilities.  Thus tools
-  automatically benefit from the settings mechanism.
-\item The \emph{Isabelle interface wrapper} (\ttindex{Isabelle}\footnote{Note
-    the capital \texttt{I}!}), which provides some abstraction over the actual
-  user interface to be used.
+\item The \emph{Isabelle settings mechanism} provides environment variables to
+  all Isabelle programs (including tools and user interfaces).
+\item The \emph{Isabelle tools wrapper} (\ttindex{isatool}) provides a generic
+  startup platform for Isabelle related utilities.  Thus tools automatically
+  benefit from the settings mechanism.
+\item The raw \emph{Isabelle process} (\ttindex{isabelle} or
+  \texttt{isabelle-process}) runs logic sessions either interactively or in
+  batch mode.  In particular, this view abstracts over the invocation of the
+  actual {\ML} system to be used.
+\item The \emph{Isabelle interface wrapper} (\ttindex{Isabelle} or
+  \texttt{isabelle-interface}) provides some abstraction over the actual user
+  interface to be used.  The de-facto standard interface for Isabelle is
+  Proof~General \cite{proofgeneral}.
 \end{itemize}
 
-\medskip The beginning user would probably just run one of the interfaces (by
-invoking the capital \texttt{Isabelle}), and maybe some basic tools like
-\texttt{doc} (see \S\ref{sec:tool-doc}).  This assumes that the system has
-already been installed, of course.\footnote{In case you have to do this
-  yourself, see the \ttindex{INSTALL} file in the top-level directory of the
-  distribution of how to proceed.  Some binary packages are available as
-  well.}
+\medskip The beginning user would probably just run a standard user interface
+(by invoking the capital \texttt{Isabelle}).  This assumes that the system has
+already been installed, of course.  In case you have to do this yourself, see
+the \ttindex{INSTALL} file in the top-level directory of the distribution of
+how to proceed; binary packages for various system components are available as
+well.
 
 
 \section{Isabelle settings} \label{sec:settings}
 
 The Isabelle system heavily depends on the \emph{settings
-  mechanism}\indexbold{settings}. Basically, this is a statically scoped
+  mechanism}\indexbold{settings}.  Essentially, this is a statically scoped
 collection of environment variables, such as \texttt{ISABELLE_HOME},
 \texttt{ML_SYSTEM}, \texttt{ML_HOME}.  These variables are \emph{not} intended
 to be set directly from the shell, though.  Isabelle employs a somewhat more
 sophisticated scheme of \emph{settings files} --- one for site-wide defaults,
 another for additional user-specific modifications.  With all configuration
 variables in at most two places, this scheme is more maintainable and
-user-friendly than plain shell environment variables.
+user-friendly than global shell environment variables.
 
 In particular, we avoid the typical situation where prospective users of a
 software package are told to put several things into their shell startup
@@ -55,10 +55,10 @@ straight away.\footnote{Occasionally, users would still want to put the
   not required.}
 
 
-\subsection{Building the environment}
+\subsection{Constructing the environment}
 
 Whenever any of the Isabelle executables is run, their settings environment is
-built as follows.
+put together as follows.
 
 \begin{enumerate}
 \item The special variable \settdx{ISABELLE_HOME} is determined automatically
@@ -76,8 +76,8 @@ built as follows.
   This file typically contains a rather long list of shell variable
   assigments, thus providing the site-wide default settings.  The Isabelle
   distribution already contains a global settings file with sensible defaults
-  for most variables. When installing the system, only a few of these have to
-  be adapted (most likely \texttt{ML_SYSTEM} etc.).
+  for most variables. When installing the system, only a few of these may have
+  to be adapted (probably \texttt{ML_SYSTEM} etc.).
   
 \item The file \texttt{\$ISABELLE_HOME_USER/etc/settings} (if it exists) is
   run in the same way as the site default settings. Note that the variable
@@ -102,17 +102,17 @@ particular, external environment references should be kept at a minimum.
 
 \medskip A few variables are somewhat special:
 \begin{itemize}
-\item \settdx{ISABELLE} and \settdx{ISATOOL} are set automatically to
-  the absolute path names of the \texttt{isabelle} and
-  \texttt{isatool} executables, respectively.
+\item \settdx{ISABELLE} and \settdx{ISATOOL} are set automatically to the
+  absolute path names of the \texttt{isabelle-process} and \texttt{isatool}
+  executables, respectively.
   
-\item \settdx{ISABELLE_OUTPUT} will has the {\ML} system identifier (according
-  to \texttt{ML_IDENTIFIER}) automatically appended to its value.
+\item \settdx{ISABELLE_OUTPUT} will have the {\ML} system identifier
+  (according to \texttt{ML_IDENTIFIER}) automatically appended to its value.
 \end{itemize}
 
-\medskip The Isabelle settings scheme is basically simple, but non-trivial.
-For debugging purposes, the resulting environment may be inspected with the
-\texttt{getenv} utility, see \S\ref{sec:tool-getenv}.
+\medskip The Isabelle settings scheme is conceptually simple, but not
+completely trivial.  For debugging purposes, the resulting environment may be
+inspected with the \texttt{getenv} utility, see \S\ref{sec:tool-getenv}.
 
 
 \subsection{Common variables}
@@ -124,8 +124,8 @@ selection. Variables that are special in some sense are marked with *.
 \begin{description}
 \item[\settdx{ISABELLE_HOME}*] is the location of the top-level Isabelle
   distribution directory. This is automatically determined from the Isabelle
-  executable that has been invoked.  Do not try to set \texttt{ISABELLE_HOME}
-  yourself from the shell.
+  executable that has been invoked.  Do not attempt to set
+  \texttt{ISABELLE_HOME} yourself from the shell.
   
 \item[\settdx{ISABELLE_HOME_USER}] is the user-specific counterpart of
   \texttt{ISABELLE_HOME}. The default value is \texttt{\~\relax/isabelle},
@@ -135,9 +135,10 @@ selection. Variables that are special in some sense are marked with *.
   be overridden by a private \texttt{etc/settings}.
   
 \item[\settdx{ISABELLE}*, \settdx{ISATOOL}*] are automatically set to the full
-  path names of the \texttt{isabelle} and \texttt{isatool} executables,
-  respectively.  Thus other tools and scripts need not assume that the
-  Isabelle \texttt{bin} directory is on the current search path of the shell.
+  path names of the \texttt{isabelle-process} and \texttt{isatool}
+  executables, respectively.  Thus other tools and scripts need not assume
+  that the Isabelle \texttt{bin} directory is on the current search path of
+  the shell.
   
 \item[\settdx{ML_SYSTEM}, \settdx{ML_HOME}, \settdx{ML_OPTIONS},
   \settdx{ML_PLATFORM}, \settdx{ML_IDENTIFIER}*] specify the underlying {\ML}
@@ -188,27 +189,70 @@ selection. Variables that are special in some sense are marked with *.
 \item[\settdx{DVI_VIEWER}] specifies the command to be used for displaying
   \texttt{dvi} files.
   
-\item[\settdx{ISABELLE_INSTALL_FONTS}] determines the way that the Isabelle
-  symbol fonts are installed into your currently running X11 display server.
-  X11 fonts are a subtle issue, see \S\ref{sec:tool-installfonts} for more
-  information.
-  
-\item[\settdx{ISABELLE_TMP_PREFIX}] is the prefix from which any running
+\item[\settdx{ISABELLE_TMP_PREFIX}*] is the prefix from which any running
   \texttt{isabelle} process derives an individual directory for temporary
   files.  The default is somewhere in \texttt{/tmp}.
   
 \item[\settdx{ISABELLE_INTERFACE}] is an identifier that specifies the actual
-  user interface that the capital \texttt{Isabelle} should invoke.  See
-  \S\ref{sec:interface} for more details.
+  user interface that the capital \texttt{Isabelle} or
+  \texttt{isabelle-interface} should invoke.  See \S\ref{sec:interface} for
+  more details.
 
 \end{description}
 
 
-\section{Isabelle proper --- \texttt{isabelle}}
+\section{The Isabelle tools wrapper} \label{sec:isatool}
 
-The \ttindex{isabelle} executable runs bare-bones logic sessions --- either
-interactively or in batch mode. It provides an abstraction over the underlying
-{\ML} system, and over the actual heap file locations. Its usage is:
+All Isabelle related utilities are called via a common wrapper ---
+\ttindex{isatool}:
+\begin{ttbox}
+Usage: isatool TOOL [ARGS ...]
+
+  Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
+  for more specific help.
+
+  Available tools are:
+
+    browser - Isabelle graph browser
+    \dots
+\end{ttbox}
+In principle, Isabelle tools are ordinary executable scripts that are run
+within the Isabelle settings environment, see \S\ref{sec:settings}.  The set
+of available tools is collected by \texttt{isatool} from the directories
+listed in the \texttt{ISABELLE_TOOLS} setting.  Do not try to call the scripts
+directly from the shell.  Neither should you add the tool directories to your
+shell's search path!
+
+
+\subsubsection*{Examples}
+
+Show the list of available documentation of the current Isabelle installation
+like this:
+\begin{ttbox}
+  isatool doc
+\end{ttbox}
+
+View a certain document as follows:
+\begin{ttbox}
+  isatool doc isar-ref
+\end{ttbox}
+
+Create an Isabelle session derived from HOL (see also \S\ref{sec:tool-mkdir}
+and \S\ref{sec:tool-make}):
+\begin{ttbox}
+  isatool mkdir HOL Test && isatool make
+\end{ttbox}
+Note that \texttt{isatool mkdir} is usually only invoked once; existing
+sessions (including document output etc.) are then updated by \texttt{isatool
+  make} alone.
+
+
+\section{The raw Isabelle process}
+
+The \ttindex{isabelle} (or \ttindex{isabelle-process}) executable runs
+bare-bones Isabelle logic sessions --- either interactively or in batch mode.
+It provides an abstraction over the underlying {\ML} system, and over the
+actual heap file locations.  Its usage is:
 \begin{ttbox}
 Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 
@@ -244,15 +288,15 @@ directory).
 
 If the input heap file does not have write permission bits set, or the
 \texttt{-r} option is given explicitely, then the session started will be
-read-only.  That is, the {\ML} world cannot be committed back into the logic
-image.  Otherwise, a writable session enables commits into either the input
+read-only.  That is, the {\ML} world cannot be committed back into the image
+file.  Otherwise, a writable session enables commits into either the input
 file, or into an alternative output heap file (in case that is given as the
 second argument on the command line).
 
 The read-write state of sessions is determined at startup only, it cannot be
 changed intermediately. Also note that heap images may require considerable
-amounts of disk space. Users are responsible themselves to dispose their heap
-files when they are no longer needed.
+amounts of disk space (approximately 20--40~MB). Users are responsible for
+themselves to dispose their heap files when they are no longer needed.
 
 \medskip The \texttt{-w} option makes the output heap file read-only after
 terminating.  Thus subsequent invocations cause the logic image to be
@@ -260,8 +304,8 @@ read-only automatically.
 
 \medskip The \texttt{-c} option tells the underlying ML system to compress the
 output heap (fully transparently).  On Poly/ML for example, the image is
-garbage collected and all values maximally shared, resulting in up to 50\%
-less disk space consumption.
+garbage collected and all stored values are maximally shared, resulting in up
+to 50\% less disk space consumption.
 
 \medskip The \texttt{-C} option tells the ML system to produce a completely
 self-contained output image, probably including a copy of the ML runtime
@@ -280,7 +324,7 @@ administrative purposes.
 
 \medskip The \texttt{-m} option adds identifiers of print modes to be made
 active for this session. Typically, this is used by some user interface, e.g.\ 
-to enable output of mathematical symbols from a special screen font.
+to enable output of proper mathematical symbols.
 
 \medskip Isabelle normally enters an interactive top-level loop (after
 processing the \texttt{-e} texts). The \texttt{-q} option inhibits
@@ -307,9 +351,8 @@ as follows:
 \begin{ttbox}
 isabelle FOL Foo
 \end{ttbox}
-Ending this session normally (e.g.\ by typing control-D) dumps the
-whole {\ML} system state into \texttt{Foo}. Be prepared for several
-megabytes!
+Ending this session normally (e.g.\ by typing control-D) dumps the whole {\ML}
+system state into \texttt{Foo}. Be prepared for several tens of megabytes.
 
 The \texttt{Foo} session may be continued later (still in writable
 state) by:
@@ -334,38 +377,14 @@ Note that the output text will be interspersed with additional junk messages
 by the {\ML} runtime environment.
 
 
-\section{The Isabelle tools wrapper --- \texttt{isatool}} \label{sec:isatool}
-
-All Isabelle related utilities are called via a common wrapper ---
-\ttindex{isatool}:
-\begin{ttbox}
-Usage: isatool TOOL [ARGS ...]
-
-  Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
-  for more specific help.
-
-  Available tools are:
-
-    browser - Isabelle graph browser
-    doc - view Isabelle documentation
-    \dots
-\end{ttbox}
-Basically, Isabelle tools are ordinary executable scripts.  These are run
-within the same Isabelle settings environment, see \S\ref{sec:settings}.  The
-set of available tools is collected by \texttt{isatool} from the directories
-listed in the \texttt{ISABELLE_TOOLS} setting.  Do not try to call the scripts
-directly.  Neither should you add the tool directories to your shell's search
-path.
-
-
-\section{The Isabelle interface wrapper --- \texttt{Isabelle}} \label{sec:interface}
+\section{The Isabelle interface wrapper}\label{sec:interface}
 
 Isabelle is a generic theorem prover, even w.r.t.\ its user interface.  The
-\ttindex{Isabelle} command (note the capital \texttt{I}) provides a uniform
-way for end-users to invoke a certain interface; which one to start actually
-is determined by the \settdx{ISABELLE_INTERFACE} setting variable.  Also note
-that the \texttt{install} utility provides some options to install desktop
-environment icons as well (see \S\ref{sec:tool-install}).
+\ttindex{Isabelle} (or \ttindex{isabelle-interface}) executable provides a
+uniform way for end-users to invoke a certain interface; which one to start
+actually is determined by the \settdx{ISABELLE_INTERFACE} setting variable.
+Also note that the \texttt{install} utility provides some options to install
+desktop environment icons as well (see \S\ref{sec:tool-install}).
 
 An interface may be specified either by giving an identifier that the Isabelle
 distribution knows about, or by specifying an actual path name (containing a
@@ -373,21 +392,10 @@ slash ``\texttt{/}'') of some executable.  Currently, the following interfaces
 are available:
 
 \begin{itemize}
-\item \texttt{none} is just a pass-through to plain \texttt{isabelle}. Thus
+\item \texttt{none} is just a pass-through to raw \texttt{isabelle}. Thus
   \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.  This is
   the factory default.
 
-\item \texttt{xterm} refers to a simple \textsl{xterm} based interface which
-  is part of the Isabelle distribution.
-  
-  This interface runs \texttt{isabelle} within its own \textsl{xterm} window.
-  Usually, display of mathematical symbols from the Isabelle font is enabled
-  as well (see \S\ref{sec:tool-installfonts} for X11 font configuration
-  issues).  Furthermore, different kinds of identifiers in logical terms are
-  highlighted appropriately, e.g.\ free variables in bold and bound variables
-  underlined.  There are some more options available, just pass
-  ``\texttt{-?}'' to get the usage printed.
-  
 \item \texttt{emacs} refers to David Aspinall's \emph{Isamode}\index{user
     interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,
   the actual Isamode distribution is available elsewhere \cite{isamode}.
@@ -406,8 +414,10 @@ PROOFGENERAL_OPTIONS=""
   \end{ttbox}
   Thus \texttt{Isabelle} would automatically invoke Emacs with proper setup of
   the Proof~General Lisp packages.  There are some options available, such as
-  \texttt{-l} for passing the logic image to be used, or \texttt{-m} to tune
-  the standard print mode.
+  \texttt{-l} for passing the logic image to be used by default, or
+  \texttt{-m} to tune the standard print mode.  The \texttt{-I} option allows
+  to switch between the Isar and ML view, independently of the actual
+  interface script being used.
   
   \medskip Note that the world may be also seen the other way round: Emacs may
   be started first (with proper setup of Proof~General mode), and

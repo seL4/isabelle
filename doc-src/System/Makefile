@@ -12,7 +12,7 @@ default: dvi
 include ../Makefile.in
 
 NAME = system
-FILES = system.tex basics.tex misc.tex fonts.tex present.tex symbols.tex \
+FILES = system.tex basics.tex misc.tex present.tex symbols.tex \
 	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 OUTPUT = syms.tex

@@ -24,8 +24,8 @@ Usage: convert [FILES|DIRS...]
 The resulting theory text uses the tactic emulation facilities of
 Isabelle/Isar (see also \cite{isabelle-ref}, especially the ``Conversion
 guide'' in the appendix).  Usually there is some manual tuning required to get
-an automatically converted script work again --- the success rate may be
-around 99\% for common ML scripts.
+an automatically converted script work again --- the success rate is around
+99\% for common ML scripts.
 
 
 \section{Viewing documentation --- \texttt{isatool doc}} \label{sec:tool-doc}
@@ -82,7 +82,7 @@ switching to another {\ML} compiler may change the set of logic images
 available.
 
 
-\section{Inspecting the settings environment -- \texttt{isatool getenv}}
+\section{Inspecting the settings environment --- \texttt{isatool getenv}}
 \label{sec:tool-getenv}
 
 The Isabelle settings environment --- as provided by the site-default and
@@ -130,7 +130,7 @@ Note how the \texttt{ML_IDENTIFIER} value got appended automatically to each
 path component. This is a special feature of \texttt{ISABELLE_OUTPUT}.
 
 
-\section{Installing standalone Isabelle executables -- \texttt{isatool install}}
+\section{Installing standalone Isabelle executables --- \texttt{isatool install}}
 \label{sec:tool-install}
 
 By default, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool} etc.)
@@ -167,7 +167,7 @@ The \texttt{-k} option creates an Isabelle application object for the popular
 The icon will appear directly on the desktop.
 
 
-\section{Creating instances of the Isabelle logo -- \texttt{isatool
+\section{Creating instances of the Isabelle logo --- \texttt{isatool
     logo}}
 
 The \tooldx{logo} utility creates any instance of the generic Isabelle logo as
@@ -219,7 +219,7 @@ object-logics as a model for your own developements.  For example, see
 \texttt{src/FOL/IsaMakefile}.
 
 
-\section{Make all logics -- \texttt{isatool makeall}}
+\section{Make all logics --- \texttt{isatool makeall}}
 
 The \tooldx{makeall} utility applies Isabelle make to all logic
 directories of the distribution:
@@ -230,6 +230,24 @@ Usage: makeall [ARGS ...]
 \end{ttbox}
 The arguments \texttt{ARGS} are just passed verbatim to each
 \texttt{make} invocation.
+
+
+\section{Remove awkward symbol names from theory sources --- \texttt{isatool unsymbolize}}
+
+The \tooldx{unsymbolize} utility tunes Isabelle theory sources to improve
+readability for plain ASCII output (e.g.\ in email communication).  Most
+notably, \texttt{unsymbolize} replaces awkward arrow symbols such as
+\verb|\<Longrightarrow>| by \verb|==>|.
+\begin{ttbox}
+Usage: unsymbolize [FILES|DIRS...]
+
+  Recursively find .thy/.ML files, removing unreadable symbol names.
+  Note: this is an ad-hoc script; there is no systematic way to replace
+  symbols independently of the inner syntax of a theory!
+
+  Renames old versions of FILES by appending "~~".
+\end{ttbox}
+
 
 %%% Local Variables: 
 %%% mode: latex
