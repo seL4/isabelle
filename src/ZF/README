@@ -10,16 +10,25 @@ run all the tests described below.
 ROOT.ML -- loads all source files.  Enter an ML image containing FOL and
 type: use "ROOT.ML";
 
-Coind -- subdirectory containing a large example of proof by co-induction,
-originally due to Robin Milner and Mads Tofte.  To execute, enter an ML image
-containing ZF and type:   use "Coind/ROOT.ML";
+There are also several subdirectories of examples.  To execute the examples on
+some directory <Dir>, enter an ML image containing ZF and type
+	use "<Dir>/ROOT.ML";
+
+AC -- subdirectory containing proofs from the book "Equivalents of the Axiom
+of Choice, II" by H. Rubin and J.E. Rubin, 1985.  Thanks to Krzysztof
+Gr`abczewski. 
+
+Coind -- subdirectory containing a large example of proof by co-induction.  It
+is by Jacob Frost following a paper by Robin Milner and Mads Tofte.
 
 IMP -- subdirectory containing a semantics equivalence proof between
 operational and denotational definitions of a simple programming language.
-To execute, enter an ML image containing ZF and type:   use "IMP/ROOT.ML";
+Thanks to Heiko Loetzbeyer & Robert Sandner.
 
-ex -- subdirectory containing examples.  To execute them, enter an ML image
-containing ZF and type:    use "ex/ROOT.ML";
+Resid -- subdirectory containing a proof of the Church-Rosser Theorem.  It is
+by Ole Rasmussen, following the Coq proof by Gérard Huet.
+
+ex -- subdirectory containing various examples.
 
 Isabelle/ZF formalizes the greater part of elementary set theory, including
 relations, functions, injections, surjections, ordinals and cardinals.
