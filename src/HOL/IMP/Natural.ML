@@ -26,25 +26,3 @@ by (thin_tac "<?c,s2> -c-> s1" 7);
 (*blast_tac needs Unify.search_bound, trace_bound ::= 40*)
 by (ALLGOALS (best_tac (claset() addEs [evalc_WHILE_case])));
 qed_spec_mp "com_det";
-
-(** An example due to Tony Hoare **)
-
-Goal "[| !x. P x --> Q x; <w,s> -c-> t |] ==> \
-\ !c. w = While P c --> <While Q c,t> -c-> u --> <While Q c,s> -c-> u";
-by (etac evalc.induct 1);
-by (Auto_tac);
-val lemma1 = result() RS spec RS mp RS mp;
-
-Goal "[| !x. P x --> Q x; <w,s> -c-> u |] ==> \
-\ !c. w = While Q c --> <While P c; While Q c,s> -c-> u";
-by (etac evalc.induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
-by (case_tac "P s" 1);
-by (Auto_tac);
-val lemma2 = result() RS spec RS mp;
-
-Goal "!x. P x --> Q x ==> \
-\ (<While P c; While Q c, s> -c-> t) = (<While Q c, s> -c-> t)";
-by (blast_tac (claset() addIs [lemma1,lemma2]) 1);
-qed "Hoare_example";

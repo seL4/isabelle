@@ -24,20 +24,12 @@ AddSEs evalc1_SEs;
 
 AddIs evalc1.intrs;
 
-Goal "(SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
-by (etac rel_pow_E2 1);
-by (Asm_full_simp_tac 1);
-by (Fast_tac 1);
-val hlemma = result();
-
-
 Goal "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
 by (induct_tac "n" 1);
  by (fast_tac (claset() addIs [rtrancl_into_rtrancl2])1);
 by (fast_tac  (claset() addIs [rtrancl_into_rtrancl2]addSDs [rel_pow_Suc_D2])1);
 qed_spec_mp "lemma1";
-
 
 Goal "<c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
 by (etac evalc.induct 1);
@@ -62,6 +54,12 @@ by (fast_tac (claset() addDs [rtrancl_imp_UN_rel_pow]
 
 qed "evalc_impl_evalc1";
 
+
+Goal "(SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
+by (etac rel_pow_E2 1);
+by (Asm_full_simp_tac 1);
+by (Fast_tac 1);
+val hlemma = result();
 
 Goal "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
@@ -210,7 +208,7 @@ section "The proof in Nielson and Nielson";
 Goal "!c1 s. (c1;c2,s) -n-> (SKIP,t) --> \
 \     (? i1 i2 u. (c1,s) -i1-> (SKIP,u) & (c2,u) -i2-> (SKIP,t) & i1<n & i2<n)";
 by (induct_tac "n" 1);
- by (fast_tac (claset() addSDs [hlemma]) 1);
+ by (Fast_tac 1);
 by (fast_tac (claset() addSIs [rel_pow_0_I,rel_pow_Suc_I2]
                       addSDs [rel_pow_Suc_D2] addss simpset()) 1);
 qed_spec_mp "comp_decomp_lemma";
@@ -221,7 +219,7 @@ by (Clarify_tac 1);
 by (etac rel_pow_E2 1);
  by (asm_full_simp_tac (simpset() addsimps evalc.intrs) 1);
 by (case_tac "c" 1);
-    by (fast_tac (claset() addSDs [hlemma]) 1);
+    by (Fast_tac 1);
    by (Blast_tac 1);
   by (blast_tac (claset() addSDs [rel_pow_Suc_I2 RS comp_decomp_lemma]) 1);
  by (Blast_tac 1);
