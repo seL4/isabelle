@@ -3,9 +3,6 @@
     Author:     Markus Wenzel and Lawrence C Paulson and Carsten Clasohm
 
 Additional theory file sections for HOL.
-
-TODO:
-  move datatype / primrec stuff to pre_datatype.ML (?)
 *)
 
 (*the kind of distinctiveness axioms depends on number of constructors*)
@@ -126,12 +123,11 @@ local
 
   (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
-   ("val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqn) =\n\
+    "val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqn) =\n\
     \    Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
-    \val thy = ("^tname^"_add_primrec size_"^tname^"_eqns thy)"
-    ,
-    "val _ = deny (" ^ quote tname ^ " mem (Sign.stamp_names_of (sign_of thy)))\n\
+    \val thy = ("^tname^"_add_primrec size_"^tname^"_eqns thy)\n\
+    \val _ = deny (" ^ quote tname ^ " mem (Sign.stamp_names_of (sign_of thy)))\n\
     \   (\"Datatype \\\""^tname^"\\\" would clash with the theory of the same name!\");\n\
     \structure " ^ tname ^ " =\n\
     \struct\n\
@@ -151,10 +147,12 @@ local
     \ val simps = inject @ distinct @ cases @ recs;\n\
     \ fun induct_tac a = res_inst_tac [(" ^ quote tname ^ ", a)] induct;\n\
     \end;\n\
-    \val dummy = datatypes := Dtype.build_record (thy, " ^
-      mk_pair ("Sign.intern_tycon (sign_of thy) " ^ quote tname,
-        mk_list (map (fst o fst) cons)) ^
-      ", " ^ tname ^ ".induct_tac) :: (!datatypes);\n\
+    \val thy = thy |> Dtype.add_record " ^
+      mk_triple
+        ("Sign.intern_tycon (sign_of thy) " ^ quote tname,
+          mk_list (map (fst o fst) cons),
+          tname ^ ".induct_tac") ^ ";\n\
+    \val dummy = context thy;\n\
     \val dummy = Addsimps(" ^ tname ^ ".cases @ " ^ tname ^ ".recs);\n\
     \val dummy = AddIffs " ^ tname ^ ".inject;\n\
     \val dummy = " ^
@@ -164,9 +162,11 @@ local
     \ prove_goalw thy [get_def thy " ^ quote("size_"^tname) ^
                      "] eqn (fn _ => [Simp_tac 1])) size_"^tname^"_eqns);\n\
     \val split_"^tname^"_case = prove_goal thy split_"^tname^"_eqn\n\
-    \  (fn _ => [#exhaust_tac(snd(hd(!datatypes))) \""^tname^"0\" 1,\n\
-    \            ALLGOALS Asm_simp_tac])"
-   );
+    \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
+      ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
+    \            ALLGOALS Asm_simp_tac]);\n\
+    \val thy = thy\n";
+
 (*
 The #exhaust_tac(snd(hd(!datatypes))) in the proof of split_"^tname^"_case
 is a hack. Ideally I would just write exhaust_tac, but the latter extracts the
@@ -291,7 +291,7 @@ val _ = ThySyn.add_syntax
   (section "record" "|> Record.add_record" record_decl),
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
-  ("datatype", datatype_decl),
+  (section "datatype" "" datatype_decl),
   ("primrec", primrec_decl),
   ("recdef", rec_decl)];
 
