@@ -338,15 +338,6 @@ by (fast_tac (!claset addSIs [lessI]
 qed "Suc_mono";
 
 
-(*
-goal Nat.thy "(Suc m < n | Suc m = n) = (m < n)";
-
-
-goal Nat.thy "(Suc(m) < Suc(n)) = (m<n)";
-by(stac less_Suc_eq 1);
-by(rtac 
-*)
-
 goal Nat.thy "(Suc(m) < Suc(n)) = (m<n)";
 by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
 qed "Suc_less_eq";
@@ -411,13 +402,23 @@ qed "Suc_n_not_le_n";
 goalw Nat.thy [le_def] "(i <= 0) = (i = 0)";
 by (nat_ind_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "le_0";
+qed "le_0_eq";
 
 Addsimps [less_not_refl,
-          (*less_Suc_eq,*) le0, le_0,
+          (*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           Suc_Suc_eq, Suc_n_not_le_n,
           n_not_Suc_n, Suc_n_not_n,
           nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
+
+(*
+goal Nat.thy "(Suc m < n | Suc m = n) = (m < n)";
+by(stac (less_Suc_eq RS sym) 1);
+by(rtac Suc_less_eq 1);
+qed "Suc_le_eq";
+
+this could make the simpset (with less_Suc_eq added again) more confluent,
+but less_Suc_eq makes additional problems with terms of the form 0 < Suc (...)
+*)
 
 (*Prevents simplification of f and g: much faster*)
 qed_goal "nat_case_weak_cong" Nat.thy
