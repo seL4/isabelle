@@ -13,10 +13,10 @@ INCOMPATIBLE with nat2.thy, Nipkow's example
 Nat = FOL +
 types   nat
 arities nat :: term
-consts  "0" :: "nat"    ("0")
-        Suc :: "nat=>nat"
-        rec :: "[nat, 'a, [nat,'a]=>'a] => 'a"
-        "+" :: "[nat, nat] => nat"              (infixl 60)
+consts  "0" :: nat      ("0")
+        Suc :: nat=>nat  
+        rec :: [nat, 'a, [nat,'a]=>'a] => 'a  
+        "+" :: [nat, nat] => nat                (infixl 60)
 rules   induct      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
         Suc_inject  "Suc(m)=Suc(n) ==> m=n"
         Suc_neq_0   "Suc(m)=0      ==> R"

@@ -12,14 +12,14 @@ types 'a list
 arities list :: (term)term
 
 consts
-   hd		:: "'a list => 'a"
-   tl		:: "'a list => 'a list"
-   forall	:: "['a list, 'a => o] => o"
-   len		:: "'a list => nat"
-   at		:: "['a list, nat] => 'a"
-   "[]"		:: "'a list"	("[]")
-   "."		:: "['a, 'a list] => 'a list"  (infixr 80)
-   "++"		:: "['a list, 'a list] => 'a list" (infixr 70)
+   hd		:: 'a list => 'a  
+   tl		:: 'a list => 'a list
+   forall	:: ['a list, 'a => o] => o  
+   len		:: 'a list => nat  
+   at		:: ['a list, nat] => 'a  
+   "[]"		:: ('a list)  	                     ("[]")
+   "."		:: ['a, 'a list] => 'a list          (infixr 80)
+   "++"		:: ['a list, 'a list] => 'a list     (infixr 70)
 
 rules
  list_ind "[| P([]);  ALL x l. P(l)-->P(x.l) |] ==> All(P)"

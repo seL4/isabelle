@@ -12,10 +12,10 @@ types nat
 arities nat :: term
 
 consts
- succ,pred :: "nat => nat"
-       "0" :: "nat"	("0")
-       "+" :: "[nat,nat] => nat" (infixr 90)
-  "<","<=" :: "[nat,nat] => o"   (infixr 70)
+ succ,pred :: nat => nat  
+       "0" :: nat  	("0")
+       "+" :: [nat,nat] => nat   (infixr 90)
+  "<","<=" :: [nat,nat] => o     (infixr 70)
 
 rules
  pred_0		"pred(0) = 0"

@@ -11,10 +11,10 @@ Inherits from FOL the class term, the type o, and the coercion Trueprop
 Prolog = FOL +
 types   'a list
 arities list    :: (term)term
-consts  Nil     :: "'a list"
-        ":"     :: "['a, 'a list]=> 'a list"            (infixr 60)
-        app     :: "['a list, 'a list, 'a list] => o"
-        rev     :: "['a list, 'a list] => o"
+consts  Nil     :: 'a list
+        ":"     :: ['a, 'a list]=> 'a list              (infixr 60)
+        app     :: ['a list, 'a list, 'a list] => o  
+        rev     :: ['a list, 'a list] => o  
 rules   appNil  "app(Nil,ys,ys)"
         appCons "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)"
         revNil  "rev(Nil,Nil)"

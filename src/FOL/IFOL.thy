@@ -23,28 +23,28 @@ arities
 
 consts
 
-  Trueprop      :: "o => prop"                  ("(_)" 5)
-  True, False   :: "o"
+  Trueprop      :: o => prop                    ("(_)" 5)
+  True, False   :: o
 
   (* Connectives *)
 
-  "="           :: "['a, 'a] => o"              (infixl 50)
+  "="           :: ['a, 'a] => o                (infixl 50)
 
-  Not           :: "o => o"                     ("~ _" [40] 40)
-  "&"           :: "[o, o] => o"                (infixr 35)
-  "|"           :: "[o, o] => o"                (infixr 30)
-  "-->"         :: "[o, o] => o"                (infixr 25)
-  "<->"         :: "[o, o] => o"                (infixr 25)
+  Not           :: o => o                       ("~ _" [40] 40)
+  "&"           :: [o, o] => o                  (infixr 35)
+  "|"           :: [o, o] => o                  (infixr 30)
+  "-->"         :: [o, o] => o                  (infixr 25)
+  "<->"         :: [o, o] => o                  (infixr 25)
 
   (* Quantifiers *)
 
-  All           :: "('a => o) => o"             (binder "ALL " 10)
-  Ex            :: "('a => o) => o"             (binder "EX " 10)
-  Ex1           :: "('a => o) => o"             (binder "EX! " 10)
+  All           :: ('a => o) => o               (binder "ALL " 10)
+  Ex            :: ('a => o) => o               (binder "EX " 10)
+  Ex1           :: ('a => o) => o               (binder "EX! " 10)
 
 
 syntax
-  "~="          :: "['a, 'a] => o"              (infixl 50)
+  "~="          :: ['a, 'a] => o                (infixl 50)
 
 translations
   "x ~= y"      == "~ (x = y)"

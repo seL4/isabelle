@@ -13,9 +13,9 @@ axioms may not contain more than one type variable.
 NatClass = FOL +
 
 consts
-  "0"           :: "'a"                                 ("0")
-  Suc           :: "'a => 'a"
-  rec           :: "['a, 'a, ['a, 'a] => 'a] => 'a"
+  "0"           :: 'a                                   ("0")
+  Suc           :: 'a => 'a  
+  rec           :: ['a, 'a, ['a, 'a] => 'a] => 'a  
 
 axclass
   nat < term
