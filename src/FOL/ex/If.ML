@@ -32,12 +32,12 @@ by (resolve_tac [ifI] 1);
 choplev 0;
 val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
 by (fast_tac if_cs 1);
-val if_commute = result();
+qed "if_commute";
 
 
 goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
 by (fast_tac if_cs 1);
-val nested_ifs = result();
+qed "nested_ifs";
 
 choplev 0;
 by (rewrite_goals_tac [if_def]);

@@ -63,8 +63,7 @@ by (IND_TAC nat_ind (simp_tac nat_ss) "m" 1);
 by (rtac (impI RS allI) 1);
 by (ALL_IND_TAC nat_ind (simp_tac nat_ss) 1);
 by (fast_tac FOL_cs 1);
-val le_imp_le_succ = result() RS mp;
-store_thm("le_imp_le_succ", le_imp_le_succ);
+val le_imp_le_succ = store_thm("le_imp_le_succ", result() RS mp);
 
 goal Nat2.thy "n<succ(n)";
 by (IND_TAC nat_ind (simp_tac nat_ss) "n" 1);
@@ -85,12 +84,12 @@ goal Nat2.thy "m <= n --> m <= n+k";
 by (IND_TAC nat_ind 
     (simp_tac (nat_ss addsimps [plus_0_right, plus_succ_right, le_imp_le_succ]))
      "k" 1);
-val le_plus = result();
+qed "le_plus";
 
 goal Nat2.thy "succ(m) <= n --> m <= n";
 by (res_inst_tac [("x","n")]spec 1);
 by (ALL_IND_TAC nat_exh (simp_tac (nat_ss addsimps [le_imp_le_succ])) 1);
-val succ_le = result();
+qed "succ_le";
 
 goal Nat2.thy "~m<n <-> n<=m";
 by (IND_TAC nat_ind (simp_tac nat_ss) "n" 1);
@@ -100,11 +99,11 @@ qed "not_less";
 
 goal Nat2.thy "n<=m --> ~m<n";
 by (simp_tac (nat_ss addsimps [not_less]) 1);
-val le_imp_not_less = result();
+qed "le_imp_not_less";
 
 goal Nat2.thy "m<n --> ~n<=m";
 by (cut_facts_tac [not_less] 1 THEN fast_tac FOL_cs 1);
-val not_le = result();
+qed "not_le";
 
 goal Nat2.thy "m+k<=n --> m<=n";
 by (IND_TAC nat_ind (K all_tac) "k" 1);
@@ -114,21 +113,21 @@ by (simp_tac (nat_ss addsimps [plus_succ_right]) 1);
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (cut_facts_tac [succ_le] 1);
 by (fast_tac FOL_cs 1);
-val plus_le = result();
+qed "plus_le";
 
 val prems = goal Nat2.thy "[| ~m=0;  m <= n |] ==> ~n=0";
 by (cut_facts_tac prems 1);
 by (REPEAT (etac rev_mp 1));
 by (IND_TAC nat_exh (simp_tac nat_ss) "m" 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
-val not0 = result();
+qed "not0";
 
 goal Nat2.thy "a<=a' & b<=b' --> a+b<=a'+b'";
 by (IND_TAC nat_ind (simp_tac (nat_ss addsimps [plus_0_right,le_plus])) "b" 1);
 by (resolve_tac [impI RS allI] 1);
 by (resolve_tac [allI RS allI] 1);
 by (ALL_IND_TAC nat_exh (asm_simp_tac (nat_ss addsimps [plus_succ_right])) 1);
-val plus_le_plus = result();
+qed "plus_le_plus";
 
 goal Nat2.thy "i<=j --> j<=k --> i<=k";
 by (IND_TAC nat_ind (K all_tac) "i" 1);
@@ -137,7 +136,7 @@ by (resolve_tac [impI RS allI] 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (fast_tac FOL_cs 1);
-val le_trans = result();
+qed "le_trans";
 
 goal Nat2.thy "i < j --> j <=k --> i < k";
 by (IND_TAC nat_ind (K all_tac) "j" 1);
@@ -147,18 +146,18 @@ by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (fast_tac FOL_cs 1);
-val less_le_trans = result();
+qed "less_le_trans";
 
 goal Nat2.thy "succ(i) <= j <-> i < j";
 by (IND_TAC nat_ind (simp_tac nat_ss) "j" 1);
 by (resolve_tac [impI RS allI] 1);
 by (ALL_IND_TAC nat_exh (asm_simp_tac nat_ss) 1);
-val succ_le = result();
+qed "succ_le2";
 
 goal Nat2.thy "i<succ(j) <-> i=j | i<j";
 by (IND_TAC nat_ind (simp_tac nat_ss) "j" 1);
 by (ALL_IND_TAC nat_exh (simp_tac nat_ss) 1);
 by (resolve_tac [impI RS allI] 1);
 by (ALL_IND_TAC nat_exh (asm_simp_tac nat_ss) 1);
-val less_succ = result();
+qed "less_succ";
 

@@ -25,43 +25,43 @@ result();
 
 goal List.thy "(l1++l2)++l3 = l1++(l2++l3)";
 by(IND_TAC list_ind (simp_tac list_ss) "l1" 1);
-val append_assoc = result();
+qed "append_assoc";
 
 goal List.thy "l++[] = l";
 by(IND_TAC list_ind (simp_tac list_ss) "l" 1);
-val app_nil_right = result();
+qed "app_nil_right";
 
 goal List.thy "l1++l2=[] <-> l1=[] & l2=[]";
 by(IND_TAC list_exh (simp_tac list_ss) "l1" 1);
-val app_eq_nil_iff = result();
+qed "app_eq_nil_iff";
 
 goal List.thy "forall(l++l',P) <-> forall(l,P) & forall(l',P)";
 by(IND_TAC list_ind (simp_tac list_ss) "l" 1);
-val forall_app = result();
+qed "forall_app";
 
 goal List.thy "forall(l,%x.P(x)&Q(x)) <-> forall(l,P) & forall(l,Q)";
 by(IND_TAC list_ind (simp_tac list_ss) "l" 1);
 by(fast_tac FOL_cs 1);
-val forall_conj = result();
+qed "forall_conj";
 
 goal List.thy "~l=[] --> forall(l,P) <-> P(hd(l)) & forall(tl(l),P)";
 by(IND_TAC list_ind (simp_tac list_ss) "l" 1);
-val forall_ne = result();
+qed "forall_ne";
 
 (*** Lists with natural numbers ***)
 
 goal List.thy "len(l1++l2) = len(l1)+len(l2)";
 by (IND_TAC list_ind (simp_tac list_ss) "l1" 1);
-val len_app = result();
+qed "len_app";
 
 goal List.thy "i<len(l1) --> at(l1++l2,i) = at(l1,i)";
 by (IND_TAC list_ind (simp_tac list_ss) "l1" 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (ALL_IND_TAC nat_exh (asm_simp_tac list_ss) 1);
-val at_app1 = result();
+qed "at_app1";
 
 goal List.thy "at(l1++(x.l2), len(l1)) = x";
 by (IND_TAC list_ind (simp_tac list_ss) "l1" 1);
-val at_app_hd2 = result();
+qed "at_app_hd2";
 

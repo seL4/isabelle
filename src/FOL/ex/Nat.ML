@@ -22,7 +22,7 @@ by (eresolve_tac [Suc_neq_0] 1);
 by (resolve_tac [notI] 1);
 by (eresolve_tac [notE] 1);
 by (eresolve_tac [Suc_inject] 1);
-val Suc_n_not_n = result();
+qed "Suc_n_not_n";
 
 
 goal Nat.thy "(k+m)+n = k+(m+n)";
@@ -37,11 +37,11 @@ back();
 
 goalw Nat.thy [add_def] "0+n = n";
 by (resolve_tac [rec_0] 1);
-val add_0 = result();
+qed "add_0";
 
 goalw Nat.thy [add_def] "Suc(m)+n = Suc(m+n)";
 by (resolve_tac [rec_Suc] 1);
-val add_Suc = result();
+qed "add_Suc";
 
 val add_ss = FOL_ss addsimps [add_0, add_Suc];
 
@@ -49,18 +49,18 @@ goal Nat.thy "(k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);
 by (simp_tac add_ss 1);
 by (asm_simp_tac add_ss 1);
-val add_assoc = result();
+qed "add_assoc";
 
 goal Nat.thy "m+0 = m";
 by (res_inst_tac [("n","m")] induct 1);
 by (simp_tac add_ss 1);
 by (asm_simp_tac add_ss 1);
-val add_0_right = result();
+qed "add_0_right";
 
 goal Nat.thy "m+Suc(n) = Suc(m+n)";
 by (res_inst_tac [("n","m")] induct 1);
 by (ALLGOALS (asm_simp_tac add_ss));
-val add_Suc_right = result();
+qed "add_Suc_right";
 
 val [prem] = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);

@@ -20,7 +20,7 @@ by (resolve_tac [disjE] 1);
 by (assume_tac 3);
 by (assume_tac 2);
 by (assume_tac 1);
-val mythm = result();
+qed "mythm";
 
 goal FOL.thy "(P & Q) | R  --> (P | R)";
 by (resolve_tac [impI] 1);
