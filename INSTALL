@@ -17,7 +17,7 @@ Isabelle installation notes
 
 Unpacking the Isabelle distribution archive (using tar and gzip)
 leaves you with some directory IsabelleYY-X. You may install this
-anywhere, but please just *not* as ~/isabelle!
+anywhere, but please just *not* as ~/isabelle!!!
 
 The place where you put the contents of IsabelleYY-X will be referred
 to as [ISABELLE_HOME] subsequently.
@@ -41,11 +41,12 @@ Standard ML system.  These settings reside in ./etc/settings, which
 may be also overridden by ~/isabelle/etc/settings. There are already
 various sample configurations in ./etc/settings commented out.
 
-To build the core Isabelle/Pure, now just type:
+To build the core Isabelle/Pure and the default object-logic, just
+type:
 
   ./build
 
-Objects logics can be made similarly, e.g.:
+More object-logics can be made similarly:
 
   ./build FOL HOL
 
