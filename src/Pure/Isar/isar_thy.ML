@@ -236,11 +236,9 @@ end;
 local
 
 fun present_thmss kind (thy, named_thmss) =
-  let fun present (name, thms) = Present.results (kind ^ "s") name thms in
-    if kind = "" orelse kind = Drule.internalK then ()
-    else Context.setmp (Some thy) (fn () => seq present named_thmss) ();
-    (thy, named_thmss)
-  end;
+ (conditional (kind <> "" andalso kind <> Drule.internalK) (fn () =>
+    Context.setmp (Some thy) (Present.results (kind ^ "s")) named_thmss);
+  (thy, named_thmss));
 
 in
 
@@ -338,19 +336,19 @@ fun check_goal false state = state
   | check_goal true state =
       let
         val rule = ref (None: thm option);
-        fun warn exn =
+        fun fail exn =
           (["Problem! Local statement will fail to solve any pending goal"] @
           (case exn of None => [] | Some e => [Toplevel.exn_message e]) @
           (case ! rule of None => [] | Some thm =>
             [Pretty.string_of (pretty_rule "Failed attempt" (Proof.context_of state) thm)]))
-          |> cat_lines |> warning;
+          |> cat_lines |> error;
         val check =
           (fn () => Seq.pull (SkipProof.local_skip_proof (K (K ()),
             fn _ => fn thm => rule := Some thm) true state))
           |> Library.setmp proofs 0
           |> Library.transform_error;
         val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
-      in (case result of (Some _, None) => () | (_, exn) => warn exn); state end;
+      in (case result of (Some _, None) => () | (_, exn) => fail exn); state end;
 
 end;
 
@@ -469,7 +467,7 @@ fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   in
     if kind = "" orelse kind = Drule.internalK then ()
     else (print_result (Proof.context_of state) ((kind, name), res);
-      Context.setmp (Some thy) Present.multi_result (kind, res));
+      Context.setmp (Some thy) (Present.results kind) res);
     thy
   end);
 
