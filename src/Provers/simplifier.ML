@@ -185,12 +185,12 @@ fun (Simpset {mss, subgoal_tac = _, loop_tacs, unsafe_solvers, solvers})
 
 fun (Simpset {mss, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers})
     setloop tac =
-  make_ss (mss, subgoal_tac, [("",tac)], unsafe_solvers, solvers);
+  make_ss (mss, subgoal_tac, [("", tac)], unsafe_solvers, solvers);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     addloop tac = make_ss (mss, subgoal_tac, 
-        (case assoc_string (loop_tacs,(fst tac)) of None => () | Some x => 
-         warning ("overwriting looper "^fst tac); overwrite(loop_tacs,tac)),
+        (case assoc_string (loop_tacs, (#1 tac)) of None => () | Some x => 
+         warning ("overwriting looper " ^ quote (#1 tac)); overwrite (loop_tacs, tac)),
            unsafe_solvers, solvers);
 
 fun (ss as Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
