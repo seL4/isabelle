@@ -1,67 +1,148 @@
 
-Isabelle compilation and installation notes
+Isabelle installation and compilation notes
 ===========================================
 
-Unpacking the archive
----------------------
+1) User installation
+--------------------
 
-After unpacking the Isabelle distribution archive (using tar and gzip)
-you are left with some directory IsabelleYY-X. You may install this
-anywhere, but please just *not* as ~/isabelle!!!
-
-The place where you put the contents of IsabelleYY-X will be referred
-to as [ISABELLE_HOME] subsequently.
+Here we assume that Isabelle has already been installed at your site.
+Otherwise see 2) below of how to get the Isabelle system installed in
+the first place.
 
 
-Auto configuration
+1a) Running the Isabelle binaries
+---------------------------------
+
+The Isabelle binaries (isatool, isabelle, Isabelle) may be invoked
+directly from their location within the distribution directory
+[ISABELLE_HOME] like this:
+
+  [ISABELLE_HOME]/bin/isabelle HOL
+
+This starts an interactive Isabelle session within your current text
+terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
+search PATH, but this is not strictly necessary.
+
+
+Please do *not* copy (or link) the Isabelle scripts anywhere else ---
+they just won't work!  If you really want to install independent
+Isabelle binaries somewhere else then do it like this:
+
+  [ISABELLE_HOME]/bin/isatool install -p ~/bin
+
+Your site-wide Isabelle installation may already provide Isabelle
+executables in some global bin directory (such as /usr/bin).
+
+
+1b) Isabelle as KDE application
+-------------------------------
+
+Isabelle may be installed as application icon on the KDE desktop like
+this:
+
+  [ISABELLE_HOME]/bin/isatool install -k
+
+Clicking on that icon will invoke the interface wrapper script
+(capital Isabelle), which may be configured to run your favorite
+Isabelle user interface via the ISABELLE_INTERFACE setting.
+Additional options may be passed by editing the application's command
+line (by using the standard KDE desktop functionality).
+
+
+2) System installation
+----------------------
+
+The Isabelle distribution is available both as traditional source-only
+tar.gz archives, and as binary packages (currently only RPM for
+Linux/x86).  In any case, the resulting Isabelle installation always
+contains the full sources, thus any part of the system be recompiled
+later, too.
+
+
+2a) Binary installation
+----------------------
+
+Ready-to-go RPM packages are provided for the ML compiler and runtime
+system, the Isabelle sources, and some major object-logics.  These
+packages should work on any major RPM-based Linux/x86 platform (such
+as SuSE, RedHat etc.).  A typical installation procedure would be like
+this (executed as root):
+
+  rpm -i smlnj-110.0-3.i386.rpm
+  rpm -i --prefix /usr/share isabelle.rpm
+  rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
+
+The install prefix may be changed as indicated.  By default the ML
+system is expected to be at the same directory level as Isabelle
+itself; changing this arrangement requires
+[ISABELLE_HOME]/etc/settings to be adapted manually.
+
+
+Note that isabelle.rpm and isabelle-pdfdocs.rpm already contain all of
+Isabelle as platform independent sources.  Precompiled object-logics
+are provided for convenience.
+
+
+Recompiling logics
 ------------------
 
-There are some minor adaptions to be made of the Isabelle distribution
-to your system environment. Simply type:
+Some people prefer to be able to reconstruct the full system from the
+sources, rather than installing RPM packages blindly.  We do not
+provide source RPMs, yet any parts of Isabelle may be recompiled after
+installation of the main isabelle.rpm package (which contains only
+sources anyway).
+
+Assuming proper configuration of the underlying ML system, Isabelle
+object-logics may be recompiled like this:
+
+  [ISABELLE_HOME]/build HOL FOL
+
+
+Source installation
+-------------------
+
+Traditional tar.gz archives are provided for the full Isabelle sources
+and documentation as well.  Make sure your ML system (SML/NJ, Poly/ML
+etc.) has already been installed properly; then proceed as follows.
+
+
+* Unpacking the archives.  After unpacking the Isabelle distribution
+archives (using tar and gzip) you are left with some directory
+IsabelleYY-X.  Basically, this may be installed anywhere --- just note
+that ~/isabelle would be a really bad idea, though.  The place where
+you put the contents of IsabelleYY-X will be referred to as
+[ISABELLE_HOME] subsequently.
+
+
+* Auto configuration.  There are some minor adaptions to be made of
+the Isabelle distribution to your system environment (mostly locations
+of bash and perl).  Simply do it like this:
 
   cd [ISABELLE_HOME]
   ./configure
 
-This does not store any references to [ISABELLE_HOME]. You may safely
-move the system later, without running ./configure again.
+Note that this does not store any references to [ISABELLE_HOME].  You
+may safely move the system later, without having to run ./configure
+again.
 
 
-ML system settings and compilation
-----------------------------------
-
-Before actual compilation you have to tell Isabelle about your
-Standard ML system.  These settings reside in ./etc/settings, which
-may be also overridden by ~/isabelle/etc/settings. There are already
-various sample configurations in ./etc/settings commented out.
+* ML system settings and compilation.  Before actual compilation you
+have to tell Isabelle about your Standard ML system.  These settings
+reside in ./etc/settings, which may be also overridden by
+~/isabelle/etc/settings. There are already various sample
+configurations in ./etc/settings commented out.
 
 To build the core Isabelle/Pure and the default object-logic, just
-type:
+type
 
   ./build
 
-More object-logics can be made similarly:
+More object-logics can be made in a similar fashion:
 
   ./build FOL HOL
 
-
-Running the system
-------------------
-
-Provided that compilation was successful, you can now run something
-like:
-
-  [ISABELLE_HOME]/bin/isabelle FOL
-
-This starts an interactive Isabelle session within your current text
-terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
-search PATH.
-
-Please do *not* copy (or link) the Isabelle scripts anywhere else, or
-they just won't work!  If you really feel the urge to install
-independent Isabelle binaries anywhere else do it like this:
-
-  [ISABELLE_HOME]/bin/isatool install -p /usr/local/bin
-
+After successful compilation you are ready to run the system, see 1)
+above for more information.
 
 
 $Id$

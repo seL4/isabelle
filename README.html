@@ -1,4 +1,3 @@
-
 <html>
 
 <!-- $Id$ -->
@@ -25,7 +24,7 @@ Isabelle requires a real Unix box with sufficient resources. Fun
 starts at about 32-64 MB of free main memory (somewhat depending on
 your ML system), with several tens of MB disk space and a decent CPU.
 Speaking by today's hardware standards, any moderate Linux box should
-make a nice platform for Isabelle.
+give a very nice platform for Isabelle.
 
 <p>
 
@@ -43,38 +42,38 @@ is <em>not</em> sufficient).
 The following ML system and platform combinations are known to work
 very well:
 <ul>
-<li> Poly/ML 3.x on Linux and Suns.
-<li> SML/NJ 110.x on any Unix platform (e.g. Linux, Suns).
+<li> Poly/ML 3.x on Linux and Sparc/Solaris.
+<li> SML/NJ 110.x on any Unix platform (Linux, Suns, SGI etc.).
 <li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
 problems with Linux and HP-UX, though.
 </ul>
 
-<p> <A HREF="http://www.polyml.org/">Poly/ML</A>, previously a commercial
-product, is back in the public domain.  It is the best compiler for running
-Isabelle, requiring the least memory and offering the fastest performance.
+<p> <a href="http://www.polyml.org/">Poly/ML</a>, previously a
+commercial product, is back in the free world.  It is by far the best
+compiler for running Isabelle, requiring the least memory and offering
+the highest performance.
 
 <p> <a
 href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">SML/NJ</a>
-needs lots of store and disk space, but it is free.  The current
-official release is 110 (there is an <a
-href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/smlnj-110.0-3.i386.rpm">RPM
-archive</a> available for Linux/x86).  We still support the old 0.93
-release, but do not recommend it.
+needs lots of store and disk space, but supports many more platforms.
+The current official release is 110.  Basically, we still support the
+old 0.93 release, but do not recommend it.
 
-<p> MLWorks is a commercial ML programming environment developed by 
-<a href="http://www.harlequin.com/">Harlequin</A> and was
-unfortunately withdrawn after that company was taken over.  Isabelle on
-MLWorks 2.0 works well.  It is about 20% faster than on SML/NJ while using
-slightly less memory and disk space.  A few minor features (e.g. ML top-level
-pretty printing) are not supported, though. 
-
+<p> MLWorks is a commercial ML programming environment developed by <a
+href="http://www.harlequin.com/">Harlequin</a> and was unfortunately
+withdrawn after that company was taken over.  Isabelle on MLWorks 2.0
+works well.  It is about 20% faster than on SML/NJ while using
+slightly less memory and disk space.  A few minor features (e.g. ML
+top-level pretty printing) are not supported, though.
 
 
 <h2>Installation</h2>
 
-Binary rpm packages are available for Isabelle/HOL and ZF on the
-Linux/x86 platform.  Alternatively, the system may be built from
-scratch as described in file <tt>INSTALL</tt> of the Isabelle sources.
+RPM packages are available for Isabelle/HOL and ZF on the Linux/x86
+platform.  The system may be easily built from scratch as well, taking
+the traditional tar.gz distribution.  See file <tt>INSTALL</tt> as
+distributed with Isabelle for more information.
+
 Further background information may be found in the <em>Isabelle System
 Manual</em>, distributed with the sources (directory <tt>doc</tt>).
 
@@ -82,33 +81,51 @@ Manual</em>, distributed with the sources (directory <tt>doc</tt>).
 <h2>User interfaces</h2>
 
 The distribution includes only a very primitive interface based on
-ordinary terminal sessions. Advanced interfaces are available from 
+ordinary terminal sessions. Advanced interfaces are available from
 other sources:
 
-<UL>
-<LI>
-<a href="http://www.dcs.ed.ac.uk/home/da/Isamode/">Isamode</a> by
-David Aspinall is a more elaborate interface for Isabelle.  It runs
-under recent versions of XEmacs and is useful to both novices and
-experts.
+<ul>
 
-<LI>
-<a href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a> is
-a generic Emacs interface for proof assistants, including Isabelle
-(both for the classic and Isar version).  Proof General is suitable
-for use by pacifists and Emacs militants alike. Its most prominent
-feature is script management, providing a metaphor of <em>live proof
-script editing</em>.
-</UL>
+<li>
+<a href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a> by
+David Aspinall and others is a generic Emacs interface for proof
+assistants, including Isabelle (both for the classic and Isar
+version).  Proof General is suitable for use by pacifists and Emacs
+militants alike. Its most prominent feature is script management,
+providing a metaphor of <em>live proof script editing</em>.  Proof
+General has recently gained a rather large following of both beginning
+and expert users of Isabelle.
+
+<li>
+<a href="http://www.dcs.ed.ac.uk/home/da/Isamode/">Isamode</a> by
+David Aspinall is an older and simpler Emacs interface for Isabelle.
+It runs under recent versions of XEmacs.
+
+</ul>
+
 
 <h2>Other sources of information</h2>
 
+<h3>The Isabelle Page</h3>
+
+The Isabelle home page may be accessed both from Cambridge and Munich:
+
+<ul>
+
+<li> <a
+href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/">http://www.cl.cam.ac.uk/Research/HVG/Isabelle/</a>
+
+<li> <a href="http://isabelle.in.tum.de">http://isabelle.in.tum.de</a>
+
+</ul>
+
+
 <h3>Mailing list</h3>
 
-The electronic mailing list <TT>isabelle-users@cl.cam.ac.uk</TT>
+The electronic mailing list <tt>isabelle-users@cl.cam.ac.uk</tt>
 provides a forum for Isabelle users to discuss problems and exchange
-information. To join, send a message to
-<A HREF="mailto:isabelle-users-request@cl.cam.ac.uk">isabelle-users-request@cl.cam.ac.uk</A>.
+information. To join, send a message to <a
+href="mailto:isabelle-users-request@cl.cam.ac.uk">isabelle-users-request@cl.cam.ac.uk</a>.
 
 
 <h3>Personal mail</h3>
@@ -130,7 +147,7 @@ or
 
 <a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a><br>
 Institut fuer Informatik<br>
-T. U. Muenchen<br>	
+T. U. Muenchen<br>
 D-80290 Muenchen<br>
 Germany<br>
 <br>
