@@ -239,20 +239,20 @@ fun predef_term "id" = Some (IdentSy "id")
   | predef_term _ = None;
 
 
-fun scan_enclosed(a1,a2,z1,z2,kind) =
-  let val scan_chr =
-        $$ "\\" |-- Scan.one Symbol.not_eof ||
-        Scan.one (not_equal z1 andf Symbol.not_eof) ||
-        $$ z1 --| Scan.ahead (Scan.one (not_equal z2));
-  in $$ a1 |-- $$ a2 |--
-    !! (fn (cs, _) => "Inner lexical error: missing end of " ^ kind ^ " at " ^
-                      quote (a1 ^ a2 ^ Symbol.beginning cs))
-    (Scan.repeat scan_chr --| $$ z1 --| $$ z2)
-  end;
-
 (* xstr tokens *)
 
-val scan_str = scan_enclosed("'","'","'","'","string")
+fun lex_err msg prfx (cs, _) =
+  "Inner lexical error: " ^ msg ^ " at " ^ quote (prfx ^ Symbol.beginning 10 cs);
+
+val scan_chr =
+  $$ "\\" |-- Scan.one Symbol.not_eof ||
+  Scan.one (not_equal "'" andf Symbol.not_eof) ||
+  $$ "'" --| Scan.ahead (Scan.one (not_equal "'"));
+
+val scan_str =
+  $$ "'" |-- $$ "'" |-- !! (lex_err "missing end of string" "''")
+    (Scan.repeat scan_chr --| $$ "'" --| $$ "'");
+
 
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
@@ -262,7 +262,20 @@ fun explode_xstr str =
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
-val scan_comment = scan_enclosed("(","*","*",")","comment")
+(* nested comments *)
+
+val scan_cmt =
+  Scan.depend (fn d => $$ "(" ^^ $$ "*" >> pair (d + 1)) ||
+  Scan.depend (fn 0 => Scan.fail | d => $$ "*" ^^ $$ ")" >> pair (d - 1)) ||
+  Scan.lift ($$ "*" --| Scan.ahead (Scan.one (not_equal ")"))) ||
+  Scan.lift (Scan.one (not_equal "*" andf Symbol.not_eof));
+
+val scan_comment =
+  $$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
+    (Scan.pass 0 (Scan.repeat scan_cmt) -- $$ "*" -- $$ ")")
+  >> K None;
+
+
 
 (** tokenize **)
 
@@ -284,7 +297,7 @@ fun tokenize lex xids chs =
     val scan_lit = Scan.literal lex >> (pair Token o implode);
 
     val scan_token =
-      scan_comment >> K None ||
+      scan_comment ||
       Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => Some (tk s)) ||
       scan_str >> (Some o StrSy o implode_xstr) ||
       Scan.one Symbol.is_blank >> K None;
@@ -386,6 +399,5 @@ fun read_idents str =
     | Some (_, bad) => error ("Bad identifier: " ^ quote (implode bad))
     | None => error ("No identifier found in: " ^ quote str))
   end;
-
 
 end;
