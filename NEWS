@@ -1,14 +1,8 @@
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
 New in Isabelle??? (FIXME)
 --------------------------
-
-* Rewrite rules for case distinctions can now be added permanently to the
-  default simpset using Addsplits just like Addsimps. They can be removed via
-  Delsplits just like Delsimps. Lower-case versions are also available.
-  For applications see HOL below.
 
 * Changed wrapper mechanism for the classical reasoner now allows for selected
   deletion of wrappers, by introduction of names for wrapper functionals.
@@ -34,8 +28,8 @@ New in Isabelle??? (FIXME)
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
 * split_all_tac is now much faster and fails if there is nothing to split.
-  Existing (fragile) proofs may require adaption because the order and the names
-  of the automatically generated variables have changed.
+  Existing (fragile) proofs may require adaption because the order and the
+  names of the automatically generated variables have changed.
   split_all_tac has moved within claset() from usafe wrappers to safe wrappers,
   which means that !!-bound variables are splitted much more aggressively.
   If this splitting is not appropriate, use delSWrapper "split_all_tac".
@@ -60,6 +54,10 @@ New in Isabelle??? (FIXME)
 
 * Simplifier:
 
+ -Rewrite rules for case distinctions can now be added permanently to the
+  default simpset using Addsplits just like Addsimps. They can be removed via
+  Delsplits just like Delsimps. Lower-case versions are also available.
+
  -The rule expand_if is now part of the default simpset. This means that
   the simplifier will eliminate all ocurrences of if-then-else in the
   conclusion of a goal. To prevent this, you can either remove expand_if
@@ -77,6 +75,10 @@ New in Isabelle??? (FIXME)
      rotate premises to achieve further simplification.
   For compatibility reasons there is now Asm_lr_simp_tac which is like the
   old Asm_full_simp_tac in that it does not rotate premises.
+
+* expand_if, expand_split, expand_sum_case and expand_nat_case are now called
+  split_if, split_split, split_sum_case and split_nat_case
+  (to go with add/delsplits).
 
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
