@@ -44,7 +44,7 @@ Addsimps [int_nat_number_of];
 (** Successor **)
 
 Goal "(#0::int) <= z ==> Suc (nat z) = nat (#1 + z)";
-br sym 1;
+by (rtac sym 1);
 by (asm_simp_tac (simpset() addsimps [nat_eq_iff]) 1);
 qed "Suc_nat_eq_nat_zadd1";
 

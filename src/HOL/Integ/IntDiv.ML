@@ -908,7 +908,7 @@ by (Simp_tac 2);
 by (asm_full_simp_tac (HOL_ss
 		       addsimps [zmod_zminus_zminus, zdiff_def,
 				 zminus_zadd_distrib RS sym]) 1);
-bd (zminus_equation RS iffD1 RS sym) 1;
+by (dtac (zminus_equation RS iffD1 RS sym) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [zmult_zminus_right]));
 qed "neg_zmod_times_2";
