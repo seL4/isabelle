@@ -61,8 +61,7 @@ qed "WhileRule";
 (** The function Mset makes the theorem                                     **)
 (** "?Mset <= {(x1,...,xn). ?P (x1,...,xn)} ==> ?Mset <= {s. ?P s}",        **)
 (** where (x1,...,xn) are the variables of the particular program we are    **)
-(** working on at the moment of the call. For instance, (found,x,y) are     **)
-(** the variables of the Zero Search program.                               **)
+(** working on at the moment of the call                                    **)
 (*****************************************************************************)
 
 local open HOLogic in

@@ -83,7 +83,7 @@ fun mk_fexp v e xs = mk_abstuple xs (mk_fbody v e xs);
 
 
 (* bexp_tr & assn_tr *)
-(*all meta-variables for bexp except for TRUE and FALSE are translated as if they
+(*all meta-variables for bexp except for TRUE are translated as if they
   were boolean expressions*)
   
 fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"
