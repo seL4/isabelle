@@ -88,14 +88,7 @@ qed "size_apps";
 Addsimps [size_apps];
 
 Goal "[| 0 < k; m <= n |] ==> m < n+k";
-by (exhaust_tac "k" 1);
- by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
-by (rtac le_imp_less_Suc 1);
-by (exhaust_tac "n" 1);
- by (Asm_full_simp_tac 1);
-by (hyp_subst_tac 1);
-by (etac trans_le_add1 1);
+by(fast_nat_arith_tac 1);
 val lemma = result();
 
 (* a customized induction schema for $$ *)

@@ -61,8 +61,6 @@ by (auto_tac (claset(),
               simpset() addsimps [diff_add_assoc2, linorder_neq_iff, 
                                   Suc_le_eq, Suc_diff_Suc, less_imp_diff_less, 
                                   add_diff_less, mod_less, mod_geq]));
-by (etac subst 1);
-by (asm_simp_tac (simpset() addsimps [add_diff_less]) 1);
 qed "nodeOrder_eq";
 
 

@@ -18,12 +18,12 @@ types
 
 datatype
  'a com = Basic ('a fexp)         
-   | Seq ('a com) ('a com)               ("(_;/_)"      [61,60] 60)
+   | Seq ('a com) ('a com)               ("(_;/ _)"      [61,60] 60)
    | Cond ('a bexp) ('a com) ('a com)    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
    | While ('a bexp) ('a assn) ('a com)  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
   
 syntax
-  "@assign"  :: id => 'b => 'a com        ("(2_ :=/ _ )" [70,65] 61)
+  "@assign"  :: id => 'b => 'a com        ("(2_ :=/ _)" [70,65] 61)
   "@annskip" :: 'a com                    ("SKIP")
 
 translations

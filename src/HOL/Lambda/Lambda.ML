@@ -110,7 +110,6 @@ Addsimps [liftn_0];
 Goal "!k. liftn (Suc n) t k = lift (liftn n t k) k";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac(addsplit(simpset()))));
-by (blast_tac (claset() addDs [add_lessD1]) 1);
 qed "liftn_lift";
 Addsimps [liftn_lift];
 
