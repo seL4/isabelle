@@ -85,7 +85,7 @@ proof -
   note l = this
 
   show ?thesis 
-    by (force intro: null dest: l)
+    by (force dest: l)
 qed
 
 
@@ -169,30 +169,93 @@ lemma collapse_paired_All:
   "(\<forall>x y. P(x,y)) = (\<forall>z. P z)"
   by fast
 
+
 lemma New_correct:
 "[| wf_prog wt G;
   method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
-  ins!pc = New cl_idx; 
+  ins!pc = New X; 
   wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc; 
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: NT_subtype_conv approx_val_def conf_def defs1
-		   fun_upd_apply map_eq_Cons raise_xcpt_def init_vars_def 
-       split: option.split)
-apply (force dest!: iffD1 [OF collapse_paired_All]
-       intro: sup_heap_newref approx_stk_imp_approx_stk_sup_heap 
-              approx_stk_imp_approx_stk_sup 
-              approx_loc_imp_approx_loc_sup_heap 
-              approx_loc_imp_approx_loc_sup
-              hconf_imp_hconf_newref correct_frames_imp_correct_frames_newref
-              correct_init_obj 
-       simp add: NT_subtype_conv approx_val_def conf_def defs1
-         fun_upd_apply map_eq_Cons raise_xcpt_def init_vars_def 
-       split: option.split)
-done
+proof -
+  assume wf:   "wf_prog wt G"
+  assume meth: "method (G,C) sig = Some (C,rT,maxs,maxl,ins)"
+  assume ins:  "ins!pc = New X"
+  assume wt:   "wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc"
+  assume exec: "Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs)"
+  assume conf: "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>"
 
+  from ins conf meth
+  obtain ST LT where
+    heap_ok:    "G\<turnstile>h hp\<surd>" and
+    phi_pc:     "phi C sig!pc = Some (ST,LT)" and
+    is_class_C: "is_class G C" and
+    frame:      "correct_frame G hp (ST,LT) maxl ins (stk, loc, C, sig, pc)" and
+    frames:     "correct_frames G hp phi rT sig frs"
+    by (auto simp add: correct_state_def iff del: not_None_eq)
+  from phi_pc ins wt
 
+  obtain ST' LT' where
+    is_class_X: "is_class G X" and
+    maxs:       "maxs < length ST" and
+    suc_pc:     "Suc pc < length ins" and
+    phi_suc:    "phi C sig ! Suc pc = Some (ST', LT')" and
+    less:       "G \<turnstile> (Class X # ST, LT) <=s (ST', LT')"
+    by (unfold wt_instr_def step_def) auto
+ 
+  obtain oref xp' where
+    new_Addr: "(oref,xp') = new_Addr hp"
+    by (cases "new_Addr hp") auto  
+  hence cases: 
+    "hp oref = None \<and> xp' = None \<or> xp' = Some OutOfMemory"
+    by (blast dest: new_AddrD)
+  moreover
+  { assume "xp' = Some OutOfMemory"
+    with exec ins meth new_Addr [symmetric]
+    have "state' = (Some OutOfMemory, hp, (stk, loc, C, sig, Suc pc) # frs)"
+      by simp
+    hence ?thesis
+      by (simp add: correct_state_def)
+  }
+  moreover
+  { assume hp: "hp oref = None" and "xp' = None"
+    with exec ins meth new_Addr [symmetric]
+    have state':
+      "state' = Norm (hp(oref\<mapsto>(X, init_vars (fields (G, X)))), 
+                      (Addr oref # stk, loc, C, sig, Suc pc) # frs)" 
+      (is "state' = Norm (?hp', ?f # frs)")
+      by simp    
+    moreover
+    from wf hp heap_ok is_class_X
+    have hp': "G \<turnstile>h ?hp' \<surd>"
+      by - (rule hconf_imp_hconf_newref, 
+            auto simp add: oconf_def dest: fields_is_type)
+    moreover
+    from hp
+    have sup: "hp \<le>| ?hp'" by (rule sup_heap_newref)
+    from hp frame less suc_pc wf
+    have "correct_frame G ?hp' (ST', LT') maxl ins ?f"
+      apply (unfold correct_frame_def sup_state_conv)
+      apply (clarsimp simp add: map_eq_Cons conf_def fun_upd_apply approx_val_def)
+      apply (blast intro: approx_stk_imp_approx_stk_sup_heap 
+                          approx_stk_imp_approx_stk_sup
+                          approx_loc_imp_approx_loc_sup_heap 
+                          approx_loc_imp_approx_loc_sup sup)
+      done      
+    moreover
+    from hp frames wf heap_ok is_class_X
+    have "correct_frames G ?hp' phi rT sig frs"
+      by - (rule correct_frames_imp_correct_frames_newref,
+            auto simp add: oconf_def dest: fields_is_type)
+    ultimately
+    have ?thesis
+      by (simp add: is_class_C meth phi_suc correct_state_def del: not_None_eq)
+  }
+  ultimately
+  show ?thesis by auto
+qed
+  
 (****** Method Invocation ******)
 
 lemmas [simp del] = split_paired_Ex

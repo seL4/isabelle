@@ -25,8 +25,7 @@ primrec
       (None, hp, (v # stk, vars, Cl, sig, pc+1)#frs)"
 
  "exec_instr (New C) G hp stk vars Cl sig pc frs = 
-	(let xp'	= raise_xcpt (\<forall>x. hp x \<noteq> None) OutOfMemory;
-	     oref	= newref hp;
+	(let (oref,xp')	= new_Addr hp;
        fs		= init_vars (fields(G,C));
 	     hp'	= if xp'=None then hp(oref \<mapsto> (C,fs)) else hp;
 	     stk'	= if xp'=None then (Addr oref)#stk else stk

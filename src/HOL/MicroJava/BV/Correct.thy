@@ -76,14 +76,16 @@ syntax (HTML)
  correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
                   ("_,_ |-JVM _ [ok]"  [51,51] 50)
 
-
 lemma sup_heap_newref:
-  "hp x = None ==> hp \<le>| hp(newref hp \<mapsto> obj)"
-apply (unfold hext_def)
-apply clarsimp
-apply (drule newref_None 1) back
-apply simp
-done
+  "hp oref = None ==> hp \<le>| hp(oref \<mapsto> obj)"
+proof (unfold hext_def, intro strip)
+  fix a C fs  
+  assume "hp oref = None" and hp: "hp a = Some (C, fs)"
+  hence "a \<noteq> oref" by auto 
+  hence "(hp (oref\<mapsto>obj)) a = hp a" by (rule fun_upd_other)
+  with hp
+  show "\<exists>fs'. (hp(oref\<mapsto>obj)) a = Some (C, fs')" by auto
+qed
 
 lemma sup_heap_update_value:
   "hp a = Some (C,od') ==> hp \<le>| hp (a \<mapsto> (C,od))"
@@ -254,14 +256,12 @@ lemma oconf_imp_oconf_field_update [rule_format]:
   ==> G,hp\<turnstile>(oT, fs(FD\<mapsto>v))\<surd>"
 by (simp add: oconf_def lconf_def)
 
-
 lemma oconf_imp_oconf_heap_newref [rule_format]:
-"hp x = None --> G,hp\<turnstile>obj\<surd> --> G,hp\<turnstile>obj'\<surd> --> G,(hp(newref hp\<mapsto>obj'))\<turnstile>obj\<surd>"
+"hp oref = None --> G,hp\<turnstile>obj\<surd> --> G,hp\<turnstile>obj'\<surd> --> G,(hp(oref\<mapsto>obj'))\<turnstile>obj\<surd>"
 apply (unfold oconf_def lconf_def)
 apply simp
 apply (fast intro: conf_hext sup_heap_newref)
 done
-
 
 lemma oconf_imp_oconf_heap_update [rule_format]:
   "hp a = Some obj' --> obj_ty obj' = obj_ty obj'' --> G,hp\<turnstile>obj\<surd> 
@@ -274,9 +274,8 @@ done
 
 (** hconf **)
 
-
 lemma hconf_imp_hconf_newref [rule_format]:
-  "hp x = None --> G\<turnstile>h hp\<surd> --> G,hp\<turnstile>obj\<surd> --> G\<turnstile>h hp(newref hp\<mapsto>obj)\<surd>"
+  "hp oref = None --> G\<turnstile>h hp\<surd> --> G,hp\<turnstile>obj\<surd> --> G\<turnstile>h hp(oref\<mapsto>obj)\<surd>"
 apply (simp add: hconf_def)
 apply (fast intro: oconf_imp_oconf_heap_newref)
 done
@@ -300,7 +299,12 @@ lemma correct_frames_imp_correct_frames_field_update [rule_format]:
   --> correct_frames G (hp(a \<mapsto> (C, od(fl\<mapsto>v)))) phi rT sig frs";
 apply (induct frs)
  apply simp
-apply (clarsimp simp add: correct_frame_def) (*takes long*)
+apply clarify
+apply simp
+apply clarify
+apply (unfold correct_frame_def)
+apply (simp (no_asm_use))
+apply clarsimp
 apply (intro exI conjI)
      apply simp
     apply simp
@@ -318,7 +322,7 @@ done
 
 lemma correct_frames_imp_correct_frames_newref [rule_format]:
   "\<forall>rT C sig. hp x = None --> correct_frames G hp phi rT sig frs \<and> oconf G hp obj 
-  --> correct_frames G (hp(newref hp \<mapsto> obj)) phi rT sig frs"
+  --> correct_frames G (hp(x \<mapsto> obj)) phi rT sig frs"
 apply (induct frs)
  apply simp
 apply (clarsimp simp add: correct_frame_def)
