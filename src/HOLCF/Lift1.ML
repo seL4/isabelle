@@ -133,15 +133,13 @@ qed_goal "refl_less_lift"  Lift1.thy "less_lift p p"
         ]);
 
 qed_goal "antisym_less_lift"  Lift1.thy 
-        "[|less_lift p1 p2;less_lift p2 p1|] ==> p1=p2"
- (fn prems =>
+        "!!p1. [|less_lift p1 p2;less_lift p2 p1|] ==> p1=p2"
+ (fn _ =>
         [
-        (cut_facts_tac prems 1),
         (res_inst_tac [("p","p1")] liftE 1),
         (hyp_subst_tac 1),
         (res_inst_tac [("p","p2")] liftE 1),
-        (hyp_subst_tac 1),
-        (rtac refl 1),
+        (etac sym 1),
         (hyp_subst_tac 1),
         (res_inst_tac [("P","less_lift (Iup x) UU_lift")] notE 1),
         (rtac less_lift1b 1),
