@@ -47,6 +47,7 @@ end;
 signature OUTPUT =
 sig
   include BASIC_OUTPUT
+  val has_mode: string -> bool
   exception MISSING_DEFAULT_OUTPUT
   val output_width: string -> string * real
   val output: string -> string
@@ -62,6 +63,8 @@ struct
 (** print modes **)
 
 val print_mode = ref ([]: string list);
+
+fun has_mode s = s mem_string ! print_mode;
 
 val modes = ref (Symtab.empty:
   ((string -> string * real) * (string * int -> string) * (string -> string))
@@ -151,7 +154,7 @@ fun get_ok (OK x) = Some x
 fun handle_error f x =
   let
     val buffer = ref ([]: string list);
-    fun store_msg s = buffer := ! buffer @ [s];
+    fun store_msg s = buffer := ! buffer @ [raw s];
     fun err_msg () = if not (null (! buffer)) then error_msg (cat_lines (! buffer)) else ();
   in
     (case Result (setmp error_fn store_msg f x) handle exn => Exn exn of
