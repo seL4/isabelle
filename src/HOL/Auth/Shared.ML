@@ -29,7 +29,7 @@ qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
 (*Specialized to shared-key model: no need for addss in protocol proofs*)
-Goal "!!X. [| K: keysFor (parts (insert X H));  X : synth (analz H) |] \
+Goal "[| K: keysFor (parts (insert X H));  X : synth (analz H) |] \
 \              ==> K : keysFor (parts H) | Key K : parts H";
 by (fast_tac
       (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono),
@@ -38,7 +38,7 @@ by (fast_tac
                 addss  (simpset())) 1);
 qed "keysFor_parts_insert";
 
-Goal "!!H. Crypt K X : H ==> K : keysFor H";
+Goal "Crypt K X : H ==> K : keysFor H";
 by (dtac Crypt_imp_invKey_keysFor 1);
 by (Asm_full_simp_tac 1);
 qed "Crypt_imp_keysFor";
@@ -47,7 +47,7 @@ qed "Crypt_imp_keysFor";
 (*** Function "spies" ***)
 
 (*Spy sees shared keys of agents!*)
-Goal "!!A. A: bad ==> Key (shrK A) : spies evs";
+Goal "A: bad ==> Key (shrK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [imageI, spies_Cons]
@@ -57,7 +57,7 @@ qed "Spy_spies_bad";
 AddSIs [Spy_spies_bad];
 
 (*For not_bad_tac*)
-Goal "!!A. [| Crypt (shrK A) X : analz (spies evs);  A: bad |] \
+Goal "[| Crypt (shrK A) X : analz (spies evs);  A: bad |] \
 \              ==> X : analz (spies evs)";
 by (fast_tac (claset() addSDs [analz.Decrypt] addss (simpset())) 1);
 qed "Crypt_Spy_analz_bad";
@@ -92,11 +92,11 @@ AddIffs [shrK_in_used];
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
-Goal "!!K. Key K ~: used evs ==> K ~: range shrK";
+Goal "Key K ~: used evs ==> K ~: range shrK";
 by (Blast_tac 1);
 qed "Key_not_used";
 
-Goal "!!K. Key K ~: used evs ==> shrK B ~= K";
+Goal "Key K ~: used evs ==> shrK B ~= K";
 by (Blast_tac 1);
 qed "shrK_neq";
 
@@ -223,7 +223,7 @@ fun basic_possibility_tac st = st |>
 
 (*** Specialized rewriting for analz_insert_freshK ***)
 
-Goal "!!A. A <= Compl (range shrK) ==> shrK x ~: A";
+Goal "A <= Compl (range shrK) ==> shrK x ~: A";
 by (Blast_tac 1);
 qed "subset_Compl_range";
 
@@ -250,7 +250,7 @@ val analz_image_freshK_ss =
 
 (*Lemma for the trivial direction of the if-and-only-if*)
 Goal  
- "!!evs. (Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
+ "(Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
 \        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
 by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 qed "analz_image_freshK_lemma";

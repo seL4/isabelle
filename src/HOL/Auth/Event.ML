@@ -22,8 +22,7 @@ bind_thm ("parts_insert_spies",
 	  read_instantiate_sg (sign_of thy) [("H", "spies evs")]);
 
 
-Goal
-    "P(event_case sf nf ev) = \
+Goal "P(event_case sf nf ev) = \
 \      ((ALL A B X. ev = Says A B X --> P(sf A B X)) & \
 \       (ALL A X. ev = Notes A X --> P(nf A X)))";
 by (induct_tac "ev" 1);

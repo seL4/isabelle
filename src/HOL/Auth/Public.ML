@@ -15,7 +15,7 @@ open Public;
 
 AddIffs [inj_pubK RS inj_eq];
 
-Goal "!!A B. (priK A = priK B) = (A=B)";
+Goal "(priK A = priK B) = (A=B)";
 by Safe_tac;
 by (dres_inst_tac [("f","invKey")] arg_cong 1);
 by (Full_simp_tac 1);
@@ -80,7 +80,7 @@ by (ALLGOALS (asm_simp_tac
 qed_spec_mp "spies_pubK";
 
 (*Spy sees private keys of bad agents!*)
-Goal "!!A. A: bad ==> Key (priK A) : spies evs";
+Goal "A: bad ==> Key (priK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (simpset() addsimps [imageI, spies_Cons]
@@ -92,8 +92,8 @@ AddSIs  [Spy_spies_bad];
 
 
 (*For not_bad_tac*)
-Goal "!!A. [| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
-\              ==> X : analz (spies evs)";
+Goal "[| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
+\           ==> X : analz (spies evs)";
 by (blast_tac (claset() addSDs [analz.Decrypt]) 1);
 qed "Crypt_Spy_analz_bad";
 

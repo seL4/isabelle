@@ -21,10 +21,9 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal 
- "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
-\        ==> EX NB. EX evs: woolam.               \
-\              Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|}) : set evs";
+Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
+\     ==> EX NB. EX evs: woolam.               \
+\           Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|}) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
           woolam.WL4 RS woolam.WL5) 2);
@@ -35,7 +34,7 @@ result();
 (**** Inductive proofs about woolam ****)
 
 (*Nobody sends themselves messages*)
-Goal "!!evs. evs : woolam ==> ALL A X. Says A A X ~: set evs";
+Goal "evs : woolam ==> ALL A X. Says A A X ~: set evs";
 by (etac woolam.induct 1);
 by Auto_tac;
 qed_spec_mp "not_Says_to_self";
@@ -45,7 +44,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-Goal "!!evs. Says A' B X : set evs ==> X : analz (spies evs)";
+Goal "Says A' B X : set evs ==> X : analz (spies evs)";
 by (etac (Says_imp_spies RS analz.Inj) 1);
 qed "WL4_analz_spies";
 
@@ -63,15 +62,13 @@ fun parts_induct_tac i =
     sends messages containing X! **)
 
 (*Spy never sees another agent's shared key! (unless it's bad at start)*)
-Goal 
- "!!evs. evs : woolam ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
+Goal "evs : woolam ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Blast_tac 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
-Goal 
- "!!evs. evs : woolam ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
+Goal "evs : woolam ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by Auto_tac;
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
@@ -86,10 +83,9 @@ AddSDs [Spy_see_shrK RSN (2, rev_iffD1),
 (*** WL4 ***)
 
 (*If the encrypted message appears then it originated with Alice*)
-Goal 
- "!!evs. [| Crypt (shrK A) (Nonce NB) : parts (spies evs);  \
-\           A ~: bad;  evs : woolam |]                      \
-\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
+Goal "[| Crypt (shrK A) (Nonce NB) : parts (spies evs);  \
+\        A ~: bad;  evs : woolam |]                      \
+\     ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
@@ -98,11 +94,10 @@ qed "NB_Crypt_imp_Alice_msg";
 (*Guarantee for Server: if it gets a message containing a certificate from 
   Alice, then she originated that certificate.  But we DO NOT know that B
   ever saw it: the Spy may have rerouted the message to the Server.*)
-Goal 
- "!!evs. [| Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
-\             : set evs;                                                   \
-\           A ~: bad;  evs : woolam |]                                     \
-\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
+Goal "[| Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
+\          : set evs;                                                   \
+\        A ~: bad;  evs : woolam |]                                     \
+\     ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (blast_tac (claset() addSIs [NB_Crypt_imp_Alice_msg]) 1);
 qed "Server_trusts_WL4";
 
@@ -112,11 +107,10 @@ AddDs [Server_trusts_WL4];
 (*** WL5 ***)
 
 (*Server sent WL5 only if it received the right sort of message*)
-Goal 
- "!!evs. [| Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs;      \
-\           evs : woolam |]                                                \
-\        ==> EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
-\               : set evs";
+Goal "[| Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs;      \
+\        evs : woolam |]                                                \
+\     ==> EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
+\            : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
@@ -125,10 +119,9 @@ qed "Server_sent_WL5";
 AddDs [Server_sent_WL5];
 
 (*If the encrypted message appears then it originated with the Server!*)
-Goal 
- "!!evs. [| Crypt (shrK B) {|Agent A, NB|} : parts (spies evs);  \
-\           B ~: bad;  evs : woolam |]                           \
-\        ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
+Goal "[| Crypt (shrK B) {|Agent A, NB|} : parts (spies evs);  \
+\        B ~: bad;  evs : woolam |]                           \
+\     ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Blast_tac 1);
@@ -138,18 +131,16 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
   the nonce using her key.  This event can be no older than the nonce itself.
   But A may have sent the nonce to some other agent and it could have reached
   the Server via the Spy.*)
-Goal 
- "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs; \
-\           A ~: bad;  B ~: bad;  evs : woolam  |]                  \
-\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
+Goal "[| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs; \
+\        A ~: bad;  B ~: bad;  evs : woolam  |]                  \
+\     ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (blast_tac (claset() addSDs [NB_Crypt_imp_Server_msg]) 1);
 qed "B_trusts_WL5";
 
 
 (*B only issues challenges in response to WL1.  Not used.*)
-Goal 
- "!!evs. [| Says B A (Nonce NB) : set evs;  B ~= Spy;  evs : woolam |]  \
-\        ==> EX A'. Says A' B (Agent A) : set evs";
+Goal "[| Says B A (Nonce NB) : set evs;  B ~= Spy;  evs : woolam |]  \
+\     ==> EX A'. Says A' B (Agent A) : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
@@ -157,11 +148,10 @@ qed "B_said_WL2";
 
 
 (**CANNOT be proved because A doesn't know where challenges come from...
-Goal 
- "!!evs. [| A ~: bad;  B ~= Spy;  evs : woolam |]           \
-\    ==> Crypt (shrK A) (Nonce NB) : parts (spies evs) &  \
-\        Says B A (Nonce NB) : set evs                       \
-\        --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
+Goal "[| A ~: bad;  B ~= Spy;  evs : woolam |]           \
+\ ==> Crypt (shrK A) (Nonce NB) : parts (spies evs) &  \
+\     Says B A (Nonce NB) : set evs                       \
+\     --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (parts_induct_tac 1);
 by (Blast_tac 1);
 by Safe_tac;
