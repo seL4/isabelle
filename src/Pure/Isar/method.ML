@@ -127,11 +127,14 @@ struct
 
 (** global and local rule data **)
 
-fun prt_rules kind ths =
-  Pretty.writeln (Pretty.big_list ("standard " ^ kind ^ " rules:") (map Display.pretty_thm ths));
-
-fun print_rules (intro, elim) =
-  (prt_rules "introduction" intro; prt_rules "elimination" elim);
+local
+  fun prt_rules kind sg ths =
+    Pretty.writeln (Pretty.big_list ("standard " ^ kind ^ " rules:")
+      (map (Display.pretty_thm_sg sg) ths));
+in
+  fun print_rules sg (intro, elim) =
+    (prt_rules "introduction" sg intro; prt_rules "elimination" sg elim);
+end;
 
 
 (* theory data kind 'Isar/rules' *)
@@ -146,7 +149,7 @@ struct
   val prep_ext = I;
   fun merge ((intro1, elim1), (intro2, elim2)) =
     (Drule.merge_rules (intro1, intro2), Drule.merge_rules (elim1, elim2));
-  fun print _ = print_rules;
+  val print = print_rules;
 end;
 
 structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
@@ -161,7 +164,7 @@ struct
   type T = thm list * thm list;
 
   val init = GlobalRules.get;
-  fun print _ = print_rules;
+  val print = print_rules o ProofContext.sign_of;
 end;
 
 structure LocalRules = ProofDataFun(LocalRulesArgs);

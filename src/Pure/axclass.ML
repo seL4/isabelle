@@ -189,7 +189,8 @@ struct
         (Pretty.str (ext_class c) :: Pretty.str " <" :: Pretty.brk 1 ::
           Pretty.breaks (map (Pretty.str o ext_class) cs));
 
-      fun pretty_thms name thms = Pretty.big_list (name ^ ":") (map Display.pretty_thm thms);
+      fun pretty_thms name thms = Pretty.big_list (name ^ ":")
+        (map (Display.pretty_thm_sg sg) thms);
 
       fun pretty_axclass (name, {super_classes, intro, axioms}) = Pretty.block (Pretty.fbreaks
         [pretty_class name super_classes, pretty_thms introN [intro], pretty_thms axiomsN axioms]);

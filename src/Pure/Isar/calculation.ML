@@ -28,8 +28,8 @@ struct
 
 (* theory data kind 'Isar/calculation' *)
 
-fun print_rules rs = Pretty.writeln (Pretty.big_list "transitivity rules:"
-  (map Display.pretty_thm (NetRules.rules rs)));
+fun print_rules sg rs = Pretty.writeln (Pretty.big_list "transitivity rules:"
+  (map (Display.pretty_thm_sg sg) (NetRules.rules rs)));
 
 structure GlobalCalculationArgs =
 struct
@@ -40,7 +40,7 @@ struct
   val copy = I;
   val prep_ext = I;
   val merge = NetRules.merge;
-  fun print _ = print_rules;
+  val print = print_rules;
 end;
 
 structure GlobalCalculation = TheoryDataFun(GlobalCalculationArgs);
@@ -55,7 +55,7 @@ struct
   type T = thm NetRules.T * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, None);
-  fun print _ (rs, _) = print_rules rs;
+  fun print ctxt (rs, _) = print_rules (ProofContext.sign_of ctxt) rs;
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);

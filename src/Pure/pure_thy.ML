@@ -87,7 +87,7 @@ struct
 
   fun pretty sg (ref {space, thms_tab, const_idx = _}) =
     let
-      val prt_thm = Display.pretty_thm o Thm.transfer_sg sg;
+      val prt_thm = Display.pretty_thm_sg sg;
       fun prt_thms (name, [th]) =
             Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
@@ -213,7 +213,8 @@ fun containing [] thy = thms_of thy
 fun thms_containing thy consts =
   (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
     [] => flat (map (containing consts) (thy :: Theory.ancestors_of thy))
-  | cs => raise THEORY ("thms_containing: undeclared consts " ^ commas_quote cs, [thy]));
+  | cs => raise THEORY ("thms_containing: undeclared consts " ^ commas_quote cs, [thy]))
+  |> map (apsnd (Thm.transfer thy));
 
 
 

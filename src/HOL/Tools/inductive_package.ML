@@ -81,7 +81,7 @@ struct
 
   fun print sg (tab, monos) =
     [Pretty.strs ("(co)inductives:" :: map #1 (Sign.cond_extern_table sg Sign.constK tab)),
-     Pretty.big_list "monotonicity rules:" (map Display.pretty_thm monos)]
+     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_sg sg) monos)]
     |> Pretty.chunks |> Pretty.writeln;
 end;
 
