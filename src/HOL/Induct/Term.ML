@@ -7,9 +7,7 @@ Terms over a given alphabet -- function applications; illustrates list functor
   (essentially the same type as in Trees & Forests)
 *)
 
-open Term;
-
-(*** Monotonicity and unfolding of the function ***)
+(** Monotonicity and unfolding of the function **)
 
 Goal "term(A) = A <*> list(term(A))";
 by (fast_tac (claset() addSIs term.intrs

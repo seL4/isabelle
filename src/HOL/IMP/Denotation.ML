@@ -4,9 +4,6 @@
     Copyright   1994 TUM
 *)
 
-open Denotation;
-
-
 (**** mono (Gamma(b,c)) ****)
 
 qed_goalw "Gamma_mono" Denotation.thy [mono_def,Gamma_def]

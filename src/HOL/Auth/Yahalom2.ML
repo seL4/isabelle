@@ -12,11 +12,6 @@ From page 259 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-open Yahalom2;
-
-set proof_timing;
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

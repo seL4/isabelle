@@ -15,11 +15,6 @@ protocol is open to a middleperson attack.  Attempting to prove some key lemmas
 indicates the possibility of this attack.
 *)
 
-open OtwayRees_Bad;
-
-set proof_timing;
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

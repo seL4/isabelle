@@ -12,11 +12,6 @@ From page 11 of
   IEEE Trans. SE 22 (1), 1996
 *)
 
-open OtwayRees_AN;
-
-set proof_timing;
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

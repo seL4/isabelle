@@ -11,8 +11,6 @@ Permutations: example of an inductive definition
 See mset on HOL/ex/Sorting.thy
 *)
 
-open Perm;
-
 Goal "l <~~> l";
 by (induct_tac "l" 1);
 by (REPEAT (ares_tac perm.intrs 1));

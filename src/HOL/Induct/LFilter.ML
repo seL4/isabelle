@@ -7,9 +7,6 @@ The "filter" functional for coinductive lists
   --defined by a combination of induction and coinduction
 *)
 
-open LFilter;
-
-
 (*** findRel: basic laws ****)
 
 val findRel_LConsE = 

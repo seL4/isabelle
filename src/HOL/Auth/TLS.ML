@@ -17,11 +17,6 @@ Protocol goals:
   rollback attacks).
 *)
 
-open TLS;
-
-set proof_timing;
-HOL_quantifiers := false;
-
 (*Automatically unfold the definition of "certificate"*)
 Addsimps [certificate_def];
 

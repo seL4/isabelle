@@ -8,8 +8,6 @@ Theory of events for security protocols
 Datatype of events; function "sees"; freshness
 *)
 
-open Event;
-
 AddIffs [Spy_in_bad, Server_not_bad];
 
 (**** Function "spies" ****)

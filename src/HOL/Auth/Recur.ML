@@ -6,10 +6,6 @@
 Inductive relation "recur" for the Recursive Authentication protocol.
 *)
 
-open Recur;
-
-set proof_timing;
-HOL_quantifiers := false;
 Pretty.setdepth 30;
 
 

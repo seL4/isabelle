@@ -15,8 +15,6 @@ HOL system proofs may be found in
 /usr/groups/theory/hvg-aftp/contrib/rule-induction/cl.ml
 *)
 
-open Comb;
-
 (*** Reflexive/Transitive closure preserves the Church-Rosser property 
      So does the Transitive closure; use r_into_trancl instead of rtrancl_refl
 ***)

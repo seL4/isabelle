@@ -7,8 +7,6 @@ Soundness (and part of) relative completeness of Hoare rules
 wrt denotational semantics
 *)
 
-open Hoare;
-
 Goalw [hoare_valid_def] "|- {P}c{Q} ==> |= {P}c{Q}";
 by (etac hoare.induct 1);
     by (ALLGOALS Asm_simp_tac);

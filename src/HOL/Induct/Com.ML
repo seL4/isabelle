@@ -6,8 +6,6 @@
 Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 *)
 
-open Com;
-
 AddIs exec.intrs;
 
 val exec_elim_cases = map (exec.mk_cases exp.simps)

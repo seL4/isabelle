@@ -13,8 +13,6 @@ goal HOL.thy "~ (ALL x. x~=y)";
 by (Blast_tac 1);
 Addsimps [result()];
 
-open Message;
-
 AddIffs atomic.inject;
 AddIffs msg.inject;
 

@@ -8,9 +8,6 @@ Theory of Public Keys (common to all symmetric-key protocols)
 Server keys; initial states of agents; new nonces and keys; function "sees" 
 *)
 
-
-open Public;
-
 (*** Basic properties of pubK & priK ***)
 
 AddIffs [inj_pubK RS inj_eq];

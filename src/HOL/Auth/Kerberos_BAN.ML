@@ -9,17 +9,11 @@ From page 251 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
   Proc. Royal Soc. 426 (1989)
 
+  Confidentiality (secrecy) and authentication properties rely on 
+  temporal checks: strong guarantees in a little abstracted - but
+  very realistic - model (see .thy).
+
 Tidied by lcp.
-*)
-
-open Kerberos_BAN;
-
-(*
-   Confidentiality (secrecy) and authentication properties rely on 
-   temporal checks: strong guarantees in a little abstracted - but
-   very realistic - model (see .thy).
-
-   Total execution time: 158s
 *)
 
 proof_timing:=true;

@@ -10,10 +10,6 @@ From page 257 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-open Yahalom;
-
-set proof_timing;
-HOL_quantifiers := false;
 Pretty.setdepth 25;
 
 

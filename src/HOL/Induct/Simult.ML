@@ -11,8 +11,6 @@ simpler because it uses list as a new type former.  The approach in this
 file may be superior for other simultaneous recursions.
 *)
 
-open Simult;
-
 (*** Monotonicity and unfolding of the function ***)
 
 Goal "mono(%Z.  A <*> Part Z In1 \

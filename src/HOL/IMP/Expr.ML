@@ -7,8 +7,6 @@ Arithmetic expressions and Boolean expressions.
 Not used in the rest of the language, but included for completeness.
 *)
 
-open Expr;
-
 val evala_elim_cases = map (evala.mk_cases aexp.simps)
    ["(N(n),sigma) -a-> i", "(X(x),sigma) -a-> i",
     "(Op1 f e,sigma) -a-> i", "(Op2 f a1 a2,sigma)  -a-> i"

@@ -6,8 +6,6 @@
 Example of Mutual Induction via Iteratived Inductive Definitions: Expressions
 *)
 
-open Exp;
-
 AddSIs [eval.N, eval.X];
 AddIs  [eval.Op, eval.valOf];
 

@@ -7,8 +7,6 @@ Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identify in round 2).
 *)
 
-open NS_Public;
-
 set proof_timing;
 HOL_quantifiers := false;
 

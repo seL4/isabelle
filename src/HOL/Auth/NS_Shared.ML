@@ -10,9 +10,6 @@ From page 247 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-open NS_Shared;
-
-set proof_timing;
 HOL_quantifiers := false;
 
 AddEs spies_partsEs;

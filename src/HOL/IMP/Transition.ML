@@ -6,8 +6,6 @@
 Equivalence of Natural and Transition semantics
 *)
 
-open Transition;
-
 section "Winskel's Proof";
 
 AddSEs [rel_pow_0_E];

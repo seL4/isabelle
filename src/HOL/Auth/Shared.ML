@@ -8,9 +8,6 @@ Theory of Shared Keys (common to all symmetric-key protocols)
 Shared, long-term keys; initial states of agents
 *)
 
-
-open Shared;
-
 (*** Basic properties of shrK ***)
 
 (*Injectiveness: Agents' long-term keys are distinct.*)

@@ -8,8 +8,6 @@ Soundness and completeness of propositional logic w.r.t. truth-tables.
 Prove: If H|=p then G|=p where G:Fin(H)
 *)
 
-open PropLog;
-
 (** Monotonicity **)
 Goalw thms.defs "G<=H ==> thms(G) <= thms(H)";
 by (rtac lfp_mono 1);

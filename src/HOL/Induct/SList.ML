@@ -6,8 +6,6 @@
 Definition of type 'a list by a least fixed point
 *)
 
-open SList;
-
 val list_con_defs = [NIL_def, CONS_def];
 
 Goal "list(A) = {Numb(0)} <+> (A <*> list(A))";

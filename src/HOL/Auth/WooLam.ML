@@ -10,11 +10,6 @@ Simplified version from page 11 of
   IEEE Trans. S.E. 22(1), 1996, pages 6-15.
 *)
 
-open WooLam;
-
-set proof_timing;
-HOL_quantifiers := false;
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];

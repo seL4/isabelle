@@ -6,8 +6,6 @@
 Soundness and completeness of vc
 *)
 
-open VC;
-
 AddIs hoare.intrs;
 
 val lemma = prove_goal HOL.thy "!s. P s --> P s" (K[Fast_tac 1]);
