@@ -173,7 +173,7 @@ val split_beta = prove_goal Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(fn _ => [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 
 (*For use with split_tac and the simplifier*)
-goal Prod.thy "R(split c p) = (! x y. p = (x,y) --> R(c x y))";
+goal Prod.thy "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
 by (stac surjective_pairing 1);
 by (stac split 1);
 by (Blast_tac 1);
@@ -184,6 +184,11 @@ simpset_ref() := (simpset() addsplits [expand_split]);
    precompute the constants involved and don't do anything unless
    the current goal contains one of those constants
 *)
+
+goal Prod.thy "R (split c p) = (~(? x y. p = (x,y) & (~R (c x y))))";
+by (stac expand_split 1);
+by (Simp_tac 1);
+qed "expand_split_asm";
 
 (** split used as a logical connective or set former **)
 
