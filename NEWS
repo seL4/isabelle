@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* Provers/linorder: New generic prover for transitivity reasoning over
+linear orders.  Note: this prover is not efficient!
+
 * Provers/simplifier:
 
   - Completely reimplemented Asm_full_simp_tac:
@@ -86,6 +89,10 @@ rather than just a warning (in interactive mode);
 
 
 *** HOL ***
+
+* New tactic "trans_tac" and method "trans" instantiate
+Provers/linorder.ML for axclasses "order" and "linorder" (predicates
+"<=", "<" and "="). 
 
 * function INCOMPATIBILITIES: Pi-sets have been redefined and moved from main 
 HOL to Library/FuncSet; constant "Fun.op o" is now called "Fun.comp";

@@ -16,6 +16,7 @@ Reference Manual.
   simplifier.ML         fast simplifier
   split_paired_all.ML	turn surjective pairing into split rule
   splitter.ML           performs case splits for simplifier.ML
+  trans.ML              transitivity reasoner for linear (total) orders
   typedsimp.ML          basic simplifier for explicitly typed logics
 
 directory Arith:

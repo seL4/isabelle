@@ -51,7 +51,11 @@ qed "is_ideal_1";
 
 Goal "is_ideal {x::'a::ring. EX u v. x = a * u + b * v}";
 by (rtac is_idealI 1);
-by Auto_tac;
+(* by Auto_tac; FIXME: makes Zumkeller's order fail (raises exn Domain) *)
+by (Clarify_tac 1);
+by (Clarify_tac 2);
+by (Clarify_tac 3);
+by (Clarify_tac 4);
 by (res_inst_tac [("x", "u+ua")] exI 1);
 by (res_inst_tac [("x", "v+va")] exI 1);
 by (res_inst_tac [("x", "-u")] exI 2);
@@ -60,7 +64,7 @@ by (res_inst_tac [("x", "0")] exI 3);
 by (res_inst_tac [("x", "0")] exI 3);
 by (res_inst_tac [("x", "u * r")] exI 4);
 by (res_inst_tac [("x", "v * r")] exI 4);
-by (REPEAT (simp_tac (simpset() addsimps [r_distr, l_distr, r_minus, minus_add, m_assoc]@a_ac) 1));
+by (REPEAT (Simp_tac 1));
 qed "is_ideal_2";
 
 (* ideal_of *)
@@ -73,9 +77,10 @@ Goalw [ideal_of_def] "a:S ==> a : (ideal_of S)";
 by Auto_tac;
 qed "generator_in_ideal";
 
-Goalw [ideal_of_def] "ideal_of {<1>::'a::ring} = UNIV";
-by (force_tac (claset() addDs [is_ideal_mult], simpset()) 1);
-  (* loops if is_ideal_mult is added as non-safe rule *)
+Goalw [ideal_of_def] "ideal_of {1::'a::ring} = UNIV";
+by (force_tac (claset() addDs [is_ideal_mult], 
+  simpset() addsimps [l_one] delsimprocs [ring_simproc]) 1);
+  (* FIXME: Zumkeller's order raises Domain exn *)
 qed "ideal_of_one_eq";
 
 Goalw [ideal_of_def] "ideal_of {} = {0::'a::ring}";
@@ -101,11 +106,13 @@ by (rtac subset_antisym 1);
 by (rtac subsetI 1);
 by (dtac InterD 1);
 by (assume_tac 2);
-by (auto_tac (claset() addIs [is_ideal_2], simpset()));
-by (res_inst_tac [("x", "<1>")] exI 1);
+by (auto_tac (claset() addIs [is_ideal_2],
+  simpset() delsimprocs [ring_simproc]));
+(* FIXME: Zumkeller's order *)
+by (res_inst_tac [("x", "1")] exI 1);
 by (res_inst_tac [("x", "0")] exI 1);
 by (res_inst_tac [("x", "0")] exI 2);
-by (res_inst_tac [("x", "<1>")] exI 2);
+by (res_inst_tac [("x", "1")] exI 2);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "ideal_of_2_structure";
@@ -204,18 +211,18 @@ by (full_simp_tac (simpset() addsimps [ideal_of_2_structure]) 1);
 by (rtac in_pideal_imp_dvd 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("x", "0")] exI 1);
-by (res_inst_tac [("x", "<1>")] exI 1);
+by (res_inst_tac [("x", "1")] exI 1);
 by (Simp_tac 1);
 qed "not_dvd_psubideal";
 
-Goalw [irred_def]
+Goalw [thm "irred_def"]
   "[| irred (a::'a::ring); is_pideal I; ideal_of {a} < I |] ==> x : I";
 by (dtac is_pidealD 1);
 by (etac exE 1);
 by (Clarify_tac 1);
 by (eres_inst_tac [("x", "aa")] allE 1);
 by (Clarify_tac 1);
-by (dres_inst_tac [("a", "<1>")] dvd_imp_subideal 1);
+by (dres_inst_tac [("a", "1")] dvd_imp_subideal 1);
 by (auto_tac (claset(), simpset() addsimps [ideal_of_one_eq]));
 qed "irred_imp_max_ideal";
 
@@ -271,20 +278,21 @@ by (simp_tac (simpset()
 
 (* Primeness condition *)
 
-Goalw [prime_def] "irred a ==> prime (a::'a::pid)";
+Goalw [thm "prime_def"] "irred a ==> prime (a::'a::pid)";
 by (rtac conjI 1);
 by (rtac conjI 2);
 by (Clarify_tac 3);
-by (dres_inst_tac [("I", "ideal_of {a, b}"), ("x", "<1>")]
+by (dres_inst_tac [("I", "ideal_of {a, b}"), ("x", "1")]
   irred_imp_max_ideal 3);
 by (auto_tac (claset() addIs [ideal_of_is_ideal, pid_ax],
-  simpset() addsimps [irred_def, not_dvd_psubideal, pid_ax]));
+  simpset() addsimps [thm "irred_def", not_dvd_psubideal, pid_ax]));
 by (full_simp_tac (simpset() addsimps [ideal_of_2_structure]) 1);
 by (Clarify_tac 1);
 by (dres_inst_tac [("f", "op* aa")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [r_distr]) 1);
-by (etac ssubst 1);
-by (asm_simp_tac (simpset() addsimps [m_assoc RS sym]) 1);
+by (etac subst 1);
+by (asm_simp_tac (simpset() addsimps [m_assoc RS sym]
+  delsimprocs [ring_simproc]) 1);
 qed "pid_irred_imp_prime";
 
 (* Fields are Pid *)
@@ -294,7 +302,7 @@ by (rtac subset_antisym 1);
 by (Simp_tac 1);
 by (rtac subset_trans 1);
 by (rtac dvd_imp_subideal 2);
-by (rtac field_ax 2);
+by (rtac (thm "field_ax") 2);
 by (assume_tac 2);
 by (simp_tac (simpset() addsimps [ideal_of_one_eq]) 1);
 qed "field_pideal_univ";

@@ -78,7 +78,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/induct_method.ML \
   $(SRC)/Provers/make_elim.ML $(SRC)/Provers/simplifier.ML \
-  $(SRC)/Provers/splitter.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML \
+  $(SRC)/Provers/splitter.ML $(SRC)/Provers/linorder.ML \
+  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML \
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides_lemmas.ML \
@@ -341,16 +342,13 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
   Algebra/abstract/Factor.ML Algebra/abstract/Factor.thy \
   Algebra/abstract/Field.thy \
   Algebra/abstract/Ideal.ML Algebra/abstract/Ideal.thy \
-  Algebra/abstract/NatSum.ML Algebra/abstract/NatSum.thy \
   Algebra/abstract/PID.thy \
   Algebra/abstract/Ring.ML Algebra/abstract/Ring.thy \
   Algebra/abstract/RingHomo.ML Algebra/abstract/RingHomo.thy\
-  Algebra/poly/Degree.ML Algebra/poly/Degree.thy \
+  Algebra/abstract/order.ML \
   Algebra/poly/LongDiv.ML Algebra/poly/LongDiv.thy \
   Algebra/poly/PolyHomo.ML Algebra/poly/PolyHomo.thy \
-  Algebra/poly/PolyRing.ML Algebra/poly/PolyRing.thy \
   Algebra/poly/Polynomial.thy \
-  Algebra/poly/ProtoPoly.ML Algebra/poly/ProtoPoly.thy \
   Algebra/poly/UnivPoly.ML Algebra/poly/UnivPoly.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Algebra
 

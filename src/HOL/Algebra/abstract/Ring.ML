@@ -4,6 +4,7 @@
     Author: Clemens Ballarin, started 9 December 1996
 *)
 
+(*
 val a_assoc = thm "plus_ac0.assoc";
 val l_zero = thm "plus_ac0.zero";
 val a_comm = thm "plus_ac0.commute";
@@ -78,7 +79,7 @@ qed_goal "m_lcomm" Ring.thy "!!a::'a::ring. a*(b*c) = b*(a*c)"
 
 val m_ac = [m_assoc, m_comm, m_lcomm];
 
-Goal "!!a::'a::ring. a * <1> = a";
+Goal "!!a::'a::ring. a * 1 = a";
 by (rtac (m_comm RS trans) 1);
 by (rtac l_one 1);
 qed "r_one";
@@ -161,19 +162,21 @@ qed "diff_zero_imp_eq";
 Goal "!!a::'a::ring. (a = b) = (a -- b = 0)";
 *)
 
+*)
+
 (* Power *)
 
-Goal "!!a::'a::ring. a ^ 0 = <1>";
-by (simp_tac (simpset() addsimps [power_ax]) 1);
+Goal "!!a::'a::ring. a ^ 0 = 1";
+by (simp_tac (simpset() addsimps [power_def]) 1);
 qed "power_0";
 
 Goal "!!a::'a::ring. a ^ Suc n = a ^ n * a";
-by (simp_tac (simpset() addsimps [power_ax]) 1);
+by (simp_tac (simpset() addsimps [power_def]) 1);
 qed "power_Suc";
 
 Addsimps [power_0, power_Suc];
 
-Goal "<1> ^ n = (<1>::'a::ring)";
+Goal "1 ^ n = (1::'a::ring)";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed "power_one";
@@ -189,7 +192,7 @@ Addsimps [power_zero, power_one];
 Goal "!! a::'a::ring. a ^ m * a ^ n = a ^ (m + n)";
 by (induct_tac "m" 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps m_ac) 1);
+by (Asm_simp_tac 1);
 qed "power_mult";
 
 (* Divisibility *)
@@ -205,26 +208,26 @@ by Auto_tac;
 qed "dvd_zero_left";
 
 Goalw [dvd_def] "!! a::'a::ring. a dvd a";
-by (res_inst_tac [("x", "<1>")] exI 1);
+by (res_inst_tac [("x", "1")] exI 1);
 by (Simp_tac 1);
 qed "dvd_refl_ring";
 
 Goalw [dvd_def] "!! a::'a::ring. [| a dvd b; b dvd c |] ==> a dvd c";
 by (Step_tac 1);
 by (res_inst_tac [("x", "k * ka")] exI 1);
-by (simp_tac (simpset() addsimps m_ac) 1);
+by (Asm_simp_tac 1);
 qed "dvd_trans_ring";
 
 Addsimps [dvd_zero_right, dvd_refl_ring];
 
 Goalw [dvd_def]
-  "!!a::'a::ring. [| a dvd <1>; b dvd <1> |] ==> a * b dvd <1>";
+  "!!a::'a::ring. [| a dvd 1; b dvd 1 |] ==> a * b dvd 1";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "k * ka")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps m_ac) 1);
+by (Asm_full_simp_tac 1);
 qed "unit_mult";
 
-Goal "!!a::'a::ring. a dvd <1> ==> a^n dvd <1>";
+Goal "!!a::'a::ring. a dvd 1 ==> a^n dvd 1";
 by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [unit_mult]) 1);
@@ -248,14 +251,14 @@ Goalw [dvd_def]
   "!! a::'a::ring. a dvd b ==> a dvd c*b";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "c * k")] exI 1);
-by (simp_tac (simpset() addsimps m_ac) 1);
+by (Simp_tac 1);
 qed "dvd_l_mult_right";
 
 Goalw [dvd_def]
   "!! a::'a::ring. a dvd b ==> a dvd b*c";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "k * c")] exI 1);
-by (simp_tac (simpset() addsimps m_ac) 1);
+by (Simp_tac 1);
 qed "dvd_r_mult_right";
 
 Addsimps [dvd_add_right, dvd_uminus_right, dvd_l_mult_right, dvd_r_mult_right];
@@ -264,34 +267,37 @@ Addsimps [dvd_add_right, dvd_uminus_right, dvd_l_mult_right, dvd_r_mult_right];
 
 section "inverse";
 
-Goal "!! a::'a::ring. [| a * x = <1>; a * y = <1> |] ==> x = y";
+Goal "!! a::'a::ring. [| a * x = 1; a * y = 1 |] ==> x = y";
 by (res_inst_tac [("a", "(a*y)*x"), ("b", "y*(a*x)")] box_equals 1);
-by (simp_tac (simpset() addsimps m_ac) 1);
+by (Simp_tac 1);
 by Auto_tac;
 qed "inverse_unique";
 
-Goal "!! a::'a::ring. a dvd <1> ==> a * inverse a = <1>";
-by (asm_full_simp_tac (simpset () addsimps [inverse_ax, dvd_def]) 1);
+Goal "!! a::'a::ring. a dvd 1 ==> a * inverse a = 1";
+by (asm_full_simp_tac (simpset () addsimps [inverse_def, dvd_def]) 1);
 by (Clarify_tac 1);
-by (rtac someI 1);
-by (rtac sym 1);
-by (assume_tac 1);
+by (rtac theI 1);
+by (atac 1);
+by (rtac inverse_unique 1);
+by (atac 1);
+by (atac 1);
 qed "r_inverse_ring";
 
-Goal "!! a::'a::ring. a dvd <1> ==> inverse a * a= <1>";
-by (asm_simp_tac (simpset() addsimps r_inverse_ring::m_ac) 1);
+Goal "!! a::'a::ring. a dvd 1 ==> inverse a * a= 1";
+by (asm_simp_tac (simpset() addsimps [r_inverse_ring]) 1);
 qed "l_inverse_ring";
 
 (* Integral domain *)
 
+(*
 section "Integral domains";
 
-Goal "0 ~= (<1>::'a::domain)";
+Goal "0 ~= (1::'a::domain)";
 by (rtac not_sym 1);
 by (rtac one_not_zero 1);
 qed "zero_not_one";
 
-Goal "!! a::'a::domain. a dvd <1> ==> a ~= 0";
+Goal "!! a::'a::domain. a dvd 1 ==> a ~= 0";
 by (auto_tac (claset() addDs [dvd_zero_left],
   simpset() addsimps [one_not_zero] ));
 qed "unit_imp_nonzero";
@@ -312,16 +318,16 @@ qed "not_integral";
 
 Addsimps [not_integral, one_not_zero, zero_not_one];
 
-Goal "!! a::'a::domain. [| a * x = x; x ~= 0 |] ==> a = <1>";
-by (res_inst_tac [("a", "- <1>")] a_lcancel 1);
+Goal "!! a::'a::domain. [| a * x = x; x ~= 0 |] ==> a = 1";
+by (res_inst_tac [("a", "- 1")] a_lcancel 1);
 by (Simp_tac 1);
 by (rtac l_integral 1);
 by (assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [l_distr, l_minus]) 1);
 qed "l_one_integral";
 
-Goal "!! a::'a::domain. [| x * a = x; x ~= 0 |] ==> a = <1>";
-by (res_inst_tac [("a", "- <1>")] a_rcancel 1);
+Goal "!! a::'a::domain. [| x * a = x; x ~= 0 |] ==> a = 1";
+by (res_inst_tac [("a", "- 1")] a_rcancel 1);
 by (Simp_tac 1);
 by (rtac r_integral 1);
 by (assume_tac 2);
@@ -340,7 +346,7 @@ qed "m_lcancel";
 Goal "!! a::'a::domain. [| a ~= 0; b * a = c * a |] ==> b = c";
 by (rtac m_lcancel 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (simpset() addsimps m_ac) 1);
+by (Asm_full_simp_tac 1);
 qed "m_rcancel";
 
 Goal "!! a::'a::domain. a ~= 0 ==> (a * b = a * c) = (b = c)";
@@ -352,23 +358,28 @@ by (asm_simp_tac (simpset() addsimps [m_lcancel_eq, m_comm]) 1);
 qed "m_rcancel_eq";
 
 Addsimps [m_lcancel_eq, m_rcancel_eq];
+*)
 
 (* Fields *)
 
 section "Fields";
 
-Goal "!! a::'a::field. (a dvd <1>) = (a ~= 0)";
-by (auto_tac (claset() addDs [field_ax, dvd_zero_left],
-  simpset() addsimps [field_one_not_zero]));
+Goal "!! a::'a::field. (a dvd 1) = (a ~= 0)";
+by (auto_tac (claset() addDs [thm "field_ax", dvd_zero_left],
+  simpset() addsimps [thm "field_one_not_zero"]));
 qed "field_unit";
+
+(* required for instantiation of field < domain in file Field.thy *)
 
 Addsimps [field_unit];
 
-Goal "!! a::'a::field. a ~= 0 ==> a * inverse a = <1>";
+val field_one_not_zero = thm "field_one_not_zero";
+
+Goal "!! a::'a::field. a ~= 0 ==> a * inverse a = 1";
 by (asm_full_simp_tac (simpset() addsimps [r_inverse_ring]) 1);
 qed "r_inverse";
 
-Goal "!! a::'a::field. a ~= 0 ==> inverse a * a= <1>";
+Goal "!! a::'a::field. a ~= 0 ==> inverse a * a= 1";
 by (asm_full_simp_tac (simpset() addsimps [l_inverse_ring]) 1);
 qed "l_inverse";
 
@@ -380,12 +391,13 @@ Goal "!! a::'a::field. a * b = 0 ==> a = 0 | b = 0";
 by (Step_tac 1);
 by (res_inst_tac [("a", "(a*b)*inverse b")] box_equals 1);
 by (rtac refl 3);
-by (simp_tac (simpset() addsimps m_ac) 2);
+by (Simp_tac 2);
 by Auto_tac;
 qed "field_integral";
 
 (* fields are factorial domains *)
 
-Goalw [prime_def, irred_def] "!! a::'a::field. irred a ==> prime a";
-by (blast_tac (claset() addIs [field_ax]) 1);
+Goalw [thm "prime_def", thm "irred_def"]
+  "!! a::'a::field. irred a ==> prime a";
+by (blast_tac (claset() addIs [thm "field_ax"]) 1);
 qed "field_fact_prime";

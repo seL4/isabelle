@@ -273,6 +273,22 @@ lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..k(}"
 lemma finite_atMost [iff]: fixes k :: nat shows "finite {..k}"
   by (induct k) (simp_all add: atMost_Suc)
 
+lemma finite_greaterThanLessThan [iff]:
+  fixes l :: nat shows "finite {)l..u(}"
+by (simp add: greaterThanLessThan_def)
+
+lemma finite_atLeastLessThan [iff]:
+  fixes l :: nat shows "finite {l..u(}"
+by (simp add: atLeastLessThan_def)
+
+lemma finite_greaterThanAtMost [iff]:
+  fixes l :: nat shows "finite {)l..u}"
+by (simp add: greaterThanAtMost_def)
+
+lemma finite_atLeastAtMost [iff]:
+  fixes l :: nat shows "finite {l..u}"
+by (simp add: atLeastAtMost_def)
+
 lemma bounded_nat_set_is_finite:
     "(ALL i:N. i < (n::nat)) ==> finite N"
   -- {* A bounded set of natural numbers is finite. *}

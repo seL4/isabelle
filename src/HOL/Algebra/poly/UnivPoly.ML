@@ -1,242 +1,359 @@
 (*
-    Univariate Polynomials
+    Degree of polynomials
     $Id$
-    Author: Clemens Ballarin, started 9 December 1996
-TODO: monom is *mono*morphism (probably induction needed)
+    written by Clemens Ballarin, started 22 January 1997
 *)
 
-(* Closure of UP under +, *s, monom, const and * *)
+(*
+(* Relating degree and bound *)
 
-Goalw [UP_def]
-  "[| f : UP; g : UP |] ==> (%n. (f n + g n::'a::ring)) : UP";
-by Auto_tac;
-(* instantiate bound for the sum and do case split *)
-by (res_inst_tac [("x", "if n<=na then na else n")] exI 1);
-by Auto_tac;
-(* first case, bound of g higher *)
-by (dtac le_bound 1 THEN assume_tac 1);
-by (Force_tac 1);
-(* second case is identical,
-  apart from we have to massage the inequality *)
-by (dtac (not_leE RS less_imp_le) 1);
-by (dtac le_bound 1 THEN assume_tac 1);
-by (Force_tac 1);
-qed "UP_closed_add";
+Goal "[| bound m f; f n ~= 0 |] ==> n <= m";
+by (force_tac (claset() addDs [inst "m" "n" boundD], 
+               simpset()) 1); 
+qed "below_bound";
 
-Goalw [UP_def]
-  "f : UP ==> (%n. (a * f n::'a::ring)) : UP";
-by (Force_tac 1);
-qed "UP_closed_smult";
+goal UnivPoly.thy "bound (LEAST n. bound n (Rep_UP p)) (Rep_UP p)";
+by (rtac exE 1);
+by (rtac LeastI 2);
+by (assume_tac 2);
+by (res_inst_tac [("a", "Rep_UP p")] CollectD 1);
+by (rtac (rewrite_rule [UP_def] Rep_UP) 1);
+qed "Least_is_bound";
 
-Goalw [UP_def]
-  "(%n. if m = n then <1> else 0) : UP";
-by Auto_tac;
-qed "UP_closed_monom";
-
-Goalw [UP_def] "(%n. if n = 0 then a else 0) : UP";
-by Auto_tac;
-qed "UP_closed_const";
-
-Goal
-  "!! f::nat=>'a::ring. \
-\    [| bound n f; bound m g; n + m < k |] ==> f i * g (k - i) = 0";
-(* Case split: either f i or g (k - i) is zero *)
-by (case_tac "n<i" 1);
-(* First case, f i is zero *)
-by (Force_tac 1);
-(* Second case, we have to derive m < k-i *)
-by (subgoal_tac "m < k-i" 1);
-by (arith_tac 2);
-by (Force_tac 1);
-qed "bound_mult_zero";
-
-Goalw [UP_def]
-  "[| f : UP; g : UP |] ==> \
-\      (%n. (setsum (%i. f i * g (n-i)) {..n}::'a::ring)) : UP";
-by (Step_tac 1);
-(* Instantiate bound for the product, and remove bound in goal *)
-by (res_inst_tac [("x", "n + na")] exI 1);
-by (Step_tac 1);
-(* Show that the sum is 0 *)
-by (asm_simp_tac (simpset() addsimps [bound_mult_zero]) 1);
-qed "UP_closed_mult";
-
-(* %x. 0 represents a polynomial *)
-
-Goalw [UP_def] "(%x. 0) : UP";
+Goalw [coeff_def, deg_def]
+  "!! p. ALL m. n < m --> coeff m p = 0 ==> deg p <= n";
+by (rtac Least_le 1);
 by (Fast_tac 1);
-qed "UP_zero";
+qed "deg_aboveI";
 
-(* Effect of +, *s, monom, * and the other operations on the coefficients *)
-
-Goalw [coeff_def, up_add_def]
-  "coeff n (p+q) = (coeff n p + coeff n q::'a::ring)";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_add, Rep_UP]) 1);
-qed "coeff_add";
-
-Goalw [coeff_def, up_smult_def]
-  "!!a::'a::ring. coeff n (a *s p) = a * coeff n p";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_smult, Rep_UP]) 1);
-qed "coeff_smult";
-
-Goalw [coeff_def, monom_def]
-  "coeff n (monom m) = (if m=n then <1> else 0)";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_monom, Rep_UP]) 1);
-qed "coeff_monom";
-
-Goalw [coeff_def, const_def]
-  "coeff n (const a) = (if n=0 then a else 0)";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_const, Rep_UP]) 1);
-qed "coeff_const";
-
-Goalw [coeff_def, up_mult_def]
-  "coeff n (p * q) = (setsum (%i. coeff i p * coeff (n-i) q) {..n}::'a::ring)";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_mult, Rep_UP]) 1);
-qed "coeff_mult";
-
-Goalw [coeff_def, up_zero_def] "coeff n 0 = 0";
-by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_zero, Rep_UP]) 1);
-qed "coeff_zero";
-
-Addsimps [coeff_add, coeff_smult, coeff_monom, coeff_const, 
-	  coeff_mult, coeff_zero];
-
-Goalw [up_one_def]
-  "coeff n <1> = (if n=0 then <1> else 0)";
-by (Simp_tac 1);
-qed "coeff_one";
-
-Goalw [up_uminus_def] "coeff n (-p) = (-coeff n p::'a::ring)";
-by (simp_tac (simpset() addsimps m_minus) 1);
-qed "coeff_uminus";
-
-Addsimps [coeff_one, coeff_uminus];
-
-(* Polynomials form a ring *)
-
-val prems = Goalw [coeff_def]
-  "(!! n. coeff n p = coeff n q) ==> p = q";
-by (res_inst_tac [("t", "p")] (Rep_UP_inverse RS subst) 1);
-by (res_inst_tac [("t", "q")] (Rep_UP_inverse RS subst) 1);
-by (asm_simp_tac (simpset() addsimps prems) 1);
-qed "up_eqI";
-
-Goalw [coeff_def]
-  "coeff n p ~= coeff n q ==> p ~= q";
-by Auto_tac;
-qed "up_neqI";
-
-Goal "!! a::('a::ring) up. (a + b) + c = a + (b + c)";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-by (rtac a_assoc 1);
-qed "up_a_assoc";
-
-Goal "!! a::('a::ring) up. 0 + a = a";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "up_l_zero";
-
-Goal "!! a::('a::ring) up. (-a) + a = 0";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "up_l_neg";
-
-Goal "!! a::('a::ring) up. a + b = b + a";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-by (rtac a_comm 1);
-qed "up_a_comm";
-
-Goal "!! a::('a::ring) up. (a * b) * c = a * (b * c)";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-by (rtac poly_assoc_lemma 1);
-qed "up_m_assoc";
-
-Goal "!! a::('a::ring) up. <1> * a = a";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-by (case_tac "n" 1); 
-(* 0 case *)
+Goalw [coeff_def, deg_def]
+  "(n ~= 0 --> coeff n p ~= 0) ==> n <= deg p";
+by (case_tac "n = 0" 1);
+(* Case n=0 *)
 by (Asm_simp_tac 1);
-(* Suc case *)
-by (asm_simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
-qed "up_l_one";
+(* Case n~=0 *)
+by (rotate_tac 1 1);
+by (Asm_full_simp_tac 1);
+by (rtac below_bound 1);
+by (assume_tac 2);
+by (rtac Least_is_bound 1);
+qed "deg_belowI";
 
-Goal "!! a::('a::ring) up. (a + b) * c = a * c + b * c";
-by (rtac up_eqI 1);
-by (simp_tac (simpset() addsimps [l_distr, SUM_add]) 1);
-qed "up_l_distr";
+Goalw [coeff_def, deg_def]
+  "deg p < m ==> coeff m p = 0";
+by (rtac exE 1); (* create !! x. *)
+by (rtac boundD 2);
+by (assume_tac 3);
+by (rtac LeastI 2);
+by (assume_tac 2);
+by (res_inst_tac [("a", "Rep_UP p")] CollectD 1);
+by (rtac (rewrite_rule [UP_def] Rep_UP) 1);
+qed "deg_aboveD";
 
-Goal "!! a::('a::ring) up. a * b = b * a";
-by (rtac up_eqI 1);
-by (cut_inst_tac [("a", "%i. coeff i a"), ("b", "%i. coeff i b")]
-  poly_comm_lemma 1);
-by (asm_full_simp_tac (simpset() addsimps [m_comm]) 1);
-qed "up_m_comm";
-
-(* Further algebraic rules *)
-
-Goal "!! a::'a::ring. const a * p = a *s p";
-by (rtac up_eqI 1);
-by (case_tac "n" 1); 
+Goalw [deg_def]
+  "deg p = Suc y ==> ~ bound y (Rep_UP p)";
+by (rtac not_less_Least 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
-qed "const_mult_is_smult";
+val lemma1 = result();
 
-Goal "!! a::'a::ring. const (a + b) = const a + const b";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "const_add";
+Goalw [deg_def, coeff_def]
+  "deg p = Suc y ==> coeff (deg p) p ~= 0";
+by (rtac ccontr 1);
+by (dtac notnotD 1);
+by (cut_inst_tac [("p", "p")] Least_is_bound 1);
+by (subgoal_tac "bound y (Rep_UP p)" 1);
+(* prove subgoal *)
+by (rtac boundI 2);  
+by (case_tac "Suc y < m" 2);
+(* first case *)
+by (rtac boundD 2);  
+by (assume_tac 2);
+by (Asm_simp_tac 2);
+(* second case *)
+by (dtac leI 2);
+by (dtac Suc_leI 2);
+by (dtac le_anti_sym 2);
+by (assume_tac 2);
+by (Asm_full_simp_tac 2);
+(* end prove subgoal *)
+by (fold_goals_tac [deg_def]);
+by (dtac lemma1 1);
+by (etac notE 1);
+by (assume_tac 1);
+val lemma2 = result();
 
-Goal "!! a::'a::ring. const (a * b) = const a * const b";
-by (simp_tac (simpset() addsimps [const_mult_is_smult]) 1);
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "const_mult";
-
-Goal "const (<1>::'a::ring) = <1>";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "const_one";
-
-Goal "const (0::'a::ring) = 0";
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-qed "const_zero";
-
-Addsimps [const_add, const_mult, const_one, const_zero];
-
-Goalw [inj_on_def, UNIV_def, const_def] "inj const";
-by (Simp_tac 1);
-by (strip_tac 1);
-by (dres_inst_tac [("f", "Rep_UP")] arg_cong 1);
-by (full_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_const,
-				       expand_fun_eq]) 1);
-by (dres_inst_tac [("x", "0")] spec 1);
+Goal "deg p ~= 0 ==> coeff (deg p) p ~= 0";
+by (rtac lemma2 1);
 by (Full_simp_tac 1);
-qed "const_inj";
+by (dtac Suc_pred 1);
+by (rtac sym 1);
+by (Asm_simp_tac 1);
+qed "deg_lcoeff";
 
-(*Lemma used in PolyHomo*)
+Goal "p ~= 0 ==> coeff (deg p) p ~= 0";
+by (etac contrapos_np 1); 
+by (case_tac "deg p = 0" 1);
+by (blast_tac (claset() addSDs [deg_lcoeff]) 2); 
+by (rtac up_eqI 1);
+by (case_tac "n=0" 1);
+by (rotate_tac ~2 1);
+by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [deg_aboveD]) 1);
+qed "nonzero_lcoeff";
+
+Goal "(deg p <= n) = bound n (Rep_UP p)";
+by (rtac iffI 1);
+(* ==> *)
+by (rtac boundI 1);
+by (fold_goals_tac [coeff_def]);
+by (rtac deg_aboveD 1);
+by (fast_arith_tac 1);
+(* <== *)
+by (rtac deg_aboveI 1);
+by (rewtac coeff_def);
+by (Fast_tac 1);
+qed "deg_above_is_bound";
+
+(* Lemmas on the degree function *)
+
+Goalw [max_def]
+  "!! p::'a::ring up. deg (p + q) <= max (deg p) (deg q)";
+by (case_tac "deg p <= deg q" 1);
+(* case deg p <= deg q *)
+by (rtac deg_aboveI 1);
+by (Asm_simp_tac 1);
+by (strip_tac 1);
+by (dtac le_less_trans 1);
+by (assume_tac 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
+(* case deg p > deg q *)
+by (rtac deg_aboveI 1);
+by (Asm_simp_tac 1);
+by (dtac not_leE 1);
+by (strip_tac 1);
+by (dtac less_trans 1);
+by (assume_tac 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
+qed "deg_add";
+
+Goal "!!p::('a::ring up). deg p < deg q ==> deg (p + q) = deg q";
+by (rtac order_antisym 1);
+by (rtac le_trans 1);
+by (rtac deg_add 1);
+by (Asm_simp_tac 1);
+by (rtac deg_belowI 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD, deg_lcoeff]) 1);
+qed "deg_add_equal";
+
+Goal "deg (monom m::'a::ring up) <= m";
+by (asm_simp_tac 
+  (simpset() addsimps [deg_aboveI, less_not_refl2 RS not_sym]) 1);
+qed "deg_monom_ring";
+
+Goal "deg (monom m::'a::domain up) = m";
+by (rtac le_anti_sym 1);
+(* <= *)
+by (rtac deg_monom_ring 1);
+(* >= *)
+by (asm_simp_tac 
+  (simpset() addsimps [deg_belowI, less_not_refl2 RS not_sym]) 1);
+qed "deg_monom";
+
+Goal "!! a::'a::ring. deg (const a) = 0";
+by (rtac le_anti_sym 1);
+by (rtac deg_aboveI 1);
+by (simp_tac (simpset() addsimps [less_not_refl2]) 1);
+by (rtac deg_belowI 1);
+by (simp_tac (simpset() addsimps [less_not_refl2]) 1);
+qed "deg_const";
+
+Goal "deg (0::'a::ringS up) = 0";
+by (rtac le_anti_sym 1);
+by (rtac deg_aboveI 1);
+by (Simp_tac 1);
+by (rtac deg_belowI 1);
+by (Simp_tac 1);
+qed "deg_zero";
+
+Goal "deg (<1>::'a::ring up) = 0";
+by (rtac le_anti_sym 1);
+by (rtac deg_aboveI 1);
+by (simp_tac (simpset() addsimps [less_not_refl2]) 1);
+by (rtac deg_belowI 1);
+by (Simp_tac 1);
+qed "deg_one";
+
+Goal "!!p::('a::ring) up. deg (-p) = deg p";
+by (rtac le_anti_sym 1);
+(* <= *)
+by (simp_tac (simpset() addsimps [deg_aboveI, deg_aboveD]) 1);
+by (simp_tac (simpset() addsimps [deg_belowI, deg_lcoeff, uminus_monom_neq]) 1);
+qed "deg_uminus";
+
+Addsimps [deg_monom, deg_const, deg_zero, deg_one, deg_uminus];
+
 Goal
-  "!! f::nat=>'a::ring. [| bound n f; bound m g|] ==> \
-\    setsum (%k. setsum (%i. f i * g (k-i)) {..k}) {..n + m} = \
-\    setsum f {..n} * setsum g {..m}";
-by (simp_tac (simpset() addsimps [SUM_ldistr, DiagSum]) 1);
-(* SUM_rdistr must be applied after SUM_ldistr ! *)
-by (simp_tac (simpset() addsimps [SUM_rdistr]) 1);
-by (res_inst_tac [("m", "n"), ("n", "n+m")] SUM_extend 1);
+  "!! a::'a::ring. deg (a *s p) <= (if a = 0 then 0 else deg p)";
+by (case_tac "a = 0" 1);
+by (REPEAT (asm_simp_tac (simpset() addsimps [deg_aboveI, deg_aboveD]) 1));
+qed "deg_smult_ring";
+
+Goal
+  "!! a::'a::domain. deg (a *s p) = (if a = 0 then 0 else deg p)";
+by (rtac le_anti_sym 1);
+by (rtac deg_smult_ring 1);
+by (case_tac "a = 0" 1);
+by (REPEAT (asm_simp_tac (simpset() addsimps [deg_belowI, deg_lcoeff]) 1));
+qed "deg_smult";
+
+Goal
+  "!! p::'a::ring up. [| deg p + deg q < k |] ==> \
+\       coeff i p * coeff (k - i) q = 0";
+by (simp_tac (simpset() addsimps [coeff_def]) 1);
+by (rtac bound_mult_zero 1);
+by (assume_tac 3);
+by (simp_tac (simpset() addsimps [deg_above_is_bound RS sym]) 1);
+by (simp_tac (simpset() addsimps [deg_above_is_bound RS sym]) 1);
+qed "deg_above_mult_zero";
+
+Goal
+  "!! p::'a::ring up. deg (p * q) <= deg p + deg q";
+by (rtac deg_aboveI 1);
+by (asm_simp_tac (simpset() addsimps [deg_above_mult_zero]) 1);
+qed "deg_mult_ring";
+
+goal Main.thy 
+  "!!k::nat. k < n ==> m < n + m - k";
+by (arith_tac 1);
+qed "less_add_diff";
+
+Goal "!!p. coeff n p ~= 0 ==> n <= deg p";
+(* More general than deg_belowI, and simplifies the next proof! *)
+by (rtac deg_belowI 1);
+by (Fast_tac 1);
+qed "deg_below2I";
+
+Goal
+  "!! p::'a::domain up. \
+\    [| p ~= 0; q ~= 0 |] ==> deg (p * q) = deg p + deg q";
+by (rtac le_anti_sym 1);
+by (rtac deg_mult_ring 1);
+(* deg p + deg q <= deg (p * q) *)
+by (rtac deg_below2I 1);
+by (Simp_tac 1);
+(*
+by (rtac conjI 1);
+by (rtac impI 1);
+*)
+by (res_inst_tac [("m", "deg p"), ("n", "deg p + deg q")] SUM_extend 1);
 by (rtac le_add1 1);
-by (Force_tac 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
+by (res_inst_tac [("m", "deg p"), ("n", "deg p")] SUM_extend_below 1);
+by (rtac le_refl 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD, less_add_diff]) 1);
+by (asm_simp_tac (simpset() addsimps [nonzero_lcoeff]) 1);
+(*
+by (rtac impI 1);
+by (res_inst_tac [("m", "deg p"), ("n", "deg p + deg q")] SUM_extend 1);
+by (rtac le_add1 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD, less_add_diff]) 1);
+by (res_inst_tac [("m", "deg p"), ("n", "deg p")] SUM_extend_below 1);
+by (rtac le_refl 1);
+by (asm_simp_tac (simpset() addsimps [deg_aboveD, less_add_diff]) 1);
+by (asm_simp_tac (simpset() addsimps [nonzero_lcoeff]) 1);
+*)
+qed "deg_mult";
+
+Addsimps [deg_smult, deg_mult];
+
+(* Representation theorems about polynomials *)
+
+goal PolyRing.thy
+  "!! p::nat=>'a::ring up. \
+\    coeff k (setsum p {..n}) = setsum (%i. coeff k (p i)) {..n}";
+by (induct_tac "n" 1);
+by Auto_tac;
+qed "coeff_SUM";
+
+goal UnivPoly.thy
+  "!! f::(nat=>'a::ring). \
+\    bound n f ==> setsum (%i. if i = x then f i else 0) {..n} = f x";
+by (simp_tac (simpset() addsimps [SUM_if_singleton]) 1);
+by (auto_tac
+    (claset() addDs [not_leE],
+     simpset()));
+qed "bound_SUM_if";
+
+Goal
+  "!! p::'a::ring up. deg p <= n ==> \
+\  setsum (%i. coeff i p *s monom i) {..n} = p";
+by (rtac up_eqI 1);
+by (simp_tac (simpset() addsimps [coeff_SUM]) 1);
+by (rtac trans 1);
+by (res_inst_tac [("x", "na")] bound_SUM_if 2);
+by (full_simp_tac (simpset() addsimps [deg_above_is_bound, coeff_def]) 2);
 by (rtac SUM_cong 1);
 by (rtac refl 1);
-by (res_inst_tac [("m", "m"), ("n", "n+m-i")] SUM_shrink 1);
-by (asm_simp_tac (simpset() addsimps [le_add_diff]) 1);
-by Auto_tac;
-qed "CauchySum";
+by (Asm_simp_tac 1);
+qed "up_repr";
 
-Goal "<1> ~= (0::('a::domain) up)";
-by (res_inst_tac [("n", "0")] up_neqI 1);
+Goal
+  "!! p::'a::ring up. [| deg p <= n; P p |] ==> \
+\  P (setsum (%i. coeff i p *s monom i) {..n})";
+by (asm_simp_tac (simpset() addsimps [up_repr]) 1);
+qed "up_reprD";
+
+Goal
+  "!! p::'a::ring up. \
+\  [| deg p <= n; P (setsum (%i. coeff i p *s monom i) {..n}) |] \
+\    ==> P p";
+by (asm_full_simp_tac (simpset() addsimps [up_repr]) 1);
+qed "up_repr2D";
+
+(*
+Goal
+  "!! p::'a::ring up. [| deg p <= n; deg q <= m |] ==> \
+\    (SUM n (%i. coeff i p *s monom i) = SUM m (%i. coeff i q *s monom i)) \
+\    = (coeff k f = coeff k g)
+...
+qed "up_unique";
+*)
+
+(* Polynomials over integral domains are again integral domains *)
+
+Goal "!!p::'a::domain up. p * q = 0 ==> p = 0 | q = 0";
+by (rtac classical 1);
+by (subgoal_tac "deg p = 0 & deg q = 0" 1);
+by (res_inst_tac [("p", "p"), ("n", "0")] up_repr2D 1);
+by (Asm_simp_tac 1);
+by (res_inst_tac [("p", "q"), ("n", "0")] up_repr2D 1);
+by (Asm_simp_tac 1);
+by (subgoal_tac "coeff 0 p = 0 | coeff 0 q = 0" 1);
+by (force_tac (claset() addIs [up_eqI], simpset()) 1);
+by (rtac integral 1);
+by (subgoal_tac "coeff 0 (p * q) = 0" 1);
+by (Asm_simp_tac 2);
+by (Full_simp_tac 1);
+by (dres_inst_tac [("f", "deg")] arg_cong 1);
+by (Asm_full_simp_tac 1);
+qed "up_integral";
+
+Goal "!! a::'a::domain. a *s p = 0 ==> a = 0 | p = 0";
+by (full_simp_tac (simpset() addsimps [const_mult_is_smult RS sym]) 1);
+by (dtac up_integral 1);
+by Auto_tac;
+by (rtac (const_inj RS injD) 1);
 by (Simp_tac 1);
-qed "up_one_not_zero";
+qed "smult_integral";
+*)
+
+(* Divisibility and degree *)
+
+Goalw [dvd_def]
+  "!! p::'a::domain up. [| p dvd q; q ~= 0 |] ==> deg p <= deg q";
+by (etac exE 1);
+by (hyp_subst_tac 1);
+by (case_tac "p = 0" 1);
+by (case_tac "k = 0" 2);
+by Auto_tac;
+qed "dvd_imp_deg";

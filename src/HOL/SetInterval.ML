@@ -1,137 +1,51 @@
 (*  Title:      HOL/SetInterval.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   2000  TU Muenchen
-
-Set Intervals: lessThan, greaterThan, atLeast, atMost
+    Author:     Clemens Ballarin
+    Copyright   2002  TU Muenchen
 *)
 
+(* Legacy ML bindings *)
 
-(*** lessThan ***)
-
-Goalw [lessThan_def] "(i: lessThan k) = (i<k)";
-by (Blast_tac 1);
-qed "lessThan_iff";
-AddIffs [lessThan_iff];
-
-Goalw [lessThan_def] "lessThan (0::nat) = {}";
-by (Simp_tac 1);
-qed "lessThan_0";
-Addsimps [lessThan_0];
-
-Goalw [lessThan_def] "lessThan (Suc k) = insert k (lessThan k)";
-by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (Blast_tac 1);
-qed "lessThan_Suc";
-
-Goalw [lessThan_def, atMost_def] "lessThan (Suc k) = atMost k";
-by (simp_tac (simpset() addsimps [less_Suc_eq_le]) 1);
-qed "lessThan_Suc_atMost";
-
-Goal "(UN m::nat. lessThan m) = UNIV";
-by (Blast_tac 1);
-qed "UN_lessThan_UNIV";
-
-Goalw [lessThan_def, atLeast_def]
-    "!!k:: 'a::linorder. -lessThan k = atLeast k";
-by Auto_tac;
-by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addDs [order_le_less_trans]) 1);
-qed "Compl_lessThan";
-
-Goal "!!k:: 'a::order. {k} - lessThan k = {k}";
-by Auto_tac;
-qed "single_Diff_lessThan";
-Addsimps [single_Diff_lessThan];
-
-(*** greaterThan ***)
-
-Goalw [greaterThan_def] "(i: greaterThan k) = (k<i)";
-by (Blast_tac 1);
-qed "greaterThan_iff";
-AddIffs [greaterThan_iff];
-
-Goalw [greaterThan_def] "greaterThan 0 = range Suc";
-by (blast_tac (claset() addDs [gr0_conv_Suc RS iffD1]) 1);
-qed "greaterThan_0";
-Addsimps [greaterThan_0];
-
-Goalw [greaterThan_def] "greaterThan (Suc k) = greaterThan k - {Suc k}";
-by (auto_tac (claset() addEs [linorder_neqE], simpset()));
-qed "greaterThan_Suc";
-
-Goal "(INT m::nat. greaterThan m) = {}";
-by (Blast_tac 1);
-qed "INT_greaterThan_UNIV";
-
-Goalw [greaterThan_def, atMost_def, le_def]
-    "!!k:: 'a::linorder. -greaterThan k = atMost k";
-by Auto_tac;
-by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addDs [order_le_less_trans]) 1);
-qed "Compl_greaterThan";
-
-Goal "!!k:: 'a::linorder. -atMost k = greaterThan k";
-by (simp_tac (simpset() addsimps [Compl_greaterThan RS sym]) 1);
-qed "Compl_atMost";
-
-Addsimps [Compl_greaterThan, Compl_atMost];
-
-(*** atLeast ***)
-
-Goalw [atLeast_def] "(i: atLeast k) = (k<=i)";
-by (Blast_tac 1);
-qed "atLeast_iff";
-AddIffs [atLeast_iff];
-
-Goalw [atLeast_def, UNIV_def] "atLeast (0::nat) = UNIV";
-by (Simp_tac 1);
-qed "atLeast_0";
-Addsimps [atLeast_0];
-
-Goalw [atLeast_def] "atLeast (Suc k) = atLeast k - {k}";
-by (simp_tac (simpset() addsimps [Suc_le_eq]) 1);
-by (simp_tac (simpset() addsimps [order_le_less]) 1);
-by (Blast_tac 1);
-qed "atLeast_Suc";
-
-Goal "(UN m::nat. atLeast m) = UNIV";
-by (Blast_tac 1);
-qed "UN_atLeast_UNIV";
-
-Goalw [lessThan_def, atLeast_def, le_def]
-    "!!k:: 'a::linorder. -atLeast k = lessThan k";
-by Auto_tac;
-by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addDs [order_le_less_trans]) 1);
-qed "Compl_atLeast";
-
-Addsimps [Compl_lessThan, Compl_atLeast];
-
-(*** atMost ***)
-
-Goalw [atMost_def] "(i: atMost k) = (i<=k)";
-by (Blast_tac 1);
-qed "atMost_iff";
-AddIffs [atMost_iff];
-
-Goalw [atMost_def] "atMost (0::nat) = {0}";
-by (Simp_tac 1);
-qed "atMost_0";
-Addsimps [atMost_0];
-
-Goalw [atMost_def] "atMost (Suc k) = insert (Suc k) (atMost k)";
-by (simp_tac (simpset() addsimps [less_Suc_eq, order_le_less]) 1);
-by (Blast_tac 1);
-qed "atMost_Suc";
-
-Goal "(UN m::nat. atMost m) = UNIV";
-by (Blast_tac 1);
-qed "UN_atMost_UNIV";
-
-
-(*** Combined properties ***)
-
-Goal "!!n:: 'a::order. atMost n Int atLeast n = {n}";
-by (blast_tac (claset() addIs [order_antisym]) 1);
-qed "atMost_Int_atLeast";
+val Compl_atLeast = thm "Compl_atLeast";
+val Compl_atMost = thm "Compl_atMost";
+val Compl_greaterThan = thm "Compl_greaterThan";
+val Compl_lessThan = thm "Compl_lessThan";
+val INT_greaterThan_UNIV = thm "INT_greaterThan_UNIV";
+val UN_atLeast_UNIV = thm "UN_atLeast_UNIV";
+val UN_atMost_UNIV = thm "UN_atMost_UNIV";
+val UN_lessThan_UNIV = thm "UN_lessThan_UNIV";
+val atLeastAtMost_def = thm "atLeastAtMost_def";
+val atLeastAtMost_iff = thm "atLeastAtMost_iff";
+val atLeastLessThan_def  = thm "atLeastLessThan_def";
+val atLeastLessThan_iff = thm "atLeastLessThan_iff";
+val atLeast_0 = thm "atLeast_0";
+val atLeast_Suc = thm "atLeast_Suc";
+val atLeast_def      = thm "atLeast_def";
+val atLeast_iff = thm "atLeast_iff";
+val atMost_0 = thm "atMost_0";
+val atMost_Int_atLeast = thm "atMost_Int_atLeast";
+val atMost_Suc = thm "atMost_Suc";
+val atMost_def       = thm "atMost_def";
+val atMost_iff = thm "atMost_iff";
+val greaterThanAtMost_def  = thm "greaterThanAtMost_def";
+val greaterThanAtMost_iff = thm "greaterThanAtMost_iff";
+val greaterThanLessThan_def  = thm "greaterThanLessThan_def";
+val greaterThanLessThan_iff = thm "greaterThanLessThan_iff";
+val greaterThan_0 = thm "greaterThan_0";
+val greaterThan_Suc = thm "greaterThan_Suc";
+val greaterThan_def  = thm "greaterThan_def";
+val greaterThan_iff = thm "greaterThan_iff";
+val ivl_disj_int = thms "ivl_disj_int";
+val ivl_disj_int_one = thms "ivl_disj_int_one";
+val ivl_disj_int_singleton = thms "ivl_disj_int_singleton";
+val ivl_disj_int_two = thms "ivl_disj_int_two";
+val ivl_disj_un = thms "ivl_disj_un";
+val ivl_disj_un_one = thms "ivl_disj_un_one";
+val ivl_disj_un_singleton = thms "ivl_disj_un_singleton";
+val ivl_disj_un_two = thms "ivl_disj_un_two";
+val lessThan_0 = thm "lessThan_0";
+val lessThan_Suc = thm "lessThan_Suc";
+val lessThan_Suc_atMost = thm "lessThan_Suc_atMost";
+val lessThan_def     = thm "lessThan_def";
+val lessThan_iff = thm "lessThan_iff";
+val single_Diff_lessThan = thm "single_Diff_lessThan";

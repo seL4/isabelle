@@ -7,9 +7,9 @@
 Ideal = Ring +
 
 consts
-  ideal_of	:: ('a::ringS) set => 'a set
-  is_ideal	:: ('a::ringS) set => bool
-  is_pideal	:: ('a::ringS) set => bool
+  ideal_of	:: ('a::ring) set => 'a set
+  is_ideal	:: ('a::ring) set => bool
+  is_pideal	:: ('a::ring) set => bool
 
 defs
   is_ideal_def	"is_ideal I == (ALL a: I. ALL b: I. a + b : I) &
