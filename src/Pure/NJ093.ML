@@ -6,8 +6,17 @@
 Compatibility file for Standard ML of New Jersey version 0.93.
 *)
 
-(*** Poly/ML emulation ***)
 
+(*** Basis Library emulation ***)
+
+structure Int =
+  struct
+  fun max (x, y) = if x < y then y else x : int;
+  fun min (x, y) = if x < y then x else y : int;
+  end;
+
+
+(*** Poly/ML emulation ***)
 
 (*To exit the system with an exit code -- an alternative to ^D *)
 val exit = System.Unsafe.CInterface.exit;
