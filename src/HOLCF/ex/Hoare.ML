@@ -183,7 +183,7 @@ val hoare_lemma11 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (cases_tac "k" 1),
+        (case_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
@@ -220,7 +220,7 @@ val hoare_lemma12 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (cases_tac "k" 1),
+        (case_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
@@ -381,7 +381,7 @@ val hoare_lemma26 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (cases_tac "k" 1),
+        (case_tac "k" 1),
         (hyp_subst_tac 1),
         (strip_tac 1),
         (Simp_tac 1),
@@ -410,7 +410,7 @@ val hoare_lemma27 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (cases_tac "k" 1),
+        (case_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
