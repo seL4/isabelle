@@ -10,6 +10,8 @@ Should be executed in subdirectory HOLCF.
 val banner = "HOLCF";
 writeln banner;
 
+set global_names;
+
 print_depth 1;
 
 use_thy "HOLCF";
