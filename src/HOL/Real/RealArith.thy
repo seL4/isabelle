@@ -1,4 +1,3 @@
-
 theory RealArith = RealBin
 files "real_arith.ML":
 

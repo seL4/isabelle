@@ -1,10 +1,12 @@
-(*  Title:      HOL/NatBin.ML
+(*  Title:      HOL/nat_bin.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
 Binary arithmetic for the natural numbers
 *)
+
+val nat_number_of_def = thm "nat_number_of_def";
 
 (** nat (coercion from int to nat) **)
 
@@ -41,6 +43,14 @@ by (simp_tac
 qed "int_nat_number_of";
 Addsimps [int_nat_number_of];
 
+
+val nat_bin_arith_setup =
+ [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
+   {add_mono_thms = add_mono_thms,
+    inj_thms = inj_thms,
+    lessD = lessD,
+    simpset = simpset addsimps [int_nat_number_of,
+ not_neg_number_of_Pls,neg_number_of_Min,neg_number_of_BIT]})];
 
 (** Successor **)
 

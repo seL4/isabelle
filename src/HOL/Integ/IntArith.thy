@@ -1,4 +1,3 @@
-
 theory IntArith = Bin
 files ("int_arith1.ML") ("int_arith2.ML"):
 

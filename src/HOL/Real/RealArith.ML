@@ -1,4 +1,3 @@
-
 (*useful??*)
 Goal "(z = z + w) = (w = (#0::real))";
 by Auto_tac;

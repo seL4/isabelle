@@ -265,24 +265,29 @@ end;
 structure ArithTheoryDataArgs =
 struct
   val name = "HOL/arith";
-  type T = {splits: thm list, discrete: (string * bool) list};
+  type T = {splits: thm list, inj_consts: (string * typ)list, discrete: (string * bool) list};
 
-  val empty = {splits = [], discrete = []};
+  val empty = {splits = [], inj_consts = [], discrete = []};
   val copy = I;
   val prep_ext = I;
-  fun merge ({splits = splits1, discrete = discrete1}, {splits = splits2, discrete = discrete2}) =
+  fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
+             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) =
    {splits = Drule.merge_rules (splits1, splits2),
+    inj_consts = merge_lists inj_consts1 inj_consts2,
     discrete = merge_alists discrete1 discrete2};
   fun print _ _ = ();
 end;
 
 structure ArithTheoryData = TheoryDataFun(ArithTheoryDataArgs);
 
-fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits, discrete} =>
-  {splits = thm :: splits, discrete = discrete}) thy, thm);
+fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
+  {splits= thm::splits, inj_consts= inj_consts, discrete= discrete}) thy, thm);
 
-fun arith_discrete d = ArithTheoryData.map (fn {splits, discrete} =>
-  {splits = splits, discrete = d :: discrete});
+fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
+  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete});
+
+fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
+  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete});
 
 
 structure LA_Data_Ref: LIN_ARITH_DATA =
@@ -296,6 +301,9 @@ fun nT (Type("fun",[N,_])) = N = HOLogic.natT
 fun add_atom(t,m,(p,i)) = (case assoc(p,t) of None => ((t,m)::p,i)
                            | Some n => (overwrite(p,(t,n+m:int)), i));
 
+fun decomp2 inj_consts (rel,lhs,rhs) =
+
+let
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(all as Const("op -",T) $ s $ t, m, pi) =
@@ -313,10 +321,11 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(all as Const("Numeral.number_of",_)$t,m,(p,i)) =
      ((p,i + m*HOLogic.dest_binum t)
       handle TERM _ => add_atom(all,m,(p,i)))
+  | poly(all as Const f $ x, m, pi) =
+      if f mem inj_consts then poly(x,m,pi) else add_atom(all,m,pi)
   | poly x  = add_atom x;
 
-fun decomp2(rel,lhs,rhs) =
-  let val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
+  val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
   in case rel of
        "op <"  => Some(p,i,"<",q,j)
      | "op <=" => Some(p,i,"<=",q,j)
@@ -327,22 +336,24 @@ fun decomp2(rel,lhs,rhs) =
 fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
 
-fun decomp1 discrete (T,xxx) =
+fun decomp1 (discrete,inj_consts) (T,xxx) =
   (case T of
      Type("fun",[Type(D,[]),_]) =>
        (case assoc(discrete,D) of
           None => None
-        | Some d => (case decomp2 xxx of
+        | Some d => (case decomp2 inj_consts xxx of
                        None => None
                      | Some(p,i,rel,q,j) => Some(p,i,rel,q,j,d)))
    | _ => None);
 
-fun decomp2 discrete (_$(Const(rel,T)$lhs$rhs)) = decomp1 discrete (T,(rel,lhs,rhs))
-  | decomp2 discrete (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      negate(decomp1 discrete (T,(rel,lhs,rhs)))
-  | decomp2 discrete _ = None
+fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
+  | decomp2 data (_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
+      negate(decomp1 data (T,(rel,lhs,rhs)))
+  | decomp2 data _ = None
 
-val decomp = decomp2 o #discrete o ArithTheoryData.get_sg;
+fun decomp sg =
+  let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
+  in decomp2 (discrete,inj_consts) end
 
 end;
 
@@ -373,8 +384,9 @@ in
 
 val init_lin_arith_data =
  Fast_Arith.setup @
- [Fast_Arith.map_data (fn {add_mono_thms, lessD, simpset = _} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset = _} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_nat,
+    inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
     simpset = HOL_basic_ss addsimps add_rules addsimprocs nat_cancel_sums_add}),
   ArithTheoryData.init, arith_discrete ("nat", true)];
@@ -416,7 +428,7 @@ fun raw_arith_tac i st =
 
 in
 
-val arith_tac = atomize_tac THEN' raw_arith_tac;
+val arith_tac = fast_arith_tac ORELSE' (atomize_tac THEN' raw_arith_tac);
 
 fun arith_method prems =
   Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));

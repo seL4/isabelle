@@ -466,8 +466,8 @@ val simprocs = [Nat_Times_Assoc.conv,
 in
 
 val nat_simprocs_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms, lessD = lessD,
+ [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
+   {add_mono_thms = add_mono_thms, inj_thms = inj_thms, lessD = lessD,
     simpset = simpset addsimps add_rules
                       addsimps basic_renamed_arith_simps
                       addsimprocs simprocs})];

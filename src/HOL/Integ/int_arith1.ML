@@ -392,12 +392,13 @@ local
 
 (* reduce contradictory <= to False *)
 val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
-                [int_0, zadd_0, zadd_0_right, zdiff_def,
+                [zadd_0, zadd_0_right, zdiff_def,
 		 zadd_zminus_inverse, zadd_zminus_inverse2, 
 		 zmult_0, zmult_0_right, 
 		 zmult_1, zmult_1_right, 
 		 zmult_minus1, zmult_minus1_right,
-		 zminus_zadd_distrib, zminus_zminus];
+		 zminus_zadd_distrib, zminus_zminus,
+                 int_0, zadd_int RS sym, int_Suc];
 
 val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals;
@@ -415,12 +416,14 @@ val add_mono_thms_int =
 in
 
 val int_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, lessD, simpset} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_int,
+    inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
     lessD = lessD @ [add1_zle_eq RS iffD2],
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}),
+  arith_inj_const ("IntDef.int", HOLogic.natT --> Type("IntDef.int",[])),
   arith_discrete ("IntDef.int", true)];
 
 end;

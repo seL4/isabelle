@@ -53,8 +53,9 @@ val fast_real_arith_simproc = mk_simproc
   "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
 
 val real_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, lessD, simpset} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_real,
+    inj_thms = inj_thms, (*FIXME: add real*)
     lessD = lessD,  (*We don't change LA_Data_Ref.lessD because the real ordering is dense!*)
     simpset = simpset addsimps simps@add_rules
                       addsimprocs simprocs
