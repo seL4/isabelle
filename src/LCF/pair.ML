@@ -1,3 +1,11 @@
+(*  Title: 	LCF/pair
+    ID:         $Id$
+    Author: 	Tobias Nipkow
+    Copyright   1992  University of Cambridge
+
+Theory of ordered pairs and products
+*)
+
 val expand_all_PROD = prove_goal LCF.thy
 	"(ALL p. P(p)) <-> (ALL x y. P(<x,y>))"
 	(fn _ => [rtac iffI 1, fast_tac FOL_cs 1, rtac allI 1,

@@ -1,3 +1,11 @@
+(*  Title: 	LCF/fix
+    ID:         $Id$
+    Author: 	Tobias Nipkow
+    Copyright   1992  University of Cambridge
+
+Fixedpoint theory
+*)
+
 signature FIX =
 sig
   val adm_eq: thm
@@ -25,18 +33,18 @@ val adm_not_not = prove_goal LCF.thy "adm(P) ==> adm(%x.~~P(x))"
 val tac = rtac tr_induct 1 THEN REPEAT(simp_tac LCF_ss 1);
 
 val not_eq_TT = prove_goal LCF.thy "ALL p. ~p=TT <-> (p=FF | p=UU)"
-	(fn _ => [tac]) RS spec;
+    (fn _ => [tac]) RS spec;
 
 val not_eq_FF = prove_goal LCF.thy "ALL p. ~p=FF <-> (p=TT | p=UU)"
-	(fn _ => [tac]) RS spec;
+    (fn _ => [tac]) RS spec;
 
 val not_eq_UU = prove_goal LCF.thy "ALL p. ~p=UU <-> (p=TT | p=FF)"
-	(fn _ => [tac]) RS spec;
+    (fn _ => [tac]) RS spec;
 
 val adm_not_eq_tr = prove_goal LCF.thy "ALL p::tr.adm(%x. ~t(x)=p)"
-	(fn _ => [rtac tr_induct 1,
-	REPEAT(simp_tac (LCF_ss addsimps [not_eq_TT,not_eq_FF,not_eq_UU]) 1 THEN
-               REPEAT(rstac [adm_disj,adm_eq] 1))]) RS spec;
+    (fn _ => [rtac tr_induct 1,
+    REPEAT(simp_tac (LCF_ss addsimps [not_eq_TT,not_eq_FF,not_eq_UU]) 1 THEN
+	   REPEAT(rstac [adm_disj,adm_eq] 1))]) RS spec;
 
 val adm_lemmas = [adm_not_free,adm_eq,adm_less,adm_not_less,adm_not_eq_tr,
 		  adm_conj,adm_disj,adm_imp,adm_all];
@@ -59,22 +67,6 @@ val ffix = read_instantiate [("f","f::?'a=>?'a")] FIX_eq;
 val gfix = read_instantiate [("f","g::?'a=>?'a")] FIX_eq;
 val ss = LCF_ss addsimps [ffix,gfix];
 
-(* Do not use prove_goal because the result is ?ed which leads to divergence
-   when submitted as an argument to SIMP_THM *)
-(*
-local
-val thm = trivial(read_cterm(sign_of LCF.thy)
-        ("<FIX(f),FIX(g)> = FIX(%p.<f(FST(p)),g(SND(p))>)",propT));
-val tac = EVERY1[rtac lfp_is_FIX, simp_tac ss,
-	  strip_tac, simp_tac (LCF_ss addsimps [PROD_less]),
-	  rtac conjI, rtac least_FIX, etac subst, rtac (FST RS sym),
-	  rtac least_FIX, etac subst, rtac (SND RS sym)];
-in
-val Some(FIX_pair,_) = Sequence.pull(tapply(tac,thm));
-end;
-
-val FIX_pair_conj = SIMP_THM (LCF_ss addsimps [PROD_eq]) FIX_pair;
-*)
 val FIX_pair = prove_goal LCF.thy
   "<FIX(f),FIX(g)> = FIX(%p.<f(FST(p)),g(SND(p))>)"
   (fn _ => [rtac lfp_is_FIX 1, simp_tac ss 1,
