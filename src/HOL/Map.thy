@@ -6,6 +6,8 @@
 The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
 *)
 
+header {* Maps *}
+
 theory Map = List:
 
 types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
