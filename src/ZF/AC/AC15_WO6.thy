@@ -54,15 +54,15 @@ lemma lemma2:
 by (unfold pairwise_disjoint_def, blast) 
 
 lemma lemma3: 
-        "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) &   
-                sets_of_size_between(f`B, 2, n) & Union(f`B)=B   
-        ==> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) & u \<subseteq> cons(0, B*nat) &   
-                0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
+     "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) &   
+	     sets_of_size_between(f`B, 2, n) & Union(f`B)=B   
+     ==> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) & u \<subseteq> cons(0, B*nat) &   
+	     0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
 apply (unfold sets_of_size_between_def)
 apply (rule ballI)
-apply (erule ballE)
-prefer 2 apply blast 
-apply (blast dest: lemma1 intro!: lemma2) 
+apply (erule_tac x="cons(0, B*nat)" in ballE)
+ apply (blast dest: lemma1 intro!: lemma2) 
+apply blast
 done
 
 lemma lemma4: "[| A \<lesssim> i; Ord(i) |] ==> {P(a). a \<in> A} \<lesssim> i"
@@ -120,21 +120,21 @@ by (fast del: subsetI notI
 (* AC10(n) ==> AC11                                                       *)
 (* ********************************************************************** *)
 
-lemma AC10_AC11: "[| n \<in> nat; 1\<le>n; AC10(n) |] ==> AC11"
+theorem AC10_AC11: "[| n \<in> nat; 1\<le>n; AC10(n) |] ==> AC11"
 by (unfold AC10_def AC11_def, blast)
 
 (* ********************************************************************** *)
 (* AC11 ==> AC12                                                          *)
 (* ********************************************************************** *)
 
-lemma AC11_AC12: "AC11 ==> AC12"
+theorem AC11_AC12: "AC11 ==> AC12"
 by (unfold AC10_def AC11_def AC11_def AC12_def, blast)
 
 (* ********************************************************************** *)
 (* AC12 ==> AC15                                                          *)
 (* ********************************************************************** *)
 
-lemma AC12_AC15: "AC12 ==> AC15"
+theorem AC12_AC15: "AC12 ==> AC15"
 apply (unfold AC12_def AC15_def)
 apply (blast del: ballI 
              intro!: cons_times_nat_not_Finite ex_fun_AC13_AC15)
@@ -168,7 +168,7 @@ apply (blast dest!: HH_subset_x_imp_subset_Diff_UN [THEN not_emptyI2])
 	(*but can't use del: DiffE despite the obvious conflictc*)
 done
 
-lemma AC15_WO6: "AC15 ==> WO6"
+theorem AC15_WO6: "AC15 ==> WO6"
 apply (unfold AC15_def WO6_def)
 apply (rule allI)
 apply (erule_tac x = "Pow (A) -{0}" in allE)
@@ -196,7 +196,7 @@ done
 (* AC10(n) implies AC13(n) for (1\<le>n)                                   *)
 (* ********************************************************************** *)
 
-lemma AC10_AC13: "[| n \<in> nat; 1\<le>n; AC10(n) |] ==> AC13(n)"
+theorem AC10_AC13: "[| n \<in> nat; 1\<le>n; AC10(n) |] ==> AC13(n)"
 apply (unfold AC10_def AC13_def, safe)
 apply (erule allE) 
 apply (erule impE [OF _ cons_times_nat_not_Finite], assumption); 
@@ -241,14 +241,14 @@ done
 (* AC13(n) ==> AC14  if 1 \<subseteq> n                                            *)
 (* ********************************************************************** *)
 
-lemma AC13_AC14: "[| n \<in> nat; 1\<le>n; AC13(n) |] ==> AC14"
+theorem AC13_AC14: "[| n \<in> nat; 1\<le>n; AC13(n) |] ==> AC14"
 by (unfold AC13_def AC14_def, auto)
 
 (* ********************************************************************** *)
 (* AC14 ==> AC15                                                          *)
 (* ********************************************************************** *)
 
-lemma AC14_AC15: "AC14 ==> AC15"
+theorem AC14_AC15: "AC14 ==> AC15"
 by (unfold AC13_def AC14_def AC15_def, fast)
 
 (* ********************************************************************** *)
@@ -272,7 +272,7 @@ apply (erule lemma_aux [THEN exE], assumption)
 apply (simp add: the_element)
 done
 
-lemma AC13_AC1: "AC13(1) ==> AC1"
+theorem AC13_AC1: "AC13(1) ==> AC1"
 apply (unfold AC13_def AC1_def)
 apply (fast elim!: AC13_AC1_lemma)
 done
@@ -281,7 +281,7 @@ done
 (* AC11 ==> AC14                                                          *)
 (* ********************************************************************** *)
 
-lemma AC11_AC14: "AC11 ==> AC14"
+theorem AC11_AC14: "AC11 ==> AC14"
 apply (unfold AC11_def AC14_def)
 apply (fast intro!: AC10_AC13)
 done

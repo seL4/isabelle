@@ -46,7 +46,7 @@ text {*
 *}
 
 lemma ntree_unfold: "ntree(A) = A \<times> (\<Union>n \<in> nat. n -> ntree(A))"
-  by (fast intro!: ntree.intros [unfolded ntree.con_defs]
+  by (blast intro: ntree.intros [unfolded ntree.con_defs]
     elim: ntree.cases [unfolded ntree.con_defs])
 
 lemma ntree_induct [induct set: ntree]:
