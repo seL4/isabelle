@@ -41,7 +41,7 @@ function usage()
 DUMP=""
 RPATH=""
 BUILD=""
-COMPRESS=""
+COMPRESS=true
 DOCUMENT=false
 INFO=false
 RESET=false
