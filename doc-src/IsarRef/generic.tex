@@ -389,10 +389,10 @@ over results of symbolic evaluation of recursive definitions, for example.
 \railterm{noasmuse}
 
 \begin{rail}
-  ('simp' | simpall) ('!' ?) simpopt? (simpmod * )
+  ('simp' | simpall) ('!' ?) opt? (simpmod * )
   ;
 
-  simpopt: (noasm | noasmsimp | noasmuse) ':'
+  opt: (noasm | noasmsimp | noasmuse) ':'
   ;
   simpmod: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') | 'other') ':' thmrefs
   ;
@@ -416,12 +416,13 @@ over results of symbolic evaluation of recursive definitions, for example.
 \end{descr}
 
 By default, the Simplifier methods are based on \texttt{asm_full_simp_tac}
-internally \cite[\S10]{isabelle-ref}.  In structured proofs this is usually
-quite well behaved in practice: just the local premises of the actual goal are
-involved, additional facts may inserted via explicit forward-chaining (using
-$\THEN$, $\FROMNAME$ etc.).  The full context of assumptions is only included
-if the ``$!$'' (bang) argument is given, which should be used with some care,
-though.
+internally \cite[\S10]{isabelle-ref}, which means that assumptions are both
+simplified as well as used in simplifying the conclusion.  In structured
+proofs this is usually quite well behaved in practice: just the local premises
+of the actual goal are involved, additional facts may inserted via explicit
+forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The full context of
+assumptions is only included if the ``$!$'' (bang) argument is given, which
+should be used with some care, though.
 
 Additional Simplifier options may be specified to tune the behavior even
 further: $no_asm$ means assumptions are ignored completely (cf.\ 
