@@ -8,7 +8,8 @@
 
 default: HOLCF
 images: HOLCF IOA
-test: HOLCF-IMP HOLCF-ex IOA-ABP IOA-NTP IOA-Modelcheck IOA-Storage IOA-ex
+test: HOLCF-IMP HOLCF-ex HOLCF-FOCUS \
+      IOA-ABP IOA-NTP IOA-Modelcheck IOA-Storage IOA-ex
 all: images test
 
 
@@ -58,9 +59,20 @@ HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
   ex/Dnat.ML ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
   ex/Focus_ex.thy ex/Hoare.ML ex/Hoare.thy ex/Loop.ML ex/Loop.thy \
-  ex/ROOT.ML ex/Stream.ML ex/Stream.thy ex/loeckx.ML
+  ex/ROOT.ML ex/Stream.ML ex/Stream.thy ex/loeckx.ML \
+  ../HOL/Library/Nat_Infinity.thy 
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 
+
+## HOLCF-FOCUS
+
+HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
+
+$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstream.thy FOCUS/Fstream.ML \
+  FOCUS/FOCUS.thy FOCUS/FOCUS.ML \
+  FOCUS/Stream_adm.thy FOCUS/Stream_adm.ML  ../HOL/Library/Continuity.thy \
+  FOCUS/Buffer.thy FOCUS/Buffer.ML FOCUS/Buffer_adm.thy FOCUS/Buffer_adm.ML
+	@$(ISATOOL) usedir $(OUT)/HOLCF FOCUS
 
 ## IOA
 
@@ -154,5 +166,6 @@ $(LOG)/IOA-ex.gz: $(OUT)/IOA IOA/ex/ROOT.ML \
 
 clean:
 	@rm -f $(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz \
-	  $(LOG)/HOLCF-ex.gz $(OUT)/IOA $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz \
+	  $(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz \
+          $(OUT)/IOA $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz \
 	  $(LOG)/IOA-NTP.gz $(LOG)/IOA-Modelcheck.gz $(LOG)/IOA-Storage.gz
