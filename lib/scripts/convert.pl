@@ -17,13 +17,6 @@ sub thmlist {
   $s;
 }
 
-sub mult_assumption {
-  my $n = shift;
-  my $r = "";
-  for($i=0; $i<$n; $i++) { $r = $r.", assumption"; }
-  $r;
-}
-
 sub process_tac {
   my $lead = shift;
   my $t = shift;
@@ -100,20 +93,19 @@ sub process_tac {
   s/rtac ([\w\.]+) 1/rule $1/g;
   s/rtac ([\w\.]+) (\d+)/rule_tac [$2] $1/g;
   s/res_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/rule_tac $1 = $2 $3/g;
-  s/ratac ([\w\.]+) (\d+) 1/"rule $1".mult_assumption($2)/eg;
   s/dtac ([\w\.]+) 1/drule $1/g;
   s/dtac ([\w\.]+) (\d+)/drule_tac [$2] $1/g;
   s/dres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/drule_tac $1 = $2 $3/g;
-  s/datac ([\w\.]+) (\d+) 1/"drule $1".mult_assumption($2)/eg;
+  s/datac ([\w\.]+) (\d+) 1/"drule ($2) $1"/g;
   s/etac ([\w\.]+) 1/erule $1/g;
   s/etac ([\w\.]+) (\d+)/erule_tac [$2] $1/g;
   s/eres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/erule_tac $1 = $2 $3/g;
-  s/eatac ([\w\.]+) (\d+) 1/"erule $1".mult_assumption($2)/eg;
+  s/eatac ([\w\.]+) (\d+) 1/"erule ($2) $1"/g;
   s/forward_tac \[([\w\.]+)\] 1/frule $1/g;
   s/ftac ([\w\.]+) 1/frule $1/g;
   s/ftac ([\w\.]+) (\d+)/frule_tac [$2] $1/g;
   s/forw_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/frule_tac $1 = $2 $3/g;
-  s/fatac ([\w\.]+) (\d+) 1/"frule $1".mult_assumption($2)/eg;
+  s/fatac ([\w\.]+) (\d+) 1/"frule ($2) $1"/g;
 
 
   s/THEN /, /g;
