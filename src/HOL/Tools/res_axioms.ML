@@ -122,8 +122,6 @@ end;
 
 (* some lemmas *)
 
-(* TO BE FIXED: the names of these lemmas should be made local, to avoid confusion with external global lemmas. *)
-
 Goal "(P==True) ==> P";
 by(Blast_tac 1);
 qed "Eq_TrueD1";
@@ -131,7 +129,6 @@ qed "Eq_TrueD1";
 Goal "(P=True) ==> P";
 by(Blast_tac 1);
 qed "Eq_TrueD2";
-
 
 Goal "(P==False) ==> ~P";
 by(Blast_tac 1);
@@ -141,50 +138,22 @@ Goal "(P=False) ==> ~P";
 by(Blast_tac 1);
 qed "Eq_FalseD2";
 
-Goal "(P | True) == True";
-by(Simp_tac 1);
-qed "s1";
+local 
 
-Goal "(True | P) == True";
-by(Simp_tac 1);
-qed "s2";
+    fun prove s = prove_goal (the_context()) s (fn _ => [Simp_tac 1]);
 
-Goal "(P & True) == P";
-by(Simp_tac 1);
-qed "s3";
+val small_simps = 
+  map prove 
+   ["(P | True) == True", "(True | P) == True",
+    "(P & True) == P", "(True & P) == P",
+    "(False | P) == P", "(P | False) == P",
+    "(False & P) == False", "(P & False) == False",
+    "~True == False", "~False == True"];
+in
 
-Goal "(True & P) == P";
-by(Simp_tac 1);
-qed "s4";
+val small_simpset = empty_ss addsimps small_simps
 
-Goal "(False | P) == P";
-by(Simp_tac 1);
-qed "s5";
-
-
-Goal "(P | False) == P";
-by(Simp_tac 1);
-qed "s6";
-
-Goal "(False & P) == False";
-by(Simp_tac 1);
-qed "s7";
-
-Goal "(P & False) == False";
-by(Simp_tac 1);
-qed "s8";
-
-Goal "~True == False";
-by(Simp_tac 1);
-qed "s9";
-
-Goal "~False == True";
-by(Simp_tac 1);
-qed "s10";
-
-
-val small_simpset = empty_ss addsimps [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10];
-
+end;
 
 
 signature RES_AXIOMS =
@@ -261,8 +230,13 @@ fun is_introR thm = true;
 
 
 
-(* transfer a theorem in to theory Main.thy if it is not already inside Main.thy *)
-fun transfer_to_Main thm = transfer Main.thy thm handle THM _ => thm;
+(*Transfer a theorem in to theory Hilbert_Choice.thy if it is not already
+  inside that theory -- because it's needed for Skolemization *)
+
+val hc_thy = ThyInfo.get_theory"Hilbert_Choice";
+
+fun transfer_to_Hilbert_Choice thm =
+    transfer hc_thy thm handle THM _ => thm;
 
 (* remove "True" clause *)
 fun rm_redundant_cls [] = []
@@ -275,7 +249,7 @@ fun rm_redundant_cls [] = []
 
 (* transform an Isabelle thm into CNF *)
 fun cnf_axiom thm =
-    let val thm' = transfer_to_Main thm
+    let val thm' = transfer_to_Hilbert_Choice thm
 	val thm'' = if (is_elimR thm') then (cnf_elim thm')
 		    else (if (is_introR thm') then cnf_intro thm' else cnf_rule thm')
     in

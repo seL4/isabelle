@@ -163,6 +163,18 @@ val DEMOD_global = gen_DEMOD global_thm;
 val DEMOD_local = gen_DEMOD local_thm;
 
 
+(** Conversion of a theorem into clauses **)
+
+fun clausify_rule (A,i) =
+  standard
+    (make_meta_clause
+      (List.nth(ResAxioms.cnf_axiom A,i-1)));
+
+fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
+
+fun CLAUSIFY x = syntax ((Scan.lift Args.nat) >> clausify_syntax) x;
+
+
 (** theory setup **)
 
 val setup =
@@ -170,7 +182,8 @@ val setup =
      [("BINARY", (BINARY_global, BINARY_local), "binary resolution"),
       ("PARAMOD", (PARAMOD_global, PARAMOD_local), "paramodulation"),
       ("DEMOD", (DEMOD_global, DEMOD_local), "demodulation"),
-      ("FACTOR", (FACTOR, FACTOR), "factoring")]];
+      ("FACTOR", (FACTOR, FACTOR), "factoring"),
+      ("CLAUSIFY", (CLAUSIFY, CLAUSIFY), "conversion to clauses")]];
 
 end
 end

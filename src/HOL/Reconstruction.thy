@@ -8,7 +8,13 @@ header{*Attributes for Reconstructing External Resolution Proofs*}
 
 theory Reconstruction
     imports Hilbert_Choice
-    files   "Tools/reconstruction.ML"
+    files "Tools/res_lib.ML"
+	  "Tools/res_clause.ML"
+	  "Tools/res_skolem_function.ML"
+	  "Tools/res_axioms.ML"
+	  "Tools/res_types_sorts.ML"
+	  "Tools/res_atp.ML"
+          "Tools/reconstruction.ML"
 
 begin
 
