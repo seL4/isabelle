@@ -279,15 +279,14 @@ text {*
 text_raw {*
   \begin{figure}
   \begin{center}\begin{minipage}{0.6\textwidth}  
-  \begin{isabellebody}
+  \isastyle\isamarkuptrue
 *}
 lemma True
 proof -
   -- "pretty trivial"
   show True by force
 qed
-text_raw {*  
-  \end{isabellebody}
+text_raw {*    
   \end{minipage}\end{center}
   \caption{Example proof in a figure.}\label{fig:proof}
   \end{figure}
@@ -299,7 +298,7 @@ text {*
 \verb!text_raw {!\verb!*!\\
 \verb!  \begin{figure}!\\
 \verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
-\verb!  \begin{isabellebody}!\\
+\verb!  \isastyle\isamarkuptrue!\\
 \verb!*!\verb!}!\\
 \verb!lemma True!\\
 \verb!proof -!\\
@@ -307,7 +306,6 @@ text {*
 \verb!  show True by force!\\
 \verb!qed!\\
 \verb!text_raw {!\verb!*!\\
-\verb!  \end{isabellebody}!\\
 \verb!  \end{minipage}\end{center}!\\
 \verb!  \caption{Example proof in a figure.}\label{fig:proof}!\\
 \verb!  \end{figure}!\\

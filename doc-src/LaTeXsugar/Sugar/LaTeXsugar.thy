@@ -44,7 +44,7 @@ syntax (latex output)
 
 (* nth *)
 syntax (latex output)
-  nth :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^raw:$_{[\mathit{>_\<^raw:}]}$>" [1000,0] 1000)
+  nth :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^raw:\ensuremath{_{[\mathit{>_\<^raw:}]}}>" [1000,0] 1000)
 
 (* DUMMY *)
 consts DUMMY :: 'a ("\<^raw:\_>")
